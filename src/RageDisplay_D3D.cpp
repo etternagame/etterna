@@ -354,7 +354,7 @@ RString SetD3DParams( bool &bNewDeviceOut )
 			D3DADAPTER_DEFAULT, 
 			D3DDEVTYPE_HAL, 
 			GraphicsWindow::GetHwnd(),
-			D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,
+			D3DCREATE_HARDWARE_VERTEXPROCESSING,
 			&g_d3dpp, 
 			&g_pd3dDevice );
 		if( FAILED(hr) )
