@@ -134,7 +134,7 @@ public:
 
 protected:
 	void UpdateTapNotesMissedOlderThan( float fMissIfOlderThanThisBeat );
-	void UpdateJudgedRows();
+	void UpdateJudgedRows(float fDeltaTime);
 	void FlashGhostRow( int iRow );
 	void HandleTapRowScore( unsigned row );
 	void HandleHoldScore( const TapNote &tn );
