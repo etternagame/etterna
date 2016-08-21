@@ -85,7 +85,10 @@ bool RageSoundReader_PitchChange::SetProperty( const RString &sProperty, float f
 	}
 	if( sProperty == "Speed" )
 	{
+		/* HACK: Put rate functions back together,
+		   this needs to be refactored. */
 		SetSpeedRatio( fValue );
+		SetPitchRatio( fValue );
 		return true;
 	}
 
