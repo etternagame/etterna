@@ -17,6 +17,8 @@
 #include <d3d9.h>
 #include <dxerr.h>
 
+#include <Dwmapi.h>
+
 #include "archutils/Win32/GraphicsWindow.h"
 
 // Static libraries
@@ -474,7 +476,10 @@ static void SetPresentParametersFromVideoModeParams( const VideoModeParams &p, D
 	pD3Dpp->EnableAutoDepthStencil	= TRUE;
 	pD3Dpp->AutoDepthStencilFormat	= D3DFMT_D16;
 
-	if( p.windowed )
+	BOOL aeroOn = false;
+	DwmIsCompositionEnabled(&aeroOn);
+
+	if (p.windowed && !aeroOn)
 		pD3Dpp->PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;
 	else
 		pD3Dpp->PresentationInterval = p.vsync ? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE;
