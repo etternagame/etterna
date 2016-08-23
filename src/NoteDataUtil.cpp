@@ -1020,10 +1020,6 @@ void NoteDataUtil::CalculateRadarValues( const NoteData &in, float fSongSeconds,
 	// total_taps exists because the stream calculation needs GetNumTapNotes,
 	// but TapsAndHolds + Jumps + Hands would be inaccurate. -Kyz
 	float total_taps= 0;
-	const float voltage_window_beats= 8.0f;
-	const int voltage_window= BeatToNoteRow(voltage_window_beats);
-	size_t max_notes_in_voltage_window= 0;
-	int num_chaos_rows= 0;
 	crv_state state;
 
 	while(!curr_note.IsAtEnd())
@@ -1043,26 +1039,6 @@ void NoteDataUtil::CalculateRadarValues( const NoteData &in, float fSongSeconds,
 					--n;
 				}
 			}
-			for(size_t n= 0; n < recent_notes.size(); ++n)
-			{
-				if(recent_notes[n].row < curr_row - voltage_window)
-				{
-					recent_notes.erase(recent_notes.begin() + n);
-					--n;
-				}
-				else
-				{
-					// recent_notes is kept sorted, so reaching the first note that
-					// isn't old enough to remove means we're finished. -Kyz
-					break;
-				}
-			}
-			// GetChaosRadarValue did not care about whether a row is judgable.
-			// So chaos is checked here. -Kyz
-			if(GetNoteType(curr_row) >= NOTE_TYPE_12TH)
-			{
-				++num_chaos_rows;
-			}
 		}
 		if(state.judgable)
 		{
@@ -1079,10 +1055,6 @@ void NoteDataUtil::CalculateRadarValues( const NoteData &in, float fSongSeconds,
 					++out[RadarCategory_Notes];
 					++state.num_notes_on_curr_row;
 					++total_taps;
-					recent_notes.push_back(
-						recent_note(curr_row, curr_note.Track()));
-					max_notes_in_voltage_window= max(recent_notes.size(),
-						max_notes_in_voltage_window);
 					// If there is one hold active, and one tap on this row, it does
 					// not count as a jump.  Hands do need to count the number of
 					// holds active though. -Kyz
@@ -1135,24 +1107,6 @@ void NoteDataUtil::CalculateRadarValues( const NoteData &in, float fSongSeconds,
 		++curr_note;
 	}
 	DoRowEndRadarCalc(state, out);
-
-	// Walking the notes complete, now assign any values that remain. -Kyz
-	if(fSongSeconds > 0.0f)
-	{
-		out[RadarCategory_Stream]= (total_taps / fSongSeconds) / 7.0f;
-		// As seen in GetVoltageRadarValue:  Don't use the timing data, just
-		// pretend the beats are evenly spaced. -Kyz
-		float avg_bps= in.GetLastBeat() / fSongSeconds;
-		out[RadarCategory_Voltage]=
-			((max_notes_in_voltage_window / voltage_window_beats) * avg_bps) /
-			10.0f;
-		out[RadarCategory_Air]= out[RadarCategory_Jumps] / fSongSeconds;
-		out[RadarCategory_Freeze]= out[RadarCategory_Holds] / fSongSeconds;
-		out[RadarCategory_Chaos]= num_chaos_rows / fSongSeconds * .5f;
-	}
-	// Sorry, there's not an assert here anymore for making sure all fields
-	// are set.  There's a comment in the RadarCategory enum to direct
-	// attention here when adding new categories. -Kyz
 }
 
 void NoteDataUtil::RemoveHoldNotes( NoteData &in, int iStartIndex, int iEndIndex )
