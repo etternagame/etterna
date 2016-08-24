@@ -211,7 +211,7 @@ void ScreenHowToPlay::Step()
 #define ST_JUMPUD	(ST_UP | ST_DOWN)
 
 	int iStep = 0;
-	const int iNoteRow = BeatToNoteRowNotRounded( GAMESTATE->m_Position.m_fSongBeat + 0.6f );
+	const int iNoteRow = BeatToNoteRow( GAMESTATE->m_Position.m_fSongBeat + 0.6f );
 	// if we want to miss from here on out, don't process steps.
 	if( m_iW2s < m_iNumW2s && m_NoteData.IsThereATapAtRow( iNoteRow ) )
 	{
@@ -251,7 +251,7 @@ void ScreenHowToPlay::Update( float fDelta )
 		m_fFakeSecondsIntoSong += fDelta;
 
 		static int iLastNoteRowCounted = 0;
-		int iCurNoteRow = BeatToNoteRowNotRounded( GAMESTATE->m_Position.m_fSongBeat );
+		int iCurNoteRow = BeatToNoteRow( GAMESTATE->m_Position.m_fSongBeat );
 
 		if( iCurNoteRow != iLastNoteRowCounted &&m_NoteData.IsThereATapAtRow(iCurNoteRow) )
 		{

@@ -346,7 +346,7 @@ void BeginnerHelper::Update( float fDeltaTime )
 		return;
 
 	// the row we want to check on this update
-	int iCurRow = BeatToNoteRowNotRounded( GAMESTATE->m_Position.m_fSongBeat + 0.4f );
+	int iCurRow = BeatToNoteRow( GAMESTATE->m_Position.m_fSongBeat + 0.4f );
 	FOREACH_EnabledPlayer( pn )
 	{
 		for( int iRow=m_iLastRowChecked; iRow<iCurRow; iRow++ )

@@ -778,9 +778,9 @@ void FindEvent(int& event_row, int& event_type,
 	const vector<TimingSegment*>& bpms, const vector<TimingSegment*>& warps,
 	const vector<TimingSegment*>& stops, const vector<TimingSegment*>& delays)
 {
-	if(start.is_warping && BeatToNoteRowNotRounded(start.warp_destination) < event_row)
+	if(start.is_warping && BeatToNoteRow(start.warp_destination) < event_row)
 	{
-		event_row= BeatToNoteRowNotRounded(start.warp_destination);
+		event_row= BeatToNoteRow(start.warp_destination);
 		event_type= FOUND_WARP_DESTINATION;
 	}
 	if(start.bpm < bpms.size() && bpms[start.bpm]->GetRow() < event_row)
@@ -793,9 +793,9 @@ void FindEvent(int& event_row, int& event_type,
 		event_row= delays[start.delay]->GetRow();
 		event_type= FOUND_DELAY;
 	}
-	if(find_marker && BeatToNoteRowNotRounded(beat) < event_row)
+	if(find_marker && BeatToNoteRow(beat) < event_row)
 	{
-		event_row= BeatToNoteRowNotRounded(beat);
+		event_row= BeatToNoteRow(beat);
 		event_type= FOUND_MARKER;
 	}
 	if(start.stop < stops.size() && stops[start.stop]->GetRow() < event_row)

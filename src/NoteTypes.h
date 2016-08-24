@@ -273,8 +273,9 @@ bool IsNoteOfType( int row, NoteType t );
 
 /* This is more accurate: by computing the integer and fractional parts separately, we
  * can avoid storing very large numbers in a float and possibly losing precision.  It's
- * slower; use this once less stuff uses BeatToNoteRow. */
-/*
+ * slower; use this once less stuff uses BeatToNoteRow. 
+ *
+ *	This function rounds up.
 inline int   BeatToNoteRow( float fBeatNum )
 {
 	float fraction = fBeatNum - truncf(fBeatNum);
@@ -282,16 +283,12 @@ inline int   BeatToNoteRow( float fBeatNum )
 	return integer + lrintf(fraction * ROWS_PER_BEAT);
 }
 */
+
 /**
  * @brief Convert the beat into a note row.
  * @param fBeatNum the beat to convert.
  * @return the note row. */
-inline int   BeatToNoteRow( float fBeatNum )		{ return lrintf( fBeatNum * ROWS_PER_BEAT ); }	// round
-/**
- * @brief Convert the beat into a note row without rounding.
- * @param fBeatNum the beat to convert.
- * @return the note row. */
-inline int   BeatToNoteRowNotRounded( float fBeatNum )	{ return (int)( fBeatNum * ROWS_PER_BEAT ); }
+inline int   BeatToNoteRow( float fBeatNum )		{ return (int)( fBeatNum * ROWS_PER_BEAT ); }
 /**
  * @brief Convert the note row to a beat.
  * @param iRow the row to convert.

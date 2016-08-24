@@ -2187,7 +2187,7 @@ void ScreenGameplay::UpdateLights()
 	ZERO( bBlinkGameButton );
 	{
 		const float fSongBeat = GAMESTATE->m_Position.m_fLightSongBeat;
-		const int iSongRow = BeatToNoteRowNotRounded( fSongBeat );
+		const int iSongRow = BeatToNoteRow( fSongBeat );
 
 		static int iRowLastCrossed = 0;
 
@@ -2270,7 +2270,7 @@ void ScreenGameplay::SendCrossedMessages()
 		float fPositionSeconds = GAMESTATE->m_Position.m_fMusicSeconds;
 		float fSongBeat = GAMESTATE->m_pCurSong->m_SongTiming.GetBeatFromElapsedTime( fPositionSeconds );
 
-		int iRowNow = BeatToNoteRowNotRounded( fSongBeat );
+		int iRowNow = BeatToNoteRow( fSongBeat );
 		iRowNow = max( 0, iRowNow );
 
 		for( int r=iRowLastCrossed+1; r<=iRowNow; r++ )
@@ -2308,7 +2308,7 @@ void ScreenGameplay::SendCrossedMessages()
 			float fPositionSeconds = GAMESTATE->m_Position.m_fMusicSeconds + fNoteWillCrossInSeconds;
 			float fSongBeat = GAMESTATE->m_pCurSong->m_SongTiming.GetBeatFromElapsedTime( fPositionSeconds );
 
-			int iRowNow = BeatToNoteRowNotRounded( fSongBeat );
+			int iRowNow = BeatToNoteRow( fSongBeat );
 			iRowNow = max( 0, iRowNow );
 			int &iRowLastCrossed = iRowLastCrossedAll[i];
 

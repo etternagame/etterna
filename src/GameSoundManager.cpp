@@ -613,7 +613,7 @@ void GameSoundManager::Update( float fDeltaTime )
 
 		float fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
 
-		int iRowNow = BeatToNoteRowNotRounded( fSongBeat );
+		int iRowNow = BeatToNoteRow( fSongBeat );
 		iRowNow = max( 0, iRowNow );
 
 		int iBeatNow = iRowNow / ROWS_PER_BEAT;
@@ -633,7 +633,7 @@ void GameSoundManager::Update( float fDeltaTime )
 	if( lights.GetNumTracks() > 0 )	// lights data was loaded
 	{
 		const float fSongBeat = GAMESTATE->m_Position.m_fLightSongBeat;
-		const int iSongRow = BeatToNoteRowNotRounded( fSongBeat );
+		const int iSongRow = BeatToNoteRow( fSongBeat );
 
 		static int iRowLastCrossed = 0;
 

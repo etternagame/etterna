@@ -37,7 +37,7 @@ void GameplayAssist::PlayTicks( const NoteData &nd, const PlayerState *ps )
 	const TimingData &timing = *GAMESTATE->m_pCurSteps[ps->m_PlayerNumber]->GetTimingData();
 	const float fSongBeat = timing.GetBeatFromElapsedTimeNoOffset( fPositionSeconds );
 
-	const int iSongRow = max( 0, BeatToNoteRowNotRounded( fSongBeat ) );
+	const int iSongRow = max( 0, BeatToNoteRow( fSongBeat ) );
 	static int iRowLastCrossed = -1;
 	if( iSongRow < iRowLastCrossed )
 		iRowLastCrossed = iSongRow;
