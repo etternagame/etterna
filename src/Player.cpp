@@ -96,12 +96,6 @@ public:
 
 RString ATTACK_DISPLAY_X_NAME( size_t p, size_t both_sides )	{ return "AttackDisplayXOffset" + (both_sides ? RString("BothSides") : ssprintf("OneSideP%d",int(p+1)) ); }
 
-/**
- * @brief Distance to search for a note in Step(), in seconds.
- *
- * TODO: This should be calculated based on the max size of the current judgment windows. */
-static const float StepSearchDistance = 1.0f;
-
 void TimingWindowSecondsInit( size_t /*TimingWindow*/ i, RString &sNameOut, float &defaultValueOut )
 {
 	sNameOut = "TimingWindowSeconds" + TimingWindowToString( (TimingWindow)i );
@@ -2109,6 +2103,8 @@ void Player::Step( int col, int row, const RageTimer &tm, bool bHeld, bool bRele
 	 * Either option would fundamentally change the grading of two quick notes
 	 * "jack hammers." Hmm.
 	 */
+	static const float StepSearchDistance = GetMaxStepDistanceSeconds();
+
 	const int iStepSearchRows = max(
 		BeatToNoteRow( m_Timing->GetBeatFromElapsedTime( m_pPlayerState->m_Position.m_fMusicSeconds + StepSearchDistance ) ) - iSongRow,
 		iSongRow - BeatToNoteRow( m_Timing->GetBeatFromElapsedTime( m_pPlayerState->m_Position.m_fMusicSeconds - StepSearchDistance ) )
@@ -2847,10 +2843,6 @@ void Player::HandleTapRowScore( unsigned row )
 #ifdef DEBUG
 	bNoCheating = false;
 #endif
-
-	// Do not score rows in WarpSegments or FakeSegments
-	if (!m_Timing->IsJudgableAtRow(row))
-		return;
 
 	if( GAMESTATE->m_bDemonstrationOrJukebox )
 		bNoCheating = false;
