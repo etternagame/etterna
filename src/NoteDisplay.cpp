@@ -1036,13 +1036,17 @@ void NoteDisplay::DrawHoldBodyInternal(vector<Sprite*>& sprite_top,
 	const float y_head, const float y_tail, const float top_beat,
 	const float bottom_beat, bool glow)
 {	
-	// Draw the body
-	part_args.y_top= y_head;
-	part_args.y_bottom= y_tail;
-	part_args.top_beat = top_beat;
-	part_args.bottom_beat= bottom_beat;
-	part_args.wrapping= true;
-	DrawHoldPart(sprite_body, field_args, column_args, part_args, glow, hpt_body);
+	// Draw the body if the start is not lower than the start of the tail
+	if (y_head < y_tail)
+	{
+		part_args.y_top = y_head;
+		part_args.y_bottom = y_tail;
+		part_args.top_beat = top_beat;
+		part_args.bottom_beat = bottom_beat;
+		part_args.wrapping = true;
+		DrawHoldPart(sprite_body, field_args, column_args, part_args, glow, hpt_body);
+	}
+	
 	// Draw the bottom cap
 	part_args.y_top= y_tail;
 	part_args.y_bottom = tail_plus_bottom;
