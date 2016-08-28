@@ -1035,17 +1035,11 @@ void NoteDisplay::DrawHoldBodyInternal(vector<Sprite*>& sprite_top,
 	const float head_minus_top, const float tail_plus_bottom,
 	const float y_head, const float y_tail, const float top_beat,
 	const float bottom_beat, bool glow)
-{
-	// Draw the top cap
-	part_args.y_top= head_minus_top;
-	part_args.y_bottom= y_head;
-	part_args.top_beat= top_beat;
-	part_args.bottom_beat= top_beat;
-	part_args.wrapping= false;
-	DrawHoldPart(sprite_top, field_args, column_args, part_args, glow, hpt_top);
+{	
 	// Draw the body
 	part_args.y_top= y_head;
 	part_args.y_bottom= y_tail;
+	part_args.top_beat = top_beat;
 	part_args.bottom_beat= bottom_beat;
 	part_args.wrapping= true;
 	DrawHoldPart(sprite_body, field_args, column_args, part_args, glow, hpt_body);
@@ -1140,12 +1134,17 @@ void NoteDisplay::DrawHoldBody(const TapNote& tn,
 		column_args, part_args, head_minus_top,
 		tail_plus_bottom, y_head, y_tail, top_beat, bottom_beat,
 		false);
-	part_args.y_start_pos= original_y_start_pos;
-	DISPLAY->SetTextureMode(TextureUnit_1, TextureMode_Glow);
-	DrawHoldBodyInternal(vpSprTop, vpSprBody, vpSprBottom, field_args,
-		column_args, part_args, head_minus_top,
-		tail_plus_bottom, y_head, y_tail, top_beat, bottom_beat,
-		true);
+
+	if((*field_args.selection_begin_marker != -1 && *field_args.selection_end_marker != -1)
+		|| column_args.glow.a > 0)
+	{
+		part_args.y_start_pos = original_y_start_pos;
+		DISPLAY->SetTextureMode(TextureUnit_1, TextureMode_Glow);
+		DrawHoldBodyInternal(vpSprTop, vpSprBody, vpSprBottom, field_args,
+			column_args, part_args, head_minus_top,
+			tail_plus_bottom, y_head, y_tail, top_beat, bottom_beat,
+			true);
+	}
 }
 
 void NoteDisplay::DrawHold(const TapNote& tn,
