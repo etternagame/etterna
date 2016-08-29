@@ -254,7 +254,7 @@ private:
 		draw_hold_part_args& part_args,
 		const float head_minus_top, const float tail_plus_bottom,
 		const float y_head, const float y_tail, const float top_beat,
-		const float bottom_beat, bool glow);
+		const float bottom_beat, bool glow, bool reverse);
 	void DrawHoldBody(const TapNote& tn, const NoteFieldRenderArgs& field_args,
 		const NoteColumnRenderArgs& column_args, float beat, bool being_held,
 		float y_head, float y_tail, float percent_fade_to_fail,

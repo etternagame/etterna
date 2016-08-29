@@ -1034,10 +1034,21 @@ void NoteDisplay::DrawHoldBodyInternal(vector<Sprite*>& sprite_top,
 	draw_hold_part_args& part_args,
 	const float head_minus_top, const float tail_plus_bottom,
 	const float y_head, const float y_tail, const float top_beat,
-	const float bottom_beat, bool glow)
+	const float bottom_beat, bool glow, bool reverse)
 {	
-	// Draw the body if the start is not lower than the start of the tail
-	if (y_head < y_tail)
+	// Draw the top cap
+	if (reverse)
+	{
+		part_args.y_top = head_minus_top;
+		part_args.y_bottom = y_head;
+		part_args.top_beat = top_beat;
+		part_args.bottom_beat = top_beat;
+		part_args.wrapping = false;
+		DrawHoldPart(sprite_top, field_args, column_args, part_args, glow, hpt_top);
+	}
+
+	// Draw the body if the start is not lower than the start of the tail	
+	if(y_head < y_tail)
 	{
 		part_args.y_top = y_head;
 		part_args.y_bottom = y_tail;
@@ -1048,12 +1059,15 @@ void NoteDisplay::DrawHoldBodyInternal(vector<Sprite*>& sprite_top,
 	}
 	
 	// Draw the bottom cap
-	part_args.y_top= y_tail;
-	part_args.y_bottom = tail_plus_bottom;
-	part_args.top_beat = bottom_beat;
-	part_args.y_start_pos = max(part_args.y_start_pos, y_head);
-	part_args.wrapping= false;
-	DrawHoldPart(sprite_bottom, field_args, column_args, part_args, glow, hpt_bottom);
+	if (!reverse)
+	{
+		part_args.y_top = y_tail;
+		part_args.y_bottom = tail_plus_bottom;
+		part_args.top_beat = bottom_beat;
+		part_args.y_start_pos = max(part_args.y_start_pos, y_head);
+		part_args.wrapping = false;
+		DrawHoldPart(sprite_bottom, field_args, column_args, part_args, glow, hpt_bottom);
+	}	
 }
 
 void NoteDisplay::DrawHoldBody(const TapNote& tn,
@@ -1137,7 +1151,7 @@ void NoteDisplay::DrawHoldBody(const TapNote& tn,
 	DrawHoldBodyInternal(vpSprTop, vpSprBody, vpSprBottom, field_args,
 		column_args, part_args, head_minus_top,
 		tail_plus_bottom, y_head, y_tail, top_beat, bottom_beat,
-		false);
+		false, reverse);
 
 	if((*field_args.selection_begin_marker != -1 && *field_args.selection_end_marker != -1)
 		|| column_args.glow.a > 0)
@@ -1147,7 +1161,7 @@ void NoteDisplay::DrawHoldBody(const TapNote& tn,
 		DrawHoldBodyInternal(vpSprTop, vpSprBody, vpSprBottom, field_args,
 			column_args, part_args, head_minus_top,
 			tail_plus_bottom, y_head, y_tail, top_beat, bottom_beat,
-			true);
+			true, reverse);
 	}
 }
 
