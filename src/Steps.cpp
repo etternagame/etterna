@@ -33,6 +33,9 @@
 /* register DisplayBPM with StringConversion */
 #include "EnumHelper.h"
 
+// For hashing wife chart keys - Mina
+#include "CryptManager.h"
+
 static const char *DisplayBPMNames[] =
 {
 	"Actual",
@@ -711,6 +714,98 @@ public:
 		return 1;
 	}
 
+	/*Re-implementation of the lua version of the script to generate chart keys, except 
+	this time using the notedata stored in game memory rather than parsing it using lua. 
+	Unfortunately this is only slightly faster than my lua implementation becasue the
+	parsing method I used is much faster than whatever is being done here, and there isn't 
+	any overhead in decompressing the notedata. Eventually I need to insert this into the
+	initial loading of notedata such that the result can be stored along with everything 
+	else rather than called via lua each time. Also need to do some efficiency rewrites
+	once I actually learn c++. -Mina*/ 
+
+	static int GetWifeChartKey(T* p, lua_State *L)
+	{
+		RString k = "";
+		RString o = "";
+		NoteData nd = p->GetNoteData();
+		TimingData *td = p->GetTimingData();
+
+		int sr = nd.GetFirstRow();	// Starting row
+		int lr = sr;				// Last row
+		float et = 0;				// Elapsed time
+		float bps;					// Beats per second
+		float beatspan;				// Beats between current row and elapsed row
+
+		/* Note on GetNextTapNoteRowForAllTracks: Not sure why each row containing
+		a tap isn't just stored as a vector within the note data the first place. You
+		know, rather than having a specific function that loops through the entire
+		notedata every time you want to do something with each noterow. I'll do this
+		myself, later, idiots - Mina*/
+
+		for (int r = sr; nd.GetNextTapNoteRowForAllTracks(r); )
+		{
+			for (int t = 0; t < nd.GetNumTracks(); ++t)
+			{
+				const TapNote &tn = nd.GetTapNote(t, r);
+				k.append(std::to_string(tn.type));
+			}
+
+			int SS = static_cast<int>(std::round(et * 1000));
+			k.append(std::to_string(SS));
+
+			bps = td->GetBPMAtRow(lr) / 60.f;
+			beatspan = NoteRowToBeat(r) - NoteRowToBeat(lr);
+			et = et + (beatspan / bps);
+			lr = r;
+		}
+
+		int SS = static_cast<int>(std::round(et * 1000));
+		k.append(std::to_string(SS));
+
+		o.append("C");	// Chart keys have the "C" prefix to diffrentiate them from scores if needed.
+		o.append(BinaryToHex(CryptManager::GetSHA1ForString(k)));
+
+		lua_pushstring(L, o);
+		return 1;
+	}
+
+	// Muddy way to get the pre-hashed string value
+	static int GetWifeChartKeyRecord(T* p, lua_State *L)
+	{
+		RString o = "";
+		NoteData nd = p->GetNoteData();
+		TimingData *td = p->GetTimingData();
+
+		int sr = nd.GetFirstRow();
+		int lr = sr;
+		float et = 0;
+		float bps;
+		float beatspan;
+
+		for (int r = sr; nd.GetNextTapNoteRowForAllTracks(r); )
+		{
+			for (int t = 0; t < nd.GetNumTracks(); ++t)
+			{
+				const TapNote &tn = nd.GetTapNote(t, r);
+				o.append(std::to_string(tn.type));
+			}
+
+			int SS = static_cast<int>(std::round(et * 1000));
+			o.append(std::to_string(SS));
+
+			bps = td->GetBPMAtRow(lr) / 60.f;
+			beatspan = NoteRowToBeat(r) - NoteRowToBeat(lr);
+			et = et + (beatspan / bps);
+			lr = r;
+		}
+
+		int SS = static_cast<int>(std::round(et * 1000));
+		o.append(std::to_string(SS));
+
+		lua_pushstring(L, o);
+		return 1;
+	}
+
 	LunaSteps()
 	{
 		ADD_METHOD( GetAuthorCredit );
@@ -727,6 +822,8 @@ public:
 		ADD_METHOD( GetChartName );
 		//ADD_METHOD( GetSMNoteData );
 		ADD_METHOD( GetStepsType );
+		ADD_METHOD( GetWifeChartKey );
+		ADD_METHOD( GetWifeChartKeyRecord );
 		ADD_METHOD( IsAnEdit );
 		ADD_METHOD( IsAutogen );
 		ADD_METHOD( IsAPlayerEdit );
