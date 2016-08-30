@@ -116,7 +116,7 @@ void LifeMeterBar::ChangeLife( TapNoteScore score )
 	/*Whatever was originally done to try and be fancy resulted in the lifemeterbar 
 	parsing the metrics file to obtain constant values every single update cycle.
 	This is obviously a temporary fix however the 200 avg fps gain is well worth it.
-	Also, this function should only be called if life values afctually change, like 
+	Also, this function should only be called if life values actually change, like 
 	with the lifechanged message. - Mina*/
 
 	case TNS_W1:			fDeltaLife =  0.008f;	break;
