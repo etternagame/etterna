@@ -244,9 +244,17 @@ void LifeMeterBar::ChangeLife( float fDeltaLife )
 		break;
 	}
 
+	float InitialLife = m_fLifePercentage;
+
 	m_fLifePercentage += fDeltaLife;
-	CLAMP( m_fLifePercentage, 0, LIFE_MULTIPLIER );
-	AfterLifeChanged();
+
+	// Default theme metrics states that LifeMultiplier is used ONLY for debug. Clearly not true. -Mina
+	CLAMP( m_fLifePercentage, 0, LIFE_MULTIPLIER );	
+	
+
+	// Only send life changed messages if the life value has actually changed. -Mina
+	if( InitialLife != m_fLifePercentage )
+		AfterLifeChanged();
 }
 
 void LifeMeterBar::SetLife(float value)
