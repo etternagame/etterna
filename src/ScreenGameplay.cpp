@@ -1852,7 +1852,7 @@ void ScreenGameplay::Update( float fDeltaTime )
 					/* Don't know why haste rates are being updated when the mod is not in 
 					use. Quickly checked whether or not doing this affects non-haste gameplay
 					and it doesn't appear to, nor should it. If it somehow does in certain
-					situations that should be addressed.*/
+					situations that should be addressed. -Mina*/
 					UpdateHasteRate();
 
 					float fHasteRate = GetHasteRate();
