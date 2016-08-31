@@ -2373,6 +2373,239 @@ void NoteDataUtil::ConvertTapsToHolds( NoteData &inout, int iSimultaneousHolds, 
 	inout.RevalidateATIs(vector<int>(), false);
 }
 
+/* Need to redo parsing to handle multiple notes on a row
+ skippping breaks it  (Jacks generated)
+ due to searching left/right it generates a lot of Left or right arrows which can also be jump jacks
+ need creative solution or actual math */
+void NoteDataUtil::IcyWorld(NoteData &inout, StepsType st, TimingData const& timing_data, int iStartIndex, int iEndIndex)
+{
+	// Row, tap column
+	std::vector<tuple<int, int>> rowsWithNotes;
+	int currentTap = -1;
+
+	FOREACH_NONEMPTY_ROW_ALL_TRACKS_RANGE(inout, r, iStartIndex, iEndIndex)
+	{
+		currentTap = inout.GetNumTracksWithTap(r);
+		if (currentTap != 1)
+			continue;	// skip
+
+		for (int q = 0; q < 4; q++)
+		{
+			const TapNote getTap = inout.GetTapNote(q, r);
+			if (getTap.type == TapNoteType_Tap)
+			{
+				currentTap = q;
+				break;
+			}
+
+		}
+		rowsWithNotes.push_back(tuple<int, int>(r, currentTap));
+	}
+
+	int lastTap = -1;
+	bool flipStartSide = false;
+	bool skipLine = true;
+	int i = 0;
+	for (auto iterator : rowsWithNotes)
+	{
+		// Every second row with note, insert a note which doesn't collide with the previous
+		if (!skipLine)
+		{
+			int iNumTracksHeld = inout.GetNumTracksHeldAtRow(std::get<0>(iterator));
+			if (iNumTracksHeld >= 1)
+			{
+				i++;
+				continue;
+			}
+
+			int tempI = (i + 1 < rowsWithNotes.size() ? i + 1 : i);
+			if (flipStartSide)
+			{
+				for (int c = 3; c >-1; c--)
+				{
+					if (c != lastTap && c != std::get<1>(iterator) && c != std::get<1>(rowsWithNotes.at(tempI)))
+					{
+						inout.SetTapNote(c, std::get<0>(iterator), TAP_ADDITION_TAP);
+						break;
+					}
+				}
+			}
+			else
+			{
+				for (int c = 0; c < 4; c++)
+				{
+					if (c != lastTap && c != std::get<1>(iterator) && c != std::get<1>(rowsWithNotes.at(tempI)))
+					{
+						inout.SetTapNote(c, std::get<0>(iterator), TAP_ADDITION_TAP);
+						break;
+					}
+				}
+			}
+			flipStartSide = !flipStartSide;
+		}
+		else
+		{
+			lastTap = std::get<1>(iterator);
+		}
+		skipLine = !skipLine;
+		i++;
+	}
+	inout.RevalidateATIs(vector<int>(), false);
+}
+
+void NoteDataUtil::AnchorJS(NoteData &inout, StepsType st, TimingData const& timing_data, int iStartIndex, int iEndIndex)
+{
+	// Row, tap column
+	std::vector<tuple<int, int>> rowsWithNotes;
+	int currentTap = -1;
+
+	FOREACH_NONEMPTY_ROW_ALL_TRACKS_RANGE(inout, r, iStartIndex, iEndIndex)
+	{
+		currentTap = inout.GetNumTracksWithTap(r);
+		if (currentTap != 1)
+			continue;	// skip
+		
+		for (int q = 0; q < 4; q++)
+		{
+			const TapNote getTap = inout.GetTapNote(q, r);
+			if (getTap.type == TapNoteType_Tap)
+			{
+				currentTap = q;
+				break;
+			}
+				
+		}
+		rowsWithNotes.push_back(tuple<int, int>(r, currentTap));
+	}
+
+	int lastTap = -1;
+	bool flipStartSide = false;
+	bool skipLine = true;
+	int i = 0;
+	for (auto iterator : rowsWithNotes)
+	{
+		// Every second row with note, insert a note which doesn't collide with the previous
+		if (!skipLine)
+		{
+			int iNumTracksHeld = inout.GetNumTracksHeldAtRow(std::get<0>(iterator));
+			if (iNumTracksHeld >= 1)
+			{
+				i++;
+				continue;
+			}
+				
+			int tempI = (i + 1 < rowsWithNotes.size() ? i + 1 : i);
+			if (flipStartSide)
+			{
+				for (int c = 3; c >-1; c--)
+				{
+					if (c != lastTap && c != std::get<1>(iterator) && c != std::get<1>(rowsWithNotes.at(tempI)))
+					{
+						inout.SetTapNote(c, std::get<0>(iterator), TAP_ADDITION_TAP);
+						break;
+					}
+				}
+			}
+			else
+			{
+				for (int c = 0; c < 4; c++)
+				{
+					if (c != lastTap && c != std::get<1>(iterator) && c != std::get<1>(rowsWithNotes.at(tempI)))
+					{
+						inout.SetTapNote(c, std::get<0>(iterator), TAP_ADDITION_TAP);
+						break;
+					}
+				}
+			}
+			flipStartSide = !flipStartSide;
+		}
+		else
+		{
+			lastTap = std::get<1>(iterator);
+		}
+		skipLine = !skipLine;
+		i++;
+	}
+	inout.RevalidateATIs(vector<int>(), false);
+}
+
+/* Same as AnchorJS, but it doesn't check if the next row will generate a jack.
+ This causes mini jacks to be formed, with JS. c: */
+void NoteDataUtil::JackJS(NoteData &inout, StepsType st, TimingData const& timing_data, int iStartIndex, int iEndIndex)
+{
+	// Row, tap column
+	std::vector<tuple<int, int>> rowsWithNotes;
+	int currentTap = -1;
+
+	FOREACH_NONEMPTY_ROW_ALL_TRACKS_RANGE(inout, r, iStartIndex, iEndIndex)
+	{
+		currentTap = inout.GetNumTracksWithTap(r);
+		if (currentTap != 1)
+			continue;	// skip
+		
+		for (int q = 0; q < 4; q++)
+		{
+			const TapNote getTap = inout.GetTapNote(q, r);
+			if (getTap.type == TapNoteType_Tap)
+			{
+				currentTap = q;
+				break;
+			}
+				
+		}
+		rowsWithNotes.push_back(tuple<int, int>(r, currentTap));
+	}
+
+	int lastTap = -1;
+	bool flipStartSide = false;
+	bool skipLine = true;
+	int i = 0;
+	for (auto iterator : rowsWithNotes)
+	{
+		// Every second row with note, insert a note which doesn't collide with the previous
+		if (!skipLine)
+		{
+			int iNumTracksHeld = inout.GetNumTracksHeldAtRow(std::get<0>(iterator));
+			if (iNumTracksHeld >= 1)
+			{
+				i++;
+				continue;
+			}
+				
+			if (flipStartSide)
+			{
+				for (int c = 3; c >-1; c--)
+				{
+					if (c != lastTap && c != std::get<1>(iterator))
+					{
+						inout.SetTapNote(c, std::get<0>(iterator), TAP_ADDITION_TAP);
+						break;
+					}
+				}
+			}
+			else
+			{
+				for (int c = 0; c < 4; c++)
+				{
+					if (c != lastTap && c != std::get<1>(iterator))
+					{
+						inout.SetTapNote(c, std::get<0>(iterator), TAP_ADDITION_TAP);
+						break;
+					}
+				}
+			}
+			flipStartSide = !flipStartSide;
+		}
+		else
+		{
+			lastTap = std::get<1>(iterator);
+		}
+		skipLine = !skipLine;
+		i++;
+	}
+	inout.RevalidateATIs(vector<int>(), false);
+}
+
 void NoteDataUtil::Stomp( NoteData &inout, StepsType st, int iStartIndex, int iEndIndex )
 {
 	// Make all non jumps with ample space around them into jumps.
@@ -2390,7 +2623,7 @@ void NoteDataUtil::Stomp( NoteData &inout, StepsType st, int iStartIndex, int iE
 			{
 				// Look to see if there is enough empty space on either side of the note
 				// to turn this into a jump.
-				int iRowWindowBegin = r - BeatToNoteRow(0.5f);
+				int iRowWindowBegin = r - BeatToNoteRow(0.5f); // 0.5
 				int iRowWindowEnd = r + BeatToNoteRow(0.5f);
 
 				bool bTapInMiddle = false;
@@ -2415,6 +2648,7 @@ void NoteDataUtil::Stomp( NoteData &inout, StepsType st, int iStartIndex, int iE
 	}		
 	inout.RevalidateATIs(vector<int>(), false);
 }
+
 
 void NoteDataUtil::SnapToNearestNoteType( NoteData &inout, NoteType nt1, NoteType nt2, int iStartIndex, int iEndIndex )
 {
@@ -2720,6 +2954,9 @@ void NoteDataUtil::TransformNoteData( NoteData &nd, TimingData const& timing_dat
 	// Jump-adding transforms aren't much affected by additional taps.
 	if( po.m_bTransforms[PlayerOptions::TRANSFORM_WIDE] )		NoteDataUtil::Wide( nd, iStartIndex, iEndIndex );
 	if( po.m_bTransforms[PlayerOptions::TRANSFORM_STOMP] )		NoteDataUtil::Stomp( nd, st, iStartIndex, iEndIndex );
+	if (po.m_bTransforms[PlayerOptions::TRANSFORM_JACKJS])		NoteDataUtil::JackJS(nd, st, timing_data, iStartIndex, iEndIndex);
+	if (po.m_bTransforms[PlayerOptions::TRANSFORM_ANCHORJS])		NoteDataUtil::AnchorJS(nd, st, timing_data, iStartIndex, iEndIndex);
+	if (po.m_bTransforms[PlayerOptions::TRANSFORM_ICYWORLD])		NoteDataUtil::IcyWorld(nd, st, timing_data, iStartIndex, iEndIndex);
 
 	// Transforms that add holds go last.  If they went first, most tap-adding 
 	// transforms wouldn't do anything because tap-adding transforms skip areas 

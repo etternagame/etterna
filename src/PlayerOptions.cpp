@@ -270,6 +270,9 @@ void PlayerOptions::GetMods( vector<RString> &AddTo, bool bForceNoteSkin ) const
 	if( m_bTransforms[TRANSFORM_ATTACKMINES] ) AddTo.push_back( "AttackMines" );
 	if( m_bTransforms[TRANSFORM_ECHO] )	AddTo.push_back( "Echo" );
 	if( m_bTransforms[TRANSFORM_STOMP] )	AddTo.push_back( "Stomp" );
+	if (m_bTransforms[TRANSFORM_JACKJS])	AddTo.push_back("JackJS");
+	if (m_bTransforms[TRANSFORM_ANCHORJS])	AddTo.push_back("AnchorJS");
+	if (m_bTransforms[TRANSFORM_ICYWORLD])	AddTo.push_back("IcyWorld");
 	if( m_bTransforms[TRANSFORM_PLANTED] )	AddTo.push_back( "Planted" );
 	if( m_bTransforms[TRANSFORM_FLOORED] )	AddTo.push_back( "Floored" );
 	if( m_bTransforms[TRANSFORM_TWISTER] )	AddTo.push_back( "Twister" );
@@ -500,6 +503,9 @@ bool PlayerOptions::FromOneModString( const RString &sOneMod, RString &sErrorOut
 	else if( sBit == "attackmines" )			m_bTransforms[TRANSFORM_ATTACKMINES] = on;
 	else if( sBit == "echo" )				m_bTransforms[TRANSFORM_ECHO] = on;
 	else if( sBit == "stomp" )				m_bTransforms[TRANSFORM_STOMP] = on;
+	else if (sBit == "jackjs")				m_bTransforms[TRANSFORM_JACKJS] = on;
+	else if (sBit == "anchorjs")				m_bTransforms[TRANSFORM_ANCHORJS] = on;
+	else if (sBit == "icyworld")				m_bTransforms[TRANSFORM_ICYWORLD] = on;
 	else if( sBit == "planted" )				m_bTransforms[TRANSFORM_PLANTED] = on;
 	else if( sBit == "floored" )				m_bTransforms[TRANSFORM_FLOORED] = on;
 	else if( sBit == "twister" )				m_bTransforms[TRANSFORM_TWISTER] = on;
@@ -1150,6 +1156,9 @@ public:
 	BOOL_INTERFACE(AttackMines, Transforms[PlayerOptions::TRANSFORM_ATTACKMINES]);
 	BOOL_INTERFACE(Echo, Transforms[PlayerOptions::TRANSFORM_ECHO]);
 	BOOL_INTERFACE(Stomp, Transforms[PlayerOptions::TRANSFORM_STOMP]);
+	BOOL_INTERFACE(JackJS, Transforms[PlayerOptions::TRANSFORM_JACKJS]);
+	BOOL_INTERFACE(AnchorJS, Transforms[PlayerOptions::TRANSFORM_ANCHORJS]);
+	BOOL_INTERFACE(IcyWorld, Transforms[PlayerOptions::TRANSFORM_ICYWORLD]);
 	BOOL_INTERFACE(Planted, Transforms[PlayerOptions::TRANSFORM_PLANTED]);
 	BOOL_INTERFACE(Floored, Transforms[PlayerOptions::TRANSFORM_FLOORED]);
 	BOOL_INTERFACE(Twister, Transforms[PlayerOptions::TRANSFORM_TWISTER]);
@@ -1530,6 +1539,9 @@ public:
 		ADD_METHOD(AttackMines);
 		ADD_METHOD(Echo);
 		ADD_METHOD(Stomp);
+		ADD_METHOD(JackJS);
+		ADD_METHOD(AnchorJS);
+		ADD_METHOD(IcyWorld);
 		ADD_METHOD(Planted);
 		ADD_METHOD(Floored);
 		ADD_METHOD(Twister);

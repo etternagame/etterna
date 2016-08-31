@@ -129,6 +129,9 @@ namespace NoteDataUtil
 	void AddMines( NoteData &inout, int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW );
 	void Echo( NoteData &inout, int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW );
 	void Stomp( NoteData &inout, StepsType st, int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW );
+	void JackJS(NoteData &inout, StepsType st, TimingData const& timing_data, int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW);
+	void AnchorJS(NoteData &inout, StepsType st, TimingData const& timing_data, int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW);
+	void IcyWorld(NoteData &inout, StepsType st, TimingData const& timing_data, int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW);
 	void Planted( NoteData &inout, int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW );
 	void Floored( NoteData &inout, int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW );
 	void Twister( NoteData &inout, int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW );
