@@ -54,8 +54,8 @@ class ScoreKeeperNormal: public ScoreKeeper
 	virtual void AddTapRowScore( TapNoteScore tns, const NoteData &nd, int iRow );
 
 	/* Configuration: */
-	/* Score after each tap will be rounded to the nearest m_iRoundTo; 1 to do nothing. */
-	int		m_iRoundTo;
+	/* Score after each tap will be rounded to the nearest m_lroundTo; 1 to do nothing. */
+	int		m_lroundTo;
 	int		m_ComboBonusFactor[NUM_TapNoteScore];
 
 public:

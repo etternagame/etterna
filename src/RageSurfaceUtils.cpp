@@ -452,7 +452,7 @@ void RageSurfaceUtils::BlitTransform( const RageSurface *src, RageSurface *dst,
 				sum += v[1][i] * (1-weight_x) * (weight_y);
 				sum += v[2][i] * (weight_x)   * (1-weight_y);
 				sum += v[3][i] * (weight_x)   * (weight_y);
-				out[i] = (uint8_t) clamp( lrintf(sum), 0L, 255L );
+				out[i] = (uint8_t) clamp( std::lround(sum), 0L, 255L );
 			}
 
 			// If the source has no alpha, set the destination to opaque.
@@ -864,13 +864,13 @@ RageSurface *RageSurfaceUtils::PalettizeToGrayscale( const RageSurface *src_surf
 		if( Ivalues == 1 )
 			ScaledI = 255; // if only one intensity value, always fullbright
 		else
-			ScaledI = clamp( lrintf(I * (255.0f / (Ivalues-1))), 0L, 255L );
+			ScaledI = clamp( std::lround(I * (255.0f / (Ivalues-1))), 0L, 255L );
 
 		int ScaledA;
 		if( Avalues == 1 )
 			ScaledA = 255; // if only one alpha value, always opaque
 		else
-			ScaledA = clamp( lrintf(A * (255.0f / (Avalues-1))), 0L, 255L );
+			ScaledA = clamp(std::lround(A * (255.0f / (Avalues-1))), 0L, 255L );
 
 		RageSurfaceColor c;
 		c.r = uint8_t(ScaledI);
