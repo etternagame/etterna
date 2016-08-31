@@ -2011,7 +2011,6 @@ void ScreenGameplay::Update( float fDeltaTime )
 
 	PlayTicks();
 	UpdateLights();
-	SendCrossedMessages();
 
 	if( !m_bForceNoNetwork && NSMAN->useSMserver )
 	{
