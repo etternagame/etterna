@@ -262,9 +262,19 @@ inline unsigned char FTOC(float a)
 	Note to self: Don't replace this with an inline for quicker conversions
 	to int if/when doing so later. */
 
-	int ret = lround(a*256.f - 0.5f);
-	CLAMP(ret, 0, 255);
+	/* Update: Nevermind the above, minus the you're all idiots part.
 
+	> test		<- seq(0,1,0.0000001)
+	> testRound <- sapply(test, function(x) round(x*256 - 0.5))
+	> testInt	<- sapply(test, function(x) as.integer(x*256))
+	> all(testRound == testInt)
+	[1] TRUE
+
+		Tested using double precision floating point numbers. I'm so disgusted
+	right now. - Mina */
+
+	int ret = static_cast<int>(a*256.f);
+	CLAMP(ret, 0, 255);
 	return static_cast<unsigned char>(ret);
 }
 
