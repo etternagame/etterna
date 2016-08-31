@@ -1591,7 +1591,7 @@ Player::PlayerNoteFieldPositioner::PlayerNoteFieldPositioner(
 	:player(p)
 {
 	player->PushPlayerMatrix(x, skew, center_y);
-	float reverse_mult= (reverse ? -1 : 1);
+	int reverse_mult= (reverse ? -1 : 1);
 	original_y= player->m_pNoteField->GetY();
 	float tilt_degrees= SCALE(tilt, -1.f, +1.f, +30, -30) * reverse_mult;
 	float zoom= SCALE(mini, 0.f, 1.f, 1.f, .5f);
@@ -3069,58 +3069,9 @@ misses. This was not the case and 0s were being sent. Now it just sends nothing 
 that just gives the judgment for taps holds and mines in aggregate for things that need to be done
 with any judgment. Params.Type is used to diffrentiate between those attributes for things that are
 done differently between the types. Current values for taps/holds are sent in params.Val. Like it 
-all should have been to begin with. Not sure where checkpoints are but I also don't care, so. -Mina*/
+all should have been to begin with. Not sure where checkpoints are but I also don't care, so. 
 
-void Player::SetMineJudgment(TapNoteScore tns, int iTrack)
-{
-	if (m_bSendJudgmentAndComboMessages)
-	{
-		RString t = "Mine";
-		Message msg("Judgment");
-		msg.SetParam("Judgment", tns);
-		msg.SetParam("Type", t);
-
-		MESSAGEMAN->Broadcast(msg);
-	}
-}
-
-void Player::SetJudgment(int iRow, int iTrack, const TapNote &tn, TapNoteScore tns, float fTapNoteOffset)
-{
-	if (m_bSendJudgmentAndComboMessages)
-	{
-		RString t = "Tap";
-		Message msg("Judgment");
-		msg.SetParam("Judgment", tns);
-		msg.SetParam("NoteRow", iRow);
-		msg.SetParam("Type", t);
-		msg.SetParam("Val", m_pPlayerStageStats->m_iTapNoteScores[tns]);
-
-		if (tns != TNS_Miss)
-			msg.SetParam("Offset", tn.result.fTapNoteOffset * 1000);  // don't send out 0 ms offsets for misses
-
-		MESSAGEMAN->Broadcast(msg);
-	}
-}
-
-void Player::SetHoldJudgment(TapNote &tn, int iTrack)
-{
-	ASSERT(iTrack < (int)m_vpHoldJudgment.size());
-	if (m_vpHoldJudgment[iTrack])
-		m_vpHoldJudgment[iTrack]->SetHoldJudgment(tn.HoldResult.hns);
-
-	if (m_bSendJudgmentAndComboMessages)
-	{
-		RString t = "Hold";
-		Message msg("Judgment");
-		msg.SetParam("Judgment", tn.HoldResult.hns);
-		msg.SetParam("Type", t);
-		msg.SetParam("Val", m_pPlayerStageStats->m_iHoldNoteScores[tn.HoldResult.hns]);
-
-		MESSAGEMAN->Broadcast(msg);
-	}
-}
-
-/* Old judgment messages. So children in virtual code museums can laugh at this in the future -Mina
+Update: both message types are being sent out currently for compatability. -Mina*/
 
 void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 {
@@ -3138,6 +3089,11 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 		{
 			SetCombo( m_pPlayerStageStats->m_iCurCombo, m_pPlayerStageStats->m_iCurMissCombo );
 		}
+
+		Message msg2("NewJudgment");
+		msg2.SetParam("Judgment", tns);
+		msg2.SetParam("Type", static_cast<RString>("Mine"));
+		MESSAGEMAN->Broadcast(msg2);
 	}
 }
 
@@ -3181,6 +3137,17 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 
 		LUA->Release( L );
 		MESSAGEMAN->Broadcast( msg );
+
+		Message msg2("NewJudgment");
+		msg2.SetParam("Judgment", tns);
+		msg2.SetParam("NoteRow", iRow);
+		msg2.SetParam("Type", static_cast<RString>("Tap"));
+		msg2.SetParam("Val", m_pPlayerStageStats->m_iTapNoteScores[tns]);
+
+		if (tns != TNS_Miss)
+			msg2.SetParam("Offset", tn.result.fTapNoteOffset * 1000);  // don't send out 0 ms offsets for misses
+
+		MESSAGEMAN->Broadcast(msg2);
 	}
 }
 
@@ -3206,9 +3173,14 @@ void Player::SetHoldJudgment( TapNote &tn, int iTrack )
 		LUA->Release( L );
 
 		MESSAGEMAN->Broadcast( msg );
+
+		Message msg2("NewJudgment");
+		msg2.SetParam("Judgment", tn.HoldResult.hns);
+		msg2.SetParam("Type", static_cast<RString>("Hold"));
+		msg2.SetParam("Val", m_pPlayerStageStats->m_iHoldNoteScores[tn.HoldResult.hns]);
+		MESSAGEMAN->Broadcast(msg2);
 	}
 }
-*/
 
 void Player::SetCombo( unsigned int iCombo, unsigned int iMisses )
 {
