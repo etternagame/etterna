@@ -172,6 +172,15 @@ void NoteData::CopyAll( const NoteData& from )
 	*this = from;
 }
 
+vector<int> NoteData::LogNonEmptyRows()
+{
+	vector<int> NonEmptyRowVector;
+	FOREACH_NONEMPTY_ROW_ALL_TRACKS(*this, row)
+		NonEmptyRowVector.push_back(row);
+
+	return NonEmptyRowVector;
+}
+
 bool NoteData::IsRowEmpty( int row ) const
 {
 	for( int t=0; t<GetNumTracks(); t++ )

@@ -306,6 +306,8 @@ public:
 	int GetNumHoldNotes( int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW ) const;
 	int GetNumRolls( int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW ) const;
 
+	vector<int> LogNonEmptyRows();
+
 	// Count rows that contain iMinTaps or more taps.
 	int GetNumRowsWithSimultaneousTaps( int iMinTaps, int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW ) const;
 	int GetNumJumps( int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW ) const

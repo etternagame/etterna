@@ -163,6 +163,33 @@ public:
 	const TimingData *GetTimingData() const;
 	TimingData *GetTimingData() { return const_cast<TimingData*>( static_cast<const Steps*>( this )->GetTimingData() ); };
 
+	/* Jesus is this the only safe place to put anything? Generate a vector for which each 
+	element is the number of a non-empty row in the note data, for all the rows. We do this 
+	when loading the song so instead of looping throuh thousands of empty lines every time 
+	we want to do something to the notelines of a file, we can just call this instead. -Mina */
+
+	vector<int> NonEmptyRowVector;
+	vector<int> GetNonEmptyRowVector() { return NonEmptyRowVector; };
+
+	/* Same concept as above, however this time we're going to store elapsed time at each 
+	row for every single row in the notedata. You know, just to be safe. Also so we aren't
+	calculating this during gameplay and as a result aren't calculating the determnistic 
+	outcome of bpms and bpm changes millions of times per week. What a concept. This should
+	probably go into timing data at some point but whatever. -Mina */
+
+	vector<float> ElapsedTimesAtAllRows;
+	vector<float> GetElapsedTimesAtAllRows() { return ElapsedTimesAtAllRows; };
+	float GetElapsedTimeAtRow(int irow) { return ElapsedTimesAtAllRows[irow]; };
+
+	/* Now for half the reason I'm bothering to do this... generate a chart key using note
+	data and timingdata in conjuction. Do it during load and save it in the steps data so 
+	that we have to do it as few times as possible.*/
+	RString ChartKey;
+
+	/* This is a reimplementation of the lua version of the script to generate chart keys, except this time
+	using the notedata stored in game memory immediately after reading it than parsing it using lua. - Mina */
+	RString GenerateChartKey(NoteData nd);
+
 	/**
 	 * @brief Determine if the Steps have any major timing changes during gameplay.
 	 * @return true if it does, or false otherwise. */
