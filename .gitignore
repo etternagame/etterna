@@ -138,6 +138,10 @@ Themes/optical-release
 Themes/moonlight
 Themes/ultralight
 Themes/test
+Themes/Til Death
+Noteskins/Dance/DivideByZero
+Noteskins/Dance/dbzdefaultbackup
+wife
 src/version.bin
 src/verstub.cpp
 bundle/ffmpeg/.config
@@ -166,6 +170,7 @@ Data/SpeedMods.txt
 crashinfo.txt
 Utils/temp*
 Program/StepMania*.lib
+
 
 # Unknown File Types
 *.dia

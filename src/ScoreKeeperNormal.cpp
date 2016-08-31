@@ -119,7 +119,7 @@ void ScoreKeeperNormal::Load(
 	MESSAGEMAN->Broadcast( msg );
 
 	memset( m_ComboBonusFactor, 0, sizeof(m_ComboBonusFactor) );
-	m_iRoundTo = 1;
+	m_lroundTo = 1;
 }
 
 void ScoreKeeperNormal::OnNextSong( int iSongInCourseIndex, const Steps* pSteps, const NoteData* pNoteData )
@@ -323,7 +323,7 @@ void ScoreKeeperNormal::AddScoreInternal( TapNoteScore score )
 
 		// Undo rounding from the last tap, and re-round.
 		iScore += m_iScoreRemainder;
-		m_iScoreRemainder = (iScore % m_iRoundTo);
+		m_iScoreRemainder = (iScore % m_lroundTo);
 		iScore = iScore - m_iScoreRemainder;
 
 		// LOG->Trace( "score: %i", iScore );

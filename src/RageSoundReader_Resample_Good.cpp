@@ -631,7 +631,7 @@ void RageSoundReader_Resample_Good::ReopenResampler()
 	}
 
 	if( m_fRate != -1 )
-		iDownFactor = lrintf( m_fRate * iDownFactor );
+		iDownFactor = lround( m_fRate * iDownFactor );
 
 	for( size_t iChannel = 0; iChannel < m_apResamplers.size(); ++iChannel )
 		m_apResamplers[iChannel]->SetDownFactor( iDownFactor );
@@ -707,7 +707,7 @@ void RageSoundReader_Resample_Good::SetRate( float fRatio )
 	int iDownFactor, iUpFactor;
 	GetFactors( iDownFactor, iUpFactor );
 	if( m_fRate != -1 )
-		iDownFactor = lrintf( m_fRate * iDownFactor );
+		iDownFactor = lround( m_fRate * iDownFactor );
 
 	/* Set m_fRate to the actual rate, after quantization by iUpFactor. */
 	m_fRate = float(iDownFactor) / iUpFactor;

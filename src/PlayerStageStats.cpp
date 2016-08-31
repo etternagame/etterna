@@ -342,7 +342,7 @@ int PlayerStageStats::GetLessonScoreNeeded() const
 		fScore += (*steps)->GetRadarValues(PLAYER_1)[RadarCategory_TapsAndHolds];
 	}
 
-	return lrintf( fScore * LESSON_PASS_THRESHOLD );
+	return lround( fScore * LESSON_PASS_THRESHOLD );
 }
 
 void PlayerStageStats::ResetScoreForLesson()

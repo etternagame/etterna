@@ -53,7 +53,7 @@ void RageSoundReader_Chain::AddSound( int iIndex, float fOffsetSecs, float fPan 
 
 	Sound s;
 	s.iIndex = iIndex;
-	s.iOffsetMS = lrintf( fOffsetSecs * 1000 );
+	s.iOffsetMS = lround( fOffsetSecs * 1000 );
 	s.fPan = fPan;
 	s.pSound = NULL;
 	m_aSounds.push_back( s );

@@ -258,13 +258,17 @@ void BitmapText::BuildChars()
 	}
 
 	/* Ensure that the width is always even. This maintains pixel alignment;
-	 * fX below will always be an integer. */
-	m_size.x = QuantizeUp( m_size.x, 2.0f );
+	* fX below will always be an integer. */
+
+	/* QuantizeUp is an inefficient function to use if we only care about
+	multiples of two. - Mina*/
+
+	m_size.x = static_cast<int>(1 + (m_size.x / 2)) * 2.f;
 
 	m_aVertices.clear();
 	m_vpFontPageTextures.clear();
 
-	if( m_wTextLines.empty() )
+	if (m_wTextLines.empty())
 		return;
 
 	m_size.y = float(m_pFont->GetHeight() * m_wTextLines.size());
@@ -274,50 +278,50 @@ void BitmapText::BuildChars()
 	iPadding += m_iVertSpacing;
 
 	// There's padding between every line:
-	m_size.y += iPadding * int(m_wTextLines.size()-1);
+	m_size.y += iPadding * static_cast<int>(m_wTextLines.size() - 1);
 
 	// the top position of the first row of characters
-	int iY = lrintf(-m_size.y/2.0f);
+	int iY = lround(-m_size.y / 2);
 
-	for( unsigned i=0; i<m_wTextLines.size(); i++ ) // foreach line
+	for (unsigned i = 0; i<m_wTextLines.size(); i++) // foreach line
 	{
 		iY += m_pFont->GetHeight();
 
 		wstring sLine = m_wTextLines[i];
-		if( m_pFont->IsRightToLeft() )
-			reverse( sLine.begin(), sLine.end() );
+		if (m_pFont->IsRightToLeft())
+			reverse(sLine.begin(), sLine.end());
 		const int iLineWidth = m_iLineWidths[i];
 
-		float fX = SCALE( m_fHorizAlign, 0.0f, 1.0f, -m_size.x/2.0f, +m_size.x/2.0f - iLineWidth );
-		int iX = lrintf( fX );
+		float fX = SCALE(m_fHorizAlign, 0, 1, -m_size.x / 2, m_size.x / 2 - iLineWidth);
+		int iX = lround(fX);
 
-		for( unsigned j = 0; j < sLine.size(); ++j )
+		for (unsigned j = 0; j < sLine.size(); ++j)
 		{
 			RageSpriteVertex v[4];
-			const glyph &g = m_pFont->GetGlyph( sLine[j] );
+			const glyph &g = m_pFont->GetGlyph(sLine[j]);
 
 			// Advance the cursor early for RTL(?)
-			if( m_pFont->IsRightToLeft() )
+			if (m_pFont->IsRightToLeft())
 				iX -= g.m_iHadvance;
 
 			// set vertex positions
-			v[0].p = RageVector3( iX+g.m_fHshift,			iY+g.m_pPage->m_fVshift,		0 );	// top left
-			v[1].p = RageVector3( iX+g.m_fHshift,			iY+g.m_pPage->m_fVshift+g.m_fHeight,	0 );	// bottom left
-			v[2].p = RageVector3( iX+g.m_fHshift+g.m_fWidth,	iY+g.m_pPage->m_fVshift+g.m_fHeight,	0 );	// bottom right
-			v[3].p = RageVector3( iX+g.m_fHshift+g.m_fWidth,	iY+g.m_pPage->m_fVshift,		0 );	// top right
+			v[0].p = RageVector3(iX + g.m_fHshift, iY + g.m_pPage->m_fVshift, 0);	// top left
+			v[1].p = RageVector3(iX + g.m_fHshift, iY + g.m_pPage->m_fVshift + g.m_fHeight, 0);	// bottom left
+			v[2].p = RageVector3(iX + g.m_fHshift + g.m_fWidth, iY + g.m_pPage->m_fVshift + g.m_fHeight, 0);	// bottom right
+			v[3].p = RageVector3(iX + g.m_fHshift + g.m_fWidth, iY + g.m_pPage->m_fVshift, 0);	// top right
 
 			// Advance the cursor.
-			if( !m_pFont->IsRightToLeft() )
+			if (!m_pFont->IsRightToLeft())
 				iX += g.m_iHadvance;
 
 			// set texture coordinates
-			v[0].t = RageVector2( g.m_TexRect.left,	g.m_TexRect.top );
-			v[1].t = RageVector2( g.m_TexRect.left,	g.m_TexRect.bottom );
-			v[2].t = RageVector2( g.m_TexRect.right,	g.m_TexRect.bottom );
-			v[3].t = RageVector2( g.m_TexRect.right,	g.m_TexRect.top );
+			v[0].t = RageVector2(g.m_TexRect.left, g.m_TexRect.top);
+			v[1].t = RageVector2(g.m_TexRect.left, g.m_TexRect.bottom);
+			v[2].t = RageVector2(g.m_TexRect.right, g.m_TexRect.bottom);
+			v[3].t = RageVector2(g.m_TexRect.right, g.m_TexRect.top);
 
-			m_aVertices.insert( m_aVertices.end(), &v[0], &v[4] );
-			m_vpFontPageTextures.push_back( g.GetFontPageTextures() );
+			m_aVertices.insert(m_aVertices.end(), &v[0], &v[4]);
+			m_vpFontPageTextures.push_back(g.GetFontPageTextures());
 		}
 
 		// The amount of padding a line needs:
@@ -326,7 +330,7 @@ void BitmapText::BuildChars()
 
 	if( m_bUsingDistortion )
 	{
-		int iSeed = lrintf( RageTimer::GetTimeSinceStartFast()*500000.0f );
+		int iSeed = lround( RageTimer::GetTimeSinceStartFast()*500000.0f );
 		RandomGen rnd( iSeed );
 		for(unsigned int i= 0; i < m_aVertices.size(); i+=4)
 		{
@@ -349,8 +353,8 @@ void BitmapText::DrawChars( bool bUseStrokeTexture )
 		return; 
 
 	const int iNumGlyphs = m_vpFontPageTextures.size();
-	int iStartGlyph = lrintf( SCALE( m_pTempState->crop.left, 0.f, 1.f, 0, (float) iNumGlyphs ) );
-	int iEndGlyph = lrintf( SCALE( m_pTempState->crop.right, 0.f, 1.f, (float) iNumGlyphs, 0 ) );
+	int iStartGlyph = lround( SCALE( m_pTempState->crop.left, 0, 1, 0, iNumGlyphs ) );
+	int iEndGlyph = lround( SCALE( m_pTempState->crop.right, 0, 1, iNumGlyphs, 0 ) );
 	iStartGlyph = clamp( iStartGlyph, 0, iNumGlyphs );
 	iEndGlyph = clamp( iEndGlyph, 0, iNumGlyphs );
 
@@ -382,13 +386,13 @@ void BitmapText::DrawChars( bool bUseStrokeTexture )
 
 		const float fStartFadeLeftPercent = m_pTempState->crop.left;
 		const float fStopFadeLeftPercent = m_pTempState->crop.left + FadeSize.left;
-		const float fLeftFadeStartGlyph = SCALE( fStartFadeLeftPercent, 0.f, 1.f, 0, (float) iNumGlyphs );
-		const float fLeftFadeStopGlyph = SCALE( fStopFadeLeftPercent, 0.f, 1.f, 0, (float) iNumGlyphs );
+		const float fLeftFadeStartGlyph = SCALE( fStartFadeLeftPercent, 0, 1, 0, iNumGlyphs );
+		const float fLeftFadeStopGlyph =  SCALE( fStopFadeLeftPercent, 0, 1, 0, iNumGlyphs );
 
 		const float fStartFadeRightPercent = 1-(m_pTempState->crop.right + FadeSize.right);
 		const float fStopFadeRightPercent = 1-(m_pTempState->crop.right);
-		const float fRightFadeStartGlyph = SCALE( fStartFadeRightPercent, 0.f, 1.f, 0, (float) iNumGlyphs );
-		const float fRightFadeStopGlyph = SCALE( fStopFadeRightPercent, 0.f, 1.f, 0, (float) iNumGlyphs );
+		const float fRightFadeStartGlyph = SCALE( fStartFadeRightPercent, 0, 1, 0, iNumGlyphs );
+		const float fRightFadeStopGlyph =  SCALE( fStopFadeRightPercent, 0, 1, 0, iNumGlyphs );
 
 		for( int start = iStartGlyph; start < iEndGlyph; ++start )
 		{
@@ -760,7 +764,7 @@ void BitmapText::DrawPrimitives()
 		vector<RageVector3> vGlyphJitter;
 		if( m_bJitter )
 		{
-			int iSeed = lrintf( RageTimer::GetTimeSinceStartFast()*8 );
+			int iSeed = lround( RageTimer::GetTimeSinceStartFast()*8 );
 			RandomGen rnd( iSeed );
 
 			for( unsigned i=0; i<m_aVertices.size(); i+=4 )

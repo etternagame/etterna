@@ -1846,10 +1846,15 @@ void ScreenGameplay::Update( float fDeltaTime )
 			{
 				STATSMAN->m_CurStageStats.m_fStepsSeconds += fUnscaledDeltaTime;
 
-				UpdateHasteRate();
-
 				if( GAMESTATE->m_SongOptions.GetCurrent().m_fHaste != 0.0f )
 				{
+
+					/* Don't know why haste rates are being updated when the mod is not in 
+					use. Quickly checked whether or not doing this affects non-haste gameplay
+					and it doesn't appear to, nor should it. If it somehow does in certain
+					situations that should be addressed. -Mina*/
+					UpdateHasteRate();
+
 					float fHasteRate = GetHasteRate();
 					// For negative haste, accumulate seconds while the song is slowed down.
 					if(GAMESTATE->m_SongOptions.GetCurrent().m_fHaste < 0)

@@ -28,7 +28,6 @@ LifeMeterBar::LifeMeterBar()
 	FORCE_LIFE_DIFFICULTY_ON_EXTRA_STAGE.Load ("LifeMeterBar","ForceLifeDifficultyOnExtraStage");
 	EXTRA_STAGE_LIFE_DIFFICULTY.Load	("LifeMeterBar","ExtraStageLifeDifficulty");
 	m_fLifePercentChange.Load( "LifeMeterBar", LIFE_PERCENT_CHANGE_NAME, NUM_ScoreEvent );
-
 	m_pPlayerState = NULL;
 
 	const RString sType = "LifeMeterBar";
@@ -112,16 +111,23 @@ void LifeMeterBar::ChangeLife( TapNoteScore score )
 	switch( score )
 	{
 	DEFAULT_FAIL( score );
-	case TNS_W1:		fDeltaLife = m_fLifePercentChange.GetValue(SE_W1);	break;
-	case TNS_W2:		fDeltaLife = m_fLifePercentChange.GetValue(SE_W2);	break;
-	case TNS_W3:		fDeltaLife = m_fLifePercentChange.GetValue(SE_W3);	break;
-	case TNS_W4:		fDeltaLife = m_fLifePercentChange.GetValue(SE_W4);	break;
-	case TNS_W5:		fDeltaLife = m_fLifePercentChange.GetValue(SE_W5);	break;
-	case TNS_Miss:		fDeltaLife = m_fLifePercentChange.GetValue(SE_Miss);	break;
-	case TNS_HitMine:	fDeltaLife = m_fLifePercentChange.GetValue(SE_HitMine);	break;
-	case TNS_None:		fDeltaLife = m_fLifePercentChange.GetValue(SE_Miss);	break;
-	case TNS_CheckpointHit:	fDeltaLife = m_fLifePercentChange.GetValue(SE_CheckpointHit);	break;
-	case TNS_CheckpointMiss:fDeltaLife = m_fLifePercentChange.GetValue(SE_CheckpointMiss);	break;
+
+	/*Whatever was originally done to try and be fancy resulted in the lifemeterbar 
+	parsing the metrics file to obtain constant values every single update cycle.
+	This is obviously a temporary fix however the 200 avg fps gain is well worth it.
+	Also, this function should only be called if life values actually change, like 
+	with the lifechanged message. - Mina*/
+
+	case TNS_W1:			fDeltaLife =  0.008f;	break;
+	case TNS_W2:			fDeltaLife =  0.008f;	break;
+	case TNS_W3:			fDeltaLife =  0.004f;	break;
+	case TNS_W4:			fDeltaLife =	 0.f;	break;
+	case TNS_W5:			fDeltaLife = -0.040f;	break;
+	case TNS_Miss:			fDeltaLife = -0.080f;	break;
+	case TNS_HitMine:		fDeltaLife = -0.160f;	break;
+	case TNS_None:			fDeltaLife =	 0.f;	break;
+	case TNS_CheckpointHit:	fDeltaLife =	 0.f;	break;
+	case TNS_CheckpointMiss:fDeltaLife =	 0.f;	break;
 	}
 
 	// this was previously if( IsHot()  &&  score < TNS_GOOD ) in 3.9... -freem
@@ -156,9 +162,9 @@ void LifeMeterBar::ChangeLife( HoldNoteScore score, TapNoteScore tscore )
 	case DrainType_Normal:
 		switch( score )
 		{
-		case HNS_Held:		fDeltaLife = m_fLifePercentChange.GetValue(SE_Held);	break;
-		case HNS_LetGo:	fDeltaLife = m_fLifePercentChange.GetValue(SE_LetGo);	break;
-		case HNS_Missed:	fDeltaLife = m_fLifePercentChange.GetValue(SE_Missed);	break;
+		case HNS_Held:		fDeltaLife =  0.008f;		break;
+		case HNS_LetGo:		fDeltaLife = -0.080f;		break;
+		case HNS_Missed:	fDeltaLife =	 0.f;		break;
 		default:
 			FAIL_M(ssprintf("Invalid HoldNoteScore: %i", score));
 		}
@@ -244,9 +250,17 @@ void LifeMeterBar::ChangeLife( float fDeltaLife )
 		break;
 	}
 
+	float InitialLife = m_fLifePercentage;
+
 	m_fLifePercentage += fDeltaLife;
-	CLAMP( m_fLifePercentage, 0, LIFE_MULTIPLIER );
-	AfterLifeChanged();
+
+	// Default theme metrics states that LifeMultiplier is used ONLY for debug. Clearly not true. -Mina
+	CLAMP( m_fLifePercentage, 0, LIFE_MULTIPLIER );	
+	
+
+	// Only send life changed messages if the life value has actually changed. -Mina
+	if( InitialLife != m_fLifePercentage )
+		AfterLifeChanged();
 }
 
 void LifeMeterBar::SetLife(float value)

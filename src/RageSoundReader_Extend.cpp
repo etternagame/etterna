@@ -153,7 +153,7 @@ bool RageSoundReader_Extend::SetProperty( const RString &sProperty, float fValue
 {
 	if( sProperty == "StartSecond" )
 	{
-		m_iStartFrames = lrintf( fValue * this->GetSampleRate() );
+		m_iStartFrames = lround( fValue * this->GetSampleRate() );
 		return true;
 	}
 
@@ -162,7 +162,7 @@ bool RageSoundReader_Extend::SetProperty( const RString &sProperty, float fValue
 		if( fValue == -1 )
 			m_iLengthFrames = -1;
 		else
-			m_iLengthFrames = lrintf( fValue * this->GetSampleRate() );
+			m_iLengthFrames = lround( fValue * this->GetSampleRate() );
 		return true;
 	}
 
@@ -186,13 +186,13 @@ bool RageSoundReader_Extend::SetProperty( const RString &sProperty, float fValue
 
 	if( sProperty == "FadeInSeconds" )
 	{
-		m_iFadeInFrames = lrintf( fValue * this->GetSampleRate() );
+		m_iFadeInFrames = lround( fValue * this->GetSampleRate() );
 		return true;
 	}
 
 	if( sProperty == "FadeSeconds" || sProperty == "FadeOutSeconds" )
 	{
-		m_iFadeOutFrames = lrintf( fValue * this->GetSampleRate() );
+		m_iFadeOutFrames = lround( fValue * this->GetSampleRate() );
 		return true;
 	}
 

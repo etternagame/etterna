@@ -3063,6 +3063,65 @@ void Player::CacheAllUsedNoteSkins()
 		m_pNoteField->CacheAllUsedNoteSkins();
 }
 
+/* Reworked the judgment messages. Header file states that -1 should be sent as the offset for 
+misses. This was not the case and 0s were being sent. Now it just sends nothing so params.Judgment 
+~= nil can be used to filter messages with and without offsets. Also now there's a params.Judgment
+that just gives the judgment for taps holds and mines in aggregate for things that need to be done
+with any judgment. Params.Type is used to diffrentiate between those attributes for things that are
+done differently between the types. Current values for taps/holds are sent in params.Val. Like it 
+all should have been to begin with. Not sure where checkpoints are but I also don't care, so. -Mina*/
+
+void Player::SetMineJudgment(TapNoteScore tns, int iTrack)
+{
+	if (m_bSendJudgmentAndComboMessages)
+	{
+		RString t = "Mine";
+		Message msg("Judgment");
+		msg.SetParam("Judgment", tns);
+		msg.SetParam("Type", t);
+
+		MESSAGEMAN->Broadcast(msg);
+	}
+}
+
+void Player::SetJudgment(int iRow, int iTrack, const TapNote &tn, TapNoteScore tns, float fTapNoteOffset)
+{
+	if (m_bSendJudgmentAndComboMessages)
+	{
+		RString t = "Tap";
+		Message msg("Judgment");
+		msg.SetParam("Judgment", tns);
+		msg.SetParam("NoteRow", iRow);
+		msg.SetParam("Type", t);
+		msg.SetParam("Val", m_pPlayerStageStats->m_iTapNoteScores[tns]);
+
+		if (tns != TNS_Miss)
+			msg.SetParam("Offset", tn.result.fTapNoteOffset * 1000);  // don't send out 0 ms offsets for misses
+
+		MESSAGEMAN->Broadcast(msg);
+	}
+}
+
+void Player::SetHoldJudgment(TapNote &tn, int iTrack)
+{
+	ASSERT(iTrack < (int)m_vpHoldJudgment.size());
+	if (m_vpHoldJudgment[iTrack])
+		m_vpHoldJudgment[iTrack]->SetHoldJudgment(tn.HoldResult.hns);
+
+	if (m_bSendJudgmentAndComboMessages)
+	{
+		RString t = "Hold";
+		Message msg("Judgment");
+		msg.SetParam("Judgment", tn.HoldResult.hns);
+		msg.SetParam("Type", t);
+		msg.SetParam("Val", m_pPlayerStageStats->m_iHoldNoteScores[tn.HoldResult.hns]);
+
+		MESSAGEMAN->Broadcast(msg);
+	}
+}
+
+/* Old judgment messages. So children in virtual code museums can laugh at this in the future -Mina
+
 void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 {
 	if( m_bSendJudgmentAndComboMessages )
@@ -3149,6 +3208,7 @@ void Player::SetHoldJudgment( TapNote &tn, int iTrack )
 		MESSAGEMAN->Broadcast( msg );
 	}
 }
+*/
 
 void Player::SetCombo( unsigned int iCombo, unsigned int iMisses )
 {
