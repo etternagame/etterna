@@ -162,9 +162,9 @@ void LifeMeterBar::ChangeLife( HoldNoteScore score, TapNoteScore tscore )
 	case DrainType_Normal:
 		switch( score )
 		{
-		case HNS_Held:		fDeltaLife = m_fLifePercentChange.GetValue(SE_Held);	break;
-		case HNS_LetGo:	fDeltaLife = m_fLifePercentChange.GetValue(SE_LetGo);	break;
-		case HNS_Missed:	fDeltaLife = m_fLifePercentChange.GetValue(SE_Missed);	break;
+		case HNS_Held:		fDeltaLife =  0.008f;		break;
+		case HNS_LetGo:		fDeltaLife = -0.080f;		break;
+		case HNS_Missed:	fDeltaLife =	 0.f;		break;
 		default:
 			FAIL_M(ssprintf("Invalid HoldNoteScore: %i", score));
 		}

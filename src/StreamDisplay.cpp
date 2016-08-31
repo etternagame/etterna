@@ -63,42 +63,24 @@ void StreamDisplay::Load( const RString & /* unreferenced: _sMetricsGroup  */)
 
 void StreamDisplay::Update( float fDeltaSecs )
 {
-	ActorFrame::Update( fDeltaSecs );
+	ActorFrame::Update(fDeltaSecs);
 
-	// HACK:  Tweaking these values is very difficult.  Update the
-	// "physics" many times so that the spring motion appears faster
-	for( int i=0; i<10; i++ )
-	{
-		const float fDelta = m_fPercent - m_fTrailingPercent;
+	const float fDelta = m_fPercent - m_fTrailingPercent;
 
-		// Don't apply spring and viscous forces if we're full or empty.
-		// Just move straight to either full or empty.
-		if( m_fPercent <= 0 || m_fPercent >= 1 )
-		{
-			if( fabsf(fDelta) < 0.00001f )
-				m_fVelocity = 0; // prevent div/0
-			else
-				m_fVelocity = (fDelta / fabsf(fDelta)) * VELOCITY_MULTIPLIER;
-		}
-		else
-		{
-			const float fSpringForce = fDelta * SPRING_MULTIPLIER;
-			m_fVelocity += fSpringForce * fDeltaSecs;
+	// Sorry but the bar doesn't need to update 10 times per change. If you want physics go play farcry 3. -Mina.
 
-			const float fViscousForce = -m_fVelocity * VISCOSITY_MULTIPLIER;
-			if( !m_bAlwaysBounce )
-				m_fVelocity += fViscousForce * fDeltaSecs;
-		}
+	if (fabsf(fDelta) < 0.00001f)
+		m_fVelocity = 0; // prevent div/0
+	else
+		m_fVelocity = (fDelta / fabsf(fDelta)) * VELOCITY_MULTIPLIER * 10;
 
-		CLAMP( m_fVelocity, VELOCITY_MIN, VELOCITY_MAX );
+	CLAMP(m_fVelocity, VELOCITY_MIN * 10, VELOCITY_MAX * 10);
 
-		m_fTrailingPercent += m_fVelocity * fDeltaSecs;
-	}
+	m_fTrailingPercent += m_fVelocity * fDeltaSecs;
 
 	// Don't clamp life percentage a little outside the visible range so
 	// that the clamp doesn't dampen the "jiggle" of the meter.
-	CLAMP( m_fTrailingPercent, -0.1f, 1.1f );
-
+	CLAMP(m_fTrailingPercent, -0.1f, 1.1f);
 
 	// set crop of pills
 	const float fPillWidthPercent = 1.0f / m_vpSprPill[0].size();
