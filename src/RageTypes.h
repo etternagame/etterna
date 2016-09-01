@@ -255,25 +255,13 @@ public:
 
 inline unsigned char FTOC(float a)
 {    
-	/* lround does the exact same thing as lrintf only about 10 times faster. 
-	Just changing the single call below doubled fps. Thanks for shitting on 
-	everyones framerates because you're all idiots. -Mina
+	/* Double Update: Missed a decimal point when previous test was done.
+	Casting as int results in 128 out of the 10million possible values 
+	converted to be one shade different compared to using lround. This is
+	not a level of precision I care about. However if we want to be nitpicky
+	about 1/256 not being rounded up to 1 we can very well do that. - Mina */
 
-	Note to self: Don't replace this with an inline for quicker conversions
-	to int if/when doing so later. */
-
-	/* Update: Nevermind the above, minus the you're all idiots part.
-
-	> test		<- seq(0,1,0.0000001)
-	> testRound <- sapply(test, function(x) round(x*256 - 0.5))
-	> testInt	<- sapply(test, function(x) as.integer(x*256))
-	> all(testRound == testInt)
-	[1] TRUE
-
-		Tested using double precision floating point numbers. I'm so disgusted
-	right now. - Mina */
-
-	int ret = static_cast<int>(a*256.f);
+	int ret = static_cast<int>(a*256.f - 1/128000);
 	CLAMP(ret, 0, 255);
 	return static_cast<unsigned char>(ret);
 }

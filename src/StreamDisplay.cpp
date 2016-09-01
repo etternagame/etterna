@@ -67,6 +67,9 @@ void StreamDisplay::Update( float fDeltaSecs )
 
 	const float fDelta = m_fPercent - m_fTrailingPercent;
 
+	if (fDelta == 0)
+		return;
+
 	// Sorry but the bar doesn't need to update 10 times per change. If you want physics go play farcry 3. -Mina.
 
 	if (fabsf(fDelta) < 0.00001f)

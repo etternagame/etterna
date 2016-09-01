@@ -45,6 +45,19 @@ private:
 
 	ThemeMetric1D<float> m_fLifePercentChange;
 
+	// Doing this proper, let's not vector lookup for these values every update - Mina
+	float m_Change_SE_W1;
+	float m_Change_SE_W2;
+	float m_Change_SE_W3;
+	float m_Change_SE_W4;
+	float m_Change_SE_W5;
+	float m_Change_SE_Miss;
+	float m_Change_SE_HitMine;
+	float m_Change_SE_CheckpointHit;
+	float m_Change_SE_CheckpointMiss;
+	float m_Change_SE_Held;
+	float m_Change_SE_LetGo;
+
 	AutoActor		m_sprUnder;
 	AutoActor		m_sprDanger;
 	StreamDisplay*	m_pStream;
