@@ -341,12 +341,11 @@ void ScreenDebugOverlay::Update( float fDeltaTime )
 			PREFSMAN->m_fCenterImageAddHeight - (int)SCREEN_HEIGHT + (int)(g_fImageScaleCurrent*SCREEN_HEIGHT) );
 	}
 
-	Screen::Update(fDeltaTime);
-
 	this->SetVisible( g_bIsDisplayed && !m_bForcedHidden );
 	if( !g_bIsDisplayed )
 		return;
 
+	Screen::Update(fDeltaTime); // Is there a particular reason this needs to be updated when not visible? - Mina
 	UpdateText();
 }
 
