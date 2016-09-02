@@ -441,15 +441,20 @@ void FilenameDB::DelFileSet( map<RString, FileSet *>::iterator dir )
 
 	FileSet *fs = dir->second;
 
-	/* Remove any stale dirp pointers. */
+	/* Remove any stale dirp pointers. */	
 	for( map<RString, FileSet *>::iterator it = dirs.begin(); it != dirs.end(); ++it )
 	{
-		FileSet *Clean = it->second;
-		for( set<File>::iterator f = Clean->files.begin(); f != Clean->files.end(); ++f )
+		if (it->first == dir->first)
 		{
-			File &ff = (File &) *f;
-			if( ff.dirp == fs )
+			FileSet *Clean = it->second;
+			for (set<File>::iterator f = Clean->files.begin(); f != Clean->files.end(); ++f)
+			{
+				File &ff = (File &)*f;
+				if (ff.dirp == fs)
 				ff.dirp = NULL;
+			}
+
+			break;
 		}
 	}
 
