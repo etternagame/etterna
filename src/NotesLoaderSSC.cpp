@@ -520,6 +520,9 @@ void SetStepsDisplayBPM(StepsTagInfo& info)
 	}
 }
 
+void SetChartKey(StepsTagInfo& info) {
+	info.steps->SetChartKey((*info.params)[1]);
+}
 
 typedef std::map<RString, steps_tag_func_t> steps_handler_map_t;
 typedef std::map<RString, song_tag_func_t> song_handler_map_t;
@@ -624,6 +627,7 @@ struct ssc_parser_helper_t
 		steps_tag_handlers["ATTACKS"]= &SetStepsAttacks;
 		steps_tag_handlers["OFFSET"]= &SetStepsOffset;
 		steps_tag_handlers["DISPLAYBPM"]= &SetStepsDisplayBPM;
+		steps_tag_handlers["CHARTKEY"] = &SetChartKey;
 
 		load_note_data_handlers["VERSION"]= LNDID_version;
 		load_note_data_handlers["STEPSTYPE"]= LNDID_stepstype;

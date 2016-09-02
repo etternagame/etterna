@@ -184,7 +184,11 @@ public:
 	/* Now for half the reason I'm bothering to do this... generate a chart key using note
 	data and timingdata in conjuction. Do it during load and save it in the steps data so 
 	that we have to do it as few times as possible.*/
-	RString ChartKey;
+	RString ChartKey = "Invalid";
+	RString ChartKeyRecord = "Invalid";
+	RString GetChartKey() const;
+	RString GetChartKeyRecord() const;
+	void SetChartKey(const RString k)  { this->ChartKey = k; };
 
 	/* This is a reimplementation of the lua version of the script to generate chart keys, except this time
 	using the notedata stored in game memory immediately after reading it than parsing it using lua. - Mina */

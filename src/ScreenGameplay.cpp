@@ -2015,7 +2015,7 @@ void ScreenGameplay::Update( float fDeltaTime )
 
 	PlayTicks();
 	//UpdateLights(); // Does nothing but use inefficient timing data functions for no reason. - Mina
-	//SendCrossedMessages() // Putting this back just in case I found out it _actually_ does something - Mina
+	//SendCrossedMessages(); // Putting this back just in case I found out it _actually_ does something - Mina
 
 	if( !m_bForceNoNetwork && NSMAN->useSMserver )
 	{

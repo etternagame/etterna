@@ -421,28 +421,31 @@ void Steps::Decompress()
 	if( m_sNoteDataCompressed.empty() )
 	{
 		/* there is no data, do nothing */
+		return;
 	}
 	else
 	{
 		// load from compressed
 		bool bComposite = GAMEMAN->GetStepsTypeInfo(m_StepsType).m_StepsTypeCategory == StepsTypeCategory_Routine;
 		m_bNoteDataIsFilled = true;
-		m_pNoteData->SetNumTracks( GAMEMAN->GetStepsTypeInfo(m_StepsType).iNumTracks );
+		m_pNoteData->SetNumTracks(GAMEMAN->GetStepsTypeInfo(m_StepsType).iNumTracks);
 
-		NoteDataUtil::LoadFromSMNoteDataString( *m_pNoteData, m_sNoteDataCompressed, bComposite );
+		NoteDataUtil::LoadFromSMNoteDataString(*m_pNoteData, m_sNoteDataCompressed, bComposite);
 	}
 
 	/*	Piggy backing off this function to generate stuff that should only be generated once per song caching
-	This includes a vector for note rows that are not empty, a vector for elapsed time at each note row and 
+	This includes a vector for note rows that are not empty, a vector for elapsed time at each note row and
 	the chart key generated on song load. -Mina */
 
 	NoteData nd = Steps::GetNoteData();
 	NonEmptyRowVector = nd.LogNonEmptyRows();
 
+	if (NonEmptyRowVector.size() <= 4 || nd.IsEmpty()) return; // don't care about anything with under 4 rows of taps
+
 	TimingData *td = Steps::GetTimingData();
 	for (int i = 1; i <= NonEmptyRowVector.back(); i++)
 		ElapsedTimesAtAllRows.push_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(i)));
-	
+
 	ChartKey = GenerateChartKey(nd);
 }
 
@@ -450,9 +453,9 @@ RString Steps::GenerateChartKey(NoteData nd)
 {
 	RString k = "";
 	RString o = "";
-
+	int m = 10000;
 	int sr = nd.GetFirstRow();
-	int fso = GetElapsedTimeAtRow(sr)*1000;
+	float fso = GetElapsedTimeAtRow(sr)*m;
 
 	int row;
 	int et = 0;
@@ -467,9 +470,11 @@ RString Steps::GenerateChartKey(NoteData nd)
 		}
 		k.append(";");
 		k.append(to_string(et));
-		et = lround(GetElapsedTimeAtRow(row) * 1000 - fso);
+		et = lround(GetElapsedTimeAtRow(row) * m - fso);
 		k.append(" ");
 	}
+	
+	ChartKeyRecord = k;
 
 	o.append("X");	// I was thinking of using "C" to indicate chart.. however.. X is cooler... - Mina
 	o.append(BinaryToHex(CryptManager::GetSHA1ForString(k)));
@@ -662,6 +667,14 @@ void Steps::SetCachedRadarValues( const RadarValues v[NUM_PLAYERS] )
 	m_bAreCachedRadarValuesJustLoaded = true;
 }
 
+RString Steps::GetChartKey() const { 
+	return ChartKey; 
+};
+
+RString Steps::GetChartKeyRecord() const {
+	return ChartKeyRecord;
+};
+
 // lua start
 #include "LuaBinding.h"
 /** @brief Allow Lua to have access to the Steps. */
@@ -761,7 +774,7 @@ public:
 
 	static int GetWifeChartKey(T* p, lua_State *L)
 	{
-		lua_pushstring(L, p->ChartKey);
+		lua_pushstring(L, p->GetChartKey());
 		return 1;
 	}
 
@@ -791,11 +804,6 @@ public:
 
 			int SS = static_cast<int>(std::round(et * 1000));
 			o.append(std::to_string(SS));
-			
-			LOG->Trace("Otha");
-
-
-			LOG->Trace("%i", SS);
 
 			o.append(" ");
 

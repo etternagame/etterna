@@ -3092,7 +3092,7 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 
 		Message msg2("NewJudgment");
 		msg2.SetParam("Judgment", tns);
-		msg2.SetParam("Type", static_cast<RString>("Mine"));
+		msg2.SetParam("Type", RString("Mine"));
 		MESSAGEMAN->Broadcast(msg2);
 	}
 }
@@ -3141,8 +3141,11 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 		Message msg2("NewJudgment");
 		msg2.SetParam("Judgment", tns);
 		msg2.SetParam("NoteRow", iRow);
-		msg2.SetParam("Type", static_cast<RString>("Tap"));
-		msg2.SetParam("Val", m_pPlayerStageStats->m_iTapNoteScores[tns]);
+		msg2.SetParam("Type", RString("Tap"));
+
+		/* When this messages is sent the judgment in question hasn't been added to pss yet
+		temporary measure until I reorganize the whole thing to not be stupid. - Mina. */ 
+		msg2.SetParam("Val", m_pPlayerStageStats->m_iTapNoteScores[tns] + 1); 
 
 		if (tns != TNS_Miss)
 			msg2.SetParam("Offset", tn.result.fTapNoteOffset * 1000);  // don't send out 0 ms offsets for misses
@@ -3176,8 +3179,8 @@ void Player::SetHoldJudgment( TapNote &tn, int iTrack )
 
 		Message msg2("NewJudgment");
 		msg2.SetParam("Judgment", tn.HoldResult.hns);
-		msg2.SetParam("Type", static_cast<RString>("Hold"));
-		msg2.SetParam("Val", m_pPlayerStageStats->m_iHoldNoteScores[tn.HoldResult.hns]);
+		msg2.SetParam("Type", RString("Hold"));
+		msg2.SetParam("Val", m_pPlayerStageStats->m_iHoldNoteScores[tn.HoldResult.hns] + 1);
 		MESSAGEMAN->Broadcast(msg2);
 	}
 }
