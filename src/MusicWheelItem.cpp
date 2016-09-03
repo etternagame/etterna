@@ -345,15 +345,26 @@ void MusicWheelItem::RefreshGrades()
 
 		Profile *pProfile = PROFILEMAN->GetProfile(ps);
 
-		HighScoreList *pHSL = NULL;
+		HighScoreList *pHSL = NULL;	
+		/*	quick hack to make the highest grade for any difficulty show up, 
+		should make optional later, also should make it descend through the 
+		difficulties and stop once a valid grade has been hit - Mina*/
+		Grade agP; 
 		if( PROFILEMAN->IsPersistentProfile(ps) && dc != Difficulty_Invalid )
 		{
-			if( pWID->m_pSong )
+			if (pWID->m_pSong)
 			{
-				const Steps* pSteps = SongUtil::GetStepsByDifficulty( pWID->m_pSong, st, dc );
-				if( pSteps != NULL )
-					pHSL = &pProfile->GetStepsHighScoreList(pWID->m_pSong, pSteps);
+				FOREACH_ENUM(Difficulty, i) {
+					Steps* pSteps = SongUtil::GetStepsByDifficulty(pWID->m_pSong, st, i);
+					if (pSteps != NULL) {
+						pHSL = &pProfile->GetStepsHighScoreList(pWID->m_pSong, pSteps);
+						Grade ag = pHSL->HighGrade;
+						agP = min(ag,agP);
+					}
+				}
 			}
+
+
 			else if( pWID->m_pCourse )
 			{
 				const Trail *pTrail = pWID->m_pCourse->GetTrail( st, dc );
@@ -366,7 +377,7 @@ void MusicWheelItem::RefreshGrades()
 		msg.SetParam( "PlayerNumber", p );
 		if( pHSL )
 		{
-			msg.SetParam( "Grade", pHSL->HighGrade );
+			msg.SetParam( "Grade", agP );
 			msg.SetParam( "NumTimesPlayed", pHSL->GetNumTimesPlayed() );
 		}
 		m_pGradeDisplay[p]->HandleMessage( msg );
