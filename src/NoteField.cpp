@@ -348,14 +348,18 @@ void NoteField::Update( float fDeltaTime )
 	// Update fade to failed
 	m_pCurDisplay->m_ReceptorArrowRow.SetFadeToFailPercent( m_FieldRenderArgs.fail_fade );
 
-	NoteDisplay::Update( fDeltaTime );
+	/* No idea what this is supposed to be doing but it seems to be doing an awful lot of 
+	absolutely nothing at an awfully quick rate. Noteskins are fine... 3d noteskins are
+	fine... mod maps are fine. Welp - Mina */ 
+
+	//NoteDisplay::Update(fDeltaTime);
 	/* Update all NoteDisplays. Hack: We need to call this once per frame, not
-	 * once per player. */
+	* once per player. */
 	// TODO: Remove use of PlayerNumber.
 
-	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
-	if( pn == GAMESTATE->GetMasterPlayerNumber() )
-		NoteDisplay::Update( fDeltaTime );
+	/*	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
+	if (pn == GAMESTATE->GetMasterPlayerNumber())
+	NoteDisplay::Update(fDeltaTime); */	
 }
 
 float NoteField::GetWidth() const
