@@ -63,14 +63,16 @@ void StreamDisplay::Load( const RString & /* unreferenced: _sMetricsGroup  */)
 
 void StreamDisplay::Update( float fDeltaSecs )
 {
-	ActorFrame::Update(fDeltaSecs);
-
+	// Sorry but the bar doesn't need to update 10 times per change. If you want physics go play farcry 3. -Mina.
 	const float fDelta = m_fPercent - m_fTrailingPercent;
 
-	if (fDelta == 0)
+	if (fDelta==0) {
+		m_fVelocity = 0;
+		m_fTrailingPercent = 0;
 		return;
+	}
 
-	// Sorry but the bar doesn't need to update 10 times per change. If you want physics go play farcry 3. -Mina.
+	ActorFrame::Update(fDeltaSecs);
 
 	if (fabsf(fDelta) < 0.00001f)
 		m_fVelocity = 0; // prevent div/0
@@ -80,10 +82,6 @@ void StreamDisplay::Update( float fDeltaSecs )
 	CLAMP(m_fVelocity, VELOCITY_MIN * 10, VELOCITY_MAX * 10);
 
 	m_fTrailingPercent += m_fVelocity * fDeltaSecs;
-
-	// Don't clamp life percentage a little outside the visible range so
-	// that the clamp doesn't dampen the "jiggle" of the meter.
-	CLAMP(m_fTrailingPercent, -0.1f, 1.1f);
 
 	// set crop of pills
 	const float fPillWidthPercent = 1.0f / m_vpSprPill[0].size();
@@ -97,8 +95,7 @@ void StreamDisplay::Update( float fDeltaSecs )
 
 			// XXX scale by current song speed
 
-			pSpr->SetCropRight( 1.0f - fPercentFilledThisPill );
-			pSpr->SetTexCoordVelocity( -1, 0 );
+			pSpr->SetCropRight( 0.99f - fPercentFilledThisPill );
 
 			// Optimization: Don't draw pills that are covered up
 			switch( st )
