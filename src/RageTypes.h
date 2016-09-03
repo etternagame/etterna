@@ -258,10 +258,9 @@ inline unsigned char FTOC(float a)
 	/* Double Update: Missed a decimal point when previous test was done.
 	Casting as int results in 128 out of the 10million possible values 
 	converted to be one shade different compared to using lround. This is
-	not a level of precision I care about. However if we want to be nitpicky
-	about 1/256 not being rounded up to 1 we can very well do that. - Mina */
+	not a level of precision I care about. - Mina */
 
-	int ret = static_cast<int>(a*256.f - 1/128000);
+	int ret = static_cast<int>(a*256.f);
 	CLAMP(ret, 0, 255);
 	return static_cast<unsigned char>(ret);
 }
