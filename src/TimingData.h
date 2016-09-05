@@ -463,7 +463,7 @@ public:
 	vector<RString> ToVectorString(TimingSegmentType tst, int dec = 6) const;
 
 	// Wow it's almost like this should have been done a decade ago. - Mina.
-	bool ValidSequentialAssumption = !HasWarps();
+	bool ValidSequentialAssumption = true;
 	void InvalidateSequentialAssmption() { ValidSequentialAssumption = false;};
 	bool IsSequentialAssumptionValid() { return  ValidSequentialAssumption; }
 
@@ -479,7 +479,6 @@ public:
 				ValidSequentialAssumption = false;
 				return;
 			}
-			
 		}
 
 		for (size_t i = 0, l = stops.size(); i < l; ++i)
