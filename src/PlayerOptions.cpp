@@ -76,6 +76,7 @@ void PlayerOptions::Init()
 	ZERO( m_bTransforms );
 	m_bMuteOnError = false;
 	m_sNoteSkin = "";
+	m_iColsPerPlayer = GAMESTATE->GetCurrentStyle(m_pn)->m_iColsPerPlayer;
 }
 
 void PlayerOptions::Approach( const PlayerOptions& other, float fDeltaSeconds )
@@ -743,7 +744,7 @@ float PlayerOptions::GetReversePercentForColumn( int iCol ) const
 	float f = 0;
 	ASSERT(m_pn == PLAYER_1 || m_pn == PLAYER_2);
 	ASSERT(GAMESTATE->GetCurrentStyle(m_pn) != NULL);
-	int iNumCols = GAMESTATE->GetCurrentStyle(m_pn)->m_iColsPerPlayer;
+	int iNumCols = m_iColsPerPlayer;
 
 	f += m_fScrolls[SCROLL_REVERSE];
 
