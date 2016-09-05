@@ -3087,6 +3087,8 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 		msg.SetParam( "Player", m_pPlayerState->m_PlayerNumber );
 		msg.SetParam( "TapNoteScore", tns );
 		msg.SetParam( "FirstTrack", iTrack );
+		msg.SetParam( "Judgment", tns);
+		msg.SetParam( "Type", RString("Mine"));
 		MESSAGEMAN->Broadcast( msg );
 		if( m_pPlayerStageStats &&
 			( ( tns == TNS_AvoidMine && AVOID_MINE_INCREMENTS_COMBO ) || 
@@ -3095,11 +3097,6 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 		{
 			SetCombo( m_pPlayerStageStats->m_iCurCombo, m_pPlayerStageStats->m_iCurMissCombo );
 		}
-
-		Message msg2("NewJudgment");
-		msg2.SetParam("Judgment", tns);
-		msg2.SetParam("Type", RString("Mine"));
-		MESSAGEMAN->Broadcast(msg2);
 	}
 }
 
@@ -3113,7 +3110,13 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 		msg.SetParam( "FirstTrack", iTrack );
 		msg.SetParam( "TapNoteScore", tns );
 		msg.SetParam( "Early", fTapNoteOffset < 0.0f );
+		msg.SetParam("Judgment", tns);
+		msg.SetParam("NoteRow", iRow);
+		msg.SetParam("Type", RString("Tap"));
 		msg.SetParam( "TapNoteOffset", tn.result.fTapNoteOffset );
+
+		if (tns != TNS_Miss)
+			msg.SetParam("Offset", tn.result.fTapNoteOffset * 1000);  // don't send out 0 ms offsets for misses, multiply by 1000 for convenience - Mina
 
 		Lua* L= LUA->Get();
 		lua_createtable( L, 0, m_NoteData.GetNumTracks() ); // TapNotes this row
@@ -3143,20 +3146,6 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 
 		LUA->Release( L );
 		MESSAGEMAN->Broadcast( msg );
-
-		Message msg2("NewJudgment");
-		msg2.SetParam("Judgment", tns);
-		msg2.SetParam("NoteRow", iRow);
-		msg2.SetParam("Type", RString("Tap"));
-
-		/* When this messages is sent the judgment in question hasn't been added to pss yet
-		temporary measure until I reorganize the whole thing to not be stupid. - Mina. */ 
-		msg2.SetParam("Val", m_pPlayerStageStats->m_iTapNoteScores[tns] + 1); 
-
-		if (tns != TNS_Miss)
-			msg2.SetParam("Offset", tn.result.fTapNoteOffset * 1000);  // don't send out 0 ms offsets for misses
-
-		MESSAGEMAN->Broadcast(msg2);
 	}
 }
 
@@ -3175,6 +3164,8 @@ void Player::SetHoldJudgment( TapNote &tn, int iTrack )
 		msg.SetParam( "NumTracks", (int)m_vpHoldJudgment.size() );
 		msg.SetParam( "TapNoteScore", tn.result.tns );
 		msg.SetParam( "HoldNoteScore", tn.HoldResult.hns );
+		msg.SetParam("Judgment", tn.HoldResult.hns);
+		msg.SetParam("Type", RString("Hold"));
 
 		Lua* L = LUA->Get();
 		tn.PushSelf(L);
@@ -3182,12 +3173,6 @@ void Player::SetHoldJudgment( TapNote &tn, int iTrack )
 		LUA->Release( L );
 
 		MESSAGEMAN->Broadcast( msg );
-
-		Message msg2("NewJudgment");
-		msg2.SetParam("Judgment", tn.HoldResult.hns);
-		msg2.SetParam("Type", RString("Hold"));
-		msg2.SetParam("Val", m_pPlayerStageStats->m_iHoldNoteScores[tn.HoldResult.hns] + 1);
-		MESSAGEMAN->Broadcast(msg2);
 	}
 }
 
