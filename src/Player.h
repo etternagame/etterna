@@ -92,7 +92,7 @@ public:
 	void Load();
 	void CrossedRows( int iLastRowCrossed, const RageTimer &now );
 	bool IsOniDead() const;
-	
+
 	/**
 	 * @brief Retrieve the Player's TimingData.
 	 *

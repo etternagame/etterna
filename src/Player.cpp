@@ -398,6 +398,8 @@ void Player::Init(
 	// TODO: Remove use of PlayerNumber.
 	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 
+	m_pPlayerState->SetNumCols(GAMESTATE->GetCurrentStyle(pn)->m_iColsPerPlayer);
+
 	RageSoundLoadParams SoundParams;
 	SoundParams.m_bSupportPan = true;
 	m_soundMine.Load( THEME->GetPathS(sType,"mine"), true, &SoundParams );
@@ -1975,6 +1977,9 @@ void Player::Step( int col, int row, const RageTimer &tm, bool bHeld, bool bRele
 	const float fPositionSeconds = m_pPlayerState->m_Position.m_fMusicSeconds - tm.Ago();
 	const float fTimeSinceStep = tm.Ago();
 
+	LOG->Trace("%f", fPositionSeconds);
+	LOG->Trace("%f", tm.Ago());
+
 	float fSongBeat = m_pPlayerState->m_Position.m_fSongBeat;
 	
 	if( GAMESTATE->m_pCurSong )
@@ -2110,6 +2115,8 @@ void Player::Step( int col, int row, const RageTimer &tm, bool bHeld, bool bRele
 	 * "jack hammers." Hmm.
 	 */
 	static const float StepSearchDistance = GetMaxStepDistanceSeconds();
+
+	LOG->Trace("%f", m_pPlayerState->m_Position.m_fMusicSeconds + tm.Ago());
 
 	const int iStepSearchRows = max(
 		BeatToNoteRow( m_Timing->GetBeatFromElapsedTime( m_pPlayerState->m_Position.m_fMusicSeconds + StepSearchDistance ) ) - iSongRow,

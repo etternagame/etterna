@@ -130,6 +130,13 @@ public:
 	void RemoveAllInventory();
 	Attack	m_Inventory[NUM_INVENTORY_SLOTS];
 
+	/* why is the slow getstyles function called every time to get 
+	number of columns in places where it can't change? - Mina */
+	int m_NumCols;
+	void SetNumCols(int ncol) { m_NumCols = ncol; };
+	int GetNumCols() { return m_NumCols; };
+
+
 	// Lua
 	void PushSelf( lua_State *L );
 };
