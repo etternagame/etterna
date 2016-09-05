@@ -2114,6 +2114,7 @@ void Player::Step( int col, int row, const RageTimer &tm, bool bHeld, bool bRele
 	if (iSongRow < 1) {
 		iStepSearchRows = max(BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(m_pPlayerState->m_Position.m_fMusicSeconds + StepSearchDistance)) - iSongRow,
 			iSongRow - BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(m_pPlayerState->m_Position.m_fMusicSeconds - StepSearchDistance))) + ROWS_PER_BEAT;
+	
 	}
 	else
 	{
@@ -2140,19 +2141,14 @@ void Player::Step( int col, int row, const RageTimer &tm, bool bHeld, bool bRele
 
 		if (nervpos > 0)
 			iStepSearchRows = (max(MaxLookBehind, MaxLookAhead) + ROWS_PER_BEAT);
-
-		int iRowOfOverlappingNoteOrRow = row;
-		if (row == -1)
-			iRowOfOverlappingNoteOrRow = GetClosestNote(col, iSongRow, iStepSearchRows, iStepSearchRows, false);
-
 	}
+
+	// calculate TapNoteScore
+	TapNoteScore score = TNS_None;
 
 	int iRowOfOverlappingNoteOrRow = row;
 	if (row == -1)
 		iRowOfOverlappingNoteOrRow = GetClosestNote(col, iSongRow, iStepSearchRows, iStepSearchRows, false);
-
-	// calculate TapNoteScore
-	TapNoteScore score = TNS_None;
 
 	if( iRowOfOverlappingNoteOrRow != -1 )
 	{
@@ -3142,9 +3138,9 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 		msg.SetParam( "FirstTrack", iTrack );
 		msg.SetParam( "TapNoteScore", tns );
 		msg.SetParam( "Early", fTapNoteOffset < 0.0f );
-		msg.SetParam(" Judgment", tns);
-		msg.SetParam(" NoteRow", iRow);
-		msg.SetParam("Type", RString("Tap"));
+		msg.SetParam( "Judgment", tns);
+		msg.SetParam( "NoteRow", iRow);
+		msg.SetParam( "Type", RString("Tap"));
 		msg.SetParam( "TapNoteOffset", tn.result.fTapNoteOffset );
 
 		if (tns != TNS_Miss)
@@ -3196,8 +3192,8 @@ void Player::SetHoldJudgment( TapNote &tn, int iTrack )
 		msg.SetParam( "NumTracks", (int)m_vpHoldJudgment.size() );
 		msg.SetParam( "TapNoteScore", tn.result.tns );
 		msg.SetParam( "HoldNoteScore", tn.HoldResult.hns );
-		msg.SetParam(" Judgment", tn.HoldResult.hns);
-		msg.SetParam(" Type", RString("Hold"));
+		msg.SetParam( "Judgment", tn.HoldResult.hns);
+		msg.SetParam( "Type", RString("Hold"));
 
 		Lua* L = LUA->Get();
 		tn.PushSelf(L);
