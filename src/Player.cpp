@@ -666,6 +666,7 @@ void Player::Load()
 //	if( m_pScore )
 //		m_pScore->Init( pn );
 
+	// Mina garbage - Mina
 	m_Timing = GAMESTATE->m_pCurSteps[pn]->GetTimingData();
 	m_Timing->NegStopAndBPMCheck();
 
@@ -1977,19 +1978,11 @@ void Player::Step( int col, int row, const RageTimer &tm, bool bHeld, bool bRele
 	const float fPositionSeconds = m_pPlayerState->m_Position.m_fMusicSeconds - tm.Ago();
 	const float fTimeSinceStep = tm.Ago();
 
-	LOG->Trace("%f", fPositionSeconds);
-	LOG->Trace("%f", tm.Ago());
-
 	float fSongBeat = m_pPlayerState->m_Position.m_fSongBeat;
 	
-	if( GAMESTATE->m_pCurSong )
-	{
-		fSongBeat = GAMESTATE->m_pCurSong->m_SongTiming.GetBeatFromElapsedTime( fPositionSeconds );
-	
-		if( GAMESTATE->m_pCurSteps[m_pPlayerState->m_PlayerNumber] )
-			fSongBeat = m_Timing->GetBeatFromElapsedTime( fPositionSeconds );
-	}
-	
+	if( GAMESTATE->m_pCurSteps[m_pPlayerState->m_PlayerNumber] )
+		fSongBeat = m_Timing->GetBeatFromElapsedTime( fPositionSeconds );
+
 	const int iSongRow = row == -1 ? BeatToNoteRow( fSongBeat ) : row;
 
 	if( col != -1 && !bRelease )
@@ -2114,17 +2107,49 @@ void Player::Step( int col, int row, const RageTimer &tm, bool bHeld, bool bRele
 	 * Either option would fundamentally change the grading of two quick notes
 	 * "jack hammers." Hmm.
 	 */
+
+	int iStepSearchRows;
 	static const float StepSearchDistance = GetMaxStepDistanceSeconds();
 
-	LOG->Trace("%f", m_pPlayerState->m_Position.m_fMusicSeconds + tm.Ago());
+	if (iSongRow < 1) {
+		iStepSearchRows = max(BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(m_pPlayerState->m_Position.m_fMusicSeconds + StepSearchDistance)) - iSongRow,
+			iSongRow - BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(m_pPlayerState->m_Position.m_fMusicSeconds - StepSearchDistance))) + ROWS_PER_BEAT;
+	}
+	else
+	{
+		/* Buncha bullshit that speeds up searching for the rows that we're concerned about judging taps within
+		by avoiding the invocation of the incredibly slow getbeatfromelapsedtime. Needs to be cleaned up a lot,
+		whole system does. Only in use if sequential assumption remains valid. - Mina */
 
-	const int iStepSearchRows = max(
-		BeatToNoteRow( m_Timing->GetBeatFromElapsedTime( m_pPlayerState->m_Position.m_fMusicSeconds + StepSearchDistance ) ) - iSongRow,
-		iSongRow - BeatToNoteRow( m_Timing->GetBeatFromElapsedTime( m_pPlayerState->m_Position.m_fMusicSeconds - StepSearchDistance ) )
-	) + ROWS_PER_BEAT;
+		vector<int> nerv = GAMESTATE->m_pCurSteps[pn]->GetNonEmptyRowVector();
+		if (nerv[nervpos] < iSongRow && nervpos < nerv.size())
+			nervpos += 1;
+
+		size_t SearchIndexBehind = nervpos;
+		size_t SearchIndexAhead = nervpos;
+		float SearchBeginTime = GAMESTATE->WhereUAtBro(pn, nerv[nervpos]);
+
+		while (SearchIndexBehind > 1 && SearchBeginTime - GAMESTATE->WhereUAtBro(pn, nerv[SearchIndexBehind - 1]) < StepSearchDistance)
+			SearchIndexBehind -= 1;
+
+		while (SearchIndexAhead > 1 && SearchIndexAhead + 1 > nerv.size() && GAMESTATE->WhereUAtBro(pn, nerv[SearchIndexAhead + 1]) - SearchBeginTime < StepSearchDistance)
+			SearchIndexAhead += 1;
+
+		int	MaxLookBehind = nerv[nervpos] - nerv[SearchIndexBehind];
+		int MaxLookAhead = nerv[SearchIndexAhead] - nerv[nervpos];
+
+		if (nervpos > 0)
+			iStepSearchRows = (max(MaxLookBehind, MaxLookAhead) + ROWS_PER_BEAT);
+
+		int iRowOfOverlappingNoteOrRow = row;
+		if (row == -1)
+			iRowOfOverlappingNoteOrRow = GetClosestNote(col, iSongRow, iStepSearchRows, iStepSearchRows, false);
+
+	}
+
 	int iRowOfOverlappingNoteOrRow = row;
-	if( row == -1 )
-		iRowOfOverlappingNoteOrRow = GetClosestNote( col, iSongRow, iStepSearchRows, iStepSearchRows, false );
+	if (row == -1)
+		iRowOfOverlappingNoteOrRow = GetClosestNote(col, iSongRow, iStepSearchRows, iStepSearchRows, false);
 
 	// calculate TapNoteScore
 	TapNoteScore score = TNS_None;

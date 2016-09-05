@@ -2603,8 +2603,7 @@ MultiPlayer GetNextEnabledMultiPlayer( MultiPlayer mp )
 float GameState::WhereUAtBro(PlayerNumber pn, float beat) {
 	if (beat < 0) return 0;
 
-	const bool ValidSequentialAssumption = m_pCurSteps[pn]->GetTimingData()->IsSequentialAssumptionValid();
-
+	bool ValidSequentialAssumption = m_pCurSteps[pn]->GetTimingData()->IsSequentialAssumptionValid();
 	if (ValidSequentialAssumption)
 	{
 		return m_pCurSteps[pn]->GetElapsedTimeAtRow(BeatToNoteRow(beat)) - GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * PREFSMAN->m_fGlobalOffsetSeconds;
@@ -2619,7 +2618,7 @@ float GameState::WhereUAtBro(PlayerNumber pn, float beat) {
 float GameState::WhereUAtBro(PlayerNumber pn, float beat) const {
 	if (beat < 0) return 0;
 
-	const bool ValidSequentialAssumption = m_pCurSteps[pn]->GetTimingData()->IsSequentialAssumptionValid();
+	bool ValidSequentialAssumption = m_pCurSteps[pn]->GetTimingData()->IsSequentialAssumptionValid();
 
 	if (ValidSequentialAssumption)
 	{
@@ -2635,7 +2634,7 @@ float GameState::WhereUAtBro(PlayerNumber pn, float beat) const {
 float GameState::WhereUAtBro(PlayerNumber pn, int row) {
 	if (row < 0) return 0;
 
-	const bool ValidSequentialAssumption = m_pCurSteps[pn]->GetTimingData()->IsSequentialAssumptionValid();
+	bool ValidSequentialAssumption = m_pCurSteps[pn]->GetTimingData()->IsSequentialAssumptionValid();
 
 	if (ValidSequentialAssumption)
 	{

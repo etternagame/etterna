@@ -438,9 +438,13 @@ void Steps::Decompress()
 	the chart key generated on song load. -Mina */
 
 	NoteData nd = Steps::GetNoteData();
-	NonEmptyRowVector = nd.LogNonEmptyRows();
+	if (nd.GetLastRow() > size_t(500000)) // Ignore really long stuff for the moment
+		return;
 
-	if (NonEmptyRowVector.size() <= 4 || nd.IsEmpty()) return; // don't care about anything with under 4 rows of taps
+	NonEmptyRowVector = nd.LogNonEmptyRows();
+	// don't care about anything with under 4 rows of taps
+	if (NonEmptyRowVector.size() <= 4 || nd.IsEmpty()) 
+		return; 
 
 	vector<float> etar;
 	vector<float> etat;
@@ -786,48 +790,6 @@ public:
 		return 1;
 	}
 
-	/*	Muddy way to get the pre-hashed string value, going to leave this in for now
-	in case I need it for debugging. -Mina */ 
-	static int GetWifeChartKeyRecord(T* p, lua_State *L)
-	{
-		RString o = "";
-		NoteData nd = p->GetNoteData();
-		TimingData *td = p->GetTimingData();
-
-		int sr = nd.GetFirstRow();
-		int lr = sr;
-		float et = 0;
-		float bps;
-		float beatspan;
-
-		for (int r = sr; nd.GetNextTapNoteRowForAllTracks(r); )
-		{
-			for (int t = 0; t < nd.GetNumTracks(); ++t)
-			{
-				const TapNote &tn = nd.GetTapNote(t, r);
-				o.append(std::to_string(tn.type));
-			}
-
-			o.append(";");
-
-			int SS = static_cast<int>(std::round(et * 1000));
-			o.append(std::to_string(SS));
-
-			o.append(" ");
-
-			bps = td->GetBPMAtRow(lr) / 60.f;
-			beatspan = NoteRowToBeat(r) - NoteRowToBeat(lr);
-			et = et + (beatspan / bps);
-			lr = r;
-		}
-
-		int SS = static_cast<int>(std::round(et * 1000));
-		o.append(std::to_string(SS));
-
-		lua_pushstring(L, o);
-		return 1;
-	}
-
 	LunaSteps()
 	{
 		ADD_METHOD( GetAuthorCredit );
@@ -845,7 +807,6 @@ public:
 		//ADD_METHOD( GetSMNoteData );
 		ADD_METHOD( GetStepsType );
 		ADD_METHOD( GetWifeChartKey );
-		ADD_METHOD( GetWifeChartKeyRecord );
 		ADD_METHOD( IsAnEdit );
 		ADD_METHOD( IsAutogen );
 		ADD_METHOD( IsAPlayerEdit );

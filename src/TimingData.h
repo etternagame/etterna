@@ -463,28 +463,35 @@ public:
 	vector<RString> ToVectorString(TimingSegmentType tst, int dec = 6) const;
 
 	// Wow it's almost like this should have been done a decade ago. - Mina.
-	bool ValidSequentialAssumption = HasWarps();
+	bool ValidSequentialAssumption = !HasWarps();
 	void InvalidateSequentialAssmption() { ValidSequentialAssumption = false;};
 	bool IsSequentialAssumptionValid() { return  ValidSequentialAssumption; }
 
-	bool TimingData::NegStopAndBPMCheck() {
+	void TimingData::NegStopAndBPMCheck() {
 		vector<TimingSegment *> &bpms = m_avpTimingSegments[SEGMENT_BPM];
 		vector<TimingSegment *> &stops = m_avpTimingSegments[SEGMENT_STOP];
 
 		for (size_t i = 0, l = bpms.size(); i < l; ++i)
 		{
 			BPMSegment *bpm = ToBPM(bpms[i]);
-			if (0 > bpm->GetBPM())
-				return false;
+			if (0 > bpm->GetBPM()) {
+				LOG->Warn("Sequential Assumption Invalidated.");
+				ValidSequentialAssumption = false;
+				return;
+			}
+			
 		}
 
 		for (size_t i = 0, l = stops.size(); i < l; ++i)
 		{
 			StopSegment *s = ToStop(stops[i]);
-			if (0 > s->GetPause())
-				return false;
+			if (0 > s->GetPause()) {
+				LOG->Warn("Sequential Assumption Invalidated.");
+				ValidSequentialAssumption = false;
+				return;
+			}
 		}
-		return true;
+		ValidSequentialAssumption = true && ValidSequentialAssumption;
 	}
 
 
