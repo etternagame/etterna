@@ -665,6 +665,7 @@ void Player::Load()
 //		m_pScore->Init( pn );
 
 	m_Timing = GAMESTATE->m_pCurSteps[pn]->GetTimingData();
+	m_Timing->NegStopAndBPMCheck();
 
 	/* Apply transforms. */
 	NoteDataUtil::TransformNoteData(m_NoteData, *m_Timing, m_pPlayerState->m_PlayerOptions.GetStage(), GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)->m_StepsType);
@@ -1780,10 +1781,12 @@ int Player::GetClosestNote( int col, int iNoteRow, int iMaxRowsAhead, int iMaxRo
 	if( iPrevIndex == -1 )
 		return iNextIndex;
 
+	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
+
 	// Get the current time, previous time, and next time.
-	float fNoteTime = m_pPlayerState->m_Position.m_fMusicSeconds	;
-	float fNextTime = m_Timing->GetElapsedTimeFromBeat(NoteRowToBeat(iNextIndex));
-	float fPrevTime = m_Timing->GetElapsedTimeFromBeat(NoteRowToBeat(iPrevIndex));
+	float fNoteTime = m_pPlayerState->m_Position.m_fMusicSeconds;
+	float fNextTime = GAMESTATE->WhereUAtBro(pn, iNextIndex);
+	float fPrevTime = GAMESTATE->WhereUAtBro(pn, iPrevIndex);
 
 	/* Figure out which row is closer. */
 	if( fabsf(fNoteTime-fNextTime) > fabsf(fNoteTime-fPrevTime) )
@@ -1834,6 +1837,8 @@ int Player::GetClosestNonEmptyRowDirectional( int iStartRow, int iEndRow, bool /
 // Find the closest note to fBeat.
 int Player::GetClosestNonEmptyRow( int iNoteRow, int iMaxRowsAhead, int iMaxRowsBehind, bool bAllowGraded ) const
 {
+	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
+
 	// Start at iIndexStartLookingAt and search outward.
 	int iNextRow = GetClosestNonEmptyRowDirectional( iNoteRow, iNoteRow+iMaxRowsAhead, bAllowGraded, true );
 	int iPrevRow = GetClosestNonEmptyRowDirectional( iNoteRow-iMaxRowsBehind, iNoteRow, bAllowGraded, false );
@@ -1847,8 +1852,8 @@ int Player::GetClosestNonEmptyRow( int iNoteRow, int iMaxRowsAhead, int iMaxRows
 
 	// Get the current time, previous time, and next time.
 	float fNoteTime = m_pPlayerState->m_Position.m_fMusicSeconds;
-	float fNextTime = m_Timing->GetElapsedTimeFromBeat(NoteRowToBeat(iNextRow));
-	float fPrevTime = m_Timing->GetElapsedTimeFromBeat(NoteRowToBeat(iPrevRow));
+	float fNextTime = GAMESTATE->WhereUAtBro(pn, iNextRow);
+	float fPrevTime = GAMESTATE->WhereUAtBro(pn, iPrevRow);
 
 	/* Figure out which row is closer. */
 	if( fabsf(fNoteTime-fNextTime) > fabsf(fNoteTime-fPrevTime) )
@@ -1961,6 +1966,9 @@ void Player::Step( int col, int row, const RageTimer &tm, bool bHeld, bool bRele
 	if( IsOniDead() )
 		return;
 
+	// TODO: remove use of PlayerNumber
+	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
+
 	// Do everything that depends on a RageTimer here;
 	// set your breakpoints somewhere after this block.
 	const float fLastBeatUpdate = m_pPlayerState->m_Position.m_LastBeatUpdate.Ago();
@@ -2052,8 +2060,6 @@ void Player::Step( int col, int row, const RageTimer &tm, bool bHeld, bool bRele
 	// TODO: Move calorie counting into a ScoreKeeper?
 	if( m_pPlayerStageStats && m_pPlayerState && !bHeld && !bRelease )
 	{
-		// TODO: remove use of PlayerNumber
-		PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 		Profile *pProfile = PROFILEMAN->GetProfile( pn );
 
 		int iNumTracksHeld = 0;
@@ -2122,7 +2128,7 @@ void Player::Step( int col, int row, const RageTimer &tm, bool bHeld, bool bRele
 		float fNoteOffset = 0.0f;
 		// we need this later if we are autosyncing
 		const float fStepBeat = NoteRowToBeat( iRowOfOverlappingNoteOrRow );
-		const float fStepSeconds = m_Timing->GetElapsedTimeFromBeat(fStepBeat);
+		const float fStepSeconds = GAMESTATE->WhereUAtBro(pn, fStepBeat);
 
 		if( row == -1 )
 		{

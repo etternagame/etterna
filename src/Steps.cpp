@@ -442,25 +442,34 @@ void Steps::Decompress()
 
 	if (NonEmptyRowVector.size() <= 4 || nd.IsEmpty()) return; // don't care about anything with under 4 rows of taps
 
-	TimingData *td = Steps::GetTimingData();
-	for (int i = 1; i <= NonEmptyRowVector.back(); i++)
-		ElapsedTimesAtAllRows.push_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(i)));
+	vector<float> etar;
+	vector<float> etat;
 
-	ChartKey = GenerateChartKey(nd);
+	TimingData *td = Steps::GetTimingData();
+	for (int i = 0; i < nd.GetLastRow(); i++)
+		etar.push_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(i)));
+
+	for (size_t i = 0; i < NonEmptyRowVector.size(); i++) {
+		etat.push_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(NonEmptyRowVector[i])));
+	}
+		
+	SetElapsedTimesAtAllRows(etar);
+	SetElapsedTimesAtTapRows(etat);
+
+	ChartKey = GenerateChartKey(nd, etar);
 }
 
-RString Steps::GenerateChartKey(NoteData nd)
+RString Steps::GenerateChartKey(NoteData nd, vector<float> etar)
 {
 	RString k = "";
 	RString o = "";
 	int m = 10000;
 	int sr = nd.GetFirstRow();
-	float fso = GetElapsedTimeAtRow(sr)*m;
-
+	float fso = etar[sr]*m;
 	int row;
 	int et = 0;
-
-	for (int r = 1; r < NonEmptyRowVector.size(); r++) 
+	
+	for (size_t  r = 0; r < NonEmptyRowVector.size(); r++)
 	{
 		row = NonEmptyRowVector[r];
 		for (int t = 0; t < nd.GetNumTracks(); ++t)
@@ -470,7 +479,7 @@ RString Steps::GenerateChartKey(NoteData nd)
 		}
 		k.append(";");
 		k.append(to_string(et));
-		et = lround(GetElapsedTimeAtRow(row) * m - fso);
+		et = lround(etar[row] * m - fso);
 		k.append(" ");
 	}
 	
@@ -481,7 +490,6 @@ RString Steps::GenerateChartKey(NoteData nd)
 
 	return o;
 }
-
 
 void Steps::Compress() const
 {

@@ -41,6 +41,10 @@ void Foreground::LoadFromSong( const Song *pSong )
 		LoadedBGA bga;
 		if ( DoesFileExist( sLuaFile ) )
 		{
+			LOG->Warn("Mod map detected, invalidating sequential assumption.");
+			TimingData *td = GAMESTATE->m_pCurSteps[GAMESTATE->GetMasterPlayerNumber()]->GetTimingData();
+			td->InvalidateSequentialAssmption();
+
 			bga.m_bga = ActorUtil::MakeActor( sLuaFile, this );
 		}
 		else if ( PREFSMAN->m_bQuirksMode && DoesFileExist( sXmlFile ) )

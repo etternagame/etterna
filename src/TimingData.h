@@ -461,6 +461,33 @@ public:
 
 	// XXX: this breaks encapsulation. get rid of it ASAP
 	vector<RString> ToVectorString(TimingSegmentType tst, int dec = 6) const;
+
+	// Wow it's almost like this should have been done a decade ago. - Mina.
+	bool ValidSequentialAssumption = HasWarps();
+	void InvalidateSequentialAssmption() { ValidSequentialAssumption = false;};
+	bool IsSequentialAssumptionValid() { return  ValidSequentialAssumption; }
+
+	bool TimingData::NegStopAndBPMCheck() {
+		vector<TimingSegment *> &bpms = m_avpTimingSegments[SEGMENT_BPM];
+		vector<TimingSegment *> &stops = m_avpTimingSegments[SEGMENT_STOP];
+
+		for (size_t i = 0, l = bpms.size(); i < l; ++i)
+		{
+			BPMSegment *bpm = ToBPM(bpms[i]);
+			if (0 > bpm->GetBPM())
+				return false;
+		}
+
+		for (size_t i = 0, l = stops.size(); i < l; ++i)
+		{
+			StopSegment *s = ToStop(stops[i]);
+			if (0 > s->GetPause())
+				return false;
+		}
+		return true;
+	}
+
+
 protected:
 	// don't call this directly; use the derived-type overloads.
 	void AddSegment( const TimingSegment *seg );

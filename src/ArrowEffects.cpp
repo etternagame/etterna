@@ -297,8 +297,8 @@ float ArrowEffects::GetYOffset( const PlayerState* pPlayerState, int iCol, float
 	const SongPosition &position = pPlayerState->GetDisplayedPosition();
 	
 	float fSongBeat = position.m_fSongBeatVisible;
-	
-	Steps *pCurSteps = GAMESTATE->m_pCurSteps[pPlayerState->m_PlayerNumber];
+	PlayerNumber pn = pPlayerState->m_PlayerNumber;
+	Steps *pCurSteps = GAMESTATE->m_pCurSteps[pn];
 
 	/* Usually, fTimeSpacing is 0 or 1, in which case we use entirely beat spacing or
 	 * entirely time spacing (respectively). Occasionally, we tween between them. */
@@ -319,7 +319,7 @@ float ArrowEffects::GetYOffset( const PlayerState* pPlayerState, int iCol, float
 	if( curr_options->m_fTimeSpacing != 0.0f )
 	{
 		float fSongSeconds = GAMESTATE->m_Position.m_fMusicSecondsVisible;
-		float fNoteSeconds = pCurSteps->GetTimingData()->GetElapsedTimeFromBeat(fNoteBeat);
+		float fNoteSeconds = GAMESTATE->WhereUAtBro(pn, fNoteBeat) ;
 		float fSecondsUntilStep = fNoteSeconds - fSongSeconds;
 		float fBPM = curr_options->m_fScrollBPM;
 		float fBPS = fBPM/60.f / GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
