@@ -2110,11 +2110,11 @@ void Player::Step( int col, int row, const RageTimer &tm, bool bHeld, bool bRele
 
 	int iStepSearchRows;
 	static const float StepSearchDistance = GetMaxStepDistanceSeconds();
+	vector<int> nerv = GAMESTATE->m_pCurSteps[pn]->GetNonEmptyRowVector();
 
-	if (iSongRow < 1) {
+	if (iSongRow < 100 || iSongRow > nerv.size() -10 ) {
 		iStepSearchRows = max(BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(m_pPlayerState->m_Position.m_fMusicSeconds + StepSearchDistance)) - iSongRow,
 			iSongRow - BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(m_pPlayerState->m_Position.m_fMusicSeconds - StepSearchDistance))) + ROWS_PER_BEAT;
-	
 	}
 	else
 	{
@@ -2122,7 +2122,6 @@ void Player::Step( int col, int row, const RageTimer &tm, bool bHeld, bool bRele
 		by avoiding the invocation of the incredibly slow getbeatfromelapsedtime. Needs to be cleaned up a lot,
 		whole system does. Only in use if sequential assumption remains valid. - Mina */
 
-		vector<int> nerv = GAMESTATE->m_pCurSteps[pn]->GetNonEmptyRowVector();
 		if (nerv[nervpos] < iSongRow && nervpos < nerv.size())
 			nervpos += 1;
 
@@ -3142,6 +3141,7 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 		msg.SetParam( "NoteRow", iRow);
 		msg.SetParam( "Type", RString("Tap"));
 		msg.SetParam( "TapNoteOffset", tn.result.fTapNoteOffset );
+		msg.SetParam( "Val", m_pPlayerStageStats->m_iTapNoteScores[tns] + 1);
 
 		if (tns != TNS_Miss)
 			msg.SetParam("Offset", tn.result.fTapNoteOffset * 1000);  // don't send out 0 ms offsets for misses, multiply by 1000 for convenience - Mina
@@ -3194,6 +3194,7 @@ void Player::SetHoldJudgment( TapNote &tn, int iTrack )
 		msg.SetParam( "HoldNoteScore", tn.HoldResult.hns );
 		msg.SetParam( "Judgment", tn.HoldResult.hns);
 		msg.SetParam( "Type", RString("Hold"));
+		msg.SetParam( "Val", m_pPlayerStageStats->m_iHoldNoteScores[tn.HoldResult.hns] + 1);
 
 		Lua* L = LUA->Get();
 		tn.PushSelf(L);
