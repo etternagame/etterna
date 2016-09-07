@@ -82,7 +82,7 @@ void ScreenOptionsMaster::ImportOptions( int r, const vector<PlayerNumber> &vpns
 
 void ScreenOptionsMaster::ExportOptions( int r, const vector<PlayerNumber> &vpns )
 {
-	CHECKPOINT_M( ssprintf("%i/%i", r, int(m_pRows.size())) );
+	CHECKPOINT_M( ssprintf("%i/%i", r, static_cast<int>(m_pRows.size())) );
 
 	OptionRow &row = *m_pRows[r];
 	bool bRowHasFocus[NUM_PLAYERS];

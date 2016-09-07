@@ -27,8 +27,8 @@ RString OptionRow::GetThemedItemText( int iChoice ) const
 	return s;
 }
 
-RString ITEMS_LONG_ROW_X_NAME( size_t p )	{ return ssprintf("ItemsLongRowP%dX",int(p+1)); }
-RString MOD_ICON_X_NAME( size_t p )		{ return ssprintf("ModIconP%dX",int(p+1)); }
+RString ITEMS_LONG_ROW_X_NAME( size_t p )	{ return ssprintf("ItemsLongRowP%dX", static_cast<int>(p+1)); }
+RString MOD_ICON_X_NAME( size_t p )		{ return ssprintf("ModIconP%dX", static_cast<int>(p+1)); }
 
 OptionRow::OptionRow( const OptionRowType *pSource )
 {
@@ -376,7 +376,7 @@ void OptionRow::InitText( RowType type )
 						OptionsCursor *ul = new OptionsCursor( m_pParentType->m_Underline[p] );
 						m_Underline[p].push_back( ul );
 						ul->SetX( fX );
-						ul->SetBarWidth( int(fItemWidth) );
+						ul->SetBarWidth( static_cast<int>(fItemWidth) );
 					}
 				}
 

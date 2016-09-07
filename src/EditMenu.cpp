@@ -37,8 +37,8 @@ XToString( EditMenuAction );
 XToLocalizedString( EditMenuAction );
 StringToX( EditMenuAction );
 
-static RString ARROWS_X_NAME( size_t i )	{ return ssprintf("Arrows%dX",int(i+1)); }
-static RString ROW_Y_NAME( size_t i )		{ return ssprintf("Row%dY",int(i+1)); }
+static RString ARROWS_X_NAME( size_t i )	{ return ssprintf("Arrows%dX", static_cast<int>(i+1)); }
+static RString ROW_Y_NAME( size_t i )		{ return ssprintf("Row%dY", static_cast<int>(i+1)); }
 
 void EditMenu::StripLockedStepsAndDifficulty( vector<StepsAndDifficulty> &v )
 {

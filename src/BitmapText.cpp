@@ -262,7 +262,6 @@ void BitmapText::BuildChars()
 
 	/* QuantizeUp is an inefficient function to use if we only care about
 	multiples of two. - Mina*/
-
 	m_size.x = static_cast<int>(1 + (m_size.x / 2)) * 2.f;
 
 	m_aVertices.clear();
@@ -705,7 +704,7 @@ void BitmapText::DrawPrimitives()
 		// render the diffuse pass
 		if( m_bRainbowScroll )
 		{
-			int color_index = int(RageTimer::GetTimeSinceStartFast() / 0.200) % RAINBOW_COLORS.size();
+			int color_index = static_cast<int>(RageTimer::GetTimeSinceStartFast() / 0.200) % RAINBOW_COLORS.size();
 			for( unsigned i=0; i<m_aVertices.size(); i+=4 )
 			{
 				const RageColor color = RAINBOW_COLORS[color_index];

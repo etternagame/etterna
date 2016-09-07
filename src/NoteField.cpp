@@ -33,7 +33,7 @@ static ThemeMetric<float> BAR_8TH_ALPHA( "NoteField", "Bar8thAlpha" );
 static ThemeMetric<float> BAR_16TH_ALPHA( "NoteField", "Bar16thAlpha" );
 static ThemeMetric<float> FADE_FAIL_TIME( "NoteField", "FadeFailTime" );
 
-static RString RoutineNoteSkinName( size_t i ) { return ssprintf("RoutineNoteSkinP%i",int(i+1)); }
+static RString RoutineNoteSkinName( size_t i ) { return ssprintf("RoutineNoteSkinP%i", static_cast<int>(i+1)); }
 static ThemeMetric1D<RString> ROUTINE_NOTESKIN( "NoteField", RoutineNoteSkinName, NUM_PLAYERS );
 
 NoteField::NoteField()
@@ -734,7 +734,7 @@ void NoteField::CalcPixelsBeforeAndAfterTargets()
 		curr_options.m_fScrolls[PlayerOptions::SCROLL_CENTERED] *
 		curr_options.m_fAccels[PlayerOptions::ACCEL_BOOMERANG];
 	m_FieldRenderArgs.draw_pixels_after_targets +=
-		int(SCALE(centered_times_boomerang, 0.f, 1.f, 0.f, -SCREEN_HEIGHT/2));
+		static_cast<int>(SCALE(centered_times_boomerang, 0.f, 1.f, 0.f, -SCREEN_HEIGHT/2));
 	m_FieldRenderArgs.draw_pixels_before_targets =
 		m_iDrawDistanceBeforeTargetsPixels;
 

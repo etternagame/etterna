@@ -117,14 +117,14 @@ void FontPage::Load( const FontPageSettings &cfg )
 	if( iBaseline == -1 )
 	{
 		float center = m_FontPageTextures.m_pTextureMain->GetSourceFrameHeight()/2.0f;
-		iBaseline = int( center + m_iLineSpacing/2 );
+		iBaseline = static_cast<int>( center + m_iLineSpacing/2 );
 	}
 
 	int iTop = cfg.m_iTop;
 	if( iTop == -1 )
 	{
 		float center = m_FontPageTextures.m_pTextureMain->GetSourceFrameHeight()/2.0f;
-		iTop = int( center - m_iLineSpacing/2 );
+		iTop = static_cast<int>( center - m_iLineSpacing/2 );
 	}
 	m_iHeight = iBaseline - iTop;
 	m_iDrawExtraPixelsLeft = cfg.m_iDrawExtraPixelsLeft;
@@ -156,7 +156,7 @@ void FontPage::SetTextureCoords( const vector<int> &widths, int iAdvanceExtraPix
 		g.m_fWidth = float( widths[i] );
 		g.m_fHeight = float(m_FontPageTextures.m_pTextureMain->GetSourceFrameHeight());
 
-		g.m_iHadvance = int(g.m_fWidth) + iAdvanceExtraPixels;
+		g.m_iHadvance = static_cast<int>(g.m_fWidth) + iAdvanceExtraPixels;
 
 		/* Do the same thing with X.  Do this by changing the actual rendered
 		 * m_TexRect, instead of shifting it, so we don't render more than we
@@ -509,7 +509,7 @@ void Font::LoadFontPageSettings( FontPageSettings &cfg, IniFile &ini, const RStr
 				if( sCodepoint.substr(0, 2) == "U+" && IsHexVal(sCodepoint.substr(2)) )
 					sscanf( sCodepoint.substr(2).c_str(), "%x", &c );
 				else if( sCodepoint.size() > 0 &&
-						utf8_get_char_len(sCodepoint[0]) == int(sCodepoint.size()) )
+						utf8_get_char_len(sCodepoint[0]) == static_cast<int>(sCodepoint.size()) )
 				{
 					c = utf8_get_char( sCodepoint.c_str() );
 					if(c == wchar_t(-1))
@@ -619,7 +619,7 @@ void Font::LoadFontPageSettings( FontPageSettings &cfg, IniFile &ini, const RStr
 				// Decode the string.
 				const wstring wdata( RStringToWstring(pValue->GetValue<RString>()) );
 
-				if(int(wdata.size()) > num_frames_wide)
+				if( static_cast<int>(wdata.size()) > num_frames_wide)
 				{
 					LuaHelpers::ReportScriptErrorFmt(
 						"The font definition \"%s\" assigns %i characters to row %i"

@@ -524,7 +524,7 @@ void BackgroundImpl::LoadFromSong( const Song* pSong )
 		switch( g_RandomBackgroundMode )
 		{
 		default:
-			ASSERT_M( 0, ssprintf("Invalid RandomBackgroundMode: %i", int(g_RandomBackgroundMode)) );
+			ASSERT_M( 0, ssprintf("Invalid RandomBackgroundMode: %i", static_cast<int>(g_RandomBackgroundMode)) );
 			break;
 		case BGMODE_OFF:
 			break;

@@ -357,7 +357,7 @@ void NoteDataUtil::GetSMNoteDataString( const NoteData &in, RString &sRet )
 		fLastBeat = max( fLastBeat, nd->GetLastBeat() );
 	}
 
-	int iLastMeasure = int( fLastBeat/BEATS_PER_MEASURE );
+	int iLastMeasure = static_cast<int>( fLastBeat/BEATS_PER_MEASURE );
 
 	sRet = "";
 	FOREACH( NoteData, parts, nd )
@@ -459,11 +459,11 @@ void NoteDataUtil::SplitCompositeNoteData( const NoteData &in, vector<NoteData> 
 			 */
 			const Style *curStyle = GAMESTATE->GetCurrentStyle(PLAYER_INVALID);
 			if( (curStyle == NULL || curStyle->m_StyleType == StyleType_TwoPlayersSharedSides )
-				&& int( tn.pn ) > NUM_PlayerNumber )
+				&& static_cast<int>( tn.pn ) > NUM_PlayerNumber )
 			{
 				tn.pn = PLAYER_1;
 			}
-			unsigned index = int( tn.pn );
+			unsigned index = static_cast<int>( tn.pn );
 
 			ASSERT_M( index < NUM_PlayerNumber, ssprintf("We have a note not assigned to a player. The note in question is on beat %f, column %i.", NoteRowToBeat(row), t + 1) );
 			tn.pn = PLAYER_INVALID;

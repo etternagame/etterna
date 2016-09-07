@@ -871,7 +871,7 @@ const RectF *Sprite::GetCurrentTextureCoordRect() const
 
 const RectF *Sprite::GetTextureCoordRectForState( int iState ) const
 {
-	ASSERT_M( iState < (int) m_States.size(), ssprintf("%d, %d", int(iState), int(m_States.size())) );
+	ASSERT_M( iState < (int) m_States.size(), ssprintf("%d, %d", static_cast<int>(iState), static_cast<int>(m_States.size())) );
 
 	return &m_States[iState].rect;
 }

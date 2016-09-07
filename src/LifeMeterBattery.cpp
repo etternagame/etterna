@@ -44,7 +44,7 @@ void LifeMeterBattery::Load( const PlayerState *pPlayerState, PlayerStageStats *
 	this->AddChild( m_sprFrame );
 
 	m_sprBattery.Load( THEME->GetPathG(sType,"lives") );
-	m_sprBattery->SetName( ssprintf("BatteryP%i",int(pn+1)) );
+	m_sprBattery->SetName( ssprintf("BatteryP%i", static_cast<int>(pn+1)) );
 	if( bPlayerEnabled )
 	{
 		ActorUtil::LoadAllCommandsAndSetXY( m_sprBattery, sType );
@@ -52,7 +52,7 @@ void LifeMeterBattery::Load( const PlayerState *pPlayerState, PlayerStageStats *
 	}
 
 	m_textNumLives.LoadFromFont( THEME->GetPathF(sType, "lives") );
-	m_textNumLives.SetName( ssprintf("NumLivesP%i",int(pn+1)) );
+	m_textNumLives.SetName( ssprintf("NumLivesP%i", static_cast<int>(pn+1)) );
 	if( bPlayerEnabled )
 	{
 		ActorUtil::LoadAllCommandsAndSetXY( m_textNumLives, sType );

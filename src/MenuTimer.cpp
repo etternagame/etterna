@@ -9,7 +9,7 @@
 #include "ThemeMetric.h"
 #include "ActorUtil.h"
 
-RString WARNING_COMMAND_NAME( size_t i ) { return ssprintf("Warning%dCommand",int(i)); }
+RString WARNING_COMMAND_NAME( size_t i ) { return ssprintf("Warning%dCommand", static_cast<int>(i)); }
 
 static const float TIMER_PAUSE_SECONDS = 99.99f;
 

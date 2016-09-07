@@ -44,7 +44,7 @@ RString FileTransfer::Update( float fDeltaTime )
 	if (m_fLastUpdate >= 1.0)
 	{
 		if (m_bIsDownloading && m_bGotHeader)
-			m_sStatus = ssprintf("DL @ %d KB/s", int((m_iDownloaded-m_bytesLastUpdate)/1024));
+			m_sStatus = ssprintf("DL @ %d KB/s", static_cast<int>((m_iDownloaded-m_bytesLastUpdate)/1024));
 
 		m_bytesLastUpdate = m_iDownloaded;
 		UpdateProgress();
@@ -363,7 +363,7 @@ void FileTransfer::Finish()
 	{
 		float fSleepSeconds = 0.1f;
 		this->Update( fSleepSeconds );
-		usleep( int( fSleepSeconds * 1000000.0 ) );
+		usleep( static_cast<int>( fSleepSeconds * 1000000.0 ) );
 		if( this->IsFinished() )
 		{
 			break;

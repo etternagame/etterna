@@ -407,7 +407,7 @@ void LifeMeterBar::UpdateNonstopLifebar()
 	// the lifebar is pretty harsh at 0.4 already (you lose
 	// about 20% of your lifebar); at 0.2 it would be 40%, which
 	// is too harsh at one difficulty level higher.  Override.
-	int iLifeDifficulty = int( (1.8f - m_fLifeDifficulty)/0.2f );
+	int iLifeDifficulty = static_cast<int>( (1.8f - m_fLifeDifficulty)/0.2f );
 
 	// first eight values don't matter
 	float fDifficultyValues[16] = {0,0,0,0,0,0,0,0, 

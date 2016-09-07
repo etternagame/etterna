@@ -20,8 +20,8 @@ const float PARTICLE_SPEED = 300;
 const float SPIRAL_MAX_ZOOM = 2;
 const float SPIRAL_MIN_ZOOM = 0.3f;
 
-#define MAX_TILES_WIDE int(SCREEN_WIDTH/32+2)
-#define MAX_TILES_HIGH int(SCREEN_HEIGHT/32+2)
+#define MAX_TILES_WIDE static_cast<int>(SCREEN_WIDTH/32+2)
+#define MAX_TILES_HIGH static_cast<int>(SCREEN_HEIGHT/32+2)
 #define MAX_SPRITES (MAX_TILES_WIDE*MAX_TILES_HIGH)
 
 inline float GetOffScreenLeft(  Actor* pActor ) { return SCREEN_LEFT  - pActor->GetZoomedWidth()/2; }
@@ -224,8 +224,8 @@ void BGAnimationLayer::LoadFromAniLayerFile( const RString& sPath )
 			m_Type = TYPE_PARTICLES;
 			Sprite s;
 			s.Load( sPath );
-			int iSpriteArea = int( s.GetUnzoomedWidth()*s.GetUnzoomedHeight() );
-			const int iMaxArea = int(SCREEN_WIDTH*SCREEN_HEIGHT);
+			int iSpriteArea = static_cast<int>( s.GetUnzoomedWidth()*s.GetUnzoomedHeight() );
+			const int iMaxArea = static_cast<int>(SCREEN_WIDTH*SCREEN_HEIGHT);
 			int iNumParticles = iMaxArea / iSpriteArea;
 			iNumParticles = min( iNumParticles, MAX_SPRITES );
 
@@ -291,9 +291,9 @@ void BGAnimationLayer::LoadFromAniLayerFile( const RString& sPath )
 			ID.bStretch = true;
 			Sprite s;
 			s.Load( ID );
-			m_iNumTilesWide = 2+int(SCREEN_WIDTH /s.GetUnzoomedWidth());
+			m_iNumTilesWide = 2 + static_cast<int>(SCREEN_WIDTH /s.GetUnzoomedWidth());
 			m_iNumTilesWide = min( m_iNumTilesWide, MAX_TILES_WIDE );
-			m_iNumTilesHigh = 2+int(SCREEN_HEIGHT/s.GetUnzoomedHeight());
+			m_iNumTilesHigh = 2 + static_cast<int>(SCREEN_HEIGHT/s.GetUnzoomedHeight());
 			m_iNumTilesHigh = min( m_iNumTilesHigh, MAX_TILES_HIGH );
 			m_fTilesStartX = s.GetUnzoomedWidth() / 2;
 			m_fTilesStartY = s.GetUnzoomedHeight() / 2;
@@ -613,7 +613,7 @@ void BGAnimationLayer::UpdateInternal( float fDeltaTime )
 			float fTotalWidth = m_iNumTilesWide * m_fTilesSpacingX;
 			float fTotalHeight = m_iNumTilesHigh * m_fTilesSpacingY;
 
-			ASSERT( int(m_SubActors.size()) == m_iNumTilesWide * m_iNumTilesHigh );
+			ASSERT( static_cast<int>(m_SubActors.size()) == m_iNumTilesWide * m_iNumTilesHigh );
 
 			for( int x=0; x<m_iNumTilesWide; x++ )
 			{
