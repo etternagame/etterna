@@ -403,10 +403,6 @@ public:
 	BroadcastOnChange<RString> m_sEditLocalProfileID;
 	Profile* GetEditLocalProfile();
 
-	float WhereUAtBro(PlayerNumber pn, float beat) const;
-	float WhereUAtBro(PlayerNumber pn, float beat);
-	float WhereUAtBro(PlayerNumber pn, int row);
-
 	// Workout stuff
 	float GetGoalPercentComplete( PlayerNumber pn );
 	bool IsGoalComplete( PlayerNumber pn )	{ return GetGoalPercentComplete( pn ) >= 1; }

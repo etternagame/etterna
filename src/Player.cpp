@@ -71,7 +71,7 @@ public:
 	{
 		if( iRow < m_iStart )
 			return true;
-		if( iRow >= m_iStart+int(m_vRows.size()) )
+		if( iRow >= m_iStart + static_cast<int>(m_vRows.size()) )
 			Resize( iRow+1-m_iStart );
 		const int iIndex = (iRow - m_iStart + m_iOffset) % m_vRows.size();
 		const bool ret = m_vRows[iIndex];
@@ -80,7 +80,7 @@ public:
 		{
 			m_vRows[m_iOffset] = false;
 			++m_iStart;
-			if( ++m_iOffset >= int(m_vRows.size()) )
+			if( ++m_iOffset >= static_cast<int>(m_vRows.size()) )
 				m_iOffset -= m_vRows.size();
 		}
 		return ret;
@@ -94,7 +94,7 @@ public:
 };
 
 
-RString ATTACK_DISPLAY_X_NAME( size_t p, size_t both_sides )	{ return "AttackDisplayXOffset" + (both_sides ? RString("BothSides") : ssprintf("OneSideP%d",int(p+1)) ); }
+RString ATTACK_DISPLAY_X_NAME( size_t p, size_t both_sides )	{ return "AttackDisplayXOffset" + (both_sides ? RString("BothSides") : ssprintf("OneSideP%d", static_cast<int>(p+1)) ); }
 
 void TimingWindowSecondsInit( size_t /*TimingWindow*/ i, RString &sNameOut, float &defaultValueOut )
 {
@@ -669,6 +669,7 @@ void Player::Load()
 	// Mina garbage - Mina
 	m_Timing = GAMESTATE->m_pCurSteps[pn]->GetTimingData();
 	m_Timing->NegStopAndBPMCheck();
+	m_Timing->SetElapsedTimesAtAllRows(GAMESTATE->m_pCurSteps[pn]->GetElapsedTimesAtAllRows());
 
 	/* Apply transforms. */
 	NoteDataUtil::TransformNoteData(m_NoteData, *m_Timing, m_pPlayerState->m_PlayerOptions.GetStage(), GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)->m_StepsType);
@@ -1788,8 +1789,8 @@ int Player::GetClosestNote( int col, int iNoteRow, int iMaxRowsAhead, int iMaxRo
 
 	// Get the current time, previous time, and next time.
 	float fNoteTime = m_pPlayerState->m_Position.m_fMusicSeconds;
-	float fNextTime = GAMESTATE->WhereUAtBro(pn, iNextIndex);
-	float fPrevTime = GAMESTATE->WhereUAtBro(pn, iPrevIndex);
+	float fNextTime = m_Timing->WhereUAtBro(iNextIndex);
+	float fPrevTime = m_Timing->WhereUAtBro(iPrevIndex);
 
 	/* Figure out which row is closer. */
 	if( fabsf(fNoteTime-fNextTime) > fabsf(fNoteTime-fPrevTime) )
@@ -1855,8 +1856,8 @@ int Player::GetClosestNonEmptyRow( int iNoteRow, int iMaxRowsAhead, int iMaxRows
 
 	// Get the current time, previous time, and next time.
 	float fNoteTime = m_pPlayerState->m_Position.m_fMusicSeconds;
-	float fNextTime = GAMESTATE->WhereUAtBro(pn, iNextRow);
-	float fPrevTime = GAMESTATE->WhereUAtBro(pn, iPrevRow);
+	float fNextTime = m_Timing->WhereUAtBro(iNextRow);
+	float fPrevTime = m_Timing->WhereUAtBro(iPrevRow);
 
 	/* Figure out which row is closer. */
 	if( fabsf(fNoteTime-fNextTime) > fabsf(fNoteTime-fPrevTime) )
@@ -2111,8 +2112,9 @@ void Player::Step( int col, int row, const RageTimer &tm, bool bHeld, bool bRele
 	int iStepSearchRows;
 	static const float StepSearchDistance = GetMaxStepDistanceSeconds();
 	vector<int> nerv = GAMESTATE->m_pCurSteps[pn]->GetNonEmptyRowVector();
+	int skipstart = nerv[10]; // this is not robust need to come up with something better later - Mina
 
-	if (iSongRow < 100 || iSongRow > nerv.size() -10 ) {
+	if (iSongRow < skipstart || iSongRow > nerv.size() -10 ) {
 		iStepSearchRows = max(BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(m_pPlayerState->m_Position.m_fMusicSeconds + StepSearchDistance)) - iSongRow,
 			iSongRow - BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(m_pPlayerState->m_Position.m_fMusicSeconds - StepSearchDistance))) + ROWS_PER_BEAT;
 	}
@@ -2127,12 +2129,12 @@ void Player::Step( int col, int row, const RageTimer &tm, bool bHeld, bool bRele
 
 		size_t SearchIndexBehind = nervpos;
 		size_t SearchIndexAhead = nervpos;
-		float SearchBeginTime = GAMESTATE->WhereUAtBro(pn, nerv[nervpos]);
+		float SearchBeginTime = m_Timing->WhereUAtBro(nerv[nervpos]);
 
-		while (SearchIndexBehind > 1 && SearchBeginTime - GAMESTATE->WhereUAtBro(pn, nerv[SearchIndexBehind - 1]) < StepSearchDistance)
+		while (SearchIndexBehind > 1 && SearchBeginTime - m_Timing->WhereUAtBro(nerv[SearchIndexBehind - 1]) < StepSearchDistance)
 			SearchIndexBehind -= 1;
 
-		while (SearchIndexAhead > 1 && SearchIndexAhead + 1 > nerv.size() && GAMESTATE->WhereUAtBro(pn, nerv[SearchIndexAhead + 1]) - SearchBeginTime < StepSearchDistance)
+		while (SearchIndexAhead > 1 && SearchIndexAhead + 1 > nerv.size() && m_Timing->WhereUAtBro(nerv[SearchIndexAhead + 1]) - SearchBeginTime < StepSearchDistance)
 			SearchIndexAhead += 1;
 
 		int	MaxLookBehind = nerv[nervpos] - nerv[SearchIndexBehind];
@@ -2155,7 +2157,7 @@ void Player::Step( int col, int row, const RageTimer &tm, bool bHeld, bool bRele
 		float fNoteOffset = 0.0f;
 		// we need this later if we are autosyncing
 		const float fStepBeat = NoteRowToBeat( iRowOfOverlappingNoteOrRow );
-		const float fStepSeconds = GAMESTATE->WhereUAtBro(pn, fStepBeat);
+		const float fStepSeconds = m_Timing->WhereUAtBro(fStepBeat);
 
 		if( row == -1 )
 		{

@@ -289,7 +289,7 @@ void Steps::TidyUpData()
 	}
 
 	if( GetMeter() < 1) // meter is invalid
-		SetMeter( int(PredictMeter()) );
+		SetMeter(static_cast<int>(PredictMeter()) );
 }
 
 void Steps::CalculateRadarValues( float fMusicLengthSeconds )
@@ -435,31 +435,25 @@ void Steps::Decompress()
 
 	/*	Piggy backing off this function to generate stuff that should only be generated once per song caching
 	This includes a vector for note rows that are not empty, a vector for elapsed time at each note row and
-	the chart key generated on song load. -Mina */
+	the chart key generated on song load. Also this totally needs to be redone and split up into the appropriate
+	places now that I understand the system better. - Mina */
 
 	NoteData nd = Steps::GetNoteData();
 	if (nd.GetLastRow() > size_t(500000)) // Ignore really long stuff for the moment
 		return;
 
 	NonEmptyRowVector = nd.LogNonEmptyRows();
-	// don't care about anything with under 4 rows of taps
-	if (NonEmptyRowVector.size() <= 4 || nd.IsEmpty()) 
+	// don't care about anything with under 10 rows of taps
+	if (NonEmptyRowVector.size() <= 10 || nd.IsEmpty()) 
 		return; 
 
 	vector<float> etar;
-	vector<float> etat;
 
 	TimingData *td = Steps::GetTimingData();
 	for (int i = 0; i < nd.GetLastRow(); i++)
 		etar.push_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(i)));
 
-	for (size_t i = 0; i < NonEmptyRowVector.size(); i++) {
-		etat.push_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(NonEmptyRowVector[i])));
-	}
-		
 	SetElapsedTimesAtAllRows(etar);
-	SetElapsedTimesAtTapRows(etat);
-
 	ChartKey = GenerateChartKey(nd, etar);
 }
 
@@ -467,28 +461,23 @@ RString Steps::GenerateChartKey(NoteData nd, vector<float> etar)
 {
 	RString k = "";
 	RString o = "";
-	int m = 10000;
-	int sr = nd.GetFirstRow();
-	float fso = etar[sr]*m;
-	int row;
+	int m = 1000;
+	float fso = etar[nd.GetFirstRow()] * m;
 	int et = 0;
-	
-	for (size_t  r = 0; r < NonEmptyRowVector.size(); r++)
+
+	for (size_t r = 0; r < NonEmptyRowVector.size(); r++)
 	{
-		row = NonEmptyRowVector[r];
+		int row = NonEmptyRowVector[r];
 		for (int t = 0; t < nd.GetNumTracks(); ++t)
 		{
 			const TapNote &tn = nd.GetTapNote(t, row);
 			k.append(to_string(tn.type));
 		}
-		k.append(";");
 		k.append(to_string(et));
 		et = lround(etar[row] * m - fso);
-		k.append(" ");
 	}
-	
-	ChartKeyRecord = k;
 
+	//ChartKeyRecord = k;
 	o.append("X");	// I was thinking of using "C" to indicate chart.. however.. X is cooler... - Mina
 	o.append(BinaryToHex(CryptManager::GetSHA1ForString(k)));
 
@@ -619,7 +608,7 @@ void Steps::SetChartStyle( RString sChartStyle )
 
 bool Steps::MakeValidEditDescription( RString &sPreferredDescription )
 {
-	if( int(sPreferredDescription.size()) > MAX_STEPS_DESCRIPTION_LENGTH )
+	if( static_cast<int>(sPreferredDescription.size()) > MAX_STEPS_DESCRIPTION_LENGTH )
 	{
 		sPreferredDescription = sPreferredDescription.Left( MAX_STEPS_DESCRIPTION_LENGTH );
 		return true;

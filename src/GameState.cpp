@@ -2599,58 +2599,6 @@ MultiPlayer GetNextEnabledMultiPlayer( MultiPlayer mp )
 	return MultiPlayer_Invalid;
 }
 
-
-float GameState::WhereUAtBro(PlayerNumber pn, float beat) {
-	if (beat < 0) return 0;
-
-	//bool ValidSequentialAssumption = m_pCurSteps[pn]->GetTimingData()->IsSequentialAssumptionValid();
-
-	if (true)
-	{
-		return m_pCurSteps[pn]->GetElapsedTimeAtRow(BeatToNoteRow(beat)) - GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * PREFSMAN->m_fGlobalOffsetSeconds;
-	}
-	else
-	{
-		TimingData *td = m_pCurSteps[pn]->GetTimingData();
-		return td->GetElapsedTimeFromBeat(beat);
-	}
-}
-
-float GameState::WhereUAtBro(PlayerNumber pn, float beat) const {
-	if (beat < 0) return 0;
-
-	//bool ValidSequentialAssumption = m_pCurSteps[pn]->GetTimingData()->IsSequentialAssumptionValid();
-
-	if (true)
-	{
-		return m_pCurSteps[pn]->GetElapsedTimeAtRow(BeatToNoteRow(beat)) - GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * PREFSMAN->m_fGlobalOffsetSeconds;
-	}
-	else
-	{
-		TimingData *td = m_pCurSteps[pn]->GetTimingData();
-		return td->GetElapsedTimeFromBeat(beat);
-	}
-}
-
-float GameState::WhereUAtBro(PlayerNumber pn, int row) {
-	if (row < 0) return 0;
-
-	//bool ValidSequentialAssumption = m_pCurSteps[pn]->GetTimingData()->IsSequentialAssumptionValid();
-
-	if (true)
-	{
-		return m_pCurSteps[pn]->GetElapsedTimeAtRow(row) - GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * PREFSMAN->m_fGlobalOffsetSeconds;
-	}
-	else
-	{
-		TimingData *td = m_pCurSteps[pn]->GetTimingData();
-		return td->GetElapsedTimeFromBeat(NoteRowToBeat(row));
-	}
-}
-
-
-
-
 // lua start
 #include "LuaBinding.h"
 #include "Game.h"

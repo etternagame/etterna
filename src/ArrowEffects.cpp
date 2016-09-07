@@ -222,7 +222,7 @@ void ArrowEffects::Update()
 				float fAccelTime = 0.2f, fTotalTime = 0.5f;
 				float fBeat = position.m_fSongBeatVisible + fAccelTime;
 
-				const bool bEvenBeat = (int(fBeat) % 2) != 0;
+				const bool bEvenBeat = (static_cast<int>(fBeat) % 2) != 0;
 
 				data.m_fBeatFactor = 0;
 				if (fBeat < 0)
@@ -319,7 +319,7 @@ float ArrowEffects::GetYOffset( const PlayerState* pPlayerState, int iCol, float
 	if( curr_options->m_fTimeSpacing != 0.0f )
 	{
 		float fSongSeconds = GAMESTATE->m_Position.m_fMusicSecondsVisible;
-		float fNoteSeconds = GAMESTATE->WhereUAtBro(pn, fNoteBeat) ;
+		float fNoteSeconds = pCurSteps->GetTimingData()->WhereUAtBro(fNoteBeat) ;
 		float fSecondsUntilStep = fNoteSeconds - fSongSeconds;
 		float fBPM = curr_options->m_fScrollBPM;
 		float fBPS = fBPM/60.f / GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;

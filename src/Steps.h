@@ -171,7 +171,7 @@ public:
 	/* Needs to be generated with timingdata and stored in timingdata - Mina */
 
 	vector<float> ElapsedTimesAtAllRows;
-	size_t GetElapsedTimesAtAllRows() { return ElapsedTimesAtAllRows.size(); };
+	vector<float> GetElapsedTimesAtAllRows() { return ElapsedTimesAtAllRows; };
 	void SetElapsedTimesAtAllRows(vector<float> etar) { ElapsedTimesAtAllRows = etar; };
 
 	vector<float> ElapsedTimesAtTapRows;

@@ -1354,6 +1354,36 @@ void TimingSegmentSetToLuaTable(TimingData* td, TimingSegmentType tst, lua_State
 	}
 }
 
+
+float TimingData::WhereUAtBro(float beat) {
+	if (beat < 0) return 0;
+	size_t row = BeatToNoteRow(beat);
+
+	if ( ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size() )
+		return ElapsedTimesAtAllRows[row] - GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * PREFSMAN->m_fGlobalOffsetSeconds;
+
+	return GetElapsedTimeFromBeat(beat);
+}
+
+float TimingData::WhereUAtBro(float beat) const {
+	if (beat < 0) return 0;
+	size_t row = BeatToNoteRow(beat);
+
+	if ( ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size() )
+		return ElapsedTimesAtAllRows[row] - GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * PREFSMAN->m_fGlobalOffsetSeconds;
+
+	return GetElapsedTimeFromBeat(beat);
+}
+
+float TimingData::WhereUAtBro(int row) {
+	if (row < 0) return 0;
+
+	if ( ValidSequentialAssumption && static_cast<size_t>(row) < ElapsedTimesAtAllRows.size() )
+		return ElapsedTimesAtAllRows[row] - GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * PREFSMAN->m_fGlobalOffsetSeconds;
+
+	return GetElapsedTimeFromBeat(NoteRowToBeat(row));
+}
+
 /** @brief Allow Lua to have access to the TimingData. */
 class LunaTimingData: public Luna<TimingData>
 {
