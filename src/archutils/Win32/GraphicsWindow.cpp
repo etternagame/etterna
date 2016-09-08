@@ -479,9 +479,9 @@ HDC GraphicsWindow::GetHDC()
 	return g_HDC;
 }
 
-const VideoModeParams &GraphicsWindow::GetParams()
+VideoModeParams* GraphicsWindow::GetParams()
 {
-	return g_CurrentParams;
+	return &g_CurrentParams;
 }
 
 void GraphicsWindow::Update()

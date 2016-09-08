@@ -471,7 +471,7 @@ float GameSoundManager::GetFrameTimingAdjustment( float fDeltaTime )
 	static int iLastFPS = 0;
 	int iThisFPS = DISPLAY->GetFPS();
 
-	if( iThisFPS != DISPLAY->GetActualVideoModeParams().rate || iThisFPS != iLastFPS )
+	if( iThisFPS != (*DISPLAY->GetActualVideoModeParams()).rate || iThisFPS != iLastFPS )
 	{
 		iLastFPS = iThisFPS;
 		return 0;

@@ -784,8 +784,8 @@ bool RageDisplay_Legacy::BeginFrame()
 {
 	/* We do this in here, rather than ResolutionChanged, or we won't update the
 	 * viewport for the concurrent rendering context. */
-	int fWidth = g_pWind->GetActualVideoModeParams().width;
-	int fHeight = g_pWind->GetActualVideoModeParams().height;
+	int fWidth = (*g_pWind->GetActualVideoModeParams()).width;
+	int fHeight = (*g_pWind->GetActualVideoModeParams()).height;
 
 	glViewport( 0, 0, fWidth, fHeight );
 
@@ -798,7 +798,7 @@ bool RageDisplay_Legacy::BeginFrame()
 
 void RageDisplay_Legacy::EndFrame()
 {
-	FrameLimitBeforeVsync( g_pWind->GetActualVideoModeParams().rate );
+	FrameLimitBeforeVsync( (*g_pWind->GetActualVideoModeParams()).rate );
 	g_pWind->SwapBuffers();
 	FrameLimitAfterVsync();
 
@@ -820,8 +820,8 @@ void RageDisplay_Legacy::EndFrame()
 
 RageSurface* RageDisplay_Legacy::CreateScreenshot()
 {
-	int width = g_pWind->GetActualVideoModeParams().width;
-	int height = g_pWind->GetActualVideoModeParams().height;
+	int width = (*g_pWind->GetActualVideoModeParams()).width;
+	int height = (*g_pWind->GetActualVideoModeParams()).height;
 
 	const RagePixelFormatDesc &desc = PIXEL_FORMAT_DESC[RagePixelFormat_RGBA8];
 	RageSurface *image = CreateSurface( width, height, desc.bpp,
@@ -832,7 +832,7 @@ RageSurface* RageDisplay_Legacy::CreateScreenshot()
 	glReadBuffer( GL_FRONT );
 	DebugAssertNoGLError();
 	
-	glReadPixels( 0, 0, g_pWind->GetActualVideoModeParams().width, g_pWind->GetActualVideoModeParams().height, GL_RGBA,
+	glReadPixels( 0, 0, (*g_pWind->GetActualVideoModeParams()).width, (*g_pWind->GetActualVideoModeParams()).height, GL_RGBA,
 			GL_UNSIGNED_BYTE, image->pixels );
 	DebugAssertNoGLError();
 
@@ -865,7 +865,7 @@ RageSurface *RageDisplay_Legacy::GetTexture( unsigned iTexture )
 	return pImage;
 }
 
-VideoModeParams RageDisplay_Legacy::GetActualVideoModeParams() const 
+VideoModeParams* RageDisplay_Legacy::GetActualVideoModeParams() 
 {
 	return g_pWind->GetActualVideoModeParams();
 }
@@ -1495,7 +1495,7 @@ void RageDisplay_Legacy::DrawLineStripInternal( const RageSpriteVertex v[], int 
 {
 	TurnOffHardwareVBO();
 
-	if (!GetActualVideoModeParams().bSmoothLines)
+	if (!(*GetActualVideoModeParams()).bSmoothLines)
 	{
 		/* Fall back on the generic polygon-based line strip. */
 		RageDisplay::DrawLineStripInternal(v, iNumVerts, fLineWidth );
@@ -1517,8 +1517,8 @@ void RageDisplay_Legacy::DrawLineStripInternal( const RageSpriteVertex v[], int 
 		const RageMatrix* pMat = GetProjectionTop();
 		float fW = 2 / pMat->m[0][0];
 		float fH = -2 / pMat->m[1][1];
-		float fWidthVal = float(g_pWind->GetActualVideoModeParams().width) / fW;
-		float fHeightVal = float(g_pWind->GetActualVideoModeParams().height) / fH;
+		float fWidthVal = (float)(*g_pWind->GetActualVideoModeParams()).width / fW;
+		float fHeightVal = (float)(*g_pWind->GetActualVideoModeParams()).height / fH;
 		fLineWidth *= (fWidthVal + fHeightVal) / 2;
 	}
 
@@ -1667,7 +1667,7 @@ void RageDisplay_Legacy::SetTextureFiltering( TextureUnit tu, bool b )
 		if (iWidth1 > 1 && iWidth2 != 0)
 		{
 			/* Mipmaps are enabled. */
-			if (g_pWind->GetActualVideoModeParams().bTrilinearFiltering)
+			if ((*g_pWind->GetActualVideoModeParams()).bTrilinearFiltering)
 				iMinFilter = GL_LINEAR_MIPMAP_LINEAR;
 			else
 				iMinFilter = GL_LINEAR_MIPMAP_NEAREST;
@@ -2155,7 +2155,7 @@ unsigned RageDisplay_Legacy::CreateTexture(
 	
 	glBindTexture( GL_TEXTURE_2D, iTexHandle );
 
-	if (g_pWind->GetActualVideoModeParams().bAnisotropicFiltering &&
+	if ((*g_pWind->GetActualVideoModeParams()).bAnisotropicFiltering &&
 		GLEW_EXT_texture_filter_anisotropic )
 	{
 		GLfloat fLargestSupportedAnisotropy;
@@ -2525,8 +2525,8 @@ void RageDisplay_Legacy::SetRenderTarget( unsigned iTexture, bool bPreserveTextu
 		DISPLAY->CameraPopMatrix();
 
 		/* Reset the viewport. */
-		int fWidth = g_pWind->GetActualVideoModeParams().width;
-		int fHeight = g_pWind->GetActualVideoModeParams().height;
+		int fWidth = (*g_pWind->GetActualVideoModeParams()).width;
+		int fHeight = (*g_pWind->GetActualVideoModeParams()).height;
 		glViewport( 0, 0, fWidth, fHeight );
 
 		if (g_pCurrentRenderTarget)

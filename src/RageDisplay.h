@@ -193,8 +193,8 @@ public:
 
 	virtual bool BeginFrame();
 	virtual void EndFrame();
-	virtual VideoModeParams GetActualVideoModeParams() const = 0;
-	bool IsWindowed() const { return this->GetActualVideoModeParams().windowed; }
+	virtual VideoModeParams* GetActualVideoModeParams() = 0;
+	bool IsWindowed() { return (*GetActualVideoModeParams()).windowed; }
 
 	virtual void SetBlendMode( BlendMode mode ) = 0;
 
@@ -395,7 +395,7 @@ protected:
 	virtual RageMatrix GetFrustumMatrix( float l, float r, float b, float t, float zn, float zf ); 
 
 	// Matrix that adjusts position and scale of image on the screen
-	RageMatrix GetCenteringMatrix( float fTranslateX, float fTranslateY, float fAddWidth, float fAddHeight ) const;
+	RageMatrix GetCenteringMatrix( float fTranslateX, float fTranslateY, float fAddWidth, float fAddHeight );
 	void UpdateCentering();
 
 	// Called by the RageDisplay derivitives

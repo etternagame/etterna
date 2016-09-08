@@ -15,7 +15,7 @@ public:
 
 	bool BeginFrame() { return true; }
 	void EndFrame();
-	VideoModeParams GetActualVideoModeParams() const { return m_Params; }
+	VideoModeParams* GetActualVideoModeParams() { return (VideoModeParams*)&m_Params; }
 	void SetBlendMode( BlendMode ) { }
 	bool SupportsTextureFormat( RagePixelFormat, bool /* realtime */ =false ) { return true; }
 	bool SupportsPerVertexMatrixScale() { return false; }

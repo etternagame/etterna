@@ -30,7 +30,7 @@ public:
 	virtual void SwapBuffers() = 0;
 	virtual void Update() { }
 
-	virtual const VideoModeParams &GetActualVideoModeParams() const = 0;
+	virtual VideoModeParams* GetActualVideoModeParams() = 0;
 
 	virtual bool SupportsRenderToTexture() const { return false; }
 	virtual RenderTarget *CreateRenderTarget() { return NULL; }

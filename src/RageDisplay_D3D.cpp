@@ -582,7 +582,7 @@ void RageDisplay_D3D::EndFrame()
 {
 	g_pd3dDevice->EndScene();
 
-	FrameLimitBeforeVsync( GetActualVideoModeParams().rate );
+	FrameLimitBeforeVsync( (*GetActualVideoModeParams()).rate );
 	g_pd3dDevice->Present( 0, 0, 0, 0 );
 	FrameLimitAfterVsync();
 
@@ -673,10 +673,9 @@ RageSurface* RageDisplay_D3D::CreateScreenshot()
 	return result;
 }
 
-VideoModeParams RageDisplay_D3D::GetActualVideoModeParams() const 
+VideoModeParams* RageDisplay_D3D::GetActualVideoModeParams() 
 {
-	VideoModeParams p = GraphicsWindow::GetParams(); 
-	return p; 
+	return GraphicsWindow::GetParams(); 
 }
 
 void RageDisplay_D3D::SendCurrentMatrices()

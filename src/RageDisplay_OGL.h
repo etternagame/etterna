@@ -43,7 +43,7 @@ public:
 
 	bool BeginFrame();	
 	void EndFrame();
-	VideoModeParams GetActualVideoModeParams() const;
+	VideoModeParams* GetActualVideoModeParams();
 	void SetBlendMode( BlendMode mode );
 	bool SupportsTextureFormat( RagePixelFormat pixfmt, bool realtime=false );
 	bool SupportsPerVertexMatrixScale();
