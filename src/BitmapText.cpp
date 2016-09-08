@@ -844,11 +844,11 @@ void BitmapText::DrawPrimitives()
 // Rebuild when these change.
 void BitmapText::SetHorizAlign( float f )
 {
-	float fHorizAlign = m_fHorizAlign;
-	Actor::SetHorizAlign(f);
-	if( fHorizAlign == m_fHorizAlign )
-		return;
-	BuildChars();
+	if (m_fHorizAlign != f)
+	{
+		Actor::SetHorizAlign(f);
+		BuildChars();
+	}
 }
 
 void BitmapText::SetWrapWidthPixels( int iWrapWidthPixels )
