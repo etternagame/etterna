@@ -238,7 +238,7 @@ RString DSoundBuf::Init( DSound &ds, DSoundBuf::hw hardware,
 	hr = m_pBuffer->GetCaps( &bcaps );
 	if( FAILED(hr) )
 		return hr_ssprintf( hr, "m_pBuffer->GetCaps" );
-	if( int(bcaps.dwBufferBytes) != m_iBufferSize )
+	if( static_cast<int>(bcaps.dwBufferBytes) != m_iBufferSize )
 	{
 		LOG->Warn( "bcaps.dwBufferBytes (%i) != m_iBufferSize(%i); adjusting", bcaps.dwBufferBytes, m_iBufferSize );
 		m_iBufferSize = bcaps.dwBufferBytes;
@@ -279,7 +279,7 @@ void DSoundBuf::SetVolume( float fVolume )
 	float iVolumeLog2 = log10f(fVolume) / log10f(2); /* vol log 2 */
 
 	/* Volume is a multiplier; SetVolume wants attenuation in hundredths of a decibel. */
-	const int iNewVolume = max( int(1000 * iVolumeLog2), DSBVOLUME_MIN );
+	const int iNewVolume = max( static_cast<int>(1000 * iVolumeLog2), DSBVOLUME_MIN );
 
 	if( m_iVolume == iNewVolume )
 		return;
@@ -570,7 +570,7 @@ int64_t DSoundBuf::GetPosition() const
 		iCursor = 0;
 	ASSERT_M( (int) iCursor < m_iBufferSize, ssprintf("%i, %i", iCursor, m_iBufferSize) );
 
-	int iCursorFrames = int(iCursor) / bytes_per_frame();
+	int iCursorFrames = static_cast<int>(iCursor) / bytes_per_frame();
 	int iWriteCursorFrames = m_iWriteCursor / bytes_per_frame();
 
 	int iFramesBehind = iWriteCursorFrames - iCursorFrames;

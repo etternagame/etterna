@@ -2338,6 +2338,11 @@ void GameState::VisitAttractScreen( const RString sScreenName )
 		m_iNumTimesThroughAttract++;
 }
 
+int GameState::GetNumCols(int pn)
+{
+		return m_pPlayerState[pn]->GetNumCols();
+}
+
 bool GameState::DifficultiesLocked() const
 {
 	if( m_PlayMode == PLAY_MODE_RAVE )
@@ -2593,8 +2598,6 @@ MultiPlayer GetNextEnabledMultiPlayer( MultiPlayer mp )
 			return mp;
 	return MultiPlayer_Invalid;
 }
-
-
 
 // lua start
 #include "LuaBinding.h"

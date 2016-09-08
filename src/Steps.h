@@ -163,6 +163,37 @@ public:
 	const TimingData *GetTimingData() const;
 	TimingData *GetTimingData() { return const_cast<TimingData*>( static_cast<const Steps*>( this )->GetTimingData() ); };
 
+	/* Needs to be generated with notedata and stored in notedata. - Mina */
+
+	vector<int> NonEmptyRowVector;
+	vector<int> GetNonEmptyRowVector() { return NonEmptyRowVector; };
+
+	/* Needs to be generated with timingdata and stored in timingdata - Mina */
+
+	vector<float> ElapsedTimesAtAllRows;
+	vector<float> GetElapsedTimesAtAllRows() { return ElapsedTimesAtAllRows; };
+	void SetElapsedTimesAtAllRows(vector<float> etar) { ElapsedTimesAtAllRows = etar; };
+
+	vector<float> ElapsedTimesAtTapRows;
+	vector<float> GetElapsedTimesAtTapRows() { return ElapsedTimesAtTapRows; }
+	void SetElapsedTimesAtTapRows(vector<float> etat) { ElapsedTimesAtTapRows = etat; };
+
+	float GetElapsedTimeAtRow(int irow) const { return ElapsedTimesAtAllRows[irow]; };
+	float GetElapsedTimeAtTapRow(int irow) const { return ElapsedTimesAtTapRows[irow]; };
+
+	/* Now for half the reason I'm bothering to do this... generate a chart key using note
+	data and timingdata in conjuction. Do it during load and save it in the steps data so 
+	that we have to do it as few times as possible.*/
+	RString ChartKey = "Invalid";
+	RString ChartKeyRecord = "Invalid";
+	RString GetChartKey() const;
+	RString GetChartKeyRecord() const;
+	void SetChartKey(const RString k)  { this->ChartKey = k; };
+
+	/* This is a reimplementation of the lua version of the script to generate chart keys, except this time
+	using the notedata stored in game memory immediately after reading it than parsing it using lua. - Mina */
+	RString GenerateChartKey(NoteData nd, vector<float> etar);
+
 	/**
 	 * @brief Determine if the Steps have any major timing changes during gameplay.
 	 * @return true if it does, or false otherwise. */

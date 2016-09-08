@@ -107,7 +107,7 @@ MusicWheelItem::MusicWheelItem( RString sType ):
 	FOREACH_PlayerNumber( p )
 	{
 		m_pGradeDisplay[p].Load( THEME->GetPathG(sType,"grades") );
-		m_pGradeDisplay[p]->SetName( ssprintf("GradeP%d",int(p+1)) );
+		m_pGradeDisplay[p]->SetName( ssprintf("GradeP%d", static_cast<int>(p+1)) );
 		this->AddChild( m_pGradeDisplay[p] );
 		LOAD_ALL_COMMANDS_AND_SET_XY( m_pGradeDisplay[p] );
 	}
@@ -345,29 +345,48 @@ void MusicWheelItem::RefreshGrades()
 
 		Profile *pProfile = PROFILEMAN->GetProfile(ps);
 
+		/*	Quick hack to make the highest grade for any difficulty show up, 
+		should make optional later, also should make it descend through the 
+		difficulties and stop once a valid grade has been hit - Mina*/
+
 		HighScoreList *pHSL = NULL;
+		HighScoreList *BestpHSL = NULL;
+		Difficulty dcBest = Difficulty_Invalid;
 		if( PROFILEMAN->IsPersistentProfile(ps) && dc != Difficulty_Invalid )
 		{
-			if( pWID->m_pSong )
+			if (pWID->m_pSong)
 			{
-				const Steps* pSteps = SongUtil::GetStepsByDifficulty( pWID->m_pSong, st, dc );
-				if( pSteps != NULL )
-					pHSL = &pProfile->GetStepsHighScoreList(pWID->m_pSong, pSteps);
+				FOREACH_ENUM_N(Difficulty, 6, i) {
+					Steps* pSteps = SongUtil::GetStepsByDifficulty(pWID->m_pSong, st, i);
+					if (pSteps != NULL) {
+						pHSL = &pProfile->GetStepsHighScoreList(pWID->m_pSong, pSteps);
+
+						if (BestpHSL == NULL)
+							BestpHSL = pHSL;
+
+						if (static_cast<int>(BestpHSL->HighGrade) >= static_cast<int>(pHSL->HighGrade)) {
+							dcBest = i;
+							BestpHSL = pHSL;
+						}
+					}
+				}
 			}
+
 			else if( pWID->m_pCourse )
 			{
 				const Trail *pTrail = pWID->m_pCourse->GetTrail( st, dc );
 				if( pTrail != NULL )
-					pHSL = &pProfile->GetCourseHighScoreList( pWID->m_pCourse, pTrail );
+					BestpHSL = &pProfile->GetCourseHighScoreList( pWID->m_pCourse, pTrail );
 			}
 		}
 
 		Message msg( "SetGrade" );
 		msg.SetParam( "PlayerNumber", p );
-		if( pHSL )
+		if( BestpHSL )
 		{
-			msg.SetParam( "Grade", pHSL->HighGrade );
-			msg.SetParam( "NumTimesPlayed", pHSL->GetNumTimesPlayed() );
+			msg.SetParam( "Grade", BestpHSL->HighGrade);
+			msg.SetParam( "Difficulty", DifficultyToString(dcBest));
+			msg.SetParam( "NumTimesPlayed", BestpHSL->GetNumTimesPlayed() );
 		}
 		m_pGradeDisplay[p]->HandleMessage( msg );
 	}

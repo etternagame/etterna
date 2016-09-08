@@ -621,7 +621,7 @@ static void CheckPalettedTextures()
 		GL_CHECK_ERROR( "glGetTexLevelParameteriv(GL_TEXTURE_INDEX_SIZE_EXT)" );
 		if (iBits > iSize || iSize > 8)
 		{
-			sError = ssprintf( "Expected %i-bit palette, got a %i-bit one instead", iBits, int(iSize) );
+			sError = ssprintf( "Expected %i-bit palette, got a %i-bit one instead", iBits, static_cast<int>(iSize) );
 			break;
 		}
 
@@ -630,7 +630,7 @@ static void CheckPalettedTextures()
 		GL_CHECK_ERROR( "glGetColorTableParameterivEXT(GL_COLOR_TABLE_WIDTH)" );
 		if (iRealWidth != 1 << iBits)
 		{
-			sError = ssprintf( "GL_COLOR_TABLE_WIDTH returned %i instead of %i", int(iRealWidth), 1 << iBits );
+			sError = ssprintf( "GL_COLOR_TABLE_WIDTH returned %i instead of %i", static_cast<int>(iRealWidth), 1 << iBits );
 			break;
 		}
 
@@ -702,7 +702,7 @@ void SetupExtensions()
 			/* The minimum GL_MAX_PIXEL_MAP_TABLE is 32; if it's not at least 256,
 			 * we can't fit a palette in it, so we can't send paletted data as input
 			 * for a non-paletted texture. */
-			LOG->Info( "GL_MAX_PIXEL_MAP_TABLE is only %d", int(iMaxTableSize) );
+			LOG->Info( "GL_MAX_PIXEL_MAP_TABLE is only %d", static_cast<int>(iMaxTableSize) );
 			g_bColorIndexTableWorks = false;
 		}
 		else

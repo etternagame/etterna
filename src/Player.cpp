@@ -71,7 +71,7 @@ public:
 	{
 		if( iRow < m_iStart )
 			return true;
-		if( iRow >= m_iStart+int(m_vRows.size()) )
+		if( iRow >= m_iStart + static_cast<int>(m_vRows.size()) )
 			Resize( iRow+1-m_iStart );
 		const int iIndex = (iRow - m_iStart + m_iOffset) % m_vRows.size();
 		const bool ret = m_vRows[iIndex];
@@ -80,7 +80,7 @@ public:
 		{
 			m_vRows[m_iOffset] = false;
 			++m_iStart;
-			if( ++m_iOffset >= int(m_vRows.size()) )
+			if( ++m_iOffset >= static_cast<int>(m_vRows.size()) )
 				m_iOffset -= m_vRows.size();
 		}
 		return ret;
@@ -94,7 +94,7 @@ public:
 };
 
 
-RString ATTACK_DISPLAY_X_NAME( size_t p, size_t both_sides )	{ return "AttackDisplayXOffset" + (both_sides ? RString("BothSides") : ssprintf("OneSideP%d",int(p+1)) ); }
+RString ATTACK_DISPLAY_X_NAME( size_t p, size_t both_sides )	{ return "AttackDisplayXOffset" + (both_sides ? RString("BothSides") : ssprintf("OneSideP%d", static_cast<int>(p+1)) ); }
 
 void TimingWindowSecondsInit( size_t /*TimingWindow*/ i, RString &sNameOut, float &defaultValueOut )
 {
@@ -398,6 +398,8 @@ void Player::Init(
 	// TODO: Remove use of PlayerNumber.
 	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 
+	m_pPlayerState->SetNumCols(GAMESTATE->GetCurrentStyle(pn)->m_iColsPerPlayer);
+
 	RageSoundLoadParams SoundParams;
 	SoundParams.m_bSupportPan = true;
 	m_soundMine.Load( THEME->GetPathS(sType,"mine"), true, &SoundParams );
@@ -664,7 +666,10 @@ void Player::Load()
 //	if( m_pScore )
 //		m_pScore->Init( pn );
 
+	// Mina garbage - Mina
 	m_Timing = GAMESTATE->m_pCurSteps[pn]->GetTimingData();
+	m_Timing->NegStopAndBPMCheck();
+	m_Timing->SetElapsedTimesAtAllRows(GAMESTATE->m_pCurSteps[pn]->GetElapsedTimesAtAllRows());
 
 	/* Apply transforms. */
 	NoteDataUtil::TransformNoteData(m_NoteData, *m_Timing, m_pPlayerState->m_PlayerOptions.GetStage(), GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)->m_StepsType);
@@ -1780,10 +1785,12 @@ int Player::GetClosestNote( int col, int iNoteRow, int iMaxRowsAhead, int iMaxRo
 	if( iPrevIndex == -1 )
 		return iNextIndex;
 
+	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
+
 	// Get the current time, previous time, and next time.
-	float fNoteTime = m_pPlayerState->m_Position.m_fMusicSeconds	;
-	float fNextTime = m_Timing->GetElapsedTimeFromBeat(NoteRowToBeat(iNextIndex));
-	float fPrevTime = m_Timing->GetElapsedTimeFromBeat(NoteRowToBeat(iPrevIndex));
+	float fNoteTime = m_pPlayerState->m_Position.m_fMusicSeconds;
+	float fNextTime = m_Timing->WhereUAtBro(iNextIndex);
+	float fPrevTime = m_Timing->WhereUAtBro(iPrevIndex);
 
 	/* Figure out which row is closer. */
 	if( fabsf(fNoteTime-fNextTime) > fabsf(fNoteTime-fPrevTime) )
@@ -1834,6 +1841,8 @@ int Player::GetClosestNonEmptyRowDirectional( int iStartRow, int iEndRow, bool /
 // Find the closest note to fBeat.
 int Player::GetClosestNonEmptyRow( int iNoteRow, int iMaxRowsAhead, int iMaxRowsBehind, bool bAllowGraded ) const
 {
+	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
+
 	// Start at iIndexStartLookingAt and search outward.
 	int iNextRow = GetClosestNonEmptyRowDirectional( iNoteRow, iNoteRow+iMaxRowsAhead, bAllowGraded, true );
 	int iPrevRow = GetClosestNonEmptyRowDirectional( iNoteRow-iMaxRowsBehind, iNoteRow, bAllowGraded, false );
@@ -1847,8 +1856,8 @@ int Player::GetClosestNonEmptyRow( int iNoteRow, int iMaxRowsAhead, int iMaxRows
 
 	// Get the current time, previous time, and next time.
 	float fNoteTime = m_pPlayerState->m_Position.m_fMusicSeconds;
-	float fNextTime = m_Timing->GetElapsedTimeFromBeat(NoteRowToBeat(iNextRow));
-	float fPrevTime = m_Timing->GetElapsedTimeFromBeat(NoteRowToBeat(iPrevRow));
+	float fNextTime = m_Timing->WhereUAtBro(iNextRow);
+	float fPrevTime = m_Timing->WhereUAtBro(iPrevRow);
 
 	/* Figure out which row is closer. */
 	if( fabsf(fNoteTime-fNextTime) > fabsf(fNoteTime-fPrevTime) )
@@ -1961,6 +1970,9 @@ void Player::Step( int col, int row, const RageTimer &tm, bool bHeld, bool bRele
 	if( IsOniDead() )
 		return;
 
+	// TODO: remove use of PlayerNumber
+	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
+
 	// Do everything that depends on a RageTimer here;
 	// set your breakpoints somewhere after this block.
 	const float fLastBeatUpdate = m_pPlayerState->m_Position.m_LastBeatUpdate.Ago();
@@ -1969,14 +1981,9 @@ void Player::Step( int col, int row, const RageTimer &tm, bool bHeld, bool bRele
 
 	float fSongBeat = m_pPlayerState->m_Position.m_fSongBeat;
 	
-	if( GAMESTATE->m_pCurSong )
-	{
-		fSongBeat = GAMESTATE->m_pCurSong->m_SongTiming.GetBeatFromElapsedTime( fPositionSeconds );
-	
-		if( GAMESTATE->m_pCurSteps[m_pPlayerState->m_PlayerNumber] )
-			fSongBeat = m_Timing->GetBeatFromElapsedTime( fPositionSeconds );
-	}
-	
+	if( GAMESTATE->m_pCurSteps[m_pPlayerState->m_PlayerNumber] )
+		fSongBeat = m_Timing->GetBeatFromElapsedTime( fPositionSeconds );
+
 	const int iSongRow = row == -1 ? BeatToNoteRow( fSongBeat ) : row;
 
 	if( col != -1 && !bRelease )
@@ -2052,8 +2059,6 @@ void Player::Step( int col, int row, const RageTimer &tm, bool bHeld, bool bRele
 	// TODO: Move calorie counting into a ScoreKeeper?
 	if( m_pPlayerStageStats && m_pPlayerState && !bHeld && !bRelease )
 	{
-		// TODO: remove use of PlayerNumber
-		PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 		Profile *pProfile = PROFILEMAN->GetProfile( pn );
 
 		int iNumTracksHeld = 0;
@@ -2103,18 +2108,48 @@ void Player::Step( int col, int row, const RageTimer &tm, bool bHeld, bool bRele
 	 * Either option would fundamentally change the grading of two quick notes
 	 * "jack hammers." Hmm.
 	 */
-	static const float StepSearchDistance = GetMaxStepDistanceSeconds();
 
-	const int iStepSearchRows = max(
-		BeatToNoteRow( m_Timing->GetBeatFromElapsedTime( m_pPlayerState->m_Position.m_fMusicSeconds + StepSearchDistance ) ) - iSongRow,
-		iSongRow - BeatToNoteRow( m_Timing->GetBeatFromElapsedTime( m_pPlayerState->m_Position.m_fMusicSeconds - StepSearchDistance ) )
-	) + ROWS_PER_BEAT;
-	int iRowOfOverlappingNoteOrRow = row;
-	if( row == -1 )
-		iRowOfOverlappingNoteOrRow = GetClosestNote( col, iSongRow, iStepSearchRows, iStepSearchRows, false );
+	int iStepSearchRows;
+	static const float StepSearchDistance = GetMaxStepDistanceSeconds();
+	vector<int> nerv = GAMESTATE->m_pCurSteps[pn]->GetNonEmptyRowVector();
+	int skipstart = nerv[10]; // this is not robust need to come up with something better later - Mina
+
+	if (iSongRow < skipstart || iSongRow > nerv.size() -10 ) {
+		iStepSearchRows = max(BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(m_pPlayerState->m_Position.m_fMusicSeconds + StepSearchDistance)) - iSongRow,
+			iSongRow - BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(m_pPlayerState->m_Position.m_fMusicSeconds - StepSearchDistance))) + ROWS_PER_BEAT;
+	}
+	else
+	{
+		/* Buncha bullshit that speeds up searching for the rows that we're concerned about judging taps within
+		by avoiding the invocation of the incredibly slow getbeatfromelapsedtime. Needs to be cleaned up a lot,
+		whole system does. Only in use if sequential assumption remains valid. - Mina */
+
+		if (nerv[nervpos] < iSongRow && nervpos < nerv.size())
+			nervpos += 1;
+
+		size_t SearchIndexBehind = nervpos;
+		size_t SearchIndexAhead = nervpos;
+		float SearchBeginTime = m_Timing->WhereUAtBro(nerv[nervpos]);
+
+		while (SearchIndexBehind > 1 && SearchBeginTime - m_Timing->WhereUAtBro(nerv[SearchIndexBehind - 1]) < StepSearchDistance)
+			SearchIndexBehind -= 1;
+
+		while (SearchIndexAhead > 1 && SearchIndexAhead + 1 > nerv.size() && m_Timing->WhereUAtBro(nerv[SearchIndexAhead + 1]) - SearchBeginTime < StepSearchDistance)
+			SearchIndexAhead += 1;
+
+		int	MaxLookBehind = nerv[nervpos] - nerv[SearchIndexBehind];
+		int MaxLookAhead = nerv[SearchIndexAhead] - nerv[nervpos];
+
+		if (nervpos > 0)
+			iStepSearchRows = (max(MaxLookBehind, MaxLookAhead) + ROWS_PER_BEAT);
+	}
 
 	// calculate TapNoteScore
 	TapNoteScore score = TNS_None;
+
+	int iRowOfOverlappingNoteOrRow = row;
+	if (row == -1)
+		iRowOfOverlappingNoteOrRow = GetClosestNote(col, iSongRow, iStepSearchRows, iStepSearchRows, false);
 
 	if( iRowOfOverlappingNoteOrRow != -1 )
 	{
@@ -2122,7 +2157,7 @@ void Player::Step( int col, int row, const RageTimer &tm, bool bHeld, bool bRele
 		float fNoteOffset = 0.0f;
 		// we need this later if we are autosyncing
 		const float fStepBeat = NoteRowToBeat( iRowOfOverlappingNoteOrRow );
-		const float fStepSeconds = m_Timing->GetElapsedTimeFromBeat(fStepBeat);
+		const float fStepSeconds = m_Timing->WhereUAtBro(fStepBeat);
 
 		if( row == -1 )
 		{
@@ -3081,6 +3116,8 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 		msg.SetParam( "Player", m_pPlayerState->m_PlayerNumber );
 		msg.SetParam( "TapNoteScore", tns );
 		msg.SetParam( "FirstTrack", iTrack );
+		msg.SetParam( "Judgment", tns);
+		msg.SetParam( "Type", RString("Mine"));
 		MESSAGEMAN->Broadcast( msg );
 		if( m_pPlayerStageStats &&
 			( ( tns == TNS_AvoidMine && AVOID_MINE_INCREMENTS_COMBO ) || 
@@ -3089,11 +3126,6 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 		{
 			SetCombo( m_pPlayerStageStats->m_iCurCombo, m_pPlayerStageStats->m_iCurMissCombo );
 		}
-
-		Message msg2("NewJudgment");
-		msg2.SetParam("Judgment", tns);
-		msg2.SetParam("Type", static_cast<RString>("Mine"));
-		MESSAGEMAN->Broadcast(msg2);
 	}
 }
 
@@ -3107,7 +3139,14 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 		msg.SetParam( "FirstTrack", iTrack );
 		msg.SetParam( "TapNoteScore", tns );
 		msg.SetParam( "Early", fTapNoteOffset < 0.0f );
+		msg.SetParam( "Judgment", tns);
+		msg.SetParam( "NoteRow", iRow);
+		msg.SetParam( "Type", RString("Tap"));
 		msg.SetParam( "TapNoteOffset", tn.result.fTapNoteOffset );
+		msg.SetParam( "Val", m_pPlayerStageStats->m_iTapNoteScores[tns] + 1);
+
+		if (tns != TNS_Miss)
+			msg.SetParam("Offset", tn.result.fTapNoteOffset * 1000);  // don't send out 0 ms offsets for misses, multiply by 1000 for convenience - Mina
 
 		Lua* L= LUA->Get();
 		lua_createtable( L, 0, m_NoteData.GetNumTracks() ); // TapNotes this row
@@ -3137,17 +3176,6 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 
 		LUA->Release( L );
 		MESSAGEMAN->Broadcast( msg );
-
-		Message msg2("NewJudgment");
-		msg2.SetParam("Judgment", tns);
-		msg2.SetParam("NoteRow", iRow);
-		msg2.SetParam("Type", static_cast<RString>("Tap"));
-		msg2.SetParam("Val", m_pPlayerStageStats->m_iTapNoteScores[tns]);
-
-		if (tns != TNS_Miss)
-			msg2.SetParam("Offset", tn.result.fTapNoteOffset * 1000);  // don't send out 0 ms offsets for misses
-
-		MESSAGEMAN->Broadcast(msg2);
 	}
 }
 
@@ -3166,6 +3194,9 @@ void Player::SetHoldJudgment( TapNote &tn, int iTrack )
 		msg.SetParam( "NumTracks", (int)m_vpHoldJudgment.size() );
 		msg.SetParam( "TapNoteScore", tn.result.tns );
 		msg.SetParam( "HoldNoteScore", tn.HoldResult.hns );
+		msg.SetParam( "Judgment", tn.HoldResult.hns);
+		msg.SetParam( "Type", RString("Hold"));
+		msg.SetParam( "Val", m_pPlayerStageStats->m_iHoldNoteScores[tn.HoldResult.hns] + 1);
 
 		Lua* L = LUA->Get();
 		tn.PushSelf(L);
@@ -3173,12 +3204,6 @@ void Player::SetHoldJudgment( TapNote &tn, int iTrack )
 		LUA->Release( L );
 
 		MESSAGEMAN->Broadcast( msg );
-
-		Message msg2("NewJudgment");
-		msg2.SetParam("Judgment", tn.HoldResult.hns);
-		msg2.SetParam("Type", static_cast<RString>("Hold"));
-		msg2.SetParam("Val", m_pPlayerStageStats->m_iHoldNoteScores[tn.HoldResult.hns]);
-		MESSAGEMAN->Broadcast(msg2);
 	}
 }
 

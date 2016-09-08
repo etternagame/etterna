@@ -92,7 +92,7 @@ public:
 	void Load();
 	void CrossedRows( int iLastRowCrossed, const RageTimer &now );
 	bool IsOniDead() const;
-	
+
 	/**
 	 * @brief Retrieve the Player's TimingData.
 	 *
@@ -105,6 +105,8 @@ public:
 
 	void ScoreAllActiveHoldsLetGo();
 	void DoTapScoreNone();
+
+	size_t nervpos = 0; // hacky way to keep track of where we are in the non-empty row vector - Mina
 
 	void Step( int col, int row, const RageTimer &tm, bool bHeld, bool bRelease );
 

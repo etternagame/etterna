@@ -371,6 +371,8 @@ public:
 	PlayerState* m_pPlayerState[NUM_PLAYERS];
 	PlayerState* m_pMultiPlayerState[NUM_MultiPlayer];
 
+	int GetNumCols(int pn);
+
 	// Preferences
 	static Preference<bool> m_bAutoJoin;
 

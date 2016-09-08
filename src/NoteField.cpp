@@ -33,7 +33,7 @@ static ThemeMetric<float> BAR_8TH_ALPHA( "NoteField", "Bar8thAlpha" );
 static ThemeMetric<float> BAR_16TH_ALPHA( "NoteField", "Bar16thAlpha" );
 static ThemeMetric<float> FADE_FAIL_TIME( "NoteField", "FadeFailTime" );
 
-static RString RoutineNoteSkinName( size_t i ) { return ssprintf("RoutineNoteSkinP%i",int(i+1)); }
+static RString RoutineNoteSkinName( size_t i ) { return ssprintf("RoutineNoteSkinP%i", static_cast<int>(i+1)); }
 static ThemeMetric1D<RString> ROUTINE_NOTESKIN( "NoteField", RoutineNoteSkinName, NUM_PLAYERS );
 
 NoteField::NoteField()
@@ -348,14 +348,18 @@ void NoteField::Update( float fDeltaTime )
 	// Update fade to failed
 	m_pCurDisplay->m_ReceptorArrowRow.SetFadeToFailPercent( m_FieldRenderArgs.fail_fade );
 
-	NoteDisplay::Update( fDeltaTime );
+	/* No idea what this is supposed to be doing but it seems to be doing an awful lot of 
+	absolutely nothing at an awfully quick rate. Noteskins are fine... 3d noteskins are
+	fine... mod maps are fine. Welp - Mina */ 
+
+	//NoteDisplay::Update(fDeltaTime);
 	/* Update all NoteDisplays. Hack: We need to call this once per frame, not
-	 * once per player. */
+	* once per player. */
 	// TODO: Remove use of PlayerNumber.
 
-	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
-	if( pn == GAMESTATE->GetMasterPlayerNumber() )
-		NoteDisplay::Update( fDeltaTime );
+	/*	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
+	if (pn == GAMESTATE->GetMasterPlayerNumber())
+	NoteDisplay::Update(fDeltaTime); */	
 }
 
 float NoteField::GetWidth() const
@@ -730,7 +734,7 @@ void NoteField::CalcPixelsBeforeAndAfterTargets()
 		curr_options.m_fScrolls[PlayerOptions::SCROLL_CENTERED] *
 		curr_options.m_fAccels[PlayerOptions::ACCEL_BOOMERANG];
 	m_FieldRenderArgs.draw_pixels_after_targets +=
-		int(SCALE(centered_times_boomerang, 0.f, 1.f, 0.f, -SCREEN_HEIGHT/2));
+		static_cast<int>(SCALE(centered_times_boomerang, 0.f, 1.f, 0.f, -SCREEN_HEIGHT/2));
 	m_FieldRenderArgs.draw_pixels_before_targets =
 		m_iDrawDistanceBeforeTargetsPixels;
 

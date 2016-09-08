@@ -178,7 +178,7 @@ void Steps::SetNoteData( const NoteData& noteDataNew )
 
 	*m_pNoteData = noteDataNew;
 	m_bNoteDataIsFilled = true;
-	
+
 	m_sNoteDataCompressed = RString();
 	m_iHash = 0;
 }
@@ -289,7 +289,7 @@ void Steps::TidyUpData()
 	}
 
 	if( GetMeter() < 1) // meter is invalid
-		SetMeter( int(PredictMeter()) );
+		SetMeter(static_cast<int>(PredictMeter()) );
 }
 
 void Steps::CalculateRadarValues( float fMusicLengthSeconds )
@@ -421,16 +421,67 @@ void Steps::Decompress()
 	if( m_sNoteDataCompressed.empty() )
 	{
 		/* there is no data, do nothing */
+		return;
 	}
 	else
 	{
 		// load from compressed
 		bool bComposite = GAMEMAN->GetStepsTypeInfo(m_StepsType).m_StepsTypeCategory == StepsTypeCategory_Routine;
 		m_bNoteDataIsFilled = true;
-		m_pNoteData->SetNumTracks( GAMEMAN->GetStepsTypeInfo(m_StepsType).iNumTracks );
+		m_pNoteData->SetNumTracks(GAMEMAN->GetStepsTypeInfo(m_StepsType).iNumTracks);
 
-		NoteDataUtil::LoadFromSMNoteDataString( *m_pNoteData, m_sNoteDataCompressed, bComposite );
+		NoteDataUtil::LoadFromSMNoteDataString(*m_pNoteData, m_sNoteDataCompressed, bComposite);
 	}
+
+	/*	Piggy backing off this function to generate stuff that should only be generated once per song caching
+	This includes a vector for note rows that are not empty, a vector for elapsed time at each note row and
+	the chart key generated on song load. Also this totally needs to be redone and split up into the appropriate
+	places now that I understand the system better. - Mina */
+
+	NoteData nd = Steps::GetNoteData();
+	if (nd.GetLastRow() > size_t(500000)) // Ignore really long stuff for the moment
+		return;
+
+	NonEmptyRowVector = nd.LogNonEmptyRows();
+	// don't care about anything with under 10 rows of taps
+	if (NonEmptyRowVector.size() <= 10 || nd.IsEmpty()) 
+		return; 
+
+	vector<float> etar;
+
+	TimingData *td = Steps::GetTimingData();
+	for (int i = 0; i < nd.GetLastRow(); i++)
+		etar.push_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(i)));
+
+	SetElapsedTimesAtAllRows(etar);
+	ChartKey = GenerateChartKey(nd, etar);
+}
+
+RString Steps::GenerateChartKey(NoteData nd, vector<float> etar)
+{
+	RString k = "";
+	RString o = "";
+	int m = 1000;
+	float fso = etar[nd.GetFirstRow()] * m;
+	int et = 0;
+
+	for (size_t r = 0; r < NonEmptyRowVector.size(); r++)
+	{
+		int row = NonEmptyRowVector[r];
+		for (int t = 0; t < nd.GetNumTracks(); ++t)
+		{
+			const TapNote &tn = nd.GetTapNote(t, row);
+			k.append(to_string(tn.type));
+		}
+		k.append(to_string(et));
+		et = lround(etar[row] * m - fso);
+	}
+
+	//ChartKeyRecord = k;
+	o.append("X");	// I was thinking of using "C" to indicate chart.. however.. X is cooler... - Mina
+	o.append(BinaryToHex(CryptManager::GetSHA1ForString(k)));
+
+	return o;
 }
 
 void Steps::Compress() const
@@ -557,7 +608,7 @@ void Steps::SetChartStyle( RString sChartStyle )
 
 bool Steps::MakeValidEditDescription( RString &sPreferredDescription )
 {
-	if( int(sPreferredDescription.size()) > MAX_STEPS_DESCRIPTION_LENGTH )
+	if( static_cast<int>(sPreferredDescription.size()) > MAX_STEPS_DESCRIPTION_LENGTH )
 	{
 		sPreferredDescription = sPreferredDescription.Left( MAX_STEPS_DESCRIPTION_LENGTH );
 		return true;
@@ -616,6 +667,14 @@ void Steps::SetCachedRadarValues( const RadarValues v[NUM_PLAYERS] )
 	copy( v, v + NUM_PLAYERS, m_CachedRadarValues );
 	m_bAreCachedRadarValuesJustLoaded = true;
 }
+
+RString Steps::GetChartKey() const { 
+	return ChartKey; 
+};
+
+RString Steps::GetChartKeyRecord() const {
+	return ChartKeyRecord;
+};
 
 // lua start
 #include "LuaBinding.h"
@@ -712,97 +771,11 @@ public:
 	{
 		LuaHelpers::Push( L, p->GetDisplayBPM() );
 		return 1;
-	}
-
-	/*Re-implementation of the lua version of the script to generate chart keys, except 
-	this time using the notedata stored in game memory rather than parsing it using lua. 
-	Unfortunately this is only slightly faster than my lua implementation becasue the
-	parsing method I used is much faster than whatever is being done here, and there isn't 
-	any overhead in decompressing the notedata. Eventually I need to insert this into the
-	initial loading of notedata such that the result can be stored along with everything 
-	else rather than called via lua each time. Also need to do some efficiency rewrites
-	once I actually learn c++. -Mina*/ 
+	}	
 
 	static int GetWifeChartKey(T* p, lua_State *L)
 	{
-		RString k = "";
-		RString o = "";
-		NoteData nd = p->GetNoteData();
-		TimingData *td = p->GetTimingData();
-
-		int sr = nd.GetFirstRow();	// Starting row
-		int lr = sr;				// Last row
-		float et = 0;				// Elapsed time
-		float bps;					// Beats per second
-		float beatspan;				// Beats between current row and elapsed row
-
-		/* Note on GetNextTapNoteRowForAllTracks: Not sure why each row containing
-		a tap isn't just stored as a vector within the note data the first place. You
-		know, rather than having a specific function that loops through the entire
-		notedata every time you want to do something with each noterow. I'll do this
-		myself, later, idiots - Mina*/
-
-		for (int r = sr; nd.GetNextTapNoteRowForAllTracks(r); )
-		{
-			for (int t = 0; t < nd.GetNumTracks(); ++t)
-			{
-				const TapNote &tn = nd.GetTapNote(t, r);
-				k.append(std::to_string(tn.type));
-			}
-
-			int SS = static_cast<int>(std::round(et * 1000));
-			k.append(std::to_string(SS));
-
-			bps = td->GetBPMAtRow(lr) / 60.f;
-			beatspan = NoteRowToBeat(r) - NoteRowToBeat(lr);
-			et = et + (beatspan / bps);
-			lr = r;
-		}
-
-		int SS = static_cast<int>(std::round(et * 1000));
-		k.append(std::to_string(SS));
-
-		o.append("C");	// Chart keys have the "C" prefix to diffrentiate them from scores if needed.
-		o.append(BinaryToHex(CryptManager::GetSHA1ForString(k)));
-
-		lua_pushstring(L, o);
-		return 1;
-	}
-
-	// Muddy way to get the pre-hashed string value
-	static int GetWifeChartKeyRecord(T* p, lua_State *L)
-	{
-		RString o = "";
-		NoteData nd = p->GetNoteData();
-		TimingData *td = p->GetTimingData();
-
-		int sr = nd.GetFirstRow();
-		int lr = sr;
-		float et = 0;
-		float bps;
-		float beatspan;
-
-		for (int r = sr; nd.GetNextTapNoteRowForAllTracks(r); )
-		{
-			for (int t = 0; t < nd.GetNumTracks(); ++t)
-			{
-				const TapNote &tn = nd.GetTapNote(t, r);
-				o.append(std::to_string(tn.type));
-			}
-
-			int SS = static_cast<int>(std::round(et * 1000));
-			o.append(std::to_string(SS));
-
-			bps = td->GetBPMAtRow(lr) / 60.f;
-			beatspan = NoteRowToBeat(r) - NoteRowToBeat(lr);
-			et = et + (beatspan / bps);
-			lr = r;
-		}
-
-		int SS = static_cast<int>(std::round(et * 1000));
-		o.append(std::to_string(SS));
-
-		lua_pushstring(L, o);
+		lua_pushstring(L, p->GetChartKey());
 		return 1;
 	}
 
@@ -823,7 +796,6 @@ public:
 		//ADD_METHOD( GetSMNoteData );
 		ADD_METHOD( GetStepsType );
 		ADD_METHOD( GetWifeChartKey );
-		ADD_METHOD( GetWifeChartKeyRecord );
 		ADD_METHOD( IsAnEdit );
 		ADD_METHOD( IsAutogen );
 		ADD_METHOD( IsAPlayerEdit );

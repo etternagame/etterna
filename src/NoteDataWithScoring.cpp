@@ -387,9 +387,7 @@ void NoteDataWithScoring::GetActualRadarValues(const NoteData &in,
 	int jump_count= out[RadarCategory_Jumps];
 	int hold_count= out[RadarCategory_Holds];
 	int tap_count= out[RadarCategory_TapsAndHolds];
-	float hittable_steps_length= max(0, 
-		timing->GetElapsedTimeFromBeat(NoteRowToBeat(last_hittable_row)) -
-		timing->GetElapsedTimeFromBeat(NoteRowToBeat(first_hittable_row)));
+	float hittable_steps_length= max(0, timing->WhereUAtBro(last_hittable_row) - timing->WhereUAtBro(first_hittable_row));
 	// The for loop and the assert are used to ensure that all fields of 
 	// RadarValue get set in here.
 	FOREACH_ENUM(RadarCategory, rc)

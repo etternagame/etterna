@@ -461,6 +461,58 @@ public:
 
 	// XXX: this breaks encapsulation. get rid of it ASAP
 	vector<RString> ToVectorString(TimingSegmentType tst, int dec = 6) const;
+
+	/*	Wow it's almost like this should have been done a decade ago. Essentially what's happening
+	here is the results of getelapsedtimeat(row) are pre-calculated and stored in a vector that can 
+	be simply subset rather than values being recalculated millions of times per file. This only
+	applies however to files for which there can be made an assumption of sequential execution
+	I don't actually know for sure if any of negative bpms/stops/warps do this, or if mod maps have
+	the power to fundamentally change timing data. If they don't then I suppose all of these checks
+	aren't needed at all :/. Not my responsibility to investigate, though. - Mina.*/ 
+	
+	vector<float> ElapsedTimesAtAllRows;
+	void SetElapsedTimesAtAllRows(vector<float> etar) { ElapsedTimesAtAllRows = etar; };
+
+	float WhereUAtBro(float beat) const;
+	float WhereUAtBro(float beat);
+	float WhereUAtBro(int row);
+
+	bool ValidSequentialAssumption = true;
+	void InvalidateSequentialAssmption() { ValidSequentialAssumption = false; };
+	bool IsSequentialAssumptionValid() { return  ValidSequentialAssumption; }
+
+	void TimingData::NegStopAndBPMCheck() {
+		if (HasWarps()) {
+			ValidSequentialAssumption = false;
+			return;
+		}
+
+		vector<TimingSegment *> &bpms = m_avpTimingSegments[SEGMENT_BPM];
+		vector<TimingSegment *> &stops = m_avpTimingSegments[SEGMENT_STOP];
+
+		for (size_t i = 0, l = bpms.size(); i < l; ++i)
+		{
+			BPMSegment *bpm = ToBPM(bpms[i]);
+			if (0 > bpm->GetBPM()) {
+				LOG->Warn("Sequential Assumption Invalidated.");
+				ValidSequentialAssumption = false;
+				return;
+			}
+		}
+
+		for (size_t i = 0, l = stops.size(); i < l; ++i)
+		{
+			StopSegment *s = ToStop(stops[i]);
+			if (0 > s->GetPause()) {
+				LOG->Warn("Sequential Assumption Invalidated.");
+				ValidSequentialAssumption = false;
+				return;
+			}
+		}
+		ValidSequentialAssumption = true && ValidSequentialAssumption;
+	}
+
+
 protected:
 	// don't call this directly; use the derived-type overloads.
 	void AddSegment( const TimingSegment *seg );

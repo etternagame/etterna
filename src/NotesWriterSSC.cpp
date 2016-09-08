@@ -363,6 +363,8 @@ static RString GetSSCNoteData( const Song &song, const Steps &in, bool bSavingCa
 	lines.push_back( ssprintf( "#CHARTSTYLE:%s;", SmEscape(in.GetChartStyle()).c_str() ) );
 	lines.push_back( ssprintf( "#DIFFICULTY:%s;", DifficultyToString(in.GetDifficulty()).c_str() ) );
 	lines.push_back( ssprintf( "#METER:%d;", in.GetMeter() ) );
+	lines.push_back( ssprintf( "#CHARTKEY:%s;", SmEscape(in.GetChartKey()).c_str()));
+	lines.push_back( ssprintf( "#CHARTKEYRECORD:%s;", SmEscape(in.GetChartKeyRecord()).c_str()));
 
 	const RString& music= in.GetMusicFile();
 	if(!music.empty())

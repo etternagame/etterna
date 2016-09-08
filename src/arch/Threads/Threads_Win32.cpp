@@ -359,7 +359,7 @@ bool EventImpl_Win32::Wait( RageTimer *pTimeout )
 	if( pTimeout != NULL )
 	{
 		float fSecondsInFuture = -pTimeout->Ago();
-		iMilliseconds = (unsigned) max( 0, int( fSecondsInFuture * 1000 ) );
+		iMilliseconds = (unsigned) max( 0, static_cast<int>( fSecondsInFuture * 1000 ) );
 	}
 
 	// Unlock the mutex and wait for a signal.

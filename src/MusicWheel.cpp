@@ -31,7 +31,7 @@ static Preference<bool> g_bPrecacheAllSorts( "PreCacheAllWheelSorts", false);
 #define WHEEL_TEXT(s)		THEME->GetString( "MusicWheel", ssprintf("%sText",s.c_str()) );
 #define CUSTOM_ITEM_WHEEL_TEXT(s)		THEME->GetString( "MusicWheel", ssprintf("CustomItem%sText",s.c_str()) );
 
-static RString SECTION_COLORS_NAME( size_t i )	{ return ssprintf("SectionColor%d",int(i+1)); }
+static RString SECTION_COLORS_NAME( size_t i )	{ return ssprintf("SectionColor%d", static_cast<int>(i+1)); }
 static RString CHOICE_NAME( RString s )		{ return ssprintf("Choice%s",s.c_str()); }
 static RString CUSTOM_WHEEL_ITEM_NAME( RString s )		{ return ssprintf("CustomWheelItem%s",s.c_str()); }
 static RString CUSTOM_WHEEL_ITEM_COLOR( RString s )		{ return ssprintf("%sColor",s.c_str()); }
@@ -1262,7 +1262,7 @@ bool MusicWheel::NextSort()		// return true if change successful
 
 	// find the index of the current sort
 	int cur = 0;
-	while( cur < int(aSortOrders.size()) && aSortOrders[cur] != GAMESTATE->m_SortOrder )
+	while( cur < static_cast<int>(aSortOrders.size()) && aSortOrders[cur] != GAMESTATE->m_SortOrder )
 		++cur;
 
 	// move to the next sort with wrapping

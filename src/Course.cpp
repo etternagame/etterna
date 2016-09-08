@@ -340,7 +340,7 @@ bool Course::GetTrailSorted( StepsType st, CourseDifficulty cd, Trail &trail ) c
 			ASSERT( bOK );
 		}
 		ASSERT_M( trail.m_vEntries.size() == SortTrail.m_vEntries.size(),
-			ssprintf("%i %i", int(trail.m_vEntries.size()), int(SortTrail.m_vEntries.size())) );
+			ssprintf("%i %i", static_cast<int>(trail.m_vEntries.size()), static_cast<int>(SortTrail.m_vEntries.size())) );
 
 		vector<SortTrailEntry> entries;
 		for( unsigned i = 0; i < trail.m_vEntries.size(); ++i )
@@ -516,7 +516,7 @@ bool Course::GetTrailUnsorted( StepsType st, CourseDifficulty cd, Trail &trail )
 			CourseSortSongs( e->songSort, vpSongs, rnd );
 
 			ASSERT( e->iChooseIndex >= 0 );
-			if( e->iChooseIndex < int( vSongAndSteps.size() ) )
+			if( e->iChooseIndex < static_cast<int>( vSongAndSteps.size() ) )
 			{
 				resolved.pSong = vpSongs[ e->iChooseIndex ];
 				const vector<Steps*> &mappedSongs = mapSongToSteps[ resolved.pSong ];
@@ -621,7 +621,7 @@ bool Course::GetTrailUnsorted( StepsType st, CourseDifficulty cd, Trail &trail )
 			// LOG->Trace( "Chose: %s, %d", te.pSong->GetSongDir().c_str(), te.pSteps->GetMeter() );
 
 			if( IsAnEdit() && MAX_SONGS_IN_EDIT_COURSE > 0 &&
-				int( trail.m_vEntries.size() ) >= MAX_SONGS_IN_EDIT_COURSE )
+				static_cast<int>( trail.m_vEntries.size() ) >= MAX_SONGS_IN_EDIT_COURSE )
 			{
 				break;
 			}
@@ -711,7 +711,7 @@ void Course::GetTrailUnsortedEndless( const vector<CourseEntry> &entries, Trail 
 		}
 
 		ASSERT( e->iChooseIndex >= 0 );
-		if( e->iChooseIndex < int( vSongAndSteps.size() ) )
+		if( e->iChooseIndex < static_cast<int>( vSongAndSteps.size() ) )
 		{
 			if( songIndex >= vpSongs.size() ) {
 				songIndex = 0;
@@ -829,7 +829,7 @@ void Course::GetTrailUnsortedEndless( const vector<CourseEntry> &entries, Trail 
 		// LOG->Trace( "Chose: %s, %d", te.pSong->GetSongDir().c_str(), te.pSteps->GetMeter() );
 
 		if( IsAnEdit() && MAX_SONGS_IN_EDIT_COURSE > 0 &&
-			int( trail.m_vEntries.size() ) >= MAX_SONGS_IN_EDIT_COURSE )
+			static_cast<int>( trail.m_vEntries.size() ) >= MAX_SONGS_IN_EDIT_COURSE )
 		{
 			break;
 		}

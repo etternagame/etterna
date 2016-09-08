@@ -1852,7 +1852,7 @@ void ScreenGameplay::Update( float fDeltaTime )
 					/* Don't know why haste rates are being updated when the mod is not in 
 					use. Quickly checked whether or not doing this affects non-haste gameplay
 					and it doesn't appear to, nor should it. If it somehow does in certain
-					situations that should be addressed. -Mina*/
+					situations that should be addressed. - Mina*/
 					UpdateHasteRate();
 
 					float fHasteRate = GetHasteRate();
@@ -1882,7 +1882,10 @@ void ScreenGameplay::Update( float fDeltaTime )
 					this->PostScreenMessage( SM_NotesEnded, 0 );
 			}
 
-			// update 2d dancing characters
+			/* Soo the game tries to update these even if there aren't any and even if they're turned off by default
+			I don't think so. - Mina*/
+
+			/* don't update 2d dancing characters
 			FOREACH_EnabledPlayerNumberInfo( m_vPlayerInfo, pi )
 			{
 				DancingCharacters *pCharacter = NULL;
@@ -1915,6 +1918,7 @@ void ScreenGameplay::Update( float fDeltaTime )
 					pCharacter->Change2DAnimState( pi->m_pn, state );
 				}
 			}
+			*/
 
 			// Check for enemy death in enemy battle
 			static float fLastSeenEnemyHealth = 1;
@@ -2010,8 +2014,8 @@ void ScreenGameplay::Update( float fDeltaTime )
 	}
 
 	PlayTicks();
-	UpdateLights();
-	SendCrossedMessages();
+	//UpdateLights(); // Does nothing but use inefficient timing data functions for no reason. - Mina
+	//SendCrossedMessages(); // Putting this back just in case I found out it _actually_ does something - Mina
 
 	if( !m_bForceNoNetwork && NSMAN->useSMserver )
 	{

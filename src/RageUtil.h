@@ -47,7 +47,7 @@ inline unsigned long max( unsigned long a, unsigned int b ) { return a > b? a:b;
 template<typename T, typename U>
 inline U lerp( T x, U l, U h )
 {
-	return U(x * (h - l) + l);
+	return static_cast<U>(x * (h - l) + l);
 }
 
 template<typename T, typename U, typename V>
@@ -283,13 +283,13 @@ inline float RandomFloat( float fLow, float fHigh )
 // Returns an integer between nLow and nHigh inclusive
 inline int RandomInt( int nLow, int nHigh )
 {
-	return int( g_RandomNumberGenerator(nHigh - nLow + 1) + nLow );
+	return static_cast<int>( g_RandomNumberGenerator(nHigh - nLow + 1) + nLow );
 }
 
 // Returns an integer between 0 and n-1 inclusive (replacement for rand() % n).
 inline int RandomInt( int n )
 {
-	return int( g_RandomNumberGenerator(n) );
+	return static_cast<int>( g_RandomNumberGenerator(n) );
 }
 
 
@@ -302,24 +302,24 @@ inline float randomf( const float low=-1.0f, const float high=1.0f )
 /* return f rounded to the nearest multiple of fRoundInterval */
 inline float Quantize( const float f, const float fRoundInterval )
 {
-	return int( (f + fRoundInterval/2)/fRoundInterval ) * fRoundInterval;
+	return static_cast<int>( (f + fRoundInterval/2)/fRoundInterval ) * fRoundInterval;
 }
 
 inline int Quantize( const int i, const int iRoundInterval )
 {
-	return int( (i + iRoundInterval/2)/iRoundInterval ) * iRoundInterval;
+	return static_cast<int>( (i + iRoundInterval/2)/iRoundInterval ) * iRoundInterval;
 }
 
 /* return f truncated to the nearest multiple of fTruncInterval */
 inline float ftruncf( const float f, const float fTruncInterval )
 {
-	return int( (f)/fTruncInterval ) * fTruncInterval;
+	return static_cast<int>( (f)/fTruncInterval ) * fTruncInterval;
 }
 
 /* Return i rounded up to the nearest multiple of iInterval. */
 inline int QuantizeUp( int i, int iInterval )
 {
-	return int( (i+iInterval-1)/iInterval ) * iInterval;
+	return static_cast<int>( (i+iInterval-1)/iInterval ) * iInterval;
 }
 
 inline float QuantizeUp( float i, float iInterval )
@@ -330,7 +330,7 @@ inline float QuantizeUp( float i, float iInterval )
 /* Return i rounded down to the nearest multiple of iInterval. */
 inline int QuantizeDown( int i, int iInterval )
 {
-	return int( (i-iInterval+1)/iInterval ) * iInterval;
+	return static_cast<int>( (i-iInterval+1)/iInterval ) * iInterval;
 }
 
 inline float QuantizeDown( float i, float iInterval )

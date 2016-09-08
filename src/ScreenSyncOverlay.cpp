@@ -62,9 +62,10 @@ void ScreenSyncOverlay::UpdateText()
 	// Update Status
 	vector<RString> vs;
 
+	PlayerController pc = GamePreferences::m_AutoPlay.Get();
+
 	if( g_bShowAutoplay )
 	{
-		PlayerController pc = GamePreferences::m_AutoPlay.Get();
 		switch( pc )
 		{
 		case PC_HUMAN:						break;
@@ -86,7 +87,7 @@ void ScreenSyncOverlay::UpdateText()
 		FAIL_M(ssprintf("Invalid autosync type: %i", type));
 	}
 
-	if( GAMESTATE->m_pCurSong != NULL  &&  !GAMESTATE->IsCourseMode() )	// sync controls available
+	if( GAMESTATE->m_pCurSong != NULL  &&  !GAMESTATE->IsCourseMode() && pc == 0)	// sync controls available (don't turn on for autoplay) - Mina.
 	{
 		AdjustSync::GetSyncChangeTextGlobal( vs );
 		AdjustSync::GetSyncChangeTextSong( vs );

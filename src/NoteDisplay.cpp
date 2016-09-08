@@ -645,6 +645,9 @@ void NoteDisplay::Update( float fDeltaTime )
 
 void NoteDisplay::SetActiveFrame( float fNoteBeat, Actor &actorToSet, float fAnimationLength, bool bVivid )
 {
+	if (fAnimationLength == 0)
+		return;
+
 	/* -inf ... inf */
 	float fBeatOrSecond = cache->m_bAnimationBasedOnBeats ? m_pPlayerState->m_Position.m_fSongBeat : m_pPlayerState->m_Position.m_fMusicSeconds;
 	/* -len ... +len */

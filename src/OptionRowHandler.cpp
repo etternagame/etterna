@@ -96,7 +96,7 @@ void OptionRowHandlerUtil::SelectExactlyOne( int iSelection, vector<bool> &vbSel
 {
 	ASSERT_M( iSelection >= 0  &&  iSelection < (int) vbSelectedOut.size(),
 			  ssprintf("%d/%u",iSelection, unsigned(vbSelectedOut.size())) );
-	for( int i=0; i<int(vbSelectedOut.size()); i++ )
+	for( int i=0; i<static_cast<int>(vbSelectedOut.size()); i++ )
 		vbSelectedOut[i] = i==iSelection;
 }
 
