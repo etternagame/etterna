@@ -47,6 +47,7 @@ RageDisplay*		DISPLAY	= NULL; // global and accessible from anywhere in our prog
 
 Preference<bool>  LOG_FPS( "LogFPS", true );
 Preference<float> g_fFrameLimitPercent( "FrameLimitPercent", 0.0f );
+Preference<int> g_fFrameLimit("FrameLimit", 0.0f);
 
 static const char *RagePixelFormatNames[] = {
 	"RGBA8",
@@ -925,15 +926,24 @@ void RageDisplay::FrameLimitBeforeVsync( int iFPS )
 	}
 
 	if( !HOOKS->AppHasFocus() )
-		iDelayMicroseconds = max( iDelayMicroseconds, 10000 ); // give some time to other processes and threads
+		iDelayMicroseconds = max( iDelayMicroseconds, 10000 ); 
+	
+	if (iDelayMicroseconds > 0)
+		usleep(iDelayMicroseconds);
+	else if (g_fFrameLimit.Get() > 0 && !g_LastFrameEndedAt.IsZero())
+	{
+		double expectedDelta = 1.0 / g_fFrameLimit.Get();
+		double advanceDelay = expectedDelta - g_LastFrameEndedAt.GetDeltaTime();
 
-	if( iDelayMicroseconds > 0 )
-		usleep( iDelayMicroseconds );
+		while (advanceDelay > 0.0)
+			advanceDelay -= g_LastFrameEndedAt.GetDeltaTime();
+	}
+	
 }
 
 void RageDisplay::FrameLimitAfterVsync()
 {
-	if( g_fFrameLimitPercent.Get() == 0.0f )
+	if( g_fFrameLimitPercent.Get() == 0.0f && g_fFrameLimit.Get() == 0)
 		return;
 
 	g_LastFrameEndedAt.Touch();
