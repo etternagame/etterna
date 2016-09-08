@@ -11,6 +11,8 @@
 #include "RageSurfaceUtils_Zoom.h"
 #include "RageSurface.h"
 #include "Preference.h"
+#include "Screen.h"
+#include "ScreenManager.h"
 #include "LocalizedString.h"
 #include "DisplayResolutions.h"
 #include "arch/ArchHooks/ArchHooks.h"
@@ -47,7 +49,8 @@ RageDisplay*		DISPLAY	= NULL; // global and accessible from anywhere in our prog
 
 Preference<bool>  LOG_FPS( "LogFPS", true );
 Preference<float> g_fFrameLimitPercent( "FrameLimitPercent", 0.0f );
-Preference<int> g_fFrameLimit("FrameLimit", 0.0f);
+Preference<int> g_fFrameLimit("FrameLimit", 0);
+Preference<int> g_fFrameLimitGameplay("FrameLimitGameplay", 0);
 
 static const char *RagePixelFormatNames[] = {
 	"RGBA8",
@@ -926,13 +929,22 @@ void RageDisplay::FrameLimitBeforeVsync( int iFPS )
 	}
 
 	if( !HOOKS->AppHasFocus() )
-		iDelayMicroseconds = max( iDelayMicroseconds, 10000 ); 
-	
+		iDelayMicroseconds = max( iDelayMicroseconds, 10000 );
+
 	if (iDelayMicroseconds > 0)
 		usleep(iDelayMicroseconds);
 	else if (g_fFrameLimit.Get() > 0 && !g_LastFrameEndedAt.IsZero())
 	{
-		double expectedDelta = 1.0 / g_fFrameLimit.Get();
+		double expectedDelta = 0.0;
+		
+		if (SCREENMAN && SCREENMAN->GetTopScreen())
+		{
+			if (SCREENMAN->GetTopScreen()->GetScreenType() == gameplay)
+				expectedDelta = 1.0 / g_fFrameLimitGameplay.Get();
+			else
+				expectedDelta = 1.0 / g_fFrameLimit.Get();
+		}
+
 		double advanceDelay = expectedDelta - g_LastFrameEndedAt.GetDeltaTime();
 
 		while (advanceDelay > 0.0)
