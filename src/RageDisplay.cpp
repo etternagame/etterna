@@ -955,7 +955,8 @@ void RageDisplay::FrameLimitBeforeVsync( int iFPS )
 
 void RageDisplay::FrameLimitAfterVsync()
 {
-	if( g_fFrameLimitPercent.Get() == 0.0f && g_fFrameLimit.Get() == 0)
+	if( g_fFrameLimitPercent.Get() == 0 && g_fFrameLimit.Get() == 0 && 
+		g_fFrameLimitGameplay.Get() == 0)
 		return;
 
 	g_LastFrameEndedAt.Touch();
