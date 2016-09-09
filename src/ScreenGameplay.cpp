@@ -2857,6 +2857,11 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 		}
 
 		// todo: add GameplayCleared, StartTransitioningCleared commands -aj
+		
+		Message msg("SongFinished");
+		msg.SetParam("Test", 1);
+		MESSAGEMAN->Broadcast(msg);
+		
 		TweenOffScreen();
 
 		m_Out.StartTransitioning( SM_DoNextScreen );
