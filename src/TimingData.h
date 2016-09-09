@@ -481,7 +481,7 @@ public:
 	void InvalidateSequentialAssmption() { ValidSequentialAssumption = false; };
 	bool IsSequentialAssumptionValid() { return  ValidSequentialAssumption; }
 
-	void TimingData::NegStopAndBPMCheck() {
+	void NegStopAndBPMCheck() {
 		if (HasWarps()) {
 			ValidSequentialAssumption = false;
 			return;
