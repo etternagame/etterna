@@ -3141,7 +3141,7 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 		msg.SetParam( "Early", fTapNoteOffset < 0.0f );
 		msg.SetParam( "Judgment", tns);
 		msg.SetParam( "NoteRow", iRow);
-		msg.SetParam( "Type", static_cast<RString>"Tap"));
+		msg.SetParam( "Type", static_cast<RString>("Tap"));
 		msg.SetParam( "TapNoteOffset", tn.result.fTapNoteOffset );
 		msg.SetParam( "Val", m_pPlayerStageStats->m_iTapNoteScores[tns] + 1);
 
@@ -3195,7 +3195,7 @@ void Player::SetHoldJudgment( TapNote &tn, int iTrack )
 		msg.SetParam( "TapNoteScore", tn.result.tns );
 		msg.SetParam( "HoldNoteScore", tn.HoldResult.hns );
 		msg.SetParam( "Judgment", tn.HoldResult.hns);
-		msg.SetParam( "Type", static_cast<RString>"Hold"));
+		msg.SetParam( "Type", static_cast<RString>("Hold"));
 		msg.SetParam( "Val", m_pPlayerStageStats->m_iHoldNoteScores[tn.HoldResult.hns] + 1);
 
 		Lua* L = LUA->Get();
