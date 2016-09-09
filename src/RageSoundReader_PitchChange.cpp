@@ -13,7 +13,9 @@
 #include "RageSoundReader_SpeedChange.h"
 #include "RageSoundReader_Resample_Good.h"
 #include "RageLog.h"
+#include "Preference.h"
 
+Preference<bool>  EnablePitchRates("EnablePitchRates", true);
 RageSoundReader_PitchChange::RageSoundReader_PitchChange( RageSoundReader *pSource ):
 	RageSoundReader_Filter( NULL )
 {
@@ -88,7 +90,8 @@ bool RageSoundReader_PitchChange::SetProperty( const RString &sProperty, float f
 		/* HACK: Put rate functions back together,
 		   this needs to be refactored. */
 		SetSpeedRatio( fValue );
-		SetPitchRatio( fValue );
+		if(EnablePitchRates.Get())
+			SetPitchRatio( fValue );
 		return true;
 	}
 
