@@ -481,9 +481,10 @@ bool ScreenSelectMusic::Input( const InputEventPlus &input )
 					so = SORT_TITLE;
 
 				GAMESTATE->m_PreferredSortOrder = so;
-				m_MusicWheel.ChangeSort( so );
-				m_MusicWheel.SetOpenSection( ssprintf("%c", c ) );
-				m_MusicWheel.SelectSection( ssprintf("%c", c ) );
+				m_MusicWheel.ChangeSort(so);
+				m_MusicWheel.SetOpenSection(ssprintf("%c", c));
+				m_MusicWheel.SelectSection(ssprintf("%c", c));
+				m_MusicWheel.SetOpenSection(ssprintf("%c", c));
 				AfterMusicChange();
 				return true;
 			}
