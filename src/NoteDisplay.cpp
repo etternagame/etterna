@@ -1040,7 +1040,7 @@ void NoteDisplay::DrawHoldBodyInternal(vector<Sprite*>& sprite_top,
 	const float bottom_beat, bool glow, bool reverse)
 {	
 	// Draw the top cap
-	if (reverse)
+	if (reverse && cache->m_bFlipHeadAndTailWhenReverse)
 	{
 		part_args.y_top = head_minus_top;
 		part_args.y_bottom = y_head;
@@ -1062,7 +1062,7 @@ void NoteDisplay::DrawHoldBodyInternal(vector<Sprite*>& sprite_top,
 	}
 	
 	// Draw the bottom cap
-	if (!reverse)
+	if (!reverse || !cache->m_bFlipHeadAndTailWhenReverse)
 	{
 		part_args.y_top = y_tail;
 		part_args.y_bottom = tail_plus_bottom;
