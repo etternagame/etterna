@@ -357,9 +357,9 @@ void NoteField::Update( float fDeltaTime )
 	* once per player. */
 	// TODO: Remove use of PlayerNumber.
 
-	/*	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
+	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 	if (pn == GAMESTATE->GetMasterPlayerNumber())
-	NoteDisplay::Update(fDeltaTime); */	
+		NoteDisplay::Update(fDeltaTime);
 }
 
 float NoteField::GetWidth() const
