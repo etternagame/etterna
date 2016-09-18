@@ -65,7 +65,7 @@ void VectorFloatNormalize(vector<float>& v)
 void RageVec3Cross(RageVector3* ret, RageVector3 const* a, RageVector3 const* b)
 {
 #if defined (_WINDOWS)
-	D3DXVec3Cross((D3DXVECTOR3*)ret, (D3DXVECTOR3*)b, (D3DXVECTOR3*)a);
+	D3DXVec3Cross((D3DXVECTOR3*)ret, (D3DXVECTOR3*)a, (D3DXVECTOR3*)b);
 #else
 	ret->x= (a->y * b->z) - (a->z * b->y);
 	ret->y= ((a->x * b->z) - (a->z * b->x));
