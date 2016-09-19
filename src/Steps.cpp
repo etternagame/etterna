@@ -439,8 +439,6 @@ void Steps::Decompress()
 	places now that I understand the system better. - Mina */
 
 	NoteData nd = Steps::GetNoteData();
-	if (nd.GetLastRow() > size_t(500000)) // Ignore really long stuff for the moment
-		return;
 
 	NonEmptyRowVector = nd.LogNonEmptyRows();
 	// don't care about anything with under 10 rows of taps
