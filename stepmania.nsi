@@ -429,9 +429,6 @@ Section "Main Section" SecMain
 	; normal exec
 	File "Program\StepMania.exe"
 	File "Program\StepMania.vdi"
-	; sse2 exec
-	File "Program\StepMania-SSE2.exe"
-	File "Program\StepMania-SSE2.vdi"
 	; other programs
 	File "Program\Texture Font Generator.exe"
 	; AJ can never get this built properly:
@@ -446,23 +443,24 @@ Section "Main Section" SecMain
 !ifdef INSTALL_PROGRAM_LIBRARIES
 	; microsoft!
 	; xxx: how many of these do we really need?
-	File "Program\msvcp100.dll"
-	File "Program\msvcr100.dll"
-	File "Program\msvcp110.dll"
-	File "Program\msvcr110.dll"
-	File "Program\vccorlib110.dll"
+	; SM5 Devs! Don't include microsoft runtime dlls in your installer!
+	;File "Program\msvcp100.dll"
+	;File "Program\msvcr100.dll"
+	;File "Program\msvcp110.dll"
+	;File "Program\msvcr110.dll"
+	;File "Program\vccorlib110.dll"
 	; FFmpeg and related
-	File "Program\avcodec-53.dll"
+	File "Program\avcodec-55.dll"
 	;File "Program\avdevice-52.dll"
-	File "Program\avformat-53.dll"
-	File "Program\avutil-51.dll"
+	File "Program\avformat-55.dll"
+	File "Program\avutil-52.dll"
 	File "Program\swscale-2.dll"
 	; parallel lights
 	File "Program\parallel_lights_io.dll"
 	; others
-	File "Program\dbghelp.dll"
-	File "Program\jpeg.dll"
-	File "Program\zlib1.dll"
+	;File "Program\dbghelp.dll"
+	;File "Program\jpeg.dll"
+	;File "Program\zlib1.dll"
 
 	; documentation
 	CreateDirectory "$INSTDIR\Docs"
