@@ -450,10 +450,18 @@ void RageFileManager::GetDirListing( const RString &sPath_, vector<RString> &Add
 
 void RageFileManager::GetDirListingWithMultipleExtensions( const RString &sPath, vector<RString> const& ExtensionList, vector<RString> &AddTo, bool bOnlyDirs, bool bReturnPathToo )
 {
-	for(vector<RString>::const_iterator curr_ext= ExtensionList.begin();
-		curr_ext != ExtensionList.end(); ++curr_ext)
+	vector<RString> ret;
+	GetDirListing(sPath + "*", ret, bOnlyDirs, bReturnPathToo);
+	for (auto&& item : ret)
 	{
-		GetDirListing(sPath + "*." + (*curr_ext), AddTo, bOnlyDirs, bReturnPathToo);
+		std::string item_ext = GetExtension(item);
+		for (auto&& check_ext : ExtensionList)
+		{
+			if (item_ext == check_ext)
+			{
+				AddTo.push_back(item);
+			}
+		}
 	}
 }
 

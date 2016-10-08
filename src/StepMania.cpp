@@ -130,11 +130,11 @@ static RString GetActualGraphicOptionsString()
 	RString sLog = ssprintf( sFormat,
 		DISPLAY->GetApiDescription().c_str(),
 		(params.windowed? WINDOWED : FULLSCREEN).GetValue().c_str(),
-		(int)params.width,
-		(int)params.height,
-		(int)params.bpp,
+		params.width,
+		params.height,
+		params.bpp,
 		(int)PREFSMAN->m_iTextureColorDepth,
-		(int)params.rate,
+		params.rate,
 		(params.vsync? VSYNC : NO_VSYNC).GetValue().c_str(),
 		(PREFSMAN->m_bSmoothLines? SMOOTH_LINES : NO_SMOOTH_LINES).GetValue().c_str() );
 	return sLog;

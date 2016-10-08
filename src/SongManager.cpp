@@ -203,11 +203,8 @@ void SongManager::AddGroup( RString sDir, RString sGroupDirName )
 
 	// Look for a group banner in this group folder
 	vector<RString> arrayGroupBanners;
-	GetDirListing( sDir+sGroupDirName+"/*.png", arrayGroupBanners );
-	GetDirListing( sDir+sGroupDirName+"/*.jpg", arrayGroupBanners );
-	GetDirListing( sDir+sGroupDirName+"/*.jpeg", arrayGroupBanners );
-	GetDirListing( sDir+sGroupDirName+"/*.gif", arrayGroupBanners );
-	GetDirListing( sDir+sGroupDirName+"/*.bmp", arrayGroupBanners );
+	
+	FILEMAN->GetDirListingWithMultipleExtensions(sDir + sGroupDirName + "/", ActorUtil::GetTypeExtensionList(FT_Bitmap), arrayGroupBanners);
 
 	RString sBannerPath;
 	if( !arrayGroupBanners.empty() )
@@ -215,11 +212,7 @@ void SongManager::AddGroup( RString sDir, RString sGroupDirName )
 	else
 	{
 		// Look for a group banner in the parent folder
-		GetDirListing( sDir+sGroupDirName+".png", arrayGroupBanners );
-		GetDirListing( sDir+sGroupDirName+".jpg", arrayGroupBanners );
-		GetDirListing( sDir+sGroupDirName+".jpeg", arrayGroupBanners );
-		GetDirListing( sDir+sGroupDirName+".gif", arrayGroupBanners );
-		GetDirListing( sDir+sGroupDirName+".bmp", arrayGroupBanners );
+		FILEMAN->GetDirListingWithMultipleExtensions(sDir + sGroupDirName, ActorUtil::GetTypeExtensionList(FT_Bitmap), arrayGroupBanners);
 		if( !arrayGroupBanners.empty() )
 			sBannerPath = sDir+arrayGroupBanners[0];
 	}
@@ -278,9 +271,9 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 	// Find all group directories in "Songs" folder
 	vector<RString> arrayGroupDirs;
 	GetDirListing( sDir+"*", arrayGroupDirs, true );
-	SortRStringArray( arrayGroupDirs );
 	StripCvsAndSvn( arrayGroupDirs );
 	StripMacResourceForks( arrayGroupDirs );
+	SortRStringArray(arrayGroupDirs);
 
 	vector< vector<RString> > arrayGroupSongDirs;
 	int groupIndex, songCount, songIndex;
@@ -554,15 +547,8 @@ RageColor SongManager::GetSongColor( const Song* pSong ) const
 {
 	ASSERT( pSong != NULL );
 
-	// protected by royal freem corporation. any modification/removal of
-	// this code will result in prosecution.
-	if( pSong->m_sMainTitle == "DVNO")
-		return RageColor(1.0f,0.8f,0.0f,1.0f);
-	// end royal freem protection
-
 	// Use unlock color if applicable
-	const UnlockEntry *pUE = UNLOCKMAN->FindSong( pSong );
-	if( pUE && USE_UNLOCK_COLOR.GetValue() )
+	if( USE_UNLOCK_COLOR.GetValue() && UNLOCKMAN->FindSong(pSong))
 		return UNLOCK_COLOR.GetValue();
 
 	if( USE_PREFERRED_SORT_COLOR )
@@ -660,8 +646,7 @@ RageColor SongManager::GetCourseGroupColor( const RString &sCourseGroup ) const
 RageColor SongManager::GetCourseColor( const Course* pCourse ) const
 {
 	// Use unlock color if applicable
-	const UnlockEntry *pUE = UNLOCKMAN->FindCourse( pCourse );
-	if( pUE  &&  USE_UNLOCK_COLOR.GetValue() )
+	if( USE_UNLOCK_COLOR.GetValue() && UNLOCKMAN->FindCourse(pCourse) )
 		return UNLOCK_COLOR.GetValue();
 
 	if( USE_PREFERRED_SORT_COLOR )
