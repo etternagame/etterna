@@ -129,7 +129,8 @@ bool IniFile::WriteFile( RageFileBasic &f ) const
 {
 	FOREACH_CONST_Child( this, pKey ) 
 	{
-		if( f.PutLine( ssprintf("[%s]", pKey->GetName().c_str()) ) == -1 )
+		RString keyName = "[" + pKey->GetName() + "]";
+		if( f.PutLine(keyName) == -1 )
 		{
 			m_sError = f.GetError();
 			return false;
@@ -145,7 +146,8 @@ bool IniFile::WriteFile( RageFileBasic &f ) const
 			DEBUG_ASSERT( sName.find('\n') == sName.npos );
 			DEBUG_ASSERT( sName.find('=') == sName.npos );
 
-			if( f.PutLine( ssprintf("%s=%s", sName.c_str(), sValue.c_str()) ) == -1 )
+			RString iniSetting = sName + "=" + sValue;
+			if( f.PutLine(iniSetting) == -1 )
 			{
 				m_sError = f.GetError();
 				return false;

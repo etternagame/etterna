@@ -267,9 +267,11 @@ void SongUtil::AdjustDuplicateSteps( Song *pSong )
 			DeleteDuplicateSteps( pSong, vSteps );
 
 			char const *songTitle = pSong->GetDisplayFullTitle().c_str();
-			CHECKPOINT_M(ssprintf("Duplicate steps from %s removed.", songTitle));
+			RString checkpointMessage = pSong->GetDisplayFullTitle() + " had duplicate steps removed.";
+			CHECKPOINT_M(checkpointMessage);
 			StepsUtil::SortNotesArrayByDifficulty( vSteps );
-			CHECKPOINT_M(ssprintf("Charts from %s sorted.", songTitle));
+			checkpointMessage = pSong->GetDisplayFullTitle() + " had charts sorted.";
+			CHECKPOINT_M(checkpointMessage);
 			for( unsigned k=1; k<vSteps.size(); k++ )
 			{
 				vSteps[k]->SetDifficulty( Difficulty_Edit );
