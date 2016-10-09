@@ -456,7 +456,7 @@ void Steps::Decompress()
 	ChartKey = GenerateChartKey(nd, etar);
 }
 
-RString Steps::GenerateChartKey(NoteData nd, vector<float> etar)
+RString Steps::GenerateChartKey(NoteData nd, vector<float>& etar)
 {
 	RString k = "";
 	RString o = "";

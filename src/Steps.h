@@ -192,7 +192,7 @@ public:
 
 	/* This is a reimplementation of the lua version of the script to generate chart keys, except this time
 	using the notedata stored in game memory immediately after reading it than parsing it using lua. - Mina */
-	RString GenerateChartKey(NoteData nd, vector<float> etar);
+	RString GenerateChartKey(NoteData nd, vector<float>& etar);
 
 	/**
 	 * @brief Determine if the Steps have any major timing changes during gameplay.
