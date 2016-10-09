@@ -448,7 +448,8 @@ void Steps::Decompress()
 	vector<float> etar;
 
 	TimingData *td = Steps::GetTimingData();
-	for (int i = 0; i < nd.GetLastRow(); i++)
+	int lastRow = nd.GetLastRow();
+	for (int i = 0; i < lastRow; i++)
 		etar.push_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(i)));
 
 	SetElapsedTimesAtAllRows(etar);
