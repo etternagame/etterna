@@ -172,7 +172,7 @@ public:
 
 	vector<float> ElapsedTimesAtAllRows;
 	vector<float> GetElapsedTimesAtAllRows() { return ElapsedTimesAtAllRows; };
-	void SetElapsedTimesAtAllRows(vector<float> etar) { ElapsedTimesAtAllRows = etar; };
+	void SetElapsedTimesAtAllRows(vector<float>& etar) { ElapsedTimesAtAllRows = etar; };
 
 	vector<float> ElapsedTimesAtTapRows;
 	vector<float> GetElapsedTimesAtTapRows() { return ElapsedTimesAtTapRows; }
