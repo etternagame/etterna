@@ -441,7 +441,7 @@ void Steps::Decompress(bool isGameplay)
 	{
 		NoteData nd = Steps::GetNoteData();
 
-		NonEmptyRowVector = nd.LogNonEmptyRows();
+		nd.LogNonEmptyRows(NonEmptyRowVector);
 		// don't care about anything with under 10 rows of taps
 		if (NonEmptyRowVector.size() <= 10 || nd.IsEmpty())
 			return;
