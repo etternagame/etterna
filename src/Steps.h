@@ -173,6 +173,7 @@ public:
 	vector<float> ElapsedTimesAtAllRows;
 	vector<float> GetElapsedTimesAtAllRows() { return ElapsedTimesAtAllRows; };
 	void SetElapsedTimesAtAllRows(vector<float>& etar) { ElapsedTimesAtAllRows = etar; };
+	void UnsetElapsedTimesAtAllRows() { std::vector<float> emptyVector; ElapsedTimesAtAllRows.swap(emptyVector); };
 
 	vector<float> ElapsedTimesAtTapRows;
 	vector<float> GetElapsedTimesAtTapRows() { return ElapsedTimesAtTapRows; }

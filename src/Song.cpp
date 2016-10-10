@@ -1083,7 +1083,7 @@ void Song::ReCalculateRadarValuesAndLastSecond(bool fromCache, bool duringCache)
 
 		// Must initialize before the gotos.
 		NoteData tempNoteData;
-		pSteps->GetNoteData( tempNoteData, false );
+		pSteps->GetNoteData( tempNoteData, true);
 
 		// calculate lastSecond
 
@@ -1116,6 +1116,10 @@ void Song::ReCalculateRadarValuesAndLastSecond(bool fromCache, bool duringCache)
 			NoteData dummy;
 			dummy.SetNumTracks(tempNoteData.GetNumTracks());
 			pSteps->SetNoteData(dummy);
+
+			pSteps->UnsetElapsedTimesAtAllRows();
+			std::vector<int> emptyVector;
+			pSteps->NonEmptyRowVector.swap(emptyVector);
 		}
 	}
 
