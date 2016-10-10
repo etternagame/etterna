@@ -52,8 +52,8 @@ public:
 	void CreateBlank( StepsType ntTo );
 
 	void Compress() const;
-	void Decompress() const;
-	void Decompress();
+	void Decompress(bool isGameplay) const;
+	void Decompress(bool isGameplay);
 	/** 
 	 * @brief Determine if these steps were created by the autogenerator.
 	 * @return true if they were, false otherwise.
@@ -130,7 +130,7 @@ public:
 	float PredictMeter() const;
 
 	unsigned GetHash() const;
-	void GetNoteData( NoteData& noteDataOut ) const;
+	void GetNoteData( NoteData& noteDataOut, bool isGameplay ) const;
 	NoteData GetNoteData() const;
 	void SetNoteData( const NoteData& noteDataNew );
 	void SetSMNoteData( const RString &notes_comp );

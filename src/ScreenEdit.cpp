@@ -1492,7 +1492,7 @@ void ScreenEdit::Init()
 	
 	this->originalPlayerOptions.FromString(ModsLevel_Stage, EDIT_MODIFIERS);
 
-	m_pSteps->GetNoteData( m_NoteDataEdit );
+	m_pSteps->GetNoteData( m_NoteDataEdit, true );
 	m_NoteFieldEdit.SetXY( EDIT_X, EDIT_Y );
 	m_NoteFieldEdit.SetZoom( 0.5f );
 	m_NoteFieldEdit.Init( &m_PlayerStateEdit, PLAYER_HEIGHT*2, false );
@@ -2478,7 +2478,7 @@ bool ScreenEdit::InputEdit( const InputEventPlus &input, EditButton EditB )
 			pSteps = *it;
 			GAMESTATE->m_pCurSteps[PLAYER_1].Set( pSteps );
 			m_pSteps = pSteps;
-			pSteps->GetNoteData( m_NoteDataEdit );
+			pSteps->GetNoteData( m_NoteDataEdit, true );
 
 			RString s = ssprintf(
 				SWITCHED_TO.GetValue() + " %s %s '%s' (%d of %d)",
@@ -4272,7 +4272,7 @@ void ScreenEdit::HandleScreenMessage( const ScreenMessage SM )
 		{
 			SaveUndo();
 			CopyFromLastSave();
-			m_pSteps->GetNoteData( m_NoteDataEdit );
+			m_pSteps->GetNoteData( m_NoteDataEdit, true );
 			SetDirty( false );
 		}
 	}
@@ -4282,7 +4282,7 @@ void ScreenEdit::HandleScreenMessage( const ScreenMessage SM )
 		{
 			SaveUndo();
 			RevertFromDisk();
-			m_pSteps->GetNoteData( m_NoteDataEdit );
+			m_pSteps->GetNoteData( m_NoteDataEdit, true );
 			SetDirty( false );
 		}
 	}

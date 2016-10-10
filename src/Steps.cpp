@@ -183,9 +183,9 @@ void Steps::SetNoteData( const NoteData& noteDataNew )
 	m_iHash = 0;
 }
 
-void Steps::GetNoteData( NoteData& noteDataOut ) const
+void Steps::GetNoteData( NoteData& noteDataOut, bool isGameplay ) const
 {
-	Decompress();
+	Decompress(isGameplay);
 
 	if( m_bNoteDataIsFilled )
 	{
@@ -201,7 +201,7 @@ void Steps::GetNoteData( NoteData& noteDataOut ) const
 NoteData Steps::GetNoteData() const
 {
 	NoteData tmp;
-	this->GetNoteData( tmp );
+	this->GetNoteData( tmp, false );
 	return tmp;
 }
 
@@ -313,7 +313,7 @@ void Steps::CalculateRadarValues( float fMusicLengthSeconds )
 	*/
 
 	NoteData tempNoteData;
-	this->GetNoteData( tempNoteData );
+	this->GetNoteData( tempNoteData, false );
 
 	FOREACH_PlayerNumber( pn )
 		m_CachedRadarValues[pn].Zero();
@@ -351,9 +351,9 @@ void Steps::CalculateRadarValues( float fMusicLengthSeconds )
 	GAMESTATE->SetProcessedTimingData(NULL);
 }
 
-void Steps::Decompress() const
+void Steps::Decompress(bool isGameplay) const
 {
-	const_cast<Steps *>(this)->Decompress();
+	const_cast<Steps *>(this)->Decompress(isGameplay);
 }
 
 bool stepstype_is_kickbox(StepsType st)
@@ -362,7 +362,7 @@ bool stepstype_is_kickbox(StepsType st)
 		st == StepsType_kickbox_insect || st == StepsType_kickbox_arachnid;
 }
 
-void Steps::Decompress()
+void Steps::Decompress(bool isGameplay)
 {
 	if( m_bNoteDataIsFilled )
 		return;	// already decompressed
@@ -371,7 +371,7 @@ void Steps::Decompress()
 	{
 		// get autogen m_pNoteData
 		NoteData notedata;
-		parent->GetNoteData( notedata );
+		parent->GetNoteData( notedata, isGameplay );
 
 		m_bNoteDataIsFilled = true;
 
@@ -437,23 +437,25 @@ void Steps::Decompress()
 	This includes a vector for note rows that are not empty, a vector for elapsed time at each note row and
 	the chart key generated on song load. Also this totally needs to be redone and split up into the appropriate
 	places now that I understand the system better. - Mina */
+	if (isGameplay)
+	{
+		NoteData nd = Steps::GetNoteData();
 
-	NoteData nd = Steps::GetNoteData();
+		NonEmptyRowVector = nd.LogNonEmptyRows();
+		// don't care about anything with under 10 rows of taps
+		if (NonEmptyRowVector.size() <= 10 || nd.IsEmpty())
+			return;
 
-	NonEmptyRowVector = nd.LogNonEmptyRows();
-	// don't care about anything with under 10 rows of taps
-	if (NonEmptyRowVector.size() <= 10 || nd.IsEmpty()) 
-		return; 
+		vector<float> etar;
 
-	vector<float> etar;
+		TimingData *td = Steps::GetTimingData();
+		int lastRow = nd.GetLastRow();
+		for (int i = 0; i < lastRow; i++)
+			etar.push_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(i)));
 
-	TimingData *td = Steps::GetTimingData();
-	int lastRow = nd.GetLastRow();
-	for (int i = 0; i < lastRow; i++)
-		etar.push_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(i)));
-
-	SetElapsedTimesAtAllRows(etar);
-	ChartKey = GenerateChartKey(nd, etar);
+		SetElapsedTimesAtAllRows(etar);
+		ChartKey = GenerateChartKey(nd, etar);
+	}
 }
 
 RString Steps::GenerateChartKey(NoteData nd, vector<float>& etar)
@@ -534,7 +536,7 @@ void Steps::DeAutogen( bool bCopyNoteData )
 		return; // OK
 
 	if( bCopyNoteData )
-		Decompress();	// fills in m_pNoteData with sliding window transform
+		Decompress(false);	// fills in m_pNoteData with sliding window transform
 
 	m_sDescription		= Real()->m_sDescription;
 	m_sChartStyle		= Real()->m_sChartStyle;
@@ -561,7 +563,7 @@ void Steps::CopyFrom( Steps* pSource, StepsType ntTo, float fMusicLengthSeconds 
 	m_StepsType = ntTo;
 	m_StepsTypeStr= GAMEMAN->GetStepsTypeInfo(ntTo).szName;
 	NoteData noteData;
-	pSource->GetNoteData( noteData );
+	pSource->GetNoteData( noteData, false );
 	noteData.SetNumTracks( GAMEMAN->GetStepsTypeInfo(ntTo).iNumTracks );
 	parent = NULL;
 	m_Timing = pSource->m_Timing;

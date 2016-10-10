@@ -113,7 +113,7 @@ const RadarValues &Trail::GetRadarValues() const
 			if( !pSteps->IsAutogen() && e->ContainsTransformOrTurn() )
 			{
 				NoteData nd;
-				pSteps->GetNoteData( nd );
+				pSteps->GetNoteData( nd, false );
 				RadarValues rv_orig;
 				GAMESTATE->SetProcessedTimingData(const_cast<TimingData *>(pSteps->GetTimingData()));
 				NoteDataUtil::CalculateRadarValues( nd, e->pSong->m_fMusicLengthSeconds, rv_orig );

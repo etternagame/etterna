@@ -1080,7 +1080,7 @@ void ScreenGameplay::SetupSong( int iSongIndex )
 		 * This is very bad for transforms like AddMines.
 		 */
 		NoteData originalNoteData;
-		pSteps->GetNoteData( originalNoteData );
+		pSteps->GetNoteData( originalNoteData , true);
 
 		const Style* pStyle = GAMESTATE->GetCurrentStyle(pi->m_pn);
 		NoteData ndTransformed;
@@ -1409,7 +1409,7 @@ void ScreenGameplay::LoadLights()
 	const Steps *pSteps = SongUtil::GetClosestNotes( GAMESTATE->m_pCurSong, StepsType_lights_cabinet, Difficulty_Medium );
 	if( pSteps != NULL )
 	{
-		pSteps->GetNoteData( m_CabinetLightsNoteData );
+		pSteps->GetNoteData( m_CabinetLightsNoteData, false );
 		return;
 	}
 
@@ -1450,7 +1450,7 @@ void ScreenGameplay::LoadLights()
 		return;
 
 	NoteData TapNoteData1;
-	pSteps->GetNoteData( TapNoteData1 );
+	pSteps->GetNoteData( TapNoteData1, false );
 
 	NoteDataUtil::LoadTransformedLights( TapNoteData1, m_CabinetLightsNoteData, GAMEMAN->GetStepsTypeInfo(StepsType_lights_cabinet).iNumTracks );
 }

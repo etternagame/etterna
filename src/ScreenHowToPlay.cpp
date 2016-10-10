@@ -158,7 +158,7 @@ void ScreenHowToPlay::Init()
 			m_Song.m_SongTiming.TidyUpData( false );
 			pSteps->m_Timing.TidyUpData( true );
 			NoteData tempNoteData;
-			pSteps->GetNoteData( tempNoteData );
+			pSteps->GetNoteData( tempNoteData, true );
 			pStyle->GetTransformedNoteDataForStyle( PLAYER_1, tempNoteData, m_NoteData );
 
 			GAMESTATE->m_pCurSong.Set( &m_Song );

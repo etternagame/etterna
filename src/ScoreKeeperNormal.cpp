@@ -67,7 +67,7 @@ void ScoreKeeperNormal::Load(
 		ASSERT( pSteps != NULL );
 		const AttackArray &aa = asModifiers[i];
 		NoteData ndTemp;
-		pSteps->GetNoteData( ndTemp );
+		pSteps->GetNoteData( ndTemp , false);
 
 		// We might have been given lots of songs; don't keep them in memory uncompressed.
 		pSteps->Compress();

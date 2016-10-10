@@ -1083,7 +1083,7 @@ void Song::ReCalculateRadarValuesAndLastSecond(bool fromCache, bool duringCache)
 
 		// Must initialize before the gotos.
 		NoteData tempNoteData;
-		pSteps->GetNoteData( tempNoteData );
+		pSteps->GetNoteData( tempNoteData, false );
 
 		// calculate lastSecond
 

@@ -154,7 +154,7 @@ static void StartMusic( MusicToPlay &ToPlay )
 			// get cabinet lights if any
 			Steps *pStepsCabinetLights = SongUtil::GetOneSteps( &song, StepsType_lights_cabinet );
 			if( pStepsCabinetLights )
-				pStepsCabinetLights->GetNoteData( ToPlay.m_LightsData );
+				pStepsCabinetLights->GetNoteData( ToPlay.m_LightsData , false);
 		}
 		else if(GetExtension(ToPlay.m_sTimingFile) == ".sm" &&
 			loaderSM.LoadFromSimfile(ToPlay.m_sTimingFile, song) )
@@ -164,7 +164,7 @@ static void StartMusic( MusicToPlay &ToPlay )
 			// get cabinet lights if any
 			Steps *pStepsCabinetLights = SongUtil::GetOneSteps( &song, StepsType_lights_cabinet );
 			if( pStepsCabinetLights )
-				pStepsCabinetLights->GetNoteData( ToPlay.m_LightsData );
+				pStepsCabinetLights->GetNoteData( ToPlay.m_LightsData , false);
 		}
 	}
 
