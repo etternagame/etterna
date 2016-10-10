@@ -364,8 +364,28 @@ bool stepstype_is_kickbox(StepsType st)
 
 void Steps::Decompress(bool isGameplay)
 {
-	if( m_bNoteDataIsFilled )
+
+	if (m_bNoteDataIsFilled) {
+		if (isGameplay)
+		{
+			m_pNoteData->LogNonEmptyRows(NonEmptyRowVector);
+			// don't care about anything with under 10 rows of taps
+			if (NonEmptyRowVector.size() <= 10 || m_pNoteData->IsEmpty())
+				return;
+
+			vector<float> etar;
+
+			TimingData *td = Steps::GetTimingData();
+			int lastRow = m_pNoteData->GetLastRow();
+			for (int i = 0; i < lastRow; i++)
+				etar.push_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(i)));
+
+			SetElapsedTimesAtAllRows(etar);
+			ChartKey = GenerateChartKey(m_pNoteData, etar);
+		}
 		return;	// already decompressed
+	}
+		
 
 	if( parent )
 	{
@@ -432,11 +452,11 @@ void Steps::Decompress(bool isGameplay)
 
 		NoteDataUtil::LoadFromSMNoteDataString(*m_pNoteData, m_sNoteDataCompressed, bComposite);
 	}
-
 	/*	Piggy backing off this function to generate stuff that should only be generated once per song caching
 	This includes a vector for note rows that are not empty, a vector for elapsed time at each note row and
 	the chart key generated on song load. Also this totally needs to be redone and split up into the appropriate
 	places now that I understand the system better. - Mina */
+
 	if (isGameplay)
 	{
 		m_pNoteData->LogNonEmptyRows(NonEmptyRowVector);
