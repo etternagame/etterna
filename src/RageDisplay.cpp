@@ -933,15 +933,15 @@ void RageDisplay::FrameLimitBeforeVsync( int iFPS )
 
 	if (iDelayMicroseconds > 0)
 		usleep(iDelayMicroseconds);
-	else if (g_fFrameLimit.Get() > 0 && !g_LastFrameEndedAt.IsZero())
+	else if (!g_LastFrameEndedAt.IsZero())
 	{
 		double expectedDelta = 0.0;
 		
 		if (SCREENMAN && SCREENMAN->GetTopScreen())
 		{
-			if (SCREENMAN->GetTopScreen()->GetScreenType() == gameplay)
+			if (SCREENMAN->GetTopScreen()->GetScreenType() == gameplay && g_fFrameLimitGameplay.Get() > 0)
 				expectedDelta = 1.0 / g_fFrameLimitGameplay.Get();
-			else
+			else if(SCREENMAN->GetTopScreen()->GetScreenType() != gameplay && g_fFrameLimit.Get() > 0)
 				expectedDelta = 1.0 / g_fFrameLimit.Get();
 		}
 
