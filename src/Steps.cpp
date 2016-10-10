@@ -452,24 +452,24 @@ void Steps::Decompress(bool isGameplay)
 			etar.push_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(i)));
 
 		SetElapsedTimesAtAllRows(etar);
-		ChartKey = GenerateChartKey(*m_pNoteData, etar);
+		ChartKey = GenerateChartKey(m_pNoteData, etar);
 	}
 }
 
-RString Steps::GenerateChartKey(NoteData nd, vector<float>& etar)
+RString Steps::GenerateChartKey(HiddenPtr<NoteData> nd, vector<float>& etar)
 {
 	RString k = "";
 	RString o = "";
 	int m = 1000;
-	float fso = etar[nd.GetFirstRow()] * m;
+	float fso = etar[nd->GetFirstRow()] * m;
 	int et = 0;
 
 	for (size_t r = 0; r < NonEmptyRowVector.size(); r++)
 	{
 		int row = NonEmptyRowVector[r];
-		for (int t = 0; t < nd.GetNumTracks(); ++t)
+		for (int t = 0; t < nd->GetNumTracks(); ++t)
 		{
-			const TapNote &tn = nd.GetTapNote(t, row);
+			const TapNote &tn = nd->GetTapNote(t, row);
 			k.append(to_string(tn.type));
 		}
 		k.append(to_string(et));
