@@ -439,22 +439,20 @@ void Steps::Decompress(bool isGameplay)
 	places now that I understand the system better. - Mina */
 	if (isGameplay)
 	{
-		NoteData nd = Steps::GetNoteData();
-
-		nd.LogNonEmptyRows(NonEmptyRowVector);
+		m_pNoteData->LogNonEmptyRows(NonEmptyRowVector);
 		// don't care about anything with under 10 rows of taps
-		if (NonEmptyRowVector.size() <= 10 || nd.IsEmpty())
+		if (NonEmptyRowVector.size() <= 10 || m_pNoteData->IsEmpty())
 			return;
 
 		vector<float> etar;
 
 		TimingData *td = Steps::GetTimingData();
-		int lastRow = nd.GetLastRow();
+		int lastRow = m_pNoteData->GetLastRow();
 		for (int i = 0; i < lastRow; i++)
 			etar.push_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(i)));
 
 		SetElapsedTimesAtAllRows(etar);
-		ChartKey = GenerateChartKey(nd, etar);
+		ChartKey = GenerateChartKey(*m_pNoteData, etar);
 	}
 }
 
