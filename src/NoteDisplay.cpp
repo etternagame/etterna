@@ -1008,8 +1008,7 @@ void NoteDisplay::DrawHoldPart(vector<Sprite*> &vpSpr,
 
 		if(queue.Free() < 3 || last_vert_set)
 		{
-			/* The queue is full.  Render it, clear the buffer, and move back a step to
-			 * start off the strip again. */
+			/* The queue is full.  Render it. */
 			if(!bAllAreTransparent)
 			{
 				FOREACH(Sprite*, vpSpr, spr)
@@ -1024,7 +1023,6 @@ void NoteDisplay::DrawHoldPart(vector<Sprite*> &vpSpr,
 			}
 			queue.Init();
 			bAllAreTransparent = true;
-			fY -= part_args.y_step;
 		}
 		first_vert_set= false;
 	}
@@ -1037,22 +1035,19 @@ void NoteDisplay::DrawHoldBodyInternal(vector<Sprite*>& sprite_top,
 	draw_hold_part_args& part_args,
 	const float head_minus_top, const float tail_plus_bottom,
 	const float y_head, const float y_tail, const float top_beat,
-	const float bottom_beat, bool glow, bool reverse)
+	const float bottom_beat, bool glow)
 {	
-	// Draw the top cap
-	if (reverse && cache->m_bFlipHeadAndTailWhenReverse)
+	if (y_head < y_tail)
 	{
+		// Draw the top cap
 		part_args.y_top = head_minus_top;
 		part_args.y_bottom = y_head;
 		part_args.top_beat = top_beat;
 		part_args.bottom_beat = top_beat;
 		part_args.wrapping = false;
 		DrawHoldPart(sprite_top, field_args, column_args, part_args, glow, hpt_top);
-	}
 
-	// Draw the body if the start is not lower than the start of the tail	
-	if(y_head < y_tail)
-	{
+		// Draw the body if the start is not lower than the start of the tail
 		part_args.y_top = y_head;
 		part_args.y_bottom = y_tail;
 		part_args.top_beat = top_beat;
@@ -1062,15 +1057,12 @@ void NoteDisplay::DrawHoldBodyInternal(vector<Sprite*>& sprite_top,
 	}
 	
 	// Draw the bottom cap
-	if (!reverse || !cache->m_bFlipHeadAndTailWhenReverse)
-	{
-		part_args.y_top = y_tail;
-		part_args.y_bottom = tail_plus_bottom;
-		part_args.top_beat = bottom_beat;
-		part_args.y_start_pos = max(part_args.y_start_pos, y_head);
-		part_args.wrapping = false;
-		DrawHoldPart(sprite_bottom, field_args, column_args, part_args, glow, hpt_bottom);
-	}	
+	part_args.y_top = y_tail;
+	part_args.y_bottom = tail_plus_bottom;
+	part_args.top_beat = bottom_beat;
+	part_args.y_start_pos = max(part_args.y_start_pos, y_head);
+	part_args.wrapping = false;
+	DrawHoldPart(sprite_bottom, field_args, column_args, part_args, glow, hpt_bottom);
 }
 
 void NoteDisplay::DrawHoldBody(const TapNote& tn,
@@ -1154,7 +1146,7 @@ void NoteDisplay::DrawHoldBody(const TapNote& tn,
 	DrawHoldBodyInternal(vpSprTop, vpSprBody, vpSprBottom, field_args,
 		column_args, part_args, head_minus_top,
 		tail_plus_bottom, y_head, y_tail, top_beat, bottom_beat,
-		false, reverse);
+		false);
 
 	if((*field_args.selection_begin_marker != -1 && *field_args.selection_end_marker != -1)
 		|| column_args.glow.a > 0)
@@ -1164,7 +1156,7 @@ void NoteDisplay::DrawHoldBody(const TapNote& tn,
 		DrawHoldBodyInternal(vpSprTop, vpSprBody, vpSprBottom, field_args,
 			column_args, part_args, head_minus_top,
 			tail_plus_bottom, y_head, y_tail, top_beat, bottom_beat,
-			true, reverse);
+			true);
 	}
 }
 
