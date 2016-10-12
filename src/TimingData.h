@@ -471,7 +471,7 @@ public:
 	aren't needed at all :/. Not my responsibility to investigate, though. - Mina.*/ 
 	
 	vector<float> ElapsedTimesAtAllRows;
-	void SetElapsedTimesAtAllRows(vector<float> etar) { ElapsedTimesAtAllRows = etar; };
+	void SetElapsedTimesAtAllRows(vector<float>& etar) { ElapsedTimesAtAllRows = etar; };
 
 	float WhereUAtBro(float beat) const;
 	float WhereUAtBro(float beat);
