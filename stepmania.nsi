@@ -452,7 +452,7 @@ Section "Main Section" SecMain
 	${VersionCompare} $0 "14.0.23026" $R4
 	
 	; Redistributable not installed
-	${If} $0 != ""
+	${If} $0 == ""
 	; Older redistributable installed, install new one
 	${OrIf} $R4 == 2
 
