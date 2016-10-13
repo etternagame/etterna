@@ -8,6 +8,7 @@
 ;Includes
 
 	!include "MUI.nsh"	; Modern UI
+	!include "WordFunc.nsh" ; Word functions
 
 	; Product info is in a separate file so that people will change
 	; the version info for the installer and the program at the same time.
@@ -106,6 +107,11 @@
 
 	!insertmacro MUI_UNPAGE_CONFIRM
 	!insertmacro MUI_UNPAGE_INSTFILES
+
+;-----------------------------------------------------------------------------
+; VersionComparison
+
+	!insertmacro VersionCompare
 
 ;-------------------------------------------------------------------------------
 ;Languages
@@ -441,14 +447,28 @@ Section "Main Section" SecMain
 	Call RefreshShellIcons
 !endif
 !ifdef INSTALL_PROGRAM_LIBRARIES
-	; microsoft!
-	; xxx: how many of these do we really need?
-	; SM5 Devs! Don't include microsoft runtime dlls in your installer!
-	;File "Program\msvcp100.dll"
-	;File "Program\msvcr100.dll"
-	;File "Program\msvcp110.dll"
-	;File "Program\msvcr110.dll"
-	;File "Program\vccorlib110.dll"
+	; check if vs2015 x86 C++ redistributable is installed
+	ReadRegStr $0 HKLM "SOFTWARE\Wow6432Node\Microsoft\DevDiv\vc\Servicing\14.0\RuntimeMinimum" "UpdateVersion"	
+	${VersionCompare} $0 "14.0.23026" $R4
+	
+	; Redistributable not installed
+	${If} $0 != ""
+	; Older redistributable installed, install new one
+	${OrIf} $R4 == 2
+
+	ExecWait 'Redist\vc_redist.x86.exe' $0
+	
+	${If} $0 != 0
+	MessageBox MB_OK "Stepmania 5 requires visual studio 2015 x86 C++ runtimes to run."
+	${EndIf}
+	
+	; Clear nsis errors as we already delt with it
+	IfErrors continue
+	
+	${EndIf}
+	
+	continue:
+	
 	; FFmpeg and related
 	File "Program\avcodec-55.dll"
 	;File "Program\avdevice-52.dll"
