@@ -43,7 +43,7 @@
 
 	; don't forget to change this before releasing a new version.
 	; wish this could be automated, but it requires "X.Y.Z.a" format. -aj
-	VIProductVersion "5.0.0.5"
+	VIProductVersion "5.0.0.12"
 	VIAddVersionKey "ProductName" "${PRODUCT_ID}"
 	VIAddVersionKey "FileVersion" "${PRODUCT_VER}"
 	VIAddVersionKey "FileDescription" "${PRODUCT_ID} Installer"
@@ -456,14 +456,14 @@ Section "Main Section" SecMain
 	; Older redistributable installed, install new one
 	${OrIf} $R4 == 2
 
-	ExecWait 'Redist\vc_redist.x86.exe' $0
-	
-	${If} $0 != 0
-	MessageBox MB_OK "Stepmania 5 requires visual studio 2015 x86 C++ runtimes to run."
-	${EndIf}
-	
-	; Clear nsis errors as we already delt with it
-	IfErrors continue
+		ExecWait 'Prerequisites\vc_redist.x86.exe' $0
+		
+		${If} $0 != 0
+		MessageBox MB_OK "Stepmania 5 requires visual studio 2015 x86 C++ runtimes to run."
+		${EndIf}
+		
+		; Clear nsis errors as we already delt with it
+		IfErrors continue
 	
 	${EndIf}
 	
@@ -506,11 +506,10 @@ Section "Main Section" SecMain
 	CreateDirectory "$SMPROGRAMS\${PRODUCT_ID}\"
 	; todo: make desktop shortcut an option
 	!ifdef MAKE_DESKTOP_SHORTCUT
-		CreateShortCut "$DESKTOP\$(TEXT_IO_RUN).lnk" "$INSTDIR\Program\StepMania-SSE2.exe"
+		CreateShortCut "$DESKTOP\$(TEXT_IO_RUN).lnk" "$INSTDIR\Program\StepMania.exe"
 	!endif
 
-	CreateShortCut "$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_RUN).lnk" "$INSTDIR\Program\StepMania-SSE2.exe"
-	CreateShortCut "$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_RUN_WITHOUT_SSE2).lnk" "$INSTDIR\Program\StepMania.exe"
+	CreateShortCut "$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_RUN).lnk" "$INSTDIR\Program\StepMania.exe"
 
 	!ifdef MAKE_OPEN_PROGRAM_FOLDER_SHORTCUT
 		CreateShortCut "$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_OPEN_PROGRAM_FOLDER).lnk" "$WINDIR\explorer.exe" "$INSTDIR\"
@@ -528,8 +527,7 @@ Section "Main Section" SecMain
 	!ifdef MAKE_UPDATES_SHORTCUT
 		CreateShortCut "$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_CHECK_FOR_UPDATES).lnk" "${UPDATES_URL}"
 	!endif
-	CreateShortCut "$INSTDIR\${PRODUCT_ID}.lnk" "$INSTDIR\Program\StepMania-SSE2.exe"
-	CreateShortCut "$INSTDIR\${PRODUCT_ID} (non-SSE2).lnk" "$INSTDIR\Program\StepMania.exe"
+	CreateShortCut "$INSTDIR\${PRODUCT_ID}.lnk" "$INSTDIR\Program\StepMania.exe"
 !endif
 
 	IfErrors do_error do_no_error
@@ -604,7 +602,7 @@ Function LeaveAutorun
 	GoTo proceed
 
 	play:
-	Exec "$INSTDIR\Program\StepMania-SSE2.exe"
+	Exec "$INSTDIR\Program\StepMania.exe"
 	IfErrors play_error
 	quit
 
@@ -664,36 +662,26 @@ Function PreInstall
 
 		old_nsis_not_installed:
 
-		; todo: this needs to be updated for DirectX 9.0c
-		; HKEY_LOCAL_MACHINE "Software\Microsoft\DirectX" "Version"
-		; 9.0c is "4.09.00.0904"
-
-		; Check for DirectX 8.0 (to be moved to the right section later)
-		; We only use this for sound.  Actually, I could probably make the sound
-		; work with an earlier one; I'm not sure if that's needed or not.  For one
-		; thing, forcing people to upgrade drivers is somewhat of a good thing;
-		; but upgrading to DX8 if you really don't have to is also somewhat
-		; annoying, too ... -g
-		ReadRegStr $0 HKEY_LOCAL_MACHINE "Software\Microsoft\DirectX" "Version"
-		StrCpy $1 $0 2 2 ;  8.1 is "4.08.01.0810"
-		IntCmpU $1 8 check_subversion old_dx ok
-		check_subversion:
-		StrCpy $1 $0 2 5
-		IntCmpU $1 0 ok old_dx ok
-
-		; We can function without it (using WaveOut), so don't *require* this.
-		old_dx:
-	!ifdef DIRECTX_81_REDIST_PRESENT
-		MessageBox MB_YESNO|MB_ICONINFORMATION "$(TEXT_IO_INSTALL_DIRECTX)" IDNO ok
-		Exec "DirectX81\dxsetup.exe"
-		quit
-		ok:
-	!else
-		MessageBox MB_YESNO|MB_ICONINFORMATION "$(TEXT_IO_DIRECTX_VISIT_MICROSOFT)" IDNO ok
-		ExecShell "" "http://www.microsoft.com/directx/"
-		Abort
-		ok:
-	!endif
+		; Get the version of directX installed, Windows 7+ only come with DX10 and higher preinstalled
+		; We require 9.0c (June 2010)
+		ReadRegStr $0 HKLM "SOFTWARE\Microsoft\DirectX" "Version"
+		${VersionCompare} $0 "4.09.00.0904" $R4
+	
+		; DirectX not installed
+		${If} $0 == ""
+		; Older DirectX installed, install new one
+		${OrIf} $R4 == 2
+			ExecWait "Prerequisites\dxwebsetup.exe" $0
+		
+			${If} $0 != 0
+				MessageBox MB_OK "Stepmania 5 requires directX runtimes."
+			${EndIf}
+			
+			; Clear nsis errors as we already delt with it
+			IfErrors continue
+		
+		${EndIf}
+		continue:
 !else
 		; Check that full version is installed.
 		IfFileExists "$INSTDIR\Program\StepMania.exe" proceed_with_patch
@@ -740,7 +728,10 @@ FunctionEnd
  
 ;-------------------------------------------------------------------------------
 ;Uninstaller Section
-; todo: update big time
+; The file deletions bellow don't simply recursively delete things because some
+; people might decide it's a good idea to use a folder like Program Files as
+; the folder for installation, and we don't want to delete everything in there.
+; ex. C:\Program Files\Program\Stepmania.exe
 
 Section "Uninstall"
 
@@ -773,10 +764,33 @@ Section "Uninstall"
 	Delete "$INSTDIR\CDTitles\Instructions.txt"
 	RMDir "$INSTDIR\CDTitles"
 
+	Delete "$INSTDIR\Characters\Instructions.txt"
 	RMDir /r "$INSTDIR\Characters\default"
 	RMDir "$INSTDIR\Characters"
 
 	RMDir /r "$INSTDIR\Cache"
+	
+	RMDir /r "$INSTDIR\Data\AutoMappings"
+	RMDir /r "$INSTDIR\Data\Shaders"
+	Delete "$INSTDIR\Data\AI.ini"
+	Delete "$INSTDIR\Data\NamesBlacklist.txt"
+	Delete "$INSTDIR\Data\RandomAttacks.txt"
+	Delete "$INSTDIR\Data\splash.png"
+	Delete "$INSTDIR\Data\Translations.xml"
+	RMDir "$INSTDIR\Data"
+	
+	RMDir /r "$INSTDIR\Docs\license-ext"
+	RMDir /r "$INSTDIR\Docs\Luadoc"
+	RMDir /r "$INSTDIR\Docs\Themerdocs"
+	Delete "$INSTDIR\Docs\Changelog_sm5.txt"
+	Delete "$INSTDIR\Docs\Changelog_sm-ssc.txt"
+	Delete "$INSTDIR\Docs\Changelog_SSCformat.txt"
+	Delete "$INSTDIR\Docs\CommandLineArgs.txt"
+	Delete "$INSTDIR\Docs\CourseFormat.txt"
+	Delete "$INSTDIR\Docs\credits.txt"
+	Delete "$INSTDIR\Docs\Licenses.txt"
+	Delete "$INSTDIR\Docs\sm5_beginner.txt"
+	RMDir "$INSTDIR\Docs"
 
 	Delete "$INSTDIR\Packages\instructions.txt"
 	RMDir "$INSTDIR\Packages"
@@ -786,7 +800,9 @@ Section "Uninstall"
 	RMDir "$INSTDIR\Courses"
 
 	Delete "$INSTDIR\NoteSkins\instructions.txt"
+	RMDir /r "$INSTDIR\NoteSkins\common\_Editor"
 	RMDir /r "$INSTDIR\NoteSkins\common\default"
+	RMDir /r "$INSTDIR\NoteSkins\common\common"
 	RMDir "$INSTDIR\NoteSkins\common"
 	RMDir /r "$INSTDIR\NoteSkins\dance\default"
 	RMDir /r "$INSTDIR\NoteSkins\dance\Delta"
@@ -796,11 +812,15 @@ Section "Uninstall"
 	RMDir /r "$INSTDIR\NoteSkins\dance\midi-routine-p2"
 	RMDir /r "$INSTDIR\NoteSkins\dance\midi-solo"
 	RMDir /r "$INSTDIR\NoteSkins\dance\midi-vivid"
+	RMDir /r "$INSTDIR\NoteSkins\dance\midi-vivid-3d"
 	RMDir /r "$INSTDIR\NoteSkins\dance\retro"
 	RMDir /r "$INSTDIR\NoteSkins\dance\retrobar"
 	RMDir /r "$INSTDIR\NoteSkins\dance\retrobar-splithand_whiteblue"
 	RMDir "$INSTDIR\NoteSkins\dance"
 
+	RMDir /r "$INSTDIR\NoteSkins\lights\default"
+	RMDir "$INSTDIR\NoteSkins\lights"
+	
 	RMDir /r "$INSTDIR\NoteSkins\pump\cmd"
 	RMDir /r "$INSTDIR\NoteSkins\pump\cmd-routine-p1"
 	RMDir /r "$INSTDIR\NoteSkins\pump\cmd-routine-p2"
@@ -828,7 +848,7 @@ Section "Uninstall"
 	; we don't currently install para noteskins...
 	;RMDir /r "$INSTDIR\NoteSkins\para\default"
 	;RMDir "$INSTDIR\NoteSkins\para"
-	;RMDir "$INSTDIR\NoteSkins"
+	RMDir "$INSTDIR\NoteSkins"
 
 	RMDir /r "$INSTDIR\BackgroundEffects"
 
@@ -838,6 +858,10 @@ Section "Uninstall"
 	RMDir "$INSTDIR\RandomMovies"
 
 	Delete "$INSTDIR\Songs\Instructions.txt"
+	RMDir /r "$INSTDIR\Songs\Stepmania 5\Goin' Under"
+	RMDir /r "$INSTDIR\Songs\Stepmania 5\MechaTribe Assault"
+	RMDir /r "$INSTDIR\Songs\Stepmania 5\Springtime"
+	RMDir "$INSTDIR\Songs\Stepmania 5"
 	RMDir "$INSTDIR\Songs"	; will delete only if empty
 
 	Delete "$INSTDIR\Themes\instructions.txt"
@@ -845,9 +869,6 @@ Section "Uninstall"
 	RMDir /r "$INSTDIR\Themes\_portKit-sm4"
 	RMDir /r "$INSTDIR\Themes\default"
 	RMDir "$INSTDIR\Themes"
-
-	Delete "$INSTDIR\Data\*.*"
-	RMDir "$INSTDIR\Data"
 !endif
 
 !ifdef INSTALL_EXECUTABLES
@@ -865,6 +886,7 @@ Section "Uninstall"
 	Call un.RefreshShellIcons
 !endif
 !ifdef INSTALL_PROGRAM_LIBRARIES
+	; C++ Runtimes
 	Delete "$INSTDIR\Program\mfc71.dll"
 	Delete "$INSTDIR\Program\msvcr71.dll"
 	Delete "$INSTDIR\Program\msvcp71.dll"
@@ -873,11 +895,14 @@ Section "Uninstall"
 	Delete "$INSTDIR\Program\msvcr90.dll"
 	Delete "$INSTDIR\Program\msvcp90.dll"
 	; FFmpeg and related
+	Delete "$INSTDIR\Program\avcodec-55.dll"
 	Delete "$INSTDIR\Program\avcodec-53.dll"
 	Delete "$INSTDIR\Program\avcodec-52.dll"
 	Delete "$INSTDIR\Program\avdevice-52.dll"
+	Delete "$INSTDIR\Program\avformat-55.dll"
 	Delete "$INSTDIR\Program\avformat-53.dll"
 	Delete "$INSTDIR\Program\avformat-52.dll"
+	Delete "$INSTDIR\Program\avutil-52.dll"
 	Delete "$INSTDIR\Program\avutil-51.dll"
 	Delete "$INSTDIR\Program\avutil-50.dll"
 	Delete "$INSTDIR\Program\swscale-2.dll"
@@ -885,10 +910,10 @@ Section "Uninstall"
 	; others
 	Delete "$INSTDIR\Program\dbghelp.dll"
 	Delete "$INSTDIR\Program\jpeg.dll"
+	Delete "$INSTDIR\Program\parallel_lights_io.dll"
 	Delete "$INSTDIR\Program\zlib1.dll"
 	RMDir "$INSTDIR\Program"
 
-	Delete "$INSTDIR\Docs\Licenses.txt"
 	RMDir /r "$INSTDIR\Manual"
 !endif
 
@@ -897,8 +922,6 @@ Section "Uninstall"
 	Delete "$INSTDIR\crashinfo.txt"
 	Delete "$INSTDIR\${PRODUCT_ID}.lnk"
 	Delete "$INSTDIR\${PRODUCT_ID} (non-SSE2).lnk"
-
-	RMDir "$INSTDIR"	; will delete only if empty
 
 	SetShellVarContext current
 
@@ -937,6 +960,8 @@ Section "Uninstall"
 	RMDir '"$SMPROGRAMS\${PRODUCT_ID}"'
 
 	Delete "$INSTDIR\Uninstall.exe"
+	
+	RMDir "$INSTDIR"	; will delete only if empty
 
 	DeleteRegKey /ifempty HKEY_LOCAL_MACHINE "SOFTWARE\${PRODUCT_ID}"
 
