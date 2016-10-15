@@ -216,7 +216,7 @@ RageVector2 AnimatedTexture::GetTextureTranslate()
 
 #define THROW RageException::Throw( "Parse error in \"%s\" at line %d: \"%s\".", sPath.c_str(), iLineNum, sLine.c_str() )
 
-bool msAnimation::LoadMilkshapeAsciiBones( RString sAniName, RString sPath )
+bool msAnimation::LoadMilkshapeAsciiBones( const RString &sAniName, RString sPath )
 {
 	FixSlashesInPlace(sPath);
 	const RString sDir = Dirname( sPath );

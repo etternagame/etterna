@@ -10,7 +10,7 @@
 class RageTextureRenderTarget: public RageTexture
 {
 public:
-	RageTextureRenderTarget( RageTextureID name, const RenderTargetParam &param );
+	RageTextureRenderTarget( const RageTextureID &name, const RenderTargetParam &param );
 	virtual ~RageTextureRenderTarget();
 	virtual void Invalidate() { m_iTexHandle = 0; /* don't Destroy() */ }
 	virtual void Reload();

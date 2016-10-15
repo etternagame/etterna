@@ -67,7 +67,7 @@ void FadingBanner::DrawPrimitives()
 	}
 }
 
-void FadingBanner::Load( RageTextureID ID, bool bLowResToHighRes )
+void FadingBanner::Load( const RageTextureID &ID, bool bLowResToHighRes )
 {
 	BeforeChange( bLowResToHighRes );
 	m_Banner[m_iIndexLatest].Load(ID);
@@ -187,7 +187,7 @@ void FadingBanner::LoadMode()
 	m_Banner[m_iIndexLatest].LoadMode();
 }
 
-void FadingBanner::LoadFromSongGroup( RString sSongGroup )
+void FadingBanner::LoadFromSongGroup( const RString &sSongGroup )
 {
 	const RString sGroupBannerPath = SONGMAN->GetSongGroupBannerPath( sSongGroup );
 	LoadFromCachedBanner( sGroupBannerPath );
@@ -254,7 +254,7 @@ void FadingBanner::LoadCourseFallback()
 	m_Banner[m_iIndexLatest].LoadCourseFallback();
 }
 
-void FadingBanner::LoadCustom( RString sBanner )
+void FadingBanner::LoadCustom( const RString &sBanner )
 {
 	BeforeChange();
 	m_Banner[m_iIndexLatest].Load( THEME->GetPathG( "Banner", sBanner ) );

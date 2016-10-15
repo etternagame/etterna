@@ -18,7 +18,7 @@
 #include "RageSoundReader_Vorbisfile.h"
 #endif
 
-RageSoundReader_FileReader *RageSoundReader_FileReader::TryOpenFile( RageFileBasic *pFile, RString &error, RString format, bool &bKeepTrying )
+RageSoundReader_FileReader *RageSoundReader_FileReader::TryOpenFile( RageFileBasic *pFile, RString &error, const RString &format, bool &bKeepTrying )
 {
 	RageSoundReader_FileReader *Sample = NULL;
 
@@ -89,7 +89,7 @@ RageSoundReader_FileReader *RageSoundReader_FileReader::TryOpenFile( RageFileBas
 
 #include "RageFileDriverMemory.h"
 
-RageSoundReader_FileReader *RageSoundReader_FileReader::OpenFile( RString filename, RString &error, bool *pPrebuffer )
+RageSoundReader_FileReader *RageSoundReader_FileReader::OpenFile( const RString &filename, RString &error, bool *pPrebuffer )
 {
 	HiddenPtr<RageFileBasic> pFile;
 	{

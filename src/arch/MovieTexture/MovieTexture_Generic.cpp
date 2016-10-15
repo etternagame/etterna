@@ -17,7 +17,7 @@
 
 static Preference<bool> g_bMovieTextureDirectUpdates( "MovieTextureDirectUpdates", true );
 
-MovieTexture_Generic::MovieTexture_Generic( RageTextureID ID, MovieDecoder *pDecoder ):
+MovieTexture_Generic::MovieTexture_Generic( const RageTextureID &ID, MovieDecoder *pDecoder ):
 	RageMovieTexture( ID )
 {
 	LOG->Trace( "MovieTexture_Generic::MovieTexture_Generic(%s)", ID.filename.c_str() );

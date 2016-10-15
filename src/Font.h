@@ -96,7 +96,7 @@ struct FontPageSettings
 	 * @param iGlyphOffset the number of glyphs to offset.
 	 * @param iCount the range to map. If -1, the range is the entire map.
 	 * @return the empty string on success, or an error message on failure. */
-	RString MapRange( RString sMapping, int iMapOffset, int iGlyphOffset, int iCount );
+	RString MapRange( const RString &sMapping, int iMapOffset, int iGlyphOffset, int iCount );
 };
 
 class FontPage
@@ -160,7 +160,7 @@ public:
 	 * @param f the font whose pages we are stealing. */
 	void MergeFont(Font &f);
 
-	void Load(const RString &sFontOrTextureFilePath, RString sChars);
+	void Load(const RString &sFontOrTextureFilePath, const RString &sChars);
 	void Unload();
 	void Reload();
 
@@ -204,7 +204,7 @@ private:
 	/** @brief We keep this around only for reloading. */
 	RString m_sChars;
 
-	void LoadFontPageSettings( FontPageSettings &cfg, IniFile &ini, const RString &sTexturePath, const RString &PageName, RString sChars );
+	void LoadFontPageSettings( FontPageSettings &cfg, IniFile &ini, const RString &sTexturePath, const RString &PageName, const RString &sChars );
 	static void GetFontPaths( const RString &sFontOrTextureFilePath, vector<RString> &sTexturePaths );
 	RString GetPageNameFromFileName( const RString &sFilename );
 	

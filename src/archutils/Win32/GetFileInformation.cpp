@@ -11,7 +11,7 @@
 #pragma comment(lib, "version.lib")
 #endif
 
-bool GetFileVersion( RString sFile, RString &sOut )
+bool GetFileVersion( const RString &sFile, RString &sOut )
 {
 	do {
 		// Cast away const to work around header bug in VC6.
@@ -61,7 +61,7 @@ bool GetFileVersion( RString sFile, RString &sOut )
 	return true;
 }
 
-RString FindSystemFile( RString sFile )
+RString FindSystemFile( const RString &sFile )
 {
 	char szWindowsPath[MAX_PATH];
 	GetWindowsDirectory( szWindowsPath, MAX_PATH );

@@ -15,7 +15,7 @@ MeterDisplay::MeterDisplay()
 {
 }
 
-void MeterDisplay::Load( RString sStreamPath, float fStreamWidth, RString sTipPath )
+void MeterDisplay::Load( const RString &sStreamPath, float fStreamWidth, const RString &sTipPath )
 {
 	m_sprStream.Load( sStreamPath );
 	this->AddChild( m_sprStream );

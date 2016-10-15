@@ -199,7 +199,7 @@ Steps* SongUtil::GetStepsByMeter( const Song *pSong, StepsType st, int iMeterLow
 	return NULL;
 }
 
-Steps* SongUtil::GetStepsByDescription( const Song *pSong, StepsType st, RString sDescription )
+Steps* SongUtil::GetStepsByDescription( const Song *pSong, StepsType st, const RString &sDescription )
 {
 	vector<Steps*> vNotes;
 	GetSteps( pSong, vNotes, st, Difficulty_Invalid, -1, -1, sDescription, "" );
@@ -209,7 +209,7 @@ Steps* SongUtil::GetStepsByDescription( const Song *pSong, StepsType st, RString
 		return vNotes[0];
 }
 
-Steps* SongUtil::GetStepsByCredit( const Song *pSong, StepsType st, RString sCredit )
+Steps* SongUtil::GetStepsByCredit( const Song *pSong, StepsType st, const RString &sCredit )
 {
 	vector<Steps*> vNotes;
 	GetSteps(pSong, vNotes, st, Difficulty_Invalid, -1, -1, "", sCredit );

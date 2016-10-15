@@ -451,25 +451,25 @@ public:
 	void  SetFadeRight( float percent )		{ DestTweenState().fade.right = percent; }
 	void  SetFadeBottom( float percent )		{ DestTweenState().fade.bottom = percent; }
 
-	void SetGlobalDiffuseColor( RageColor c );
+	void SetGlobalDiffuseColor( const RageColor &c );
 
-	virtual void SetDiffuse( RageColor c )		{ for(int i=0; i<NUM_DIFFUSE_COLORS; i++) DestTweenState().diffuse[i] = c; };
+	virtual void SetDiffuse( const RageColor &c )		{ for(int i=0; i<NUM_DIFFUSE_COLORS; i++) DestTweenState().diffuse[i] = c; };
 	virtual void SetDiffuseAlpha( float f )		{ for(int i = 0; i < NUM_DIFFUSE_COLORS; ++i) { RageColor c = GetDiffuses( i ); c.a = f; SetDiffuses( i, c ); } }
 	float GetCurrentDiffuseAlpha() const		{ return m_current.diffuse[0].a; }
-	void SetDiffuseColor( RageColor c );
-	void SetDiffuses( int i, RageColor c )		{ DestTweenState().diffuse[i] = c; };
-	void SetDiffuseUpperLeft( RageColor c )		{ DestTweenState().diffuse[0] = c; };
-	void SetDiffuseUpperRight( RageColor c )	{ DestTweenState().diffuse[1] = c; };
-	void SetDiffuseLowerLeft( RageColor c )		{ DestTweenState().diffuse[2] = c; };
-	void SetDiffuseLowerRight( RageColor c )	{ DestTweenState().diffuse[3] = c; };
-	void SetDiffuseTopEdge( RageColor c )		{ DestTweenState().diffuse[0] = DestTweenState().diffuse[1] = c; };
-	void SetDiffuseRightEdge( RageColor c )		{ DestTweenState().diffuse[1] = DestTweenState().diffuse[3] = c; };
-	void SetDiffuseBottomEdge( RageColor c )	{ DestTweenState().diffuse[2] = DestTweenState().diffuse[3] = c; };
-	void SetDiffuseLeftEdge( RageColor c )		{ DestTweenState().diffuse[0] = DestTweenState().diffuse[2] = c; };
+	void SetDiffuseColor( const RageColor &c );
+	void SetDiffuses( int i, const RageColor &c )		{ DestTweenState().diffuse[i] = c; };
+	void SetDiffuseUpperLeft( const RageColor &c )		{ DestTweenState().diffuse[0] = c; };
+	void SetDiffuseUpperRight( const RageColor &c )	{ DestTweenState().diffuse[1] = c; };
+	void SetDiffuseLowerLeft( const RageColor &c )		{ DestTweenState().diffuse[2] = c; };
+	void SetDiffuseLowerRight( const RageColor &c )	{ DestTweenState().diffuse[3] = c; };
+	void SetDiffuseTopEdge( const RageColor &c )		{ DestTweenState().diffuse[0] = DestTweenState().diffuse[1] = c; };
+	void SetDiffuseRightEdge( const RageColor &c )		{ DestTweenState().diffuse[1] = DestTweenState().diffuse[3] = c; };
+	void SetDiffuseBottomEdge( const RageColor &c )	{ DestTweenState().diffuse[2] = DestTweenState().diffuse[3] = c; };
+	void SetDiffuseLeftEdge( const RageColor &c )		{ DestTweenState().diffuse[0] = DestTweenState().diffuse[2] = c; };
 	RageColor GetDiffuse() const			{ return DestTweenState().diffuse[0]; };
 	RageColor GetDiffuses( int i ) const		{ return DestTweenState().diffuse[i]; };
 	float GetDiffuseAlpha() const			{ return DestTweenState().diffuse[0].a; };
-	void SetGlow( RageColor c )			{ DestTweenState().glow = c; };
+	void SetGlow( const RageColor &c )			{ DestTweenState().glow = c; };
 	RageColor GetGlow() const			{ return DestTweenState().glow; };
 
 	void SetAux( float f )				{ DestTweenState().aux = f; }
@@ -527,8 +527,8 @@ public:
 	float GetEffectDelta() const			{ return m_fEffectDelta; }
 
 	// todo: account for SSC_FUTURES by adding an effect as an arg to each one -aj
-	void SetEffectColor1( RageColor c )		{ m_effectColor1 = c; }
-	void SetEffectColor2( RageColor c )		{ m_effectColor2 = c; }
+	void SetEffectColor1( const RageColor &c )		{ m_effectColor1 = c; }
+	void SetEffectColor2( const RageColor &c )		{ m_effectColor2 = c; }
 	void RecalcEffectPeriod();
 	void SetEffectPeriod( float fTime );
 	float GetEffectPeriod() const { return m_effect_period; }
@@ -539,23 +539,23 @@ public:
 	void SetEffectClock( EffectClock c )		{ m_EffectClock = c; }
 	void SetEffectClockString( const RString &s );	// convenience
 
-	void SetEffectMagnitude( RageVector3 vec )	{ m_vEffectMagnitude = vec; }
+	void SetEffectMagnitude( const RageVector3 &vec )	{ m_vEffectMagnitude = vec; }
 	RageVector3 GetEffectMagnitude() const		{ return m_vEffectMagnitude; }
 
 	void ResetEffectTimeIfDifferent(Effect new_effect);
-	void SetEffectDiffuseBlink( float fEffectPeriodSeconds, RageColor c1, RageColor c2 );
-	void SetEffectDiffuseShift( float fEffectPeriodSeconds, RageColor c1, RageColor c2 );
-	void SetEffectDiffuseRamp( float fEffectPeriodSeconds, RageColor c1, RageColor c2 );
-	void SetEffectGlowBlink( float fEffectPeriodSeconds, RageColor c1, RageColor c2 );
-	void SetEffectGlowShift( float fEffectPeriodSeconds, RageColor c1, RageColor c2 );
-	void SetEffectGlowRamp( float fEffectPeriodSeconds, RageColor c1, RageColor c2 );
+	void SetEffectDiffuseBlink( float fEffectPeriodSeconds, const RageColor &c1, const RageColor &c2 );
+	void SetEffectDiffuseShift( float fEffectPeriodSeconds, const RageColor &c1, const RageColor &c2 );
+	void SetEffectDiffuseRamp( float fEffectPeriodSeconds, const RageColor &c1, const RageColor &c2 );
+	void SetEffectGlowBlink( float fEffectPeriodSeconds, const RageColor &c1, const RageColor &c2 );
+	void SetEffectGlowShift( float fEffectPeriodSeconds, const RageColor &c1, const RageColor &c2 );
+	void SetEffectGlowRamp( float fEffectPeriodSeconds, const RageColor &c1, const RageColor &c2 );
 	void SetEffectRainbow( float fEffectPeriodSeconds );
-	void SetEffectWag( float fPeriod, RageVector3 vect );
-	void SetEffectBounce( float fPeriod, RageVector3 vect );
-	void SetEffectBob( float fPeriod, RageVector3 vect );
+	void SetEffectWag( float fPeriod, const RageVector3 &vect );
+	void SetEffectBounce( float fPeriod, const RageVector3 &vect );
+	void SetEffectBob( float fPeriod, const RageVector3 &vect );
 	void SetEffectPulse( float fPeriod, float fMinZoom, float fMaxZoom );
-	void SetEffectSpin( RageVector3 vect );
-	void SetEffectVibrate( RageVector3 vect );
+	void SetEffectSpin( const RageVector3 &vect );
+	void SetEffectVibrate( const RageVector3 &vect );
 
 
 	// other properties
@@ -567,7 +567,7 @@ public:
 	void SetShadowLength( float fLength )		{ m_fShadowLengthX = fLength; m_fShadowLengthY = fLength; }
 	void SetShadowLengthX( float fLengthX )		{ m_fShadowLengthX = fLengthX; }
 	void SetShadowLengthY( float fLengthY )		{ m_fShadowLengthY = fLengthY; }
-	void SetShadowColor( RageColor c )		{ m_ShadowColor = c; }
+	void SetShadowColor( const RageColor &c )		{ m_ShadowColor = c; }
 	// TODO: Implement hibernate as a tween type?
 	void SetHibernate( float fSecs )		{ m_fHibernateSecondsLeft = fSecs; }
 	void SetDrawOrder( int iOrder )			{ m_iDrawOrder = iOrder; }

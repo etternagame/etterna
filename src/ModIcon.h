@@ -12,7 +12,7 @@ class ModIcon : public ActorFrame
 public:
 	ModIcon();
 	ModIcon( const ModIcon &cpy );
-	void Load( RString sMetricsGroup );
+	void Load( const RString &sMetricsGroup );
 	void Set( const RString &sText );
 
 protected:

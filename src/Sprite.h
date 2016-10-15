@@ -43,7 +43,7 @@ public:
 	// Adjust texture properties for song banners.
 	static RageTextureID SongBannerTexture( RageTextureID ID );
 
-	virtual void Load( RageTextureID ID );
+	virtual void Load( const RageTextureID &ID );
 	void SetTexture( RageTexture *pTexture );
 
 	void UnloadTexture();
@@ -97,7 +97,7 @@ public:
 	bool m_use_effect_clock_for_texcoords;
 
 protected:
-	void LoadFromTexture( RageTextureID ID );
+	void LoadFromTexture( const RageTextureID &ID );
 
 private:
 	void LoadStatesFromTexture();

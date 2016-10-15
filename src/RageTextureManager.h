@@ -52,21 +52,21 @@ public:
 	~RageTextureManager();
 	void Update( float fDeltaTime );
 
-	RageTexture* LoadTexture( RageTextureID ID );
+	RageTexture* LoadTexture( const RageTextureID &ID );
 	RageTexture* CopyTexture( RageTexture *pCopy ); // returns a ref to the same texture, not a deep copy
 	bool IsTextureRegistered( RageTextureID ID ) const;
 	void RegisterTexture( RageTextureID ID, RageTexture *p );
-	void VolatileTexture( RageTextureID ID );
+	void VolatileTexture( const RageTextureID &ID );
 	void UnloadTexture( RageTexture *t );
 	void ReloadAll();
 
-	void RegisterTextureForUpdating(RageTextureID id, RageTexture* tex);
+	void RegisterTextureForUpdating(const RageTextureID &id, RageTexture* tex);
 
 	bool SetPrefs( RageTextureManagerPrefs prefs );
 	RageTextureManagerPrefs GetPrefs() { return m_Prefs; };
 
 	RageTextureID::TexPolicy GetDefaultTexturePolicy() const { return m_TexturePolicy; }
-	void SetDefaultTexturePolicy( RageTextureID::TexPolicy p ) { m_TexturePolicy = p; }
+	void SetDefaultTexturePolicy( const RageTextureID::TexPolicy &p ) { m_TexturePolicy = p; }
 
 	// call this between Screens
 	void DeleteCachedTextures()	{ GarbageCollect( screen_changed ); }

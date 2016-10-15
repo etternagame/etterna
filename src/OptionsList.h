@@ -44,7 +44,7 @@ public:
 	OptionsList();
 	~OptionsList();
 
-	void Load( RString sType, PlayerNumber pn );
+	void Load( const RString &sType, PlayerNumber pn );
 	void Reset();
 
 	void Link( OptionsList *pLink ) { m_pLinked = pLink; }
@@ -71,15 +71,15 @@ private:
 	void UpdateMenuFromSelections();
 	RString GetCurrentRow() const;
 	const OptionRowHandler *GetCurrentHandler();
-	int GetOneSelection( RString sRow, bool bAllowFail=false ) const;
+	int GetOneSelection( const RString &sRow, bool bAllowFail=false ) const;
 	void SwitchToCurrentRow();
 	void TweenOnCurrentRow( bool bForward );
 	void SetDefaultCurrentRow();
-	void Push( RString sDest );
+	void Push( const RString &sDest );
 	void Pop();
-	void ImportRow( RString sRow );
-	void ExportRow( RString sRow );
-	static int FindScreenInHandler( const OptionRowHandler *pHandler, RString sScreen );
+	void ImportRow( const RString &sRow );
+	void ExportRow( const RString &sRow );
+	static int FindScreenInHandler( const OptionRowHandler *pHandler, const RString &sScreen );
 
 	InputQueueCodeSet	m_Codes;
 

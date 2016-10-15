@@ -825,7 +825,7 @@ bool OptionRow::GoToFirstOnStart()
 	return m_pHand->GoToFirstOnStart();
 }
 
-void OptionRow::SetExitText( RString sExitText )
+void OptionRow::SetExitText( const RString &sExitText )
 {
 	BitmapText *bt = m_textItems.back();
 	bt->SetText( sExitText );

@@ -5,7 +5,7 @@
 #include "RageTextureID.h"
 #include "ActorUtil.h"
 
-RString GetRandomFileInDir( RString sDir );
+RString GetRandomFileInDir( const RString &sDir );
 
 Character::Character(): m_sCharDir(""), m_sCharacterID(""),
 	m_sDisplayName(""), m_sCardPath(""), m_sIconPath(""),
@@ -72,7 +72,7 @@ bool Character::Load( RString sCharDir )
 	return true;
 }
 
-RString GetRandomFileInDir( RString sDir )
+RString GetRandomFileInDir( const RString &sDir )
 {
 	vector<RString> asFiles;
 	GetDirListing( sDir, asFiles, false, true );

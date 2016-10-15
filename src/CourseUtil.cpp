@@ -321,7 +321,7 @@ void CourseUtil::AutogenOniFromArtist( const RString &sArtistName, RString sArti
 	}
 }
 
-void CourseUtil::WarnOnInvalidMods( RString sMods )
+void CourseUtil::WarnOnInvalidMods( const RString &sMods )
 {
 	PlayerOptions po;
 	SongOptions so;

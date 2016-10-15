@@ -40,7 +40,7 @@ void RageMatrixRotationXYZ( RageMatrix* pOut, float rX, float rY, float rZ );
 void RageAARotate(RageVector3* inret, RageVector3 const* axis, float angle);
 void RageQuatFromHPR(RageVector4* pOut, RageVector3 hpr );
 void RageQuatFromPRH(RageVector4* pOut, RageVector3 prh );
-void RageMatrixFromQuat( RageMatrix* pOut, const RageVector4 q );
+void RageMatrixFromQuat( RageMatrix* pOut, const RageVector4 &q );
 void RageQuatSlerp(RageVector4 *pOut, const RageVector4 &from, const RageVector4 &to, float t);
 RageVector4 RageQuatFromH(float theta);
 RageVector4 RageQuatFromP(float theta);

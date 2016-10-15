@@ -683,7 +683,7 @@ float UnlockManager::PointsUntilNextUnlock( UnlockRequirement t ) const
 	return fSmallestPoints - fScores[t];
 }
 
-void UnlockManager::UnlockEntryID( RString sEntryID )
+void UnlockManager::UnlockEntryID( const RString &sEntryID )
 {
 	PROFILEMAN->GetMachineProfile()->m_UnlockedEntryIDs.insert( sEntryID );
 	SONGMAN->InvalidateCachedTrails();
@@ -707,7 +707,7 @@ void UnlockManager::LockEntryIndex( int entryIndex )
 	LockEntryID( entryID );
 }
 
-void UnlockManager::PreferUnlockEntryID( RString sUnlockEntryID )
+void UnlockManager::PreferUnlockEntryID( const RString &sUnlockEntryID )
 {
 	for( unsigned i = 0; i < m_UnlockEntries.size(); ++i )
 	{
@@ -770,7 +770,7 @@ void UnlockManager::GetSongsUnlockedByEntryID( vector<Song *> &apSongsOut, RStri
 			apSongsOut.push_back( apEntries[i]->m_Song.ToSong() );
 }
 
-void UnlockManager::GetStepsUnlockedByEntryID( vector<Song *> &apSongsOut, vector<Difficulty> &apDifficultyOut, RString sUnlockEntryID )
+void UnlockManager::GetStepsUnlockedByEntryID( vector<Song *> &apSongsOut, vector<Difficulty> &apDifficultyOut, const RString &sUnlockEntryID )
 {
 	vector<UnlockEntry *> apEntries;
 	GetUnlocksByType( UnlockRewardType_Steps, apEntries );

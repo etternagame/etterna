@@ -244,7 +244,7 @@ public:
 	}
 
 	RString ToString() const;
-	static RString NormalizeColorString( RString sColor );
+	static RString NormalizeColorString( const RString &sColor );
 
 	void PushTable( lua_State *L ) const;
 	void FromStack( lua_State *L, int iPos );

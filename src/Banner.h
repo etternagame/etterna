@@ -20,7 +20,7 @@ public:
 	virtual Banner *Copy() const;
 
 	void Load( RageTextureID ID, bool bIsBanner );
-	virtual void Load( RageTextureID ID ) { Load( ID, true ); }
+	virtual void Load( const RageTextureID &ID ) { Load( ID, true ); }
 	void LoadFromCachedBanner( const RString &sPath );
 
 	virtual void Update( float fDeltaTime );
@@ -31,7 +31,7 @@ public:
 	 */
 	void LoadFromSong( Song* pSong );
 	void LoadMode();
-	void LoadFromSongGroup( RString sSongGroup );
+	void LoadFromSongGroup( const RString &sSongGroup );
 	void LoadFromCourse( const Course *pCourse );
 	void LoadCardFromCharacter( const Character *pCharacter );
 	void LoadIconFromCharacter( const Character *pCharacter );

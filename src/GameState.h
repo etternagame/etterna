@@ -320,8 +320,8 @@ public:
 	void GetDefaultPlayerOptions( PlayerOptions &po );
 	void GetDefaultSongOptions( SongOptions &so );
 	void ResetToDefaultSongOptions( ModsLevel l );
-	void ApplyPreferredModifiers( PlayerNumber pn, RString sModifiers );
-	void ApplyStageModifiers( PlayerNumber pn, RString sModifiers );
+	void ApplyPreferredModifiers( PlayerNumber pn, const RString &sModifiers );
+	void ApplyStageModifiers( PlayerNumber pn, const RString &sModifiers );
 	void ClearStageModifiersIllegalForCourse();
 	void ResetOptions();
 

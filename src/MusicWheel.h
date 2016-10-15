@@ -20,7 +20,7 @@ class MusicWheel : public WheelBase
 
 public:
 	virtual ~MusicWheel();
-	virtual void Load( RString sType );
+	virtual void Load( const RString &sType );
 	void BeginScreen();
 
 	bool ChangeSort( SortOrder new_so, bool allowSameSort = false );	// return true if change successful
@@ -40,7 +40,7 @@ public:
 	bool SelectSong( const Song *p );
 	bool SelectCourse( const Course *p );
 	bool SelectSection( const RString & SectionName );
-	void SetOpenSection( RString group );
+	void SetOpenSection( const RString &group );
 	SortOrder GetSortOrder() const { return m_SortOrder; }
 	virtual void ChangeMusic( int dist ); /* +1 or -1 */ //CHECK THIS
 	void FinishChangingSorts();

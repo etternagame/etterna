@@ -269,11 +269,11 @@ class ThemeMetricMap : public IThemeMetric
 	map<RString,ThemeMetricT> m_metric;
 
 public:
-	ThemeMetricMap( const RString& sGroup = "", MetricNameMap pfn = NULL, const vector<RString> vsValueNames = vector<RString>() )
+	ThemeMetricMap( const RString& sGroup = "", MetricNameMap pfn = NULL, const vector<RString> &vsValueNames = vector<RString>() )
 	{
 		Load( sGroup, pfn, vsValueNames );
 	}
-	void Load( const RString& sGroup, MetricNameMap pfn, const vector<RString> vsValueNames )
+	void Load( const RString& sGroup, MetricNameMap pfn, const vector<RString> &vsValueNames )
 	{
 		m_metric.clear();
 		FOREACH_CONST( RString, vsValueNames, s )
@@ -291,7 +291,7 @@ public:
 		for( typename map<RString,ThemeMetric<T> >::iterator m = m_metric.begin(); m != m_metric.end(); ++m )
 			m->second.Clear();
 	}
-	const T& GetValue( RString s ) const
+	const T& GetValue( const RString &s ) const
 	{
 		// HACK: GCC (3.4) takes this and pretty much nothing else.
 		// I don't know why.

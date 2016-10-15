@@ -88,8 +88,8 @@ public:
 		bool bSmoothLines_,
 		bool bTrilinearFiltering_,
 		bool bAnisotropicFiltering_,
-		RString sWindowTitle_,
-		RString sIconFile_,
+		const RString &sWindowTitle_,
+		const RString &sIconFile_,
 		bool PAL_,
 		float fDisplayAspectRatio_
 	):
@@ -311,7 +311,7 @@ public:
 		SAVE_LOSSY_LOW_QUAL,	// jpg
 		SAVE_LOSSY_HIGH_QUAL	// jpg
 	};
-	bool SaveScreenshot( RString sPath, GraphicsFileFormat format );
+	bool SaveScreenshot( const RString &sPath, GraphicsFileFormat format );
 
 	virtual RString GetTextureDiagnostics( unsigned /* id */ ) const { return RString(); }
 	virtual RageSurface* CreateScreenshot() = 0;	// allocates a surface.  Caller must delete it.

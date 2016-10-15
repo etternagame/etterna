@@ -604,7 +604,7 @@ void Steps::CreateBlank( StepsType ntTo )
 	this->SetNoteData( noteData );
 }
 
-void Steps::SetDifficultyAndDescription( Difficulty dc, RString sDescription )
+void Steps::SetDifficultyAndDescription( Difficulty dc, const RString &sDescription )
 {
 	DeAutogen();
 	m_Difficulty = dc;
@@ -613,13 +613,13 @@ void Steps::SetDifficultyAndDescription( Difficulty dc, RString sDescription )
 		MakeValidEditDescription( m_sDescription );
 }
 
-void Steps::SetCredit( RString sCredit )
+void Steps::SetCredit( const RString &sCredit )
 {
 	DeAutogen();
 	m_sCredit = sCredit;
 }
 
-void Steps::SetChartStyle( RString sChartStyle )
+void Steps::SetChartStyle( const RString &sChartStyle )
 {
 	DeAutogen();
 	m_sChartStyle = sChartStyle;

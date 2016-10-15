@@ -25,7 +25,7 @@ RString werr_ssprintf( int err, const char *fmt, ... )
 	return s += ssprintf( " (%s)", text.c_str() );
 }
 
-RString ConvertWstringToCodepage( wstring s, int iCodePage )
+RString ConvertWstringToCodepage( const wstring &s, int iCodePage )
 {
 	if( s.empty() )
 		return RString();
@@ -48,7 +48,7 @@ RString ConvertUTF8ToACP( const RString &s )
 	return ConvertWstringToCodepage( RStringToWstring(s), CP_ACP );
 }
 
-wstring ConvertCodepageToWString( RString s, int iCodePage )
+wstring ConvertCodepageToWString( const RString &s, int iCodePage )
 {
 	if( s.empty() )
 		return wstring();

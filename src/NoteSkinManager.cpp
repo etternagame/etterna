@@ -208,7 +208,7 @@ void NoteSkinManager::GetNoteSkinNames( const Game* pGame, vector<RString> &AddT
 	GetAllNoteSkinNamesForGame( pGame, AddTo );
 }
 
-bool NoteSkinManager::NoteSkinNameInList(const RString name, vector<RString> name_list)
+bool NoteSkinManager::NoteSkinNameInList(const RString &name, const vector<RString> &name_list)
 {
 	for(size_t i= 0; i < name_list.size(); ++i)
 	{

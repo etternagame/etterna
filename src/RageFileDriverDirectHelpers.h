@@ -17,21 +17,21 @@
 RString DoPathReplace( const RString &sPath );
 
 #if defined(WIN32)
-bool WinMoveFile( RString sOldPath, RString sNewPath );
+bool WinMoveFile( const RString &sOldPath, const RString &sNewPath );
 #endif
 
 #if !defined(O_BINARY)
 #define O_BINARY 0
 #endif
 
-bool CreateDirectories( RString sPath );
+bool CreateDirectories( const RString &sPath );
 
 #include "RageUtil_FileDB.h"
 class DirectFilenameDB: public FilenameDB
 {
 public:
-	DirectFilenameDB( RString root );
-	void SetRoot( RString root );
+	DirectFilenameDB( const RString &root );
+	void SetRoot( const RString &root );
 	void CacheFile( const RString &sPath );
 protected:
 	virtual void PopulateFileSet( FileSet &fs, const RString &sPath );

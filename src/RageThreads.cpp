@@ -689,7 +689,7 @@ void LockMutex::Unlock()
 	}
 }
 
-RageEvent::RageEvent( RString name ):
+RageEvent::RageEvent( const RString &name ):
 	RageMutex( name ), m_pEvent(MakeEvent(m_pMutex)) {}
 
 RageEvent::~RageEvent()
@@ -731,7 +731,7 @@ bool RageEvent::WaitTimeoutSupported() const
 	return m_pEvent->WaitTimeoutSupported();
 }
 
-RageSemaphore::RageSemaphore( RString sName, int iInitialValue ):
+RageSemaphore::RageSemaphore( const RString &sName, int iInitialValue ):
 	m_pSema(MakeSemaphore( iInitialValue )), m_sName(sName) {}
 
 RageSemaphore::~RageSemaphore()

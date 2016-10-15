@@ -61,7 +61,7 @@ inline bool IsMouse( InputDevice id ) { return id == DEVICE_MOUSE; }
 
 struct InputDeviceInfo
 {
-	InputDeviceInfo( InputDevice id_, RString sDesc_ ):
+	InputDeviceInfo( InputDevice id_, const RString &sDesc_ ):
 		id(id_), sDesc(sDesc_) {}
 	
 	InputDevice id;

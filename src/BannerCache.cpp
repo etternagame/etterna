@@ -53,7 +53,7 @@ BannerCache *BANNERCACHE; // global and accessible from anywhere in our program
 static map<RString,RageSurface *> g_BannerPathToImage;
 static int g_iDemandRefcount = 0;
 
-RString BannerCache::GetBannerCachePath( RString sBannerPath )
+RString BannerCache::GetBannerCachePath( const RString &sBannerPath )
 {
 	return SongCacheIndex::GetCacheFilePath( "Banners", sBannerPath );
 }
@@ -105,7 +105,7 @@ void BannerCache::Undemand()
  * the cache file if necessary.  Unlike CacheBanner(), the original file will
  * not be examined unless the cached banner doesn't exist, so the banner will
  * not be updated if the original file changes, for efficiency. */
-void BannerCache::LoadBanner( RString sBannerPath )
+void BannerCache::LoadBanner( const RString &sBannerPath )
 {
 	if( sBannerPath == "" )
 		return; // nothing to do
@@ -265,7 +265,7 @@ struct BannerTexture: public RageTexture
 };
 
 /* If a banner is cached, get its ID for use. */
-RageTextureID BannerCache::LoadCachedBanner( RString sBannerPath )
+RageTextureID BannerCache::LoadCachedBanner( const RString &sBannerPath )
 {
 	RageTextureID ID( GetBannerCachePath(sBannerPath) );
 
@@ -328,7 +328,7 @@ static inline int closest( int num, int n1, int n2 )
 
 /* Create or update the banner cache file as necessary.  If in preload mode,
  * load the cache file, too.  (This is done at startup.) */
-void BannerCache::CacheBanner( RString sBannerPath )
+void BannerCache::CacheBanner( const RString &sBannerPath )
 {
 	if( PREFSMAN->m_BannerCache != BNCACHE_LOW_RES_PRELOAD &&
 	    PREFSMAN->m_BannerCache != BNCACHE_LOW_RES_LOAD_ON_DEMAND )
@@ -367,7 +367,7 @@ void BannerCache::CacheBanner( RString sBannerPath )
 	CacheBannerInternal( sBannerPath );
 }
 
-void BannerCache::CacheBannerInternal( RString sBannerPath )
+void BannerCache::CacheBannerInternal( const RString &sBannerPath )
 {
 	RString sError;
 	RageSurface *pImage = RageSurfaceUtils::LoadFile( sBannerPath, sError );

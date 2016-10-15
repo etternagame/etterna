@@ -98,11 +98,11 @@ public:
 	 * they can be ignored most of the time, so we continue to work if a file
 	 * is broken or missing.
 	 */
-	bool Load( RString sFile, bool bPrecache, const RageSoundLoadParams *pParams = NULL );
+	bool Load( const RString &sFile, bool bPrecache, const RageSoundLoadParams *pParams = NULL );
 
 	/* Using this version means the "don't care" about caching. Currently, 
 	 * this always will not cache the sound; this may become a preference. */
-	bool Load( RString sFile );
+	bool Load( const RString &sFile );
 
 	/* Load a RageSoundReader that you've set up yourself. Sample rate conversion
 	 * will be set up only if needed. Doesn't fail. */

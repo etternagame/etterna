@@ -125,8 +125,8 @@ namespace SongUtil
 		);
 	Steps* GetStepsByDifficulty(	const Song *pSong, StepsType st, Difficulty dc, bool bIncludeAutoGen = true );
 	Steps* GetStepsByMeter(		const Song *pSong, StepsType st, int iMeterLow, int iMeterHigh );
-	Steps* GetStepsByDescription(	const Song *pSong, StepsType st, RString sDescription );
-	Steps* GetStepsByCredit(	const Song *pSong, StepsType st, RString sCredit );
+	Steps* GetStepsByDescription(	const Song *pSong, StepsType st, const RString &sDescription );
+	Steps* GetStepsByCredit(	const Song *pSong, StepsType st, const RString &sCredit );
 	Steps* GetClosestNotes(		const Song *pSong, StepsType st, Difficulty dc, bool bIgnoreLocked=false );
 	
 	void AdjustDuplicateSteps( Song *pSong ); // part of TidyUpData

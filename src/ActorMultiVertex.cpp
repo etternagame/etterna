@@ -135,7 +135,7 @@ void ActorMultiVertex::SetTexture( RageTexture *Texture )
 	}
 }
 
-void ActorMultiVertex::LoadFromTexture( RageTextureID ID )
+void ActorMultiVertex::LoadFromTexture( const RageTextureID &ID )
 {
 	RageTexture *Texture = NULL;
 	if( _Texture && _Texture->GetID() == ID )
@@ -204,7 +204,7 @@ void ActorMultiVertex::SetVertexPos( int index, float x, float y, float z )
 	AMV_DestTweenState().vertices[index].p = RageVector3( x, y, z );
 }
 
-void ActorMultiVertex::SetVertexColor( int index, RageColor c )
+void ActorMultiVertex::SetVertexColor( int index, const RageColor &c )
 {
 	AMV_DestTweenState().vertices[index].c = c;
 }

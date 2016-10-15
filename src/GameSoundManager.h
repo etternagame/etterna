@@ -43,7 +43,7 @@ public:
 	};
 	void PlayMusic( PlayMusicParams params, PlayMusicParams FallbackMusicParams = PlayMusicParams() );
 	void PlayMusic( 
-		RString sFile, 
+		const RString &sFile, 
 		const TimingData *pTiming = NULL, 
 		bool force_loop = false, 
 		float start_sec = 0, 
@@ -57,9 +57,9 @@ public:
 	RString GetMusicPath() const;
 	void Flush();
 
-	void PlayOnce( RString sPath );
-	void PlayOnceFromDir( RString sDir );
-	void PlayOnceFromAnnouncer( RString sFolderName );
+	void PlayOnce( const RString &sPath );
+	void PlayOnceFromDir( const RString &sDir );
+	void PlayOnceFromAnnouncer( const RString &sFolderName );
 
 	void HandleSongTimer( bool on=true );
 	float GetFrameTimingAdjustment( float fDeltaTime );

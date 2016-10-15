@@ -35,7 +35,7 @@ public:
 	 * @param bUnescape a flag to see if we need to unescape values.
 	 * @return its success or failure.
 	 */
-	bool ReadFile( RString sFilePath, bool bUnescape );
+	bool ReadFile( const RString &sFilePath, bool bUnescape );
 	/**
 	 * @brief Attempt to read an MSD file.
 	 * @param sString the path to the file.

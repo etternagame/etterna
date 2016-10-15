@@ -48,7 +48,7 @@ void RoomInfoDisplay::RetractInfoBox()
 	m_state = LOCKED;
 }
 
-void RoomInfoDisplay::Load( RString sType )
+void RoomInfoDisplay::Load( const RString &sType )
 {
 	DEPLOY_DELAY.Load( sType, "DeployDelay" );
 	RETRACT_DELAY.Load( sType, "RetractDelay" );

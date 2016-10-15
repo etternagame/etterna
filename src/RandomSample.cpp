@@ -16,7 +16,7 @@ RandomSample::~RandomSample()
 	UnloadAll();
 }
 
-bool RandomSample::Load( RString sFilePath, int iMaxToLoad )
+bool RandomSample::Load( const RString &sFilePath, int iMaxToLoad )
 {
 	if( GetExtension(sFilePath) == "" )
 		return LoadSoundDir( sFilePath, iMaxToLoad );
@@ -65,7 +65,7 @@ bool RandomSample::LoadSoundDir( RString sDir, int iMaxToLoad )
 	return true;
 }
 	
-bool RandomSample::LoadSound( RString sSoundFilePath )
+bool RandomSample::LoadSound( const RString &sSoundFilePath )
 {
 	LOG->Trace( "RandomSample::LoadSound( %s )", sSoundFilePath.c_str() );
 

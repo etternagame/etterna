@@ -13,7 +13,7 @@ class Transition : public ActorFrame
 public:
 	Transition();
 
-	void Load( RString sBGAniDir );
+	void Load( const RString &sBGAniDir );
 
 	virtual void UpdateInternal( float fDeltaTime );
 

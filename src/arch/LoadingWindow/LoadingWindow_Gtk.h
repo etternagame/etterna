@@ -11,7 +11,7 @@ public:
 	LoadingWindow_Gtk();
 	RString Init();
 	~LoadingWindow_Gtk();
-	void SetText( RString str );
+	void SetText( const RString &str );
 	void SetIcon( const RageSurface *pIcon );
 	void SetSplash( const RageSurface *pSplash );
 	void SetProgress( const int progress );

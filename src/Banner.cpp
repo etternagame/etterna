@@ -122,7 +122,7 @@ void Banner::LoadMode()
 	m_bScrolling = (bool)SCROLL_MODE;
 }
 
-void Banner::LoadFromSongGroup( RString sSongGroup )
+void Banner::LoadFromSongGroup( const RString &sSongGroup )
 {
 	RString sGroupBannerPath = SONGMAN->GetSongGroupBannerPath( sSongGroup );
 	if( sGroupBannerPath != "" )			Load( sGroupBannerPath );

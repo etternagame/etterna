@@ -49,7 +49,7 @@ public:
 	virtual void SetSecondsIntoAnimation( float fSeconds );
 
 	RString		GetDefaultAnimation() const { return m_sDefaultAnimation; };
-	void		SetDefaultAnimation( RString sAnimation, float fPlayRate = 1 );
+	void		SetDefaultAnimation( const RString &sAnimation, float fPlayRate = 1 );
 
 	bool	MaterialsNeedNormals() const;
 

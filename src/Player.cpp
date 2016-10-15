@@ -491,7 +491,6 @@ void Player::Init(
 	m_soundAttackLaunch.SetProperty( "Pan", fBalance );
 	m_soundAttackEnding.SetProperty( "Pan", fBalance );
 
-
 	if( HasVisibleParts() )
 	{
 		LuaThreadVariable var( "Player", LuaReference::Create(m_pPlayerState->m_PlayerNumber) );
@@ -669,7 +668,7 @@ void Player::Load()
 	// Mina garbage - Mina
 	m_Timing = GAMESTATE->m_pCurSteps[pn]->GetTimingData();
 	m_Timing->NegStopAndBPMCheck();
-	m_Timing->SetElapsedTimesAtAllRows(GAMESTATE->m_pCurSteps[pn]->GetElapsedTimesAtAllRows());
+	m_Timing->SetElapsedTimesAtAllRows(GAMESTATE->m_pCurSteps[pn]->ElapsedTimesAtAllRows);
 
 	/* Apply transforms. */
 	NoteDataUtil::TransformNoteData(m_NoteData, *m_Timing, m_pPlayerState->m_PlayerOptions.GetStage(), GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)->m_StepsType);
@@ -1454,10 +1453,10 @@ void Player::UpdateHoldNotes( int iSongRow, float fDeltaTime, vector<TrackRowTap
 		// This can still crash. I think it expects a full game and quit before the preference works:
 		// otherwise, it causes problems on holds. At least, that hapened on my Mac. -wolfman2000
 
-		Preference<float> *pVolume = Preference<float>::GetPreferenceByName("SoundVolume");
+		static Preference<float> *pVolume = Preference<float>::GetPreferenceByName("SoundVolume");
 		if (pVolume != NULL)
 		{
-			float fVol = pVolume->Get();
+			static float fVol = pVolume->Get();
 
 			if( tn.iKeysoundIndex >= 0 && tn.iKeysoundIndex < (int) m_vKeysounds.size() )
 			{
@@ -1959,8 +1958,8 @@ void Player::PlayKeysound( const TapNote &tn, TapNoteScore score )
 			}
 		}
 		m_vKeysounds[tn.iKeysoundIndex].Play(false);
-		Preference<float> *pVolume = Preference<float>::GetPreferenceByName("SoundVolume");
-		float fVol = pVolume->Get();
+		static Preference<float> *pVolume = Preference<float>::GetPreferenceByName("SoundVolume");
+		static float fVol = pVolume->Get();
 		m_vKeysounds[tn.iKeysoundIndex].SetProperty ("Volume", fVol);
 	}
 }

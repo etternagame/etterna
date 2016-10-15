@@ -42,7 +42,7 @@ void AnnouncerManager::GetAnnouncerNames( vector<RString>& AddTo )
 			AddTo.erase(AddTo.begin()+i, AddTo.begin()+i+1 );
 }
 
-bool AnnouncerManager::DoesAnnouncerExist( RString sAnnouncerName )
+bool AnnouncerManager::DoesAnnouncerExist( const RString &sAnnouncerName )
 {
 	if( sAnnouncerName == "" )
 		return true;
@@ -55,12 +55,12 @@ bool AnnouncerManager::DoesAnnouncerExist( RString sAnnouncerName )
 	return false;
 }
 
-RString AnnouncerManager::GetAnnouncerDirFromName( RString sAnnouncerName )
+RString AnnouncerManager::GetAnnouncerDirFromName( const RString &sAnnouncerName )
 {
 	return ANNOUNCERS_DIR + sAnnouncerName + "/";
 }
 
-void AnnouncerManager::SwitchAnnouncer( RString sNewAnnouncerName )
+void AnnouncerManager::SwitchAnnouncer( const RString &sNewAnnouncerName )
 {
 	if( !DoesAnnouncerExist(sNewAnnouncerName) )
 		m_sCurAnnouncerName = "";
@@ -108,7 +108,7 @@ static const char *aliases[][2] = {
  * then all aliases above.  Ignore directories that are empty, since we might
  * have "select difficulty intro" with sounds and an empty "ScreenSelectDifficulty
  * intro". */
-RString AnnouncerManager::GetPathTo( RString sAnnouncerName, RString sFolderName )
+RString AnnouncerManager::GetPathTo( const RString &sAnnouncerName, const RString &sFolderName )
 {
 	if(sAnnouncerName == "")
 		return RString(); /* announcer disabled */
@@ -142,12 +142,12 @@ RString AnnouncerManager::GetPathTo( RString sAnnouncerName, RString sFolderName
 	return RString();
 }
 
-RString AnnouncerManager::GetPathTo( RString sFolderName )
+RString AnnouncerManager::GetPathTo( const RString &sFolderName )
 {
 	return GetPathTo(m_sCurAnnouncerName, sFolderName);
 }
 
-bool AnnouncerManager::HasSoundsFor( RString sFolderName )
+bool AnnouncerManager::HasSoundsFor( const RString &sFolderName )
 {
 	return !DirectoryIsEmpty( GetPathTo(sFolderName) );
 }

@@ -443,7 +443,7 @@ RString Font::GetPageNameFromFileName( const RString &sFilename )
 	return sFilename.substr( begin, end-begin+1 );
 }
 
-void Font::LoadFontPageSettings( FontPageSettings &cfg, IniFile &ini, const RString &sTexturePath, const RString &sPageName, RString sChars )
+void Font::LoadFontPageSettings( FontPageSettings &cfg, IniFile &ini, const RString &sTexturePath, const RString &sPageName, const RString &sChars )
 {
 	cfg.m_sTexturePath = sTexturePath;
 
@@ -663,7 +663,7 @@ void Font::LoadFontPageSettings( FontPageSettings &cfg, IniFile &ini, const RStr
 		cfg.CharToGlyphNo[0x00A0] = cfg.CharToGlyphNo[' '];
 }
 
-RString FontPageSettings::MapRange( RString sMapping, int iMapOffset, int iGlyphNo, int iCount )
+RString FontPageSettings::MapRange( const RString &sMapping, int iMapOffset, int iGlyphNo, int iCount )
 {
 	if( !sMapping.CompareNoCase("Unicode") )
 	{
@@ -740,7 +740,7 @@ static vector<RString> LoadStack;
  * However, if it doesn't, we don't know what it is and the font will receive
  * no default mapping.  A font isn't useful with no characters mapped.
  */
-void Font::Load( const RString &sIniPath, RString sChars )
+void Font::Load( const RString &sIniPath, const RString &sChars )
 {
 	if(GetExtension(sIniPath).CompareNoCase("ini"))
 	{

@@ -40,7 +40,7 @@ WheelBase::~WheelBase()
 	m_LastSelection = NULL;
 }
 
-void WheelBase::Load( RString sType ) 
+void WheelBase::Load( const RString &sType ) 
 {
 	LOG->Trace( "WheelBase::Load('%s')", sType.c_str() );
 	ASSERT( this->GetNumChildren() == 0 ); // only load once

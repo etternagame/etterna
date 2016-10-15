@@ -397,7 +397,7 @@ bool Song::LoadFromSongDir( RString sDir, bool load_autosave )
 /* This function feels EXTREMELY hacky - copying things on top of pointers so
  * they don't break elsewhere.  Maybe it could be rewritten to politely ask the
  * Song/Steps objects to reload themselves. -- djpohly */
-bool Song::ReloadFromSongDir( RString sDir )
+bool Song::ReloadFromSongDir( const RString &sDir )
 {
 	// Remove the cache file to force the song to reload from its dir instead
 	// of loading from the cache. -Kyz
@@ -489,7 +489,7 @@ bool Song::ReloadFromSongDir( RString sDir )
 	return true;
 }
 
-void Song::LoadEditsFromSongDir(RString dir)
+void Song::LoadEditsFromSongDir(const RString &dir)
 {
 	// Load any .edit files in the song folder.
 	// Doing this BEFORE setting up AutoGen just in case.
@@ -1222,7 +1222,7 @@ bool Song::SaveToSMFile()
 
 }
 
-bool Song::SaveToSSCFile( RString sPath, bool bSavingCache, bool autosave )
+bool Song::SaveToSSCFile( const RString &sPath, bool bSavingCache, bool autosave )
 {
 	RString path = sPath;
 	if (!bSavingCache)
@@ -1296,7 +1296,7 @@ bool Song::SaveToSSCFile( RString sPath, bool bSavingCache, bool autosave )
 	return true;
 }
 
-bool Song::SaveToJsonFile( RString sPath )
+bool Song::SaveToJsonFile( const RString &sPath )
 {
 	LOG->Trace( "Song::SaveToJsonFile('%s')", sPath.c_str() );
 	return NotesWriterJson::WriteSong(sPath, *this, true);
@@ -1805,7 +1805,7 @@ void Song::DeleteSteps( const Steps* pSteps, bool bReAutoGen )
 		AddAutoGenNotes();
 }
 
-bool Song::Matches(RString sGroup, RString sSong) const
+bool Song::Matches(const RString &sGroup, const RString &sSong) const
 {
 	if( sGroup.size() && sGroup.CompareNoCase(this->m_sGroupName) != 0)
 		return false;

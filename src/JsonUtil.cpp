@@ -7,7 +7,7 @@
 #include "json/reader.h"
 #include "json/writer.h"
 
-bool JsonUtil::LoadFromString(Json::Value &root, RString sData, RString &sErrorOut)
+bool JsonUtil::LoadFromString(Json::Value &root, const RString &sData, RString &sErrorOut)
 {
 	Json::Reader reader;
 	bool parsingSuccessful = reader.parse(sData, root);
@@ -40,7 +40,7 @@ bool JsonUtil::LoadFromFileShowErrors(Json::Value &root, const RString &sFile)
 	return LoadFromFileShowErrors(root, f);
 }
 
-bool JsonUtil::LoadFromStringShowErrors(Json::Value &root, RString sData)
+bool JsonUtil::LoadFromStringShowErrors(Json::Value &root, const RString &sData)
 {
 	RString sError;
 	if(!LoadFromString(root, sData, sError))

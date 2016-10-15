@@ -218,7 +218,7 @@ void GraphDisplay::Set( const StageStats &ss, const PlayerStageStats &pss )
 	}
 }
 
-void GraphDisplay::Load( RString sMetricsGroup )
+void GraphDisplay::Load( const RString &sMetricsGroup )
 {
 	m_size.x = THEME->GetMetricI( sMetricsGroup, "BodyWidth" );
 	m_size.y = THEME->GetMetricI( sMetricsGroup, "BodyHeight" );

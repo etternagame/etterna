@@ -3464,7 +3464,7 @@ RString GameManager::StyleToLocalizedString( const Style* style )
 		return s;
 }
 
-const Game* GameManager::StringToGame( RString sGame )
+const Game* GameManager::StringToGame( const RString &sGame )
 {
 	for( size_t i=0; i<ARRAYLEN(g_Games); ++i )
 		if( !sGame.CompareNoCase(g_Games[i]->m_szName) )
@@ -3474,7 +3474,7 @@ const Game* GameManager::StringToGame( RString sGame )
 }
 
 
-const Style* GameManager::GameAndStringToStyle( const Game *game, RString sStyle )
+const Style* GameManager::GameAndStringToStyle( const Game *game, const RString &sStyle )
 {
 	for( int s=0; game->m_apStyles[s]; ++s ) 
 	{

@@ -10,7 +10,7 @@ struct lua_State;
 class RageTexture
 {
 public:
-	RageTexture( RageTextureID file );
+	RageTexture( const RageTextureID &file );
 	virtual ~RageTexture() = 0;
 	virtual void Update( float /* fDeltaTime */ ) {}
 	virtual void Reload() {}
@@ -61,7 +61,7 @@ public:
 	// The ID that we were asked to load:
 	const RageTextureID &GetID() const { return m_ID; }
 
-	static void GetFrameDimensionsFromFileName( RString sPath, int* puFramesWide, int* puFramesHigh, int source_width= 0, int source_height= 0 );
+	static void GetFrameDimensionsFromFileName( const RString &sPath, int* puFramesWide, int* puFramesHigh, int source_width= 0, int source_height= 0 );
 
 	// Lua
 	virtual void PushSelf( lua_State *L );

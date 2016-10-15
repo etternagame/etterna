@@ -116,7 +116,7 @@ public:
 
 	RString GetThemedItemText( int iChoice ) const;
 
-	void SetExitText( RString sExitText );
+	void SetExitText( const RString &sExitText );
 
 	void Reload();
 

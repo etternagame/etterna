@@ -34,7 +34,7 @@ class WheelBase : public ActorFrame
 {
 public:
 	virtual ~WheelBase();
-	virtual void Load( RString sType );
+	virtual void Load( const RString &sType );
 	void BeginScreen();
 
 	virtual void Update( float fDeltaTime );
@@ -42,7 +42,7 @@ public:
 	virtual void Move(int n);
 	void ChangeMusicUnlessLocked( int n ); /* +1 or -1 */
 	virtual void ChangeMusic(int dist); /* +1 or -1 */
-	virtual void SetOpenSection( RString group ) { }
+	virtual void SetOpenSection( const RString &group ) { }
 
 	// Return true if we're moving fast automatically.
 	int IsMoving() const;

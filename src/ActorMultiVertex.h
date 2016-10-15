@@ -84,7 +84,7 @@ public:
 	
 	void SetTexture( RageTexture *Texture );
 	RageTexture* GetTexture() { return _Texture; };
-	void LoadFromTexture( RageTextureID ID );
+	void LoadFromTexture( const RageTextureID &ID );
 
 	void UnloadTexture();
 	void SetNumVertices( size_t n );
@@ -107,7 +107,7 @@ public:
 	size_t GetNumVertices() 					{ return AMV_DestTweenState().vertices.size(); }
 	
 	void SetVertexPos( int index , float x , float y , float z );
-	void SetVertexColor( int index , RageColor c );
+	void SetVertexColor( int index , const RageColor &c );
 	void SetVertexCoords( int index , float TexCoordX , float TexCoordY );
 
 	inline void SetVertsFromSplinesInternal(size_t num_splines, size_t start_vert);

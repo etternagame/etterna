@@ -1131,7 +1131,7 @@ void Actor::ResetEffectTimeIfDifferent(Effect new_effect)
 	}
 }
 
-void Actor::SetEffectDiffuseBlink( float fEffectPeriodSeconds, RageColor c1, RageColor c2 )
+void Actor::SetEffectDiffuseBlink( float fEffectPeriodSeconds, const RageColor &c1, const RageColor &c2 )
 {
 	ASSERT( fEffectPeriodSeconds > 0 );
 	// todo: account for SSC_FUTURES -aj
@@ -1141,7 +1141,7 @@ void Actor::SetEffectDiffuseBlink( float fEffectPeriodSeconds, RageColor c1, Rag
 	m_effectColor2 = c2;
 }
 
-void Actor::SetEffectDiffuseShift( float fEffectPeriodSeconds, RageColor c1, RageColor c2 )
+void Actor::SetEffectDiffuseShift( float fEffectPeriodSeconds, const RageColor &c1, const RageColor &c2 )
 {
 	ASSERT( fEffectPeriodSeconds > 0 );
 	// todo: account for SSC_FUTURES -aj
@@ -1151,7 +1151,7 @@ void Actor::SetEffectDiffuseShift( float fEffectPeriodSeconds, RageColor c1, Rag
 	m_effectColor2 = c2;
 }
 
-void Actor::SetEffectDiffuseRamp( float fEffectPeriodSeconds, RageColor c1, RageColor c2 )
+void Actor::SetEffectDiffuseRamp( float fEffectPeriodSeconds, const RageColor &c1, const RageColor &c2 )
 {
 	ASSERT( fEffectPeriodSeconds > 0 );
 	// todo: account for SSC_FUTURES -aj
@@ -1161,7 +1161,7 @@ void Actor::SetEffectDiffuseRamp( float fEffectPeriodSeconds, RageColor c1, Rage
 	m_effectColor2 = c2;
 }
 
-void Actor::SetEffectGlowBlink( float fEffectPeriodSeconds, RageColor c1, RageColor c2 )
+void Actor::SetEffectGlowBlink( float fEffectPeriodSeconds, const RageColor &c1, const RageColor &c2 )
 {
 	ASSERT( fEffectPeriodSeconds > 0 );
 	// todo: account for SSC_FUTURES -aj
@@ -1171,7 +1171,7 @@ void Actor::SetEffectGlowBlink( float fEffectPeriodSeconds, RageColor c1, RageCo
 	m_effectColor2 = c2;
 }
 
-void Actor::SetEffectGlowShift( float fEffectPeriodSeconds, RageColor c1, RageColor c2 )
+void Actor::SetEffectGlowShift( float fEffectPeriodSeconds, const RageColor &c1, const RageColor &c2 )
 {
 	ASSERT( fEffectPeriodSeconds > 0 );
 	// todo: account for SSC_FUTURES -aj
@@ -1181,7 +1181,7 @@ void Actor::SetEffectGlowShift( float fEffectPeriodSeconds, RageColor c1, RageCo
 	m_effectColor2 = c2;
 }
 
-void Actor::SetEffectGlowRamp( float fEffectPeriodSeconds, RageColor c1, RageColor c2 )
+void Actor::SetEffectGlowRamp( float fEffectPeriodSeconds, const RageColor &c1, const RageColor &c2 )
 {
 	ASSERT( fEffectPeriodSeconds > 0 );
 	// todo: account for SSC_FUTURES -aj
@@ -1199,7 +1199,7 @@ void Actor::SetEffectRainbow( float fEffectPeriodSeconds )
 	SetEffectPeriod( fEffectPeriodSeconds );
 }
 
-void Actor::SetEffectWag( float fPeriod, RageVector3 vect )
+void Actor::SetEffectWag( float fPeriod, const RageVector3 &vect )
 {
 	ASSERT( fPeriod > 0 );
 	// todo: account for SSC_FUTURES -aj
@@ -1208,7 +1208,7 @@ void Actor::SetEffectWag( float fPeriod, RageVector3 vect )
 	m_vEffectMagnitude = vect;
 }
 
-void Actor::SetEffectBounce( float fPeriod, RageVector3 vect )
+void Actor::SetEffectBounce( float fPeriod, const RageVector3 &vect )
 {
 	ASSERT( fPeriod > 0 );
 	// todo: account for SSC_FUTURES -aj
@@ -1218,7 +1218,7 @@ void Actor::SetEffectBounce( float fPeriod, RageVector3 vect )
 	m_fSecsIntoEffect = 0;
 }
 
-void Actor::SetEffectBob( float fPeriod, RageVector3 vect )
+void Actor::SetEffectBob( float fPeriod, const RageVector3 &vect )
 {
 	ASSERT( fPeriod > 0 );
 	// todo: account for SSC_FUTURES -aj
@@ -1231,14 +1231,14 @@ void Actor::SetEffectBob( float fPeriod, RageVector3 vect )
 	m_vEffectMagnitude = vect;
 }
 
-void Actor::SetEffectSpin( RageVector3 vect )
+void Actor::SetEffectSpin( const RageVector3 &vect )
 {
 	// todo: account for SSC_FUTURES -aj
 	m_Effect = spin;
 	m_vEffectMagnitude = vect;
 }
 
-void Actor::SetEffectVibrate( RageVector3 vect )
+void Actor::SetEffectVibrate( const RageVector3 &vect )
 {
 	// todo: account for SSC_FUTURES -aj
 	m_Effect = vibrate;
@@ -1325,7 +1325,7 @@ float Actor::GetTweenTimeLeft() const
  * we can simply say eg. "for x in states(Actor) do x.SetDiffuseColor(c) end".
  * However, we'd then have to give every TweenState a userdata in Lua while it's
  * being manipulated, which would add overhead ... */
-void Actor::SetGlobalDiffuseColor( RageColor c )
+void Actor::SetGlobalDiffuseColor( const RageColor &c )
 {
 	for( int i=0; i<NUM_DIFFUSE_COLORS; i++ ) // color, not alpha
 	{
@@ -1344,7 +1344,7 @@ void Actor::SetGlobalDiffuseColor( RageColor c )
 	}
 }
 
-void Actor::SetDiffuseColor( RageColor c )
+void Actor::SetDiffuseColor( const RageColor &c )
 {
 	for( int i=0; i<NUM_DIFFUSE_COLORS; i++ )
 	{

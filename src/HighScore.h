@@ -72,10 +72,10 @@ struct HighScore
 	void SetMaxCombo( unsigned int i );
 	void SetStageAward( StageAward a );
 	void SetPeakComboAward( PeakComboAward a );
-	void SetModifiers( RString s );
+	void SetModifiers( const RString &s );
 	void SetDateTime( DateTime d );
-	void SetPlayerGuid( RString s );
-	void SetMachineGuid( RString s );
+	void SetPlayerGuid( const RString &s );
+	void SetMachineGuid( const RString &s );
 	void SetProductID( int i );
 	void SetTapNoteScore( TapNoteScore tns, int i );
 	void SetHoldNoteScore( HoldNoteScore tns, int i );

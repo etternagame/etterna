@@ -78,9 +78,9 @@ public:
 
 	void SetHorizAlign( float f );
 
-	void SetStrokeColor(RageColor c) { BMT_DestTweenState().SetStrokeColor(c); }
+	void SetStrokeColor(const RageColor &c) { BMT_DestTweenState().SetStrokeColor(c); }
 	RageColor const& GetStrokeColor()		{ return BMT_DestTweenState().GetStrokeColor(); }
-	void SetCurrStrokeColor(RageColor c) { BMT_current.SetStrokeColor(c); }
+	void SetCurrStrokeColor(const RageColor &c) { BMT_current.SetStrokeColor(c); }
 	RageColor const& GetCurrStrokeColor() { return BMT_current.GetStrokeColor(); }
 
 	void SetTextGlowMode( TextGlowMode tgm )	{ m_TextGlowMode = tgm; }

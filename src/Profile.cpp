@@ -220,7 +220,7 @@ Character *Profile::GetCharacter() const
 	return CHARMAN->GetDefaultCharacter();
 }
 
-void Profile::SetCharacter(const RString sCharacterID)
+void Profile::SetCharacter(const RString &sCharacterID)
 {
 	if(CHARMAN->GetCharacterFromID(sCharacterID))
 		m_sCharacterID = sCharacterID;
@@ -549,7 +549,7 @@ void Profile::SetDefaultModifiers( const Game* pGameType, const RString &sModifi
 		m_sDefaultModifiers[pGameType->m_szName] = sModifiers;
 }
 
-bool Profile::IsCodeUnlocked( RString sUnlockEntryID ) const
+bool Profile::IsCodeUnlocked( const RString &sUnlockEntryID ) const
 {
 	return m_UnlockedEntryIDs.find( sUnlockEntryID ) != m_UnlockedEntryIDs.end();
 }
@@ -1044,7 +1044,7 @@ void Profile::IncrementCategoryPlayCount( StepsType st, RankingCategory rc )
 	if( X==NULL ) LOG->Warn("Failed to read section " #X); \
 	else Load##X##FromNode(X); }
 
-void Profile::LoadCustomFunction( RString sDir )
+void Profile::LoadCustomFunction( const RString &sDir )
 {
 	/* Get the theme's custom load function:
 	 *   [Profile]
@@ -1132,7 +1132,7 @@ void Profile::HandleStatsPrefixChange(RString dir, bool require_signature)
 	}
 }
 	
-ProfileLoadResult Profile::LoadAllFromDir( RString sDir, bool bRequireSignature )
+ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSignature )
 {
 	LOG->Trace( "Profile::LoadAllFromDir( %s )", sDir.c_str() );
 
@@ -1155,7 +1155,7 @@ ProfileLoadResult Profile::LoadAllFromDir( RString sDir, bool bRequireSignature 
 
 ProfileLoadResult Profile::LoadStatsFromDir(RString dir, bool require_signature)
 {
-	dir= dir + PROFILEMAN->GetStatsPrefix();
+	dir += PROFILEMAN->GetStatsPrefix();
 	// Check for the existance of stats.xml
 	RString fn = dir + STATS_XML;
 	bool compressed = false;
@@ -1236,7 +1236,7 @@ ProfileLoadResult Profile::LoadStatsFromDir(RString dir, bool require_signature)
 	return LoadStatsXmlFromNode(&xml);
 }
 
-void Profile::LoadTypeFromDir(RString dir)
+void Profile::LoadTypeFromDir(const RString &dir)
 {
 	m_Type= ProfileType_Normal;
 	m_ListPriority= 0;
@@ -1309,7 +1309,7 @@ ProfileLoadResult Profile::LoadStatsXmlFromNode( const XNode *xml, bool bIgnoreE
 	return ProfileLoadResult_Success;
 }
 
-bool Profile::SaveAllToDir( RString sDir, bool bSignData ) const
+bool Profile::SaveAllToDir( const RString &sDir, bool bSignData ) const
 {
 	m_sLastPlayedMachineGuid = PROFILEMAN->GetMachineProfile()->m_sGuid;
 	m_LastPlayedDate = DateTime::GetNowDate();
@@ -1373,7 +1373,7 @@ bool Profile::SaveStatsXmlToDir( RString sDir, bool bSignData ) const
 	LOG->Trace( "SaveStatsXmlToDir: %s", sDir.c_str() );
 	auto_ptr<XNode> xml( SaveStatsXmlCreateNode() );
 
-	sDir= sDir + PROFILEMAN->GetStatsPrefix();
+	sDir += PROFILEMAN->GetStatsPrefix();
 	// Save stats.xml
 	RString fn = sDir + (g_bProfileDataCompress? STATS_XML_GZ:STATS_XML);
 
@@ -1424,7 +1424,7 @@ bool Profile::SaveStatsXmlToDir( RString sDir, bool bSignData ) const
 	return true;
 }
 
-void Profile::SaveTypeToDir(RString dir) const
+void Profile::SaveTypeToDir(const RString &dir) const
 {
 	IniFile ini;
 	ini.SetValue("ListPosition", "Type", ProfileTypeToString(m_Type));
@@ -1432,7 +1432,7 @@ void Profile::SaveTypeToDir(RString dir) const
 	ini.WriteFile(dir + TYPE_INI);
 }
 
-void Profile::SaveEditableDataToDir( RString sDir ) const
+void Profile::SaveEditableDataToDir( const RString &sDir ) const
 {
 	IniFile ini;
 
@@ -1605,7 +1605,7 @@ XNode* Profile::SaveGeneralDataCreateNode() const
 	return pGeneralDataNode;
 }
 
-ProfileLoadResult Profile::LoadEditableDataFromDir( RString sDir )
+ProfileLoadResult Profile::LoadEditableDataFromDir( const RString &sDir )
 {
 	RString fn = sDir + EDITABLE_INI;
 
@@ -2170,12 +2170,12 @@ void Profile::LoadCategoryScoresFromNode( const XNode* pCategoryScores )
 	}
 }
 
-void Profile::SaveStatsWebPageToDir( RString ) const
+void Profile::SaveStatsWebPageToDir( const RString &sDir) const
 {
 	ASSERT( PROFILEMAN != NULL );
 }
 
-void Profile::SaveMachinePublicKeyToDir( RString sDir ) const
+void Profile::SaveMachinePublicKeyToDir( const RString &sDir ) const
 {
 	if( PREFSMAN->m_bSignProfileData && IsAFile(CRYPTMAN->GetPublicKeyFileName()) )
 		FileCopy( CRYPTMAN->GetPublicKeyFileName(), sDir+PUBLIC_KEY_FILE );
@@ -2409,7 +2409,7 @@ XNode* Profile::SaveCoinDataCreateNode() const
 	return pNode;
 }
 
-void Profile::MoveBackupToDir( RString sFromDir, RString sToDir )
+void Profile::MoveBackupToDir( const RString &sFromDir, const RString &sToDir )
 {
 	if( FILEMAN->IsAFile(sFromDir + STATS_XML) &&
 		FILEMAN->IsAFile(sFromDir+STATS_XML+SIGNATURE_APPEND) )
@@ -2430,7 +2430,7 @@ void Profile::MoveBackupToDir( RString sFromDir, RString sToDir )
 		FILEMAN->Move( sFromDir+DONT_SHARE_SIG,				sToDir+DONT_SHARE_SIG );
 }
 
-RString Profile::MakeUniqueFileNameNoExtension( RString sDir, RString sFileNameBeginning )
+RString Profile::MakeUniqueFileNameNoExtension( const RString &sDir, const RString &sFileNameBeginning )
 {
 	FILEMAN->FlushDirCache( sDir );
 	// Find a file name for the screenshot
@@ -2455,7 +2455,7 @@ RString Profile::MakeUniqueFileNameNoExtension( RString sDir, RString sFileNameB
 	return MakeFileNameNoExtension( sFileNameBeginning, iIndex );
 }
 
-RString Profile::MakeFileNameNoExtension( RString sFileNameBeginning, int iIndex )
+RString Profile::MakeFileNameNoExtension( const RString &sFileNameBeginning, int iIndex )
 {
 	return sFileNameBeginning + ssprintf( "%05d", iIndex );
 }

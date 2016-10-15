@@ -175,7 +175,7 @@ void LoadingWindow_Win32::Paint()
 	}
 }
 
-void LoadingWindow_Win32::SetText( RString sText )
+void LoadingWindow_Win32::SetText( const RString &sText )
 {
 	vector<RString> asMessageLines;
 	split( sText, "\n", asMessageLines, false );

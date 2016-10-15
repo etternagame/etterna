@@ -245,7 +245,7 @@ bool MessageManager::IsSubscribedToMessage( IMessageSubscriber* pSubscriber, con
 	return subs.find( pSubscriber ) != subs.end();
 }	
 
-void IMessageSubscriber::ClearMessages( const RString sMessage )
+void IMessageSubscriber::ClearMessages( const RString &sMessage )
 {
 }
 

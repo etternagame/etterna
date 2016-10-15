@@ -171,7 +171,7 @@ void SongManager::InitSongsFromDisk( LoadingWindow *ld )
 }
 
 static LocalizedString FOLDER_CONTAINS_MUSIC_FILES( "SongManager", "The folder \"%s\" appears to be a song folder.  All song folders must reside in a group folder.  For example, \"Songs/Originals/My Song\"." );
-void SongManager::SanityCheckGroupDir( RString sDir ) const
+void SongManager::SanityCheckGroupDir( const RString &sDir ) const
 {
 	// Check to see if they put a song directly inside the group folder.
 	vector<RString> arrayFiles;
@@ -191,7 +191,7 @@ void SongManager::SanityCheckGroupDir( RString sDir ) const
 	}
 }
 
-void SongManager::AddGroup( RString sDir, RString sGroupDirName )
+void SongManager::AddGroup( const RString &sDir, const RString &sGroupDirName )
 {
 	unsigned j;
 	for(j = 0; j < m_sSongGroupNames.size(); ++j)
@@ -382,7 +382,7 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 }
 
 // Instead of "symlinks", songs should have membership in multiple groups. -Chris
-void SongManager::LoadGroupSymLinks(RString sDir, RString sGroupFolder)
+void SongManager::LoadGroupSymLinks(const RString &sDir, const RString &sGroupFolder)
 {
 	// Find all symlink files in this folder
 	vector<RString> arraySymLinks;
@@ -497,7 +497,7 @@ bool SongManager::IsGroupNeverCached(const RString& group) const
 	return m_GroupsToNeverCache.find(group) != m_GroupsToNeverCache.end();
 }
 
-RString SongManager::GetSongGroupBannerPath( RString sSongGroup ) const
+RString SongManager::GetSongGroupBannerPath( const RString &sSongGroup ) const
 {
 	for( unsigned i = 0; i < m_sSongGroupNames.size(); ++i )
 	{
@@ -524,7 +524,7 @@ void SongManager::GetSongGroupNames( vector<RString> &AddTo ) const
 	AddTo.insert(AddTo.end(), m_sSongGroupNames.begin(), m_sSongGroupNames.end() );
 }
 
-bool SongManager::DoesSongGroupExist( RString sSongGroup ) const
+bool SongManager::DoesSongGroupExist( const RString &sSongGroup ) const
 {
 	return find( m_sSongGroupNames.begin(), m_sSongGroupNames.end(), sSongGroup ) != m_sSongGroupNames.end();
 }
@@ -823,7 +823,7 @@ int SongManager::GetNumCourseGroups() const
 	return m_mapCourseGroupToInfo.size();
 }
 
-RString SongManager::ShortenGroupName( RString sLongGroupName )
+RString SongManager::ShortenGroupName( const RString &sLongGroupName )
 {
 	static TitleSubst tsub("Groups");
 
@@ -1224,7 +1224,7 @@ void SongManager::GetCoursesInGroup( vector<Course*> &AddTo, const RString &sCou
 				AddTo.push_back( m_pCourses[i] );
 }
 
-bool SongManager::GetExtraStageInfoFromCourse( bool bExtra2, RString sPreferredGroup, Song*& pSongOut, Steps*& pStepsOut, StepsType stype )
+bool SongManager::GetExtraStageInfoFromCourse( bool bExtra2, const RString &sPreferredGroup, Song*& pSongOut, Steps*& pStepsOut, StepsType stype )
 {
 	const RString sCourseSuffix = sPreferredGroup + (bExtra2 ? "/extra2.crs" : "/extra1.crs");
 	RString sCoursePath = SpecialFiles::SONGS_DIR + sCourseSuffix;
@@ -1405,7 +1405,7 @@ Song* SongManager::GetSongFromDir(RString dir) const
 	return NULL;
 }
 
-Course* SongManager::GetCourseFromPath( RString sPath ) const
+Course* SongManager::GetCourseFromPath( const RString &sPath ) const
 {
 	if( sPath == "" )
 		return NULL;
@@ -1419,7 +1419,7 @@ Course* SongManager::GetCourseFromPath( RString sPath ) const
 	return NULL;
 }
 
-Course* SongManager::GetCourseFromName( RString sName ) const
+Course* SongManager::GetCourseFromName( const RString &sName ) const
 {
 	if( sName == "" )
 		return NULL;
@@ -1546,7 +1546,7 @@ void SongManager::UpdateShuffled()
 	random_shuffle( m_pShuffledCourses.begin(), m_pShuffledCourses.end(), g_RandomNumberGenerator );
 }
 
-void SongManager::UpdatePreferredSort(RString sPreferredSongs, RString sPreferredCourses)
+void SongManager::UpdatePreferredSort(const RString &sPreferredSongs, const RString &sPreferredCourses)
 {
 	ASSERT( UNLOCKMAN != NULL );
 

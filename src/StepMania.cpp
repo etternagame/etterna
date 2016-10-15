@@ -1220,7 +1220,7 @@ int sm_main(int argc, char* argv[])
 	return 0;
 }
 
-RString StepMania::SaveScreenshot( RString Dir, bool SaveCompressed, bool MakeSignature, RString NamePrefix, RString NameSuffix )
+RString StepMania::SaveScreenshot( const RString &Dir, bool SaveCompressed, bool MakeSignature, const RString &NamePrefix, const RString &NameSuffix )
 {
 	/* As of sm-ssc v1.0 rc2, screenshots are no longer named by an arbitrary
 	 * index. This was causing naming issues for some unknown reason, so we have

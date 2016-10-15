@@ -266,28 +266,28 @@ bool SMLoader::LoadFromDir( const RString &sPath, Song &out, bool load_autosave 
 	return LoadFromSimfile( sPath + aFileNames[0], out );
 }
 
-float SMLoader::RowToBeat( RString line, const int rowsPerBeat )
+float SMLoader::RowToBeat( const RString &line, const int rowsPerBeat )
 {
-	RString backup = line;
-	Trim(line, "r");
-	Trim(line, "R");
-	if( backup != line )
+	RString trimmed = line;
+	Trim(trimmed, "r");
+	Trim(trimmed, "R");
+	if(trimmed != line )
 	{
-		return StringToFloat( line ) / rowsPerBeat;
+		return StringToFloat( trimmed ) / rowsPerBeat;
 	}
 	else
 	{
-		return StringToFloat( line );
+		return StringToFloat( trimmed );
 	}
 }
 
 void SMLoader::LoadFromTokens( 
-			     RString sStepsType, 
-			     RString sDescription,
-			     RString sDifficulty,
-			     RString sMeter,
-			     RString sRadarValues,
-			     RString sNoteData,
+			     RString &sStepsType, 
+			     RString &sDescription,
+			     RString &sDifficulty,
+			     RString &sMeter,
+			     RString &sRadarValues,
+			     RString &sNoteData,
 			     Steps &out
 			     )
 {
@@ -437,7 +437,7 @@ void SMLoader::ProcessInstrumentTracks( Song &out, const RString &sParam )
 	}
 }
 
-void SMLoader::ParseBPMs( vector< pair<float, float> > &out, const RString line, const int rowsPerBeat )
+void SMLoader::ParseBPMs( vector< pair<float, float> > &out, const RString &line, const int rowsPerBeat )
 {
 	vector<RString> arrayBPMChangeExpressions;
 	split( line, ",", arrayBPMChangeExpressions );
@@ -733,7 +733,7 @@ void SMLoader::ProcessBPMsAndStops(TimingData &out,
 	}
 }
 
-void SMLoader::ProcessDelays( TimingData &out, const RString line, const int rowsPerBeat )
+void SMLoader::ProcessDelays( TimingData &out, const RString &line, const int rowsPerBeat )
 {
 	vector<RString> arrayDelayExpressions;
 	split( line, ",", arrayDelayExpressions );
@@ -765,7 +765,7 @@ void SMLoader::ProcessDelays( TimingData &out, const RString line, const int row
 	}
 }
 
-void SMLoader::ProcessTimeSignatures( TimingData &out, const RString line, const int rowsPerBeat )
+void SMLoader::ProcessTimeSignatures( TimingData &out, const RString &line, const int rowsPerBeat )
 {
 	vector<RString> vs1;
 	split( line, ",", vs1 );
@@ -819,7 +819,7 @@ void SMLoader::ProcessTimeSignatures( TimingData &out, const RString line, const
 	}
 }
 
-void SMLoader::ProcessTickcounts( TimingData &out, const RString line, const int rowsPerBeat )
+void SMLoader::ProcessTickcounts( TimingData &out, const RString &line, const int rowsPerBeat )
 {
 	vector<RString> arrayTickcountExpressions;
 	split( line, ",", arrayTickcountExpressions );
@@ -844,7 +844,7 @@ void SMLoader::ProcessTickcounts( TimingData &out, const RString line, const int
 	}
 }
 
-void SMLoader::ProcessSpeeds( TimingData &out, const RString line, const int rowsPerBeat )
+void SMLoader::ProcessSpeeds( TimingData &out, const RString &line, const int rowsPerBeat )
 {
 	vector<RString> vs1;
 	split( line, ",", vs1 );
@@ -904,7 +904,7 @@ void SMLoader::ProcessSpeeds( TimingData &out, const RString line, const int row
 	}
 }
 
-void SMLoader::ProcessFakes( TimingData &out, const RString line, const int rowsPerBeat )
+void SMLoader::ProcessFakes( TimingData &out, const RString &line, const int rowsPerBeat )
 {
 	vector<RString> arrayFakeExpressions;
 	split( line, ",", arrayFakeExpressions );
@@ -1170,7 +1170,7 @@ bool SMLoader::LoadFromSimfile( const RString &sPath, Song &out, bool bFromCache
 	return true;
 }
 
-bool SMLoader::LoadEditFromFile( RString sEditFilePath, ProfileSlot slot, bool bAddStepsToSong, Song *givenSong /* =NULL */ )
+bool SMLoader::LoadEditFromFile( const RString &sEditFilePath, ProfileSlot slot, bool bAddStepsToSong, Song *givenSong /* =NULL */ )
 {
 	LOG->Trace( "SMLoader::LoadEditFromFile(%s)", sEditFilePath.c_str() );
 

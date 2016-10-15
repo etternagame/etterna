@@ -131,8 +131,8 @@ public:
 
 	void Clear();
 	void Unmap( InputDevice id );
-	void WriteMappings( const InputScheme *pInputScheme, RString sFilePath );
-	void ReadMappings( const InputScheme *pInputScheme, RString sFilePath, bool bIsAutoMapping );
+	void WriteMappings( const InputScheme *pInputScheme, const RString &sFilePath );
+	void ReadMappings( const InputScheme *pInputScheme, const RString &sFilePath, bool bIsAutoMapping );
 	void SetInputMap( const DeviceInput &DeviceI, const GameInput &GameI, int iSlotIndex );
 
 	void ClearFromInputMap( const DeviceInput &DeviceI );

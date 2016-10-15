@@ -171,7 +171,7 @@ ScreenWithMenuElements::~ScreenWithMenuElements()
 		delete *actor;
 }
 
-void ScreenWithMenuElements::SetHelpText( RString s )
+void ScreenWithMenuElements::SetHelpText( const RString &s )
 {
 	Message msg("SetHelpText");
 	msg.SetParam( "Text", s );

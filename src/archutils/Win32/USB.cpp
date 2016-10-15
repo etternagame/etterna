@@ -125,7 +125,7 @@ WindowsFileIO::~WindowsFileIO()
 	delete[] m_pBuffer;
 }
 
-bool WindowsFileIO::Open( RString path, int iBlockSize )
+bool WindowsFileIO::Open( const RString &path, int iBlockSize )
 {
 	LOG->Trace( "WindowsFileIO::open(%s)", path.c_str() );
 	m_iBlockSize = iBlockSize;

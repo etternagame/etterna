@@ -183,7 +183,7 @@ void ArchHooks_Win32::SetupConcurrentRenderingThread()
 	SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL );
 }
 
-bool ArchHooks_Win32::GoToURL( RString sUrl )
+bool ArchHooks_Win32::GoToURL( const RString &sUrl )
 {
 	return ::GotoURL( sUrl );
 }

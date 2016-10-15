@@ -40,7 +40,7 @@ public:
 protected:
 	RString HandleLuaMusicFile(RString const& path);
 	virtual void StartPlayingMusic();
-	void SetHelpText( RString s );
+	void SetHelpText( const RString &s );
 
 	AutoActor			m_sprUnderlay;
 	MemoryCardDisplay	*m_MemoryCardDisplay[NUM_PLAYERS];

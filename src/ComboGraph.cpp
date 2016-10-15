@@ -19,7 +19,7 @@ ComboGraph::ComboGraph()
 	m_pComboNumber = NULL;
 }
 
-void ComboGraph::Load( RString sMetricsGroup )
+void ComboGraph::Load( const RString &sMetricsGroup )
 {
 	BODY_WIDTH.Load( sMetricsGroup, "BodyWidth" );
 	BODY_HEIGHT.Load( sMetricsGroup, "BodyHeight" );

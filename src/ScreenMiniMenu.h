@@ -23,7 +23,7 @@ struct MenuRowDef
 	MenuRowDef(): iRowCode(0), sName(""), bEnabled(false),
 		pfnEnabled(), emShowIn(), iDefaultChoice(0),
 		choices(), bThemeTitle(false), bThemeItems(false) {}
-	MenuRowDef( int r, RString n, MenuRowUpdateEnabled pe, EditMode s, 
+	MenuRowDef( int r, const RString &n, MenuRowUpdateEnabled pe, EditMode s, 
 		   bool bTT, bool bTI, int d, const char *c0=NULL, 
 		   const char *c1=NULL, const char *c2=NULL, 
 		   const char *c3=NULL, const char *c4=NULL, 
@@ -51,8 +51,8 @@ struct MenuRowDef
 #undef PUSH
 	}
 	
-	MenuRowDef(int r, RString n, bool e, EditMode s,
-			   bool bTT, bool bTI, int d, vector<RString> options):
+	MenuRowDef(int r, const RString &n, bool e, EditMode s,
+			   bool bTT, bool bTI, int d, vector<RString> &options):
 			iRowCode(r), sName(n), bEnabled(e), pfnEnabled(NULL),
 			emShowIn(s), iDefaultChoice(d), choices(),
 			bThemeTitle(bTT), bThemeItems(bTI)
@@ -63,7 +63,7 @@ struct MenuRowDef
 		}
 	}
 	
-	MenuRowDef( int r, RString n, bool e, EditMode s, bool bTT, bool bTI, 
+	MenuRowDef( int r, const RString &n, bool e, EditMode s, bool bTT, bool bTI, 
 		   int d, const char *c0=NULL, const char *c1=NULL, 
 		   const char *c2=NULL, const char *c3=NULL, 
 		   const char *c4=NULL, const char *c5=NULL, 
@@ -90,7 +90,7 @@ struct MenuRowDef
 #undef PUSH
 	}
 	
-	MenuRowDef( int r, RString n, bool e, EditMode s, bool bTT, bool bTI,
+	MenuRowDef( int r, const RString &n, bool e, EditMode s, bool bTT, bool bTI,
 		   int d, int low, int high ):
 		iRowCode(r), sName(n), bEnabled(e), pfnEnabled(NULL),
 		emShowIn(s), iDefaultChoice(d), choices(),

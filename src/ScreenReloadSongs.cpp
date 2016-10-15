@@ -21,7 +21,7 @@ public:
 	{
 	}
 
-	void SetText( RString str )
+	void SetText( const RString &str )
 	{
 		m_BitmapText.SetText( str );
 		Paint();

@@ -21,7 +21,7 @@ struct AttackArray;
 class ScoreKeeper
 {
 public:
-	static ScoreKeeper* MakeScoreKeeper( RString sClassName, PlayerState *pPlayerState, PlayerStageStats *pPlayerStageStats );
+	static ScoreKeeper* MakeScoreKeeper( const RString &sClassName, PlayerState *pPlayerState, PlayerStageStats *pPlayerStageStats );
 
 protected:
 	PlayerState		*m_pPlayerState;

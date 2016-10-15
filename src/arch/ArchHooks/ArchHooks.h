@@ -114,7 +114,7 @@ public:
 	/*
 	 * Open a URL in the default web browser
 	 */
-	virtual bool GoToURL( RString sUrl );
+	virtual bool GoToURL( const RString &sUrl );
 
 	virtual float GetDisplayAspectRatio() = 0;
 	

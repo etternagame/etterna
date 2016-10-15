@@ -100,7 +100,7 @@ void RageTextureManager::RegisterTexture( RageTextureID ID, RageTexture *pTextur
 	m_texture_ids_by_pointer[pTexture]= ID;
 }
 
-void RageTextureManager::RegisterTextureForUpdating(RageTextureID id, RageTexture* tex)
+void RageTextureManager::RegisterTextureForUpdating(const RageTextureID &id, RageTexture* tex)
 {
 	m_textures_to_update[id]= tex;
 }
@@ -180,7 +180,7 @@ RageTexture* RageTextureManager::LoadTextureInternal( RageTextureID ID )
 }
 
 /* Load a normal texture.  Use this call to actually use a texture. */
-RageTexture* RageTextureManager::LoadTexture( RageTextureID ID )
+RageTexture* RageTextureManager::LoadTexture( const RageTextureID &ID )
 {
 	RageTexture* pTexture = LoadTextureInternal( ID );
 	if( pTexture )
@@ -194,7 +194,7 @@ RageTexture* RageTextureManager::CopyTexture( RageTexture *pCopy )
 	return pCopy;
 }
 
-void RageTextureManager::VolatileTexture( RageTextureID ID )
+void RageTextureManager::VolatileTexture( const RageTextureID &ID )
 {
 	RageTexture* pTexture = LoadTextureInternal( ID );
 	pTexture->GetPolicy() = min( pTexture->GetPolicy(), RageTextureID::TEX_VOLATILE );

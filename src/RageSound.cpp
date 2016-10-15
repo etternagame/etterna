@@ -155,14 +155,14 @@ public:
 };
 
 
-bool RageSound::Load( RString sSoundFilePath )
+bool RageSound::Load( const RString &sSoundFilePath )
 {
 	/* Automatically determine whether to precache */
 	/* TODO: Hook this up to a pref? */
 	return Load( sSoundFilePath, false );
 }
 
-bool RageSound::Load( RString sSoundFilePath, bool bPrecache, const RageSoundLoadParams *pParams )
+bool RageSound::Load( const RString &sSoundFilePath, bool bPrecache, const RageSoundLoadParams *pParams )
 {
 	LOG->Trace( "RageSound: Load \"%s\" (precache: %i)", sSoundFilePath.c_str(), bPrecache );
 

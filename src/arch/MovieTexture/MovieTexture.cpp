@@ -16,7 +16,7 @@ void ForceToAscii( RString &str )
 			str[i] = '?';
 }
 
-bool RageMovieTexture::GetFourCC( RString fn, RString &handler, RString &type )
+bool RageMovieTexture::GetFourCC( const RString &fn, RString &handler, RString &type )
 {
 	RString ignore, ext;
 	splitpath( fn, ignore, ignore, ext);
@@ -78,7 +78,7 @@ static Preference<RString> g_sMovieDrivers( "MovieDrivers", "" ); // "" == defau
 /* Try drivers in order of preference until we find one that works. */
 static LocalizedString MOVIE_DRIVERS_EMPTY		( "Arch", "Movie Drivers cannot be empty." );
 static LocalizedString COULDNT_CREATE_MOVIE_DRIVER	( "Arch", "Couldn't create a movie driver." );
-RageMovieTexture *RageMovieTexture::Create( RageTextureID ID )
+RageMovieTexture *RageMovieTexture::Create( const RageTextureID &ID )
 {
 	DumpAVIDebugInfo( ID.filename );
 	

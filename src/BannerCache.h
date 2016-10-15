@@ -14,9 +14,9 @@ public:
 	~BannerCache();
 	void ReadFromDisk();
 
-	RageTextureID LoadCachedBanner( RString sBannerPath );
-	void CacheBanner( RString sBannerPath );
-	void LoadBanner( RString sBannerPath );
+	RageTextureID LoadCachedBanner( const RString &sBannerPath );
+	void CacheBanner( const RString &sBannerPath );
+	void LoadBanner( const RString &sBannerPath );
 
 	void Demand();
 	void Undemand();
@@ -24,9 +24,9 @@ public:
 	void OutputStats() const;
 
 private:
-	static RString GetBannerCachePath( RString sBannerPath );
+	static RString GetBannerCachePath( const RString &sBannerPath );
 	void UnloadAllBanners();
-	void CacheBannerInternal( RString sBannerPath );
+	void CacheBannerInternal( const RString &sBannerPath );
 
 	IniFile BannerData;
 };

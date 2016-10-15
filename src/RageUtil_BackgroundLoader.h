@@ -25,7 +25,7 @@ public:
 	bool IsCacheFileFinished( const RString &sFile, RString &sActualPath );
 
 	/* Call this when finished with a cached file, to release any resources. */
-	void FinishedWithCachedFile( RString sFile );
+	void FinishedWithCachedFile( const RString &sFile );
 
 	/* Abort all loads. */
 	void Abort();
@@ -38,7 +38,7 @@ private:
 
 	RString GetRequest();
 
-	RString GetCachePath( RString sPath ) const;
+	RString GetCachePath( const RString &sPath ) const;
 	RString m_sCachePathPrefix;
 
 	RageSemaphore m_StartSem;

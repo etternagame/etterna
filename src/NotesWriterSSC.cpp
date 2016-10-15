@@ -434,7 +434,7 @@ static RString GetSSCNoteData( const Song &song, const Steps &in, bool bSavingCa
 	return JoinLineList( lines );
 }
 
-bool NotesWriterSSC::Write( RString sPath, const Song &out, const vector<Steps*>& vpStepsToSave, bool bSavingCache )
+bool NotesWriterSSC::Write( RString &sPath, const Song &out, const vector<Steps*>& vpStepsToSave, bool bSavingCache )
 {
 	int flags = RageFile::WRITE;
 

@@ -55,8 +55,8 @@ public:
 	/* Change the root of a filesystem.  Only a couple drivers support this; it's
 	 * used to change memory card mountpoints without having to actually unmount
 	 * the driver. */
-	void Remount( RString sMountpoint, RString sPath );
-	bool IsMounted( RString MountPoint );
+	void Remount( const RString &sMountpoint, const RString &sPath );
+	bool IsMounted( const RString &MountPoint );
 	struct DriverLocation
 	{
 		RString Type, Root, MountPoint;

@@ -645,7 +645,7 @@ ssc_parser_helper_t parser_helper;
 // End parser_helper related functions. -Kyz
 /****************************************************************/
 
-void SSCLoader::ProcessBPMs( TimingData &out, const RString sParam )
+void SSCLoader::ProcessBPMs( TimingData &out, const RString &sParam )
 {
 	vector<RString> arrayBPMExpressions;
 	split( sParam, ",", arrayBPMExpressions );
@@ -679,7 +679,7 @@ void SSCLoader::ProcessBPMs( TimingData &out, const RString sParam )
 	}
 }
 
-void SSCLoader::ProcessStops( TimingData &out, const RString sParam )
+void SSCLoader::ProcessStops( TimingData &out, const RString &sParam )
 {
 	vector<RString> arrayStopExpressions;
 	split( sParam, ",", arrayStopExpressions );
@@ -711,7 +711,7 @@ void SSCLoader::ProcessStops( TimingData &out, const RString sParam )
 	}
 }
 
-void SSCLoader::ProcessWarps( TimingData &out, const RString sParam, const float fVersion )
+void SSCLoader::ProcessWarps( TimingData &out, const RString &sParam, const float fVersion )
 {
 	vector<RString> arrayWarpExpressions;
 	split( sParam, ",", arrayWarpExpressions );
@@ -748,7 +748,7 @@ void SSCLoader::ProcessWarps( TimingData &out, const RString sParam, const float
 	}
 }
 
-void SSCLoader::ProcessLabels( TimingData &out, const RString sParam )
+void SSCLoader::ProcessLabels( TimingData &out, const RString &sParam )
 {
 	vector<RString> arrayLabelExpressions;
 	split( sParam, ",", arrayLabelExpressions );
@@ -782,7 +782,7 @@ void SSCLoader::ProcessLabels( TimingData &out, const RString sParam )
 	}
 }
 
-void SSCLoader::ProcessCombos( TimingData &out, const RString line, const int rowsPerBeat )
+void SSCLoader::ProcessCombos( TimingData &out, const RString &line, const int rowsPerBeat )
 {
 	vector<RString> arrayComboExpressions;
 	split( line, ",", arrayComboExpressions );
@@ -1051,7 +1051,7 @@ bool SSCLoader::LoadFromSimfile( const RString &sPath, Song &out, bool bFromCach
 	return true;
 }
 
-bool SSCLoader::LoadEditFromFile( RString sEditFilePath, ProfileSlot slot, bool bAddStepsToSong, Song *givenSong /* =NULL */ )
+bool SSCLoader::LoadEditFromFile( const RString &sEditFilePath, ProfileSlot slot, bool bAddStepsToSong, Song *givenSong /* =NULL */ )
 {
 	LOG->Trace( "SSCLoader::LoadEditFromFile(%s)", sEditFilePath.c_str() );
 

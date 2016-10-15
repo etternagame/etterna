@@ -48,7 +48,7 @@ static bool HashFile( RageFileBasic &f, unsigned char buf_hash[20], int iHash )
 CryptManager::CryptManager() { }
 CryptManager::~CryptManager() { }
 void CryptManager::GenerateRSAKey( unsigned int keyLength, RString privFilename, RString pubFilename ) { }
-void CryptManager::SignFileToFile( RString sPath, RString sSignatureFile ) { }
+void CryptManager::SignFileToFile( const RString &sPath, RString sSignatureFile ) { }
 bool CryptManager::VerifyFileWithFile( RString sPath, RString sSignatureFile, RString sPublicKeyFile ) { return true; }
 bool CryptManager::VerifyFileWithFile( RString sPath, RString sSignatureFile )
 {
@@ -136,7 +136,7 @@ CryptManager::~CryptManager()
 	LUA->UnsetGlobal( "CRYPTMAN" );
 }
 
-static bool WriteFile( RString sFile, RString sBuf )
+static bool WriteFile( const RString &sFile, const RString &sBuf )
 {
 	RageFile output;
 	if( !output.Open(sFile, RageFile::WRITE) )
@@ -190,7 +190,7 @@ void CryptManager::GenerateRSAKey( unsigned int keyLength, RString &sPrivKey, RS
 	sPrivKey = RString( (const char *) buf, iSize );
 }
 
-void CryptManager::GenerateRSAKeyToFile( unsigned int keyLength, RString privFilename, RString pubFilename )
+void CryptManager::GenerateRSAKeyToFile( unsigned int keyLength, const RString &privFilename, const RString &pubFilename )
 {
 	RString sPrivKey, sPubKey;
 	GenerateRSAKey( keyLength, sPrivKey, sPubKey );
@@ -205,7 +205,7 @@ void CryptManager::GenerateRSAKeyToFile( unsigned int keyLength, RString privFil
 	}
 }
 
-void CryptManager::SignFileToFile( RString sPath, RString sSignatureFile )
+void CryptManager::SignFileToFile( const RString &sPath, RString sSignatureFile )
 {
 	RString sPrivFilename = PRIVATE_KEY_PATH;
 	if( sSignatureFile.empty() )
@@ -222,7 +222,7 @@ void CryptManager::SignFileToFile( RString sPath, RString sSignatureFile )
 	WriteFile( sSignatureFile, sSignature );
 }
 
-bool CryptManager::Sign( RString sPath, RString &sSignatureOut, RString sPrivKey )
+bool CryptManager::Sign( const RString &sPath, RString &sSignatureOut, const RString &sPrivKey )
 {
 	if( !IsAFile(sPath) )
 	{
@@ -270,7 +270,7 @@ bool CryptManager::Sign( RString sPath, RString &sSignatureOut, RString sPrivKey
 	return true;
 }
 
-bool CryptManager::VerifyFileWithFile( RString sPath, RString sSignatureFile )
+bool CryptManager::VerifyFileWithFile( const RString &sPath, const RString &sSignatureFile )
 {
 	if( VerifyFileWithFile(sPath, sSignatureFile, PUBLIC_KEY_PATH) )
 		return true;
@@ -289,7 +289,7 @@ bool CryptManager::VerifyFileWithFile( RString sPath, RString sSignatureFile )
 	return false;
 }
 
-bool CryptManager::VerifyFileWithFile( RString sPath, RString sSignatureFile, RString sPublicKeyFile )
+bool CryptManager::VerifyFileWithFile( const RString &sPath, RString sSignatureFile, const RString &sPublicKeyFile )
 {
 	if( sSignatureFile.empty() )
 		sSignatureFile = sPath + SIGNATURE_APPEND;
@@ -316,7 +316,7 @@ bool CryptManager::VerifyFileWithFile( RString sPath, RString sSignatureFile, RS
 	return Verify( file, sSignature, sPublicKey );
 }
 
-bool CryptManager::Verify( RageFileBasic &file, RString sSignature, RString sPublicKey )
+bool CryptManager::Verify( RageFileBasic &file, const RString &sSignature, const RString &sPublicKey )
 {
 	RSAKeyWrapper key;
 	RString sError;
@@ -359,7 +359,7 @@ void CryptManager::GetRandomBytes( void *pData, int iBytes )
 }
 #endif
 
-RString CryptManager::GetMD5ForFile( RString fn )
+RString CryptManager::GetMD5ForFile( const RString &fn )
 {
 	RageFile file;
 	if( !file.Open( fn, RageFile::READ ) )
@@ -376,7 +376,7 @@ RString CryptManager::GetMD5ForFile( RString fn )
 	return RString( (const char *) digest, sizeof(digest) );
 }
 
-RString CryptManager::GetMD5ForString( RString sData )
+RString CryptManager::GetMD5ForString( const RString &sData )
 {
 	unsigned char digest[16];
 
@@ -390,7 +390,7 @@ RString CryptManager::GetMD5ForString( RString sData )
 	return RString( (const char *) digest, sizeof(digest) );
 }
 
-RString CryptManager::GetSHA1ForString( RString sData )
+RString CryptManager::GetSHA1ForString( const RString &sData )
 {
 	unsigned char digest[20];
 
@@ -404,7 +404,7 @@ RString CryptManager::GetSHA1ForString( RString sData )
 	return RString( (const char *) digest, sizeof(digest) );
 }
 
-RString CryptManager::GetSHA1ForFile( RString fn )
+RString CryptManager::GetSHA1ForFile( const RString &fn )
 {
 	RageFile file;
 	if( !file.Open( fn, RageFile::READ ) )

@@ -17,8 +17,8 @@ public:
 	DifficultyIcon();
 	virtual bool EarlyAbortDraw() const { return m_bBlank || Sprite::EarlyAbortDraw(); }
 
-	bool Load( RString sFilePath );
-	virtual void Load( RageTextureID ID ) { Load( ID.filename ); }
+	bool Load( const RString &sFilePath );
+	virtual void Load( const RageTextureID &ID ) { Load( ID.filename ); }
 	virtual void LoadFromNode( const XNode* pNode );
 	virtual DifficultyIcon *Copy() const;
 

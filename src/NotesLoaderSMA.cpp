@@ -14,7 +14,7 @@
 #include "Steps.h"
 #include "Attack.h"
 
-void SMALoader::ProcessMultipliers( TimingData &out, const int iRowsPerBeat, const RString sParam )
+void SMALoader::ProcessMultipliers( TimingData &out, const int iRowsPerBeat, const RString &sParam )
 {
 	vector<RString> arrayMultiplierExpressions;
 	split( sParam, ",", arrayMultiplierExpressions );
@@ -42,7 +42,7 @@ void SMALoader::ProcessMultipliers( TimingData &out, const int iRowsPerBeat, con
 	}
 }
 
-void SMALoader::ProcessBeatsPerMeasure( TimingData &out, const RString sParam )
+void SMALoader::ProcessBeatsPerMeasure( TimingData &out, const RString &sParam )
 {
 	vector<RString> vs1;
 	split( sParam, ",", vs1 );
@@ -84,7 +84,7 @@ void SMALoader::ProcessBeatsPerMeasure( TimingData &out, const RString sParam )
 	}
 }
 
-void SMALoader::ProcessSpeeds( TimingData &out, const RString line, const int rowsPerBeat )
+void SMALoader::ProcessSpeeds( TimingData &out, const RString &line, const int rowsPerBeat )
 {
 	vector<RString> vs1;
 	split( line, ",", vs1 );

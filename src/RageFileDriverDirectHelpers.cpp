@@ -61,7 +61,7 @@ static bool WinMoveFileInternal( const RString &sOldPath, const RString &sNewPat
 	return !!MoveFile( sOldPath, sNewPath );
 }
 
-bool WinMoveFile( RString sOldPath, RString sNewPath )
+bool WinMoveFile( const RString &sOldPath, const RString &sNewPath )
 {
 	if( WinMoveFileInternal( DoPathReplace(sOldPath), DoPathReplace(sNewPath) ) )
 		return true;
@@ -75,7 +75,7 @@ bool WinMoveFile( RString sOldPath, RString sNewPath )
 #endif
 
 /* mkdir -p.  Doesn't fail if Path already exists and is a directory. */
-bool CreateDirectories( RString Path )
+bool CreateDirectories( const RString &Path )
 {
 	// XXX: handle "//foo/bar" paths in Windows
 	vector<RString> parts;
@@ -137,14 +137,14 @@ bool CreateDirectories( RString Path )
 	return true;
 }
 
-DirectFilenameDB::DirectFilenameDB( RString root_ )
+DirectFilenameDB::DirectFilenameDB( const RString &root_ )
 {
 	ExpireSeconds = 30;
 	SetRoot( root_ );
 }
 
 
-void DirectFilenameDB::SetRoot( RString root_ )
+void DirectFilenameDB::SetRoot( const RString &root_ )
 {
 	root = root_;
 

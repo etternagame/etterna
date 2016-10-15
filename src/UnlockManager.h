@@ -137,7 +137,7 @@ public:
 	void GetPoints( const Profile *pProfile, float fScores[NUM_UnlockRequirement] ) const;
 
 	// Unlock an entry by code.
-	void UnlockEntryID( RString sEntryID );
+	void UnlockEntryID( const RString &sEntryID );
 	void UnlockEntryIndex( int iEntryIndex );
 
 	// Lock an entry by code.
@@ -148,7 +148,7 @@ public:
 	 * If a code is associated with at least one song or course, set the preferred song
 	 * and/or course in GAMESTATE to them.
 	 */
-	void PreferUnlockEntryID( RString sEntryID );
+	void PreferUnlockEntryID( const RString &sEntryID );
 
 	// Unlocks a song.
 	void UnlockSong( const Song *pSong );
@@ -161,7 +161,7 @@ public:
 
 	void GetUnlocksByType( UnlockRewardType t, vector<UnlockEntry *> &apEntries );
 	void GetSongsUnlockedByEntryID( vector<Song *> &apSongsOut, RString sEntryID );
-	void GetStepsUnlockedByEntryID( vector<Song *> &apSongsOut, vector<Difficulty> &apStepsOut, RString sEntryID );
+	void GetStepsUnlockedByEntryID( vector<Song *> &apSongsOut, vector<Difficulty> &apStepsOut, const RString &sEntryID );
 
 	const UnlockEntry *FindSong( const Song *pSong ) const;
 	const UnlockEntry *FindSteps( const Song *pSong, const Steps *pSteps ) const;

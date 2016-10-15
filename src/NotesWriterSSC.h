@@ -13,7 +13,7 @@ namespace NotesWriterSSC
 	 * @param vpStepsToSave the Steps to save.
 	 * @param bSavingCache a flag to see if we're saving certain cache data.
 	 * @return its success or failure. */
-	bool Write( RString sPath, const Song &out, const vector<Steps*>& vpStepsToSave, bool bSavingCache );
+	bool Write( RString &sPath, const Song &out, const vector<Steps*>& vpStepsToSave, bool bSavingCache );
 	/**
 	 * @brief Get some contents about the edit file first.
 	 * @param pSong the Song in question.

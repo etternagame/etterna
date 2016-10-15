@@ -16,7 +16,7 @@ public:
 	~GraphDisplay();
 	virtual GraphDisplay *Copy() const;
 
-	void Load( RString sMetricsGroup );
+	void Load( const RString &sMetricsGroup );
 	void Set( const StageStats &ss, const PlayerStageStats &s );
 
 	// Lua

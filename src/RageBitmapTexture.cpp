@@ -37,7 +37,7 @@ static void GetResolutionFromFileName( RString sPath, int &iWidth, int &iHeight 
 	iHeight = maybe_height;
 }
 
-RageBitmapTexture::RageBitmapTexture( RageTextureID name ) :
+RageBitmapTexture::RageBitmapTexture( const RageTextureID &name ) :
 	RageTexture( name ), m_uTexHandle(0)
 {
 	Create();

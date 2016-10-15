@@ -669,7 +669,7 @@ RString GameSoundManager::GetMusicPath() const
 }
 
 void GameSoundManager::PlayMusic( 
-	RString sFile, 
+	const RString &sFile, 
 	const TimingData *pTiming, 
 	bool bForceLoop,
 	float fStartSecond, 
@@ -749,7 +749,7 @@ void GameSoundManager::HandleSongTimer( bool on )
 	g_UpdatingTimer = on;
 }
 
-void GameSoundManager::PlayOnce( RString sPath )
+void GameSoundManager::PlayOnce( const RString &sPath )
 {
 	/* Add the sound to the g_SoundsToPlayOnce queue. */
 	g_Mutex->Lock();
@@ -758,7 +758,7 @@ void GameSoundManager::PlayOnce( RString sPath )
 	g_Mutex->Unlock();
 }
 
-void GameSoundManager::PlayOnceFromDir( RString sPath )
+void GameSoundManager::PlayOnceFromDir( const RString &sPath )
 {
 	/* Add the path to the g_SoundsToPlayOnceFromDir queue. */
 	g_Mutex->Lock();
@@ -767,7 +767,7 @@ void GameSoundManager::PlayOnceFromDir( RString sPath )
 	g_Mutex->Unlock();
 }
 
-void GameSoundManager::PlayOnceFromAnnouncer( RString sPath )
+void GameSoundManager::PlayOnceFromAnnouncer( const RString &sPath )
 {
 	/* Add the path to the g_SoundsToPlayOnceFromAnnouncer queue. */
 	g_Mutex->Lock();

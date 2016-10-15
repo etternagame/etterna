@@ -8,7 +8,7 @@
 class RageBitmapTexture : public RageTexture
 {
 public:
-	RageBitmapTexture( RageTextureID name );
+	RageBitmapTexture( const RageTextureID &name );
 	virtual ~RageBitmapTexture();
 	/* only called by RageTextureManager::InvalidateTextures */
 	virtual void Invalidate() { m_uTexHandle = 0; /* don't Destroy() */}

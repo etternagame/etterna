@@ -11,7 +11,7 @@ public:
 	virtual RString Init() { return RString(); }
 	virtual ~LoadingWindow() { }
 
-	virtual void SetText( RString str ) = 0;
+	virtual void SetText( const RString &str ) = 0;
 	virtual void SetIcon( const RageSurface *pIcon ) { }
 	virtual void SetSplash( const RageSurface *pSplash ) { }
 	virtual void SetProgress( const int progress ) { m_progress=progress; }

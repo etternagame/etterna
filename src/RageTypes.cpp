@@ -64,7 +64,7 @@ RString RageColor::ToString() const
 		return ssprintf( "#%02X%02X%02X%02X", iR, iG, iB, iA );
 }
 
-RString RageColor::NormalizeColorString( RString sColor )
+RString RageColor::NormalizeColorString( const RString &sColor )
 {
 	if( sColor.empty() )
 		return "";

@@ -36,17 +36,17 @@ ControllerStateDisplay::ControllerStateDisplay()
 	m_idsLast = InputDeviceState_Invalid;
 }
 
-void ControllerStateDisplay::LoadMultiPlayer( RString sType, MultiPlayer mp )
+void ControllerStateDisplay::LoadMultiPlayer( const RString &sType, MultiPlayer mp )
 {
 	LoadInternal( sType, mp, GameController_1 );
 }
 
-void ControllerStateDisplay::LoadGameController( RString sType, GameController gc )
+void ControllerStateDisplay::LoadGameController( const RString &sType, GameController gc )
 {
 	LoadInternal( sType, MultiPlayer_Invalid, gc );
 }
 
-void ControllerStateDisplay::LoadInternal( RString sType, MultiPlayer mp, GameController gc )
+void ControllerStateDisplay::LoadInternal( const RString &sType, MultiPlayer mp, GameController gc )
 {
 	ASSERT( !m_bIsLoaded );
 	m_bIsLoaded = true;

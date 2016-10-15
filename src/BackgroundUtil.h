@@ -37,7 +37,7 @@ struct BackgroundDef
 	 * @param effect the intended effect.
 	 * @param f1 the primary filename for the definition.
 	 * @param f2 the secondary filename (optional). */
-	BackgroundDef(RString effect, RString f1, RString f2):
+	BackgroundDef(const RString &effect, const RString &f1, const RString &f2):
 		m_sEffect(effect), m_sFile1(f1), m_sFile2(f2),
 		m_sColor1(""), m_sColor2("") {}
 };

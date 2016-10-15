@@ -67,7 +67,7 @@ public:
 	void LoadFromNode( const XNode* pNode );
 
 	RString ToString( int iMaxValues = -1 ) const; // default = all
-	void FromString( RString sValues );
+	void FromString( const RString &sValues );
 
 	static ThemeMetric<bool> WRITE_SIMPLE_VALIES;
 	static ThemeMetric<bool> WRITE_COMPLEX_VALIES;

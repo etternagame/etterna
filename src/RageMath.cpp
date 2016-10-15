@@ -503,7 +503,7 @@ void RageQuatFromPRH(RageVector4* pOut, RageVector3 prh )
 	pOut->z = cX * cY * sZ - sX * sY * cZ;
 }
 
-void RageMatrixFromQuat( RageMatrix* pOut, const RageVector4 q )
+void RageMatrixFromQuat( RageMatrix* pOut, const RageVector4 &q )
 {
 	// D3DXMatrixRotationQuaternion is slower
 	float xx = q.x * (q.x + q.x);

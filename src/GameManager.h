@@ -46,8 +46,8 @@ public:
 
 	const StepsTypeInfo &GetStepsTypeInfo( StepsType st );
 	StepsType StringToStepsType( RString sStepsType );
-	const Game* StringToGame( RString sGame );
-	const Style* GameAndStringToStyle( const Game* pGame, RString sStyle );
+	const Game* StringToGame( const RString &sGame );
+	const Style* GameAndStringToStyle( const Game* pGame, const RString &sStyle );
 	RString StyleToLocalizedString( const Style* s );
 
 

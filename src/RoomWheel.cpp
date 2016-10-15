@@ -22,7 +22,7 @@ RoomWheel::~RoomWheel()
 	m_CurWheelItemData.clear();
 }
 
-void RoomWheel::Load( RString sType ) 
+void RoomWheel::Load( const RString &sType ) 
 {
 	WheelBase::Load( sType );
 
@@ -40,7 +40,7 @@ WheelItemBase *RoomWheel::MakeItem()
 	return new RoomWheelItem;
 }
 
-RoomWheelItem::RoomWheelItem( RString sType ):
+RoomWheelItem::RoomWheelItem( const RString &sType ):
 	WheelItemBase( sType )
 {
 	Load( sType );
@@ -64,7 +64,7 @@ RoomWheelItem::RoomWheelItem( const RoomWheelItem &cpy ):
 	}
 }
 
-void RoomWheelItem::Load( RString sType )
+void RoomWheelItem::Load( const RString &sType )
 {
 	// colorpart gets added first in MusicWheelItem, so follow that here.
 	m_sprColorPart.Load( THEME->GetPathG(sType,"ColorPart") );

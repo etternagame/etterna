@@ -278,7 +278,7 @@ public:
 	const RString& GetLabelAtRow( int iNoteRow ) const { return GetLabelSegmentAtRow(iNoteRow)->GetLabel(); }
 	const RString& GetLabelAtBeat( float fBeat ) const { return GetLabelAtRow( BeatToNoteRow(fBeat) ); }
 	void SetLabelAtRow( int iNoteRow, const RString& sLabel ) { AddSegment( LabelSegment(iNoteRow,sLabel) ); }
-	void SetLabelAtBeat( float fBeat, const RString sLabel ) { SetLabelAtRow( BeatToNoteRow( fBeat ), sLabel ); }
+	void SetLabelAtBeat( float fBeat, const RString &sLabel ) { SetLabelAtRow( BeatToNoteRow( fBeat ), sLabel ); }
 	bool DoesLabelExist( const RString& sLabel ) const;
 
 	float GetSpeedPercentAtRow( int iNoteRow ) const { return GetSpeedSegmentAtRow(iNoteRow)->GetRatio(); }

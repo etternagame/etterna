@@ -252,7 +252,7 @@ static RString GetSMNotesTag( const Song &song, const Steps &in )
 	return JoinLineList( lines );
 }
 
-bool NotesWriterSM::Write( RString sPath, Song &out, const vector<Steps*>& vpStepsToSave )
+bool NotesWriterSM::Write( const RString &sPath, Song &out, const vector<Steps*>& vpStepsToSave )
 {
 	int flags = RageFile::WRITE;
 

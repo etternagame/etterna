@@ -10,9 +10,9 @@ void ForceToAscii( RString &str );
 class RageMovieTexture : public RageTexture
 {
 public:
-	static RageMovieTexture *Create( RageTextureID ID );
+	static RageMovieTexture *Create( const RageTextureID &ID );
 
-	RageMovieTexture( RageTextureID ID ): RageTexture(ID) { }
+	RageMovieTexture( const RageTextureID &ID ): RageTexture(ID) { }
 	virtual ~RageMovieTexture() { }
 	virtual void Update( float /* fDeltaTime */ ) { }
 
@@ -24,14 +24,14 @@ public:
 
 	bool IsAMovie() const { return true; }
 
-	static bool GetFourCC( RString fn, RString &handler, RString &type );
+	static bool GetFourCC( const RString &fn, RString &handler, RString &type );
 };
 
 class RageMovieTextureDriver: public RageDriver
 {
 public:
 	virtual ~RageMovieTextureDriver() { }
-	virtual RageMovieTexture *Create( RageTextureID ID, RString &sError ) = 0;
+	virtual RageMovieTexture *Create( const RageTextureID &ID, RString &sError ) = 0;
 	static DriverList m_pDriverList;
 };
 

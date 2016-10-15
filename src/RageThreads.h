@@ -151,7 +151,7 @@ class EventImpl;
 class RageEvent: public RageMutex
 {
 public:
-	RageEvent( RString name );
+	RageEvent( const RString &name );
 	~RageEvent();
 
 	/*
@@ -176,7 +176,7 @@ class SemaImpl;
 class RageSemaphore
 {
 public:
-	RageSemaphore( RString sName, int iInitialValue = 0 );
+	RageSemaphore( const RString &sName, int iInitialValue = 0 );
 	~RageSemaphore();
 
 	RString GetName() const { return m_sName; }

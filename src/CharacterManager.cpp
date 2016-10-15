@@ -105,7 +105,7 @@ void CharacterManager::UndemandGraphics()
 		(*c)->UndemandGraphics();
 }
 
-Character* CharacterManager::GetCharacterFromID( RString sCharacterID )
+Character* CharacterManager::GetCharacterFromID( const RString &sCharacterID )
 {
 	for( unsigned i=0; i<m_pCharacters.size(); i++ )
 	{

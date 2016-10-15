@@ -4,7 +4,7 @@
 #include "EnumHelper.h"
 #include <ctime>
 
-int StringToDayInYear( RString sDayInYear );
+int StringToDayInYear( const RString &sDayInYear );
 
 /** @brief The number of days we check for previously. */
 const int NUM_LAST_DAYS = 7;
@@ -145,7 +145,7 @@ struct DateTime
 	 *
 	 * @param sDateTime the string to attempt to convert.
 	 * @return true if the conversion worked, or false otherwise. */
-	bool FromString( const RString sDateTime );
+	bool FromString( const RString &sDateTime );
 };
 
 #endif

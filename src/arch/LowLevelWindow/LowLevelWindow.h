@@ -16,7 +16,7 @@ public:
 
 	virtual ~LowLevelWindow() { }
 
-	virtual void *GetProcAddress( RString s ) = 0;
+	virtual void *GetProcAddress( const RString &s ) = 0;
 
 	// Return "" if mode change was successful, otherwise an error message.
 	// bNewDeviceOut is set true if a new device was created and textures

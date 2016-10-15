@@ -37,7 +37,7 @@ public:
 
 	bool GetCardLocked( PlayerNumber pn ) const { return m_bCardLocked[pn]; }
 
-	bool PathIsMemCard( RString sDir ) const;
+	bool PathIsMemCard( const RString &sDir ) const;
 
 	bool IsNameAvailable( PlayerNumber pn ) const;
 	RString GetName( PlayerNumber pn ) const;

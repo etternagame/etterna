@@ -108,7 +108,7 @@ RString DateTime::GetString() const
 	return s;
 }
 
-bool DateTime::FromString( const RString sDateTime )
+bool DateTime::FromString( const RString &sDateTime )
 {
 	Init();
 
@@ -145,7 +145,7 @@ RString DayInYearToString( int iDayInYear )
 	return ssprintf("DayInYear%03d",iDayInYear);
 }
 
-int StringToDayInYear( RString sDayInYear )
+int StringToDayInYear( const RString &sDayInYear )
 {
 	int iDayInYear;
 	if( sscanf( sDayInYear, "DayInYear%d", &iDayInYear ) != 1 )

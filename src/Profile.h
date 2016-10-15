@@ -137,7 +137,7 @@ public:
 	// smart accessors
 	RString GetDisplayNameOrHighScoreName() const;
 	Character *GetCharacter() const;
-	void SetCharacter(const RString sCharacterID);
+	void SetCharacter(const RString &sCharacterID);
 	RString GetDisplayTotalCaloriesBurned() const;		// remove me and use Lua instead
 	RString GetDisplayTotalCaloriesBurnedToday() const;	// remove me and use Lua instead
 	int GetCalculatedWeightPounds() const;	// returns a default value if m_iWeightPounds isn't set
@@ -155,7 +155,7 @@ public:
 	float GetSongsAndCoursesPercentCompleteAllDifficulties( StepsType st ) const;
 	bool GetDefaultModifiers( const Game* pGameType, RString &sModifiersOut ) const;
 	void SetDefaultModifiers( const Game* pGameType, const RString &sModifiers );
-	bool IsCodeUnlocked( RString sUnlockEntryID ) const;
+	bool IsCodeUnlocked( const RString &sUnlockEntryID ) const;
 	Song *GetMostPopularSong() const;
 	Course *GetMostPopularCourse() const;
 
@@ -391,13 +391,13 @@ public:
 
 	// Loading and saving
 	void HandleStatsPrefixChange(RString dir, bool require_signature);
-	ProfileLoadResult LoadAllFromDir( RString sDir, bool bRequireSignature );
+	ProfileLoadResult LoadAllFromDir( const RString &sDir, bool bRequireSignature );
 	ProfileLoadResult LoadStatsFromDir(RString dir, bool require_signature);
-	void LoadTypeFromDir(RString dir);
-	void LoadCustomFunction( RString sDir );
-	bool SaveAllToDir( RString sDir, bool bSignData ) const;
+	void LoadTypeFromDir(const RString &dir);
+	void LoadCustomFunction( const RString &sDir );
+	bool SaveAllToDir( const RString &sDir, bool bSignData ) const;
 
-	ProfileLoadResult LoadEditableDataFromDir( RString sDir );
+	ProfileLoadResult LoadEditableDataFromDir( const RString &sDir );
 	ProfileLoadResult LoadStatsXmlFromNode( const XNode* pNode, bool bIgnoreEditable = true );
 	void LoadGeneralDataFromNode( const XNode* pNode );
 	void LoadSongScoresFromNode( const XNode* pNode );
@@ -406,8 +406,8 @@ public:
 	void LoadScreenshotDataFromNode( const XNode* pNode );
 	void LoadCalorieDataFromNode( const XNode* pNode );
 
-	void SaveTypeToDir(RString dir) const;
-	void SaveEditableDataToDir( RString sDir ) const;
+	void SaveTypeToDir(const RString &dir) const;
+	void SaveEditableDataToDir( const RString &sDir ) const;
 	bool SaveStatsXmlToDir( RString sDir, bool bSignData ) const;
 	XNode* SaveStatsXmlCreateNode() const;
 	XNode* SaveGeneralDataCreateNode() const;
@@ -419,12 +419,12 @@ public:
 
 	XNode* SaveCoinDataCreateNode() const;
 
-	void SaveStatsWebPageToDir( RString sDir ) const;
-	void SaveMachinePublicKeyToDir( RString sDir ) const;
+	void SaveStatsWebPageToDir( const RString &sDir ) const;
+	void SaveMachinePublicKeyToDir( const RString &sDir ) const;
 
-	static void MoveBackupToDir( RString sFromDir, RString sToDir );
-	static RString MakeUniqueFileNameNoExtension( RString sDir, RString sFileNameBeginning );
-	static RString MakeFileNameNoExtension( RString sFileNameBeginning, int iIndex );
+	static void MoveBackupToDir( const RString &sFromDir, const RString &sToDir );
+	static RString MakeUniqueFileNameNoExtension( const RString &sDir, const RString &sFileNameBeginning );
+	static RString MakeFileNameNoExtension( const RString &sFileNameBeginning, int iIndex );
 
 	// Lua
 	void PushSelf( lua_State *L );

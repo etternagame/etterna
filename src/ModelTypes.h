@@ -128,7 +128,7 @@ struct msAnimation
 		return -1;
 	}
 
-	bool LoadMilkshapeAsciiBones( RString sAniName, RString sPath );
+	bool LoadMilkshapeAsciiBones( const RString &sAniName, RString sPath );
 
 	vector<msBone>		Bones;
 	int			nTotalFrames;

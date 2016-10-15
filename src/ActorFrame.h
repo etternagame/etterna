@@ -81,10 +81,10 @@ public:
 	void SetVanishPoint( float fX, float fY) { m_fVanishX = fX; m_fVanishY = fY; }
 
 	void SetCustomLighting( bool bCustomLighting ) { m_bOverrideLighting = bCustomLighting; }
-	void SetAmbientLightColor( RageColor c ) { m_ambientColor = c; }
-	void SetDiffuseLightColor( RageColor c ) { m_diffuseColor = c; }
-	void SetSpecularLightColor( RageColor c ) { m_specularColor = c; }
-	void SetLightDirection( RageVector3 vec ) { m_lightDirection = vec; }
+	void SetAmbientLightColor( const RageColor &c ) { m_ambientColor = c; }
+	void SetDiffuseLightColor( const RageColor &c ) { m_diffuseColor = c; }
+	void SetSpecularLightColor( const RageColor &c ) { m_specularColor = c; }
+	void SetLightDirection( const RageVector3 &vec ) { m_lightDirection = vec; }
 
 	virtual void SetPropagateCommands( bool b );
 

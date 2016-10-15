@@ -34,13 +34,13 @@ public:
 	Profile *GetLocalProfileFromIndex( int iIndex );
 	RString GetLocalProfileIDFromIndex( int iIndex );
 
-	bool CreateLocalProfile( RString sName, RString &sProfileIDOut );
-	void AddLocalProfileByID( Profile *pProfile, RString sProfileID ); // transfers ownership of pProfile
-	bool RenameLocalProfile( RString sProfileID, RString sNewName );
-	bool DeleteLocalProfile( RString sProfileID );
+	bool CreateLocalProfile( const RString &sName, RString &sProfileIDOut );
+	void AddLocalProfileByID( Profile *pProfile, const RString &sProfileID ); // transfers ownership of pProfile
+	bool RenameLocalProfile( const RString &sProfileID, const RString &sNewName );
+	bool DeleteLocalProfile( const RString &sProfileID );
 	void GetLocalProfileIDs( vector<RString> &vsProfileIDsOut ) const;
 	void GetLocalProfileDisplayNames( vector<RString> &vsProfileDisplayNamesOut ) const;
-	int GetLocalProfileIndexFromID( RString sProfileID ) const;
+	int GetLocalProfileIndexFromID( const RString &sProfileID ) const;
 	int GetNumLocalProfiles() const;
 
 	RString GetStatsPrefix() { return m_stats_prefix; }
@@ -49,9 +49,9 @@ public:
 	bool LoadFirstAvailableProfile( PlayerNumber pn, bool bLoadEdits = true );	// memory card or local profile
 	bool LoadLocalProfileFromMachine( PlayerNumber pn );
 	bool LoadProfileFromMemoryCard( PlayerNumber pn, bool bLoadEdits = true );
-	bool FastLoadProfileNameFromMemoryCard( RString sRootDir, RString &sName ) const;
+	bool FastLoadProfileNameFromMemoryCard( const RString &sRootDir, RString &sName ) const;
 	bool SaveProfile( PlayerNumber pn ) const;
-	bool SaveLocalProfile( RString sProfileID );
+	bool SaveLocalProfile( const RString &sProfileID );
 	void UnloadProfile( PlayerNumber pn );
 
 	void MergeLocalProfiles(RString const& from_id, RString const& to_id);
@@ -112,7 +112,7 @@ public:
 	static Preference1D<RString> m_sDefaultLocalProfileID;
 
 private:
-	ProfileLoadResult LoadProfile( PlayerNumber pn, RString sProfileDir, bool bIsMemCard );
+	ProfileLoadResult LoadProfile( PlayerNumber pn, const RString &sProfileDir, bool bIsMemCard );
 
 	// Directory that contains the profile.  Either on local machine or
 	// on a memory card.

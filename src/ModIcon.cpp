@@ -24,7 +24,7 @@ ModIcon::ModIcon( const ModIcon &cpy ):
 	this->AddChild( &m_text );
 }
 
-void ModIcon::Load( RString sMetricsGroup )
+void ModIcon::Load( const RString &sMetricsGroup )
 {
 	m_sprFilled.Load( THEME->GetPathG(sMetricsGroup,"Filled") );
 	m_sprFilled->SetName("Filled");

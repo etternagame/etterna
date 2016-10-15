@@ -22,7 +22,7 @@ class MovieDecoder
 public:
 	virtual ~MovieDecoder() { }
 
-	virtual RString Open( RString sFile ) = 0;
+	virtual RString Open( const RString &sFile ) = 0;
 	virtual void Close() = 0;
 	virtual void Rewind() = 0;
 
@@ -80,7 +80,7 @@ public:
 class MovieTexture_Generic: public RageMovieTexture
 {
 public:
-	MovieTexture_Generic( RageTextureID ID, MovieDecoder *pDecoder );
+	MovieTexture_Generic( const RageTextureID &ID, MovieDecoder *pDecoder );
 	virtual ~MovieTexture_Generic();
 	RString Init();
 

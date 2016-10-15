@@ -58,7 +58,7 @@ struct SSCLoader : public SMLoader
 	 * @param bAddStepsToSong a flag to determine if we add the edit steps to the song file.
 	 * @return its success or failure.
 	 */
-	bool LoadEditFromFile( RString sEditFilePath, ProfileSlot slot, bool bAddStepsToSong, Song *givenSong=NULL );
+	bool LoadEditFromFile( const RString &sEditFilePath, ProfileSlot slot, bool bAddStepsToSong, Song *givenSong=NULL );
 	/**
 	 * @brief Attempt to parse the edit file in question.
 	 * @param msd the edit file itself.
@@ -76,11 +76,11 @@ struct SSCLoader : public SMLoader
 	 * @return true if successful, false otherwise. */
 	virtual bool LoadNoteDataFromSimfile( const RString &cachePath, Steps &out );
 	
-	void ProcessBPMs( TimingData &, const RString );
-	void ProcessStops( TimingData &, const RString );
-	void ProcessWarps( TimingData &, const RString, const float );
-	void ProcessLabels( TimingData &, const RString );
-	virtual void ProcessCombos( TimingData &, const RString, const int = -1 );
+	void ProcessBPMs( TimingData &, const RString &sParam );
+	void ProcessStops( TimingData &, const RString &sParam );
+	void ProcessWarps( TimingData &, const RString &sParam, const float );
+	void ProcessLabels( TimingData &, const RString &param );
+	virtual void ProcessCombos( TimingData &, const RString &line, const int = -1 );
 	void ProcessScrolls( TimingData &, const RString );
 };
 

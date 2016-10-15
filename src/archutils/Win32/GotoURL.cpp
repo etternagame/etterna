@@ -22,7 +22,7 @@ static LONG GetRegKey( HKEY key, RString subkey, LPTSTR retdata )
     return ERROR_SUCCESS;
 }
 
-bool GotoURL( RString sUrl )
+bool GotoURL( const RString &sUrl )
 {
 	// First try ShellExecute()
 	int iRet = (int) ShellExecute( NULL, "open", sUrl, NULL, NULL, SW_SHOWDEFAULT );

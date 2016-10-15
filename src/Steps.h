@@ -112,16 +112,16 @@ public:
 	vector<RString> m_sAttackString;
 
 	RString GetChartName() const			{ return parent ? Real()->GetChartName() : this->chartName; }
-	void SetChartName(const RString name)	{ this->chartName = name; }
-	void SetFilename( RString fn )			{ m_sFilename = fn; }
+	void SetChartName(const RString &name)	{ this->chartName = name; }
+	void SetFilename( const RString &fn )			{ m_sFilename = fn; }
 	RString GetFilename() const			{ return m_sFilename; }
 	void SetSavedToDisk( bool b )			{ DeAutogen(); m_bSavedToDisk = b; }
 	bool GetSavedToDisk() const			{ return Real()->m_bSavedToDisk; }
 	void SetDifficulty( Difficulty dc )		{ SetDifficultyAndDescription( dc, GetDescription() ); }
-	void SetDescription( RString sDescription ) 	{ SetDifficultyAndDescription( this->GetDifficulty(), sDescription ); }
-	void SetDifficultyAndDescription( Difficulty dc, RString sDescription );
-	void SetCredit( RString sCredit );
-	void SetChartStyle( RString sChartStyle );
+	void SetDescription( const RString &sDescription ) 	{ SetDifficultyAndDescription( this->GetDifficulty(), sDescription ); }
+	void SetDifficultyAndDescription( Difficulty dc, const RString &sDescription );
+	void SetCredit( const RString &sCredit );
+	void SetChartStyle( const RString &sChartStyle );
 	static bool MakeValidEditDescription( RString &sPreferredDescription );	// return true if was modified
 
 	void SetLoadedFromProfile( ProfileSlot slot )	{ m_LoadedFromProfile = slot; }
@@ -171,13 +171,12 @@ public:
 	/* Needs to be generated with timingdata and stored in timingdata - Mina */
 
 	vector<float> ElapsedTimesAtAllRows;
-	vector<float> GetElapsedTimesAtAllRows() { return ElapsedTimesAtAllRows; };
 	void SetElapsedTimesAtAllRows(vector<float>& etar) { ElapsedTimesAtAllRows = etar; };
 	void UnsetElapsedTimesAtAllRows() { std::vector<float> emptyVector; ElapsedTimesAtAllRows.swap(emptyVector); };
 
 	vector<float> ElapsedTimesAtTapRows;
 	vector<float> GetElapsedTimesAtTapRows() { return ElapsedTimesAtTapRows; }
-	void SetElapsedTimesAtTapRows(vector<float> etat) { ElapsedTimesAtTapRows = etat; };
+	void SetElapsedTimesAtTapRows(vector<float> &etat) { ElapsedTimesAtTapRows = etat; };
 
 	float GetElapsedTimeAtRow(int irow) const { return ElapsedTimesAtAllRows[irow]; };
 	float GetElapsedTimeAtTapRow(int irow) const { return ElapsedTimesAtTapRows[irow]; };
@@ -189,7 +188,7 @@ public:
 	RString ChartKeyRecord = "Invalid";
 	RString GetChartKey() const;
 	RString GetChartKeyRecord() const;
-	void SetChartKey(const RString k)  { this->ChartKey = k; };
+	void SetChartKey(const RString &k)  { this->ChartKey = k; };
 
 	/* This is a reimplementation of the lua version of the script to generate chart keys, except this time
 	using the notedata stored in game memory immediately after reading it than parsing it using lua. - Mina */

@@ -432,7 +432,7 @@ struct LanguageInfo
 };
 void GetLanguageInfos( vector<const LanguageInfo*> &vAddTo );
 const LanguageInfo *GetLanguageInfo( const RString &sIsoCode );
-RString GetLanguageNameFromISO639Code( RString sName );
+RString GetLanguageNameFromISO639Code( const RString &sName );
 
 // Splits a RString into an vector<RString> according the Delimitor.
 void split( const RString &sSource, const RString &sDelimitor, vector<RString>& asAddIt, const bool bIgnoreEmpty = true );

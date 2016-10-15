@@ -11,7 +11,7 @@ public:
 	RandomSample();
 	virtual ~RandomSample();
 
-	bool Load( RString sFilePath, int iMaxToLoad = 1000 /*load all*/ );
+	bool Load( const RString &sFilePath, int iMaxToLoad = 1000 /*load all*/ );
 	void UnloadAll();
 	void PlayRandom();
 	void PlayCopyOfRandom();
@@ -19,7 +19,7 @@ public:
 
 private:
 	bool LoadSoundDir( RString sDir, int iMaxToLoad  );
-	bool LoadSound( RString sSoundFilePath );
+	bool LoadSound( const RString &sSoundFilePath );
 	int GetNextToPlay();
 
 	vector<RageSound*> m_pSamples;

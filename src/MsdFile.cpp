@@ -143,7 +143,7 @@ void MsdFile::ReadBuf( const char *buf, int len, bool bUnescape )
 }
 
 // returns true if successful, false otherwise
-bool MsdFile::ReadFile( RString sNewPath, bool bUnescape )
+bool MsdFile::ReadFile( const RString &sNewPath, bool bUnescape )
 {
 	error = "";
 

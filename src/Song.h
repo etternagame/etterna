@@ -17,7 +17,7 @@ struct lua_State;
 struct BackgroundChange;
 
 void FixupPath( RString &path, const RString &sSongPath );
-RString GetSongAssetPath( RString sPath, const RString &sSongPath );
+RString GetSongAssetPath( const RString &sPath, const RString &sSongPath );
 
 /** @brief The version of the .ssc file format. */
 const static float STEPFILE_VERSION_NUMBER = 0.83f;
@@ -67,7 +67,7 @@ class Song
 {
 	RString m_sSongDir;
 public:
-	void SetSongDir( const RString sDir ) { m_sSongDir = sDir; }
+	void SetSongDir( const RString &sDir ) { m_sSongDir = sDir; }
 	RString GetSongDir() { return m_sSongDir; }
 
 	/** @brief When should this song be displayed in the music wheel? */
@@ -89,9 +89,9 @@ public:
 	 * @param sDir the song directory from which to load. */
 	bool LoadFromSongDir( RString sDir, bool load_autosave= false );
 	// This one takes the effort to reuse Steps pointers as best as it can
-	bool ReloadFromSongDir( RString sDir );
+	bool ReloadFromSongDir( const RString &sDir );
 	bool ReloadFromSongDir() { return ReloadFromSongDir(GetSongDir()); }
-	void LoadEditsFromSongDir(RString dir);
+	void LoadEditsFromSongDir(const RString &dir);
 
 	bool HasAutosaveFile();
 	bool LoadAutosaveFile();
@@ -118,13 +118,13 @@ public:
 	 * @param sPath the path where we're saving the file.
 	 * @param bSavingCache a flag to determine if we're saving cache data.
 	 */
-	bool SaveToSSCFile(RString sPath, bool bSavingCache, bool autosave= false);
+	bool SaveToSSCFile(const RString &sPath, bool bSavingCache, bool autosave= false);
 	/** @brief Save to the SSC and SM files no matter what. */
 	void Save(bool autosave= false);
 	/** 
 	  * @brief Save the current Song to a JSON file.
 	  * @return its success or failure. */
-	bool SaveToJsonFile( RString sPath );
+	bool SaveToJsonFile( const RString &sPath );
 	/** 
 	  * @brief Save the current Song to a cache file using the preferred format.
 	  * @return its success or failure. */
@@ -295,7 +295,7 @@ public:
 	bool HasAttacks() const;
 	bool HasPreviewVid() const;
 
-	bool Matches(RString sGroup, RString sSong) const;
+	bool Matches(const RString &sGroup, const RString &sSong) const;
 
 	/** @brief The Song's TimingData. */
 	TimingData m_SongTiming;

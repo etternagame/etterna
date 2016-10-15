@@ -342,7 +342,7 @@ static bool WriteDWINotesTag( RageFile &f, const Steps &out )
 	return true;
 }
 
-bool NotesWriterDWI::Write( RString sPath, const Song &out )
+bool NotesWriterDWI::Write( const RString &sPath, const Song &out )
 {
 	RageFile f;
 	if( !f.Open( sPath, RageFile::WRITE ) )

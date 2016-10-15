@@ -14,7 +14,7 @@ public:
 	virtual void Init( const PlayerState* pPlayerState, const PlayerStageStats* pPlayerStageStats );
 
 	virtual void SetScore( int iNewScore );
-	virtual void SetText( RString s ) { m_text.SetText(s); }
+	virtual void SetText( const RString &s ) { m_text.SetText(s); }
 
 protected:
 	AutoActor	m_sprFrame;

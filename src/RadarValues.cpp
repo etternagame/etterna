@@ -84,7 +84,7 @@ RString RadarValues::ToString( int iMaxValues ) const
 	return join( ",",asRadarValues );
 }
 
-void RadarValues::FromString( RString sRadarValues )
+void RadarValues::FromString( const RString &sRadarValues )
 {
 	vector<RString> saValues;
 	split( sRadarValues, ",", saValues, true );

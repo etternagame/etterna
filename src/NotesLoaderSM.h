@@ -62,7 +62,7 @@ struct SMLoader
 	 * @param out a vector of files found in the path.
 	 */
 	virtual void GetApplicableFiles( const RString &sPath, vector<RString> &out, bool load_autosave= false );
-	virtual bool LoadEditFromFile( RString sEditFilePath, ProfileSlot slot, bool bAddStepsToSong, Song *givenSong=NULL );
+	virtual bool LoadEditFromFile( const RString &sEditFilePath, ProfileSlot slot, bool bAddStepsToSong, Song *givenSong=NULL );
 	virtual bool LoadEditFromBuffer( const RString &sBuffer, const RString &sEditFilePath, ProfileSlot slot, Song *givenSong=NULL );
 	virtual bool LoadEditFromMsd( const MsdFile &msd, const RString &sEditFilePath, ProfileSlot slot, bool bAddStepsToSong, Song *givenSong=NULL );
 	virtual bool LoadFromBGChangesString(BackgroundChange &change, 
@@ -74,7 +74,7 @@ struct SMLoader
 	 * @param line the string in question.
 	 * @param rowsPerBeat the number of rows per beat for this purpose. */
 	void ParseBPMs(vector< pair<float, float> > &out,
-	               const RString line,
+	               const RString &line,
 	               const int rowsPerBeat = -1);
 	/**
 	 * @brief Process the BPM Segments from the string.
@@ -110,7 +110,7 @@ struct SMLoader
 	 * @param line the string in question.
 	 * @param rowsPerBeat the number of rows per beat for this purpose. */
 	void ProcessDelays(TimingData & out,
-			  const RString line,
+			  const RString &line,
 			  const int rowsPerBeat = -1);
 	/**
 	 * @brief Process the Time Signature Segments from the string.
@@ -118,7 +118,7 @@ struct SMLoader
 	 * @param line the string in question.
 	 * @param rowsPerBeat the number of rows per beat for this purpose. */
 	void ProcessTimeSignatures(TimingData & out,
-			   const RString line,
+			   const RString &line,
 			   const int rowsPerBeat = -1);
 	/**
 	 * @brief Process the Tickcount Segments from the string.
@@ -126,7 +126,7 @@ struct SMLoader
 	 * @param line the string in question.
 	 * @param rowsPerBeat the number of rows per beat for this purpose. */
 	void ProcessTickcounts(TimingData & out,
-				   const RString line,
+				   const RString &line,
 				   const int rowsPerBeat = -1);
 	
 	/**
@@ -135,11 +135,11 @@ struct SMLoader
 	 * @param line the string in question.
 	 * @param rowsPerBeat the number of rows per beat for this purpose. */
 	virtual void ProcessSpeeds(TimingData & out,
-				   const RString line,
+				   const RString &line,
 				   const int rowsPerBeat = -1);
 	
 	virtual void ProcessCombos(TimingData & /* out */,
-				   const RString line,
+				   const RString &line,
 				   const int /* rowsPerBeat */ = -1) {}
 	
 	/**
@@ -148,7 +148,7 @@ struct SMLoader
 	 * @param line the string in question.
 	 * @param rowsPerBeat the number of rows per beat for this purpose. */
 	virtual void ProcessFakes(TimingData & out,
-				  const RString line,
+				  const RString &line,
 				  const int rowsPerBeat = -1);
 	
 	virtual void ProcessBGChanges( Song &out, const RString &sValueName, 
@@ -174,7 +174,7 @@ struct SMLoader
 	 * @param line The line that contains the value.
 	 * @param rowsPerBeat the number of rows per beat according to the original file.
 	 * @return the converted beat value. */
-	float RowToBeat(RString line, const int rowsPerBeat);
+	float RowToBeat(const RString &line, const int rowsPerBeat);
 	
 protected:
 	/**
@@ -186,12 +186,12 @@ protected:
 	 * @param radarValues the calculated radar values.
 	 * @param noteData the note data itself.
 	 * @param out the Steps getting the data. */
-	virtual void LoadFromTokens(RString sStepsType, 
-				    RString sDescription,
-				    RString sDifficulty,
-				    RString sMeter,
-				    RString sRadarValues,
-				    RString sNoteData,
+	virtual void LoadFromTokens(RString &sStepsType, 
+				    RString &sDescription,
+				    RString &sDifficulty,
+				    RString &sMeter,
+				    RString &sRadarValues,
+				    RString &sNoteData,
 				    Steps &out);
 	
 	/**

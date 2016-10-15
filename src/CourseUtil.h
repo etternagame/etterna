@@ -40,7 +40,7 @@ namespace CourseUtil
 
 	bool ValidateEditCourseName( const RString &sAnswer, RString &sErrorOut );
 
-	void WarnOnInvalidMods( RString sMods );
+	void WarnOnInvalidMods( const RString &sMods );
 
 	// sm-ssc additions:
 	//RString GetSectionNameFromCourseAndSort( const Course *pCourse, SortOrder so );

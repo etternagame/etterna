@@ -81,7 +81,7 @@ RString BackgroundLoader::GetRequest()
 	return ret;
 }
 
-RString BackgroundLoader::GetCachePath( RString sPath ) const
+RString BackgroundLoader::GetCachePath( const RString &sPath ) const
 {
 	return m_sCachePathPrefix + sPath;
 }
@@ -204,7 +204,7 @@ bool BackgroundLoader::IsCacheFileFinished( const RString &sFile, RString &sActu
 	return true;
 }
 
-void BackgroundLoader::FinishedWithCachedFile( RString sFile )
+void BackgroundLoader::FinishedWithCachedFile( const RString &sFile )
 {
 	if( !g_bEnableBackgroundLoading )
 		return;

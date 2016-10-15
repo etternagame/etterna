@@ -1182,7 +1182,7 @@ void Course::CalculateRadarValues()
 	}
 }
 
-bool Course::Matches( RString sGroup, RString sCourse ) const
+bool Course::Matches( const RString &sGroup, const RString &sCourse ) const
 {
 	if( sGroup.size() && sGroup.CompareNoCase(this->m_sGroupName) != 0)
 		return false;

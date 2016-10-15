@@ -19,7 +19,7 @@ DifficultyIcon::DifficultyIcon()
 	m_PlayerNumber = PLAYER_1;
 }
 
-bool DifficultyIcon::Load( RString sPath )
+bool DifficultyIcon::Load( const RString &sPath )
 {
 	Sprite::Load( sPath );
 	int iStates = GetNumStates();

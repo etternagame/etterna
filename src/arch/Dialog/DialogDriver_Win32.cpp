@@ -98,7 +98,7 @@ static RString GetWindowTitle()
 }
 #endif
 
-void DialogDriver_Win32::OK( RString sMessage, RString sID )
+void DialogDriver_Win32::OK( const RString &sMessage, const RString &sID )
 {
 	g_bAllowHush = sID != "";
 	g_sMessage = sMessage;
@@ -112,7 +112,7 @@ void DialogDriver_Win32::OK( RString sMessage, RString sID )
 		Dialog::IgnoreMessage( sID );
 }
 
-Dialog::Result DialogDriver_Win32::OKCancel( RString sMessage, RString sID )
+Dialog::Result DialogDriver_Win32::OKCancel( const RString &sMessage, const RString &sID )
 {
 	g_bAllowHush = sID != "";
 	g_sMessage = sMessage;
@@ -215,7 +215,7 @@ static BOOL CALLBACK ErrorWndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 }
 #endif
 
-void DialogDriver_Win32::Error( RString sError, RString sID )
+void DialogDriver_Win32::Error( const RString &sError, const RString &sID )
 {
 #if !defined(SMPACKAGE)
 	g_sErrorString = sError;
@@ -228,7 +228,7 @@ void DialogDriver_Win32::Error( RString sError, RString sID )
 #endif
 }
 
-Dialog::Result DialogDriver_Win32::AbortRetryIgnore( RString sMessage, RString ID )
+Dialog::Result DialogDriver_Win32::AbortRetryIgnore( const RString &sMessage, const RString &ID )
 {
 	int iRet = 0;
 #if !defined(SMPACKAGE)
@@ -246,7 +246,7 @@ Dialog::Result DialogDriver_Win32::AbortRetryIgnore( RString sMessage, RString I
 	}
 } 
 
-Dialog::Result DialogDriver_Win32::AbortRetry( RString sMessage, RString sID )
+Dialog::Result DialogDriver_Win32::AbortRetry( const RString &sMessage, const RString &sID )
 {
 	int iRet = 0;
 #if !defined(SMPACKAGE)
@@ -263,7 +263,7 @@ Dialog::Result DialogDriver_Win32::AbortRetry( RString sMessage, RString sID )
 	}
 } 
 
-Dialog::Result DialogDriver_Win32::YesNo( RString sMessage, RString sID )
+Dialog::Result DialogDriver_Win32::YesNo( const RString &sMessage, const RString &sID )
 {
 	int iRet = 0;
 #if !defined(SMPACKAGE)

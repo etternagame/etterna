@@ -26,7 +26,7 @@ public:
 	ScoreScroller();
 	void LoadSongs( int iNumRecentScores );
 	void LoadCourses( CourseType ct, int iNumRecentScores );
-	void Load( RString sClassName );
+	void Load( const RString &sClassName );
 	void SetDisplay( const vector<DifficultyAndStepsType> &DifficultiesToShow );
 	bool Scroll( int iDir );
 	void ScrollTop();

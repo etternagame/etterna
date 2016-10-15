@@ -46,7 +46,7 @@ public:
 		void(*OnOK)(const RString &sAnswer) = NULL, 
 		void(*OnCancel)() = NULL,
 		bool bPassword = false,
-		bool (*ValidateAppend)(const RString &sAnswerBeforeChar, RString &sAppend) = NULL,
+		bool (*ValidateAppend)(const RString &sAnswerBeforeChar, const RString &sAppend) = NULL,
 		RString (*FormatAnswerForDisplay)(const RString &sAnswer) = NULL
 		);
 	static void TextEntry( 
@@ -58,7 +58,7 @@ public:
 		void(*OnOK)(const RString &sAnswer) = NULL, 
 		void(*OnCancel)() = NULL,
 		bool bPassword = false,
-		bool (*ValidateAppend)(const RString &sAnswerBeforeChar, RString &sAppend) = NULL,
+		bool (*ValidateAppend)(const RString &sAnswerBeforeChar, const RString &sAppend) = NULL,
 		RString (*FormatAnswerForDisplay)(const RString &sAnswer) = NULL
 		);
 	static void Password( 
@@ -112,7 +112,7 @@ public:
 	virtual void PushSelf( lua_State *L );
 
 protected:
-	void TryAppendToAnswer( RString s );
+	void TryAppendToAnswer( const RString &s );
 	void BackspaceInAnswer();
 	virtual void TextEnteredDirectly() { }
 

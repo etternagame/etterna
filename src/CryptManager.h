@@ -14,20 +14,20 @@ public:
 
 	static void GenerateGlobalKeys();
 	static void GenerateRSAKey( unsigned int keyLength, RString &sPrivKey, RString &sPubKey );
-	static void GenerateRSAKeyToFile( unsigned int keyLength, RString privFilename, RString pubFilename );
-	static void SignFileToFile( RString sPath, RString sSignatureFile = "" );
-	static bool Sign( RString sPath, RString &sSignatureOut, RString sPrivateKey );
-	static bool VerifyFileWithFile( RString sPath, RString sSignatureFile = "" );
-	static bool VerifyFileWithFile( RString sPath, RString sSignatureFile, RString sPublicKeyFile );
-	static bool Verify( RageFileBasic &file, RString sSignature, RString sPublicKey );
+	static void GenerateRSAKeyToFile( unsigned int keyLength, const RString &privFilename, const RString &pubFilename );
+	static void SignFileToFile( const RString &sPath, RString sSignatureFile = "" );
+	static bool Sign( const RString &sPath, RString &sSignatureOut, const RString &sPrivateKey );
+	static bool VerifyFileWithFile( const RString &sPath, const RString &sSignatureFile = "" );
+	static bool VerifyFileWithFile( const RString &sPath, RString sSignatureFile, const RString &sPublicKeyFile );
+	static bool Verify( RageFileBasic &file, const RString &sSignature, const RString &sPublicKey );
 
 	static void GetRandomBytes( void *pData, int iBytes );
 	static RString GenerateRandomUUID();
 
-	static RString GetMD5ForFile( RString fn );		// in binary
-	static RString GetMD5ForString( RString sData );	// in binary
-	static RString GetSHA1ForString( RString sData );	// in binary
-	static RString GetSHA1ForFile( RString fn );		// in binary
+	static RString GetMD5ForFile( const RString &fn );		// in binary
+	static RString GetMD5ForString( const RString &sData );	// in binary
+	static RString GetSHA1ForString( const RString &sData );	// in binary
+	static RString GetSHA1ForFile( const RString &fn );		// in binary
 
 	static RString GetPublicKeyFileName();
 

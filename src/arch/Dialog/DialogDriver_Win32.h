@@ -6,12 +6,12 @@
 class DialogDriver_Win32: public DialogDriver
 {
 public:
-	void Error( RString sMessage, RString sID );
-	void OK( RString sMessage, RString sID );
-	Dialog::Result OKCancel( RString sMessage, RString sID );
-	Dialog::Result AbortRetryIgnore( RString sMessage, RString sID );
-	Dialog::Result AbortRetry( RString sMessage, RString sID );
-	Dialog::Result YesNo( RString sMessage, RString sID );
+	void Error( const RString &sMessage, const RString &sID );
+	void OK( const RString &sMessage, const RString &sID );
+	Dialog::Result OKCancel( const RString &sMessage, const RString &sID );
+	Dialog::Result AbortRetryIgnore( const RString &sMessage, const RString &sID );
+	Dialog::Result AbortRetry( const RString &sMessage, const RString &sID );
+	Dialog::Result YesNo( const RString &sMessage, const RString &sID );
 };
 
 #endif

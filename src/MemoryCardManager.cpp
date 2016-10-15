@@ -672,7 +672,7 @@ void MemoryCardManager::UnmountCard( PlayerNumber pn )
 	}
 }
 
-bool MemoryCardManager::PathIsMemCard( RString sDir ) const
+bool MemoryCardManager::PathIsMemCard( const RString &sDir ) const
 {
 	FOREACH_PlayerNumber( p )
 		if( !sDir.Left(MEM_CARD_MOUNT_POINT[p].size()).CompareNoCase( MEM_CARD_MOUNT_POINT[p] ) )

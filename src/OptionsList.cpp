@@ -181,7 +181,7 @@ OptionsList::~OptionsList()
 		delete hand->second;
 }
 
-void OptionsList::Load( RString sType, PlayerNumber pn )
+void OptionsList::Load( const RString &sType, PlayerNumber pn )
 {
 	TOP_MENU.Load( sType, "TopMenu" );
 
@@ -296,7 +296,7 @@ const OptionRowHandler *OptionsList::GetCurrentHandler()
 	return m_Rows[sCurrentRow];
 }
 
-int OptionsList::GetOneSelection( RString sRow, bool bAllowFail ) const
+int OptionsList::GetOneSelection( const RString &sRow, bool bAllowFail ) const
 {
 	map<RString, vector<bool> >::const_iterator it = m_bSelections.find(sRow);
 	ASSERT_M( it != m_bSelections.end(), sRow );
@@ -523,7 +523,7 @@ void OptionsList::TweenOnCurrentRow( bool bForward )
 		NewRow.PlayCommand( "TweenInBackward" );
 }
 
-void OptionsList::ImportRow( RString sRow )
+void OptionsList::ImportRow( const RString &sRow )
 {
 	vector<bool> aSelections[NUM_PLAYERS];
 	vector<PlayerNumber> vpns;
@@ -537,7 +537,7 @@ void OptionsList::ImportRow( RString sRow )
 		fill( m_bSelections[sRow].begin(), m_bSelections[sRow].end(), false );
 }
 
-void OptionsList::ExportRow( RString sRow )
+void OptionsList::ExportRow( const RString &sRow )
 {
 	if( m_setTopMenus.find(sRow) != m_setTopMenus.end() )
 		return;
@@ -567,7 +567,7 @@ void OptionsList::SetDefaultCurrentRow()
 	}
 }
 
-int OptionsList::FindScreenInHandler( const OptionRowHandler *pHandler, RString sScreen )
+int OptionsList::FindScreenInHandler( const OptionRowHandler *pHandler, const RString &sScreen )
 {
 	for( size_t i = 0; i < pHandler->m_Def.m_vsChoices.size(); ++i )
 	{
@@ -602,7 +602,7 @@ void OptionsList::Pop()
 	TweenOnCurrentRow( false );
 }
 
-void OptionsList::Push( RString sDest )
+void OptionsList::Push( const RString &sDest )
 {
 	m_asMenuStack.push_back( sDest );
 	SetDefaultCurrentRow();

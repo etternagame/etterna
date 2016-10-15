@@ -70,7 +70,7 @@ MusicWheelItem *MusicWheel::MakeItem()
 	return new MusicWheelItem;
 }
 
-void MusicWheel::Load( RString sType ) 
+void MusicWheel::Load( const RString &sType ) 
 {
 	ROULETTE_SWITCH_SECONDS		.Load(sType,"RouletteSwitchSeconds");
 	ROULETTE_SLOW_DOWN_SWITCHES	.Load(sType,"RouletteSlowDownSwitches");
@@ -1368,7 +1368,7 @@ void MusicWheel::StartRandom()
 	RebuildWheelItems();
 }
 
-void MusicWheel::SetOpenSection( RString group )
+void MusicWheel::SetOpenSection( const RString &group )
 {
 	//LOG->Trace( "SetOpenSection %s", group.c_str() );
 	m_sExpandedSectionName = group;

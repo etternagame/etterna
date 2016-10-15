@@ -351,7 +351,7 @@ void GameState::Reset()
 			m_pCurCharacters[p] = CHARMAN->GetRandomCharacter();
 		else
 			m_pCurCharacters[p] = CHARMAN->GetDefaultCharacter();
-		ASSERT( m_pCurCharacters[p] != NULL );
+		//ASSERT( m_pCurCharacters[p] != NULL );
 	}
 
 	m_bTemporaryEventMode = false;
@@ -1837,13 +1837,13 @@ void GameState::ResetToDefaultSongOptions( ModsLevel l )
 	m_SongOptions.Assign( l, so );
 }
 
-void GameState::ApplyPreferredModifiers( PlayerNumber pn, RString sModifiers )
+void GameState::ApplyPreferredModifiers( PlayerNumber pn, const RString &sModifiers )
 {
 	m_pPlayerState[pn]->m_PlayerOptions.FromString( ModsLevel_Preferred, sModifiers );
 	m_SongOptions.FromString( ModsLevel_Preferred, sModifiers );
 }
 
-void GameState::ApplyStageModifiers( PlayerNumber pn, RString sModifiers )
+void GameState::ApplyStageModifiers( PlayerNumber pn, const RString &sModifiers )
 {
 	m_pPlayerState[pn]->m_PlayerOptions.FromString( ModsLevel_Stage, sModifiers );
 	m_SongOptions.FromString( ModsLevel_Stage, sModifiers );

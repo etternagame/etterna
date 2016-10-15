@@ -8,7 +8,7 @@ class LowLevelWindow_Win32: public LowLevelWindow
 public:
 	LowLevelWindow_Win32();
 	~LowLevelWindow_Win32();
-	void *GetProcAddress( RString s );
+	void *GetProcAddress( const RString &s );
 	RString TryVideoMode( const VideoModeParams &p, bool &bNewDeviceOut );
 	void GetDisplayResolutions( DisplayResolutions &out ) const;
 	bool IsSoftwareRenderer( RString &sError );

@@ -409,7 +409,7 @@ static int64_t AVIORageFile_Seek( void *opaque, int64_t offset, int whence )
 	return f->Seek( (int) offset, whence );
 }
 
-RString MovieDecoder_FFMpeg::Open( RString sFile )
+RString MovieDecoder_FFMpeg::Open( const RString &sFile )
 {
 	MovieTexture_FFMpeg::RegisterProtocols();
     
@@ -515,12 +515,12 @@ RageSurface *MovieDecoder_FFMpeg::CreateCompatibleSurface( int iTextureWidth, in
 	return RageMovieTextureDriver_FFMpeg::AVCodecCreateCompatibleSurface( iTextureWidth, iTextureHeight, bPreferHighColor, *ConvertValue<int>(&m_AVTexfmt), fmtout );
 }
 
-MovieTexture_FFMpeg::MovieTexture_FFMpeg( RageTextureID ID ):
+MovieTexture_FFMpeg::MovieTexture_FFMpeg( const RageTextureID &ID ):
 	MovieTexture_Generic( ID, new MovieDecoder_FFMpeg )
 {
 }
 
-RageMovieTexture *RageMovieTextureDriver_FFMpeg::Create( RageTextureID ID, RString &sError )
+RageMovieTexture *RageMovieTextureDriver_FFMpeg::Create( const RageTextureID &ID, RString &sError )
 {
 	MovieTexture_FFMpeg *pRet = new MovieTexture_FFMpeg( ID );
 	sError = pRet->Init();

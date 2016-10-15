@@ -80,7 +80,7 @@ void Dialog::Shutdown()
 	g_pImpl = NULL;
 }
 
-static bool MessageIsIgnored( RString sID )
+static bool MessageIsIgnored( const RString &sID )
 {
 #if !defined(SMPACKAGE)
 	vector<RString> asList;
@@ -92,7 +92,7 @@ static bool MessageIsIgnored( RString sID )
 	return false;
 }
 
-void Dialog::IgnoreMessage( RString sID )
+void Dialog::IgnoreMessage( const RString &sID )
 {
 	// We can't ignore messages before PREFSMAN is around.
 #if !defined(SMPACKAGE)
@@ -117,7 +117,7 @@ void Dialog::IgnoreMessage( RString sID )
 #endif
 }
 
-void Dialog::Error( RString sMessage, RString sID )
+void Dialog::Error( const RString &sMessage, const RString &sID )
 {
 	Dialog::Init();
 
@@ -139,7 +139,7 @@ void Dialog::SetWindowed( bool bWindowed )
 	g_bWindowed = bWindowed;
 }
 
-void Dialog::OK( RString sMessage, RString sID )
+void Dialog::OK( const RString &sMessage, const RString &sID )
 {
 	Dialog::Init();
 
@@ -160,7 +160,7 @@ void Dialog::OK( RString sMessage, RString sID )
 	RageThread::SetIsShowingDialog( false );
 }
 
-Dialog::Result Dialog::OKCancel( RString sMessage, RString sID )
+Dialog::Result Dialog::OKCancel( const RString &sMessage, const RString &sID )
 {
 	Dialog::Init();
 
@@ -184,7 +184,7 @@ Dialog::Result Dialog::OKCancel( RString sMessage, RString sID )
 	return ret;
 }
 
-Dialog::Result Dialog::AbortRetryIgnore( RString sMessage, RString sID )
+Dialog::Result Dialog::AbortRetryIgnore( const RString &sMessage, const RString &sID )
 {
 	Dialog::Init();
 
@@ -208,7 +208,7 @@ Dialog::Result Dialog::AbortRetryIgnore( RString sMessage, RString sID )
 	return ret;
 }
 
-Dialog::Result Dialog::AbortRetry( RString sMessage, RString sID )
+Dialog::Result Dialog::AbortRetry( const RString &sMessage, const RString &sID )
 {
 	Dialog::Init();
 
@@ -232,7 +232,7 @@ Dialog::Result Dialog::AbortRetry( RString sMessage, RString sID )
 	return ret;
 }
 
-Dialog::Result Dialog::YesNo( RString sMessage, RString sID )
+Dialog::Result Dialog::YesNo( const RString &sMessage, const RString &sID )
 {
 	Dialog::Init();
 

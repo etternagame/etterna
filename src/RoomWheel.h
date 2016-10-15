@@ -10,7 +10,7 @@
 struct RoomWheelItemData : public WheelItemBaseData
 {
 	RoomWheelItemData() : m_iFlags(0) { }
-	RoomWheelItemData( WheelItemDataType type, const RString& sTitle, const RString& sDesc, RageColor color ):
+	RoomWheelItemData( WheelItemDataType type, const RString& sTitle, const RString& sDesc, const RageColor &color ):
 		WheelItemBaseData( type, sTitle, color ), m_sDesc(sDesc), m_iFlags(0) { };
 
 	RString		m_sDesc;
@@ -20,10 +20,10 @@ struct RoomWheelItemData : public WheelItemBaseData
 class RoomWheelItem : public WheelItemBase
 {
 public:
-	RoomWheelItem( RString sType = "RoomWheelItem" );
+	RoomWheelItem( const RString &sType = "RoomWheelItem" );
 	RoomWheelItem( const RoomWheelItem &cpy );
 
-	void Load( RString sType );
+	void Load( const RString &sType );
 	virtual void LoadFromWheelItemData( const WheelItemBaseData* pWID, int iIndex, bool bHasFocus, int iDrawIndex );
 	virtual RoomWheelItem *Copy() const { return new RoomWheelItem(*this); }
 
@@ -49,7 +49,7 @@ class RoomWheel : public WheelBase
 {
 public:
 	virtual ~RoomWheel();
-	virtual void Load( RString sType );
+	virtual void Load( const RString &sType );
 	virtual void BuildWheelItemsData( vector<WheelItemBaseData*> &arrayWheelItemDatas );
 	virtual unsigned int GetNumItems() const;
 	virtual bool Select();

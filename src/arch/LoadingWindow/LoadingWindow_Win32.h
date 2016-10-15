@@ -14,7 +14,7 @@ public:
 	~LoadingWindow_Win32();
 
 	void Paint();
-	void SetText( RString sText );
+	void SetText( const RString &sText );
 	void SetIcon( const RageSurface *pIcon );
 	void SetSplash( const RageSurface *pSplash );
 	void SetProgress( const int progress );

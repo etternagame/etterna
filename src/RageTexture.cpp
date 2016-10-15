@@ -6,7 +6,7 @@
 #include <cstring>
 
 
-RageTexture::RageTexture( RageTextureID name ):
+RageTexture::RageTexture( const RageTextureID &name ):
 	m_iRefCount(1), m_bWasUsed(false), m_ID(name),
 	m_iSourceWidth(0), m_iSourceHeight(0),
 	m_iTextureWidth(0), m_iTextureHeight(0),
@@ -42,7 +42,7 @@ void RageTexture::CreateFrameRects()
 	}
 }
 
-void RageTexture::GetFrameDimensionsFromFileName( RString sPath, int* piFramesWide, int* piFramesHigh, int source_width, int source_height )
+void RageTexture::GetFrameDimensionsFromFileName( const RString &sPath, int* piFramesWide, int* piFramesHigh, int source_width, int source_height )
 {
 	static Regex match( " ([0-9]+)x([0-9]+)([\\. ]|$)" );
         vector<RString> asMatch;

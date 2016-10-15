@@ -18,7 +18,7 @@ namespace StepMania
 	void InitializeCurrentGame(const Game* g);
 
 	// If successful, return filename of screenshot in sDir, else return ""
-	RString SaveScreenshot( RString Dir, bool SaveCompressed, bool MakeSignature, RString NamePrefix, RString NameSuffix );
+	RString SaveScreenshot( const RString &Dir, bool SaveCompressed, bool MakeSignature, const RString &NamePrefix, const RString &NameSuffix );
 
 	void InsertCoin( int iNum = 1, bool bCountInBookkeeping = true );
 	void InsertCredit();

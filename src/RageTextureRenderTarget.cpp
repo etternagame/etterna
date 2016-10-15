@@ -2,7 +2,7 @@
 #include "RageTextureRenderTarget.h"
 #include "RageDisplay.h"
 
-RageTextureRenderTarget::RageTextureRenderTarget( RageTextureID name, const RenderTargetParam &param ):
+RageTextureRenderTarget::RageTextureRenderTarget( const RageTextureID &name, const RenderTargetParam &param ):
 	RageTexture( name ),
 	m_Param( param )
 {

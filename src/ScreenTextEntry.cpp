@@ -39,7 +39,7 @@ namespace
 	void(*g_pOnOK)(const RString &sAnswer);
 	void(*g_pOnCancel)();
 	bool g_bPassword;
-	bool (*g_pValidateAppend)(const RString &sAnswerBeforeChar, RString &sAppend);
+	bool (*g_pValidateAppend)(const RString &sAnswerBeforeChar, const RString &sAppend);
 	RString (*g_pFormatAnswerForDisplay)(const RString &sAnswer);
 
 	// Lua bridge
@@ -58,7 +58,7 @@ void ScreenTextEntry::SetTextEntrySettings(
 	void(*OnOK)(const RString &sAnswer), 
 	void(*OnCancel)(),
 	bool bPassword,
-	bool (*ValidateAppend)(const RString &sAnswerBeforeChar, RString &sAppend),
+	bool (*ValidateAppend)(const RString &sAnswerBeforeChar, const RString &sAppend),
 	RString (*FormatAnswerForDisplay)(const RString &sAnswer)
 	)
 {	
@@ -81,7 +81,7 @@ void ScreenTextEntry::TextEntry(
 	void(*OnOK)(const RString &sAnswer), 
 	void(*OnCancel)(),
 	bool bPassword,
-	bool (*ValidateAppend)(const RString &sAnswerBeforeChar, RString &sAppend),
+	bool (*ValidateAppend)(const RString &sAnswerBeforeChar, const RString &sAppend),
 	RString (*FormatAnswerForDisplay)(const RString &sAnswer)
 	)
 {
@@ -277,7 +277,7 @@ bool ScreenTextEntry::Input( const InputEventPlus &input )
 	return ScreenWithMenuElements::Input( input ) || bHandled;
 }
 
-void ScreenTextEntry::TryAppendToAnswer( RString s )
+void ScreenTextEntry::TryAppendToAnswer( const RString &s )
 {
 	{
 		wstring sNewAnswer = m_sAnswer+RStringToWstring(s);
@@ -513,7 +513,7 @@ static void OnCancelFromLua()
 	LUA->Release(L);
 }
 
-static bool ValidateAppendFromLua( const RString &sAnswerBeforeChar, RString &sAppend )
+static bool ValidateAppendFromLua( const RString &sAnswerBeforeChar, const RString &sAppend )
 {
 	if(g_ValidateAppendFunc.IsNil() || !g_ValidateAppendFunc.IsSet())
 	{

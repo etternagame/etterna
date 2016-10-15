@@ -1193,7 +1193,7 @@ void InputMappings::Unmap( InputDevice id )
 	}
 }
 
-void InputMappings::ReadMappings( const InputScheme *pInputScheme, RString sFilePath, bool bIsAutoMapping )
+void InputMappings::ReadMappings( const InputScheme *pInputScheme, const RString &sFilePath, bool bIsAutoMapping )
 {
 	Clear();
 
@@ -1240,7 +1240,7 @@ void InputMappings::ReadMappings( const InputScheme *pInputScheme, RString sFile
 	}
 }
 
-void InputMappings::WriteMappings( const InputScheme *pInputScheme, RString sFilePath )
+void InputMappings::WriteMappings( const InputScheme *pInputScheme, const RString &sFilePath )
 {
 	IniFile ini;
 	ini.ReadFile( sFilePath );

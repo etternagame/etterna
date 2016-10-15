@@ -52,7 +52,7 @@ public:
 	int GetNumStepsLoadedFromProfile();
 	void FreeAllLoadedFromProfile( ProfileSlot slot = ProfileSlot_Invalid );
 
-	void LoadGroupSymLinks( RString sDir, RString sGroupFolder );
+	void LoadGroupSymLinks( const RString &sDir, const RString &sGroupFolder );
 
 	void InitCoursesFromDisk( LoadingWindow *ld );
 	void InitAutogenCourses();
@@ -70,10 +70,10 @@ public:
 
 	bool IsGroupNeverCached(const RString& group) const;
 
-	RString GetSongGroupBannerPath( RString sSongGroup ) const;
+	RString GetSongGroupBannerPath( const RString &sSongGroup ) const;
 	//RString GetSongGroupBackgroundPath( RString sSongGroup ) const;
 	void GetSongGroupNames( vector<RString> &AddTo ) const;
-	bool DoesSongGroupExist( RString sSongGroup ) const;
+	bool DoesSongGroupExist( const RString &sSongGroup ) const;
 	RageColor GetSongGroupColor( const RString &sSongGroupName ) const;
 	RageColor GetSongColor( const Song* pSong ) const;
 
@@ -86,7 +86,7 @@ public:
 
 	void ResetGroupColors();
 
-	static RString ShortenGroupName( RString sLongGroupName );
+	static RString ShortenGroupName( const RString &sLongGroupName );
 
 	// Lookup
 	/**
@@ -158,12 +158,12 @@ public:
 
 	void GetExtraStageInfo( bool bExtra2, const Style *s, Song*& pSongOut, Steps*& pStepsOut );
 	Song* GetSongFromDir( RString sDir ) const;
-	Course* GetCourseFromPath( RString sPath ) const;	// path to .crs file, or path to song group dir
-	Course* GetCourseFromName( RString sName ) const;
+	Course* GetCourseFromPath( const RString &sPath ) const;	// path to .crs file, or path to song group dir
+	Course* GetCourseFromName( const RString &sName ) const;
 
 	void UpdatePopular();
 	void UpdateShuffled();	// re-shuffle songs and courses
-	void UpdatePreferredSort(RString sPreferredSongs = "PreferredSongs.txt", RString sPreferredCourses = "PreferredCourses.txt"); 
+	void UpdatePreferredSort(const RString &sPreferredSongs = "PreferredSongs.txt", const RString &sPreferredCourses = "PreferredCourses.txt"); 
 	void SortSongs();		// sort m_pSongs by CompareSongPointersByTitle
 
 	void UpdateRankingCourses();	// courses shown on the ranking screen
@@ -174,10 +174,10 @@ public:
 
 protected:
 	void LoadStepManiaSongDir( RString sDir, LoadingWindow *ld );
-	void LoadDWISongDir( RString sDir );
-	bool GetExtraStageInfoFromCourse( bool bExtra2, RString sPreferredGroup, Song*& pSongOut, Steps*& pStepsOut, StepsType stype );
-	void SanityCheckGroupDir( RString sDir ) const;
-	void AddGroup( RString sDir, RString sGroupDirName );
+	void LoadDWISongDir( const RString &sDir );
+	bool GetExtraStageInfoFromCourse( bool bExtra2, const RString &sPreferredGroup, Song*& pSongOut, Steps*& pStepsOut, StepsType stype );
+	void SanityCheckGroupDir( const RString &sDir ) const;
+	void AddGroup( const RString &sDir, const RString &sGroupDirName );
 	int GetNumEditsLoadedFromProfile( ProfileSlot slot ) const;
 
 	void AddSongToList(Song* new_song);

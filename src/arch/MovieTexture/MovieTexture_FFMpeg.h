@@ -22,7 +22,7 @@ static const int sws_flags = SWS_BICUBIC; // XXX: Reasonable default?
 class MovieTexture_FFMpeg: public MovieTexture_Generic
 {
 public:
-	MovieTexture_FFMpeg( RageTextureID ID );
+	MovieTexture_FFMpeg( const RageTextureID &ID );
 
 	static void RegisterProtocols();
 	static RageSurface *AVCodecCreateCompatibleSurface( int iTextureWidth, int iTextureHeight, bool bPreferHighColor, int &iAVTexfmt, MovieDecoderPixelFormatYCbCr &fmtout );
@@ -31,7 +31,7 @@ public:
 class RageMovieTextureDriver_FFMpeg: public RageMovieTextureDriver
 {
 public:
-	virtual RageMovieTexture *Create( RageTextureID ID, RString &sError );
+	virtual RageMovieTexture *Create( const RageTextureID &ID, RString &sError );
 	static RageSurface *AVCodecCreateCompatibleSurface( int iTextureWidth, int iTextureHeight, bool bPreferHighColor, int &iAVTexfmt, MovieDecoderPixelFormatYCbCr &fmtout );
 };
 
@@ -41,7 +41,7 @@ public:
 	MovieDecoder_FFMpeg();
 	~MovieDecoder_FFMpeg();
 
-	RString Open( RString sFile );
+	RString Open( const RString &sFile );
 	void Close();
 	void Rewind();
 

@@ -143,7 +143,7 @@ RageTextureID Sprite::SongBannerTexture( RageTextureID ID )
 	return ID;
 }
 
-void Sprite::Load( RageTextureID ID )
+void Sprite::Load( const RageTextureID &ID )
 {
 	if( !ID.filename.empty() ) 
 		LoadFromTexture( ID );
@@ -324,7 +324,7 @@ void Sprite::SetTexture( RageTexture *pTexture )
 		LoadStatesFromTexture();
 }
 
-void Sprite::LoadFromTexture( RageTextureID ID )
+void Sprite::LoadFromTexture( const RageTextureID &ID )
 {
 	// LOG->Trace( "Sprite::LoadFromTexture( %s )", ID.filename.c_str() );
 
