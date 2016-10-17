@@ -140,7 +140,8 @@ float LightsManager::GetActorLightLatencySeconds() const
 
 void LightsManager::Update( float fDeltaTime )
 {
-	return; // cam u not, pls. - mina
+	if (!IsEnabled())
+		return;
 
 	// Update actor effect lights.
 	FOREACH_CabinetLight( cl )
@@ -164,9 +165,6 @@ void LightsManager::Update( float fDeltaTime )
 
 		Actor::SetBGMLight( cl, m_fActorLights[cl] );
 	}
-
-	if( !IsEnabled() )
-		return;
 
 	// update lights falloff
 	{
