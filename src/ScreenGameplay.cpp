@@ -1882,10 +1882,6 @@ void ScreenGameplay::Update( float fDeltaTime )
 					this->PostScreenMessage( SM_NotesEnded, 0 );
 			}
 
-			/* Soo the game tries to update these even if there aren't any and even if they're turned off by default
-			I don't think so. - Mina*/
-
-			/* don't update 2d dancing characters
 			FOREACH_EnabledPlayerNumberInfo( m_vPlayerInfo, pi )
 			{
 				DancingCharacters *pCharacter = NULL;
@@ -1918,7 +1914,6 @@ void ScreenGameplay::Update( float fDeltaTime )
 					pCharacter->Change2DAnimState( pi->m_pn, state );
 				}
 			}
-			*/
 
 			// Check for enemy death in enemy battle
 			static float fLastSeenEnemyHealth = 1;
