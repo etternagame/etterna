@@ -7,9 +7,9 @@ class DisplayResolution
 {
 public:
 	/** @brief The width of the program. */
-	int iWidth;
+	unsigned int iWidth;
 	/** @brief The height of the program. */
-	int iHeight;
+	unsigned int iHeight;
 	/** @brief Is this display stretched/used for widescreen? */
 	bool bStretched;
 
