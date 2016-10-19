@@ -980,7 +980,7 @@ void RageDisplay::FrameLimitAfterVsync( int iFPS )
 		// Calculate wait time and attempt to not overshoot waiting
 		//
 		// Cannot have anything which takes a while to execute after the afterLoop time get as it won't be taken into account
-		double waitCautiousness = g_fFrameLimitPercent.Get();// > 0 ? g_fFrameLimitPercent.Get() : 1.0;
+		double waitCautiousness = g_fFrameLimitPercent.Get() > 0 ? g_fFrameLimitPercent.Get() : 0.90;
 		double renderTime = g_LastFrameRenderTime / 1000000.0 + g_LastFramePresentTime / 1000000.0;
 		renderTime -= executionTime;
 
