@@ -347,9 +347,11 @@ void BitmapText::BuildChars()
 void BitmapText::DrawChars( bool bUseStrokeTexture )
 {
 	// bail if cropped all the way
-	if( m_pTempState->crop.left + m_pTempState->crop.right >= 1  || 
-		m_pTempState->crop.top + m_pTempState->crop.bottom >= 1 ) 
-		return; 
+	if (m_pTempState->crop.left + m_pTempState->crop.right >= 1 ||
+		m_pTempState->crop.top + m_pTempState->crop.bottom >= 1 || !DISPLAY->ShouldRenderFrame())
+	{
+		return;
+	}
 
 	const int iNumGlyphs = m_vpFontPageTextures.size();
 	int iStartGlyph = lround( SCALE( m_pTempState->crop.left, 0, 1, 0, iNumGlyphs ) );
@@ -670,6 +672,9 @@ bool BitmapText::EarlyAbortDraw() const
 // draw text at x, y using colorTop blended down to colorBottom, with size multiplied by scale
 void BitmapText::DrawPrimitives()
 {
+	if (!DISPLAY->ShouldRenderFrame())
+		return;
+
 	Actor::SetGlobalRenderStates(); // set Actor-specified render states
 	DISPLAY->SetTextureMode( TextureUnit_1, TextureMode_Modulate );
 

@@ -222,6 +222,9 @@ void ActorFrame::BeginDraw()
 
 void ActorFrame::DrawPrimitives()
 {
+	if (!DISPLAY->ShouldRenderFrame())
+		return;
+
 	if( m_bClearZBuffer )
 	{
 		LuaHelpers::ReportScriptErrorFmt( "ClearZBuffer not supported on ActorFrames" );

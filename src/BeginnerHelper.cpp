@@ -234,6 +234,9 @@ void BeginnerHelper::DrawPrimitives()
 	if( !m_bInitialized )
 		return;
 
+	if (!DISPLAY->ShouldRenderFrame())
+		return;
+
 	ActorFrame::DrawPrimitives();
 	m_sFlash.Draw();
 

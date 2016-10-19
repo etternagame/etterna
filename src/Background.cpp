@@ -843,6 +843,9 @@ void BackgroundImpl::Update( float fDeltaTime )
 
 void BackgroundImpl::DrawPrimitives()
 {
+	if (!DISPLAY->ShouldRenderFrame())
+		return;
+
 	if( g_fBGBrightness == 0.0f )
 		return;
 

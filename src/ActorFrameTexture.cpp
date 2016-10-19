@@ -74,6 +74,9 @@ void ActorFrameTexture::DrawPrimitives()
 	if( m_pRenderTarget == NULL )
 		return;
 
+	if (!DISPLAY->ShouldRenderFrame())
+		return;
+
 	m_pRenderTarget->BeginRenderingTo( m_bPreserveTexture );
 
 	ActorFrame::DrawPrimitives();

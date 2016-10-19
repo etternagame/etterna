@@ -12,6 +12,7 @@
 #include "EnumHelper.h"
 #include "DisplayResolutions.h"
 #include "LocalizedString.h"
+#include <chrono>
 
 #include <D3dx9tex.h>
 #include <d3d9.h>
@@ -577,14 +578,23 @@ bool RageDisplay_D3D::BeginFrame()
 	return RageDisplay::BeginFrame();
 }
 
-static RageTimer g_LastFrameEndedAt( RageZeroTimer );
 void RageDisplay_D3D::EndFrame()
 {
 	g_pd3dDevice->EndScene();
 
-	FrameLimitBeforeVsync( (*GetActualVideoModeParams()).rate );
-	g_pd3dDevice->Present( 0, 0, 0, 0 );
-	FrameLimitAfterVsync();
+	FrameLimitBeforeVsync();
+
+	if (ShouldPresentFrame())
+	{
+		auto beforePresent = std::chrono::high_resolution_clock::now();
+		g_pd3dDevice->Present(0, 0, 0, 0);
+		auto afterPresent = std::chrono::high_resolution_clock::now();
+		auto endTime = afterPresent - beforePresent;
+		//LOG->Info("Present took %u microseconds", std::chrono::duration_cast<std::chrono::microseconds>(endTime).count());
+		SetPresentTime(std::chrono::duration_cast<std::chrono::microseconds>(endTime).count());
+	}
+	
+	FrameLimitAfterVsync( (*GetActualVideoModeParams()).rate );
 
 	RageDisplay::EndFrame();
 }

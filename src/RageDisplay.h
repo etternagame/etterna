@@ -183,6 +183,11 @@ public:
 	virtual RString GetApiDescription() const = 0;
 	virtual void GetDisplayResolutions( DisplayResolutions &out ) const = 0;
 
+	bool ShouldRenderFrame();
+	bool ShouldPresentFrame();
+	void SetPresentTime(long long presentTime);
+	bool presentFrame = true;
+
 	// Don't override this.  Override TryVideoMode() instead.
 	// This will set the video mode to be as close as possible to params.
 	// Return true if device was re-created and we need to reload textures.
@@ -405,10 +410,8 @@ protected:
 	const RageMatrix* GetWorldTop() const;
 	const RageMatrix* GetTextureTop() const;
 
-	// To limit the framerate, call FrameLimitBeforeVsync before waiting
-	// for vsync and FrameLimitAfterVsync after.
-	void FrameLimitBeforeVsync( int iFPS );
-	void FrameLimitAfterVsync();
+	void FrameLimitBeforeVsync();
+	void FrameLimitAfterVsync( int iFPS );
 };
 
 

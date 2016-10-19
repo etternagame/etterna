@@ -750,6 +750,9 @@ void NoteField::CalcPixelsBeforeAndAfterTargets()
 
 void NoteField::DrawPrimitives()
 {
+	if (!DISPLAY->ShouldRenderFrame())
+		return;
+
 	//LOG->Trace( "NoteField::DrawPrimitives()" );
 
 	// This should be filled in on the first update.

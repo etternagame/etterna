@@ -216,6 +216,9 @@ void ActorMultiVertex::SetVertexCoords( int index, float TexCoordX, float TexCoo
 
 void ActorMultiVertex::DrawPrimitives()
 {
+	if (!DISPLAY->ShouldRenderFrame())
+		return;
+
 	Actor::SetGlobalRenderStates();	// set Actor-specified render states
 
 	DISPLAY->ClearAllTextures();

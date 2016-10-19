@@ -11,11 +11,14 @@
 #include "RageSurfaceUtils_Zoom.h"
 #include "RageSurface.h"
 #include "Preference.h"
+#include "PrefsManager.h"
 #include "Screen.h"
 #include "ScreenManager.h"
 #include "LocalizedString.h"
 #include "DisplayResolutions.h"
 #include "arch/ArchHooks/ArchHooks.h"
+#include <chrono>
+#include <thread>
 
 // Statistics stuff
 RageTimer	g_LastCheckTimer;
@@ -30,7 +33,11 @@ static int g_iFramesRenderedSinceLastCheck,
 	   g_iFramesRenderedSinceLastReset,
 	   g_iVertsRenderedSinceLastCheck,
 	   g_iNumChecksSinceLastReset;
-static RageTimer g_LastFrameEndedAt( RageZeroTimer );
+static auto g_LastFrameEndedAt = std::chrono::high_resolution_clock::now();
+static auto g_FrameExecutionTime = std::chrono::high_resolution_clock::now();
+static auto g_FrameRenderTime = std::chrono::high_resolution_clock::now();
+static long long g_LastFrameRenderTime = 0;
+static long long g_LastFramePresentTime = 0;
 
 struct Centering
 {
@@ -48,9 +55,10 @@ static vector<Centering> g_CenteringStack( 1, Centering(0, 0, 0, 0) );
 RageDisplay*		DISPLAY	= NULL; // global and accessible from anywhere in our program
 
 Preference<bool>  LOG_FPS( "LogFPS", true );
-Preference<float> g_fFrameLimitPercent( "FrameLimitPercent", 0.0f );
+Preference<float> g_fFrameLimitPercent( "FrameLimitPercent", 0.90f );
 Preference<int> g_fFrameLimit("FrameLimit", 0);
 Preference<int> g_fFrameLimitGameplay("FrameLimitGameplay", 0);
+Preference<bool> g_fPredictiveFrameLimit("PredictiveFrameLimit", 1);
 
 static const char *RagePixelFormatNames[] = {
 	"RGBA8",
@@ -114,34 +122,40 @@ RString RageDisplay::SetVideoMode( VideoModeParams p, bool &bNeedReloadTextures 
 
 void RageDisplay::ProcessStatsOnFlip()
 {
-	g_iFramesRenderedSinceLastCheck++;
-	g_iFramesRenderedSinceLastReset++;
-
-	if( g_LastCheckTimer.PeekDeltaTime() >= 1.0f )	// update stats every 1 sec.
+	if (PREFSMAN->m_bShowStats || LOG_FPS)
 	{
-		float fActualTime = g_LastCheckTimer.GetDeltaTime();
-		g_iNumChecksSinceLastReset++;
-		g_iFPS = lround( g_iFramesRenderedSinceLastCheck / fActualTime );
-		g_iCFPS = g_iFramesRenderedSinceLastReset / g_iNumChecksSinceLastReset;
-		g_iCFPS = lround( g_iCFPS / fActualTime );
-		g_iVPF = g_iVertsRenderedSinceLastCheck / g_iFramesRenderedSinceLastCheck;
-		g_iFramesRenderedSinceLastCheck = g_iVertsRenderedSinceLastCheck = 0;
-		if( LOG_FPS )
+		g_iFramesRenderedSinceLastCheck++;
+		g_iFramesRenderedSinceLastReset++;
+
+		if (g_LastCheckTimer.PeekDeltaTime() >= 1.0f)	// update stats every 1 sec.
 		{
-			RString sStats = GetStats();
-			sStats.Replace( "\n", ", " );
-			LOG->Trace( "%s", sStats.c_str() );
+			float fActualTime = g_LastCheckTimer.GetDeltaTime();
+			g_iNumChecksSinceLastReset++;
+			g_iFPS = lround(g_iFramesRenderedSinceLastCheck / fActualTime);
+			g_iCFPS = g_iFramesRenderedSinceLastReset / g_iNumChecksSinceLastReset;
+			g_iCFPS = lround(g_iCFPS / fActualTime);
+			g_iVPF = g_iVertsRenderedSinceLastCheck / g_iFramesRenderedSinceLastCheck;
+			g_iFramesRenderedSinceLastCheck = g_iVertsRenderedSinceLastCheck = 0;
+			if (LOG_FPS)
+			{
+				RString sStats = GetStats();
+				sStats.Replace("\n", ", ");
+				LOG->Trace("%s", sStats.c_str());
+			}
 		}
 	}
 }
 
 void RageDisplay::ResetStats()
 {
-	g_iFPS = g_iVPF = 0;
-	g_iFramesRenderedSinceLastCheck = g_iFramesRenderedSinceLastReset = 0;
-	g_iNumChecksSinceLastReset = 0;
-	g_iVertsRenderedSinceLastCheck = 0;
-	g_LastCheckTimer.GetDeltaTime();
+	if (PREFSMAN->m_bShowStats || LOG_FPS)
+	{
+		g_iFPS = g_iVPF = 0;
+		g_iFramesRenderedSinceLastCheck = g_iFramesRenderedSinceLastReset = 0;
+		g_iNumChecksSinceLastReset = 0;
+		g_iVertsRenderedSinceLastCheck = 0;
+		g_LastCheckTimer.GetDeltaTime();
+	}
 }
 
 RString RageDisplay::GetStats() const
@@ -907,60 +921,102 @@ void RageDisplay::DrawCircle( const RageSpriteVertex &v, float radius )
 	this->DrawCircleInternal( v, radius );
 }
 
-void RageDisplay::FrameLimitBeforeVsync( int iFPS )
+void RageDisplay::FrameLimitBeforeVsync()
 {
-	ASSERT( iFPS != 0 );
-
-	int iDelayMicroseconds = 0;
-	if( g_fFrameLimitPercent.Get() > 0.0f && !g_LastFrameEndedAt.IsZero() )
+	if (presentFrame && g_fPredictiveFrameLimit.Get())
 	{
-		float fFrameTime = g_LastFrameEndedAt.GetDeltaTime();
-		float fExpectedTime = 1.0f / iFPS;
+		auto afterRender = std::chrono::high_resolution_clock::now();
+		auto endTime = afterRender - g_FrameRenderTime;
 
-		/* This is typically used to turn some of the delay that would normally
-		 * be waiting for vsync and turn it into a usleep, to make sure we give
-		 * up the CPU.  If we overshoot the sleep, then we'll miss the vsync,
-		 * so allow tweaking the amount of time we expect a frame to take.
-		 * Frame limiting is disabled by setting this to 0. */
-		fExpectedTime *= g_fFrameLimitPercent.Get();
-		float fExtraTime = fExpectedTime - fFrameTime;
-
-		iDelayMicroseconds = int(fExtraTime * 1000000);
+		g_LastFrameRenderTime = std::chrono::duration_cast<std::chrono::microseconds>(endTime).count();
 	}
 
-	if( !HOOKS->AppHasFocus() )
-		iDelayMicroseconds = max( iDelayMicroseconds, 10000 );
+	if (!HOOKS->AppHasFocus())
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+}
 
-	if (iDelayMicroseconds > 0)
-		usleep(iDelayMicroseconds);
-	else if (!g_LastFrameEndedAt.IsZero())
+// Frame pacing code
+// The aim of this function is to make it so we only render frames the user can see
+// And to render those frames as close to the display present time as possible to reduce display lag
+//
+// The issue: 
+// If we wait too long we miss the present and cause a stutter that displays information which could be over 1 frame old
+// If we are too cautious then we lose out on latency we could remove with better frame pacing
+//
+// Frame limit modes BUSY_LOOP and SLEEP render every frame/game loop, predictive runs game loop until it needs to render
+void RageDisplay::FrameLimitAfterVsync( int iFPS )
+{
+	if ( g_fFrameLimitPercent.Get() == 0 && g_fFrameLimit.Get() == 0 &&
+			g_fFrameLimitGameplay.Get() == 0 )
+		return;
+	
+	if ( presentFrame )
 	{
-		double expectedDelta = 0.0;
-		
+		presentFrame = !g_fPredictiveFrameLimit.Get();
+		g_LastFrameEndedAt = std::chrono::high_resolution_clock::now();
+		g_FrameExecutionTime = g_LastFrameEndedAt;
+	}
+	else if(g_fPredictiveFrameLimit.Get())
+	{
+		// Get the timings for the game logic loop, render loop, and present time
+		// Along with how long we are waiting for, e.g. Frame Limiting
+		auto loopEndTime = std::chrono::high_resolution_clock::now() - g_FrameExecutionTime;
+		double executionTime = std::chrono::duration_cast<std::chrono::microseconds>(loopEndTime).count() / 1000000.0;
+
+		double waitTime = 0.0;
 		if (SCREENMAN && SCREENMAN->GetTopScreen())
 		{
 			if (SCREENMAN->GetTopScreen()->GetScreenType() == gameplay && g_fFrameLimitGameplay.Get() > 0)
-				expectedDelta = 1.0 / g_fFrameLimitGameplay.Get();
-			else if(SCREENMAN->GetTopScreen()->GetScreenType() != gameplay && g_fFrameLimit.Get() > 0)
-				expectedDelta = 1.0 / g_fFrameLimit.Get();
+				waitTime = 1.0 / g_fFrameLimitGameplay.Get();
+			else if (SCREENMAN->GetTopScreen()->GetScreenType() != gameplay && g_fFrameLimit.Get() > 0)
+				waitTime = 1.0 / g_fFrameLimit.Get();
 		}
 
-		double advanceDelay = expectedDelta - g_LastFrameEndedAt.GetDeltaTime();
+		// Not using frame limiter and vsync is enabled
+		// Or Frame limiter is set beyond vsync
+		if (PREFSMAN->m_bVsync.Get() && (waitTime == 0.0 || waitTime > iFPS))
+			waitTime = 1.0 / iFPS;
 
-		while (advanceDelay > 0.0)
-			advanceDelay -= g_LastFrameEndedAt.GetDeltaTime();
+		// Calculate wait time and attempt to not overshoot waiting
+		//
+		// Cannot have anything which takes a while to execute after the afterLoop time get as it won't be taken into account
+		double waitCautiousness = g_fFrameLimitPercent.Get();// > 0 ? g_fFrameLimitPercent.Get() : 1.0;
+		double renderTime = g_LastFrameRenderTime / 1000000.0 + g_LastFramePresentTime / 1000000.0;
+		renderTime -= executionTime;
+
+		auto afterLoop = std::chrono::high_resolution_clock::now();
+		auto timeTillRender = afterLoop - g_LastFrameEndedAt;
+
+		double expectedFrameTime = std::chrono::duration_cast<std::chrono::microseconds>(timeTillRender).count() / 1000000.0;
+		// Check if we have enough time to do another loop, or if that'll make us late
+		if (expectedFrameTime >= (waitCautiousness * (waitTime - executionTime - renderTime)))
+		{
+			presentFrame = true;
+			g_FrameRenderTime = std::chrono::high_resolution_clock::now();
+		}
+	}
+	else
+	{
+		presentFrame = true;
 	}
 }
 
-void RageDisplay::FrameLimitAfterVsync()
+// Both ShouldRenderFrame and ShouldPresentFrame are the same,
+// but they are here in-case in the future we find theres a reason to change how they are used
+bool RageDisplay::ShouldRenderFrame()
 {
-	if( g_fFrameLimitPercent.Get() == 0 && g_fFrameLimit.Get() == 0 && 
-		g_fFrameLimitGameplay.Get() == 0)
-		return;
-
-	g_LastFrameEndedAt.Touch();
+	return presentFrame;
 }
 
+bool RageDisplay::ShouldPresentFrame()
+{
+	return presentFrame;
+}
+
+void RageDisplay::SetPresentTime(long long presentTime)
+{
+	g_LastFramePresentTime = presentTime;
+}
 
 RageCompiledGeometry::~RageCompiledGeometry()
 {

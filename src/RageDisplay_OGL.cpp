@@ -21,6 +21,7 @@ using namespace RageDisplay_Legacy_Helpers;
 #include "arch/LowLevelWindow/LowLevelWindow.h"
 
 #include <set>
+#include <chrono>
 
 #if defined(WINDOWS)
 #include <GL/wglew.h>
@@ -798,22 +799,32 @@ bool RageDisplay_Legacy::BeginFrame()
 
 void RageDisplay_Legacy::EndFrame()
 {
-	FrameLimitBeforeVsync( (*g_pWind->GetActualVideoModeParams()).rate );
-	g_pWind->SwapBuffers();
-	FrameLimitAfterVsync();
+	FrameLimitBeforeVsync();
+	if (ShouldPresentFrame())
+	{
+		auto beforePresent = std::chrono::high_resolution_clock::now();
+		g_pWind->SwapBuffers();
 
-	// Some would advise against glFinish(), ever. Those people don't realize
-	// the degree of freedom GL hosts are permitted in queueing commands.
-	// If left to its own devices, the host could lag behind several frames' worth
-	// of commands.
-	// glFlush() only forces the host to not wait to execute all commands
-	// sent so far; it does NOT block on those commands until they finish.
-	// glFinish() blocks. We WANT to block. Why? This puts the engine state
-	// reflected by the next frame as close as possible to the on-screen
-	// appearance of that frame.
-	glFinish();
+		// Some would advise against glFinish(), ever. Those people don't realize
+		// the degree of freedom GL hosts are permitted in queueing commands.
+		// If left to its own devices, the host could lag behind several frames' worth
+		// of commands.
+		// glFlush() only forces the host to not wait to execute all commands
+		// sent so far; it does NOT block on those commands until they finish.
+		// glFinish() blocks. We WANT to block. Why? This puts the engine state
+		// reflected by the next frame as close as possible to the on-screen
+		// appearance of that frame.
+		glFinish();
 
-	g_pWind->Update();
+		g_pWind->Update();
+
+		auto afterPresent = std::chrono::high_resolution_clock::now();
+		auto endTime = afterPresent - beforePresent;
+
+		//LOG->Info("Present took %u microseconds", std::chrono::duration_cast<std::chrono::microseconds>(endTime).count());
+		SetPresentTime(std::chrono::duration_cast<std::chrono::microseconds>(endTime).count());
+	}
+	FrameLimitAfterVsync((*GetActualVideoModeParams()).rate);
 
 	RageDisplay::EndFrame();
 }

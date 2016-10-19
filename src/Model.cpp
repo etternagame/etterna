@@ -293,6 +293,9 @@ bool Model::EarlyAbortDraw() const
 
 void Model::DrawCelShaded()
 {
+	if (!DISPLAY->ShouldRenderFrame())
+		return;
+
 	// First pass: shell. We only want the backfaces for this.
 	DISPLAY->SetCelShaded(1);
 	DISPLAY->SetCullMode(CULL_FRONT);
@@ -310,6 +313,9 @@ void Model::DrawCelShaded()
 
 void Model::DrawPrimitives()
 {
+	if (!DISPLAY->ShouldRenderFrame())
+		return;
+
 	Actor::SetGlobalRenderStates();	// set Actor-specified render states
 
 	// Don't if we're fully transparent
@@ -465,6 +471,9 @@ void Model::DrawPrimitives()
 
 void Model::DrawMesh( int i ) const
 {
+	if (!DISPLAY->ShouldRenderFrame())
+		return;
+
 	const msMesh *pMesh = &m_pGeometry->m_Meshes[i];
 
 	// apply mesh-specific bone (if any)
