@@ -571,8 +571,12 @@ bool RageDisplay_D3D::BeginFrame()
 		}
 	}
 
-	g_pd3dDevice->Clear( 0, NULL, D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER,
-						 D3DCOLOR_XRGB(0,0,0), 1.0f, 0x00000000 );
+	if (DISPLAY->ShouldRenderFrame())
+	{
+		g_pd3dDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER,
+			D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0x00000000);
+	}
+	
 	g_pd3dDevice->BeginScene();
 
 	return RageDisplay::BeginFrame();

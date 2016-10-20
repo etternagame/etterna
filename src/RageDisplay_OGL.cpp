@@ -790,9 +790,12 @@ bool RageDisplay_Legacy::BeginFrame()
 
 	glViewport( 0, 0, fWidth, fHeight );
 
-	glClearColor( 0,0,0,0 );
-	SetZWrite( true );
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	if (DISPLAY->ShouldRenderFrame())
+	{
+		glClearColor(0, 0, 0, 0);
+		SetZWrite(true);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
 
 	return RageDisplay::BeginFrame();
 }
