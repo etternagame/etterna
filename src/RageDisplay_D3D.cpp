@@ -592,10 +592,9 @@ void RageDisplay_D3D::EndFrame()
 	{
 		auto beforePresent = std::chrono::high_resolution_clock::now();
 		g_pd3dDevice->Present(0, 0, 0, 0);
+
 		auto afterPresent = std::chrono::high_resolution_clock::now();
-		auto endTime = afterPresent - beforePresent;
-		//LOG->Info("Present took %u microseconds", std::chrono::duration_cast<std::chrono::microseconds>(endTime).count());
-		SetPresentTime(std::chrono::duration_cast<std::chrono::microseconds>(endTime).count());
+		SetPresentTime(afterPresent - beforePresent);
 	}
 	
 	FrameLimitAfterVsync( (*GetActualVideoModeParams()).rate );

@@ -824,8 +824,7 @@ void RageDisplay_Legacy::EndFrame()
 		auto afterPresent = std::chrono::high_resolution_clock::now();
 		auto endTime = afterPresent - beforePresent;
 
-		//LOG->Info("Present took %u microseconds", std::chrono::duration_cast<std::chrono::microseconds>(endTime).count());
-		SetPresentTime(std::chrono::duration_cast<std::chrono::microseconds>(endTime).count());
+		SetPresentTime(endTime);
 	}
 	FrameLimitAfterVsync((*GetActualVideoModeParams()).rate);
 

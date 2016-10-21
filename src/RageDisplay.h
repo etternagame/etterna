@@ -6,6 +6,7 @@
 #include "RageTypes.h"
 #include "ModelTypes.h"
 #include <set>
+#include <chrono>
 
 class DisplayResolution;
 typedef set<DisplayResolution> DisplayResolutions;
@@ -185,7 +186,7 @@ public:
 
 	bool ShouldRenderFrame();
 	bool ShouldPresentFrame();
-	void SetPresentTime(long long presentTime);
+	void SetPresentTime(std::chrono::nanoseconds presentTime);
 	bool presentFrame = true;
 
 	// Don't override this.  Override TryVideoMode() instead.
