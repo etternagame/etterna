@@ -3120,6 +3120,14 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 		msg.SetParam( "FirstTrack", iTrack );
 		msg.SetParam( "Judgment", tns);
 		msg.SetParam( "Type", static_cast<RString>("Mine"));
+
+		// Ms scoring implemenation - Mina
+		if (tns == TNS_HitMine)
+			curwifescore -= 8.f;
+
+		msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
+		msg.SetParam("WifeDifferential", curwifescore - maxwifescore*0.93f);
+
 		MESSAGEMAN->Broadcast( msg );
 		if( m_pPlayerStageStats &&
 			( ( tns == TNS_AvoidMine && AVOID_MINE_INCREMENTS_COMBO ) || 
@@ -3129,6 +3137,12 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 			SetCombo( m_pPlayerStageStats->m_iCurCombo, m_pPlayerStageStats->m_iCurMissCombo );
 		}
 	}
+}
+
+float Player::wife2(float maxms, float avedeviation, float power, int upperbound, int lowerbound) {
+	float y = 1 - pow(2, -1*maxms*maxms / (avedeviation*avedeviation));
+	y = pow(y, power);
+	return (upperbound - lowerbound)*(1 - y) + lowerbound;
 }
 
 void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore tns, float fTapNoteOffset )
@@ -3149,6 +3163,20 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 
 		if (tns != TNS_Miss)
 			msg.SetParam("Offset", tn.result.fTapNoteOffset * 1000);  // don't send out 0 ms offsets for misses, multiply by 1000 for convenience - Mina
+
+		// Ms scoring implementation - Mina
+		float wifepoints;
+		if (tns == TNS_Miss) {
+			curwifescore -= 8;
+		}
+		else
+		{
+			curwifescore += wife2(tn.result.fTapNoteOffset * 1000, 90, 1.75, 2, -8);
+		}
+		maxwifescore += 2;
+		msg.SetParam("WifePercent", 100*curwifescore/maxwifescore);
+		msg.SetParam("WifeDifferential", curwifescore - maxwifescore*0.93f);
+		msg.SetParam("Doot", wifepoints);
 
 		Lua* L= LUA->Get();
 		lua_createtable( L, 0, m_NoteData.GetNumTracks() ); // TapNotes this row
@@ -3199,6 +3227,13 @@ void Player::SetHoldJudgment( TapNote &tn, int iTrack )
 		msg.SetParam( "Judgment", tn.HoldResult.hns);
 		msg.SetParam( "Type", static_cast<RString>("Hold"));
 		msg.SetParam( "Val", m_pPlayerStageStats->m_iHoldNoteScores[tn.HoldResult.hns] + 1);
+
+		// Ms scoring implemenation - Mina
+		if( tn.HoldResult.hns == HNS_LetGo || tn.HoldResult.hns == HNS_Missed)
+			curwifescore -= 6.f;
+		
+		msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
+		msg.SetParam("WifeDifferential", curwifescore - maxwifescore*0.93f);
 
 		Lua* L = LUA->Get();
 		tn.PushSelf(L);
