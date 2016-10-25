@@ -785,13 +785,12 @@ bool RageDisplay_Legacy::BeginFrame()
 {
 	/* We do this in here, rather than ResolutionChanged, or we won't update the
 	 * viewport for the concurrent rendering context. */
-	int fWidth = (*g_pWind->GetActualVideoModeParams()).width;
-	int fHeight = (*g_pWind->GetActualVideoModeParams()).height;
 
-	glViewport( 0, 0, fWidth, fHeight );
-
-	if (DISPLAY->ShouldRenderFrame())
+	if (!DISPLAY || DISPLAY->ShouldRenderFrame())
 	{
+		int fWidth = (*g_pWind->GetActualVideoModeParams()).width;
+		int fHeight = (*g_pWind->GetActualVideoModeParams()).height;
+		glViewport(0, 0, fWidth, fHeight);
 		glClearColor(0, 0, 0, 0);
 		SetZWrite(true);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
