@@ -3171,7 +3171,7 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 		}
 		else
 		{
-			curwifescore += wife2(tn.result.fTapNoteOffset * 1000, 90, 1.75, 2, -8);
+			curwifescore += wife2(tn.result.fTapNoteOffset * 1000.f, 80.f, 2.f, 2, -8);
 		}
 		maxwifescore += 2;
 		msg.SetParam("WifePercent", 100*curwifescore/maxwifescore);
