@@ -1775,92 +1775,36 @@ void utf8_remove_bom( RString &sLine )
 		sLine.erase(0, 3);
 }
 
-static int UnicodeDoUpper( char *p, size_t iLen, const unsigned char pMapping[256] )
-{
-	// Note: this has problems with certain accented characters. -aj
-	wchar_t wc = L'\0';
-	unsigned iStart = 0;
-	if( !utf8_to_wchar(p, iLen, iStart, wc) )
-		return 1;
-
-	wchar_t iUpper = wc;
-	if( wc < 256 )
-		iUpper = pMapping[wc];
-	if( iUpper != wc )
-	{
-		RString sOut;
-		wchar_to_utf8( iUpper, sOut );
-		if( sOut.size() == iStart )
-			memcpy( p, sOut.data(), sOut.size() );
-		else
-			WARN( ssprintf("UnicodeDoUpper: invalid character at \"%s\"", RString(p,iLen).c_str()) );
-	}
-
-	return iStart;
-}
-
-/* Fast in-place MakeUpper and MakeLower. This only replaces characters with characters of the same UTF-8
- * length, so we never have to move the whole string. This is optimized for strings that have no
- * non-ASCII characters. */
 void MakeUpper( char *p, size_t iLen )
 {
-	char *pStart = p;
-	char *pEnd = p + iLen;
-	while( p < pEnd )
+	for (int i = 0; *p != '\0' && i < iLen; p++)
 	{
-		// Fast path:
-		if( likely( !(*p & 0x80) ) )
-		{
-			if( unlikely(*p >= 'a' && *p <= 'z') )
-				*p += 'A' - 'a';
-			++p;
-			continue;
-		}
-
-		int iRemaining = iLen - (p-pStart);
-		p += UnicodeDoUpper( p, iRemaining, g_UpperCase );
+		*p = toupper(*p);
 	}
 }
 
 void MakeLower( char *p, size_t iLen )
 {
-	char *pStart = p;
-	char *pEnd = p + iLen;
-	while( p < pEnd )
+	for (int i = 0; *p != '\0' && i < iLen; p++)
 	{
-		// Fast path:
-		if( likely( !(*p & 0x80) ) )
-		{
-			if( unlikely(*p >= 'A' && *p <= 'Z') )
-				*p -= 'A' - 'a';
-			++p;
-			continue;
-		}
-
-		int iRemaining = iLen - (p-pStart);
-		p += UnicodeDoUpper( p, iRemaining, g_LowerCase );
-	}
-}
-
-void UnicodeUpperLower( wchar_t *p, size_t iLen, const unsigned char pMapping[256] )
-{
-	wchar_t *pEnd = p + iLen;
-	while( p != pEnd )
-	{
-		if( *p < 256 )
-			*p = pMapping[*p];
-		++p;
+		*p = tolower(*p);
 	}
 }
 
 void MakeUpper( wchar_t *p, size_t iLen )
 {
-	UnicodeUpperLower( p, iLen, g_UpperCase );
+	for (int i = 0; *p != L'\0' && i < iLen; p++)
+	{
+		*p = towupper(*p);
+	}
 }
 
 void MakeLower( wchar_t *p, size_t iLen )
 {
-	UnicodeUpperLower( p, iLen, g_LowerCase );
+	for (int i = 0; *p != L'\0' && i < iLen; p++)
+	{
+		*p = towlower(*p);
+	}
 }
 
 int StringToInt( const RString &sString )
@@ -2157,7 +2101,7 @@ RString Capitalize( const RString &s )
 
 	char *buf = const_cast<char *>(s.c_str());
 	
-	UnicodeDoUpper( buf, s.size(), g_UpperCase );
+	MakeUpper( buf, s.size() );
 
 	return buf;
 }
