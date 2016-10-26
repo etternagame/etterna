@@ -496,6 +496,7 @@ RString Steps::GenerateChartKey(HiddenPtr<NoteData> nd, vector<float>& etar)
 		et = lround(etar[row] * m - fso);
 	}
 	
+	/*	Don't need this for now - Mina
 	vector<vector<int>> doot;
 	vector<int> scoot;
 	int intN = 1;
@@ -524,6 +525,7 @@ RString Steps::GenerateChartKey(HiddenPtr<NoteData> nd, vector<float>& etar)
 
 		}
 	}
+	*/
 
 	//ChartKeyRecord = k;
 	o.append("X");	// I was thinking of using "C" to indicate chart.. however.. X is cooler... - Mina
