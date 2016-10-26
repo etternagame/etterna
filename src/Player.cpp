@@ -669,6 +669,7 @@ void Player::Load()
 	m_Timing = GAMESTATE->m_pCurSteps[pn]->GetTimingData();
 	m_Timing->NegStopAndBPMCheck();
 	m_Timing->SetElapsedTimesAtAllRows(GAMESTATE->m_pCurSteps[pn]->ElapsedTimesAtAllRows);
+	totalwifescore = 2 * m_NoteData.GetNumTapNotesNoTiming();
 
 	/* Apply transforms. */
 	NoteDataUtil::TransformNoteData(m_NoteData, *m_Timing, m_pPlayerState->m_PlayerOptions.GetStage(), GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)->m_StepsType);
@@ -3127,6 +3128,7 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 
 		msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
 		msg.SetParam("WifeDifferential", curwifescore - maxwifescore*0.93f);
+		msg.SetParam("TotalPercent", 100 * curwifescore / totalwifescore);
 
 		MESSAGEMAN->Broadcast( msg );
 		if( m_pPlayerStageStats &&
@@ -3165,7 +3167,6 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 			msg.SetParam("Offset", tn.result.fTapNoteOffset * 1000);  // don't send out 0 ms offsets for misses, multiply by 1000 for convenience - Mina
 
 		// Ms scoring implementation - Mina
-		float wifepoints;
 		if (tns == TNS_Miss) {
 			curwifescore -= 8;
 		}
@@ -3176,7 +3177,7 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 		maxwifescore += 2;
 		msg.SetParam("WifePercent", 100*curwifescore/maxwifescore);
 		msg.SetParam("WifeDifferential", curwifescore - maxwifescore*0.93f);
-		msg.SetParam("Doot", wifepoints);
+		msg.SetParam("TotalPercent", 100 * curwifescore / totalwifescore);
 
 		Lua* L= LUA->Get();
 		lua_createtable( L, 0, m_NoteData.GetNumTracks() ); // TapNotes this row
@@ -3234,6 +3235,7 @@ void Player::SetHoldJudgment( TapNote &tn, int iTrack )
 		
 		msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
 		msg.SetParam("WifeDifferential", curwifescore - maxwifescore*0.93f);
+		msg.SetParam("TotalPercent", 100 * curwifescore / totalwifescore);
 
 		Lua* L = LUA->Get();
 		tn.PushSelf(L);

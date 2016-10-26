@@ -137,6 +137,7 @@ public:
 	float wife2(float maxms, float avedeviation, float power, int upperbound, int lowerbound);
 	float maxwifescore = 0;
 	float curwifescore = 0;
+	int totalwifescore;
 	vector<float> wifedeviance;
 
 protected:
