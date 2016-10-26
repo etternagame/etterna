@@ -1777,7 +1777,7 @@ void utf8_remove_bom( RString &sLine )
 
 void MakeUpper( char *p, size_t iLen )
 {
-	for (int i = 0; *p != '\0' && i < iLen; p++)
+	for (int i = 0; *p != '\0' && i < iLen; i++, p++)
 	{
 		*p = toupper(*p);
 	}
@@ -1785,7 +1785,7 @@ void MakeUpper( char *p, size_t iLen )
 
 void MakeLower( char *p, size_t iLen )
 {
-	for (int i = 0; *p != '\0' && i < iLen; p++)
+	for (int i = 0; *p != '\0' && i < iLen; i++, p++)
 	{
 		*p = tolower(*p);
 	}
@@ -1793,7 +1793,7 @@ void MakeLower( char *p, size_t iLen )
 
 void MakeUpper( wchar_t *p, size_t iLen )
 {
-	for (int i = 0; *p != L'\0' && i < iLen; p++)
+	for (int i = 0; *p != L'\0' && i < iLen; i++, p++)
 	{
 		*p = towupper(*p);
 	}
@@ -1801,7 +1801,7 @@ void MakeUpper( wchar_t *p, size_t iLen )
 
 void MakeLower( wchar_t *p, size_t iLen )
 {
-	for (int i = 0; *p != L'\0' && i < iLen; p++)
+	for (int i = 0; *p != L'\0' && i < iLen; i++, p++)
 	{
 		*p = towlower(*p);
 	}
@@ -2100,9 +2100,7 @@ RString Capitalize( const RString &s )
 		return RString();
 
 	char *buf = const_cast<char *>(s.c_str());
-	
-	MakeUpper( buf, s.size() );
-
+	MakeUpper( buf, 1 );
 	return buf;
 }
 
