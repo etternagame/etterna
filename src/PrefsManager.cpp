@@ -234,6 +234,7 @@ PrefsManager::PrefsManager() :
 	m_fMinPercentageForMachineSongHighScore		( "MinPercentageForMachineSongHighScore",	0.0001f ), // This is for home, who cares how bad you do?
 	m_fMinPercentageForMachineCourseHighScore	( "MinPercentageForMachineCourseHighScore",	0.0001f ), // don't save course scores with 0 percentage
 	m_bDisqualification		( "Disqualification",			false ),
+	m_bAutogenLights		("AutogenLights", false),
 	m_bAutogenSteps			( "AutogenSteps",			false ),
 	m_bAutogenGroupCourses		( "AutogenGroupCourses",		true ),
 	m_bOnlyPreferredDifficulties	( "OnlyPreferredDifficulties",		false ),

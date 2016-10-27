@@ -333,9 +333,8 @@ bool Song::LoadFromSongDir( RString sDir, bool load_autosave )
 			LOG->UserLog( "Song", sDir, "has no SSC, SM, SMA, DWI, BMS, or KSF files." );
 
 			vector<RString> vs;
-			GetDirListing( sDir + "*.mp3", vs, false, false );
-			GetDirListing( sDir + "*.oga", vs, false, false );
-			GetDirListing( sDir + "*.ogg", vs, false, false );
+			FILEMAN->GetDirListingWithMultipleExtensions(sDir, ActorUtil::GetTypeExtensionList(FT_Sound), vs, false, false);
+
 			bool bHasMusic = !vs.empty();
 
 			if( !bHasMusic )
@@ -1363,8 +1362,10 @@ void Song::AddAutoGenNotes()
 		if( HasNotes[stMissing] )
 			continue;
 
-		// If m_bAutogenSteps is disabled, only autogen lights.
-		if( !PREFSMAN->m_bAutogenSteps && stMissing != StepsType_lights_cabinet )
+		// Only autogen what the player wants
+		if ( !(PREFSMAN->m_bAutogenLights && stMissing == StepsType_lights_cabinet) )
+			continue;
+		if( !(PREFSMAN->m_bAutogenSteps && stMissing != StepsType_lights_cabinet) )
 			continue;
 		if( !GAMEMAN->GetStepsTypeInfo(stMissing).bAllowAutogen )
 			continue;
