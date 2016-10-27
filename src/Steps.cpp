@@ -495,6 +495,37 @@ RString Steps::GenerateChartKey(HiddenPtr<NoteData> nd, vector<float>& etar)
 		k.append(to_string(et));
 		et = lround(etar[row] * m - fso);
 	}
+	
+	/*	Don't need this for now - Mina
+	vector<vector<int>> doot;
+	vector<int> scoot;
+	int intN = 1;
+	float intI = 0.5f;
+	int intT = 0;
+	vector<int> intervaltaps;
+	
+	for (size_t r = 0; r < NonEmptyRowVector.size(); r++)
+	{
+		int row = NonEmptyRowVector[r];
+		if (etar[row] >= intN * intI) {
+			doot.push_back(scoot);
+			scoot.clear();
+			intN += 1;
+
+			intervaltaps.push_back(intT/intI);
+			intT = 0;
+		}
+		scoot.push_back(row);
+		for (int t = 0; t < nd->GetNumTracks(); ++t)
+		{
+			const TapNote &tn = nd->GetTapNote(t, row);
+			if (tn.type == TapNoteType_Tap || tn.type == TapNoteType_HoldHead) {
+				intT += 1;
+			}
+
+		}
+	}
+	*/
 
 	//ChartKeyRecord = k;
 	o.append("X");	// I was thinking of using "C" to indicate chart.. however.. X is cooler... - Mina
