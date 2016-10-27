@@ -289,13 +289,12 @@ bool Song::LoadFromSongDir( RString sDir, bool load_autosave )
 	ASSERT( m_sGroupName != "" );
 
 	// First, look in the cache for this song (without loading NoteData)
-	unsigned uCacheHash = SONGINDEX->GetCacheHash(m_sSongDir);
 	bool bUseCache = true;
 	RString sCacheFilePath = GetCacheFilePath();
 
 	if( !DoesFileExist(sCacheFilePath) )
 	{ bUseCache = false; }
-	else if(!PREFSMAN->m_bFastLoad && GetHashForDirectory(m_sSongDir) != uCacheHash)
+	else if(!PREFSMAN->m_bFastLoad && GetHashForDirectory(m_sSongDir) != SONGINDEX->GetCacheHash(m_sSongDir))
 	{ bUseCache = false; } // this cache is out of date
 	else if(load_autosave)
 	{ bUseCache= false; }
