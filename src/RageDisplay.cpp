@@ -969,16 +969,16 @@ void RageDisplay::FrameLimitAfterVsync( int iFPS )
 		g_LastFrameEndedAtRage.Touch();
 		return;
 	}
-	else if ( g_fFrameLimit.Get() == 0 && g_fFrameLimitGameplay.Get() == 0 )
+	else if ( !PREFSMAN->m_bVsync.Get() && g_fFrameLimit.Get() == 0 && g_fFrameLimitGameplay.Get() == 0 )
 		return;
 	
 	if ( presentFrame )
 	{
-		presentFrame = !g_fPredictiveFrameLimit.Get();
+		presentFrame = false;
 		g_LastFrameEndedAt = std::chrono::high_resolution_clock::now();
 		g_FrameExecutionTime = g_LastFrameEndedAt;
 	}
-	else if(g_fPredictiveFrameLimit.Get())
+	else
 	{
 		// Get the timings for the game logic loop, render loop, and present time
 		// Along with how long we are waiting for, e.g. Frame Limiting
@@ -1016,10 +1016,6 @@ void RageDisplay::FrameLimitAfterVsync( int iFPS )
 			presentFrame = true;
 			g_FrameRenderTime = std::chrono::high_resolution_clock::now();
 		}
-	}
-	else
-	{
-		presentFrame = true;
 	}
 }
 
