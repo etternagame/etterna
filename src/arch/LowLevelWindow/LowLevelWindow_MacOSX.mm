@@ -317,7 +317,7 @@ LowLevelWindow_MacOSX::~LowLevelWindow_MacOSX()
 	[m_WindowDelegate release];
 }
 
-void *LowLevelWindow_MacOSX::GetProcAddress( RString s )
+void *LowLevelWindow_MacOSX::GetProcAddress( const RString &s )
 {
 	// http://developer.apple.com/qa/qa2001/qa1188.html
 	// Both functions mentioned in there are deprecated in 10.4.

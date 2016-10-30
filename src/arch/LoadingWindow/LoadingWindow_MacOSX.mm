@@ -123,7 +123,7 @@ LoadingWindow_MacOSX::~LoadingWindow_MacOSX()
 	[pool release];
 }
 
-void LoadingWindow_MacOSX::SetText( RString str )
+void LoadingWindow_MacOSX::SetText( const RString &str )
 {
 	if( !g_Helper )
 		return;

@@ -82,7 +82,7 @@ LowLevelWindow_X11::~LowLevelWindow_X11()
 	CloseXConnection();
 }
 
-void *LowLevelWindow_X11::GetProcAddress( RString s )
+void *LowLevelWindow_X11::GetProcAddress( const RString &s )
 {
 	// XXX: We should check whether glXGetProcAddress or
 	// glXGetProcAddressARB is available/not NULL, and go by that,

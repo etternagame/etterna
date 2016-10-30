@@ -78,7 +78,7 @@ LoadingWindow_Gtk::~LoadingWindow_Gtk()
 	Handle = NULL;
 }
 
-void LoadingWindow_Gtk::SetText( RString s )
+void LoadingWindow_Gtk::SetText( const RString &s )
 {
 	Module_SetText( s );
 }

@@ -270,7 +270,7 @@ RString ArchHooks::GetPreferredLanguage()
 	return ret;
 }
 
-bool ArchHooks_MacOSX::GoToURL( RString sUrl )
+bool ArchHooks_MacOSX::GoToURL( const RString &sUrl )
 {
 	CFURLRef url = CFURLCreateWithBytes( kCFAllocatorDefault, (const UInt8*)sUrl.data(),
 						 sUrl.length(), kCFStringEncodingUTF8, NULL );

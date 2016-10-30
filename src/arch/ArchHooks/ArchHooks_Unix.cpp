@@ -212,7 +212,7 @@ void ArchHooks_Unix::Init()
 #endif
 }
 
-bool ArchHooks_Unix::GoToURL( RString sUrl )
+bool ArchHooks_Unix::GoToURL( const RString &sUrl )
 {
 	int status;
 	pid_t p = fork();
