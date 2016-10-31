@@ -166,7 +166,7 @@ public:
 	/* Needs to be generated with notedata and stored in notedata. - Mina */
 
 	vector<int> NonEmptyRowVector;
-	vector<int> GetNonEmptyRowVector() { return NonEmptyRowVector; };
+	vector<int>& GetNonEmptyRowVector() { return NonEmptyRowVector; };
 
 	/* Needs to be generated with timingdata and stored in timingdata - Mina */
 

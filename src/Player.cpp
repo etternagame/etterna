@@ -3161,7 +3161,10 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 		msg.SetParam( "NoteRow", iRow);
 		msg.SetParam( "Type", static_cast<RString>("Tap"));
 		msg.SetParam( "TapNoteOffset", tn.result.fTapNoteOffset );
-		msg.SetParam( "Val", m_pPlayerStageStats->m_iTapNoteScores[tns] + 1);
+		if ( m_pPlayerStageStats != NULL )
+		{
+			msg.SetParam("Val", m_pPlayerStageStats->m_iTapNoteScores[tns] + 1);
+		}
 
 		if (tns != TNS_Miss)
 			msg.SetParam("Offset", tn.result.fTapNoteOffset * 1000);  // don't send out 0 ms offsets for misses, multiply by 1000 for convenience - Mina
