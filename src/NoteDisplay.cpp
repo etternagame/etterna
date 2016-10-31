@@ -776,12 +776,6 @@ void NoteDisplay::DrawHoldPart(vector<Sprite*> &vpSpr,
 	}
 	float y_end_pos = min(part_args.y_bottom, part_args.y_end_pos);
 	const float color_scale= glow ? 1 : part_args.color_scale;
-	if(part_type == hpt_body)
-	{
-		// Overshoot to cover up the seam between body and bottom.
-		// It's not fully gone, but the bg doesn't peak through.
-		y_end_pos+= 1;
-	}
 
 	// top to bottom
 	bool bAllAreTransparent = true;
