@@ -755,6 +755,8 @@ Section "Uninstall"
 !endif
 
 !ifdef INSTALL_NON_PCK_FILES
+	Delete "$INSTDIR\portable.ini"
+	
 	Delete "$INSTDIR\Announcers\instructions.txt"
 	RMDir "$INSTDIR\Announcers"
 
