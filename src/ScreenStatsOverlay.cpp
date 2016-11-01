@@ -102,7 +102,7 @@ void ScreenStatsOverlay::AddTimestampLine( const RString &txt, const RageColor &
 void ScreenStatsOverlay::UpdateSkips()
 {
 	/* Use our own timer, so we ignore `/tab. */
-	std::chrono::duration<double> timeDelta = std::chrono::high_resolution_clock::now() - g_AccurateSkipTimer;
+	std::chrono::duration<float> timeDelta = std::chrono::high_resolution_clock::now() - g_AccurateSkipTimer;
 	const float UpdateTime = timeDelta.count();
 	g_AccurateSkipTimer = std::chrono::high_resolution_clock::now();
 

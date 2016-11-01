@@ -272,7 +272,7 @@ void GameLoop::RunGameLoop()
 		}
 
 		// Update
-		std::chrono::duration<double> frameStart = std::chrono::high_resolution_clock::now() - g_AccurateGameplayTimer;
+		std::chrono::duration<float> frameStart = std::chrono::high_resolution_clock::now() - g_AccurateGameplayTimer;
 		float fDeltaTime = frameStart.count();
 		g_AccurateGameplayTimer = std::chrono::high_resolution_clock::now();
 

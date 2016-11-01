@@ -251,8 +251,8 @@ void InputFilter::CheckButtonChange( ButtonState &bs, DeviceInput di, const std:
 
 	/* Possibly apply debounce,
 	 * If the input was coin, possibly apply distinct coin debounce in the else below. */
-	std::chrono::duration<double> timeDelta = now - bs.m_LastReportTime;
-	auto delta = timeDelta.count();
+	std::chrono::duration<float> timeDelta = now - bs.m_LastReportTime;
+	float delta = timeDelta.count();
 	if (! INPUTMAPPER->DeviceToGame(di, gi) || gi.button != GAME_BUTTON_COIN )
 	{
 		/* If the last IET_FIRST_PRESS or IET_RELEASE event was sent too recently,
