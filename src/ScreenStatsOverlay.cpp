@@ -102,8 +102,8 @@ void ScreenStatsOverlay::AddTimestampLine( const RString &txt, const RageColor &
 void ScreenStatsOverlay::UpdateSkips()
 {
 	/* Use our own timer, so we ignore `/tab. */
-	auto timeNow = std::chrono::high_resolution_clock::now() - g_AccurateSkipTimer;
-	const float UpdateTime = std::chrono::duration_cast<std::chrono::microseconds>(timeNow).count() / 1000000.0;
+	std::chrono::duration<double> timeDelta = std::chrono::high_resolution_clock::now() - g_AccurateSkipTimer;
+	const float UpdateTime = timeDelta.count();
 	g_AccurateSkipTimer = std::chrono::high_resolution_clock::now();
 
 	/* FPS is 0 for a little while after we load a screen; don't report

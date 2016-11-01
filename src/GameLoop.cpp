@@ -272,8 +272,8 @@ void GameLoop::RunGameLoop()
 		}
 
 		// Update
-		auto frameStart = std::chrono::high_resolution_clock::now() - g_AccurateGameplayTimer;
-		float fDeltaTime = std::chrono::duration_cast<std::chrono::microseconds>(frameStart).count() / 1000000.0;
+		std::chrono::duration<double> frameStart = std::chrono::high_resolution_clock::now() - g_AccurateGameplayTimer;
+		float fDeltaTime = frameStart.count();
 		g_AccurateGameplayTimer = std::chrono::high_resolution_clock::now();
 
 		if( g_fConstantUpdateDeltaSeconds > 0 )
