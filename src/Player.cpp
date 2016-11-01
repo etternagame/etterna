@@ -669,7 +669,7 @@ void Player::Load()
 	m_Timing = GAMESTATE->m_pCurSteps[pn]->GetTimingData();
 	m_Timing->NegStopAndBPMCheck();
 	m_Timing->SetElapsedTimesAtAllRows(GAMESTATE->m_pCurSteps[pn]->ElapsedTimesAtAllRows);
-	totalwifescore = 2 * m_NoteData.GetNumTapNotesNoTiming();
+	totalwifescore = m_NoteData.WifeTotalScoreCalc(m_Timing, 0, 1073741824);
 
 	/* Apply transforms. */
 	NoteDataUtil::TransformNoteData(m_NoteData, *m_Timing, m_pPlayerState->m_PlayerOptions.GetStage(), GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)->m_StepsType);

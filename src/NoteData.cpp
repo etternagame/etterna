@@ -513,12 +513,29 @@ int NoteData::GetNumTapNotesNoTiming( int iStartIndex, int iEndIndex ) const
 	{
 		FOREACH_NONEMPTY_ROW_IN_TRACK_RANGE( *this, t, r, iStartIndex, iEndIndex )
 		{
-			if(GetTapNote(t, r).type != TapNoteType_Empty && GetTapNote(t, r).type != TapNoteType_Mine)
+			if(GetTapNote(t, r).type != TapNoteType_Empty)
 			{ iNumNotes++; }
 		}
 	}
 
 	return iNumNotes;
+}
+
+int NoteData::WifeTotalScoreCalc(TimingData *td, int iStartIndex, int iEndIndex)
+{
+	int taps = 0;
+	FOREACH_NONEMPTY_ROW_ALL_TRACKS(*this, r) {
+		for (int t = 0; t < GetNumTracks(); t++)
+		{
+			TapNote tn = GetTapNote(t, r);
+			if (tn.type != TapNoteType_Empty && tn.type != TapNoteType_Mine && tn.type != TapNoteType_Fake && tn.type != TapNoteType_Lift && td->IsJudgableAtRow(r)){
+				taps++;
+				break;
+			}
+		}
+	}
+
+	return taps * 2;
 }
 
 int NoteData::GetNumTapNotesInRow( int iRow ) const
