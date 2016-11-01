@@ -84,7 +84,7 @@ public:
 	void PushSelf( lua_State *L );
 
 private:
-	void CheckButtonChange( ButtonState &bs, DeviceInput di, const RageTimer &now );
+	void CheckButtonChange( ButtonState &bs, DeviceInput di, const std::chrono::steady_clock::time_point &now );
 	void ReportButtonChange( const DeviceInput &di, InputEventType t );
 	void MakeButtonStateList( vector<DeviceInput> &aInputOut ) const;
 

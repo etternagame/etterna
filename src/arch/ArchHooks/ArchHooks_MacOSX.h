@@ -10,7 +10,7 @@ public:
 	RString GetArchName() const;
 	void DumpDebugInfo();
 	RString GetPreferredLanguage();
-	bool GoToURL( RString sUrl );
+	bool GoToURL( const RString &sUrl );
 	float GetDisplayAspectRatio();
 };
 

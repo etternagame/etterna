@@ -20,7 +20,7 @@ class LowLevelWindow_MacOSX : public LowLevelWindow
 public:
 	LowLevelWindow_MacOSX();
 	~LowLevelWindow_MacOSX();
-	void *GetProcAddress( RString s );
+	void *GetProcAddress( const RString &s );
 	RString TryVideoMode( const VideoModeParams& p, bool& newDeviceOut );	
 	void GetDisplayResolutions( DisplayResolutions &dr ) const;
 

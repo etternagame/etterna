@@ -38,7 +38,7 @@ static CFOptionFlags ShowAlert( CFOptionFlags flags, const RString& sMessage, CF
 
 #define LSTRING(b,x) CFBundleCopyLocalizedString( (b), CFSTR(x), NULL, CFSTR("Localizable") )
 
-void DialogDriver_MacOSX::OK( RString sMessage, RString sID )
+void DialogDriver_MacOSX::OK( const RString &sMessage, const RString &sID )
 {
 	CFBundleRef bundle = CFBundleGetMainBundle();
 	CFStringRef sDSA = LSTRING( bundle, "Don't show again" );
@@ -49,12 +49,12 @@ void DialogDriver_MacOSX::OK( RString sMessage, RString sID )
 		Dialog::IgnoreMessage( sID );
 }
 
-void DialogDriver_MacOSX::Error( RString sError, RString sID )
+void DialogDriver_MacOSX::Error( const RString &sError, const RString &sID )
 {
 	ShowAlert( kCFUserNotificationStopAlertLevel, sError, CFSTR("OK") );
 }
 
-Dialog::Result DialogDriver_MacOSX::OKCancel( RString sMessage, RString sID )
+Dialog::Result DialogDriver_MacOSX::OKCancel( const RString &sMessage, const RString &sID )
 {
 	CFBundleRef bundle = CFBundleGetMainBundle();
 	CFStringRef sOK = LSTRING( bundle, "OK" );
@@ -75,7 +75,7 @@ Dialog::Result DialogDriver_MacOSX::OKCancel( RString sMessage, RString sID )
 	}
 }
 
-Dialog::Result DialogDriver_MacOSX::AbortRetryIgnore( RString sMessage, RString sID )
+Dialog::Result DialogDriver_MacOSX::AbortRetryIgnore( const RString &sMessage, const RString &sID )
 {
 	CFBundleRef bundle = CFBundleGetMainBundle();
 	CFStringRef sIgnore = LSTRING( bundle, "Ignore" );
@@ -101,7 +101,7 @@ Dialog::Result DialogDriver_MacOSX::AbortRetryIgnore( RString sMessage, RString 
 	}
 }
 
-Dialog::Result DialogDriver_MacOSX::AbortRetry( RString sMessage, RString sID )
+Dialog::Result DialogDriver_MacOSX::AbortRetry( const RString &sMessage, const RString &sID )
 {
 	CFBundleRef bundle = CFBundleGetMainBundle();
 	CFStringRef sRetry = LSTRING( bundle, "Retry" );
@@ -122,7 +122,7 @@ Dialog::Result DialogDriver_MacOSX::AbortRetry( RString sMessage, RString sID )
 	}
 }
 
-Dialog::Result DialogDriver_MacOSX::YesNo( RString sMessage, RString sID )
+Dialog::Result DialogDriver_MacOSX::YesNo( const RString &sMessage, const RString &sID )
 {
 	CFBundleRef bundle = CFBundleGetMainBundle();
 	CFStringRef sYes = LSTRING( bundle, "Yes" );

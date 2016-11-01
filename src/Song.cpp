@@ -289,13 +289,12 @@ bool Song::LoadFromSongDir( RString sDir, bool load_autosave )
 	ASSERT( m_sGroupName != "" );
 
 	// First, look in the cache for this song (without loading NoteData)
-	unsigned uCacheHash = SONGINDEX->GetCacheHash(m_sSongDir);
 	bool bUseCache = true;
 	RString sCacheFilePath = GetCacheFilePath();
 
 	if( !DoesFileExist(sCacheFilePath) )
 	{ bUseCache = false; }
-	else if(!PREFSMAN->m_bFastLoad && GetHashForDirectory(m_sSongDir) != uCacheHash)
+	else if(!PREFSMAN->m_bFastLoad && GetHashForDirectory(m_sSongDir) != SONGINDEX->GetCacheHash(m_sSongDir))
 	{ bUseCache = false; } // this cache is out of date
 	else if(load_autosave)
 	{ bUseCache= false; }
@@ -334,9 +333,8 @@ bool Song::LoadFromSongDir( RString sDir, bool load_autosave )
 			LOG->UserLog( "Song", sDir, "has no SSC, SM, SMA, DWI, BMS, or KSF files." );
 
 			vector<RString> vs;
-			GetDirListing( sDir + "*.mp3", vs, false, false );
-			GetDirListing( sDir + "*.oga", vs, false, false );
-			GetDirListing( sDir + "*.ogg", vs, false, false );
+			FILEMAN->GetDirListingWithMultipleExtensions(sDir, ActorUtil::GetTypeExtensionList(FT_Sound), vs, false, false);
+
 			bool bHasMusic = !vs.empty();
 
 			if( !bHasMusic )
@@ -1364,8 +1362,10 @@ void Song::AddAutoGenNotes()
 		if( HasNotes[stMissing] )
 			continue;
 
-		// If m_bAutogenSteps is disabled, only autogen lights.
-		if( !PREFSMAN->m_bAutogenSteps && stMissing != StepsType_lights_cabinet )
+		// Only autogen what the player wants
+		if ( !(PREFSMAN->m_bAutogenLights && stMissing == StepsType_lights_cabinet) )
+			continue;
+		if( !(PREFSMAN->m_bAutogenSteps && stMissing != StepsType_lights_cabinet) )
 			continue;
 		if( !GAMEMAN->GetStepsTypeInfo(stMissing).bAllowAutogen )
 			continue;

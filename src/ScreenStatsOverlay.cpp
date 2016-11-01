@@ -70,7 +70,8 @@ void ScreenStatsOverlay::Update( float fDeltaTime )
 	{
 		// Reset skip timer when we toggle Stats on so we don't show a large skip
 		// from the span when stats were turned off.
-		m_timerSkip.Touch();
+		//m_timerSkip.Touch();
+		g_AccurateSkipTimer = std::chrono::high_resolution_clock::now();
 	}
 	bShowStatsWasOn = PREFSMAN->m_bShowStats.Get();
 
@@ -101,12 +102,15 @@ void ScreenStatsOverlay::AddTimestampLine( const RString &txt, const RageColor &
 void ScreenStatsOverlay::UpdateSkips()
 {
 	/* Use our own timer, so we ignore `/tab. */
-	const float UpdateTime = m_timerSkip.GetDeltaTime();
+	auto timeNow = std::chrono::high_resolution_clock::now() - g_AccurateSkipTimer;
+	const float UpdateTime = std::chrono::duration_cast<std::chrono::microseconds>(timeNow).count() / 1000000.0;
+	g_AccurateSkipTimer = std::chrono::high_resolution_clock::now();
 
 	/* FPS is 0 for a little while after we load a screen; don't report
 	 * during this time. Do clear the timer, though, so we don't report
-	 * a big "skip" after this period passes. */
-	if( !DISPLAY->GetFPS() )
+	 * a big "skip" after this period passes. 
+	 * Also disregard differences bellow 1ms as runtime will be inconsistent */
+	if( !DISPLAY->GetFPS() || UpdateTime <= 0.001f )
 		return;
 
 	/* We want to display skips.  We expect to get updates of about 1.0/FPS ms. */
@@ -125,8 +129,6 @@ void ScreenStatsOverlay::UpdateSkips()
 
 	if( skip )
 	{
-		RString sTime( SecondsToMMSSMsMs(RageTimer::GetTimeSinceStartFast()) );
-
 		static const RageColor colors[] =
 		{
 			RageColor(0,0,0,0),			/* unused */
@@ -135,10 +137,10 @@ void ScreenStatsOverlay::UpdateSkips()
 			RageColor(1.0f,0.4f,0.4f,1)		/* light red */
 		};
 
-		AddTimestampLine( ssprintf("%s: %.0fms (%.0f)", sTime.c_str(), 1000*UpdateTime, UpdateTime/ExpectedUpdate), colors[skip] );
+		AddTimestampLine( ssprintf("Lag: %.3fms", 1000*UpdateTime - ExpectedUpdate), colors[skip] );
 
 		if( PREFSMAN->m_bLogSkips )
-			LOG->Trace( "Frame skip: %.0fms (%.0f)", 1000*UpdateTime, UpdateTime/ExpectedUpdate );
+			LOG->Trace( "Lag: %.3fms", 1000 * UpdateTime - ExpectedUpdate );
 	}
 }
 

@@ -11,6 +11,7 @@
 #include "ThemeMetric.h"
 #include "InputEventPlus.h"
 #include "TimingData.h"
+#include <chrono>
 
 class ScoreDisplay;
 class LifeMeter;
@@ -90,7 +91,7 @@ public:
 		ScoreKeeper* pPrimaryScoreKeeper, 
 		ScoreKeeper* pSecondaryScoreKeeper );
 	void Load();
-	void CrossedRows( int iLastRowCrossed, const RageTimer &now );
+	void CrossedRows( int iLastRowCrossed, const std::chrono::steady_clock::time_point &now );
 	bool IsOniDead() const;
 
 	/**
@@ -105,8 +106,8 @@ public:
 
 	void ScoreAllActiveHoldsLetGo();
 	void DoTapScoreNone();
-
-	void Step( int col, int row, const RageTimer &tm, bool bHeld, bool bRelease );
+	
+	void Step( int col, int row, const std::chrono::steady_clock::time_point &tm, bool bHeld, bool bRelease, float padStickSeconds = 0.0f );
 
 	void FadeToFail();
 	void CacheAllUsedNoteSkins();
@@ -135,7 +136,7 @@ public:
 	// Mina temp stuff
 	size_t nervpos = 0; // hacky way to keep track of where we are in the non-empty row vector - Mina
 	float wife2(float maxms, float avedeviation, float power, int upperbound, int lowerbound);
-	float maxwifescore = 0;
+	float maxwifescore = 0.0001f;
 	float curwifescore = 0;
 	int totalwifescore;
 	vector<float> wifedeviance;

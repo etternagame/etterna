@@ -225,6 +225,7 @@ public:
 	Preference<float>	m_fMinPercentageForMachineSongHighScore;
 	Preference<float>	m_fMinPercentageForMachineCourseHighScore;
 	Preference<bool>	m_bDisqualification;
+	Preference<bool>	m_bAutogenLights;
 	Preference<bool>	m_bAutogenSteps;
 	Preference<bool>	m_bAutogenGroupCourses;
 	Preference<bool>	m_bOnlyPreferredDifficulties;

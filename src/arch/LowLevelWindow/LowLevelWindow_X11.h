@@ -12,7 +12,7 @@ public:
 	LowLevelWindow_X11();
 	~LowLevelWindow_X11();
 
-	void *GetProcAddress(RString s);
+	void *GetProcAddress(const RString &s);
 	RString TryVideoMode(const VideoModeParams &p, bool &bNewDeviceOut);
 	void LogDebugInformation() const;
 	bool IsSoftwareRenderer( RString &sError );

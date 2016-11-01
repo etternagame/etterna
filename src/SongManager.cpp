@@ -906,81 +906,84 @@ void SongManager::InitCoursesFromDisk( LoadingWindow *ld )
 
 void SongManager::InitAutogenCourses()
 {
-	// Create group courses for Endless and Nonstop
-	vector<RString> saGroupNames;
-	this->GetSongGroupNames( saGroupNames );
-	Course* pCourse;
-	for( unsigned g=0; g<saGroupNames.size(); g++ )	// foreach Group
+	if ( PREFSMAN->m_bAutogenGroupCourses )
 	{
-		RString sGroupName = saGroupNames[g];
+		// Create group courses for Endless and Nonstop
+		vector<RString> saGroupNames;
+		this->GetSongGroupNames(saGroupNames);
+		Course* pCourse;
+		for (unsigned g = 0; g<saGroupNames.size(); g++)	// foreach Group
+		{
+			RString sGroupName = saGroupNames[g];
 
-		// Generate random courses from each group.
+			// Generate random courses from each group.
+			pCourse = new Course;
+			CourseUtil::AutogenEndlessFromGroup(sGroupName, Difficulty_Medium, *pCourse);
+			pCourse->m_sScripter = "Autogen";
+			m_pCourses.push_back(pCourse);
+
+			pCourse = new Course;
+			CourseUtil::AutogenNonstopFromGroup(sGroupName, Difficulty_Medium, *pCourse);
+			pCourse->m_sScripter = "Autogen";
+			m_pCourses.push_back(pCourse);
+		}
+
+		vector<Song*> apCourseSongs = GetAllSongs();
+
+		// Generate "All Songs" endless course.
 		pCourse = new Course;
-		CourseUtil::AutogenEndlessFromGroup( sGroupName, Difficulty_Medium, *pCourse );
+		CourseUtil::AutogenEndlessFromGroup("", Difficulty_Medium, *pCourse);
 		pCourse->m_sScripter = "Autogen";
-		m_pCourses.push_back( pCourse );
+		m_pCourses.push_back(pCourse);
 
-		pCourse = new Course;
-		CourseUtil::AutogenNonstopFromGroup( sGroupName, Difficulty_Medium, *pCourse );
-		pCourse->m_sScripter = "Autogen";
-		m_pCourses.push_back( pCourse );
-	}
+		/* Generate Oni courses from artists. Only create courses if we have at least
+		* four songs from an artist; create 3- and 4-song courses. */
+		{
+			/* We normally sort by translit artist. However, display artist is more
+			* consistent. For example, transliterated Japanese names are alternately
+			* spelled given- and family-name first, but display titles are more consistent. */
+			vector<Song*> apSongs = this->GetAllSongs();
+			SongUtil::SortSongPointerArrayByDisplayArtist(apSongs);
 
-	vector<Song*> apCourseSongs = GetAllSongs();
+			RString sCurArtist = "";
+			RString sCurArtistTranslit = "";
+			int iCurArtistCount = 0;
 
-	// Generate "All Songs" endless course.
-	pCourse = new Course;
-	CourseUtil::AutogenEndlessFromGroup( "", Difficulty_Medium, *pCourse );
-	pCourse->m_sScripter = "Autogen";
-	m_pCourses.push_back( pCourse );
+			vector<Song *> aSongs;
+			unsigned i = 0;
+			do {
+				RString sArtist = i >= apSongs.size() ? RString("") : apSongs[i]->GetDisplayArtist();
+				RString sTranslitArtist = i >= apSongs.size() ? RString("") : apSongs[i]->GetTranslitArtist();
+				if (i < apSongs.size() && !sCurArtist.CompareNoCase(sArtist))
+				{
+					aSongs.push_back(apSongs[i]);
+					++iCurArtistCount;
+					continue;
+				}
 
-	/* Generate Oni courses from artists. Only create courses if we have at least
-	 * four songs from an artist; create 3- and 4-song courses. */
-	{
-		/* We normally sort by translit artist. However, display artist is more
-		 * consistent. For example, transliterated Japanese names are alternately
-		 * spelled given- and family-name first, but display titles are more consistent. */
-		vector<Song*> apSongs = this->GetAllSongs();
-		SongUtil::SortSongPointerArrayByDisplayArtist( apSongs );
+				/* Different artist, or we're at the end. If we have enough entries for
+				* the last artist, add it. Skip blanks and "Unknown artist". */
+				if (iCurArtistCount >= 3 && sCurArtistTranslit != "" &&
+					sCurArtistTranslit.CompareNoCase("Unknown artist") &&
+					sCurArtist.CompareNoCase("Unknown artist"))
+				{
+					pCourse = new Course;
+					CourseUtil::AutogenOniFromArtist(sCurArtist, sCurArtistTranslit, aSongs, Difficulty_Hard, *pCourse);
+					pCourse->m_sScripter = "Autogen";
+					m_pCourses.push_back(pCourse);
+				}
 
-		RString sCurArtist = "";
-		RString sCurArtistTranslit = "";
-		int iCurArtistCount = 0;
+				aSongs.clear();
 
-		vector<Song *> aSongs;
-		unsigned i = 0;
-		do {
-			RString sArtist = i >= apSongs.size()? RString(""): apSongs[i]->GetDisplayArtist();
-			RString sTranslitArtist = i >= apSongs.size()? RString(""): apSongs[i]->GetTranslitArtist();
-			if( i < apSongs.size() && !sCurArtist.CompareNoCase(sArtist) )
-			{
-				aSongs.push_back( apSongs[i] );
-				++iCurArtistCount;
-				continue;
-			}
-
-			/* Different artist, or we're at the end. If we have enough entries for
-			 * the last artist, add it. Skip blanks and "Unknown artist". */
-			if( iCurArtistCount >= 3 && sCurArtistTranslit != "" &&
-				sCurArtistTranslit.CompareNoCase("Unknown artist") &&
-				sCurArtist.CompareNoCase("Unknown artist") )
-			{
-				pCourse = new Course;
-				CourseUtil::AutogenOniFromArtist( sCurArtist, sCurArtistTranslit, aSongs, Difficulty_Hard, *pCourse );
-				pCourse->m_sScripter = "Autogen";
-				m_pCourses.push_back( pCourse );
-			}
-
-			aSongs.clear();
-
-			if( i < apSongs.size() )
-			{
-				sCurArtist = sArtist;
-				sCurArtistTranslit = sTranslitArtist;
-				iCurArtistCount = 1;
-				aSongs.push_back( apSongs[i] );
-			}
-		} while( i++ < apSongs.size() );
+				if (i < apSongs.size())
+				{
+					sCurArtist = sArtist;
+					sCurArtistTranslit = sTranslitArtist;
+					iCurArtistCount = 1;
+					aSongs.push_back(apSongs[i]);
+				}
+			} while (i++ < apSongs.size());
+		}
 	}
 }
 

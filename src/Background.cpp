@@ -37,7 +37,7 @@ static ThemeMetric<bool> RAND_BG_CHANGES_WHEN_BPM_CHANGES("Background", "RandomB
 static ThemeMetric<bool> RAND_BG_ENDS_AT_LAST_BEAT("Background", "RandomBGEndsAtLastBeat");
 
 
-static Preference<bool>	g_bShowDanger( "ShowDanger", true );
+static Preference<bool>	g_bShowDanger( "ShowDanger", false );
 static Preference<float> g_fBGBrightness( "BGBrightness", 0.7f );
 static Preference<RandomBackgroundMode> g_RandomBackgroundMode( "RandomBackgroundMode",	BGMODE_RANDOMMOVIES );
 static Preference<int> g_iNumBackgrounds( "NumBackgrounds", 10 );

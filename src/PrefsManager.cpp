@@ -183,8 +183,8 @@ PrefsManager::PrefsManager() :
 	m_bShowMouseCursor		( "ShowMouseCursor",		true ),
 
 	m_bHiddenSongs			( "HiddenSongs",		false ),
-	m_bVsync			( "Vsync",			true ),
-	m_FastNoteRendering		( "FastNoteRendering",		false),
+	m_bVsync			( "Vsync",			false ),
+	m_FastNoteRendering		( "FastNoteRendering",		true),
 	m_bInterlaced			( "Interlaced",			false ),
 	m_bPAL				( "PAL",			false ),
 	m_bDelayedTextureDelete		( "DelayedTextureDelete",	false ),
@@ -234,6 +234,7 @@ PrefsManager::PrefsManager() :
 	m_fMinPercentageForMachineSongHighScore		( "MinPercentageForMachineSongHighScore",	0.0001f ), // This is for home, who cares how bad you do?
 	m_fMinPercentageForMachineCourseHighScore	( "MinPercentageForMachineCourseHighScore",	0.0001f ), // don't save course scores with 0 percentage
 	m_bDisqualification		( "Disqualification",			false ),
+	m_bAutogenLights		("AutogenLights", false),
 	m_bAutogenSteps			( "AutogenSteps",			false ),
 	m_bAutogenGroupCourses		( "AutogenGroupCourses",		true ),
 	m_bOnlyPreferredDifficulties	( "OnlyPreferredDifficulties",		false ),
@@ -257,7 +258,7 @@ PrefsManager::PrefsManager() :
 	m_AttractSoundFrequency		( "AttractSoundFrequency",		ASF_EVERY_TIME ),
 	m_bAllowExtraStage		( "AllowExtraStage",			true ),
 	m_iMaxHighScoresPerListForMachine	( "MaxHighScoresPerListForMachine",	10 ),
-	m_iMaxHighScoresPerListForPlayer	( "MaxHighScoresPerListForPlayer",	3 ),
+	m_iMaxHighScoresPerListForPlayer	( "MaxHighScoresPerListForPlayer",	10 ),
 	m_bAllowMultipleHighScoreWithSameName	( "AllowMultipleHighScoreWithSameName",	true ),
 	m_DisableUploadDir("DisableUploadDir", false),
 	m_bCelShadeModels		( "CelShadeModels",			false ),	// Work-In-Progress.. disable by default.

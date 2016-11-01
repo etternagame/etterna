@@ -27,7 +27,7 @@ void InputQueue::RememberInput( const InputEventPlus &iep )
 	m_aQueue[c].push_back( iep );
 }
 
-bool InputQueue::WasPressedRecently( GameController c, const GameButton button, const RageTimer &OldestTimeAllowed, InputEventPlus *pIEP )
+bool InputQueue::WasPressedRecently( GameController c, const GameButton button, const std::chrono::steady_clock::time_point &OldestTimeAllowed, InputEventPlus *pIEP )
 {
 	for( int queue_index=m_aQueue[c].size()-1; queue_index>=0; queue_index-- )	// iterate newest to oldest
 	{
@@ -61,12 +61,6 @@ bool InputQueueCode::EnteredCode( GameController controller ) const
 	if( m_aPresses.size() == 0 )
 		return false;
 
-	RageTimer OldestTimeAllowed;
-	if( m_fMaxSecondsBack == -1 )
-		OldestTimeAllowed.SetZero();
-	else
-		OldestTimeAllowed += -m_fMaxSecondsBack;
-
 	// iterate newest to oldest
 	int iSequenceIndex = m_aPresses.size()-1;	// count down
 	const vector<InputEventPlus> &aQueue = INPUTQUEUE->GetQueue( controller );
@@ -74,7 +68,8 @@ bool InputQueueCode::EnteredCode( GameController controller ) const
 	while( iQueueIndex >= 0 )
 	{
 		/* If the buttons are too old, stop searching because we're not going to find a match. */
-		if( !OldestTimeAllowed.IsZero() && aQueue[iQueueIndex].DeviceI.ts < OldestTimeAllowed )
+		float inputDelta = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - aQueue[iQueueIndex].DeviceI.ts).count() / 1000000.0;
+		if(m_fMaxSecondsBack != -1 &&  inputDelta > m_fMaxSecondsBack)
 			return false;
 
 		/* If the last press is an input type we're not interested in, skip it
@@ -88,8 +83,6 @@ bool InputQueueCode::EnteredCode( GameController controller ) const
 
 		/* Search backwards for all of Press.m_aButtonsToPress pressed within g_fTapThreshold seconds
 		 * with m_aButtonsToHold pressed.  Start looking at iQueueIndex. */
-		RageTimer OldestTimeAllowedForTap( aQueue[iQueueIndex].DeviceI.ts );
-		OldestTimeAllowedForTap += -g_fSimultaneousThreshold;
 
 		bool bMatched = false;
 		int iMinSearchIndexUsed = iQueueIndex;
@@ -100,7 +93,9 @@ bool InputQueueCode::EnteredCode( GameController controller ) const
 			for( ; iQueueSearchIndex>=0; --iQueueSearchIndex )	// iterate newest to oldest
 			{
 				const InputEventPlus &iep = aQueue[iQueueSearchIndex];
-				if( iep.DeviceI.ts < OldestTimeAllowedForTap )	// buttons are too old.  Stop searching because we're not going to find a match
+
+				float simulInputDelta = std::chrono::duration_cast<std::chrono::microseconds>(aQueue[iQueueIndex].DeviceI.ts - iep.DeviceI.ts).count() / 1000000.0;
+				if( simulInputDelta > g_fSimultaneousThreshold)	// buttons are too old.  Stop searching because we're not going to find a match
 					break;
 
 				if( !Press.m_InputTypes[iep.type] )

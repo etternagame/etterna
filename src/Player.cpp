@@ -808,7 +808,8 @@ void Player::SendComboMessages( unsigned int iOldCombo, unsigned int iOldMissCom
 
 void Player::Update( float fDeltaTime )
 {
-	const RageTimer now;
+	//const RageTimer now;
+	const auto now = std::chrono::high_resolution_clock::now();
 	// Don't update if we haven't been loaded yet.
 	if( !m_bLoaded )
 		return;
@@ -1968,7 +1969,7 @@ void Player::PlayKeysound( const TapNote &tn, TapNoteScore score )
 	}
 }
 
-void Player::Step( int col, int row, const RageTimer &tm, bool bHeld, bool bRelease )
+void Player::Step( int col, int row, const std::chrono::steady_clock::time_point &tm, bool bHeld, bool bRelease, float padStickSeconds )
 {
 	if( IsOniDead() )
 		return;
@@ -1976,11 +1977,14 @@ void Player::Step( int col, int row, const RageTimer &tm, bool bHeld, bool bRele
 	// TODO: remove use of PlayerNumber
 	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 
-	// Do everything that depends on a RageTimer here;
+	// Do everything that depends on a timer here;
 	// set your breakpoints somewhere after this block.
+	auto stepDelta = std::chrono::high_resolution_clock::now() - tm;
+	auto stepAgo = (std::chrono::duration_cast<std::chrono::microseconds>(stepDelta).count() / 1000000.0) - padStickSeconds;
+	
 	const float fLastBeatUpdate = m_pPlayerState->m_Position.m_LastBeatUpdate.Ago();
-	const float fPositionSeconds = m_pPlayerState->m_Position.m_fMusicSeconds - tm.Ago();
-	const float fTimeSinceStep = tm.Ago();
+	const float fPositionSeconds = m_pPlayerState->m_Position.m_fMusicSeconds - stepAgo;
+	const float fTimeSinceStep = stepAgo;
 
 	float fSongBeat = m_pPlayerState->m_Position.m_fSongBeat;
 	
@@ -2705,7 +2709,7 @@ void Player::FlashGhostRow( int iRow )
 	}
 }
 
-void Player::CrossedRows( int iLastRowCrossed, const RageTimer &now )
+void Player::CrossedRows( int iLastRowCrossed, const std::chrono::steady_clock::time_point &now )
 {
 	//LOG->Trace( "Player::CrossedRows   %d    %d", iFirstRowCrossed, iLastRowCrossed );
 
@@ -2734,7 +2738,7 @@ void Player::CrossedRows( int iLastRowCrossed, const RageTimer &now )
 							float fSecsHeld = INPUTMAPPER->GetSecsHeld(GameI[i], m_pPlayerState->m_mp);
 							if(fSecsHeld >= PREFSMAN->m_fPadStickSeconds)
 							{
-								Step(iTrack, -1, now - PREFSMAN->m_fPadStickSeconds, true, false);
+								Step(iTrack, -1, now, true, false, PREFSMAN->m_fPadStickSeconds);
 							}
 						}
 					}
@@ -2762,7 +2766,7 @@ void Player::CrossedRows( int iLastRowCrossed, const RageTimer &now )
 						float fSecsHeld = INPUTMAPPER->GetSecsHeld(GameI[i], m_pPlayerState->m_mp);
 						if(fSecsHeld >= PREFSMAN->m_fPadStickSeconds)
 						{
-							Step( iTrack, -1, now - PREFSMAN->m_fPadStickSeconds, true, false );
+							Step( iTrack, -1, now, true, false, PREFSMAN->m_fPadStickSeconds );
 						}
 					}
 				}
@@ -3161,7 +3165,10 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 		msg.SetParam( "NoteRow", iRow);
 		msg.SetParam( "Type", static_cast<RString>("Tap"));
 		msg.SetParam( "TapNoteOffset", tn.result.fTapNoteOffset );
-		msg.SetParam( "Val", m_pPlayerStageStats->m_iTapNoteScores[tns] + 1);
+		if ( m_pPlayerStageStats != NULL )
+		{
+			msg.SetParam("Val", m_pPlayerStageStats->m_iTapNoteScores[tns] + 1);
+		}
 
 		if (tns != TNS_Miss)
 			msg.SetParam("Offset", tn.result.fTapNoteOffset * 1000);  // don't send out 0 ms offsets for misses, multiply by 1000 for convenience - Mina

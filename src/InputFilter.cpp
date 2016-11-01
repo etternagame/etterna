@@ -35,15 +35,15 @@ struct ButtonState
 	DeviceInput m_DeviceInput;
 
 	// Timestamp of m_BeingHeld changing.
-	RageTimer m_BeingHeldTime;
+	std::chrono::steady_clock::time_point m_BeingHeldTime;
 
 	// The time that we actually reported the last event (used for debouncing).
-	RageTimer m_LastReportTime;
+	std::chrono::steady_clock::time_point m_LastReportTime;
 
 	// The timestamp of the last reported change. Unlike m_BeingHeldTime, this
 	// value is debounced along with the input state. (This is the same as
 	// m_fSecsHeld, except this isn't affected by Update scaling.)
-	RageTimer m_LastInputTime;
+	std::chrono::steady_clock::time_point m_LastInputTime;
 };
 
 struct DeviceButtonPair
@@ -172,8 +172,8 @@ void InputFilter::ResetRepeatRate()
 }
 
 ButtonState::ButtonState():
-	m_BeingHeldTime(RageZeroTimer),
-	m_LastReportTime(RageZeroTimer)
+	m_BeingHeldTime(std::chrono::microseconds{ 0 }),
+	m_LastReportTime(std::chrono::microseconds{ 0 })
 {
 	m_BeingHeld = false;
 	m_bLastReportedHeld = false;
@@ -184,8 +184,9 @@ void InputFilter::ButtonPressed( const DeviceInput &di )
 {
 	LockMut(*queuemutex);
 
-	if( di.ts.IsZero() )
-		LOG->Warn( "InputFilter::ButtonPressed: zero timestamp is invalid" );
+	// Can't happen anymore, but we may want similar validation in the future.
+	//if( di.ts.IsZero() )
+	//	LOG->Warn( "InputFilter::ButtonPressed: zero timestamp is invalid" );
 
 	// Filter out input that is beyond the range of the current system.
 	if(di.device >= NUM_InputDevice)
@@ -202,7 +203,7 @@ void InputFilter::ButtonPressed( const DeviceInput &di )
 	ButtonState &bs = GetButtonState( di );
 
 	// Flush any delayed input, like Update() (in case Update() isn't being called).
-	RageTimer now;
+	auto now = std::chrono::high_resolution_clock::now();
 	CheckButtonChange( bs, di, now );
 
 	bs.m_DeviceInput = di;
@@ -230,19 +231,18 @@ void InputFilter::SetButtonComment( const DeviceInput &di, const RString &sComme
 void InputFilter::ResetDevice( InputDevice device )
 {
 	LockMut(*queuemutex);
-	RageTimer now;
 
 	const ButtonStateMap ButtonStates( g_ButtonStates );
 	FOREACHM_CONST( DeviceButtonPair, ButtonState, ButtonStates, b )
 	{
 		const DeviceButtonPair &db = b->first;
 		if( db.device == device )
-			ButtonPressed( DeviceInput(device, db.button, 0, now) );
+			ButtonPressed( DeviceInput(device, db.button, 0, std::chrono::high_resolution_clock::now()) );
 	}
 }
 
 /** @brief Check for reportable presses. */
-void InputFilter::CheckButtonChange( ButtonState &bs, DeviceInput di, const RageTimer &now )
+void InputFilter::CheckButtonChange( ButtonState &bs, DeviceInput di, const std::chrono::steady_clock::time_point &now )
 {
 	if( bs.m_BeingHeld == bs.m_bLastReportedHeld )
 		return;
@@ -251,16 +251,18 @@ void InputFilter::CheckButtonChange( ButtonState &bs, DeviceInput di, const Rage
 
 	/* Possibly apply debounce,
 	 * If the input was coin, possibly apply distinct coin debounce in the else below. */
+	auto timeDelta = now - bs.m_LastReportTime;
+	auto delta = (std::chrono::duration_cast<std::chrono::microseconds>(timeDelta).count() / 1000000.0);
 	if (! INPUTMAPPER->DeviceToGame(di, gi) || gi.button != GAME_BUTTON_COIN )
 	{
 		/* If the last IET_FIRST_PRESS or IET_RELEASE event was sent too recently,
 		 * wait a while before sending it. */
-		if( now - bs.m_LastReportTime < g_fInputDebounceTime )
+		if(delta < g_fInputDebounceTime )
 		{
 			return;
 		}
 	} else {
-		if( now - bs.m_LastReportTime < PREFSMAN->m_fDebounceCoinInputTime )
+		if(delta < PREFSMAN->m_fDebounceCoinInputTime )
 		{
 			return;
 		}
@@ -312,7 +314,7 @@ void InputFilter::MakeButtonStateList( vector<DeviceInput> &aInputOut ) const
 
 void InputFilter::Update( float fDeltaTime )
 {
-	RageTimer now;
+	auto now = std::chrono::high_resolution_clock::now();
 
 	INPUTMAN->Update();
 
@@ -340,7 +342,10 @@ void InputFilter::Update( float fDeltaTime )
 		{
 			// If the key isn't pressed, and hasn't been pressed for a while
 			// (so debouncing isn't interested in it), purge the entry.
-			if( now - bs.m_LastReportTime > g_fInputDebounceTime &&
+			auto timeAgo = now - bs.m_LastReportTime;
+			float lastReportTime = (std::chrono::duration_cast<std::chrono::microseconds>(timeAgo).count() / 1000000.0);
+
+			if( lastReportTime > g_fInputDebounceTime &&
 				 bs.m_DeviceInput.level == 0.0f )
 				ButtonsToErase.push_back( b );
 			continue;
@@ -374,7 +379,7 @@ void InputFilter::Update( float fDeltaTime )
 		/* Set the timestamp to the exact time of the repeat. This way, as long
 		 * as tab/` aren't being used, the timestamp will always increase steadily
 		 * during repeats. */
-		di.ts = bs.m_LastInputTime + fRepeatTime;
+		di.ts = std::chrono::high_resolution_clock::time_point(bs.m_LastInputTime + std::chrono::microseconds((int)(fRepeatTime * 1000000)));
 
 		ReportButtonChange( di, IET_REPEAT );
 	}
@@ -410,7 +415,9 @@ float InputFilter::GetSecsHeld( const DeviceInput &di, const DeviceInputList *pB
 	const DeviceInput *pDI = FindItemBinarySearch( pButtonState->begin(), pButtonState->end(), di );
 	if( pDI == NULL )
 		return 0;
-	return pDI->ts.Ago();
+
+	auto inputLength = std::chrono::high_resolution_clock::now() - pDI->ts;
+	return (std::chrono::duration_cast<std::chrono::microseconds>(inputLength).count() / 1000000.0);
 }
 
 float InputFilter::GetLevel( const DeviceInput &di, const DeviceInputList *pButtonState ) const

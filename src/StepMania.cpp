@@ -467,6 +467,16 @@ struct VideoCardDefaults
 	}
 } const g_VideoCardDefaults[] =
 {
+#ifdef _WINDOWS
+	VideoCardDefaults(
+		"",
+		"d3d, opengl",
+		640,480,
+		32,32,32,
+		2048,
+		true
+	)
+#else
 	VideoCardDefaults(
 		"Voodoo *5",
 		"d3d,opengl",	// received 3 reports of opengl crashing. -Chris
@@ -518,9 +528,9 @@ struct VideoCardDefaults
 	VideoCardDefaults(
 		"Savage",
 		"d3d",
-			// OpenGL is unusable on my Savage IV with even the latest drivers.
-			// It draws 30 frames of gibberish then crashes. This happens even with
-			// simple NeHe demos. -Chris
+		// OpenGL is unusable on my Savage IV with even the latest drivers.
+		// It draws 30 frames of gibberish then crashes. This happens even with
+		// simple NeHe demos. -Chris
 		640,480,
 		16,16,16,
 		2048,
@@ -529,10 +539,10 @@ struct VideoCardDefaults
 	VideoCardDefaults(
 		"XPERT@PLAY|IIC|RAGE PRO|RAGE LT PRO",	// Rage Pro chip, Rage IIC chip
 		"d3d",
-			// OpenGL is not hardware accelerated, despite the fact that the
-			// drivers come with an ICD.  Also, the WinXP driver performance
-			// is terrible and supports only 640. The ATI driver is usable.
-			// -Chris
+		// OpenGL is not hardware accelerated, despite the fact that the
+		// drivers come with an ICD.  Also, the WinXP driver performance
+		// is terrible and supports only 640. The ATI driver is usable.
+		// -Chris
 		320,240,	// lower resolution for 60fps. In-box WinXP driver doesn't support 400x300.
 		16,16,16,
 		256,
@@ -593,7 +603,7 @@ struct VideoCardDefaults
 	),
 	VideoCardDefaults(
 		/* Unconfirmed texture problems on this; let's try D3D, since it's
-		 * a VIA/S3 chipset. */
+		* a VIA/S3 chipset. */
 		"VIA/S3G KM400/KN400",
 		"d3d,opengl",
 		640,480,
@@ -618,7 +628,8 @@ struct VideoCardDefaults
 		32,32,32,
 		2048,
 		false  // AA is slow on some cards, so let's selectively enable HW accelerated cards.
-	),
+	)
+#endif
 };
 
 

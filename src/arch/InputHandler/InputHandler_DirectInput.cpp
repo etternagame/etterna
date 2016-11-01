@@ -280,7 +280,7 @@ static HRESULT GetDeviceState( LPDIRECTINPUTDEVICE8 dev, int size, void *ptr )
 
 /* This doesn't take a timestamp; instead, we let InputHandler::ButtonPressed
  * figure it out. Be sure to call InputHandler::Update() between each poll. */
-void InputHandler_DInput::UpdatePolled( DIDevice &device, const RageTimer &tm )
+void InputHandler_DInput::UpdatePolled( DIDevice &device, const std::chrono::steady_clock::time_point &tm )
 {
 	switch( device.type )
 	{
@@ -448,7 +448,7 @@ void InputHandler_DInput::UpdatePolled( DIDevice &device, const RageTimer &tm )
 	}
 }
 
-void InputHandler_DInput::UpdateBuffered( DIDevice &device, const RageTimer &tm )
+void InputHandler_DInput::UpdateBuffered( DIDevice &device, const std::chrono::steady_clock::time_point &tm )
 {
 	DWORD numevents;
 	DIDEVICEOBJECTDATA evtbuf[INPUT_QSIZE];
@@ -659,12 +659,12 @@ void InputHandler_DInput::Update()
 	{
 		if( !Devices[i].buffered )
 		{
-			UpdatePolled( Devices[i], RageZeroTimer );
+			UpdatePolled( Devices[i], std::chrono::high_resolution_clock::now() );
 		}
 		else if( !m_InputThread.IsCreated() )
 		{
 			// If we have an input thread, it'll handle buffered devices.
-			UpdateBuffered( Devices[i], RageZeroTimer );
+			UpdateBuffered( Devices[i], std::chrono::high_resolution_clock::now() );
 		}
 	}
 
@@ -761,9 +761,8 @@ void InputHandler_DInput::InputThreadMain()
 
 			/* Update devices even if no event was triggered, since this also
 			 * checks for focus loss. */
-			RageTimer now;
 			for( unsigned i = 0; i < BufferedDevices.size(); ++i )
-				UpdateBuffered( *BufferedDevices[i], now );
+				UpdateBuffered( *BufferedDevices[i], std::chrono::high_resolution_clock::now() );
 		}
 		CHECKPOINT;
 

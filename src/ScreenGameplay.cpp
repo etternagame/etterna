@@ -91,7 +91,7 @@ AutoScreenMessage( SM_BattleTrickLevel1 );
 AutoScreenMessage( SM_BattleTrickLevel2 );
 AutoScreenMessage( SM_BattleTrickLevel3 );
 
-static Preference<bool> g_bCenter1Player( "Center1Player", false );
+static Preference<bool> g_bCenter1Player( "Center1Player", true );
 static Preference<bool> g_bShowLyrics( "ShowLyrics", true );
 static Preference<float> g_fNetStartOffset( "NetworkStartOffset", -3.0 );
 static Preference<bool> g_bEasterEggs( "EasterEggs", true );

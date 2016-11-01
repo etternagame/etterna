@@ -57,9 +57,9 @@ RageDisplay*		DISPLAY	= NULL; // global and accessible from anywhere in our prog
 
 Preference<bool>  LOG_FPS( "LogFPS", true );
 Preference<float> g_fFrameLimitPercent( "FrameLimitPercent", 0.90f );
-Preference<int> g_fFrameLimit("FrameLimit", 0);
-Preference<int> g_fFrameLimitGameplay("FrameLimitGameplay", 0);
-Preference<bool> g_fPredictiveFrameLimit("PredictiveFrameLimit", 1);
+Preference<int> g_fFrameLimit("FrameLimit", 1000);
+Preference<int> g_fFrameLimitGameplay("FrameLimitGameplay", 1000);
+Preference<bool> g_fPredictiveFrameLimit("PredictiveFrameLimit", 0);
 
 static const char *RagePixelFormatNames[] = {
 	"RGBA8",
@@ -132,9 +132,9 @@ void RageDisplay::ProcessStatsOnFlip()
 		{
 			float fActualTime = g_LastCheckTimer.GetDeltaTime();
 			g_iNumChecksSinceLastReset++;
-			g_iFPS = lround(g_iFramesRenderedSinceLastCheck / fActualTime);
+			g_iFPS = static_cast<int>(g_iFramesRenderedSinceLastCheck / fActualTime);
 			g_iCFPS = g_iFramesRenderedSinceLastReset / g_iNumChecksSinceLastReset;
-			g_iCFPS = lround(g_iCFPS / fActualTime);
+			g_iCFPS = static_cast<int>(g_iCFPS / fActualTime);
 			g_iVPF = g_iVertsRenderedSinceLastCheck / g_iFramesRenderedSinceLastCheck;
 			g_iFramesRenderedSinceLastCheck = g_iVertsRenderedSinceLastCheck = 0;
 			if (LOG_FPS)
@@ -969,17 +969,16 @@ void RageDisplay::FrameLimitAfterVsync( int iFPS )
 		g_LastFrameEndedAtRage.Touch();
 		return;
 	}
-	else if (g_fFrameLimitPercent.Get() == 0 && g_fFrameLimit.Get() == 0 &&
-		g_fFrameLimitGameplay.Get() == 0)
+	else if ( !PREFSMAN->m_bVsync.Get() && g_fFrameLimit.Get() == 0 && g_fFrameLimitGameplay.Get() == 0 )
 		return;
 	
 	if ( presentFrame )
 	{
-		presentFrame = !g_fPredictiveFrameLimit.Get();
+		presentFrame = false;
 		g_LastFrameEndedAt = std::chrono::high_resolution_clock::now();
 		g_FrameExecutionTime = g_LastFrameEndedAt;
 	}
-	else if(g_fPredictiveFrameLimit.Get())
+	else
 	{
 		// Get the timings for the game logic loop, render loop, and present time
 		// Along with how long we are waiting for, e.g. Frame Limiting
@@ -1017,10 +1016,6 @@ void RageDisplay::FrameLimitAfterVsync( int iFPS )
 			presentFrame = true;
 			g_FrameRenderTime = std::chrono::high_resolution_clock::now();
 		}
-	}
-	else
-	{
-		presentFrame = true;
 	}
 }
 

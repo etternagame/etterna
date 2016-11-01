@@ -16,13 +16,14 @@ void InputHandler::UpdateTimer()
 
 void InputHandler::ButtonPressed( DeviceInput di )
 {
+	INPUTFILTER->ButtonPressed(di);
+
+	/* These checks are no longer valid, but we may want similar ones in the future.
 	if( di.ts.IsZero() )
 	{
 		di.ts = m_LastUpdate.Half();
 		++m_iInputsSinceUpdate;
 	}
-
-	INPUTFILTER->ButtonPressed( di );
 
 	if( m_iInputsSinceUpdate >= 1000 )
 	{
@@ -33,9 +34,11 @@ void InputHandler::ButtonPressed( DeviceInput di )
 		 * a timestamp are counted; if the driver provides its own timestamps, UpdateTimer is
 		 * optional.
 		 */
+	/*
 		LOG->Warn( "InputHandler::ButtonPressed: Driver sent many updates without calling UpdateTimer" );
 		FAIL_M("x");
 	}
+	*/
 }
 
 wchar_t InputHandler::DeviceButtonToChar( DeviceButton button, bool bUseCurrentKeyModifiers )

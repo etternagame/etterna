@@ -4,6 +4,7 @@
 
 #include "RageTimer.h"
 #include "EnumHelper.h"
+#include <chrono>
 
 const int NUM_JOYSTICKS = 32;
 const int NUM_PUMPS = 2;
@@ -331,13 +332,13 @@ public:
 	 * debouncing applied. */
 	bool bDown;
 
-	RageTimer ts;
+	std::chrono::steady_clock::time_point ts;
 
-	DeviceInput(): device(InputDevice_Invalid), button(DeviceButton_Invalid), level(0), z(0), bDown(false), ts(RageZeroTimer) { }
-	DeviceInput( InputDevice d, DeviceButton b, float l=0 ): device(d), button(b), level(l), z(0), bDown(l > 0.5f), ts(RageZeroTimer) { }
-	DeviceInput( InputDevice d, DeviceButton b, float l, const RageTimer &t ):
+	DeviceInput(): device(InputDevice_Invalid), button(DeviceButton_Invalid), level(0), z(0), bDown(false), ts(std::chrono::microseconds{ 0 }) { }
+	DeviceInput( InputDevice d, DeviceButton b, float l=0 ): device(d), button(b), level(l), z(0), bDown(l > 0.5f), ts(std::chrono::microseconds{ 0 }) { }
+	DeviceInput( InputDevice d, DeviceButton b, float l, const std::chrono::steady_clock::time_point &t ):
 		device(d), button(b), level(l), z(0), bDown(level > 0.5f), ts(t) { }
-	DeviceInput( InputDevice d, DeviceButton b, const RageTimer &t, int zVal=0 ):
+	DeviceInput( InputDevice d, DeviceButton b, const std::chrono::steady_clock::time_point &t, int zVal=0 ):
 		device(d), button(b), level(0), z(zVal), bDown(false), ts(t) { }
 
 	RString ToString() const;
