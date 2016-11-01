@@ -23,8 +23,6 @@
 #include "RageInput.h"
 #include <chrono>
 
-static RageTimer g_GameplayTimer;
-
 static auto g_AccurateGameplayTimer = std::chrono::high_resolution_clock::now();
 
 static Preference<bool> g_bNeverBoostAppPriority( "NeverBoostAppPriority", false );
@@ -421,7 +419,8 @@ void ConcurrentRenderer::RenderThread()
 		{
 			SCREENMAN->Draw();
 
-			float fDeltaTime = g_GameplayTimer.GetDeltaTime();
+			std::chrono::duration<float> frameStart = std::chrono::high_resolution_clock::now() - g_AccurateGameplayTimer;
+			float fDeltaTime = frameStart.count();
 			SCREENMAN->Update( fDeltaTime );
 		}
 

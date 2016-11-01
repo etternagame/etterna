@@ -70,7 +70,6 @@ void ScreenStatsOverlay::Update( float fDeltaTime )
 	{
 		// Reset skip timer when we toggle Stats on so we don't show a large skip
 		// from the span when stats were turned off.
-		//m_timerSkip.Touch();
 		g_AccurateSkipTimer = std::chrono::high_resolution_clock::now();
 	}
 	bShowStatsWasOn = PREFSMAN->m_bShowStats.Get();

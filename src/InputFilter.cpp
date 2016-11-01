@@ -342,7 +342,7 @@ void InputFilter::Update( float fDeltaTime )
 		{
 			// If the key isn't pressed, and hasn't been pressed for a while
 			// (so debouncing isn't interested in it), purge the entry.
-			std::chrono::duration<double> timeAgo = now - bs.m_LastReportTime;
+			std::chrono::duration<float> timeAgo = now - bs.m_LastReportTime;
 			float lastReportTime = timeAgo.count();
 
 			if( lastReportTime > g_fInputDebounceTime &&
@@ -416,7 +416,7 @@ float InputFilter::GetSecsHeld( const DeviceInput &di, const DeviceInputList *pB
 	if( pDI == NULL )
 		return 0;
 
-	std::chrono::duration<double> inputLength = std::chrono::high_resolution_clock::now() - pDI->ts;
+	std::chrono::duration<float> inputLength = std::chrono::high_resolution_clock::now() - pDI->ts;
 	return inputLength.count();
 }
 
