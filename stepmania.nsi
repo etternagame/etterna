@@ -250,6 +250,8 @@ Section "Main Section" SecMain
 !endif
 
 !ifdef INSTALL_NON_PCK_FILES
+	File "portable.ini"
+	
 	CreateDirectory "$INSTDIR\Announcers"
 	SetOutPath "$INSTDIR\Announcers"
 	File "Announcers\instructions.txt"

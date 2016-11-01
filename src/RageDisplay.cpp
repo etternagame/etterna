@@ -57,9 +57,9 @@ RageDisplay*		DISPLAY	= NULL; // global and accessible from anywhere in our prog
 
 Preference<bool>  LOG_FPS( "LogFPS", true );
 Preference<float> g_fFrameLimitPercent( "FrameLimitPercent", 0.90f );
-Preference<int> g_fFrameLimit("FrameLimit", 0);
-Preference<int> g_fFrameLimitGameplay("FrameLimitGameplay", 0);
-Preference<bool> g_fPredictiveFrameLimit("PredictiveFrameLimit", 1);
+Preference<int> g_fFrameLimit("FrameLimit", 1000);
+Preference<int> g_fFrameLimitGameplay("FrameLimitGameplay", 1000);
+Preference<bool> g_fPredictiveFrameLimit("PredictiveFrameLimit", 0);
 
 static const char *RagePixelFormatNames[] = {
 	"RGBA8",
