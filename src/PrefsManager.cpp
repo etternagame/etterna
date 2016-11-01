@@ -178,6 +178,7 @@ PrefsManager::PrefsManager() :
 	m_iMaxTextureResolution		( "MaxTextureResolution",	2048 ),
 	m_iRefreshRate			( "RefreshRate",		REFRESH_DEFAULT ),
 	m_bAllowMultitexture		( "AllowMultitexture",		true ),
+	m_bAllowedLag			("AllowedLag", 0.001f),
 	m_bShowStats			( "ShowStats",			TRUE_IF_DEBUG),
 	m_bShowBanners			( "ShowBanners",		true ),
 	m_bShowMouseCursor		( "ShowMouseCursor",		true ),

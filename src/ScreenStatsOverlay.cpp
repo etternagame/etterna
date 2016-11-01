@@ -126,20 +126,25 @@ void ScreenStatsOverlay::UpdateSkips()
 	while( Thresholds[skip] != -1 && UpdateTime > Thresholds[skip] )
 		skip++;
 
+	
 	if( skip )
 	{
-		static const RageColor colors[] =
+		float skipTime = 1000 * (UpdateTime - ExpectedUpdate);
+		if (skipTime >= PREFSMAN->m_bAllowedLag.Get() * 1000 )
 		{
-			RageColor(0,0,0,0),			/* unused */
-			RageColor(1.0f,1.0f,1.0f,1),	/* white*/
-			RageColor(1.0f,1.0f,0.0f,1),	/* yellow */
-			RageColor(1.0f,0.4f,0.4f,1)		/* light red */
-		};
+			static const RageColor colors[] =
+			{
+				RageColor(0,0,0,0),			/* unused */
+				RageColor(1.0f,1.0f,1.0f,1),	/* white*/
+				RageColor(1.0f,1.0f,0.0f,1),	/* yellow */
+				RageColor(1.0f,0.4f,0.4f,1)		/* light red */
+			};
 
-		AddTimestampLine( ssprintf("Lag: %.3fms", 1000*UpdateTime - ExpectedUpdate), colors[skip] );
+			AddTimestampLine(ssprintf("Lag: %.3fms", skipTime), colors[skip]);
 
-		if( PREFSMAN->m_bLogSkips )
-			LOG->Trace( "Lag: %.3fms", 1000 * UpdateTime - ExpectedUpdate );
+			if (PREFSMAN->m_bLogSkips)
+				LOG->Trace("Lag: %.3fms", skipTime);
+		}
 	}
 }
 
