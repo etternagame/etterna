@@ -3,6 +3,7 @@
 
 #include "GameInput.h"
 #include "InputFilter.h"
+#include <chrono>
 
 class InputEventPlus;
 class RageTimer;
@@ -14,7 +15,7 @@ public:
 	InputQueue();
 
 	void RememberInput( const InputEventPlus &gi );
-	bool WasPressedRecently( GameController c, const GameButton button, const RageTimer &OldestTimeAllowed, InputEventPlus *pIEP = NULL );
+	bool WasPressedRecently( GameController c, const GameButton button, const std::chrono::steady_clock::time_point &OldestTimeAllowed, InputEventPlus *pIEP = NULL );
 	const vector<InputEventPlus> &GetQueue( GameController c ) const { return m_aQueue[c]; }
 	void ClearQueue( GameController c );
 

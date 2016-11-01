@@ -3,6 +3,7 @@
 
 #include "InputHandler.h"
 #include "RageThreads.h"
+#include <chrono>
 
 struct DIDevice;
 class InputHandler_DInput: public InputHandler
@@ -24,8 +25,8 @@ private:
 	int m_iNumTimesLeftToPollForJoysticksChanged;
 	int m_iLastSeenNumJoysticks;	// This changes sometime after m_iLastSeenNumHidDevices
 
-	void UpdatePolled( DIDevice &device, const RageTimer &tm );
-	void UpdateBuffered( DIDevice &device, const RageTimer &tm );
+	void UpdatePolled( DIDevice &device, const std::chrono::steady_clock::time_point &tm );
+	void UpdateBuffered( DIDevice &device, const std::chrono::steady_clock::time_point &tm );
 	void PollAndAcquireDevices( bool bBuffered );
 
 	static int InputThread_Start( void *p )		 { ((InputHandler_DInput *) p)->InputThreadMain();  return 0; }

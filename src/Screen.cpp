@@ -320,6 +320,9 @@ bool Screen::PassInputToLua(const InputEventPlus& input)
 	bool handled= false;
 	Lua* L= LUA->Get();
 
+	auto inputDelta = std::chrono::high_resolution_clock::now() - input.DeviceI.ts;
+	float inputAgo = (std::chrono::duration_cast<std::chrono::microseconds>(inputDelta).count() / 1000000.0);
+
 	// Construct the table once, and reuse it.
 	lua_createtable(L, 0, 7);
 	{ // This block is meant to improve clarity.  A subtable is created for
@@ -335,7 +338,7 @@ bool Screen::PassInputToLua(const InputEventPlus& input)
 		lua_setfield(L, -2, "z");
 		lua_pushboolean(L, input.DeviceI.bDown);
 		lua_setfield(L, -2, "down");
-		lua_pushnumber(L, input.DeviceI.ts.Ago());
+		lua_pushnumber(L, inputAgo);
 		lua_setfield(L, -2, "ago");
 		lua_pushboolean(L, input.DeviceI.IsJoystick());
 		lua_setfield(L, -2, "is_joystick");

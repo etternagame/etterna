@@ -11,6 +11,7 @@
 #include "ThemeMetric.h"
 #include "InputEventPlus.h"
 #include "TimingData.h"
+#include <chrono>
 
 class ScoreDisplay;
 class LifeMeter;
@@ -90,7 +91,7 @@ public:
 		ScoreKeeper* pPrimaryScoreKeeper, 
 		ScoreKeeper* pSecondaryScoreKeeper );
 	void Load();
-	void CrossedRows( int iLastRowCrossed, const RageTimer &now );
+	void CrossedRows( int iLastRowCrossed, const std::chrono::steady_clock::time_point &now );
 	bool IsOniDead() const;
 
 	/**
@@ -105,8 +106,8 @@ public:
 
 	void ScoreAllActiveHoldsLetGo();
 	void DoTapScoreNone();
-
-	void Step( int col, int row, const RageTimer &tm, bool bHeld, bool bRelease );
+	
+	void Step( int col, int row, const std::chrono::steady_clock::time_point &tm, bool bHeld, bool bRelease, float padStickSeconds = 0.0f );
 
 	void FadeToFail();
 	void CacheAllUsedNoteSkins();
