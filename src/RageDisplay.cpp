@@ -61,6 +61,8 @@ Preference<int> g_fFrameLimit("FrameLimit", 1000);
 Preference<int> g_fFrameLimitGameplay("FrameLimitGameplay", 1000);
 Preference<bool> g_fPredictiveFrameLimit("PredictiveFrameLimit", 0);
 
+bool RageDisplay::IsPredictiveFrameLimit() const { return g_fPredictiveFrameLimit; }
+
 static const char *RagePixelFormatNames[] = {
 	"RGBA8",
 	"BGRA8",
@@ -125,8 +127,11 @@ void RageDisplay::ProcessStatsOnFlip()
 {
 	if (PREFSMAN->m_bShowStats || LOG_FPS)
 	{
-		g_iFramesRenderedSinceLastCheck++;
-		g_iFramesRenderedSinceLastReset++;
+		if (ShouldRenderFrame())
+		{
+			g_iFramesRenderedSinceLastCheck++;
+			g_iFramesRenderedSinceLastReset++;
+		}
 
 		std::chrono::duration<double> timeDelta = std::chrono::high_resolution_clock::now() - g_LastCheckTimer;
 		float checkTime = timeDelta.count();
@@ -134,9 +139,9 @@ void RageDisplay::ProcessStatsOnFlip()
 		{
 			g_LastCheckTimer = std::chrono::high_resolution_clock::now();
 			g_iNumChecksSinceLastReset++;
-			g_iFPS = static_cast<int>(g_iFramesRenderedSinceLastCheck / checkTime);
+			g_iFPS = static_cast<int>(g_iFramesRenderedSinceLastCheck / checkTime + 0.5f);
 			g_iCFPS = g_iFramesRenderedSinceLastReset / g_iNumChecksSinceLastReset;
-			g_iCFPS = static_cast<int>(g_iCFPS / checkTime);
+			g_iCFPS = static_cast<int>(g_iCFPS / checkTime + 0.5f);
 			g_iVPF = g_iVertsRenderedSinceLastCheck / g_iFramesRenderedSinceLastCheck;
 			g_iFramesRenderedSinceLastCheck = g_iVertsRenderedSinceLastCheck = 0;
 			if (LOG_FPS)

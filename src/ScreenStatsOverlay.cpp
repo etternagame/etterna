@@ -98,6 +98,7 @@ void ScreenStatsOverlay::AddTimestampLine( const RString &txt, const RageColor &
 	m_LastSkip %= NUM_SKIPS_TO_SHOW;
 }
 
+// TODO: check for predictive vsync to check if time is > refresh rate, rather than double.
 void ScreenStatsOverlay::UpdateSkips()
 {
 	/* Use our own timer, so we ignore `/tab. */
@@ -123,8 +124,16 @@ void ScreenStatsOverlay::UpdateSkips()
 	};
 
 	int skip = 0;
-	while( Thresholds[skip] != -1 && UpdateTime > Thresholds[skip] )
-		skip++;
+	if (!DISPLAY->IsPredictiveFrameLimit())
+	{
+		while (Thresholds[skip] != -1 && UpdateTime > Thresholds[skip])
+			skip++;
+	}
+	else
+	{
+		if (UpdateTime > ExpectedUpdate)
+			skip++;
+	}
 
 	
 	if( skip )
