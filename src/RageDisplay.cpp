@@ -21,7 +21,7 @@
 #include <thread>
 
 // Statistics stuff
-RageTimer	g_LastCheckTimer;
+auto	g_LastCheckTimer = std::chrono::high_resolution_clock::now();
 int		g_iNumVerts;
 int		g_iFPS, g_iVPF, g_iCFPS;
 
@@ -128,13 +128,15 @@ void RageDisplay::ProcessStatsOnFlip()
 		g_iFramesRenderedSinceLastCheck++;
 		g_iFramesRenderedSinceLastReset++;
 
-		if (g_LastCheckTimer.PeekDeltaTime() >= 1.0f)	// update stats every 1 sec.
+		std::chrono::duration<double> timeDelta = std::chrono::high_resolution_clock::now() - g_LastCheckTimer;
+		float checkTime = timeDelta.count();
+		if (checkTime >= 1.0f)	// update stats every 1 sec.
 		{
-			float fActualTime = g_LastCheckTimer.GetDeltaTime();
+			g_LastCheckTimer = std::chrono::high_resolution_clock::now();
 			g_iNumChecksSinceLastReset++;
-			g_iFPS = static_cast<int>(g_iFramesRenderedSinceLastCheck / fActualTime);
+			g_iFPS = static_cast<int>(g_iFramesRenderedSinceLastCheck / checkTime);
 			g_iCFPS = g_iFramesRenderedSinceLastReset / g_iNumChecksSinceLastReset;
-			g_iCFPS = static_cast<int>(g_iCFPS / fActualTime);
+			g_iCFPS = static_cast<int>(g_iCFPS / checkTime);
 			g_iVPF = g_iVertsRenderedSinceLastCheck / g_iFramesRenderedSinceLastCheck;
 			g_iFramesRenderedSinceLastCheck = g_iVertsRenderedSinceLastCheck = 0;
 			if (LOG_FPS)
@@ -155,7 +157,7 @@ void RageDisplay::ResetStats()
 		g_iFramesRenderedSinceLastCheck = g_iFramesRenderedSinceLastReset = 0;
 		g_iNumChecksSinceLastReset = 0;
 		g_iVertsRenderedSinceLastCheck = 0;
-		g_LastCheckTimer.GetDeltaTime();
+		g_LastCheckTimer = std::chrono::high_resolution_clock::now();
 	}
 }
 

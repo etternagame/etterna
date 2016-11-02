@@ -70,7 +70,6 @@ void ScreenStatsOverlay::Update( float fDeltaTime )
 	{
 		// Reset skip timer when we toggle Stats on so we don't show a large skip
 		// from the span when stats were turned off.
-		//m_timerSkip.Touch();
 		g_AccurateSkipTimer = std::chrono::high_resolution_clock::now();
 	}
 	bShowStatsWasOn = PREFSMAN->m_bShowStats.Get();
@@ -102,8 +101,8 @@ void ScreenStatsOverlay::AddTimestampLine( const RString &txt, const RageColor &
 void ScreenStatsOverlay::UpdateSkips()
 {
 	/* Use our own timer, so we ignore `/tab. */
-	auto timeNow = std::chrono::high_resolution_clock::now() - g_AccurateSkipTimer;
-	const float UpdateTime = std::chrono::duration_cast<std::chrono::microseconds>(timeNow).count() / 1000000.0;
+	std::chrono::duration<float> timeDelta = std::chrono::high_resolution_clock::now() - g_AccurateSkipTimer;
+	const float UpdateTime = timeDelta.count();
 	g_AccurateSkipTimer = std::chrono::high_resolution_clock::now();
 
 	/* FPS is 0 for a little while after we load a screen; don't report
@@ -127,20 +126,25 @@ void ScreenStatsOverlay::UpdateSkips()
 	while( Thresholds[skip] != -1 && UpdateTime > Thresholds[skip] )
 		skip++;
 
+	
 	if( skip )
 	{
-		static const RageColor colors[] =
+		float skipTime = 1000 * (UpdateTime - ExpectedUpdate);
+		if (skipTime >= PREFSMAN->m_bAllowedLag.Get() * 1000 )
 		{
-			RageColor(0,0,0,0),			/* unused */
-			RageColor(1.0f,1.0f,1.0f,1),	/* white*/
-			RageColor(1.0f,1.0f,0.0f,1),	/* yellow */
-			RageColor(1.0f,0.4f,0.4f,1)		/* light red */
-		};
+			static const RageColor colors[] =
+			{
+				RageColor(0,0,0,0),			/* unused */
+				RageColor(1.0f,1.0f,1.0f,1),	/* white*/
+				RageColor(1.0f,1.0f,0.0f,1),	/* yellow */
+				RageColor(1.0f,0.4f,0.4f,1)		/* light red */
+			};
 
-		AddTimestampLine( ssprintf("Lag: %.3fms", 1000*UpdateTime - ExpectedUpdate), colors[skip] );
+			AddTimestampLine(ssprintf("Lag: %.3fms", skipTime), colors[skip]);
 
-		if( PREFSMAN->m_bLogSkips )
-			LOG->Trace( "Lag: %.3fms", 1000 * UpdateTime - ExpectedUpdate );
+			if (PREFSMAN->m_bLogSkips)
+				LOG->Trace("Lag: %.3fms", skipTime);
+		}
 	}
 }
 

@@ -1979,8 +1979,8 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 
 	// Do everything that depends on a timer here;
 	// set your breakpoints somewhere after this block.
-	auto stepDelta = std::chrono::high_resolution_clock::now() - tm;
-	auto stepAgo = (std::chrono::duration_cast<std::chrono::microseconds>(stepDelta).count() / 1000000.0) - padStickSeconds;
+	std::chrono::duration<float> stepDelta = std::chrono::high_resolution_clock::now() - tm;
+	float stepAgo = stepDelta.count() - padStickSeconds;
 	
 	const float fLastBeatUpdate = m_pPlayerState->m_Position.m_LastBeatUpdate.Ago();
 	const float fPositionSeconds = m_pPlayerState->m_Position.m_fMusicSeconds - stepAgo;

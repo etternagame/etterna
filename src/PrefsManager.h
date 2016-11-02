@@ -170,6 +170,7 @@ public:
 	Preference<int>	m_iMaxTextureResolution;
 	Preference<int>	m_iRefreshRate;
 	Preference<bool>	m_bAllowMultitexture;
+	Preference<float>	m_bAllowedLag;
 	Preference<bool>	m_bShowStats;
 	Preference<bool>	m_bShowBanners;
 	Preference<bool>	m_bShowMouseCursor;

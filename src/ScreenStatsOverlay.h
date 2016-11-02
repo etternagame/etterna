@@ -24,7 +24,6 @@ private:
 	BitmapText m_textStats;
 	Quad m_quadSkipBackground;
 	BitmapText m_textSkips[NUM_SKIPS_TO_SHOW];
-	RageTimer m_timerSkip;
 	std::chrono::steady_clock::time_point g_AccurateSkipTimer = std::chrono::high_resolution_clock::now();
 	int m_LastSkip;
 

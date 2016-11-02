@@ -251,8 +251,8 @@ void InputFilter::CheckButtonChange( ButtonState &bs, DeviceInput di, const std:
 
 	/* Possibly apply debounce,
 	 * If the input was coin, possibly apply distinct coin debounce in the else below. */
-	auto timeDelta = now - bs.m_LastReportTime;
-	auto delta = (std::chrono::duration_cast<std::chrono::microseconds>(timeDelta).count() / 1000000.0);
+	std::chrono::duration<float> timeDelta = now - bs.m_LastReportTime;
+	float delta = timeDelta.count();
 	if (! INPUTMAPPER->DeviceToGame(di, gi) || gi.button != GAME_BUTTON_COIN )
 	{
 		/* If the last IET_FIRST_PRESS or IET_RELEASE event was sent too recently,
@@ -342,8 +342,8 @@ void InputFilter::Update( float fDeltaTime )
 		{
 			// If the key isn't pressed, and hasn't been pressed for a while
 			// (so debouncing isn't interested in it), purge the entry.
-			auto timeAgo = now - bs.m_LastReportTime;
-			float lastReportTime = (std::chrono::duration_cast<std::chrono::microseconds>(timeAgo).count() / 1000000.0);
+			std::chrono::duration<float> timeAgo = now - bs.m_LastReportTime;
+			float lastReportTime = timeAgo.count();
 
 			if( lastReportTime > g_fInputDebounceTime &&
 				 bs.m_DeviceInput.level == 0.0f )
@@ -416,8 +416,8 @@ float InputFilter::GetSecsHeld( const DeviceInput &di, const DeviceInputList *pB
 	if( pDI == NULL )
 		return 0;
 
-	auto inputLength = std::chrono::high_resolution_clock::now() - pDI->ts;
-	return (std::chrono::duration_cast<std::chrono::microseconds>(inputLength).count() / 1000000.0);
+	std::chrono::duration<float> inputLength = std::chrono::high_resolution_clock::now() - pDI->ts;
+	return inputLength.count();
 }
 
 float InputFilter::GetLevel( const DeviceInput &di, const DeviceInputList *pButtonState ) const

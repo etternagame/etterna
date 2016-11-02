@@ -68,7 +68,8 @@ bool InputQueueCode::EnteredCode( GameController controller ) const
 	while( iQueueIndex >= 0 )
 	{
 		/* If the buttons are too old, stop searching because we're not going to find a match. */
-		float inputDelta = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - aQueue[iQueueIndex].DeviceI.ts).count() / 1000000.0;
+		std::chrono::duration<float> timeDelta = std::chrono::high_resolution_clock::now() - aQueue[iQueueIndex].DeviceI.ts;
+		float inputDelta = timeDelta.count();
 		if(m_fMaxSecondsBack != -1 &&  inputDelta > m_fMaxSecondsBack)
 			return false;
 
@@ -94,7 +95,8 @@ bool InputQueueCode::EnteredCode( GameController controller ) const
 			{
 				const InputEventPlus &iep = aQueue[iQueueSearchIndex];
 
-				float simulInputDelta = std::chrono::duration_cast<std::chrono::microseconds>(aQueue[iQueueIndex].DeviceI.ts - iep.DeviceI.ts).count() / 1000000.0;
+				std::chrono::duration<float> timeDelta = aQueue[iQueueIndex].DeviceI.ts - iep.DeviceI.ts;
+				float simulInputDelta = timeDelta.count();
 				if( simulInputDelta > g_fSimultaneousThreshold)	// buttons are too old.  Stop searching because we're not going to find a match
 					break;
 
