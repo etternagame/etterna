@@ -346,6 +346,7 @@ protected:
 
 public:
 	// Statistics
+	bool IsPredictiveFrameLimit() const;
 	int GetFPS() const;
 	int GetVPF() const;
 	int GetCumFPS() const; // average FPS since last reset
