@@ -2763,6 +2763,8 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 					&& (pi->m_pLifeMeter && pi->m_pLifeMeter->IsFailing()))
 			{
 				pi->GetPlayerStageStats()->m_bFailed = true;
+				Message msg("SongFinished");
+				MESSAGEMAN->Broadcast(msg);
 			}
 
 			if( !pi->GetPlayerStageStats()->m_bFailed )
@@ -2854,7 +2856,6 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 		// todo: add GameplayCleared, StartTransitioningCleared commands -aj
 		
 		Message msg("SongFinished");
-		msg.SetParam("Test", 1);
 		MESSAGEMAN->Broadcast(msg);
 		
 		TweenOffScreen();
