@@ -628,15 +628,21 @@ float FindFirstDisplayedBeat( const PlayerState* pPlayerState, int iDrawDistance
 {
 	float fFirstBeatToDraw = pPlayerState->GetDisplayedPosition().m_fSongBeatVisible;
 
-	static float currentSongLastBPS = 0;
+	static float lastKnownBPS = 0;
+	static float lastKnownRate = 0;
 	static float pixelsPerBeat = 0;
 
+	float currentBPS = pPlayerState->GetDisplayedPosition().m_fCurBPS;
+	float currentRate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+
 	// Song or BPM changed
-	if (currentSongLastBPS != pPlayerState->GetDisplayedPosition().m_fCurBPS)
+	if (lastKnownBPS != currentBPS || lastKnownRate != currentRate)
 	{
-		currentSongLastBPS = pPlayerState->GetDisplayedPosition().m_fCurBPS;
 		bool bIsPastPeakYOffset;
 		float fPeakYOffset;
+
+		lastKnownBPS = currentBPS;
+		lastKnownRate = currentRate;
 
 		float lastBeatElapsedTime = pPlayerState->GetDisplayedTiming().ElapsedTimesAtAllRows.at(pPlayerState->GetDisplayedTiming().ElapsedTimesAtAllRows.size() - 1);
 
@@ -646,7 +652,7 @@ float FindFirstDisplayedBeat( const PlayerState* pPlayerState, int iDrawDistance
 
 		float endOffset = ArrowEffects::GetYOffset(pPlayerState, 0, lastBeatArgs.beat, fPeakYOffset, bIsPastPeakYOffset, true);
 
-		pixelsPerBeat = ((lastBeatArgs.beat / endOffset) * (currentSongLastBPS / lastBeatArgs.bps_out)) * GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+		pixelsPerBeat = ((lastBeatArgs.beat / endOffset) * (lastKnownBPS / lastBeatArgs.bps_out)) * lastKnownRate;
 	}
 
 	return fFirstBeatToDraw + iDrawDistanceAfterTargetsPixels*pixelsPerBeat;
@@ -665,25 +671,31 @@ float FindLastDisplayedBeat( const PlayerState* pPlayerState, int iDrawDistanceB
 
 	if (!bBoomerang)
 	{
-		static float currentSongLastBPS = 0;
+		static float lastKnownBPS = 0;
+		static float lastKnownRate = 0;
 		static float pixelsPerBeat = 0;
 
+		float currentBPS = pPlayerState->GetDisplayedPosition().m_fCurBPS;
+		float currentRate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+
 		// Song or BPM changed
-		if (currentSongLastBPS != pPlayerState->GetDisplayedPosition().m_fCurBPS)
+		if (lastKnownBPS != currentBPS || lastKnownRate != currentRate)
 		{
-			currentSongLastBPS = pPlayerState->GetDisplayedPosition().m_fCurBPS;
 			bool bIsPastPeakYOffset;
 			float fPeakYOffset;
+
+			lastKnownBPS = currentBPS;
+			lastKnownRate = currentRate;
 
 			float lastBeatElapsedTime = pPlayerState->GetDisplayedTiming().ElapsedTimesAtAllRows.at(pPlayerState->GetDisplayedTiming().ElapsedTimesAtAllRows.size() - 1);
 
 			TimingData::GetBeatArgs lastBeatArgs;
 			lastBeatArgs.elapsed_time = lastBeatElapsedTime;
 			pPlayerState->GetDisplayedTiming().GetBeatAndBPSFromElapsedTime(lastBeatArgs);
-			
+
 			float endOffset = ArrowEffects::GetYOffset(pPlayerState, 0, lastBeatArgs.beat, fPeakYOffset, bIsPastPeakYOffset, true);
 
-			pixelsPerBeat = ((lastBeatArgs.beat / endOffset) * (currentSongLastBPS / lastBeatArgs.bps_out)) * GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+			pixelsPerBeat = ((lastBeatArgs.beat / endOffset) * (lastKnownBPS / lastBeatArgs.bps_out)) * lastKnownRate;
 		}
 
 		fLastBeatToDraw += iDrawDistanceBeforeTargetsPixels * pixelsPerBeat;
