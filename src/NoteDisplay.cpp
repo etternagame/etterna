@@ -1526,8 +1526,6 @@ void NoteColumnRenderer::DrawPrimitives()
 	m_column_render_args.zoom_handler= &NCR_current.m_zoom_handler;
 	m_column_render_args.diffuse= m_pTempState->diffuse[0];
 	m_column_render_args.glow= m_pTempState->glow;
-	m_field_render_args->first_beat= NoteRowToBeat(m_field_render_args->first_row);
-	m_field_render_args->last_beat= NoteRowToBeat(m_field_render_args->last_row);
 	bool any_upcoming= false;
 	// Build lists of holds and taps for each player number, then pass those
 	// lists to the displays to draw.

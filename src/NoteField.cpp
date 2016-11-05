@@ -626,55 +626,32 @@ static int GetNumNotesRange( const PlayerState* pPlayerState, float fLow, float 
 
 float FindFirstDisplayedBeat( const PlayerState* pPlayerState, int iDrawDistanceAfterTargetsPixels )
 {
-	
-	float fLow = 0, fHigh = pPlayerState->GetDisplayedPosition().m_fSongBeat;
-	
-	bool bHasCache = pPlayerState->m_CacheNoteStat.size() > 0;
-	
-	if( !bHasCache )
+	float fFirstBeatToDraw = pPlayerState->GetDisplayedPosition().m_fSongBeatVisible;
+
+	static float currentSongLastBPS = 0;
+	static float pixelsPerBeat = 0;
+
+	// Song or BPM changed
+	if (currentSongLastBPS != pPlayerState->GetDisplayedPosition().m_fCurBPS)
 	{
-		fLow = fHigh - 4.0f;
-	}
-	
-	const int NUM_ITERATIONS = 24;
-	const int MAX_NOTES_AFTER = 64;
-	
-	float fFirstBeatToDraw = fLow;
-	
-	for( int i = 0; i < NUM_ITERATIONS; i ++ )
-	{
-	
-		float fMid = (fLow + fHigh) / 2.0f;
-		
+		currentSongLastBPS = pPlayerState->GetDisplayedPosition().m_fCurBPS;
 		bool bIsPastPeakYOffset;
 		float fPeakYOffset;
-		float fYOffset = ArrowEffects::GetYOffset( pPlayerState, 0, fMid, fPeakYOffset, bIsPastPeakYOffset, true );
 
-		if( fYOffset < iDrawDistanceAfterTargetsPixels || ( bHasCache && GetNumNotesRange( pPlayerState, fMid, pPlayerState->GetDisplayedPosition().m_fSongBeat ) > MAX_NOTES_AFTER ) ) // off screen / too many notes
-		{
-			fFirstBeatToDraw = fMid; // move towards fSongBeat
-			fLow = fMid;
-		}
-		else // on screen, move away!!
-		{
-			fHigh = fMid;
-		}
+		float lastBeatElapsedTime = pPlayerState->GetDisplayedTiming().ElapsedTimesAtAllRows.at(pPlayerState->GetDisplayedTiming().ElapsedTimesAtAllRows.size() - 1);
+		float lastBeat = pPlayerState->GetDisplayedTiming().GetBeatFromElapsedTime(lastBeatElapsedTime);
+		float endOffset = ArrowEffects::GetYOffset(pPlayerState, 0, lastBeat, fPeakYOffset, bIsPastPeakYOffset, true);
 		
+		pixelsPerBeat = (lastBeat / endOffset) * GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 	}
 
-	return fFirstBeatToDraw;
-
+	return fFirstBeatToDraw + iDrawDistanceAfterTargetsPixels*pixelsPerBeat;
 }
 
 float FindLastDisplayedBeat( const PlayerState* pPlayerState, int iDrawDistanceBeforeTargetsPixels )
 {
-	// Probe for last note to draw. Worst case is 0.25x + boost.
-	// Adjust search distance so that notes don't pop onto the screen.
-	float fSearchDistance = 10;
-	float fLastBeatToDraw = pPlayerState->GetDisplayedPosition().m_fSongBeat+fSearchDistance;
+	float fLastBeatToDraw = pPlayerState->GetDisplayedPosition().m_fSongBeatVisible;
 	float fSpeedMultiplier = pPlayerState->GetDisplayedTiming().GetDisplayedSpeedPercent(pPlayerState->GetDisplayedPosition().m_fSongBeatVisible, pPlayerState->GetDisplayedPosition().m_fMusicSecondsVisible);
-
-	const int NUM_ITERATIONS = 20;
 
 	bool bBoomerang;
 	{
@@ -682,25 +659,50 @@ float FindLastDisplayedBeat( const PlayerState* pPlayerState, int iDrawDistanceB
 		bBoomerang = (fAccels[PlayerOptions::ACCEL_BOOMERANG] != 0);
 	}
 
-	for( int i=0; i<NUM_ITERATIONS; i++ )
+	if (!bBoomerang)
 	{
-		bool bIsPastPeakYOffset;
-		float fPeakYOffset;
-		float fYOffset = ArrowEffects::GetYOffset( pPlayerState, 0, fLastBeatToDraw, fPeakYOffset, bIsPastPeakYOffset, true );
+		static float currentSongLastBPS = 0;
+		static float pixelsPerBeat = 0;
 
-		if( bBoomerang && !bIsPastPeakYOffset )
-			fLastBeatToDraw += fSearchDistance;
-		else if( fYOffset > iDrawDistanceBeforeTargetsPixels ) // off screen
-			fLastBeatToDraw -= fSearchDistance;
-		else // on screen
-			fLastBeatToDraw += fSearchDistance;
+		// Song or BPM changed
+		if (currentSongLastBPS != pPlayerState->GetDisplayedPosition().m_fCurBPS)
+		{
+			currentSongLastBPS = pPlayerState->GetDisplayedPosition().m_fCurBPS;
 
-		fSearchDistance /= 2;
+			bool bIsPastPeakYOffset;
+			float fPeakYOffset;
+
+			float lastBeatElapsedTime = pPlayerState->GetDisplayedTiming().ElapsedTimesAtAllRows.at(pPlayerState->GetDisplayedTiming().ElapsedTimesAtAllRows.size() - 1);
+			float lastBeat = pPlayerState->GetDisplayedTiming().GetBeatFromElapsedTime(lastBeatElapsedTime);
+			float endOffset = ArrowEffects::GetYOffset(pPlayerState, 0, lastBeat, fPeakYOffset, bIsPastPeakYOffset, true);
+
+			pixelsPerBeat = (lastBeat / endOffset) * GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+		}
+
+		fLastBeatToDraw += iDrawDistanceBeforeTargetsPixels * pixelsPerBeat;
 	}
-
-	if( fSpeedMultiplier < 0.75 )
+	else
 	{
-		fLastBeatToDraw = min(fLastBeatToDraw, pPlayerState->GetDisplayedPosition().m_fSongBeat + 16);
+		// Probe for last note to draw. Worst case is 0.25x + boost.
+		// Adjust search distance so that notes don't pop onto the screen.
+		float fSearchDistance = 10;
+		const int NUM_ITERATIONS = 20;
+
+		for (int i = 0; i<NUM_ITERATIONS; i++)
+		{
+			bool bIsPastPeakYOffset;
+			float fPeakYOffset;
+			float fYOffset = ArrowEffects::GetYOffset(pPlayerState, 0, fLastBeatToDraw, fPeakYOffset, bIsPastPeakYOffset, true);
+
+			if (bBoomerang && !bIsPastPeakYOffset)
+				fLastBeatToDraw += fSearchDistance;
+			else if (fYOffset > iDrawDistanceBeforeTargetsPixels) // off screen
+				fLastBeatToDraw -= fSearchDistance;
+			else // on screen
+				fLastBeatToDraw += fSearchDistance;
+
+			fSearchDistance /= 2;
+		}
 	}
 
 	return fLastBeatToDraw;
@@ -786,6 +788,8 @@ void NoteField::DrawPrimitives()
 
 	m_pPlayerState->m_fLastDrawnBeat = last_beat_to_draw;
 
+	m_FieldRenderArgs.first_beat = first_beat_to_draw;
+	m_FieldRenderArgs.last_beat = last_beat_to_draw;
 	m_FieldRenderArgs.first_row  = BeatToNoteRow(first_beat_to_draw);
 	m_FieldRenderArgs.last_row   = BeatToNoteRow(last_beat_to_draw);
 
