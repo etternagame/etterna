@@ -449,23 +449,6 @@ inline float NoteRowToVisibleBeat( const PlayerState *pPlayerState, int iRow )
 	return NoteRowToBeat(iRow);
 }
 
-bool NoteDisplay::IsOnScreen( float fBeat, int iCol, int iDrawDistanceAfterTargetsPixels, int iDrawDistanceBeforeTargetsPixels ) const
-{
-	// IMPORTANT:  Do not modify this function without also modifying the
-	// version that is in NoteField.cpp or coming up with a good way to
-	// merge them. -Kyz
-	// TRICKY: If boomerang is on, then ones in the range
-	// [iFirstRowToDraw,iLastRowToDraw] aren't necessarily visible.
-	// Test to see if this beat is visible before drawing.
-	float fYOffset = ArrowEffects::GetYOffset( m_pPlayerState, iCol, fBeat );
-	if( fYOffset > iDrawDistanceBeforeTargetsPixels )	// off screen
-		return false;
-	if( fYOffset < iDrawDistanceAfterTargetsPixels )	// off screen
-		return false;
-
-	return true;
-}
-
 bool NoteDisplay::DrawHoldsInRange(const NoteFieldRenderArgs& field_args,
 	const NoteColumnRenderArgs& column_args,
 	const vector<NoteData::TrackMap::const_iterator>& tap_set)
@@ -550,11 +533,7 @@ bool NoteDisplay::DrawTapsInRange(const NoteFieldRenderArgs& field_args,
 		int tap_row= (*tapit)->first;
 		const TapNote& tn= (*tapit)->second;
 
-		// TRICKY: If boomerang is on, then all notes in the range
-		// [first_row,last_row] aren't necessarily visible.
-		// Test every note to make sure it's on screen before drawing.
-		if(!IsOnScreen(NoteRowToBeat(tap_row), column_args.column,
-				field_args.draw_pixels_after_targets, field_args.draw_pixels_before_targets))
+		if (tap_row < field_args.first_row || tap_row > field_args.last_row)
 		{
 			continue; // skip
 		}

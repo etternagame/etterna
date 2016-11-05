@@ -68,8 +68,6 @@ protected:
 	void CacheNoteSkin( const RString &sNoteSkin );
 	void UncacheNoteSkin( const RString &sNoteSkin );
 
-	bool IsOnScreen( float fBeat, int iCol, int iDrawDistanceAfterTargetsPixels, int iDrawDistanceBeforeTargetsPixels ) const;
-
 	void DrawBoard( int iDrawDistanceAfterTargetsPixels, int iDrawDistanceBeforeTargetsPixels );
 
 	enum BeatBarType { measure, beat, half_beat, quarter_beat };

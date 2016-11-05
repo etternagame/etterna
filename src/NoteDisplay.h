@@ -182,8 +182,6 @@ public:
 
 	static void Update( float fDeltaTime );
 
-	bool IsOnScreen( float fBeat, int iCol, int iDrawDistanceAfterTargetsPixels, int iDrawDistanceBeforeTargetsPixels ) const;
-
 	bool DrawHoldsInRange(const NoteFieldRenderArgs& field_args,
 		const NoteColumnRenderArgs& column_args,
 		const vector<NoteData::TrackMap::const_iterator>& tap_set);

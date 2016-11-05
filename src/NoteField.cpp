@@ -708,23 +708,6 @@ float FindLastDisplayedBeat( const PlayerState* pPlayerState, int iDrawDistanceB
 	return fLastBeatToDraw;
 }
 
-bool NoteField::IsOnScreen( float fBeat, int iCol, int iDrawDistanceAfterTargetsPixels, int iDrawDistanceBeforeTargetsPixels ) const
-{
-	// IMPORTANT:  Do not modify this function without also modifying the
-	// version that is in NoteDisplay.cpp or coming up with a good way to
-	// merge them. -Kyz
-	// TRICKY: If boomerang is on, then ones in the range 
-	// [iFirstRowToDraw,iLastRowToDraw] aren't necessarily visible.
-	// Test to see if this beat is visible before drawing.
-	float fYOffset = ArrowEffects::GetYOffset( m_pPlayerState, iCol, fBeat );
-	if( fYOffset > iDrawDistanceBeforeTargetsPixels )	// off screen
-		return false;
-	if( fYOffset < iDrawDistanceAfterTargetsPixels )	// off screen
-		return false;
-
-	return true;
-}
-
 void NoteField::CalcPixelsBeforeAndAfterTargets()
 {
 	const PlayerOptions& curr_options= m_pPlayerState->m_PlayerOptions.GetCurrent();
@@ -796,7 +779,7 @@ void NoteField::DrawPrimitives()
 	//LOG->Trace( "start = %f.1, end = %f.1", first_beat_to_draw-fSongBeat, last_beat_to_draw-fSongBeat );
 	//LOG->Trace( "Drawing elements %d through %d", m_FieldRenderArgs.first_row, m_FieldRenderArgs.last_row );
 
-#define IS_ON_SCREEN(fBeat)  (first_beat_to_draw <= (fBeat) && (fBeat) <= last_beat_to_draw && IsOnScreen(fBeat, 0, m_FieldRenderArgs.draw_pixels_after_targets, m_FieldRenderArgs.draw_pixels_before_targets))
+#define IS_ON_SCREEN(fBeat)  (first_beat_to_draw <= (fBeat) && (fBeat) <= last_beat_to_draw)
 
 	// Draw Receptors
 	{
