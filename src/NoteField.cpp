@@ -628,21 +628,29 @@ float FindFirstDisplayedBeat( const PlayerState* pPlayerState, int iDrawDistance
 {
 	float fFirstBeatToDraw = pPlayerState->GetDisplayedPosition().m_fSongBeatVisible;
 
+	// TODO: Account for M Mods...
 	static float lastKnownBPS = 0;
 	static float lastKnownRate = 0;
+	static float lastKnownXSpeed = 0;
+	static float lastKnownCSpeed = 0;
 	static float pixelsPerBeat = 0;
 
 	float currentBPS = pPlayerState->GetDisplayedPosition().m_fCurBPS;
 	float currentRate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+	float currentXSpace = pPlayerState->m_PlayerOptions.GetCurrent().m_fScrollSpeed;
+	float currentCSpace = pPlayerState->m_PlayerOptions.GetCurrent().m_fScrollBPM;
 
 	// Song or BPM changed
-	if (lastKnownBPS != currentBPS || lastKnownRate != currentRate)
+	if (lastKnownBPS != currentBPS || lastKnownRate != currentRate
+		|| lastKnownCSpeed != currentCSpace || lastKnownXSpeed != currentXSpace)
 	{
 		bool bIsPastPeakYOffset;
 		float fPeakYOffset;
 
 		lastKnownBPS = currentBPS;
 		lastKnownRate = currentRate;
+		lastKnownXSpeed = currentXSpace;
+		lastKnownCSpeed = currentCSpace;
 
 		float lastBeatElapsedTime = pPlayerState->GetDisplayedTiming().ElapsedTimesAtAllRows.at(pPlayerState->GetDisplayedTiming().ElapsedTimesAtAllRows.size() - 1);
 
