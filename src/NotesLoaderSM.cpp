@@ -282,12 +282,12 @@ float SMLoader::RowToBeat( const RString &line, const int rowsPerBeat )
 }
 
 void SMLoader::LoadFromTokens( 
-			     RString &sStepsType, 
-			     RString &sDescription,
-			     RString &sDifficulty,
-			     RString &sMeter,
-			     RString &sRadarValues,
-			     RString &sNoteData,
+			     RString sStepsType, 
+			     RString sDescription,
+			     RString sDifficulty,
+			     RString sMeter,
+			     RString sRadarValues,
+			     RString sNoteData,
 			     Steps &out
 			     )
 {

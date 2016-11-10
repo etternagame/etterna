@@ -125,7 +125,7 @@ static LocalizedString NO_SMOOTH_LINES	("StepMania","NoSmoothLines");
 
 static RString GetActualGraphicOptionsString()
 {
-	VideoModeParams &params = (*DISPLAY->GetActualVideoModeParams());
+	const VideoModeParams &params = (*DISPLAY->GetActualVideoModeParams());
 	RString sFormat = "%s %s %dx%d %d "+COLOR.GetValue()+" %d "+TEXTURE.GetValue()+" %dHz %s %s";
 	RString sLog = ssprintf( sFormat,
 		DISPLAY->GetApiDescription().c_str(),
@@ -145,7 +145,7 @@ static void StoreActualGraphicOptions()
 	/* Store the settings that RageDisplay was actually able to use so that
 	 * we don't go through the process of auto-detecting a usable video mode
 	 * every time. */
-	VideoModeParams &params = (*DISPLAY->GetActualVideoModeParams());
+	const VideoModeParams &params = (*DISPLAY->GetActualVideoModeParams());
 	PREFSMAN->m_bWindowed.Set( params.windowed );
 
 	/* If we're windowed, we may have tweaked the width based on the aspect ratio.

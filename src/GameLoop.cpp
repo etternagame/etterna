@@ -23,7 +23,7 @@
 #include "RageInput.h"
 #include <chrono>
 
-static auto g_AccurateGameplayTimer = std::chrono::high_resolution_clock::now();
+static auto g_AccurateGameplayTimer = std::chrono::steady_clock::now();
 
 static Preference<bool> g_bNeverBoostAppPriority( "NeverBoostAppPriority", false );
 
@@ -270,9 +270,9 @@ void GameLoop::RunGameLoop()
 		}
 
 		// Update
-		std::chrono::duration<float> frameStart = std::chrono::high_resolution_clock::now() - g_AccurateGameplayTimer;
+		std::chrono::duration<float> frameStart = std::chrono::steady_clock::now() - g_AccurateGameplayTimer;
 		float fDeltaTime = frameStart.count();
-		g_AccurateGameplayTimer = std::chrono::high_resolution_clock::now();
+		g_AccurateGameplayTimer = std::chrono::steady_clock::now();
 
 		if( g_fConstantUpdateDeltaSeconds > 0 )
 			fDeltaTime = g_fConstantUpdateDeltaSeconds;
@@ -419,7 +419,7 @@ void ConcurrentRenderer::RenderThread()
 		{
 			SCREENMAN->Draw();
 
-			std::chrono::duration<float> frameStart = std::chrono::high_resolution_clock::now() - g_AccurateGameplayTimer;
+			std::chrono::duration<float> frameStart = std::chrono::steady_clock::now() - g_AccurateGameplayTimer;
 			float fDeltaTime = frameStart.count();
 			SCREENMAN->Update( fDeltaTime );
 		}

@@ -320,7 +320,7 @@ bool Screen::PassInputToLua(const InputEventPlus& input)
 	bool handled= false;
 	Lua* L= LUA->Get();
 
-	std::chrono::duration<float> timeDelta = std::chrono::high_resolution_clock::now() - input.DeviceI.ts;
+	std::chrono::duration<float> timeDelta = std::chrono::steady_clock::now() - input.DeviceI.ts;
 	float inputAgo = timeDelta.count();
 
 	// Construct the table once, and reuse it.

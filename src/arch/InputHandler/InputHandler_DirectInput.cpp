@@ -659,12 +659,12 @@ void InputHandler_DInput::Update()
 	{
 		if( !Devices[i].buffered )
 		{
-			UpdatePolled( Devices[i], std::chrono::high_resolution_clock::now() );
+			UpdatePolled( Devices[i], std::chrono::steady_clock::now() );
 		}
 		else if( !m_InputThread.IsCreated() )
 		{
 			// If we have an input thread, it'll handle buffered devices.
-			UpdateBuffered( Devices[i], std::chrono::high_resolution_clock::now() );
+			UpdateBuffered( Devices[i], std::chrono::steady_clock::now() );
 		}
 	}
 
@@ -761,8 +761,9 @@ void InputHandler_DInput::InputThreadMain()
 
 			/* Update devices even if no event was triggered, since this also
 			 * checks for focus loss. */
+            auto now = std::chrono::steady_clock::now();
 			for( unsigned i = 0; i < BufferedDevices.size(); ++i )
-				UpdateBuffered( *BufferedDevices[i], std::chrono::high_resolution_clock::now() );
+				UpdateBuffered( *BufferedDevices[i], now );
 		}
 		CHECKPOINT;
 

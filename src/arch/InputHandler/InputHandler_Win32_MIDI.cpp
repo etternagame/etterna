@@ -90,7 +90,7 @@ static void CALLBACK midiCallback( HMIDIIN device, UINT status, DWORD instancePt
 		if( iType == 144 )
 		{
 			DeviceInput di = DeviceInput( DEVICE_MIDI, enum_add2(MIDI_FIRST, iChannel), iValue > 0 );
-			di.ts = std::chrono::high_resolution_clock::now();
+			di.ts = std::chrono::steady_clock::now();
 			((InputHandler_Win32_MIDI *)instancePtr)->SetDev( di );
 		}
 	}

@@ -412,8 +412,8 @@ bool RageDisplay_GLES2::BeginFrame()
 {
 	/* We do this in here, rather than ResolutionChanged, or we won't update the
 	 * viewport for the concurrent rendering context. */
-	int fWidth = g_pWind->GetActualVideoModeParams().width;
-	int fHeight = g_pWind->GetActualVideoModeParams().height;
+	int fWidth = g_pWind->GetActualVideoModeParams()->width;
+	int fHeight = g_pWind->GetActualVideoModeParams()->height;
 
 	glViewport( 0, 0, fWidth, fHeight );
 
@@ -429,9 +429,9 @@ void RageDisplay_GLES2::EndFrame()
 	glFlush();
 
 	// XXX: This is broken on NVidia, as their xrandr sucks.
-	FrameLimitBeforeVsync( g_pWind->GetActualVideoModeParams().rate );
+	FrameLimitBeforeVsync();
 	g_pWind->SwapBuffers();
-	FrameLimitAfterVsync();
+	FrameLimitAfterVsync( g_pWind->GetActualVideoModeParams()->rate );
 
 	g_pWind->Update();
 
@@ -517,7 +517,7 @@ RageDisplay_GLES2::GetApiDescription() const
 	return "OpenGL ES 2.0";
 }
 
-VideoModeParams
+const VideoModeParams *
 RageDisplay_GLES2::GetActualVideoModeParams() const
 {
 	return g_pWind->GetActualVideoModeParams();
@@ -656,7 +656,7 @@ RageDisplay_GLES2::SetTextureFiltering( TextureUnit tu, bool b )
 		if (iWidth1 > 1 && iWidth2 != 0)
 		{
 			/* Mipmaps are enabled. */
-			if (g_pWind->GetActualVideoModeParams().bTrilinearFiltering)
+			if (g_pWind->GetActualVideoModeParams()->bTrilinearFiltering)
 				iMinFilter = GL_LINEAR_MIPMAP_LINEAR;
 			else
 				iMinFilter = GL_LINEAR_MIPMAP_NEAREST;

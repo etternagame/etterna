@@ -74,7 +74,7 @@ void InputHandler_Win32_Pump::HandleInput( int iDevice, int iEvent )
 		
 		/* If we're in a thread, our timestamp is accurate. */
 		if( InputThread.IsCreated() )
-			di.ts = std::chrono::high_resolution_clock::now();
+			di.ts = std::chrono::steady_clock::now();
 
 		ButtonPressed( di );
 	}

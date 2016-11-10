@@ -809,7 +809,7 @@ void Player::SendComboMessages( unsigned int iOldCombo, unsigned int iOldMissCom
 void Player::Update( float fDeltaTime )
 {
 	//const RageTimer now;
-	const auto now = std::chrono::high_resolution_clock::now();
+	const auto now = std::chrono::steady_clock::now();
 	// Don't update if we haven't been loaded yet.
 	if( !m_bLoaded )
 		return;
@@ -1979,7 +1979,7 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 
 	// Do everything that depends on a timer here;
 	// set your breakpoints somewhere after this block.
-	std::chrono::duration<float> stepDelta = std::chrono::high_resolution_clock::now() - tm;
+	std::chrono::duration<float> stepDelta = std::chrono::steady_clock::now() - tm;
 	float stepAgo = stepDelta.count() - padStickSeconds;
 	
 	const float fLastBeatUpdate = m_pPlayerState->m_Position.m_LastBeatUpdate.Ago();

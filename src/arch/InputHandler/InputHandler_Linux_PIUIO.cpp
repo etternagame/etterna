@@ -3,7 +3,6 @@
 #include "RageLog.h"
 #include "RageUtil.h"
 
-#include <stdio.h>
 #include <string.h>
 #if defined(HAVE_UNISTD_H)
 #include <unistd.h>
@@ -96,7 +95,7 @@ void InputHandler_Linux_PIUIO::InputThread()
 			LOG->Warn("Unexpected packet (size %i != %i) from PIUIO", ret, (int)sizeof(inputs));
 			continue;
 		}
-		RageTimer now;
+		auto now = std::chrono::steady_clock::now();
 
 		InputDevice id = InputDevice(DEVICE_JOY1);
 

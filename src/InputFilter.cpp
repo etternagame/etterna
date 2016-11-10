@@ -184,9 +184,8 @@ void InputFilter::ButtonPressed( const DeviceInput &di )
 {
 	LockMut(*queuemutex);
 
-	// Can't happen anymore, but we may want similar validation in the future.
-	//if( di.ts.IsZero() )
-	//	LOG->Warn( "InputFilter::ButtonPressed: zero timestamp is invalid" );
+	if( di.ts == std::chrono::time_point<std::chrono::steady_clock>() )
+		LOG->Warn( "InputFilter::ButtonPressed: zero timestamp is invalid" );
 
 	// Filter out input that is beyond the range of the current system.
 	if(di.device >= NUM_InputDevice)
@@ -203,7 +202,7 @@ void InputFilter::ButtonPressed( const DeviceInput &di )
 	ButtonState &bs = GetButtonState( di );
 
 	// Flush any delayed input, like Update() (in case Update() isn't being called).
-	auto now = std::chrono::high_resolution_clock::now();
+	auto now = std::chrono::steady_clock::now();
 	CheckButtonChange( bs, di, now );
 
 	bs.m_DeviceInput = di;
@@ -237,7 +236,7 @@ void InputFilter::ResetDevice( InputDevice device )
 	{
 		const DeviceButtonPair &db = b->first;
 		if( db.device == device )
-			ButtonPressed( DeviceInput(device, db.button, 0, std::chrono::high_resolution_clock::now()) );
+			ButtonPressed( DeviceInput(device, db.button, 0, std::chrono::steady_clock::now()) );
 	}
 }
 
@@ -314,7 +313,7 @@ void InputFilter::MakeButtonStateList( vector<DeviceInput> &aInputOut ) const
 
 void InputFilter::Update( float fDeltaTime )
 {
-	auto now = std::chrono::high_resolution_clock::now();
+	auto now = std::chrono::steady_clock::now();
 
 	INPUTMAN->Update();
 
@@ -379,7 +378,7 @@ void InputFilter::Update( float fDeltaTime )
 		/* Set the timestamp to the exact time of the repeat. This way, as long
 		 * as tab/` aren't being used, the timestamp will always increase steadily
 		 * during repeats. */
-		di.ts = std::chrono::high_resolution_clock::time_point(bs.m_LastInputTime + std::chrono::microseconds((int)(fRepeatTime * 1000000)));
+		di.ts = std::chrono::steady_clock::time_point(bs.m_LastInputTime + std::chrono::microseconds((int)(fRepeatTime * 1000000)));
 
 		ReportButtonChange( di, IET_REPEAT );
 	}
@@ -416,7 +415,7 @@ float InputFilter::GetSecsHeld( const DeviceInput &di, const DeviceInputList *pB
 	if( pDI == NULL )
 		return 0;
 
-	std::chrono::duration<float> inputLength = std::chrono::high_resolution_clock::now() - pDI->ts;
+	std::chrono::duration<float> inputLength = std::chrono::steady_clock::now() - pDI->ts;
 	return inputLength.count();
 }
 

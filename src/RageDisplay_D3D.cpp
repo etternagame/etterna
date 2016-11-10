@@ -590,10 +590,10 @@ void RageDisplay_D3D::EndFrame()
 
 	if (ShouldPresentFrame())
 	{
-		auto beforePresent = std::chrono::high_resolution_clock::now();
+		auto beforePresent = std::chrono::steady_clock::now();
 		g_pd3dDevice->Present(0, 0, 0, 0);
 
-		auto afterPresent = std::chrono::high_resolution_clock::now();
+		auto afterPresent = std::chrono::steady_clock::now();
 		SetPresentTime(afterPresent - beforePresent);
 	}
 	
@@ -686,7 +686,7 @@ RageSurface* RageDisplay_D3D::CreateScreenshot()
 	return result;
 }
 
-VideoModeParams* RageDisplay_D3D::GetActualVideoModeParams() 
+const VideoModeParams* RageDisplay_D3D::GetActualVideoModeParams() const
 {
 	return GraphicsWindow::GetParams(); 
 }

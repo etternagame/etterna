@@ -186,12 +186,12 @@ protected:
 	 * @param radarValues the calculated radar values.
 	 * @param noteData the note data itself.
 	 * @param out the Steps getting the data. */
-	virtual void LoadFromTokens(RString &sStepsType, 
-				    RString &sDescription,
-				    RString &sDifficulty,
-				    RString &sMeter,
-				    RString &sRadarValues,
-				    RString &sNoteData,
+	virtual void LoadFromTokens(RString sStepsType, 
+				    RString sDescription,
+				    RString sDifficulty,
+				    RString sMeter,
+				    RString sRadarValues,
+				    RString sNoteData,
 				    Steps &out);
 	
 	/**

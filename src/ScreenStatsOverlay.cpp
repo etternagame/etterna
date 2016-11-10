@@ -70,7 +70,7 @@ void ScreenStatsOverlay::Update( float fDeltaTime )
 	{
 		// Reset skip timer when we toggle Stats on so we don't show a large skip
 		// from the span when stats were turned off.
-		g_AccurateSkipTimer = std::chrono::high_resolution_clock::now();
+		g_AccurateSkipTimer = std::chrono::steady_clock::now();
 	}
 	bShowStatsWasOn = PREFSMAN->m_bShowStats.Get();
 
@@ -102,9 +102,9 @@ void ScreenStatsOverlay::AddTimestampLine( const RString &txt, const RageColor &
 void ScreenStatsOverlay::UpdateSkips()
 {
 	/* Use our own timer, so we ignore `/tab. */
-	std::chrono::duration<float> timeDelta = std::chrono::high_resolution_clock::now() - g_AccurateSkipTimer;
+	std::chrono::duration<float> timeDelta = std::chrono::steady_clock::now() - g_AccurateSkipTimer;
 	const float UpdateTime = timeDelta.count();
-	g_AccurateSkipTimer = std::chrono::high_resolution_clock::now();
+	g_AccurateSkipTimer = std::chrono::steady_clock::now();
 
 	/* FPS is 0 for a little while after we load a screen; don't report
 	 * during this time. Do clear the timer, though, so we don't report

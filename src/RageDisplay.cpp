@@ -21,7 +21,7 @@
 #include <thread>
 
 // Statistics stuff
-auto	g_LastCheckTimer = std::chrono::high_resolution_clock::now();
+auto	g_LastCheckTimer = std::chrono::steady_clock::now();
 int		g_iNumVerts;
 int		g_iFPS, g_iVPF, g_iCFPS;
 
@@ -34,9 +34,9 @@ static int g_iFramesRenderedSinceLastCheck,
 	   g_iVertsRenderedSinceLastCheck,
 	   g_iNumChecksSinceLastReset;
 static RageTimer g_LastFrameEndedAtRage( RageZeroTimer );
-static auto g_LastFrameEndedAt = std::chrono::high_resolution_clock::now();
-static auto g_FrameExecutionTime = std::chrono::high_resolution_clock::now();
-static auto g_FrameRenderTime = std::chrono::high_resolution_clock::now();
+static auto g_LastFrameEndedAt = std::chrono::steady_clock::now();
+static auto g_FrameExecutionTime = std::chrono::steady_clock::now();
+static auto g_FrameRenderTime = std::chrono::steady_clock::now();
 static std::chrono::nanoseconds g_LastFrameRenderTime;
 static std::chrono::nanoseconds g_LastFramePresentTime;
 
@@ -133,11 +133,11 @@ void RageDisplay::ProcessStatsOnFlip()
 			g_iFramesRenderedSinceLastReset++;
 		}
 
-		std::chrono::duration<double> timeDelta = std::chrono::high_resolution_clock::now() - g_LastCheckTimer;
+		std::chrono::duration<double> timeDelta = std::chrono::steady_clock::now() - g_LastCheckTimer;
 		float checkTime = timeDelta.count();
 		if (checkTime >= 1.0f)	// update stats every 1 sec.
 		{
-			g_LastCheckTimer = std::chrono::high_resolution_clock::now();
+			g_LastCheckTimer = std::chrono::steady_clock::now();
 			g_iNumChecksSinceLastReset++;
 			g_iFPS = static_cast<int>(g_iFramesRenderedSinceLastCheck / checkTime + 0.5f);
 			g_iCFPS = g_iFramesRenderedSinceLastReset / g_iNumChecksSinceLastReset;
@@ -162,7 +162,7 @@ void RageDisplay::ResetStats()
 		g_iFramesRenderedSinceLastCheck = g_iFramesRenderedSinceLastReset = 0;
 		g_iNumChecksSinceLastReset = 0;
 		g_iVertsRenderedSinceLastCheck = 0;
-		g_LastCheckTimer = std::chrono::high_resolution_clock::now();
+		g_LastCheckTimer = std::chrono::steady_clock::now();
 	}
 }
 
@@ -933,7 +933,7 @@ void RageDisplay::FrameLimitBeforeVsync()
 {
 	if ( presentFrame && g_fPredictiveFrameLimit.Get() )
 	{
-		auto afterRender = std::chrono::high_resolution_clock::now();
+		auto afterRender = std::chrono::steady_clock::now();
 		auto endTime = afterRender - g_FrameRenderTime;
 
 		g_LastFrameRenderTime = endTime;
@@ -982,14 +982,14 @@ void RageDisplay::FrameLimitAfterVsync( int iFPS )
 	if ( presentFrame )
 	{
 		presentFrame = false;
-		g_LastFrameEndedAt = std::chrono::high_resolution_clock::now();
+		g_LastFrameEndedAt = std::chrono::steady_clock::now();
 		g_FrameExecutionTime = g_LastFrameEndedAt;
 	}
 	else
 	{
 		// Get the timings for the game logic loop, render loop, and present time
 		// Along with how long we are waiting for, e.g. Frame Limiting
-		auto loopEndTime = std::chrono::high_resolution_clock::now() - g_FrameExecutionTime;
+		auto loopEndTime = std::chrono::steady_clock::now() - g_FrameExecutionTime;
 
 		double waitTime = 0.0;
 		if (SCREENMAN && SCREENMAN->GetTopScreen())
@@ -1014,14 +1014,14 @@ void RageDisplay::FrameLimitAfterVsync( int iFPS )
 		double waitCautiousness = g_fFrameLimitPercent.Get() > 0 ? g_fFrameLimitPercent.Get() : 0.90;
 		auto renderTime = g_LastFrameRenderTime + g_LastFramePresentTime - loopEndTime;
 
-		auto afterLoop = std::chrono::high_resolution_clock::now();
+		auto afterLoop = std::chrono::steady_clock::now();
 		auto timeTillRender = afterLoop - g_LastFrameEndedAt;
 
 		// Check if we have enough time to do another loop, or if that'll make us late
 		if (timeTillRender >= (waitCautiousness * (waitTimeActuallyNano - loopEndTime - renderTime)))
 		{
 			presentFrame = true;
-			g_FrameRenderTime = std::chrono::high_resolution_clock::now();
+			g_FrameRenderTime = std::chrono::steady_clock::now();
 		}
 	}
 }

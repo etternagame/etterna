@@ -128,7 +128,7 @@ void InputHandler_Linux_Joystick::InputThread()
 		struct timeval zero = {0,100000};
 		if( select(max_fd+1, &fdset, NULL, NULL, &zero) <= 0 )
 			continue;
-		RageTimer now;
+		auto now = std::chrono::steady_clock::now();
 
 		for(int i = 0; i < NUM_JOYSTICKS; ++i)
 		{

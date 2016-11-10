@@ -804,7 +804,7 @@ void RageDisplay_Legacy::EndFrame()
 	FrameLimitBeforeVsync();
 	if (ShouldPresentFrame())
 	{
-		auto beforePresent = std::chrono::high_resolution_clock::now();
+		auto beforePresent = std::chrono::steady_clock::now();
 		g_pWind->SwapBuffers();
 
 		// Some would advise against glFinish(), ever. Those people don't realize
@@ -820,7 +820,7 @@ void RageDisplay_Legacy::EndFrame()
 
 		g_pWind->Update();
 
-		auto afterPresent = std::chrono::high_resolution_clock::now();
+		auto afterPresent = std::chrono::steady_clock::now();
 		auto endTime = afterPresent - beforePresent;
 
 		SetPresentTime(endTime);
@@ -877,7 +877,7 @@ RageSurface *RageDisplay_Legacy::GetTexture( unsigned iTexture )
 	return pImage;
 }
 
-VideoModeParams* RageDisplay_Legacy::GetActualVideoModeParams() 
+const VideoModeParams* RageDisplay_Legacy::GetActualVideoModeParams() const
 {
 	return g_pWind->GetActualVideoModeParams();
 }

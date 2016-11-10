@@ -650,4 +650,3 @@ if(NOT APPLE)
     install(FILES "${SM_ROOT_DIR}/Songs/instructions.txt" DESTINATION "${SM_INSTALL_DESTINATION}/Songs")
   endif()
 endif()
-

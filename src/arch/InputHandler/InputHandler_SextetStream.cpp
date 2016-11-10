@@ -196,7 +196,7 @@ class InputHandler_SextetStream::Impl
 		{
 			InputDevice id = InputDevice(FIRST_DEVICE);
 			uint8_t changes[STATE_BUFFER_SIZE];
-			RageTimer now;
+			auto now = std::chrono::steady_clock::now();
 
 			// XOR to find differences
 			for(size_t i = 0; i < STATE_BUFFER_SIZE; ++i) {

@@ -64,7 +64,7 @@ protected:
 	void UpdateTimer();
 
 private:
-	RageTimer m_LastUpdate;
+	std::chrono::time_point<std::chrono::steady_clock> m_LastUpdate;
 	int m_iInputsSinceUpdate;
 };
 

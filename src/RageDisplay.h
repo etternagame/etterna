@@ -199,7 +199,7 @@ public:
 
 	virtual bool BeginFrame();
 	virtual void EndFrame();
-	virtual VideoModeParams* GetActualVideoModeParams() = 0;
+	virtual const VideoModeParams* GetActualVideoModeParams() const = 0;
 	bool IsWindowed() { return (*GetActualVideoModeParams()).windowed; }
 
 	virtual void SetBlendMode( BlendMode mode ) = 0;

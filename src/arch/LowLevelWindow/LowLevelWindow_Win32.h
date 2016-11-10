@@ -20,7 +20,7 @@ public:
 	virtual bool SupportsRenderToTexture() const { return true; }
 	virtual RenderTarget *CreateRenderTarget();
 
-	VideoModeParams* GetActualVideoModeParams();
+	const VideoModeParams* GetActualVideoModeParams() const;
 };
 
 #ifdef ARCH_LOW_LEVEL_WINDOW
