@@ -21,6 +21,11 @@ static bool dpms_state_at_startup= false;
 bool X11Helper::OpenXConnection()
 {
 	DEBUG_ASSERT( Dpy == NULL && Win == None );
+
+    int res = XInitThreads();
+    if( res == 0 )
+        return false;
+
 	Dpy = XOpenDisplay(0);
 	if( Dpy == NULL )
 		return false;

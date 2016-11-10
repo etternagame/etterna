@@ -4,14 +4,23 @@
 #define INPUT_HANDLER_X11_H
 
 #include "InputHandler.h"
+#include "RageThreads.h"
 
 class InputHandler_X11: public InputHandler
 {
 public:
 	InputHandler_X11();
 	~InputHandler_X11();
-	void Update();
 	void GetDevicesAndDescriptions( vector<InputDeviceInfo>& vDevicesOut );
+
+private:
+	void StartThread();
+	void StopThread();
+	static int InputThread_Start( void *p );
+	void InputThread();
+
+	RageThread m_InputThread;
+	bool m_bShutdown;
 };
 
 #endif

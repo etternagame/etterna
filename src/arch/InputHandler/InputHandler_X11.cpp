@@ -8,6 +8,8 @@
 
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
+#include <thread>
+#include <chrono>
 
 using namespace X11Helper;
 
@@ -147,12 +149,17 @@ InputHandler_X11::InputHandler_X11()
 		| ButtonPressMask | ButtonReleaseMask | PointerMotionMask
 		| FocusChangeMask
 	);
+
+    StartThread();
 }
 
 InputHandler_X11::~InputHandler_X11()
 {
 	if( Dpy == NULL || Win == None )
 		return;
+
+	if( m_InputThread.IsCreated() ) StopThread();
+
 	// TODO: Determine if we even need to set this back (or is the window
 	// destroyed just after this?)
 	XWindowAttributes winAttrib;
@@ -164,84 +171,106 @@ InputHandler_X11::~InputHandler_X11()
 	);
 }
 
-void InputHandler_X11::Update()
+void InputHandler_X11::StartThread()
 {
-	if( Dpy == NULL || Win == None )
+	m_bShutdown = false;
+	m_InputThread.SetName( "X11 input thread" );
+	m_InputThread.Create( InputThread_Start, this );
+}
+
+void InputHandler_X11::StopThread()
+{
+	m_bShutdown = true;
+	LOG->Trace( "Shutting down X11 input thread ..." );
+	m_InputThread.Wait();
+	LOG->Trace( "X11 input thread shut down." );
+}
+
+int InputHandler_X11::InputThread_Start( void *p )
+{
+	((InputHandler_X11 *) p)->InputThread();
+	return 0;
+}
+
+void InputHandler_X11::InputThread()
+{
+	while( !m_bShutdown )
 	{
-		InputHandler::UpdateTimer();
-		return;
-	}
+		if( Dpy == NULL || Win == None ) break;
 
-	XEvent event, lastEvent;
-	DeviceButton lastDB = DeviceButton_Invalid;
-	lastEvent.type = 0;
+		XEvent event, lastEvent;
+		DeviceButton lastDB = DeviceButton_Invalid;
+		lastEvent.type = 0;
 
-	// We use XCheckWindowEvent instead of XNextEvent because
-	// other things (most notably ArchHooks_Unix) may be looking for
-	// events that we'd pick up and discard.
-	// todo: add other masks? (like the ones for drag'n drop) -aj
-	while( XCheckWindowEvent(Dpy, Win,
-			KeyPressMask | KeyReleaseMask
-			| ButtonPressMask | ButtonReleaseMask | PointerMotionMask
-			| FocusChangeMask,
-			&event) )
-	{
-		const bool bKeyPress = event.type == KeyPress;
-		//const bool bMousePress = event.type == ButtonPress;
-
-		if( event.type == MotionNotify )
+		// We use XCheckWindowEvent instead of XNextEvent because
+		// other things (most notably ArchHooks_Unix) may be looking for
+		// events that we'd pick up and discard.
+		// todo: add other masks? (like the ones for drag'n drop) -aj
+		while( XCheckWindowEvent(Dpy, Win,
+				KeyPressMask | KeyReleaseMask
+				| ButtonPressMask | ButtonReleaseMask | PointerMotionMask
+				| FocusChangeMask,
+				&event) )
 		{
-			INPUTFILTER->UpdateCursorLocation(event.xbutton.x,event.xbutton.y);
+			const bool bKeyPress = event.type == KeyPress;
+			//const bool bMousePress = event.type == ButtonPress;
+
+			if( event.type == MotionNotify )
+			{
+				INPUTFILTER->UpdateCursorLocation(event.xbutton.x,event.xbutton.y);
+			}
+
+			if( lastEvent.type != 0 )
+			{
+				if( bKeyPress && event.xkey.time == lastEvent.xkey.time &&
+					event.xkey.keycode == lastEvent.xkey.keycode )
+				{
+					// This is a repeat event so ignore it.
+					lastEvent.type = 0;
+					continue;
+				}
+				// This is a new event so the last release was not a repeat.
+				ButtonPressed( DeviceInput(DEVICE_KEYBOARD, lastDB, 0) );
+				lastEvent.type = 0;
+			}
+
+			if( event.type == FocusOut )
+			{
+				// Release all buttons
+				INPUTFILTER->Reset();
+			}
+
+			// Get the first defined keysym for this event's key
+			lastDB = XSymToDeviceButton( XLookupKeysym(&event.xkey, 0) );
+
+			if( lastDB == DeviceButton_Invalid )
+				continue;
+
+			if( bKeyPress )
+				ButtonPressed( DeviceInput(DEVICE_KEYBOARD, lastDB, 1) );
+			/*
+			else if( bMousePress )
+				ButtonPressed( DeviceInput(DEVICE_MOUSE, lastDB, 1) );
+			*/
+			else
+				lastEvent = event;
 		}
 
+		// Handle any last releases.
 		if( lastEvent.type != 0 )
 		{
-			if( bKeyPress && event.xkey.time == lastEvent.xkey.time &&
-			    event.xkey.keycode == lastEvent.xkey.keycode )
-			{
-				// This is a repeat event so ignore it.
-				lastEvent.type = 0;
-				continue;
-			}
-			// This is a new event so the last release was not a repeat.
-			ButtonPressed( DeviceInput(DEVICE_KEYBOARD, lastDB, 0) );
-			lastEvent.type = 0;
+			if( lastEvent.type == (KeyPress|KeyRelease) )
+				ButtonPressed( DeviceInput(DEVICE_KEYBOARD, lastDB, 0) );
+			/*
+			if( lastEvent.type == (ButtonPress|ButtonRelease) )
+				ButtonPressed( DeviceInput(DEVICE_MOUSE, lastDB, 0) );
+			*/
 		}
 
-		if( event.type == FocusOut )
-		{
-			// Release all buttons
-			INPUTFILTER->Reset();
-		}
+		InputHandler::UpdateTimer();
 
-		// Get the first defined keysym for this event's key
-		lastDB = XSymToDeviceButton( XLookupKeysym(&event.xkey, 0) );
-
-		if( lastDB == DeviceButton_Invalid )
-			continue;
-
-		if( bKeyPress )
-			ButtonPressed( DeviceInput(DEVICE_KEYBOARD, lastDB, 1) );
-		/*
-		else if( bMousePress )
-			ButtonPressed( DeviceInput(DEVICE_MOUSE, lastDB, 1) );
-		*/
-		else
-			lastEvent = event;
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
-
-	// Handle any last releases.
-	if( lastEvent.type != 0 )
-	{
-		if( lastEvent.type == (KeyPress|KeyRelease) )
-			ButtonPressed( DeviceInput(DEVICE_KEYBOARD, lastDB, 0) );
-		/*
-		if( lastEvent.type == (ButtonPress|ButtonRelease) )
-			ButtonPressed( DeviceInput(DEVICE_MOUSE, lastDB, 0) );
-		*/
-	}
-
-	InputHandler::UpdateTimer();
 }
 
 
