@@ -179,9 +179,9 @@ static void StartMusic( MusicToPlay &ToPlay )
 		/* Extend the loop period so it always starts and ends on the same fractional
 		 * beat.  That is, if it starts on beat 1.5, and ends on beat 10.2, extend it
 		 * to end on beat 10.5.  This way, effects always loop cleanly. */
-		float fStartBeat = NewMusic->m_NewTiming.GetBeatFromElapsedTimeNoOffset( ToPlay.fStartSecond );
+		float fStartBeat = NewMusic->m_NewTiming.WhereUAtBroNoOffset( ToPlay.fStartSecond );
 		float fEndSec = ToPlay.fStartSecond + ToPlay.fLengthSeconds;
-		float fEndBeat = NewMusic->m_NewTiming.GetBeatFromElapsedTimeNoOffset( fEndSec );
+		float fEndBeat = NewMusic->m_NewTiming.WhereUAtBroNoOffset( fEndSec );
 		
 		const float fStartBeatFraction = fmodfp( fStartBeat, 1 );
 		const float fEndBeatFraction = fmodfp( fEndBeat, 1 );
@@ -192,7 +192,7 @@ static void StartMusic( MusicToPlay &ToPlay )
 
 		fEndBeat += fBeatDifference;
 
-		const float fRealEndSec = NewMusic->m_NewTiming.GetElapsedTimeFromBeatNoOffset( fEndBeat );
+		const float fRealEndSec = NewMusic->m_NewTiming.WhereUAtBroNoOffset( fEndBeat );
 		const float fNewLengthSec = fRealEndSec - ToPlay.fStartSecond;
 
 		/* Extend fFadeOutLengthSeconds, so the added time is faded out. */
@@ -238,7 +238,7 @@ static void StartMusic( MusicToPlay &ToPlay )
 		if( fCurBeatToStartOn < fCurBeat )
 			fCurBeatToStartOn += 1.0f;
 
-		const float fSecondToStartOn = g_Playing->m_Timing.GetElapsedTimeFromBeatNoOffset( fCurBeatToStartOn );
+		const float fSecondToStartOn = g_Playing->m_Timing.WhereUAtBroNoOffset( fCurBeatToStartOn );
 		const float fMaximumDistance = 2;
 		const float fDistance = min( fSecondToStartOn - GAMESTATE->m_Position.m_fMusicSeconds, fMaximumDistance );
 

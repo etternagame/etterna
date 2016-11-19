@@ -475,6 +475,8 @@ public:
 
 	float WhereUAtBro(float beat) const;
 	float WhereUAtBro(float beat);
+	float WhereUAtBroNoOffset(float beat) const;
+	float WhereUAtBroNoOffset(float beat);
 	float WhereUAtBro(int row);
 
 	bool ValidSequentialAssumption = true;

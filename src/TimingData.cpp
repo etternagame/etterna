@@ -1169,7 +1169,7 @@ float TimingData::GetDisplayedSpeedPercent( float fSongBeat, float fMusicSeconds
 
 	const SpeedSegment *seg = ToSpeed(speeds[index]);
 	float fStartBeat = seg->GetBeat();
-	float fStartTime = GetElapsedTimeFromBeat( fStartBeat ) - GetDelayAtBeat( fStartBeat );
+	float fStartTime = WhereUAtBro( fStartBeat ) - GetDelayAtBeat( fStartBeat );
 	float fEndTime;
 	float fCurTime = fMusicSeconds;
 
@@ -1179,7 +1179,7 @@ float TimingData::GetDisplayedSpeedPercent( float fSongBeat, float fMusicSeconds
 	}
 	else
 	{
-		fEndTime = GetElapsedTimeFromBeat( fStartBeat + seg->GetDelay() )
+		fEndTime = WhereUAtBro( fStartBeat + seg->GetDelay() )
 			- GetDelayAtBeat( fStartBeat + seg->GetDelay() );
 	}
 
@@ -1390,6 +1390,26 @@ float TimingData::WhereUAtBro(int row) {
 		return ElapsedTimesAtAllRows[row] - GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * PREFSMAN->m_fGlobalOffsetSeconds;
 
 	return GetElapsedTimeFromBeat(NoteRowToBeat(row));
+}
+
+float TimingData::WhereUAtBroNoOffset(float beat) {
+	if (beat < 0) return 0;
+	size_t row = BeatToNoteRow(beat);
+
+	if (ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size())
+		return ElapsedTimesAtAllRows[row];
+
+	return GetElapsedTimeFromBeatNoOffset(beat);
+}
+
+float TimingData::WhereUAtBroNoOffset(float beat) const {
+	if (beat < 0) return 0;
+	size_t row = BeatToNoteRow(beat);
+
+	if (ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size())
+		return ElapsedTimesAtAllRows[row];
+
+	return GetElapsedTimeFromBeatNoOffset(beat);
 }
 
 /** @brief Allow Lua to have access to the TimingData. */

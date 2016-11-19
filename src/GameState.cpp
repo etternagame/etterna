@@ -1289,7 +1289,7 @@ update player position code goes here
 float GameState::GetSongPercent( float beat ) const
 {
 	// 0 = first step; 1 = last step
-	float curTime = this->m_pCurSong->m_SongTiming.GetElapsedTimeFromBeat(beat);
+	float curTime = this->m_pCurSong->m_SongTiming.WhereUAtBro(beat);
 	return (curTime - m_pCurSong->GetFirstSecond()) / m_pCurSong->GetLastSecond();
 }
 

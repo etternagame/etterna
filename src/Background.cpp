@@ -798,7 +798,7 @@ void BackgroundImpl::Layer::UpdateCurBGChange( const Song *pSong, float fLastMus
 		m_pCurrentBGA->PlayCommand( "GainFocus" );
 
 		/* How much time of this BGA have we skipped?  (This happens with SetSeconds.) */
-		const float fStartSecond = pSong->m_SongTiming.GetElapsedTimeFromBeat( change.m_fStartBeat );
+		const float fStartSecond = pSong->m_SongTiming.WhereUAtBro( change.m_fStartBeat );
 
 		/* This is affected by the music rate. */
 		fDeltaTime = fCurrentTime - fStartSecond;

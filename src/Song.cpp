@@ -779,14 +779,14 @@ void Song::TidyUpData( bool from_cache, bool /* duringCache */ )
 				m_fMusicSampleStartSeconds+m_fMusicSampleLengthSeconds > this->m_fMusicLengthSeconds)
 			{
 				const TimingData &timing = this->m_SongTiming;
-				m_fMusicSampleStartSeconds = timing.GetElapsedTimeFromBeat(100);
+				m_fMusicSampleStartSeconds = timing.WhereUAtBro(100);
 
 				if(m_fMusicSampleStartSeconds+m_fMusicSampleLengthSeconds > this->m_fMusicLengthSeconds)
 				{
 					// Attempt to get a reasonable default.
 					int iBeat = lround(this->m_SongTiming.GetBeatFromElapsedTime(this->GetLastSecond())/2);
 					iBeat -= iBeat%4;
-					m_fMusicSampleStartSeconds = timing.GetElapsedTimeFromBeat((float)iBeat);
+					m_fMusicSampleStartSeconds = timing.WhereUAtBro((float)iBeat);
 				}
 			}
 
@@ -1102,9 +1102,9 @@ void Song::ReCalculateRadarValuesAndLastSecond(bool fromCache, bool duringCache)
 			if( tempNoteData.GetLastRow() != 0 )
 			{
 				localFirst = min(localFirst,
-					pSteps->GetTimingData()->GetElapsedTimeFromBeat(tempNoteData.GetFirstBeat()));
+					pSteps->GetTimingData()->WhereUAtBro(tempNoteData.GetFirstBeat()));
 				localLast = max(localLast,
-					pSteps->GetTimingData()->GetElapsedTimeFromBeat(tempNoteData.GetLastBeat()));
+					pSteps->GetTimingData()->WhereUAtBro(tempNoteData.GetLastBeat()));
 			}
 		}
 

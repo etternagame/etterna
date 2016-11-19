@@ -87,7 +87,7 @@ void AutoKeysounds::LoadAutoplaySoundsInto( RageSoundReader_Chain *pChain )
 				if( tn[pn].iKeysoundIndex >= 0 )
 				{
 					RString sKeysoundFilePath = sSongDir + pSong->m_vsKeysoundFile[tn[pn].iKeysoundIndex];
-					float fSeconds = GAMESTATE->m_pCurSteps[pn]->GetTimingData()->GetElapsedTimeFromBeatNoOffset( NoteRowToBeat(iRow) ) + SOUNDMAN->GetPlayLatency();
+					float fSeconds = GAMESTATE->m_pCurSteps[pn]->GetTimingData()->WhereUAtBroNoOffset( NoteRowToBeat(iRow) ) + SOUNDMAN->GetPlayLatency();
 
 					float fPan = 0;
 					// If two players are playing, pan the keysounds to each player's respective side

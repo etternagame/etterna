@@ -37,7 +37,7 @@ void Attack::GetRealtimeAttackBeats( const Song *pSong, const PlayerState* pPlay
 	fStartBeat = truncf(fStartBeat)+1;
 
 	const TimingData &timing = pSong->m_SongTiming;
-	const float lStartSecond = timing.GetElapsedTimeFromBeat( fStartBeat );
+	const float lStartSecond = timing.WhereUAtBro( fStartBeat );
 	const float fEndSecond = lStartSecond + fSecsRemaining;
 	fEndBeat = timing.GetBeatFromElapsedTime( fEndSecond );
 	fEndBeat = truncf(fEndBeat)+1;
