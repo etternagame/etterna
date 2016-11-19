@@ -92,15 +92,12 @@ void NoteField::Unload()
 
 void NoteField::CacheNoteSkin( const RString &sNoteSkin_ )
 {
-	RString sNoteSkinLower = sNoteSkin_;
-	sNoteSkinLower.MakeLower();
-
-	if( m_NoteDisplays.find(sNoteSkinLower) != m_NoteDisplays.end() )
+	if( m_NoteDisplays.find(sNoteSkin_) != m_NoteDisplays.end() )
 		return;
 
-	LockNoteSkin l( sNoteSkinLower );
+	LockNoteSkin l( sNoteSkin_ );
 
-	LOG->Trace("NoteField::CacheNoteSkin: cache %s", sNoteSkinLower.c_str() );
+	LOG->Trace("NoteField::CacheNoteSkin: cache %s", sNoteSkin_.c_str() );
 	NoteDisplayCols *nd = new NoteDisplayCols( GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber)->m_iColsPerPlayer );
 
 	for( int c=0; c<GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber)->m_iColsPerPlayer; c++ )
@@ -108,18 +105,15 @@ void NoteField::CacheNoteSkin( const RString &sNoteSkin_ )
 	nd->m_ReceptorArrowRow.Load( m_pPlayerState, m_fYReverseOffsetPixels );
 	nd->m_GhostArrowRow.Load( m_pPlayerState, m_fYReverseOffsetPixels );
 
-	m_NoteDisplays[ sNoteSkinLower ] = nd;
+	m_NoteDisplays[ sNoteSkin_ ] = nd;
 }
 
 void NoteField::UncacheNoteSkin( const RString &sNoteSkin_ )
 {
-	RString sNoteSkinLower = sNoteSkin_;
-	sNoteSkinLower.MakeLower();
-
-	LOG->Trace("NoteField::CacheNoteSkin: release %s", sNoteSkinLower.c_str() );
-	ASSERT_M( m_NoteDisplays.find(sNoteSkinLower) != m_NoteDisplays.end(), sNoteSkinLower );
-	delete m_NoteDisplays[sNoteSkinLower];
-	m_NoteDisplays.erase( sNoteSkinLower );
+	LOG->Trace("NoteField::CacheNoteSkin: release %s", sNoteSkin_.c_str() );
+	ASSERT_M( m_NoteDisplays.find(sNoteSkin_) != m_NoteDisplays.end(), sNoteSkin_ );
+	delete m_NoteDisplays[sNoteSkin_];
+	m_NoteDisplays.erase( sNoteSkin_ );
 }
 
 void NoteField::CacheAllUsedNoteSkins()
