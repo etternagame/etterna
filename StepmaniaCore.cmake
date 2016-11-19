@@ -45,6 +45,11 @@ include("${SM_CMAKE_DIR}/SMDefs.cmake")
 # Put the predefined targets in separate groups.
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+# Enforce the highest C++ standard used in the code base
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 # Set up the linker flags for MSVC builds.
 configure_msvc_runtime()
 
