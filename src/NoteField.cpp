@@ -627,84 +627,59 @@ void FindDisplayedBeats(const PlayerState* pPlayerState, float &firstBeat, float
 {
 	float fFirstBeatToDraw = pPlayerState->GetDisplayedPosition().m_fSongBeatVisible;
 	float fLastBeatToDraw = fFirstBeatToDraw;
+	float fSpeedMultiplier = pPlayerState->GetDisplayedTiming().GetDisplayedSpeedPercent(pPlayerState->GetDisplayedPosition().m_fSongBeatVisible, pPlayerState->GetDisplayedPosition().m_fMusicSecondsVisible);
 
 	bool bBoomerang;
 	{
 		const float* fAccels = pPlayerState->m_PlayerOptions.GetCurrent().m_fAccels;
 		bBoomerang = (fAccels[PlayerOptions::ACCEL_BOOMERANG] != 0);
 	}
-
 	
-	// TODO: Account for M Mods...
-	static float lastKnownBPS = 0;
-	static float lastKnownRate = 0;
-	static float lastKnownXSpeed = 0;
-	static float lastKnownCSpeed = 0;
-	static float pixelsPerBeat = 0;
+	// Search for the draw distance pixels
+	float fSearchDistance = 10;	
+	const int NUM_ITERATIONS = 20;
 
-	float currentBPS = pPlayerState->GetDisplayedPosition().m_fCurBPS;
-	float currentRate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-	float currentXSpace = pPlayerState->m_PlayerOptions.GetCurrent().m_fScrollSpeed;
-	float currentCSpace = pPlayerState->m_PlayerOptions.GetCurrent().m_fScrollBPM;
-
-	// If anything changed which modifys the distance between arrows, update the pixels per beat.
-	if (lastKnownBPS != currentBPS || lastKnownRate != currentRate
-		|| lastKnownCSpeed != currentCSpace || lastKnownXSpeed != currentXSpace)
+	for (int i = 0; i<NUM_ITERATIONS; i++)
 	{
 		bool bIsPastPeakYOffset;
 		float fPeakYOffset;
+		float fYOffset = ArrowEffects::GetYOffset(pPlayerState, 0, fLastBeatToDraw, fPeakYOffset, bIsPastPeakYOffset, true);
 
-		lastKnownBPS = currentBPS;
-		lastKnownRate = currentRate;
-		lastKnownXSpeed = currentXSpace;
-		lastKnownCSpeed = currentCSpace;
+		if (bBoomerang && !bIsPastPeakYOffset)
+			fLastBeatToDraw += fSearchDistance;
+		else if (fYOffset > iDrawDistanceBeforeTargetsPixels) // off screen
+			fLastBeatToDraw -= fSearchDistance;
+		else // on screen
+			fLastBeatToDraw += fSearchDistance;
 
-		float lastBeatElapsedTime = pPlayerState->GetDisplayedTiming().ElapsedTimesAtAllRows.at(pPlayerState->GetDisplayedTiming().ElapsedTimesAtAllRows.size() - 1);
-
-		TimingData::GetBeatArgs lastBeatArgs;
-		lastBeatArgs.elapsed_time = lastBeatElapsedTime;
-		pPlayerState->GetDisplayedTiming().GetBeatAndBPSFromElapsedTime(lastBeatArgs);
-
-		float endOffset = ArrowEffects::GetYOffset(pPlayerState, 0, lastBeatArgs.beat, fPeakYOffset, bIsPastPeakYOffset, true);
-
-		pixelsPerBeat = ((lastBeatArgs.beat / endOffset) * (lastKnownBPS / lastBeatArgs.bps_out)) * lastKnownRate;
+		fSearchDistance /= 2;
 	}
 
-	firstBeat = fFirstBeatToDraw + iDrawDistanceAfterTargetsPixels * pixelsPerBeat;
-	
-	if ( !bBoomerang )
+	fSearchDistance = 10;
+	for (int i = 0; i<NUM_ITERATIONS; i++)
 	{
-		lastBeat = fLastBeatToDraw + iDrawDistanceBeforeTargetsPixels * pixelsPerBeat;
+		bool bIsPastPeakYOffset;
+		float fPeakYOffset;
+		float fYOffset = ArrowEffects::GetYOffset(pPlayerState, 0, fFirstBeatToDraw, fPeakYOffset, bIsPastPeakYOffset, true);
+
+		if (bBoomerang && !bIsPastPeakYOffset)
+			fFirstBeatToDraw -= fSearchDistance;
+		else if (fYOffset < iDrawDistanceAfterTargetsPixels) // off screen
+			fFirstBeatToDraw += fSearchDistance;
+		else // on screen
+			fFirstBeatToDraw -= fSearchDistance;
+
+		fSearchDistance /= 2;
 	}
-	else
+
+	if (fSpeedMultiplier < 0.75f)
 	{
-		// Probe for last note to draw. Worst case is 0.25x + boost.
-		// Adjust search distance so that notes don't pop onto the screen.
-		float fSearchDistance = 10;
-		float fSpeedMultiplier = pPlayerState->GetDisplayedTiming().GetDisplayedSpeedPercent(pPlayerState->GetDisplayedPosition().m_fSongBeatVisible, pPlayerState->GetDisplayedPosition().m_fMusicSecondsVisible);
-		const int NUM_ITERATIONS = 20;
-
-		for (int i = 0; i<NUM_ITERATIONS; i++)
-		{
-			bool bIsPastPeakYOffset;
-			float fPeakYOffset;
-			float fYOffset = ArrowEffects::GetYOffset(pPlayerState, 0, fLastBeatToDraw, fPeakYOffset, bIsPastPeakYOffset, true);
-
-			if (bBoomerang && !bIsPastPeakYOffset)
-				fLastBeatToDraw += fSearchDistance;
-			else if (fYOffset > iDrawDistanceBeforeTargetsPixels) // off screen
-				fLastBeatToDraw -= fSearchDistance;
-			else // on screen
-				fLastBeatToDraw += fSearchDistance;
-
-			fSearchDistance /= 2;
-		}
-
-		if( fSpeedMultiplier < 0.75f )
-			fLastBeatToDraw = min(fLastBeatToDraw, pPlayerState->GetDisplayedPosition().m_fSongBeat + 16);
-
-		lastBeat = fLastBeatToDraw;
+		fFirstBeatToDraw = min(fFirstBeatToDraw, pPlayerState->GetDisplayedPosition().m_fSongBeat + 16);
+		fLastBeatToDraw = min(fLastBeatToDraw, pPlayerState->GetDisplayedPosition().m_fSongBeat + 16);
 	}
+		
+	firstBeat = fFirstBeatToDraw;
+	lastBeat = fLastBeatToDraw;
 }
 
 void NoteField::CalcPixelsBeforeAndAfterTargets()
