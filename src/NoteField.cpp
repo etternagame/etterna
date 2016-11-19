@@ -21,8 +21,7 @@
 #include "NoteData.h"
 #include "RageDisplay.h"
 
-float FindFirstDisplayedBeat( const PlayerState* pPlayerState, int iDrawDistanceAfterTargetsPixels );
-float FindLastDisplayedBeat( const PlayerState* pPlayerState, int iDrawDistanceBeforeTargetsPixels );
+void FindDisplayedBeats(const PlayerState* pPlayerState, float &firstBeat, float &lastBeat, int iDrawDistanceAfterTargetsPixels, int iDrawDistanceBeforeTargetsPixels);
 
 static ThemeMetric<bool> SHOW_BOARD( "NoteField", "ShowBoard" );
 static ThemeMetric<bool> SHOW_BEAT_BARS( "NoteField", "ShowBeatBars" );
@@ -624,10 +623,18 @@ static int GetNumNotesRange( const PlayerState* pPlayerState, float fLow, float 
 	return high.notesUpper - low.notesLower;
 }
 
-float FindFirstDisplayedBeat( const PlayerState* pPlayerState, int iDrawDistanceAfterTargetsPixels )
+void FindDisplayedBeats(const PlayerState* pPlayerState, float &firstBeat, float &lastBeat, int iDrawDistanceAfterTargetsPixels, int iDrawDistanceBeforeTargetsPixels)
 {
 	float fFirstBeatToDraw = pPlayerState->GetDisplayedPosition().m_fSongBeatVisible;
+	float fLastBeatToDraw = fFirstBeatToDraw;
 
+	bool bBoomerang;
+	{
+		const float* fAccels = pPlayerState->m_PlayerOptions.GetCurrent().m_fAccels;
+		bBoomerang = (fAccels[PlayerOptions::ACCEL_BOOMERANG] != 0);
+	}
+
+	
 	// TODO: Account for M Mods...
 	static float lastKnownBPS = 0;
 	static float lastKnownRate = 0;
@@ -640,7 +647,7 @@ float FindFirstDisplayedBeat( const PlayerState* pPlayerState, int iDrawDistance
 	float currentXSpace = pPlayerState->m_PlayerOptions.GetCurrent().m_fScrollSpeed;
 	float currentCSpace = pPlayerState->m_PlayerOptions.GetCurrent().m_fScrollBPM;
 
-	// Song or BPM changed
+	// If anything changed which modifys the distance between arrows, update the pixels per beat.
 	if (lastKnownBPS != currentBPS || lastKnownRate != currentRate
 		|| lastKnownCSpeed != currentCSpace || lastKnownXSpeed != currentXSpace)
 	{
@@ -663,64 +670,18 @@ float FindFirstDisplayedBeat( const PlayerState* pPlayerState, int iDrawDistance
 		pixelsPerBeat = ((lastBeatArgs.beat / endOffset) * (lastKnownBPS / lastBeatArgs.bps_out)) * lastKnownRate;
 	}
 
-	return fFirstBeatToDraw + iDrawDistanceAfterTargetsPixels*pixelsPerBeat;
-}
-
-float FindLastDisplayedBeat( const PlayerState* pPlayerState, int iDrawDistanceBeforeTargetsPixels )
-{
-	float fLastBeatToDraw = pPlayerState->GetDisplayedPosition().m_fSongBeatVisible;
-	float fSpeedMultiplier = pPlayerState->GetDisplayedTiming().GetDisplayedSpeedPercent(pPlayerState->GetDisplayedPosition().m_fSongBeatVisible, pPlayerState->GetDisplayedPosition().m_fMusicSecondsVisible);
-
-	bool bBoomerang;
+	firstBeat = fFirstBeatToDraw + iDrawDistanceAfterTargetsPixels * pixelsPerBeat;
+	
+	if ( !bBoomerang )
 	{
-		const float* fAccels = pPlayerState->m_PlayerOptions.GetCurrent().m_fAccels;
-		bBoomerang = (fAccels[PlayerOptions::ACCEL_BOOMERANG] != 0);
-	}
-
-	if (!bBoomerang)
-	{
-		// TODO: Account for M Mods...
-		static float lastKnownBPS = 0;
-		static float lastKnownRate = 0;
-		static float lastKnownXSpeed = 0;
-		static float lastKnownCSpeed = 0;
-		static float pixelsPerBeat = 0;
-
-		float currentBPS = pPlayerState->GetDisplayedPosition().m_fCurBPS;
-		float currentRate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-		float currentXSpace= pPlayerState->m_PlayerOptions.GetCurrent().m_fScrollSpeed;
-		float currentCSpace = pPlayerState->m_PlayerOptions.GetCurrent().m_fScrollBPM;
-
-		// Song or BPM changed
-		if (lastKnownBPS != currentBPS || lastKnownRate != currentRate 
-			|| lastKnownCSpeed != currentCSpace || lastKnownXSpeed != currentXSpace)
-		{
-			bool bIsPastPeakYOffset;
-			float fPeakYOffset;
-
-			lastKnownBPS = currentBPS;
-			lastKnownRate = currentRate;
-			lastKnownXSpeed = currentXSpace;
-			lastKnownCSpeed = currentCSpace;
-
-			float lastBeatElapsedTime = pPlayerState->GetDisplayedTiming().ElapsedTimesAtAllRows.at(pPlayerState->GetDisplayedTiming().ElapsedTimesAtAllRows.size() - 1);
-
-			TimingData::GetBeatArgs lastBeatArgs;
-			lastBeatArgs.elapsed_time = lastBeatElapsedTime;
-			pPlayerState->GetDisplayedTiming().GetBeatAndBPSFromElapsedTime(lastBeatArgs);
-
-			float endOffset = ArrowEffects::GetYOffset(pPlayerState, 0, lastBeatArgs.beat, fPeakYOffset, bIsPastPeakYOffset, true);
-
-			pixelsPerBeat = ((lastBeatArgs.beat / endOffset) * (lastKnownBPS / lastBeatArgs.bps_out)) * lastKnownRate;
-		}
-
-		fLastBeatToDraw += iDrawDistanceBeforeTargetsPixels * pixelsPerBeat;
+		lastBeat = fLastBeatToDraw + iDrawDistanceBeforeTargetsPixels * pixelsPerBeat;
 	}
 	else
 	{
 		// Probe for last note to draw. Worst case is 0.25x + boost.
 		// Adjust search distance so that notes don't pop onto the screen.
 		float fSearchDistance = 10;
+		float fSpeedMultiplier = pPlayerState->GetDisplayedTiming().GetDisplayedSpeedPercent(pPlayerState->GetDisplayedPosition().m_fSongBeatVisible, pPlayerState->GetDisplayedPosition().m_fMusicSecondsVisible);
 		const int NUM_ITERATIONS = 20;
 
 		for (int i = 0; i<NUM_ITERATIONS; i++)
@@ -738,9 +699,12 @@ float FindLastDisplayedBeat( const PlayerState* pPlayerState, int iDrawDistanceB
 
 			fSearchDistance /= 2;
 		}
-	}
 
-	return fLastBeatToDraw;
+		if( fSpeedMultiplier < 0.75f )
+			fLastBeatToDraw = min(fLastBeatToDraw, pPlayerState->GetDisplayedPosition().m_fSongBeat + 16);
+
+		lastBeat = fLastBeatToDraw;
+	}
 }
 
 void NoteField::CalcPixelsBeforeAndAfterTargets()
@@ -798,23 +762,18 @@ void NoteField::DrawPrimitives()
 
 	CalcPixelsBeforeAndAfterTargets();
 	NoteDisplayCols *cur = m_pCurDisplay;
-	// Probe for first and last notes on the screen
-	float first_beat_to_draw= FindFirstDisplayedBeat(
-		m_pPlayerState, m_FieldRenderArgs.draw_pixels_after_targets);
-	float last_beat_to_draw= FindLastDisplayedBeat(
-		m_pPlayerState, m_FieldRenderArgs.draw_pixels_before_targets);
 
-	m_pPlayerState->m_fLastDrawnBeat = last_beat_to_draw;
+	FindDisplayedBeats(m_pPlayerState, m_FieldRenderArgs.first_beat, m_FieldRenderArgs.last_beat,
+		m_FieldRenderArgs.draw_pixels_after_targets, m_FieldRenderArgs.draw_pixels_before_targets);
 
-	m_FieldRenderArgs.first_beat = first_beat_to_draw;
-	m_FieldRenderArgs.last_beat = last_beat_to_draw;
-	m_FieldRenderArgs.first_row  = BeatToNoteRow(first_beat_to_draw);
-	m_FieldRenderArgs.last_row   = BeatToNoteRow(last_beat_to_draw);
+	m_FieldRenderArgs.first_row  = BeatToNoteRow(m_FieldRenderArgs.first_beat);
+	m_FieldRenderArgs.last_row   = BeatToNoteRow(m_FieldRenderArgs.last_beat);
 
+	m_pPlayerState->m_fLastDrawnBeat = m_FieldRenderArgs.last_beat;
 	//LOG->Trace( "start = %f.1, end = %f.1", first_beat_to_draw-fSongBeat, last_beat_to_draw-fSongBeat );
 	//LOG->Trace( "Drawing elements %d through %d", m_FieldRenderArgs.first_row, m_FieldRenderArgs.last_row );
 
-#define IS_ON_SCREEN(fBeat)  (first_beat_to_draw <= (fBeat) && (fBeat) <= last_beat_to_draw)
+#define IS_ON_SCREEN(fBeat)  (m_FieldRenderArgs.first_beat <= (fBeat) && (fBeat) <= m_FieldRenderArgs.last_beat)
 
 	// Draw Receptors
 	{
