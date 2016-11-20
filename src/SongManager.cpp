@@ -1543,10 +1543,10 @@ void SongManager::UpdateShuffled()
 {
 	// update shuffled
 	m_pShuffledSongs = m_pSongs;
-	random_shuffle( m_pShuffledSongs.begin(), m_pShuffledSongs.end(), g_RandomNumberGenerator );
+	std::shuffle( m_pShuffledSongs.begin(), m_pShuffledSongs.end(), g_RandomNumberGenerator );
 
 	m_pShuffledCourses = m_pCourses;
-	random_shuffle( m_pShuffledCourses.begin(), m_pShuffledCourses.end(), g_RandomNumberGenerator );
+	std::shuffle( m_pShuffledCourses.begin(), m_pShuffledCourses.end(), g_RandomNumberGenerator );
 }
 
 void SongManager::UpdatePreferredSort(const RString &sPreferredSongs, const RString &sPreferredCourses)

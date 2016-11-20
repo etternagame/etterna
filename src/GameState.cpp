@@ -316,8 +316,8 @@ void GameState::Reset()
 
 	NOTESKIN->RefreshNoteSkinData( m_pCurGame );
 
-	m_iGameSeed = rand();
-	m_iStageSeed = rand();
+	m_iGameSeed = g_RandomNumberGenerator();
+	m_iStageSeed = g_RandomNumberGenerator();
 
 	m_AdjustTokensBySongCostForFinalStageCheck= true;
 
@@ -1242,7 +1242,7 @@ void GameState::ResetStageStatistics()
 
 	// Reset the round seed. Do this here and not in FinishStage so that players
 	// get new shuffle patterns if they Back out of gameplay and play again.
-	m_iStageSeed = rand();
+	m_iStageSeed = g_RandomNumberGenerator();
 }
 
 void GameState::UpdateSongPosition( float fPositionSeconds, const TimingData &timing, const RageTimer &timestamp )
@@ -2495,7 +2495,7 @@ Difficulty GameState::GetHardestStepsDifficulty() const
 
 void GameState::SetNewStageSeed()
 {
-	m_iStageSeed= rand();
+	m_iStageSeed = g_RandomNumberGenerator();
 }
 
 bool GameState::IsEventMode() const

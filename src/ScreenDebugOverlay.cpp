@@ -910,8 +910,10 @@ static void FillProfileStats( Profile *pProfile )
 		vector<Steps*> vpAllSteps = (*pSong)->GetAllSteps();
 		FOREACH( Steps*, vpAllSteps, pSteps )
 		{
-			if( rand() % 5 )
-				pProfile->IncrementStepsPlayCount( *pSong, *pSteps );
+			if (random_up_to(5))
+			{
+				pProfile->IncrementStepsPlayCount(*pSong, *pSteps);
+			}
 			for( int i=0; i<iCount; i++ )
 			{
 				int iIndex = 0;
@@ -928,8 +930,10 @@ static void FillProfileStats( Profile *pProfile )
 		(*pCourse)->GetAllTrails( vpAllTrails );
 		FOREACH( Trail*, vpAllTrails, pTrail )
 		{
-			if( rand() % 5 )
-				pProfile->IncrementCoursePlayCount( *pCourse, *pTrail );
+			if (random_up_to(5))
+			{
+				pProfile->IncrementCoursePlayCount(*pCourse, *pTrail);
+			}
 			for( int i=0; i<iCount; i++ )
 			{
 				int iIndex = 0;
