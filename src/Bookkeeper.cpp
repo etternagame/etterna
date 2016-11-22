@@ -133,7 +133,7 @@ void Bookkeeper::WriteToDisk()
 		return;
 	}
 
-	auto_ptr<XNode> xml( CreateNode() );
+	unique_ptr<XNode> xml( CreateNode() );
 	XmlFileUtil::SaveToFile( xml.get(), f );
 }
 

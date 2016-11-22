@@ -306,7 +306,7 @@ Actor* ActorUtil::MakeActor( const RString &sPath_, Actor *pParentActor )
 	{
 	case FT_Lua:
 		{
-			auto_ptr<XNode> pNode( LoadXNodeFromLuaShowErrors(sPath) );
+			unique_ptr<XNode> pNode( LoadXNodeFromLuaShowErrors(sPath) );
 			if( pNode.get() == NULL )
 			{
 				// XNode will warn about the error

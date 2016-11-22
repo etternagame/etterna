@@ -492,7 +492,7 @@ Actor *NoteSkinManager::LoadActor( const RString &sButton, const RString &sEleme
 		return Sprite::NewBlankSprite();
 	}
 
-	auto_ptr<XNode> pNode( XmlFileUtil::XNodeFromTable(L) );
+	unique_ptr<XNode> pNode( XmlFileUtil::XNodeFromTable(L) );
 	if( pNode.get() == NULL )
 	{
 		LUA->Release( L );
