@@ -124,8 +124,10 @@ gitversion.h
 Cache/
 Save/*
 !Save/LocalProfiles
-/Save/*/*
+!Save/GamePrefs
+Save/*/*
 Save/LocalProfiles/*
+!Save/GamePrefs/*
 !Save/LocalProfiles/00000000
 Logs/
 Songs/*
