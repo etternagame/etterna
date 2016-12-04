@@ -33,8 +33,11 @@ ProfileManager*	PROFILEMAN = NULL;	// global and accessible from anywhere in our
 
 static void DefaultLocalProfileIDInit( size_t /*PlayerNumber*/ i, RString &sNameOut, RString &defaultValueOut )
 {
-	sNameOut = ssprintf( "DefaultLocalProfileIDP%d", int(i+1) );
-	defaultValueOut = "";
+	sNameOut = ssprintf( "DefaultLocalProfileIDP%d", static_cast<int>(i+1) );
+	if(i == 0)
+		defaultValueOut = "00000000";
+	else
+		defaultValueOut = "";
 }
 
 Preference<bool> ProfileManager::m_bProfileStepEdits( "ProfileStepEdits", true );

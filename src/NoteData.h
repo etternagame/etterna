@@ -158,8 +158,15 @@ private:
 	void RemoveATIFromList(all_tracks_iterator* iter) const;
 	void RemoveATIFromList(all_tracks_const_iterator* iter) const;
 
+	// Mina stuf
+	vector<int> NonEmptyRowVector;
 public:
 	void Init();
+
+	// Mina stuf
+	void LogNonEmptyRows();
+	int WifeTotalScoreCalc(TimingData *td, int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW);
+	vector<int>& GetNonEmptyRowVector() { return NonEmptyRowVector; };
 
 	int GetNumTracks() const { return m_TapNotes.size(); }
 	void SetNumTracks( int iNewNumTracks );
@@ -306,10 +313,6 @@ public:
 	/* Optimization: for the default of start to end, use the second (faster). XXX: Second what? -- Steve */
 	int GetNumHoldNotes( int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW ) const;
 	int GetNumRolls( int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW ) const;
-
-	// Mina stuf
-	void LogNonEmptyRows(vector<int>& NonEmptyRowVector);
-	int WifeTotalScoreCalc(TimingData *td, int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW);
 
 	// Count rows that contain iMinTaps or more taps.
 	int GetNumRowsWithSimultaneousTaps( int iMinTaps, int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW ) const;

@@ -122,11 +122,15 @@ core
 ver.cpp
 gitversion.h
 Cache/
-Save/
+Save/*
+!Save/LocalProfiles
+/Save/*/*
+Save/LocalProfiles/*
+!Save/LocalProfiles/00000000
 Logs/
 Songs/*
+!Songs/Etterna
 Screenshots/
-portable.ini
 Docs/doxygen
 Data/UserPrefs
 Data/uPrefs
@@ -138,9 +142,8 @@ Themes/optical-release
 Themes/moonlight
 Themes/ultralight
 Themes/test
-Themes/Til Death
 Themes/Transcendence
-Noteskins/Dance/DivideByZero
+Noteskins/Dance/DivideByZeroHollow
 Noteskins/Dance/dbzdefaultbackup
 Noteskins/Dance/USWdefault9SM5
 wife

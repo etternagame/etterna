@@ -220,6 +220,7 @@ public:
 	int m_iTotalMines;
 	int m_iTotalHands;
 	int m_iTotalLifts;
+	float m_fPlayerRating;
 	/** @brief Is this a brand new profile? */
 	bool m_bNewProfile;
 	set<RString> m_UnlockedEntryIDs;
@@ -311,7 +312,13 @@ public:
 	const HighScoreList& GetCategoryHighScoreList( StepsType st, RankingCategory rc ) const;
 	int GetCategoryNumTimesPlayed( StepsType st ) const;
 	void IncrementCategoryPlayCount( StepsType st, RankingCategory rc );
+	float CalcPlayerRating() const;
+	float scoreagg(vector<float>) const;
 
+	/* Grabbing the highscores here and having lua invoke this results in unhandled exception errors
+	so instead this funciton finds the song/steps for identical chartkey entries and returns them to
+	the lua call which then grabs the highscores from the songscores object. -Mina */
+	void Profile::GetScoresByKey(vector<SongID>& songids, vector<StepsID>& stepsids, RString key);
 
 	// Screenshot Data
 	vector<Screenshot> m_vScreenshots;

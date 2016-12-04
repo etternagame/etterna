@@ -668,8 +668,15 @@ void Player::Load()
 	// Mina garbage - Mina
 	m_Timing = GAMESTATE->m_pCurSteps[pn]->GetTimingData();
 	m_Timing->NegStopAndBPMCheck();
-	m_Timing->SetElapsedTimesAtAllRows(GAMESTATE->m_pCurSteps[pn]->ElapsedTimesAtAllRows);
+	int lastRow = m_NoteData.GetLastRow();
+	vector<float> etarD;
+	for (int i = 0; i <= lastRow; i++)
+		etarD.push_back(m_Timing->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(i)));
+	m_Timing->SetElapsedTimesAtAllRows(etarD);
 	totalwifescore = m_NoteData.WifeTotalScoreCalc(m_Timing, 0, 1073741824);
+	m_pPlayerStageStats->m_fTimingScale = m_fTimingWindowScale;
+	m_NoteData.LogNonEmptyRows();
+	nerv = m_NoteData.GetNonEmptyRowVector();
 
 	/* Apply transforms. */
 	NoteDataUtil::TransformNoteData(m_NoteData, *m_Timing, m_pPlayerState->m_PlayerOptions.GetStage(), GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)->m_StepsType);
@@ -2118,10 +2125,9 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 
 	int iStepSearchRows;
 	static const float StepSearchDistance = GetMaxStepDistanceSeconds();
-	vector<int> nerv = GAMESTATE->m_pCurSteps[pn]->GetNonEmptyRowVector();
 	int skipstart = nerv[10]; // this is not robust need to come up with something better later - Mina
 
-	if (iSongRow < skipstart || iSongRow > nerv.size() -10 ) {
+	if (iSongRow < skipstart || iSongRow > static_cast<int>(nerv.size()) -10 ) {
 		iStepSearchRows = max(BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(m_pPlayerState->m_Position.m_fMusicSeconds + StepSearchDistance)) - iSongRow,
 			iSongRow - BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(m_pPlayerState->m_Position.m_fMusicSeconds - StepSearchDistance))) + ROWS_PER_BEAT;
 	}
@@ -2161,7 +2167,7 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 	if( iRowOfOverlappingNoteOrRow != -1 )
 	{
 		// compute the score for this hit
-		float fNoteOffset = 0.0f;
+		float fNoteOffset = 0.f;
 		// we need this later if we are autosyncing
 		const float fStepBeat = NoteRowToBeat( iRowOfOverlappingNoteOrRow );
 		const float fStepSeconds = m_Timing->WhereUAtBro(fStepBeat);
@@ -3133,6 +3139,7 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 		msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
 		msg.SetParam("WifeDifferential", curwifescore - maxwifescore*0.93f);
 		msg.SetParam("TotalPercent", 100 * curwifescore / totalwifescore);
+		m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
 
 		MESSAGEMAN->Broadcast( msg );
 		if( m_pPlayerStageStats &&
@@ -3146,7 +3153,7 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 }
 
 float Player::wife2(float maxms, float avedeviation, float power, int upperbound, int lowerbound) {
-	float y = 1 - pow(2, -1*maxms*maxms / (avedeviation*avedeviation));
+	float y = 1 - static_cast<float>(pow(2, -1*maxms*maxms / (avedeviation*avedeviation)));
 	y = pow(y, power);
 	return (upperbound - lowerbound)*(1 - y) + lowerbound;
 }
@@ -3166,25 +3173,24 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 		msg.SetParam( "Type", static_cast<RString>("Tap"));
 		msg.SetParam( "TapNoteOffset", tn.result.fTapNoteOffset );
 		if ( m_pPlayerStageStats != NULL )
-		{
 			msg.SetParam("Val", m_pPlayerStageStats->m_iTapNoteScores[tns] + 1);
-		}
 
 		if (tns != TNS_Miss)
-			msg.SetParam("Offset", tn.result.fTapNoteOffset * 1000);  // don't send out 0 ms offsets for misses, multiply by 1000 for convenience - Mina
+			msg.SetParam("Offset", tn.result.fTapNoteOffset * 1000);  // don't send out ms offsets for misses, multiply by 1000 for convenience - Mina
 
 		// Ms scoring implementation - Mina
-		if (tns == TNS_Miss) {
+		if (tns == TNS_Miss)
 			curwifescore -= 8;
-		}
 		else
-		{
 			curwifescore += wife2(tn.result.fTapNoteOffset * 1000.f, m_fTimingWindowScale * 95.f, 2.f, 2, -8);
-		}
+
 		maxwifescore += 2;
 		msg.SetParam("WifePercent", 100*curwifescore/maxwifescore);
 		msg.SetParam("WifeDifferential", curwifescore - maxwifescore*0.93f);
 		msg.SetParam("TotalPercent", 100 * curwifescore / totalwifescore);
+		m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
+		m_pPlayerStageStats->m_vOffsetVector.push_back(tn.result.fTapNoteOffset);
+		m_pPlayerStageStats->m_vNoteRowVector.push_back(iRow);
 
 		Lua* L= LUA->Get();
 		lua_createtable( L, 0, m_NoteData.GetNumTracks() ); // TapNotes this row
@@ -3243,6 +3249,7 @@ void Player::SetHoldJudgment( TapNote &tn, int iTrack )
 		msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
 		msg.SetParam("WifeDifferential", curwifescore - maxwifescore*0.93f);
 		msg.SetParam("TotalPercent", 100 * curwifescore / totalwifescore);
+		m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
 
 		Lua* L = LUA->Get();
 		tn.PushSelf(L);

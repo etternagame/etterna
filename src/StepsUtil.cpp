@@ -258,6 +258,7 @@ void StepsID::FromSteps( const Steps *p )
 	{
 		st = p->m_StepsType;
 		dc = p->GetDifficulty();
+		ck = p->GetChartKey();
 		if( dc == Difficulty_Edit )
 		{
 			sDescription = p->GetDescription();
@@ -304,7 +305,6 @@ Steps *StepsID::ToSteps( const Song *p, bool bAllowNull ) const
 		FAIL_M( ssprintf("%i, %i, \"%s\"", st, dc, sDescription.c_str()) );
 
 	m_Cache.Set( pRet );
-	
 	return pRet;
 }
 
@@ -314,6 +314,7 @@ XNode* StepsID::CreateNode() const
 
 	pNode->AppendAttr( "StepsType", GAMEMAN->GetStepsTypeInfo(st).szName );
 	pNode->AppendAttr( "Difficulty", DifficultyToString(dc) );
+	pNode->AppendAttr(" ChartKey", ck);
 	if( dc == Difficulty_Edit )
 	{
 		pNode->AppendAttr( "Description", sDescription );
@@ -334,6 +335,9 @@ void StepsID::LoadFromNode( const XNode* pNode )
 
 	pNode->GetAttrValue( "Difficulty", sTemp );
 	dc = StringToDifficulty( sTemp );
+
+	pNode->GetAttrValue("ChartKey", sTemp);
+	ck = sTemp;
 
 	if( dc == Difficulty_Edit )
 	{

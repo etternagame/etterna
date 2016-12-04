@@ -8,9 +8,11 @@
 #include "GameState.h"
 #include "Course.h"
 #include "Steps.h"
+#include "NoteData.h"
 #include "ScoreKeeperNormal.h"
 #include "PrefsManager.h"
 #include "CommonMetrics.h"
+#include "MinaCalc.h"
 
 #define GRADE_PERCENT_TIER(i)	THEME->GetMetricF("PlayerStageStats",ssprintf("GradePercent%s",GradeToString((Grade)i).c_str()))
 // deprecated, but no solution to replace them exists yet:
@@ -41,6 +43,10 @@ void PlayerStageStats::InternalInit()
 	m_iPossibleDancePoints = 0;
 	m_iCurPossibleDancePoints = 0;
 	m_iActualDancePoints = 0;
+	m_fWifeScore = 0;
+	m_fTimingScale = 0;
+	m_vOffsetVector.clear();
+	m_vNoteRowVector.clear();
 	m_iPossibleGradePoints = 0;
 	m_iCurCombo = 0;
 	m_iMaxCombo = 0;
@@ -275,14 +281,43 @@ RString PlayerStageStats::FormatPercentScore( float fPercentDancePoints )
 	int iPercentTotalDigits = 3 + CommonMetrics::PERCENT_SCORE_DECIMAL_PLACES;	// "100" + "." + "00"
 
 	RString s = ssprintf( "%*.*f%%", iPercentTotalDigits, 
-			     (int)CommonMetrics::PERCENT_SCORE_DECIMAL_PLACES,
+			     static_cast<int>(CommonMetrics::PERCENT_SCORE_DECIMAL_PLACES),
 			     fPercentDancePoints*100 );
 	return s;
 }
 
-float PlayerStageStats::GetPercentDancePoints() const
-{
+float PlayerStageStats::GetPercentDancePoints() const {
 	return MakePercentScore( m_iActualDancePoints, m_iPossibleDancePoints );
+}
+float PlayerStageStats::GetWifeScore() const {
+	return m_fWifeScore;
+}
+float PlayerStageStats::CalcSSR() const {
+	if (m_fWifeScore < 0.9f || GetGrade() == Grade_Failed)
+		return 0.f;
+
+	NoteData& nd = GAMESTATE->m_pCurSteps[0]->GetNoteData();
+	TimingData* td = GAMESTATE->m_pCurSteps[0]->GetTimingData();
+	float musicrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+	
+	vector<int>& nerv = nd.GetNonEmptyRowVector();
+	vector<float>& etar = td->GetElapsedTimesAtAllRows();
+	vector<float> etaner(nerv.size());
+
+	for (size_t i = 0; i < nerv.size(); ++i)
+		etaner[i] = etar[nerv[i]];
+
+	vector<float> calcoutput = MinaSDCalc(nd, etaner, musicrate, m_fWifeScore, 1.f, td->HasWarps());
+	return calcoutput[0];
+}
+float PlayerStageStats::GetTimingScale() const {
+	return m_fTimingScale;
+}
+vector<float> PlayerStageStats::GetOffsetVector() const {
+	return m_vOffsetVector;
+}
+vector<int> PlayerStageStats::GetNoteRowVector() const {
+	return m_vNoteRowVector;
 }
 
 float PlayerStageStats::GetCurMaxPercentDancePoints() const
@@ -293,7 +328,7 @@ float PlayerStageStats::GetCurMaxPercentDancePoints() const
 	if ( m_iCurPossibleDancePoints == m_iPossibleDancePoints )
 		return 1; // correct for rounding error
 
-	float fCurMaxPercentDancePoints = m_iCurPossibleDancePoints / (float)m_iPossibleDancePoints;
+	float fCurMaxPercentDancePoints = static_cast<float>(m_iCurPossibleDancePoints / m_iPossibleDancePoints);
 
 	return fCurMaxPercentDancePoints;
 }
@@ -390,7 +425,7 @@ void PlayerStageStats::SetLifeRecordAt( float fLife, float fStepsSecond )
 		if(curr->second != fLife)
 		{
 			// 2^-8
-			m_fLifeRecord[fStepsSecond - 0.00390625]= curr->second;
+			m_fLifeRecord[fStepsSecond - 0.00390625f]= curr->second;
 		}
 	}
 	m_fLifeRecord[fStepsSecond] = fLife;
@@ -465,7 +500,7 @@ void PlayerStageStats::GetLifeRecord( float *fLifeOut, int iNumSamples, float fS
 {
 	for( int i = 0; i < iNumSamples; ++i )
 	{
-		float from = SCALE( i, 0, (float)iNumSamples, 0.0f, fStepsEndSecond );
+		float from = SCALE( i, 0, static_cast<float>(iNumSamples), 0.0f, fStepsEndSecond );
 		fLifeOut[i] = GetLifeRecordLerpAt( from );
 	}
 }
@@ -740,6 +775,8 @@ public:
 	DEFINE_METHOD( GetCurrentMissCombo,			m_iCurMissCombo )
 	DEFINE_METHOD( GetCurrentScoreMultiplier,	m_iCurScoreMultiplier )
 	DEFINE_METHOD( GetScore,					m_iScore )
+	DEFINE_METHOD( GetWifeScore,				m_fWifeScore )
+	DEFINE_METHOD( GetSSR,						CalcSSR())
 	DEFINE_METHOD( GetCurMaxScore,				m_iCurMaxScore )
 	DEFINE_METHOD( GetTapNoteScores,			m_iTapNoteScores[Enum::Check<TapNoteScore>(L, 1)] )
 	DEFINE_METHOD( GetHoldNoteScores,			m_iHoldNoteScores[Enum::Check<HoldNoteScore>(L, 1)] )
@@ -775,7 +812,7 @@ public:
 	static int GetPlayedSteps( T* p, lua_State *L )
 	{
 		lua_newtable(L);
-		for( int i = 0; i < (int) min(p->m_iStepsPlayed, (int) p->m_vpPossibleSteps.size()); ++i )
+		for( int i = 0; i < min(static_cast<int>( p->m_iStepsPlayed ), static_cast<int>( p->m_vpPossibleSteps.size() )); ++i )
 		{
 			p->m_vpPossibleSteps[i]->PushSelf(L);
 			lua_rawseti( L, -2, i+1 );
@@ -785,13 +822,28 @@ public:
 	static int GetPossibleSteps( T* p, lua_State *L )
 	{
 		lua_newtable(L);
-		for( int i = 0; i < (int) p->m_vpPossibleSteps.size(); ++i )
+		for( int i = 0; i < static_cast<int>( p->m_vpPossibleSteps.size() ); ++i )
 		{
 			p->m_vpPossibleSteps[i]->PushSelf(L);
 			lua_rawseti( L, -2, i+1 );
 		}
 		return 1;
 	}
+
+	// Convert to MS so lua doesn't have to
+	static int GetOffsetVector(T* p, lua_State *L) {
+		vector<float> doot = p->m_vOffsetVector;
+		for (size_t i = 0; i < doot.size(); ++i)
+			doot[i] = doot[i] * 1000;
+		LuaHelpers::CreateTableFromArray(doot, L);
+		return 1;
+	}
+
+	static int GetNoteRowVector(T* p, lua_State *L) {
+		LuaHelpers::CreateTableFromArray(p->m_vNoteRowVector, L);
+		return 1;
+	}
+
 	static int GetComboList( T* p, lua_State *L )
 	{
 		lua_createtable(L, p->m_ComboList.size(), 0);
@@ -837,7 +889,7 @@ public:
 		for(int i= 0; i < samples; ++i)
 		{
 			// The scale from range is [0, samples-1] because that is i's range.
-			float from= SCALE(i, 0, (float)samples-1.0f, 0.0f, last_second);
+			float from= SCALE(i, 0, static_cast<float>(samples) -1.0f, 0.0f, last_second);
 			float curr= p->GetLifeRecordLerpAt(from);
 			lua_pushnumber(L, curr);
 			lua_rawseti(L, -2, i+1);
@@ -882,6 +934,10 @@ public:
 		ADD_METHOD( GetCurrentMissCombo );
 		ADD_METHOD( GetCurrentScoreMultiplier );
 		ADD_METHOD( GetScore );
+		ADD_METHOD( GetOffsetVector );
+		ADD_METHOD( GetNoteRowVector );
+		ADD_METHOD( GetWifeScore );
+		ADD_METHOD( GetSSR);
 		ADD_METHOD( GetCurMaxScore );
 		ADD_METHOD( GetTapNoteScores );
 		ADD_METHOD( GetHoldNoteScores );

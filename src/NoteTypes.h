@@ -12,8 +12,8 @@ class XNode;
 /** @brief The result of hitting (or missing) a tap note. */
 struct TapNoteResult
 {
-	/** @brief Set up the TapNoteResult with default values. */
-	TapNoteResult() : tns(TNS_None), fTapNoteOffset(0.f), bHidden(false) { }
+	/** @brief Set up the TapNoteResult with default values. The default offset value should be 1 not 0 as to diffrentiate from 0 offset hits, idiots -Mina*/
+	TapNoteResult() : tns(TNS_None), fTapNoteOffset(1.f), bHidden(false) { }
 	/** @brief The TapNoteScore that was achieved by the player. */
 	TapNoteScore	tns;
 
@@ -156,6 +156,9 @@ struct TapNote
 
 	// Lua
 	void PushSelf( lua_State *L );
+
+	// So I'm not repeatedly typing this out - Mina
+	bool IsNote() const { return type == TapNoteType_Tap || type == TapNoteType_HoldHead; }
 
 	TapNote(): type(TapNoteType_Empty), subType(TapNoteSubType_Invalid),
 		source(TapNoteSource_Original),	result(), pn(PLAYER_INVALID),  sAttackModifiers(""), 

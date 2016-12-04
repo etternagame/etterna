@@ -325,7 +325,7 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 		RString sGroupDirName = *s;	
 		vector<RString> &arraySongDirs = arrayGroupSongDirs[groupIndex++];
 
-		LOG->Trace("Attempting to load %i songs from \"%s\"", int(arraySongDirs.size()),
+		LOG->Trace("Attempting to load %i songs from \"%s\"", static_cast<int>(arraySongDirs.size()),
 				   (sDir+sGroupDirName).c_str() );
 		int loaded = 0;
 
@@ -483,7 +483,7 @@ void SongManager::UnlistSong(Song *song)
 	vector<Song*>* songVectors[3] = { &m_pSongs, &m_pPopularSongs, &m_pShuffledSongs };
 	for (int songVecIdx=0; songVecIdx<3; ++songVecIdx) {
 		vector<Song*>& v = *songVectors[songVecIdx];
-		for (int i=0; i<v.size(); ++i) {
+		for (size_t i=0; i<v.size(); ++i) {
 			if (v[i] == song) {
 				v.erase(v.begin()+i);
 				--i;

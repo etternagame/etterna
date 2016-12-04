@@ -156,6 +156,7 @@ void Profile::InitGeneralData()
 	m_iTotalMines = 0;
 	m_iTotalHands = 0;
 	m_iTotalLifts = 0;
+	m_fPlayerRating = 0.f;
 
 	FOREACH_ENUM( PlayMode, i )
 		m_iNumSongsPlayedByPlayMode[i] = 0;
@@ -243,7 +244,7 @@ int Profile::GetAge() const
 {
 	if(m_BirthYear == 0)
 	{
-		return (GetLocalTime().tm_year+1900) - DEFAULT_BIRTH_YEAR;
+		return (GetLocalTime().tm_year+1900) - static_cast<int>(DEFAULT_BIRTH_YEAR);
 	}
 	return (GetLocalTime().tm_year+1900) - m_BirthYear;
 }
@@ -1196,7 +1197,7 @@ ProfileLoadResult Profile::LoadStatsFromDir(RString dir, bool require_signature)
 	if(!IsMachine())	// only check stats coming from the player
 	{
 		int iBytes = pFile->GetFileSize();
-		if(iBytes > MAX_PLAYER_STATS_XML_SIZE_BYTES)
+		if(iBytes > 5 * MAX_PLAYER_STATS_XML_SIZE_BYTES)
 		{
 			LuaHelpers::ReportScriptErrorFmt("The file '%s' is unreasonably large.  It won't be loaded.", fn.c_str());
 			return ProfileLoadResult_FailedTampered;
@@ -1495,6 +1496,7 @@ XNode* Profile::SaveGeneralDataCreateNode() const
 	pGeneralDataNode->AppendChild( "TotalMines",			m_iTotalMines );
 	pGeneralDataNode->AppendChild( "TotalHands",			m_iTotalHands );
 	pGeneralDataNode->AppendChild( "TotalLifts",			m_iTotalLifts );
+	pGeneralDataNode->AppendChild( "PlayerRating",			m_fPlayerRating);
 
 	// Keep declared variables in a very local scope so they aren't 
 	// accidentally used where they're not intended.  There's a lot of
@@ -1687,6 +1689,7 @@ void Profile::LoadGeneralDataFromNode( const XNode* pNode )
 	pNode->GetChildValue( "TotalMines",				m_iTotalMines );
 	pNode->GetChildValue( "TotalHands",				m_iTotalHands );
 	pNode->GetChildValue( "TotalLifts",				m_iTotalLifts );
+	pNode->GetChildValue( "PlayerRating",			m_fPlayerRating);
 
 	{
 		const XNode* pDefaultModifiers = pNode->GetChild("DefaultModifiers");
@@ -1860,9 +1863,9 @@ float Profile::CalculateCaloriesFromHeartRate(float HeartRate, float Duration)
 	*/
 	// Duration passed in is in seconds.  Convert it to minutes to make the code
 	// match the equations from the website.
-	Duration= Duration / 60.0;
-	float kilos= GetCalculatedWeightPounds() / 2.205;
-	float age= GetAge();
+	Duration= Duration / 60.f;
+	float kilos= GetCalculatedWeightPounds() / 2.205f;
+	float age= static_cast<float>(GetAge());
 
 	// Names for the constants in the equations.
 	// Assumes male and unknown voomax.
@@ -1899,7 +1902,7 @@ float Profile::CalculateCaloriesFromHeartRate(float HeartRate, float Duration)
 	}
 	return ((gender_factor + (heart_factor * HeartRate) +
 			(voo_factor * m_Voomax) + (weight_factor * kilos) + (age_factor + age))
-		/ 4.184) * Duration;
+		/ 4.184f) * Duration;
 }
 
 XNode* Profile::SaveSongScoresCreateNode() const
@@ -1974,6 +1977,27 @@ void Profile::LoadSongScoresFromNode( const XNode* pSongScores )
 			if( !stepsID.IsValid() )
 				WARN_AND_CONTINUE;
 
+			/* This is for updating the chartkey values for pre-existing steps entries. First
+			we do a validity check to ensure a chartkey can and has been generated. Then we 
+			load the chart the score is attached to and then rerun the validity test. This is 
+			to handle scores for which the relevant.sm has been moved or deleted and chartkeys 
+			cannot be generated or assigned. If we encounter a newly invalidated steps we reload
+			it so as not to alter the entry. This way if a steps entry already has a chartkey
+			attached to it and the .sm file is moved or deleted the chartkey and score will persist
+			allowing it to be accessed by any concurrent file that shares the same key. - Mina
+			*/
+			if (songID.IsValid())
+			{
+				Song* song = songID.ToSong();
+				Steps* steps = stepsID.ToSteps(song, true);
+				if (stepsID.IsValid() && stepsID.GetDifficulty() != Difficulty_Edit) {
+					stepsID.FromSteps(steps);
+					if(!stepsID.IsValid())
+						stepsID.LoadFromNode(pSteps);
+					stepsID.CreateNode();
+				}
+			}
+			
 			const XNode *pHighScoreListNode = pSteps->GetChild("HighScoreList");
 			if( pHighScoreListNode == NULL )
 				WARN_AND_CONTINUE;
@@ -1984,6 +2008,55 @@ void Profile::LoadSongScoresFromNode( const XNode* pSongScores )
 	}
 }
 
+/*	This is really lame because for whatever reason getting the highscore object and passing them
+to lua results in really weird and unpredictable errors that I can't figure out, so instead we pass
+lua the keys and let the lua function get the highscore objects */ 
+
+void Profile::GetScoresByKey(vector<SongID>& songids, vector<StepsID>& stepsids, RString key) {
+	FOREACHM_CONST(SongID, HighScoresForASong, m_SongHighScores, i) {
+		const SongID& id = i->first;
+		const HighScoresForASong& hsfas = i->second;
+		FOREACHM_CONST(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
+			const StepsID& sid = j->first;
+			if (sid.GetKey() == key) {
+				songids.push_back(id);
+				stepsids.push_back(sid);
+			}
+		}
+	}
+}
+
+float Profile::CalcPlayerRating() const {
+	vector<float> vSSR;
+	FOREACHM_CONST(SongID, HighScoresForASong, m_SongHighScores, i) {
+		const SongID& id = i->first;
+		const HighScoresForASong& hsfas = i->second;
+		FOREACHM_CONST(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
+			const HighScoresForASteps& zz = j->second;
+			const vector<HighScore>& hsv = zz.hsl.vHighScores;
+			for (size_t i = 0; i < hsv.size(); i++)
+				vSSR.push_back(hsv[i].GetSSR());
+		}
+	}
+	return scoreagg(vSSR);
+}
+
+// nonlinear plsszz - mina
+float Profile::scoreagg(vector<float> invector) const {
+	if (invector.size() == 0)
+		return 0.f;
+	float skillrating = m_fPlayerRating - 1.f;
+	double sum;
+	do {
+		skillrating += 0.1f;
+		sum = 0.0;
+		for (int i = 0; i < static_cast<int>(invector.size()); i++) {
+			sum += max(0.0, 2.f / erfc(0.1*(invector[i] - skillrating)) - 1.5);
+		}
+	} while (pow(2, skillrating * 0.1) < sum);
+	CLAMP(skillrating, 0.f, 100.f);
+	return skillrating*0.95f;
+}
 
 XNode* Profile::SaveCourseScoresCreateNode() const
 {
@@ -2464,57 +2537,78 @@ RString Profile::MakeFileNameNoExtension( const RString &sFileNameBeginning, int
 #include "LuaBinding.h"
 
 /** @brief Allow Lua to have access to the Profile. */ 
-class LunaProfile: public Luna<Profile>
+class LunaProfile : public Luna<Profile>
 {
 public:
-	static int AddScreenshot( T* p, lua_State *L )
+	static int AddScreenshot(T* p, lua_State *L)
 	{
-		HighScore* hs= Luna<HighScore>::check(L, 1);
-		RString filename= SArg(2);
+		HighScore* hs = Luna<HighScore>::check(L, 1);
+		RString filename = SArg(2);
 		Screenshot screenshot;
-		screenshot.sFileName= filename;
-		screenshot.sMD5= BinaryToHex(CRYPTMAN->GetMD5ForFile(filename));
-		screenshot.highScore= *hs;
+		screenshot.sFileName = filename;
+		screenshot.sMD5 = BinaryToHex(CRYPTMAN->GetMD5ForFile(filename));
+		screenshot.highScore = *hs;
 		p->AddScreenshot(screenshot);
 		COMMON_RETURN_SELF;
 	}
 	DEFINE_METHOD(GetType, m_Type);
 	DEFINE_METHOD(GetPriority, m_ListPriority);
 
-	static int GetDisplayName( T* p, lua_State *L )			{ lua_pushstring(L, p->m_sDisplayName ); return 1; }
-	static int SetDisplayName( T* p, lua_State *L )
+	static int GetDisplayName(T* p, lua_State *L) { lua_pushstring(L, p->m_sDisplayName); return 1; }
+	static int SetDisplayName(T* p, lua_State *L)
 	{
-		p->m_sDisplayName= SArg(1);
+		p->m_sDisplayName = SArg(1);
 		COMMON_RETURN_SELF;
 	}
-	static int GetLastUsedHighScoreName( T* p, lua_State *L )	{ lua_pushstring(L, p->m_sLastUsedHighScoreName ); return 1; }
-	static int SetLastUsedHighScoreName( T* p, lua_State *L )
+	static int GetLastUsedHighScoreName(T* p, lua_State *L) { lua_pushstring(L, p->m_sLastUsedHighScoreName); return 1; }
+	static int SetLastUsedHighScoreName(T* p, lua_State *L)
 	{
-		p->m_sLastUsedHighScoreName= SArg(1);
+		p->m_sLastUsedHighScoreName = SArg(1);
 		COMMON_RETURN_SELF;
 	}
-	static int GetHighScoreList( T* p, lua_State *L )
+	static int GetHighScoreList(T* p, lua_State *L)
 	{
-		if( LuaBinding::CheckLuaObjectType(L, 1, "Song") )
+		if (LuaBinding::CheckLuaObjectType(L, 1, "Song"))
 		{
-			const Song *pSong = Luna<Song>::check(L,1);
-			const Steps *pSteps = Luna<Steps>::check(L,2);
-			HighScoreList &hsl = p->GetStepsHighScoreList( pSong, pSteps );
-			hsl.PushSelf( L );
+			const Song *pSong = Luna<Song>::check(L, 1);
+			const Steps *pSteps = Luna<Steps>::check(L, 2);
+			HighScoreList &hsl = p->GetStepsHighScoreList(pSong, pSteps);
+			hsl.PushSelf(L);
 			return 1;
 		}
-		else if( LuaBinding::CheckLuaObjectType(L, 1, "Course") )
+		else if (LuaBinding::CheckLuaObjectType(L, 1, "Course"))
 		{
-			const Course *pCourse = Luna<Course>::check(L,1);
-			const Trail *pTrail = Luna<Trail>::check(L,2);
-			HighScoreList &hsl = p->GetCourseHighScoreList( pCourse, pTrail );
-			hsl.PushSelf( L );
+			const Course *pCourse = Luna<Course>::check(L, 1);
+			const Trail *pTrail = Luna<Trail>::check(L, 2);
+			HighScoreList &hsl = p->GetCourseHighScoreList(pCourse, pTrail);
+			hsl.PushSelf(L);
 			return 1;
 		}
 
-		luaL_typerror( L, 1, "Song or Course" );
+		luaL_typerror(L, 1, "Song or Course");
 		COMMON_RETURN_SELF;
 	}
+
+	/* Searches through highscores for both loaded and unloaded songs/steps and 
+	returns a table of highscores (not a highscorelist object) containing all 
+	scores identified by the provided chartkey.- Mina*/ 
+	static int GetHighScoresByKey(T* p, lua_State *L) {
+		size_t idx = 0;
+		lua_newtable(L);
+		vector<SongID> songids;
+		vector<StepsID> stepsids;
+		p->GetScoresByKey(songids, stepsids, SArg(1));
+		for (size_t i = 0; i < songids.size(); i++) {
+			HighScoreList &hsl = p->m_SongHighScores[songids[i]].m_StepsHighScores[stepsids[i]].hsl;
+			for (size_t ii = 0; ii < hsl.vHighScores.size(); ii++) {
+				hsl.vHighScores[ii].PushSelf(L);
+				lua_rawseti(L, -2, idx + ii + 1);
+			}
+			idx += hsl.vHighScores.size();
+		}
+		return 1;
+	}
+
 	static int GetCategoryHighScoreList( T* p, lua_State *L )
 	{
 		StepsType pStepsType = Enum::Check<StepsType>(L, 1);
@@ -2638,6 +2732,7 @@ public:
 	static int GetSongsAndCoursesPercentCompleteAllDifficulties( T* p, lua_State *L )		{ lua_pushnumber(L, p->GetSongsAndCoursesPercentCompleteAllDifficulties(Enum::Check<StepsType>(L, 1)) ); return 1; }
 	static int GetTotalCaloriesBurned( T* p, lua_State *L )		{ lua_pushnumber(L, p->m_fTotalCaloriesBurned ); return 1; }
 	static int GetDisplayTotalCaloriesBurned( T* p, lua_State *L )	{ lua_pushstring(L, p->GetDisplayTotalCaloriesBurned() ); return 1; }
+	static int GetPlayerRating(T* p, lua_State *L) { lua_pushnumber(L, p->m_fPlayerRating); return 1; }
 	static int GetMostPopularSong( T* p, lua_State *L )
 	{
 		Song *p2 = p->GetMostPopularSong();
@@ -2712,6 +2807,7 @@ public:
 		ADD_METHOD( GetAllUsedHighScoreNames );
 		ADD_METHOD( GetHighScoreListIfExists );
 		ADD_METHOD( GetHighScoreList );
+		ADD_METHOD( GetHighScoresByKey );
 		ADD_METHOD( GetCategoryHighScoreList );
 		ADD_METHOD( GetCharacter );
 		ADD_METHOD( SetCharacter );
@@ -2769,6 +2865,7 @@ public:
 		ADD_METHOD( GetLastPlayedSong );
 		ADD_METHOD( GetLastPlayedCourse );
 		ADD_METHOD( GetGUID );
+		ADD_METHOD( GetPlayerRating );
 	}
 };
 

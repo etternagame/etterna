@@ -353,20 +353,8 @@ Section "Main Section" SecMain
 
 	; install dance noteskins
 	SetOutPath "$INSTDIR\NoteSkins\dance"
-	File /r /x CVS /x .svn "NoteSkins\dance\default"
-	File /r /x CVS /x .svn "NoteSkins\dance\Delta"
-	; "midi" noteskin was split out after beta 2.
-	File /r /x CVS /x .svn "NoteSkins\dance\midi-note"
-	File /r /x CVS /x .svn "NoteSkins\dance\midi-note-3d"
-	File /r /x CVS /x .svn "NoteSkins\dance\midi-routine-p1"
-	File /r /x CVS /x .svn "NoteSkins\dance\midi-routine-p2"
-	File /r /x CVS /x .svn "NoteSkins\dance\midi-solo"
-	File /r /x CVS /x .svn "NoteSkins\dance\midi-vivid"
-	File /r /x CVS /x .svn "NoteSkins\dance\midi-vivid-3d"
-	; retro and retrobar
-	File /r /x CVS /x .svn "NoteSkins\dance\retro"
-	File /r /x CVS /x .svn "NoteSkins\dance\retrobar"
-	File /r /x CVS /x .svn "NoteSkins\dance\retrobar-splithand_whiteblue"
+	File /r /x CVS /x .svn "NoteSkins\dance\Default"
+	File /r /x CVS /x .svn "NoteSkins\dance\DivideByZero"
 	SetOutPath "$INSTDIR"
 
 	; install pump noteskins
@@ -419,7 +407,7 @@ Section "Main Section" SecMain
 	File /r /x CVS /x .svn "Themes\_fallback"
 	; no more portkit sm4
 	;File /r /x CVS /x .svn "Themes\_portKit-sm4"
-	File /r /x CVS /x .svn "Themes\default"
+	File /r /x CVS /x .svn "Themes\Til Death"
 
 	CreateDirectory "$INSTDIR\Data"
 	SetOutPath "$INSTDIR\Data"
@@ -432,13 +420,22 @@ Section "Main Section" SecMain
 	File /r "pcks\*.*"
 !endif
 
+  ; Can't figure out where to change the speedincrement defaults in the code so workaround
+  SetOutPath "$INSTDIR\Save"
+  File /r /x CVS /x .svn "Save\GamePrefs"
+  
+  ;Default player profile
+  SetOutPath "$INSTDIR\Save\LocalProfiles"
+	File /r /x CVS /x .svn "Save\LocalProfiles\00000000"
+	
+
 	SetOutPath "$INSTDIR\Program"
 !ifdef INSTALL_EXECUTABLES
 	; normal exec
 	File "Program\StepMania.exe"
 	File "Program\StepMania.vdi"
 	; other programs
-	File "Program\Texture Font Generator.exe"
+	;File "Program\Texture Font Generator.exe"
 	; AJ can never get this built properly:
 	;File "Program\tools.exe" ; to be replaced eventually
 !endif
@@ -809,17 +806,7 @@ Section "Uninstall"
 	RMDir /r "$INSTDIR\NoteSkins\common\common"
 	RMDir "$INSTDIR\NoteSkins\common"
 	RMDir /r "$INSTDIR\NoteSkins\dance\default"
-	RMDir /r "$INSTDIR\NoteSkins\dance\Delta"
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi-note"
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi-note-3d"
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi-routine-p1"
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi-routine-p2"
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi-solo"
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi-vivid"
-	RMDir /r "$INSTDIR\NoteSkins\dance\midi-vivid-3d"
-	RMDir /r "$INSTDIR\NoteSkins\dance\retro"
-	RMDir /r "$INSTDIR\NoteSkins\dance\retrobar"
-	RMDir /r "$INSTDIR\NoteSkins\dance\retrobar-splithand_whiteblue"
+	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByZero"
 	RMDir "$INSTDIR\NoteSkins\dance"
 
 	RMDir /r "$INSTDIR\NoteSkins\lights\default"

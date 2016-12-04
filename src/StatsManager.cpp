@@ -141,6 +141,8 @@ void AddPlayerStatsToProfile( Profile *pProfile, const StageStats &ss, PlayerNum
 		pProfile->m_iNumStagesPassedByPlayMode[ss.m_playMode] ++;
 		pProfile->m_iNumStagesPassedByGrade[ss.m_player[pn].GetGrade()] ++;
 	}
+
+	pProfile->m_fPlayerRating = pProfile->CalcPlayerRating();
 }
 
 XNode* MakeRecentScoreNode( const StageStats &ss, Trail *pTrail, const PlayerStageStats &pss, MultiPlayer mp )

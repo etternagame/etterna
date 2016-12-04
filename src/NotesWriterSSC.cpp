@@ -33,6 +33,19 @@ static RString JoinLineList( vector<RString> &lines )
 	return join( "\r\n", lines.begin()+j, lines.end() );
 }
 
+RString MSDToString(MinaSD x) {
+	RString o = "";
+	for (size_t i = 0; i < x.size(); i++) {
+		for (size_t ii = 0; ii < x[i].size(); ii++) {
+			o.append(to_string(x[i][ii]));
+			if (ii != x[i].size() - 1)
+				o.append(",");
+		}
+		if (i != x.size() - 1)
+			o.append(":");
+	}
+	return o;
+}
 
 // A utility class to write timing tags more easily!
 struct TimingTagWriter {
@@ -366,6 +379,7 @@ static RString GetSSCNoteData( const Song &song, const Steps &in, bool bSavingCa
 	push_back_tag(lines, "#CHARTSTYLE:%s;", in.GetChartStyle());
 	push_back_tag(lines, "#DIFFICULTY:%s;", DifficultyToString(in.GetDifficulty()));
 	lines.push_back(ssprintf("#METER:%d;", in.GetMeter()));
+	lines.push_back(ssprintf("#MSDVALUES:%s;", MSDToString(in.GetAllMSD())));
 	lines.push_back(ssprintf("#CHARTKEY:%s;", SmEscape(in.GetChartKey()).c_str()));
 	lines.push_back(ssprintf("#CHARTKEYRECORD:%s;", SmEscape(in.GetChartKeyRecord()).c_str()));
 
@@ -472,8 +486,10 @@ bool NotesWriterSSC::Write( RString &sPath, const Song &out, const vector<Steps*
 	FOREACH_CONST( Steps*, vpStepsToSave, s ) 
 	{
 		const Steps* pSteps = *s;
-		RString sTag = GetSSCNoteData( out, *pSteps, bSavingCache );
-		f.PutLine( sTag );
+		if (pSteps->ChartKey != "Invalid") {		// Avoid writing cache tags for invalid chartkey files(empty steps) -Mina
+			RString sTag = GetSSCNoteData(out, *pSteps, bSavingCache);
+			f.PutLine(sTag);
+		}
 	}
 	if( f.Flush() == -1 )
 		return false;

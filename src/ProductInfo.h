@@ -8,7 +8,7 @@
  *
  * As an example, use "StepMania" here, not "StepMania4".
  */
-#define PRODUCT_FAMILY_BARE StepMania
+#define PRODUCT_FAMILY_BARE StepMania - Etterna
 
 /**
  * @brief A unique name for each application that you might want installed side-by-side with other applications.
@@ -16,7 +16,7 @@
  * As an example, use "StepMania4" here, not "StepMania".
  * It would cause a conflict with older versions such as StepMania 3.X.
  */
-#define PRODUCT_ID_BARE StepMania 5 Custom
+#define PRODUCT_ID_BARE Stepmania - Etterna
 
 // These cannot be #undef'd so make them unlikely to conflict with anything
 #define PRODUCT_STRINGIFY(x) #x

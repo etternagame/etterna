@@ -471,8 +471,9 @@ public:
 	aren't needed at all :/. Not my responsibility to investigate, though. - Mina.*/ 
 	
 	vector<float> ElapsedTimesAtAllRows;
-	void SetElapsedTimesAtAllRows(vector<float>& etar) { ElapsedTimesAtAllRows = etar; };
-
+	void SetElapsedTimesAtAllRows(vector<float>& etar) { ElapsedTimesAtAllRows = etar; }
+	vector<float> GetElapsedTimesAtAllRows() { return ElapsedTimesAtAllRows; }
+	void UnsetElapsedTimesAtAllRows() { std::vector<float> emptyVector; ElapsedTimesAtAllRows.swap(emptyVector); };
 	float WhereUAtBro(float beat) const;
 	float WhereUAtBro(float beat);
 	float WhereUAtBroNoOffset(float beat) const;
@@ -480,7 +481,7 @@ public:
 	float WhereUAtBro(int row);
 
 	bool ValidSequentialAssumption = true;
-	void InvalidateSequentialAssmption() { ValidSequentialAssumption = false; };
+	void InvalidateSequentialAssmption() { ValidSequentialAssumption = false; }
 	bool IsSequentialAssumptionValid() { return  ValidSequentialAssumption; }
 
 	void NegStopAndBPMCheck() {

@@ -172,8 +172,26 @@ void NoteData::CopyAll( const NoteData& from )
 	*this = from;
 }
 
-void NoteData::LogNonEmptyRows(vector<int>& NonEmptyRowVector)
+int NoteData::WifeTotalScoreCalc(TimingData *td, int iStartIndex, int iEndIndex)
 {
+	int taps = 0;
+	FOREACH_NONEMPTY_ROW_ALL_TRACKS(*this, r) {
+		for (int t = 0; t < GetNumTracks(); t++)
+		{
+			TapNote tn = GetTapNote(t, r);
+			if (tn.type != TapNoteType_Empty && tn.type != TapNoteType_Mine && tn.type != TapNoteType_Fake && tn.type != TapNoteType_Lift && td->IsJudgableAtRow(r)) {
+				taps++;
+				break;
+			}
+		}
+	}
+
+	return taps * 2;
+}
+
+
+void NoteData::LogNonEmptyRows() {
+	NonEmptyRowVector.clear();
 	FOREACH_NONEMPTY_ROW_ALL_TRACKS(*this, row)
 		NonEmptyRowVector.push_back(row);
 }
@@ -519,23 +537,6 @@ int NoteData::GetNumTapNotesNoTiming( int iStartIndex, int iEndIndex ) const
 	}
 
 	return iNumNotes;
-}
-
-int NoteData::WifeTotalScoreCalc(TimingData *td, int iStartIndex, int iEndIndex)
-{
-	int taps = 0;
-	FOREACH_NONEMPTY_ROW_ALL_TRACKS(*this, r) {
-		for (int t = 0; t < GetNumTracks(); t++)
-		{
-			TapNote tn = GetTapNote(t, r);
-			if (tn.type != TapNoteType_Empty && tn.type != TapNoteType_Mine && tn.type != TapNoteType_Fake && tn.type != TapNoteType_Lift && td->IsJudgableAtRow(r)){
-				taps++;
-				break;
-			}
-		}
-	}
-
-	return taps * 2;
 }
 
 int NoteData::GetNumTapNotesInRow( int iRow ) const

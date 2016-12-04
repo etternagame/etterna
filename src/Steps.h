@@ -15,6 +15,9 @@ class Profile;
 class NoteData;
 struct lua_State;
 
+typedef vector<float> SDiffs;
+typedef vector<SDiffs> MinaSD;
+
 /** 
  * @brief Enforce a limit on the number of chars for the description.
  *
@@ -54,6 +57,7 @@ public:
 	void Compress() const;
 	void Decompress(bool isGameplay) const;
 	void Decompress(bool isGameplay);
+	
 	/** 
 	 * @brief Determine if these steps were created by the autogenerator.
 	 * @return true if they were, false otherwise.
@@ -163,36 +167,22 @@ public:
 	const TimingData *GetTimingData() const;
 	TimingData *GetTimingData() { return const_cast<TimingData*>( static_cast<const Steps*>( this )->GetTimingData() ); };
 
-	/* Needs to be generated with notedata and stored in notedata. - Mina */
-
-	vector<int> NonEmptyRowVector;
-	vector<int>& GetNonEmptyRowVector() { return NonEmptyRowVector; };
-
-	/* Needs to be generated with timingdata and stored in timingdata - Mina */
-
-	vector<float> ElapsedTimesAtAllRows;
-	void SetElapsedTimesAtAllRows(vector<float>& etar) { ElapsedTimesAtAllRows = etar; };
-	void UnsetElapsedTimesAtAllRows() { std::vector<float> emptyVector; ElapsedTimesAtAllRows.swap(emptyVector); };
-
-	vector<float> ElapsedTimesAtTapRows;
-	vector<float> GetElapsedTimesAtTapRows() { return ElapsedTimesAtTapRows; }
-	void SetElapsedTimesAtTapRows(vector<float> &etat) { ElapsedTimesAtTapRows = etat; };
-
-	float GetElapsedTimeAtRow(int irow) const { return ElapsedTimesAtAllRows[irow]; };
-	float GetElapsedTimeAtTapRow(int irow) const { return ElapsedTimesAtTapRows[irow]; };
-
 	/* Now for half the reason I'm bothering to do this... generate a chart key using note
 	data and timingdata in conjuction. Do it during load and save it in the steps data so 
 	that we have to do it as few times as possible.*/
 	RString ChartKey = "Invalid";
 	RString ChartKeyRecord = "Invalid";
-	RString GetChartKey() const;
+	RString GetChartKey() const { return ChartKey; }
+	MinaSD stuffnthings;
 	RString GetChartKeyRecord() const;
-	void SetChartKey(const RString &k)  { this->ChartKey = k; };
+	void SetChartKey(const RString &k)  { ChartKey = k; }
+	void SetAllMSD(const MinaSD &msd) { stuffnthings = msd; }
+	MinaSD GetAllMSD() const { return stuffnthings;  }
+	float GetMSD(float x) const { return stuffnthings[lround(x*10)][0]; }
 
 	/* This is a reimplementation of the lua version of the script to generate chart keys, except this time
 	using the notedata stored in game memory immediately after reading it than parsing it using lua. - Mina */
-	RString GenerateChartKey(HiddenPtr<NoteData> nd, vector<float>& etar);
+	RString GenerateChartKey(NoteData& nd, TimingData *td);
 
 	/**
 	 * @brief Determine if the Steps have any major timing changes during gameplay.

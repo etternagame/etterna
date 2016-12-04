@@ -48,7 +48,7 @@
 const int FILE_CACHE_VERSION = 227;
 
 /** @brief How long does a song sample last by default? */
-const float DEFAULT_MUSIC_SAMPLE_LENGTH = 12.f;
+const float DEFAULT_MUSIC_SAMPLE_LENGTH = 25.f;
 
 static Preference<float>	g_fLongVerSongSeconds( "LongVerSongSeconds", 60*2.5f );
 static Preference<float>	g_fMarathonVerSongSeconds( "MarathonVerSongSeconds", 60*5.f );
@@ -1063,12 +1063,9 @@ void Song::ReCalculateRadarValuesAndLastSecond(bool fromCache, bool duringCache)
 {
 	if( fromCache && this->GetFirstSecond() >= 0 && this->GetLastSecond() > 0 )
 	{
-		// this is loaded from cache, then we just have to calculate the radar values.
-		for( unsigned i=0; i<m_vpSteps.size(); i++ )
-			m_vpSteps[i]->CalculateRadarValues( m_fMusicLengthSeconds );
 		return;
 	}
-
+	
 	float localFirst = FLT_MAX; // inf
 	// Make sure we're at least as long as the specified amount below.
 	float localLast = this->specifiedLastSecond;
@@ -1114,10 +1111,6 @@ void Song::ReCalculateRadarValuesAndLastSecond(bool fromCache, bool duringCache)
 			NoteData dummy;
 			dummy.SetNumTracks(tempNoteData.GetNumTracks());
 			pSteps->SetNoteData(dummy);
-
-			pSteps->UnsetElapsedTimesAtAllRows();
-			std::vector<int> emptyVector;
-			pSteps->NonEmptyRowVector.swap(emptyVector);
 		}
 	}
 

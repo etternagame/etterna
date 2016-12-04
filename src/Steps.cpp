@@ -29,6 +29,7 @@
 #include "NotesLoaderKSF.h"
 #include "NotesLoaderBMS.h"
 #include <algorithm>
+#include "MinaCalc.h"
 
 /* register DisplayBPM with StringConversion */
 #include "EnumHelper.h"
@@ -311,9 +312,9 @@ void Steps::CalculateRadarValues( float fMusicLengthSeconds )
 	if( IsAnEdit() )
 		return;
 	*/
-
+	
 	NoteData tempNoteData;
-	this->GetNoteData( tempNoteData, false );
+	this->GetNoteData( tempNoteData, true );
 
 	FOREACH_PlayerNumber( pn )
 		m_CachedRadarValues[pn].Zero();
@@ -366,27 +367,9 @@ void Steps::Decompress(bool isGameplay)
 {
 
 	if (m_bNoteDataIsFilled) {
-		if (isGameplay)
-		{
-			m_pNoteData->LogNonEmptyRows(NonEmptyRowVector);
-			// don't care about anything with under 10 rows of taps
-			if (NonEmptyRowVector.size() <= 10 || m_pNoteData->IsEmpty())
-				return;
-
-			vector<float> etar;
-
-			TimingData *td = Steps::GetTimingData();
-			int lastRow = m_pNoteData->GetLastRow();
-			for (int i = 0; i < lastRow; i++)
-				etar.push_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(i)));
-
-			SetElapsedTimesAtAllRows(etar);
-			ChartKey = GenerateChartKey(m_pNoteData, etar);
-		}
 		return;	// already decompressed
 	}
 		
-
 	if( parent )
 	{
 		// get autogen m_pNoteData
@@ -449,7 +432,6 @@ void Steps::Decompress(bool isGameplay)
 		bool bComposite = GAMEMAN->GetStepsTypeInfo(m_StepsType).m_StepsTypeCategory == StepsTypeCategory_Routine;
 		m_bNoteDataIsFilled = true;
 		m_pNoteData->SetNumTracks(GAMEMAN->GetStepsTypeInfo(m_StepsType).iNumTracks);
-
 		NoteDataUtil::LoadFromSMNoteDataString(*m_pNoteData, m_sNoteDataCompressed, bComposite);
 	}
 	/*	Piggy backing off this function to generate stuff that should only be generated once per song caching
@@ -459,78 +441,62 @@ void Steps::Decompress(bool isGameplay)
 
 	if (isGameplay)
 	{
-		m_pNoteData->LogNonEmptyRows(NonEmptyRowVector);
-		// don't care about anything with under 10 rows of taps
-		if (NonEmptyRowVector.size() <= 10 || m_pNoteData->IsEmpty())
-			return;
-
-		vector<float> etar;
-
 		TimingData *td = Steps::GetTimingData();
-		int lastRow = m_pNoteData->GetLastRow();
-		for (int i = 0; i < lastRow; i++)
-			etar.push_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(i)));
+		vector<int>& nerv = m_pNoteData->GetNonEmptyRowVector();
+		vector<float> etaner;
 
-		SetElapsedTimesAtAllRows(etar);
-		ChartKey = GenerateChartKey(m_pNoteData, etar);
+		for (size_t i = 0; i < nerv.size(); i++)
+			etaner.push_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(nerv[i])));
+		
+		ChartKey = GenerateChartKey(*m_pNoteData, td);
+		stuffnthings = MinaSDCalc(*m_pNoteData, etaner, 0.93f, 1.f, td->HasWarps());
 	}
 }
 
-RString Steps::GenerateChartKey(HiddenPtr<NoteData> nd, vector<float>& etar)
+RString Steps::GenerateChartKey(NoteData& nd, TimingData *td)
 {
 	RString k = "";
 	RString o = "";
-	int m = 1000;
-	float fso = etar[nd->GetFirstRow()] * m;
-	int et = 0;
+	float bpm;
+	vector<int>& nerv = nd.GetNonEmptyRowVector();
 
-	for (size_t r = 0; r < NonEmptyRowVector.size(); r++)
-	{
-		int row = NonEmptyRowVector[r];
-		for (int t = 0; t < nd->GetNumTracks(); ++t)
-		{
-			const TapNote &tn = nd->GetTapNote(t, row);
-			k.append(to_string(tn.type));
-		}
-		k.append(to_string(et));
-		et = lround(etar[row] * m - fso);
-	}
-	
-	/*	Don't need this for now - Mina
-	vector<vector<int>> doot;
-	vector<int> scoot;
-	int intN = 1;
-	float intI = 0.5f;
-	int intT = 0;
-	vector<int> intervaltaps;
-	
-	for (size_t r = 0; r < NonEmptyRowVector.size(); r++)
-	{
-		int row = NonEmptyRowVector[r];
-		if (etar[row] >= intN * intI) {
-			doot.push_back(scoot);
-			scoot.clear();
-			intN += 1;
 
-			intervaltaps.push_back(intT/intI);
-			intT = 0;
-		}
-		scoot.push_back(row);
-		for (int t = 0; t < nd->GetNumTracks(); ++t)
+	RString firstHalf = "";
+	RString secondHalf = "";
+
+#pragma omp parallel sections
+	{
+#pragma omp section
 		{
-			const TapNote &tn = nd->GetTapNote(t, row);
-			if (tn.type == TapNoteType_Tap || tn.type == TapNoteType_HoldHead) {
-				intT += 1;
+			for (size_t r = 0; r < nerv.size() / 2; r++) {
+				int row = nerv[r];
+				for (int t = 0; t < nd.GetNumTracks(); ++t) {
+					const TapNote &tn = nd.GetTapNote(t, row);
+					firstHalf.append(to_string(tn.type));
+				}
+				bpm = td->GetBPMAtRow(row);
+				firstHalf.append(to_string(static_cast<int>(bpm + 0.374643f)));
 			}
-
+		}
+		
+#pragma omp section
+		{
+			for (size_t r = nerv.size() / 2; r < nerv.size(); r++) {
+				int row = nerv[r];
+				for (int t = 0; t < nd.GetNumTracks(); ++t) {
+					const TapNote &tn = nd.GetTapNote(t, row);
+					secondHalf.append(to_string(tn.type));
+				}
+				bpm = td->GetBPMAtRow(row);
+				secondHalf.append(to_string(static_cast<int>(bpm + 0.374643f)));
+			}
 		}
 	}
-	*/
+	k = firstHalf + secondHalf;	
 
 	//ChartKeyRecord = k;
 	o.append("X");	// I was thinking of using "C" to indicate chart.. however.. X is cooler... - Mina
 	o.append(BinaryToHex(CryptManager::GetSHA1ForString(k)));
-
 	return o;
 }
 
@@ -718,10 +684,6 @@ void Steps::SetCachedRadarValues( const RadarValues v[NUM_PLAYERS] )
 	m_bAreCachedRadarValuesJustLoaded = true;
 }
 
-RString Steps::GetChartKey() const { 
-	return ChartKey; 
-};
-
 RString Steps::GetChartKeyRecord() const {
 	return ChartKeyRecord;
 };
@@ -762,6 +724,26 @@ public:
 		
 		RadarValues &rv = const_cast<RadarValues &>(p->GetRadarValues(pn));
 		rv.PushSelf(L);
+		return 1;
+	}
+	// Sigh -Mina
+	static int GetRelevantRadars(T* p, lua_State *L)
+	{
+		vector<int> relevants;
+		PlayerNumber pn = PLAYER_1;
+		if (!lua_isnil(L, 1))
+			pn = Enum::Check<PlayerNumber>(L, 1);
+
+		RadarValues &rv = const_cast<RadarValues &>(p->GetRadarValues(pn));
+		relevants.push_back(static_cast<int>(rv[5]));  //notes
+		relevants.push_back(static_cast<int>(rv[7]));  //jumps
+		relevants.push_back(static_cast<int>(rv[10])); //hands
+		relevants.push_back(static_cast<int>(rv[8]));  //holds
+		relevants.push_back(static_cast<int>(rv[9]));  //mines
+		relevants.push_back(static_cast<int>(rv[11])); //rolls
+		relevants.push_back(static_cast<int>(rv[12])); //lifts
+		relevants.push_back(static_cast<int>(rv[13])); //fakes
+		LuaHelpers::CreateTableFromArray(relevants, L);
 		return 1;
 	}
 	static int GetTimingData( T* p, lua_State *L )
@@ -823,9 +805,17 @@ public:
 		return 1;
 	}	
 
-	static int GetWifeChartKey(T* p, lua_State *L)
+	static int GetChartKey(T* p, lua_State *L)
 	{
 		lua_pushstring(L, p->GetChartKey());
+		return 1;
+	}
+
+	static int GetMSD(T* p, lua_State *L)
+	{
+		float rate = FArg(1);
+		CLAMP(rate, 0.7f, 2.f);
+		lua_pushnumber(L, p->GetMSD(rate));
 		return 1;
 	}
 
@@ -841,11 +831,13 @@ public:
 		ADD_METHOD( HasSignificantTimingChanges );
 		ADD_METHOD( HasAttacks );
 		ADD_METHOD( GetRadarValues );
+		ADD_METHOD( GetRelevantRadars );
 		ADD_METHOD( GetTimingData );
 		ADD_METHOD( GetChartName );
 		//ADD_METHOD( GetSMNoteData );
 		ADD_METHOD( GetStepsType );
-		ADD_METHOD( GetWifeChartKey );
+		ADD_METHOD( GetChartKey );
+		ADD_METHOD( GetMSD );
 		ADD_METHOD( IsAnEdit );
 		ADD_METHOD( IsAutogen );
 		ADD_METHOD( IsAPlayerEdit );

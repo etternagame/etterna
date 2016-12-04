@@ -104,7 +104,7 @@ static void LoadFromSMNoteDataStringWithPlayer( NoteData& out, const RString &sS
 			const char *const beginLine = p;
 			const char *const endLine = aMeasureLines[l].second;
 
-			const float fPercentIntoMeasure = l/(float)aMeasureLines.size();
+			const float fPercentIntoMeasure = l/static_cast<float>(aMeasureLines.size());
 			const float fBeat = (m + fPercentIntoMeasure) * BEATS_PER_MEASURE;
 			const int iIndex = BeatToNoteRow( fBeat );
 
@@ -265,6 +265,7 @@ static void LoadFromSMNoteDataStringWithPlayer( NoteData& out, const RString &sS
 		}
 	}
 	out.RevalidateATIs(vector<int>(), false);
+	out.LogNonEmptyRows();
 }
 
 void NoteDataUtil::LoadFromSMNoteDataString( NoteData &out, const RString &sSMNoteData_, bool bComposite )

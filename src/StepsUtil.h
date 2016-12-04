@@ -165,6 +165,7 @@ class StepsID
 {
 	StepsType st;
 	Difficulty dc;
+	RString ck;
 	RString sDescription;
 	unsigned uHash;
 	mutable CachedObjectPointer<Steps> m_Cache;
@@ -209,6 +210,7 @@ public:
 	
 	StepsType GetStepsType() const { return st; }
 	Difficulty GetDifficulty() const { return dc; }
+	RString GetKey() const { return ck; }
 };
 
 #endif
