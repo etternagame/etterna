@@ -235,7 +235,7 @@ void StageStats::FinalizeScores( bool bSummary )
 		if( bSummary )
 		{
 			// don't save scores if any stage was failed
-			if( m_player[p].m_bFailed ) 
+			if( m_player[p].m_bFailed || m_player[p].GetGrade() == Grade_Invalid ) 
 				continue;
 
 			int iAverageMeter = GetAverageMeter(p);
