@@ -254,7 +254,12 @@ endif()
 if(WIN32)
   set(SYSTEM_PCRE_FOUND FALSE)
   find_package(DirectX REQUIRED)
-
+  
+  #configure_file(${SM_EXTERN_DIR}/MinaCalc/MinaCalc.lib ${SM_EXTERN_DIR}/../../extern/Release/MinaCalc.lib COPYONLY)
+  #configure_file(${SM_EXTERN_DIR}/MinaCalc/MinaCalc.lib ${SM_EXTERN_DIR}/../../extern/Debug/MinaCalc.lib COPYONLY)
+  
+  link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc.lib)
+  
   if (MINGW AND WITH_FFMPEG)
     include("${SM_CMAKE_DIR}/SetupFfmpeg.cmake")
     set(HAS_FFMPEG TRUE)
