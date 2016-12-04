@@ -166,8 +166,8 @@ PrefsManager::PrefsManager() :
 	m_sDefaultModifiers		( "DefaultModifiers",		"" ),
 
 	m_bWindowed			( "Windowed",			true ),
-	m_iDisplayWidth			( "DisplayWidth",		854 ),
-	m_iDisplayHeight		( "DisplayHeight",		480 ),
+	m_iDisplayWidth			( "DisplayWidth",		800 ),
+	m_iDisplayHeight		( "DisplayHeight",		600 ),
 	m_fDisplayAspectRatio		( "DisplayAspectRatio",		16/9.f, ValidateDisplayAspectRatio ),
 	m_iDisplayColorDepth		( "DisplayColorDepth",		32 ),
 	m_iTextureColorDepth		( "TextureColorDepth",		32 ),
