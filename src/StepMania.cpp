@@ -471,7 +471,7 @@ struct VideoCardDefaults
 	VideoCardDefaults(
 		"",
 		"d3d, opengl",
-		640,480,
+		800,600,
 		32,32,32,
 		2048,
 		true
