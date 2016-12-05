@@ -312,8 +312,8 @@ void Sprite::SetTexture( RageTexture *pTexture )
 	ASSERT( m_pTexture->GetTextureHeight() >= 0 );
 
 	// the size of the sprite is the size of the image before it was scaled
-	Sprite::m_size.x = (float)m_pTexture->GetSourceFrameWidth();
-	Sprite::m_size.y = (float)m_pTexture->GetSourceFrameHeight();
+	Sprite::m_size.x = static_cast<float>(m_pTexture->GetSourceFrameWidth());
+	Sprite::m_size.y = static_cast<float>(m_pTexture->GetSourceFrameHeight());
 
 	// apply clipping (if any)
 	if( m_fRememberedClipWidth != -1 && m_fRememberedClipHeight != -1 )
