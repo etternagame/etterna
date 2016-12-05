@@ -40,7 +40,7 @@ public:
 	bool SelectSong( const Song *p );
 	bool SelectCourse( const Course *p );
 	bool SelectSection( const RString & SectionName );
-	void SetOpenSection( const RString &group );
+	void SetOpenSection( const RString &group, bool searching = false );
 	SortOrder GetSortOrder() const { return m_SortOrder; }
 	virtual void ChangeMusic( int dist ); /* +1 or -1 */ //CHECK THIS
 	void FinishChangingSorts();
@@ -51,6 +51,7 @@ public:
 	const MusicWheelItemData *GetCurWheelItemData( int i ) { return (const MusicWheelItemData *) m_CurWheelItemData[i]; }
 
 	virtual void ReloadSongList();
+	virtual void ReloadSongListFromSearchString(RString findme);
 
 	// Lua
 	void PushSelf( lua_State *L );
@@ -59,13 +60,16 @@ protected:
 	MusicWheelItem *MakeItem();
 
 	void GetSongList( vector<Song*> &arraySongs, SortOrder so );
+	void FilterBySearch(vector<Song*>& inv, RString findme);
 	bool SelectSongOrCourse();
 	bool SelectModeMenuItem();
 
+
+
 	virtual void UpdateSwitch();
 
-	vector<MusicWheelItemData *> & getWheelItemsData(SortOrder so);
-	void readyWheelItemsData(SortOrder so);
+	vector<MusicWheelItemData*>& getWheelItemsData(SortOrder so, bool searching = false);
+	void readyWheelItemsData(SortOrder so, bool searching, RString findme = "");
 
 	RString				m_sLastModeMenuItem;
 	SortOrder			m_SortOrder;
@@ -108,8 +112,9 @@ private:
 	enum {INVALID,NEEDREFILTER,VALID} m_WheelItemDatasStatus[NUM_SortOrder];
 	vector<MusicWheelItemData *> m__WheelItemDatas[NUM_SortOrder];
 	vector<MusicWheelItemData *> m__UnFilteredWheelItemDatas[NUM_SortOrder];
+	RString lastvalidsearch = "";
 
-	void BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelItems, SortOrder so );
+	void BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelItems, SortOrder so, bool searching, RString findme );
 	void FilterWheelItemDatas(vector<MusicWheelItemData *> &aUnFilteredDatas, vector<MusicWheelItemData *> &aFilteredData, SortOrder so );
 };
 

@@ -139,7 +139,7 @@ void MusicWheel::BeginScreen()
 		}
 
 		if(g_bPrecacheAllSorts) {
-			readyWheelItemsData(so);
+			readyWheelItemsData(so, false);
 			times += ssprintf( "%i:%.3f ", so, timer.GetDeltaTime() );
 		}
 	}
@@ -269,7 +269,7 @@ void MusicWheel::ReloadSongList()
 		m_WheelItemDatasStatus[so]=INVALID;
 	}
 	// rebuild the info associated with this sort order
-	readyWheelItemsData(GAMESTATE->m_SortOrder);
+	readyWheelItemsData(GAMESTATE->m_SortOrder, false);
 	// re-open the section to refresh song counts, etc.
 	SetOpenSection(m_sExpandedSectionName);
 	// navigate to the song nearest to what was previously selected
@@ -277,6 +277,19 @@ void MusicWheel::ReloadSongList()
 	RebuildWheelItems();
 	// refresh the song preview
 	SCREENMAN->PostMessageToTopScreen( SM_SongChanged, 0 );
+}
+
+void MusicWheel::ReloadSongListFromSearchString(RString findme)
+{
+	int songIdxToPreserve = m_iSelection;
+	FOREACH_ENUM(SortOrder, so)
+		m_WheelItemDatasStatus[so] = INVALID;
+
+	readyWheelItemsData(SORT_PREFERRED, true, findme);
+	SetOpenSection(m_sExpandedSectionName, true);
+	m_iSelection = songIdxToPreserve;
+	RebuildWheelItems();
+	SCREENMAN->PostMessageToTopScreen(SM_SongChanged, 0);
 }
 
 /* If a song or course is set in GAMESTATE and available, select it.  Otherwise, choose the
@@ -520,7 +533,23 @@ void MusicWheel::GetSongList( vector<Song*> &arraySongs, SortOrder so )
 	}
 }
 
-void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelItemDatas, SortOrder so )
+void MusicWheel::FilterBySearch(vector<Song*>& inv, RString findme) {
+	vector<Song*> tmp;
+	for (size_t i = 0; i < inv.size(); i++) {
+		RString scoot = inv[i]->GetDisplayMainTitle().MakeLower();
+		size_t res = scoot.find(findme);
+		if (res != string::npos)
+			tmp.push_back(inv[i]);
+	}
+	if (tmp.size() > 0) {
+		lastvalidsearch = findme;
+		inv.swap(tmp);
+	}
+	else
+		FilterBySearch(inv, lastvalidsearch);
+}
+
+void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelItemDatas, SortOrder so, bool searching, RString findme )
 {
 	switch( so )
 	{
@@ -568,6 +597,9 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 			// Make an array of Song*, then sort them
 			vector<Song*> arraySongs;
 			GetSongList( arraySongs, so );
+
+			if (searching)	// i guess this should really go in the filter function huh -mina
+				FilterBySearch(arraySongs, findme);
 
 			bool bUseSections = true;
 
@@ -899,20 +931,22 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 	}
 }
 
-vector<MusicWheelItemData *> & MusicWheel::getWheelItemsData(SortOrder so) {
+vector<MusicWheelItemData *> & MusicWheel::getWheelItemsData(SortOrder so, bool searching) {
 	// Update the popularity and init icons.
-	readyWheelItemsData(so);	
-	return m__WheelItemDatas[so];
+	if (!searching) {
+		readyWheelItemsData(so, false);
+		return m__WheelItemDatas[so];
+	}
+	return m__WheelItemDatas[SORT_PREFERRED];
 }
 
-void MusicWheel::readyWheelItemsData(SortOrder so) {
+void MusicWheel::readyWheelItemsData(SortOrder so, bool searching, RString findme) {
 	if(m_WheelItemDatasStatus[so]!=VALID) {
 		RageTimer timer;
 
 		vector<MusicWheelItemData *> &aUnFilteredDatas=m__UnFilteredWheelItemDatas[so];
-
 		if(m_WheelItemDatasStatus[so]==INVALID) {
-			BuildWheelItemDatas(  aUnFilteredDatas, so );
+			BuildWheelItemDatas(  aUnFilteredDatas, so , searching, findme);
 		}
 		FilterWheelItemDatas( aUnFilteredDatas, m__WheelItemDatas[so], so );
 		m_WheelItemDatasStatus[so]=VALID;
@@ -1368,7 +1402,7 @@ void MusicWheel::StartRandom()
 	RebuildWheelItems();
 }
 
-void MusicWheel::SetOpenSection( const RString &group )
+void MusicWheel::SetOpenSection( const RString &group, bool searching )
 {
 	//LOG->Trace( "SetOpenSection %s", group.c_str() );
 	m_sExpandedSectionName = group;
@@ -1387,7 +1421,8 @@ void MusicWheel::SetOpenSection( const RString &group )
 		GAMEMAN->GetCompatibleStyles( GAMESTATE->m_pCurGame, GAMESTATE->GetNumPlayersEnabled(), vpPossibleStyles );
 
 	m_CurWheelItemData.clear();
-	vector<MusicWheelItemData *> &from = getWheelItemsData(GAMESTATE->m_SortOrder);
+	vector<MusicWheelItemData*>& from = getWheelItemsData(GAMESTATE->m_SortOrder, searching);
+
 	m_CurWheelItemData.reserve( from.size() );
 	for( unsigned i = 0; i < from.size(); ++i )
 	{
@@ -1708,6 +1743,10 @@ public:
 		}
 		return 1;
 	}
+	static int SongSearch(T* p, lua_State *L) {
+		p->ReloadSongListFromSearchString(SArg(1));
+		return 1;
+	}
 
 
 	LunaMusicWheel()
@@ -1717,6 +1756,7 @@ public:
 		ADD_METHOD( IsRouletting );
 		ADD_METHOD( SelectSong );
 		ADD_METHOD( SelectCourse );
+		ADD_METHOD( SongSearch);
 	}
 };
 
