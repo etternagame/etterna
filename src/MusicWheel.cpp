@@ -279,13 +279,13 @@ void MusicWheel::ReloadSongList()
 	SCREENMAN->PostMessageToTopScreen( SM_SongChanged, 0 );
 }
 
-void MusicWheel::ReloadSongListFromSearchString(RString findme)
+void MusicWheel::ScootyMcPoot(RString findme)
 {
 	int songIdxToPreserve = m_iSelection;
 	FOREACH_ENUM(SortOrder, so)
 		m_WheelItemDatasStatus[so] = INVALID;
 
-	readyWheelItemsData(SORT_PREFERRED, true, findme);
+	readyWheelItemsData(GAMESTATE->m_SortOrder, true, findme);
 	SetOpenSection(m_sExpandedSectionName, true);
 	m_iSelection = songIdxToPreserve;
 	RebuildWheelItems();
@@ -937,7 +937,7 @@ vector<MusicWheelItemData *> & MusicWheel::getWheelItemsData(SortOrder so, bool 
 		readyWheelItemsData(so, false);
 		return m__WheelItemDatas[so];
 	}
-	return m__WheelItemDatas[SORT_PREFERRED];
+	return m__WheelItemDatas[so];
 }
 
 void MusicWheel::readyWheelItemsData(SortOrder so, bool searching, RString findme) {
@@ -1744,7 +1744,7 @@ public:
 		return 1;
 	}
 	static int SongSearch(T* p, lua_State *L) {
-		p->ReloadSongListFromSearchString(SArg(1));
+		p->ScootyMcPoot(SArg(1));
 		return 1;
 	}
 

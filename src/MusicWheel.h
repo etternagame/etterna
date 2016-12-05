@@ -51,7 +51,7 @@ public:
 	const MusicWheelItemData *GetCurWheelItemData( int i ) { return (const MusicWheelItemData *) m_CurWheelItemData[i]; }
 
 	virtual void ReloadSongList();
-	virtual void ReloadSongListFromSearchString(RString findme);
+	void ScootyMcPoot(RString findme);
 
 	// Lua
 	void PushSelf( lua_State *L );
