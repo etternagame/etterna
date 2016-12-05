@@ -142,10 +142,10 @@ vector<int> HighScoreImpl::NoteRowsToVector(RString s) {
 
 		if (pos - startpos > 0) {
 			if (startpos == 0 && pos - startpos == s.size())
-				o.push_back(StringToFloat(s));
+				o.push_back(StringToInt(s));
 			else {
 				const RString AddRString = s.substr(startpos, pos - startpos);
-				o.push_back(StringToFloat(AddRString));
+				o.push_back(StringToInt(AddRString));
 			}
 		}
 		startpos = pos + 1;
