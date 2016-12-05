@@ -419,16 +419,11 @@ Section "Main Section" SecMain
 	SetOutPath "$INSTDIR\pcks"
 	File /r "pcks\*.*"
 !endif
-
-  ; Can't figure out where to change the speedincrement defaults in the code so workaround
-  SetOutPath "$INSTDIR\Save"
-  File /r /x CVS /x .svn "Save\GamePrefs"
   
   ;Default player profile
   SetOutPath "$INSTDIR\Save\LocalProfiles"
 	File /r /x CVS /x .svn "Save\LocalProfiles\00000000"
 	
-
 	SetOutPath "$INSTDIR\Program"
 !ifdef INSTALL_EXECUTABLES
 	; normal exec

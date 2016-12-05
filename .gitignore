@@ -124,10 +124,8 @@ gitversion.h
 Cache/
 Save/*
 !Save/LocalProfiles
-!Save/GamePrefs
 Save/*/*
 Save/LocalProfiles/*
-!Save/GamePrefs/*
 !Save/LocalProfiles/00000000
 Logs/
 Songs/*
@@ -148,7 +146,6 @@ Themes/Transcendence
 Noteskins/Dance/DivideByZeroHollow
 Noteskins/Dance/dbzdefaultbackup
 Noteskins/Dance/USWdefault9SM5
-wife
 src/version.bin
 src/verstub.cpp
 bundle/ffmpeg/.config

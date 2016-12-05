@@ -246,8 +246,8 @@ function SpeedMods()
 	return t
 end
 
-local default_speed_increment= 25
-local default_speed_inc_large= 100
+local default_speed_increment= 1
+local default_speed_inc_large= 50
 
 local function get_speed_increment()
 	local increment= default_speed_increment
