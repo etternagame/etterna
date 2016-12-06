@@ -127,6 +127,7 @@ Save/*
 Save/*/*
 Save/LocalProfiles/*
 !Save/LocalProfiles/00000000
+Save/LocalProfiles/00000000/
 Logs/
 Songs/*
 !Songs/Etterna

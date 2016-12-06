@@ -91,6 +91,7 @@
 !endif
 
 	!insertmacro MUI_PAGE_WELCOME
+	!insertmacro MUI_PAGE_WELCOME
 
 	;!insertmacro MUI_PAGE_COMPONENTS
 	!insertmacro MUI_PAGE_DIRECTORY
@@ -298,6 +299,7 @@ Section "Main Section" SecMain
 	RMDir /r "$INSTDIR\NoteSkins\common\_Editor"
 	; dance
 	RMDir /r "$INSTDIR\NoteSkins\dance\default"
+	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByZero"
 	RMDir /r "$INSTDIR\NoteSkins\dance\Delta"
 	; the "midi-*" noteskin series was formerly known as just "midi".
 	RMDir /r "$INSTDIR\NoteSkins\dance\midi"
@@ -420,9 +422,13 @@ Section "Main Section" SecMain
 	File /r "pcks\*.*"
 !endif
   
+  SetOverwrite off
   ;Default player profile
-  SetOutPath "$INSTDIR\Save\LocalProfiles"
-	File /r /x CVS /x .svn "Save\LocalProfiles\00000000"
+  SetOutPath "$INSTDIR\Save\LocalProfiles\00000000"
+	File /r /x CVS /x .svn "Save\LocalProfiles\00000000\Stats.xml"
+	File /r /x CVS /x .svn "Save\LocalProfiles\00000000\Type.ini"
+	File /r /x CVS /x .svn "Save\LocalProfiles\00000000\Editable.ini"
+	SetOverwrite on
 	
 	SetOutPath "$INSTDIR\Program"
 !ifdef INSTALL_EXECUTABLES
@@ -755,16 +761,12 @@ Section "Uninstall"
 	Delete "$INSTDIR\BGAnimations\instructions.txt"
 	RMDir "$INSTDIR\BGAnimations"
 
-	RMDir /r "$INSTDIR\Cache"
-
 	Delete "$INSTDIR\CDTitles\Instructions.txt"
 	RMDir "$INSTDIR\CDTitles"
 
 	Delete "$INSTDIR\Characters\Instructions.txt"
 	RMDir /r "$INSTDIR\Characters\default"
 	RMDir "$INSTDIR\Characters"
-
-	RMDir /r "$INSTDIR\Cache"
 	
 	RMDir /r "$INSTDIR\Data\AutoMappings"
 	RMDir /r "$INSTDIR\Data\Shaders"
