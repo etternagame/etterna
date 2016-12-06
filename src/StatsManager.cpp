@@ -142,6 +142,8 @@ void AddPlayerStatsToProfile( Profile *pProfile, const StageStats &ss, PlayerNum
 		pProfile->m_iNumStagesPassedByGrade[ss.m_player[pn].GetGrade()] ++;
 	}
 
+	//pProfile->ResetAllSSRs();
+	//pProfile->RecalculateAllSSRs();
 	pProfile->m_fPlayerRating = pProfile->CalcPlayerRating();
 }
 

@@ -25,6 +25,7 @@
 #include "Game.h"
 #include "CharacterManager.h"
 #include "Character.h"
+#include "MinaCalc.h"
 
 #include <algorithm>
 
@@ -2039,6 +2040,53 @@ float Profile::CalcPlayerRating() const {
 		}
 	}
 	return scoreagg(vSSR);
+}
+
+void Profile::ResetAllSSRs() {
+	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
+		const SongID& id = i->first;
+		HighScoresForASong& hsfas = i->second;
+		FOREACHM(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
+			HighScoresForASteps& zz = j->second;
+			vector<HighScore>& hsv = zz.hsl.vHighScores;
+			for (size_t i = 0; i < hsv.size(); i++)
+				hsv[i].SetSSR(0.f);
+		}
+	}
+	m_fPlayerRating = 0.f;
+}
+
+// should prolly generalize some of the stuff here - mina
+void Profile::RecalculateAllSSRs() {
+	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
+		const SongID& id = i->first;
+		HighScoresForASong& hsfas = i->second;
+		FOREACHM(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
+			HighScoresForASteps& zz = j->second;
+			vector<HighScore>& hsv = zz.hsl.vHighScores;
+			for (size_t i = 0; i < hsv.size(); i++) {
+				float wifescore = hsv[i].GetWifeScore();
+				if (wifescore < 0.9f || hsv[i].GetGrade() == Grade_Failed)
+					hsv[i].SetSSR(0.f);
+				else {
+					Song* psong = id.ToSong();
+					Steps* psteps= j->first.ToSteps(psong, false);
+
+					NoteData& nd = psteps->GetNoteData();
+					TimingData* td = psteps->GetTimingData();
+					float musicrate = hsv[i].GetMusicRate();
+
+					vector<int>& nerv = nd.GetNonEmptyRowVector();
+					vector<float> etaner;
+
+					for (size_t i = 0; i < nerv.size(); i++)
+						etaner.push_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(nerv[i])));
+
+					hsv[i].SetSSR(MinaSDCalc(nd, etaner, musicrate, wifescore, 1.f, td->HasWarps())[0]);
+				}
+			}
+		}
+	}
 }
 
 // nonlinear plsszz - mina

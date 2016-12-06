@@ -51,7 +51,7 @@ extern const RString LASTGOOD_SUBDIR;
 // extern const RString RIVAL_SUBDIR;
 
 /** @brief The max number of characters that can be used in a profile. */
-const unsigned int PROFILE_MAX_DISPLAY_NAME_LENGTH	= 32;
+const unsigned int PROFILE_MAX_DISPLAY_NAME_LENGTH	= 64;
 
 
 class Style;
@@ -313,6 +313,8 @@ public:
 	int GetCategoryNumTimesPlayed( StepsType st ) const;
 	void IncrementCategoryPlayCount( StepsType st, RankingCategory rc );
 	float CalcPlayerRating() const;
+	void ResetAllSSRs();
+	void RecalculateAllSSRs();
 	float scoreagg(vector<float>) const;
 
 	/* Grabbing the highscores here and having lua invoke this results in unhandled exception errors

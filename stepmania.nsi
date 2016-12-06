@@ -400,6 +400,7 @@ Section "Main Section" SecMain
 	File /r /x CVS /x .svn "Songs\Etterna*"
 
 	; remove and install themes
+	RMDir /r "$INSTDIR\Themes\Til Death"
 	RMDir /r "$INSTDIR\Themes\_fallback"
 	RMDir /r "$INSTDIR\Themes\_portKit-sm4"
 	RMDir /r "$INSTDIR\Themes\default"
