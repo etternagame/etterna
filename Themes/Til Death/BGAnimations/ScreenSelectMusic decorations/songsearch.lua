@@ -47,7 +47,6 @@ local t = Def.ActorFrame{
 			active = true
 			SCREENMAN:set_input_redirected(PLAYER_1, true)
 			MESSAGEMAN:Broadcast("RefreshSearchResults")
-			searchstring = ""
 		else 
 			self:visible(false)
 			self:queuecommand("Off")
