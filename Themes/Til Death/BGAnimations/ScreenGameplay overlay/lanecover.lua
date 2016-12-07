@@ -257,19 +257,20 @@ end;
 
 local function Update(self)
 	t.InitCommand=cmd(SetUpdateFunction,Update);
+	self:SetUpdateRate(0.5)
 	if enabledP1 then
 		if moveDownP1 then
 			if isReverseP1 then
-				heightP1 = math.min(SCREEN_BOTTOM,math.max(0,heightP1+1))
+				heightP1 = math.min(SCREEN_BOTTOM,math.max(0,heightP1+0.1))
 			else
-				heightP1 = math.min(SCREEN_BOTTOM,math.max(0,heightP1-1))
+				heightP1 = math.min(SCREEN_BOTTOM,math.max(0,heightP1-0.1))
 			end;
 		end;
 		if moveUpP1 then
 			if isReverseP1 then
-				heightP1 = math.min(SCREEN_BOTTOM,math.max(0,heightP1-1))
+				heightP1 = math.min(SCREEN_BOTTOM,math.max(0,heightP1-0.1))
 			else
-				heightP1 = math.min(SCREEN_BOTTOM,math.max(0,heightP1+1))
+				heightP1 = math.min(SCREEN_BOTTOM,math.max(0,heightP1+0.1))
 			end;
 		end;
 
