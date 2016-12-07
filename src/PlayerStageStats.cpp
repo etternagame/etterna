@@ -182,6 +182,25 @@ Grade GetGradeFromPercent( float fPercent )
 	return grade;
 }
 
+Grade PlayerStageStats::GetWifeGrade() {
+	if (GetGrade() == Grade_Failed)
+		return Grade_Failed;
+
+	if (m_fWifeScore >= 0.9998)
+		return Grade_Tier01;
+	if (m_fWifeScore >= 0.9975)
+		return Grade_Tier02;
+	if (m_fWifeScore >= 0.93)
+		return Grade_Tier03;
+	if (m_fWifeScore >= 0.8)
+		return Grade_Tier04;
+	if (m_fWifeScore >= 0.7)
+		return Grade_Tier05;
+	if (m_fWifeScore >= 0.6)
+		return Grade_Tier06;
+	return Grade_Tier07;
+}
+
 Grade PlayerStageStats::GetGrade() const
 {
 	if( m_bFailed )
@@ -785,6 +804,7 @@ public:
 	DEFINE_METHOD( MaxCombo,					GetMaxCombo().m_cnt )
 	DEFINE_METHOD( GetCurrentLife,				GetCurrentLife() )
 	DEFINE_METHOD( GetGrade,					GetGrade() )
+	DEFINE_METHOD( GetWifeGrade,				GetWifeGrade())
 	DEFINE_METHOD( GetActualDancePoints,		m_iActualDancePoints )
 	DEFINE_METHOD( GetPossibleDancePoints,		m_iPossibleDancePoints )
 	DEFINE_METHOD( GetCurrentPossibleDancePoints,		m_iCurPossibleDancePoints )
@@ -946,6 +966,7 @@ public:
 		ADD_METHOD( MaxCombo );
 		ADD_METHOD( GetCurrentLife );
 		ADD_METHOD( GetGrade );
+		ADD_METHOD( GetWifeGrade );
 		ADD_METHOD( GetHighScore );
 		ADD_METHOD( GetActualDancePoints );
 		ADD_METHOD( GetPossibleDancePoints );

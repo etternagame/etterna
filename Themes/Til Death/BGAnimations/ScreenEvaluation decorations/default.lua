@@ -106,7 +106,7 @@ function scoreBoard(pn,position)
 		InitCommand=cmd(xy,frameX+5,frameY+9;zoom,0.45;halign,0;valign,0),
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self) 
-			self:diffuse(getGradeColor(pss:GetGrade()))
+			self:diffuse(getGradeColor(pss:GetWifeGrade()))
 			self:settextf("%05.2f%% (%s)",pss:GetWifeScore()*100, "Wife")
 		end,
 	};

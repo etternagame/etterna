@@ -35,6 +35,7 @@ struct HighScore
 	 * @brief Determine if any judgments were tallied during this run.
 	 * @return true if no judgments were recorded, false otherwise. */
 	bool IsEmpty() const;
+	Grade GetWifeGrade();
 	float GetPercentDP() const;
 	float GetWifeScore() const;
 	float GetSSR() const;

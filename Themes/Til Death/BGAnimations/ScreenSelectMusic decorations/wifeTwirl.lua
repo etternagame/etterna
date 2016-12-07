@@ -141,7 +141,7 @@ t[#t+1] = Def.ActorFrame{
 					self:diffuse(getGradeColor(Score:GetGrade()))
 				else
 					self:settextf("%05.2f%%", Score:GetWifeScore()*100)
-					self:diffuse(getGradeColor(Score:GetGrade()))
+					self:diffuse(getGradeColor(Score:GetWifeGrade()))
 				end
 			else
 				self:settext("")

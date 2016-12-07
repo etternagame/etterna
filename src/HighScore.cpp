@@ -1,4 +1,5 @@
 #include "global.h"
+#include "RageLog.h"
 #include "HighScore.h"
 #include "PrefsManager.h"
 #include "GameConstantsAndTypes.h"
@@ -288,6 +289,26 @@ bool HighScore::IsEmpty() const
 	if( m_Impl->iHoldNoteScores[HNS_Held] > 0 )
 		return false;
 	return true;
+}
+
+Grade HighScore::GetWifeGrade() {
+	if (GetGrade() == Grade_Failed)
+		return Grade_Failed;
+
+	float wifescore = GetWifeScore();
+	if (wifescore >= 0.9998)
+		return Grade_Tier01;
+	if (wifescore >= 0.9975)
+		return Grade_Tier02;
+	if (wifescore >= 0.93)
+		return Grade_Tier03;
+	if (wifescore >= 0.8)
+		return Grade_Tier04;
+	if (wifescore >= 0.7)
+		return Grade_Tier05;
+	if (wifescore >= 0.6)
+		return Grade_Tier06;
+	return Grade_Tier07;
 }
 
 RString	HighScore::GetName() const { return m_Impl->sName; }
@@ -612,6 +633,7 @@ public:
 		return 1;
 	}
 	DEFINE_METHOD( GetGrade, GetGrade() )
+	DEFINE_METHOD( GetWifeGrade, GetWifeGrade())
 	DEFINE_METHOD( GetStageAward, GetStageAward() )
 	DEFINE_METHOD( GetPeakComboAward, GetPeakComboAward() )
 
@@ -632,6 +654,7 @@ public:
 		ADD_METHOD( GetHoldNoteScore );
 		ADD_METHOD( GetRadarValues );
 		ADD_METHOD( GetGrade );
+		ADD_METHOD( GetWifeGrade );
 		ADD_METHOD( GetMaxCombo );
 		ADD_METHOD( GetStageAward );
 		ADD_METHOD( GetPeakComboAward );

@@ -28,6 +28,7 @@ public:
 	static float MakePercentScore( int iActual, int iPossible );
 	static RString FormatPercentScore( float fPercentScore );
 	// Calculate the difficulty rating for a specific score obtained by a player - Mina
+	Grade GetWifeGrade();
 	float CalcSSR() const;
 	float GetPercentDancePoints() const;
 	float GetWifeScore() const;
