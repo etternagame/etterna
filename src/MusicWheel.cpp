@@ -139,7 +139,7 @@ void MusicWheel::BeginScreen()
 		}
 
 		if(g_bPrecacheAllSorts) {
-			readyWheelItemsData(so);
+			readyWheelItemsData(so, false, "");
 			times += ssprintf( "%i:%.3f ", so, timer.GetDeltaTime() );
 		}
 	}
@@ -261,15 +261,14 @@ MusicWheel::~MusicWheel()
 	}
 }
 
-void MusicWheel::ReloadSongList()
+void MusicWheel::ReloadSongList(bool searching, RString findme)
 {
 	int songIdxToPreserve = m_iSelection;
 	// Remove the song from any sorting caches:
-	FOREACH_ENUM( SortOrder, so ) {
+	FOREACH_ENUM( SortOrder, so )
 		m_WheelItemDatasStatus[so]=INVALID;
-	}
 	// rebuild the info associated with this sort order
-	readyWheelItemsData(GAMESTATE->m_SortOrder);
+	readyWheelItemsData(GAMESTATE->m_SortOrder, searching, findme);
 	// re-open the section to refresh song counts, etc.
 	SetOpenSection(m_sExpandedSectionName);
 	// navigate to the song nearest to what was previously selected
@@ -520,7 +519,23 @@ void MusicWheel::GetSongList( vector<Song*> &arraySongs, SortOrder so )
 	}
 }
 
-void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelItemDatas, SortOrder so )
+void MusicWheel::FilterBySearch(vector<Song*>& inv, RString findme) {
+	vector<Song*> tmp;
+	for (size_t i = 0; i < inv.size(); i++) {
+		RString scoot = inv[i]->GetDisplayMainTitle().MakeLower();
+		size_t res = scoot.find(findme);
+		if (res != string::npos)
+			tmp.push_back(inv[i]);
+	}
+	if (tmp.size() > 0) {
+		lastvalidsearch = findme;
+		inv.swap(tmp);
+	}
+	else
+		FilterBySearch(inv, lastvalidsearch);
+}
+
+void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelItemDatas, SortOrder so, bool searching, RString findme )
 {
 	switch( so )
 	{
@@ -568,6 +583,9 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 			// Make an array of Song*, then sort them
 			vector<Song*> arraySongs;
 			GetSongList( arraySongs, so );
+
+			if (searching)
+				FilterBySearch(arraySongs, findme);
 
 			bool bUseSections = true;
 
@@ -901,20 +919,20 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 
 vector<MusicWheelItemData *> & MusicWheel::getWheelItemsData(SortOrder so) {
 	// Update the popularity and init icons.
-	readyWheelItemsData(so);	
+	readyWheelItemsData(so, false, "");
 	return m__WheelItemDatas[so];
 }
 
-void MusicWheel::readyWheelItemsData(SortOrder so) {
+void MusicWheel::readyWheelItemsData(SortOrder so, bool searching, RString findme) {
 	if(m_WheelItemDatasStatus[so]!=VALID) {
 		RageTimer timer;
 
 		vector<MusicWheelItemData *> &aUnFilteredDatas=m__UnFilteredWheelItemDatas[so];
 
 		if(m_WheelItemDatasStatus[so]==INVALID) {
-			BuildWheelItemDatas(  aUnFilteredDatas, so );
+			BuildWheelItemDatas(  aUnFilteredDatas, so, searching, findme);
 		}
-		FilterWheelItemDatas( aUnFilteredDatas, m__WheelItemDatas[so], so );
+		FilterWheelItemDatas( aUnFilteredDatas, m__WheelItemDatas[so], so);
 		m_WheelItemDatasStatus[so]=VALID;
 
 		LOG->Trace( "MusicWheel sorting took: %f", timer.GetTimeSinceStart() );
@@ -1673,42 +1691,45 @@ void MusicWheel::FinishChangingSorts()
 // lua start
 #include "LuaBinding.h"
 
-class LunaMusicWheel: public Luna<MusicWheel>
+class LunaMusicWheel : public Luna<MusicWheel>
 {
 public:
-	static int ChangeSort( T* p, lua_State *L )
+	static int ChangeSort(T* p, lua_State *L)
 	{
-		if( lua_isnil(L,1) ) { lua_pushboolean( L, false ); }
+		if (lua_isnil(L, 1)) { lua_pushboolean(L, false); }
 		else
 		{
 			SortOrder so = Enum::Check<SortOrder>(L, 1);
-			lua_pushboolean( L, p->ChangeSort( so ) );
+			lua_pushboolean(L, p->ChangeSort(so));
 		}
 		return 1;
 	}
 	DEFINE_METHOD(GetSelectedSection, GetSelectedSection());
-	static int IsRouletting( T* p, lua_State *L ){ lua_pushboolean( L, p->IsRouletting() ); return 1; }
-	static int SelectSong( T* p, lua_State *L )
+	static int IsRouletting(T* p, lua_State *L) { lua_pushboolean(L, p->IsRouletting()); return 1; }
+	static int SelectSong(T* p, lua_State *L)
 	{
-		if( lua_isnil(L,1) ) { lua_pushboolean( L, false ); }
+		if (lua_isnil(L, 1)) { lua_pushboolean(L, false); }
 		else
 		{
-			Song *pS = Luna<Song>::check( L, 1, true );
-			lua_pushboolean( L, p->SelectSong( pS ) );
+			Song *pS = Luna<Song>::check(L, 1, true);
+			lua_pushboolean(L, p->SelectSong(pS));
 		}
 		return 1;
 	}
-	static int SelectCourse( T* p, lua_State *L )
+	static int SelectCourse(T* p, lua_State *L)
 	{
-		if( lua_isnil(L,1) ) { lua_pushboolean( L, false ); }
+		if (lua_isnil(L, 1)) { lua_pushboolean(L, false); }
 		else
 		{
-			Course *pC = Luna<Course>::check( L, 1, true );
-			lua_pushboolean( L, p->SelectCourse( pC ) );
+			Course *pC = Luna<Course>::check(L, 1, true);
+			lua_pushboolean(L, p->SelectCourse(pC));
 		}
 		return 1;
 	}
-
+	static int SongSearch(T* p, lua_State *L) {
+		p->ReloadSongList(true, SArg(1));
+		return 1;
+	}
 
 	LunaMusicWheel()
 	{
@@ -1717,6 +1738,7 @@ public:
 		ADD_METHOD( IsRouletting );
 		ADD_METHOD( SelectSong );
 		ADD_METHOD( SelectCourse );
+		ADD_METHOD( SongSearch );
 	}
 };
 

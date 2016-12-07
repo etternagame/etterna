@@ -2,7 +2,7 @@
 
 themeInfo = {
 	Name = "'Til Death",
-	Version = "1.03",
+	Version = "1.04",
 	Date = "20161121",
 };
 

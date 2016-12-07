@@ -103,6 +103,9 @@ d = Def.ActorFrame{
 			self:settextf("%5.2f", tDiff)
 		end
 	},
+	Def.Quad{InitCommand=cmd(xy,60,(SCREEN_HEIGHT*0.62)-90;zoomto,60,16;diffuse,color("0,0,0,0.4");horizalign,left;vertalign,top)},
+	
+	-- Displays your current percentage score
 	LoadFont("Common Large")..{											
 		Name = "DisplayPercent",
 		InitCommand=cmd(xy,115,220;zoom,0.3;halign,1;valign,1),
@@ -112,7 +115,7 @@ d = Def.ActorFrame{
 		JudgmentMessageCommand=function(self,msg)
 			self:settextf("%05.2f%%", msg.WifePercent)
 		end
-	}
+	},
 }
 
 if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetTracker then
@@ -172,7 +175,7 @@ local j = Def.ActorFrame{
 
 
 -- Background
-j[#j+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,frameHeight;diffuse,color("0,0,0,0.4");horizalign,left;vertalign,top)}
+j[#j+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY+16;zoomto,frameWidth,frameHeight+16;diffuse,color("0,0,0,0.4");horizalign,left;vertalign,top)}
 
 -- Build judgeboard
 for i=1,#jdgT do
@@ -335,7 +338,7 @@ local alpha = 0.3
 p = Def.ActorFrame{
 	InitCommand=cmd(xy,frameX,frameY),
 	Def.Quad{InitCommand=cmd(zoomto,width,height;diffuse,color("#666666");diffusealpha,alpha)}, 	-- background
-	Def.Quad{InitCommand=cmd(x,1+width/2;zoomto,1,height;diffuse,color("#666666"))},				-- ending indicator
+	Def.Quad{InitCommand=cmd(x,1+width/2;zoomto,1,height;diffuse,color("#555555"))},				-- ending indicator
 	Def.SongMeterDisplay{
 		InitCommand=function(self)
 			self:SetUpdateRate(0.5)

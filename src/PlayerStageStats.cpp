@@ -312,7 +312,7 @@ float PlayerStageStats::GetWifeScore() const {
 	return m_fWifeScore;
 }
 float PlayerStageStats::CalcSSR() const {
-	if (m_fWifeScore < 0.9f || GetGrade() == Grade_Failed)
+	if (GetGrade() == Grade_Failed)
 		return 0.f;
 
 	NoteData& nd = GAMESTATE->m_pCurSteps[0]->GetNoteData();

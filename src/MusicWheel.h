@@ -50,7 +50,7 @@ public:
 	RString JumpToPrevGroup();
 	const MusicWheelItemData *GetCurWheelItemData( int i ) { return (const MusicWheelItemData *) m_CurWheelItemData[i]; }
 
-	virtual void ReloadSongList();
+	virtual void ReloadSongList(bool searching, RString findme);
 
 	// Lua
 	void PushSelf( lua_State *L );
@@ -62,10 +62,13 @@ protected:
 	bool SelectSongOrCourse();
 	bool SelectModeMenuItem();
 
+	void FilterBySearch(vector<Song*>& inv, RString findme);
+	RString lastvalidsearch;
+
 	virtual void UpdateSwitch();
 
 	vector<MusicWheelItemData *> & getWheelItemsData(SortOrder so);
-	void readyWheelItemsData(SortOrder so);
+	void readyWheelItemsData(SortOrder so, bool searching, RString findme);
 
 	RString				m_sLastModeMenuItem;
 	SortOrder			m_SortOrder;
@@ -109,8 +112,8 @@ private:
 	vector<MusicWheelItemData *> m__WheelItemDatas[NUM_SortOrder];
 	vector<MusicWheelItemData *> m__UnFilteredWheelItemDatas[NUM_SortOrder];
 
-	void BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelItems, SortOrder so );
-	void FilterWheelItemDatas(vector<MusicWheelItemData *> &aUnFilteredDatas, vector<MusicWheelItemData *> &aFilteredData, SortOrder so );
+	void BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelItems, SortOrder so, bool searching, RString findme );
+	void FilterWheelItemDatas(vector<MusicWheelItemData*>& aUnFilteredDatas, vector<MusicWheelItemData*>& aFilteredData, SortOrder so);
 };
 
 #endif

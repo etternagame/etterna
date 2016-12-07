@@ -2007,7 +2007,7 @@ void ScreenSelectMusic::OnConfirmSongDeletion()
 	// flush the deleted song from any caches
 	SONGMAN->UnlistSong(deletedSong);
 	// refresh the song list
-	m_MusicWheel.ReloadSongList();
+	m_MusicWheel.ReloadSongList(false, "");
 	LOG->Trace("Deleting song: '%s'\n", deleteDir.c_str());
 	// delete the song directory from disk
 	FILEMAN->DeleteRecursive(deleteDir);
