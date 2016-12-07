@@ -8,11 +8,13 @@ local whee
 local function searchInput(event)
 	if event.type ~= "InputEventType_Release" and active == true then
 		if event.button == "Back" then
+			searchstring = ""
+			whee:SongSearch(searchstring)
 			resetTabIndex(0)
 			MESSAGEMAN:Broadcast("TabChanged")
 		elseif event.button == "Start" then
-			SCREENMAN:set_input_redirected(PLAYER_1, false)
-			active = false
+			resetTabIndex(0)
+			MESSAGEMAN:Broadcast("TabChanged")
 		elseif event.DeviceInput.button == "DeviceButton_space" then					-- add space to the string
 			searchstring = searchstring.." "
 		elseif event.DeviceInput.button == "DeviceButton_backspace"then
@@ -66,7 +68,7 @@ local t = Def.ActorFrame{
 				self:diffuse(byJudgment("TapNoteScore_Miss"))
 			end
 		end,
-	UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
 	},
 	LoadFont("Common Large")..{
 		InitCommand=cmd(xy,frameX+250-capWideScale(get43size(120),30),frameY-50;zoom,0.7;halign,0.5;maxwidth,470),
@@ -78,21 +80,21 @@ local t = Def.ActorFrame{
 	LoadFont("Common Large")..{
 		InitCommand=cmd(xy,frameX+20,frameY-200;zoom,0.4;halign,0),
 		SetCommand=function(self) 
-			self:settext("Start releases input redirect.")
+			self:settext("Start to lock search results.")
 		end,
 		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
 	},
 	LoadFont("Common Large")..{
 		InitCommand=cmd(xy,frameX+20,frameY-175;zoom,0.4;halign,0),
 		SetCommand=function(self) 
-			self:settext("Delete resets search query.")
+			self:settext("Back to cancel search.")
 		end,
 		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
-	},	
+	},
 	LoadFont("Common Large")..{
 		InitCommand=cmd(xy,frameX+20,frameY-150;zoom,0.4;halign,0),
 		SetCommand=function(self) 
-			self:settext("Back returns to general tab.")
+			self:settext("Delete resets search query.")
 		end,
 		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
 	},
