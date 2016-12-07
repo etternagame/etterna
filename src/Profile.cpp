@@ -2056,10 +2056,15 @@ void Profile::ResetAllSSRs() {
 	m_fPlayerRating = 0.f;
 }
 
+
 // should prolly generalize some of the stuff here - mina
 void Profile::RecalculateAllSSRs() {
 	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
 		const SongID& id = i->first;
+		
+		if (!id.IsValid())
+			continue;
+
 		HighScoresForASong& hsfas = i->second;
 		FOREACHM(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
 			HighScoresForASteps& zz = j->second;
@@ -2070,8 +2075,12 @@ void Profile::RecalculateAllSSRs() {
 					hsv[i].SetSSR(0.f);
 				else {
 					Song* psong = id.ToSong();
-					Steps* psteps= j->first.ToSteps(psong, false);
+					const StepsID& sid = j->first;
 
+					if (!sid.IsValid())
+						continue;
+
+					Steps* psteps= sid.ToSteps(psong, false);
 					NoteData& nd = psteps->GetNoteData();
 					TimingData* td = psteps->GetTimingData();
 					float musicrate = hsv[i].GetMusicRate();
