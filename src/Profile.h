@@ -315,7 +315,7 @@ public:
 	float CalcPlayerRating() const;
 	void ResetAllSSRs();
 	void RecalculateAllSSRs();
-	float scoreagg(vector<float>) const;
+	float AggregateScores(vector<float>& invector, float rating, float res, int iter) const;
 
 	/* Grabbing the highscores here and having lua invoke this results in unhandled exception errors
 	so instead this funciton finds the song/steps for identical chartkey entries and returns them to

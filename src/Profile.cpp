@@ -2039,7 +2039,10 @@ float Profile::CalcPlayerRating() const {
 				vSSR.push_back(hsv[i].GetSSR());
 		}
 	}
-	return scoreagg(vSSR);
+
+	float o = AggregateScores(vSSR, 0.f, 10.24f, 1);
+	CLAMP(o, 0.f, 100.f);
+	return o;
 }
 
 void Profile::ResetAllSSRs() {
@@ -2098,21 +2101,20 @@ void Profile::RecalculateAllSSRs() {
 	}
 }
 
-// nonlinear plsszz - mina
-float Profile::scoreagg(vector<float> invector) const {
+float Profile::AggregateScores(vector<float>& invector, float rating, float res, int iter) const {
 	if (invector.size() == 0)
 		return 0.f;
-	float skillrating = m_fPlayerRating - 1.f;
 	double sum;
 	do {
-		skillrating += 0.1f;
+		rating += res;
 		sum = 0.0;
 		for (int i = 0; i < static_cast<int>(invector.size()); i++) {
-			sum += max(0.0, 2.f / erfc(0.1*(invector[i] - skillrating)) - 1.5);
+			sum += max(0.0, 2.f / erfc(0.1*(invector[i] - rating)) - 1.5);
 		}
-	} while (pow(2, skillrating * 0.1) < sum);
-	CLAMP(skillrating, 0.f, 100.f);
-	return skillrating*0.95f;
+	} while (pow(2, rating * 0.1) < sum);
+	if (iter == 11)
+		return rating;
+	return AggregateScores(invector, rating-res, res/2.f, iter + 1);
 }
 
 XNode* Profile::SaveCourseScoresCreateNode() const
