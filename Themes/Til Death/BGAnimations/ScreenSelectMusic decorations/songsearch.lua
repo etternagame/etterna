@@ -26,9 +26,9 @@ local function searchInput(event)
 				end
 			end
 		end
+		MESSAGEMAN:Broadcast("UpdateString")
+		whee:SongSearch(searchstring)
 	end
-	MESSAGEMAN:Broadcast("UpdateString")
-	whee:SongSearch(searchstring)
 end
 
 local t = Def.ActorFrame{
@@ -56,7 +56,7 @@ local t = Def.ActorFrame{
 	TabChangedMessageCommand=cmd(queuecommand,"Set"),
 	
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+250-capWideScale(get43size(120),120),frameY-90;zoom,0.7;halign,0.5;maxwidth,470),
+		InitCommand=cmd(xy,frameX+250-capWideScale(get43size(120),30),frameY-90;zoom,0.7;halign,0.5;maxwidth,470),
 		SetCommand=function(self) 
 			if active then
 				self:settext("Search Active:")
@@ -69,28 +69,28 @@ local t = Def.ActorFrame{
 	UpdateStringMessageCommand=cmd(queuecommand,"Set"),
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+250-capWideScale(get43size(120),120),frameY-50;zoom,0.7;halign,0.5;maxwidth,470),
+		InitCommand=cmd(xy,frameX+250-capWideScale(get43size(120),30),frameY-50;zoom,0.7;halign,0.5;maxwidth,470),
 		SetCommand=function(self) 
 			self:settext(searchstring)
 		end,
 	UpdateStringMessageCommand=cmd(queuecommand,"Set"),
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+20,frameY-200;zoom,0.5;halign,0),
+		InitCommand=cmd(xy,frameX+20,frameY-200;zoom,0.4;halign,0),
 		SetCommand=function(self) 
 			self:settext("Start releases input redirect.")
 		end,
 		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+20,frameY-175;zoom,0.5;halign,0),
+		InitCommand=cmd(xy,frameX+20,frameY-175;zoom,0.4;halign,0),
 		SetCommand=function(self) 
 			self:settext("Delete resets search query.")
 		end,
 		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
 	},	
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+20,frameY-150;zoom,0.5;halign,0),
+		InitCommand=cmd(xy,frameX+20,frameY-150;zoom,0.4;halign,0),
 		SetCommand=function(self) 
 			self:settext("Back returns to general tab.")
 		end,
