@@ -144,7 +144,8 @@ void AddPlayerStatsToProfile( Profile *pProfile, const StageStats &ss, PlayerNum
 
 	//pProfile->ResetAllSSRs();
 	//pProfile->RecalculateAllSSRs();
-	pProfile->m_fPlayerRating = pProfile->CalcPlayerRating();
+	if(!pProfile->IsMachine())
+		pProfile->m_fPlayerRating = pProfile->CalcPlayerRating();
 }
 
 XNode* MakeRecentScoreNode( const StageStats &ss, Trail *pTrail, const PlayerStageStats &pss, MultiPlayer mp )

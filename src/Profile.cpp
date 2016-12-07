@@ -2042,7 +2042,7 @@ float Profile::CalcPlayerRating() const {
 
 	float o = AggregateScores(vSSR, 0.f, 10.24f, 1);
 	CLAMP(o, 0.f, 100.f);
-	return o;
+	return o*0.95;
 }
 
 void Profile::ResetAllSSRs() {
