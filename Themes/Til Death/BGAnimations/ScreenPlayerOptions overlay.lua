@@ -8,10 +8,6 @@ local t = Def.ActorFrame{
 	Name="PlayerAvatar";
 };
 
-
--- ugh, for preventing song search from sending you back to a search result if you scroll somewhere else, enter, and then quit
-storeSongSearchResult(GAMESTATE:GetCurrentSong(), GAMESTATE:GetCurrentSteps(PLAYER_1))
-
 local profileP1
 local profileP2
 

@@ -5,7 +5,7 @@ local tabIndex = 0
 local tabSize = 5
 local availTabSize = 2
 
-local availableTabs1P = {true,false,true,false,false,false}
+local availableTabs1P = {true,false,true,true,false,false}
 local availableTabs2P = {true,false,false,false,true}
 
 --0 indexed tabs... yet 1 indexed lua tables mfw. Will probably go into infinite loop if everything is false.
