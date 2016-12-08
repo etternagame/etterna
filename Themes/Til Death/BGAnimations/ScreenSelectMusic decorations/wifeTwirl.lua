@@ -140,7 +140,7 @@ t[#t+1] = Def.ActorFrame{
 					self:settextf("%05.2f%%", notShit.floor(GetPercentDP(Score)*100)/100)
 					self:diffuse(getGradeColor(Score:GetGrade()))
 				else
-					self:settextf("%05.2f%%", notShit.floor(Score:GetWifeScore()*10000)/1000)
+					self:settextf("%05.2f%%", notShit.floor(Score:GetWifeScore()*10000)/100)
 					self:diffuse(getGradeColor(Score:GetWifeGrade()))
 				end
 			else
