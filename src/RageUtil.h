@@ -67,6 +67,12 @@ inline bool ENUM_CLAMP( T &x, T l, T h )
 	return false;
 }
 
+inline float wife2(float maxms, float avedeviation, float power, int upperbound, int lowerbound) {
+	float y = 1 - static_cast<float>(pow(2, -1 * maxms*maxms / (avedeviation*avedeviation)));
+	y = pow(y, power);
+	return (upperbound - lowerbound)*(1 - y) + lowerbound;
+}
+
 inline void wrap( int &x, int n )
 {
 	if (x<0)

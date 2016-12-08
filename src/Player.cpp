@@ -3152,12 +3152,6 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 	}
 }
 
-float Player::wife2(float maxms, float avedeviation, float power, int upperbound, int lowerbound) {
-	float y = 1 - static_cast<float>(pow(2, -1*maxms*maxms / (avedeviation*avedeviation)));
-	y = pow(y, power);
-	return (upperbound - lowerbound)*(1 - y) + lowerbound;
-}
-
 void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore tns, float fTapNoteOffset )
 {
 	if( m_bSendJudgmentAndComboMessages )

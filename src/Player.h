@@ -136,7 +136,6 @@ public:
 	// Mina temp stuff
 	vector<int> nerv;	// the non empty row vector where we are somehwere in
 	size_t nervpos = 0; // where we are in the non-empty row vector
-	float wife2(float maxms, float avedeviation, float power, int upperbound, int lowerbound);
 	float maxwifescore = 0.0001f; // hurr /0 - Mina
 	float curwifescore = 0;
 	int totalwifescore;
