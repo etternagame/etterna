@@ -15,6 +15,7 @@ ThemeMetric<RString> EMPTY_NAME("HighScore","EmptyName");
 struct HighScoreImpl
 {
 	RString	sName;	// name that shows in the machine's ranking screen
+	RString sHistoricChartKey = "";
 	Grade grade;
 	unsigned int iScore;
 	float fPercentDP;
@@ -157,6 +158,7 @@ vector<int> HighScoreImpl::NoteRowsToVector(RString s) {
 HighScoreImpl::HighScoreImpl()
 {
 	sName = "";
+	sHistoricChartKey = "";
 	grade = Grade_NoData;
 	iScore = 0;
 	fPercentDP = 0.f;
@@ -189,6 +191,7 @@ XNode *HighScoreImpl::CreateNode() const
 
 	// TRICKY:  Don't write "name to fill in" markers.
 	pNode->AppendChild( "Name",				IsRankingToFillIn(sName) ? RString("") : sName );
+	pNode->AppendChild( "HistoricChartKey", sHistoricChartKey);
 	pNode->AppendChild( "Grade",			GradeToString(grade) );
 	pNode->AppendChild( "Score",			iScore );
 	pNode->AppendChild( "PercentDP",		fPercentDP );
@@ -229,6 +232,7 @@ void HighScoreImpl::LoadFromNode( const XNode *pNode )
 	RString s;
 
 	pNode->GetChildValue( "Name", sName );
+	pNode->GetChildValue( "HistoricChartKey", sHistoricChartKey);
 	pNode->GetChildValue( "Grade", s );
 	grade = StringToGrade( s );
 	pNode->GetChildValue( "Score",			iScore );
@@ -336,6 +340,7 @@ float HighScore::GetLifeRemainingSeconds() const { return m_Impl->fLifeRemaining
 bool HighScore::GetDisqualified() const { return m_Impl->bDisqualified; }
 
 void HighScore::SetName( const RString &sName ) { m_Impl->sName = sName; }
+void HighScore::SetHistoricChartKey( RString &ck) { m_Impl->sHistoricChartKey = ck; }
 void HighScore::SetGrade( Grade g ) { m_Impl->grade = g; }
 void HighScore::SetScore( unsigned int iScore ) { m_Impl->iScore = iScore; }
 void HighScore::SetMaxCombo( unsigned int i ) { m_Impl->iMaxCombo = i; }
@@ -598,6 +603,57 @@ void Screenshot::LoadFromNode( const XNode* pNode )
 		highScore.LoadFromNode( pHighScore );
 }
 
+float HighScore::RescoreToWifeJudge(int x) {
+	const float tso[] = { 1.50f,1.33f,1.16f,1.00f,0.84f,0.66f,0.50f,0.33f,0.20f };
+	float ts = tso[x-1];
+	float p = 0;
+	FOREACH_CONST(float, m_Impl->vOffsetVector, f)
+		p += wife2(*f * 1000.f, ts * 95.f, 2.f, 2, -8);
+
+	return p / (m_Impl->vOffsetVector.size() * 2);
+}
+
+float HighScore::RescoreToDPJudge(int x) {
+	const float tso[] = { 1.50f,1.33f,1.16f,1.00f,0.84f,0.66f,0.50f,0.33f,0.20f };
+	float ts = tso[x - 1];
+	int marv = 0;
+	int perf = 0;
+	int great = 0;
+	int good = 0;
+	int boo = 0;
+	int miss = 0;
+	int m2 = 0;
+	FOREACH_CONST(float, m_Impl->vOffsetVector, f) {
+		m2 += 2;
+		float x = abs(*f * 1000.f);
+		if (x <= 22.5f)
+			++marv;
+		else if (x <= ts * 45.f)
+			++perf;
+		else if (x <= ts * 90.f)
+			++great;
+		else if (x <= ts * 135.f)
+			++good;
+		else if (x <= ts *180.f)
+			++boo;
+		else
+			++miss;
+	}
+
+	//LOG->Trace("Marv: %i Perf: %i, Great: %i, Good: %i, Boo: %i, Miss: %i", marv, perf, great, good, boo, miss);
+
+	int p = 0;
+	p += (marv + perf) * 2;
+	p += great * 1;
+	p += boo * -4;
+	p += miss * -8;
+	p += m_Impl->iHoldNoteScores[HNS_Held] * 6;
+
+	float m = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
+	m += (m_Impl->radarValues[RadarCategory_Holds] + m_Impl->radarValues[RadarCategory_Rolls]) * 6;
+	return p / m;
+}
+
 // lua start
 #include "LuaBinding.h"
 
@@ -624,14 +680,17 @@ public:
 	}
 	static int GetMaxCombo( T* p, lua_State *L )			{ lua_pushnumber(L, p->GetMaxCombo() ); return 1; }
 	static int GetModifiers( T* p, lua_State *L )			{ lua_pushstring(L, p->GetModifiers() ); return 1; }
-	static int GetTapNoteScore( T* p, lua_State *L )			{ lua_pushnumber(L, p->GetTapNoteScore( Enum::Check<TapNoteScore>(L, 1) ) ); return 1; }
-	static int GetHoldNoteScore( T* p, lua_State *L )			{ lua_pushnumber(L, p->GetHoldNoteScore( Enum::Check<HoldNoteScore>(L, 1) ) ); return 1; }
+	static int GetTapNoteScore( T* p, lua_State *L )		{ lua_pushnumber(L, p->GetTapNoteScore( Enum::Check<TapNoteScore>(L, 1) ) ); return 1; }
+	static int GetHoldNoteScore( T* p, lua_State *L )		{ lua_pushnumber(L, p->GetHoldNoteScore( Enum::Check<HoldNoteScore>(L, 1) ) ); return 1; }
+	static int RescoreToWifeJudge(T* p, lua_State *L)		{ lua_pushnumber(L, p->RescoreToWifeJudge(IArg(1))); return 1; }
+	static int RescoreToDPJudge(T* p, lua_State *L)			{ lua_pushnumber(L, p->RescoreToDPJudge(IArg(1))); return 1; }
 	static int GetRadarValues( T* p, lua_State *L )
 	{
 		RadarValues &rv = const_cast<RadarValues &>(p->GetRadarValues());
 		rv.PushSelf(L);
 		return 1;
 	}
+	
 	DEFINE_METHOD( GetGrade, GetGrade() )
 	DEFINE_METHOD( GetWifeGrade, GetWifeGrade())
 	DEFINE_METHOD( GetStageAward, GetStageAward() )
@@ -643,6 +702,8 @@ public:
 		ADD_METHOD( GetScore );
 		ADD_METHOD( GetPercentDP );
 		ADD_METHOD( GetWifeScore );
+		ADD_METHOD( RescoreToWifeJudge );
+		ADD_METHOD( RescoreToDPJudge );
 		ADD_METHOD( GetSSR);
 		ADD_METHOD( GetMusicRate );
 		ADD_METHOD( GetJudgeScale );

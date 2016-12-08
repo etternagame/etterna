@@ -156,6 +156,22 @@ t[#t+1] = LoadFont("Common Normal")..{
 	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
 }
 
+t[#t+1] = LoadFont("Common Normal")..{
+	Name="Score";
+	InitCommand=cmd(xy,frameX+offsetX+195,frameY+offsetY+28;zoom,0.5;halign,0),
+	SetCommand=function(self)
+		if score ~= nil then
+			if score:GetWifeScore() == 0 then 
+				self:settextf("NA (%s)", "Wife")
+			else
+				self:settextf("%05.2f%% (%s)", notShit.floor(score:RecastToDPJudge()*10000)/100, "DP J4")
+			end
+		else
+			self:settextf("00.00%% (%s)", "Wife")
+		end;
+	end;
+	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+}
 
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="ClearType";

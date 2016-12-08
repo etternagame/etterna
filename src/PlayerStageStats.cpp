@@ -314,9 +314,9 @@ float PlayerStageStats::GetWifeScore() const {
 float PlayerStageStats::CalcSSR() const {
 	if (GetGrade() == Grade_Failed)
 		return 0.f;
-
-	NoteData& nd = GAMESTATE->m_pCurSteps[0]->GetNoteData();
-	TimingData* td = GAMESTATE->m_pCurSteps[0]->GetTimingData();
+	
+	NoteData& nd = GAMESTATE->m_pCurSteps[m_player_number]->GetNoteData();
+	TimingData* td = GAMESTATE->m_pCurSteps[m_player_number]->GetTimingData();
 	float musicrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 	
 	vector<int>& nerv = nd.GetNonEmptyRowVector();
