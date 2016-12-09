@@ -413,6 +413,9 @@ void MusicWheel::GetSongList( vector<Song*> &arraySongs, SortOrder so )
 	vector<Song*> apAllSongs;
 	switch( so )
 	{
+	case SORT_FAVORITES:
+		SONGMAN->GetFavoriteSongs(apAllSongs);
+		break;
 	case SORT_PREFERRED:
 		SONGMAN->GetPreferredSortSongs( apAllSongs );
 		break;
@@ -559,6 +562,7 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 			}
 			break;
 		}
+		case SORT_FAVORITES:
 		case SORT_PREFERRED:
 		case SORT_ROULETTE:
 		case SORT_GROUP:
@@ -592,6 +596,7 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 			// sort the songs
 			switch( so )
 			{
+				case SORT_FAVORITES:
 				case SORT_PREFERRED:
 					// obey order specified by the preferred sort list
 					break;
@@ -688,6 +693,7 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 				/* We're using sections, so use the section name as the top-level sort. */
 				switch( so )
 				{
+					case SORT_FAVORITES:
 					case SORT_PREFERRED:
 					case SORT_TOP_GRADES:
 					case SORT_BPM:

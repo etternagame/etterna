@@ -184,6 +184,7 @@ enum SortOrder
 	SORT_LENGTH, /**< Sort the courses by how long they would last. */
 	SORT_ROULETTE,
 	SORT_RECENT,
+	SORT_FAVORITES,
 	NUM_SortOrder,
 	SortOrder_Invalid
 };

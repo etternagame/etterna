@@ -1966,12 +1966,10 @@ XNode* Profile::SaveSongScoresCreateNode() const
 }
 
 void Profile::RemoveFromFavorites(RString ck) {
-	LOG->Trace("b4 %i", FavoritedCharts.size());
 	for (size_t i = 0; i < FavoritedCharts.size(); ++i) {
 		if (FavoritedCharts[i] == ck)
 			FavoritedCharts.erase(FavoritedCharts.begin() + i);
 	}
-	LOG->Trace("afta %i", FavoritedCharts.size());
 }
 
 void Profile::LoadSongScoresFromNode( const XNode* pSongScores )

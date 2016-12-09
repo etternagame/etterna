@@ -181,6 +181,7 @@ static const char *SortOrderNames[] = {
 	"Length",
 	"Roulette",
 	"Recent",
+	"Favorites",
 };
 XToString( SortOrder );
 StringToX( SortOrder );

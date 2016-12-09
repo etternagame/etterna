@@ -119,6 +119,7 @@ public:
 	 * @return the songs within the game that have at least one valid Step. */
 	const vector<Song *> &GetAllSongsOfCurrentGame() const;
 
+	void GetFavoriteSongs(vector<Song*>& songs) const;
 	void GetPreferredSortSongs( vector<Song*> &AddTo ) const;
 	RString SongToPreferredSortSectionName( const Song *pSong ) const;
 	const vector<Course*> &GetPopularCourses( CourseType ct ) const { return m_pPopularCourses[ct]; }

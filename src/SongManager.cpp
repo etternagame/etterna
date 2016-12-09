@@ -711,6 +711,13 @@ const vector<Song*> &SongManager::GetSongs( const RString &sGroupName ) const
 	return vEmpty;
 }
 
+void SongManager::GetFavoriteSongs(vector<Song*>& songs) const {
+	FOREACH_CONST(Song*, m_pSongs, song) {
+		if ((*song)->IsFavorited())
+			songs.push_back((*song));
+	}
+}
+
 void SongManager::GetPreferredSortSongs( vector<Song*> &AddTo ) const
 {
 	if( m_vPreferredSongSort.empty() )
