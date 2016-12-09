@@ -38,6 +38,9 @@ ___*
 *.sublime-project
 *.sublime-workspace
 *.old
+.idea
+.gitignore
+cmake-build-release
 
 # Repository Files
 *.orig

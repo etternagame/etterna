@@ -3,7 +3,7 @@
 #include "global.h"
 #include "GameState.h"
 #include "RageUtil.h"
-#include "Notedata.h"
+#include "NoteData.h"
 #include "Steps.h"
 #include "Song.h"
 //#include <vector>
