@@ -41,6 +41,7 @@ ___*
 .idea
 .gitignore
 cmake-build-release
+cmake-build-debug
 
 # Repository Files
 *.orig
