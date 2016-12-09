@@ -535,10 +535,14 @@ void strsplit(vector<float>& o, RString& s, size_t i) {
 void SetMSDValues(StepsTagInfo& info) {
 	MinaSD o;
 
+	// Optimize by calling those only once instead of multiple times inside the loop.
+	auto params = (*info.params).params;
+	auto size = params.size();
+
 	// Start from index 1
-	for (size_t i = 1; i <= (*info.params).params.size();  i++) {
+	for (size_t i = 1; i <= size; i++) {
 		vector<float> diffs;
-		strsplit(diffs, (*info.params)[i], 0);
+		strsplit(diffs, params[i], 0);
 		o.push_back(diffs);
 	}
 	info.steps->SetAllMSD(o);

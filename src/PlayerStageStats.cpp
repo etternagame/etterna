@@ -314,13 +314,13 @@ float PlayerStageStats::GetWifeScore() const {
 float PlayerStageStats::CalcSSR() const {
 	if (GetGrade() == Grade_Failed)
 		return 0.f;
-	
-	NoteData& nd = GAMESTATE->m_pCurSteps[m_player_number]->GetNoteData();
+
+	auto nd = GAMESTATE->m_pCurSteps[m_player_number]->GetNoteData();
 	TimingData* td = GAMESTATE->m_pCurSteps[m_player_number]->GetTimingData();
 	float musicrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 	
 	vector<int>& nerv = nd.GetNonEmptyRowVector();
-	vector<float>& etar = td->GetElapsedTimesAtAllRows();
+	auto etar = td->GetElapsedTimesAtAllRows();
 	vector<float> etaner(nerv.size());
 
 	for (size_t i = 0; i < nerv.size(); ++i)

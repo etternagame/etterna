@@ -1,5 +1,4 @@
 #pragma once
-#define PRINTF(a,b)
 #include "global.h"
 #include "GameState.h"
 #include "RageUtil.h"
