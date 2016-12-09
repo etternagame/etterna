@@ -39,7 +39,6 @@ ___*
 *.sublime-workspace
 *.old
 .idea
-.gitignore
 cmake-build-release
 cmake-build-debug
 
