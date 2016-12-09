@@ -497,6 +497,18 @@ bool SongManager::IsGroupNeverCached(const RString& group) const
 	return m_GroupsToNeverCache.find(group) != m_GroupsToNeverCache.end();
 }
 
+void SongManager::SetFavoritedStatus(vector<RString>& favs) {
+	FOREACH(Song*, m_pSongs, song) {
+		FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps) {
+			RString sck = (*steps)->GetChartKey();
+			FOREACH(RString, favs, ck) {
+				if (sck == *ck)
+					(*song)->SetFavorited(true);
+			}
+		}
+	}
+}
+
 RString SongManager::GetSongGroupBannerPath( const RString &sSongGroup ) const
 {
 	for( unsigned i = 0; i < m_sSongGroupNames.size(); ++i )

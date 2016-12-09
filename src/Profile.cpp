@@ -1510,6 +1510,12 @@ XNode* Profile::SaveGeneralDataCreateNode() const
 	}
 
 	{
+		XNode* Favorites = pGeneralDataNode->AppendChild("Favorites");
+		FOREACH_CONST(RString, FavoritedCharts, it)
+			Favorites->AppendChild(*it);			
+	}
+
+	{
 		XNode* pUnlocks = pGeneralDataNode->AppendChild("Unlocks");
 		FOREACHS_CONST( RString, m_UnlockedEntryIDs, it )
 		{
@@ -1700,6 +1706,15 @@ void Profile::LoadGeneralDataFromNode( const XNode* pNode )
 			{
 				game_type->GetTextValue( m_sDefaultModifiers[game_type->GetName()] );
 			}
+		}
+	}
+
+	{
+		const XNode* Favorites = pNode->GetChild("Favorites");
+		if (Favorites) {
+			FOREACH_CONST_Child(Favorites, ck)
+				FavoritedCharts.push_back(ck->GetName());
+			SONGMAN->SetFavoritedStatus(FavoritedCharts);
 		}
 	}
 
@@ -1948,6 +1963,15 @@ XNode* Profile::SaveSongScoresCreateNode() const
 	}
 
 	return pNode;
+}
+
+void Profile::RemoveFromFavorites(RString ck) {
+	LOG->Trace("b4 %i", FavoritedCharts.size());
+	for (size_t i = 0; i < FavoritedCharts.size(); ++i) {
+		if (FavoritedCharts[i] == ck)
+			FavoritedCharts.erase(FavoritedCharts.begin() + i);
+	}
+	LOG->Trace("afta %i", FavoritedCharts.size());
 }
 
 void Profile::LoadSongScoresFromNode( const XNode* pSongScores )

@@ -413,6 +413,9 @@ public:
 	bool IsTutorial() const;
 	bool HasEdits( StepsType st ) const;
 
+	bool IsFavorited() { return isfavorited; }
+	void SetFavorited(bool b) { isfavorited = b; }
+
 	void SetEnabled( bool b ) { m_bEnabled = b; }
 	bool GetEnabled() const { return m_bEnabled; }
 	/**
@@ -458,6 +461,7 @@ public:
 	void PushSelf( lua_State *L );
 
 private:
+	bool isfavorited = false;
 	bool m_loaded_from_autosave;
 	/** @brief the Steps that belong to this Song. */
 	vector<Steps*> m_vpSteps;

@@ -69,6 +69,7 @@ public:
 	void PreloadSongImages();
 
 	bool IsGroupNeverCached(const RString& group) const;
+	void SetFavoritedStatus(vector<RString>& favs);
 
 	RString GetSongGroupBannerPath( const RString &sSongGroup ) const;
 	//RString GetSongGroupBackgroundPath( RString sSongGroup ) const;

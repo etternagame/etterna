@@ -468,6 +468,32 @@ bool ScreenSelectMusic::Input( const InputEventPlus &input )
 				return true;
 			}
 		}
+		else if (bHoldingCtrl && c == 'F' && m_MusicWheel.IsSettled())
+		{
+			// Unfavorite the currently selected song. -Not Kyz
+			Song* unfav_me_biatch = m_MusicWheel.GetSelectedSong();
+			if (unfav_me_biatch) {
+				Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
+				if (unfav_me_biatch) {
+					Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
+					unfav_me_biatch->SetFavorited(false);
+					pProfile->RemoveFromFavorites(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+					return true;
+				}
+			}
+		}
+		else if (c == 'F' && m_MusicWheel.IsSettled())
+		{
+			// Favorite the currently selected song. -Not Kyz
+			Song* fav_me_biatch = m_MusicWheel.GetSelectedSong();
+			if (fav_me_biatch) {
+				Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
+				fav_me_biatch->SetFavorited(true);
+				pProfile->AddToFavorites(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+				return true;
+			}
+		}
+#if 0	// This is really more annoying than useful as well as obsoleted by song search
 		else if( bHoldingCtrl && ( c >= 'A' ) && ( c <= 'Z' ) )
 		{
 			// Only allow changing the sort order if the wheel is not locked
@@ -493,6 +519,7 @@ bool ScreenSelectMusic::Input( const InputEventPlus &input )
 				return true;
 			}
 		}
+#endif // 0
 		else if( input.DeviceI.device == DEVICE_KEYBOARD && bHoldingCtrl && input.DeviceI.button == KEY_BACK && input.type == IET_FIRST_PRESS
 			&& m_MusicWheel.IsSettled() )
 		{

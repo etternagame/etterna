@@ -2198,6 +2198,7 @@ public:
 		}
 		return 1;
 	}
+	static int IsFavorited(T* p, lua_State *L) { lua_pushboolean(L, p->IsFavorited()); return 1; }
 	// has functions
 	static int HasMusic( T* p, lua_State *L )			{ lua_pushboolean(L, p->HasMusic()); return 1; }
 	static int HasBanner( T* p, lua_State *L )		{ lua_pushboolean(L, p->HasBanner()); return 1; }
@@ -2309,7 +2310,7 @@ public:
 		ADD_METHOD( GetDisplayFullTitle );
 		ADD_METHOD( GetTranslitFullTitle );
 		ADD_METHOD( GetDisplayMainTitle );
-		ADD_METHOD(GetMainTitle);
+		ADD_METHOD( GetMainTitle );
 		ADD_METHOD( GetTranslitMainTitle );
 		ADD_METHOD( GetDisplaySubTitle );
 		ADD_METHOD( GetTranslitSubTitle );
@@ -2354,6 +2355,7 @@ public:
 		ADD_METHOD( HasSignificantBPMChangesOrStops );
 		ADD_METHOD( HasEdits );
 		ADD_METHOD( IsEasy );
+		ADD_METHOD( IsFavorited );
 		ADD_METHOD( GetStepsSeconds );
 		ADD_METHOD( NormallyDisplayed );
 		ADD_METHOD( GetFirstBeat );

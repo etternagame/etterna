@@ -384,6 +384,8 @@ void MusicWheelItem::RefreshGrades()
 		msg.SetParam( "PlayerNumber", p );
 		if( BestpHSL )
 		{
+			if(pWID->m_pSong->IsFavorited())
+				msg.SetParam( "Favorited", 1);
 			msg.SetParam( "Grade", BestpHSL->HighGrade);
 			msg.SetParam( "Difficulty", DifficultyToString(dcBest));
 			msg.SetParam( "NumTimesPlayed", BestpHSL->GetNumTimesPlayed() );
