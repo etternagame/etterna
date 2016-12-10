@@ -536,8 +536,8 @@ void SetMSDValues(StepsTagInfo& info) {
 	MinaSD o;
 
 	// Optimize by calling those only once instead of multiple times inside the loop.
-	auto params = (*info.params).params;
-	auto size = params.size();
+	auto params = (*info.params);
+	auto size = params.params.size();
 
 	// Start from index 1
 	for (size_t i = 1; i <= size; i++) {
