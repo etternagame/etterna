@@ -29,6 +29,7 @@ local negative = getMainColor('negative')
 
 -- We can also pull in some localized aliases for workhorse functions for a modest speed increase
 local Round = notShit.round
+local Floor = notShit.floor
 local diffusealpha = Actor.diffusealpha
 local diffuse = Actor.diffuse
 local finishtweening = Actor.finishtweening
@@ -113,7 +114,7 @@ d = Def.ActorFrame{
 			self:settextf("%05.2f%%", 0)
 		end,
 		JudgmentMessageCommand=function(self,msg)
-			self:settextf("%05.2f%%", msg.WifePercent)
+			self:settextf("%05.2f%%", Floor(msg.WifePercent*100)/100)
 		end
 	},
 }

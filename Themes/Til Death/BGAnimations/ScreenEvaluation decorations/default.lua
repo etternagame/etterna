@@ -107,7 +107,7 @@ function scoreBoard(pn,position)
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self) 
 			self:diffuse(getGradeColor(pss:GetWifeGrade()))
-			self:settextf("%05.2f%% (%s)",pss:GetWifeScore()*100, "Wife")
+			self:settextf("%05.2f%% (%s)",notShit.floor(pss:GetWifeScore()*10000)/100, "Wife")
 		end,
 	};
 	
