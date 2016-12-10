@@ -325,7 +325,7 @@ public:
 	/* Grabbing the highscores here and having lua invoke this results in unhandled exception errors
 	so instead this funciton finds the song/steps for identical chartkey entries and returns them to
 	the lua call which then grabs the highscores from the songscores object. -Mina */
-	void Profile::GetScoresByKey(vector<SongID>& songids, vector<StepsID>& stepsids, RString key);
+	void GetScoresByKey(vector<SongID>& songids, vector<StepsID>& stepsids, RString key);
 
 	// Screenshot Data
 	vector<Screenshot> m_vScreenshots;

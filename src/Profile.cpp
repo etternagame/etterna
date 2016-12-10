@@ -2106,7 +2106,7 @@ void Profile::RecalculateAllSSRs() {
 						continue;
 
 					Steps* psteps= sid.ToSteps(psong, false);
-					NoteData& nd = psteps->GetNoteData();
+					auto nd = psteps->GetNoteData();
 					TimingData* td = psteps->GetTimingData();
 					float musicrate = hsv[i].GetMusicRate();
 
