@@ -468,7 +468,7 @@ bool ScreenSelectMusic::Input( const InputEventPlus &input )
 				return true;
 			}
 		}
-		else if (bHoldingCtrl && c == 'F' && m_MusicWheel.IsSettled())
+		else if (bHoldingCtrl && c == 'U' && m_MusicWheel.IsSettled())
 		{
 			// Unfavorite the currently selected song. -Not Kyz
 			Song* unfav_me_biatch = m_MusicWheel.GetSelectedSong();
@@ -483,7 +483,7 @@ bool ScreenSelectMusic::Input( const InputEventPlus &input )
 				}
 			}
 		}
-		else if (c == 'F' && m_MusicWheel.IsSettled())
+		else if (bHoldingCtrl && c == 'F' && m_MusicWheel.IsSettled())
 		{
 			// Favorite the currently selected song. -Not Kyz
 			Song* fav_me_biatch = m_MusicWheel.GetSelectedSong();
