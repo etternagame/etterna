@@ -422,8 +422,10 @@ void BitmapText::DrawChars( bool bUseStrokeTexture )
 	}
 
 	TextureUnit textureUnit = TextureUnit_1;
+	bool haveTextures = false;
 	int texUnit = 0;
 	int startingPoint = iStartGlyph;
+
 	DISPLAY->ClearAllTextures();
 	for( int start = iStartGlyph; start < iEndGlyph; )
 	{
@@ -434,6 +436,8 @@ void BitmapText::DrawChars( bool bUseStrokeTexture )
 		bool bHaveATexture = !bUseStrokeTexture  ||  (bUseStrokeTexture && m_vpFontPageTextures[start]->m_pTextureStroke);
 		if( bHaveATexture )
 		{
+			haveTextures = true;
+
 			switch (texUnit)
 			{
 			case 0:
@@ -476,15 +480,17 @@ void BitmapText::DrawChars( bool bUseStrokeTexture )
 			 
 			// This is SLOW. We need to do something else about this. -Colby
 			//Actor::SetTextureRenderStates();
-			if (texUnit == 8 || end >= iEndGlyph || texUnit > DISPLAY->GetNumTextureUnits() || !PREFSMAN->m_bAllowMultitexture)
-			{
-				DISPLAY->DrawQuads(&m_aVertices[startingPoint * 4], (end - startingPoint) * 4);
-				
-				// Setup for the next render pass
-				DISPLAY->ClearAllTextures();
-				startingPoint = end;
-				texUnit = 0;
-			}
+			
+		}
+
+		if (texUnit == 8 || (haveTextures && end >= iEndGlyph) || texUnit > DISPLAY->GetNumTextureUnits() || !PREFSMAN->m_bAllowMultitexture)
+		{
+			DISPLAY->DrawQuads(&m_aVertices[startingPoint * 4], (end - startingPoint) * 4);
+
+			// Setup for the next render pass
+			DISPLAY->ClearAllTextures();
+			startingPoint = end;
+			texUnit = 0;
 		}
 
 		start = end;
