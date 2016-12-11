@@ -448,6 +448,18 @@ void BitmapText::DrawChars( bool bUseStrokeTexture )
 			case 3:
 				textureUnit = TextureUnit_4;
 				break;
+			case 4:
+				textureUnit = TextureUnit_5;
+				break;
+			case 5:
+				textureUnit = TextureUnit_6;
+				break;
+			case 6:
+				textureUnit = TextureUnit_7;
+				break;
+			case 7:
+				textureUnit = TextureUnit_8;
+				break;
 			}
 			
 			if( bUseStrokeTexture )
@@ -464,7 +476,7 @@ void BitmapText::DrawChars( bool bUseStrokeTexture )
 			 
 			// This is SLOW. We need to do something else about this. -Colby
 			//Actor::SetTextureRenderStates();
-			if (texUnit == 4 || end >= iEndGlyph || !PREFSMAN->m_bAllowMultitexture || texUnit > DISPLAY->GetNumTextureUnits() )
+			if (texUnit == 8 || end >= iEndGlyph || texUnit > DISPLAY->GetNumTextureUnits() || !PREFSMAN->m_bAllowMultitexture)
 			{
 				DISPLAY->DrawQuads(&m_aVertices[startingPoint * 4], (end - startingPoint) * 4);
 				

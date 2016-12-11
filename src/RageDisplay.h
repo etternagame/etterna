@@ -19,6 +19,10 @@ enum TextureUnit
 	TextureUnit_2,
 	TextureUnit_3,
 	TextureUnit_4,
+	TextureUnit_5,
+	TextureUnit_6,
+	TextureUnit_7,
+	TextureUnit_8,
 	NUM_TextureUnit
 };
 
