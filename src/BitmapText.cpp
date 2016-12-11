@@ -444,6 +444,7 @@ void BitmapText::DrawChars( bool bUseStrokeTexture )
 				break;
 			case 2:
 				textureUnit = TextureUnit_3;
+				break;
 			case 3:
 				textureUnit = TextureUnit_4;
 				break;
