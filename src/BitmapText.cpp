@@ -438,7 +438,7 @@ void BitmapText::DrawChars( bool bUseStrokeTexture )
 		{
 			haveTextures = true;
 
-			switch (texUnit)
+			switch ( texUnit )
 			{
 			case 0:
 				textureUnit = TextureUnit_1;
@@ -466,10 +466,10 @@ void BitmapText::DrawChars( bool bUseStrokeTexture )
 				break;
 			}
 			
-			if( bUseStrokeTexture )
-				DISPLAY->SetTexture(textureUnit, m_vpFontPageTextures[start]->m_pTextureStroke->GetTexHandle() );
+			if ( bUseStrokeTexture )
+				DISPLAY->SetTexture( textureUnit, m_vpFontPageTextures[start]->m_pTextureStroke->GetTexHandle() );
 			else
-				DISPLAY->SetTexture(textureUnit, m_vpFontPageTextures[start]->m_pTextureMain->GetTexHandle() );
+				DISPLAY->SetTexture( textureUnit, m_vpFontPageTextures[start]->m_pTextureMain->GetTexHandle() );
 
 			texUnit++;
 
@@ -480,10 +480,14 @@ void BitmapText::DrawChars( bool bUseStrokeTexture )
 			 
 			// This is SLOW. We need to do something else about this. -Colby
 			//Actor::SetTextureRenderStates();
-			
 		}
 
-		if (texUnit == 8 || (haveTextures && end >= iEndGlyph) || texUnit > DISPLAY->GetNumTextureUnits() || !PREFSMAN->m_bAllowMultitexture)
+		// Characters from different texture pages cannot be bundled together in the same render call
+		bool renderNow = false;
+		if ( haveTextures && end < m_vpFontPageTextures.size() && m_vpFontPageTextures[start]->m_pTextureMain != m_vpFontPageTextures[end]->m_pTextureMain )
+			renderNow = true;
+
+		if ( (haveTextures && (renderNow || end >= iEndGlyph)) || texUnit == 8 || texUnit > DISPLAY->GetNumTextureUnits() || !PREFSMAN->m_bAllowMultitexture )
 		{
 			DISPLAY->DrawQuads(&m_aVertices[startingPoint * 4], (end - startingPoint) * 4);
 
@@ -491,6 +495,7 @@ void BitmapText::DrawChars( bool bUseStrokeTexture )
 			DISPLAY->ClearAllTextures();
 			startingPoint = end;
 			texUnit = 0;
+			haveTextures = false;
 		}
 
 		start = end;
