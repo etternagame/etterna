@@ -10,6 +10,7 @@
 #include "ActorUtil.h"
 #include "LuaBinding.h"
 #include "Foreach.h"
+#include "PrefsManager.h"
 
 REGISTER_ACTOR_CLASS( BitmapText );
 
@@ -416,10 +417,14 @@ void BitmapText::DrawChars( bool bUseStrokeTexture )
 			}
 
 			for( int j = 0; j < 4; ++j )
-				m_aVertices[i+j].c.a = (unsigned char)( m_aVertices[i+j].c.a * fAlpha );
+				m_aVertices[i+j].c.a *= fAlpha;
 		}
 	}
 
+	TextureUnit textureUnit = TextureUnit_1;
+	int texUnit = 0;
+	int startingPoint = iStartGlyph;
+	DISPLAY->ClearAllTextures();
 	for( int start = iStartGlyph; start < iEndGlyph; )
 	{
 		int end = start;
@@ -429,11 +434,27 @@ void BitmapText::DrawChars( bool bUseStrokeTexture )
 		bool bHaveATexture = !bUseStrokeTexture  ||  (bUseStrokeTexture && m_vpFontPageTextures[start]->m_pTextureStroke);
 		if( bHaveATexture )
 		{
-			DISPLAY->ClearAllTextures();
+			switch (texUnit)
+			{
+			case 0:
+				textureUnit = TextureUnit_1;
+				break;
+			case 1:
+				textureUnit = TextureUnit_2;
+				break;
+			case 2:
+				textureUnit = TextureUnit_3;
+			case 3:
+				textureUnit = TextureUnit_4;
+				break;
+			}
+			
 			if( bUseStrokeTexture )
-				DISPLAY->SetTexture( TextureUnit_1, m_vpFontPageTextures[start]->m_pTextureStroke->GetTexHandle() );
+				DISPLAY->SetTexture(textureUnit, m_vpFontPageTextures[start]->m_pTextureStroke->GetTexHandle() );
 			else
-				DISPLAY->SetTexture( TextureUnit_1, m_vpFontPageTextures[start]->m_pTextureMain->GetTexHandle() );
+				DISPLAY->SetTexture(textureUnit, m_vpFontPageTextures[start]->m_pTextureMain->GetTexHandle() );
+
+			texUnit++;
 
 			// Don't bother setting texture render states for text. We never go outside of 0..1.
 			/* We should call SetTextureRenderStates because it does more than just setting 
@@ -442,8 +463,15 @@ void BitmapText::DrawChars( bool bUseStrokeTexture )
 			 
 			// This is SLOW. We need to do something else about this. -Colby
 			//Actor::SetTextureRenderStates();
-
-			DISPLAY->DrawQuads( &m_aVertices[start*4], (end-start)*4);
+			if (texUnit == 4 || end >= iEndGlyph || !PREFSMAN->m_bAllowMultitexture || texUnit > DISPLAY->GetNumTextureUnits() )
+			{
+				DISPLAY->DrawQuads(&m_aVertices[startingPoint * 4], (end - startingPoint) * 4);
+				
+				// Setup for the next render pass
+				DISPLAY->ClearAllTextures();
+				startingPoint = end;
+				texUnit = 0;
+			}
 		}
 
 		start = end;
