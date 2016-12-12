@@ -5,6 +5,7 @@ local defaultConfig = {
 	GhostScoreType = 1,
 	GhostTarget = 93,
 	TargetTracker = true,
+	TargetTrackerMode = 0,
 	JudgeCounter = true,
 	ErrorBar = true,
 	PlayerInfo = true,

@@ -89,23 +89,7 @@ t[#t+1] = LoadActor("lanecover")
 ]]
 
 -- Clientside now. All we do is listen for broadcasts for values calculated by the game and then display them. 
-d = Def.ActorFrame{
-	LoadFont("Common Normal")..{											
-		Name = "Display",
-		InitCommand=cmd(xy,SCREEN_CENTER_X+26,SCREEN_CENTER_Y+30;zoom,0.4;halign,0;valign,1),
-		JudgmentMessageCommand=function(self,msg)
-			tDiff = msg.WifeDifferential
-			if tDiff >= 0 then 											
-				tDiff = "+"..tDiff
-				diffuse(self,positive)
-			else
-				diffuse(self,negative)
-			end
-			self:settextf("%5.2f", tDiff)
-		end
-	},
-	Def.Quad{InitCommand=cmd(xy,60,(SCREEN_HEIGHT*0.62)-90;zoomto,60,16;diffuse,color("0,0,0,0.4");horizalign,left;vertalign,top)},
-	
+d = Def.ActorFrame{	
 	-- Displays your current percentage score
 	LoadFont("Common Large")..{											
 		Name = "DisplayPercent",
@@ -117,7 +101,42 @@ d = Def.ActorFrame{
 			self:settextf("%05.2f%%", Floor(msg.WifePercent*100)/100)
 		end
 	},
+	Def.Quad{InitCommand=cmd(xy,60,(SCREEN_HEIGHT*0.62)-90;zoomto,60,16;diffuse,color("0,0,0,0.4");horizalign,left;vertalign,top)},
 }
+
+if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetTrackerMode == 0 then
+	d[#d+1] = LoadFont("Common Normal")..{											
+		Name = "93% Differential",
+		InitCommand=cmd(xy,SCREEN_CENTER_X+26,SCREEN_CENTER_Y+30;zoom,0.4;halign,0;valign,1),
+		JudgmentMessageCommand=function(self,msg)
+			tDiff = msg.WifeDifferential
+			if tDiff >= 0 then 											
+				tDiff = "+"..tDiff
+				diffuse(self,positive)
+			else
+				diffuse(self,negative)
+			end
+			self:settextf("%5.2f", tDiff)
+		end
+	}
+	else
+	d[#d+1] = LoadFont("Common Normal")..{											
+		Name = "PB Differential",
+		InitCommand=cmd(xy,SCREEN_CENTER_X+26,SCREEN_CENTER_Y+30;zoom,0.4;halign,0;valign,1),
+		JudgmentMessageCommand=function(self,msg)
+			tDiff = msg.WifePBDifferential
+			if tDiff >= 0 then 											
+				tDiff = "+"..tDiff
+				diffuse(self,positive)
+			else
+				diffuse(self,negative)
+			end
+			self:settextf("%5.2f", tDiff)
+		end
+	}
+end
+
+
 
 if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetTracker then
 	t[#t+1] = d

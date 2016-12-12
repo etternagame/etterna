@@ -2049,6 +2049,23 @@ void Profile::GetScoresByKey(vector<SongID>& songids, vector<StepsID>& stepsids,
 	}
 }
 
+float Profile::GetWifePBByKey(RString key) {
+	float o = 0.f;
+	FOREACHM_CONST(SongID, HighScoresForASong, m_SongHighScores, i) {
+		const SongID& id = i->first;
+		const HighScoresForASong& hsfas = i->second;
+		FOREACHM_CONST(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
+			const StepsID& sid = j->first;
+			if (sid.GetKey() == key) {
+				FOREACH_CONST(HighScore, j->second.hsl.vHighScores, hs)
+					if (hs->GetWifeScore() > o)
+						o = hs->GetWifeScore();
+			}
+		}
+	}
+	return o;
+}
+
 float Profile::CalcPlayerRating() const {
 	vector<float> vSSR;
 	FOREACHM_CONST(SongID, HighScoresForASong, m_SongHighScores, i) {

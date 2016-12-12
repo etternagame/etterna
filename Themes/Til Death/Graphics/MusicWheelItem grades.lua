@@ -14,7 +14,7 @@ return Def.ActorFrame{
 		InitCommand=cmd(xy,-14,-2;zoomto,4,19),
 		SetGradeCommand=function(self,params)
 			if params.Favorited then
-				self:LoadBackground(THEME:GetPathG("","urthemannowdog"))
+				self:Load(THEME:GetPathG("","urthemannowdog"))
 				self:zoomto(24,24)
 				self:visible(true)
 			else
