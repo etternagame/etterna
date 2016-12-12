@@ -1,4 +1,5 @@
 #include "global.h"
+#include "Foreach.h"
 #include "RageDisplay.h"
 #include "RageDisplay_D3D.h"
 #include "RageUtil.h"
@@ -46,9 +47,18 @@ D3DPRESENT_PARAMETERS	g_d3dpp;
 int					g_ModelMatrixCnt=0;
 static bool		g_bSphereMapping[NUM_TextureUnit] = { false, false };
 
+// Need default color and depth buffer to restor them after using render targets
+IDirect3DSurface9* defaultColorBuffer = 0;
+IDirect3DSurface9* defaultDepthBuffer = 0;
+
 // TODO: Instead of defining this here, enumerate the possible formats and select whatever one we want to use. This format should
 // be fine for the uses of this application though.
 const D3DFORMAT g_DefaultAdapterFormat = D3DFMT_X8R8G8B8;
+
+static map<unsigned, RenderTarget *> g_mapRenderTargets;
+static RenderTarget *g_pCurrentRenderTarget = NULL;
+
+static bool g_bInvertY = false;
 
 /* Direct3D doesn't associate a palette with textures. Instead, we load a
  * palette into a slot. We need to keep track of which texture's palette is
@@ -376,6 +386,15 @@ RString SetD3DParams( bool &bNewDeviceOut )
 
 	g_pd3dDevice->SetRenderState( D3DRS_NORMALIZENORMALS, TRUE );	
 
+	// Save default color and depth buffer
+	g_pd3dDevice->GetRenderTarget( 0, &defaultColorBuffer );
+	g_pd3dDevice->GetDepthStencilSurface( &defaultDepthBuffer );
+
+	// wipe old render targets
+	FOREACHM(unsigned, RenderTarget *, g_mapRenderTargets, rt)
+		delete rt->second;
+	g_mapRenderTargets.clear();
+
 	// Palettes were lost by Reset(), so mark them unloaded.
 	g_TexResourceToPaletteIndex.clear();
 
@@ -695,6 +714,13 @@ void RageDisplay_D3D::SendCurrentMatrices()
 {
 	RageMatrix m;
 	RageMatrixMultiply( &m, GetCentering(), GetProjectionTop() );
+
+	if (g_bInvertY)
+	{
+		RageMatrix flip;
+		RageMatrixScale(&flip, +1, -1, +1);
+		RageMatrixMultiply(&m, &flip, &m);
+	}
 
 	// Convert to OpenGL-style "pixel-centered" coords
 	RageMatrix m2 = GetCenteringMatrix( -0.5f, -0.5f, 0, 0 );
@@ -1346,6 +1372,14 @@ void RageDisplay_D3D::DeleteTexture( unsigned iTexHandle )
 	IDirect3DTexture9* pTex = (IDirect3DTexture9*) iTexHandle;
 	pTex->Release();
 
+	// Delete render target (if any)
+	if (g_mapRenderTargets.find(iTexHandle) != g_mapRenderTargets.end())
+	{
+		delete g_mapRenderTargets[iTexHandle];
+		g_mapRenderTargets.erase(iTexHandle);
+		return;
+	}
+
 	// Delete palette (if any)
 	if( g_TexResourceToPaletteIndex.find(iTexHandle) != g_TexResourceToPaletteIndex.end() )
 		g_TexResourceToPaletteIndex.erase( g_TexResourceToPaletteIndex.find(iTexHandle) );
@@ -1449,6 +1483,236 @@ RageMatrix RageDisplay_D3D::GetOrthoMatrix( float l, float r, float b, float t, 
 	RageMatrixMultiply( &m, &tmp, &m );
 
 	return m;
+}
+
+// Ported from OpenGL - xwidghet
+class D3DRenderTarget_FramebufferObject : public RenderTarget
+{
+public:
+	D3DRenderTarget_FramebufferObject();
+	~D3DRenderTarget_FramebufferObject();
+	void Create(const RenderTargetParam &param, int &iTextureWidthOut, int &iTextureHeightOut);
+	unsigned GetTexture() const { return (unsigned)m_uTexHandle; }
+	void StartRenderingTo();
+	void FinishRenderingTo();
+
+	virtual bool InvertY() const { return true; }
+
+private:
+	IDirect3DSurface9* m_iFrameBufferHandle;
+	IDirect3DTexture9* m_uTexHandle;
+	IDirect3DSurface9* m_iDepthBufferHandle;
+};
+
+D3DRenderTarget_FramebufferObject::D3DRenderTarget_FramebufferObject()
+{
+	m_iFrameBufferHandle = 0;
+	m_uTexHandle = 0;
+	m_iDepthBufferHandle = 0;
+}
+
+D3DRenderTarget_FramebufferObject::~D3DRenderTarget_FramebufferObject()
+{
+	if (m_iDepthBufferHandle)
+	{
+		m_iDepthBufferHandle->Release();
+	}
+	if (m_iFrameBufferHandle)
+	{
+		m_iFrameBufferHandle->Release();
+	}
+	if (m_uTexHandle)
+	{
+		m_uTexHandle->Release();
+	}
+}
+
+void D3DRenderTarget_FramebufferObject::Create(const RenderTargetParam &param, int &iTextureWidthOut, int &iTextureHeightOut)
+{
+	m_Param = param;
+
+	int iTextureWidth = power_of_two(param.iWidth);
+	int iTextureHeight = power_of_two(param.iHeight);
+
+	iTextureWidthOut = iTextureWidth;
+	iTextureHeightOut = iTextureHeight;
+
+	IDirect3DSurface9* pScreen = NULL;
+
+	LOG->Warn("About to get screen.");
+	if (SUCCEEDED(g_pd3dDevice->GetRenderTarget(0, &pScreen)))
+	{
+		LOG->Warn("SUCCESS: Got screen");
+		D3DSURFACE_DESC desc;
+		pScreen->GetDesc(&desc);
+
+		LOG->Warn("About to create texture");
+		if (SUCCEEDED(g_pd3dDevice->CreateTexture(param.iWidth, param.iHeight, 1, 0, desc.Format, D3DPOOL_MANAGED, &m_uTexHandle, NULL)))
+		{
+			LOG->Warn("SUCCESS: created texture and set m_uTexHandle");
+		}
+		else
+		{
+			LOG->Warn("FAILED: CreateTexture failed");
+		}
+
+		LOG->Warn("About to create render target.");
+		if (!SUCCEEDED(g_pd3dDevice->CreateRenderTarget(iTextureWidthOut, iTextureHeightOut, desc.Format, desc.MultiSampleType, desc.MultiSampleQuality, false, &m_iFrameBufferHandle, NULL)))
+		{
+			LOG->Warn("FAILED: Render target not made");
+		}
+		else
+		{
+			LOG->Warn("SUCCESS: Made render target");
+		}
+
+		// Make a copy of the depth buffer if requested
+		if (param.bWithDepthBuffer)
+		{
+			LOG->Warn("About to get depth buffer");
+			if (SUCCEEDED(g_pd3dDevice->CreateDepthStencilSurface(iTextureWidthOut, iTextureHeightOut, desc.Format, D3DMULTISAMPLE_NONE, 0, true, &m_iDepthBufferHandle, NULL)))
+			{
+				LOG->Warn("SUCCESS: Created depth stencil");
+			}
+			else
+			{
+				LOG->Warn("FAILED: Didn't make depth stencil.");
+			}
+		}
+		pScreen->Release();
+	}
+	else
+	{
+		LOG->Warn("FAILED: Couldn't get screen");
+	}
+}
+
+void D3DRenderTarget_FramebufferObject::StartRenderingTo()
+{
+	if (!SUCCEEDED(g_pd3dDevice->SetRenderTarget(0, m_iFrameBufferHandle)))
+		LOG->Warn("Failed to set target to RenderTarget");
+}
+
+void D3DRenderTarget_FramebufferObject::FinishRenderingTo()
+{
+	if(!SUCCEEDED(g_pd3dDevice->SetRenderTarget(0, defaultColorBuffer)))
+		LOG->Warn("Failed to set target to BackBuffer");
+}
+
+/*
+* Render-to-texture can be implemented in several ways: the generic GL_ARB_pixel_buffer_object,
+* or platform-specifically.  PBO is not available on all hardware that supports RTT,
+* particularly GeForce 2, but is simpler and faster when available.
+*/
+
+unsigned RageDisplay_D3D::CreateRenderTarget(const RenderTargetParam &param, int &iTextureWidthOut, int &iTextureHeightOut)
+{
+	LOG->Warn("Start CreateRenderTarget");
+	D3DRenderTarget_FramebufferObject *pTarget = new D3DRenderTarget_FramebufferObject;
+
+	LOG->Warn("About to get Create");
+	pTarget->Create(param, iTextureWidthOut, iTextureHeightOut);
+
+	unsigned uTexture = pTarget->GetTexture();
+	
+	ASSERT(g_mapRenderTargets.find(uTexture) == g_mapRenderTargets.end());
+	g_mapRenderTargets[uTexture] = pTarget;
+
+	LOG->Warn("Size of render target map: %lu", g_mapRenderTargets.size());
+
+	return uTexture;
+}
+
+unsigned RageDisplay_D3D::GetRenderTarget()
+{
+	for (map<unsigned, RenderTarget*>::const_iterator it = g_mapRenderTargets.begin(); it != g_mapRenderTargets.end(); ++it)
+		if (it->second == g_pCurrentRenderTarget)
+			return it->first;
+	return 0;
+}
+
+void RageDisplay_D3D::SetRenderTarget(unsigned uTexHandle, bool bPreserveTexture)
+{
+	if (uTexHandle == 0)
+	{
+		g_bInvertY = false;
+		g_pd3dDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
+
+		/* Pop matrixes affected by SetDefaultRenderStates. */
+		DISPLAY->CameraPopMatrix();
+
+		/* Reset the viewport. */
+		D3DVIEWPORT9 viewData;
+		g_pd3dDevice->GetViewport(&viewData);
+		viewData.Width = GetActualVideoModeParams()->width;
+		viewData.Width = GetActualVideoModeParams()->height;
+		g_pd3dDevice->SetViewport(&viewData);
+
+		if (g_pCurrentRenderTarget)
+			g_pCurrentRenderTarget->FinishRenderingTo();
+		g_pCurrentRenderTarget = NULL;
+		return;
+	}
+	LOG->Warn("Continuing SetRenderTarget");
+
+	/* If we already had a render target, disable it. */
+	if (g_pCurrentRenderTarget != NULL)
+	{
+		SetRenderTarget(0, true);
+	}
+	else
+	{
+		LOG->Warn("Current render target is null");
+	}
+
+	if(g_mapRenderTargets.size() == 0)
+		LOG->Info("Trying to set a target when we have none, death imminent");
+	
+	/* Enable the new render target. */
+	ASSERT(g_mapRenderTargets.find(uTexHandle) != g_mapRenderTargets.end());
+	RenderTarget *pTarget = g_mapRenderTargets[uTexHandle];
+
+	LOG->Warn("About to RenderTo");
+	pTarget->StartRenderingTo();
+	LOG->Warn("About to set rendertarget to ptarget");
+	g_pCurrentRenderTarget = pTarget;
+
+	LOG->Warn("Set Render target");
+
+	/* Set the viewport to the size of the render target. */
+	D3DVIEWPORT9 viewData;
+	g_pd3dDevice->GetViewport(&viewData);
+	viewData.Width = pTarget->GetParam().iWidth;
+	viewData.Width = pTarget->GetParam().iHeight;
+	g_pd3dDevice->SetViewport(&viewData);
+
+	LOG->Warn("Set Viewport");
+
+	/* If this render target implementation flips Y, compensate.   Inverting will
+	* switch the winding order. */
+	g_bInvertY = pTarget->InvertY();
+	if (g_bInvertY)
+		g_pd3dDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
+
+	/* The render target may be in a different OpenGL context, so re-send
+	* state.  Push matrixes affected by SetDefaultRenderStates. */
+	DISPLAY->CameraPushMatrix();
+	SetDefaultRenderStates();
+
+	LOG->Warn("Pushed camera matrix");
+
+	/* If bPreserveTexture is false, clear the render target.  Only clear the depth
+	* buffer if the target has one; otherwise we're clearing the real depth buffer. */
+	if (!bPreserveTexture)
+	{
+		int iBit = 0;
+		if (pTarget->GetParam().bWithDepthBuffer)
+			iBit |= D3DCLEAR_ZBUFFER;
+		g_pd3dDevice->Clear(0, NULL, iBit,
+			D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0x00000000);
+	}
+
+	LOG->Warn("WOOHOO!");
 }
 
 void RageDisplay_D3D::SetSphereEnvironmentMapping( TextureUnit tu, bool b )

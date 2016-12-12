@@ -63,6 +63,10 @@ public:
 		const RageColor &specular, 
 		const RageVector3 &dir );
 
+	unsigned CreateRenderTarget(const RenderTargetParam &param, int &iTextureWidthOut, int &iTextureHeightOut);
+	unsigned GetRenderTarget();
+	void SetRenderTarget(unsigned uTexHandle, bool bPreserveTexture);
+
 	void SetSphereEnvironmentMapping( TextureUnit tu, bool b );
 	void SetCelShaded( int stage );
 
@@ -83,6 +87,30 @@ protected:
 	RageMatrix GetOrthoMatrix( float l, float r, float b, float t, float zn, float zf ); 
 
 	void SendCurrentMatrices();
+};
+
+class RenderTarget
+{
+public:
+	virtual ~RenderTarget() { }
+
+	virtual void Create(const RenderTargetParam &param, int &iTextureWidthOut, int &iTextureHeightOut) = 0;
+
+	virtual unsigned GetTexture() const = 0;
+
+	/* Render to this RenderTarget. */
+	virtual void StartRenderingTo() = 0;
+
+	/* Stop rendering to this RenderTarget.  Update the texture, if necessary, and
+	* make it available. */
+	virtual void FinishRenderingTo() = 0;
+
+	virtual bool InvertY() const { return false; }
+
+	const RenderTargetParam &GetParam() const { return m_Param; }
+
+protected:
+	RenderTargetParam m_Param;
 };
 
 #endif

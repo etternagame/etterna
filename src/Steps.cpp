@@ -186,7 +186,11 @@ void Steps::SetNoteData( const NoteData& noteDataNew )
 
 void Steps::GetNoteData( NoteData& noteDataOut, bool isGameplay ) const
 {
-	Compress();
+	// HACK: isGameplay breaks the logic for not decompressing when already decompressed
+	// because decompress may have been run by a false before hand
+	if( isGameplay )
+		Compress();
+
 	Decompress(isGameplay);
 
 	if( m_bNoteDataIsFilled )
