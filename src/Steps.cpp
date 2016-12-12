@@ -186,6 +186,7 @@ void Steps::SetNoteData( const NoteData& noteDataNew )
 
 void Steps::GetNoteData( NoteData& noteDataOut, bool isGameplay ) const
 {
+	Compress();
 	Decompress(isGameplay);
 
 	if( m_bNoteDataIsFilled )
