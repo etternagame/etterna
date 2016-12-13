@@ -127,7 +127,7 @@ if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetTrackerMode == 0 th
 			tDiff = msg.WifePBDifferential
 			if tDiff >= 0 then 											
 				tDiff = "+"..tDiff
-				diffuse(self,positive)
+				diffuse(self,color("#00ff00"))
 			else
 				diffuse(self,negative)
 			end

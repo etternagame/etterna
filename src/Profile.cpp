@@ -2058,7 +2058,7 @@ float Profile::GetWifePBByKey(RString key) {
 			const StepsID& sid = j->first;
 			if (sid.GetKey() == key) {
 				FOREACH_CONST(HighScore, j->second.hsl.vHighScores, hs)
-					if (hs->GetWifeScore() > o)
+					if (hs->GetWifeScore() > o && GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate == hs->GetMusicRate())
 						o = hs->GetWifeScore();
 			}
 		}
