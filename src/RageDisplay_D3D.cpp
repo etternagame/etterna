@@ -1533,14 +1533,35 @@ void D3DRenderTarget_FramebufferObject::Create(const RenderTargetParam &param, i
 	iTextureWidthOut = iTextureWidth;
 	iTextureHeightOut = iTextureHeight;
 
+	D3DFORMAT textureFormat;
+	if (param.bWithAlpha)
+		textureFormat = D3DFMT_A8R8G8B8;
+	else
+		textureFormat = D3DFMT_X8R8G8B8;
+
 	LOG->Warn("About to create texture");
-	if (!SUCCEEDED(g_pd3dDevice->CreateTexture(iTextureWidth, iTextureHeight, 1, D3DUSAGE_RENDERTARGET, g_d3dpp.BackBufferFormat, D3DPOOL_DEFAULT, &m_uTexHandle, NULL)))
+	// Currently only used as an index for this render target object. Great memory usage I know -xwidghet
+	if (!SUCCEEDED(g_pd3dDevice->CreateTexture(iTextureWidth, iTextureHeight, 1, D3DUSAGE_RENDERTARGET, textureFormat, D3DPOOL_DEFAULT, &m_uTexHandle, NULL)))
 	{
 		LOG->Warn("FAILED: CreateTexture failed");
 	}
+
+	g_pd3dDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+	g_pd3dDevice->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+	g_pd3dDevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+	g_pd3dDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+
+	// S = U
+	// T = V
+	/*	OpenGL states for comparison
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	*/
 		
 	LOG->Warn("About to create render target");
-	if (!SUCCEEDED(g_pd3dDevice->CreateRenderTarget(iTextureWidth, iTextureHeight, g_d3dpp.BackBufferFormat, g_d3dpp.MultiSampleType, g_d3dpp.MultiSampleQuality, false, &m_iFrameBufferHandle, NULL)))
+	if (!SUCCEEDED(g_pd3dDevice->CreateRenderTarget(iTextureWidth, iTextureHeight, textureFormat, g_d3dpp.MultiSampleType, g_d3dpp.MultiSampleQuality, false, &m_iFrameBufferHandle, NULL)))
 	{
 		LOG->Warn("FAILED: Render target not made");
 	}
@@ -1562,12 +1583,15 @@ void D3DRenderTarget_FramebufferObject::StartRenderingTo()
 	if (!SUCCEEDED(g_pd3dDevice->GetDepthStencilSurface(&defaultDepthBuffer)))
 		LOG->Warn("Failed to get default depth buffer");
 
-	m_uTexHandle->GetSurfaceLevel(0, &m_iFrameBufferHandle);
+	//m_uTexHandle->GetSurfaceLevel(0, &m_iFrameBufferHandle);
 	if (!SUCCEEDED(g_pd3dDevice->SetRenderTarget(0, m_iFrameBufferHandle)))
 		LOG->Warn("Failed to set target to RenderTarget");
 
 	if (!SUCCEEDED(g_pd3dDevice->SetDepthStencilSurface(m_iDepthBufferHandle)))
 		LOG->Warn("Failed to set targetDepth to RenderTargetDepth");
+
+	// Used for Debug
+	//g_pd3dDevice->ColorFill(m_iFrameBufferHandle, NULL, D3DCOLOR_XRGB(255, 255, 255));
 }
 
 void D3DRenderTarget_FramebufferObject::FinishRenderingTo()
@@ -1578,12 +1602,6 @@ void D3DRenderTarget_FramebufferObject::FinishRenderingTo()
 	if (!SUCCEEDED(g_pd3dDevice->SetDepthStencilSurface(defaultDepthBuffer)))
 		LOG->Warn("Failed to set targetDepth to BackBufferDepth");
 }
-
-/*
-* Render-to-texture can be implemented in several ways: the generic GL_ARB_pixel_buffer_object,
-* or platform-specifically.  PBO is not available on all hardware that supports RTT,
-* particularly GeForce 2, but is simpler and faster when available.
-*/
 
 unsigned RageDisplay_D3D::CreateRenderTarget(const RenderTargetParam &param, int &iTextureWidthOut, int &iTextureHeightOut)
 {
@@ -1619,12 +1637,11 @@ void RageDisplay_D3D::SetRenderTarget(unsigned uTexHandle, bool bPreserveTexture
 
 		/* Reset the viewport. */
 		D3DVIEWPORT9 viewData;
-		g_pd3dDevice->GetViewport(&viewData);
 		viewData.Width = GetActualVideoModeParams()->width;
 		viewData.Height = GetActualVideoModeParams()->height;
 		g_pd3dDevice->SetViewport(&viewData);
 
-		if (g_pCurrentRenderTarget != NULL)
+		if (g_pCurrentRenderTarget)
 			g_pCurrentRenderTarget->FinishRenderingTo();
 		g_pCurrentRenderTarget = NULL;
 		return;
@@ -1642,7 +1659,6 @@ void RageDisplay_D3D::SetRenderTarget(unsigned uTexHandle, bool bPreserveTexture
 
 	/* Set the viewport to the size of the render target. */
 	D3DVIEWPORT9 viewData;
-	g_pd3dDevice->GetViewport(&viewData);
 	viewData.Width = pTarget->GetParam().iWidth;
 	viewData.Height = pTarget->GetParam().iHeight;
 	g_pd3dDevice->SetViewport(&viewData);
@@ -1653,7 +1669,7 @@ void RageDisplay_D3D::SetRenderTarget(unsigned uTexHandle, bool bPreserveTexture
 	if (g_bInvertY)
 		g_pd3dDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
 
-	/* The render target may be in a different OpenGL context, so re-send
+	/* The render target may be in a different D3D context, so re-send
 	* state.  Push matrixes affected by SetDefaultRenderStates. */
 	DISPLAY->CameraPushMatrix();
 	SetDefaultRenderStates();
@@ -1663,16 +1679,16 @@ void RageDisplay_D3D::SetRenderTarget(unsigned uTexHandle, bool bPreserveTexture
 	* buffer if the target has one; otherwise we're clearing the real depth buffer. */
 	if (!bPreserveTexture)
 	{
-		//int iBit = D3DCLEAR_TARGET | D3DCLEAR_TARGET;
-		//if (pTarget->GetParam().bWithDepthBuffer)
-		//{
-		//	iBit |= D3DCLEAR_ZBUFFER;
-		//	LOG->Warn("Clearing zbuffer");
-		//}
-			
-		g_pd3dDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER |
-			D3DCLEAR_STENCIL,
-			D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0x00000000);
+		int iBit = D3DCLEAR_TARGET;
+		if (pTarget->GetParam().bWithDepthBuffer)
+		{
+			iBit |= D3DCLEAR_ZBUFFER;
+			LOG->Warn("Clearing zbuffer");
+		}
+		// Add clearing stencil for debug
+		if (FAILED(g_pd3dDevice->Clear(0, NULL, iBit,
+			D3DCOLOR_XRGB(0, 0, 0), 0.0f, 0x00000000)))
+			LOG->Warn("Failed to clear render target");
 	}
 }
 
