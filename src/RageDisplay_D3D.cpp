@@ -1539,7 +1539,6 @@ void D3DRenderTarget_FramebufferObject::Create(const RenderTargetParam &param, i
 
 	IDirect3DSurface9* pScreen = NULL;
 
-	LOG->Warn("About to get screen.");
 	if (SUCCEEDED(g_pd3dDevice->GetRenderTarget(0, &pScreen)))
 	{
 		LOG->Warn("SUCCESS: Got screen");
@@ -1547,37 +1546,22 @@ void D3DRenderTarget_FramebufferObject::Create(const RenderTargetParam &param, i
 		pScreen->GetDesc(&desc);
 
 		LOG->Warn("About to create texture");
-		if (SUCCEEDED(g_pd3dDevice->CreateTexture(param.iWidth, param.iHeight, 1, 0, desc.Format, D3DPOOL_MANAGED, &m_uTexHandle, NULL)))
-		{
-			LOG->Warn("SUCCESS: created texture and set m_uTexHandle");
-		}
-		else
+		if (!SUCCEEDED(g_pd3dDevice->CreateTexture(iTextureWidth, iTextureHeight, 1, D3DUSAGE_RENDERTARGET, desc.Format, D3DPOOL_DEFAULT, &m_uTexHandle, NULL)))
 		{
 			LOG->Warn("FAILED: CreateTexture failed");
 		}
 
-		LOG->Warn("About to create render target.");
-		if (!SUCCEEDED(g_pd3dDevice->CreateRenderTarget(iTextureWidthOut, iTextureHeightOut, desc.Format, desc.MultiSampleType, desc.MultiSampleQuality, false, &m_iFrameBufferHandle, NULL)))
+		LOG->Warn("About to create render target");
+		if (!SUCCEEDED(g_pd3dDevice->CreateRenderTarget(iTextureWidth, iTextureHeight, desc.Format, desc.MultiSampleType, desc.MultiSampleQuality, false, &m_iFrameBufferHandle, NULL)))
 		{
 			LOG->Warn("FAILED: Render target not made");
 		}
-		else
-		{
-			LOG->Warn("SUCCESS: Made render target");
-		}
 
-		// Make a copy of the depth buffer if requested
-		if (param.bWithDepthBuffer)
+		// Unlike OpenGL, D3D must use a depth stencil when using render targets
+		LOG->Warn("About to create depth surface");
+		if (!SUCCEEDED(g_pd3dDevice->CreateDepthStencilSurface(iTextureWidth, iTextureHeight, D3DFMT_D16, desc.MultiSampleType, desc.MultiSampleQuality, true, &m_iDepthBufferHandle, NULL)))
 		{
-			LOG->Warn("About to get depth buffer");
-			if (SUCCEEDED(g_pd3dDevice->CreateDepthStencilSurface(iTextureWidthOut, iTextureHeightOut, desc.Format, D3DMULTISAMPLE_NONE, 0, true, &m_iDepthBufferHandle, NULL)))
-			{
-				LOG->Warn("SUCCESS: Created depth stencil");
-			}
-			else
-			{
-				LOG->Warn("FAILED: Didn't make depth stencil.");
-			}
+			LOG->Warn("FAILED: Didn't make depth stencil.");
 		}
 		pScreen->Release();
 	}
@@ -1591,12 +1575,18 @@ void D3DRenderTarget_FramebufferObject::StartRenderingTo()
 {
 	if (!SUCCEEDED(g_pd3dDevice->SetRenderTarget(0, m_iFrameBufferHandle)))
 		LOG->Warn("Failed to set target to RenderTarget");
+
+	if (!SUCCEEDED(g_pd3dDevice->SetDepthStencilSurface(m_iDepthBufferHandle)))
+		LOG->Warn("Failed to set targetDepth to RenderTargetDepth");
 }
 
 void D3DRenderTarget_FramebufferObject::FinishRenderingTo()
 {
 	if(!SUCCEEDED(g_pd3dDevice->SetRenderTarget(0, defaultColorBuffer)))
 		LOG->Warn("Failed to set target to BackBuffer");
+
+	if (!SUCCEEDED(g_pd3dDevice->SetDepthStencilSurface(defaultDepthBuffer)))
+		LOG->Warn("Failed to set targetDepth to BackBufferDepth");
 }
 
 /*
@@ -1607,18 +1597,14 @@ void D3DRenderTarget_FramebufferObject::FinishRenderingTo()
 
 unsigned RageDisplay_D3D::CreateRenderTarget(const RenderTargetParam &param, int &iTextureWidthOut, int &iTextureHeightOut)
 {
-	LOG->Warn("Start CreateRenderTarget");
 	D3DRenderTarget_FramebufferObject *pTarget = new D3DRenderTarget_FramebufferObject;
 
-	LOG->Warn("About to get Create");
 	pTarget->Create(param, iTextureWidthOut, iTextureHeightOut);
 
 	unsigned uTexture = pTarget->GetTexture();
 	
 	ASSERT(g_mapRenderTargets.find(uTexture) == g_mapRenderTargets.end());
 	g_mapRenderTargets[uTexture] = pTarget;
-
-	LOG->Warn("Size of render target map: %lu", g_mapRenderTargets.size());
 
 	return uTexture;
 }
@@ -1645,7 +1631,7 @@ void RageDisplay_D3D::SetRenderTarget(unsigned uTexHandle, bool bPreserveTexture
 		D3DVIEWPORT9 viewData;
 		g_pd3dDevice->GetViewport(&viewData);
 		viewData.Width = GetActualVideoModeParams()->width;
-		viewData.Width = GetActualVideoModeParams()->height;
+		viewData.Height = GetActualVideoModeParams()->height;
 		g_pd3dDevice->SetViewport(&viewData);
 
 		if (g_pCurrentRenderTarget)
@@ -1653,40 +1639,24 @@ void RageDisplay_D3D::SetRenderTarget(unsigned uTexHandle, bool bPreserveTexture
 		g_pCurrentRenderTarget = NULL;
 		return;
 	}
-	LOG->Warn("Continuing SetRenderTarget");
 
 	/* If we already had a render target, disable it. */
 	if (g_pCurrentRenderTarget != NULL)
-	{
 		SetRenderTarget(0, true);
-	}
-	else
-	{
-		LOG->Warn("Current render target is null");
-	}
-
-	if(g_mapRenderTargets.size() == 0)
-		LOG->Info("Trying to set a target when we have none, death imminent");
 	
 	/* Enable the new render target. */
 	ASSERT(g_mapRenderTargets.find(uTexHandle) != g_mapRenderTargets.end());
 	RenderTarget *pTarget = g_mapRenderTargets[uTexHandle];
 
-	LOG->Warn("About to RenderTo");
 	pTarget->StartRenderingTo();
-	LOG->Warn("About to set rendertarget to ptarget");
 	g_pCurrentRenderTarget = pTarget;
-
-	LOG->Warn("Set Render target");
 
 	/* Set the viewport to the size of the render target. */
 	D3DVIEWPORT9 viewData;
 	g_pd3dDevice->GetViewport(&viewData);
 	viewData.Width = pTarget->GetParam().iWidth;
-	viewData.Width = pTarget->GetParam().iHeight;
+	viewData.Height = pTarget->GetParam().iHeight;
 	g_pd3dDevice->SetViewport(&viewData);
-
-	LOG->Warn("Set Viewport");
 
 	/* If this render target implementation flips Y, compensate.   Inverting will
 	* switch the winding order. */
@@ -1699,8 +1669,6 @@ void RageDisplay_D3D::SetRenderTarget(unsigned uTexHandle, bool bPreserveTexture
 	DISPLAY->CameraPushMatrix();
 	SetDefaultRenderStates();
 
-	LOG->Warn("Pushed camera matrix");
-
 	/* If bPreserveTexture is false, clear the render target.  Only clear the depth
 	* buffer if the target has one; otherwise we're clearing the real depth buffer. */
 	if (!bPreserveTexture)
@@ -1711,8 +1679,6 @@ void RageDisplay_D3D::SetRenderTarget(unsigned uTexHandle, bool bPreserveTexture
 		g_pd3dDevice->Clear(0, NULL, iBit,
 			D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0x00000000);
 	}
-
-	LOG->Warn("WOOHOO!");
 }
 
 void RageDisplay_D3D::SetSphereEnvironmentMapping( TextureUnit tu, bool b )
