@@ -47,7 +47,7 @@ D3DPRESENT_PARAMETERS	g_d3dpp;
 int					g_ModelMatrixCnt=0;
 static bool		g_bSphereMapping[NUM_TextureUnit] = { false, false };
 
-// Need default color and depth buffer to restor them after using render targets
+// Need default color and depth buffer to restore them after using render targets
 IDirect3DSurface9* defaultColorBuffer = 0;
 IDirect3DSurface9* defaultDepthBuffer = 0;
 
@@ -384,17 +384,13 @@ RString SetD3DParams( bool &bNewDeviceOut )
 		}
 	}
 
-	g_pd3dDevice->SetRenderState( D3DRS_NORMALIZENORMALS, TRUE );	
-
-	// Save default color and depth buffer
-	g_pd3dDevice->GetRenderTarget( 0, &defaultColorBuffer );
-	g_pd3dDevice->GetDepthStencilSurface( &defaultDepthBuffer );
+	g_pd3dDevice->SetRenderState( D3DRS_NORMALIZENORMALS, TRUE );
 
 	// wipe old render targets
 	FOREACHM(unsigned, RenderTarget *, g_mapRenderTargets, rt)
 		delete rt->second;
 	g_mapRenderTargets.clear();
-
+	
 	// Palettes were lost by Reset(), so mark them unloaded.
 	g_TexResourceToPaletteIndex.clear();
 
@@ -532,7 +528,7 @@ RString RageDisplay_D3D::TryVideoMode( const VideoModeParams &_p, bool &bNewDevi
 	{
 		// Try the video mode.
 		RString sErr = SetD3DParams( bNewDeviceOut );
-		if( sErr.empty() )
+		if ( sErr.empty() )
 			break;
 
 		/* It failed. We're probably selecting a video mode that isn't supported.
@@ -1537,42 +1533,36 @@ void D3DRenderTarget_FramebufferObject::Create(const RenderTargetParam &param, i
 	iTextureWidthOut = iTextureWidth;
 	iTextureHeightOut = iTextureHeight;
 
-	IDirect3DSurface9* pScreen = NULL;
-
-	if (SUCCEEDED(g_pd3dDevice->GetRenderTarget(0, &pScreen)))
+	LOG->Warn("About to create texture");
+	if (!SUCCEEDED(g_pd3dDevice->CreateTexture(iTextureWidth, iTextureHeight, 1, D3DUSAGE_RENDERTARGET, g_d3dpp.BackBufferFormat, D3DPOOL_DEFAULT, &m_uTexHandle, NULL)))
 	{
-		LOG->Warn("SUCCESS: Got screen");
-		D3DSURFACE_DESC desc;
-		pScreen->GetDesc(&desc);
-
-		LOG->Warn("About to create texture");
-		if (!SUCCEEDED(g_pd3dDevice->CreateTexture(iTextureWidth, iTextureHeight, 1, D3DUSAGE_RENDERTARGET, desc.Format, D3DPOOL_DEFAULT, &m_uTexHandle, NULL)))
-		{
-			LOG->Warn("FAILED: CreateTexture failed");
-		}
-
-		LOG->Warn("About to create render target");
-		if (!SUCCEEDED(g_pd3dDevice->CreateRenderTarget(iTextureWidth, iTextureHeight, desc.Format, desc.MultiSampleType, desc.MultiSampleQuality, false, &m_iFrameBufferHandle, NULL)))
-		{
-			LOG->Warn("FAILED: Render target not made");
-		}
-
-		// Unlike OpenGL, D3D must use a depth stencil when using render targets
-		LOG->Warn("About to create depth surface");
-		if (!SUCCEEDED(g_pd3dDevice->CreateDepthStencilSurface(iTextureWidth, iTextureHeight, D3DFMT_D16, desc.MultiSampleType, desc.MultiSampleQuality, true, &m_iDepthBufferHandle, NULL)))
-		{
-			LOG->Warn("FAILED: Didn't make depth stencil.");
-		}
-		pScreen->Release();
+		LOG->Warn("FAILED: CreateTexture failed");
 	}
-	else
+		
+	LOG->Warn("About to create render target");
+	if (!SUCCEEDED(g_pd3dDevice->CreateRenderTarget(iTextureWidth, iTextureHeight, g_d3dpp.BackBufferFormat, g_d3dpp.MultiSampleType, g_d3dpp.MultiSampleQuality, false, &m_iFrameBufferHandle, NULL)))
 	{
-		LOG->Warn("FAILED: Couldn't get screen");
+		LOG->Warn("FAILED: Render target not made");
+	}
+
+	// Unlike OpenGL, D3D must use a depth stencil when using render targets
+	LOG->Warn("About to create depth surface");
+	if (!SUCCEEDED(g_pd3dDevice->CreateDepthStencilSurface(iTextureWidth, iTextureHeight, g_d3dpp.AutoDepthStencilFormat, g_d3dpp.MultiSampleType, g_d3dpp.MultiSampleQuality, true, &m_iDepthBufferHandle, NULL)))
+	{
+		LOG->Warn("FAILED: Didn't make depth stencil.");
 	}
 }
 
 void D3DRenderTarget_FramebufferObject::StartRenderingTo()
 {
+	// Save default color and depth buffer
+	if (!SUCCEEDED(g_pd3dDevice->GetRenderTarget(0, &defaultColorBuffer)))
+		LOG->Warn("Failed to get default color buffer");
+
+	if (!SUCCEEDED(g_pd3dDevice->GetDepthStencilSurface(&defaultDepthBuffer)))
+		LOG->Warn("Failed to get default depth buffer");
+
+	m_uTexHandle->GetSurfaceLevel(0, &m_iFrameBufferHandle);
 	if (!SUCCEEDED(g_pd3dDevice->SetRenderTarget(0, m_iFrameBufferHandle)))
 		LOG->Warn("Failed to set target to RenderTarget");
 
@@ -1634,7 +1624,7 @@ void RageDisplay_D3D::SetRenderTarget(unsigned uTexHandle, bool bPreserveTexture
 		viewData.Height = GetActualVideoModeParams()->height;
 		g_pd3dDevice->SetViewport(&viewData);
 
-		if (g_pCurrentRenderTarget)
+		if (g_pCurrentRenderTarget != NULL)
 			g_pCurrentRenderTarget->FinishRenderingTo();
 		g_pCurrentRenderTarget = NULL;
 		return;
@@ -1647,7 +1637,6 @@ void RageDisplay_D3D::SetRenderTarget(unsigned uTexHandle, bool bPreserveTexture
 	/* Enable the new render target. */
 	ASSERT(g_mapRenderTargets.find(uTexHandle) != g_mapRenderTargets.end());
 	RenderTarget *pTarget = g_mapRenderTargets[uTexHandle];
-
 	pTarget->StartRenderingTo();
 	g_pCurrentRenderTarget = pTarget;
 
@@ -1668,15 +1657,21 @@ void RageDisplay_D3D::SetRenderTarget(unsigned uTexHandle, bool bPreserveTexture
 	* state.  Push matrixes affected by SetDefaultRenderStates. */
 	DISPLAY->CameraPushMatrix();
 	SetDefaultRenderStates();
+	SetZWrite(true);
 
 	/* If bPreserveTexture is false, clear the render target.  Only clear the depth
 	* buffer if the target has one; otherwise we're clearing the real depth buffer. */
 	if (!bPreserveTexture)
 	{
-		int iBit = 0;
-		if (pTarget->GetParam().bWithDepthBuffer)
-			iBit |= D3DCLEAR_ZBUFFER;
-		g_pd3dDevice->Clear(0, NULL, iBit,
+		//int iBit = D3DCLEAR_TARGET | D3DCLEAR_TARGET;
+		//if (pTarget->GetParam().bWithDepthBuffer)
+		//{
+		//	iBit |= D3DCLEAR_ZBUFFER;
+		//	LOG->Warn("Clearing zbuffer");
+		//}
+			
+		g_pd3dDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER |
+			D3DCLEAR_STENCIL,
 			D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0x00000000);
 	}
 }
