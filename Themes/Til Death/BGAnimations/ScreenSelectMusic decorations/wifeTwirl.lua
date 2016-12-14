@@ -298,8 +298,8 @@ end
 
 -- Difficulty value ("meter"), need to change this later
 t[#t+1] = LoadFont("Common Large") .. {
-	InitCommand=cmd(xy,frameX+58,frameY-62;halign,0.5;zoom,0.6;maxwidth,110/0.6);
-	BeginCommand=cmd(queuecommand,"Set");
+	InitCommand=cmd(xy,frameX+58,frameY-62;halign,0.5;zoom,0.6;maxwidth,110/0.6),
+	BeginCommand=cmd(queuecommand,"Set"),
 	SetCommand=function(self)
 		if song then
 			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue())
@@ -315,8 +315,8 @@ t[#t+1] = LoadFont("Common Large") .. {
 
 -- Song duration
 t[#t+1] = LoadFont("Common Large") .. {
-	InitCommand=cmd(xy,(capWideScale(get43size(384),384))+62,SCREEN_BOTTOM-85;visible,true;halign,1;zoom,capWideScale(get43size(0.6),0.6);maxwidth,capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45));
-	BeginCommand=cmd(queuecommand,"Set");
+	InitCommand=cmd(xy,(capWideScale(get43size(384),384))+62,SCREEN_BOTTOM-85;visible,true;halign,1;zoom,capWideScale(get43size(0.6),0.6);maxwidth,capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45)),
+	BeginCommand=cmd(queuecommand,"Set"),
 	SetCommand=function(self)
 		if song then
 			local playabletime = steps:GetTimingData():GetElapsedTimeFromBeat(song:GetLastBeat()) - steps:GetTimingData():GetElapsedTimeFromBeat(song:GetFirstBeat())
@@ -399,8 +399,8 @@ t[#t+1] = Def.Sprite {
 }
 
 t[#t+1] = LoadFont("Common Large") .. {
-	InitCommand=cmd(xy,frameX,frameY-120;halign,0;zoom,0.4);
-	BeginCommand=cmd(queuecommand,"Set");
+	InitCommand=cmd(xy,frameX,frameY-120;halign,0;zoom,0.4),
+	BeginCommand=cmd(queuecommand,"Set"),
 	SetCommand=function(self)
 		if steps:GetTimingData():HasWarps() then
 			self:settext("NegBpms!")
@@ -414,10 +414,14 @@ t[#t+1] = LoadFont("Common Large") .. {
 
 --test actor
 t[#t+1] = LoadFont("Common Large") .. {
-	InitCommand=cmd(xy,frameX,frameY-120;halign,0;zoom,0.4);
-	BeginCommand=cmd(queuecommand,"Set");
+	InitCommand=cmd(xy,frameX,frameY-120;halign,0;zoom,0.4,maxwidth,125),
+	BeginCommand=cmd(queuecommand,"Set"),
 	SetCommand=function(self)
-		self:settext("")
+		if song then
+			self:settext(song:GetOrTryAtLeastToGetSimfileAuthor())
+		else
+			self:settext("")
+		end
 	end,
 	CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set"),
 	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),

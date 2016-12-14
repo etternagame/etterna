@@ -2305,6 +2305,31 @@ public:
 		COMMON_RETURN_SELF;
 	}
 
+	static int GetOrTryAtLeastToGetSimfileAuthor(T* p, lua_State* L)
+	{
+		size_t begin = 0;
+		size_t end = 0;
+
+		RString path = p->GetSongDir();
+		path = path.substr(0, path.size() - 1);
+		path = path.substr(path.find_last_of('/') + 1);
+
+		/*	Conform to current standard credit placement in songs folders,
+		for those of you who don't follow convention - too bad. - mina */
+		end = path.find_last_of(")");
+		if (end != path.npos) {
+			begin = path.find_last_of("(");
+			if (begin != path.npos)
+				path = path.substr(begin + 1, end - begin - 1);
+		}
+		else
+			path = "Author Unknown";
+
+		lua_pushstring(L, path);
+		return 1;
+	}
+
+
 	LunaSong()
 	{
 		ADD_METHOD( GetDisplayFullTitle );
@@ -2342,7 +2367,8 @@ public:
 		ADD_METHOD( HasStepsTypeAndDifficulty );
 		ADD_METHOD( GetOneSteps );
 		ADD_METHOD( GetTimingData );
-		ADD_METHOD(GetBGChanges);
+		ADD_METHOD( GetBGChanges );
+		ADD_METHOD( GetOrTryAtLeastToGetSimfileAuthor );
 		ADD_METHOD( HasMusic );
 		ADD_METHOD( HasBanner );
 		ADD_METHOD( HasBackground );
@@ -2371,8 +2397,8 @@ public:
 		ADD_METHOD( ShowInDemonstrationAndRanking );
 		ADD_METHOD( HasPreviewVid );
 		ADD_METHOD( GetPreviewVidPath );
-		ADD_METHOD(GetPreviewMusicPath);
-		ADD_METHOD(ReloadFromSongDir);
+		ADD_METHOD( GetPreviewMusicPath );
+		ADD_METHOD( ReloadFromSongDir );
 	}
 };
 
