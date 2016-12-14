@@ -848,6 +848,8 @@ void RageDisplay_D3D::DeleteCompiledGeometry( RageCompiledGeometry* p )
 
 void RageDisplay_D3D::DrawQuadsInternal( const RageSpriteVertex v[], int iNumVerts )
 {
+	//if (isRenderTarget)
+	//	LOG->Warn("Rendering to render target");
 	// there isn't a quad primitive in D3D, so we have to fake it with indexed triangles
 	int iNumQuads = iNumVerts/4;
 	int iNumTriangles = iNumQuads*2;
@@ -1539,8 +1541,6 @@ void D3DRenderTarget_FramebufferObject::Create(const RenderTargetParam &param, i
 	else
 		textureFormat = D3DFMT_X8R8G8B8;
 
-	LOG->Warn("About to create texture");
-	// Currently only used as an index for this render target object. Great memory usage I know -xwidghet
 	if (!SUCCEEDED(g_pd3dDevice->CreateTexture(iTextureWidth, iTextureHeight, 1, D3DUSAGE_RENDERTARGET, textureFormat, D3DPOOL_DEFAULT, &m_uTexHandle, NULL)))
 	{
 		LOG->Warn("FAILED: CreateTexture failed");
@@ -1559,15 +1559,8 @@ void D3DRenderTarget_FramebufferObject::Create(const RenderTargetParam &param, i
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	*/
-		
-	LOG->Warn("About to create render target");
-	if (!SUCCEEDED(g_pd3dDevice->CreateRenderTarget(iTextureWidth, iTextureHeight, textureFormat, g_d3dpp.MultiSampleType, g_d3dpp.MultiSampleQuality, false, &m_iFrameBufferHandle, NULL)))
-	{
-		LOG->Warn("FAILED: Render target not made");
-	}
 
 	// Unlike OpenGL, D3D must use a depth stencil when using render targets
-	LOG->Warn("About to create depth surface");
 	if (!SUCCEEDED(g_pd3dDevice->CreateDepthStencilSurface(iTextureWidth, iTextureHeight, g_d3dpp.AutoDepthStencilFormat, g_d3dpp.MultiSampleType, g_d3dpp.MultiSampleQuality, true, &m_iDepthBufferHandle, NULL)))
 	{
 		LOG->Warn("FAILED: Didn't make depth stencil.");
@@ -1583,19 +1576,18 @@ void D3DRenderTarget_FramebufferObject::StartRenderingTo()
 	if (!SUCCEEDED(g_pd3dDevice->GetDepthStencilSurface(&defaultDepthBuffer)))
 		LOG->Warn("Failed to get default depth buffer");
 
-	//m_uTexHandle->GetSurfaceLevel(0, &m_iFrameBufferHandle);
+	// Set the render target to our RenderTarget texture
+	m_uTexHandle->GetSurfaceLevel(0, &m_iFrameBufferHandle);
 	if (!SUCCEEDED(g_pd3dDevice->SetRenderTarget(0, m_iFrameBufferHandle)))
 		LOG->Warn("Failed to set target to RenderTarget");
-
+	
 	if (!SUCCEEDED(g_pd3dDevice->SetDepthStencilSurface(m_iDepthBufferHandle)))
 		LOG->Warn("Failed to set targetDepth to RenderTargetDepth");
-
-	// Used for Debug
-	//g_pd3dDevice->ColorFill(m_iFrameBufferHandle, NULL, D3DCOLOR_XRGB(255, 255, 255));
 }
 
 void D3DRenderTarget_FramebufferObject::FinishRenderingTo()
 {
+	// Restore the original color and depth buffers
 	if(!SUCCEEDED(g_pd3dDevice->SetRenderTarget(0, defaultColorBuffer)))
 		LOG->Warn("Failed to set target to BackBuffer");
 
@@ -1629,7 +1621,6 @@ void RageDisplay_D3D::SetRenderTarget(unsigned uTexHandle, bool bPreserveTexture
 {
 	if (uTexHandle == 0)
 	{
-		g_bInvertY = false;
 		g_pd3dDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
 
 		/* Pop matrixes affected by SetDefaultRenderStates. */
@@ -1637,6 +1628,7 @@ void RageDisplay_D3D::SetRenderTarget(unsigned uTexHandle, bool bPreserveTexture
 
 		/* Reset the viewport. */
 		D3DVIEWPORT9 viewData;
+		g_pd3dDevice->GetViewport(&viewData);
 		viewData.Width = GetActualVideoModeParams()->width;
 		viewData.Height = GetActualVideoModeParams()->height;
 		g_pd3dDevice->SetViewport(&viewData);
@@ -1659,13 +1651,13 @@ void RageDisplay_D3D::SetRenderTarget(unsigned uTexHandle, bool bPreserveTexture
 
 	/* Set the viewport to the size of the render target. */
 	D3DVIEWPORT9 viewData;
+	g_pd3dDevice->GetViewport(&viewData);
 	viewData.Width = pTarget->GetParam().iWidth;
 	viewData.Height = pTarget->GetParam().iHeight;
 	g_pd3dDevice->SetViewport(&viewData);
 
 	/* If this render target implementation flips Y, compensate.   Inverting will
 	* switch the winding order. */
-	g_bInvertY = pTarget->InvertY();
 	if (g_bInvertY)
 		g_pd3dDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
 
@@ -1683,9 +1675,8 @@ void RageDisplay_D3D::SetRenderTarget(unsigned uTexHandle, bool bPreserveTexture
 		if (pTarget->GetParam().bWithDepthBuffer)
 		{
 			iBit |= D3DCLEAR_ZBUFFER;
-			LOG->Warn("Clearing zbuffer");
 		}
-		// Add clearing stencil for debug
+		
 		if (FAILED(g_pd3dDevice->Clear(0, NULL, iBit,
 			D3DCOLOR_XRGB(0, 0, 0), 0.0f, 0x00000000)))
 			LOG->Warn("Failed to clear render target");
