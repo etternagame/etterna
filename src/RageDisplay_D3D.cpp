@@ -848,8 +848,6 @@ void RageDisplay_D3D::DeleteCompiledGeometry( RageCompiledGeometry* p )
 
 void RageDisplay_D3D::DrawQuadsInternal( const RageSpriteVertex v[], int iNumVerts )
 {
-	//if (isRenderTarget)
-	//	LOG->Warn("Rendering to render target");
 	// there isn't a quad primitive in D3D, so we have to fake it with indexed triangles
 	int iNumQuads = iNumVerts/4;
 	int iNumTriangles = iNumQuads*2;
@@ -1546,20 +1544,6 @@ void D3DRenderTarget_FramebufferObject::Create(const RenderTargetParam &param, i
 		LOG->Warn("FAILED: CreateTexture failed");
 	}
 
-	g_pd3dDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-	g_pd3dDevice->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-	g_pd3dDevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
-	g_pd3dDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-
-	// S = U
-	// T = V
-	/*	OpenGL states for comparison
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	*/
-
 	// Unlike OpenGL, D3D must use a depth stencil when using render targets
 	if (!SUCCEEDED(g_pd3dDevice->CreateDepthStencilSurface(iTextureWidth, iTextureHeight, g_d3dpp.AutoDepthStencilFormat, g_d3dpp.MultiSampleType, g_d3dpp.MultiSampleQuality, true, &m_iDepthBufferHandle, NULL)))
 	{
@@ -1636,6 +1620,7 @@ void RageDisplay_D3D::SetRenderTarget(unsigned uTexHandle, bool bPreserveTexture
 		if (g_pCurrentRenderTarget)
 			g_pCurrentRenderTarget->FinishRenderingTo();
 		g_pCurrentRenderTarget = NULL;
+		g_pd3dDevice->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, false);
 		return;
 	}
 
@@ -1667,18 +1652,23 @@ void RageDisplay_D3D::SetRenderTarget(unsigned uTexHandle, bool bPreserveTexture
 	SetDefaultRenderStates();
 	SetZWrite(true);
 
+	// Need to blend the render targets together, not sure why OpenGL doesn't need this -xwidghet
+	g_pd3dDevice->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, true);
+
 	/* If bPreserveTexture is false, clear the render target.  Only clear the depth
 	* buffer if the target has one; otherwise we're clearing the real depth buffer. */
 	if (!bPreserveTexture)
 	{
-		int iBit = D3DCLEAR_TARGET;
+		int iBit = D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER;
+		
+		/* Since we need the depth buffer to use render targets we can't give this option
 		if (pTarget->GetParam().bWithDepthBuffer)
 		{
 			iBit |= D3DCLEAR_ZBUFFER;
-		}
+		}*/
 		
 		if (FAILED(g_pd3dDevice->Clear(0, NULL, iBit,
-			D3DCOLOR_XRGB(0, 0, 0), 0.0f, 0x00000000)))
+			D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0x00000000)))
 			LOG->Warn("Failed to clear render target");
 	}
 }
