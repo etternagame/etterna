@@ -523,13 +523,65 @@ void MusicWheel::GetSongList( vector<Song*> &arraySongs, SortOrder so )
 }
 
 void MusicWheel::FilterBySearch(vector<Song*>& inv, RString findme) {
-	vector<Song*> tmp;
-	for (size_t i = 0; i < inv.size(); i++) {
-		RString scoot = inv[i]->GetDisplayMainTitle().MakeLower();
-		size_t res = scoot.find(findme);
-		if (res != string::npos)
-			tmp.push_back(inv[i]);
+	// uhh ok yeah come back to this mess later - mina
+	bool super_search = false;
+	size_t fart = findme.find("artist=");
+	size_t faux = findme.find("author=");
+	size_t fitty = findme.find("title=");
+	RString findfart = "";
+	RString findfaux = "";
+	RString findfitty = "";
+
+	if (fart != findme.npos || faux != findme.npos || fitty != findme.npos) {
+		super_search = true;
+		if (fart != findme.npos)
+			findfart = findme.substr(fart + 7, findme.find(fart, ';') - fart);
+		if (faux != findme.npos)
+			findfaux = findme.substr(faux + 7, findme.find(faux, ';') - faux);
+		if (fitty != findme.npos)
+			findfitty = findme.substr(fitty + 6, findme.find(fitty, ';') - fitty);
 	}
+
+	vector<Song*> tmp;
+	if (super_search == false) {
+		for (size_t i = 0; i < inv.size(); i++) {
+			RString scoot = inv[i]->GetDisplayMainTitle().MakeLower();
+			size_t res = scoot.find(findme);
+			if (res != string::npos)
+				tmp.emplace_back(inv[i]);
+		}
+	} else {
+		for (size_t i = 0; i < inv.size(); i++) {
+			RString fartS = inv[i]->GetDisplayArtist().MakeLower();
+			RString fauxS = inv[i]->GetOrTryAtLeastToGetSimfileAuthor().MakeLower();
+			RString fittyS = inv[i]->GetDisplayMainTitle().MakeLower();
+
+			size_t smells = -1;
+			size_t bs = -1;
+			size_t gimmie = -1;
+
+			if (findfart != "") {
+				smells = fartS.find(findfart);
+				if (smells != fartS.npos)
+					tmp.emplace_back(inv[i]);
+			}
+
+			if (findfaux != "") {
+				bs = fauxS.find(findfaux);
+				if (bs != fauxS.npos)
+					tmp.emplace_back(inv[i]);
+			}
+
+			if (findfitty != "") {
+				gimmie = fittyS.find(findfitty);
+				if (gimmie != fittyS.npos)
+					tmp.emplace_back(inv[i]);
+			}
+
+		}
+	}
+	
+
 	if (tmp.size() > 0) {
 		lastvalidsearch = findme;
 		inv.swap(tmp);

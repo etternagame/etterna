@@ -371,6 +371,8 @@ public:
 	Steps *CreateSteps();
 	void InitSteps(Steps *pSteps);
 
+	RString GetOrTryAtLeastToGetSimfileAuthor();
+
 	/* [splittiming]
 	float SongGetBeatFromElapsedTime( float fElapsedTime ) const 
 	{

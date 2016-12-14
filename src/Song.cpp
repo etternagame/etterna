@@ -221,6 +221,27 @@ void Song::InitSteps(Steps *pSteps)
 	pSteps->SetMaxBPM(this->m_fSpecifiedBPMMax);
 }
 
+RString Song::GetOrTryAtLeastToGetSimfileAuthor() {
+	size_t begin = 0;
+	size_t end = 0;
+
+	RString o = GetSongDir();
+	o = o.substr(0, o.size() - 1);
+	o = o.substr(o.find_last_of('/') + 1);
+
+	/*	Conform to current standard credit placement in songs folders,
+	for those of you who don't follow convention - too bad. - mina */
+	end = o.find_last_of(")");
+	if (end != o.npos) {
+		begin = o.find_last_of("(");
+		if (begin != o.npos) {
+			o = o.substr(begin + 1, end - begin - 1);
+			return o;
+		}
+	}
+	return "Author Unknown";
+}
+
 void Song::GetDisplayBpms( DisplayBpms &AddTo ) const
 {
 	if( m_DisplayBPMType == DISPLAY_BPM_SPECIFIED )
@@ -2305,27 +2326,8 @@ public:
 		COMMON_RETURN_SELF;
 	}
 
-	static int GetOrTryAtLeastToGetSimfileAuthor(T* p, lua_State* L)
-	{
-		size_t begin = 0;
-		size_t end = 0;
-
-		RString path = p->GetSongDir();
-		path = path.substr(0, path.size() - 1);
-		path = path.substr(path.find_last_of('/') + 1);
-
-		/*	Conform to current standard credit placement in songs folders,
-		for those of you who don't follow convention - too bad. - mina */
-		end = path.find_last_of(")");
-		if (end != path.npos) {
-			begin = path.find_last_of("(");
-			if (begin != path.npos)
-				path = path.substr(begin + 1, end - begin - 1);
-		}
-		else
-			path = "Author Unknown";
-
-		lua_pushstring(L, path);
+	static int GetOrTryAtLeastToGetSimfileAuthor(T* p, lua_State* L){
+		lua_pushstring(L, p->GetOrTryAtLeastToGetSimfileAuthor());
 		return 1;
 	}
 

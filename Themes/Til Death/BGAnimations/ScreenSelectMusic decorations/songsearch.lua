@@ -21,6 +21,8 @@ local function searchInput(event)
 			searchstring = searchstring:sub(1, -2)								-- remove the last element of the string
 		elseif event.DeviceInput.button == "DeviceButton_delete"  then
 			searchstring = ""
+		elseif event.DeviceInput.button == "DeviceButton_="  then
+			searchstring = searchstring.."="
 		else
 			for i=1,#englishes do														-- add standard characters to string
 				if event.DeviceInput.button == "DeviceButton_"..englishes[i] then
