@@ -315,6 +315,10 @@ float PlayerStageStats::CalcSSR() const {
 	if (GetGrade() == Grade_Failed)
 		return 0.f;
 
+	FOREACHM_CONST(float, float, m_fLifeRecord, fail)
+		if (fail->second == 0.f)
+			return 0.f;
+
 	auto nd = GAMESTATE->m_pCurSteps[m_player_number]->GetNoteData();
 	TimingData* td = GAMESTATE->m_pCurSteps[m_player_number]->GetTimingData();
 	float musicrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
@@ -327,7 +331,10 @@ float PlayerStageStats::CalcSSR() const {
 		etaner[i] = etar[nerv[i]];
 
 	vector<float> calcoutput = MinaSDCalc(nd, etaner, musicrate, m_fWifeScore, 1.f, td->HasWarps());
-	return calcoutput[0];
+	float o = calcoutput[0];
+	o = o * 1 - (0.93f - m_fWifeScore);
+	CLAMP(o, 0.f, calcoutput[0]);
+	return o;
 }
 float PlayerStageStats::GetTimingScale() const {
 	return m_fTimingScale;

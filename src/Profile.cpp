@@ -2098,7 +2098,6 @@ void Profile::ResetAllSSRs() {
 	m_fPlayerRating = 0.f;
 }
 
-
 // should prolly generalize some of the stuff here - mina
 void Profile::RecalculateAllSSRs() {
 	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
