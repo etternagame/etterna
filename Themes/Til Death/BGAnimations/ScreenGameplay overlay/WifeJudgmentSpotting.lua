@@ -111,7 +111,6 @@ if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetTrackerMode == 0 th
 		JudgmentMessageCommand=function(self,msg)
 			tDiff = msg.WifeDifferential
 			if tDiff >= 0 then 											
-				tDiff = "+"..tDiff
 				diffuse(self,positive)
 			else
 				diffuse(self,negative)
@@ -126,7 +125,6 @@ if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetTrackerMode == 0 th
 		JudgmentMessageCommand=function(self,msg)
 			tDiff = msg.WifePBDifferential
 			if tDiff >= 0 then 											
-				tDiff = "+"..tDiff
 				diffuse(self,color("#00ff00"))
 			else
 				diffuse(self,negative)
