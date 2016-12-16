@@ -487,7 +487,9 @@ void BitmapText::DrawChars( bool bUseStrokeTexture )
 		if ( haveTextures && end < m_vpFontPageTextures.size() && m_vpFontPageTextures[start]->m_pTextureMain != m_vpFontPageTextures[end]->m_pTextureMain )
 			renderNow = true;
 
-		if ( (haveTextures && (renderNow || end >= iEndGlyph)) || texUnit == 8 || texUnit > DISPLAY->GetNumTextureUnits() || !PREFSMAN->m_bAllowMultitexture )
+		// TODO: Figure out why OpenGL texture pointers start rapidly changing when combo text is unchanged for ~0.5seconds
+		// Render if we can't store any more textures without running into software or hardware limitations
+		if ( haveTextures && (!DISPLAY->IsD3D() || ((renderNow || end >= iEndGlyph) || texUnit == 8) || (texUnit > DISPLAY->GetNumTextureUnits() || !PREFSMAN->m_bAllowMultitexture )) )
 		{
 			DISPLAY->DrawQuads(&m_aVertices[startingPoint * 4], (end - startingPoint) * 4);
 

@@ -1684,6 +1684,11 @@ void RageDisplay_D3D::SetCelShaded( int stage )
 	// todo: implement me!
 }
 
+bool RageDisplay_D3D::IsD3DInternal()
+{
+	return true;
+}
+
 /*
  * Copyright (c) 2001-2004 Chris Danford, Glenn Maynard
  * All rights reserved.
