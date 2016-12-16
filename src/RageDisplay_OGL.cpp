@@ -690,12 +690,7 @@ void SetupExtensions()
 	
 	g_iMaxTextureUnits = 1;
 	if (GLEW_ARB_multitexture)
-	{
-		glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, (GLint *)&g_iMaxTextureUnits);
-
-		// This OpenGL implementation only supports up to two textures at a time.
-		g_iMaxTextureUnits = min(2, g_iMaxTextureUnits);
-	}
+		glGetIntegerv( GL_MAX_TEXTURE_UNITS_ARB, (GLint *) &g_iMaxTextureUnits );
 
 	CheckPalettedTextures();
 	CheckReversePackedPixels();
@@ -1590,7 +1585,7 @@ static bool SetTextureUnit( TextureUnit tu )
 
 	if ((int) tu > g_iMaxTextureUnits)
 		return false;
-	glActiveTextureARB(GL_TEXTURE0_ARB + tu);
+	glActiveTextureARB( enum_add2(GL_TEXTURE0_ARB, tu) );
 	return true;
 }
 
@@ -1598,11 +1593,19 @@ void RageDisplay_Legacy::ClearAllTextures()
 {
 	FOREACH_ENUM( TextureUnit, i )
 		SetTexture( i, 0 );
+
+	// HACK:  Reset the active texture to 0.
+	// TODO:  Change all texture functions to take a stage number.
+	if (GLEW_ARB_multitexture)
+		glActiveTextureARB(GL_TEXTURE0_ARB);
 }
 
 int RageDisplay_Legacy::GetNumTextureUnits()
 {
-	return g_iMaxTextureUnits;
+	if (GLEW_ARB_multitexture)
+		return 1;
+	else
+		return g_iMaxTextureUnits;
 }
 
 void RageDisplay_Legacy::SetTexture( TextureUnit tu, unsigned iTexture )
