@@ -200,6 +200,7 @@ public:
 
 	// Call this when the resolution has been changed externally:
 	virtual void ResolutionChanged();
+	bool IsD3D();
 
 	virtual bool BeginFrame();
 	virtual void EndFrame();
@@ -337,6 +338,8 @@ protected:
 	virtual void DrawLineStripInternal( const RageSpriteVertex v[], int iNumVerts, float LineWidth );
 	virtual void DrawSymmetricQuadStripInternal( const RageSpriteVertex v[], int iNumVerts ) = 0;
 	virtual void DrawCircleInternal( const RageSpriteVertex &v, float radius );
+	
+	virtual bool IsD3DInternal();
 
 	// return RString() if mode change was successful, an error message otherwise.
 	// bNewDeviceOut is set true if a new device was created and textures

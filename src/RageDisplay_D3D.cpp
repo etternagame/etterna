@@ -1169,20 +1169,20 @@ void RageDisplay_D3D::SetBlendMode( BlendMode mode )
 		g_pd3dDevice->SetRenderState( D3DRS_SRCBLEND,  D3DBLEND_ZERO );
 		g_pd3dDevice->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE );
 		// Alpha: iSourceAlpha = GL_ZERO; iDestAlpha = GL_SRC_ALPHA;
-		/*
-		g_pd3dDevice->SetRenderState( D3DRS_SRCALPHA,  D3DBLEND_ZERO );
-		g_pd3dDevice->SetRenderState( D3DRS_DESTALPHA, D3DBLEND_SRCALPHA );
-		*/
+		
+		g_pd3dDevice->SetRenderState(D3DRS_SRCBLENDALPHA,  D3DBLEND_ZERO );
+		g_pd3dDevice->SetRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_SRCALPHA );
+		
 		break;
 	case BLEND_ALPHA_KNOCK_OUT:
 		// RGB: iSourceRGB = GL_ZERO; iDestRGB = GL_ONE;
 		g_pd3dDevice->SetRenderState( D3DRS_SRCBLEND,  D3DBLEND_ZERO );
 		g_pd3dDevice->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE );
 		// Alpha: iSourceAlpha = GL_ZERO; iDestAlpha = GL_ONE_MINUS_SRC_ALPHA;
-		/*
+		
 		g_pd3dDevice->SetRenderState( D3DRS_SRCBLENDALPHA,  D3DBLEND_ZERO );
 		g_pd3dDevice->SetRenderState( D3DRS_DESTBLENDALPHA, D3DBLEND_INVSRCALPHA );
-		*/
+		
 		break;
 	case BLEND_ALPHA_MULTIPLY:
 		g_pd3dDevice->SetRenderState( D3DRS_SRCBLEND,  D3DBLEND_SRCALPHA );
@@ -1654,6 +1654,7 @@ void RageDisplay_D3D::SetRenderTarget(unsigned uTexHandle, bool bPreserveTexture
 
 	// Need to blend the render targets together, not sure why OpenGL doesn't need this -xwidghet
 	g_pd3dDevice->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, true);
+	
 
 	/* If bPreserveTexture is false, clear the render target.  Only clear the depth
 	* buffer if the target has one; otherwise we're clearing the real depth buffer. */
@@ -1668,7 +1669,7 @@ void RageDisplay_D3D::SetRenderTarget(unsigned uTexHandle, bool bPreserveTexture
 		}*/
 		
 		if (FAILED(g_pd3dDevice->Clear(0, NULL, iBit,
-			D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0x00000000)))
+			D3DCOLOR_ARGB(0, 0, 0, 0), 1.0f, 0x00000000)))
 			LOG->Warn("Failed to clear render target");
 	}
 }
@@ -1681,6 +1682,11 @@ void RageDisplay_D3D::SetSphereEnvironmentMapping( TextureUnit tu, bool b )
 void RageDisplay_D3D::SetCelShaded( int stage )
 {
 	// todo: implement me!
+}
+
+bool RageDisplay_D3D::IsD3DInternal()
+{
+	return true;
 }
 
 /*

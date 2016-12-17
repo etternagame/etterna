@@ -63,6 +63,8 @@ public:
 	void SetSphereEnvironmentMapping( TextureUnit /* tu */, bool /* b */ ) { }
 	void SetCelShaded( int /* stage */ ) { }
 
+	bool IsD3DInternal();
+
 	RageCompiledGeometry* CreateCompiledGeometry();
 	void DeleteCompiledGeometry( RageCompiledGeometry* );
 

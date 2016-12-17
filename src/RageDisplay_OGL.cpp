@@ -2746,6 +2746,11 @@ void RageDisplay_Legacy::SetCelShaded( int stage )
 	}
 }
 
+bool RageDisplay_Legacy::IsD3DInternal()
+{
+	return false;
+}
+
 /*
  * Copyright (c) 2001-2011 Chris Danford, Glenn Maynard, Colby Klein
  * All rights reserved.

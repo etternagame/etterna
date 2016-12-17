@@ -487,7 +487,8 @@ void BitmapText::DrawChars( bool bUseStrokeTexture )
 		if ( haveTextures && end < m_vpFontPageTextures.size() && m_vpFontPageTextures[start]->m_pTextureMain != m_vpFontPageTextures[end]->m_pTextureMain )
 			renderNow = true;
 
-		if ( (haveTextures && (renderNow || end >= iEndGlyph)) || texUnit == 8 || texUnit > DISPLAY->GetNumTextureUnits() || !PREFSMAN->m_bAllowMultitexture )
+		// Render if we can't store any more textures without running into software or hardware limitations
+		if ( haveTextures && (((renderNow || end >= iEndGlyph) || texUnit == 8) || (texUnit == DISPLAY->GetNumTextureUnits() || !PREFSMAN->m_bAllowMultitexture )) )
 		{
 			DISPLAY->DrawQuads(&m_aVertices[startingPoint * 4], (end - startingPoint) * 4);
 
