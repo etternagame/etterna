@@ -3235,29 +3235,31 @@ void Player::SetHoldJudgment( TapNote &tn, int iTrack )
 	if( m_vpHoldJudgment[iTrack] )
 		m_vpHoldJudgment[iTrack]->SetHoldJudgment( tn.HoldResult.hns );
 
-	if( m_bSendJudgmentAndComboMessages )
+	if (m_bSendJudgmentAndComboMessages)
 	{
 		Message msg("Judgment");
-		msg.SetParam( "Player", m_pPlayerState->m_PlayerNumber );
-		msg.SetParam( "MultiPlayer", m_pPlayerState->m_mp );
-		msg.SetParam( "FirstTrack", iTrack );
-		msg.SetParam( "NumTracks", static_cast<int>(m_vpHoldJudgment.size()) );
-		msg.SetParam( "TapNoteScore", tn.result.tns );
-		msg.SetParam( "HoldNoteScore", tn.HoldResult.hns );
-		msg.SetParam( "Judgment", tn.HoldResult.hns);
-		msg.SetParam( "Type", static_cast<RString>("Hold"));
-		msg.SetParam( "Val", m_pPlayerStageStats->m_iHoldNoteScores[tn.HoldResult.hns] + 1);
+		msg.SetParam("Player", m_pPlayerState->m_PlayerNumber);
+		msg.SetParam("MultiPlayer", m_pPlayerState->m_mp);
+		msg.SetParam("FirstTrack", iTrack);
+		msg.SetParam("NumTracks", static_cast<int>(m_vpHoldJudgment.size()));
+		msg.SetParam("TapNoteScore", tn.result.tns);
+		msg.SetParam("HoldNoteScore", tn.HoldResult.hns);
+		msg.SetParam("Judgment", tn.HoldResult.hns);
+		msg.SetParam("Type", static_cast<RString>("Hold"));
+		if (m_pPlayerStageStats) {
+			msg.SetParam("Val", m_pPlayerStageStats->m_iHoldNoteScores[tn.HoldResult.hns] + 1);
 
-		// Ms scoring implemenation - Mina
-		if( tn.HoldResult.hns == HNS_LetGo || tn.HoldResult.hns == HNS_Missed)
-			curwifescore -= 6.f;
-		
-		msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
-		msg.SetParam("WifeDifferential", curwifescore - maxwifescore*0.93f);
-		msg.SetParam("WifePBDifferential", curwifescore - maxwifescore*wifescorepersonalbest);
-		msg.SetParam("TotalPercent", 100 * curwifescore / totalwifescore);
-		m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
+			// Ms scoring implemenation - Mina
+			if (tn.HoldResult.hns == HNS_LetGo || tn.HoldResult.hns == HNS_Missed)
+				curwifescore -= 6.f;
 
+			msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
+			msg.SetParam("WifeDifferential", curwifescore - maxwifescore*0.93f);
+			msg.SetParam("WifePBDifferential", curwifescore - maxwifescore*wifescorepersonalbest);
+			msg.SetParam("TotalPercent", 100 * curwifescore / totalwifescore);
+			m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
+		}
+			
 		Lua* L = LUA->Get();
 		tn.PushSelf(L);
 		msg.SetParamFromStack( L, "TapNote" );
