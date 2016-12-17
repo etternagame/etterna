@@ -295,26 +295,6 @@ bool HighScore::IsEmpty() const
 	return true;
 }
 
-Grade HighScore::GetWifeGrade() {
-	if (GetGrade() == Grade_Failed)
-		return Grade_Failed;
-
-	float wifescore = GetWifeScore();
-	if (wifescore >= 0.9998)
-		return Grade_Tier01;
-	if (wifescore >= 0.9975)
-		return Grade_Tier02;
-	if (wifescore >= 0.93)
-		return Grade_Tier03;
-	if (wifescore >= 0.8)
-		return Grade_Tier04;
-	if (wifescore >= 0.7)
-		return Grade_Tier05;
-	if (wifescore >= 0.6)
-		return Grade_Tier06;
-	return Grade_Tier07;
-}
-
 RString	HighScore::GetName() const { return m_Impl->sName; }
 Grade HighScore::GetGrade() const { return m_Impl->grade; }
 unsigned int HighScore::GetScore() const { return m_Impl->iScore; }
@@ -654,6 +634,47 @@ float HighScore::RescoreToDPJudge(int x) {
 	return p / m;
 }
 
+Grade HighScore::GetWifeGrade() {
+	if (GetGrade() == Grade_Failed)
+		return Grade_Failed;
+
+	float wifescore = GetWifeScore();
+	if (wifescore >= 0.9998)
+		return Grade_Tier01;
+	if (wifescore >= 0.9975)
+		return Grade_Tier02;
+	if (wifescore >= 0.93)
+		return Grade_Tier03;
+	if (wifescore >= 0.8)
+		return Grade_Tier04;
+	if (wifescore >= 0.7)
+		return Grade_Tier05;
+	if (wifescore >= 0.6)
+		return Grade_Tier06;
+	return Grade_Tier07;
+}
+
+// Assert a "worst case scenario" to convert by - mina
+float HighScore::ConvertDpToWife() {
+	if (m_Impl->fWifeScore > 0.f)
+		return m_Impl->fWifeScore;
+
+	float ts = 1.f;
+	float estpoints = 0.f;
+	float maxpoints = 0.f;
+	estpoints += m_Impl->iTapNoteScores[TNS_W1] * wife2(22.49f, ts * 95.f, 2.f, 2, -8);
+	estpoints += m_Impl->iTapNoteScores[TNS_W2] * wife2(44.99f, ts * 95.f, 2.f, 2, -8);
+	estpoints += m_Impl->iTapNoteScores[TNS_W3] * wife2(89.99f, ts * 95.f, 2.f, 2, -8);
+	estpoints += m_Impl->iTapNoteScores[TNS_W4] * wife2(134.99f, ts * 95.f, 2.f, 2, -8);
+	estpoints += m_Impl->iTapNoteScores[TNS_W5] * wife2(179.99f, ts * 95.f, 2.f, 2, -8);
+	estpoints += m_Impl->iTapNoteScores[TNS_Miss] * wife2(179.99f, ts * 95.f, 2.f, 2, -8);
+
+	FOREACH_ENUM(TapNoteScore, tns)
+		maxpoints += 2 * m_Impl->iTapNoteScores[tns];
+
+	return estpoints / maxpoints;
+}
+
 // lua start
 #include "LuaBinding.h"
 
@@ -693,6 +714,7 @@ public:
 	
 	DEFINE_METHOD( GetGrade, GetGrade() )
 	DEFINE_METHOD( GetWifeGrade, GetWifeGrade())
+	DEFINE_METHOD( ConvertDpToWife, ConvertDpToWife())
 	DEFINE_METHOD( GetStageAward, GetStageAward() )
 	DEFINE_METHOD( GetPeakComboAward, GetPeakComboAward() )
 
@@ -701,6 +723,7 @@ public:
 		ADD_METHOD( GetName );
 		ADD_METHOD( GetScore );
 		ADD_METHOD( GetPercentDP );
+		ADD_METHOD( ConvertDpToWife );
 		ADD_METHOD( GetWifeScore );
 		ADD_METHOD( RescoreToWifeJudge );
 		ADD_METHOD( RescoreToDPJudge );

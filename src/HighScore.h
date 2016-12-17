@@ -36,6 +36,7 @@ struct HighScore
 	 * @return true if no judgments were recorded, false otherwise. */
 	bool IsEmpty() const;
 	Grade GetWifeGrade();
+	float ConvertDpToWife();
 	float GetPercentDP() const;
 	float GetWifeScore() const;
 	float GetSSR() const;

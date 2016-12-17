@@ -87,17 +87,20 @@ local function GetBestScoreByFilter(perc,CurRate)
 	end
 	
 	table.sort(rates)
-	
 	for i=#rates,1,-1 do
 		scores = rtTable[rates[i]]
+		local bestscore = 0
+		local index
+		
 		for ii=1,#scores do
 			score = scores[ii]
-			if score:GetWifeScore() >= perc then
-				return score
+			if score:ConvertDpToWife() > bestscore then
+				index = ii
+				bestscore = score:ConvertDpToWife()
 			end
-			if getScore(score,1)/getMaxScore(PLAYER_1,1) >= perc then
-				return score
-			end
+		end
+		if bestscore > perc then
+			return scores[index]
 		end
 	end		
 end
