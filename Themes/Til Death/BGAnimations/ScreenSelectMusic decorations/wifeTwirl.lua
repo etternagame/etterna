@@ -75,7 +75,6 @@ t[#t+1] = Def.Actor{
 	end,
 }
 
--- fix up later
 local function GetBestScoreByFilter(perc,CurRate)
 	local rtTable = getRateTable(PROFILEMAN:GetProfile(PLAYER_1):GetHighScoresByKey(getCurKey()))
 	local rates = tableKeys(rtTable)
@@ -94,11 +93,12 @@ local function GetBestScoreByFilter(perc,CurRate)
 		
 		for ii=1,#scores do
 			score = scores[ii]
-			if score:ConvertDpToWife() > bestscore then
+			if score:ConvertDpToWife() > bestscore and getClearTypeFromScore(PLAYER_1,score,0) ~= "Invalid" then
 				index = ii
 				bestscore = score:ConvertDpToWife()
 			end
 		end
+		
 		if bestscore > perc then
 			return scores[index]
 		end
