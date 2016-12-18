@@ -50,7 +50,7 @@ playeroptions:Mini( 2 - playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).Rece
 								     **Wife deviance tracker. Basically half the point of the theme.**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	Logs deviance values and lets other dv reliant actors know whether or not to act.
+	For every doot there is an equal and opposite scoot.
 ]]
 
 local t = Def.ActorFrame{										

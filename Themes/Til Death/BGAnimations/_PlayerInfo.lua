@@ -9,7 +9,8 @@ local profileName = "No Profile"
 local playCount = 0
 local playTime = 0
 local noteCount = 0
-local skillrating = 100
+local skillrating = 0
+local numfaves = 0
 
 local AvatarX = 0
 local AvatarY = SCREEN_HEIGHT-50
@@ -29,6 +30,7 @@ t[#t+1] = Def.Actor{
 				playTime = profile:GetTotalSessionSeconds()
 				noteCount = profile:GetTotalTapsAndHolds()
 				skillrating = profile:GetPlayerRating()
+				numfaves = profile:GetNumFaves()
 			else 
 				profileName = "No Profile"
 				playCount = 0
@@ -122,6 +124,24 @@ t[#t+1] = Def.ActorFrame{
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self)
 			self:settextf("Rating: %5.2f", skillrating)
+		end,
+		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
+		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+	};
+	LoadFont("Common Normal") .. {
+		InitCommand=cmd(xy,SCREEN_WIDTH-5,AvatarY+7;halign,1;zoom,0.6;diffuse,getMainColor('positive')),
+		BeginCommand=cmd(queuecommand,"Set"),
+		SetCommand=function(self)
+			self:settextf("Songs Loaded: %i", #SONGMAN:GetAllSongs())
+		end,
+		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
+		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+	};
+	LoadFont("Common Normal") .. {
+		InitCommand=cmd(xy,SCREEN_WIDTH-5,AvatarY+25;halign,1;zoom,0.6;diffuse,getMainColor('positive')),
+		BeginCommand=cmd(queuecommand,"Set"),
+		SetCommand=function(self)
+			self:settextf("Favorited Songs: %i", numfaves)
 		end,
 		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
 		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),

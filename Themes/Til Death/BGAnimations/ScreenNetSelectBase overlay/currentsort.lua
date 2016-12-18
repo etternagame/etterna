@@ -35,7 +35,7 @@ local sortTable = {
 
 t[#t+1] = Def.Quad{
 	Name="CurrentSort";
-	InitCommand=cmd(xy,frameX,frameY;halign,1;zoomto,frameWidth,frameHeight;diffuse,getMainColor(1););
+	InitCommand=cmd(xy,frameX,frameY;halign,1;zoomto,frameWidth,frameHeight;diffuse,getMainColor("positive"));
 };
 
 t[#t+1] = LoadFont("Common Normal") .. {

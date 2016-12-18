@@ -2872,6 +2872,7 @@ public:
 	static int GetTotalLifts( T* p, lua_State *L )		{ lua_pushnumber(L, p->m_iTotalLifts ); return 1; }
 	DEFINE_METHOD(GetTotalDancePoints, m_iTotalDancePoints);
 	static int GetUserTable( T* p, lua_State *L )		{ p->m_UserTable.PushSelf(L); return 1; }
+	static int GetNumFaves(T* p, lua_State *L)			{ lua_pushnumber(L, p->FavoritedCharts.size()); return 1; }
 	static int GetLastPlayedSong( T* p, lua_State *L )
 	{
 		Song *pS = p->m_lastSong.ToSong();
@@ -2963,6 +2964,7 @@ public:
 		ADD_METHOD( GetLastPlayedCourse );
 		ADD_METHOD( GetGUID );
 		ADD_METHOD( GetPlayerRating );
+		ADD_METHOD( GetNumFaves );
 	}
 };
 
