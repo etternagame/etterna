@@ -194,8 +194,10 @@ t[#t+1] = LoadFont("Common Normal")..{
 	Name="ClearType",
 	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+41;zoom,0.5;halign,0);
 	SetCommand=function(self)
-		self:settext(getClearTypeFromScore(pn,score,0))
-		self:diffuse(getClearTypeFromScore(pn,score,2))
+		if score ~= nil then
+			self:settext(getClearTypeFromScore(pn,score,0))
+			self:diffuse(getClearTypeFromScore(pn,score,2))
+		end
 	end,
 	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
 }

@@ -222,6 +222,9 @@ void Song::InitSteps(Steps *pSteps)
 }
 
 RString Song::GetOrTryAtLeastToGetSimfileAuthor() {
+	if (m_sCredit != "")
+		return m_sCredit;
+
 	size_t begin = 0;
 	size_t end = 0;
 
