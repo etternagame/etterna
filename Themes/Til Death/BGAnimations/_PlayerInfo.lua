@@ -132,7 +132,7 @@ t[#t+1] = Def.ActorFrame{
 		InitCommand=cmd(xy,SCREEN_WIDTH-5,AvatarY+7;halign,1;zoom,0.6;diffuse,getMainColor('positive')),
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self)
-			self:settextf("Songs Loaded: %i", #SONGMAN:GetAllSongs())
+			self:settextf("Songs Loaded: %i", SONGMAN:GetNumSongs())
 		end,
 		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
 		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
