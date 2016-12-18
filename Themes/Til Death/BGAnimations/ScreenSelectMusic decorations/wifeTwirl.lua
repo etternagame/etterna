@@ -3,7 +3,7 @@ local frameX = 10
 local frameY = 250+capWideScale(get43size(120),90)
 local frameWidth = capWideScale(get43size(455),455)
 local scoreType = themeConfig:get_data().global.DefaultScoreType
-local Score
+local score
 local song
 local steps
 local alreadybroadcasted
@@ -99,6 +99,10 @@ local function GetBestScoreByFilter(perc,CurRate)
 			end
 		end
 		
+		if index and scores[index]:GetWifeScore() == 0 and GetPercentDP(scores[index]) > perc * 100 then
+			return scores[index]
+		end
+		
 		if bestscore > perc then
 			return scores[index]
 		end
@@ -106,25 +110,26 @@ local function GetBestScoreByFilter(perc,CurRate)
 end
 
 local function GetDisplayScore()
-	local Score
-	Score = GetBestScoreByFilter(0, true)
-	if not Score then Score = GetBestScoreByFilter(0.9, false) end
-	if not Score then Score = GetBestScoreByFilter(0.5, false) end
-	if not Score then Score = GetBestScoreByFilter(0, false) end
-	return Score
+	local score
+	score = GetBestScoreByFilter(0, true)
+	
+	if not score then score = GetBestScoreByFilter(0.9, false) end
+	if not score then score = GetBestScoreByFilter(0.5, false) end
+	if not score then score = GetBestScoreByFilter(0, false) end
+	return score
 end
 
 t[#t+1] = Def.Actor{
 	SetCommand=function(self)		
 		if song then 
 			steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
-			Score = GetDisplayScore()
+			score = GetDisplayScore()
 			MESSAGEMAN:Broadcast("RefreshChartInfo")
 		end
 	end,
 	UpdateChartMessageCommand=cmd(queuecommand,"Set"),
 	CurrentRateChangedMessageCommand=function()
-		Score = GetDisplayScore()
+		score = GetDisplayScore()
 	end,
 }
 
@@ -134,19 +139,19 @@ t[#t+1] = Def.ActorFrame{
 	Def.Quad{InitCommand=cmd(xy,frameX,frameY+18;zoomto,frameWidth+4,50;halign,0;valign,0;diffuse,color("#333333CC");diffusealpha,0.66)},	--Lower Bar
 	Def.Quad{InitCommand=cmd(xy,frameX,frameY-76;zoomto,8,144;halign,0;valign,0;diffuse,getMainColor('highlight');diffusealpha,0.5)},		--Side Bar (purple streak on the left)
 
-	-- **Score related stuff** These need to be updated with rate changed commands
+	-- **score related stuff** These need to be updated with rate changed commands
 	-- Primary percent score
 	LoadFont("Common Large")..{
 		InitCommand=cmd(xy,frameX+55,frameY+50;zoom,0.6;halign,0.5;maxwidth,125;valign,1),
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self)
-			if song and Score then
-				if Score:GetWifeScore() == 0 then 
-					self:settextf("%05.2f%%", notShit.floor(GetPercentDP(Score)*100)/100)
-					self:diffuse(getGradeColor(Score:GetGrade()))
+			if song and score then
+				if score:GetWifeScore() == 0 then 
+					self:settextf("%05.2f%%", notShit.floor(GetPercentDP(score)*100)/100)
+					self:diffuse(getGradeColor(score:GetGrade()))
 				else
-					self:settextf("%05.2f%%", notShit.floor(Score:GetWifeScore()*10000)/100)
-					self:diffuse(getGradeColor(Score:GetWifeGrade()))
+					self:settextf("%05.2f%%", notShit.floor(score:GetWifeScore()*10000)/100)
+					self:diffuse(getGradeColor(score:GetWifeGrade()))
 				end
 			else
 				self:settext("")
@@ -161,8 +166,8 @@ t[#t+1] = Def.ActorFrame{
 		InitCommand=cmd(xy,frameX+125,frameY+40;zoom,0.3;halign,1;valign,1),
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self)
-			if song and Score then
-				if Score:GetWifeScore() == 0 then 
+			if song and score then
+				if score:GetWifeScore() == 0 then 
 					self:settext("DP*")
 				else
 					self:settext(scoringToText(scoreType))
@@ -180,13 +185,13 @@ t[#t+1] = Def.ActorFrame{
 		InitCommand=cmd(xy,frameX+130,frameY+63;zoom,0.6;halign,0.5;maxwidth,125;valign,1),
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self)
-			if song and Score then
-				if Score:GetWifeScore() == 0 then 
+			if song and score then
+				if score:GetWifeScore() == 0 then 
 					self:settextf("NA")
 					self:diffuse(getGradeColor("Grade_Failed"))
 				else
-					self:settextf("%05.2f%%", GetPercentDP(Score))
-					self:diffuse(getGradeColor(Score:GetGrade()))
+					self:settextf("%05.2f%%", GetPercentDP(score))
+					self:diffuse(getGradeColor(score:GetGrade()))
 				end
 			else
 				self:settext("")
@@ -201,8 +206,8 @@ t[#t+1] = Def.ActorFrame{
 		InitCommand=cmd(xy,frameX+173,frameY+63;zoom,0.4;halign,1;valign,1),
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self)
-			if song and Score then
-				if Score:GetWifeScore() == 0 then 
+			if song and score then
+				if score:GetWifeScore() == 0 then 
 					self:settext("Wife")
 				else
 					self:settext("DP")
@@ -220,8 +225,8 @@ t[#t+1] = Def.ActorFrame{
 		InitCommand=cmd(xy,frameX+55,frameY+58;zoom,0.5;halign,0.5),
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self)
-			if song and Score then 
-			local rate = getRate(Score)
+			if song and score then 
+			local rate = getRate(score)
 				if getCurRateString() ~= rate then
 					self:settext("("..rate..")")
 				else
@@ -240,8 +245,8 @@ t[#t+1] = Def.ActorFrame{
 		InitCommand=cmd(xy,frameX+185,frameY+59;zoom,0.4;halign,0),
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self)
-			if song and Score then
-					self:settext(Score:GetDate())
+			if song and score then
+					self:settext(score:GetDate())
 				else
 					self:settext("")
 				end
@@ -255,8 +260,8 @@ t[#t+1] = Def.ActorFrame{
 		InitCommand=cmd(xy,frameX+185,frameY+49;zoom,0.4;halign,0),
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self)
-			if song and Score then
-				self:settextf("Max Combo: %d", Score:GetMaxCombo())
+			if song and score then
+				self:settextf("Max Combo: %d", score:GetMaxCombo())
 			else
 				self:settext("")
 			end
