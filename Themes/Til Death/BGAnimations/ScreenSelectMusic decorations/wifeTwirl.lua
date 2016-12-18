@@ -313,7 +313,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 		else
 			self:settext("")
 		end
-	end;
+	end,
 	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
 	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
 }
@@ -325,12 +325,14 @@ t[#t+1] = LoadFont("Common Large") .. {
 	SetCommand=function(self)
 		if song then
 			local playabletime = steps:GetTimingData():GetElapsedTimeFromBeat(song:GetLastBeat()) - steps:GetTimingData():GetElapsedTimeFromBeat(song:GetFirstBeat())
+			playabletime = playabletime / getCurRateValue()
 			self:settext(SecondsToMMSS(playabletime))
-			self:diffuse(getSongLengthColor(song:MusicLengthSeconds()))
+			self:diffuse(getSongLengthColor(playabletime))
 		else
 			self:settext("")
 		end
-	end;
+	end,
+	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
 	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
 }
 
@@ -347,6 +349,7 @@ t[#t+1] = Def.BPMDisplay {
 			self:visible(0)
 		end
 	end,
+	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
 	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
 }
 

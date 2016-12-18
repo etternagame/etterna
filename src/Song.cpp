@@ -36,6 +36,7 @@
 #include "LyricsLoader.h"
 #include "ActorUtil.h"
 
+#include "GameState.h"
 #include <time.h>
 #include <set>
 #include <float.h>
@@ -247,18 +248,20 @@ RString Song::GetOrTryAtLeastToGetSimfileAuthor() {
 
 void Song::GetDisplayBpms( DisplayBpms &AddTo ) const
 {
+	float demratesboiz = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 	if( m_DisplayBPMType == DISPLAY_BPM_SPECIFIED )
 	{
-		AddTo.Add( m_fSpecifiedBPMMin );
-		AddTo.Add( m_fSpecifiedBPMMax );
+		AddTo.Add( m_fSpecifiedBPMMin * demratesboiz);
+		AddTo.Add( m_fSpecifiedBPMMax * demratesboiz);
 	}
 	else
 	{
 		float fMinBPM, fMaxBPM;
 		m_SongTiming.GetActualBPM( fMinBPM, fMaxBPM );
-		AddTo.Add( fMinBPM );
-		AddTo.Add( fMaxBPM );
+		AddTo.Add( fMinBPM * demratesboiz);
+		AddTo.Add( fMaxBPM * demratesboiz);
 	}
+
 }
 
 const BackgroundChange &Song::GetBackgroundAtBeat( BackgroundLayer iLayer, float fBeat ) const
