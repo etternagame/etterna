@@ -129,7 +129,7 @@ t[#t+1] = Def.ActorFrame{
 		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
 	};
 	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,SCREEN_WIDTH-5,AvatarY+7;halign,1;zoom,0.6;diffuse,getMainColor('positive')),
+		InitCommand=cmd(xy,SCREEN_WIDTH-5,AvatarY+20;halign,1;zoom,0.35;diffuse,getMainColor('positive')),
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self)
 			self:settextf("Songs Loaded: %i", SONGMAN:GetNumSongs())
@@ -138,10 +138,10 @@ t[#t+1] = Def.ActorFrame{
 		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
 	};
 	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,SCREEN_WIDTH-5,AvatarY+25;halign,1;zoom,0.6;diffuse,getMainColor('positive')),
+		InitCommand=cmd(xy,SCREEN_WIDTH-5,AvatarY+30;halign,1;zoom,0.35;diffuse,getMainColor('positive')),
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self)
-			self:settextf("Favorited Songs: %i", numfaves)
+			self:settextf("Songs Favorited: %i", numfaves)
 		end,
 		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
 		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),

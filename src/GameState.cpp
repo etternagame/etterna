@@ -2809,6 +2809,7 @@ public:
 	DEFINE_METHOD( GetCoinMode,			GetCoinMode() )
 	DEFINE_METHOD( GetPremium,			GetPremium() )
 	DEFINE_METHOD( GetSongOptionsString,		m_SongOptions.GetCurrent().GetString() )
+	static int GetSessionTime(T* p, lua_State *L) { lua_pushnumber(L, p->m_timeGameStarted.GetTimeSinceStart()); return 1; }
 	static int GetSongOptions( T* p, lua_State *L )
 	{
 		ModsLevel m = Enum::Check<ModsLevel>( L, 1 );
@@ -3259,6 +3260,7 @@ public:
 		ADD_METHOD( GetCurrentCourse );
 		ADD_METHOD( SetCurrentCourse );
 		ADD_METHOD( GetCurrentTrail );
+		ADD_METHOD( GetSessionTime );
 		ADD_METHOD( SetCurrentTrail );
 		ADD_METHOD( SetPreferredSong );
 		ADD_METHOD( GetPreferredSong );
