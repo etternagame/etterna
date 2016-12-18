@@ -46,6 +46,19 @@ local playeroptions = GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptions(modsle
 playeroptions:Mini( 2 - playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).ReceptorSize/50 )
 
 
+-- Screenwide params
+--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
+isCentered = PREFSMAN:GetPreference("Center1Player")
+local CenterX = SCREEN_CENTER_X
+local mpOffset = 0
+if not isCentered then
+	CenterX = THEME:GetMetric("ScreenGameplay",string.format("PlayerP1%sX",ToEnumShortString(GAMESTATE:GetCurrentStyle():GetStyleType())))
+	mpOffset = SCREEN_CENTER_X
+end
+--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
+
+
+
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 								     **Wife deviance tracker. Basically half the point of the theme.**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -90,10 +103,11 @@ t[#t+1] = LoadActor("lanecover")
 
 -- Clientside now. All we do is listen for broadcasts for values calculated by the game and then display them. 
 d = Def.ActorFrame{	
+	Def.Quad{InitCommand=cmd(xy,60 + mpOffset,(SCREEN_HEIGHT*0.62)-90;zoomto,60,16;diffuse,color("0,0,0,0.4");horizalign,left;vertalign,top)},
 	-- Displays your current percentage score
 	LoadFont("Common Large")..{											
 		Name = "DisplayPercent",
-		InitCommand=cmd(xy,115,220;zoom,0.3;halign,1;valign,1),
+		InitCommand=cmd(xy,115 + mpOffset,220;zoom,0.3;halign,1;valign,1),
 		OnCommand=function(self)
 			self:settextf("%05.2f%%", 0)
 		end,
@@ -101,13 +115,12 @@ d = Def.ActorFrame{
 			self:settextf("%05.2f%%", Floor(msg.WifePercent*100)/100)
 		end
 	},
-	Def.Quad{InitCommand=cmd(xy,60,(SCREEN_HEIGHT*0.62)-90;zoomto,60,16;diffuse,color("0,0,0,0.4");horizalign,left;vertalign,top)},
 }
 
 if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetTrackerMode == 0 then
 	d[#d+1] = LoadFont("Common Normal")..{											
 		Name = "93% Differential",
-		InitCommand=cmd(xy,SCREEN_CENTER_X+26,SCREEN_CENTER_Y+30;zoom,0.4;halign,0;valign,1),
+		InitCommand=cmd(xy,CenterX+26,SCREEN_CENTER_Y+30;zoom,0.4;halign,0;valign,1),
 		JudgmentMessageCommand=function(self,msg)
 			tDiff = msg.WifeDifferential
 			if tDiff >= 0 then 											
@@ -121,7 +134,7 @@ if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetTrackerMode == 0 th
 	else
 	d[#d+1] = LoadFont("Common Normal")..{											
 		Name = "PB Differential",
-		InitCommand=cmd(xy,SCREEN_CENTER_X+26,SCREEN_CENTER_Y+30;zoom,0.4;halign,0;valign,1),
+		InitCommand=cmd(xy,CenterX+26,SCREEN_CENTER_Y+30;zoom,0.4;halign,0;valign,1),
 		JudgmentMessageCommand=function(self,msg)
 			tDiff = msg.WifePBDifferential
 			if tDiff >= 0 then 											
@@ -150,11 +163,11 @@ end
 
 -- User Parameters
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
-local frameX = 60 									 -- X position of the frame
+local frameX = 60 + mpOffset						 -- X position of the frame
 local frameY = (SCREEN_HEIGHT*0.62)-90 				 -- Y Position of the frame
 local spacing = 10									 -- Spacing between the judgetypes
 local frameWidth = 60								 -- Width of the Frame
-local frameHeight = ((#jdgT+1)*spacing)+8 			 -- Height of the Frame
+local frameHeight = ((#jdgT-1)*spacing)	- 8			 -- Height of the Frame
 local judgeFontSize = 0.40							 -- Font sizes for different text elements 
 local countFontSize = 0.35
 local gradeFontSize = 0.45
@@ -218,7 +231,7 @@ end
 -- User Parameters
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
 local barcount = 30 									-- Number of bars. Older bars will refresh if judgments/barDuration exceeds this value. You don't need more than 40.
-local frameX = SCREEN_CENTER_X 							-- X Positon (Center of the bar)
+local frameX = CenterX 									-- X Positon (Center of the bar)
 local frameY = SCREEN_CENTER_Y + 53						-- Y Positon (Center of the bar)
 local frameHeight = 10 									-- Height of the bar
 local frameWidth = capWideScale(get43size(240),240) 	-- Width of the bar
@@ -311,11 +324,14 @@ end
 separate entities. So you can have both, or one or the other, or neither. 
 ]]
  
-local frameX = SCREEN_CENTER_X
+-- User params
+--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
+local frameX = CenterX
 local frameY = 20
 local width = SCREEN_WIDTH/2-100
 local height = 10
 local alpha = 0.7
+--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
 
 p = Def.ActorFrame{
 	InitCommand=cmd(xy,frameX,frameY),
@@ -347,7 +363,7 @@ end
 separate entities. So you can have both, or one or the other, or neither. 
 ]]
 
-local frameX = SCREEN_CENTER_X + 44
+local frameX = CenterX + 44
 local frameY = SCREEN_CENTER_Y + 34
 local width = 34
 local height = 4

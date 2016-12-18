@@ -6,13 +6,22 @@ local maxWindow = themeConfig:get_data().NPSDisplay.MaxWindow/2 -- this will be 
 local minWindow = themeConfig:get_data().NPSDisplay.MinWindow/2 -- this will be the minimum size of the "window" in seconds. Unused for now.
 local dynamicWindow = false -- set to false for now.
 
+isCentered = PREFSMAN:GetPreference("Center1Player")
+local CenterX = SCREEN_CENTER_X
+local mpOffset = 0
+if not isCentered then
+	CenterX = THEME:GetMetric("ScreenGameplay",string.format("PlayerP1%sX",ToEnumShortString(GAMESTATE:GetCurrentStyle():GetStyleType())))
+	mpOffset = SCREEN_CENTER_X + 60
+end
+
+
 --Graph related stuff
 local initialPeak = 10 -- Initial height of the NPS graph.
 local graphWidth = 140
 local graphHeight = 100
 local graphPos = {  -- Position of the NPS graph
 	PlayerNumber_P1 = {
-		X = 0,
+		X = 0 + mpOffset,
 		Y = SCREEN_BOTTOM-160
 	},
 	PlayerNumber_P2 = {
@@ -23,7 +32,7 @@ local graphPos = {  -- Position of the NPS graph
 
 local textPos = { -- Position of the NPS text
 	PlayerNumber_P1 = {
-		X = 5,
+		X = 5 + mpOffset,
 		Y = SCREEN_BOTTOM-170
 	},
 	PlayerNumber_P2 = {
