@@ -1,3 +1,6 @@
+-- forcibly set the game style to single so we dont crash when loading songs
+GAMESTATE:SetCurrentStyle("single")
+
 --Input event for mouse clicks
 local function input(event)
 	local top = SCREENMAN:GetTopScreen()
