@@ -115,8 +115,9 @@ Branch = {
 	end,
 	AfterSelectProfile = function()
 		if ( THEME:GetMetric("Common","AutoSetStyle") == true ) then
-			-- use SelectStyle in online...
-			return IsNetConnected() and "ScreenSelectStyle" or "ScreenSelectMusic"--"ScreenSelectPlayMode"
+			-- use SelectStyle in online... 
+			-- OR DONT LOL!!! - mina
+			return IsNetConnected() and "ScreenSMOnlineLogin" or "ScreenSelectMusic"--"ScreenSelectPlayMode"
 		else
 			return "ScreenSelectMusic"--"ScreenSelectStyle"
 		end
