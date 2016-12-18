@@ -1,5 +1,6 @@
 -- forcibly set the game style to single so we dont crash when loading songs
 GAMESTATE:SetCurrentStyle("single")
+GAMESTATE:SetCurrentPlayMode('PlayMode_Regular')
 
 --Input event for mouse clicks
 local function input(event)
@@ -8,12 +9,12 @@ local function input(event)
 		if event.type == "InputEventType_Release" then
 			if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
 				if isOver(top:GetChild("Overlay"):GetChild("PlayerAvatar"):GetChild("Avatar"..PLAYER_1):GetChild("Image")) then
-					SCREENMAN:AddNewScreenToTop("ScreenAvatarSwitch");
+					SCREENMAN:AddNewScreenToTop("ScreenAvatarSwitch")
 				end
 			end
 			if GAMESTATE:IsPlayerEnabled(PLAYER_2) then
 				if isOver(top:GetChild("Overlay"):GetChild("PlayerAvatar"):GetChild("Avatar"..PLAYER_2):GetChild("Image")) then
-					SCREENMAN:AddNewScreenToTop("ScreenAvatarSwitch");
+					SCREENMAN:AddNewScreenToTop("ScreenAvatarSwitch")
 				end
 			end
 		end
