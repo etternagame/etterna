@@ -291,7 +291,7 @@ inline int   BeatToNoteRow( float fBeatNum )
  * @brief Convert the beat into a note row.
  * @param fBeatNum the beat to convert.
  * @return the note row. */
-inline int   BeatToNoteRow( float fBeatNum )		{ return static_cast<int>( fBeatNum * ROWS_PER_BEAT ); }
+inline int   BeatToNoteRow( float fBeatNum )		{ return lround( fBeatNum * ROWS_PER_BEAT ); }
 /**
  * @brief Convert the note row to a beat.
  * @param iRow the row to convert.
