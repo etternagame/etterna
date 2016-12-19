@@ -81,7 +81,9 @@ local function GetBestScoreByFilter(perc,CurRate)
 	local scores, score
 	
 	if CurRate then
-		rates = {getCurRateString()}
+		local tmp = getCurRateString()
+		if tmp == "1x" then tmp = "1.0x" end
+		rates = {tmp}
 		if not rtTable[rates[1]] then return nil end
 	end
 	

@@ -71,20 +71,6 @@ local migsWeight =  { -- Score Weights for MIGS score
 	TapNoteScore_CheckpointMiss 	= 0
 }
 
-function getScoreList(pn)
-	local song = GAMESTATE:GetCurrentSong()
-	local profile
-	local steps
-	if GAMESTATE:IsPlayerEnabled(pn) then
-		profile = GetPlayerOrMachineProfile(pn)
-		steps = GAMESTATE:GetCurrentSteps(pn)
-		if profile ~= nil and steps ~= nil and song ~= nil then
-			return profile:GetHighScoreList(song,steps):GetHighScores()
-		end
-	end
-	return nil
-end
-
 function getScoresByKey(pn)
 	local song = GAMESTATE:GetCurrentSong()
 	local profile
@@ -194,7 +180,6 @@ function getNearbyGrade(pn,DPScore,grade)
 	end
 end
 
-
 function getScoreGrade(score)
 	if score ~= nil then
 		return score:GetGrade()
@@ -296,22 +281,23 @@ function getScore(score,scoreType)
 end
 
 ------------------------------------------------
--- Rate filter stuff -- 
+local function GetWifeScoreOrConvertFromDP(score)
+	local o = score:GetWifeScore()
+	if o > 0 then return o end
+	return score:ConvertDpToWife()
+end
 
-local sortScoreType = 0
+-- Rate filter stuff -- 
 local function scoreComparator(scoreA,scoreB)
-	local a = getScore(scoreA,sortScoreType)
-	local b = getScore(scoreB,sortScoreType)
+	local a = GetWifeScoreOrConvertFromDP(scoreA,sortScoreType)
+	local b = GetWifeScoreOrConvertFromDP(scoreB,sortScoreType)
 	if a == b then 
 		return scoreA:GetWifeScore() > scoreB:GetWifeScore()
 	end
 	return a > b 
 end
 
--- returns a sorted table based on the criteria given by the
--- scoreComparator() function.
-function sortScore(hsTable,scoreType)
-	sortScoreType = scoreType
+function SortScores(hsTable)
 	table.sort(hsTable,scoreComparator)
 	return hsTable
 end
@@ -345,22 +331,12 @@ function getRateTable(hsTable)
 	local rate
 	if hsTable ~= nil then
 		for k,v in ipairs(hsTable) do
-
-			if themeConfig:get_data().global.RateSort then
-				rate = getRate(v)
-			else
-				rate = "All"
-			end
-
-			if tableContains(rtTable,rate) then
-				rtTable[rate][#rtTable[rate]+1] = v
-			else
-				rtTable[rate] = {}
-				rtTable[rate][#rtTable[rate]+1] = v
-			end
+			rate = getRate(v)
+			local rs = formLink(rtTable,rate)
+			rs[#rs+1] = v
 		end
 		for k,v in pairs(rtTable) do
-			rtTable[k] = sortScore(rtTable[k],0)
+			rtTable[k] = SortScores(rtTable[k])
 		end
 		return rtTable
 	else

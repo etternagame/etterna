@@ -75,7 +75,6 @@ local frameY = 140
 local frameWidth = SCREEN_CENTER_X-120
 
 function scoreBoard(pn,position)
-	local hsTable = getScoreList(pn)
 	local t = Def.ActorFrame{
 		BeginCommand=function(self)
 			if position == 1 then
@@ -126,9 +125,8 @@ function scoreBoard(pn,position)
 		InitCommand=cmd(xy,frameX+5,frameY+34;zoom,0.45;halign,0;valign,0),
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self) 
-			local score = getScoreFromTable(getScoreList(PLAYER_1),pss:GetPersonalHighScoreIndex()+1)
 			self:diffuse(getGradeColor(pss:GetGrade()))
-			self:settextf("%05.2f%% (%s)",GetPercentDP(score), "DP")
+			self:settextf("%05.2f%% (%s)",pss:GetPercentDancePoints(), "DP")
 		end,
 	}
 	

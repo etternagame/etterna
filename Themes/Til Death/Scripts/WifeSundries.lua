@@ -179,3 +179,5 @@ function tableKeys(t)
 	end
 	return o
 end
+
+function formLink(x, y) x[y] = x[y] or {} return x[y] end
