@@ -268,6 +268,10 @@ public:
 	}
 	DEFINE_METHOD( GetHealthState, m_HealthState );
 	DEFINE_METHOD( GetSuperMeterLevel, m_fSuperMeter );
+	static int SetTargetGoal(T* p, lua_State *L) {
+		p->playertargetgoal = FArg(1);
+		return 1;
+	}
 
 	LunaPlayerState()
 	{
@@ -283,6 +287,7 @@ public:
 		ADD_METHOD( GetSongPosition );
 		ADD_METHOD( GetHealthState );
 		ADD_METHOD( GetSuperMeterLevel );
+		ADD_METHOD( SetTargetGoal );
 	}
 };
 

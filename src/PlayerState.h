@@ -132,6 +132,7 @@ public:
 
 	/* why is the slow getstyles function called every time to get 
 	number of columns in places where it can't change? - Mina */
+	float playertargetgoal = 0.93f;
 	int m_NumCols;
 	void SetNumCols(int ncol) { m_NumCols = ncol; };
 	int GetNumCols() { return m_NumCols; };

@@ -131,6 +131,47 @@ function TargetTracker()
 	return t
 end	
 
+local tChoices = {}
+for i=1,99 do
+	tChoices[i] = tostring(i)..'%'
+end
+for i=1,3 do
+	tChoices[99+i] = tostring(99+i*0.25)..'%'
+end
+for i=1,4 do
+	tChoices[#tChoices+1] = tostring(99.96 + i*0.01)..'%'
+end
+function TargetGoal()
+	local t = {
+		Name = "TargetGoal",
+		LayoutType = "ShowAllInRow",
+		SelectType = "SelectOne",
+		OneChoiceForAllPlayers = false,
+		ExportOnChange = true,
+		Choices = tChoices,
+		LoadSelections = function(self, list, pn)
+			local prefs = playerConfig:get_data(pn_to_profile_slot(pn)).TargetGoal
+			list[prefs] = true
+		end,
+		SaveSelections = function(self, list, pn)
+			local found = false
+			for i=1,#list do
+				if not found then
+					if list[i] == true then
+						local value = i
+						playerConfig:get_data(pn_to_profile_slot(pn)).TargetGoal = value
+						found = true
+					end
+				end
+			end
+			playerConfig:set_dirty(pn_to_profile_slot(pn))
+			playerConfig:save(pn_to_profile_slot(pn))
+		end
+	}
+	setmetatable( t, t )
+	return t
+end
+
 function TargetTrackerMode()
 	local t = {
 		Name = "TargetTrackerMode",
@@ -138,7 +179,7 @@ function TargetTrackerMode()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = false,
 		ExportOnChange = true,
-		Choices = { THEME:GetString('OptionNames','93%'),'PB'},
+		Choices = {'Set Percent','Personal Best'},
 		LoadSelections = function(self, list, pn)
 			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).TargetTrackerMode
 			list[pref+1] = true

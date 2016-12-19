@@ -101,7 +101,10 @@ t[#t+1] = LoadActor("lanecover")
 	Point differential to AA.
 ]]
 
--- Clientside now. All we do is listen for broadcasts for values calculated by the game and then display them. 
+-- Mostly clientside now. We set our desired target goal and listen to the results rather than calculating ourselves.
+local target = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetGoal
+GAMESTATE:GetPlayerState(PLAYER_1):SetTargetGoal(target/100)
+ 
 d = Def.ActorFrame{	
 	Def.Quad{InitCommand=cmd(xy,60 + mpOffset,(SCREEN_HEIGHT*0.62)-90;zoomto,60,16;diffuse,color("0,0,0,0.4");horizalign,left;vertalign,top)},
 	-- Displays your current percentage score
@@ -117,18 +120,21 @@ d = Def.ActorFrame{
 	},
 }
 
+-- We can save space by wrapping the personal best and set percent trackers into one function, however
+-- this would make the actor needlessly cumbersome and unnecessarily punish those who don't use the
+-- personal best tracker (although everything is efficient enough now it probably wouldn't matter)
 if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetTrackerMode == 0 then
 	d[#d+1] = LoadFont("Common Normal")..{											
-		Name = "93% Differential",
+		Name = "Set Percent Differential",
 		InitCommand=cmd(xy,CenterX+26,SCREEN_CENTER_Y+30;zoom,0.4;halign,0;valign,1),
 		JudgmentMessageCommand=function(self,msg)
-			tDiff = msg.WifeDifferential
+			local tDiff = msg.WifeDifferential
 			if tDiff >= 0 then 											
 				diffuse(self,positive)
 			else
 				diffuse(self,negative)
 			end
-			self:settextf("%5.2f", tDiff)
+			self:settextf("%5.2f (%i%%)", tDiff, target)
 		end
 	}
 	else
@@ -136,13 +142,24 @@ if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetTrackerMode == 0 th
 		Name = "PB Differential",
 		InitCommand=cmd(xy,CenterX+26,SCREEN_CENTER_Y+30;zoom,0.4;halign,0;valign,1),
 		JudgmentMessageCommand=function(self,msg)
-			tDiff = msg.WifePBDifferential
-			if tDiff >= 0 then 											
-				diffuse(self,color("#00ff00"))
+			local tDiff = msg.WifePBDifferential
+			if tDiff then
+				local pbtarget = msg.WifePBGoal
+				if tDiff >= 0 then 											
+					diffuse(self,color("#00ff00"))
+				else
+					diffuse(self,negative)
+				end
+				self:settextf("%5.2f (%5.2f%%)", tDiff, pbtarget*100)
 			else
-				diffuse(self,negative)
-			end
-			self:settextf("%5.2f", tDiff)
+				tDiff = msg.WifeDifferential
+				if tDiff >= 0 then 											
+					diffuse(self,positive)
+				else
+					diffuse(self,negative)
+				end
+				self:settextf("%5.2f (%i%%)", tDiff, target)
+			end			
 		end
 	}
 end

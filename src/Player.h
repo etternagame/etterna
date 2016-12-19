@@ -133,7 +133,7 @@ public:
 	void SetLife(float value);
 	bool m_inside_lua_set_life;
 
-	// Mina temp stuff
+	// Mina perma-temp stuff
 	vector<int> nerv;	// the non empty row vector where we are somehwere in
 	size_t nervpos = 0; // where we are in the non-empty row vector
 	float maxwifescore = 0.0001f; // hurr /0 - Mina
