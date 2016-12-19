@@ -158,6 +158,10 @@ void Profile::InitGeneralData()
 	m_iTotalHands = 0;
 	m_iTotalLifts = 0;
 	m_fPlayerRating = 0.f;
+	m_fPlayerSpeedRating = 0.f;
+	m_fPlayerStamRating = 0.f;
+	m_fPlayerJackRating = 0.f;
+	EtternaCalcVersion = 0.f;
 
 	FOREACH_ENUM( PlayMode, i )
 		m_iNumSongsPlayedByPlayMode[i] = 0;
@@ -2042,8 +2046,8 @@ void Profile::GetScoresByKey(vector<SongID>& songids, vector<StepsID>& stepsids,
 		FOREACHM_CONST(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
 			const StepsID& sid = j->first;
 			if (sid.GetKey() == key) {
-				songids.push_back(id);
-				stepsids.push_back(sid);
+				songids.emplace_back(id);
+				stepsids.emplace_back(sid);
 			}
 		}
 	}
@@ -2066,22 +2070,33 @@ float Profile::GetWifePBByKey(RString key) {
 	return o;
 }
 
-float Profile::CalcPlayerRating() const {
-	vector<float> vSSR;
+void Profile::CalcPlayerRating(float& overall, float& speed, float& stam, float& jack) const {
+	vector<float> vSSRSpeed;
+	vector<float> vSSRStam;
+	vector<float> vSSRJack;
 	FOREACHM_CONST(SongID, HighScoresForASong, m_SongHighScores, i) {
 		const SongID& id = i->first;
 		const HighScoresForASong& hsfas = i->second;
 		FOREACHM_CONST(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
 			const HighScoresForASteps& zz = j->second;
 			const vector<HighScore>& hsv = zz.hsl.vHighScores;
-			for (size_t i = 0; i < hsv.size(); i++)
-				vSSR.push_back(hsv[i].GetSSR());
+			for (size_t i = 0; i < hsv.size(); i++) {
+				vSSRSpeed.emplace_back(hsv[i].GetSSRSpeed());
+				vSSRStam.emplace_back(hsv[i].GetSSRStam());
+				vSSRJack.emplace_back(hsv[i].GetSSRJack());
+			}
 		}
 	}
 
-	float o = AggregateScores(vSSR, 0.f, 10.24f, 1);
-	CLAMP(o, 0.f, 100.f);
-	return o*0.95;
+	speed = AggregateScores(vSSRSpeed, 0.f, 10.24f, 1);
+	stam = AggregateScores(vSSRStam, 0.f, 10.24f, 1);
+	jack = AggregateScores(vSSRJack, 0.f, 10.24f, 1);
+	CLAMP(speed, 0.f, 100.f);
+	CLAMP(stam, 0.f, 100.f);
+	CLAMP(jack, 0.f, 100.f);
+	
+	overall = (speed + stam + jack) / 3;
+	LOG->Trace("RATINGSYO: %f, %f, %f, %f", overall, speed, stam, jack);
 }
 
 void Profile::ResetAllSSRs() {
@@ -2091,8 +2106,12 @@ void Profile::ResetAllSSRs() {
 		FOREACHM(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
 			HighScoresForASteps& zz = j->second;
 			vector<HighScore>& hsv = zz.hsl.vHighScores;
-			for (size_t i = 0; i < hsv.size(); i++)
+			for (size_t i = 0; i < hsv.size(); i++) {
 				hsv[i].SetSSR(0.f);
+				hsv[i].SetSSRSpeed(0.f);
+				hsv[i].SetSSRStam(0.f);
+				hsv[i].SetSSRJack(0.f);
+			}
 		}
 	}
 	m_fPlayerRating = 0.f;
@@ -2112,7 +2131,7 @@ void Profile::RecalculateAllSSRs() {
 			vector<HighScore>& hsv = zz.hsl.vHighScores;
 			for (size_t i = 0; i < hsv.size(); i++) {
 				float wifescore = hsv[i].GetWifeScore();
-				if (wifescore < 0.9f || hsv[i].GetGrade() == Grade_Failed)
+				if (wifescore == 0.f || hsv[i].GetGrade() == Grade_Failed)
 					hsv[i].SetSSR(0.f);
 				else {
 					Song* psong = id.ToSong();
@@ -2130,9 +2149,15 @@ void Profile::RecalculateAllSSRs() {
 					vector<float> etaner;
 
 					for (size_t i = 0; i < nerv.size(); i++)
-						etaner.push_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(nerv[i])));
+						etaner.emplace_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(nerv[i])));
 
-					hsv[i].SetSSR(MinaSDCalc(nd, etaner, musicrate, wifescore, 1.f, td->HasWarps())[0]);
+					vector<float> isthisworking = MinaSDCalc(nd, etaner, musicrate, wifescore, 1.f, td->HasWarps());
+					LOG->Trace("Whoaa: %s", psong->GetSongDir());
+					LOG->Trace("%f, %f, %f, %f", isthisworking[0], isthisworking[1], isthisworking[2], isthisworking[3]);
+					hsv[i].SetSSR(isthisworking[0]);
+					hsv[i].SetSSRSpeed(isthisworking[1]);
+					hsv[i].SetSSRStam(isthisworking[2]);
+					hsv[i].SetSSRJack(isthisworking[3]);
 				}
 			}
 		}

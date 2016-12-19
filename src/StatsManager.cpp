@@ -142,10 +142,19 @@ void AddPlayerStatsToProfile( Profile *pProfile, const StageStats &ss, PlayerNum
 		pProfile->m_iNumStagesPassedByGrade[ss.m_player[pn].GetGrade()] ++;
 	}
 
-	//pProfile->ResetAllSSRs();
-	//pProfile->RecalculateAllSSRs();
-	if(!pProfile->IsMachine())
-		pProfile->m_fPlayerRating = pProfile->CalcPlayerRating();
+	if (!pProfile->IsMachine()) {
+		float hardcodeitYO = 1.f;
+		if (pProfile->EtternaCalcVersion != hardcodeitYO) {
+			pProfile->ResetAllSSRs();
+			LOG->Trace("Reset all SSRs to 0");
+			pProfile->RecalculateAllSSRs();
+			LOG->Trace("Recalculated SSR values");
+			pProfile->EtternaCalcVersion = hardcodeitYO;
+		}
+
+		pProfile->CalcPlayerRating(pProfile->m_fPlayerRating, pProfile->m_fPlayerSpeedRating, pProfile->m_fPlayerStamRating, pProfile->m_fPlayerJackRating);
+	}
+		
 }
 
 XNode* MakeRecentScoreNode( const StageStats &ss, Trail *pTrail, const PlayerStageStats &pss, MultiPlayer mp )

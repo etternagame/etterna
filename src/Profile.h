@@ -221,6 +221,10 @@ public:
 	int m_iTotalHands;
 	int m_iTotalLifts;
 	float m_fPlayerRating;
+	float m_fPlayerSpeedRating;
+	float m_fPlayerStamRating;
+	float m_fPlayerJackRating;
+	float EtternaCalcVersion;
 	/** @brief Is this a brand new profile? */
 	bool m_bNewProfile;
 	set<RString> m_UnlockedEntryIDs;
@@ -317,7 +321,7 @@ public:
 	const HighScoreList& GetCategoryHighScoreList( StepsType st, RankingCategory rc ) const;
 	int GetCategoryNumTimesPlayed( StepsType st ) const;
 	void IncrementCategoryPlayCount( StepsType st, RankingCategory rc );
-	float CalcPlayerRating() const;
+	void CalcPlayerRating(float& overall, float& speed, float& stam, float& jack) const;
 	void ResetAllSSRs();
 	void RecalculateAllSSRs();
 	float AggregateScores(vector<float>& invector, float rating, float res, int iter) const;

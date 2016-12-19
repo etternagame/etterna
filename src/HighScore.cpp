@@ -203,6 +203,9 @@ XNode *HighScoreImpl::CreateNode() const
 	pNode->AppendChild( "PercentDP",		fPercentDP );
 	pNode->AppendChild( "WifeScore",		fWifeScore);
 	pNode->AppendChild( "SSR",				fSSR);
+	pNode->AppendChild( "SSRSpeed",			fSSRSpeed);
+	pNode->AppendChild( "SSRStam",			fSSRStam);
+	pNode->AppendChild( "SSRJack",			fSSRJack);
 	pNode->AppendChild( "Rate",				fMusicRate);
 	pNode->AppendChild( "JudgeScale",		fJudgeScale);
 	pNode->AppendChild( "Offsets",			OffsetsToString(vOffsetVector));
@@ -245,6 +248,9 @@ void HighScoreImpl::LoadFromNode( const XNode *pNode )
 	pNode->GetChildValue( "PercentDP",		fPercentDP );
 	pNode->GetChildValue( "WifeScore",		fWifeScore);
 	pNode->GetChildValue( "SSR",			fSSR);
+	pNode->GetChildValue( "SSRSpeed",		fSSRSpeed);
+	pNode->GetChildValue( "SSRStam",		fSSRStam);
+	pNode->GetChildValue( "SSRJack",		fSSRJack);
 	pNode->GetChildValue( "Rate",			fMusicRate);
 	pNode->GetChildValue( "JudgeScale",		fJudgeScale);
 	pNode->GetChildValue( "Offsets", s);	vOffsetVector = OffsetsToVector(s);
@@ -321,6 +327,9 @@ PeakComboAward HighScore::GetPeakComboAward() const { return m_Impl->peakComboAw
 float HighScore::GetPercentDP() const { return m_Impl->fPercentDP; }
 float HighScore::GetWifeScore() const { return m_Impl->fWifeScore; }
 float HighScore::GetSSR() const { return m_Impl->fSSR; }
+float HighScore::GetSSRSpeed() const { return m_Impl->fSSRSpeed; }
+float HighScore::GetSSRStam() const { return m_Impl->fSSRStam; }
+float HighScore::GetSSRJack() const { return m_Impl->fSSRJack; }
 float HighScore::GetMusicRate() const { return m_Impl->fMusicRate; }
 float HighScore::GetJudgeScale() const { return m_Impl->fJudgeScale; }
 float HighScore::GetSurviveSeconds() const { return m_Impl->fSurviveSeconds; }
@@ -710,6 +719,9 @@ public:
 	static int GetPercentDP( T* p, lua_State *L )		{ lua_pushnumber(L, p->GetPercentDP() ); return 1; }
 	static int GetWifeScore(T* p, lua_State *L)			{ lua_pushnumber(L, p->GetWifeScore()); return 1; }
 	static int GetSSR(T* p, lua_State *L)				{ lua_pushnumber(L, p->GetSSR()); return 1; }
+	static int GetSSRSpeed(T* p, lua_State *L)			{ lua_pushnumber(L, p->GetSSRSpeed()); return 1; }
+	static int GetSSRStam(T* p, lua_State *L)			{ lua_pushnumber(L, p->GetSSRStam()); return 1; }
+	static int GetSSRJack(T* p, lua_State *L)			{ lua_pushnumber(L, p->GetSSRJack()); return 1; }
 	static int GetMusicRate(T* p, lua_State *L)			{ lua_pushnumber(L, p->GetMusicRate()); return 1; }
 	static int GetJudgeScale(T* p, lua_State *L)		{ lua_pushnumber(L, p->GetJudgeScale()); return 1; }
 	static int GetDate( T* p, lua_State *L )			{ lua_pushstring(L, p->GetDateTime().GetString() ); return 1; }
@@ -740,7 +752,6 @@ public:
 	DEFINE_METHOD( ConvertDpToWife, ConvertDpToWife())
 	DEFINE_METHOD( GetStageAward, GetStageAward() )
 	DEFINE_METHOD( GetPeakComboAward, GetPeakComboAward() )
-
 	LunaHighScore()
 	{
 		ADD_METHOD( GetName );
@@ -750,7 +761,10 @@ public:
 		ADD_METHOD( GetWifeScore );
 		ADD_METHOD( RescoreToWifeJudge );
 		ADD_METHOD( RescoreToDPJudge );
-		ADD_METHOD( GetSSR);
+		ADD_METHOD( GetSSR );
+		ADD_METHOD( GetSSRSpeed );
+		ADD_METHOD( GetSSRStam );
+		ADD_METHOD(	GetSSRJack );
 		ADD_METHOD( GetMusicRate );
 		ADD_METHOD( GetJudgeScale );
 		ADD_METHOD( GetDate );

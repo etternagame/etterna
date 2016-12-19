@@ -40,6 +40,9 @@ struct HighScore
 	float GetPercentDP() const;
 	float GetWifeScore() const;
 	float GetSSR() const;
+	float GetSSRSpeed() const;
+	float GetSSRStam() const;
+	float GetSSRJack() const;
 	float GetMusicRate() const;
 	float GetJudgeScale() const;
 	/**

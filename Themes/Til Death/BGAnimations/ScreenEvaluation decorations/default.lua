@@ -82,8 +82,9 @@ function scoreBoard(pn,position)
 			end
 		end
 	}
-
+	
 	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
+	local score = getScoreFromTable(getScoreList(PLAYER_1),pss:GetPersonalHighScoreIndex()+1)
 	
 	t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX-5,frameY;zoomto,frameWidth+10,220;halign,0;valign,0;diffuse,color("#333333CC"))};
 	t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY+30;zoomto,frameWidth,2;halign,0;diffuse,getMainColor('highlight');diffusealpha,0.5)};
@@ -93,7 +94,7 @@ function scoreBoard(pn,position)
 		InitCommand=cmd(xy,frameWidth+frameX,frameY+32;zoom,0.5;halign,1;valign,0;maxwidth,200),
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self)
-			local meter = pss:GetSSR()
+			local meter = score:GetSSR()
 			self:settextf("%5.2f", meter)
 			self:diffuse(byDifficultyMeter(meter))
 		end,
@@ -125,7 +126,6 @@ function scoreBoard(pn,position)
 		InitCommand=cmd(xy,frameX+5,frameY+34;zoom,0.45;halign,0;valign,0),
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self) 
-			local score = getScoreFromTable(getScoresByKey(PLAYER_1),pss:GetPersonalHighScoreIndex()+1)
 			self:diffuse(getGradeColor(pss:GetGrade()))
 			self:settextf("%05.2f%% (%s)",GetPercentDP(score), "DP")
 		end,

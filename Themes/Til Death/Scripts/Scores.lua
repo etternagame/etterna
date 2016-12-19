@@ -360,3 +360,17 @@ function getUsedRates(rtTable)
 	end
 	return rates,initIndex
 end
+
+function getScoreList(pn)
+	local song = GAMESTATE:GetCurrentSong()
+	local profile
+	local steps
+	if GAMESTATE:IsPlayerEnabled(pn) then
+		profile = GetPlayerOrMachineProfile(pn)
+		steps = GAMESTATE:GetCurrentSteps(pn)
+		if profile ~= nil and steps ~= nil and song ~= nil then
+			return profile:GetHighScoreList(song,steps):GetHighScores()
+		end
+	end
+	return nil
+end
