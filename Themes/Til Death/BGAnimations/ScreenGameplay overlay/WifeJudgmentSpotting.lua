@@ -134,7 +134,7 @@ if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetTrackerMode == 0 th
 			else
 				diffuse(self,negative)
 			end
-			self:settextf("%5.2f (%i%%)", tDiff, target)
+			self:settextf("%5.2f (%5.2f%%)", tDiff, target)
 		end
 	}
 	else
@@ -145,7 +145,7 @@ if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetTrackerMode == 0 th
 			local tDiff = msg.WifePBDifferential
 			if tDiff then
 				local pbtarget = msg.WifePBGoal
-				if tDiff >= 0 then 											
+				if tDiff >= 0 then
 					diffuse(self,color("#00ff00"))
 				else
 					diffuse(self,negative)
@@ -158,8 +158,8 @@ if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetTrackerMode == 0 th
 				else
 					diffuse(self,negative)
 				end
-				self:settextf("%5.2f (%i%%)", tDiff, target)
-			end			
+				self:settextf("%5.2f (%5.2f%%)", tDiff, target)
+			end
 		end
 	}
 end

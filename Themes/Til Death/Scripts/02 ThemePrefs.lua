@@ -150,8 +150,9 @@ function TargetGoal()
 		ExportOnChange = true,
 		Choices = tChoices,
 		LoadSelections = function(self, list, pn)
-			local prefs = playerConfig:get_data(pn_to_profile_slot(pn)).TargetGoal
-			list[prefs] = true
+			local prefsval = playerConfig:get_data(pn_to_profile_slot(pn)).TargetGoal
+			local index = IndexOf(tChoices, prefsval.."%")
+			list[index] = true
 		end,
 		SaveSelections = function(self, list, pn)
 			local found = false
@@ -159,7 +160,7 @@ function TargetGoal()
 				if not found then
 					if list[i] == true then
 						local value = i
-						playerConfig:get_data(pn_to_profile_slot(pn)).TargetGoal = value
+						playerConfig:get_data(pn_to_profile_slot(pn)).TargetGoal = tonumber(string.sub(tChoices[value],1,#tChoices[value]-1))
 						found = true
 					end
 				end
@@ -493,22 +494,22 @@ function SongBGEnabled()
 				list[2] = true
 			else 
 				list[1] = true
-			end;
-		end;
+			end
+		end,
 		SaveSelections = function(self, list, pn)
 			local value
 			if list[1] then
 				value = false
 			else
 				value = true
-			end;
+			end
 			themeConfig:get_data().global.SongBGEnabled = value
 			themeConfig:set_dirty()
 			themeConfig:save()
-		end;
-	};
-	setmetatable( t, t );
-	return t;
+		end
+	}
+	setmetatable( t, t )
+	return t
 end	
 
 function SongBGMouseEnabled()
