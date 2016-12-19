@@ -2102,7 +2102,6 @@ void Profile::CalcPlayerRating(float& overall, float& speed, float& stam, float&
 	CLAMP(jack, 0.f, 100.f);
 	
 	overall = (speed + stam + jack) / 3;
-	LOG->Trace("RATINGSYO: %f, %f, %f, %f", overall, speed, stam, jack);
 }
 
 void Profile::ResetAllSSRs() {
@@ -2158,8 +2157,6 @@ void Profile::RecalculateAllSSRs() {
 						etaner.emplace_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(nerv[i])));
 
 					vector<float> isthisworking = MinaSDCalc(nd, etaner, musicrate, wifescore, 1.f, td->HasWarps());
-					LOG->Trace("Whoaa: %s", psong->GetSongDir());
-					LOG->Trace("Wifeperc: %f, %f, %f, %f, %f", wifescore, isthisworking[0], isthisworking[1], isthisworking[2], isthisworking[3]);
 					hsv[i].SetSSR(isthisworking[0]);
 					hsv[i].SetSSRSpeed(isthisworking[1]);
 					hsv[i].SetSSRStam(isthisworking[2]);
