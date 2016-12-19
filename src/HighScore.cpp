@@ -248,6 +248,17 @@ void HighScoreImpl::LoadFromNode( const XNode *pNode )
 	pNode->GetChildValue( "StageAward",		s ); stageAward = StringToStageAward(s);
 	pNode->GetChildValue( "PeakComboAward",	s ); peakComboAward = StringToPeakComboAward(s);
 	pNode->GetChildValue( "Modifiers",		sModifiers );
+	if (fMusicRate == 0.f) {
+		size_t ew = sModifiers.find("xMusic");
+		size_t dew = string::npos;
+		if (ew == string::npos)
+			fMusicRate = 1.f;
+		else {
+			dew = sModifiers.find_last_of('.', ew) - 1;
+			RString loot = sModifiers.substr(dew, ew - dew);
+			fMusicRate = StringToFloat(loot);
+		}
+	}
 	pNode->GetChildValue( "DateTime",		s ); dateTime.FromString( s );
 	pNode->GetChildValue( "PlayerGuid",		sPlayerGuid );
 	pNode->GetChildValue( "MachineGuid",	sMachineGuid );
