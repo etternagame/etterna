@@ -64,7 +64,6 @@ end
 --ScoreBoard
 local judges = {'TapNoteScore_W1','TapNoteScore_W2','TapNoteScore_W3','TapNoteScore_W4','TapNoteScore_W5','TapNoteScore_Miss'}
 
-local score = getCurScore()
 local pssP1 = STATSMAN:GetCurStageStats():GetPlayerStageStats(PLAYER_1)
 
 local frameX = 20
@@ -77,11 +76,57 @@ function scoreBoard(pn,position)
 		BeginCommand=function(self)
 			if position == 1 then
 				self:x(SCREEN_WIDTH-(frameX*2)-frameWidth)
-			end;
-		end;
+			end
+		end
 	}
 
 	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
+	
+	t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX-5,frameY;zoomto,frameWidth+10,220;halign,0;valign,0;diffuse,color("#333333CC"))};
+	t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY+30;zoomto,frameWidth,2;halign,0;diffuse,getMainColor('highlight');diffusealpha,0.5)};
+	t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY+55;zoomto,frameWidth,2;halign,0;diffuse,getMainColor('highlight');diffusealpha,0.5)};
+
+	t[#t+1] = LoadFont("Common Large")..{
+		InitCommand=cmd(xy,frameWidth+frameX,frameY+32;zoom,0.5;halign,1;valign,0;maxwidth,200),
+		BeginCommand=cmd(queuecommand,"Set"),
+		SetCommand=function(self)
+			local meter = pss:GetSSR()
+			self:settextf("%5.2f", meter)
+			self:diffuse(byDifficultyMeter(meter))
+		end,
+	};
+	
+	t[#t+1] = LoadFont("Common Large") .. {
+		InitCommand=cmd(xy,frameWidth+frameX,frameY+7;zoom,0.5;halign,1;valign,0;maxwidth,200),
+		BeginCommand=cmd(queuecommand,"Set"),
+		SetCommand=function(self)
+			local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+			local diff = getDifficulty(steps:GetDifficulty())
+			self:settext(getShortDifficulty(diff))
+			self:diffuse(getDifficultyColor(GetCustomDifficulty(steps:GetStepsType(),steps:GetDifficulty())))
+		end
+	};
+	
+	-- Wife percent
+	t[#t+1] = LoadFont("Common Large")..{
+		InitCommand=cmd(xy,frameX+5,frameY+9;zoom,0.45;halign,0;valign,0),
+		BeginCommand=cmd(queuecommand,"Set"),
+		SetCommand=function(self) 
+			self:diffuse(getGradeColor(pss:GetWifeGrade()))
+			self:settextf("%05.2f%% (%s)",notShit.floor(pss:GetWifeScore()*10000)/100, "Wife")
+		end,
+	};
+	
+	-- DP percent
+	t[#t+1] = LoadFont("Common Large")..{
+		InitCommand=cmd(xy,frameX+5,frameY+34;zoom,0.45;halign,0;valign,0),
+		BeginCommand=cmd(queuecommand,"Set"),
+		SetCommand=function(self) 
+			local score = getScoreFromTable(getScoreList(PLAYER_1),pss:GetPersonalHighScoreIndex()+1)
+			self:diffuse(getGradeColor(pss:GetGrade()))
+			self:settextf("%05.2f%% (%s)",GetPercentDP(score), "DP")
+		end,
+	}
 	
 	t[#t+1] = LoadFont("Common Normal")..{
 		InitCommand=cmd(xy,frameX+5,frameY+63;zoom,0.40;halign,0;maxwidth,frameWidth/0.4),

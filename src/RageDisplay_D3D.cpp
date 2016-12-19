@@ -1441,8 +1441,8 @@ void RageDisplay_D3D::UpdateTexture(
 
 	D3DSURFACE_DESC desc;
 	pTex->GetLevelDesc(0, &desc);
-	ASSERT( xoffset+width <= int(desc.Width) );
-	ASSERT( yoffset+height <= int(desc.Height) );
+	ASSERT( xoffset+width <= static_cast<int>(desc.Width) );
+	ASSERT( yoffset+height <= static_cast<int>(desc.Height) );
 
 	// Copy bits
 	int texpixfmt;

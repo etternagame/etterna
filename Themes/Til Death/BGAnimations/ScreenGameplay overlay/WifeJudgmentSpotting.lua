@@ -20,7 +20,6 @@ local jdgT = {										-- Table of judgments for the judgecounter
 	"HoldNoteScore_LetGo",
 }
 
-local sT = scoringTypes[themeConfig:get_data().global.DefaultScoreType]			
 local dvCur																	
 local jdgCur																-- Note: only for judgments with OFFSETS, might reorganize a bit later
 local positive = getMainColor("positive")
