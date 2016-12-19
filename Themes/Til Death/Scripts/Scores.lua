@@ -329,17 +329,6 @@ function getRate(score)
 	end
 end
 
-function getCurRate()
-	local mods = GAMESTATE:GetSongOptionsString()
-	if string.find(mods,"Haste") ~= nil then
-		return 'Haste'
-	elseif string.find(mods,"xMusic") == nil then
-		return '1.0x'
-	else
-		return (string.match(mods,"%d+%.%d+xMusic")):sub(1,-6)
-	end
-end
-
 -- returns the index of the highscore in a given highscore table. 
 function getHighScoreIndex(hsTable,score)
 	for k,v in ipairs(hsTable) do
@@ -385,7 +374,7 @@ function getUsedRates(rtTable)
 	if rtTable ~= nil then
 		for k,v in pairs(rtTable) do
 			rates[#rates+1] = k
-		end;
+		end
 		table.sort(rates,function(a,b) a=a:gsub("x","") b=b:gsub("x","") return a<b end)
 		for i=1,#rates do
 			if rates[i] == "1.0x" or rates[i] == "All" then
@@ -395,121 +384,3 @@ function getUsedRates(rtTable)
 	end
 	return rates,initIndex
 end
-
-----------------------------------------------------
-
--- Grabs the highest grade available from all currently saved scores.
--- Ignore parameter will ignore the score at that index.
-function getBestGrade(pn,ignore)
-	local highest = 21
-	local indexScore
-	local grade = "Grade_None"
-	local temp = 0
-	local i = 0
-	local steps = GAMESTATE:GetCurrentSteps(pn)
-	local hsTable = getScoreList(pn)
-
-	if hsTable ~= nil and #hsTable >= 1 then
-		while i <= #hsTable do
-			if i ~= ignore then
-				indexScore = hsTable[i]
-				if indexScore ~= nil then
-					temp = gradeTiers[indexScore:GetGrade()] or 21
-					if temp <= highest and isScoreValid(pn,steps,indexScore) then
-						grade = getScoreGrade(indexScore)
-						highest = temp
-					end
-				end
-			end
-			i = i+1
-		end
-	end
-	return grade
-end
-
--- Grabs the highest max combo from all currently saved scores.
--- Ignore parameter will ignore the score at that index.
-function getBestMaxCombo(pn,ignore)
-	local highest = 0
-	local indexScore
-	local i = 0
-
-	local hsTable = getScoreList(pn)
-	local steps = GAMESTATE:GetCurrentSteps(pn)
-
-	if hsTable ~= nil and #hsTable >= 1 then
-		while i <= #hsTable do
-			if i ~= ignore then
-				indexScore = hsTable[i]
-				if indexScore ~= nil then
-					temp = getScoreMaxCombo(indexScore)
-					if isScoreValid(pn,steps,indexScore) then
-						highest = math.max(temp,highest)
-					end
-				end
-			end
-			i = i+1
-		end
-	end
-
-	return highest
-end
-
--- Grabs the lowest misscount from all currently saved scores.
--- Ignore parameter will ignore the score at that index.
-function getBestMissCount(pn,ignore)
-	local lowest = math.huge
-	local temp
-	local indexScore
-	local i = 0
-
-	local hsTable = getScoreList(pn)
-	local steps = GAMESTATE:GetCurrentSteps(pn)
-
-	if hsTable ~= nil and #hsTable >= 1 then
-		while i <= #hsTable do
-			if i ~= ignore then
-				indexScore = hsTable[i]
-				if indexScore ~= nil then
-					if indexScore:GetGrade() ~= "Grade_Failed" and isScoreValid(pn,steps,indexScore) then
-						temp = getScoreMissCount(indexScore)
-						lowest = math.min(lowest,temp)
-					end
-				end
-			end
-			i = i+1
-		end;
-	end;
-
-
-	if lowest == math.huge then
-		lowest = nil
-	end;
-	return lowest 
-end;
-
-function getBestScore(pn,ignore,scoreType)
-	local highest = 0
-	if scoreType == 0 or scoreType == nil then
-		scoreType = themeConfig:get_data().global.DefaultScoreType
-	end
-	local indexScore
-
-	local hsTable = getScoreList(pn)
-	local steps = GAMESTATE:GetCurrentSteps(pn)
-
-	if hsTable ~= nil and #hsTable >= 1 then
-		for k,v in ipairs(hsTable) do
-			if k ~= ignore then
-				indexScore = hsTable[k]
-				if indexScore ~= nil then
-					if isScoreValid(pn,steps,indexScore) then
-						highest = math.max(highest,getScore(indexScore,scoreType))
-					end
-				end
-			end
-		end
-	end
-	return highest
-end
-

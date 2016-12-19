@@ -49,9 +49,9 @@ if GAMESTATE:IsPlayerEnabled(player) then
 		hsTable = sortScore(rtTable[getRate(score)] or {},0)
 	else
 		hsTable = sortScore(rtTable["All"] or {},0)
-	end;
+	end
 	scoreIndex = getHighScoreIndex(hsTable,score)
-end;
+end
 
 --Input event for mouse clicks
 local function input(event)

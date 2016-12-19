@@ -23,7 +23,11 @@ t[#t+1] = LoadFont("Common Normal")..{
 t[#t+1] = LoadFont("Common normal")..{
 	InitCommand=cmd(xy,SCREEN_CENTER_X,capWideScale(145,160);zoom,0.5;halign,0.5),
 	BeginCommand=function(self)
-		self:settext(getCurRateString())
+		if getCurRateString() == "1x" then
+			self:settext("")
+		else
+			self:settext(getCurRateString())
+		end
 	end
 }
 
