@@ -314,8 +314,56 @@ t[#t+1] = LoadFont("Common Large") .. {
 	BeginCommand=cmd(queuecommand,"Set"),
 	SetCommand=function(self)
 		if song then
-			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue())
+			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 0)
 			self:settextf("%05.2f",meter)
+			self:diffuse(byDifficultyMeter(meter))
+		else
+			self:settext("")
+		end
+	end,
+	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
+	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
+}
+
+t[#t+1] = LoadFont("Common Large") .. {
+	InitCommand=cmd(xy,frameX+158,frameY-150;halign,0.5;zoom,0.6;maxwidth,110/0.6),
+	BeginCommand=cmd(queuecommand,"Set"),
+	SetCommand=function(self)
+		if song then
+			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1)
+			self:settextf("Speed: %05.2f",meter)
+			self:diffuse(byDifficultyMeter(meter))
+		else
+			self:settext("")
+		end
+	end,
+	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
+	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
+}
+
+t[#t+1] = LoadFont("Common Large") .. {
+	InitCommand=cmd(xy,frameX+158,frameY-120;halign,0.5;zoom,0.6;maxwidth,110/0.6),
+	BeginCommand=cmd(queuecommand,"Set"),
+	SetCommand=function(self)
+		if song then
+			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 2)
+			self:settextf("Stam %05.2f",meter)
+			self:diffuse(byDifficultyMeter(meter))
+		else
+			self:settext("")
+		end
+	end,
+	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
+	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
+}
+
+t[#t+1] = LoadFont("Common Large") .. {
+	InitCommand=cmd(xy,frameX+158,frameY-90;halign,0.5;zoom,0.6;maxwidth,110/0.6),
+	BeginCommand=cmd(queuecommand,"Set"),
+	SetCommand=function(self)
+		if song then
+			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 3)
+			self:settextf("Jack %05.2f",meter)
 			self:diffuse(byDifficultyMeter(meter))
 		else
 			self:settext("")

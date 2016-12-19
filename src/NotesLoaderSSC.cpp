@@ -526,10 +526,11 @@ void SetChartKey(StepsTagInfo& info) {
 
 void strsplit(vector<float>& o, RString& s, size_t i) {
 	size_t j = s.find(",", i);
-	if (i != s.npos) {
+	if (j != s.npos) {
 		o.push_back(StringToFloat(s.substr(i, j - 1)));
-		strsplit(o, s, j);
-	}
+		strsplit(o, s, j + 1);
+	} else
+		o.push_back(StringToFloat(s.substr(i, j - 1)));
 }
 
 void SetMSDValues(StepsTagInfo& info) {
@@ -538,7 +539,6 @@ void SetMSDValues(StepsTagInfo& info) {
 	// Optimize by calling those only once instead of multiple times inside the loop.
 	auto params = (*info.params);
 	auto size = params.params.size();
-
 	// Start from index 1
 	for (size_t i = 1; i <= size; i++) {
 		vector<float> diffs;

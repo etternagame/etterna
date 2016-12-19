@@ -173,12 +173,15 @@ public:
 	RString ChartKey = "Invalid";
 	RString ChartKeyRecord = "Invalid";
 	RString GetChartKey() const { return ChartKey; }
-	MinaSD stuffnthings = { { 0.f },{ 0.f } ,{ 0.f },{ 0.f },{ 0.f },{ 0.f },{ 0.f },{ 0.f },{ 0.f },{ 0.f },{ 0.f },{ 0.f },{ 0.f },{ 0.f },{ 0.f },{ 0.f },{ 0.f },{ 0.f },{ 0.f },{ 0.f },{ 0.f } };
+	vector<float> thestuffs = { 0.f,0.f,0.f,0.f };
+	MinaSD stuffnthings = { thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs };
 	RString GetChartKeyRecord() const;
 	void SetChartKey(const RString &k)  { ChartKey = k; }
 	void SetAllMSD(const MinaSD &msd) { stuffnthings = msd; }
 	MinaSD GetAllMSD() const { return stuffnthings;  }
-	float GetMSD(float x) const { return stuffnthings[lround(x*10)][0]; }
+
+	// prolly needs an enum or something idk - mina
+	float GetMSD(float x, int i) const { return stuffnthings[lround(x*10)][i]; }
 
 	/* This is a reimplementation of the lua version of the script to generate chart keys, except this time
 	using the notedata stored in game memory immediately after reading it than parsing it using lua. - Mina */
