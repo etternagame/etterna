@@ -311,13 +311,14 @@ float PlayerStageStats::GetPercentDancePoints() const {
 float PlayerStageStats::GetWifeScore() const {
 	return m_fWifeScore;
 }
-float PlayerStageStats::CalcSSR() const {
+vector<float> PlayerStageStats::CalcSSR() const {
+	vector<float> o = { 0.f, 0.f, 0.f,0.f };
 	if (GetGrade() == Grade_Failed)
-		return 0.f;
+		return o ;
 
 	FOREACHM_CONST(float, float, m_fLifeRecord, fail)
 		if (fail->second == 0.f)
-			return 0.f;
+			return o;
 
 	auto nd = GAMESTATE->m_pCurSteps[m_player_number]->GetNoteData();
 	TimingData* td = GAMESTATE->m_pCurSteps[m_player_number]->GetTimingData();
@@ -330,11 +331,7 @@ float PlayerStageStats::CalcSSR() const {
 	for (size_t i = 0; i < nerv.size(); ++i)
 		etaner[i] = etar[nerv[i]];
 
-	vector<float> calcoutput = MinaSDCalc(nd, etaner, musicrate, m_fWifeScore, 1.f, td->HasWarps());
-	float o = calcoutput[0];
-	o = o * 1 - (0.93f - m_fWifeScore);
-	CLAMP(o, 0.f, calcoutput[0]);
-	return o;
+	return MinaSDCalc(nd, etaner, musicrate, m_fWifeScore, 1.f, td->HasWarps());
 }
 float PlayerStageStats::GetTimingScale() const {
 	return m_fTimingScale;
@@ -803,6 +800,9 @@ public:
 	DEFINE_METHOD( GetScore,					m_iScore )
 	DEFINE_METHOD( GetWifeScore,				m_fWifeScore )
 	DEFINE_METHOD( GetSSR,						CalcSSR())
+	DEFINE_METHOD( GetSSRSpeed,					CalcSSR())
+	DEFINE_METHOD( GetSSRStam,					CalcSSR())
+	DEFINE_METHOD( GetSSRJack,					CalcSSR())
 	DEFINE_METHOD( GetCurMaxScore,				m_iCurMaxScore )
 	DEFINE_METHOD( GetTapNoteScores,			m_iTapNoteScores[Enum::Check<TapNoteScore>(L, 1)] )
 	DEFINE_METHOD( GetHoldNoteScores,			m_iHoldNoteScores[Enum::Check<HoldNoteScore>(L, 1)] )

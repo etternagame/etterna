@@ -143,7 +143,11 @@ static HighScore FillInHighScore( const PlayerStageStats &pss, const PlayerState
 	hs.SetScore( pss.m_iScore );
 	hs.SetPercentDP( pss.GetPercentDancePoints() );
 	hs.SetWifeScore( pss.GetWifeScore());
-	hs.SetSSR( pss.CalcSSR());
+	vector<float> dakine = pss.CalcSSR();
+	hs.SetSSR( dakine[0]);
+	hs.SetSSRSpeed(dakine[1]);
+	hs.SetSSRStam(dakine[2]);
+	hs.SetSSRJack(dakine[3]);
 	hs.SetMusicRate( GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 	hs.SetJudgeScale( pss.GetTimingScale());
 	hs.SetOffsetVector( pss.GetOffsetVector());

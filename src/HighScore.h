@@ -77,6 +77,9 @@ struct HighScore
 	void SetPercentDP( float f );
 	void SetWifeScore(float f);
 	void SetSSR(float f);
+	void SetSSRSpeed(float f);
+	void SetSSRStam(float f);
+	void SetSSRJack(float f);
 	void SetMusicRate(float f);
 	void SetJudgeScale(float f);
 	void SetOffsetVector(vector<float> v);

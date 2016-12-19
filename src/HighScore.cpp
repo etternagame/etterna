@@ -21,6 +21,9 @@ struct HighScoreImpl
 	float fPercentDP;
 	float fWifeScore;
 	float fSSR;
+	float fSSRSpeed;
+	float fSSRStam;
+	float fSSRJack;
 	float fSurviveSeconds;
 	float fMusicRate;
 	float fJudgeScale;
@@ -164,6 +167,9 @@ HighScoreImpl::HighScoreImpl()
 	fPercentDP = 0.f;
 	fWifeScore = 0.f;
 	fSSR = 0.f;
+	fSSRSpeed = 0.f;
+	fSSRStam = 0.f;
+	fSSRJack = 0.f;
 	fMusicRate = 0.f;
 	fJudgeScale = 0.f;
 	vOffsetVector.clear();
@@ -340,6 +346,9 @@ void HighScore::SetPeakComboAward( PeakComboAward a ) { m_Impl->peakComboAward =
 void HighScore::SetPercentDP( float f ) { m_Impl->fPercentDP = f; }
 void HighScore::SetWifeScore(float f) {m_Impl->fWifeScore = f;}
 void HighScore::SetSSR(float f) { m_Impl->fSSR = f; }
+void HighScore::SetSSRSpeed(float f) { m_Impl->fSSRSpeed = f; }
+void HighScore::SetSSRStam(float f) { m_Impl->fSSRStam = f; }
+void HighScore::SetSSRJack(float f) { m_Impl->fSSRJack = f; }
 void HighScore::SetMusicRate(float f) { m_Impl->fMusicRate = f; }
 void HighScore::SetJudgeScale(float f) { m_Impl->fJudgeScale = f; }
 void HighScore::SetOffsetVector(vector<float> v) { m_Impl->vOffsetVector = v; }

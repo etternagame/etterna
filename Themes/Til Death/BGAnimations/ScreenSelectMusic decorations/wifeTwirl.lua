@@ -347,7 +347,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 	SetCommand=function(self)
 		if song then
 			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 2)
-			self:settextf("Stam %05.2f",meter)
+			self:settextf("Stam: %05.2f",meter)
 			self:diffuse(byDifficultyMeter(meter))
 		else
 			self:settext("")
@@ -363,7 +363,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 	SetCommand=function(self)
 		if song then
 			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 3)
-			self:settextf("Jack %05.2f",meter)
+			self:settextf("Jack: %05.2f",meter)
 			self:diffuse(byDifficultyMeter(meter))
 		else
 			self:settext("")
