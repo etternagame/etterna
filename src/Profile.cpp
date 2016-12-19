@@ -1502,6 +1502,9 @@ XNode* Profile::SaveGeneralDataCreateNode() const
 	pGeneralDataNode->AppendChild( "TotalHands",			m_iTotalHands );
 	pGeneralDataNode->AppendChild( "TotalLifts",			m_iTotalLifts );
 	pGeneralDataNode->AppendChild( "PlayerRating",			m_fPlayerRating);
+	pGeneralDataNode->AppendChild("PlayerSpeedRating",		m_fPlayerSpeedRating);
+	pGeneralDataNode->AppendChild("PlayerStamRating",		m_fPlayerStamRating);
+	pGeneralDataNode->AppendChild("PlayerJackRating",		m_fPlayerJackRating);
 
 	// Keep declared variables in a very local scope so they aren't 
 	// accidentally used where they're not intended.  There's a lot of
@@ -1701,6 +1704,9 @@ void Profile::LoadGeneralDataFromNode( const XNode* pNode )
 	pNode->GetChildValue( "TotalHands",				m_iTotalHands );
 	pNode->GetChildValue( "TotalLifts",				m_iTotalLifts );
 	pNode->GetChildValue( "PlayerRating",			m_fPlayerRating);
+	pNode->GetChildValue( "PlayerSpeedRating",		m_fPlayerSpeedRating);
+	pNode->GetChildValue( "PlayerStamRating",		m_fPlayerStamRating);
+	pNode->GetChildValue( "PlayerJackRating",		m_fPlayerJackRating);	
 
 	{
 		const XNode* pDefaultModifiers = pNode->GetChild("DefaultModifiers");
@@ -2855,6 +2861,9 @@ public:
 	static int GetTotalCaloriesBurned( T* p, lua_State *L )		{ lua_pushnumber(L, p->m_fTotalCaloriesBurned ); return 1; }
 	static int GetDisplayTotalCaloriesBurned( T* p, lua_State *L )	{ lua_pushstring(L, p->GetDisplayTotalCaloriesBurned() ); return 1; }
 	static int GetPlayerRating(T* p, lua_State *L) { lua_pushnumber(L, p->m_fPlayerRating); return 1; }
+	static int GetPlayerSpeedRating(T* p, lua_State *L) { lua_pushnumber(L, p->m_fPlayerSpeedRating); return 1; }
+	static int GetPlayerStamRating(T* p, lua_State *L) { lua_pushnumber(L, p->m_fPlayerStamRating); return 1; }
+	static int GetPlayerJackRating(T* p, lua_State *L) { lua_pushnumber(L, p->m_fPlayerJackRating); return 1; }
 	static int GetMostPopularSong( T* p, lua_State *L )
 	{
 		Song *p2 = p->GetMostPopularSong();
@@ -2989,6 +2998,9 @@ public:
 		ADD_METHOD( GetLastPlayedCourse );
 		ADD_METHOD( GetGUID );
 		ADD_METHOD( GetPlayerRating );
+		ADD_METHOD( GetPlayerSpeedRating );
+		ADD_METHOD( GetPlayerStamRating );
+		ADD_METHOD( GetPlayerJackRating );
 		ADD_METHOD( GetNumFaves );
 	}
 };

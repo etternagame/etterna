@@ -190,6 +190,58 @@ t[#t+1] = LoadFont("Common Normal")..{
 	-- ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
 -- }
 
+-- SSR displays
+t[#t+1] = LoadFont("Common Normal")..{
+	Name="Score",
+	InitCommand=cmd(xy,frameX+offsetX+155,frameY+offsetY+28;zoom,0.5;halign,0),
+	SetCommand=function(self)
+		if score ~= nil then
+			if score:GetWifeScore() == 0 then 
+				self:settext("")
+			else
+				self:settextf("%5.2f", score:GetSSRSpeed())
+			end
+		else
+			self:settext("")
+		end
+	end,
+	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+}
+
+t[#t+1] = LoadFont("Common Normal")..{
+	Name="Score",
+	InitCommand=cmd(xy,frameX+offsetX+155,frameY+offsetY+38;zoom,0.5;halign,0),
+	SetCommand=function(self)
+		if score ~= nil then
+			if score:GetWifeScore() == 0 then 
+				self:settext("")
+			else
+				self:settextf("%5.2f", score:GetSSRStam())
+			end
+		else
+			self:settext("")
+		end
+	end,
+	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+}
+
+t[#t+1] = LoadFont("Common Normal")..{
+	Name="Score",
+	InitCommand=cmd(xy,frameX+offsetX+155,frameY+offsetY+48;zoom,0.5;halign,0),
+	SetCommand=function(self)
+		if score ~= nil then
+			if score:GetWifeScore() == 0 then 
+				self:settext("")
+			else
+				self:settextf("%5.2f", score:GetSSRJack())
+			end
+		else
+			self:settext("")
+		end
+	end,
+	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+}
+
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="ClearType",
 	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+41;zoom,0.5;halign,0);

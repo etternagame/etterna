@@ -10,6 +10,9 @@ local playCount = 0
 local playTime = 0
 local noteCount = 0
 local skillrating = 0
+local speedrating = 0
+local stamrating = 0
+local jackrating = 0
 local numfaves = 0
 
 local AvatarX = 0
@@ -30,6 +33,9 @@ t[#t+1] = Def.Actor{
 				playTime = profile:GetTotalSessionSeconds()
 				noteCount = profile:GetTotalTapsAndHolds()
 				skillrating = profile:GetPlayerRating()
+				speedrating = profile:GetPlayerSpeedRating()
+				stamrating = profile:GetPlayerStamRating()
+				jackrating = profile:GetPlayerJackRating()
 				numfaves = profile:GetNumFaves()
 			else 
 				profileName = "No Profile"
@@ -72,7 +78,7 @@ t[#t+1] = Def.ActorFrame{
 			self:LoadBackground(THEME:GetPathG("","../"..getAvatarPath(PLAYER_1)))
 			self:zoomto(50,50)
 		end,
-	};
+	},
 	LoadFont("Common Normal") .. {
 		InitCommand=cmd(xy,AvatarX+53,AvatarY+7;halign,0;zoom,0.6;diffuse,getMainColor('positive')),
 		BeginCommand=cmd(queuecommand,"Set"),
@@ -81,7 +87,7 @@ t[#t+1] = Def.ActorFrame{
 		end,
 		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
 		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
-	};
+	},
 	LoadFont("Common Normal") .. {
 		InitCommand=cmd(xy,AvatarX+53,AvatarY+20;halign,0;zoom,0.35;diffuse,getMainColor('positive')),
 		BeginCommand=cmd(queuecommand,"Set"),
@@ -90,7 +96,7 @@ t[#t+1] = Def.ActorFrame{
 		end,
 		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
 		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
-	};
+	},
 	LoadFont("Common Normal") .. {
 		InitCommand=cmd(xy,AvatarX+53,AvatarY+30;halign,0;zoom,0.35;diffuse,getMainColor('positive')),
 		BeginCommand=cmd(queuecommand,"Set"),
@@ -99,7 +105,7 @@ t[#t+1] = Def.ActorFrame{
 		end,
 		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
 		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
-	};
+	},
 	LoadFont("Common Normal") .. {
 		InitCommand=cmd(xy,AvatarX+53,AvatarY+40;halign,0;zoom,0.35;diffuse,getMainColor('positive')),
 		BeginCommand=cmd(queuecommand,"Set"),
@@ -109,7 +115,7 @@ t[#t+1] = Def.ActorFrame{
 		end,
 		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
 		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
-	};
+	},
 	LoadFont("Common Normal") .. {
 		InitCommand=cmd(xy,AvatarX+180,AvatarY+40;halign,0;zoom,0.35;diffuse,getMainColor('positive')),
 		BeginCommand=cmd(queuecommand,"Set"),
@@ -118,16 +124,43 @@ t[#t+1] = Def.ActorFrame{
 		end,
 		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
 		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
-	};
+	},
 	LoadFont("Common Normal") .. {
 		InitCommand=cmd(xy,AvatarX+170,AvatarY+7;halign,0;zoom,0.6;diffuse,getMainColor('positive')),
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self)
-			self:settextf("Rating: %5.2f", skillrating)
+			self:settextf("Overall Rating: %5.2f", skillrating)
 		end,
 		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
 		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
-	};
+	},
+	LoadFont("Common Normal") .. {
+		InitCommand=cmd(xy,AvatarX+170,AvatarY+20;halign,0;zoom,0.6;diffuse,getMainColor('positive')),
+		BeginCommand=cmd(queuecommand,"Set"),
+		SetCommand=function(self)
+			self:settextf("Speed Rating: %5.2f", speedrating)
+		end,
+		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
+		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+	},
+	LoadFont("Common Normal") .. {
+		InitCommand=cmd(xy,AvatarX+370,AvatarY+7;halign,0;zoom,0.6;diffuse,getMainColor('positive')),
+		BeginCommand=cmd(queuecommand,"Set"),
+		SetCommand=function(self)
+			self:settextf("Stam Rating: %5.2f", stamrating)
+		end,
+		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
+		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+	},
+	LoadFont("Common Normal") .. {
+		InitCommand=cmd(xy,AvatarX+370,AvatarY+20;halign,0;zoom,0.6;diffuse,getMainColor('positive')),
+		BeginCommand=cmd(queuecommand,"Set"),
+		SetCommand=function(self)
+			self:settextf("Jack Rating: %5.2f", jackrating)
+		end,
+		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
+		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+	},
 	LoadFont("Common Normal") .. {
 		InitCommand=cmd(xy,SCREEN_WIDTH-5,AvatarY+20;halign,1;zoom,0.35;diffuse,getMainColor('positive')),
 		BeginCommand=cmd(queuecommand,"Set"),
@@ -136,7 +169,7 @@ t[#t+1] = Def.ActorFrame{
 		end,
 		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
 		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
-	};
+	},
 	LoadFont("Common Normal") .. {
 		InitCommand=cmd(xy,SCREEN_WIDTH-5,AvatarY+30;halign,1;zoom,0.35;diffuse,getMainColor('positive')),
 		BeginCommand=cmd(queuecommand,"Set"),
@@ -145,8 +178,8 @@ t[#t+1] = Def.ActorFrame{
 		end,
 		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
 		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
-	};
-};
+	},
+}
 
 local function Update(self)
 	t.InitCommand=cmd(SetUpdateFunction,Update);

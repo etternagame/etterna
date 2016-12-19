@@ -526,11 +526,9 @@ void SetChartKey(StepsTagInfo& info) {
 
 void strsplit(vector<float>& o, RString& s, size_t i) {
 	size_t j = s.find(",", i);
-	if (j != s.npos) {
-		o.push_back(StringToFloat(s.substr(i, j - 1)));
+	o.push_back(StringToFloat(s.substr(i, j - 1)));
+	if (j != s.npos)
 		strsplit(o, s, j + 1);
-	} else
-		o.push_back(StringToFloat(s.substr(i, j - 1)));
 }
 
 void SetMSDValues(StepsTagInfo& info) {

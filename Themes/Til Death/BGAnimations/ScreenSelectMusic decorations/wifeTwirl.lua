@@ -326,7 +326,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 }
 
 t[#t+1] = LoadFont("Common Large") .. {
-	InitCommand=cmd(xy,frameX+158,frameY-150;halign,0.5;zoom,0.6;maxwidth,110/0.6),
+	InitCommand=cmd(xy,frameX+165,frameY-60;halign,0.5;zoom,0.6;maxwidth,110/0.6),
 	BeginCommand=cmd(queuecommand,"Set"),
 	SetCommand=function(self)
 		if song then
@@ -342,7 +342,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 }
 
 t[#t+1] = LoadFont("Common Large") .. {
-	InitCommand=cmd(xy,frameX+158,frameY-120;halign,0.5;zoom,0.6;maxwidth,110/0.6),
+	InitCommand=cmd(xy,frameX+165,frameY-30;halign,0.5;zoom,0.6;maxwidth,110/0.6),
 	BeginCommand=cmd(queuecommand,"Set"),
 	SetCommand=function(self)
 		if song then
@@ -358,7 +358,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 }
 
 t[#t+1] = LoadFont("Common Large") .. {
-	InitCommand=cmd(xy,frameX+158,frameY-90;halign,0.5;zoom,0.6;maxwidth,110/0.6),
+	InitCommand=cmd(xy,frameX+165,frameY;halign,0.5;zoom,0.6;maxwidth,110/0.6),
 	BeginCommand=cmd(queuecommand,"Set"),
 	SetCommand=function(self)
 		if song then
