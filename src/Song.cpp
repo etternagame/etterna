@@ -1732,6 +1732,15 @@ float Song::GetPreviewStartSeconds() const
 	return 0.0f;
 }
 
+float Song::GetHighestSkillsetAllSteps(int x) {
+	float o = 0.f;
+	vector<Steps*> vsteps = GetAllSteps();
+	FOREACH(Steps*, vsteps, steps)
+		if ((*steps)->GetMSD(1, x) > 0.f)
+			o = (*steps)->GetMSD(1, x);
+	return o;
+}
+
 RString Song::GetDisplayMainTitle() const
 {
 	if(!PREFSMAN->m_bShowNativeLanguage) return GetTranslitMainTitle();

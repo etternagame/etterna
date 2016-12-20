@@ -272,6 +272,9 @@ public:
 	RString GetPreviewMusicPath() const;
 	float GetPreviewStartSeconds() const;
 
+	// how have i not jammed anything here yet - mina 
+	float GetHighestSkillsetAllSteps(int x);
+
 	// For loading only:
 	bool m_bHasMusic, m_bHasBanner, m_bHasBackground;
 

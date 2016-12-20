@@ -1,23 +1,26 @@
+local active = true
+
 local function input(event)
-	if event.type ~= "InputEventType_Release" then
+	if event.type ~= "InputEventType_Release" and active then
 		for i=1,6 do
 			if event.DeviceInput.button == "DeviceButton_"..i then
 				setTabIndex(i-1)
 				MESSAGEMAN:Broadcast("TabChanged")
-			end;
-		end;
+			end
+		end
 		if event.DeviceInput.button == "DeviceButton_left mouse button" then
 			MESSAGEMAN:Broadcast("MouseLeftClick")
-		end;
-	end;
-return false;
+		end
+	end
+	return false
 end
 
-
 local t = Def.ActorFrame{
-	OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) end;
-	BeginCommand=function(self) resetTabIndex() end;
-	PlayerJoinedMessageCommand=function(self) resetTabIndex() end;
+	OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) end,
+	BeginCommand=function(self) resetTabIndex() end,
+	PlayerJoinedMessageCommand=function(self) resetTabIndex() end,
+	BeginningSearchMessageCommand=function(self) active = false end,
+	EndingSearchMessageCommand=function(self) active = true end,
 }
 
 -- Just for debug

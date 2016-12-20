@@ -54,6 +54,17 @@ ms.JudgeCountInverse = {
 	HoldNoteScore_LetGo		= 8,
 }
 
+local PersistentSearch
+
+function GetPersistentSearch()
+	if not PersistentSearch then return "" end
+	return PersistentSearch
+end
+
+function SetPersistentSearch(s)
+	PersistentSearch = s
+end
+
 -- **Functions**
 function ms.ok(m)
 	if not m then

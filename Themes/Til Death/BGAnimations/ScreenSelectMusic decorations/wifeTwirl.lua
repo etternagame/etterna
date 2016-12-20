@@ -140,7 +140,7 @@ t[#t+1] = Def.ActorFrame{
 	Def.Quad{InitCommand=cmd(xy,frameX,frameY-76;zoomto,110,94;halign,0;valign,0;diffuse,color("#333333CC");diffusealpha,0.66)},			--Upper Bar
 	Def.Quad{InitCommand=cmd(xy,frameX,frameY+18;zoomto,frameWidth+4,50;halign,0;valign,0;diffuse,color("#333333CC");diffusealpha,0.66)},	--Lower Bar
 	Def.Quad{InitCommand=cmd(xy,frameX,frameY-76;zoomto,8,144;halign,0;valign,0;diffuse,getMainColor('highlight');diffusealpha,0.5)},		--Side Bar (purple streak on the left)
-
+	
 	-- **score related stuff** These need to be updated with rate changed commands
 	-- Primary percent score
 	LoadFont("Common Large")..{
@@ -436,7 +436,7 @@ t[#t+1] = Def.Sprite {
 				end
 			else
 				self:visible(false)
-			end;
+			end
 			local height = self:GetHeight()
 			local width = self:GetWidth()
 			
@@ -452,10 +452,10 @@ t[#t+1] = Def.Sprite {
 				self:zoom(75/width)
 			else
 				self:zoom(1)
-			end;
+			end
 		else
 		self:visible(false)
-		end;
+		end
 	end,
 	BeginCommand=cmd(queuecommand,"Set"),
 	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
@@ -475,9 +475,8 @@ t[#t+1] = LoadFont("Common Large") .. {
 	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
 }
 
---test actor
 t[#t+1] = LoadFont("Common Large") .. {
-	InitCommand=cmd(xy,frameX,frameY-120;halign,0;zoom,0.4,maxwidth,125),
+	InitCommand=cmd(xy,(capWideScale(get43size(384),384))+68,SCREEN_BOTTOM-135;halign,1;zoom,0.4,maxwidth,125),
 	BeginCommand=cmd(queuecommand,"Set"),
 	SetCommand=function(self)
 		if song then
@@ -489,5 +488,30 @@ t[#t+1] = LoadFont("Common Large") .. {
 	CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set"),
 	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
 }
+
+-- active filters display
+t[#t+1] = Def.Quad{InitCommand=cmd(xy,16,capWideScale(SCREEN_TOP+172,SCREEN_TOP+194);zoomto,SCREEN_WIDTH*1.35*0.4 + 8,24;halign,0;valign,0.5;diffuse,color("#000000");diffusealpha,0),
+	EndingSearchMessageCommand=function(self)
+		self:diffusealpha(1)
+	end
+}
+t[#t+1] = LoadFont("Common Large") .. {
+	InitCommand=cmd(xy,20,capWideScale(SCREEN_TOP+170,SCREEN_TOP+194);halign,0;zoom,0.4;settext,"Active Filters: "..GetPersistentSearch();maxwidth,SCREEN_WIDTH*1.35),
+	EndingSearchMessageCommand=function(self, msg)
+		self:settext("Active Filters: "..msg.ActiveFilter)
+	end
+}
+
+--test actor
+t[#t+1] = LoadFont("Common Large") .. {
+	InitCommand=cmd(xy,frameX,frameY-120;halign,0;zoom,0.4,maxwidth,125),
+	BeginCommand=cmd(queuecommand,"Set"),
+	SetCommand=function(self)
+		self:settext("")
+	end,
+	CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set"),
+	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
+}
+
 
 return t
