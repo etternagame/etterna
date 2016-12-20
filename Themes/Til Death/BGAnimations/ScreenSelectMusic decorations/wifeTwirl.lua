@@ -121,6 +121,14 @@ local function GetDisplayScore()
 	return score
 end
 
+-- Arbitrarily chosen 40 difficulty as the peak color
+local function getMSDColor (diff)
+	if diff then
+		return HSV(math.max(95 - (diff/40)*150, -50), 0.9, 0.9)
+	end;
+	return HSV(0, 0.9, 0.9)
+end;
+
 t[#t+1] = Def.Actor{
 	SetCommand=function(self)		
 		if song then 
@@ -332,7 +340,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 		if song then
 			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1)
 			self:settextf("Speed: %05.2f",meter)
-			self:diffuse(byDifficultyMeter(meter))
+			self:diffuse(getMSDColor(meter))
 		else
 			self:settext("")
 		end
@@ -348,7 +356,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 		if song then
 			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 2)
 			self:settextf("Stam: %05.2f",meter)
-			self:diffuse(byDifficultyMeter(meter))
+			self:diffuse(getMSDColor(meter))
 		else
 			self:settext("")
 		end
@@ -364,7 +372,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 		if song then
 			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 3)
 			self:settextf("Jack: %05.2f",meter)
-			self:diffuse(byDifficultyMeter(meter))
+			self:diffuse(getMSDColor(meter))
 		else
 			self:settext("")
 		end
