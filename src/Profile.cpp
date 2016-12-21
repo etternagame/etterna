@@ -2082,6 +2082,9 @@ void Profile::CalcPlayerRating(float& overall, float& speed, float& stam, float&
 	vector<float> vSSRJack;
 	FOREACHM_CONST(SongID, HighScoresForASong, m_SongHighScores, i) {
 		const SongID& id = i->first;
+		// skip files that can't be loaded since we can't verify their ssrs - mina
+		if (!id.IsValid())
+			continue;
 		const HighScoresForASong& hsfas = i->second;
 		FOREACHM_CONST(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
 			const HighScoresForASteps& zz = j->second;
@@ -2107,6 +2110,9 @@ void Profile::CalcPlayerRating(float& overall, float& speed, float& stam, float&
 void Profile::ResetAllSSRs() {
 	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
 		const SongID& id = i->first;
+		// for now only reset ssrs for loaded files - mina
+		if (!id.IsValid())
+			continue;
 		HighScoresForASong& hsfas = i->second;
 		FOREACHM(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
 			HighScoresForASteps& zz = j->second;
