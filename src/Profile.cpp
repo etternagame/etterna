@@ -2017,7 +2017,7 @@ void Profile::LoadSongScoresFromNode( const XNode* pSongScores )
 			cannot be generated or assigned. If we encounter a newly invalidated steps we reload
 			it so as not to alter the entry. This way if a steps entry already has a chartkey
 			attached to it and the .sm file is moved or deleted the chartkey and score will persist
-			allowing it to be accessed by any concurrent file that shares the same key. - Mina
+			allowing it to be accessed by any current file that shares the same key. - Mina
 			*/
 			if (songID.IsValid())
 			{
