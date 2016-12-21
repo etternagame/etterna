@@ -10,7 +10,7 @@ local defaultConfig = {
 		HelpMenu = false,
 		ScoreBoardNag = false,
 		MeasureLines = false,
-		ProgressBar = 2, -- 0 = off, 1 bottom , 2 top
+		ProgressBar = 1, -- 0 = bottom, 1 = top
 	},
 	NPSDisplay = {
 		DynamicWindow = false,

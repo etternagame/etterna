@@ -342,8 +342,9 @@ separate entities. So you can have both, or one or the other, or neither.
  
 -- User params
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
+local posoffset = themeConfig:get_data().global.ProgressBar * (SCREEN_BOTTOM - 50)
 local frameX = CenterX
-local frameY = 20
+local frameY = SCREEN_BOTTOM-30 - posoffset
 local width = SCREEN_WIDTH/2-100
 local height = 10
 local alpha = 0.7
