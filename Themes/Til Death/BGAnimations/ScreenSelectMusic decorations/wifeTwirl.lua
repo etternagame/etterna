@@ -125,9 +125,16 @@ end
 local function getMSDColor (diff)
 	if diff then
 		return HSV(math.max(95 - (diff/40)*150, -50), 0.9, 0.9)
-	end;
+	end
 	return HSV(0, 0.9, 0.9)
-end;
+end
+
+local function getMusicColor (length)
+	if length then
+		return HSV(math.max(95 - (length/600)*150, -50), 0.9, 0.9)
+	end
+	return HSV(0, 0.9, 0.9)
+end
 
 t[#t+1] = Def.Actor{
 	SetCommand=function(self)		
@@ -390,7 +397,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 			local playabletime = steps:GetTimingData():GetElapsedTimeFromBeat(song:GetLastBeat()) - steps:GetTimingData():GetElapsedTimeFromBeat(song:GetFirstBeat())
 			playabletime = playabletime / getCurRateValue()
 			self:settext(SecondsToMMSS(playabletime))
-			self:diffuse(getSongLengthColor(playabletime))
+			self:diffuse(getMusicColor(playabletime))
 		else
 			self:settext("")
 		end
