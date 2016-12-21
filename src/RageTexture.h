@@ -5,6 +5,7 @@
 
 #include "RageTypes.h"
 #include "RageTextureID.h"
+#include "RageTimer.h"
 
 struct lua_State;
 class RageTexture
@@ -57,6 +58,7 @@ public:
 	RageTextureID::TexPolicy &GetPolicy() { return m_ID.Policy; }
 	int		m_iRefCount;
 	bool	m_bWasUsed;
+	RageTimer m_lastRefTime;
 
 	// The ID that we were asked to load:
 	const RageTextureID &GetID() const { return m_ID; }

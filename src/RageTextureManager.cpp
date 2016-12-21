@@ -58,6 +58,14 @@ RageTextureManager::~RageTextureManager()
 
 void RageTextureManager::Update( float fDeltaTime )
 {
+	static RageTimer garbageCollector;
+	if (garbageCollector.PeekDeltaTime() >= 30.0f)
+	{
+		DoDelayedDelete();
+		garbageCollector.Touch();
+	}
+		
+
 	FOREACHM(RageTextureID, RageTexture*, m_textures_to_update, i)
 	{
 		RageTexture* pTexture = i->second;
@@ -183,8 +191,12 @@ RageTexture* RageTextureManager::LoadTextureInternal( RageTextureID ID )
 RageTexture* RageTextureManager::LoadTexture( const RageTextureID &ID )
 {
 	RageTexture* pTexture = LoadTextureInternal( ID );
-	if( pTexture )
+	if ( pTexture )
+	{
+		pTexture->m_lastRefTime.Touch();
 		pTexture->m_bWasUsed = true;
+	}
+		
 	return pTexture;
 }
 
@@ -219,7 +231,7 @@ void RageTextureManager::UnloadTexture( RageTexture *t )
 		bDeleteThis = true;
 
 	/* Delete normal textures immediately unless m_bDelayedDelete is is on. */
-	if( t->GetPolicy() == RageTextureID::TEX_DEFAULT && !m_Prefs.m_bDelayedDelete )
+	if( t->GetPolicy() == RageTextureID::TEX_DEFAULT && (!m_Prefs.m_bDelayedDelete || t->m_lastRefTime.PeekDeltaTime() >= 30.0f) )
 		bDeleteThis = true;
 
 	/* Delete volatile textures after they've been used at least once. */
