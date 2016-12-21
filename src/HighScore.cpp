@@ -242,26 +242,26 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 
 	RString s;
 
-	pNode->GetChildValue("Name", sName);
-	pNode->GetChildValue("HistoricChartKey", sHistoricChartKey);
+	pNode->GetChildValue("Name",				sName);
+	pNode->GetChildValue("HistoricChartKey",	sHistoricChartKey);
 	pNode->GetChildValue("Grade", s);
 	grade = StringToGrade(s);
-	pNode->GetChildValue("Score", iScore);
-	pNode->GetChildValue("PercentDP", fPercentDP);
-	pNode->GetChildValue("WifeScore", fWifeScore);
-	pNode->GetChildValue("SSR", fSSR);
-	pNode->GetChildValue("SSRSpeed", fSSRSpeed);
-	pNode->GetChildValue("SSRStam", fSSRStam);
-	pNode->GetChildValue("SSRJack", fSSRJack);
-	pNode->GetChildValue("Rate", fMusicRate);
-	pNode->GetChildValue("JudgeScale", fJudgeScale);
-	pNode->GetChildValue("Offsets", s);	vOffsetVector = OffsetsToVector(s);
-	pNode->GetChildValue("NoteRows", s);	vNoteRowVector = NoteRowsToVector(s);
-	pNode->GetChildValue("SurviveSeconds", fSurviveSeconds);
-	pNode->GetChildValue("MaxCombo", iMaxCombo);
-	pNode->GetChildValue("StageAward", s); stageAward = StringToStageAward(s);
-	pNode->GetChildValue("PeakComboAward", s); peakComboAward = StringToPeakComboAward(s);
-	pNode->GetChildValue("Modifiers", sModifiers);
+	pNode->GetChildValue("Score",				iScore);
+	pNode->GetChildValue("PercentDP",			fPercentDP);
+	pNode->GetChildValue("WifeScore",			fWifeScore);
+	pNode->GetChildValue("SSR",					fSSR);
+	pNode->GetChildValue("SSRSpeed",			fSSRSpeed);
+	pNode->GetChildValue("SSRStam",				fSSRStam);
+	pNode->GetChildValue("SSRJack",				fSSRJack);
+	pNode->GetChildValue("Rate",				fMusicRate);
+	pNode->GetChildValue("JudgeScale",			fJudgeScale);
+	pNode->GetChildValue("Offsets", s);			vOffsetVector = OffsetsToVector(s);
+	pNode->GetChildValue("NoteRows", s);		vNoteRowVector = NoteRowsToVector(s);
+	pNode->GetChildValue("SurviveSeconds",		fSurviveSeconds);
+	pNode->GetChildValue("MaxCombo",			iMaxCombo);
+	pNode->GetChildValue("StageAward", s);		stageAward = StringToStageAward(s);
+	pNode->GetChildValue("PeakComboAward", s);	peakComboAward = StringToPeakComboAward(s);
+	pNode->GetChildValue("Modifiers",			sModifiers);
 	if (fMusicRate == 0.f) {
 		size_t ew = sModifiers.find("xMusic");
 		size_t dew = string::npos;
