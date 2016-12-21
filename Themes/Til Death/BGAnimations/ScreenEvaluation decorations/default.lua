@@ -96,7 +96,7 @@ function scoreBoard(pn,position)
 		SetCommand=function(self)
 			local meter = score:GetSSR()
 			self:settextf("%5.2f", meter)
-			self:diffuse(byDifficultyMeter(meter))
+			self:diffuse(ByMSD(meter))
 		end,
 	};
 	
@@ -106,7 +106,7 @@ function scoreBoard(pn,position)
 		SetCommand=function(self)
 			local meter = score:GetSSRSpeed()
 			self:settextf("%5.2f", meter)
-			self:diffuse(byDifficultyMeter(meter))
+			self:diffuse(ByMSD(meter))
 		end,
 	};
 	t[#t+1] = LoadFont("Common Large")..{
@@ -115,7 +115,7 @@ function scoreBoard(pn,position)
 		SetCommand=function(self)
 			local meter = score:GetSSRStam()
 			self:settextf("%5.2f", meter)
-			self:diffuse(byDifficultyMeter(meter))
+			self:diffuse(ByMSD(meter))
 		end,
 	};
 	t[#t+1] = LoadFont("Common Large")..{
@@ -124,7 +124,7 @@ function scoreBoard(pn,position)
 		SetCommand=function(self)
 			local meter = score:GetSSRJack()
 			self:settextf("%5.2f", meter)
-			self:diffuse(byDifficultyMeter(meter))
+			self:diffuse(ByMSD(meter))
 		end,
 	};
 	

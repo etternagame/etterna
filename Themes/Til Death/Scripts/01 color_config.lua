@@ -134,30 +134,6 @@ function getVividDifficultyColor(diff)
 	return color(colorConfig:get_data().difficultyVivid[diff]) or color("#ffffff")
 end
 
-function getSongLengthColor(s)
-	if s < PREFSMAN:GetPreference("LongVerSongSeconds") then
-		return color(colorConfig:get_data().songLength["normal"])
-	elseif s < PREFSMAN:GetPreference("MarathonVerSongSeconds") then
-		return color(colorConfig:get_data().songLength["long"])
-	else
-		return color(colorConfig:get_data().songLength["marathon"])
-	end
-end
-
-function byDifficultyMeter(meter)
-	if meter < 15 then
-		return getVividDifficultyColor('Difficulty_Beginner')
-	elseif meter < 22 then
-		return getVividDifficultyColor('Difficulty_Easy')
-	elseif meter < 28 then
-		return getVividDifficultyColor('Difficulty_Medium')
-	elseif meter < 33 then
-		return getVividDifficultyColor('Difficulty_Hard')
-	else
-		return getVividDifficultyColor('Difficulty_Challenge')
-	end
-end
-
 function offsetToJudgeColor(offset)
 	local offset = math.abs(offset)
 	local scale = PREFSMAN:GetPreference("TimingWindowScale")
@@ -178,4 +154,20 @@ end
 
 function byJudgment(judge)
 	return color(colorConfig:get_data().judgment[judge])
+end
+
+-- Colorized stuff
+function ByMSD(x)
+	if x then
+		return HSV(math.max(95 - (x/40)*150, -50), 0.9, 0.9)
+	end
+	return HSV(0, 0.9, 0.9)
+end
+
+function ByMusicLength(x)
+	if x then
+		x = math.min(x,600)
+		return HSV(math.max(95 - (x/900)*150, -50), 0.9, 0.9)
+	end
+	return HSV(0, 0.9, 0.9)
 end

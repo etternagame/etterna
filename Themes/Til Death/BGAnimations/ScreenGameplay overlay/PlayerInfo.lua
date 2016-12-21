@@ -24,7 +24,7 @@ local t = Def.ActorFrame{
 		BeginCommand=function(self)
 			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(),0)
 			self:settextf("%05.2f",meter)
-			self:diffuse(byDifficultyMeter(meter))
+			self:diffuse(ByMSD(meter))
 		end,
 	},
 	LoadFont("Common Normal") .. {
