@@ -220,13 +220,16 @@ void FontPage::SetExtraPixels( int iDrawExtraPixelsLeft, int iDrawExtraPixelsRig
 
 FontPage::~FontPage()
 {
+	// Font texture ref time is reset when unloaded so that on screen changes farther than 30 seconds apart they can be reused -xwidghet
 	if( m_FontPageTextures.m_pTextureMain != NULL )
 	{
+		m_FontPageTextures.m_pTextureMain->m_lastRefTime.Touch();
 		TEXTUREMAN->UnloadTexture( m_FontPageTextures.m_pTextureMain );
 		m_FontPageTextures.m_pTextureMain = NULL;
 	}
 	if( m_FontPageTextures.m_pTextureStroke != NULL )
 	{
+		m_FontPageTextures.m_pTextureStroke->m_lastRefTime.Touch();
 		TEXTUREMAN->UnloadTexture( m_FontPageTextures.m_pTextureStroke );
 		m_FontPageTextures.m_pTextureStroke = NULL;
 	}
