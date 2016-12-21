@@ -379,8 +379,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 	BeginCommand=cmd(queuecommand,"Set"),
 	SetCommand=function(self)
 		if song then
-			local playabletime = steps:GetTimingData():GetElapsedTimeFromBeat(song:GetLastBeat()) - steps:GetTimingData():GetElapsedTimeFromBeat(song:GetFirstBeat())
-			playabletime = playabletime / getCurRateValue()
+			local playabletime = GetPlayableTime()
 			self:settext(SecondsToMMSS(playabletime))
 			self:diffuse(ByMusicLength(playabletime))
 		else

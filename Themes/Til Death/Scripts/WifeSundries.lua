@@ -192,3 +192,9 @@ function tableKeys(t)
 end
 
 function formLink(x, y) x[y] = x[y] or {} return x[y] end
+
+function GetPlayableTime()
+	local td = GAMESTATE:GetCurrentSteps(PLAYER_1):GetTimingData()
+	local song = GAMESTATE:GetCurrentSong()
+	return (td:GetElapsedTimeFromBeat(song:GetLastBeat()) - td:GetElapsedTimeFromBeat(song:GetFirstBeat())) / getCurRateValue()
+end
