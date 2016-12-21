@@ -47,6 +47,8 @@ struct HighScoreImpl
 	XNode *CreateNode() const;
 	void LoadFromNode( const XNode *pNode );
 
+	float RescoreToWifeTS(float ts);
+
 	RString OffsetsToString(vector<float> v) const;
 	vector<float> OffsetsToVector(RString s);
 	RString NoteRowsToString(vector<int> v) const;
@@ -234,32 +236,32 @@ XNode *HighScoreImpl::CreateNode() const
 	return pNode;
 }
 
-void HighScoreImpl::LoadFromNode( const XNode *pNode )
+void HighScoreImpl::LoadFromNode(const XNode *pNode)
 {
-	ASSERT( pNode->GetName() == "HighScore" );
+	ASSERT(pNode->GetName() == "HighScore");
 
 	RString s;
 
-	pNode->GetChildValue( "Name", sName );
-	pNode->GetChildValue( "HistoricChartKey", sHistoricChartKey);
-	pNode->GetChildValue( "Grade", s );
-	grade = StringToGrade( s );
-	pNode->GetChildValue( "Score",			iScore );
-	pNode->GetChildValue( "PercentDP",		fPercentDP );
-	pNode->GetChildValue( "WifeScore",		fWifeScore);
-	pNode->GetChildValue( "SSR",			fSSR);
-	pNode->GetChildValue( "SSRSpeed",		fSSRSpeed);
-	pNode->GetChildValue( "SSRStam",		fSSRStam);
-	pNode->GetChildValue( "SSRJack",		fSSRJack);
-	pNode->GetChildValue( "Rate",			fMusicRate);
-	pNode->GetChildValue( "JudgeScale",		fJudgeScale);
-	pNode->GetChildValue( "Offsets", s);	vOffsetVector = OffsetsToVector(s);
-	pNode->GetChildValue( "NoteRows", s);	vNoteRowVector = NoteRowsToVector(s);
-	pNode->GetChildValue( "SurviveSeconds",	fSurviveSeconds );
-	pNode->GetChildValue( "MaxCombo",		iMaxCombo );
-	pNode->GetChildValue( "StageAward",		s ); stageAward = StringToStageAward(s);
-	pNode->GetChildValue( "PeakComboAward",	s ); peakComboAward = StringToPeakComboAward(s);
-	pNode->GetChildValue( "Modifiers",		sModifiers );
+	pNode->GetChildValue("Name", sName);
+	pNode->GetChildValue("HistoricChartKey", sHistoricChartKey);
+	pNode->GetChildValue("Grade", s);
+	grade = StringToGrade(s);
+	pNode->GetChildValue("Score", iScore);
+	pNode->GetChildValue("PercentDP", fPercentDP);
+	pNode->GetChildValue("WifeScore", fWifeScore);
+	pNode->GetChildValue("SSR", fSSR);
+	pNode->GetChildValue("SSRSpeed", fSSRSpeed);
+	pNode->GetChildValue("SSRStam", fSSRStam);
+	pNode->GetChildValue("SSRJack", fSSRJack);
+	pNode->GetChildValue("Rate", fMusicRate);
+	pNode->GetChildValue("JudgeScale", fJudgeScale);
+	pNode->GetChildValue("Offsets", s);	vOffsetVector = OffsetsToVector(s);
+	pNode->GetChildValue("NoteRows", s);	vNoteRowVector = NoteRowsToVector(s);
+	pNode->GetChildValue("SurviveSeconds", fSurviveSeconds);
+	pNode->GetChildValue("MaxCombo", iMaxCombo);
+	pNode->GetChildValue("StageAward", s); stageAward = StringToStageAward(s);
+	pNode->GetChildValue("PeakComboAward", s); peakComboAward = StringToPeakComboAward(s);
+	pNode->GetChildValue("Modifiers", sModifiers);
 	if (fMusicRate == 0.f) {
 		size_t ew = sModifiers.find("xMusic");
 		size_t dew = string::npos;
@@ -270,7 +272,7 @@ void HighScoreImpl::LoadFromNode( const XNode *pNode )
 			RString loot = sModifiers.substr(dew, ew - dew);
 			fMusicRate = StringToFloat(loot);
 		}
-	}
+	}		
 	pNode->GetChildValue( "DateTime",		s ); dateTime.FromString( s );
 	pNode->GetChildValue( "PlayerGuid",		sPlayerGuid );
 	pNode->GetChildValue( "MachineGuid",	sMachineGuid );
@@ -288,6 +290,10 @@ void HighScoreImpl::LoadFromNode( const XNode *pNode )
 		radarValues.LoadFromNode( pRadarValues );
 	pNode->GetChildValue( "LifeRemainingSeconds",	fLifeRemainingSeconds );
 	pNode->GetChildValue( "Disqualified",		bDisqualified);
+
+	// special test case stuff - mina
+	//if (vOffsetVector.size() > 1 && fWifeScore == 0.f)
+	//	fWifeScore = RescoreToWifeTS(fJudgeScale);
 
 	// Validate input.
 	grade = clamp( grade, Grade_Tier01, Grade_Failed );
@@ -620,6 +626,14 @@ float HighScore::RescoreToWifeJudge(int x) {
 		p += wife2(*f * 1000.f, ts * 95.f, 2.f, 2, -8);
 
 	return p / (m_Impl->vOffsetVector.size() * 2);
+}
+
+float HighScoreImpl::RescoreToWifeTS(float ts) {
+	float p = 0;
+	FOREACH_CONST(float, vOffsetVector, f)
+		p += wife2(*f * 1000.f, ts * 95.f, 2.f, 2, -8);
+
+	return p / (vOffsetVector.size() * 2);
 }
 
 float HighScore::RescoreToDPJudge(int x) {
