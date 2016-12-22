@@ -9,11 +9,13 @@ local profileName = "No Profile"
 local playCount = 0
 local playTime = 0
 local noteCount = 0
-local skillrating = 0
-local speedrating = 0
-local stamrating = 0
-local jackrating = 0
 local numfaves = 0
+local skillsets = {
+	Overall = 0,
+	Speed 	= 0,
+	Stam  	= 0,
+	Jack  	= 0,
+}
 
 local AvatarX = 0
 local AvatarY = SCREEN_HEIGHT-50
@@ -32,10 +34,13 @@ t[#t+1] = Def.Actor{
 				playCount = profile:GetTotalNumSongsPlayed()
 				playTime = profile:GetTotalSessionSeconds()
 				noteCount = profile:GetTotalTapsAndHolds()
-				skillrating = profile:GetPlayerRating()
-				speedrating = profile:GetPlayerSpeedRating()
-				stamrating = profile:GetPlayerStamRating()
-				jackrating = profile:GetPlayerJackRating()
+				
+				-- oook i need to handle this differently
+				skillsets.Overall = profile:GetPlayerRating()
+				skillsets.Speed = profile:GetPlayerSpeedRating()
+				skillsets.Stam = profile:GetPlayerStamRating()
+				skillsets.Jack = profile:GetPlayerJackRating()
+				
 				numfaves = profile:GetNumFaves()
 			else 
 				profileName = "No Profile"
@@ -117,46 +122,10 @@ t[#t+1] = Def.ActorFrame{
 		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
 	},
 	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,AvatarX+180,AvatarY+40;halign,0;zoom,0.35;diffuse,getMainColor('positive')),
+		InitCommand=cmd(xy,SCREEN_CENTER_X,AvatarY+30;halign,0.5;zoom,0.35;diffuse,getMainColor('positive')),
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self)
 			self:settext("Judge: "..GetTimingDifficulty())
-		end,
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
-	},
-	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,AvatarX+170,AvatarY+7;halign,0;zoom,0.6;diffuse,getMainColor('positive')),
-		BeginCommand=cmd(queuecommand,"Set"),
-		SetCommand=function(self)
-			self:settextf("Overall Rating: %5.2f", skillrating)
-		end,
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
-	},
-	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,AvatarX+170,AvatarY+20;halign,0;zoom,0.6;diffuse,getMainColor('positive')),
-		BeginCommand=cmd(queuecommand,"Set"),
-		SetCommand=function(self)
-			self:settextf("Speed Rating: %5.2f", speedrating)
-		end,
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
-	},
-	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,AvatarX+370,AvatarY+7;halign,0;zoom,0.6;diffuse,getMainColor('positive')),
-		BeginCommand=cmd(queuecommand,"Set"),
-		SetCommand=function(self)
-			self:settextf("Stam Rating: %5.2f", stamrating)
-		end,
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
-	},
-	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,AvatarX+370,AvatarY+20;halign,0;zoom,0.6;diffuse,getMainColor('positive')),
-		BeginCommand=cmd(queuecommand,"Set"),
-		SetCommand=function(self)
-			self:settextf("Jack Rating: %5.2f", jackrating)
 		end,
 		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
 		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
@@ -188,6 +157,57 @@ local function Update(self)
     	setAvatarUpdateStatus(PLAYER_1,false)
     end;
 end
-t.InitCommand=cmd(SetUpdateFunction,Update);
+t.InitCommand=cmd(SetUpdateFunction,Update)
+
+
+t[#t+1] = LoadFont("Common Normal") .. {
+	InitCommand=cmd(xy,AvatarX+200,AvatarY+7;halign,0;zoom,0.6;diffuse,getMainColor('positive')),
+	BeginCommand=cmd(queuecommand,"Set"),
+	SetCommand=function(self)
+		self:settext("Rating:")
+	end,
+	PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
+	PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+}
+
+t[#t+1] = LoadFont("Common Normal") .. {
+	InitCommand=cmd(xy,AvatarX+300,AvatarY+8;halign,1;zoom,0.6),
+	BeginCommand=cmd(queuecommand,"Set"),
+	SetCommand=function(self)
+		self:settextf("%5.2f", skillsets["Overall"])
+		self:diffuse(ByMSD(skillsets["Overall"]))
+	end,
+	PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
+	PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+}
+
+local function littlebits(i)
+	local t = Def.ActorFrame{
+		LoadFont("Common Normal") .. {
+			InitCommand=cmd(xy,AvatarX+200,AvatarY+10*i;halign,0;zoom,0.35;diffuse,getMainColor('positive')),
+			BeginCommand=cmd(queuecommand,"Set"),
+			SetCommand=function(self)
+				self:settext(ms.SkillSets[i]..":")
+			end,
+			PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
+			PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+		},
+		LoadFont("Common Normal") .. {
+			InitCommand=cmd(xy,AvatarX+300,AvatarY+10*i;halign,1;zoom,0.35),
+			BeginCommand=cmd(queuecommand,"Set"),
+			SetCommand=function(self)
+				self:settextf("%5.2f",skillsets[ms.SkillSets[i]])
+				self:diffuse(ByMSD(skillsets[ms.SkillSets[i]]))
+			end,
+			PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
+			PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+		}
+	}
+	return t
+end
+
+for i=2,#ms.SkillSets do 
+	t[#t+1] = littlebits(i)
+end
 
 return t

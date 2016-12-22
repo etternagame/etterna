@@ -54,6 +54,13 @@ ms.JudgeCountInverse = {
 	HoldNoteScore_LetGo		= 8,
 }
 
+ms.SkillSets = {
+	"Overall", 
+	"Speed", 
+	"Stam", 
+	"Jack"
+}
+
 local PersistentSearch
 
 function GetPersistentSearch()
@@ -197,4 +204,18 @@ function GetPlayableTime()
 	local td = GAMESTATE:GetCurrentSteps(PLAYER_1):GetTimingData()
 	local song = GAMESTATE:GetCurrentSong()
 	return (td:GetElapsedTimeFromBeat(song:GetLastBeat()) - td:GetElapsedTimeFromBeat(song:GetFirstBeat())) / getCurRateValue()
+end
+
+function ChangeMusicRate(rate,params)
+	if params.Name == "PrevScore" and rate < 2 and  (getTabIndex() == 0 or getTabIndex() == 1) then
+		GAMESTATE:GetSongOptionsObject('ModsLevel_Preferred'):MusicRate(rate+0.1)
+		GAMESTATE:GetSongOptionsObject('ModsLevel_Song'):MusicRate(rate+0.1)
+		GAMESTATE:GetSongOptionsObject('ModsLevel_Current'):MusicRate(rate+0.1)
+		MESSAGEMAN:Broadcast("CurrentRateChanged")
+	elseif params.Name == "NextScore" and rate > 0.7 and (getTabIndex() == 0 or getTabIndex() == 1) then
+		GAMESTATE:GetSongOptionsObject('ModsLevel_Preferred'):MusicRate(rate-0.1)
+		GAMESTATE:GetSongOptionsObject('ModsLevel_Song'):MusicRate(rate-0.1)
+		GAMESTATE:GetSongOptionsObject('ModsLevel_Current'):MusicRate(rate-0.1)
+		MESSAGEMAN:Broadcast("CurrentRateChanged")
+	end
 end

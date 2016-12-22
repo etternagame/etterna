@@ -3256,7 +3256,7 @@ void Player::SetHoldJudgment( TapNote &tn, int iTrack )
 		msg.SetParam("HoldNoteScore", tn.HoldResult.hns);
 		msg.SetParam("Judgment", tn.HoldResult.hns);
 		msg.SetParam("Type", static_cast<RString>("Hold"));
-		if ( m_pPlayerStageStats && m_pPlayerState->m_PlayerController == PC_HUMAN) {
+		if ( m_pPlayerStageStats) {
 			msg.SetParam("Val", m_pPlayerStageStats->m_iHoldNoteScores[tn.HoldResult.hns] + 1);
 
 			// Ms scoring implemenation - Mina

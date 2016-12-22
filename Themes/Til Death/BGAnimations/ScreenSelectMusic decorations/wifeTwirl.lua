@@ -26,7 +26,7 @@ local t = Def.ActorFrame{
 	TabChangedMessageCommand=cmd(queuecommand,"Set"),
 }
 
--- Updated but still need a better system for this
+-- Music Rate Display
 t[#t+1] = LoadFont("Common Large") .. {
 	InitCommand=cmd(xy,18,SCREEN_BOTTOM-225;visible,true;halign,0;zoom,0.4;maxwidth,capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45)),
 	BeginCommand=function(self)
@@ -34,17 +34,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 	end,
 	CodeMessageCommand=function(self,params)
 		local rate = getCurRateValue()
-		if params.Name == "PrevScore" and rate < 2 and  getTabIndex() == 0 then
-			GAMESTATE:GetSongOptionsObject('ModsLevel_Preferred'):MusicRate(rate+0.1)
-			GAMESTATE:GetSongOptionsObject('ModsLevel_Song'):MusicRate(rate+0.1)
-			GAMESTATE:GetSongOptionsObject('ModsLevel_Current'):MusicRate(rate+0.1)
-			MESSAGEMAN:Broadcast("CurrentRateChanged")
-		elseif params.Name == "NextScore" and rate > 0.7 and  getTabIndex() == 0 then
-			GAMESTATE:GetSongOptionsObject('ModsLevel_Preferred'):MusicRate(rate-0.1)
-			GAMESTATE:GetSongOptionsObject('ModsLevel_Song'):MusicRate(rate-0.1)
-			GAMESTATE:GetSongOptionsObject('ModsLevel_Current'):MusicRate(rate-0.1)
-			MESSAGEMAN:Broadcast("CurrentRateChanged")
-		end
+		ChangeMusicRate(rate,params)
 		self:settext(getCurRateDisplayString())
 	end,
 }
@@ -325,54 +315,6 @@ t[#t+1] = LoadFont("Common Large") .. {
 	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
 }
 
-t[#t+1] = LoadFont("Common Large") .. {
-	InitCommand=cmd(xy,frameX+165,frameY-60;halign,0.5;zoom,0.6;maxwidth,110/0.6),
-	BeginCommand=cmd(queuecommand,"Set"),
-	SetCommand=function(self)
-		if song then
-			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1)
-			self:settextf("Speed: %05.2f",meter)
-			self:diffuse(ByMSD(meter))
-		else
-			self:settext("")
-		end
-	end,
-	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
-	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
-}
-
-t[#t+1] = LoadFont("Common Large") .. {
-	InitCommand=cmd(xy,frameX+165,frameY-30;halign,0.5;zoom,0.6;maxwidth,110/0.6),
-	BeginCommand=cmd(queuecommand,"Set"),
-	SetCommand=function(self)
-		if song then
-			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 2)
-			self:settextf("Stam: %05.2f",meter)
-			self:diffuse(ByMSD(meter))
-		else
-			self:settext("")
-		end
-	end,
-	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
-	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
-}
-
-t[#t+1] = LoadFont("Common Large") .. {
-	InitCommand=cmd(xy,frameX+165,frameY;halign,0.5;zoom,0.6;maxwidth,110/0.6),
-	BeginCommand=cmd(queuecommand,"Set"),
-	SetCommand=function(self)
-		if song then
-			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 3)
-			self:settextf("Jack: %05.2f",meter)
-			self:diffuse(ByMSD(meter))
-		else
-			self:settext("")
-		end
-	end,
-	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
-	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
-}
-
 -- Song duration
 t[#t+1] = LoadFont("Common Large") .. {
 	InitCommand=cmd(xy,(capWideScale(get43size(384),384))+62,SCREEN_BOTTOM-85;visible,true;halign,1;zoom,capWideScale(get43size(0.6),0.6);maxwidth,capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45)),
@@ -474,32 +416,32 @@ t[#t+1] = LoadFont("Common Large") .. {
 	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
 }
 
-t[#t+1] = LoadFont("Common Large") .. {
-	InitCommand=cmd(xy,(capWideScale(get43size(384),384))+68,SCREEN_BOTTOM-135;halign,1;zoom,0.4,maxwidth,125),
-	BeginCommand=cmd(queuecommand,"Set"),
-	SetCommand=function(self)
-		if song then
-			self:settext(song:GetOrTryAtLeastToGetSimfileAuthor())
-		else
-			self:settext("")
-		end
-	end,
-	CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set"),
-	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
-}
+-- t[#t+1] = LoadFont("Common Large") .. {
+	-- InitCommand=cmd(xy,(capWideScale(get43size(384),384))+68,SCREEN_BOTTOM-135;halign,1;zoom,0.4,maxwidth,125),
+	-- BeginCommand=cmd(queuecommand,"Set"),
+	-- SetCommand=function(self)
+		-- if song then
+			-- self:settext(song:GetOrTryAtLeastToGetSimfileAuthor())
+		-- else
+			-- self:settext("")
+		-- end
+	-- end,
+	-- CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set"),
+	-- RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
+-- }
 
 -- active filters display
-t[#t+1] = Def.Quad{InitCommand=cmd(xy,16,capWideScale(SCREEN_TOP+172,SCREEN_TOP+194);zoomto,SCREEN_WIDTH*1.35*0.4 + 8,24;halign,0;valign,0.5;diffuse,color("#000000");diffusealpha,0),
-	EndingSearchMessageCommand=function(self)
-		self:diffusealpha(1)
-	end
-}
-t[#t+1] = LoadFont("Common Large") .. {
-	InitCommand=cmd(xy,20,capWideScale(SCREEN_TOP+170,SCREEN_TOP+194);halign,0;zoom,0.4;settext,"Active Filters: "..GetPersistentSearch();maxwidth,SCREEN_WIDTH*1.35),
-	EndingSearchMessageCommand=function(self, msg)
-		self:settext("Active Filters: "..msg.ActiveFilter)
-	end
-}
+-- t[#t+1] = Def.Quad{InitCommand=cmd(xy,16,capWideScale(SCREEN_TOP+172,SCREEN_TOP+194);zoomto,SCREEN_WIDTH*1.35*0.4 + 8,24;halign,0;valign,0.5;diffuse,color("#000000");diffusealpha,0),
+	-- EndingSearchMessageCommand=function(self)
+		-- self:diffusealpha(1)
+	-- end
+-- }
+-- t[#t+1] = LoadFont("Common Large") .. {
+	-- InitCommand=cmd(xy,20,capWideScale(SCREEN_TOP+170,SCREEN_TOP+194);halign,0;zoom,0.4;settext,"Active Filters: "..GetPersistentSearch();maxwidth,SCREEN_WIDTH*1.35),
+	-- EndingSearchMessageCommand=function(self, msg)
+		-- self:settext("Active Filters: "..msg.ActiveFilter)
+	-- end
+-- }
 
 --test actor
 t[#t+1] = LoadFont("Common Large") .. {
