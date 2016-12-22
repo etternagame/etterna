@@ -322,8 +322,8 @@ public:
 	int GetCategoryNumTimesPlayed( StepsType st ) const;
 	void IncrementCategoryPlayCount( StepsType st, RankingCategory rc );
 	void CalcPlayerRating(float& overall, float& speed, float& stam, float& jack) const;
-	void ResetAllSSRs();
-	void RecalculateAllSSRs();
+	void ResetSSRs(bool OnlyOld);
+	void RecalculateSSRs(bool OnlyOld);
 	float AggregateScores(vector<float>& invector, float rating, float res, int iter) const;
 
 	/* Grabbing the highscores here and having lua invoke this results in unhandled exception errors

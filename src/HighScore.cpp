@@ -15,7 +15,8 @@ ThemeMetric<RString> EMPTY_NAME("HighScore","EmptyName");
 struct HighScoreImpl
 {
 	RString	sName;	// name that shows in the machine's ranking screen
-	RString sHistoricChartKey = "";
+	RString sHistoricChartKey;
+	float SSRCalcVersion;
 	Grade grade;
 	unsigned int iScore;
 	float fPercentDP;
@@ -164,6 +165,7 @@ HighScoreImpl::HighScoreImpl()
 {
 	sName = "";
 	sHistoricChartKey = "";
+	SSRCalcVersion = 0.f;
 	grade = Grade_NoData;
 	iScore = 0;
 	fPercentDP = 0.f;
@@ -200,6 +202,7 @@ XNode *HighScoreImpl::CreateNode() const
 	// TRICKY:  Don't write "name to fill in" markers.
 	pNode->AppendChild( "Name",				IsRankingToFillIn(sName) ? RString("") : sName );
 	pNode->AppendChild( "HistoricChartKey", sHistoricChartKey);
+	pNode->AppendChild( "SSRCalcVersion",	SSRCalcVersion);
 	pNode->AppendChild( "Grade",			GradeToString(grade) );
 	pNode->AppendChild( "Score",			iScore );
 	pNode->AppendChild( "PercentDP",		fPercentDP );
@@ -244,6 +247,7 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 
 	pNode->GetChildValue("Name",				sName);
 	pNode->GetChildValue("HistoricChartKey",	sHistoricChartKey);
+	pNode->GetChildValue("SSRCalcVersion",		SSRCalcVersion);
 	pNode->GetChildValue("Grade", s);
 	grade = StringToGrade(s);
 	pNode->GetChildValue("Score",				iScore);
@@ -325,6 +329,8 @@ bool HighScore::IsEmpty() const
 }
 
 RString	HighScore::GetName() const { return m_Impl->sName; }
+RString HighScore::GetHistoricChartKey() const { return m_Impl->sHistoricChartKey; }
+float HighScore::GetSSRCalcVersion() const { return m_Impl->SSRCalcVersion; }
 Grade HighScore::GetGrade() const { return m_Impl->grade; }
 unsigned int HighScore::GetScore() const { return m_Impl->iScore; }
 unsigned int HighScore::GetMaxCombo() const { return m_Impl->iMaxCombo; }
@@ -353,6 +359,7 @@ bool HighScore::GetDisqualified() const { return m_Impl->bDisqualified; }
 
 void HighScore::SetName( const RString &sName ) { m_Impl->sName = sName; }
 void HighScore::SetHistoricChartKey( RString &ck) { m_Impl->sHistoricChartKey = ck; }
+void HighScore::SetSSRCalcVersion(float cv) { m_Impl->SSRCalcVersion = cv; }
 void HighScore::SetGrade( Grade g ) { m_Impl->grade = g; }
 void HighScore::SetScore( unsigned int iScore ) { m_Impl->iScore = iScore; }
 void HighScore::SetMaxCombo( unsigned int i ) { m_Impl->iMaxCombo = i; }

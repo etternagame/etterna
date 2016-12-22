@@ -143,15 +143,8 @@ void AddPlayerStatsToProfile( Profile *pProfile, const StageStats &ss, PlayerNum
 	}
 
 	if (!pProfile->IsMachine()) {
-		float hardcodeitYO = 1.f;
-		if (pProfile->EtternaCalcVersion != hardcodeitYO) {
-			pProfile->ResetAllSSRs();
-			LOG->Trace("Reset all SSRs to 0");
-			pProfile->RecalculateAllSSRs();
-			LOG->Trace("Recalculated SSR values");
-			pProfile->EtternaCalcVersion = hardcodeitYO;
-		}
-
+		pProfile->ResetSSRs(true);
+		pProfile->RecalculateSSRs(true);
 		pProfile->CalcPlayerRating(pProfile->m_fPlayerRating, pProfile->m_fPlayerSpeedRating, pProfile->m_fPlayerStamRating, pProfile->m_fPlayerJackRating);
 	}
 		

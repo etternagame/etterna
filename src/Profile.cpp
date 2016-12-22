@@ -2107,7 +2107,7 @@ void Profile::CalcPlayerRating(float& overall, float& speed, float& stam, float&
 	overall = (speed + stam + jack) / 3;
 }
 
-void Profile::ResetAllSSRs() {
+void Profile::ResetSSRs(bool OnlyOld) {
 	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
 		const SongID& id = i->first;
 		// for now only reset ssrs for loaded files - mina
@@ -2118,10 +2118,13 @@ void Profile::ResetAllSSRs() {
 			HighScoresForASteps& zz = j->second;
 			vector<HighScore>& hsv = zz.hsl.vHighScores;
 			for (size_t i = 0; i < hsv.size(); i++) {
-				hsv[i].SetSSR(0.f);
-				hsv[i].SetSSRSpeed(0.f);
-				hsv[i].SetSSRStam(0.f);
-				hsv[i].SetSSRJack(0.f);
+				if (OnlyOld && hsv[i].GetSSRCalcVersion() == 1.f)
+					continue;
+
+					hsv[i].SetSSR(0.f);
+					hsv[i].SetSSRSpeed(0.f);
+					hsv[i].SetSSRStam(0.f);
+					hsv[i].SetSSRJack(0.f);
 			}
 		}
 	}
@@ -2129,7 +2132,7 @@ void Profile::ResetAllSSRs() {
 }
 
 // should prolly generalize some of the stuff here - mina
-void Profile::RecalculateAllSSRs() {
+void Profile::RecalculateSSRs(bool OnlyOld) {
 	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
 		const SongID& id = i->first;
 		
@@ -2145,6 +2148,9 @@ void Profile::RecalculateAllSSRs() {
 				if (wifescore == 0.f || hsv[i].GetGrade() == Grade_Failed)
 					hsv[i].SetSSR(0.f);
 				else {
+					if (OnlyOld && hsv[i].GetSSRCalcVersion() == 1.f)
+						continue;
+
 					Song* psong = id.ToSong();
 					const StepsID& sid = j->first;
 
@@ -2167,6 +2173,7 @@ void Profile::RecalculateAllSSRs() {
 					hsv[i].SetSSRSpeed(isthisworking[1]);
 					hsv[i].SetSSRStam(isthisworking[2]);
 					hsv[i].SetSSRJack(isthisworking[3]);
+					hsv[i].SetSSRCalcVersion(1.f);
 				}
 			}
 		}
