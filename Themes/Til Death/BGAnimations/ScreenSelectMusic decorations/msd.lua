@@ -56,7 +56,6 @@ local function littlebits(i)
 		InitCommand=cmd(xy,frameX+205,frameY+160 + 22*i;halign,1;valign,0;zoom,0.5;maxwidth,110/0.6),
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self)
-		ms.ok("wat")
 			if song and steps then
 				local meter = steps:GetMSD(getCurRateValue(), i-1)		-- c++ indexing
 				self:settextf("%05.2f",meter)
