@@ -1,6 +1,12 @@
 local t = Def.ActorFrame{}
 
-t[#t+1] = LoadActor("_chatbox")
+t[#t+1] = LoadActor("../_chatbox")
+-- adding this function for average nps. This is to check the relative difficulty of song's nps. -Misterkister
+t[#t+1] = LoadActor("yolo")
+-- adding other stuff
+t[#t+1] = LoadActor("kappa")
+--t[#t+1] = LoadActor("msd stuff")
+t[#t+1] = LoadActor("matra")
 
 t[#t+1] = Def.Banner{
 	InitCommand=cmd(x,10;y,60;halign,0;valign,0);
@@ -34,7 +40,6 @@ t[#t+1] = Def.Banner{
 	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
 };
 
-
 t[#t+1] = Def.Quad{
 	InitCommand=cmd(xy,10,60+capWideScale(get43size(120),120)-capWideScale(get43size(10),10);zoomto,capWideScale(get43size(384),384),capWideScale(get43size(20),20);halign,0;diffuse,color("#000000");diffusealpha,0.7);
 }
@@ -64,7 +69,7 @@ t[#t+1] = LoadFont("Common Normal") .. {
 		if song ~= nil then
 			seconds = song:GetStepsSeconds() --song:MusicLengthSeconds()
 			self:settext(SecondsToMMSS(seconds))
-			self:diffuse(getSongLengthColor(seconds))
+			--self:diffuse(getSongLengthColor(seconds))--Function no longer in color_config
 		else
 			self:settext("")
 		end

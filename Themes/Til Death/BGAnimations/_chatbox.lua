@@ -5,13 +5,13 @@ local border = 5
 local inputX = THEME:GetMetric("ScreenNetSelectBase","ChatInputX")
 local inputY = THEME:GetMetric("ScreenNetSelectBase","ChatInputY")
 local inputWidth = THEME:GetMetric("ScreenNetSelectBase","ChatTextInputWidth")*0.5
-local inputHeight = 10
+local inputHeight = 40
 
 
 local outputX = THEME:GetMetric("ScreenNetSelectBase","ChatOutputX")
 local outputY = THEME:GetMetric("ScreenNetSelectBase","ChatOutputY")
-local outputWidth = THEME:GetMetric("ScreenNetSelectBase","ChatTextOutputWidth")*0.5
-local outputHeight = THEME:GetMetric("ScreenNetSelectBase","ChatOutputLines")*16
+local outputWidth = THEME:GetMetric("ScreenNetSelectBase","ChatTextOutputWidth")*0.3153
+local outputHeight = THEME:GetMetric("ScreenNetSelectBase","ChatOutputLines")*9.25
 
 
 t[#t+1] = Def.Quad{
