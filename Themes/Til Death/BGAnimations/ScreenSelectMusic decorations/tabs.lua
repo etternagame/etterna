@@ -19,7 +19,7 @@ local t = Def.ActorFrame{
 	OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) end,
 	BeginCommand=function(self) resetTabIndex() end,
 	PlayerJoinedMessageCommand=function(self) resetTabIndex() end,
-	BeginningSearchMessageCommand=function(self) active = false end,
+	BeginningSearchMessageCommand=function(self) active = true end,
 	EndingSearchMessageCommand=function(self) active = true end,
 }
 

@@ -365,7 +365,7 @@ p = Def.ActorFrame{
 		BeginCommand=cmd(settext,GAMESTATE:GetCurrentSong():GetDisplayMainTitle())
 	},
 	LoadFont("Common Normal")..{																		-- total time
-		InitCommand=cmd(x,150;zoom,0.35;maxwidth,width*2;halign,1),
+		InitCommand=cmd(x,width/2;zoom,0.35;maxwidth,width*2;halign,1),
 		BeginCommand=function(self)
 		local ttime = GetPlayableTime()
 			settext(self,SecondsToMMSS(ttime))
