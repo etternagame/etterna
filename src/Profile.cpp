@@ -2097,9 +2097,9 @@ void Profile::CalcPlayerRating(float& overall, float& speed, float& stam, float&
 		}
 	}
 
-	speed = AggregateScores(vSSRSpeed, 0.f, 10.24f, 1);
-	stam = AggregateScores(vSSRStam, 0.f, 10.24f, 1);
-	jack = AggregateScores(vSSRJack, 0.f, 10.24f, 1);
+	speed = AggregateScores(vSSRSpeed, 0.f, 10.24f, 1)*0.95f;
+	stam = AggregateScores(vSSRStam, 0.f, 10.24f, 1)*0.95f;
+	jack = AggregateScores(vSSRJack, 0.f, 10.24f, 1)*0.95f;
 	CLAMP(speed, 0.f, 100.f);
 	CLAMP(stam, 0.f, 100.f);
 	CLAMP(jack, 0.f, 100.f);
