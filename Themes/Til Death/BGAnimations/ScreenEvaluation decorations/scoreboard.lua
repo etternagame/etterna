@@ -52,7 +52,7 @@ end
 --Input event for mouse clicks
 local function input(event)
 	local scoreBoard = SCREENMAN:GetTopScreen():GetChildren().scoreBoard
-	if event.DeviceInput.button == 'DeviceButton_left mouse button' then
+	if event.DeviceInput.button == 'DeviceButton_left mouse button' and scoreBoard then
 		if event.type == "InputEventType_Release" then
 			for i=0,math.min(lines,#hsTable)-1 do
 				if isOver(scoreBoard:GetChild("scoreItem"..tostring(i)):GetChild("mouseOver")) then

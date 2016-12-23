@@ -162,7 +162,7 @@ local function Update(self)
 				P1NPS:settext(string.format("%0.2f",P1Taps/ChartLenghtInSec));
 				
 			
-                self:GetChild("MinasCalcValue"):settextf("%05.2f",GetCurrSteps:GetMSD(getCurRateValue())); -- sets mina's calc value
+                self:GetChild("MinasCalcValue"):settextf("%05.2f",GetCurrSteps:GetMSD(getCurRateValue(),0)); -- sets mina's calc value
                 
 				local difficulty = GetCurrSteps:GetDifficulty();
 				local stepsType = GetCurrSteps:GetStepsType();

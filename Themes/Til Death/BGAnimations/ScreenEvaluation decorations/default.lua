@@ -99,35 +99,6 @@ function scoreBoard(pn,position)
 			self:diffuse(ByMSD(meter))
 		end,
 	};
-	
-	t[#t+1] = LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameWidth+frameX+60,frameY+32;zoom,0.5;halign,1;valign,0;maxwidth,100),
-		BeginCommand=cmd(queuecommand,"Set"),
-		SetCommand=function(self)
-			local meter = score:GetSSRSpeed()
-			self:settextf("%5.2f", meter)
-			self:diffuse(ByMSD(meter))
-		end,
-	};
-	t[#t+1] = LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameWidth+frameX+120,frameY+32;zoom,0.5;halign,1;valign,0;maxwidth,100),
-		BeginCommand=cmd(queuecommand,"Set"),
-		SetCommand=function(self)
-			local meter = score:GetSSRStam()
-			self:settextf("%5.2f", meter)
-			self:diffuse(ByMSD(meter))
-		end,
-	};
-	t[#t+1] = LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameWidth+frameX+180,frameY+32;zoom,0.5;halign,1;valign,0;maxwidth,100),
-		BeginCommand=cmd(queuecommand,"Set"),
-		SetCommand=function(self)
-			local meter = score:GetSSRJack()
-			self:settextf("%5.2f", meter)
-			self:diffuse(ByMSD(meter))
-		end,
-	};
-	
 	t[#t+1] = LoadFont("Common Large") .. {
 		InitCommand=cmd(xy,frameWidth+frameX,frameY+7;zoom,0.5;halign,1;valign,0;maxwidth,200),
 		BeginCommand=cmd(queuecommand,"Set"),
