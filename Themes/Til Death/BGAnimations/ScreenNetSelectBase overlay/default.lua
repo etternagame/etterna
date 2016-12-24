@@ -42,4 +42,54 @@ t[#t+1] = LoadActor("../_cursor")
 t[#t+1] = LoadActor("../_halppls")
 t[#t+1] = LoadActor("textentrysearchbar")
 
+local skillsets = {
+	Overall = 0,
+	Speed 	= 0,
+	Stam  	= 0,
+	Jack  	= 0,
+}
+
+
+if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
+	profile = GetPlayerOrMachineProfile(PLAYER_1)
+	if profile ~= nil then
+		skillsets.Overall = profile:GetPlayerRating()
+		skillsets.Speed = profile:GetPlayerSpeedRating()
+		skillsets.Stam = profile:GetPlayerStamRating()
+		skillsets.Jack = profile:GetPlayerJackRating()
+	end
+end
+
+
+
+local function littlebits(i)
+	local t = Def.ActorFrame{
+		LoadFont("Common Normal") .. {
+			InitCommand=cmd(xy,SCREEN_WIDTH/3,SCREEN_HEIGHT-50+i*10;halign,1;zoom,0.35;diffuse,getMainColor('positive')),
+			BeginCommand=cmd(queuecommand,"Set"),
+			SetCommand=function(self)
+					self:settext(ms.SkillSets[i]..":")
+			end,
+			PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
+			PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+		},
+		LoadFont("Common Normal") .. {
+			InitCommand=cmd(xy,SCREEN_WIDTH/3+30,SCREEN_HEIGHT-50+i*10;halign,1;zoom,0.35;diffuse,getMainColor('positive')),
+			BeginCommand=cmd(queuecommand,"Set"),
+			SetCommand=function(self)
+					self:settextf("%5.2f",skillsets[ms.SkillSets[i]])
+			end,
+			PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
+			PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+		}
+	}
+	return t
+end
+
+
+for i=1,#ms.SkillSets do 
+	t[#t+1] = littlebits(i)
+end
+
+
 return t
