@@ -126,11 +126,6 @@ t[#t+1] = LoadFont("Common Large") .. {
 	BeginCommand=function(self)
 		self:settext(getCurRateDisplayString())
 	end,
-	CodeMessageCommand=function(self,params)
-		local rate = getCurRateValue()
-		ChangeMusicRate(rate,params)
-		self:settext(getCurRateDisplayString())
-	end,
 }
 
 --Difficulty
