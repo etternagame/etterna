@@ -218,4 +218,16 @@ function ChangeMusicRate(rate,params)
 		GAMESTATE:GetSongOptionsObject('ModsLevel_Current'):MusicRate(rate-0.1)
 		MESSAGEMAN:Broadcast("CurrentRateChanged")
 	end
+	
+	if params.Name == "PrevRate" and rate < 2 and  (getTabIndex() == 0 or getTabIndex() == 1) then
+		GAMESTATE:GetSongOptionsObject('ModsLevel_Preferred'):MusicRate(rate+0.05)
+		GAMESTATE:GetSongOptionsObject('ModsLevel_Song'):MusicRate(rate+0.05)
+		GAMESTATE:GetSongOptionsObject('ModsLevel_Current'):MusicRate(rate+0.05)
+		MESSAGEMAN:Broadcast("CurrentRateChanged")
+	elseif params.Name == "NextRate" and rate > 0.7 and (getTabIndex() == 0 or getTabIndex() == 1) then
+		GAMESTATE:GetSongOptionsObject('ModsLevel_Preferred'):MusicRate(rate-0.05)
+		GAMESTATE:GetSongOptionsObject('ModsLevel_Song'):MusicRate(rate-0.05)
+		GAMESTATE:GetSongOptionsObject('ModsLevel_Current'):MusicRate(rate-0.05)
+		MESSAGEMAN:Broadcast("CurrentRateChanged")
+	end
 end

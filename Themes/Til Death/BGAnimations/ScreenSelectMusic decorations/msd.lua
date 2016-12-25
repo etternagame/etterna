@@ -47,6 +47,7 @@ local t = Def.ActorFrame{
 			update = false
 		end
 	end,
+	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
 	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
 	TabChangedMessageCommand=cmd(queuecommand,"Set"),
 	PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
@@ -123,12 +124,10 @@ t[#t+1] = LoadFont("Common Large")..{
 -- Music Rate Display
 t[#t+1] = LoadFont("Common Large") .. {
 	InitCommand=cmd(xy,frameX+frameWidth-100,frameY+offsetY+65;visible,true;halign,0;zoom,0.4;maxwidth,capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45)),
-	BeginCommand=function(self)
+	SetCommand=function(self)
 		self:settext(getCurRateDisplayString())
 	end,
-	CurrentRateChangedCommand=function(self)
-		self:settext(getCurRateDisplayString())
-	end
+	CurrentRateChangedCommand=cmd(queuecommand,"set")
 }
 
 --Difficulty
