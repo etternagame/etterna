@@ -126,6 +126,9 @@ t[#t+1] = LoadFont("Common Large") .. {
 	BeginCommand=function(self)
 		self:settext(getCurRateDisplayString())
 	end,
+	CurrentRateChangedCommand=function(self)
+		self:settext(getCurRateDisplayString())
+	end
 }
 
 --Difficulty
