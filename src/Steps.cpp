@@ -458,6 +458,16 @@ void Steps::Decompress(bool isGameplay)
 	}
 }
 
+float Steps::GetMSD(float x, int i) const {
+	int idx = lround(x * 10);
+	if (fmod(x * 10, 1) == 0) {
+		return stuffnthings[idx][i];
+	}
+	else {
+		return (stuffnthings[idx - 1][i] + stuffnthings[idx][i]) / 2;
+	}
+}
+
 RString Steps::GenerateChartKey(NoteData& nd, TimingData *td)
 {
 	RString k = "";
