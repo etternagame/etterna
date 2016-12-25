@@ -2157,7 +2157,10 @@ void Profile::RecalculateSSRs(bool OnlyOld) {
 					if (!sid.IsValid())
 						continue;
 
-					Steps* psteps= sid.ToSteps(psong, false);
+					Steps* psteps= sid.ToSteps(psong, true);
+					if (!psteps)
+						continue;
+
 					auto nd = psteps->GetNoteData();
 					TimingData* td = psteps->GetTimingData();
 					float musicrate = hsv[i].GetMusicRate();
