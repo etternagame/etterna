@@ -2,11 +2,11 @@ local t = Def.ActorFrame{}
 
 t[#t+1] = LoadActor("../_chatbox")
 -- adding this function for average nps. This is to check the relative difficulty of song's nps. -Misterkister
-t[#t+1] = LoadActor("yolo")
+--t[#t+1] = LoadActor("yolo")
 -- adding other stuff
-t[#t+1] = LoadActor("kappa")
+--t[#t+1] = LoadActor("kappa")
 --t[#t+1] = LoadActor("msd stuff")
-t[#t+1] = LoadActor("matra")
+--t[#t+1] = LoadActor("matra")
 
 t[#t+1] = Def.Banner{
 	InitCommand=cmd(x,10;y,60;halign,0;valign,0);
