@@ -41,6 +41,6 @@ t[#t+1] = LoadFont("Common Large")..{InitCommand=cmd(xy,5,32;halign,0;valign,1;z
 t[#t+1] = LoadActor("../_cursor")
 t[#t+1] = LoadActor("../_halppls")
 --t[#t+1] = LoadActor("textentrysearchbar")
-t[#t+1] = LoadActor("searchbar")--Remove and uncomment the above line once the wheel gets reloaded when a song select event arrives from smo
+--t[#t+1] = LoadActor("searchbar")--Remove and uncomment the above line once the wheel gets reloaded when a song select event arrives from smo
 
 return t
