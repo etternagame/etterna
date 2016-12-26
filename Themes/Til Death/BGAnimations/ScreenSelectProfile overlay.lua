@@ -1,3 +1,5 @@
+--Commenting out the Player 2 stuff so if someone is attempting to use this theme for versus or 2P side, it's not going to work. Go use Prim's original spawnhack theme for that. -Misterkister
+
 function GetLocalProfiles()
 	local t = {};
 
@@ -61,14 +63,14 @@ end
 function LoadPlayerStuff(Player)
 	local t = {};
 
-	local pn = (Player == PLAYER_1) and 1 or 2;
+	local pn = (Player == PLAYER_1) and 1;
 
 --[[ 	local t = LoadActor(THEME:GetPathB('', '_frame 3x3'), 'metal', 200, 230) .. {
 		Name = 'BigFrame';
 	}; --]]
 	t[#t+1] = Def.ActorFrame {
 		Name = 'JoinFrame';
-		LoadCard(Color('Orange'));
+		LoadCard(Color('Purple'));
 --[[ 		Def.Quad {
 			InitCommand=cmd(zoomto,200+4,230+4);
 			OnCommand=cmd(shadowlength,1;diffuse,color("0,0,0,0.5"));
@@ -126,7 +128,7 @@ function LoadPlayerStuff(Player)
 end;
 
 function UpdateInternal3(self, Player)
-	local pn = (Player == PLAYER_1) and 1 or 2;
+	local pn = (Player == PLAYER_1) and 1;
 	local frame = self:GetChild(string.format('P%uFrame', pn));
 	local scroller = frame:GetChild('Scroller');
 	local seltext = frame:GetChild('SelectedProfileText');
@@ -237,13 +239,13 @@ t[#t+1] = Def.ActorFrame{
 
 	UpdateInternal2Command=function(self)
 		UpdateInternal3(self, PLAYER_1);
-		UpdateInternal3(self, PLAYER_2);
+		-- UpdateInternal3(self, PLAYER_2);
 	end;
 
 	children = {
 		Def.ActorFrame {
 			Name = 'P1Frame';
-			InitCommand=cmd(x,SCREEN_CENTER_X-160;y,SCREEN_CENTER_Y);
+			InitCommand=cmd(x,SCREEN_CENTER_X;y,SCREEN_CENTER_Y);
 			OnCommand=cmd(zoom,0;bounceend,0.35;zoom,1);
 			OffCommand=cmd(bouncebegin,0.35;zoom,0);
 			PlayerJoinedMessageCommand=function(self,param)
@@ -253,18 +255,18 @@ t[#t+1] = Def.ActorFrame{
 			end;
 			children = LoadPlayerStuff(PLAYER_1);
 		};
-		Def.ActorFrame {
-			Name = 'P2Frame';
-			InitCommand=cmd(x,SCREEN_CENTER_X+160;y,SCREEN_CENTER_Y);
-			OnCommand=cmd(zoom,0;bounceend,0.35;zoom,1);
-			OffCommand=cmd(bouncebegin,0.35;zoom,0);
-			PlayerJoinedMessageCommand=function(self,param)
-				if param.Player == PLAYER_2 then
-					(cmd(zoom,1.15;bounceend,0.175;zoom,1.0;))(self);
-				end;
-			end;
-			children = LoadPlayerStuff(PLAYER_2);
-		};
+		-- Def.ActorFrame {
+			-- Name = 'P2Frame';
+			-- InitCommand=cmd(x,SCREEN_CENTER_X+160;y,SCREEN_CENTER_Y);
+			-- OnCommand=cmd(zoom,0;bounceend,0.35;zoom,1);
+			-- OffCommand=cmd(bouncebegin,0.35;zoom,0);
+			-- PlayerJoinedMessageCommand=function(self,param)
+				-- if param.Player == PLAYER_2 then
+					-- (cmd(zoom,1.15;bounceend,0.175;zoom,1.0;))(self);
+				-- end;
+			-- end;
+			-- children = LoadPlayerStuff(PLAYER_2);
+		-- };
 		-- sounds
 		LoadActor( THEME:GetPathS("Common","start") )..{
 			StartButtonMessageCommand=cmd(play);
