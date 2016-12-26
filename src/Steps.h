@@ -173,7 +173,7 @@ public:
 	RString ChartKey = "Invalid";
 	RString ChartKeyRecord = "Invalid";
 	RString GetChartKey() const { return ChartKey; }
-	vector<float> thestuffs = { 0.f,0.f,0.f,0.f };
+	vector<float> thestuffs = { 0.f,0.f,0.f,0.f,0.f };
 	MinaSD stuffnthings = { thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs };
 	RString GetChartKeyRecord() const;
 	void SetChartKey(const RString &k)  { ChartKey = k; }

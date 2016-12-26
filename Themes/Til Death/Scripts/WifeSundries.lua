@@ -58,7 +58,8 @@ ms.SkillSets = {
 	"Overall", 
 	"Speed", 
 	"Stam", 
-	"Jack"
+	"Jack",
+	"Technical"
 }
 
 local PersistentSearch
