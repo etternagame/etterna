@@ -55,9 +55,54 @@ local t = Def.ActorFrame {
 		InitCommand=cmd(horizalign,left;x,bestratex;y,bestratey;zoom,0.4;diffuse,1,1,1,1;strokecolor,Color("Outline"));
 	};
     LoadFont("Common Normal") .. {
-		Text="Minas calc:";
-		InitCommand=cmd(horizalign,left;x,SCREEN_CENTER_X-30;y,besty;zoom,0.4;diffuse,1,1,1,1;strokecolor,Color("Outline"));
+		Text="MSD";
+		InitCommand=cmd(horizalign,left;x,SCREEN_CENTER_X+45;y,besty+20;zoom,0.4;diffuse,1,1,1,1;strokecolor,Color("Outline"));
 	};
+    LoadFont("Common Normal") .. {
+		Text="Speed";
+		InitCommand=cmd(horizalign,left;x,SCREEN_CENTER_X+45;y,besty+50;zoom,0.4;diffuse,1,1,1,1;strokecolor,Color("Outline"));
+	};
+    LoadFont("Common Normal") .. {
+		Text="Stam";
+		InitCommand=cmd(horizalign,left;x,SCREEN_CENTER_X+45;y,besty+80;zoom,0.4;diffuse,1,1,1,1;strokecolor,Color("Outline"));
+	};
+    LoadFont("Common Normal") .. {
+		Text="Jack";
+		InitCommand=cmd(horizalign,left;x,SCREEN_CENTER_X+45;y,besty+110;zoom,0.4;diffuse,1,1,1,1;strokecolor,Color("Outline"));
+	};
+    LoadFont("Common Normal") .. {
+		Name="MinasCalcValue1";
+		Text="0";
+		InitCommand=cmd(horizalign,left;x,SCREEN_CENTER_X+45;y,besty+30;zoom,0.4;diffuse,1,1,1,1;strokecolor,Color("Outline"));
+	};
+    LoadFont("Common Normal") .. {
+		Name="MinasCalcValue2";
+		Text="0";
+		InitCommand=cmd(horizalign,left;x,SCREEN_CENTER_X+45;y,besty+60;zoom,0.4;diffuse,1,1,1,1;strokecolor,Color("Outline"));
+	};
+    LoadFont("Common Normal") .. {
+		Name="MinasCalcValue3";
+		Text="0";
+		InitCommand=cmd(horizalign,left;x,SCREEN_CENTER_X+45;y,besty+90;zoom,0.4;diffuse,1,1,1,1;strokecolor,Color("Outline"));
+	};
+    LoadFont("Common Normal") .. {
+		Name="MinasCalcValue4";
+		Text="0";
+		InitCommand=cmd(horizalign,left;x,SCREEN_CENTER_X+45;y,besty+120;zoom,0.4;diffuse,1,1,1,1;strokecolor,Color("Outline"));
+	};
+	-- Music Rate Display
+	LoadFont("Common Normal") .. {
+		Name="RateLabel",
+		InitCommand=cmd(horizalign,left;x,SCREEN_CENTER_X+25;y,besty;;visible,true;zoom,0.4;maxwidth,capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45)),
+		BeginCommand=function(self)
+			self:settext(getCurRateDisplayString())
+		end,
+		CodeMessageCommand=function(self,params)
+			local rate = getCurRateValue()
+			ChangeMusicRate(rate,params)
+			self:settext(getCurRateDisplayString())
+		end,
+	},
     LoadFont("Common Normal") .. {
 		Name="MinasCalcValue";
 		Text="0";
@@ -162,8 +207,14 @@ local function Update(self)
 				P1NPS:settext(string.format("%0.2f",P1Taps/ChartLenghtInSec));
 				
 			
-                self:GetChild("MinasCalcValue"):settextf("%05.2f",GetCurrSteps:GetMSD(getCurRateValue(),0)); -- sets mina's calc value
-                
+                self:GetChild("MinasCalcValue1"):settextf("%05.2f",GetCurrSteps:GetMSD(getCurRateValue(),0));
+                self:GetChild("MinasCalcValue2"):settextf("%05.2f",GetCurrSteps:GetMSD(getCurRateValue(),1));
+                self:GetChild("MinasCalcValue3"):settextf("%05.2f",GetCurrSteps:GetMSD(getCurRateValue(),2));
+                self:GetChild("MinasCalcValue4"):settextf("%05.2f",GetCurrSteps:GetMSD(getCurRateValue(),3));
+				MESSAGEMAN:Broadcast("UpdateMSDInfo")
+				
+                self:GetChild("RateLabel"):settext(getCurRateDisplayString());
+				
 				local difficulty = GetCurrSteps:GetDifficulty();
 				local stepsType = GetCurrSteps:GetStepsType();
 				

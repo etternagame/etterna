@@ -458,6 +458,14 @@ void Steps::Decompress(bool isGameplay)
 	}
 }
 
+float Steps::GetMSD(float x, int i) const {
+	int idx = static_cast<int>(x * 10);
+	float prop = fmod(x * 10.f, 1.f);
+	if ( prop == 0)
+		return stuffnthings[idx][i];
+	return lerp(prop, stuffnthings[idx][i], stuffnthings[idx + 1][i]);
+}
+
 RString Steps::GenerateChartKey(NoteData& nd, TimingData *td)
 {
 	RString k = "";
@@ -503,6 +511,40 @@ RString Steps::GenerateChartKey(NoteData& nd, TimingData *td)
 	o.append("X");	// I was thinking of using "C" to indicate chart.. however.. X is cooler... - Mina
 	o.append(BinaryToHex(CryptManager::GetSHA1ForString(k)));
 	return o;
+}
+
+int Steps::GetNPSVector(NoteData nd, vector<float>& etar)
+{
+	vector<vector<int>> doot;
+	vector<int> scoot;
+	int intN = 1;
+	float intI = 0.5f;
+	int intT = 0;
+	vector<int> intervaltaps;
+	vector<int>& nerv = nd.GetNonEmptyRowVector();
+
+	for (size_t r = 0; r < nerv.size(); r++)
+	{
+		int row = nerv[r];
+		if (etar[row] >= intN * intI) {
+			doot.push_back(scoot);
+			scoot.clear();
+			intN += 1;
+
+			intervaltaps.push_back(intT / intI);
+			intT = 0;
+		}
+		scoot.push_back(row);
+		for (int t = 0; t < nd.GetNumTracks(); ++t)
+		{
+			const TapNote &tn = nd.GetTapNote(t, row);
+			if (tn.type == TapNoteType_Tap || tn.type == TapNoteType_HoldHead) {
+				intT += 1;
+			}
+
+		}
+	}
+	return 1;
 }
 
 void Steps::Compress() const
