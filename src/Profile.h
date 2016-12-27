@@ -447,7 +447,29 @@ public:
 
 	// Lua
 	void PushSelf( lua_State *L );
-
+	
+	
+	//TopSSRs
+	bool CalcTopSSRs(unsigned int qty, int skillset);
+	bool CalcAllTopSSRs(unsigned int qty);
+	float GetTopSSRMSD(unsigned int rank, int skillset);
+	HighScore* GetTopSSRHighScore(unsigned int rank, int skillset);
+	SongID GetTopSSRSongID(unsigned int rank, int skillset);
+	float GetTopSSRValue(unsigned int rank, int skillset);
+	RString GetTopSSRSongName(unsigned int rank, int skillset);
+	vector<SongID> topSSRSongIdsOverall;
+	vector<HighScore*> topSSRHighScoresOverall;
+	vector<StepsID> topSSRStepIdsOverall;
+	vector<SongID> topSSRSongIdsJack;
+	vector<HighScore*> topSSRHighScoresJack;
+	vector<StepsID> topSSRStepIdsJack;
+	vector<SongID> topSSRSongIdsStam;
+	vector<HighScore*> topSSRHighScoresStam;
+	vector<StepsID> topSSRStepIdsStam;
+	vector<SongID> topSSRSongIdsSpeed;
+	vector<HighScore*> topSSRHighScoresSpeed;
+	vector<StepsID> topSSRStepIdsSpeed;
+	
 private:
 	const HighScoresForASong *GetHighScoresForASong( const SongID& songID ) const;
 	const HighScoresForACourse *GetHighScoresForACourse( const CourseID& courseID ) const;

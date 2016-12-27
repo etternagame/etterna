@@ -105,6 +105,8 @@ bool ScreenNetSelectBase::Input( const InputEventPlus &input )
 
 		if( (c >= L' ') && (!bHoldingCtrl) )
 		{
+			if (!(GAMESTATE->m_pPlayerState[PLAYER_1])->onlineChatboxInput)
+				return true;
 			m_sTextInput += WStringToRString(wstring()+c);
 			UpdateTextInput();
 		}
