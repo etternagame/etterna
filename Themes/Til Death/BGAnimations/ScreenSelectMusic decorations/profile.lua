@@ -107,12 +107,20 @@ local function rankingButton(i)
 	local t = Def.ActorFrame{
 		Def.Quad{
 		InitCommand=cmd(xy,frameX+rankingX+(i-1+i*(1/(1+#ms.SkillSets)))*rankingTitleWidth,frameY+rankingY-30;zoomto,rankingTitleWidth,30;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
+		SetCommand=function(self)
+			if i-1 == rankingSkillset then
+				self:diffusealpha(0.7)
+			else
+				self:diffusealpha(0.35)
+			end;
+		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
 				rankingSkillset = i-1
 				MESSAGEMAN:Broadcast("UpdateRanking")
 			end;
-		end;
+		end,
+		UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
 		},
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(xy,frameX+rankingX+(i-1+i*(1/(1+#ms.SkillSets)))*rankingTitleWidth,frameY+rankingY-15;halign,0;diffuse,getMainColor('positive');maxwidth,rankingTitleWidth;maxheight,25),
