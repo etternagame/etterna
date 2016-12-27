@@ -51,7 +51,7 @@ if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
 		skillsets.Speed = profile:GetPlayerSpeedRating()
 		skillsets.Stam = profile:GetPlayerStamRating()
 		skillsets.Jack = profile:GetPlayerJackRating()
-		skillsets.Technical = 1
+		skillsets.Technical = profile:GetPlayerTechnicalRating()
 	end
 end
 

@@ -145,7 +145,7 @@ void AddPlayerStatsToProfile( Profile *pProfile, const StageStats &ss, PlayerNum
 	if (!pProfile->IsMachine()) {
 		pProfile->ResetSSRs(true);
 		pProfile->RecalculateSSRs(true);
-		pProfile->CalcPlayerRating(pProfile->m_fPlayerRating, pProfile->m_fPlayerSpeedRating, pProfile->m_fPlayerStamRating, pProfile->m_fPlayerJackRating);
+		pProfile->CalcPlayerRating(pProfile->m_fPlayerRating, pProfile->m_fPlayerSpeedRating, pProfile->m_fPlayerStamRating, pProfile->m_fPlayerJackRating, pProfile->m_fPlayerTechnicalRating);
 	}
 		
 }

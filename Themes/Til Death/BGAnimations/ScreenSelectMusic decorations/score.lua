@@ -199,7 +199,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 			if score:GetWifeScore() == 0 then 
 				self:settext("")
 			else
-				self:settextf("%5.2f", score:GetSSRSpeed())
+				self:settextf("%5.2f", score:GetSkillsetSSR(2))
 			end
 		else
 			self:settext("")
@@ -216,7 +216,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 			if score:GetWifeScore() == 0 then 
 				self:settext("")
 			else
-				self:settextf("%5.2f", score:GetSSRStam())
+				self:settextf("%5.2f", score:GetSkillsetSSR(3))
 			end
 		else
 			self:settext("")
@@ -233,7 +233,24 @@ t[#t+1] = LoadFont("Common Normal")..{
 			if score:GetWifeScore() == 0 then 
 				self:settext("")
 			else
-				self:settextf("%5.2f", score:GetSSRJack())
+				self:settextf("%5.2f", score:GetSkillsetSSR(4))
+			end
+		else
+			self:settext("")
+		end
+	end,
+	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+}
+
+t[#t+1] = LoadFont("Common Normal")..{
+	Name="Score",
+	InitCommand=cmd(xy,frameX+offsetX+155,frameY+offsetY+58;zoom,0.5;halign,0),
+	SetCommand=function(self)
+		if score ~= nil then
+			if score:GetWifeScore() == 0 then 
+				self:settext("")
+			else
+				self:settextf("%5.2f", score:GetSkillsetSSR(5))
 			end
 		else
 			self:settext("")
