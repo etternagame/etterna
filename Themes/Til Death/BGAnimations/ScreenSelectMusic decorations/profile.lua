@@ -34,6 +34,7 @@ local skillsets = {
 	Speed 	= 0,
 	Stam  	= 0,
 	Jack  	= 0,
+	Technical = 0
 }
 
 
@@ -44,6 +45,7 @@ if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
 		skillsets.Speed = profile:GetPlayerSpeedRating()
 		skillsets.Stam = profile:GetPlayerStamRating()
 		skillsets.Jack = profile:GetPlayerJackRating()
+		skillsets.Technical = 1
 	end
 end
 

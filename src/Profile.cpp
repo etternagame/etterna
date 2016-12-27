@@ -2118,7 +2118,7 @@ void Profile::ResetSSRs(bool OnlyOld) {
 			HighScoresForASteps& zz = j->second;
 			vector<HighScore>& hsv = zz.hsl.vHighScores;
 			for (size_t i = 0; i < hsv.size(); i++) {
-				if (OnlyOld && hsv[i].GetSSRCalcVersion() == 1.f)
+				if (OnlyOld && hsv[i].GetSSRCalcVersion() == 1.1f)
 					continue;
 
 					hsv[i].SetSSR(0.f);
@@ -2148,7 +2148,7 @@ void Profile::RecalculateSSRs(bool OnlyOld) {
 				if (wifescore == 0.f || hsv[i].GetGrade() == Grade_Failed)
 					hsv[i].SetSSR(0.f);
 				else {
-					if (OnlyOld && hsv[i].GetSSRCalcVersion() == 1.f)
+					if (OnlyOld && hsv[i].GetSSRCalcVersion() == 1.1f)
 						continue;
 
 					Song* psong = id.ToSong();
