@@ -21,6 +21,15 @@ const int MAX_METER = 35;
 const int MAX_NUM_CREDITS = 20;
 
 
+enum Skillset {
+	Skill_Overall,
+	Skill_Speed,
+	Skill_Stamina,
+	Skill_Jack,
+	Skill_Technical,
+	NUM_Skillset,
+};
+
 /**
  * @brief The various radar categories available.
  *
