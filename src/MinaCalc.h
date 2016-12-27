@@ -1,4 +1,5 @@
 #pragma once
+#define PRINTF(a,b)
 #include "global.h"
 #include "GameState.h"
 #include "RageUtil.h"
@@ -61,30 +62,33 @@ public:
 	player skill level for which the player's stamina begins to wane. Experience in both
 	gameplay and algorithm testing has shown the appropriate value to be around 0.8. The
 	multiplier is scaled to the proportionate difference in player skill. */
-	vector<float> StamAdjust(float x);
+	vector<float> StamAdjust(float x, vector<float> diff);
 
 	/*	For a given player skill level x, invokes the function used by wife scoring to
 	assert the average of the distribution of point gain for each interval and then
 	tallies up the result to produce an average total number of points achieved by this
 	hand. */
-	float CalcInternal(float x, bool stam);
+	float CalcInternal(float x, bool stam, bool nps);
 
 	vector<float> ohjumpscale;
 	vector<float> rollscale;
+	vector<float> hsscale;
+	vector<float> jumpscale;
 
 	vector<int> v_itvpoints;	// Point allotment for each interval
 
 private:
-	const bool SmoothDifficulty = false;	// Do we moving average the difficulty intervals?
-	vector<float> v_itvdiff;	// Calculated difficulty for each interval
+	const bool SmoothDifficulty = true;	// Do we moving average the difficulty intervals?
+	vector<float> v_itvNPSdiff;	// Calculated difficulty for each interval
+	vector<float> v_itvMSdiff;	// Calculated difficulty for each interval
 	float timingscale;			// Timingscale for use in the point proportion function
-	float finalscaler = 2.564f;	// multiplier to standardize baselines
+	float finalscaler = 2.564f*1.05f * 1.07f * 1.03f;	// multiplier to standardize baselines
 
-								// Stamina Model params
-	const float ceil = 1.15f;	// stamina multiplier max
-	const float mag = 225.f;	// multiplier generation scaler
-	const float fscale = 2000;	// how fast the floor rises (it's lava)
-	const float prop = 0.8f;	// proportion of player difficulty at which stamina tax begins
+									// Stamina Model params
+	const float ceil = 1.1f;		// stamina multiplier max
+	const float mag = 200.f;		// multiplier generation scaler
+	const float fscale = 1800.f;	// how fast the floor rises (it's lava)
+	const float prop = 0.80f;		// proportion of player difficulty at which stamina tax begins
 };
 
 class Calc {
@@ -126,16 +130,17 @@ public:
 								until the percentage obtained is greater than or equal to the scoregoal variable. The output
 								accuracy resolution can be set by either reducing the initial increment or by increasing the
 								starting iteration. */
-	float Chisel(float pskill, float res, int iter, bool stam, bool jack);
+	float Chisel(float pskill, float res, int iter, bool stam, bool jack, bool nps);
 
 	vector<float> OHJumpDownscaler(NoteData & nd, int t1, int t2);
+	vector<float> HSDownscaler(NoteData & nd);
+	vector<float> JumpDownscaler(NoteData & nd);
 	vector<float> RollDownscaler(Finger f1, Finger f2);
 private:
 	vector<vector<int>> nervIntervals;
 
 	// Const calc params
-	const bool SmoothPatterns = false;	// Do we moving average the pattern modifier intervals?
-
+	const bool SmoothPatterns = true;	// Do we moving average the pattern modifier intervals?
 	const float IntervalSpan = 0.5f;	// Intervals of time we slice the chart at
 
 	Hand* left = new Hand;
@@ -149,3 +154,4 @@ private:
 
 MINACALC_API vector<float> MinaSDCalc(NoteData& nd, vector<float>& etaner, float musicrate, float goal, float timingscale, bool negbpms);
 MINACALC_API MinaSD MinaSDCalc(NoteData& nd, vector<float>& etaner, float goal, float timingscale, bool negbpms);
+MINACALC_API float GetCalcVersion();
