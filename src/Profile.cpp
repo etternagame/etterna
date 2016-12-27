@@ -2299,16 +2299,16 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 		topSSRSongIdsPtr = &topSSRSongIdsSpeed;
 		break;
 	case 2:
-		SSRFunction = &(HighScore::GetSSRJack);
-		topSSRStepIdsPtr = &topSSRStepIdsJack;
-		topSSRHighScoresPtr = &topSSRHighScoresJack;
-		topSSRSongIdsPtr = &topSSRSongIdsJack;
-		break;
-	case 3:
 		SSRFunction = &(HighScore::GetSSRStam);
 		topSSRStepIdsPtr = &topSSRStepIdsStam;
 		topSSRHighScoresPtr = &topSSRHighScoresStam;
 		topSSRSongIdsPtr = &topSSRSongIdsStam;
+		break;
+	case 3:
+		SSRFunction = &(HighScore::GetSSRJack);
+		topSSRStepIdsPtr = &topSSRStepIdsJack;
+		topSSRHighScoresPtr = &topSSRHighScoresJack;
+		topSSRSongIdsPtr = &topSSRSongIdsJack;
 		break;
 	}
 
