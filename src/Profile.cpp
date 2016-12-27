@@ -2209,10 +2209,10 @@ float Profile::GetTopSSRValue(unsigned int rank, int skillset) {
 		return highScorePtr->GetSSRSpeed();
 		break;
 	case 2:
-		return highScorePtr->GetSSRJack();
+		return highScorePtr->GetSSRStam();
 		break;
 	case 3:
-		return highScorePtr->GetSSRStam();
+		return highScorePtr->GetSSRJack();
 		break;
 	}
 	//Undefined skillset
@@ -2234,10 +2234,10 @@ SongID Profile::GetTopSSRSongID(unsigned int rank, int skillset) {
 		return topSSRSongIdsSpeed[rank - 1];
 		break;
 	case 2:
-		return topSSRSongIdsJack[rank - 1];
+		return topSSRSongIdsStam[rank - 1];
 		break;
 	case 3:
-		return topSSRSongIdsStam[rank - 1];
+		return topSSRSongIdsJack[rank - 1];
 		break;
 	}
 	SongID emptysongID;
@@ -2255,10 +2255,10 @@ HighScore* Profile::GetTopSSRHighScore(unsigned int rank, int skillset) {
 		return topSSRHighScoresSpeed[rank - 1];
 		break;
 	case 2:
-		return topSSRHighScoresJack[rank - 1];
+		return topSSRHighScoresStam[rank - 1];
 		break;
 	case 3:
-		return topSSRHighScoresStam[rank - 1];
+		return topSSRHighScoresJack[rank - 1];
 		break;
 	}
 	//Undefined skillset returns an empty pointer(NULL)
