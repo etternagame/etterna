@@ -25,6 +25,7 @@ struct HighScoreImpl
 	float fSSRSpeed;
 	float fSSRStam;
 	float fSSRJack;
+	float fSSRTechnical;
 	float fSurviveSeconds;
 	float fMusicRate;
 	float fJudgeScale;
@@ -174,6 +175,7 @@ HighScoreImpl::HighScoreImpl()
 	fSSRSpeed = 0.f;
 	fSSRStam = 0.f;
 	fSSRJack = 0.f;
+	fSSRTechnical = 0.f;
 	fMusicRate = 0.f;
 	fJudgeScale = 0.f;
 	vOffsetVector.clear();
@@ -211,6 +213,7 @@ XNode *HighScoreImpl::CreateNode() const
 	pNode->AppendChild( "SSRSpeed",			fSSRSpeed);
 	pNode->AppendChild( "SSRStam",			fSSRStam);
 	pNode->AppendChild( "SSRJack",			fSSRJack);
+	pNode->AppendChild( "SSRTechnical",		fSSRTechnical);
 	pNode->AppendChild( "Rate",				fMusicRate);
 	pNode->AppendChild( "JudgeScale",		fJudgeScale);
 	pNode->AppendChild( "Offsets",			OffsetsToString(vOffsetVector));
@@ -257,6 +260,7 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 	pNode->GetChildValue("SSRSpeed",			fSSRSpeed);
 	pNode->GetChildValue("SSRStam",				fSSRStam);
 	pNode->GetChildValue("SSRJack",				fSSRJack);
+	pNode->GetChildValue("SSRTechnical",		fSSRTechnical);
 	pNode->GetChildValue("Rate",				fMusicRate);
 	pNode->GetChildValue("JudgeScale",			fJudgeScale);
 	pNode->GetChildValue("Offsets", s);			vOffsetVector = OffsetsToVector(s);
@@ -338,10 +342,6 @@ StageAward HighScore::GetStageAward() const { return m_Impl->stageAward; }
 PeakComboAward HighScore::GetPeakComboAward() const { return m_Impl->peakComboAward; }
 float HighScore::GetPercentDP() const { return m_Impl->fPercentDP; }
 float HighScore::GetWifeScore() const { return m_Impl->fWifeScore; }
-float HighScore::GetSSR() const { return m_Impl->fSSR; }
-float HighScore::GetSSRSpeed() const { return m_Impl->fSSRSpeed; }
-float HighScore::GetSSRStam() const { return m_Impl->fSSRStam; }
-float HighScore::GetSSRJack() const { return m_Impl->fSSRJack; }
 float HighScore::GetMusicRate() const { return m_Impl->fMusicRate; }
 float HighScore::GetJudgeScale() const { return m_Impl->fJudgeScale; }
 float HighScore::GetSurviveSeconds() const { return m_Impl->fSurviveSeconds; }
@@ -371,6 +371,7 @@ void HighScore::SetSSR(float f) { m_Impl->fSSR = f; }
 void HighScore::SetSSRSpeed(float f) { m_Impl->fSSRSpeed = f; }
 void HighScore::SetSSRStam(float f) { m_Impl->fSSRStam = f; }
 void HighScore::SetSSRJack(float f) { m_Impl->fSSRJack = f; }
+void HighScore::SetSSRTechnical(float f) { m_Impl->fSSRTechnical = f; }
 void HighScore::SetMusicRate(float f) { m_Impl->fMusicRate = f; }
 void HighScore::SetJudgeScale(float f) { m_Impl->fJudgeScale = f; }
 void HighScore::SetOffsetVector(vector<float> v) { m_Impl->vOffsetVector = v; }
@@ -728,6 +729,25 @@ float HighScore::ConvertDpToWife() {
 	return estpoints / maxpoints;
 }
 
+// Deal with this better later - mina
+float HighScore::GetSkillsetSSR(Skillset ss) const {
+	if (ss == Skill_Overall)
+		return m_Impl->fSSR;
+	else if (ss == Skill_Speed)
+		return m_Impl->fSSRSpeed;
+	else if (ss == Skill_Stamina)
+		return m_Impl->fSSRStam;
+	else if (ss == Skill_Jack)
+		return m_Impl->fSSRJack;
+	else if (ss == Skill_Technical)
+		return m_Impl->fSSRTechnical;
+	return 0.f;
+}
+
+void HighScore::SetSkillsetSSR(Skillset ss, float ssr) {
+	
+}
+
 // lua start
 #include "LuaBinding.h"
 
@@ -739,10 +759,6 @@ public:
 	static int GetScore( T* p, lua_State *L )			{ lua_pushnumber(L, p->GetScore() ); return 1; }
 	static int GetPercentDP( T* p, lua_State *L )		{ lua_pushnumber(L, p->GetPercentDP() ); return 1; }
 	static int GetWifeScore(T* p, lua_State *L)			{ lua_pushnumber(L, p->GetWifeScore()); return 1; }
-	static int GetSSR(T* p, lua_State *L)				{ lua_pushnumber(L, p->GetSSR()); return 1; }
-	static int GetSSRSpeed(T* p, lua_State *L)			{ lua_pushnumber(L, p->GetSSRSpeed()); return 1; }
-	static int GetSSRStam(T* p, lua_State *L)			{ lua_pushnumber(L, p->GetSSRStam()); return 1; }
-	static int GetSSRJack(T* p, lua_State *L)			{ lua_pushnumber(L, p->GetSSRJack()); return 1; }
 	static int GetMusicRate(T* p, lua_State *L)			{ lua_pushnumber(L, p->GetMusicRate()); return 1; }
 	static int GetJudgeScale(T* p, lua_State *L)		{ lua_pushnumber(L, p->GetJudgeScale()); return 1; }
 	static int GetDate( T* p, lua_State *L )			{ lua_pushstring(L, p->GetDateTime().GetString() ); return 1; }
@@ -768,6 +784,12 @@ public:
 		return 1;
 	}
 	
+	static int GetSkillsetSSR(T* p, lua_State *L) {
+		Skillset lel = static_cast<Skillset>(IArg(1)-1);
+		lua_pushnumber(L, p->GetSkillsetSSR(lel));
+		return 1;
+	}
+
 	DEFINE_METHOD( GetGrade, GetGrade() )
 	DEFINE_METHOD( GetWifeGrade, GetWifeGrade())
 	DEFINE_METHOD( ConvertDpToWife, ConvertDpToWife())
@@ -782,10 +804,7 @@ public:
 		ADD_METHOD( GetWifeScore );
 		ADD_METHOD( RescoreToWifeJudge );
 		ADD_METHOD( RescoreToDPJudge );
-		ADD_METHOD( GetSSR );
-		ADD_METHOD( GetSSRSpeed );
-		ADD_METHOD( GetSSRStam );
-		ADD_METHOD(	GetSSRJack );
+		ADD_METHOD( GetSkillsetSSR );
 		ADD_METHOD( GetMusicRate );
 		ADD_METHOD( GetJudgeScale );
 		ADD_METHOD( GetDate );

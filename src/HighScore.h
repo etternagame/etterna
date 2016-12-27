@@ -41,10 +41,6 @@ struct HighScore
 	float ConvertDpToWife();
 	float GetPercentDP() const;
 	float GetWifeScore() const;
-	float GetSSR() const;
-	float GetSSRSpeed() const;
-	float GetSSRStam() const;
-	float GetSSRJack() const;
 	float GetMusicRate() const;
 	float GetJudgeScale() const;
 	/**
@@ -86,6 +82,7 @@ struct HighScore
 	void SetSSRSpeed(float f);
 	void SetSSRStam(float f);
 	void SetSSRJack(float f);
+	void SetSSRTechnical(float f);
 	void SetMusicRate(float f);
 	void SetJudgeScale(float f);
 	void SetOffsetVector(vector<float> v);
@@ -122,8 +119,11 @@ struct HighScore
 
 	RString GetDisplayName() const;
 
+	// Mina stuff - Mina
 	float RescoreToWifeJudge(int x);
 	float RescoreToDPJudge(int x);
+	float GetSkillsetSSR(Skillset ss) const;
+	void SetSkillsetSSR(Skillset ss, float ssr);
 
 	// Lua
 	void PushSelf( lua_State *L );
