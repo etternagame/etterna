@@ -2372,6 +2372,7 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 				}
 			}
 		}
+	}
 	//If we didnt find enough ssr's to fill qty elements return false
 	if (counter >= qty)
 		return true;
