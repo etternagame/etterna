@@ -2183,6 +2183,203 @@ void Profile::RecalculateSSRs(bool OnlyOld) {
 	}
 }
 
+
+RString Profile::GetTopSSRSongName(unsigned int rank, int skillset) {
+	SongID songid = GetTopSSRSongID(rank, skillset);
+	SongID emptySong;
+	if (songid == emptySong) {
+		RString emptyString;
+		emptyString = ' ';
+		return emptyString;
+	}
+	return ( songid.ToSong() )->GetMainTitle();
+}
+float Profile::GetTopSSRValue(unsigned int rank, int skillset) {
+	if (rank == 0)
+		rank = 1;
+	HighScore *highScorePtr = GetTopSSRHighScore(rank, skillset);
+	//Empty HighScore Pointer = NULL then return 0
+	if(highScorePtr == NULL)
+		return 0;
+	switch (skillset) {
+	case 0:
+		return highScorePtr->GetSSR();
+		break;
+	case 1:
+		return highScorePtr->GetSSRSpeed();
+		break;
+	case 2:
+		return highScorePtr->GetSSRJack();
+		break;
+	case 3:
+		return highScorePtr->GetSSRStam();
+		break;
+	}
+	//Undefined skillset
+	return 0;
+}
+SongID Profile::GetTopSSRSongID(unsigned int rank, int skillset) {
+	if (rank == 0)
+		rank = 1;
+	if (rank > (unsigned int)topSSRSongIdsOverall.size())
+		if (CalcAllTopSSRs(rank) == false) {
+			SongID emptySongID;
+			return emptySongID;
+		}
+	switch (skillset) {
+	case 0:
+		return topSSRSongIdsOverall[rank - 1];
+		break;
+	case 1:
+		return topSSRSongIdsSpeed[rank - 1];
+		break;
+	case 2:
+		return topSSRSongIdsJack[rank - 1];
+		break;
+	case 3:
+		return topSSRSongIdsStam[rank - 1];
+		break;
+	}
+	SongID emptysongID;
+	return emptysongID;
+}
+HighScore* Profile::GetTopSSRHighScore(unsigned int rank, int skillset) {
+	if (rank > (unsigned int)topSSRHighScoresOverall.size())
+		if (CalcAllTopSSRs(rank) == false)
+			return NULL;
+	switch (skillset) {
+	case 0:
+		return topSSRHighScoresOverall[rank - 1];
+		break;
+	case 1:
+		return topSSRHighScoresSpeed[rank - 1];
+		break;
+	case 2:
+		return topSSRHighScoresJack[rank - 1];
+		break;
+	case 3:
+		return topSSRHighScoresStam[rank - 1];
+		break;
+	}
+	//Undefined skillset returns an empty pointer(NULL)
+	return NULL;
+}
+// Todo: Make it only iterate once - Nick12
+bool Profile::CalcAllTopSSRs(unsigned int qty) {
+	bool ret = true;
+	for(int i = 0; i < 4; i++)
+		ret = CalcTopSSRs(qty, i) && ret;
+	return ret;
+}
+bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
+	vector<float> topSSRs; //Auxiliary values to sort faster
+	vector<HighScore*> *topSSRHighScoresPtr;
+	vector<StepsID> *topSSRStepIdsPtr;
+	vector<SongID> *topSSRSongIdsPtr;
+	unsigned int counter = 0;
+
+	vector<float>::reverse_iterator pos;
+
+	unsigned int poscounter;
+
+	//We work with a pointer to the method so we dont need to have the foreach in each case or run the switch on each iteration
+	float (HighScore::*SSRFunction)() const = NULL;
+	//Make the pointers point to the right vectors/method
+	switch (skillset) {
+	case 0:
+		SSRFunction = &(HighScore::GetSSR);
+		topSSRStepIdsPtr = &topSSRStepIdsOverall;
+		topSSRHighScoresPtr = &topSSRHighScoresOverall;
+		topSSRSongIdsPtr = &topSSRSongIdsOverall;
+		break;
+	case 1:
+		SSRFunction = &(HighScore::GetSSRSpeed);
+		topSSRStepIdsPtr = &topSSRStepIdsSpeed;
+		topSSRHighScoresPtr = &topSSRHighScoresSpeed;
+		topSSRSongIdsPtr = &topSSRSongIdsSpeed;
+		break;
+	case 2:
+		SSRFunction = &(HighScore::GetSSRJack);
+		topSSRStepIdsPtr = &topSSRStepIdsJack;
+		topSSRHighScoresPtr = &topSSRHighScoresJack;
+		topSSRSongIdsPtr = &topSSRSongIdsJack;
+		break;
+	case 3:
+		SSRFunction = &(HighScore::GetSSRStam);
+		topSSRStepIdsPtr = &topSSRStepIdsStam;
+		topSSRHighScoresPtr = &topSSRHighScoresStam;
+		topSSRSongIdsPtr = &topSSRSongIdsStam;
+		break;
+	}
+
+	//Initialize vectors
+	StepsID emptySteps;
+	SongID emptySong;
+	HighScore* emptyHighScorePtr = NULL;
+	(*topSSRStepIdsPtr).clear();
+	(*topSSRSongIdsPtr).clear();
+	(*topSSRHighScoresPtr).clear();
+
+	//Empty the vectors if qty=0
+	if (qty == 0)
+		return true;
+
+	for (unsigned int i = 0; i < qty; i++) {
+		topSSRs.push_back(0);
+		(*topSSRStepIdsPtr).push_back(emptySteps);
+		(*topSSRSongIdsPtr).push_back(emptySong);
+		(*topSSRHighScoresPtr).push_back(emptyHighScorePtr);
+	}
+
+	//Build the top
+	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
+		const SongID& id = i->first;
+
+		if (!id.IsValid())
+			continue;
+
+		HighScoresForASong& hsfas = i->second;
+		FOREACHM(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
+			HighScoresForASteps& zz = j->second;
+			const StepsID& stepsid = j->first;
+			vector<HighScore>& hsv = zz.hsl.vHighScores;
+			if (!stepsid.IsValid())
+				continue;
+			Steps* psteps = stepsid.ToSteps(id.ToSong(), true);
+			if (!psteps)
+				continue;
+			for (size_t i = 0; i < hsv.size(); i++) {
+				float ssr = (hsv[i].*SSRFunction)();
+				//Compare with the smallest value(last one) to see if we need to change the values
+				if (topSSRs[qty - 1] < ssr) {
+
+					//Find the position of the inmediate smaller value
+					for (poscounter = qty - 1; topSSRs[poscounter - 1] < ssr && poscounter != 0;) {
+						poscounter--;
+					}
+					counter++;
+					//insert in the proper place
+					(*topSSRStepIdsPtr).insert((*topSSRStepIdsPtr).begin() + poscounter, stepsid);
+					topSSRs.insert(topSSRs.begin() + poscounter, ssr);
+					(*topSSRSongIdsPtr).insert((*topSSRSongIdsPtr).begin() + poscounter, id);
+					(*topSSRHighScoresPtr).insert((*topSSRHighScoresPtr).begin() + poscounter, &(hsv[i]));
+
+					//erase last element to keep the same amount of elements(qty)
+					topSSRs.pop_back();
+					(*topSSRStepIdsPtr).pop_back();
+					(*topSSRSongIdsPtr).pop_back();
+					(*topSSRHighScoresPtr).pop_back();
+				}
+			}
+		}
+	}
+	//If we didnt find enough ssr's to fill qty elements return false
+	if (counter >= qty)
+		return true;
+	return false;
+}
+
+
 float Profile::AggregateScores(vector<float>& invector, float rating, float res, int iter) const {
 	if (invector.size() == 0)
 		return 0.f;
@@ -2938,6 +3135,14 @@ public:
 			lua_pushnil( L );
 		return 1;
 	}
+	static int GetTopSSRSongName(T* p, lua_State *L) {
+		lua_pushstring(L, p->GetTopSSRSongName(IArg(1), IArg(2)));
+		return 1;
+	}
+	static int GetTopSSRValue(T* p, lua_State *L) {
+		lua_pushnumber(L, p->GetTopSSRValue(IArg(1), IArg(2)) );
+		return 1;
+	}
 	DEFINE_METHOD( GetGUID,		m_sGuid );
 
 	LunaProfile()
@@ -3015,6 +3220,8 @@ public:
 		ADD_METHOD( GetPlayerStamRating );
 		ADD_METHOD( GetPlayerJackRating );
 		ADD_METHOD( GetNumFaves );
+		ADD_METHOD(GetTopSSRValue);
+		ADD_METHOD(GetTopSSRSongName);
 	}
 };
 
