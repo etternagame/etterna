@@ -161,7 +161,7 @@ void Profile::InitGeneralData()
 	m_fPlayerSpeedRating = 0.f;
 	m_fPlayerStamRating = 0.f;
 	m_fPlayerJackRating = 0.f;
-	EtternaCalcVersion = 0.f;
+	m_fPlayerTechnicalRating = 0.f;
 
 	FOREACH_ENUM( PlayMode, i )
 		m_iNumSongsPlayedByPlayMode[i] = 0;
@@ -1502,9 +1502,10 @@ XNode* Profile::SaveGeneralDataCreateNode() const
 	pGeneralDataNode->AppendChild( "TotalHands",			m_iTotalHands );
 	pGeneralDataNode->AppendChild( "TotalLifts",			m_iTotalLifts );
 	pGeneralDataNode->AppendChild( "PlayerRating",			m_fPlayerRating);
-	pGeneralDataNode->AppendChild("PlayerSpeedRating",		m_fPlayerSpeedRating);
-	pGeneralDataNode->AppendChild("PlayerStamRating",		m_fPlayerStamRating);
-	pGeneralDataNode->AppendChild("PlayerJackRating",		m_fPlayerJackRating);
+	pGeneralDataNode->AppendChild( "PlayerSpeedRating",		m_fPlayerSpeedRating);
+	pGeneralDataNode->AppendChild( "PlayerStamRating",		m_fPlayerStamRating);
+	pGeneralDataNode->AppendChild( "PlayerJackRating",		m_fPlayerJackRating);
+	pGeneralDataNode->AppendChild( "PlayerTechnicalRating",  m_fPlayerTechnicalRating);
 
 	// Keep declared variables in a very local scope so they aren't 
 	// accidentally used where they're not intended.  There's a lot of
@@ -1706,7 +1707,8 @@ void Profile::LoadGeneralDataFromNode( const XNode* pNode )
 	pNode->GetChildValue( "PlayerRating",			m_fPlayerRating);
 	pNode->GetChildValue( "PlayerSpeedRating",		m_fPlayerSpeedRating);
 	pNode->GetChildValue( "PlayerStamRating",		m_fPlayerStamRating);
-	pNode->GetChildValue( "PlayerJackRating",		m_fPlayerJackRating);	
+	pNode->GetChildValue( "PlayerJackRating",		m_fPlayerJackRating);
+	pNode->GetChildValue( "PlayerTechnicalRating",	m_fPlayerTechnicalRating);
 
 	{
 		const XNode* pDefaultModifiers = pNode->GetChild("DefaultModifiers");
@@ -2076,10 +2078,9 @@ float Profile::GetWifePBByKey(RString key) {
 	return o;
 }
 
-void Profile::CalcPlayerRating(float& overall, float& speed, float& stam, float& jack) const {
-	vector<float> vSSRSpeed;
-	vector<float> vSSRStam;
-	vector<float> vSSRJack;
+// also finish dealing with this later - mina
+void Profile::CalcPlayerRating(float& overall, float& speed, float& stam, float& jack, float& technical) const {
+	vector<vector<float>> demskillas(5);
 	FOREACHM_CONST(SongID, HighScoresForASong, m_SongHighScores, i) {
 		const SongID& id = i->first;
 		// skip files that can't be loaded since we can't verify their ssrs - mina
@@ -2090,21 +2091,23 @@ void Profile::CalcPlayerRating(float& overall, float& speed, float& stam, float&
 			const HighScoresForASteps& zz = j->second;
 			const vector<HighScore>& hsv = zz.hsl.vHighScores;
 			for (size_t i = 0; i < hsv.size(); i++) {
-				vSSRSpeed.emplace_back(hsv[i].GetSSRSpeed());
-				vSSRStam.emplace_back(hsv[i].GetSSRStam());
-				vSSRJack.emplace_back(hsv[i].GetSSRJack());
+				FOREACH_ENUM(Skillset, ss)
+					demskillas[static_cast<int>(ss)].emplace_back(hsv[i].GetSkillsetSSR(ss));
 			}
 		}
 	}
 
-	speed = AggregateScores(vSSRSpeed, 0.f, 10.24f, 1)*0.95f;
-	stam = AggregateScores(vSSRStam, 0.f, 10.24f, 1)*0.95f;
-	jack = AggregateScores(vSSRJack, 0.f, 10.24f, 1)*0.95f;
+	
+	speed = AggregateScores(demskillas[1], 0.f, 10.24f, 1)*0.95f;
+	stam = AggregateScores(demskillas[2], 0.f, 10.24f, 1)*0.95f;
+	jack = AggregateScores(demskillas[3], 0.f, 10.24f, 1)*0.95f;
+	technical = AggregateScores(demskillas[4], 0.f, 10.24f, 1)*0.95f;
 	CLAMP(speed, 0.f, 100.f);
 	CLAMP(stam, 0.f, 100.f);
 	CLAMP(jack, 0.f, 100.f);
+	CLAMP(technical, 0.f, 100.f);
 	
-	overall = (speed + stam + jack) / 3;
+	overall = (speed + stam + jack + technical) / 4.f;
 }
 
 void Profile::ResetSSRs(bool OnlyOld) {
@@ -2125,6 +2128,7 @@ void Profile::ResetSSRs(bool OnlyOld) {
 					hsv[i].SetSSRSpeed(0.f);
 					hsv[i].SetSSRStam(0.f);
 					hsv[i].SetSSRJack(0.f);
+					hsv[i].SetSSRTechnical(0.f);
 			}
 		}
 	}
@@ -2148,7 +2152,7 @@ void Profile::RecalculateSSRs(bool OnlyOld) {
 				if (wifescore == 0.f || hsv[i].GetGrade() == Grade_Failed)
 					hsv[i].SetSSR(0.f);
 				else {
-					if (OnlyOld && hsv[i].GetSSRCalcVersion() == GetCalcVersion())
+					if (OnlyOld && hsv[i].GetSSRCalcVersion() == 1.f)
 						continue;
 
 					Song* psong = id.ToSong();
@@ -2176,7 +2180,8 @@ void Profile::RecalculateSSRs(bool OnlyOld) {
 					hsv[i].SetSSRSpeed(isthisworking[1]);
 					hsv[i].SetSSRStam(isthisworking[2]);
 					hsv[i].SetSSRJack(isthisworking[3]);
-					hsv[i].SetSSRCalcVersion(1.f);
+					hsv[i].SetSSRTechnical(isthisworking[4]);
+					hsv[i].SetSSRCalcVersion(GetCalcVersion());
 				}
 			}
 		}
@@ -2200,28 +2205,13 @@ float Profile::GetTopSSRValue(unsigned int rank, int skillset) {
 	HighScore *highScorePtr = GetTopSSRHighScore(rank, skillset);
 	//Empty HighScore Pointer = NULL then return 0
 	if(highScorePtr == NULL)
-		return 0;
-	switch (skillset) {
-	case 0:
-		return highScorePtr->GetSSR();
-		break;
-	case 1:
-		return highScorePtr->GetSSRSpeed();
-		break;
-	case 2:
-		return highScorePtr->GetSSRStam();
-		break;
-	case 3:
-		return highScorePtr->GetSSRJack();
-		break;
-	}
-	//Undefined skillset
-	return 0;
+		return 0.f;
+	return highScorePtr->GetSkillsetSSR(static_cast<Skillset>(skillset));
 }
 SongID Profile::GetTopSSRSongID(unsigned int rank, int skillset) {
 	if (rank == 0)
 		rank = 1;
-	if (rank > (unsigned int)topSSRSongIdsOverall.size())
+	if (rank > static_cast<unsigned int>(topSSRSongIdsOverall.size()))
 		if (CalcAllTopSSRs(rank) == false) {
 			SongID emptySongID;
 			return emptySongID;
@@ -2239,12 +2229,15 @@ SongID Profile::GetTopSSRSongID(unsigned int rank, int skillset) {
 	case 3:
 		return topSSRSongIdsJack[rank - 1];
 		break;
+	case 4:
+		return topSSRSongIdsTech[rank - 1];
+		break;
 	}
 	SongID emptysongID;
 	return emptysongID;
 }
 HighScore* Profile::GetTopSSRHighScore(unsigned int rank, int skillset) {
-	if (rank > (unsigned int)topSSRHighScoresOverall.size())
+	if (rank > static_cast<unsigned int>(topSSRHighScoresOverall.size()))
 		if (CalcAllTopSSRs(rank) == false)
 			return NULL;
 	switch (skillset) {
@@ -2260,6 +2253,9 @@ HighScore* Profile::GetTopSSRHighScore(unsigned int rank, int skillset) {
 	case 3:
 		return topSSRHighScoresJack[rank - 1];
 		break;
+	case 4:
+		return topSSRHighScoresTech[rank - 1];
+		break;
 	}
 	//Undefined skillset returns an empty pointer(NULL)
 	return NULL;
@@ -2267,7 +2263,7 @@ HighScore* Profile::GetTopSSRHighScore(unsigned int rank, int skillset) {
 // Todo: Make it only iterate once - Nick12
 bool Profile::CalcAllTopSSRs(unsigned int qty) {
 	bool ret = true;
-	for(int i = 0; i < 4; i++)
+	for(int i = 0; i < 5; i++)
 		ret = CalcTopSSRs(qty, i) && ret;
 	return ret;
 }
@@ -2287,28 +2283,29 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 	//Make the pointers point to the right vectors/method
 	switch (skillset) {
 	case 0:
-		SSRFunction = &(HighScore::GetSSR);
 		topSSRStepIdsPtr = &topSSRStepIdsOverall;
 		topSSRHighScoresPtr = &topSSRHighScoresOverall;
 		topSSRSongIdsPtr = &topSSRSongIdsOverall;
 		break;
 	case 1:
-		SSRFunction = &(HighScore::GetSSRSpeed);
 		topSSRStepIdsPtr = &topSSRStepIdsSpeed;
 		topSSRHighScoresPtr = &topSSRHighScoresSpeed;
 		topSSRSongIdsPtr = &topSSRSongIdsSpeed;
 		break;
 	case 2:
-		SSRFunction = &(HighScore::GetSSRStam);
 		topSSRStepIdsPtr = &topSSRStepIdsStam;
 		topSSRHighScoresPtr = &topSSRHighScoresStam;
 		topSSRSongIdsPtr = &topSSRSongIdsStam;
 		break;
 	case 3:
-		SSRFunction = &(HighScore::GetSSRJack);
 		topSSRStepIdsPtr = &topSSRStepIdsJack;
 		topSSRHighScoresPtr = &topSSRHighScoresJack;
 		topSSRSongIdsPtr = &topSSRSongIdsJack;
+		break;
+	case 4:
+		topSSRStepIdsPtr = &topSSRStepIdsTech;
+		topSSRHighScoresPtr = &topSSRHighScoresTech;
+		topSSRSongIdsPtr = &topSSRSongIdsTech;
 		break;
 	}
 
@@ -2326,9 +2323,9 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 
 	for (unsigned int i = 0; i < qty; i++) {
 		topSSRs.push_back(0);
-		(*topSSRStepIdsPtr).push_back(emptySteps);
-		(*topSSRSongIdsPtr).push_back(emptySong);
-		(*topSSRHighScoresPtr).push_back(emptyHighScorePtr);
+		(*topSSRStepIdsPtr).emplace_back(emptySteps);
+		(*topSSRSongIdsPtr).emplace_back(emptySong);
+		(*topSSRHighScoresPtr).emplace_back(emptyHighScorePtr);
 	}
 
 	//Build the top
@@ -2349,7 +2346,7 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 			if (!psteps)
 				continue;
 			for (size_t i = 0; i < hsv.size(); i++) {
-				float ssr = (hsv[i].*SSRFunction)();
+				float ssr = hsv[i].GetSkillsetSSR(static_cast<Skillset>(skillset));
 				//Compare with the smallest value(last one) to see if we need to change the values
 				if (topSSRs[qty - 1] < ssr) {
 
@@ -3074,6 +3071,7 @@ public:
 	static int GetPlayerSpeedRating(T* p, lua_State *L) { lua_pushnumber(L, p->m_fPlayerSpeedRating); return 1; }
 	static int GetPlayerStamRating(T* p, lua_State *L) { lua_pushnumber(L, p->m_fPlayerStamRating); return 1; }
 	static int GetPlayerJackRating(T* p, lua_State *L) { lua_pushnumber(L, p->m_fPlayerJackRating); return 1; }
+	static int GetPlayerTechnicalRating(T* p, lua_State *L) { lua_pushnumber(L, p->m_fPlayerTechnicalRating); return 1; }
 	static int GetMostPopularSong( T* p, lua_State *L )
 	{
 		Song *p2 = p->GetMostPopularSong();
@@ -3219,9 +3217,10 @@ public:
 		ADD_METHOD( GetPlayerSpeedRating );
 		ADD_METHOD( GetPlayerStamRating );
 		ADD_METHOD( GetPlayerJackRating );
+		ADD_METHOD(	GetPlayerTechnicalRating );
 		ADD_METHOD( GetNumFaves );
-		ADD_METHOD(GetTopSSRValue);
-		ADD_METHOD(GetTopSSRSongName);
+		ADD_METHOD( GetTopSSRValue );
+		ADD_METHOD( GetTopSSRSongName );
 	}
 };
 

@@ -224,7 +224,7 @@ public:
 	float m_fPlayerSpeedRating;
 	float m_fPlayerStamRating;
 	float m_fPlayerJackRating;
-	float EtternaCalcVersion;
+	float m_fPlayerTechnicalRating;
 	/** @brief Is this a brand new profile? */
 	bool m_bNewProfile;
 	set<RString> m_UnlockedEntryIDs;
@@ -321,7 +321,7 @@ public:
 	const HighScoreList& GetCategoryHighScoreList( StepsType st, RankingCategory rc ) const;
 	int GetCategoryNumTimesPlayed( StepsType st ) const;
 	void IncrementCategoryPlayCount( StepsType st, RankingCategory rc );
-	void CalcPlayerRating(float& overall, float& speed, float& stam, float& jack) const;
+	void CalcPlayerRating(float& overall, float& speed, float& stam, float& jack, float& technical) const;
 	void ResetSSRs(bool OnlyOld);
 	void RecalculateSSRs(bool OnlyOld);
 	float AggregateScores(vector<float>& invector, float rating, float res, int iter) const;
@@ -469,7 +469,10 @@ public:
 	vector<SongID> topSSRSongIdsSpeed;
 	vector<HighScore*> topSSRHighScoresSpeed;
 	vector<StepsID> topSSRStepIdsSpeed;
-	
+	vector<SongID> topSSRSongIdsTech;
+	vector<HighScore*> topSSRHighScoresTech;
+	vector<StepsID> topSSRStepIdsTech;
+
 private:
 	const HighScoresForASong *GetHighScoresForASong( const SongID& songID ) const;
 	const HighScoresForACourse *GetHighScoresForACourse( const CourseID& courseID ) const;
