@@ -137,6 +137,8 @@ public:
 	void SetNumCols(int ncol) { m_NumCols = ncol; };
 	int GetNumCols() { return m_NumCols; };
 
+	// Disable/Enable online chatbox input - Nick12
+	bool onlineChatboxInput = true;
 
 	// Lua
 	void PushSelf( lua_State *L );
