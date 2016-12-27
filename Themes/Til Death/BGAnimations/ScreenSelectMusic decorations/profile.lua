@@ -31,8 +31,8 @@ local offsetY = 20
 local rankingSkillset=0
 local rankingPage=1
 local rankingWidth = 250
-local rankingX = 90
-local rankingY = 160
+local rankingX = capWideScale(75,90)
+local rankingY = capWideScale(200,180)
 local rankingTitleWidth = (rankingWidth/(#ms.SkillSets + 1))
 
 local skillsets = {
@@ -140,7 +140,7 @@ r[#r+1] = Def.Quad{
 	MouseLeftClickMessageCommand=function(self)
 		if isOver(self) then
 			--Move right
-			if RankingPage == 10 then
+			if rankingPage == 10 then
 				rankingPage=1
 			else
 				rankingPage=rankingPage+1
@@ -161,7 +161,7 @@ r[#r+1] = Def.Quad{
 	MouseLeftClickMessageCommand=function(self)
 		if isOver(self) then
 			--Move left
-			if RankingPage == 1 then
+			if rankingPage == 1 then
 				rankingPage=10
 			else
 				rankingPage=rankingPage-1

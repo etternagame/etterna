@@ -16,6 +16,7 @@
 #include "RageInput.h"
 #include "Font.h"
 #include "RageDisplay.h"
+#include "PlayerState.h"
 
 #define CHAT_TEXT_OUTPUT_WIDTH		THEME->GetMetricF(m_sName,"ChatTextOutputWidth")
 #define CHAT_TEXT_INPUT_WIDTH		THEME->GetMetricF(m_sName,"ChatTextInputWidth")
