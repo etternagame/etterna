@@ -271,6 +271,26 @@ HoldNoteScore StringToHoldNoteScore( const RString &s )
 }
 XToLocalizedString( HoldNoteScore );
 
+// wtf is this shit - mina
+static const char *SkillsetNames[] = {
+	"Overall",
+	"Speed",
+	"Stamina",
+	"Jack",
+	"Technical",
+};
+XToString(Skillset);
+LuaXType(Skillset);
+Skillset StringToSkillset(const RString &s) {
+	if (s == "Overall")			return Skill_Overall;
+	else if (s == "Speed")		return Skill_Speed;
+	else if (s == "Stamina")	return Skill_Stamina;
+	else if (s == "Jack")		return Skill_Jack;
+	else if (s == "Technical")	return Skill_Technical;
+
+	return Skill_Overall;
+}
+
 static const char *TimingWindowNames[] = {
 	"W1",
 	"W2",
