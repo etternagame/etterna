@@ -219,7 +219,7 @@ t[#t+1] = Def.ActorFrame{
 		SetCommand=function(self)
 			if song and score then 
 			local rate = getRate(score)
-				if getCurRateString() ~= rate then
+				if getCurRateString() ~= rate and getCurRateString() ~= "1x" and getCurRateString() ~= "2x" then
 					self:settext("("..rate..")")
 				else
 					self:settext(rate)
