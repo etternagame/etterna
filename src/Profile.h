@@ -457,21 +457,10 @@ public:
 	SongID GetTopSSRSongID(unsigned int rank, int skillset);
 	float GetTopSSRValue(unsigned int rank, int skillset);
 	RString GetTopSSRSongName(unsigned int rank, int skillset);
-	vector<SongID> topSSRSongIdsOverall;
-	vector<HighScore*> topSSRHighScoresOverall;
-	vector<StepsID> topSSRStepIdsOverall;
-	vector<SongID> topSSRSongIdsJack;
-	vector<HighScore*> topSSRHighScoresJack;
-	vector<StepsID> topSSRStepIdsJack;
-	vector<SongID> topSSRSongIdsStam;
-	vector<HighScore*> topSSRHighScoresStam;
-	vector<StepsID> topSSRStepIdsStam;
-	vector<SongID> topSSRSongIdsSpeed;
-	vector<HighScore*> topSSRHighScoresSpeed;
-	vector<StepsID> topSSRStepIdsSpeed;
-	vector<SongID> topSSRSongIdsTech;
-	vector<HighScore*> topSSRHighScoresTech;
-	vector<StepsID> topSSRStepIdsTech;
+	//Vector array instead of a bunch of vectors
+	vector<SongID> topSSRSongIds[(int)NUM_Skillset];
+	vector<HighScore*> topSSRHighScores[(int)NUM_Skillset];
+	vector<StepsID> topSSRStepIds[(int)NUM_Skillset];
 
 private:
 	const HighScoresForASong *GetHighScoresForASong( const SongID& songID ) const;
