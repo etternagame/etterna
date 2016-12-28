@@ -2206,108 +2206,65 @@ float Profile::GetTopSSRValue(unsigned int rank, int skillset) {
 	//Empty HighScore Pointer = NULL then return 0
 	if(highScorePtr == NULL)
 		return 0.f;
-	return highScorePtr->GetSkillsetSSR(static_cast<Skillset>(skillset));
+
+	if (skillset >= 0 && skillset < NUM_Skillset)
+		return highScorePtr->GetSkillsetSSR(static_cast<Skillset>(skillset));
+
+	//Undefined skillset
+	return 0.f;
 }
 SongID Profile::GetTopSSRSongID(unsigned int rank, int skillset) {
 	if (rank == 0)
 		rank = 1;
-	if (rank > static_cast<unsigned int>(topSSRSongIdsOverall.size()))
+	if (rank > static_cast<unsigned int>(topSSRSongIds[skillset].size()))
 		if (CalcAllTopSSRs(rank) == false) {
 			SongID emptySongID;
 			return emptySongID;
 		}
-	switch (skillset) {
-	case 0:
-		return topSSRSongIdsOverall[rank - 1];
-		break;
-	case 1:
-		return topSSRSongIdsSpeed[rank - 1];
-		break;
-	case 2:
-		return topSSRSongIdsStam[rank - 1];
-		break;
-	case 3:
-		return topSSRSongIdsJack[rank - 1];
-		break;
-	case 4:
-		return topSSRSongIdsTech[rank - 1];
-		break;
-	}
+
+	if (skillset >= 0 && skillset < NUM_Skillset)
+		return topSSRSongIds[skillset][rank - 1];
+
+	//Undefined skillset 
 	SongID emptysongID;
 	return emptysongID;
 }
 HighScore* Profile::GetTopSSRHighScore(unsigned int rank, int skillset) {
-	if (rank > static_cast<unsigned int>(topSSRHighScoresOverall.size()))
+	if (rank == 0)
+		rank = 1;
+	if (rank > static_cast<unsigned int>(topSSRHighScores[skillset].size()))
 		if (CalcAllTopSSRs(rank) == false)
 			return NULL;
-	switch (skillset) {
-	case 0:
-		return topSSRHighScoresOverall[rank - 1];
-		break;
-	case 1:
-		return topSSRHighScoresSpeed[rank - 1];
-		break;
-	case 2:
-		return topSSRHighScoresStam[rank - 1];
-		break;
-	case 3:
-		return topSSRHighScoresJack[rank - 1];
-		break;
-	case 4:
-		return topSSRHighScoresTech[rank - 1];
-		break;
-	}
+
+	if(skillset >= 0 && skillset < NUM_Skillset)
+		return topSSRHighScores[skillset][rank - 1];
 	//Undefined skillset returns an empty pointer(NULL)
+
 	return NULL;
 }
 // Todo: Make it only iterate once - Nick12
 bool Profile::CalcAllTopSSRs(unsigned int qty) {
 	bool ret = true;
-	for(int i = 0; i < 5; i++)
+	for(int i = 0; i < NUM_Skillset; i++)
 		ret = CalcTopSSRs(qty, i) && ret;
 	return ret;
 }
 bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
-	vector<float> topSSRs; //Auxiliary values to sort faster
-	vector<HighScore*> *topSSRHighScoresPtr;
-	vector<StepsID> *topSSRStepIdsPtr;
-	vector<SongID> *topSSRSongIdsPtr;
+	//undefined skillset
+	if (skillset < 0 || skillset >= NUM_Skillset)
+		return false;
+
+	vector<float> topSSRs; //Auxiliary vector to sort faster
+
+	//Pointers to the skillset's vectors
+	vector<HighScore*> *topSSRHighScoresPtr = &topSSRHighScores[skillset];
+	vector<StepsID> *topSSRStepIdsPtr = &topSSRStepIds[skillset];
+	vector<SongID> *topSSRSongIdsPtr = &topSSRSongIds[skillset];
+
+	//Counter to see if we meet the required ranking size
 	unsigned int counter = 0;
-
-	vector<float>::reverse_iterator pos;
-
+	//Axi
 	unsigned int poscounter;
-
-	//We work with a pointer to the method so we dont need to have the foreach in each case or run the switch on each iteration
-	float (HighScore::*SSRFunction)() const = NULL;
-	//Make the pointers point to the right vectors/method
-	switch (skillset) {
-	case 0:
-		topSSRStepIdsPtr = &topSSRStepIdsOverall;
-		topSSRHighScoresPtr = &topSSRHighScoresOverall;
-		topSSRSongIdsPtr = &topSSRSongIdsOverall;
-		break;
-	case 1:
-		topSSRStepIdsPtr = &topSSRStepIdsSpeed;
-		topSSRHighScoresPtr = &topSSRHighScoresSpeed;
-		topSSRSongIdsPtr = &topSSRSongIdsSpeed;
-		break;
-	case 2:
-		topSSRStepIdsPtr = &topSSRStepIdsStam;
-		topSSRHighScoresPtr = &topSSRHighScoresStam;
-		topSSRSongIdsPtr = &topSSRSongIdsStam;
-		break;
-	case 3:
-		topSSRStepIdsPtr = &topSSRStepIdsJack;
-		topSSRHighScoresPtr = &topSSRHighScoresJack;
-		topSSRSongIdsPtr = &topSSRSongIdsJack;
-		break;
-	case 4:
-		topSSRStepIdsPtr = &topSSRStepIdsTech;
-		topSSRHighScoresPtr = &topSSRHighScoresTech;
-		topSSRSongIdsPtr = &topSSRSongIdsTech;
-		break;
-	}
 
 	//Initialize vectors
 	StepsID emptySteps;
@@ -2355,6 +2312,7 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 						poscounter--;
 					}
 					counter++;
+
 					//insert in the proper place
 					(*topSSRStepIdsPtr).insert((*topSSRStepIdsPtr).begin() + poscounter, stepsid);
 					topSSRs.insert(topSSRs.begin() + poscounter, ssr);
@@ -2370,6 +2328,7 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 			}
 		}
 	}
+
 	//If we didnt find enough ssr's to fill qty elements return false
 	if (counter >= qty)
 		return true;
