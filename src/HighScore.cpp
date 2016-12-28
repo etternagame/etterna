@@ -227,7 +227,7 @@ XNode *HighScoreImpl::CreateNode() const
 		if( hns != HNS_None )	// HACK: don't save meaningless "none" count
 			pHoldNoteScores->AppendChild( HoldNoteScoreToString(hns), iHoldNoteScores[hns] );
 
-	XNode* pSkillsetSSRs = pNode->AppendChild( "SkillsetsSSRs" );
+	XNode* pSkillsetSSRs = pNode->AppendChild( "SkillsetSSRs" );
 	FOREACH_ENUM( Skillset, ss )
 			pSkillsetSSRs->AppendChild(SkillsetToString(ss), fSkillsetSSRs[ss]);
 

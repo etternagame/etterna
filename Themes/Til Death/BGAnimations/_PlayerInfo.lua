@@ -37,9 +37,9 @@ t[#t+1] = Def.Actor{
 				
 				-- oook i need to handle this differently
 				skillsets.Overall = profile:GetPlayerRating()
-				skillsets.Speed = profile:GetPlayerSpeedRating()
-				skillsets.Stam = profile:GetPlayerStamRating()
-				skillsets.Jack = profile:GetPlayerJackRating()
+				skillsets.Speed = profile:GetPlayerSkillsetRating(2)
+				skillsets.Stam = profile:GetPlayerSkillsetRating(3)
+				skillsets.Jack = profile:GetPlayerSkillsetRating(4)
 				
 				numfaves = profile:GetNumFaves()
 			else 
