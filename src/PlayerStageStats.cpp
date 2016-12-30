@@ -867,6 +867,11 @@ public:
 		return 1;
 	}
 
+	static int WifeScoreOffset(T* p, lua_State *L) {
+		lua_pushnumber(L, wife2(FArg(1), p->GetTimingScale()));
+		return 1;
+	}
+
 	static int GetComboList( T* p, lua_State *L )
 	{
 		lua_createtable(L, p->m_ComboList.size(), 0);
@@ -958,6 +963,7 @@ public:
 		ADD_METHOD( GetCurrentScoreMultiplier );
 		ADD_METHOD( GetScore );
 		ADD_METHOD( GetOffsetVector );
+		ADD_METHOD( WifeScoreOffset );
 		ADD_METHOD( GetNoteRowVector );
 		ADD_METHOD( GetWifeScore );
 		ADD_METHOD( GetCurMaxScore );
