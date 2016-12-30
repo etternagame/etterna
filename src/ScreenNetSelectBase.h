@@ -40,7 +40,7 @@ public:
 	void UpdateUsers();
 	void UpdateTextInput();
 	
-	bool usersVisible;
+	bool usersVisible = true;
 	void SetChatboxVisible(bool visibility);
 	void SetUsersVisible(bool visibility);
 	vector<BitmapText>* ToUsers();
