@@ -41,6 +41,7 @@ public:
 	void UpdateTextInput();
 	
 	bool usersVisible = true;
+	bool enableChatboxInput = true;
 	void SetChatboxVisible(bool visibility);
 	void SetUsersVisible(bool visibility);
 	vector<BitmapText>* ToUsers();
