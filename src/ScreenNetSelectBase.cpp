@@ -437,8 +437,74 @@ void ColorBitmapText::SetMaxLines( int iNumLines, int iDirection )
 }
 
 
-#endif
+void ScreenNetSelectBase::SetChatboxVisible(bool visibility)
+{
+	m_textChatInput.SetVisible(visibility);
+	m_textChatOutput.SetVisible(visibility);
+	return;
+}
+void ScreenNetSelectBase::SetUsersVisible(bool visibility)
+{
+	usersVisible = visibility;
+	for (unsigned int i = 0; i < m_textUsers.size(); i++)
+		m_textUsers[i].SetVisible(visibility);
+	return;
+}
 
+vector<BitmapText>* ScreenNetSelectBase::ToUsers()
+{
+	return &m_textUsers;
+}
+
+// lua start
+#include "LuaBinding.h"
+
+/** @brief Allow Lua to have access to the PlayerState. */
+class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
+{
+	static int ChatboxInput(T* p, lua_State *L)
+	{
+		GAMESTATE->m_pPlayerState[PLAYER_1]->onlineChatboxInput = BArg(1);
+		return 1;
+	}
+	static int UsersVisible(T* p, lua_State *L)
+	{
+		p->SetUsersVisible(BArg(1));
+		return 1;
+	}
+	static int ChatboxVisible(T* p, lua_State *L)
+	{
+		p->SetChatboxVisible(BArg(1));
+		return 1;
+	}
+	static int GetUserQty(T* p, lua_State *L)
+	{
+		lua_pushnumber(L, p->ToUsers()->size());
+		return 1;
+	}
+	static int GetUser(T* p, lua_State *L)
+	{
+		if (IArg(1) <= p->ToUsers()->size() && IArg(1) >= 1)
+			lua_pushstring(L, (*(p->ToUsers()))[IArg(1)-1].GetText());
+		else
+			lua_pushstring(L, "");
+		return 1;
+	}
+public:
+	LunaScreenNetSelectBase()
+	{
+		ADD_METHOD(GetUser);
+		ADD_METHOD(UsersVisible);
+		ADD_METHOD(ChatboxInput);
+		ADD_METHOD(ChatboxVisible);
+		ADD_METHOD(GetUserQty);
+	}
+};
+
+LUA_REGISTER_DERIVED_CLASS(ScreenNetSelectBase, ScreenWithMenuElements)
+// lua end
+
+#endif
 /*
  * (c) 2004 Charles Lohr
  * All rights reserved.
