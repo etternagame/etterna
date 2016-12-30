@@ -7,6 +7,7 @@ t[#t+1] = LoadActor("../_chatbox")
 --t[#t+1] = LoadActor("kappa")
 --t[#t+1] = LoadActor("msd stuff")
 --t[#t+1] = LoadActor("matra")
+t[#t+1] = LoadActor("onlinebpm")
 
 t[#t+1] = Def.Banner{
 	InitCommand=cmd(x,10;y,60;halign,0;valign,0);
