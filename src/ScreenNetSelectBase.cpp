@@ -106,7 +106,7 @@ bool ScreenNetSelectBase::Input( const InputEventPlus &input )
 
 		if( (c >= L' ') && (!bHoldingCtrl) )
 		{
-			if (!(GAMESTATE->m_pPlayerState[PLAYER_1])->onlineChatboxInput)
+			if (!(enableChatboxInput)
 				return true;
 			m_sTextInput += WStringToRString(wstring()+c);
 			UpdateTextInput();
@@ -464,7 +464,7 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 {
 	static int ChatboxInput(T* p, lua_State *L)
 	{
-		GAMESTATE->m_pPlayerState[PLAYER_1]->onlineChatboxInput = BArg(1);
+		p->enableChatboxInput = BArg(1);
 		return 1;
 	}
 	static int UsersVisible(T* p, lua_State *L)
