@@ -3191,7 +3191,7 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 			if (tns == TNS_Miss)
 				curwifescore -= 8;
 			else
-				curwifescore += wife2(tn.result.fTapNoteOffset * 1000.f, m_fTimingWindowScale * 95.f, 2.f, 2, -8);
+				curwifescore += wife2(tn.result.fTapNoteOffset, m_fTimingWindowScale);
 
 			maxwifescore += 2;
 			msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);

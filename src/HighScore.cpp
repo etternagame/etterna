@@ -627,7 +627,7 @@ float HighScore::RescoreToWifeJudge(int x) {
 	float ts = tso[x-1];
 	float p = 0;
 	FOREACH_CONST(float, m_Impl->vOffsetVector, f)
-		p += wife2(*f * 1000.f, ts * 95.f, 2.f, 2, -8);
+		p += wife2(*f, ts);
 
 	return p / (m_Impl->vOffsetVector.size() * 2);
 }
@@ -635,7 +635,7 @@ float HighScore::RescoreToWifeJudge(int x) {
 float HighScoreImpl::RescoreToWifeTS(float ts) {
 	float p = 0;
 	FOREACH_CONST(float, vOffsetVector, f)
-		p += wife2(*f * 1000.f, ts * 95.f, 2.f, 2, -8);
+		p += wife2(*f, ts);
 
 	return p / (vOffsetVector.size() * 2);
 }
@@ -712,12 +712,12 @@ float HighScore::ConvertDpToWife() {
 	float ts = 1.f;
 	float estpoints = 0.f;
 	float maxpoints = 0.f;
-	estpoints += m_Impl->iTapNoteScores[TNS_W1] * wife2(22.49f, ts * 95.f, 2.f, 2, -8);
-	estpoints += m_Impl->iTapNoteScores[TNS_W2] * wife2(44.99f, ts * 95.f, 2.f, 2, -8);
-	estpoints += m_Impl->iTapNoteScores[TNS_W3] * wife2(89.99f, ts * 95.f, 2.f, 2, -8);
-	estpoints += m_Impl->iTapNoteScores[TNS_W4] * wife2(134.99f, ts * 95.f, 2.f, 2, -8);
-	estpoints += m_Impl->iTapNoteScores[TNS_W5] * wife2(179.99f, ts * 95.f, 2.f, 2, -8);
-	estpoints += m_Impl->iTapNoteScores[TNS_Miss] * wife2(179.99f, ts * 95.f, 2.f, 2, -8);
+	estpoints += m_Impl->iTapNoteScores[TNS_W1] * wife2(.002249f, ts);
+	estpoints += m_Impl->iTapNoteScores[TNS_W2] * wife2(.004499f, ts);
+	estpoints += m_Impl->iTapNoteScores[TNS_W3] * wife2(.008999f, ts);
+	estpoints += m_Impl->iTapNoteScores[TNS_W4] * wife2(.013499f, ts);
+	estpoints += m_Impl->iTapNoteScores[TNS_W5] * wife2(.017999f, ts);
+	estpoints += m_Impl->iTapNoteScores[TNS_Miss] * wife2(.017999f, ts);
 
 	FOREACH_ENUM(TapNoteScore, tns)
 		maxpoints += 2 * m_Impl->iTapNoteScores[tns];
