@@ -51,8 +51,7 @@ o[#o+1] = LoadFont("Common Normal")..{InitCommand=cmd(xy,-plotWidth/2,plotHeight
 
 
 
--- graph garbage
-
+-- graph garbage (wip)
 local wuaboffset = {}
 for i=1,#wuab do
 	if dvt[i] ~= 1000 then
@@ -85,15 +84,15 @@ for i=1,#wuab do
 	verts[#verts+1] = {{fitXGraph(wuaboffset[i]),fitYGraph(curperc),0},Color.White}
 end
 
-o[#o+1] = Def.ActorMultiVertex{
-	InitCommand=function(self)
-		self:addx(-plotWidth/2)
-		self:SetDrawState{Mode="DrawMode_LineStrip"}
-	end,
-	BeginCommand=function(self)
-		self:SetVertices(verts)
-		self:SetDrawState{First = 1, #verts}
-	end,
-}
+-- o[#o+1] = Def.ActorMultiVertex{
+	-- InitCommand=function(self)
+		-- self:addx(-plotWidth/2)
+		-- self:SetDrawState{Mode="DrawMode_LineStrip"}
+	-- end,
+	-- BeginCommand=function(self)
+		-- self:SetVertices(verts)
+		-- self:SetDrawState{First = 1, #verts}
+	-- end,
+-- }
 
 return o
