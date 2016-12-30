@@ -312,8 +312,8 @@ float PlayerStageStats::GetWifeScore() const {
 	return m_fWifeScore;
 }
 vector<float> PlayerStageStats::CalcSSR() const {
-	vector<float> o = { 0.f, 0.f, 0.f,0.f };
-	if (GetGrade() == Grade_Failed)
+	vector<float> o = { 0.f, 0.f, 0.f,0.f,0.f };
+	if (GetGrade() == Grade_Failed || m_fWifeScore < 0.1f )
 		return o ;
 
 	FOREACHM_CONST(float, float, m_fLifeRecord, fail)
