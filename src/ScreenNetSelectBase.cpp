@@ -106,7 +106,7 @@ bool ScreenNetSelectBase::Input( const InputEventPlus &input )
 
 		if( (c >= L' ') && (!bHoldingCtrl) )
 		{
-			if (!(enableChatboxInput)
+			if (!enableChatboxInput)
 				return true;
 			m_sTextInput += WStringToRString(wstring()+c);
 			UpdateTextInput();
