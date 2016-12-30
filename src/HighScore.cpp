@@ -21,11 +21,6 @@ struct HighScoreImpl
 	unsigned int iScore;
 	float fPercentDP;
 	float fWifeScore;
-	float fSSR;
-	float fSSRSpeed;
-	float fSSRStam;
-	float fSSRJack;
-	float fSSRTechnical;
 	float fSurviveSeconds;
 	float fMusicRate;
 	float fJudgeScale;
@@ -41,6 +36,7 @@ struct HighScoreImpl
 	int iProductID;
 	int iTapNoteScores[NUM_TapNoteScore];
 	int iHoldNoteScores[NUM_HoldNoteScore];
+	float fSkillsetSSRs[NUM_Skillset];
 	RadarValues radarValues;
 	float fLifeRemainingSeconds;
 	bool bDisqualified;
@@ -80,6 +76,8 @@ bool HighScoreImpl::operator==( const HighScoreImpl& other ) const
 		COMPARE( iTapNoteScores[tns] );
 	FOREACH_ENUM( HoldNoteScore, hns )
 		COMPARE( iHoldNoteScores[hns] );
+	FOREACH_ENUM( Skillset, ss)
+		COMPARE(fSkillsetSSRs[ss]);
 	COMPARE( radarValues );
 	COMPARE( fLifeRemainingSeconds );
 	COMPARE( bDisqualified );
@@ -171,11 +169,6 @@ HighScoreImpl::HighScoreImpl()
 	iScore = 0;
 	fPercentDP = 0.f;
 	fWifeScore = 0.f;
-	fSSR = 0.f;
-	fSSRSpeed = 0.f;
-	fSSRStam = 0.f;
-	fSSRJack = 0.f;
-	fSSRTechnical = 0.f;
 	fMusicRate = 0.f;
 	fJudgeScale = 0.f;
 	vOffsetVector.clear();
@@ -191,6 +184,7 @@ HighScoreImpl::HighScoreImpl()
 	iProductID = 0;
 	ZERO( iTapNoteScores );
 	ZERO( iHoldNoteScores );
+	ZERO( fSkillsetSSRs );
 	radarValues.MakeUnknown();
 	fLifeRemainingSeconds = 0;
 }
@@ -209,11 +203,6 @@ XNode *HighScoreImpl::CreateNode() const
 	pNode->AppendChild( "Score",			iScore );
 	pNode->AppendChild( "PercentDP",		fPercentDP );
 	pNode->AppendChild( "WifeScore",		fWifeScore);
-	pNode->AppendChild( "SSR",				fSSR);
-	pNode->AppendChild( "SSRSpeed",			fSSRSpeed);
-	pNode->AppendChild( "SSRStam",			fSSRStam);
-	pNode->AppendChild( "SSRJack",			fSSRJack);
-	pNode->AppendChild( "SSRTechnical",		fSSRTechnical);
 	pNode->AppendChild( "Rate",				fMusicRate);
 	pNode->AppendChild( "JudgeScale",		fJudgeScale);
 	pNode->AppendChild( "Offsets",			OffsetsToString(vOffsetVector));
@@ -227,14 +216,21 @@ XNode *HighScoreImpl::CreateNode() const
 	pNode->AppendChild( "PlayerGuid",		sPlayerGuid );
 	pNode->AppendChild( "MachineGuid",		sMachineGuid );
 	pNode->AppendChild( "ProductID",		iProductID );
+
 	XNode* pTapNoteScores = pNode->AppendChild( "TapNoteScores" );
 	FOREACH_ENUM( TapNoteScore, tns )
 		if( tns != TNS_None )	// HACK: don't save meaningless "none" count
 			pTapNoteScores->AppendChild( TapNoteScoreToString(tns), iTapNoteScores[tns] );
+
 	XNode* pHoldNoteScores = pNode->AppendChild( "HoldNoteScores" );
 	FOREACH_ENUM( HoldNoteScore, hns )
 		if( hns != HNS_None )	// HACK: don't save meaningless "none" count
 			pHoldNoteScores->AppendChild( HoldNoteScoreToString(hns), iHoldNoteScores[hns] );
+
+	XNode* pSkillsetSSRs = pNode->AppendChild( "SkillsetSSRs" );
+	FOREACH_ENUM( Skillset, ss )
+			pSkillsetSSRs->AppendChild(SkillsetToString(ss), fSkillsetSSRs[ss]);
+
 	pNode->AppendChild( radarValues.CreateNode(bWriteSimpleValues, bWriteComplexValues) );
 	pNode->AppendChild( "LifeRemainingSeconds",	fLifeRemainingSeconds );
 	pNode->AppendChild( "Disqualified",		bDisqualified);
@@ -256,11 +252,6 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 	pNode->GetChildValue("Score",				iScore);
 	pNode->GetChildValue("PercentDP",			fPercentDP);
 	pNode->GetChildValue("WifeScore",			fWifeScore);
-	pNode->GetChildValue("SSR",					fSSR);
-	pNode->GetChildValue("SSRSpeed",			fSSRSpeed);
-	pNode->GetChildValue("SSRStam",				fSSRStam);
-	pNode->GetChildValue("SSRJack",				fSSRJack);
-	pNode->GetChildValue("SSRTechnical",		fSSRTechnical);
 	pNode->GetChildValue("Rate",				fMusicRate);
 	pNode->GetChildValue("JudgeScale",			fJudgeScale);
 	pNode->GetChildValue("Offsets", s);			vOffsetVector = OffsetsToVector(s);
@@ -285,14 +276,22 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 	pNode->GetChildValue( "PlayerGuid",		sPlayerGuid );
 	pNode->GetChildValue( "MachineGuid",	sMachineGuid );
 	pNode->GetChildValue( "ProductID",		iProductID );
+
 	const XNode* pTapNoteScores = pNode->GetChild( "TapNoteScores" );
 	if( pTapNoteScores )
 		FOREACH_ENUM( TapNoteScore, tns )
 			pTapNoteScores->GetChildValue( TapNoteScoreToString(tns), iTapNoteScores[tns] );
+
 	const XNode* pHoldNoteScores = pNode->GetChild( "HoldNoteScores" );
-	if( pHoldNoteScores )
-		FOREACH_ENUM( HoldNoteScore, hns )
-			pHoldNoteScores->GetChildValue( HoldNoteScoreToString(hns), iHoldNoteScores[hns] );
+	if (pHoldNoteScores)
+		FOREACH_ENUM(HoldNoteScore, hns)
+			pHoldNoteScores->GetChildValue(HoldNoteScoreToString(hns), iHoldNoteScores[hns]);
+
+	const XNode* pSkillsetSSRs = pNode->GetChild("SkillsetSSRs");
+	if (pSkillsetSSRs)
+		FOREACH_ENUM(Skillset, ss)
+			pSkillsetSSRs->GetChildValue(SkillsetToString(ss), fSkillsetSSRs[ss]);
+
 	const XNode* pRadarValues = pNode->GetChild( "RadarValues" );
 	if( pRadarValues )
 		radarValues.LoadFromNode( pRadarValues );
@@ -353,6 +352,7 @@ RString HighScore::GetMachineGuid() const { return m_Impl->sMachineGuid; }
 int HighScore::GetProductID() const { return m_Impl->iProductID; }
 int HighScore::GetTapNoteScore( TapNoteScore tns ) const { return m_Impl->iTapNoteScores[tns]; }
 int HighScore::GetHoldNoteScore( HoldNoteScore hns ) const { return m_Impl->iHoldNoteScores[hns]; }
+float HighScore::GetSkillsetSSR(Skillset ss) const { return m_Impl->fSkillsetSSRs[ss]; }
 const RadarValues &HighScore::GetRadarValues() const { return m_Impl->radarValues; }
 float HighScore::GetLifeRemainingSeconds() const { return m_Impl->fLifeRemainingSeconds; }
 bool HighScore::GetDisqualified() const { return m_Impl->bDisqualified; }
@@ -367,11 +367,6 @@ void HighScore::SetStageAward( StageAward a ) { m_Impl->stageAward = a; }
 void HighScore::SetPeakComboAward( PeakComboAward a ) { m_Impl->peakComboAward = a; }
 void HighScore::SetPercentDP( float f ) { m_Impl->fPercentDP = f; }
 void HighScore::SetWifeScore(float f) {m_Impl->fWifeScore = f;}
-void HighScore::SetSSR(float f) { m_Impl->fSSR = f; }
-void HighScore::SetSSRSpeed(float f) { m_Impl->fSSRSpeed = f; }
-void HighScore::SetSSRStam(float f) { m_Impl->fSSRStam = f; }
-void HighScore::SetSSRJack(float f) { m_Impl->fSSRJack = f; }
-void HighScore::SetSSRTechnical(float f) { m_Impl->fSSRTechnical = f; }
 void HighScore::SetMusicRate(float f) { m_Impl->fMusicRate = f; }
 void HighScore::SetJudgeScale(float f) { m_Impl->fJudgeScale = f; }
 void HighScore::SetOffsetVector(vector<float> v) { m_Impl->vOffsetVector = v; }
@@ -384,6 +379,7 @@ void HighScore::SetMachineGuid( const RString &s ) { m_Impl->sMachineGuid = s; }
 void HighScore::SetProductID( int i ) { m_Impl->iProductID = i; }
 void HighScore::SetTapNoteScore( TapNoteScore tns, int i ) { m_Impl->iTapNoteScores[tns] = i; }
 void HighScore::SetHoldNoteScore( HoldNoteScore hns, int i ) { m_Impl->iHoldNoteScores[hns] = i; }
+void HighScore::SetSkillsetSSR(Skillset ss, float ssr) { m_Impl->fSkillsetSSRs[ss] = ssr; }
 void HighScore::SetRadarValues( const RadarValues &rv ) { m_Impl->radarValues = rv; }
 void HighScore::SetLifeRemainingSeconds( float f ) { m_Impl->fLifeRemainingSeconds = f; }
 void HighScore::SetDisqualified( bool b ) { m_Impl->bDisqualified = b; }
@@ -727,25 +723,6 @@ float HighScore::ConvertDpToWife() {
 		maxpoints += 2 * m_Impl->iTapNoteScores[tns];
 
 	return estpoints / maxpoints;
-}
-
-// Deal with this better later - mina
-float HighScore::GetSkillsetSSR(Skillset ss) const {
-	if (ss == Skill_Overall)
-		return m_Impl->fSSR;
-	else if (ss == Skill_Speed)
-		return m_Impl->fSSRSpeed;
-	else if (ss == Skill_Stamina)
-		return m_Impl->fSSRStam;
-	else if (ss == Skill_Jack)
-		return m_Impl->fSSRJack;
-	else if (ss == Skill_Technical)
-		return m_Impl->fSSRTechnical;
-	return 0.f;
-}
-
-void HighScore::SetSkillsetSSR(Skillset ss, float ssr) {
-	
 }
 
 // lua start

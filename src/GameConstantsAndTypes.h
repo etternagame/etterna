@@ -28,7 +28,10 @@ enum Skillset {
 	Skill_Jack,
 	Skill_Technical,
 	NUM_Skillset,
+	Skillset_Invalid,
 };
+
+const RString& SkillsetToString(Skillset ss);
 
 /**
  * @brief The various radar categories available.
@@ -277,6 +280,7 @@ enum HoldNoteScore
  * @return the string version of the hold note score.
  */
 const RString& HoldNoteScoreToString( HoldNoteScore hns );
+
 /**
  * @brief Turn the hold note score into a proper localized string.
  * @param hns the hold note score.

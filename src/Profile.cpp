@@ -158,10 +158,6 @@ void Profile::InitGeneralData()
 	m_iTotalHands = 0;
 	m_iTotalLifts = 0;
 	m_fPlayerRating = 0.f;
-	m_fPlayerSpeedRating = 0.f;
-	m_fPlayerStamRating = 0.f;
-	m_fPlayerJackRating = 0.f;
-	m_fPlayerTechnicalRating = 0.f;
 
 	FOREACH_ENUM( PlayMode, i )
 		m_iNumSongsPlayedByPlayMode[i] = 0;
@@ -173,6 +169,7 @@ void Profile::InitGeneralData()
 	m_iNumTotalSongsPlayed = 0;
 	ZERO( m_iNumStagesPassedByPlayMode );
 	ZERO( m_iNumStagesPassedByGrade );
+	ZERO( m_fPlayerSkillsets );
 
 	m_UserTable.Unset();
 }
@@ -1502,10 +1499,6 @@ XNode* Profile::SaveGeneralDataCreateNode() const
 	pGeneralDataNode->AppendChild( "TotalHands",			m_iTotalHands );
 	pGeneralDataNode->AppendChild( "TotalLifts",			m_iTotalLifts );
 	pGeneralDataNode->AppendChild( "PlayerRating",			m_fPlayerRating);
-	pGeneralDataNode->AppendChild( "PlayerSpeedRating",		m_fPlayerSpeedRating);
-	pGeneralDataNode->AppendChild( "PlayerStamRating",		m_fPlayerStamRating);
-	pGeneralDataNode->AppendChild( "PlayerJackRating",		m_fPlayerJackRating);
-	pGeneralDataNode->AppendChild( "PlayerTechnicalRating",  m_fPlayerTechnicalRating);
 
 	// Keep declared variables in a very local scope so they aren't 
 	// accidentally used where they're not intended.  There's a lot of
@@ -1518,9 +1511,15 @@ XNode* Profile::SaveGeneralDataCreateNode() const
 	}
 
 	{
-		XNode* Favorites = pGeneralDataNode->AppendChild("Favorites");
+		XNode* pFavorites = pGeneralDataNode->AppendChild("Favorites");
 		FOREACH_CONST(RString, FavoritedCharts, it)
-			Favorites->AppendChild(*it);			
+			pFavorites->AppendChild(*it);			
+	}
+
+	{
+		XNode* pPlayerSkillsets = pGeneralDataNode->AppendChild("PlayerSkillsets");
+		FOREACH_ENUM(Skillset, ss)
+			pPlayerSkillsets->AppendChild(SkillsetToString(ss), m_fPlayerSkillsets[ss]);
 	}
 
 	{
@@ -1705,10 +1704,6 @@ void Profile::LoadGeneralDataFromNode( const XNode* pNode )
 	pNode->GetChildValue( "TotalHands",				m_iTotalHands );
 	pNode->GetChildValue( "TotalLifts",				m_iTotalLifts );
 	pNode->GetChildValue( "PlayerRating",			m_fPlayerRating);
-	pNode->GetChildValue( "PlayerSpeedRating",		m_fPlayerSpeedRating);
-	pNode->GetChildValue( "PlayerStamRating",		m_fPlayerStamRating);
-	pNode->GetChildValue( "PlayerJackRating",		m_fPlayerJackRating);
-	pNode->GetChildValue( "PlayerTechnicalRating",	m_fPlayerTechnicalRating);
 
 	{
 		const XNode* pDefaultModifiers = pNode->GetChild("DefaultModifiers");
@@ -1722,11 +1717,19 @@ void Profile::LoadGeneralDataFromNode( const XNode* pNode )
 	}
 
 	{
-		const XNode* Favorites = pNode->GetChild("Favorites");
-		if (Favorites) {
-			FOREACH_CONST_Child(Favorites, ck)
+		const XNode* pFavorites = pNode->GetChild("Favorites");
+		if (pFavorites) {
+			FOREACH_CONST_Child(pFavorites, ck)
 				FavoritedCharts.push_back(ck->GetName());
 			SONGMAN->SetFavoritedStatus(FavoritedCharts);
+		}
+	}
+
+	{
+		const XNode* pPlayerSkillsets = pNode->GetChild("PlayerSkillsets");
+		if (pPlayerSkillsets) {
+			FOREACH_ENUM(Skillset, ss)
+				pPlayerSkillsets->GetChildValue(SkillsetToString(ss), m_fPlayerSkillsets[ss]);
 		}
 	}
 
@@ -2079,8 +2082,8 @@ float Profile::GetWifePBByKey(RString key) {
 }
 
 // also finish dealing with this later - mina
-void Profile::CalcPlayerRating(float& overall, float& speed, float& stam, float& jack, float& technical) const {
-	vector<vector<float>> demskillas(5);
+void Profile::CalcPlayerRating(float& prating, float* pskillsets) const {
+	vector<float> demskillas[NUM_Skillset];
 	FOREACHM_CONST(SongID, HighScoresForASong, m_SongHighScores, i) {
 		const SongID& id = i->first;
 		// skip files that can't be loaded since we can't verify their ssrs - mina
@@ -2097,17 +2100,15 @@ void Profile::CalcPlayerRating(float& overall, float& speed, float& stam, float&
 		}
 	}
 
+	// overall should probably be ignored
+	float skillsetsum = 0.f;
+	FOREACH_ENUM(Skillset, ss) {
+		pskillsets[ss] = AggregateScores(demskillas[ss], 0.f, 10.24f, 1)*0.95f;
+		CLAMP(pskillsets[ss], 0.f, 100.f);
+		skillsetsum += pskillsets[ss];
+	}
 	
-	speed = AggregateScores(demskillas[1], 0.f, 10.24f, 1)*0.95f;
-	stam = AggregateScores(demskillas[2], 0.f, 10.24f, 1)*0.95f;
-	jack = AggregateScores(demskillas[3], 0.f, 10.24f, 1)*0.95f;
-	technical = AggregateScores(demskillas[4], 0.f, 10.24f, 1)*0.95f;
-	CLAMP(speed, 0.f, 100.f);
-	CLAMP(stam, 0.f, 100.f);
-	CLAMP(jack, 0.f, 100.f);
-	CLAMP(technical, 0.f, 100.f);
-	
-	overall = (speed + stam + jack + technical) / 4.f;
+	prating = skillsetsum / NUM_Skillset;
 }
 
 void Profile::ResetSSRs(bool OnlyOld) {
@@ -2124,11 +2125,8 @@ void Profile::ResetSSRs(bool OnlyOld) {
 				if (OnlyOld && hsv[i].GetSSRCalcVersion() == GetCalcVersion())
 					continue;
 
-					hsv[i].SetSSR(0.f);
-					hsv[i].SetSSRSpeed(0.f);
-					hsv[i].SetSSRStam(0.f);
-					hsv[i].SetSSRJack(0.f);
-					hsv[i].SetSSRTechnical(0.f);
+				FOREACH_ENUM(Skillset, ss)
+					hsv[i].SetSkillsetSSR(ss, 0.f);
 			}
 		}
 	}
@@ -2150,7 +2148,8 @@ void Profile::RecalculateSSRs(bool OnlyOld) {
 			for (size_t i = 0; i < hsv.size(); i++) {
 				float wifescore = hsv[i].GetWifeScore();
 				if (wifescore == 0.f || hsv[i].GetGrade() == Grade_Failed)
-					hsv[i].SetSSR(0.f);
+					FOREACH_ENUM(Skillset, ss)
+						hsv[i].SetSkillsetSSR(ss, 0.f);
 				else {
 					if (OnlyOld && hsv[i].GetSSRCalcVersion() == 1.f)
 						continue;
@@ -2175,12 +2174,9 @@ void Profile::RecalculateSSRs(bool OnlyOld) {
 					for (size_t i = 0; i < nerv.size(); i++)
 						etaner.emplace_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(nerv[i])));
 
-					vector<float> isthisworking = MinaSDCalc(nd, etaner, musicrate, wifescore, 1.f, td->HasWarps());
-					hsv[i].SetSSR(isthisworking[0]);
-					hsv[i].SetSSRSpeed(isthisworking[1]);
-					hsv[i].SetSSRStam(isthisworking[2]);
-					hsv[i].SetSSRJack(isthisworking[3]);
-					hsv[i].SetSSRTechnical(isthisworking[4]);
+					vector<float> recalcSSR = MinaSDCalc(nd, etaner, musicrate, wifescore, 1.f, td->HasWarps());
+					FOREACH_ENUM(Skillset, ss)
+						hsv[i].SetSkillsetSSR(ss, recalcSSR[ss]);
 					hsv[i].SetSSRCalcVersion(GetCalcVersion());
 				}
 			}
@@ -3027,10 +3023,6 @@ public:
 	static int GetTotalCaloriesBurned( T* p, lua_State *L )		{ lua_pushnumber(L, p->m_fTotalCaloriesBurned ); return 1; }
 	static int GetDisplayTotalCaloriesBurned( T* p, lua_State *L )	{ lua_pushstring(L, p->GetDisplayTotalCaloriesBurned() ); return 1; }
 	static int GetPlayerRating(T* p, lua_State *L) { lua_pushnumber(L, p->m_fPlayerRating); return 1; }
-	static int GetPlayerSpeedRating(T* p, lua_State *L) { lua_pushnumber(L, p->m_fPlayerSpeedRating); return 1; }
-	static int GetPlayerStamRating(T* p, lua_State *L) { lua_pushnumber(L, p->m_fPlayerStamRating); return 1; }
-	static int GetPlayerJackRating(T* p, lua_State *L) { lua_pushnumber(L, p->m_fPlayerJackRating); return 1; }
-	static int GetPlayerTechnicalRating(T* p, lua_State *L) { lua_pushnumber(L, p->m_fPlayerTechnicalRating); return 1; }
 	static int GetMostPopularSong( T* p, lua_State *L )
 	{
 		Song *p2 = p->GetMostPopularSong();
@@ -3098,6 +3090,11 @@ public:
 	}
 	static int GetTopSSRValue(T* p, lua_State *L) {
 		lua_pushnumber(L, p->GetTopSSRValue(IArg(1), IArg(2)) );
+		return 1;
+	}
+	static int GetPlayerSkillsetRating(T* p, lua_State *L) {
+		Skillset lel = static_cast<Skillset>(IArg(1) - 1);
+		lua_pushnumber(L, p->m_fPlayerSkillsets[lel]);
 		return 1;
 	}
 	DEFINE_METHOD( GetGUID,		m_sGuid );
@@ -3173,10 +3170,7 @@ public:
 		ADD_METHOD( GetLastPlayedCourse );
 		ADD_METHOD( GetGUID );
 		ADD_METHOD( GetPlayerRating );
-		ADD_METHOD( GetPlayerSpeedRating );
-		ADD_METHOD( GetPlayerStamRating );
-		ADD_METHOD( GetPlayerJackRating );
-		ADD_METHOD(	GetPlayerTechnicalRating );
+		ADD_METHOD( GetPlayerSkillsetRating );
 		ADD_METHOD( GetNumFaves );
 		ADD_METHOD( GetTopSSRValue );
 		ADD_METHOD( GetTopSSRSongName );

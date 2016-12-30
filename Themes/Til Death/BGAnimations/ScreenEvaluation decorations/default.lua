@@ -94,7 +94,7 @@ function scoreBoard(pn,position)
 		InitCommand=cmd(xy,frameWidth+frameX,frameY+32;zoom,0.5;halign,1;valign,0;maxwidth,200),
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self)
-			local meter = score:GetSkillsetSSR(0)
+			local meter = score:GetSkillsetSSR(1)
 			self:settextf("%5.2f", meter)
 			self:diffuse(ByMSD(meter))
 		end,
