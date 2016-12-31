@@ -195,6 +195,10 @@ void ScreenNetSelectBase::UpdateUsers()
 
 		this->AddChild( &m_textUsers[i] );
 	}
+	if (!usersVisible)
+		for (unsigned i = 0; i < NSMAN->m_ActivePlayer.size(); i++)
+			m_textUsers[i].SetVisible(false);
+	MESSAGEMAN->Broadcast("UsersUpdate");
 }
 
 /** ColorBitmapText ***********************************************************/
