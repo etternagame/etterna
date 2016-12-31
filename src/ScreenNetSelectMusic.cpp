@@ -25,6 +25,7 @@
 #include "RageInput.h"
 #include "SongManager.h"
 #include "CodeDetector.h"
+#include "ProfileManager.h"
 
 AutoScreenMessage( SM_NoSongs );
 AutoScreenMessage( SM_ChangeSong );
@@ -111,6 +112,11 @@ bool ScreenNetSelectMusic::Input( const InputEventPlus &input )
 		INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RCTRL)) ||
 		(!NSMAN->useSMserver); // If we are disconnected, assume no chatting
 
+	bool holding_shift =
+		INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_LSHIFT)) ||
+		INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RSHIFT));
+
+	wchar_t c = INPUTMAN->DeviceInputToChar(input.DeviceI,fals
 	wchar_t c = INPUTMAN->DeviceInputToChar(input.DeviceI,false);
 	MakeUpper( &c, 1 );
 	
