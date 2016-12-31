@@ -313,7 +313,7 @@ float PlayerStageStats::GetWifeScore() const {
 }
 vector<float> PlayerStageStats::CalcSSR() const {
 	vector<float> o = { 0.f, 0.f, 0.f,0.f,0.f };
-	if (GetGrade() == Grade_Failed || m_fWifeScore < 0.1f )
+	if (GetGrade() == Grade_Failed || m_fWifeScore < 0.1f || GAMESTATE->m_pCurSteps[m_player_number]->m_StepsType != StepsType_dance_single)
 		return o ;
 
 	FOREACHM_CONST(float, float, m_fLifeRecord, fail)
