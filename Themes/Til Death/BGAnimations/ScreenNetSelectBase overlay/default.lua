@@ -23,7 +23,7 @@ return false
 end
 
 local t = Def.ActorFrame{
-	OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) end
+	OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) SCREENMAN:GetTopScreen():UsersVisible(false) end
 }
 
 t[#t+1] = Def.Actor{
@@ -91,5 +91,44 @@ for i=1,#ms.SkillSets do
 	t[#t+1] = littlebits(i)
 end
 
+t[#t+1] = LoadFont("Common Normal") .. {
+	InitCommand=cmd(xy,SCREEN_WIDTH/3,SCREEN_TOP+15;zoom,0.35;diffuse,getMainColor('positive');maxwidth,SCREEN_WIDTH),
+	BeginCommand=cmd(queuecommand,"Set"),
+	SetCommand=function(self)
+			local str = ""
+			local top = SCREENMAN:GetTopScreen()
+			if top:GetUserQty() > 5 then
+				for i=1,5 do
+					str = str .. "      " .. (top:GetUser(i))
+				end
+			
+			else
+				for i=1,top:GetUserQty() do
+					str = str .. "      " .. (top:GetUser(i))
+				end
+			end
+			self:settext(str)
+	end,
+	PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
+	PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+	UsersUpdateMessageCommand=cmd(queuecommand,"Set"),
+}
+t[#t+1] = LoadFont("Common Normal") .. {
+	InitCommand=cmd(xy,SCREEN_WIDTH/3,SCREEN_TOP+25;zoom,0.35;diffuse,getMainColor('positive');maxwidth,SCREEN_WIDTH),
+	BeginCommand=cmd(queuecommand,"Set"),
+	SetCommand=function(self)
+			local str = ""
+			local top = SCREENMAN:GetTopScreen()
+			if top:GetUserQty() > 5 then
+				for i=6,top:GetUserQty() do
+					str = str .. "      " .. (top:GetUser(i))
+				end
+			end
+			self:settext(str)
+	end,
+	PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
+	PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+	UsersUpdateMessageCommand=cmd(queuecommand,"Set"),
+}
 
 return t
