@@ -429,7 +429,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 }
 
 t[#t+1] = Def.Sprite {
-	InitCommand=cmd(xy,capWideScale(get43size(374),384)+60,capWideScale(get43size(360),270);halign,0.5;valign,1),
+	InitCommand=cmd(xy,capWideScale(get43size(374),394)+60,capWideScale(get43size(360),270);halign,0.5;valign,1),
 	SetCommand=function(self)
 		self:finishtweening()
 		if GAMESTATE:GetCurrentSong() then
