@@ -524,9 +524,9 @@ void SetChartKey(StepsTagInfo& info) {
 	info.steps->SetChartKey((*info.params)[1]);
 }
 
-void strsplit(vector<float>& o, RString& s, size_t i) {
+void strsplit(vector<float>& o, const RString& s, size_t i) {
 	size_t j = s.find(",", i);
-	o.push_back(StringToFloat(s.substr(i, j - 1)));
+	o.emplace_back(StringToFloat(s.substr(i, j - 1)));
 	if (j != s.npos)
 		strsplit(o, s, j + 1);
 }
