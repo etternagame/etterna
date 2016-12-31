@@ -475,7 +475,7 @@ void WheelBase::RebuildWheelItems( int iDist )
 		pDisplay->SetExpanded( pData->m_Type == WheelItemDataType_Section && pData->m_sText == m_sExpandedSectionName );
 	}
 
-	for( int i=0; i<(int)items.size(); i++ )
+	for( size_t i=0; i < items.size(); i++ )
 	{
 		int iIndex = iFirstVisibleIndex + i;
 		wrap( iIndex, data.size() );

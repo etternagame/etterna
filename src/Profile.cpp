@@ -2095,7 +2095,7 @@ void Profile::CalcPlayerRating(float& prating, float* pskillsets) const {
 			const vector<HighScore>& hsv = zz.hsl.vHighScores;
 			for (size_t i = 0; i < hsv.size(); i++) {
 				FOREACH_ENUM(Skillset, ss)
-					demskillas[static_cast<int>(ss)].emplace_back(hsv[i].GetSkillsetSSR(ss));
+					demskillas[ss].emplace_back(hsv[i].GetSkillsetSSR(ss));
 			}
 		}
 	}
