@@ -63,7 +63,7 @@ local t = Def.ActorFrame{
 			if GAMESTATE:GetCurrentSong() ~= nil then
 				hsTable = getScoresByKey(pn)			
 				if hsTable ~= nil and hsTable[1] ~= nil then
-					rtTable = getRateTable(hsTable)
+					rtTable = SortScores(getRateTable(hsTable))
 					rates,rateIndex = getUsedRates(rtTable)
 					scoreIndex = 1
 					score = rtTable[rates[rateIndex]][scoreIndex]
