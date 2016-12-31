@@ -581,8 +581,33 @@ void ScreenNetSelectMusic::Update( float fDeltaTime )
 	ScreenNetSelectBase::Update( fDeltaTime );
 }
 
-#endif
+MusicWheel* ScreenNetSelectMusic::GetMusicWheel()
+{
+	return &m_MusicWheel;
+}
 
+
+// lua start
+#include "LuaBinding.h"
+
+/** @brief Allow Lua to have access to the PlayerState. */
+class LunaScreenNetSelectMusic : public Luna<ScreenNetSelectMusic>
+{
+public:
+	static int GetMusicWheel(T* p, lua_State *L) {
+		p->GetMusicWheel()->PushSelf(L);
+		return 1;
+	}
+	LunaScreenNetSelectMusic()
+	{
+		ADD_METHOD(GetMusicWheel);
+	}
+};
+
+LUA_REGISTER_DERIVED_CLASS(ScreenNetSelectMusic, ScreenNetSelectBase)
+// lua end
+	
+#endif
 /*
  * (c) 2004-2005 Charles Lohr
  * All rights reserved.

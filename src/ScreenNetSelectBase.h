@@ -39,6 +39,14 @@ public:
 
 	void UpdateUsers();
 	void UpdateTextInput();
+	
+	bool usersVisible = true;
+	bool enableChatboxInput = true;
+	void SetChatboxVisible(bool visibility);
+	void SetUsersVisible(bool visibility);
+	vector<BitmapText>* ToUsers();
+	// Lua
+	virtual void PushSelf(lua_State *L);
 private:
 	//Chatting
 	ColorBitmapText		m_textChatInput;
