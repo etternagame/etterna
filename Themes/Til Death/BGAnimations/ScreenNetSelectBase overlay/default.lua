@@ -54,9 +54,9 @@ if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
 	profile = GetPlayerOrMachineProfile(PLAYER_1)
 	if profile ~= nil then
 		skillsets.Overall = profile:GetPlayerRating()
-		skillsets.Speed = profile:GetPlayerSpeedRating()
-		skillsets.Stam = profile:GetPlayerStamRating()
-		skillsets.Jack = profile:GetPlayerJackRating()
+		skillsets.Speed = profile:GetPlayerSkillsetRating(2)
+		skillsets.Stam = profile:GetPlayerSkillsetRating(3)
+		skillsets.Jack = profile:GetPlayerSkillsetRating(4)
 	end
 end
 
