@@ -7,12 +7,23 @@ local score
 local song
 local steps
 local alreadybroadcasted
-local curateX = 18
-local curateY = SCREEN_BOTTOM-225
+local alreadybroadcasted
 
 local update = false
 local t = Def.ActorFrame{
-	BeginCommand=cmd(queuecommand,"Set"),
+	BeginCommand=function(self)
+		steps = nil
+		song = nil
+		score = nil
+		self:finishtweening()
+		if getTabIndex() == 0 then
+			self:queuecommand("On")
+			update = true
+		else 
+			self:queuecommand("Off")
+			update = false
+		end
+	end,
 	OffCommand=cmd(bouncebegin,0.2;xy,-500,0;diffusealpha,0),
 	OnCommand=cmd(bouncebegin,0.2;xy,0,0;diffusealpha,1),
 	SetCommand=function(self)
@@ -28,32 +39,6 @@ local t = Def.ActorFrame{
 	TabChangedMessageCommand=cmd(queuecommand,"Set"),
 }
 
-if IsUsingWideScreen() == true then
-
-curateX = 425
-curateY = SCREEN_CENTER_Y-52
-
-end;
-
-if not IsUsingWideScreen() == true then
-
-curateX = SCREEN_CENTER_X-20
-curateY = SCREEN_CENTER_Y-72
-
-end;
-
--- Music Rate Display
-t[#t+1] = LoadFont("Common Large") .. {
-	InitCommand=cmd(xy,curateX,curateY;visible,true;halign,0;zoom,0.3;maxwidth,capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45)),
-	BeginCommand=function(self)
-		self:settext(getCurRateDisplayString())
-	end,
-	CodeMessageCommand=function(self,params)
-		local rate = getCurRateValue()
-		ChangeMusicRate(rate,params)
-		self:settext(getCurRateDisplayString())
-	end,
-}
 
 -- Temporary update control tower; it would be nice if the basic song/step change commands were thorough and explicit and non-redundant
 t[#t+1] = Def.Actor{
@@ -158,59 +143,110 @@ local datescoreY = frameY+59
 local maxcomboX = frameX+185
 local maxcomboY = frameY+49
 local difficultyX = frameX+58
-local difficultyY = frameY-62
-local negativebpmX = frameX
+local difficultyY = frameY
+local negativebpmX = frameX+10
 local negativebpmY = frameY-120
+local infoboxx = 310
+local infoboxy = 200
+local infoboxbar = 3
+local infoboxwidth = 65
+local infoboxheight = 200
+local lengthx = capWideScale(get43size(374),420)+60
+local lengthy = capWideScale(get43size(360),275)
+local cdtitlebaxwidth = 75
+local cdtitlemaxheight = 60
+local curateX = 18
+local curateY = SCREEN_BOTTOM-225
 --local radarX = frameX+13
 
 --16:9 ratio.
 if IsUsingWideScreen() == true then
 
-wifeY = frameY-290
-wifeX = frameX+25
-wifescoretypeX = frameX+95
-wifescoretypeY = frameY-290
-secondarytypeX = frameX+180
-secondarytypeY = frameY-290
-secondaryscoretypeX = frameX+245
-secondaryscoretypeY = frameY-290
-rateX = frameX+125
-rateY = frameY-295
-datescoreX = frameX+170
-datescoreY = frameY-150
-maxcomboY = frameY-150
-maxcomboX = frameX+300
-difficultyY = frameY-295
-difficultyX = frameX+425
-negativebpmY = frameY-150
---radarX = frameX+400
+	wifeY = frameY-290
+	wifeX = frameX+25
+	wifescoretypeX = frameX+95
+	wifescoretypeY = frameY-290
+	secondarytypeX = frameX+180
+	secondarytypeY = frameY-290
+	secondaryscoretypeX = frameX+245
+	secondaryscoretypeY = frameY-290
+	rateX = frameX+125
+	rateY = frameY-295
+	datescoreX = frameX+170
+	datescoreY = frameY-150
+	maxcomboY = frameY-150
+	maxcomboX = frameX+300
+	difficultyY = frameY-115
+	difficultyX = frameX+440
+	negativebpmY = frameY-150
+	--radarX = frameX+400
 
+	infoboxx = capWideScale(get43size(374),405)
+	infoboxy = capWideScale(get43size(360),195)
+	infoboxbar = 8
+	infoboxwidth = 95
+	infoboxheight = 210
+	lengthx = capWideScale(get43size(374),375)
+	lengthy = capWideScale(get43size(360),170)
+	cdtitlebaxwidth = 75
+	cdtitlemaxheight = 60
+	curateX = 425
+	curateY = SCREEN_CENTER_Y-35
 end
 
 --4:3 ratio.
 if not IsUsingWideScreen() == true then
 
-wifeY = frameY-170
-wifeX = frameX+25
-wifescoretypeX = frameX+95
-wifescoretypeY = frameY-170
-secondarytypeX = frameX+25
-secondarytypeY = frameY-150
-secondaryscoretypeX = frameX+95
-secondaryscoretypeY = frameY-150
-rateX = frameX+145
-rateY = frameY-175
-datescoreX = frameX+130
-datescoreY = frameY-150
-maxcomboY = frameY-150
-maxcomboX = frameX+250
-difficultyY = frameY-295
-difficultyX = frameX+320
-negativebpmY = frameY-290
---radarX = frameX+400
+	wifeY = frameY-170
+	wifeX = frameX+25
+	wifescoretypeX = frameX+95
+	wifescoretypeY = frameY-170
+	secondarytypeX = frameX+25
+	secondarytypeY = frameY-150
+	secondaryscoretypeX = frameX+95
+	secondaryscoretypeY = frameY-150
+	rateX = frameX+145
+	rateY = frameY-175
+	datescoreX = frameX+130
+	datescoreY = frameY-150
+	maxcomboY = frameY-150
+	maxcomboX = frameX+250
+	difficultyY = frameY-105
+	difficultyX = frameX+330
+	negativebpmY = frameY-290
+	--radarX = frameX+400
 
+	infoboxx = 310
+	infoboxy = 220
+	infoboxbar = 3
+	infoboxwidth = 65
+	infoboxheight = 175
+	lengthx = 290
+	lengthy = 142
+	cdtitlebaxwidth = 50
+	cdtitlemaxheight = 60
+	curateX = SCREEN_CENTER_X-20
+	curateY = SCREEN_CENTER_Y-72
 end
 
+t[#t+1] = Def.Quad{
+	InitCommand=cmd(xy,infoboxx,infoboxy;zoomto,infoboxwidth,infoboxheight;halign,0;valign,0;diffuse,color("#333333CC");diffusealpha,0.66)
+}
+t[#t+1] = Def.Quad{
+	InitCommand=cmd(xy,infoboxx,infoboxy;zoomto,infoboxbar,infoboxheight;halign,0;valign,0;diffuse,getMainColor('highlight');diffusealpha,0.5)
+}	
+-- Music Rate Display
+t[#t+1] = LoadFont("Common Large") .. {
+	InitCommand=cmd(xy,curateX,curateY;visible,true;halign,0;zoom,0.3;maxwidth,capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45)),
+	BeginCommand=function(self)
+		self:settext(getCurRateDisplayString())
+	end,
+	CodeMessageCommand=function(self,params)
+		local rate = getCurRateValue()
+		ChangeMusicRate(rate,params)
+		self:settext(getCurRateDisplayString())
+	end,
+}
 
 t[#t+1] = Def.ActorFrame{
 	-- -- **frames/bars**
@@ -410,23 +446,6 @@ t[#t+1] = LoadFont("Common Large") .. {
 	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
 }
 
--- Song duration
-t[#t+1] = LoadFont("Common Large") .. {
-	InitCommand=cmd(xy,(capWideScale(get43size(364),384))-50,SCREEN_CENTER_Y-193;visible,true;halign,1;zoom,capWideScale(get43size(0.4),0.4);maxwidth,capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45)),
-	BeginCommand=cmd(queuecommand,"Set"),
-	SetCommand=function(self)
-		if song then
-			local playabletime = GetPlayableTime()
-			self:settext(SecondsToMMSS(playabletime))
-			self:diffuse(ByMusicLength(playabletime))
-		else
-			self:settext("")
-		end
-	end,
-	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
-	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
-}
-
 t[#t+1] = Def.Sprite {
 	InitCommand=cmd(xy,capWideScale(get43size(374),394)+60,capWideScale(get43size(360),270);halign,0.5;valign,1),
 	SetCommand=function(self)
@@ -446,16 +465,16 @@ t[#t+1] = Def.Sprite {
 			local height = self:GetHeight()
 			local width = self:GetWidth()
 			
-			if height >= 60 and width >= 75 then
-				if height*(75/60) >= width then
-				self:zoom(60/height)
+			if height >= cdtitlemaxheight and width >= cdtitlebaxwidth then
+				if height*(cdtitlebaxwidth/cdtitlemaxheight) >= width then
+				self:zoom(cdtitlemaxheight/height)
 				else
-				self:zoom(75/width)
+				self:zoom(cdtitlebaxwidth/width)
 				end
-			elseif height >= 60 then
-				self:zoom(60/height)
-			elseif width >= 75 then
-				self:zoom(75/width)
+			elseif height >= cdtitlemaxheight then
+				self:zoom(cdtitlemaxheight/height)
+			elseif width >= cdtitlebaxwidth then
+				self:zoom(cdtitlebaxwidth/width)
 			else
 				self:zoom(1)
 			end
@@ -521,4 +540,20 @@ t[#t+1] = LoadFont("Common Large") .. {
 }
 
 
+-- Song duration
+t[#t+1] = LoadFont("Common Large") .. {
+	InitCommand=cmd(xy,lengthx,lengthy;visible,true;halign,1;zoom,capWideScale(get43size(0.4),0.4);maxwidth,capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45)),
+	BeginCommand=cmd(queuecommand,"Set"),
+	SetCommand=function(self)
+		if song then
+			local playabletime = GetPlayableTime()
+			self:settext(SecondsToMMSS(playabletime))
+			self:diffuse(ByMusicLength(playabletime))
+		else
+			self:settext("")
+		end
+	end,
+	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
+	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
+}
 return t
