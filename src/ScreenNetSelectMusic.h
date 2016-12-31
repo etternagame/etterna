@@ -49,6 +49,10 @@ protected:
 
 	ThemeMetric<RString>	MUSIC_WHEEL_TYPE;
 	ThemeMetric<RString>	PLAYER_OPTIONS_SCREEN;
+	
+	ThemeMetric<float>		SAMPLE_MUSIC_FALLBACK_FADE_IN_SECONDS;
+	ThemeMetric<float>		SAMPLE_MUSIC_FADE_OUT_SECONDS;
+	ThemeMetric<bool>		ALIGN_MUSIC_BEATS;
 
 private:
 	MusicWheel m_MusicWheel;
