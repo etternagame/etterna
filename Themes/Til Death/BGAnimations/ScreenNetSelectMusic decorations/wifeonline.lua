@@ -392,19 +392,18 @@ t[#t+1] = LoadFont("Common Large") .. {
 	SetCommand=function(self)
 		if song then
 			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 0)
-			self:settextf("%05.2f",meter)
-			self:diffuse(ByMSD(meter))
+			--If meter is showing 0 because it's a solo or a double chart, then don't show the numbers. -Misterkister
+			if meter == 0 then
+				self:settext("")
+			else
+				self:settextf("%05.2f",meter)
+				self:diffuse(ByMSD(meter))
+			end
 		else
 			self:settext("")
 		end
-		if steps:GetTimingData():HasWarps() then
+		if song and steps:GetTimingData():HasWarps() then
 			self:settext("")
-		end
-		--Putting this here for other stuff. -Misterkister
-		local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue())
-		--If meter is showing 0 because it's a solo or a double chart, then don't show the numbers. -Misterkister
-		if meter == 0 then
-		self:settext("")
 		end
 	end,
 	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
@@ -472,7 +471,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 	InitCommand=cmd(xy,negativebpmX,negativebpmY;halign,0;zoom,0.25);
 	BeginCommand=cmd(queuecommand,"Set");
 	SetCommand=function(self)
-		if steps:GetTimingData():HasWarps() then
+		if song and steps:GetTimingData():HasWarps() then
 			self:settext("Negative BPMs Detected")
 			self:diffuse(color("#e61e25"))
 		else
