@@ -7,6 +7,9 @@ t[#t+1] = LoadActor("../_chatbox")
 --t[#t+1] = LoadActor("kappa")
 --t[#t+1] = LoadActor("msd stuff")
 --t[#t+1] = LoadActor("matra")
+t[#t+1] = LoadActor("onlinebpm")
+t[#t+1] = LoadActor("wifeonline")
+t[#t+1] = LoadActor("radaronline")
 
 t[#t+1] = Def.Banner{
 	InitCommand=cmd(x,10;y,60;halign,0;valign,0);
@@ -59,24 +62,23 @@ t[#t+1] = LoadFont("Common Normal") .. {
 	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
 };
 
-t[#t+1] = LoadFont("Common Normal") .. {
-	Name="songLength";
-	InitCommand=cmd(xy,5+(capWideScale(get43size(384),384)),60+capWideScale(get43size(120),120)-capWideScale(get43size(10),10);visible,true;halign,1;zoom,capWideScale(get43size(0.45),0.45);maxwidth,capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45));
-	BeginCommand=cmd(queuecommand,"Set");
-	SetCommand=function(self)
-		local song = GAMESTATE:GetCurrentSong()
-		local seconds = 0
-		if song ~= nil then
-			seconds = song:GetStepsSeconds() --song:MusicLengthSeconds()
-			self:settext(SecondsToMMSS(seconds))
-			--self:diffuse(getSongLengthColor(seconds))--Function no longer in color_config
-		else
-			self:settext("")
-		end
-	end;
-	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
-};
-
+-- t[#t+1] = LoadFont("Common Normal") .. {
+	-- Name="songLength";
+	-- InitCommand=cmd(xy,5+(capWideScale(get43size(384),384)),60+capWideScale(get43size(120),120)-capWideScale(get43size(10),10);visible,true;halign,1;zoom,capWideScale(get43size(0.45),0.45);maxwidth,capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45));
+	-- BeginCommand=cmd(queuecommand,"Set");
+	-- SetCommand=function(self)
+		-- local song = GAMESTATE:GetCurrentSong()
+		-- local seconds = 0
+		-- if song ~= nil then
+			-- seconds = song:GetStepsSeconds() --song:MusicLengthSeconds()
+			-- self:settext(SecondsToMMSS(seconds))
+			-- --self:diffuse(getSongLengthColor(seconds))--Function no longer in color_config
+		-- else
+			-- self:settext("")
+		-- end
+	-- end;
+	-- CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
+-- };
 
 t[#t+1] = Def.ActorFrame {
 	InitCommand=cmd(xy,capWideScale(get43size(384),384)+26,70,halign,0;valign,0;zoom,math.min(1,SCREEN_WIDTH/854));

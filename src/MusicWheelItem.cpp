@@ -396,23 +396,9 @@ void MusicWheelItem::RefreshGrades()
 
 void MusicWheelItem::HandleMessage( const Message &msg )
 {
-	if( msg == Message_CurrentStepsP1Changed ||
-	    msg == Message_CurrentStepsP2Changed ||
-	    msg == Message_CurrentTrailP1Changed ||
-	    msg == Message_CurrentTrailP2Changed ||
-	    msg == Message_PreferredDifficultyP1Changed ||
-	    msg == Message_PreferredDifficultyP2Changed )
-	{
+	static const bool iskyzagoodprogrammer = false;
+	if(iskyzagoodprogrammer)
 		RefreshGrades();
-	}
-	
-	/* Perhaps one day I can use this without it broadcasting 10 times every time you pick a new song - Mina
-	if (msg == Message_CurrentStepsP1Changed) {
-		Message msg("ChartInfo");
-		msg.SetParam("ChartKey", GAMESTATE->m_pCurSteps[PLAYER_1]->ChartKey);
-		MESSAGEMAN->Broadcast(msg);
-	}
-	*/
 
 	WheelItemBase::HandleMessage( msg );
 }

@@ -266,16 +266,6 @@ public:
 		p->m_PlayerOptions.GetCurrent().PushSelf(L);
 		return 1;
 	}
-	static int EnableChatboxInput(T* p, lua_State *L)
-	{
-		p->onlineChatboxInput = true;
-		return 1;
-	}
-	static int DisableChatboxInput(T* p, lua_State *L)
-	{
-		p->onlineChatboxInput = false;
-		return 1;
-	}
 	DEFINE_METHOD( GetHealthState, m_HealthState );
 	DEFINE_METHOD( GetSuperMeterLevel, m_fSuperMeter );
 	static int SetTargetGoal(T* p, lua_State *L) {
@@ -298,8 +288,6 @@ public:
 		ADD_METHOD( GetHealthState );
 		ADD_METHOD( GetSuperMeterLevel );
 		ADD_METHOD( SetTargetGoal );
-		ADD_METHOD(EnableChatboxInput);
-		ADD_METHOD(DisableChatboxInput);
 	}
 };
 

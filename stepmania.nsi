@@ -299,7 +299,10 @@ Section "Main Section" SecMain
 	RMDir /r "$INSTDIR\NoteSkins\common\_Editor"
 	; dance
 	RMDir /r "$INSTDIR\NoteSkins\dance\default"
+	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByOrbular"
 	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByZero"
+	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByZero_halved"
+	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByZero_semihalved"
 	RMDir /r "$INSTDIR\NoteSkins\dance\Delta"
 	; the "midi-*" noteskin series was formerly known as just "midi".
 	RMDir /r "$INSTDIR\NoteSkins\dance\midi"
@@ -357,6 +360,9 @@ Section "Main Section" SecMain
 	SetOutPath "$INSTDIR\NoteSkins\dance"
 	File /r /x CVS /x .svn "NoteSkins\dance\Default"
 	File /r /x CVS /x .svn "NoteSkins\dance\DivideByZero"
+	File /r /x CVS /x .svn "NoteSkins\dance\DivideByZero_halved"
+	File /r /x CVS /x .svn "NoteSkins\dance\DivideByZero_semihalved"
+	File /r /x CVS /x .svn "NoteSkins\dance\DivideByOrbular"
 	SetOutPath "$INSTDIR"
 
 	; install pump noteskins

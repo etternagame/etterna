@@ -478,7 +478,7 @@ bool ScreenSelectMusic::Input( const InputEventPlus &input )
 					Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
 					unfav_me_biatch->SetFavorited(false);
 					pProfile->RemoveFromFavorites(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
-					AfterMusicChange();
+					m_MusicWheel.ChangeMusic(0);
 					return true;
 				}
 			}
@@ -491,7 +491,7 @@ bool ScreenSelectMusic::Input( const InputEventPlus &input )
 				Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
 				fav_me_biatch->SetFavorited(true);
 				pProfile->AddToFavorites(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
-				AfterMusicChange();
+				m_MusicWheel.ChangeMusic(0);
 				return true;
 			}
 		}

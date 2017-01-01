@@ -35,12 +35,64 @@ for i=1, #fantabars do
 end
 -- Background
 o[#o+1] = Def.Quad{InitCommand=cmd(zoomto,plotWidth+plotMargin,plotHeight+plotMargin;diffuse,color("0.05,0.05,0.05,0.05");diffusealpha,0.8)}
+-- Convert noterows to timestamps
+local wuab = {}
+for i=1,#nrt do
+	wuab[i] = td:GetElapsedTimeFromNoteRow(nrt[i])
+end
 -- Plot Dots
 for i=1,#devianceTable do
-	o[#o+1] = plotOffset(td:GetElapsedTimeFromNoteRow(nrt[i]), dvt[i])
+	o[#o+1] = plotOffset(wuab[i], dvt[i])
 end
 -- Early/Late markers
 o[#o+1] = LoadFont("Common Normal")..{InitCommand=cmd(xy,-plotWidth/2,-plotHeight/2+2;settextf,"Late (+%ims)", ts*180;zoom,0.35;halign,0;valign,0)}
 o[#o+1] = LoadFont("Common Normal")..{InitCommand=cmd(xy,-plotWidth/2,plotHeight/2-2;settextf,"Early (-%ims)", ts*180;zoom,0.35;halign,0;valign,1)}
-return o
 
+
+
+
+-- graph garbage (wip)
+local wuaboffset = {}
+for i=1,#wuab do
+	if dvt[i] ~= 1000 then
+		wuaboffset[i] = wuab[i] + dvt[i]/1000
+	else
+		wuaboffset[i] = wuab[i] + .180
+	end
+end
+
+table.sort(wuab)
+table.sort(wuaboffset)
+
+local pointstotal = 0
+local pointsmax = 0
+local curperc = 0
+local wifescore = pss:GetWifeScore()
+
+local function fitXGraph(x)	-- Scale time values to fit within plot width.
+	return x/finalSecond*plotWidth
+end
+local function fitYGraph(y)	-- Scale percent values to fit within plot height
+	return -1 * plotHeight/2*(y-wifescore)/(1-wifescore)
+end
+
+local verts = {}
+for i=1,#wuab do
+	pointstotal = pointstotal + pss:WifeScoreOffset(wuaboffset[i] - wuab[i])
+	pointsmax = pointsmax + 2
+	curperc = pointstotal/pointsmax
+	verts[#verts+1] = {{fitXGraph(wuaboffset[i]),fitYGraph(curperc),0},Color.White}
+end
+
+-- o[#o+1] = Def.ActorMultiVertex{
+	-- InitCommand=function(self)
+		-- self:addx(-plotWidth/2)
+		-- self:SetDrawState{Mode="DrawMode_LineStrip"}
+	-- end,
+	-- BeginCommand=function(self)
+		-- self:SetVertices(verts)
+		-- self:SetDrawState{First = 1, #verts}
+	-- end,
+-- }
+
+return o

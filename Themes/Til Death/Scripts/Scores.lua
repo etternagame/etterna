@@ -289,8 +289,8 @@ end
 
 -- Rate filter stuff -- 
 local function scoreComparator(scoreA,scoreB)
-	local a = GetWifeScoreOrConvertFromDP(scoreA,sortScoreType)
-	local b = GetWifeScoreOrConvertFromDP(scoreB,sortScoreType)
+	local a = GetWifeScoreOrConvertFromDP(scoreA)
+	local b = GetWifeScoreOrConvertFromDP(scoreB)
 	if a == b then 
 		return scoreA:GetWifeScore() > scoreB:GetWifeScore()
 	end
