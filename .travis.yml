@@ -4,7 +4,6 @@ git:
     submodules: false
 notifications:
     email: false
-    irc: "chat.freenode.net#stepmania"
 
 matrix:
     include:
