@@ -153,8 +153,8 @@ local infoboxwidth = 65
 local infoboxheight = 200
 local lengthx = capWideScale(get43size(374),420)+60
 local lengthy = capWideScale(get43size(360),275)
-local cdtitlebaxwidth = 75
-local cdtitlemaxheight = 60
+local cdtitlemaxwidth = 75
+local cdtitlemaxheight = 30
 local curateX = 18
 local curateY = SCREEN_BOTTOM-225
 --local radarX = frameX+13
@@ -188,8 +188,8 @@ if IsUsingWideScreen() == true then
 	infoboxheight = 210
 	lengthx = capWideScale(get43size(374),375)
 	lengthy = capWideScale(get43size(360),170)
-	cdtitlebaxwidth = 75
-	cdtitlemaxheight = 60
+	cdtitlemaxwidth = 75
+	cdtitlemaxheight = 30
 	curateX = 425
 	curateY = SCREEN_CENTER_Y-35
 end
@@ -223,7 +223,7 @@ if not IsUsingWideScreen() == true then
 	infoboxheight = 175
 	lengthx = 290
 	lengthy = 142
-	cdtitlebaxwidth = 50
+	cdtitlemaxwidth = 50
 	cdtitlemaxheight = 60
 	curateX = SCREEN_CENTER_X-20
 	curateY = SCREEN_CENTER_Y-72
@@ -465,16 +465,16 @@ t[#t+1] = Def.Sprite {
 			local height = self:GetHeight()
 			local width = self:GetWidth()
 			
-			if height >= cdtitlemaxheight and width >= cdtitlebaxwidth then
-				if height*(cdtitlebaxwidth/cdtitlemaxheight) >= width then
+			if height >= cdtitlemaxheight and width >= cdtitlemaxwidth then
+				if height*(cdtitlemaxwidth/cdtitlemaxheight) >= width then
 				self:zoom(cdtitlemaxheight/height)
 				else
-				self:zoom(cdtitlebaxwidth/width)
+				self:zoom(cdtitlemaxwidth/width)
 				end
 			elseif height >= cdtitlemaxheight then
 				self:zoom(cdtitlemaxheight/height)
-			elseif width >= cdtitlebaxwidth then
-				self:zoom(cdtitlebaxwidth/width)
+			elseif width >= cdtitlemaxwidth then
+				self:zoom(cdtitlemaxwidth/width)
 			else
 				self:zoom(1)
 			end
