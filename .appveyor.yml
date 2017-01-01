@@ -29,8 +29,8 @@ init:
 install:
 - cmd: >-
     choco install cmake
-	
-	set path=C:\Program Files\CMake\bin;%path%
+
+    set path=C:\Program Files\CMake\bin;%path%
 
     choco install nsis
 before_build:
