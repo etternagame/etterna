@@ -116,7 +116,6 @@ bool ScreenNetSelectMusic::Input( const InputEventPlus &input )
 		INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_LSHIFT)) ||
 		INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RSHIFT));
 
-	wchar_t c = INPUTMAN->DeviceInputToChar(input.DeviceI,fals
 	wchar_t c = INPUTMAN->DeviceInputToChar(input.DeviceI,false);
 	MakeUpper( &c, 1 );
 	
