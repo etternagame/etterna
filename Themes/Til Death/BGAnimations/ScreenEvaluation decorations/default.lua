@@ -152,7 +152,7 @@ function scoreBoard(pn,position)
 				if IsNetSMOnline() == true then
 					self:settext("StepMania Online")
 					else
-					self:settext("Offline")
+					self:settext("")
 				end
 			end;
 		};
