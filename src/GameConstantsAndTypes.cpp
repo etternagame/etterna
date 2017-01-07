@@ -274,19 +274,25 @@ XToLocalizedString( HoldNoteScore );
 // wtf is this shit - mina
 static const char *SkillsetNames[] = {
 	"Overall",
-	"Speed",
+	"Stream",
+	"Jumpstream",
+	"Handstream",
 	"Stamina",
-	"Jack",
+	"Jack Speed",
+	"Jack Stamina",
 	"Technical",
 };
 XToString(Skillset);
 LuaXType(Skillset);
 Skillset StringToSkillset(const RString &s) {
-	if (s == "Overall")			return Skill_Overall;
-	else if (s == "Speed")		return Skill_Speed;
-	else if (s == "Stamina")	return Skill_Stamina;
-	else if (s == "Jack")		return Skill_Jack;
-	else if (s == "Technical")	return Skill_Technical;
+	if (s == "Overall")				return Skill_Overall;
+	else if (s == "Stream")			return Skill_Stream;
+	else if (s == "Jumpstream")		return Skill_Jumpstream;
+	else if (s == "Handstream")		return Skill_Jumpstream;
+	else if (s == "Stamina")		return Skill_Stamina;
+	else if (s == "Jack Speed")		return Skill_JackSpeed;
+	else if (s == "Jack Stamina")	return Skill_JackStamina;
+	else if (s == "Technical")		return Skill_Technical;
 
 	return Skill_Overall;
 }

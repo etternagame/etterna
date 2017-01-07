@@ -35,24 +35,8 @@ local rankingX = capWideScale(75,90)
 local rankingY = capWideScale(200,180)
 local rankingTitleWidth = (rankingWidth/(#ms.SkillSets + 1))
 
-local skillsets = {
-	Overall = 0,
-	Speed 	= 0,
-	Stam  	= 0,
-	Jack  	= 0,
-	Technical = 0
-}
-
-
 if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
 	profile = GetPlayerOrMachineProfile(PLAYER_1)
-	if profile ~= nil then
-		skillsets.Overall = profile:GetPlayerRating()
-		skillsets.Speed = profile:GetPlayerSkillsetRating(2)
-		skillsets.Stam = profile:GetPlayerSkillsetRating(3)
-		skillsets.Jack = profile:GetPlayerSkillsetRating(4)
-		skillsets.Technical = profile:GetPlayerSkillsetRating(5)
-	end
 end
 
 
@@ -201,8 +185,9 @@ local function littlebits(i)
 			InitCommand=cmd(xy,frameX+(frameWidth/2)+90,frameY+20 + 22*i;halign,1;zoom,0.5),
 			BeginCommand=cmd(queuecommand,"Set"),
 			SetCommand=function(self)
-				self:settextf("%5.2f",skillsets[ms.SkillSets[i]])
-				self:diffuse(ByMSD(skillsets[ms.SkillSets[i]]))
+				local rating = profile:GetPlayerSkillsetRating(i)
+				self:settextf("%5.2f",rating)
+				self:diffuse(ByMSD(rating))
 			end,
 			PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
 			PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),

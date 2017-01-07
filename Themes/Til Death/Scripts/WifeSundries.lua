@@ -56,9 +56,12 @@ ms.JudgeCountInverse = {
 
 ms.SkillSets = {
 	"Overall", 
-	"Speed", 
-	"Stam", 
-	"Jack",
+	"Stream", 
+	"Jumpstream", 
+	"Handstream", 
+	"Stamina",
+	"Jack Speed",
+	"Jack Stamina",
 	"Technical"
 }
 

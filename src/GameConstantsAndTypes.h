@@ -23,9 +23,12 @@ const int MAX_NUM_CREDITS = 20;
 
 enum Skillset {
 	Skill_Overall,
-	Skill_Speed,
+	Skill_Stream,
+	Skill_Jumpstream,
+	Skill_Handstream,
 	Skill_Stamina,
-	Skill_Jack,
+	Skill_JackSpeed,
+	Skill_JackStamina,
 	Skill_Technical,
 	NUM_Skillset,
 	Skillset_Invalid,
