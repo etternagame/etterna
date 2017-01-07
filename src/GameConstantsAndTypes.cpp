@@ -278,8 +278,8 @@ static const char *SkillsetNames[] = {
 	"Jumpstream",
 	"Handstream",
 	"Stamina",
-	"Jack Speed",
-	"Jack Stamina",
+	"JackSpeed",
+	"JackStamina",
 	"Technical",
 };
 XToString(Skillset);
@@ -290,8 +290,8 @@ Skillset StringToSkillset(const RString &s) {
 	else if (s == "Jumpstream")		return Skill_Jumpstream;
 	else if (s == "Handstream")		return Skill_Jumpstream;
 	else if (s == "Stamina")		return Skill_Stamina;
-	else if (s == "Jack Speed")		return Skill_JackSpeed;
-	else if (s == "Jack Stamina")	return Skill_JackStamina;
+	else if (s == "JackSpeed")		return Skill_JackSpeed;
+	else if (s == "JackStamina")	return Skill_JackStamina;
 	else if (s == "Technical")		return Skill_Technical;
 
 	return Skill_Overall;
