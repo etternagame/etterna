@@ -43,6 +43,7 @@ struct HighScore
 	float GetWifeScore() const;
 	float GetMusicRate() const;
 	float GetJudgeScale() const;
+	bool GetEtternaValid() const;
 	/**
 	 * @brief Determine how many seconds the player had left in Survival mode.
 	 * @return the number of seconds left. */
@@ -80,6 +81,7 @@ struct HighScore
 	void SetWifeScore(float f);
 	void SetMusicRate(float f);
 	void SetJudgeScale(float f);
+	void SetEtternaValid(bool b);
 	void SetOffsetVector(vector<float> v);
 	void SetNoteRowVector(vector<int> v);
 	void SetAliveSeconds( float f );

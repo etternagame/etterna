@@ -312,14 +312,6 @@ float PlayerStageStats::GetWifeScore() const {
 	return m_fWifeScore;
 }
 vector<float> PlayerStageStats::CalcSSR() const {
-	vector<float> o = { 0.f, 0.f, 0.f,0.f,0.f };
-	if (GetGrade() == Grade_Failed || m_fWifeScore < 0.1f || GAMESTATE->m_pCurSteps[m_player_number]->m_StepsType != StepsType_dance_single)
-		return o ;
-
-	FOREACHM_CONST(float, float, m_fLifeRecord, fail)
-		if (fail->second == 0.f)
-			return o;
-
 	auto nd = GAMESTATE->m_pCurSteps[m_player_number]->GetNoteData();
 	TimingData* td = GAMESTATE->m_pCurSteps[m_player_number]->GetTimingData();
 	float musicrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;

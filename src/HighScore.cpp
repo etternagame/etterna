@@ -24,6 +24,7 @@ struct HighScoreImpl
 	float fSurviveSeconds;
 	float fMusicRate;
 	float fJudgeScale;
+	bool bEtternaValid;
 	vector<float> vOffsetVector;
 	vector<int> vNoteRowVector;
 	unsigned int iMaxCombo;			// maximum combo obtained [SM5 alpha 1a+]
@@ -171,6 +172,7 @@ HighScoreImpl::HighScoreImpl()
 	fWifeScore = 0.f;
 	fMusicRate = 0.f;
 	fJudgeScale = 0.f;
+	bEtternaValid = true;
 	vOffsetVector.clear();
 	vNoteRowVector.clear();
 	fSurviveSeconds = 0.f;
@@ -205,6 +207,7 @@ XNode *HighScoreImpl::CreateNode() const
 	pNode->AppendChild( "WifeScore",		fWifeScore);
 	pNode->AppendChild( "Rate",				fMusicRate);
 	pNode->AppendChild( "JudgeScale",		fJudgeScale);
+	pNode->AppendChild( "EtternaValid",		bEtternaValid);
 	pNode->AppendChild( "Offsets",			OffsetsToString(vOffsetVector));
 	pNode->AppendChild( "NoteRows",			NoteRowsToString(vNoteRowVector));
 	pNode->AppendChild( "SurviveSeconds",	fSurviveSeconds );
@@ -254,6 +257,7 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 	pNode->GetChildValue("WifeScore",			fWifeScore);
 	pNode->GetChildValue("Rate",				fMusicRate);
 	pNode->GetChildValue("JudgeScale",			fJudgeScale);
+	pNode->GetChildValue("EtternaValid",		bEtternaValid);
 	pNode->GetChildValue("Offsets", s);			vOffsetVector = OffsetsToVector(s);
 	pNode->GetChildValue("NoteRows", s);		vNoteRowVector = NoteRowsToVector(s);
 	pNode->GetChildValue("SurviveSeconds",		fSurviveSeconds);
@@ -343,6 +347,7 @@ float HighScore::GetPercentDP() const { return m_Impl->fPercentDP; }
 float HighScore::GetWifeScore() const { return m_Impl->fWifeScore; }
 float HighScore::GetMusicRate() const { return m_Impl->fMusicRate; }
 float HighScore::GetJudgeScale() const { return m_Impl->fJudgeScale; }
+bool HighScore::GetEtternaValid() const { return m_Impl->bEtternaValid; }
 float HighScore::GetSurviveSeconds() const { return m_Impl->fSurviveSeconds; }
 float HighScore::GetSurvivalSeconds() const { return GetSurviveSeconds() + GetLifeRemainingSeconds(); }
 RString HighScore::GetModifiers() const { return m_Impl->sModifiers; }
@@ -369,6 +374,7 @@ void HighScore::SetPercentDP( float f ) { m_Impl->fPercentDP = f; }
 void HighScore::SetWifeScore(float f) {m_Impl->fWifeScore = f;}
 void HighScore::SetMusicRate(float f) { m_Impl->fMusicRate = f; }
 void HighScore::SetJudgeScale(float f) { m_Impl->fJudgeScale = f; }
+void HighScore::SetEtternaValid(bool b) { m_Impl->bEtternaValid = b; }
 void HighScore::SetOffsetVector(vector<float> v) { m_Impl->vOffsetVector = v; }
 void HighScore::SetNoteRowVector(vector<int> v) { m_Impl->vNoteRowVector = v; }
 void HighScore::SetAliveSeconds( float f ) { m_Impl->fSurviveSeconds = f; }
@@ -766,12 +772,17 @@ public:
 		lua_pushnumber(L, p->GetSkillsetSSR(lel));
 		return 1;
 	}
+	static int ToggleEtternaValidation(T* p, lua_State *L) {
+		p->SetEtternaValid(!p->GetEtternaValid());
+		return 1;
+	}
 
 	DEFINE_METHOD( GetGrade, GetGrade() )
 	DEFINE_METHOD( GetWifeGrade, GetWifeGrade())
 	DEFINE_METHOD( ConvertDpToWife, ConvertDpToWife())
 	DEFINE_METHOD( GetStageAward, GetStageAward() )
 	DEFINE_METHOD( GetPeakComboAward, GetPeakComboAward() )
+	DEFINE_METHOD( GetEtternaValid , GetEtternaValid())
 	LunaHighScore()
 	{
 		ADD_METHOD( GetName );
@@ -796,6 +807,8 @@ public:
 		ADD_METHOD( GetMaxCombo );
 		ADD_METHOD( GetStageAward );
 		ADD_METHOD( GetPeakComboAward );
+		ADD_METHOD( ToggleEtternaValidation );
+		ADD_METHOD( GetEtternaValid );
 	}
 };
 

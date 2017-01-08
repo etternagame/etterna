@@ -144,9 +144,23 @@ static HighScore FillInHighScore( const PlayerStageStats &pss, const PlayerState
 	hs.SetPercentDP( pss.GetPercentDancePoints() );
 	hs.SetWifeScore( pss.GetWifeScore());
 	
-	vector<float> dakine = pss.CalcSSR();
-	FOREACH_ENUM(Skillset, ss)
-		hs.SetSkillsetSSR(ss, dakine[ss]);
+	// should prolly be its own fun - mina
+	hs.SetEtternaValid(true);
+	if (pss.GetGrade() == Grade_Failed || pss.m_fWifeScore < 0.1f || GAMESTATE->m_pCurSteps[ps.m_PlayerNumber]->m_StepsType != StepsType_dance_single)
+		hs.SetEtternaValid(false);
+
+	FOREACHM_CONST(float, float, pss.m_fLifeRecord, fail)
+		if (fail->second == 0.f)
+			hs.SetEtternaValid(false);
+
+	if (hs.GetEtternaValid()) {
+		vector<float> dakine = pss.CalcSSR();
+		FOREACH_ENUM(Skillset, ss)
+			hs.SetSkillsetSSR(ss, dakine[ss]);
+	} else {
+		FOREACH_ENUM(Skillset, ss)
+			hs.SetSkillsetSSR(ss, 0.f);
+	}
 
 	hs.SetMusicRate( GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 	hs.SetJudgeScale( pss.GetTimingScale());

@@ -65,6 +65,17 @@ ms.SkillSets = {
 	"Technical"
 }
 
+ms.SkillSetsShort = {
+	"Overall", 
+	"Stream", 
+	"JS", 
+	"HS", 
+	"Stam",
+	"Jack Speed",
+	"Jack Stam",
+	"Tech"
+}
+
 local PersistentSearch
 
 function GetPersistentSearch()

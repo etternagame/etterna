@@ -2094,8 +2094,9 @@ void Profile::CalcPlayerRating(float& prating, float* pskillsets) const {
 			const HighScoresForASteps& zz = j->second;
 			const vector<HighScore>& hsv = zz.hsl.vHighScores;
 			for (size_t i = 0; i < hsv.size(); i++) {
-				FOREACH_ENUM(Skillset, ss)
-					demskillas[ss].emplace_back(hsv[i].GetSkillsetSSR(ss));
+				if(hsv[i].GetEtternaValid())
+					FOREACH_ENUM(Skillset, ss)
+						demskillas[ss].emplace_back(hsv[i].GetSkillsetSSR(ss));
 			}
 		}
 	}
@@ -3092,6 +3093,14 @@ public:
 		lua_pushnumber(L, p->GetTopSSRValue(IArg(1), IArg(2)) );
 		return 1;
 	}
+	static int 	GetTopSSRHighScore(T* p, lua_State *L) {
+		HighScore* ths = p->GetTopSSRHighScore(IArg(1), IArg(2));
+		if (ths)
+			ths->PushSelf(L);
+		else
+			lua_pushnil(L);
+		return 1;
+	}
 	static int GetPlayerSkillsetRating(T* p, lua_State *L) {
 		Skillset lel = static_cast<Skillset>(IArg(1) - 1);
 		lua_pushnumber(L, p->m_fPlayerSkillsets[lel]);
@@ -3174,6 +3183,7 @@ public:
 		ADD_METHOD( GetNumFaves );
 		ADD_METHOD( GetTopSSRValue );
 		ADD_METHOD( GetTopSSRSongName );
+		ADD_METHOD( GetTopSSRHighScore );
 	}
 };
 
