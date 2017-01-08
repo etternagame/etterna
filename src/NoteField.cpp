@@ -31,6 +31,7 @@ static ThemeMetric<float> BAR_4TH_ALPHA( "NoteField", "Bar4thAlpha" );
 static ThemeMetric<float> BAR_8TH_ALPHA( "NoteField", "Bar8thAlpha" );
 static ThemeMetric<float> BAR_16TH_ALPHA( "NoteField", "Bar16thAlpha" );
 static ThemeMetric<float> FADE_FAIL_TIME( "NoteField", "FadeFailTime" );
+static Preference<float> ihatethisprogram("NotefieldXRatio", 1.f);	// i dont really know the best place to put this offhand so this can be temporary - mina
 
 static RString RoutineNoteSkinName( size_t i ) { return ssprintf("RoutineNoteSkinP%i", static_cast<int>(i+1)); }
 static ThemeMetric1D<RString> ROUTINE_NOTESKIN( "NoteField", RoutineNoteSkinName, NUM_PLAYERS );
@@ -194,6 +195,8 @@ void NoteField::Init( const PlayerState* pPlayerState, float fYReverseOffsetPixe
 	Message msg("PlayerStateSet");
 	msg.SetParam("PlayerNumber", pPlayerState->m_PlayerNumber);
 	HandleMessage(msg);
+
+	SetBaseZoomX(ihatethisprogram);
 }
 
 void NoteField::Load( 
