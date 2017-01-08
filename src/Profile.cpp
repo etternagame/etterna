@@ -2151,7 +2151,7 @@ void Profile::RecalculateSSRs(bool OnlyOld) {
 					FOREACH_ENUM(Skillset, ss)
 						hsv[i].SetSkillsetSSR(ss, 0.f);
 				else {
-					if (OnlyOld && hsv[i].GetSSRCalcVersion() == 1.f)
+					if (OnlyOld && hsv[i].GetSSRCalcVersion() == GetCalcVersion())
 						continue;
 
 					Song* psong = id.ToSong();
