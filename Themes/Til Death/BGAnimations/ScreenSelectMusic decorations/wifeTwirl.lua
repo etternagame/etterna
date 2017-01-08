@@ -282,7 +282,7 @@ local function radarPairs(i)
 			InitCommand=cmd(xy,frameX+105,frameY+-52+13*i;zoom,0.5;halign,1;maxwidth,60),
 			SetCommand=function(self)
 				if song then		
-					self:settext(GAMESTATE:GetCurrentSteps(PLAYER_1):GetRelevantRadars(PLAYER_1)[i])
+					self:settext(steps:GetRelevantRadars(PLAYER_1)[i])
 				else
 					self:settext("")
 				end
@@ -304,7 +304,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 	BeginCommand=cmd(queuecommand,"Set"),
 	SetCommand=function(self)
 		if song then
-			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 0)
+			local meter = steps:GetMSD(getCurRateValue(), 0)
 			self:settextf("%05.2f",meter)
 			self:diffuse(ByMSD(meter))
 		else
@@ -442,6 +442,49 @@ t[#t+1] = LoadFont("Common Large") .. {
 		-- self:settext("Active Filters: "..msg.ActiveFilter)
 	-- end
 -- }
+
+t[#t+1] = LoadFont("Common Large") .. {
+	InitCommand=cmd(xy,frameX+120,frameY-60;halign,0;zoom,0.4,maxwidth,125),
+	BeginCommand=cmd(queuecommand,"Set"),
+	SetCommand=function(self)
+		local top1
+		local bestscrub = 0
+		local scrubset
+		for i=2,#ms.SkillSets do
+			local scrub = steps:GetMSD(getCurRateValue(), i-1)
+			if scrub > bestscrub then
+				bestscrub = scrub
+				scrubset = ms.SkillSets[i]
+			end
+		end
+		self:settext(scrubset)
+	end,
+	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
+	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
+}
+
+t[#t+1] = LoadFont("Common Large") .. {
+	InitCommand=cmd(xy,frameX+120,frameY-30;halign,0;zoom,0.4,maxwidth,125),
+	BeginCommand=cmd(queuecommand,"Set"),
+	SetCommand=function(self)
+		local top1
+		local bestscrub = 0
+		local scrubtwo = 0
+		local scrubset
+		for i=2,#ms.SkillSets do
+			local scrub = steps:GetMSD(getCurRateValue(), i-1)
+			if scrub > bestscrub then
+				bestscrub = scrub
+			elseif scrub > scrubtwo then
+				scrubtwo = scrub
+				scrubset = ms.SkillSets[i]
+			end
+		end
+		self:settext(scrubset)
+	end,
+	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
+	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
+}
 
 --test actor
 t[#t+1] = LoadFont("Common Large") .. {
