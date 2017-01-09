@@ -7,37 +7,21 @@ if GAMESTATE:GetNumPlayersEnabled() == 1 and themeConfig:get_data().eval.ScoreBo
 end
 
 
-local dummyX1P = SCREEN_CENTER_X
-local dummyX = dummyX1P
-local dummyY1P = SCREEN_CENTER_Y
-local dummyY = dummyY1P
-local songY1P = dummyY-95
-
-if not IsUsingWideScreen() == true then
-songY1P = dummyY-125
-end;
-
-if IsUsingWideScreen() == true then
-songY1P = SCREEN_CENTER_Y-110
-dummyX = SCREEN_CENTER_X
-end;
-
 t[#t+1] = LoadFont("Common Normal")..{
-	InitCommand=cmd(xy,dummyX,songY1P+30;zoom,0.4;maxwidth,400/0.4);
-	BeginCommand=cmd(queuecommand,"Set");
+	InitCommand=cmd(xy,SCREEN_CENTER_X,capWideScale(135,150);zoom,0.4;maxwidth,400/0.4),
+	BeginCommand=cmd(queuecommand,"Set"),
 	SetCommand=function(self) 
 		if GAMESTATE:IsCourseMode() then
 			self:settext(GAMESTATE:GetCurrentCourse():GetDisplayFullTitle().." // "..GAMESTATE:GetCurrentCourse():GetScripter())
 		else
-			self:settext("Song Title: "..GAMESTATE:GetCurrentSong():GetDisplayMainTitle().."\nSong Artist: "..GAMESTATE:GetCurrentSong():GetDisplayArtist()) 
-		end;		
-	end;
-};
-
+			self:settext(GAMESTATE:GetCurrentSong():GetDisplayMainTitle().." // "..GAMESTATE:GetCurrentSong():GetDisplayArtist()) 
+		end
+	end
+}
 
 -- Rate String
 t[#t+1] = LoadFont("Common normal")..{
-	InitCommand=cmd(xy,capWideScale(SCREEN_CENTER_X-295,SCREEN_CENTER_X),capWideScale(45,180);zoom,0.5;halign,0.5),
+	InitCommand=cmd(xy,SCREEN_CENTER_X,capWideScale(145,160);zoom,0.5;halign,0.5),
 	BeginCommand=function(self)
 		if getCurRateString() == "1x" then
 			self:settext("")
@@ -89,24 +73,6 @@ local pssP1 = STATSMAN:GetCurStageStats():GetPlayerStageStats(PLAYER_1)
 local frameX = 20
 local frameY = 140
 local frameWidth = SCREEN_CENTER_X-120
-local SMOX = SCREEN_CENTER_X
-local SMOY = SCREEN_CENTER_Y
-local smoframeX = frameX+320
-local smoframeY = frameY+50
-local comboX = SMOX+250
-
-if IsUsingWideScreen() == true then
-SMOX = SCREEN_CENTER_X-30
-SMOY = SCREEN_CENTER_Y-40
-end;
-
-if not IsUsingWideScreen() == true then
-smoframeX = frameX+210
-SMOX = SCREEN_CENTER_X-30
-SMOY = SCREEN_CENTER_Y-40
-comboX = SMOX+160
-end;
-
 
 function scoreBoard(pn,position)
 	local t = Def.ActorFrame{
@@ -121,7 +87,6 @@ function scoreBoard(pn,position)
 	local score = getScoreFromTable(getScoreList(PLAYER_1),pss:GetPersonalHighScoreIndex()+1)
 	
 	t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX-5,frameY;zoomto,frameWidth+10,220;halign,0;valign,0;diffuse,color("#333333CC"))};
-	t[#t+1] = Def.Quad{InitCommand=cmd(xy,smoframeX,smoframeY;zoomto,frameWidth+200,110;halign,0;valign,0;diffuse,color("#333333CC"))};
 	t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY+30;zoomto,frameWidth,2;halign,0;diffuse,getMainColor('highlight');diffusealpha,0.5)};
 	t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY+55;zoomto,frameWidth,2;halign,0;diffuse,getMainColor('highlight');diffusealpha,0.5)};
 
@@ -144,121 +109,6 @@ function scoreBoard(pn,position)
 			self:diffuse(getDifficultyColor(GetCustomDifficulty(steps:GetStepsType(),steps:GetDifficulty())))
 		end
 	};
-		
-		t[#t+1] = LoadFont("Common Normal")..{
-		InitCommand=cmd(zoom,0.5;x,SMOX;y,SMOY);
-		BeginCommand=cmd(queuecommand,"Set");
-		SetCommand=function(self)
-				if IsNetSMOnline() == true then
-					self:settext("StepMania Online")
-					else
-					self:settext("")
-				end
-			end;
-		};
-		
-	t[#t+1] = LoadFont("Common Normal")..{
-		InitCommand=cmd(zoom,0.5;x,SMOX-34;y,SMOY+15);
-		BeginCommand=cmd(queuecommand,"Set");
-		SetCommand=function(self)
-				if IsNetSMOnline() == true then
-					self:settext("Grade:")
-					else
-					self:settext("")
-				end
-			end;
-		};
-	t[#t+1] = LoadFont("Common Normal")..{
-		InitCommand=cmd(zoom,0.5;x,SMOX-22;y,SMOY+33);
-		BeginCommand=cmd(queuecommand,"Set");
-		SetCommand=function(self)
-				if IsNetSMOnline() == true then
-					self:settext("Marvelous:")
-					else
-					self:settext("")
-				end
-			end;
-		};
-	t[#t+1] = LoadFont("Common Normal")..{
-		InitCommand=cmd(zoom,0.5;x,SMOX-31;y,SMOY+51);
-		BeginCommand=cmd(queuecommand,"Set");
-		SetCommand=function(self)
-				if IsNetSMOnline() == true then
-					self:settext("Perfect:")
-					else
-					self:settext("")
-				end
-			end;
-		};
-	t[#t+1] = LoadFont("Common Normal")..{
-		InitCommand=cmd(zoom,0.5;x,SMOX-37;y,SMOY+69);
-		BeginCommand=cmd(queuecommand,"Set");
-		SetCommand=function(self)
-				if IsNetSMOnline() == true then
-					self:settext("Great:")
-					else
-					self:settext("")
-				end
-			end;
-		};
-	t[#t+1] = LoadFont("Common Normal")..{
-		InitCommand=cmd(zoom,0.5;x,SMOX+157;y,SMOY+33);
-		BeginCommand=cmd(queuecommand,"Set");
-		SetCommand=function(self)
-				if IsNetSMOnline() == true then
-					self:settext("Good:")
-					else
-					self:settext("")
-				end
-			end;
-		};
-	t[#t+1] = LoadFont("Common Normal")..{
-		InitCommand=cmd(zoom,0.5;x,SMOX+153;y,SMOY+51);
-		BeginCommand=cmd(queuecommand,"Set");
-		SetCommand=function(self)
-				if IsNetSMOnline() == true then
-					self:settext("Bad:")
-					else
-					self:settext("")
-				end
-			end;
-		};
-	t[#t+1] = LoadFont("Common Normal")..{
-		InitCommand=cmd(zoom,0.5;x,SMOX+153;y,SMOY+69);
-		BeginCommand=cmd(queuecommand,"Set");
-		SetCommand=function(self)
-				if IsNetSMOnline() == true then
-					self:settext("Miss:")
-					else
-					self:settext("")
-				end
-			end;
-		};
-	t[#t+1] = LoadFont("Common Normal")..{
-		InitCommand=cmd(zoom,0.5;x,comboX;y,SMOY+10);
-		BeginCommand=cmd(queuecommand,"Set");
-		SetCommand=function(self)
-				if IsNetSMOnline() == true then
-					self:settext("Combo:")
-					else
-					self:settext("")
-				end
-			end;
-		};
-	
-				if ShowStandardDecoration("StepsDisplay") then
-	for pn in ivalues(PlayerNumber) do
-		local t2 = Def.StepsDisplay {
-			InitCommand=cmd(Load,"StepsDisplayEvaluation",pn;SetFromGameState,pn;);
-			UpdateNetEvalStatsMessageCommand=function(self,param)
-				if GAMESTATE:IsPlayerEnabled(pn) then
-					self:SetFromSteps(param.Steps) 
-				end;
-			end;
-		};
-		t[#t+1] = StandardDecorationFromTable( "StepsDisplay" .. ToEnumShortString(pn), t2 );
-	end
-end
 	
 	-- Wife percent
 	t[#t+1] = LoadFont("Common Large")..{
