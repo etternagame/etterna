@@ -293,8 +293,6 @@ local radarValues = {
 	{'RadarCategory_Holds','Holds'},
 	{'RadarCategory_Rolls','Rolls'},
 	{'RadarCategory_Mines','Mines'},
-	{'RadarCategory_Lifts','Lifts'},
-	{'RadarCategory_Fakes','Fakes'},
 }
 
 local radarX = frameX+offsetX+450
@@ -302,7 +300,7 @@ local stuffstuffstuffX = frameX+offsetX+400
 
 if not IsUsingWideScreen() == true then
 radarX = frameX+offsetX+450-120
-stuffstuffstuffX = frameX+offsetX+400-110
+stuffstuffstuffX = frameX+offsetX+400-105
 end;
 
 for k,v in ipairs(radarValues) do

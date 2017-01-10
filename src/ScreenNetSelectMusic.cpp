@@ -25,6 +25,7 @@
 #include "RageInput.h"
 #include "SongManager.h"
 #include "CodeDetector.h"
+#include "ProfileManager.h"
 
 AutoScreenMessage( SM_NoSongs );
 AutoScreenMessage( SM_ChangeSong );
@@ -85,6 +86,11 @@ void ScreenNetSelectMusic::Init()
 
 	m_bInitialSelect = false;
 	m_bAllowInput = false;
+	
+	
+	SAMPLE_MUSIC_FALLBACK_FADE_IN_SECONDS.Load(m_sName, "SampleMusicFallbackFadeInSeconds");
+	SAMPLE_MUSIC_FADE_OUT_SECONDS.Load(m_sName, "SampleMusicFadeOutSeconds");
+	ALIGN_MUSIC_BEATS.Load(m_sName, "AlignMusicBeat");
 }
 
 bool ScreenNetSelectMusic::Input( const InputEventPlus &input )
@@ -106,11 +112,17 @@ bool ScreenNetSelectMusic::Input( const InputEventPlus &input )
 		INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RCTRL)) ||
 		(!NSMAN->useSMserver); // If we are disconnected, assume no chatting
 
+	bool holding_shift =
+		INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_LSHIFT)) ||
+		INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RSHIFT));
+
 	wchar_t c = INPUTMAN->DeviceInputToChar(input.DeviceI,false);
 	MakeUpper( &c, 1 );
-
-	// Ctrl+[A-Z] to go to that letter of the alphabet
+	
 	bool handled = false;
+	
+	/* I'm commenting this here and adding the 2 ctrl+key and the ctrl+shift+key inputs
+	// Ctrl+[A-Z] to go to that letter of the alphabet
 	if( bHoldingCtrl && ( c >= 'A' ) && ( c <= 'Z' ) )
 	{
 		SortOrder so = GAMESTATE->m_SortOrder;
@@ -130,7 +142,46 @@ bool ScreenNetSelectMusic::Input( const InputEventPlus &input )
 		m_MusicWheel.Move(+1);
 		handled = true;
 	}
-
+	*/
+	
+	if (holding_shift && bHoldingCtrl && c == 'R' && m_MusicWheel.IsSettled())
+	{
+		// Reload the currently selected song. -Kyz
+		Song* to_reload = m_MusicWheel.GetSelectedSong();
+		if (to_reload)
+		{
+			to_reload->ReloadFromSongDir();
+			MusicChanged();
+			handled = true;
+		}
+	}
+	else if (bHoldingCtrl && c == 'U' && m_MusicWheel.IsSettled())
+	{
+		// Unfavorite the currently selected song. -Not Kyz
+		Song* unfav_me_biatch = m_MusicWheel.GetSelectedSong();
+		if (unfav_me_biatch) {
+			Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
+			if (unfav_me_biatch) {
+				Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
+				unfav_me_biatch->SetFavorited(false);
+				pProfile->RemoveFromFavorites(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+				MusicChanged();
+				handled = true;
+			}
+		}
+	}
+	else if (bHoldingCtrl && c == 'F' && m_MusicWheel.IsSettled())
+	{
+		// Favorite the currently selected song. -Not Kyz
+		Song* fav_me_biatch = m_MusicWheel.GetSelectedSong();
+		if (fav_me_biatch) {
+			Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
+			fav_me_biatch->SetFavorited(true);
+			pProfile->AddToFavorites(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+			MusicChanged();
+			handled = true;
+		}
+	}
 	return ScreenNetSelectBase::Input( input ) || handled;
 }
 
@@ -561,12 +612,17 @@ void ScreenNetSelectMusic::MusicChanged()
 		if(SOUND->GetMusicPath().CompareNoCase(GAMESTATE->m_pCurSong->GetMusicPath()))
 		{
 			SOUND->StopMusic();
+			Song* songPtr = GAMESTATE->m_pCurSong;
 			SOUND->PlayMusic(
-				GAMESTATE->m_pCurSong->GetPreviewMusicPath(),
-				NULL,
+				songPtr->GetPreviewMusicPath(),
+				&songPtr->m_SongTiming,
 				true,
-				GAMESTATE->m_pCurSong->GetPreviewStartSeconds(),
-				GAMESTATE->m_pCurSong->m_fMusicSampleLengthSeconds );
+				songPtr->GetPreviewStartSeconds(),
+				songPtr->m_fMusicSampleLengthSeconds,
+				SAMPLE_MUSIC_FALLBACK_FADE_IN_SECONDS,
+				SAMPLE_MUSIC_FADE_OUT_SECONDS,
+				ALIGN_MUSIC_BEATS,
+				true);
 		}
 	}
 }

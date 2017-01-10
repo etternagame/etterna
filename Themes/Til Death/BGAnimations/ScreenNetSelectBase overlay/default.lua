@@ -23,7 +23,7 @@ return false
 end
 
 local t = Def.ActorFrame{
-	OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) end
+	OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) SCREENMAN:GetTopScreen():UsersVisible(false) end
 }
 
 t[#t+1] = Def.Actor{
@@ -42,54 +42,44 @@ t[#t+1] = LoadActor("../_cursor")
 t[#t+1] = LoadActor("../_halppls")
 --t[#t+1] = LoadActor("wifesearchbar")
 
-local skillsets = {
-	Overall = 0,
-	Speed 	= 0,
-	Stam  	= 0,
-	Jack  	= 0,
+t[#t+1] = LoadFont("Common Normal") .. {
+	InitCommand=cmd(xy,SCREEN_WIDTH/3,SCREEN_TOP+15;zoom,0.35;diffuse,getMainColor('positive');maxwidth,SCREEN_WIDTH),
+	BeginCommand=cmd(queuecommand,"Set"),
+	SetCommand=function(self)
+			local str = ""
+			local top = SCREENMAN:GetTopScreen()
+			if top:GetUserQty() > 5 then
+				for i=1,5 do
+					str = str .. "      " .. (top:GetUser(i))
+				end
+			
+			else
+				for i=1,top:GetUserQty() do
+					str = str .. "      " .. (top:GetUser(i))
+				end
+			end
+			self:settext(str)
+	end,
+	PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
+	PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+	UsersUpdateMessageCommand=cmd(queuecommand,"Set"),
 }
-
-
-if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
-	profile = GetPlayerOrMachineProfile(PLAYER_1)
-	if profile ~= nil then
-		skillsets.Overall = profile:GetPlayerRating()
-		skillsets.Speed = profile:GetPlayerSkillsetRating(2)
-		skillsets.Stam = profile:GetPlayerSkillsetRating(3)
-		skillsets.Jack = profile:GetPlayerSkillsetRating(4)
-	end
-end
-
-
-
-local function littlebits(i)
-	local t = Def.ActorFrame{
-		LoadFont("Common Normal") .. {
-			InitCommand=cmd(xy,SCREEN_WIDTH/3,SCREEN_HEIGHT-50+i*10;halign,1;zoom,0.35;diffuse,getMainColor('positive')),
-			BeginCommand=cmd(queuecommand,"Set"),
-			SetCommand=function(self)
-					self:settext(ms.SkillSets[i]..":")
-			end,
-			PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-			PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
-		},
-		LoadFont("Common Normal") .. {
-			InitCommand=cmd(xy,SCREEN_WIDTH/3+30,SCREEN_HEIGHT-50+i*10;halign,1;zoom,0.35;diffuse,getMainColor('positive')),
-			BeginCommand=cmd(queuecommand,"Set"),
-			SetCommand=function(self)
-					self:settextf("%5.2f",skillsets[ms.SkillSets[i]])
-			end,
-			PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-			PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
-		}
-	}
-	return t
-end
-
-
-for i=1,#ms.SkillSets do 
-	t[#t+1] = littlebits(i)
-end
-
+t[#t+1] = LoadFont("Common Normal") .. {
+	InitCommand=cmd(xy,SCREEN_WIDTH/3,SCREEN_TOP+25;zoom,0.35;diffuse,getMainColor('positive');maxwidth,SCREEN_WIDTH),
+	BeginCommand=cmd(queuecommand,"Set"),
+	SetCommand=function(self)
+			local str = ""
+			local top = SCREENMAN:GetTopScreen()
+			if top:GetUserQty() > 5 then
+				for i=6,top:GetUserQty() do
+					str = str .. "      " .. (top:GetUser(i))
+				end
+			end
+			self:settext(str)
+	end,
+	PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
+	PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+	UsersUpdateMessageCommand=cmd(queuecommand,"Set"),
+}
 
 return t

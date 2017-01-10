@@ -7,11 +7,32 @@ t[#t+1] = LoadActor("../_chatbox")
 --t[#t+1] = LoadActor("kappa")
 --t[#t+1] = LoadActor("msd stuff")
 --t[#t+1] = LoadActor("matra")
-t[#t+1] = LoadActor("onlinebpm")
-t[#t+1] = LoadActor("wifeonline")
-t[#t+1] = LoadActor("radaronline")
+t[#t+1] = LoadActor("profile")
+t[#t+1] = LoadActor("msd")
+t[#t+1] = LoadActor("songsearch")
+t[#t+1] = LoadActor("tabs")
+t[#t+1] = LoadActor("score")
 
-t[#t+1] = Def.Banner{
+local g = Def.ActorFrame{
+	TabChangedMessageCommand=function(self)
+		local top= SCREENMAN:GetTopScreen()
+		if getTabIndex() == 0 then
+			self:visible(true)
+			top:ChatboxVisible(true)
+			top:ChatboxInput(true)
+		else 
+			self:visible(false)
+			top:ChatboxVisible(false)
+			top:ChatboxInput(false)
+		end
+	end,
+}
+
+
+
+
+
+g[#g+1] = Def.Banner{
 	InitCommand=cmd(x,10;y,60;halign,0;valign,0);
 	SetMessageCommand=function(self)
 		local top = SCREENMAN:GetTopScreen()
@@ -40,14 +61,12 @@ t[#t+1] = Def.Banner{
 		end;
 		self:scaletoclipped(capWideScale(get43size(384),384),capWideScale(get43size(120),120))
 	end;
-	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
+	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set"),
 };
-
-t[#t+1] = Def.Quad{
+g[#g+1] = Def.Quad{
 	InitCommand=cmd(xy,10,60+capWideScale(get43size(120),120)-capWideScale(get43size(10),10);zoomto,capWideScale(get43size(384),384),capWideScale(get43size(20),20);halign,0;diffuse,color("#000000");diffusealpha,0.7);
 }
-
-t[#t+1] = LoadFont("Common Normal") .. {
+g[#g+1] = LoadFont("Common Normal") .. {
 	Name="songTitle";
 	InitCommand=cmd(xy,15,60+capWideScale(get43size(120),120)-capWideScale(get43size(10),10);visible,true;halign,0;zoom,capWideScale(get43size(0.45),0.45);maxwidth,capWideScale(get43size(340),340)/capWideScale(get43size(0.45),0.45));
 	BeginCommand=cmd(queuecommand,"Set");
@@ -62,6 +81,9 @@ t[#t+1] = LoadFont("Common Normal") .. {
 	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
 };
 
+g[#g+1] = LoadActor("wifeonline")
+g[#g+1] = LoadActor("onlinebpm")
+g[#g+1] = LoadActor("radaronline")
 -- t[#t+1] = LoadFont("Common Normal") .. {
 	-- Name="songLength";
 	-- InitCommand=cmd(xy,5+(capWideScale(get43size(384),384)),60+capWideScale(get43size(120),120)-capWideScale(get43size(10),10);visible,true;halign,1;zoom,capWideScale(get43size(0.45),0.45);maxwidth,capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45));
@@ -80,7 +102,7 @@ t[#t+1] = LoadFont("Common Normal") .. {
 	-- CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
 -- };
 
-t[#t+1] = Def.ActorFrame {
+g[#g+1] = Def.ActorFrame {
 	InitCommand=cmd(xy,capWideScale(get43size(384),384)+26,70,halign,0;valign,0;zoom,math.min(1,SCREEN_WIDTH/854));
 	OffCommand=cmd(bouncebegin,0.2;xy,capWideScale(get43size(384),384)+26-500,70;); -- visible(false) doesn't seem to work with sleep
 	OnCommand=cmd(bouncebegin,0.2;xy,capWideScale(get43size(384),384)+26,70;);
@@ -203,6 +225,6 @@ t[#t+1] = Def.ActorFrame {
 		};
 	};
 };
-
+t[#t+1] = g
 
 return t
