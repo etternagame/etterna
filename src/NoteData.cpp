@@ -179,7 +179,7 @@ int NoteData::WifeTotalScoreCalc(TimingData *td, int iStartIndex, int iEndIndex)
 		for (int t = 0; t < GetNumTracks(); t++)
 		{
 			TapNote tn = GetTapNote(t, r);
-			if (tn.type != TapNoteType_Empty && tn.type != TapNoteType_Mine && tn.type != TapNoteType_Fake && tn.type != TapNoteType_Lift && td->IsJudgableAtRow(r)) {
+			if (tn.type != TapNoteType_Empty && tn.type != TapNoteType_Mine && tn.type != TapNoteType_Fake && td->IsJudgableAtRow(r)) {
 				taps++;
 				break;
 			}
