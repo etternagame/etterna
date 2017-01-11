@@ -64,7 +64,7 @@
 	DirText "${PRODUCT_DISPLAY}"
 	InstallColors /windows
 	InstProgressFlags smooth
-F
+
 ;-------------------------------------------------------------------------------
 ;Interface Settings
 
@@ -299,6 +299,7 @@ Section "Main Section" SecMain
 	RMDir /r "$INSTDIR\NoteSkins\common\_Editor"
 	; dance
 	RMDir /r "$INSTDIR\NoteSkins\dance\default"
+	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByInf"
 	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByZero"
 	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByZero_halved"
 	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByZero_semihalved"
@@ -360,10 +361,11 @@ Section "Main Section" SecMain
 	; install dance noteskins
 	SetOutPath "$INSTDIR\NoteSkins\dance"
 	File /r /x CVS /x .svn "NoteSkins\dance\Default"
+	File /r /x CVS /x .svn "NoteSkins\dance\DivideByInf"
 	File /r /x CVS /x .svn "NoteSkins\dance\DivideByZero"
 	File /r /x CVS /x .svn "NoteSkins\dance\DivideByZero_halved"
 	File /r /x CVS /x .svn "NoteSkins\dance\DivideByZero_semihalved"
-		File /r /x CVS /x .svn "NoteSkins\dance\DivideByBar"
+	File /r /x CVS /x .svn "NoteSkins\dance\DivideByBar"
 	File /r /x CVS /x .svn "NoteSkins\dance\MultiplyByZero"
 	SetOutPath "$INSTDIR"
 
@@ -812,6 +814,7 @@ Section "Uninstall"
 	RMDir /r "$INSTDIR\NoteSkins\common\common"
 	RMDir "$INSTDIR\NoteSkins\common"
 	RMDir /r "$INSTDIR\NoteSkins\dance\default"
+	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByInf"
 	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByZero"
 	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByZero_halved"
 	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByZero_semihalved"
