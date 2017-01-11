@@ -459,7 +459,7 @@ void Steps::Decompress(bool isGameplay)
 }
 
 float Steps::GetMSD(float x, int i) const {
-	int idx = static_cast<int>(x * 10);
+	int idx = static_cast<int>(x * 10) - 7;
 	float prop = fmod(x * 10.f, 1.f);
 	if ( prop == 0)
 		return stuffnthings[idx][i];
