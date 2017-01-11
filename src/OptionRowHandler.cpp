@@ -389,6 +389,7 @@ class OptionRowHandlerListNoteSkins : public OptionRowHandlerList
 		m_Def.m_sName = "NoteSkins";
 		m_Def.m_bOneChoiceForAllPlayers = false;
 		m_Def.m_bAllowThemeItems = false;	// we theme the text ourself
+		m_Def.m_layoutType = LAYOUT_SHOW_ONE_IN_ROW;
 
 		vector<RString> arraySkinNames;
 		NOTESKIN->GetNoteSkinNames( arraySkinNames );
