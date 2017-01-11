@@ -299,7 +299,6 @@ Section "Main Section" SecMain
 	RMDir /r "$INSTDIR\NoteSkins\common\_Editor"
 	; dance
 	RMDir /r "$INSTDIR\NoteSkins\dance\default"
-	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByOrbular"
 	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByZero"
 	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByZero_halved"
 	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByZero_semihalved"
@@ -362,7 +361,6 @@ Section "Main Section" SecMain
 	File /r /x CVS /x .svn "NoteSkins\dance\DivideByZero"
 	File /r /x CVS /x .svn "NoteSkins\dance\DivideByZero_halved"
 	File /r /x CVS /x .svn "NoteSkins\dance\DivideByZero_semihalved"
-	File /r /x CVS /x .svn "NoteSkins\dance\DivideByOrbular"
 	SetOutPath "$INSTDIR"
 
 	; install pump noteskins
