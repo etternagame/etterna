@@ -22,7 +22,7 @@ local t = Def.ActorFrame{
 
 local frameX = 10
 local frameY = 45
-local frameWidth = capWideScale(320,400)
+local frameWidth = capWideScale(360,400)
 local frameHeight = 350
 local fontScale = 0.4
 local scorestodisplay = 25
@@ -31,9 +31,9 @@ local offsetX = 10
 local offsetY = 20
 local rankingSkillset=0
 local rankingPage=1
-local rankingWidth = frameWidth-50
+local rankingWidth = frameWidth-capWideScale(15,50)
 local rankingX = capWideScale(25,45)
-local rankingY = capWideScale(80,60)
+local rankingY = capWideScale(60,60)
 local rankingTitleWidth = (rankingWidth/(#ms.SkillSets + 1))
 
 if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
