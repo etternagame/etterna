@@ -46,20 +46,8 @@ t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,offsetY;ha
 
 t[#t+1] = LoadFont("Common Normal")..{InitCommand=cmd(xy,frameX+5,frameY+offsetY-9;zoom,0.6;halign,0;diffuse,getMainColor('positive');settext,"Profile Info (WIP)")}
 
-
-local function input(event)
-	if event.type ~= "InputEventType_Release" and active then
-		if event.DeviceInput.button == "DeviceButton_left mouse button" then
-			MESSAGEMAN:Broadcast("MouseLeftClick")
-		end
-	end
-	return false
-end
-
-
-local r = Def.ActorFrame{
-	OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) end,
-	}
+-- The input callback for mouse clicks already exists within the tabmanager and redefining it within the local scope does nothing but create confusion - mina
+local r = Def.ActorFrame{}
 	
 local function rankingLabel(i)
 	local ths -- the top highscore object - mina
@@ -144,7 +132,7 @@ local function rankingLabel(i)
 		},
 		Def.Quad{
 			InitCommand=cmd(xy,rankingX+rankingWidth/2,frameY+rankingY+105-(11-i)*10;zoomto,rankingWidth,10;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0),
-			MouseLeftClickMessageCommand=function(self)
+			MouseRightClickMessageCommand=function(self)
 				if ths then 
 					if isOver(self) then
 						ths:ToggleEtternaValidation()
@@ -154,6 +142,15 @@ local function rankingLabel(i)
 						else
 							ms.ok("Score Invalidated")
 						end
+					end
+				end
+			end,
+			MouseLeftClickMessageCommand=function(self)
+				if ths then 
+					if isOver(self) then
+						local whee = SCREENMAN:GetTopScreen():GetMusicWheel()
+						local ssrsong = profile:GetSongFromSSR(i+(20*(rankingPage-1)), rankingSkillset)
+						whee:SelectSong(ssrsong)
 					end
 				end
 			end

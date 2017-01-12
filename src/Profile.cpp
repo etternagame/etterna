@@ -3106,6 +3106,12 @@ public:
 		lua_pushnumber(L, p->m_fPlayerSkillsets[lel]);
 		return 1;
 	}
+	static int GetSongFromSSR(T* p, lua_State *L) {
+		SongID& id = p->GetTopSSRSongID(IArg(1), IArg(2));
+		id.ToSong()->PushSelf(L);
+		return 1;
+	}
+
 	DEFINE_METHOD( GetGUID,		m_sGuid );
 
 	LunaProfile()
@@ -3183,6 +3189,7 @@ public:
 		ADD_METHOD( GetNumFaves );
 		ADD_METHOD( GetTopSSRValue );
 		ADD_METHOD( GetTopSSRSongName );
+		ADD_METHOD( GetSongFromSSR );
 		ADD_METHOD( GetTopSSRHighScore );
 	}
 };
