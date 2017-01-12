@@ -2227,7 +2227,7 @@ SongID Profile::GetTopSSRSongID(unsigned int rank, int skillset) {
 	return emptysongID;
 }
 HighScore* Profile::GetTopSSRHighScore(unsigned int rank, int skillset) {
-	if (rank == 0)
+	if (rank <= 0)
 		rank = 1;
 	if (rank > static_cast<unsigned int>(topSSRHighScores[skillset].size()))
 		if (CalcAllTopSSRs(rank) == false)
