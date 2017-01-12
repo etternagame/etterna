@@ -345,6 +345,7 @@ bool MusicWheel::SelectSong( const Song *p )
 		if( GetCurWheelItemData(i)->m_pSong == p )
 			m_iSelection = i;		// select it
 	}
+	ChangeMusic(0);	// Actually select it, come on guys how hard was this LOL - mina
 	return true;
 }
 
