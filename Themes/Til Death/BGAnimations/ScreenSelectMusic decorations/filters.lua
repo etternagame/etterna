@@ -29,19 +29,18 @@ local function FilterInput(event)
 		else
 			for i=1,#numbershers do
 				if event.DeviceInput.button == "DeviceButton_"..numbershers[i] then
-					if SSQuery[ActiveSS] == "0" or tonumber(SSQuery[ActiveSS]) > 99 then 
+					if SSQuery[ActiveSS] == "0" then 
 						SSQuery[ActiveSS] = ""
 					end
 					SSQuery[ActiveSS] = SSQuery[ActiveSS]..numbershers[i]
 				end
 			end
 		end
-		if SSQuery[ActiveSS] == "" then 
+		if SSQuery[ActiveSS] == "" or #SSQuery[ActiveSS] > 2 then 
 			SSQuery[ActiveSS] = "0"
 		end
-		MESSAGEMAN:Broadcast("UpdateFilter")
-		ms.ok(SSQuery[ActiveSS])
 		whee:SetSkillsetFilter(tonumber(SSQuery[ActiveSS]), ActiveSS)
+		MESSAGEMAN:Broadcast("UpdateFilter")
 	end
 end
 
@@ -101,6 +100,12 @@ local f = Def.ActorFrame{
 			self:settext("Mode: ".."Inclusive")
 		end,
 	},
+		LoadFont("Common Large")..{
+	InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY*2;zoom,textzoom;halign,0),
+		SetCommand=function(self) 
+			self:settext("Highest SS: ".."False")
+		end,
+	},
 }
 
 local function CreateFilterInputBox(i)
@@ -134,7 +139,7 @@ local function CreateFilterInputBox(i)
 			SetCommand=function(self)
 				local fval = whee:GetSkillsetFilter(i)
 				self:settext(fval)
-				if fval <= 0 then
+				if fval <= 0 and ActiveSS ~= i then
 					self:diffuse(color("#666666"))
 				else
 					self:diffuse(color("#FFFFFF"))

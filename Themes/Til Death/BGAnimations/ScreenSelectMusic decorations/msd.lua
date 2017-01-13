@@ -30,10 +30,11 @@ local t = Def.ActorFrame{
 			steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
 			
 			--Find max MSD value, store MSD values in meter[]
+			-- I plan to have c++ store the highest msd value as a separate variable to aid in the filter process so this won't be needed afterwards - mina
 			greatest=0
 			if song and steps then
 				for i=1,#ms.SkillSets do 
-					meter[i+1] = steps:GetMSD(getCurRateValue(), i-1)
+					meter[i+1] = steps:GetMSD(getCurRateValue(), i)
 					if meter[i+1] > meter[greatest+1] then
 						greatest = i
 					end
@@ -87,7 +88,6 @@ local function littlebits(i)
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self)
 			if song and steps then
-				--local meter = steps:GetMSD(getCurRateValue(), i-1)		-- c++ indexing -- Done through an array when looking for the greater value
 				self:settextf("%05.2f",meter[i+1])
 				self:diffuse(ByMSD(meter[i+1]))
 			else

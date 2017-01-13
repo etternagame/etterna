@@ -304,7 +304,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 	BeginCommand=cmd(queuecommand,"Set"),
 	SetCommand=function(self)
 		if song then
-			local meter = steps:GetMSD(getCurRateValue(), 0)
+			local meter = steps:GetMSD(getCurRateValue(), 1)
 			self:settextf("%05.2f",meter)
 			self:diffuse(ByMSD(meter))
 		else

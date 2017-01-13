@@ -427,7 +427,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 	BeginCommand=cmd(queuecommand,"Set"),
 	SetCommand=function(self)
 		if song then
-			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 0)
+			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1)
 			--If meter is showing 0 because it's a solo or a double chart, then don't show the numbers. -Misterkister
 			if meter == 0 then
 				self:settext("")
