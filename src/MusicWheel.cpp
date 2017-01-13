@@ -1823,6 +1823,10 @@ public:
 		p->ReloadSongList(true, "");
 		return 1;
 	}
+	static int GetSkillsetFilter(T* p, lua_State *L) {
+		p->GetSkillsetFilter(static_cast<Skillset>(IArg(2) - 1));
+		return 1;
+	}
 
 	LunaMusicWheel()
 	{
