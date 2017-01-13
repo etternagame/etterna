@@ -126,6 +126,7 @@ void MusicWheel::Load( const RString &sType )
 	FOREACH_ENUM( SortOrder, so ) {
 		m_WheelItemDatasStatus[so]=INVALID;
 	}
+	ZERO( SkillsetFilters );
 }
 
 void MusicWheel::BeginScreen()
@@ -597,6 +598,29 @@ void MusicWheel::FilterBySearch(vector<Song*>& inv, RString findme) {
 		FilterBySearch(inv, lastvalidsearch);
 }
 
+void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
+	vector<Song*> tmp;
+	for (size_t i = 0; i < inv.size(); i++) {
+		bool addsong = false;
+		FOREACH_ENUM(Skillset, ss) {
+			if (SkillsetFilters[ss] > 0.f) {
+				LOG->Trace("%i", (int)ss);
+				float val = inv[i]->GetHighestSkillsetAllSteps(static_cast<int>(ss));
+				LOG->Trace("val %f", val);
+				LOG->Trace("comp %f", SkillsetFilters[ss]);
+				if (val > SkillsetFilters[ss]) {
+					LOG->Trace("hi");
+					addsong = addsong || true;
+				}	
+			}
+		}
+		LOG->Trace("addsong %i", addsong);
+		if (addsong == true)
+			tmp.emplace_back(inv[i]);
+	}
+	inv.swap(tmp);
+}
+
 void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelItemDatas, SortOrder so, bool searching, RString findme )
 {
 	switch( so )
@@ -647,9 +671,11 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 			vector<Song*> arraySongs;
 			GetSongList( arraySongs, so );
 
-			if (searching)
+			if (searching) {
 				FilterBySearch(arraySongs, findme);
-
+				FilterBySkillsets(arraySongs);
+			}
+				
 			bool bUseSections = true;
 
 			// sort the songs
@@ -1795,6 +1821,11 @@ public:
 		p->ReloadSongList(true, SArg(1));
 		return 1;
 	}
+	static int SetSkillsetFilter(T* p, lua_State *L) {
+		p->SetSkillsetFilter(FArg(1), static_cast<Skillset>(IArg(2)-1));
+		p->ReloadSongList(true, "");
+		return 1;
+	}
 
 	LunaMusicWheel()
 	{
@@ -1804,6 +1835,7 @@ public:
 		ADD_METHOD( SelectSong );
 		ADD_METHOD( SelectCourse );
 		ADD_METHOD( SongSearch );
+		ADD_METHOD( SetSkillsetFilter );
 	}
 };
 

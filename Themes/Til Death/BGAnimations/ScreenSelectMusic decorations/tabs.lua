@@ -1,11 +1,14 @@
 local active = true
+local numericinputactive = false
 
 local function input(event)
 	if event.type ~= "InputEventType_Release" and active then
-		for i=1,6 do
-			if event.DeviceInput.button == "DeviceButton_"..i then
-				setTabIndex(i-1)
-				MESSAGEMAN:Broadcast("TabChanged")
+		if numericinputactive == false then
+			for i=1,6 do
+				if event.DeviceInput.button == "DeviceButton_"..i then
+					setTabIndex(i-1)
+					MESSAGEMAN:Broadcast("TabChanged")
+				end
 			end
 		end
 		if event.DeviceInput.button == "DeviceButton_left mouse button" then
@@ -23,6 +26,11 @@ local t = Def.ActorFrame{
 	PlayerJoinedMessageCommand=function(self) resetTabIndex() end,
 	BeginningSearchMessageCommand=function(self) active = true end,
 	EndingSearchMessageCommand=function(self) active = true end,
+	NumericInputActiveMessageCommand=function(self) 
+		ms.ok("woot")
+		numericinputactive = true 
+	end,
+	NumericInputEndedMessageCommand=function(self) numericinputactive = false end,
 }
 
 -- Just for debug
