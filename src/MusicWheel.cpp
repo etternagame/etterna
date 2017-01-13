@@ -604,17 +604,11 @@ void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
 		bool addsong = false;
 		FOREACH_ENUM(Skillset, ss) {
 			if (SkillsetFilters[ss] > 0.f) {
-				LOG->Trace("%i", (int)ss);
 				float val = inv[i]->GetHighestSkillsetAllSteps(static_cast<int>(ss));
-				LOG->Trace("val %f", val);
-				LOG->Trace("comp %f", SkillsetFilters[ss]);
-				if (val > SkillsetFilters[ss]) {
-					LOG->Trace("hi");
+				if (val > SkillsetFilters[ss])
 					addsong = addsong || true;
-				}	
 			}
 		}
-		LOG->Trace("addsong %i", addsong);
 		if (addsong == true)
 			tmp.emplace_back(inv[i]);
 	}
@@ -673,7 +667,8 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 
 			if (searching) {
 				FilterBySearch(arraySongs, findme);
-				FilterBySkillsets(arraySongs);
+				if (SkillsetFiltersActive)
+					FilterBySkillsets(arraySongs);
 			}
 				
 			bool bUseSections = true;
@@ -1823,6 +1818,8 @@ public:
 	}
 	static int SetSkillsetFilter(T* p, lua_State *L) {
 		p->SetSkillsetFilter(FArg(1), static_cast<Skillset>(IArg(2)-1));
+		if(FArg(1) > 0)
+			p->SkillsetFiltersActive = true;
 		p->ReloadSongList(true, "");
 		return 1;
 	}

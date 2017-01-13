@@ -24,12 +24,9 @@ local t = Def.ActorFrame{
 	OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) end,
 	BeginCommand=function(self) resetTabIndex() end,
 	PlayerJoinedMessageCommand=function(self) resetTabIndex() end,
-	BeginningSearchMessageCommand=function(self) active = true end,
+	BeginningSearchMessageCommand=function(self) active = true end,	-- this is for disabling numeric input in the text search and is unused atm
 	EndingSearchMessageCommand=function(self) active = true end,
-	NumericInputActiveMessageCommand=function(self) 
-		ms.ok("woot")
-		numericinputactive = true 
-	end,
+	NumericInputActiveMessageCommand=function(self) numericinputactive = true end,
 	NumericInputEndedMessageCommand=function(self) numericinputactive = false end,
 }
 

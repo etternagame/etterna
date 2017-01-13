@@ -6,11 +6,13 @@ local frameY = 180+capWideScale(get43size(120),120)
 local textsearchactive = false
 local whee
 local lastsearchstring = ""
+
+-- filter stuff should probably be separated from this eventually? - mina
 local activeskillsetfilter = 0
 local skillsetfilterqueries = {}
 
 for i=1,#ms.SkillSets do 
-	skillsetfilterqueries[i] = ""
+	skillsetfilterqueries[i] = "0"
 end
 
 
@@ -48,7 +50,7 @@ local function searchInput(event)
 			lastsearchstring = searchstring
 		end
 	elseif event.type ~= "InputEventType_Release" and activeskillsetfilter > 0 then
-		if event.button == "Start" then
+		if event.button == "Start" or event.button == "Back" then
 			textsearchactive = true
 			activeskillsetfilter = 0
 			MESSAGEMAN:Broadcast("NumericInputEnded")
@@ -60,9 +62,15 @@ local function searchInput(event)
 		else
 			for i=1,#numbershers do														-- add standard characters to string
 				if event.DeviceInput.button == "DeviceButton_"..numbershers[i] then
+					if skillsetfilterqueries[activeskillsetfilter] == "0" then 
+						skillsetfilterqueries[activeskillsetfilter] = ""
+					end
 					skillsetfilterqueries[activeskillsetfilter] = skillsetfilterqueries[activeskillsetfilter]..numbershers[i]
 				end
 			end
+		end
+		if skillsetfilterqueries[activeskillsetfilter] == "" then 
+			skillsetfilterqueries[activeskillsetfilter] = "0"
 		end
 		MESSAGEMAN:Broadcast("UpdateFilter")
 		if skillsetfilterqueries[activeskillsetfilter] ~= "" then
@@ -139,7 +147,7 @@ local t = Def.ActorFrame{
 	LoadFont("Common Normal")..{
 		InitCommand=cmd(xy,frameX+20,frameY+70;zoom,0.5;halign,0),
 		SetCommand=function(self) 
-			self:settext("Currently supports standard english alphabet only.")
+			--self:settext("Currently supports standard english alphabet only.")
 		end,
 		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
 	},
@@ -148,31 +156,59 @@ local t = Def.ActorFrame{
 
 
 
-
-local i = 1
-
 local f = Def.ActorFrame{
-	InitCommand=cmd(xy,frameX+20,frameY-75;zoom,0.4;halign,0),
-	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+20,frameY-70;zoom,0.5;halign,0),
-		SetCommand=cmd(settext, "Overall")
-	},
-	Def.Quad{
-		InitCommand=cmd(zoomto,100,100),
-		MouseLeftClickMessageCommand=function(self)
-			if isOver(self) then
-				textsearchactive = false
-				activeskillsetfilter = i
-				MESSAGEMAN:Broadcast("NumericInputActive")
-			end
-		end,
-	},
-	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+170,frameY-70;zoom,0.5;halign,0),
-		SetCommand=cmd(settext, skillsetfilterqueries[i]),
-		UpdateFilterMessageCommand=cmd(queuecommand,"Set"),
-	},
+	InitCommand=cmd(xy,frameX+30,frameY-50;halign,0),
 }
+local filterspacing = 20
+local filtertextzoom = 0.35
+local function CreateFilterInputBox(i)
+	local t = Def.ActorFrame{
+		LoadFont("Common Large")..{
+			InitCommand=cmd(addy,(i-1)*filterspacing;halign,0;zoom,filtertextzoom),
+			SetCommand=cmd(settext, ms.SkillSets[i])
+		},
+		Def.Quad{
+			InitCommand=cmd(addx,135;addy,(i-1)*filterspacing;zoomto,18,18;halign,1),
+			MouseLeftClickMessageCommand=function(self)
+				if isOver(self) then
+					textsearchactive = false
+					activeskillsetfilter = i
+					ms.ok("Skillset "..i.." Activated")
+					MESSAGEMAN:Broadcast("NumericInputActive")
+					self:diffusealpha(0.1)
+				end
+			end,
+			SetCommand=function(self)
+				if activeskillsetfilter ~= i then
+					self:diffuse(color("#000000"))
+				else
+					self:diffuse(color("#666666"))
+				end
+			end,
+			UpdateFilterMessageCommand=cmd(queuecommand,"Set"),
+			NumericInputEndedMessageCommand=cmd(queuecommand,"Set"),
+		},
+		LoadFont("Common Large")..{
+			InitCommand=cmd(addx,135;addy,(i-1)*filterspacing;halign,1;maxwidth,40;zoom,filtertextzoom),
+			SetCommand=function(self)
+				self:settext(skillsetfilterqueries[i])
+				if tonumber(skillsetfilterqueries[i]) <= 0 then
+					self:diffuse(color("#666666"))
+				else
+					self:diffuse(color("#FFFFFF"))
+				end
+			end,
+			UpdateFilterMessageCommand=cmd(queuecommand,"Set"),
+		},
+	}
+	return t
+end
+
+for i=1,#ms.SkillSets do 
+	f[#f+1] = CreateFilterInputBox(i)
+end
+
+
 
 t[#t+1] = f
 

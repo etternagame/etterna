@@ -54,6 +54,7 @@ public:
 
 	// mina was here - mina
 	void SetSkillsetFilter(float v, Skillset ss) { SkillsetFilters[ss] = v; }
+	bool SkillsetFiltersActive = false;
 	// Lua
 	void PushSelf( lua_State *L );
 
