@@ -80,7 +80,7 @@ t[#t+1] = Def.ActorFrame{
 		PlayerUnjoinedMessageCommand=cmd(queuecommand,"ModifyAvatar"),
 		ModifyAvatarCommand=function(self)
 			self:finishtweening()
-			self:LoadBackground(THEME:GetPathG("","../"..getAvatarPath(PLAYER_1)))
+			self:Load(THEME:GetPathG("","../"..getAvatarPath(PLAYER_1)))
 			self:zoomto(50,50)
 		end,
 	},

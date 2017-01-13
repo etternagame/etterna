@@ -8,7 +8,7 @@ local t = Def.ActorFrame{
 		InitCommand=cmd(halign,0;valign,0;xy,PlayerFrameX,PlayerFrameY),
 		BeginCommand=function(self)
 			self:finishtweening()
-			self:LoadBackground(THEME:GetPathG("","../"..getAvatarPath(PLAYER_1)))
+			self:Load(THEME:GetPathG("","../"..getAvatarPath(PLAYER_1)))
 			self:zoomto(50,50)
 		end,
 	},
