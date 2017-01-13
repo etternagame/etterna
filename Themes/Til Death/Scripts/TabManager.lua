@@ -27,19 +27,19 @@ end;
 -- Resets the index of the tabs to 0
 function resetTabIndex()
 	tabIndex = 0
-end;
+end
 
 function setTabIndex(index)
 	if GAMESTATE:GetNumPlayersEnabled() == 1 then
 		if availableTabs1P[index+1] then
 			tabIndex = index
-		end;
+		end
 	else
 		if availableTabs2P[index+1] then
 			tabIndex = index
-		end;
-	end;
-end;
+		end
+	end
+end
 
 -- Incements the tab index by 1 given the tab is available.
 function incrementTabIndex()

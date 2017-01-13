@@ -176,6 +176,8 @@ GameState::GameState() :
 	// Don't reset yet; let the first screen do it, so we can use PREFSMAN and THEME.
 	//Reset();
 
+	ZERO( SkillsetFilters );
+
 	// Register with Lua.
 	{
 		Lua *L = LUA->Get();

@@ -242,6 +242,10 @@ public:
 	bool		m_bLoadingNextSong;
 	int		GetLoadingCourseSongIndex() const;
 
+
+	// mina was here - mina
+	float SkillsetFilters[NUM_Skillset];
+
 	// State Info used during gameplay
 
 	// NULL on ScreenSelectMusic if the currently selected wheel item isn't a Song.

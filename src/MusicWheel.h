@@ -56,6 +56,7 @@ public:
 	void SetSkillsetFilter(float v, Skillset ss) { SkillsetFilters[ss] = v; }
 	float GetSkillsetFilter(Skillset ss) { return SkillsetFilters[ss]; }
 	bool SkillsetFiltersActive = false;
+	bool AnyActiveSkillsetFilter();
 	// Lua
 	void PushSelf( lua_State *L );
 

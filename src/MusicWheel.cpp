@@ -127,6 +127,8 @@ void MusicWheel::Load( const RString &sType )
 		m_WheelItemDatasStatus[so]=INVALID;
 	}
 	ZERO( SkillsetFilters );
+	FOREACH_ENUM(Skillset, ss)
+		SkillsetFilters[ss] = GAMESTATE->SkillsetFilters[ss];
 }
 
 void MusicWheel::BeginScreen()
@@ -258,8 +260,9 @@ MusicWheel::~MusicWheel()
 		for( ; i != iEnd; ++i ) {
 			delete *i;
 		}
-
 	}
+	FOREACH_ENUM(Skillset, ss)
+		GAMESTATE->SkillsetFilters[ss] = SkillsetFilters[ss];
 }
 
 void MusicWheel::ReloadSongList(bool searching, RString findme)
@@ -615,6 +618,14 @@ void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
 	inv.swap(tmp);
 }
 
+// should make an explicit toggle soon - mina
+bool MusicWheel::AnyActiveSkillsetFilter() {
+	FOREACH_ENUM(Skillset, ss)
+		if (SkillsetFilters[ss] > 0)
+			return true;
+	return false;
+}
+
 void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelItemDatas, SortOrder so, bool searching, RString findme )
 {
 	switch( so )
@@ -665,11 +676,11 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 			vector<Song*> arraySongs;
 			GetSongList( arraySongs, so );
 
-			if (searching) {
+			if (searching)
 				FilterBySearch(arraySongs, findme);
-				if (SkillsetFiltersActive)
-					FilterBySkillsets(arraySongs);
-			}
+
+			if (AnyActiveSkillsetFilter())
+				FilterBySkillsets(arraySongs);
 				
 			bool bUseSections = true;
 
@@ -1791,6 +1802,7 @@ public:
 		return 1;
 	}
 	DEFINE_METHOD(GetSelectedSection, GetSelectedSection());
+	DEFINE_METHOD(AnyActiveSkillsetFilter, AnyActiveSkillsetFilter());
 	static int IsRouletting(T* p, lua_State *L) { lua_pushboolean(L, p->IsRouletting()); return 1; }
 	static int SelectSong(T* p, lua_State *L)
 	{
@@ -1818,13 +1830,12 @@ public:
 	}
 	static int SetSkillsetFilter(T* p, lua_State *L) {
 		p->SetSkillsetFilter(FArg(1), static_cast<Skillset>(IArg(2)-1));
-		if(FArg(1) > 0)
-			p->SkillsetFiltersActive = true;
 		p->ReloadSongList(true, "");
 		return 1;
 	}
 	static int GetSkillsetFilter(T* p, lua_State *L) {
-		p->GetSkillsetFilter(static_cast<Skillset>(IArg(2) - 1));
+		float f = p->GetSkillsetFilter(static_cast<Skillset>(IArg(1) - 1));
+		lua_pushnumber(L, f);
 		return 1;
 	}
 
@@ -1837,6 +1848,8 @@ public:
 		ADD_METHOD( SelectCourse );
 		ADD_METHOD( SongSearch );
 		ADD_METHOD( SetSkillsetFilter );
+		ADD_METHOD( GetSkillsetFilter );
+		ADD_METHOD( AnyActiveSkillsetFilter );
 	}
 };
 
