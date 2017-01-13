@@ -303,7 +303,7 @@ Section "Main Section" SecMain
 	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByZero"
 	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByZero_halved"
 	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByZero_semihalved"
-	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByBar"
+	RMDir /r "$INSTDIR\NoteSkins\dance\SubtractByZero"
 	RMDir /r "$INSTDIR\NoteSkins\dance\MultiplyByZero"
 	RMDir /r "$INSTDIR\NoteSkins\dance\Delta"
 	; the "midi-*" noteskin series was formerly known as just "midi".
@@ -365,7 +365,7 @@ Section "Main Section" SecMain
 	File /r /x CVS /x .svn "NoteSkins\dance\DivideByZero"
 	File /r /x CVS /x .svn "NoteSkins\dance\DivideByZero_halved"
 	File /r /x CVS /x .svn "NoteSkins\dance\DivideByZero_semihalved"
-	File /r /x CVS /x .svn "NoteSkins\dance\DivideByBar"
+	File /r /x CVS /x .svn "NoteSkins\dance\SubtractByZero"
 	File /r /x CVS /x .svn "NoteSkins\dance\MultiplyByZero"
 	SetOutPath "$INSTDIR"
 
@@ -818,7 +818,7 @@ Section "Uninstall"
 	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByZero"
 	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByZero_halved"
 	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByZero_semihalved"
-	RMDir /r "$INSTDIR\NoteSkins\dance\DivideByBar"
+	RMDir /r "$INSTDIR\NoteSkins\dance\SubtractByZero"
 	RMDir /r "$INSTDIR\NoteSkins\dance\MultiplyByZero"
 	RMDir "$INSTDIR\NoteSkins\dance"
 
