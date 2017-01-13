@@ -243,8 +243,10 @@ public:
 	int		GetLoadingCourseSongIndex() const;
 
 
-	// mina was here - mina
+	// mina was here to drop in some temporary(?) filter things that need to persist - mina
 	float SkillsetFilters[NUM_Skillset];
+	float MaxFilterRate;
+	void SetMaxFilterRate(float v) { MaxFilterRate; }
 
 	// State Info used during gameplay
 

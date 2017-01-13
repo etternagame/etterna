@@ -91,7 +91,7 @@ local f = Def.ActorFrame{
 	LoadFont("Common Large")..{
 		InitCommand=cmd(xy,frameX+frameWidth/2,175;zoom,textzoom;halign,0),
 		SetCommand=function(self) 
-			self:settext("Max Rate: "..1)
+			self:settext("Max Rate: 1.5x")
 		end,
 	},
 	LoadFont("Common Large")..{
@@ -103,7 +103,7 @@ local f = Def.ActorFrame{
 		LoadFont("Common Large")..{
 	InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY*2;zoom,textzoom;halign,0),
 		SetCommand=function(self) 
-			self:settext("Highest SS: ".."False")
+			self:settext("Highest SS Only : ".."Off")
 		end,
 	},
 }

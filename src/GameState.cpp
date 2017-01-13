@@ -176,7 +176,11 @@ GameState::GameState() :
 	// Don't reset yet; let the first screen do it, so we can use PREFSMAN and THEME.
 	//Reset();
 
+
+	// filter stuff - mina
 	ZERO( SkillsetFilters );
+	MaxFilterRate = 1.5;
+
 
 	// Register with Lua.
 	{
@@ -3238,6 +3242,10 @@ public:
 		p->m_autogen_fargs[si]= v;
 		COMMON_RETURN_SELF;
 	}
+	static int SetMaxFilterRate(T* p, lua_State* L) {
+		p->MaxFilterRate = FArg(1);
+		return 1;
+	}
 
 	LunaGameState()
 	{
@@ -3366,6 +3374,7 @@ public:
 		ADD_METHOD( SetStepsForEditMode );
 		ADD_METHOD( GetAutoGenFarg );
 		ADD_METHOD( SetAutoGenFarg );
+		ADD_METHOD( SetMaxFilterRate );
 	}
 };
 

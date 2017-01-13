@@ -273,7 +273,9 @@ public:
 	float GetPreviewStartSeconds() const;
 
 	// how have i not jammed anything here yet - mina 
-	float GetHighestSkillsetAllSteps(int x);
+
+	// Get the highest value for a specific skillset across all the steps objects for the song at a given rate
+	float GetHighestOfSkillsetAllSteps(int x, float rate);
 
 	// For loading only:
 	bool m_bHasMusic, m_bHasBanner, m_bHasBackground;

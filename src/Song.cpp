@@ -1732,12 +1732,12 @@ float Song::GetPreviewStartSeconds() const
 	return 0.0f;
 }
 
-float Song::GetHighestSkillsetAllSteps(int x) {
+float Song::GetHighestOfSkillsetAllSteps(int x, float rate) {
 	float o = 0.f;
 	vector<Steps*> vsteps = GetAllSteps();
 	FOREACH(Steps*, vsteps, steps)
-		if ((*steps)->GetMSD(1, x) > o)
-			o = (*steps)->GetMSD(1, x);
+		if ((*steps)->GetMSD(rate, x) > o)
+			o = (*steps)->GetMSD(rate, x);
 	return o;
 }
 

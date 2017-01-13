@@ -533,13 +533,11 @@ void MusicWheel::FilterBySearch(vector<Song*>& inv, RString findme) {
 	size_t fart = findme.find("artist=");
 	size_t faux = findme.find("author=");
 	size_t fitty = findme.find("title=");
-	size_t jack = findme.find("jack=");
 	RString findfart = "";
 	RString findfaux = "";
 	RString findfitty = "";
-	int findjack = -1.f;
 
-	if (fart != findme.npos || faux != findme.npos || fitty != findme.npos || jack != findme.npos) {
+	if (fart != findme.npos || faux != findme.npos || fitty != findme.npos) {
 		super_search = true;
 		if (fart != findme.npos)
 			findfart = findme.substr(fart + 7, findme.find(fart, ';') - fart);
@@ -547,8 +545,6 @@ void MusicWheel::FilterBySearch(vector<Song*>& inv, RString findme) {
 			findfaux = findme.substr(faux + 7, findme.find(faux, ';') - faux);
 		if (fitty != findme.npos)
 			findfitty = findme.substr(fitty + 6, findme.find(fitty, ';') - fitty);
-		if (jack != findme.npos)
-			findjack = StringToInt(findme.substr(jack + 5, findme.find(jack, ';') - jack));
 	}
 
 	vector<Song*> tmp;
@@ -585,11 +581,6 @@ void MusicWheel::FilterBySearch(vector<Song*>& inv, RString findme) {
 				if (gimmie != fittyS.npos)
 					tmp.emplace_back(inv[i]);
 			}
-			if (findjack != -1.f) {
-				float jackR = inv[i]->GetHighestSkillsetAllSteps(3);
-				if(jackR > findjack)
-					tmp.emplace_back(inv[i]);
-			}
 		}
 	}
 	
@@ -607,7 +598,7 @@ void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
 		bool addsong = false;
 		FOREACH_ENUM(Skillset, ss) {
 			if (SkillsetFilters[ss] > 0.f) {
-				float val = inv[i]->GetHighestSkillsetAllSteps(static_cast<int>(ss));
+				float val = inv[i]->GetHighestOfSkillsetAllSteps(static_cast<int>(ss), GAMESTATE->MaxFilterRate);
 				if (val > SkillsetFilters[ss])
 					addsong = addsong || true;
 			}
