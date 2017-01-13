@@ -861,7 +861,7 @@ public:
 	static int GetMSD(T* p, lua_State *L)
 	{
 		float rate = FArg(1);
-		int index = IArg(2);
+		int index = IArg(2)-1;
 		CLAMP(rate, 0.7f, 2.f);
 		lua_pushnumber(L, p->GetMSD(rate, index));
 		return 1;
