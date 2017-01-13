@@ -14,6 +14,7 @@
 #include "Foreach.h"
 #include "LuaBinding.h"
 #include "LuaManager.h"
+#include "InputFilter.h"
 
 REGISTER_ACTOR_CLASS( Sprite );
 
@@ -1088,10 +1089,12 @@ public:
 	}
 	static int LoadBackground( T* p, lua_State *L )
 	{
-		RageTextureID ID( SArg(1) );
-		TEXTUREMAN->DisableOddDimensionWarning();
-		p->Load( Sprite::SongBGTexture(ID) );
-		TEXTUREMAN->EnableOddDimensionWarning();
+		if (!INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_TAB))) {
+			RageTextureID ID(SArg(1));
+			TEXTUREMAN->DisableOddDimensionWarning();
+			p->Load(Sprite::SongBGTexture(ID));
+			TEXTUREMAN->EnableOddDimensionWarning();
+		}	
 		return 1;
 	}
 	static int LoadBanner( T* p, lua_State *L )
