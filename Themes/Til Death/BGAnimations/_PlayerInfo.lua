@@ -131,6 +131,15 @@ t[#t+1] = Def.ActorFrame{
 		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
 	},
 	LoadFont("Common Normal") .. {
+		InitCommand=cmd(xy,SCREEN_WIDTH-5,AvatarY+10;halign,1;zoom,0.35;diffuse,getMainColor('positive')),
+		BeginCommand=cmd(queuecommand,"Set"),
+		SetCommand=function(self)
+			self:settextf("Etterna 0.54")
+		end,
+		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
+		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+	},
+	LoadFont("Common Normal") .. {
 		InitCommand=cmd(xy,SCREEN_WIDTH-5,AvatarY+20;halign,1;zoom,0.35;diffuse,getMainColor('positive')),
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self)
