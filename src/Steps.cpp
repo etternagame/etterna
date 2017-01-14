@@ -466,6 +466,16 @@ float Steps::GetMSD(float x, int i) const {
 	return lerp(prop, stuffnthings[idx][i], stuffnthings[idx + 1][i]);
 }
 
+map<float, Skillset> Steps::SortSkillsetsAtRate(float x, bool includeoverall) {
+	int idx = static_cast<int>(x * 10) - 7;
+	map<float, Skillset> why;
+	SDiffs tmp = stuffnthings[idx];
+	FOREACH_ENUM(Skillset, ss)
+		if(ss != Skill_Overall || includeoverall)
+			why.emplace(tmp[ss], ss);
+	return why;
+}
+
 RString Steps::GenerateChartKey(NoteData& nd, TimingData *td)
 {
 	RString k = "";
@@ -852,18 +862,39 @@ public:
 		return 1;
 	}	
 
-	static int GetChartKey(T* p, lua_State *L)
-	{
+	static int GetChartKey(T* p, lua_State *L) {
 		lua_pushstring(L, p->GetChartKey());
 		return 1;
 	}
 
-	static int GetMSD(T* p, lua_State *L)
-	{
+	static int GetMSD(T* p, lua_State *L) {
 		float rate = FArg(1);
 		int index = IArg(2)-1;
 		CLAMP(rate, 0.7f, 2.f);
 		lua_pushnumber(L, p->GetMSD(rate, index));
+		return 1;
+	}
+	// ok really is this how i have to do this - mina
+	static int GetRelevantSkillsetsByMSDRank(T* p, lua_State *L) {
+		auto sortedskillsets = p->SortSkillsetsAtRate(FArg(1), false);
+		int rank = IArg(2);
+		int i = NUM_Skillset - 1; // exclude Overall from this... need to handle overall better - mina
+		Skillset o;
+		float rval = 0.f;
+		float highval = 0.f;
+		FOREACHM(float, Skillset, sortedskillsets, thingy) {				
+			if (i == rank) {
+				rval = thingy->first;
+				o = thingy->second;
+			}
+			if (i == 1)
+				highval = thingy->first;
+			--i;
+		}
+		if(rval > highval * 0.9f)
+			lua_pushstring(L, SkillsetToString(o) );
+		else
+			lua_pushstring(L, "");
 		return 1;
 	}
 
@@ -895,6 +926,7 @@ public:
 		ADD_METHOD( IsDisplayBpmRandom );
 		ADD_METHOD( PredictMeter );
 		ADD_METHOD( GetDisplayBPMType );
+		ADD_METHOD( GetRelevantSkillsetsByMSDRank );
 	}
 };
 

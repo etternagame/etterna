@@ -179,6 +179,7 @@ public:
 	void SetChartKey(const RString &k)  { ChartKey = k; }
 	void SetAllMSD(const MinaSD &msd) { stuffnthings = msd; }
 	MinaSD GetAllMSD() const { return stuffnthings;  }
+	map<float, Skillset> SortSkillsetsAtRate(float x, bool includeoverall);
 
 	// prolly needs an enum or something idk - mina
 	float GetMSD(float x, int i) const;
