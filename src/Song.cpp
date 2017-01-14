@@ -1733,6 +1733,7 @@ float Song::GetPreviewStartSeconds() const
 }
 
 float Song::GetHighestOfSkillsetAllSteps(int x, float rate) {
+	CLAMP(rate, 0.7f, 2.f);
 	float o = 0.f;
 	vector<Steps*> vsteps = GetAllSteps();
 	FOREACH(Steps*, vsteps, steps)

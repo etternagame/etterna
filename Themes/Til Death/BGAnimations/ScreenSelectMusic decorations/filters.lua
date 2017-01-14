@@ -105,6 +105,12 @@ local f = Def.ActorFrame{
 		end,
 	},
 	LoadFont("Common Large")..{
+		InitCommand=cmd(xy,frameX,frameY+80;zoom,0.3;halign,0),
+		SetCommand=function(self) 
+			self:settext("'Highest Only' applies only to Mode: Or")
+		end,
+	},
+	LoadFont("Common Large")..{
 		InitCommand=cmd(xy,frameX+frameWidth/2,175;zoom,textzoom;halign,0),
 		SetCommand=function(self) 
 			self:settextf("Max Rate:%5.1fx",GAMESTATE:GetMaxFilterRate())
@@ -130,6 +136,30 @@ local f = Def.ActorFrame{
 	},
 	LoadFont("Common Large")..{
 		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY;zoom,textzoom;halign,0),
+		SetCommand=function(self) 
+			self:settextf("Min Rate:%5.1fx",GAMESTATE:GetMinFilterRate())
+		end,
+		MaxFilterRateChangedMessageCommand=cmd(queuecommand,"Set"),
+	},
+	Def.Quad{
+		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY;zoomto,130,18;halign,0;diffusealpha,0),
+		MouseLeftClickMessageCommand=function(self)
+			if isOver(self) then
+				GAMESTATE:SetMinFilterRate(GAMESTATE:GetMinFilterRate()+0.1)
+				MESSAGEMAN:Broadcast("MaxFilterRateChanged")
+				whee:SongSearch("")
+			end
+		end,
+		MouseRightClickMessageCommand=function(self)
+			if isOver(self) then
+				GAMESTATE:SetMinFilterRate(GAMESTATE:GetMinFilterRate()-0.1)
+				MESSAGEMAN:Broadcast("MaxFilterRateChanged")
+				whee:SongSearch("")
+			end
+		end,
+	},
+	LoadFont("Common Large")..{
+		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY * 2;zoom,textzoom;halign,0),
 		SetCommand=function(self)
 			local mode = GAMESTATE:GetFilterMode()
 			if mode then 
@@ -141,7 +171,7 @@ local f = Def.ActorFrame{
 		FilterModeChangedMessageCommand=cmd(queuecommand,"Set"),
 	},
 	Def.Quad{
-		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY;zoomto,120,18;halign,0;diffusealpha,0),
+		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY * 2;zoomto,120,18;halign,0;diffusealpha,0),
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
 				GAMESTATE:ToggleFilterMode()
@@ -151,7 +181,7 @@ local f = Def.ActorFrame{
 		end,
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY * 2;zoom,textzoom;halign,0),
+		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY * 3;zoom,textzoom;halign,0),
 		SetCommand=function(self)
 			local yes = GAMESTATE:GetHighestSkillsetsOnly()
 			if yes then 
@@ -163,7 +193,7 @@ local f = Def.ActorFrame{
 		FilterModeChangedMessageCommand=cmd(queuecommand,"Set"),
 	},
 	Def.Quad{
-		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY * 2;zoomto,160,18;halign,0;diffusealpha,0),
+		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY * 3;zoomto,160,18;halign,0;diffusealpha,0),
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
 				GAMESTATE:ToggleHighestSkillsetsOnly()
@@ -173,7 +203,7 @@ local f = Def.ActorFrame{
 		end,
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY * 3;zoom,textzoom;halign,0;settext,""),
+		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY * 4;zoom,textzoom;halign,0;settext,""),
 		FilterResultsMessageCommand=function(self, msg)
 			self:settext("Matches: "..msg.Matches.."/"..msg.Total)
 		end

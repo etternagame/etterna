@@ -598,23 +598,28 @@ void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
 				float lb = GAMESTATE->SSFilterLowerBounds[ss];
 				float ub = GAMESTATE->SSFilterUpperBounds[ss];
 				if (lb > 0.f || ub > 0.f) {				// if either bound is active, continue to evaluation
-					if (GAMESTATE->HighestSkillsetsOnly)
-						if (!inv[i]->IsSkillsetHighestOfAnySteps(ss, GAMESTATE->MaxFilterRate))
-							continue;
-						
-					float val = inv[i]->GetHighestOfSkillsetAllSteps(static_cast<int>(ss), GAMESTATE->MaxFilterRate);
+					float currate = GAMESTATE->MaxFilterRate + 0.1f;
+					float minrate = GAMESTATE->m_pPlayerState[0]->wtFFF;
+					do {
+						currate = currate - 0.1f;
+						if (GAMESTATE->HighestSkillsetsOnly)
+							if (!inv[i]->IsSkillsetHighestOfAnySteps(ss, currate))
+								continue;
 
-					bool isrange = lb > 0.f && ub > 0.f;	// both bounds are active and create an explicit range
-					if (isrange) {
-						if (val > lb && val < ub)		// if dealing with an explicit range evaluate as such
-							addsong = addsong || true;
-					}
-					else {
-						if (lb > 0.f && val > lb)		// must be a nicer way to handle this but im tired
-							addsong = addsong || true;
-						if (ub > 0.f && val < ub)
-							addsong = addsong || true;
-					}
+						float val = inv[i]->GetHighestOfSkillsetAllSteps(static_cast<int>(ss), currate);
+
+						bool isrange = lb > 0.f && ub > 0.f;	// both bounds are active and create an explicit range
+						if (isrange) {
+							if (val > lb && val < ub)		// if dealing with an explicit range evaluate as such
+								addsong = addsong || true;
+						}
+						else {
+							if (lb > 0.f && val > lb)		// must be a nicer way to handle this but im tired
+								addsong = addsong || true;
+							if (ub > 0.f && val < ub)
+								addsong = addsong || true;
+						}
+					} while (currate > minrate);
 				}
 			}
 
@@ -627,25 +632,36 @@ void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
 		for (size_t i = 0; i < inv.size(); i++) {
 			bool addsong = true;
 			FOREACH_ENUM(Skillset, ss) {
-				if (!addsong)
-					continue;
+				bool pineapple = true;
 				float lb = GAMESTATE->SSFilterLowerBounds[ss];
 				float ub = GAMESTATE->SSFilterUpperBounds[ss];
 				if (lb > 0.f || ub > 0.f) {
-					float val = inv[i]->GetHighestOfSkillsetAllSteps(static_cast<int>(ss), GAMESTATE->MaxFilterRate);
-					bool isrange = lb > 0.f && ub > 0.f;
-					if (isrange) {
-						if (val < lb || val > ub)
-							addsong = false;
-					}
-					else {
-						if (lb > 0.f && val < lb)
-							addsong = false;
-						if (ub > 0.f && val > ub)
-							addsong = false;
-					}
+					bool localaddsong;
+					float currate = GAMESTATE->MaxFilterRate + 0.1f;
+					float minrate = GAMESTATE->m_pPlayerState[0]->wtFFF;
+					bool toiletpaper = false;
+					do {
+						localaddsong = true;
+						currate = currate - 0.1f;
+						float val = inv[i]->GetHighestOfSkillsetAllSteps(static_cast<int>(ss), currate);
+						bool isrange = lb > 0.f && ub > 0.f;
+						if (isrange) {
+							if (val < lb || val > ub)
+								localaddsong = false;
+						}
+						else {
+							if (lb > 0.f && val < lb)
+								localaddsong = false;
+							if (ub > 0.f && val > ub)
+								localaddsong = false;
+						}
+						toiletpaper = localaddsong || toiletpaper;
+					} while (currate > minrate);
+					pineapple = pineapple && toiletpaper;
 				}
+				addsong = addsong && pineapple;
 			}
+			
 			if (addsong)
 				tmp.emplace_back(inv[i]);
 		}

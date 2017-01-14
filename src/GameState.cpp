@@ -3278,12 +3278,25 @@ public:
 	}
 	static int SetMaxFilterRate(T* p, lua_State* L) {
 		float mfr = FArg(1);
-		CLAMP(mfr, 0.7f, 2.f);
+		auto loot = p->m_pPlayerState[0];
+		CLAMP(mfr, loot->wtFFF, 2.f);
 		p->MaxFilterRate = mfr;
 		return 1;
 	}
 	static int GetMaxFilterRate(T* p, lua_State* L) {
 		lua_pushnumber(L, p->MaxFilterRate);
+		return 1;
+	}
+	static int SetMinFilterRate(T* p, lua_State* L) {
+		float mfr = FArg(1);
+		CLAMP(mfr, 0.7f, p->MaxFilterRate);
+		auto loot = p->m_pPlayerState[0];
+		loot->wtFFF = mfr;
+		return 1;
+	}
+	static int GetMinFilterRate(T* p, lua_State* L) {
+		auto loot = p->m_pPlayerState[0];
+		lua_pushnumber(L, loot->wtFFF);
 		return 1;
 	}
 	static int ToggleFilterMode(T* p, lua_State* L) {
@@ -3437,6 +3450,8 @@ public:
 		ADD_METHOD( AnyActiveFilter );
 		ADD_METHOD( SetMaxFilterRate );
 		ADD_METHOD( GetMaxFilterRate );
+		ADD_METHOD( SetMinFilterRate );
+		ADD_METHOD( GetMinFilterRate );
 		ADD_METHOD( ToggleFilterMode );
 		ADD_METHOD( GetFilterMode );
 		ADD_METHOD( ToggleHighestSkillsetsOnly );

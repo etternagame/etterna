@@ -19,6 +19,8 @@
 #include "ScreenSelectMusic.h"
 #include "ScreenManager.h"
 
+static Preference<bool> uanastypadplayerdog("ShowGradesForAnyDifficulty", true);
+
 static const char *MusicWheelItemTypeNames[] = {
 	"Song",
 	"SectionExpanded",

@@ -136,7 +136,7 @@ public:
 	int m_NumCols;
 	void SetNumCols(int ncol) { m_NumCols = ncol; };
 	int GetNumCols() { return m_NumCols; };
-
+	float wtFFF = 1.f;			// lol dont ask - mina
 	
 
 	// Lua
