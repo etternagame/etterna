@@ -180,8 +180,6 @@ GameState::GameState() :
 	// filter stuff - mina
 	ZERO( SSFilterLowerBounds );
 	ZERO( SSFilterUpperBounds );
-	MaxFilterRate = 1.f;
-	FilterMode = 0;
 
 	// Register with Lua.
 	{
@@ -3289,15 +3287,14 @@ public:
 		return 1;
 	}
 	static int ToggleFilterMode(T* p, lua_State* L) {
-		if (p->FilterMode == 1)
-			p->FilterMode = 0;
-		else
-			p->FilterMode = 1;
+		p->ExclusiveFilter = !p->ExclusiveFilter;
 		return 1;
+
 	}
 	static int GetFilterMode(T* p, lua_State* L) {
-		lua_pushnumber(L, p->FilterMode);
+		lua_pushboolean(L, p->ExclusiveFilter);
 		return 1;
+
 	}
 
 	LunaGameState()

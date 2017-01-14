@@ -589,19 +589,37 @@ void MusicWheel::FilterBySearch(vector<Song*>& inv, RString findme) {
 
 void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
 	vector<Song*> tmp;
-	for (size_t i = 0; i < inv.size(); i++) {
-		bool addsong = false;
-		FOREACH_ENUM(Skillset, ss) {
-			float lb = GAMESTATE->SSFilterLowerBounds[ss];
-			if (lb > 0.f) {
-				float val = inv[i]->GetHighestOfSkillsetAllSteps(static_cast<int>(ss), GAMESTATE->MaxFilterRate);
-				if (val > lb)
-					addsong = addsong || true;
+	if (!GAMESTATE->ExclusiveFilter) {
+		for (size_t i = 0; i < inv.size(); i++) {
+			bool addsong = false;
+			FOREACH_ENUM(Skillset, ss) {
+				float lb = GAMESTATE->SSFilterLowerBounds[ss];
+				if (lb > 0.f) {
+					float val = inv[i]->GetHighestOfSkillsetAllSteps(static_cast<int>(ss), GAMESTATE->MaxFilterRate);
+					if (val > lb)
+						addsong = addsong || true;
+				}
 			}
+			if (addsong)
+				tmp.emplace_back(inv[i]);
 		}
-		if (addsong == true)
-			tmp.emplace_back(inv[i]);
 	}
+	else {
+		for (size_t i = 0; i < inv.size(); i++) {
+			bool addsong = true;
+			FOREACH_ENUM(Skillset, ss) {
+				float lb = GAMESTATE->SSFilterLowerBounds[ss];
+				if (lb > 0.f) {
+					float val = inv[i]->GetHighestOfSkillsetAllSteps(static_cast<int>(ss), GAMESTATE->MaxFilterRate);
+					if (val < lb)
+						addsong = false;
+				}
+			}
+			if (addsong)
+				tmp.emplace_back(inv[i]);
+		}
+	}
+	
 	inv.swap(tmp);
 }
 
