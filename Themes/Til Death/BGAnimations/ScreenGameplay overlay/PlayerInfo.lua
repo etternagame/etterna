@@ -22,7 +22,7 @@ local t = Def.ActorFrame{
 	LoadFont("Common Large") .. {
 		InitCommand=cmd(xy,PlayerFrameX+52,PlayerFrameY+28;halign,0;zoom,0.75;maxwidth,50),
 		BeginCommand=function(self)
-			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(),0)
+			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(),1)
 			self:settextf("%05.2f",meter)
 			self:diffuse(ByMSD(meter))
 		end,

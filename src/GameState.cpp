@@ -178,9 +178,10 @@ GameState::GameState() :
 
 
 	// filter stuff - mina
-	ZERO( SkillsetFilters );
-	MaxFilterRate = 1.5;
-
+	ZERO( SSFilterLowerBounds );
+	ZERO( SSFilterUpperBounds );
+	MaxFilterRate = 1.f;
+	FilterMode = 0;
 
 	// Register with Lua.
 	{
@@ -205,6 +206,31 @@ GameState::~GameState()
 	SAFE_DELETE( m_Environment );
 	SAFE_DELETE( g_pImpl );
 	SAFE_DELETE( processedTiming );
+}
+
+// tmp filter stuff - mina
+bool GameState::AnyActiveFilter() {
+	FOREACH_ENUM(Skillset, ss) {
+		if (SSFilterLowerBounds[ss] > 0)
+			return true;
+		if (SSFilterUpperBounds[ss] > 0)
+			return true;
+	}
+	return false;
+}
+
+void GameState::SetSSFilter(float v, Skillset ss, int bound) {
+	if (bound == 0)
+		SSFilterLowerBounds[ss] = v;
+	else
+		SSFilterUpperBounds[ss] = v;
+}
+
+float GameState::GetSSFilter(Skillset ss, int bound) {
+	if (bound == 0)
+		return SSFilterLowerBounds[ss];
+	else
+		return SSFilterUpperBounds[ss];
 }
 
 PlayerNumber GameState::GetMasterPlayerNumber() const
@@ -2815,6 +2841,7 @@ public:
 	DEFINE_METHOD( GetCoinMode,			GetCoinMode() )
 	DEFINE_METHOD( GetPremium,			GetPremium() )
 	DEFINE_METHOD( GetSongOptionsString,		m_SongOptions.GetCurrent().GetString() )
+	DEFINE_METHOD( AnyActiveFilter, AnyActiveFilter())
 	static int GetSessionTime(T* p, lua_State *L) { lua_pushnumber(L, p->m_timeGameStarted.GetTimeSinceStart()); return 1; }
 	static int GetSongOptions( T* p, lua_State *L )
 	{
@@ -3242,8 +3269,34 @@ public:
 		p->m_autogen_fargs[si]= v;
 		COMMON_RETURN_SELF;
 	}
+	static int SetSSFilter(T* p, lua_State *L) {
+		p->SetSSFilter(FArg(1), static_cast<Skillset>(IArg(2) - 1), IArg(3));
+		return 1;
+	}
+	static int GetSSFilter(T* p, lua_State *L) {
+		float f = p->GetSSFilter(static_cast<Skillset>(IArg(1) - 1), IArg(2));
+		lua_pushnumber(L, f);
+		return 1;
+	}
 	static int SetMaxFilterRate(T* p, lua_State* L) {
-		p->MaxFilterRate = FArg(1);
+		float mfr = FArg(1);
+		CLAMP(mfr, 0.7f, 2.f);
+		p->MaxFilterRate = mfr;
+		return 1;
+	}
+	static int GetMaxFilterRate(T* p, lua_State* L) {
+		lua_pushnumber(L, p->MaxFilterRate);
+		return 1;
+	}
+	static int ToggleFilterMode(T* p, lua_State* L) {
+		if (p->FilterMode == 1)
+			p->FilterMode = 0;
+		else
+			p->FilterMode = 1;
+		return 1;
+	}
+	static int GetFilterMode(T* p, lua_State* L) {
+		lua_pushnumber(L, p->FilterMode);
 		return 1;
 	}
 
@@ -3374,7 +3427,13 @@ public:
 		ADD_METHOD( SetStepsForEditMode );
 		ADD_METHOD( GetAutoGenFarg );
 		ADD_METHOD( SetAutoGenFarg );
+		ADD_METHOD( SetSSFilter );
+		ADD_METHOD( GetSSFilter );
+		ADD_METHOD( AnyActiveFilter );
 		ADD_METHOD( SetMaxFilterRate );
+		ADD_METHOD( GetMaxFilterRate );
+		ADD_METHOD( ToggleFilterMode );
+		ADD_METHOD( GetFilterMode );
 	}
 };
 

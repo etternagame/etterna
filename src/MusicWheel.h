@@ -52,11 +52,6 @@ public:
 
 	virtual void ReloadSongList(bool searching, RString findme);
 
-	// mina was here - mina
-	void SetSkillsetFilter(float v, Skillset ss) { SkillsetFilters[ss] = v; }
-	float GetSkillsetFilter(Skillset ss) { return SkillsetFilters[ss]; }
-	bool SkillsetFiltersActive = false;
-	bool AnyActiveSkillsetFilter();
 	// Lua
 	void PushSelf( lua_State *L );
 
@@ -68,7 +63,6 @@ protected:
 	bool SelectModeMenuItem();
 
 	void FilterBySearch(vector<Song*>& inv, RString findme);
-	float SkillsetFilters[NUM_Skillset];
 	void FilterBySkillsets(vector<Song*>& inv);
 	RString lastvalidsearch;
 

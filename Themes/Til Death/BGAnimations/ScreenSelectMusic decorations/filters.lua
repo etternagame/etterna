@@ -11,6 +11,7 @@ local frameWidth = capWideScale(360,400)
 local frameHeight = 350
 local offsetX = 10
 local offsetY = 20
+local activebound = 0
 for i=1,#ms.SkillSets do 
 	SSQuery[i] = "0"
 end
@@ -39,7 +40,8 @@ local function FilterInput(event)
 		if SSQuery[ActiveSS] == "" or #SSQuery[ActiveSS] > 2 then 
 			SSQuery[ActiveSS] = "0"
 		end
-		whee:SetSkillsetFilter(tonumber(SSQuery[ActiveSS]), ActiveSS)
+		GAMESTATE:SetSSFilter(tonumber(SSQuery[ActiveSS]), ActiveSS, activebound)
+		whee:SongSearch("")		-- stupid workaround?
 		MESSAGEMAN:Broadcast("UpdateFilter")
 	end
 end
@@ -60,6 +62,7 @@ local f = Def.ActorFrame{
 			self:visible(true)
 			active = true
 		else
+			MESSAGEMAN:Broadcast("NumericInputEnded")
 			self:visible(false)
 			self:queuecommand("Off")
 		end
@@ -67,6 +70,7 @@ local f = Def.ActorFrame{
 	TabChangedMessageCommand=cmd(queuecommand,"Set"),
 	MouseRightClickMessageCommand=function(self)
 		ActiveSS = 0
+		MESSAGEMAN:Broadcast("NumericInputEnded")
 		MESSAGEMAN:Broadcast("UpdateFilter")
 		SCREENMAN:set_input_redirected(PLAYER_1, false)
 	end,
@@ -88,22 +92,48 @@ local f = Def.ActorFrame{
 			self:settext("Greyed out values are inactive.")
 		end,
 	},
+	Def.Quad{
+		InitCommand=cmd(xy,frameX+frameWidth/2+90,175;zoomto,40,30;halign,0;diffusealpha,0),
+		MouseLeftClickMessageCommand=function(self)
+			if isOver(self) then
+				GAMESTATE:SetMaxFilterRate(GAMESTATE:GetMaxFilterRate()+0.1)
+				MESSAGEMAN:Broadcast("MaxFilterRateChanged")
+				whee:SongSearch("")
+			end
+		end,
+		MouseRightClickMessageCommand=function(self)
+			if isOver(self) then
+				GAMESTATE:SetMaxFilterRate(GAMESTATE:GetMaxFilterRate()-0.1)
+				MESSAGEMAN:Broadcast("MaxFilterRateChanged")
+				whee:SongSearch("")
+			end
+		end,
+	},
 	LoadFont("Common Large")..{
 		InitCommand=cmd(xy,frameX+frameWidth/2,175;zoom,textzoom;halign,0),
 		SetCommand=function(self) 
-			self:settext("Max Rate: 1.5x")
+			self:settextf("Max Rate:%5.1fx",GAMESTATE:GetMaxFilterRate())
 		end,
+		MaxFilterRateChangedMessageCommand=cmd(queuecommand,"Set"),
 	},
 	LoadFont("Common Large")..{
 		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY;zoom,textzoom;halign,0),
-		SetCommand=function(self) 
-			self:settext("Mode: ".."Inclusive")
+		SetCommand=function(self)
+			--local mode = GAMESTATE:GetFilterMode()
+			if mode then 
+				self:settext("Mode: ".."AND")
+			else
+				self:settext("Mode: ".."OR")
+			end
 		end,
 	},
-		LoadFont("Common Large")..{
-	InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY*2;zoom,textzoom;halign,0),
-		SetCommand=function(self) 
-			self:settext("Highest SS Only : ".."Off")
+	Def.Quad{
+		InitCommand=cmd(xy,frameX+frameWidth/2+90,175;zoomto,40,30;halign,0;diffusealpha,0),
+		MouseLeftClickMessageCommand=function(self)
+			if isOver(self) then
+				GAMESTATE:ToggleFilterMode()
+				whee:SongSearch("")
+			end
 		end,
 	},
 }
@@ -119,16 +149,17 @@ local function CreateFilterInputBox(i)
 			MouseLeftClickMessageCommand=function(self)
 				if isOver(self) then
 					ActiveSS = i
+					activebound = 0
 					MESSAGEMAN:Broadcast("NumericInputActive")
 					self:diffusealpha(0.1)
 					SCREENMAN:set_input_redirected(PLAYER_1, true)
 				end
 			end,
 			SetCommand=function(self)
-				if ActiveSS ~= i then
-					self:diffuse(color("#000000"))
-				else
+				if ActiveSS == i and activebound == 0 then
 					self:diffuse(color("#666666"))
+				else
+					self:diffuse(color("#000000"))
 				end
 			end,
 			UpdateFilterMessageCommand=cmd(queuecommand,"Set"),
@@ -137,7 +168,7 @@ local function CreateFilterInputBox(i)
 		LoadFont("Common Large")..{
 			InitCommand=cmd(addx,150;addy,175 + (i-1)*spacingY;halign,1;maxwidth,40;zoom,textzoom),
 			SetCommand=function(self)
-				local fval = whee:GetSkillsetFilter(i)
+				local fval = GAMESTATE:GetSSFilter(i,0)				-- lower bounds
 				self:settext(fval)
 				if fval <= 0 and ActiveSS ~= i then
 					self:diffuse(color("#666666"))
@@ -152,16 +183,17 @@ local function CreateFilterInputBox(i)
 			MouseLeftClickMessageCommand=function(self)
 				if isOver(self) and false then
 					ActiveSS = i
+					activebound = 1
 					MESSAGEMAN:Broadcast("NumericInputActive")
 					self:diffusealpha(0.1)
 					SCREENMAN:set_input_redirected(PLAYER_1, true)
 				end
 			end,
 			SetCommand=function(self)
-				if ActiveSS ~= i or true then
-					self:diffuse(color("#000000"))
-				else
+				if ActiveSS == i and activebound == 1 then
 					self:diffuse(color("#666666"))
+				else
+					self:diffuse(color("#000000"))
 				end
 			end,
 			UpdateFilterMessageCommand=cmd(queuecommand,"Set"),
@@ -170,7 +202,7 @@ local function CreateFilterInputBox(i)
 		LoadFont("Common Large")..{
 			InitCommand=cmd(addx,175;addy,175 + (i-1)*spacingY;halign,1;maxwidth,40;zoom,textzoom),
 			SetCommand=function(self)
-				local fval = 0 --whee:GetSkillsetFilter(i)
+				local fval = GAMESTATE:GetSSFilter(i,1)				-- upper bounds
 				self:settext(fval)
 				if fval <= 0 then
 					self:diffuse(color("#666666"))

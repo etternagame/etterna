@@ -91,7 +91,7 @@ function tabs(index)
 		SetCommand=function(self)
 			self:settext(tabNames[index])
 			if isTabEnabled(index) then
-				if index == 6 and whee:AnyActiveSkillsetFilter() then
+				if index == 6 and GAMESTATE:AnyActiveFilter() then
 					self:diffuse(color("#cc2929"))
 				else
 					self:diffuse(getMainColor('positive'))

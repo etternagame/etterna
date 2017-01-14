@@ -126,9 +126,6 @@ void MusicWheel::Load( const RString &sType )
 	FOREACH_ENUM( SortOrder, so ) {
 		m_WheelItemDatasStatus[so]=INVALID;
 	}
-	ZERO( SkillsetFilters );
-	FOREACH_ENUM(Skillset, ss)
-		SkillsetFilters[ss] = GAMESTATE->SkillsetFilters[ss];
 }
 
 void MusicWheel::BeginScreen()
@@ -261,8 +258,6 @@ MusicWheel::~MusicWheel()
 			delete *i;
 		}
 	}
-	FOREACH_ENUM(Skillset, ss)
-		GAMESTATE->SkillsetFilters[ss] = SkillsetFilters[ss];
 }
 
 void MusicWheel::ReloadSongList(bool searching, RString findme)
@@ -597,9 +592,10 @@ void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
 	for (size_t i = 0; i < inv.size(); i++) {
 		bool addsong = false;
 		FOREACH_ENUM(Skillset, ss) {
-			if (SkillsetFilters[ss] > 0.f) {
+			float lb = GAMESTATE->SSFilterLowerBounds[ss];
+			if (lb > 0.f) {
 				float val = inv[i]->GetHighestOfSkillsetAllSteps(static_cast<int>(ss), GAMESTATE->MaxFilterRate);
-				if (val > SkillsetFilters[ss])
+				if (val > lb)
 					addsong = addsong || true;
 			}
 		}
@@ -607,14 +603,6 @@ void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
 			tmp.emplace_back(inv[i]);
 	}
 	inv.swap(tmp);
-}
-
-// should make an explicit toggle soon - mina
-bool MusicWheel::AnyActiveSkillsetFilter() {
-	FOREACH_ENUM(Skillset, ss)
-		if (SkillsetFilters[ss] > 0)
-			return true;
-	return false;
 }
 
 void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelItemDatas, SortOrder so, bool searching, RString findme )
@@ -670,7 +658,7 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 			if (searching)
 				FilterBySearch(arraySongs, findme);
 
-			if (AnyActiveSkillsetFilter())
+			if (GAMESTATE->AnyActiveFilter())
 				FilterBySkillsets(arraySongs);
 				
 			bool bUseSections = true;
@@ -1793,7 +1781,6 @@ public:
 		return 1;
 	}
 	DEFINE_METHOD(GetSelectedSection, GetSelectedSection());
-	DEFINE_METHOD(AnyActiveSkillsetFilter, AnyActiveSkillsetFilter());
 	static int IsRouletting(T* p, lua_State *L) { lua_pushboolean(L, p->IsRouletting()); return 1; }
 	static int SelectSong(T* p, lua_State *L)
 	{
@@ -1819,16 +1806,6 @@ public:
 		p->ReloadSongList(true, SArg(1));
 		return 1;
 	}
-	static int SetSkillsetFilter(T* p, lua_State *L) {
-		p->SetSkillsetFilter(FArg(1), static_cast<Skillset>(IArg(2)-1));
-		p->ReloadSongList(true, "");
-		return 1;
-	}
-	static int GetSkillsetFilter(T* p, lua_State *L) {
-		float f = p->GetSkillsetFilter(static_cast<Skillset>(IArg(1) - 1));
-		lua_pushnumber(L, f);
-		return 1;
-	}
 
 	LunaMusicWheel()
 	{
@@ -1838,9 +1815,6 @@ public:
 		ADD_METHOD( SelectSong );
 		ADD_METHOD( SelectCourse );
 		ADD_METHOD( SongSearch );
-		ADD_METHOD( SetSkillsetFilter );
-		ADD_METHOD( GetSkillsetFilter );
-		ADD_METHOD( AnyActiveSkillsetFilter );
 	}
 };
 

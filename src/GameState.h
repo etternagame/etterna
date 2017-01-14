@@ -243,10 +243,19 @@ public:
 	int		GetLoadingCourseSongIndex() const;
 
 
-	// mina was here to drop in some temporary(?) filter things that need to persist - mina
-	float SkillsetFilters[NUM_Skillset];
+	// todo: make a filterman or something - mina
+	float SSFilterLowerBounds[NUM_Skillset];
+	float SSFilterUpperBounds[NUM_Skillset];
 	float MaxFilterRate;
-	void SetMaxFilterRate(float v) { MaxFilterRate; }
+	int FilterMode;		// 0 = OR 1 = AND
+	float GetSSFilter(Skillset ss, int bound);
+	void SetSSFilter(float v, Skillset ss, int bound);
+
+	bool SkillsetFiltersActive = false;
+	bool AnyActiveFilter();
+
+
+
 
 	// State Info used during gameplay
 
