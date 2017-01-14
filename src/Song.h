@@ -276,6 +276,7 @@ public:
 
 	// Get the highest value for a specific skillset across all the steps objects for the song at a given rate
 	float GetHighestOfSkillsetAllSteps(int x, float rate);
+	bool IsSkillsetHighestOfAnySteps(Skillset ss, float rate);
 
 	// For loading only:
 	bool m_bHasMusic, m_bHasBanner, m_bHasBackground;

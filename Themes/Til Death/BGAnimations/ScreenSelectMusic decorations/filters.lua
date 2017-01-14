@@ -104,8 +104,15 @@ local f = Def.ActorFrame{
 			self:settext("Using both bounds creates a range.")
 		end,
 	},
+	LoadFont("Common Large")..{
+		InitCommand=cmd(xy,frameX+frameWidth/2,175;zoom,textzoom;halign,0),
+		SetCommand=function(self) 
+			self:settextf("Max Rate:%5.1fx",GAMESTATE:GetMaxFilterRate())
+		end,
+		MaxFilterRateChangedMessageCommand=cmd(queuecommand,"Set"),
+	},
 	Def.Quad{
-		InitCommand=cmd(xy,frameX+frameWidth/2+90,175;zoomto,40,20;halign,0;diffusealpha,0),
+		InitCommand=cmd(xy,frameX+frameWidth/2,175;zoomto,130,18;halign,0;diffusealpha,0),
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
 				GAMESTATE:SetMaxFilterRate(GAMESTATE:GetMaxFilterRate()+0.1)
@@ -122,13 +129,6 @@ local f = Def.ActorFrame{
 		end,
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+frameWidth/2,175;zoom,textzoom;halign,0),
-		SetCommand=function(self) 
-			self:settextf("Max Rate:%5.1fx",GAMESTATE:GetMaxFilterRate())
-		end,
-		MaxFilterRateChangedMessageCommand=cmd(queuecommand,"Set"),
-	},
-	LoadFont("Common Large")..{
 		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY;zoom,textzoom;halign,0),
 		SetCommand=function(self)
 			local mode = GAMESTATE:GetFilterMode()
@@ -141,10 +141,32 @@ local f = Def.ActorFrame{
 		FilterModeChangedMessageCommand=cmd(queuecommand,"Set"),
 	},
 	Def.Quad{
-		InitCommand=cmd(xy,frameX+frameWidth/2+50,175 + spacingY;zoomto,40,20;halign,0;diffusealpha,0),
+		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY;zoomto,120,18;halign,0;diffusealpha,0),
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
 				GAMESTATE:ToggleFilterMode()
+				MESSAGEMAN:Broadcast("FilterModeChanged")
+				whee:SongSearch("")
+			end
+		end,
+	},
+	LoadFont("Common Large")..{
+		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY * 2;zoom,textzoom;halign,0),
+		SetCommand=function(self)
+			local yes = GAMESTATE:GetHighestSkillsetsOnly()
+			if yes then 
+				self:settext("Highest Only: ".."ON")
+			else
+				self:settext("Highest Only: ".."OFF")
+			end
+		end,
+		FilterModeChangedMessageCommand=cmd(queuecommand,"Set"),
+	},
+	Def.Quad{
+		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY * 2;zoomto,160,18;halign,0;diffusealpha,0),
+		MouseLeftClickMessageCommand=function(self)
+			if isOver(self) then
+				GAMESTATE:ToggleHighestSkillsetsOnly()
 				MESSAGEMAN:Broadcast("FilterModeChanged")
 				whee:SongSearch("")
 			end

@@ -598,7 +598,12 @@ void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
 				float lb = GAMESTATE->SSFilterLowerBounds[ss];
 				float ub = GAMESTATE->SSFilterUpperBounds[ss];
 				if (lb > 0.f || ub > 0.f) {				// if either bound is active, continue to evaluation
+					if (GAMESTATE->HighestSkillsetsOnly)
+						if (!inv[i]->IsSkillsetHighestOfAnySteps(ss, GAMESTATE->MaxFilterRate))
+							continue;
+						
 					float val = inv[i]->GetHighestOfSkillsetAllSteps(static_cast<int>(ss), GAMESTATE->MaxFilterRate);
+
 					bool isrange = lb > 0.f && ub > 0.f;	// both bounds are active and create an explicit range
 					if (isrange) {
 						if (val > lb && val < ub)		// if dealing with an explicit range evaluate as such

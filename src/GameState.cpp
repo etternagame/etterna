@@ -3294,7 +3294,15 @@ public:
 	static int GetFilterMode(T* p, lua_State* L) {
 		lua_pushboolean(L, p->ExclusiveFilter);
 		return 1;
+	}
+	static int ToggleHighestSkillsetsOnly(T* p, lua_State* L) {
+		p->HighestSkillsetsOnly = !p->HighestSkillsetsOnly;
+		return 1;
 
+	}
+	static int GetHighestSkillsetsOnly(T* p, lua_State* L) {
+		lua_pushboolean(L, p->HighestSkillsetsOnly);
+		return 1;
 	}
 
 	LunaGameState()
@@ -3431,6 +3439,8 @@ public:
 		ADD_METHOD( GetMaxFilterRate );
 		ADD_METHOD( ToggleFilterMode );
 		ADD_METHOD( GetFilterMode );
+		ADD_METHOD( ToggleHighestSkillsetsOnly );
+		ADD_METHOD( GetHighestSkillsetsOnly );
 	}
 };
 

@@ -1741,6 +1741,26 @@ float Song::GetHighestOfSkillsetAllSteps(int x, float rate) {
 	return o;
 }
 
+bool Song::IsSkillsetHighestOfAnySteps(Skillset ss, float rate) {
+	float o = 0.f;
+	vector<Steps*> vsteps = GetAllSteps();
+	FOREACH(Steps*, vsteps, steps) {
+		auto sortedstuffs = (*steps)->SortSkillsetsAtRate(rate, true);
+		Skillset why;
+		int iA = 1;
+		FOREACHM(float, Skillset, sortedstuffs, poodle) {
+			if (iA == NUM_Skillset)
+				why = poodle->second;
+			++iA;
+		}
+
+		if (why == ss)
+			return true;
+	}
+		
+	return false;
+}
+
 RString Song::GetDisplayMainTitle() const
 {
 	if(!PREFSMAN->m_bShowNativeLanguage) return GetTranslitMainTitle();
