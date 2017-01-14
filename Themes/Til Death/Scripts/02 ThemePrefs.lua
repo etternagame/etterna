@@ -400,6 +400,36 @@ function NPSDisplay()
 	return t
 end
 
+function BackgroundType()
+	local t = {
+		Name = "BackgroundType";
+		LayoutType = "ShowAllInRow";
+		SelectType = "SelectOne";
+		OneChoiceForAllPlayers = true;
+		ExportOnChange = true;
+		Choices = { "Default","Static Background", "Random Background"};
+		LoadSelections = function(self, list, pn)
+			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).BackgroundType
+			list[pref] = true
+		end,
+		SaveSelections = function(self, list, pn)
+			local value
+			if list[1] then
+				value = 1
+			elseif list[2] then
+				value = 2
+			else
+				value = 3
+			end
+			playerConfig:get_data(pn_to_profile_slot(pn)).BackgroundType = value
+			playerConfig:set_dirty(pn_to_profile_slot(pn))
+			playerConfig:save(pn_to_profile_slot(pn))
+		end
+	}
+	setmetatable( t, t )
+	return t
+end
+
 function DefaultScoreType()
 	local t = {
 		Name = "DefaultScoreType",
@@ -510,7 +540,7 @@ function SongBGEnabled()
 	}
 	setmetatable( t, t )
 	return t
-end	
+end
 
 function SongBGMouseEnabled()
 	local t = {

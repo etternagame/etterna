@@ -1,12 +1,23 @@
--- load this before screenfilter gets sized so it's right the first time
+-- load certain preferences before gameplay initializes
 local modslevel = topscreen  == "ScreenEditOptions" and "ModsLevel_Stage" or "ModsLevel_Preferred"
 local playeroptions = GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptions(modslevel)
 playeroptions:Mini( 2 - playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).ReceptorSize/50 )
 
+local bgtype = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).BackgroundType
+local songoptions = GAMESTATE:GetSongOptionsObject('ModsLevel_Preferred')
+-- this seems really stupid - mina
+if bgtype == 1 then
+	songoptions:StaticBackground(false)
+	songoptions:RandomBGOnly(false)
+elseif bgtype == 2 then 
+	songoptions:StaticBackground(true)
+	songoptions:RandomBGOnly(false)
+elseif bgtype == 3 then
+	songoptions:StaticBackground(false)
+	songoptions:RandomBGOnly(true)
+end
+
 local t = Def.ActorFrame{}
 t[#t+1] = LoadActor("bg")
 t[#t+1] = LoadActor("ScreenFilter")
---t[#t+1] = LoadActor("cbHighlight")
---t[#t+1] = LoadActor("SpeedChange")
---t[#t+1] = LoadActor("pause")
-return t --hurr almost everything here is useless
+return t
