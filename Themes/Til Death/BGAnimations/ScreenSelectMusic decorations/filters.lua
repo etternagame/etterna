@@ -172,6 +172,12 @@ local f = Def.ActorFrame{
 			end
 		end,
 	},
+	LoadFont("Common Large")..{
+		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY * 3;zoom,textzoom;halign,0;settext,""),
+		FilterResultsMessageCommand=function(self, msg)
+			self:settext("Matches: "..msg.Matches.."/"..msg.Total)
+		end
+	},
 }
 
 local function CreateFilterInputBox(i)

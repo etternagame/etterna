@@ -609,11 +609,12 @@ void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
 						if (val > lb && val < ub)		// if dealing with an explicit range evaluate as such
 							addsong = addsong || true;
 					}
-					else
+					else {
 						if (lb > 0.f && val > lb)		// must be a nicer way to handle this but im tired
 							addsong = addsong || true;
 						if (ub > 0.f && val < ub)
 							addsong = addsong || true;
+					}
 				}
 			}
 
@@ -637,11 +638,12 @@ void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
 						if (val < lb || val > ub)
 							addsong = false;
 					}
-					else
+					else {
 						if (lb > 0.f && val < lb)
 							addsong = false;
 						if (ub > 0.f && val > ub)
 							addsong = false;
+					}
 				}
 			}
 			if (addsong)
@@ -702,12 +704,18 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 			vector<Song*> arraySongs;
 			GetSongList( arraySongs, so );
 
+			Message msg("FilterResults");
+			msg.SetParam("Total", arraySongs.size());
+
 			if (searching)
 				FilterBySearch(arraySongs, findme);
 
 			if (GAMESTATE->AnyActiveFilter())
 				FilterBySkillsets(arraySongs);
 				
+			msg.SetParam("Matches", arraySongs.size());
+			MESSAGEMAN->Broadcast(msg);
+
 			bool bUseSections = true;
 
 			// sort the songs
