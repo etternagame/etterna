@@ -275,7 +275,7 @@ local function Update(self)
 		end;
 
 		self:GetChild("CoverP1"):zoomy(heightP1)
-		self:GetChild("CoverTextP1White"):settext(heightP1)
+		self:GetChild("CoverTextP1White"):settext(math.floor(heightP1))
 		if prefsP1 == 1 then -- don't update greennumber for hidden lanecovers
 			self:GetChild("CoverTextP1Green"):settext(math.floor(getScrollSpeed(PLAYER_1,heightP1)))
 		end;
@@ -318,7 +318,7 @@ local function Update(self)
 			end;
 		end;
 		self:GetChild("CoverP2"):zoomy(heightP2)
-		self:GetChild("CoverTextP2White"):settext(heightP2)
+		self:GetChild("CoverTextP2White"):settext(math.floor(heightP2))
 		if prefsP2 == 1 then
 			self:GetChild("CoverTextP2Green"):settext(math.floor(getScrollSpeed(PLAYER_2,heightP2)))
 		end;
