@@ -19,7 +19,7 @@
 #include "ScreenSelectMusic.h"
 #include "ScreenManager.h"
 
-static Preference<bool> uanastypadplayerdog("ShowGradesForAnyDifficulty", true);
+static Preference<bool> uaintnonastypadplayerdog("ShowGradesForAnyDifficulty", true);
 
 static const char *MusicWheelItemTypeNames[] = {
 	"Song",
@@ -354,33 +354,53 @@ void MusicWheelItem::RefreshGrades()
 		HighScoreList *pHSL = NULL;
 		HighScoreList *BestpHSL = NULL;
 		Difficulty dcBest = Difficulty_Invalid;
-		if( PROFILEMAN->IsPersistentProfile(ps) && dc != Difficulty_Invalid )
-		{
-			if (pWID->m_pSong)
+		if (uaintnonastypadplayerdog) {
+			if (PROFILEMAN->IsPersistentProfile(ps) && dc != Difficulty_Invalid)
 			{
-				FOREACH_ENUM_N(Difficulty, 6, i) {
-					Steps* pSteps = SongUtil::GetStepsByDifficulty(pWID->m_pSong, st, i);
-					if (pSteps != NULL) {
-						pHSL = &pProfile->GetStepsHighScoreList(pWID->m_pSong, pSteps);
+				if (pWID->m_pSong)
+				{
+					FOREACH_ENUM_N(Difficulty, 6, i) {
+						Steps* pSteps = SongUtil::GetStepsByDifficulty(pWID->m_pSong, st, i);
+						if (pSteps != NULL) {
+							pHSL = &pProfile->GetStepsHighScoreList(pWID->m_pSong, pSteps);
 
-						if (BestpHSL == NULL)
-							BestpHSL = pHSL;
+							if (BestpHSL == NULL)
+								BestpHSL = pHSL;
 
-						if (static_cast<int>(BestpHSL->HighGrade) >= static_cast<int>(pHSL->HighGrade)) {
-							dcBest = i;
-							BestpHSL = pHSL;
+							if (static_cast<int>(BestpHSL->HighGrade) >= static_cast<int>(pHSL->HighGrade)) {
+								dcBest = i;
+								BestpHSL = pHSL;
+							}
 						}
 					}
 				}
-			}
 
-			else if( pWID->m_pCourse )
+				else if (pWID->m_pCourse)
+				{
+					const Trail *pTrail = pWID->m_pCourse->GetTrail(st, dc);
+					if (pTrail != NULL)
+						BestpHSL = &pProfile->GetCourseHighScoreList(pWID->m_pCourse, pTrail);
+				}
+			}
+		} else {
+			dcBest = dc;
+			if (PROFILEMAN->IsPersistentProfile(ps) && dc != Difficulty_Invalid)
 			{
-				const Trail *pTrail = pWID->m_pCourse->GetTrail( st, dc );
-				if( pTrail != NULL )
-					BestpHSL = &pProfile->GetCourseHighScoreList( pWID->m_pCourse, pTrail );
+				if (pWID->m_pSong)
+				{
+					const Steps* pSteps = SongUtil::GetStepsByDifficulty(pWID->m_pSong, st, dc);
+					if (pSteps != nullptr)
+						BestpHSL = &pProfile->GetStepsHighScoreList(pWID->m_pSong, pSteps);
+				}
+				else if (pWID->m_pCourse)
+				{
+					const Trail *pTrail = pWID->m_pCourse->GetTrail(st, dc);
+					if (pTrail != nullptr)
+						BestpHSL = &pProfile->GetCourseHighScoreList(pWID->m_pCourse, pTrail);
+				}
 			}
 		}
+		
 
 		Message msg( "SetGrade" );
 		msg.SetParam( "PlayerNumber", p );
@@ -399,7 +419,7 @@ void MusicWheelItem::RefreshGrades()
 void MusicWheelItem::HandleMessage( const Message &msg )
 {
 	static const bool iskyzagoodprogrammer = false;
-	if(iskyzagoodprogrammer)
+	if(iskyzagoodprogrammer || (!uaintnonastypadplayerdog && msg == Message_CurrentStepsP1Changed))
 		RefreshGrades();
 
 	WheelItemBase::HandleMessage( msg );
