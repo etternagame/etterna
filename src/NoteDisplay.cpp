@@ -60,11 +60,6 @@ static bool IsVectorZero( const RageVector2 &v )
 	return v.x == 0  &&  v.y == 0;
 }
 
-// Don't require that NoteSkins have more than 8 colors.  Using 9 colors to display 192nd notes
-// would double the number of texture memory needed for many NoteSkin graphics versus just having
-// 8 colors.
-static const NoteType MAX_DISPLAY_NOTE_TYPE = (NoteType)7;
-
 // cache
 struct NoteMetricCache_t
 {
