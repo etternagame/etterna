@@ -452,23 +452,27 @@ t[#t+1] = LoadFont("Common Large") .. {
 	InitCommand=cmd(xy,frameX+120,frameY-60;halign,0;zoom,0.4,maxwidth,125),
 	BeginCommand=cmd(queuecommand,"Set"),
 	SetCommand=function(self)
-		local dwerp = {}
-		for i=2,#ms.SkillSets do
-			dwerp[i-1] = string.format("%5.2f", steps:GetMSD(getCurRateValue(), i))..ms.SkillSets[i]
-		end
-		table.sort(dwerp)
-		ss1 = string.sub(dwerp[#dwerp],6)
-		if tonumber(string.sub(dwerp[#dwerp-1],0,5)) > tonumber(string.sub(dwerp[#dwerp],0,5))*0.9 then
-			ss2 = string.sub(dwerp[#dwerp-1],6)
+		if song then
+			local dwerp = {}
+			for i=2,#ms.SkillSets do
+				dwerp[i-1] = string.format("%5.2f", steps:GetMSD(getCurRateValue(), i))..ms.SkillSets[i]
+			end
+			table.sort(dwerp)
+			ss1 = string.sub(dwerp[#dwerp],6)
+			if tonumber(string.sub(dwerp[#dwerp-1],0,5)) > tonumber(string.sub(dwerp[#dwerp],0,5))*0.9 then
+				ss2 = string.sub(dwerp[#dwerp-1],6)
+			else
+				ss2 = ""
+			end
+			if tonumber(string.sub(dwerp[#dwerp-2],0,5)) > tonumber(string.sub(dwerp[#dwerp],0,5))*0.9 then
+				ss3 = string.sub(dwerp[#dwerp-2],6)
+			else
+				ss3 = ""
+			end
+			self:settext(ss1)
 		else
-			ss2 = ""
+			self:settext("")
 		end
-		if tonumber(string.sub(dwerp[#dwerp-2],0,5)) > tonumber(string.sub(dwerp[#dwerp],0,5))*0.9 then
-			ss3 = string.sub(dwerp[#dwerp-2],6)
-		else
-			ss3 = ""
-		end
-		self:settext(ss1)
 	end,
 	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
 	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
@@ -478,7 +482,11 @@ t[#t+1] = LoadFont("Common Large") .. {
 	InitCommand=cmd(xy,frameX+120,frameY-30;halign,0;zoom,0.4,maxwidth,125),
 	BeginCommand=cmd(queuecommand,"Set"),
 	SetCommand=function(self)
-		self:settext(ss2)
+		if song then
+			self:settext(ss2)
+		else
+			self:settext("")
+		end
 	end,
 	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
 	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
@@ -488,7 +496,11 @@ t[#t+1] = LoadFont("Common Large") .. {
 	InitCommand=cmd(xy,frameX+120,frameY;halign,0;zoom,0.4,maxwidth,125),
 	BeginCommand=cmd(queuecommand,"Set"),
 	SetCommand=function(self)
-		self:settext(ss3)
+		if song then
+			self:settext(ss3)
+		else
+			self:settext("")
+		end
 	end,
 	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
 	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),

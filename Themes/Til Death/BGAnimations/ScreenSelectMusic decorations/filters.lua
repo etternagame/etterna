@@ -92,14 +92,20 @@ local f = Def.ActorFrame{
 			self:settext("Right click/Start/Back to cancel input.")
 		end,
 	},
-	LoadFont("Common Large")..{
+		LoadFont("Common Large")..{
 		InitCommand=cmd(xy,frameX,frameY+40;zoom,0.3;halign,0),
 		SetCommand=function(self) 
 			self:settext("Greyed out values are inactive.")
 		end,
 	},
+	LoadFont("Common Large")..{
+		InitCommand=cmd(xy,frameX,frameY+60;zoom,0.3;halign,0),
+		SetCommand=function(self) 
+			self:settext("Using both bounds creates a range.")
+		end,
+	},
 	Def.Quad{
-		InitCommand=cmd(xy,frameX+frameWidth/2+90,175;zoomto,40,20;halign,0;diffusealpha,0.5),
+		InitCommand=cmd(xy,frameX+frameWidth/2+90,175;zoomto,40,20;halign,0;diffusealpha,0),
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
 				GAMESTATE:SetMaxFilterRate(GAMESTATE:GetMaxFilterRate()+0.1)
@@ -135,7 +141,7 @@ local f = Def.ActorFrame{
 		FilterModeChangedMessageCommand=cmd(queuecommand,"Set"),
 	},
 	Def.Quad{
-		InitCommand=cmd(xy,frameX+frameWidth/2+50,175 + spacingY;zoomto,40,20;halign,0;diffusealpha,0.5),
+		InitCommand=cmd(xy,frameX+frameWidth/2+50,175 + spacingY;zoomto,40,20;halign,0;diffusealpha,0),
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
 				GAMESTATE:ToggleFilterMode()

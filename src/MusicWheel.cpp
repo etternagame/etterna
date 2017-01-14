@@ -587,6 +587,8 @@ void MusicWheel::FilterBySearch(vector<Song*>& inv, RString findme) {
 		FilterBySearch(inv, lastvalidsearch);
 }
 
+
+// should definitely house these in lower level functions so return can be called the iteration an outcome is determined on instead of clumsily using continue - mina
 void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
 	vector<Song*> tmp;
 	if (!GAMESTATE->ExclusiveFilter) {
@@ -594,12 +596,23 @@ void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
 			bool addsong = false;
 			FOREACH_ENUM(Skillset, ss) {
 				float lb = GAMESTATE->SSFilterLowerBounds[ss];
-				if (lb > 0.f) {
+				float ub = GAMESTATE->SSFilterUpperBounds[ss];
+				if (lb > 0.f || ub > 0.f) {				// if either bound is active, continue to evaluation
 					float val = inv[i]->GetHighestOfSkillsetAllSteps(static_cast<int>(ss), GAMESTATE->MaxFilterRate);
-					if (val > lb)
-						addsong = addsong || true;
+					bool isrange = lb > 0.f && ub > 0.f;	// both bounds are active and create an explicit range
+					if (isrange) {
+						if (val > lb && val < ub)		// if dealing with an explicit range evaluate as such
+							addsong = addsong || true;
+					}
+					else
+						if (lb > 0.f && val > lb)		// must be a nicer way to handle this but im tired
+							addsong = addsong || true;
+						if (ub > 0.f && val < ub)
+							addsong = addsong || true;
 				}
 			}
+
+			// only add the song if it's cleared the gauntlet
 			if (addsong)
 				tmp.emplace_back(inv[i]);
 		}
@@ -608,11 +621,22 @@ void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
 		for (size_t i = 0; i < inv.size(); i++) {
 			bool addsong = true;
 			FOREACH_ENUM(Skillset, ss) {
+				if (!addsong)
+					continue;
 				float lb = GAMESTATE->SSFilterLowerBounds[ss];
-				if (lb > 0.f) {
+				float ub = GAMESTATE->SSFilterUpperBounds[ss];
+				if (lb > 0.f || ub > 0.f) {
 					float val = inv[i]->GetHighestOfSkillsetAllSteps(static_cast<int>(ss), GAMESTATE->MaxFilterRate);
-					if (val < lb)
-						addsong = false;
+					bool isrange = lb > 0.f && ub > 0.f;
+					if (isrange) {
+						if (val < lb || val > ub)
+							addsong = false;
+					}
+					else
+						if (lb > 0.f && val < lb)
+							addsong = false;
+						if (ub > 0.f && val > ub)
+							addsong = false;
 				}
 			}
 			if (addsong)
