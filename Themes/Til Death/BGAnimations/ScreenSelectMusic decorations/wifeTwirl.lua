@@ -454,7 +454,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 	SetCommand=function(self)
 		local dwerp = {}
 		for i=2,#ms.SkillSets do
-			dwerp[i-1] = string.format("%5.2f", steps:GetMSD(getCurRateValue(), i-1))..ms.SkillSets[i]
+			dwerp[i-1] = string.format("%5.2f", steps:GetMSD(getCurRateValue(), i))..ms.SkillSets[i]
 		end
 		table.sort(dwerp)
 		ss1 = string.sub(dwerp[#dwerp],6)
