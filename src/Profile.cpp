@@ -2200,7 +2200,7 @@ RString Profile::GetTopSSRSongName(unsigned int rank, int skillset) {
 	return ( songid.ToSong() )->GetMainTitle();
 }
 float Profile::GetTopSSRValue(unsigned int rank, int skillset) {
-	if (rank == 0)
+	if (rank <= 0)
 		rank = 1;
 	HighScore *highScorePtr = GetTopSSRHighScore(rank, skillset);
 	//Empty HighScore Pointer = NULL then return 0
@@ -2214,7 +2214,7 @@ float Profile::GetTopSSRValue(unsigned int rank, int skillset) {
 	return 0.f;
 }
 SongID Profile::GetTopSSRSongID(unsigned int rank, int skillset) {
-	if (rank == 0)
+	if (rank <= 0)
 		rank = 1;
 	if (rank > static_cast<unsigned int>(topSSRSongIds[skillset].size()))
 		if (CalcAllTopSSRs(rank) == false) {
