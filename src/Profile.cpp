@@ -2091,6 +2091,9 @@ void Profile::CalcPlayerRating(float& prating, float* pskillsets) const {
 			continue;
 		const HighScoresForASong& hsfas = i->second;
 		FOREACHM_CONST(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
+			const StepsID& sid = j->first;
+			if (sid.GetStepsType() != StepsType_dance_single)
+				continue;
 			const HighScoresForASteps& zz = j->second;
 			const vector<HighScore>& hsv = zz.hsl.vHighScores;
 			for (size_t i = 0; i < hsv.size(); i++) {
@@ -2158,7 +2161,7 @@ void Profile::RecalculateSSRs(bool OnlyOld) {
 					Song* psong = id.ToSong();
 					const StepsID& sid = j->first;
 
-					if (!sid.IsValid())
+					if (!sid.IsValid() || sid.GetStepsType() != StepsType_dance_single)
 						continue;
 
 					Steps* psteps= sid.ToSteps(psong, true);
@@ -2285,7 +2288,7 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 	//Build the top
 	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
 		const SongID& id = i->first;
-
+		
 		if (!id.IsValid())
 			continue;
 
@@ -2294,7 +2297,7 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 			HighScoresForASteps& zz = j->second;
 			const StepsID& stepsid = j->first;
 			vector<HighScore>& hsv = zz.hsl.vHighScores;
-			if (!stepsid.IsValid())
+			if (!stepsid.IsValid() || stepsid.GetStepsType() != StepsType_dance_single)
 				continue;
 			Steps* psteps = stepsid.ToSteps(id.ToSong(), true);
 			if (!psteps)
