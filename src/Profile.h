@@ -247,7 +247,7 @@ public:
 	int m_iNumStagesPassedByPlayMode[NUM_PlayMode];
 	int m_iNumStagesPassedByGrade[NUM_Grade];
 
-	void AddToFavorites(RString ck) { FavoritedCharts.push_back(ck); }
+	void AddToFavorites(RString ck) { FavoritedCharts.emplace_back(ck); }
 	void RemoveFromFavorites(RString ck);
 	// Vector for now, we can make this more efficient later
 	vector<RString> FavoritedCharts;

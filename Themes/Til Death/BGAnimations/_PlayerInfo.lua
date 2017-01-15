@@ -156,6 +156,7 @@ t[#t+1] = Def.ActorFrame{
 		end,
 		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
 		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+		FavoritesUpdatedMessageCommand=cmd(queuecommand,"Set"),
 	},
 }
 
