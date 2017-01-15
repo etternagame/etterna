@@ -1087,14 +1087,22 @@ public:
 		}
 		COMMON_RETURN_SELF;
 	}
-	static int LoadBackground( T* p, lua_State *L )
+	static int LoadBackground(T* p, lua_State *L)
+	{
+		RageTextureID ID(SArg(1));
+		TEXTUREMAN->DisableOddDimensionWarning();
+		p->Load(Sprite::SongBGTexture(ID));
+		TEXTUREMAN->EnableOddDimensionWarning();
+		return 1;
+	}
+	static int LoadBackgroundUnlessFast(T* p, lua_State *L)
 	{
 		if (!INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_TAB))) {
 			RageTextureID ID(SArg(1));
 			TEXTUREMAN->DisableOddDimensionWarning();
 			p->Load(Sprite::SongBGTexture(ID));
 			TEXTUREMAN->EnableOddDimensionWarning();
-		}	
+		}
 		return 1;
 	}
 	static int LoadBanner( T* p, lua_State *L )
@@ -1261,13 +1269,14 @@ public:
 		ADD_METHOD( Load );
 		ADD_METHOD( LoadBanner );
 		ADD_METHOD( LoadBackground );
+		ADD_METHOD( LoadBackgroundUnlessFast );
 		ADD_METHOD( customtexturerect );
 		ADD_METHOD( SetCustomImageRect );
 		ADD_METHOD( SetCustomPosCoords );
 		ADD_METHOD( StopUsingCustomPosCoords );
 		ADD_METHOD( texcoordvelocity );
-		ADD_METHOD(get_use_effect_clock_for_texcoords);
-		ADD_METHOD(set_use_effect_clock_for_texcoords);
+		ADD_METHOD( get_use_effect_clock_for_texcoords );
+		ADD_METHOD( set_use_effect_clock_for_texcoords );
 		ADD_METHOD( scaletoclipped );
 		ADD_METHOD( CropTo );
 		ADD_METHOD( stretchtexcoords );
@@ -1282,8 +1291,8 @@ public:
 		ADD_METHOD( SetEffectMode );
 		ADD_METHOD( GetNumStates );
 		ADD_METHOD( SetAllStateDelays );
-		ADD_METHOD(GetDecodeMovie);
-		ADD_METHOD(SetDecodeMovie);
+		ADD_METHOD( GetDecodeMovie );
+		ADD_METHOD( SetDecodeMovie );
 	}
 };
 
