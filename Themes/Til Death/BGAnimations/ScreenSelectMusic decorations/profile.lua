@@ -64,9 +64,9 @@ local function rankingLabel(i)
 			InitCommand=cmd(xy,frameX+rankingX,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,160),
 			SetCommand=function(self)
 				if update and rankingSkillset > 0 then 
-					ths = profile:GetTopSSRHighScore(i+(20*(rankingPage-1)), rankingSkillset) 
+					ths = profile:GetTopSSRHighScore(i+(scorestodisplay*(rankingPage-1)), rankingSkillset) 
 					if ths then 
-						local a=profile:GetTopSSRValue(i+(20*(rankingPage-1)), rankingSkillset)
+						local a=profile:GetTopSSRValue(i+(scorestodisplay*(rankingPage-1)), rankingSkillset)
 						self:settextf("%5.2f", a)
 						if not ths:GetEtternaValid() then
 							self:diffuse(byJudgment("TapNoteScore_Miss"))
@@ -84,8 +84,8 @@ local function rankingLabel(i)
 			InitCommand=cmd(xy,frameX+rankingX+40,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*2.5-160),
 			SetCommand=function(self)
 				if ths then
-					local a=profile:GetTopSSRValue(i+(20*(rankingPage-1)), rankingSkillset)
-					self:settext(profile:GetTopSSRSongName(i+(20*(rankingPage-1)), rankingSkillset) )
+					local a=profile:GetTopSSRValue(i+(scorestodisplay*(rankingPage-1)), rankingSkillset)
+					self:settext(profile:GetTopSSRSongName(i+(scorestodisplay*(rankingPage-1)), rankingSkillset) )
 					if not ths:GetEtternaValid() then
 						self:diffuse(byJudgment("TapNoteScore_Miss"))
 					else
@@ -149,7 +149,7 @@ local function rankingLabel(i)
 				if ths then 
 					if isOver(self) then
 						local whee = SCREENMAN:GetTopScreen():GetMusicWheel()
-						local ssrsong = profile:GetSongFromSSR(i+(20*(rankingPage-1)), rankingSkillset)
+						local ssrsong = profile:GetSongFromSSR(i+(scorestodisplay*(rankingPage-1)), rankingSkillset)
 						whee:SelectSong(ssrsong)
 					end
 				end
