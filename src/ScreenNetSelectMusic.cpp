@@ -211,25 +211,37 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 		Song* CurSong = m_MusicWheel.GetSelectedSong();
 
 		if(CurSong != NULL )
-
 			if( ( !CurSong->GetTranslitArtist().CompareNoCase( NSMAN->m_sArtist ) ) &&
-					( !CurSong->GetTranslitMainTitle().CompareNoCase( NSMAN->m_sMainTitle ) ) &&
-					( !CurSong->GetTranslitSubTitle().CompareNoCase( NSMAN->m_sSubTitle ) ) )
-		{
-			switch ( NSMAN->m_iSelectMode )
+			( !CurSong->GetTranslitMainTitle().CompareNoCase( NSMAN->m_sMainTitle ) ) &&
+			( !CurSong->GetTranslitSubTitle().CompareNoCase( NSMAN->m_sSubTitle ) ) )
 			{
-			case 0:
-			case 1:
-				NSMAN->m_iSelectMode = 0;
-				NSMAN->SelectUserSong();
-				break;
-			case 2:	// Proper starting of song
-			case 3:	// Blind starting of song
-				StartSelectedSong();
-				goto done;
+				switch ( NSMAN->m_iSelectMode )
+				{
+				case 0:
+				case 1:
+					NSMAN->m_iSelectMode = 0;
+					NSMAN->SelectUserSong();
+					break;
+				case 2:	// Proper starting of song
+				case 3:	// Blind starting of song
+					StartSelectedSong();
+					goto done;
+				}
 			}
-		} else
+			else {
+				FOREACH_ENUM(Skillset, i) {
+					GAMESTATE->SSFilterLowerBounds[i] = 0;
+					GAMESTATE->SSFilterUpperBounds[i] = 0;
+				}
+				m_MusicWheel.ReloadSongList(false, "");
+			}
+		else {
+			FOREACH_ENUM(Skillset, i) {
+				GAMESTATE->SSFilterLowerBounds[i] = 0;
+				GAMESTATE->SSFilterUpperBounds[i] = 0;
+			}
 			m_MusicWheel.ReloadSongList(false, "");
+		}
 
 		m_MusicWheel.ReloadSongList(false, "");
 		vector <Song *> AllSongs = SONGMAN->GetAllSongs();
