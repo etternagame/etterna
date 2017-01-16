@@ -47,7 +47,12 @@ t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,offsetY;ha
 t[#t+1] = LoadFont("Common Normal")..{InitCommand=cmd(xy,frameX+5,frameY+offsetY-9;zoom,0.6;halign,0;diffuse,getMainColor('positive');settext,"Profile Info (WIP)")}
 
 -- The input callback for mouse clicks already exists within the tabmanager and redefining it within the local scope does nothing but create confusion - mina
-local r = Def.ActorFrame{}
+local r = Def.ActorFrame{
+	-- Cache the ranking
+	BeginCommand=function(self)
+		profile:GetTopSSRValue(250, rankingSkillset)
+	end,
+}
 	
 local function rankingLabel(i)
 	local ths -- the top highscore object - mina
