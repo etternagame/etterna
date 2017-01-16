@@ -793,6 +793,8 @@ bool ScreenEvaluation::MenuStart( const InputEventPlus &input )
 
 void ScreenEvaluation::HandleMenuStart()
 {
+	Profile *prof = PROFILEMAN->GetProfile( static_cast<PlayerNumber>(0) );
+	prof->CalcAllTopSSRs( (prof->topSSRStepIds[0]).size() );
 	StartTransitioningScreen( SM_GoToNextScreen );
 }
 
