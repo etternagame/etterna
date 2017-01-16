@@ -228,7 +228,8 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 				StartSelectedSong();
 				goto done;
 			}
-		}
+		} else
+			m_MusicWheel.ReloadSongList(false, "");
 
 		m_MusicWheel.ReloadSongList(false, "");
 		vector <Song *> AllSongs = SONGMAN->GetAllSongs();
