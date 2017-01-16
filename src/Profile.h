@@ -449,6 +449,7 @@ public:
 	//TopSSRs
 	bool CalcTopSSRs(unsigned int qty, int skillset);
 	bool CalcAllTopSSRs(unsigned int qty);
+	void TopSSRsAddNewScore(HighScore *hs, StepsID stepsid, SongID songid);
 	float GetTopSSRMSD(unsigned int rank, int skillset);
 	HighScore* GetTopSSRHighScore(unsigned int rank, int skillset);
 	SongID GetTopSSRSongID(unsigned int rank, int skillset);
