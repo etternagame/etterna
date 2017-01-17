@@ -494,6 +494,14 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 			lua_pushstring(L, "");
 		return 1;
 	}
+	static int GetUserState(T* p, lua_State *L)
+	{
+		if (IArg(1) <= p->ToUsers()->size() && IArg(1) >= 1)
+			lua_pushnumber(L, NSMAN->m_PlayerStatus[NSMAN->m_ActivePlayer[IArg(1) - 1]] );
+		else
+			lua_pushnumber(L, 0);
+		return 1;
+	}
 public:
 	LunaScreenNetSelectBase()
 	{
@@ -502,6 +510,7 @@ public:
 		ADD_METHOD(ChatboxInput);
 		ADD_METHOD(ChatboxVisible);
 		ADD_METHOD(GetUserQty);
+		ADD_METHOD(GetUserState);
 	}
 };
 

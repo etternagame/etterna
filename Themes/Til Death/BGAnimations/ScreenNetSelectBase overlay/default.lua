@@ -41,45 +41,6 @@ t[#t+1] = LoadFont("Common Large")..{InitCommand=cmd(xy,5,32;halign,0;valign,1;z
 t[#t+1] = LoadActor("../_cursor")
 t[#t+1] = LoadActor("../_halppls")
 --t[#t+1] = LoadActor("wifesearchbar")
-
-t[#t+1] = LoadFont("Common Normal") .. {
-	InitCommand=cmd(xy,SCREEN_WIDTH/3,SCREEN_TOP+15;zoom,0.35;diffuse,getMainColor('positive');maxwidth,SCREEN_WIDTH),
-	BeginCommand=cmd(queuecommand,"Set"),
-	SetCommand=function(self)
-			local str = ""
-			local top = SCREENMAN:GetTopScreen()
-			if top:GetUserQty() > 5 then
-				for i=1,5 do
-					str = str .. "      " .. (top:GetUser(i))
-				end
-			
-			else
-				for i=1,top:GetUserQty() do
-					str = str .. "      " .. (top:GetUser(i))
-				end
-			end
-			self:settext(str)
-	end,
-	PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-	PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
-	UsersUpdateMessageCommand=cmd(queuecommand,"Set"),
-}
-t[#t+1] = LoadFont("Common Normal") .. {
-	InitCommand=cmd(xy,SCREEN_WIDTH/3,SCREEN_TOP+25;zoom,0.35;diffuse,getMainColor('positive');maxwidth,SCREEN_WIDTH),
-	BeginCommand=cmd(queuecommand,"Set"),
-	SetCommand=function(self)
-			local str = ""
-			local top = SCREENMAN:GetTopScreen()
-			if top:GetUserQty() > 5 then
-				for i=6,top:GetUserQty() do
-					str = str .. "      " .. (top:GetUser(i))
-				end
-			end
-			self:settext(str)
-	end,
-	PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-	PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
-	UsersUpdateMessageCommand=cmd(queuecommand,"Set"),
-}
+t[#t+1] = LoadActor("../_userlist")
 
 return t
