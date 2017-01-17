@@ -2422,16 +2422,13 @@ void Profile::TopSSRsAddNewScore(HighScore *hs, StepsID stepsid, SongID songid) 
 
 	for (int skillset = 0; skillset < NUM_Skillset; skillset++) {
 
-		vector<float> topSSRs; //Auxiliary vector to sort faster
-
 		//Pointers to the skillset's vectors
 		vector<unsigned int> *topSSRHighScoreIndexsPtr = &topSSRHighScoreIndexs[skillset];
 		vector<vector<HighScore>*> *topSSRHighScoreListsPtr = &topSSRHighScoreLists[skillset];
 		vector<StepsID> *topSSRStepIdsPtr = &topSSRStepIds[skillset];
 		vector<SongID> *topSSRSongIdsPtr = &topSSRSongIds[skillset];
 
-		unsigned int poscounter;
-
+		
 		unsigned int qty = (*topSSRSongIdsPtr).size();
 		if (qty == 0)
 			continue;
@@ -2440,16 +2437,9 @@ void Profile::TopSSRsAddNewScore(HighScore *hs, StepsID stepsid, SongID songid) 
 		if (ssr == 0)
 			return;
 
-		for (unsigned int i = 0; i < qty; i++) {
-			if ((*topSSRHighScoreIndexsPtr)[i] != 0)
-				topSSRs.push_back((*topSSRHighScoreLists[skillset][i])[topSSRHighScoreIndexs[skillset][i] - 1].GetSkillsetSSR(static_cast<Skillset>(skillset)));
-			else
-				topSSRs.push_back(0);
-		}
-
 
 		//Compare with the smallest value(last one) to see if we need to change the values
-		if (topSSRs[qty - 1] < ssr) {
+		if ((*topSSRHighScoreIndexsPtr)[qty - 1] != 0 ? (*topSSRHighScoreLists[skillset][qty - 1])[topSSRHighScoreIndexs[skillset][qty-1] - 1] : 0 < ssr) {
 
 
 			//Screw it lets just try always recalculating to see if this works at the very least
@@ -2457,6 +2447,16 @@ void Profile::TopSSRsAddNewScore(HighScore *hs, StepsID stepsid, SongID songid) 
 			CalcAllTopSSRs(qty);
 			return;
 
+			
+			/* I have no idea how to get the HighscoreForASteps and the index from the hs i get
+
+			vector<float> topSSRs; //Auxiliary vector to sort faster
+			for (unsigned int i = 0; i < qty; i++) {
+				if ((*topSSRHighScoreIndexsPtr)[i] != 0)
+					topSSRs.push_back((*topSSRHighScoreLists[skillset][i])[topSSRHighScoreIndexs[skillset][i] - 1].GetSkillsetSSR(static_cast<Skillset>(skillset)));
+				else
+					topSSRs.push_back(0);
+			}
 
 			//Check for duplicates
 			bool replace = false;
@@ -2485,6 +2485,8 @@ void Profile::TopSSRsAddNewScore(HighScore *hs, StepsID stepsid, SongID songid) 
 			if (matches && !replace)
 				continue;
 
+			unsigned int poscounter;
+
 			//Find the position of the inmediate smaller value
 			for (poscounter = qty - 1; topSSRs[poscounter - 1] < ssr && poscounter != 0;) {
 				poscounter--;
@@ -2495,7 +2497,6 @@ void Profile::TopSSRsAddNewScore(HighScore *hs, StepsID stepsid, SongID songid) 
 			topSSRs.insert(topSSRs.begin() + poscounter, ssr);
 			(*topSSRSongIdsPtr).insert((*topSSRSongIdsPtr).begin() + poscounter, songid);
 			//(*topSSRHighScoresPtr).insert((*topSSRHighScoresPtr).begin() + poscounter, hs);
-			//I have no idea how to get the HighscoreForASteps and the index from the hs i got
 
 			//erase last element to keep the same amount of elements(qty)
 			if (!replace) {
@@ -2505,7 +2506,7 @@ void Profile::TopSSRsAddNewScore(HighScore *hs, StepsID stepsid, SongID songid) 
 				(*topSSRHighScoreListsPtr).pop_back();
 				(*topSSRHighScoreIndexsPtr).pop_back();
 			}
-
+			*/
 		}
 
 	}
