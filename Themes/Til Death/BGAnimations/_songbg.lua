@@ -17,7 +17,7 @@ if enabled then
  					if GAMESTATE:GetCurrentSong() and GAMESTATE:GetCurrentSong():GetBackgroundPath() then
 						self:finishtweening()
  						self:visible(true)
- 						self:LoadBackgroundUnlessFast(GAMESTATE:GetCurrentSong():GetBackgroundPath())
+ 						self:LoadBackground(GAMESTATE:GetCurrentSong():GetBackgroundPath())
 						if moveBG then
 							self:scaletocover(0-maxDistY/8,0-maxDistY/8,SCREEN_WIDTH+maxDistX/8,SCREEN_BOTTOM+maxDistY/8)
 						else

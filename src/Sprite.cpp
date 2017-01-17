@@ -1095,16 +1095,6 @@ public:
 		TEXTUREMAN->EnableOddDimensionWarning();
 		return 1;
 	}
-	static int LoadBackgroundUnlessFast(T* p, lua_State *L)
-	{
-		if (!INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_TAB))) {
-			RageTextureID ID(SArg(1));
-			TEXTUREMAN->DisableOddDimensionWarning();
-			p->Load(Sprite::SongBGTexture(ID));
-			TEXTUREMAN->EnableOddDimensionWarning();
-		}
-		return 1;
-	}
 	static int LoadBanner( T* p, lua_State *L )
 	{
 		RageTextureID ID( SArg(1) );
@@ -1269,7 +1259,6 @@ public:
 		ADD_METHOD( Load );
 		ADD_METHOD( LoadBanner );
 		ADD_METHOD( LoadBackground );
-		ADD_METHOD( LoadBackgroundUnlessFast );
 		ADD_METHOD( customtexturerect );
 		ADD_METHOD( SetCustomImageRect );
 		ADD_METHOD( SetCustomPosCoords );
