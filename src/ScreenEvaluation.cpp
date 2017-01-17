@@ -793,6 +793,13 @@ bool ScreenEvaluation::MenuStart( const InputEventPlus &input )
 
 void ScreenEvaluation::HandleMenuStart()
 {
+	Profile *prof = PROFILEMAN->GetProfile( static_cast<PlayerNumber>(0) );
+	HighScore * hs = &(m_pStageStats->m_player[0].m_HighScore);
+	StepsID stepsid;
+	stepsid.FromSteps(GAMESTATE->m_pCurSteps[PLAYER_1]);
+	SongID songid;
+	songid.FromSong(GAMESTATE->m_pCurSong);
+	prof->TopSSRsAddNewScore(hs, stepsid, songid);
 	StartTransitioningScreen( SM_GoToNextScreen );
 }
 
