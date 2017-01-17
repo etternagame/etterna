@@ -649,6 +649,9 @@ bool CheckVideoDefaultSettings()
 
 	LOG->Trace( "Last seen video driver: %s", PREFSMAN->m_sLastSeenVideoDriver.Get().c_str() );
 
+	// allow players to opt out of the forced reset when a new video card is detected - mina
+	static Preference<bool> TKGP("ResetVideoSettingsWithNewGPU", true);
+
 	VideoCardDefaults defaults;
 
 	unsigned i;
@@ -683,18 +686,20 @@ bool CheckVideoDefaultSettings()
 
 	if( bSetDefaultVideoParams )
 	{
-		PREFSMAN->m_sVideoRenderers.Set( defaults.sVideoRenderers );
-		PREFSMAN->m_iDisplayWidth.Set( defaults.iWidth );
-		PREFSMAN->m_iDisplayHeight.Set( defaults.iHeight );
-		PREFSMAN->m_iDisplayColorDepth.Set( defaults.iDisplayColor );
-		PREFSMAN->m_iTextureColorDepth.Set( defaults.iTextureColor );
-		PREFSMAN->m_iMovieColorDepth.Set( defaults.iMovieColor );
-		PREFSMAN->m_iMaxTextureResolution.Set( defaults.iTextureSize );
-		PREFSMAN->m_bSmoothLines.Set( defaults.bSmoothLines );
-		// this only worked when we started in fullscreen by default. -aj
-		//PREFSMAN->m_fDisplayAspectRatio.Set( HOOKS->GetDisplayAspectRatio() );
-		// now that we start in windowed mode, use the new default aspect ratio.
-		PREFSMAN->m_fDisplayAspectRatio.Set( PREFSMAN->m_fDisplayAspectRatio );
+		if (TKGP) {
+			PREFSMAN->m_sVideoRenderers.Set(defaults.sVideoRenderers);
+			PREFSMAN->m_iDisplayWidth.Set(defaults.iWidth);
+			PREFSMAN->m_iDisplayHeight.Set(defaults.iHeight);
+			PREFSMAN->m_iDisplayColorDepth.Set(defaults.iDisplayColor);
+			PREFSMAN->m_iTextureColorDepth.Set(defaults.iTextureColor);
+			PREFSMAN->m_iMovieColorDepth.Set(defaults.iMovieColor);
+			PREFSMAN->m_iMaxTextureResolution.Set(defaults.iTextureSize);
+			PREFSMAN->m_bSmoothLines.Set(defaults.bSmoothLines);
+			// this only worked when we started in fullscreen by default. -aj
+			//PREFSMAN->m_fDisplayAspectRatio.Set( HOOKS->GetDisplayAspectRatio() );
+			// now that we start in windowed mode, use the new default aspect ratio.
+			PREFSMAN->m_fDisplayAspectRatio.Set(PREFSMAN->m_fDisplayAspectRatio);
+		}
 
 		// Update last seen video card
 		PREFSMAN->m_sLastSeenVideoDriver.Set( GetVideoDriverName() );
