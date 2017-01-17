@@ -12,6 +12,8 @@ t[#t+1] = LoadActor("msd")
 t[#t+1] = LoadActor("songsearch")
 t[#t+1] = LoadActor("tabs")
 t[#t+1] = LoadActor("score")
+t[#t+1] = LoadActor("dumbrate")
+t[#t+1] = LoadActor("filters")
 
 local g = Def.ActorFrame{
 	TabChangedMessageCommand=function(self)
@@ -27,10 +29,6 @@ local g = Def.ActorFrame{
 		end
 	end,
 }
-
-
-
-
 
 g[#g+1] = Def.Banner{
 	InitCommand=cmd(x,10;y,60;halign,0;valign,0);
