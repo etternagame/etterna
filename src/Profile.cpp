@@ -2420,10 +2420,7 @@ void Profile::TopSSRsAddNewScore(HighScore *hs, StepsID stepsid, SongID songid) 
 				if ((*topSSRSongIdsPtr)[i] == songid && (*topSSRStepIdsPtr)[i] == stepsid &&
 				(*topSSRHighScoresPtr)[i]->GetMusicRate() == hs->GetMusicRate() &&
 				(*topSSRHighScoresPtr)[i] != NULL) {
-					if (topSSRs[i] < ssr) {
-						CalcAllTopSSRs(qty);
-					}
-					else
+					if (topSSRs[i] >= ssr)
 						return;
 				}
 			}
