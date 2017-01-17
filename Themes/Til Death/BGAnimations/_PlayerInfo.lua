@@ -40,8 +40,6 @@ t[#t+1] = Def.Actor{
 				skillsets.Speed = profile:GetPlayerSkillsetRating(2)
 				skillsets.Stam = profile:GetPlayerSkillsetRating(3)
 				skillsets.Jack = profile:GetPlayerSkillsetRating(4)
-				
-				numfaves = profile:GetNumFaves()
 			else 
 				profileName = "No Profile"
 				playCount = 0
@@ -152,7 +150,7 @@ t[#t+1] = Def.ActorFrame{
 		InitCommand=cmd(xy,SCREEN_WIDTH-5,AvatarY+30;halign,1;zoom,0.35;diffuse,getMainColor('positive')),
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self)
-			self:settextf("Songs Favorited: %i", numfaves)
+			self:settextf("Songs Favorited: %i",  profile:GetNumFaves())
 		end,
 		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
 		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
