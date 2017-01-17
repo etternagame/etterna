@@ -2423,8 +2423,11 @@ void Profile::TopSSRsAddNewScore(HighScore *hs, StepsID stepsid, SongID songid) 
 					if (topSSRs[i] < ssr) {
 						CalcAllTopSSRs(qty);
 					}
+					else
+						return;
 				}
 			}
+			CalcAllTopSSRs(qty);
 			return;
 			//
 
