@@ -1,3 +1,5 @@
+--A dumb way of getting the rate to update online. -Misterkister
+
 --Local vars
 local update = false
 local steps
@@ -14,7 +16,16 @@ local pn = GAMESTATE:GetEnabledPlayers()[1]
 local greatest = 0
 local steps
 local meter = {}
+local curateX = frameX+frameWidth+5
+local curateY = frameY+offsetY+140
 meter[1] = 0.00
+
+--4:3 ratio. -Misterkister
+if not IsUsingWideScreen() == true then
+curateX = frameX+frameWidth-40
+curateY = frameY+offsetY-20
+
+end
 
 --Actor Frame
 local t = Def.ActorFrame{
@@ -23,7 +34,7 @@ local t = Def.ActorFrame{
 	OnCommand=cmd(bouncebegin,0.2;xy,0,0;diffusealpha,1),
 	SetCommand=function(self)
 		self:finishtweening()
-		if getTabIndex() == 1 then
+		if getTabIndex() == 0 then
 			self:queuecommand("On")
 			self:visible(true)
 			song = GAMESTATE:GetCurrentSong()
@@ -52,9 +63,6 @@ local t = Def.ActorFrame{
 	TabChangedMessageCommand=cmd(queuecommand,"Set"),
 	PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
 }
-
---BG quad
-t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,frameHeight;halign,0;valign,0;diffuse,color("#333333CC"))}
 
 --Skillset label function
 local function littlebits(i)
@@ -96,78 +104,13 @@ local function littlebits(i)
 	return t
 end
 
---Song Title
-t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,offsetY;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,0.5)}
-t[#t+1] = LoadFont("Common Normal")..{InitCommand=cmd(xy,frameX+5,frameY+offsetY-9;zoom,0.6;halign,0;diffuse,getMainColor('positive');settext,"MSD Breakdown (Wip)")}
-t[#t+1] = LoadFont("Common Large")..{
-	InitCommand=cmd(xy,frameX+5,frameY+35;zoom,0.6;halign,0;diffuse,getMainColor('positive');maxwidth,SCREEN_CENTER_X/0.7),
-	SetCommand=function(self)
-		if song then
-			self:settext(song:GetDisplayMainTitle())
-		else
-			self:settext("")
-		end
-	end,
-	UpdateMSDInfoCommand=cmd(queuecommand,"Set"),
-}
-
-
 -- Music Rate Display
 t[#t+1] = LoadFont("Common Large") .. {
-	InitCommand=cmd(xy,frameX+frameWidth-100,frameY+offsetY+65;visible,true;halign,0;zoom,0.4;maxwidth,capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45)),
+	InitCommand=cmd(xy,curateX,curateY;visible,true;halign,0;zoom,0.35;maxwidth,capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45)),
 	SetCommand=function(self)
 		self:settext(getCurRateDisplayString())
 	end,
 	CurrentRateChangedCommand=cmd(queuecommand,"set")
 }
-
---Difficulty
-t[#t+1] = LoadFont("Common Normal")..{
-	Name="StepsAndMeter",
-	InitCommand=cmd(xy,frameX+frameWidth-offsetX,frameY+offsetY+50;zoom,0.5;halign,1),
-	SetCommand=function(self)
-		steps = GAMESTATE:GetCurrentSteps(pn)
-		if steps ~= nil then
-			local diff = getDifficulty(steps:GetDifficulty())
-			local stype = ToEnumShortString(steps:GetStepsType()):gsub("%_"," ")
-			local meter = steps:GetMeter()
-			if update then
-				self:settext(stype.." "..diff.." "..meter)
-				self:diffuse(getDifficultyColor(GetCustomDifficulty(steps:GetStepsType(),steps:GetDifficulty())))
-			end
-		end
-	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
-}
-
-
---NPS
-t[#t+1] = LoadFont("Common Normal")..{
-	Name="NPS";
-	InitCommand=cmd(xy,frameX+frameWidth-15,frameY+60;zoom,0.4;halign,1;);
-	SetCommand=function(self)
-		steps = GAMESTATE:GetCurrentSteps(pn)
-		--local song = GAMESTATE:GetCurrentSong()
-		local notecount = 0
-		local length = 1
-		if steps ~= nil and song ~= nil and update then
-			length = song:GetStepsSeconds()
-			notecount = steps:GetRadarValues(pn):GetValue("RadarCategory_Notes")
-			self:settext(string.format("%0.2f Average NPS",notecount/length))
-			self:diffuse(Saturation(getDifficultyColor(GetCustomDifficulty(steps:GetStepsType(),steps:GetDifficulty())),0.3))
-		else
-			self:settext("0.00 Average NPS")
-		end
-	end;
-	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
-	CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set");
-	CurrentStepsP2ChangedMessageCommand=cmd(queuecommand,"Set");
-};
-
-
---Skillset labels
-for i=1,#ms.SkillSets do 
-	t[#t+1] = littlebits(i)
-end
 
 return t

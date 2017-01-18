@@ -182,10 +182,10 @@ if IsUsingWideScreen() == true then
 	--radarX = frameX+400
 
 	infoboxx = capWideScale(get43size(374),405)
-	infoboxy = capWideScale(get43size(360),195)
+	infoboxy = capWideScale(get43size(360),215)
 	infoboxbar = 8
 	infoboxwidth = 95
-	infoboxheight = 210
+	infoboxheight = 195
 	lengthx = capWideScale(get43size(374),375)
 	lengthy = capWideScale(get43size(360),170)
 	cdtitlemaxwidth = 75
@@ -209,9 +209,9 @@ if not IsUsingWideScreen() == true then
 	rateY = frameY-175
 	datescoreX = frameX+130
 	datescoreY = frameY-150
-	maxcomboY = frameY-150
-	maxcomboX = frameX+250
-	difficultyY = frameY-105
+	maxcomboY = frameY-175
+	maxcomboX = frameX+210
+	difficultyY = frameY-95
 	difficultyX = frameX+330
 	negativebpmY = frameY-290
 	--radarX = frameX+400
@@ -235,18 +235,18 @@ t[#t+1] = Def.Quad{
 t[#t+1] = Def.Quad{
 	InitCommand=cmd(xy,infoboxx,infoboxy;zoomto,infoboxbar,infoboxheight;halign,0;valign,0;diffuse,getMainColor('highlight');diffusealpha,0.5)
 }	
--- Music Rate Display
-t[#t+1] = LoadFont("Common Large") .. {
-	InitCommand=cmd(xy,curateX,curateY;visible,true;halign,0;zoom,0.3;maxwidth,capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45)),
-	BeginCommand=function(self)
-		self:settext(getCurRateDisplayString())
-	end,
-	CodeMessageCommand=function(self,params)
-		local rate = getCurRateValue()
-		ChangeMusicRate(rate,params)
-		self:settext(getCurRateDisplayString())
-	end,
-}
+-- -- Music Rate Display
+-- t[#t+1] = LoadFont("Common Large") .. {
+	-- InitCommand=cmd(xy,curateX,curateY;visible,true;halign,0;zoom,0.3;maxwidth,capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45)),
+	-- BeginCommand=function(self)
+		-- self:settext(getCurRateDisplayString())
+	-- end,
+	-- CodeMessageCommand=function(self,params)
+		-- local rate = getCurRateValue()
+		-- ChangeMusicRate(rate,params)
+		-- self:settext(getCurRateDisplayString())
+	-- end,
+-- }
 
 t[#t+1] = Def.ActorFrame{
 	-- -- **frames/bars**
@@ -447,7 +447,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 }
 
 t[#t+1] = Def.Sprite {
-	InitCommand=cmd(xy,capWideScale(get43size(374),394)+60,capWideScale(get43size(360),270);halign,0.5;valign,1),
+	InitCommand=cmd(xy,capWideScale(get43size(374),394)+60,capWideScale(get43size(290),270);halign,0.5;valign,1),
 	SetCommand=function(self)
 		self:finishtweening()
 		if GAMESTATE:GetCurrentSong() then

@@ -7,11 +7,13 @@ t[#t+1] = LoadActor("../_chatbox")
 --t[#t+1] = LoadActor("kappa")
 --t[#t+1] = LoadActor("msd stuff")
 --t[#t+1] = LoadActor("matra")
-t[#t+1] = LoadActor("profile")
-t[#t+1] = LoadActor("msd")
-t[#t+1] = LoadActor("songsearch")
+t[#t+1] = LoadActor("../ScreenSelectMusic decorations/profile")
+t[#t+1] = LoadActor("../ScreenSelectMusic decorations/msd")
+t[#t+1] = LoadActor("../ScreenSelectMusic decorations/songsearch")
 t[#t+1] = LoadActor("tabs")
-t[#t+1] = LoadActor("score")
+t[#t+1] = LoadActor("../ScreenSelectMusic decorations/score")
+t[#t+1] = LoadActor("dumbrate")
+t[#t+1] = LoadActor("../ScreenSelectMusic decorations/filters")
 
 local g = Def.ActorFrame{
 	TabChangedMessageCommand=function(self)
@@ -27,10 +29,6 @@ local g = Def.ActorFrame{
 		end
 	end,
 }
-
-
-
-
 
 g[#g+1] = Def.Banner{
 	InitCommand=cmd(x,10;y,60;halign,0;valign,0);
