@@ -156,6 +156,10 @@ function byJudgment(judge)
 	return color(colorConfig:get_data().judgment[judge])
 end
 
+function byDifficulty(diff)
+	return color(colorConfig:get_data().difficulty[diff])
+end
+
 -- Colorized stuff
 function ByMSD(x)
 	if x then

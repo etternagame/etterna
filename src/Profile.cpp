@@ -2229,6 +2229,22 @@ SongID Profile::GetTopSSRSongID(unsigned int rank, int skillset) {
 	SongID emptysongID;
 	return emptysongID;
 }
+StepsID Profile::GetTopSSRStepsID(unsigned int rank, int skillset) {
+	if (rank <= 0)
+		rank = 1;
+	if (rank > static_cast<unsigned int>(topSSRStepIds[skillset].size()))
+		if (CalcAllTopSSRs(rank) == false) {
+			StepsID emptyStepID;
+			return emptyStepID;
+		}
+
+	if (skillset >= 0 && skillset < NUM_Skillset)
+		return topSSRStepIds[skillset][rank - 1];
+
+	//Undefined skillset 
+	StepsID emptyStepID;
+	return emptyStepID;
+}
 HighScore* Profile::GetTopSSRHighScore(unsigned int rank, int skillset) {
 	if (rank <= 0)
 		rank = 1;
@@ -3288,8 +3304,18 @@ public:
 		return 1;
 	}
 	static int GetSongFromSSR(T* p, lua_State *L) {
-		SongID& id = p->GetTopSSRSongID(IArg(1), IArg(2));
+		SongID id = p->GetTopSSRSongID(IArg(1), IArg(2));
 		id.ToSong()->PushSelf(L);
+		return 1;
+	}
+	static int GetStepsFromSSR(T* p, lua_State *L) {
+		StepsID stepsid = p->GetTopSSRStepsID(IArg(1), IArg(2));
+		SongID songid = p->GetTopSSRSongID(IArg(1), IArg(2));
+		Steps *steps = stepsid.ToSteps(songid.ToSong(), true);
+		if(steps != NULL)
+			steps->PushSelf(L);
+		else
+			lua_pushnil(L);
 		return 1;
 	}
 	static int RecalcTopSSR(T* p, lua_State *L) {
@@ -3374,7 +3400,8 @@ public:
 		ADD_METHOD( GetNumFaves );
 		ADD_METHOD( GetTopSSRValue );
 		ADD_METHOD( GetTopSSRSongName );
-		ADD_METHOD( GetSongFromSSR );
+		ADD_METHOD(GetSongFromSSR);
+		ADD_METHOD(GetStepsFromSSR);
 		ADD_METHOD(GetTopSSRHighScore);
 		ADD_METHOD(RecalcTopSSR);
 	}
