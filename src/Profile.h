@@ -457,7 +457,9 @@ public:
 	RString GetTopSSRSongName(unsigned int rank, int skillset);
 	//Vector array instead of a bunch of vectors
 	vector<SongID> topSSRSongIds[NUM_Skillset];
-	vector<HighScore*> topSSRHighScores[NUM_Skillset];
+	//vector<HighScore*> topSSRHighScores[NUM_Skillset];
+	vector<vector<HighScore>*> topSSRHighScoreLists[NUM_Skillset];
+	vector<unsigned int> topSSRHighScoreIndexs[NUM_Skillset];//we work with index+1 so 0 is undefined
 	vector<StepsID> topSSRStepIds[NUM_Skillset];
 
 private:

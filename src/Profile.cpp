@@ -2232,12 +2232,28 @@ SongID Profile::GetTopSSRSongID(unsigned int rank, int skillset) {
 HighScore* Profile::GetTopSSRHighScore(unsigned int rank, int skillset) {
 	if (rank <= 0)
 		rank = 1;
-	if (rank > static_cast<unsigned int>(topSSRHighScores[skillset].size()))
+	if (rank > static_cast<unsigned int>(topSSRHighScoreLists[skillset].size()))
 		if (CalcAllTopSSRs(rank) == false)
 			return NULL;
 
-	if(skillset >= 0 && skillset < NUM_Skillset)
-		return topSSRHighScores[skillset][rank - 1];
+	if (skillset >= 0 && skillset < NUM_Skillset) {
+		if (topSSRHighScoreIndexs[skillset][rank - 1] > 0)
+			return &((*topSSRHighScoreLists[skillset][rank - 1])[topSSRHighScoreIndexs[skillset][rank - 1] - 1]);
+		else
+			return NULL;
+		/*
+		if (topSSRHighScores[skillset][rank - 1] != NULL)
+			if (!topSSRHighScores[skillset][rank - 1]->IsEmpty())
+				return topSSRHighScores[skillset][rank - 1];
+			else
+				if (CalcAllTopSSRs(rank) == false)
+					return NULL;
+				else
+					return topSSRHighScores[skillset][rank - 1];
+		else
+			return NULL;
+		*/
+	}
 	//Undefined skillset returns an empty pointer(NULL)
 
 	return NULL;
@@ -2256,8 +2272,10 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 
 	vector<float> topSSRs; //Auxiliary vector to sort faster
 
-						   //Pointers to the skillset's vectors
-	vector<HighScore*> *topSSRHighScoresPtr = &topSSRHighScores[skillset];
+	//Pointers to the skillset's vectors
+	//vector<HighScore*> *topSSRHighScoresPtr = &topSSRHighScores[skillset];
+	vector<vector<HighScore>*> *topSSRHighScoreListsPtr = &topSSRHighScoreLists[skillset];
+	vector<unsigned int> *topSSRHighScoreIndexsPtr = &topSSRHighScoreIndexs[skillset];
 	vector<StepsID> *topSSRStepIdsPtr = &topSSRStepIds[skillset];
 	vector<SongID> *topSSRSongIdsPtr = &topSSRSongIds[skillset];
 
@@ -2270,9 +2288,12 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 	StepsID emptySteps;
 	SongID emptySong;
 	HighScore* emptyHighScorePtr = NULL;
+	vector<HighScore>* emptyHighScoreListsPtr = NULL;
 	(*topSSRStepIdsPtr).clear();
 	(*topSSRSongIdsPtr).clear();
-	(*topSSRHighScoresPtr).clear();
+	//(*topSSRHighScoresPtr).clear();
+	(*topSSRHighScoreListsPtr).clear();
+	(*topSSRHighScoreIndexsPtr).clear();
 
 	//Empty the vectors if qty=0
 	if (qty == 0)
@@ -2282,7 +2303,9 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 		topSSRs.push_back(0);
 		(*topSSRStepIdsPtr).emplace_back(emptySteps);
 		(*topSSRSongIdsPtr).emplace_back(emptySong);
-		(*topSSRHighScoresPtr).emplace_back(emptyHighScorePtr);
+		//(*topSSRHighScoresPtr).emplace_back(emptyHighScorePtr);
+		(*topSSRHighScoreListsPtr).emplace_back(emptyHighScoreListsPtr);
+		(*topSSRHighScoreIndexsPtr).emplace_back(0);
 	}
 
 	struct info {
@@ -2290,6 +2313,11 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 		unsigned int pos;
 	};
 	info temp[40];
+	for (int i = 0;i < 40;i++) {
+		temp[i].ssr = 0;
+		temp[i].pos = 0;
+	}
+
 	bool replaced = false;
 
 	//Build the top
@@ -2325,13 +2353,18 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 
 					if ((temp[rate - 1]).ssr != 0)
 						replaced = true;
+					else
+						replaced = false;
+
 
 					if (replaced) {
 						(*topSSRStepIdsPtr).erase((*topSSRStepIdsPtr).begin() + temp[rate - 1].pos);
 						topSSRs.erase(topSSRs.begin() + temp[rate - 1].pos);
 						(*topSSRSongIdsPtr).erase((*topSSRSongIdsPtr).begin() + temp[rate - 1].pos);
-						(*topSSRHighScoresPtr).erase((*topSSRHighScoresPtr).begin() + temp[rate - 1].pos);
-						qty--;
+						//(*topSSRHighScoresPtr).erase((*topSSRHighScoresPtr).begin() + temp[rate - 1].pos);
+						(*topSSRHighScoreListsPtr).erase((*topSSRHighScoreListsPtr).begin() + temp[rate - 1].pos);
+						(*topSSRHighScoreIndexsPtr).erase((*topSSRHighScoreIndexsPtr).begin() + temp[rate - 1].pos);
+						//qty--;
 					}
 
 
@@ -2347,7 +2380,9 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 					(*topSSRStepIdsPtr).insert((*topSSRStepIdsPtr).begin() + poscounter, stepsid);
 					topSSRs.insert(topSSRs.begin() + poscounter, ssr);
 					(*topSSRSongIdsPtr).insert((*topSSRSongIdsPtr).begin() + poscounter, id);
-					(*topSSRHighScoresPtr).insert((*topSSRHighScoresPtr).begin() + poscounter, &(hsv[i]));
+					//(*topSSRHighScoresPtr).insert((*topSSRHighScoresPtr).begin() + poscounter, &(hsv[i]));
+					(*topSSRHighScoreListsPtr).insert((*topSSRHighScoreListsPtr).begin() + poscounter, &hsv);
+					(*topSSRHighScoreIndexsPtr).insert((*topSSRHighScoreIndexsPtr).begin() + poscounter, i+1);
 
 
 					//erase last element to keep the same amount of elements(qty)
@@ -2356,10 +2391,12 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 						topSSRs.pop_back();
 						(*topSSRStepIdsPtr).pop_back();
 						(*topSSRSongIdsPtr).pop_back();
-						(*topSSRHighScoresPtr).pop_back();
+						//(*topSSRHighScoresPtr).pop_back();
+						(*topSSRHighScoreListsPtr).pop_back();
+						(*topSSRHighScoreIndexsPtr).pop_back();
 					}
-					else
-						qty++;
+					//else
+						//qty++;
 				}
 			}
 		}
@@ -2371,76 +2408,71 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 	return false;
 }
 
-//Todo: Make this not recalc everything -Nick12
-//What's below the return currently crashes
+
 void Profile::TopSSRsAddNewScore(HighScore *hs, StepsID stepsid, SongID songid) {
-	for (int skillset = 0; skillset < NUM_Skillset; skillset++) {//undefined skillset
-		if (skillset < 0 || skillset >= NUM_Skillset)
-			continue;
+	if (!songid.IsValid())
+		return;
 
-		if (!songid.IsValid())
-			continue;
+	if (!stepsid.IsValid() || stepsid.GetStepsType() != StepsType_dance_single)
+		return;
 
-		if (!stepsid.IsValid() || stepsid.GetStepsType() != StepsType_dance_single)
-			continue;
+	Steps* psteps = stepsid.ToSteps(songid.ToSong(), true);
+	if (!psteps)
+		return;
 
-		Steps* psteps = stepsid.ToSteps(songid.ToSong(), true);
-		if (!psteps)
-			continue;
-
-
-		vector<float> topSSRs; //Auxiliary vector to sort faster
+	for (int skillset = 0; skillset < NUM_Skillset; skillset++) {
 
 		//Pointers to the skillset's vectors
-		vector<HighScore*> *topSSRHighScoresPtr = &topSSRHighScores[skillset];
+		vector<unsigned int> *topSSRHighScoreIndexsPtr = &topSSRHighScoreIndexs[skillset];
+		vector<vector<HighScore>*> *topSSRHighScoreListsPtr = &topSSRHighScoreLists[skillset];
 		vector<StepsID> *topSSRStepIdsPtr = &topSSRStepIds[skillset];
 		vector<SongID> *topSSRSongIdsPtr = &topSSRSongIds[skillset];
 
-		unsigned int poscounter;
-
-		int qty = (*topSSRHighScoresPtr).size();
+		
+		unsigned int qty = (*topSSRSongIdsPtr).size();
 		if (qty == 0)
 			continue;
 
-		for (unsigned int i = 0; i < qty; i++) {
-			if ((*topSSRHighScoresPtr)[i] != NULL)
-				topSSRs.push_back((*topSSRHighScoresPtr)[i]->GetSkillsetSSR(static_cast<Skillset>(skillset)));
-			else
-				topSSRs.push_back(0);
-		}
-
 		float ssr = hs->GetSkillsetSSR(static_cast<Skillset>(skillset));
+		if (ssr == 0)
+			return;
+
 
 		//Compare with the smallest value(last one) to see if we need to change the values
-		if (topSSRs[qty - 1] < ssr) {
+		if ( ((*topSSRHighScoreIndexsPtr)[qty - 1] != 0 ? (*topSSRHighScoreLists[skillset][qty - 1])[topSSRHighScoreIndexs[skillset][qty-1] - 1].GetSkillsetSSR(static_cast<Skillset>(skillset)) : 0) < ssr) {
 
-			//This isnt finished so we just recalc it all for the moment when we find it needs to
-			//
-			for (unsigned int i = 0; i < qty; i++) {
-				if ((*topSSRSongIdsPtr)[i] == songid && (*topSSRStepIdsPtr)[i] == stepsid &&
-				(*topSSRHighScoresPtr)[i]->GetMusicRate() == hs->GetMusicRate() &&
-				(*topSSRHighScoresPtr)[i] != NULL) {
-					if (topSSRs[i] >= ssr)
-						return;
-				}
-			}
+
+			//Screw it lets just try always recalculating to see if this works at the very least
+			//Todo:Make this not recalc all the time -Nick12
 			CalcAllTopSSRs(qty);
 			return;
-			//
+
+			
+			/* I have no idea how to get the HighscoreForASteps and the index from the hs i get
+
+			vector<float> topSSRs; //Auxiliary vector to sort faster
+			for (unsigned int i = 0; i < qty; i++) {
+				if ((*topSSRHighScoreIndexsPtr)[i] != 0)
+					topSSRs.push_back((*topSSRHighScoreLists[skillset][i])[topSSRHighScoreIndexs[skillset][i] - 1].GetSkillsetSSR(static_cast<Skillset>(skillset)));
+				else
+					topSSRs.push_back(0);
+			}
 
 			//Check for duplicates
 			bool replace = false;
 			bool matches = false;
 			for (unsigned int i = 0; i < qty; i++) {
 				if ((*topSSRSongIdsPtr)[i] == songid && (*topSSRStepIdsPtr)[i] == stepsid &&
-					(*topSSRHighScoresPtr)[i]->GetMusicRate() == hs->GetMusicRate() &&
-					(*topSSRHighScoresPtr)[i] != NULL) {
+					(*topSSRHighScoreListsPtr)[i] != 0 &&
+					(*topSSRHighScoreLists[skillset][i])[topSSRHighScoreIndexs[skillset][i] - 1].GetMusicRate() == hs->GetMusicRate() ) {
 					matches = true;
 					if (topSSRs[i] < ssr) {
 						(*topSSRStepIdsPtr).erase((*topSSRStepIdsPtr).begin() + i);
 						topSSRs.erase(topSSRs.begin() + i);
 						(*topSSRSongIdsPtr).erase((*topSSRSongIdsPtr).begin() + i);
-						(*topSSRHighScoresPtr).erase((*topSSRHighScoresPtr).begin() + i);
+						//(*topSSRHighScoresPtr).erase((*topSSRHighScoresPtr).begin() + i);
+						(*topSSRHighScoreListsPtr).erase((*topSSRHighScoreListsPtr).begin() + i);
+						(*topSSRHighScoreIndexsPtr).erase((*topSSRHighScoreIndexsPtr).begin() + i);
 						qty--;
 						replace = true;
 					}
@@ -2453,6 +2485,8 @@ void Profile::TopSSRsAddNewScore(HighScore *hs, StepsID stepsid, SongID songid) 
 			if (matches && !replace)
 				continue;
 
+			unsigned int poscounter;
+
 			//Find the position of the inmediate smaller value
 			for (poscounter = qty - 1; topSSRs[poscounter - 1] < ssr && poscounter != 0;) {
 				poscounter--;
@@ -2462,15 +2496,17 @@ void Profile::TopSSRsAddNewScore(HighScore *hs, StepsID stepsid, SongID songid) 
 			(*topSSRStepIdsPtr).insert((*topSSRStepIdsPtr).begin() + poscounter, stepsid);
 			topSSRs.insert(topSSRs.begin() + poscounter, ssr);
 			(*topSSRSongIdsPtr).insert((*topSSRSongIdsPtr).begin() + poscounter, songid);
-			(*topSSRHighScoresPtr).insert((*topSSRHighScoresPtr).begin() + poscounter, hs);
+			//(*topSSRHighScoresPtr).insert((*topSSRHighScoresPtr).begin() + poscounter, hs);
 
 			//erase last element to keep the same amount of elements(qty)
 			if (!replace) {
 				topSSRs.pop_back();
 				(*topSSRStepIdsPtr).pop_back();
 				(*topSSRSongIdsPtr).pop_back();
-				(*topSSRHighScoresPtr).pop_back();
+				(*topSSRHighScoreListsPtr).pop_back();
+				(*topSSRHighScoreIndexsPtr).pop_back();
 			}
+			*/
 		}
 
 	}
@@ -3256,6 +3292,10 @@ public:
 		id.ToSong()->PushSelf(L);
 		return 1;
 	}
+	static int RecalcTopSSR(T* p, lua_State *L) {
+		p->CalcAllTopSSRs(p->topSSRHighScoreLists[0].size());
+		return 1;
+	}
 
 	DEFINE_METHOD( GetGUID,		m_sGuid );
 
@@ -3335,7 +3375,8 @@ public:
 		ADD_METHOD( GetTopSSRValue );
 		ADD_METHOD( GetTopSSRSongName );
 		ADD_METHOD( GetSongFromSSR );
-		ADD_METHOD( GetTopSSRHighScore );
+		ADD_METHOD(GetTopSSRHighScore);
+		ADD_METHOD(RecalcTopSSR);
 	}
 };
 
