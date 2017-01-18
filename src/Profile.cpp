@@ -2439,7 +2439,7 @@ void Profile::TopSSRsAddNewScore(HighScore *hs, StepsID stepsid, SongID songid) 
 
 
 		//Compare with the smallest value(last one) to see if we need to change the values
-		if ((*topSSRHighScoreIndexsPtr)[qty - 1] != 0 ? (*topSSRHighScoreLists[skillset][qty - 1])[topSSRHighScoreIndexs[skillset][qty-1] - 1] : 0 < ssr) {
+		if ( ((*topSSRHighScoreIndexsPtr)[qty - 1] != 0 ? (*topSSRHighScoreLists[skillset][qty - 1])[topSSRHighScoreIndexs[skillset][qty-1] - 1].GetSkillsetSSR(static_cast<Skillset>(skillset)) : 0) < ssr) {
 
 
 			//Screw it lets just try always recalculating to see if this works at the very least
