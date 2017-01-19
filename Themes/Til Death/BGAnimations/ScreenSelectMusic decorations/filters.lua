@@ -161,8 +161,7 @@ local f = Def.ActorFrame{
 	LoadFont("Common Large")..{
 		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY * 2;zoom,textzoom;halign,0),
 		SetCommand=function(self)
-			local mode = GAMESTATE:GetFilterMode()
-			if mode then 
+			if GAMESTATE:GetFilterMode() then 
 				self:settext("Mode: ".."AND")
 			else
 				self:settext("Mode: ".."OR")
@@ -183,11 +182,15 @@ local f = Def.ActorFrame{
 	LoadFont("Common Large")..{
 		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY * 3;zoom,textzoom;halign,0),
 		SetCommand=function(self)
-			local yes = GAMESTATE:GetHighestSkillsetsOnly()
-			if yes then 
+			if GAMESTATE:GetHighestSkillsetsOnly() then 
 				self:settext("Highest Only: ".."ON")
 			else
 				self:settext("Highest Only: ".."OFF")
+			end
+			if GAMESTATE:GetFilterMode() then 
+				self:diffuse(color("#666666"))
+			else
+				self:diffuse(color("#FFFFFF"))
 			end
 		end,
 		FilterModeChangedMessageCommand=cmd(queuecommand,"Set"),
