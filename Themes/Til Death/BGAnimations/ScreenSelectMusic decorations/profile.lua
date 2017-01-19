@@ -30,7 +30,8 @@ local distY = 15
 local offsetX = 10
 local offsetY = 20
 local rankingSkillset=0
-local rankingPage=1
+-- sorting the top 250 scores takes the same amount of time as sorting the top 25 scores, so do it all at initialization instead of piecemeal, then set ranking  page back to 1 below - mina
+local rankingPage=10			
 local rankingWidth = frameWidth-capWideScale(15,50)
 local rankingX = capWideScale(25,45)
 local rankingY = capWideScale(60,60)
@@ -141,22 +142,7 @@ local function rankingLabel(i)
 				if (thsteps ~= nil) then
 					local diff = thsteps:GetDifficulty()
 					self:diffuse(byDifficulty(diff))
-					if diff == "Difficulty_Beginner" then
-						self:settext("BG")
-					elseif diff == "Difficulty_Easy" then
-						self:settext("EZ")
-					elseif diff == "Difficulty_Medium" then
-						self:settext("NM")
-					elseif diff == "Difficulty_Hard" then
-						self:settext("HD")
-					elseif diff == "Difficulty_Challenge" then
-						self:settext("IN")
-					elseif diff == "Difficulty_Edit" then
-						self:settext("ED")
-					else
-						self:settext( ' - ' )
-						self:diffuse(getMainColor('positive'))
-					end
+					self:settext(getShortDifficulty(diff))
 				else
 					self:settext( ' - ' )
 					self:diffuse(getMainColor('positive'))
@@ -199,7 +185,7 @@ local function rankingButton(i)
 		InitCommand=cmd(xy,frameX+rankingX+(i-1+i*(1/(1+#ms.SkillSets)))*rankingTitleWidth,frameY+rankingY-30;zoomto,rankingTitleWidth,30;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
 		SetCommand=function(self)
 			if i-1 == rankingSkillset then
-				self:diffusealpha(0.7)
+				self:diffusealpha(1)
 			else
 				self:diffusealpha(0.35)
 			end;
@@ -223,8 +209,17 @@ local function rankingButton(i)
 end
 
 
+
+-- should actor frame prev/next/page displays to prevent redundancy - mina
 r[#r+1] = Def.Quad{
 	InitCommand=cmd(xy,frameX+frameWidth-30,frameY+rankingY+265;zoomto,40,20;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
+	SetCommand=function(self)
+		if rankingSkillset > 0 then
+			self:visible(true)
+		else
+			self:visible(false)
+		end
+	end,
 	MouseLeftClickMessageCommand=function(self)
 		if isOver(self) then
 			--Move right
@@ -236,16 +231,29 @@ r[#r+1] = Def.Quad{
 			MESSAGEMAN:Broadcast("UpdateRanking")
 		end;
 	end;
+	UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
 	}
 r[#r+1] = LoadFont("Common Large") .. {
-		InitCommand=cmd(xy,frameX+frameWidth-30,frameY+rankingY+275;halign,0.5;zoom,0.3;diffuse,getMainColor('positive')),
-		BeginCommand=function(self)
-			self:settext( 'Next' )
+		InitCommand=cmd(xy,frameX+frameWidth-30,frameY+rankingY+275;halign,0.5;zoom,0.3;diffuse,getMainColor('positive');settext,"Next"),
+		SetCommand=function(self)
+			if rankingSkillset > 0 then
+				self:visible(true)
+			else
+				self:visible(false)
+			end
 		end,
+		UpdateRankingMessageCommand=cmd(queuecommand,"Set")
 	}
 	
 r[#r+1] = Def.Quad{
 	InitCommand=cmd(xy,frameX+40,frameY+rankingY+265;zoomto,65,20;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
+	SetCommand=function(self)
+		if rankingSkillset > 0 then
+			self:visible(true)
+		else
+			self:visible(false)
+		end
+	end,
 	MouseLeftClickMessageCommand=function(self)
 		if isOver(self) then
 			--Move left
@@ -257,20 +265,37 @@ r[#r+1] = Def.Quad{
 			MESSAGEMAN:Broadcast("UpdateRanking")
 		end;
 	end;
+	UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
 	}
+	
 r[#r+1] = LoadFont("Common Large") .. {
-		InitCommand=cmd(xy,frameX+40,frameY+rankingY+275;halign,0.5;zoom,0.3;diffuse,getMainColor('positive')),
-		BeginCommand=function(self)
-			self:settext( 'Previous' )
+		InitCommand=cmd(xy,frameX+40,frameY+rankingY+275;halign,0.5;zoom,0.3;diffuse,getMainColor('positive');settext,"Previous"),
+		SetCommand=function(self)
+			if rankingSkillset > 0 then
+				self:visible(true)
+			else
+				self:visible(false)
+			end
 		end,
+		UpdateRankingMessageCommand=cmd(queuecommand,"Set")
 	}
 	
 r[#r+1] = LoadFont("Common Large") .. {
 	InitCommand=cmd(xy,frameX+frameWidth/2,frameY+rankingY+275;halign,0.5;zoom,0.3;diffuse,getMainColor('positive')),
 	SetCommand=function(self)
-		self:settext( rankingPage )
+		if rankingSkillset > 0 then
+			self:visible(true)
+			self:settextf("%i-%i", ((rankingPage-1)*25)+1, rankingPage*25)
+		else
+			self:visible(false)
+		end
 	end,
-	UpdateRankingMessageCommand=cmd(queuecommand,"Set")
+	UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
+	TabChangedMessageCommand=function()		--sort all 250 scores by initializing the ranking page to 10, set it to 1 here for first display - mina
+		if getTabIndex() == 4 then
+			rankingPage = 1
+		end
+	end
 }	
 	
 for i=1,scorestodisplay do 
