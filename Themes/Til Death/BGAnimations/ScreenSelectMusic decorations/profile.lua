@@ -139,17 +139,17 @@ local function rankingLabel(i)
 					local diff = thsteps:GetDifficulty()
 					self:diffuse(byDifficulty(diff))
 					if diff == "Difficulty_Beginner" then
-						self:settext("Beg")
+						self:settext("BG")
 					elseif diff == "Difficulty_Easy" then
-						self:settext("Easy")
+						self:settext("EZ")
 					elseif diff == "Difficulty_Medium" then
-						self:settext("Med")
+						self:settext("NM")
 					elseif diff == "Difficulty_Hard" then
-						self:settext("Hard")
+						self:settext("HD")
 					elseif diff == "Difficulty_Challenge" then
-						self:settext("Exp")
+						self:settext("IN")
 					elseif diff == "Difficulty_Edit" then
-						self:settext("Edit")
+						self:settext("ED")
 					else
 						self:settext( ' - ' )
 						self:diffuse(getMainColor('positive'))
