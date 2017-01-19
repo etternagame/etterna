@@ -81,7 +81,7 @@ local function rankingLabel(i)
 			UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,frameX+rankingX+40,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*2.5-160),
+			InitCommand=cmd(xy,frameX+rankingX+35,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*2.5-160),
 			SetCommand=function(self)
 				if ths then
 					local a=profile:GetTopSSRValue(i+(scorestodisplay*(rankingPage-1)), rankingSkillset)
@@ -98,7 +98,7 @@ local function rankingLabel(i)
 			UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,frameX+rankingX+240,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*4-160),
+			InitCommand=cmd(xy,frameX+rankingX+230,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*4-160),
 			SetCommand=function(self)
 				if ths then
 					local ratestring = string.format("%.2f", ths:GetMusicRate()):gsub("%.?0+$", "").."x"
@@ -115,7 +115,7 @@ local function rankingLabel(i)
 			UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,frameX+rankingX+290,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*4-160),
+			InitCommand=cmd(xy,frameX+rankingX+270,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*4-160),
 			SetCommand=function(self)
 				if ths then
 					self:settextf("%5.2f%%", ths:GetWifeScore()*100)
@@ -126,6 +126,37 @@ local function rankingLabel(i)
 					end	
 				else
 					self:settext( ' - ' )
+					self:diffuse(getMainColor('positive'))
+				end
+			end,
+			UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
+		},
+		LoadFont("Common Large") .. {
+			InitCommand=cmd(xy,frameX+rankingX+310,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*4-160),
+			SetCommand=function(self)
+				local thsteps = profile:GetStepsFromSSR(i+(scorestodisplay*(rankingPage-1)), rankingSkillset) 
+				if (thsteps ~= nil) then
+					local diff = thsteps:GetDifficulty()
+					self:diffuse(byDifficulty(diff))
+					if diff == "Difficulty_Beginner" then
+						self:settext("BG")
+					elseif diff == "Difficulty_Easy" then
+						self:settext("EZ")
+					elseif diff == "Difficulty_Medium" then
+						self:settext("NM")
+					elseif diff == "Difficulty_Hard" then
+						self:settext("HD")
+					elseif diff == "Difficulty_Challenge" then
+						self:settext("IN")
+					elseif diff == "Difficulty_Edit" then
+						self:settext("ED")
+					else
+						self:settext( ' - ' )
+						self:diffuse(getMainColor('positive'))
+					end
+				else
+					self:settext( ' - ' )
+					self:diffuse(getMainColor('positive'))
 				end
 			end,
 			UpdateRankingMessageCommand=cmd(queuecommand,"Set"),

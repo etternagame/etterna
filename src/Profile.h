@@ -453,6 +453,7 @@ public:
 	float GetTopSSRMSD(unsigned int rank, int skillset);
 	HighScore* GetTopSSRHighScore(unsigned int rank, int skillset);
 	SongID GetTopSSRSongID(unsigned int rank, int skillset);
+	StepsID GetTopSSRStepsID(unsigned int rank, int skillset);
 	float GetTopSSRValue(unsigned int rank, int skillset);
 	RString GetTopSSRSongName(unsigned int rank, int skillset);
 	//Vector array instead of a bunch of vectors
