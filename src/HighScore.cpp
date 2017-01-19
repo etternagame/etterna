@@ -31,7 +31,7 @@ struct HighScoreImpl
 	StageAward stageAward;	// stage award [SM5 alpha 1a+]
 	PeakComboAward peakComboAward;	// peak combo award [SM5 alpha 1a+]
 	RString	sModifiers;
-	DateTime dateTime;		// return value of time() when screenshot was taken
+	DateTime dateTime;		// return value of time() for when the highscore object was created (immediately after achieved)
 	RString sPlayerGuid;	// who made this high score
 	RString sMachineGuid;	// where this high score was made
 	int iProductID;
