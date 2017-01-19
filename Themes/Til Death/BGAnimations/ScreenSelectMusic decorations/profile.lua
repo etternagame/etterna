@@ -75,6 +75,7 @@ local function rankingLabel(i)
 						end											
 					else
 						self:settext( ' - ' )
+						self:diffuse(getMainColor('positive'))
 					end
 				end
 			end,
@@ -93,6 +94,7 @@ local function rankingLabel(i)
 					end	
 				else
 					self:settext( ' ' )
+					self:diffuse(getMainColor('positive'))
 				end
 			end,
 			UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
@@ -110,6 +112,7 @@ local function rankingLabel(i)
 					end	
 				else
 					self:settext( ' - ' )
+					self:diffuse(getMainColor('positive'))
 				end
 			end,
 			UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
@@ -261,6 +264,15 @@ r[#r+1] = LoadFont("Common Large") .. {
 			self:settext( 'Previous' )
 		end,
 	}
+	
+r[#r+1] = LoadFont("Common Large") .. {
+	InitCommand=cmd(xy,frameX+frameWidth/2,frameY+rankingY+275;halign,0.5;zoom,0.3;diffuse,getMainColor('positive')),
+	SetCommand=function(self)
+		self:settext( rankingPage )
+	end,
+	UpdateRankingMessageCommand=cmd(queuecommand,"Set")
+}	
+	
 for i=1,scorestodisplay do 
 	r[#r+1] = rankingLabel(i)
 end
