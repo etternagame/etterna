@@ -43,6 +43,7 @@ const RString EDIT_STEPS_SUBDIR    = "Edits/";
 const RString EDIT_COURSES_SUBDIR  = "EditCourses/";
 //const RString UPLOAD_SUBDIR         = "Upload/";
 const RString RIVAL_SUBDIR         = "Rivals/";
+const RString REPLAY_SUBDIR	       = "ReplayData/";
 
 ThemeMetric<bool> SHOW_COIN_DATA( "Profile", "ShowCoinData" );
 static Preference<bool> g_bProfileDataCompress( "ProfileDataCompress", false );
@@ -1134,9 +1135,10 @@ void Profile::HandleStatsPrefixChange(RString dir, bool require_signature)
 		SaveAllToDir(dir, require_signature);
 	}
 }
-	
+
 ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSignature )
 {
+	FILEMAN->CreateDir(sDir + REPLAY_SUBDIR);
 	LOG->Trace( "Profile::LoadAllFromDir( %s )", sDir.c_str() );
 
 	ASSERT( sDir.Right(1) == "/" );
@@ -1332,6 +1334,7 @@ bool Profile::SaveAllToDir( const RString &sDir, bool bSignData ) const
 		FILEMAN->CreateDir( sDir + EDIT_COURSES_SUBDIR );
 	FILEMAN->CreateDir( sDir + SCREENSHOTS_SUBDIR );
 	FILEMAN->CreateDir( sDir + RIVAL_SUBDIR );
+	FILEMAN->CreateDir( sDir + REPLAY_SUBDIR);
 
 	/* Get the theme's custom save function:
 	 *   [Profile]

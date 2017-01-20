@@ -9,6 +9,10 @@
 #include "Foreach.h"
 #include "RadarValues.h"
 #include <algorithm>
+#include <fstream>
+#include <sstream>
+#include "CryptManager.h"
+#include "ProfileManager.h"
 
 ThemeMetric<RString> EMPTY_NAME("HighScore","EmptyName");
 
@@ -16,6 +20,7 @@ struct HighScoreImpl
 {
 	RString	sName;	// name that shows in the machine's ranking screen
 	RString sHistoricChartKey;
+	RString ScoreKey;
 	float SSRCalcVersion;
 	Grade grade;
 	unsigned int iScore;
@@ -45,6 +50,8 @@ struct HighScoreImpl
 	HighScoreImpl();
 	XNode *CreateNode() const;
 	void LoadFromNode( const XNode *pNode );
+
+	void WriteReplayFile();
 
 	float RescoreToWifeTS(float ts);
 
@@ -165,6 +172,7 @@ HighScoreImpl::HighScoreImpl()
 {
 	sName = "";
 	sHistoricChartKey = "";
+	ScoreKey = "";
 	SSRCalcVersion = 0.f;
 	grade = Grade_NoData;
 	iScore = 0;
@@ -200,6 +208,7 @@ XNode *HighScoreImpl::CreateNode() const
 	// TRICKY:  Don't write "name to fill in" markers.
 	pNode->AppendChild( "Name",				IsRankingToFillIn(sName) ? RString("") : sName );
 	pNode->AppendChild( "HistoricChartKey", sHistoricChartKey);
+	pNode->AppendChild(" ScoreKey",			ScoreKey);
 	pNode->AppendChild( "SSRCalcVersion",	SSRCalcVersion);
 	pNode->AppendChild( "Grade",			GradeToString(grade) );
 	pNode->AppendChild( "Score",			iScore );
@@ -277,6 +286,8 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 		}
 	}		
 	pNode->GetChildValue( "DateTime",		s ); dateTime.FromString( s );
+	ScoreKey = "S" + BinaryToHex(CryptManager::GetSHA1ForString(dateTime.GetString()));
+
 	pNode->GetChildValue( "PlayerGuid",		sPlayerGuid );
 	pNode->GetChildValue( "MachineGuid",	sMachineGuid );
 	pNode->GetChildValue( "ProductID",		iProductID );
@@ -305,9 +316,30 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 	// special test case stuff - mina
 	//if (vOffsetVector.size() > 1 && fWifeScore == 0.f)
 	//	fWifeScore = RescoreToWifeTS(fJudgeScale);
-
+	if (vNoteRowVector.size() + vOffsetVector.size() > 2 && (vNoteRowVector.size() == vOffsetVector.size() ))
+		WriteReplayFile();
 	// Validate input.
 	grade = clamp( grade, Grade_Tier01, Grade_Failed );
+}
+
+void HighScoreImpl::WriteReplayFile() {
+	RString append;
+	//open file
+	RString profiledir = PROFILEMAN->currentlyloadingprofile;
+	ofstream fileStream(profiledir + "ReplayData/" + ScoreKey, ios::binary);
+	//check file
+	if (!fileStream)
+		LOG->Warn("Failed to create replay file");
+
+	unsigned int idx = vNoteRowVector.size() - 1;
+	//loop for writing both vectors side by side
+	for (unsigned int i = 0; i < idx; i++) {
+		append = to_string(vNoteRowVector[i]) + " " + to_string(vOffsetVector[i]) + "\n";
+		fileStream.write(append.c_str(), append.size());
+	}
+	append = to_string(vNoteRowVector[idx]) + " " + to_string(vOffsetVector[idx]);
+	fileStream.write(append.c_str(), append.size());
+	fileStream.close();
 }
 
 REGISTER_CLASS_TRAITS( HighScoreImpl, new HighScoreImpl(*pCopy) )

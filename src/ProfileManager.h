@@ -110,6 +110,7 @@ public:
 	static Preference<bool> m_bProfileStepEdits;
 	static Preference<bool> m_bProfileCourseEdits;
 	static Preference1D<RString> m_sDefaultLocalProfileID;
+	RString currentlyloadingprofile;
 
 private:
 	ProfileLoadResult LoadProfile( PlayerNumber pn, const RString &sProfileDir, bool bIsMemCard );

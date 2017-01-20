@@ -470,6 +470,7 @@ void ProfileManager::RefreshLocalProfilesFromDisk()
 	add_category_to_global_list(categorized_profiles[ProfileType_Test]);
 	FOREACH(DirAndProfile, g_vLocalProfile, curr)
 	{
+		currentlyloadingprofile = curr->sDir.substr(1);
 		curr->profile.LoadAllFromDir(curr->sDir, PREFSMAN->m_bSignProfileData);
 	}
  }

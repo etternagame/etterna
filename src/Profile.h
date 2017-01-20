@@ -45,6 +45,7 @@ extern const RString DONT_SHARE_SIG;
 
 extern const RString PUBLIC_KEY_FILE;
 extern const RString SCREENSHOTS_SUBDIR;
+extern const RString REPLAY_SUBDIR;
 extern const RString EDIT_STEPS_SUBDIR;
 extern const RString EDIT_COURSES_SUBDIR;
 extern const RString LASTGOOD_SUBDIR;
