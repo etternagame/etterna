@@ -297,7 +297,7 @@ end
 
 --reset button
 f[#f+1] = Def.Quad{
-    InitCommand=cmd(xy,frameX+frameWidth-150,frameY+230;zoomto,80,40;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
+    InitCommand=cmd(xy,frameX+frameWidth-150,frameY+250;zoomto,60,20;halign,0.5;diffuse,getMainColor('frames');diffusealpha,0),
     MouseLeftClickMessageCommand=function(self)
         if isOver(self) then
             GAMESTATE:ResetSSFilters()
@@ -307,11 +307,13 @@ f[#f+1] = Def.Quad{
             end
             activebound = 0
 			ActiveSS = 0
+			MESSAGEMAN:Broadcast("UpdateFilter")
+			whee:SongSearch("")
         end
     end
     }
 f[#f+1] = LoadFont("Common Large") .. {
-        InitCommand=cmd(xy,frameX+frameWidth-150,frameY+250;halign,0.5;zoom,0.6;diffuse,getMainColor('positive')),
+        InitCommand=cmd(xy,frameX+frameWidth-150,frameY+250;halign,0.5;zoom,0.35),
         BeginCommand=function(self)
             self:settext( 'Reset' )
         end
