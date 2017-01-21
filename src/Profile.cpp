@@ -1722,8 +1722,15 @@ void Profile::LoadGeneralDataFromNode( const XNode* pNode )
 	{
 		const XNode* pFavorites = pNode->GetChild("Favorites");
 		if (pFavorites) {
-			FOREACH_CONST_Child(pFavorites, ck)
-				FavoritedCharts.emplace_back(ck->GetName());
+			FOREACH_CONST_Child(pFavorites, ck) {
+				RString tmp = ck->GetName();				// handle duplicated entries caused by an oversight - mina
+				bool duplicated = false;
+				FOREACH(RString, FavoritedCharts, chartkey)
+					if (*chartkey == tmp)
+						duplicated = true;
+				if (!duplicated)
+					FavoritedCharts.emplace_back(tmp);
+			}
 			SONGMAN->SetFavoritedStatus(FavoritedCharts);
 		}
 	}
