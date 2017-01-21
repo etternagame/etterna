@@ -40,14 +40,14 @@ USWN.ElementRedir =
 	["Roll Explosion"] = "Hold Explosion",
 	["Hold Body Inactive"] = "Hold Body Active",
 	["Hold Bottomcap Inactive"] = "Hold Bottomcap Active",
+	["Roll Body Inactive"] = "Roll Body Active",
+	["Roll Bottomcap Inactive"] = "Roll Bottomcap Active",
 };
 
 -- Parts of noteskins which we want to rotate
 USWN.PartsToRotate =
 {
 	["Receptor"] = true,
-	["Tap Explosion Bright"] = true,
-	["Tap Explosion Dim"] = true,
 	["Tap Note"] = true,
 	["Tap Fake"] = true,
 	["Tap Addition"] = true,
@@ -63,6 +63,8 @@ USWN.PartsToRotate =
 -- you can add/remove stuff if you want
 USWN.Blank =
 {
+	["Tap Explosion Bright"] = true,
+	["Tap Explosion Dim"] = true,
 	["Hold Topcap Active"] = true,
 	["Hold Topcap Inactive"] = true,
 	["Roll Topcap Active"] = true,
@@ -84,14 +86,7 @@ function USWN.Load()
 	local sElement = Var "Element";
 
 	local Button = USWN.ButtonRedir[sButton] or sButton;	
-	
-	--Use diffrent Holds/Rolls for every direction
-	if ( not string.find(sElement, "Head") and
-	not string.find(sElement, "Explosion") ) and 
-	string.find(sElement, "Roll") then
-		Button = sButton;
-	end
-		
+			
 	--Setting global element
 	local Element = USWN.ElementRedir[sElement] or sElement;
 
