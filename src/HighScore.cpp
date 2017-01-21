@@ -51,7 +51,7 @@ struct HighScoreImpl
 	XNode *CreateNode() const;
 	void LoadFromNode( const XNode *pNode );
 
-	void WriteReplayFile();
+	bool WriteReplayData();
 
 	float RescoreToWifeTS(float ts);
 
@@ -95,8 +95,8 @@ bool HighScoreImpl::operator==( const HighScoreImpl& other ) const
 }
 
 RString HighScoreImpl::OffsetsToString(vector<float> v) const{
-	RString o = "Invalid";
-	if (v.size() == 0)
+	RString o = "";
+	if (v.empty())
 		return o;
 
 	o = to_string(v[0]);
@@ -106,8 +106,8 @@ RString HighScoreImpl::OffsetsToString(vector<float> v) const{
 }
 
 RString HighScoreImpl::NoteRowsToString(vector<int> v) const {
-	RString o = "Invalid";
-	if (v.size() == 0)
+	RString o = "";
+	if (v.empty())
 		return o;
 
 	o = to_string(v[0]);
@@ -120,7 +120,7 @@ vector<float> HighScoreImpl::OffsetsToVector(RString s) {
 	vector<float> o;
 	size_t startpos = 0;
 
-	if (s == "Invalid")
+	if (s == "")
 		return o;
 
 	do {
@@ -131,10 +131,10 @@ vector<float> HighScoreImpl::OffsetsToVector(RString s) {
 
 		if (pos - startpos > 0) {
 			if (startpos == 0 && pos - startpos == s.size())
-				o.push_back(StringToFloat(s));
+				o.emplace_back(StringToFloat(s));
 			else {
 				const RString AddRString = s.substr(startpos, pos - startpos);
-				o.push_back(StringToFloat(AddRString));
+				o.emplace_back(StringToFloat(AddRString));
 			}
 		}
 		startpos = pos + 1;
@@ -146,7 +146,7 @@ vector<int> HighScoreImpl::NoteRowsToVector(RString s) {
 	vector<int> o;
 	size_t startpos = 0;
 
-	if (s == "Invalid")
+	if (s == "")
 		return o;
 
 	do {
@@ -157,10 +157,10 @@ vector<int> HighScoreImpl::NoteRowsToVector(RString s) {
 
 		if (pos - startpos > 0) {
 			if (startpos == 0 && pos - startpos == s.size())
-				o.push_back(StringToInt(s));
+				o.emplace_back(StringToInt(s));
 			else {
 				const RString AddRString = s.substr(startpos, pos - startpos);
-				o.push_back(StringToInt(AddRString));
+				o.emplace_back(StringToInt(AddRString));
 			}
 		}
 		startpos = pos + 1;
@@ -208,7 +208,7 @@ XNode *HighScoreImpl::CreateNode() const
 	// TRICKY:  Don't write "name to fill in" markers.
 	pNode->AppendChild( "Name",				IsRankingToFillIn(sName) ? RString("") : sName );
 	pNode->AppendChild( "HistoricChartKey", sHistoricChartKey);
-	pNode->AppendChild(" ScoreKey",			ScoreKey);
+	pNode->AppendChild( "ScoreKey",			ScoreKey);
 	pNode->AppendChild( "SSRCalcVersion",	SSRCalcVersion);
 	pNode->AppendChild( "Grade",			GradeToString(grade) );
 	pNode->AppendChild( "Score",			iScore );
@@ -217,8 +217,12 @@ XNode *HighScoreImpl::CreateNode() const
 	pNode->AppendChild( "Rate",				fMusicRate);
 	pNode->AppendChild( "JudgeScale",		fJudgeScale);
 	pNode->AppendChild( "EtternaValid",		bEtternaValid);
-	pNode->AppendChild( "Offsets",			OffsetsToString(vOffsetVector));
-	pNode->AppendChild( "NoteRows",			NoteRowsToString(vNoteRowVector));
+
+	if (vOffsetVector.size() > 1) {
+		pNode->AppendChild("Offsets", OffsetsToString(vOffsetVector));
+		pNode->AppendChild("NoteRows", NoteRowsToString(vNoteRowVector));
+	}
+	
 	pNode->AppendChild( "SurviveSeconds",	fSurviveSeconds );
 	pNode->AppendChild( "MaxCombo",			iMaxCombo );
 	pNode->AppendChild( "StageAward",		StageAwardToString(stageAward) );
@@ -239,9 +243,12 @@ XNode *HighScoreImpl::CreateNode() const
 		if( hns != HNS_None )	// HACK: don't save meaningless "none" count
 			pHoldNoteScores->AppendChild( HoldNoteScoreToString(hns), iHoldNoteScores[hns] );
 
-	XNode* pSkillsetSSRs = pNode->AppendChild( "SkillsetSSRs" );
-	FOREACH_ENUM( Skillset, ss )
+	// dont bother writing skillset ssrs for non-applicable scores
+	if (fWifeScore > 0.f) {
+		XNode* pSkillsetSSRs = pNode->AppendChild("SkillsetSSRs");
+		FOREACH_ENUM(Skillset, ss)
 			pSkillsetSSRs->AppendChild(SkillsetToString(ss), fSkillsetSSRs[ss]);
+	}
 
 	pNode->AppendChild( radarValues.CreateNode(bWriteSimpleValues, bWriteComplexValues) );
 	pNode->AppendChild( "LifeRemainingSeconds",	fLifeRemainingSeconds );
@@ -286,7 +293,12 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 		}
 	}		
 	pNode->GetChildValue( "DateTime",		s ); dateTime.FromString( s );
-	ScoreKey = "S" + BinaryToHex(CryptManager::GetSHA1ForString(dateTime.GetString()));
+	pNode->GetChildValue( "ScoreKey",			ScoreKey);
+
+	if (fWifeScore > 0.f)
+		ScoreKey = "S" + BinaryToHex(CryptManager::GetSHA1ForString(dateTime.GetString()));
+	else
+		ScoreKey = "";
 
 	pNode->GetChildValue( "PlayerGuid",		sPlayerGuid );
 	pNode->GetChildValue( "MachineGuid",	sMachineGuid );
@@ -302,11 +314,13 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 		FOREACH_ENUM(HoldNoteScore, hns)
 			pHoldNoteScores->GetChildValue(HoldNoteScoreToString(hns), iHoldNoteScores[hns]);
 
-	const XNode* pSkillsetSSRs = pNode->GetChild("SkillsetSSRs");
-	if (pSkillsetSSRs)
-		FOREACH_ENUM(Skillset, ss)
+	if (fWifeScore > 0.f) {
+		const XNode* pSkillsetSSRs = pNode->GetChild("SkillsetSSRs");
+		if (pSkillsetSSRs)
+			FOREACH_ENUM(Skillset, ss)
 			pSkillsetSSRs->GetChildValue(SkillsetToString(ss), fSkillsetSSRs[ss]);
-
+	}
+	
 	const XNode* pRadarValues = pNode->GetChild( "RadarValues" );
 	if( pRadarValues )
 		radarValues.LoadFromNode( pRadarValues );
@@ -316,20 +330,32 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 	// special test case stuff - mina
 	//if (vOffsetVector.size() > 1 && fWifeScore == 0.f)
 	//	fWifeScore = RescoreToWifeTS(fJudgeScale);
-	if (vNoteRowVector.size() + vOffsetVector.size() > 2 && (vNoteRowVector.size() == vOffsetVector.size() ))
-		WriteReplayFile();
+	if (vNoteRowVector.size() + vOffsetVector.size() > 2 && (vNoteRowVector.size() == vOffsetVector.size()) && fWifeScore > 0.f) {
+		bool writesuccess = WriteReplayData();
+
+		// ensure data is written out somewhere else before destroying it
+		if (writesuccess) {
+			vector<int> itmp;
+			vector<float> ftmp;
+			vNoteRowVector.swap(itmp);
+			vOffsetVector.swap(ftmp);
+		}
+	}
 	// Validate input.
 	grade = clamp( grade, Grade_Tier01, Grade_Failed );
 }
 
-void HighScoreImpl::WriteReplayFile() {
+bool HighScoreImpl::WriteReplayData() {
 	RString append;
 	//open file
 	RString profiledir = PROFILEMAN->currentlyloadingprofile;
 	ofstream fileStream(profiledir + "ReplayData/" + ScoreKey, ios::binary);
 	//check file
-	if (!fileStream)
+	if (!fileStream) {
 		LOG->Warn("Failed to create replay file");
+		return false;
+	}
+		
 
 	unsigned int idx = vNoteRowVector.size() - 1;
 	//loop for writing both vectors side by side
@@ -340,6 +366,48 @@ void HighScoreImpl::WriteReplayFile() {
 	append = to_string(vNoteRowVector[idx]) + " " + to_string(vOffsetVector[idx]);
 	fileStream.write(append.c_str(), append.size());
 	fileStream.close();
+	return true;
+}
+
+
+void HighScore::LoadReplayData() {
+	vector<int> vNoteRowVector;
+	vector<float> vOffsetVector;
+	std::ifstream fileStream(m_Impl->ScoreKey, ios::binary);
+	string line;
+	string buffer;
+	vector<string> tokens;
+	stringstream ss;
+	int noteRow;
+	float offset;
+	//check file
+	if (!fileStream) {
+		throw std::runtime_error("Could not open file.");
+	}
+	//loop until eof
+	while (getline(fileStream, line))
+	{
+		ss = stringstream(line);
+		//split line into tokens
+		while (ss >> buffer)
+			tokens.emplace_back(buffer);
+
+		noteRow = std::stoi(tokens[0]);
+		if (!(typeid(noteRow) == typeid(int))) {
+			throw std::runtime_error("NoteRow value is not of type: int");
+		}
+		vNoteRowVector.emplace_back(noteRow);
+
+		offset = std::stof(tokens[1]);
+		if (!(typeid(offset) == typeid(float))) {
+			throw std::runtime_error("Offset value is not of type: float");
+		}
+		vOffsetVector.emplace_back(offset);
+		tokens.clear();
+	}
+	fileStream.close();
+	SetNoteRowVector(vNoteRowVector);
+	SetOffsetVector(vOffsetVector);
 }
 
 REGISTER_CLASS_TRAITS( HighScoreImpl, new HighScoreImpl(*pCopy) )
@@ -407,8 +475,8 @@ void HighScore::SetWifeScore(float f) {m_Impl->fWifeScore = f;}
 void HighScore::SetMusicRate(float f) { m_Impl->fMusicRate = f; }
 void HighScore::SetJudgeScale(float f) { m_Impl->fJudgeScale = f; }
 void HighScore::SetEtternaValid(bool b) { m_Impl->bEtternaValid = b; }
-void HighScore::SetOffsetVector(vector<float> v) { m_Impl->vOffsetVector = v; }
-void HighScore::SetNoteRowVector(vector<int> v) { m_Impl->vNoteRowVector = v; }
+void HighScore::SetOffsetVector(vector<float>& v) { m_Impl->vOffsetVector = v; }
+void HighScore::SetNoteRowVector(vector<int>& v) { m_Impl->vNoteRowVector = v; }
 void HighScore::SetAliveSeconds( float f ) { m_Impl->fSurviveSeconds = f; }
 void HighScore::SetModifiers( const RString &s ) { m_Impl->sModifiers = s; }
 void HighScore::SetDateTime( DateTime d ) { m_Impl->dateTime = d; }

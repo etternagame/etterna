@@ -38,6 +38,7 @@ struct HighScore
 	 * @return true if no judgments were recorded, false otherwise. */
 	bool IsEmpty() const;
 	Grade GetWifeGrade();
+	void LoadReplayData();
 	float ConvertDpToWife();
 	float GetPercentDP() const;
 	float GetWifeScore() const;
@@ -82,8 +83,8 @@ struct HighScore
 	void SetMusicRate(float f);
 	void SetJudgeScale(float f);
 	void SetEtternaValid(bool b);
-	void SetOffsetVector(vector<float> v);
-	void SetNoteRowVector(vector<int> v);
+	void SetOffsetVector(vector<float>& v);
+	void SetNoteRowVector(vector<int>& v);
 	void SetAliveSeconds( float f );
 	void SetMaxCombo( unsigned int i );
 	void SetStageAward( StageAward a );
