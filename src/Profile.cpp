@@ -3100,6 +3100,28 @@ public:
 		return 1;
 	}
 
+	/* FFFFFFFFFFFFFFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaHASFASAFSF
+	So it appears the issue is calling pushself() on highscore objects that aren't 
+	const pointers produces meaningless junk, investigate more later - mina	*/
+	static int GetPBHighScoreByKey(T* p, lua_State *L) {
+		HighScore pb;
+		vector<SongID> songids;
+		vector<StepsID> stepsids;
+		p->GetScoresByKey(songids, stepsids, SArg(1));
+		for (size_t i = 0; i < songids.size(); i++) {
+			HighScoreList &hsl = p->m_SongHighScores[songids[i]].m_StepsHighScores[stepsids[i]].hsl;
+			for (size_t ii = 0; ii < hsl.vHighScores.size(); ii++) {
+				if (hsl.vHighScores[ii].GetWifeScore() > pb.GetWifeScore() && GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate == hsl.vHighScores[ii].GetMusicRate()) {
+					pb = hsl.vHighScores[ii];
+					hsl.vHighScores[ii].PushSelf(L);
+				}
+			}
+		}
+		if (pb.GetWifeScore() <= 0.f)
+			lua_pushnil(L);
+		return 1;
+	}
+
 	static int GetCategoryHighScoreList( T* p, lua_State *L )
 	{
 		StepsType pStepsType = Enum::Check<StepsType>(L, 1);
@@ -3403,10 +3425,11 @@ public:
 		ADD_METHOD( GetNumFaves );
 		ADD_METHOD( GetTopSSRValue );
 		ADD_METHOD( GetTopSSRSongName );
-		ADD_METHOD(GetSongFromSSR);
-		ADD_METHOD(GetStepsFromSSR);
-		ADD_METHOD(GetTopSSRHighScore);
-		ADD_METHOD(RecalcTopSSR);
+		ADD_METHOD( GetSongFromSSR );
+		ADD_METHOD( GetStepsFromSSR );
+		ADD_METHOD( GetTopSSRHighScore );
+		ADD_METHOD( RecalcTopSSR );
+		ADD_METHOD( GetPBHighScoreByKey );
 	}
 };
 
