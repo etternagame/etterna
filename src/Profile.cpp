@@ -1723,7 +1723,7 @@ void Profile::LoadGeneralDataFromNode( const XNode* pNode )
 		const XNode* pFavorites = pNode->GetChild("Favorites");
 		if (pFavorites) {
 			FOREACH_CONST_Child(pFavorites, ck)
-				FavoritedCharts.push_back(ck->GetName());
+				FavoritedCharts.emplace_back(ck->GetName());
 			SONGMAN->SetFavoritedStatus(FavoritedCharts);
 		}
 	}
@@ -2319,7 +2319,7 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 		return true;
 
 	for (unsigned int i = 0; i < qty; i++) {
-		topSSRs.push_back(0);
+		topSSRs.emplace_back(0);
 		(*topSSRStepIdsPtr).emplace_back(emptySteps);
 		(*topSSRSongIdsPtr).emplace_back(emptySong);
 		//(*topSSRHighScoresPtr).emplace_back(emptyHighScorePtr);
