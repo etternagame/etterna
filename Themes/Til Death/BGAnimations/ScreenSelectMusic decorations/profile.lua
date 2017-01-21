@@ -30,8 +30,7 @@ local distY = 15
 local offsetX = 10
 local offsetY = 20
 local rankingSkillset=0
--- sorting the top 250 scores takes the same amount of time as sorting the top 25 scores, so do it all at initialization instead of piecemeal, then set ranking  page back to 1 below - mina
-local rankingPage=10			
+local rankingPage=1	
 local rankingWidth = frameWidth-capWideScale(15,50)
 local rankingX = capWideScale(25,45)
 local rankingY = capWideScale(60,60)
@@ -65,8 +64,10 @@ local function rankingLabel(i)
 			InitCommand=cmd(xy,frameX+rankingX,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,160),
 			SetCommand=function(self)
 				if update and rankingSkillset > 0 then 
+					profile:GetTopSSRHighScore(i+(scorestodisplay*(9)), rankingSkillset) -- hacky way to initialzie vectors out to 250 (way faster)
 					ths = profile:GetTopSSRHighScore(i+(scorestodisplay*(rankingPage-1)), rankingSkillset) 
 					if ths then 
+						profile:GetTopSSRValue(i+(scorestodisplay*(9)), rankingSkillset)
 						local a=profile:GetTopSSRValue(i+(scorestodisplay*(rankingPage-1)), rankingSkillset)
 						self:settextf("%5.2f", a)
 						if not ths:GetEtternaValid() then
@@ -85,7 +86,8 @@ local function rankingLabel(i)
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(xy,frameX+rankingX+35,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*2.5-160),
 			SetCommand=function(self)
-				if ths then
+				if update and ths then
+					profile:GetTopSSRValue(i+(scorestodisplay*(9)), rankingSkillset)
 					local a=profile:GetTopSSRValue(i+(scorestodisplay*(rankingPage-1)), rankingSkillset)
 					self:settext(profile:GetTopSSRSongName(i+(scorestodisplay*(rankingPage-1)), rankingSkillset) )
 					if not ths:GetEtternaValid() then
@@ -103,7 +105,7 @@ local function rankingLabel(i)
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(xy,frameX+rankingX+230,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*4-160),
 			SetCommand=function(self)
-				if ths then
+				if update and ths then
 					local ratestring = string.format("%.2f", ths:GetMusicRate()):gsub("%.?0+$", "").."x"
 					self:settext(ratestring)
 					if not ths:GetEtternaValid() then
@@ -121,7 +123,7 @@ local function rankingLabel(i)
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(xy,frameX+rankingX+270,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*4-160),
 			SetCommand=function(self)
-				if ths then
+				if update and ths then
 					self:settextf("%5.2f%%", ths:GetWifeScore()*100)
 					if not ths:GetEtternaValid() then
 						self:diffuse(byJudgment("TapNoteScore_Miss"))
@@ -138,14 +140,17 @@ local function rankingLabel(i)
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(xy,frameX+rankingX+310,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*4-160),
 			SetCommand=function(self)
-				local thsteps = profile:GetStepsFromSSR(i+(scorestodisplay*(rankingPage-1)), rankingSkillset) 
-				if (thsteps ~= nil) then
-					local diff = thsteps:GetDifficulty()
-					self:diffuse(byDifficulty(diff))
-					self:settext(getShortDifficulty(diff))
-				else
-					self:settext( ' - ' )
-					self:diffuse(getMainColor('positive'))
+				if update and ths then
+					profile:GetStepsFromSSR(i+(scorestodisplay*(9)), rankingSkillset)
+					local thsteps = profile:GetStepsFromSSR(i+(scorestodisplay*(rankingPage-1)), rankingSkillset) 
+					if (thsteps ~= nil) then
+						local diff = thsteps:GetDifficulty()
+						self:diffuse(byDifficulty(diff))
+						self:settext(getShortDifficulty(diff))
+					else
+						self:settext( ' - ' )
+						self:diffuse(getMainColor('positive'))
+					end
 				end
 			end,
 			UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
@@ -153,7 +158,7 @@ local function rankingLabel(i)
 		Def.Quad{
 			InitCommand=cmd(xy,rankingX+rankingWidth/2,frameY+rankingY+105-(11-i)*10;zoomto,rankingWidth,10;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0),
 			MouseRightClickMessageCommand=function(self)
-				if ths then 
+				if update and ths then 
 					if isOver(self) then
 						ths:ToggleEtternaValidation()
 						MESSAGEMAN:Broadcast("UpdateRanking")
@@ -166,7 +171,7 @@ local function rankingLabel(i)
 				end
 			end,
 			MouseLeftClickMessageCommand=function(self)
-				if ths then 
+				if update and ths then 
 					if isOver(self) then
 						local whee = SCREENMAN:GetTopScreen():GetMusicWheel()
 						local ssrsong = profile:GetSongFromSSR(i+(scorestodisplay*(rankingPage-1)), rankingSkillset)
@@ -291,11 +296,6 @@ r[#r+1] = LoadFont("Common Large") .. {
 		end
 	end,
 	UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
-	TabChangedMessageCommand=function()		--sort all 250 scores by initializing the ranking page to 10, set it to 1 here for first display - mina
-		if getTabIndex() == 4 then
-			rankingPage = 1
-		end
-	end
 }	
 	
 for i=1,scorestodisplay do 
