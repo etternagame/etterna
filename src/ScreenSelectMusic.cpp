@@ -489,7 +489,7 @@ bool ScreenSelectMusic::Input( const InputEventPlus &input )
 		{
 			// Favorite the currently selected song. -Not Kyz
 			Song* fav_me_biatch = m_MusicWheel.GetSelectedSong();
-			if (fav_me_biatch) {
+			if (fav_me_biatch && !fav_me_biatch->IsFavorited()) {
 				Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
 				fav_me_biatch->SetFavorited(true);
 				pProfile->AddToFavorites(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
