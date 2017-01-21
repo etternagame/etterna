@@ -295,6 +295,28 @@ local function CreateFilterInputBox(i)
 	return t
 end
 
+--reset button
+f[#f+1] = Def.Quad{
+    InitCommand=cmd(xy,frameX+frameWidth-150,frameY+230;zoomto,80,40;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
+    MouseLeftClickMessageCommand=function(self)
+        if isOver(self) then
+            GAMESTATE:ResetSSFilters()
+            for i=1,#ms.SkillSets do
+                SSQuery[0][i] = "0"
+                SSQuery[1][i] = "0"
+            end
+            activebound = 0
+			ActiveSS = 0
+        end
+    end
+    }
+f[#f+1] = LoadFont("Common Large") .. {
+        InitCommand=cmd(xy,frameX+frameWidth-150,frameY+250;halign,0.5;zoom,0.6;diffuse,getMainColor('positive')),
+        BeginCommand=function(self)
+            self:settext( 'Reset' )
+        end
+    }
+
 for i=1,#ms.SkillSets do 
 	f[#f+1] = CreateFilterInputBox(i)
 end
