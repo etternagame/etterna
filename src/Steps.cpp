@@ -460,6 +460,7 @@ void Steps::Decompress(bool isGameplay)
 
 float Steps::GetMSD(float x, int i) const {
 	int idx = static_cast<int>(x * 10) - 7;
+	CLAMP(idx, 0, 13);	// prevent crashes due to people setting rate mod below 0.7 or above 2.0 somehow - mina
 	float prop = fmod(x * 10.f, 1.f);
 	if ( prop == 0)
 		return stuffnthings[idx][i];
