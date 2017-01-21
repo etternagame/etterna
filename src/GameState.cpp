@@ -231,6 +231,14 @@ float GameState::GetSSFilter(Skillset ss, int bound) {
 		return SSFilterUpperBounds[ss];
 }
 
+// reset button for filters
+void GameState::ResetSSFilters() {
+	FOREACH_ENUM(Skillset, ss) {
+		SSFilterLowerBounds[ss] = 0;
+		SSFilterUpperBounds[ss] = 0;
+	}
+}
+
 PlayerNumber GameState::GetMasterPlayerNumber() const
 {
 	return this->masterPlayerNumber;
@@ -3276,6 +3284,10 @@ public:
 		lua_pushnumber(L, f);
 		return 1;
 	}
+	static int ResetSSFilters(T* p, lua_State *L) {
+		p->ResetSSFilters();
+		return 1;
+	}
 	static int SetMaxFilterRate(T* p, lua_State* L) {
 		float mfr = FArg(1);
 		auto loot = p->m_pPlayerState[0];
@@ -3447,6 +3459,7 @@ public:
 		ADD_METHOD( SetAutoGenFarg );
 		ADD_METHOD( SetSSFilter );
 		ADD_METHOD( GetSSFilter );
+		ADD_METHOD(ResetSSFilters);
 		ADD_METHOD( AnyActiveFilter );
 		ADD_METHOD( SetMaxFilterRate );
 		ADD_METHOD( GetMaxFilterRate );
