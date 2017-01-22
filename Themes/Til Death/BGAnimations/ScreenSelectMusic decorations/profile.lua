@@ -147,10 +147,10 @@ local function rankingLabel(i)
 						local diff = thsteps:GetDifficulty()
 						self:diffuse(byDifficulty(diff))
 						self:settext(getShortDifficulty(diff))
-					else
-						self:settext( ' - ' )
-						self:diffuse(getMainColor('positive'))
 					end
+				else
+					self:settext( ' - ' )
+					self:diffuse(getMainColor('positive'))
 				end
 			end,
 			UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
