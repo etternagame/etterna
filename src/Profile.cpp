@@ -2227,7 +2227,7 @@ SongID Profile::GetTopSSRSongID(unsigned int rank, int skillset) {
 	if (rank <= 0)
 		rank = 1;
 	if (rank > static_cast<unsigned int>(topSSRSongIds[skillset].size()))
-		if (CalcAllTopSSRs(rank) == false) {
+		if (CalcTopSSRs(rank, skillset) == false) {
 			SongID emptySongID;
 			return emptySongID;
 		}
@@ -2243,7 +2243,7 @@ StepsID Profile::GetTopSSRStepsID(unsigned int rank, int skillset) {
 	if (rank <= 0)
 		rank = 1;
 	if (rank > static_cast<unsigned int>(topSSRStepIds[skillset].size()))
-		if (CalcAllTopSSRs(rank) == false) {
+		if (CalcTopSSRs(rank, skillset) == false) {
 			StepsID emptyStepID;
 			return emptyStepID;
 		}
@@ -2259,7 +2259,7 @@ HighScore* Profile::GetTopSSRHighScore(unsigned int rank, int skillset) {
 	if (rank <= 0)
 		rank = 1;
 	if (rank > static_cast<unsigned int>(topSSRHighScoreLists[skillset].size()))
-		if (CalcAllTopSSRs(rank) == false)
+		if (CalcTopSSRs(rank, skillset) == false)
 			return NULL;
 
 	if (skillset >= 0 && skillset < NUM_Skillset) {
