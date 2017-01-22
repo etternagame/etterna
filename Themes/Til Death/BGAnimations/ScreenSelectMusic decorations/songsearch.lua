@@ -54,6 +54,7 @@ local t = Def.ActorFrame{
 			MESSAGEMAN:Broadcast("BeginningSearch")
 			self:visible(true)
 			active = true
+			whee:Move(0)
 			SCREENMAN:set_input_redirected(PLAYER_1, true)
 			MESSAGEMAN:Broadcast("RefreshSearchResults")
 		else 
