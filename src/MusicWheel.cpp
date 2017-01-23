@@ -721,7 +721,7 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 			GetSongList( arraySongs, so );
 
 			Message msg("FilterResults");
-			msg.SetParam("Total", arraySongs.size());
+			msg.SetParam("Total", static_cast<int>(arraySongs.size()));
 
 			if (searching)
 				FilterBySearch(arraySongs, findme);
@@ -729,7 +729,7 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 			if (GAMESTATE->AnyActiveFilter())
 				FilterBySkillsets(arraySongs);
 				
-			msg.SetParam("Matches", arraySongs.size());
+			msg.SetParam("Matches", static_cast<int>(arraySongs.size()));
 			MESSAGEMAN->Broadcast(msg);
 
 			bool bUseSections = true;
