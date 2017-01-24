@@ -391,22 +391,24 @@ void NetworkSyncManager::StartRequest( short position )
 	for (int i=0; i<2-players; ++i)
 		m_packet.WriteNT("");	//Write a NULL if no player
 
+	//Send song hash/chartkey
 	if (m_ServerVersion >= 129) {
 		tSteps = GAMESTATE->m_pCurSteps[PLAYER_1];
-		if (tSteps != NULL && GAMESTATE->IsPlayerEnabled(PLAYER_1))
+		if (tSteps != NULL && GAMESTATE->IsPlayerEnabled(PLAYER_1)) {
 			m_packet.WriteNT(tSteps->GetChartKey());
-		else
+		} else {
 			m_packet.WriteNT("");
+		}
 
 		tSteps = GAMESTATE->m_pCurSteps[PLAYER_2];
-		if (tSteps != NULL && GAMESTATE->IsPlayerEnabled(PLAYER_2))
+		if (tSteps != NULL && GAMESTATE->IsPlayerEnabled(PLAYER_2)) {
 			m_packet.WriteNT(tSteps->GetChartKey());
-		else
+		} else {
 			m_packet.WriteNT("");
-		float rate = GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate;
-		std::ostringstream buff;
-		buff << rate;
-		m_packet.WriteNT(buff.str());
+		}
+
+		int rate = (int)(GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 100);
+		m_packet.Write1(rate);
 	}
 	
 	//This needs to be reset before ScreenEvaluation could possibly be called
