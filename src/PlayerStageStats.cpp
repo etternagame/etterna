@@ -812,6 +812,7 @@ public:
 	DEFINE_METHOD( GetPeakComboAward,			m_PeakComboAward )
 	DEFINE_METHOD( IsDisqualified,				IsDisqualified() )
 	DEFINE_METHOD( GetAliveSeconds,				m_fAliveSeconds )
+	DEFINE_METHOD( GetTotalTaps,				GetTotalTaps() )
 	DEFINE_METHOD( GetPercentageOfTaps,			GetPercentageOfTaps( Enum::Check<TapNoteScore>(L, 1) ) )
 	DEFINE_METHOD( GetBestFullComboTapNoteScore, GetBestFullComboTapNoteScore() )
 	DEFINE_METHOD( GetFailed, 					m_bFailed )
@@ -985,6 +986,7 @@ public:
 		ADD_METHOD( GetLifeRecord );
 		ADD_METHOD( GetAliveSeconds );
 		ADD_METHOD( GetPercentageOfTaps );
+		ADD_METHOD( GetTotalTaps );
 		ADD_METHOD( GetRadarActual );
 		ADD_METHOD( GetRadarPossible );
 		ADD_METHOD( GetBestFullComboTapNoteScore );
