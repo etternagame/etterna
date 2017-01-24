@@ -395,18 +395,14 @@ void NetworkSyncManager::StartRequest( short position )
 	if (m_ServerVersion >= 129) {
 		tSteps = GAMESTATE->m_pCurSteps[PLAYER_1];
 		if (tSteps != NULL && GAMESTATE->IsPlayerEnabled(PLAYER_1)) {
-			tSteps->Decompress();
 			m_packet.WriteNT(tSteps->GetChartKey());
-			tSteps->Compress();
 		} else {
 			m_packet.WriteNT("");
 		}
 
 		tSteps = GAMESTATE->m_pCurSteps[PLAYER_2];
 		if (tSteps != NULL && GAMESTATE->IsPlayerEnabled(PLAYER_2)) {
-			tSteps->Decompress();
 			m_packet.WriteNT(tSteps->GetChartKey());
-			tSteps->Compress();
 		} else {
 			m_packet.WriteNT("");
 		}
