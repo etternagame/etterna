@@ -117,6 +117,7 @@ function scoreBoard(pn,position)
 		end
 	}
 	
+	local judge = GetTimingDifficulty()
 	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
 	local score = getScoreFromTable(getScoreList(PLAYER_1),pss:GetPersonalHighScoreIndex()+1)
 	
@@ -268,6 +269,20 @@ end
 			self:diffuse(getGradeColor(pss:GetWifeGrade()))
 			self:settextf("%05.2f%% (%s)",notShit.floor(pss:GetWifeScore()*10000)/100, "Wife")
 		end,
+		CodeMessageCommand=function(self,params)
+			if params.Name == "PrevJudge" and judge > 1 then
+				judge = judge - 1
+				self:settextf("%05.2f%% (%s)", notShit.floor(score:RescoreToWifeJudge(judge)*10000)/100, "Wife J"..judge)
+			elseif params.Name == "NextJudge" and judge < 9 then
+				judge = judge + 1
+				if judge == 9 then
+					self:settextf("%05.2f%% (%s)", notShit.floor(score:RescoreToWifeJudge(judge)*10000)/100, "Wife Justice")
+				else
+					self:settextf("%05.2f%% (%s)", notShit.floor(score:RescoreToWifeJudge(judge)*10000)/100, "Wife J"..judge)	
+				end
+				
+			end
+		end,
 	};
 	
 	-- DP percent
@@ -278,6 +293,17 @@ end
 			self:diffuse(getGradeColor(pss:GetGrade()))
 			self:settextf("%05.2f%% (%s)",GetPercentDP(score), "DP")
 		end,
+		CodeMessageCommand=function(self,params)
+			if params.Name == "PrevJudge" or params.Name == "NextJudge" then
+				if judge == 9 then
+					self:settextf("%05.2f%% (%s)", notShit.floor(score:RescoreToDPJudge(judge)*10000)/100, "DP Justice")
+				else
+					self:settextf("%05.2f%% (%s)", notShit.floor(score:RescoreToDPJudge(judge)*10000)/100, "DP J"..judge)	
+				end
+				
+			end
+		end,
+
 	}
 	
 	t[#t+1] = LoadFont("Common Normal")..{
@@ -292,7 +318,13 @@ end
 		t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY+80+((k-1)*22);zoomto,frameWidth,18;halign,0;diffuse,byJudgment(v);diffusealpha,0.5)};
 		t[#t+1] = Def.Quad{
 			InitCommand=cmd(xy,frameX,frameY+80+((k-1)*22);zoomto,0,18;halign,0;diffuse,byJudgment(v);diffusealpha,0.5;),
-			BeginCommand=cmd(glowshift;effectcolor1,color("1,1,1,"..tostring(pss:GetPercentageOfTaps(v)*0.4));effectcolor2,color("1,1,1,0");sleep,0.5;decelerate,2;zoomx,frameWidth*pss:GetPercentageOfTaps(v))
+			BeginCommand=cmd(glowshift;effectcolor1,color("1,1,1,"..tostring(pss:GetPercentageOfTaps(v)*0.4));effectcolor2,color("1,1,1,0");sleep,0.5;decelerate,2;zoomx,frameWidth*pss:GetPercentageOfTaps(v)),
+			CodeMessageCommand=function(self,params)
+				if params.Name == "PrevJudge" or params.Name == "NextJudge" then
+					local rescoreJudges = score:RescoreJudges(judge)
+					self:zoomx(frameWidth*rescoreJudges[k]/pss:GetTotalTaps())
+				end
+			end,
 		};
 		t[#t+1] = LoadFont("Common Large")..{
 			InitCommand=cmd(xy,frameX+10,frameY+80+((k-1)*22);zoom,0.25;halign,0),
@@ -306,14 +338,26 @@ end
 			BeginCommand=cmd(queuecommand,"Set"),
 			SetCommand=function(self) 
 				self:settext(pss:GetTapNoteScores(v))
-			end
+			end,
+			CodeMessageCommand=function(self,params)
+				if params.Name == "PrevJudge" or params.Name == "NextJudge" then
+					local rescoreJudges = score:RescoreJudges(judge)
+					self:settext(rescoreJudges[k])
+				end
+			end,
 		};
 		t[#t+1] = LoadFont("Common Normal")..{
 			InitCommand=cmd(xy,frameX+frameWidth-38,frameY+80+((k-1)*22);zoom,0.3;halign,0),
 			BeginCommand=cmd(queuecommand,"Set"),
 			SetCommand=function(self) 
 				self:settextf("(%03.2f%%)",pss:GetPercentageOfTaps(v)*100)
-			end
+			end,
+			CodeMessageCommand=function(self,params)
+				if params.Name == "PrevJudge" or params.Name == "NextJudge" then
+					local rescoreJudges = score:RescoreJudges(judge)
+					self:settextf("(%03.2f%%)",rescoreJudges[k]/pss:GetTotalTaps()*100)
+				end
+			end,
 		};
 	end
 
