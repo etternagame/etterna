@@ -83,8 +83,9 @@ struct HighScore
 	void SetMusicRate(float f);
 	void SetJudgeScale(float f);
 	void SetEtternaValid(bool b);
-	void SetOffsetVector(vector<float>& v);
-	void SetNoteRowVector(vector<int>& v);
+	void SetOffsetVector(const vector<float>& v);
+	void SetNoteRowVector(const vector<int>& v);
+	void SetRescoreJudgeVector(const vector<int>& v);
 	void SetAliveSeconds( float f );
 	void SetMaxCombo( unsigned int i );
 	void SetStageAward( StageAward a );
@@ -122,7 +123,7 @@ struct HighScore
 	float RescoreToDPJudge(int x);
 	float GetSkillsetSSR(Skillset ss) const;
 	void SetSkillsetSSR(Skillset ss, float ssr);
-
+	vector<int> GetRescoreJudgeVector(int x);
 	// Lua
 	void PushSelf( lua_State *L );
 private:

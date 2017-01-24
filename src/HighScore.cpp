@@ -32,6 +32,7 @@ struct HighScoreImpl
 	bool bEtternaValid;
 	vector<float> vOffsetVector;
 	vector<int> vNoteRowVector;
+	vector<int> vRescoreJudgeVector;
 	unsigned int iMaxCombo;			// maximum combo obtained [SM5 alpha 1a+]
 	StageAward stageAward;	// stage award [SM5 alpha 1a+]
 	PeakComboAward peakComboAward;	// peak combo award [SM5 alpha 1a+]
@@ -183,6 +184,7 @@ HighScoreImpl::HighScoreImpl()
 	bEtternaValid = true;
 	vOffsetVector.clear();
 	vNoteRowVector.clear();
+	vRescoreJudgeVector.clear();
 	fSurviveSeconds = 0.f;
 	iMaxCombo = 0;
 	stageAward = StageAward_Invalid;
@@ -475,8 +477,9 @@ void HighScore::SetWifeScore(float f) {m_Impl->fWifeScore = f;}
 void HighScore::SetMusicRate(float f) { m_Impl->fMusicRate = f; }
 void HighScore::SetJudgeScale(float f) { m_Impl->fJudgeScale = f; }
 void HighScore::SetEtternaValid(bool b) { m_Impl->bEtternaValid = b; }
-void HighScore::SetOffsetVector(vector<float>& v) { m_Impl->vOffsetVector = v; }
-void HighScore::SetNoteRowVector(vector<int>& v) { m_Impl->vNoteRowVector = v; }
+void HighScore::SetOffsetVector(const vector<float>& v) { m_Impl->vOffsetVector = v; }
+void HighScore::SetNoteRowVector(const vector<int>& v) { m_Impl->vNoteRowVector = v; }
+void HighScore::SetRescoreJudgeVector(const vector<int>& v) { m_Impl->vRescoreJudgeVector = v; }
 void HighScore::SetAliveSeconds( float f ) { m_Impl->fSurviveSeconds = f; }
 void HighScore::SetModifiers( const RString &s ) { m_Impl->sModifiers = s; }
 void HighScore::SetDateTime( DateTime d ) { m_Impl->dateTime = d; }
@@ -749,6 +752,7 @@ float HighScoreImpl::RescoreToWifeTS(float ts) {
 float HighScore::RescoreToDPJudge(int x) {
 	const float tso[] = { 1.50f,1.33f,1.16f,1.00f,0.84f,0.66f,0.50f,0.33f,0.20f };
 	float ts = tso[x - 1];
+	vector<int> vRescoreJudgeVector;
 	int marv = 0;
 	int perf = 0;
 	int great = 0;
@@ -759,7 +763,7 @@ float HighScore::RescoreToDPJudge(int x) {
 	FOREACH_CONST(float, m_Impl->vOffsetVector, f) {
 		m2 += 2;
 		float x = abs(*f * 1000.f);
-		if (x <= 22.5f)
+		if (x <= ts * 22.5f)
 			++marv;
 		else if (x <= ts * 45.f)
 			++perf;
@@ -774,6 +778,13 @@ float HighScore::RescoreToDPJudge(int x) {
 	}
 
 	//LOG->Trace("Marv: %i Perf: %i, Great: %i, Good: %i, Boo: %i, Miss: %i", marv, perf, great, good, boo, miss);
+	vRescoreJudgeVector.push_back(marv);
+	vRescoreJudgeVector.push_back(perf);
+	vRescoreJudgeVector.push_back(great);
+	vRescoreJudgeVector.push_back(good);
+	vRescoreJudgeVector.push_back(boo);
+	vRescoreJudgeVector.push_back(miss);
+	SetRescoreJudgeVector(vRescoreJudgeVector);
 
 	int p = 0;
 	p += (marv + perf) * 2;
@@ -785,6 +796,11 @@ float HighScore::RescoreToDPJudge(int x) {
 	float m = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
 	m += (m_Impl->radarValues[RadarCategory_Holds] + m_Impl->radarValues[RadarCategory_Rolls]) * 6;
 	return p / m;
+}
+
+vector<int> HighScore::GetRescoreJudgeVector(int x) {
+	RescoreToDPJudge(x);
+	return m_Impl->vRescoreJudgeVector;
 }
 
 Grade HighScore::GetWifeGrade() {
@@ -860,6 +876,17 @@ public:
 	static int GetHoldNoteScore( T* p, lua_State *L )		{ lua_pushnumber(L, p->GetHoldNoteScore( Enum::Check<HoldNoteScore>(L, 1) ) ); return 1; }
 	static int RescoreToWifeJudge(T* p, lua_State *L)		{ lua_pushnumber(L, p->RescoreToWifeJudge(IArg(1))); return 1; }
 	static int RescoreToDPJudge(T* p, lua_State *L)			{ lua_pushnumber(L, p->RescoreToDPJudge(IArg(1))); return 1; }
+	static int RescoreJudges( T* p, lua_State *L )
+	{
+		lua_newtable(L);
+		for( int i = 0; i < 6; ++i )
+		{
+			lua_pushnumber(L, p->GetRescoreJudgeVector(IArg(1))[i]);
+			lua_rawseti( L, -2			, i+1 );
+		}
+
+		return 1;
+	}
 	static int GetRadarValues( T* p, lua_State *L )
 	{
 		RadarValues &rv = const_cast<RadarValues &>(p->GetRadarValues());
@@ -892,6 +919,7 @@ public:
 		ADD_METHOD( GetWifeScore );
 		ADD_METHOD( RescoreToWifeJudge );
 		ADD_METHOD( RescoreToDPJudge );
+		ADD_METHOD( RescoreJudges );
 		ADD_METHOD( GetSkillsetSSR );
 		ADD_METHOD( GetMusicRate );
 		ADD_METHOD( GetJudgeScale );
