@@ -11,6 +11,9 @@ NetworkSyncManager *NSMAN;
 
 #include "ver.h"
 
+// Nick12: song file hashing
+
+#include "CryptManager.h"
 
 #if defined(WITHOUT_NETWORKING)
 NetworkSyncManager::NetworkSyncManager( LoadingWindow *ld ) { useSMserver=false; isSMOnline = false; }
@@ -391,7 +394,7 @@ void NetworkSyncManager::StartRequest( short position )
 	for (int i=0; i<2-players; ++i)
 		m_packet.WriteNT("");	//Write a NULL if no player
 
-	//Send song hash/chartkey
+	//Send chartkey
 	if (m_ServerVersion >= 129) {
 		tSteps = GAMESTATE->m_pCurSteps[PLAYER_1];
 		if (tSteps != NULL && GAMESTATE->IsPlayerEnabled(PLAYER_1)) {
@@ -741,6 +744,29 @@ void NetworkSyncManager::SelectUserSong()
 	m_packet.WriteNT( m_sMainTitle );
 	m_packet.WriteNT( m_sArtist );
 	m_packet.WriteNT( m_sSubTitle );
+	//Send songhash
+	if (m_ServerVersion >= 129) {
+		Song * song = GAMESTATE->m_pCurSong;
+		RString sPath = SetExtension(song->GetSongFilePath(), "sm");
+		if (!IsAFile(sPath))
+			sPath = SetExtension(song->GetSongFilePath(), "dwi");
+		if (!IsAFile(sPath))
+			sPath = SetExtension(song->GetSongFilePath(), "sma");
+		if (!IsAFile(sPath))
+			sPath = SetExtension(song->GetSongFilePath(), "bms");
+		if (!IsAFile(sPath))
+			sPath = SetExtension(song->GetSongFilePath(), "ksf");
+		if (!IsAFile(sPath))
+			sPath = SetExtension(song->GetSongFilePath(), "json");
+		if (!IsAFile(sPath))
+			sPath = SetExtension(song->GetSongFilePath(), "jso");
+		if (!IsAFile(sPath))
+			sPath = SetExtension(song->GetSongFilePath(), "ssc");
+		if (!IsAFile(sPath))
+			m_packet.WriteNT(BinaryToHex(CRYPTMAN->GetSHA1ForFile(sPath)));
+		else
+			m_packet.WriteNT("");
+	}
 	NetPlayerClient->SendPack( (char*)&m_packet.Data, m_packet.Position );
 }
 
