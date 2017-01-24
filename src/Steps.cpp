@@ -30,6 +30,7 @@
 #include "NotesLoaderBMS.h"
 #include <algorithm>
 #include "MinaCalc.h"
+#include <thread>
 
 /* register DisplayBPM with StringConversion */
 #include "EnumHelper.h"
@@ -481,47 +482,53 @@ RString Steps::GenerateChartKey(NoteData& nd, TimingData *td)
 {
 	RString k = "";
 	RString o = "";
-	float bpm;
 	vector<int>& nerv = nd.GetNonEmptyRowVector();
-
-
-	RString firstHalf = "";
-	RString secondHalf = "";
-
-#pragma omp parallel sections
+	
+	unsigned int numThreads = max(std::thread::hardware_concurrency(), 1u);
+	std::vector<RString> keyParts;
+	keyParts.reserve(numThreads);
+	
+	size_t segmentSize = nerv.size() / numThreads;
+	std::vector<std::thread> threads;
+	threads.reserve(numThreads);
+	
+	for (unsigned int curThread = 0; curThread < numThreads; curThread++)
 	{
-#pragma omp section
-		{
-			for (size_t r = 0; r < nerv.size() / 2; r++) {
-				int row = nerv[r];
-				for (int t = 0; t < nd.GetNumTracks(); ++t) {
-					const TapNote &tn = nd.GetTapNote(t, row);
-					firstHalf.append(to_string(tn.type));
-				}
-				bpm = td->GetBPMAtRow(row);
-				firstHalf.append(to_string(static_cast<int>(bpm + 0.374643f)));
-			}
-		}
-		
-#pragma omp section
-		{
-			for (size_t r = nerv.size() / 2; r < nerv.size(); r++) {
-				int row = nerv[r];
-				for (int t = 0; t < nd.GetNumTracks(); ++t) {
-					const TapNote &tn = nd.GetTapNote(t, row);
-					secondHalf.append(to_string(tn.type));
-				}
-				bpm = td->GetBPMAtRow(row);
-				secondHalf.append(to_string(static_cast<int>(bpm + 0.374643f)));
-			}
-		}
-	}
-	k = firstHalf + secondHalf;	
+		keyParts.push_back("");
+		size_t start = segmentSize * curThread;
+		size_t end = start + segmentSize;
+		if (curThread + 1 == numThreads)
+			end = nerv.size();
 
-	//ChartKeyRecord = k;
+		threads.push_back(std::thread(&Steps::FillStringWithBPMs, this, start, end, std::ref(nerv), std::ref(nd), td, std::ref(keyParts[curThread])));
+	}
+
+	for (auto& t : threads)
+	{
+		if(t.joinable())
+			t.join();
+	}
+
+	for(size_t i = 0; i < numThreads; i++)
+		k += keyParts[i];
+
 	o.append("X");	// I was thinking of using "C" to indicate chart.. however.. X is cooler... - Mina
 	o.append(BinaryToHex(CryptManager::GetSHA1ForString(k)));
 	return o;
+}
+
+void Steps::FillStringWithBPMs(size_t startRow, size_t endRow, vector<int>& nerv, NoteData& nd, TimingData *td, RString& inOut)
+{
+	float bpm = 0.f;
+	for (size_t r = startRow; r < endRow; r++) {
+		int row = nerv[r];
+		for (int t = 0; t < nd.GetNumTracks(); ++t) {
+			const TapNote& tn = nd.GetTapNote(t, row);
+			inOut.append(to_string(tn.type));
+		}
+		bpm = td->GetBPMAtRow(row);
+		inOut.append(to_string(static_cast<int>(bpm + 0.374643f)));
+	}
 }
 
 int Steps::GetNPSVector(NoteData nd, vector<float>& etar)

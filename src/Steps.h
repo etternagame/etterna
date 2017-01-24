@@ -190,6 +190,9 @@ public:
 	using the notedata stored in game memory immediately after reading it than parsing it using lua. - Mina */
 	RString GenerateChartKey(NoteData& nd, TimingData *td);
 
+	/* Append all of the bpms in the given range to the input string */
+	void FillStringWithBPMs(size_t startRow, size_t endRow, vector<int>& nerv, NoteData& nd, TimingData *td, RString& inOut);
+
 	/**
 	 * @brief Determine if the Steps have any major timing changes during gameplay.
 	 * @return true if it does, or false otherwise. */

@@ -29,6 +29,7 @@
 
 AutoScreenMessage( SM_AddToChat );
 AutoScreenMessage( SM_UsersUpdate );
+AutoScreenMessage( SM_FriendsUpdate );
 AutoScreenMessage( SM_SMOnlinePack );
 
 REGISTER_SCREEN_CLASS( ScreenNetSelectBase );
@@ -134,9 +135,13 @@ void ScreenNetSelectBase::HandleScreenMessage( const ScreenMessage SM )
 		m_textChatOutput.SetText( NSMAN->m_sChatText );
 		m_textChatOutput.SetMaxLines( SHOW_CHAT_LINES, 1 );
 	}
-	else if( SM == SM_UsersUpdate )
+	else if (SM == SM_UsersUpdate)
 	{
 		UpdateUsers();
+	}
+	else if (SM == SM_FriendsUpdate)
+	{
+		MESSAGEMAN->Broadcast("FriendsUpdate");
 	}
 
 	ScreenWithMenuElements::HandleScreenMessage( SM );
@@ -489,7 +494,7 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 	static int GetUser(T* p, lua_State *L)
 	{
 		if (IArg(1) <= p->ToUsers()->size() && IArg(1) >= 1)
-			lua_pushstring(L, (*(p->ToUsers()))[IArg(1)-1].GetText());
+			lua_pushstring(L, (*(p->ToUsers()))[IArg(1) - 1].GetText());
 		else
 			lua_pushstring(L, "");
 		return 1;
@@ -497,7 +502,28 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 	static int GetUserState(T* p, lua_State *L)
 	{
 		if (IArg(1) <= p->ToUsers()->size() && IArg(1) >= 1)
-			lua_pushnumber(L, NSMAN->m_PlayerStatus[NSMAN->m_ActivePlayer[IArg(1) - 1]] );
+			lua_pushnumber(L, NSMAN->m_PlayerStatus[NSMAN->m_ActivePlayer[IArg(1) - 1]]);
+		else
+			lua_pushnumber(L, 0);
+		return 1;
+	}
+	static int GetFriendQty(T* p, lua_State *L)
+	{
+		lua_pushnumber(L, NSMAN->fl_PlayerNames.size());
+		return 1;
+	}
+	static int GetFriendName(T* p, lua_State *L)
+	{
+		if (IArg(1) <= NSMAN->fl_PlayerNames.size() && IArg(1) >= 1)
+			lua_pushstring(L, (NSMAN->fl_PlayerNames[IArg(1) - 1]).c_str());
+		else
+			lua_pushstring(L, "");
+		return 1;
+	}
+	static int GetFriendState(T* p, lua_State *L)
+	{
+		if (IArg(1) <= NSMAN->fl_PlayerStates.size() && IArg(1) >= 1)
+			lua_pushnumber(L, NSMAN->fl_PlayerStates[IArg(1) - 1]);
 		else
 			lua_pushnumber(L, 0);
 		return 1;
@@ -511,6 +537,9 @@ public:
 		ADD_METHOD(ChatboxVisible);
 		ADD_METHOD(GetUserQty);
 		ADD_METHOD(GetUserState);
+		ADD_METHOD(GetFriendQty);
+		ADD_METHOD(GetFriendState);
+		ADD_METHOD(GetFriendName);
 	}
 };
 

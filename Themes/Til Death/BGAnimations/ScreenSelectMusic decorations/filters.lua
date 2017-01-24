@@ -120,14 +120,14 @@ local f = Def.ActorFrame{
 	Def.Quad{
 		InitCommand=cmd(xy,frameX+frameWidth/2,175;zoomto,130,18;halign,0;diffusealpha,0),
 		MouseLeftClickMessageCommand=function(self)
-			if isOver(self) then
+			if isOver(self) and active then
 				GAMESTATE:SetMaxFilterRate(GAMESTATE:GetMaxFilterRate()+0.1)
 				MESSAGEMAN:Broadcast("MaxFilterRateChanged")
 				whee:SongSearch("")
 			end
 		end,
 		MouseRightClickMessageCommand=function(self)
-			if isOver(self) then
+			if isOver(self) and active then
 				GAMESTATE:SetMaxFilterRate(GAMESTATE:GetMaxFilterRate()-0.1)
 				MESSAGEMAN:Broadcast("MaxFilterRateChanged")
 				whee:SongSearch("")
@@ -144,14 +144,14 @@ local f = Def.ActorFrame{
 	Def.Quad{
 		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY;zoomto,130,18;halign,0;diffusealpha,0),
 		MouseLeftClickMessageCommand=function(self)
-			if isOver(self) then
+			if isOver(self) and active then
 				GAMESTATE:SetMinFilterRate(GAMESTATE:GetMinFilterRate()+0.1)
 				MESSAGEMAN:Broadcast("MaxFilterRateChanged")
 				whee:SongSearch("")
 			end
 		end,
 		MouseRightClickMessageCommand=function(self)
-			if isOver(self) then
+			if isOver(self) and active then
 				GAMESTATE:SetMinFilterRate(GAMESTATE:GetMinFilterRate()-0.1)
 				MESSAGEMAN:Broadcast("MaxFilterRateChanged")
 				whee:SongSearch("")
@@ -172,7 +172,7 @@ local f = Def.ActorFrame{
 	Def.Quad{
 		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY * 2;zoomto,120,18;halign,0;diffusealpha,0),
 		MouseLeftClickMessageCommand=function(self)
-			if isOver(self) then
+			if isOver(self) and active then
 				GAMESTATE:ToggleFilterMode()
 				MESSAGEMAN:Broadcast("FilterModeChanged")
 				whee:SongSearch("")
@@ -198,7 +198,7 @@ local f = Def.ActorFrame{
 	Def.Quad{
 		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY * 3;zoomto,160,18;halign,0;diffusealpha,0),
 		MouseLeftClickMessageCommand=function(self)
-			if isOver(self) then
+			if isOver(self) and active then
 				GAMESTATE:ToggleHighestSkillsetsOnly()
 				MESSAGEMAN:Broadcast("FilterModeChanged")
 				whee:SongSearch("")
@@ -222,7 +222,7 @@ local function CreateFilterInputBox(i)
 		Def.Quad{
 			InitCommand=cmd(addx,150;addy,175 + (i-1)*spacingY;zoomto,18,18;halign,1),
 			MouseLeftClickMessageCommand=function(self)
-				if isOver(self) then
+				if isOver(self) and active then
 					ActiveSS = i
 					activebound = 0
 					MESSAGEMAN:Broadcast("NumericInputActive")
@@ -258,7 +258,7 @@ local function CreateFilterInputBox(i)
 		Def.Quad{
 			InitCommand=cmd(addx,175;addy,175 + (i-1)*spacingY;zoomto,18,18;halign,1),
 			MouseLeftClickMessageCommand=function(self)
-				if isOver(self) then
+				if isOver(self) and active then
 					ActiveSS = i
 					activebound = 1
 					MESSAGEMAN:Broadcast("NumericInputActive")
@@ -299,7 +299,7 @@ end
 f[#f+1] = Def.Quad{
     InitCommand=cmd(xy,frameX+frameWidth-150,frameY+250;zoomto,60,20;halign,0.5;diffuse,getMainColor('frames');diffusealpha,0),
     MouseLeftClickMessageCommand=function(self)
-        if isOver(self) then
+        if isOver(self) and active then
             GAMESTATE:ResetSSFilters()
             for i=1,#ms.SkillSets do
                 SSQuery[0][i] = "0"
