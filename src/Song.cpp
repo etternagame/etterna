@@ -1417,6 +1417,31 @@ void Song::AddAutoGenNotes()
 	}
 }
 
+RString Song::GetFileHash()
+{
+	if (m_sFileHash.empty()) {
+		RString sPath = SetExtension(GetSongFilePath(), "sm");
+		if (!IsAFile(sPath))
+			sPath = SetExtension(GetSongFilePath(), "dwi");
+		if (!IsAFile(sPath))
+			sPath = SetExtension(GetSongFilePath(), "sma");
+		if (!IsAFile(sPath))
+			sPath = SetExtension(GetSongFilePath(), "bms");
+		if (!IsAFile(sPath))
+			sPath = SetExtension(GetSongFilePath(), "ksf");
+		if (!IsAFile(sPath))
+			sPath = SetExtension(GetSongFilePath(), "json");
+		if (!IsAFile(sPath))
+			sPath = SetExtension(GetSongFilePath(), "jso");
+		if (!IsAFile(sPath))
+			sPath = SetExtension(GetSongFilePath(), "ssc");
+		if (IsAFile(sPath))
+			m_sFileHash = BinaryToHex(CRYPTMAN->GetSHA1ForFile(sPath));
+		else
+			m_sFileHash = "";
+	}
+	return m_sFileHash;
+}
 void Song::AutoGen( StepsType ntTo, StepsType ntFrom )
 {
 	// int iNumTracksOfTo = GAMEMAN->StepsTypeToNumTracks(ntTo);
