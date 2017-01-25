@@ -631,6 +631,11 @@ void NetworkSyncManager::ProcessInput()
 				m_sMainTitle = m_packet.ReadNT();
 				m_sArtist = m_packet.ReadNT();
 				m_sSubTitle = m_packet.ReadNT();
+				//Read songhash
+				if (m_ServerVersion >= 129) {
+					m_sFileHash = m_packet.ReadNT();
+				}
+				SCREENMAN->SendMessageToTopScreen( SM_ChangeSong );
 				SCREENMAN->SendMessageToTopScreen( SM_ChangeSong );
 			}
 			break;
@@ -736,6 +741,10 @@ void NetworkSyncManager::ReportPlayerOptions()
 	NetPlayerClient->SendPack((char*)&m_packet.Data, m_packet.Position); 
 }
 
+int NetworkSyncManager::GetServerVersion()
+{
+	return m_ServerVersion;
+}
 void NetworkSyncManager::SelectUserSong()
 {
 	m_packet.ClearPacket();
@@ -746,26 +755,7 @@ void NetworkSyncManager::SelectUserSong()
 	m_packet.WriteNT( m_sSubTitle );
 	//Send songhash
 	if (m_ServerVersion >= 129) {
-		Song * song = GAMESTATE->m_pCurSong;
-		RString sPath = SetExtension(song->GetSongFilePath(), "sm");
-		if (!IsAFile(sPath))
-			sPath = SetExtension(song->GetSongFilePath(), "dwi");
-		if (!IsAFile(sPath))
-			sPath = SetExtension(song->GetSongFilePath(), "sma");
-		if (!IsAFile(sPath))
-			sPath = SetExtension(song->GetSongFilePath(), "bms");
-		if (!IsAFile(sPath))
-			sPath = SetExtension(song->GetSongFilePath(), "ksf");
-		if (!IsAFile(sPath))
-			sPath = SetExtension(song->GetSongFilePath(), "json");
-		if (!IsAFile(sPath))
-			sPath = SetExtension(song->GetSongFilePath(), "jso");
-		if (!IsAFile(sPath))
-			sPath = SetExtension(song->GetSongFilePath(), "ssc");
-		if (IsAFile(sPath))
-			m_packet.WriteNT(BinaryToHex(CRYPTMAN->GetSHA1ForFile(sPath)));
-		else
-			m_packet.WriteNT("");
+		m_packet.WriteNT(GAMESTATE->m_pCurSong->GetFileHash());
 	}
 	NetPlayerClient->SendPack( (char*)&m_packet.Data, m_packet.Position );
 }
