@@ -1,8 +1,10 @@
-local ts = PREFSMAN:GetPreference("TimingWindowScale") 
+local judge = GetTimingDifficulty()
+local tst = { 1.50,1.33,1.16,1.00,0.84,0.66,0.50,0.33,0.20 }
+
 local plotWidth, plotHeight = 400,120
 local plotX, plotY = SCREEN_WIDTH - 9 - plotWidth/2, SCREEN_HEIGHT - 56 - plotHeight/2
 local dotDims, plotMargin = 2, 4
-local maxOffset = 180*ts
+local maxOffset = 180*tst[judge]
 local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(PLAYER_1)
 local dvt = pss:GetOffsetVector()
 local nrt = pss:GetNoteRowVector()
@@ -19,19 +21,41 @@ end
 
 local function plotOffset(nr,dv)
 	if dv == 1000 then 	-- 1000 denotes a miss for which we use a different marker
-		return Def.Quad{InitCommand=cmd(xy,fitX(nr),fitY(ts*184);zoomto,dotDims,dotDims;diffuse,offsetToJudgeColor(dv/1000);valign,0)}
+		return Def.Quad{InitCommand=cmd(xy,fitX(nr),fitY(tst[judge]*184);zoomto,dotDims,dotDims;diffuse,offsetToJudgeColor(dv/1000);valign,0)}
 	end
-	return Def.Quad{InitCommand=cmd(xy,fitX(nr),fitY(dv);zoomto,dotDims,dotDims;diffuse,offsetToJudgeColor(dv/1000))}
+	return Def.Quad{
+		InitCommand=cmd(xy,fitX(nr),fitY(dv);zoomto,dotDims,dotDims;diffuse,offsetToJudgeColor(dv/1000)),
+		JudgeDisplayChangedMessageCommand=function(self)
+			local pos = fitY(dv)
+			if math.abs(pos) > plotHeight/2 then
+				self:y(fitY(tst[judge]*184))
+			else
+				self:y(pos)
+			end
+			self:diffuse(offsetToJudgeColor(dv/1000, tst[judge]))
+		end
+	}
 end
 
-local o = Def.ActorFrame{InitCommand=cmd(xy,plotX,plotY)}
+local o = Def.ActorFrame{
+	InitCommand=cmd(xy,plotX,plotY),
+	CodeMessageCommand=function(self,params)
+		if params.Name == "PrevJudge" and judge > 1 then
+			judge = judge - 1
+		elseif params.Name == "NextJudge" and judge < 9 then
+			judge = judge + 1
+		end
+		maxOffset = 180*tst[judge]
+		MESSAGEMAN:Broadcast("JudgeDisplayChanged")
+	end,
+}
 -- Center Bar
 o[#o+1] = Def.Quad{InitCommand=cmd(zoomto,plotWidth+plotMargin,1;diffuse,byJudgment("TapNoteScore_W1"))}
 local fantabars = {22.5, 45, 90, 135}
 local bantafars = {"TapNoteScore_W2", "TapNoteScore_W3", "TapNoteScore_W4", "TapNoteScore_W5"}
 for i=1, #fantabars do 
-	o[#o+1] = Def.Quad{InitCommand=cmd(y, fitY(ts*fantabars[i]); zoomto,plotWidth+plotMargin,1;diffuse,byJudgment(bantafars[i]))}
-	o[#o+1] = Def.Quad{InitCommand=cmd(y, fitY(-ts*fantabars[i]); zoomto,plotWidth+plotMargin,1;diffuse,byJudgment(bantafars[i]))}
+	o[#o+1] = Def.Quad{InitCommand=cmd(y, fitY(tst[judge]*fantabars[i]); zoomto,plotWidth+plotMargin,1;diffuse,byJudgment(bantafars[i]))}
+	o[#o+1] = Def.Quad{InitCommand=cmd(y, fitY(-tst[judge]*fantabars[i]); zoomto,plotWidth+plotMargin,1;diffuse,byJudgment(bantafars[i]))}
 end
 -- Background
 o[#o+1] = Def.Quad{InitCommand=cmd(zoomto,plotWidth+plotMargin,plotHeight+plotMargin;diffuse,color("0.05,0.05,0.05,0.05");diffusealpha,0.8)}
@@ -45,44 +69,54 @@ for i=1,#devianceTable do
 	o[#o+1] = plotOffset(wuab[i], dvt[i])
 end
 -- Early/Late markers
-o[#o+1] = LoadFont("Common Normal")..{InitCommand=cmd(xy,-plotWidth/2,-plotHeight/2+2;settextf,"Late (+%ims)", ts*180;zoom,0.35;halign,0;valign,0)}
-o[#o+1] = LoadFont("Common Normal")..{InitCommand=cmd(xy,-plotWidth/2,plotHeight/2-2;settextf,"Early (-%ims)", ts*180;zoom,0.35;halign,0;valign,1)}
-
-
-
-
--- graph garbage (wip)
-local wuaboffset = {}
-for i=1,#wuab do
-	if dvt[i] ~= 1000 then
-		wuaboffset[i] = wuab[i] + dvt[i]/1000
-	else
-		wuaboffset[i] = wuab[i] + .180
+o[#o+1] = LoadFont("Common Normal")..{
+	InitCommand=cmd(xy,-plotWidth/2,-plotHeight/2+2;settextf,"Late (+%ims)", maxOffset;zoom,0.35;halign,0;valign,0),
+	JudgeDisplayChangedMessageCommand=function(self)
+		self:settextf("Late (+%ims)", maxOffset)
 	end
-end
+}
+o[#o+1] = LoadFont("Common Normal")..{
+	InitCommand=cmd(xy,-plotWidth/2,plotHeight/2-2;settextf,"Early (-%ims)", maxOffset;zoom,0.35;halign,0;valign,1),
+	JudgeDisplayChangedMessageCommand=function(self)
+		self:settextf("Early (-%ims)", maxOffset)
+	end
+}
 
-table.sort(wuab)
-table.sort(wuaboffset)
 
-local pointstotal = 0
-local pointsmax = 0
-local curperc = 0
-local wifescore = pss:GetWifeScore()
 
-local function fitXGraph(x)	-- Scale time values to fit within plot width.
-	return x/finalSecond*plotWidth
-end
-local function fitYGraph(y)	-- Scale percent values to fit within plot height
-	return -1 * plotHeight/2*(y-wifescore)/(1-wifescore)
-end
 
-local verts = {}
-for i=1,#wuab do
-	pointstotal = pointstotal + pss:WifeScoreOffset(wuaboffset[i] - wuab[i])
-	pointsmax = pointsmax + 2
-	curperc = pointstotal/pointsmax
-	verts[#verts+1] = {{fitXGraph(wuaboffset[i]),fitYGraph(curperc),0},Color.White}
-end
+--graph garbage (wip)
+-- local wuaboffset = {}
+-- for i=1,#wuab do
+	-- if dvt[i] ~= 1000 then
+		-- wuaboffset[i] = wuab[i] + dvt[i]/1000
+	-- else
+		-- wuaboffset[i] = wuab[i] + .180
+	-- end
+-- end
+
+-- table.sort(wuab)
+-- table.sort(wuaboffset)
+
+-- local pointstotal = 0
+-- local pointsmax = 0
+-- local curperc = 0
+-- local wifescore = pss:GetWifeScore()
+
+-- local function fitXGraph(x)	-- Scale time values to fit within plot width.
+	-- return x/finalSecond*plotWidth
+-- end
+-- local function fitYGraph(y)	-- Scale percent values to fit within plot height
+	-- return -1 * plotHeight/2*(y-wifescore)/(1-wifescore)
+-- end
+
+-- local verts = {}
+-- for i=1,#wuab do
+	-- pointstotal = pointstotal + pss:WifeScoreOffset(wuaboffset[i] - wuab[i])
+	-- pointsmax = pointsmax + 2
+	-- curperc = pointstotal/pointsmax
+	-- verts[#verts+1] = {{fitXGraph(wuaboffset[i]),fitYGraph(curperc),0},Color.White}
+-- end
 
 -- o[#o+1] = Def.ActorMultiVertex{
 	-- InitCommand=function(self)

@@ -134,9 +134,11 @@ function getVividDifficultyColor(diff)
 	return color(colorConfig:get_data().difficultyVivid[diff]) or color("#ffffff")
 end
 
-function offsetToJudgeColor(offset)
+function offsetToJudgeColor(offset,scale)
 	local offset = math.abs(offset)
-	local scale = PREFSMAN:GetPreference("TimingWindowScale")
+	if not scale then
+		scale = PREFSMAN:GetPreference("TimingWindowScale")
+	end
 	if offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW1") then
 		return color(colorConfig:get_data().judgment["TapNoteScore_W1"])
 	elseif offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW2") then

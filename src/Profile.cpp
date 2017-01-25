@@ -2338,8 +2338,8 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 		float ssr;
 		unsigned int pos;
 	};
-	info temp[40];
-	for (int i = 0;i < 40;i++) {
+	info temp[60];
+	for (int i = 0;i < 60;i++) {
 		temp[i].ssr = 0;
 		temp[i].pos = 0;
 	}
@@ -2363,7 +2363,7 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 			Steps* psteps = stepsid.ToSteps(id.ToSong(), true);
 			if (!psteps)
 				continue;
-			for (int i = 0;i < 40;i++) {
+			for (int i = 0;i < 60;i++) {
 				temp[i].ssr = 0;
 				temp[i].pos = 0;
 			}
