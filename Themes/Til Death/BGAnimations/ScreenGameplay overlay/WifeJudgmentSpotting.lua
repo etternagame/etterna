@@ -52,6 +52,13 @@ end
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
 
 
+-- restart button
+local function froot(loop)
+	if loop.DeviceInput.button == "DeviceButton_`" then
+		SCREENMAN:GetTopScreen():SetPrevScreenName("ScreenStageInformation"):begin_backing_out()
+	end
+end
+
 
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 								     **Wife deviance tracker. Basically half the point of the theme.**
@@ -61,7 +68,10 @@ end
 ]]
 
 local t = Def.ActorFrame{										
-	Name = "WifePerch",					 
+	Name = "WifePerch",
+	OnCommand=function()
+		SCREENMAN:GetTopScreen():AddInputCallback(froot)
+	end,
 	JudgmentMessageCommand=function(self, msg)
 		if msg.Offset ~= nil then
 			dvCur = msg.Offset 
