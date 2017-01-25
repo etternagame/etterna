@@ -169,7 +169,7 @@ public:
 	RString m_sMainTitle;
 	RString m_sArtist;
 	RString m_sSubTitle;
-	std::string m_sFileHash;
+	RString m_sFileHash;
 	int m_sHash;
 	int m_iSelectMode;
 	void SelectUserSong();
