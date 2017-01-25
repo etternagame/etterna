@@ -263,7 +263,7 @@ end
 	
 	-- Wife percent
 	t[#t+1] = LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+5,frameY+9;zoom,0.45;halign,0;valign,0),
+		InitCommand=cmd(xy,frameX+5,frameY+9;zoom,0.45;halign,0;valign,0;maxwidth,capWideScale(280,320)),
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self) 
 			self:diffuse(getGradeColor(pss:GetWifeGrade()))
@@ -287,7 +287,7 @@ end
 	
 	-- DP percent
 	t[#t+1] = LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+5,frameY+34;zoom,0.45;halign,0;valign,0),
+		InitCommand=cmd(xy,frameX+5,frameY+34;zoom,0.45;halign,0;valign,0;maxwidth,capWideScale(280,320)),
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self) 
 			self:diffuse(getGradeColor(pss:GetGrade()))
