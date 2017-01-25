@@ -256,6 +256,6 @@ if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
 end
 
 
-t[#t+1] = LoadActor("offsetplot")
+t[#t+1] = LoadActor("../offsetplot")
 
 return t
