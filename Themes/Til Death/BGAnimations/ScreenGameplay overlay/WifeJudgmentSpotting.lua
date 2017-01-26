@@ -457,8 +457,17 @@ t[#t+1] = Def.ActorFrame{
 															**Combo Display**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	moving here eventually
 ]]
+
+local x = 0
+local y = 60
+
+--This just initializes the initial point or not idk not needed to mess with this any more
+function ComboTransformCommand( self, params )
+	self:x( x )
+	self:y( y )
+end
+
 
 
 
