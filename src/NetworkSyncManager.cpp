@@ -11,10 +11,6 @@ NetworkSyncManager *NSMAN;
 
 #include "ver.h"
 
-// Nick12: song file hashing
-
-#include "CryptManager.h"
-
 #if defined(WITHOUT_NETWORKING)
 NetworkSyncManager::NetworkSyncManager( LoadingWindow *ld ) { useSMserver=false; isSMOnline = false; }
 NetworkSyncManager::~NetworkSyncManager () { }
