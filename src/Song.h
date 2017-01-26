@@ -93,6 +93,9 @@ public:
 	bool ReloadFromSongDir() { return ReloadFromSongDir(GetSongDir()); }
 	void LoadEditsFromSongDir(const RString &dir);
 
+	RString m_sFileHash;
+	RString GetFileHash();
+
 	bool HasAutosaveFile();
 	bool LoadAutosaveFile();
 
