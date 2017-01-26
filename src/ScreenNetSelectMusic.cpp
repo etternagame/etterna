@@ -249,16 +249,15 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 		bool found = false;
 		if (NSMAN->GetServerVersion() >= 129)
 		{
-			Rage::ci_ascii_string ciFileHash{ NSMAN->m_sFileHash.c_str() };
 			//Dont earch by filehash if none was sent
 			if(!NSMAN->m_sFileHash.empty())
 				for (i = 0; i < AllSongs.size(); i++)
 				{
 					m_cSong = AllSongs[i];
-					if (ciArtist == m_cSong->GetTranslitArtist() &&
-						ciMain == m_cSong->GetTranslitMainTitle() &&
-						ciSub == m_cSong->GetTranslitSubTitle() &&
-						ciFileHash == m_cSong->GetFileHash())
+					if (NSMAN->m_sArtist == m_cSong->GetTranslitArtist() &&
+						NSMAN->m_sMainTitle == m_cSong->GetTranslitMainTitle() &&
+						NSMAN->m_sSubTitle == m_cSong->GetTranslitSubTitle() &&
+						NSMAN->m_sFileHash == m_cSong->GetFileHash())
 					{
 						found = true;
 						break;
@@ -271,9 +270,9 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 			for (i = 0; i < AllSongs.size(); i++)
 			{
 				m_cSong = AllSongs[i];
-				if (ciArtist == m_cSong->GetTranslitArtist() &&
-					ciMain == m_cSong->GetTranslitMainTitle() &&
-					ciSub == m_cSong->GetTranslitSubTitle())
+				if (NSMAN->m_sArtist == m_cSong->GetTranslitArtist() &&
+					NSMAN->m_sMainTitle == m_cSong->GetTranslitMainTitle() &&
+					NSMAN->m_sSubTitle == m_cSong->GetTranslitSubTitle())
 				{
 					break;
 				}
