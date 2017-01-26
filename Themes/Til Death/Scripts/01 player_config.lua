@@ -20,6 +20,16 @@ local defaultConfig = {
 	JudgmentText = true,
 	ReceptorSize = 100,
 	BackgroundType = 1,
+	GameplayXYCoordinates = {
+		JudgeX = 0,
+		JudgeY = 40,
+		ComboX = 30,
+		ComboY = 20,
+	},
+	GameplaySizes = {
+		JudgeZoom = 1.0,
+		ComboZoom = 0.6,
+	},
 }
 
 playerConfig = create_setting("playerConfig", "playerConfig.lua", defaultConfig, -1)
