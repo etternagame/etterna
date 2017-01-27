@@ -823,7 +823,7 @@ Grade HighScore::GetWifeGrade() {
 	return Grade_Tier07;
 }
 
-// Assert a "worst case scenario" to convert by - mina
+// Ok I guess we can be more lenient and convert by midwindow values, but we still have to assume j4 - mina
 float HighScore::ConvertDpToWife() {
 	if (m_Impl->fWifeScore > 0.f)
 		return m_Impl->fWifeScore;
@@ -834,12 +834,12 @@ float HighScore::ConvertDpToWife() {
 	float ts = 1.f;
 	float estpoints = 0.f;
 	float maxpoints = 0.f;
-	estpoints += m_Impl->iTapNoteScores[TNS_W1] * wife2(.02249f, ts);
-	estpoints += m_Impl->iTapNoteScores[TNS_W2] * wife2(.04499f, ts);
-	estpoints += m_Impl->iTapNoteScores[TNS_W3] * wife2(.08999f, ts);
-	estpoints += m_Impl->iTapNoteScores[TNS_W4] * wife2(.13499f, ts);
-	estpoints += m_Impl->iTapNoteScores[TNS_W5] * wife2(.17999f, ts);
-	estpoints += m_Impl->iTapNoteScores[TNS_Miss] * wife2(.17999f, ts);
+	estpoints += m_Impl->iTapNoteScores[TNS_W1] * wife2(.01125f, ts);
+	estpoints += m_Impl->iTapNoteScores[TNS_W2] * wife2(.03375f, ts);
+	estpoints += m_Impl->iTapNoteScores[TNS_W3] * wife2(.0675f, ts);
+	estpoints += m_Impl->iTapNoteScores[TNS_W4] * wife2(.1125f, ts);
+	estpoints += m_Impl->iTapNoteScores[TNS_W5] * wife2(.1575f, ts);
+	estpoints += m_Impl->iTapNoteScores[TNS_Miss] * -8;
 
 	FOREACH_ENUM(TapNoteScore, tns)
 		maxpoints += 2 * m_Impl->iTapNoteScores[tns];

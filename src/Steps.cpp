@@ -884,7 +884,9 @@ public:
 	}
 	// ok really is this how i have to do this - mina
 	static int GetRelevantSkillsetsByMSDRank(T* p, lua_State *L) {
-		auto sortedskillsets = p->SortSkillsetsAtRate(FArg(1), false);
+		float rate = FArg(1);
+		CLAMP(rate, 0.7f, 2.f);
+		auto sortedskillsets = p->SortSkillsetsAtRate(rate, false);
 		int rank = IArg(2);
 		int i = NUM_Skillset - 1; // exclude Overall from this... need to handle overall better - mina
 		Skillset o;
