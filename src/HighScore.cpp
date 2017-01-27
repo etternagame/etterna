@@ -549,6 +549,16 @@ XNode* HighScore::CreateNode() const
 void HighScore::LoadFromNode( const XNode* pNode ) 
 {
 	m_Impl->LoadFromNode( pNode );
+
+	/* Convert any old dp scores to wife. It is possible to diffrentiate converted scores from non-converted via 
+	highscore members that did not exist pre-etterna, such as timingscale or judgevalue, however is it better to 
+	make an explicit flag or would that just be needlessly redundant? - mina */
+	if (m_Impl->fWifeScore == 0.f) {
+		m_Impl->fWifeScore = ConvertDpToWife();
+		
+		// auto flag any converted files as invalid and let the player choose whether or not to validate them
+		m_Impl->bEtternaValid = false;
+	}
 }
 
 RString HighScore::GetDisplayName() const
