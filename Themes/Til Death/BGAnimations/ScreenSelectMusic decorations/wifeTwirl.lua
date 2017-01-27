@@ -218,8 +218,25 @@ t[#t+1] = Def.ActorFrame{
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self)
 			if song and score then 
-			local rate = getRate(score)
-				if getCurRateString() ~= rate and getCurRateString() ~= "1x" and getCurRateString() ~= "2x" then
+				local rate = getRate(score)
+			
+				-- need to standardize how this shit is handled (1x vs 1.0x)
+				if rate == "1.0x" then
+					rate = "1x"
+				elseif rate == "2.0x" then
+					rate = "2x"
+				end
+				
+				local notCurRate = getCurRateString() ~= rate
+				
+				-- cause this is getting stupid - mina
+				if rate == "1x" then
+					rate = "1.0x"
+				elseif rate == "2x" then
+					rate = "2.0x"
+				end
+					
+				if notCurRate then
 					self:settext("("..rate..")")
 				else
 					self:settext(rate)
