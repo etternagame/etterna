@@ -39,7 +39,6 @@ local playcommand = Actor.queuecommand
 local settext = BitmapText.settext
 local Broadcast = MessageManager.Broadcast
 
-
 -- Screenwide params
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
 isCentered = PREFSMAN:GetPreference("Center1Player")
@@ -51,6 +50,30 @@ if not isCentered then
 end
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
 
+-- Those are the X and Y for things that are going to be able to be moved with the listener
+local eb     -- Errorbar children
+local dt     -- Differential tracker children
+local mb     -- Minibar actor frame
+local fb     -- Fullbar actor frame
+
+--error bar things
+local errorBarX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ErrorBarX 								
+local errorBarY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ErrorBarY
+local errorBarWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.ErrorBarWidth         -- felt like this is necessary in order to do stuff
+local errorBarHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.ErrorBarHeight 								
+local errorBarFrameWidth = capWideScale(get43size(errorBarWidth),errorBarWidth)
+local wscale = errorBarFrameWidth/180
+
+--differential tracker, mini progress bar things
+local targetTrackerMode = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetTrackerMode
+local targetTrackerX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.TargetTrackerX
+local targetTrackerY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.TargetTrackerY
+local miniProgressBarX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.MiniProgressBarX
+local miniProgressBarY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.MiniProgressBarY
+local fullProgressBarX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.FullProgressBarX
+local fullProgressBarY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.FullProgressBarY
+local fullProgressBarWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.FullProgressBarWidth
+local fullProgressBarHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.FullProgressBarHeight
 
 
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -77,6 +100,225 @@ t[#t+1] = LoadFont("Common Normal")..{InitCommand=cmd(xy,SCREEN_CENTER_X,SCREEN_
 
 
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+												**Main listener that moves and resizes things**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+]]
+local fivePressed = false
+local sixPressed = false
+local sevenPressed = false
+local eightPressed = false
+local ninePressed = false
+local changed = false
+
+local function input(event)
+	if event.DeviceInput.button == "DeviceButton_5" then
+		fivePressed = not (event.type == "InputEventType_Release")
+	end
+	if event.DeviceInput.button == "DeviceButton_6" then
+		sixPressed = not (event.type == "InputEventType_Release")
+	end
+	if event.DeviceInput.button == "DeviceButton_7" then
+		sevenPressed = not (event.type == "InputEventType_Release")
+	end
+	if event.DeviceInput.button == "DeviceButton_8" then
+		eightPressed = not (event.type == "InputEventType_Release")
+	end
+	if event.DeviceInput.button == "DeviceButton_9" then
+		ninePressed = not (event.type == "InputEventType_Release")
+	end
+	-- changes errorbar x/y
+	if fivePressed and event.type ~= "InputEventType_Release"then
+		if event.DeviceInput.button == "DeviceButton_up" then
+			errorBarY = errorBarY - 5
+			eb.Center:y(errorBarY)
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ErrorBarY = errorBarY
+			changed = true
+		end
+		if event.DeviceInput.button == "DeviceButton_down" then
+			errorBarY = errorBarY + 5
+			eb.Center:y(errorBarY)
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ErrorBarY = errorBarY
+			changed = true
+		end
+		if event.DeviceInput.button == "DeviceButton_left" then
+			errorBarX = errorBarX - 5
+			eb.Center:x(errorBarX)
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ErrorBarX = errorBarX
+			changed = true
+		end
+		if event.DeviceInput.button == "DeviceButton_right" then
+			errorBarX = errorBarX + 5
+			eb.Center:x(errorBarX)
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ErrorBarX = errorBarX
+			changed = true
+		end
+		if changed then
+			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+			playerConfig:save(pn_to_profile_slot(PLAYER_1))
+			changed = false
+		end
+	end
+	-- changes errorbar size
+	if sixPressed and event.type ~= "InputEventType_Release"then
+		if event.DeviceInput.button == "DeviceButton_up" then
+			errorBarHeight = errorBarHeight + 1
+			eb.Center:zoomtoheight(errorBarHeight)
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.ErrorBarHeight = errorBarHeight
+			changed = true
+		end
+		if event.DeviceInput.button == "DeviceButton_down" then
+			errorBarHeight = errorBarHeight - 1
+			eb.Center:zoomtoheight(errorBarHeight)
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.ErrorBarHeight = errorBarHeight
+			changed = true
+		end
+		if event.DeviceInput.button == "DeviceButton_left" then
+			errorBarWidth = errorBarWidth - 10
+			errorBarFrameWidth = capWideScale(get43size(errorBarWidth),errorBarWidth)
+			wscale = errorBarFrameWidth/180
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.ErrorBarWidth = errorBarWidth
+			changed = true
+		end
+		if event.DeviceInput.button == "DeviceButton_right" then
+			errorBarWidth = errorBarWidth + 10
+			errorBarFrameWidth = capWideScale(get43size(errorBarWidth),errorBarWidth)
+			wscale = errorBarFrameWidth/180
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.ErrorBarWidth = errorBarWidth
+			changed = true
+		end
+		if changed then
+			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+			playerConfig:save(pn_to_profile_slot(PLAYER_1))
+			changed = false
+		end
+	end
+	-- changes miniprogressbar and differential tracker x/y
+	if sevenPressed and event.type ~= "InputEventType_Release"then
+		if event.DeviceInput.button == "DeviceButton_up" then
+			miniProgressBarY = miniProgressBarY - 5
+			mb:y(miniProgressBarY)
+			targetTrackerY = targetTrackerY - 5
+			if targetTrackerMode == 0 then
+				dt.PercentDifferential:y(targetTrackerY)
+			else
+				dt.PBDifferential:y(targetTrackerY)
+			end
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.MiniProgressBarY = miniProgressBarY
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.TargetTrackerY = targetTrackerY
+			changed = true
+		end
+		if event.DeviceInput.button == "DeviceButton_down" then
+			miniProgressBarY = miniProgressBarY + 5
+			mb:y(miniProgressBarY)
+			targetTrackerY = targetTrackerY + 5
+			if targetTrackerMode == 0 then
+				dt.PercentDifferential:y(targetTrackerY)
+			else
+				dt.PBDifferential:y(targetTrackerY)
+			end
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.MiniProgressBarY = miniProgressBarY
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.TargetTrackerY = targetTrackerY
+			changed = true
+		end
+		if event.DeviceInput.button == "DeviceButton_left" then
+			miniProgressBarX = miniProgressBarX - 5
+			mb:x(miniProgressBarX)
+			targetTrackerX = targetTrackerX - 5
+			if targetTrackerMode == 0 then
+				dt.PercentDifferential:x(targetTrackerX)
+			else
+				dt.PBDifferential:x(targetTrackerX)
+			end
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.MiniProgressBarX = miniProgressBarX
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.TargetTrackerX = targetTrackerX
+		end
+		if event.DeviceInput.button == "DeviceButton_right" then
+			miniProgressBarX = miniProgressBarX + 5
+			mb:x(miniProgressBarX)
+			targetTrackerX = targetTrackerX + 5
+			if targetTrackerMode == 0 then
+				dt.PercentDifferential:x(targetTrackerX)
+			else
+				dt.PBDifferential:x(targetTrackerX)
+			end
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.MiniProgressBarX = miniProgressBarX
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.TargetTrackerX = targetTrackerX
+		end
+		if changed then
+			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+			playerConfig:save(pn_to_profile_slot(PLAYER_1))
+			changed = false
+		end
+	end
+	-- changes full progress bar x/y
+	if eightPressed and event.type ~= "InputEventType_Release"then
+		if event.DeviceInput.button == "DeviceButton_up" then
+			fullProgressBarY = fullProgressBarY - 3
+			fb:y(fullProgressBarY)
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.FullProgressBarY = fullProgressBarY
+			changed = true
+		end
+		if event.DeviceInput.button == "DeviceButton_down" then
+			fullProgressBarY = fullProgressBarY + 3
+			fb:y(fullProgressBarY)
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.FullProgressBarY = fullProgressBarY
+			changed = true
+		end
+		if event.DeviceInput.button == "DeviceButton_left" then
+			fullProgressBarX = fullProgressBarX - 5
+			fb:x(fullProgressBarX)
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.FullProgressBarX = fullProgressBarX
+			changed = true
+		end
+		if event.DeviceInput.button == "DeviceButton_right" then
+			fullProgressBarX = fullProgressBarX + 5
+			fb:x(fullProgressBarX)
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.FullProgressBarX = fullProgressBarX
+			changed = true
+		end
+		if changed then
+			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+			playerConfig:save(pn_to_profile_slot(PLAYER_1))
+			changed = false
+		end
+	end
+	-- changes full progress bar width/height
+	if ninePressed and event.type ~= "InputEventType_Release"then
+		if event.DeviceInput.button == "DeviceButton_up" then
+			fullProgressBarHeight = fullProgressBarHeight + 0.1
+			fb:zoomtoheight(fullProgressBarHeight)
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.FullProgressBarHeight = fullProgressBarHeight
+			changed = true
+		end
+		if event.DeviceInput.button == "DeviceButton_down" then
+			fullProgressBarHeight = fullProgressBarHeight - 0.1
+			fb:zoomtoheight(fullProgressBarHeight)
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.FullProgressBarHeight = fullProgressBarHeight
+			changed = true
+		end
+		if event.DeviceInput.button == "DeviceButton_left" then
+			fullProgressBarWidth = fullProgressBarWidth - 0.01
+			fb:zoomtowidth(fullProgressBarWidth)
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.FullProgressBarWidth = fullProgressBarWidth
+			changed = true
+		end
+		if event.DeviceInput.button == "DeviceButton_right" then
+			fullProgressBarWidth = fullProgressBarWidth + 0.01
+			fb:zoomtowidth(fullProgressBarWidth)
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.FullProgressBarWidth = fullProgressBarWidth
+			changed = true
+		end
+		if changed then
+			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+			playerConfig:save(pn_to_profile_slot(PLAYER_1))
+			changed = false
+		end
+	end
+	return false
+end
+
+--[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 																	**LaneCover**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -85,6 +327,7 @@ on screen so you can adjust the time arrows display on screen without modifying 
 ]]	
 	
 t[#t+1] = LoadActor("lanecover")
+
 
 
 	
@@ -99,7 +342,10 @@ t[#t+1] = LoadActor("lanecover")
 local target = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetGoal
 GAMESTATE:GetPlayerState(PLAYER_1):SetTargetGoal(target/100)
  
-d = Def.ActorFrame{	
+d = Def.ActorFrame{
+	InitCommand = function(self)
+		dt = self:GetChildren()
+	end,
 	Def.Quad{InitCommand=cmd(xy,60 + mpOffset,(SCREEN_HEIGHT*0.62)-90;zoomto,60,16;diffuse,color("0,0,0,0.4");horizalign,left;vertalign,top)},
 	-- Displays your current percentage score
 	LoadFont("Common Large")..{											
@@ -117,9 +363,9 @@ d = Def.ActorFrame{
 -- We can save space by wrapping the personal best and set percent trackers into one function, however
 -- this would make the actor needlessly cumbersome and unnecessarily punish those who don't use the
 -- personal best tracker (although everything is efficient enough now it probably wouldn't matter)
-if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetTrackerMode == 0 then
-	d[#d+1] = LoadFont("Common Normal")..{											
-		Name = "Set Percent Differential",
+if targetTrackerMode == 0 then
+	d[#d+1] = LoadFont("Common Normal")..{
+		Name = "PercentDifferential",
 		InitCommand=cmd(xy,CenterX+26,SCREEN_CENTER_Y+30;zoom,0.4;halign,0;valign,1),
 		JudgmentMessageCommand=function(self,msg)
 			local tDiff = msg.WifeDifferential
@@ -132,8 +378,8 @@ if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetTrackerMode == 0 th
 		end
 	}
 	else
-	d[#d+1] = LoadFont("Common Normal")..{											
-		Name = "PB Differential",
+	d[#d+1] = LoadFont("Common Normal")..{
+		Name = "PBDifferential",
 		InitCommand=cmd(xy,CenterX+26,SCREEN_CENTER_Y+30;zoom,0.4;halign,0;valign,1),
 		JudgmentMessageCommand=function(self,msg)
 			local tDiff = msg.WifePBDifferential
@@ -242,15 +488,9 @@ end
 -- User Parameters
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
 local barcount = 30 									-- Number of bars. Older bars will refresh if judgments/barDuration exceeds this value. You don't need more than 40.
-local frameX = CenterX 									-- X Positon (Center of the bar)
-local frameY = SCREEN_CENTER_Y + 53						-- Y Positon (Center of the bar)
-local frameHeight = 10 									-- Height of the bar
-local frameWidth = capWideScale(get43size(240),240) 	-- Width of the bar
 local barWidth = 2										-- Width of the ticks.
 local barDuration = 0.75 								-- Time duration in seconds before the ticks fade out. Doesn't need to be higher than 1. Maybe if you have 300 bars I guess.
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
-
-local wscale = frameWidth/180 							-- so we aren't calculating it over and over again
 local currentbar = 1 									-- so we know which error bar we need to update
 local ingots = {}										-- references to the error bars
 
@@ -259,12 +499,14 @@ local ingots = {}										-- references to the error bars
 function smeltErrorBar(index)
 	return Def.Quad{
 		Name = index,
-		InitCommand=cmd(xy,frameX,frameY;zoomto,barWidth,frameHeight;diffusealpha,0),
+		InitCommand=cmd(xy,errorBarX,errorBarY;zoomto,barWidth,errorBarHeight;diffusealpha,0),
 		UpdateErrorBarCommand=function(self)						-- probably a more efficient way to achieve this effect, should test stuff later
 			finishtweening(self)									-- note: it really looks like shit without the fade out 
 			diffusealpha(self,1)
 			diffuse(self,jcT[jdgCur])
-			x(self,frameX+dvCur*wscale)				
+			x(self,errorBarX+dvCur*wscale)
+			self:y(errorBarY)  -- i dont know why man it doenst work the other way ( y(self,errorBarY) )
+			self:zoomtoheight(errorBarHeight)
 			linear(self,barDuration)
 			diffusealpha(self,0)
 		end
@@ -273,6 +515,7 @@ end
 
 local e = Def.ActorFrame{										
 	InitCommand = function(self)
+		eb = self:GetChildren()
 		for i=1,barcount do											-- basically the equivalent of using GetChildren() if it returned unnamed children numerically indexed
 			ingots[#ingots+1] = self:GetChild(i)
 		end
@@ -281,23 +524,27 @@ local e = Def.ActorFrame{
 		currentbar = ((currentbar)%barcount) + 1
 		playcommand(ingots[currentbar],"UpdateErrorBar")			-- Update the next bar in the queue
 	end,
+	OnCommand=function(self) 
+		SCREENMAN:GetTopScreen():AddInputCallback(input)
+	end,
 	DootCommand=function(self)
 		self:RemoveChild("DestroyMe")
 		self:RemoveChild("DestroyMe2")
 	end,
 
-	-- Centerpiece
-	Def.Quad{InitCommand=cmd(diffuse,getMainColor('highlight');xy,frameX,frameY;zoomto,2,frameHeight)},
-	
+	Def.Quad {
+		Name = "Center",
+		InitCommand=cmd(diffuse,getMainColor('highlight');xy,errorBarX,errorBarY;zoomto,2,errorBarHeight)
+	},
 	-- Indicates which side is which (early/late) These should be destroyed after the song starts.
 	LoadFont("Common Normal") .. {
 		Name = "DestroyMe",
-		InitCommand=cmd(xy,frameX+frameWidth/4,frameY;zoom,0.35),
+		InitCommand=cmd(xy,errorBarX+errorBarFrameWidth/4,errorBarY;zoom,0.35),
 		BeginCommand=cmd(settext,"Late";diffusealpha,0;smooth,0.5;diffusealpha,0.5;sleep,1.5;smooth,0.5;diffusealpha,0),
 	},
 	LoadFont("Common Normal") .. {
 		Name = "DestroyMe2",
-		InitCommand=cmd(xy,frameX-frameWidth/4,frameY;zoom,0.35),
+		InitCommand=cmd(xy,errorBarX-errorBarFrameWidth/4,errorBarY;zoom,0.35),
 		BeginCommand=cmd(settext,"Early";diffusealpha,0;smooth,0.5;diffusealpha,0.5;sleep,1.5;smooth,0.5;diffusealpha,0;queuecommand,"Doot"),
 		DootCommand=function(self)
 			self:GetParent():queuecommand("Doot")
@@ -337,16 +584,17 @@ separate entities. So you can have both, or one or the other, or neither.
  
 -- User params
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
-local posoffset = themeConfig:get_data().global.ProgressBar * (SCREEN_BOTTOM - 50)
-local frameX = CenterX
-local frameY = SCREEN_BOTTOM-30 - posoffset
 local width = SCREEN_WIDTH/2-100
 local height = 10
 local alpha = 0.7
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
 
-p = Def.ActorFrame{
-	InitCommand=cmd(xy,frameX,frameY),
+local p = Def.ActorFrame{
+	InitCommand = function(self)
+		self:xy(fullProgressBarX,fullProgressBarY)
+		self:zoomto(fullProgressBarWidth,fullProgressBarHeight)
+		fb = self
+	end,
 	Def.Quad{InitCommand=cmd(zoomto,width,height;diffuse,color("#666666");diffusealpha,alpha)},			-- background
 	Def.SongMeterDisplay{
 		InitCommand=function(self)
@@ -383,14 +631,15 @@ end
 separate entities. So you can have both, or one or the other, or neither. 
 ]]
 
-local frameX = CenterX + 44
-local frameY = SCREEN_CENTER_Y + 34
 local width = 34
 local height = 4
 local alpha = 0.3
 
-p = Def.ActorFrame{
-	InitCommand=cmd(xy,frameX,frameY),
+mb = Def.ActorFrame{
+	InitCommand = function(self)
+		self:xy(miniProgressBarX,miniProgressBarY)
+		mb = self
+	end,
 	Def.Quad{InitCommand=cmd(zoomto,width,height;diffuse,color("#666666");diffusealpha,alpha)}, 	-- background
 	Def.Quad{InitCommand=cmd(x,1+width/2;zoomto,1,height;diffuse,color("#555555"))},				-- ending indicator
 	Def.SongMeterDisplay{
@@ -403,7 +652,7 @@ p = Def.ActorFrame{
 }
 
 if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).MiniProgressBar then
-	t[#t+1] = p
+	t[#t+1] = mb
 end
 
 
@@ -487,6 +736,7 @@ t[#t+1] = LoadActor("npscalc")
 
 	ditto
 ]]
+
 
 
 
