@@ -1,4 +1,4 @@
-# Include the macros and functions.
+		# Include the macros and functions.
 
 include(${CMAKE_CURRENT_LIST_DIR}/CMake/CMakeMacros.cmake)
 
@@ -331,6 +331,8 @@ elseif(LINUX)
     set(HAS_GTK2 FALSE)
   endif()
 
+  link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc.a)
+  
   find_package(X11)
   if(${X11_FOUND})
     set(HAS_X11 TRUE)

@@ -75,6 +75,13 @@ local fullProgressBarY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).Gam
 local fullProgressBarWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.FullProgressBarWidth
 local fullProgressBarHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.FullProgressBarHeight
 
+-- restart button
+local function froot(loop)
+	if loop.DeviceInput.button == "DeviceButton_`" then
+		SCREENMAN:GetTopScreen():SetPrevScreenName("ScreenStageInformation"):begin_backing_out()
+	end
+end
+
 
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 								     **Wife deviance tracker. Basically half the point of the theme.**
@@ -84,7 +91,10 @@ local fullProgressBarHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)
 ]]
 
 local t = Def.ActorFrame{										
-	Name = "WifePerch",					 
+	Name = "WifePerch",
+	OnCommand=function()
+		SCREENMAN:GetTopScreen():AddInputCallback(froot)
+	end,
 	JudgmentMessageCommand=function(self, msg)
 		if msg.Offset ~= nil then
 			dvCur = msg.Offset 
