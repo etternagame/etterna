@@ -113,7 +113,7 @@ function scoreBoard(pn,position)
 	
 	-- Wife percent
 	t[#t+1] = LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+5,frameY+9;zoom,0.45;halign,0;valign,0;maxwidth,capWideScale(280,320)),
+		InitCommand=cmd(xy,frameX+5,frameY+9;zoom,0.45;halign,0;valign,0;maxwidth,capWideScale(320,360)),
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self) 
 			self:diffuse(getGradeColor(pss:GetWifeGrade()))
