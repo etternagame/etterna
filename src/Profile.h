@@ -323,6 +323,7 @@ public:
 	void ResetSSRs(bool OnlyOld);
 	void RecalculateSSRs(bool OnlyOld);
 	float AggregateScores(vector<float>& invector, float rating, float res, int iter) const;
+	void ValidateAllScores();
 
 	/* Grabbing the highscores here and having lua invoke this results in unhandled exception errors
 	so instead this funciton finds the song/steps for identical chartkey entries and returns them to

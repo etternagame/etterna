@@ -2147,6 +2147,22 @@ void Profile::ResetSSRs(bool OnlyOld) {
 	m_fPlayerRating = 0.f;
 }
 
+void Profile::ValidateAllScores() {
+	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
+		const SongID& id = i->first;
+		// only reset validate currently loaded files - mina
+		if (!id.IsValid())
+			continue;
+		HighScoresForASong& hsfas = i->second;
+		FOREACHM(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
+			HighScoresForASteps& zz = j->second;
+			vector<HighScore>& hsv = zz.hsl.vHighScores;
+			for (size_t i = 0; i < hsv.size(); i++)
+				hsv[i].SetEtternaValid(true);
+		}
+	}
+}
+
 // should prolly generalize some of the stuff here - mina
 void Profile::RecalculateSSRs(bool OnlyOld) {
 	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
@@ -3087,9 +3103,9 @@ public:
 		COMMON_RETURN_SELF;
 	}
 
-	/* Searches through highscores for both loaded and unloaded songs/steps and 
-	returns a table of highscores (not a highscorelist object) containing all 
-	scores identified by the provided chartkey.- Mina*/ 
+	/* Searches through highscores for both loaded and unloaded songs/steps and
+	returns a table of highscores (not a highscorelist object) containing all
+	scores identified by the provided chartkey.- Mina*/
 	static int GetHighScoresByKey(T* p, lua_State *L) {
 		size_t idx = 0;
 		lua_newtable(L);
@@ -3108,7 +3124,7 @@ public:
 	}
 
 	/* FFFFFFFFFFFFFFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaHASFASAFSF
-	So it appears the issue is calling pushself() on highscore objects that aren't 
+	So it appears the issue is calling pushself() on highscore objects that aren't
 	const pointers produces meaningless junk, investigate more later - mina	*/
 	static int GetPBHighScoreByKey(T* p, lua_State *L) {
 		HighScore pb;
@@ -3129,16 +3145,16 @@ public:
 		return 1;
 	}
 
-	static int GetCategoryHighScoreList( T* p, lua_State *L )
+	static int GetCategoryHighScoreList(T* p, lua_State *L)
 	{
 		StepsType pStepsType = Enum::Check<StepsType>(L, 1);
 		RankingCategory pRankCat = Enum::Check<RankingCategory>(L, 2);
 		HighScoreList &hsl = p->GetCategoryHighScoreList(pStepsType, pRankCat);
-		hsl.PushSelf( L );
+		hsl.PushSelf(L);
 		return 1;
 	}
 
-	static int GetHighScoreListIfExists( T* p, lua_State *L )
+	static int GetHighScoreListIfExists(T* p, lua_State *L)
 	{
 #define GET_IF_EXISTS(arga_type, argb_type) \
 		const arga_type *parga = Luna<arga_type>::check(L, 1); \
@@ -3164,27 +3180,27 @@ public:
 		sub_scores->second.hsl.PushSelf(L); \
 		return 1;
 
-		if( LuaBinding::CheckLuaObjectType(L, 1, "Song") )
+		if (LuaBinding::CheckLuaObjectType(L, 1, "Song"))
 		{
 			GET_IF_EXISTS(Song, Steps);
 		}
-		else if( LuaBinding::CheckLuaObjectType(L, 1, "Course") )
+		else if (LuaBinding::CheckLuaObjectType(L, 1, "Course"))
 		{
 			GET_IF_EXISTS(Course, Trail);
 		}
-		luaL_typerror( L, 1, "Song or Course" );
+		luaL_typerror(L, 1, "Song or Course");
 		return 0;
 #undef GET_IF_EXISTS
 	}
 
-	static int GetAllUsedHighScoreNames( T* p, lua_State *L )
+	static int GetAllUsedHighScoreNames(T* p, lua_State *L)
 	{
 		std::set<RString> names;
 		p->GetAllUsedHighScoreNames(names);
 		lua_createtable(L, names.size(), 0);
-		int next_name_index= 1;
-		for(std::set<RString>::iterator name= names.begin(); name != names.end();
-				++name)
+		int next_name_index = 1;
+		for (std::set<RString>::iterator name = names.begin(); name != names.end();
+			++name)
 		{
 			lua_pushstring(L, name->c_str());
 			lua_rawseti(L, -2, next_name_index);
@@ -3193,125 +3209,125 @@ public:
 		return 1;
 	}
 
-	static int GetCharacter( T* p, lua_State *L )			{ p->GetCharacter()->PushSelf(L); return 1; }
-	static int SetCharacter( T* p, lua_State *L )			{ p->SetCharacter(SArg(1)); COMMON_RETURN_SELF; }
-	static int GetWeightPounds( T* p, lua_State *L )		{ lua_pushnumber(L, p->m_iWeightPounds ); return 1; }
-	static int SetWeightPounds( T* p, lua_State *L )		{ p->m_iWeightPounds = IArg(1); COMMON_RETURN_SELF; }
+	static int GetCharacter(T* p, lua_State *L) { p->GetCharacter()->PushSelf(L); return 1; }
+	static int SetCharacter(T* p, lua_State *L) { p->SetCharacter(SArg(1)); COMMON_RETURN_SELF; }
+	static int GetWeightPounds(T* p, lua_State *L) { lua_pushnumber(L, p->m_iWeightPounds); return 1; }
+	static int SetWeightPounds(T* p, lua_State *L) { p->m_iWeightPounds = IArg(1); COMMON_RETURN_SELF; }
 	DEFINE_METHOD(GetVoomax, m_Voomax);
 	DEFINE_METHOD(GetAge, GetAge());
 	DEFINE_METHOD(GetBirthYear, m_BirthYear);
 	DEFINE_METHOD(GetIgnoreStepCountCalories, m_IgnoreStepCountCalories);
 	DEFINE_METHOD(GetIsMale, m_IsMale);
-	static int SetVoomax( T* p, lua_State *L )
+	static int SetVoomax(T* p, lua_State *L)
 	{
-		p->m_Voomax= FArg(1);
+		p->m_Voomax = FArg(1);
 		COMMON_RETURN_SELF;
 	}
-	static int SetBirthYear( T* p, lua_State *L )
+	static int SetBirthYear(T* p, lua_State *L)
 	{
-		p->m_BirthYear= IArg(1);
+		p->m_BirthYear = IArg(1);
 		COMMON_RETURN_SELF;
 	}
-	static int SetIgnoreStepCountCalories( T* p, lua_State *L )
+	static int SetIgnoreStepCountCalories(T* p, lua_State *L)
 	{
-		p->m_IgnoreStepCountCalories= BArg(1);
+		p->m_IgnoreStepCountCalories = BArg(1);
 		COMMON_RETURN_SELF;
 	}
-	static int SetIsMale( T* p, lua_State *L )
+	static int SetIsMale(T* p, lua_State *L)
 	{
-		p->m_IsMale= BArg(1);
+		p->m_IsMale = BArg(1);
 		COMMON_RETURN_SELF;
 	}
-	static int AddCaloriesToDailyTotal( T* p, lua_State *L )
+	static int AddCaloriesToDailyTotal(T* p, lua_State *L)
 	{
 		p->AddCaloriesToDailyTotal(FArg(1));
 		COMMON_RETURN_SELF;
 	}
 	DEFINE_METHOD(CalculateCaloriesFromHeartRate, CalculateCaloriesFromHeartRate(FArg(1), FArg(2)));
-	static int GetGoalType( T* p, lua_State *L )			{ lua_pushnumber(L, p->m_GoalType ); return 1; }
-	static int SetGoalType( T* p, lua_State *L )			{ p->m_GoalType = Enum::Check<GoalType>(L, 1); COMMON_RETURN_SELF; }
-	static int GetGoalCalories( T* p, lua_State *L )		{ lua_pushnumber(L, p->m_iGoalCalories ); return 1; }
-	static int SetGoalCalories( T* p, lua_State *L )		{ p->m_iGoalCalories = IArg(1); COMMON_RETURN_SELF; }
-	static int GetGoalSeconds( T* p, lua_State *L )			{ lua_pushnumber(L, p->m_iGoalSeconds ); return 1; }
-	static int SetGoalSeconds( T* p, lua_State *L )			{ p->m_iGoalSeconds = IArg(1); COMMON_RETURN_SELF; }
-	static int GetCaloriesBurnedToday( T* p, lua_State *L )	{ lua_pushnumber(L, p->GetCaloriesBurnedToday() ); return 1; }
-	static int GetTotalNumSongsPlayed( T* p, lua_State *L )	{ lua_pushnumber(L, p->m_iNumTotalSongsPlayed ); return 1; }
-	static int IsCodeUnlocked( T* p, lua_State *L )			{ lua_pushboolean(L, p->IsCodeUnlocked(SArg(1)) ); return 1; }
-	static int GetSongsActual( T* p, lua_State *L )			{ lua_pushnumber(L, p->GetSongsActual(Enum::Check<StepsType>(L, 1),Enum::Check<Difficulty>(L, 2)) ); return 1; }
-	static int GetCoursesActual( T* p, lua_State *L )		{ lua_pushnumber(L, p->GetCoursesActual(Enum::Check<StepsType>(L, 1),Enum::Check<Difficulty>(L, 2)) ); return 1; }
-	static int GetSongsPossible( T* p, lua_State *L )		{ lua_pushnumber(L, p->GetSongsPossible(Enum::Check<StepsType>(L, 1),Enum::Check<Difficulty>(L, 2)) ); return 1; }
-	static int GetCoursesPossible( T* p, lua_State *L )		{ lua_pushnumber(L, p->GetCoursesPossible(Enum::Check<StepsType>(L, 1),Enum::Check<Difficulty>(L, 2)) ); return 1; }
-	static int GetSongsPercentComplete( T* p, lua_State *L )	{ lua_pushnumber(L, p->GetSongsPercentComplete(Enum::Check<StepsType>(L, 1),Enum::Check<Difficulty>(L, 2)) ); return 1; }
-	static int GetCoursesPercentComplete( T* p, lua_State *L )	{ lua_pushnumber(L, p->GetCoursesPercentComplete(Enum::Check<StepsType>(L, 1),Enum::Check<Difficulty>(L, 2)) ); return 1; }
-	static int GetTotalStepsWithTopGrade( T* p, lua_State *L )	{ lua_pushnumber(L, p->GetTotalStepsWithTopGrade(Enum::Check<StepsType>(L, 1),Enum::Check<Difficulty>(L, 2),Enum::Check<Grade>(L, 3)) ); return 1; }
-	static int GetTotalTrailsWithTopGrade( T* p, lua_State *L )	{ lua_pushnumber(L, p->GetTotalTrailsWithTopGrade(Enum::Check<StepsType>(L, 1),Enum::Check<Difficulty>(L, 2),Enum::Check<Grade>(L, 3)) ); return 1; }
-	static int GetNumTotalSongsPlayed( T* p, lua_State *L )		{ lua_pushnumber(L, p->m_iNumTotalSongsPlayed ); return 1; }
-	static int GetTotalSessions( T* p, lua_State *L )		{ lua_pushnumber(L, p->m_iTotalSessions ); return 1; }
-	static int GetTotalSessionSeconds( T* p, lua_State *L )		{ lua_pushnumber(L, p->m_iTotalSessionSeconds ); return 1; }
-	static int GetTotalGameplaySeconds( T* p, lua_State *L )		{ lua_pushnumber(L, p->m_iTotalGameplaySeconds ); return 1; }
-	static int GetSongsAndCoursesPercentCompleteAllDifficulties( T* p, lua_State *L )		{ lua_pushnumber(L, p->GetSongsAndCoursesPercentCompleteAllDifficulties(Enum::Check<StepsType>(L, 1)) ); return 1; }
-	static int GetTotalCaloriesBurned( T* p, lua_State *L )		{ lua_pushnumber(L, p->m_fTotalCaloriesBurned ); return 1; }
-	static int GetDisplayTotalCaloriesBurned( T* p, lua_State *L )	{ lua_pushstring(L, p->GetDisplayTotalCaloriesBurned() ); return 1; }
+	static int GetGoalType(T* p, lua_State *L) { lua_pushnumber(L, p->m_GoalType); return 1; }
+	static int SetGoalType(T* p, lua_State *L) { p->m_GoalType = Enum::Check<GoalType>(L, 1); COMMON_RETURN_SELF; }
+	static int GetGoalCalories(T* p, lua_State *L) { lua_pushnumber(L, p->m_iGoalCalories); return 1; }
+	static int SetGoalCalories(T* p, lua_State *L) { p->m_iGoalCalories = IArg(1); COMMON_RETURN_SELF; }
+	static int GetGoalSeconds(T* p, lua_State *L) { lua_pushnumber(L, p->m_iGoalSeconds); return 1; }
+	static int SetGoalSeconds(T* p, lua_State *L) { p->m_iGoalSeconds = IArg(1); COMMON_RETURN_SELF; }
+	static int GetCaloriesBurnedToday(T* p, lua_State *L) { lua_pushnumber(L, p->GetCaloriesBurnedToday()); return 1; }
+	static int GetTotalNumSongsPlayed(T* p, lua_State *L) { lua_pushnumber(L, p->m_iNumTotalSongsPlayed); return 1; }
+	static int IsCodeUnlocked(T* p, lua_State *L) { lua_pushboolean(L, p->IsCodeUnlocked(SArg(1))); return 1; }
+	static int GetSongsActual(T* p, lua_State *L) { lua_pushnumber(L, p->GetSongsActual(Enum::Check<StepsType>(L, 1), Enum::Check<Difficulty>(L, 2))); return 1; }
+	static int GetCoursesActual(T* p, lua_State *L) { lua_pushnumber(L, p->GetCoursesActual(Enum::Check<StepsType>(L, 1), Enum::Check<Difficulty>(L, 2))); return 1; }
+	static int GetSongsPossible(T* p, lua_State *L) { lua_pushnumber(L, p->GetSongsPossible(Enum::Check<StepsType>(L, 1), Enum::Check<Difficulty>(L, 2))); return 1; }
+	static int GetCoursesPossible(T* p, lua_State *L) { lua_pushnumber(L, p->GetCoursesPossible(Enum::Check<StepsType>(L, 1), Enum::Check<Difficulty>(L, 2))); return 1; }
+	static int GetSongsPercentComplete(T* p, lua_State *L) { lua_pushnumber(L, p->GetSongsPercentComplete(Enum::Check<StepsType>(L, 1), Enum::Check<Difficulty>(L, 2))); return 1; }
+	static int GetCoursesPercentComplete(T* p, lua_State *L) { lua_pushnumber(L, p->GetCoursesPercentComplete(Enum::Check<StepsType>(L, 1), Enum::Check<Difficulty>(L, 2))); return 1; }
+	static int GetTotalStepsWithTopGrade(T* p, lua_State *L) { lua_pushnumber(L, p->GetTotalStepsWithTopGrade(Enum::Check<StepsType>(L, 1), Enum::Check<Difficulty>(L, 2), Enum::Check<Grade>(L, 3))); return 1; }
+	static int GetTotalTrailsWithTopGrade(T* p, lua_State *L) { lua_pushnumber(L, p->GetTotalTrailsWithTopGrade(Enum::Check<StepsType>(L, 1), Enum::Check<Difficulty>(L, 2), Enum::Check<Grade>(L, 3))); return 1; }
+	static int GetNumTotalSongsPlayed(T* p, lua_State *L) { lua_pushnumber(L, p->m_iNumTotalSongsPlayed); return 1; }
+	static int GetTotalSessions(T* p, lua_State *L) { lua_pushnumber(L, p->m_iTotalSessions); return 1; }
+	static int GetTotalSessionSeconds(T* p, lua_State *L) { lua_pushnumber(L, p->m_iTotalSessionSeconds); return 1; }
+	static int GetTotalGameplaySeconds(T* p, lua_State *L) { lua_pushnumber(L, p->m_iTotalGameplaySeconds); return 1; }
+	static int GetSongsAndCoursesPercentCompleteAllDifficulties(T* p, lua_State *L) { lua_pushnumber(L, p->GetSongsAndCoursesPercentCompleteAllDifficulties(Enum::Check<StepsType>(L, 1))); return 1; }
+	static int GetTotalCaloriesBurned(T* p, lua_State *L) { lua_pushnumber(L, p->m_fTotalCaloriesBurned); return 1; }
+	static int GetDisplayTotalCaloriesBurned(T* p, lua_State *L) { lua_pushstring(L, p->GetDisplayTotalCaloriesBurned()); return 1; }
 	static int GetPlayerRating(T* p, lua_State *L) { lua_pushnumber(L, p->m_fPlayerRating); return 1; }
-	static int GetMostPopularSong( T* p, lua_State *L )
+	static int GetMostPopularSong(T* p, lua_State *L)
 	{
 		Song *p2 = p->GetMostPopularSong();
-		if( p2 )
+		if (p2)
 			p2->PushSelf(L);
 		else
-			lua_pushnil( L );
+			lua_pushnil(L);
 		return 1;
 	}
-	static int GetMostPopularCourse( T* p, lua_State *L )
+	static int GetMostPopularCourse(T* p, lua_State *L)
 	{
 		Course *p2 = p->GetMostPopularCourse();
-		if( p2 )
+		if (p2)
 			p2->PushSelf(L);
 		else
-			lua_pushnil( L );
+			lua_pushnil(L);
 		return 1;
 	}
-	static int GetSongNumTimesPlayed( T* p, lua_State *L )
+	static int GetSongNumTimesPlayed(T* p, lua_State *L)
 	{
-		ASSERT( !lua_isnil(L,1) );
-		Song *pS = Luna<Song>::check(L,1);
-		lua_pushnumber( L, p->GetSongNumTimesPlayed(pS) );
+		ASSERT(!lua_isnil(L, 1));
+		Song *pS = Luna<Song>::check(L, 1);
+		lua_pushnumber(L, p->GetSongNumTimesPlayed(pS));
 		return 1;
 	}
-	static int HasPassedAnyStepsInSong( T* p, lua_State *L )
+	static int HasPassedAnyStepsInSong(T* p, lua_State *L)
 	{
-		ASSERT( !lua_isnil(L,1) );
-		Song *pS = Luna<Song>::check(L,1);
-		lua_pushboolean( L, p->HasPassedAnyStepsInSong(pS) );
+		ASSERT(!lua_isnil(L, 1));
+		Song *pS = Luna<Song>::check(L, 1);
+		lua_pushboolean(L, p->HasPassedAnyStepsInSong(pS));
 		return 1;
 	}
-	static int GetNumToasties( T* p, lua_State *L )		{ lua_pushnumber(L, p->m_iNumToasties ); return 1; }
-	static int GetTotalTapsAndHolds( T* p, lua_State *L )		{ lua_pushnumber(L, p->m_iTotalTapsAndHolds ); return 1; }
-	static int GetTotalJumps( T* p, lua_State *L )		{ lua_pushnumber(L, p->m_iTotalJumps ); return 1; }
-	static int GetTotalHolds( T* p, lua_State *L )		{ lua_pushnumber(L, p->m_iTotalHolds ); return 1; }
-	static int GetTotalRolls( T* p, lua_State *L )		{ lua_pushnumber(L, p->m_iTotalRolls ); return 1; }
-	static int GetTotalMines( T* p, lua_State *L )		{ lua_pushnumber(L, p->m_iTotalMines ); return 1; }
-	static int GetTotalHands( T* p, lua_State *L )		{ lua_pushnumber(L, p->m_iTotalHands ); return 1; }
-	static int GetTotalLifts( T* p, lua_State *L )		{ lua_pushnumber(L, p->m_iTotalLifts ); return 1; }
+	static int GetNumToasties(T* p, lua_State *L) { lua_pushnumber(L, p->m_iNumToasties); return 1; }
+	static int GetTotalTapsAndHolds(T* p, lua_State *L) { lua_pushnumber(L, p->m_iTotalTapsAndHolds); return 1; }
+	static int GetTotalJumps(T* p, lua_State *L) { lua_pushnumber(L, p->m_iTotalJumps); return 1; }
+	static int GetTotalHolds(T* p, lua_State *L) { lua_pushnumber(L, p->m_iTotalHolds); return 1; }
+	static int GetTotalRolls(T* p, lua_State *L) { lua_pushnumber(L, p->m_iTotalRolls); return 1; }
+	static int GetTotalMines(T* p, lua_State *L) { lua_pushnumber(L, p->m_iTotalMines); return 1; }
+	static int GetTotalHands(T* p, lua_State *L) { lua_pushnumber(L, p->m_iTotalHands); return 1; }
+	static int GetTotalLifts(T* p, lua_State *L) { lua_pushnumber(L, p->m_iTotalLifts); return 1; }
 	DEFINE_METHOD(GetTotalDancePoints, m_iTotalDancePoints);
-	static int GetUserTable( T* p, lua_State *L )		{ p->m_UserTable.PushSelf(L); return 1; }
-	static int GetNumFaves(T* p, lua_State *L)			{ lua_pushnumber(L, p->FavoritedCharts.size()); return 1; }
-	static int GetLastPlayedSong( T* p, lua_State *L )
+	static int GetUserTable(T* p, lua_State *L) { p->m_UserTable.PushSelf(L); return 1; }
+	static int GetNumFaves(T* p, lua_State *L) { lua_pushnumber(L, p->FavoritedCharts.size()); return 1; }
+	static int GetLastPlayedSong(T* p, lua_State *L)
 	{
 		Song *pS = p->m_lastSong.ToSong();
-		if( pS )
+		if (pS)
 			pS->PushSelf(L);
 		else
-			lua_pushnil( L );
+			lua_pushnil(L);
 		return 1;
 	}
-	static int GetLastPlayedCourse( T* p, lua_State *L )
+	static int GetLastPlayedCourse(T* p, lua_State *L)
 	{
 		Course *pC = p->m_lastCourse.ToCourse();
-		if( pC )
+		if (pC)
 			pC->PushSelf(L);
 		else
-			lua_pushnil( L );
+			lua_pushnil(L);
 		return 1;
 	}
 	static int GetTopSSRSongName(T* p, lua_State *L) {
@@ -3319,7 +3335,7 @@ public:
 		return 1;
 	}
 	static int GetTopSSRValue(T* p, lua_State *L) {
-		lua_pushnumber(L, p->GetTopSSRValue(IArg(1), IArg(2)) );
+		lua_pushnumber(L, p->GetTopSSRValue(IArg(1), IArg(2)));
 		return 1;
 	}
 	static int 	GetTopSSRHighScore(T* p, lua_State *L) {
@@ -3344,7 +3360,7 @@ public:
 		StepsID stepsid = p->GetTopSSRStepsID(IArg(1), IArg(2));
 		SongID songid = p->GetTopSSRSongID(IArg(1), IArg(2));
 		Steps *steps = stepsid.ToSteps(songid.ToSong(), true);
-		if(steps != NULL)
+		if (steps != NULL)
 			steps->PushSelf(L);
 		else
 			lua_pushnil(L);
@@ -3355,7 +3371,11 @@ public:
 		return 1;
 	}
 
-	DEFINE_METHOD( GetGUID,		m_sGuid );
+	DEFINE_METHOD(GetGUID, m_sGuid);
+	static int ValidateAllScores(T* p, lua_State *L) {
+		p->ValidateAllScores();
+		return 1;
+	}
 
 	LunaProfile()
 	{
@@ -3437,6 +3457,7 @@ public:
 		ADD_METHOD( GetTopSSRHighScore );
 		ADD_METHOD( RecalcTopSSR );
 		ADD_METHOD( GetPBHighScoreByKey );
+		ADD_METHOD( ValidateAllScores );
 	}
 };
 
