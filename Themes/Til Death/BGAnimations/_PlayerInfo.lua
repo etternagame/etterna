@@ -132,7 +132,7 @@ t[#t+1] = Def.ActorFrame{
 		InitCommand=cmd(xy,SCREEN_WIDTH-5,AvatarY+10;halign,1;zoom,0.35;diffuse,getMainColor('positive')),
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self)
-			self:settextf("Etterna 0.54")
+			self:settext(GAMESTATE:GetEtternaVersion())
 		end,
 		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
 		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),

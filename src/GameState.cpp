@@ -3329,7 +3329,7 @@ public:
 		lua_pushboolean(L, p->HighestSkillsetsOnly);
 		return 1;
 	}
-
+	DEFINE_METHOD(GetEtternaVersion, GetEtternaVersion())
 	LunaGameState()
 	{
 		ADD_METHOD( IsPlayerEnabled );
@@ -3459,7 +3459,7 @@ public:
 		ADD_METHOD( SetAutoGenFarg );
 		ADD_METHOD( SetSSFilter );
 		ADD_METHOD( GetSSFilter );
-		ADD_METHOD(ResetSSFilters);
+		ADD_METHOD( ResetSSFilters );
 		ADD_METHOD( AnyActiveFilter );
 		ADD_METHOD( SetMaxFilterRate );
 		ADD_METHOD( GetMaxFilterRate );
@@ -3469,6 +3469,7 @@ public:
 		ADD_METHOD( GetFilterMode );
 		ADD_METHOD( ToggleHighestSkillsetsOnly );
 		ADD_METHOD( GetHighestSkillsetsOnly );
+		ADD_METHOD( GetEtternaVersion );
 	}
 };
 

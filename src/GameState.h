@@ -254,7 +254,7 @@ public:
 	bool HighestSkillsetsOnly = false;
 	bool SkillsetFiltersActive = false;
 	bool AnyActiveFilter();
-
+	RString GetEtternaVersion() { return "0.54.1"; }
 
 
 
