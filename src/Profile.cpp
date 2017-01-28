@@ -2184,7 +2184,7 @@ void Profile::RecalculateSSRs(bool OnlyOld) {
 
 					const StepsID& sid = j->first;
 					Steps* psteps;
-
+					
 					if (!sid.IsValid() || sid.GetStepsType() != StepsType_dance_single)
 						continue;
 
@@ -2372,7 +2372,8 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
 		const SongID& id = i->first;
 
-		if (!id.IsValid())			continue;
+		if (!id.IsValid())
+			continue;
 
 		HighScoresForASong& hsfas = i->second;
 		FOREACHM(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {

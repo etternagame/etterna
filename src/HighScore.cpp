@@ -756,6 +756,7 @@ float HighScoreImpl::RescoreToWifeTS(float ts) {
 	FOREACH_CONST(float, vOffsetVector, f)
 		p += wife2(*f, ts);
 
+	p += (iHoldNoteScores[HNS_LetGo] + iHoldNoteScores[HNS_Missed]) * -6;
 	return p / (vOffsetVector.size() * 2);
 }
 
@@ -802,6 +803,7 @@ float HighScore::RescoreToDPJudge(int x) {
 	p += boo * -4;
 	p += miss * -8;
 	p += m_Impl->iHoldNoteScores[HNS_Held] * 6;
+	p += (m_Impl->iHoldNoteScores[HNS_LetGo] + m_Impl->iHoldNoteScores[HNS_Missed]) * -6;
 
 	float m = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
 	m += (m_Impl->radarValues[RadarCategory_Holds] + m_Impl->radarValues[RadarCategory_Rolls]) * 6;
