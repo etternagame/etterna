@@ -58,6 +58,11 @@ bool ScreenNetRoom::Input( const InputEventPlus &input )
 	return ScreenNetSelectBase::Input( input );
 }
 
+RoomWheel* ScreenNetRoom::GetRoomWheel()
+{
+	return &m_RoomWheel;
+}
+
 void ScreenNetRoom::HandleScreenMessage( const ScreenMessage SM )
 {
 	if( SM == SM_GoToPrevScreen )
@@ -313,6 +318,26 @@ void ScreenNetRoom::CreateNewRoom( const RString& rName,  const RString& rDesc, 
 }
 
 #endif
+
+// lua start
+#include "LuaBinding.h"
+
+/** @brief Allow Lua to have access to the PlayerState. */
+class LunaScreenNetRoom : public Luna<ScreenNetRoom>
+{
+public:
+	static int GetMusicWheel(T* p, lua_State *L) {
+		p->GetRoomWheel()->PushSelf(L);
+		return 1;
+	}
+	LunaScreenNetRoom()
+	{
+		ADD_METHOD(GetMusicWheel);
+	}
+};
+
+LUA_REGISTER_DERIVED_CLASS(ScreenNetRoom, ScreenNetSelectBase)
+// lua end
 
 /*
  * (c) 2004 Charles Lohr, Josh Allen
