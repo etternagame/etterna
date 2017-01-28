@@ -2168,13 +2168,11 @@ void Profile::RecalculateSSRs(bool OnlyOld) {
 	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
 		const SongID& id = i->first;
 		
-		if (!id.IsValid())
-			continue;
-
 		HighScoresForASong& hsfas = i->second;
 		FOREACHM(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
 			HighScoresForASteps& zz = j->second;
 			vector<HighScore>& hsv = zz.hsl.vHighScores;
+
 			for (size_t i = 0; i < hsv.size(); i++) {
 				float wifescore = hsv[i].GetWifeScore();
 				if (wifescore == 0.f || hsv[i].GetGrade() == Grade_Failed)
@@ -2184,15 +2182,23 @@ void Profile::RecalculateSSRs(bool OnlyOld) {
 					if (OnlyOld && hsv[i].GetSSRCalcVersion() == GetCalcVersion())
 						continue;
 
-					Song* psong = id.ToSong();
 					const StepsID& sid = j->first;
+					Steps* psteps;
 
 					if (!sid.IsValid() || sid.GetStepsType() != StepsType_dance_single)
 						continue;
 
-					Steps* psteps= sid.ToSteps(psong, true);
-					if (!psteps)
+					RString ck = sid.GetKey();
+
+					// look for a steps object with the same chartkey as the current steps object
+					auto it = SONGMAN->StepsByChartkey.find(ck);
+
+					// if we still don't find anything, skip this score
+					if (it == SONGMAN->StepsByChartkey.end())
 						continue;
+
+					// grab the steps object via chartkey
+					psteps = SONGMAN->StepsByChartkey[ck][0];
 
 					auto nd = psteps->GetNoteData();
 					TimingData* td = psteps->GetTimingData();
@@ -2366,8 +2372,7 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
 		const SongID& id = i->first;
 
-		if (!id.IsValid())
-			continue;
+		if (!id.IsValid())			continue;
 
 		HighScoresForASong& hsfas = i->second;
 		FOREACHM(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {

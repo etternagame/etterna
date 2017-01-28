@@ -168,7 +168,57 @@ void SongManager::InitSongsFromDisk( LoadingWindow *ld )
 	SONGINDEX->delay_save_cache= false;
 
 	LOG->Trace( "Found %d songs in %f seconds.", (int)m_pSongs.size(), tm.GetDeltaTime() );
+
+	CreateChartkeyIndicies();
 }
+
+// allow indexing by chartkey - mina
+void SongManager::CreateChartkeyIndicies() {
+	for (int i = 0; i < m_pSongs.size(); ++i) {
+		
+		// for each song
+		Song* tmpsong = m_pSongs[i];
+		
+		// grab all steps for the song
+		vector<Steps*> tmpsteps = tmpsong->GetAllSteps();
+
+		// for each steps object
+		for (int ii = 0; ii < tmpsteps.size(); ++ii) {
+			
+			// grab the chartkey
+			RString ck = tmpsteps[ii]->ChartKey;
+
+			// check if an entry for this key exists yet
+			auto it = StepsByChartkey.find(ck);
+
+			// if not, create one
+			if (it == StepsByChartkey.end()) {
+				// multiple steps can still have the same chartkey, so we need a vector, initialize it here
+				vector<Steps*> stepsvec;
+
+				// add the first entry to the vector of steps* for the current key
+				stepsvec.emplace_back(tmpsteps[ii]);
+
+				// add the key to the map with the recently created vector of length 1
+				StepsByChartkey.emplace(ck, stepsvec);
+
+				// repeat for songs
+				vector<Song*> songsvec;
+				songsvec.emplace_back(tmpsong);
+				SongsByChartkey.emplace(ck, songsvec);
+			}
+			else {
+				// otherwise add the steps pointer to the existing vector for the current key
+				StepsByChartkey[ck].emplace_back(tmpsteps[ii]);
+
+				// and repeat for songs again
+				SongsByChartkey[ck].emplace_back(tmpsong);
+			}
+		}
+	}
+}
+
+
 
 static LocalizedString FOLDER_CONTAINS_MUSIC_FILES( "SongManager", "The folder \"%s\" appears to be a song folder.  All song folders must reside in a group folder.  For example, \"Songs/Originals/My Song\"." );
 void SongManager::SanityCheckGroupDir( const RString &sDir ) const

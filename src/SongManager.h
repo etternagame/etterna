@@ -85,6 +85,11 @@ public:
 	RageColor GetCourseGroupColor( const RString &sCourseGroupName ) const;
 	RageColor GetCourseColor( const Course* pCourse ) const;
 
+	// temporary solution to reorganizing the entire songid/stepsid system - mina
+	map<RString, vector<Steps*>> StepsByChartkey;
+	map<RString, vector<Song*>> SongsByChartkey;
+	void CreateChartkeyIndicies();
+
 	void ResetGroupColors();
 
 	static RString ShortenGroupName( const RString &sLongGroupName );
