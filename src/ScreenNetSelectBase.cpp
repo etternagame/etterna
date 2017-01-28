@@ -87,6 +87,16 @@ bool ScreenNetSelectBase::Input( const InputEventPlus &input )
 
 	switch( input.DeviceI.button )
 	{
+	case KEY_PGUP:
+		if (!bHoldingCtrl) {
+			ShowPreviousMsg();
+		break;
+		}
+	case KEY_PGDN:
+		if (!bHoldingCtrl) {
+			ShowNextMsg();
+			break;
+		}
 	case KEY_ENTER:
 	case KEY_KP_ENTER:
 		if (!bHoldingCtrl)
@@ -215,11 +225,8 @@ void ScreenNetSelectBase::UpdateUsers()
 
 void ScreenNetSelectBase::Scroll(int movescroll)
 {
-	if (((int)scroll) + movescroll < 0)
-		scroll = 0;
-	else if (((int)scroll) + movescroll > m_textChatOutput.lines - SHOW_CHAT_LINES)
-		scroll = m_textChatOutput.lines - SHOW_CHAT_LINES;
-	scroll += movescroll;
+	if (scroll+movescroll >= 0 && scroll+movescroll <= m_textChatOutput.lines - SHOW_CHAT_LINES)
+		scroll += movescroll;
 	m_textChatOutput.ResetText();
 	m_textChatOutput.SetMaxLines(SHOW_CHAT_LINES, 1, scroll);
 	return;
