@@ -14,7 +14,10 @@ class ColorBitmapText : public BitmapText
 {
 public:
 	void SetText( const RString &sText, const RString &sAlternateText = "", int iWrapWidthPixels = -1 );
+	void ResetText();
 	void DrawPrimitives();
+	int lines=0;
+	void SetMaxLines(int iNumLines, int iDirection, unsigned int &scroll);
 	void SetMaxLines( int iLines, bool bCutBottom = true );	//if bCutBottom = false then, it will crop the top
 	void SimpleAddLine( const RString &sAddition, int iWidthPixels );
 	void SetMaxLines( int iNumLines, int iDirection );
@@ -45,6 +48,12 @@ public:
 	void SetChatboxVisible(bool visibility);
 	void SetUsersVisible(bool visibility);
 	vector<BitmapText>* ToUsers();
+	void Scroll(int movescroll);
+	RString GetPreviousMsg();
+	RString GetNextMsg();
+	void SetInputText(RString text);
+	void ShowPreviousMsg();
+	void ShowNextMsg();
 	// Lua
 	virtual void PushSelf(lua_State *L);
 private:
@@ -54,6 +63,9 @@ private:
 	AutoActor			m_sprChatInputBox;
 	AutoActor			m_sprChatOutputBox;
 	RString				m_sTextInput;
+	unsigned int m_sTextLastestInputsIndex;
+	vector<RString>		m_sTextLastestInputs;
+	unsigned int	    scroll;
 	RString				m_actualText;
 
 	vector <BitmapText>	m_textUsers;
