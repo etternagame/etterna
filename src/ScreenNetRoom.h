@@ -32,6 +32,10 @@ public:
 	virtual void Init();
 	virtual bool Input( const InputEventPlus &input );
 	virtual void HandleScreenMessage( const ScreenMessage SM );
+	RoomWheel* GetRoomWheel();
+
+	// Lua
+	void PushSelf(lua_State *L);
 
 protected:
 	virtual bool MenuStart( const InputEventPlus &input );
