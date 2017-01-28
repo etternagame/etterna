@@ -20,15 +20,28 @@ local defaultConfig = {
 	JudgmentText = true,
 	ReceptorSize = 100,
 	BackgroundType = 1,
+	ProgressBarPos = 1, --moved from theme options into here, 1 = top; 0 = bottom
 	GameplayXYCoordinates = {
 		JudgeX = 0,
 		JudgeY = 40,
 		ComboX = 30,
 		ComboY = 20,
+		ErrorBarX = SCREEN_CENTER_X,
+		ErrorBarY = SCREEN_CENTER_Y + 53,
+		TargetTrackerX = SCREEN_CENTER_X + 26,
+		TargetTrackerY = SCREEN_CENTER_Y + 30,
+		MiniProgressBarX = SCREEN_CENTER_X + 44,
+		MiniProgressBarY = SCREEN_CENTER_Y + 34,
+		FullProgressBarX = SCREEN_CENTER_X,
+		FullProgressBarY = 20,
 	},
 	GameplaySizes = {
 		JudgeZoom = 1.0,
 		ComboZoom = 0.6,
+		ErrorBarWidth = 240,
+		ErrorBarHeight = 10,
+		FullProgressBarWidth = 1,
+		FullProgressBarHeight = 1,
 	},
 }
 

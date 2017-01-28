@@ -749,7 +749,7 @@ function ProgressBar()
 		ExportOnChange = true,
 		Choices = {"Bottom", "Top"},
 		LoadSelections = function(self, list, pn)
-			local pref = themeConfig:get_data().global.ProgressBar
+			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).ProgressBarPos
 			if pref then
 				list[pref+1] = true
 			end
@@ -758,12 +758,14 @@ function ProgressBar()
 			local value
 			if list[1] == true then
 				value = 0
+				playerConfig:get_data(pn_to_profile_slot(pn)).GameplayXYCoordinates.FullProgressBarY = SCREEN_BOTTOM - 30
 			else
 				value = 1
+				playerConfig:get_data(pn_to_profile_slot(pn)).GameplayXYCoordinates.FullProgressBarY = 20
 			end
-			themeConfig:get_data().global.ProgressBar = value
-			themeConfig:set_dirty()
-			themeConfig:save()
+			playerConfig:get_data(pn_to_profile_slot(pn)).ProgressBarPos = value
+			playerConfig:set_dirty(pn_to_profile_slot(pn))
+			playerConfig:save(pn_to_profile_slot(pn))
 		end
 	}
 	setmetatable( t, t )
