@@ -3,7 +3,7 @@ local whee
 local top
 local function mouseInput(event)
 	if event.DeviceInput.button == "DeviceButton_left mouse button" and event.type == "InputEventType_FirstPress"then
-		if INPUTFILTER:GetMouseX() > 500 then
+		if INPUTFILTER:GetMouseX() > capWideScale(370,500) then
 			local n=0
 			local m=1
 			if INPUTFILTER:GetMouseY() > 220 and INPUTFILTER:GetMouseY() < 256 then
@@ -39,10 +39,8 @@ local function mouseInput(event)
 				m=-1
 				n=5
 			end
-			for i=1,n do
-				whee:Move(m)
-				whee:Move(0)
-			end
+			whee:Move(m*n)
+			whee:Move(0)
 			if m==0 then
 				top:SelectCurrent(0)
 			end
