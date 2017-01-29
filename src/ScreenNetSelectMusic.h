@@ -22,6 +22,7 @@ public:
 	virtual void HandleScreenMessage( const ScreenMessage SM );
 
 	void StartSelectedSong();
+	bool SelectCurrent();
 
 	MusicWheel* GetMusicWheel();
 	// Lua

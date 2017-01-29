@@ -47,9 +47,14 @@ local function scrollInput(event)
 		elseif event.type == "InputEventType_Release" then
 			local pressingtab = false
 		end
+	elseif event.DeviceInput.button == "DeviceButton_enter" then
+		if event.type == "InputEventType_Release" then
+			MESSAGEMAN:Broadcast("Scroll")
+		end
 	elseif event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" then
 		if isOverChatbox() then
 			top:ScrollChatUp()
+			MESSAGEMAN:Broadcast("Scroll")
 		else
 			moving = true
 			if pressingtab == true then
@@ -61,6 +66,7 @@ local function scrollInput(event)
 	elseif event.DeviceInput.button == "DeviceButton_mousewheel down" and event.type == "InputEventType_FirstPress" then
 		if isOverChatbox() then
 			top:ScrollChatDown()
+			MESSAGEMAN:Broadcast("Scroll")
 		else
 			moving = true
 			if pressingtab == true then
@@ -105,6 +111,29 @@ t[#t+1] = Def.Quad{
 			self:visible(false)
 		end
 	end,
+}
+
+t[#t+1] = Def.Quad{
+	InitCommand=cmd(xy,outputX+outputWidth - 1,outputHeight;zoomto,border,outputHeight;halign,0;valign,0;diffuse,getMainColor('highlight');queuecommand,"Set"),
+	SetCommand=function(self)
+		if getTabIndex() == 0 then
+			local lineqty = top:GetChatLines()
+			local scroll = top:GetChatScroll()
+			self:visible(true)
+			if lineqty >= THEME:GetMetric("ScreenNetSelectBase","ChatOutputLines") then
+				local newheight = outputHeight / (lineqty / THEME:GetMetric("ScreenNetSelectBase","ChatOutputLines"))
+				self:zoomto(border, newheight)
+				self:y(outputY + outputHeight - newheight - scroll*outputHeight/lineqty)
+			else
+				self:zoomto(border,outputHeight)
+				self:y(outputY)
+			end
+		else 
+			self:visible(false)
+		end
+	end,
+	ScrollMessageCommand=cmd(queuecommand,"Set"),
+	TabChangedMessageCommand=cmd(queuecommand,"Set"),
 }
 
 return t
