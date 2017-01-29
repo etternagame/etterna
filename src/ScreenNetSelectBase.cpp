@@ -92,9 +92,21 @@ bool ScreenNetSelectBase::Input( const InputEventPlus &input )
 			ShowPreviousMsg();
 		break;
 		}
+		}
+		else {
+			Scroll(1);
+			Scroll(1);
+			break;
+		}
 	case KEY_PGDN:
 		if (!bHoldingCtrl) {
 			ShowNextMsg();
+			break;
+		}
+		}
+		else {
+			Scroll(-1);
+			Scroll(-1);
 			break;
 		}
 	case KEY_ENTER:
