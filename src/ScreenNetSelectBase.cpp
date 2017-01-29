@@ -90,8 +90,7 @@ bool ScreenNetSelectBase::Input( const InputEventPlus &input )
 	case KEY_PGUP:
 		if (!bHoldingCtrl) {
 			ShowPreviousMsg();
-		break;
-		}
+			break;
 		}
 		else {
 			Scroll(1);
@@ -102,7 +101,6 @@ bool ScreenNetSelectBase::Input( const InputEventPlus &input )
 		if (!bHoldingCtrl) {
 			ShowNextMsg();
 			break;
-		}
 		}
 		else {
 			Scroll(-1);
