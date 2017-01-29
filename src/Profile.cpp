@@ -2173,42 +2173,38 @@ void Profile::RecalculateSSRs(bool OnlyOld) {
 			HighScoresForASteps& zz = j->second;
 			vector<HighScore>& hsv = zz.hsl.vHighScores;
 
+			const StepsID& sid = j->first;
+			RString ck = sid.GetKey();
+			Steps* pSteps = SONGMAN->GetStepsByChartkey(ck);
+
+			if (!pSteps) 
+				continue;
+
+			auto nd = pSteps->GetNoteData();
+			
+			if (!pSteps->IsRecalcValid()) {
+				for (size_t i = 0; i < hsv.size(); i++) {
+					FOREACH_ENUM(Skillset, ss)
+						hsv[i].SetSkillsetSSR(ss, 0.f);
+				}
+			}
+
+			TimingData* td = pSteps->GetTimingData();
+			vector<int>& nerv = nd.GetNonEmptyRowVector();
+			vector<float> etaner;
+
+			for (size_t i = 0; i < nerv.size(); i++)
+				etaner.emplace_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(nerv[i])));
+
 			for (size_t i = 0; i < hsv.size(); i++) {
 				float wifescore = hsv[i].GetWifeScore();
+				float musicrate = hsv[i].GetMusicRate();
 				if (wifescore == 0.f || hsv[i].GetGrade() == Grade_Failed)
 					FOREACH_ENUM(Skillset, ss)
 						hsv[i].SetSkillsetSSR(ss, 0.f);
 				else {
 					if (OnlyOld && hsv[i].GetSSRCalcVersion() == GetCalcVersion())
 						continue;
-
-					const StepsID& sid = j->first;
-					Steps* psteps;
-					
-					if (!sid.IsValid() || sid.GetStepsType() != StepsType_dance_single)
-						continue;
-
-					RString ck = sid.GetKey();
-
-					// look for a steps object with the same chartkey as the current steps object
-					auto it = SONGMAN->StepsByChartkey.find(ck);
-
-					// if we still don't find anything, skip this score
-					if (it == SONGMAN->StepsByChartkey.end())
-						continue;
-
-					// grab the steps object via chartkey
-					psteps = SONGMAN->StepsByChartkey[ck][0];
-
-					auto nd = psteps->GetNoteData();
-					TimingData* td = psteps->GetTimingData();
-					float musicrate = hsv[i].GetMusicRate();
-
-					vector<int>& nerv = nd.GetNonEmptyRowVector();
-					vector<float> etaner;
-
-					for (size_t i = 0; i < nerv.size(); i++)
-						etaner.emplace_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(nerv[i])));
 
 					vector<float> recalcSSR = MinaSDCalc(nd, etaner, musicrate, wifescore, 1.f, td->HasWarps());
 					FOREACH_ENUM(Skillset, ss)
