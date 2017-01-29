@@ -2128,13 +2128,18 @@ void Profile::CalcPlayerRating(float& prating, float* pskillsets) const {
 void Profile::ResetSSRs(bool OnlyOld) {
 	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
 		const SongID& id = i->first;
-		// for now only reset ssrs for loaded files - mina
-		if (!id.IsValid())
-			continue;
+
 		HighScoresForASong& hsfas = i->second;
 		FOREACHM(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
 			HighScoresForASteps& zz = j->second;
 			vector<HighScore>& hsv = zz.hsl.vHighScores;
+
+			// reset ssrs for scores that match a loaded chartkey - mina
+			Steps* pSteps = SONGMAN->GetStepsByChartkey(j->first);
+			
+			if (!pSteps)
+				continue;
+
 			for (size_t i = 0; i < hsv.size(); i++) {
 				if (OnlyOld && hsv[i].GetSSRCalcVersion() == GetCalcVersion())
 					continue;
@@ -2147,15 +2152,21 @@ void Profile::ResetSSRs(bool OnlyOld) {
 	m_fPlayerRating = 0.f;
 }
 
+// should deal with this misnomer - mina
 void Profile::ValidateAllScores() {
 	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
 		const SongID& id = i->first;
-		// only reset validate currently loaded files - mina
-		if (!id.IsValid())
-			continue;
+
 		HighScoresForASong& hsfas = i->second;
 		FOREACHM(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
 			HighScoresForASteps& zz = j->second;
+
+			// validate scores that match a loaded chartkey - mina
+			Steps* pSteps = SONGMAN->GetStepsByChartkey(j->first);
+
+			if (!pSteps)
+				continue;
+
 			vector<HighScore>& hsv = zz.hsl.vHighScores;
 			for (size_t i = 0; i < hsv.size(); i++)
 				hsv[i].SetEtternaValid(true);
@@ -2173,9 +2184,7 @@ void Profile::RecalculateSSRs(bool OnlyOld) {
 			HighScoresForASteps& zz = j->second;
 			vector<HighScore>& hsv = zz.hsl.vHighScores;
 
-			const StepsID& sid = j->first;
-			RString ck = sid.GetKey();
-			Steps* pSteps = SONGMAN->GetStepsByChartkey(ck);
+			Steps* pSteps = SONGMAN->GetStepsByChartkey(j->first);
 
 			if (!pSteps) 
 				continue;
@@ -2200,7 +2209,7 @@ void Profile::RecalculateSSRs(bool OnlyOld) {
 			for (size_t i = 0; i < hsv.size(); i++) {
 				float wifescore = hsv[i].GetWifeScore();
 				float musicrate = hsv[i].GetMusicRate();
-				if (wifescore == 0.f || hsv[i].GetGrade() == Grade_Failed)
+				if (wifescore <= 0.f || hsv[i].GetGrade() == Grade_Failed)
 					FOREACH_ENUM(Skillset, ss)
 						hsv[i].SetSkillsetSSR(ss, 0.f);
 				else {
