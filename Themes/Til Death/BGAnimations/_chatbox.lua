@@ -53,7 +53,7 @@ local function scrollInput(event)
 		else
 			moving = true
 			if pressingtab == true then
-				whee:Move(-1)	
+				whee:Move(-2)	
 			else
 				whee:Move(-1)	
 			end
@@ -64,7 +64,7 @@ local function scrollInput(event)
 		else
 			moving = true
 			if pressingtab == true then
-				whee:Move(1)	
+				whee:Move(2)	
 			else
 				whee:Move(1)	
 			end
