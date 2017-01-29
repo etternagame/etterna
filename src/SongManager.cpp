@@ -260,6 +260,30 @@ Song* SongManager::GetSongByChartkey(RString ck) {
 	return pSong;
 }
 
+Steps* SongManager::GetStepsByChartkey(const StepsID& sid) {
+	RString ck = sid.GetKey();
+	Steps* o = NULL;
+	auto it = StepsIDsByChartkey.find(ck);
+
+	if (it == StepsIDsByChartkey.end())
+		return o;
+
+	Song* pSong = SongIDsByChartkey[ck][0].ToSong();
+	Steps* pSteps = StepsIDsByChartkey[ck][0].ToSteps(pSong, true);
+	return pSteps;
+}
+
+Song* SongManager::GetSongByChartkey(const StepsID& sid) {
+	RString ck = sid.GetKey();
+	Song* o = NULL;
+	auto it = SongIDsByChartkey.find(ck);
+
+	if (it == SongIDsByChartkey.end())
+		return o;
+
+	Song* pSong = SongIDsByChartkey[ck][0].ToSong();
+	return pSong;
+}
 
 
 

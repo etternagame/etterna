@@ -91,6 +91,8 @@ public:
 	void CreateChartkeyIndicies();
 	Steps* GetStepsByChartkey(RString ck);
 	Song * GetSongByChartkey(RString ck);
+	Steps* GetStepsByChartkey(const StepsID& sid);
+	Song * GetSongByChartkey(const StepsID& sid);
 
 	void ResetGroupColors();
 
