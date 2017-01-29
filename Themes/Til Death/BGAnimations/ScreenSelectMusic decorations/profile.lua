@@ -32,7 +32,7 @@ local offsetY = 20
 local rankingSkillset=0
 local rankingPage=1	
 local rankingWidth = frameWidth-capWideScale(15,50)
-local rankingX = capWideScale(25,45)
+local rankingX = capWideScale(30,50)
 local rankingY = capWideScale(60,60)
 local rankingTitleWidth = (rankingWidth/(#ms.SkillSets + 1))
 
@@ -60,6 +60,14 @@ local function rankingLabel(i)
 				self:visible(false)
 			end
 		end,
+		LoadFont("Common Large") .. {
+			InitCommand=cmd(xy,frameX+12.5,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,100),
+			SetCommand=function(self)
+				self:diffuse(getMainColor("positive"))
+				self:settext(((rankingPage-1)*25)+i..".")
+			end,
+			UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
+		},
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(xy,frameX+rankingX,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,160),
 			SetCommand=function(self)
@@ -198,6 +206,7 @@ local function rankingButton(i)
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
 				rankingSkillset = i-1
+				rankingPage = 1
 				MESSAGEMAN:Broadcast("UpdateRanking")
 			end;
 		end,
