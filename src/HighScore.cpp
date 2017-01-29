@@ -841,7 +841,7 @@ float HighScore::ConvertDpToWife() {
 		return m_Impl->fWifeScore;
 
 	if (m_Impl->grade == Grade_Failed)
-		return m_Impl->fPercentDP;
+		return 0.f;
 
 	float ts = 1.f;
 	float estpoints = 0.f;
