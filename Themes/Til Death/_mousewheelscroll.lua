@@ -6,21 +6,23 @@ local pressingtab = false
 local function scrollInput(event)
 	if event.DeviceInput.button == "DeviceButton_tab" then
 		if event.type == "InputEventType_FirstPress" then
-			local pressingtab = true
+			pressingtab = true
+		elseif event.type == "InputEventType_Repeat" then
+			pressingtab = true
 		elseif event.type == "InputEventType_Release" then
-			local pressingtab = false
+			pressingtab = false
 		end
 	elseif event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" then
 		moving = true
 		if pressingtab == true then
-			whee:Move(-3)	
+			whee:Move(-2)	
 		else
 			whee:Move(-1)	
 		end
 	elseif event.DeviceInput.button == "DeviceButton_mousewheel down" and event.type == "InputEventType_FirstPress" then
 		moving = true
 		if pressingtab == true then
-			whee:Move(3)	
+			whee:Move(2)	
 		else
 			whee:Move(1)	
 		end
