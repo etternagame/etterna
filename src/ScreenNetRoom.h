@@ -33,7 +33,7 @@ public:
 	virtual bool Input( const InputEventPlus &input );
 	virtual void HandleScreenMessage( const ScreenMessage SM );
 	RoomWheel* GetRoomWheel();
-	void ScreenNetRoom::SelectCurrent();
+	void SelectCurrent();
 
 	// Lua
 	void PushSelf(lua_State *L);
