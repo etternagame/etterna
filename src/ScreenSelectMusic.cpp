@@ -1283,29 +1283,35 @@ bool ScreenSelectMusic::MenuStart( const InputEventPlus &input )
 	if( m_fLockInputSecs > 0 )
 		return false;
 
-	switch( m_SelectionState )
+	return SelectCurrent(input.pn);
+}
+
+bool ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
+{
+
+	switch (m_SelectionState)
 	{
-	DEFAULT_FAIL( m_SelectionState );
+		DEFAULT_FAIL(m_SelectionState);
 	case SelectionState_SelectingSong:
 		// If false, we don't have a selection just yet.
-		if( !m_MusicWheel.Select() )
+		if (!m_MusicWheel.Select())
 			return false;
 
 		// a song was selected
-		if( m_MusicWheel.GetSelectedSong() != NULL )
+		if (m_MusicWheel.GetSelectedSong() != NULL)
 		{
-			if(TWO_PART_CONFIRMS_ONLY && SAMPLE_MUSIC_PREVIEW_MODE == SampleMusicPreviewMode_StartToPreview)
+			if (TWO_PART_CONFIRMS_ONLY && SAMPLE_MUSIC_PREVIEW_MODE == SampleMusicPreviewMode_StartToPreview)
 			{
 				// start playing the preview music.
 				g_bSampleMusicWaiting = true;
-				CheckBackgroundRequests( true );
+				CheckBackgroundRequests(true);
 			}
 
-			const bool bIsNew = PROFILEMAN->IsSongNew( m_MusicWheel.GetSelectedSong() );
+			const bool bIsNew = PROFILEMAN->IsSongNew(m_MusicWheel.GetSelectedSong());
 			bool bIsHard = false;
-			FOREACH_HumanPlayer( p )
+			FOREACH_HumanPlayer(p)
 			{
-				if( GAMESTATE->m_pCurSteps[p]  &&  GAMESTATE->m_pCurSteps[p]->GetMeter() >= HARD_COMMENT_METER )
+				if (GAMESTATE->m_pCurSteps[p] && GAMESTATE->m_pCurSteps[p]->GetMeter() >= HARD_COMMENT_METER)
 					bIsHard = true;
 			}
 
@@ -1313,40 +1319,40 @@ bool ScreenSelectMusic::MenuStart( const InputEventPlus &input )
 			// If we're in event mode, only check the last five songs.
 			bool bIsRepeat = false;
 			int i = 0;
-			if( GAMESTATE->IsEventMode() )
-				i = max( 0, int(STATSMAN->m_vPlayedStageStats.size())-5 );
-			for( ; i < (int)STATSMAN->m_vPlayedStageStats.size(); ++i )
-				if( STATSMAN->m_vPlayedStageStats[i].m_vpPlayedSongs.back() == m_MusicWheel.GetSelectedSong() )
+			if (GAMESTATE->IsEventMode())
+				i = max(0, int(STATSMAN->m_vPlayedStageStats.size()) - 5);
+			for (; i < (int)STATSMAN->m_vPlayedStageStats.size(); ++i)
+				if (STATSMAN->m_vPlayedStageStats[i].m_vpPlayedSongs.back() == m_MusicWheel.GetSelectedSong())
 					bIsRepeat = true;
 
 			// Don't complain about repeats if the user didn't get to pick.
-			if( GAMESTATE->IsAnExtraStageAndSelectionLocked() )
+			if (GAMESTATE->IsAnExtraStageAndSelectionLocked())
 				bIsRepeat = false;
 
-			if( bIsRepeat )
-				SOUND->PlayOnceFromAnnouncer( "select music comment repeat" );
-			else if( bIsNew )
-				SOUND->PlayOnceFromAnnouncer( "select music comment new" );
-			else if( bIsHard )
-				SOUND->PlayOnceFromAnnouncer( "select music comment hard" );
+			if (bIsRepeat)
+				SOUND->PlayOnceFromAnnouncer("select music comment repeat");
+			else if (bIsNew)
+				SOUND->PlayOnceFromAnnouncer("select music comment new");
+			else if (bIsHard)
+				SOUND->PlayOnceFromAnnouncer("select music comment hard");
 			else
-				SOUND->PlayOnceFromAnnouncer( "select music comment general" );
+				SOUND->PlayOnceFromAnnouncer("select music comment general");
 
-			/* If we're in event mode, we may have just played a course (putting 
-			 * us in course mode). Make sure we're in a single song mode. */
-			if( GAMESTATE->IsCourseMode() )
-				GAMESTATE->m_PlayMode.Set( PLAY_MODE_REGULAR );
+			/* If we're in event mode, we may have just played a course (putting
+			* us in course mode). Make sure we're in a single song mode. */
+			if (GAMESTATE->IsCourseMode())
+				GAMESTATE->m_PlayMode.Set(PLAY_MODE_REGULAR);
 		}
-		else if( m_MusicWheel.GetSelectedCourse() != NULL )
+		else if (m_MusicWheel.GetSelectedCourse() != NULL)
 		{
-			SOUND->PlayOnceFromAnnouncer( "select course comment general" );
+			SOUND->PlayOnceFromAnnouncer("select course comment general");
 
 			Course *pCourse = m_MusicWheel.GetSelectedCourse();
-			ASSERT( pCourse != NULL );
-			GAMESTATE->m_PlayMode.Set( pCourse->GetPlayMode() );
+			ASSERT(pCourse != NULL);
+			GAMESTATE->m_PlayMode.Set(pCourse->GetPlayMode());
 
 			// apply #LIVES
-			if( pCourse->m_iLives != -1 )
+			if (pCourse->m_iLives != -1)
 			{
 				FOREACH_EnabledPlayer(pn)
 				{
@@ -1354,7 +1360,7 @@ bool ScreenSelectMusic::MenuStart( const InputEventPlus &input )
 					PO_GROUP_ASSIGN(GAMESTATE->m_pPlayerState[pn]->m_PlayerOptions, ModsLevel_Stage, m_BatteryLives, pCourse->m_iLives);
 				}
 			}
-			if( pCourse->GetCourseType() == COURSE_TYPE_SURVIVAL)
+			if (pCourse->GetCourseType() == COURSE_TYPE_SURVIVAL)
 			{
 				FOREACH_EnabledPlayer(pn)
 				{
@@ -1373,158 +1379,157 @@ bool ScreenSelectMusic::MenuStart( const InputEventPlus &input )
 		break;
 
 	case SelectionState_SelectingSteps:
+	{
+		bool bInitiatedByMenuTimer = pn == PLAYER_INVALID;
+		bool bAllOtherHumanPlayersDone = true;
+		FOREACH_HumanPlayer(p)
 		{
-			PlayerNumber pn = input.pn;
-			bool bInitiatedByMenuTimer = pn == PLAYER_INVALID;
-			bool bAllOtherHumanPlayersDone = true;
-			FOREACH_HumanPlayer( p )
+			if (p == pn)
+				continue;
+			bAllOtherHumanPlayersDone &= m_bStepsChosen[p];
+		}
+
+		bool bAllPlayersDoneSelectingSteps = bInitiatedByMenuTimer || bAllOtherHumanPlayersDone;
+		if (TWO_PART_CONFIRMS_ONLY)
+			bAllPlayersDoneSelectingSteps = true;
+
+		/* TRICKY: if we have a Routine chart selected, we need to ensure
+		* the following:
+		* 1. Both players must select the same Routine steps.
+		* 2. If the other player picks non-Routine steps, this player
+		*    cannot pick Routine.
+		* 3. If the other player picked Routine steps, and we pick
+		*    non-Routine steps, the other player's steps must be unselected.
+		* 4. If time runs out, and both players don't have the same Routine
+		*    chart selected, we need to bump the player with a Routine
+		*    chart selection to a playable chart.
+		*    (Right now, we bump them to Beginner... Can we come up with
+		*    something better?)
+		*/
+
+		if (!GAMESTATE->IsCourseMode() && GAMESTATE->GetNumSidesJoined() == 2)
+		{
+			bool bSelectedRoutineSteps[NUM_PLAYERS], bAnySelectedRoutine = false;
+			bool bSelectedSameSteps = GAMESTATE->m_pCurSteps[PLAYER_1] == GAMESTATE->m_pCurSteps[PLAYER_2];
+
+			FOREACH_HumanPlayer(p)
 			{
-				if( p == pn )
-					continue;
-				bAllOtherHumanPlayersDone &= m_bStepsChosen[p];
+				const Steps *pSteps = GAMESTATE->m_pCurSteps[p];
+				const StepsTypeInfo &sti = GAMEMAN->GetStepsTypeInfo(pSteps->m_StepsType);
+
+				bSelectedRoutineSteps[p] = sti.m_StepsTypeCategory == StepsTypeCategory_Routine;
+				bAnySelectedRoutine |= bSelectedRoutineSteps[p];
 			}
 
-			bool bAllPlayersDoneSelectingSteps = bInitiatedByMenuTimer || bAllOtherHumanPlayersDone;
-			if(TWO_PART_CONFIRMS_ONLY)
-				bAllPlayersDoneSelectingSteps = true;
-
-			/* TRICKY: if we have a Routine chart selected, we need to ensure
-			 * the following:
-			 * 1. Both players must select the same Routine steps.
-			 * 2. If the other player picks non-Routine steps, this player
-			 *    cannot pick Routine.
-			 * 3. If the other player picked Routine steps, and we pick
-			 *    non-Routine steps, the other player's steps must be unselected.
-			 * 4. If time runs out, and both players don't have the same Routine
-			 *    chart selected, we need to bump the player with a Routine
-			 *    chart selection to a playable chart.
-			 *    (Right now, we bump them to Beginner... Can we come up with
-			 *    something better?)
-			 */
-
-			if( !GAMESTATE->IsCourseMode() && GAMESTATE->GetNumSidesJoined() == 2 )
+			if (bAnySelectedRoutine)
 			{
-				bool bSelectedRoutineSteps[NUM_PLAYERS], bAnySelectedRoutine = false;
-				bool bSelectedSameSteps = GAMESTATE->m_pCurSteps[PLAYER_1] == GAMESTATE->m_pCurSteps[PLAYER_2];
-
-				FOREACH_HumanPlayer( p )
+				/* Timer ran out. If we haven't agreed on steps, move players with
+				* Routine steps down to Beginner. I'll admit that's annoying,
+				* but at least they won't lose more stages. */
+				if (bInitiatedByMenuTimer && !bSelectedSameSteps)
 				{
-					const Steps *pSteps = GAMESTATE->m_pCurSteps[p];
-					const StepsTypeInfo &sti = GAMEMAN->GetStepsTypeInfo( pSteps->m_StepsType );
+					/* Since m_vpSteps is sorted by Difficulty, the first
+					* entry should be the easiest. */
+					ASSERT(m_vpSteps.size() != 0);
+					Steps *pSteps = m_vpSteps[0];
 
-					bSelectedRoutineSteps[p] = sti.m_StepsTypeCategory == StepsTypeCategory_Routine;
-					bAnySelectedRoutine |= bSelectedRoutineSteps[p];
-				}
-
-				if( bAnySelectedRoutine )
-				{
-					/* Timer ran out. If we haven't agreed on steps, move players with
-					 * Routine steps down to Beginner. I'll admit that's annoying,
-					 * but at least they won't lose more stages. */
-					if( bInitiatedByMenuTimer && !bSelectedSameSteps )
+					FOREACH_PlayerNumber(p)
 					{
-						/* Since m_vpSteps is sorted by Difficulty, the first
-						 * entry should be the easiest. */
-						ASSERT( m_vpSteps.size() != 0 );
-						Steps *pSteps = m_vpSteps[0];
-
-						FOREACH_PlayerNumber( p )
-						{
-							if( bSelectedRoutineSteps[p] )
-								GAMESTATE->m_pCurSteps[p].Set( pSteps );
-						}
-
-						break;
+						if (bSelectedRoutineSteps[p])
+							GAMESTATE->m_pCurSteps[p].Set(pSteps);
 					}
 
-					// If the steps don't match up, we need to check some more conditions...
-					if( !bSelectedSameSteps )
+					break;
+				}
+
+				// If the steps don't match up, we need to check some more conditions...
+				if (!bSelectedSameSteps)
+				{
+					const PlayerNumber other = OPPOSITE_PLAYER[pn];
+
+					if (m_bStepsChosen[other])
 					{
-						const PlayerNumber other = OPPOSITE_PLAYER[pn];
-
-						if( m_bStepsChosen[other] )
+						/* Unready the other player if they selected Routine
+						* steps, but we didn't. */
+						if (bSelectedRoutineSteps[other])
 						{
-							/* Unready the other player if they selected Routine
-							 * steps, but we didn't. */
-							if( bSelectedRoutineSteps[other] )
-							{
-								m_bStepsChosen[other] = false;
-								bAllPlayersDoneSelectingSteps = false;	// if the timer ran out, we handled it earlier
+							m_bStepsChosen[other] = false;
+							bAllPlayersDoneSelectingSteps = false;	// if the timer ran out, we handled it earlier
 
-								// HACK: send an event to Input to tell it to unready.
-								InputEventPlus event;
-								event.MenuI = GAME_BUTTON_SELECT;
-								event.pn = other;
+																	// HACK: send an event to Input to tell it to unready.
+							InputEventPlus event;
+							event.MenuI = GAME_BUTTON_SELECT;
+							event.pn = other;
 
-								this->Input( event );
-							}
-							else if( bSelectedRoutineSteps[pn] )
-							{
-								/* They selected non-Routine steps, so we can't
-								 * select Routine steps. */
-								return false;
-							}
+							this->Input(event);
+						}
+						else if (bSelectedRoutineSteps[pn])
+						{
+							/* They selected non-Routine steps, so we can't
+							* select Routine steps. */
+							return false;
 						}
 					}
 				}
-			}
-
-			if( !bAllPlayersDoneSelectingSteps )
-			{
-				m_bStepsChosen[pn] = true;
-				m_soundStart.Play(true);
-
-				// impldiff: Pump it Up Pro uses "StepsSelected". -aj
-				Message msg("StepsChosen");
-				msg.SetParam( "Player", pn );
-				MESSAGEMAN->Broadcast( msg );
-				return true;
 			}
 		}
-		break;
+
+		if (!bAllPlayersDoneSelectingSteps)
+		{
+			m_bStepsChosen[pn] = true;
+			m_soundStart.Play(true);
+
+			// impldiff: Pump it Up Pro uses "StepsSelected". -aj
+			Message msg("StepsChosen");
+			msg.SetParam("Player", pn);
+			MESSAGEMAN->Broadcast(msg);
+			return true;
+		}
+	}
+	break;
 	}
 
-	FOREACH_ENUM( PlayerNumber, p )
+	FOREACH_ENUM(PlayerNumber, p)
 	{
-		if( !TWO_PART_SELECTION || m_SelectionState == SelectionState_SelectingSteps )
+		if (!TWO_PART_SELECTION || m_SelectionState == SelectionState_SelectingSteps)
 		{
-			if( m_OptionsList[p].IsOpened() )
+			if (m_OptionsList[p].IsOpened())
 				m_OptionsList[p].Close();
 		}
-		UpdateSelectButton( p, false );
+		UpdateSelectButton(p, false);
 	}
 
 	m_SelectionState = GetNextSelectionState();
-	Message msg( "Start" + SelectionStateToString(m_SelectionState) );
-	MESSAGEMAN->Broadcast( msg );
+	Message msg("Start" + SelectionStateToString(m_SelectionState));
+	MESSAGEMAN->Broadcast(msg);
 
 	m_soundStart.Play(true);
 
 	// If the MenuTimer has forced us to move on && TWO_PART_CONFIRMS_ONLY,
 	// set Selection State to finalized and move on.
-	if(TWO_PART_CONFIRMS_ONLY)
+	if (TWO_PART_CONFIRMS_ONLY)
 	{
-		if(m_MenuTimer->GetSeconds() < 1)
+		if (m_MenuTimer->GetSeconds() < 1)
 		{
 			m_SelectionState = SelectionState_Finalized;
 		}
 	}
 
-	if( m_SelectionState == SelectionState_Finalized )
+	if (m_SelectionState == SelectionState_Finalized)
 	{
 		m_MenuTimer->Stop();
 
-		FOREACH_HumanPlayer( p )
+		FOREACH_HumanPlayer(p)
 		{
-			if( !m_bStepsChosen[p] )
+			if (!m_bStepsChosen[p])
 			{
 				m_bStepsChosen[p] = true;
 				// Don't play start sound. We play it again below on finalized
 				//m_soundStart.Play(true);
 
 				Message lMsg("StepsChosen");
-				lMsg.SetParam( "Player", p );
-				MESSAGEMAN->Broadcast( lMsg );
+				lMsg.SetParam("Player", p);
+				MESSAGEMAN->Broadcast(lMsg);
 			}
 		}
 
@@ -1533,49 +1538,47 @@ bool ScreenSelectMusic::MenuStart( const InputEventPlus &input )
 		GAMESTATE->ForceSharedSidesMatch();
 
 		/* If we're currently waiting on song assets, abort all except the music
-		 * and start the music, so if we make a choice quickly before background
-		 * requests come through, the music will still start. */
+		* and start the music, so if we make a choice quickly before background
+		* requests come through, the music will still start. */
 		g_bCDTitleWaiting = g_bBannerWaiting = false;
 		m_BackgroundLoader.Abort();
-		CheckBackgroundRequests( true );
+		CheckBackgroundRequests(true);
 
-		if( OPTIONS_MENU_AVAILABLE )
+		if (OPTIONS_MENU_AVAILABLE)
 		{
 			// show "hold START for options"
-			this->PlayCommand( "ShowPressStartForOptions" );
+			this->PlayCommand("ShowPressStartForOptions");
 
 			m_bAllowOptionsMenu = true;
 
 			/* Don't accept a held START for a little while, so it's not
-			 * hit accidentally.  Accept an initial START right away, though,
-			 * so we don't ignore deliberate fast presses (which would be
-			 * annoying). */
-			if(PREFSMAN->m_AllowHoldForOptions.Get())
+			* hit accidentally.  Accept an initial START right away, though,
+			* so we don't ignore deliberate fast presses (which would be
+			* annoying). */
+			if (PREFSMAN->m_AllowHoldForOptions.Get())
 			{
-				this->PostScreenMessage( SM_AllowOptionsMenuRepeat, 0.5f );
+				this->PostScreenMessage(SM_AllowOptionsMenuRepeat, 0.5f);
 			}
 
-			StartTransitioningScreen( SM_None );
-			float fTime = max( SHOW_OPTIONS_MESSAGE_SECONDS, this->GetTweenTimeLeft() );
-			this->PostScreenMessage( SM_BeginFadingOut, fTime );
+			StartTransitioningScreen(SM_None);
+			float fTime = max(SHOW_OPTIONS_MESSAGE_SECONDS, this->GetTweenTimeLeft());
+			this->PostScreenMessage(SM_BeginFadingOut, fTime);
 		}
 		else
 		{
-			StartTransitioningScreen( SM_BeginFadingOut );
+			StartTransitioningScreen(SM_BeginFadingOut);
 		}
 	}
 	else // !finalized.  Set the timer for selecting difficulty and mods.
 	{
 		float fSeconds = m_MenuTimer->GetSeconds();
-		if( fSeconds < 10 )
+		if (fSeconds < 10)
 		{
-			m_MenuTimer->SetSeconds( TWO_PART_TIMER_SECONDS ); // was 13 -aj
+			m_MenuTimer->SetSeconds(TWO_PART_TIMER_SECONDS); // was 13 -aj
 			m_MenuTimer->Start();
 		}
 	}
-	return true;
 }
-
 
 bool ScreenSelectMusic::MenuBack( const InputEventPlus & /* input */ )
 {
@@ -2093,6 +2096,11 @@ public:
 		lua_pushboolean(L, p->can_open_options_list(pn));
 		return 1;
 	}
+	static int SelectCurrent(T* p, lua_State *L)
+	{
+		p->SelectCurrent(Enum::Check<PlayerNumber>(L, 1));
+		return 1;
+	}
 
 	LunaScreenSelectMusic()
 	{
@@ -2100,6 +2108,7 @@ public:
 		ADD_METHOD( GetMusicWheel );
 		ADD_METHOD( OpenOptionsList );
 		ADD_METHOD( CanOpenOptionsList );
+		ADD_METHOD( SelectCurrent );
 	}
 };
 
