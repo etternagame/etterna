@@ -182,7 +182,7 @@ public:
 	map<float, Skillset> SortSkillsetsAtRate(float x, bool includeoverall);
 
 	// this is bugged and returns true for files with negative bpms when it shouldn't - mina
-	bool IsRecalcValid() { GetTimingData()->NegStopAndBPMCheck(); return m_StepsType != StepsType_dance_single && GetTimingData()->HasWarps() && GetTimingData()->ValidSequentialAssumption; }
+	bool IsRecalcValid();
 
 	// prolly needs an enum or something idk - mina
 	float GetMSD(float x, int i) const;

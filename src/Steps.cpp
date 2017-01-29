@@ -459,6 +459,17 @@ void Steps::Decompress(bool isGameplay)
 	}
 }
 
+bool Steps::IsRecalcValid() {
+	if (m_StepsType != StepsType_dance_single)
+		return false;
+
+	TimingData* td = GetTimingData();
+	if (td->HasWarps())
+		return false;
+
+	return true;
+}
+
 float Steps::GetMSD(float x, int i) const {
 	int idx = static_cast<int>(x * 10) - 7;
 	CLAMP(idx, 0, 13);	// prevent crashes due to people setting rate mod below 0.7 or above 2.0 somehow - mina
