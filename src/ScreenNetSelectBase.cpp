@@ -799,6 +799,16 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 		p->ShowPreviousMsg();
 		return 1;
 	}
+	static int GetChatScroll(T* p, lua_State *L)
+	{
+		lua_pushnumber(L, p->GetScroll());
+		return 1;
+	}
+	static int GetChatLines(T* p, lua_State *L)
+	{
+		lua_pushnumber(L, p->GetLines());
+		return 1;
+	}
 public:
 	LunaScreenNetSelectBase()
 	{
@@ -815,6 +825,8 @@ public:
 		ADD_METHOD(ScrollChatDown);
 		ADD_METHOD(ShowNextMsg);
 		ADD_METHOD(ShowPreviousMsg);
+		ADD_METHOD(GetChatScroll);
+		ADD_METHOD(GetChatLines);
 	}
 };
 
