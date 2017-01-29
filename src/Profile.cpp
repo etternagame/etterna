@@ -2189,8 +2189,6 @@ void Profile::RecalculateSSRs(bool OnlyOld) {
 			if (!pSteps) 
 				continue;
 
-			auto nd = pSteps->GetNoteData();
-
 			if (!pSteps->IsRecalcValid()) {
 				for (size_t i = 0; i < hsv.size(); i++) {
 					FOREACH_ENUM(Skillset, ss)
@@ -2199,13 +2197,7 @@ void Profile::RecalculateSSRs(bool OnlyOld) {
 				continue;
 			}
 
-			TimingData* td = pSteps->GetTimingData();
-			vector<int>& nerv = nd.GetNonEmptyRowVector();
 			vector<float> etaner;
-
-			for (size_t i = 0; i < nerv.size(); i++)
-				etaner.emplace_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(nerv[i])));
-
 			for (size_t i = 0; i < hsv.size(); i++) {
 				float wifescore = hsv[i].GetWifeScore();
 				float musicrate = hsv[i].GetMusicRate();
@@ -2216,7 +2208,17 @@ void Profile::RecalculateSSRs(bool OnlyOld) {
 					if (OnlyOld && hsv[i].GetSSRCalcVersion() == GetCalcVersion())
 						continue;
 
-					vector<float> recalcSSR = MinaSDCalc(nd, etaner, musicrate, wifescore, 1.f, td->HasWarps());
+					NoteData& nd = pSteps->GetNoteData();
+
+					// only build etaner once
+					if (etaner.empty()) {
+						TimingData* td = pSteps->GetTimingData();
+						vector<int>& nerv = nd.GetNonEmptyRowVector();
+						for (size_t i = 0; i < nerv.size(); i++)
+							etaner.emplace_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(nerv[i])));
+					}
+
+					vector<float> recalcSSR = MinaSDCalc(nd, etaner, musicrate, wifescore, 1.f, false);
 					FOREACH_ENUM(Skillset, ss)
 						hsv[i].SetSkillsetSSR(ss, recalcSSR[ss]);
 					hsv[i].SetSSRCalcVersion(GetCalcVersion());
