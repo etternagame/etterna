@@ -2181,12 +2181,13 @@ void Profile::RecalculateSSRs(bool OnlyOld) {
 				continue;
 
 			auto nd = pSteps->GetNoteData();
-			
+
 			if (!pSteps->IsRecalcValid()) {
 				for (size_t i = 0; i < hsv.size(); i++) {
 					FOREACH_ENUM(Skillset, ss)
 						hsv[i].SetSkillsetSSR(ss, 0.f);
 				}
+				continue;
 			}
 
 			TimingData* td = pSteps->GetTimingData();
