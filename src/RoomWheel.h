@@ -61,6 +61,9 @@ public:
 	int GetPerminateOffset() const { return m_offset; }
 	void AddItem( WheelItemBaseData *itemdata );
 	void RemoveItem( int index );
+	
+	// Lua
+	void PushSelf(lua_State *L);
 
 private:
 	virtual WheelItemBase *MakeItem();

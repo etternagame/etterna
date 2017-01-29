@@ -44,6 +44,8 @@ local function scrollInput(event)
 	if event.DeviceInput.button == "DeviceButton_tab" then
 		if event.type == "InputEventType_FirstPress" then
 			local pressingtab = true
+		elseif event.type == "InputEventType_Repeat" then
+			pressingtab = true
 		elseif event.type == "InputEventType_Release" then
 			local pressingtab = false
 		end
