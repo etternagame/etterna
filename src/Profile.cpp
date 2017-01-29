@@ -2208,6 +2208,7 @@ void Profile::RecalculateSSRs(bool OnlyOld) {
 					if (OnlyOld && hsv[i].GetSSRCalcVersion() == GetCalcVersion())
 						continue;
 
+					// should find away to avoid calling this more than once -
 					NoteData& nd = pSteps->GetNoteData();
 
 					// only build etaner once
