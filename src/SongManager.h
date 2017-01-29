@@ -86,9 +86,11 @@ public:
 	RageColor GetCourseColor( const Course* pCourse ) const;
 
 	// temporary solution to reorganizing the entire songid/stepsid system - mina
-	map<RString, vector<Steps*>> StepsByChartkey;
-	map<RString, vector<Song*>> SongsByChartkey;
+	map<RString, vector<StepsID>> StepsIDsByChartkey;
+	map<RString, vector<SongID>> SongIDsByChartkey;
 	void CreateChartkeyIndicies();
+	Steps* GetStepsByChartkey(RString ck);
+	Song * GetSongByChartkey(RString ck);
 
 	void ResetGroupColors();
 

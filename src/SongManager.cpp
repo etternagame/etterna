@@ -173,6 +173,8 @@ void SongManager::InitSongsFromDisk( LoadingWindow *ld )
 }
 
 // allow indexing by chartkey - mina
+// instead of storing pointers to the objects directly we'll store ID objects (just in case)
+// should maybe have a stepsid/songid thing instead of 2 maps..?
 void SongManager::CreateChartkeyIndicies() {
 	for (int i = 0; i < m_pSongs.size(); ++i) {
 		
@@ -189,34 +191,75 @@ void SongManager::CreateChartkeyIndicies() {
 			RString ck = tmpsteps[ii]->ChartKey;
 
 			// check if an entry for this key exists yet
-			auto it = StepsByChartkey.find(ck);
+			auto it = StepsIDsByChartkey.find(ck);
 
 			// if not, create one
-			if (it == StepsByChartkey.end()) {
+			if (it == StepsIDsByChartkey.end()) {
 				// multiple steps can still have the same chartkey, so we need a vector, initialize it here
-				vector<Steps*> stepsvec;
+				vector<StepsID> stepsidvec;
 
-				// add the first entry to the vector of steps* for the current key
-				stepsvec.emplace_back(tmpsteps[ii]);
-
+				// add the first entry to the vector of stepsid for the current key
+				StepsID tmpstepsID;
+				tmpstepsID.FromSteps(tmpsteps[ii]);
+				stepsidvec.emplace_back(tmpstepsID);
+				
 				// add the key to the map with the recently created vector of length 1
-				StepsByChartkey.emplace(ck, stepsvec);
+				StepsIDsByChartkey.emplace(ck, stepsidvec);
 
 				// repeat for songs
-				vector<Song*> songsvec;
-				songsvec.emplace_back(tmpsong);
-				SongsByChartkey.emplace(ck, songsvec);
+				vector<SongID> songidsvec;
+				SongID tmpsongID;
+				tmpsongID.FromSong(tmpsong);
+				songidsvec.emplace_back(tmpsongID);
+				SongIDsByChartkey.emplace(ck, songidsvec);
 			}
 			else {
-				// otherwise add the steps pointer to the existing vector for the current key
-				StepsByChartkey[ck].emplace_back(tmpsteps[ii]);
+				// otherwise add the stepsid to the existing vector for the current key
+				StepsID tmpstepsID;
+				tmpstepsID.FromSteps(tmpsteps[ii]);
+				StepsIDsByChartkey[ck].emplace_back(tmpstepsID);
 
-				// and repeat for songs again
-				SongsByChartkey[ck].emplace_back(tmpsong);
+				// and repeat for songs again (this will create lots of redundancy for songs with many steps but oh well)
+				SongID tmpsongID;
+				tmpsongID.FromSong(tmpsong);
+				SongIDsByChartkey[ck].emplace_back(tmpsongID);
 			}
 		}
 	}
 }
+
+// Get a steps pointer given a chartkey, the assumption here is we want _a_ matching steps, not the original steps - mina
+Steps* SongManager::GetStepsByChartkey(RString ck) {
+	Steps* o = NULL;
+	auto it = StepsIDsByChartkey.find(ck);
+
+	// if we don't find anything return null
+	if (it == StepsIDsByChartkey.end())
+		return o;
+
+	// otherwise in order to convert a steps ID to a steps object we need a song ID converted to a songs object
+	// we shouldn't have any issues since steps/songids are stored in tandem (with varying levels of redundancy)
+	Song* pSong = SongIDsByChartkey[ck][0].ToSong();
+
+	// we should shouldn't ever get null however we need a null check on the otherside of this anyway, so, whatever
+	Steps* pSteps = StepsIDsByChartkey[ck][0].ToSteps(pSong, true);
+	return pSteps;
+}
+
+// Get a song pointer given a chartkey, the assumption here is we want any song containing the matching steps 
+// with a matching key, not necessarily the original song. This will be irritating for people trying to use 
+// this to get to specific packs but, well, screw them - mina
+Song* SongManager::GetSongByChartkey(RString ck) {
+	Song* o = NULL;
+	auto it = SongIDsByChartkey.find(ck);
+
+	if (it == SongIDsByChartkey.end())
+		return o;
+
+	Song* pSong = SongIDsByChartkey[ck][0].ToSong();
+	return pSong;
+}
+
 
 
 
