@@ -75,6 +75,12 @@ local fullProgressBarY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).Gam
 local fullProgressBarWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.FullProgressBarWidth
 local fullProgressBarHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.FullProgressBarHeight
 
+--guess checking if things are enabled before changing them is good for not having a log full of errors
+local enabledErrorBar = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).ErrorBar
+local enabledMiniBar = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).MiniProgressBar
+local enabledFullBar = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).FullProgressBar
+local enabledTargetTracker = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetTracker
+
 -- restart button
 local function froot(loop)
 	if loop.DeviceInput.button == "DeviceButton_`" then
@@ -138,7 +144,7 @@ local function input(event)
 		ninePressed = not (event.type == "InputEventType_Release")
 	end
 	-- changes errorbar x/y
-	if fivePressed and event.type ~= "InputEventType_Release"then
+	if fivePressed and enabledErrorBar and event.type ~= "InputEventType_Release"then
 		if event.DeviceInput.button == "DeviceButton_up" then
 			errorBarY = errorBarY - 5
 			eb.Center:y(errorBarY)
@@ -170,7 +176,7 @@ local function input(event)
 		end
 	end
 	-- changes errorbar size
-	if sixPressed and event.type ~= "InputEventType_Release"then
+	if sixPressed and enabledErrorBar and event.type ~= "InputEventType_Release"then
 		if event.DeviceInput.button == "DeviceButton_up" then
 			errorBarHeight = errorBarHeight + 1
 			eb.Center:zoomtoheight(errorBarHeight)
@@ -207,12 +213,16 @@ local function input(event)
 	if sevenPressed and event.type ~= "InputEventType_Release"then
 		if event.DeviceInput.button == "DeviceButton_up" then
 			miniProgressBarY = miniProgressBarY - 5
-			mb:y(miniProgressBarY)
 			targetTrackerY = targetTrackerY - 5
-			if targetTrackerMode == 0 then
-				dt.PercentDifferential:y(targetTrackerY)
-			else
-				dt.PBDifferential:y(targetTrackerY)
+			if enabledMiniBar then
+				mb:y(miniProgressBarY)
+			end
+			if enabledTargetTracker then
+				if targetTrackerMode == 0 then
+					dt.PercentDifferential:y(targetTrackerY)
+				else
+					dt.PBDifferential:y(targetTrackerY)
+				end
 			end
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.MiniProgressBarY = miniProgressBarY
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.TargetTrackerY = targetTrackerY
@@ -220,12 +230,16 @@ local function input(event)
 		end
 		if event.DeviceInput.button == "DeviceButton_down" then
 			miniProgressBarY = miniProgressBarY + 5
-			mb:y(miniProgressBarY)
 			targetTrackerY = targetTrackerY + 5
-			if targetTrackerMode == 0 then
-				dt.PercentDifferential:y(targetTrackerY)
-			else
-				dt.PBDifferential:y(targetTrackerY)
+			if enabledMiniBar then
+				mb:y(miniProgressBarY)
+			end
+			if enabledTargetTracker then
+				if targetTrackerMode == 0 then
+					dt.PercentDifferential:y(targetTrackerY)
+				else
+					dt.PBDifferential:y(targetTrackerY)
+				end
 			end
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.MiniProgressBarY = miniProgressBarY
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.TargetTrackerY = targetTrackerY
@@ -233,27 +247,37 @@ local function input(event)
 		end
 		if event.DeviceInput.button == "DeviceButton_left" then
 			miniProgressBarX = miniProgressBarX - 5
-			mb:x(miniProgressBarX)
 			targetTrackerX = targetTrackerX - 5
-			if targetTrackerMode == 0 then
-				dt.PercentDifferential:x(targetTrackerX)
-			else
-				dt.PBDifferential:x(targetTrackerX)
+			if enabledMiniBar then
+				mb:x(miniProgressBarX)
+			end
+			if enabledTargetTracker then
+				if targetTrackerMode == 0 then
+					dt.PercentDifferential:x(targetTrackerX)
+				else
+					dt.PBDifferential:x(targetTrackerX)
+				end
 			end
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.MiniProgressBarX = miniProgressBarX
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.TargetTrackerX = targetTrackerX
+			changed = true
 		end
 		if event.DeviceInput.button == "DeviceButton_right" then
 			miniProgressBarX = miniProgressBarX + 5
-			mb:x(miniProgressBarX)
 			targetTrackerX = targetTrackerX + 5
-			if targetTrackerMode == 0 then
-				dt.PercentDifferential:x(targetTrackerX)
-			else
-				dt.PBDifferential:x(targetTrackerX)
+			if enabledMiniBar then
+				mb:x(miniProgressBarX)
+			end
+			if enabledTargetTracker then
+				if targetTrackerMode == 0 then
+					dt.PercentDifferential:x(targetTrackerX)
+				else
+					dt.PBDifferential:x(targetTrackerX)
+				end
 			end
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.MiniProgressBarX = miniProgressBarX
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.TargetTrackerX = targetTrackerX
+			changed = true
 		end
 		if changed then
 			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
@@ -262,7 +286,7 @@ local function input(event)
 		end
 	end
 	-- changes full progress bar x/y
-	if eightPressed and event.type ~= "InputEventType_Release"then
+	if eightPressed and enabledFullBar and event.type ~= "InputEventType_Release"then
 		if event.DeviceInput.button == "DeviceButton_up" then
 			fullProgressBarY = fullProgressBarY - 3
 			fb:y(fullProgressBarY)
@@ -294,7 +318,7 @@ local function input(event)
 		end
 	end
 	-- changes full progress bar width/height
-	if ninePressed and event.type ~= "InputEventType_Release"then
+	if ninePressed and enabledFullBar and event.type ~= "InputEventType_Release"then
 		if event.DeviceInput.button == "DeviceButton_up" then
 			fullProgressBarHeight = fullProgressBarHeight + 0.1
 			fb:zoomtoheight(fullProgressBarHeight)
@@ -376,7 +400,7 @@ d = Def.ActorFrame{
 if targetTrackerMode == 0 then
 	d[#d+1] = LoadFont("Common Normal")..{
 		Name = "PercentDifferential",
-		InitCommand=cmd(xy,CenterX+26,SCREEN_CENTER_Y+30;zoom,0.4;halign,0;valign,1),
+		InitCommand=cmd(xy,targetTrackerX,targetTrackerY;zoom,0.4;halign,0;valign,1),
 		JudgmentMessageCommand=function(self,msg)
 			local tDiff = msg.WifeDifferential
 			if tDiff >= 0 then 											
@@ -390,7 +414,7 @@ if targetTrackerMode == 0 then
 	else
 	d[#d+1] = LoadFont("Common Normal")..{
 		Name = "PBDifferential",
-		InitCommand=cmd(xy,CenterX+26,SCREEN_CENTER_Y+30;zoom,0.4;halign,0;valign,1),
+		InitCommand=cmd(xy,targetTrackerX,targetTrackerY;zoom,0.4;halign,0;valign,1),
 		JudgmentMessageCommand=function(self,msg)
 			local tDiff = msg.WifePBDifferential
 			if tDiff then
