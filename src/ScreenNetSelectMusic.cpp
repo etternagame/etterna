@@ -702,6 +702,7 @@ public:
 	{
 		ADD_METHOD(GetMusicWheel);
 		ADD_METHOD(SelectCurrent);
+	}
 };
 
 LUA_REGISTER_DERIVED_CLASS(ScreenNetSelectMusic, ScreenNetSelectBase)
