@@ -40,6 +40,7 @@ public:
 
 	virtual bool MenuStart( const InputEventPlus &input );
 	virtual bool MenuBack( const InputEventPlus &input );
+	bool SelectCurrent(PlayerNumber pn);
 
 	// ScreenWithMenuElements override: never play music here; we do it ourself.
 	virtual void StartPlayingMusic() { }
