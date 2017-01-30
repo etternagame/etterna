@@ -143,7 +143,7 @@ void AddPlayerStatsToProfile( Profile *pProfile, const StageStats &ss, PlayerNum
 	}
 
 	if (!pProfile->IsMachine()) {
-		//pProfile->ResetSSRs(true);
+		//pProfile->ResetSSRs(true);		redundant now? - mina
 		pProfile->RecalculateSSRs(true);
 		pProfile->CalcPlayerRating(pProfile->m_fPlayerRating, pProfile->m_fPlayerSkillsets);
 	}
