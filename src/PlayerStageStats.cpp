@@ -311,7 +311,7 @@ float PlayerStageStats::GetPercentDancePoints() const {
 float PlayerStageStats::GetWifeScore() const {
 	return m_fWifeScore;
 }
-vector<float> PlayerStageStats::CalcSSR() const {
+vector<float> PlayerStageStats::CalcSSR(float ssrpercent ) const {
 	auto nd = GAMESTATE->m_pCurSteps[m_player_number]->GetNoteData();
 	TimingData* td = GAMESTATE->m_pCurSteps[m_player_number]->GetTimingData();
 	float musicrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
@@ -323,7 +323,7 @@ vector<float> PlayerStageStats::CalcSSR() const {
 	for (size_t i = 0; i < nerv.size(); ++i)
 		etaner[i] = etar[nerv[i]];
 
-	return MinaSDCalc(nd, etaner, musicrate, m_fWifeScore, 1.f, td->HasWarps());
+	return MinaSDCalc(nd, etaner, musicrate, ssrpercent, 1.f, td->HasWarps());
 }
 float PlayerStageStats::GetTimingScale() const {
 	return m_fTimingScale;

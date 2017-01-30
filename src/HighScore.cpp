@@ -26,6 +26,7 @@ struct HighScoreImpl
 	unsigned int iScore;
 	float fPercentDP;
 	float fWifeScore;
+	float fSSRNormPercent;
 	float fSurviveSeconds;
 	float fMusicRate;
 	float fJudgeScale;
@@ -179,6 +180,7 @@ HighScoreImpl::HighScoreImpl()
 	iScore = 0;
 	fPercentDP = 0.f;
 	fWifeScore = 0.f;
+	fSSRNormPercent = 11111.f;
 	fMusicRate = 0.f;
 	fJudgeScale = 0.f;
 	bEtternaValid = true;
@@ -216,6 +218,7 @@ XNode *HighScoreImpl::CreateNode() const
 	pNode->AppendChild( "Score",			iScore );
 	pNode->AppendChild( "PercentDP",		fPercentDP );
 	pNode->AppendChild( "WifeScore",		fWifeScore);
+	pNode->AppendChild( "SSRNormPercent",	fSSRNormPercent);
 	pNode->AppendChild( "Rate",				fMusicRate);
 	pNode->AppendChild( "JudgeScale",		fJudgeScale);
 	pNode->AppendChild( "EtternaValid",		bEtternaValid);
@@ -255,7 +258,6 @@ XNode *HighScoreImpl::CreateNode() const
 	pNode->AppendChild( radarValues.CreateNode(bWriteSimpleValues, bWriteComplexValues) );
 	pNode->AppendChild( "LifeRemainingSeconds",	fLifeRemainingSeconds );
 	pNode->AppendChild( "Disqualified",		bDisqualified);
-
 	return pNode;
 }
 
@@ -273,6 +275,7 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 	pNode->GetChildValue("Score",				iScore);
 	pNode->GetChildValue("PercentDP",			fPercentDP);
 	pNode->GetChildValue("WifeScore",			fWifeScore);
+	pNode->GetChildValue("SSRNormPercent",		fSSRNormPercent);
 	pNode->GetChildValue("Rate",				fMusicRate);
 	pNode->GetChildValue("JudgeScale",			fJudgeScale);
 	pNode->GetChildValue("EtternaValid",		bEtternaValid);
@@ -373,11 +376,14 @@ bool HighScoreImpl::WriteReplayData() {
 
 
 bool HighScore::LoadReplayData() {
+	// already exists
+	if (m_Impl->vNoteRowVector.size() > 4 && m_Impl->vOffsetVector.size() > 4)
+		return true;
+
 	vector<int> vNoteRowVector;
 	vector<float> vOffsetVector;
 	RString profiledir = PROFILEMAN->currentlyloadingprofile;
 	std::ifstream fileStream(profiledir + "ReplayData/" + m_Impl->ScoreKey, ios::binary);
-	LOG->Trace(profiledir + "ReplayData/" + m_Impl->ScoreKey);
 	string line;
 	string buffer;
 	vector<string> tokens;
@@ -451,6 +457,7 @@ StageAward HighScore::GetStageAward() const { return m_Impl->stageAward; }
 PeakComboAward HighScore::GetPeakComboAward() const { return m_Impl->peakComboAward; }
 float HighScore::GetPercentDP() const { return m_Impl->fPercentDP; }
 float HighScore::GetWifeScore() const { return m_Impl->fWifeScore; }
+float HighScore::GetSSRNormPercent() const { return m_Impl->fSSRNormPercent; }
 float HighScore::GetMusicRate() const { return m_Impl->fMusicRate; }
 float HighScore::GetJudgeScale() const { return m_Impl->fJudgeScale; }
 bool HighScore::GetEtternaValid() const { return m_Impl->bEtternaValid; }
@@ -478,6 +485,7 @@ void HighScore::SetStageAward( StageAward a ) { m_Impl->stageAward = a; }
 void HighScore::SetPeakComboAward( PeakComboAward a ) { m_Impl->peakComboAward = a; }
 void HighScore::SetPercentDP( float f ) { m_Impl->fPercentDP = f; }
 void HighScore::SetWifeScore(float f) {m_Impl->fWifeScore = f;}
+void HighScore::SetSSRNormPercent(float f) { m_Impl->fSSRNormPercent = f; }
 void HighScore::SetMusicRate(float f) { m_Impl->fMusicRate = f; }
 void HighScore::SetJudgeScale(float f) { m_Impl->fJudgeScale = f; }
 void HighScore::SetEtternaValid(bool b) { m_Impl->bEtternaValid = b; }
@@ -564,9 +572,15 @@ void HighScore::LoadFromNode( const XNode* pNode )
 		m_Impl->bEtternaValid = false;
 	}
 
-	LOG->Trace("%i", m_Impl->vOffsetVector.size());
-	LoadReplayData();
-	LOG->Trace("%i", m_Impl->vOffsetVector.size());
+	if (m_Impl->fSSRNormPercent == 11111.f) {
+		if (m_Impl->grade != Grade_Failed)
+			m_Impl->fSSRNormPercent = RescoreToWifeJudge(4);
+		else
+			m_Impl->fSSRNormPercent = m_Impl->fWifeScore;
+
+		m_Impl->vNoteRowVector.clear();
+		m_Impl->vOffsetVector.clear();
+	}
 }
 
 RString HighScore::GetDisplayName() const
@@ -750,22 +764,27 @@ void Screenshot::LoadFromNode( const XNode* pNode )
 }
 
 float HighScore::RescoreToWifeJudge(int x) {
+	if (!LoadReplayData())
+		return m_Impl->fWifeScore;
+
 	const float tso[] = { 1.50f,1.33f,1.16f,1.00f,0.84f,0.66f,0.50f,0.33f,0.20f };
 	float ts = tso[x-1];
 	float p = 0;
 	FOREACH_CONST(float, m_Impl->vOffsetVector, f)
 		p += wife2(*f, ts);
 
-	return p / (m_Impl->vOffsetVector.size() * 2);
+	p += (m_Impl->iHoldNoteScores[HNS_LetGo] + m_Impl->iHoldNoteScores[HNS_Missed]) * -6.f;
+	return p / static_cast<float>(m_Impl->vOffsetVector.size() * 2);
 }
 
+// do not use for now- mina
 float HighScoreImpl::RescoreToWifeTS(float ts) {
 	float p = 0;
 	FOREACH_CONST(float, vOffsetVector, f)
 		p += wife2(*f, ts);
 
-	p += (iHoldNoteScores[HNS_LetGo] + iHoldNoteScores[HNS_Missed]) * -6;
-	return p / (vOffsetVector.size() * 2);
+	p += (iHoldNoteScores[HNS_LetGo] + iHoldNoteScores[HNS_Missed]) * -6.f;
+	return p / static_cast<float>(vOffsetVector.size() * 2);
 }
 
 float HighScore::RescoreToDPJudge(int x) {

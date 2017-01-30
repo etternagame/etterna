@@ -2216,9 +2216,9 @@ void Profile::RecalculateSSRs(bool OnlyOld) {
 
 			vector<float> etaner;
 			for (size_t i = 0; i < hsv.size(); i++) {
-				float wifescore = hsv[i].GetWifeScore();
+				float ssrpercent = hsv[i].GetSSRNormPercent();
 				float musicrate = hsv[i].GetMusicRate();
-				if (wifescore <= 0.f || hsv[i].GetGrade() == Grade_Failed)
+				if (ssrpercent <= 0.f || hsv[i].GetGrade() == Grade_Failed)
 					FOREACH_ENUM(Skillset, ss)
 						hsv[i].SetSkillsetSSR(ss, 0.f);
 				else {
@@ -2236,7 +2236,7 @@ void Profile::RecalculateSSRs(bool OnlyOld) {
 							etaner.emplace_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(nerv[i])));
 					}
 
-					vector<float> recalcSSR = MinaSDCalc(nd, etaner, musicrate, wifescore, 1.f, false);
+					vector<float> recalcSSR = MinaSDCalc(nd, etaner, musicrate, ssrpercent, 1.f, false);
 					FOREACH_ENUM(Skillset, ss)
 						hsv[i].SetSkillsetSSR(ss, recalcSSR[ss]);
 					hsv[i].SetSSRCalcVersion(GetCalcVersion());

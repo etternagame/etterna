@@ -137,13 +137,21 @@ static HighScore FillInHighScore( const PlayerStageStats &pss, const PlayerState
 	HighScore hs;
 	hs.SetName( sRankingToFillInMarker );
 
+	hs.SetOffsetVector(pss.GetOffsetVector());
+	hs.SetNoteRowVector(pss.GetNoteRowVector());
+
 	auto chartKey = GAMESTATE->m_pCurSteps[ps.m_PlayerNumber]->GetChartKey();
 	hs.SetHistoricChartKey(chartKey);
 	hs.SetGrade( pss.GetGrade() );
 	hs.SetScore( pss.m_iScore );
 	hs.SetPercentDP( pss.GetPercentDancePoints() );
 	hs.SetWifeScore( pss.GetWifeScore());
-	
+
+	if(pss.GetGrade() == Grade_Failed)
+		hs.SetSSRNormPercent(0.f);
+	else
+		hs.SetSSRNormPercent( hs.RescoreToWifeJudge(4));
+
 	// should prolly be its own fun - mina
 	hs.SetEtternaValid(true);
 	if (pss.GetGrade() == Grade_Failed || pss.m_fWifeScore < 0.1f || GAMESTATE->m_pCurSteps[ps.m_PlayerNumber]->m_StepsType != StepsType_dance_single)
@@ -154,7 +162,7 @@ static HighScore FillInHighScore( const PlayerStageStats &pss, const PlayerState
 			hs.SetEtternaValid(false);
 
 	if (hs.GetEtternaValid()) {
-		vector<float> dakine = pss.CalcSSR();
+		vector<float> dakine = pss.CalcSSR(hs.GetSSRNormPercent());
 		FOREACH_ENUM(Skillset, ss)
 			hs.SetSkillsetSSR(ss, dakine[ss]);
 	} else {
@@ -164,8 +172,6 @@ static HighScore FillInHighScore( const PlayerStageStats &pss, const PlayerState
 
 	hs.SetMusicRate( GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 	hs.SetJudgeScale( pss.GetTimingScale());
-	hs.SetOffsetVector( pss.GetOffsetVector());
-	hs.SetNoteRowVector( pss.GetNoteRowVector());
 	hs.SetAliveSeconds( pss.m_fAliveSeconds );
 	hs.SetMaxCombo( pss.GetMaxCombo().m_cnt );
 	hs.SetStageAward( pss.m_StageAward );
