@@ -250,6 +250,10 @@ public:
 
 	void AddToFavorites(RString ck) { FavoritedCharts.emplace_back(ck); }
 	void RemoveFromFavorites(RString ck);
+
+	// doesn't work properly yet - mina
+	vector<HighScore> GetScoresByKey(RString ck);
+
 	// Vector for now, we can make this more efficient later
 	vector<RString> FavoritedCharts;
 

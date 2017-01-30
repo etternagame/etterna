@@ -2074,6 +2074,23 @@ void Profile::GetScoresByKey(vector<SongID>& songids, vector<StepsID>& stepsids,
 	}
 }
 
+// new function that uses the chartkey indexed map
+vector<HighScore> Profile::GetScoresByKey(RString ck) {
+	auto songids = SONGMAN->SongIDsByChartkey[ck];
+	auto stepsids = SONGMAN->StepsIDsByChartkey[ck];
+	vector<HighScore> o;
+
+	for (int i = 0; i < songids.size(); ++i) {
+		auto hsfas = m_SongHighScores[songids[i]].m_StepsHighScores;
+		vector<HighScore>& scores = hsfas[stepsids[i]].hsl.vHighScores;
+		for (int ii = 0; ii < scores.size(); ++ii) {			
+			o.emplace_back(scores[ii]);
+		}
+	}
+
+	return o;
+}
+
 float Profile::GetWifePBByKey(RString key) {
 	float o = 0.f;
 	FOREACHM_CONST(SongID, HighScoresForASong, m_SongHighScores, i) {
