@@ -847,17 +847,17 @@ Grade HighScore::GetWifeGrade() {
 		return Grade_Failed;
 
 	float wifescore = GetWifeScore();
-	if (wifescore >= 0.9998)
+	if (wifescore >= 0.9998f)
 		return Grade_Tier01;
-	if (wifescore >= 0.9975)
+	if (wifescore >= 0.9975f)
 		return Grade_Tier02;
-	if (wifescore >= 0.93)
+	if (wifescore >= 0.93f)
 		return Grade_Tier03;
-	if (wifescore >= 0.8)
+	if (wifescore >= 0.8f)
 		return Grade_Tier04;
-	if (wifescore >= 0.7)
+	if (wifescore >= 0.7f)
 		return Grade_Tier05;
-	if (wifescore >= 0.6)
+	if (wifescore >= 0.6f)
 		return Grade_Tier06;
 	return Grade_Tier07;
 }
