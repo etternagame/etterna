@@ -616,7 +616,7 @@ void HighScoreList::AddHighScore( HighScore hs, int &iIndexOut, bool bIsMachine 
 	//
 	if( !bIsMachine )
 		ClampSize( bIsMachine );
-	HighGrade = min( hs.GetGrade(), HighGrade );
+	HighGrade = min( hs.GetWifeGrade(), HighGrade);
 }
 
 void HighScoreList::IncrementPlayCount( DateTime _dtLastPlayed )
@@ -690,7 +690,7 @@ void HighScoreList::LoadFromNode( const XNode* pHighScoreList )
 			if( vHighScores.back().GetScore() == 0 )
 				vHighScores.pop_back();
 			else
-				HighGrade = min( vHighScores.back().GetGrade(), HighGrade );
+				HighGrade = min( vHighScores.back().GetWifeGrade(), HighGrade );
 		}
 	}
 }
