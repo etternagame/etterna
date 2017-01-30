@@ -2113,14 +2113,16 @@ void Profile::CalcPlayerRating(float& prating, float* pskillsets) const {
 	vector<float> demskillas[NUM_Skillset];
 	FOREACHM_CONST(SongID, HighScoresForASong, m_SongHighScores, i) {
 		const SongID& id = i->first;
-		// skip files that can't be loaded since we can't verify their ssrs - mina
-		if (!id.IsValid())
-			continue;
 		const HighScoresForASong& hsfas = i->second;
 		FOREACHM_CONST(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
-			const StepsID& sid = j->first;
-			if (sid.GetStepsType() != StepsType_dance_single)
+			Steps* pSteps = SONGMAN->GetStepsByChartkey(j->first);
+
+			if (!pSteps)
 				continue;
+
+			if (!pSteps->IsRecalcValid())
+				continue;
+
 			const HighScoresForASteps& zz = j->second;
 			const vector<HighScore>& hsv = zz.hsl.vHighScores;
 			for (size_t i = 0; i < hsv.size(); i++) {
