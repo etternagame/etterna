@@ -2335,7 +2335,6 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 	vector<float> topSSRs; //Auxiliary vector to sort faster
 
 	//Pointers to the skillset's vectors
-	//vector<HighScore*> *topSSRHighScoresPtr = &topSSRHighScores[skillset];
 	vector<vector<HighScore>*> *topSSRHighScoreListsPtr = &topSSRHighScoreLists[skillset];
 	vector<unsigned int> *topSSRHighScoreIndexsPtr = &topSSRHighScoreIndexs[skillset];
 	vector<RString> *topSSRChartkeysPtr = &topSSRChartkeys[skillset];
@@ -2349,7 +2348,6 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 	HighScore* emptyHighScorePtr = NULL;
 	vector<HighScore>* emptyHighScoreListsPtr = NULL;
 	(*topSSRChartkeysPtr).clear();
-	//(*topSSRHighScoresPtr).clear();
 	(*topSSRHighScoreListsPtr).clear();
 	(*topSSRHighScoreIndexsPtr).clear();
 
@@ -2360,7 +2358,6 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 	for (unsigned int i = 0; i < qty; i++) {
 		topSSRs.emplace_back(0);
 		(*topSSRChartkeysPtr).emplace_back("");
-		//(*topSSRHighScoresPtr).emplace_back(emptyHighScorePtr);
 		(*topSSRHighScoreListsPtr).emplace_back(emptyHighScoreListsPtr);
 		(*topSSRHighScoreIndexsPtr).emplace_back(0);
 	}
@@ -2381,19 +2378,19 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
 		const SongID& id = i->first;
 
-		if (!id.IsValid())
-			continue;
-
 		HighScoresForASong& hsfas = i->second;
 		FOREACHM(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
 			HighScoresForASteps& zz = j->second;
 			const StepsID& stepsid = j->first;
 			vector<HighScore>& hsv = zz.hsl.vHighScores;
-			if (!stepsid.IsValid() || stepsid.GetStepsType() != StepsType_dance_single)
-				continue;
-			Steps* psteps = stepsid.ToSteps(id.ToSong(), true);
+
+			Steps* psteps = SONGMAN->GetStepsByChartkey(stepsid);
 			if (!psteps)
 				continue;
+
+			if (!psteps->IsRecalcValid())
+				continue;
+
 			for (int i = 0;i < 60;i++) {
 				temp[i].ssr = 0;
 				temp[i].pos = 0;
@@ -2417,7 +2414,6 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 					if (replaced) {
 						topSSRs.erase(topSSRs.begin() + temp[rate - 1].pos);
 						(*topSSRChartkeysPtr).erase((*topSSRChartkeysPtr).begin() + temp[rate - 1].pos);
-						//(*topSSRHighScoresPtr).erase((*topSSRHighScoresPtr).begin() + temp[rate - 1].pos);
 						(*topSSRHighScoreListsPtr).erase((*topSSRHighScoreListsPtr).begin() + temp[rate - 1].pos);
 						(*topSSRHighScoreIndexsPtr).erase((*topSSRHighScoreIndexsPtr).begin() + temp[rate - 1].pos);
 						//qty--;
@@ -2435,7 +2431,6 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 					//insert in the proper place
 					topSSRs.emplace(topSSRs.begin() + poscounter, ssr);
 					(*topSSRChartkeysPtr).emplace((*topSSRChartkeysPtr).begin() + poscounter, stepsid.GetKey());
-					//(*topSSRHighScoresPtr).insert((*topSSRHighScoresPtr).begin() + poscounter, &(hsv[i]));
 					(*topSSRHighScoreListsPtr).emplace((*topSSRHighScoreListsPtr).begin() + poscounter, &hsv);
 					(*topSSRHighScoreIndexsPtr).emplace((*topSSRHighScoreIndexsPtr).begin() + poscounter, i+1);
 
@@ -2445,12 +2440,9 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 						counter++;
 						topSSRs.pop_back();
 						(*topSSRChartkeysPtr).pop_back();
-						//(*topSSRHighScoresPtr).pop_back();
 						(*topSSRHighScoreListsPtr).pop_back();
 						(*topSSRHighScoreIndexsPtr).pop_back();
 					}
-					//else
-						//qty++;
 				}
 			}
 		}
@@ -2464,18 +2456,14 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 
 
 void Profile::TopSSRsAddNewScore(HighScore *hs, StepsID stepsid, SongID songid) {
-	if (!songid.IsValid())
-		return;
-
-	if (!stepsid.IsValid() || stepsid.GetStepsType() != StepsType_dance_single)
-		return;
-
-	Steps* psteps = stepsid.ToSteps(songid.ToSong(), true);
+	Steps* psteps = SONGMAN->GetStepsByChartkey(stepsid);
 	if (!psteps)
 		return;
 
-	for (int skillset = 0; skillset < NUM_Skillset; skillset++) {
+	if (!psteps->IsRecalcValid())
+		return;
 
+	for (int skillset = 0; skillset < NUM_Skillset; skillset++) {
 		//Pointers to the skillset's vectors
 		vector<unsigned int> *topSSRHighScoreIndexsPtr = &topSSRHighScoreIndexs[skillset];
 		vector<vector<HighScore>*> *topSSRHighScoreListsPtr = &topSSRHighScoreLists[skillset];
