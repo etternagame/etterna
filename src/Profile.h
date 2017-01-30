@@ -460,6 +460,7 @@ public:
 	HighScore* GetTopSSRHighScore(unsigned int rank, int skillset);
 	SongID GetTopSSRSongID(unsigned int rank, int skillset);
 	StepsID GetTopSSRStepsID(unsigned int rank, int skillset);
+	RString GetTopSSRChartkey(unsigned int rank, int skillset);
 	float GetTopSSRValue(unsigned int rank, int skillset);
 	RString GetTopSSRSongName(unsigned int rank, int skillset);
 	//Vector array instead of a bunch of vectors
@@ -468,6 +469,7 @@ public:
 	vector<vector<HighScore>*> topSSRHighScoreLists[NUM_Skillset];
 	vector<unsigned int> topSSRHighScoreIndexs[NUM_Skillset];//we work with index+1 so 0 is undefined
 	vector<StepsID> topSSRStepIds[NUM_Skillset];
+	vector<RString> topSSRChartkeys[NUM_Skillset];
 
 private:
 	const HighScoresForASong *GetHighScoresForASong( const SongID& songID ) const;

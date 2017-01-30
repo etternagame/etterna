@@ -2248,14 +2248,12 @@ void Profile::RecalculateSSRs(bool OnlyOld) {
 
 
 RString Profile::GetTopSSRSongName(unsigned int rank, int skillset) {
-	SongID songid = GetTopSSRSongID(rank, skillset);
-	SongID emptySong;
-	if (songid == emptySong) {
-		RString emptyString;
-		emptyString = ' ';
-		return emptyString;
-	}
-	return ( songid.ToSong() )->GetMainTitle();
+	RString ck = GetTopSSRChartkey(rank, skillset);
+	Song* pSong = SONGMAN->GetSongByChartkey(ck);
+	if (!pSong)
+		return "";
+
+	return pSong->GetMainTitle();
 }
 float Profile::GetTopSSRValue(unsigned int rank, int skillset) {
 	if (rank <= 0)
@@ -2302,6 +2300,20 @@ StepsID Profile::GetTopSSRStepsID(unsigned int rank, int skillset) {
 	//Undefined skillset 
 	StepsID emptyStepID;
 	return emptyStepID;
+}
+RString Profile::GetTopSSRChartkey(unsigned int rank, int skillset) {
+	if (rank <= 0)
+		rank = 1;
+	if (rank > static_cast<unsigned int>(topSSRChartkeys[skillset].size()))
+		if (CalcTopSSRs(rank, skillset) == false) {
+			return "";
+		}
+
+	if (skillset >= 0 && skillset < NUM_Skillset)
+		return topSSRChartkeys[skillset][rank - 1];
+
+	//Undefined skillset
+	return "";
 }
 HighScore* Profile::GetTopSSRHighScore(unsigned int rank, int skillset) {
 	if (rank <= 0)
@@ -2352,6 +2364,7 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 	vector<unsigned int> *topSSRHighScoreIndexsPtr = &topSSRHighScoreIndexs[skillset];
 	vector<StepsID> *topSSRStepIdsPtr = &topSSRStepIds[skillset];
 	vector<SongID> *topSSRSongIdsPtr = &topSSRSongIds[skillset];
+	vector<RString> *topSSRChartkeysPtr = &topSSRChartkeys[skillset];
 
 	//Counter to see if we meet the required ranking size
 	unsigned int counter = 0;
@@ -2365,6 +2378,7 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 	vector<HighScore>* emptyHighScoreListsPtr = NULL;
 	(*topSSRStepIdsPtr).clear();
 	(*topSSRSongIdsPtr).clear();
+	(*topSSRChartkeysPtr).clear();
 	//(*topSSRHighScoresPtr).clear();
 	(*topSSRHighScoreListsPtr).clear();
 	(*topSSRHighScoreIndexsPtr).clear();
@@ -2377,6 +2391,7 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 		topSSRs.emplace_back(0);
 		(*topSSRStepIdsPtr).emplace_back(emptySteps);
 		(*topSSRSongIdsPtr).emplace_back(emptySong);
+		(*topSSRChartkeysPtr).emplace_back("");
 		//(*topSSRHighScoresPtr).emplace_back(emptyHighScorePtr);
 		(*topSSRHighScoreListsPtr).emplace_back(emptyHighScoreListsPtr);
 		(*topSSRHighScoreIndexsPtr).emplace_back(0);
@@ -2435,6 +2450,7 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 						(*topSSRStepIdsPtr).erase((*topSSRStepIdsPtr).begin() + temp[rate - 1].pos);
 						topSSRs.erase(topSSRs.begin() + temp[rate - 1].pos);
 						(*topSSRSongIdsPtr).erase((*topSSRSongIdsPtr).begin() + temp[rate - 1].pos);
+						(*topSSRChartkeysPtr).erase((*topSSRChartkeysPtr).begin() + temp[rate - 1].pos);
 						//(*topSSRHighScoresPtr).erase((*topSSRHighScoresPtr).begin() + temp[rate - 1].pos);
 						(*topSSRHighScoreListsPtr).erase((*topSSRHighScoreListsPtr).begin() + temp[rate - 1].pos);
 						(*topSSRHighScoreIndexsPtr).erase((*topSSRHighScoreIndexsPtr).begin() + temp[rate - 1].pos);
@@ -2454,6 +2470,7 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 					(*topSSRStepIdsPtr).insert((*topSSRStepIdsPtr).begin() + poscounter, stepsid);
 					topSSRs.insert(topSSRs.begin() + poscounter, ssr);
 					(*topSSRSongIdsPtr).insert((*topSSRSongIdsPtr).begin() + poscounter, id);
+					(*topSSRChartkeysPtr).emplace((*topSSRChartkeysPtr).begin() + poscounter, stepsid.GetKey());
 					//(*topSSRHighScoresPtr).insert((*topSSRHighScoresPtr).begin() + poscounter, &(hsv[i]));
 					(*topSSRHighScoreListsPtr).insert((*topSSRHighScoreListsPtr).begin() + poscounter, &hsv);
 					(*topSSRHighScoreIndexsPtr).insert((*topSSRHighScoreIndexsPtr).begin() + poscounter, i+1);
@@ -2465,6 +2482,7 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 						topSSRs.pop_back();
 						(*topSSRStepIdsPtr).pop_back();
 						(*topSSRSongIdsPtr).pop_back();
+						(*topSSRChartkeysPtr).pop_back();
 						//(*topSSRHighScoresPtr).pop_back();
 						(*topSSRHighScoreListsPtr).pop_back();
 						(*topSSRHighScoreIndexsPtr).pop_back();
