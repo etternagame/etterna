@@ -372,20 +372,23 @@ bool HighScoreImpl::WriteReplayData() {
 }
 
 
-void HighScore::LoadReplayData() {
+bool HighScore::LoadReplayData() {
 	vector<int> vNoteRowVector;
 	vector<float> vOffsetVector;
-	std::ifstream fileStream(m_Impl->ScoreKey, ios::binary);
+	RString profiledir = PROFILEMAN->currentlyloadingprofile;
+	std::ifstream fileStream(profiledir + "ReplayData/" + m_Impl->ScoreKey, ios::binary);
+	LOG->Trace(profiledir + "ReplayData/" + m_Impl->ScoreKey);
 	string line;
 	string buffer;
 	vector<string> tokens;
 	stringstream ss;
 	int noteRow;
 	float offset;
+
 	//check file
-	if (!fileStream) {
-		throw std::runtime_error("Could not open file.");
-	}
+	if (!fileStream)
+		return false;
+
 	//loop until eof
 	while (getline(fileStream, line))
 	{
@@ -410,6 +413,7 @@ void HighScore::LoadReplayData() {
 	fileStream.close();
 	SetNoteRowVector(vNoteRowVector);
 	SetOffsetVector(vOffsetVector);
+	return true;
 }
 
 REGISTER_CLASS_TRAITS( HighScoreImpl, new HighScoreImpl(*pCopy) )
@@ -559,6 +563,10 @@ void HighScore::LoadFromNode( const XNode* pNode )
 		// auto flag any converted files as invalid and let the player choose whether or not to validate them
 		m_Impl->bEtternaValid = false;
 	}
+
+	LOG->Trace("%i", m_Impl->vOffsetVector.size());
+	LoadReplayData();
+	LOG->Trace("%i", m_Impl->vOffsetVector.size());
 }
 
 RString HighScore::GetDisplayName() const
