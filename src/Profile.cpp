@@ -2269,22 +2269,6 @@ float Profile::GetTopSSRValue(unsigned int rank, int skillset) {
 	//Undefined skillset
 	return 0.f;
 }
-SongID Profile::GetTopSSRSongID(unsigned int rank, int skillset) {
-	if (rank <= 0)
-		rank = 1;
-	if (rank > static_cast<unsigned int>(topSSRSongIds[skillset].size()))
-		if (CalcTopSSRs(rank, skillset) == false) {
-			SongID emptySongID;
-			return emptySongID;
-		}
-
-	if (skillset >= 0 && skillset < NUM_Skillset)
-		return topSSRSongIds[skillset][rank - 1];
-
-	//Undefined skillset 
-	SongID emptysongID;
-	return emptysongID;
-}
 Song* Profile::GetTopSSRSong(unsigned int rank, int skillset) {
 	RString ck = GetTopSSRChartkey(rank, skillset);
 	return SONGMAN->GetSongByChartkey(ck);
@@ -2292,22 +2276,6 @@ Song* Profile::GetTopSSRSong(unsigned int rank, int skillset) {
 Steps* Profile::GetTopSSRSteps(unsigned int rank, int skillset) {
 	RString ck = GetTopSSRChartkey(rank, skillset);
 	return SONGMAN->GetStepsByChartkey(ck);
-}
-StepsID Profile::GetTopSSRStepsID(unsigned int rank, int skillset) {
-	if (rank <= 0)
-		rank = 1;
-	if (rank > static_cast<unsigned int>(topSSRStepIds[skillset].size()))
-		if (CalcTopSSRs(rank, skillset) == false) {
-			StepsID emptyStepID;
-			return emptyStepID;
-		}
-
-	if (skillset >= 0 && skillset < NUM_Skillset)
-		return topSSRStepIds[skillset][rank - 1];
-
-	//Undefined skillset 
-	StepsID emptyStepID;
-	return emptyStepID;
 }
 RString Profile::GetTopSSRChartkey(unsigned int rank, int skillset) {
 	if (rank <= 0)
@@ -2370,8 +2338,6 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 	//vector<HighScore*> *topSSRHighScoresPtr = &topSSRHighScores[skillset];
 	vector<vector<HighScore>*> *topSSRHighScoreListsPtr = &topSSRHighScoreLists[skillset];
 	vector<unsigned int> *topSSRHighScoreIndexsPtr = &topSSRHighScoreIndexs[skillset];
-	vector<StepsID> *topSSRStepIdsPtr = &topSSRStepIds[skillset];
-	vector<SongID> *topSSRSongIdsPtr = &topSSRSongIds[skillset];
 	vector<RString> *topSSRChartkeysPtr = &topSSRChartkeys[skillset];
 
 	//Counter to see if we meet the required ranking size
@@ -2380,12 +2346,8 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 	unsigned int poscounter;
 
 	//Initialize vectors
-	StepsID emptySteps;
-	SongID emptySong;
 	HighScore* emptyHighScorePtr = NULL;
 	vector<HighScore>* emptyHighScoreListsPtr = NULL;
-	(*topSSRStepIdsPtr).clear();
-	(*topSSRSongIdsPtr).clear();
 	(*topSSRChartkeysPtr).clear();
 	//(*topSSRHighScoresPtr).clear();
 	(*topSSRHighScoreListsPtr).clear();
@@ -2397,8 +2359,6 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 
 	for (unsigned int i = 0; i < qty; i++) {
 		topSSRs.emplace_back(0);
-		(*topSSRStepIdsPtr).emplace_back(emptySteps);
-		(*topSSRSongIdsPtr).emplace_back(emptySong);
 		(*topSSRChartkeysPtr).emplace_back("");
 		//(*topSSRHighScoresPtr).emplace_back(emptyHighScorePtr);
 		(*topSSRHighScoreListsPtr).emplace_back(emptyHighScoreListsPtr);
@@ -2455,9 +2415,7 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 
 
 					if (replaced) {
-						(*topSSRStepIdsPtr).erase((*topSSRStepIdsPtr).begin() + temp[rate - 1].pos);
 						topSSRs.erase(topSSRs.begin() + temp[rate - 1].pos);
-						(*topSSRSongIdsPtr).erase((*topSSRSongIdsPtr).begin() + temp[rate - 1].pos);
 						(*topSSRChartkeysPtr).erase((*topSSRChartkeysPtr).begin() + temp[rate - 1].pos);
 						//(*topSSRHighScoresPtr).erase((*topSSRHighScoresPtr).begin() + temp[rate - 1].pos);
 						(*topSSRHighScoreListsPtr).erase((*topSSRHighScoreListsPtr).begin() + temp[rate - 1].pos);
@@ -2475,21 +2433,17 @@ bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
 					temp[rate - 1].ssr = ssr;
 
 					//insert in the proper place
-					(*topSSRStepIdsPtr).insert((*topSSRStepIdsPtr).begin() + poscounter, stepsid);
-					topSSRs.insert(topSSRs.begin() + poscounter, ssr);
-					(*topSSRSongIdsPtr).insert((*topSSRSongIdsPtr).begin() + poscounter, id);
+					topSSRs.emplace(topSSRs.begin() + poscounter, ssr);
 					(*topSSRChartkeysPtr).emplace((*topSSRChartkeysPtr).begin() + poscounter, stepsid.GetKey());
 					//(*topSSRHighScoresPtr).insert((*topSSRHighScoresPtr).begin() + poscounter, &(hsv[i]));
-					(*topSSRHighScoreListsPtr).insert((*topSSRHighScoreListsPtr).begin() + poscounter, &hsv);
-					(*topSSRHighScoreIndexsPtr).insert((*topSSRHighScoreIndexsPtr).begin() + poscounter, i+1);
+					(*topSSRHighScoreListsPtr).emplace((*topSSRHighScoreListsPtr).begin() + poscounter, &hsv);
+					(*topSSRHighScoreIndexsPtr).emplace((*topSSRHighScoreIndexsPtr).begin() + poscounter, i+1);
 
 
 					//erase last element to keep the same amount of elements(qty)
 					if (!replaced) {
 						counter++;
 						topSSRs.pop_back();
-						(*topSSRStepIdsPtr).pop_back();
-						(*topSSRSongIdsPtr).pop_back();
 						(*topSSRChartkeysPtr).pop_back();
 						//(*topSSRHighScoresPtr).pop_back();
 						(*topSSRHighScoreListsPtr).pop_back();
@@ -2525,11 +2479,9 @@ void Profile::TopSSRsAddNewScore(HighScore *hs, StepsID stepsid, SongID songid) 
 		//Pointers to the skillset's vectors
 		vector<unsigned int> *topSSRHighScoreIndexsPtr = &topSSRHighScoreIndexs[skillset];
 		vector<vector<HighScore>*> *topSSRHighScoreListsPtr = &topSSRHighScoreLists[skillset];
-		vector<StepsID> *topSSRStepIdsPtr = &topSSRStepIds[skillset];
-		vector<SongID> *topSSRSongIdsPtr = &topSSRSongIds[skillset];
-
+		vector<RString> *topSSRChartkeyPtr = &topSSRChartkeys[skillset];
 		
-		unsigned int qty = (*topSSRSongIdsPtr).size();
+		unsigned int qty = (*topSSRChartkeyPtr).size();
 		if (qty == 0)
 			continue;
 

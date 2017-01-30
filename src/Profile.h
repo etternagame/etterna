@@ -458,19 +458,15 @@ public:
 	void TopSSRsAddNewScore(HighScore *hs, StepsID stepsid, SongID songid);
 	float GetTopSSRMSD(unsigned int rank, int skillset);
 	HighScore* GetTopSSRHighScore(unsigned int rank, int skillset);
-	SongID GetTopSSRSongID(unsigned int rank, int skillset);
-	StepsID GetTopSSRStepsID(unsigned int rank, int skillset);
 	RString GetTopSSRChartkey(unsigned int rank, int skillset);
 	float GetTopSSRValue(unsigned int rank, int skillset);
 	Song* GetTopSSRSong(unsigned int rank, int skillset);
 	Steps* GetTopSSRSteps(unsigned int rank, int skillset);
 	RString GetTopSSRSongName(unsigned int rank, int skillset);
 	//Vector array instead of a bunch of vectors
-	vector<SongID> topSSRSongIds[NUM_Skillset];
 	//vector<HighScore*> topSSRHighScores[NUM_Skillset];
 	vector<vector<HighScore>*> topSSRHighScoreLists[NUM_Skillset];
 	vector<unsigned int> topSSRHighScoreIndexs[NUM_Skillset];//we work with index+1 so 0 is undefined
-	vector<StepsID> topSSRStepIds[NUM_Skillset];
 	vector<RString> topSSRChartkeys[NUM_Skillset];
 
 private:
