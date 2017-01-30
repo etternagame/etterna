@@ -2285,6 +2285,14 @@ SongID Profile::GetTopSSRSongID(unsigned int rank, int skillset) {
 	SongID emptysongID;
 	return emptysongID;
 }
+Song* Profile::GetTopSSRSong(unsigned int rank, int skillset) {
+	RString ck = GetTopSSRChartkey(rank, skillset);
+	return SONGMAN->GetSongByChartkey(ck);
+}
+Steps* Profile::GetTopSSRSteps(unsigned int rank, int skillset) {
+	RString ck = GetTopSSRChartkey(rank, skillset);
+	return SONGMAN->GetStepsByChartkey(ck);
+}
 StepsID Profile::GetTopSSRStepsID(unsigned int rank, int skillset) {
 	if (rank <= 0)
 		rank = 1;
@@ -3402,18 +3410,11 @@ public:
 		return 1;
 	}
 	static int GetSongFromSSR(T* p, lua_State *L) {
-		SongID id = p->GetTopSSRSongID(IArg(1), IArg(2));
-		id.ToSong()->PushSelf(L);
+		p->GetTopSSRSong(IArg(1), IArg(2))->PushSelf(L);
 		return 1;
 	}
 	static int GetStepsFromSSR(T* p, lua_State *L) {
-		StepsID stepsid = p->GetTopSSRStepsID(IArg(1), IArg(2));
-		SongID songid = p->GetTopSSRSongID(IArg(1), IArg(2));
-		Steps *steps = stepsid.ToSteps(songid.ToSong(), true);
-		if (steps != NULL)
-			steps->PushSelf(L);
-		else
-			lua_pushnil(L);
+		p->GetTopSSRSteps(IArg(1), IArg(2))->PushSelf(L);
 		return 1;
 	}
 	static int RecalcTopSSR(T* p, lua_State *L) {

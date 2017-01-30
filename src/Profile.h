@@ -462,6 +462,8 @@ public:
 	StepsID GetTopSSRStepsID(unsigned int rank, int skillset);
 	RString GetTopSSRChartkey(unsigned int rank, int skillset);
 	float GetTopSSRValue(unsigned int rank, int skillset);
+	Song* GetTopSSRSong(unsigned int rank, int skillset);
+	Steps* GetTopSSRSteps(unsigned int rank, int skillset);
 	RString GetTopSSRSongName(unsigned int rank, int skillset);
 	//Vector array instead of a bunch of vectors
 	vector<SongID> topSSRSongIds[NUM_Skillset];
