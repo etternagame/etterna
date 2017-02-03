@@ -50,14 +50,14 @@ t[#t+1] = Def.Actor{
 				playCount = 0
 				playTime = 0
 				noteCount = 0
-				level = 0
+				profileXP = 0
 			end; 
 		else
 			profileName = "No Profile"
 			playCount = 0
 			playTime = 0
 			noteCount = 0
-			level = 0
+			profileXP = 0
 		end;
 	end;
 	PlayerJoinedMessageCommand=cmd(queuecommand,"Set");
