@@ -21,7 +21,6 @@ local AvatarX = 0
 local AvatarY = SCREEN_HEIGHT-50
 local profileXP = 0
 
-
 t[#t+1] = Def.Actor{
 	BeginCommand=cmd(queuecommand,"Set");
 	SetCommand=function(self)
@@ -163,7 +162,7 @@ t[#t+1] = Def.ActorFrame{
 		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
 		FavoritesUpdatedMessageCommand=cmd(queuecommand,"Set"),
 	},
-	--Along with the level system, this need to be simplified. -Misterkister
+	-- --Along with the level system, this need to be simplified. -Misterkister
 	LoadFont("Common Normal") .. {
 		InitCommand=cmd(xy,SCREEN_CENTER_X,AvatarY+30;halign,0.5;zoom,0.35;diffuse,getMainColor('positive')),
 		BeginCommand=cmd(queuecommand,"Set"),
@@ -319,55 +318,14 @@ t[#t+1] = Def.ActorFrame{
 		elseif profileXP > 274877906944 and profileXP < 549755813888 then
 			self:settext("EXP Earned: "..profileXP.."/549755813888")
 		elseif profileXP == 549755813888 then
-			self:settext("EXP Earned: "..profileXP.."/1.0995116e+12")
-		--For someone that's been playing a lot in this game, this needs testing since these numbers are not in expanded form. -Misterkister
-		elseif profileXP > 549755813888 and profileXP < 1.0995116e+12 then
-			self:settext("EXP Earned: "..profileXP.."/1.0995116e+12")
-		elseif profileXP == 1.0995116e+12 then
-			self:settext("EXP Earned: "..profileXP.."/2.1990233e+12")
-		elseif profileXP > 1.0995116e+12 and profileXP < 2.1990233e+12 then
-			self:settext("EXP Earned: "..profileXP.."/2.1990233e+12")
-		elseif profileXP == 2.1990233e+12 then
-			self:settext("EXP Earned: "..profileXP.."/4.3980465e+12")
-		elseif profileXP > 2.1990233e+12 and profileXP < 4.3980465e+12 then
-			self:settext("EXP Earned: "..profileXP.."/4.3980465e+12")
-		elseif profileXP == 4.3980465e+12 then
-			self:settext("EXP Earned: "..profileXP.."/8.796093e+12")
-		elseif profileXP > 4.3980465e+12 and profileXP < 8.796093e+12 then
-			self:settext("EXP Earned: "..profileXP.."/8.796093e+12")
-		elseif profileXP == 8.796093e+12 then
-			self:settext("EXP Earned: "..profileXP.."/1.7592186e+13")
-		elseif profileXP > 8.796093e+12 and profileXP < 1.7592186e+13 then
-			self:settext("EXP Earned: "..profileXP.."/1.7592186e+13")
-		elseif profileXP == 1.7592186e+13 then
-			self:settext("EXP Earned: "..profileXP.."/3.5184372e+13")
-		elseif profileXP > 1.7592186e+13 and profileXP < 3.5184372e+13 then
-			self:settext("EXP Earned: "..profileXP.."/3.5184372e+13")
-		elseif profileXP == 3.5184372e+13 then
-			self:settext("EXP Earned: "..profileXP.."/7.0368744e+13")
-		elseif profileXP > 3.5184372e+13 and profileXP < 7.0368744e+13 then
-			self:settext("EXP Earned: "..profileXP.."/7.0368744e+13")
-		elseif profileXP == 7.0368744e+13 then
-			self:settext("EXP Earned: "..profileXP.."/1.4073749e+14")
-		elseif profileXP > 7.0368744e+13 and profileXP < 1.4073749e+14 then
-			self:settext("EXP Earned: "..profileXP.."/1.4073749e+14")
-		elseif profileXP == 1.4073749e+14 then
-			self:settext("EXP Earned: "..profileXP.."/2.8147498e+14")
-		elseif profileXP > 1.4073749e+14 and profileXP < 2.8147498e+14 then
-			self:settext("EXP Earned: "..profileXP.."/2.8147498e+14")
-		elseif profileXP == 2.8147498e+14 then
-			self:settext("EXP Earned: "..profileXP.."/5.6294995e+14")
-		elseif profileXP > 2.8147498e+14 and profileXP < 5.6294995e+14 then
-			self:settext("EXP Earned: "..profileXP.."/5.6294995e+14")
-		elseif profileXP == 5.6294995e+14 then
-			self:settext("EXP Earned: "..profileXP.."/1.1258999e+15")
-		elseif profileXP > 5.6294995e+14 and profileXP < 1.1258999e+15 then
-			self:settext("EXP Earned: "..profileXP.."/1.1258999e+15")
-		--Maxed Out Level. -Misterkister
-		elseif profileXP == 1.1258999e+15 then
-			self:settext("EXP Earned: "..profileXP)
-		elseif profileXP > 1.1258999e+15 then
-			self:settext("EXP Earned: "..profileXP)
+			self:settext("EXP Earned: "..profileXP.."/999999999999")
+		--Maxed out exp. -Misterkister
+		elseif profileXP > 549755813888 and profileXP < 999999999999 then
+			self:settext("EXP Earned: "..profileXP.."/999999999999")
+		elseif profileXP == 999999999999 then
+			self:settext("EXP Earned: 999999999999/999999999999")
+		elseif profileXP > 999999999999 then
+			self:settext("EXP Earned: 999999999999/999999999999")
 		else
 			self:settext("EXP Earned: "..profileXP.."/4")
 			end
@@ -534,54 +492,13 @@ t[#t+1] = Def.ActorFrame{
 			self:settext("Overall Level: 38")
 		elseif profileXP == 549755813888 then
 			self:settext("Overall Level: 39")
-		--For someone that's been playing a lot in this game, this needs testing since these numbers are not in expanded form. -Misterkister
-		elseif profileXP > 549755813888 and profileXP < 1.0995116e+12 then
+		elseif profileXP > 549755813888 and profileXP < 999999999999 then
 			self:settext("Overall Level: 39")
-		elseif profileXP == 1.0995116e+12 then
+		--Level has been maxed out. -Misterkister
+		elseif profileXP == 999999999999 then
 			self:settext("Overall Level: 40")
-		elseif profileXP > 1.0995116e+12 and profileXP < 2.1990233e+12 then
+		elseif profileXP > 999999999999 then
 			self:settext("Overall Level: 40")
-		elseif profileXP == 2.1990233e+12 then
-			self:settext("Overall Level: 41")
-		elseif profileXP > 2.1990233e+12 and profileXP < 4.3980465e+12 then
-			self:settext("Overall Level: 41")
-		elseif profileXP == 4.3980465e+12 then
-			self:settext("Overall Level: 42")
-		elseif profileXP > 4.3980465e+12 and profileXP < 8.796093e+12 then
-			self:settext("Overall Level: 42")
-		elseif profileXP == 8.796093e+12 then
-			self:settext("Overall Level: 43")
-		elseif profileXP > 8.796093e+12 and profileXP < 1.7592186e+13 then
-			self:settext("Overall Level: 43")
-		elseif profileXP == 1.7592186e+13 then
-			self:settext("Overall Level: 44")
-		elseif profileXP > 1.7592186e+13 and profileXP < 3.5184372e+13 then
-			self:settext("Overall Level: 44")
-		elseif profileXP == 3.5184372e+13 then
-			self:settext("Overall Level: 45")
-		elseif profileXP > 3.5184372e+13 and profileXP < 7.0368744e+13 then
-			self:settext("Overall Level: 45")
-		elseif profileXP == 7.0368744e+13 then
-			self:settext("Overall Level: 46")
-		elseif profileXP > 7.0368744e+13 and profileXP < 1.4073749e+14 then
-			self:settext("Overall Level: 46")
-		elseif profileXP == 1.4073749e+14 then
-			self:settext("Overall Level: 47")
-		elseif profileXP > 1.4073749e+14 and profileXP < 2.8147498e+14 then
-			self:settext("Overall Level: 47")
-		elseif profileXP == 2.8147498e+14 then
-			self:settext("Overall Level: 48")
-		elseif profileXP > 2.8147498e+14 and profileXP < 5.6294995e+14 then
-			self:settext("Overall Level: 48")
-		elseif profileXP == 5.6294995e+14 then
-			self:settext("Overall Level: 49")
-		elseif profileXP > 5.6294995e+14 and profileXP < 1.1258999e+15 then
-			self:settext("Overall Level: 49")
-		--Maxed Out Level. -Misterkister
-		elseif profileXP == 1.1258999e+15 then
-			self:settext("Overall Level: 50")
-		elseif profileXP > 1.1258999e+15 then
-			self:settext("Overall Level: 50")
 		else
 			self:settext("Overall Level: 1")
 			end
