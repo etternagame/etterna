@@ -334,7 +334,7 @@ t[#t+1] = Def.ActorFrame{
 		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
 	},
 	--This is BY FAR the stupidest way to set the levels, but I'm going to put this here until someone find a proper efficient way to fix this.
-	--Levels are up to 50. Testing is needed around level 39. -Misterkister
+	--Levels are up to 40. Testing is needed around level 39. -Misterkister
 	--Algorithm is 2^x. -Misterkister
 	LoadFont("Common Normal") .. {
 		InitCommand=cmd(xy,SCREEN_CENTER_X,AvatarY+20;halign,0.5;zoom,0.35;diffuse,getMainColor('positive')),
