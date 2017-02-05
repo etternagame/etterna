@@ -2068,6 +2068,11 @@ bool ScreenSelectMusic::can_open_options_list(PlayerNumber pn)
 	return true;
 }
 
+int ScreenSelectMusic::GetSelectionState()
+{
+	return static_cast<int>(m_SelectionState);
+}
+
 
 // lua start
 #include "LuaBinding.h"
@@ -2102,6 +2107,10 @@ public:
 		return 1;
 	}
 
+	static int GetSelectionState(T* p, lua_State *L) {
+		lua_pushnumber(L, p->GetSelectionState());
+		return 1;
+	}
 	LunaScreenSelectMusic()
 	{
   		ADD_METHOD( GetGoToOptions );
@@ -2109,6 +2118,7 @@ public:
 		ADD_METHOD( OpenOptionsList );
 		ADD_METHOD( CanOpenOptionsList );
 		ADD_METHOD( SelectCurrent );
+		ADD_METHOD( GetSelectionState );
 	}
 };
 

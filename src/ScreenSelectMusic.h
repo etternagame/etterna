@@ -53,6 +53,8 @@ public:
 
 	bool can_open_options_list(PlayerNumber pn);
 
+	int GetSelectionState();
+
 	// Lua
 	virtual void PushSelf( lua_State *L );
 
