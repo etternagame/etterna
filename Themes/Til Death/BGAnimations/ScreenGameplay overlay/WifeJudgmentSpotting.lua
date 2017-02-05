@@ -88,33 +88,6 @@ local function froot(loop)
 	end
 end
 
-
---[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-								     **Wife deviance tracker. Basically half the point of the theme.**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-	For every doot there is an equal and opposite scoot.
-]]
-
-local t = Def.ActorFrame{										
-	Name = "WifePerch",
-	OnCommand=function()
-		SCREENMAN:GetTopScreen():AddInputCallback(froot)
-	end,
-	JudgmentMessageCommand=function(self, msg)
-		if msg.Offset ~= nil then
-			dvCur = msg.Offset 
-			jdgCur = msg.Judgment
-			Broadcast(MESSAGEMAN, "SpottedOffset")
-		end
-	end,
-}
-
--- Stuff you probably shouldn't turn off, music rate string display
-t[#t+1] = LoadFont("Common Normal")..{InitCommand=cmd(xy,SCREEN_CENTER_X,SCREEN_BOTTOM-10;zoom,0.35;settext,getCurRateDisplayString())}
-
-
-
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 												**Main listener that moves and resizes things**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -352,6 +325,34 @@ local function input(event)
 	return false
 end
 
+--[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+								     **Wife deviance tracker. Basically half the point of the theme.**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	For every doot there is an equal and opposite scoot.
+]]
+
+local t = Def.ActorFrame{										
+	Name = "WifePerch",
+	OnCommand=function()
+		SCREENMAN:GetTopScreen():AddInputCallback(froot)
+		SCREENMAN:GetTopScreen():AddInputCallback(input)
+	end,
+	JudgmentMessageCommand=function(self, msg)
+		if msg.Offset ~= nil then
+			dvCur = msg.Offset 
+			jdgCur = msg.Judgment
+			Broadcast(MESSAGEMAN, "SpottedOffset")
+		end
+	end,
+}
+
+-- Stuff you probably shouldn't turn off, music rate string display
+t[#t+1] = LoadFont("Common Normal")..{InitCommand=cmd(xy,SCREEN_CENTER_X,SCREEN_BOTTOM-10;zoom,0.35;settext,getCurRateDisplayString())}
+
+
+
+
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 																	**LaneCover**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -557,9 +558,6 @@ local e = Def.ActorFrame{
 	SpottedOffsetMessageCommand=function(self)				
 		currentbar = ((currentbar)%barcount) + 1
 		playcommand(ingots[currentbar],"UpdateErrorBar")			-- Update the next bar in the queue
-	end,
-	OnCommand=function(self) 
-		SCREENMAN:GetTopScreen():AddInputCallback(input)
 	end,
 	DootCommand=function(self)
 		self:RemoveChild("DestroyMe")
@@ -770,8 +768,5 @@ t[#t+1] = LoadActor("npscalc")
 
 	ditto
 ]]
-
-
-
 
 return t
