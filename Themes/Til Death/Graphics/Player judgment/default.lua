@@ -1,6 +1,6 @@
 -- Removed all the protiming junk, it's obsoleted
 local onePressed = false
-local threePressed = false
+local twoPressed = false
 local changed = false
 local c
 local x = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.JudgeX
@@ -29,8 +29,8 @@ local function input(event)
 	if event.DeviceInput.button == "DeviceButton_1" then
 		onePressed = not (event.type == "InputEventType_Release")
 	end
-	if event.DeviceInput.button == "DeviceButton_3" then
-		threePressed = not (event.type == "InputEventType_Release")
+	if event.DeviceInput.button == "DeviceButton_2" then
+		twoPressed = not (event.type == "InputEventType_Release")
 	end
 	if event.type ~= "InputEventType_Release" and onePressed then
 		if event.DeviceInput.button == "DeviceButton_up" then
@@ -63,14 +63,14 @@ local function input(event)
 			changed = false
 		end
 	end
-	if event.type ~= "InputEventType_Release" and threePressed then
+	if event.type ~= "InputEventType_Release" and twoPressed then
 		if event.DeviceInput.button == "DeviceButton_up" then
-			zoom = zoom + 0.05
+			zoom = zoom + 0.01
 			c.Judgment:zoom(zoom)
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.JudgeZoom	= zoom
 		end
 		if event.DeviceInput.button == "DeviceButton_down" then
-			zoom = zoom - 0.05
+			zoom = zoom - 0.01
 			c.Judgment:zoom(zoom)
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.JudgeZoom	= zoom
 		end
