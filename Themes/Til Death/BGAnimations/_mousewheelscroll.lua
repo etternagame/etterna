@@ -2,6 +2,7 @@
 local moving = false
 local whee
 local pressingtab = false
+local top
 
 local function scrollInput(event)
 	if event.DeviceInput.button == "DeviceButton_tab" then
@@ -10,14 +11,14 @@ local function scrollInput(event)
 		elseif event.type == "InputEventType_Release" then
 			pressingtab = false
 		end
-	elseif event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" then
+	elseif event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" and top:GetSelectionState() ~= 2 then
 		moving = true
 		if pressingtab == true then
 			whee:Move(-2)	
 		else
 			whee:Move(-1)	
 		end
-	elseif event.DeviceInput.button == "DeviceButton_mousewheel down" and event.type == "InputEventType_FirstPress" then
+	elseif event.DeviceInput.button == "DeviceButton_mousewheel down" and event.type == "InputEventType_FirstPress" and top:GetSelectionState() ~= 2 then
 		moving = true
 		if pressingtab == true then
 			whee:Move(2)	
@@ -33,7 +34,8 @@ end
 local t = Def.ActorFrame{
 	BeginCommand=function(self)
 		whee = SCREENMAN:GetTopScreen():GetMusicWheel()
-		SCREENMAN:GetTopScreen():AddInputCallback(scrollInput)
+		top = SCREENMAN:GetTopScreen()
+		top:AddInputCallback(scrollInput)
 		self:visible(false)
 	end,
 }

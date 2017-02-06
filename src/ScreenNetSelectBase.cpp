@@ -248,13 +248,13 @@ RString ScreenNetSelectBase::GetPreviousMsg()
 	if (m_sTextLastestInputsIndex <= m_sTextLastestInputs.size() && m_sTextLastestInputsIndex > 0)
 		return m_sTextLastestInputs[m_sTextLastestInputs.size() - m_sTextLastestInputsIndex];
 	m_sTextLastestInputsIndex = m_sTextLastestInputs.size();
-	return m_sTextLastestInputs[m_sTextLastestInputs.size() - m_sTextLastestInputsIndex];
+	return m_sTextLastestInputsIndex == 0 ? "" : m_sTextLastestInputs[m_sTextLastestInputs.size() - m_sTextLastestInputsIndex];
 }
 
 RString ScreenNetSelectBase::GetNextMsg()
 {
 	m_sTextLastestInputsIndex -= 1;
-	if (m_sTextLastestInputsIndex < m_sTextLastestInputs.size() && m_sTextLastestInputsIndex > 0)
+	if (m_sTextLastestInputsIndex <= m_sTextLastestInputs.size() && m_sTextLastestInputsIndex > 0)
 		return m_sTextLastestInputs[m_sTextLastestInputs.size() - m_sTextLastestInputsIndex];
 	m_sTextLastestInputsIndex = 0;
 	return "";
@@ -724,17 +724,20 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 {
 	static int ChatboxInput(T* p, lua_State *L)
 	{
-		p->enableChatboxInput = BArg(1);
+		if (!lua_isnil(L, 1))
+			p->enableChatboxInput = BArg(1);
 		return 1;
 	}
 	static int UsersVisible(T* p, lua_State *L)
 	{
-		p->SetUsersVisible(BArg(1));
+		if (!lua_isnil(L, 1))
+			p->SetUsersVisible(BArg(1));
 		return 1;
 	}
 	static int ChatboxVisible(T* p, lua_State *L)
 	{
-		p->SetChatboxVisible(BArg(1));
+		if (!lua_isnil(L, 1))
+			p->SetChatboxVisible(BArg(1));
 		return 1;
 	}
 	static int GetUserQty(T* p, lua_State *L)
@@ -744,6 +747,8 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 	}
 	static int GetUser(T* p, lua_State *L)
 	{
+		if (lua_isnil(L, 1))
+			return 0;
 		if (IArg(1) <= p->ToUsers()->size() && IArg(1) >= 1)
 			lua_pushstring(L, (*(p->ToUsers()))[IArg(1) - 1].GetText());
 		else
@@ -752,6 +757,8 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 	}
 	static int GetUserState(T* p, lua_State *L)
 	{
+		if (lua_isnil(L, 1))
+			return 0;
 		if (IArg(1) <= p->ToUsers()->size() && IArg(1) >= 1)
 			lua_pushnumber(L, NSMAN->m_PlayerStatus[NSMAN->m_ActivePlayer[IArg(1) - 1]]);
 		else
@@ -765,6 +772,8 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 	}
 	static int GetFriendName(T* p, lua_State *L)
 	{
+		if (lua_isnil(L, 1))
+			return 0;
 		if (IArg(1) <= NSMAN->fl_PlayerNames.size() && IArg(1) >= 1)
 			lua_pushstring(L, (NSMAN->fl_PlayerNames[IArg(1) - 1]).c_str());
 		else
@@ -773,6 +782,8 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 	}
 	static int GetFriendState(T* p, lua_State *L)
 	{
+		if (lua_isnil(L, 1))
+			return 0;
 		if (IArg(1) <= NSMAN->fl_PlayerStates.size() && IArg(1) >= 1)
 			lua_pushnumber(L, NSMAN->fl_PlayerStates[IArg(1) - 1]);
 		else
