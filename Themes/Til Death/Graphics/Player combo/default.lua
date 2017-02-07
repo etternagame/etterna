@@ -1,4 +1,4 @@
-local twoPressed = false
+local threePressed = false
 local fourPressed = false
 local changed = false
 local c
@@ -8,13 +8,13 @@ local zoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.C
 local ShowComboAt = THEME:GetMetric("Combo", "ShowComboAt");
 
 local function input(event)
-	if event.DeviceInput.button == "DeviceButton_2" then
-		twoPressed = not (event.type == "InputEventType_Release")
+	if event.DeviceInput.button == "DeviceButton_3" then
+		threePressed = not (event.type == "InputEventType_Release")
 	end
 	if event.DeviceInput.button == "DeviceButton_4" then
 		fourPressed = not (event.type == "InputEventType_Release")
 	end
-	if event.type ~= "InputEventType_Release" and twoPressed then
+	if event.type ~= "InputEventType_Release" and threePressed then
 		if event.DeviceInput.button == "DeviceButton_up" then
 			y = y - 5
 			c.Label:y(y)
@@ -51,14 +51,14 @@ local function input(event)
 	end
 	if event.type ~= "InputEventType_Release" and fourPressed then
 		if event.DeviceInput.button == "DeviceButton_up" then
-			zoom = zoom + 0.05
+			zoom = zoom + 0.01
 			c.Label:zoom(zoom)
 			c.Number:zoom(zoom - 0.1)
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.ComboZoom = zoom
 			changed = true
 		end
 		if event.DeviceInput.button == "DeviceButton_down" then
-			zoom = zoom - 0.05
+			zoom = zoom - 0.01
 			c.Label:zoom(zoom)
 			c.Number:zoom(zoom - 0.1)
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.ComboZoom = zoom

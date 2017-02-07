@@ -11,7 +11,48 @@ local filterAlphas = {
 	Default = 1,
 }
 
-local t = Def.ActorFrame{};
+--moving notefield shenanigans
+local rPressed = false
+local tPressed = false
+local noteFieldWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.NotefieldWidth
+local notefieldX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NotefieldX
+local filter
+
+local function input(event)
+	if getAutoplay() ~= 0 then
+		if event.DeviceInput.button == "DeviceButton_r" then
+			rPressed = not (event.type == "InputEventType_Release")
+		end
+		if event.DeviceInput.button == "DeviceButton_t" then
+			tPressed = not (event.type == "InputEventType_Release")
+		end
+		if rPressed and event.type ~= "InputEventType_Release" then
+			if event.DeviceInput.button == "DeviceButton_left" then
+				filter:addx(-3)
+			end
+			if event.DeviceInput.button == "DeviceButton_right" then
+				filter:addx(3)
+			end
+		end
+		if tPressed and event.type ~= "InputEventType_Release" then
+			if event.DeviceInput.button == "DeviceButton_left" then
+				noteFieldWidth = noteFieldWidth - 0.01
+				filter:playcommand("Update")
+			end
+			if event.DeviceInput.button == "DeviceButton_right" then
+				noteFieldWidth = noteFieldWidth + 0.01
+				filter:playcommand("Update")
+			end
+		end
+	end
+	return false
+end
+
+local t = Def.ActorFrame{
+	OnCommand=function()
+		SCREENMAN:GetTopScreen():AddInputCallback(input)
+	end
+};
 
 local style = GAMESTATE:GetCurrentStyle()
 local cols = style:ColumnsPerPlayer()
@@ -43,7 +84,19 @@ if numPlayers == 1 then
 	end
 	t[#t+1] = Def.Quad{
 		Name="SinglePlayerFilter";
-		InitCommand=cmd(x,pos;CenterY;zoomto,filterWidth*getNoteFieldScale(player),SCREEN_HEIGHT;diffusecolor,filterColor;diffusealpha,filterAlphas[player]);
+		InitCommand=function(self)
+			self:x(pos)
+			self:CenterY()
+			self:zoomto(filterWidth*getNoteFieldScale(player)*noteFieldWidth,SCREEN_HEIGHT)
+			self:diffusecolor(filterColor)
+			self:diffusealpha(filterAlphas[player])
+			self:addx(notefieldX)
+			filter = self
+		end,
+		UpdateCommand=function(self)
+			local player = GAMESTATE:GetMasterPlayerNumber()
+			self:zoomto(filterWidth*getNoteFieldScale(player)*noteFieldWidth,SCREEN_HEIGHT)
+		end,
 	};
 else
 	-- two players... a bit more complex.
