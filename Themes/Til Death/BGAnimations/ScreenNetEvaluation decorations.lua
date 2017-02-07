@@ -12,6 +12,8 @@ local dummyX = dummyX1P
 local dummyY1P = SCREEN_CENTER_Y
 local dummyY = dummyY1P
 local songY1P = dummyY-95
+local rateX = capWideScale(SCREEN_CENTER_X-295,SCREEN_CENTER_X)
+local rateY = capWideScale(45,180)
 
 if not IsUsingWideScreen() == true then
 songY1P = dummyY-125
@@ -21,6 +23,33 @@ if IsUsingWideScreen() == true then
 songY1P = SCREEN_CENTER_Y-110
 dummyX = SCREEN_CENTER_X
 end;
+
+--Hacky way of fixing these ratios outside of 16:9 and 4:3. -Misterkister
+--Redundant, but w/e. -Misterkister
+
+--16:10 ratio. -Misterkister
+if round(GetScreenAspectRatio(),5) == 1.6 then
+
+songY1P = dummyY-118
+rateX = SCREEN_CENTER_X
+rateY = SCREEN_CENTER_Y-67
+
+end;
+
+--5:4 ratio. -Misterkister
+if round(GetScreenAspectRatio(),5) == 1.25 then
+
+rateX = SCREEN_CENTER_X-280
+
+end
+
+--8:3 ratio targeted. -Misterkister
+if round(GetScreenAspectRatio(),5) > 1.77778 then
+
+songY1P = dummyY-115
+rateY = SCREEN_CENTER_Y-63
+
+end
 
 t[#t+1] = LoadFont("Common Normal")..{
 	InitCommand=cmd(xy,dummyX,songY1P+30;zoom,0.4;maxwidth,400/0.4);
@@ -37,7 +66,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 
 -- Rate String
 t[#t+1] = LoadFont("Common normal")..{
-	InitCommand=cmd(xy,capWideScale(SCREEN_CENTER_X-295,SCREEN_CENTER_X),capWideScale(45,180);zoom,0.5;halign,0.5),
+	InitCommand=cmd(xy,rateX,rateY;zoom,0.5;halign,0.5),
 	BeginCommand=function(self)
 		if getCurRateString() == "1x" then
 			self:settext("")
@@ -94,6 +123,11 @@ local SMOY = SCREEN_CENTER_Y
 local smoframeX = frameX+320
 local smoframeY = frameY+50
 local comboX = SMOX+250
+local titleX = SMOX
+local titleY = SMOY
+local zoomlength = frameWidth+200
+local zoomheight = 110
+
 
 if IsUsingWideScreen() == true then
 SMOX = SCREEN_CENTER_X-30
@@ -107,6 +141,38 @@ SMOY = SCREEN_CENTER_Y-40
 comboX = SMOX+160
 end;
 
+--Hacky way of fixing these ratios outside of 16:9 and 4:3. -Misterkister
+
+--16:10 ratio. -Misterkister
+if round(GetScreenAspectRatio(),5) == 1.6 then
+
+smoframeX = frameX+275
+smoframeY = frameY+40
+comboX = SMOX+200
+titleX = SCREEN_CENTER_X-70
+titleY = SCREEN_CENTER_Y-40
+zoomheight = 120
+
+end;
+
+--5:4 ratio. -Misterkister
+if round(GetScreenAspectRatio(),5) == 1.25 then
+
+titleX = SCREEN_CENTER_X-32
+titleY = SCREEN_CENTER_Y-40
+smoframeX = frameX+190
+
+end
+
+--8:3 ratio targeted. -Misterkister
+if round(GetScreenAspectRatio(),5) > 1.77778 then
+
+smoframeX = frameX+530
+titleX = SCREEN_CENTER_X-32
+titleY = SCREEN_CENTER_Y-40
+comboX = SMOX+250
+
+end
 
 function scoreBoard(pn,position)
 	local t = Def.ActorFrame{
@@ -122,7 +188,7 @@ function scoreBoard(pn,position)
 	local score = getScoreFromTable(getScoreList(PLAYER_1),pss:GetPersonalHighScoreIndex()+1)
 	
 	t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX-5,frameY;zoomto,frameWidth+10,220;halign,0;valign,0;diffuse,color("#333333CC"))};
-	t[#t+1] = Def.Quad{InitCommand=cmd(xy,smoframeX,smoframeY;zoomto,frameWidth+200,110;halign,0;valign,0;diffuse,color("#333333CC"))};
+	t[#t+1] = Def.Quad{InitCommand=cmd(xy,smoframeX,smoframeY;zoomto,zoomlength,zoomheight;halign,0;valign,0;diffuse,color("#333333CC"))};
 	t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY+30;zoomto,frameWidth,2;halign,0;diffuse,getMainColor('highlight');diffusealpha,0.5)};
 	t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY+55;zoomto,frameWidth,2;halign,0;diffuse,getMainColor('highlight');diffusealpha,0.5)};
 
@@ -147,7 +213,7 @@ function scoreBoard(pn,position)
 	};
 		
 		t[#t+1] = LoadFont("Common Normal")..{
-		InitCommand=cmd(zoom,0.5;x,SMOX;y,SMOY);
+		InitCommand=cmd(zoom,0.5;x,titleX;y,titleY);
 		BeginCommand=cmd(queuecommand,"Set");
 		SetCommand=function(self)
 				if IsNetSMOnline() == true then
@@ -155,6 +221,11 @@ function scoreBoard(pn,position)
 					else
 					self:settext("Offline")
 				end
+				if round(GetScreenAspectRatio(),5) == 1.6 then
+					self:settext("SMO")
+					else
+					self:settext("StepMania Online")
+				end;
 			end;
 		};
 		
