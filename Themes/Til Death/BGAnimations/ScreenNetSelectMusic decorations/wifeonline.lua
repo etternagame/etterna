@@ -157,6 +157,8 @@ local cdtitlemaxwidth = 75
 local cdtitlemaxheight = 30
 local curateX = 18
 local curateY = SCREEN_BOTTOM-225
+local cdtitleX = capWideScale(get43size(374),394)+60
+local cdtitleY = capWideScale(get43size(290),270)
 --local radarX = frameX+13
 
 --16:9 ratio.
@@ -228,6 +230,62 @@ if not IsUsingWideScreen() == true then
 	curateX = SCREEN_CENTER_X-20
 	curateY = SCREEN_CENTER_Y-72
 end
+
+--Hacky way of fixing these ratios outside of 16:9 and 4:3. I'm not doing 3:4 or 1:1 ratio support unless there's good reasons to do those. -Misterkister
+
+--16:10 ratio. -Misterkister
+if round(GetScreenAspectRatio(),5) == 1.6 then
+
+infoboxx = 368
+infoboxy = 215
+difficultyX = frameX+400
+cdtitleY = capWideScale(get43size(350),270)
+infoboxwidth = 85
+lengthy = capWideScale(get43size(185),170)
+
+end
+
+--5:4 ratio. -Misterkister
+if round(GetScreenAspectRatio(),5) == 1.25 then
+
+infoboxx = 285
+infoboxwidth = 58
+difficultyX = frameX+305
+cdtitleY = capWideScale(get43size(290),270)
+cdtitleX = capWideScale(get43size(344),394)+60
+maxcomboX = frameX+180
+
+end
+
+--8:3 ratio targeted. -Misterkister
+if round(GetScreenAspectRatio(),5) > 1.77778 then
+
+infoboxx = SCREEN_CENTER_X-15
+infoboxy = SCREEN_CENTER_Y-90
+infoboxwidth = 100
+cdtitleY = SCREEN_CENTER_Y-25
+cdtitleX = SCREEN_CENTER_X+25
+infoboxheight = 250
+difficultyX = SCREEN_CENTER_X+30
+wifeX = SCREEN_CENTER_X-140
+wifeY = SCREEN_CENTER_Y-188
+wifescoretypeX = SCREEN_CENTER_X-50
+wifescoretypeY = SCREEN_CENTER_Y-188
+secondarytypeX = SCREEN_CENTER_X-140
+secondarytypeY = SCREEN_CENTER_Y-158
+secondaryscoretypeX = SCREEN_CENTER_X-50
+secondaryscoretypeY = SCREEN_CENTER_Y-158
+lengthx = SCREEN_CENTER_X-255
+lengthy = SCREEN_CENTER_Y-70
+maxcomboX = SCREEN_CENTER_X-160
+maxcomboY = SCREEN_CENTER_Y-140
+datescoreX = SCREEN_CENTER_X-160
+datescoreY = SCREEN_CENTER_Y-120
+rateX = SCREEN_CENTER_X-145
+rateY = SCREEN_CENTER_Y-100
+
+end
+
 
 t[#t+1] = Def.Quad{
 	InitCommand=cmd(xy,infoboxx,infoboxy;zoomto,infoboxwidth,infoboxheight;halign,0;valign,0;diffuse,color("#333333CC");diffusealpha,0.66)
@@ -447,7 +505,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 }
 
 t[#t+1] = Def.Sprite {
-	InitCommand=cmd(xy,capWideScale(get43size(374),394)+60,capWideScale(get43size(290),270);halign,0.5;valign,1),
+	InitCommand=cmd(xy,cdtitleX,cdtitleY;halign,0.5;valign,1),
 	SetCommand=function(self)
 		self:finishtweening()
 		if GAMESTATE:GetCurrentSong() then
