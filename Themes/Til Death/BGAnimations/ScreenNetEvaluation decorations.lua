@@ -174,6 +174,22 @@ comboX = SMOX+250
 
 end
 
+--Had to fix this for 4:3 and 16:9. -Misterkister
+if round(GetScreenAspectRatio(),5) == 1.77778 then
+
+titleY = SCREEN_CENTER_Y-40
+titleX = SCREEN_CENTER_X-32
+
+end
+
+if round(GetScreenAspectRatio(),5) == 1.33333 then
+
+titleX = SCREEN_CENTER_X-32
+titleY = SCREEN_CENTER_Y-40
+
+end
+
+
 function scoreBoard(pn,position)
 	local t = Def.ActorFrame{
 		BeginCommand=function(self)
