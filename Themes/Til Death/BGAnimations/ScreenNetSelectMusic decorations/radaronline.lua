@@ -303,6 +303,28 @@ radarX = frameX+offsetX+450-120
 stuffstuffstuffX = frameX+offsetX+400-105
 end;
 
+--Hacky way of fixing these ratios outside of 16:9 and 4:3. -Misterkister
+
+--16:10 ratio. -Misterkister
+if round(GetScreenAspectRatio(),5) == 1.6 then
+radarX = frameX+offsetX+450-45
+stuffstuffstuffX = frameX+offsetX+400-40
+end;
+
+--5:4 ratio. -Misterkister
+if round(GetScreenAspectRatio(),5) == 1.25 then
+radarX = frameX+offsetX+310
+stuffstuffstuffX = frameX+offsetX+270
+end;
+
+--8:3 ratio targeted. -Misterkister
+if round(GetScreenAspectRatio(),5) > 1.77778 then
+
+radarX = SCREEN_CENTER_X+50
+stuffstuffstuffX = SCREEN_CENTER_X
+
+end;
+
 for k,v in ipairs(radarValues) do
 	t[#t+1] = LoadFont("Common Normal")..{
 		InitCommand=cmd(xy,stuffstuffstuffX,frameY+offsetY+230+(15*(k-1));zoom,0.4;halign,0;maxwidth,(frameWidth-offsetX*2-150)/0.4);
