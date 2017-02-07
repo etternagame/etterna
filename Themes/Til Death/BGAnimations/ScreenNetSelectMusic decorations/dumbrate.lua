@@ -27,6 +27,29 @@ curateY = frameY+offsetY-20
 
 end
 
+--Hacky way of fixing these ratios outside of 16:9 and 4:3. -Misterkister
+
+--16:10 ratio. -Misterkister
+if round(GetScreenAspectRatio(),5) == 1.6 then
+
+curateX = frameX+frameWidth-8
+
+end
+
+--5:4 ratio. -Misterkister
+if round(GetScreenAspectRatio(),5) == 1.25 then
+
+curateX = frameX+frameWidth-80
+
+end
+
+--8:3 ratio targeted. -Misterkister
+if round(GetScreenAspectRatio(),5) > 1.77778 then
+
+curateX = frameX+frameWidth+425
+
+end
+
 --Actor Frame
 local t = Def.ActorFrame{
 	BeginCommand=cmd(queuecommand,"Set";visible,false),
