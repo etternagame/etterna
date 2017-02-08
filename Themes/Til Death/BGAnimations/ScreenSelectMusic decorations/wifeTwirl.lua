@@ -378,9 +378,10 @@ t[#t+1] = LoadFont("Common Normal") .. {
 	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
 }
 
--- CDtitle, need to figure out a better place for this later
+-- CDtitle, need to figure out a better place for this later. -mina
+--Gonna move the cdtitle right next to selected song similar to ultralight. -Misterkister
 t[#t+1] = Def.Sprite {
-	InitCommand=cmd(xy,capWideScale(get43size(384),384)+50,capWideScale(get43size(210),180);halign,0.5;valign,1),
+	InitCommand=cmd(xy,capWideScale(get43size(344),364)+50,capWideScale(get43size(345),255);halign,0.5;valign,1),
 	SetCommand=function(self)
 		self:finishtweening()
 		if GAMESTATE:GetCurrentSong() then
