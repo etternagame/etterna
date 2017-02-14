@@ -26,6 +26,7 @@
 #include "CharacterManager.h"
 #include "Character.h"
 #include "MinaCalc.h"
+#include "NoteData.h"
 
 #include <algorithm>
 
@@ -2238,7 +2239,7 @@ void Profile::RecalculateSSRs(bool OnlyOld) {
 							etaner.emplace_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(nerv[i])));
 					}
 
-					vector<float> recalcSSR = MinaSDCalc(nd, etaner, musicrate, ssrpercent, 1.f, false);
+					vector<float> recalcSSR = MinaSDCalc(nd.SerializeNoteData(etaner), nd.GetNumTracks(), musicrate, ssrpercent, 1.f, false);
 					FOREACH_ENUM(Skillset, ss)
 						hsv[i].SetSkillsetSSR(ss, recalcSSR[ss]);
 					hsv[i].SetSSRCalcVersion(GetCalcVersion());

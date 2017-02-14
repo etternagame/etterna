@@ -2,6 +2,7 @@
 #define NOTE_DATA_H
 
 #include "NoteTypes.h"
+#include "NoteDataStructures.h"
 #include <map>
 #include <set>
 #include <iterator>
@@ -164,9 +165,13 @@ public:
 	void Init();
 
 	// Mina stuf
+
 	void LogNonEmptyRows();
 	int WifeTotalScoreCalc(TimingData *td, int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW);
 	vector<int>& GetNonEmptyRowVector() { return NonEmptyRowVector; };
+	vector<NoteInfo> SerializeNoteData(const vector<float>& etaner);
+
+	
 
 	int GetNumTracks() const { return m_TapNotes.size(); }
 	void SetNumTracks( int iNewNumTracks );

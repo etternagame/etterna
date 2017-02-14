@@ -189,6 +189,31 @@ int NoteData::WifeTotalScoreCalc(TimingData *td, int iStartIndex, int iEndIndex)
 	return taps * 2;
 }
 
+vector<NoteInfo> NoteData::SerializeNoteData(const vector<float>& etaner) {
+	vector<NoteInfo> SerializedNoteData;
+	SerializedNoteData.reserve(NonEmptyRowVector.size());
+
+	int tracks = GetNumTracks();
+	for (size_t i = 0; i < NonEmptyRowVector.size(); i++)
+	{
+		short rowNotes = 0;
+		for (size_t q = 0; q < tracks; q++)
+		{
+			if(GetTapNote(q, NonEmptyRowVector[i]).IsNote())
+			{
+				rowNotes |= 1 << q;
+			}
+		}
+
+		if (rowNotes != 0)
+		{
+			NoteInfo rowOutput { rowNotes, etaner[i] };
+			SerializedNoteData.emplace_back(rowOutput);
+		}
+	}
+	
+	return SerializedNoteData;
+}
 
 void NoteData::LogNonEmptyRows() {
 	NonEmptyRowVector.clear();

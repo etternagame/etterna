@@ -455,7 +455,7 @@ void Steps::Decompress(bool isGameplay)
 			etaner.push_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(nerv[i])));
 		
 		ChartKey = GenerateChartKey(*m_pNoteData, td);
-		stuffnthings = MinaSDCalc(*m_pNoteData, etaner, 0.93f, 1.f, td->HasWarps());
+		stuffnthings = MinaSDCalc(m_pNoteData->SerializeNoteData(etaner), m_pNoteData->GetNumTracks(), 0.93f, 1.f, td->HasWarps());
 	}
 }
 

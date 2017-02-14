@@ -323,7 +323,7 @@ vector<float> PlayerStageStats::CalcSSR(float ssrpercent ) const {
 	for (size_t i = 0; i < nerv.size(); ++i)
 		etaner[i] = etar[nerv[i]];
 
-	return MinaSDCalc(nd, etaner, musicrate, ssrpercent, 1.f, td->HasWarps());
+	return MinaSDCalc(nd.SerializeNoteData(etaner), nd.GetNumTracks(), musicrate, ssrpercent, 1.f, td->HasWarps());
 }
 float PlayerStageStats::GetTimingScale() const {
 	return m_fTimingScale;
