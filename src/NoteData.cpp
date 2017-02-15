@@ -196,7 +196,7 @@ vector<NoteInfo> NoteData::SerializeNoteData(const vector<float>& etaner) {
 	int tracks = GetNumTracks();
 	for (size_t i = 0; i < NonEmptyRowVector.size(); i++)
 	{
-		short rowNotes = 0;
+		int rowNotes = 0;
 		for (size_t q = 0; q < tracks; q++)
 		{
 			if(GetTapNote(q, NonEmptyRowVector[i]).IsNote())

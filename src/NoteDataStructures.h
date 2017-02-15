@@ -4,7 +4,7 @@
 #define __NDSTRUCTS__
 
 struct NoteInfo {
-	short notes;
+	int notes;
 	float rowTime;
 };
 
