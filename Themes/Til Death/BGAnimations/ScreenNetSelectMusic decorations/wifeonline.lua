@@ -159,7 +159,6 @@ local curateX = 18
 local curateY = SCREEN_BOTTOM-225
 local cdtitleX = capWideScale(get43size(374),394)+60
 local cdtitleY = capWideScale(get43size(290),270)
---local radarX = frameX+13
 
 --16:9 ratio.
 if IsUsingWideScreen() == true then
@@ -242,7 +241,6 @@ difficultyX = frameX+400
 cdtitleY = capWideScale(get43size(350),270)
 infoboxwidth = 85
 lengthy = capWideScale(get43size(185),170)
-
 end
 
 --5:4 ratio. -Misterkister
@@ -254,6 +252,7 @@ difficultyX = frameX+305
 cdtitleY = capWideScale(get43size(290),270)
 cdtitleX = capWideScale(get43size(344),394)+60
 maxcomboX = frameX+180
+maxcomboY = frameY-182
 
 end
 
@@ -286,32 +285,14 @@ rateY = SCREEN_CENTER_Y-100
 
 end
 
-
 t[#t+1] = Def.Quad{
 	InitCommand=cmd(xy,infoboxx,infoboxy;zoomto,infoboxwidth,infoboxheight;halign,0;valign,0;diffuse,color("#333333CC");diffusealpha,0.66)
 }
 t[#t+1] = Def.Quad{
 	InitCommand=cmd(xy,infoboxx,infoboxy;zoomto,infoboxbar,infoboxheight;halign,0;valign,0;diffuse,getMainColor('highlight');diffusealpha,0.5)
 }	
--- -- Music Rate Display
--- t[#t+1] = LoadFont("Common Large") .. {
-	-- InitCommand=cmd(xy,curateX,curateY;visible,true;halign,0;zoom,0.3;maxwidth,capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45)),
-	-- BeginCommand=function(self)
-		-- self:settext(getCurRateDisplayString())
-	-- end,
-	-- CodeMessageCommand=function(self,params)
-		-- local rate = getCurRateValue()
-		-- ChangeMusicRate(rate,params)
-		-- self:settext(getCurRateDisplayString())
-	-- end,
--- }
 
 t[#t+1] = Def.ActorFrame{
-	-- -- **frames/bars**
-	-- Def.Quad{InitCommand=cmd(xy,frameX,frameY-76;zoomto,110,94;halign,0;valign,0;diffuse,color("#333333CC");diffusealpha,0.66)},			--Upper Bar
-	-- Def.Quad{InitCommand=cmd(xy,frameX,frameY+18;zoomto,frameWidth+4,50;halign,0;valign,0;diffuse,color("#333333CC");diffusealpha,0.66)},	--Lower Bar
-	-- Def.Quad{InitCommand=cmd(xy,frameX,frameY-76;zoomto,8,144;halign,0;valign,0;diffuse,getMainColor('highlight');diffusealpha,0.5)},		--Side Bar (purple streak on the left)
-	
 	-- **score related stuff** These need to be updated with rate changed commands
 	-- Primary percent score
 	LoadFont("Common Large")..{
@@ -445,40 +426,6 @@ t[#t+1] = Def.ActorFrame{
 	-- **End score related stuff**
 }
 
--- -- "Radar values" aka basic chart information
--- local function radarPairs(i)
-	-- local o = Def.ActorFrame{
-		-- LoadFont("Common Normal")..{
-			-- InitCommand=cmd(xy,radarX,frameY-52+13*i;zoom,0.5;halign,0;maxwidth,120),
-			-- SetCommand=function(self)
-				-- if song then
-					-- self:settext(ms.RelevantRadarsShort[i])
-				-- else
-					-- self:settext("")
-				-- end
-			-- end,
-			-- RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
-		-- },
-		-- LoadFont("Common Normal")..{
-			-- InitCommand=cmd(xy,radarXX,frameY+-52+13*i;zoom,0.5;halign,1;maxwidth,60),
-			-- SetCommand=function(self)
-				-- if song then		
-					-- self:settext(GAMESTATE:GetCurrentSteps(PLAYER_1):GetRelevantRadars(PLAYER_1)[i])
-				-- else
-					-- self:settext("")
-				-- end
-			-- end,
-			-- RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
-		-- },
-	-- }
-	-- return o
--- end
-
--- -- Create the radar values
--- for i=1,5 do
-	-- t[#t+1] = radarPairs(i)
--- end
-
 -- Difficulty value ("meter"), need to change this later
 t[#t+1] = LoadFont("Common Large") .. {
 	InitCommand=cmd(xy,difficultyX,difficultyY;halign,0.5;zoom,0.4;maxwidth,110/0.6),
@@ -504,6 +451,36 @@ t[#t+1] = LoadFont("Common Large") .. {
 	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
 }
 
+--Tier Label revamped. -Misterkister
+t[#t+1] = LoadFont("Common Normal") .. {
+	InitCommand=cmd(xy,frameX+415,frameY-294;halign,0.5;zoom,0.8;maxwidth,110/0.6);
+	BeginCommand=cmd(queuecommand,"Set");
+	SetCommand=function(self)
+	local tiers = {[0] = "Tier 1", [7] = "Tier 2", [13] = "Tier 3", [17] = "Tier 4", [21] = "Tier 5", [25] = "Tier 6", [29] = "Tier 7", [35] = "Tier 8", [40] = "Tier 9"}
+	local meter = 0
+	if song and steps then
+	meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1)
+	end
+	local index = math.floor(meter)
+		while tiers[index] == nil do
+        index = index - 1
+        end
+		if IsNetSMOnline() then
+			if steps and song then
+				self:settextf("%s",tiers[index])
+				self:diffuse(ByMSD(meter))
+			else
+				self:settextf("")
+			end
+			if steps and steps:GetTimingData():HasWarps() then
+				self:settextf("")
+			end
+		end
+	end,
+	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
+	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
+}
+		
 t[#t+1] = Def.Sprite {
 	InitCommand=cmd(xy,cdtitleX,cdtitleY;halign,0.5;valign,1),
 	SetCommand=function(self)
@@ -558,33 +535,6 @@ t[#t+1] = LoadFont("Common Large") .. {
 	CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set"),
 	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
 }
-
--- t[#t+1] = LoadFont("Common Large") .. {
-	-- InitCommand=cmd(xy,(capWideScale(get43size(384),384))+68,SCREEN_BOTTOM-135;halign,1;zoom,0.4,maxwidth,125),
-	-- BeginCommand=cmd(queuecommand,"Set"),
-	-- SetCommand=function(self)
-		-- if song then
-			-- self:settext(song:GetOrTryAtLeastToGetSimfileAuthor())
-		-- else
-			-- self:settext("")
-		-- end
-	-- end,
-	-- CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set"),
-	-- RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
--- }
-
--- active filters display
--- t[#t+1] = Def.Quad{InitCommand=cmd(xy,16,capWideScale(SCREEN_TOP+172,SCREEN_TOP+194);zoomto,SCREEN_WIDTH*1.35*0.4 + 8,24;halign,0;valign,0.5;diffuse,color("#000000");diffusealpha,0),
-	-- EndingSearchMessageCommand=function(self)
-		-- self:diffusealpha(1)
-	-- end
--- }
--- t[#t+1] = LoadFont("Common Large") .. {
-	-- InitCommand=cmd(xy,20,capWideScale(SCREEN_TOP+170,SCREEN_TOP+194);halign,0;zoom,0.4;settext,"Active Filters: "..GetPersistentSearch();maxwidth,SCREEN_WIDTH*1.35),
-	-- EndingSearchMessageCommand=function(self, msg)
-		-- self:settext("Active Filters: "..msg.ActiveFilter)
-	-- end
--- }
 
 --test actor
 t[#t+1] = LoadFont("Common Large") .. {

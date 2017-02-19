@@ -77,7 +77,7 @@ local function littlebits(i)
 				self:diffuse(getMainColor('negative'))
 			end
 			--If negative BPM empty label
-			if steps:GetTimingData():HasWarps() then
+			if steps and steps:GetTimingData():HasWarps() then
 				self:settext("");
 			end
 		end,
@@ -94,7 +94,7 @@ local function littlebits(i)
 				self:settext("")
 			end
 			--If negative BPM empty label
-			if steps:GetTimingData():HasWarps() then
+			if steps and steps:GetTimingData():HasWarps() then
 				self:settext("");
 			end
 		end,
@@ -177,7 +177,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 t[#t+1] = LoadFont("Common Normal")..{
 	InitCommand=cmd(xy,frameX+45,frameY+135;zoom,0.8;halign,0;diffuse,getMainColor('negative');settext,"Negative Bpms";),
 	SetCommand=function(self)
-		if steps:GetTimingData():HasWarps() then
+		if steps and steps:GetTimingData():HasWarps() then
 			self:settext("Negative Bpms");
 		else
 			self:settext("");
