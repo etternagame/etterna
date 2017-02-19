@@ -26,6 +26,7 @@
 #include "SongManager.h"
 #include "CodeDetector.h"
 #include "ProfileManager.h"
+#include "FilterManager.h"
 
 AutoScreenMessage( SM_NoSongs );
 AutoScreenMessage( SM_ChangeSong );
@@ -230,15 +231,15 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 			}
 			else {
 				FOREACH_ENUM(Skillset, i) {
-					GAMESTATE->SSFilterLowerBounds[i] = 0;
-					GAMESTATE->SSFilterUpperBounds[i] = 0;
+					FILTERMAN->SSFilterLowerBounds[i] = 0;
+					FILTERMAN->SSFilterUpperBounds[i] = 0;
 				}
 				m_MusicWheel.ReloadSongList(false, "");
 			}
 		else {
 			FOREACH_ENUM(Skillset, i) {
-				GAMESTATE->SSFilterLowerBounds[i] = 0;
-				GAMESTATE->SSFilterUpperBounds[i] = 0;
+				FILTERMAN->SSFilterLowerBounds[i] = 0;
+				FILTERMAN->SSFilterUpperBounds[i] = 0;
 			}
 			m_MusicWheel.ReloadSongList(false, "");
 		}

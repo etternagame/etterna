@@ -46,7 +46,7 @@ local function FilterInput(event)
 		if SSQuery[activebound][ActiveSS] == "" then 
 			SSQuery[activebound][ActiveSS] = "0"
 		end
-		GAMESTATE:SetSSFilter(tonumber(SSQuery[activebound][ActiveSS]), ActiveSS, activebound)
+		FILTERMAN:SetSSFilter(tonumber(SSQuery[activebound][ActiveSS]), ActiveSS, activebound)
 		whee:SongSearch("")		-- stupid workaround?
 		MESSAGEMAN:Broadcast("UpdateFilter")
 	end
@@ -113,7 +113,7 @@ local f = Def.ActorFrame{
 	LoadFont("Common Large")..{
 		InitCommand=cmd(xy,frameX+frameWidth/2,175;zoom,textzoom;halign,0),
 		SetCommand=function(self) 
-			self:settextf("Max Rate:%5.1fx",GAMESTATE:GetMaxFilterRate())
+			self:settextf("Max Rate:%5.1fx",FILTERMAN:GetMaxFilterRate())
 		end,
 		MaxFilterRateChangedMessageCommand=cmd(queuecommand,"Set"),
 	},
@@ -121,14 +121,14 @@ local f = Def.ActorFrame{
 		InitCommand=cmd(xy,frameX+frameWidth/2,175;zoomto,130,18;halign,0;diffusealpha,0),
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) and active then
-				GAMESTATE:SetMaxFilterRate(GAMESTATE:GetMaxFilterRate()+0.1)
+				FILTERMAN:SetMaxFilterRate(FILTERMAN:GetMaxFilterRate()+0.1)
 				MESSAGEMAN:Broadcast("MaxFilterRateChanged")
 				whee:SongSearch("")
 			end
 		end,
 		MouseRightClickMessageCommand=function(self)
 			if isOver(self) and active then
-				GAMESTATE:SetMaxFilterRate(GAMESTATE:GetMaxFilterRate()-0.1)
+				FILTERMAN:SetMaxFilterRate(FILTERMAN:GetMaxFilterRate()-0.1)
 				MESSAGEMAN:Broadcast("MaxFilterRateChanged")
 				whee:SongSearch("")
 			end
@@ -137,7 +137,7 @@ local f = Def.ActorFrame{
 	LoadFont("Common Large")..{
 		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY;zoom,textzoom;halign,0),
 		SetCommand=function(self) 
-			self:settextf("Min Rate:%5.1fx",GAMESTATE:GetMinFilterRate())
+			self:settextf("Min Rate:%5.1fx",FILTERMAN:GetMinFilterRate())
 		end,
 		MaxFilterRateChangedMessageCommand=cmd(queuecommand,"Set"),
 	},
@@ -145,14 +145,14 @@ local f = Def.ActorFrame{
 		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY;zoomto,130,18;halign,0;diffusealpha,0),
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) and active then
-				GAMESTATE:SetMinFilterRate(GAMESTATE:GetMinFilterRate()+0.1)
+				FILTERMAN:SetMinFilterRate(FILTERMAN:GetMinFilterRate()+0.1)
 				MESSAGEMAN:Broadcast("MaxFilterRateChanged")
 				whee:SongSearch("")
 			end
 		end,
 		MouseRightClickMessageCommand=function(self)
 			if isOver(self) and active then
-				GAMESTATE:SetMinFilterRate(GAMESTATE:GetMinFilterRate()-0.1)
+				FILTERMAN:SetMinFilterRate(FILTERMAN:GetMinFilterRate()-0.1)
 				MESSAGEMAN:Broadcast("MaxFilterRateChanged")
 				whee:SongSearch("")
 			end
@@ -161,7 +161,7 @@ local f = Def.ActorFrame{
 	LoadFont("Common Large")..{
 		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY * 2;zoom,textzoom;halign,0),
 		SetCommand=function(self)
-			if GAMESTATE:GetFilterMode() then 
+			if FILTERMAN:GetFilterMode() then 
 				self:settext("Mode: ".."AND")
 			else
 				self:settext("Mode: ".."OR")
@@ -173,7 +173,7 @@ local f = Def.ActorFrame{
 		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY * 2;zoomto,120,18;halign,0;diffusealpha,0),
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) and active then
-				GAMESTATE:ToggleFilterMode()
+				FILTERMAN:ToggleFilterMode()
 				MESSAGEMAN:Broadcast("FilterModeChanged")
 				whee:SongSearch("")
 			end
@@ -182,12 +182,12 @@ local f = Def.ActorFrame{
 	LoadFont("Common Large")..{
 		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY * 3;zoom,textzoom;halign,0),
 		SetCommand=function(self)
-			if GAMESTATE:GetHighestSkillsetsOnly() then 
+			if FILTERMAN:GetHighestSkillsetsOnly() then 
 				self:settext("Highest Only: ".."ON")
 			else
 				self:settext("Highest Only: ".."OFF")
 			end
-			if GAMESTATE:GetFilterMode() then 
+			if FILTERMAN:GetFilterMode() then 
 				self:diffuse(color("#666666"))
 			else
 				self:diffuse(color("#FFFFFF"))
@@ -199,7 +199,7 @@ local f = Def.ActorFrame{
 		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY * 3;zoomto,160,18;halign,0;diffusealpha,0),
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) and active then
-				GAMESTATE:ToggleHighestSkillsetsOnly()
+				FILTERMAN:ToggleHighestSkillsetsOnly()
 				MESSAGEMAN:Broadcast("FilterModeChanged")
 				whee:SongSearch("")
 			end
@@ -244,7 +244,7 @@ local function CreateFilterInputBox(i)
 		LoadFont("Common Large")..{
 			InitCommand=cmd(addx,150;addy,175 + (i-1)*spacingY;halign,1;maxwidth,40;zoom,textzoom),
 			SetCommand=function(self)
-				local fval = GAMESTATE:GetSSFilter(i,0)				-- lower bounds
+				local fval = FILTERMAN:GetSSFilter(i,0)				-- lower bounds
 				self:settext(fval)
 				if fval <= 0 and ActiveSS ~= i then
 					self:diffuse(color("#666666"))
@@ -280,7 +280,7 @@ local function CreateFilterInputBox(i)
 		LoadFont("Common Large")..{
 			InitCommand=cmd(addx,175;addy,175 + (i-1)*spacingY;halign,1;maxwidth,40;zoom,textzoom),
 			SetCommand=function(self)
-				local fval = GAMESTATE:GetSSFilter(i,1)				-- upper bounds
+				local fval = FILTERMAN:GetSSFilter(i,1)				-- upper bounds
 				self:settext(fval)
 				if fval <= 0 and ActiveSS ~= i then
 					self:diffuse(color("#666666"))
@@ -300,7 +300,7 @@ f[#f+1] = Def.Quad{
     InitCommand=cmd(xy,frameX+frameWidth-150,frameY+250;zoomto,60,20;halign,0.5;diffuse,getMainColor('frames');diffusealpha,0),
     MouseLeftClickMessageCommand=function(self)
         if isOver(self) and active then
-            GAMESTATE:ResetSSFilters()
+            FILTERMAN:ResetSSFilters()
             for i=1,#ms.SkillSets do
                 SSQuery[0][i] = "0"
                 SSQuery[1][i] = "0"
