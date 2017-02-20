@@ -23,6 +23,7 @@
 #include "CommonMetrics.h"
 #include "MessageManager.h"
 #include "LocalizedString.h"
+#include "FilterManager.h"
 
 static Preference<bool> g_bMoveRandomToEnd( "MoveRandomToEnd", false );
 static Preference<bool> g_bPrecacheAllSorts( "PreCacheAllWheelSorts", false);
@@ -591,18 +592,18 @@ void MusicWheel::FilterBySearch(vector<Song*>& inv, RString findme) {
 // should definitely house these in lower level functions so return can be called the iteration an outcome is determined on instead of clumsily using continue - mina
 void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
 	vector<Song*> tmp;
-	if (!GAMESTATE->ExclusiveFilter) {
+	if (!FILTERMAN->ExclusiveFilter) {
 		for (size_t i = 0; i < inv.size(); i++) {
 			bool addsong = false;
 			FOREACH_ENUM(Skillset, ss) {
-				float lb = GAMESTATE->SSFilterLowerBounds[ss];
-				float ub = GAMESTATE->SSFilterUpperBounds[ss];
+				float lb = FILTERMAN->SSFilterLowerBounds[ss];
+				float ub = FILTERMAN->SSFilterUpperBounds[ss];
 				if (lb > 0.f || ub > 0.f) {				// if either bound is active, continue to evaluation
-					float currate = GAMESTATE->MaxFilterRate + 0.1f;
-					float minrate = GAMESTATE->m_pPlayerState[0]->wtFFF;
+					float currate = FILTERMAN->MaxFilterRate + 0.1f;
+					float minrate = FILTERMAN->m_pPlayerState[0]->wtFFF;
 					do {
 						currate = currate - 0.1f;
-						if (GAMESTATE->HighestSkillsetsOnly)
+						if (FILTERMAN->HighestSkillsetsOnly)
 							if (!inv[i]->IsSkillsetHighestOfAnySteps(ss, currate))
 								continue;
 
@@ -633,12 +634,12 @@ void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
 			bool addsong = true;
 			FOREACH_ENUM(Skillset, ss) {
 				bool pineapple = true;
-				float lb = GAMESTATE->SSFilterLowerBounds[ss];
-				float ub = GAMESTATE->SSFilterUpperBounds[ss];
+				float lb = FILTERMAN->SSFilterLowerBounds[ss];
+				float ub = FILTERMAN->SSFilterUpperBounds[ss];
 				if (lb > 0.f || ub > 0.f) {
 					bool localaddsong;
-					float currate = GAMESTATE->MaxFilterRate + 0.1f;
-					float minrate = GAMESTATE->m_pPlayerState[0]->wtFFF;
+					float currate = FILTERMAN->MaxFilterRate + 0.1f;
+					float minrate = FILTERMAN->m_pPlayerState[0]->wtFFF;
 					bool toiletpaper = false;
 					do {
 						localaddsong = true;
@@ -726,7 +727,7 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 			if (searching)
 				FilterBySearch(arraySongs, findme);
 
-			if (GAMESTATE->AnyActiveFilter())
+			if (FILTERMAN->AnyActiveFilter())
 				FilterBySkillsets(arraySongs);
 				
 			msg.SetParam("Matches", static_cast<int>(arraySongs.size()));

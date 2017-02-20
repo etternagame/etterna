@@ -55,6 +55,7 @@
 #include "InputQueue.h"
 #include "SongCacheIndex.h"
 #include "BannerCache.h"
+#include "FilterManager.h"
 //#include "BackgroundCache.h"
 #include "UnlockManager.h"
 #include "RageFileManager.h"
@@ -1181,6 +1182,8 @@ int sm_main(int argc, char* argv[])
 	NSMAN 		= new NetworkSyncManager( pLoadingWindow );
 	MESSAGEMAN	= new MessageManager;
 	STATSMAN	= new StatsManager;
+
+	FILTERMAN = new FilterManager;
 
 	// Initialize which courses are ranking courses here.
 	SONGMAN->UpdateRankingCourses();
