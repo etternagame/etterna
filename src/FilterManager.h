@@ -19,7 +19,6 @@ public:
 	void SetSSFilter(float v, Skillset ss, int bound);
 	void ResetSSFilters(); // reset button for filters
 	bool HighestSkillsetsOnly = false;
-	bool SkillsetFiltersActive = false; // appears to be unused
 	bool AnyActiveFilter();
 
 	//Lua
