@@ -1521,9 +1521,6 @@ void Player::ApplyWaitingTransforms()
 
 void Player::DrawPrimitives()
 {
-	if (!DISPLAY->ShouldRenderFrame())
-		return;
-
 	// TODO: Remove use of PlayerNumber.
 	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 

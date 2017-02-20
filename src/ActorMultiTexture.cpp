@@ -89,9 +89,6 @@ void ActorMultiTexture::SetTextureMode( int iIndex, TextureMode tm )
 
 void ActorMultiTexture::DrawPrimitives()
 {
-	if (!DISPLAY->ShouldRenderFrame())
-		return;
-
 	Actor::SetGlobalRenderStates();	// set Actor-specified render states
 
 	RectF quadVerticies;

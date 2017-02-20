@@ -586,11 +586,8 @@ bool RageDisplay_D3D::BeginFrame()
 		}
 	}
 
-	if (DISPLAY->ShouldRenderFrame())
-	{
-		g_pd3dDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER,
+	g_pd3dDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER,
 			D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0x00000000);
-	}
 	
 	g_pd3dDevice->BeginScene();
 
@@ -603,14 +600,11 @@ void RageDisplay_D3D::EndFrame()
 
 	FrameLimitBeforeVsync();
 
-	if (ShouldPresentFrame())
-	{
-		auto beforePresent = std::chrono::steady_clock::now();
-		g_pd3dDevice->Present(0, 0, 0, 0);
+	auto beforePresent = std::chrono::steady_clock::now();
+	g_pd3dDevice->Present(0, 0, 0, 0);
 
-		auto afterPresent = std::chrono::steady_clock::now();
-		SetPresentTime(afterPresent - beforePresent);
-	}
+	auto afterPresent = std::chrono::steady_clock::now();
+	SetPresentTime(afterPresent - beforePresent);
 	
 	FrameLimitAfterVsync( (*GetActualVideoModeParams()).rate );
 

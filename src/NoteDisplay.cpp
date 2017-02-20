@@ -448,9 +448,6 @@ bool NoteDisplay::DrawHoldsInRange(const NoteFieldRenderArgs& field_args,
 	const NoteColumnRenderArgs& column_args,
 	const vector<NoteData::TrackMap::const_iterator>& tap_set)
 {
-	if (!DISPLAY->ShouldRenderFrame())
-		return false;
-
 	bool any_upcoming = false;
 	for(vector<NoteData::TrackMap::const_iterator>::const_iterator tapit=
 		tap_set.begin(); tapit != tap_set.end(); ++tapit)
@@ -517,9 +514,6 @@ bool NoteDisplay::DrawTapsInRange(const NoteFieldRenderArgs& field_args,
 	const NoteColumnRenderArgs& column_args,
 	const vector<NoteData::TrackMap::const_iterator>& tap_set)
 {
-	if (!DISPLAY->ShouldRenderFrame())
-		return false;
-
 	bool any_upcoming= false;
 	// draw notes from furthest to closest
 	for(vector<NoteData::TrackMap::const_iterator>::const_iterator tapit=
@@ -706,10 +700,7 @@ struct StripBuffer
 	}
 	void Draw()
 	{
-		if( DISPLAY->ShouldRenderFrame() )
-		{
-			DISPLAY->DrawSymmetricQuadStrip(buf, v - buf);
-		}
+		DISPLAY->DrawSymmetricQuadStrip(buf, v - buf);
 	}
 	int Used() const { return v - buf; }
 	int Free() const { return size - Used(); }
@@ -1342,9 +1333,6 @@ void NoteDisplay::DrawTap(const TapNote& tn,
 	bool bOnSameRowAsHoldStart, bool bOnSameRowAsRollStart,
 	bool bIsAddition, float fPercentFadeToFail)
 {
-	if ( !DISPLAY->ShouldRenderFrame() )
-		return;
-
 	Actor* pActor = NULL;
 	NotePart part = NotePart_Tap;
 	/*
@@ -1491,9 +1479,6 @@ void NoteColumnRenderer::UpdateReceptorGhostStuff(Actor* receptor) const
 
 void NoteColumnRenderer::DrawPrimitives()
 {
-	if (!DISPLAY->ShouldRenderFrame())
-		return;
-
 	m_column_render_args.song_beat= m_field_render_args->player_state->GetDisplayedPosition().m_fSongBeatVisible;
 	m_column_render_args.pos_handler= &NCR_current.m_pos_handler;
 	m_column_render_args.rot_handler= &NCR_current.m_rot_handler;

@@ -188,10 +188,7 @@ public:
 	virtual RString GetApiDescription() const = 0;
 	virtual void GetDisplayResolutions( DisplayResolutions &out ) const = 0;
 
-	bool ShouldRenderFrame();
-	bool ShouldPresentFrame();
 	void SetPresentTime(std::chrono::nanoseconds presentTime);
-	bool presentFrame = true;
 
 	// Don't override this.  Override TryVideoMode() instead.
 	// This will set the video mode to be as close as possible to params.

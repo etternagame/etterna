@@ -786,15 +786,12 @@ bool RageDisplay_Legacy::BeginFrame()
 	/* We do this in here, rather than ResolutionChanged, or we won't update the
 	 * viewport for the concurrent rendering context. */
 
-	if (!DISPLAY || DISPLAY->ShouldRenderFrame())
-	{
-		int fWidth = (*g_pWind->GetActualVideoModeParams()).width;
-		int fHeight = (*g_pWind->GetActualVideoModeParams()).height;
-		glViewport(0, 0, fWidth, fHeight);
-		glClearColor(0, 0, 0, 0);
-		SetZWrite(true);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	}
+	int fWidth = (*g_pWind->GetActualVideoModeParams()).width;
+	int fHeight = (*g_pWind->GetActualVideoModeParams()).height;
+	glViewport(0, 0, fWidth, fHeight);
+	glClearColor(0, 0, 0, 0);
+	SetZWrite(true);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	return RageDisplay::BeginFrame();
 }
@@ -802,29 +799,27 @@ bool RageDisplay_Legacy::BeginFrame()
 void RageDisplay_Legacy::EndFrame()
 {
 	FrameLimitBeforeVsync();
-	if (ShouldPresentFrame())
-	{
-		auto beforePresent = std::chrono::steady_clock::now();
-		g_pWind->SwapBuffers();
+	auto beforePresent = std::chrono::steady_clock::now();
+	g_pWind->SwapBuffers();
 
-		// Some would advise against glFinish(), ever. Those people don't realize
-		// the degree of freedom GL hosts are permitted in queueing commands.
-		// If left to its own devices, the host could lag behind several frames' worth
-		// of commands.
-		// glFlush() only forces the host to not wait to execute all commands
-		// sent so far; it does NOT block on those commands until they finish.
-		// glFinish() blocks. We WANT to block. Why? This puts the engine state
-		// reflected by the next frame as close as possible to the on-screen
-		// appearance of that frame.
-		glFinish();
+	// Some would advise against glFinish(), ever. Those people don't realize
+	// the degree of freedom GL hosts are permitted in queueing commands.
+	// If left to its own devices, the host could lag behind several frames' worth
+	// of commands.
+	// glFlush() only forces the host to not wait to execute all commands
+	// sent so far; it does NOT block on those commands until they finish.
+	// glFinish() blocks. We WANT to block. Why? This puts the engine state
+	// reflected by the next frame as close as possible to the on-screen
+	// appearance of that frame.
+	glFinish();
 
-		g_pWind->Update();
+	g_pWind->Update();
 
-		auto afterPresent = std::chrono::steady_clock::now();
-		auto endTime = afterPresent - beforePresent;
+	auto afterPresent = std::chrono::steady_clock::now();
+	auto endTime = afterPresent - beforePresent;
 
-		SetPresentTime(endTime);
-	}
+	SetPresentTime(endTime);
+
 	FrameLimitAfterVsync((*GetActualVideoModeParams()).rate);
 
 	RageDisplay::EndFrame();

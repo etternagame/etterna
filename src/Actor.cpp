@@ -305,7 +305,7 @@ void Actor::Draw()
 {
 	if( !m_bVisible ||
 		m_fHibernateSecondsLeft > 0 || 
-		this->EarlyAbortDraw() || !DISPLAY->ShouldRenderFrame() )
+		this->EarlyAbortDraw() )
 	{
 		return; // early abort
 	}

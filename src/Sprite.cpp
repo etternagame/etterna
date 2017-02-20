@@ -479,9 +479,6 @@ void TexCoordArrayFromRect( float fImageCoords[8], const RectF &rect )
 
 void Sprite::DrawTexture( const TweenState *state )
 {
-	if (!DISPLAY->ShouldRenderFrame())
-		return;
-
 	Actor::SetGlobalRenderStates(); // set Actor-specified render states
 
 	RectF crop = state->crop;
@@ -625,9 +622,6 @@ bool Sprite::EarlyAbortDraw() const
 
 void Sprite::DrawPrimitives()
 {
-	if (!DISPLAY->ShouldRenderFrame())
-		return;
-
 	if( m_pTempState->fade.top > 0 ||
 		m_pTempState->fade.bottom > 0 ||
 		m_pTempState->fade.left > 0 ||

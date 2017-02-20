@@ -35,7 +35,6 @@ static int g_iFramesRenderedSinceLastCheck,
 	   g_iNumChecksSinceLastReset;
 static RageTimer g_LastFrameEndedAtRage( RageZeroTimer );
 static auto g_LastFrameEndedAt = std::chrono::steady_clock::now();
-static auto g_FrameExecutionTime = std::chrono::steady_clock::now();
 static auto g_FrameRenderTime = std::chrono::steady_clock::now();
 static std::chrono::nanoseconds g_LastFrameRenderTime;
 static std::chrono::nanoseconds g_LastFramePresentTime;
@@ -127,11 +126,8 @@ void RageDisplay::ProcessStatsOnFlip()
 {
 	if (PREFSMAN->m_bShowStats || LOG_FPS)
 	{
-		if (ShouldRenderFrame())
-		{
-			g_iFramesRenderedSinceLastCheck++;
-			g_iFramesRenderedSinceLastReset++;
-		}
+		g_iFramesRenderedSinceLastCheck++;
+		g_iFramesRenderedSinceLastReset++;
 
 		std::chrono::duration<double> timeDelta = std::chrono::steady_clock::now() - g_LastCheckTimer;
 		float checkTime = timeDelta.count();
@@ -937,7 +933,7 @@ void RageDisplay::DrawCircle( const RageSpriteVertex &v, float radius )
 
 void RageDisplay::FrameLimitBeforeVsync()
 {
-	if ( presentFrame && g_fPredictiveFrameLimit.Get() )
+	if ( g_fPredictiveFrameLimit.Get() )
 	{
 		auto afterRender = std::chrono::steady_clock::now();
 		auto endTime = afterRender - g_FrameRenderTime;
@@ -969,8 +965,8 @@ void RageDisplay::FrameLimitBeforeVsync()
 }
 
 // Frame pacing code
-// The aim of this function is to make it so we only render frames the user can see
-// And to render those frames as close to the display present time as possible to reduce display lag
+// The aim of this function is to delay the start of the next loop as long as possible
+// so that what the player sees when using VSync is as close to real time as possible.
 //
 // The issue: 
 // If we wait too long we miss the present and cause a stutter that displays information which could be over 1 frame old
@@ -985,63 +981,55 @@ void RageDisplay::FrameLimitAfterVsync( int iFPS )
 	else if ( !PREFSMAN->m_bVsync.Get() && g_fFrameLimit.Get() == 0 && g_fFrameLimitGameplay.Get() == 0 )
 		return;
 	
-	if ( presentFrame )
+	g_LastFrameEndedAt = std::chrono::steady_clock::now();
+	
+	// Get the target frame time 
+	double waitTime = 0.0;
+	if (SCREENMAN && SCREENMAN->GetTopScreen())
 	{
-		presentFrame = false;
-		g_LastFrameEndedAt = std::chrono::steady_clock::now();
-		g_FrameExecutionTime = g_LastFrameEndedAt;
+		if (SCREENMAN->GetTopScreen()->GetScreenType() == gameplay && g_fFrameLimitGameplay.Get() > 0)
+			waitTime = 1.0 / g_fFrameLimitGameplay.Get();
+		else if (SCREENMAN->GetTopScreen()->GetScreenType() != gameplay && g_fFrameLimit.Get() > 0)
+			waitTime = 1.0 / g_fFrameLimit.Get();
+	}
+
+	// Not using frame limiter and vsync is enabled
+	// Or Frame limiter is set beyond vsync
+	if (PREFSMAN->m_bVsync.Get() && (waitTime == 0.0 || waitTime < (1.0 / iFPS)))
+		waitTime = 1.0 / iFPS;
+	
+	// Calculate wait time and attempt to not overshoot waiting
+	// Cautiousness is needed due to CPU power states and driver present times causing entire loop time variations
+	// of around +-250 microseconds. 
+	
+	// Conservative default of 10% target frame time is used incase someone is using really old hardware
+	double waitCautiousness = g_fFrameLimitPercent.Get() > 0 ? g_fFrameLimitPercent.Get() : 0.90;
+
+	// Target frame time
+	waitTime *= waitCautiousness;
+	auto waitTimeNano = std::chrono::duration<double>(waitTime);
+	auto waitTimeActuallyNano = std::chrono::duration_cast<std::chrono::nanoseconds>(waitTimeNano);
+
+	// Last render time, DirectX and OpenGL do work in present time so we need to include them
+	auto renderTime = g_LastFrameRenderTime + g_LastFramePresentTime;
+	
+	// ex. 8.33ms refresh rate - 1ms render time
+	auto startLoopTime = waitTimeActuallyNano - renderTime;
+
+	// Check if we need to wait
+	if (startLoopTime.count() < 0)
+	{
+		// Just go, we're late
+		//LOG->Trace("Game loop start is late by %d", startLoopTime);
 	}
 	else
 	{
-		// Get the timings for the game logic loop, render loop, and present time
-		// Along with how long we are waiting for, e.g. Frame Limiting
-		auto loopEndTime = std::chrono::steady_clock::now() - g_FrameExecutionTime;
-
-		double waitTime = 0.0;
-		if (SCREENMAN && SCREENMAN->GetTopScreen())
-		{
-			if (SCREENMAN->GetTopScreen()->GetScreenType() == gameplay && g_fFrameLimitGameplay.Get() > 0)
-				waitTime = 1.0 / g_fFrameLimitGameplay.Get();
-			else if (SCREENMAN->GetTopScreen()->GetScreenType() != gameplay && g_fFrameLimit.Get() > 0)
-				waitTime = 1.0 / g_fFrameLimit.Get();
-		}
-
-		// Not using frame limiter and vsync is enabled
-		// Or Frame limiter is set beyond vsync
-		if (PREFSMAN->m_bVsync.Get() && (waitTime == 0.0 || waitTime < (1.0 / iFPS)))
-			waitTime = 1.0 / iFPS;
-
-		auto waitTimeNano = std::chrono::duration<double>(waitTime);
-		auto waitTimeActuallyNano = std::chrono::duration_cast<std::chrono::nanoseconds>(waitTimeNano);
-
-		// Calculate wait time and attempt to not overshoot waiting
-		//
-		// Cannot have anything which takes a while to execute after the afterLoop time get as it won't be taken into account
-		double waitCautiousness = g_fFrameLimitPercent.Get() > 0 ? g_fFrameLimitPercent.Get() : 0.90;
-		auto renderTime = g_LastFrameRenderTime + g_LastFramePresentTime - loopEndTime;
-
-		auto afterLoop = std::chrono::steady_clock::now();
-		auto timeTillRender = afterLoop - g_LastFrameEndedAt;
-
-		// Check if we have enough time to do another loop, or if that'll make us late
-		if (timeTillRender >= (waitCautiousness * (waitTimeActuallyNano - loopEndTime - renderTime)))
-		{
-			presentFrame = true;
-			g_FrameRenderTime = std::chrono::steady_clock::now();
-		}
+		//LOG->Trace("Waiting before game loop by %d", startLoopTime);
+		// Wait until our desired time, aka g_fFrameLimitPercent of the way until needed present time
+		std::this_thread::sleep_for(startLoopTime);
 	}
-}
 
-// Both ShouldRenderFrame and ShouldPresentFrame are the same,
-// but they are here in-case in the future we find theres a reason to change how they are used
-bool RageDisplay::ShouldRenderFrame()
-{
-	return presentFrame;
-}
-
-bool RageDisplay::ShouldPresentFrame()
-{
-	return presentFrame;
+	g_FrameRenderTime = std::chrono::steady_clock::now();
 }
 
 void RageDisplay::SetPresentTime(std::chrono::nanoseconds presentTime)

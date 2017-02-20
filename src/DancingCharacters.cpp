@@ -310,9 +310,6 @@ void DancingCharacters::Change2DAnimState( PlayerNumber pn, int iState )
 
 void DancingCharacters::DrawPrimitives()
 {
-	if (!DISPLAY->ShouldRenderFrame())
-		return;
-
 	DISPLAY->CameraPushMatrix();
 
 	float fPercentIntoSweep;

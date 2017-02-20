@@ -504,19 +504,16 @@ void ScreenManager::Draw()
 	if( !DISPLAY->BeginFrame() )
 		return;
 
-	if (DISPLAY->ShouldRenderFrame())
-	{
-		DISPLAY->CameraPushMatrix();
-		DISPLAY->LoadMenuPerspective(0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_CENTER_X, SCREEN_CENTER_Y);
-		g_pSharedBGA->Draw();
-		DISPLAY->CameraPopMatrix();
+	DISPLAY->CameraPushMatrix();
+	DISPLAY->LoadMenuPerspective(0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_CENTER_X, SCREEN_CENTER_Y);
+	g_pSharedBGA->Draw();
+	DISPLAY->CameraPopMatrix();
 
-		for (unsigned i = 0; i<g_ScreenStack.size(); i++)	// Draw all screens bottom to top
-			g_ScreenStack[i].m_pScreen->Draw();
+	for (unsigned i = 0; i<g_ScreenStack.size(); i++)	// Draw all screens bottom to top
+		g_ScreenStack[i].m_pScreen->Draw();
 
-		for (unsigned i = 0; i<g_OverlayScreens.size(); i++)
-			g_OverlayScreens[i]->Draw();
-	}
+	for (unsigned i = 0; i<g_OverlayScreens.size(); i++)
+		g_OverlayScreens[i]->Draw();
 
 	DISPLAY->EndFrame();
 }
