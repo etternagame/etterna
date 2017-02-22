@@ -5,6 +5,7 @@
 #include "XmlFile.h"
 #include "IniFile.h"
 #include "GameManager.h"
+#include "GameState.h"
 #include "RageLog.h"
 #include "Song.h"
 #include "SongManager.h"

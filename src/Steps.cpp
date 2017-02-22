@@ -452,7 +452,7 @@ void Steps::Decompress(bool isGameplay)
 		vector<float> etaner;
 
 		for (size_t i = 0; i < nerv.size(); i++)
-			etaner.push_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(nerv[i])));
+			etaner.emplace_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(nerv[i])));
 		
 		ChartKey = GenerateChartKey(*m_pNoteData, td);
 		stuffnthings = MinaSDCalc(m_pNoteData->SerializeNoteData(etaner), m_pNoteData->GetNumTracks(), 0.93f, 1.f, td->HasWarps());

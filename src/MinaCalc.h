@@ -1,9 +1,8 @@
 #pragma once
-#define PRINTF(a,b)
-#include "global.h"
-#include "GameState.h"
-#include "RageUtil.h"
 #include "NoteDataStructures.h"
+#include <vector>
+
+using namespace std;
 
 // For internal, must be preprocessor defined
 #ifdef MINADLL_COMPILE
