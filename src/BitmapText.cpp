@@ -421,81 +421,52 @@ void BitmapText::DrawChars( bool bUseStrokeTexture )
 		}
 	}
 
-	TextureUnit textureUnit = TextureUnit_1;
 	bool haveTextures = false;
-	int texUnit = 0;
 	int startingPoint = iStartGlyph;
 
 	DISPLAY->ClearAllTextures();
-	for( int start = iStartGlyph; start < iEndGlyph; )
+	for ( int start = iStartGlyph; start < iEndGlyph; )
 	{
 		int end = start;
-		while( end < iEndGlyph  &&  m_vpFontPageTextures[end] == m_vpFontPageTextures[start] )
+		while (end < iEndGlyph  &&  m_vpFontPageTextures[end] == m_vpFontPageTextures[start])
 			end++;
 
-		bool bHaveATexture = !bUseStrokeTexture  ||  (bUseStrokeTexture && m_vpFontPageTextures[start]->m_pTextureStroke);
-		if( bHaveATexture )
+		bool bHaveATexture = !bUseStrokeTexture || (bUseStrokeTexture && m_vpFontPageTextures[start]->m_pTextureStroke);
+		if (bHaveATexture)
 		{
-			haveTextures = true;
-
-			switch ( texUnit )
+			if (!haveTextures)
 			{
-			case 0:
-				textureUnit = TextureUnit_1;
-				break;
-			case 1:
-				textureUnit = TextureUnit_2;
-				break;
-			case 2:
-				textureUnit = TextureUnit_3;
-				break;
-			case 3:
-				textureUnit = TextureUnit_4;
-				break;
-			case 4:
-				textureUnit = TextureUnit_5;
-				break;
-			case 5:
-				textureUnit = TextureUnit_6;
-				break;
-			case 6:
-				textureUnit = TextureUnit_7;
-				break;
-			case 7:
-				textureUnit = TextureUnit_8;
-				break;
-			}
-			
-			if ( bUseStrokeTexture )
-				DISPLAY->SetTexture( textureUnit, m_vpFontPageTextures[start]->m_pTextureStroke->GetTexHandle() );
-			else
-				DISPLAY->SetTexture( textureUnit, m_vpFontPageTextures[start]->m_pTextureMain->GetTexHandle() );
+				haveTextures = true;
 
-			texUnit++;
+				if (bUseStrokeTexture)
+					DISPLAY->SetTexture(TextureUnit_1, m_vpFontPageTextures[start]->m_pTextureStroke->GetTexHandle());
+				else
+					DISPLAY->SetTexture(TextureUnit_1, m_vpFontPageTextures[start]->m_pTextureMain->GetTexHandle());
+			}
 
 			// Don't bother setting texture render states for text. We never go outside of 0..1.
-			/* We should call SetTextureRenderStates because it does more than just setting 
-			 * the texture wrapping state. If setting the wrapping state is found to be slow, 
+			/* We should call SetTextureRenderStates because it does more than just setting
+			 * the texture wrapping state. If setting the wrapping state is found to be slow,
 			 * there should probably be a "don't care" texture wrapping mode set in Actor. -Chris */
-			 
-			// This is SLOW. We need to do something else about this. -Colby
-			//Actor::SetTextureRenderStates();
+
+			 // This is SLOW. We need to do something else about this. -Colby
+			 //Actor::SetTextureRenderStates();
 		}
 
 		// Characters from different texture pages cannot be bundled together in the same render call
 		bool renderNow = false;
 		if ( haveTextures && end < m_vpFontPageTextures.size() && m_vpFontPageTextures[start]->m_pTextureMain != m_vpFontPageTextures[end]->m_pTextureMain )
+		{
 			renderNow = true;
+		}
 
-		// Render if we can't store any more textures without running into software or hardware limitations
-		if ( haveTextures && (((renderNow || end >= iEndGlyph) || texUnit == 8) || (texUnit == DISPLAY->GetNumTextureUnits() || !PREFSMAN->m_bAllowMultitexture )) )
+		if ( haveTextures && (renderNow || end >= iEndGlyph) )
 		{
 			DISPLAY->DrawQuads(&m_aVertices[startingPoint * 4], (end - startingPoint) * 4);
 
 			// Setup for the next render pass
 			DISPLAY->ClearAllTextures();
 			startingPoint = end;
-			texUnit = 0;
 			haveTextures = false;
 		}
 
