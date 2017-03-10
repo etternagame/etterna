@@ -2537,11 +2537,8 @@ void Player::UpdateTapNotesMissedOlderThan( float fMissIfOlderThanSeconds )
 
 void Player::UpdateJudgedRows(float fDeltaTime)
 {
-	// Look into the past and future only as far as we need to
-	// in order to catch misses and early hits
-	// TODO: Figure out why fudging value is needed aside from rounding distance
+	// Look into the future only as far as we need to
 	const int iEndRow = BeatToNoteRow( m_Timing->GetBeatFromElapsedTime( m_pPlayerState->m_Position.m_fMusicSeconds + GetMaxStepDistanceSeconds() ) );
-	const int iStartRow = BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(m_pPlayerState->m_Position.m_fMusicSeconds - GetMaxStepDistanceSeconds() - fDeltaTime - 0.1666667f));
 	bool bAllJudged = true;
 	const bool bSeparately = GAMESTATE->GetCurrentGame()->m_bCountNotesSeparately;
 
@@ -2551,10 +2548,6 @@ void Player::UpdateJudgedRows(float fDeltaTime)
 		for( ; !iter.IsAtEnd()  &&  iter.Row() <= iEndRow; ++iter )
 		{
 			int iRow = iter.Row();
-
-			// Do not go across rows which are too old
-			if (iStartRow > iRow)
-				continue;
 
 			// Do not judge arrows in WarpSegments or FakeSegments
 			if (!m_Timing->IsJudgableAtRow(iRow))
@@ -2574,10 +2567,12 @@ void Player::UpdateJudgedRows(float fDeltaTime)
 					*m_pIterUnjudgedRows = iter;
 				if( m_pJudgedRows->JudgeRow(iRow) )
 					continue;
-				const TapNoteResult &lastTNR = NoteDataWithScoring::LastTapNoteWithResult( m_NoteData, iRow ).result;
 
-				if( lastTNR.tns < TNS_Miss )
+				const TapNote &lastTN = NoteDataWithScoring::LastTapNoteWithResult( m_NoteData, iRow );
+
+				if(lastTN.result.tns < TNS_Miss )
 					continue;
+				
 				if( bSeparately )
 				{
 					for( int iTrack = 0; iTrack < m_NoteData.GetNumTracks(); ++iTrack )
@@ -2585,13 +2580,13 @@ void Player::UpdateJudgedRows(float fDeltaTime)
 						const TapNote &tn = m_NoteData.GetTapNote( iTrack, iRow );
 						if (tn.type == TapNoteType_Empty ||
 							tn.type == TapNoteType_Mine ||
-							tn.type == TapNoteType_AutoKeysound) continue;
+							tn.type == TapNoteType_AutoKeysound ) continue;
 						SetJudgment( iRow, iTrack, tn );
 					}
 				}
 				else
 				{
-					SetJudgment( iRow, m_NoteData.GetFirstTrackWithTapOrHoldHead(iRow), NoteDataWithScoring::LastTapNoteWithResult( m_NoteData, iRow ) );
+					SetJudgment( iRow, m_NoteData.GetFirstTrackWithTapOrHoldHead(iRow), lastTN );
 				}
 				HandleTapRowScore( iRow );
 			}
