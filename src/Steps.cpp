@@ -491,8 +491,7 @@ map<float, Skillset> Steps::SortSkillsetsAtRate(float x, bool includeoverall) {
 
 RString Steps::GenerateChartKey(NoteData& nd, TimingData *td)
 {
-	RString k = "";
-	RString o = "";
+	RString o = "X"; // I was thinking of using "C" to indicate chart.. however.. X is cooler... - Mina
 	vector<int>& nerv = nd.GetNonEmptyRowVector();
 	
 	unsigned int numThreads = max(std::thread::hardware_concurrency(), 1u);
@@ -502,7 +501,7 @@ RString Steps::GenerateChartKey(NoteData& nd, TimingData *td)
 	size_t segmentSize = nerv.size() / numThreads;
 	std::vector<std::thread> threads;
 	threads.reserve(numThreads);
-	
+
 	for (unsigned int curThread = 0; curThread < numThreads; curThread++)
 	{
 		keyParts.push_back("");
@@ -519,12 +518,8 @@ RString Steps::GenerateChartKey(NoteData& nd, TimingData *td)
 		if(t.joinable())
 			t.join();
 	}
-
-	for(size_t i = 0; i < numThreads; i++)
-		k += keyParts[i];
-
-	o.append("X");	// I was thinking of using "C" to indicate chart.. however.. X is cooler... - Mina
-	o.append(BinaryToHex(CryptManager::GetSHA1ForString(k)));
+	
+	o.append(BinaryToHex(CryptManager::GetSHA1ForString(*keyParts.data())));
 	return o;
 }
 
