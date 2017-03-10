@@ -200,7 +200,7 @@ void RageDisplay::StatsAddVerts( int iNumVertsRendered ) { g_iVertsRenderedSince
 /* Draw a line as a quad.  GL_LINES with SmoothLines off can draw line
  * ends at odd angles--they're forced to axis-alignment regardless of the
  * angle of the line. */
-void RageDisplay::DrawPolyLine(const RageSpriteVertex &p1, const RageSpriteVertex &p2, float LineWidth )
+void RageDisplay::DrawPolyLine( const RageSpriteVertex &p1, const RageSpriteVertex &p2, float LineWidth )
 {
 	// soh cah toa strikes strikes again!
 	float opp = p2.p.x - p1.p.x;
@@ -230,6 +230,50 @@ void RageDisplay::DrawPolyLine(const RageSpriteVertex &p1, const RageSpriteVerte
 	this->DrawQuad(v);
 }
 
+// Batching version of the above function
+void RageDisplay::DrawPolyLines( const RageSpriteVertex v[], int iNumVerts, float LineWidth )
+{
+	vector<RageSpriteVertex> batchVerts;
+	batchVerts.reserve(iNumVerts * 4);
+
+	for (int i = 0; i < iNumVerts - 1; ++i)
+	{
+		const RageSpriteVertex p1 = v[i];
+		const RageSpriteVertex p2 = v[i + 1];
+
+		// soh cah toa strikes strikes again!
+		float opp = p2.p.x - p1.p.x;
+		float adj = p2.p.y - p1.p.y;
+		float hyp = powf(opp*opp + adj*adj, 0.5f);
+
+		float lsin = opp / hyp;
+		float lcos = adj / hyp;
+
+		RageSpriteVertex nv[4];
+
+		nv[0] = nv[1] = p1;
+		nv[2] = nv[3] = p2;
+
+		float ydist = lsin * LineWidth / 2;
+		float xdist = lcos * LineWidth / 2;
+
+		nv[0].p.x += xdist;
+		nv[0].p.y -= ydist;
+		nv[1].p.x -= xdist;
+		nv[1].p.y += ydist;
+		nv[2].p.x -= xdist;
+		nv[2].p.y += ydist;
+		nv[3].p.x += xdist;
+		nv[3].p.y -= ydist;
+
+		for (int i = 0; i < 4; i++)
+		{
+			batchVerts.push_back(nv[i]);
+		}
+	}
+
+	this->DrawQuads(batchVerts.data(), batchVerts.size());
+}
 
 void RageDisplay::DrawLineStripInternal( const RageSpriteVertex v[], int iNumVerts, float LineWidth )
 {
@@ -238,12 +282,11 @@ void RageDisplay::DrawLineStripInternal( const RageSpriteVertex v[], int iNumVer
 	/* Draw a line strip with rounded corners using polys. This is used on
 	 * cards that have strange allergic reactions to antialiased points and
 	 * lines. */
-	for( int i = 0; i < iNumVerts-1; ++i )
-		DrawPolyLine(v[i], v[i+1], LineWidth);
+	DrawPolyLines( v, iNumVerts, LineWidth );
 
 	// Join the lines with circles so we get rounded corners.
-	for( int i = 0; i < iNumVerts; ++i )
-		DrawCircle( v[i], LineWidth/2 );
+	for ( int i = 0; i < iNumVerts; ++i )
+		DrawCircle( v[i], LineWidth / 2 );
 }
 
 void RageDisplay::DrawCircleInternal( const RageSpriteVertex &p, float radius )
@@ -264,7 +307,6 @@ void RageDisplay::DrawCircleInternal( const RageSpriteVertex &p, float radius )
 
 	this->DrawFan( v, subdivisions+2 );
 }
-
 
 void RageDisplay::SetDefaultRenderStates()
 {

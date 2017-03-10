@@ -344,6 +344,7 @@ protected:
 	virtual RString TryVideoMode( const VideoModeParams &p, bool &bNewDeviceOut ) = 0;
 
 	void DrawPolyLine( const RageSpriteVertex &p1, const RageSpriteVertex &p2, float LineWidth );
+	void DrawPolyLines( const RageSpriteVertex v[], int iNumVerts, float LineWidth );
 
 	// Stuff in RageDisplay.cpp
 	void SetDefaultRenderStates();
