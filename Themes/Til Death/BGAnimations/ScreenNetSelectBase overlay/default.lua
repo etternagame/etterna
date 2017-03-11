@@ -41,7 +41,6 @@ t[#t+1] = LoadFont("Common Large")..{InitCommand=cmd(xy,5,32;halign,0;valign,1;z
 t[#t+1] = LoadActor("../_cursor")
 t[#t+1] = LoadActor("../_mouseselect")
 t[#t+1] = LoadActor("../_halppls")
---t[#t+1] = LoadActor("wifesearchbar")
 t[#t+1] = LoadActor("../_userlist")
 
 return t

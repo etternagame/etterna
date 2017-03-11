@@ -1,12 +1,6 @@
 local t = Def.ActorFrame{}
 
 t[#t+1] = LoadActor("../_chatbox")
--- adding this function for average nps. This is to check the relative difficulty of song's nps. -Misterkister
---t[#t+1] = LoadActor("yolo")
--- adding other stuff
---t[#t+1] = LoadActor("kappa")
---t[#t+1] = LoadActor("msd stuff")
---t[#t+1] = LoadActor("matra")
 t[#t+1] = LoadActor("../ScreenSelectMusic decorations/profile")
 t[#t+1] = LoadActor("../ScreenSelectMusic decorations/msd")
 t[#t+1] = LoadActor("../ScreenSelectMusic decorations/songsearch")
@@ -82,23 +76,6 @@ g[#g+1] = LoadFont("Common Normal") .. {
 g[#g+1] = LoadActor("wifeonline")
 g[#g+1] = LoadActor("onlinebpm")
 g[#g+1] = LoadActor("radaronline")
--- t[#t+1] = LoadFont("Common Normal") .. {
-	-- Name="songLength";
-	-- InitCommand=cmd(xy,5+(capWideScale(get43size(384),384)),60+capWideScale(get43size(120),120)-capWideScale(get43size(10),10);visible,true;halign,1;zoom,capWideScale(get43size(0.45),0.45);maxwidth,capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45));
-	-- BeginCommand=cmd(queuecommand,"Set");
-	-- SetCommand=function(self)
-		-- local song = GAMESTATE:GetCurrentSong()
-		-- local seconds = 0
-		-- if song ~= nil then
-			-- seconds = song:GetStepsSeconds() --song:MusicLengthSeconds()
-			-- self:settext(SecondsToMMSS(seconds))
-			-- --self:diffuse(getSongLengthColor(seconds))--Function no longer in color_config
-		-- else
-			-- self:settext("")
-		-- end
-	-- end;
-	-- CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
--- };
 
 g[#g+1] = Def.ActorFrame {
 	InitCommand=cmd(xy,capWideScale(get43size(384),384)+26,70,halign,0;valign,0;zoom,math.min(1,SCREEN_WIDTH/854));
@@ -115,11 +92,9 @@ g[#g+1] = Def.ActorFrame {
 	CurrentSongChangedMessageCommand=function(self)
 		local song = GAMESTATE:GetCurrentSong(); 
 		if song then
--- 			self:setaux(0);
 			self:finishtweening();
 			self:playcommand("TweenOn");
 		elseif not song and self:GetZoomX() == 1 then
--- 			self:setaux(1);
 			self:finishtweening();
 			self:playcommand("TweenOff");
 		end;
