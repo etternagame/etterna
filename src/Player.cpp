@@ -1094,7 +1094,7 @@ void Player::Update( float fDeltaTime )
 	UpdateJudgedRows(fDeltaTime);
 
 	// Check for TapNote misses
-	if (!GAMESTATE->m_bInStepEditor)
+	if ( !GAMESTATE->m_bInStepEditor )
 	{
 		UpdateTapNotesMissedOlderThan( GetMaxStepDistanceSeconds() );
 	}
