@@ -266,9 +266,9 @@ void RageDisplay::DrawPolyLines( const RageSpriteVertex v[], int iNumVerts, floa
 		nv[3].p.x += xdist;
 		nv[3].p.y -= ydist;
 
-		for (int i = 0; i < 4; i++)
+		for (int j = 0; j < 4; j++)
 		{
-			batchVerts.push_back(nv[i]);
+			batchVerts.push_back(nv[j]);
 		}
 	}
 
@@ -284,9 +284,12 @@ void RageDisplay::DrawLineStripInternal( const RageSpriteVertex v[], int iNumVer
 	 * lines. */
 	DrawPolyLines( v, iNumVerts, LineWidth );
 
-	// Join the lines with circles so we get rounded corners.
-	for ( int i = 0; i < iNumVerts; ++i )
-		DrawCircle( v[i], LineWidth / 2 );
+	// Join the lines with circles so we get rounded corners when SmoothLines is off.
+	if (!PREFSMAN->m_bSmoothLines)
+	{
+		for (int i = 0; i < iNumVerts; ++i)
+			DrawCircle(v[i], LineWidth / 2);
+	}
 }
 
 void RageDisplay::DrawCircleInternal( const RageSpriteVertex &p, float radius )

@@ -478,12 +478,22 @@ static bool D3DReduceParams( D3DPRESENT_PARAMETERS *pp )
 static void SetPresentParametersFromVideoModeParams( const VideoModeParams &p, D3DPRESENT_PARAMETERS *pD3Dpp )
 {
 	ZERO( *pD3Dpp );
+	D3DFORMAT displayFormat = FindBackBufferType(p.windowed, p.bpp);
+	bool enableMultiSampling = false;
+
+	if ( p.bSmoothLines &&
+		SUCCEEDED(g_pd3d->CheckDeviceMultiSampleType(D3DADAPTER_DEFAULT,
+			D3DDEVTYPE_HAL, displayFormat, p.windowed,
+			D3DMULTISAMPLE_8_SAMPLES, NULL)) )
+	{
+		enableMultiSampling = true;
+	}
 
 	pD3Dpp->BackBufferWidth		= p.width;
 	pD3Dpp->BackBufferHeight	= p.height;
-	pD3Dpp->BackBufferFormat	= FindBackBufferType( p.windowed, p.bpp );
+	pD3Dpp->BackBufferFormat	= displayFormat;
 	pD3Dpp->BackBufferCount		= 1;
-	pD3Dpp->MultiSampleType		= D3DMULTISAMPLE_NONE;
+	pD3Dpp->MultiSampleType		= enableMultiSampling ? D3DMULTISAMPLE_8_SAMPLES : D3DMULTISAMPLE_NONE;
 	pD3Dpp->SwapEffect		= D3DSWAPEFFECT_DISCARD;
 	pD3Dpp->hDeviceWindow		= GraphicsWindow::GetHwnd();
 	pD3Dpp->Windowed		= p.windowed;
