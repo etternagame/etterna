@@ -1,4 +1,4 @@
-local t = Def.ActorFrame{}
+local t = Def.ActorFrame{};
 
 local frameWidth = 280
 local frameHeight = 20
@@ -30,47 +30,32 @@ local sortTable = {
 	SortOrder_Endless 				= 'Endless',
 	SortOrder_Length 				= 'Song Length',
 	SortOrder_Roulette 				= 'Roulette',
-	SortOrder_Recent 				= 'Recently Played'
+	SortOrder_Recent 				= 'Recently Played',
+	SortOrder_Favorites				= 'Favorites'
 }
 
 t[#t+1] = Def.Quad{
-	Name="CurrentSort",
-	InitCommand=cmd(xy,frameX,frameY;halign,1;zoomto,frameWidth,frameHeight;diffuse,getMainColor("positive"))
-}
+	Name="CurrentSort";
+	InitCommand=cmd(xy,frameX,frameY;halign,1;zoomto,frameWidth,frameHeight;diffuse,getMainColor('frames'););
+};
 
-t[#t+1] = LoadFont("Common Normal") .. {
-	InitCommand=cmd(xy,frameX-frameWidth+5,frameY;halign,0;zoom,0.45;maxwidth,(frameWidth-40)/0.45),
-	BeginCommand=cmd(queuecommand,"Set"),
+t[#t+1] = LoadFont("Common Large") .. {
+	InitCommand=cmd(xy,frameX,frameY+5;halign,1;zoom,0.55;maxwidth,(frameWidth-40)/0.35);
+	BeginCommand=cmd(queuecommand,"Set");
 	SetCommand=function(self)
 		local sort = GAMESTATE:GetSortOrder()
 		local song = GAMESTATE:GetCurrentSong()
 		if sort == nil then
 			self:settext("Sort: ")
 		elseif sort == "SortOrder_Group" and song ~= nil then
-			self:settext(song:GetGroupName())
+			self:settext(song:GetGroupName()) 
 		else
 			self:settext("Sort: "..sortTable[sort])
 		end
-	end,
-	SortOrderChangedMessageCommand=cmd(queuecommand,"Set"),
-	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set")
-}
 
-t[#t+1] = LoadFont("Common Normal") .. {
-	InitCommand=cmd(xy,frameX-5,frameY;halign,1;zoom,0.3;maxwidth,40/0.45),
-	BeginCommand=cmd(queuecommand,"Set"),
-	SetCommand=function(self)
-		local top = SCREENMAN:GetTopScreen()
-		if top:GetName() == "ScreenSelectMusic" or top:GetName() == "ScreenNetSelectMusic" then
-			local wheel = top:GetChild("MusicWheel")
-			self:settextf("%d/%d",wheel:GetCurrentIndex()+1,wheel:GetNumItems())
-		elseif top:GetName() == "ScreenNetRoom" then
-			local wheel = top:GetChild("RoomWheel")
-			self:settextf("%d/%d",wheel:GetCurrentIndex()+1,wheel:GetNumItems())
-		end
-	end,
-	SortOrderChangedMessageCommand=cmd(queuecommand,"Set"),
-	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set")
-}
+	end;
+	SortOrderChangedMessageCommand=cmd(queuecommand,"Set";diffuse,getMainColor('positive'));
+	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
+};
 
 return t
