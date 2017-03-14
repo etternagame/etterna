@@ -36,8 +36,13 @@ int LastTapNoteScoreTrack( const NoteData &in, unsigned iRow, PlayerNumber pn )
 
 		TapNoteScore tns = tn.result.tns;
 		
-		if( tns == TNS_Miss || tns == TNS_None )
+		if ( tns == TNS_Miss || (!GAMESTATE->CountNotesSeparately() && tns == TNS_None) )
+		{
 			return t;
+		}
+		if ( tns == TNS_None )
+			continue;
+			
 
 		float tm = tn.result.fTapNoteOffset;
 		if(tm < scoretime) continue;

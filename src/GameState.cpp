@@ -107,6 +107,7 @@ static ThemeMetric<bool> ARE_STAGE_SONG_MODS_FORCED	("GameState","AreStageSongMo
 
 static Preference<Premium> g_Premium( "Premium", Premium_DoubleFor1Credit );
 Preference<bool> GameState::m_bAutoJoin( "AutoJoin", false );
+Preference<bool> GameState::m_bOverrideChordCohesion("OverrideChordCohesion", false);
 
 GameState::GameState() :
 	processedTiming( NULL ),
@@ -1916,6 +1917,11 @@ void GameState::AddStageToPlayer( PlayerNumber pn )
 {
 	// Add one stage more to player (bonus) -cerbo
 	++m_iPlayerStageTokens[pn];
+}
+
+bool GameState::CountNotesSeparately()
+{
+	return GetCurrentGame()->m_bCountNotesSeparately || m_bOverrideChordCohesion.Get();
 }
 
 template<class T>

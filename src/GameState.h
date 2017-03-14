@@ -243,8 +243,7 @@ public:
 	int		GetLoadingCourseSongIndex() const;
 
 	RString GetEtternaVersion() { return "0.54.1"; }
-
-
+	bool CountNotesSeparately();
 
 	// State Info used during gameplay
 
@@ -379,6 +378,7 @@ public:
 
 	// Preferences
 	static Preference<bool> m_bAutoJoin;
+	static Preference<bool> m_bOverrideChordCohesion;
 
 	// These options have weird interactions depending on m_bEventMode, 
 	// so wrap them.

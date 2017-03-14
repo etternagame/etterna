@@ -2412,7 +2412,7 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 		}
 
 		m_LastTapNoteScore = score;
-		if( GAMESTATE->GetCurrentGame()->m_bCountNotesSeparately )
+		if( GAMESTATE->CountNotesSeparately() )
 		{
 			if( pTN->type != TapNoteType_Mine )
 			{
@@ -2424,6 +2424,12 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 					m_pNoteField->DidTapNote( col, bBlind? TNS_W1:score, bBright );
 				if( score >= m_pPlayerState->m_PlayerOptions.GetCurrent().m_MinTNSToHideNotes || bBlind )
 					HideNote( col, iRowOfOverlappingNoteOrRow );
+
+				if ( pTN->result.tns != TNS_None )
+				{
+					SetJudgment(iRowOfOverlappingNoteOrRow, col, *pTN);
+					HandleTapRowScore(iRowOfOverlappingNoteOrRow);
+				}
 			}
 		}
 		else if( NoteDataWithScoring::IsRowCompletelyJudged(m_NoteData, iRowOfOverlappingNoteOrRow) )
@@ -2531,6 +2537,11 @@ void Player::UpdateTapNotesMissedOlderThan( float fMissIfOlderThanSeconds )
 		else
 		{
 			tn.result.tns = TNS_Miss;
+			if ( GAMESTATE->CountNotesSeparately() )
+			{
+				SetJudgment(iter.Row(), m_NoteData.GetFirstTrackWithTapOrHoldHead(iter.Row()), tn);
+				HandleTapRowScore(iter.Row());
+			}
 		}
 	}
 }
@@ -2540,8 +2551,8 @@ void Player::UpdateJudgedRows(float fDeltaTime)
 	// Look into the future only as far as we need to
 	const int iEndRow = BeatToNoteRow( m_Timing->GetBeatFromElapsedTime( m_pPlayerState->m_Position.m_fMusicSeconds + GetMaxStepDistanceSeconds() ) );
 	bool bAllJudged = true;
-	const bool bSeparately = GAMESTATE->GetCurrentGame()->m_bCountNotesSeparately;
 
+	if( !GAMESTATE->CountNotesSeparately() )
 	{
 		NoteData::all_tracks_iterator iter = *m_pIterUnjudgedRows;
 		int iLastSeenRow = -1;
@@ -2573,22 +2584,8 @@ void Player::UpdateJudgedRows(float fDeltaTime)
 				if(lastTN.result.tns < TNS_Miss )
 					continue;
 				
-				if( bSeparately )
-				{
-					for( int iTrack = 0; iTrack < m_NoteData.GetNumTracks(); ++iTrack )
-					{
-						const TapNote &tn = m_NoteData.GetTapNote( iTrack, iRow );
-						if (tn.type == TapNoteType_Empty ||
-							tn.type == TapNoteType_Mine ||
-							tn.type == TapNoteType_AutoKeysound ) continue;
-						SetJudgment( iRow, iTrack, tn );
-					}
-				}
-				else
-				{
-					SetJudgment( iRow, m_NoteData.GetFirstTrackWithTapOrHoldHead(iRow), lastTN );
-				}
-				HandleTapRowScore( iRow );
+				SetJudgment( iRow, m_NoteData.GetFirstTrackWithTapOrHoldHead(iRow), lastTN );
+				HandleTapRowScore(iRow);
 			}
 		}
 	}

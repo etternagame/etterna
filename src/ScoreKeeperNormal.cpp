@@ -523,7 +523,7 @@ void ScoreKeeperNormal::GetRowCounts( const NoteData &nd, int iRow,
 			++iNumHitContinueCombo;
 		else if( tns >= m_MinScoreToMaintainCombo )
 			++iNumHitMaintainCombo;
-		else
+		else if( tns != TNS_None )
 			++iNumBreakCombo;
 	}
 }
@@ -542,7 +542,7 @@ void ScoreKeeperNormal::HandleTapRowScore( const NoteData &nd, int iRow )
 	TapNoteScore scoreOfLastTap = NoteDataWithScoring::LastTapNoteWithResult( nd, iRow ).result.tns;
 	HandleTapNoteScoreInternal( scoreOfLastTap, TNS_W1, iRow );
 	
-	if ( GAMESTATE->GetCurrentGame()->m_bCountNotesSeparately )
+	if ( GAMESTATE->CountNotesSeparately() )
 	{
 		HandleComboInternal( iNumHitContinueCombo, iNumHitMaintainCombo, iNumBreakCombo, iRow );
 	}
