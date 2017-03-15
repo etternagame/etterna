@@ -141,7 +141,7 @@ function scoreBoard(pn,position)
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self) 
 			self:diffuse(getGradeColor(pss:GetGrade()))
-			self:settextf("%05.2f%% (%s)",GetPercentDP(score), "DP")
+			self:settextf("%05.2f%% (%s)",pss:GetPercentDancePoints()*100, "DP")
 		end,
 		CodeMessageCommand=function(self,params)
 			if params.Name == "PrevJudge" or params.Name == "NextJudge" then

@@ -652,10 +652,28 @@ int ScoreKeeperNormal::GetPossibleDancePoints( NoteData* nd, const TimingData* t
 	
 	int ret = 0;
 	 
-	ret += int(radars[RadarCategory_TapsAndHolds]) * TapNoteScoreToDancePoints(TNS_W1, false);
-	if( GAMESTATE->GetCurrentGame()->m_bTickHolds ) ret += NoteDataUtil::GetTotalHoldTicks( nd, td ) * g_iPercentScoreWeight.GetValue(SE_CheckpointHit);
-	ret += int(radars[RadarCategory_Holds]) * HoldNoteScoreToDancePoints(HNS_Held, false);	
+	if ( GAMESTATE->CountNotesSeparately() )
+	{
+		for ( int i = 0; i < nd->GetNumTracks(); i++ )
+		{
+			FOREACH_NONEMPTY_ROW_IN_TRACK(*nd, i, row)
+			{
+				TapNote tap = nd->GetTapNote(i, row);
+				if( tap.IsNote() )
+					ret += TapNoteScoreToDancePoints(TNS_W1, false);
+			}
+		}
+	}
+	else
+	{
+		ret += int(radars[RadarCategory_TapsAndHolds]) * TapNoteScoreToDancePoints(TNS_W1, false);	
+	}
+	
+	ret += int(radars[RadarCategory_Holds]) * HoldNoteScoreToDancePoints(HNS_Held, false);
 	ret += int(radars[RadarCategory_Rolls]) * HoldNoteScoreToDancePoints(HNS_Held, false);
+
+	if( GAMESTATE->GetCurrentGame()->m_bTickHolds ) 
+		ret += NoteDataUtil::GetTotalHoldTicks( nd, td ) * g_iPercentScoreWeight.GetValue(SE_CheckpointHit);
 	
 	return ret;
 }

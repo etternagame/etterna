@@ -140,13 +140,7 @@ local function scoreitem(pn,index,scoreIndex,drawindex)
 			Name="grade",
 			InitCommand=cmd(xy,framex+10,framey+(drawindex*spacing)+2;zoom,0.35;halign,0;maxwidth,(frameWidth-15)/0.3),
 			BeginCommand=function(self)
-				local curscore = getScore(hsTable[index])
-				local maxscore = getMaxScore(pn,0)
-				if maxscore == 0 or maxscore == nil then
-					maxscore = 1
-				end;
-				local pscore = (curscore/maxscore)
-				self:settextf("%.2f%% (%s)",math.floor((pscore)*10000)/100,"DP")
+				self:settextf("%.2f%% (%s)",hsTable[index]:GetPercentDP()*100,"DP")
 			end
 		},
 		
