@@ -544,7 +544,11 @@ void ScoreKeeperNormal::HandleTapRowScore( const NoteData &nd, int iRow )
 	
 	if ( GAMESTATE->CountNotesSeparately() )
 	{
-		HandleComboInternal( iNumHitContinueCombo, iNumHitMaintainCombo, iNumBreakCombo, iRow );
+		// HandleTapRowScore gets called on every judgment,
+		// so we only want increment up by one each time.
+		int numHitInRow = min( iNumHitContinueCombo, 1 );
+		int numMissInRow = min( iNumBreakCombo, 1 );
+		HandleComboInternal(numHitInRow, iNumHitMaintainCombo, numMissInRow, iRow );
 	}
 	else
 	{
