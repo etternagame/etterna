@@ -169,7 +169,14 @@ function isScoreValid(pn,steps,score)
 	if score:GetGrade() == "Grade_Failed" then
 		return true
 	end
-	if not (steps:GetRadarValues(pn):GetValue('RadarCategory_TapsAndHolds') == 
+	local numNotes = 0;
+	if score:GetChordCohesion() == true then
+		numNotes = steps:GetRadarValues(pn):GetValue('RadarCategory_TapsAndHolds');
+	else
+		numNotes = steps:GetRadarValues(pn):GetValue('RadarCategory_Notes');
+	end
+		
+	if not (numNotes == 
 		(score:GetTapNoteScore('TapNoteScore_W1')+
 		score:GetTapNoteScore('TapNoteScore_W2')+
 		score:GetTapNoteScore('TapNoteScore_W3')+

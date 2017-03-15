@@ -139,7 +139,7 @@ t[#t+1] = Def.ActorFrame{
 		SetCommand=function(self)
 			if song and score then
 				if score:GetWifeScore() == 0 then 
-					self:settextf("%05.2f%%", notShit.floor(GetPercentDP(score)*100)/100)
+					self:settextf("%05.2f%%", score:GetPercentDP()*100)
 					self:diffuse(getGradeColor(score:GetGrade()))
 				else
 					self:settextf("%05.2f%%", notShit.floor(score:GetWifeScore()*10000)/100)
@@ -182,7 +182,7 @@ t[#t+1] = Def.ActorFrame{
 					self:settextf("NA")
 					self:diffuse(getGradeColor("Grade_Failed"))
 				else
-					self:settextf("%05.2f%%", GetPercentDP(score))
+					self:settextf("%05.2f%%", score:GetPercentDP()*100)
 					self:diffuse(getGradeColor(score:GetGrade()))
 				end
 			else

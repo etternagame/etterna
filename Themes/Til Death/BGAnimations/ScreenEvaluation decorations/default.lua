@@ -209,6 +209,18 @@ function scoreBoard(pn,position)
 			end,
 		};
 	end
+	
+	t[#t+1] = LoadFont("Common Large")..{
+			InitCommand=cmd(xy,frameX+40,frameY*2.49;zoom,0.25;halign,0),
+			BeginCommand=cmd(queuecommand,"Set"),
+			SetCommand=function(self) 
+				if score:GetChordCohesion() == true then
+					self:settext("Chord Cohesion: Yes")
+				else
+					self:settext("Chord Cohesion: No")
+				end
+			end
+	};
 
 	local fart = {"Holds", "Mines", "Rolls", "Lifts", "Fakes"}
 	t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX-5,frameY+230;zoomto,frameWidth/2-10,60;halign,0;valign,0;diffuse,color("#333333CC"))};

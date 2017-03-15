@@ -169,9 +169,10 @@ static HighScore FillInHighScore( const PlayerStageStats &pss, const PlayerState
 		FOREACH_ENUM(Skillset, ss)
 			hs.SetSkillsetSSR(ss, 0.f);
 	}
-
+	
 	hs.SetMusicRate( GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 	hs.SetJudgeScale( pss.GetTimingScale());
+	hs.SetChordCohesion( GAMESTATE->CountNotesSeparately() );
 	hs.SetAliveSeconds( pss.m_fAliveSeconds );
 	hs.SetMaxCombo( pss.GetMaxCombo().m_cnt );
 	hs.SetStageAward( pss.m_StageAward );

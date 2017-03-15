@@ -30,6 +30,7 @@ struct HighScoreImpl
 	float fSurviveSeconds;
 	float fMusicRate;
 	float fJudgeScale;
+	bool bNoChordCohesion;
 	bool bEtternaValid;
 	vector<float> vOffsetVector;
 	vector<int> vNoteRowVector;
@@ -221,6 +222,7 @@ XNode *HighScoreImpl::CreateNode() const
 	pNode->AppendChild( "SSRNormPercent",	fSSRNormPercent);
 	pNode->AppendChild( "Rate",				fMusicRate);
 	pNode->AppendChild( "JudgeScale",		fJudgeScale);
+	pNode->AppendChild( "NoChordCohesion",	bNoChordCohesion);
 	pNode->AppendChild( "EtternaValid",		bEtternaValid);
 
 	if (vOffsetVector.size() > 1) {
@@ -278,6 +280,7 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 	pNode->GetChildValue("SSRNormPercent",		fSSRNormPercent);
 	pNode->GetChildValue("Rate",				fMusicRate);
 	pNode->GetChildValue("JudgeScale",			fJudgeScale);
+	pNode->GetChildValue("NoChordCohesion",		bNoChordCohesion);
 	pNode->GetChildValue("EtternaValid",		bEtternaValid);
 	pNode->GetChildValue("Offsets", s);			vOffsetVector = OffsetsToVector(s);
 	pNode->GetChildValue("NoteRows", s);		vNoteRowVector = NoteRowsToVector(s);
@@ -460,6 +463,8 @@ float HighScore::GetWifeScore() const { return m_Impl->fWifeScore; }
 float HighScore::GetSSRNormPercent() const { return m_Impl->fSSRNormPercent; }
 float HighScore::GetMusicRate() const { return m_Impl->fMusicRate; }
 float HighScore::GetJudgeScale() const { return m_Impl->fJudgeScale; }
+bool HighScore::GetChordCohesion() const {
+	return !m_Impl->bNoChordCohesion;  }
 bool HighScore::GetEtternaValid() const { return m_Impl->bEtternaValid; }
 float HighScore::GetSurviveSeconds() const { return m_Impl->fSurviveSeconds; }
 float HighScore::GetSurvivalSeconds() const { return GetSurviveSeconds() + GetLifeRemainingSeconds(); }
@@ -488,6 +493,7 @@ void HighScore::SetWifeScore(float f) {m_Impl->fWifeScore = f;}
 void HighScore::SetSSRNormPercent(float f) { m_Impl->fSSRNormPercent = f; }
 void HighScore::SetMusicRate(float f) { m_Impl->fMusicRate = f; }
 void HighScore::SetJudgeScale(float f) { m_Impl->fJudgeScale = f; }
+void HighScore::SetChordCohesion(bool b) { m_Impl->bNoChordCohesion = b; }
 void HighScore::SetEtternaValid(bool b) { m_Impl->bEtternaValid = b; }
 void HighScore::SetOffsetVector(const vector<float>& v) { m_Impl->vOffsetVector = v; }
 void HighScore::SetNoteRowVector(const vector<int>& v) { m_Impl->vNoteRowVector = v; }
@@ -948,6 +954,7 @@ public:
 	DEFINE_METHOD( ConvertDpToWife, ConvertDpToWife())
 	DEFINE_METHOD( GetStageAward, GetStageAward() )
 	DEFINE_METHOD( GetPeakComboAward, GetPeakComboAward() )
+	DEFINE_METHOD( GetChordCohesion, GetChordCohesion() )
 	DEFINE_METHOD( GetEtternaValid , GetEtternaValid())
 	LunaHighScore()
 	{
@@ -962,6 +969,7 @@ public:
 		ADD_METHOD( GetSkillsetSSR );
 		ADD_METHOD( GetMusicRate );
 		ADD_METHOD( GetJudgeScale );
+		ADD_METHOD( GetChordCohesion );
 		ADD_METHOD( GetDate );
 		ADD_METHOD( GetSurvivalSeconds );
 		ADD_METHOD( IsFillInMarker );

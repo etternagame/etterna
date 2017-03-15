@@ -122,14 +122,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 	InitCommand=cmd(xy,frameX+offsetX+55,frameY+offsetY+14;zoom,0.5;halign,0),
 	SetCommand=function(self)
 		if score ~= nil then
-			local curscore = getScore(score,0)
-			local maxscore = getMaxScore(pn,0)	
-			if maxscore == 0 or maxscore == nil then
-				maxscore = 1
-			end
-			local pscore = (curscore/maxscore)
-
-			self:settextf("%05.2f%% (%s)",math.floor((pscore)*10000)/100, scoringToText(1))
+			self:settextf("%05.2f%% (%s)",score:GetPercentDP()*100, scoringToText(1))
 		else
 			self:settextf("00.00%% (%s)", scoringToText(1))
 		end
@@ -354,6 +347,23 @@ t[#t+1] = LoadFont("Common Normal")..{
 			self:settextf("Rate %s - Showing %d/%d",rates[rateIndex],scoreIndex,#rtTable[rates[rateIndex]])
 		else
 			self:settext("No Scores Saved")
+		end
+	end,
+	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+}
+
+t[#t+1] = LoadFont("Common Normal")..{
+	Name="ChordCohesion",
+	InitCommand=cmd(xy,frameX+frameWidth/40,frameY+frameHeight-10;zoom,0.4;halign,0),
+	SetCommand=function(self)
+		if score ~= nil then
+			if score:GetChordCohesion() == true then
+				self:settext("Chord Cohesion: Yes")
+			else
+				self:settext("Chord Cohesion: No")
+			end
+		else
+			self:settext("Chord Cohesion:")
 		end
 	end,
 	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")

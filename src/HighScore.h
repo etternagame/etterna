@@ -45,6 +45,7 @@ struct HighScore
 	float GetSSRNormPercent() const;
 	float GetMusicRate() const;
 	float GetJudgeScale() const;
+	bool GetChordCohesion() const;
 	bool GetEtternaValid() const;
 	/**
 	 * @brief Determine how many seconds the player had left in Survival mode.
@@ -84,6 +85,7 @@ struct HighScore
 	void SetSSRNormPercent(float f);
 	void SetMusicRate(float f);
 	void SetJudgeScale(float f);
+	void SetChordCohesion(bool b);
 	void SetEtternaValid(bool b);
 	void SetOffsetVector(const vector<float>& v);
 	void SetNoteRowVector(const vector<int>& v);
