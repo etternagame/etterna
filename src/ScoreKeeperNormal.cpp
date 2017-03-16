@@ -423,12 +423,12 @@ void ScoreKeeperNormal::HandleTapScore( const TapNote &tn )
 
 void ScoreKeeperNormal::HandleHoldCheckpointScore( const NoteData &nd, int iRow, int iNumHoldsHeldThisRow, int iNumHoldsMissedThisRow )
 {
-	HandleTapNoteScoreInternal(iNumHoldsMissedThisRow == 0 ? TNS_CheckpointHit:TNS_CheckpointMiss,
+	HandleTapNoteScoreInternal( nd, iNumHoldsMissedThisRow == 0 ? TNS_CheckpointHit:TNS_CheckpointMiss,
 							   TNS_CheckpointHit, iRow);
 	HandleComboInternal( iNumHoldsHeldThisRow, 0, iNumHoldsMissedThisRow, iRow );
 }
 
-void ScoreKeeperNormal::HandleTapNoteScoreInternal( TapNoteScore tns, TapNoteScore maximum, int row )
+void ScoreKeeperNormal::HandleTapNoteScoreInternal( const NoteData &nd, TapNoteScore tns, TapNoteScore maximum, int row )
 {
 	// Update dance points.
 	if ( !m_pPlayerStageStats->m_bFailed )
@@ -436,16 +436,15 @@ void ScoreKeeperNormal::HandleTapNoteScoreInternal( TapNoteScore tns, TapNoteSco
 		float scoreWeight = 1;
 		if ( GAMESTATE->CountNotesSeparately() )
 		{
-			const NoteData* noteData = GAMESTATE->m_pCurSteps[m_pPlayerState->m_PlayerNumber]->GetNoteDataPointer();
 			int notes = 0;
 
-			for (int i = 0; i < noteData->GetNumTracks(); i++)
+			for (int i = 0; i < nd.GetNumTracks(); i++)
 			{
-				if (noteData->GetTapNote(i, row).IsNote())
+				if (nd.GetTapNote(i, row).IsNote())
 					notes++;
 			}
 
-			m_pPlayerStageStats->m_iActualDancePoints += (TapNoteScoreToDancePoints( tns )*noteData->GetNumTracksLCD()) / notes;
+			m_pPlayerStageStats->m_iActualDancePoints += (TapNoteScoreToDancePoints( tns )*nd.GetNumTracksLCD()) / notes;
 		}
 		else
 		{
@@ -559,7 +558,7 @@ void ScoreKeeperNormal::HandleTapRowScore( const NoteData &nd, int iRow )
 	m_iNumNotesHitThisRow = iNumTapsInRow;
 
 	TapNoteScore scoreOfLastTap = NoteDataWithScoring::LastTapNoteWithResult( nd, iRow ).result.tns;
-	HandleTapNoteScoreInternal( scoreOfLastTap, TNS_W1, iRow );
+	HandleTapNoteScoreInternal( nd, scoreOfLastTap, TNS_W1, iRow );
 	
 	if ( GAMESTATE->CountNotesSeparately() )
 	{

@@ -135,7 +135,6 @@ public:
 
 	unsigned GetHash() const;
 	void GetNoteData( NoteData& noteDataOut, bool isGameplay ) const;
-	const NoteData* GetNoteDataPointer() const;
 	NoteData GetNoteData() const;
 	void SetNoteData( const NoteData& noteDataNew );
 	void SetSMNoteData( const RString &notes_comp );

@@ -98,7 +98,7 @@ private:
 	 * @param tns the Tap Note score earned.
 	 * @param maximum the best tap note score possible.
 	 * @param row the row the score was earned. Mainly for ComboSegment stuff. */
-	void HandleTapNoteScoreInternal( TapNoteScore tns, TapNoteScore maximum, int row );
+	void HandleTapNoteScoreInternal(const NoteData &nd, TapNoteScore tns, TapNoteScore maximum, int row );
 	void HandleComboInternal( int iNumHitContinueCombo, int iNumHitMaintainCombo, int iNumBreakCombo, int iRow = -1 );
 	void HandleRowComboInternal( TapNoteScore tns, int iNumTapsInRow, int iRow = -1 );
 	void GetRowCounts( const NoteData &nd, int iRow, int &iNumHitContinueCombo, int &iNumHitMaintainCombo, int &iNumBreakCombo );

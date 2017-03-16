@@ -212,13 +212,6 @@ NoteData Steps::GetNoteData() const
 	return tmp;
 }
 
-const NoteData* Steps::GetNoteDataPointer() const
-{
-	Decompress(false);
-
-	return &*m_pNoteData;
-}
-
 void Steps::SetSMNoteData( const RString &notes_comp_ )
 {
 	m_pNoteData->Init();
