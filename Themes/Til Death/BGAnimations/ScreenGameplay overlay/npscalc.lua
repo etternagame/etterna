@@ -1,6 +1,7 @@
 -- A moving average NPS calculator
 
 local debug = false
+local countNotesSeparately = GAMESTATE:CountNotesSeparately();
 -- Generally, a smaller window will adapt faster, but a larger window will have a more stable value.
 local maxWindow = themeConfig:get_data().NPSDisplay.MaxWindow/2 -- this will be the maximum size of the "window" in seconds. 
 local minWindow = themeConfig:get_data().NPSDisplay.MinWindow/2 -- this will be the minimum size of the "window" in seconds. Unused for now.
@@ -114,6 +115,10 @@ local peakNPS = {
 -- This function is called whenever a JudgmentMessageCommand for regular tap note occurs.
 -- (simply put, whenever you hit/miss a note)
 local function addNote(pn,time,size)
+	if countNotesSeparately == true then
+		size = 1;
+	end
+	
 	noteTable[pn][#noteTable[pn]+1] = {time,size}
 	noteSum[pn] = noteSum[pn]+size
 end
