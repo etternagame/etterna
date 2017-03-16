@@ -27,6 +27,8 @@
 #include "RageDisplay.h"
 #include "Foreach.h"
 #include "ActorUtil.h"
+#include "Screen.h"
+#include "ScreenManager.h"
 
 #include <map>
 
@@ -61,10 +63,13 @@ void RageTextureManager::Update( float fDeltaTime )
 	static RageTimer garbageCollector;
 	if (garbageCollector.PeekDeltaTime() >= 30.0f)
 	{
-		DoDelayedDelete();
-		garbageCollector.Touch();
-	}
-		
+		if (SCREENMAN && SCREENMAN->GetTopScreen() &&
+			SCREENMAN->GetTopScreen()->GetScreenType() != gameplay)
+		{
+			DoDelayedDelete();
+			garbageCollector.Touch();
+		}
+	}	
 
 	FOREACHM(RageTextureID, RageTexture*, m_textures_to_update, i)
 	{
