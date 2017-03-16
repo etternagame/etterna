@@ -431,8 +431,19 @@ void ScoreKeeperNormal::HandleHoldCheckpointScore( const NoteData &nd, int iRow,
 void ScoreKeeperNormal::HandleTapNoteScoreInternal( TapNoteScore tns, TapNoteScore maximum, int row )
 {
 	// Update dance points.
-	if( !m_pPlayerStageStats->m_bFailed )
-		m_pPlayerStageStats->m_iActualDancePoints += TapNoteScoreToDancePoints( tns );
+	if ( !m_pPlayerStageStats->m_bFailed )
+	{
+		const NoteData* noteData = GAMESTATE->m_pCurSteps[m_pPlayerState->m_PlayerNumber]->GetNoteDataPointer();
+		int notes = 0;
+
+		for (int i = 0; i < noteData->GetNumTracks(); i++)
+		{
+			if (noteData->GetTapNote(i, row).IsNote())
+				notes++;
+		}
+		
+		m_pPlayerStageStats->m_iActualDancePoints += (TapNoteScoreToDancePoints(tns)*noteData->GetNumTracksLCD())/notes;
+	}
 
 	// update judged row totals. Respect Combo segments here.
 	TimingData &td = *GAMESTATE->m_pCurSteps[m_pPlayerState->m_PlayerNumber]->GetTimingData();
@@ -657,7 +668,7 @@ int ScoreKeeperNormal::GetPossibleDancePoints( NoteData* nd, const TimingData* t
 	int ret = 0;
 	 
 	if ( GAMESTATE->CountNotesSeparately() )
-		ret += int(radars[RadarCategory_Notes]) * TapNoteScoreToDancePoints(TNS_W1, false);
+		ret += int(radars[RadarCategory_TapsAndHolds]) * TapNoteScoreToDancePoints(TNS_W1, false) * nd->GetNumTracksLCD();
 	else
 		ret += int(radars[RadarCategory_TapsAndHolds]) * TapNoteScoreToDancePoints(TNS_W1, false);	
 	

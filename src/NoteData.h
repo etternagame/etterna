@@ -109,7 +109,10 @@ private:
 	// There's no point in inserting empty notes into the map.
 	// Any blank space in the map is defined to be empty.
 	vector<TrackMap>	m_TapNotes;
+	int m_numTracksLCD;
 	
+	void CalcNumTracksLCD();
+
 	/**
 	 * @brief Determine whether this note is for Player 1 or Player 2.
 	 * @param track the track/column the note is in.
@@ -165,13 +168,10 @@ public:
 	void Init();
 
 	// Mina stuf
-
 	void LogNonEmptyRows();
 	int WifeTotalScoreCalc(TimingData *td, int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW);
 	vector<int>& GetNonEmptyRowVector() { return NonEmptyRowVector; };
 	vector<NoteInfo> SerializeNoteData(const vector<float>& etaner);
-
-	
 
 	int GetNumTracks() const { return m_TapNotes.size(); }
 	void SetNumTracks( int iNewNumTracks );
@@ -375,6 +375,8 @@ public:
 	pair<int, int> GetNumFakesTwoPlayer(int startRow = 0,
 										int endRow = MAX_NOTE_ROW) const;
 	
+	int GetNumTracksLCD() const;
+
 	// Transformations
 	void LoadTransformed(const NoteData& original,
 						 int iNewNumTracks,

@@ -25,6 +25,7 @@ void NoteData::SetNumTracks( int iNewNumTracks )
 	ASSERT( iNewNumTracks > 0 );
 
 	m_TapNotes.resize( iNewNumTracks );
+	CalcNumTracksLCD();
 }
 
 bool NoteData::IsComposite() const
@@ -181,9 +182,7 @@ int NoteData::WifeTotalScoreCalc(TimingData *td, int iStartIndex, int iEndIndex)
 			TapNote tn = GetTapNote(t, r);
 			if (tn.type != TapNoteType_Empty && tn.type != TapNoteType_Mine && tn.type != TapNoteType_Fake && td->IsJudgableAtRow(r)) {
 				taps++;
-
-				if( !GAMESTATE->CountNotesSeparately() )
-					break;
+				break;
 			}
 		}
 	}
@@ -955,6 +954,46 @@ int NoteData::GetNumMinefields( int iStartIndex, int iEndIndex ) const
 	return iNumMinefields;
 }
 */
+
+// This is a fast but inaccurate LCD calculator.
+// Used for generating accurate DP scores when
+// chord cohesion is disabled.
+void NoteData::CalcNumTracksLCD()
+{
+	int numTracks = this->GetNumTracks();
+	vector<int> nums;
+	int lcd = 1;
+
+	for (int i = 1; i < numTracks + 1; i++)
+	{
+		lcd *= i;
+		nums.push_back(i);
+	}
+
+	bool stillValid = true;
+	while(stillValid)
+	{
+		int tmpLCD = lcd / 2;
+		for (int i = 0; i < numTracks; i++)
+		{
+			if (tmpLCD % nums[i])
+			{
+				stillValid = false;
+				break;
+			}
+		}
+
+		if(stillValid)
+			lcd = tmpLCD;
+	}
+
+	m_numTracksLCD = lcd;
+}
+
+int NoteData::GetNumTracksLCD() const
+{
+	return m_numTracksLCD;
+}
 
 // -1 for iOriginalTracksToTakeFrom means no track
 void NoteData::LoadTransformed( const NoteData& in, int iNewNumTracks, const int iOriginalTrackToTakeFrom[] )

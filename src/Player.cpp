@@ -3177,12 +3177,26 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 
 		if (m_pPlayerStageStats) {
 			// Ms scoring implementation - Mina
-			if (tns == TNS_Miss)
-				curwifescore -= 8;
-			else
-				curwifescore += wife2(tn.result.fTapNoteOffset, m_fTimingWindowScale);
+			float scoreWeight = 1;
+			if ( GAMESTATE->CountNotesSeparately() )
+			{
+				int notes = 0;
 
-			maxwifescore += 2;
+				for (int i = 0; i < m_NoteData.GetNumTracks(); i++)
+				{
+					if (m_NoteData.GetTapNote(i, iRow).IsNote())
+						notes++;
+				}
+
+				scoreWeight /= notes;
+			}
+
+			if (tns == TNS_Miss)
+				curwifescore -= 8 * scoreWeight;
+			else
+				curwifescore += wife2(tn.result.fTapNoteOffset, m_fTimingWindowScale) * scoreWeight;
+
+			maxwifescore += 2 * scoreWeight;
 			msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
 			msg.SetParam("WifeDifferential", curwifescore - maxwifescore * m_pPlayerState->playertargetgoal);
 			msg.SetParam("TotalPercent", 100 * curwifescore / totalwifescore);
