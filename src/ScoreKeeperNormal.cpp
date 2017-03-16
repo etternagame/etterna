@@ -433,16 +433,24 @@ void ScoreKeeperNormal::HandleTapNoteScoreInternal( TapNoteScore tns, TapNoteSco
 	// Update dance points.
 	if ( !m_pPlayerStageStats->m_bFailed )
 	{
-		const NoteData* noteData = GAMESTATE->m_pCurSteps[m_pPlayerState->m_PlayerNumber]->GetNoteDataPointer();
-		int notes = 0;
-
-		for (int i = 0; i < noteData->GetNumTracks(); i++)
+		float scoreWeight = 1;
+		if ( GAMESTATE->CountNotesSeparately() )
 		{
-			if (noteData->GetTapNote(i, row).IsNote())
-				notes++;
+			const NoteData* noteData = GAMESTATE->m_pCurSteps[m_pPlayerState->m_PlayerNumber]->GetNoteDataPointer();
+			int notes = 0;
+
+			for (int i = 0; i < noteData->GetNumTracks(); i++)
+			{
+				if (noteData->GetTapNote(i, row).IsNote())
+					notes++;
+			}
+
+			m_pPlayerStageStats->m_iActualDancePoints += (TapNoteScoreToDancePoints( tns )*noteData->GetNumTracksLCD()) / notes;
 		}
-		
-		m_pPlayerStageStats->m_iActualDancePoints += (TapNoteScoreToDancePoints(tns)*noteData->GetNumTracksLCD())/notes;
+		else
+		{
+			m_pPlayerStageStats->m_iActualDancePoints += TapNoteScoreToDancePoints(tns);
+		}
 	}
 
 	// update judged row totals. Respect Combo segments here.
