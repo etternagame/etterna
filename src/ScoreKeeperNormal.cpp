@@ -430,26 +430,38 @@ void ScoreKeeperNormal::HandleHoldCheckpointScore( const NoteData &nd, int iRow,
 
 void ScoreKeeperNormal::HandleTapNoteScoreInternal( const NoteData &nd, TapNoteScore tns, TapNoteScore maximum, int row )
 {
+	int notes = 0;
+
+	if ( GAMESTATE->CountNotesSeparately() )
+	{
+		for (int i = 0; i < nd.GetNumTracks(); i++)
+		{
+			if ( nd.GetTapNote(i, row).IsNote() )
+				notes++;
+		}
+	}
+
 	// Update dance points.
 	if ( !m_pPlayerStageStats->m_bFailed )
 	{
-		float scoreWeight = 1;
 		if ( GAMESTATE->CountNotesSeparately() )
 		{
-			int notes = 0;
-
-			for (int i = 0; i < nd.GetNumTracks(); i++)
-			{
-				if (nd.GetTapNote(i, row).IsNote())
-					notes++;
-			}
-
-			m_pPlayerStageStats->m_iActualDancePoints += (TapNoteScoreToDancePoints( tns )*nd.GetNumTracksLCD()) / notes;
+			m_pPlayerStageStats->m_iActualDancePoints += (TapNoteScoreToDancePoints(tns)*nd.GetNumTracksLCD()) / notes;
 		}
 		else
 		{
 			m_pPlayerStageStats->m_iActualDancePoints += TapNoteScoreToDancePoints(tns);
 		}
+	}
+
+	// increment the current total possible dance score
+	if ( GAMESTATE->CountNotesSeparately() )
+	{
+		m_pPlayerStageStats->m_iCurPossibleDancePoints += (TapNoteScoreToDancePoints(maximum)*nd.GetNumTracksLCD()) / notes;
+	}
+	else
+	{
+		m_pPlayerStageStats->m_iCurPossibleDancePoints += TapNoteScoreToDancePoints(maximum);
 	}
 
 	// update judged row totals. Respect Combo segments here.
@@ -467,9 +479,6 @@ void ScoreKeeperNormal::HandleTapNoteScoreInternal( const NoteData &nd, TapNoteS
 	{	
 		m_pPlayerStageStats->m_iTapNoteScores[tns] += 1;
 	}
-
-	// increment the current total possible dance score
-	m_pPlayerStageStats->m_iCurPossibleDancePoints += TapNoteScoreToDancePoints( maximum );
 }
 
 void ScoreKeeperNormal::HandleComboInternal( int iNumHitContinueCombo, int iNumHitMaintainCombo, int iNumBreakCombo, int iRow )
