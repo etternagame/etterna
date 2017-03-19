@@ -564,8 +564,6 @@ void ScoreKeeperNormal::HandleTapRowScore( const NoteData &nd, int iRow )
 	if( iNumTapsInRow <= 0 )
 		return;
 
-	m_iNumNotesHitThisRow = iNumTapsInRow;
-
 	TapNoteScore scoreOfLastTap = NoteDataWithScoring::LastTapNoteWithResult( nd, iRow ).result.tns;
 	HandleTapNoteScoreInternal( nd, scoreOfLastTap, TNS_W1, iRow );
 	
@@ -575,12 +573,15 @@ void ScoreKeeperNormal::HandleTapRowScore( const NoteData &nd, int iRow )
 		// so we only want increment up by one each time.
 		int numHitInRow = min( iNumHitContinueCombo, 1 );
 		int numMissInRow = min( iNumBreakCombo, 1 );
+		iNumTapsInRow = min( iNumTapsInRow, 1 );
 		HandleComboInternal(numHitInRow, iNumHitMaintainCombo, numMissInRow, iRow );
 	}
 	else
 	{
 		HandleRowComboInternal( scoreOfLastTap, iNumTapsInRow, iRow ); //This should work?
 	}
+
+	m_iNumNotesHitThisRow = iNumTapsInRow;
 
 	if( m_pPlayerState->m_PlayerNumber != PLAYER_INVALID )
 		MESSAGEMAN->Broadcast( enum_add2(Message_CurrentComboChangedP1,m_pPlayerState->m_PlayerNumber) );
