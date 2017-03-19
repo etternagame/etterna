@@ -103,6 +103,34 @@ function JudgmentText()
 	return t
 end	
 
+function DisplayPercent()
+	local t = {
+		Name = "DisplayPercent",
+		LayoutType = "ShowAllInRow",
+		SelectType = "SelectOne",
+		OneChoiceForAllPlayers = false,
+		ExportOnChange = true,
+		Choices = { THEME:GetString('OptionNames','Off'),'On'},
+		LoadSelections = function(self, list, pn)
+			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).DisplayPercent
+			if pref then
+				list[2] = true
+			else
+				list[1] = true
+			end
+		end,
+		SaveSelections = function(self, list, pn)
+			local value
+			value = list[2]
+			playerConfig:get_data(pn_to_profile_slot(pn)).DisplayPercent = value
+			playerConfig:set_dirty(pn_to_profile_slot(pn))
+			playerConfig:save(pn_to_profile_slot(pn))
+		end
+	}
+	setmetatable( t, t )
+	return t
+end	
+
 function TargetTracker()
 	local t = {
 		Name = "TargetTracker",
@@ -256,6 +284,34 @@ function PlayerInfo()
 	setmetatable( t, t )
 	return t
 end	
+
+function CustomizeGameplay()
+	local t = {
+		Name = "CustomizeGameplay",
+		LayoutType = "ShowAllInRow",
+		SelectType = "SelectOne",
+		OneChoiceForAllPlayers = false,
+		ExportOnChange = true,
+		Choices = { THEME:GetString('OptionNames','Off'),'On'},
+		LoadSelections = function(self, list, pn)
+			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).CustomizeGameplay
+			if pref then
+				list[2] = true
+			else
+				list[1] = true
+			end
+		end,
+		SaveSelections = function(self, list, pn)
+			local value
+			value = list[2]
+			playerConfig:get_data(pn_to_profile_slot(pn)).CustomizeGameplay = value
+			playerConfig:set_dirty(pn_to_profile_slot(pn))
+			playerConfig:save(pn_to_profile_slot(pn))
+		end,
+	}
+	setmetatable( t, t )
+	return t
+end
 
 function ErrorBar()
 	local t = {
@@ -749,7 +805,7 @@ function ProgressBar()
 		ExportOnChange = true,
 		Choices = {"Bottom", "Top"},
 		LoadSelections = function(self, list, pn)
-			local pref = themeConfig:get_data().global.ProgressBar
+			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).ProgressBarPos
 			if pref then
 				list[pref+1] = true
 			end
@@ -758,12 +814,14 @@ function ProgressBar()
 			local value
 			if list[1] == true then
 				value = 0
+				playerConfig:get_data(pn_to_profile_slot(pn)).GameplayXYCoordinates.FullProgressBarY = SCREEN_BOTTOM - 30
 			else
 				value = 1
+				playerConfig:get_data(pn_to_profile_slot(pn)).GameplayXYCoordinates.FullProgressBarY = 20
 			end
-			themeConfig:get_data().global.ProgressBar = value
-			themeConfig:set_dirty()
-			themeConfig:save()
+			playerConfig:get_data(pn_to_profile_slot(pn)).ProgressBarPos = value
+			playerConfig:set_dirty(pn_to_profile_slot(pn))
+			playerConfig:save(pn_to_profile_slot(pn))
 		end
 	}
 	setmetatable( t, t )

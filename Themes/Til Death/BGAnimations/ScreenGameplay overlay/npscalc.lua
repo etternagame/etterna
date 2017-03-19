@@ -1,5 +1,170 @@
 -- A moving average NPS calculator
 
+-- movable stuff
+
+--still kept this here because idk man
+local enabled = {
+	NPSDisplay = {
+		PlayerNumber_P1 = GAMESTATE:IsPlayerEnabled(PLAYER_1) and playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).NPSDisplay,
+		PlayerNumber_P2 = GAMESTATE:IsPlayerEnabled(PLAYER_2) and playerConfig:get_data(pn_to_profile_slot(PLAYER_2)).NPSDisplay
+	},
+	NPSGraph = {
+		PlayerNumber_P1 = GAMESTATE:IsPlayerEnabled(PLAYER_1) and playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).NPSGraph,
+		PlayerNumber_P2 = GAMESTATE:IsPlayerEnabled(PLAYER_2) and playerConfig:get_data(pn_to_profile_slot(PLAYER_2)).NPSGraph
+	}
+}
+
+local npsGraphActor
+local npsDisplayActor
+local npsGraphX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NPSGraphX
+local npsGraphY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NPSGraphY
+local npsGraphWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.NPSGraphWidth
+local npsGraphHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.NPSGraphHeight
+local npsDisplayX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NPSDisplayX
+local npsDisplayY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NPSDisplayY
+local npsDisplayZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.NPSDisplayZoom
+
+local yPressed = false
+local uPressed = false
+local iPressed = false
+local oPressed = false
+
+local function displayInput(event)
+	if getAutoplay() ~= 0 then
+		if event.DeviceInput.button == "DeviceButton_y" then
+			yPressed = not (event.type == "InputEventType_Release")
+		end
+		if event.DeviceInput.button == "DeviceButton_u" then
+			uPressed = not (event.type == "InputEventType_Release")
+		end
+		if yPressed and event.type ~= "InputEventType_Release" then
+			if event.DeviceInput.button == "DeviceButton_up" then
+				npsDisplayY = npsDisplayY - 5
+				npsDisplayActor:y(npsDisplayY)
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NPSDisplayY = npsDisplayY
+				changed = true
+			end
+			if event.DeviceInput.button == "DeviceButton_down" then
+				npsDisplayY = npsDisplayY + 5
+				npsDisplayActor:y(npsDisplayY)
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NPSDisplayY = npsDisplayY
+				changed = true
+			end
+			if event.DeviceInput.button == "DeviceButton_left" then
+				npsDisplayX = npsDisplayX - 5
+				npsDisplayActor:x(npsDisplayX)
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NPSDisplayX = npsDisplayX
+				changed = true
+			end
+			if event.DeviceInput.button == "DeviceButton_right" then
+				npsDisplayX = npsDisplayX + 5
+				npsDisplayActor:x(npsDisplayX)
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NPSDisplayX = npsDisplayX
+				changed = true
+			end
+			if changed then
+				playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+				playerConfig:save(pn_to_profile_slot(PLAYER_1))
+				changed = false
+			end
+		end
+		if uPressed and event.type ~= "InputEventType_Release" then
+			if event.DeviceInput.button == "DeviceButton_up" then
+				npsDisplayZoom = npsDisplayZoom + 0.01
+				npsDisplayActor:zoom(npsDisplayZoom)
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.NPSDisplayZoom = npsDisplayZoom
+				changed = true
+			end
+			if event.DeviceInput.button == "DeviceButton_down" then
+				npsDisplayZoom = npsDisplayZoom - 0.01
+				npsDisplayActor:zoom(npsDisplayZoom)
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.NPSDisplayZoom = npsDisplayZoom
+				changed = true
+			end
+			if changed then
+				playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+				playerConfig:save(pn_to_profile_slot(PLAYER_1))
+				changed = false
+			end
+		end
+	end
+	return false
+end
+
+local function graphInput(event)
+	if getAutoplay() ~= 0 then
+		if event.DeviceInput.button == "DeviceButton_i" then
+			iPressed = not (event.type == "InputEventType_Release")
+		end
+		if event.DeviceInput.button == "DeviceButton_o" then
+			oPressed = not (event.type == "InputEventType_Release")
+		end
+		if iPressed and event.type ~= "InputEventType_Release" then
+			if event.DeviceInput.button == "DeviceButton_up" then
+				npsGraphY = npsGraphY - 5
+				npsGraphActor:y(npsGraphY)
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NPSGraphY = npsGraphY
+				changed = true
+			end
+			if event.DeviceInput.button == "DeviceButton_down" then
+				npsGraphY = npsGraphY + 5
+				npsGraphActor:y(npsGraphY)
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NPSGraphY = npsGraphY
+				changed = true
+			end
+			if event.DeviceInput.button == "DeviceButton_left" then
+				npsGraphX = npsGraphX - 5
+				npsGraphActor:x(npsGraphX)
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NPSGraphX = npsGraphX
+				changed = true
+			end
+			if event.DeviceInput.button == "DeviceButton_right" then
+				npsGraphX = npsGraphX + 5
+				npsGraphActor:x(npsGraphX)
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NPSGraphX = npsGraphX
+				changed = true
+			end
+			if changed then
+				playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+				playerConfig:save(pn_to_profile_slot(PLAYER_1))
+				changed = false
+			end
+		end
+		if oPressed and event.type ~= "InputEventType_Release" then
+			if event.DeviceInput.button == "DeviceButton_up" then
+				npsGraphHeight = npsGraphHeight + 0.01
+				npsGraphActor:zoomtoheight(npsGraphHeight)
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.NPSGraphHeight = npsGraphHeight
+				changed = true
+			end
+			if event.DeviceInput.button == "DeviceButton_down" then
+				npsGraphHeight = npsGraphHeight - 0.01
+				npsGraphActor:zoomtoheight(npsGraphHeight)
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.NPSGraphHeight = npsGraphHeight
+				changed = true
+			end
+			if event.DeviceInput.button == "DeviceButton_left" then
+				npsGraphWidth = npsGraphWidth - 0.01
+				npsGraphActor:zoomtowidth(npsGraphWidth)
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.NPSGraphWidth = npsGraphWidth
+				changed = true
+			end
+			if event.DeviceInput.button == "DeviceButton_right" then
+				npsGraphWidth = npsGraphWidth + 0.01
+				npsGraphActor:zoomtowidth(npsGraphWidth)
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.NPSGraphWidth = npsGraphWidth
+				changed = true
+			end
+			if changed then
+				playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+				playerConfig:save(pn_to_profile_slot(PLAYER_1))
+				changed = false
+			end
+		end
+	end
+	return false
+end
+
 local debug = false
 local countNotesSeparately = GAMESTATE:CountNotesSeparately();
 -- Generally, a smaller window will adapt faster, but a larger window will have a more stable value.
@@ -14,7 +179,6 @@ if not isCentered then
 	CenterX = THEME:GetMetric("ScreenGameplay",string.format("PlayerP1%sX",ToEnumShortString(GAMESTATE:GetCurrentStyle():GetStyleType())))
 	mpOffset = SCREEN_CENTER_X + 60
 end
-
 
 --Graph related stuff
 local initialPeak = 10 -- Initial height of the NPS graph.
@@ -60,17 +224,6 @@ local judgeColor = { -- Colors of each Judgment types
 	TapNoteScore_None = Color.White
 }
 
-
-local enabled = {
-	NPSDisplay = {
-		PlayerNumber_P1 = GAMESTATE:IsPlayerEnabled(PLAYER_1) and playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).NPSDisplay,
-		PlayerNumber_P2 = GAMESTATE:IsPlayerEnabled(PLAYER_2) and playerConfig:get_data(pn_to_profile_slot(PLAYER_2)).NPSDisplay
-	},
-	NPSGraph = {
-		PlayerNumber_P1 = GAMESTATE:IsPlayerEnabled(PLAYER_1) and playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).NPSGraph,
-		PlayerNumber_P2 = GAMESTATE:IsPlayerEnabled(PLAYER_2) and playerConfig:get_data(pn_to_profile_slot(PLAYER_2)).NPSGraph
-	}
-}
 
 local npsWindow = {
 	PlayerNumber_P1 = maxWindow,
@@ -194,7 +347,13 @@ end
 
 local function npsDisplay(pn)
 	local t = Def.ActorFrame{
-	Name = "npsDisplay"..pn;
+	Name = "npsDisplay"..pn,
+	InitCommand = function(self)
+		npsDisplayActor = self:GetChild("Text")
+	end,
+	OnCommand=function(self)
+		SCREENMAN:GetTopScreen():AddInputCallback(displayInput)
+	end,
 	-- Whenever a MessageCommand is broadcasted,
 	-- a table contanining parameters can also be passed along. 
 	JudgmentMessageCommand=function(self,params)
@@ -234,7 +393,7 @@ local function npsDisplay(pn)
 	if enabled.NPSDisplay[pn] then
 		t[#t+1] = LoadFont("Common Normal")..{
 			Name="Text"; -- sets the name of this actor as "Text". this is a child of the actor "t".
-			InitCommand=cmd(x,textPos[pn].X;y,textPos[pn].Y;halign,0;zoom,0.40;halign,0;valign,0;shadowlength,1;settext,"0.0 NPS");
+			InitCommand=cmd(x,npsDisplayX;y,npsDisplayY;halign,0;zoom,npsDisplayZoom;halign,0;valign,0;shadowlength,1;settext,"0.0 NPS");
 			BeginCommand=function(self)
 				if pn == PLAYER_2 then
 					self:x(SCREEN_WIDTH-5)
@@ -254,7 +413,11 @@ end;
 local function npsGraph(pn)
 	local t = Def.ActorFrame{
 		InitCommand=function(self)
-			self:xy(graphPos[pn].X,graphPos[pn].Y)
+			self:xy(npsGraphX,npsGraphY):zoomtoheight(npsGraphHeight):zoomtowidth(npsGraphWidth)
+			npsGraphActor = self
+		end,
+		OnCommand=function(self)
+			SCREENMAN:GetTopScreen():AddInputCallback(graphInput)
 		end
 	}
 	local verts= {
