@@ -647,15 +647,15 @@ local t = Def.ActorFrame{
 		if(playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay) then
 			SCREENMAN:GetTopScreen():AddInputCallback(firstHalfInput)
 			SCREENMAN:GetTopScreen():AddInputCallback(secondHalfInput)
-			screen = SCREENMAN:GetTopScreen()
-			noteField = screen:GetChild("PlayerP1"):GetChild("NoteField")
-			noteField:addx(noteFieldX)
-			noteField:addy(noteFieldY)
-			noteColumns = noteField:get_column_actors()
-			for i, actor in ipairs(noteColumns) do
-				actor:zoomtowidth(noteFieldWidth)
-				actor:zoomtoheight(noteFieldHeight)
-			end
+		end
+		screen = SCREENMAN:GetTopScreen()
+		noteField = screen:GetChild("PlayerP1"):GetChild("NoteField")
+		noteField:addx(noteFieldX)
+		noteField:addy(noteFieldY)
+		noteColumns = noteField:get_column_actors()
+		for i, actor in ipairs(noteColumns) do
+			actor:zoomtowidth(noteFieldWidth)
+			actor:zoomtoheight(noteFieldHeight)
 		end
 	end,
 	JudgmentMessageCommand=function(self, msg)
