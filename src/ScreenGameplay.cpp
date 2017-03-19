@@ -2971,8 +2971,7 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 	{
 		if(g_bEasterEggs)
 		{
-			if(PREFSMAN->m_AllowMultipleToasties ||
-				m_Toasty.IsWaiting())
+			if(m_Toasty.IsWaiting())
 			{
 				m_Toasty.Reset();
 				m_Toasty.StartTransitioning();
