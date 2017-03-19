@@ -1429,6 +1429,40 @@ t[#t+1] = Def.ActorFrame{
 			self:settext(table.concat(text, "\n"))
 		end,
 	},
+	Def.BitmapText{
+		Name= "Instructions", Font= "Common Normal",
+		InitCommand= function(self)
+			self:horizalign(left):vertalign(top)
+				:xy(SCREEN_WIDTH - 240, 110):zoom(.5):visible(true)
+		end,
+		OnCommand=function(self)
+			local text= {
+				"Hold the following and press the arrow",
+				"keys to alter the associated element\n",
+				"1: Judgement Text Position",
+				"2: Judgement Text Size",
+				"3: Combo Text Position",
+				"4: Combo Text Size",
+				"5: Error Bar Text Position",
+				"6: Error Bar Text Size",
+				"7: Target Tracker Text Position",
+				"8: Target Tracker Text Size",
+				"9: Full Progress Bar Position",
+				"0: Full Progress Bar Size",
+				"q: Mini Progress Bar Position",
+				"w: Display Percent Text Position",
+				"e: Display Percent Text Size",
+				"r: Notefield Position",
+				"t: Notefield Size",
+				"y: NPS Display Text Position",
+				"u: NPS Display Text Size",
+				"i: NPS Graph Position",
+				"o: NPS Graph Size",
+				"p: Judge Counter Position",
+			}
+			self:settext(table.concat(text, "\n"))
+		end
+	},
 }
 end
 
