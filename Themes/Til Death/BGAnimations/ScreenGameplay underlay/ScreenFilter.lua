@@ -50,7 +50,9 @@ end
 
 local t = Def.ActorFrame{
 	OnCommand=function()
-		SCREENMAN:GetTopScreen():AddInputCallback(input)
+		if(playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay) then
+			SCREENMAN:GetTopScreen():AddInputCallback(input)
+		end
 	end
 };
 

@@ -352,7 +352,9 @@ local function npsDisplay(pn)
 		npsDisplayActor = self:GetChild("Text")
 	end,
 	OnCommand=function(self)
-		SCREENMAN:GetTopScreen():AddInputCallback(displayInput)
+		if(playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay) then
+			SCREENMAN:GetTopScreen():AddInputCallback(displayInput)
+		end
 	end,
 	-- Whenever a MessageCommand is broadcasted,
 	-- a table contanining parameters can also be passed along. 
@@ -417,7 +419,9 @@ local function npsGraph(pn)
 			npsGraphActor = self
 		end,
 		OnCommand=function(self)
-			SCREENMAN:GetTopScreen():AddInputCallback(graphInput)
+			if(playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay) then
+				SCREENMAN:GetTopScreen():AddInputCallback(graphInput)
+			end
 		end
 	}
 	local verts= {
