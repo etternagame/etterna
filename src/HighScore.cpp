@@ -836,6 +836,7 @@ float HighScore::RescoreToDPJudge(int x) {
 	p += boo * -4;
 	p += miss * -8;
 	p += m_Impl->iHoldNoteScores[HNS_Held] * 6;
+	p += m_Impl->iTapNoteScores[TNS_HitMine] * -8;
 	p += (m_Impl->iHoldNoteScores[HNS_LetGo] + m_Impl->iHoldNoteScores[HNS_Missed]) * -6;
 
 	float m = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
