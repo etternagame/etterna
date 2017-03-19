@@ -8,7 +8,7 @@
 ; when they install StepMania 5. (not recommended)
 !define PRODUCT_ID "Stepmania - Etterna"
 ; TODO: This needs to be updated with the git rev hash
-!define PRODUCT_VER "- Etterna v0.54.1 Installer"
+!define PRODUCT_VER "- Etterna v0.54.2 Installer"
 !define PRODUCT_DISPLAY "${PRODUCT_FAMILY} ${PRODUCT_VER}"
 !define PRODUCT_BITMAP "sm5"
 
