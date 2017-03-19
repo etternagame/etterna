@@ -150,7 +150,11 @@ t[#t+1] = Def.ActorFrame{
 			if profileXP > 0 then
 				level = math.floor(math.log(profileXP) / math.log(2))
 			end
-			self:settext("Overall Level: " .. level .. "\nEXP Earned: " .. profileXP .. "/" .. 2^(level+1))
+			if(IsNetSMOnline()) then
+				self:settext("Overall Level: " .. level .. "\nEXP Earned: " .. profileXP .. "/" .. 2^(level+1))
+			else
+				self:settext("")
+			end
 		end,
 		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
 		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
