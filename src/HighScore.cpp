@@ -518,20 +518,7 @@ RString *HighScore::GetNameMutable() { return &m_Impl->sName; }
 
 bool HighScore::operator<(HighScore const& other) const
 {
-	/* Make sure we treat AAAA as higher than AAA, even though the score
- 	 * is the same. */
-	if( PREFSMAN->m_bPercentageScoring )
-	{
-		if( GetPercentDP() != other.GetPercentDP() )
-			return GetPercentDP() < other.GetPercentDP();
-	}
-	else
-	{
-		if( GetScore() != other.GetScore() )
-			return GetScore() < other.GetScore();
-	}
-
-	return GetGrade() < other.GetGrade();
+	return GetWifeScore() < other.GetWifeScore();
 }
 
 bool HighScore::operator>(HighScore const& other) const
