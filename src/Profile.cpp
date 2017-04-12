@@ -2027,6 +2027,13 @@ void Profile::LoadSongScoresFromNode( const XNode* pSongScores )
 			if( !stepsID.IsValid() )
 				WARN_AND_CONTINUE;
 
+			const XNode *pHighScoreListNode = pSteps->GetChild("HighScoreList");
+			if (pHighScoreListNode == NULL)
+				WARN_AND_CONTINUE;
+
+			HighScoreList &hsl = m_SongHighScores[songID].m_StepsHighScores[stepsID].hsl;
+			hsl.LoadFromNode(pHighScoreListNode);
+
 			/* This is for updating the chartkey values for pre-existing steps entries. First
 			we do a validity check to ensure a chartkey can and has been generated. Then we 
 			load the chart the score is attached to and then rerun the validity test. This is 
@@ -2046,14 +2053,52 @@ void Profile::LoadSongScoresFromNode( const XNode* pSongScores )
 						stepsID.LoadFromNode(pSteps);
 					stepsID.CreateNode();
 				}
+
+				// Create a key/rate sorted map for just internal use for now - Mina
+				RString ck = stepsID.GetKey();
+				auto it = HighScoresByChartKey.find(ck);
+				if (it == HighScoresByChartKey.end()) {
+					HighScoreRateMap hsrm;
+					FOREACH(HighScore, hsl.vHighScores, hs) {
+						float rate = (*hs).GetMusicRate();
+						auto itr = hsrm.find(rate);
+						if (itr == hsrm.end()) {
+							vector<HighScore> hsvec;
+							hsvec.emplace_back(*hs);
+							hsrm.emplace(rate, hsvec);
+						}
+						else {
+							hsrm[rate].emplace_back(*hs);
+						}
+					}
+					HighScoresByChartKey.emplace(ck, hsrm);
+				}
+				else {
+					HighScoreRateMap& hsrm = HighScoresByChartKey.at(ck);
+					FOREACH(HighScore, hsl.vHighScores, hs) {
+						float rate = (*hs).GetMusicRate();
+						auto itr = hsrm.find(rate);
+						if (itr == hsrm.end()) {
+							vector<HighScore> hsvec;
+							hsvec.emplace_back(*hs);
+							hsrm.emplace(rate, hsvec);
+						}
+						else {
+							hsrm[rate].emplace_back(*hs);
+						}
+					}
+				}
+
+				// sort by rate
+				FOREACHM(RString, HighScoreRateMap, HighScoresByChartKey, keyedhsrm) {
+					HighScoreRateMap& hsrm = keyedhsrm->second;
+					FOREACHM(float, vector<HighScore>, hsrm, ratedhsvec) {
+						vector<HighScore>& hsvec = ratedhsvec->second;
+						sort(hsvec.begin(), hsvec.end());
+						reverse(hsvec.begin(), hsvec.end());
+					}
+				}
 			}
-			
-			const XNode *pHighScoreListNode = pSteps->GetChild("HighScoreList");
-			if( pHighScoreListNode == NULL )
-				WARN_AND_CONTINUE;
-			
-			HighScoreList &hsl = m_SongHighScores[songID].m_StepsHighScores[stepsID].hsl;
-			hsl.LoadFromNode( pHighScoreListNode );
 		}
 	}
 }
