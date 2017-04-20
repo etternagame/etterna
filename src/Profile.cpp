@@ -32,6 +32,7 @@
 #include <algorithm>
 
 const RString STATS_XML            = "Stats.xml";
+const RString ETT_XML			   = "ETT.xml";
 const RString STATS_XML_GZ         = "Stats.xml.gz";
 /** @brief The filename for where one can edit their personal profile information. */
 const RString EDITABLE_INI         = "Editable.ini";
@@ -1325,7 +1326,8 @@ bool Profile::SaveAllToDir( const RString &sDir, bool bSignData ) const
 	// Save editable.ini
 	SaveEditableDataToDir( sDir );
 
-	bool bSaved = SaveStatsXmlToDir( sDir, bSignData );
+	//bool bSaved = SaveStatsXmlToDir( sDir, bSignData );
+	bool bSaved = SaveEttXmlToDir(sDir, bSignData);
 
 	SaveStatsWebPageToDir( sDir );
 
@@ -1376,6 +1378,16 @@ XNode *Profile::SaveStatsXmlCreateNode() const
 	return xml;
 }
 
+XNode *Profile::SaveEttXmlCreateNode() const
+{
+	XNode *xml = new XNode("Stats");
+
+	xml->AppendChild(SaveGeneralDataCreateNode());
+	xml->AppendChild(SaveEttScoresCreateNode());
+
+	return xml;
+}
+
 bool Profile::SaveStatsXmlToDir( RString sDir, bool bSignData ) const
 {
 	LOG->Trace( "SaveStatsXmlToDir: %s", sDir.c_str() );
@@ -1422,6 +1434,62 @@ bool Profile::SaveStatsXmlToDir( RString sDir, bool bSignData ) const
 	if( bSignData )
 	{
 		RString sStatsXmlSigFile = fn+SIGNATURE_APPEND;
+		CryptManager::SignFileToFile(fn, sStatsXmlSigFile);
+
+		// Save the "don't share" file
+		RString sDontShareFile = sDir + DONT_SHARE_SIG;
+		CryptManager::SignFileToFile(sStatsXmlSigFile, sDontShareFile);
+	}
+
+	return true;
+}
+
+bool Profile::SaveEttXmlToDir(RString sDir, bool bSignData) const
+{
+	LOG->Trace("SaveStatsXmlToDir: %s", sDir.c_str());
+	unique_ptr<XNode> xml(SaveEttXmlCreateNode());
+
+	sDir += PROFILEMAN->GetStatsPrefix();
+	// Save stats.xml
+	RString fn = sDir + (g_bProfileDataCompress ? STATS_XML_GZ : ETT_XML);
+
+	{
+		RString sError;
+		RageFile f;
+		if (!f.Open(fn, RageFile::WRITE))
+		{
+			LuaHelpers::ReportScriptErrorFmt("Couldn't open %s for writing: %s", fn.c_str(), f.GetError().c_str());
+			return false;
+		}
+
+		if (g_bProfileDataCompress)
+		{
+			RageFileObjGzip gzip(&f);
+			gzip.Start();
+			if (!XmlFileUtil::SaveToFile(xml.get(), gzip, "", false))
+				return false;
+
+			if (gzip.Finish() == -1)
+				return false;
+
+			/* After successfully saving STATS_XML_GZ, remove any stray STATS_XML. */
+			if (FILEMAN->IsAFile(sDir + STATS_XML))
+				FILEMAN->Remove(sDir + STATS_XML);
+		}
+		else
+		{
+			if (!XmlFileUtil::SaveToFile(xml.get(), f, "", false))
+				return false;
+
+			/* After successfully saving STATS_XML, remove any stray STATS_XML_GZ. */
+			if (FILEMAN->IsAFile(sDir + STATS_XML_GZ))
+				FILEMAN->Remove(sDir + STATS_XML_GZ);
+		}
+	}
+
+	if (bSignData)
+	{
+		RString sStatsXmlSigFile = fn + SIGNATURE_APPEND;
 		CryptManager::SignFileToFile(fn, sStatsXmlSigFile);
 
 		// Save the "don't share" file
@@ -1953,40 +2021,85 @@ XNode* Profile::SaveSongScoresCreateNode() const
 	CHECKPOINT_M("Getting the node to save song scores.");
 
 	const Profile* pProfile = this;
-	ASSERT( pProfile != NULL );
+	ASSERT(pProfile != NULL);
 
-	XNode* pNode = new XNode( "SongScores" );
+	XNode* pNode = new XNode("SongScores");
 
-	FOREACHM_CONST( SongID, HighScoresForASong, m_SongHighScores, i )
+	FOREACHM_CONST(SongID, HighScoresForASong, m_SongHighScores, i)
 	{
 		const SongID &songID = i->first;
 		const HighScoresForASong &hsSong = i->second;
 
 		// skip songs that have never been played
-		if( pProfile->GetSongNumTimesPlayed(songID) == 0 )
+		if (pProfile->GetSongNumTimesPlayed(songID) == 0)
 			continue;
 
-		XNode* pSongNode = pNode->AppendChild( songID.CreateNode() );
+		XNode* pSongNode = pNode->AppendChild(songID.CreateNode());
 
 		int jCheck2 = hsSong.m_StepsHighScores.size();
 		int jCheck1 = 0;
-		FOREACHM_CONST( StepsID, HighScoresForASteps, hsSong.m_StepsHighScores, j )
+		FOREACHM_CONST(StepsID, HighScoresForASteps, hsSong.m_StepsHighScores, j)
 		{
 			jCheck1++;
-			ASSERT( jCheck1 <= jCheck2 );
+			ASSERT(jCheck1 <= jCheck2);
 			const StepsID &stepsID = j->first;
 			const HighScoresForASteps &hsSteps = j->second;
 
 			const HighScoreList &hsl = hsSteps.hsl;
 
 			// skip steps that have never been played
-			if( hsl.GetNumTimesPlayed() == 0 )
+			if (hsl.GetNumTimesPlayed() == 0)
 				continue;
 
-			XNode* pStepsNode = pSongNode->AppendChild( stepsID.CreateNode() );
+			XNode* pStepsNode = pSongNode->AppendChild(stepsID.CreateNode());
 
-			pStepsNode->AppendChild( hsl.CreateNode() );
+			pStepsNode->AppendChild(hsl.CreateNode());
 		}
+	}
+
+	return pNode;
+}
+
+XNode* Profile::SaveEttScoresCreateNode() const
+{
+	CHECKPOINT_M("Getting the node to save song scores.");
+
+	const Profile* pProfile = this;
+	ASSERT( pProfile != NULL );
+
+	XNode* pNode = new XNode( "SongScores" );
+	
+	FOREACHM_CONST( RString, HighScoreRateMap, HighScoresByChartKey, i )
+	{
+		const RString &ck = i->first;
+		const HighScoreRateMap &hsrm = i->second;
+		XNode* pChartKey = new XNode("Chart");
+
+		Song* psong = SONGMAN->GetSongByChartkey(ck);
+
+		// sometimes scores on invalid songs get loaded even though there is literally an isvalid check before any scores are loaded..??
+		if (!psong)
+			continue;
+
+		pChartKey->AppendAttr("Key", ck);
+		pChartKey->AppendAttr("SongTitle", psong->GetDisplayMainTitle());
+
+		XNode* pScores = new XNode("RateScores");
+		FOREACHM_CONST( float, vector<HighScore>, hsrm, j )
+		{
+			const float &rate = j->first;
+			const vector<HighScore> &hsv = j->second;
+
+			XNode* pRateScores = new XNode(ssprintf("%f", rate));
+			FOREACH_CONST(HighScore, hsv, hs) {
+				const HighScore &chs = *hs;
+				pRateScores->AppendChild(chs.CreateNode());
+			}
+
+			pScores->AppendChild(pRateScores);
+		}
+		pChartKey->AppendChild(pScores);
+		pNode->AppendChild(pChartKey);
 	}
 
 	return pNode;
@@ -2101,6 +2214,16 @@ void Profile::LoadSongScoresFromNode( const XNode* pSongScores )
 			}
 		}
 	}
+}
+
+// more future goalman stuff
+void Profile::CreateGoal(RString ck) {
+	Goal goal;
+	goal.assigned = DateTime::GetNowDateTime();
+	goal.chartkey = ck;
+	//goal.rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+	goalmap[ck].emplace_back(goal);
+	LOG->Trace("New goal created %i goals", goalmap[ck].size());
 }
 
 /*	This is really lame because for whatever reason getting the highscore object and passing them
@@ -3417,6 +3540,19 @@ public:
 		return 1;
 	}
 
+	static int GetGoalByKey(T* p, lua_State *L) {
+		RString ck = SArg(1);
+		auto it = p->goalmap.find(ck);
+		if (it == p->goalmap.end()) {
+			lua_pushnil(L);
+		} 
+		else {
+			p->goalmap[SArg(1)].front().PushSelf(L);
+		}
+
+		return 1;
+	}
+
 	LunaProfile()
 	{
 		ADD_METHOD( AddScreenshot );
@@ -3498,10 +3634,25 @@ public:
 		ADD_METHOD( RecalcTopSSR );
 		ADD_METHOD( GetPBHighScoreByKey );
 		ADD_METHOD( ValidateAllScores );
+		ADD_METHOD( GetGoalByKey);
 	}
 };
 
 LUA_REGISTER_CLASS( Profile )
+class LunaGoal : public Luna<Goal>
+{
+public:
+	static int 	GetRate(T* p, lua_State *L) {
+		lua_pushnumber(L, p->rate);
+		return 1;
+	}
+
+	LunaGoal()
+	{
+		ADD_METHOD( GetRate );
+	}
+};
+LUA_REGISTER_CLASS(Goal)
 // lua end
 
 

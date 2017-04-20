@@ -73,6 +73,21 @@ enum ProfileType
 	ProfileType_Invalid
 };
 
+// future goalman stuff - Mina
+class Goal
+{
+public:
+	float rate = 1.f;
+	float percent = 93.f;
+	int priority = 1;
+	DateTime assigned;
+	DateTime achieved;
+	RString comment = "";
+	RString chartkey = "";
+
+	void PushSelf(lua_State *L);
+};
+
 /** 
  * @brief Player data that persists between sessions. 
  *
@@ -257,6 +272,10 @@ public:
 	// Vector for now, we can make this more efficient later
 	vector<RString> FavoritedCharts;
 
+	// more future goalman stuff
+	void CreateGoal(RString ck);
+	map<RString, vector<Goal>> goalmap;
+
 	/* store arbitrary data for the theme within a profile */
 	LuaTable m_UserTable;
 
@@ -336,6 +355,7 @@ public:
 	float GetWifePBByKey(RString key);
 	typedef map<float, vector<HighScore>> HighScoreRateMap;
 	map<RString, HighScoreRateMap> HighScoresByChartKey;
+
 
 	// Screenshot Data
 	vector<Screenshot> m_vScreenshots;
@@ -433,9 +453,12 @@ public:
 	void SaveTypeToDir(const RString &dir) const;
 	void SaveEditableDataToDir( const RString &sDir ) const;
 	bool SaveStatsXmlToDir( RString sDir, bool bSignData ) const;
+	bool SaveEttXmlToDir(RString sDir, bool bSignData) const;
 	XNode* SaveStatsXmlCreateNode() const;
+	XNode* SaveEttXmlCreateNode() const;
 	XNode* SaveGeneralDataCreateNode() const;
 	XNode* SaveSongScoresCreateNode() const;
+	XNode* SaveEttScoresCreateNode() const;
 	XNode* SaveCourseScoresCreateNode() const;
 	XNode* SaveCategoryScoresCreateNode() const;
 	XNode* SaveScreenshotDataCreateNode() const;
