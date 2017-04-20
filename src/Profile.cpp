@@ -1152,7 +1152,7 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 	// Not critical if this fails
 	LoadEditableDataFromDir( sDir );
 
-	ProfileLoadResult ret= LoadStatsFromDir(sDir, bRequireSignature);
+	ProfileLoadResult ret= LoadEttFromDir(sDir, bRequireSignature);
 	if (ret != ProfileLoadResult_Success)
 		return ret;
 
@@ -1244,6 +1244,42 @@ ProfileLoadResult Profile::LoadStatsFromDir(RString dir, bool require_signature)
 	return LoadStatsXmlFromNode(&xml);
 }
 
+
+ProfileLoadResult Profile::LoadEttFromDir(RString dir, bool require_signature)
+{
+	dir += PROFILEMAN->GetStatsPrefix();
+	// Check for the existance of stats.xml
+	RString fn = dir + ETT_XML;
+	bool compressed = false;
+	if (!IsAFile(fn))
+	{
+		// Check for the existance of stats.xml.gz
+		fn = dir + STATS_XML_GZ;
+		compressed = true;
+		if (!IsAFile(fn))
+		{
+			return ProfileLoadResult_FailedNoProfile;
+		}
+	}
+
+	int iError;
+	unique_ptr<RageFileBasic> pFile(FILEMAN->Open(fn, RageFile::READ, iError));
+	if (pFile.get() == NULL)
+	{
+		LOG->Trace("Error opening %s: %s", fn.c_str(), strerror(iError));
+		return ProfileLoadResult_FailedTampered;
+	}
+
+	LOG->Trace("Loading %s", fn.c_str());
+	XNode xml;
+	if (!XmlFileUtil::LoadFromFileShowErrors(xml, *pFile.get()))
+		return ProfileLoadResult_FailedTampered;
+	LOG->Trace("Done.");
+
+	return LoadEttXmlFromNode(&xml);
+}
+
+
 void Profile::LoadTypeFromDir(const RString &dir)
 {
 	m_Type= ProfileType_Normal;
@@ -1312,6 +1348,49 @@ ProfileLoadResult Profile::LoadStatsXmlFromNode( const XNode *xml, bool bIgnoreE
 		m_BirthYear= BirthYear;
 		m_IgnoreStepCountCalories= IgnoreStepCountCalories;
 		m_IsMale= IsMale;
+	}
+
+	return ProfileLoadResult_Success;
+}
+
+ProfileLoadResult Profile::LoadEttXmlFromNode(const XNode *xml, bool bIgnoreEditable)
+{
+	/* The placeholder stats.xml file has an <html> tag. Don't load it,
+	* but don't warn about it. */
+	if (xml->GetName() == "html")
+		return ProfileLoadResult_FailedNoProfile;
+
+	if (xml->GetName() != "Stats")
+	{
+		WARN_M(xml->GetName());
+		return ProfileLoadResult_FailedTampered;
+	}
+
+	// These are loaded from Editable, so we usually want to ignore them here.
+	RString sName = m_sDisplayName;
+	RString sCharacterID = m_sCharacterID;
+	RString sLastUsedHighScoreName = m_sLastUsedHighScoreName;
+	int iWeightPounds = m_iWeightPounds;
+	float Voomax = m_Voomax;
+	int BirthYear = m_BirthYear;
+	bool IgnoreStepCountCalories = m_IgnoreStepCountCalories;
+	bool IsMale = m_IsMale;
+
+	LOAD_NODE(GeneralData);
+
+	const XNode* scores = xml->GetChild("SongScores");
+	LoadEttScoresFromNode(scores);
+
+	if (bIgnoreEditable)
+	{
+		m_sDisplayName = sName;
+		m_sCharacterID = sCharacterID;
+		m_sLastUsedHighScoreName = sLastUsedHighScoreName;
+		m_iWeightPounds = iWeightPounds;
+		m_Voomax = Voomax;
+		m_BirthYear = BirthYear;
+		m_IgnoreStepCountCalories = IgnoreStepCountCalories;
+		m_IsMale = IsMale;
 	}
 
 	return ProfileLoadResult_Success;
@@ -2213,6 +2292,37 @@ void Profile::LoadSongScoresFromNode( const XNode* pSongScores )
 				}
 			}
 		}
+	}
+}
+
+
+void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
+	CHECKPOINT_M("Loading the node that contains song scores.");
+
+	ASSERT(pSongScores->GetName() == "SongScores");
+
+	FOREACH_CONST_Child(pSongScores, pChart) {
+		if (pChart->GetName() != "Chart")
+			continue;
+
+		RString ck;
+		pChart->GetAttrValue("Key", ck);
+
+		const XNode *pRateScores = pChart->GetChild("RateScores");
+		HighScoreRateMap hsrm;
+
+		FOREACH_CONST_Child(pRateScores, pRate) {
+			float rate = StringToFloat(pRate->GetName());
+
+			vector<HighScore> hsv;
+			FOREACH_CONST_Child(pRate, hs) {
+				hsv.resize(hsv.size() + 1);
+				hsv.back().LoadFromNode(hs);
+			}
+			hsrm.emplace(rate, hsv);
+		}
+
+		HighScoresByChartKey.emplace(ck, hsrm);
 	}
 }
 
@@ -3279,16 +3389,20 @@ public:
 	static int GetHighScoresByKey(T* p, lua_State *L) {
 		size_t idx = 0;
 		lua_newtable(L);
-		vector<SongID> songids;
-		vector<StepsID> stepsids;
-		p->GetScoresByKey(songids, stepsids, SArg(1));
-		for (size_t i = 0; i < songids.size(); i++) {
-			HighScoreList &hsl = p->m_SongHighScores[songids[i]].m_StepsHighScores[stepsids[i]].hsl;
-			for (size_t ii = 0; ii < hsl.vHighScores.size(); ii++) {
-				hsl.vHighScores[ii].PushSelf(L);
+		RString ck = SArg(1);
+
+		if (p->HighScoresByChartKey.find(ck) == p->HighScoresByChartKey.end())
+			return 1;
+
+		auto &hsrm = p->HighScoresByChartKey.at(ck);
+		
+		FOREACHM(float, vector<HighScore>, hsrm, zz) {
+			auto &hsv = zz->second;
+			for (size_t ii = 0; ii < hsv.size(); ii++) {
+				hsv[ii].PushSelf(L);
 				lua_rawseti(L, -2, idx + ii + 1);
 			}
-			idx += hsl.vHighScores.size();
+			idx += hsv.size();
 		}
 		return 1;
 	}

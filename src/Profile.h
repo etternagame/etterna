@@ -437,14 +437,17 @@ public:
 	void HandleStatsPrefixChange(RString dir, bool require_signature);
 	ProfileLoadResult LoadAllFromDir( const RString &sDir, bool bRequireSignature );
 	ProfileLoadResult LoadStatsFromDir(RString dir, bool require_signature);
+	ProfileLoadResult LoadEttFromDir(RString dir, bool require_signature);
 	void LoadTypeFromDir(const RString &dir);
 	void LoadCustomFunction( const RString &sDir );
 	bool SaveAllToDir( const RString &sDir, bool bSignData ) const;
 
 	ProfileLoadResult LoadEditableDataFromDir( const RString &sDir );
 	ProfileLoadResult LoadStatsXmlFromNode( const XNode* pNode, bool bIgnoreEditable = true );
+	ProfileLoadResult LoadEttXmlFromNode(const XNode* pNode, bool bIgnoreEditable = true);
 	void LoadGeneralDataFromNode( const XNode* pNode );
 	void LoadSongScoresFromNode( const XNode* pNode );
+	void LoadEttScoresFromNode(const XNode* pNode);
 	void LoadCourseScoresFromNode( const XNode* pNode );
 	void LoadCategoryScoresFromNode( const XNode* pNode );
 	void LoadScreenshotDataFromNode( const XNode* pNode );
