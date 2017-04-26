@@ -499,6 +499,15 @@ bool ScreenSelectMusic::Input( const InputEventPlus &input )
 				return true;
 			}
 		}
+		else if (bHoldingCtrl && c == 'G' && m_MusicWheel.IsSettled())
+		{
+			Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
+			pProfile->CreateGoal(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+			Message msg("FavoritesUpdated");
+			MESSAGEMAN->Broadcast(msg);
+			m_MusicWheel.ChangeMusic(0);
+			return true;
+}
 #if 0	// This is really more annoying than useful as well as obsoleted by song search
 		else if( bHoldingCtrl && ( c >= 'A' ) && ( c <= 'Z' ) )
 		{
