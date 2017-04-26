@@ -1408,7 +1408,8 @@ bool Profile::SaveAllToDir( const RString &sDir, bool bSignData ) const
 	SaveEditableDataToDir( sDir );
 
 	//bool bSaved = SaveStatsXmlToDir( sDir, bSignData );
-	bool bSaved = SaveEttXmlToDir(sDir, bSignData);
+	bool bSaved	= SaveEttXmlToDir(sDir, bSignData);
+	//bool bSaved = SaveStatsXmlToDir(sDir, bSignData);
 
 	SaveStatsWebPageToDir( sDir );
 
