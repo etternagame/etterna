@@ -1154,6 +1154,8 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 
 	ProfileLoadResult ret= LoadEttFromDir(sDir, bRequireSignature);
 	if (ret != ProfileLoadResult_Success)
+		ret = LoadStatsFromDir(sDir, bRequireSignature);
+	if (ret != ProfileLoadResult_Success)
 		return ret;
 
 	LoadCustomFunction( sDir );
