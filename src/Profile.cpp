@@ -2394,28 +2394,19 @@ float Profile::GetWifePBByKey(RString key) {
 // also finish dealing with this later - mina
 void Profile::CalcPlayerRating(float& prating, float* pskillsets) const {
 	vector<float> demskillas[NUM_Skillset];
-	FOREACHM_CONST(SongID, HighScoresForASong, m_SongHighScores, i) {
-		const SongID& id = i->first;
-		const HighScoresForASong& hsfas = i->second;
-		FOREACHM_CONST(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
-			Steps* pSteps = SONGMAN->GetStepsByChartkey(j->first);
-
-			if (!pSteps)
-				continue;
-
-			if (!pSteps->IsRecalcValid())
-				continue;
-
-			const HighScoresForASteps& zz = j->second;
-			const vector<HighScore>& hsv = zz.hsl.vHighScores;
-			for (size_t i = 0; i < hsv.size(); i++) {
-				if(hsv[i].GetEtternaValid())
+	LOG->Trace("test");
+	FOREACHM_CONST(RString, HighScoreRateMap, HighScoresByChartKey, i) {
+		auto &hsrm = i->second;
+		FOREACHM_CONST(float, vector<HighScore>, hsrm, j) {
+			auto &hsv = j->second;			for (size_t i = 0; i < hsv.size(); i++) {
+				if (hsv[i].GetEtternaValid()) {
 					FOREACH_ENUM(Skillset, ss)
 						demskillas[ss].emplace_back(hsv[i].GetSkillsetSSR(ss));
-			}
+					break;
+				}			}
 		}
 	}
-
+	LOG->Trace("test");
 	// overall should probably be ignored
 	float skillsetsum = 0.f;
 	FOREACH_ENUM(Skillset, ss) {
@@ -2423,7 +2414,7 @@ void Profile::CalcPlayerRating(float& prating, float* pskillsets) const {
 		CLAMP(pskillsets[ss], 0.f, 100.f);
 		skillsetsum += pskillsets[ss];
 	}
-	
+
 	prating = skillsetsum / NUM_Skillset;
 }
 
