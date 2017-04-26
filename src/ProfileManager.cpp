@@ -881,6 +881,28 @@ void ProfileManager::AddStepsScore( const Song* pSong, const Steps* pSteps, Play
 	*/
 }
 
+// gotta get a better way to do this, probably by making the score map a class - Mina
+void ProfileManager::AddScoreByKey(PlayerNumber pn, const HighScore &hs_) {
+	HighScore hs = hs_;
+	Profile* pProfile = GetProfile(pn);
+	auto ck = hs.GetHistoricChartKey();
+	auto rate = hs.GetMusicRate();
+	
+	
+	auto &hsbk = pProfile->HighScoresByChartKey;
+	auto it = hsbk.find(ck);
+	if (it == hsbk.end()) {
+		vector<HighScore> hsv;
+		hsv.emplace_back(hs);
+		map<float, vector<HighScore>> hsrm;
+		hsrm.emplace(rate, hsv);
+		hsbk.emplace(ck, hsrm);
+	}
+	else {
+		hsbk.at(ck).at(rate).emplace_back(hs);
+	}
+}
+
 void ProfileManager::IncrementStepsPlayCount( const Song* pSong, const Steps* pSteps, PlayerNumber pn )
 {
 	if( IsPersistentProfile(pn) )
