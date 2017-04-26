@@ -510,6 +510,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 	InitCommand=cmd(xy,frameX,frameY-120;halign,0;zoom,0.4,maxwidth,125),
 	BeginCommand=cmd(queuecommand,"Set"),
 	SetCommand=function(self)
+		--ms.type(profile:GetGoalByKey(getCurKey()))
 		self:settext("")
 	end,
 	CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set"),
