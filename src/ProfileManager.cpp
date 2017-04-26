@@ -899,7 +899,15 @@ void ProfileManager::AddScoreByKey(PlayerNumber pn, const HighScore &hs_) {
 		hsbk.emplace(ck, hsrm);
 	}
 	else {
-		hsbk.at(ck).at(rate).emplace_back(hs);
+		auto it2 = hsbk.at(ck).find(rate);
+		if (it2 == hsbk.at(ck).end()) {
+			vector<HighScore> hsv;
+			hsv.emplace_back(hs);
+			hsbk.at(ck).emplace(rate, hsv);
+		}
+		else {
+			hsbk.at(ck).at(rate).emplace_back(hs);
+		}
 	}
 }
 
