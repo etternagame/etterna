@@ -3144,6 +3144,13 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 				m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
 		}
 
+		if (m_pPlayerStageStats) {
+			// temp unscaled juxt -mina
+			if (tns == TNS_HitMine)
+				unscaledcurwifescore -= 8;
+			m_pPlayerStageStats->unscaledwife = unscaledcurwifescore / unscaledmaxwifescore;
+		}
+
 		MESSAGEMAN->Broadcast( msg );
 		if( m_pPlayerStageStats &&
 			( ( tns == TNS_AvoidMine && AVOID_MINE_INCREMENTS_COMBO ) || 
@@ -3209,6 +3216,17 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 				m_pPlayerStageStats->m_vOffsetVector.push_back(tn.result.fTapNoteOffset);
 				m_pPlayerStageStats->m_vNoteRowVector.push_back(iRow);
 			}
+		}
+
+		if (m_pPlayerStageStats) {
+			// temp unscaled juxt - mina
+
+			if (tns == TNS_Miss)
+				unscaledcurwifescore -= 8;
+			else
+				unscaledcurwifescore += wife2(tn.result.fTapNoteOffset, m_fTimingWindowScale);
+			unscaledmaxwifescore += 2;
+			m_pPlayerStageStats->unscaledwife = unscaledcurwifescore / unscaledmaxwifescore;
 		}
 
 		Lua* L= LUA->Get();

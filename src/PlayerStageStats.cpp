@@ -44,6 +44,7 @@ void PlayerStageStats::InternalInit()
 	m_iCurPossibleDancePoints = 0;
 	m_iActualDancePoints = 0;
 	m_fWifeScore = 0;
+	unscaledwife = 0;
 	m_fTimingScale = 0;
 	m_vOffsetVector.clear();
 	m_vNoteRowVector.clear();
@@ -791,6 +792,7 @@ public:
 	DEFINE_METHOD( GetCurrentScoreMultiplier,	m_iCurScoreMultiplier )
 	DEFINE_METHOD( GetScore,					m_iScore )
 	DEFINE_METHOD( GetWifeScore,				m_fWifeScore )
+	DEFINE_METHOD( GetUnscaledWife,				unscaledwife)
 	DEFINE_METHOD( GetCurMaxScore,				m_iCurMaxScore )
 	DEFINE_METHOD( GetTapNoteScores,			m_iTapNoteScores[Enum::Check<TapNoteScore>(L, 1)] )
 	DEFINE_METHOD( GetHoldNoteScores,			m_iHoldNoteScores[Enum::Check<HoldNoteScore>(L, 1)] )
@@ -997,6 +999,7 @@ public:
 		ADD_METHOD( FailPlayer );
 		ADD_METHOD( GetSongsPassed );
 		ADD_METHOD( GetSongsPlayed );
+		ADD_METHOD( GetUnscaledWife );
 	}
 };
 

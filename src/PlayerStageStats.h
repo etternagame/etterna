@@ -70,6 +70,7 @@ public:
 	int		m_iActualDancePoints;
 	int		m_iPossibleGradePoints;
 	float   m_fWifeScore;
+	float unscaledwife;
 	float	m_fTimingScale;
 	vector<float> m_vOffsetVector;
 	vector<int> m_vNoteRowVector;

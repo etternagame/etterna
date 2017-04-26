@@ -137,7 +137,9 @@ public:
 	vector<int> nerv;	// the non empty row vector where we are somehwere in
 	size_t nervpos = 0; // where we are in the non-empty row vector
 	float maxwifescore = 0.0001f; // hurr /0 - Mina
+	float unscaledmaxwifescore = 0.0001f; // hurr /0 - Mina
 	float curwifescore = 0.f;
+	float unscaledcurwifescore = 0.f;
 	float wifescorepersonalbest = 0.f;
 	int totalwifescore;
 
