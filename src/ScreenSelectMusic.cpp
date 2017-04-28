@@ -485,7 +485,7 @@ bool ScreenSelectMusic::Input( const InputEventPlus &input )
 				}
 			}
 		}
-		else if (bHoldingCtrl && c == 'F' && m_MusicWheel.IsSettled())
+		else if (bHoldingCtrl && c == 'F' && m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS)
 		{
 			// Favorite the currently selected song. -Not Kyz
 			Song* fav_me_biatch = m_MusicWheel.GetSelectedSong();
@@ -499,11 +499,13 @@ bool ScreenSelectMusic::Input( const InputEventPlus &input )
 				return true;
 			}
 		}
-		else if (bHoldingCtrl && c == 'G' && m_MusicWheel.IsSettled())
+		else if (bHoldingCtrl && c == 'G' && m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS)
 		{
 			Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
 			pProfile->CreateGoal(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
 			Message msg("FavoritesUpdated");
+			MESSAGEMAN->Broadcast(msg);
+			Message msg("UpdateGoal");
 			MESSAGEMAN->Broadcast(msg);
 			m_MusicWheel.ChangeMusic(0);
 			return true;
