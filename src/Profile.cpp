@@ -2181,6 +2181,17 @@ XNode* Profile::SaveEttScoresCreateNode() const
 			pScores->AppendChild(pRateScores);
 		}
 		pChartKey->AppendChild(pScores);
+
+		// Chart entries may contain more than just scores, write out any scoregoals associated with this key
+		
+		auto it = goalmap.find(ck);
+		if (it != goalmap.end()) {
+			XNode* pGoals = new XNode("GoalTracker");
+			FOREACH_CONST(ScoreGoal, goalmap.at(ck), sg)
+				pGoals->AppendChild(sg->CreateNode());
+			pChartKey->AppendChild(pGoals);
+		}
+		
 		pNode->AppendChild(pChartKey);
 	}
 
@@ -2325,18 +2336,54 @@ void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
 			hsrm.emplace(rate, hsv);
 		}
 
+		const XNode *pGoals = pChart->GetChild("GoalTracker");
+		if (pGoals) {
+			vector<ScoreGoal> sgv;
+			FOREACH_CONST_Child(pGoals, sg) {
+				sgv.resize(sgv.size() + 1);
+				sgv.back().LoadFromNode(sg);
+			}
+			goalmap.emplace(ck, sgv);
+		}
+		
 		HighScoresByChartKey.emplace(ck, hsrm);
 	}
 }
 
 // more future goalman stuff
 void Profile::CreateGoal(RString ck) {
-	Goal goal;
-	goal.assigned = DateTime::GetNowDateTime();
-	goal.chartkey = ck;
+	ScoreGoal goal;
+	goal.timeassigned = DateTime::GetNowDateTime();
 	//goal.rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 	goalmap[ck].emplace_back(goal);
 	LOG->Trace("New goal created %i goals", goalmap[ck].size());
+}
+
+XNode* ScoreGoal::CreateNode() const {
+	XNode* pNode = new XNode("ScoreGoal");
+
+	pNode->AppendChild("Rate", rate);
+	pNode->AppendChild("Percent", percent);
+	pNode->AppendChild("Priority", priority);
+	pNode->AppendChild("Achieved", achieved);
+	pNode->AppendChild("TimeAssigned", timeassigned.GetString());
+	pNode->AppendChild("TimeAchieved", "");
+	pNode->AppendChild("Comment", comment);
+
+	return pNode;
+}
+
+void ScoreGoal::LoadFromNode(const XNode *pNode) {
+	ASSERT(pNode->GetName() == "ScoreGoal");
+
+	RString s;
+
+	pNode->GetChildValue("Rate", rate);
+	pNode->GetChildValue("Percent", percent);
+	pNode->GetChildValue("Priority", priority);
+	pNode->GetChildValue("Achieved", achieved);
+	pNode->GetChildValue("TimeAssigned", s); timeassigned.FromString(s);
+	pNode->GetChildValue("Comment", comment);
 }
 
 /*	This is really lame because for whatever reason getting the highscore object and passing them
@@ -2394,7 +2441,6 @@ float Profile::GetWifePBByKey(RString key) {
 // also finish dealing with this later - mina
 void Profile::CalcPlayerRating(float& prating, float* pskillsets) const {
 	vector<float> demskillas[NUM_Skillset];
-	LOG->Trace("test");
 	FOREACHM_CONST(RString, HighScoreRateMap, HighScoresByChartKey, i) {
 		auto &hsrm = i->second;
 		FOREACHM_CONST(float, vector<HighScore>, hsrm, j) {
@@ -2406,7 +2452,7 @@ void Profile::CalcPlayerRating(float& prating, float* pskillsets) const {
 				}			}
 		}
 	}
-	LOG->Trace("test");
+
 	// overall should probably be ignored
 	float skillsetsum = 0.f;
 	FOREACH_ENUM(Skillset, ss) {
@@ -3747,7 +3793,7 @@ public:
 };
 
 LUA_REGISTER_CLASS( Profile )
-class LunaGoal : public Luna<Goal>
+class LunaScoreGoal : public Luna<ScoreGoal>
 {
 public:
 	static int 	GetRate(T* p, lua_State *L) {
@@ -3755,12 +3801,12 @@ public:
 		return 1;
 	}
 
-	LunaGoal()
+	LunaScoreGoal()
 	{
 		ADD_METHOD( GetRate );
 	}
 };
-LUA_REGISTER_CLASS(Goal)
+LUA_REGISTER_CLASS(ScoreGoal)
 // lua end
 
 

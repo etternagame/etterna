@@ -74,16 +74,19 @@ enum ProfileType
 };
 
 // future goalman stuff - Mina
-class Goal
+class ScoreGoal
 {
 public:
 	float rate = 1.f;
 	float percent = 93.f;
 	int priority = 1;
-	DateTime assigned;
-	DateTime achieved;
+	bool achieved = 0;
+	DateTime timeassigned;
+	DateTime timeachieved;
 	RString comment = "";
-	RString chartkey = "";
+
+	XNode* CreateNode() const;
+	void LoadFromNode(const XNode *pNode);
 
 	void PushSelf(lua_State *L);
 };
@@ -274,7 +277,7 @@ public:
 
 	// more future goalman stuff
 	void CreateGoal(RString ck);
-	map<RString, vector<Goal>> goalmap;
+	map<RString, vector<ScoreGoal>> goalmap;
 
 	/* store arbitrary data for the theme within a profile */
 	LuaTable m_UserTable;
