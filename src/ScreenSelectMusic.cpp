@@ -503,10 +503,12 @@ bool ScreenSelectMusic::Input( const InputEventPlus &input )
 		{
 			Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
 			pProfile->CreateGoal(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+			Song* asonglol = m_MusicWheel.GetSelectedSong();
+			asonglol->SetHasGoal(true);
 			Message msg("FavoritesUpdated");
 			MESSAGEMAN->Broadcast(msg);
-			Message msg("UpdateGoal");
-			MESSAGEMAN->Broadcast(msg);
+			Message msg2("UpdateGoal");
+			MESSAGEMAN->Broadcast(msg2);
 			m_MusicWheel.ChangeMusic(0);
 			return true;
 }
