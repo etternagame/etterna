@@ -21,7 +21,18 @@ return Def.ActorFrame{
 				self:visible(false)
 			end
 		end,
-	};
+	},
+	Def.Quad{
+		InitCommand=cmd(xy,2,-2;zoomto,4,19),
+		SetGradeCommand=function(self,params)
+			if params.HasGoal then
+				self:diffuse(byJudgment("TapNoteScore_Miss"))
+				self:diffusealpha(1)
+			else
+				self:diffusealpha(0)
+			end
+		end
+	},
 	LoadFont("Common Normal") .. {
         InitCommand=cmd(xy,16,-1;zoom,0.5;maxwidth,WideScale(get43size(20),20)/0.5),
         SetGradeCommand=function(self,params)
