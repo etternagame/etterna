@@ -2354,7 +2354,7 @@ void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
 void Profile::CreateGoal(RString ck) {
 	ScoreGoal goal;
 	goal.timeassigned = DateTime::GetNowDateTime();
-	//goal.rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+	goal.rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 	goalmap[ck].emplace_back(goal);
 	LOG->Trace("New goal created %i goals", goalmap[ck].size());
 }
@@ -3710,6 +3710,23 @@ public:
 		return 1;
 	}
 
+	static int GetAllGoals(T* p, lua_State *L) {
+		lua_newtable(L);
+		int idx = 0;
+		FOREACHM(RString, vector<ScoreGoal>, p->goalmap, i) {
+			const RString &ck = i->first;
+			auto sgv = i->second;
+			FOREACH(ScoreGoal, sgv, sg) {
+				sg->PushSelf(L);
+				lua_rawseti(L, -2, idx + 1);
+				idx++;
+			}
+			
+		}
+
+		return 1;
+	}
+
 	LunaProfile()
 	{
 		ADD_METHOD( AddScreenshot );
@@ -3791,7 +3808,8 @@ public:
 		ADD_METHOD( RecalcTopSSR );
 		ADD_METHOD( GetPBHighScoreByKey );
 		ADD_METHOD( ValidateAllScores );
-		ADD_METHOD( GetGoalByKey);
+		ADD_METHOD( GetGoalByKey );
+		ADD_METHOD( GetAllGoals );
 	}
 };
 
@@ -3799,12 +3817,12 @@ LUA_REGISTER_CLASS( Profile )
 class LunaScoreGoal : public Luna<ScoreGoal>
 {
 public:
-	DEFINE_METHOD(GetRate, rate);
-	DEFINE_METHOD(GetPercent, percent);
-	DEFINE_METHOD(GetPriority, priority);
-	DEFINE_METHOD(IsAchieved, achieved);
-	DEFINE_METHOD(GetComment, comment);
-	DEFINE_METHOD(WhenAssigned, timeassigned.GetString());
+	DEFINE_METHOD( GetRate, rate );
+	DEFINE_METHOD( GetPercent, percent );
+	DEFINE_METHOD( GetPriority, priority );
+	DEFINE_METHOD( IsAchieved, achieved );
+	DEFINE_METHOD( GetComment, comment );
+	DEFINE_METHOD( WhenAssigned, timeassigned.GetString() );
 
 	static int WhenAchieved(T* p, lua_State *L) {
 		if (p->achieved)
@@ -3822,13 +3840,13 @@ public:
 
 	LunaScoreGoal()
 	{
-		ADD_METHOD(GetRate);
-		ADD_METHOD(GetPercent);
-		ADD_METHOD(GetPriority);
-		ADD_METHOD(IsAchieved);
-		ADD_METHOD(GetComment);
-		ADD_METHOD(WhenAssigned);
-		ADD_METHOD(WhenAchieved);
+		ADD_METHOD( GetRate );
+		ADD_METHOD( GetPercent );
+		ADD_METHOD( GetPriority );
+		ADD_METHOD( IsAchieved );
+		ADD_METHOD( GetComment );
+		ADD_METHOD( WhenAssigned );
+		ADD_METHOD( WhenAchieved );
 	}
 };
 LUA_REGISTER_CLASS(ScoreGoal)

@@ -84,6 +84,7 @@ public:
 	DateTime timeassigned;
 	DateTime timeachieved;
 	RString comment = "";
+	RString chartkey = "";
 
 	XNode* CreateNode() const;
 	void LoadFromNode(const XNode *pNode);
