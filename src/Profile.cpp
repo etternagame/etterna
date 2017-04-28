@@ -3799,14 +3799,36 @@ LUA_REGISTER_CLASS( Profile )
 class LunaScoreGoal : public Luna<ScoreGoal>
 {
 public:
-	static int 	GetRate(T* p, lua_State *L) {
-		lua_pushnumber(L, p->rate);
+	DEFINE_METHOD(GetRate, rate);
+	DEFINE_METHOD(GetPercent, percent);
+	DEFINE_METHOD(GetPriority, priority);
+	DEFINE_METHOD(IsAchieved, achieved);
+	DEFINE_METHOD(GetComment, comment);
+	DEFINE_METHOD(WhenAssigned, timeassigned.GetString());
+
+	static int WhenAchieved(T* p, lua_State *L) {
+		if (p->achieved)
+			lua_pushstring(L, p->timeachieved.GetString());
+		else
+			lua_pushnil(L);
+
 		return 1;
 	}
 
+	static int SetRate(T* p, lua_State *L) { p->rate = FArg(1); return 1; }
+	static int SetPercent(T* p, lua_State *L) { p->percent = FArg(1); return 1; }
+	static int SetPriority(T* p, lua_State *L) { p->priority = IArg(1); return 1; }
+	static int SetComment(T* p, lua_State *L) { p->comment = SArg(1); return 1; }
+
 	LunaScoreGoal()
 	{
-		ADD_METHOD( GetRate );
+		ADD_METHOD(GetRate);
+		ADD_METHOD(GetPercent);
+		ADD_METHOD(GetPriority);
+		ADD_METHOD(IsAchieved);
+		ADD_METHOD(GetComment);
+		ADD_METHOD(WhenAssigned);
+		ADD_METHOD(WhenAchieved);
 	}
 };
 LUA_REGISTER_CLASS(ScoreGoal)
