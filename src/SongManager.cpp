@@ -2291,6 +2291,18 @@ public:
 		lua_pushboolean(L, p->WasLoadedFromAdditionalCourses(pCourse));
 		return 1;
 	}
+	static int GetSongByChartKey(T* p, lua_State *L)
+	{
+		Song* pSong = p->GetSongByChartkey(SArg(1));
+		pSong->PushSelf(L);
+		return 1;
+	}
+	static int GetStepsByChartKey(T* p, lua_State *L)
+	{
+		Steps* pSteps = p->GetStepsByChartkey(SArg(1));
+		pSteps->PushSelf(L);
+		return 1;
+	}
 
 	LunaSongManager()
 	{
@@ -2333,6 +2345,8 @@ public:
 		ADD_METHOD( SongToPreferredSortSectionName );
 		ADD_METHOD( WasLoadedFromAdditionalSongs );
 		ADD_METHOD( WasLoadedFromAdditionalCourses );
+		ADD_METHOD( GetSongByChartKey );
+		ADD_METHOD( GetStepsByChartKey );
 	}
 };
 
