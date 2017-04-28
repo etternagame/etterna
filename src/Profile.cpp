@@ -3718,6 +3718,7 @@ public:
 			auto &sgv = i->second;
 			FOREACH(ScoreGoal, sgv, sg) {
 				ScoreGoal &tsg = *sg;
+				tsg.chartkey = ck;
 				tsg.PushSelf(L);
 				lua_rawseti(L, -2, idx + 1);
 				idx++;
@@ -3821,8 +3822,9 @@ public:
 	DEFINE_METHOD( GetPriority, priority );
 	DEFINE_METHOD( IsAchieved, achieved );
 	DEFINE_METHOD( GetComment, comment );
+	DEFINE_METHOD( GetChartKey, chartkey);
 	DEFINE_METHOD( WhenAssigned, timeassigned.GetString() );
-
+	
 	static int WhenAchieved(T* p, lua_State *L) {
 		if (p->achieved)
 			lua_pushstring(L, p->timeachieved.GetString());
@@ -3846,6 +3848,7 @@ public:
 		ADD_METHOD( GetComment );
 		ADD_METHOD( WhenAssigned );
 		ADD_METHOD( WhenAchieved );
+		ADD_METHOD( GetChartKey );
 	}
 };
 LUA_REGISTER_CLASS(ScoreGoal)
