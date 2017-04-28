@@ -18,6 +18,7 @@ struct lua_State;
 #include "ThemeMetric.h"
 #include "RageTexturePreloader.h"
 #include "RageUtil.h"
+#include "Profile.h"
 
 RString SONG_GROUP_COLOR_NAME( size_t i );
 RString COURSE_GROUP_COLOR_NAME( size_t i );
@@ -70,6 +71,7 @@ public:
 
 	bool IsGroupNeverCached(const RString& group) const;
 	void SetFavoritedStatus(vector<RString>& favs);
+	void SetHasGoal(map<RString, vector<ScoreGoal>> goalmap);
 
 	RString GetSongGroupBannerPath( const RString &sSongGroup ) const;
 	//RString GetSongGroupBackgroundPath( RString sSongGroup ) const;

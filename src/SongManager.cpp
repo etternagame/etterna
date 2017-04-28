@@ -626,6 +626,18 @@ void SongManager::SetFavoritedStatus(vector<RString>& favs) {
 	}
 }
 
+// hurr should probably redo both of these -mina
+void SongManager::SetHasGoal(map<RString, vector<ScoreGoal>> goalmap) {
+	FOREACH(Song*, m_pSongs, song) {
+		FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps) {
+			RString sck = (*steps)->GetChartKey();
+			auto it = goalmap.find(sck);
+			if(it != goalmap.end())
+					(*song)->SetHasGoal(true);
+			}
+		}
+	}
+
 RString SongManager::GetSongGroupBannerPath( const RString &sSongGroup ) const
 {
 	for( unsigned i = 0; i < m_sSongGroupNames.size(); ++i )
