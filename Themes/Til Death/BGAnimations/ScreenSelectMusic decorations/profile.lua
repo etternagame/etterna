@@ -7,7 +7,6 @@ local t = Def.ActorFrame{
 		self:finishtweening()
 		
 		if getTabIndex() == 4 then
-		
 			self:queuecommand("On")
 			self:visible(true)
 			update = true
@@ -25,197 +24,179 @@ local frameY = 45
 local frameWidth = capWideScale(360,400)
 local frameHeight = 350
 local fontScale = 0.4
-local scorestodisplay = 25
+local goalsperpage = 25
 local distY = 15
 local offsetX = 10
 local offsetY = 20
 local rankingSkillset=0
-local rankingPage=1	
+local goalFilter=1
 local rankingWidth = frameWidth-capWideScale(15,50)
 local rankingX = capWideScale(30,50)
 local rankingY = capWideScale(60,60)
-local rankingTitleWidth = (rankingWidth/(#ms.SkillSets + 1))
+local rankingTitleWidth = (rankingWidth/(3 + 1))
 
 if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
 	profile = GetPlayerOrMachineProfile(PLAYER_1)
 end
 
+local playergoals = profile:GetAllGoals()
+local displayindex = {}
 
 t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,frameHeight;halign,0;valign,0;diffuse,color("#333333CC"))}
 t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,offsetY;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,0.5)}
+t[#t+1] = LoadFont("Common Normal")..{InitCommand=cmd(xy,frameX+5,frameY+offsetY-9;zoom,0.6;halign,0;diffuse,getMainColor('positive');settext,"Goal Tracker (WIP)")}
 
-t[#t+1] = LoadFont("Common Normal")..{InitCommand=cmd(xy,frameX+5,frameY+offsetY-9;zoom,0.6;halign,0;diffuse,getMainColor('positive');settext,"Profile Info (WIP)")}
-
--- The input callback for mouse clicks already exists within the tabmanager and redefining it within the local scope does nothing but create confusion - mina
-local r = Def.ActorFrame{}
-	
-local function rankingLabel(i)
-	local ths -- the top highscore object - mina
-	local t = Def.ActorFrame{
-		InitCommand=cmd(visible, false),
-		UpdateRankingMessageCommand=function(self)
-			if rankingSkillset > 0 then
-				self:visible(true)
-			else
-				self:visible(false)
+-- prolly a clever way to cut this to 5 lines - mina
+local function filterDisplay (playergoals)
+	local index = {}
+	if goalFilter == 2 then
+		for i=1,#playergoals do
+			if playergoals[i]:IsAchieved() then
+				index[#index+1] = i
 			end
-		end,
+		end
+		return index
+	elseif goalFilter == 3 then
+		for i=1,#playergoals do
+			if not playergoals[i]:IsAchieved() then
+				index[#index+1] = i
+			end
+		end
+		return index
+	end
+	for i=1,#playergoals do
+		index[#index+1] = i
+	end
+	return index
+end
+
+local function byAchieved(scoregoal)
+	if not scoregoal or scoregoal:IsAchieved() then
+		return getMainColor('positive')
+	end
+	return byJudgment("TapNoteScore_Miss")
+end
+	
+
+local r = Def.ActorFrame{
+	UpdateGoalsMessageCommand=function(self)
+		playergoals = profile:GetAllGoals()
+		displayindex = filterDisplay(playergoals)
+	end
+}
+
+local function makescoregoal(i)
+	local sg		-- scoregoal object -mina
+	local t = Def.ActorFrame{
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(xy,frameX+12.5,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,100),
 			SetCommand=function(self)
 				self:diffuse(getMainColor("positive"))
-				self:settext(((rankingPage-1)*25)+i..".")
+				self:settext(((goalFilter-1)*25)+i..".")
 			end,
-			UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,frameX+rankingX,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,160),
+			InitCommand=cmd(xy,frameX+rankingX,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,400),
 			SetCommand=function(self)
-				if update and rankingSkillset > 0 then 
-					profile:GetTopSSRHighScore(i+(scorestodisplay*(9)), rankingSkillset) -- hacky way to initialzie vectors out to 250 (way faster)
-					ths = profile:GetTopSSRHighScore(i+(scorestodisplay*(rankingPage-1)), rankingSkillset) 
-					if ths then 
-						profile:GetTopSSRValue(i+(scorestodisplay*(9)), rankingSkillset)
-						local a=profile:GetTopSSRValue(i+(scorestodisplay*(rankingPage-1)), rankingSkillset)
-						self:settextf("%5.2f", a)
-						if not ths:GetEtternaValid() then
-							self:diffuse(byJudgment("TapNoteScore_Miss"))
+				if update then
+					sg = playergoals[displayindex[i]]
+					if sg then 
+						local ck = sg:GetChartKey()
+							self:settextf(SONGMAN:GetSongByChartKey(ck):GetDisplayMainTitle())
 						else
-							self:diffuse(getMainColor('positive'))
-						end											
+						self:settext( ' - ' )
+					end
+					self:diffuse(byAchieved(sg))
+				end
+			end,
+			UpdateGoalsMessageCommand=cmd(queuecommand,"Set");
+		},
+		LoadFont("Common Large") .. {
+			InitCommand=cmd(xy,frameX+rankingX+100,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,160),
+			SetCommand=function(self)
+				if update then 
+					if sg then 
+						self:settextf("%5.2fx", sg:GetRate())
 					else
 						self:settext( ' - ' )
-						self:diffuse(getMainColor('positive'))
 					end
+					self:diffuse(byAchieved(sg))
 				end
 			end,
-			UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
+			UpdateGoalsMessageCommand=cmd(queuecommand,"Set");
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,frameX+rankingX+35,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*2.5-160),
+			InitCommand=cmd(xy,frameX+rankingX+150,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,160),
 			SetCommand=function(self)
-				if update and ths then
-					profile:GetTopSSRValue(i+(scorestodisplay*(9)), rankingSkillset)
-					local a=profile:GetTopSSRValue(i+(scorestodisplay*(rankingPage-1)), rankingSkillset)
-					self:settext(profile:GetTopSSRSongName(i+(scorestodisplay*(rankingPage-1)), rankingSkillset) )
-					if not ths:GetEtternaValid() then
-						self:diffuse(byJudgment("TapNoteScore_Miss"))
+				if update then 
+					if sg then 
+						self:settextf("%5.2f", sg:GetPercent())
 					else
-						self:diffuse(getMainColor('positive'))
-					end	
-				else
-					self:settext( ' ' )
-					self:diffuse(getMainColor('positive'))
+						self:settext( ' - ' )
+					end
+					self:diffuse(byAchieved(sg))
 				end
 			end,
-			UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
+			UpdateGoalsMessageCommand=cmd(queuecommand,"Set");
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,frameX+rankingX+230,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*4-160),
+			InitCommand=cmd(xy,frameX+rankingX+200,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,260),
 			SetCommand=function(self)
-				if update and ths then
-					local ratestring = string.format("%.2f", ths:GetMusicRate()):gsub("%.?0+$", "").."x"
-					self:settext(ratestring)
-					if not ths:GetEtternaValid() then
-						self:diffuse(byJudgment("TapNoteScore_Miss"))
+				if update then 
+					if sg then 
+						self:settextf(sg:WhenAssigned())
 					else
-						self:diffuse(getMainColor('positive'))
-					end	
-				else
-					self:settext( ' - ' )
-					self:diffuse(getMainColor('positive'))
+						self:settext( ' - ' )
+					end
+					self:diffuse(byAchieved(sg))
 				end
 			end,
-			UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
+			UpdateGoalsMessageCommand=cmd(queuecommand,"Set");
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,frameX+rankingX+270,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*4-160),
+			InitCommand=cmd(xy,frameX+rankingX+300,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,160),
 			SetCommand=function(self)
-				if update and ths then
-					self:settextf("%5.2f%%", ths:GetWifeScore()*100)
-					if not ths:GetEtternaValid() then
-						self:diffuse(byJudgment("TapNoteScore_Miss"))
+				if update then 
+					if sg then 
+						self:settextf(sg:GetPriority())
 					else
-						self:diffuse(getGradeColor(ths:GetWifeGrade()))
-					end	
-				else
-					self:settext( ' - ' )
-					self:diffuse(getMainColor('positive'))
+						self:settext( ' - ' )
+					end
+					self:diffuse(byAchieved(sg))
 				end
 			end,
-			UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
+			UpdateGoalsMessageCommand=cmd(queuecommand,"Set");
 		},
-		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,frameX+rankingX+310,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*4-160),
-			SetCommand=function(self)
-				if update and ths then
-					profile:GetStepsFromSSR(i+(scorestodisplay*(9)), rankingSkillset)
-					local thsteps = profile:GetStepsFromSSR(i+(scorestodisplay*(rankingPage-1)), rankingSkillset) 
-					if (thsteps ~= nil) then
-						local diff = thsteps:GetDifficulty()
-						self:diffuse(byDifficulty(diff))
-						self:settext(getShortDifficulty(diff))
-					end
-				else
-					self:settext( ' - ' )
-					self:diffuse(getMainColor('positive'))
-				end
-			end,
-			UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
-		},
-		Def.Quad{
-			InitCommand=cmd(xy,rankingX+rankingWidth/2,frameY+rankingY+105-(11-i)*10;zoomto,rankingWidth,10;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0),
-			MouseRightClickMessageCommand=function(self)
-				if update and ths then 
-					if isOver(self) then
-						ths:ToggleEtternaValidation()
-						MESSAGEMAN:Broadcast("UpdateRanking")
-						if ths:GetEtternaValid() then 
-							ms.ok("Score Revalidated")
-						else
-							ms.ok("Score Invalidated")
-						end
-					end
-				end
-			end,
-			MouseLeftClickMessageCommand=function(self)
-				if update and ths then 
-					if isOver(self) then
-						local whee = SCREENMAN:GetTopScreen():GetMusicWheel()
-						local ssrsong = profile:GetSongFromSSR(i+(scorestodisplay*(rankingPage-1)), rankingSkillset)
-						whee:SelectSong(ssrsong)
-					end
-				end
-			end
-		}
 	}
 	return t
 end
 
+
+
+local fawa = {"All Goals","Completed","Incomplete"}
 local function rankingButton(i)
 	local t = Def.ActorFrame{
 		Def.Quad{
-		InitCommand=cmd(xy,frameX+rankingX+(i-1+i*(1/(1+#ms.SkillSets)))*rankingTitleWidth,frameY+rankingY-30;zoomto,rankingTitleWidth,30;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
+		InitCommand=cmd(xy,frameX+rankingX+(i-1+i*(1/(1+3)))*rankingTitleWidth,frameY+rankingY-30;zoomto,rankingTitleWidth,30;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
 		SetCommand=function(self)
 			if i-1 == rankingSkillset then
 				self:diffusealpha(1)
 			else
 				self:diffusealpha(0.35)
-			end;
+			end
 		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
-				rankingSkillset = i-1
-				rankingPage = 1
-				MESSAGEMAN:Broadcast("UpdateRanking")
-			end;
+				goalFilter = i
+				MESSAGEMAN:Broadcast("UpdateGoals")
+			end
 		end,
-		UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
+		UpdateGoalsMessageCommand=cmd(queuecommand,"Set"),
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,frameX+rankingX+(i-1+i*(1/(1+#ms.SkillSets)))*rankingTitleWidth,frameY+rankingY-15;halign,0.5;diffuse,getMainColor('positive');maxwidth,rankingTitleWidth;maxheight,25),
+			InitCommand=cmd(xy,frameX+rankingX+(i-1+i*(1/(1+3)))*rankingTitleWidth,frameY+rankingY-15;halign,0.5;diffuse,getMainColor('positive');maxwidth,rankingTitleWidth;maxheight,25),
 			BeginCommand=function(self)
-				self:settext(ms.SkillSets[i])
+				self:settext(fawa[i])
 			end,
 		}
 	}
@@ -223,7 +204,7 @@ local function rankingButton(i)
 end
 
 
-
+--[
 -- should actor frame prev/next/page displays to prevent redundancy - mina
 r[#r+1] = Def.Quad{
 	InitCommand=cmd(xy,frameX+frameWidth-30,frameY+rankingY+265;zoomto,40,20;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
@@ -237,15 +218,15 @@ r[#r+1] = Def.Quad{
 	MouseLeftClickMessageCommand=function(self)
 		if isOver(self) and rankingSkillset > 0 then
 			--Move right
-			if rankingPage == 10 then
-				rankingPage=1
+			if goalFilter == 10 then
+				goalFilter=1
 			else
-				rankingPage=rankingPage+1
+				goalFilter=goalFilter+1
 			end
-			MESSAGEMAN:Broadcast("UpdateRanking")
+			MESSAGEMAN:Broadcast("UpdateGoals")
 		end;
 	end;
-	UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
+	UpdateGoalsMessageCommand=cmd(queuecommand,"Set"),
 	}
 r[#r+1] = LoadFont("Common Large") .. {
 		InitCommand=cmd(xy,frameX+frameWidth-30,frameY+rankingY+275;halign,0.5;zoom,0.3;diffuse,getMainColor('positive');settext,"Next"),
@@ -256,7 +237,7 @@ r[#r+1] = LoadFont("Common Large") .. {
 				self:visible(false)
 			end
 		end,
-		UpdateRankingMessageCommand=cmd(queuecommand,"Set")
+		UpdateGoalsMessageCommand=cmd(queuecommand,"Set")
 	}
 	
 r[#r+1] = Def.Quad{
@@ -271,15 +252,15 @@ r[#r+1] = Def.Quad{
 	MouseLeftClickMessageCommand=function(self)
 		if isOver(self) and rankingSkillset > 0 then
 			--Move left
-			if rankingPage == 1 then
-				rankingPage=10
+			if goalFilter == 1 then
+				goalFilter=10
 			else
-				rankingPage=rankingPage-1
+				goalFilter=goalFilter-1
 			end
-			MESSAGEMAN:Broadcast("UpdateRanking")
+			MESSAGEMAN:Broadcast("UpdateGoals")
 		end;
 	end;
-	UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
+	UpdateGoalsMessageCommand=cmd(queuecommand,"Set"),
 	}
 	
 r[#r+1] = LoadFont("Common Large") .. {
@@ -291,7 +272,7 @@ r[#r+1] = LoadFont("Common Large") .. {
 				self:visible(false)
 			end
 		end,
-		UpdateRankingMessageCommand=cmd(queuecommand,"Set")
+		UpdateGoalsMessageCommand=cmd(queuecommand,"Set")
 	}
 	
 r[#r+1] = LoadFont("Common Large") .. {
@@ -299,63 +280,26 @@ r[#r+1] = LoadFont("Common Large") .. {
 	SetCommand=function(self)
 		if rankingSkillset > 0 then
 			self:visible(true)
-			self:settextf("%i-%i", ((rankingPage-1)*25)+1, rankingPage*25)
+			self:settextf("%i-%i", ((goalFilter-1)*25)+1, goalFilter*25)
 		else
 			self:visible(false)
 		end
 	end,
-	UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
+	UpdateGoalsMessageCommand=cmd(queuecommand,"Set"),
 }	
 	
-for i=1,scorestodisplay do 
-	r[#r+1] = rankingLabel(i)
-end
+	
 
+for i=1,goalsperpage do 
+	r[#r+1] = makescoregoal(i)
+end
 -- Technically the "overall" skillset is used for single value display during music select/eval and isn't factored in to the profile rating
 -- Only the specific skillsets are, and so overall should be used to display the specific skillset breakdowns separately - mina
-for i=1,#ms.SkillSets do
+for i=1,3 do
 	r[#r+1] = rankingButton(i)
 end
 
 t[#t+1] = r
-
--- should make a highlight or something to indicate the greatest value at a quick glance
-local function littlebits(i)
-	local t = Def.ActorFrame{
-		UpdateRankingMessageCommand=function(self)
-			if rankingSkillset == 0 then
-				self:visible(true)
-			else
-				self:visible(false)
-			end
-		end,
-		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,frameX+30,frameY+120 + 22*i;halign,0;zoom,0.5;diffuse,getMainColor('positive')),
-			BeginCommand=cmd(queuecommand,"Set"),
-			SetCommand=function(self)
-				self:settext(ms.SkillSets[i]..":")
-			end,
-			PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-			PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
-		},
-		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,frameX+270,frameY+120 + 22*i;halign,1;zoom,0.5),
-			BeginCommand=cmd(queuecommand,"Set"),
-			SetCommand=function(self)
-				local rating = profile:GetPlayerSkillsetRating(i)
-				self:settextf("%5.2f",rating)
-				self:diffuse(ByMSD(rating))
-			end,
-			PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-			PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
-		}
-	}
-	return t
-end
-
-for i=2,#ms.SkillSets do 
-	t[#t+1] = littlebits(i)
-end
 
 t[#t+1] = Def.Quad{
 	InitCommand=cmd(xy,frameX+80,frameY+rankingY+265;zoomto,100,20;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
@@ -381,35 +325,6 @@ t[#t+1] = Def.Quad{
 
 t[#t+1] = LoadFont("Common Large") .. {
 		InitCommand=cmd(xy,frameX+80,frameY+rankingY+275;halign,0.5;zoom,0.3;diffuse,getMainColor('positive');settext,"Save Profile"),
-		SetCommand=function(self)
-			if rankingSkillset == 0 then
-				self:visible(true)
-			else
-				self:visible(false)
-			end
-		end,
-		UpdateRankingMessageCommand=cmd(queuecommand,"Set")
-	}
-	
-t[#t+1] = Def.Quad{
-	InitCommand=cmd(xy,frameX+210,frameY+rankingY+265;zoomto,100,20;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
-	SetCommand=function(self)
-		if rankingSkillset == 0 then
-			self:visible(true)
-		else
-			self:visible(false)
-		end
-	end,
-	MouseLeftClickMessageCommand=function(self)
-		if isOver(self) and rankingSkillset == 0 then
-			profile:ValidateAllScores()
-		end
-	end,
-	UpdateRankingMessageCommand=cmd(queuecommand,"Set")
-}
-
-t[#t+1] = LoadFont("Common Large") .. {
-		InitCommand=cmd(xy,frameX+210,frameY+rankingY+275;halign,0.5;zoom,0.3;diffuse,getMainColor('positive');settext,"Validate All"),
 		SetCommand=function(self)
 			if rankingSkillset == 0 then
 				self:visible(true)
