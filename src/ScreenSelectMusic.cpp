@@ -507,7 +507,7 @@ bool ScreenSelectMusic::Input( const InputEventPlus &input )
 			asonglol->SetHasGoal(true);
 			Message msg("FavoritesUpdated");
 			MESSAGEMAN->Broadcast(msg);
-			Message msg2("UpdateGoal");
+			Message msg2("UpdateGoals");
 			MESSAGEMAN->Broadcast(msg2);
 			m_MusicWheel.ChangeMusic(0);
 			return true;
