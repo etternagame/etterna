@@ -3711,6 +3711,21 @@ public:
 		return 1;
 	}
 
+	// make unshit -mina
+	static int RemoveGoalsByKey(T* p, lua_State *L) {
+		RString ck = SArg(1);
+		auto it = p->goalmap.find(ck);
+		if (it == p->goalmap.end()) {
+			lua_pushnil(L);
+		}
+		else {
+			p->goalmap.erase(ck);
+			SONGMAN->SetHasGoal(p->goalmap);
+		}
+
+		return 1;
+	}
+
 	static int GetAllGoals(T* p, lua_State *L) {
 		lua_newtable(L);
 		int idx = 0;
@@ -3810,6 +3825,7 @@ public:
 		ADD_METHOD( GetPBHighScoreByKey );
 		ADD_METHOD( ValidateAllScores );
 		ADD_METHOD( GetGoalByKey );
+		ADD_METHOD( RemoveGoalsByKey );
 		ADD_METHOD( GetAllGoals );
 	}
 };
@@ -3853,6 +3869,7 @@ public:
 		}
 		return 1;
 	}
+
 	static int SetPriority(T* p, lua_State *L) { p->priority = IArg(1); return 1; }
 	static int SetComment(T* p, lua_State *L) { p->comment = SArg(1); return 1; }
 
