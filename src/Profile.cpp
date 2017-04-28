@@ -3715,15 +3715,14 @@ public:
 		int idx = 0;
 		FOREACHM(RString, vector<ScoreGoal>, p->goalmap, i) {
 			const RString &ck = i->first;
-			auto sgv = i->second;
+			auto &sgv = i->second;
 			FOREACH(ScoreGoal, sgv, sg) {
-				sg->PushSelf(L);
+				ScoreGoal &tsg = *sg;
+				tsg.PushSelf(L);
 				lua_rawseti(L, -2, idx + 1);
 				idx++;
-			}
-			
+			}	
 		}
-
 		return 1;
 	}
 
