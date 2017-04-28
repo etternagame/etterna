@@ -2367,7 +2367,8 @@ XNode* ScoreGoal::CreateNode() const {
 	pNode->AppendChild("Priority", priority);
 	pNode->AppendChild("Achieved", achieved);
 	pNode->AppendChild("TimeAssigned", timeassigned.GetString());
-	pNode->AppendChild("TimeAchieved", "");
+	if(achieved)
+		pNode->AppendChild("TimeAchieved", timeachieved.GetString());
 	pNode->AppendChild("Comment", comment);
 
 	return pNode;
@@ -2383,6 +2384,8 @@ void ScoreGoal::LoadFromNode(const XNode *pNode) {
 	pNode->GetChildValue("Priority", priority);
 	pNode->GetChildValue("Achieved", achieved);
 	pNode->GetChildValue("TimeAssigned", s); timeassigned.FromString(s);
+	if(achieved)
+		pNode->GetChildValue("TimeAchieved", s); timeachieved.FromString(s);
 	pNode->GetChildValue("Comment", comment);
 }
 
