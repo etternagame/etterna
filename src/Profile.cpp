@@ -2345,6 +2345,7 @@ void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
 			}
 			goalmap.emplace(ck, sgv);
 		}
+		SONGMAN->SetHasGoal(goalmap);
 		
 		HighScoresByChartKey.emplace(ck, hsrm);
 	}
@@ -3834,8 +3835,24 @@ public:
 		return 1;
 	}
 
-	static int SetRate(T* p, lua_State *L) { p->rate = FArg(1); return 1; }
-	static int SetPercent(T* p, lua_State *L) { p->percent = FArg(1); return 1; }
+	static int SetRate(T* p, lua_State *L) { 
+		if (!p->achieved) {
+			float newrate = FArg(1);
+			CLAMP(newrate, 0.7f, 2.0f);
+			p->rate = newrate;
+		}
+		
+		return 1; 
+	}
+
+	static int SetPercent(T* p, lua_State *L) {
+		if (!p->achieved) {
+			float newpercent = FArg(1);
+			CLAMP(newpercent, 80.f, 99.99f);
+			p->percent = newpercent;
+		}
+		return 1;
+	}
 	static int SetPriority(T* p, lua_State *L) { p->priority = IArg(1); return 1; }
 	static int SetComment(T* p, lua_State *L) { p->comment = SArg(1); return 1; }
 
@@ -3849,6 +3866,10 @@ public:
 		ADD_METHOD( WhenAssigned );
 		ADD_METHOD( WhenAchieved );
 		ADD_METHOD( GetChartKey );
+		ADD_METHOD( SetRate );
+		ADD_METHOD( SetPercent );
+		ADD_METHOD( SetPriority );
+		ADD_METHOD( SetComment );
 	}
 };
 LUA_REGISTER_CLASS(ScoreGoal)
