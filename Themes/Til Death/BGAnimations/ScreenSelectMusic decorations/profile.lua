@@ -10,6 +10,7 @@ local t = Def.ActorFrame{
 			self:queuecommand("On")
 			self:visible(true)
 			update = true
+			MESSAGEMAN:Broadcast("UpdateGoals")
 		else 
 			self:queuecommand("Off")
 			update = false
@@ -32,7 +33,7 @@ local rankingSkillset=0
 local goalFilter=1
 local rankingWidth = frameWidth-capWideScale(15,50)
 local rankingX = capWideScale(30,50)
-local rankingY = capWideScale(60,60)
+local rankingY = capWideScale(80,80)
 local rankingTitleWidth = (rankingWidth/(3 + 1))
 
 if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
@@ -74,7 +75,7 @@ local function byAchieved(scoregoal)
 	if not scoregoal or scoregoal:IsAchieved() then
 		return getMainColor('positive')
 	end
-	return byJudgment("TapNoteScore_Miss")
+	return byDifficulty("Difficulty_Edit")
 end
 	
 
@@ -91,9 +92,13 @@ local function makescoregoal(i)
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(xy,frameX+12.5,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,100),
 			SetCommand=function(self)
-				self:diffuse(getMainColor("positive"))
+				if sg then
+					local ck = sg:GetChartKey()
+					self:diffuse(byDifficulty(SONGMAN:GetStepsByChartKey(ck):GetDifficulty()))
+				end
 				self:settext(((goalFilter-1)*25)+i..".")
 			end,
+			UpdateGoalsMessageCommand=cmd(queuecommand,"Set")
 		},
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(xy,frameX+rankingX,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,400),
@@ -109,21 +114,37 @@ local function makescoregoal(i)
 					self:diffuse(byAchieved(sg))
 				end
 			end,
-			UpdateGoalsMessageCommand=cmd(queuecommand,"Set");
+			UpdateGoalsMessageCommand=cmd(queuecommand,"Set")
 		},
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(xy,frameX+rankingX+100,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,160),
 			SetCommand=function(self)
 				if update then 
-					if sg then 
-						self:settextf("%5.2fx", sg:GetRate())
+					if sg then
+						local ratestring = string.format("%.2f", sg:GetRate()):gsub("%.?0+$", "").."x"
+						self:settextf(ratestring)
 					else
 						self:settext( ' - ' )
 					end
 					self:diffuse(byAchieved(sg))
 				end
 			end,
-			UpdateGoalsMessageCommand=cmd(queuecommand,"Set");
+			UpdateGoalsMessageCommand=cmd(queuecommand,"Set")
+		},
+		Def.Quad{
+			InitCommand=cmd(xy,frameX+rankingX+100,frameY+rankingY+110-(11-i)*10;halign,0;zoomto,30,9;diffuse,getMainColor('positive');diffusealpha,0),
+			MouseLeftClickMessageCommand=function(self)
+				if isOver(self) and update then
+					sg:SetRate(sg:GetRate()+0.1)
+					MESSAGEMAN:Broadcast("UpdateGoals")
+				end
+			end,
+			MouseRightClickMessageCommand=function(self)
+				if isOver(self) and update then
+					sg:SetRate(sg:GetRate()-0.1)
+					MESSAGEMAN:Broadcast("UpdateGoals")
+				end
+			end,
 		},
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(xy,frameX+rankingX+150,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,160),
@@ -137,7 +158,22 @@ local function makescoregoal(i)
 					self:diffuse(byAchieved(sg))
 				end
 			end,
-			UpdateGoalsMessageCommand=cmd(queuecommand,"Set");
+			UpdateGoalsMessageCommand=cmd(queuecommand,"Set")
+		},
+		Def.Quad{
+			InitCommand=cmd(xy,frameX+rankingX+150,frameY+rankingY+110-(11-i)*10;halign,0;zoomto,30,9;diffuse,getMainColor('positive');diffusealpha,0),
+			MouseLeftClickMessageCommand=function(self)
+				if isOver(self) and update then
+					sg:SetPercent(sg:GetPercent()+1)
+					MESSAGEMAN:Broadcast("UpdateGoals")
+				end
+			end,
+			MouseRightClickMessageCommand=function(self)
+				if isOver(self) and update then
+					sg:SetPercent(sg:GetPercent()-1)
+					MESSAGEMAN:Broadcast("UpdateGoals")
+				end
+			end,
 		},
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(xy,frameX+rankingX+200,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,260),
@@ -151,7 +187,22 @@ local function makescoregoal(i)
 					self:diffuse(byAchieved(sg))
 				end
 			end,
-			UpdateGoalsMessageCommand=cmd(queuecommand,"Set");
+			UpdateGoalsMessageCommand=cmd(queuecommand,"Set")
+		},
+		LoadFont("Common Large") .. {
+			InitCommand=cmd(xy,frameX+rankingX+270,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,80),
+			SetCommand=function(self)
+				if update then 
+					if sg then 
+						local ck = sg:GetChartKey()
+						self:settextf("%5.2f", SONGMAN:GetStepsByChartKey(ck):GetMSD(sg:GetRate(), 1))
+						self:diffuse(ByMSD(SONGMAN:GetStepsByChartKey(ck):GetMSD(sg:GetRate(), 1)))
+					else
+						self:settext( ' - ' )
+					end
+				end
+			end,
+			UpdateGoalsMessageCommand=cmd(queuecommand,"Set")
 		},
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(xy,frameX+rankingX+300,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,160),
@@ -165,7 +216,16 @@ local function makescoregoal(i)
 					self:diffuse(byAchieved(sg))
 				end
 			end,
-			UpdateGoalsMessageCommand=cmd(queuecommand,"Set");
+			UpdateGoalsMessageCommand=cmd(queuecommand,"Set")
+		},
+		Def.Quad{
+			InitCommand=cmd(xy,frameX+rankingX+310,frameY+rankingY+110-(11-i)*10;halign,0;zoomto,9,9;diffuse,getMainColor('positive');diffusealpha,1),
+			MouseLeftClickMessageCommand=function(self)
+				if isOver(self) and update and sg then
+					profile:RemoveGoalsByKey(sg:GetChartKey())
+					MESSAGEMAN:Broadcast("UpdateGoals")
+				end
+			end,
 		},
 	}
 	return t
@@ -177,7 +237,7 @@ local fawa = {"All Goals","Completed","Incomplete"}
 local function rankingButton(i)
 	local t = Def.ActorFrame{
 		Def.Quad{
-		InitCommand=cmd(xy,frameX+rankingX+(i-1+i*(1/(1+3)))*rankingTitleWidth,frameY+rankingY-30;zoomto,rankingTitleWidth,30;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
+		InitCommand=cmd(xy,frameX+rankingX+(i-1+i*(1/(1+3)))*rankingTitleWidth,frameY+rankingY-60;zoomto,rankingTitleWidth,30;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
 		SetCommand=function(self)
 			if i-1 == rankingSkillset then
 				self:diffusealpha(1)
@@ -194,7 +254,7 @@ local function rankingButton(i)
 		UpdateGoalsMessageCommand=cmd(queuecommand,"Set"),
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,frameX+rankingX+(i-1+i*(1/(1+3)))*rankingTitleWidth,frameY+rankingY-15;halign,0.5;diffuse,getMainColor('positive');maxwidth,rankingTitleWidth;maxheight,25),
+			InitCommand=cmd(xy,frameX+rankingX+(i-1+i*(1/(1+3)))*rankingTitleWidth,frameY+rankingY-45;halign,0.5;diffuse,getMainColor('positive');maxwidth,rankingTitleWidth;maxheight,25),
 			BeginCommand=function(self)
 				self:settext(fawa[i])
 			end,
