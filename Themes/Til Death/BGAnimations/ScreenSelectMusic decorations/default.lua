@@ -8,6 +8,7 @@ t[#t+1] = LoadActor("songinfo")
 t[#t+1] = LoadActor("score")
 t[#t+1] = LoadActor("profile")
 t[#t+1] = LoadActor("filter")
+t[#t+1] = LoadActor("goaltracker")
 --t[#t+1] = LoadActor("../ExportSelection")		-- will rewrite this myself later
 
 t[#t+1] = Def.ActorFrame {

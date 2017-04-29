@@ -6,7 +6,7 @@ local t = Def.ActorFrame{
 	SetCommand=function(self)
 		self:finishtweening()
 		
-		if getTabIndex() == 4 then
+		if getTabIndex() == 6 then
 			self:queuecommand("On")
 			self:visible(true)
 			update = true
@@ -319,7 +319,7 @@ end
 
 
 local fawa = {"All Goals","Completed","Incomplete"}
-local function rankingButton(i)
+local function filterButton(i)
 	local t = Def.ActorFrame{
 		Def.Quad{
 		InitCommand=cmd(xy,20+frameX+rankingX+(i-1+i*(1/(1+3)))*rankingTitleWidth,frameY+rankingY-60;zoomto,rankingTitleWidth,30;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
@@ -386,42 +386,14 @@ r[#r+1] = Def.ActorFrame{
 	}
 }
 
-
-	
-	
-
 for i=1,goalsperpage do 
 	r[#r+1] = makescoregoal(i)
 end
--- Technically the "overall" skillset is used for single value display during music select/eval and isn't factored in to the profile rating
--- Only the specific skillsets are, and so overall should be used to display the specific skillset breakdowns separately - mina
 for i=1,3 do
-	r[#r+1] = rankingButton(i)
+	r[#r+1] = filterButton(i)
 end
 
 t[#t+1] = r
-
-t[#t+1] = Def.Quad{
-	InitCommand=cmd(xy,frameX+80,frameY+rankingY+265;zoomto,100,20;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
-	SetCommand=function(self)
-		if rankingSkillset == 0 then
-			self:visible(true)
-		else
-			self:visible(false)
-		end
-	end,
-	MouseLeftClickMessageCommand=function(self)
-		if isOver(self) and rankingSkillset == 0 then
-			local saved = PROFILEMAN:SaveProfile(PLAYER_1)
-			if saved then
-				ms.ok("Save successful")
-			else
-				ms.ok("Save failed")
-			end
-		end
-	end,
-	UpdateRankingMessageCommand=cmd(queuecommand,"Set")
-}
 
 t[#t+1] = LoadFont("Common Large") .. {
 		InitCommand=cmd(xy,frameX+80,frameY+rankingY+275;halign,0.5;zoom,0.3;diffuse,getMainColor('positive');settext,"Save Profile"),
