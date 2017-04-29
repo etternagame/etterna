@@ -77,6 +77,17 @@ local function filterDisplay (playergoals)
 	return index
 end
 
+local function datetimetonumber(x)
+	x = x:gsub(" ", ""):gsub("-", ""):gsub(":", "")
+	return tonumber(x)
+end
+
+local function sgDateComparator(sgA,sgB)
+	local a = datetimetonumber(sgA:WhenAssigned())
+	local b = datetimetonumber(sgB:WhenAssigned())
+	return a > b 
+end
+
 local function byAchieved(scoregoal)
 	if not scoregoal or scoregoal:IsAchieved() then
 		return getMainColor('positive')
@@ -92,11 +103,11 @@ end
 local r = Def.ActorFrame{
 	UpdateGoalsMessageCommand=function(self)
 		playergoals = profile:GetAllGoals()
+		table.sort(playergoals,sgDateComparator)
 		displayindex = filterDisplay(playergoals)
 		numgoalpages = notShit.ceil(#displayindex/goalsperpage)
 	end
 }
-
 
 -- need to handle visibility toggle better... cba now -mina
 local function makescoregoal(i)
@@ -245,8 +256,8 @@ local function makescoregoal(i)
 			LoadFont("Common Large") .. {
 				InitCommand=cmd(x,200;halign,0;zoom,0.2;diffuse,getMainColor('positive');maxwidth,800),
 				SetCommand=function(self)
-					if update then 
-						if sg then 
+					if update then
+						if sg then
 							self:settext("Assigned: "..datetimetodate(sg:WhenAssigned()))
 							self:visible(true)
 						else
@@ -394,17 +405,5 @@ for i=1,3 do
 end
 
 t[#t+1] = r
-
-t[#t+1] = LoadFont("Common Large") .. {
-		InitCommand=cmd(xy,frameX+80,frameY+rankingY+275;halign,0.5;zoom,0.3;diffuse,getMainColor('positive');settext,"Save Profile"),
-		SetCommand=function(self)
-			if rankingSkillset == 0 then
-				self:visible(true)
-			else
-				self:visible(false)
-			end
-		end,
-		UpdateRankingMessageCommand=cmd(queuecommand,"Set")
-	}
 
 return t
