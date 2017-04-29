@@ -29,7 +29,7 @@ local t = Def.ActorFrame{
 -- Music Rate Display
 t[#t+1] = LoadFont("Common Large") .. {
 	InitCommand=cmd(xy,18,SCREEN_BOTTOM-225;visible,true;halign,0;zoom,0.4;maxwidth,capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45)),
-	BeginCommand=function(self)
+	SetCommand=function(self)
 		self:settext(getCurRateDisplayString())
 	end,
 	CodeMessageCommand=function(self,params)
@@ -37,6 +37,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 		ChangeMusicRate(rate,params)
 		self:settext(getCurRateDisplayString())
 	end,
+	GoalSelectedMessageCommand=cmd(queuecommand,"Set")
 }
 
 -- Temporary update control tower; it would be nice if the basic song/step change commands were thorough and explicit and non-redundant
