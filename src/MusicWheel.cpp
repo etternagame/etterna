@@ -1887,6 +1887,15 @@ public:
 		}
 		return 1;
 	}
+	static int MoveAndCheckType(T* p, lua_State *L)
+	{
+		int n = IArg(1);
+		p->Move(n);
+		auto tt = p->GetSelectedType();
+		LuaHelpers::Push(L, tt);
+
+		return 1;
+	}
 
 	LunaMusicWheel()
 	{
@@ -1897,6 +1906,7 @@ public:
 		ADD_METHOD( SelectCourse );
 		ADD_METHOD( SongSearch );
 		ADD_METHOD( Move );
+		ADD_METHOD( MoveAndCheckType );
 	}
 };
 

@@ -39,11 +39,13 @@ local function mouseInput(event)
 				m=-1
 				n=5
 			end
-			whee:Move(m*n)
+			
+			local doot = whee:MoveAndCheckType(m*n)
 			whee:Move(0)
-			if m==0 then
+			if m == 0 or doot == "WheelItemDataType_Section" then
 				top:SelectCurrent(0)
 			end
+		
 		end
 	end
 end
