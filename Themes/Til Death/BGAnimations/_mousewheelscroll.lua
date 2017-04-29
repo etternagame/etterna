@@ -14,16 +14,16 @@ local function scrollInput(event)
 	elseif event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" and top:GetSelectionState() ~= 2 then
 		moving = true
 		if pressingtab == true then
-			whee:Move(-2)	
+			whee:Move(-3)	
 		else
-			whee:Move(-1)	
+			whee:Move(-2)	
 		end
 	elseif event.DeviceInput.button == "DeviceButton_mousewheel down" and event.type == "InputEventType_FirstPress" and top:GetSelectionState() ~= 2 then
 		moving = true
 		if pressingtab == true then
-			whee:Move(2)	
+			whee:Move(3)	
 		else
-			whee:Move(1)	
+			whee:Move(2)	
 		end
 	elseif moving == true then
 		whee:Move(0)
