@@ -3870,7 +3870,15 @@ public:
 		return 1;
 	}
 
-	static int SetPriority(T* p, lua_State *L) { p->priority = IArg(1); return 1; }
+	static int SetPriority(T* p, lua_State *L) {
+		if (!p->achieved) {
+			int newpriority = IArg(1);
+			CLAMP(newpriority, 0, 100);
+			p->priority = newpriority;
+		}
+		return 1;
+	}
+
 	static int SetComment(T* p, lua_State *L) { p->comment = SArg(1); return 1; }
 
 	LunaScoreGoal()
