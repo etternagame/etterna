@@ -3710,7 +3710,7 @@ public:
 
 		return 1;
 	}
-
+	
 	// make unshit -mina
 	static int RemoveGoalsByKey(T* p, lua_State *L) {
 		RString ck = SArg(1);
@@ -3864,7 +3864,7 @@ public:
 	static int SetPercent(T* p, lua_State *L) {
 		if (!p->achieved) {
 			float newpercent = FArg(1);
-			CLAMP(newpercent, 80.f, 99.99f);
+			CLAMP(newpercent, 80.f, 100.f);
 			p->percent = newpercent;
 		}
 		return 1;
