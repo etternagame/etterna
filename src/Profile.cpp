@@ -3738,19 +3738,6 @@ public:
 		p->ValidateAllScores();
 		return 1;
 	}
-
-	static int GetGoalByKey(T* p, lua_State *L) {
-		RString ck = SArg(1);
-		auto it = p->goalmap.find(ck);
-		if (it == p->goalmap.end()) {
-			lua_pushnil(L);
-		} 
-		else {
-			p->goalmap[SArg(1)].front().PushSelf(L);
-		}
-
-		return 1;
-	}
 	
 	static int GetAllGoals(T* p, lua_State *L) {
 		lua_newtable(L);
@@ -3856,7 +3843,6 @@ public:
 		ADD_METHOD( GetPBHighScoreByKey );
 		ADD_METHOD( GetPBWifeScoreByKey );
 		ADD_METHOD( ValidateAllScores );
-		ADD_METHOD( GetGoalByKey );
 		ADD_METHOD( GetAllGoals );
 	}
 };
