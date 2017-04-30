@@ -1168,6 +1168,10 @@ void ScreenGameplay::ReloadCurrentSong()
 
 void ScreenGameplay::LoadNextSong()
 {
+	// never allow input to remain redirected during gameplay unless an lua script forces it when loaded below -mina
+	FOREACH_EnabledPlayerInfo(m_vPlayerInfo, pi)
+		SCREENMAN->set_input_redirected(pi->m_pn, false);
+
 	GAMESTATE->ResetMusicStatistics();
 
 	FOREACH_EnabledPlayerInfo( m_vPlayerInfo, pi )
