@@ -212,12 +212,33 @@ local function makescoregoal(i)
 				SetCommand=function(self)
 					if update then 
 						if sg then 
-							self:settextf("%5.f%% (Best: %5.2f)", sg:GetPercent(), profile:GetPBWifeScoreByKey(ck, sg:GetRate()) * 100)
+							self:settextf("%5.f%%", sg:GetPercent())
 							self:visible(true)
 						else
 							self:visible(false)
 						end
 						self:diffuse(byAchieved(sg))
+					end
+				end,
+				UpdateGoalsMessageCommand=cmd(queuecommand,"Set")
+			},
+			LoadFont("Common Large") .. {
+				InitCommand=cmd(xy,30,goalrow2Y;halign,0;zoom,0.2;diffuse,getMainColor('positive')),
+				SetCommand=function(self)
+					if update then 
+						if sg then 
+							local pb = sg:GetCurrentPB()
+							if pb then
+								self:settextf("(Best: %5.2f%%)", pb:GetWifeScore() * 100)
+								self:diffuse(getGradeColor(pb:GetWifeGrade()))
+								self:visible(true)
+							else
+								self:settextf("(Best: %5.2f%%)", 0)
+								self:diffuse(byAchieved(sg))
+							end
+						else
+							self:visible(false)
+						end
 					end
 				end,
 				UpdateGoalsMessageCommand=cmd(queuecommand,"Set")
