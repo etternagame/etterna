@@ -3181,14 +3181,19 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 			else
 				curwifescore += wife2(tn.result.fTapNoteOffset, m_fTimingWindowScale);
 			maxwifescore += 2;
-			m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
-
+			
 			msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
 			msg.SetParam("WifeDifferential", curwifescore - maxwifescore * m_pPlayerState->playertargetgoal);
 			msg.SetParam("TotalPercent", 100 * curwifescore / totalwifescore);
 			if (wifescorepersonalbest != m_pPlayerState->playertargetgoal) {
 				msg.SetParam("WifePBDifferential", curwifescore - maxwifescore * wifescorepersonalbest);
 				msg.SetParam("WifePBGoal", wifescorepersonalbest);
+			}
+
+			if (m_pPlayerState->m_PlayerController == PC_HUMAN) {
+				m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
+				m_pPlayerStageStats->m_vOffsetVector.emplace_back(tn.result.fTapNoteOffset);
+				m_pPlayerStageStats->m_vNoteRowVector.emplace_back(iRow);
 			}
 		}
 
