@@ -292,7 +292,10 @@ void StageStats::FinalizeScores( bool bSummary )
 			// new score structure -mina
 			PROFILEMAN->AddScoreByKey(p, hs);
 			Profile* zzz = PROFILEMAN->GetProfile(PLAYER_1);
-			zzz->SetAnyAchievedGoals(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey(), GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate, hs);
+
+			// should prolly handle this check internally instead -mina
+			if (zzz->ChartkeyHasGoal(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey()));
+				zzz->SetAnyAchievedGoals(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey(), GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate, hs);
 		}
 	}
 
