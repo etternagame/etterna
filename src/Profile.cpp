@@ -2446,11 +2446,6 @@ HighScore& Profile::GetPBHighScoreByKey(RString ck, float rate) {
 	return HighScoresByChartKey.at(ck).at(rate).at(0);
 }
 
-bool Profile::ChartkeyHasGoal(RString ck) {
-	auto it = goalmap.find(ck);
-	return it != goalmap.end();
-}
-
 // aaa too lazy to write comparators rn -mina
 ScoreGoal& Profile::GetLowestGoalForRate(RString ck, float rate) {
 	auto& sgv = goalmap[ck];
@@ -2469,7 +2464,7 @@ ScoreGoal& Profile::GetLowestGoalForRate(RString ck, float rate) {
 }
 
 void Profile::SetAnyAchievedGoals(RString ck, float rate, const HighScore& pscore) {
-	if (!ChartkeyHasGoal(ck))
+	if (!HasGoal(ck))
 		return;
 
 	auto& sgv = goalmap[ck];

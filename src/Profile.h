@@ -280,7 +280,7 @@ public:
 	void CreateGoal(RString ck);
 	void DeleteGoal(RString ck, DateTime assigned);
 	map<RString, vector<ScoreGoal>> goalmap;
-	bool ChartkeyHasGoal(RString ck);
+	bool HasGoal(RString ck) { return goalmap.count(ck) == 1; }
 	ScoreGoal& GetLowestGoalForRate(RString ck, float rate);
 	void SetAnyAchievedGoals(RString ck, float rate, const HighScore& pscore);
 
