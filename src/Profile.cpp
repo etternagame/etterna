@@ -2408,14 +2408,14 @@ void Profile::GetScoresByKey(vector<SongID>& songids, vector<StepsID>& stepsids,
 	}
 }
 
-// new function that uses the chartkey indexed map
+// new function that uses the chartkey indexed map, wait wtf is going on here -mina
 vector<HighScore> Profile::GetScoresByKey(RString ck) {
-	auto songids = SONGMAN->SongIDsByChartkey[ck];
-	auto stepsids = SONGMAN->StepsIDsByChartkey[ck];
+	auto& songids = SONGMAN->SongIDsByChartkey[ck];
+	auto& stepsids = SONGMAN->StepsIDsByChartkey[ck];
 	vector<HighScore> o;
 
 	for (int i = 0; i < songids.size(); ++i) {
-		auto hsfas = m_SongHighScores[songids[i]].m_StepsHighScores;
+		auto& hsfas = m_SongHighScores[songids[i]].m_StepsHighScores;
 		vector<HighScore>& scores = hsfas[stepsids[i]].hsl.vHighScores;
 		for (int ii = 0; ii < scores.size(); ++ii) {			
 			o.emplace_back(scores[ii]);
@@ -2427,6 +2427,9 @@ vector<HighScore> Profile::GetScoresByKey(RString ck) {
 
 float Profile::GetWifePBByKey(RString key) {
 	float o = 0.f;
+
+
+
 	FOREACHM_CONST(SongID, HighScoresForASong, m_SongHighScores, i) {
 		const SongID& id = i->first;
 		const HighScoresForASong& hsfas = i->second;
@@ -2469,7 +2472,7 @@ void Profile::SetAnyAchievedGoals(RString ck, float rate, const HighScore& pscor
 	auto& sgv = goalmap[ck];
 	for (size_t i = 0; i < sgv.size(); ++i) {
 		ScoreGoal& tmp = sgv[i];
-		if (tmp.percent < pscore.GetWifeScore() * 100.f) {
+		if (tmp.percent < pscore.GetWifeScore() * 100.f) {	// should probably adhere to the established process of storing scores percents as 0.xx to avoid this kind of confusion -mina
 			tmp.achieved = true;
 			tmp.timeachieved = pscore.GetDateTime();
 		}		
