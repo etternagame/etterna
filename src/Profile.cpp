@@ -2442,6 +2442,35 @@ float Profile::GetWifePBByKey(RString key) {
 	return o;
 }
 
+// aaa too lazy to write comparators rn -mina
+ScoreGoal& Profile::GetLowestGoalForRate(RString ck, float rate) {
+	auto& sgv = goalmap[ck];
+	float lowest = 100.f;
+	int lowestidx = 0;
+	for (size_t i = 0; i < sgv.size(); ++i) {
+		ScoreGoal& tmp = sgv[i];
+		if (tmp.rate == rate) {
+			if (tmp.percent > lowest) {
+				lowest = tmp.percent;
+				lowestidx = i;
+			}
+		}
+	}
+	ScoreGoal o = sgv[lowestidx];
+	return o;
+}
+
+void Profile::SetAnyAchievedGoals(RString ck, float rate, const HighScore& pscore) {
+	auto& sgv = goalmap[ck];
+	for (size_t i = 0; i < sgv.size(); ++i) {
+		ScoreGoal& tmp = sgv[i];
+		if (tmp.percent < pscore.GetWifeScore() * 100.f) {
+			tmp.achieved = true;
+			tmp.timeachieved = pscore.GetDateTime();
+		}		
+	}
+}
+
 // also finish dealing with this later - mina
 void Profile::CalcPlayerRating(float& prating, float* pskillsets) const {
 	vector<float> demskillas[NUM_Skillset];

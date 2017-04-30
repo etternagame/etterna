@@ -276,9 +276,11 @@ public:
 	// Vector for now, we can make this more efficient later
 	vector<RString> FavoritedCharts;
 
-	// more future goalman stuff
+	// more future goalman stuff -mina
 	void CreateGoal(RString ck);
 	map<RString, vector<ScoreGoal>> goalmap;
+	ScoreGoal& GetLowestGoalForRate(RString ck, float rate);
+	void SetAnyAchievedGoals(RString ck, float rate, const HighScore& pscore);
 
 	/* store arbitrary data for the theme within a profile */
 	LuaTable m_UserTable;
