@@ -278,6 +278,7 @@ public:
 
 	// more future goalman stuff -mina
 	void CreateGoal(RString ck);
+	void DeleteGoal(RString ck, DateTime assigned);
 	map<RString, vector<ScoreGoal>> goalmap;
 	bool ChartkeyHasGoal(RString ck);
 	ScoreGoal& GetLowestGoalForRate(RString ck, float rate);

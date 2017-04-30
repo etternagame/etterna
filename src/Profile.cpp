@@ -2471,7 +2471,15 @@ void Profile::SetAnyAchievedGoals(RString ck, float rate, const HighScore& pscor
 		if (tmp.percent < pscore.GetWifeScore() * 100.f) {	// should probably adhere to the established process of storing scores percents as 0.xx to avoid this kind of confusion -mina
 			tmp.achieved = true;
 			tmp.timeachieved = pscore.GetDateTime();
-		}		
+		}
+	}
+}
+
+void Profile::DeleteGoal(RString ck, DateTime assigned) {
+	auto& sgv = goalmap.at(ck);
+	for (size_t i = 0; i < sgv.size(); ++i) {
+		if (sgv[i].timeassigned == assigned)
+			sgv.erase(sgv.begin() + i);
 	}
 }
 
@@ -3744,21 +3752,6 @@ public:
 		return 1;
 	}
 	
-	// make unshit -mina
-	static int RemoveGoalsByKey(T* p, lua_State *L) {
-		RString ck = SArg(1);
-		auto it = p->goalmap.find(ck);
-		if (it == p->goalmap.end()) {
-			lua_pushnil(L);
-		}
-		else {
-			p->goalmap.erase(ck);
-			SONGMAN->SetHasGoal(p->goalmap);
-		}
-
-		return 1;
-	}
-
 	static int GetAllGoals(T* p, lua_State *L) {
 		lua_newtable(L);
 		int idx = 0;
@@ -3864,7 +3857,6 @@ public:
 		ADD_METHOD( GetPBWifeScoreByKey );
 		ADD_METHOD( ValidateAllScores );
 		ADD_METHOD( GetGoalByKey );
-		ADD_METHOD( RemoveGoalsByKey );
 		ADD_METHOD( GetAllGoals );
 	}
 };
@@ -3920,6 +3912,11 @@ public:
 
 	static int SetComment(T* p, lua_State *L) { p->comment = SArg(1); return 1; }
 
+	static int Delete(T* p, lua_State *L) {
+		PROFILEMAN->GetProfile(PLAYER_1)->DeleteGoal(p->chartkey, p->timeassigned);
+		return 1;
+	}
+
 	LunaScoreGoal()
 	{
 		ADD_METHOD( GetRate );
@@ -3934,6 +3931,7 @@ public:
 		ADD_METHOD( SetPercent );
 		ADD_METHOD( SetPriority );
 		ADD_METHOD( SetComment );
+		ADD_METHOD( Delete );
 	}
 };
 LUA_REGISTER_CLASS(ScoreGoal)

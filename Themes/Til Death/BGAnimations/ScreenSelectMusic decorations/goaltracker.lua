@@ -317,7 +317,7 @@ local function makescoregoal(i)
 				InitCommand=cmd(x,325;halign,0;zoomto,4,4;diffuse,byJudgment('TapNoteScore_Miss');diffusealpha,1),
 				MouseLeftClickMessageCommand=function(self)
 					if isOver(self) and update and sg then
-						profile:RemoveGoalsByKey(ck)
+						sg:Delete()
 						MESSAGEMAN:Broadcast("UpdateGoals")
 					end
 				end,
