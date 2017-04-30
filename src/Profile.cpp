@@ -2465,11 +2465,13 @@ ScoreGoal& Profile::GetLowestGoalForRate(RString ck, float rate) {
 			}
 		}
 	}
-	ScoreGoal o = sgv[lowestidx];
-	return o;
+	return sgv[lowestidx];
 }
 
 void Profile::SetAnyAchievedGoals(RString ck, float rate, const HighScore& pscore) {
+	if (!ChartkeyHasGoal(ck))
+		return;
+
 	auto& sgv = goalmap[ck];
 	for (size_t i = 0; i < sgv.size(); ++i) {
 		ScoreGoal& tmp = sgv[i];
