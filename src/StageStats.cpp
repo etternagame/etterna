@@ -288,7 +288,11 @@ void StageStats::FinalizeScores( bool bSummary )
 			ASSERT( pSteps != NULL );
 
 			PROFILEMAN->AddStepsScore( pSong, pSteps, p, hs, m_player[p].m_iPersonalHighScoreIndex, m_player[p].m_iMachineHighScoreIndex );
+
+			// new score structure -mina
 			PROFILEMAN->AddScoreByKey(p, hs);
+			Profile* zzz = PROFILEMAN->GetProfile(PLAYER_1);
+			zzz->SetAnyAchievedGoals(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey(), GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate, hs);
 		}
 	}
 
