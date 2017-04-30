@@ -273,7 +273,7 @@ local function makescoregoal(i)
 				SetCommand=function(self)
 					if update then 
 						if sg and sg:IsAchieved() then 
-							self:settext("Achieved: "..sg:WhenAchieved())
+							self:settext("Achieved: "..datetimetodate(sg:WhenAchieved()))
 							self:visible(true)
 						else
 							self:visible(false)
