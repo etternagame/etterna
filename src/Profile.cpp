@@ -2470,7 +2470,8 @@ void Profile::SetAnyAchievedGoals(RString ck, float rate, const HighScore& pscor
 	auto& sgv = goalmap[ck];
 	for (size_t i = 0; i < sgv.size(); ++i) {
 		ScoreGoal& tmp = sgv[i];
-		if (tmp.percent < pscore.GetWifeScore() * 100.f) {	// should probably adhere to the established process of storing scores percents as 0.xx to avoid this kind of confusion -mina
+		// should probably adhere to the established process of storing scores percents as 0.xx to avoid this kind of confusion -mina
+		if (lround(tmp.rate * 1000.f) == lround(rate * 1000.f) && tmp.percent < pscore.GetWifeScore() * 100.f) {
 			tmp.achieved = true;
 			tmp.timeachieved = pscore.GetDateTime();
 		}
