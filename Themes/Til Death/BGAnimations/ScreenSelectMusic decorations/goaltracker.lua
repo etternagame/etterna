@@ -212,7 +212,7 @@ local function makescoregoal(i)
 				SetCommand=function(self)
 					if update then 
 						if sg then 
-							self:settextf("%5.f%% (Best: -)", sg:GetPercent())
+							self:settextf("%5.f%% (Best: %5.2f)", sg:GetPercent(), profile:GetPBWifeScoreByKey(ck, sg:GetRate()) * 100)
 							self:visible(true)
 						else
 							self:visible(false)
