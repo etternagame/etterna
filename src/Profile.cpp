@@ -2333,6 +2333,10 @@ void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
 				hsv.resize(hsv.size() + 1);
 				hsv.back().LoadFromNode(hs);
 			}
+			if (!is_sorted(hsv.begin(), hsv.end())) {
+				sort(hsv.begin(), hsv.end());
+				reverse(hsv.begin(), hsv.end());
+			}
 			hsrm.emplace(rate, hsv);
 		}
 
