@@ -2441,6 +2441,11 @@ float Profile::GetWifePBByKey(RString ck, float rate) {
 	return hsrm.at(rate).at(0).GetWifeScore();
 }
 
+HighScore& Profile::GetPBHighScoreByKey(RString ck, float rate) {
+	// this _should_ be valid as the vector _should_ be sorted already -mina
+	return HighScoresByChartKey.at(ck).at(rate).at(0);
+}
+
 bool Profile::ChartkeyHasGoal(RString ck) {
 	auto it = goalmap.find(ck);
 	return it != goalmap.end();
@@ -3492,27 +3497,7 @@ public:
 		return 1;
 	}
 
-	/* FFFFFFFFFFFFFFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaHASFASAFSF
-	So it appears the issue is calling pushself() on highscore objects that aren't
-	const pointers produces meaningless junk, investigate more later - mina	*/
-	static int GetPBHighScoreByKey(T* p, lua_State *L) {
-		HighScore pb;
-		vector<SongID> songids;
-		vector<StepsID> stepsids;
-		p->GetScoresByKey(songids, stepsids, SArg(1));
-		for (size_t i = 0; i < songids.size(); i++) {
-			HighScoreList &hsl = p->m_SongHighScores[songids[i]].m_StepsHighScores[stepsids[i]].hsl;
-			for (size_t ii = 0; ii < hsl.vHighScores.size(); ii++) {
-				if (hsl.vHighScores[ii].GetWifeScore() > pb.GetWifeScore() && GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate == hsl.vHighScores[ii].GetMusicRate()) {
-					pb = hsl.vHighScores[ii];
-					hsl.vHighScores[ii].PushSelf(L);
-				}
-			}
-		}
-		if (pb.GetWifeScore() <= 0.f)
-			lua_pushnil(L);
-		return 1;
-	}
+
 
 	static int GetCategoryHighScoreList(T* p, lua_State *L)
 	{
@@ -3756,11 +3741,6 @@ public:
 		return 1;
 	}
 
-	static int GetPBWifeScoreByKey(T* p, lua_State *L) {
-		lua_pushnumber(L, p->GetWifePBByKey(SArg(1), FArg(2)));
-		return 1;
-	}
-
 	LunaProfile()
 	{
 		ADD_METHOD( AddScreenshot );
@@ -3840,8 +3820,6 @@ public:
 		ADD_METHOD( GetStepsFromSSR );
 		ADD_METHOD( GetTopSSRHighScore );
 		ADD_METHOD( RecalcTopSSR );
-		ADD_METHOD( GetPBHighScoreByKey );
-		ADD_METHOD( GetPBWifeScoreByKey );
 		ADD_METHOD( ValidateAllScores );
 		ADD_METHOD( GetAllGoals );
 	}
@@ -3903,6 +3881,28 @@ public:
 		return 1;
 	}
 
+	static int GetCurrentPB(T* p, lua_State *L) {
+		RString ck = p->chartkey;
+		float rate = p->rate;
+		auto& scores = PROFILEMAN->GetProfile(PLAYER_1)->HighScoresByChartKey;
+
+		// ffasdfasdfasdfasfasdfs
+		if (scores.count(ck)) {
+			auto &hsrm = scores.at(ck);
+			FOREACHM(float, vector<HighScore>, hsrm, zz) {
+				if (lround(zz->first * 1000.f) == lround(rate * 1000.f)) {
+					auto& hsv = zz->second;
+					HighScore& pb = hsv.at(0);
+					pb.PushSelf(L);
+					return 1;
+				}
+			}
+		}
+
+		lua_pushnil(L);
+		return 1;
+	}
+
 	LunaScoreGoal()
 	{
 		ADD_METHOD( GetRate );
@@ -3918,6 +3918,7 @@ public:
 		ADD_METHOD( SetPriority );
 		ADD_METHOD( SetComment );
 		ADD_METHOD( Delete );
+		ADD_METHOD( GetCurrentPB );
 	}
 };
 LUA_REGISTER_CLASS(ScoreGoal)
