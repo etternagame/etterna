@@ -2442,6 +2442,11 @@ float Profile::GetWifePBByKey(RString key) {
 	return o;
 }
 
+bool Profile::ChartkeyHasGoal(RString ck) {
+	auto it = goalmap.find(ck);
+	return it != goalmap.end();
+}
+
 // aaa too lazy to write comparators rn -mina
 ScoreGoal& Profile::GetLowestGoalForRate(RString ck, float rate) {
 	auto& sgv = goalmap[ck];

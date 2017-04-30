@@ -279,6 +279,7 @@ public:
 	// more future goalman stuff -mina
 	void CreateGoal(RString ck);
 	map<RString, vector<ScoreGoal>> goalmap;
+	bool ChartkeyHasGoal(RString ck);
 	ScoreGoal& GetLowestGoalForRate(RString ck, float rate);
 	void SetAnyAchievedGoals(RString ck, float rate, const HighScore& pscore);
 
