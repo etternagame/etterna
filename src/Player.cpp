@@ -678,7 +678,7 @@ void Player::Load()
 	nerv = m_NoteData.GetNonEmptyRowVector();
 
 	Profile *pProfile = PROFILEMAN->GetProfile(pn);
-	wifescorepersonalbest = pProfile->GetWifePBByKey(GAMESTATE->m_pCurSteps[pn]->GetChartKey());
+	wifescorepersonalbest = pProfile->GetWifePBByKey(GAMESTATE->m_pCurSteps[pn]->GetChartKey(), GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 	if (wifescorepersonalbest == 0)
 		wifescorepersonalbest = m_pPlayerState->playertargetgoal;
 		

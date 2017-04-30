@@ -359,7 +359,7 @@ public:
 	so instead this funciton finds the song/steps for identical chartkey entries and returns them to
 	the lua call which then grabs the highscores from the songscores object. -Mina */
 	void GetScoresByKey(vector<SongID>& songids, vector<StepsID>& stepsids, RString key);
-	float GetWifePBByKey(RString key);
+	float GetWifePBByKey(RString key, float rate);
 	typedef map<float, vector<HighScore>> HighScoreRateMap;
 	map<RString, HighScoreRateMap> HighScoresByChartKey;
 

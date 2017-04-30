@@ -2425,24 +2425,20 @@ vector<HighScore> Profile::GetScoresByKey(RString ck) {
 	return o;
 }
 
-float Profile::GetWifePBByKey(RString key) {
+float Profile::GetWifePBByKey(RString ck, float rate) {
 	float o = 0.f;
+	auto it = HighScoresByChartKey.find(ck);
+	if (it == HighScoresByChartKey.end())
+		return o;
 
+	// why will this only compile using at -mina
+	auto& hsrm = HighScoresByChartKey.at(ck);
+	auto iit = hsrm.find(rate);
+	if (iit == hsrm.end())
+		return o;
 
-
-	FOREACHM_CONST(SongID, HighScoresForASong, m_SongHighScores, i) {
-		const SongID& id = i->first;
-		const HighScoresForASong& hsfas = i->second;
-		FOREACHM_CONST(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
-			const StepsID& sid = j->first;
-			if (sid.GetKey() == key) {
-				FOREACH_CONST(HighScore, j->second.hsl.vHighScores, hs)
-					if (hs->GetWifeScore() > o && GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate == hs->GetMusicRate())
-						o = hs->GetWifeScore();
-			}
-		}
-	}
-	return o;
+	// this _should_ be valid as the vector _should_ be sorted already -mina
+	return hsrm.at(rate).at(0).GetWifeScore();
 }
 
 bool Profile::ChartkeyHasGoal(RString ck) {
@@ -3780,6 +3776,11 @@ public:
 		return 1;
 	}
 
+	static int GetPBWifeScoreByKey(T* p, lua_State *L) {
+		lua_pushnumber(L, p->GetWifePBByKey(SArg(1), FArg(2)));
+		return 1;
+	}
+
 	LunaProfile()
 	{
 		ADD_METHOD( AddScreenshot );
@@ -3860,6 +3861,7 @@ public:
 		ADD_METHOD( GetTopSSRHighScore );
 		ADD_METHOD( RecalcTopSSR );
 		ADD_METHOD( GetPBHighScoreByKey );
+		ADD_METHOD( GetPBWifeScoreByKey );
 		ADD_METHOD( ValidateAllScores );
 		ADD_METHOD( GetGoalByKey );
 		ADD_METHOD( RemoveGoalsByKey );
