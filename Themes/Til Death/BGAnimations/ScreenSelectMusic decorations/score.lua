@@ -51,6 +51,7 @@ local t = Def.ActorFrame{
 			end
 			if rtTable[rates[rateIndex]] ~= nil then
 				score = rtTable[rates[rateIndex]][scoreIndex]
+				setScoreForPlot(score)
 				MESSAGEMAN:Broadcast("ScoreUpdate")
 			end
 		end
@@ -67,18 +68,21 @@ local t = Def.ActorFrame{
 					rates,rateIndex = getUsedRates(rtTable)
 					scoreIndex = 1
 					score = rtTable[rates[rateIndex]][scoreIndex]
+					setScoreForPlot(score)
 				else
 					rtTable = {}
 					rates,rateIndex = {defaultRateText},1
 					scoreIndex = 1
 					score = nil
-				end;
+					setScoreForPlot(score)
+				end
 			else
 				hsTable = {}
 				rtTable = {}
 				rates,rateIndex = {defaultRateText},1
 				scoreIndex = 1
 				score = nil
+				setScoreForPlot(score)
 			end
 			MESSAGEMAN:Broadcast("ScoreUpdate")
 	end
@@ -387,5 +391,22 @@ end
 for i=1,#judges do
 	t[#t+1] =makeJudge(i,judges[i])
 end
+
+t[#t+1] = LoadFont("Common Normal")..{
+	Name="Score",
+	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+288;zoom,0.5;halign,0),
+	SetCommand=function(self)
+		if score ~= nil then
+			if score:HasReplayData() then 
+				self:settext("Replay Data Available (Press Up To View Plot)")
+			else
+				self:settext("No Replay Data")
+			end
+		else
+			self:settext("")
+		end
+	end,
+	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+}
 
 return t

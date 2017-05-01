@@ -2,11 +2,17 @@ local t = Def.ActorFrame{}
 
 t[#t+1] = Def.Actor{
 	CodeMessageCommand=function(self,params)
-		if params.Name == "AvatarShow" then
+		if params.Name == "AvatarShow" and getTabIndex() == 1 then
 			SCREENMAN:AddNewScreenToTop("ScreenAvatarSwitch")
+		end
+		if params.Name == "PlotLoad" then
+			if getTabIndex() == 2 and getScoreForPlot() and getScoreForPlot():HasReplayData() then
+				SCREENMAN:AddNewScreenToTop("ScreenScoreTabOffsetPlot")
+			end
 		end
 	end
 }
+
 t[#t+1] = LoadActor("../_frame")
 t[#t+1] = LoadActor("../_PlayerInfo")
 t[#t+1] = LoadActor("currentsort")

@@ -71,6 +71,11 @@ local migsWeight =  { -- Score Weights for MIGS score
 	TapNoteScore_CheckpointMiss 	= 0
 }
 
+-- For offsetplot screen thingy doodle -mina
+local ScoreForPlot = nil
+function setScoreForPlot(hs) ScoreForPlot = hs end
+function getScoreForPlot() return ScoreForPlot end
+
 function getScoresByKey(pn)
 	local song = GAMESTATE:GetCurrentSong()
 	local profile
