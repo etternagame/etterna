@@ -115,6 +115,8 @@ private:
 
 	void BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelItems, SortOrder so, bool searching, RString findme );
 	void FilterWheelItemDatas(vector<MusicWheelItemData*>& aUnFilteredDatas, vector<MusicWheelItemData*>& aFilteredData, SortOrder so);
+	void SelectSongAfterSearch();
+	RString prevSongTitle;
 };
 
 #endif

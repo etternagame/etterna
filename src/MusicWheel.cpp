@@ -265,8 +265,8 @@ void MusicWheel::ReloadSongList(bool searching, RString findme)
 {
 	int songIdxToPreserve = m_iSelection;
 	// Remove the song from any sorting caches:
-	FOREACH_ENUM( SortOrder, so )
-		m_WheelItemDatasStatus[so]=INVALID;
+	FOREACH_ENUM(SortOrder, so)
+		m_WheelItemDatasStatus[so] = INVALID;
 	// rebuild the info associated with this sort order
 	readyWheelItemsData(GAMESTATE->m_SortOrder, searching, findme);
 	// re-open the section to refresh song counts, etc.
@@ -275,7 +275,32 @@ void MusicWheel::ReloadSongList(bool searching, RString findme)
 	m_iSelection = songIdxToPreserve;
 	RebuildWheelItems();
 	// refresh the song preview
-	SCREENMAN->PostMessageToTopScreen( SM_SongChanged, 0 );
+	SCREENMAN->PostMessageToTopScreen(SM_SongChanged, 0);
+
+	// when searching, automatically land on the first search result available -mina & dadbearcop
+	if (findme != "") {
+		Song *pSong = GAMESTATE->m_pCurSong;
+		if (pSong) {
+			RString curSongTitle = pSong->GetDisplayMainTitle();
+			if (GetSelectedSection() != NULL && curSongTitle != prevSongTitle) {
+				prevSongTitle = curSongTitle;
+				SelectSongAfterSearch();
+			}
+		}
+		else {
+			SelectSongAfterSearch();
+		}
+	}
+	else {
+		SetOpenSection("");
+	}
+}
+
+void MusicWheel::SelectSongAfterSearch() {
+	vector<MusicWheelItemData*> &from = getWheelItemsData(GAMESTATE->m_SortOrder);
+	SelectSection(from[0]->m_sText);
+	SetOpenSection(from[0]->m_sText);
+	ChangeMusic(1);
 }
 
 /* If a song or course is set in GAMESTATE and available, select it.  Otherwise, choose the
