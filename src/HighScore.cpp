@@ -937,6 +937,9 @@ float HighScore::RescoreToWifeJudge(int x) {
 		p += wife2(*f, ts);
 
 	p += (m_Impl->iHoldNoteScores[HNS_LetGo] + m_Impl->iHoldNoteScores[HNS_Missed]) * -6.f;
+	p += m_Impl->iTapNoteScores[TNS_HitMine] * -8.f;
+
+	UnloadReplayData();
 	return p / static_cast<float>(m_Impl->vOffsetVector.size() * 2);
 }
 
@@ -951,6 +954,9 @@ float HighScore::RescoreToWifeJudgeDuringLoad(int x) {
 		p += wife2(*f, ts);
 
 	p += (m_Impl->iHoldNoteScores[HNS_LetGo] + m_Impl->iHoldNoteScores[HNS_Missed]) * -6.f;
+	p += m_Impl->iTapNoteScores[TNS_HitMine] * -8.f;
+
+	UnloadReplayData();
 	return p / static_cast<float>(m_Impl->vOffsetVector.size() * 2);
 }
 
