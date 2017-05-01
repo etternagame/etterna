@@ -518,11 +518,9 @@ bool HighScoreImpl::WriteReplayData(bool duringload) {
 	append = to_string(vNoteRowVector[idx]) + " " + to_string(vOffsetVector[idx]);
 	fileStream.write(append.c_str(), append.size());
 	fileStream.close();
-
-	LOG->Warn("Created replay file at %s", path);
+	LOG->Trace("Created replay file at %s", path);
 	return true;
 }
-
 
 bool HighScore::LoadReplayData() {
 	// already exists
@@ -531,8 +529,9 @@ bool HighScore::LoadReplayData() {
 
 	vector<int> vNoteRowVector;
 	vector<float> vOffsetVector;
-	RString profiledir = PROFILEMAN->currentlyloadingprofile;
-	std::ifstream fileStream(profiledir + "ReplayData/" + m_Impl->ScoreKey, ios::binary);
+	RString profiledir = PROFILEMAN->GetProfileDir(ProfileSlot_Player1);
+	RString path = profiledir + "ReplayData/" + m_Impl->ScoreKey;
+	std::ifstream fileStream(path, ios::binary);
 	string line;
 	string buffer;
 	vector<string> tokens;
@@ -541,8 +540,11 @@ bool HighScore::LoadReplayData() {
 	float offset;
 
 	//check file
-	if (!fileStream)
+	if (!fileStream) {
+		LOG->Warn("Failed to load replay data at %s", path);
 		return false;
+	}
+		
 
 	//loop until eof
 	while (getline(fileStream, line))
@@ -568,6 +570,7 @@ bool HighScore::LoadReplayData() {
 	fileStream.close();
 	SetNoteRowVector(vNoteRowVector);
 	SetOffsetVector(vOffsetVector);
+	LOG->Trace("Loaded replay data at %s", path);
 	return true;
 }
 
@@ -612,6 +615,8 @@ float HighScore::GetJudgeScale() const { return m_Impl->fJudgeScale; }
 bool HighScore::GetChordCohesion() const {
 	return !m_Impl->bNoChordCohesion;  }
 bool HighScore::GetEtternaValid() const { return m_Impl->bEtternaValid; }
+vector<float> HighScore::GetOffsetVector() const { return m_Impl->vOffsetVector; }
+vector<int> HighScore::GetNoteRowVector() const { return m_Impl->vNoteRowVector; }
 float HighScore::GetSurviveSeconds() const { return m_Impl->fSurviveSeconds; }
 float HighScore::GetSurvivalSeconds() const { return GetSurviveSeconds() + GetLifeRemainingSeconds(); }
 RString HighScore::GetModifiers() const { return m_Impl->sModifiers; }
@@ -1086,6 +1091,30 @@ public:
 		return 1;
 	}
 
+	// Convert to MS so lua doesn't have to
+	static int GetOffsetVector(T* p, lua_State *L) {
+		if (p->LoadReplayData()) {
+			vector<float> doot = p->GetOffsetVector();
+			for (size_t i = 0; i < doot.size(); ++i)
+				doot[i] = doot[i] * 1000;
+			LuaHelpers::CreateTableFromArray(doot, L);
+			p->UnloadReplayData();
+		}
+		else
+			lua_pushnil(L);
+		return 1;
+	}
+
+	static int GetNoteRowVector(T* p, lua_State *L) {
+		if (p->LoadReplayData()) {
+			LuaHelpers::CreateTableFromArray(p->GetNoteRowVector(), L);
+			p->UnloadReplayData();
+		}
+		else
+			lua_pushnil(L);
+		return 1;
+	}
+
 	DEFINE_METHOD( GetGrade, GetGrade() )
 	DEFINE_METHOD( GetWifeGrade, GetWifeGrade())
 	DEFINE_METHOD( ConvertDpToWife, ConvertDpToWife())
@@ -1121,6 +1150,8 @@ public:
 		ADD_METHOD( GetPeakComboAward );
 		ADD_METHOD( ToggleEtternaValidation );
 		ADD_METHOD( GetEtternaValid );
+		ADD_METHOD( GetOffsetVector );
+		ADD_METHOD( GetNoteRowVector );
 	}
 };
 
