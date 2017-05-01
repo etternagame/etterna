@@ -719,6 +719,11 @@ void HighScore::LoadFromNode( const XNode* pNode )
 	}
 }
 
+void HighScore::LoadFromEttNode(const XNode* pNode)
+{
+	m_Impl->LoadFromEttNode(pNode);
+}
+
 RString HighScore::GetDisplayName() const
 {
 	if( GetName().empty() )
@@ -980,23 +985,11 @@ vector<int> HighScore::GetRescoreJudgeVector(int x) {
 }
 
 Grade HighScore::GetWifeGrade() {
-	if (GetGrade() == Grade_Failed)
-		return Grade_Failed;
+	return m_Impl->GetWifeGrade();
+}
 
-	float wifescore = GetWifeScore();
-	if (wifescore >= 0.9998f)
-		return Grade_Tier01;
-	if (wifescore >= 0.9975f)
-		return Grade_Tier02;
-	if (wifescore >= 0.93f)
-		return Grade_Tier03;
-	if (wifescore >= 0.8f)
-		return Grade_Tier04;
-	if (wifescore >= 0.7f)
-		return Grade_Tier05;
-	if (wifescore >= 0.6f)
-		return Grade_Tier06;
-	return Grade_Tier07;
+bool HighScore::WriteReplayData() {
+	return m_Impl->WriteReplayData();
 }
 
 // Ok I guess we can be more lenient and convert by midwindow values, but we still have to assume j4 - mina

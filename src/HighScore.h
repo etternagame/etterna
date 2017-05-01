@@ -120,7 +120,8 @@ struct HighScore
 	XNode* CreateNode() const;
 	XNode* CreateEttNode() const;
 	void LoadFromNode( const XNode* pNode );
-	void LoadEttNode(const XNode* pNode);
+	void LoadFromEttNode(const XNode* pNode);
+	bool WriteReplayData();
 
 	RString GetDisplayName() const;
 
