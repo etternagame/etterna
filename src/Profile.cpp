@@ -2175,7 +2175,7 @@ XNode* Profile::SaveEttScoresCreateNode() const
 			XNode* pRateScores = new XNode(ssprintf("%f", rate));
 			FOREACH_CONST(HighScore, hsv, hs) {
 				const HighScore &chs = *hs;
-				pRateScores->AppendChild(chs.CreateNode());
+				pRateScores->AppendChild(chs.CreateEttNode());
 			}
 
 			pScores->AppendChild(pRateScores);
@@ -2183,9 +2183,7 @@ XNode* Profile::SaveEttScoresCreateNode() const
 		pChartKey->AppendChild(pScores);
 
 		// Chart entries may contain more than just scores, write out any scoregoals associated with this key
-		
-		auto it = goalmap.find(ck);
-		if (it != goalmap.end()) {
+		if (goalmap.count(ck)) {
 			XNode* pGoals = new XNode("GoalTracker");
 			FOREACH_CONST(ScoreGoal, goalmap.at(ck), sg)
 				pGoals->AppendChild(sg->CreateNode());
@@ -2331,7 +2329,7 @@ void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
 			vector<HighScore> hsv;
 			FOREACH_CONST_Child(pRate, hs) {
 				hsv.resize(hsv.size() + 1);
-				hsv.back().LoadFromNode(hs);
+				hsv.back().LoadFromEttNode(hs);
 			}
 			if (!is_sorted(hsv.begin(), hsv.end())) {
 				sort(hsv.begin(), hsv.end());
