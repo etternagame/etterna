@@ -10,6 +10,9 @@
 #include "Style.h"
 #include "Profile.h"
 #include "ProfileManager.h"
+#include <fstream>
+#include <sstream>
+#include "CryptManager.h"
 
 /* Arcade:	for the current stage (one song).  
  * Nonstop/Oni/Endless:	 for current course (which usually contains multiple songs)
@@ -132,13 +135,10 @@ float StageStats::GetTotalPossibleStepsSeconds() const
 	return fSecs / m_fMusicRate;
 }
 
-static HighScore FillInHighScore( const PlayerStageStats &pss, const PlayerState &ps, RString sRankingToFillInMarker, RString sPlayerGuid )
+static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState &ps, RString sRankingToFillInMarker, RString sPlayerGuid)
 {
 	HighScore hs;
-	hs.SetName( sRankingToFillInMarker );
-
-	hs.SetOffsetVector(pss.GetOffsetVector());
-	hs.SetNoteRowVector(pss.GetNoteRowVector());
+	hs.SetName(sRankingToFillInMarker);
 
 	auto chartKey = GAMESTATE->m_pCurSteps[ps.m_PlayerNumber]->GetChartKey();
 	hs.SetHistoricChartKey(chartKey);
@@ -200,6 +200,23 @@ static HighScore FillInHighScore( const PlayerStageStats &pss, const PlayerState
 	hs.SetRadarValues( pss.m_radarActual );
 	hs.SetLifeRemainingSeconds( pss.m_fLifeRemainingSeconds );
 	hs.SetDisqualified( pss.IsDisqualified() );
+
+
+	// should maybe just make the setscorekey function do this internally rather than recalling the datetime object -mina
+	RString ScoreKey = "S" + BinaryToHex(CryptManager::GetSHA1ForString(hs.GetDateTime().GetString()));
+	hs.SetScoreKey(ScoreKey);
+
+	// DOES NOT WORK NEEDS FIX -mina
+	// the vectors stored in pss are what are accessed by evaluation so we can write 
+	// them to the replay file instead of the highscore object (if successful) -mina
+	// this is kinda messy meh -mina
+	if (pss.m_fWifeScore > 0.f) {
+		hs.SetOffsetVector(pss.GetOffsetVector());
+		hs.SetNoteRowVector(pss.GetNoteRowVector());
+		bool writesuccess = hs.WriteReplayData(false);
+		if (writesuccess)
+			hs.UnloadReplayData();
+	}
 
 	return hs;
 }

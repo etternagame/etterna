@@ -89,6 +89,7 @@ struct HighScore
 	void SetEtternaValid(bool b);
 	void SetOffsetVector(const vector<float>& v);
 	void SetNoteRowVector(const vector<int>& v);
+	void SetScoreKey(RString ck);
 	void SetRescoreJudgeVector(const vector<int>& v);
 	void SetAliveSeconds( float f );
 	void SetMaxCombo( unsigned int i );
@@ -121,7 +122,9 @@ struct HighScore
 	XNode* CreateEttNode() const;
 	void LoadFromNode( const XNode* pNode );
 	void LoadFromEttNode(const XNode* pNode);
-	bool WriteReplayData();
+
+	bool WriteReplayData(bool duringload);
+	void UnloadReplayData();
 
 	RString GetDisplayName() const;
 

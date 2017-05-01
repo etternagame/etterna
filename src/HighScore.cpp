@@ -57,8 +57,9 @@ struct HighScoreImpl
 	void LoadFromNode( const XNode *pNode );
 	void LoadFromEttNode(const XNode *pNode);
 	Grade GetWifeGrade() const;
+	void UnloadReplayData();
 
-	bool WriteReplayData();
+	bool WriteReplayData(bool duringload);
 
 	float RescoreToWifeTS(float ts);
 
@@ -99,6 +100,13 @@ bool HighScoreImpl::operator==( const HighScoreImpl& other ) const
 #undef COMPARE
 
 	return true;
+}
+
+void HighScoreImpl::UnloadReplayData() {
+	vector<int> tmpi;
+	vector<float> tmpf;
+	vNoteRowVector.swap(tmpi);
+	vOffsetVector.swap(tmpf);
 }
 
 Grade HighScoreImpl::GetWifeGrade() const {
@@ -387,15 +395,11 @@ void HighScoreImpl::LoadFromEttNode(const XNode *pNode)
 	//if (vOffsetVector.size() > 1 && fWifeScore == 0.f)
 	//	fWifeScore = RescoreToWifeTS(fJudgeScale);
 	if (vNoteRowVector.size() + vOffsetVector.size() > 2 && (vNoteRowVector.size() == vOffsetVector.size()) && fWifeScore > 0.f) {
-		bool writesuccess = WriteReplayData();
+		bool writesuccess = WriteReplayData(true);
 
 		// ensure data is written out somewhere else before destroying it
-		if (writesuccess) {
-			vector<int> itmp;
-			vector<float> ftmp;
-			vNoteRowVector.swap(itmp);
-			vOffsetVector.swap(ftmp);
-		}
+		if (writesuccess)
+			UnloadReplayData();
 	}
 	// Validate input.
 	grade = clamp(grade, Grade_Tier01, Grade_Failed);
@@ -477,32 +481,34 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 	//if (vOffsetVector.size() > 1 && fWifeScore == 0.f)
 	//	fWifeScore = RescoreToWifeTS(fJudgeScale);
 	if (vNoteRowVector.size() + vOffsetVector.size() > 2 && (vNoteRowVector.size() == vOffsetVector.size()) && fWifeScore > 0.f) {
-		bool writesuccess = WriteReplayData();
+		bool writesuccess = WriteReplayData(true);
 
 		// ensure data is written out somewhere else before destroying it
-		if (writesuccess) {
-			vector<int> itmp;
-			vector<float> ftmp;
-			vNoteRowVector.swap(itmp);
-			vOffsetVector.swap(ftmp);
-		}
+		if (writesuccess)
+			UnloadReplayData();
 	}
 	// Validate input.
 	grade = clamp( grade, Grade_Tier01, Grade_Failed );
 }
 
-bool HighScoreImpl::WriteReplayData() {
+bool HighScoreImpl::WriteReplayData(bool duringload) {
 	RString append;
+	RString profiledir;
+
 	//open file
-	RString profiledir = PROFILEMAN->currentlyloadingprofile;
-	ofstream fileStream(profiledir + "ReplayData/" + ScoreKey, ios::binary);
+	if (duringload)
+		profiledir = PROFILEMAN->currentlyloadingprofile;
+	else
+		profiledir = PROFILEMAN->GetProfileDir(ProfileSlot_Player1);
+	
+	RString path = profiledir + "ReplayData/" + ScoreKey;
+	ofstream fileStream(path, ios::binary);
 	//check file
 	if (!fileStream) {
-		LOG->Warn("Failed to create replay file");
+		LOG->Warn("Failed to create replay file at %s", path);
 		return false;
 	}
 		
-
 	unsigned int idx = vNoteRowVector.size() - 1;
 	//loop for writing both vectors side by side
 	for (unsigned int i = 0; i < idx; i++) {
@@ -512,6 +518,8 @@ bool HighScoreImpl::WriteReplayData() {
 	append = to_string(vNoteRowVector[idx]) + " " + to_string(vOffsetVector[idx]);
 	fileStream.write(append.c_str(), append.size());
 	fileStream.close();
+
+	LOG->Warn("Created replay file at %s", path);
 	return true;
 }
 
@@ -635,6 +643,7 @@ void HighScore::SetChordCohesion(bool b) { m_Impl->bNoChordCohesion = b; }
 void HighScore::SetEtternaValid(bool b) { m_Impl->bEtternaValid = b; }
 void HighScore::SetOffsetVector(const vector<float>& v) { m_Impl->vOffsetVector = v; }
 void HighScore::SetNoteRowVector(const vector<int>& v) { m_Impl->vNoteRowVector = v; }
+void HighScore::SetScoreKey(RString sk) { m_Impl->ScoreKey = sk; }
 void HighScore::SetRescoreJudgeVector(const vector<int>& v) { m_Impl->vRescoreJudgeVector = v; }
 void HighScore::SetAliveSeconds( float f ) { m_Impl->fSurviveSeconds = f; }
 void HighScore::SetModifiers( const RString &s ) { m_Impl->sModifiers = s; }
@@ -648,6 +657,10 @@ void HighScore::SetSkillsetSSR(Skillset ss, float ssr) { m_Impl->fSkillsetSSRs[s
 void HighScore::SetRadarValues( const RadarValues &rv ) { m_Impl->radarValues = rv; }
 void HighScore::SetLifeRemainingSeconds( float f ) { m_Impl->fLifeRemainingSeconds = f; }
 void HighScore::SetDisqualified( bool b ) { m_Impl->bDisqualified = b; }
+
+void HighScore::UnloadReplayData() {
+	m_Impl->UnloadReplayData();
+}
 
 /* We normally don't give direct access to the members.  We need this one
  * for NameToFillIn; use a special accessor so it's easy to find where this
@@ -988,8 +1001,8 @@ Grade HighScore::GetWifeGrade() {
 	return m_Impl->GetWifeGrade();
 }
 
-bool HighScore::WriteReplayData() {
-	return m_Impl->WriteReplayData();
+bool HighScore::WriteReplayData(bool duringload) {
+	return m_Impl->WriteReplayData(duringload);
 }
 
 // Ok I guess we can be more lenient and convert by midwindow values, but we still have to assume j4 - mina
