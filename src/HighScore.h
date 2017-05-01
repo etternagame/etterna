@@ -38,7 +38,6 @@ struct HighScore
 	 * @return true if no judgments were recorded, false otherwise. */
 	bool IsEmpty() const;
 	Grade GetWifeGrade();
-	bool LoadReplayData();
 	float ConvertDpToWife();
 	float GetPercentDP() const;
 	float GetWifeScore() const;
@@ -126,12 +125,14 @@ struct HighScore
 	void LoadFromEttNode(const XNode* pNode);
 
 	bool WriteReplayData(bool duringload);
+	bool LoadReplayData(bool duringload);
 	void UnloadReplayData();
 
 	RString GetDisplayName() const;
 
 	// Mina stuff - Mina
 	float RescoreToWifeJudge(int x);
+	float RescoreToWifeJudgeDuringLoad(int x); //uuugh -mina
 	float RescoreToDPJudge(int x);
 	float GetSkillsetSSR(Skillset ss) const;
 	void SetSkillsetSSR(Skillset ss, float ssr);

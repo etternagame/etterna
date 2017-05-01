@@ -495,11 +495,10 @@ bool HighScoreImpl::WriteReplayData(bool duringload) {
 	RString append;
 	RString profiledir;
 
-	//open file
 	if (duringload)
 		profiledir = PROFILEMAN->currentlyloadingprofile;
 	else
-		profiledir = PROFILEMAN->GetProfileDir(ProfileSlot_Player1);
+		profiledir = PROFILEMAN->GetProfileDir(ProfileSlot_Player1).substr(1);		// THIS NEEDS TO BE HERE CAUSE LOL!!! -mina
 	
 	RString path = profiledir + "ReplayData/" + ScoreKey;
 	ofstream fileStream(path, ios::binary);
@@ -522,14 +521,20 @@ bool HighScoreImpl::WriteReplayData(bool duringload) {
 	return true;
 }
 
-bool HighScore::LoadReplayData() {
+bool HighScore::LoadReplayData(bool duringload) {
 	// already exists
 	if (m_Impl->vNoteRowVector.size() > 4 && m_Impl->vOffsetVector.size() > 4)
 		return true;
 
+	RString profiledir;
 	vector<int> vNoteRowVector;
 	vector<float> vOffsetVector;
-	RString profiledir = PROFILEMAN->GetProfileDir(ProfileSlot_Player1);
+
+	if (duringload)
+		profiledir = PROFILEMAN->currentlyloadingprofile;
+	else
+		profiledir = PROFILEMAN->GetProfileDir(ProfileSlot_Player1).substr(1);
+
 	RString path = profiledir + "ReplayData/" + m_Impl->ScoreKey;
 	std::ifstream fileStream(path, ios::binary);
 	string line;
@@ -545,7 +550,6 @@ bool HighScore::LoadReplayData() {
 		return false;
 	}
 		
-
 	//loop until eof
 	while (getline(fileStream, line))
 	{
@@ -728,7 +732,7 @@ void HighScore::LoadFromNode( const XNode* pNode )
 
 	if (m_Impl->fSSRNormPercent == 11111.f) {
 		if (m_Impl->grade != Grade_Failed)
-			m_Impl->fSSRNormPercent = RescoreToWifeJudge(4);
+			m_Impl->fSSRNormPercent = RescoreToWifeJudgeDuringLoad(4);
 		else
 			m_Impl->fSSRNormPercent = m_Impl->fWifeScore;
 
@@ -923,11 +927,25 @@ void Screenshot::LoadFromNode( const XNode* pNode )
 }
 
 float HighScore::RescoreToWifeJudge(int x) {
-	if (!LoadReplayData())
+	if (!LoadReplayData(false))
 		return m_Impl->fWifeScore;
 
 	const float tso[] = { 1.50f,1.33f,1.16f,1.00f,0.84f,0.66f,0.50f,0.33f,0.20f };
 	float ts = tso[x-1];
+	float p = 0;
+	FOREACH_CONST(float, m_Impl->vOffsetVector, f)
+		p += wife2(*f, ts);
+
+	p += (m_Impl->iHoldNoteScores[HNS_LetGo] + m_Impl->iHoldNoteScores[HNS_Missed]) * -6.f;
+	return p / static_cast<float>(m_Impl->vOffsetVector.size() * 2);
+}
+
+float HighScore::RescoreToWifeJudgeDuringLoad(int x) {
+	if (!LoadReplayData(true))
+		return m_Impl->fWifeScore;
+
+	const float tso[] = { 1.50f,1.33f,1.16f,1.00f,0.84f,0.66f,0.50f,0.33f,0.20f };
+	float ts = tso[x - 1];
 	float p = 0;
 	FOREACH_CONST(float, m_Impl->vOffsetVector, f)
 		p += wife2(*f, ts);
@@ -1093,7 +1111,7 @@ public:
 
 	// Convert to MS so lua doesn't have to
 	static int GetOffsetVector(T* p, lua_State *L) {
-		if (p->LoadReplayData()) {
+		if (p->LoadReplayData(false)) {
 			vector<float> doot = p->GetOffsetVector();
 			for (size_t i = 0; i < doot.size(); ++i)
 				doot[i] = doot[i] * 1000;
@@ -1106,7 +1124,7 @@ public:
 	}
 
 	static int GetNoteRowVector(T* p, lua_State *L) {
-		if (p->LoadReplayData()) {
+		if (p->LoadReplayData(false)) {
 			LuaHelpers::CreateTableFromArray(p->GetNoteRowVector(), L);
 			p->UnloadReplayData();
 		}
