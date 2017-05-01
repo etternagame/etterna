@@ -529,6 +529,80 @@ float PlayerStageStats::GetCurrentLife() const
 	return iter->second;
 }
 
+// copy pasta from above but for wife% -mina
+void PlayerStageStats::SetWifeRecordAt(float Wife, float fStepsSecond)
+{
+	if (fStepsSecond < 0)
+		return;
+
+	m_fFirstSecond = min(fStepsSecond, m_fFirstSecond);
+	m_fLastSecond = max(fStepsSecond, m_fLastSecond);
+	map<float, float>::iterator curr = WifeRecord.find(fStepsSecond);
+	if (curr != WifeRecord.end())
+	{
+		if (curr->second != Wife)
+		{
+			// 2^-8
+			WifeRecord[fStepsSecond - 0.00390625f] = curr->second;
+		}
+	}
+	WifeRecord[fStepsSecond] = Wife;
+
+	map<float, float>::iterator C = WifeRecord.end();
+	--C;
+	if (C == WifeRecord.begin()) // no earlier records left
+		return;
+
+	map<float, float>::iterator B = C;
+	--B;
+	if (B == WifeRecord.begin()) // no earlier records left
+		return;
+
+	map<float, float>::iterator A = B;
+	--A;
+
+	if (A->second == B->second && B->second == C->second)
+		WifeRecord.erase(B);
+}
+
+float PlayerStageStats::GetWifeRecordAt(float fStepsSecond) const
+{
+	if (WifeRecord.empty())
+		return 0;
+	map<float, float>::const_iterator it = WifeRecord.upper_bound(fStepsSecond);
+	if (it != WifeRecord.begin())
+		--it;
+	return it->second;
+}
+
+float PlayerStageStats::GetWifeRecordLerpAt(float fStepsSecond) const
+{
+	if (WifeRecord.empty())
+		return 0;
+
+	map<float, float>::const_iterator later = WifeRecord.upper_bound(fStepsSecond);
+	map<float, float>::const_iterator earlier = later;
+	if (earlier != WifeRecord.begin())
+		--earlier;
+
+	if (later == WifeRecord.end())
+		return earlier->second;
+
+	if (earlier->first == later->first) // two samples from the same time.  Don't divide by zero in SCALE
+		return earlier->second;
+
+	return SCALE(fStepsSecond, earlier->first, later->first, earlier->second, later->second);
+}
+
+void PlayerStageStats::GetWifeRecord(float* WifeOut, int iNumSamples, float fStepsEndSecond) const
+{
+	for (int i = 0; i < iNumSamples; ++i)
+	{
+		float from = SCALE(i, 0, static_cast<float>(iNumSamples), 0.0f, fStepsEndSecond);
+		WifeOut[i] = GetLifeRecordLerpAt(from);
+	}
+}
+
 /* If bRollover is true, we're being called before gameplay begins, so we can
  * record the amount of the first combo that comes from the previous song. */
 void PlayerStageStats::UpdateComboList( float fSecond, bool bRollover )

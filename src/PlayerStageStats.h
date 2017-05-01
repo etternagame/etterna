@@ -116,6 +116,12 @@ public:
 	float	GetLifeRecordLerpAt( float fStepsSecond ) const;
 	float	GetCurrentLife() const;
 
+	map<float, float> WifeRecord;
+	void	SetWifeRecordAt(float Wife, float fStepsSecond);
+	void	GetWifeRecord(float* WifeOut, int iNumSamples, float fStepsEndSecond) const;
+	float	GetWifeRecordAt(float fStepsSecond) const;
+	float	GetWifeRecordLerpAt(float fStepsSecond) const;
+
 	struct Combo_t
 	{
 		// Update GetComboList in PlayerStageStats.cpp when adding new members that should be visible from the Lua side.
