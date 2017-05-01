@@ -521,6 +521,7 @@ bool HighScoreImpl::WriteReplayData(bool duringload) {
 	return true;
 }
 
+// should just get rid of impl -mina
 bool HighScore::LoadReplayData(bool duringload) {
 	// already exists
 	if (m_Impl->vNoteRowVector.size() > 4 && m_Impl->vOffsetVector.size() > 4)
@@ -576,6 +577,12 @@ bool HighScore::LoadReplayData(bool duringload) {
 	SetOffsetVector(vOffsetVector);
 	LOG->Trace("Loaded replay data at %s", path);
 	return true;
+}
+
+bool HighScore::HasReplayData() {
+	RString profiledir = PROFILEMAN->GetProfileDir(ProfileSlot_Player1).substr(1);
+	RString path = profiledir + "ReplayData/" + m_Impl->ScoreKey;
+	return DoesFileExist(path);
 }
 
 REGISTER_CLASS_TRAITS( HighScoreImpl, new HighScoreImpl(*pCopy) )
@@ -1140,12 +1147,13 @@ public:
 	}
 
 	DEFINE_METHOD( GetGrade, GetGrade() )
-	DEFINE_METHOD( GetWifeGrade, GetWifeGrade())
-	DEFINE_METHOD( ConvertDpToWife, ConvertDpToWife())
+	DEFINE_METHOD( GetWifeGrade, GetWifeGrade() )
+	DEFINE_METHOD( ConvertDpToWife, ConvertDpToWife() )
 	DEFINE_METHOD( GetStageAward, GetStageAward() )
 	DEFINE_METHOD( GetPeakComboAward, GetPeakComboAward() )
 	DEFINE_METHOD( GetChordCohesion, GetChordCohesion() )
-	DEFINE_METHOD( GetEtternaValid , GetEtternaValid())
+	DEFINE_METHOD( GetEtternaValid , GetEtternaValid() )
+	DEFINE_METHOD( HasReplayData, HasReplayData() )
 	LunaHighScore()
 	{
 		ADD_METHOD( GetName );
@@ -1174,6 +1182,7 @@ public:
 		ADD_METHOD( GetPeakComboAward );
 		ADD_METHOD( ToggleEtternaValidation );
 		ADD_METHOD( GetEtternaValid );
+		ADD_METHOD( HasReplayData );
 		ADD_METHOD( GetOffsetVector );
 		ADD_METHOD( GetNoteRowVector );
 	}

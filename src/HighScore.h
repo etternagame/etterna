@@ -126,6 +126,7 @@ struct HighScore
 
 	bool WriteReplayData(bool duringload);
 	bool LoadReplayData(bool duringload);
+	bool HasReplayData();
 	void UnloadReplayData();
 
 	RString GetDisplayName() const;
