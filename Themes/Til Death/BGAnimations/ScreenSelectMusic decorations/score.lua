@@ -1,6 +1,5 @@
 local update = false
 
-local hsTable
 local rtTable
 local rates
 local rateIndex = 1
@@ -62,13 +61,16 @@ local t = Def.ActorFrame{
 	CurrentStepsP2ChangedMessageCommand=cmd(queuecommand,"Set"),
 	InitScoreCommand=function(self)
 			if GAMESTATE:GetCurrentSong() ~= nil then
-				hsTable = getScoresByKey(pn)			
-				if hsTable ~= nil and hsTable[1] ~= nil then
-					rtTable = getRateTable(hsTable)
+				rtTable = getRateTable()
+				if rtTable ~= nil then
 					rates,rateIndex = getUsedRates(rtTable)
 					scoreIndex = 1
-					score = rtTable[rates[rateIndex]][scoreIndex]
-					setScoreForPlot(score)
+					
+					-- shouldn't need this check but there seems to be some sort of bug during profile save/load with phantom scores being loaded
+					if rtTable[rates[rateIndex]] then
+						score = rtTable[rates[rateIndex]][scoreIndex]
+						setScoreForPlot(score)
+					end
 				else
 					rtTable = {}
 					rates,rateIndex = {defaultRateText},1
@@ -77,7 +79,6 @@ local t = Def.ActorFrame{
 					setScoreForPlot(score)
 				end
 			else
-				hsTable = {}
 				rtTable = {}
 				rates,rateIndex = {defaultRateText},1
 				scoreIndex = 1
@@ -264,7 +265,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 t[#t+1] = LoadFont("Common Normal")..{
 	InitCommand=cmd(xy,frameX+frameWidth-offsetX,frameY+frameHeight-10;zoom,0.4;halign,1),
 	SetCommand=function(self)
-		if hsTable ~= nil and rates ~= nil and rtTable[rates[rateIndex]] ~= nil then
+		if rates ~= nil and rtTable[rates[rateIndex]] ~= nil then
 			self:settextf("Rate %s - Showing %d/%d",rates[rateIndex],scoreIndex,#rtTable[rates[rateIndex]])
 		else
 			self:settext("No Scores Saved")
@@ -297,7 +298,7 @@ t[#t+1] = Def.Quad{
 	SetCommand=function(self,params)
 		self:finishtweening()
 		self:smooth(0.2)
-		if hsTable ~= nil and rates ~= nil and rtTable[rates[rateIndex]] ~= nil then
+		if rates ~= nil and rtTable[rates[rateIndex]] ~= nil then
 			self:zoomy(((frameHeight-offsetY)/#rtTable[rates[rateIndex]]))
 			self:y(frameY+offsetY+(((frameHeight-offsetY)/#rtTable[rates[rateIndex]])*scoreIndex))
 		else

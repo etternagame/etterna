@@ -28,7 +28,6 @@
 #include "Character.h"
 #include "MinaCalc.h"
 #include "NoteData.h"
-
 #include <algorithm>
 
 const RString STATS_XML            = "Stats.xml";
@@ -2322,6 +2321,7 @@ void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
 
 		const XNode *pRateScores = pChart->GetChild("RateScores");
 		HighScoreRateMap hsrm;
+		ChartScores wot;
 
 		FOREACH_CONST_Child(pRateScores, pRate) {
 			float rate = StringToFloat(pRate->GetName());
@@ -2330,6 +2330,9 @@ void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
 			FOREACH_CONST_Child(pRate, hs) {
 				hsv.resize(hsv.size() + 1);
 				hsv.back().LoadFromEttNode(hs);
+				HighScore tmp;
+				tmp.LoadFromEttNode(hs);
+				wot.AddScore(tmp);
 			}
 			if (!is_sorted(hsv.begin(), hsv.end())) {
 				sort(hsv.begin(), hsv.end());
@@ -2350,6 +2353,7 @@ void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
 		SONGMAN->SetHasGoal(goalmap);
 		
 		HighScoresByChartKey.emplace(ck, hsrm);
+		pscores.AddScore(ck, wot);
 	}
 }
 
@@ -2392,60 +2396,33 @@ void ScoreGoal::LoadFromNode(const XNode *pNode) {
 	pNode->GetChildValue("Comment", comment);
 }
 
-/*	This is really lame because for whatever reason getting the highscore object and passing them
-to lua results in really weird and unpredictable errors that I can't figure out, so instead we pass
-lua the keys and let the lua function get the highscore objects */ 
-
-void Profile::GetScoresByKey(vector<SongID>& songids, vector<StepsID>& stepsids, RString key) {
-	FOREACHM_CONST(SongID, HighScoresForASong, m_SongHighScores, i) {
-		const SongID& id = i->first;
-		const HighScoresForASong& hsfas = i->second;
-		FOREACHM_CONST(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
-			const StepsID& sid = j->first;
-			if (sid.GetKey() == key) {
-				songids.emplace_back(id);
-				stepsids.emplace_back(sid);
-			}
-		}
-	}
+HighScore& ScoreGoal::GetPBUpTo() {
+	auto& scores = PROFILEMAN->GetProfile(PLAYER_1)->pscores;
+	return scores.GetChartPBUpTo(chartkey, rate);
 }
 
+// next on the chopping block -mina
 vector<HighScore> Profile::GetScoresByKey(RString ck) {
 	vector<HighScore> o;
 	if (!HighScoresByChartKey.count(ck))
 		return o;
-
 	auto &hsrm = HighScoresByChartKey.at(ck);
 	FOREACHM(float, vector<HighScore>, hsrm, zz) {
 		auto &hsv = zz->second;
 		for (size_t ii = 0; ii < hsv.size(); ii++) {
-			o.emplace_back(hsv[ii]);
-		}
-	}
-
-	return o;
-}
-
+			o.emplace_back(hsv[ii]);		}	}
+	return o;}
+// and then this one -mina
 float Profile::GetWifePBByKey(RString ck, float rate) {
 	float o = 0.f;
 	auto it = HighScoresByChartKey.find(ck);
 	if (it == HighScoresByChartKey.end())
-		return o;
-
-	// why will this only compile using at -mina
+		return o;
 	auto& hsrm = HighScoresByChartKey.at(ck);
 	auto iit = hsrm.find(rate);
 	if (iit == hsrm.end())
 		return o;
-
-	// this _should_ be valid as the vector _should_ be sorted already -mina
-	return hsrm.at(rate).at(0).GetWifeScore();
-}
-
-HighScore& Profile::GetPBHighScoreByKey(RString ck, float rate) {
-	// this _should_ be valid as the vector _should_ be sorted already -mina
-	return HighScoresByChartKey.at(ck).at(rate).at(0);
-}
+	return hsrm.at(rate).at(0).GetWifeScore();}
 
 // aaa too lazy to write comparators rn -mina
 ScoreGoal& Profile::GetLowestGoalForRate(RString ck, float rate) {
@@ -2674,18 +2651,6 @@ HighScore* Profile::GetTopSSRHighScore(unsigned int rank, int skillset) {
 			return &((*topSSRHighScoreLists[skillset][rank - 1])[topSSRHighScoreIndexs[skillset][rank - 1] - 1]);
 		else
 			return NULL;
-		/*
-		if (topSSRHighScores[skillset][rank - 1] != NULL)
-			if (!topSSRHighScores[skillset][rank - 1]->IsEmpty())
-				return topSSRHighScores[skillset][rank - 1];
-			else
-				if (CalcAllTopSSRs(rank) == false)
-					return NULL;
-				else
-					return topSSRHighScores[skillset][rank - 1];
-		else
-			return NULL;
-		*/
 	}
 	//Undefined skillset returns an empty pointer(NULL)
 
@@ -2857,67 +2822,6 @@ void Profile::TopSSRsAddNewScore(HighScore *hs, StepsID stepsid, SongID songid) 
 			//Todo:Make this not recalc all the time -Nick12
 			CalcAllTopSSRs(qty);
 			return;
-
-			
-			/* I have no idea how to get the HighscoreForASteps and the index from the hs i get
-
-			vector<float> topSSRs; //Auxiliary vector to sort faster
-			for (unsigned int i = 0; i < qty; i++) {
-				if ((*topSSRHighScoreIndexsPtr)[i] != 0)
-					topSSRs.push_back((*topSSRHighScoreLists[skillset][i])[topSSRHighScoreIndexs[skillset][i] - 1].GetSkillsetSSR(static_cast<Skillset>(skillset)));
-				else
-					topSSRs.push_back(0);
-			}
-
-			//Check for duplicates
-			bool replace = false;
-			bool matches = false;
-			for (unsigned int i = 0; i < qty; i++) {
-				if ((*topSSRSongIdsPtr)[i] == songid && (*topSSRStepIdsPtr)[i] == stepsid &&
-					(*topSSRHighScoreListsPtr)[i] != 0 &&
-					(*topSSRHighScoreLists[skillset][i])[topSSRHighScoreIndexs[skillset][i] - 1].GetMusicRate() == hs->GetMusicRate() ) {
-					matches = true;
-					if (topSSRs[i] < ssr) {
-						(*topSSRStepIdsPtr).erase((*topSSRStepIdsPtr).begin() + i);
-						topSSRs.erase(topSSRs.begin() + i);
-						(*topSSRSongIdsPtr).erase((*topSSRSongIdsPtr).begin() + i);
-						//(*topSSRHighScoresPtr).erase((*topSSRHighScoresPtr).begin() + i);
-						(*topSSRHighScoreListsPtr).erase((*topSSRHighScoreListsPtr).begin() + i);
-						(*topSSRHighScoreIndexsPtr).erase((*topSSRHighScoreIndexsPtr).begin() + i);
-						qty--;
-						replace = true;
-					}
-					else
-						break;
-				}
-			}
-
-			//If there is a match but we dont replace just skip the whole thing
-			if (matches && !replace)
-				continue;
-
-			unsigned int poscounter;
-
-			//Find the position of the inmediate smaller value
-			for (poscounter = qty - 1; topSSRs[poscounter - 1] < ssr && poscounter != 0;) {
-				poscounter--;
-			}
-
-			//insert in the proper place
-			(*topSSRStepIdsPtr).insert((*topSSRStepIdsPtr).begin() + poscounter, stepsid);
-			topSSRs.insert(topSSRs.begin() + poscounter, ssr);
-			(*topSSRSongIdsPtr).insert((*topSSRSongIdsPtr).begin() + poscounter, songid);
-			//(*topSSRHighScoresPtr).insert((*topSSRHighScoresPtr).begin() + poscounter, hs);
-
-			//erase last element to keep the same amount of elements(qty)
-			if (!replace) {
-				topSSRs.pop_back();
-				(*topSSRStepIdsPtr).pop_back();
-				(*topSSRSongIdsPtr).pop_back();
-				(*topSSRHighScoreListsPtr).pop_back();
-				(*topSSRHighScoreIndexsPtr).pop_back();
-			}
-			*/
 		}
 
 	}
@@ -3230,75 +3134,6 @@ float Profile::GetCaloriesBurnedForDay( DateTime day ) const
 		return i->second.fCals;
 }
 
-/*
-static void SaveRecentScore( XNode* xml )
-{
-	RString sDate = DateTime::GetNowDate().GetString();
-	sDate.Replace(":","-");
-
-	RString sFileNameNoExtension = Profile::MakeUniqueFileNameNoExtension(UPLOAD_SUBDIR, sDate );
-	RString fn = UPLOAD_SUBDIR + sFileNameNoExtension + ".xml";
-
-	RString sStatsXmlSigFile = fn+SIGNATURE_APPEND;
-	CryptManager::SignFileToFile(fn, sStatsXmlSigFile);
-}
-
-XNode* Profile::HighScoreForASongAndSteps::CreateNode() const
-{
-	XNode* pNode = new XNode( "HighScoreForASongAndSteps" );
-
-	pNode->AppendChild( songID.CreateNode() );
-	pNode->AppendChild( stepsID.CreateNode() );
-	pNode->AppendChild( hs.CreateNode() );
-
-	return pNode;
-}
-
-void Profile::SaveStepsRecentScore( const Song* pSong, const Steps* pSteps, HighScore hs )
-{
-	ASSERT( pSong );
-	ASSERT( pSteps );
-	HighScoreForASongAndSteps h;
-	h.songID.FromSong( pSong );
-	ASSERT( h.songID.IsValid() );
-	h.stepsID.FromSteps( pSteps );
-	ASSERT( h.stepsID.IsValid() );
-	h.hs = hs;
-
-	unique_ptr<XNode> xml( new XNode("Stats") );
-	xml->AppendChild( "MachineGuid",  PROFILEMAN->GetMachineProfile()->m_sGuid );
-	XNode *recent = xml->AppendChild( new XNode("RecentSongScores") );
-	recent->AppendChild( h.CreateNode() );
-
-	SaveRecentScore( xml.get() );
-}
-
-
-XNode* Profile::HighScoreForACourseAndTrail::CreateNode() const
-{
-	XNode* pNode = new XNode( "HighScoreForACourseAndTrail" );
-
-	pNode->AppendChild( courseID.CreateNode() );
-	pNode->AppendChild( trailID.CreateNode() );
-	pNode->AppendChild( hs.CreateNode() );
-
-	return pNode;
-}
-
-void Profile::SaveCourseRecentScore( const Course* pCourse, const Trail* pTrail, HighScore hs )
-{
-	HighScoreForACourseAndTrail h;
-	h.courseID.FromCourse( pCourse );
-	h.trailID.FromTrail( pTrail );
-	h.hs = hs;
-
-	unique_ptr<XNode> xml( new XNode("Stats") );
-	xml->AppendChild( "MachineGuid",  PROFILEMAN->GetMachineProfile()->m_sGuid );
-	XNode *recent = xml->AppendChild( new XNode("RecentCourseScores") );
-	recent->AppendChild( h.CreateNode() );
-	SaveRecentScore( xml.get() );
-}
-*/
 const Profile::HighScoresForASong *Profile::GetHighScoresForASong( const SongID& songID ) const
 {
 	map<SongID,HighScoresForASong>::const_iterator it;
@@ -3472,31 +3307,33 @@ public:
 		COMMON_RETURN_SELF;
 	}
 
-	/* Searches through highscores for both loaded and unloaded songs/steps and
-	returns a table of highscores (not a highscorelist object) containing all
-	scores identified by the provided chartkey.- Mina*/
-	static int GetHighScoresByKey(T* p, lua_State *L) {
-		size_t idx = 0;
-		lua_newtable(L);
-		RString ck = SArg(1);
-
-		if (p->HighScoresByChartKey.find(ck) == p->HighScoresByChartKey.end())
-			return 1;
-
-		auto &hsrm = p->HighScoresByChartKey.at(ck);
-		
-		FOREACHM(float, vector<HighScore>, hsrm, zz) {
-			auto &hsv = zz->second;
-			for (size_t ii = 0; ii < hsv.size(); ii++) {
-				hsv[ii].PushSelf(L);
-				lua_rawseti(L, -2, idx + ii + 1);
+	static int GetScoresByKey(T* p, lua_State *L) {
+		auto& lol = p->pscores;
+		string ck = SArg(1);
+		if (lol.pscores.count(ck)) {
+			lua_newtable(L);
+			auto& doot = lol.pscores[ck];
+			vector<int> ratekeys = doot.GetPlayedRateKeys();
+			vector<float> rates = doot.GetPlayedRates();
+			for (size_t i = 0; i < rates.size(); ++i) {
+				// ok this is pretty kms im really tired -mina
+				RString tmp = ssprintf("%.2f", rates[i]);
+				int j = 1;
+				if (tmp.find_last_not_of('0') == tmp.find('.')) 
+					j = 2;
+				tmp.erase(tmp.find_last_not_of('0') + j, tmp.npos);
+				tmp.append("x");
+				LuaHelpers::Push(L, tmp);
+				doot.ScoresByRate[ratekeys[i]].PushSelf(L);
+				lua_rawset(L, -3);
 			}
-			idx += hsv.size();
+
+			return 1;
 		}
+
+		lua_pushnil(L);
 		return 1;
 	}
-
-
 
 	static int GetCategoryHighScoreList(T* p, lua_State *L)
 	{
@@ -3752,7 +3589,7 @@ public:
 		ADD_METHOD( GetAllUsedHighScoreNames );
 		ADD_METHOD( GetHighScoreListIfExists );
 		ADD_METHOD( GetHighScoreList );
-		ADD_METHOD( GetHighScoresByKey );
+		ADD_METHOD( GetScoresByKey );
 		ADD_METHOD( GetCategoryHighScoreList );
 		ADD_METHOD( GetCharacter );
 		ADD_METHOD( SetCharacter );
@@ -3880,25 +3717,12 @@ public:
 		return 1;
 	}
 
-	static int GetCurrentPB(T* p, lua_State *L) {
-		RString ck = p->chartkey;
-		float rate = p->rate;
-		auto& scores = PROFILEMAN->GetProfile(PLAYER_1)->HighScoresByChartKey;
-
-		// ffasdfasdfasdfasfasdfs
-		if (scores.count(ck)) {
-			auto &hsrm = scores.at(ck);
-			FOREACHM(float, vector<HighScore>, hsrm, zz) {
-				if (lround(zz->first * 1000.f) == lround(rate * 1000.f)) {
-					auto& hsv = zz->second;
-					HighScore& pb = hsv.at(0);
-					pb.PushSelf(L);
-					return 1;
-				}
-			}
-		}
-
-		lua_pushnil(L);
+	static int GetPBUpTo(T* p, lua_State *L) {
+		HighScore& pb = p->GetPBUpTo();
+		if (pb.IsEmpty())
+			lua_pushnil(L);
+		else
+			pb.PushSelf(L);
 		return 1;
 	}
 
@@ -3917,7 +3741,7 @@ public:
 		ADD_METHOD( SetPriority );
 		ADD_METHOD( SetComment );
 		ADD_METHOD( Delete );
-		ADD_METHOD( GetCurrentPB );
+		ADD_METHOD( GetPBUpTo );
 	}
 };
 LUA_REGISTER_CLASS(ScoreGoal)

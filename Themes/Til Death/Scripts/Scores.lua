@@ -76,19 +76,7 @@ local ScoreForPlot = nil
 function setScoreForPlot(hs) ScoreForPlot = hs end
 function getScoreForPlot() return ScoreForPlot end
 
-function getScoresByKey(pn)
-	local song = GAMESTATE:GetCurrentSong()
-	local profile
-	local steps
-	if GAMESTATE:IsPlayerEnabled(pn) then
-		profile = GetPlayerOrMachineProfile(pn)
-		steps = GAMESTATE:GetCurrentSteps(pn)
-		if profile ~= nil and steps ~= nil and song ~= nil then
-			return profile:GetHighScoresByKey(steps:GetChartKey())
-		end
-	end
-	return nil
-end
+
 
 function getScoreFromTable(hsTable,index)
 	return hsTable[index]
@@ -330,23 +318,30 @@ function getHighScoreIndex(hsTable,score)
 	return 0
 end
 
--- Returns a table containing tables containing scores for each ratemod used. 
-function getRateTable(hsTable)
-	local rtTable = {}
-	local rate
-	if hsTable ~= nil then
-		for k,v in ipairs(hsTable) do
-			rate = getRate(v)
-			local rs = formLink(rtTable,rate)
-			rs[#rs+1] = v
+function getScoresByKey(pn)
+	local song = GAMESTATE:GetCurrentSong()
+	local profile
+	local steps
+	if GAMESTATE:IsPlayerEnabled(pn) then
+		profile = GetPlayerOrMachineProfile(pn)
+		steps = GAMESTATE:GetCurrentSteps(pn)
+		if profile ~= nil and steps ~= nil and song ~= nil then
+			return profile:GetScoresByKey(steps:GetChartKey())
 		end
-		for k,v in pairs(rtTable) do
-			rtTable[k] = SortScores(rtTable[k])
-		end
-		return rtTable
-	else
-		return nil 
 	end
+	return nil
+end
+
+-- Returns a table containing tables containing scores for each ratemod used. 
+function getRateTable()
+	local o = getScoresByKey(PLAYER_1)
+	if not o then return nil end
+	
+	for k,v in pairs(o) do
+		o[k] = o[k]:GetScores()
+	end
+	
+	return o
 end
 
 function getUsedRates(rtTable)

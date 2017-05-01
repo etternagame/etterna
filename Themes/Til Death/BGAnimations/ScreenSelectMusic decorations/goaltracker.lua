@@ -181,7 +181,7 @@ local function makescoregoal(i)
 				SetCommand=function(self)
 					if update then 
 						if sg then
-							local ratestring = string.format("%.2f", sg:GetRate()):gsub("%.?0+$", "").."x"
+							local ratestring = string.format("%.2f", sg:GetRate()):gsub("%.?0$", "").."x"
 							self:settextf(ratestring)
 							self:visible(true)
 						else
@@ -227,9 +227,14 @@ local function makescoregoal(i)
 				SetCommand=function(self)
 					if update then 
 						if sg then 
-							local pb = sg:GetCurrentPB()
+							local pb = sg:GetPBUpTo()
 							if pb then
-								self:settextf("(Best: %5.2f%%)", pb:GetWifeScore() * 100)
+								if pb:GetMusicRate() < sg:GetRate() then
+									local ratestring = string.format("%.2f", pb:GetMusicRate()):gsub("%.?0$", "").."x"
+									self:settextf("Best: %5.2f%% (%s)", pb:GetWifeScore() * 100, ratestring)
+								else
+									self:settextf("Best: %5.2f%%", pb:GetWifeScore() * 100)
+								end
 								self:diffuse(getGradeColor(pb:GetWifeGrade()))
 								self:visible(true)
 							else

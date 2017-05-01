@@ -67,7 +67,9 @@ t[#t+1] = Def.Actor{
 }
 
 local function GetBestScoreByFilter(perc,CurRate)
-	local rtTable = getRateTable(PROFILEMAN:GetProfile(PLAYER_1):GetHighScoresByKey(getCurKey()))
+	local rtTable = getRateTable()
+	if not rtTable then return nil end
+	
 	local rates = tableKeys(rtTable)
 	local scores, score
 	

@@ -628,6 +628,7 @@ bool HighScore::GetChordCohesion() const {
 bool HighScore::GetEtternaValid() const { return m_Impl->bEtternaValid; }
 vector<float> HighScore::GetOffsetVector() const { return m_Impl->vOffsetVector; }
 vector<int> HighScore::GetNoteRowVector() const { return m_Impl->vNoteRowVector; }
+RString HighScore::GetScoreKey() const { return m_Impl->ScoreKey; }
 float HighScore::GetSurviveSeconds() const { return m_Impl->fSurviveSeconds; }
 float HighScore::GetSurvivalSeconds() const { return GetSurviveSeconds() + GetLifeRemainingSeconds(); }
 RString HighScore::GetModifiers() const { return m_Impl->sModifiers; }

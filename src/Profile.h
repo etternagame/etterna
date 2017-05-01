@@ -14,6 +14,7 @@
 #include "TrailUtil.h"	// for TrailID
 #include "StyleUtil.h"	// for StyleID
 #include "LuaReference.h"
+#include "ChartScores.h"
 
 class XNode;
 struct lua_State;
@@ -88,6 +89,8 @@ public:
 
 	XNode* CreateNode() const;
 	void LoadFromNode(const XNode *pNode);
+
+	HighScore& GetPBUpTo();
 
 	void PushSelf(lua_State *L);
 };
@@ -364,6 +367,7 @@ public:
 	HighScore& GetPBHighScoreByKey(RString ck, float rate);
 	typedef map<float, vector<HighScore>> HighScoreRateMap;
 	map<RString, HighScoreRateMap> HighScoresByChartKey;
+	PlayerScores pscores;
 
 
 	// Screenshot Data
