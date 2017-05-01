@@ -49,10 +49,14 @@ struct HighScoreImpl
 	RadarValues radarValues;
 	float fLifeRemainingSeconds;
 	bool bDisqualified;
+	RString ValidationKey;
 
 	HighScoreImpl();
 	XNode *CreateNode() const;
+	XNode *CreateEttNode() const;
 	void LoadFromNode( const XNode *pNode );
+	void LoadFromEttNode(const XNode *pNode);
+	Grade GetWifeGrade() const;
 
 	bool WriteReplayData();
 
@@ -95,6 +99,25 @@ bool HighScoreImpl::operator==( const HighScoreImpl& other ) const
 #undef COMPARE
 
 	return true;
+}
+
+Grade HighScoreImpl::GetWifeGrade() const {
+	if (grade == Grade_Failed)
+		return Grade_Failed;
+
+	if (fWifeScore >= 0.9998f)
+		return Grade_Tier01;
+	if (fWifeScore >= 0.9975f)
+		return Grade_Tier02;
+	if (fWifeScore >= 0.93f)
+		return Grade_Tier03;
+	if (fWifeScore >= 0.8f)
+		return Grade_Tier04;
+	if (fWifeScore >= 0.7f)
+		return Grade_Tier05;
+	if (fWifeScore >= 0.6f)
+		return Grade_Tier06;
+	return Grade_Tier07;
 }
 
 RString HighScoreImpl::OffsetsToString(vector<float> v) const{
@@ -202,6 +225,7 @@ HighScoreImpl::HighScoreImpl()
 	ZERO( fSkillsetSSRs );
 	radarValues.MakeUnknown();
 	fLifeRemainingSeconds = 0;
+	RString ValidationKey = "";
 }
 
 XNode *HighScoreImpl::CreateNode() const
@@ -261,6 +285,120 @@ XNode *HighScoreImpl::CreateNode() const
 	pNode->AppendChild( "LifeRemainingSeconds",	fLifeRemainingSeconds );
 	pNode->AppendChild( "Disqualified",		bDisqualified);
 	return pNode;
+}
+
+XNode *HighScoreImpl::CreateEttNode() const
+{
+	XNode *pNode = new XNode("HighScore");
+	pNode->AppendChild("HistoricChartKey", sHistoricChartKey);
+	pNode->AppendChild("ScoreKey", ScoreKey);
+	pNode->AppendChild("SSRCalcVersion", SSRCalcVersion);
+	pNode->AppendChild("Grade", GradeToString(GetWifeGrade()));
+	pNode->AppendChild("WifeScore", fWifeScore);
+	pNode->AppendChild("SSRNormPercent", fSSRNormPercent);
+	pNode->AppendChild("Rate", fMusicRate);
+	pNode->AppendChild("JudgeScale", fJudgeScale);
+	pNode->AppendChild("NoChordCohesion", bNoChordCohesion);
+	pNode->AppendChild("EtternaValid", bEtternaValid);
+
+	if (vOffsetVector.size() > 1) {
+		pNode->AppendChild("Offsets", OffsetsToString(vOffsetVector));
+		pNode->AppendChild("NoteRows", NoteRowsToString(vNoteRowVector));
+	}
+
+	pNode->AppendChild("SurviveSeconds", fSurviveSeconds);
+	pNode->AppendChild("MaxCombo", iMaxCombo);
+	pNode->AppendChild("Modifiers", sModifiers);
+	pNode->AppendChild("DateTime", dateTime.GetString());
+	pNode->AppendChild("ProductID", iProductID);
+
+	XNode* pTapNoteScores = pNode->AppendChild("TapNoteScores");
+	FOREACH_ENUM(TapNoteScore, tns)
+		if (tns != TNS_None)	// HACK: don't save meaningless "none" count
+			pTapNoteScores->AppendChild(TapNoteScoreToString(tns), iTapNoteScores[tns]);
+
+	XNode* pHoldNoteScores = pNode->AppendChild("HoldNoteScores");
+	FOREACH_ENUM(HoldNoteScore, hns)
+		if (hns != HNS_None)	// HACK: don't save meaningless "none" count
+			pHoldNoteScores->AppendChild(HoldNoteScoreToString(hns), iHoldNoteScores[hns]);
+
+	// dont bother writing skillset ssrs for non-applicable scores
+	if (fWifeScore > 0.f) {
+		XNode* pSkillsetSSRs = pNode->AppendChild("SkillsetSSRs");
+		FOREACH_ENUM(Skillset, ss)
+			pSkillsetSSRs->AppendChild(SkillsetToString(ss), fSkillsetSSRs[ss]);
+	}
+
+	pNode->AppendChild("Disqualified", bDisqualified);
+	pNode->AppendChild("ValidationKey", ValidationKey);
+	return pNode;
+}
+
+void HighScoreImpl::LoadFromEttNode(const XNode *pNode)
+{
+	ASSERT(pNode->GetName() == "HighScore");
+
+	RString s;
+
+	pNode->GetChildValue("HistoricChartKey", sHistoricChartKey);
+	pNode->GetChildValue("SSRCalcVersion", SSRCalcVersion);
+	pNode->GetChildValue("Grade", s);
+	grade = StringToGrade(s);
+	pNode->GetChildValue("WifeScore", fWifeScore);
+	pNode->GetChildValue("SSRNormPercent", fSSRNormPercent);
+	pNode->GetChildValue("Rate", fMusicRate);
+	pNode->GetChildValue("JudgeScale", fJudgeScale);
+	pNode->GetChildValue("NoChordCohesion", bNoChordCohesion);
+	pNode->GetChildValue("EtternaValid", bEtternaValid);
+	pNode->GetChildValue("Offsets", s);			vOffsetVector = OffsetsToVector(s);
+	pNode->GetChildValue("NoteRows", s);		vNoteRowVector = NoteRowsToVector(s);
+	pNode->GetChildValue("SurviveSeconds", fSurviveSeconds);
+	pNode->GetChildValue("MaxCombo", iMaxCombo);
+	pNode->GetChildValue("Modifiers", sModifiers);
+	pNode->GetChildValue("DateTime", s); dateTime.FromString(s);
+	pNode->GetChildValue("ScoreKey", ScoreKey);
+
+	if (fWifeScore > 0.f)
+		ScoreKey = "S" + BinaryToHex(CryptManager::GetSHA1ForString(dateTime.GetString()));
+	else
+		ScoreKey = "";
+
+	const XNode* pTapNoteScores = pNode->GetChild("TapNoteScores");
+	if (pTapNoteScores)
+		FOREACH_ENUM(TapNoteScore, tns)
+		pTapNoteScores->GetChildValue(TapNoteScoreToString(tns), iTapNoteScores[tns]);
+
+	const XNode* pHoldNoteScores = pNode->GetChild("HoldNoteScores");
+	if (pHoldNoteScores)
+		FOREACH_ENUM(HoldNoteScore, hns)
+		pHoldNoteScores->GetChildValue(HoldNoteScoreToString(hns), iHoldNoteScores[hns]);
+
+	if (fWifeScore > 0.f) {
+		const XNode* pSkillsetSSRs = pNode->GetChild("SkillsetSSRs");
+		if (pSkillsetSSRs)
+			FOREACH_ENUM(Skillset, ss)
+			pSkillsetSSRs->GetChildValue(SkillsetToString(ss), fSkillsetSSRs[ss]);
+	}
+
+	pNode->GetChildValue("Disqualified", bDisqualified);
+	pNode->GetChildValue("ValidationKey", ValidationKey);
+
+	// special test case stuff - mina
+	//if (vOffsetVector.size() > 1 && fWifeScore == 0.f)
+	//	fWifeScore = RescoreToWifeTS(fJudgeScale);
+	if (vNoteRowVector.size() + vOffsetVector.size() > 2 && (vNoteRowVector.size() == vOffsetVector.size()) && fWifeScore > 0.f) {
+		bool writesuccess = WriteReplayData();
+
+		// ensure data is written out somewhere else before destroying it
+		if (writesuccess) {
+			vector<int> itmp;
+			vector<float> ftmp;
+			vNoteRowVector.swap(itmp);
+			vOffsetVector.swap(ftmp);
+		}
+	}
+	// Validate input.
+	grade = clamp(grade, Grade_Tier01, Grade_Failed);
 }
 
 void HighScoreImpl::LoadFromNode(const XNode *pNode)
@@ -549,6 +687,11 @@ bool HighScore::operator!=( const HighScore& other ) const
 XNode* HighScore::CreateNode() const
 {
 	return m_Impl->CreateNode();
+}
+
+XNode* HighScore::CreateEttNode() const
+{
+	return m_Impl->CreateEttNode();
 }
 
 void HighScore::LoadFromNode( const XNode* pNode ) 

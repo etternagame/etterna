@@ -118,7 +118,9 @@ struct HighScore
 	bool operator!=(HighScore const& other) const;
 
 	XNode* CreateNode() const;
+	XNode* CreateEttNode() const;
 	void LoadFromNode( const XNode* pNode );
+	void LoadEttNode(const XNode* pNode);
 
 	RString GetDisplayName() const;
 
