@@ -116,20 +116,6 @@ t[#t+1] = LoadFont("Common Large")..{
 	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
 }
 
--- DP display
-t[#t+1] = LoadFont("Common Normal")..{
-	Name="Score",
-	InitCommand=cmd(xy,frameX+offsetX+55,frameY+offsetY+14;zoom,0.5;halign,0),
-	SetCommand=function(self)
-		if score ~= nil then
-			self:settextf("%05.2f%% (%s)",score:GetPercentDP()*100, scoringToText(1))
-		else
-			self:settextf("00.00%% (%s)", scoringToText(1))
-		end
-	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
-}
-
 -- Wife display
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="Score",
@@ -168,89 +154,20 @@ t[#t+1] = LoadFont("Common Normal")..{
 
 -- t[#t+1] = LoadFont("Common Normal")..{
 	-- Name="Score",
-	-- InitCommand=cmd(xy,frameX+offsetX+155,frameY+offsetY+28;zoom,0.5;halign,0),
+	-- InitCommand=cmd(xy,frameX+offsetX+155,frameY+offsetY+58;zoom,0.5;halign,0),
 	-- SetCommand=function(self)
 		-- if score ~= nil then
 			-- if score:GetWifeScore() == 0 then 
-				-- self:settextf("NA (%s)", "Wife")
+				-- self:settext("")
 			-- else
-				-- self:settextf("%05.2f%% (%s)", notShit.floor(score:RescoreToDPJudge(4)*10000)/100, "DP J4")
+				-- self:settextf("%5.2f", score:GetSkillsetSSR(5))
 			-- end
 		-- else
-			-- self:settextf("00.00%% (%s)", "Wife")
+			-- self:settext("")
 		-- end
 	-- end,
 	-- ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
 -- }
-
--- SSR displays
-t[#t+1] = LoadFont("Common Normal")..{
-	Name="Score",
-	InitCommand=cmd(xy,frameX+offsetX+155,frameY+offsetY+28;zoom,0.5;halign,0),
-	SetCommand=function(self)
-		if score ~= nil then
-			if score:GetWifeScore() == 0 then 
-				self:settext("")
-			else
-				self:settextf("%5.2f", score:GetSkillsetSSR(2))
-			end
-		else
-			self:settext("")
-		end
-	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
-}
-
-t[#t+1] = LoadFont("Common Normal")..{
-	Name="Score",
-	InitCommand=cmd(xy,frameX+offsetX+155,frameY+offsetY+38;zoom,0.5;halign,0),
-	SetCommand=function(self)
-		if score ~= nil then
-			if score:GetWifeScore() == 0 then 
-				self:settext("")
-			else
-				self:settextf("%5.2f", score:GetSkillsetSSR(3))
-			end
-		else
-			self:settext("")
-		end
-	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
-}
-
-t[#t+1] = LoadFont("Common Normal")..{
-	Name="Score",
-	InitCommand=cmd(xy,frameX+offsetX+155,frameY+offsetY+48;zoom,0.5;halign,0),
-	SetCommand=function(self)
-		if score ~= nil then
-			if score:GetWifeScore() == 0 then 
-				self:settext("")
-			else
-				self:settextf("%5.2f", score:GetSkillsetSSR(4))
-			end
-		else
-			self:settext("")
-		end
-	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
-}
-
-t[#t+1] = LoadFont("Common Normal")..{
-	Name="Score",
-	InitCommand=cmd(xy,frameX+offsetX+155,frameY+offsetY+58;zoom,0.5;halign,0),
-	SetCommand=function(self)
-		if score ~= nil then
-			if score:GetWifeScore() == 0 then 
-				self:settext("")
-			else
-				self:settextf("%5.2f", score:GetSkillsetSSR(5))
-			end
-		else
-			self:settext("")
-		end
-	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
-}
 
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="ClearType",
