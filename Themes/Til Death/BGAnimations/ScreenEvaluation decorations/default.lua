@@ -236,7 +236,7 @@ function scoreBoard(pn,position)
 	end
 	
 	-- stats stuff
-	devianceTable = pss:GetOffsetVector()
+	local devianceTable = pss:GetOffsetVector()
 	t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameWidth+25,frameY+230;zoomto,frameWidth/2+10,60;halign,1;valign,0;diffuse,color("#333333CC"))};
 	local smallest,largest = wifeRange(devianceTable)
 	local doot = {"Mean", "Mean(Abs)", "Sd", "Smallest", "Largest"}

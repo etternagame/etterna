@@ -59,13 +59,10 @@ for i=1, #fantabars do
 end
 -- Background
 o[#o+1] = Def.Quad{InitCommand=cmd(zoomto,plotWidth+plotMargin,plotHeight+plotMargin;diffuse,color("0.05,0.05,0.05,0.05");diffusealpha,0.8)}
--- Convert noterows to timestamps
+-- Convert noterows to timestamps and plot dots
 local wuab = {}
 for i=1,#nrt do
 	wuab[i] = td:GetElapsedTimeFromNoteRow(nrt[i])
-end
--- Plot Dots
-for i=1,#devianceTable do
 	o[#o+1] = plotOffset(wuab[i], dvt[i])
 end
 -- Early/Late markers
