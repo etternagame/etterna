@@ -1159,6 +1159,7 @@ public:
 	DEFINE_METHOD( GetChordCohesion, GetChordCohesion() )
 	DEFINE_METHOD( GetEtternaValid , GetEtternaValid() )
 	DEFINE_METHOD( HasReplayData, HasReplayData() )
+	DEFINE_METHOD( GetChartKey, GetHistoricChartKey())
 	LunaHighScore()
 	{
 		ADD_METHOD( GetName );
@@ -1190,6 +1191,7 @@ public:
 		ADD_METHOD( HasReplayData );
 		ADD_METHOD( GetOffsetVector );
 		ADD_METHOD( GetNoteRowVector );
+		ADD_METHOD( GetChartKey );
 	}
 };
 
