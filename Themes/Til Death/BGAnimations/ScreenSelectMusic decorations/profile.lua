@@ -74,8 +74,9 @@ local function rankingLabel(i)
 					self:settext(((rankingPage-1)*25)+i..".")
 					profile:SortAllSSRs()
 					ths = profile:GetTopSSRHighScore(i+(scorestodisplay*(rankingPage-1)), rankingSkillset)
-					thssteps = ths:GetStepsFromScoreKey()
-					thssong = ths:GetSongFromScoreKey()
+					ck = ths:GetChartKey()
+					thssong = SONGMAN:GetSongByChartKey(ck)
+					thssteps = SONGMAN:GetStepsByChartKey(ck)
 					
 					if not thssong or not thssteps then ths = nil end
 				end
@@ -107,7 +108,6 @@ local function rankingLabel(i)
 			SetCommand=function(self)
 				if update and ths then
 					self:settext(thssong:GetDisplayMainTitle())
-					ms.ok(thssong:GetDisplayMainTitle())
 					if not ths:GetEtternaValid() then
 						self:diffuse(byJudgment("TapNoteScore_Miss"))
 					else
