@@ -141,13 +141,8 @@ t[#t+1] = Def.ActorFrame{
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self)
 			if song and score then
-				if score:GetWifeScore() == 0 then 
-					self:settextf("%05.2f%%", score:GetPercentDP()*100)
-					self:diffuse(getGradeColor(score:GetGrade()))
-				else
 					self:settextf("%05.2f%%", notShit.floor(score:GetWifeScore()*10000)/100)
 					self:diffuse(getGradeColor(score:GetWifeGrade()))
-				end
 			else
 				self:settext("")
 			end
@@ -162,51 +157,7 @@ t[#t+1] = Def.ActorFrame{
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self)
 			if song and score then
-				if score:GetWifeScore() == 0 then 
-					self:settext("DP*")
-				else
-					self:settext(scoringToText(scoreType))
-				end
-			else
-				self:settext("")
-			end
-		end,
-		CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
-		RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
-	},
-	
-	-- Secondary percent score
-	LoadFont("Common Normal")..{
-		InitCommand=cmd(xy,frameX+130,frameY+63;zoom,0.6;halign,0.5;maxwidth,125;valign,1),
-		BeginCommand=cmd(queuecommand,"Set"),
-		SetCommand=function(self)
-			if song and score then
-				if score:GetWifeScore() == 0 then 
-					self:settextf("NA")
-					self:diffuse(getGradeColor("Grade_Failed"))
-				else
-					self:settextf("%05.2f%%", score:GetPercentDP()*100)
-					self:diffuse(getGradeColor(score:GetGrade()))
-				end
-			else
-				self:settext("")
-			end
-		end,
-		RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
-		CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
-	},
-	
-	-- Secondary ScoreType
-	LoadFont("Common Normal")..{
-		InitCommand=cmd(xy,frameX+173,frameY+63;zoom,0.4;halign,1;valign,1),
-		BeginCommand=cmd(queuecommand,"Set"),
-		SetCommand=function(self)
-			if song and score then
-				if score:GetWifeScore() == 0 then 
-					self:settext("Wife")
-				else
-					self:settext("DP")
-				end
+				self:settext(scoringToText(scoreType))
 			else
 				self:settext("")
 			end
