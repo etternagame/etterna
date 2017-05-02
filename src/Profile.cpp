@@ -2321,8 +2321,6 @@ void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
 
 		const XNode *pRateScores = pChart->GetChild("RateScores");
 		HighScoreRateMap hsrm;
-		ScoresForChart wot;
-
 		FOREACH_CONST_Child(pRateScores, pRate) {
 			float rate = StringToFloat(pRate->GetName());
 
@@ -2332,7 +2330,7 @@ void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
 				hsv.back().LoadFromEttNode(hs);
 				HighScore tmp;
 				tmp.LoadFromEttNode(hs);
-				wot.AddScore(tmp);
+				pscores.LoadScoreFromNode(ck, rate, hs);
 			}
 			if (!is_sorted(hsv.begin(), hsv.end())) {
 				sort(hsv.begin(), hsv.end());
@@ -2351,9 +2349,7 @@ void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
 			goalmap.emplace(ck, sgv);
 		}
 		SONGMAN->SetHasGoal(goalmap);
-		
 		HighScoresByChartKey.emplace(ck, hsrm);
-		pscores.AddScore(ck, wot);
 	}
 }
 

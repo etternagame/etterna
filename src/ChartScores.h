@@ -11,6 +11,10 @@ public:
 	string pbKey = "";
 	float pbScore = 0.f;
 	
+	HighScore* PBptr;
+
+	HighScore** GetPBPtr() { return (&PBptr); }
+
 	// -technically- your pb could be a fail grade so use "bestgrade" -mina
 	Grade bestGrade = Grade_Invalid;
 
@@ -35,6 +39,9 @@ public:
 	HighScore& GetPBAt(float& rate);
 	HighScore & GetPBUpTo(float& rate);
 
+	vector<HighScore*> GetAllPBPtrs();
+
+
 	void AddScore(HighScore& hs);
 
 	vector<float> GetPlayedRates();
@@ -56,6 +63,7 @@ private:
 class PlayerScores
 {
 public:
+
 	// at what? rate. Duh. -mina
 	HighScore& GetChartPBAt(string& ck, float& rate);
 
@@ -65,9 +73,8 @@ public:
 	// for scores achieved during this session
 	void AddScore(const HighScore& hs_) { HighScore hs = hs_; pscores[hs.GetHistoricChartKey()].AddScore(hs); }
 
-	// the loading process should actually really be done by constructing scores in place -mina
-	// and any internal sorting should occur after all scores ares loaded
-	void AddScore(string& ck, ScoresForChart& cs) { pscores.emplace(ck, cs); }
+
+	void LoadScoreFromNode(string& ck, float& rate, const XNode* hs);
 
 
 

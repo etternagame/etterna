@@ -4,17 +4,17 @@
 #include "GameConstantsAndTypes.h"
 #include "Foreach.h"
 #include "ChartScores.h"
+#include "XmlFile.h"
+#include "XmlFileUtil.h"
 
 
 void ScoresAtRate::AddScore(HighScore& hs) {
-	string& key = hs.GetScoreKey();
-	if (float newpb = hs.GetWifeScore() > pbScore) {
-		pbScore = newpb;
-		pbKey = key;
-	}
-	
+	string& key = hs.GetScoreKey();	
 	bestGrade = min(hs.GetWifeGrade(), bestGrade);
 	scores.emplace(key, hs);
+
+	if(!PBptr || PBptr->GetWifeScore() < hs.GetWifeScore())
+		PBptr = &scores.find(key)->second;
 }
 
 vector<string> ScoresAtRate::GetSortedKeys() {
@@ -65,6 +65,13 @@ vector<int> ScoresForChart::GetPlayedRateKeys() {
 	return o;
 }
 
+vector<HighScore*> ScoresForChart::GetAllPBPtrs() {
+	vector<HighScore*> o;
+	FOREACHM(int, ScoresAtRate, ScoresByRate, i)
+		o.emplace_back(i->second.PBptr);
+	return o;
+}
+
 HighScore& PlayerScores::GetChartPBAt(string& ck, float& rate) {
 	if (pscores.count(ck))
 		return pscores.at(ck).GetPBAt(rate);
@@ -75,6 +82,17 @@ HighScore& PlayerScores::GetChartPBUpTo(string& ck, float& rate) {
 	if (pscores.count(ck))
 		return pscores.at(ck).GetPBUpTo(rate);
 	return HighScore();
+}
+
+
+
+
+
+void PlayerScores::LoadScoreFromNode(string& ck, float& rate, const XNode* hs) {
+	HighScore tmp;
+	tmp.LoadFromEttNode(hs);
+
+	pscores[ck].AddScore(tmp);
 }
 
 
