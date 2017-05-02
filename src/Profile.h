@@ -90,7 +90,7 @@ public:
 	XNode* CreateNode() const;
 	void LoadFromNode(const XNode *pNode);
 
-	HighScore& GetPBUpTo();
+	HighScore* GetPBUpTo();
 
 	void PushSelf(lua_State *L);
 };

@@ -27,20 +27,20 @@ vector<string> ScoresAtRate::GetSortedKeys() {
 	return o;
 }
 
-HighScore& ScoresForChart::GetPBAt(float& rate) {
+HighScore* ScoresForChart::GetPBAt(float& rate) {
 	int key = RateToKey(rate);
 	if(ScoresByRate.count(key))
-		return ScoresByRate.at(key).GetPB();
-	return HighScore();
+		return ScoresByRate.at(key).PBptr;
+	return NULL;
 }
 
-HighScore& ScoresForChart::GetPBUpTo(float& rate) {
+HighScore* ScoresForChart::GetPBUpTo(float& rate) {
 	int key = RateToKey(rate);
 	FOREACHM(int, ScoresAtRate, ScoresByRate, i) 
 		if (i->first <= key)
-			return i->second.GetPB();
+			return i->second.PBptr;
 		
-	return HighScore();
+	return NULL;
 }
 
 void ScoresForChart::AddScore(HighScore& hs) {
@@ -72,16 +72,16 @@ vector<HighScore*> ScoresForChart::GetAllPBPtrs() {
 	return o;
 }
 
-HighScore& PlayerScores::GetChartPBAt(string& ck, float& rate) {
+HighScore* PlayerScores::GetChartPBAt(string& ck, float& rate) {
 	if (pscores.count(ck))
 		return pscores.at(ck).GetPBAt(rate);
-	return HighScore();
+	return NULL;
 }
 
-HighScore& PlayerScores::GetChartPBUpTo(string& ck, float& rate) {
+HighScore* PlayerScores::GetChartPBUpTo(string& ck, float& rate) {
 	if (pscores.count(ck))
 		return pscores.at(ck).GetPBUpTo(rate);
-	return HighScore();
+	return NULL;
 }
 
 

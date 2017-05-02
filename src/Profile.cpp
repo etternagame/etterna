@@ -2395,7 +2395,7 @@ void ScoreGoal::LoadFromNode(const XNode *pNode) {
 	pNode->GetChildValue("Comment", comment);
 }
 
-HighScore& ScoreGoal::GetPBUpTo() {
+HighScore* ScoreGoal::GetPBUpTo() {
 	auto& scores = PROFILEMAN->GetProfile(PLAYER_1)->pscores;
 	return scores.GetChartPBUpTo(chartkey, rate);
 }
@@ -3713,11 +3713,11 @@ public:
 	}
 
 	static int GetPBUpTo(T* p, lua_State *L) {
-		HighScore& pb = p->GetPBUpTo();
-		if (pb.IsEmpty())
+		HighScore* pb = p->GetPBUpTo();
+		if (!pb)
 			lua_pushnil(L);
 		else
-			pb.PushSelf(L);
+			pb->PushSelf(L);
 		return 1;
 	}
 

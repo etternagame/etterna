@@ -8,17 +8,12 @@
 struct ScoresAtRate
 {
 public:
-	string pbKey = "";
-	float pbScore = 0.f;
-	
 	HighScore* PBptr;
-
 	HighScore** GetPBPtr() { return (&PBptr); }
 
 	// -technically- your pb could be a fail grade so use "bestgrade" -mina
 	Grade bestGrade = Grade_Invalid;
 
-	HighScore& GetPB() { return scores.at(pbKey); }
 	void AddScore(HighScore& hs);
 
 	vector<string> GetSortedKeys();
@@ -36,8 +31,8 @@ struct ScoresForChart
 public:
 	Grade bestGrade = Grade_Invalid;	// best grade for any rate 
 
-	HighScore& GetPBAt(float& rate);
-	HighScore & GetPBUpTo(float& rate);
+	HighScore* GetPBAt(float& rate);
+	HighScore* GetPBUpTo(float& rate);
 
 	vector<HighScore*> GetAllPBPtrs();
 
@@ -65,10 +60,10 @@ class PlayerScores
 public:
 
 	// at what? rate. Duh. -mina
-	HighScore& GetChartPBAt(string& ck, float& rate);
+	HighScore* GetChartPBAt(string& ck, float& rate);
 
 	// technically "up to and including rate: x" but that's a mouthful -mina
-	HighScore& GetChartPBUpTo(string& ck, float& rate);
+	HighScore* GetChartPBUpTo(string& ck, float& rate);
 
 	// for scores achieved during this session
 	void AddScore(const HighScore& hs_) { HighScore hs = hs_; pscores[hs.GetHistoricChartKey()].AddScore(hs); }
