@@ -74,7 +74,7 @@ public:
 	void AddScore(const HighScore& hs_) { HighScore hs = hs_; pscores[hs.GetHistoricChartKey()].AddScore(hs); }
 
 
-	void LoadScoreFromNode(string& ck, float& rate, const XNode* hs);
+	void LoadScoreFromNode(RString& ck, float& rate, const XNode* hs);
 
 
 

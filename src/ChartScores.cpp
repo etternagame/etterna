@@ -88,9 +88,10 @@ HighScore& PlayerScores::GetChartPBUpTo(string& ck, float& rate) {
 
 
 
-void PlayerScores::LoadScoreFromNode(string& ck, float& rate, const XNode* hs) {
+void PlayerScores::LoadScoreFromNode(RString& ck, float& rate, const XNode* hs) {
 	HighScore tmp;
 	tmp.LoadFromEttNode(hs);
+	tmp.SetHistoricChartKey(ck);
 	pscores[ck].AddScore(tmp);
 }
 
