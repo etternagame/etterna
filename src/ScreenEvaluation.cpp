@@ -799,7 +799,6 @@ void ScreenEvaluation::HandleMenuStart()
 	stepsid.FromSteps(GAMESTATE->m_pCurSteps[PLAYER_1]);
 	SongID songid;
 	songid.FromSong(GAMESTATE->m_pCurSong);
-	prof->TopSSRsAddNewScore(hs, stepsid, songid);
 	StartTransitioningScreen( SM_GoToNextScreen );
 }
 

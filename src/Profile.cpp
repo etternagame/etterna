@@ -2594,237 +2594,30 @@ void Profile::RecalculateSSRs(bool OnlyOld) {
 }
 
 
-RString Profile::GetTopSSRSongName(unsigned int rank, int skillset) {
-	RString ck = GetTopSSRChartkey(rank, skillset);
-	Song* pSong = SONGMAN->GetSongByChartkey(ck);
-	if (!pSong)
-		return "";
-
-	return pSong->GetMainTitle();
-}
-float Profile::GetTopSSRValue(unsigned int rank, int skillset) {
-	if (rank <= 0)
-		rank = 1;
-	HighScore *highScorePtr = GetTopSSRHighScore(rank, skillset);
+float Profile::GetTopSSRValue(unsigned int rank, int ss) {
+	if (rank < 0)
+		rank = 0;
+	HighScore *highScorePtr = GetTopSSRHighScore(rank, ss);
 	//Empty HighScore Pointer = NULL then return 0
 	if(highScorePtr == NULL)
 		return 0.f;
 
-	if (skillset >= 0 && skillset < NUM_Skillset)
-		return highScorePtr->GetSkillsetSSR(static_cast<Skillset>(skillset));
+	if (ss >= 0 && ss < NUM_Skillset && rank < pscores.TopSSRs[ss].size())
+		return highScorePtr->GetSkillsetSSR(static_cast<Skillset>(ss));
 
 	//Undefined skillset
 	return 0.f;
 }
-Song* Profile::GetTopSSRSong(unsigned int rank, int skillset) {
-	RString ck = GetTopSSRChartkey(rank, skillset);
-	return SONGMAN->GetSongByChartkey(ck);
-}
-Steps* Profile::GetTopSSRSteps(unsigned int rank, int skillset) {
-	RString ck = GetTopSSRChartkey(rank, skillset);
-	return SONGMAN->GetStepsByChartkey(ck);
-}
-RString Profile::GetTopSSRChartkey(unsigned int rank, int skillset) {
-	if (rank <= 0)
-		rank = 1;
-	if (rank > static_cast<unsigned int>(topSSRChartkeys[skillset].size()))
-		if (CalcTopSSRs(rank, skillset) == false) {
-			return "";
-		}
 
-	LOG->Warn(pscores.TopSSRs[skillset][rank - 1]->GetHistoricChartKey());
-
-	if (skillset >= 0 && skillset < NUM_Skillset)
-		return pscores.TopSSRs[skillset][rank - 1]->GetHistoricChartKey();
-
-	//Undefined skillset
-	return "";
-}
 HighScore* Profile::GetTopSSRHighScore(unsigned int rank, int ss) {
-	if (rank <= 0)
-		rank = 1;
+	if (rank < 0)
+		rank = 0;
 
-	pscores.SortTopSSRPtrs(static_cast<Skillset>(ss));
-	if (ss >= 0 && ss < NUM_Skillset && rank < pscores.TopSSRs[ss].size()) {
-		auto aa = &(*pscores.TopSSRs[ss][rank - 1]);
-		return aa;
-	}
+	if (ss >= 0 && ss < NUM_Skillset && rank < pscores.TopSSRs[ss].size())
+		return &(*pscores.TopSSRs[ss][rank]);
 
 	return NULL;
 }
-
-// Todo: Make it only iterate once - Nick12
-bool Profile::CalcAllTopSSRs(unsigned int qty) {
-	bool ret = true;
-	for(int i = 0; i < NUM_Skillset; i++)
-		ret = CalcTopSSRs(qty, i) && ret;
-	return ret;
-}
-bool Profile::CalcTopSSRs(unsigned int qty, int skillset) {
-	//undefined skillset
-	if (skillset < 0 || skillset >= NUM_Skillset)
-		return false;
-
-	vector<float> topSSRs; //Auxiliary vector to sort faster
-
-	//Pointers to the skillset's vectors
-	vector<vector<HighScore>*> *topSSRHighScoreListsPtr = &topSSRHighScoreLists[skillset];
-	vector<unsigned int> *topSSRHighScoreIndexsPtr = &topSSRHighScoreIndexs[skillset];
-	vector<RString> *topSSRChartkeysPtr = &topSSRChartkeys[skillset];
-
-	//Counter to see if we meet the required ranking size
-	unsigned int counter = 0;
-	//Axi
-	unsigned int poscounter;
-
-	//Initialize vectors
-	HighScore* emptyHighScorePtr = NULL;
-	vector<HighScore>* emptyHighScoreListsPtr = NULL;
-	(*topSSRChartkeysPtr).clear();
-	(*topSSRHighScoreListsPtr).clear();
-	(*topSSRHighScoreIndexsPtr).clear();
-
-	//Empty the vectors if qty=0
-	if (qty == 0)
-		return true;
-
-	for (unsigned int i = 0; i < qty; i++) {
-		topSSRs.emplace_back(0);
-		(*topSSRChartkeysPtr).emplace_back("");
-		(*topSSRHighScoreListsPtr).emplace_back(emptyHighScoreListsPtr);
-		(*topSSRHighScoreIndexsPtr).emplace_back(0);
-	}
-
-	struct info {
-		float ssr;
-		unsigned int pos;
-	};
-	info temp[60];
-	for (int i = 0;i < 60;i++) {
-		temp[i].ssr = 0;
-		temp[i].pos = 0;
-	}
-
-	bool replaced = false;
-
-	//Build the top
-	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
-		const SongID& id = i->first;
-
-		HighScoresForASong& hsfas = i->second;
-		FOREACHM(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
-			HighScoresForASteps& zz = j->second;
-			const StepsID& stepsid = j->first;
-			vector<HighScore>& hsv = zz.hsl.vHighScores;
-
-			Steps* psteps = SONGMAN->GetStepsByChartkey(stepsid);
-			if (!psteps)
-				continue;
-
-			if (!psteps->IsRecalcValid())
-				continue;
-
-			for (int i = 0;i < 60;i++) {
-				temp[i].ssr = 0;
-				temp[i].pos = 0;
-			}
-
-			for (size_t i = 0; i < hsv.size(); i++) {
-				float ssr = hsv[i].GetSkillsetSSR(static_cast<Skillset>(skillset));
-				int rate = static_cast<int>(hsv[i].GetMusicRate() * 20);
-
-				if ((temp[rate - 1]).ssr >= ssr)
-					continue;
-				//Compare with the smallest value(last one) to see if we need to change the values
-				if (topSSRs[qty - 1] < ssr) {
-
-					if ((temp[rate - 1]).ssr != 0)
-						replaced = true;
-					else
-						replaced = false;
-
-
-					if (replaced) {
-						topSSRs.erase(topSSRs.begin() + temp[rate - 1].pos);
-						(*topSSRChartkeysPtr).erase((*topSSRChartkeysPtr).begin() + temp[rate - 1].pos);
-						(*topSSRHighScoreListsPtr).erase((*topSSRHighScoreListsPtr).begin() + temp[rate - 1].pos);
-						(*topSSRHighScoreIndexsPtr).erase((*topSSRHighScoreIndexsPtr).begin() + temp[rate - 1].pos);
-						//qty--;
-					}
-
-
-					//Find the position of the inmediate smaller value
-					for (poscounter = qty - 1; topSSRs[poscounter - 1] < ssr && poscounter != 0;) {
-						poscounter--;
-					}
-
-					temp[rate - 1].pos = poscounter;
-					temp[rate - 1].ssr = ssr;
-
-					//insert in the proper place
-					topSSRs.emplace(topSSRs.begin() + poscounter, ssr);
-					(*topSSRChartkeysPtr).emplace((*topSSRChartkeysPtr).begin() + poscounter, stepsid.GetKey());
-					(*topSSRHighScoreListsPtr).emplace((*topSSRHighScoreListsPtr).begin() + poscounter, &hsv);
-					(*topSSRHighScoreIndexsPtr).emplace((*topSSRHighScoreIndexsPtr).begin() + poscounter, i+1);
-
-
-					//erase last element to keep the same amount of elements(qty)
-					if (!replaced) {
-						counter++;
-						topSSRs.pop_back();
-						(*topSSRChartkeysPtr).pop_back();
-						(*topSSRHighScoreListsPtr).pop_back();
-						(*topSSRHighScoreIndexsPtr).pop_back();
-					}
-				}
-			}
-		}
-	}
-
-	//If we didnt find enough ssr's to fill qty elements return false
-	if (counter >= qty)
-		return true;
-	return false;
-}
-
-
-void Profile::TopSSRsAddNewScore(HighScore *hs, StepsID stepsid, SongID songid) {
-	Steps* psteps = SONGMAN->GetStepsByChartkey(stepsid);
-	if (!psteps)
-		return;
-
-	if (!psteps->IsRecalcValid())
-		return;
-
-	for (int skillset = 0; skillset < NUM_Skillset; skillset++) {
-		//Pointers to the skillset's vectors
-		vector<unsigned int> *topSSRHighScoreIndexsPtr = &topSSRHighScoreIndexs[skillset];
-		vector<vector<HighScore>*> *topSSRHighScoreListsPtr = &topSSRHighScoreLists[skillset];
-		vector<RString> *topSSRChartkeyPtr = &topSSRChartkeys[skillset];
-		
-		unsigned int qty = (*topSSRChartkeyPtr).size();
-		if (qty == 0)
-			continue;
-
-		float ssr = hs->GetSkillsetSSR(static_cast<Skillset>(skillset));
-		if (ssr == 0)
-			return;
-
-
-		//Compare with the smallest value(last one) to see if we need to change the values
-		if ( ((*topSSRHighScoreIndexsPtr)[qty - 1] != 0 ? (*topSSRHighScoreLists[skillset][qty - 1])[topSSRHighScoreIndexs[skillset][qty-1] - 1].GetSkillsetSSR(static_cast<Skillset>(skillset)) : 0) < ssr) {
-
-
-			//Screw it lets just try always recalculating to see if this works at the very least
-			//Todo:Make this not recalc all the time -Nick12
-			CalcAllTopSSRs(qty);
-			return;
-		}
-
-	}
-	return;
-}
-
 
 float Profile::AggregateScores(vector<float>& invector, float rating, float res, int iter) const {
 	if (invector.size() == 0)
@@ -3508,25 +3301,12 @@ public:
 			lua_pushnil(L);
 		return 1;
 	}
-	static int GetLastPlayedCourse(T* p, lua_State *L)
-	{
-		Course *pC = p->m_lastCourse.ToCourse();
-		if (pC)
-			pC->PushSelf(L);
-		else
-			lua_pushnil(L);
-		return 1;
-	}
-	static int GetTopSSRSongName(T* p, lua_State *L) {
-		lua_pushstring(L, p->GetTopSSRSongName(IArg(1), IArg(2)));
-		return 1;
-	}
 	static int GetTopSSRValue(T* p, lua_State *L) {
-		lua_pushnumber(L, p->GetTopSSRValue(IArg(1), IArg(2)));
+		lua_pushnumber(L, p->GetTopSSRValue(IArg(1) - 1, IArg(2)));
 		return 1;
 	}
 	static int 	GetTopSSRHighScore(T* p, lua_State *L) {
-		HighScore* ths = p->GetTopSSRHighScore(IArg(1), IArg(2));
+		HighScore* ths = p->GetTopSSRHighScore(IArg(1) - 1, IArg(2));
 		if (ths)
 			ths->PushSelf(L);
 		else
@@ -3538,14 +3318,7 @@ public:
 		lua_pushnumber(L, p->m_fPlayerSkillsets[lel]);
 		return 1;
 	}
-	static int GetSongFromSSR(T* p, lua_State *L) {
-		p->GetTopSSRSong(IArg(1), IArg(2))->PushSelf(L);
-		return 1;
-	}
-	static int GetStepsFromSSR(T* p, lua_State *L) {
-		p->GetTopSSRSteps(IArg(1), IArg(2))->PushSelf(L);
-		return 1;
-	}
+
 	static int SortAllSSRs(T* p, lua_State *L) {
 		for(size_t i = 0; i < NUM_Skillset; ++i)
 			p->pscores.SortTopSSRPtrs(static_cast<Skillset>(i));
@@ -3643,7 +3416,6 @@ public:
 		ADD_METHOD( GetTotalDancePoints );
 		ADD_METHOD( GetUserTable );
 		ADD_METHOD( GetLastPlayedSong );
-		ADD_METHOD( GetLastPlayedCourse );
 		ADD_METHOD( GetGUID );
 		ADD_METHOD( GetPlayerRating );
 		ADD_METHOD( GetPlayerSkillsetRating );

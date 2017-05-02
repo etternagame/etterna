@@ -40,6 +40,7 @@ local rankingTitleWidth = (rankingWidth/(#ms.SkillSets + 1))
 
 if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
 	profile = GetPlayerOrMachineProfile(PLAYER_1)
+	profile:SortAllSSRs()	-- should be fine this way now - mina
 end
 
 
@@ -72,7 +73,6 @@ local function rankingLabel(i)
 				if update then
 					self:diffuse(getMainColor("positive"))
 					self:settext(((rankingPage-1)*25)+i..".")
-					profile:SortAllSSRs()
 					ths = profile:GetTopSSRHighScore(i+(scorestodisplay*(rankingPage-1)), rankingSkillset)
 					ck = ths:GetChartKey()
 					thssong = SONGMAN:GetSongByChartKey(ck)
@@ -159,8 +159,8 @@ local function rankingLabel(i)
 			InitCommand=cmd(xy,frameX+rankingX+310,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*4-160),
 			SetCommand=function(self)
 				if update and ths then
-					if (thsteps ~= nil) then
-						local diff = thsteps:GetDifficulty()
+					if (thssteps ~= nil) then
+						local diff = thssteps:GetDifficulty()
 						self:diffuse(byDifficulty(diff))
 						self:settext(getShortDifficulty(diff))
 					end
@@ -190,8 +190,7 @@ local function rankingLabel(i)
 				if update and ths then 
 					if isOver(self) then
 						local whee = SCREENMAN:GetTopScreen():GetMusicWheel()
-						local ssrsong = profile:GetSongFromSSR(i+(scorestodisplay*(rankingPage-1)), rankingSkillset)
-						whee:SelectSong(ssrsong)
+						whee:SelectSong(thssong)
 					end
 				end
 			end
@@ -209,14 +208,14 @@ local function rankingButton(i)
 				self:diffusealpha(1)
 			else
 				self:diffusealpha(0.35)
-			end;
+			end
 		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
 				rankingSkillset = i-1
 				rankingPage = 1
 				MESSAGEMAN:Broadcast("UpdateRanking")
-			end;
+			end
 		end,
 		UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
 		},
