@@ -19,7 +19,11 @@ ThemeMetric<RString> EMPTY_NAME("HighScore","EmptyName");
 struct HighScoreImpl
 {
 	RString	sName;	// name that shows in the machine's ranking screen
+	
+	/* a half-misnomer now- since all scores are keyed by the chart key this should never change/be different,
+	but its historical correctness is still correct, though it should prolly be renamed tbh -mina*/ 
 	RString sHistoricChartKey;
+
 	RString ScoreKey;
 	float SSRCalcVersion;
 	Grade grade;

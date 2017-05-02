@@ -33,6 +33,9 @@ public:
 
 	void PushSelf(lua_State *L);
 
+	/* It makes sense internally to have the map keys sorted highest rate to lowest
+	however my experience in lua is that it tends to be more friendly to approach things
+	in the reverse -mina */ 
 	map<int, ScoreMap, greater<int>> ScoresByRate;
 private:
 
@@ -42,10 +45,17 @@ private:
 class PlayerScores
 {
 public:
+	// at what? rate. Duh. -mina
 	HighScore& GetChartPBAt(string& ck, float& rate);
+
+	// technically "up to and including rate: x" but that's a mouthful -mina
 	HighScore& GetChartPBUpTo(string& ck, float& rate);
 
-	void AddScore(string& ck, HighScore& hs) { pscores[ck].AddScore(hs); }
+	// for scores achieved during this session
+	void AddScore(const HighScore& hs_) { HighScore hs = hs_; pscores[hs.GetHistoricChartKey()].AddScore(hs); }
+
+	// the loading process should actually really be done by constructing scores in place -mina
+	// and any internal sorting should occur after all scores ares loaded
 	void AddScore(string& ck, ChartScores& cs) { pscores.emplace(ck, cs); }
 
 	map<string, ChartScores> pscores;
