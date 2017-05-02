@@ -2351,6 +2351,7 @@ void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
 		SONGMAN->SetHasGoal(goalmap);
 		HighScoresByChartKey.emplace(ck, hsrm);
 	}
+	pscores.BuildTopSSRPtrs(100, Skill_Jumpstream);
 }
 
 // more future goalman stuff

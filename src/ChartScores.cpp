@@ -95,6 +95,17 @@ void PlayerScores::LoadScoreFromNode(string& ck, float& rate, const XNode* hs) {
 	pscores[ck].AddScore(tmp);
 }
 
+void PlayerScores::RebuildTopSSRPtrs(int n, Skillset ss) {
+	FOREACHM(string, ScoresForChart, pscores, i) {
+		vector<HighScore*> pbs = i->second.GetAllPBPtrs();
+		FOREACH(HighScore*, pbs, hs) {
+			TopSSRs.emplace_back(*hs);
+		}
+	}
+	auto ssrcomp = [&ss](HighScore* a, HighScore* b) { return (a->GetSkillsetSSR(ss) > b->GetSkillsetSSR(ss)); };
+	sort(TopSSRs.begin(), TopSSRs.end(), ssrcomp);		
+}
+
 
 
 #include "LuaBinding.h"
