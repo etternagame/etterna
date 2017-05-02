@@ -2305,14 +2305,22 @@ public:
 	}
 	static int GetSongByChartKey(T* p, lua_State *L)
 	{
-		Song* pSong = p->GetSongByChartkey(SArg(1));
-		pSong->PushSelf(L);
+		RString ck = SArg(1);
+		Song* pSong = p->GetSongByChartkey(ck);
+		if (pSong)
+			pSong->PushSelf(L);
+		else
+			lua_pushnil(L);
 		return 1;
 	}
 	static int GetStepsByChartKey(T* p, lua_State *L)
 	{
-		Steps* pSteps = p->GetStepsByChartkey(SArg(1));
-		pSteps->PushSelf(L);
+		RString ck = SArg(1);
+		Steps* pSteps = p->GetStepsByChartkey(ck);
+		if (pSteps)
+			pSteps->PushSelf(L);
+		else
+			lua_pushnil(L);
 		return 1;
 	}
 
