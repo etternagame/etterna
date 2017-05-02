@@ -98,6 +98,8 @@ void PlayerScores::LoadScoreFromNode(RString& ck, float& rate, const XNode* hs) 
 void PlayerScores::SortTopSSRPtrs(Skillset ss) {
 	TopSSRs[ss].clear();
 	FOREACHM(string, ScoresForChart, pscores, i) {
+		if (!IsChartLoaded(i->first))
+			continue;
 		vector<HighScore*> pbs = i->second.GetAllPBPtrs();
 		FOREACH(HighScore*, pbs, hs) {
 			TopSSRs[ss].emplace_back(*hs);
@@ -107,6 +109,37 @@ void PlayerScores::SortTopSSRPtrs(Skillset ss) {
 	sort(TopSSRs[ss].begin(), TopSSRs[ss].end(), ssrcomp);
 }
 
+
+// also finish dealing with this later - mina
+void PlayerScores::CalcPlayerRating(float& prating, float* pskillsets) {
+	float skillsetsum = 0.f;
+	FOREACH_ENUM(Skillset, ss) {
+		// actually skip overall
+		if (ss == Skill_Overall)
+			continue;
+
+		SortTopSSRPtrs(ss);
+		pskillsets[ss] = AggregateSSRs(ss, 0.f, 10.24f, 1)*0.95f;
+		CLAMP(pskillsets[ss], 0.f, 100.f);
+		skillsetsum += pskillsets[ss];
+	}
+
+	prating = skillsetsum / (NUM_Skillset - 1);
+}
+
+float PlayerScores::AggregateSSRs(Skillset ss, float rating, float res, int iter) const {
+	double sum;
+	do {
+		rating += res;
+		sum = 0.0;
+		for (int i = 0; i < static_cast<int>(TopSSRs[ss].size()); i++) {
+			sum += max(0.0, 2.f / erfc(0.1*(TopSSRs[ss][i]->GetSkillsetSSR(ss) - rating)) - 1.5);
+		}
+	} while (pow(2, rating * 0.1) < sum);
+	if (iter == 11)
+		return rating;
+	return AggregateSSRs(ss, rating - res, res / 2.f, iter + 1);
+}
 
 
 #include "LuaBinding.h"

@@ -2441,59 +2441,6 @@ void Profile::DeleteGoal(RString ck, DateTime assigned) {
 	}
 }
 
-// also finish dealing with this later - mina
-void Profile::CalcPlayerRating(float& prating, float* pskillsets) const {
-	vector<float> demskillas[NUM_Skillset];
-	FOREACHM_CONST(RString, HighScoreRateMap, HighScoresByChartKey, i) {
-		auto &hsrm = i->second;
-		FOREACHM_CONST(float, vector<HighScore>, hsrm, j) {
-			auto &hsv = j->second;			for (size_t i = 0; i < hsv.size(); i++) {
-				if (hsv[i].GetEtternaValid()) {
-					FOREACH_ENUM(Skillset, ss)
-						demskillas[ss].emplace_back(hsv[i].GetSkillsetSSR(ss));
-					break;
-				}			}
-		}
-	}
-
-	// overall should probably be ignored
-	float skillsetsum = 0.f;
-	FOREACH_ENUM(Skillset, ss) {
-		pskillsets[ss] = AggregateScores(demskillas[ss], 0.f, 10.24f, 1)*0.95f;
-		CLAMP(pskillsets[ss], 0.f, 100.f);
-		skillsetsum += pskillsets[ss];
-	}
-
-	prating = skillsetsum / NUM_Skillset;
-}
-
-void Profile::ResetSSRs(bool OnlyOld) {
-	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
-		const SongID& id = i->first;
-
-		HighScoresForASong& hsfas = i->second;
-		FOREACHM(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
-			HighScoresForASteps& zz = j->second;
-			vector<HighScore>& hsv = zz.hsl.vHighScores;
-
-			// reset ssrs for scores that match a loaded chartkey - mina
-			Steps* pSteps = SONGMAN->GetStepsByChartkey(j->first);
-			
-			if (!pSteps)
-				continue;
-
-			for (size_t i = 0; i < hsv.size(); i++) {
-				if (OnlyOld && hsv[i].GetSSRCalcVersion() == GetCalcVersion())
-					continue;
-
-				FOREACH_ENUM(Skillset, ss)
-					hsv[i].SetSkillsetSSR(ss, 0.f);
-			}
-		}
-	}
-	m_fPlayerRating = 0.f;
-}
-
 // should deal with this misnomer - mina
 void Profile::ValidateAllScores() {
 	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
@@ -2595,22 +2542,6 @@ HighScore* Profile::GetTopSSRHighScore(unsigned int rank, int ss) {
 		return &(*pscores.TopSSRs[ss][rank]);
 
 	return NULL;
-}
-
-float Profile::AggregateScores(vector<float>& invector, float rating, float res, int iter) const {
-	if (invector.size() == 0)
-		return 0.f;
-	double sum;
-	do {
-		rating += res;
-		sum = 0.0;
-		for (int i = 0; i < static_cast<int>(invector.size()); i++) {
-			sum += max(0.0, 2.f / erfc(0.1*(invector[i] - rating)) - 1.5);
-		}
-	} while (pow(2, rating * 0.1) < sum);
-	if (iter == 11)
-		return rating;
-	return AggregateScores(invector, rating-res, res/2.f, iter + 1);
 }
 
 XNode* Profile::SaveCourseScoresCreateNode() const

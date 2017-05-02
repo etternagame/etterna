@@ -74,8 +74,16 @@ public:
 
 
 
-	// SSRs
+
+
+	// Player Rating and SSR functions
 	void SortTopSSRPtrs(Skillset ss);
+	void CalcPlayerRating(float& prating, float* pskillsets);
+
+	// perhaps we will need a generalized version again someday, but not today
+	float AggregateSSRs(Skillset ss, float rating, float res, int iter) const;	
+	
+	bool IsChartLoaded(const string& ck) { return true; }	// obviously not functioning as intended yet
 
 
 	map<string, ScoresForChart> pscores;

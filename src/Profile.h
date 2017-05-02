@@ -353,10 +353,7 @@ public:
 	const HighScoreList& GetCategoryHighScoreList( StepsType st, RankingCategory rc ) const;
 	int GetCategoryNumTimesPlayed( StepsType st ) const;
 	void IncrementCategoryPlayCount( StepsType st, RankingCategory rc );
-	void CalcPlayerRating(float& prating, float* pskillsets) const;
-	void ResetSSRs(bool OnlyOld);
 	void RecalculateSSRs(bool OnlyOld);
-	float AggregateScores(vector<float>& invector, float rating, float res, int iter) const;
 	void ValidateAllScores();
 
 	typedef map<float, vector<HighScore>> HighScoreRateMap;
