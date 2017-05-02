@@ -53,6 +53,10 @@ local r = Def.ActorFrame{}
 	
 local function rankingLabel(i)
 	local ths -- the top highscore object - mina
+	local ck
+	local thssteps
+	local thssong
+	
 	local t = Def.ActorFrame{
 		InitCommand=cmd(visible, false),
 		UpdateRankingMessageCommand=function(self)
@@ -65,8 +69,16 @@ local function rankingLabel(i)
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(xy,frameX+12.5,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,100),
 			SetCommand=function(self)
-				self:diffuse(getMainColor("positive"))
-				self:settext(((rankingPage-1)*25)+i..".")
+				if update then
+					self:diffuse(getMainColor("positive"))
+					self:settext(((rankingPage-1)*25)+i..".")
+					profile:SortAllSSRs()
+					ths = profile:GetTopSSRHighScore(i+(scorestodisplay*(rankingPage-1)), rankingSkillset)
+					thssteps = ths:GetStepsFromScoreKey()
+					thssong = ths:GetSongFromScoreKey()
+					
+					if not thssong or not thssteps then ths = nil end
+				end
 			end,
 			UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
 		},
@@ -74,10 +86,7 @@ local function rankingLabel(i)
 			InitCommand=cmd(xy,frameX+rankingX,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,160),
 			SetCommand=function(self)
 				if update and rankingSkillset > 0 then 
-					profile:GetTopSSRHighScore(i+(scorestodisplay*(9)), rankingSkillset) -- hacky way to initialzie vectors out to 250 (way faster)
-					ths = profile:GetTopSSRHighScore(i+(scorestodisplay*(rankingPage-1)), rankingSkillset) 
 					if ths then 
-						profile:GetTopSSRValue(i+(scorestodisplay*(9)), rankingSkillset)
 						local a=profile:GetTopSSRValue(i+(scorestodisplay*(rankingPage-1)), rankingSkillset)
 						self:settextf("%5.2f", a)
 						if not ths:GetEtternaValid() then
@@ -97,9 +106,8 @@ local function rankingLabel(i)
 			InitCommand=cmd(xy,frameX+rankingX+35,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*2.5-160),
 			SetCommand=function(self)
 				if update and ths then
-					profile:GetTopSSRValue(i+(scorestodisplay*(9)), rankingSkillset)
-					local a=profile:GetTopSSRValue(i+(scorestodisplay*(rankingPage-1)), rankingSkillset)
-					self:settext(profile:GetTopSSRSongName(i+(scorestodisplay*(rankingPage-1)), rankingSkillset) )
+					self:settext(thssong:GetDisplayMainTitle())
+					ms.ok(thssong:GetDisplayMainTitle())
 					if not ths:GetEtternaValid() then
 						self:diffuse(byJudgment("TapNoteScore_Miss"))
 					else
@@ -151,8 +159,6 @@ local function rankingLabel(i)
 			InitCommand=cmd(xy,frameX+rankingX+310,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*4-160),
 			SetCommand=function(self)
 				if update and ths then
-					profile:GetStepsFromSSR(i+(scorestodisplay*(9)), rankingSkillset)
-					local thsteps = profile:GetStepsFromSSR(i+(scorestodisplay*(rankingPage-1)), rankingSkillset) 
 					if (thsteps ~= nil) then
 						local diff = thsteps:GetDifficulty()
 						self:diffuse(byDifficulty(diff))

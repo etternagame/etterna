@@ -79,13 +79,12 @@ public:
 
 
 	// SSRs
-	void RebuildTopSSRPtrs(int n, Skillset ss);
+	void SortTopSSRPtrs(Skillset ss);
 
 
-
-	vector<HighScore*> TopSSRs;
 	map<string, ScoresForChart> pscores;
 	map<string, HighScore&> AllScores;
+	vector<HighScore*> TopSSRs[NUM_Skillset];
 private:
 
 

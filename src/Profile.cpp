@@ -2330,6 +2330,9 @@ void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
 				hsv.back().LoadFromEttNode(hs);
 				HighScore tmp;
 				tmp.LoadFromEttNode(hs);
+
+				if (!SONGMAN->GetSongByChartkey(ck) || !SONGMAN->GetStepsByChartkey(ck))
+					continue;
 				pscores.LoadScoreFromNode(ck, rate, hs);
 			}
 			if (!is_sorted(hsv.begin(), hsv.end())) {
@@ -2351,7 +2354,6 @@ void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
 		SONGMAN->SetHasGoal(goalmap);
 		HighScoresByChartKey.emplace(ck, hsrm);
 	}
-	pscores.BuildTopSSRPtrs(100, Skill_Jumpstream);
 }
 
 // more future goalman stuff
@@ -2630,29 +2632,27 @@ RString Profile::GetTopSSRChartkey(unsigned int rank, int skillset) {
 			return "";
 		}
 
+	LOG->Warn(pscores.TopSSRs[skillset][rank - 1]->GetHistoricChartKey());
+
 	if (skillset >= 0 && skillset < NUM_Skillset)
-		return topSSRChartkeys[skillset][rank - 1];
+		return pscores.TopSSRs[skillset][rank - 1]->GetHistoricChartKey();
 
 	//Undefined skillset
 	return "";
 }
-HighScore* Profile::GetTopSSRHighScore(unsigned int rank, int skillset) {
+HighScore* Profile::GetTopSSRHighScore(unsigned int rank, int ss) {
 	if (rank <= 0)
 		rank = 1;
-	if (rank > static_cast<unsigned int>(topSSRHighScoreLists[skillset].size()))
-		if (CalcTopSSRs(rank, skillset) == false)
-			return NULL;
 
-	if (skillset >= 0 && skillset < NUM_Skillset) {
-		if (topSSRHighScoreIndexs[skillset][rank - 1] > 0)
-			return &((*topSSRHighScoreLists[skillset][rank - 1])[topSSRHighScoreIndexs[skillset][rank - 1] - 1]);
-		else
-			return NULL;
+	pscores.SortTopSSRPtrs(static_cast<Skillset>(ss));
+	if (ss >= 0 && ss < NUM_Skillset && rank < pscores.TopSSRs[ss].size()) {
+		auto aa = &(*pscores.TopSSRs[ss][rank - 1]);
+		return aa;
 	}
-	//Undefined skillset returns an empty pointer(NULL)
 
 	return NULL;
 }
+
 // Todo: Make it only iterate once - Nick12
 bool Profile::CalcAllTopSSRs(unsigned int qty) {
 	bool ret = true;
@@ -3546,8 +3546,9 @@ public:
 		p->GetTopSSRSteps(IArg(1), IArg(2))->PushSelf(L);
 		return 1;
 	}
-	static int RecalcTopSSR(T* p, lua_State *L) {
-		p->CalcAllTopSSRs(p->topSSRHighScoreLists[0].size());
+	static int SortAllSSRs(T* p, lua_State *L) {
+		for(size_t i = 0; i < NUM_Skillset; ++i)
+			p->pscores.SortTopSSRPtrs(static_cast<Skillset>(i));
 		return 1;
 	}
 
@@ -3648,11 +3649,8 @@ public:
 		ADD_METHOD( GetPlayerSkillsetRating );
 		ADD_METHOD( GetNumFaves );
 		ADD_METHOD( GetTopSSRValue );
-		ADD_METHOD( GetTopSSRSongName );
-		ADD_METHOD( GetSongFromSSR );
-		ADD_METHOD( GetStepsFromSSR );
 		ADD_METHOD( GetTopSSRHighScore );
-		ADD_METHOD( RecalcTopSSR );
+		ADD_METHOD( SortAllSSRs );
 		ADD_METHOD( ValidateAllScores );
 		ADD_METHOD( GetAllGoals );
 	}
