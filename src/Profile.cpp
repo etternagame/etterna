@@ -2331,8 +2331,9 @@ void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
 				HighScore tmp;
 				tmp.LoadFromEttNode(hs);
 
-				if (!SONGMAN->GetSongByChartkey(ck) || !SONGMAN->GetStepsByChartkey(ck))
-					continue;
+				// need to change to flag as dormant rather than skipping load when the above gets removed -mina
+				//if (!SONGMAN->GetSongByChartkey(ck) || !SONGMAN->GetStepsByChartkey(ck))
+					//continue;
 				pscores.LoadScoreFromNode(ck, rate, hs);
 			}
 			if (!is_sorted(hsv.begin(), hsv.end())) {
