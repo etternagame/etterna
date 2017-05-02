@@ -359,12 +359,6 @@ public:
 	float AggregateScores(vector<float>& invector, float rating, float res, int iter) const;
 	void ValidateAllScores();
 
-	/* Grabbing the highscores here and having lua invoke this results in unhandled exception errors
-	so instead this funciton finds the song/steps for identical chartkey entries and returns them to
-	the lua call which then grabs the highscores from the songscores object. -Mina */
-	void GetScoresByKey(vector<SongID>& songids, vector<StepsID>& stepsids, RString key);
-	float GetWifePBByKey(RString key, float rate);
-	HighScore& GetPBHighScoreByKey(RString ck, float rate);
 	typedef map<float, vector<HighScore>> HighScoreRateMap;
 	map<RString, HighScoreRateMap> HighScoresByChartKey;
 	PlayerScores pscores;
@@ -393,37 +387,6 @@ public:
 	map<DateTime,Calories> m_mapDayToCaloriesBurned;
 	float GetCaloriesBurnedForDay( DateTime day ) const;
 
-/*
-	// RecentSongScores
-	struct HighScoreForASongAndSteps
-	{
-		StepsID stepsID;
-		SongID songID;
-		HighScore hs;
-
-		HighScoreForASongAndSteps() { Unset(); }
-		void Unset() { stepsID.Unset(); songID.Unset(); hs.Unset(); }
-
-		XNode* CreateNode() const;
-	};
-
-	void SaveStepsRecentScore( const Song* pSong, const Steps* pSteps, HighScore hs );
-
-	// RecentCourseScores
-	struct HighScoreForACourseAndTrail
-	{
-		CourseID courseID;
-		TrailID	trailID;
-		HighScore hs;
-
-		HighScoreForACourseAndTrail() { Unset(); }
-		void Unset() { courseID.Unset(); hs.Unset(); }
-
-		XNode* CreateNode() const;
-	};
-
-	void SaveCourseRecentScore( const Course* pCourse, const Trail* pTrail, HighScore hs );
-*/
 	// Init'ing
 	void InitAll()
 	{
@@ -494,21 +457,8 @@ public:
 	
 	
 	//TopSSRs
-	bool CalcTopSSRs(unsigned int qty, int skillset);
-	bool CalcAllTopSSRs(unsigned int qty);
-	void TopSSRsAddNewScore(HighScore *hs, StepsID stepsid, SongID songid);
-	float GetTopSSRMSD(unsigned int rank, int skillset);
 	HighScore* GetTopSSRHighScore(unsigned int rank, int skillset);
-	RString GetTopSSRChartkey(unsigned int rank, int skillset);
 	float GetTopSSRValue(unsigned int rank, int skillset);
-	Song* GetTopSSRSong(unsigned int rank, int skillset);
-	Steps* GetTopSSRSteps(unsigned int rank, int skillset);
-	RString GetTopSSRSongName(unsigned int rank, int skillset);
-	//Vector array instead of a bunch of vectors
-	//vector<HighScore*> topSSRHighScores[NUM_Skillset];
-	vector<vector<HighScore>*> topSSRHighScoreLists[NUM_Skillset];
-	vector<unsigned int> topSSRHighScoreIndexs[NUM_Skillset];//we work with index+1 so 0 is undefined
-	vector<RString> topSSRChartkeys[NUM_Skillset];
 
 private:
 	const HighScoresForASong *GetHighScoresForASong( const SongID& songID ) const;

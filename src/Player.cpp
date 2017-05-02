@@ -678,8 +678,10 @@ void Player::Load()
 	nerv = m_NoteData.GetNonEmptyRowVector();
 
 	Profile *pProfile = PROFILEMAN->GetProfile(pn);
-	wifescorepersonalbest = pProfile->GetWifePBByKey(GAMESTATE->m_pCurSteps[pn]->GetChartKey(), GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
-	if (wifescorepersonalbest == 0)
+	HighScore* pb = pProfile->pscores.GetChartPBAt(GAMESTATE->m_pCurSteps[pn]->GetChartKey(), GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
+	if (pb)
+		wifescorepersonalbest = pb->GetWifeScore();
+	else
 		wifescorepersonalbest = m_pPlayerState->playertargetgoal;
 		
 	if (m_pPlayerStageStats)

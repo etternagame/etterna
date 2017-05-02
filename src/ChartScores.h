@@ -58,12 +58,13 @@ private:
 class PlayerScores
 {
 public:
-
 	// at what? rate. Duh. -mina
 	HighScore* GetChartPBAt(string& ck, float& rate);
 
 	// technically "up to and including rate: x" but that's a mouthful -mina
 	HighScore* GetChartPBUpTo(string& ck, float& rate);
+
+	Grade GetBestGradeFor(string& ck) { if (pscores.count(ck)) return pscores[ck].bestGrade; return Grade_Invalid; }
 
 	// for scores achieved during this session
 	void AddScore(const HighScore& hs_) { HighScore hs = hs_; pscores[hs.GetHistoricChartKey()].AddScore(hs); }

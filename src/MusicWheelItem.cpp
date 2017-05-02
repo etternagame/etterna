@@ -363,18 +363,17 @@ void MusicWheelItem::RefreshGrades()
 					FOREACH_ENUM_N(Difficulty, 6, i) {
 						Steps* pSteps = SongUtil::GetStepsByDifficulty(pWID->m_pSong, st, i);
 						if (pSteps != NULL) {
-							auto& hsv = pProfile->GetScoresByKey(pSteps->ChartKey);
-							FOREACH(HighScore, hsv, hs) {
-								if (gradeBest >= hs->GetWifeGrade()) {
-									dcBest = i;
-									gradeBest = hs->GetWifeGrade();
-								}
+							Grade dcg = pProfile->pscores.GetBestGradeFor(pSteps->ChartKey);
+							if (gradeBest >= dcg) {
+								dcBest = i;
+								gradeBest = dcg;
 							}
 						}
 					}
 				}
 			}
-		} else {
+		}
+		else {
 			dcBest = dc;
 			if (PROFILEMAN->IsPersistentProfile(ps) && dc != Difficulty_Invalid)
 			{

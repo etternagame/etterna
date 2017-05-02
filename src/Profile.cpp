@@ -2400,29 +2400,6 @@ HighScore* ScoreGoal::GetPBUpTo() {
 	return scores.GetChartPBUpTo(chartkey, rate);
 }
 
-// next on the chopping block -mina
-vector<HighScore> Profile::GetScoresByKey(RString ck) {
-	vector<HighScore> o;
-	if (!HighScoresByChartKey.count(ck))
-		return o;
-	auto &hsrm = HighScoresByChartKey.at(ck);
-	FOREACHM(float, vector<HighScore>, hsrm, zz) {
-		auto &hsv = zz->second;
-		for (size_t ii = 0; ii < hsv.size(); ii++) {
-			o.emplace_back(hsv[ii]);		}	}
-	return o;}
-// and then this one -mina
-float Profile::GetWifePBByKey(RString ck, float rate) {
-	float o = 0.f;
-	auto it = HighScoresByChartKey.find(ck);
-	if (it == HighScoresByChartKey.end())
-		return o;
-	auto& hsrm = HighScoresByChartKey.at(ck);
-	auto iit = hsrm.find(rate);
-	if (iit == hsrm.end())
-		return o;
-	return hsrm.at(rate).at(0).GetWifeScore();}
-
 // aaa too lazy to write comparators rn -mina
 ScoreGoal& Profile::GetLowestGoalForRate(RString ck, float rate) {
 	auto& sgv = goalmap[ck];
