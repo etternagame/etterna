@@ -755,10 +755,6 @@ void Steps::SetCachedRadarValues( const RadarValues v[NUM_PLAYERS] )
 	m_bAreCachedRadarValuesJustLoaded = true;
 }
 
-RString Steps::GetChartKeyRecord() const {
-	return ChartKeyRecord;
-};
-
 // lua start
 #include "LuaBinding.h"
 /** @brief Allow Lua to have access to the Steps. */

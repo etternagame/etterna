@@ -171,11 +171,9 @@ public:
 	data and timingdata in conjuction. Do it during load and save it in the steps data so 
 	that we have to do it as few times as possible.*/
 	RString ChartKey = "Invalid";
-	RString ChartKeyRecord = "Invalid";
 	RString GetChartKey() const { return ChartKey; }
 	vector<float> thestuffs = { 0.f,0.f,0.f,0.f,0.f };
 	MinaSD stuffnthings = { thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs };
-	RString GetChartKeyRecord() const;
 	void SetChartKey(const RString &k)  { ChartKey = k; }
 	void SetAllMSD(const MinaSD &msd) { stuffnthings = msd; }
 	MinaSD GetAllMSD() const { return stuffnthings;  }

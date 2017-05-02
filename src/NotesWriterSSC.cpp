@@ -381,7 +381,6 @@ static RString GetSSCNoteData( const Song &song, const Steps &in, bool bSavingCa
 	lines.push_back(ssprintf("#METER:%d;", in.GetMeter()));
 	lines.push_back(ssprintf("#MSDVALUES:%s;", MSDToString(in.GetAllMSD())));
 	lines.push_back(ssprintf("#CHARTKEY:%s;", SmEscape(in.GetChartKey()).c_str()));
-	lines.push_back(ssprintf("#CHARTKEYRECORD:%s;", SmEscape(in.GetChartKeyRecord()).c_str()));
 
 	push_back_tag(lines, "#MUSIC:%s;", in.GetMusicFile());
 
