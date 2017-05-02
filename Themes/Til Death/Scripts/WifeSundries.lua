@@ -211,7 +211,7 @@ function GetPlayableTime()
 end
 
 function ChangeMusicRate(rate,params)
-	if params.Name == "PrevScore" and rate < 1.95 and  (getTabIndex() == 0 or getTabIndex() == 1) then
+	if params.Name == "PrevScore" and rate < 2.95 and  (getTabIndex() == 0 or getTabIndex() == 1) then
 		GAMESTATE:GetSongOptionsObject('ModsLevel_Preferred'):MusicRate(rate+0.1)
 		GAMESTATE:GetSongOptionsObject('ModsLevel_Song'):MusicRate(rate+0.1)
 		GAMESTATE:GetSongOptionsObject('ModsLevel_Current'):MusicRate(rate+0.1)
@@ -223,7 +223,7 @@ function ChangeMusicRate(rate,params)
 		MESSAGEMAN:Broadcast("CurrentRateChanged")
 	end
 	
-	if params.Name == "PrevRate" and rate < 2 and  (getTabIndex() == 0 or getTabIndex() == 1) then
+	if params.Name == "PrevRate" and rate < 3 and  (getTabIndex() == 0 or getTabIndex() == 1) then
 		GAMESTATE:GetSongOptionsObject('ModsLevel_Preferred'):MusicRate(rate+0.05)
 		GAMESTATE:GetSongOptionsObject('ModsLevel_Song'):MusicRate(rate+0.05)
 		GAMESTATE:GetSongOptionsObject('ModsLevel_Current'):MusicRate(rate+0.05)
