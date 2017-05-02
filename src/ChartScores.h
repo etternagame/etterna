@@ -3,11 +3,17 @@
 #include <map>
 
 
-struct ScoreMap
+
+// Scores for a specific rate for a specific chart
+struct ScoresAtRate
 {
 public:
 	string pbKey = "";
 	float pbScore = 0.f;
+	
+	// -technically- your pb could be a fail grade so use "bestgrade" -mina
+	Grade bestGrade = Grade_Invalid;
+
 	HighScore& GetPB() { return scores.at(pbKey); }
 	void AddScore(HighScore& hs);
 
@@ -19,13 +25,18 @@ private:
 	
 };
 
-struct ChartScores
+
+// All scores for a specific chart
+struct ScoresForChart
 {
 public:
+	Grade bestGrade = Grade_Invalid;	// best grade for any rate 
+
 	HighScore& GetPBAt(float& rate);
 	HighScore & GetPBUpTo(float& rate);
 
 	void AddScore(HighScore& hs);
+
 	vector<float> GetPlayedRates();
 	vector<int> GetPlayedRateKeys();
 	int RateToKey(float& rate) { return lround(rate * 10000.f); }
@@ -36,7 +47,7 @@ public:
 	/* It makes sense internally to have the map keys sorted highest rate to lowest
 	however my experience in lua is that it tends to be more friendly to approach things
 	in the reverse -mina */ 
-	map<int, ScoreMap, greater<int>> ScoresByRate;
+	map<int, ScoresAtRate, greater<int>> ScoresByRate;
 private:
 
 	
@@ -56,9 +67,17 @@ public:
 
 	// the loading process should actually really be done by constructing scores in place -mina
 	// and any internal sorting should occur after all scores ares loaded
-	void AddScore(string& ck, ChartScores& cs) { pscores.emplace(ck, cs); }
+	void AddScore(string& ck, ScoresForChart& cs) { pscores.emplace(ck, cs); }
 
-	map<string, ChartScores> pscores;
+
+
+	// Top SSRs
+
+
+
+
+
+	map<string, ScoresForChart> pscores;
 	map<string, HighScore&> AllScores;
 private:
 

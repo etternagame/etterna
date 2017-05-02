@@ -6,16 +6,18 @@
 #include "ChartScores.h"
 
 
-void ScoreMap::AddScore(HighScore& hs) {
+void ScoresAtRate::AddScore(HighScore& hs) {
 	string& key = hs.GetScoreKey();
 	if (float newpb = hs.GetWifeScore() > pbScore) {
 		pbScore = newpb;
 		pbKey = key;
 	}
+	
+	bestGrade = min(hs.GetWifeGrade(), bestGrade);
 	scores.emplace(key, hs);
 }
 
-vector<string> ScoreMap::GetSortedKeys() {
+vector<string> ScoresAtRate::GetSortedKeys() {
 	map<float, string, greater<float>> tmp;
 	vector<string> o;
 	FOREACHM(string, HighScore, scores, i)
@@ -25,38 +27,40 @@ vector<string> ScoreMap::GetSortedKeys() {
 	return o;
 }
 
-HighScore& ChartScores::GetPBAt(float& rate) {
+HighScore& ScoresForChart::GetPBAt(float& rate) {
 	int key = RateToKey(rate);
 	if(ScoresByRate.count(key))
 		return ScoresByRate.at(key).GetPB();
 	return HighScore();
 }
 
-HighScore& ChartScores::GetPBUpTo(float& rate) {
+HighScore& ScoresForChart::GetPBUpTo(float& rate) {
 	int key = RateToKey(rate);
-	FOREACHM(int, ScoreMap, ScoresByRate, i) 
+	FOREACHM(int, ScoresAtRate, ScoresByRate, i) 
 		if (i->first <= key)
 			return i->second.GetPB();
 		
 	return HighScore();
 }
 
-void ChartScores::AddScore(HighScore& hs) {
+void ScoresForChart::AddScore(HighScore& hs) {
+	bestGrade = min(hs.GetWifeGrade(), bestGrade);
+
 	float rate = hs.GetMusicRate();
 	int key = RateToKey(rate);
 	ScoresByRate[key].AddScore(hs);
 }
 
-vector<float> ChartScores::GetPlayedRates() {
+vector<float> ScoresForChart::GetPlayedRates() {
 	vector<float> o;
-	FOREACHM(int, ScoreMap, ScoresByRate, i)
+	FOREACHM(int, ScoresAtRate, ScoresByRate, i)
 		o.emplace_back(KeyToRate(i->first));
 	return o;
 }
 
-vector<int> ChartScores::GetPlayedRateKeys() {
+vector<int> ScoresForChart::GetPlayedRateKeys() {
 	vector<int> o;
-	FOREACHM(int, ScoreMap, ScoresByRate, i)
+	FOREACHM(int, ScoresAtRate, ScoresByRate, i)
 		o.emplace_back(i->first);
 	return o;
 }
@@ -77,7 +81,7 @@ HighScore& PlayerScores::GetChartPBUpTo(string& ck, float& rate) {
 
 #include "LuaBinding.h"
 
-class LunaScoreMap: public Luna<ScoreMap>
+class LunaScoresAtRate: public Luna<ScoresAtRate>
 {
 public:
 	static int GetScores(T* p, lua_State *L) {
@@ -92,18 +96,18 @@ public:
 		return 1;
 	}
 
-	LunaScoreMap()
+	LunaScoresAtRate()
 	{
 		ADD_METHOD(GetScores);
 	}
 };
 
-LUA_REGISTER_CLASS(ScoreMap)
+LUA_REGISTER_CLASS(ScoresAtRate)
 
-class LunaChartScores : public Luna<ChartScores>
+class LunaScoresForChart : public Luna<ScoresForChart>
 {
 public:
-	static int GetScoreMaps(T* p, lua_State *L) {
+	static int GetScoresAtRates(T* p, lua_State *L) {
 		lua_newtable(L);
 		vector<float> rates = p->GetPlayedRates();
 		for (size_t i = 0; i < rates.size(); ++i) {
@@ -115,10 +119,10 @@ public:
 	}
 
 
-	LunaChartScores()
+	LunaScoresForChart()
 	{
-		ADD_METHOD(GetScoreMaps);
+		ADD_METHOD(GetScoresAtRates);
 	}
 };
 
-LUA_REGISTER_CLASS(ChartScores)
+LUA_REGISTER_CLASS(ScoresForChart)

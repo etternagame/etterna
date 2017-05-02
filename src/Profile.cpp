@@ -2321,7 +2321,7 @@ void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
 
 		const XNode *pRateScores = pChart->GetChild("RateScores");
 		HighScoreRateMap hsrm;
-		ChartScores wot;
+		ScoresForChart wot;
 
 		FOREACH_CONST_Child(pRateScores, pRate) {
 			float rate = StringToFloat(pRate->GetName());
