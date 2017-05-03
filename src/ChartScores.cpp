@@ -145,11 +145,10 @@ XNode* ScoresAtRate::CreateNode(const int& rate) const {
 
 	string rs = IntToString(rate);
 	rs = rs.substr(0, 1) + "." + rs.substr(1, 3);
-	o->AppendAttr("Rate", rs);
-
 	// should be safe as this is only called if there is at least 1 score (which would be the pb)
 	o->AppendAttr("PBKey", PBptr->GetScoreKey());
 	o->AppendAttr("BestGrade", GradeToString(bestGrade));
+	o->AppendAttr("Rate", rs);
 
 	FOREACHM_CONST(string, HighScore, scores, i)
 		o->AppendChild(i->second.CreateEttNode());
