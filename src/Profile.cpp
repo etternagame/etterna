@@ -1151,7 +1151,7 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 	// Not critical if this fails
 	LoadEditableDataFromDir( sDir );
 
-	ProfileLoadResult ret= LoadEttFromDir(sDir, bRequireSignature);
+	ProfileLoadResult ret= LoadStatsFromDir(sDir, bRequireSignature);
 	if (ret != ProfileLoadResult_Success)
 		ret = LoadStatsFromDir(sDir, bRequireSignature);
 	if (ret != ProfileLoadResult_Success)
@@ -2157,20 +2157,34 @@ void Profile::ImportScoresToEtterna() {
 	string ck;
 
 	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
-		const SongID& id = i->first;
+		SongID id = i->first;
 		//LOG->Warn("songdir %s",  id.ToString());
 
 		HighScoresForASong& hsfas = i->second;
 		FOREACHM(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
-			const StepsID& sid = j->first;
+			StepsID sid = j->first;
 			
 			if (sid.GetStepsType() != StepsType_dance_single)
 				continue;
 
-			//LOG->Warn("steps %s", sid.ToString());
+			// we can be a lenient and assume that additionalsongs = songs
+			if (!id.IsValid()) {
+				string sdir = id.ToString();
+				string sdir2;
+
+				if (sdir.substr(0, 15) == "AdditionalSongs") {
+					sdir2 = id.ToString().substr(10);
+				}
+				else if (sdir.substr(0, 5) == "Songs") {
+					sdir2 = "Additional" + id.ToString();
+				}
+				Song* imean = new Song;
+				imean->SetSongDir(sdir2);
+				id = SongID();
+				id.FromSong(imean);
+			}
 
 			if (id.IsValid() && sid.IsValid()) {
-				//LOG->Warn("attempting conversion");
 				vector<HighScore>& hsv = j->second.hsl.vHighScores;
 
 				Song* song = id.ToSong();
@@ -2182,10 +2196,8 @@ void Profile::ImportScoresToEtterna() {
 				ck = steps->GetChartKey();
 
 				for (size_t i = 0; i < hsv.size(); ++i) {
-					//LOG->Warn("converting score for key %s", ck);
 					HighScore hs = hsv[i];
 
-					//LOG->Warn("score percent %f", hs.GetWifeScore());
 					// ignore historic key and just load from here since the hashing function was changed anyway
 					hs.SetChartKey(ck);		
 					pscores.AddScore(hs);
