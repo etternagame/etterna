@@ -301,8 +301,10 @@ local function makescoregoal(i)
 							self:visible(true)
 							if sg:IsAchieved() then
 								self:settext("Achieved: "..datetimetodate(sg:WhenAchieved()))
-							else
+							elseif sg:IsVacuous() then
 								self:settext("Vacuous goal")
+							else
+								self:settext("")
 							end
 						else
 							self:visible(false)
