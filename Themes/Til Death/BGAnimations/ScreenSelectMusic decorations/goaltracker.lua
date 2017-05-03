@@ -194,13 +194,13 @@ local function makescoregoal(i)
 			Def.Quad{
 				InitCommand=cmd(halign,0;zoomto,28,buttonheight;diffuse,getMainColor('positive');diffusealpha,buttondiffuse),
 				MouseLeftClickMessageCommand=function(self)
-					if isOver(self) and update then
+					if sg and isOver(self) and update then
 						sg:SetRate(sg:GetRate()+0.1)
 						MESSAGEMAN:Broadcast("UpdateGoals")
 					end
 				end,
 				MouseRightClickMessageCommand=function(self)
-					if isOver(self) and update then
+					if sg and isOver(self) and update then
 						sg:SetRate(sg:GetRate()-0.1)
 						MESSAGEMAN:Broadcast("UpdateGoals")
 					end
@@ -250,13 +250,13 @@ local function makescoregoal(i)
 			Def.Quad{
 				InitCommand=cmd(y,goalrow2Y;halign,0;zoomto,25,buttonheight;diffuse,getMainColor('positive');diffusealpha,buttondiffuse),
 				MouseLeftClickMessageCommand=function(self)
-					if isOver(self) and update then
+					if sg and isOver(self) and update then
 						sg:SetPercent(sg:GetPercent()+0.01)
 						MESSAGEMAN:Broadcast("UpdateGoals")
 					end
 				end,
 				MouseRightClickMessageCommand=function(self)
-					if isOver(self) and update then
+					if sg and isOver(self) and update then
 						sg:SetPercent(sg:GetPercent()-0.01)
 						MESSAGEMAN:Broadcast("UpdateGoals")
 					end
@@ -329,13 +329,13 @@ local function makescoregoal(i)
 			Def.Quad{
 				InitCommand=cmd(x,-16;halign,0;zoomto,16,buttonheight;diffuse,getMainColor('positive');diffusealpha,buttondiffuse),
 				MouseLeftClickMessageCommand=function(self)
-					if isOver(self) and update then
+					if sg and isOver(self) and update then
 						sg:SetPriority(sg:GetPriority()+1)
 						MESSAGEMAN:Broadcast("UpdateGoals")
 					end
 				end,
 				MouseRightClickMessageCommand=function(self)
-					if isOver(self) and update then
+					if sg and isOver(self) and update then
 						sg:SetPriority(sg:GetPriority()-1)
 						MESSAGEMAN:Broadcast("UpdateGoals")
 					end
@@ -344,7 +344,7 @@ local function makescoregoal(i)
 			Def.Quad{
 				InitCommand=cmd(x,325;halign,0;zoomto,4,4;diffuse,byJudgment('TapNoteScore_Miss');diffusealpha,1),
 				MouseLeftClickMessageCommand=function(self)
-					if isOver(self) and update and sg then
+					if sg and isOver(self) and update and sg then
 						sg:Delete()
 						MESSAGEMAN:Broadcast("UpdateGoals")
 					end
