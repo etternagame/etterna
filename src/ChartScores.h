@@ -1,6 +1,7 @@
 #include "Grade.h"
 #include "GameConstantsAndTypes.h"
 #include <map>
+#include <unordered_map>
 
 
 
@@ -18,7 +19,7 @@ public:
 	vector<string> GetSortedKeys();
 
 	void PushSelf(lua_State *L);
-	map<string, HighScore> scores;
+	unordered_map<string, HighScore> scores;
 
 	XNode* CreateNode(const int& rate) const;
 	void LoadFromNode(const XNode* node, const RString& key, const float& rate);
@@ -89,7 +90,7 @@ public:
 	bool IsChartLoaded(const string& ck) { return true; }	// obviously not functioning as intended yet
 
 
-	map<string, ScoresForChart> pscores;
+	unordered_map<string, ScoresForChart> pscores;
 	map<string, HighScore&> AllScores;
 	vector<HighScore*> TopSSRs[NUM_Skillset];
 

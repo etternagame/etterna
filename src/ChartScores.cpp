@@ -20,7 +20,7 @@ void ScoresAtRate::AddScore(HighScore& hs) {
 vector<string> ScoresAtRate::GetSortedKeys() {
 	map<float, string, greater<float>> tmp;
 	vector<string> o;
-	FOREACHM(string, HighScore, scores, i)
+	FOREACHUM(string, HighScore, scores, i)
 		tmp.emplace(i->second.GetWifeScore(), i->first);
 	FOREACHM(float, string, tmp, j)
 		o.emplace_back(j->second);
@@ -92,7 +92,7 @@ HighScore* PlayerScores::GetChartPBUpTo(string& ck, float& rate) {
 
 void PlayerScores::SortTopSSRPtrs(Skillset ss) {
 	TopSSRs[ss].clear();
-	FOREACHM(string, ScoresForChart, pscores, i) {
+	FOREACHUM(string, ScoresForChart, pscores, i) {
 		if (!IsChartLoaded(i->first))
 			continue;
 		vector<HighScore*> pbs = i->second.GetAllPBPtrs();
@@ -150,7 +150,7 @@ XNode* ScoresAtRate::CreateNode(const int& rate) const {
 	o->AppendAttr("BestGrade", GradeToString(bestGrade));
 	o->AppendAttr("Rate", rs);
 
-	FOREACHM_CONST(string, HighScore, scores, i)
+	FOREACHUM_CONST(string, HighScore, scores, i)
 		o->AppendChild(i->second.CreateEttNode());
 
 	return o;
@@ -169,7 +169,7 @@ XNode * ScoresForChart::CreateNode(const string& ck) const {
 XNode * PlayerScores::CreateNode() const {
 	XNode* o = new XNode("PlayerScores");
 
-	FOREACHM_CONST(string, ScoresForChart, pscores, ch)
+	FOREACHUM_CONST(string, ScoresForChart, pscores, ch)
 		o->AppendChild(ch->second.CreateNode(ch->first));
 
 	return o;
