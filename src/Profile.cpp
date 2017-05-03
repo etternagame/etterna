@@ -2182,11 +2182,24 @@ XNode* Profile::SaveEttScoresCreateNode() const
 		pChartKey->AppendChild(pScores);
 
 		// Chart entries may contain more than just scores, write out any scoregoals associated with this key
+		// maybe these should be contained separately like the favorites? not sure, there are advantages to both
+		// also this lol, don't write any vacuous goals when saving -mina
 		if (goalmap.count(ck)) {
-			XNode* pGoals = new XNode("GoalTracker");
-			FOREACH_CONST(ScoreGoal, goalmap.at(ck), sg)
-				pGoals->AppendChild(sg->CreateNode());
-			pChartKey->AppendChild(pGoals);
+			bool anygoalstosave = false;
+			FOREACH_CONST(ScoreGoal, goalmap.at(ck), sg) {
+				if (sg->vacuous) {
+					anygoalstosave = true;
+					break;
+				}
+			}
+				
+			if (anygoalstosave) {
+				XNode* pGoals = new XNode("GoalTracker");
+				FOREACH_CONST(ScoreGoal, goalmap.at(ck), sg)
+					if (!sg->vacuous)
+						pGoals->AppendChild(sg->CreateNode());
+				pChartKey->AppendChild(pGoals);
+			}
 		}
 		
 		pNode->AppendChild(pChartKey);
@@ -2374,8 +2387,11 @@ XNode* ScoreGoal::CreateNode() const {
 	pNode->AppendChild("Priority", priority);
 	pNode->AppendChild("Achieved", achieved);
 	pNode->AppendChild("TimeAssigned", timeassigned.GetString());
-	if(achieved)
+	if (achieved) {
 		pNode->AppendChild("TimeAchieved", timeachieved.GetString());
+		pNode->AppendChild("ScoreKey", scorekey);
+	}
+		
 	pNode->AppendChild("Comment", comment);
 
 	return pNode;
@@ -2388,17 +2404,31 @@ void ScoreGoal::LoadFromNode(const XNode *pNode) {
 
 	pNode->GetChildValue("Rate", rate);
 	pNode->GetChildValue("Percent", percent);
+	if (percent > 1.f)	// goddamnit why didnt i think this through originally
+		percent /= 100.f;
 	pNode->GetChildValue("Priority", priority);
 	pNode->GetChildValue("Achieved", achieved);
 	pNode->GetChildValue("TimeAssigned", s); timeassigned.FromString(s);
-	if(achieved)
+	if (achieved) {
 		pNode->GetChildValue("TimeAchieved", s); timeachieved.FromString(s);
+		pNode->GetChildValue("ScoreKey", s); scorekey;
+	}
+		
 	pNode->GetChildValue("Comment", comment);
 }
 
 HighScore* ScoreGoal::GetPBUpTo() {
 	auto& scores = PROFILEMAN->GetProfile(PLAYER_1)->pscores;
 	return scores.GetChartPBUpTo(chartkey, rate);
+}
+
+void ScoreGoal::CheckVacuity() {
+	auto& scores = PROFILEMAN->GetProfile(PLAYER_1)->pscores;
+	HighScore* pb = scores.GetChartPBAt(chartkey, rate);
+
+	if (pb && pb->GetWifeScore() >= percent)
+		vacuous = true;
+	else vacuous = false;
 }
 
 // aaa too lazy to write comparators rn -mina
@@ -2425,10 +2455,10 @@ void Profile::SetAnyAchievedGoals(RString ck, float rate, const HighScore& pscor
 	auto& sgv = goalmap[ck];
 	for (size_t i = 0; i < sgv.size(); ++i) {
 		ScoreGoal& tmp = sgv[i];
-		// should probably adhere to the established process of storing scores percents as 0.xx to avoid this kind of confusion -mina
-		if (lround(tmp.rate * 1000.f) == lround(rate * 1000.f) && !tmp.achieved &&tmp.percent < pscore.GetWifeScore() * 100.f) {
+		if (lround(tmp.rate * 10000.f) == lround(rate * 10000.f) && !tmp.achieved &&tmp.percent < pscore.GetWifeScore()) {
 			tmp.achieved = true;
 			tmp.timeachieved = pscore.GetDateTime();
+			tmp.scorekey = pscore.GetScoreKey();
 		}
 	}
 }
@@ -3361,8 +3391,9 @@ public:
 	static int SetRate(T* p, lua_State *L) { 
 		if (!p->achieved) {
 			float newrate = FArg(1);
-			CLAMP(newrate, 0.7f, 2.0f);
+			CLAMP(newrate, 0.7f, 3.0f);
 			p->rate = newrate;
+			p->CheckVacuity();
 		}
 		
 		return 1; 
@@ -3371,8 +3402,9 @@ public:
 	static int SetPercent(T* p, lua_State *L) {
 		if (!p->achieved) {
 			float newpercent = FArg(1);
-			CLAMP(newpercent, 80.f, 100.f);
+			CLAMP(newpercent, .8f, 1.f);
 			p->percent = newpercent;
+			p->CheckVacuity();
 		}
 		return 1;
 	}
@@ -3402,6 +3434,23 @@ public:
 		return 1;
 	}
 
+	static int IsVacuous(T* p, lua_State *L) {
+		if (p->achieved)
+			lua_pushboolean(L, false);
+		
+		p->CheckVacuity();	// might be redundant
+		lua_pushboolean(L, p->vacuous);
+		return 1;
+	}
+
+	static int AchievedBy(T* p, lua_State *L) {
+		if (p->achieved)
+			lua_pushstring(L, p->scorekey);
+		else
+			lua_pushnil(L);
+		return 1;
+	}
+
 	LunaScoreGoal()
 	{
 		ADD_METHOD( GetRate );
@@ -3418,6 +3467,8 @@ public:
 		ADD_METHOD( SetComment );
 		ADD_METHOD( Delete );
 		ADD_METHOD( GetPBUpTo );
+		ADD_METHOD( IsVacuous );
+		ADD_METHOD( AchievedBy );
 	}
 };
 LUA_REGISTER_CLASS(ScoreGoal)

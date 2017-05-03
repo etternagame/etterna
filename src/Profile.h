@@ -79,18 +79,28 @@ class ScoreGoal
 {
 public:
 	float rate = 1.f;
-	float percent = 93.f;
+	float percent = .93f;
 	int priority = 1;
-	bool achieved = 0;
+	bool achieved = false;
 	DateTime timeassigned;
 	DateTime timeachieved;
 	RString comment = "";
 	RString chartkey = "";
 
+	// which specific score was this goal achieved by, reminder to consider
+	// what happens when individual score deletion is possibly added -mina
+	RString scorekey = "";
+
 	XNode* CreateNode() const;
 	void LoadFromNode(const XNode *pNode);
 
 	HighScore* GetPBUpTo();
+
+	// If the scoregoal has already been completed prior to being assigned, flag it as a vacuous goal
+	void CheckVacuity();
+
+	// Vacuous goals will remain in memory for the session but not be written during save -mina
+	bool vacuous = false;
 
 	void PushSelf(lua_State *L);
 };
