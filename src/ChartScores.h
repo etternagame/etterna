@@ -8,8 +8,7 @@
 struct ScoresAtRate
 {
 public:
-	HighScore* PBptr;
-	HighScore** GetPBPtr() { return (&PBptr); }
+	HighScore* PBptr = nullptr;
 
 	// -technically- your pb could be a fail grade so use "bestgrade" -mina
 	Grade bestGrade = Grade_Invalid;
@@ -20,6 +19,9 @@ public:
 
 	void PushSelf(lua_State *L);
 	map<string, HighScore> scores;
+
+	XNode* CreateNode(const int& rate) const;
+	void LoadFromNode(const XNode* node, const RString& key, const float& rate);
 private:
 	
 };
@@ -50,6 +52,10 @@ public:
 	however my experience in lua is that it tends to be more friendly to approach things
 	in the reverse -mina */ 
 	map<int, ScoresAtRate, greater<int>> ScoresByRate;
+
+	
+	XNode *CreateNode(const string& ck) const;
+	void LoadFromNode(const XNode* node, const RString& ck);
 private:
 
 	
@@ -70,9 +76,6 @@ public:
 	void AddScore(const HighScore& hs_) { HighScore hs = hs_; pscores[hs.GetChartKey()].AddScore(hs); }
 
 
-	void LoadScoreFromNode(RString& ck, float& rate, const XNode* hs);
-
-
 
 
 
@@ -89,6 +92,9 @@ public:
 	map<string, ScoresForChart> pscores;
 	map<string, HighScore&> AllScores;
 	vector<HighScore*> TopSSRs[NUM_Skillset];
+
+	XNode *CreateNode() const;
+	void LoadFromNode(const XNode* node);
 private:
 
 

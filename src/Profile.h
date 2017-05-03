@@ -366,8 +366,6 @@ public:
 	void RecalculateSSRs(bool OnlyOld);
 	void ValidateAllScores();
 
-	typedef map<float, vector<HighScore>> HighScoreRateMap;
-	map<RString, HighScoreRateMap> HighScoresByChartKey;
 	PlayerScores pscores;
 
 
@@ -420,17 +418,15 @@ public:
 	void HandleStatsPrefixChange(RString dir, bool require_signature);
 	ProfileLoadResult LoadAllFromDir( const RString &sDir, bool bRequireSignature );
 	ProfileLoadResult LoadStatsFromDir(RString dir, bool require_signature);
-	ProfileLoadResult LoadEttFromDir(RString dir, bool require_signature);
 	void LoadTypeFromDir(const RString &dir);
 	void LoadCustomFunction( const RString &sDir );
 	bool SaveAllToDir( const RString &sDir, bool bSignData ) const;
 
 	ProfileLoadResult LoadEditableDataFromDir( const RString &sDir );
 	ProfileLoadResult LoadStatsXmlFromNode( const XNode* pNode, bool bIgnoreEditable = true );
-	ProfileLoadResult LoadEttXmlFromNode(const XNode* pNode, bool bIgnoreEditable = true);
+
 	void LoadGeneralDataFromNode( const XNode* pNode );
 	void LoadSongScoresFromNode( const XNode* pNode );
-	void LoadEttScoresFromNode(const XNode* pNode);
 	void LoadCourseScoresFromNode( const XNode* pNode );
 	void LoadCategoryScoresFromNode( const XNode* pNode );
 	void LoadScreenshotDataFromNode( const XNode* pNode );
@@ -439,12 +435,12 @@ public:
 	void SaveTypeToDir(const RString &dir) const;
 	void SaveEditableDataToDir( const RString &sDir ) const;
 	bool SaveStatsXmlToDir( RString sDir, bool bSignData ) const;
-	bool SaveEttXmlToDir(RString sDir, bool bSignData) const;
+	
 	XNode* SaveStatsXmlCreateNode() const;
-	XNode* SaveEttXmlCreateNode() const;
+	
 	XNode* SaveGeneralDataCreateNode() const;
 	XNode* SaveSongScoresCreateNode() const;
-	XNode* SaveEttScoresCreateNode() const;
+
 	XNode* SaveCourseScoresCreateNode() const;
 	XNode* SaveCategoryScoresCreateNode() const;
 	XNode* SaveScreenshotDataCreateNode() const;
@@ -452,6 +448,17 @@ public:
 
 	XNode* SaveCoinDataCreateNode() const;
 
+	// Etterna profile
+	ProfileLoadResult LoadEttFromDir(RString dir, bool require_signature);
+	ProfileLoadResult LoadEttXmlFromNode(const XNode* pNode);
+	void LoadEttScoresFromNode(const XNode* pNode);
+
+	bool SaveEttXmlToDir(RString sDir) const;
+	XNode* SaveEttScoresCreateNode() const;
+	XNode* SaveEttXmlCreateNode() const;
+
+
+	
 	void SaveStatsWebPageToDir( const RString &sDir ) const;
 	void SaveMachinePublicKeyToDir( const RString &sDir ) const;
 

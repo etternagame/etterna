@@ -78,7 +78,7 @@ struct HighScore
 	 * @brief Set the name of the Player that earned the score.
 	 * @param sName the name of the Player. */
 	void SetName( const RString &sName );
-	void SetChartKey( RString &ck );
+	void SetChartKey( const RString &ck );
 	void SetSSRCalcVersion(float cv);
 	void SetGrade( Grade g );
 	void SetScore( unsigned int iScore );
@@ -91,7 +91,7 @@ struct HighScore
 	void SetEtternaValid(bool b);
 	void SetOffsetVector(const vector<float>& v);
 	void SetNoteRowVector(const vector<int>& v);
-	void SetScoreKey(RString ck);
+	void SetScoreKey(const RString& ck);
 	void SetRescoreJudgeVector(const vector<int>& v);
 	void SetAliveSeconds( float f );
 	void SetMaxCombo( unsigned int i );

@@ -299,34 +299,25 @@ XNode *HighScoreImpl::CreateNode() const
 	return pNode;
 }
 
-XNode *HighScoreImpl::CreateEttNode() const
-{
-	XNode *pNode = new XNode("HighScore");
-	pNode->AppendChild("ChartKey", ChartKey);
-	pNode->AppendChild("ScoreKey", ScoreKey);
+XNode *HighScoreImpl::CreateEttNode() const {
+	XNode *pNode = new XNode("Score");
+	pNode->AppendAttr("Key", ScoreKey);
+	
 	pNode->AppendChild("SSRCalcVersion", SSRCalcVersion);
 	pNode->AppendChild("Grade", GradeToString(GetWifeGrade()));
 	pNode->AppendChild("WifeScore", fWifeScore);
 	pNode->AppendChild("SSRNormPercent", fSSRNormPercent);
-	pNode->AppendChild("Rate", fMusicRate);
 	pNode->AppendChild("JudgeScale", fJudgeScale);
 	pNode->AppendChild("NoChordCohesion", bNoChordCohesion);
 	pNode->AppendChild("EtternaValid", bEtternaValid);
-
-	if (vOffsetVector.size() > 1) {
-		pNode->AppendChild("Offsets", OffsetsToString(vOffsetVector));
-		pNode->AppendChild("NoteRows", NoteRowsToString(vNoteRowVector));
-	}
-
 	pNode->AppendChild("SurviveSeconds", fSurviveSeconds);
 	pNode->AppendChild("MaxCombo", iMaxCombo);
 	pNode->AppendChild("Modifiers", sModifiers);
 	pNode->AppendChild("DateTime", dateTime.GetString());
-	pNode->AppendChild("ProductID", iProductID);
 
 	XNode* pTapNoteScores = pNode->AppendChild("TapNoteScores");
 	FOREACH_ENUM(TapNoteScore, tns)
-		if (tns != TNS_None)	// HACK: don't save meaningless "none" count
+		if (tns != TNS_None && tns != TNS_CheckpointMiss && tns != TNS_CheckpointHit)
 			pTapNoteScores->AppendChild(TapNoteScoreToString(tns), iTapNoteScores[tns]);
 
 	XNode* pHoldNoteScores = pNode->AppendChild("HoldNoteScores");
@@ -338,24 +329,17 @@ XNode *HighScoreImpl::CreateEttNode() const
 	if (fWifeScore > 0.f) {
 		XNode* pSkillsetSSRs = pNode->AppendChild("SkillsetSSRs");
 		FOREACH_ENUM(Skillset, ss)
-			pSkillsetSSRs->AppendChild(SkillsetToString(ss), fSkillsetSSRs[ss]);
+			pSkillsetSSRs->AppendChild(SkillsetToString(ss), FloatToString(fSkillsetSSRs[ss]).substr(0, 5));
 	}
 
-	pNode->AppendChild("Disqualified", bDisqualified);
 	pNode->AppendChild("ValidationKey", ValidationKey);
 	return pNode;
 }
 
-void HighScoreImpl::LoadFromEttNode(const XNode *pNode)
-{
-	ASSERT(pNode->GetName() == "HighScore");
+void HighScoreImpl::LoadFromEttNode(const XNode *pNode) {
+	ASSERT(pNode->GetName() == "Score");
 
-	RString s;
-
-	pNode->GetChildValue("ChartKey", ChartKey);
-	if (ChartKey == "")
-		pNode->GetChildValue("HistoricChartKey", ChartKey);
-	
+	RString s;	
 	pNode->GetChildValue("SSRCalcVersion", SSRCalcVersion);
 	pNode->GetChildValue("Grade", s);
 	grade = StringToGrade(s);
@@ -365,18 +349,11 @@ void HighScoreImpl::LoadFromEttNode(const XNode *pNode)
 	pNode->GetChildValue("JudgeScale", fJudgeScale);
 	pNode->GetChildValue("NoChordCohesion", bNoChordCohesion);
 	pNode->GetChildValue("EtternaValid", bEtternaValid);
-	pNode->GetChildValue("Offsets", s);			vOffsetVector = OffsetsToVector(s);
-	pNode->GetChildValue("NoteRows", s);		vNoteRowVector = NoteRowsToVector(s);
 	pNode->GetChildValue("SurviveSeconds", fSurviveSeconds);
 	pNode->GetChildValue("MaxCombo", iMaxCombo);
 	pNode->GetChildValue("Modifiers", sModifiers);
 	pNode->GetChildValue("DateTime", s); dateTime.FromString(s);
 	pNode->GetChildValue("ScoreKey", ScoreKey);
-
-	if (fWifeScore > 0.f)
-		ScoreKey = "S" + BinaryToHex(CryptManager::GetSHA1ForString(dateTime.GetString()));
-	else
-		ScoreKey = "";
 
 	const XNode* pTapNoteScores = pNode->GetChild("TapNoteScores");
 	if (pTapNoteScores)
@@ -395,19 +372,8 @@ void HighScoreImpl::LoadFromEttNode(const XNode *pNode)
 			pSkillsetSSRs->GetChildValue(SkillsetToString(ss), fSkillsetSSRs[ss]);
 	}
 
-	pNode->GetChildValue("Disqualified", bDisqualified);
 	pNode->GetChildValue("ValidationKey", ValidationKey);
 
-	// special test case stuff - mina
-	//if (vOffsetVector.size() > 1 && fWifeScore == 0.f)
-	//	fWifeScore = RescoreToWifeTS(fJudgeScale);
-	if (vNoteRowVector.size() + vOffsetVector.size() > 2 && (vNoteRowVector.size() == vOffsetVector.size()) && fWifeScore > 0.f) {
-		bool writesuccess = WriteReplayData(true);
-
-		// ensure data is written out somewhere else before destroying it
-		if (writesuccess)
-			UnloadReplayData();
-	}
 	// Validate input.
 	grade = clamp(grade, Grade_Tier01, Grade_Failed);
 }
@@ -651,7 +617,7 @@ float HighScore::GetLifeRemainingSeconds() const { return m_Impl->fLifeRemaining
 bool HighScore::GetDisqualified() const { return m_Impl->bDisqualified; }
 
 void HighScore::SetName( const RString &sName ) { m_Impl->sName = sName; }
-void HighScore::SetChartKey( RString &ck) { m_Impl->ChartKey = ck; }
+void HighScore::SetChartKey( const RString &ck) { m_Impl->ChartKey = ck; }
 void HighScore::SetSSRCalcVersion(float cv) { m_Impl->SSRCalcVersion = cv; }
 void HighScore::SetGrade( Grade g ) { m_Impl->grade = g; }
 void HighScore::SetScore( unsigned int iScore ) { m_Impl->iScore = iScore; }
@@ -667,7 +633,7 @@ void HighScore::SetChordCohesion(bool b) { m_Impl->bNoChordCohesion = b; }
 void HighScore::SetEtternaValid(bool b) { m_Impl->bEtternaValid = b; }
 void HighScore::SetOffsetVector(const vector<float>& v) { m_Impl->vOffsetVector = v; }
 void HighScore::SetNoteRowVector(const vector<int>& v) { m_Impl->vNoteRowVector = v; }
-void HighScore::SetScoreKey(RString sk) { m_Impl->ScoreKey = sk; }
+void HighScore::SetScoreKey(const RString& sk) { m_Impl->ScoreKey = sk; }
 void HighScore::SetRescoreJudgeVector(const vector<int>& v) { m_Impl->vRescoreJudgeVector = v; }
 void HighScore::SetAliveSeconds( float f ) { m_Impl->fSurviveSeconds = f; }
 void HighScore::SetModifiers( const RString &s ) { m_Impl->sModifiers = s; }

@@ -31,7 +31,7 @@
 #include <algorithm>
 
 const RString STATS_XML            = "Stats.xml";
-const RString ETT_XML			   = "ETT.xml";
+const RString ETT_XML			   = "Etterna.xml";
 const RString STATS_XML_GZ         = "Stats.xml.gz";
 /** @brief The filename for where one can edit their personal profile information. */
 const RString EDITABLE_INI         = "Editable.ini";
@@ -1249,7 +1249,7 @@ ProfileLoadResult Profile::LoadStatsFromDir(RString dir, bool require_signature)
 ProfileLoadResult Profile::LoadEttFromDir(RString dir, bool require_signature)
 {
 	dir += PROFILEMAN->GetStatsPrefix();
-	// Check for the existance of stats.xml
+	// Check for the existence of stats.xml
 	RString fn = dir + ETT_XML;
 	bool compressed = false;
 	if (!IsAFile(fn))
@@ -1354,8 +1354,7 @@ ProfileLoadResult Profile::LoadStatsXmlFromNode( const XNode *xml, bool bIgnoreE
 	return ProfileLoadResult_Success;
 }
 
-ProfileLoadResult Profile::LoadEttXmlFromNode(const XNode *xml, bool bIgnoreEditable)
-{
+ProfileLoadResult Profile::LoadEttXmlFromNode(const XNode *xml) {
 	/* The placeholder stats.xml file has an <html> tag. Don't load it,
 	* but don't warn about it. */
 	if (xml->GetName() == "html")
@@ -1367,32 +1366,11 @@ ProfileLoadResult Profile::LoadEttXmlFromNode(const XNode *xml, bool bIgnoreEdit
 		return ProfileLoadResult_FailedTampered;
 	}
 
-	// These are loaded from Editable, so we usually want to ignore them here.
-	RString sName = m_sDisplayName;
-	RString sCharacterID = m_sCharacterID;
-	RString sLastUsedHighScoreName = m_sLastUsedHighScoreName;
-	int iWeightPounds = m_iWeightPounds;
-	float Voomax = m_Voomax;
-	int BirthYear = m_BirthYear;
-	bool IgnoreStepCountCalories = m_IgnoreStepCountCalories;
-	bool IsMale = m_IsMale;
 
 	LOAD_NODE(GeneralData);
 
-	const XNode* scores = xml->GetChild("SongScores");
+	const XNode* scores = xml->GetChild("PlayerScores");
 	LoadEttScoresFromNode(scores);
-
-	if (bIgnoreEditable)
-	{
-		m_sDisplayName = sName;
-		m_sCharacterID = sCharacterID;
-		m_sLastUsedHighScoreName = sLastUsedHighScoreName;
-		m_iWeightPounds = iWeightPounds;
-		m_Voomax = Voomax;
-		m_BirthYear = BirthYear;
-		m_IgnoreStepCountCalories = IgnoreStepCountCalories;
-		m_IsMale = IsMale;
-	}
 
 	return ProfileLoadResult_Success;
 }
@@ -1406,9 +1384,7 @@ bool Profile::SaveAllToDir( const RString &sDir, bool bSignData ) const
 	// Save editable.ini
 	SaveEditableDataToDir( sDir );
 
-	//bool bSaved = SaveStatsXmlToDir( sDir, bSignData );
-	bool bSaved	= SaveEttXmlToDir(sDir, bSignData);
-	//bool bSaved = SaveStatsXmlToDir(sDir, bSignData);
+	bool bSaved = SaveEttXmlToDir(sDir);
 
 	SaveStatsWebPageToDir( sDir );
 
@@ -1525,14 +1501,14 @@ bool Profile::SaveStatsXmlToDir( RString sDir, bool bSignData ) const
 	return true;
 }
 
-bool Profile::SaveEttXmlToDir(RString sDir, bool bSignData) const
+bool Profile::SaveEttXmlToDir(RString sDir) const
 {
 	LOG->Trace("SaveStatsXmlToDir: %s", sDir.c_str());
 	unique_ptr<XNode> xml(SaveEttXmlCreateNode());
 
 	sDir += PROFILEMAN->GetStatsPrefix();
-	// Save stats.xml
-	RString fn = sDir + (g_bProfileDataCompress ? STATS_XML_GZ : ETT_XML);
+	// Save Etterna.xml
+	RString fn = sDir + ETT_XML;
 
 	{
 		RString sError;
@@ -1566,16 +1542,6 @@ bool Profile::SaveEttXmlToDir(RString sDir, bool bSignData) const
 			if (FILEMAN->IsAFile(sDir + STATS_XML_GZ))
 				FILEMAN->Remove(sDir + STATS_XML_GZ);
 		}
-	}
-
-	if (bSignData)
-	{
-		RString sStatsXmlSigFile = fn + SIGNATURE_APPEND;
-		CryptManager::SignFileToFile(fn, sStatsXmlSigFile);
-
-		// Save the "don't share" file
-		RString sDontShareFile = sDir + DONT_SHARE_SIG;
-		CryptManager::SignFileToFile(sStatsXmlSigFile, sDontShareFile);
 	}
 
 	return true;
@@ -2141,62 +2107,6 @@ XNode* Profile::SaveSongScoresCreateNode() const
 	return pNode;
 }
 
-XNode* Profile::SaveEttScoresCreateNode() const
-{
-	CHECKPOINT_M("Getting the node to save song scores.");
-
-	const Profile* pProfile = this;
-	ASSERT( pProfile != NULL );
-
-	XNode* pNode = new XNode( "SongScores" );
-	
-	FOREACHM_CONST( RString, HighScoreRateMap, HighScoresByChartKey, i )
-	{
-		const RString &ck = i->first;
-		const HighScoreRateMap &hsrm = i->second;
-		XNode* pChartKey = new XNode("Chart");
-
-		Song* psong = SONGMAN->GetSongByChartkey(ck);
-
-		// sometimes scores on invalid songs get loaded even though there is literally an isvalid check before any scores are loaded..??
-		if (!psong)
-			continue;
-
-		pChartKey->AppendAttr("Key", ck);
-		pChartKey->AppendAttr("SongTitle", psong->GetDisplayMainTitle());
-
-		XNode* pScores = new XNode("RateScores");
-		FOREACHM_CONST( float, vector<HighScore>, hsrm, j )
-		{
-			const float &rate = j->first;
-			const vector<HighScore> &hsv = j->second;
-
-			XNode* pRateScores = new XNode(ssprintf("%f", rate));
-			FOREACH_CONST(HighScore, hsv, hs) {
-				const HighScore &chs = *hs;
-				pRateScores->AppendChild(chs.CreateEttNode());
-			}
-
-			pScores->AppendChild(pRateScores);
-		}
-		pChartKey->AppendChild(pScores);
-
-		// Chart entries may contain more than just scores, write out any scoregoals associated with this key
-		// maybe these should be contained separately like the favorites? not sure, there are advantages to both
-		// also this lol, don't write any vacuous goals when saving -mina
-		if (goalmap.count(ck)) {
-			XNode* pGoals = new XNode("GoalTracker");
-			FOREACH_CONST(ScoreGoal, goalmap.at(ck), sg)
-				pGoals->AppendChild(sg->CreateNode());
-			pChartKey->AppendChild(pGoals);
-		}
-		
-		pNode->AppendChild(pChartKey);
-	}
-
-	return pNode;
-}
-
 void Profile::RemoveFromFavorites(RString ck) {
 	for (size_t i = 0; i < FavoritedCharts.size(); ++i) {
 		if (FavoritedCharts[i] == ck)
@@ -2308,55 +2218,20 @@ void Profile::LoadSongScoresFromNode( const XNode* pSongScores )
 	}
 }
 
+XNode* Profile::SaveEttScoresCreateNode() const {
+	CHECKPOINT_M("Getting the node to save song scores.");
+
+	const Profile* pProfile = this;
+	ASSERT(pProfile != NULL);
+
+	XNode* pNode = pscores.CreateNode();
+
+	return pNode;
+}
 
 void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
 	CHECKPOINT_M("Loading the node that contains song scores.");
-
-	ASSERT(pSongScores->GetName() == "SongScores");
-
-	FOREACH_CONST_Child(pSongScores, pChart) {
-		if (pChart->GetName() != "Chart")
-			continue;
-
-		RString ck;
-		pChart->GetAttrValue("Key", ck);
-
-		const XNode *pRateScores = pChart->GetChild("RateScores");
-		HighScoreRateMap hsrm;
-		FOREACH_CONST_Child(pRateScores, pRate) {
-			float rate = StringToFloat(pRate->GetName());
-
-			vector<HighScore> hsv;
-			FOREACH_CONST_Child(pRate, hs) {
-				hsv.resize(hsv.size() + 1);
-				hsv.back().LoadFromEttNode(hs);
-				HighScore tmp;
-				tmp.LoadFromEttNode(hs);
-
-				// need to change to flag as dormant rather than skipping load when the above gets removed -mina
-				//if (!SONGMAN->GetSongByChartkey(ck) || !SONGMAN->GetStepsByChartkey(ck))
-					//continue;
-				pscores.LoadScoreFromNode(ck, rate, hs);
-			}
-			if (!is_sorted(hsv.begin(), hsv.end())) {
-				sort(hsv.begin(), hsv.end());
-				reverse(hsv.begin(), hsv.end());
-			}
-			hsrm.emplace(rate, hsv);
-		}
-
-		const XNode *pGoals = pChart->GetChild("GoalTracker");
-		if (pGoals) {
-			vector<ScoreGoal> sgv;
-			FOREACH_CONST_Child(pGoals, sg) {
-				sgv.resize(sgv.size() + 1);
-				sgv.back().LoadFromNode(sg);
-			}
-			goalmap.emplace(ck, sgv);
-		}
-		SONGMAN->SetHasGoal(goalmap);
-		HighScoresByChartKey.emplace(ck, hsrm);
-	}
+	pscores.LoadFromNode(pSongScores);
 }
 
 // more future goalman stuff

@@ -65,6 +65,7 @@ vector<int> ScoresForChart::GetPlayedRateKeys() {
 	return o;
 }
 
+
 vector<HighScore*> ScoresForChart::GetAllPBPtrs() {
 	vector<HighScore*> o;
 	FOREACHM(int, ScoresAtRate, ScoresByRate, i)
@@ -88,14 +89,6 @@ HighScore* PlayerScores::GetChartPBUpTo(string& ck, float& rate) {
 
 
 
-void PlayerScores::LoadScoreFromNode(RString& ck, float& rate, const XNode* hs) {
-	HighScore tmp;
-	tmp.LoadFromEttNode(hs);
-
-	// this only makes sense if converting from the old save structure where the key is not known -mina
-	tmp.SetChartKey(ck);
-	pscores[ck].AddScore(tmp);
-}
 
 void PlayerScores::SortTopSSRPtrs(Skillset ss) {
 	TopSSRs[ss].clear();
@@ -144,6 +137,85 @@ float PlayerScores::AggregateSSRs(Skillset ss, float rating, float res, int iter
 }
 
 
+
+
+// Write scores to xml
+XNode* ScoresAtRate::CreateNode(const int& rate) const {
+	XNode* o = new XNode("ScoresAt");
+
+	string rs = IntToString(rate);
+	rs = rs.substr(0, 1) + "." + rs.substr(1, 3);
+	o->AppendAttr("Rate", rs);
+
+	// should be safe as this is only called if there is at least 1 score (which would be the pb)
+	o->AppendAttr("PBKey", PBptr->GetScoreKey());
+	o->AppendAttr("BestGrade", GradeToString(bestGrade));
+
+	FOREACHM_CONST(string, HighScore, scores, i)
+		o->AppendChild(i->second.CreateEttNode());
+
+	return o;
+}
+
+XNode * ScoresForChart::CreateNode(const string& ck) const {
+	XNode* o = new XNode("ChartScores");
+	o->AppendAttr("Key", ck);
+
+	FOREACHM_CONST(int, ScoresAtRate, ScoresByRate, i)
+		o->AppendChild(i->second.CreateNode(i->first));
+
+	return o;
+}
+
+XNode * PlayerScores::CreateNode() const {
+	XNode* o = new XNode("PlayerScores");
+
+	FOREACHM_CONST(string, ScoresForChart, pscores, ch)
+		o->AppendChild(ch->second.CreateNode(ch->first));
+
+	return o;
+}
+
+
+// Read scores from xml
+void ScoresAtRate::LoadFromNode(const XNode* node, const RString& ck, const float& rate) {
+	RString sk;
+	FOREACH_CONST_Child(node, p) {
+		p->GetAttrValue("Key", sk);
+		scores[sk].LoadFromEttNode(p);
+
+		// Fill in stuff for the highscores
+		scores[sk].SetChartKey(ck);
+		scores[sk].SetScoreKey(sk);
+		scores[sk].SetMusicRate(rate);
+	}
+
+	// Set the pbptr
+	PBptr = &scores.find(sk)->second;
+	bestGrade = PBptr->GetWifeGrade();
+}
+
+void ScoresForChart::LoadFromNode(const XNode* node, const RString& ck) {
+	RString rs;
+	int rate;
+	FOREACH_CONST_Child(node, p) {
+		ASSERT(p->GetName() == "ScoresAt");
+		p->GetAttrValue("Rate", rs);
+		rate = 10 * StringToInt(rs.substr(0, 1) + rs.substr(2, 4));
+		ScoresByRate[rate].LoadFromNode(p, ck,KeyToRate(rate));
+	}
+}
+
+void PlayerScores::LoadFromNode(const XNode * node) {
+	RString ck;
+	FOREACH_CONST_Child(node, p) {
+		ASSERT(p->GetName() == "ChartScores");
+		p->GetAttrValue("Key", ck);
+		pscores[ck].LoadFromNode(p, ck);
+	}
+}
+
+
 #include "LuaBinding.h"
 
 class LunaScoresAtRate: public Luna<ScoresAtRate>
@@ -176,7 +248,7 @@ public:
 		lua_newtable(L);
 		vector<float> rates = p->GetPlayedRates();
 		for (size_t i = 0; i < rates.size(); ++i) {
-			p->ScoresByRate[rates[i]].PushSelf(L);
+			p->ScoresByRate[rates[i]].PushSelf(L);	// broken
 			lua_rawseti(L, -2, i + 1);
 		}
 
