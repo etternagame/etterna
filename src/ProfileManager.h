@@ -51,6 +51,7 @@ public:
 	bool LoadProfileFromMemoryCard( PlayerNumber pn, bool bLoadEdits = true );
 	bool FastLoadProfileNameFromMemoryCard( const RString &sRootDir, RString &sName ) const;
 	bool SaveProfile( PlayerNumber pn ) const;
+	bool ConvertProfile(PlayerNumber pn);
 	bool SaveLocalProfile( const RString &sProfileID );
 	void UnloadProfile( PlayerNumber pn );
 
@@ -92,7 +93,6 @@ public:
 	int GetSongNumTimesPlayed( const Song* pSong, ProfileSlot card ) const;
 	bool IsSongNew( const Song* pSong ) const { return GetSongNumTimesPlayed(pSong,ProfileSlot_Machine)==0; }
 	void AddStepsScore( const Song* pSong, const Steps* pSteps , PlayerNumber pn, const HighScore &hs, int &iPersonalIndexOut, int &iMachineIndexOut );
-	void AddScoreByKey(PlayerNumber pn, const HighScore &hs);
 	void IncrementStepsPlayCount( const Song* pSong, const Steps* pSteps, PlayerNumber pn );
 
 	// Course stats

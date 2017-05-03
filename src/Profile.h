@@ -457,6 +457,8 @@ public:
 	XNode* SaveEttScoresCreateNode() const;
 	XNode* SaveEttXmlCreateNode() const;
 
+	// For converting to etterna from stats.xml
+	void ImportScoresToEtterna();
 
 	
 	void SaveStatsWebPageToDir( const RString &sDir ) const;

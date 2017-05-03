@@ -353,6 +353,30 @@ bool ProfileManager::SaveProfile( PlayerNumber pn ) const
 	return b;
 }
 
+bool ProfileManager::ConvertProfile(PlayerNumber pn)
+{
+	if (m_sProfileDir[pn].empty())
+		return false;
+
+	/*
+	* If the profile we're writing was loaded from the primary (non-backup)
+	* data, then we've validated it and know it's good.  Before writing our
+	* new data, move the old, good data to the backup.  (Only do this once;
+	* if we save the profile more than once, we haven't re-validated the
+	* newly written data.)
+	*/
+	if (m_bNeedToBackUpLastLoad[pn])
+	{
+		m_bNeedToBackUpLastLoad[pn] = false;
+		RString sBackupDir = m_sProfileDir[pn] + LAST_GOOD_SUBDIR;
+		Profile::MoveBackupToDir(m_sProfileDir[pn], sBackupDir);
+	}
+
+	GetProfile(pn)->ImportScoresToEtterna();
+
+	return true;
+}
+
 bool ProfileManager::SaveLocalProfile( const RString &sProfileID )
 {
 	const Profile *pProfile = GetLocalProfile( sProfileID );
@@ -881,36 +905,6 @@ void ProfileManager::AddStepsScore( const Song* pSong, const Steps* pSteps, Play
 	*/
 }
 
-// gotta get a better way to do this, probably by making the score map a class - Mina
-void ProfileManager::AddScoreByKey(PlayerNumber pn, const HighScore &hs_) {
-	HighScore hs = hs_;
-	Profile* pProfile = GetProfile(pn);
-	auto ck = hs.GetChartKey();
-	auto rate = hs.GetMusicRate();
-	
-	
-	auto &hsbk = pProfile->HighScoresByChartKey;
-	auto it = hsbk.find(ck);
-	if (it == hsbk.end()) {
-		vector<HighScore> hsv;
-		hsv.emplace_back(hs);
-		map<float, vector<HighScore>> hsrm;
-		hsrm.emplace(rate, hsv);
-		hsbk.emplace(ck, hsrm);
-	}
-	else {
-		auto it2 = hsbk.at(ck).find(rate);
-		if (it2 == hsbk.at(ck).end()) {
-			vector<HighScore> hsv;
-			hsv.emplace_back(hs);
-			hsbk.at(ck).emplace(rate, hsv);
-		}
-		else {
-			hsbk.at(ck).at(rate).emplace_back(hs);
-		}
-	}
-}
-
 void ProfileManager::IncrementStepsPlayCount( const Song* pSong, const Steps* pSteps, PlayerNumber pn )
 {
 	if( IsPersistentProfile(pn) )
@@ -1128,6 +1122,7 @@ public:
 		return 1;
 	}
 	static int SaveProfile( T* p, lua_State *L ) { lua_pushboolean( L, p->SaveProfile(Enum::Check<PlayerNumber>(L, 1)) ); return 1; }
+	static int ConvertProfile(T* p, lua_State *L) { lua_pushboolean(L, p->ConvertProfile(Enum::Check<PlayerNumber>(L, 1))); return 1; }
 	static int SaveLocalProfile( T* p, lua_State *L ) { lua_pushboolean( L, p->SaveLocalProfile(SArg(1)) ); return 1; }
 	static int ProfileFromMemoryCardIsNew( T* p, lua_State *L ) { lua_pushboolean( L, p->ProfileFromMemoryCardIsNew(Enum::Check<PlayerNumber>(L, 1)) ); return 1; }
 	static int GetSongNumTimesPlayed( T* p, lua_State *L )
@@ -1170,6 +1165,7 @@ public:
 		ADD_METHOD( GetPlayerName );
 		//
 		ADD_METHOD( SaveProfile );
+		ADD_METHOD( ConvertProfile );
 		ADD_METHOD( SaveLocalProfile );
 		ADD_METHOD( ProfileFromMemoryCardIsNew );
 		ADD_METHOD( GetSongNumTimesPlayed );

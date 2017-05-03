@@ -388,6 +388,28 @@ t[#t+1] = Def.Quad{
 	UpdateRankingMessageCommand=cmd(queuecommand,"Set")
 }
 
+t[#t+1] = Def.Quad{
+	InitCommand=cmd(xy,frameX+320,frameY+rankingY+265;zoomto,100,20;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
+	SetCommand=function(self)
+		if rankingSkillset == 0 then
+			self:visible(true)
+		else
+			self:visible(false)
+		end
+	end,
+	MouseLeftClickMessageCommand=function(self)
+		if isOver(self) and rankingSkillset == 0 then
+			local saved = PROFILEMAN:ConvertProfile(PLAYER_1)
+			if saved then
+				ms.ok("Convert")
+			else
+				ms.ok("Save failed")
+			end
+		end
+	end,
+	UpdateRankingMessageCommand=cmd(queuecommand,"Set")
+}
+
 t[#t+1] = LoadFont("Common Large") .. {
 		InitCommand=cmd(xy,frameX+80,frameY+rankingY+275;halign,0.5;zoom,0.3;diffuse,getMainColor('positive');settext,"Save Profile"),
 		SetCommand=function(self)
