@@ -211,7 +211,7 @@ local function makescoregoal(i)
 				SetCommand=function(self)
 					if update then 
 						if sg then 
-							self:settextf("%5.f%%", sg:GetPercent())
+							self:settextf("%5.f%%", sg:GetPercent() * 100)
 							self:visible(true)
 						else
 							self:visible(false)
@@ -251,13 +251,13 @@ local function makescoregoal(i)
 				InitCommand=cmd(y,goalrow2Y;halign,0;zoomto,25,buttonheight;diffuse,getMainColor('positive');diffusealpha,buttondiffuse),
 				MouseLeftClickMessageCommand=function(self)
 					if isOver(self) and update then
-						sg:SetPercent(sg:GetPercent()+1)
+						sg:SetPercent(sg:GetPercent()+0.01)
 						MESSAGEMAN:Broadcast("UpdateGoals")
 					end
 				end,
 				MouseRightClickMessageCommand=function(self)
 					if isOver(self) and update then
-						sg:SetPercent(sg:GetPercent()-1)
+						sg:SetPercent(sg:GetPercent()-0.01)
 						MESSAGEMAN:Broadcast("UpdateGoals")
 					end
 				end
@@ -300,6 +300,9 @@ local function makescoregoal(i)
 						if sg and sg:IsAchieved() then 
 							self:settext("Achieved: "..datetimetodate(sg:WhenAchieved()))
 							self:visible(true)
+						elseif sg:IsVacuous() then
+							self:visible(true)
+							self:settext("Vacuous goal")
 						else
 							self:visible(false)
 						end
@@ -313,12 +316,11 @@ local function makescoregoal(i)
 				SetCommand=function(self)
 					if update then 
 						if sg then 
-							self:settextf(sg:GetPriority())
+							self:settext(sg:GetPriority())
 							self:visible(true)
 						else
 							self:visible(false)
 						end
-						self:diffuse(byAchieved(sg))
 					end
 				end,
 				UpdateGoalsMessageCommand=cmd(queuecommand,"Set")
