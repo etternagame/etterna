@@ -411,7 +411,7 @@ bool Song::LoadFromSongDir( RString sDir, bool load_autosave )
 	*/
 
 	// Add AutoGen pointers. (These aren't cached.)
-	AddAutoGenNotes();
+	//AddAutoGenNotes();
 
 	if( !m_bHasMusic )
 	{
