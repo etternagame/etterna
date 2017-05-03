@@ -524,11 +524,14 @@ void SetChartKey(StepsTagInfo& info) {
 	info.steps->SetChartKey((*info.params)[1]);
 }
 
-void strsplit(vector<float>& o, const RString& s, size_t i) {
-	size_t j = s.find(",", i);
-	o.emplace_back(StringToFloat(s.substr(i, j - 1)));
-	if (j != s.npos)
-		strsplit(o, s, j + 1);
+vector<float> msdsplit(const RString& s) {
+	vector<float> o;
+	size_t nchar = s.size();
+	int numrates = static_cast<int>(nchar / 5.f);
+	
+	for (size_t i = 0; i < numrates; ++i)
+		o.emplace_back(StringToFloat(s.substr(i * 5, 5)));
+	return o;
 }
 
 void SetMSDValues(StepsTagInfo& info) {
@@ -538,11 +541,8 @@ void SetMSDValues(StepsTagInfo& info) {
 	auto params = (*info.params);
 	auto size = params.params.size();
 	// Start from index 1
-	for (size_t i = 1; i <= size; i++) {
-		vector<float> diffs;
-		strsplit(diffs, params[i], 0);
-		o.push_back(diffs);
-	}
+	for (size_t i = 1; i <= size; i++)
+		o.emplace_back(msdsplit(params[i]));
 	info.steps->SetAllMSD(o);
 }
 
