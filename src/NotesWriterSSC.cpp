@@ -393,7 +393,7 @@ static RString GetSSCNoteData( const Song &song, const Steps &in, bool bSavingCa
 			asRadarValues.push_back(ssprintf("%.6f", rv[rc]));
 		}
 	}
-	lines.push_back(ssprintf("#RADARVALUES:%s;", join(",", asRadarValues).c_str()));
+	//lines.push_back(ssprintf("#RADARVALUES:%s;", join(",", asRadarValues).c_str()));
 
 	push_back_tag(lines, "#CREDIT:%s;", in.GetCredit());
 
