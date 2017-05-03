@@ -296,7 +296,7 @@ void Steps::TidyUpData()
 	}
 
 	if( GetMeter() < 1) // meter is invalid
-		SetMeter(static_cast<int>(PredictMeter()) );
+		SetMeter(static_cast<int>(1) );
 }
 
 void Steps::CalculateRadarValues( float fMusicLengthSeconds )
@@ -802,14 +802,14 @@ public:
 			pn = Enum::Check<PlayerNumber>(L, 1);
 
 		RadarValues &rv = const_cast<RadarValues &>(p->GetRadarValues(pn));
-		relevants.push_back(static_cast<int>(rv[5]));  //notes
-		relevants.push_back(static_cast<int>(rv[7]));  //jumps
-		relevants.push_back(static_cast<int>(rv[10])); //hands
-		relevants.push_back(static_cast<int>(rv[8]));  //holds
-		relevants.push_back(static_cast<int>(rv[9]));  //mines
-		relevants.push_back(static_cast<int>(rv[11])); //rolls
-		relevants.push_back(static_cast<int>(rv[12])); //lifts
-		relevants.push_back(static_cast<int>(rv[13])); //fakes
+		relevants.push_back(rv[5]);  //notes
+		relevants.push_back(rv[7]);  //jumps
+		relevants.push_back(rv[10]); //hands
+		relevants.push_back(rv[8]);  //holds
+		relevants.push_back(rv[9]);  //mines
+		relevants.push_back(rv[11]); //rolls
+		relevants.push_back(rv[12]); //lifts
+		relevants.push_back(rv[13]); //fakes
 		LuaHelpers::CreateTableFromArray(relevants, L);
 		return 1;
 	}

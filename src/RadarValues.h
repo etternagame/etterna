@@ -13,12 +13,12 @@ struct lua_State;
 struct RadarValues
 {
 private:
-	float m_Values[NUM_RadarCategory];
+	int m_Values[NUM_RadarCategory];
 public:
-	float operator[](RadarCategory cat) const { return m_Values[cat]; }
-	float& operator[](RadarCategory cat) { return m_Values[cat]; }
-	float operator[](int cat) const { return m_Values[cat]; }
-	float& operator[](int cat) { return m_Values[cat]; }
+	int operator[](RadarCategory cat) const { return m_Values[cat]; }
+	int& operator[](RadarCategory cat) { return m_Values[cat]; }
+	int operator[](int cat) const { return m_Values[cat]; }
+	int& operator[](int cat) { return m_Values[cat]; }
 
 	RadarValues();
 	void MakeUnknown();
