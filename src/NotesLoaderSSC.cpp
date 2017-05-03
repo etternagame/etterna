@@ -368,7 +368,7 @@ void SetRadarValues(StepsTagInfo& info)
 		{
 			for(size_t i= 0; i < cats_per_player; ++i)
 			{
-				v[pn][i]= StringToFloat(values[pn * cats_per_player + i]);
+				v[pn][i]= StringToInt(values[pn * cats_per_player + i]);
 			}
 		}
 		info.steps->SetCachedRadarValues(v);
@@ -630,7 +630,7 @@ struct ssc_parser_helper_t
 		steps_tag_handlers["DESCRIPTION"]= &SetDescription;
 		steps_tag_handlers["DIFFICULTY"]= &SetDifficulty;
 		steps_tag_handlers["METER"]= &SetMeter;
-		//steps_tag_handlers["RADARVALUES"]= &SetRadarValues;
+		steps_tag_handlers["RADARVALUES"]= &SetRadarValues;
 		steps_tag_handlers["CREDIT"]= &SetCredit;
 		steps_tag_handlers["MUSIC"]= &SetStepsMusic;
 		steps_tag_handlers["BPMS"]= &SetStepsBPMs;

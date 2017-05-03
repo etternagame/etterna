@@ -390,10 +390,10 @@ static RString GetSSCNoteData( const Song &song, const Steps &in, bool bSavingCa
 		const RadarValues &rv = in.GetRadarValues(pn);
 		FOREACH_ENUM(RadarCategory, rc)
 		{
-			asRadarValues.push_back(ssprintf("%.6f", rv[rc]));
+			asRadarValues.push_back(ssprintf("%i", rv[rc]));
 		}
 	}
-	//lines.push_back(ssprintf("#RADARVALUES:%s;", join(",", asRadarValues).c_str()));
+	lines.push_back(ssprintf("#RADARVALUES:%s;", join(",", asRadarValues).c_str()));
 
 	push_back_tag(lines, "#CREDIT:%s;", in.GetCredit());
 
