@@ -103,8 +103,6 @@ public:
 
 	/** @brief The LifeMeter showing a Player's health. */
 	LifeMeter		*m_pLifeMeter;
-	/** @brief The current Song number in a Course. */
-	BitmapText		*m_ptextCourseSongNumber;
 	/** @brief The description of the current Steps. */
 	BitmapText		*m_ptextStepsDescription;
 
@@ -166,7 +164,6 @@ public:
 
 	// Lua
 	virtual void PushSelf( lua_State *L );
-	Song *GetNextCourseSong() const;
 	LifeMeter *GetLifeMeter( PlayerNumber pn );
 	PlayerInfo *GetPlayerInfo( PlayerNumber pn );
 	PlayerInfo *GetDummyPlayerInfo( int iDummyIndex );
@@ -198,7 +195,6 @@ protected:
 	ThemeMetric<float> GIVE_UP_SECONDS;
 	ThemeMetric<float> MUSIC_FADE_OUT_SECONDS;
 	ThemeMetric<float> OUT_TRANSITION_LENGTH;
-	ThemeMetric<float> COURSE_TRANSITION_LENGTH;
 	ThemeMetric<float> BEGIN_FAILED_DELAY;
 	ThemeMetric<float> MIN_SECONDS_TO_STEP;
 	ThemeMetric<float> MIN_SECONDS_TO_MUSIC;

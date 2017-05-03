@@ -257,6 +257,7 @@ PrefsManager::PrefsManager() :
 	m_bTrilinearFiltering		( "TrilinearFiltering",			false ),
 	m_bAnisotropicFiltering		( "AnisotropicFiltering",		false ),
 	m_bSignProfileData		( "SignProfileData",			false ),
+	m_GetRankingName			( "GetRankingName",			RANKING_ON),
 	m_sAdditionalSongFolders	( "AdditionalSongFolders",		"" ),
 	m_sAdditionalFolders		( "AdditionalFolders",			"" ),
 	m_sDefaultTheme			( "DefaultTheme",			"Til Death" ),

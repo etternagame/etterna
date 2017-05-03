@@ -21,8 +21,6 @@
 #include "SongUtil.h"
 #include "Song.h"
 
-#define SHOW_COURSE_MODIFIERS_PROBABILITY	THEME->GetMetricF(m_sName,"ShowCourseModifiersProbability")
-
 REGISTER_SCREEN_CLASS( ScreenJukebox );
 void ScreenJukebox::SetSong()
 {
@@ -98,7 +96,6 @@ void ScreenJukebox::SetSong()
 ScreenJukebox::ScreenJukebox()
 {
 	m_bDemonstration = false;
-	m_pCourseEntry = NULL;
 }
 
 static LocalizedString NO_MATCHING_STEPS("ScreenJukebox", "NoMatchingSteps");

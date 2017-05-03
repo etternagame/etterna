@@ -139,7 +139,6 @@ void ScreenSelectMusic::Init()
 	m_sSortMusicPath =			THEME->GetPathS(m_sName,"sort music");
 	m_sRouletteMusicPath =		THEME->GetPathS(m_sName,"roulette music");
 	m_sRandomMusicPath =		THEME->GetPathS(m_sName,"random music");
-	m_sCourseMusicPath =		THEME->GetPathS(m_sName,"course music");
 	m_sLoopMusicPath =			THEME->GetPathS(m_sName,"loop music");
 	m_sFallbackCDTitlePath =	THEME->GetPathG(m_sName,"fallback cdtitle");
 
@@ -164,7 +163,6 @@ void ScreenSelectMusic::Init()
 		m_TexturePreload.Load( Sprite::SongBGTexture(THEME->GetPathG("SongBackgroundItem","random")) );
 		m_TexturePreload.Load( Sprite::SongBGTexture(THEME->GetPathG("SongBackgroundItem","Mode")) );
 		m_TexturePreload.Load( Sprite::SongBGTexture(THEME->GetPathG("SongBackgroundItem","group fallback")) );
-		m_TexturePreload.Load( Sprite::SongBGTexture(THEME->GetPathG("SongBackgroundItem","course fallback")) );
 	}
 	*/
 
@@ -510,34 +508,7 @@ bool ScreenSelectMusic::Input( const InputEventPlus &input )
 			MESSAGEMAN->Broadcast(msg2);
 			m_MusicWheel.ChangeMusic(0);
 			return true;
-}
-#if 0	// This is really more annoying than useful as well as obsoleted by song search
-		else if( bHoldingCtrl && ( c >= 'A' ) && ( c <= 'Z' ) )
-		{
-			// Only allow changing the sort order if the wheel is not locked
-			// and we're not in course mode. -aj
-			if( !m_MusicWheel.WheelIsLocked() && !GAMESTATE->IsCourseMode() )
-			{
-				SortOrder so = GAMESTATE->m_SortOrder;
-				// When in Artist sort, this means first letter of the artist.
-				// Otherwise, if not in Title sort already, switch to Title sort.
-				if ( so != SORT_ARTIST )
-					so = SORT_TITLE;
-
-				GAMESTATE->m_PreferredSortOrder = so;
-				GAMESTATE->m_SortOrder.Set(so);
-				// Odd, changing the sort order requires us to call SetOpenSection more than once
-				m_MusicWheel.ChangeSort(so);
-				m_MusicWheel.SetOpenSection(ssprintf("%c", c));
-
-				m_MusicWheel.SelectSection(ssprintf("%c", c));
-				m_MusicWheel.ChangeSort(so);
-				m_MusicWheel.SetOpenSection(ssprintf("%c", c));
-				AfterMusicChange();
-				return true;
-			}
 		}
-#endif // 0
 		else if( input.DeviceI.device == DEVICE_KEYBOARD && bHoldingCtrl && input.DeviceI.button == KEY_BACK && input.type == IET_FIRST_PRESS
 			&& m_MusicWheel.IsSettled() )
 		{
@@ -1580,7 +1551,6 @@ void ScreenSelectMusic::AfterMusicChange()
 		GAMESTATE->m_pPreferredSong = pSong;
 
 	m_vpSteps.clear();
-	m_vpTrails.clear();
 
 	m_Banner.SetMovingFast( !!m_MusicWheel.IsMoving() );
 

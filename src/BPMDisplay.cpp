@@ -32,7 +32,6 @@ void BPMDisplay::Load()
 	SET_EXTRA_COMMAND.Load( m_sName, "SetExtraCommand" );
 	CYCLE.Load( m_sName, "Cycle" );
 	RANDOM_CYCLE_SPEED.Load( m_sName, "RandomCycleSpeed" );
-	COURSE_CYCLE_SPEED.Load( m_sName, "CourseCycleSpeed" );
 	SEPARATOR.Load( m_sName, "Separator" );
 	SHOW_QMARKS.Load( m_sName, "ShowQMarksInRandomCycle" );
 	NO_BPM_TEXT.Load( m_sName, "NoBpmText" );

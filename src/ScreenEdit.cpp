@@ -3264,8 +3264,6 @@ void ScreenEdit::TransitionEditState( EditState em )
 	switch( em )
 	{
 	case STATE_PLAYING:
-		// If we're in course display mode, set that up.
-
 		m_Player.Load( m_NoteDataEdit );
 
 		if( GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().m_fPlayerAutoPlay != 0 )
@@ -4726,6 +4724,7 @@ void ScreenEdit::HandleMainMenuChoice( MainMenuChoice c, const vector<int> &iAns
 					SCREENMAN->SendMessageToTopScreen( SM_DoExit );
 				break;
 			case EditMode_Practice:
+				break;
 			}
 			break;
 	};

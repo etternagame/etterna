@@ -264,6 +264,8 @@ public:
 	// profile's data will be discarded.
 	Preference<bool>	m_bSignProfileData;
 
+	Preference<GetRankingName>	m_GetRankingName;
+
 	Preference<RString>	m_sAdditionalSongFolders;
 	Preference<RString>	m_sAdditionalFolders;
 

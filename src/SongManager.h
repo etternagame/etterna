@@ -24,8 +24,6 @@ bool CompareNotesPointersForExtra(const Steps *n1, const Steps *n2);
 
 /** @brief The max number of edit steps a profile can have. */
 const int MAX_EDIT_STEPS_PER_PROFILE	= 200;
-/** @brief The max number of edit courses a profile can have. */
-const int MAX_EDIT_COURSES_PER_PROFILE	= 20;
 
 /** @brief The holder for the Songs and its Steps. */
 class SongManager
@@ -41,7 +39,6 @@ public:
 
 	void Invalidate( const Song *pStaleSong );
 
-	void RegenerateNonFixedCourses();
 	void SetPreferences();
 	void SaveEnabledSongsToPref();
 	void LoadEnabledSongsFromPref();
@@ -52,11 +49,10 @@ public:
 
 	void LoadGroupSymLinks( const RString &sDir, const RString &sGroupFolder );
 
-	void InitAutogenCourses();
 	void InitRandomAttacks();
 
-	void InitAll( LoadingWindow *ld );	// songs, courses, groups - everything.
-	void Reload( bool bAllowFastLoad, LoadingWindow *ld=NULL );	// songs, courses, groups - everything.
+	void InitAll( LoadingWindow *ld );	// songs, groups - everything.
+	void Reload( bool bAllowFastLoad, LoadingWindow *ld=NULL );	// songs, groups - everything.
 	void PreloadSongImages();
 
 	bool IsGroupNeverCached(const RString& group) const;
@@ -127,12 +123,6 @@ public:
 	int GetNumSelectableAndUnlockedSongs() const;
 	int GetNumAdditionalSongs() const;
 	int GetNumSongGroups() const;
-	/**
-	 * @brief Retrieve the number of courses in the game.
-	 * @return the number of courses. */
-	int GetNumCourses() const;
-	int GetNumAdditionalCourses() const;
-	int GetNumCourseGroups() const;
 	Song* GetRandomSong();
 	// sm-ssc addition:
 	RString GetSongGroupByIndex(unsigned index) { return m_sSongGroupNames[index]; }
@@ -146,7 +136,7 @@ public:
 	Song* GetSongFromDir( RString sDir ) const;
 
 	void UpdatePopular();
-	void UpdateShuffled();	// re-shuffle songs and courses
+	void UpdateShuffled();	// re-shuffle songs
 	void UpdatePreferredSort(const RString &sPreferredSongs = "PreferredSongs.txt", const RString &sPreferredCourses = "PreferredCourses.txt"); 
 	void SortSongs();		// sort m_pSongs by CompareSongPointersByTitle
 
@@ -156,7 +146,6 @@ public:
 protected:
 	void LoadStepManiaSongDir( RString sDir, LoadingWindow *ld );
 	void LoadDWISongDir( const RString &sDir );
-	bool GetExtraStageInfoFromCourse( bool bExtra2, const RString &sPreferredGroup, Song*& pSongOut, Steps*& pStepsOut, StepsType stype );
 	void SanityCheckGroupDir( const RString &sDir ) const;
 	void AddGroup( const RString &sDir, const RString &sGroupDirName );
 	int GetNumEditsLoadedFromProfile( ProfileSlot slot ) const;

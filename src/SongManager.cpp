@@ -31,7 +31,6 @@
 #include "Style.h"
 #include "ThemeManager.h"
 #include "TitleSubstitution.h"
-#include "TrailUtil.h"
 #include "UnlockManager.h"
 #include "SpecialFiles.h"
 

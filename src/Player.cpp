@@ -299,6 +299,7 @@ void Player::Init(
 	ScoreKeeper* pPrimaryScoreKeeper, 
 	ScoreKeeper* pSecondaryScoreKeeper )
 {
+
 	GRAY_ARROWS_Y_STANDARD.Load(			sType, "ReceptorArrowsYStandard" );
 	GRAY_ARROWS_Y_REVERSE.Load(			sType, "ReceptorArrowsYReverse" );
 	ATTACK_DISPLAY_X.Load(				sType, ATTACK_DISPLAY_X_NAME, NUM_PLAYERS, 2 );
@@ -393,7 +394,7 @@ void Player::Init(
 	{
 		float fLife = m_pLifeMeter->GetLife();
 		m_pPlayerStageStats->SetLifeRecordAt( fLife, STATSMAN->m_CurStageStats.m_fStepsSeconds );
-		m_pPlayerStageStats->SetWifeRecordAt( 0.f, STATSMAN->m_CurStageStats.m_fStepsSeconds);
+		m_pPlayerStageStats->SetWifeRecordAt( 1.f, STATSMAN->m_CurStageStats.m_fStepsSeconds);
 	}
 
 	// TODO: Remove use of PlayerNumber.

@@ -636,13 +636,35 @@ void ScreenGameplay::Init()
 
 
 	// Add individual life meter
-	switch( GAMESTATE->m_PlayMode )
+	switch (GAMESTATE->m_PlayMode)
 	{
-		case PLAY_MODE_REGULAR:
-		case PLAY_MODE_BATTLE:
-		case PLAY_MODE_RAVE:
-		default:
-			break;
+	case PLAY_MODE_REGULAR:
+		FOREACH_PlayerNumberInfo(m_vPlayerInfo, pi)
+		{
+			if (!GAMESTATE->IsPlayerEnabled(pi->m_pn) && !SHOW_LIFE_METER_FOR_DISABLED_PLAYERS)
+				continue;	// skip
+
+			pi->m_pLifeMeter = LifeMeter::MakeLifeMeter(pi->GetPlayerState()->m_PlayerOptions.GetStage().m_LifeType);
+			pi->m_pLifeMeter->Load(pi->GetPlayerState(), pi->GetPlayerStageStats());
+			pi->m_pLifeMeter->SetName(ssprintf("Life%s", pi->GetName().c_str()));
+			LOAD_ALL_COMMANDS_AND_SET_XY(pi->m_pLifeMeter);
+			this->AddChild(pi->m_pLifeMeter);
+
+			// HACK: When SHOW_LIFE_METER_FOR_DISABLED_PLAYERS is enabled,
+			// we don't want to have any life in the disabled player's life
+			// meter. I think this only happens with LifeMeterBars, but I'm
+			// not 100% sure of that. -freem
+			if (!GAMESTATE->IsPlayerEnabled(pi->m_pn) && SHOW_LIFE_METER_FOR_DISABLED_PLAYERS)
+			{
+				if (pi->GetPlayerState()->m_PlayerOptions.GetStage().m_LifeType == LifeType_Bar)
+					static_cast<LifeMeterBar*>(pi->m_pLifeMeter)->ChangeLife(-1.0f);
+			}
+		}
+		break;
+	case PLAY_MODE_BATTLE:
+	case PLAY_MODE_RAVE:
+	default:
+		break;
 	}
 
 	m_bShowScoreboard = false;
@@ -1063,8 +1085,6 @@ void ScreenGameplay::LoadNextSong()
 	FOREACH_EnabledPlayerInfo( m_vPlayerInfo, pi )
 	{
 		pi->GetPlayerStageStats()->m_iSongsPlayed++;
-		if( pi->m_ptextCourseSongNumber )
-			pi->m_ptextCourseSongNumber->SetText( ssprintf(SONG_NUMBER_FORMAT.GetValue(), pi->GetPlayerStageStats()->m_iSongsPassed+1) );
 	}
 
 	if( GAMESTATE->m_bMultiplayer )

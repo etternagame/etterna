@@ -20,9 +20,7 @@
 #include "EnumHelper.h"
 
 ThemeMetric<int> SORT_BPM_DIVISION ( "MusicWheel", "SortBPMDivision" );
-ThemeMetric<int> SORT_LENGTH_DIVISION ( "MusicWheel", "SortLengthDivision" );
 ThemeMetric<bool> SHOW_SECTIONS_IN_BPM_SORT ( "MusicWheel", "ShowSectionsInBPMSort" );
-ThemeMetric<bool> SHOW_SECTIONS_IN_LENGTH_SORT ( "MusicWheel", "ShowSectionsInLengthSort" );
 
 bool SongCriteria::Matches( const Song *pSong ) const
 {

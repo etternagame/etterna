@@ -2,7 +2,7 @@ local magnitude = 0.03
 local maxDistX = SCREEN_WIDTH*magnitude
 local maxDistY = SCREEN_HEIGHT*magnitude
 
-local enabled = themeConfig:get_data().global.SongBGEnabled and not(GAMESTATE:IsCourseMode())
+local enabled = themeConfig:get_data().global.SongBGEnabled
 local brightness = 0.3
 
 local t = Def.ActorFrame{}

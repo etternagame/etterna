@@ -2836,6 +2836,11 @@ public:
 		p->m_autogen_fargs[si]= v;
 		COMMON_RETURN_SELF;
 	}
+
+	static int IsCourseMode(T* p, lua_State* L) {
+		lua_pushboolean(L, false);
+		return 1;
+	}
 	DEFINE_METHOD(GetEtternaVersion, GetEtternaVersion())
 	LunaGameState()
 	{
@@ -2949,6 +2954,7 @@ public:
 		ADD_METHOD( SetStepsForEditMode );
 		ADD_METHOD( GetAutoGenFarg );
 		ADD_METHOD( SetAutoGenFarg );
+		ADD_METHOD( IsCourseMode );
 		ADD_METHOD( GetEtternaVersion );
 		ADD_METHOD( CountNotesSeparately );
 	}
