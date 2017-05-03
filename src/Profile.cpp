@@ -2185,21 +2185,10 @@ XNode* Profile::SaveEttScoresCreateNode() const
 		// maybe these should be contained separately like the favorites? not sure, there are advantages to both
 		// also this lol, don't write any vacuous goals when saving -mina
 		if (goalmap.count(ck)) {
-			bool anygoalstosave = false;
-			FOREACH_CONST(ScoreGoal, goalmap.at(ck), sg) {
-				if (sg->vacuous) {
-					anygoalstosave = true;
-					break;
-				}
-			}
-				
-			if (anygoalstosave) {
-				XNode* pGoals = new XNode("GoalTracker");
-				FOREACH_CONST(ScoreGoal, goalmap.at(ck), sg)
-					if (!sg->vacuous)
-						pGoals->AppendChild(sg->CreateNode());
-				pChartKey->AppendChild(pGoals);
-			}
+			XNode* pGoals = new XNode("GoalTracker");
+			FOREACH_CONST(ScoreGoal, goalmap.at(ck), sg)
+				pGoals->AppendChild(sg->CreateNode());
+			pChartKey->AppendChild(pGoals);
 		}
 		
 		pNode->AppendChild(pChartKey);
@@ -2428,7 +2417,8 @@ void ScoreGoal::CheckVacuity() {
 
 	if (pb && pb->GetWifeScore() >= percent)
 		vacuous = true;
-	else vacuous = false;
+	else
+		vacuous = false;
 }
 
 // aaa too lazy to write comparators rn -mina
