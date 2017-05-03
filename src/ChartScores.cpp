@@ -91,7 +91,9 @@ HighScore* PlayerScores::GetChartPBUpTo(string& ck, float& rate) {
 void PlayerScores::LoadScoreFromNode(RString& ck, float& rate, const XNode* hs) {
 	HighScore tmp;
 	tmp.LoadFromEttNode(hs);
-	tmp.SetHistoricChartKey(ck);
+
+	// this only makes sense if converting from the old save structure where the key is not known -mina
+	tmp.SetChartKey(ck);
 	pscores[ck].AddScore(tmp);
 }
 

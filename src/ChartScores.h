@@ -67,7 +67,7 @@ public:
 	Grade GetBestGradeFor(string& ck) { if (pscores.count(ck)) return pscores[ck].bestGrade; return Grade_Invalid; }
 
 	// for scores achieved during this session
-	void AddScore(const HighScore& hs_) { HighScore hs = hs_; pscores[hs.GetHistoricChartKey()].AddScore(hs); }
+	void AddScore(const HighScore& hs_) { HighScore hs = hs_; pscores[hs.GetChartKey()].AddScore(hs); }
 
 
 	void LoadScoreFromNode(RString& ck, float& rate, const XNode* hs);

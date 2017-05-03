@@ -141,7 +141,7 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 	hs.SetName(sRankingToFillInMarker);
 
 	auto chartKey = GAMESTATE->m_pCurSteps[ps.m_PlayerNumber]->GetChartKey();
-	hs.SetHistoricChartKey(chartKey);
+	hs.SetChartKey(chartKey);
 	hs.SetGrade( pss.GetGrade() );
 	hs.SetScore( pss.m_iScore );
 	hs.SetPercentDP( pss.GetPercentDancePoints() );

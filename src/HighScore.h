@@ -22,7 +22,7 @@ struct HighScore
 	 * @brief Retrieve the name of the player that set the high score.
 	 * @return the name of the player. */
 	RString	GetName() const;
-	RString GetHistoricChartKey() const;
+	RString GetChartKey() const;
 	float GetSSRCalcVersion() const;
 	/**
 	 * @brief Retrieve the grade earned from this score.
@@ -78,7 +78,7 @@ struct HighScore
 	 * @brief Set the name of the Player that earned the score.
 	 * @param sName the name of the Player. */
 	void SetName( const RString &sName );
-	void SetHistoricChartKey( RString &ck );
+	void SetChartKey( RString &ck );
 	void SetSSRCalcVersion(float cv);
 	void SetGrade( Grade g );
 	void SetScore( unsigned int iScore );

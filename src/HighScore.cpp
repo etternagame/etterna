@@ -22,7 +22,7 @@ struct HighScoreImpl
 	
 	/* a half-misnomer now- since all scores are keyed by the chart key this should never change/be different,
 	but its historical correctness is still correct, though it should prolly be renamed tbh -mina*/ 
-	RString sHistoricChartKey;
+	RString ChartKey;
 
 	RString ScoreKey;
 	float SSRCalcVersion;
@@ -209,7 +209,7 @@ vector<int> HighScoreImpl::NoteRowsToVector(RString s) {
 HighScoreImpl::HighScoreImpl()
 {
 	sName = "";
-	sHistoricChartKey = "";
+	ChartKey = "";
 	ScoreKey = "";
 	SSRCalcVersion = 0.f;
 	grade = Grade_NoData;
@@ -248,7 +248,7 @@ XNode *HighScoreImpl::CreateNode() const
 
 	// TRICKY:  Don't write "name to fill in" markers.
 	pNode->AppendChild( "Name",				IsRankingToFillIn(sName) ? RString("") : sName );
-	pNode->AppendChild( "HistoricChartKey", sHistoricChartKey);
+	pNode->AppendChild( "HistoricChartKey", ChartKey);
 	pNode->AppendChild( "ScoreKey",			ScoreKey);
 	pNode->AppendChild( "SSRCalcVersion",	SSRCalcVersion);
 	pNode->AppendChild( "Grade",			GradeToString(grade) );
@@ -302,7 +302,7 @@ XNode *HighScoreImpl::CreateNode() const
 XNode *HighScoreImpl::CreateEttNode() const
 {
 	XNode *pNode = new XNode("HighScore");
-	pNode->AppendChild("HistoricChartKey", sHistoricChartKey);
+	pNode->AppendChild("ChartKey", ChartKey);
 	pNode->AppendChild("ScoreKey", ScoreKey);
 	pNode->AppendChild("SSRCalcVersion", SSRCalcVersion);
 	pNode->AppendChild("Grade", GradeToString(GetWifeGrade()));
@@ -352,7 +352,10 @@ void HighScoreImpl::LoadFromEttNode(const XNode *pNode)
 
 	RString s;
 
-	pNode->GetChildValue("HistoricChartKey", sHistoricChartKey);
+	pNode->GetChildValue("ChartKey", ChartKey);
+	if (ChartKey == "")
+		pNode->GetChildValue("HistoricChartKey", ChartKey);
+	
 	pNode->GetChildValue("SSRCalcVersion", SSRCalcVersion);
 	pNode->GetChildValue("Grade", s);
 	grade = StringToGrade(s);
@@ -416,7 +419,7 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 	RString s;
 
 	pNode->GetChildValue("Name",				sName);
-	pNode->GetChildValue("HistoricChartKey",	sHistoricChartKey);
+	pNode->GetChildValue("HistoricChartKey",	ChartKey);
 	pNode->GetChildValue("SSRCalcVersion",		SSRCalcVersion);
 	pNode->GetChildValue("Grade", s);
 	grade = StringToGrade(s);
@@ -615,7 +618,7 @@ bool HighScore::IsEmpty() const
 }
 
 RString	HighScore::GetName() const { return m_Impl->sName; }
-RString HighScore::GetHistoricChartKey() const { return m_Impl->sHistoricChartKey; }
+RString HighScore::GetChartKey() const { return m_Impl->ChartKey; }
 float HighScore::GetSSRCalcVersion() const { return m_Impl->SSRCalcVersion; }
 Grade HighScore::GetGrade() const { return m_Impl->grade; }
 unsigned int HighScore::GetScore() const { return m_Impl->iScore; }
@@ -648,7 +651,7 @@ float HighScore::GetLifeRemainingSeconds() const { return m_Impl->fLifeRemaining
 bool HighScore::GetDisqualified() const { return m_Impl->bDisqualified; }
 
 void HighScore::SetName( const RString &sName ) { m_Impl->sName = sName; }
-void HighScore::SetHistoricChartKey( RString &ck) { m_Impl->sHistoricChartKey = ck; }
+void HighScore::SetChartKey( RString &ck) { m_Impl->ChartKey = ck; }
 void HighScore::SetSSRCalcVersion(float cv) { m_Impl->SSRCalcVersion = cv; }
 void HighScore::SetGrade( Grade g ) { m_Impl->grade = g; }
 void HighScore::SetScore( unsigned int iScore ) { m_Impl->iScore = iScore; }
@@ -1159,7 +1162,7 @@ public:
 	DEFINE_METHOD( GetChordCohesion, GetChordCohesion() )
 	DEFINE_METHOD( GetEtternaValid , GetEtternaValid() )
 	DEFINE_METHOD( HasReplayData, HasReplayData() )
-	DEFINE_METHOD( GetChartKey, GetHistoricChartKey())
+	DEFINE_METHOD( GetChartKey, GetChartKey())
 	LunaHighScore()
 	{
 		ADD_METHOD( GetName );

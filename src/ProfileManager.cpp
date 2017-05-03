@@ -885,7 +885,7 @@ void ProfileManager::AddStepsScore( const Song* pSong, const Steps* pSteps, Play
 void ProfileManager::AddScoreByKey(PlayerNumber pn, const HighScore &hs_) {
 	HighScore hs = hs_;
 	Profile* pProfile = GetProfile(pn);
-	auto ck = hs.GetHistoricChartKey();
+	auto ck = hs.GetChartKey();
 	auto rate = hs.GetMusicRate();
 	
 	
