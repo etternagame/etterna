@@ -74,11 +74,13 @@ local function rankingLabel(i)
 					self:diffuse(getMainColor("positive"))
 					self:settext(((rankingPage-1)*25)+i..".")
 					ths = profile:GetTopSSRHighScore(i+(scorestodisplay*(rankingPage-1)), rankingSkillset)
-					ck = ths:GetChartKey()
-					thssong = SONGMAN:GetSongByChartKey(ck)
-					thssteps = SONGMAN:GetStepsByChartKey(ck)
+					if ths then
+						ck = ths:GetChartKey()						
+						thssong = SONGMAN:GetSongByChartKey(ck)
+						thssteps = SONGMAN:GetStepsByChartKey(ck)
+						if not thssong or not thssteps then ths = nil end
+					end
 					
-					if not thssong or not thssteps then ths = nil end
 				end
 			end,
 			UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
