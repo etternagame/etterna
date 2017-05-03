@@ -1251,6 +1251,7 @@ ProfileLoadResult Profile::LoadStatsFromDir(RString dir, bool require_signature)
 ProfileLoadResult Profile::LoadEttFromDir(RString dir) {
 	dir += PROFILEMAN->GetStatsPrefix();
 	profiledir = dir;
+	IsEtternaProfile = true;
 	RString fn = dir + ETT_XML;
 	bool compressed = false;
 	if (!IsAFile(fn)) {
