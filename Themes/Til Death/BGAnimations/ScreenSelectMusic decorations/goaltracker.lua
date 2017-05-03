@@ -297,12 +297,13 @@ local function makescoregoal(i)
 				InitCommand=cmd(xy,200,goalrow2Y;halign,0;zoom,0.2;diffuse,getMainColor('positive');maxwidth,800),
 				SetCommand=function(self)
 					if update then 
-						if sg and sg:IsAchieved() then 
-							self:settext("Achieved: "..datetimetodate(sg:WhenAchieved()))
+						if sg then 
 							self:visible(true)
-						elseif sg:IsVacuous() then
-							self:visible(true)
-							self:settext("Vacuous goal")
+							if sg:IsAchieved() then
+								self:settext("Achieved: "..datetimetodate(sg:WhenAchieved()))
+							else
+								self:settext("Vacuous goal")
+							end
 						else
 							self:visible(false)
 						end
