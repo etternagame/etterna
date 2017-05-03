@@ -166,6 +166,8 @@ protected:
 	void ChangeLife( HoldNoteScore hns, TapNoteScore tns );
 	void ChangeLifeRecord();
 
+	void ChangeWifeRecord();
+
 	int GetClosestNoteDirectional( int col, int iStartRow, int iMaxRowsAhead, bool bAllowGraded, bool bForward ) const;
 	int GetClosestNote( int col, int iNoteRow, int iMaxRowsAhead, int iMaxRowsBehind, bool bAllowGraded ) const;
 	int GetClosestNonEmptyRowDirectional( int iStartRow, int iMaxRowsAhead, bool bAllowGraded, bool bForward ) const;

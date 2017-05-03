@@ -393,6 +393,7 @@ void Player::Init(
 	{
 		float fLife = m_pLifeMeter->GetLife();
 		m_pPlayerStageStats->SetLifeRecordAt( fLife, STATSMAN->m_CurStageStats.m_fStepsSeconds );
+		m_pPlayerStageStats->SetWifeRecordAt( 0.f, STATSMAN->m_CurStageStats.m_fStepsSeconds);
 	}
 
 	// TODO: Remove use of PlayerNumber.
@@ -1671,6 +1672,7 @@ void Player::ChangeLife( TapNoteScore tns )
 		m_pCombinedLifeMeter->ChangeLife( pn, tns );
 
 	ChangeLifeRecord();
+	ChangeWifeRecord();
 
 	switch( tns )
 	{
@@ -1695,6 +1697,7 @@ void Player::ChangeLife( HoldNoteScore hns, TapNoteScore tns )
 		m_pCombinedLifeMeter->ChangeLife( pn, hns, tns );
 
 	ChangeLifeRecord();
+	ChangeWifeRecord();
 }
 
 void Player::ChangeLife(float delta)
@@ -1714,6 +1717,7 @@ void Player::ChangeLife(float delta)
 		m_pCombinedLifeMeter->ChangeLife(pn, delta);
 	}
 	ChangeLifeRecord();
+	ChangeWifeRecord();
 }
 
 void Player::SetLife(float value)
@@ -1733,6 +1737,7 @@ void Player::SetLife(float value)
 		m_pCombinedLifeMeter->SetLife(pn, value);
 	}
 	ChangeLifeRecord();
+	ChangeWifeRecord();
 }
 
 void Player::ChangeLifeRecord()
@@ -1752,6 +1757,12 @@ void Player::ChangeLifeRecord()
 	if( fLife != -1 )
 		if( m_pPlayerStageStats )
 			m_pPlayerStageStats->SetLifeRecordAt( fLife, STATSMAN->m_CurStageStats.m_fStepsSeconds );
+}
+
+// seemsgood
+void Player::ChangeWifeRecord() {
+	if (m_pPlayerStageStats)
+		m_pPlayerStageStats->SetLifeRecordAt(curwifescore / maxwifescore, STATSMAN->m_CurStageStats.m_fStepsSeconds);
 }
 
 int Player::GetClosestNoteDirectional( int col, int iStartRow, int iEndRow, bool bAllowGraded, bool bForward ) const

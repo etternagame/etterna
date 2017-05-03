@@ -992,6 +992,31 @@ public:
 		return 1;
 	}
 
+	static int GetWifeRecord(T* p, lua_State *L)
+	{
+		float last_second = FArg(1);
+		int samples = 100;
+		if (lua_gettop(L) >= 2 && !lua_isnil(L, 2))
+		{
+			samples = IArg(2);
+			if (samples <= 0)
+			{
+				LOG->Trace("PlayerStageStats:GetLifeRecord requires an integer greater than 0.  Defaulting to 100.");
+				samples = 100;
+			}
+		}
+		lua_createtable(L, samples, 0);
+		for (int i = 0; i < samples; ++i)
+		{
+			// The scale from range is [0, samples-1] because that is i's range.
+			float from = SCALE(i, 0, static_cast<float>(samples) - 1.0f, 0.0f, last_second);
+			float curr = p->GetLifeRecordLerpAt(from);
+			lua_pushnumber(L, curr);
+			lua_rawseti(L, -2, i + 1);
+		}
+		return 1;
+	}
+
 	static int GetRadarPossible( T* p, lua_State *L ) { p->m_radarPossible.PushSelf(L); return 1; }
 	static int GetRadarActual( T* p, lua_State *L ) { p->m_radarActual.PushSelf(L); return 1; }
 	static int SetScore( T* p, lua_State *L )                
@@ -1058,6 +1083,7 @@ public:
 		ADD_METHOD( GetPossibleSteps );
 		ADD_METHOD( GetComboList );
 		ADD_METHOD( GetLifeRecord );
+		ADD_METHOD( GetWifeRecord );
 		ADD_METHOD( GetAliveSeconds );
 		ADD_METHOD( GetPercentageOfTaps );
 		ADD_METHOD( GetTotalTaps );
