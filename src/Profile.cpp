@@ -2243,6 +2243,9 @@ void Profile::ImportScoresToEtterna() {
 			}			
 		}
 	}
+
+	if (IsEtternaProfile)
+		m_SongHighScores.clear();
 }
 
 XNode* Profile::SaveEttScoresCreateNode() const {
