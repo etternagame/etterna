@@ -11,8 +11,6 @@
 class Song;
 class Steps;
 class Style;
-class Course;
-class Trail;
 struct HighScore;
 struct lua_State;
 /** @brief Interface to machine and memory card profiles. */
@@ -94,10 +92,6 @@ public:
 	bool IsSongNew( const Song* pSong ) const { return GetSongNumTimesPlayed(pSong,ProfileSlot_Machine)==0; }
 	void AddStepsScore( const Song* pSong, const Steps* pSteps , PlayerNumber pn, const HighScore &hs, int &iPersonalIndexOut, int &iMachineIndexOut );
 	void IncrementStepsPlayCount( const Song* pSong, const Steps* pSteps, PlayerNumber pn );
-
-	// Course stats
-	void AddCourseScore( const Course* pCourse, const Trail* pTrail, PlayerNumber pn, const HighScore &hs, int &iPersonalIndexOut, int &iMachineIndexOut );
-	void IncrementCoursePlayCount( const Course* pCourse, const Trail* pTrail, PlayerNumber pn );
 
 	// Category stats
 	void AddCategoryScore( StepsType st, RankingCategory rc, PlayerNumber pn, const HighScore &hs, int &iPersonalIndexOut, int &iMachineIndexOut );

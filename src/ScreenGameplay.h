@@ -214,7 +214,6 @@ protected:
 	ThemeMetric<RString> SONG_NUMBER_FORMAT;
 	ThemeMetric<bool> SURVIVAL_MOD_OVERRIDE;
 
-	bool IsLastSong();
 	void SetupSong( int iSongIndex );
 	void ReloadCurrentSong();
 	virtual void LoadNextSong();

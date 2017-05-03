@@ -9,7 +9,6 @@
 #include "ThemeManager.h"
 #include "Steps.h"
 #include "Song.h"
-#include "Course.h"
 #include "ProfileManager.h"
 #include "Profile.h"
 #include "Style.h"
@@ -26,7 +25,6 @@ static const char *MusicWheelItemTypeNames[] = {
 	"SectionExpanded",
 	"SectionCollapsed",
 	"Roulette",
-	"Course",
 	"Sort",
 	"Mode",
 	"Random",
@@ -36,10 +34,10 @@ static const char *MusicWheelItemTypeNames[] = {
 XToString( MusicWheelItemType );
 
 MusicWheelItemData::MusicWheelItemData( WheelItemDataType type, Song* pSong, 
-				       RString sSectionName, Course* pCourse, 
+				       RString sSectionName,
 				       RageColor color, int iSectionCount ):
 	WheelItemBaseData(type, sSectionName, color),
-	m_pCourse(pCourse), m_pSong(pSong), m_Flags(WheelNotifyIcon::Flags()),
+	m_pSong(pSong), m_Flags(WheelNotifyIcon::Flags()),
 	m_iSectionCount(iSectionCount), m_sLabel(""), m_pAction() {}
 
 MusicWheelItem::MusicWheelItem( RString sType ):
@@ -116,8 +114,6 @@ MusicWheelItem::MusicWheelItem( RString sType ):
 
 	this->SubscribeToMessage( Message_CurrentStepsP1Changed );
 	this->SubscribeToMessage( Message_CurrentStepsP2Changed );
-	this->SubscribeToMessage( Message_CurrentTrailP1Changed );
-	this->SubscribeToMessage( Message_CurrentTrailP2Changed );
 	this->SubscribeToMessage( Message_PreferredDifficultyP1Changed );
 	this->SubscribeToMessage( Message_PreferredDifficultyP2Changed );
 }
@@ -234,13 +230,6 @@ void MusicWheelItem::LoadFromWheelItemData( const WheelItemBaseData *pData, int 
 			m_pTextSectionCount->SetVisible( true );
 		}
 		break;
-	case WheelItemDataType_Course:
-		sDisplayName = pWID->m_pCourse->GetDisplayFullTitle();
-		sTranslitName = pWID->m_pCourse->GetTranslitFullTitle();
-		type = MusicWheelItemType_Course;
-		m_WheelNotifyIcon.SetFlags( pWID->m_Flags );
-		m_WheelNotifyIcon.SetVisible( true );
-		break;
 	case WheelItemDataType_Sort:
 		sDisplayName = pWID->m_sLabel;
 		// hack to get mode items working. -freem
@@ -292,7 +281,6 @@ void MusicWheelItem::LoadFromWheelItemData( const WheelItemBaseData *pData, int 
 	{
 		Message msg( "Set" );
 		msg.SetParam( "Song", pWID->m_pSong );
-		msg.SetParam( "Course", pWID->m_pCourse );
 		msg.SetParam( "Index", iIndex );
 		msg.SetParam( "HasFocus", bHasFocus );
 		msg.SetParam( "Text", pWID->m_sText );
@@ -315,14 +303,12 @@ void MusicWheelItem::RefreshGrades()
 	{
 		m_pGradeDisplay[p]->SetVisible( false );
 
-		if( pWID->m_pSong == NULL && pWID->m_pCourse == NULL )
+		if( pWID->m_pSong == NULL)
 			continue;
 
 		Difficulty dc;
 		if( GAMESTATE->m_pCurSteps[p] )
 			dc = GAMESTATE->m_pCurSteps[p]->GetDifficulty();
-		else if( GAMESTATE->m_pCurTrail[p] )
-			dc = GAMESTATE->m_pCurTrail[p]->m_CourseDifficulty;
 		else
 			dc = GAMESTATE->m_PreferredDifficulty[p];
 
@@ -337,8 +323,6 @@ void MusicWheelItem::RefreshGrades()
 		StepsType st;
 		if( GAMESTATE->m_pCurSteps[p] )
 			st = GAMESTATE->m_pCurSteps[p]->m_StepsType;
-		else if( GAMESTATE->m_pCurTrail[p] )
-			st = GAMESTATE->m_pCurTrail[p]->m_StepsType;
 		else
 			st = GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StepsType;
 

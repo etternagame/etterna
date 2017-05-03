@@ -8,7 +8,6 @@
 #include "GameSoundManager.h"
 #include "GameState.h"
 #include "ThemeManager.h"
-#include "Course.h"
 #include "AnnouncerManager.h"
 #include "ProfileManager.h"
 #include "Profile.h"
@@ -208,17 +207,6 @@ void ScreenNameEntry::Init()
 	if( !AnyStillEntering() )
 	{
 		// Nobody got a high score.
-		PostScreenMessage( SM_GoToNextScreen, 0 );
-		return;
-	}
-
-	bool IsOnRanking = ( (GAMESTATE->m_PlayMode == PLAY_MODE_NONSTOP || GAMESTATE->m_PlayMode == PLAY_MODE_ONI)
-		&& !(GAMESTATE->m_pCurCourse->IsRanking()) );
-
-	if( PREFSMAN->m_GetRankingName == RANKING_OFF || 
-		(PREFSMAN->m_GetRankingName == RANKING_LIST && !IsOnRanking) )
-	{
-		// don't collect score due to ranking setting
 		PostScreenMessage( SM_GoToNextScreen, 0 );
 		return;
 	}

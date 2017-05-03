@@ -10,7 +10,6 @@
 #include "ScreenAttract.h"
 #include "RageUtil.h"
 #include "UnlockManager.h"
-#include "Course.h"
 #include "ThemeManager.h"
 #include "Style.h"
 #include "PlayerState.h"
@@ -30,14 +29,6 @@ void ScreenJukebox::SetSong()
 	ThemeMetric<bool>	ALLOW_ADVANCED_MODIFIERS(m_sName,"AllowAdvancedModifiers");
 
 	vector<Song*> vSongs;
-
-	/* Check to see if there is a theme course. If there is a course that has
-	 * the exact same name as the theme, then we pick a song from this course. */
-	Course *pCourse = SONGMAN->GetCourseFromName( THEME->GetCurThemeName() );
-	if( pCourse != NULL )
-		for ( unsigned i = 0; i < pCourse->m_vEntries.size(); i++ )
-			if( pCourse->m_vEntries[i].IsFixedSong() )
-				vSongs.push_back( pCourse->m_vEntries[i].songID.ToSong() );
 
 	if ( vSongs.size() == 0 )
 		vSongs = SONGMAN->GetSongs( GAMESTATE->m_sPreferredSongGroup );
@@ -97,66 +88,6 @@ void ScreenJukebox::SetSong()
 		AdjustSync::ResetOriginalSyncData();
 		FOREACH_PlayerNumber( p )
 			GAMESTATE->m_pCurSteps[p].Set( pSteps );
-
-		bool bShowModifiers = randomf(0,1) <= SHOW_COURSE_MODIFIERS_PROBABILITY;
-		if( bShowModifiers )
-		{
-			/* If we have a modifier course containing this song, apply its
-			 * modifiers. Only check fixed course entries. */
-			vector<Course*> apCourses;
-			SONGMAN->GetAllCourses( apCourses, false );
-			vector<const CourseEntry *> apOptions;
-			vector<Course*> apPossibleCourses;
-			for( unsigned j = 0; j < apCourses.size(); ++j )
-			{
-				Course *lCourse = apCourses[j];
-				const CourseEntry *pEntry = lCourse->FindFixedSong( pSong );
-				if( pEntry == NULL || pEntry->attacks.size() == 0 )
-					continue;
-
-				if( !ALLOW_ADVANCED_MODIFIERS )
-				{
-					// There are some confusing mods that we don't want to show in demonstration.
-					bool bModsAreOkToShow = true;
-					AttackArray aAttacks = pEntry->attacks;
-					if( !pEntry->sModifiers.empty() )
-						aAttacks.push_back( Attack::FromGlobalCourseModifier( pEntry->sModifiers ) );
-					FOREACH_CONST( Attack, aAttacks, a )
-					{
-						RString s = a->sModifiers;
-						s.MakeLower();
-						// todo: allow themers to modify this list? -aj
-						if( s.find("dark") != string::npos ||
-							s.find("stealth") != string::npos )
-						{
-							bModsAreOkToShow = false;
-							break;
-						}
-					}
-					if( !bModsAreOkToShow )
-						continue;	// skip
-				}
-
-				apOptions.push_back( pEntry );
-				apPossibleCourses.push_back( pCourse );
-			}
-
-			if( !apOptions.empty() )
-			{
-				int iIndex = RandomInt( apOptions.size() );
-				m_pCourseEntry = apOptions[iIndex];
-				Course *lCourse = apPossibleCourses[iIndex]; 
-
-				PlayMode pm = CourseTypeToPlayMode( lCourse->GetCourseType() );
-				GAMESTATE->m_PlayMode.Set( pm );
-				GAMESTATE->m_pCurCourse.Set( lCourse );
-				FOREACH_PlayerNumber( p )
-				{
-					GAMESTATE->m_pCurTrail[p].Set( lCourse->GetTrail( GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StepsType ) );
-					ASSERT( GAMESTATE->m_pCurTrail[p] != NULL );
-				}
-			}
-		}
 
 		return;	// done looking
 	}

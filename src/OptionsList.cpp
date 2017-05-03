@@ -2,7 +2,6 @@
 #include "OptionsList.h"
 #include "GameState.h"
 #include "RageLog.h"
-#include "Course.h"
 #include "SongUtil.h"
 #include "StepsUtil.h"
 #include "Style.h"

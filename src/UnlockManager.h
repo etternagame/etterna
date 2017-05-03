@@ -8,10 +8,8 @@
 #include <set>
 #include "Difficulty.h"
 #include "SongUtil.h"
-#include "CourseUtil.h"
 
 class Song;
-class Course;
 class Steps;
 class Profile;
 struct lua_State;
@@ -37,7 +35,6 @@ enum UnlockRewardType {
 	UnlockRewardType_Song, /**< A song is unlocked. */
 	UnlockRewardType_Steps, /**< A step pattern for all styles is unlocked. */
 	UnlockRewardType_Steps_Type, /**< A step pattern for a specific style is unlocked. */
-	UnlockRewardType_Course, /**< A course is unlocked. */
 	UnlockRewardType_Modifier, /**< A modifier is unlocked. */
 	NUM_UnlockRewardType, 
 	UnlockRewardType_Invalid
@@ -61,7 +58,7 @@ public:
 	 * m_sEntryID starts as an empty string. It will be filled automatically
 	 * if not specified. */
 	UnlockEntry(): m_Type(UnlockRewardType_Invalid), m_cmd(),
-		m_Song(), m_dc(Difficulty_Invalid), m_Course(),
+		m_Song(), m_dc(Difficulty_Invalid),
 		m_StepsType(StepsType_Invalid), m_bRequirePassHardSteps(false),
 		m_bRequirePassChallengeSteps(false), m_bRoulette(false),
 		m_sEntryID(RString(""))
@@ -76,7 +73,6 @@ public:
 	 * these will be non-NULL. */
 	SongID	m_Song;
 	Difficulty m_dc;
-	CourseID m_Course;
 	StepsType m_StepsType;
 
 	float	m_fRequirement[NUM_UnlockRequirement];	// unlocked if any of of these are met
@@ -125,7 +121,6 @@ public:
 	int SongIsLocked( const Song *pSong ) const;
 	bool StepsIsLocked( const Song *pSong, const Steps *pSteps ) const;
 	bool StepsTypeIsLocked( const Song *pSong, const Steps *pSteps, const StepsType *pSType ) const;
-	int CourseIsLocked( const Course *course ) const;
 	bool ModifierIsLocked( const RString &sOneMod ) const;
 
 	// Gets number of unlocks for title screen
@@ -166,7 +161,6 @@ public:
 	const UnlockEntry *FindSong( const Song *pSong ) const;
 	const UnlockEntry *FindSteps( const Song *pSong, const Steps *pSteps ) const;
 	const UnlockEntry *FindStepsType( const Song *pSong, const Steps *pSteps, const StepsType *pSType ) const;
-	const UnlockEntry *FindCourse( const Course *pCourse ) const;
 	const UnlockEntry *FindModifier( const RString &sOneMod ) const;
 
 	// Lua

@@ -8,7 +8,6 @@
 #include "SongManager.h"
 #include "ActorUtil.h"
 #include "Song.h"
-#include "Course.h"
 
 #define UNLOCK_TEXT_SCROLL_X		THEME->GetMetricF("ScreenUnlockStatus","UnlockTextScrollX");
 #define UNLOCK_TEXT_SCROLL_START_Y	THEME->GetMetricF("ScreenUnlockStatus","UnlockTextScrollStartY")
@@ -113,16 +112,6 @@ void ScreenUnlockStatus::Init()
 						title = title + "\n" + subtitle;
 					text->SetMaxWidth( MaxWidth );
 					text->SetText( title );
-				}
-				break;
-			case UnlockRewardType_Course:
-				{
-					const Course *pCourse = entry.m_Course.ToCourse();
-					ASSERT( pCourse != NULL );
-
-					text->SetMaxWidth( MaxWidth );
-					text->SetText( pCourse->GetDisplayFullTitle() );
-					text->SetDiffuse( RageColor(0,1,0,1) );
 				}
 				break;
 			default:

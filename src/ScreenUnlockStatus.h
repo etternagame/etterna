@@ -5,8 +5,6 @@
 #include "Sprite.h"
 #include "BitmapText.h"
 
-class Course;
-
 class ScreenUnlockStatus : public ScreenAttract
 {
 public:

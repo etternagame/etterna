@@ -62,7 +62,6 @@ void EditMenu::GetSongsToShowForGroup( const RString &sGroup, vector<Song*> &vpS
 	switch( mode )
 	{
 	case EditMode_Practice:
-	case EditMode_CourseMods:
 	case EditMode_Home:
 		for( int i=vpSongsOut.size()-1; i>=0; i-- )
 		{
@@ -500,7 +499,6 @@ void EditMenu::OnRowValueChanged( EditMenuRow row )
 					switch( mode )
 					{
 						case EditMode_Full:
-						case EditMode_CourseMods:
 						case EditMode_Practice:
 							{
 								vector<Steps*> v;
@@ -520,8 +518,6 @@ void EditMenu::OnRowValueChanged( EditMenuRow row )
 					switch( mode )
 					{
 						case EditMode_Practice:
-						case EditMode_CourseMods:
-							break;
 						case EditMode_Home:
 						case EditMode_Full:
 							m_vpSteps.push_back( StepsAndDifficulty(NULL,dc) );	// "New Edit"
@@ -542,11 +538,6 @@ void EditMenu::OnRowValueChanged( EditMenuRow row )
 							// don't allow selecting of non-edits in HomeMode
 							break;
 						case EditMode_Practice:
-						case EditMode_CourseMods:
-							// only show this difficulty if steps exist
-							if( pSteps )
-							m_vpSteps.push_back( StepsAndDifficulty(pSteps,dc) );
-							break;
 						case EditMode_Full:
 							// show this difficulty whether or not steps exist.
 							m_vpSteps.push_back( StepsAndDifficulty(pSteps,dc) );
@@ -577,7 +568,7 @@ void EditMenu::OnRowValueChanged( EditMenuRow row )
 		}
 		else
 		{
-			RString s = CustomDifficultyToLocalizedString( GetCustomDifficulty( GetSelectedStepsType(), GetSelectedDifficulty(), CourseType_Invalid ) );
+			RString s = CustomDifficultyToLocalizedString( GetCustomDifficulty( GetSelectedStepsType(), GetSelectedDifficulty()) );
 
 			m_textValue[ROW_STEPS].SetText( s );
 			if( GetSelectedSteps() )
@@ -586,7 +577,7 @@ void EditMenu::OnRowValueChanged( EditMenuRow row )
 			}
 			else
 			{
-				m_StepsDisplay.SetFromStepsTypeAndMeterAndDifficultyAndCourseType( GetSelectedSourceStepsType(), 0, GetSelectedDifficulty(), CourseType_Invalid );
+				m_StepsDisplay.SetFromStepsTypeAndMeterAndDifficultyAndCourseType( GetSelectedSourceStepsType(), 0, GetSelectedDifficulty() );
 			}
 		}
 		// fall through
@@ -646,7 +637,7 @@ void EditMenu::OnRowValueChanged( EditMenuRow row )
 				}
 				else
 				{
-					s = CustomDifficultyToLocalizedString( GetCustomDifficulty( GetSelectedSourceStepsType(), GetSelectedSourceDifficulty(), CourseType_Invalid ) );
+					s = CustomDifficultyToLocalizedString( GetCustomDifficulty( GetSelectedSourceStepsType(), GetSelectedSourceDifficulty() ) );
 				}
 				m_textValue[ROW_SOURCE_STEPS].SetText( s );
 			}
@@ -656,7 +647,7 @@ void EditMenu::OnRowValueChanged( EditMenuRow row )
 			else if( GetSelectedSourceSteps() )
 			m_StepsDisplaySource.SetFromSteps( GetSelectedSourceSteps() );
 			else
-			m_StepsDisplaySource.SetFromStepsTypeAndMeterAndDifficultyAndCourseType( GetSelectedSourceStepsType(), 0, GetSelectedSourceDifficulty(), CourseType_Invalid );
+			m_StepsDisplaySource.SetFromStepsTypeAndMeterAndDifficultyAndCourseType( GetSelectedSourceStepsType(), 0, GetSelectedSourceDifficulty() );
 			m_StepsDisplaySource.SetVisible( !(bHideMeter || GetSelectedSteps()) );
 
 			m_Actions.clear();
@@ -671,9 +662,6 @@ void EditMenu::OnRowValueChanged( EditMenuRow row )
 				switch( mode )
 				{
 					case EditMode_Practice:
-					case EditMode_CourseMods:
-						m_Actions.push_back( EditMenuAction_Practice );
-						break;
 					case EditMode_Home:
 					case EditMode_Full:
 						m_Actions.push_back( EditMenuAction_Edit );

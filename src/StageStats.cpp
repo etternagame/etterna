@@ -291,15 +291,6 @@ void StageStats::FinalizeScores( bool bSummary )
 			// TRICKY: Increment play count here, and not on ScreenGameplay like the others.
 			PROFILEMAN->IncrementCategoryPlayCount( st, m_player[p].m_rc, p );
 		}
-		else if( GAMESTATE->IsCourseMode() )
-		{
-			// Save this stage to recent scores
-			Course* pCourse = GAMESTATE->m_pCurCourse;
-			ASSERT( pCourse != NULL );
-			Trail* pTrail = GAMESTATE->m_pCurTrail[p];
-
-			PROFILEMAN->AddCourseScore( pCourse, pTrail, p, hs, m_player[p].m_iPersonalHighScoreIndex, m_player[p].m_iMachineHighScoreIndex );
-		}
 		else
 		{
 			ASSERT( pSteps != NULL );
@@ -330,14 +321,6 @@ void StageStats::FinalizeScores( bool bSummary )
 		{
 			pHSL = &pProfile->GetCategoryHighScoreList( st, m_player[p].m_rc );
 		}
-		else if( GAMESTATE->IsCourseMode() )
-		{
-			Course* pCourse = GAMESTATE->m_pCurCourse;
-			ASSERT( pCourse != NULL );
-			Trail *pTrail = GAMESTATE->m_pCurTrail[p];
-			ASSERT( pTrail != NULL );
-			pHSL = &pProfile->GetCourseHighScoreList( pCourse, pTrail );
-		}
 		else
 		{
 			Song* pSong = GAMESTATE->m_pCurSong;
@@ -359,17 +342,12 @@ bool StageStats::PlayerHasHighScore( PlayerNumber pn ) const
 {
 	const Song *pSong = m_vpPlayedSongs[0];
 	const Steps *pSteps = m_player[pn].m_vpPossibleSteps[0];
-	const Course *pCourse = GAMESTATE->m_pCurCourse;
-	const Trail *pTrail = GAMESTATE->m_pCurTrail[pn];
 
 	// Don't show high scores for tutorial songs.
 	if( pSong->IsTutorial() == Song::SHOW_NEVER )
 		return false;
 
-	const HighScoreList &hsl = 
-		GAMESTATE->IsCourseMode() ?
-		PROFILEMAN->GetMachineProfile()->GetCourseHighScoreList(pCourse, pTrail) :
-		PROFILEMAN->GetMachineProfile()->GetStepsHighScoreList(pSong, pSteps);
+	const HighScoreList &hsl = 	PROFILEMAN->GetMachineProfile()->GetStepsHighScoreList(pSong, pSteps);
 
 	int iScore = m_player[pn].m_iScore;
 	float fPercentDP = m_player[pn].GetPercentDancePoints();

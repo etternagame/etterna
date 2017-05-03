@@ -86,9 +86,6 @@ AutoScreenMessage( SM_BackFromEditingAttackStart );
 AutoScreenMessage( SM_BackFromEditingAttackLength );
 AutoScreenMessage( SM_BackFromAddingAttackToChart );
 AutoScreenMessage( SM_BackFromInsertStepAttackPlayerOptions );
-AutoScreenMessage( SM_BackFromInsertCourseAttack );
-AutoScreenMessage( SM_BackFromInsertCourseAttackPlayerOptions );
-AutoScreenMessage( SM_BackFromCourseModeMenu );
 AutoScreenMessage( SM_BackFromKeysoundTrack );
 AutoScreenMessage( SM_BackFromNewKeysound );
 AutoScreenMessage( SM_DoRevertToLastSave );
@@ -187,8 +184,6 @@ void ScreenEdit::InitEditMappings()
 	name_to_edit_button["OPEN_AREA_MENU"]= EDIT_BUTTON_OPEN_AREA_MENU;
 	name_to_edit_button["OPEN_BGCHANGE_LAYER1_MENU"]= EDIT_BUTTON_OPEN_BGCHANGE_LAYER1_MENU;
 	name_to_edit_button["OPEN_BGCHANGE_LAYER2_MENU"]= EDIT_BUTTON_OPEN_BGCHANGE_LAYER2_MENU;
-	name_to_edit_button["OPEN_COURSE_MENU"]= EDIT_BUTTON_OPEN_COURSE_MENU;
-	name_to_edit_button["OPEN_COURSE_ATTACK_MENU"]= EDIT_BUTTON_OPEN_COURSE_ATTACK_MENU;
 
 	name_to_edit_button["OPEN_STEP_ATTACK_MENU"]= EDIT_BUTTON_OPEN_STEP_ATTACK_MENU;
 	name_to_edit_button["ADD_STEP_MODS"]= EDIT_BUTTON_ADD_STEP_MODS;
@@ -240,8 +235,6 @@ void ScreenEdit::InitEditMappings()
 	name_to_edit_button["SAVE"]= EDIT_BUTTON_SAVE;
 
 	name_to_edit_button["UNDO"]= EDIT_BUTTON_UNDO;
-
-	name_to_edit_button["ADD_COURSE_MODS"]= EDIT_BUTTON_ADD_COURSE_MODS;
 
 	name_to_edit_button["SWITCH_PLAYERS"]= EDIT_BUTTON_SWITCH_PLAYERS;
 
@@ -330,30 +323,6 @@ void ScreenEdit::InitEditMappings()
 		m_PlayMappingsDeviceInput.button   [EDIT_BUTTON_RETURN_TO_EDIT][1]    = DeviceInput(DEVICE_KEYBOARD, KEY_ESC);
 		m_PlayMappingsMenuButton.button   [EDIT_BUTTON_RETURN_TO_EDIT][1]    = GAME_BUTTON_BACK;
 		return;
-	case EditMode_CourseMods:
-		// Left/Right = Snap to Next/Prev
-		m_EditMappingsDeviceInput.button[EDIT_BUTTON_SNAP_NEXT][0] = DeviceInput(DEVICE_KEYBOARD, KEY_LEFT);
-		m_EditMappingsDeviceInput.button[EDIT_BUTTON_SNAP_PREV][0] = DeviceInput(DEVICE_KEYBOARD, KEY_RIGHT);
-
-		// v = course playback menu
-		// m_EditMappingsDeviceInput.button[EDIT_BUTTON_OPEN_COURSE_ATTACK_MENU][0] = DeviceInput(DEVICE_KEYBOARD, KEY_Cv);
-		m_EditMappingsDeviceInput.button[EDIT_BUTTON_ADD_COURSE_MODS][0] = DeviceInput(DEVICE_KEYBOARD, KEY_Co);
-		m_EditMappingsDeviceInput.button[EDIT_BUTTON_OPEN_COURSE_MENU][0] = DeviceInput(DEVICE_KEYBOARD, KEY_Cv);
-
-		// F1 = Show help popup
-		m_EditMappingsDeviceInput.button   [EDIT_BUTTON_OPEN_INPUT_HELP][0]   = DeviceInput(DEVICE_KEYBOARD, KEY_F1);
-
-		// Esc = Show Edit Menu
-		m_EditMappingsDeviceInput.button   [EDIT_BUTTON_OPEN_EDIT_MENU][0]    = DeviceInput(DEVICE_KEYBOARD, KEY_ESC);
-		m_EditMappingsMenuButton.button   [EDIT_BUTTON_OPEN_EDIT_MENU][0]    = GAME_BUTTON_START;
-		m_EditMappingsMenuButton.button   [EDIT_BUTTON_OPEN_EDIT_MENU][1]    = GAME_BUTTON_BACK;
-
-		// Escape, Enter = exit play/record
-		m_PlayMappingsDeviceInput.button   [EDIT_BUTTON_RETURN_TO_EDIT][0]    = DeviceInput(DEVICE_KEYBOARD, KEY_ENTER);
-		m_PlayMappingsDeviceInput.button   [EDIT_BUTTON_RETURN_TO_EDIT][1]    = DeviceInput(DEVICE_KEYBOARD, KEY_ESC);
-		m_PlayMappingsMenuButton.button   [EDIT_BUTTON_RETURN_TO_EDIT][0]    = GAME_BUTTON_START;
-		return;
-
 	case EditMode_Full:
 		// F4 = Show timing menu
 		m_EditMappingsDeviceInput.button[EDIT_BUTTON_OPEN_TIMING_MENU][0] = DeviceInput(DEVICE_KEYBOARD, KEY_F4);
@@ -939,9 +908,6 @@ static MenuDef g_AreaMenu(
 		"Clear clipboard",
 		true,
 		EditMode_Practice, true, true, 0, NULL ),
-	MenuRowDef(ScreenEdit::modify_attacks_at_row,
-		"Modify Attacks at current beat",
-		true, EditMode_CourseMods, true, true, 0, NULL),
 	MenuRowDef(ScreenEdit::modify_keysounds_at_row,
 		"Modify Keysounds at current beat",
 		true, EditMode_Full, true, true, 0, NULL)
@@ -1340,19 +1306,6 @@ static MenuDef g_InsertTapAttack(
 		true, EditMode_Practice, true, true, 0, "Press Start" )
 );
 
-static MenuDef g_InsertCourseAttack(
-	"ScreenMiniMenuInsertCourseAttack",
-	MenuRowDef(ScreenEdit::duration,
-		"Duration seconds",
-		true, EditMode_Practice, true, false, 3, "5","10","15","20","25","30","35","40","45" ),
-	MenuRowDef(ScreenEdit::set_mods,
-		"Set modifiers",
-		true, EditMode_Practice, true, true, 0, "Press Start" ),
-	MenuRowDef(ScreenEdit::remove,
-		"Remove",
-		true, EditMode_Practice, true, true, 0, "Press Start" )
-);
-
 static MenuDef g_InsertStepAttack(
 	"ScreenMiniMenuInsertCourseAttack",
 	MenuRowDef(ScreenEdit::sa_duration,
@@ -1364,11 +1317,6 @@ static MenuDef g_InsertStepAttack(
 	MenuRowDef(ScreenEdit::sa_remove,
 		"Remove",
 		true, EditMode_Practice, true, true, 0, "Press Start" ));
-
-static MenuDef g_CourseMode(
-	"ScreenMiniMenuCourseDisplay",
-	MenuRowDef( -1, "Play mods from course",	true, EditMode_Practice, true, false, 0, NULL )
-);
 
 // HACK: need to remember the track we're inserting on so that we can lay the
 // attack note after coming back from menus.
@@ -1887,7 +1835,6 @@ void ScreenEdit::UpdateTextInfo()
 	DEFAULT_FAIL( EDIT_MODE.GetValue() );
 	case EditMode_Practice:
 		break;
-	case EditMode_CourseMods:
 	case EditMode_Home:
 	case EditMode_Full:
 		sText += ssprintf( SNAP_TO_FORMAT.GetValue(), SNAP_TO.GetValue().c_str(), sNoteType.c_str() );
@@ -1978,7 +1925,6 @@ void ScreenEdit::UpdateTextInfo()
 	{
 	DEFAULT_FAIL( EDIT_MODE.GetValue() );
 	case EditMode_Practice:
-	case EditMode_CourseMods:
 	case EditMode_Home:
 		break;
 	case EditMode_Full:
@@ -2801,74 +2747,11 @@ bool ScreenEdit::InputEdit( const InputEventPlus &input, EditButton EditB )
 			SCREENMAN->PlayInvalidSound();
 		}
 		return true;
-
-	case EDIT_BUTTON_OPEN_COURSE_MENU:
-		{
-			g_CourseMode.rows[0].choices.clear();
-			g_CourseMode.rows[0].choices.push_back( CommonMetrics::LocalizeOptionItem("Off",false) );
-			g_CourseMode.rows[0].iDefaultChoice = 0;
-
-			vector<Course*> courses;
-			SONGMAN->GetAllCourses( courses, false );
-			for( unsigned i = 0; i < courses.size(); ++i )
-			{
-				const Course *crs = courses[i];
-
-				bool bUsesThisSong = false;
-				for( unsigned e = 0; e < crs->m_vEntries.size(); ++e )
-				{
-					if( crs->m_vEntries[e].songID.ToSong() != m_pSong )
-						continue;
-					bUsesThisSong = true;
-				}
-
-				if( bUsesThisSong )
-				{
-					g_CourseMode.rows[0].choices.push_back( crs->GetDisplayFullTitle() );
-					if( crs == GAMESTATE->m_pCurCourse )
-						g_CourseMode.rows[0].iDefaultChoice = g_CourseMode.rows[0].choices.size()-1;
-				}
-			}
-
-			EditMiniMenu( &g_CourseMode, SM_BackFromCourseModeMenu );
-		}
-		return true;
 	case EDIT_BUTTON_OPEN_STEP_ATTACK_MENU:
 	{
 		this->DoStepAttackMenu();
 		return true;
 	}
-	case EDIT_BUTTON_OPEN_COURSE_ATTACK_MENU:
-		{
-			// TODO: Give Song/Step Timing switches/functions here?
-			Course *pCourse = GAMESTATE->m_pCurCourse;
-			if( pCourse == NULL )
-				return false;
-			CourseEntry &ce = pCourse->m_vEntries[GAMESTATE->m_iEditCourseEntryIndex];
-			float fStartTime = m_pSteps->GetTimingData()->GetElapsedTimeFromBeat( GAMESTATE->m_pPlayerState[PLAYER_1]->m_Position.m_fSongBeat );
-			int iAttack = FindAttackAtTime( ce.attacks, fStartTime );
-
-			if( iAttack >= 0 )
-			{
-				const RString sDuration = FloatToString(ce.attacks[iAttack].fSecsRemaining );
-
-				g_InsertCourseAttack.rows[remove].bEnabled = true;
-				if( g_InsertCourseAttack.rows[duration].choices.size() == 9 )
-					g_InsertCourseAttack.rows[duration].choices.push_back( sDuration );
-				else
-					g_InsertCourseAttack.rows[duration].choices.back() = sDuration;
-				g_InsertCourseAttack.rows[duration].iDefaultChoice = 9;
-			}
-			else
-			{
-				if( g_InsertCourseAttack.rows[duration].choices.size() == 10 )
-					g_InsertCourseAttack.rows[duration].choices.pop_back();
-				g_InsertCourseAttack.rows[duration].iDefaultChoice = 3;
-			}
-
-			EditMiniMenu( &g_InsertCourseAttack, SM_BackFromInsertCourseAttack );
-		}
-		return true;
 	case EDIT_BUTTON_ADD_STEP_MODS:
 	{
 		float start = -1;
@@ -2909,43 +2792,6 @@ bool ScreenEdit::InputEdit( const InputEventPlus &input, EditButton EditB )
 		SCREENMAN->AddNewScreenToTop( SET_MOD_SCREEN, SM_BackFromInsertStepAttackPlayerOptions );
 		return true;
 	}
-	case EDIT_BUTTON_ADD_COURSE_MODS:
-		{
-			float fStart, fEnd;
-			PlayerOptions po;
-			const Course *pCourse = GAMESTATE->m_pCurCourse;
-			if( pCourse == NULL )
-				return false;
-			const CourseEntry &ce = pCourse->m_vEntries[GAMESTATE->m_iEditCourseEntryIndex];
-
-			if( m_NoteFieldEdit.m_iBeginMarker == -1 )
-			{
-				fStart = -1;
-				fEnd = -1;
-				po.FromString( ce.sModifiers );
-			}
-			else
-			{
-				// TODO: Give Song/Step Timing switches/functions here? 
-				TimingData *timing = m_pSteps->GetTimingData();
-				fStart = timing->GetElapsedTimeFromBeat( NoteRowToBeat(m_NoteFieldEdit.m_iBeginMarker) );
-				int iAttack = FindAttackAtTime( ce.attacks, fStart );
-
-				if( iAttack >= 0 )
-					po.FromString( ce.attacks[iAttack].sModifiers );
-
-				if( m_NoteFieldEdit.m_iEndMarker == -1 )
-					fEnd = m_pSong->m_fMusicLengthSeconds;
-				else
-					fEnd = timing->GetElapsedTimeFromBeat( NoteRowToBeat(m_NoteFieldEdit.m_iEndMarker) );
-			}
-			g_fLastInsertAttackPositionSeconds = fStart;
-			g_fLastInsertAttackDurationSeconds = fEnd - fStart;
-			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.Assign( ModsLevel_Stage, po );
-			SCREENMAN->AddNewScreenToTop( SET_MOD_SCREEN, SM_BackFromInsertCourseAttackPlayerOptions );
-
-		}
-		return true;
 	case EDIT_BUTTON_BAKE_RANDOM_FROM_SONG_GROUP:
 	case EDIT_BUTTON_BAKE_RANDOM_FROM_SONG_GROUP_AND_GENRE:
 		{
@@ -3419,7 +3265,6 @@ void ScreenEdit::TransitionEditState( EditState em )
 	{
 	case STATE_PLAYING:
 		// If we're in course display mode, set that up.
-		SetupCourseAttacks();
 
 		m_Player.Load( m_NoteDataEdit );
 
@@ -3823,29 +3668,6 @@ void ScreenEdit::HandleScreenMessage( const ScreenMessage SM )
 		HandleBGChangeChoice( (BGChangeChoice)ScreenMiniMenu::s_iLastRowCode, ScreenMiniMenu::s_viLastAnswers );
 		SetDirty( true );
 	}
-	else if( SM == SM_BackFromCourseModeMenu )
-	{
-		const int num = ScreenMiniMenu::s_viLastAnswers[0];
-		GAMESTATE->m_pCurCourse.Set( NULL );
-		if( num != 0 )
-		{
-			const RString name = g_CourseMode.rows[0].choices[num];
-			Course *pCourse = SONGMAN->FindCourse( name );
-
-			int iCourseEntryIndex = -1;
-			FOREACH_CONST( CourseEntry, pCourse->m_vEntries, i )
-			{
-				if( i->songID.ToSong() == GAMESTATE->m_pCurSong.Get() )
-					iCourseEntryIndex = i - pCourse->m_vEntries.begin();
-			}
-
-			ASSERT( iCourseEntryIndex != -1 );
-
-			GAMESTATE->m_pCurCourse.Set( pCourse );
-			GAMESTATE->m_iEditCourseEntryIndex.Set( iCourseEntryIndex );
-			ASSERT( GAMESTATE->m_pCurCourse != NULL );
-		}
-	}
 	else if (SM == SM_BackFromKeysoundTrack)
 	{
 		const int track = ScreenMiniMenu::s_iLastRowCode;
@@ -4112,48 +3934,16 @@ void ScreenEdit::HandleScreenMessage( const ScreenMessage SM )
 				Attack &attack = attacks[attackInProcess];
 				g_IndividualAttack.rows.clear();
 				
-				g_IndividualAttack.rows.push_back(MenuRowDef(0,
-															 "Starting Time",
-															 true,
-															 EditMode_CourseMods,
-															 true,
-															 true,
-															 0,
-															 NULL));
+
 				g_IndividualAttack.rows[0].SetOneUnthemedChoice(FloatToString(attack.fStartSecond));
-				g_IndividualAttack.rows.push_back(MenuRowDef(1,
-															 "Secs Remaining",
-															 true,
-															 EditMode_CourseMods,
-															 true,
-															 true,
-															 0,
-															 NULL));
 				g_IndividualAttack.rows[1].SetOneUnthemedChoice(FloatToString(attack.fSecsRemaining));
 				vector<RString> mods;
 				split(attack.sModifiers, ",", mods);
 				for (unsigned i = 0; i < mods.size(); ++i)
 				{
 					unsigned col = i + 2;
-					g_IndividualAttack.rows.push_back(MenuRowDef(col,
-																 ssprintf("Attack %d", i + 1),
-																 true,
-																 EditMode_CourseMods,
-																 false,
-																 true,
-																 0,
-																 NULL));
 					g_IndividualAttack.rows[col].SetOneUnthemedChoice(mods[i].c_str());
 				}
-				
-				g_IndividualAttack.rows.push_back(MenuRowDef(mods.size() + 2,
-															 "Add Mod",
-															 true,
-															 EditMode_CourseMods,
-															 true,
-															 true,
-															 0,
-															 NULL));
 				
 				EditMiniMenu(&g_IndividualAttack, SM_BackFromInsertStepAttack);
 			}
@@ -4168,7 +3958,7 @@ void ScreenEdit::HandleScreenMessage( const ScreenMessage SM )
 		AttackArray &attacks = GAMESTATE->m_bIsUsingStepTiming ? m_pSteps->m_Attacks : m_pSong->m_Attacks;
 		int iAttack = FindAttackAtTime(attacks, g_fLastInsertAttackPositionSeconds);
 		
-		if (ScreenMiniMenu::s_iLastRowCode == ScreenEdit::remove )
+		if (ScreenMiniMenu::s_iLastRowCode == true )
 		{
 			if (iAttack > 0)
 				attacks.erase(attacks.begin() + iAttack);
@@ -4185,35 +3975,6 @@ void ScreenEdit::HandleScreenMessage( const ScreenMessage SM )
 			SCREENMAN->AddNewScreenToTop( SET_MOD_SCREEN, SM_BackFromInsertStepAttackPlayerOptions );
 		}
 		SetDirty(true);
-	}
-	else if( SM == SM_BackFromInsertCourseAttack )
-	{
-		int iDurationChoice = ScreenMiniMenu::s_viLastAnswers[0];
-		Course *pCourse = GAMESTATE->m_pCurCourse;
-		CourseEntry &ce = pCourse->m_vEntries[GAMESTATE->m_iEditCourseEntryIndex];
-		int iAttack;
-		
-		// TODO: Handle Song/Step Timing functions/switches here?
-
-		g_fLastInsertAttackPositionSeconds = m_pSteps->GetTimingData()->GetElapsedTimeFromBeat( GAMESTATE->m_Position.m_fSongBeat );
-		g_fLastInsertAttackDurationSeconds = StringToFloat( g_InsertCourseAttack.rows[0].choices[iDurationChoice] );
-		iAttack = FindAttackAtTime( ce.attacks, g_fLastInsertAttackPositionSeconds );
-
-		if( ScreenMiniMenu::s_iLastRowCode == ScreenEdit::remove )
-		{
-			ASSERT( iAttack >= 0 );
-			ce.attacks.erase( ce.attacks.begin() + iAttack );
-		}
-		else
-		{
-			PlayerOptions po;
-
-			if( iAttack >= 0 )
-				po.FromString( ce.attacks[iAttack].sModifiers );
-
-			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.Assign( ModsLevel_Preferred, po );
-			SCREENMAN->AddNewScreenToTop( SET_MOD_SCREEN, SM_BackFromInsertCourseAttackPlayerOptions );
-		}
 	}
 	else if (SM == SM_BackFromInsertStepAttackPlayerOptions)
 	{
@@ -4237,34 +3998,6 @@ void ScreenEdit::HandleScreenMessage( const ScreenMessage SM )
 				attacks.push_back(a);
 		}
 		toRestore.Assign(ModsLevel_Preferred, this->originalPlayerOptions.GetPreferred());
-	}
-	else if( SM == SM_BackFromInsertCourseAttackPlayerOptions )
-	{
-		PlayerOptions poChosen = GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred();
-		RString sMods = poChosen.GetString();
-
-		Course *pCourse = GAMESTATE->m_pCurCourse;
-		CourseEntry &ce = pCourse->m_vEntries[GAMESTATE->m_iEditCourseEntryIndex];
-		if( g_fLastInsertAttackPositionSeconds < 0 )
-		{
-			ce.sModifiers = sMods;
-		}
-		else
-		{
-			Attack a(
-				 ATTACK_LEVEL_1,
-				 g_fLastInsertAttackPositionSeconds,
-				 g_fLastInsertAttackDurationSeconds,
-				 sMods,
-				 false,
-				 false );
-			int iAttack = FindAttackAtTime( ce.attacks, g_fLastInsertAttackPositionSeconds );
-
-			if( iAttack >= 0 )
-				ce.attacks[iAttack] = a;
-			else
-				ce.attacks.push_back( a );
-		}
 	}
 	else if( SM == SM_DoRevertToLastSave )
 	{
@@ -4504,7 +4237,6 @@ void ScreenEdit::PerformSave(bool autosave)
 				HandleScreenMessage(save_message);
 			}
 			break;
-		case EditMode_CourseMods:
 		case EditMode_Practice:
 			break;
 	}
@@ -4865,7 +4597,7 @@ void ScreenEdit::HandleMainMenuChoice( MainMenuChoice c, const vector<int> &iAns
 				g_StepsInformation.rows[difficulty].choices.clear();
 				FOREACH_ENUM( Difficulty, dc )
 				{
-					g_StepsInformation.rows[difficulty].choices.push_back( "|" + CustomDifficultyToLocalizedString( GetCustomDifficulty(pSteps->m_StepsType, dc, CourseType_Invalid) ) );
+					g_StepsInformation.rows[difficulty].choices.push_back( "|" + CustomDifficultyToLocalizedString( GetCustomDifficulty(pSteps->m_StepsType, dc) ) );
 				}
 				g_StepsInformation.rows[difficulty].iDefaultChoice = pSteps->GetDifficulty();
 				g_StepsInformation.rows[difficulty].bEnabled = (EDIT_MODE.GetValue() >= EditMode_Full);
@@ -4994,9 +4726,6 @@ void ScreenEdit::HandleMainMenuChoice( MainMenuChoice c, const vector<int> &iAns
 					SCREENMAN->SendMessageToTopScreen( SM_DoExit );
 				break;
 			case EditMode_Practice:
-			case EditMode_CourseMods:
-				SCREENMAN->SendMessageToTopScreen( SM_DoExit );
-				break;
 			}
 			break;
 	};
@@ -6082,67 +5811,6 @@ void ScreenEdit::HandleBGChangeChoice( BGChangeChoice c, const vector<int> &iAns
 	g_CurrentBGChangeLayer = BACKGROUND_LAYER_Invalid;
 }
 
-void ScreenEdit::SetupCourseAttacks()
-{
-	/* This is the first beat that can be changed without it being visible.  Until
-	 * we draw for the first time, any beat can be changed. */
-	GAMESTATE->m_pPlayerState[PLAYER_1]->m_fLastDrawnBeat = -100;
-
-	// Put course options into effect.
-	GAMESTATE->m_pPlayerState[PLAYER_1]->m_ModsToApply.clear();
-	GAMESTATE->m_pPlayerState[PLAYER_1]->RemoveActiveAttacks();
-
-
-	if( GAMESTATE->m_pCurCourse )
-	{
-		AttackArray Attacks;
-		
-		if( EDIT_MODE == EditMode_CourseMods )
-		{
-			Attacks = GAMESTATE->m_pCurCourse->m_vEntries[GAMESTATE->m_iEditCourseEntryIndex].attacks;
-		}
-		else
-		{
-			GAMESTATE->m_pCurCourse->RevertFromDisk();	// Remove this and have a separate reload key?
-
-			for( unsigned e = 0; e < GAMESTATE->m_pCurCourse->m_vEntries.size(); ++e )
-			{
-				if( GAMESTATE->m_pCurCourse->m_vEntries[e].songID.ToSong() != m_pSong )
-					continue;
-
-				Attacks = GAMESTATE->m_pCurCourse->m_vEntries[e].attacks;
-				break;
-			}
-		}
-
-		FOREACH( Attack, Attacks, attack )
-			GAMESTATE->m_pPlayerState[PLAYER_1]->LaunchAttack( *attack );
-	}
-	else 
-	{
-		const PlayerOptions &p = GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent();
-		if (GAMESTATE->m_pCurSong && p.m_fNoAttack == 0 && p.m_fRandAttack == 0 )
-		{
-			AttackArray &attacks = GAMESTATE->m_bIsUsingStepTiming ?
-				GAMESTATE->m_pCurSteps[PLAYER_1]->m_Attacks :
-				GAMESTATE->m_pCurSong->m_Attacks;
-			
-			if (attacks.size() > 0)
-			{
-				FOREACH(Attack, attacks, attack)
-				{
-					// LaunchAttack is actually a misnomer.  The function actually adds
-					// the attack to a list in the PlayerState which is checked and
-					// updated every tick to see which ones to actually activate. -Kyz
-					GAMESTATE->m_pPlayerState[PLAYER_1]->LaunchAttack( *attack );
-				}
-			}
-		}
-	}
-	
-	GAMESTATE->m_pPlayerState[PLAYER_1]->RebuildPlayerOptionsFromActiveAttacks();
-}
-
 void ScreenEdit::CopyToLastSave()
 {
 	ASSERT( GAMESTATE->m_pCurSong != NULL );
@@ -6272,7 +5940,6 @@ float ScreenEdit::GetMaximumBeatForNewNote() const
 	{
 	DEFAULT_FAIL( EDIT_MODE.GetValue() );
 	case EditMode_Practice:
-	case EditMode_CourseMods:
 	case EditMode_Home:
 		{
 			Song &s = *GAMESTATE->m_pCurSong;
@@ -6446,25 +6113,7 @@ void ScreenEdit::DoStepAttackMenu()
 		RString desc = ssprintf("%g -> %g (%d mod[s])",
 			startTime, startTime + attack.fSecsRemaining,
 			attack.GetNumAttacks());
-			
-		g_AttackAtTimeMenu.rows.push_back(MenuRowDef(index++,
-			desc,
-			true,
-			EditMode_CourseMods,
-			false,
-			false,
-			0,
-			"Modify",
-			"Delete"));
 	}
-	g_AttackAtTimeMenu.rows.push_back(MenuRowDef(index,
-		"Add Attack",
-		true,
-		EditMode_CourseMods,
-		true,
-		true,
-		0,
-		NULL));
 		
 	EditMiniMenu(&g_AttackAtTimeMenu, SM_BackFromAttackAtTime);
 }

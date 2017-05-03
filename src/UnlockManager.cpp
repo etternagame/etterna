@@ -3,7 +3,6 @@
 #include "PrefsManager.h"
 #include "RageLog.h"
 #include "Song.h"
-#include "Course.h"
 #include "RageUtil.h"
 #include "SongManager.h"
 #include "GameState.h"
@@ -48,7 +47,6 @@ static const char *UnlockRewardTypeNames[] =
 	"Song",
 	"Steps",
 	"StepsType",
-	"Course",
 	"Modifier",
 };
 XToString( UnlockRewardType );
@@ -96,10 +94,6 @@ RString UnlockManager::FindEntryID( const RString &sName ) const
 	const Song *pSong = SONGMAN->FindSong( sName );
 	if( pSong != NULL )
 		pEntry = FindSong( pSong );
-
-	const Course *pCourse = SONGMAN->FindCourse( sName );
-	if( pCourse != NULL )
-		pEntry = FindCourse( pCourse );
 	
 	if( pEntry == NULL )
 		pEntry = FindModifier( sName );
@@ -111,34 +105,6 @@ RString UnlockManager::FindEntryID( const RString &sName ) const
 	}
 
 	return pEntry->m_sEntryID;
-}
-
-int UnlockManager::CourseIsLocked( const Course *pCourse ) const
-{
-	int iRet = 0;
-
-	if( PREFSMAN->m_bUseUnlockSystem )
-	{
-		const UnlockEntry *p = FindCourse( pCourse );
-		if( p == NULL )
-			return false;
-		if( p->IsLocked() )
-			iRet |= LOCKED_LOCK;
-	}
-
-	/* If a course uses a song that is disabled, disable the course too. */
-	FOREACH_CONST( CourseEntry, pCourse->m_vEntries, e )
-	{
-		const CourseEntry &ce = *e;
-		const Song *pSong = ce.songID.ToSong();
-		if( pSong == NULL )
-			continue;
-		int iSongLock = SongIsLocked( pSong );
-		if( iSongLock & LOCKED_DISABLED )
-			iRet |= LOCKED_DISABLED;
-	}
-
-	return iRet;
 }
 
 int UnlockManager::SongIsLocked( const Song *pSong ) const
@@ -229,14 +195,6 @@ const UnlockEntry *UnlockManager::FindStepsType(const Song *pSong,
 	return NULL;
 }
 
-const UnlockEntry *UnlockManager::FindCourse( const Course *pCourse ) const
-{
-	FOREACH_CONST( UnlockEntry, m_UnlockEntries, e )
-		if( e->m_Course.ToCourse() == pCourse )
-			return &(*e);
-	return NULL;
-}
-
 const UnlockEntry *UnlockManager::FindModifier( const RString &sOneMod ) const
 {
 	FOREACH_CONST( UnlockEntry, m_UnlockEntries, e )
@@ -263,21 +221,6 @@ static float GetArcadePoints( const Profile *pProfile )
 			break;
 		}
 	}
-
-	FOREACH_ENUM( PlayMode, pm )
-	{
-		switch(pm)
-		{
-			case PLAY_MODE_NONSTOP:
-			case PLAY_MODE_ONI:
-			case PLAY_MODE_ENDLESS:
-			{
-				fAP += pProfile->m_iNumSongsPlayedByPlayMode[pm];
-			}
-			default: break;
-		}
-	}
-
 	return fAP;
 }
 
@@ -304,22 +247,6 @@ static float GetSongPoints( const Profile *pProfile )
 			break;
 		}
 	}
-
-	FOREACH_ENUM( PlayMode, pm )
-	{
-		switch(pm)
-		{
-			case PLAY_MODE_NONSTOP:
-			case PLAY_MODE_ONI:
-			case PLAY_MODE_ENDLESS:
-			{
-			fSP += pProfile->m_iNumSongsPlayedByPlayMode[pm];
-			}
-			default: break;
-		}
-
-	}
-
 	return fSP;
 }
 
@@ -347,9 +274,6 @@ bool UnlockEntry::IsValid() const
 	{
 		return m_Song.IsValid() && m_dc != Difficulty_Invalid && m_StepsType != StepsType_Invalid;
 	}
-			
-	case UnlockRewardType_Course:
-		return m_Course.IsValid();
 
 	case UnlockRewardType_Modifier:
 		return true;
@@ -424,16 +348,14 @@ RString UnlockEntry::GetDescription() const
 	case UnlockRewardType_Steps:
 	{
 		StepsType st = GAMEMAN->GetHowToPlayStyleForGame( GAMESTATE->m_pCurGame )->m_StepsType;	// TODO: Is this the best thing we can do here?
-		return (pSong ? pSong->GetDisplayFullTitle() : "") + ", " + CustomDifficultyToLocalizedString( GetCustomDifficulty(st, m_dc, CourseType_Invalid) );
+		return (pSong ? pSong->GetDisplayFullTitle() : "") + ", " + CustomDifficultyToLocalizedString( GetCustomDifficulty(st, m_dc) );
 	}
 	case UnlockRewardType_Steps_Type:
 	{
 		RString ret = (pSong ? pSong->GetDisplayFullTitle() : "");
-		ret += "," + CustomDifficultyToLocalizedString( GetCustomDifficulty(m_StepsType, m_dc, CourseType_Invalid) );
+		ret += "," + CustomDifficultyToLocalizedString( GetCustomDifficulty(m_StepsType, m_dc) );
 		return ret + "," + StringConversion::ToString(m_StepsType); // yeah, bit strange.
 	}
-	case UnlockRewardType_Course:
-		return m_Course.IsValid() ? m_Course.ToCourse()->GetDisplayFullTitle() : "";
 	case UnlockRewardType_Modifier:
 		return CommonMetrics::LocalizeOptionItem( GetModifier(), false );
 	}
@@ -450,8 +372,6 @@ RString	UnlockEntry::GetBannerFile() const
 	case UnlockRewardType_Steps:
 	case UnlockRewardType_Steps_Type:
 		return pSong ? pSong->GetBannerPath() : "";
-	case UnlockRewardType_Course:
-		return m_Course.ToCourse() ? m_Course.ToCourse()->GetBannerPath() : "";
 	case UnlockRewardType_Modifier:
 		return "";
 	}	
@@ -468,8 +388,6 @@ RString	UnlockEntry::GetBackgroundFile() const
 	case UnlockRewardType_Steps:
 	case UnlockRewardType_Steps_Type:
 		return pSong ? pSong->GetBackgroundPath() : "";
-	case UnlockRewardType_Course:
-		return "";
 	case UnlockRewardType_Modifier:
 		return "";
 	}	
@@ -620,11 +538,6 @@ void UnlockManager::Load()
 			}
 			break;
 		}
-		case UnlockRewardType_Course:
-			e->m_Course.FromCourse( SONGMAN->FindCourse(e->m_cmd.GetArg(0).s) );
-			if( !e->m_Course.IsValid() )
-				LuaHelpers::ReportScriptErrorFmt( "Unlock: Cannot find course matching \"%s\"", e->m_cmd.GetArg(0).s.c_str() );
-			break;
 		case UnlockRewardType_Modifier:
 			// nothing to cache
 			break;
@@ -649,8 +562,6 @@ void UnlockManager::Load()
 		str += e->IsLocked()? "locked":"unlocked";
 		if( e->m_Song.IsValid() )
 			str += ( " (found song)" );
-		if( e->m_Course.IsValid() )
-			str += ( " (found course)" );
 		LOG->Trace( "%s", str.c_str() );
 	}
 	
@@ -686,7 +597,6 @@ float UnlockManager::PointsUntilNextUnlock( UnlockRequirement t ) const
 void UnlockManager::UnlockEntryID( const RString &sEntryID )
 {
 	PROFILEMAN->GetMachineProfile()->m_UnlockedEntryIDs.insert( sEntryID );
-	SONGMAN->InvalidateCachedTrails();
 }
 
 void UnlockManager::UnlockEntryIndex( int iEntryIndex )
@@ -698,7 +608,6 @@ void UnlockManager::UnlockEntryIndex( int iEntryIndex )
 void UnlockManager::LockEntryID( RString entryID )
 {
 	PROFILEMAN->GetMachineProfile()->m_UnlockedEntryIDs.erase( entryID );
-	SONGMAN->InvalidateCachedTrails();
 }
 
 void UnlockManager::LockEntryIndex( int entryIndex )
@@ -717,8 +626,6 @@ void UnlockManager::PreferUnlockEntryID( const RString &sUnlockEntryID )
 
 		if( pEntry.m_Song.ToSong() != NULL )
 			GAMESTATE->m_pPreferredSong = pEntry.m_Song.ToSong();
-		if( pEntry.m_Course.ToCourse() )
-			GAMESTATE->m_pPreferredCourse = pEntry.m_Course.ToCourse();
 	}
 }
 
@@ -848,12 +755,6 @@ public:
 		return 0;
 	}
 	
-	static int GetCourse( T* p, lua_State *L )
-	{
-		Course *pCourse = p->m_Course.ToCourse();
-		if( pCourse ) { pCourse->PushSelf(L); return 1; }
-		return 0;
-	}
 	static int GetCode( T* p, lua_State *L )
 	{
 		lua_pushstring( L, p->m_sEntryID );
@@ -873,7 +774,6 @@ public:
 	static int song( T* p, lua_State *L )	{ GetArgs( p, L ); p->m_Type = UnlockRewardType_Song; return 0; }
 	static int steps( T* p, lua_State *L )	{ GetArgs( p, L ); p->m_Type = UnlockRewardType_Steps; return 0; }
 	static int steps_type(T* p, lua_State *L) { GetArgs(p, L); p->m_Type = UnlockRewardType_Steps_Type; return 0; }
-	static int course( T* p, lua_State *L ) { GetArgs( p, L ); p->m_Type = UnlockRewardType_Course; return 0; }
 	static int mod( T* p, lua_State *L )	{ GetArgs( p, L ); p->m_Type = UnlockRewardType_Modifier; return 0; }
 	static int code( T* p, lua_State *L )	{ p->m_sEntryID = SArg(1); return 0; }
 	static int roulette( T* p, lua_State *L ) { p->m_bRoulette = true; return 0; }
@@ -897,13 +797,11 @@ public:
 		ADD_METHOD( GetRequirePassHardSteps );
 		ADD_METHOD( GetRequirePassChallengeSteps );
 		ADD_METHOD( GetSong );
-		ADD_METHOD( GetCourse );
 		ADD_METHOD( GetStepOfAllTypes );
 		ADD_METHOD( GetStepByStepsType );
 		ADD_METHOD( song );
 		ADD_METHOD( steps );
 		ADD_METHOD( steps_type );
-		ADD_METHOD( course );
 		ADD_METHOD( mod );
 		ADD_METHOD( code );
 		ADD_METHOD( roulette );

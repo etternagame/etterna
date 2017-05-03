@@ -5,7 +5,6 @@
 #include "RageUtil.h"
 #include "Song.h"
 #include "RageTextureManager.h"
-#include "Course.h"
 #include "Character.h"
 #include "ThemeMetric.h"
 #include "CharacterManager.h"
@@ -130,15 +129,6 @@ void Banner::LoadFromSongGroup( const RString &sSongGroup )
 	m_bScrolling = false;
 }
 
-void Banner::LoadFromCourse( const Course *pCourse )		// NULL means no course
-{
-	if( pCourse == NULL )				LoadFallback();
-	else if( pCourse->GetBannerPath() != "" )	Load( pCourse->GetBannerPath() );
-	else						LoadCourseFallback();
-
-	m_bScrolling = false;
-}
-
 void Banner::LoadCardFromCharacter( const Character *pCharacter )
 {
 	if( pCharacter == NULL )			LoadFallback();
@@ -196,11 +186,6 @@ void Banner::LoadGroupFallback()
 	Load( THEME->GetPathG("Banner","group fallback") );
 }
 
-void Banner::LoadCourseFallback()
-{
-	Load( THEME->GetPathG("Banner","course fallback") );
-}
-
 void Banner::LoadFallbackCharacterIcon()
 {
 	Character *pCharacter = CHARMAN->GetDefaultCharacter();
@@ -250,12 +235,6 @@ public:
 	{ 
 		if( lua_isnil(L,1) ) { p->LoadFromSong( NULL ); }
 		else { Song *pS = Luna<Song>::check(L,1); p->LoadFromSong( pS ); }
-		COMMON_RETURN_SELF;
-	}
-	static int LoadFromCourse( T* p, lua_State *L )
-	{ 
-		if( lua_isnil(L,1) ) { p->LoadFromCourse( NULL ); }
-		else { Course *pC = Luna<Course>::check(L,1); p->LoadFromCourse( pC ); }
 		COMMON_RETURN_SELF;
 	}
 	static int LoadFromCachedBanner( T* p, lua_State *L )
@@ -311,7 +290,6 @@ public:
 		ADD_METHOD( scaletoclipped );
 		ADD_METHOD( ScaleToClipped );
 		ADD_METHOD( LoadFromSong );
-		ADD_METHOD( LoadFromCourse );
 		ADD_METHOD( LoadFromCachedBanner );
 		ADD_METHOD( LoadIconFromCharacter );
 		ADD_METHOD( LoadCardFromCharacter );

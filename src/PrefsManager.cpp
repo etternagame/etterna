@@ -118,17 +118,6 @@ XToString( AttractSoundFrequency );
 StringToX( AttractSoundFrequency );
 LuaXType( AttractSoundFrequency );
 
-static const char *CourseSortOrdersNames[] = {
-	"Preferred",
-	"Songs",
-	"Meter",
-	"MeterSum",
-	"MeterRank",
-};
-XToString( CourseSortOrders );
-StringToX( CourseSortOrders );
-LuaXType( CourseSortOrders );
-
 static const char *BackgroundFitModeNames[] = {
 	"CoverDistort",
 	"CoverPreserve",
@@ -206,7 +195,6 @@ PrefsManager::PrefsManager() :
 	m_iMaxRegenComboAfterMiss	( "MaxRegenComboAfterMiss",	5 ), // this was 10 by default in SM3.95 -dguzek
 	m_bMercifulDrain		( "MercifulDrain",		false ),	// negative life deltas are scaled by the players life percentage
 	m_HarshHotLifePenalty		( "HarshHotLifePenalty",	true ),
-	m_bMinimum1FullSongInCourses	( "Minimum1FullSongInCourses",	false ),	// FEoS for 1st song, FailImmediate thereafter
 	m_bFailOffInBeginner		( "FailOffInBeginner",		false ),
 	m_bFailOffForFirstStageEasy	( "FailOffForFirstStageEasy",	false ),
 	m_bMercifulBeginner		( "MercifulBeginner",		false ),
@@ -233,14 +221,11 @@ PrefsManager::PrefsManager() :
 	m_bPercentageScoring		( "PercentageScoring",		false ),
 	// Wow, these preference names are *seriously* long -Colby
 	m_fMinPercentageForMachineSongHighScore		( "MinPercentageForMachineSongHighScore",	0.0001f ), // This is for home, who cares how bad you do?
-	m_fMinPercentageForMachineCourseHighScore	( "MinPercentageForMachineCourseHighScore",	0.0001f ), // don't save course scores with 0 percentage
 	m_bDisqualification		( "Disqualification",			false ),
 	m_bAutogenLights		("AutogenLights", false),
 	m_bAutogenSteps			( "AutogenSteps",			false ),
-	m_bAutogenGroupCourses		( "AutogenGroupCourses",		true ),
 	m_bOnlyPreferredDifficulties	( "OnlyPreferredDifficulties",		false ),
 	m_bBreakComboToGetItem		( "BreakComboToGetItem",		false ),
-	m_bLockCourseDifficulties	( "LockCourseDifficulties",		true ),
 	m_ShowDancingCharacters		( "ShowDancingCharacters",		SDC_Off ),
 	m_bUseUnlockSystem		( "UseUnlockSystem",			false ),
 	m_fGlobalOffsetSeconds		( "GlobalOffsetSeconds",		0 ),
@@ -265,20 +250,14 @@ PrefsManager::PrefsManager() :
 	m_bCelShadeModels		( "CelShadeModels",			false ),	// Work-In-Progress.. disable by default.
 	m_bPreferredSortUsesGroups	( "PreferredSortUsesGroups",		true ),
 	m_fDebounceCoinInputTime	( "DebounceCoinInputTime",		0 ),
-
 	m_fPadStickSeconds		( "PadStickSeconds",			0 ),
 	m_EditRecordModeLeadIn		("EditRecordModeLeadIn",		1.0f ),
 	m_EditClearPromptThreshold	("EditClearPromptThreshold",		50),
 	m_bForceMipMaps			( "ForceMipMaps",			false ),
 	m_bTrilinearFiltering		( "TrilinearFiltering",			false ),
 	m_bAnisotropicFiltering		( "AnisotropicFiltering",		false ),
-
 	m_bSignProfileData		( "SignProfileData",			false ),
-	m_CourseSortOrder		( "CourseSortOrder",			COURSE_SORT_SONGS ),
-	m_bSubSortByNumSteps		( "SubSortByNumSteps",			false ),
-	m_GetRankingName		( "GetRankingName",			RANKING_ON ),
 	m_sAdditionalSongFolders	( "AdditionalSongFolders",		"" ),
-	m_sAdditionalCourseFolders	( "AdditionalCourseFolders",		"" ),
 	m_sAdditionalFolders		( "AdditionalFolders",			"" ),
 	m_sDefaultTheme			( "DefaultTheme",			"Til Death" ),
 	m_sLastSeenVideoDriver		( "LastSeenVideoDriver",		"" ),
@@ -295,7 +274,6 @@ PrefsManager::PrefsManager() :
 	m_bDebugLights			( "DebugLights",			false ),
 	m_bMonkeyInput			( "MonkeyInput",			false ),
 	m_sMachineName			( "MachineName",			"" ),
-	m_sCoursesToShowRanking		( "CoursesToShowRanking",		"" ),
 	m_MuteActions			( "MuteActions",			false ),
 	m_bAllowSongDeletion		( "AllowSongDeletion",			false ),
 

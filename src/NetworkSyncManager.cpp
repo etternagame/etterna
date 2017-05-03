@@ -38,7 +38,6 @@ unsigned long NetworkSyncManager::GetCurrentSMBuild( LoadingWindow* ld ) { retur
 #include "RageLog.h"
 #include "ScreenManager.h"
 #include "Song.h"
-#include "Course.h"
 #include "GameState.h"
 #include "StatsManager.h"
 #include "Steps.h"
@@ -418,10 +417,7 @@ void NetworkSyncManager::StartRequest( short position )
 		m_packet.WriteNT( "" );
 	}
 
-	if( GAMESTATE->m_pCurCourse != NULL )
-		m_packet.WriteNT( GAMESTATE->m_pCurCourse->GetDisplayFullTitle() );
-	else
-		m_packet.WriteNT( RString() );
+	m_packet.WriteNT( RString() );
 
 	//Send Player (and song) Options
 	m_packet.WriteNT( GAMESTATE->m_SongOptions.GetCurrent().GetString() );

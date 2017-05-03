@@ -6,7 +6,6 @@
 #include "Steps.h"
 #include "GameState.h"
 #include "RageDisplay.h"
-#include "Trail.h"
 #include "ActorUtil.h"
 #include "XmlFile.h"
 #include "LuaManager.h"
@@ -68,15 +67,6 @@ void DifficultyIcon::SetFromSteps( PlayerNumber pn, const Steps* pSteps )
 		SetFromDifficulty( pSteps->GetDifficulty() );
 }
 
-void DifficultyIcon::SetFromTrail( PlayerNumber pn, const Trail* pTrail )
-{
-	SetPlayer( pn );
-	if( pTrail == NULL )
-		Unset();
-	else
-		SetFromDifficulty( pTrail->m_CourseDifficulty );
-}
-
 void DifficultyIcon::Unset()
 {
 	m_bBlank = true;
@@ -113,19 +103,6 @@ public:
 		}
 		COMMON_RETURN_SELF;
 	}
-	static int SetFromTrail( T* p, lua_State *L )
-	{ 
-		if( lua_isnil(L,1) )
-		{
-			p->Unset();
-		}
-		else
-		{
-			Trail *pT = Luna<Trail>::check(L,1);
-			p->SetFromTrail( PLAYER_1, pT );
-		}
-		COMMON_RETURN_SELF;
-	}
 	static int Unset( T* p, lua_State *L )				{ p->Unset(); COMMON_RETURN_SELF; }
 	static int SetPlayer( T* p, lua_State *L )			{ p->SetPlayer( Enum::Check<PlayerNumber>(L, 1) ); COMMON_RETURN_SELF; }
 	static int SetFromDifficulty( T* p, lua_State *L )		{ p->SetFromDifficulty( Enum::Check<Difficulty>(L, 1) ); COMMON_RETURN_SELF; }
@@ -135,7 +112,6 @@ public:
 		ADD_METHOD( Unset );
 		ADD_METHOD( SetPlayer );
 		ADD_METHOD( SetFromSteps );
-		ADD_METHOD( SetFromTrail );
 		ADD_METHOD( SetFromDifficulty );
 	}
 };

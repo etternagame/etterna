@@ -73,9 +73,6 @@ LuaXType( StepsType );
 
 static const char *PlayModeNames[] = {
 	"Regular",
-	"Nonstop",
-	"Oni",
-	"Endless",
 	"Battle",
 	"Rave",
 };
@@ -174,11 +171,6 @@ static const char *SortOrderNames[] = {
 	"DoubleHardMeter",
 	"DoubleChallengeMeter",
 	"ModeMenu",
-	"AllCourses",
-	"Nonstop",
-	"Oni",
-	"Endless",
-	"Length",
 	"Roulette",
 	"Recent",
 	"Favorites",
@@ -456,7 +448,6 @@ LuaXType( StyleType );
 
 static const char *EditModeNames[] = {
 	"Practice",
-	"CourseMods",
 	"Home",
 	"Full"
 };
@@ -485,9 +476,6 @@ static const char *StageNames[] = {
 	"Final",
 	"Extra1",
 	"Extra2",
-	"Nonstop",
-	"Oni",
-	"Endless",
 	"Event",
 	"Demo",
 };
@@ -512,18 +500,6 @@ static const char *MultiPlayerStatusNames[] = {
 	"MissingMultitap",
 };
 XToString( MultiPlayerStatus );
-
-
-static const char *CourseTypeNames[] = {
-	"Nonstop",
-	"Oni",
-	"Endless",
-	"Survival",
-};
-XToString( CourseType );
-XToLocalizedString( CourseType );
-LuaXType( CourseType );
-LuaFunction( CourseTypeToLocalizedString, CourseTypeToLocalizedString( Enum::Check<CourseType>( L, 1 ) ) );
 
 static const char *FailTypeNames[] = {
 	"Immediate",

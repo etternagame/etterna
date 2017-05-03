@@ -35,8 +35,6 @@ namespace SpecialFiles
 	extern const RString TYPE_TXT_FILE;
 	/** @brief The default Songs directory. */
 	extern const RString SONGS_DIR;
-	/** @brief The default courses directory. */
-	extern const RString COURSES_DIR;
 	/** @brief The default noteskins directory. */
 	extern const RString NOTESKINS_DIR;
 }

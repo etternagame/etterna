@@ -6,7 +6,6 @@
 #include "RageUtil.h"
 #include "RageLog.h"
 #include "GameState.h"
-#include "Course.h"
 #include "Steps.h"
 #include "Style.h"
 #include "Song.h"
@@ -435,28 +434,6 @@ class OptionRowHandlerListSteps : public OptionRowHandlerList
 			m_Def.m_vsChoices.push_back( "" );
 			m_aListEntries.push_back( GameCommand() );
 		}
-		// TODO:  Fix this OptionRow to fetch steps for all styles available.
-		// This is broken in kickbox game mode because kickbox uses separated
-		// styles. -Kyz
-		else if(GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber()) && GAMESTATE->IsCourseMode() && GAMESTATE->m_pCurCourse)   // playing a course
-		{
-			m_Def.m_bOneChoiceForAllPlayers = (bool)PREFSMAN->m_bLockCourseDifficulties;
-			m_Def.m_layoutType = StringToLayoutType( STEPS_ROW_LAYOUT_TYPE );
-
-			vector<Trail*> vTrails;
-			GAMESTATE->m_pCurCourse->GetTrails( vTrails, GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())->m_StepsType );
-			for( unsigned i=0; i<vTrails.size(); i++ )
-			{
-				Trail* pTrail = vTrails[i];
-
-				RString s = CourseDifficultyToLocalizedString( pTrail->m_CourseDifficulty );
-				s += ssprintf( " %d", pTrail->GetMeter() );
-				m_Def.m_vsChoices.push_back( s );
-				GameCommand mc;
-				mc.m_pTrail = pTrail;
-				m_aListEntries.push_back( mc );
-			}
-		}
 		else if(GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber()) && GAMESTATE->m_pCurSong) // playing a song
 		{
 			m_Def.m_layoutType = StringToLayoutType( STEPS_ROW_LAYOUT_TYPE );
@@ -493,7 +470,7 @@ class OptionRowHandlerListSteps : public OptionRowHandlerList
 								s = pSteps->GetDescription();
 						}
 						else
-							s = CustomDifficultyToLocalizedString( GetCustomDifficulty( pSteps->m_StepsType, pSteps->GetDifficulty(), CourseType_Invalid ) );
+							s = CustomDifficultyToLocalizedString( GetCustomDifficulty( pSteps->m_StepsType, pSteps->GetDifficulty() ) );
 					}
 				}
 				s += ssprintf( " %d", pSteps->GetMeter() );
@@ -606,7 +583,7 @@ public:
 				}
 				else
 				{
-					s = CustomDifficultyToLocalizedString( GetCustomDifficulty( GAMESTATE->m_stEdit, dc, CourseType_Invalid ) );
+					s = CustomDifficultyToLocalizedString( GetCustomDifficulty( GAMESTATE->m_stEdit, dc ) );
 				}
 				m_Def.m_vsChoices.push_back( s );
 			}
@@ -793,7 +770,7 @@ class OptionRowHandlerListDifficulties: public OptionRowHandlerList
 		{
 			// TODO: Is this the best thing we can do here?
 			StepsType st = GAMEMAN->GetHowToPlayStyleForGame( GAMESTATE->m_pCurGame )->m_StepsType;
-			RString s = CustomDifficultyToLocalizedString( GetCustomDifficulty(st, *d, CourseType_Invalid) );
+			RString s = CustomDifficultyToLocalizedString( GetCustomDifficulty(st, *d) );
 
 			m_Def.m_vsChoices.push_back( s ); 
 			GameCommand mc;

@@ -5,7 +5,6 @@
 #include "GameState.h"
 #include "ThemeManager.h"
 #include "Steps.h"
-#include "Course.h"
 #include "SongManager.h"
 #include "ActorUtil.h"
 #include "Style.h"
@@ -129,23 +128,11 @@ void StepsDisplay::Load( const RString &sMetricsGroup, const PlayerState *pPlaye
 
 void StepsDisplay::SetFromGameState( PlayerNumber pn )
 {
-	if( GAMESTATE->IsCourseMode() )
-	{
-		// figure out what course type is selected somehow.
-		const Trail* pTrail = GAMESTATE->m_pCurTrail[pn];
-		if( pTrail )
-			SetFromTrail( pTrail );
-		else
-			SetFromStepsTypeAndMeterAndDifficultyAndCourseType( StepsType_Invalid, 0, GAMESTATE->m_PreferredCourseDifficulty[pn], CourseType_Invalid );
-	}
-	else
-	{
 		const Steps* pSteps = GAMESTATE->m_pCurSteps[pn];
 		if( pSteps )
 			SetFromSteps( pSteps );
 		else
-			SetFromStepsTypeAndMeterAndDifficultyAndCourseType( StepsType_Invalid, 0, GAMESTATE->m_PreferredDifficulty[pn], CourseType_Invalid );
-	}
+			SetFromStepsTypeAndMeterAndDifficultyAndCourseType( StepsType_Invalid, 0, GAMESTATE->m_PreferredDifficulty[pn] );
 }
 
 void StepsDisplay::SetFromSteps( const Steps* pSteps )
@@ -156,30 +143,19 @@ void StepsDisplay::SetFromSteps( const Steps* pSteps )
 		return;
 	}
 
-	SetParams params = { pSteps, NULL, pSteps->GetMeter(), pSteps->m_StepsType, pSteps->GetDifficulty(), CourseType_Invalid };
+	SetParams params = { pSteps, pSteps->GetMeter(), pSteps->m_StepsType, pSteps->GetDifficulty() };
 	SetInternal( params );
 }
 
-void StepsDisplay::SetFromTrail( const Trail* pTrail )
-{
-	if( pTrail == NULL )
-	{
-		Unset();
-		return;
-	}
-
-	SetParams params = { NULL, pTrail, pTrail->GetMeter(), pTrail->m_StepsType, pTrail->m_CourseDifficulty, pTrail->m_CourseType };
-	SetInternal( params );
-}
 
 void StepsDisplay::Unset()
 {
 	this->SetVisible( false );
 }
 
-void StepsDisplay::SetFromStepsTypeAndMeterAndDifficultyAndCourseType( StepsType st, int iMeter, Difficulty dc, CourseType ct )
+void StepsDisplay::SetFromStepsTypeAndMeterAndDifficultyAndCourseType( StepsType st, int iMeter, Difficulty dc )
 {
-	SetParams params = { NULL, NULL, iMeter, st, dc, ct };
+	SetParams params = { NULL, iMeter, st, dc };
 	SetInternal( params );
 }
 
@@ -191,10 +167,8 @@ void StepsDisplay::SetInternal( const SetParams &params )
 	RString sCustomDifficulty;
 	if( params.pSteps )
 		sCustomDifficulty = StepsToCustomDifficulty(params.pSteps);
-	else if( params.pTrail )
-		sCustomDifficulty = TrailToCustomDifficulty(params.pTrail);
 	else
-		sCustomDifficulty = GetCustomDifficulty( params.st, params.dc, params.ct );
+		sCustomDifficulty = GetCustomDifficulty( params.st, params.dc);
 	msg.SetParam( "CustomDifficulty", sCustomDifficulty );
 
 	RString sDisplayDescription;
@@ -212,8 +186,6 @@ void StepsDisplay::SetInternal( const SetParams &params )
 
 	if( params.pSteps )
 		msg.SetParam( "Steps", LuaReference::CreateFromPush(*(Steps*)params.pSteps) );
-	if( params.pTrail )
-		msg.SetParam( "Trail", LuaReference::CreateFromPush(*(Trail*)params.pTrail) );
 	msg.SetParam( "Meter", params.iMeter );
 	msg.SetParam( "StepsType", params.st );
 
@@ -302,19 +274,6 @@ public:
 		}
 		COMMON_RETURN_SELF;
 	}
-	static int SetFromTrail( T* p, lua_State *L )
-	{ 
-		if( lua_isnil(L,1) )
-		{
-			p->SetFromTrail( NULL );
-		}
-		else
-		{
-			Trail *pT = Luna<Trail>::check(L,1);
-			p->SetFromTrail( pT );
-		}
-		COMMON_RETURN_SELF;
-	}
 	static int SetFromGameState( T* p, lua_State *L )
 	{
 		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
@@ -326,7 +285,6 @@ public:
 	{
 		ADD_METHOD( Load );
 		ADD_METHOD( SetFromSteps );
-		ADD_METHOD( SetFromTrail );
 		ADD_METHOD( SetFromGameState );
 	}
 };

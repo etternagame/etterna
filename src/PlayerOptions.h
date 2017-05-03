@@ -1,10 +1,8 @@
 #ifndef PLAYER_OPTIONS_H
 #define PLAYER_OPTIONS_H
 
-class Course;
 class Song;
 class Steps;
-class Trail;
 struct lua_State;
 
 #define ONE( arr ) { for( unsigned Z = 0; Z < ARRAYLEN(arr); ++Z ) arr[Z]=1.0f; }
@@ -79,11 +77,9 @@ public:
 	enum ResetPrefsType
 	{ 
 		saved_prefs, 
-		saved_prefs_invalid_for_course
 	};
 	void ResetPrefs( ResetPrefsType type );
 	void ResetSavedPrefs() { ResetPrefs(saved_prefs); };
-	void ResetSavedPrefsInvalidForCourse() { ResetPrefs(saved_prefs_invalid_for_course); }
 	void GetMods( vector<RString> &AddTo, bool bForceNoteSkin = false ) const;
 	void GetLocalizedMods( vector<RString> &AddTo ) const;
 	void FromString( const RString &sMultipleMods );
@@ -252,7 +248,6 @@ public:
 
 	// return true if any mods being used will make the song(s) easier
 	bool IsEasierForSongAndSteps( Song* pSong, Steps* pSteps, PlayerNumber pn ) const;
-	bool IsEasierForCourseAndTrail( Course* pCourse, Trail* pTrail ) const;
 };
 
 #endif

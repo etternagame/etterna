@@ -2,7 +2,6 @@
 #define ScreenHighScores_H
 
 #include "ScreenAttract.h"
-#include "Course.h"
 #include "DynamicActorScroller.h"
 
 typedef pair<Difficulty, StepsType> DifficultyAndStepsType;
@@ -25,7 +24,6 @@ class ScoreScroller: public DynamicActorScroller
 public:
 	ScoreScroller();
 	void LoadSongs( int iNumRecentScores );
-	void LoadCourses( CourseType ct, int iNumRecentScores );
 	void Load( const RString &sClassName );
 	void SetDisplay( const vector<DifficultyAndStepsType> &DifficultiesToShow );
 	bool Scroll( int iDir );
@@ -40,7 +38,7 @@ protected:
 		ScoreRowItemData() { m_pSong = NULL; m_pCourse = NULL; }
 
 		Song *m_pSong;
-		Course *m_pCourse;
+		Song *m_pCourse;
 	};
 	vector<ScoreRowItemData> m_vScoreRowItemData;
 

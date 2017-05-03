@@ -15,7 +15,6 @@
 #include "Steps.h"
 #include "ActorUtil.h"
 #include "RageTextureManager.h"
-#include "Course.h"
 #include "ProfileManager.h"
 #include "Profile.h"
 #include "MenuTimer.h"
@@ -986,9 +985,7 @@ bool ScreenSelectMusic::DetectCodes( const InputEventPlus &input )
 	{
 		if( GAMESTATE->IsAnExtraStageAndSelectionLocked() )
 			m_soundLocked.Play(true);
-		else if( !GAMESTATE->IsCourseMode() )
-			// Only change sorts in non-course mode
-			m_MusicWheel.NextSort();
+		m_MusicWheel.NextSort();
 	}
 	else if( !GAMESTATE->IsAnExtraStageAndSelectionLocked() && CodeDetector::DetectAndAdjustMusicOptions(input.GameI.controller) )
 	{
@@ -1082,23 +1079,6 @@ void ScreenSelectMusic::ChangeSteps( PlayerNumber pn, int dir )
 		Steps *pSteps = m_vpSteps[ m_iSelection[pn] ];
 		GAMESTATE->ChangePreferredDifficultyAndStepsType( pn, pSteps->GetDifficulty(), pSteps->m_StepsType );
 	}
-	else if( GAMESTATE->m_pCurCourse )
-	{
-		m_iSelection[pn] += dir;
-		if( WRAP_CHANGE_STEPS )
-		{
-			wrap( m_iSelection[pn], m_vpTrails.size() );
-		}
-		else
-		{
-			if( CLAMP(m_iSelection[pn],0,m_vpTrails.size()-1) )
-				return;
-		}
-
-		// the user explicity switched difficulties. Update the preferred Difficulty and StepsType
-		Trail *pTrail = m_vpTrails[ m_iSelection[pn] ];
-		GAMESTATE->ChangePreferredCourseDifficultyAndStepsType( pn, pTrail->m_CourseDifficulty, pTrail->m_StepsType );
-	}
 	else
 	{
 		// If we're showing multiple StepsTypes in the list, don't allow
@@ -1176,13 +1156,6 @@ void ScreenSelectMusic::HandleMessage( const Message &msg )
 		}
 
 		m_iSelection[pn] = iSel;
-		if( GAMESTATE->IsCourseMode() )
-		{
-			Trail* pTrail = m_vpTrails.empty()? NULL: m_vpTrails[m_iSelection[pn]];
-			GAMESTATE->m_pCurTrail[pn].Set( pTrail );
-		}
-		else
-		{
 			Steps* pSteps = m_vpSteps.empty()? NULL: m_vpSteps[m_iSelection[pn]];
 
 			// handle changing rave difficulty on join
@@ -1190,7 +1163,6 @@ void ScreenSelectMusic::HandleMessage( const Message &msg )
 				pSteps = m_vpSteps[m_iSelection[master_pn]];
 
 			GAMESTATE->m_pCurSteps[pn].Set( pSteps );
-		}
 	}
 
 	ScreenWithMenuElements::HandleMessage( msg );
@@ -1210,7 +1182,7 @@ void ScreenSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 			m_MenuTimer->SetSeconds( ROULETTE_TIMER_SECONDS );
 			m_MenuTimer->Start();
 		}
-		else if( DO_ROULETTE_ON_MENU_TIMER  &&  m_MusicWheel.GetSelectedSong() == NULL  &&  m_MusicWheel.GetSelectedCourse() == NULL )
+		else if( DO_ROULETTE_ON_MENU_TIMER  &&  m_MusicWheel.GetSelectedSong() == NULL )
 		{
 			m_MusicWheel.StartRoulette();
 			m_MenuTimer->SetSeconds( ROULETTE_TIMER_SECONDS );
@@ -1221,7 +1193,7 @@ void ScreenSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 			// Finish sort changing so that the wheel can respond immediately to
 			// our request to choose random.
 			m_MusicWheel.FinishChangingSorts();
-			if( m_MusicWheel.GetSelectedSong() == NULL && m_MusicWheel.GetSelectedCourse() == NULL )
+			if( m_MusicWheel.GetSelectedSong() == NULL )
 				m_MusicWheel.StartRandom();
 
 			MenuStart( InputEventPlus() );
@@ -1351,35 +1323,6 @@ bool ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 			else
 				SOUND->PlayOnceFromAnnouncer("select music comment general");
 
-			/* If we're in event mode, we may have just played a course (putting
-			* us in course mode). Make sure we're in a single song mode. */
-			if (GAMESTATE->IsCourseMode())
-				GAMESTATE->m_PlayMode.Set(PLAY_MODE_REGULAR);
-		}
-		else if (m_MusicWheel.GetSelectedCourse() != NULL)
-		{
-			SOUND->PlayOnceFromAnnouncer("select course comment general");
-
-			Course *pCourse = m_MusicWheel.GetSelectedCourse();
-			ASSERT(pCourse != NULL);
-			GAMESTATE->m_PlayMode.Set(pCourse->GetPlayMode());
-
-			// apply #LIVES
-			if (pCourse->m_iLives != -1)
-			{
-				FOREACH_EnabledPlayer(pn)
-				{
-					PO_GROUP_ASSIGN(GAMESTATE->m_pPlayerState[pn]->m_PlayerOptions, ModsLevel_Stage, m_LifeType, LifeType_Battery);
-					PO_GROUP_ASSIGN(GAMESTATE->m_pPlayerState[pn]->m_PlayerOptions, ModsLevel_Stage, m_BatteryLives, pCourse->m_iLives);
-				}
-			}
-			if (pCourse->GetCourseType() == COURSE_TYPE_SURVIVAL)
-			{
-				FOREACH_EnabledPlayer(pn)
-				{
-					PO_GROUP_ASSIGN(GAMESTATE->m_pPlayerState[pn]->m_PlayerOptions, ModsLevel_Stage, m_LifeType, LifeType_Time);
-				}
-			}
 		}
 		else
 		{
@@ -1405,87 +1348,6 @@ bool ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 		bool bAllPlayersDoneSelectingSteps = bInitiatedByMenuTimer || bAllOtherHumanPlayersDone;
 		if (TWO_PART_CONFIRMS_ONLY)
 			bAllPlayersDoneSelectingSteps = true;
-
-		/* TRICKY: if we have a Routine chart selected, we need to ensure
-		* the following:
-		* 1. Both players must select the same Routine steps.
-		* 2. If the other player picks non-Routine steps, this player
-		*    cannot pick Routine.
-		* 3. If the other player picked Routine steps, and we pick
-		*    non-Routine steps, the other player's steps must be unselected.
-		* 4. If time runs out, and both players don't have the same Routine
-		*    chart selected, we need to bump the player with a Routine
-		*    chart selection to a playable chart.
-		*    (Right now, we bump them to Beginner... Can we come up with
-		*    something better?)
-		*/
-
-		if (!GAMESTATE->IsCourseMode() && GAMESTATE->GetNumSidesJoined() == 2)
-		{
-			bool bSelectedRoutineSteps[NUM_PLAYERS], bAnySelectedRoutine = false;
-			bool bSelectedSameSteps = GAMESTATE->m_pCurSteps[PLAYER_1] == GAMESTATE->m_pCurSteps[PLAYER_2];
-
-			FOREACH_HumanPlayer(p)
-			{
-				const Steps *pSteps = GAMESTATE->m_pCurSteps[p];
-				const StepsTypeInfo &sti = GAMEMAN->GetStepsTypeInfo(pSteps->m_StepsType);
-
-				bSelectedRoutineSteps[p] = sti.m_StepsTypeCategory == StepsTypeCategory_Routine;
-				bAnySelectedRoutine |= bSelectedRoutineSteps[p];
-			}
-
-			if (bAnySelectedRoutine)
-			{
-				/* Timer ran out. If we haven't agreed on steps, move players with
-				* Routine steps down to Beginner. I'll admit that's annoying,
-				* but at least they won't lose more stages. */
-				if (bInitiatedByMenuTimer && !bSelectedSameSteps)
-				{
-					/* Since m_vpSteps is sorted by Difficulty, the first
-					* entry should be the easiest. */
-					ASSERT(m_vpSteps.size() != 0);
-					Steps *pSteps = m_vpSteps[0];
-
-					FOREACH_PlayerNumber(p)
-					{
-						if (bSelectedRoutineSteps[p])
-							GAMESTATE->m_pCurSteps[p].Set(pSteps);
-					}
-
-					break;
-				}
-
-				// If the steps don't match up, we need to check some more conditions...
-				if (!bSelectedSameSteps)
-				{
-					const PlayerNumber other = OPPOSITE_PLAYER[pn];
-
-					if (m_bStepsChosen[other])
-					{
-						/* Unready the other player if they selected Routine
-						* steps, but we didn't. */
-						if (bSelectedRoutineSteps[other])
-						{
-							m_bStepsChosen[other] = false;
-							bAllPlayersDoneSelectingSteps = false;	// if the timer ran out, we handled it earlier
-
-																	// HACK: send an event to Input to tell it to unready.
-							InputEventPlus event;
-							event.MenuI = GAME_BUTTON_SELECT;
-							event.pn = other;
-
-							this->Input(event);
-						}
-						else if (bSelectedRoutineSteps[pn])
-						{
-							/* They selected non-Routine steps, so we can't
-							* select Routine steps. */
-							return false;
-						}
-					}
-				}
-			}
-		}
 
 		if (!bAllPlayersDoneSelectingSteps)
 		{
@@ -1643,32 +1505,12 @@ void ScreenSelectMusic::AfterStepsOrTrailChange( const vector<PlayerNumber> &vpn
 			Steps* pSteps = m_vpSteps.empty()? NULL: m_vpSteps[m_iSelection[pn]];
 
 			GAMESTATE->m_pCurSteps[pn].Set( pSteps );
-			GAMESTATE->m_pCurTrail[pn].Set( NULL );
 
 			int iScore = 0;
 			if( pSteps )
 			{
 				const Profile *pProfile = PROFILEMAN->IsPersistentProfile(pn) ? PROFILEMAN->GetProfile(pn) : PROFILEMAN->GetMachineProfile();
 				iScore = pProfile->GetStepsHighScoreList(pSong,pSteps).GetTopScore().GetScore();
-			}
-
-			m_textHighScore[pn].SetText( ssprintf("%*i", NUM_SCORE_DIGITS, iScore) );
-		}
-		else if( GAMESTATE->m_pCurCourse )
-		{
-			CLAMP( m_iSelection[pn], 0, m_vpTrails.size()-1 );
-
-			Course* pCourse = GAMESTATE->m_pCurCourse;
-			Trail* pTrail = m_vpTrails.empty()? NULL: m_vpTrails[m_iSelection[pn]];
-
-			GAMESTATE->m_pCurSteps[pn].Set( NULL );
-			GAMESTATE->m_pCurTrail[pn].Set( pTrail );
-
-			int iScore = 0;
-			if( pTrail )
-			{
-				const Profile *pProfile = PROFILEMAN->IsPersistentProfile(pn) ? PROFILEMAN->GetProfile(pn) : PROFILEMAN->GetMachineProfile();
-				iScore = pProfile->GetCourseHighScoreList(pCourse,pTrail).GetTopScore().GetScore();
 			}
 
 			m_textHighScore[pn].SetText( ssprintf("%*i", NUM_SCORE_DIGITS, iScore) );
@@ -1683,8 +1525,7 @@ void ScreenSelectMusic::AfterStepsOrTrailChange( const vector<PlayerNumber> &vpn
 
 void ScreenSelectMusic::SwitchToPreferredDifficulty()
 {
-	if( !GAMESTATE->m_pCurCourse )
-	{
+
 		FOREACH_HumanPlayer( pn )
 		{
 			// Find the closest match to the user's preferred difficulty and StepsType.
@@ -1719,42 +1560,7 @@ void ScreenSelectMusic::SwitchToPreferredDifficulty()
 
 			CLAMP( iSelection, 0, m_vpSteps.size()-1 );
 		}
-	}
-	else
-	{
-		FOREACH_HumanPlayer( pn )
-		{
-			// Find the closest match to the user's preferred difficulty.
-			int iCurDifference = -1;
-			int &iSelection = m_iSelection[pn];
-			FOREACH_CONST( Trail*, m_vpTrails, t )
-			{
-				int i = t - m_vpTrails.begin();
 
-				// If the current trail is listed, use it.
-				if( GAMESTATE->m_pCurTrail[pn] == m_vpTrails[i] )
-				{
-					iSelection = i;
-					break;
-				}
-
-				if( GAMESTATE->m_PreferredCourseDifficulty[pn] != Difficulty_Invalid  &&  GAMESTATE->m_PreferredStepsType != StepsType_Invalid  )
-				{
-					int iDifficultyDifference = abs( (*t)->m_CourseDifficulty - GAMESTATE->m_PreferredCourseDifficulty[pn] );
-					int iStepsTypeDifference = abs( (*t)->m_StepsType - GAMESTATE->m_PreferredStepsType );
-					int iTotalDifference = iStepsTypeDifference * NUM_CourseDifficulty + iDifficultyDifference;
-
-					if( iCurDifference == -1 || iTotalDifference < iCurDifference )
-					{
-						iSelection = i;
-						iCurDifference = iTotalDifference;
-					}
-				}
-			}
-
-			CLAMP( iSelection, 0, m_vpTrails.size()-1 );
-		}
-	}
 
 	if( GAMESTATE->DifficultiesLocked() )
 	{
@@ -1772,11 +1578,6 @@ void ScreenSelectMusic::AfterMusicChange()
 	GAMESTATE->m_pCurSong.Set( pSong );
 	if( pSong )
 		GAMESTATE->m_pPreferredSong = pSong;
-
-	Course* pCourse = m_MusicWheel.GetSelectedCourse();
-	GAMESTATE->m_pCurCourse.Set( pCourse );
-	if( pCourse )
-		GAMESTATE->m_pPreferredCourse = pCourse;
 
 	m_vpSteps.clear();
 	m_vpTrails.clear();
@@ -1938,40 +1739,6 @@ void ScreenSelectMusic::AfterMusicChange()
 
 		SwitchToPreferredDifficulty();
 		break;
-
-	case WheelItemDataType_Course:
-	{
-		const Course *lCourse = m_MusicWheel.GetSelectedCourse();
-		const Style *pStyle = NULL;
-		if(CommonMetrics::AUTO_SET_STYLE)
-		{
-			pStyle = pCourse->GetCourseStyle(GAMESTATE->m_pCurGame, GAMESTATE->GetNumPlayersEnabled());
-			if(pStyle == NULL)
-			{
-				lCourse->GetAllTrails(m_vpTrails);
-			}
-			else
-			{
-				lCourse->GetTrails(m_vpTrails, pStyle->m_StepsType);
-			}
-		}
-		else
-		{
-			pStyle = GAMESTATE->GetCurrentStyle(PLAYER_INVALID);
-			lCourse->GetTrails(m_vpTrails, pStyle->m_StepsType);
-		}
-
-		m_sSampleMusicToPlay = m_sCourseMusicPath;
-		m_fSampleStartSeconds = 0;
-		m_fSampleLengthSeconds = -1;
-
-		g_sBannerPath = lCourse->GetBannerPath();
-		if( g_sBannerPath.empty() )
-			m_Banner.LoadFallback();
-
-		SwitchToPreferredDifficulty();
-		break;
-	}
 	default:
 		FAIL_M(ssprintf("Invalid WheelItemDataType: %i", wtype));
 	}

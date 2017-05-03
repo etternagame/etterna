@@ -4,7 +4,6 @@
 #include "GameState.h"
 #include "NoteSkinManager.h"
 #include "Song.h"
-#include "Course.h"
 #include "Steps.h"
 #include "ThemeManager.h"
 #include "Foreach.h"
@@ -921,15 +920,7 @@ bool PlayerOptions::IsEasierForSongAndSteps( Song* pSong, Steps* pSteps, PlayerN
 //			return true;
 
 		DisplayBpms bpms;
-		if( GAMESTATE->IsCourseMode() )
-		{
-			Trail *pTrail = GAMESTATE->m_pCurCourse->GetTrail( GAMESTATE->GetCurrentStyle(m_pn)->m_StepsType );
-			pTrail->GetDisplayBpms( bpms );
-		}
-		else
-		{
-			GAMESTATE->m_pCurSong->GetDisplayBpms( bpms );
-		}
+		GAMESTATE->m_pCurSong->GetDisplayBpms( bpms );
 		pSong->GetDisplayBpms( bpms );
 
 		// maximum BPM is obfuscated, so M-mods will set a playable speed.
@@ -937,19 +928,6 @@ bool PlayerOptions::IsEasierForSongAndSteps( Song* pSong, Steps* pSteps, PlayerN
 			return true;
 	}
 	if( m_fPlayerAutoPlay )	return true;
-	return false;
-}
-
-bool PlayerOptions::IsEasierForCourseAndTrail( Course* pCourse, Trail* pTrail ) const
-{
-	ASSERT( pCourse != NULL );
-	ASSERT( pTrail != NULL );
-
-	FOREACH_CONST( TrailEntry, pTrail->m_vEntries, e )
-	{
-		if( e->pSong && IsEasierForSongAndSteps(e->pSong, e->pSteps, PLAYER_1) )
-			return true;
-	}
 	return false;
 }
 
@@ -1038,8 +1016,6 @@ void PlayerOptions::ResetPrefs( ResetPrefsType type )
 		CPY( m_fScrollBPM );
 		CPY( m_fMaxScrollBPM );
 		break;
-	case saved_prefs_invalid_for_course:
-		break;
 	}
 	CPY(m_LifeType);
 	CPY(m_DrainType);
@@ -1077,15 +1053,6 @@ public:
 		lua_pushboolean(L, p->IsEasierForSongAndSteps(pSong, pSteps, pn) );
 		return 1;
 	}
-	static int IsEasierForCourseAndTrail( T *p, lua_State *L )
-	{
-		// course, trail
-		Course* pCourse = Luna<Course>::check(L,1);
-		Trail* pTrail = Luna<Trail>::check(L,2);
-		lua_pushboolean(L, p->IsEasierForCourseAndTrail(pCourse, pTrail) );
-		return 1;
-	}
-
 	// Direct control functions, for themes that can handle it.
 
 	ENUM_INTERFACE(LifeSetting, LifeType, LifeType);
@@ -1469,7 +1436,6 @@ public:
 	LunaPlayerOptions()
 	{
 		ADD_METHOD( IsEasierForSongAndSteps );
-		ADD_METHOD( IsEasierForCourseAndTrail );
 
 		ADD_METHOD(LifeSetting);
 		ADD_METHOD(DrainSetting);

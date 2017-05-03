@@ -10,8 +10,6 @@
 #include "DateTime.h"
 #include "SongUtil.h"	// for SongID
 #include "StepsUtil.h"	// for StepsID
-#include "CourseUtil.h"	// for CourseID
-#include "TrailUtil.h"	// for TrailID
 #include "StyleUtil.h"	// for StyleID
 #include "LuaReference.h"
 #include "ChartScores.h"
@@ -48,7 +46,6 @@ extern const RString PUBLIC_KEY_FILE;
 extern const RString SCREENSHOTS_SUBDIR;
 extern const RString REPLAY_SUBDIR;
 extern const RString EDIT_STEPS_SUBDIR;
-extern const RString EDIT_COURSES_SUBDIR;
 extern const RString LASTGOOD_SUBDIR;
 // extern const RString RIVAL_SUBDIR;
 
@@ -60,7 +57,6 @@ class Style;
 
 class Song;
 class Steps;
-class Course;
 struct Game;
 
 // Profile types exist for sorting the list of profiles.
@@ -128,9 +124,8 @@ public:
 		m_sGuid(MakeGuid()), m_sDefaultModifiers(),
 		m_SortOrder(SortOrder_Invalid),
 		m_LastDifficulty(Difficulty_Invalid),
-		m_LastCourseDifficulty(Difficulty_Invalid),
-		m_LastStepsType(StepsType_Invalid), m_lastSong(),
-		m_lastCourse(), m_iCurrentCombo(0), m_iTotalSessions(0),
+		m_LastStepsType(StepsType_Invalid), m_lastSong()
+		, m_iCurrentCombo(0), m_iTotalSessions(0),
 		m_iTotalSessionSeconds(0), m_iTotalGameplaySeconds(0),
 		m_iTotalDancePoints(0),
 		m_iNumExtraStagesPassed(0), m_iNumExtraStagesFailed(0),
@@ -140,11 +135,10 @@ public:
 		m_UnlockedEntryIDs(), m_sLastPlayedMachineGuid(""),
 		m_LastPlayedDate(),m_iNumSongsPlayedByStyle(),
 		m_iNumTotalSongsPlayed(0), m_UserTable(), m_SongHighScores(),
-		m_CourseHighScores(), m_vScreenshots(), 
+		m_vScreenshots(), 
 		profiledir(""), IsEtternaProfile(false)
 	{
 		m_lastSong.Unset();
-		m_lastCourse.Unset();
 		
 		m_LastPlayedDate.Init();
 		
@@ -170,19 +164,14 @@ public:
 	void SetCharacter(const RString &sCharacterID);
 	int GetTotalNumSongsPassed() const;
 	int GetTotalStepsWithTopGrade( StepsType st, Difficulty d, Grade g ) const;
-	int GetTotalTrailsWithTopGrade( StepsType st, CourseDifficulty d, Grade g ) const;
 	float GetSongsPossible( StepsType st, Difficulty dc ) const;
-	float GetCoursesPossible( StepsType st, CourseDifficulty cd ) const;
 	float GetSongsActual( StepsType st, Difficulty dc ) const;
-	float GetCoursesActual( StepsType st, CourseDifficulty cd ) const;
 	float GetSongsPercentComplete( StepsType st, Difficulty dc ) const;
-	float GetCoursesPercentComplete( StepsType st, CourseDifficulty cd ) const;
 	float GetSongsAndCoursesPercentCompleteAllDifficulties( StepsType st ) const;
 	bool GetDefaultModifiers( const Game* pGameType, RString &sModifiersOut ) const;
 	void SetDefaultModifiers( const Game* pGameType, const RString &sModifiers );
 	bool IsCodeUnlocked( const RString &sUnlockEntryID ) const;
 	Song *GetMostPopularSong() const;
-	Course *GetMostPopularCourse() const;
 
 	void AddStepTotals( int iNumTapsAndHolds, int iNumJumps, int iNumHolds, int iNumRolls, int iNumMines, 
 			   int iNumHands, int iNumLifts );
@@ -210,10 +199,8 @@ public:
 	map<RString,RString> m_sDefaultModifiers;
 	SortOrder m_SortOrder;
 	Difficulty m_LastDifficulty;
-	CourseDifficulty m_LastCourseDifficulty;
 	StepsType m_LastStepsType;
 	SongID m_lastSong;
-	CourseID m_lastCourse;
 	int m_iCurrentCombo;
 	int m_iTotalSessions;
 	int m_iTotalSessionSeconds;
@@ -307,30 +294,6 @@ public:
 	bool HasPassedSteps( const Song* pSong, const Steps* pSteps ) const;
 	bool HasPassedAnyStepsInSong( const Song* pSong ) const;
 
-	// Course high scores
-	// struct was a typedef'd array of HighScores, but VC6 freaks out 
-	// in processing the templates for map::operator[].
-	struct HighScoresForATrail
-	{
-		HighScoreList hsl;
-		HighScoresForATrail(): hsl() {}
-	};
-	struct HighScoresForACourse
-	{
-		std::map<TrailID,HighScoresForATrail>	m_TrailHighScores;
-		int GetNumTimesPlayed() const;
-		HighScoresForACourse(): m_TrailHighScores() {}
-	};
-	std::map<CourseID,HighScoresForACourse>	m_CourseHighScores;
-
-	void AddCourseHighScore( const Course* pCourse, const Trail* pTrail, HighScore hs, int &iIndexOut );
-	HighScoreList& GetCourseHighScoreList( const Course* pCourse, const Trail* pTrail );
-	const HighScoreList& GetCourseHighScoreList( const Course* pCourse, const Trail* pTrail ) const;
-	int GetCourseNumTimesPlayed( const Course* pCourse ) const;
-	int GetCourseNumTimesPlayed( const CourseID& courseID ) const;
-	DateTime GetCourseLastPlayedDateTime( const Course* pCourse ) const;
-	void IncrementCoursePlayCount( const Course* pCourse, const Trail* pTrail );
-
 	void GetAllUsedHighScoreNames(std::set<RString>& names);
 
 	void MergeScoresFromOtherProfile(Profile* other, bool skip_totals,
@@ -361,14 +324,12 @@ public:
 		InitEditableData(); 
 		InitGeneralData(); 
 		InitSongScores(); 
-		InitCourseScores(); 
 		InitCategoryScores(); 
 		InitScreenshotData(); 
 	}
 	void InitEditableData(); 
 	void InitGeneralData(); 
 	void InitSongScores(); 
-	void InitCourseScores(); 
 	void InitCategoryScores(); 
 	void InitScreenshotData(); 
 	void ClearStats();
@@ -388,7 +349,6 @@ public:
 
 	void LoadGeneralDataFromNode( const XNode* pNode );
 	void LoadSongScoresFromNode( const XNode* pNode );
-	void LoadCourseScoresFromNode( const XNode* pNode );
 	void LoadCategoryScoresFromNode( const XNode* pNode );
 	void LoadScreenshotDataFromNode( const XNode* pNode );
 
@@ -401,7 +361,6 @@ public:
 	XNode* SaveGeneralDataCreateNode() const;
 	XNode* SaveSongScoresCreateNode() const;
 
-	XNode* SaveCourseScoresCreateNode() const;
 	XNode* SaveCategoryScoresCreateNode() const;
 	XNode* SaveScreenshotDataCreateNode() const;
 
@@ -438,7 +397,6 @@ public:
 
 private:
 	const HighScoresForASong *GetHighScoresForASong( const SongID& songID ) const;
-	const HighScoresForACourse *GetHighScoresForACourse( const CourseID& courseID ) const;
 };
 
 

@@ -7,8 +7,6 @@
 #include "Difficulty.h"
 #include "CommonMetrics.h"
 
-class Course;
-class Trail;
 typedef pair<Difficulty, StepsType> DifficultyAndStepsType;
 
 const int NUM_RANKING_LINES = 5;
@@ -35,8 +33,6 @@ protected:
 	{
 		PageToShow()
 		{
-			pCourse = NULL;
-			pTrail = NULL;
 		}
 
 		int		colorIndex;
@@ -44,10 +40,6 @@ protected:
 		
 		// RankingPageType_Category
 		RankingCategory	category;
-
-		// RankingPageType_SpecificCourses
-		Course*		pCourse;
-		Trail*		pTrail;
 	};
 
 	virtual float SetPage( const PageToShow &pts );

@@ -12,8 +12,6 @@
 
 class Song;
 class Steps;
-class Course;
-class Trail;
 class Character;
 class Style;
 struct Game;
@@ -30,11 +28,10 @@ public:
 		m_iIndex(-1), m_MultiPlayer(MultiPlayer_Invalid),
 		m_pStyle(NULL), m_pm(PlayMode_Invalid),
 		m_dc(Difficulty_Invalid),
-		m_CourseDifficulty(Difficulty_Invalid),
 		m_sAnnouncer(""), m_sPreferredModifiers(""),
 		m_sStageModifiers(""), m_sScreen(""), m_LuaFunction(),
-		m_pSong(NULL), m_pSteps(NULL), m_pCourse(NULL),
-		m_pTrail(NULL), m_pCharacter(NULL), m_SetEnv(), m_SetPref(),
+		m_pSong(NULL), m_pSteps(NULL),
+		m_pCharacter(NULL), m_SetEnv(), m_SetPref(),
 		m_sSongGroup(""), m_SortOrder(SortOrder_Invalid),
 		m_sSoundPath(""), m_vsScreensToPrepare(),
 		m_sProfileID(""), m_sUrl(""), m_bUrlExits(true),
@@ -79,7 +76,6 @@ public:
 	const Style*	m_pStyle;
 	PlayMode	m_pm;
 	Difficulty	m_dc;
-	CourseDifficulty	m_CourseDifficulty;
 	RString		m_sAnnouncer;
 	RString		m_sPreferredModifiers;
 	RString		m_sStageModifiers;
@@ -87,8 +83,6 @@ public:
 	LuaReference	m_LuaFunction;
 	Song*		m_pSong;
 	Steps*		m_pSteps;
-	Course*		m_pCourse;
-	Trail*		m_pTrail;
 	Character*	m_pCharacter;
 	std::map<RString,RString> m_SetEnv;
 	std::map<RString,RString> m_SetPref;

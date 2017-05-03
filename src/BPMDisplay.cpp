@@ -3,7 +3,6 @@
 #include "RageUtil.h"
 #include "GameConstantsAndTypes.h"
 #include "GameState.h"
-#include "Course.h"
 #include "Style.h"
 #include "ActorUtil.h"
 #include "CommonMetrics.h"
@@ -210,29 +209,6 @@ void BPMDisplay::SetBpmFromSteps( const Steps* pSteps )
 	m_fCycleTime = 1.0f;
 }
 
-void BPMDisplay::SetBpmFromCourse( const Course* pCourse )
-{
-	ASSERT( pCourse != NULL );
-	ASSERT( GAMESTATE->GetCurrentStyle(PLAYER_INVALID) != NULL );
-
-	StepsType st = GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StepsType;
-	Trail *pTrail = pCourse->GetTrail( st );
-	// GetTranslitFullTitle because "Crashinfo.txt is garbled because of the ANSI output as usual." -f
-	ASSERT_M( pTrail != NULL, ssprintf("Course '%s' has no trail for StepsType '%s'", pCourse->GetTranslitFullTitle().c_str(), StringConversion::ToString(st).c_str() ) );
-
-	m_fCycleTime = (float)COURSE_CYCLE_SPEED;
-
-	if( (int)pTrail->m_vEntries.size() > CommonMetrics::MAX_COURSE_ENTRIES_BEFORE_VARIOUS )
-	{
-		SetVarious();
-		return;
-	}
-
-	DisplayBpms bpms;
-	pTrail->GetDisplayBpms( bpms );
-	SetBPMRange( bpms );
-}
-
 void BPMDisplay::SetConstantBpm( float fBPM )
 {
 	DisplayBpms bpms;
@@ -257,16 +233,6 @@ void BPMDisplay::SetFromGameState()
 			SetBpmFromSong( GAMESTATE->m_pCurSong );
 		return;
 	}
-	if( GAMESTATE->m_pCurCourse.Get() )
-	{
-		if( GAMESTATE->GetCurrentStyle(PLAYER_INVALID) == NULL )
-			; // This is true when backing out from ScreenSelectCourse to ScreenTitleMenu.  So, don't call SetBpmFromCourse where an assert will fire.
-		else
-			SetBpmFromCourse( GAMESTATE->m_pCurCourse );
-
-		return;
-	}
-
 	NoBPM();
 }
 
@@ -328,16 +294,6 @@ public:
 		}
 		COMMON_RETURN_SELF;
 	}
-	static int SetFromCourse( T* p, lua_State *L )
-	{
-		if( lua_isnil(L,1) ) { p->NoBPM(); }
-		else
-		{
-			const Course* pCourse = Luna<Course>::check( L, 1, true );
-			p->SetBpmFromCourse(pCourse);
-		}
-		COMMON_RETURN_SELF;
-	}
 	static int GetText( T* p, lua_State *L )		{ lua_pushstring( L, p->GetText() ); return 1; }
 
 	LunaBPMDisplay()
@@ -345,7 +301,6 @@ public:
 		ADD_METHOD( SetFromGameState );
 		ADD_METHOD( SetFromSong );
 		ADD_METHOD( SetFromSteps );
-		ADD_METHOD( SetFromCourse );
 		ADD_METHOD( GetText );
 	}
 };

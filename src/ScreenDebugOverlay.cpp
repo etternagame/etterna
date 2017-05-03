@@ -681,7 +681,7 @@ class DebugLineAutosync : public IDebugLine
 	virtual void DoAndLog( RString &sMessageOut )
 	{
 		int as = GAMESTATE->m_SongOptions.GetSong().m_AutosyncType + 1;
-		bool bAllowSongAutosync = !GAMESTATE->IsCourseMode();
+		bool bAllowSongAutosync = true;
 		if( !bAllowSongAutosync  && 
 		  ( as == AutosyncType_Song || as == AutosyncType_Tempo ) )
 			as = AutosyncType_Machine;
@@ -891,7 +891,6 @@ static HighScore MakeRandomHighScore( float fPercentDP )
 static void FillProfileStats( Profile *pProfile )
 {
 	pProfile->InitSongScores(); 
-	pProfile->InitCourseScores();
 
 	static int s_iCount = 0;
 	// Choose a percent for all scores. This is useful for testing unlocks
@@ -921,27 +920,6 @@ static void FillProfileStats( Profile *pProfile )
 			}
 		}
 	}
-
-	vector<Course*> vpAllCourses;
-	SONGMAN->GetAllCourses( vpAllCourses, true );
-	FOREACH( Course*, vpAllCourses, pCourse )
-	{
-		vector<Trail*> vpAllTrails;
-		(*pCourse)->GetAllTrails( vpAllTrails );
-		FOREACH( Trail*, vpAllTrails, pTrail )
-		{
-			if (random_up_to(5))
-			{
-				pProfile->IncrementCoursePlayCount(*pCourse, *pTrail);
-			}
-			for( int i=0; i<iCount; i++ )
-			{
-				int iIndex = 0;
-				pProfile->AddCourseHighScore( *pCourse, *pTrail, MakeRandomHighScore(fPercentDP), iIndex );
-			}
-		}
-	}
-
 	SCREENMAN->ZeroNextUpdate();
 }
 

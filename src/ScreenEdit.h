@@ -97,8 +97,6 @@ enum EditButton
 	EDIT_BUTTON_OPEN_AREA_MENU,
 	EDIT_BUTTON_OPEN_BGCHANGE_LAYER1_MENU,
 	EDIT_BUTTON_OPEN_BGCHANGE_LAYER2_MENU,
-	EDIT_BUTTON_OPEN_COURSE_MENU,
-	EDIT_BUTTON_OPEN_COURSE_ATTACK_MENU,
 	
 	EDIT_BUTTON_OPEN_STEP_ATTACK_MENU, /**< Open up the Step Attacks menu. */
 	EDIT_BUTTON_ADD_STEP_MODS, /**< Add a mod attack to the row. */
@@ -150,8 +148,6 @@ enum EditButton
 	EDIT_BUTTON_SAVE, /**< Save the present changes into the chart. */
 
 	EDIT_BUTTON_UNDO, /**< Undo a recent change. */
-	
-	EDIT_BUTTON_ADD_COURSE_MODS,
 	
 	EDIT_BUTTON_SWITCH_PLAYERS, /**< Allow entering notes for a different Player. */
 	
@@ -375,7 +371,6 @@ protected:
 	bool			m_bRemoveNoteButtonDown;
 
 // for MODE_PLAY
-	void SetupCourseAttacks();
 	PlayerPlus		m_Player;
 	Background		m_Background;
 	Foreground		m_Foreground;
@@ -687,14 +682,6 @@ public:
 	 * @param iAnswers the other settings involving the change. */
 	void HandleBGChangeChoice( BGChangeChoice c, const vector<int> &iAnswers );
 
-	enum CourseAttackChoice
-	{
-		duration,
-		set_mods,
-		remove,
-		NUM_CourseAttackChoice
-	};
-	
 	enum StepAttackChoice
 	{
 		sa_duration,

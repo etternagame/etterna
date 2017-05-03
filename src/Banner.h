@@ -7,7 +7,6 @@
 #include "RageTextureID.h"
 #include "GameConstantsAndTypes.h"
 class Song;
-class Course;
 class Character;
 class UnlockEntry;
 
@@ -32,7 +31,6 @@ public:
 	void LoadFromSong( Song* pSong );
 	void LoadMode();
 	void LoadFromSongGroup( const RString &sSongGroup );
-	void LoadFromCourse( const Course *pCourse );
 	void LoadCardFromCharacter( const Character *pCharacter );
 	void LoadIconFromCharacter( const Character *pCharacter );
 	void LoadBannerFromUnlockEntry( const UnlockEntry* pUE );
@@ -43,7 +41,6 @@ public:
 	void LoadFallback();
 	void LoadFallbackBG();
 	void LoadGroupFallback();
-	void LoadCourseFallback();
 	void LoadFallbackCharacterIcon();
 
 	void SetScrolling( bool bScroll, float Percent = 0 );

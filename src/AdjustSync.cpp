@@ -84,8 +84,6 @@ void AdjustSync::ResetAutosync()
 bool AdjustSync::IsSyncDataChanged()
 {
 	// Can't sync in course modes
-	if( GAMESTATE->IsCourseMode() )
-		return false;
 	vector<RString> vs;
 	AdjustSync::GetSyncChangeTextGlobal( vs );
 	AdjustSync::GetSyncChangeTextSong( vs );
@@ -94,9 +92,6 @@ bool AdjustSync::IsSyncDataChanged()
 
 void AdjustSync::SaveSyncChanges()
 {
-	if( GAMESTATE->IsCourseMode() )
-		return;
-
 	/* TODO: Save all of the timing data changes.
 	 * Luckily, only the song timing data needs comparing here. */
 	if( GAMESTATE->m_pCurSong && s_vpTimingDataOriginal[0] != GAMESTATE->m_pCurSong->m_SongTiming )
@@ -119,8 +114,6 @@ void AdjustSync::SaveSyncChanges()
 
 void AdjustSync::RevertSyncChanges()
 {
-	if( GAMESTATE->IsCourseMode() )
-		return;
 	PREFSMAN->m_fGlobalOffsetSeconds.Set( s_fGlobalOffsetSecondsOriginal );
 
 	// The first one is ALWAYS the song timing.
@@ -143,8 +136,6 @@ static LocalizedString AUTOSYNC_CORRECTION_APPLIED	( "AdjustSync", "Autosync: Co
 static LocalizedString AUTOSYNC_CORRECTION_NOT_APPLIED	( "AdjustSync", "Autosync: Correction NOT applied. Deviation too high." );
 void AdjustSync::HandleAutosync( float fNoteOffBySeconds, float fStepTime )
 {
-	if( GAMESTATE->IsCourseMode() )
-		return;
 	AutosyncType type = GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType;
 	switch( type ) {
 	case AutosyncType_Off:
@@ -174,8 +165,6 @@ void AdjustSync::HandleAutosync( float fNoteOffBySeconds, float fStepTime )
 
 void AdjustSync::HandleSongEnd()
 {
-	if( GAMESTATE->IsCourseMode() )
-		return;
 	if( GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType == AutosyncType_Tempo )
 	{
 		AutosyncTempo();

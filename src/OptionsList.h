@@ -4,7 +4,6 @@
 #include "ScreenWithMenuElements.h"
 #include "RageSound.h"
 #include "Steps.h"
-#include "Trail.h"
 #include "OptionRowHandler.h"
 #include "BitmapText.h"
 #include "OptionsCursor.h"

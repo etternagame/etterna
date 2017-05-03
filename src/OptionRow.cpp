@@ -7,7 +7,6 @@
 #include "CommonMetrics.h"
 #include "GameState.h"
 #include "Song.h"
-#include "Course.h"
 #include "Style.h"
 #include "ActorUtil.h"
 
@@ -201,15 +200,6 @@ RString OptionRow::GetRowTitle() const
 	{
 		bool bShowBpmInSpeedTitle = m_pParentType->SHOW_BPM_IN_SPEED_TITLE;
 
-		if( GAMESTATE->m_pCurCourse )
-		{
-			const Trail* pTrail = GAMESTATE->m_pCurTrail[GAMESTATE->GetMasterPlayerNumber()];
-			ASSERT( pTrail != NULL );
-			const int iNumCourseEntries = pTrail->m_vEntries.size();
-			if( iNumCourseEntries > CommonMetrics::MAX_COURSE_ENTRIES_BEFORE_VARIOUS )
-				bShowBpmInSpeedTitle = false;
-		}
-
 		if( bShowBpmInSpeedTitle )
 		{
 			DisplayBpms bpms;
@@ -217,14 +207,6 @@ RString OptionRow::GetRowTitle() const
 			{
 				const Song* pSong = GAMESTATE->m_pCurSong;
 				pSong->GetDisplayBpms( bpms );
-			}
-			else if( GAMESTATE->m_pCurCourse )
-			{
-				const Course *pCourse = GAMESTATE->m_pCurCourse;
-				StepsType st = GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())->m_StepsType;
-				const Trail* pTrail = pCourse->GetTrail( st );
-				ASSERT( pTrail != NULL );
-				pTrail->GetDisplayBpms( bpms );
 			}
 
 			if( bpms.IsSecret() )

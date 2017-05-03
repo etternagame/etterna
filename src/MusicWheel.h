@@ -9,7 +9,6 @@
 #include "ThemeMetric.h"
 #include "WheelBase.h"
 
-class Course;
 class Song;
 
 struct CompareSongPointerArrayBySectionName;
@@ -32,13 +31,11 @@ public:
 	virtual bool Select();				// return true if this selection ends the screen
 	WheelItemDataType	GetSelectedType()	{ return GetCurWheelItemData(m_iSelection)->m_Type; }
 	Song			*GetSelectedSong();
-	Course			*GetSelectedCourse()	{ return GetCurWheelItemData(m_iSelection)->m_pCourse; }
 	RString			GetSelectedSection()	{ return GetCurWheelItemData(m_iSelection)->m_sText; }
 
 	Song *GetPreferredSelectionForRandomOrPortal();
 
 	bool SelectSong( const Song *p );
-	bool SelectCourse( const Course *p );
 	bool SelectSection( const RString & SectionName );
 	void SetOpenSection( const RString &group );
 	SortOrder GetSortOrder() const { return m_SortOrder; }

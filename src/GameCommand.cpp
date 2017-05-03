@@ -38,7 +38,6 @@ void GameCommand::Init()
 	m_pStyle = NULL;
 	m_pm = PlayMode_Invalid;
 	m_dc = Difficulty_Invalid;
-	m_CourseDifficulty = Difficulty_Invalid;
 	m_sPreferredModifiers = "";
 	m_sStageModifiers = "";
 	m_sAnnouncer = "";
@@ -46,8 +45,6 @@ void GameCommand::Init()
 	m_LuaFunction.Unset();
 	m_pSong = NULL;
 	m_pSteps = NULL;
-	m_pCourse = NULL;
-	m_pTrail = NULL;
 	m_pCharacter = NULL;
 	m_SortOrder = SortOrder_Invalid;
 	m_sSoundPath = "";
@@ -127,10 +124,6 @@ bool GameCommand::DescribesCurrentMode( PlayerNumber pn ) const
 	if( m_pSteps && GAMESTATE->m_pCurSteps[pn].Get() != m_pSteps )
 		return false;
 	if( m_pCharacter && GAMESTATE->m_pCurCharacters[pn] != m_pCharacter )
-		return false;
-	if( m_pCourse && GAMESTATE->m_pCurCourse.Get() != m_pCourse )
-		return false;
-	if( m_pTrail && GAMESTATE->m_pCurTrail[pn].Get() != m_pTrail )
 		return false;
 	if( !m_sSongGroup.empty() && GAMESTATE->m_sPreferredSongGroup != m_sSongGroup )
 		return false;
@@ -299,43 +292,6 @@ void GameCommand::LoadOne( const Command& cmd )
 				}
 				CHECK_INVALID_COND(m_pSteps, st, (st == NULL),
 					(ssprintf("Steps \"%s\" not found", sSteps.c_str())));
-			}
-		}
-	}
-
-	else if( sName == "course" )
-	{
-		CHECK_INVALID_COND(m_pCourse, SONGMAN->FindCourse("", sValue),
-			(SONGMAN->FindCourse("", sValue) == NULL),
-			(ssprintf( "Course \"%s\" not found", sValue.c_str())));
-	}
-	
-	else if( sName == "trail" )
-	{
-		RString sTrail = sValue;
-
-		// This must be processed after "course" and "style" commands.
-		if( !m_bInvalid )
-		{
-			Course *pCourse = (m_pCourse != NULL)? m_pCourse:GAMESTATE->m_pCurCourse;
-			const Style *pStyle = m_pStyle ? m_pStyle : GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber());
-			if( pCourse == NULL || pStyle == NULL )
-			{
-				MAKE_INVALID("Must set Course and Style to set Trail.");
-			}
-			else
-			{
-				const CourseDifficulty cd = StringToDifficulty( sTrail );
-				if(cd == Difficulty_Invalid)
-				{
-					MAKE_INVALID(ssprintf("Invalid difficulty '%s'", sTrail.c_str()));
-				}
-				else
-				{
-					Trail* tr = pCourse->GetTrail(pStyle->m_StepsType, cd);
-					CHECK_INVALID_COND(m_pTrail, tr, (tr == NULL),
-						("Trail \"" + sTrail + "\" not found."));
-				}
 			}
 		}
 	}
@@ -584,22 +540,7 @@ bool GameCommand::IsPlayable( RString *why ) const
 		}
 	}
 
-	if( !m_sScreen.CompareNoCase("ScreenEditCoursesMenu") )
-	{
-		vector<Course*> vCourses;
-		SONGMAN->GetAllCourses( vCourses, false );
-
-		if( vCourses.size() == 0 )
-		{
-			if( why )
-				*why = "No courses are installed";
-			return false;
-		}
-	}
-
-	if( (!m_sScreen.CompareNoCase("ScreenJukeboxMenu") ||
-		!m_sScreen.CompareNoCase("ScreenEditMenu") ||
-		!m_sScreen.CompareNoCase("ScreenEditCoursesMenu")) )
+	if( (!m_sScreen.CompareNoCase("ScreenJukeboxMenu") || !m_sScreen.CompareNoCase("ScreenEditMenu") ))
 	{
 		if( SONGMAN->GetNumSongs() == 0 )
 		{
@@ -748,17 +689,6 @@ void GameCommand::ApplySelf( const vector<PlayerNumber> &vpns ) const
 	if( m_pSteps )
 		FOREACH_CONST( PlayerNumber, vpns, pn )
 			GAMESTATE->m_pCurSteps[*pn].Set( m_pSteps );
-	if( m_pCourse )
-	{
-		GAMESTATE->m_pCurCourse.Set( m_pCourse );
-		GAMESTATE->m_pPreferredCourse = m_pCourse;
-	}
-	if( m_pTrail )
-		FOREACH_CONST( PlayerNumber, vpns, pn )
-			GAMESTATE->m_pCurTrail[*pn].Set( m_pTrail );
-	if( m_CourseDifficulty != Difficulty_Invalid )
-		FOREACH_CONST( PlayerNumber, vpns, pn )
-			GAMESTATE->ChangePreferredCourseDifficulty( *pn, m_CourseDifficulty );
 	if( m_pCharacter )
 		FOREACH_CONST( PlayerNumber, vpns, pn )
 			GAMESTATE->m_pCurCharacters[*pn] = m_pCharacter;
@@ -832,17 +762,6 @@ void GameCommand::ApplySelf( const vector<PlayerNumber> &vpns ) const
 		GAMESTATE->GetDefaultSongOptions( so );
 		GAMESTATE->m_SongOptions.Assign( ModsLevel_Stage, so );
 	}
-	// HACK: Set life type to BATTERY just once here so it happens once and 
-	// we don't override the user's changes if they back out.
-	FOREACH_PlayerNumber(pn)
-	{
-		if(GAMESTATE->m_PlayMode == PLAY_MODE_ONI &&
-			GAMESTATE->m_PlayMode != OldPlayMode &&
-			GAMESTATE->m_pPlayerState[pn]->m_PlayerOptions.GetStage().m_LifeType ==LifeType_Bar)
-		{
-			PO_GROUP_ASSIGN(GAMESTATE->m_pPlayerState[pn]->m_PlayerOptions, ModsLevel_Stage, m_LifeType, LifeType_Battery);
-		}
-	}
 }
 
 bool GameCommand::IsZero() const
@@ -855,10 +774,7 @@ bool GameCommand::IsZero() const
 		m_sStageModifiers != "" ||
 		m_pSong != NULL || 
 		m_pSteps != NULL || 
-		m_pCourse != NULL || 
-		m_pTrail != NULL || 
 		m_pCharacter != NULL || 
-		m_CourseDifficulty != Difficulty_Invalid ||
 		!m_sSongGroup.empty() ||
 		m_SortOrder != SortOrder_Invalid ||
 		!m_sProfileID.empty() ||
@@ -887,8 +803,6 @@ public:
 	static int GetProfileID( T* p, lua_State *L )	{ lua_pushstring(L, p->m_sProfileID ); return 1; }
 	static int GetSong( T* p, lua_State *L )	{ if(p->m_pSong==NULL) lua_pushnil(L); else p->m_pSong->PushSelf(L); return 1; }
 	static int GetSteps( T* p, lua_State *L )	{ if(p->m_pSteps==NULL) lua_pushnil(L); else p->m_pSteps->PushSelf(L); return 1; }
-	static int GetCourse( T* p, lua_State *L )	{ if(p->m_pCourse==NULL) lua_pushnil(L); else p->m_pCourse->PushSelf(L); return 1; }
-	static int GetTrail( T* p, lua_State *L )	{ if(p->m_pTrail==NULL) lua_pushnil(L); else p->m_pTrail->PushSelf(L); return 1; }
 	static int GetCharacter( T* p, lua_State *L )	{ if(p->m_pCharacter==NULL) lua_pushnil(L); else p->m_pCharacter->PushSelf(L); return 1; }
 	static int GetSongGroup( T* p, lua_State *L )	{ lua_pushstring(L, p->m_sSongGroup ); return 1; }
 	static int GetUrl( T* p, lua_State *L )	{ lua_pushstring(L, p->m_sUrl ); return 1; }
@@ -896,7 +810,6 @@ public:
 	static int GetPreferredModifiers( T* p, lua_State *L )	{ lua_pushstring(L, p->m_sPreferredModifiers ); return 1; }
 	static int GetStageModifiers( T* p, lua_State *L )	{ lua_pushstring(L, p->m_sStageModifiers ); return 1; }
 
-	DEFINE_METHOD( GetCourseDifficulty,	m_CourseDifficulty )
 	DEFINE_METHOD( GetDifficulty,	m_dc )
 	DEFINE_METHOD( GetPlayMode,		m_pm )
 	DEFINE_METHOD( GetSortOrder,	m_SortOrder )
@@ -909,14 +822,11 @@ public:
 		ADD_METHOD( GetMultiPlayer );
 		ADD_METHOD( GetStyle );
 		ADD_METHOD( GetDifficulty );
-		ADD_METHOD( GetCourseDifficulty );
 		ADD_METHOD( GetScreen );
 		ADD_METHOD( GetPlayMode );
 		ADD_METHOD( GetProfileID );
 		ADD_METHOD( GetSong );
 		ADD_METHOD( GetSteps );
-		ADD_METHOD( GetCourse );
-		ADD_METHOD( GetTrail );
 		ADD_METHOD( GetCharacter );
 		ADD_METHOD( GetSongGroup );
 		ADD_METHOD( GetSortOrder );

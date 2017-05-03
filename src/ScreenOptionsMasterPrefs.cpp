@@ -740,7 +740,6 @@ static void InitializeConfOptions()
 	ADD( ConfOption( "ShowCaution",			MovePref<bool>,		"Skip","Show") );
 	ADD( ConfOption( "DancePointsForOni",		MovePref<bool>,		"Percent","Dance Points") );
 	ADD( ConfOption( "MusicWheelUsesSections",	MovePref<MusicWheelUsesSections>, "Never","Always","Title Only") );
-	ADD( ConfOption( "CourseSortOrder",		MovePref<CourseSortOrders>, "Num Songs","Average Feet","Total Feet","Ranking") );
 	ADD( ConfOption( "MoveRandomToEnd",		MovePref<bool>,		"No","Yes") );
 	ADD( ConfOption( "ShowNativeLanguage",		MovePref<bool>,		"Romanization","Native Language") );
 	ADD( ConfOption( "ShowLyrics",			MovePref<bool>,		"Hide","Show") );
@@ -750,7 +749,6 @@ static void InitializeConfOptions()
 	ADD( ConfOption( "OnlyPreferredDifficulties", MovePref<bool>, "Off","On" ) );
 	g_ConfOptions.back().m_iEffects = OPT_APPLY_SONG;
 
-	ADD( ConfOption( "AutogenGroupCourses",		MovePref<bool>,		"Off","On" ) );
 	ADD( ConfOption( "FastLoad",			MovePref<bool>,		"Off","On" ) );
 	ADD( ConfOption( "FastLoadAdditionalSongs",			MovePref<bool>,		"Off","On" ) );
 	{
@@ -804,7 +802,6 @@ static void InitializeConfOptions()
 	ADD( ConfOption( "HarshHotLifePenalty", MovePref<bool>,      "Off", "On") );
 	ADD( ConfOption( "FailOffForFirstStageEasy", MovePref<bool>, "Off","On" ) );
 	ADD( ConfOption( "FailOffInBeginner",       MovePref<bool>, "Off","On" ) );
-	ADD( ConfOption( "LockCourseDifficulties", MovePref<bool>, "Off", "On" ) );
 	ADD( ConfOption( "PickExtraStage",		MovePref<bool>,		"Off","On" ) );
 	ADD( ConfOption( "UseUnlockSystem",		MovePref<bool>,		"Off","On" ) );
 	ADD( ConfOption( "AllowSongDeletion",   MovePref<bool>,     "Off","On" ) );

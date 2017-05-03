@@ -11,7 +11,6 @@
 #include "GameState.h"
 #include "Song.h"
 #include "Steps.h"
-#include "Course.h"
 #include "GameManager.h"
 #include "ProductInfo.h"
 #include "RageUtil.h"
@@ -41,7 +40,6 @@ static void DefaultLocalProfileIDInit( size_t /*PlayerNumber*/ i, RString &sName
 }
 
 Preference<bool> ProfileManager::m_bProfileStepEdits( "ProfileStepEdits", true );
-Preference<bool> ProfileManager::m_bProfileCourseEdits( "ProfileCourseEdits", true );
 Preference1D<RString> ProfileManager::m_sDefaultLocalProfileID( DefaultLocalProfileIDInit, NUM_PLAYERS );
 
 const RString NEW_MEM_CARD_NAME	=	"";
@@ -285,8 +283,6 @@ bool ProfileManager::LoadProfileFromMemoryCard( PlayerNumber pn, bool bLoadEdits
 
 			if( m_bProfileStepEdits )
 				SONGMAN->LoadStepEditsFromProfileDir( sDir, (ProfileSlot) pn );
-			if( m_bProfileCourseEdits )
-				SONGMAN->LoadCourseEditsFromProfileDir( sDir, (ProfileSlot) pn );
 		}
 	}
 
@@ -694,7 +690,6 @@ void ProfileManager::LoadMachineProfileEdits()
 {
 	SONGMAN->FreeAllLoadedFromProfile( ProfileSlot_Machine );
 	SONGMAN->LoadStepEditsFromProfileDir( MACHINE_PROFILE_DIR, ProfileSlot_Machine );
-	SONGMAN->LoadCourseEditsFromProfileDir( MACHINE_PROFILE_DIR, ProfileSlot_Machine );
 }
 
 bool ProfileManager::ProfileWasLoadedFromMemoryCard( PlayerNumber pn ) const
@@ -910,51 +905,6 @@ void ProfileManager::IncrementStepsPlayCount( const Song* pSong, const Steps* pS
 	if( IsPersistentProfile(pn) )
 		GetProfile(pn)->IncrementStepsPlayCount( pSong, pSteps );
 	GetMachineProfile()->IncrementStepsPlayCount( pSong, pSteps );
-}
-
-// Course stats
-void ProfileManager::AddCourseScore( const Course* pCourse, const Trail* pTrail, PlayerNumber pn, const HighScore &hs_, int &iPersonalIndexOut, int &iMachineIndexOut )
-{
-	HighScore hs = hs_;
-	hs.SetPercentDP(max( 0, hs.GetPercentDP()) ); // bump up negative scores
-
-	iPersonalIndexOut = -1;
-	iMachineIndexOut = -1;
-
-	// In event mode, set the score's name immediately to the Profile's last
-	// used name. If no profile last used name exists, use "EVNT".
-	if( GAMESTATE->IsEventMode() )
-	{
-		Profile* pProfile = GetProfile(pn);
-		if( pProfile && !pProfile->m_sLastUsedHighScoreName.empty() )
-			hs.SetName(  pProfile->m_sLastUsedHighScoreName );
-		else
-			hs.SetName( "EVNT" );
-	}
-	else
-	{
-		hs.SetName( RANKING_TO_FILL_IN_MARKER[pn] );
-	}
-
-	// save high score
-	if( IsPersistentProfile(pn) )
-		GetProfile(pn)->AddCourseHighScore( pCourse, pTrail, hs, iPersonalIndexOut );
-	if( hs.GetPercentDP() >= PREFSMAN->m_fMinPercentageForMachineCourseHighScore )
-		GetMachineProfile()->AddCourseHighScore( pCourse, pTrail, hs, iMachineIndexOut );
-
-	/*
-	// save recent score
-	if( IsPersistentProfile(pn) )
-		GetProfile(pn)->SaveCourseRecentScore( pCourse, pTrail, hs );
-	GetMachineProfile()->SaveCourseRecentScore( pCourse, pTrail, hs );
-	*/
-}
-
-void ProfileManager::IncrementCoursePlayCount( const Course* pCourse, const Trail* pTrail, PlayerNumber pn )
-{
-	if( IsPersistentProfile(pn) )
-		GetProfile(pn)->IncrementCoursePlayCount( pCourse, pTrail );
-	GetMachineProfile()->IncrementCoursePlayCount( pCourse, pTrail );
 }
 
 // Category stats

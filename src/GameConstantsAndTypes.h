@@ -136,9 +136,6 @@ LuaDeclareType( StepsType );
 enum PlayMode
 {
 	PLAY_MODE_REGULAR, /**< The normal game mode, often with a set number of stages. */
-	PLAY_MODE_NONSTOP, /**< Play a set of songs without stopping. */
-	PLAY_MODE_ONI, /**< Similar to Nonstop, only there is also the danger of lives or a clock. */
-	PLAY_MODE_ENDLESS, /**< Keep playing until you get a game over. */
 	PLAY_MODE_BATTLE, /**< Choose when to send attacks to your opponent. */
 	PLAY_MODE_RAVE,	/**< Have attacks launched during play automatically. */
 	NUM_PlayMode,
@@ -165,9 +162,7 @@ PlayMode StringToPlayMode( const RString& s );
 LuaDeclareType( PlayMode );
 
 /** 
- * @brief The list of ways to sort songs and courses.
- *
- * All song sorts should be listed before course sorts.
+ * @brief The list of ways to sort songs
  */
 enum SortOrder 
 {
@@ -191,12 +186,6 @@ enum SortOrder
 	SORT_DOUBLE_CHALLENGE_METER, /**< Sort by the difficulty of the double challenge meter. */
 	//
 	SORT_MODE_MENU, /**< Have access to the menu for choosing the sort. */
-	// course sorts
-	SORT_ALL_COURSES, /**< Sort with all courses available. */
-	SORT_NONSTOP_COURSES, /**< View only the nonstop courses. */
-	SORT_ONI_COURSES, /**< View only the oni/survival courses. */
-	SORT_ENDLESS_COURSES, /**< View only the endless courses. */
-	SORT_LENGTH, /**< Sort the courses by how long they would last. */
 	SORT_ROULETTE,
 	SORT_RECENT,
 	SORT_FAVORITES,
@@ -560,7 +549,7 @@ struct DisplayBpms
 	 */
 	bool IsSecret() const;
 	/**
-	 * @brief The list of the BPMs for the song or course.
+	 * @brief The list of the BPMs for the song.
 	 */
 	vector<float> vfBpms;
 };
@@ -583,7 +572,6 @@ LuaDeclareType( StyleType );
 enum EditMode
 {
 	EditMode_Practice,
-	EditMode_CourseMods,
 	EditMode_Home,
 	EditMode_Full,
 	NUM_EditMode,
@@ -637,9 +625,6 @@ enum Stage
 	Stage_Final, /**< The last stage. */
 	Stage_Extra1, /**< The first bonus stage, AKA the extra stage. */
 	Stage_Extra2, /**< The last bonus stage, AKA the encore extra stage. */
-	Stage_Nonstop, /**< Playing a nonstop course. */
-	Stage_Oni, /**< Playing an oni or survival course. */
-	Stage_Endless, /**< Playing an endless course. */
 	Stage_Event, /**< Playing in event mode. */
 	Stage_Demo, /**< Playing the demonstration. */
 	NUM_Stage, /**< The number of stage types. */
@@ -680,22 +665,6 @@ enum MultiPlayerStatus
 	MultiPlayerStatus_Invalid
 };
 const RString& MultiPlayerStatusToString( MultiPlayerStatus i );
-
-/** @brief The different course types. */
-enum CourseType
-{
-	COURSE_TYPE_NONSTOP,	/**< The life meter type is set to BAR. */
-	COURSE_TYPE_ONI,	/**< The life meter type is set to BATTERY. */
-	COURSE_TYPE_ENDLESS,	/**< The life meter type is set to REPEAT. */
-	COURSE_TYPE_SURVIVAL,	/**< The life meter type is set to TIME. */
-	NUM_CourseType,
-	CourseType_Invalid
-};
-/** @brief A special iterator for handling the CourseTypes. */
-#define FOREACH_CourseType( i ) FOREACH_ENUM( CourseType, i )
-const RString& CourseTypeToString( CourseType i );
-const RString& CourseTypeToLocalizedString( CourseType i );
-LuaDeclareType( CourseType );
 
 /** @brief How can the Player fail a song? */
 enum FailType

@@ -10,7 +10,6 @@
 #include "Song.h"
 #include "SongManager.h"
 #include "Steps.h"
-#include "Course.h"
 #include "ThemeManager.h"
 #include "CryptManager.h"
 #include "ProfileManager.h"
@@ -43,7 +42,6 @@ const RString DONT_SHARE_SIG       = "DontShare.sig";
 const RString PUBLIC_KEY_FILE      = "public.key";
 const RString SCREENSHOTS_SUBDIR   = "Screenshots/";
 const RString EDIT_STEPS_SUBDIR    = "Edits/";
-const RString EDIT_COURSES_SUBDIR  = "EditCourses/";
 //const RString UPLOAD_SUBDIR         = "Upload/";
 const RString RIVAL_SUBDIR         = "Rivals/";
 const RString REPLAY_SUBDIR	       = "ReplayData/";
@@ -87,17 +85,6 @@ int Profile::HighScoresForASong::GetNumTimesPlayed() const
 	return iCount;
 }
 
-int Profile::HighScoresForACourse::GetNumTimesPlayed() const
-{
-	int iCount = 0;
-	FOREACHM_CONST( TrailID, HighScoresForATrail, m_TrailHighScores, i )
-	{
-		iCount += i->second.hsl.GetNumTimesPlayed();
-	}
-	return iCount;
-}
-
-
 void Profile::InitEditableData()
 {
 	m_sDisplayName = "";
@@ -130,10 +117,8 @@ void Profile::InitGeneralData()
 
 	m_SortOrder = SortOrder_Invalid;
 	m_LastDifficulty = Difficulty_Invalid;
-	m_LastCourseDifficulty = Difficulty_Invalid;
 	m_LastStepsType = StepsType_Invalid;
 	m_lastSong.Unset();
-	m_lastCourse.Unset();
 	m_iCurrentCombo = 0;
 	m_iTotalSessions = 0;
 	m_iTotalSessionSeconds = 0;
@@ -172,11 +157,6 @@ void Profile::InitGeneralData()
 void Profile::InitSongScores()
 {
 	m_SongHighScores.clear();
-}
-
-void Profile::InitCourseScores()
-{
-	m_CourseHighScores.clear();
 }
 
 void Profile::InitCategoryScores()
@@ -251,35 +231,6 @@ int Profile::GetTotalStepsWithTopGrade( StepsType st, Difficulty d, Grade g ) co
 			if( hsl.vHighScores[0].GetGrade() == g )
 				iCount++;
 		}
-	}
-
-	return iCount;
-}
-
-int Profile::GetTotalTrailsWithTopGrade( StepsType st, CourseDifficulty d, Grade g ) const
-{
-	int iCount = 0;
-
-	// add course high scores
-	vector<Course*> vCourses;
-	SONGMAN->GetAllCourses( vCourses, false );
-	FOREACH_CONST( Course*, vCourses, pCourse )
-	{
-		// Don't count any course that has any entries that change over time.
-		if( !(*pCourse)->AllSongsAreFixed() )
-			continue;
-
-		vector<Trail*> vTrails;
-		Trail* pTrail = (*pCourse)->GetTrail( st, d );
-		if( pTrail == NULL )
-			continue;
-
-		const HighScoreList &hsl = GetCourseHighScoreList( *pCourse, pTrail );
-		if( hsl.vHighScores.empty() )
-			continue;	// skip
-
-		if( hsl.vHighScores[0].GetGrade() == g )
-			iCount++;
 	}
 
 	return iCount;
@@ -378,81 +329,6 @@ float Profile::GetSongsPercentComplete( StepsType st, Difficulty dc ) const
 	return GetSongsActual(st,dc) / GetSongsPossible(st,dc);
 }
 
-static void GetHighScoreCourses( vector<Course*> &vpCoursesOut )
-{
-	vpCoursesOut.clear();
-
-	vector<Course*> vpCourses;
-	SONGMAN->GetAllCourses( vpCourses, false );
-	FOREACH_CONST( Course*, vpCourses, c )
-	{
-		// Don't count any course that has any entries that change over time.
-		if( !(*c)->AllSongsAreFixed() )
-			continue;
-
-		vpCoursesOut.push_back( *c );
-	}
-}
-
-float Profile::GetCoursesPossible( StepsType st, CourseDifficulty cd ) const
-{
-	int iTotalTrails = 0;
-
-	vector<Course*> vpCourses;
-	GetHighScoreCourses( vpCourses );
-	FOREACH_CONST( Course*, vpCourses, c )
-	{
-		Trail* pTrail = (*c)->GetTrail(st,cd);
-		if( pTrail == NULL )
-			continue;
-
-		iTotalTrails++;
-	}
-	
-	return (float) iTotalTrails;
-}
-
-float Profile::GetCoursesActual( StepsType st, CourseDifficulty cd ) const
-{
-	float fTotalPercents = 0;
-
-	vector<Course*> vpCourses;
-	GetHighScoreCourses( vpCourses );
-	FOREACH_CONST( Course*, vpCourses, c )
-	{
-		Trail *pTrail = (*c)->GetTrail( st, cd );
-		if( pTrail == NULL )
-			continue;
-
-		const HighScoreList& hsl = GetCourseHighScoreList( *c, pTrail );
-		fTotalPercents += hsl.GetTopScore().GetPercentDP();
-	}
-
-	return fTotalPercents;
-}
-
-float Profile::GetCoursesPercentComplete( StepsType st, CourseDifficulty cd ) const
-{
-	return GetCoursesActual(st,cd) / GetCoursesPossible(st,cd);
-}
-
-float Profile::GetSongsAndCoursesPercentCompleteAllDifficulties( StepsType st ) const
-{
-	float fActual = 0;
-	float fPossible = 0;
-	FOREACH_ENUM( Difficulty, d )
-	{
-		fActual += GetSongsActual(st,d);
-		fPossible += GetSongsPossible(st,d);
-	}
-	FOREACH_ENUM( CourseDifficulty, d )
-	{
-		fActual += GetCoursesActual(st,d);
-		fPossible += GetCoursesPossible(st,d);
-	}
-	return fActual / fPossible;
-}
-
 int Profile::GetSongNumTimesPlayed( const Song* pSong ) const
 {
 	SongID songID;
@@ -524,23 +400,6 @@ Song *Profile::GetMostPopularSong() const
 	}
 
 	return id.ToSong();
-}
-
-Course *Profile::GetMostPopularCourse() const
-{
-	int iMaxNumTimesPlayed = 0;
-	CourseID id;
-	FOREACHM_CONST( CourseID, HighScoresForACourse, m_CourseHighScores, i )
-	{
-		int iNumTimesPlayed = i->second.GetNumTimesPlayed();
-		if(i->first.ToCourse() != NULL && iNumTimesPlayed > iMaxNumTimesPlayed)
-		{
-			id = i->first;
-			iMaxNumTimesPlayed = iNumTimesPlayed;
-		}
-	}
-
-	return id.ToCourse();
 }
 
 // Steps high scores
@@ -650,82 +509,6 @@ void Profile::GetGrades( const Song* pSong, StepsType st, int iCounts[NUM_Grade]
 	}
 }
 
-// Course high scores
-void Profile::AddCourseHighScore( const Course* pCourse, const Trail* pTrail, HighScore hs, int &iIndexOut )
-{
-	GetCourseHighScoreList(pCourse,pTrail).AddHighScore( hs, iIndexOut, IsMachine() );
-}
-
-const HighScoreList& Profile::GetCourseHighScoreList( const Course* pCourse, const Trail* pTrail ) const
-{
-	return ((Profile *)this)->GetCourseHighScoreList( pCourse, pTrail );
-}
-
-HighScoreList& Profile::GetCourseHighScoreList( const Course* pCourse, const Trail* pTrail )
-{
-	CourseID courseID;
-	courseID.FromCourse( pCourse );
-
-	TrailID trailID;
-	trailID.FromTrail( pTrail );
-
-	HighScoresForACourse &hsCourse = m_CourseHighScores[courseID];	// operator[] inserts into map
-	HighScoresForATrail &hsTrail = hsCourse.m_TrailHighScores[trailID];	// operator[] inserts into map
-
-	return hsTrail.hsl;
-}
-
-int Profile::GetCourseNumTimesPlayed( const Course* pCourse ) const
-{
-	CourseID courseID;
-	courseID.FromCourse( pCourse );
-
-	return GetCourseNumTimesPlayed( courseID );
-}
-
-int Profile::GetCourseNumTimesPlayed( const CourseID &courseID ) const
-{
-	const HighScoresForACourse *hsCourse = GetHighScoresForACourse( courseID );
-	if( hsCourse == NULL )
-		return 0;
-
-	int iTotalNumTimesPlayed = 0;
-	FOREACHM_CONST( TrailID, HighScoresForATrail, hsCourse->m_TrailHighScores, j )
-	{
-		const HighScoresForATrail &hsTrail = j->second;
-
-		iTotalNumTimesPlayed += hsTrail.hsl.GetNumTimesPlayed();
-	}
-	return iTotalNumTimesPlayed;
-}
-
-DateTime Profile::GetCourseLastPlayedDateTime( const Course* pCourse ) const
-{
-	CourseID id;
-	id.FromCourse( pCourse );
-	std::map<CourseID,HighScoresForACourse>::const_iterator iter = m_CourseHighScores.find( id );
-
-	// don't call this unless has been played once
-	ASSERT( iter != m_CourseHighScores.end() );
-	ASSERT( !iter->second.m_TrailHighScores.empty() );
-
-	DateTime dtLatest;	// starts out zeroed
-	FOREACHM_CONST( TrailID, HighScoresForATrail, iter->second.m_TrailHighScores, i )
-	{
-		const HighScoreList &hsl = i->second.hsl;
-		if( hsl.GetNumTimesPlayed() == 0 )
-			continue;
-		if( dtLatest < hsl.GetLastPlayed() )
-			dtLatest = hsl.GetLastPlayed();
-	}
-	return dtLatest;
-}
-
-void Profile::IncrementCoursePlayCount( const Course* pCourse, const Trail* pTrail )
-{
-	DateTime now = DateTime::GetNowDate();
-	GetCourseHighScoreList(pCourse,pTrail).IncrementPlayCount( now );
-}
 
 void Profile::GetAllUsedHighScoreNames(std::set<RString>& names)
 {
@@ -750,7 +533,6 @@ void Profile::GetAllUsedHighScoreNames(std::set<RString>& names)
 		} \
 	}
 	GET_NAMES_FROM_MAP(m_SongHighScores, SongID, HighScoresForASong, m_StepsHighScores, StepsID, HighScoresForASteps);
-	GET_NAMES_FROM_MAP(m_CourseHighScores, CourseID, HighScoresForACourse, m_TrailHighScores, TrailID, HighScoresForATrail);
 #undef GET_NAMES_FROM_MAP
 }
 
@@ -834,7 +616,6 @@ void Profile::MergeScoresFromOtherProfile(Profile* other, bool skip_totals,
 		} \
 	}
 	MERGE_SCORES_IN_MEMBER(m_SongHighScores, SongID, HighScoresForASong, m_StepsHighScores, StepsID, HighScoresForASteps);
-	MERGE_SCORES_IN_MEMBER(m_CourseHighScores, CourseID, HighScoresForACourse, m_TrailHighScores, TrailID, HighScoresForATrail);
 #undef MERGE_SCORES_IN_MEMBER
 	// I think the machine profile should not have screenshots merged into it
 	// because the intended use case is someone whose profile scores were
@@ -916,7 +697,6 @@ void Profile::swap(Profile& other)
 	SWAP_ARRAY(m_iNumStagesPassedByGrade, NUM_Grade);
 	SWAP_GENERAL(m_UserTable);
 	SWAP_STR_MEMBER(m_SongHighScores);
-	SWAP_STR_MEMBER(m_CourseHighScores);
 	for(int st= 0; st < NUM_StepsType; ++st)
 	{
 		SWAP_ARRAY(m_CategoryHighScores[st], NUM_RankingCategory);
@@ -1008,10 +788,8 @@ void Profile::HandleStatsPrefixChange(RString dir, bool require_signature)
 	map<RString, RString> default_mods= m_sDefaultModifiers;
 	SortOrder sort_order= m_SortOrder;
 	Difficulty last_diff= m_LastDifficulty;
-	CourseDifficulty last_course_diff= m_LastCourseDifficulty;
 	StepsType last_stepstype= m_LastStepsType;
 	SongID last_song= m_lastSong;
-	CourseID last_course= m_lastCourse;
 	int total_sessions= m_iTotalSessions;
 	int total_session_seconds= m_iTotalSessionSeconds;
 	int total_gameplay_seconds= m_iTotalGameplaySeconds;
@@ -1035,7 +813,6 @@ void Profile::HandleStatsPrefixChange(RString dir, bool require_signature)
 	m_sDefaultModifiers= default_mods;
 	m_SortOrder= sort_order;
 	m_LastDifficulty= last_diff;
-	m_LastCourseDifficulty= last_course_diff;
 	m_LastStepsType= last_stepstype;
 	m_lastSong= last_song;
 	m_iTotalSessions= total_sessions;
@@ -1246,7 +1023,6 @@ ProfileLoadResult Profile::LoadStatsXmlFromNode( const XNode *xml, bool bIgnoreE
 
 	LOAD_NODE( GeneralData );
 	LOAD_NODE( SongScores );
-	LOAD_NODE( CourseScores );
 	LOAD_NODE( CategoryScores );
 	LOAD_NODE( ScreenshotData );
 
@@ -1297,8 +1073,6 @@ bool Profile::SaveAllToDir( const RString &sDir, bool bSignData ) const
 	// Empty directories if none exist.
 	if( ProfileManager::m_bProfileStepEdits )
 		FILEMAN->CreateDir( sDir + EDIT_STEPS_SUBDIR );
-	if( ProfileManager::m_bProfileCourseEdits )
-		FILEMAN->CreateDir( sDir + EDIT_COURSES_SUBDIR );
 	FILEMAN->CreateDir( sDir + SCREENSHOTS_SUBDIR );
 	FILEMAN->CreateDir( sDir + RIVAL_SUBDIR );
 	FILEMAN->CreateDir( sDir + REPLAY_SUBDIR);
@@ -1331,7 +1105,6 @@ XNode *Profile::SaveStatsXmlCreateNode() const
 
 	xml->AppendChild( SaveGeneralDataCreateNode() );
 	xml->AppendChild( SaveSongScoresCreateNode() );
-	xml->AppendChild( SaveCourseScoresCreateNode() );
 	xml->AppendChild( SaveCategoryScoresCreateNode() );
 	xml->AppendChild( SaveScreenshotDataCreateNode() );
 	if( SHOW_COIN_DATA.GetValue() && IsMachine() )
@@ -1486,11 +1259,9 @@ XNode* Profile::SaveGeneralDataCreateNode() const
 	pGeneralDataNode->AppendChild( "Guid",				m_sGuid );
 	pGeneralDataNode->AppendChild( "SortOrder",			SortOrderToString(m_SortOrder) );
 	pGeneralDataNode->AppendChild( "LastDifficulty",		DifficultyToString(m_LastDifficulty) );
-	pGeneralDataNode->AppendChild( "LastCourseDifficulty",		DifficultyToString(m_LastCourseDifficulty) );
 	if( m_LastStepsType != StepsType_Invalid )
 		pGeneralDataNode->AppendChild( "LastStepsType",			GAMEMAN->GetStepsTypeInfo(m_LastStepsType).szName );
 	pGeneralDataNode->AppendChild( m_lastSong.CreateNode() );
-	pGeneralDataNode->AppendChild( m_lastCourse.CreateNode() );
 	pGeneralDataNode->AppendChild( "CurrentCombo", m_iCurrentCombo );
 	pGeneralDataNode->AppendChild( "TotalSessions",			m_iTotalSessions );
 	pGeneralDataNode->AppendChild( "TotalSessionSeconds",		m_iTotalSessionSeconds );
@@ -1676,10 +1447,8 @@ void Profile::LoadGeneralDataFromNode( const XNode* pNode )
 	pNode->GetChildValue( "Guid",					m_sGuid );
 	pNode->GetChildValue( "SortOrder",				s );	m_SortOrder = StringToSortOrder( s );
 	pNode->GetChildValue( "LastDifficulty",				s );	m_LastDifficulty = StringToDifficulty( s );
-	pNode->GetChildValue( "LastCourseDifficulty",			s );	m_LastCourseDifficulty = StringToDifficulty( s );
 	pNode->GetChildValue( "LastStepsType",				s );	m_LastStepsType = GAMEMAN->StringToStepsType( s );
 	pTemp = pNode->GetChild( "Song" );				if( pTemp ) m_lastSong.LoadFromNode( pTemp );
-	pTemp = pNode->GetChild( "Course" );				if( pTemp ) m_lastCourse.LoadFromNode( pTemp );
 	pNode->GetChildValue( "CurrentCombo", m_iCurrentCombo );
 	pNode->GetChildValue( "TotalSessions",				m_iTotalSessions );
 	pNode->GetChildValue( "TotalSessionSeconds",			m_iTotalSessionSeconds );
@@ -2248,116 +2017,6 @@ HighScore* Profile::GetTopSSRHighScore(unsigned int rank, int ss) {
 	return NULL;
 }
 
-XNode* Profile::SaveCourseScoresCreateNode() const
-{
-	CHECKPOINT_M("Getting the node to save course scores.");
-
-	const Profile* pProfile = this;
-	ASSERT( pProfile != NULL );
-
-	XNode* pNode = new XNode( "CourseScores" );
-
-	FOREACHM_CONST( CourseID, HighScoresForACourse, m_CourseHighScores, i )
-	{
-		const CourseID &courseID = i->first;
-		const HighScoresForACourse &hsCourse = i->second;
-
-		// skip courses that have never been played
-		if( pProfile->GetCourseNumTimesPlayed(courseID) == 0 )
-			continue;
-
-		XNode* pCourseNode = pNode->AppendChild( courseID.CreateNode() );
-
-		FOREACHM_CONST( TrailID, HighScoresForATrail, hsCourse.m_TrailHighScores, j )
-		{
-			const TrailID &trailID = j->first;
-			const HighScoresForATrail &hsTrail = j->second;
-
-			const HighScoreList &hsl = hsTrail.hsl;
-
-			// skip steps that have never been played
-			if( hsl.GetNumTimesPlayed() == 0 )
-				continue;
-
-			XNode* pTrailNode = pCourseNode->AppendChild( trailID.CreateNode() );
-
-			pTrailNode->AppendChild( hsl.CreateNode() );
-		}
-	}
-
-	return pNode;
-}
-
-void Profile::LoadCourseScoresFromNode( const XNode* pCourseScores )
-{
-	CHECKPOINT_M("Loading the node that contains course scores.");
-
-	ASSERT( pCourseScores->GetName() == "CourseScores" );
-
-	vector<Course*> vpAllCourses;
-	SONGMAN->GetAllCourses( vpAllCourses, true );
-
-	FOREACH_CONST_Child( pCourseScores, pCourse )
-	{
-		if( pCourse->GetName() != "Course" )
-			continue;
-
-		CourseID courseID;
-		courseID.LoadFromNode( pCourse );
-		// Allow invalid courses so that scores aren't deleted for people that use
-		// AdditionalCoursesFolders and change it frequently. -Kyz
-		//if( !courseID.IsValid() )
-		//	WARN_AND_CONTINUE;
-
-
-		// Backward compatability hack to fix importing scores of old style 
-		// courses that weren't in group folder but have now been moved into
-		// a group folder: 
-		// If the courseID doesn't resolve, then take the file name part of sPath
-		// and search for matches of just the file name.
-		{
-			Course *pC = courseID.ToCourse();
-			if( pC == NULL )
-			{
-				RString sDir, sFName, sExt;
-				splitpath( courseID.GetPath(), sDir, sFName, sExt );
-				RString sFullFileName = sFName + sExt;
-
-				FOREACH_CONST( Course*, vpAllCourses, c )
-				{
-					RString sOther = (*c)->m_sPath.Right(sFullFileName.size());
-
-					if( sFullFileName.CompareNoCase(sOther) == 0 )
-					{
-						pC = *c;
-						courseID.FromCourse( pC );
-						break;
-					}
-				}
-			}
-		}
-
-
-		FOREACH_CONST_Child( pCourse, pTrail )
-		{
-			if( pTrail->GetName() != "Trail" )
-				continue;
-			
-			TrailID trailID;
-			trailID.LoadFromNode( pTrail );
-			if( !trailID.IsValid() )
-				WARN_AND_CONTINUE;
-
-			const XNode *pHighScoreListNode = pTrail->GetChild("HighScoreList");
-			if( pHighScoreListNode == NULL )
-				WARN_AND_CONTINUE;
-			
-			HighScoreList &hsl = m_CourseHighScores[courseID].m_TrailHighScores[trailID].hsl;
-			hsl.LoadFromNode( pHighScoreListNode );
-		}
-	}
-}
-
 XNode* Profile::SaveCategoryScoresCreateNode() const
 {
 	CHECKPOINT_M("Getting the node that saves category scores.");
@@ -2488,15 +2147,6 @@ const Profile::HighScoresForASong *Profile::GetHighScoresForASong( const SongID&
 	map<SongID,HighScoresForASong>::const_iterator it;
 	it = m_SongHighScores.find( songID );
 	if( it == m_SongHighScores.end() )
-		return NULL;
-	return &it->second;
-}
-
-const Profile::HighScoresForACourse *Profile::GetHighScoresForACourse( const CourseID& courseID ) const
-{
-	map<CourseID,HighScoresForACourse>::const_iterator it;
-	it = m_CourseHighScores.find( courseID );
-	if( it == m_CourseHighScores.end() )
 		return NULL;
 	return &it->second;
 }
@@ -2643,16 +2293,8 @@ public:
 			hsl.PushSelf(L);
 			return 1;
 		}
-		else if (LuaBinding::CheckLuaObjectType(L, 1, "Course"))
-		{
-			const Course *pCourse = Luna<Course>::check(L, 1);
-			const Trail *pTrail = Luna<Trail>::check(L, 2);
-			HighScoreList &hsl = p->GetCourseHighScoreList(pCourse, pTrail);
-			hsl.PushSelf(L);
-			return 1;
-		}
 
-		luaL_typerror(L, 1, "Song or Course");
+		luaL_typerror(L, 1, "Song");
 		COMMON_RETURN_SELF;
 	}
 
@@ -2723,11 +2365,7 @@ public:
 		{
 			GET_IF_EXISTS(Song, Steps);
 		}
-		else if (LuaBinding::CheckLuaObjectType(L, 1, "Course"))
-		{
-			GET_IF_EXISTS(Course, Trail);
-		}
-		luaL_typerror(L, 1, "Song or Course");
+		luaL_typerror(L, 1, "Song");
 		return 0;
 #undef GET_IF_EXISTS
 	}
@@ -2753,31 +2391,17 @@ public:
 	static int GetTotalNumSongsPlayed(T* p, lua_State *L) { lua_pushnumber(L, p->m_iNumTotalSongsPlayed); return 1; }
 	static int IsCodeUnlocked(T* p, lua_State *L) { lua_pushboolean(L, p->IsCodeUnlocked(SArg(1))); return 1; }
 	static int GetSongsActual(T* p, lua_State *L) { lua_pushnumber(L, p->GetSongsActual(Enum::Check<StepsType>(L, 1), Enum::Check<Difficulty>(L, 2))); return 1; }
-	static int GetCoursesActual(T* p, lua_State *L) { lua_pushnumber(L, p->GetCoursesActual(Enum::Check<StepsType>(L, 1), Enum::Check<Difficulty>(L, 2))); return 1; }
 	static int GetSongsPossible(T* p, lua_State *L) { lua_pushnumber(L, p->GetSongsPossible(Enum::Check<StepsType>(L, 1), Enum::Check<Difficulty>(L, 2))); return 1; }
-	static int GetCoursesPossible(T* p, lua_State *L) { lua_pushnumber(L, p->GetCoursesPossible(Enum::Check<StepsType>(L, 1), Enum::Check<Difficulty>(L, 2))); return 1; }
 	static int GetSongsPercentComplete(T* p, lua_State *L) { lua_pushnumber(L, p->GetSongsPercentComplete(Enum::Check<StepsType>(L, 1), Enum::Check<Difficulty>(L, 2))); return 1; }
-	static int GetCoursesPercentComplete(T* p, lua_State *L) { lua_pushnumber(L, p->GetCoursesPercentComplete(Enum::Check<StepsType>(L, 1), Enum::Check<Difficulty>(L, 2))); return 1; }
 	static int GetTotalStepsWithTopGrade(T* p, lua_State *L) { lua_pushnumber(L, p->GetTotalStepsWithTopGrade(Enum::Check<StepsType>(L, 1), Enum::Check<Difficulty>(L, 2), Enum::Check<Grade>(L, 3))); return 1; }
-	static int GetTotalTrailsWithTopGrade(T* p, lua_State *L) { lua_pushnumber(L, p->GetTotalTrailsWithTopGrade(Enum::Check<StepsType>(L, 1), Enum::Check<Difficulty>(L, 2), Enum::Check<Grade>(L, 3))); return 1; }
 	static int GetNumTotalSongsPlayed(T* p, lua_State *L) { lua_pushnumber(L, p->m_iNumTotalSongsPlayed); return 1; }
 	static int GetTotalSessions(T* p, lua_State *L) { lua_pushnumber(L, p->m_iTotalSessions); return 1; }
 	static int GetTotalSessionSeconds(T* p, lua_State *L) { lua_pushnumber(L, p->m_iTotalSessionSeconds); return 1; }
 	static int GetTotalGameplaySeconds(T* p, lua_State *L) { lua_pushnumber(L, p->m_iTotalGameplaySeconds); return 1; }
-	static int GetSongsAndCoursesPercentCompleteAllDifficulties(T* p, lua_State *L) { lua_pushnumber(L, p->GetSongsAndCoursesPercentCompleteAllDifficulties(Enum::Check<StepsType>(L, 1))); return 1; }
 	static int GetPlayerRating(T* p, lua_State *L) { lua_pushnumber(L, p->m_fPlayerRating); return 1; }
 	static int GetMostPopularSong(T* p, lua_State *L)
 	{
 		Song *p2 = p->GetMostPopularSong();
-		if (p2)
-			p2->PushSelf(L);
-		else
-			lua_pushnil(L);
-		return 1;
-	}
-	static int GetMostPopularCourse(T* p, lua_State *L)
-	{
-		Course *p2 = p->GetMostPopularCourse();
 		if (p2)
 			p2->PushSelf(L);
 		else
@@ -2884,20 +2508,14 @@ public:
 		ADD_METHOD( GetTotalNumSongsPlayed );
 		ADD_METHOD( IsCodeUnlocked );
 		ADD_METHOD( GetSongsActual );
-		ADD_METHOD( GetCoursesActual );
 		ADD_METHOD( GetSongsPossible );
-		ADD_METHOD( GetCoursesPossible );
 		ADD_METHOD( GetSongsPercentComplete );
-		ADD_METHOD( GetCoursesPercentComplete );
 		ADD_METHOD( GetTotalStepsWithTopGrade );
-		ADD_METHOD( GetTotalTrailsWithTopGrade );
 		ADD_METHOD( GetNumTotalSongsPlayed );
 		ADD_METHOD( GetTotalSessions );
 		ADD_METHOD( GetTotalSessionSeconds );
 		ADD_METHOD( GetTotalGameplaySeconds );
-		ADD_METHOD( GetSongsAndCoursesPercentCompleteAllDifficulties );
 		ADD_METHOD( GetMostPopularSong );
-		ADD_METHOD( GetMostPopularCourse );
 		ADD_METHOD( GetSongNumTimesPlayed );
 		ADD_METHOD( HasPassedAnyStepsInSong );
 		ADD_METHOD( GetNumToasties );

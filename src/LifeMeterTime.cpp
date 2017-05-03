@@ -4,7 +4,6 @@
 #include "Song.h"
 #include "Steps.h"
 #include "ActorUtil.h"
-#include "Course.h"
 #include "Preference.h"
 #include "StreamDisplay.h"
 #include "GameState.h"
@@ -97,33 +96,25 @@ void LifeMeterTime::OnLoadSong()
 
 	float fOldLife = m_fLifeTotalLostSeconds;
 	float fGainSeconds = 0;
-	if(GAMESTATE->IsCourseMode())
+
+	// Placeholderish, at least this way it won't crash when someone tries it
+	// out in non-course mode. -Kyz
+	Song* song = GAMESTATE->m_pCurSong;
+	ASSERT(song != NULL);
+	float song_len = song->m_fMusicLengthSeconds;
+	Steps* steps = GAMESTATE->m_pCurSteps[m_pPlayerState->m_PlayerNumber];
+	ASSERT(steps != NULL);
+	RadarValues radars = steps->GetRadarValues(m_pPlayerState->m_PlayerNumber);
+	float scorable_things = radars[RadarCategory_TapsAndHolds] +
+		radars[RadarCategory_Lifts];
+	if (g_fTimeMeterSecondsChange[SE_Held] > 0.0f)
 	{
-		Course* pCourse = GAMESTATE->m_pCurCourse;
-		ASSERT( pCourse != NULL );
-		fGainSeconds= pCourse->m_vEntries[GAMESTATE->GetCourseSongIndex()].fGainSeconds;
+		scorable_things += radars[RadarCategory_Holds] +
+			radars[RadarCategory_Rolls];
 	}
-	else
-	{
-		// Placeholderish, at least this way it won't crash when someone tries it
-		// out in non-course mode. -Kyz
-		Song* song= GAMESTATE->m_pCurSong;
-		ASSERT(song != NULL);
-		float song_len= song->m_fMusicLengthSeconds;
-		Steps* steps= GAMESTATE->m_pCurSteps[m_pPlayerState->m_PlayerNumber];
-		ASSERT(steps != NULL);
-		RadarValues radars= steps->GetRadarValues(m_pPlayerState->m_PlayerNumber);
-		float scorable_things= radars[RadarCategory_TapsAndHolds] +
-			radars[RadarCategory_Lifts];
-		if(g_fTimeMeterSecondsChange[SE_Held] > 0.0f)
-		{
-			scorable_things+= radars[RadarCategory_Holds] +
-				radars[RadarCategory_Rolls];
-		}
-		// Calculate the amount of time to give for the player to need 80% W1.
-		float gainable_score_time= scorable_things * g_fTimeMeterSecondsChange[SE_W1];
-		fGainSeconds= song_len - (gainable_score_time * INITIAL_VALUE);
-	}
+	// Calculate the amount of time to give for the player to need 80% W1.
+	float gainable_score_time = scorable_things * g_fTimeMeterSecondsChange[SE_W1];
+	fGainSeconds = song_len - (gainable_score_time * INITIAL_VALUE);
 
 	if( MIN_LIFE_TIME > fGainSeconds )
 		fGainSeconds = MIN_LIFE_TIME;

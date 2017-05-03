@@ -42,32 +42,6 @@ static void GetAllSongsToShow( vector<Song*> &vpOut, int iNumMostRecentScoresToS
 	}
 }
 
-static void GetAllCoursesToShow( vector<Course*> &vpOut, CourseType ct, int iNumMostRecentScoresToShow )
-{
-	vpOut.clear();
-	vector<Course*> vpCourses;
-	if( ct == CourseType_Invalid )
-		SONGMAN->GetAllCourses( vpCourses, false );
-	else
-		SONGMAN->GetCourses( ct, vpCourses, false );
-
-	FOREACH_CONST( Course*, vpCourses, c)
-	{
-		if( UNLOCKMAN->CourseIsLocked(*c) )
-			continue;	// skip
-		if( !(*c)->ShowInDemonstrationAndRanking() )
-			continue;	// skip
-		vpOut.push_back( *c );
-	}
-	if( (int)vpOut.size() > iNumMostRecentScoresToShow )
-	{
-		CourseUtil::SortCoursePointerArrayByTitle( vpOut );
-		CourseUtil::SortByMostRecentlyPlayedForMachine( vpOut );
-		if( (int) vpOut.size() > iNumMostRecentScoresToShow )
-			vpOut.erase( vpOut.begin()+iNumMostRecentScoresToShow, vpOut.end() );
-	}
-}
-
 /////////////////////////////////////////////
 
 ScoreScroller::ScoreScroller()
@@ -141,12 +115,6 @@ void ScoreScroller::ConfigureActor( Actor *pActor, int iItem )
 				pSteps = NULL;
 			LuaHelpers::Push( L, pSteps );
 		}
-		else if( data.m_pCourse != NULL )
-		{
-			const Course* pCourse = data.m_pCourse;
-			Trail *pTrail = pCourse->GetTrail( st, dc );
-			LuaHelpers::Push( L, pTrail );
-		}
 		// Because pSteps or pTrail can be NULL, what we're creating in Lua is not an array.
 		// It must be iterated using pairs(), not ipairs().
 		lua_setfield( L, -2, ssprintf("%d",i+1) );
@@ -166,15 +134,6 @@ void ScoreScroller::LoadSongs( int iNumRecentScores )
 	m_vScoreRowItemData.resize( vpSongs.size() );
 	for( unsigned i=0; i<m_vScoreRowItemData.size(); ++i )
 		m_vScoreRowItemData[i].m_pSong = vpSongs[i];
-}
-
-void ScoreScroller::LoadCourses( CourseType ct, int iNumRecentScores )
-{
-	vector<Course*> vpCourses;
-	GetAllCoursesToShow( vpCourses, ct, iNumRecentScores );
-	m_vScoreRowItemData.resize( vpCourses.size() );
-	for( unsigned i=0; i<m_vScoreRowItemData.size(); ++i )
-		m_vScoreRowItemData[i].m_pCourse = vpCourses[i];
 }
 
 void ScoreScroller::Load( const RString &sMetricsGroup )
@@ -228,20 +187,6 @@ void ScreenHighScores::Init()
 	case HighScoresType_OniCourses:
 	case HighScoresType_SurvivalCourses:
 	case HighScoresType_AllCourses:
-		{
-			CourseType ct;
-			switch( type )
-			{
-			default:
-				FAIL_M(ssprintf("Invalid HighScoresType: %i", type));
-			case HighScoresType_NonstopCourses:	ct = COURSE_TYPE_NONSTOP;	break;
-			case HighScoresType_OniCourses:		ct = COURSE_TYPE_ONI;		break;
-			case HighScoresType_SurvivalCourses:	ct = COURSE_TYPE_SURVIVAL;	break;
-			case HighScoresType_AllCourses:		ct = CourseType_Invalid;	break;
-			}
-
-			m_Scroller.LoadCourses( ct, MAX_ITEMS_TO_SHOW );
-		}
 		break;
 	}
 

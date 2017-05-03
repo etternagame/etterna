@@ -12,11 +12,9 @@ ThemeMetric<RString>		CommonMetrics::OPERATOR_MENU_SCREEN		("Common","OperatorMe
 ThemeMetric<RString>		CommonMetrics::FIRST_ATTRACT_SCREEN		("Common","FirstAttractScreen");
 ThemeMetric<RString>		CommonMetrics::DEFAULT_MODIFIERS		("Common","DefaultModifiers" );
 LocalizedString				CommonMetrics::WINDOW_TITLE				("Common","WindowTitle");
-ThemeMetric<int>			CommonMetrics::MAX_COURSE_ENTRIES_BEFORE_VARIOUS("Common","MaxCourseEntriesBeforeShowVarious");
 ThemeMetric<float>			CommonMetrics::TICK_EARLY_SECONDS		("ScreenGameplay","TickEarlySeconds");
 ThemeMetric<RString>		CommonMetrics::DEFAULT_NOTESKIN_NAME	("Common","DefaultNoteSkinName");
 ThemeMetricDifficultiesToShow	CommonMetrics::DIFFICULTIES_TO_SHOW		("Common","DifficultiesToShow");
-ThemeMetricCourseDifficultiesToShow	CommonMetrics::COURSE_DIFFICULTIES_TO_SHOW	("Common","CourseDifficultiesToShow");
 ThemeMetricStepsTypesToShow	CommonMetrics::STEPS_TYPES_TO_SHOW		("Common","StepsTypesToHide");
 ThemeMetric<bool>			CommonMetrics::AUTO_SET_STYLE			("Common","AutoSetStyle");
 ThemeMetric<int>			CommonMetrics::PERCENT_SCORE_DECIMAL_PLACES	("Common","PercentScoreDecimalPlaces");
@@ -58,45 +56,6 @@ void ThemeMetricDifficultiesToShow::Read()
 	}
 }
 const vector<Difficulty>& ThemeMetricDifficultiesToShow::GetValue() const { return m_v; }
-
-
-ThemeMetricCourseDifficultiesToShow::ThemeMetricCourseDifficultiesToShow( const RString& sGroup, const RString& sName ) : 
-	ThemeMetric<RString>(sGroup,sName)
-{
-	// re-read because ThemeMetric::ThemeMetric calls ThemeMetric::Read, not the derived one
-	if( IsLoaded() )
-		Read();
-}
-void ThemeMetricCourseDifficultiesToShow::Read()
-{
-	ASSERT( GetName().Right(6) == "ToShow" );
-
-	ThemeMetric<RString>::Read();
-
-	m_v.clear();
-
-	vector<RString> v;
-	split( ThemeMetric<RString>::GetValue(), ",", v );
-	if(v.empty())
-	{
-		LuaHelpers::ReportScriptError("CourseDifficultiesToShow must have at least one entry.");
-		return;
-	}
-
-	FOREACH_CONST( RString, v, i )
-	{
-		CourseDifficulty d = StringToDifficulty( *i );
-		if( d == Difficulty_Invalid )
-		{
-			LuaHelpers::ReportScriptErrorFmt("Unknown CourseDifficulty \"%s\" in CourseDifficultiesToShow.", i->c_str());
-		}
-		else
-		{
-			m_v.push_back( d );
-		}
-	}
-}
-const vector<CourseDifficulty>& ThemeMetricCourseDifficultiesToShow::GetValue() const { return m_v; }
 
 static void RemoveStepsTypes( vector<StepsType>& inout, RString sStepsTypesToRemove )
 {

@@ -14,7 +14,6 @@
 #include "ActorUtil.h"
 #include "StreamDisplay.h"
 #include "Steps.h"
-#include "Course.h"
 
 static RString LIFE_PERCENT_CHANGE_NAME( size_t i )   { return "LifePercentChange" + ScoreEventToString( (ScoreEvent)i ); }
 
@@ -348,11 +347,6 @@ void LifeMeterBar::UpdateNonstopLifebar()
 		iCleared = GAMESTATE->m_iCurrentStageIndex;
 		iTotal = PREFSMAN->m_iSongsPerPlay;
 		iProgressiveLifebarDifficulty = PREFSMAN->m_iProgressiveStageLifebar;
-		break;
-	case PLAY_MODE_NONSTOP:
-		iCleared = GAMESTATE->GetCourseSongIndex();
-		iTotal = GAMESTATE->m_pCurCourse->GetEstimatedNumStages();
-		iProgressiveLifebarDifficulty = PREFSMAN->m_iProgressiveNonstopLifebar;
 		break;
 	default:
 		return;

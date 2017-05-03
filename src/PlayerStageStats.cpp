@@ -6,7 +6,6 @@
 #include "LuaManager.h"
 #include <float.h>
 #include "GameState.h"
-#include "Course.h"
 #include "Steps.h"
 #include "NoteData.h"
 #include "ScoreKeeperNormal.h"
@@ -209,7 +208,7 @@ Grade PlayerStageStats::GetGrade() const
 	float fActual = 0;
 
 	bool bIsBeginner = false;
-	if( m_iStepsPlayed > 0 && !GAMESTATE->IsCourseMode() )
+	if( m_iStepsPlayed > 0 )
 		bIsBeginner = m_vpPossibleSteps[0]->GetDifficulty() == Difficulty_Beginner;
 
 	FOREACH_ENUM( TapNoteScore, tns )
@@ -411,10 +410,6 @@ void PlayerStageStats::ResetScoreForLesson()
 
 void PlayerStageStats::SetLifeRecordAt( float fLife, float fStepsSecond )
 {
-	// Don't save life stats in endless courses, or could run OOM in a few hours.
-	if( GAMESTATE->m_pCurCourse && GAMESTATE->m_pCurCourse->IsEndless() )
-		return;
-
 	if( fStepsSecond < 0 )
 		return;
 
@@ -605,10 +600,6 @@ void PlayerStageStats::GetWifeRecord(float* WifeOut, int iNumSamples, float fSte
  * record the amount of the first combo that comes from the previous song. */
 void PlayerStageStats::UpdateComboList( float fSecond, bool bRollover )
 {
-	// Don't save combo stats in endless courses, or could run OOM in a few hours.
-	if( GAMESTATE->m_pCurCourse && GAMESTATE->m_pCurCourse->IsEndless() )
-		return;
-
 	if( fSecond < 0 )
 		return;
 

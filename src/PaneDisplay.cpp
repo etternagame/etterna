@@ -7,7 +7,6 @@
 #include "RageLog.h"
 #include "ProfileManager.h"
 #include "Profile.h"
-#include "Course.h"
 #include "Style.h"
 #include "ActorUtil.h"
 #include "Foreach.h"
@@ -129,8 +128,6 @@ void PaneDisplay::GetPaneTextAndLevel( PaneCategory c, RString & sTextOut, float
 {
 	const Song *pSong = GAMESTATE->m_pCurSong;
 	const Steps *pSteps = GAMESTATE->m_pCurSteps[m_PlayerNumber];
-	const Course *pCourse = GAMESTATE->m_pCurCourse;
-	const Trail *pTrail = GAMESTATE->m_pCurTrail[m_PlayerNumber];
 	const Profile *pProfile = PROFILEMAN->IsPersistentProfile(m_PlayerNumber) ? PROFILEMAN->GetProfile(m_PlayerNumber) : NULL;
 	bool bIsPlayerEdit = pSteps && pSteps->IsAPlayerEdit();
 
@@ -138,50 +135,8 @@ void PaneDisplay::GetPaneTextAndLevel( PaneCategory c, RString & sTextOut, float
 	sTextOut = NULL_COUNT_STRING;
 	fLevelOut = 0;
 
-	if(GAMESTATE->IsCourseMode() && !pTrail)
-	{
-		if( (g_Contents[c].req&NEED_PROFILE) )
-			sTextOut = NOT_AVAILABLE;
 
-		{
-			switch( c )
-			{
-				case PaneCategory_MachineHighName:
-					sTextOut = EMPTY_MACHINE_HIGH_SCORE_NAME;
-					break;
-				case PaneCategory_MachineHighScore:
-				case PaneCategory_ProfileHighScore:
-					sTextOut = NOT_AVAILABLE;
-					break;
-				default: break;
-			}
-		}
-
-		return;
-	}
-	else if(!GAMESTATE->IsCourseMode() && !pSong)
-	{
-		if( (g_Contents[c].req&NEED_PROFILE) )
-			sTextOut = NOT_AVAILABLE;
-
-		{
-			switch( c )
-			{
-				case PaneCategory_MachineHighName:
-					sTextOut = EMPTY_MACHINE_HIGH_SCORE_NAME;
-					break;
-				case PaneCategory_MachineHighScore:
-				case PaneCategory_ProfileHighScore:
-					sTextOut = NOT_AVAILABLE;
-					break;
-				default: break;
-			}
-		}
-
-		return;
-	}
-
-	if( (g_Contents[c].req&NEED_NOTES) && !pSteps && !pTrail )
+	if( (g_Contents[c].req&NEED_NOTES) && !pSteps )
 		return;
 	if( (g_Contents[c].req&NEED_PROFILE) && !pProfile )
 	{
@@ -204,11 +159,6 @@ void PaneDisplay::GetPaneTextAndLevel( PaneCategory c, RString & sTextOut, float
 		{
 			rv = pSteps->GetRadarValues( m_PlayerNumber );
 			pHSL = &PROFILEMAN->GetProfile(slot)->GetStepsHighScoreList(pSong, pSteps);
-		}
-		else if( pTrail )
-		{
-			rv = pTrail->GetRadarValues();
-			pHSL = &PROFILEMAN->GetProfile(slot)->GetCourseHighScoreList(pCourse, pTrail);
 		}
 
 		switch( c )

@@ -13,7 +13,6 @@
 #include "ThemeManager.h"
 #include "GameSoundManager.h"
 #include "ActorUtil.h"
-#include "Course.h"
 #include "LightsManager.h"
 #include "ProfileManager.h"
 #include "Profile.h"
@@ -113,7 +112,6 @@ void ScreenEvaluation::Init()
 		GAMESTATE->m_pCurSong.Set( SONGMAN->GetRandomSong() );
 		ss.m_vpPlayedSongs.push_back( GAMESTATE->m_pCurSong );
 		ss.m_vpPossibleSongs.push_back( GAMESTATE->m_pCurSong );
-		GAMESTATE->m_pCurCourse.Set( SONGMAN->GetRandomCourse() );
 		GAMESTATE->m_iCurrentStageIndex = 0;
 		FOREACH_ENUM( PlayerNumber, p )
 			GAMESTATE->m_iPlayerStageTokens[p] = 1;
@@ -127,13 +125,6 @@ void ScreenEvaluation::Init()
 
 			GAMESTATE->JoinPlayer( p );
 			GAMESTATE->m_pCurSteps[p].Set( GAMESTATE->m_pCurSong->GetAllSteps()[0] );
-			if( GAMESTATE->m_pCurCourse )
-			{
-				vector<Trail*> apTrails;
-				GAMESTATE->m_pCurCourse->GetAllTrails( apTrails );
-				if( apTrails.size() )
-					GAMESTATE->m_pCurTrail[p].Set( apTrails[0] );
-			}
 			ss.m_player[p].m_vpPossibleSteps.push_back( GAMESTATE->m_pCurSteps[PLAYER_1] );
 			ss.m_player[p].m_iStepsPlayed = 1;
 
@@ -284,10 +275,7 @@ void ScreenEvaluation::Init()
 		}
 		else
 		{
-			if( GAMESTATE->IsCourseMode() )
-				m_LargeBanner.LoadFromCourse( GAMESTATE->m_pCurCourse );
-			else
-				m_LargeBanner.LoadFromSong( GAMESTATE->m_pCurSong );
+			m_LargeBanner.LoadFromSong( GAMESTATE->m_pCurSong );
 			m_LargeBanner.ScaleToClipped( BANNER_WIDTH, BANNER_HEIGHT );
 			m_LargeBanner.SetName( "LargeBanner" );
 			ActorUtil::LoadAllCommands( m_LargeBanner, m_sName );
@@ -389,8 +377,6 @@ void ScreenEvaluation::Init()
 	{
 		// In course mode, we need to make sure the bar doesn't overflow. -aj
 		float fDivider = 1.0f;
-		if( GAMESTATE->IsCourseMode() )
-			fDivider = fDivider / GAMESTATE->m_pCurCourse->m_vEntries.size();
 
 		FOREACH_EnabledPlayer( p )
 		{
@@ -687,7 +673,7 @@ void ScreenEvaluation::Init()
 	}
 	else
 	{
-		if( SUMMARY || GAMESTATE->IsCourseMode() )
+		if( SUMMARY )
 		{
 			SOUND->PlayOnceFromDir( ANNOUNCER->GetPathTo("evaluation final "+GradeToOldString(best_grade)) );
 		}

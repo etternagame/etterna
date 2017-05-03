@@ -42,7 +42,6 @@ static RString ClearMachineEdits()
 	
 	vector<RString> vsEditFiles;
 	GetDirListing( PROFILEMAN->GetProfileDir(ProfileSlot_Machine)+EDIT_STEPS_SUBDIR+"*.edit", vsEditFiles, false, true );
-	GetDirListing( PROFILEMAN->GetProfileDir(ProfileSlot_Machine)+EDIT_COURSES_SUBDIR+"*.crs", vsEditFiles, false, true );
 	FOREACH_CONST( RString, vsEditFiles, i )
 	{
 		iNumAttempted++;
@@ -91,7 +90,6 @@ static RString ClearMemoryCardEdits()
 	RString sDir = MEM_CARD_MOUNT_POINT[pn] + (RString)PREFSMAN->m_sMemoryCardProfileSubdir + "/";
 	vector<RString> vsEditFiles;
 	GetDirListing( sDir+EDIT_STEPS_SUBDIR+"*.edit", vsEditFiles, false, true );
-	GetDirListing( sDir+EDIT_COURSES_SUBDIR+"*.crs", vsEditFiles, false, true );
 	FOREACH_CONST( RString, vsEditFiles, i )
 	{
 		iNumAttempted++;
@@ -205,26 +203,6 @@ static void CopyEdits( const RString &sFromProfileDir, const RString &sToProfile
 			}
 		}
 	}
-
-	// TODO: Seprarate copying stats for steps and courses
-
-	{
-		RString sFromDir = sFromProfileDir + EDIT_COURSES_SUBDIR;
-		RString sToDir = sToProfileDir + EDIT_COURSES_SUBDIR;
-
-		vector<RString> vsFiles;
-		GetDirListing( sFromDir+"*.crs", vsFiles, false, false );
-		FOREACH_CONST( RString, vsFiles, i )
-		{
-			if( DoesFileExist(sToDir+*i) )
-				iNumOverwritten++;
-			bool bSuccess = FileCopy( sFromDir+*i, sToDir+*i );
-			if( bSuccess )
-				iNumSucceeded++;
-			else
-				iNumErrored++;
-		}
-	}
 }
 
 static LocalizedString EDITS_NOT_COPIED		( "ScreenServiceAction", "Edits not copied - No memory cards ready." );
@@ -305,7 +283,6 @@ static void SyncEdits( const RString &sFromDir, const RString &sToDir, int &iNum
 	iNumFailed = 0;
 
 	SyncFiles( sFromDir + EDIT_STEPS_SUBDIR, sToDir + EDIT_STEPS_SUBDIR, "*.edit", iNumAdded, iNumDeleted, iNumOverwritten, iNumFailed );
-	SyncFiles( sFromDir + EDIT_COURSES_SUBDIR, sToDir + EDIT_COURSES_SUBDIR, "*.crs", iNumAdded, iNumDeleted, iNumOverwritten, iNumFailed );
 }
 
 static RString CopyEditsMachineToMemoryCard()

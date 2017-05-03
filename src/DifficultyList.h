@@ -1,4 +1,4 @@
-/* StepsDisplayList - Shows all available difficulties for a Song/Course. */
+/* StepsDisplayList - Shows all available difficulties for a Song */
 #ifndef DIFFICULTY_LIST_H
 #define DIFFICULTY_LIST_H
 

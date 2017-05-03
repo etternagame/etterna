@@ -4,7 +4,6 @@
 #include "ScreenOptions.h"
 #include "ScreenMiniMenu.h"
 
-class Course;
 
 class ScreenOptionsManageProfiles : public ScreenOptions
 {

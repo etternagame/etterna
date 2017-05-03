@@ -4,7 +4,6 @@
 #include "BannerCache.h"
 #include "Song.h"
 #include "RageLog.h"
-#include "Course.h"
 #include "PrefsManager.h"
 #include "ThemeManager.h"
 #include "SongManager.h"
@@ -193,22 +192,6 @@ void FadingBanner::LoadFromSongGroup( const RString &sSongGroup )
 	LoadFromCachedBanner( sGroupBannerPath );
 }
 
-void FadingBanner::LoadFromCourse( const Course* pCourse )
-{
-	if( pCourse == NULL )
-	{
-		LoadFallback();
-		return;
-	}
-
-	/* Don't call HasBanner. That'll do disk access and cause the music wheel
-	 * to skip. */
-	RString sPath = pCourse->GetBannerPath();
-	if( sPath.empty() )
-		LoadCourseFallback();
-	else
-		LoadFromCachedBanner( sPath );
-}
 
 void FadingBanner::LoadIconFromCharacter( Character* pCharacter )
 {
@@ -248,12 +231,6 @@ void FadingBanner::LoadFallback()
 	m_Banner[m_iIndexLatest].LoadFallback();
 }
 
-void FadingBanner::LoadCourseFallback()
-{
-	BeforeChange();
-	m_Banner[m_iIndexLatest].LoadCourseFallback();
-}
-
 void FadingBanner::LoadCustom( const RString &sBanner )
 {
 	BeforeChange();
@@ -276,12 +253,6 @@ public:
 		else { Song *pS = Luna<Song>::check(L,1); p->LoadFromSong( pS ); }
 		COMMON_RETURN_SELF;
 	}
-	static int LoadFromCourse( T* p, lua_State *L )
-	{ 
-		if( lua_isnil(L,1) ) { p->LoadFromCourse( NULL ); }
-		else { Course *pC = Luna<Course>::check(L,1); p->LoadFromCourse( pC ); }
-		COMMON_RETURN_SELF;
-	}
 	static int LoadIconFromCharacter( T* p, lua_State *L )
 	{ 
 		if( lua_isnil(L,1) ) { p->LoadIconFromCharacter( NULL ); }
@@ -297,7 +268,6 @@ public:
 	static int LoadFromSongGroup( T* p, lua_State *L )	{ p->LoadFromSongGroup( SArg(1) ); COMMON_RETURN_SELF; }
 	static int LoadRandom( T* p, lua_State *L ) { p->LoadRandom(); COMMON_RETURN_SELF; }
 	static int LoadRoulette( T* p, lua_State *L ) { p->LoadRoulette(); COMMON_RETURN_SELF; }
-	static int LoadCourseFallback( T* p, lua_State *L ) { p->LoadCourseFallback(); COMMON_RETURN_SELF; }
 	static int LoadFallback( T* p, lua_State *L ) { p->LoadFallback(); COMMON_RETURN_SELF; }
 	static int LoadFromSortOrder( T* p, lua_State *L )
 	{
@@ -317,12 +287,10 @@ public:
 		ADD_METHOD( ScaleToClipped );
 		ADD_METHOD( LoadFromSong );
 		ADD_METHOD( LoadFromSongGroup );
-		ADD_METHOD( LoadFromCourse );
 		ADD_METHOD( LoadIconFromCharacter );
 		ADD_METHOD( LoadCardFromCharacter );
 		ADD_METHOD( LoadRandom );
 		ADD_METHOD( LoadRoulette );
-		ADD_METHOD( LoadCourseFallback );
 		ADD_METHOD( LoadFallback );
 		ADD_METHOD( LoadFromSortOrder );
 		ADD_METHOD( GetLatestIndex );

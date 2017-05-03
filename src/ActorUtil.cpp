@@ -12,7 +12,6 @@
 #include "LuaManager.h"
 #include "Foreach.h"
 #include "Song.h"
-#include "Course.h"
 #include "GameState.h"
 
 #include "arch/Dialog/Dialog.h"
@@ -147,17 +146,6 @@ namespace
 				Song *pSong = GAMESTATE->m_pCurSong;
 				if (pSong && pSong->HasBanner())
 					pVal->SetValue(pSong->GetBannerPath());
-				else
-					pVal->SetValue(THEME->GetPathG("Common", "fallback banner"));
-				pActor->AppendAttrFrom("Texture", pVal, false);
-				return "Sprite";
-			}
-			else if (sFile.EqualsNoCase("coursebanner"))
-			{
-				XNodeStringValue *pVal = new XNodeStringValue;
-				Course *pCourse = GAMESTATE->m_pCurCourse;
-				if (pCourse && pCourse->HasBanner())
-					pVal->SetValue(pCourse->GetBannerPath());
 				else
 					pVal->SetValue(THEME->GetPathG("Common", "fallback banner"));
 				pActor->AppendAttrFrom("Texture", pVal, false);

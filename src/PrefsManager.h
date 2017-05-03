@@ -102,16 +102,6 @@ enum AttractSoundFrequency
 	NUM_AttractSoundFrequency,
 	AttractSoundFrequency_Invalid
 };
-enum CourseSortOrders
-{
-	COURSE_SORT_PREFERRED,
-	COURSE_SORT_SONGS,
-	COURSE_SORT_METER,
-	COURSE_SORT_METER_SUM,
-	COURSE_SORT_RANK,
-	NUM_CourseSortOrders,
-	CourseSortOrders_Invalid
-};
 enum BackgroundFitMode
 {
 	BFM_CoverDistort,
@@ -198,7 +188,6 @@ public:
 	Preference<int>		m_iMaxRegenComboAfterMiss; // caps RegenComboAfterMiss if multiple Misses occur in rapid succession
 	Preference<bool>	m_bMercifulDrain; // negative life deltas are scaled by the players life percentage
 	Preference<bool>	m_HarshHotLifePenalty; // See LifeMeterBar.cpp -Kyz
-	Preference<bool>	m_bMinimum1FullSongInCourses; // FEoS for 1st song, FailImmediate thereafter
 	Preference<bool>	m_bFailOffInBeginner;
 	Preference<bool>	m_bFailOffForFirstStageEasy;
 	Preference<bool>	m_bMercifulBeginner; // don't subtract from percent score or grade DP, larger W5 window
@@ -224,14 +213,11 @@ public:
 	Preference<bool>	m_bDancePointsForOni;
 	Preference<bool>	m_bPercentageScoring;
 	Preference<float>	m_fMinPercentageForMachineSongHighScore;
-	Preference<float>	m_fMinPercentageForMachineCourseHighScore;
 	Preference<bool>	m_bDisqualification;
 	Preference<bool>	m_bAutogenLights;
 	Preference<bool>	m_bAutogenSteps;
-	Preference<bool>	m_bAutogenGroupCourses;
 	Preference<bool>	m_bOnlyPreferredDifficulties;
 	Preference<bool>	m_bBreakComboToGetItem;
-	Preference<bool>	m_bLockCourseDifficulties;
 	Preference<ShowDancingCharacters>		m_ShowDancingCharacters;
 	Preference<bool>	m_bUseUnlockSystem;
 	Preference<float>	m_fGlobalOffsetSeconds;
@@ -278,13 +264,7 @@ public:
 	// profile's data will be discarded.
 	Preference<bool>	m_bSignProfileData;
 
-	// course ranking
-	Preference<CourseSortOrders>	m_CourseSortOrder;
-	Preference<bool>	m_bSubSortByNumSteps;
-	Preference<GetRankingName>	m_GetRankingName;
-
 	Preference<RString>	m_sAdditionalSongFolders;
-	Preference<RString>	m_sAdditionalCourseFolders;
 	Preference<RString>	m_sAdditionalFolders;
 
 	// failsafe
@@ -304,7 +284,6 @@ public:
 	Preference<bool>	m_bDebugLights;
 	Preference<bool>	m_bMonkeyInput;
 	Preference<RString>	m_sMachineName;
-	Preference<RString>	m_sCoursesToShowRanking;
 	Preference<bool> m_MuteActions;
 	Preference<bool> m_bAllowSongDeletion; // Allow the user to remove songs from their collection through UI / keyboard shortcut
 

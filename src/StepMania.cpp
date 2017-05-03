@@ -1042,13 +1042,6 @@ int sm_main(int argc, char* argv[])
 		for( unsigned i=0; i < dirs.size(); i++)
 			FILEMAN->Mount( "dir", dirs[i], "/AdditionalSongs" );
 	}
-	if( PREFSMAN->m_sAdditionalCourseFolders.Get() != "" )
-	{
-		vector<RString> dirs;
-		split( PREFSMAN->m_sAdditionalCourseFolders, ",", dirs, true );
-		for( unsigned i=0; i < dirs.size(); i++)
-			FILEMAN->Mount( "dir", dirs[i], "/AdditionalCourses" );
-	}
 
 	MountTreeOfZips( SpecialFiles::PACKAGES_DIR );
 	MountTreeOfZips( SpecialFiles::USER_PACKAGES_DIR );
@@ -1184,9 +1177,6 @@ int sm_main(int argc, char* argv[])
 	STATSMAN	= new StatsManager;
 
 	FILTERMAN = new FilterManager;
-
-	// Initialize which courses are ranking courses here.
-	SONGMAN->UpdateRankingCourses();
 
 	SAFE_DELETE( pLoadingWindow ); // destroy this before init'ing Display
 

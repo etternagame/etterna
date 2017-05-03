@@ -4,8 +4,6 @@
 #include "ScreenOptions.h"
 #include "ScreenMiniMenu.h"
 
-class Course;
-
 // Can this be done any better? -aj
 namespace ExportPackages
 {

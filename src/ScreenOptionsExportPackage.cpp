@@ -120,20 +120,6 @@ void ScreenOptionsExportPackageSubPage::BeginScreen()
 		FOREACH_CONST( RString, vs, s )
 			GetDirListing( *s + "*", m_vsPossibleDirsToExport, true, true );
 	}
-	else if( *s_packageType == "Courses" )
-	{
-		// Add courses. Only support courses that are in a group folder.
-		// Support for courses not in a group folder should be phased out.
-		vector<RString> vs;
-		GetDirListing( SpecialFiles::COURSES_DIR + "*", vs, true, true );
-		StripCvsAndSvn( vs );
-		StripMacResourceForks( vs );
-		FOREACH_CONST( RString, vs, s )
-		{
-			m_vsPossibleDirsToExport.push_back( *s );
-			GetDirListing( *s + "/*", m_vsPossibleDirsToExport, true, true );
-		}
-	}
 	else if( *s_packageType == "Songs" )
 	{
 		// Add song groups

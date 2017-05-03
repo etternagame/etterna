@@ -87,7 +87,7 @@ void ScreenSyncOverlay::UpdateText()
 		FAIL_M(ssprintf("Invalid autosync type: %i", type));
 	}
 
-	if( GAMESTATE->m_pCurSong != NULL  &&  !GAMESTATE->IsCourseMode() && pc == 0)	// sync controls available (don't turn on for autoplay) - Mina.
+	if( GAMESTATE->m_pCurSong != NULL && pc == 0)	// sync controls available (don't turn on for autoplay) - Mina.
 	{
 		AdjustSync::GetSyncChangeTextGlobal( vs );
 		AdjustSync::GetSyncChangeTextSong( vs );
@@ -160,7 +160,7 @@ bool ScreenSyncOverlay::Input( const InputEventPlus &input )
 		return Screen::Input(input);
 	}
 
-	if( GAMESTATE->IsCourseMode() && a != ChangeGlobalOffset )
+	if( a != ChangeGlobalOffset )
 	{
 		SCREENMAN->SystemMessage( CANT_SYNC_WHILE_PLAYING_A_COURSE );
 		return true;

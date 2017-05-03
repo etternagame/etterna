@@ -8,7 +8,6 @@
 #include "GameConstantsAndTypes.h"
 #include "Difficulty.h"
 class Steps;
-class Trail;
 
 
 class DifficultyIcon : public Sprite
@@ -25,7 +24,6 @@ public:
 	void SetPlayer( PlayerNumber pn );
 	void Unset();
 	void SetFromSteps( PlayerNumber pn, const Steps* pSteps );
-	void SetFromTrail( PlayerNumber pn, const Trail* pTrail );
 	void SetFromDifficulty( Difficulty dc );
 
 	// Lua

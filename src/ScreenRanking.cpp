@@ -48,7 +48,6 @@ void ScreenRanking::Init()
 
 
 	RANKING_TYPE.Load	( m_sName,"RankingType");
-	COURSES_TO_SHOW.Load	( m_sName,"CoursesToShow");
 	SECONDS_PER_PAGE.Load	( m_sName,"SecondsPerPage" );
 
 	NO_SCORE_NAME.Load( m_sName,"NoScoreName" );
@@ -83,41 +82,6 @@ void ScreenRanking::Init()
 				pts.category = (RankingCategory)c;
 				StepsType st = STEPS_TYPES_TO_SHOW.GetValue()[i];
 				pts.aTypes.push_back( make_pair(Difficulty_Invalid, st) );
-				m_vPagesToShow.push_back( pts );
-			}
-		}
-	}
-
-	if( RANKING_TYPE == RankingType_SpecificTrail )
-	{
-		m_Banner.SetName( "Banner" );
-		this->AddChild( &m_Banner );
-		LOAD_ALL_COMMANDS( m_Banner );
-
-		m_textCourseTitle.SetName( "CourseTitle" );
-		m_textCourseTitle.LoadFromFont( THEME->GetPathF(m_sName,"course title") );
-		//m_textCourseTitle.SetShadowLength( 0 );
-		this->AddChild( &m_textCourseTitle );
-		LOAD_ALL_COMMANDS( m_textCourseTitle );
-
-		vector<RString> asCoursePaths;
-		split( COURSES_TO_SHOW, ",", asCoursePaths, true );
-		for( unsigned i=0; i<STEPS_TYPES_TO_SHOW.GetValue().size(); i++ )
-		{
-			for( unsigned c=0; c<asCoursePaths.size(); c++ )
-			{
-				PageToShow pts;
-				pts.colorIndex = i;
-				StepsType st = STEPS_TYPES_TO_SHOW.GetValue()[i];
-				pts.aTypes.push_back( make_pair(Difficulty_Invalid, st) );
-				pts.pCourse = SONGMAN->GetCourseFromPath( asCoursePaths[c] );
-				if( pts.pCourse == NULL )
-					continue;
-
-				pts.pTrail = pts.pCourse->GetTrail( st );
-				if( pts.pTrail == NULL )
-					continue;
-
 				m_vPagesToShow.push_back( pts );
 			}
 		}
@@ -197,7 +161,7 @@ void ScreenRanking::HandleScreenMessage( const ScreenMessage SM )
 	ScreenAttract::HandleScreenMessage( SM );
 }
 
-float ScreenRanking::SetPage( const PageToShow &pts )
+float ScreenRanking::SetPage(const PageToShow &pts)
 {
 	// This is going to take a while to load.  Possibly longer than one frame.
 	// So, zero the next update so we don't skip.
@@ -205,133 +169,78 @@ float ScreenRanking::SetPage( const PageToShow &pts )
 
 	// init page
 	StepsType st = pts.aTypes.front().second;
-	m_textStepsType.SetText( GAMEMAN->GetStepsTypeInfo(st).GetLocalizedString() );
+	m_textStepsType.SetText(GAMEMAN->GetStepsTypeInfo(st).GetLocalizedString());
 
 
 	bool bShowScores = false;
 	bool bShowPoints = false;
 	bool bShowTime = false;
-	switch( RANKING_TYPE )
+	switch (RANKING_TYPE)
 	{
-		case RankingType_Category:
-			bShowScores = true;
-			break;
-		case RankingType_SpecificTrail:
-			bShowScores = !pts.pCourse->IsOni();
-			bShowPoints = pts.pCourse->IsOni();
-			bShowTime = pts.pCourse->IsOni();
-			break;
-		default: break;
+	case RankingType_Category:
+		bShowScores = true;
+		break;
+	default: break;
 	}
 
-	for( int l=0; l<NUM_RANKING_LINES; l++ )
+	for (int l = 0; l<NUM_RANKING_LINES; l++)
 	{
-		m_textNames[l].SetDiffuseColor( STEPS_TYPE_COLOR.GetValue(pts.colorIndex) );
+		m_textNames[l].SetDiffuseColor(STEPS_TYPE_COLOR.GetValue(pts.colorIndex));
 
-		m_textScores[l].SetVisible( bShowScores );
-		m_textScores[l].SetDiffuseColor( STEPS_TYPE_COLOR.GetValue(pts.colorIndex) );
-		
-		m_textPoints[l].SetVisible( bShowPoints );
-		m_textPoints[l].SetDiffuseColor( STEPS_TYPE_COLOR.GetValue(pts.colorIndex) );
-		
-		m_textTime[l].SetVisible( bShowTime );
-		m_textTime[l].SetDiffuseColor( STEPS_TYPE_COLOR.GetValue(pts.colorIndex) );
+		m_textScores[l].SetVisible(bShowScores);
+		m_textScores[l].SetDiffuseColor(STEPS_TYPE_COLOR.GetValue(pts.colorIndex));
+
+		m_textPoints[l].SetVisible(bShowPoints);
+		m_textPoints[l].SetDiffuseColor(STEPS_TYPE_COLOR.GetValue(pts.colorIndex));
+
+		m_textTime[l].SetVisible(bShowTime);
+		m_textTime[l].SetDiffuseColor(STEPS_TYPE_COLOR.GetValue(pts.colorIndex));
 	}
 
 	RankingType rtype = RANKING_TYPE;
-	switch( rtype )
+	switch (rtype)
 	{
 	case RankingType_Category:
+	{
+		m_textCategory.SetText(ssprintf("Type %c", 'A' + pts.category));
+
+		for (int l = 0; l<NUM_RANKING_LINES; l++)
 		{
-			m_textCategory.SetText( ssprintf("Type %c", 'A'+pts.category) );
-
-			for( int l=0; l<NUM_RANKING_LINES; l++ )
+			// No need to shadow at this point.
+			st = pts.aTypes.front().second;
+			HighScoreList &hsl = PROFILEMAN->GetMachineProfile()->GetCategoryHighScoreList(st, pts.category);
+			HighScore hs;
+			bool bRecentHighScore = false;
+			if (l < (int)hsl.vHighScores.size())
 			{
-				// No need to shadow at this point.
-				st = pts.aTypes.front().second;
-				HighScoreList &hsl = PROFILEMAN->GetMachineProfile()->GetCategoryHighScoreList(st, pts.category);
-				HighScore hs;
-				bool bRecentHighScore = false;
-				if( l < (int)hsl.vHighScores.size() )
-				{
-					hs = hsl.vHighScores[l];
-					RString *psName = hsl.vHighScores[l].GetNameMutable();
-					bRecentHighScore = find( GAMESTATE->m_vpsNamesThatWereFilled.begin(), GAMESTATE->m_vpsNamesThatWereFilled.end(), psName ) != GAMESTATE->m_vpsNamesThatWereFilled.end();
-				}
-				else
-				{
-					hs.SetName( NO_SCORE_NAME );
-				}
+				hs = hsl.vHighScores[l];
+				RString *psName = hsl.vHighScores[l].GetNameMutable();
+				bRecentHighScore = find(GAMESTATE->m_vpsNamesThatWereFilled.begin(), GAMESTATE->m_vpsNamesThatWereFilled.end(), psName) != GAMESTATE->m_vpsNamesThatWereFilled.end();
+			}
+			else
+			{
+				hs.SetName(NO_SCORE_NAME);
+			}
 
-				m_textNames[l].SetText( hs.GetDisplayName() );
-				m_textScores[l].SetText( ssprintf("%09i",hs.GetScore()) );
-				m_textNames[l].SetDiffuseColor( STEPS_TYPE_COLOR.GetValue(pts.colorIndex) );
-				m_textScores[l].SetDiffuseColor( STEPS_TYPE_COLOR.GetValue(pts.colorIndex) );
+			m_textNames[l].SetText(hs.GetDisplayName());
+			m_textScores[l].SetText(ssprintf("%09i", hs.GetScore()));
+			m_textNames[l].SetDiffuseColor(STEPS_TYPE_COLOR.GetValue(pts.colorIndex));
+			m_textScores[l].SetDiffuseColor(STEPS_TYPE_COLOR.GetValue(pts.colorIndex));
 
-				if( bRecentHighScore )
-				{
-					m_textNames[l].SetEffectGlowBlink(0.1f, RageColor(1,1,1,0.2f), RageColor(1,1,1,0.8f));
-					m_textScores[l].SetEffectGlowBlink(0.1f, RageColor(1,1,1,0.2f), RageColor(1,1,1,0.8f));
-				}
-				else
-				{
-					m_textNames[l].StopEffect();
-					m_textScores[l].StopEffect();
-				}
+			if (bRecentHighScore)
+			{
+				m_textNames[l].SetEffectGlowBlink(0.1f, RageColor(1, 1, 1, 0.2f), RageColor(1, 1, 1, 0.8f));
+				m_textScores[l].SetEffectGlowBlink(0.1f, RageColor(1, 1, 1, 0.2f), RageColor(1, 1, 1, 0.8f));
+			}
+			else
+			{
+				m_textNames[l].StopEffect();
+				m_textScores[l].StopEffect();
 			}
 		}
-		return SECONDS_PER_PAGE;
-	case RankingType_SpecificTrail:
-		{
-			m_textCourseTitle.SetText( pts.pCourse->GetDisplayFullTitle() );
-
-			m_Banner.LoadFromCourse( pts.pCourse );
-
-			const HighScoreList &hsl = PROFILEMAN->GetMachineProfile()->GetCourseHighScoreList( pts.pCourse, pts.pTrail );
-			for( int l=0; l<NUM_RANKING_LINES; l++ )
-			{
-				HighScore hs;
-				bool bRecentHighScore = false;
-				if( l < (int)hsl.vHighScores.size() )
-				{
-					hs = hsl.vHighScores[l];
-					const RString *psName = hsl.vHighScores[l].GetNameMutable();
-					bRecentHighScore = find( GAMESTATE->m_vpsNamesThatWereFilled.begin(), GAMESTATE->m_vpsNamesThatWereFilled.end(), psName ) != GAMESTATE->m_vpsNamesThatWereFilled.end();
-				}
-				else
-				{
-					hs.SetName( NO_SCORE_NAME );
-				}
-
-				m_textNames[l].SetText( hs.GetDisplayName() );
-				if( pts.pCourse->IsOni() )
-				{
-					m_textPoints[l].SetText( ssprintf("%04d",hs.GetScore()) );
-					m_textTime[l].SetText( SecondsToMMSSMsMs(hs.GetSurviveSeconds()) );
-					m_textScores[l].SetText( "" );
-				} else {
-					m_textPoints[l].SetText( "" );
-					m_textTime[l].SetText( "" );
-					m_textScores[l].SetText( ssprintf("%09d",hs.GetScore()) );
-				}
-				m_textNames[l].SetDiffuseColor( STEPS_TYPE_COLOR.GetValue(pts.colorIndex) );
-				m_textPoints[l].SetDiffuseColor( STEPS_TYPE_COLOR.GetValue(pts.colorIndex) );
-				m_textTime[l].SetDiffuseColor( STEPS_TYPE_COLOR.GetValue(pts.colorIndex) );
-				m_textScores[l].SetDiffuseColor( STEPS_TYPE_COLOR.GetValue(pts.colorIndex) );
-
-				if( bRecentHighScore )
-				{
-					m_textNames[l].SetEffectGlowBlink(0.1f, RageColor(1,1,1,0.2f), RageColor(1,1,1,0.8f));
-					m_textScores[l].SetEffectGlowBlink(0.1f, RageColor(1,1,1,0.2f), RageColor(1,1,1,0.8f));
-				}
-				else
-				{
-					m_textNames[l].StopEffect();
-					m_textScores[l].StopEffect();
-				}
-			}
-		}
-		return SECONDS_PER_PAGE;
+	}
+	return SECONDS_PER_PAGE;
+	return SECONDS_PER_PAGE;
 	default:
 		FAIL_M(ssprintf("Invalid RankingType: %i", rtype));
 	}

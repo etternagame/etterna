@@ -614,19 +614,6 @@ RString SongUtil::GetSectionNameFromSongAndSort( const Song* pSong, SortOrder so
 			else
 				return RString();
 		}
-	case SORT_LENGTH:
-		{
-			if( SHOW_SECTIONS_IN_LENGTH_SORT )
-			{
-				const int iSortLengthSize = SORT_LENGTH_DIVISION;
-				int iMaxLength = (int)pSong->m_fMusicLengthSeconds;
-				iMaxLength += (iSortLengthSize - (iMaxLength%iSortLengthSize) - 1);
-				int iMinLength = iMaxLength - (iSortLengthSize-1);
-				return ssprintf( "%s-%s", SecondsToMMSS(iMinLength).c_str(), SecondsToMMSS(iMaxLength).c_str() );
-			}
-			else
-				return RString();
-		}
 	case SORT_POPULARITY:
 	case SORT_RECENT:
 		return RString();
@@ -664,10 +651,6 @@ RString SongUtil::GetSectionNameFromSongAndSort( const Song* pSong, SortOrder so
 		}
 	case SORT_MODE_MENU:
 		return RString();
-	case SORT_ALL_COURSES:
-	case SORT_NONSTOP_COURSES:
-	case SORT_ONI_COURSES:
-	case SORT_ENDLESS_COURSES:
 	default:
 		FAIL_M(ssprintf("Invalid SortOrder: %i", so));
 	}
@@ -710,9 +693,6 @@ void SongUtil::SortSongPointerArrayByStepsTypeAndMeter( vector<Song*> &vpSongsIn
 		 * well. That way, we'll always put Medium 5s before Hard 5s. If all
 		 * songs are using the preferred difficulty (dc), this will be a no-op. */
 		s += ssprintf( "%c", (pSteps? pSteps->GetDifficulty():0) + '0' );
-
-		if( PREFSMAN->m_bSubSortByNumSteps )
-			s += ssprintf("%06.0f",pSteps ? pSteps->GetRadarValues(PLAYER_1)[RadarCategory_TapsAndHolds] : 0);
 	}
 	stable_sort( vpSongsInOut.begin(), vpSongsInOut.end(), CompareSongPointersBySortValueAscending );
 }

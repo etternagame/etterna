@@ -201,7 +201,7 @@ ThemeMetric<bool> CHECKPOINTS_TAPS_SEPARATE_JUDGMENT	( "Player", "CheckpointsTap
  * If set to true, missed holds and rolls are given LetGo judgments.
  * If set to false, missed holds and rolls are given no judgment on the hold side of things. */
 ThemeMetric<bool> SCORE_MISSED_HOLDS_AND_ROLLS ( "Player", "ScoreMissedHoldsAndRolls" );
-/** @brief How much of the song/course must have gone by before a Player's combo is colored? */
+/** @brief How much of the song must have gone by before a Player's combo is colored? */
 ThemeMetric<float> PERCENT_UNTIL_COLOR_COMBO ( "Player", "PercentUntilColorCombo" );
 /** @brief How much combo must be earned before the announcer says "Combo Stopped"? */
 ThemeMetric<int> COMBO_STOPPED_AT ( "Player", "ComboStoppedAt" );
@@ -426,16 +426,8 @@ void Player::Init(
 	{
 		DisplayBpms bpms;
 
-		if( GAMESTATE->IsCourseMode() )
-		{
-			ASSERT( GAMESTATE->m_pCurTrail[pn] != NULL );
-			GAMESTATE->m_pCurTrail[pn]->GetDisplayBpms( bpms );
-		}
-		else
-		{
-			ASSERT( GAMESTATE->m_pCurSong != NULL );
-			GAMESTATE->m_pCurSong->GetDisplayBpms( bpms );
-		}
+		ASSERT( GAMESTATE->m_pCurSong != NULL );
+		GAMESTATE->m_pCurSong->GetDisplayBpms( bpms );
 
 		float fMaxBPM = 0;
 
@@ -447,7 +439,7 @@ void Player::Init(
 		 */
 		
 		// all BPMs are listed and available, so try them first.
-		// get the maximum listed value for the song or course.
+		// get the maximum listed value for the song
 		// if the BPMs are < 0, reset and get the actual values.
 		if( !bpms.IsSecret() )
 		{
@@ -462,25 +454,10 @@ void Player::Init(
 		{
 			float fThrowAway = 0;
 
-			if( GAMESTATE->IsCourseMode() )
-			{
-				FOREACH_CONST( TrailEntry, GAMESTATE->m_pCurTrail[pn]->m_vEntries, e )
-				{
-					float fMaxForEntry;
-					if (M_MOD_HIGH_CAP > 0)
-						e->pSong->m_SongTiming.GetActualBPM( fThrowAway, fMaxForEntry, M_MOD_HIGH_CAP );
-					else 
-						e->pSong->m_SongTiming.GetActualBPM( fThrowAway, fMaxForEntry );
-					fMaxBPM = max( fMaxForEntry, fMaxBPM );
-				}
-			}
-			else
-			{
 				if (M_MOD_HIGH_CAP > 0)
 					GAMESTATE->m_pCurSong->m_SongTiming.GetActualBPM( fThrowAway, fMaxBPM, M_MOD_HIGH_CAP );
 				else
 					GAMESTATE->m_pCurSong->m_SongTiming.GetActualBPM( fThrowAway, fMaxBPM );
-			}
 		}
 
 		ASSERT( fMaxBPM > 0 );
@@ -3316,18 +3293,8 @@ void Player::SetCombo( unsigned int iCombo, unsigned int iMisses )
 	 *	TODO: Add a metric that determines Course combo colors logic?
 	 *	Or possibly move the logic to a Lua function? -aj */
 	bool bPastBeginning = false;
-	if( GAMESTATE->IsCourseMode() )
-	{
-		int iSongIndexStartColoring = GAMESTATE->m_pCurCourse->GetEstimatedNumStages();
-		iSongIndexStartColoring = 
-			static_cast<int>(floor(iSongIndexStartColoring*PERCENT_UNTIL_COLOR_COMBO));
-		bPastBeginning = GAMESTATE->GetCourseSongIndex() >= iSongIndexStartColoring;
-	}
-	else
-	{
-		bPastBeginning = m_pPlayerState->m_Position.m_fMusicSeconds 
-			> GAMESTATE->m_pCurSong->m_fMusicLengthSeconds * PERCENT_UNTIL_COLOR_COMBO;
-	}
+
+	bPastBeginning = m_pPlayerState->m_Position.m_fMusicSeconds > GAMESTATE->m_pCurSong->m_fMusicLengthSeconds * PERCENT_UNTIL_COLOR_COMBO;
 
 	if( m_bSendJudgmentAndComboMessages )
 	{

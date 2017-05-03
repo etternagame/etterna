@@ -17,7 +17,6 @@
 #include "CommonMetrics.h"
 #include <float.h>
 #include "BackgroundUtil.h"
-#include "Course.h"
 #include "NoteData.h"
 #include "RageDisplay.h"
 
@@ -839,28 +838,6 @@ void NoteField::DrawPrimitives()
 		draw_all_segments(FloatToString(seg->GetLength()), Fake, FAKE);
 #undef draw_all_segments
 
-		// Course mods text
-		const Course *pCourse = GAMESTATE->m_pCurCourse;
-		if( pCourse )
-		{
-			ASSERT_M( GAMESTATE->m_iEditCourseEntryIndex >= 0  &&  GAMESTATE->m_iEditCourseEntryIndex < (int)pCourse->m_vEntries.size(), 
-				ssprintf("%i",GAMESTATE->m_iEditCourseEntryIndex.Get()) );
-			const CourseEntry &ce = pCourse->m_vEntries[GAMESTATE->m_iEditCourseEntryIndex];
-			FOREACH_CONST( Attack, ce.attacks, a )
-			{
-				float fSecond = a->fStartSecond;
-				float fBeat = timing.GetBeatFromElapsedTime( fSecond );
-
-				if( BeatToNoteRow(fBeat) >= m_FieldRenderArgs.first_row &&
-					BeatToNoteRow(fBeat) <= m_FieldRenderArgs.last_row &&
-					IS_ON_SCREEN(fBeat))
-				{
-					DrawAttackText(fBeat, *a, text_glow);
-				}
-			}
-		}
-		else
-		{
 			AttackArray &attacks = GAMESTATE->m_bIsUsingStepTiming ?
 				GAMESTATE->m_pCurSteps[PLAYER_1]->m_Attacks :
 				GAMESTATE->m_pCurSong->m_Attacks;
@@ -878,7 +855,6 @@ void NoteField::DrawPrimitives()
 					}
 				}
 			}
-		}
 
 		if( !GAMESTATE->m_bIsUsingStepTiming )
 		{
@@ -887,7 +863,6 @@ void NoteField::DrawPrimitives()
 			switch( mode )
 			{
 				case EditMode_Home:
-				case EditMode_CourseMods:
 				case EditMode_Practice:
 					break;
 				case EditMode_Full:

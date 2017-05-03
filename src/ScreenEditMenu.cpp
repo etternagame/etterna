@@ -216,7 +216,6 @@ bool ScreenEditMenu::MenuStart( const InputEventPlus & )
 	}
 
 	GAMESTATE->m_pCurSong.Set( pSong );
-	GAMESTATE->m_pCurCourse.Set( NULL );
 	GAMESTATE->SetCurrentStyle( GAMEMAN->GetEditorStyleForStepsType(st), PLAYER_INVALID );
 	GAMESTATE->m_pCurSteps[PLAYER_1].Set( pSteps );
 
@@ -327,7 +326,6 @@ bool ScreenEditMenu::MenuStart( const InputEventPlus & )
 
 			GAMESTATE->m_pCurSong.Set( pSong );
 			GAMESTATE->m_pCurSteps[PLAYER_1].Set( pSteps );
-			GAMESTATE->m_pCurCourse.Set( NULL );
 		}
 		break;
 	default:

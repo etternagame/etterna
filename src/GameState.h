@@ -18,7 +18,6 @@
 #include <set>
 
 class Character;
-class Course;
 struct Game;
 struct lua_State;
 class LuaTable;
@@ -30,7 +29,6 @@ class Steps;
 class StageStats;
 class Style;
 class TimingData;
-class Trail;
 
 SortOrder GetDefaultSort();
 
@@ -113,9 +111,6 @@ public:
 	bool DifficultiesLocked() const;
 	bool ChangePreferredDifficultyAndStepsType( PlayerNumber pn, Difficulty dc, StepsType st );
 	bool ChangePreferredDifficulty( PlayerNumber pn, int dir );
-	bool ChangePreferredCourseDifficultyAndStepsType( PlayerNumber pn, CourseDifficulty cd, StepsType st );
-	bool ChangePreferredCourseDifficulty( PlayerNumber pn, int dir );
-	bool IsCourseDifficultyShown( CourseDifficulty cd );
 	Difficulty GetClosestShownDifficulty( PlayerNumber pn ) const;
 	Difficulty GetEasiestStepsDifficulty() const;
 	Difficulty GetHardestStepsDifficulty() const;
@@ -178,7 +173,6 @@ public:
 	 * @param t the timing data. */
 	void SetProcessedTimingData(TimingData * t);
 
-	bool IsCourseMode() const;
 	bool IsBattleMode() const; // not Rave
 
 	/**
@@ -187,11 +181,9 @@ public:
 	bool ShowW1() const;
 
 	BroadcastOnChange<RString>	m_sPreferredSongGroup;		// GROUP_ALL denotes no preferred group
-	BroadcastOnChange<RString>	m_sPreferredCourseGroup;	// GROUP_ALL denotes no preferred group
 	bool		m_bFailTypeWasExplicitlySet;	// true if FailType was changed in the song options screen
 	BroadcastOnChange<StepsType>				m_PreferredStepsType;
 	BroadcastOnChange1D<Difficulty,NUM_PLAYERS>		m_PreferredDifficulty;
-	BroadcastOnChange1D<CourseDifficulty,NUM_PLAYERS>	m_PreferredCourseDifficulty;// used in nonstop
 	BroadcastOnChange<SortOrder>	m_SortOrder;			// set by MusicWheel
 	SortOrder	m_PreferredSortOrder;		// used by MusicWheel
 	EditMode	m_EditMode;
@@ -221,7 +213,7 @@ public:
 
 	static int GetNumStagesMultiplierForSong( const Song* pSong );
 	static int GetNumStagesForSongAndStyleType( const Song* pSong, StyleType st );
-	int GetNumStagesForCurrentSongAndStepsOrCourse() const;
+	int GetNumStagesForCurrentSongAndStepsOrCourse() const;
 
 	void		BeginStage();
 	void		CancelStage();
@@ -240,7 +232,7 @@ public:
 	RString		GetPlayerDisplayName( PlayerNumber pn ) const;
 
 	bool		m_bLoadingNextSong;
-	int		GetLoadingCourseSongIndex() const;
+	int		GetLoadingCourseSongIndex() const;
 
 	RString GetEtternaVersion() { return "0.54.2"; }
 	bool CountNotesSeparately();
@@ -252,12 +244,6 @@ public:
 	// The last Song that the user manually changed to.
 	Song*		m_pPreferredSong;
 	BroadcastOnChangePtr1D<Steps,NUM_PLAYERS> m_pCurSteps;
-
-	// NULL on ScreenSelectMusic if the currently selected wheel item isn't a Course.
-	BroadcastOnChangePtr<Course>	m_pCurCourse;
-	// The last Course that the user manually changed to.
-	Course*		m_pPreferredCourse;
-	BroadcastOnChangePtr1D<Trail,NUM_PLAYERS>	m_pCurTrail;
 
 	bool		m_bBackedOutOfFinalStage;
 
@@ -321,7 +307,6 @@ public:
 	void ResetToDefaultSongOptions( ModsLevel l );
 	void ApplyPreferredModifiers( PlayerNumber pn, const RString &sModifiers );
 	void ApplyStageModifiers( PlayerNumber pn, const RString &sModifiers );
-	void ClearStageModifiersIllegalForCourse();
 	void ResetOptions();
 
 	bool CurrentOptionsDisqualifyPlayer( PlayerNumber pn );
@@ -338,10 +323,9 @@ public:
 	// Ranking Stuff
 	struct RankingFeat
 	{
-		enum { SONG, COURSE, CATEGORY } Type;
+		enum { SONG, CATEGORY } Type;
 		Song* pSong;		// valid if Type == SONG
 		Steps* pSteps;		// valid if Type == SONG
-		Course* pCourse;	// valid if Type == COURSE
 		Grade grade;
 		int iScore;
 		float fPercentDP;
@@ -396,10 +380,8 @@ public:
 	 * TODO: Find a better way to implement this. */
 	bool m_bInStepEditor;
 	BroadcastOnChange<StepsType> m_stEdit;
-	BroadcastOnChange<CourseDifficulty> m_cdEdit;
 	BroadcastOnChangePtr<Steps> m_pEditSourceSteps;
 	BroadcastOnChange<StepsType> m_stEditSource;
-	BroadcastOnChange<int> m_iEditCourseEntryIndex;
 	BroadcastOnChange<RString> m_sEditLocalProfileID;
 	Profile* GetEditLocalProfile();
 

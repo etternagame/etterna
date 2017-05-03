@@ -11,7 +11,6 @@
 #include "AutoActor.h"
 #include "ThemeMetric.h"
 
-class Course;
 class Song;
 
 struct MusicWheelItemData;
@@ -22,7 +21,6 @@ enum MusicWheelItemType
 	MusicWheelItemType_SectionExpanded,
 	MusicWheelItemType_SectionCollapsed,
 	MusicWheelItemType_Roulette,
-	MusicWheelItemType_Course,
 	MusicWheelItemType_Sort,
 	MusicWheelItemType_Mode,
 	MusicWheelItemType_Random,
@@ -62,13 +60,12 @@ private:
 
 struct MusicWheelItemData : public WheelItemBaseData
 {
-	MusicWheelItemData() : m_pCourse(NULL), m_pSong(NULL), m_Flags(),
+	MusicWheelItemData() : m_pSong(NULL), m_Flags(),
 		m_iSectionCount(0), m_sLabel(""), m_pAction() { }
 	MusicWheelItemData( WheelItemDataType type, Song* pSong, 
-			   RString sSectionName, Course* pCourse, 
+			   RString sSectionName,
 			   RageColor color, int iSectionCount );
 
-	Course*			m_pCourse;
 	Song*			m_pSong;
 	WheelNotifyIcon::Flags  m_Flags;
 

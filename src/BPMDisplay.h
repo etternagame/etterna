@@ -7,7 +7,6 @@
 #include "LocalizedString.h"
 class Song;
 class Steps;
-class Course;
 struct DisplayBpms;
 
 /** @brief Displays a BPM or a range of BPMs. */
@@ -36,11 +35,6 @@ public:
 	 * @param pSteps the steps in question.
 	 */
 	void SetBpmFromSteps( const Steps* pSteps );
-	/**
-	 * @brief Use the BPM[s] from a course.
-	 * @param pCourse the course in question.
-	 */
-	void SetBpmFromCourse( const Course* pCourse );
 	/**
 	 * @brief Use a specified, constant BPM.
 	 * @param fBPM the constant BPM.

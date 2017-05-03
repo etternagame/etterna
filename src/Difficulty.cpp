@@ -7,7 +7,6 @@
 #include "GameConstantsAndTypes.h"
 #include "GameManager.h"
 #include "Steps.h"
-#include "Trail.h"
 
 static const char *DifficultyNames[] = {
 	"Beginner",
@@ -20,32 +19,6 @@ static const char *DifficultyNames[] = {
 XToString( Difficulty );
 StringToX( Difficulty );
 LuaXType( Difficulty );
-
-const RString &CourseDifficultyToLocalizedString( CourseDifficulty x )
-{
-	static unique_ptr<LocalizedString> g_CourseDifficultyName[NUM_Difficulty];
-	if( g_CourseDifficultyName[0].get() == NULL )
-	{
-		FOREACH_ENUM( Difficulty,i)
-		{
-			unique_ptr<LocalizedString> ap(new LocalizedString("CourseDifficulty", DifficultyToString(i)));
-			g_CourseDifficultyName[i] = std::move(ap);
-		}
-	}
-	return g_CourseDifficultyName[x]->GetValue();
-}
-
-LuaFunction( CourseDifficultyToLocalizedString, CourseDifficultyToLocalizedString(Enum::Check<Difficulty>(L, 1)) );
-
-CourseDifficulty GetNextShownCourseDifficulty( CourseDifficulty cd )
-{
-	for( CourseDifficulty d=(CourseDifficulty)(cd+1); d<NUM_Difficulty; enum_add(d, 1) )
-	{
-		if( GAMESTATE->IsCourseDifficultyShown(d) )
-			return d;
-	}
-	return Difficulty_Invalid;
-}
 
 struct OldStyleStringToDifficultyMapHolder
 {
@@ -90,7 +63,7 @@ LuaFunction( OldStyleStringToDifficulty, OldStyleStringToDifficulty(SArg(1)) );
 
 static ThemeMetric<RString> NAMES("CustomDifficulty","Names");
 
-RString GetCustomDifficulty( StepsType st, Difficulty dc, CourseType ct )
+RString GetCustomDifficulty( StepsType st, Difficulty dc )
 {
 	/* XXX GAMEMAN->GetStepsTypeInfo( StepsType_Invalid ) will crash. I'm not
 	 * sure what the correct behavior in this case should be. Should we still
@@ -122,12 +95,8 @@ RString GetCustomDifficulty( StepsType st, Difficulty dc, CourseType ct )
 			ThemeMetric<Difficulty> DIFFICULTY("CustomDifficulty",(*sName)+"Difficulty");
 			if( DIFFICULTY == Difficulty_Invalid  ||  dc == DIFFICULTY )	// match
 			{
-				ThemeMetric<CourseType> COURSE_TYPE("CustomDifficulty",(*sName)+"CourseType");
-				if( COURSE_TYPE == CourseType_Invalid  ||  ct == COURSE_TYPE )	// match
-				{
 					ThemeMetric<RString> STRING("CustomDifficulty",(*sName)+"String");
 					return STRING.GetValue();
-				}
 			}
 		}
 	}
@@ -137,7 +106,7 @@ RString GetCustomDifficulty( StepsType st, Difficulty dc, CourseType ct )
 	return DifficultyToString( dc );
 }
 
-LuaFunction( GetCustomDifficulty, GetCustomDifficulty(Enum::Check<StepsType>(L,1), Enum::Check<Difficulty>(L, 2), Enum::Check<CourseType>(L, 3, true)) );
+LuaFunction( GetCustomDifficulty, GetCustomDifficulty(Enum::Check<StepsType>(L,1), Enum::Check<Difficulty>(L, 2)) );
 
 RString CustomDifficultyToLocalizedString( const RString &sCustomDifficulty )
 {
@@ -149,18 +118,12 @@ LuaFunction( CustomDifficultyToLocalizedString, CustomDifficultyToLocalizedStrin
 
 RString StepsToCustomDifficulty( const Steps *pSteps )
 {
-	return GetCustomDifficulty( pSteps->m_StepsType, pSteps->GetDifficulty(), CourseType_Invalid );
-}
-
-RString TrailToCustomDifficulty( const Trail *pTrail )
-{
-	return GetCustomDifficulty( pTrail->m_StepsType, pTrail->m_CourseDifficulty, pTrail->m_CourseType );
+	return GetCustomDifficulty( pSteps->m_StepsType, pSteps->GetDifficulty() );
 }
 
 #include "LuaBinding.h"
 
 LuaFunction( StepsToCustomDifficulty, StepsToCustomDifficulty(Luna<Steps>::check(L, 1)) );
-LuaFunction( TrailToCustomDifficulty, TrailToCustomDifficulty(Luna<Trail>::check(L, 1)) );
 
 /*
  * (c) 2001-2004 Chris Danford

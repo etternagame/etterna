@@ -12,7 +12,6 @@
 #include "Sprite.h"
 
 class Steps;
-class Trail;
 class PlayerState;
 /**
  * @brief A graphical representation of a Steps or a Trail.
@@ -28,9 +27,8 @@ public:
 	virtual StepsDisplay *Copy() const;
 
 	void SetFromGameState( PlayerNumber pn );
-	void SetFromStepsTypeAndMeterAndDifficultyAndCourseType( StepsType st, int iMeter, Difficulty dc, CourseType ct );
+	void SetFromStepsTypeAndMeterAndDifficultyAndCourseType( StepsType st, int iMeter, Difficulty dc);
 	void SetFromSteps( const Steps* pSteps );
-	void SetFromTrail( const Trail* pTrail );
 	void Unset();
 
 	// Lua
@@ -40,11 +38,9 @@ private:
 	struct SetParams
 	{
 		const Steps *pSteps;
-		const Trail *pTrail;
 		int iMeter;
 		StepsType st; // pass because there may be a StepType icon
 		Difficulty dc;
-		CourseType ct;
 	};
 	void SetInternal( const SetParams &params );
 

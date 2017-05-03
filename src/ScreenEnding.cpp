@@ -34,7 +34,6 @@ ScreenEnding::ScreenEnding()
 		GAMESTATE->JoinPlayer( PLAYER_1 );
 		GAMESTATE->JoinPlayer( PLAYER_2 );
 		GAMESTATE->m_pCurSong.Set( SONGMAN->GetRandomSong() );
-		GAMESTATE->m_pCurCourse.Set( SONGMAN->GetRandomCourse() );
 		GAMESTATE->m_pCurSteps[PLAYER_1].Set( GAMESTATE->m_pCurSong->GetAllSteps()[0] );
 		GAMESTATE->m_pCurSteps[PLAYER_2].Set( GAMESTATE->m_pCurSong->GetAllSteps()[0] );
 		STATSMAN->m_CurStageStats.m_player[PLAYER_1].m_vpPossibleSteps.push_back( GAMESTATE->m_pCurSteps[PLAYER_1] );

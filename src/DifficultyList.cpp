@@ -277,7 +277,7 @@ void StepsDisplayList::SetFromGameState()
 		FOREACH_CONST( Difficulty, difficulties, d )
 		{
 			m_Rows[i].m_dc = *d;
-			m_Lines[i].m_Meter.SetFromStepsTypeAndMeterAndDifficultyAndCourseType( GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StepsType, 0, *d, CourseType_Invalid );
+			m_Lines[i].m_Meter.SetFromStepsTypeAndMeterAndDifficultyAndCourseType( GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StepsType, 0, *d );
 			++i;
 		}
 	}
@@ -373,8 +373,7 @@ void StepsDisplayList::HandleMessage( const Message &msg )
 {
 	FOREACH_ENUM( PlayerNumber, pn )
 	{
-		if( msg.GetName() == MessageIDToString((MessageID)(Message_CurrentStepsP1Changed+pn))  ||
-			msg.GetName() == MessageIDToString((MessageID)(Message_CurrentTrailP1Changed+pn)) ) 
+		if( msg.GetName() == MessageIDToString((MessageID)(Message_CurrentStepsP1Changed+pn)))
 		SetFromGameState();
 	}
 

@@ -17,7 +17,6 @@
 StatsManager*	STATSMAN = NULL;	// global object accessible from anywhere in the program
 
 void AddPlayerStatsToProfile( Profile *pProfile, const StageStats &ss, PlayerNumber pn );
-XNode* MakeRecentScoreNode( const StageStats &ss, Trail *pTrail, const PlayerStageStats &pss, MultiPlayer mp );
 
 StatsManager::StatsManager()
 {
@@ -149,45 +148,6 @@ void AddPlayerStatsToProfile( Profile *pProfile, const StageStats &ss, PlayerNum
 		
 }
 
-XNode* MakeRecentScoreNode( const StageStats &ss, Trail *pTrail, const PlayerStageStats &pss, MultiPlayer mp )
-{
-	XNode* pNode = NULL;
-	if( GAMESTATE->IsCourseMode() )
-	{
-		pNode = new XNode( "HighScoreForACourseAndTrail" );
-
-		CourseID courseID;
-		courseID.FromCourse(GAMESTATE->m_pCurCourse );
-		pNode->AppendChild( courseID.CreateNode() );
-
-		TrailID trailID;
-		trailID.FromTrail( pTrail );
-		pNode->AppendChild( trailID.CreateNode() );
-
-	}
-	else
-	{
-		pNode = new XNode( "HighScoreForASongAndSteps" );
-
-		SongID songID;
-		songID.FromSong( ss.m_vpPossibleSongs[0] );
-		pNode->AppendChild( songID.CreateNode() );
-
-		StepsID stepsID;
-		stepsID.FromSteps( pss.m_vpPossibleSteps[0] );
-		pNode->AppendChild( stepsID.CreateNode() );
-	}
-
-	XNode* pHighScore = pss.m_HighScore.CreateNode();
-	pHighScore->AppendChild("Pad", mp);
-	pHighScore->AppendChild("StageGuid", GAMESTATE->m_sStageGUID);
-	pHighScore->AppendChild("Guid", CryptManager::GenerateRandomUUID());
-
-	pNode->AppendChild( pHighScore );
-
-	return pNode;
-}
-
 void StatsManager::CommitStatsToProfiles( const StageStats *pSS )
 {
 	// Add step totals.  Use radarActual, since the player might have failed part way
@@ -234,58 +194,6 @@ void StatsManager::CommitStatsToProfiles( const StageStats *pSS )
 			}
 		}
 	}
-
-	// Not sure what the Save/Upload folder was originally for, but the files
-	// in it just accumulate uselessly, wasting several seconds when finishing
-	// a song.  So this pref disables it. -Kyz
-	if(!PREFSMAN->m_DisableUploadDir)
-	{
-		// Save recent scores
-		unique_ptr<XNode> xml( new XNode("Stats") );
-		xml->AppendChild( "MachineGuid",  PROFILEMAN->GetMachineProfile()->m_sGuid );
-
-		XNode *recent = NULL;
-		if( GAMESTATE->IsCourseMode() )
-			recent = xml->AppendChild( new XNode("RecentCourseScores") );
-		else
-			recent = xml->AppendChild( new XNode("RecentSongScores") );
-
-		if(!GAMESTATE->m_bMultiplayer)
-		{
-			FOREACH_HumanPlayer( p )
-			{
-				if( pSS->m_player[p].m_HighScore.IsEmpty() )
-					continue;
-				recent->AppendChild( MakeRecentScoreNode( *pSS, GAMESTATE->m_pCurTrail[p], pSS->m_player[p], MultiPlayer_Invalid ) );
-			}
-		}
-		else
-		{
-			FOREACH_EnabledMultiPlayer( mp )
-			{
-				if( pSS->m_multiPlayer[mp].m_HighScore.IsEmpty() )
-					continue;
-				recent->AppendChild( MakeRecentScoreNode( *pSS, GAMESTATE->m_pCurTrail[GAMESTATE->GetMasterPlayerNumber()], pSS->m_multiPlayer[mp], mp ) );
-			}
-		}
-
-		RString sDate = DateTime::GetNowDate().GetString();
-		sDate.Replace(":","-");
-
-		const RString UPLOAD_DIR = "/Save/Upload/";
-		RString sFileNameNoExtension = Profile::MakeUniqueFileNameNoExtension(UPLOAD_DIR, sDate + " " );
-		RString fn = UPLOAD_DIR + sFileNameNoExtension + ".xml";
-		
-		bool bSaved = XmlFileUtil::SaveToFile( xml.get(), fn, "", false );
-		
-		if( bSaved )
-		{
-			RString sStatsXmlSigFile = fn + SIGNATURE_APPEND;
-			CryptManager::SignFileToFile(fn, sStatsXmlSigFile);
-		}
-	}
-
-	//FileCopy( "Data/TempTestGroups.xml", "Save/Upload/data.xml" );
 }
 
 void StatsManager::UnjoinPlayer( PlayerNumber pn )

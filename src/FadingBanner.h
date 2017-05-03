@@ -21,14 +21,12 @@ public:
 	void LoadFromSong( const Song* pSong );		// NULL means no song
 	void LoadMode();
 	void LoadFromSongGroup( const RString &sSongGroup );
-	void LoadFromCourse( const Course* pCourse );
 	void LoadIconFromCharacter( Character* pCharacter );
 	void LoadBannerFromUnlockEntry( const UnlockEntry* pUE );
 	void LoadRoulette();
 	void LoadRandom();
 	void LoadFromSortOrder( SortOrder so );
 	void LoadFallback();
-	void LoadCourseFallback();
 	void LoadCustom( const RString &sBanner );
 
 	bool LoadFromCachedBanner( const RString &path );

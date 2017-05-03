@@ -18,16 +18,6 @@ public:
 private:
 	vector<Difficulty> m_v;
 };
-class ThemeMetricCourseDifficultiesToShow : public ThemeMetric<RString>
-{
-public:
-	ThemeMetricCourseDifficultiesToShow(): m_v() { }
-	ThemeMetricCourseDifficultiesToShow( const RString& sGroup, const RString& sName );
-	void Read();
-	const vector<CourseDifficulty> &GetValue() const;
-private:
-	vector<CourseDifficulty> m_v;
-};
 class ThemeMetricStepsTypesToShow : public ThemeMetric<RString>
 {
 public:
@@ -54,16 +44,12 @@ namespace CommonMetrics
 	extern ThemeMetric<RString>		DEFAULT_MODIFIERS;
 	/** @brief The caption on the title bar. */
 	extern LocalizedString				WINDOW_TITLE;
-	/** @brief How many entries should be shown before showing "Various" instead. */
-	extern ThemeMetric<int>			MAX_COURSE_ENTRIES_BEFORE_VARIOUS;
 	/** @brief Adjusts the assist tick sound's playback time. */
 	extern ThemeMetric<float>			TICK_EARLY_SECONDS;
 	/** @brief the name of the default noteskin. */
 	extern ThemeMetric<RString>		DEFAULT_NOTESKIN_NAME;
 	/** @brief Which difficulties are to be shown? */
 	extern ThemeMetricDifficultiesToShow	DIFFICULTIES_TO_SHOW;
-	/** @brief Which course difficulties are to be shown? */
-	extern ThemeMetricCourseDifficultiesToShow	COURSE_DIFFICULTIES_TO_SHOW;
 	/**
 	 * @brief Which step types are to be shown?
 	 *

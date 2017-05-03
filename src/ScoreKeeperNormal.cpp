@@ -6,7 +6,6 @@
 #include "Steps.h"
 #include "ScreenManager.h"
 #include "GameState.h"
-#include "Course.h"
 #include "SongManager.h"
 #include "NoteDataUtil.h"
 #include "NoteData.h"
@@ -124,59 +123,13 @@ void ScoreKeeperNormal::Load(
 
 void ScoreKeeperNormal::OnNextSong( int iSongInCourseIndex, const Steps* pSteps, const NoteData* pNoteData )
 {
-/*
-  Note on NONSTOP Mode scoring
-
-  Nonstop mode requires the player to play 4 songs in succession, with the total maximum possible score for
-  the four song set being 100,000,000. This comes from the sum of the four stages' maximum possible scores,
-  which, regardless of song or difficulty is:
-
-  10,000,000 for the first song
-  20,000,000 for the second song
-  30,000,000 for the third song
-  40,000,000 for the fourth song
-
-  We extend this to work with nonstop courses of any length.
-
-  We also keep track of this scoring type in endless, with 100mil per iteration
-  of all songs, though this score isn't actually seen anywhere right now.
-*/
-	// Calculate the score multiplier
 	m_iMaxPossiblePoints = 0;
-	if( GAMESTATE->IsCourseMode() )
-	{
-		const int numSongsInCourse = m_apSteps.size();
-		ASSERT( numSongsInCourse != 0 );
-
-		const int iIndex = iSongInCourseIndex % numSongsInCourse;
-		m_bIsLastSongInCourse = (iIndex+1 == numSongsInCourse);
-
-		if( numSongsInCourse < 10 )
-		{
-			const int courseMult = (numSongsInCourse * (numSongsInCourse + 1)) / 2;
-			ASSERT(courseMult >= 0);
-
-			m_iMaxPossiblePoints = (100000000 * (iIndex+1)) / courseMult;
-		}
-		else
-		{
-			/* When we have lots of songs, the scale above biases too much: in a
-			 * course with 50 songs, the first song is worth 80k, the last 4mil, which
-			 * is too much of a difference.
-			 *
-			 * With this, each song in a 50-song course will be worth 2mil. */
-			m_iMaxPossiblePoints = 100000000 / numSongsInCourse;
-		}
-	}
-	else
-	{
 		// long ver and marathon ver songs have higher max possible scores
 		int iLengthMultiplier = GameState::GetNumStagesMultiplierForSong( GAMESTATE->m_pCurSong );
 		
 		/* This is no longer just simple additive/subtractive scoring,
 		 * but start with capping the score at the size of the score counter. */
 		m_iMaxPossiblePoints = 10 * 10000000 * iLengthMultiplier;
-	}
 	ASSERT( m_iMaxPossiblePoints >= 0 );
 	m_iMaxScoreSoFar += m_iMaxPossiblePoints;
 
@@ -190,7 +143,7 @@ void ScoreKeeperNormal::OnNextSong( int iSongInCourseIndex, const Steps* pSteps,
 
 	/* MercifulBeginner shouldn't clamp weights in course mode, even if a beginner
 	 * song is in a course, since that makes PlayerStageStats::GetGrade hard. */
-	m_bIsBeginner = pSteps->GetDifficulty() == Difficulty_Beginner && !GAMESTATE->IsCourseMode();
+	m_bIsBeginner = pSteps->GetDifficulty() == Difficulty_Beginner;
 
 	ASSERT( m_iPointBonus >= 0 );
 

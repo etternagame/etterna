@@ -4,7 +4,6 @@
 #include "ThemeManager.h"
 #include "Steps.h"
 #include "PlayerState.h"
-#include "Course.h"
 #include "ActorUtil.h"
 
 LifeMeterBattery::LifeMeterBattery()
@@ -33,7 +32,6 @@ void LifeMeterBattery::Load( const PlayerState *pPlayerState, PlayerStageStats *
 	MINES_SUBTRACT_LIVES.Load(sType, "MinesSubtractLives");
 	HELD_ADD_LIVES.Load(sType, "HeldAddLives");
 	LET_GO_SUBTRACT_LIVES.Load(sType, "LetGoSubtractLives");
-	COURSE_SONG_REWARD_LIVES.Load(sType, "CourseSongRewardLives");
 
 	LIVES_FORMAT.Load(sType, "NumLivesFormat");
 
@@ -81,32 +79,26 @@ void LifeMeterBattery::Load( const PlayerState *pPlayerState, PlayerStageStats *
 
 void LifeMeterBattery::OnSongEnded()
 {
-	if( m_pPlayerStageStats->m_bFailed || m_iLivesLeft == 0 )
+	if (m_pPlayerStageStats->m_bFailed || m_iLivesLeft == 0)
 		return;
 
-	if( m_iLivesLeft < m_pPlayerState->m_PlayerOptions.GetSong().m_BatteryLives )
+	if (m_iLivesLeft < m_pPlayerState->m_PlayerOptions.GetSong().m_BatteryLives)
 	{
 		m_iTrailingLivesLeft = m_iLivesLeft;
 		PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
-		const Course *pCourse = GAMESTATE->m_pCurCourse;
 
-		if( pCourse && pCourse->m_vEntries[GAMESTATE->GetCourseSongIndex()].iGainLives > -1 )
-			m_iLivesLeft += pCourse->m_vEntries[GAMESTATE->GetCourseSongIndex()].iGainLives;
-		else
-		{
-			Lua *L= LUA->Get();
-			COURSE_SONG_REWARD_LIVES.PushSelf(L);
-			PushSelf(L);
-			LuaHelpers::Push(L, pn);
-			RString error= "Error running CourseSongRewardLives callback: ";
-			LuaHelpers::RunScriptOnStack(L, error, 2, 1, true);
-			m_iLivesLeft += luaL_optnumber(L, -1, 0);
-			lua_settop(L, 0);
-			LUA->Release(L);
-		}
-		m_iLivesLeft = min( m_iLivesLeft, m_pPlayerState->m_PlayerOptions.GetSong().m_BatteryLives );
+		Lua *L = LUA->Get();
+		COURSE_SONG_REWARD_LIVES.PushSelf(L);
+		PushSelf(L);
+		LuaHelpers::Push(L, pn);
+		RString error = "Error running CourseSongRewardLives callback: ";
+		LuaHelpers::RunScriptOnStack(L, error, 2, 1, true);
+		m_iLivesLeft += luaL_optnumber(L, -1, 0);
+		lua_settop(L, 0);
+		LUA->Release(L);
+		m_iLivesLeft = min(m_iLivesLeft, m_pPlayerState->m_PlayerOptions.GetSong().m_BatteryLives);
 
-		if( m_iTrailingLivesLeft < m_iLivesLeft )
+		if (m_iTrailingLivesLeft < m_iLivesLeft)
 			m_soundGainLife.Play(false);
 	}
 

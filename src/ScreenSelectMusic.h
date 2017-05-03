@@ -72,7 +72,6 @@ protected:
 	bool DetectCodes( const InputEventPlus &input );
 
 	vector<Steps*>		m_vpSteps;
-	vector<Trail*>		m_vpTrails;
 	int					m_iSelection[NUM_PLAYERS];
 
 	RageTimer		m_timerIdleComment;

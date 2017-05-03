@@ -5,49 +5,6 @@
 #include "Difficulty.h"
 #include "RageUtil_CachedObject.h"
 
-class Song;
-class Trail;
-class Course;
-class XNode;
-
-/** @brief Utility functions for dealing with the Trail. */
-namespace TrailUtil
-{
-	/**
-	 * @brief Retrieve the number of 
-	 * <a class="el" href="class_song.html">Songs</a> in the Trail.
-	 * @param pTrail the Trail itself.
-	 * @return the number of <a class="el" href="class_song.html">Songs</a>. */
-	int GetNumSongs( const Trail *pTrail );
-	/**
-	 * @brief Retrieve how long the Trail will last in seconds.
-	 * @param pTrail the Trail itself.
-	 * @return the total run time of the Trail. */
-	float GetTotalSeconds( const Trail *pTrail );
-};
-
-class TrailID
-{
-	StepsType st;
-	CourseDifficulty cd;
-	mutable CachedObjectPointer<Trail> m_Cache;
-
-public:
-	TrailID(): st(StepsType_Invalid), cd(Difficulty_Invalid),
-		m_Cache() { m_Cache.Unset(); }
-	void Unset() { FromTrail(NULL); }
-	void FromTrail( const Trail *p );
-	Trail *ToTrail( const Course *p, bool bAllowNull ) const;
-	bool operator<( const TrailID &rhs ) const;
-	bool MatchesStepsType( StepsType s ) const { return st == s; }
-
-	XNode* CreateNode() const;
-	void LoadFromNode( const XNode* pNode );
-	RString ToString() const;
-	bool IsValid() const;
-	static void Invalidate( Song* pStaleSong );
-};
-
 #endif
 
 /*
