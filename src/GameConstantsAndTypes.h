@@ -579,19 +579,6 @@ const RString& StyleTypeToString( StyleType s );
 StyleType StringToStyleType( const RString& s );
 LuaDeclareType( StyleType );
 
-/** @brief The different goal types, mainly meant for fitness modes. */
-enum GoalType 
-{
-	GoalType_Calories, 
-	GoalType_Time, 
-	GoalType_None,
-	NUM_GoalType,
-	GoalType_Invalid,
-};
-const RString& GoalTypeToString( GoalType gt );
-GoalType StringToGoalType( const RString& s );
-LuaDeclareType( GoalType );
-
 /** @brief The different types of Edit modes available. */
 enum EditMode
 {

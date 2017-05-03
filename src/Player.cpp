@@ -2081,47 +2081,6 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 		}
 	}
 
-	// Count calories for this step, unless we're being called because a button
-	// is held over a mine or being released.
-	// TODO: Move calorie counting into a ScoreKeeper?
-	if( m_pPlayerStageStats && m_pPlayerState && !bHeld && !bRelease )
-	{
-		Profile *pProfile = PROFILEMAN->GetProfile( pn );
-
-		int iNumTracksHeld = 0;
-		for( int t=0; t<m_NoteData.GetNumTracks(); t++ )
-		{
-			vector<GameInput> GameI;
-			GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)->StyleInputToGameInput( t, pn, GameI );
-			float secs_held= 0.0f;
-			for(size_t i= 0; i < GameI.size(); ++i)
-			{
-				secs_held= max(secs_held, INPUTMAPPER->GetSecsHeld( GameI[i] ));
-			}
-			if( secs_held > 0  && secs_held < m_fTimingWindowJump )
-				iNumTracksHeld++;
-		}
-
-		float fCals = 0;
-		switch( iNumTracksHeld )
-		{
-		case 0:
-			// autoplay is on, or this is a computer player
-			iNumTracksHeld = 1;
-			// fall through
-		default:
-			{
-				float fCalsFor100Lbs = SCALE( iNumTracksHeld, 1, 2, 0.023f, 0.077f );
-				float fCalsFor200Lbs = SCALE( iNumTracksHeld, 1, 2, 0.041f, 0.133f );
-				fCals = SCALE( pProfile->GetCalculatedWeightPounds(), 100.f, 200.f, fCalsFor100Lbs, fCalsFor200Lbs );
-			}
-			break;
-		}
-
-		m_pPlayerStageStats->m_fCaloriesBurned += fCals;
-		m_pPlayerStageStats->m_iNumControllerSteps ++;
-	}
-
 	// Check for step on a TapNote
 	/* XXX: This seems wrong. If a player steps twice quickly and two notes are
 	 * close together in the same column then it is possible for the two notes

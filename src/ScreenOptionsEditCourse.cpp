@@ -262,7 +262,6 @@ void ScreenOptionsEditCourse::ImportOptions( int iRow, const vector<PlayerNumber
 	{
 	case EditCourseRow_Minutes:
 		row.SetOneSharedSelection( 0 );
-		row.SetOneSharedSelectionIfPresent( MakeMinutesString(static_cast<int>(GAMESTATE->m_pCurCourse->m_fGoalSeconds)/60) );
 		break;
 	default:
 		{
@@ -308,10 +307,6 @@ void ScreenOptionsEditCourse::ExportOptions( int iRow, const vector<PlayerNumber
 		{
 		DEFAULT_FAIL(i);
 		case EditCourseRow_Minutes:
-			GAMESTATE->m_pCurCourse->m_fGoalSeconds = 0;
-			int mins;
-			if( sscanf( sValue, "%d", &mins ) == 1 )
-				GAMESTATE->m_pCurCourse->m_fGoalSeconds = mins * 60;
 			break;
 		}
 	}

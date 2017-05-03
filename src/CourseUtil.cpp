@@ -462,9 +462,7 @@ void EditCourseUtil::PrepareForPlay()
 	GAMESTATE->m_PlayMode.Set( PLAY_MODE_ENDLESS );
 	GAMESTATE->m_bSideIsJoined[0] = true;
 
-	PROFILEMAN->GetProfile(ProfileSlot_Player1)->m_GoalType = GoalType_Time;
 	Course *pCourse = GAMESTATE->m_pCurCourse;
-	PROFILEMAN->GetProfile(ProfileSlot_Player1)->m_iGoalSeconds = static_cast<int>(pCourse->m_fGoalSeconds);
 }
 
 void EditCourseUtil::GetAllEditCourses( vector<Course*> &vpCoursesOut )
@@ -481,8 +479,6 @@ void EditCourseUtil::GetAllEditCourses( vector<Course*> &vpCoursesOut )
 void EditCourseUtil::LoadDefaults( Course &out )
 {
 	out = Course();
-
-	out.m_fGoalSeconds = 0;
 
 	// pick a default name
 	// XXX: Make this localizable

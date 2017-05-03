@@ -107,7 +107,6 @@ public:
 
 	// workout
 	float		m_iNumControllerSteps;
-	float		m_fCaloriesBurned;
 
 	map<float,float> m_fLifeRecord;
 	void	SetLifeRecordAt( float fLife, float fStepsSecond );

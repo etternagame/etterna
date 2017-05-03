@@ -1051,11 +1051,6 @@ ScreenGameplay::~ScreenGameplay()
 
 bool ScreenGameplay::IsLastSong()
 {
-	if( GAMESTATE->m_pCurCourse )
-	{
-		if( GAMESTATE->m_pCurCourse->m_fGoalSeconds > 0  &&  GAMESTATE->m_bWorkoutGoalComplete )
-			return true;
-	}
 	if( GAMESTATE->m_pCurCourse  &&  GAMESTATE->m_pCurCourse->m_bRepeat )
 		return false;
 	return GAMESTATE->GetCourseSongIndex() >= (int)m_apSongsQueue.size()-1; // GetCourseSongIndex() is 0-based

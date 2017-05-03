@@ -89,7 +89,7 @@ int CourseEntry::GetNumModChanges() const
 Course::Course(): m_bIsAutogen(false), m_sPath(""), m_sMainTitle(""),
 	m_sMainTitleTranslit(""), m_sSubTitle(""), m_sSubTitleTranslit(""),
 	m_sScripter(""), m_sDescription(""), m_sBannerPath(""), m_sBackgroundPath(""),
-	m_sCDTitlePath(""), m_sGroupName(""), m_bRepeat(false), m_fGoalSeconds(0), 
+	m_sCDTitlePath(""), m_sGroupName(""), m_bRepeat(false), 
 	m_bShuffle(false), m_iLives(-1), m_bSortByMeter(false),
 	m_bIncomplete(false), m_vEntries(), m_SortOrder_TotalDifficulty(0),
 	m_SortOrder_Ranking(0), m_LoadedFromProfile(ProfileSlot_Invalid),
@@ -185,7 +185,6 @@ void Course::Init()
 	m_sGroupName = "";
 
 	m_bRepeat = false;
-	m_fGoalSeconds = 0;
 	m_bShuffle = false;
 
 	m_iLives = -1;
@@ -1303,7 +1302,6 @@ public:
 	DEFINE_METHOD( IsEndless,		IsEndless() )
 	DEFINE_METHOD( IsNonstop,		IsNonstop() )
 	DEFINE_METHOD( IsOni,			IsOni() )
-	DEFINE_METHOD( GetGoalSeconds,	m_fGoalSeconds )
 	static int HasBanner( T* p, lua_State *L )		{ lua_pushboolean(L, p->HasBanner() ); return 1; }
 	static int HasBackground( T* p, lua_State *L )	{ lua_pushboolean(L, p->HasBackground() ); return 1; }
 	DEFINE_METHOD( IsAnEdit,		IsAnEdit() )
@@ -1339,7 +1337,6 @@ public:
 		ADD_METHOD( IsEndless );
 		ADD_METHOD( IsNonstop );
 		ADD_METHOD( IsOni );
-		ADD_METHOD( GetGoalSeconds );
 		ADD_METHOD( HasBanner );
 		ADD_METHOD( HasBackground );
 		ADD_METHOD( IsAnEdit );

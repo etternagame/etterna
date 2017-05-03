@@ -59,7 +59,6 @@ void PlayerStageStats::InternalInit()
 	m_iSongsPlayed = 0;
 	m_fLifeRemainingSeconds = 0;
 	m_iNumControllerSteps = 0;
-	m_fCaloriesBurned = 0;
 
 	ZERO( m_iTapNoteScores );
 	ZERO( m_iHoldNoteScores );
@@ -119,7 +118,6 @@ void PlayerStageStats::AddStats( const PlayerStageStats& other )
 	m_iSongsPassed += other.m_iSongsPassed;
 	m_iSongsPlayed += other.m_iSongsPlayed;
 	m_iNumControllerSteps += other.m_iNumControllerSteps;
-	m_fCaloriesBurned += other.m_fCaloriesBurned;
 	m_fLifeRemainingSeconds = other.m_fLifeRemainingSeconds;	// don't accumulate
 	m_bDisqualified |= other.m_bDisqualified;
 
@@ -856,7 +854,6 @@ LuaFunction( FormatPercentScore,	PlayerStageStats::FormatPercentScore( FArg(1) )
 class LunaPlayerStageStats: public Luna<PlayerStageStats>
 {
 public:
-	DEFINE_METHOD( GetCaloriesBurned,			m_fCaloriesBurned )
 	DEFINE_METHOD( GetNumControllerSteps,		m_iNumControllerSteps )
 	DEFINE_METHOD( GetLifeRemainingSeconds,		m_fLifeRemainingSeconds )
 	DEFINE_METHOD( GetSurvivalSeconds,			GetSurvivalSeconds() )
@@ -1046,7 +1043,6 @@ public:
 
 	LunaPlayerStageStats()
 	{
-		ADD_METHOD( GetCaloriesBurned );
 		ADD_METHOD( GetNumControllerSteps );
 		ADD_METHOD( GetLifeRemainingSeconds );
 		ADD_METHOD( GetSurvivalSeconds );

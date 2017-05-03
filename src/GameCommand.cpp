@@ -52,9 +52,6 @@ void GameCommand::Init()
 	m_SortOrder = SortOrder_Invalid;
 	m_sSoundPath = "";
 	m_vsScreensToPrepare.clear();
-	m_iWeightPounds = -1;
-	m_iGoalCalories = -1;
-	m_GoalType = GoalType_Invalid;
 	m_sProfileID = "";
 	m_sUrl = "";
 	m_bUrlExits = true;
@@ -138,12 +135,6 @@ bool GameCommand::DescribesCurrentMode( PlayerNumber pn ) const
 	if( !m_sSongGroup.empty() && GAMESTATE->m_sPreferredSongGroup != m_sSongGroup )
 		return false;
 	if( m_SortOrder != SortOrder_Invalid && GAMESTATE->m_PreferredSortOrder != m_SortOrder )
-		return false;
-	if( m_iWeightPounds != -1 && PROFILEMAN->GetProfile(pn)->m_iWeightPounds != m_iWeightPounds )
-		return false;
-	if( m_iGoalCalories != -1 && PROFILEMAN->GetProfile(pn)->m_iGoalCalories != m_iGoalCalories )
-		return false;
-	if( m_GoalType != GoalType_Invalid && PROFILEMAN->GetProfile(pn)->m_GoalType != m_GoalType )
 		return false;
 	if( !m_sProfileID.empty() && ProfileManager::m_sDefaultLocalProfileID[pn].Get() != m_sProfileID )
 		return false;
@@ -373,22 +364,6 @@ void GameCommand::LoadOne( const Command& cmd )
 	{
 		SortOrder so= StringToSortOrder(sValue);
 		CHECK_INVALID_VALUE(m_SortOrder, so, SortOrder_Invalid, sortorder);
-	}
-
-	else if( sName == "weight" )
-	{
-		m_iWeightPounds = StringToInt( sValue );
-	}
-
-	else if( sName == "goalcalories" )
-	{
-		m_iGoalCalories = StringToInt( sValue );
-	}
-
-	else if( sName == "goaltype" )
-	{
-		GoalType go= StringToGoalType(sValue);
-		CHECK_INVALID_VALUE(m_GoalType, go, GoalType_Invalid, goaltype);
 	}
 
 	else if( sName == "profileid" )
@@ -811,15 +786,6 @@ void GameCommand::ApplySelf( const vector<PlayerNumber> &vpns ) const
 		GAMESTATE->m_PreferredSortOrder = m_SortOrder;
 	if( m_sSoundPath != "" )
 		SOUND->PlayOnce( THEME->GetPathS( "", m_sSoundPath ) );
-	if( m_iWeightPounds != -1 )
-		FOREACH_CONST( PlayerNumber, vpns, pn )
-			PROFILEMAN->GetProfile(*pn)->m_iWeightPounds = m_iWeightPounds;
-	if( m_iGoalCalories != -1 )
-		FOREACH_CONST( PlayerNumber, vpns, pn )
-			PROFILEMAN->GetProfile(*pn)->m_iGoalCalories = m_iGoalCalories;
-	if( m_GoalType != GoalType_Invalid )
-		FOREACH_CONST( PlayerNumber, vpns, pn )
-			PROFILEMAN->GetProfile(*pn)->m_GoalType = m_GoalType;
 	if( !m_sProfileID.empty() )
 		FOREACH_CONST( PlayerNumber, vpns, pn )
 			ProfileManager::m_sDefaultLocalProfileID[*pn].Set( m_sProfileID );
@@ -895,9 +861,6 @@ bool GameCommand::IsZero() const
 		m_CourseDifficulty != Difficulty_Invalid ||
 		!m_sSongGroup.empty() ||
 		m_SortOrder != SortOrder_Invalid ||
-		m_iWeightPounds != -1 ||
-		m_iGoalCalories != -1 ||
-		m_GoalType != GoalType_Invalid ||
 		!m_sProfileID.empty() ||
 		!m_sUrl.empty() )
 		return false;

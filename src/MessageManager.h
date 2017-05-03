@@ -31,8 +31,6 @@ enum MessageID
 	Message_PreferredCourseDifficultyP2Changed,
 	Message_EditCourseEntryIndexChanged,
 	Message_EditLocalProfileIDChanged,
-	Message_GoalCompleteP1,
-	Message_GoalCompleteP2,
 	Message_NoteCrossed,
 	Message_NoteWillCrossIn400Ms,
 	Message_NoteWillCrossIn800Ms,

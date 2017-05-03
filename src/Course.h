@@ -171,7 +171,6 @@ public:
 	RString	m_sGroupName;
 
 	bool	m_bRepeat; // repeat after last song?  "Endless"
-	float	m_fGoalSeconds; // if not 0, stop play after this number of seconds
 	bool	m_bShuffle;
 	int		m_iLives; // -1 means use bar life meter
 	int		m_iCustomMeter[NUM_Difficulty]; // -1 = no meter specified

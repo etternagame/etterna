@@ -454,15 +454,6 @@ XToString( StyleType );
 StringToX( StyleType );
 LuaXType( StyleType );
 
-static const char *GoalTypeNames[] = {
-	"Calories",
-	"Time",
-	"None",
-};
-XToString( GoalType );
-StringToX( GoalType );
-LuaXType( GoalType );
-
 static const char *EditModeNames[] = {
 	"Practice",
 	"CourseMods",

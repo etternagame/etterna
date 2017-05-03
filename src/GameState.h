@@ -298,10 +298,6 @@ public:
 	// used in PLAY_MODE_RAVE
 	float	m_fTugLifePercentP1;
 
-	// used in workout
-	bool	m_bGoalComplete[NUM_PLAYERS];
-	bool	m_bWorkoutGoalComplete;
-
 	/** @brief Primarily called at the end of a song to stop all attacks. */
 	void RemoveAllActiveAttacks();
 	PlayerNumber GetBestPlayer() const;
@@ -406,10 +402,6 @@ public:
 	BroadcastOnChange<int> m_iEditCourseEntryIndex;
 	BroadcastOnChange<RString> m_sEditLocalProfileID;
 	Profile* GetEditLocalProfile();
-
-	// Workout stuff
-	float GetGoalPercentComplete( PlayerNumber pn );
-	bool IsGoalComplete( PlayerNumber pn )	{ return GetGoalPercentComplete( pn ) >= 1; }
 
 	bool m_bDopefish;
 

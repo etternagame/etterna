@@ -202,8 +202,7 @@ void StatsManager::CommitStatsToProfiles( const StageStats *pSS )
 		int iNumMines		= (int) pSS->m_player[pn].m_radarActual[RadarCategory_Mines];
 		int iNumHands		= (int) pSS->m_player[pn].m_radarActual[RadarCategory_Hands];
 		int iNumLifts		= (int) pSS->m_player[pn].m_radarActual[RadarCategory_Lifts];
-		float fCaloriesBurned	= pSS->m_player[pn].m_fCaloriesBurned;
-		PROFILEMAN->AddStepTotals( pn, iNumTapsAndHolds, iNumJumps, iNumHolds, iNumRolls, iNumMines, iNumHands, iNumLifts, fCaloriesBurned );
+		PROFILEMAN->AddStepTotals( pn, iNumTapsAndHolds, iNumJumps, iNumHolds, iNumRolls, iNumMines, iNumHands, iNumLifts );
 	}
 
 	// Update profile stats

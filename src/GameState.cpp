@@ -1145,29 +1145,7 @@ void GameState::Update( float fDelta )
 	m_SongOptions.Update( fDelta );
 
 	FOREACH_PlayerNumber( p )
-	{
 		m_pPlayerState[p]->Update( fDelta );
-
-		if( !m_bGoalComplete[p] && IsGoalComplete(p) )
-		{
-			m_bGoalComplete[p] = true;
-			MESSAGEMAN->Broadcast( (MessageID)(Message_GoalCompleteP1+p) );
-		}
-	}
-
-	if( GAMESTATE->m_pCurCourse )
-	{
-		if( GAMESTATE->m_pCurCourse->m_fGoalSeconds > 0  &&  !m_bWorkoutGoalComplete )
-		{
-			const StageStats &ssCurrent = STATSMAN->m_CurStageStats;
-			bool bGoalComplete = ssCurrent.m_fGameplaySeconds > GAMESTATE->m_pCurCourse->m_fGoalSeconds;
-			if( bGoalComplete )
-			{
-				MESSAGEMAN->Broadcast( "WorkoutGoalComplete" );
-				m_bWorkoutGoalComplete = true;
-			}
-		}
-	}
 }
 
 void GameState::SetCurGame( const Game *pGame )
@@ -1229,10 +1207,7 @@ void GameState::ResetStageStatistics()
 
 		m_pPlayerState[p]->m_iLastPositiveSumOfAttackLevels = 0;
 		m_pPlayerState[p]->m_fSecondsUntilAttacksPhasedOut = 0;	// PlayerAI not affected
-
-		m_bGoalComplete[p] = false;
 	}
-	m_bWorkoutGoalComplete = false;
 
 
 	FOREACH_PlayerNumber( p )
@@ -2524,35 +2499,6 @@ Premium	GameState::GetPremium() const
 	return DISABLE_PREMIUM_IN_EVENT_MODE ? Premium_Off : g_Premium;
 }
 
-float GameState::GetGoalPercentComplete( PlayerNumber pn )
-{
-	const Profile *pProfile = PROFILEMAN->GetProfile(pn);
-	const StageStats &ssCurrent = STATSMAN->m_CurStageStats;
-	const PlayerStageStats &pssCurrent = ssCurrent.m_player[pn];
-
-	float fActual = 0;
-	float fGoal = 0;
-	switch( pProfile->m_GoalType )
-	{
-	case GoalType_Calories:
-		fActual = pssCurrent.m_fCaloriesBurned;
-		fGoal = (float)pProfile->m_iGoalCalories;
-		break;
-	case GoalType_Time:
-		fActual = ssCurrent.m_fGameplaySeconds;
-		fGoal = (float)pProfile->m_iGoalSeconds;
-		break;
-	case GoalType_None:
-		return 0;	// never complete
-	default:
-		FAIL_M(ssprintf("Invalid GoalType: %i", pProfile->m_GoalType));
-	}
-	if( fGoal == 0 )
-		return 0;
-	else
-		return fActual / fGoal;
-}
-
 bool GameState::PlayerIsUsingModifier( PlayerNumber pn, const RString &sModifier )
 {
 	PlayerOptions po = m_pPlayerState[pn]->m_PlayerOptions.GetCurrent();
@@ -2779,7 +2725,6 @@ public:
 	DEFINE_METHOD( GetPlayMode,			m_PlayMode )
 	DEFINE_METHOD( GetSortOrder,			m_SortOrder )
 	DEFINE_METHOD( GetCurrentStageIndex,		m_iCurrentStageIndex )
-	DEFINE_METHOD( IsGoalComplete,			IsGoalComplete(Enum::Check<PlayerNumber>(L, 1)) )
 	DEFINE_METHOD( PlayerIsUsingModifier,		PlayerIsUsingModifier(Enum::Check<PlayerNumber>(L, 1), SArg(2)) )
 	DEFINE_METHOD( GetCourseSongIndex,		GetCourseSongIndex() )
 	DEFINE_METHOD( GetLoadingCourseSongIndex,	GetLoadingCourseSongIndex() )
@@ -2992,7 +2937,6 @@ public:
 	static int GetSongPercent( T* p, lua_State *L )				{ lua_pushnumber(L, p->GetSongPercent(FArg(1))); return 1; }
 	DEFINE_METHOD( GetCurMusicSeconds,	m_Position.m_fMusicSeconds )
 
-	DEFINE_METHOD( GetWorkoutGoalComplete,		m_bWorkoutGoalComplete )
 	static int GetCharacter( T* p, lua_State *L )				{ p->m_pCurCharacters[Enum::Check<PlayerNumber>(L, 1)]->PushSelf(L); return 1; }
 	static int SetCharacter( T* p, lua_State *L ){
 		Character* c = CHARMAN->GetCharacterFromID(SArg(2));
@@ -3283,7 +3227,6 @@ public:
 		ADD_METHOD( GetPlayMode );
 		ADD_METHOD( GetSortOrder );
 		ADD_METHOD( GetCurrentStageIndex );
-		ADD_METHOD( IsGoalComplete );
 		ADD_METHOD( PlayerIsUsingModifier );
 		ADD_METHOD( GetCourseSongIndex );
 		ADD_METHOD( GetLoadingCourseSongIndex );
@@ -3343,7 +3286,6 @@ public:
 		ADD_METHOD( GetStageSeed );
 		ADD_METHOD( SaveLocalData );
 		ADD_METHOD( SetJukeboxUsesModifiers );
-		ADD_METHOD( GetWorkoutGoalComplete );
 		ADD_METHOD( Reset );
 		ADD_METHOD( JoinPlayer );
 		ADD_METHOD( UnjoinPlayer );

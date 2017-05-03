@@ -124,9 +124,7 @@ public:
 	Profile():
 	m_Type(ProfileType_Normal), m_ListPriority(0),
 		m_sDisplayName(""), m_sCharacterID(""),
-		m_sLastUsedHighScoreName(""), m_iWeightPounds(0),
-		m_Voomax(0), m_BirthYear(0), m_IgnoreStepCountCalories(false),
-		m_IsMale(true),
+		m_sLastUsedHighScoreName(""),
 		m_sGuid(MakeGuid()), m_sDefaultModifiers(),
 		m_SortOrder(SortOrder_Invalid),
 		m_LastDifficulty(Difficulty_Invalid),
@@ -134,8 +132,7 @@ public:
 		m_LastStepsType(StepsType_Invalid), m_lastSong(),
 		m_lastCourse(), m_iCurrentCombo(0), m_iTotalSessions(0),
 		m_iTotalSessionSeconds(0), m_iTotalGameplaySeconds(0),
-		m_fTotalCaloriesBurned(0), m_GoalType(GoalType_Calories),
-		m_iGoalCalories(0), m_iGoalSeconds(0), m_iTotalDancePoints(0),
+		m_iTotalDancePoints(0),
 		m_iNumExtraStagesPassed(0), m_iNumExtraStagesFailed(0),
 		m_iNumToasties(0), m_iTotalTapsAndHolds(0), m_iTotalJumps(0),
 		m_iTotalHolds(0), m_iTotalRolls(0), m_iTotalMines(0),
@@ -143,8 +140,8 @@ public:
 		m_UnlockedEntryIDs(), m_sLastPlayedMachineGuid(""),
 		m_LastPlayedDate(),m_iNumSongsPlayedByStyle(),
 		m_iNumTotalSongsPlayed(0), m_UserTable(), m_SongHighScores(),
-		m_CourseHighScores(), m_vScreenshots(),
-		m_mapDayToCaloriesBurned(), profiledir(""),IsEtternaProfile(false)
+		m_CourseHighScores(), m_vScreenshots(), 
+		profiledir(""), IsEtternaProfile(false)
 	{
 		m_lastSong.Unset();
 		m_lastCourse.Unset();
@@ -171,11 +168,6 @@ public:
 	RString GetDisplayNameOrHighScoreName() const;
 	Character *GetCharacter() const;
 	void SetCharacter(const RString &sCharacterID);
-	RString GetDisplayTotalCaloriesBurned() const;		// remove me and use Lua instead
-	RString GetDisplayTotalCaloriesBurnedToday() const;	// remove me and use Lua instead
-	int GetCalculatedWeightPounds() const;	// returns a default value if m_iWeightPounds isn't set
-	int GetAge() const; // returns a default value if m_Age isn't set
-	float GetCaloriesBurnedToday() const;
 	int GetTotalNumSongsPassed() const;
 	int GetTotalStepsWithTopGrade( StepsType st, Difficulty d, Grade g ) const;
 	int GetTotalTrailsWithTopGrade( StepsType st, CourseDifficulty d, Grade g ) const;
@@ -193,9 +185,7 @@ public:
 	Course *GetMostPopularCourse() const;
 
 	void AddStepTotals( int iNumTapsAndHolds, int iNumJumps, int iNumHolds, int iNumRolls, int iNumMines, 
-			   int iNumHands, int iNumLifts, float fCaloriesBurned );
-	void AddCaloriesToDailyTotal(float cals);
-	float CalculateCaloriesFromHeartRate(float HeartRate, float Duration);
+			   int iNumHands, int iNumLifts );
 
 	bool IsMachine() const;
 
@@ -212,16 +202,6 @@ public:
 	 * This really shouldn't be in "editable", but it's needed in the smaller editable file
 	 * so that it can be ready quickly. */
 	RString m_sLastUsedHighScoreName;
-	int m_iWeightPounds;	// 0 == not set
-	// Voomax and BirthYear are used for calculating calories from heart rate.
-	float m_Voomax; // 0 == not set
-	int m_BirthYear; // 0 == not set
-	// m_IgnoreStepCountCalories is so that the step count based calorie
-	// counter can be ignored in favor of calculating calories from heart rate
-	// and voomax.
-	bool m_IgnoreStepCountCalories;
-	bool m_IsMale; // Used solely for calculating calories from heart rate.
-	//RString m_sProfileImageName;	// todo: add a default image -aj
 
 	// General data
 	static RString MakeGuid();
@@ -238,10 +218,6 @@ public:
 	int m_iTotalSessions;
 	int m_iTotalSessionSeconds;
 	int m_iTotalGameplaySeconds;
-	float m_fTotalCaloriesBurned;
-	GoalType m_GoalType;
-	int m_iGoalCalories;
-	int m_iGoalSeconds;
 	int m_iTotalDancePoints;
 	int m_iNumExtraStagesPassed;
 	int m_iNumExtraStagesFailed;
@@ -379,24 +355,6 @@ public:
 	void AddScreenshot( const Screenshot &screenshot );
 	int GetNextScreenshotIndex() { return m_vScreenshots.size(); }
 
-
-	/**
-	 * @brief The basics for Calorie Data.
-	 *
-	 * Why track calories in a map, and not in a static sized array like 
-	 * Bookkeeping?  The machine's clock is not guaranteed to be set correctly.
-	 * If calorie array is in a static sized array, playing on a machine with 
-	 * a mis-set clock could wipe out all your past data.  With this scheme, 
-	 * the worst that could happen is that playing on a mis-set machine will 
-	 * insert some garbage entries into the map. */
-	struct Calories
-	{
-		Calories(): fCals(0) {}
-		float fCals;
-	};
-	map<DateTime,Calories> m_mapDayToCaloriesBurned;
-	float GetCaloriesBurnedForDay( DateTime day ) const;
-
 	// Init'ing
 	void InitAll()
 	{
@@ -406,7 +364,6 @@ public:
 		InitCourseScores(); 
 		InitCategoryScores(); 
 		InitScreenshotData(); 
-		InitCalorieData(); 
 	}
 	void InitEditableData(); 
 	void InitGeneralData(); 
@@ -414,7 +371,6 @@ public:
 	void InitCourseScores(); 
 	void InitCategoryScores(); 
 	void InitScreenshotData(); 
-	void InitCalorieData(); 
 	void ClearStats();
 
 	void swap(Profile& other);
@@ -435,7 +391,6 @@ public:
 	void LoadCourseScoresFromNode( const XNode* pNode );
 	void LoadCategoryScoresFromNode( const XNode* pNode );
 	void LoadScreenshotDataFromNode( const XNode* pNode );
-	void LoadCalorieDataFromNode( const XNode* pNode );
 
 	void SaveTypeToDir(const RString &dir) const;
 	void SaveEditableDataToDir( const RString &sDir ) const;
@@ -449,7 +404,6 @@ public:
 	XNode* SaveCourseScoresCreateNode() const;
 	XNode* SaveCategoryScoresCreateNode() const;
 	XNode* SaveScreenshotDataCreateNode() const;
-	XNode* SaveCalorieDataCreateNode() const;
 
 	XNode* SaveCoinDataCreateNode() const;
 
