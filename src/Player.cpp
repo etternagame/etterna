@@ -1672,7 +1672,6 @@ void Player::ChangeLife( TapNoteScore tns )
 		m_pCombinedLifeMeter->ChangeLife( pn, tns );
 
 	ChangeLifeRecord();
-	ChangeWifeRecord();
 
 	switch( tns )
 	{
@@ -1697,7 +1696,6 @@ void Player::ChangeLife( HoldNoteScore hns, TapNoteScore tns )
 		m_pCombinedLifeMeter->ChangeLife( pn, hns, tns );
 
 	ChangeLifeRecord();
-	ChangeWifeRecord();
 }
 
 void Player::ChangeLife(float delta)
@@ -1717,7 +1715,6 @@ void Player::ChangeLife(float delta)
 		m_pCombinedLifeMeter->ChangeLife(pn, delta);
 	}
 	ChangeLifeRecord();
-	ChangeWifeRecord();
 }
 
 void Player::SetLife(float value)
@@ -1737,7 +1734,6 @@ void Player::SetLife(float value)
 		m_pCombinedLifeMeter->SetLife(pn, value);
 	}
 	ChangeLifeRecord();
-	ChangeWifeRecord();
 }
 
 void Player::ChangeLifeRecord()
@@ -3129,7 +3125,7 @@ done differently between the types. Current values for taps/holds are sent in pa
 all should have been to begin with. Not sure where checkpoints are but I also don't care, so. 
 
 Update: both message types are being sent out currently for compatability. -Mina*/
-
+#define autoplayISHUMAN = true
 void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 {
 	if( m_bSendJudgmentAndComboMessages )
@@ -3153,8 +3149,17 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 				msg.SetParam("WifePBDifferential", curwifescore - maxwifescore * wifescorepersonalbest);
 				msg.SetParam("WifePBGoal", wifescorepersonalbest);
 			}
-			if(m_pPlayerState->m_PlayerController == PC_HUMAN)
+#ifdef autoplayISHUMAN
+			ChangeWifeRecord();
+			m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
+			
+#else
+			if (m_pPlayerState->m_PlayerController == PC_HUMAN) {
+				ChangeWifeRecord();
 				m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
+			}
+#endif
+				
 		}
 
 		MESSAGEMAN->Broadcast( msg );
@@ -3202,12 +3207,19 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 				msg.SetParam("WifePBDifferential", curwifescore - maxwifescore * wifescorepersonalbest);
 				msg.SetParam("WifePBGoal", wifescorepersonalbest);
 			}
-
+#ifdef autoplayISHUMAN
+			m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
+			m_pPlayerStageStats->m_vOffsetVector.emplace_back(tn.result.fTapNoteOffset);
+			m_pPlayerStageStats->m_vNoteRowVector.emplace_back(iRow);
+			ChangeWifeRecord();
+#else
 			if (m_pPlayerState->m_PlayerController == PC_HUMAN) {
 				m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
 				m_pPlayerStageStats->m_vOffsetVector.emplace_back(tn.result.fTapNoteOffset);
 				m_pPlayerStageStats->m_vNoteRowVector.emplace_back(iRow);
 			}
+
+#endif
 		}
 
 		Lua* L= LUA->Get();
@@ -3272,8 +3284,13 @@ void Player::SetHoldJudgment( TapNote &tn, int iTrack )
 				msg.SetParam("WifePBDifferential", curwifescore - maxwifescore * wifescorepersonalbest);
 				msg.SetParam("WifePBGoal", wifescorepersonalbest);
 			}
+#ifdef autoplayISHUMAN
+			m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
+			ChangeWifeRecord();
+#else
 			if (m_pPlayerState->m_PlayerController == PC_HUMAN)
-				m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
+		 		m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
+#endif
 		}
 			
 		Lua* L = LUA->Get();
