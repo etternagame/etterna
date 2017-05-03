@@ -31,8 +31,9 @@
 #include <algorithm>
 
 const RString STATS_XML            = "Stats.xml";
-const RString ETT_XML			   = "Etterna.xml";
 const RString STATS_XML_GZ         = "Stats.xml.gz";
+const RString ETT_XML = "Etterna.xml";
+const RString ETT_XML_GZ = "Etterna.xml.gz";
 /** @brief The filename for where one can edit their personal profile information. */
 const RString EDITABLE_INI         = "Editable.ini";
 /** @brief A tiny file containing the type and list priority. */
@@ -1151,7 +1152,7 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 	// Not critical if this fails
 	LoadEditableDataFromDir( sDir );
 
-	ProfileLoadResult ret= LoadStatsFromDir(sDir, bRequireSignature);
+	ProfileLoadResult ret= LoadEttFromDir(sDir);
 	if (ret != ProfileLoadResult_Success)
 		ret = LoadStatsFromDir(sDir, bRequireSignature);
 	if (ret != ProfileLoadResult_Success)
@@ -1165,6 +1166,7 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 ProfileLoadResult Profile::LoadStatsFromDir(RString dir, bool require_signature)
 {
 	dir += PROFILEMAN->GetStatsPrefix();
+	profiledir = dir;
 	// Check for the existance of stats.xml
 	RString fn = dir + STATS_XML;
 	bool compressed = false;
@@ -1246,29 +1248,34 @@ ProfileLoadResult Profile::LoadStatsFromDir(RString dir, bool require_signature)
 }
 
 
-ProfileLoadResult Profile::LoadEttFromDir(RString dir, bool require_signature)
-{
+ProfileLoadResult Profile::LoadEttFromDir(RString dir) {
 	dir += PROFILEMAN->GetStatsPrefix();
-	// Check for the existence of stats.xml
+	profiledir = dir;
 	RString fn = dir + ETT_XML;
 	bool compressed = false;
-	if (!IsAFile(fn))
-	{
-		// Check for the existance of stats.xml.gz
+	if (!IsAFile(fn)) {
 		fn = dir + STATS_XML_GZ;
 		compressed = true;
 		if (!IsAFile(fn))
-		{
 			return ProfileLoadResult_FailedNoProfile;
-		}
 	}
 
 	int iError;
 	unique_ptr<RageFileBasic> pFile(FILEMAN->Open(fn, RageFile::READ, iError));
-	if (pFile.get() == NULL)
-	{
+	if (pFile.get() == NULL) {
 		LOG->Trace("Error opening %s: %s", fn.c_str(), strerror(iError));
 		return ProfileLoadResult_FailedTampered;
+	}
+
+	if (compressed) {
+		RString sError;
+		uint32_t iCRC32;
+		RageFileObjInflate *pInflate = GunzipFile(pFile.release(), sError, &iCRC32);
+		if (pInflate == NULL) {
+			LOG->Trace("Error opening %s: %s", fn.c_str(), sError.c_str());
+			return ProfileLoadResult_FailedTampered;
+		}
+		pFile.reset(pInflate);
 	}
 
 	LOG->Trace("Loading %s", fn.c_str());
@@ -1501,8 +1508,7 @@ bool Profile::SaveStatsXmlToDir( RString sDir, bool bSignData ) const
 	return true;
 }
 
-bool Profile::SaveEttXmlToDir(RString sDir) const
-{
+bool Profile::SaveEttXmlToDir(RString sDir) const {
 	LOG->Trace("SaveStatsXmlToDir: %s", sDir.c_str());
 	unique_ptr<XNode> xml(SaveEttXmlCreateNode());
 
@@ -2152,14 +2158,49 @@ void Profile::LoadSongScoresFromNode(const XNode* pSongScores)
 	}
 }
 
-void Profile::ImportScoresToEtterna() {
-	//LOG->Trace("Converting scores to etterna");
-	string ck;
+void Profile::LoadStatsXmlForConversion() {
+	string dir = profiledir;
+	RString fn = dir + STATS_XML;
+	bool compressed = false;
+	if (!IsAFile(fn)) {
+		fn = dir + STATS_XML_GZ;
+		compressed = true;
+		if (!IsAFile(fn)) {
+			return ;
+		}
+	}
 
+	int iError;
+	unique_ptr<RageFileBasic> pFile(FILEMAN->Open(fn, RageFile::READ, iError));
+	if (pFile.get() == NULL)
+		return;
+
+	if (compressed) {
+		RString sError;
+		uint32_t iCRC32;
+		RageFileObjInflate *pInflate = GunzipFile(pFile.release(), sError, &iCRC32);
+		if (pInflate == NULL)
+			return;
+
+		pFile.reset(pInflate);
+	}
+
+	XNode xml;
+	if (!XmlFileUtil::LoadFromFileShowErrors(xml, *pFile.get()))
+		return;
+
+	XNode* scores = xml.GetChild("SongScores");
+	LoadSongScoresFromNode(scores);
+}
+
+void Profile::ImportScoresToEtterna() {
+	// load stats.xml
+	if(IsEtternaProfile)
+		LoadStatsXmlForConversion();
+
+	string ck;
 	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
 		SongID id = i->first;
-		//LOG->Warn("songdir %s",  id.ToString());
-
 		HighScoresForASong& hsfas = i->second;
 		FOREACHM(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
 			StepsID sid = j->first;
@@ -2167,15 +2208,13 @@ void Profile::ImportScoresToEtterna() {
 			if (sid.GetStepsType() != StepsType_dance_single)
 				continue;
 
-			// we can be a lenient and assume that additionalsongs = songs
 			if (!id.IsValid()) {
 				string sdir = id.ToString();
 				string sdir2;
 
 				if (sdir.substr(0, 15) == "AdditionalSongs") {
 					sdir2 = id.ToString().substr(10);
-				}
-				else if (sdir.substr(0, 5) == "Songs") {
+				} else if (sdir.substr(0, 5) == "Songs") {
 					sdir2 = "Additional" + id.ToString();
 				}
 				Song* imean = new Song;
@@ -2194,18 +2233,13 @@ void Profile::ImportScoresToEtterna() {
 					continue;
 
 				ck = steps->GetChartKey();
-
 				for (size_t i = 0; i < hsv.size(); ++i) {
 					HighScore hs = hsv[i];
-
 					// ignore historic key and just load from here since the hashing function was changed anyway
 					hs.SetChartKey(ck);		
 					pscores.AddScore(hs);
 				}
-	
-			}
-
-			
+			}			
 		}
 	}
 }

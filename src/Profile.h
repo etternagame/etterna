@@ -144,7 +144,7 @@ public:
 		m_LastPlayedDate(),m_iNumSongsPlayedByStyle(),
 		m_iNumTotalSongsPlayed(0), m_UserTable(), m_SongHighScores(),
 		m_CourseHighScores(), m_vScreenshots(),
-		m_mapDayToCaloriesBurned()
+		m_mapDayToCaloriesBurned(), profiledir(""),IsEtternaProfile(false)
 	{
 		m_lastSong.Unset();
 		m_lastCourse.Unset();
@@ -257,6 +257,11 @@ public:
 	float m_fPlayerSkillsets[NUM_Skillset];
 	/** @brief Is this a brand new profile? */
 	bool m_bNewProfile;
+
+	// seriously why is this not a thing -mina
+	string profiledir;
+	bool IsEtternaProfile;
+
 	set<RString> m_UnlockedEntryIDs;
 	/**
 	 * @brief Which machine did we play on last, based on the Guid?
@@ -449,7 +454,7 @@ public:
 	XNode* SaveCoinDataCreateNode() const;
 
 	// Etterna profile
-	ProfileLoadResult LoadEttFromDir(RString dir, bool require_signature);
+	ProfileLoadResult LoadEttFromDir(RString dir);
 	ProfileLoadResult LoadEttXmlFromNode(const XNode* pNode);
 	void LoadEttScoresFromNode(const XNode* pNode);
 
@@ -458,6 +463,7 @@ public:
 	XNode* SaveEttXmlCreateNode() const;
 
 	// For converting to etterna from stats.xml
+	void LoadStatsXmlForConversion();
 	void ImportScoresToEtterna();
 
 	
