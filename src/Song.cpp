@@ -410,9 +410,6 @@ bool Song::LoadFromSongDir( RString sDir, bool load_autosave )
 		BACKGROUNDCACHE->LoadBackground( GetBackgroundPath() );
 	*/
 
-	// Add AutoGen pointers. (These aren't cached.)
-	//AddAutoGenNotes();
-
 	if( !m_bHasMusic )
 	{
 		LOG->UserLog( "Song", sDir, "has no music; ignored." );
@@ -516,7 +513,6 @@ bool Song::ReloadFromSongDir( const RString &sDir )
 void Song::LoadEditsFromSongDir(const RString &dir)
 {
 	// Load any .edit files in the song folder.
-	// Doing this BEFORE setting up AutoGen just in case.
 	vector<RString> vs;
 	GetDirListing(dir + "*.edit", vs, false, false);
 	// XXX: I'm sure there's a StepMania way of doing this, but familiar with this codebase I am not.
@@ -1108,17 +1104,11 @@ void Song::ReCalculateRadarValuesAndLastSecond(bool fromCache, bool duringCache)
 
 		// calculate lastSecond
 
-		/* 1. If it's autogen, then first/last beat will come from the parent.
-		 * 2. Don't calculate with edits unless the song only contains an edit
-		 * chart, like those in Mungyodance 3. Otherwise, edits installed on
+		/* 1. Don't calculate with edits unless the song only contains an edit
+		 * chart, like those in Mungyodance 2. Otherwise, edits installed on
 		 * the machine could extend the length of the song. */
 		if( !( pSteps->IsAnEdit() && m_vpSteps.size() > 1 ) )
 		{
-			// Don't set first/last beat based on lights.  They often start very
-			// early and end very late.
-			if( pSteps->m_StepsType == StepsType_lights_cabinet )
-				continue; // no need to wipe this.
-
 			/* Many songs have stray, empty song patterns. Ignore them, so they
 			 * don't force the first beat of the whole song to 0. */
 			if( tempNoteData.GetLastRow() != 0 )
@@ -1404,8 +1394,6 @@ bool Song::IsTutorial() const
 	// A Song is considered a Tutorial if it has only Beginner steps.
 	FOREACH_CONST( Steps*, m_vpSteps, s )
 	{
-		if( (*s)->m_StepsType == StepsType_lights_cabinet )
-			continue; // ignore
 		if( (*s)->GetDifficulty() != Difficulty_Beginner )
 			return false;
 	}
@@ -1741,10 +1729,6 @@ void Song::AddSteps( Steps* pSteps )
 
 void Song::DeleteSteps( const Steps* pSteps, bool bReAutoGen )
 {
-	// Avoid any stale Note::parent pointers by removing all AutoGen'd Steps,
-	// then adding them again.
-
-
 	vector<Steps*> &vpSteps = m_vpStepsByType[pSteps->m_StepsType];
 	for( int j=vpSteps.size()-1; j>=0; j-- )
 	{

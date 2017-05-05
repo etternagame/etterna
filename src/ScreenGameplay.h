@@ -219,7 +219,6 @@ protected:
 	void PauseGame( bool bPause, GameController gc = GameController_Invalid );
 	void PlayAnnouncer( const RString &type, float fSeconds, float *fDeltaSeconds );
 	void PlayAnnouncer( const RString &type, float fSeconds ) { PlayAnnouncer(type, fSeconds, &m_fTimeSinceLastDancingComment); }
-	void UpdateLights();
 	void SendCrossedMessages();
 
 	void PlayTicks();
@@ -314,9 +313,6 @@ protected:
 	RageSound		*m_pSoundMusic;
 
 	BeginnerHelper		m_BeginnerHelper;
-
-	/** @brief The NoteData that controls the lights on an arcade cabinet. */
-	NoteData		m_CabinetLightsNoteData;
 
 	vector<PlayerInfo>	m_vPlayerInfo;	// filled by SGameplay derivatives in FillPlayerInfo
 	virtual void FillPlayerInfo( vector<PlayerInfo> &vPlayerInfoOut ) = 0;

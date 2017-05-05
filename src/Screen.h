@@ -8,7 +8,6 @@
 #include "PlayerNumber.h"
 #include "InputQueue.h"
 #include "CodeSet.h"
-#include "LightsManager.h"
 #include "EnumHelper.h"
 
 class InputEventPlus;
@@ -105,7 +104,6 @@ protected:
 	ThemeMetric<bool>	HANDLE_BACK_BUTTON;
 	ThemeMetric<float>	REPEAT_RATE;
 	ThemeMetric<float>	REPEAT_DELAY;
-	ThemeMetric<LightsMode> LIGHTS_MODE;
 
 	/**
 	 * @brief The next screen to go to once this screen is done.

@@ -527,13 +527,6 @@ int Steps::GetNPSVector(NoteData nd, vector<float>& etar)
 
 void Steps::Compress() const
 {
-	// Always leave lights data uncompressed.
-	if( this->m_StepsType == StepsType_lights_cabinet && m_bNoteDataIsFilled )
-	{
-		m_sNoteDataCompressed = RString();
-		return;
-	}
-	
 	// Don't compress data in the editor: it's still in use.
 	if (GAMESTATE->m_bInStepEditor)
 	{

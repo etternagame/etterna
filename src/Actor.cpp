@@ -11,7 +11,6 @@
 #include "ThemeManager.h"
 #include "LuaReference.h"
 #include "MessageManager.h"
-#include "LightsManager.h" // for NUM_CabinetLight
 #include "ActorUtil.h"
 #include "Preference.h"
 #include <typeinfo>
@@ -40,8 +39,6 @@ vector<float> Actor::g_vfCurrentBGMBeatPlayerNoOffset(NUM_PlayerNumber, 0);
 
 
 Actor *Actor::Copy() const { return new Actor(*this); }
-
-static float g_fCabinetLights[NUM_CabinetLight];
 
 static const char *HorizAlignNames[] = {
 	"Left",
@@ -75,12 +72,6 @@ void Actor::SetPlayerBGMBeat( PlayerNumber pn, float fBeat, float fBeatNoOffset 
 {
 	g_vfCurrentBGMBeatPlayer[pn] = fBeat;
 	g_vfCurrentBGMBeatPlayerNoOffset[pn] = fBeatNoOffset;
-}
-
-void Actor::SetBGMLight( int iLightNumber, float fCabinetLights )
-{
-	ASSERT( iLightNumber < NUM_CabinetLight );
-	g_fCabinetLights[iLightNumber] = fCabinetLights;
 }
 
 void Actor::InitState()
@@ -876,12 +867,6 @@ void Actor::UpdateInternal(float delta_time)
 				m_fEffectDelta, m_fSecsIntoEffect);
 			break;
 		default:
-			if(m_EffectClock >= CLOCK_LIGHT_1 && m_EffectClock <= CLOCK_LIGHT_LAST)
-			{
-				generic_global_timer_update(
-					g_fCabinetLights[m_EffectClock - CLOCK_LIGHT_1],
-					m_fEffectDelta, m_fSecsIntoEffect);
-			}
 			break;
 	}
 
@@ -1041,18 +1026,6 @@ void Actor::SetEffectClockString( const RString &s )
 	else if(s.EqualsNoCase("bgm"))		this->SetEffectClock( CLOCK_BGM_BEAT ); // compat, deprecated
 	else if(s.EqualsNoCase("musicnooffset"))this->SetEffectClock( CLOCK_BGM_TIME_NO_OFFSET );
 	else if(s.EqualsNoCase("beatnooffset"))	this->SetEffectClock( CLOCK_BGM_BEAT_NO_OFFSET );
-	else
-	{
-		CabinetLight cl = StringToCabinetLight( s );
-		if( cl == CabinetLight_Invalid )
-		{
-			LuaHelpers::ReportScriptErrorFmt("String '%s' is not an effect clock string or the name of a cabinet light.", s.c_str());
-		}
-		else
-		{
-			this->SetEffectClock(static_cast<EffectClock>(cl + CLOCK_LIGHT_1));
-		}
-	}
 }
 
 void Actor::StretchTo( const RectF &r )

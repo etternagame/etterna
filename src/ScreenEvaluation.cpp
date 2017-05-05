@@ -13,7 +13,6 @@
 #include "ThemeManager.h"
 #include "GameSoundManager.h"
 #include "ActorUtil.h"
-#include "LightsManager.h"
 #include "ProfileManager.h"
 #include "Profile.h"
 #include "Song.h"

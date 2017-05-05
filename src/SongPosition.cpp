@@ -26,9 +26,6 @@ void SongPosition::UpdateSongPosition( float fPositionSeconds, const TimingData 
 	ASSERT_M( m_fSongBeat > -2000, ssprintf("Song beat %f at %f seconds is less than -2000!", m_fSongBeat, fPositionSeconds) );
 
 	m_fMusicSeconds = fPositionSeconds;
-
-	m_fLightSongBeat = timing.GetBeatFromElapsedTime( fPositionSeconds + g_fLightsAheadSeconds );
-
 	m_fSongBeatNoOffset = timing.GetBeatFromElapsedTimeNoOffset( fPositionSeconds );
 	
 	m_fMusicSecondsVisible = fPositionSeconds - g_fVisualDelaySeconds.Get();

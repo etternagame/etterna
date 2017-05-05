@@ -32,7 +32,6 @@
 #include "Inventory.h"
 #include "NoteDataUtil.h"
 #include "UnlockManager.h"
-#include "LightsManager.h"
 #include "ProfileManager.h"
 #include "StatsManager.h"
 #include "PlayerAI.h" // for NUM_SKILL_LEVELS
@@ -1287,9 +1286,6 @@ void ScreenGameplay::LoadNextSong()
 	m_bZeroDeltaOnNextUpdate = true;
 	SCREENMAN->ZeroNextUpdate();
 
-	// Load cabinet lights data
-	LoadLights();
-
 	/* Load the music last, since it may start streaming and we don't want the music
 	 * to compete with other loading. */
 	m_AutoKeysounds.FinishLoading();
@@ -1305,64 +1301,6 @@ void ScreenGameplay::LoadNextSong()
 	}
 
 	MESSAGEMAN->Broadcast("DoneLoadingNextSong");
-}
-
-void ScreenGameplay::LoadLights()
-{
-	if( !LIGHTSMAN->IsEnabled() )
-		return;
-
-	// First, check if the song has explicit lights
-	m_CabinetLightsNoteData.Init();
-	ASSERT( GAMESTATE->m_pCurSong != NULL );
-
-	const Steps *pSteps = SongUtil::GetClosestNotes( GAMESTATE->m_pCurSong, StepsType_lights_cabinet, Difficulty_Medium );
-	if( pSteps != NULL )
-	{
-		pSteps->GetNoteData( m_CabinetLightsNoteData, false );
-		return;
-	}
-
-	// No explicit lights.  Create autogen lights.
-	RString sDifficulty = PREFSMAN->m_sLightsStepsDifficulty;
-	vector<RString> asDifficulties;
-	split( sDifficulty, ",", asDifficulties );
-
-	// Always use the steps from the primary steps type so that lights are consistent over single and double styles.
-	StepsType st = GAMEMAN->GetHowToPlayStyleForGame( GAMESTATE->m_pCurGame )->m_StepsType;
-
-	Difficulty d1 = Difficulty_Invalid;
-	if( asDifficulties.size() > 0 )
-	{
-		if( asDifficulties[0].CompareNoCase("selected") == 0 )
-		{
-			// Base lights off current difficulty of active player
-			// Can be either P1 or P2 if they're individual or P1 if both are active
-			FOREACH_EnabledPlayerNumberInfo( m_vPlayerInfo, pi )
-			{
-				PlayerNumber pn = pi->GetStepsAndTrailIndex();
-
-				if( GAMESTATE->IsPlayerEnabled(pn) )
-				{
-					d1 = GAMESTATE->m_pCurSteps[pn]->GetDifficulty();
-					break;
-				}
-			}
-		}
-		else
-			d1 = StringToDifficulty( asDifficulties[0] );
-	}
-
-	pSteps = SongUtil::GetClosestNotes( GAMESTATE->m_pCurSong, st, d1 );
-
-	// If we can't find anything at all, stop.
-	if( pSteps == NULL )
-		return;
-
-	NoteData TapNoteData1;
-	pSteps->GetNoteData( TapNoteData1, false );
-
-	NoteDataUtil::LoadTransformedLights( TapNoteData1, m_CabinetLightsNoteData, GAMEMAN->GetStepsTypeInfo(StepsType_lights_cabinet).iNumTracks );
 }
 
 void ScreenGameplay::StartPlayingSong( float fMinTimeToNotes, float fMinTimeToMusic )
@@ -1911,7 +1849,6 @@ void ScreenGameplay::Update( float fDeltaTime )
 	}
 
 	PlayTicks();
-	UpdateLights();
 	SendCrossedMessages();
 
 	if( !m_bForceNoNetwork && NSMAN->useSMserver )
@@ -2078,94 +2015,6 @@ void ScreenGameplay::UpdateHasteRate()
 	}
 	fSpeed += speed_add;
 	m_fCurrHasteRate= fSpeed;
-}
-
-void ScreenGameplay::UpdateLights()
-{
-	if( !LIGHTSMAN->IsEnabled() )
-		return;
-	if( m_CabinetLightsNoteData.GetNumTracks() == 0 )	// light data wasn't loaded
-		return;
-
-	bool bBlinkCabinetLight[NUM_CabinetLight];
-	bool bBlinkGameButton[NUM_GameController][NUM_GameButton];
-	ZERO( bBlinkCabinetLight );
-	ZERO( bBlinkGameButton );
-	{
-		const float fSongBeat = GAMESTATE->m_Position.m_fLightSongBeat;
-		const int iSongRow = BeatToNoteRow( fSongBeat );
-
-		static int iRowLastCrossed = 0;
-
-		FOREACH_CabinetLight( cl )
-		{
-			// for each index we crossed since the last update:
-			FOREACH_NONEMPTY_ROW_IN_TRACK_RANGE( m_CabinetLightsNoteData, cl, r, iRowLastCrossed+1, iSongRow+1 )
-			{
-				if( m_CabinetLightsNoteData.GetTapNote( cl, r ).type != TapNoteType_Empty )
-					bBlinkCabinetLight[cl] = true;
-			}
-
-			if( m_CabinetLightsNoteData.IsHoldNoteAtRow( cl, iSongRow ) )
-				bBlinkCabinetLight[cl] = true;
-		}
-
-		FOREACH_EnabledPlayerNumberInfo( m_vPlayerInfo, pi )
-		{
-			const Style* pStyle = GAMESTATE->GetCurrentStyle(pi->m_pn);
-			const NoteData &nd = pi->m_pPlayer->GetNoteData();
-			for( int t=0; t<nd.GetNumTracks(); t++ )
-			{
-				bool bBlink = false;
-
-				// for each index we crossed since the last update:
-				FOREACH_NONEMPTY_ROW_IN_TRACK_RANGE( nd, t, r, iRowLastCrossed+1, iSongRow+1 )
-				{
-					const TapNote &tn = nd.GetTapNote( t, r );
-					if( tn.type != TapNoteType_Mine )
-						bBlink = true;
-				}
-
-				// check if a hold should be active
-				if( nd.IsHoldNoteAtRow( t, iSongRow ) )
-					bBlink = true;
-
-				if( bBlink )
-				{
-					vector<GameInput> gi;
-					pStyle->StyleInputToGameInput( t, pi->m_pn, gi );
-					for(size_t i= 0; i < gi.size(); ++i)
-					{
-						bBlinkGameButton[gi[i].controller][gi[i].button] = true;
-					}
-				}
-			}
-		}
-
-		iRowLastCrossed = iSongRow;
-	}
-
-	// Before the first beat of the song, all cabinet lights solid on (except for menu buttons).
-	Song &s = *GAMESTATE->m_pCurSong;
-	bool bOverrideCabinetBlink = (GAMESTATE->m_Position.m_fSongBeat < s.GetFirstBeat());
-	FOREACH_CabinetLight( cl )
-		bBlinkCabinetLight[cl] |= bOverrideCabinetBlink;
-
-	// Send blink data.
-	FOREACH_CabinetLight( cl )
-	{
-		if( bBlinkCabinetLight[cl] )
-			LIGHTSMAN->BlinkCabinetLight( cl );
-	}
-
-	FOREACH_ENUM( GameController,  gc )
-	{
-		FOREACH_ENUM( GameButton,  gb )
-		{
-			if( bBlinkGameButton[gc][gb] )
-				LIGHTSMAN->BlinkGameButton( GameInput(gc,gb) );
-		}
-	}
 }
 
 void ScreenGameplay::SendCrossedMessages()
@@ -2713,8 +2562,6 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 			if( pi->m_pActiveAttackList )
 				pi->m_pActiveAttackList->Refresh();
 		}
-
-		LIGHTSMAN->SetLightsMode( LIGHTSMODE_ALL_CLEARED );
 
 		bool bAllReallyFailed = STATSMAN->m_CurStageStats.AllFailed();
 

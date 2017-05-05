@@ -17,7 +17,6 @@
 #include "InputFilter.h"
 #include "InputMapper.h"
 #include "RageFileManager.h"
-#include "LightsManager.h"
 #include "NetworkSyncManager.h"
 #include "RageTimer.h"
 #include "RageInput.h"
@@ -309,8 +308,6 @@ void GameLoop::RunGameLoop()
 			if( INPUTMAPPER->CheckForChangedInputDevicesAndRemap(sMessage) )
 				SCREENMAN->SystemMessage( sMessage );
 		}
-
-		LIGHTSMAN->Update( fDeltaTime );
 
 		// Render
 		SCREENMAN->Draw();

@@ -10,7 +10,6 @@
 #include "NoteSkinManager.h"
 #include "RageInputDevice.h"
 #include "ThemeManager.h"
-#include "LightsManager.h"	// for NUM_CabinetLight
 #include "Game.h"
 #include "Style.h"
 #include "Foreach.h"
@@ -91,8 +90,6 @@ static const StepsTypeInfo g_StepsTypeInfos[] = {
 	// pop'n music
 	{ "pnm-five",		5,	true,	StepsTypeCategory_Single },	// called "pnm" for backward compat
 	{ "pnm-nine",		9,	true,	StepsTypeCategory_Single },	// called "pnm" for backward compat
-	// cabinet lights and other fine StepsTypes that don't exist lol
-	{ "lights-cabinet",	NUM_CabinetLight,	false,	StepsTypeCategory_Single }, // XXX disable lights autogen for now
 	// kickbox mania
 	{ "kickbox-human", 4, true, StepsTypeCategory_Single },
 	{ "kickbox-quadarm", 4, true, StepsTypeCategory_Single },
@@ -2740,94 +2737,6 @@ static const AutoMappings g_AutoKeyMappings_Lights = AutoMappings (
 	AutoMappingEntry( 0, KEY_Ci,		LIGHTS_BUTTON_BASS_RIGHT,	false )
 );
 
-static const Style g_Style_Lights_Cabinet =
-{	// STYLE_LIGHTS_CABINET
-	true,				// m_bUsedForGameplay
-	true,				// m_bUsedForEdit
-	false,				// m_bUsedForDemonstration
-	false,				// m_bUsedForHowToPlay
-	"cabinet",			// m_szName
-	StepsType_lights_cabinet,	// m_StepsType
-	StyleType_OnePlayerOneSide,		// m_StyleType
-	NUM_CabinetLight,		// m_iColsPerPlayer
-	{	// m_ColumnInfo[NUM_PLAYERS][MAX_COLS_PER_PLAYER];
-		{	// PLAYER_1
-			{ TRACK_1,	-DANCE_COL_SPACING*3.5f, NULL },
-			{ TRACK_2,	-DANCE_COL_SPACING*2.5f, NULL },
-			{ TRACK_3,	-DANCE_COL_SPACING*1.5f, NULL },
-			{ TRACK_4,	-DANCE_COL_SPACING*0.5f, NULL },
-			{ TRACK_5,	+DANCE_COL_SPACING*0.5f, NULL },
-			{ TRACK_6,	+DANCE_COL_SPACING*1.5f, NULL },
-			{ TRACK_7,	+DANCE_COL_SPACING*2.5f, NULL },
-			{ TRACK_8,	+DANCE_COL_SPACING*3.5f, NULL },
-		},
-		{	// PLAYER_2
-			{ TRACK_1,	-DANCE_COL_SPACING*3.5f, NULL },
-			{ TRACK_2,	-DANCE_COL_SPACING*2.5f, NULL },
-			{ TRACK_3,	-DANCE_COL_SPACING*1.5f, NULL },
-			{ TRACK_4,	-DANCE_COL_SPACING*0.5f, NULL },
-			{ TRACK_5,	+DANCE_COL_SPACING*0.5f, NULL },
-			{ TRACK_6,	+DANCE_COL_SPACING*1.5f, NULL },
-			{ TRACK_7,	+DANCE_COL_SPACING*2.5f, NULL },
-			{ TRACK_8,	+DANCE_COL_SPACING*3.5f, NULL },
-		},
-	},
-	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
-		{ 0, 1, 2, 3, 4, 5, 6, 7, 8, Style::END_MAPPING },
-		{ 0, 1, 2, 3, 4, 5, 6, 7, 8, Style::END_MAPPING },
-	},
-	{	// m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
-		0,1,2,3,4,5,6,7
-	},
-	false, // m_bCanUseBeginnerHelper
-	false, // m_bLockDifficulties
-};
-
-static const Style *g_apGame_Lights_Styles[] =
-{
-	&g_Style_Lights_Cabinet,
-	NULL
-};
-
-static const Game g_Game_Lights = 
-{
-	"lights",					// m_szName
-	g_apGame_Lights_Styles,				// m_apStyles
-	false,						// m_bCountNotesSeparately
-	false, // m_bTickHolds
-	false, // m_PlayersHaveSeparateStyles
-	{						// m_InputScheme
-		"lights",				// m_szName
-		NUM_LIGHTS_BUTTONS,			// m_iButtonsPerController
-		{	// m_szButtonNames
-			{ "MarqueeUpLeft",	GAME_BUTTON_LEFT },
-			{ "MarqueeUpRight",	GAME_BUTTON_RIGHT },
-			{ "MarqueeLrLeft",	GAME_BUTTON_UP },
-			{ "MarqueeLrRight",	GAME_BUTTON_DOWN },
-			{ "ButtonsLeft",	GameButton_Invalid },
-			{ "ButtonsRight",	GameButton_Invalid },
-			{ "BassLeft",		GameButton_Invalid },
-			{ "BassRight",		GameButton_Invalid },
-		},
-		&g_AutoKeyMappings_Lights
-	},
-	{
-		{ GameButtonType_Step },
-		{ GameButtonType_Step },
-		{ GameButtonType_Step },
-		{ GameButtonType_Step },
-		{ GameButtonType_Step },
-		{ GameButtonType_Step },
-		{ GameButtonType_Step },
-		{ GameButtonType_Step },
-	},
-	TNS_W1,	// m_mapW1To
-	TNS_W2,	// m_mapW2To
-	TNS_W3,	// m_mapW3To
-	TNS_W4,	// m_mapW4To
-	TNS_W5,	// m_mapW5To
-};
-
 /** Kickbox mania **********************************************************/
 static const AutoMappings g_AutoKeyMappings_Kickbox = AutoMappings (
 	"", "", "",
@@ -3227,7 +3136,6 @@ static const Game *g_Games[] =
 	&g_Game_Maniax,
 	&g_Game_Techno,
 	&g_Game_Popn,
-	&g_Game_Lights,
 	&g_Game_Kickbox,
 };
 

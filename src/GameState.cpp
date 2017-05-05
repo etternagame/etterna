@@ -15,7 +15,6 @@
 #include "GameManager.h"
 #include "GamePreferences.h"
 #include "HighScore.h"
-#include "LightsManager.h"
 #include "LuaReference.h"
 #include "MessageManager.h"
 #include "MemoryCardManager.h"
@@ -340,8 +339,6 @@ void GameState::Reset()
 	}
 
 	m_bTemporaryEventMode = false;
-
-	LIGHTSMAN->SetLightsMode( LIGHTSMODE_ATTRACT );
 
 	m_stEdit.Set( StepsType_Invalid );
 	m_pEditSourceSteps.Set( NULL );

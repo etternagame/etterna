@@ -60,7 +60,6 @@
 #include "UnlockManager.h"
 #include "RageFileManager.h"
 #include "Bookkeeper.h"
-#include "LightsManager.h"
 #include "ModelManager.h"
 #include "CryptManager.h"
 #include "NetworkSyncManager.h"
@@ -308,7 +307,6 @@ void ShutdownGame()
 	SAFE_DELETE( THEME );
 	SAFE_DELETE( ANNOUNCER );
 	SAFE_DELETE( BOOKKEEPER );
-	SAFE_DELETE( LIGHTSMAN );
 	SAFE_DELETE( SOUNDMAN );
 	SAFE_DELETE( FONT );
 	SAFE_DELETE( TEXTUREMAN );
@@ -1148,7 +1146,6 @@ int sm_main(int argc, char* argv[])
 	SOUNDMAN->SetMixVolume();
 	SOUND		= new GameSoundManager;
 	BOOKKEEPER	= new Bookkeeper;
-	LIGHTSMAN	= new LightsManager;
 	INPUTFILTER	= new InputFilter;
 	INPUTMAPPER	= new InputMapper;
 
@@ -1273,7 +1270,6 @@ void StepMania::InsertCoin( int iNum, bool bCountInBookkeeping )
 {
 	if( bCountInBookkeeping )
 	{
-		LIGHTSMAN->PulseCoinCounter();
 		BOOKKEEPER->CoinInserted();
 	}
 	int iNumCoinsOld = GAMESTATE->m_iCoins;

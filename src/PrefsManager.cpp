@@ -222,8 +222,6 @@ PrefsManager::PrefsManager() :
 	// Wow, these preference names are *seriously* long -Colby
 	m_fMinPercentageForMachineSongHighScore		( "MinPercentageForMachineSongHighScore",	0.0001f ), // This is for home, who cares how bad you do?
 	m_bDisqualification		( "Disqualification",			false ),
-	m_bAutogenLights		("AutogenLights", false),
-	m_bAutogenSteps			( "AutogenSteps",			false ),
 	m_bOnlyPreferredDifficulties	( "OnlyPreferredDifficulties",		false ),
 	m_bBreakComboToGetItem		( "BreakComboToGetItem",		false ),
 	m_ShowDancingCharacters		( "ShowDancingCharacters",		SDC_Off ),
@@ -267,12 +265,10 @@ PrefsManager::PrefsManager() :
 	m_iSoundWriteAhead		( "SoundWriteAhead",			0 ),
 	m_iSoundDevice			( "SoundDevice",			"" ),
 	m_iSoundPreferredSampleRate	( "SoundPreferredSampleRate",		0 ),
-	m_sLightsStepsDifficulty	( "LightsStepsDifficulty",		"medium" ),
 	m_bAllowUnacceleratedRenderer	( "AllowUnacceleratedRenderer",		false ), 
 	m_bThreadedInput		( "ThreadedInput",			true ),
 	m_bThreadedMovieDecode		( "ThreadedMovieDecode",		true ),
 	m_sTestInitialScreen		( "TestInitialScreen",			"" ),
-	m_bDebugLights			( "DebugLights",			false ),
 	m_bMonkeyInput			( "MonkeyInput",			false ),
 	m_sMachineName			( "MachineName",			"" ),
 	m_MuteActions			( "MuteActions",			false ),

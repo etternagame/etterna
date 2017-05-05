@@ -544,7 +544,6 @@ static LocalizedString ASSIST			( "ScreenDebugOverlay", "Assist" );
 static LocalizedString AUTOSYNC		( "ScreenDebugOverlay", "Autosync" );
 static LocalizedString COIN_MODE		( "ScreenDebugOverlay", "CoinMode" );
 static LocalizedString HALT			( "ScreenDebugOverlay", "Halt" );
-static LocalizedString LIGHTS_DEBUG	( "ScreenDebugOverlay", "Lights Debug" );
 static LocalizedString MONKEY_INPUT	( "ScreenDebugOverlay", "Monkey Input" );
 static LocalizedString RENDERING_STATS	( "ScreenDebugOverlay", "Rendering Stats" );
 static LocalizedString VSYNC			( "ScreenDebugOverlay", "Vsync" );
@@ -731,17 +730,6 @@ class DebugLineHalt : public IDebugLine
 		g_bIsHalt = !g_bIsHalt;
 		g_HaltTimer.Touch();
 		SetSpeed();
-		IDebugLine::DoAndLog( sMessageOut );
-	}
-};
-
-class DebugLineLightsDebug : public IDebugLine
-{
-	virtual RString GetDisplayTitle() { return LIGHTS_DEBUG.GetValue(); }
-	virtual bool IsEnabled() { return PREFSMAN->m_bDebugLights.Get(); }
-	virtual void DoAndLog( RString &sMessageOut )
-	{
-		PREFSMAN->m_bDebugLights.Set( !PREFSMAN->m_bDebugLights );
 		IDebugLine::DoAndLog( sMessageOut );
 	}
 };
@@ -1296,7 +1284,6 @@ DECLARE_ONE( DebugLineAutosync );
 DECLARE_ONE( DebugLineCoinMode );
 DECLARE_ONE( DebugLineSlow );
 DECLARE_ONE( DebugLineHalt );
-DECLARE_ONE( DebugLineLightsDebug );
 DECLARE_ONE( DebugLineMonkeyInput );
 DECLARE_ONE( DebugLineStats );
 DECLARE_ONE( DebugLineVsync );

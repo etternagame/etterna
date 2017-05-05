@@ -46,7 +46,6 @@ void Screen::Init()
 	HANDLE_BACK_BUTTON.Load( m_sName, "HandleBackButton" );
 	REPEAT_RATE.Load( m_sName, "RepeatRate" );
 	REPEAT_DELAY.Load( m_sName, "RepeatDelay" );
-	LIGHTS_MODE.Load( m_sName, "LightsMode" );
 
 	m_Codes.Load( m_sName );
 
@@ -254,8 +253,6 @@ void Screen::HandleScreenMessage( const ScreenMessage SM )
 			INPUTFILTER->SetRepeatRate( REPEAT_RATE );
 		if( REPEAT_DELAY != -1.0f )
 			INPUTFILTER->SetRepeatDelay( REPEAT_DELAY );
-
-		LIGHTSMAN->SetLightsMode( LIGHTS_MODE );
 	}
 	else if( SM == SM_LoseFocus )
 	{

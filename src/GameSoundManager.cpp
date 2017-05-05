@@ -14,7 +14,6 @@
 #include "NoteData.h"
 #include "Song.h"
 #include "Steps.h"
-#include "LightsManager.h"
 #include "SongUtil.h"
 #include "LuaManager.h"
 
@@ -54,7 +53,6 @@ struct MusicPlaying
 	bool m_bApplyMusicRate;
 	// The timing data that we're currently using.
 	TimingData m_Timing;
-	NoteData m_Lights;
 
 	/* If m_bTimingDelayed is true, this will be the timing data for the
 	 * song that's starting. We'll copy it to m_Timing once sound is heard. */
@@ -89,7 +87,6 @@ struct MusicToPlay
 	RString m_sFile, m_sTimingFile;
 	bool HasTiming;
 	TimingData m_TimingData;
-	NoteData m_LightsData;
 	bool bForceLoop;
 	float fStartSecond, fLengthSeconds, fFadeInLengthSeconds, fFadeOutLengthSeconds;
 	bool bAlignBeat, bApplyMusicRate;
@@ -137,7 +134,6 @@ static void StartMusic( MusicToPlay &ToPlay )
 	}
 
 	NewMusic->m_Timing = g_Playing->m_Timing;
-	NewMusic->m_Lights = g_Playing->m_Lights;
 
 	/* See if we can find timing data, if it's not already loaded. */
 	if( !ToPlay.HasTiming && IsAFile(ToPlay.m_sTimingFile) )
@@ -151,27 +147,18 @@ static void StartMusic( MusicToPlay &ToPlay )
 		{
 			ToPlay.HasTiming = true;
 			ToPlay.m_TimingData = song.m_SongTiming;
-			// get cabinet lights if any
-			Steps *pStepsCabinetLights = SongUtil::GetOneSteps( &song, StepsType_lights_cabinet );
-			if( pStepsCabinetLights )
-				pStepsCabinetLights->GetNoteData( ToPlay.m_LightsData , false);
 		}
 		else if(GetExtension(ToPlay.m_sTimingFile) == ".sm" &&
 			loaderSM.LoadFromSimfile(ToPlay.m_sTimingFile, song) )
 		{
 			ToPlay.HasTiming = true;
 			ToPlay.m_TimingData = song.m_SongTiming;
-			// get cabinet lights if any
-			Steps *pStepsCabinetLights = SongUtil::GetOneSteps( &song, StepsType_lights_cabinet );
-			if( pStepsCabinetLights )
-				pStepsCabinetLights->GetNoteData( ToPlay.m_LightsData , false);
 		}
 	}
 
 	if( ToPlay.HasTiming )
 	{
 		NewMusic->m_NewTiming = ToPlay.m_TimingData;
-		NewMusic->m_Lights = ToPlay.m_LightsData;
 	}
 
 	if( ToPlay.bAlignBeat && ToPlay.HasTiming && ToPlay.bForceLoop && ToPlay.fLengthSeconds != -1 )
@@ -626,38 +613,6 @@ void GameSoundManager::Update( float fDeltaTime )
 		}
 
 		iBeatLastCrossed = iBeatNow;
-	}
-
-	// Update lights
-	NoteData &lights = g_Playing->m_Lights;
-	if( lights.GetNumTracks() > 0 )	// lights data was loaded
-	{
-		const float fSongBeat = GAMESTATE->m_Position.m_fLightSongBeat;
-		const int iSongRow = BeatToNoteRow( fSongBeat );
-
-		static int iRowLastCrossed = 0;
-
-		FOREACH_CabinetLight( cl )
-		{	
-			// Are we "holding" the light?
-			if( lights.IsHoldNoteAtRow( cl, iSongRow ) )
-			{
-				LIGHTSMAN->BlinkCabinetLight( cl );
-				continue;
-			}
-
-			// Otherwise, for each index we crossed since the last update:
-			FOREACH_NONEMPTY_ROW_IN_TRACK_RANGE( lights, cl, r, iRowLastCrossed+1, iSongRow+1 )
-			{
-				if( lights.GetTapNote( cl, r ).type != TapNoteType_Empty )
-				{
-					LIGHTSMAN->BlinkCabinetLight( cl );
-					break;
-				}
-			}
-		}
-
-		iRowLastCrossed = iSongRow;
 	}
 }
 

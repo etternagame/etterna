@@ -3,7 +3,6 @@
 
 #include "GameConstantsAndTypes.h"
 #include "RageTimer.h"
-#include "LightsManager.h"
 #include "MessageManager.h"
 #include "TimingData.h"
 //XXX: where does this come from? might need another include
@@ -19,7 +18,6 @@ public:
 	float		m_fSongBeat;
 	float		m_fSongBeatNoOffset;
 	float		m_fCurBPS;
-	float		m_fLightSongBeat; // g_fLightsFalloffSeconds ahead
 	//bool		m_bStop;	// in the middle of a stop (freeze or delay)
 	/** @brief A flag to determine if we're in the middle of a freeze/stop. */
 	bool		m_bFreeze;

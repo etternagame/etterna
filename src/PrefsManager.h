@@ -214,8 +214,6 @@ public:
 	Preference<bool>	m_bPercentageScoring;
 	Preference<float>	m_fMinPercentageForMachineSongHighScore;
 	Preference<bool>	m_bDisqualification;
-	Preference<bool>	m_bAutogenLights;
-	Preference<bool>	m_bAutogenSteps;
 	Preference<bool>	m_bOnlyPreferredDifficulties;
 	Preference<bool>	m_bBreakComboToGetItem;
 	Preference<ShowDancingCharacters>		m_ShowDancingCharacters;
@@ -278,12 +276,10 @@ public:
 	Preference<int>	m_iSoundWriteAhead;
 	Preference<RString>	m_iSoundDevice;	
 	Preference<int>	m_iSoundPreferredSampleRate;
-	Preference<RString>	m_sLightsStepsDifficulty;
 	Preference<bool>	m_bAllowUnacceleratedRenderer;
 	Preference<bool>	m_bThreadedInput;
 	Preference<bool>	m_bThreadedMovieDecode;
 	Preference<RString>	m_sTestInitialScreen;
-	Preference<bool>	m_bDebugLights;
 	Preference<bool>	m_bMonkeyInput;
 	Preference<RString>	m_sMachineName;
 	Preference<bool> m_MuteActions;
