@@ -320,9 +320,8 @@ local profilebuttons = Def.ActorFrame{
 	Def.Quad{
 		InitCommand=cmd(zoomto,100,20;diffusealpha,buttondiffuse),
 		MouseLeftClickMessageCommand=function(self)
-			if ButtonActive(self) and rankingSkillset == 0 then
-				local saved = PROFILEMAN:SaveProfile(PLAYER_1)
-				if saved then
+			if ButtonActive(self) and rankingSkillset == 1 then
+				if PROFILEMAN:SaveProfile(PLAYER_1) then
 					ms.ok("Save successful")
 				else
 					ms.ok("Save failed")
@@ -334,9 +333,8 @@ local profilebuttons = Def.ActorFrame{
 	Def.Quad{
 		InitCommand=cmd(x,100;zoomto,100,20;diffusealpha,buttondiffuse),
 		MouseLeftClickMessageCommand=function(self)
-			if ButtonActive(self) and rankingSkillset == 0 then
-				local saved = PROFILEMAN:ConvertProfile(PLAYER_1)
-				if saved then
+			if ButtonActive(self) and rankingSkillset == 1 then
+				if PROFILEMAN:ConvertProfile(PLAYER_1) then
 					ms.ok("Imported scores from stats.xml")
 				else
 					ms.ok("Score import failed")
@@ -348,7 +346,7 @@ local profilebuttons = Def.ActorFrame{
 	Def.Quad{
 		InitCommand=cmd(x,200;zoomto,100,20;diffusealpha,buttondiffuse),
 		MouseLeftClickMessageCommand=function(self)
-			if ButtonActive(self) and rankingSkillset == 0 then
+			if ButtonActive(self) and rankingSkillset == 1 then
 				SCOREMAN:ValidateAllScores()
 			end
 		end
