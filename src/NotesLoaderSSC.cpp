@@ -518,11 +518,10 @@ void SetChartKey(StepsTagInfo& info) {
 
 vector<float> msdsplit(const RString& s) {
 	vector<float> o;
-	size_t nchar = s.size();
-	int numrates = static_cast<int>(nchar / 5.f);
-	
-	for (size_t i = 0; i < numrates; ++i)
-		o.emplace_back(StringToFloat(s.substr(i * 4, 4)));
+	for (size_t i = 0; i < s.size(); ++i) {
+		o.emplace_back(StringToFloat(s.substr(i, 5)));
+		i += 5;
+	}
 	return o;
 }
 
