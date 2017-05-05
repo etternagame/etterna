@@ -7,7 +7,6 @@ local t = Def.ActorFrame{
 	OnCommand=cmd(bouncebegin,0.2;xy,0,0;diffusealpha,1),
 	SetCommand=function(self)
 		self:finishtweening()
-		
 		if getTabIndex() == 4 then
 			self:queuecommand("On")
 			self:visible(true)
@@ -25,17 +24,21 @@ local frameX = 10
 local frameY = 45
 local frameWidth = capWideScale(360,400)
 local frameHeight = 350
-local fontScale = 0.4
-local scorestodisplay = 25
+local fontScale = 0.25
+local scoresperpage = 25
+local scoreYspacing = 10
 local distY = 15
-local offsetX = 10
+local offsetX = -10
 local offsetY = 20
 local rankingSkillset=1
 local rankingPage=1	
+local numrankingpages = 10
 local rankingWidth = frameWidth-capWideScale(15,50)
 local rankingX = capWideScale(30,50)
-local rankingY = capWideScale(60,60)
-local rankingTitleWidth = (rankingWidth/(#ms.SkillSets + 1))
+local rankingY = capWideScale(40,40)
+local rankingTitleSpacing = (rankingWidth/(#ms.SkillSets))
+local buttondiffuse = 0
+local whee
 
 if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
 	profile = GetPlayerOrMachineProfile(PLAYER_1)
@@ -54,21 +57,42 @@ local function byValidity(valid)
 	byJudgment("TapNoteScore_Miss")
 end
 
+local function BroadcastIfActive(msg)
+	if update then
+		MESSAGEMAN:Broadcast(msg)
+	end
+end
+
+local function ButtonActive(self)
+	return isOver(self) and update
+end
+
 -- The input callback for mouse clicks already exists within the tabmanager and redefining it within the local scope does nothing but create confusion - mina
-local r = Def.ActorFrame{}
+local r = Def.ActorFrame{
+	InitCommand=function(self)
+		self:xy(frameX,frameY)
+	end,
+	OnCommand=function(self)
+		whee = SCREENMAN:GetTopScreen():GetMusicWheel()
+	end
+}
 	
 local function rankingLabel(i)
 	local ths -- the top highscore object - mina
 	local ck
 	local thssteps
 	local thssong
+	local xoffset
 	
 	local t = Def.ActorFrame{
-		InitCommand=cmd(visible, false),
+		InitCommand=function(self)
+			self:xy(rankingX + offsetX, rankingY + offsetY + 10 + (i-1)*scoreYspacing)
+			self:RunCommandsOnChildren(cmd(halign,0;zoom,fontScale))
+			self:visible(false)
+		end,
 		UpdateRankingMessageCommand=function(self)
 			if rankingSkillset > 1 and update then
-				SCOREMAN:SortSSRs(ms.SkillSets[rankingSkillset])
-				ths = SCOREMAN:GetTopSSRHighScore(i+(scorestodisplay*(rankingPage-1)), ms.SkillSets[rankingSkillset])
+				ths = SCOREMAN:GetTopSSRHighScore(i+(scoresperpage*(rankingPage-1)), ms.SkillSets[rankingSkillset])
 				if ths then
 					self:visible(true)
 					ck = ths:GetChartKey()						
@@ -82,28 +106,28 @@ local function rankingLabel(i)
 			end
 		end,
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,frameX+12.5,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,100),
+			InitCommand=cmd(maxwidth,100),
 			DisplayCommand=function(self)
 				self:diffuse(getMainColor("positive"))
 				self:settext(((rankingPage-1)*25)+i..".")
 			end
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,frameX+rankingX,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,160),
+			InitCommand=cmd(x,30;maxwidth,160),
 			DisplayCommand=function(self)
 				self:settextf("%5.2f", ths:GetSkillsetSSR(ms.SkillSets[rankingSkillset]))
 				self:diffuse(byValidity(ths:GetEtternaValid()))
 			end
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,frameX+rankingX+35,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*2.5-160),
+			InitCommand=cmd(x,70;maxwidth,580),
 			DisplayCommand=function(self)
 				self:settext(thssong:GetDisplayMainTitle())
 				self:diffuse(byValidity(ths:GetEtternaValid()))
 			end
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,frameX+rankingX+230,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*4-160),
+			InitCommand=cmd(x,220),
 			DisplayCommand=function(self)
 				local ratestring = string.format("%.2f", ths:GetMusicRate()):gsub("%.?0+$", "").."x"
 				self:settext(ratestring)
@@ -111,18 +135,18 @@ local function rankingLabel(i)
 			end
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,frameX+rankingX+270,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*4-160),
+			InitCommand=cmd(x,256;maxwidth,160),
 			DisplayCommand=function(self)
-					self:settextf("%5.2f%%", ths:GetWifeScore()*100)
-					if not ths:GetEtternaValid() then
-						self:diffuse(byJudgment("TapNoteScore_Miss"))
-					else
-						self:diffuse(getGradeColor(ths:GetWifeGrade()))
-					end
+				self:settextf("%5.2f%%", ths:GetWifeScore()*100)
+				if not ths:GetEtternaValid() then
+					self:diffuse(byJudgment("TapNoteScore_Miss"))
+				else
+					self:diffuse(getGradeColor(ths:GetWifeGrade()))
+				end
 			end
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,frameX+rankingX+310,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*4-160),
+			InitCommand=cmd(x,300),
 			DisplayCommand=function(self)
 				local diff = thssteps:GetDifficulty()
 				self:diffuse(byDifficulty(diff))
@@ -130,11 +154,11 @@ local function rankingLabel(i)
 			end
 		},
 		Def.Quad{
-			InitCommand=cmd(xy,rankingX+rankingWidth/2,frameY+rankingY+105-(11-i)*10;zoomto,rankingWidth,10;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0),
+			InitCommand=cmd(diffusealpha,1),
 			MouseRightClickMessageCommand=function(self)
-				if update and ths and isOver(self) then 
+				if ths and ButtonActive(self) then
 					ths:ToggleEtternaValidation()
-					MESSAGEMAN:Broadcast("UpdateRanking")
+					BroadcastIfActive("UpdateRanking")
 					if ths:GetEtternaValid() then 
 						ms.ok("Score Revalidated")
 					else
@@ -143,8 +167,7 @@ local function rankingLabel(i)
 				end
 			end,
 			MouseLeftClickMessageCommand=function(self)
-				if update and ths and isOver(self) then 
-					local whee = SCREENMAN:GetTopScreen():GetMusicWheel()
+				if ths and ButtonActive(self) then
 					whee:SelectSong(thssong)
 				end
 			end
@@ -155,120 +178,90 @@ end
 
 local function rankingButton(i)
 	local t = Def.ActorFrame{
+		InitCommand=function(self)
+			self:xy(rankingX + (i-1)*rankingTitleSpacing, rankingY)
+		end,
 		Def.Quad{
-		InitCommand=cmd(xy,frameX+rankingX+(i-1+i*(1/(1+#ms.SkillSets)))*rankingTitleWidth,frameY+rankingY-30;zoomto,rankingTitleWidth,30;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
-		SetCommand=function(self)
-			if i == rankingSkillset then
-				self:diffusealpha(1)
-			else
-				self:diffusealpha(0.35)
-			end
-		end,
-		MouseLeftClickMessageCommand=function(self)
-			if isOver(self) then
-				rankingSkillset = i
-				rankingPage = 1
-				MESSAGEMAN:Broadcast("UpdateRanking")
-			end
-		end,
-		UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
+			InitCommand=cmd(zoomto,rankingTitleSpacing,30;diffuse,getMainColor('frames');diffusealpha,0.35),
+			SetCommand=function(self)
+				if i == rankingSkillset then
+					self:diffusealpha(1)
+				else
+					self:diffusealpha(0.35)
+				end
+			end,
+			MouseLeftClickMessageCommand=function(self)
+				if ButtonActive(self) then
+					rankingSkillset = i
+					rankingPage = 1
+					SCOREMAN:SortSSRs(ms.SkillSets[rankingSkillset])
+					BroadcastIfActive("UpdateRanking")
+				end
+			end,
+			UpdateRankingMessageCommand=cmd(queuecommand,"Set")
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,frameX+rankingX+(i-1+i*(1/(1+#ms.SkillSets)))*rankingTitleWidth,frameY+rankingY-15;halign,0.5;diffuse,getMainColor('positive');maxwidth,rankingTitleWidth;maxheight,25),
+			InitCommand=cmd(diffuse,getMainColor('positive');maxwidth,rankingTitleSpacing;maxheight,25;zoom,0.85),
 			BeginCommand=function(self)
 				self:settext(ms.SkillSets[i])
-			end,
+			end
 		}
 	}
 	return t
 end
 
-
-
--- should actor frame prev/next/page displays to prevent redundancy - mina
-r[#r+1] = Def.Quad{
-	InitCommand=cmd(xy,frameX+frameWidth-30,frameY+rankingY+265;zoomto,40,20;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
-	SetCommand=function(self)
-		if rankingSkillset > 1 then
+-- prev/next page
+r[#r+1] = Def.ActorFrame{
+	InitCommand=cmd(xy, 10, frameHeight - offsetY;visible,false),
+	UpdateRankingMessageCommand=function(self)
+		if rankingSkillset > 1 then 
 			self:visible(true)
+			self:RunCommandsOnChildren(cmd(queuecommand, "Display"))
 		else
 			self:visible(false)
 		end
 	end,
-	MouseLeftClickMessageCommand=function(self)
-		if isOver(self) and rankingSkillset > 0 then
-			--Move right
-			if rankingPage == 10 then
-				rankingPage=1
-			else
-				rankingPage=rankingPage+1
+	Def.Quad{
+		InitCommand=cmd(xy,300,-8;zoomto,40,20;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,buttondiffuse),
+		MouseLeftClickMessageCommand=function(self)
+			if isOver(self) then
+				if	rankingPage < numrankingpages then
+					rankingPage = rankingPage + 1
+				else
+					rankingPage = 1
+				end
+				BroadcastIfActive("UpdateRanking")
 			end
-			MESSAGEMAN:Broadcast("UpdateRanking")
-		end;
-	end;
-	UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
-	}
-r[#r+1] = LoadFont("Common Large") .. {
-		InitCommand=cmd(xy,frameX+frameWidth-30,frameY+rankingY+275;halign,0.5;zoom,0.3;diffuse,getMainColor('positive');settext,"Next"),
-		SetCommand=function(self)
-			if rankingSkillset > 1 then
-				self:visible(true)
-			else
-				self:visible(false)
-			end
-		end,
-		UpdateRankingMessageCommand=cmd(queuecommand,"Set")
-	}
-	
-r[#r+1] = Def.Quad{
-	InitCommand=cmd(xy,frameX+40,frameY+rankingY+265;zoomto,65,20;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
-	SetCommand=function(self)
-		if rankingSkillset > 1 then
-			self:visible(true)
-		else
-			self:visible(false)
 		end
-	end,
-	MouseLeftClickMessageCommand=function(self)
-		if isOver(self) and rankingSkillset > 0 then
-			--Move left
-			if rankingPage == 1 then
-				rankingPage=10
-			else
-				rankingPage=rankingPage-1
+	},
+	LoadFont("Common Large") .. {
+		InitCommand=cmd(x,300;halign,0;zoom,0.3;diffuse,getMainColor('positive');settext,"Next"),
+	},	
+	Def.Quad{
+		InitCommand=cmd(y,-8;zoomto,65,20;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,buttondiffuse),
+		MouseLeftClickMessageCommand=function(self)
+			if isOver(self) then 
+				if rankingPage > 1 then
+					rankingPage = rankingPage - 1
+				else
+					rankingPage = numrankingpages
+				end
+				BroadcastIfActive("UpdateRanking")
 			end
-			MESSAGEMAN:Broadcast("UpdateRanking")
-		end;
-	end;
-	UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
-	}
-	
-r[#r+1] = LoadFont("Common Large") .. {
-		InitCommand=cmd(xy,frameX+40,frameY+rankingY+275;halign,0.5;zoom,0.3;diffuse,getMainColor('positive');settext,"Previous"),
-		SetCommand=function(self)
-			if rankingSkillset > 1 then
-				self:visible(true)
-			else
-				self:visible(false)
-			end
-		end,
-		UpdateRankingMessageCommand=cmd(queuecommand,"Set")
-	}
-	
-r[#r+1] = LoadFont("Common Large") .. {
-	InitCommand=cmd(xy,frameX+frameWidth/2,frameY+rankingY+275;halign,0.5;zoom,0.3;diffuse,getMainColor('positive')),
-	SetCommand=function(self)
-		if rankingSkillset > 1 then
-			self:visible(true)
+		end
+	},
+	LoadFont("Common Large") .. {
+		InitCommand=cmd(halign,0;zoom,0.3;diffuse,getMainColor('positive');settext,"Previous"),
+	},
+	LoadFont("Common Large") .. {
+		InitCommand=cmd(x,175;halign,0.5;zoom,0.3;diffuse,getMainColor('positive')),
+		DisplayCommand=function(self)
 			self:settextf("%i-%i", ((rankingPage-1)*25)+1, rankingPage*25)
-		else
-			self:visible(false)
 		end
-	end,
-	UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
-}	
-	
-for i=1,scorestodisplay do 
+	}
+}
+
+for i=1,scoresperpage do 
 	r[#r+1] = rankingLabel(i)
 end
 
@@ -278,129 +271,91 @@ for i=1,#ms.SkillSets do
 	r[#r+1] = rankingButton(i)
 end
 
-t[#t+1] = r
-
--- should make a highlight or something to indicate the greatest value at a quick glance
 local function littlebits(i)
 	local t = Def.ActorFrame{
+		InitCommand=cmd(xy,frameX+30,frameY + 50),
 		UpdateRankingMessageCommand=function(self)
-			if rankingSkillset == 1 then
+			if rankingSkillset == 1 and update then
 				self:visible(true)
 			else
 				self:visible(false)
 			end
 		end,
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,frameX+30,frameY+120 + 22*i;halign,0;zoom,0.5;diffuse,getMainColor('positive')),
-			BeginCommand=cmd(queuecommand,"Set"),
+			InitCommand=cmd(y,22*i;halign,0;zoom,0.5;diffuse,getMainColor('positive')),
 			SetCommand=function(self)
 				self:settext(ms.SkillSets[i]..":")
-			end,
-			PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-			PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+			end
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,frameX+270,frameY+120 + 22*i;halign,1;zoom,0.5),
-			BeginCommand=cmd(queuecommand,"Set"),
+			InitCommand=cmd(xy,240,22*i;halign,1;zoom,0.5),
 			SetCommand=function(self)
 				local rating = profile:GetPlayerSkillsetRating(ms.SkillSets[i])
 				self:settextf("%5.2f",rating)
 				self:diffuse(ByMSD(rating))
-			end,
-			PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-			PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+			end
 		}
 	}
 	return t
 end
 
 for i=1,#ms.SkillSets do 
-	t[#t+1] = littlebits(i)
+	r[#r+1] = littlebits(i)
 end
 
-t[#t+1] = Def.Quad{
-	InitCommand=cmd(xy,frameX+80,frameY+rankingY+265;zoomto,100,20;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
-	SetCommand=function(self)
-		if rankingSkillset == 1 then
+
+
+local profilebuttons = Def.ActorFrame{
+	InitCommand=cmd(xy,frameX+60,frameHeight + 20),
+	UpdateRankingMessageCommand=function(self)
+		if rankingSkillset == 1 and update then
 			self:visible(true)
 		else
 			self:visible(false)
 		end
 	end,
-	MouseLeftClickMessageCommand=function(self)
-		if isOver(self) and rankingSkillset == 0 then
-			local saved = PROFILEMAN:SaveProfile(PLAYER_1)
-			if saved then
-				ms.ok("Save successful")
-			else
-				ms.ok("Save failed")
+	LoadFont("Common Large") .. {
+		InitCommand=cmd(diffuse,getMainColor('positive');settext,"Save Profile";zoom,0.3)
+	},
+	Def.Quad{
+		InitCommand=cmd(zoomto,100,20;diffusealpha,buttondiffuse),
+		MouseLeftClickMessageCommand=function(self)
+			if ButtonActive(self) and rankingSkillset == 0 then
+				local saved = PROFILEMAN:SaveProfile(PLAYER_1)
+				if saved then
+					ms.ok("Save successful")
+				else
+					ms.ok("Save failed")
+				end
 			end
 		end
-	end,
-	UpdateRankingMessageCommand=cmd(queuecommand,"Set")
-}
-
-t[#t+1] = Def.Quad{
-	InitCommand=cmd(xy,frameX+320,frameY+rankingY+265;zoomto,100,20;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
-	SetCommand=function(self)
-		if rankingSkillset == 1 then
-			self:visible(true)
-		else
-			self:visible(false)
-		end
-	end,
-	MouseLeftClickMessageCommand=function(self)
-		if isOver(self) and rankingSkillset == 0 then
-			local saved = PROFILEMAN:ConvertProfile(PLAYER_1)
-			if saved then
-				ms.ok("Convert")
-			else
-				ms.ok("Save failed")
+	},
+	LoadFont("Common Large") .. {InitCommand=cmd(x,100;diffuse,getMainColor('positive');settext,"Import Scores";zoom,0.3)},
+	Def.Quad{
+		InitCommand=cmd(x,100;zoomto,100,20;diffusealpha,buttondiffuse),
+		MouseLeftClickMessageCommand=function(self)
+			if ButtonActive(self) and rankingSkillset == 0 then
+				local saved = PROFILEMAN:ConvertProfile(PLAYER_1)
+				if saved then
+					ms.ok("Imported scores from stats.xml")
+				else
+					ms.ok("Score import failed")
+				end
 			end
 		end
-	end,
-	UpdateRankingMessageCommand=cmd(queuecommand,"Set")
-}
-
-t[#t+1] = LoadFont("Common Large") .. {
-		InitCommand=cmd(xy,frameX+80,frameY+rankingY+275;halign,0.5;zoom,0.3;diffuse,getMainColor('positive');settext,"Save Profile"),
-		SetCommand=function(self)
-			if rankingSkillset == 1 then
-				self:visible(true)
-			else
-				self:visible(false)
+	},
+	LoadFont("Common Large") .. {InitCommand=cmd(x,200;diffuse,getMainColor('positive');settext,"Validate All";zoom,0.3)},
+	Def.Quad{
+		InitCommand=cmd(x,200;zoomto,100,20;diffusealpha,buttondiffuse),
+		MouseLeftClickMessageCommand=function(self)
+			if ButtonActive(self) and rankingSkillset == 0 then
+				SCOREMAN:ValidateAllScores()
 			end
-		end,
-		UpdateRankingMessageCommand=cmd(queuecommand,"Set")
-	}
+		end
+	},
 	
-t[#t+1] = Def.Quad{
-	InitCommand=cmd(xy,frameX+210,frameY+rankingY+265;zoomto,100,20;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
-	SetCommand=function(self)
-		if rankingSkillset == 1 then
-			self:visible(true)
-		else
-			self:visible(false)
-		end
-	end,
-	MouseLeftClickMessageCommand=function(self)
-		if isOver(self) and rankingSkillset == 0 then
-			profile:ValidateAllScores()
-		end
-	end,
-	UpdateRankingMessageCommand=cmd(queuecommand,"Set")
 }
 
-t[#t+1] = LoadFont("Common Large") .. {
-		InitCommand=cmd(xy,frameX+210,frameY+rankingY+275;halign,0.5;zoom,0.3;diffuse,getMainColor('positive');settext,"Validate All"),
-		SetCommand=function(self)
-			if rankingSkillset == 1 then
-				self:visible(true)
-			else
-				self:visible(false)
-			end
-		end,
-		UpdateRankingMessageCommand=cmd(queuecommand,"Set")
-	}
-
+t[#t+1] = profilebuttons
+t[#t+1] = r
 return t
