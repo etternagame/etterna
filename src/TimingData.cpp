@@ -49,6 +49,7 @@ void TimingData::Clear()
 		vSegs.clear();
 	}
 	UnsetElapsedTimesAtAllRows();
+	UnsetEtaner();
 }
 
 bool TimingData::IsSafeFullTiming()

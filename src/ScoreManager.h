@@ -122,17 +122,17 @@ public:
 
 
 	void PushSelf(lua_State *L);
-	vector<HighScore*> zz;
 
-	
-	
+
+	vector<HighScore*> GetAllScores() { return AllScores; }
+	void RegisterScore(HighScore* hs) {	AllScores.emplace_back(hs); }
 private:
 	std::map<RString, ScoresForChart> pscores;	// Profile scores
 
 	// Instead of storing pointers for each skillset just reshuffle the same set of pointers
 	// it's inexpensive and not called often
 	vector<HighScore*> TopSSRs;
-	
+	vector<HighScore*> AllScores;
 };
 
 extern ScoreManager* SCOREMAN;

@@ -1021,7 +1021,32 @@ ProfileLoadResult Profile::LoadEttXmlFromNode(const XNode *xml) {
 
 	const XNode* scores = xml->GetChild("PlayerScores");
 	LoadEttScoresFromNode(scores);
+	CalculateStatsFromScores();
 	return ProfileLoadResult_Success;
+}
+
+void Profile::CalculateStatsFromScores() {
+	vector<HighScore*> all = SCOREMAN->GetAllScores();
+	float TotalGameplaySeconds = 0.f;
+	m_iTotalTapsAndHolds = 0;
+	m_iTotalHolds = 0;
+	m_iTotalMines = 0;
+
+	for (size_t i = 0; i < all.size(); ++i) {
+		HighScore* hs = all[i];
+		TotalGameplaySeconds += hs->GetSurvivalSeconds();
+		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W1);
+		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W2);
+		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W3);
+		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W4);
+		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W5);
+		m_iTotalMines += hs->GetTapNoteScore(TNS_HitMine);
+		hs->GetHoldNoteScore(HNS_Held);
+	}
+
+	m_iNumTotalSongsPlayed = all.size();
+	m_iTotalDancePoints = m_iTotalTapsAndHolds * 2;
+	m_iTotalGameplaySeconds = static_cast<int>(TotalGameplaySeconds);
 }
 
 bool Profile::SaveAllToDir( const RString &sDir, bool bSignData ) const
@@ -1726,7 +1751,6 @@ XNode* Profile::SaveEttScoresCreateNode() const {
 void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
 	CHECKPOINT_M("Loading the node that contains song scores.");
 	SCOREMAN->LoadFromNode(pSongScores);
-	LOG->Trace("asdfasdf");
 }
 
 // more future goalman stuff

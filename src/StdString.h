@@ -627,10 +627,10 @@ public:
 #else
 #define EMP_TEMP <>
 #endif
-	//friend	MYTYPE	operator+ EMP_TEMP(const MYTYPE& str1,	const MYTYPE& str2);
-	//friend	MYTYPE	operator+ EMP_TEMP(const MYTYPE& str,	CT t);
-	//friend	MYTYPE	operator+ EMP_TEMP(const MYTYPE& str,	PCSTR sz);
-	//friend	MYTYPE	operator+ EMP_TEMP(PCSTR pA,				const MYTYPE& str);
+	friend	MYTYPE	operator+ EMP_TEMP(const MYTYPE& str1,	const MYTYPE& str2);
+	friend	MYTYPE	operator+ EMP_TEMP(const MYTYPE& str,	CT t);
+	friend	MYTYPE	operator+ EMP_TEMP(const MYTYPE& str,	PCSTR sz);
+	friend	MYTYPE	operator+ EMP_TEMP(PCSTR pA,				const MYTYPE& str);
 
 	// -------------------------------------------------------------------------
 	// Case changing functions

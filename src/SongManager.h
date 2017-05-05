@@ -18,7 +18,6 @@ struct lua_State;
 #include "RageTexturePreloader.h"
 #include "RageUtil.h"
 #include "Profile.h"
-#include <unordered_map>
 
 RString SONG_GROUP_COLOR_NAME( size_t i );
 bool CompareNotesPointersForExtra(const Steps *n1, const Steps *n2);

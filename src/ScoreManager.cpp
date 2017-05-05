@@ -7,6 +7,7 @@
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
 #include "SongManager.h"
+#include "Song.h"
 
 ScoreManager* SCOREMAN = NULL;
 
@@ -243,6 +244,10 @@ XNode* ScoresAtRate::CreateNode(const int& rate) const {
 
 XNode * ScoresForChart::CreateNode(const RString& ck) const {
 	XNode* o = new XNode("ChartScores");
+	Song* song = SONGMAN->GetSongByChartkey(ck);
+	Steps* steps = SONGMAN->GetStepsByChartkey(ck);
+	o->AppendAttr("Song", song->GetDisplayMainTitle());
+	o->AppendAttr("Pack", song->m_sGroupName);
 	o->AppendAttr("Key", ck);
 
 	FOREACHM_CONST(int, ScoresAtRate, ScoresByRate, i)
@@ -252,7 +257,7 @@ XNode * ScoresForChart::CreateNode(const RString& ck) const {
 }
 
 XNode * ScoreManager::CreateNode() const {
-	XNode* o = new XNode("ScoreManager");
+	XNode* o = new XNode("PlayerScores");
 
 	FOREACHM_CONST(RString, ScoresForChart, pscores, ch)
 		o->AppendChild(ch->second.CreateNode(ch->first));
@@ -272,6 +277,9 @@ void ScoresAtRate::LoadFromNode(const XNode* node, const RString& ck, const floa
 		scores[sk].SetChartKey(ck);
 		scores[sk].SetScoreKey(sk);
 		scores[sk].SetMusicRate(rate);
+
+		// seems kind of awkward?
+		SCOREMAN->RegisterScore(&scores.find(sk)->second);
 	}
 
 	// Set the pbptr

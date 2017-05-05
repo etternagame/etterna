@@ -361,6 +361,8 @@ public:
 	XNode* SaveEttScoresCreateNode() const;
 	XNode* SaveEttXmlCreateNode() const;
 
+	void CalculateStatsFromScores();
+
 	// For converting to etterna from stats.xml
 	void LoadStatsXmlForConversion();
 	void ImportScoresToEtterna();

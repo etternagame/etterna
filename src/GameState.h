@@ -234,7 +234,7 @@ public:
 	bool		m_bLoadingNextSong;
 	int		GetLoadingCourseSongIndex() const;
 
-	RString GetEtternaVersion() { return "0.54.2"; }
+	RString GetEtternaVersion() { return "0.55"; }
 	bool CountNotesSeparately();
 
 	// State Info used during gameplay
