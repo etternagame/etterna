@@ -389,7 +389,6 @@ local function filterButton(i)
 	return t
 end
 
--- should actor frame prev/next/page displays to prevent redundancy - mina
 r[#r+1] = Def.ActorFrame{
 	InitCommand=cmd(xy,frameX+10,frameY+rankingY+250),
 	Def.Quad{
