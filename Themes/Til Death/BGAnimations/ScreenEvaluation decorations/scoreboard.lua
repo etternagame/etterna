@@ -134,15 +134,6 @@ local function scoreitem(pn,index,scoreIndex,drawindex)
 				end
 			end
 		},
-
-		-- DP grade and %score
-		LoadFont("Common normal")..{
-			Name="grade",
-			InitCommand=cmd(xy,framex+10,framey+(drawindex*spacing)+2;zoom,0.35;halign,0;maxwidth,(frameWidth-15)/0.3),
-			BeginCommand=function(self)
-				self:settextf("%.2f%% (%s)",hsTable[index]:GetPercentDP()*100,"DP")
-			end
-		},
 		
 		-- Wife grade and %score
 		LoadFont("Common normal")..{
