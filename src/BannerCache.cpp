@@ -379,8 +379,8 @@ void BannerCache::CacheBannerInternal( const RString &sBannerPath )
 
 	const int iSourceWidth = pImage->w, iSourceHeight = pImage->h;
 
-	int iWidth = pImage->w / 2, iHeight = pImage->h / 2;
-//	int iWidth = pImage->w, iHeight = pImage->h;
+	// cap banners to reasonable dimensions....? -mina
+	int iWidth = min(pImage->w, 512), iHeight = min(pImage->h, 160);
 
 	/* Round to the nearest power of two.  This simplifies the actual texture load. */
 	iWidth = closest( iWidth, power_of_two(iWidth), power_of_two(iWidth) / 2 );

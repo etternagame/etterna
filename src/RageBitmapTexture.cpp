@@ -133,7 +133,8 @@ void RageBitmapTexture::Create()
 		actualID.iGrayscaleBits = -1;
 
 	/* Cap the max texture size to the hardware max. */
-	actualID.iMaxSize = min( actualID.iMaxSize, DISPLAY->GetMaxTextureSize() );
+	// and then divide by 2 because we dont need to see text in 4k to mash buttons -mina
+	actualID.iMaxSize = min( actualID.iMaxSize/2, DISPLAY->GetMaxTextureSize() );
 
 	/* Save information about the source. */
 	m_iSourceWidth = pImg->w;
