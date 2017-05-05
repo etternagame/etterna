@@ -148,61 +148,17 @@ void SongManager::InitSongsFromDisk( LoadingWindow *ld )
 	SONGINDEX->delay_save_cache= false;
 
 	LOG->Trace( "Found %d songs in %f seconds.", (int)m_pSongs.size(), tm.GetDeltaTime() );
-
-	CreateChartkeyIndicies();
 }
 
-// allow indexing by chartkey - mina
-// instead of storing pointers to the objects directly we'll store ID objects (just in case)
-// should maybe have a stepsid/songid thing instead of 2 maps..?
-void SongManager::CreateChartkeyIndicies() {
-	for (int i = 0; i < m_pSongs.size(); ++i) {
-		
-		// for each song
-		Song* tmpsong = m_pSongs[i];
-		
-		// grab all steps for the song
-		vector<Steps*> tmpsteps = tmpsong->GetAllSteps();
-
-		// for each steps object
-		for (int ii = 0; ii < tmpsteps.size(); ++ii) {
-			
-			// grab the chartkey
-			RString ck = tmpsteps[ii]->ChartKey;
-
-			// check if an entry for this key exists yet
-			auto it = StepsIDsByChartkey.find(ck);
-
-			// if not, create one
-			if (it == StepsIDsByChartkey.end()) {
-				// multiple steps can still have the same chartkey, so we need a vector, initialize it here
-				vector<StepsID> stepsidvec;
-
-				// add the first entry to the vector of stepsid for the current key
-				StepsID tmpstepsID;
-				tmpstepsID.FromSteps(tmpsteps[ii]);
-				stepsidvec.emplace_back(tmpstepsID);
-				
-				// add the key to the map with the recently created vector of length 1
-				StepsIDsByChartkey.emplace(ck, stepsidvec);
-
-				// repeat for songs
-				vector<SongID> songidsvec;
-				SongID tmpsongID;
-				tmpsongID.FromSong(tmpsong);
-				songidsvec.emplace_back(tmpsongID);
-				SongIDsByChartkey.emplace(ck, songidsvec);
-			}
-			else {
-				// otherwise add the stepsid to the existing vector for the current key
-				StepsID tmpstepsID;
-				tmpstepsID.FromSteps(tmpsteps[ii]);
-				StepsIDsByChartkey[ck].emplace_back(tmpstepsID);
-
-				// and repeat for songs again (this will create lots of redundancy for songs with many steps but oh well)
-				SongID tmpsongID;
-				tmpsongID.FromSong(tmpsong);
-				SongIDsByChartkey[ck].emplace_back(tmpsongID);
+// Only store 1 steps/song pointer per key -Mina
+void SongManager::AddKeyedPointers(Song* new_song) {
+	const vector<Steps*> steps = new_song->GetAllSteps();
+	for (size_t i = 0; i < steps.size(); ++i) {
+		const RString& ck = steps[i]->GetChartKey();
+		if (!StepsByKey.count(ck)) {
+			StepsByKey.emplace(ck, steps[i]);
+			if (!SongsByKey.count(ck)) {
+				SongsByKey.emplace(ck, new_song);
 			}
 		}
 	}
@@ -210,62 +166,24 @@ void SongManager::CreateChartkeyIndicies() {
 
 // Get a steps pointer given a chartkey, the assumption here is we want _a_ matching steps, not the original steps - mina
 Steps* SongManager::GetStepsByChartkey(RString ck) {
-	Steps* o = NULL;
-	auto it = StepsIDsByChartkey.find(ck);
-
-	// if we don't find anything return null
-	if (it == StepsIDsByChartkey.end())
-		return o;
-
-	// otherwise in order to convert a steps ID to a steps object we need a song ID converted to a songs object
-	// we shouldn't have any issues since steps/songids are stored in tandem (with varying levels of redundancy)
-	Song* pSong = SongIDsByChartkey[ck][0].ToSong();
-
-	// we should shouldn't ever get null however we need a null check on the otherside of this anyway, so, whatever
-	Steps* pSteps = StepsIDsByChartkey[ck][0].ToSteps(pSong, true);
-	return pSteps;
+	if (StepsByKey.count(ck))
+		return StepsByKey[ck];
+	return NULL;
 }
 
-// Get a song pointer given a chartkey, the assumption here is we want any song containing the matching steps 
-// with a matching key, not necessarily the original song. This will be irritating for people trying to use 
-// this to get to specific packs but, well, screw them - mina
 Song* SongManager::GetSongByChartkey(RString ck) {
-	Song* o = NULL;
-	auto it = SongIDsByChartkey.find(ck);
-
-	if (it == SongIDsByChartkey.end())
-		return o;
-
-	Song* pSong = SongIDsByChartkey[ck][0].ToSong();
-	return pSong;
+	if (SongsByKey.count(ck))
+		return SongsByKey[ck];
+	return NULL;
 }
 
 Steps* SongManager::GetStepsByChartkey(const StepsID& sid) {
-	RString ck = sid.GetKey();
-	Steps* o = NULL;
-	auto it = StepsIDsByChartkey.find(ck);
-
-	if (it == StepsIDsByChartkey.end())
-		return o;
-
-	Song* pSong = SongIDsByChartkey[ck][0].ToSong();
-	Steps* pSteps = StepsIDsByChartkey[ck][0].ToSteps(pSong, true);
-	return pSteps;
+	return GetStepsByChartkey(sid.GetKey());
 }
 
 Song* SongManager::GetSongByChartkey(const StepsID& sid) {
-	RString ck = sid.GetKey();
-	Song* o = NULL;
-	auto it = SongIDsByChartkey.find(ck);
-
-	if (it == SongIDsByChartkey.end())
-		return o;
-
-	Song* pSong = SongIDsByChartkey[ck][0].ToSong();
-	return pSong;
+	return GetSongByChartkey(sid.GetKey());
 }
-
-
 
 static LocalizedString FOLDER_CONTAINS_MUSIC_FILES( "SongManager", "The folder \"%s\" appears to be a song folder.  All song folders must reside in a group folder.  For example, \"Songs/Originals/My Song\"." );
 void SongManager::SanityCheckGroupDir( const RString &sDir ) const
@@ -452,8 +370,10 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 				continue;
 			}
 			AddSongToList(pNewSong);
+			AddKeyedPointers(pNewSong);
 
 			index_entry.push_back( pNewSong );
+
 			loaded++;
 			songIndex++;
 		}

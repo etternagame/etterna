@@ -18,6 +18,7 @@ struct lua_State;
 #include "RageTexturePreloader.h"
 #include "RageUtil.h"
 #include "Profile.h"
+#include <unordered_map>
 
 RString SONG_GROUP_COLOR_NAME( size_t i );
 bool CompareNotesPointersForExtra(const Steps *n1, const Steps *n2);
@@ -67,9 +68,6 @@ public:
 	RageColor GetSongColor( const Song* pSong ) const;
 
 	// temporary solution to reorganizing the entire songid/stepsid system - mina
-	map<RString, vector<StepsID>> StepsIDsByChartkey;
-	map<RString, vector<SongID>> SongIDsByChartkey;
-	void CreateChartkeyIndicies();
 	Steps* GetStepsByChartkey(RString ck);
 	Song * GetSongByChartkey(RString ck);
 	Steps* GetStepsByChartkey(const StepsID& sid);
@@ -154,6 +152,12 @@ protected:
 	/** @brief All of the songs that can be played. */
 	vector<Song*>		m_pSongs;
 	map<RString, Song*> m_SongsByDir;
+
+	// Indexed by chartkeys
+	void AddKeyedPointers(Song* new_song);
+	map<RString, Song*> SongsByKey;
+	map<RString, Steps*> StepsByKey;
+
 	set<RString> m_GroupsToNeverCache;
 	/** @brief Hold pointers to all the songs that have been deleted from disk but must at least be kept temporarily alive for smooth audio transitions. */
 	vector<Song*>       m_pDeletedSongs;
