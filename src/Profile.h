@@ -12,7 +12,6 @@
 #include "StepsUtil.h"	// for StepsID
 #include "StyleUtil.h"	// for StyleID
 #include "LuaReference.h"
-#include "ChartScores.h"
 
 class XNode;
 struct lua_State;
@@ -307,11 +306,6 @@ public:
 	const HighScoreList& GetCategoryHighScoreList( StepsType st, RankingCategory rc ) const;
 	int GetCategoryNumTimesPlayed( StepsType st ) const;
 	void IncrementCategoryPlayCount( StepsType st, RankingCategory rc );
-	void RecalculateSSRs(bool OnlyOld);
-	void ValidateAllScores();
-
-	PlayerScores pscores;
-
 
 	// Screenshot Data
 	vector<Screenshot> m_vScreenshots;

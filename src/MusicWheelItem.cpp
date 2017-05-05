@@ -17,6 +17,7 @@
 #include "HighScore.h"
 #include "ScreenSelectMusic.h"
 #include "ScreenManager.h"
+#include "ScoreManager.h"
 
 static Preference<bool> uaintnonastypadplayerdog("ShowGradesForAnyDifficulty", true);
 
@@ -347,7 +348,7 @@ void MusicWheelItem::RefreshGrades()
 					FOREACH_ENUM_N(Difficulty, 6, i) {
 						Steps* pSteps = SongUtil::GetStepsByDifficulty(pWID->m_pSong, st, i);
 						if (pSteps != NULL) {
-							Grade dcg = pProfile->pscores.GetBestGradeFor(pSteps->GetChartKey());
+							Grade dcg = SCOREMAN->GetBestGradeFor(pSteps->GetChartKey());
 							if (gradeBest >= dcg) {
 								dcBest = i;
 								gradeBest = dcg;

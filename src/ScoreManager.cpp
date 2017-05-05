@@ -3,13 +3,39 @@
 #include "HighScore.h"
 #include "GameConstantsAndTypes.h"
 #include "Foreach.h"
-#include "ChartScores.h"
+#include "ScoreManager.h"
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
 
+ScoreManager* SCOREMAN = NULL;
+
+ScoreManager::ScoreManager() {
+	// Register with Lua.
+	{
+		Lua *L = LUA->Get();
+		lua_pushstring(L, "SCOREMAN");
+		this->PushSelf(L);
+		lua_settable(L, LUA_GLOBALSINDEX);
+		LUA->Release(L);
+	}
+}
+
+ScoreManager::~ScoreManager() {
+	// Unregister with Lua.
+	LUA->UnsetGlobal("SCOREMAN");
+}
+
+
+
+
+ScoresAtRate::ScoresAtRate() {
+	bestGrade = Grade_Invalid;
+	scores.clear();
+	PBptr = nullptr;
+}
 
 void ScoresAtRate::AddScore(HighScore& hs) {
-	string& key = hs.GetScoreKey();	
+	RString& key = hs.GetScoreKey();	
 	bestGrade = min(hs.GetWifeGrade(), bestGrade);
 	scores.emplace(key, hs);
 
@@ -17,14 +43,31 @@ void ScoresAtRate::AddScore(HighScore& hs) {
 		PBptr = &scores.find(key)->second;
 }
 
-vector<string> ScoresAtRate::GetSortedKeys() {
-	map<float, string, greater<float>> tmp;
-	vector<string> o;
-	FOREACHUM(string, HighScore, scores, i)
+vector<RString> ScoresAtRate::GetSortedKeys() {
+	map<float, RString, greater<float>> tmp;
+	vector<RString> o;
+	FOREACHM(RString, HighScore, scores, i)
+		 tmp.emplace(i->second.GetWifeScore(), i->first);
+	FOREACHM(float, RString, tmp, j)
+		 o.emplace_back(j->second);
+	return o;
+}
+
+/*
+const vector<HighScore*> ScoresAtRate::GetScores() const {
+	map<float, RString, greater<float>> tmp;
+	vector<HighScore*> o;
+	FOREACHUM_CONST(RString, HighScore, scores, i)
 		tmp.emplace(i->second.GetWifeScore(), i->first);
-	FOREACHM(float, string, tmp, j)
+	FOREACHM(float, RString, tmp, j)
 		o.emplace_back(j->second);
 	return o;
+}
+*/
+
+ScoresForChart::ScoresForChart() {
+	bestGrade = Grade_Invalid;
+	ScoresByRate.clear();
 }
 
 HighScore* ScoresForChart::GetPBAt(float& rate) {
@@ -58,11 +101,30 @@ vector<float> ScoresForChart::GetPlayedRates() {
 	return o;
 }
 
-vector<int> ScoresForChart::GetPlayedRateKeys() {
+vector<int> ScoresForChart::GetPlayedRateKeys() const{
 	vector<int> o;
-	FOREACHM(int, ScoresAtRate, ScoresByRate, i)
+	FOREACHM_CONST(int, ScoresAtRate, ScoresByRate, i)
 		o.emplace_back(i->first);
 	return o;
+}
+
+vector<RString> ScoresForChart::GetPlayedRateDisplayStrings() const {
+	vector<int>& rates = GetPlayedRateKeys();
+	vector<RString> o(rates.size());
+	for(size_t i = 0; i < rates.size(); ++i) {
+		o[i] = RateKeyToDisplayString(rates[i]);
+	}
+		
+	return o;
+}
+RString ScoresForChart::RateKeyToDisplayString(int& key) const {
+	RString rate = ssprintf("%.2f", rate);
+	int j = 1;
+	if (rate.find_last_not_of('0') == rate.find('.'))
+		j = 2;
+	rate.erase(rate.find_last_not_of('0') + j, rate.npos);
+	rate.append("x");
+	return rate;
 }
 
 
@@ -73,13 +135,13 @@ vector<HighScore*> ScoresForChart::GetAllPBPtrs() {
 	return o;
 }
 
-HighScore* PlayerScores::GetChartPBAt(string& ck, float& rate) {
+HighScore* ScoreManager::GetChartPBAt(RString& ck, float& rate) {
 	if (pscores.count(ck))
 		return pscores.at(ck).GetPBAt(rate);
 	return NULL;
 }
 
-HighScore* PlayerScores::GetChartPBUpTo(string& ck, float& rate) {
+HighScore* ScoreManager::GetChartPBUpTo(RString& ck, float& rate) {
 	if (pscores.count(ck))
 		return pscores.at(ck).GetPBUpTo(rate);
 	return NULL;
@@ -90,23 +152,30 @@ HighScore* PlayerScores::GetChartPBUpTo(string& ck, float& rate) {
 
 
 
-void PlayerScores::SortTopSSRPtrs(Skillset ss) {
-	TopSSRs[ss].clear();
-	FOREACHUM(string, ScoresForChart, pscores, i) {
+void ScoreManager::SortTopSSRPtrs(Skillset ss) {
+	TopSSRs.clear();
+	FOREACHM(RString, ScoresForChart, pscores, i) {
 		if (!IsChartLoaded(i->first))
 			continue;
 		vector<HighScore*> pbs = i->second.GetAllPBPtrs();
 		FOREACH(HighScore*, pbs, hs) {
-			TopSSRs[ss].emplace_back(*hs);
+			TopSSRs.emplace_back(*hs);
 		}
 	}
 	auto ssrcomp = [&ss](HighScore* a, HighScore* b) { return (a->GetSkillsetSSR(ss) > b->GetSkillsetSSR(ss)); };
-	sort(TopSSRs[ss].begin(), TopSSRs[ss].end(), ssrcomp);
+	sort(TopSSRs.begin(), TopSSRs.end(), ssrcomp);
 }
 
+void ScoreManager::RecalculateSSRs() {
+	return;
+}
 
-// also finish dealing with this later - mina
-void PlayerScores::CalcPlayerRating(float& prating, float* pskillsets) {
+// should deal with this misnomer - mina
+void ScoreManager::EnableAllScores() {
+	return;
+}
+
+void ScoreManager::CalcPlayerRating(float& prating, float* pskillsets) {
 	float skillsetsum = 0.f;
 	FOREACH_ENUM(Skillset, ss) {
 		// actually skip overall
@@ -122,13 +191,14 @@ void PlayerScores::CalcPlayerRating(float& prating, float* pskillsets) {
 	prating = skillsetsum / (NUM_Skillset - 1);
 }
 
-float PlayerScores::AggregateSSRs(Skillset ss, float rating, float res, int iter) const {
+// perhaps we will need a generalized version again someday, but not today
+float ScoreManager::AggregateSSRs(Skillset ss, float rating, float res, int iter) const {
 	double sum;
 	do {
 		rating += res;
 		sum = 0.0;
-		for (int i = 0; i < static_cast<int>(TopSSRs[ss].size()); i++) {
-			sum += max(0.0, 2.f / erfc(0.1*(TopSSRs[ss][i]->GetSkillsetSSR(ss) - rating)) - 1.5);
+		for (int i = 0; i < static_cast<int>(TopSSRs.size()); i++) {
+			sum += max(0.0, 2.f / erfc(0.1*(TopSSRs[i]->GetSkillsetSSR(ss) - rating)) - 1.5);
 		}
 	} while (pow(2, rating * 0.1) < sum);
 	if (iter == 11)
@@ -139,24 +209,28 @@ float PlayerScores::AggregateSSRs(Skillset ss, float rating, float res, int iter
 
 
 
+
+
+
+
 // Write scores to xml
 XNode* ScoresAtRate::CreateNode(const int& rate) const {
 	XNode* o = new XNode("ScoresAt");
 
-	string rs = IntToString(rate);
+	RString rs = IntToString(rate);
 	rs = rs.substr(0, 1) + "." + rs.substr(1, 3);
 	// should be safe as this is only called if there is at least 1 score (which would be the pb)
 	o->AppendAttr("PBKey", PBptr->GetScoreKey());
 	o->AppendAttr("BestGrade", GradeToString(bestGrade));
 	o->AppendAttr("Rate", rs);
 
-	FOREACHUM_CONST(string, HighScore, scores, i)
+	FOREACHM_CONST(RString, HighScore, scores, i)
 		o->AppendChild(i->second.CreateEttNode());
 
 	return o;
 }
 
-XNode * ScoresForChart::CreateNode(const string& ck) const {
+XNode * ScoresForChart::CreateNode(const RString& ck) const {
 	XNode* o = new XNode("ChartScores");
 	o->AppendAttr("Key", ck);
 
@@ -166,10 +240,10 @@ XNode * ScoresForChart::CreateNode(const string& ck) const {
 	return o;
 }
 
-XNode * PlayerScores::CreateNode() const {
-	XNode* o = new XNode("PlayerScores");
+XNode * ScoreManager::CreateNode() const {
+	XNode* o = new XNode("ScoreManager");
 
-	FOREACHUM_CONST(string, ScoresForChart, pscores, ch)
+	FOREACHM_CONST(RString, ScoresForChart, pscores, ch)
 		o->AppendChild(ch->second.CreateNode(ch->first));
 
 	return o;
@@ -201,18 +275,35 @@ void ScoresForChart::LoadFromNode(const XNode* node, const RString& ck) {
 		ASSERT(p->GetName() == "ScoresAt");
 		p->GetAttrValue("Rate", rs);
 		rate = 10 * StringToInt(rs.substr(0, 1) + rs.substr(2, 4));
-		ScoresByRate[rate].LoadFromNode(p, ck,KeyToRate(rate));
+		ScoresByRate[rate].LoadFromNode(p, ck, KeyToRate(rate));
 		bestGrade = ScoresByRate[rate].bestGrade;
 	}
 }
 
-void PlayerScores::LoadFromNode(const XNode * node) {
-	RString ck;
+void ScoreManager::LoadFromNode(const XNode * node) {
 	FOREACH_CONST_Child(node, p) {
 		ASSERT(p->GetName() == "ChartScores");
-		p->GetAttrValue("Key", ck);
+		RString tmp;
+		p->GetAttrValue("Key", tmp);
+		const RString ck = tmp;
 		pscores[ck].LoadFromNode(p, ck);
 	}
+}
+
+
+
+ScoresAtRate* ScoresForChart::GetScoresAtRate(const int& rate) {
+	auto it = ScoresByRate.find(rate);
+	if (it != ScoresByRate.end())
+		return &it->second;
+	return NULL;
+}
+
+ScoresForChart* ScoreManager::GetScoresForChart(const RString& ck) {
+	auto it = pscores.find(ck);
+	if (it != pscores.end())
+		return &it->second;
+	return NULL;
 }
 
 
@@ -223,7 +314,7 @@ class LunaScoresAtRate: public Luna<ScoresAtRate>
 public:
 	static int GetScores(T* p, lua_State *L) {
 		lua_newtable(L);
-		vector<string> keys = p->GetSortedKeys();
+		vector<RString> keys = p->GetSortedKeys();
 		for (size_t i = 0; i < keys.size(); ++i) {
 			HighScore& wot = p->scores[keys[i]];
 			wot.PushSelf(L);
@@ -244,22 +335,57 @@ LUA_REGISTER_CLASS(ScoresAtRate)
 class LunaScoresForChart : public Luna<ScoresForChart>
 {
 public:
-	static int GetScoresAtRates(T* p, lua_State *L) {
-		lua_newtable(L);
-		vector<float> rates = p->GetPlayedRates();
-		for (size_t i = 0; i < rates.size(); ++i) {
-			p->ScoresByRate[rates[i]].PushSelf(L);	// broken
-			lua_rawseti(L, -2, i + 1);
-		}
-
-		return 1;
-	}
-
-
 	LunaScoresForChart()
 	{
-		ADD_METHOD(GetScoresAtRates);
 	}
 };
 
 LUA_REGISTER_CLASS(ScoresForChart)
+
+
+
+class LunaScoreManager : public Luna<ScoreManager>
+{
+public:
+	static int GetScoresByKey(T* p, lua_State *L) {
+		const RString& ck = SArg(1);
+		ScoresForChart* scores = p->GetScoresForChart(ck);
+
+		if (scores) {
+			lua_newtable(L);
+			vector<int> ratekeys = scores->GetPlayedRateKeys();
+			vector<RString> ratedisplay = scores->GetPlayedRateDisplayStrings();
+			for (size_t i = 0; i < ratekeys.size(); ++i) {
+				
+				LuaHelpers::Push(L, ratedisplay[i]);
+				scores->GetScoresAtRate(ratekeys[i])->PushSelf(L);
+				lua_rawset(L, -3);
+			}
+
+			return 1;
+		}
+
+		lua_pushnil(L);
+		return 1;
+	}
+
+	static int SortAllSSRs(T* p, lua_State *L) {
+		for (size_t i = 0; i < NUM_Skillset; ++i)
+			p->SortTopSSRPtrs(static_cast<Skillset>(i));
+		return 1;
+	}
+
+	static int ValidateAllScores(T* p, lua_State *L) {
+		p->EnableAllScores();
+		return 1;
+	}
+
+	LunaScoreManager()
+	{
+		ADD_METHOD(GetScoresByKey);
+		ADD_METHOD(SortAllSSRs);
+		ADD_METHOD(ValidateAllScores);
+	}
+};
+
+LUA_REGISTER_CLASS(ScoreManager)

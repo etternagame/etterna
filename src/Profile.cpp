@@ -27,6 +27,7 @@
 #include "Character.h"
 #include "MinaCalc.h"
 #include "NoteData.h"
+#include "ScoreManager.h"
 #include <algorithm>
 
 const RString STATS_XML            = "Stats.xml";
@@ -1053,7 +1054,6 @@ ProfileLoadResult Profile::LoadEttXmlFromNode(const XNode *xml) {
 
 	const XNode* scores = xml->GetChild("PlayerScores");
 	LoadEttScoresFromNode(scores);
-
 	return ProfileLoadResult_Success;
 }
 
@@ -1786,7 +1786,7 @@ void Profile::ImportScoresToEtterna() {
 					HighScore hs = hsv[i];
 					// ignore historic key and just load from here since the hashing function was changed anyway
 					hs.SetChartKey(ck);		
-					pscores.AddScore(hs);
+					SCOREMAN->AddScore(hs);
 				}
 			}			
 		}
@@ -1802,14 +1802,15 @@ XNode* Profile::SaveEttScoresCreateNode() const {
 	const Profile* pProfile = this;
 	ASSERT(pProfile != NULL);
 
-	XNode* pNode = pscores.CreateNode();
+	XNode* pNode = SCOREMAN->CreateNode();
 
 	return pNode;
 }
 
 void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
 	CHECKPOINT_M("Loading the node that contains song scores.");
-	pscores.LoadFromNode(pSongScores);
+	SCOREMAN->LoadFromNode(pSongScores);
+	LOG->Trace("asdfasdf");
 }
 
 // more future goalman stuff
@@ -1860,13 +1861,11 @@ void ScoreGoal::LoadFromNode(const XNode *pNode) {
 }
 
 HighScore* ScoreGoal::GetPBUpTo() {
-	auto& scores = PROFILEMAN->GetProfile(PLAYER_1)->pscores;
-	return scores.GetChartPBUpTo(chartkey, rate);
+	return SCOREMAN->GetChartPBUpTo(chartkey, rate);
 }
 
 void ScoreGoal::CheckVacuity() {
-	auto& scores = PROFILEMAN->GetProfile(PLAYER_1)->pscores;
-	HighScore* pb = scores.GetChartPBAt(chartkey, rate);
+	HighScore* pb = SCOREMAN->GetChartPBAt(chartkey, rate);
 
 	if (pb && pb->GetWifeScore() >= percent)
 		vacuous = true;
@@ -1914,83 +1913,6 @@ void Profile::DeleteGoal(RString ck, DateTime assigned) {
 	}
 }
 
-// should deal with this misnomer - mina
-void Profile::ValidateAllScores() {
-	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
-		const SongID& id = i->first;
-
-		HighScoresForASong& hsfas = i->second;
-		FOREACHM(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
-			HighScoresForASteps& zz = j->second;
-
-			// validate scores that match a loaded chartkey - mina
-			Steps* pSteps = SONGMAN->GetStepsByChartkey(j->first);
-
-			if (!pSteps)
-				continue;
-
-			vector<HighScore>& hsv = zz.hsl.vHighScores;
-			for (size_t i = 0; i < hsv.size(); i++)
-				hsv[i].SetEtternaValid(true);
-		}
-	}
-}
-
-// should prolly generalize some of the stuff here - mina
-void Profile::RecalculateSSRs(bool OnlyOld) {
-	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
-		const SongID& id = i->first;
-		
-		HighScoresForASong& hsfas = i->second;
-		FOREACHM(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j) {
-			HighScoresForASteps& zz = j->second;
-			vector<HighScore>& hsv = zz.hsl.vHighScores;
-
-			Steps* pSteps = SONGMAN->GetStepsByChartkey(j->first);
-
-			if (!pSteps) 
-				continue;
-
-			if (!pSteps->IsRecalcValid()) {
-				for (size_t i = 0; i < hsv.size(); i++) {
-					FOREACH_ENUM(Skillset, ss)
-						hsv[i].SetSkillsetSSR(ss, 0.f);
-				}
-				continue;
-			}
-
-			vector<float> etaner;
-			for (size_t i = 0; i < hsv.size(); i++) {
-				float ssrpercent = hsv[i].GetSSRNormPercent();
-				float musicrate = hsv[i].GetMusicRate();
-				if (ssrpercent <= 0.f || hsv[i].GetGrade() == Grade_Failed)
-					FOREACH_ENUM(Skillset, ss)
-						hsv[i].SetSkillsetSSR(ss, 0.f);
-				else {
-					if (OnlyOld && hsv[i].GetSSRCalcVersion() == GetCalcVersion())
-						continue;
-
-					// should find away to avoid calling this more than once -
-					NoteData& nd = pSteps->GetNoteData();
-
-					// only build etaner once
-					if (etaner.empty()) {
-						TimingData* td = pSteps->GetTimingData();
-						vector<int>& nerv = nd.GetNonEmptyRowVector();
-						for (size_t i = 0; i < nerv.size(); i++)
-							etaner.emplace_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(nerv[i])));
-					}
-
-					vector<float> recalcSSR = MinaSDCalc(nd.SerializeNoteData(etaner), nd.GetNumTracks(), musicrate, ssrpercent, 1.f, false);
-					FOREACH_ENUM(Skillset, ss)
-						hsv[i].SetSkillsetSSR(ss, recalcSSR[ss]);
-					hsv[i].SetSSRCalcVersion(GetCalcVersion());
-				}
-			}
-		}
-	}
-}
-
 
 float Profile::GetTopSSRValue(unsigned int rank, int ss) {
 	if (rank < 0)
@@ -2000,7 +1922,7 @@ float Profile::GetTopSSRValue(unsigned int rank, int ss) {
 	if(highScorePtr == NULL)
 		return 0.f;
 
-	if (ss >= 0 && ss < NUM_Skillset && rank < pscores.TopSSRs[ss].size())
+	if (ss >= 0 && ss < NUM_Skillset && rank < SCOREMAN->TopSSRs.size())
 		return highScorePtr->GetSkillsetSSR(static_cast<Skillset>(ss));
 
 	//Undefined skillset
@@ -2011,8 +1933,8 @@ HighScore* Profile::GetTopSSRHighScore(unsigned int rank, int ss) {
 	if (rank < 0)
 		rank = 0;
 
-	if (ss >= 0 && ss < NUM_Skillset && rank < pscores.TopSSRs[ss].size())
-		return &(*pscores.TopSSRs[ss][rank]);
+	if (ss >= 0 && ss < NUM_Skillset && rank < SCOREMAN->TopSSRs.size())
+		return &(*SCOREMAN->TopSSRs[rank]);
 
 	return NULL;
 }
@@ -2298,34 +2220,6 @@ public:
 		COMMON_RETURN_SELF;
 	}
 
-	static int GetScoresByKey(T* p, lua_State *L) {
-		auto& lol = p->pscores;
-		string ck = SArg(1);
-		if (lol.pscores.count(ck)) {
-			lua_newtable(L);
-			auto& doot = lol.pscores[ck];
-			vector<int> ratekeys = doot.GetPlayedRateKeys();
-			vector<float> rates = doot.GetPlayedRates();
-			for (size_t i = 0; i < rates.size(); ++i) {
-				// ok this is pretty kms im really tired -mina
-				RString tmp = ssprintf("%.2f", rates[i]);
-				int j = 1;
-				if (tmp.find_last_not_of('0') == tmp.find('.')) 
-					j = 2;
-				tmp.erase(tmp.find_last_not_of('0') + j, tmp.npos);
-				tmp.append("x");
-				LuaHelpers::Push(L, tmp);
-				doot.ScoresByRate[ratekeys[i]].PushSelf(L);
-				lua_rawset(L, -3);
-			}
-
-			return 1;
-		}
-
-		lua_pushnil(L);
-		return 1;
-	}
-
 	static int GetCategoryHighScoreList(T* p, lua_State *L)
 	{
 		StepsType pStepsType = Enum::Check<StepsType>(L, 1);
@@ -2460,18 +2354,7 @@ public:
 		return 1;
 	}
 
-	static int SortAllSSRs(T* p, lua_State *L) {
-		for(size_t i = 0; i < NUM_Skillset; ++i)
-			p->pscores.SortTopSSRPtrs(static_cast<Skillset>(i));
-		return 1;
-	}
-
-	DEFINE_METHOD(GetGUID, m_sGuid);
-	static int ValidateAllScores(T* p, lua_State *L) {
-		p->ValidateAllScores();
-		return 1;
-	}
-	
+	DEFINE_METHOD(GetGUID, m_sGuid);	
 	static int GetAllGoals(T* p, lua_State *L) {
 		lua_newtable(L);
 		int idx = 0;
@@ -2501,7 +2384,6 @@ public:
 		ADD_METHOD( GetAllUsedHighScoreNames );
 		ADD_METHOD( GetHighScoreListIfExists );
 		ADD_METHOD( GetHighScoreList );
-		ADD_METHOD( GetScoresByKey );
 		ADD_METHOD( GetCategoryHighScoreList );
 		ADD_METHOD( GetCharacter );
 		ADD_METHOD( SetCharacter );
@@ -2535,8 +2417,6 @@ public:
 		ADD_METHOD( GetNumFaves );
 		ADD_METHOD( GetTopSSRValue );
 		ADD_METHOD( GetTopSSRHighScore );
-		ADD_METHOD( SortAllSSRs );
-		ADD_METHOD( ValidateAllScores );
 		ADD_METHOD( GetAllGoals );
 	}
 };

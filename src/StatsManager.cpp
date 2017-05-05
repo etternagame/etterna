@@ -13,6 +13,7 @@
 #include "XmlFile.h"
 #include "CryptManager.h"
 #include "XmlFileUtil.h"
+#include "ScoreManager.h"
 
 StatsManager*	STATSMAN = NULL;	// global object accessible from anywhere in the program
 
@@ -142,8 +143,8 @@ void AddPlayerStatsToProfile( Profile *pProfile, const StageStats &ss, PlayerNum
 	}
 
 	if (!pProfile->IsMachine()) {
-		pProfile->RecalculateSSRs(true);
-		pProfile->pscores.CalcPlayerRating(pProfile->m_fPlayerRating, pProfile->m_fPlayerSkillsets);
+		SCOREMAN->RecalculateSSRs();
+		SCOREMAN->CalcPlayerRating(pProfile->m_fPlayerRating, pProfile->m_fPlayerSkillsets);
 	}
 		
 }

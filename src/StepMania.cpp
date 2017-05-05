@@ -56,6 +56,7 @@
 #include "SongCacheIndex.h"
 #include "BannerCache.h"
 #include "FilterManager.h"
+#include "ScoreManager.h"
 //#include "BackgroundCache.h"
 #include "UnlockManager.h"
 #include "RageFileManager.h"
@@ -1164,6 +1165,7 @@ int sm_main(int argc, char* argv[])
 		CRYPTMAN->GenerateGlobalKeys();
 	MEMCARDMAN	= new MemoryCardManager;
 	CHARMAN		= new CharacterManager;
+	SCOREMAN = new ScoreManager;
 	PROFILEMAN	= new ProfileManager;
 	PROFILEMAN->Init();				// must load after SONGMAN
 	UNLOCKMAN	= new UnlockManager;

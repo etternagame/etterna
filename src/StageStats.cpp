@@ -13,6 +13,7 @@
 #include <fstream>
 #include <sstream>
 #include "CryptManager.h"
+#include "ScoreManager.h"
 
 /* Arcade:	for the current stage (one song).  
  * Nonstop/Oni/Endless:	 for current course (which usually contains multiple songs)
@@ -299,7 +300,7 @@ void StageStats::FinalizeScores( bool bSummary )
 
 			// new score structure -mina
 			Profile* zzz = PROFILEMAN->GetProfile(PLAYER_1);
-			zzz->pscores.AddScore(hs);
+			SCOREMAN->AddScore(hs);
 			zzz->SetAnyAchievedGoals(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey(), GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate, hs);
 		}
 	}

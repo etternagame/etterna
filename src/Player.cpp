@@ -41,6 +41,7 @@
 #include "GameCommand.h"
 #include "LocalizedString.h"
 #include "AdjustSync.h"
+#include "ScoreManager.h"
 
 RString ATTACK_DISPLAY_X_NAME( size_t p, size_t both_sides );
 void TimingWindowSecondsInit( size_t /*TimingWindow*/ i, RString &sNameOut, float &defaultValueOut );
@@ -657,7 +658,7 @@ void Player::Load()
 	nerv = m_NoteData.GetNonEmptyRowVector();
 
 	Profile *pProfile = PROFILEMAN->GetProfile(pn);
-	HighScore* pb = pProfile->pscores.GetChartPBAt(GAMESTATE->m_pCurSteps[pn]->GetChartKey(), GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
+	HighScore* pb = SCOREMAN->GetChartPBAt(GAMESTATE->m_pCurSteps[pn]->GetChartKey(), GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 	if (pb)
 		wifescorepersonalbest = pb->GetWifeScore();
 	else
