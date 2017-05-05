@@ -386,7 +386,7 @@ int PlayerStageStats::GetLessonScoreNeeded() const
 
 	FOREACH_CONST( Steps*, m_vpPossibleSteps, steps )
 	{
-		fScore += (*steps)->GetRadarValues(PLAYER_1)[RadarCategory_TapsAndHolds];
+		fScore += (*steps)->GetRadarValues()[RadarCategory_TapsAndHolds];
 	}
 
 	return lround( fScore * LESSON_PASS_THRESHOLD );

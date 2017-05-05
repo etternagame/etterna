@@ -101,7 +101,7 @@ public:
 	 * @return the meter used for this edit.
 	 */
 	int GetMeter() const				{ return m_iMeter; }
-	const RadarValues& GetRadarValues( PlayerNumber pn ) const { return m_CachedRadarValues[pn]; }
+	const RadarValues& GetRadarValues() const { return m_CachedRadarValues; }
 	/**
 	 * @brief Retrieve the author credit used for this edit.
 	 * @return the author credit used for this edit.
@@ -128,7 +128,7 @@ public:
 
 	void SetLoadedFromProfile( ProfileSlot slot )	{ m_LoadedFromProfile = slot; }
 	void SetMeter( int meter );
-	void SetCachedRadarValues( const RadarValues v[NUM_PLAYERS] );
+	void SetCachedRadarValues( const RadarValues& v );
 	float PredictMeter() const;
 
 	unsigned GetHash() const;
@@ -260,7 +260,7 @@ private:
 	/** @brief The numeric difficulty of the Steps, ranging from MIN_METER to MAX_METER. */
 	int				m_iMeter;
 	/** @brief The radar values used for each player. */
-	RadarValues			m_CachedRadarValues[NUM_PLAYERS];
+	RadarValues			m_CachedRadarValues;
 	bool                m_bAreCachedRadarValuesJustLoaded;
 	/** @brief The name of the person who created the Steps. */
 	RString				m_sCredit;

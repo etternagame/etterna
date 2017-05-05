@@ -229,18 +229,13 @@ static RString GetSMNotesTag( const Song &song, const Steps &in )
 	lines.push_back( ssprintf( "     %d:", in.GetMeter() ) );
 	
 	vector<RString> asRadarValues;
-	// OpenITG simfiles use 11 radar categories.
 	int categories = 11;
-	FOREACH_PlayerNumber( pn )
-	{
-		const RadarValues &rv = in.GetRadarValues( pn );
-		// Can't use the foreach anymore due to flexible radar lines.
-		for( RadarCategory rc = (RadarCategory)0; rc < categories; 
+	const RadarValues &rv = in.GetRadarValues();
+	for( RadarCategory rc = (RadarCategory)0; rc < categories; 
 		    enum_add<RadarCategory>( rc, 1 ) )
 		{
-			asRadarValues.push_back( ssprintf("%.6f", rv[rc]) );
+			asRadarValues.push_back( IntToString(rv[rc]) );
 		}
-	}
 	lines.push_back( ssprintf( "     %s:", join(",",asRadarValues).c_str() ) );
 
 	RString sNoteData;

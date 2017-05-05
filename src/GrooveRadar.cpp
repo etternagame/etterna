@@ -74,7 +74,7 @@ void GrooveRadar::SetFromSteps( PlayerNumber pn, Steps* pSteps ) // NULL means n
 		return;
 	}
 
-	const RadarValues &rv = pSteps->GetRadarValues( pn );
+	const RadarValues &rv = pSteps->GetRadarValues();
 	m_GrooveRadarValueMap[pn].SetFromSteps( rv );
 }
 

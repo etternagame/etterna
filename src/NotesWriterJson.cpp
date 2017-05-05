@@ -115,7 +115,7 @@ static void Serialize( const Steps &o, Json::Value &root )
 	root["Description"] = o.GetDescription();
 	root["Difficulty"] = DifficultyToString(o.GetDifficulty());
 	root["Meter"] = o.GetMeter();
-	Serialize( o.GetRadarValues( PLAYER_1 ), root["RadarValues"] );
+	//Serialize( o.GetRadarValues(), root["RadarValues"] );
 }
 
 

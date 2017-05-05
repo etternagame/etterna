@@ -25,11 +25,6 @@ extern const vector<RString> RANKING_TO_FILL_IN_MARKER( GenerateRankingToFillInM
 extern const RString GROUP_ALL = "---Group All---";
 
 static const char *RadarCategoryNames[] = {
-	"Stream",
-	"Voltage",
-	"Air",
-	"Freeze",
-	"Chaos",
 	"Notes",
 	"TapsAndHolds",
 	"Jumps",

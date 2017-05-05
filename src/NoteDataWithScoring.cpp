@@ -152,32 +152,6 @@ bool NoteDataWithScoring::IsRowCompletelyJudged( const NoteData &in, unsigned ro
 	return MinTapNoteScore( in, row, plnum ) >= TNS_Miss;
 }
 
-namespace
-{
-// Return the ratio of actual combo to max combo.
-float GetActualVoltageRadarValue( const NoteData &in, float fSongSeconds, const PlayerStageStats &pss )
-{
-	/* STATSMAN->m_CurStageStats.iMaxCombo is unrelated to GetNumTapNotes:
-	 * m_bComboContinuesBetweenSongs might be on, and the way combo is counted
-	 * varies depending on the mode and score keeper. Instead, let's use the
-	 * length of the longest recorded combo. This is only subtly different:
-	 * it's the percent of the song the longest combo took to get. */
-	const PlayerStageStats::Combo_t MaxCombo = pss.GetMaxCombo();
-	float fComboPercent = SCALE(MaxCombo.m_fSizeSeconds, 0, fSongSeconds, 0.0f, 1.0f);
-	return clamp( fComboPercent, 0.0f, 1.0f );
-}
-
-// Return the ratio of actual to possible dance points.
-float GetActualChaosRadarValue( const NoteData &in, float fSongSeconds, const PlayerStageStats &pss )
-{
-	const int iPossibleDP = pss.m_iPossibleDancePoints;
-	if ( iPossibleDP == 0 )
-		return 1;
-
-	const int ActualDP = pss.m_iActualDancePoints;
-	return clamp( float(ActualDP)/iPossibleDP, 0.0f, 1.0f );
-}
-}
 
 struct hold_status
 {
@@ -399,21 +373,6 @@ void NoteDataWithScoring::GetActualRadarValues(const NoteData &in,
 	{
 		switch(rc)
 		{
-			case RadarCategory_Stream:
-				out[rc]= clamp(float(state.notes_hit_for_stream) / note_count, 0.0f, 1.0f);
-				break;
-			case RadarCategory_Voltage:
-				out[rc]= GetActualVoltageRadarValue(in, hittable_steps_length, pss);
-				break;
-			case RadarCategory_Air:
-				out[rc]= clamp(float(state.jumps_hit_for_air) / jump_count, 0.0f, 1.0f);
-				break;
-			case RadarCategory_Freeze:
-				out[rc]= clamp(float(state.holds_held) / hold_count, 0.0f, 1.0f);
-				break;
-			case RadarCategory_Chaos:
-				out[rc]= GetActualChaosRadarValue(in, song_seconds, pss);
-				break;
 			case RadarCategory_TapsAndHolds:
 				out[rc]= state.taps_hit;
 				break;

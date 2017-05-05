@@ -237,30 +237,7 @@ void Steps::GetSMNoteData( RString &notes_comp_out ) const
 
 float Steps::PredictMeter() const
 {
-	float pMeter = 0.775f;
-
-	const float RadarCoeffs[NUM_RadarCategory] =
-	{
-		10.1f, 5.27f,-0.905f, -1.10f, 2.86f,
-		0,0,0,0,0,0,0,0
-	};
-	const RadarValues &rv = GetRadarValues( PLAYER_1 );
-	for( int r = 0; r < NUM_RadarCategory; ++r )
-		pMeter += rv[r] * RadarCoeffs[r];
-
-	const float DifficultyCoeffs[NUM_Difficulty] =
-	{
-		-0.877f, -0.877f, 0, 0.722f, 0.722f, 0
-	};
-	pMeter += DifficultyCoeffs[this->GetDifficulty()];
-
-	// Init non-radar values
-	const float SV = rv[RadarCategory_Stream] * rv[RadarCategory_Voltage];
-	const float ChaosSquare = rv[RadarCategory_Chaos] * rv[RadarCategory_Chaos];
-	pMeter += -6.35f * SV;
-	pMeter += -2.58f * ChaosSquare;
-	if (pMeter < 1) pMeter = 1;
-	return pMeter;
+	return 0.f;
 }
 
 void Steps::TidyUpData()
@@ -314,8 +291,7 @@ void Steps::CalculateRadarValues( float fMusicLengthSeconds )
 	NoteData tempNoteData;
 	this->GetNoteData( tempNoteData, true );
 
-	FOREACH_PlayerNumber( pn )
-		m_CachedRadarValues[pn].Zero();
+	m_CachedRadarValues.Zero();
 
 	GAMESTATE->SetProcessedTimingData(this->GetTimingData());
 	if( tempNoteData.IsComposite() )
@@ -324,7 +300,7 @@ void Steps::CalculateRadarValues( float fMusicLengthSeconds )
 
 		NoteDataUtil::SplitCompositeNoteData( tempNoteData, vParts );
 		for( size_t pn = 0; pn < min(vParts.size(), size_t(NUM_PLAYERS)); ++pn )
-			NoteDataUtil::CalculateRadarValues( vParts[pn], fMusicLengthSeconds, m_CachedRadarValues[pn] );
+			NoteDataUtil::CalculateRadarValues( vParts[pn], fMusicLengthSeconds, m_CachedRadarValues );
 	}
 	else if (GAMEMAN->GetStepsTypeInfo(this->m_StepsType).m_StepsTypeCategory == StepsTypeCategory_Couple)
 	{
@@ -334,31 +310,25 @@ void Steps::CalculateRadarValues( float fMusicLengthSeconds )
 		p1.SetNumTracks(tracks);
 		NoteDataUtil::CalculateRadarValues(p1,
 										   fMusicLengthSeconds,
-										   m_CachedRadarValues[PLAYER_1]);
+										   m_CachedRadarValues);
 		// at this point, p2 is tempNoteData.
 		NoteDataUtil::ShiftTracks(tempNoteData, tracks);
 		tempNoteData.SetNumTracks(tracks);
 		NoteDataUtil::CalculateRadarValues(tempNoteData,
 										   fMusicLengthSeconds,
-										   m_CachedRadarValues[PLAYER_2]);
+										   m_CachedRadarValues);
 	}
 	else
 	{
-		NoteDataUtil::CalculateRadarValues( tempNoteData, fMusicLengthSeconds, m_CachedRadarValues[0] );
-		fill_n( m_CachedRadarValues + 1, NUM_PLAYERS-1, m_CachedRadarValues[0] );
+		NoteDataUtil::CalculateRadarValues( tempNoteData, fMusicLengthSeconds, m_CachedRadarValues );
 	}
+
 	GAMESTATE->SetProcessedTimingData(NULL);
 }
 
 void Steps::Decompress(bool isGameplay) const
 {
 	const_cast<Steps *>(this)->Decompress(isGameplay);
-}
-
-bool stepstype_is_kickbox(StepsType st)
-{
-	return st == StepsType_kickbox_human || st == StepsType_kickbox_quadarm ||
-		st == StepsType_kickbox_insect || st == StepsType_kickbox_arachnid;
 }
 
 void Steps::Decompress(bool isGameplay)
@@ -660,9 +630,8 @@ void Steps::SetMusicFile(const RString& file)
 	m_MusicFile= file;
 }
 
-void Steps::SetCachedRadarValues( const RadarValues v[NUM_PLAYERS] )
-{
-	copy( v, v + NUM_PLAYERS, m_CachedRadarValues );
+void Steps::SetCachedRadarValues( const RadarValues& rv ) {
+	m_CachedRadarValues = rv;
 	m_bAreCachedRadarValuesJustLoaded = true;
 }
 
@@ -699,7 +668,7 @@ public:
 			pn = Enum::Check<PlayerNumber>(L, 1);
 		}
 		
-		RadarValues &rv = const_cast<RadarValues &>(p->GetRadarValues(pn));
+		RadarValues &rv = const_cast<RadarValues &>(p->GetRadarValues());
 		rv.PushSelf(L);
 		return 1;
 	}
@@ -707,19 +676,16 @@ public:
 	static int GetRelevantRadars(T* p, lua_State *L)
 	{
 		vector<int> relevants;
-		PlayerNumber pn = PLAYER_1;
-		if (!lua_isnil(L, 1))
-			pn = Enum::Check<PlayerNumber>(L, 1);
+		const RadarValues &rv = p->GetRadarValues();
+		relevants.emplace_back(rv[0]);  //notes
+		relevants.emplace_back(rv[2]);  //jumps
+		relevants.emplace_back(rv[5]); //hands
+		relevants.emplace_back(rv[3]);  //holds
+		relevants.emplace_back(rv[4]);  //mines
+		relevants.emplace_back(rv[6]); //rolls
+		relevants.emplace_back(rv[7]); //lifts
+		relevants.emplace_back(rv[8]); //fakes
 
-		RadarValues &rv = const_cast<RadarValues &>(p->GetRadarValues(pn));
-		relevants.push_back(rv[5]);  //notes
-		relevants.push_back(rv[7]);  //jumps
-		relevants.push_back(rv[10]); //hands
-		relevants.push_back(rv[8]);  //holds
-		relevants.push_back(rv[9]);  //mines
-		relevants.push_back(rv[11]); //rolls
-		relevants.push_back(rv[12]); //lifts
-		relevants.push_back(rv[13]); //fakes
 		LuaHelpers::CreateTableFromArray(relevants, L);
 		return 1;
 	}

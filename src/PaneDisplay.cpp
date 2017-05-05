@@ -124,7 +124,7 @@ void PaneDisplay::LoadFromNode( const XNode *pNode )
 	ActorFrame::LoadFromNode( pNode );
 }
 
-void PaneDisplay::GetPaneTextAndLevel( PaneCategory c, RString & sTextOut, float & fLevelOut )
+void PaneDisplay::GetPaneTextAndLevel( PaneCategory c, RString & sTextOut, int & fLevelOut )
 {
 	const Song *pSong = GAMESTATE->m_pCurSong;
 	const Steps *pSteps = GAMESTATE->m_pCurSteps[m_PlayerNumber];
@@ -157,7 +157,7 @@ void PaneDisplay::GetPaneTextAndLevel( PaneCategory c, RString & sTextOut, float
 
 		if( pSteps )
 		{
-			rv = pSteps->GetRadarValues( m_PlayerNumber );
+			rv = pSteps->GetRadarValues();
 			pHSL = &PROFILEMAN->GetProfile(slot)->GetStepsHighScoreList(pSong, pSteps);
 		}
 
@@ -258,7 +258,7 @@ void PaneDisplay::SetContent( PaneCategory c )
 {
 	// these get filled in later:
 	RString str;
-	float val;
+	int val;
 
 	GetPaneTextAndLevel( c, str, val );
 	m_textContents[c].SetText( str );

@@ -63,7 +63,7 @@ public:
 		return !operator==( other );
 	}
 
-	XNode* CreateNode( bool bIncludeSimpleValues, bool bIncludeComplexValues ) const;
+	XNode* CreateNode() const;
 	void LoadFromNode( const XNode* pNode );
 
 	RString ToString( int iMaxValues = -1 ) const; // default = all

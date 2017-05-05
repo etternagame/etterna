@@ -359,19 +359,11 @@ void SetRadarValues(StepsTagInfo& info)
 	{
 		vector<RString> values;
 		split((*info.params)[1], ",", values, true);
-		// Instead of trying to use the version to figure out how many
-		// categories to expect, look at the number of values and split them
-		// evenly. -Kyz
-		size_t cats_per_player= values.size() / NUM_PlayerNumber;
-		RadarValues v[NUM_PLAYERS];
-		FOREACH_PlayerNumber(pn)
-		{
-			for(size_t i= 0; i < cats_per_player; ++i)
-			{
-				v[pn][i]= StringToInt(values[pn * cats_per_player + i]);
-			}
-		}
-		info.steps->SetCachedRadarValues(v);
+		RadarValues rv;
+		rv.Zero();
+		for (size_t i = 0; i < NUM_RadarCategory; ++i)
+			rv[i] = StringToInt(values[i]);
+		info.steps->SetCachedRadarValues(rv);
 	}
 	else
 	{
@@ -530,7 +522,7 @@ vector<float> msdsplit(const RString& s) {
 	int numrates = static_cast<int>(nchar / 5.f);
 	
 	for (size_t i = 0; i < numrates; ++i)
-		o.emplace_back(StringToFloat(s.substr(i * 5, 5)));
+		o.emplace_back(StringToFloat(s.substr(i * 4, 4)));
 	return o;
 }
 

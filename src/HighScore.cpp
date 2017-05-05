@@ -243,8 +243,6 @@ HighScoreImpl::HighScoreImpl()
 XNode *HighScoreImpl::CreateNode() const
 {
 	XNode *pNode = new XNode( "HighScore" );
-	const bool bWriteSimpleValues = RadarValues::WRITE_SIMPLE_VALIES;
-	const bool bWriteComplexValues = RadarValues::WRITE_COMPLEX_VALIES;
 
 	// TRICKY:  Don't write "name to fill in" markers.
 	pNode->AppendChild( "Name",				IsRankingToFillIn(sName) ? RString("") : sName );
@@ -293,7 +291,7 @@ XNode *HighScoreImpl::CreateNode() const
 			pSkillsetSSRs->AppendChild(SkillsetToString(ss), fSkillsetSSRs[ss]);
 	}
 
-	pNode->AppendChild( radarValues.CreateNode(bWriteSimpleValues, bWriteComplexValues) );
+	pNode->AppendChild( radarValues.CreateNode() );
 	pNode->AppendChild( "LifeRemainingSeconds",	fLifeRemainingSeconds );
 	pNode->AppendChild( "Disqualified",		bDisqualified);
 	return pNode;

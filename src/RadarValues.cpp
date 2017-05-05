@@ -5,80 +5,45 @@
 #include "XmlFile.h"
 #include "ThemeManager.h"
 
-ThemeMetric<bool> RadarValues::WRITE_SIMPLE_VALIES( "RadarValues", "WriteSimpleValues" );
-ThemeMetric<bool> RadarValues::WRITE_COMPLEX_VALIES( "RadarValues", "WriteComplexValues" );
+RadarValues::RadarValues() { MakeUnknown(); }
 
-RadarValues::RadarValues()
-{
-	MakeUnknown();
-}
-
-void RadarValues::MakeUnknown()
-{
+void RadarValues::MakeUnknown() {
 	FOREACH_ENUM( RadarCategory, rc )
-	{
 		(*this)[rc] = RADAR_VAL_UNKNOWN;
-	}
 }
 
-void RadarValues::Zero()
-{
+void RadarValues::Zero() {
 	FOREACH_ENUM( RadarCategory, rc )
-	{
 		(*this)[rc] = 0;
-	}
 }
 
-XNode* RadarValues::CreateNode( bool bIncludeSimpleValues, bool bIncludeComplexValues ) const
-{
+XNode* RadarValues::CreateNode() const {
 	XNode* pNode = new XNode( "RadarValues" );
 
-	// TRICKY: Don't print a remainder for the integer values.
 	FOREACH_ENUM( RadarCategory, rc )
-	{
-		if( rc >= RadarCategory_TapsAndHolds )
-		{
-			if( bIncludeSimpleValues )
-			{
-				pNode->AppendChild(RadarCategoryToString(rc),	(int)((*this)[rc]));
-			}
-		}
-		else
-		{
-			if( bIncludeComplexValues )
-			{
-				pNode->AppendChild(RadarCategoryToString(rc),	(*this)[rc]);
-			}
-		}
-	}
-
+		pNode->AppendChild(RadarCategoryToString(rc), (*this)[rc]);
 	return pNode;
 }
 
-void RadarValues::LoadFromNode( const XNode* pNode ) 
-{
+void RadarValues::LoadFromNode( const XNode* pNode )  {
 	ASSERT( pNode->GetName() == "RadarValues" );
 
 	Zero();
-
 	FOREACH_ENUM( RadarCategory, rc )
-	{
 		pNode->GetChildValue( RadarCategoryToString(rc),	(*this)[rc] );
-	}
 }
 
 /* iMaxValues is only used for writing compatibility fields in non-cache
  * SM files; they're never actually read. */
-RString RadarValues::ToString( int iMaxValues ) const
-{
+RString RadarValues::ToString( int iMaxValues ) const {
 	if( iMaxValues == -1 )
 		iMaxValues = NUM_RadarCategory;
-	iMaxValues = min( iMaxValues, (int)NUM_RadarCategory );
+	iMaxValues = min( iMaxValues, static_cast<int>(NUM_RadarCategory));
 
 	vector<RString> asRadarValues;
 	for( int r=0; r < iMaxValues; r++ )
 	{
-		asRadarValues.push_back(ssprintf("%.3f", (*this)[r]));
+		asRadarValues.push_back(IntToString((*this)[r]));
 	}
 
 	return join( ",",asRadarValues );
@@ -97,7 +62,7 @@ void RadarValues::FromString( const RString &sRadarValues )
 
 	FOREACH_ENUM( RadarCategory, rc )
 	{
-		(*this)[rc] = StringToFloat(saValues[rc]);
+		(*this)[rc] = StringToInt(saValues[rc]);
 	}
     
 }

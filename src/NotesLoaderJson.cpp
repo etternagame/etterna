@@ -146,11 +146,8 @@ static void Deserialize( Steps &o, const Json::Value &root )
 	o.SetDifficulty( StringToDifficulty(root["Difficulty"].asString()) );
 	o.SetMeter( root["Meter"].asInt() );
 
-	RadarValues rv[NUM_PLAYERS];
-	FOREACH_PlayerNumber( pn )
-	{
-		Deserialize( rv[pn], root["RadarValues"] );
-	}
+	RadarValues rv;
+	Deserialize( rv, root["RadarValues"] );
 	o.SetCachedRadarValues( rv );
 }
 

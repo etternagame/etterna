@@ -183,14 +183,6 @@ void ScreenEvaluation::Init()
 			{
 				switch( rc )
 				{
-					case RadarCategory_Stream:
-					case RadarCategory_Voltage:
-					case RadarCategory_Air:
-					case RadarCategory_Freeze:
-					case RadarCategory_Chaos:
-						ss.m_player[p].m_radarPossible[rc] = randomf( 0, 1 );
-						ss.m_player[p].m_radarActual[rc] = randomf( 0, ss.m_player[p].m_radarPossible[rc] );
-						break;
 					case RadarCategory_TapsAndHolds:
 					case RadarCategory_Jumps:
 					case RadarCategory_Holds:
@@ -200,7 +192,7 @@ void ScreenEvaluation::Init()
 					case RadarCategory_Lifts:
 					case RadarCategory_Fakes:
 						ss.m_player[p].m_radarPossible[rc] = 1 + (random_up_to(200));
-						ss.m_player[p].m_radarActual[rc] = random_up_to(int(ss.m_player[p].m_radarPossible[rc]));
+						ss.m_player[p].m_radarActual[rc] = random_up_to(static_cast<int>(ss.m_player[p].m_radarPossible[rc]));
 						break;
 					default: break;
 				}

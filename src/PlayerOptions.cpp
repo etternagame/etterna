@@ -875,7 +875,7 @@ bool PlayerOptions::IsEasierForSongAndSteps( Song* pSong, Steps* pSteps, PlayerN
 {
 	if( m_fTimeSpacing && pSteps->HasSignificantTimingChanges() )
 		return true;
-	const RadarValues &rv = pSteps->GetRadarValues( pn );
+	const RadarValues &rv = pSteps->GetRadarValues();
 	if( m_bTransforms[TRANSFORM_NOHOLDS] && rv[RadarCategory_Holds]>0 )
 		return true;
 	if( m_bTransforms[TRANSFORM_NOROLLS] && rv[RadarCategory_Rolls]>0 )

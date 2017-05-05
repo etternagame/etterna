@@ -41,13 +41,7 @@ const RString& SkillsetToString(Skillset ss);
  *
  * This is just cached song data. Not all of it may actually be displayed
  * in the radar. */
-enum RadarCategory
-{
-	RadarCategory_Stream = 0, /**< How much stream is in the song? */
-	RadarCategory_Voltage, /**< How much voltage is in the song? */
-	RadarCategory_Air, /**< How much air is in the song? */
-	RadarCategory_Freeze, /**< How much freeze (holds) is in the song? */
-	RadarCategory_Chaos, /**< How much chaos is in the song? */
+enum RadarCategory {
 	RadarCategory_Notes, /**< How many notes are in the song? */
 	RadarCategory_TapsAndHolds, /**< How many taps and holds are in the song? */
 	RadarCategory_Jumps, /**< How many jumps are in the song? */
@@ -57,9 +51,6 @@ enum RadarCategory
 	RadarCategory_Rolls, /**< How many rolls are in the song? */
 	RadarCategory_Lifts, /**< How many lifts are in the song? */
 	RadarCategory_Fakes, /**< How many fakes are in the song? */
-	// If you add another radar category, make sure you update
-	// NoteDataUtil::CalculateRadarValues to calculate it.
-	// Also update NoteDataWithScoring::GetActualRadarValues. -Kyz
 	NUM_RadarCategory,	/**< The number of radar categories. */
 	RadarCategory_Invalid
 };
