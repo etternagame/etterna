@@ -245,9 +245,6 @@ public:
 	void AddToFavorites(RString ck) { FavoritedCharts.emplace_back(ck); }
 	void RemoveFromFavorites(RString ck);
 
-	// uses the keyed scoremap -mina
-	vector<HighScore> GetScoresByKey(RString ck);
-
 	// Vector for now, we can make this more efficient later
 	vector<RString> FavoritedCharts;
 
@@ -378,11 +375,6 @@ public:
 
 	// Lua
 	void PushSelf( lua_State *L );
-	
-	
-	//TopSSRs
-	HighScore* GetTopSSRHighScore(unsigned int rank, int skillset);
-	float GetTopSSRValue(unsigned int rank, int skillset);
 
 private:
 	const HighScoresForASong *GetHighScoresForASong( const SongID& songID ) const;

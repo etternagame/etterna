@@ -72,6 +72,7 @@ public:
 	Song * GetSongByChartkey(RString ck);
 	Steps* GetStepsByChartkey(const StepsID& sid);
 	Song * GetSongByChartkey(const StepsID& sid);
+	bool IsChartLoaded(RString ck) { return SongsByKey.count(ck) == 1; }
 
 	void ResetGroupColors();
 

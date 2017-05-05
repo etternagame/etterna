@@ -1323,6 +1323,7 @@ public:
 	DEFINE_METHOD( ShortenGroupName, ShortenGroupName( SArg(1) ) )
 	DEFINE_METHOD( GetSongGroupBannerPath, GetSongGroupBannerPath(SArg(1)) );
 	DEFINE_METHOD( DoesSongGroupExist, DoesSongGroupExist(SArg(1)) );
+	DEFINE_METHOD(IsChartLoaded, IsChartLoaded(SArg(1)));
 
 	static int GetPopularSongs( T* p, lua_State *L )
 	{
@@ -1388,6 +1389,7 @@ public:
 		ADD_METHOD( WasLoadedFromAdditionalSongs );
 		ADD_METHOD( GetSongByChartKey );
 		ADD_METHOD( GetStepsByChartKey );
+		ADD_METHOD(GetStepsByChartKey);
 	}
 };
 

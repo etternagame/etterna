@@ -1085,8 +1085,7 @@ public:
 	}
 	
 	static int GetSkillsetSSR(T* p, lua_State *L) {
-		Skillset lel = static_cast<Skillset>(IArg(1)-1);
-		lua_pushnumber(L, p->GetSkillsetSSR(lel));
+		lua_pushnumber(L, p->GetSkillsetSSR(Enum::Check<Skillset>(L, 1)));
 		return 1;
 	}
 	static int ToggleEtternaValidation(T* p, lua_State *L) {

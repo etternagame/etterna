@@ -6,6 +6,7 @@
 #include "ScoreManager.h"
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
+#include "SongManager.h"
 
 ScoreManager* SCOREMAN = NULL;
 
@@ -101,30 +102,29 @@ vector<float> ScoresForChart::GetPlayedRates() {
 	return o;
 }
 
-vector<int> ScoresForChart::GetPlayedRateKeys() const{
+vector<int> ScoresForChart::GetPlayedRateKeys() {
 	vector<int> o;
-	FOREACHM_CONST(int, ScoresAtRate, ScoresByRate, i)
+	FOREACHM(int, ScoresAtRate, ScoresByRate, i)
 		o.emplace_back(i->first);
 	return o;
 }
 
-vector<RString> ScoresForChart::GetPlayedRateDisplayStrings() const {
-	vector<int>& rates = GetPlayedRateKeys();
-	vector<RString> o(rates.size());
-	for(size_t i = 0; i < rates.size(); ++i) {
-		o[i] = RateKeyToDisplayString(rates[i]);
-	}
-		
+vector<RString> ScoresForChart::GetPlayedRateDisplayStrings() {
+	vector<float> rates = GetPlayedRates();
+	vector<RString> o;
+	for(size_t i = 0; i < rates.size(); ++i)
+		o.emplace_back(RateKeyToDisplayString(rates[i]));
 	return o;
 }
-RString ScoresForChart::RateKeyToDisplayString(int& key) const {
-	RString rate = ssprintf("%.2f", rate);
+
+RString ScoresForChart::RateKeyToDisplayString(float rate) {
+	RString rs = ssprintf("%.2f", rate);
 	int j = 1;
-	if (rate.find_last_not_of('0') == rate.find('.'))
+	if (rs.find_last_not_of('0') == rs.find('.'))
 		j = 2;
-	rate.erase(rate.find_last_not_of('0') + j, rate.npos);
-	rate.append("x");
-	return rate;
+	rs.erase(rs.find_last_not_of('0') + j, rs.npos);
+	rs.append("x");
+	return rs;
 }
 
 
@@ -152,19 +152,6 @@ HighScore* ScoreManager::GetChartPBUpTo(RString& ck, float& rate) {
 
 
 
-void ScoreManager::SortTopSSRPtrs(Skillset ss) {
-	TopSSRs.clear();
-	FOREACHM(RString, ScoresForChart, pscores, i) {
-		if (!IsChartLoaded(i->first))
-			continue;
-		vector<HighScore*> pbs = i->second.GetAllPBPtrs();
-		FOREACH(HighScore*, pbs, hs) {
-			TopSSRs.emplace_back(*hs);
-		}
-	}
-	auto ssrcomp = [&ss](HighScore* a, HighScore* b) { return (a->GetSkillsetSSR(ss) > b->GetSkillsetSSR(ss)); };
-	sort(TopSSRs.begin(), TopSSRs.end(), ssrcomp);
-}
 
 void ScoreManager::RecalculateSSRs() {
 	return;
@@ -206,6 +193,30 @@ float ScoreManager::AggregateSSRs(Skillset ss, float rating, float res, int iter
 	return AggregateSSRs(ss, rating - res, res / 2.f, iter + 1);
 }
 
+void ScoreManager::SortTopSSRPtrs(Skillset ss) {
+	TopSSRs.clear();
+	FOREACHM(RString, ScoresForChart, pscores, i) {
+		if (!SONGMAN->IsChartLoaded(i->first))
+			continue;
+		vector<HighScore*> pbs = i->second.GetAllPBPtrs();
+		FOREACH(HighScore*, pbs, hs) {
+			TopSSRs.emplace_back(*hs);
+		}
+	}
+
+	auto ssrcomp = [&ss](HighScore* a, HighScore* b) { return (a->GetSkillsetSSR(ss) > b->GetSkillsetSSR(ss)); };
+	sort(TopSSRs.begin(), TopSSRs.end(), ssrcomp);
+}
+
+HighScore* ScoreManager::GetTopSSRHighScore(unsigned int rank, int ss) {
+	if (rank < 0)
+		rank = 0;
+
+	if (ss >= 0 && ss < NUM_Skillset && rank < TopSSRs.size())
+		return TopSSRs[rank];
+
+	return NULL;
+}
 
 
 
@@ -356,7 +367,6 @@ public:
 			vector<int> ratekeys = scores->GetPlayedRateKeys();
 			vector<RString> ratedisplay = scores->GetPlayedRateDisplayStrings();
 			for (size_t i = 0; i < ratekeys.size(); ++i) {
-				
 				LuaHelpers::Push(L, ratedisplay[i]);
 				scores->GetScoresAtRate(ratekeys[i])->PushSelf(L);
 				lua_rawset(L, -3);
@@ -369,9 +379,8 @@ public:
 		return 1;
 	}
 
-	static int SortAllSSRs(T* p, lua_State *L) {
-		for (size_t i = 0; i < NUM_Skillset; ++i)
-			p->SortTopSSRPtrs(static_cast<Skillset>(i));
+	static int SortSSRs(T* p, lua_State *L) {
+		p->SortTopSSRPtrs(Enum::Check<Skillset>(L, 1));
 		return 1;
 	}
 
@@ -380,11 +389,21 @@ public:
 		return 1;
 	}
 
+	static int 	GetTopSSRHighScore(T* p, lua_State *L) {
+		HighScore* ths = p->GetTopSSRHighScore(IArg(1) - 1, Enum::Check<Skillset>(L, 2));
+		if (ths)
+			ths->PushSelf(L);
+		else
+			lua_pushnil(L);
+		return 1;
+	}
+
 	LunaScoreManager()
 	{
 		ADD_METHOD(GetScoresByKey);
-		ADD_METHOD(SortAllSSRs);
+		ADD_METHOD(SortSSRs);
 		ADD_METHOD(ValidateAllScores);
+		ADD_METHOD(GetTopSSRHighScore);
 	}
 };
 

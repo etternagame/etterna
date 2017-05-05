@@ -326,7 +326,7 @@ function getScoresByKey(pn)
 		profile = GetPlayerOrMachineProfile(pn)
 		steps = GAMESTATE:GetCurrentSteps(pn)
 		if profile ~= nil and steps ~= nil and song ~= nil then
-			return profile:GetScoresByKey(steps:GetChartKey())
+			return SCOREMAN:GetScoresByKey(steps:GetChartKey())
 		end
 	end
 	return nil

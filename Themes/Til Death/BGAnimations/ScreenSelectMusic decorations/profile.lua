@@ -9,7 +9,6 @@ local t = Def.ActorFrame{
 		self:finishtweening()
 		
 		if getTabIndex() == 4 then
-		
 			self:queuecommand("On")
 			self:visible(true)
 			update = true
@@ -31,7 +30,7 @@ local scorestodisplay = 25
 local distY = 15
 local offsetX = 10
 local offsetY = 20
-local rankingSkillset=0
+local rankingSkillset=1
 local rankingPage=1	
 local rankingWidth = frameWidth-capWideScale(15,50)
 local rankingX = capWideScale(30,50)
@@ -40,7 +39,6 @@ local rankingTitleWidth = (rankingWidth/(#ms.SkillSets + 1))
 
 if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
 	profile = GetPlayerOrMachineProfile(PLAYER_1)
-	profile:SortAllSSRs()	-- should be fine this way now - mina
 end
 
 
@@ -61,7 +59,7 @@ local function rankingLabel(i)
 	local t = Def.ActorFrame{
 		InitCommand=cmd(visible, false),
 		UpdateRankingMessageCommand=function(self)
-			if rankingSkillset > 0 then
+			if rankingSkillset > 1 then
 				self:visible(true)
 			else
 				self:visible(false)
@@ -73,12 +71,11 @@ local function rankingLabel(i)
 				if update then
 					self:diffuse(getMainColor("positive"))
 					self:settext(((rankingPage-1)*25)+i..".")
-					ths = profile:GetTopSSRHighScore(i+(scorestodisplay*(rankingPage-1)), rankingSkillset)
+					ths = SCOREMAN:GetTopSSRHighScore(i+(scorestodisplay*(rankingPage-1)), ms.SkillSets[rankingSkillset])
 					if ths then
 						ck = ths:GetChartKey()						
 						thssong = SONGMAN:GetSongByChartKey(ck)
 						thssteps = SONGMAN:GetStepsByChartKey(ck)
-						if not thssong or not thssteps then ths = nil end
 					end
 					
 				end
@@ -88,10 +85,10 @@ local function rankingLabel(i)
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(xy,frameX+rankingX,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,160),
 			SetCommand=function(self)
-				if update and rankingSkillset > 0 then 
+				if update and rankingSkillset > 1 then 
 					if ths then 
-						local a=profile:GetTopSSRValue(i+(scorestodisplay*(rankingPage-1)), rankingSkillset)
-						self:settextf("%5.2f", a)
+						local val = ths:GetSkillsetSSR(ms.SkillSets[rankingSkillset])
+						self:settextf("%5.2f", val)
 						if not ths:GetEtternaValid() then
 							self:diffuse(byJudgment("TapNoteScore_Miss"))
 						else
@@ -161,11 +158,9 @@ local function rankingLabel(i)
 			InitCommand=cmd(xy,frameX+rankingX+310,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*4-160),
 			SetCommand=function(self)
 				if update and ths then
-					if (thssteps ~= nil) then
-						local diff = thssteps:GetDifficulty()
-						self:diffuse(byDifficulty(diff))
-						self:settext(getShortDifficulty(diff))
-					end
+					local diff = thssteps:GetDifficulty()
+					self:diffuse(byDifficulty(diff))
+					self:settext(getShortDifficulty(diff))
 				else
 					self:settext( ' - ' )
 					self:diffuse(getMainColor('positive'))
@@ -206,7 +201,7 @@ local function rankingButton(i)
 		Def.Quad{
 		InitCommand=cmd(xy,frameX+rankingX+(i-1+i*(1/(1+#ms.SkillSets)))*rankingTitleWidth,frameY+rankingY-30;zoomto,rankingTitleWidth,30;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
 		SetCommand=function(self)
-			if i-1 == rankingSkillset then
+			if i == rankingSkillset then
 				self:diffusealpha(1)
 			else
 				self:diffusealpha(0.35)
@@ -214,8 +209,10 @@ local function rankingButton(i)
 		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
-				rankingSkillset = i-1
+				rankingSkillset = i
 				rankingPage = 1
+				SCOREMAN:SortSSRs(ms.SkillSets[rankingSkillset])
+				ms.ok(ms.SkillSets[rankingSkillset])
 				MESSAGEMAN:Broadcast("UpdateRanking")
 			end
 		end,
@@ -237,7 +234,7 @@ end
 r[#r+1] = Def.Quad{
 	InitCommand=cmd(xy,frameX+frameWidth-30,frameY+rankingY+265;zoomto,40,20;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
 	SetCommand=function(self)
-		if rankingSkillset > 0 then
+		if rankingSkillset > 1 then
 			self:visible(true)
 		else
 			self:visible(false)
@@ -259,7 +256,7 @@ r[#r+1] = Def.Quad{
 r[#r+1] = LoadFont("Common Large") .. {
 		InitCommand=cmd(xy,frameX+frameWidth-30,frameY+rankingY+275;halign,0.5;zoom,0.3;diffuse,getMainColor('positive');settext,"Next"),
 		SetCommand=function(self)
-			if rankingSkillset > 0 then
+			if rankingSkillset > 1 then
 				self:visible(true)
 			else
 				self:visible(false)
@@ -271,7 +268,7 @@ r[#r+1] = LoadFont("Common Large") .. {
 r[#r+1] = Def.Quad{
 	InitCommand=cmd(xy,frameX+40,frameY+rankingY+265;zoomto,65,20;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
 	SetCommand=function(self)
-		if rankingSkillset > 0 then
+		if rankingSkillset > 1 then
 			self:visible(true)
 		else
 			self:visible(false)
@@ -294,7 +291,7 @@ r[#r+1] = Def.Quad{
 r[#r+1] = LoadFont("Common Large") .. {
 		InitCommand=cmd(xy,frameX+40,frameY+rankingY+275;halign,0.5;zoom,0.3;diffuse,getMainColor('positive');settext,"Previous"),
 		SetCommand=function(self)
-			if rankingSkillset > 0 then
+			if rankingSkillset > 1 then
 				self:visible(true)
 			else
 				self:visible(false)
@@ -306,7 +303,7 @@ r[#r+1] = LoadFont("Common Large") .. {
 r[#r+1] = LoadFont("Common Large") .. {
 	InitCommand=cmd(xy,frameX+frameWidth/2,frameY+rankingY+275;halign,0.5;zoom,0.3;diffuse,getMainColor('positive')),
 	SetCommand=function(self)
-		if rankingSkillset > 0 then
+		if rankingSkillset > 1 then
 			self:visible(true)
 			self:settextf("%i-%i", ((rankingPage-1)*25)+1, rankingPage*25)
 		else
@@ -332,7 +329,7 @@ t[#t+1] = r
 local function littlebits(i)
 	local t = Def.ActorFrame{
 		UpdateRankingMessageCommand=function(self)
-			if rankingSkillset == 0 then
+			if rankingSkillset == 1 then
 				self:visible(true)
 			else
 				self:visible(false)
@@ -362,14 +359,14 @@ local function littlebits(i)
 	return t
 end
 
-for i=2,#ms.SkillSets do 
+for i=1,#ms.SkillSets do 
 	t[#t+1] = littlebits(i)
 end
 
 t[#t+1] = Def.Quad{
 	InitCommand=cmd(xy,frameX+80,frameY+rankingY+265;zoomto,100,20;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
 	SetCommand=function(self)
-		if rankingSkillset == 0 then
+		if rankingSkillset == 1 then
 			self:visible(true)
 		else
 			self:visible(false)
@@ -391,7 +388,7 @@ t[#t+1] = Def.Quad{
 t[#t+1] = Def.Quad{
 	InitCommand=cmd(xy,frameX+320,frameY+rankingY+265;zoomto,100,20;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
 	SetCommand=function(self)
-		if rankingSkillset == 0 then
+		if rankingSkillset == 1 then
 			self:visible(true)
 		else
 			self:visible(false)
@@ -413,7 +410,7 @@ t[#t+1] = Def.Quad{
 t[#t+1] = LoadFont("Common Large") .. {
 		InitCommand=cmd(xy,frameX+80,frameY+rankingY+275;halign,0.5;zoom,0.3;diffuse,getMainColor('positive');settext,"Save Profile"),
 		SetCommand=function(self)
-			if rankingSkillset == 0 then
+			if rankingSkillset == 1 then
 				self:visible(true)
 			else
 				self:visible(false)
@@ -425,7 +422,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 t[#t+1] = Def.Quad{
 	InitCommand=cmd(xy,frameX+210,frameY+rankingY+265;zoomto,100,20;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
 	SetCommand=function(self)
-		if rankingSkillset == 0 then
+		if rankingSkillset == 1 then
 			self:visible(true)
 		else
 			self:visible(false)
@@ -442,7 +439,7 @@ t[#t+1] = Def.Quad{
 t[#t+1] = LoadFont("Common Large") .. {
 		InitCommand=cmd(xy,frameX+210,frameY+rankingY+275;halign,0.5;zoom,0.3;diffuse,getMainColor('positive');settext,"Validate All"),
 		SetCommand=function(self)
-			if rankingSkillset == 0 then
+			if rankingSkillset == 1 then
 				self:visible(true)
 			else
 				self:visible(false)

@@ -111,7 +111,7 @@ t[#t+1] = LoadFont("Common Large")..{
 	Name="Grades",
 	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+20;zoom,0.6;halign,0;maxwidth,50/0.6),
 	SetCommand=function(self)
-		if score ~= nil then
+		if score and update then
 			self:settext(THEME:GetString("Grade",ToEnumShortString(score:GetGrade())))
 			self:diffuse(getGradeColor(score:GetGrade()))
 		else
@@ -126,7 +126,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 	Name="Score",
 	InitCommand=cmd(xy,frameX+offsetX+55,frameY+offsetY+28;zoom,0.5;halign,0),
 	SetCommand=function(self)
-		if score ~= nil then
+		if score and update then
 			if score:GetWifeScore() == 0 then 
 				self:settextf("NA (%s)", "Wife")
 			else
@@ -144,7 +144,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 	-- Name="Score",
 	-- InitCommand=cmd(xy,frameX+offsetX+155,frameY+offsetY+14;zoom,0.5;halign,0),
 	-- SetCommand=function(self)
-		-- if score ~= nil then
+		-- if score and update then
 			-- if score:GetWifeScore() == 0 then 
 				-- self:settextf("NA (%s)", "Wife")
 			-- else
@@ -161,7 +161,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 	-- Name="Score",
 	-- InitCommand=cmd(xy,frameX+offsetX+155,frameY+offsetY+58;zoom,0.5;halign,0),
 	-- SetCommand=function(self)
-		-- if score ~= nil then
+		-- if score and update then
 			-- if score:GetWifeScore() == 0 then 
 				-- self:settext("")
 			-- else
@@ -178,7 +178,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 	Name="ClearType",
 	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+41;zoom,0.5;halign,0);
 	SetCommand=function(self)
-		if score ~= nil then
+		if score and update then
 			self:settext(getClearTypeFromScore(pn,score,0))
 			self:diffuse(getClearTypeFromScore(pn,score,2))
 		end
@@ -190,7 +190,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 	Name="Combo",
 	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+58;zoom,0.4;halign,0);
 	SetCommand=function(self)
-		if score ~= nil then
+		if score and update then
 			local maxCombo = getScoreMaxCombo(score)
 			self:settextf("Max Combo: %d",maxCombo)
 		else
@@ -204,7 +204,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 	Name="MissCount",
 	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+73;zoom,0.4;halign,0);
 	SetCommand=function(self)
-		if score ~= nil then
+		if score and update then
 			local missCount = getScoreMissCount(score)
 			if missCount ~= nil then
 				self:settext("Miss Count: "..missCount)
@@ -222,7 +222,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 	Name="Date",
 	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+88;zoom,0.4;halign,0);
 	SetCommand=function(self)
-		if score ~= nil then
+		if score and update then
 			self:settext("Date Achieved: "..getScoreDate(score))
 		else
 			self:settext("Date Achieved: ")
@@ -235,7 +235,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 	Name="Mods",
 	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+103;zoom,0.4;halign,0);
 	SetCommand=function(self)
-		if score ~= nil then
+		if score and update then
 			self:settext("Mods: " ..score:GetModifiers())
 		else
 			self:settext("Mods:")
@@ -249,7 +249,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 	InitCommand=cmd(xy,frameX+frameWidth-offsetX,frameY+offsetY+10;zoom,0.5;halign,1),
 	SetCommand=function(self)
 		local steps = GAMESTATE:GetCurrentSteps(pn)
-		if steps ~= nil then
+		if score and update then
 			local diff = getDifficulty(steps:GetDifficulty())
 			local stype = ToEnumShortString(steps:GetStepsType()):gsub("%_"," ")
 			local meter = steps:GetMeter()
@@ -278,7 +278,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 	Name="ChordCohesion",
 	InitCommand=cmd(xy,frameX+frameWidth/40,frameY+frameHeight-10;zoom,0.4;halign,0),
 	SetCommand=function(self)
-		if score ~= nil then
+		if score and update then
 			if score:GetChordCohesion() == true then
 				self:settext("Chord Cohesion: Yes")
 			else
@@ -352,7 +352,7 @@ local function makeJudge(index,judge)
 	t[#t+1] = LoadFont("Common Normal")..{
 		InitCommand=cmd(x,120;zoom,0.5;halign,1),
 		SetCommand=function(self)
-			if score ~= nil then
+			if score and update then
 				if judge ~= 'HoldNoteScore_Held' and judge ~= 'HoldNoteScore_LetGo' then
 					self:settext(getScoreTapNoteScore(score,judge))
 				else

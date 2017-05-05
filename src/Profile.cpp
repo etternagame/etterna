@@ -1829,32 +1829,6 @@ void Profile::DeleteGoal(RString ck, DateTime assigned) {
 	}
 }
 
-
-float Profile::GetTopSSRValue(unsigned int rank, int ss) {
-	if (rank < 0)
-		rank = 0;
-	HighScore *highScorePtr = GetTopSSRHighScore(rank, ss);
-	//Empty HighScore Pointer = NULL then return 0
-	if(highScorePtr == NULL)
-		return 0.f;
-
-	if (ss >= 0 && ss < NUM_Skillset && rank < SCOREMAN->TopSSRs.size())
-		return highScorePtr->GetSkillsetSSR(static_cast<Skillset>(ss));
-
-	//Undefined skillset
-	return 0.f;
-}
-
-HighScore* Profile::GetTopSSRHighScore(unsigned int rank, int ss) {
-	if (rank < 0)
-		rank = 0;
-
-	if (ss >= 0 && ss < NUM_Skillset && rank < SCOREMAN->TopSSRs.size())
-		return &(*SCOREMAN->TopSSRs[rank]);
-
-	return NULL;
-}
-
 XNode* Profile::SaveCategoryScoresCreateNode() const
 {
 	CHECKPOINT_M("Getting the node that saves category scores.");
@@ -2245,21 +2219,8 @@ public:
 			lua_pushnil(L);
 		return 1;
 	}
-	static int GetTopSSRValue(T* p, lua_State *L) {
-		lua_pushnumber(L, p->GetTopSSRValue(IArg(1) - 1, IArg(2)));
-		return 1;
-	}
-	static int 	GetTopSSRHighScore(T* p, lua_State *L) {
-		HighScore* ths = p->GetTopSSRHighScore(IArg(1) - 1, IArg(2));
-		if (ths)
-			ths->PushSelf(L);
-		else
-			lua_pushnil(L);
-		return 1;
-	}
 	static int GetPlayerSkillsetRating(T* p, lua_State *L) {
-		Skillset lel = static_cast<Skillset>(IArg(1) - 1);
-		lua_pushnumber(L, p->m_fPlayerSkillsets[lel]);
+		lua_pushnumber(L, p->m_fPlayerSkillsets[Enum::Check<Skillset>(L, 1)]);
 		return 1;
 	}
 
@@ -2323,8 +2284,6 @@ public:
 		ADD_METHOD( GetPlayerRating );
 		ADD_METHOD( GetPlayerSkillsetRating );
 		ADD_METHOD( GetNumFaves );
-		ADD_METHOD( GetTopSSRValue );
-		ADD_METHOD( GetTopSSRHighScore );
 		ADD_METHOD( GetAllGoals );
 	}
 };

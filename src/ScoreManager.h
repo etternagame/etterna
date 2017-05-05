@@ -51,9 +51,9 @@ public:
 	void AddScore(HighScore& hs);
 
 	vector<float> GetPlayedRates();
-	vector<int> GetPlayedRateKeys() const;
-	vector<RString> GetPlayedRateDisplayStrings() const;
-	RString RateKeyToDisplayString(int& key) const;
+	vector<int> GetPlayedRateKeys();
+	vector<RString> GetPlayedRateDisplayStrings();
+	RString RateKeyToDisplayString(float rate);
 	int RateToKey(float& rate) { return lround(rate * 10000.f); }
 	float KeyToRate(int key) { return static_cast<float>(key) / 10000.f; }
 
@@ -67,8 +67,6 @@ public:
 	void LoadFromNode(const XNode* node, const RString& ck);
 
 	ScoresAtRate operator[](const int rate) { return ScoresByRate.at(rate); }
-	void Insert(int rate, ScoresAtRate scores) { LOG->Warn("asINSERTfasd"), ScoresByRate.emplace(rate, scores); }
-
 	map<int, ScoresAtRate, greater<int>> ScoresByRate;
 private:
 	/* It makes sense internally to have the map keys sorted highest rate to lowest
@@ -105,10 +103,13 @@ public:
 	void RecalculateSSRs();
 	void EnableAllScores();
 	void CalcPlayerRating(float& prating, float* pskillsets);
-	float AggregateSSRs(Skillset ss, float rating, float res, int iter) const;	
+	float AggregateSSRs(Skillset ss, float rating, float res, int iter) const;
+
+	float GetTopSSRValue(unsigned int rank, int ss);
+
+	HighScore * GetTopSSRHighScore(unsigned int rank, int ss);
 	
-	bool IsChartLoaded(const RString& ck) { return true; }
-	bool KeyHasScores(const RString& ck) { return pscores.count(ck); }
+	bool KeyHasScores(const RString& ck) { return pscores.count(ck) == 1; }
 	
 
 	
@@ -123,11 +124,14 @@ public:
 	void PushSelf(lua_State *L);
 	vector<HighScore*> zz;
 
-	// Instead of storing pointers for each skillset just reshuffle the same set of pointers
-	vector<HighScore*> TopSSRs;
+	
+	
 private:
 	std::map<RString, ScoresForChart> pscores;	// Profile scores
 
+	// Instead of storing pointers for each skillset just reshuffle the same set of pointers
+	// it's inexpensive and not called often
+	vector<HighScore*> TopSSRs;
 	
 };
 

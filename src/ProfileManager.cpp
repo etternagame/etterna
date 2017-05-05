@@ -701,14 +701,7 @@ void ProfileManager::IncrementCategoryPlayCount( StepsType st, RankingCategory r
 
 bool ProfileManager::IsPersistentProfile( ProfileSlot slot ) const
 {
-	switch( slot )
-	{
-	case ProfileSlot_Player1:
-	case ProfileSlot_Player2:
-		return GAMESTATE->IsHumanPlayer((PlayerNumber)slot) && !m_sProfileDir[slot].empty(); 
-	default:
-		FAIL_M("Invalid profile slot chosen: unable to get profile info!");
-	}
+	return true;
 }
 
 void ProfileManager::GetLocalProfileIDs( vector<RString> &vsProfileIDsOut ) const
@@ -784,6 +777,11 @@ public:
 	}
 	static int IsPersistentProfile( T* p, lua_State *L )	{ lua_pushboolean(L, p->IsPersistentProfile(Enum::Check<PlayerNumber>(L, 1)) ); return 1; }
 	static int GetProfile( T* p, lua_State *L )				{ PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1); Profile* pP = p->GetProfile(pn); ASSERT(pP != NULL); pP->PushSelf(L); return 1; }
+	static int GetMachineProfile(T* p, lua_State *L) {
+		Profile* pP = p->GetProfile(PLAYER_1);
+		pP->PushSelf(L);
+		return 1;
+	}
 	static int GetLocalProfile( T* p, lua_State *L )
 	{
 		Profile *pProfile = p->GetLocalProfile(SArg(1));
@@ -860,6 +858,7 @@ public:
 		ADD_METHOD(SetStatsPrefix);
 		ADD_METHOD( IsPersistentProfile );
 		ADD_METHOD( GetProfile );
+		ADD_METHOD(GetMachineProfile);
 		ADD_METHOD( GetLocalProfile );
 		ADD_METHOD( GetLocalProfileFromIndex );
 		ADD_METHOD( GetLocalProfileIDFromIndex );

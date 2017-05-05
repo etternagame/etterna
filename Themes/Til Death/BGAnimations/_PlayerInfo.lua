@@ -26,11 +26,7 @@ t[#t+1] = Def.Actor{
 		if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
 			profile = GetPlayerOrMachineProfile(PLAYER_1)
 			if profile ~= nil then
-				if profile == PROFILEMAN:GetMachineProfile() then
-					profileName = "Player 1"
-				else
-					profileName = profile:GetDisplayName()
-				end
+				profileName = profile:GetDisplayName()
 				playCount = profile:GetTotalNumSongsPlayed()
 				playTime = profile:GetTotalSessionSeconds()
 				noteCount = profile:GetTotalTapsAndHolds()
