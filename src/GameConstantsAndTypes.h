@@ -113,10 +113,6 @@ enum StepsType
 	StepsType_techno_double8,
 	StepsType_popn_five,
 	StepsType_popn_nine,
-	StepsType_kickbox_human,
-	StepsType_kickbox_quadarm,
-	StepsType_kickbox_insect,
-	StepsType_kickbox_arachnid,
 	NUM_StepsType,		// leave this at the end
 	StepsType_Invalid,
 };
