@@ -252,12 +252,6 @@ bool ScreenEditMenu::MenuStart( const InputEventPlus & )
 		case EditMenuAction_Delete:
 		{
 			ASSERT( pSteps != NULL );
-			if( pSteps->IsAutogen() )
-			{
-				SCREENMAN->PlayInvalidSound();
-				SCREENMAN->SystemMessage( DELETED_AUTOGEN_STEPS.GetValue() );
-				return true;
-			}
 		}
 		default: break;
 	}

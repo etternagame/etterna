@@ -56,7 +56,6 @@ private:
 	BitmapText	m_textDescription;
 	/** @brief The author of the chart. */
 	BitmapText	m_textAuthor;
-	AutoActor	m_sprAutogen; // visible if Steps and is autogen'd
 	AutoActor	m_sprStepsType;
 
 	ThemeMetric<int>	m_iNumTicks;
@@ -65,7 +64,6 @@ private:
 	ThemeMetric<bool>	m_bShowMeter;
 	ThemeMetric<bool>	m_bShowDescription;
 	ThemeMetric<bool>	m_bShowCredit;
-	ThemeMetric<bool>	m_bShowAutogen;
 	ThemeMetric<bool>	m_bShowStepsType;
 	ThemeMetric<RString>	m_sZeroMeterString;
 	ThemeMetric<RString>	m_sMeterFormatString;

@@ -48,7 +48,7 @@ XToString( DisplayBPM );
 LuaXType( DisplayBPM );
 
 Steps::Steps(Song *song): m_StepsType(StepsType_Invalid), m_pSong(song),
-	parent(NULL), m_pNoteData(new NoteData), m_bNoteDataIsFilled(false), 
+	m_pNoteData(new NoteData), m_bNoteDataIsFilled(false), 
 	m_sNoteDataCompressed(""), m_sFilename(""), m_bSavedToDisk(false), 
 	m_LoadedFromProfile(ProfileSlot_Invalid), m_iHash(0),
 	m_sDescription(""), m_sChartStyle(""), 
@@ -84,8 +84,6 @@ bool Steps::HasAttacks() const
 
 unsigned Steps::GetHash() const
 {
-	if( parent )
-		return parent->GetHash();
 	if( m_iHash )
 		return m_iHash;
 	if( m_sNoteDataCompressed.empty() )
@@ -175,8 +173,6 @@ bool Steps::GetNoteDataFromSimfile()
 void Steps::SetNoteData( const NoteData& noteDataNew )
 {
 	ASSERT( noteDataNew.GetNumTracks() == GAMEMAN->GetStepsTypeInfo(m_StepsType).iNumTracks );
-
-	DeAutogen( false );
 
 	*m_pNoteData = noteDataNew;
 	m_bNoteDataIsFilled = true;
@@ -301,10 +297,6 @@ void Steps::TidyUpData()
 
 void Steps::CalculateRadarValues( float fMusicLengthSeconds )
 {
-	// If we're autogen, don't calculate values.  GetRadarValues will take from our parent.
-	if( parent != NULL )
-		return;
-
 	if( m_bAreCachedRadarValuesJustLoaded )
 	{
 		m_bAreCachedRadarValuesJustLoaded = false;
@@ -374,44 +366,6 @@ void Steps::Decompress(bool isGameplay)
 
 	if (m_bNoteDataIsFilled) {
 		return;	// already decompressed
-	}
-		
-	if( parent )
-	{
-		// get autogen m_pNoteData
-		NoteData notedata;
-		parent->GetNoteData( notedata, isGameplay );
-
-		m_bNoteDataIsFilled = true;
-
-		int iNewTracks = GAMEMAN->GetStepsTypeInfo(m_StepsType).iNumTracks;
-
-		if( this->m_StepsType == StepsType_lights_cabinet )
-		{
-			NoteDataUtil::LoadTransformedLights( notedata, *m_pNoteData, iNewTracks );
-		}
-		else
-		{
-			// Special case so that kickbox can have autogen steps that are playable.
-			// Hopefully I'll replace this with a good generalized autogen system
-			// later.  -Kyz
-			if(stepstype_is_kickbox(this->m_StepsType))
-			{
-				// Number of notes seems like a useful "random" input so that charts
-				// from different sources come out different, but autogen always
-				// makes the same thing from one source. -Kyz
-				NoteDataUtil::AutogenKickbox(notedata, *m_pNoteData, *GetTimingData(),
-					this->m_StepsType,
-					static_cast<int>(GetRadarValues(PLAYER_1)[RadarCategory_TapsAndHolds]));
-			}
-			else
-			{
-				NoteDataUtil::LoadTransformedSlidingWindow( notedata, *m_pNoteData, iNewTracks );
-
-				NoteDataUtil::RemoveStretch( *m_pNoteData, m_StepsType );
-			}
-		}
-		return;
 	}
 
 	if( !m_sFilename.empty() && m_sNoteDataCompressed.empty() )
@@ -614,36 +568,6 @@ void Steps::Compress() const
 	m_bNoteDataIsFilled = false;
 }
 
-/* Copy our parent's data. This is done when we're being changed from autogen
- * to normal. (needed?) */
-void Steps::DeAutogen( bool bCopyNoteData )
-{
-	if( !parent )
-		return; // OK
-
-	if( bCopyNoteData )
-		Decompress(false);	// fills in m_pNoteData with sliding window transform
-
-	m_sDescription		= Real()->m_sDescription;
-	m_sChartStyle		= Real()->m_sChartStyle;
-	m_Difficulty		= Real()->m_Difficulty;
-	m_iMeter		= Real()->m_iMeter;
-	copy( Real()->m_CachedRadarValues, Real()->m_CachedRadarValues + NUM_PLAYERS, m_CachedRadarValues );
-	m_sCredit		= Real()->m_sCredit;
-	parent = NULL;
-
-	if( bCopyNoteData )
-		Compress();
-}
-
-void Steps::AutogenFrom( const Steps *parent_, StepsType ntTo )
-{
-	parent = parent_;
-	m_StepsType = ntTo;
-	m_StepsTypeStr= GAMEMAN->GetStepsTypeInfo(ntTo).szName;
-	m_Timing = parent->m_Timing;
-}
-
 void Steps::CopyFrom( Steps* pSource, StepsType ntTo, float fMusicLengthSeconds )	// pSource does not have to be of the same StepsType
 {
 	m_StepsType = ntTo;
@@ -651,7 +575,6 @@ void Steps::CopyFrom( Steps* pSource, StepsType ntTo, float fMusicLengthSeconds 
 	NoteData noteData;
 	pSource->GetNoteData( noteData, false );
 	noteData.SetNumTracks( GAMEMAN->GetStepsTypeInfo(ntTo).iNumTracks );
-	parent = NULL;
 	m_Timing = pSource->m_Timing;
 	this->m_pSong = pSource->m_pSong;
 	this->m_Attacks = pSource->m_Attacks;
@@ -674,7 +597,6 @@ void Steps::CreateBlank( StepsType ntTo )
 
 void Steps::SetDifficultyAndDescription( Difficulty dc, const RString &sDescription )
 {
-	DeAutogen();
 	m_Difficulty = dc;
 	m_sDescription = sDescription;
 	if( GetDifficulty() == Difficulty_Edit )
@@ -683,13 +605,11 @@ void Steps::SetDifficultyAndDescription( Difficulty dc, const RString &sDescript
 
 void Steps::SetCredit( const RString &sCredit )
 {
-	DeAutogen();
 	m_sCredit = sCredit;
 }
 
 void Steps::SetChartStyle( const RString &sChartStyle )
 {
-	DeAutogen();
 	m_sChartStyle = sChartStyle;
 }
 
@@ -705,7 +625,6 @@ bool Steps::MakeValidEditDescription( RString &sPreferredDescription )
 
 void Steps::SetMeter( int meter )
 {
-	DeAutogen();
 	m_iMeter = meter;
 }
 
@@ -750,7 +669,6 @@ void Steps::SetMusicFile(const RString& file)
 
 void Steps::SetCachedRadarValues( const RadarValues v[NUM_PLAYERS] )
 {
-	DeAutogen();
 	copy( v, v + NUM_PLAYERS, m_CachedRadarValues );
 	m_bAreCachedRadarValuesJustLoaded = true;
 }
@@ -768,7 +686,6 @@ public:
 	DEFINE_METHOD( GetAuthorCredit, GetCredit() )
 	DEFINE_METHOD( GetMeter,	GetMeter() )
 	DEFINE_METHOD( GetFilename,	GetFilename() )
-	DEFINE_METHOD( IsAutogen,	IsAutogen() )
 	DEFINE_METHOD( IsAnEdit,	IsAnEdit() )
 	DEFINE_METHOD( IsAPlayerEdit,	IsAPlayerEdit() )
 
@@ -930,7 +847,6 @@ public:
 		ADD_METHOD( GetChartKey );
 		ADD_METHOD( GetMSD );
 		ADD_METHOD( IsAnEdit );
-		ADD_METHOD( IsAutogen );
 		ADD_METHOD( IsAPlayerEdit );
 		ADD_METHOD( GetDisplayBpms );
 		ADD_METHOD( IsDisplayBpmSecret );

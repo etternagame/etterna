@@ -157,8 +157,6 @@ void StepsUtil::SortStepsPointerArrayByNumPlays( vector<Steps*> &vStepsPointers,
 			for( unsigned j=0; j<vpSteps.size(); j++ )
 			{
 				Steps* pSteps = vpSteps[j];
-				if( pSteps->IsAutogen() )
-					continue;	// skip
 				vpAllSteps.push_back( pSteps );
 				mapStepsToSong[pSteps] = pSong;
 			}

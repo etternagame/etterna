@@ -55,7 +55,6 @@ void StepsDisplay::Load( const RString &sMetricsGroup, const PlayerState *pPlaye
 	m_bShowMeter.Load(m_sMetricsGroup,"ShowMeter");
 	m_bShowDescription.Load(m_sMetricsGroup,"ShowDescription");
 	m_bShowCredit.Load(m_sMetricsGroup,"ShowCredit");
-	m_bShowAutogen.Load(m_sMetricsGroup,"ShowAutogen");
 	m_bShowStepsType.Load(m_sMetricsGroup,"ShowStepsType");
 	m_sZeroMeterString.Load(m_sMetricsGroup,"ZeroMeterString");
 	m_sMeterFormatString.Load(m_sMetricsGroup,"MeterFormatString");
@@ -98,14 +97,6 @@ void StepsDisplay::Load( const RString &sMetricsGroup, const PlayerState *pPlaye
 		m_textAuthor.LoadFromFont( THEME->GetPathF(m_sMetricsGroup,"Credit") );
 		ActorUtil::LoadAllCommandsAndSetXYAndOnCommand( m_textAuthor, m_sMetricsGroup );
 		this->AddChild( &m_textAuthor );
-	}
-
-	if( m_bShowAutogen )
-	{
-		m_sprAutogen.Load( THEME->GetPathG(m_sMetricsGroup,"Autogen") );
-		m_sprAutogen->SetName( "Autogen" );
-		ActorUtil::LoadAllCommandsAndSetXYAndOnCommand( m_sprAutogen, m_sMetricsGroup );
-		this->AddChild( m_sprAutogen );
 	}
 
 	if( m_bShowStepsType )
@@ -230,14 +221,6 @@ void StepsDisplay::SetInternal( const SetParams &params )
 		m_textAuthor.SetText( sDisplayCredit );
 		m_textAuthor.HandleMessage( msg );
 	}
-
-	if( m_bShowAutogen )
-	{
-		bool b = params.pSteps && params.pSteps->IsAutogen();
-		m_sprAutogen->HandleMessage( msg );
-		m_sprAutogen->SetVisible( b );
-	}
-
 	if( m_bShowStepsType )
 	{
 		if( params.st != StepsType_Invalid )

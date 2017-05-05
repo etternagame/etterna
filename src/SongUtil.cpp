@@ -127,8 +127,6 @@ void SongUtil::GetSteps(
 			continue;
 		if( uHash != 0 && uHash != pSteps->GetHash() )
 			continue;
-		if( !bIncludeAutoGen && pSteps->IsAutogen() )
-			continue;
 
 		arrayAddTo.push_back( pSteps );
 
@@ -169,8 +167,6 @@ Steps* SongUtil::GetStepsByDifficulty( const Song *pSong, StepsType st, Difficul
 		Steps* pSteps = vpSteps[i];
 
 		if( dc != Difficulty_Invalid && dc != pSteps->GetDifficulty() )
-			continue;
-		if( !bIncludeAutoGen && pSteps->IsAutogen() )
 			continue;
 
 		return pSteps;

@@ -77,8 +77,6 @@ void ScreenJukebox::SetSong()
 		if( pSteps == NULL )
 			continue;	// skip
 
-		if( !PREFSMAN->m_bAutogenSteps && pSteps->IsAutogen())
-			continue;	// skip
 
 		// Found something we can use!
 		GAMESTATE->m_pCurSong.Set( pSong );

@@ -144,7 +144,6 @@ void ScreenHowToPlay::Init()
 			loaderSSC.LoadFromSimfile( sStepsPath, m_Song, false );
 		else
 			loaderSM.LoadFromSimfile( sStepsPath, m_Song, false );
-		m_Song.AddAutoGenNotes();
 
 		const Style* pStyle = GAMESTATE->GetCurrentStyle(PLAYER_INVALID);
 

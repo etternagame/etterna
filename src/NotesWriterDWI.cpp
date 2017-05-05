@@ -417,8 +417,6 @@ bool NotesWriterDWI::Write( const RString &sPath, const Song &out )
 	for( unsigned i=0; i<vpSteps.size(); i++ ) 
 	{
 		const Steps* pSteps = vpSteps[i];
-		if( pSteps->IsAutogen() )
-			continue;	// don't save autogen notes
 
 		if( !WriteDWINotesTag( f, *pSteps ))
 			continue;

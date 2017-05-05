@@ -907,12 +907,6 @@ void SongManager::Invalidate( const Song *pStaleSong )
 
 void SongManager::SetPreferences()
 {
-	for( unsigned int i=0; i<m_pSongs.size(); i++ )
-	{
-		// PREFSMAN->m_bAutogenSteps may have changed.
-		m_pSongs[i]->RemoveAutoGenNotes();
-		m_pSongs[i]->AddAutoGenNotes();
-	}
 }
 
 void SongManager::SaveEnabledSongsToPref()

@@ -148,15 +148,6 @@ public:
 	const RString &GetSongFilePath() const;
 	RString GetCacheFilePath() const;
 
-	void AddAutoGenNotes();
-	/**
-	 * @brief Automatically generate steps from one type to another.
-	 * @param ntTo the StepsType we're making.
-	 * @param ntFrom the StepsType we're generating from.
-	 */
-	void AutoGen( StepsType ntTo, StepsType ntFrom );
-	void RemoveAutoGenNotes();
-
 	// Directory this song data came from:
 	const RString &GetSongDir() const { return m_sSongDir; }
 

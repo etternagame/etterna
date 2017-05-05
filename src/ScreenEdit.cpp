@@ -4108,9 +4108,6 @@ void ScreenEdit::HandleScreenMessage( const ScreenMessage SM )
 			// If we're not on the same style, let it go.
 			if( GAMESTATE->m_pCurSteps[PLAYER_1]->m_StepsType != (*s)->m_StepsType )
 				continue;
-			// If autogenned, it isn't being saved.
-			if( (*s)->IsAutogen() )
-				continue;
 			// If the notedata has content, let it go.
 			if( !(*s)->GetNoteData().IsEmpty() )
 				continue;
