@@ -10,50 +10,24 @@ local playCount = 0
 local playTime = 0
 local noteCount = 0
 local numfaves = 0
-local skillsets = {
-	Overall = 0,
-	Speed 	= 0,
-	Stam  	= 0,
-	Jack  	= 0,
-}
 local profileXP = 0
 local AvatarX = 0
 local AvatarY = SCREEN_HEIGHT-50
+local playerRating = 0
 
 t[#t+1] = Def.Actor{
-	BeginCommand=cmd(queuecommand,"Set");
+	BeginCommand=cmd(queuecommand,"Set"),
 	SetCommand=function(self)
-		if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
-			profile = GetPlayerOrMachineProfile(PLAYER_1)
-			if profile ~= nil then
-				profileName = profile:GetDisplayName()
-				playCount = profile:GetTotalNumSongsPlayed()
-				playTime = profile:GetTotalSessionSeconds()
-				noteCount = profile:GetTotalTapsAndHolds()
-				profileXP = math.floor(profile:GetTotalDancePoints()/10 + profile:GetTotalNumSongsPlayed()*50)
-
-				-- oook i need to handle this differently
-				skillsets.Overall = profile:GetPlayerRating()
-				skillsets.Speed = profile:GetPlayerSkillsetRating(2)
-				skillsets.Stam = profile:GetPlayerSkillsetRating(3)
-				skillsets.Jack = profile:GetPlayerSkillsetRating(4)
-				
-			else 
-				profileName = "No Profile"
-				playCount = 0
-				playTime = 0
-				profileXP = 0
-			end; 
-		else
-			profileName = "No Profile"
-			playCount = 0
-			playTime = 0
-			noteCount = 0
-			profileXP = 0
-		end;
-	end;
-	PlayerJoinedMessageCommand=cmd(queuecommand,"Set");
-	PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set");
+		profile = GetPlayerOrMachineProfile(PLAYER_1)
+		profileName = profile:GetDisplayName()
+		playCount = profile:GetTotalNumSongsPlayed()
+		playTime = profile:GetTotalSessionSeconds()
+		noteCount = profile:GetTotalTapsAndHolds()
+		profileXP = math.floor(profile:GetTotalDancePoints() / 10 + profile:GetTotalNumSongsPlayed() * 50)
+		playerRating = profile:GetPlayerRating()
+	end,
+	PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
+	PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set")
 }
 
 t[#t+1] = Def.ActorFrame{
@@ -87,14 +61,14 @@ t[#t+1] = Def.ActorFrame{
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self)
 			local tiers = {[0] = "1: Novice", [7] = "2: Basic", [13] = "3: Intermediate", [17] = "4: Advanced", [21] = "5: Expert", [25] = "6: Master", [29] = "7: Veteran", [35] = "8: Legendary", [40] = "9: Vibro Legend"}
-			local index = math.floor(skillsets.Overall)
+			local index = math.floor(playerRating)
 				while tiers[index] == nil do
 				index = index - 1
 				end
 			if IsNetSMOnline() then
-			self:settextf("%s: %5.2f (Tier %s)",profileName,skillsets.Overall,tiers[index])
+			self:settextf("%s: %5.2f (Tier %s)",profileName,playerRating,tiers[index])
 			else
-			self:settextf("%s: %5.2f",profileName,skillsets.Overall)
+			self:settextf("%s: %5.2f",profileName,playerRating)
 			end
 		end,
 		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
@@ -193,34 +167,5 @@ local function Update(self)
     end;
 end
 t.InitCommand=cmd(SetUpdateFunction,Update)
-
-local function littlebits(i)
-	local t = Def.ActorFrame{
-		LoadFont("Common Normal") .. {
-			InitCommand=cmd(xy,AvatarX+200,AvatarY+10*i;halign,0;zoom,0.35;diffuse,getMainColor('positive')),
-			BeginCommand=cmd(queuecommand,"Set"),
-			SetCommand=function(self)
-				self:settext(ms.SkillSets[i]..":")
-			end,
-			PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-			PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
-		},
-		LoadFont("Common Normal") .. {
-			InitCommand=cmd(xy,AvatarX+300,AvatarY+10*i;halign,1;zoom,0.35),
-			BeginCommand=cmd(queuecommand,"Set"),
-			SetCommand=function(self)
-				self:settextf("%5.2f",skillsets[ms.SkillSets[i]])
-				self:diffuse(ByMSD(skillsets[ms.SkillSets[i]]))
-			end,
-			PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-			PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
-		}
-	}
-	return t
-end
-
-for i=2,#ms.SkillSets do 
-	--t[#t+1] = littlebits(i)
-end
 
 return t

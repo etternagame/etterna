@@ -258,7 +258,6 @@ HoldNoteScore StringToHoldNoteScore( const RString &s )
 }
 XToLocalizedString( HoldNoteScore );
 
-// wtf is this shit - mina
 static const char *SkillsetNames[] = {
 	"Overall",
 	"Stream",

@@ -2220,7 +2220,8 @@ public:
 		return 1;
 	}
 	static int GetPlayerSkillsetRating(T* p, lua_State *L) {
-		lua_pushnumber(L, p->m_fPlayerSkillsets[Enum::Check<Skillset>(L, 1)]);
+		Skillset ss = Enum::Check<Skillset>(L, 1);
+		lua_pushnumber(L, p->m_fPlayerSkillsets[ss]);
 		return 1;
 	}
 

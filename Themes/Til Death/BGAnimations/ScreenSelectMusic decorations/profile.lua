@@ -44,8 +44,15 @@ end
 
 t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,frameHeight;halign,0;valign,0;diffuse,color("#333333CC"))}
 t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,offsetY;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,0.5)}
-
 t[#t+1] = LoadFont("Common Normal")..{InitCommand=cmd(xy,frameX+5,frameY+offsetY-9;zoom,0.6;halign,0;diffuse,getMainColor('positive');settext,"Profile Info (WIP)")}
+
+
+local function byValidity(valid)
+	if valid then
+		return getMainColor('positive')
+	end
+	byJudgment("TapNoteScore_Miss")
+end
 
 -- The input callback for mouse clicks already exists within the tabmanager and redefining it within the local scope does nothing but create confusion - mina
 local r = Def.ActorFrame{}
@@ -59,136 +66,86 @@ local function rankingLabel(i)
 	local t = Def.ActorFrame{
 		InitCommand=cmd(visible, false),
 		UpdateRankingMessageCommand=function(self)
-			if rankingSkillset > 1 then
-				self:visible(true)
+			if rankingSkillset > 1 and update then
+				SCOREMAN:SortSSRs(ms.SkillSets[rankingSkillset])
+				ths = SCOREMAN:GetTopSSRHighScore(i+(scorestodisplay*(rankingPage-1)), ms.SkillSets[rankingSkillset])
+				if ths then
+					self:visible(true)
+					ck = ths:GetChartKey()						
+					thssong = SONGMAN:GetSongByChartKey(ck)
+					thssteps = SONGMAN:GetStepsByChartKey(ck)
+					
+					self:RunCommandsOnChildren(cmd(queuecommand, "Display"))
+				end
 			else
 				self:visible(false)
 			end
 		end,
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(xy,frameX+12.5,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,100),
-			SetCommand=function(self)
-				if update then
-					self:diffuse(getMainColor("positive"))
-					self:settext(((rankingPage-1)*25)+i..".")
-					ths = SCOREMAN:GetTopSSRHighScore(i+(scorestodisplay*(rankingPage-1)), ms.SkillSets[rankingSkillset])
-					if ths then
-						ck = ths:GetChartKey()						
-						thssong = SONGMAN:GetSongByChartKey(ck)
-						thssteps = SONGMAN:GetStepsByChartKey(ck)
-					end
-					
-				end
-			end,
-			UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
+			DisplayCommand=function(self)
+				self:diffuse(getMainColor("positive"))
+				self:settext(((rankingPage-1)*25)+i..".")
+			end
 		},
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(xy,frameX+rankingX,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,160),
-			SetCommand=function(self)
-				if update and rankingSkillset > 1 then 
-					if ths then 
-						local val = ths:GetSkillsetSSR(ms.SkillSets[rankingSkillset])
-						self:settextf("%5.2f", val)
-						if not ths:GetEtternaValid() then
-							self:diffuse(byJudgment("TapNoteScore_Miss"))
-						else
-							self:diffuse(getMainColor('positive'))
-						end											
-					else
-						self:settext( ' - ' )
-						self:diffuse(getMainColor('positive'))
-					end
-				end
-			end,
-			UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
+			DisplayCommand=function(self)
+				self:settextf("%5.2f", ths:GetSkillsetSSR(ms.SkillSets[rankingSkillset]))
+				self:diffuse(byValidity(ths:GetEtternaValid()))
+			end
 		},
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(xy,frameX+rankingX+35,frameY+rankingY+110-(11-i)*10;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*2.5-160),
-			SetCommand=function(self)
-				if update and ths then
-					self:settext(thssong:GetDisplayMainTitle())
-					if not ths:GetEtternaValid() then
-						self:diffuse(byJudgment("TapNoteScore_Miss"))
-					else
-						self:diffuse(getMainColor('positive'))
-					end	
-				else
-					self:settext( ' ' )
-					self:diffuse(getMainColor('positive'))
-				end
-			end,
-			UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
+			DisplayCommand=function(self)
+				self:settext(thssong:GetDisplayMainTitle())
+				self:diffuse(byValidity(ths:GetEtternaValid()))
+			end
 		},
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(xy,frameX+rankingX+230,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*4-160),
-			SetCommand=function(self)
-				if update and ths then
-					local ratestring = string.format("%.2f", ths:GetMusicRate()):gsub("%.?0+$", "").."x"
-					self:settext(ratestring)
-					if not ths:GetEtternaValid() then
-						self:diffuse(byJudgment("TapNoteScore_Miss"))
-					else
-						self:diffuse(getMainColor('positive'))
-					end	
-				else
-					self:settext( ' - ' )
-					self:diffuse(getMainColor('positive'))
-				end
-			end,
-			UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
+			DisplayCommand=function(self)
+				local ratestring = string.format("%.2f", ths:GetMusicRate()):gsub("%.?0+$", "").."x"
+				self:settext(ratestring)
+				self:diffuse(byValidity(ths:GetEtternaValid()))
+			end
 		},
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(xy,frameX+rankingX+270,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*4-160),
-			SetCommand=function(self)
-				if update and ths then
+			DisplayCommand=function(self)
 					self:settextf("%5.2f%%", ths:GetWifeScore()*100)
 					if not ths:GetEtternaValid() then
 						self:diffuse(byJudgment("TapNoteScore_Miss"))
 					else
 						self:diffuse(getGradeColor(ths:GetWifeGrade()))
-					end	
-				else
-					self:settext( ' - ' )
-					self:diffuse(getMainColor('positive'))
-				end
-			end,
-			UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
+					end
+			end
 		},
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(xy,frameX+rankingX+310,frameY+rankingY+110-(11-i)*10;halign,0.5;zoom,0.25;diffuse,getMainColor('positive');maxwidth,rankingWidth*4-160),
-			SetCommand=function(self)
-				if update and ths then
-					local diff = thssteps:GetDifficulty()
-					self:diffuse(byDifficulty(diff))
-					self:settext(getShortDifficulty(diff))
-				else
-					self:settext( ' - ' )
-					self:diffuse(getMainColor('positive'))
-				end
-			end,
-			UpdateRankingMessageCommand=cmd(queuecommand,"Set"),
+			DisplayCommand=function(self)
+				local diff = thssteps:GetDifficulty()
+				self:diffuse(byDifficulty(diff))
+				self:settext(getShortDifficulty(diff))
+			end
 		},
 		Def.Quad{
 			InitCommand=cmd(xy,rankingX+rankingWidth/2,frameY+rankingY+105-(11-i)*10;zoomto,rankingWidth,10;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0),
 			MouseRightClickMessageCommand=function(self)
-				if update and ths then 
-					if isOver(self) then
-						ths:ToggleEtternaValidation()
-						MESSAGEMAN:Broadcast("UpdateRanking")
-						if ths:GetEtternaValid() then 
-							ms.ok("Score Revalidated")
-						else
-							ms.ok("Score Invalidated")
-						end
+				if update and ths and isOver(self) then 
+					ths:ToggleEtternaValidation()
+					MESSAGEMAN:Broadcast("UpdateRanking")
+					if ths:GetEtternaValid() then 
+						ms.ok("Score Revalidated")
+					else
+						ms.ok("Score Invalidated")
 					end
 				end
 			end,
 			MouseLeftClickMessageCommand=function(self)
-				if update and ths then 
-					if isOver(self) then
-						local whee = SCREENMAN:GetTopScreen():GetMusicWheel()
-						whee:SelectSong(thssong)
-					end
+				if update and ths and isOver(self) then 
+					local whee = SCREENMAN:GetTopScreen():GetMusicWheel()
+					whee:SelectSong(thssong)
 				end
 			end
 		}
@@ -211,8 +168,6 @@ local function rankingButton(i)
 			if isOver(self) then
 				rankingSkillset = i
 				rankingPage = 1
-				SCOREMAN:SortSSRs(ms.SkillSets[rankingSkillset])
-				ms.ok(ms.SkillSets[rankingSkillset])
 				MESSAGEMAN:Broadcast("UpdateRanking")
 			end
 		end,
@@ -348,7 +303,7 @@ local function littlebits(i)
 			InitCommand=cmd(xy,frameX+270,frameY+120 + 22*i;halign,1;zoom,0.5),
 			BeginCommand=cmd(queuecommand,"Set"),
 			SetCommand=function(self)
-				local rating = profile:GetPlayerSkillsetRating(i)
+				local rating = profile:GetPlayerSkillsetRating(ms.SkillSets[i])
 				self:settextf("%5.2f",rating)
 				self:diffuse(ByMSD(rating))
 			end,

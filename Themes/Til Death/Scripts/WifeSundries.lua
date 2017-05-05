@@ -52,7 +52,7 @@ ms.JudgeCountInverse = {
 	TapNoteScore_Miss		= 6,
 	HoldNoteScore_Held	 	= 7,
 	HoldNoteScore_LetGo		= 8,
-}
+}	
 
 ms.SkillSets = {
 	"Overall", 
@@ -60,8 +60,8 @@ ms.SkillSets = {
 	"Jumpstream", 
 	"Handstream", 
 	"Stamina",
-	"Jack Speed",
-	"Jack Stamina",
+	"JackSpeed",
+	"JackStamina",
 	"Technical"
 }
 
