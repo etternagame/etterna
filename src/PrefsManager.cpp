@@ -268,7 +268,6 @@ PrefsManager::PrefsManager() :
 	m_bThreadedInput		( "ThreadedInput",			true ),
 	m_bThreadedMovieDecode		( "ThreadedMovieDecode",		true ),
 	m_sTestInitialScreen		( "TestInitialScreen",			"" ),
-	m_bMonkeyInput			( "MonkeyInput",			false ),
 	m_sMachineName			( "MachineName",			"" ),
 	m_MuteActions			( "MuteActions",			false ),
 	m_bAllowSongDeletion		( "AllowSongDeletion",			false ),

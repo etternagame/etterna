@@ -168,8 +168,6 @@ RString RageInput::GetDisplayDevicesString() const
 	{
 		const RString &sDescription = vDevices[i].sDesc;
 		InputDevice id = vDevices[i].id;
-		if( sDescription == "MonkeyKeyboard" )
-			continue;	// hide this
 		vs.push_back( ssprintf("%s (%s)", sDescription.c_str(), InputDeviceToString(id).c_str()) );
 	}
 	return join("\n",vs);
