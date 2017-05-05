@@ -131,7 +131,7 @@ public:
 		m_iNumToasties(0), m_iTotalTapsAndHolds(0), m_iTotalJumps(0),
 		m_iTotalHolds(0), m_iTotalRolls(0), m_iTotalMines(0),
 		m_iTotalHands(0), m_iTotalLifts(0), m_bNewProfile(false),
-		m_UnlockedEntryIDs(), m_sLastPlayedMachineGuid(""),
+		m_sLastPlayedMachineGuid(""),
 		m_LastPlayedDate(),m_iNumSongsPlayedByStyle(),
 		m_iNumTotalSongsPlayed(0), m_UserTable(), m_SongHighScores(),
 		m_vScreenshots(), 
@@ -169,13 +169,10 @@ public:
 	float GetSongsAndCoursesPercentCompleteAllDifficulties( StepsType st ) const;
 	bool GetDefaultModifiers( const Game* pGameType, RString &sModifiersOut ) const;
 	void SetDefaultModifiers( const Game* pGameType, const RString &sModifiers );
-	bool IsCodeUnlocked( const RString &sUnlockEntryID ) const;
 	Song *GetMostPopularSong() const;
 
 	void AddStepTotals( int iNumTapsAndHolds, int iNumJumps, int iNumHolds, int iNumRolls, int iNumMines, 
 			   int iNumHands, int iNumLifts );
-
-	bool IsMachine() const;
 
 	ProfileType m_Type;
 	// Profiles of the same type and priority are sorted by dir name.
@@ -223,8 +220,6 @@ public:
 	// seriously why is this not a thing -mina
 	string profiledir;
 	bool IsEtternaProfile;
-
-	set<RString> m_UnlockedEntryIDs;
 	/**
 	 * @brief Which machine did we play on last, based on the Guid?
 	 *

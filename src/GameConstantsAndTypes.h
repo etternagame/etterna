@@ -333,7 +333,6 @@ enum ProfileSlot
 {
 	ProfileSlot_Player1,
 	ProfileSlot_Player2,
-	ProfileSlot_Machine,
 	NUM_ProfileSlot,
 	ProfileSlot_Invalid
 };

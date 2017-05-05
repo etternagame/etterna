@@ -74,7 +74,7 @@ public:
 	 *
 	 * Player edits also have to be loaded from a player's profile slot, not the machine.
 	 * @return true if this is a player edit, false otherwise. */
-	bool IsAPlayerEdit() const { return IsAnEdit() && GetLoadedFromProfileSlot() < ProfileSlot_Machine; }
+	bool IsAPlayerEdit() const { return IsAnEdit(); }
 	/**
 	 * @brief Determine if these steps were loaded from a player's profile.
 	 * @return true if they were from a player profile, false otherwise.

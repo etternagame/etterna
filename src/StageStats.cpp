@@ -192,7 +192,6 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 
 	hs.SetDateTime( DateTime::GetNowDateTime() );
 	hs.SetPlayerGuid( sPlayerGuid );
-	hs.SetMachineGuid( PROFILEMAN->GetMachineProfile()->m_sGuid );
 	hs.SetProductID( PREFSMAN->m_iProductID );
 	FOREACH_ENUM( TapNoteScore, tns )
 		hs.SetTapNoteScore( tns, pss.m_iTapNoteScores[tns] );
@@ -305,37 +304,6 @@ void StageStats::FinalizeScores( bool bSummary )
 		}
 	}
 
-	// If both players get a machine high score in the same HighScoreList,
-	// then one player's score may have bumped the other player. Look in 
-	// the HighScoreList and re-get the high score index.
-	FOREACH_HumanPlayer( p )
-	{
-		if( m_player[p].m_iMachineHighScoreIndex == -1 )	// no record
-			continue;	// skip
-
-		HighScore &hs = m_player[p].m_HighScore;
-		Profile* pProfile = PROFILEMAN->GetMachineProfile();
-		StepsType st = GAMESTATE->GetCurrentStyle(p)->m_StepsType;
-
-		const HighScoreList *pHSL = NULL;
-		if( bSummary )
-		{
-			pHSL = &pProfile->GetCategoryHighScoreList( st, m_player[p].m_rc );
-		}
-		else
-		{
-			Song* pSong = GAMESTATE->m_pCurSong;
-			Steps* pSteps = GAMESTATE->m_pCurSteps[p];
-			pHSL = &pProfile->GetStepsHighScoreList( pSong, pSteps );
-		}
-
-		vector<HighScore>::const_iterator iter = find( pHSL->vHighScores.begin(), pHSL->vHighScores.end(), hs );
-		if( iter == pHSL->vHighScores.end() )
-			m_player[p].m_iMachineHighScoreIndex = -1;
-		else
-			m_player[p].m_iMachineHighScoreIndex = iter - pHSL->vHighScores.begin();
-	}
-
 	LOG->Trace( "done saving stats and high scores" );
 }
 
@@ -348,7 +316,7 @@ bool StageStats::PlayerHasHighScore( PlayerNumber pn ) const
 	if( pSong->IsTutorial() == Song::SHOW_NEVER )
 		return false;
 
-	const HighScoreList &hsl = 	PROFILEMAN->GetMachineProfile()->GetStepsHighScoreList(pSong, pSteps);
+	const HighScoreList &hsl = 	PROFILEMAN->GetProfile(pn)->GetStepsHighScoreList(pSong, pSteps);
 
 	int iScore = m_player[pn].m_iScore;
 	float fPercentDP = m_player[pn].GetPercentDancePoints();

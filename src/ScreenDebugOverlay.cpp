@@ -796,11 +796,9 @@ class DebugLineShowMasks : public IDebugLine
 	}
 };
 
-static ProfileSlot g_ProfileSlot = ProfileSlot_Machine;
+static ProfileSlot g_ProfileSlot = ProfileSlot_Player1;
 static bool IsSelectProfilePersistent()
 {
-	if( g_ProfileSlot == ProfileSlot_Machine )
-		return true;
 	return PROFILEMAN->IsPersistentProfile( (PlayerNumber) g_ProfileSlot );
 }
 
@@ -811,7 +809,6 @@ class DebugLineProfileSlot : public IDebugLine
 	{
 		switch( g_ProfileSlot )
 		{
-			case ProfileSlot_Machine: return "Machine";
 			case ProfileSlot_Player1: return "Player 1";
 			case ProfileSlot_Player2: return "Player 2";
 			default: return RString();
@@ -887,9 +884,7 @@ static void FillProfileStats( Profile *pProfile )
 	s_iCount = (s_iCount+1)%2;
 
 
-	int iCount = pProfile->IsMachine()? 
-		PREFSMAN->m_iMaxHighScoresPerListForMachine.Get():
-		PREFSMAN->m_iMaxHighScoresPerListForPlayer.Get();
+	int iCount = PREFSMAN->m_iMaxHighScoresPerListForPlayer.Get();
 
 	vector<Song*> vpAllSongs = SONGMAN->GetAllSongs();
 	FOREACH( Song*, vpAllSongs, pSong )
@@ -1123,19 +1118,12 @@ class DebugLineWriteProfiles : public IDebugLine
 	virtual RString GetDisplayValue() { return RString(); }
 	virtual bool IsEnabled() { return IsSelectProfilePersistent(); }
 	virtual RString GetPageName() const { return "Profiles"; }
-	virtual void DoAndLog( RString &sMessageOut )
+	virtual void DoAndLog(RString &sMessageOut)
 	{
-		// Also save bookkeeping and profile info for debugging
-		// so we don't have to play through a whole song to get new output.
-		if( g_ProfileSlot == ProfileSlot_Machine )
-			GAMESTATE->SaveLocalData();
-		else
-		{
-			PlayerNumber pn = (PlayerNumber) g_ProfileSlot;
-			GAMESTATE->SaveCurrentSettingsToProfile(pn);
-			GAMESTATE->SavePlayerProfile( pn );
-		}
-		IDebugLine::DoAndLog( sMessageOut );
+		PlayerNumber pn = (PlayerNumber)g_ProfileSlot;
+		GAMESTATE->SaveCurrentSettingsToProfile(pn);
+		GAMESTATE->SavePlayerProfile(pn);
+		IDebugLine::DoAndLog(sMessageOut);
 	}
 };
 

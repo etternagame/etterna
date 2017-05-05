@@ -18,7 +18,6 @@
 #include "PlayerState.h"
 #include "SongManager.h"
 #include "Song.h"
-#include "UnlockManager.h"
 #include "LocalizedString.h"
 #include "arch/ArchHooks/ArchHooks.h"
 #include "ScreenPrompt.h"
@@ -549,27 +548,6 @@ bool GameCommand::IsPlayable( RString *why ) const
 			return false;
 		}
 	}
-
-	if( !m_sPreferredModifiers.empty() )
-	{
-		// TODO: Split this and check each modifier individually
-		if( UNLOCKMAN->ModifierIsLocked(m_sPreferredModifiers) )
-		{	if( why )
-				*why = "Modifier is locked";
-			return false;
-		}
-	}
-
-	if( !m_sStageModifiers.empty() )
-	{
-		// TODO: Split this and check each modifier individually
-		if( UNLOCKMAN->ModifierIsLocked(m_sStageModifiers) )
-		{	if( why )
-				*why = "Modifier is locked";
-			return false;
-		}
-	}
-
 	return true;
 }
 

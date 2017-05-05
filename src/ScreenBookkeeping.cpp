@@ -10,7 +10,6 @@
 #include "LocalizedString.h"
 #include "Song.h"
 #include "SongManager.h"
-#include "UnlockManager.h"
 #include "ProfileManager.h"
 #include "Profile.h"
 
@@ -143,15 +142,13 @@ void ScreenBookkeeping::UpdateView()
 	{
 	case BookkeepingView_SongPlays:
 		{
-			Profile *pProfile = PROFILEMAN->GetMachineProfile();
+			Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
 
 			vector<Song*> vpSongs;
 			int iCount = 0;
 			FOREACH_CONST( Song *, SONGMAN->GetAllSongs(), s )
 			{
 				Song *pSong = *s;
-				if( UNLOCKMAN->SongIsLocked(pSong) & ~LOCKED_DISABLED )
-					continue;
 				iCount += pProfile->GetSongNumTimesPlayed( pSong );
 				vpSongs.push_back( pSong );
 			}

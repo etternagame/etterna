@@ -324,7 +324,6 @@ LuaXType( TapNoteScoreJudgeType );
 static const char *ProfileSlotNames[] = {
 	"Player1",
 	"Player2",
-	"Machine",
 };
 XToString( ProfileSlot );
 LuaXType( ProfileSlot );

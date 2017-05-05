@@ -7,7 +7,6 @@
 #include "SongManager.h"
 #include "GameManager.h"
 #include "XmlFile.h"
-#include "UnlockManager.h"
 #include "SongUtil.h"
 
 bool StepsCriteria::Matches( const Song *pSong, const Steps *pSteps ) const
@@ -20,20 +19,6 @@ bool StepsCriteria::Matches( const Song *pSong, const Steps *pSteps ) const
 		return false;
 	if( m_st != StepsType_Invalid  &&  pSteps->m_StepsType != m_st )
 		return false;
-	switch( m_Locked )
-	{
-	DEFAULT_FAIL(m_Locked);
-	case Locked_Locked:
-		if( UNLOCKMAN  &&  !UNLOCKMAN->StepsIsLocked(pSong,pSteps) )
-			return false;
-		break;
-	case Locked_Unlocked:
-		if( UNLOCKMAN  &&  UNLOCKMAN->StepsIsLocked(pSong,pSteps) )
-			return false;
-		break;
-	case Locked_DontCare:
-		break;
-	}
 
 	return true;
 }
@@ -228,16 +213,6 @@ void StepsUtil::SortStepsByDescription( vector<Steps*> &arraySongPointers )
 {
 	sort( arraySongPointers.begin(), arraySongPointers.end(), CompareStepsPointersByDescription );
 }
-
-void StepsUtil::RemoveLockedSteps( const Song *pSong, vector<Steps*> &vpSteps )
-{
-	for( int i=vpSteps.size()-1; i>=0; i-- )
-	{
-		if( UNLOCKMAN->StepsIsLocked(pSong, vpSteps[i]) )
-			vpSteps.erase( vpSteps.begin()+i );
-	}
-}
-
 
 ////////////////////////////////
 // StepsID

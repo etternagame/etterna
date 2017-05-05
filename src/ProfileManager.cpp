@@ -44,7 +44,6 @@ Preference1D<RString> ProfileManager::m_sDefaultLocalProfileID( DefaultLocalProf
 
 const RString NEW_MEM_CARD_NAME	=	"";
 const RString USER_PROFILES_DIR	=	"/Save/LocalProfiles/";
-const RString MACHINE_PROFILE_DIR =	"/Save/MachineProfile/";
 const RString LAST_GOOD_SUBDIR	=	"LastGood/";
 
 
@@ -76,10 +75,8 @@ static ThemeMetric<int>		NUM_FIXED_PROFILES	( "ProfileManager", "NumFixedProfile
 ProfileManager::ProfileManager()
 	:m_stats_prefix("")
 {
-	m_pMachineProfile = new Profile;
 	FOREACH_PlayerNumber(pn)
-		m_pMemoryCardProfile[pn] = new Profile;
-
+		m_pMemoryCardProfile[pn] = new Profile;
 	// Register with Lua.
 	{
 		Lua *L = LUA->Get();
@@ -95,7 +92,6 @@ ProfileManager::~ProfileManager()
 	// Unregister with Lua.
 	LUA->UnsetGlobal( "PROFILEMAN" );
 
-	SAFE_DELETE( m_pMachineProfile );
 	FOREACH_PlayerNumber(pn)
 		SAFE_DELETE( m_pMemoryCardProfile[pn] );
 }
@@ -110,8 +106,6 @@ void ProfileManager::Init()
 		m_bNeedToBackUpLastLoad[p] = false;
 		m_bNewProfile[p] = false;
 	}
-
-	LoadMachineProfile();
 
 	RefreshLocalProfilesFromDisk();
 
@@ -661,37 +655,6 @@ bool ProfileManager::DeleteLocalProfile( const RString &sProfileID )
 	return false;
 }
 
-void ProfileManager::SaveMachineProfile() const
-{
-	// If the machine name has changed, make sure we use the new name.
-	// It's important that this name be applied before the Player profiles 
-	// are saved, so that the Player's profiles show the right machine name.
-	const_cast<ProfileManager *> (this)->m_pMachineProfile->m_sDisplayName = PREFSMAN->m_sMachineName;
-
-	m_pMachineProfile->SaveAllToDir( MACHINE_PROFILE_DIR, false ); /* don't sign machine profiles */
-}
-
-void ProfileManager::LoadMachineProfile()
-{
-	ProfileLoadResult lr = m_pMachineProfile->LoadAllFromDir(MACHINE_PROFILE_DIR, false);
-	if( lr == ProfileLoadResult_FailedNoProfile )
-	{
-		m_pMachineProfile->InitAll();
-		m_pMachineProfile->SaveAllToDir( MACHINE_PROFILE_DIR, false ); /* don't sign machine profiles */
-	}
-
-	// If the machine name has changed, make sure we use the new name
-	m_pMachineProfile->m_sDisplayName = PREFSMAN->m_sMachineName;
-
-	LoadMachineProfileEdits();
-}
-
-void ProfileManager::LoadMachineProfileEdits()
-{
-	SONGMAN->FreeAllLoadedFromProfile( ProfileSlot_Machine );
-	SONGMAN->LoadStepEditsFromProfileDir( MACHINE_PROFILE_DIR, ProfileSlot_Machine );
-}
-
 bool ProfileManager::ProfileWasLoadedFromMemoryCard( PlayerNumber pn ) const
 {
 	return !m_sProfileDir[pn].empty() && m_bWasLoadedFromMemoryCard[pn];
@@ -719,8 +682,6 @@ const RString& ProfileManager::GetProfileDir( ProfileSlot slot ) const
 	case ProfileSlot_Player1:
 	case ProfileSlot_Player2:
 		return m_sProfileDir[slot];
-	case ProfileSlot_Machine:
-		return MACHINE_PROFILE_DIR;
 	default:
 		FAIL_M("Invalid profile slot chosen: unable to get the directory!");
 	}
@@ -733,8 +694,6 @@ RString ProfileManager::GetProfileDirImportedFrom( ProfileSlot slot ) const
 	case ProfileSlot_Player1:
 	case ProfileSlot_Player2:
 		return m_sProfileDirImportedFrom[slot];
-	case ProfileSlot_Machine:
-		return RString();
 	default:
 		FAIL_M("Invalid profile slot chosen: unable to get the directory!");
 	}
@@ -747,8 +706,6 @@ const Profile* ProfileManager::GetProfile( ProfileSlot slot ) const
 	case ProfileSlot_Player1:
 	case ProfileSlot_Player2:
 		return GetProfile( (PlayerNumber)slot );
-	case ProfileSlot_Machine:
-		return m_pMachineProfile;
 	default:
 		FAIL_M("Invalid profile slot chosen: unable to get the profile!");
 	}
@@ -764,17 +721,6 @@ void ProfileManager::MergeLocalProfiles(RString const& from_id, RString const& t
 	}
 	to->MergeScoresFromOtherProfile(from, false,
 		LocalProfileIDToDir(from_id), LocalProfileIDToDir(to_id));
-}
-
-void ProfileManager::MergeLocalProfileIntoMachine(RString const& from_id, bool skip_totals)
-{
-	Profile* from= GetLocalProfile(from_id);
-	if(from == NULL)
-	{
-		return;
-	}
-	GetMachineProfile()->MergeScoresFromOtherProfile(from, skip_totals,
-		LocalProfileIDToDir(from_id), MACHINE_PROFILE_DIR);
 }
 
 void ProfileManager::ChangeProfileType(int index, ProfileType new_type)
@@ -836,14 +782,12 @@ void ProfileManager::IncrementToastiesCount( PlayerNumber pn )
 {
 	if( IsPersistentProfile(pn) )
 		++GetProfile(pn)->m_iNumToasties;
-	++GetMachineProfile()->m_iNumToasties;
 }
 
 void ProfileManager::AddStepTotals( PlayerNumber pn, int iNumTapsAndHolds, int iNumJumps, int iNumHolds, int iNumRolls, int iNumMines, int iNumHands, int iNumLifts)
 {
 	if( IsPersistentProfile(pn) )
 		GetProfile(pn)->AddStepTotals( iNumTapsAndHolds, iNumJumps, iNumHolds, iNumRolls, iNumMines, iNumHands, iNumLifts);
-	GetMachineProfile()->AddStepTotals( iNumTapsAndHolds, iNumJumps, iNumHolds, iNumRolls, iNumMines, iNumHands, iNumLifts);
 }
 
 //
@@ -882,29 +826,12 @@ void ProfileManager::AddStepsScore( const Song* pSong, const Steps* pSteps, Play
 	//
 	if( IsPersistentProfile(pn) )
 		GetProfile(pn)->AddStepsHighScore( pSong, pSteps, hs, iPersonalIndexOut );
-
-	// don't save machine scores for a failed song
-	if( hs.GetPercentDP() >= PREFSMAN->m_fMinPercentageForMachineSongHighScore &&
-		hs.GetGrade() != Grade_Failed )
-	{
-		// don't leave machine high scores for edits loaded from the player's card
-		if( !pSteps->IsAPlayerEdit() )
-			GetMachineProfile()->AddStepsHighScore( pSong, pSteps, hs, iMachineIndexOut );
-	}
-
-	/*
-	// save recent score
-	if( IsPersistentProfile(pn) )
-		GetProfile(pn)->SaveStepsRecentScore( pSong, pSteps, hs );
-	GetMachineProfile()->SaveStepsRecentScore( pSong, pSteps, hs );
-	*/
 }
 
 void ProfileManager::IncrementStepsPlayCount( const Song* pSong, const Steps* pSteps, PlayerNumber pn )
 {
 	if( IsPersistentProfile(pn) )
 		GetProfile(pn)->IncrementStepsPlayCount( pSong, pSteps );
-	GetMachineProfile()->IncrementStepsPlayCount( pSong, pSteps );
 }
 
 // Category stats
@@ -914,15 +841,12 @@ void ProfileManager::AddCategoryScore( StepsType st, RankingCategory rc, PlayerN
 	hs.SetName( RANKING_TO_FILL_IN_MARKER[pn] );
 	if( IsPersistentProfile(pn) )
 		GetProfile(pn)->AddCategoryHighScore( st, rc, hs, iPersonalIndexOut );
-	if( hs.GetPercentDP() > PREFSMAN->m_fMinPercentageForMachineSongHighScore )
-		GetMachineProfile()->AddCategoryHighScore( st, rc, hs, iMachineIndexOut );
 }
 
 void ProfileManager::IncrementCategoryPlayCount( StepsType st, RankingCategory rc, PlayerNumber pn )
 {
 	if( IsPersistentProfile(pn) )
 		GetProfile(pn)->IncrementCategoryPlayCount( st, rc );
-	GetMachineProfile()->IncrementCategoryPlayCount( st, rc );
 }
 
 bool ProfileManager::IsPersistentProfile( ProfileSlot slot ) const
@@ -932,8 +856,6 @@ bool ProfileManager::IsPersistentProfile( ProfileSlot slot ) const
 	case ProfileSlot_Player1:
 	case ProfileSlot_Player2:
 		return GAMESTATE->IsHumanPlayer((PlayerNumber)slot) && !m_sProfileDir[slot].empty(); 
-	case ProfileSlot_Machine:
-		return true;
 	default:
 		FAIL_M("Invalid profile slot chosen: unable to get profile info!");
 	}
@@ -998,7 +920,6 @@ void ProfileManager::SetStatsPrefix(RString const& prefix)
 			GetProfile(pn)->HandleStatsPrefixChange(m_sProfileDir[pn], PREFSMAN->m_bSignProfileData);
 		}
 	}
-	m_pMachineProfile->HandleStatsPrefixChange(MACHINE_PROFILE_DIR, false);
 }
 
 // lua start
@@ -1021,8 +942,6 @@ public:
 	}
 	static int IsPersistentProfile( T* p, lua_State *L )	{ lua_pushboolean(L, p->IsPersistentProfile(Enum::Check<PlayerNumber>(L, 1)) ); return 1; }
 	static int GetProfile( T* p, lua_State *L )				{ PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1); Profile* pP = p->GetProfile(pn); ASSERT(pP != NULL); pP->PushSelf(L); return 1; }
-	static int GetMachineProfile( T* p, lua_State *L )		{ p->GetMachineProfile()->PushSelf(L); return 1; }
-	static int SaveMachineProfile( T* p, lua_State * )		{ p->SaveMachineProfile(); return 0; }
 	static int GetLocalProfile( T* p, lua_State *L )
 	{
 		Profile *pProfile = p->GetLocalProfile(SArg(1));
@@ -1101,8 +1020,6 @@ public:
 		ADD_METHOD(SetStatsPrefix);
 		ADD_METHOD( IsPersistentProfile );
 		ADD_METHOD( GetProfile );
-		ADD_METHOD( GetMachineProfile );
-		ADD_METHOD( SaveMachineProfile );
 		ADD_METHOD( GetLocalProfile );
 		ADD_METHOD( GetLocalProfileFromIndex );
 		ADD_METHOD( GetLocalProfileIDFromIndex );

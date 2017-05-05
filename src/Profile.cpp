@@ -17,7 +17,6 @@
 #include "RageFileDriverDeflate.h"
 #include "RageFileManager.h"
 #include "LuaManager.h"
-#include "UnlockManager.h"
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
 #include "Foreach.h"
@@ -49,7 +48,6 @@ const RString REPLAY_SUBDIR	       = "ReplayData/";
 
 ThemeMetric<bool> SHOW_COIN_DATA( "Profile", "ShowCoinData" );
 static Preference<bool> g_bProfileDataCompress( "ProfileDataCompress", false );
-static ThemeMetric<RString> UNLOCK_AUTH_STRING( "Profile", "UnlockAuthString" );
 #define GUID_SIZE_BYTES 8
 
 #define MAX_EDITABLE_INI_SIZE_BYTES			2*1024		// 2KB
@@ -128,7 +126,6 @@ void Profile::InitGeneralData()
 	m_iNumExtraStagesPassed = 0;
 	m_iNumExtraStagesFailed = 0;
 	m_iNumToasties = 0;
-	m_UnlockedEntryIDs.clear();
 	m_sLastPlayedMachineGuid = "";
 	m_LastPlayedDate.Init();
 	m_iTotalTapsAndHolds = 0;
@@ -214,9 +211,6 @@ int Profile::GetTotalStepsWithTopGrade( StepsType st, Difficulty d, Grade g ) co
 
 	FOREACH_CONST( Song*, SONGMAN->GetAllSongs(), pSong )
 	{
-		if( !(*pSong)->NormallyDisplayed() )
-			continue;	// skip
-
 		FOREACH_CONST( Steps*, (*pSong)->GetAllSteps(), pSteps )
 		{
 			if( (*pSteps)->m_StepsType != st )
@@ -246,9 +240,6 @@ float Profile::GetSongsPossible( StepsType st, Difficulty dc ) const
 	for( unsigned i=0; i<vSongs.size(); i++ )
 	{
 		Song* pSong = vSongs[i];
-		
-		if( !pSong->NormallyDisplayed() )
-			continue;	// skip
 
 		vector<Steps*> vSteps = pSong->GetAllSteps();
 		for( unsigned j=0; j<vSteps.size(); j++ )
@@ -286,9 +277,6 @@ float Profile::GetSongsActual( StepsType st, Difficulty dc ) const
 		// get radar values to compute dance points.
 		if( pSong == NULL )
 			continue;
-
-		if( !pSong->NormallyDisplayed() )
-			continue;	// skip
 
 		CHECKPOINT_M( ssprintf("Profile::GetSongsActual: song %s", pSong->GetSongDir().c_str()) );
 		const HighScoresForASong &hsfas = i->second;
@@ -380,12 +368,6 @@ void Profile::SetDefaultModifiers( const Game* pGameType, const RString &sModifi
 		m_sDefaultModifiers[pGameType->m_szName] = sModifiers;
 }
 
-bool Profile::IsCodeUnlocked( const RString &sUnlockEntryID ) const
-{
-	return m_UnlockedEntryIDs.find( sUnlockEntryID ) != m_UnlockedEntryIDs.end();
-}
-
-
 Song *Profile::GetMostPopularSong() const
 {
 	int iMaxNumTimesPlayed = 0;
@@ -406,7 +388,7 @@ Song *Profile::GetMostPopularSong() const
 // Steps high scores
 void Profile::AddStepsHighScore( const Song* pSong, const Steps* pSteps, HighScore hs, int &iIndexOut )
 {
-	GetStepsHighScoreList(pSong,pSteps).AddHighScore( hs, iIndexOut, IsMachine() );
+	GetStepsHighScoreList(pSong,pSteps).AddHighScore( hs, iIndexOut, false );
 }
 
 const HighScoreList& Profile::GetStepsHighScoreList( const Song* pSong, const Steps* pSteps ) const
@@ -611,7 +593,7 @@ void Profile::MergeScoresFromOtherProfile(Profile* other, bool skip_totals,
 				} \
 				else \
 				{ \
-					this_sub->second.hsl.MergeFromOtherHSL(sub_entry->second.hsl, IsMachine()); \
+					this_sub->second.hsl.MergeFromOtherHSL(sub_entry->second.hsl, false); \
 				} \
 			} \
 		} \
@@ -626,32 +608,29 @@ void Profile::MergeScoresFromOtherProfile(Profile* other, bool skip_totals,
 	// In the case where two local profiles are being merged together, the user
 	// is probably planning to delete the old profile after the merge, so we
 	// want to copy the screenshots over. -Kyz
-	if(!IsMachine())
+	// The old screenshot count is stored so we know where to start in the
+	// list when copying the screenshot images.
+	size_t old_count = m_vScreenshots.size();
+	m_vScreenshots.insert(m_vScreenshots.end(),
+		other->m_vScreenshots.begin(), other->m_vScreenshots.end());
+	for (size_t sid = old_count; sid < m_vScreenshots.size(); ++sid)
 	{
-		// The old screenshot count is stored so we know where to start in the
-		// list when copying the screenshot images.
-		size_t old_count= m_vScreenshots.size();
-		m_vScreenshots.insert(m_vScreenshots.end(),
-			other->m_vScreenshots.begin(), other->m_vScreenshots.end());
-		for(size_t sid= old_count; sid < m_vScreenshots.size(); ++sid)
+		RString old_path = from_dir + "Screenshots/" + m_vScreenshots[sid].sFileName;
+		RString new_path = to_dir + "Screenshots/" + m_vScreenshots[sid].sFileName;
+		// Only move the old screenshot over if it exists and won't stomp an
+		// existing screenshot.
+		if (FILEMAN->DoesFileExist(old_path) && (!FILEMAN->DoesFileExist(new_path)))
 		{
-			RString old_path= from_dir + "Screenshots/" + m_vScreenshots[sid].sFileName;
-			RString new_path= to_dir + "Screenshots/" + m_vScreenshots[sid].sFileName;
-			// Only move the old screenshot over if it exists and won't stomp an
-			// existing screenshot.
-			if(FILEMAN->DoesFileExist(old_path) && (!FILEMAN->DoesFileExist(new_path)))
-			{
-				FILEMAN->Move(old_path, new_path);
-			}
+			FILEMAN->Move(old_path, new_path);
 		}
-		// The screenshots are kept sorted by date for ease of use, and
-		// duplicates are removed because they come from the user mistakenly
-		// merging a second time. -Kyz
-		std::sort(m_vScreenshots.begin(), m_vScreenshots.end());
-		vector<Screenshot>::iterator unique_end=
-			std::unique(m_vScreenshots.begin(), m_vScreenshots.end());
-		m_vScreenshots.erase(unique_end, m_vScreenshots.end());
 	}
+	// The screenshots are kept sorted by date for ease of use, and
+	// duplicates are removed because they come from the user mistakenly
+	// merging a second time. -Kyz
+	std::sort(m_vScreenshots.begin(), m_vScreenshots.end());
+	vector<Screenshot>::iterator unique_end =
+		std::unique(m_vScreenshots.begin(), m_vScreenshots.end());
+	m_vScreenshots.erase(unique_end, m_vScreenshots.end());
 }
 
 void Profile::swap(Profile& other)
@@ -686,7 +665,6 @@ void Profile::swap(Profile& other)
 	SWAP_GENERAL(m_iTotalHands);
 	SWAP_GENERAL(m_iTotalLifts);
 	SWAP_GENERAL(m_bNewProfile);
-	SWAP_STR_MEMBER(m_UnlockedEntryIDs);
 	SWAP_STR_MEMBER(m_sLastPlayedMachineGuid);
 	SWAP_GENERAL(m_LastPlayedDate);
 	SWAP_ARRAY(m_iNumSongsPlayedByPlayMode, NUM_PlayMode);
@@ -711,7 +689,7 @@ void Profile::swap(Profile& other)
 // Category high scores
 void Profile::AddCategoryHighScore( StepsType st, RankingCategory rc, HighScore hs, int &iIndexOut )
 {
-	m_CategoryHighScores[st][rc].AddHighScore( hs, iIndexOut, IsMachine() );
+	m_CategoryHighScores[st][rc].AddHighScore( hs, iIndexOut, false );
 }
 
 const HighScoreList& Profile::GetCategoryHighScoreList( StepsType st, RankingCategory rc ) const
@@ -890,17 +868,6 @@ ProfileLoadResult Profile::LoadStatsFromDir(RString dir, bool require_signature)
 		pFile.reset(pInflate);
 	}
 
-	// Don't load unreasonably large stats.xml files.
-	if(!IsMachine())	// only check stats coming from the player
-	{
-		int iBytes = pFile->GetFileSize();
-		if(iBytes > 5 * MAX_PLAYER_STATS_XML_SIZE_BYTES)
-		{
-			LuaHelpers::ReportScriptErrorFmt("The file '%s' is unreasonably large.  It won't be loaded.", fn.c_str());
-			return ProfileLoadResult_FailedTampered;
-		}
-	}
-
 	if(require_signature)
 	{ 
 		RString sStatsXmlSigFile = fn+SIGNATURE_APPEND;
@@ -1059,7 +1026,6 @@ ProfileLoadResult Profile::LoadEttXmlFromNode(const XNode *xml) {
 
 bool Profile::SaveAllToDir( const RString &sDir, bool bSignData ) const
 {
-	m_sLastPlayedMachineGuid = PROFILEMAN->GetMachineProfile()->m_sGuid;
 	m_LastPlayedDate = DateTime::GetNowDate();
 
 	SaveTypeToDir(sDir);
@@ -1107,8 +1073,6 @@ XNode *Profile::SaveStatsXmlCreateNode() const
 	xml->AppendChild( SaveSongScoresCreateNode() );
 	xml->AppendChild( SaveCategoryScoresCreateNode() );
 	xml->AppendChild( SaveScreenshotDataCreateNode() );
-	if( SHOW_COIN_DATA.GetValue() && IsMachine() )
-		xml->AppendChild( SaveCoinDataCreateNode() );
 
 	return xml;
 }
@@ -1253,9 +1217,6 @@ XNode* Profile::SaveGeneralDataCreateNode() const
 	pGeneralDataNode->AppendChild( "DisplayName",			GetDisplayNameOrHighScoreName() );
 	pGeneralDataNode->AppendChild( "CharacterID",			m_sCharacterID );
 	pGeneralDataNode->AppendChild( "LastUsedHighScoreName",		m_sLastUsedHighScoreName );
-
-	pGeneralDataNode->AppendChild( "IsMachine",			IsMachine() );
-
 	pGeneralDataNode->AppendChild( "Guid",				m_sGuid );
 	pGeneralDataNode->AppendChild( "SortOrder",			SortOrderToString(m_SortOrder) );
 	pGeneralDataNode->AppendChild( "LastDifficulty",		DifficultyToString(m_LastDifficulty) );
@@ -1301,21 +1262,6 @@ XNode* Profile::SaveGeneralDataCreateNode() const
 		XNode* pPlayerSkillsets = pGeneralDataNode->AppendChild("PlayerSkillsets");
 		FOREACH_ENUM(Skillset, ss)
 			pPlayerSkillsets->AppendChild(SkillsetToString(ss), m_fPlayerSkillsets[ss]);
-	}
-
-	{
-		XNode* pUnlocks = pGeneralDataNode->AppendChild("Unlocks");
-		FOREACHS_CONST( RString, m_UnlockedEntryIDs, it )
-		{
-			XNode *pEntry = pUnlocks->AppendChild("UnlockEntry");
-			RString sUnlockEntry = it->c_str();
-			pEntry->AppendAttr( "UnlockEntryID", sUnlockEntry );
-			if( !UNLOCK_AUTH_STRING.GetValue().empty() )
-			{
-				RString sUnlockAuth = BinaryToHex( CRYPTMAN->GetMD5ForString(sUnlockEntry + UNLOCK_AUTH_STRING.GetValue()) );
-				pEntry->AppendAttr( "Auth", sUnlockAuth );
-			}
-		}
 	}
 
 	{
@@ -1387,7 +1333,7 @@ XNode* Profile::SaveGeneralDataCreateNode() const
 	}
 
 	// Load Lua UserTable from profile
-	if( !IsMachine() && m_UserTable.IsSet() )
+	if( m_UserTable.IsSet() )
 	{
 		Lua *L = LUA->Get();
 		m_UserTable.PushSelf( L );
@@ -1504,32 +1450,6 @@ void Profile::LoadGeneralDataFromNode( const XNode* pNode )
 	}
 
 	{
-		const XNode* pUnlocks = pNode->GetChild("Unlocks");
-		if( pUnlocks )
-		{
-			FOREACH_CONST_Child( pUnlocks, unlock )
-			{
-				RString sUnlockEntryID;
-				if( !unlock->GetAttrValue("UnlockEntryID",sUnlockEntryID) )
-					continue;
-
-				if( !UNLOCK_AUTH_STRING.GetValue().empty() )
-				{
-					RString sUnlockAuth;
-					if( !unlock->GetAttrValue("Auth", sUnlockAuth) )
-						continue;
-
-					RString sExpectedUnlockAuth = BinaryToHex( CRYPTMAN->GetMD5ForString(sUnlockEntryID + UNLOCK_AUTH_STRING.GetValue()) );
-					if( sUnlockAuth != sExpectedUnlockAuth )
-						continue;
-				}
-
-				m_UnlockedEntryIDs.insert( sUnlockEntryID );
-			}
-		}
-	}
-
-	{
 		const XNode* pNumSongsPlayedByPlayMode = pNode->GetChild("NumSongsPlayedByPlayMode");
 		if( pNumSongsPlayedByPlayMode )
 			FOREACH_ENUM( PlayMode, pm )
@@ -1587,22 +1507,18 @@ void Profile::LoadGeneralDataFromNode( const XNode* pNode )
 
 	}
 
-	// Build the custom data table from the existing XNode.
-	if( !IsMachine() )
-	{
-		const XNode *pUserTable = pNode->GetChild( "UserTable" );
+	const XNode *pUserTable = pNode->GetChild("UserTable");
 
-		Lua *L = LUA->Get();
+	Lua *L = LUA->Get();
 
-		// If we have custom data, load it. Otherwise, make a blank table.
-		if( pUserTable )
-			LuaHelpers::CreateTableFromXNode( L, pUserTable );
-		else
-			lua_newtable( L );
+	// If we have custom data, load it. Otherwise, make a blank table.
+	if (pUserTable)
+		LuaHelpers::CreateTableFromXNode(L, pUserTable);
+	else
+		lua_newtable(L);
 
-		m_UserTable.SetFromStack( L );
-		LUA->Release( L );
-	}
+	m_UserTable.SetFromStack(L);
+	LUA->Release(L);
 
 }
 
@@ -2073,12 +1989,6 @@ const Profile::HighScoresForASong *Profile::GetHighScoresForASong( const SongID&
 	return &it->second;
 }
 
-bool Profile::IsMachine() const
-{
-	// TODO: Think of a better way to handle this
-	return this == PROFILEMAN->GetMachineProfile();
-}
-
 
 XNode* Profile::SaveCoinDataCreateNode() const
 {
@@ -2283,7 +2193,6 @@ public:
 	static int GetCharacter(T* p, lua_State *L) { p->GetCharacter()->PushSelf(L); return 1; }
 	static int SetCharacter(T* p, lua_State *L) { p->SetCharacter(SArg(1)); COMMON_RETURN_SELF; }
 	static int GetTotalNumSongsPlayed(T* p, lua_State *L) { lua_pushnumber(L, p->m_iNumTotalSongsPlayed); return 1; }
-	static int IsCodeUnlocked(T* p, lua_State *L) { lua_pushboolean(L, p->IsCodeUnlocked(SArg(1))); return 1; }
 	static int GetSongsActual(T* p, lua_State *L) { lua_pushnumber(L, p->GetSongsActual(Enum::Check<StepsType>(L, 1), Enum::Check<Difficulty>(L, 2))); return 1; }
 	static int GetSongsPossible(T* p, lua_State *L) { lua_pushnumber(L, p->GetSongsPossible(Enum::Check<StepsType>(L, 1), Enum::Check<Difficulty>(L, 2))); return 1; }
 	static int GetSongsPercentComplete(T* p, lua_State *L) { lua_pushnumber(L, p->GetSongsPercentComplete(Enum::Check<StepsType>(L, 1), Enum::Check<Difficulty>(L, 2))); return 1; }
@@ -2388,7 +2297,6 @@ public:
 		ADD_METHOD( GetCharacter );
 		ADD_METHOD( SetCharacter );
 		ADD_METHOD( GetTotalNumSongsPlayed );
-		ADD_METHOD( IsCodeUnlocked );
 		ADD_METHOD( GetSongsActual );
 		ADD_METHOD( GetSongsPossible );
 		ADD_METHOD( GetSongsPercentComplete );

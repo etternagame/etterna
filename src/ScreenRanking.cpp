@@ -204,40 +204,6 @@ float ScreenRanking::SetPage(const PageToShow &pts)
 	{
 		m_textCategory.SetText(ssprintf("Type %c", 'A' + pts.category));
 
-		for (int l = 0; l<NUM_RANKING_LINES; l++)
-		{
-			// No need to shadow at this point.
-			st = pts.aTypes.front().second;
-			HighScoreList &hsl = PROFILEMAN->GetMachineProfile()->GetCategoryHighScoreList(st, pts.category);
-			HighScore hs;
-			bool bRecentHighScore = false;
-			if (l < (int)hsl.vHighScores.size())
-			{
-				hs = hsl.vHighScores[l];
-				RString *psName = hsl.vHighScores[l].GetNameMutable();
-				bRecentHighScore = find(GAMESTATE->m_vpsNamesThatWereFilled.begin(), GAMESTATE->m_vpsNamesThatWereFilled.end(), psName) != GAMESTATE->m_vpsNamesThatWereFilled.end();
-			}
-			else
-			{
-				hs.SetName(NO_SCORE_NAME);
-			}
-
-			m_textNames[l].SetText(hs.GetDisplayName());
-			m_textScores[l].SetText(ssprintf("%09i", hs.GetScore()));
-			m_textNames[l].SetDiffuseColor(STEPS_TYPE_COLOR.GetValue(pts.colorIndex));
-			m_textScores[l].SetDiffuseColor(STEPS_TYPE_COLOR.GetValue(pts.colorIndex));
-
-			if (bRecentHighScore)
-			{
-				m_textNames[l].SetEffectGlowBlink(0.1f, RageColor(1, 1, 1, 0.2f), RageColor(1, 1, 1, 0.8f));
-				m_textScores[l].SetEffectGlowBlink(0.1f, RageColor(1, 1, 1, 0.2f), RageColor(1, 1, 1, 0.8f));
-			}
-			else
-			{
-				m_textNames[l].StopEffect();
-				m_textScores[l].StopEffect();
-			}
-		}
 	}
 	return SECONDS_PER_PAGE;
 	return SECONDS_PER_PAGE;

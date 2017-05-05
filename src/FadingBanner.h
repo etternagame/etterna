@@ -22,7 +22,6 @@ public:
 	void LoadMode();
 	void LoadFromSongGroup( const RString &sSongGroup );
 	void LoadIconFromCharacter( Character* pCharacter );
-	void LoadBannerFromUnlockEntry( const UnlockEntry* pUE );
 	void LoadRoulette();
 	void LoadRandom();
 	void LoadFromSortOrder( SortOrder so );

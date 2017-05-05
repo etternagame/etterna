@@ -35,7 +35,6 @@
 #include "Steps.h"
 #include "Style.h"
 #include "ThemeManager.h"
-#include "UnlockManager.h"
 #include "ScreenManager.h"
 #include "Screen.h"
 
@@ -392,12 +391,6 @@ void GameState::JoinPlayer( PlayerNumber pn )
 	if( GetNumSidesJoined() == 1 )
 		BeginGame();
 
-	// Count each player join as a play.
-	{
-		Profile* pMachineProfile = PROFILEMAN->GetMachineProfile();
-		pMachineProfile->m_iTotalSessions++;
-	}
-
 	// Set the current style to something appropriate for the new number of joined players.
 	// beat gametype's versus styles use a different stepstype from its single
 	// styles, so when GameCommand tries to join both players for a versus
@@ -653,7 +646,6 @@ bool GameState::HaveProfileToSave()
 void GameState::SaveLocalData()
 {
 	BOOKKEEPER->WriteToDisk();
-	PROFILEMAN->SaveMachineProfile();
 }
 
 int GameState::GetNumStagesMultiplierForSong( const Song* pSong )
@@ -758,9 +750,6 @@ void GameState::CommitStageStats()
 	// Update TotalPlaySeconds.
 	int iPlaySeconds = max( 0, (int) m_timeGameStarted.GetDeltaTime() );
 
-	Profile* pMachineProfile = PROFILEMAN->GetMachineProfile();
-	pMachineProfile->m_iTotalSessionSeconds += iPlaySeconds;
-
 	FOREACH_HumanPlayer( p )
 	{
 		Profile* pPlayerProfile = PROFILEMAN->GetProfile( p );
@@ -814,7 +803,6 @@ void GameState::FinishStage()
 		if( iOldStageIndex/iSaveProfileEvery < m_iCurrentStageIndex/iSaveProfileEvery )
 		{
 			LOG->Trace( "Played %i stages; saving profiles ...", iSaveProfileEvery );
-			PROFILEMAN->SaveMachineProfile();
 			this->SavePlayerProfiles();
 		}
 	}
@@ -1842,33 +1830,6 @@ void GameState::GetRankingFeats( PlayerNumber pn, vector<RankingFeat> &asFeatsOu
 				Song* pSong = vSongAndSteps[i].pSong;
 				Steps* pSteps = vSongAndSteps[i].pSteps;
 
-				// Find Machine Records
-				{
-					HighScoreList &hsl = PROFILEMAN->GetMachineProfile()->GetStepsHighScoreList(pSong,pSteps);
-					for( unsigned j=0; j<hsl.vHighScores.size(); j++ )
-					{
-						HighScore &hs = hsl.vHighScores[j];
-
-						if( hs.GetName() != RANKING_TO_FILL_IN_MARKER[pn] )
-							continue;
-
-						RankingFeat feat;
-						feat.Type = RankingFeat::SONG;
-						feat.pSong = pSong;
-						feat.pSteps = pSteps;
-						feat.Feat = ssprintf("MR #%d in %s %s", j+1, pSong->GetTranslitMainTitle().c_str(), DifficultyToString(pSteps->GetDifficulty()).c_str() );
-						feat.pStringToFill = hs.GetNameMutable();
-						feat.grade = hs.GetGrade();
-						feat.fPercentDP = hs.GetPercentDP();
-						feat.iScore = hs.GetScore();
-
-						if( pSong->HasBanner() )
-							feat.Banner = pSong->GetBannerPath();
-
-						asFeatsOut.push_back( feat );
-					}
-				}
-
 				// Find Personal Records
 				if( pProf && PROFILE_RECORD_FEATS )
 				{
@@ -1905,30 +1866,6 @@ void GameState::GetRankingFeats( PlayerNumber pn, vector<RankingFeat> &asFeatsOu
 			CHECKPOINT_M("Getting the final evaluation stage stats.");
 			StageStats stats;
 			STATSMAN->GetFinalEvalStageStats( stats );
-
-
-			// Find Machine Category Records
-			FOREACH_ENUM( RankingCategory, rc )
-			{
-				if( !CATEGORY_RECORD_FEATS )
-					continue;
-				HighScoreList &hsl = PROFILEMAN->GetMachineProfile()->GetCategoryHighScoreList( st, rc );
-				for( unsigned j=0; j<hsl.vHighScores.size(); j++ )
-				{
-					HighScore &hs = hsl.vHighScores[j];
-					if( hs.GetName() != RANKING_TO_FILL_IN_MARKER[pn] )
-						continue;
-
-					RankingFeat feat;
-					feat.Type = RankingFeat::CATEGORY;
-					feat.Feat = ssprintf("MR #%d in Type %c (%d)", j+1, 'A'+rc, stats.GetAverageMeter(pn) );
-					feat.pStringToFill = hs.GetNameMutable();
-					feat.grade = Grade_NoData;
-					feat.iScore = hs.GetScore();
-					feat.fPercentDP = hs.GetPercentDP();
-					asFeatsOut.push_back( feat );
-				}
-			}
 
 			// Find Personal Category Records
 			FOREACH_ENUM( RankingCategory, rc )
@@ -2016,22 +1953,6 @@ void GameState::StoreRankingName( PlayerNumber pn, RString sName )
 		// save name pointers as we fill them
 		m_vpsNamesThatWereFilled.push_back( aFeats[i].pStringToFill );
 	}
-
-
-	Profile *pProfile = PROFILEMAN->GetMachineProfile();
-
-	if( !PREFSMAN->m_bAllowMultipleHighScoreWithSameName )
-	{
-		// erase all but the highest score for each name
-		FOREACHM( SongID, Profile::HighScoresForASong, pProfile->m_SongHighScores, iter )
-			FOREACHM( StepsID, Profile::HighScoresForASteps, iter->second.m_StepsHighScores, iter2 )
-				iter2->second.hsl.RemoveAllButOneOfEachName();
-	}
-
-	// clamp high score sizes
-	FOREACHM( SongID, Profile::HighScoresForASong, pProfile->m_SongHighScores, iter )
-		FOREACHM( StepsID, Profile::HighScoresForASteps, iter->second.m_StepsHighScores, iter2 )
-			iter2->second.hsl.ClampSize( true );
 }
 
 bool GameState::AllAreInDangerOrWorse() const

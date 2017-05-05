@@ -10,7 +10,6 @@
 #include "SongManager.h"
 #include "XmlFile.h"
 #include "Foreach.h"
-#include "UnlockManager.h"
 #include "ThemeMetric.h"
 #include "LocalizedString.h"
 #include "RageLog.h"
@@ -27,9 +26,6 @@ bool SongCriteria::Matches( const Song *pSong ) const
 	if( !m_sGroupName.empty()  &&  m_sGroupName != pSong->m_sGroupName )
 		return false;
 
-	if( UNLOCKMAN->SongIsLocked(pSong) & LOCKED_DISABLED )
-		return false;
-
 	if( m_bUseSongGenreAllowedList )
 	{
 		if( find(m_vsSongGenreAllowedList.begin(),m_vsSongGenreAllowedList.end(),pSong->m_sGenre) == m_vsSongGenreAllowedList.end() )
@@ -40,12 +36,8 @@ bool SongCriteria::Matches( const Song *pSong ) const
 	{
 	DEFAULT_FAIL(m_Selectable);
 	case Selectable_Yes:
-		if( UNLOCKMAN  &&  UNLOCKMAN->SongIsLocked(pSong) & LOCKED_SELECTABLE )
-			return false;
 		break;
 	case Selectable_No:
-		if( UNLOCKMAN  &&  !(UNLOCKMAN->SongIsLocked(pSong) & LOCKED_SELECTABLE) )
-			return false;
 		break;
 	case Selectable_DontCare:
 		break;
@@ -79,12 +71,8 @@ bool SongCriteria::Matches( const Song *pSong ) const
 	{
 	DEFAULT_FAIL(m_Locked);
 	case Locked_Locked:
-		if( UNLOCKMAN  &&  !(UNLOCKMAN->SongIsLocked(pSong) & LOCKED_LOCK) )
-			return false;
 		break;
 	case Locked_Unlocked:
-		if( UNLOCKMAN  &&  UNLOCKMAN->SongIsLocked(pSong) & LOCKED_LOCK )
-			return false;
 		break;
 	case Locked_DontCare:
 		break;
@@ -226,8 +214,6 @@ Steps* SongUtil::GetClosestNotes( const Song *pSong, StepsType st, Difficulty dc
 		Steps* pSteps = vpSteps[i];
 
 		if( pSteps->GetDifficulty() == Difficulty_Edit && dc != Difficulty_Edit )
-			continue;
-		if( bIgnoreLocked && UNLOCKMAN->StepsIsLocked(pSong,pSteps) )
 			continue;
 
 		int iDistance = abs(dc - pSteps->GetDifficulty());
@@ -470,7 +456,7 @@ void SongUtil::SortSongPointerArrayByGrades( vector<Song*> &vpSongsInOut, bool b
 		Song *pSong = vpSongsInOut[i];
 
 		int iCounts[NUM_Grade];
-		const Profile *pProfile = PROFILEMAN->GetMachineProfile();
+		const Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
 		ASSERT( pProfile != NULL );
 		pProfile->GetGrades( pSong, GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())->m_StepsType, iCounts );
 
@@ -614,8 +600,6 @@ RString SongUtil::GetSectionNameFromSongAndSort( const Song* pSong, SortOrder so
 	case SORT_TOP_GRADES:
 		{
 			int iCounts[NUM_Grade];
-			PROFILEMAN->GetMachineProfile()->GetGrades( pSong, GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())->m_StepsType, iCounts );
-
 			for( int i=Grade_Tier01; i<NUM_Grade; ++i )
 			{
 				Grade g = (Grade)i;
@@ -639,8 +623,6 @@ RString SongUtil::GetSectionNameFromSongAndSort( const Song* pSong, SortOrder so
 			SongUtil::GetStepsTypeAndDifficultyFromSortOrder( so, st, dc );
 
 			Steps* pSteps = GetStepsByDifficulty(pSong,st,dc);
-			if( pSteps && !UNLOCKMAN->StepsIsLocked(pSong,pSteps) )
-				return ssprintf("%02d", pSteps->GetMeter() );
 			return SORT_NOT_AVAILABLE.GetValue();
 		}
 	case SORT_MODE_MENU:
@@ -689,21 +671,6 @@ void SongUtil::SortSongPointerArrayByStepsTypeAndMeter( vector<Song*> &vpSongsIn
 		s += ssprintf( "%c", (pSteps? pSteps->GetDifficulty():0) + '0' );
 	}
 	stable_sort( vpSongsInOut.begin(), vpSongsInOut.end(), CompareSongPointersBySortValueAscending );
-}
-
-void SongUtil::SortByMostRecentlyPlayedForMachine( vector<Song*> &vpSongsInOut )
-{
-	Profile *pProfile = PROFILEMAN->GetMachineProfile();
-
-	FOREACH_CONST( Song*, vpSongsInOut, s )
-	{
-		int iNumTimesPlayed = pProfile->GetSongNumTimesPlayed( *s );
-		RString val = iNumTimesPlayed ? pProfile->GetSongLastPlayedDateTime(*s).GetString() : "0";
-		g_mapSongSortVal[*s] = val;
-	}
-
-	stable_sort( vpSongsInOut.begin(), vpSongsInOut.end(), CompareSongPointersBySortValueDescending );
-	g_mapSongSortVal.clear();
 }
 
 bool SongUtil::IsEditDescriptionUnique( const Song* pSong, StepsType st, const RString &sPreferredDescription, const Steps *pExclude )
@@ -1000,7 +967,6 @@ void SongUtil::GetPlayableSteps( const Song *pSong, vector<Steps*> &vOut )
 	FOREACHS( StepsType, vStepsType, st )
 		SongUtil::GetSteps( pSong, vOut, *st );
 
-	StepsUtil::RemoveLockedSteps( pSong, vOut );
 	StepsUtil::SortNotesArrayByDifficulty( vOut );
 	StepsUtil::SortStepsByTypeAndDifficulty( vOut );
 }

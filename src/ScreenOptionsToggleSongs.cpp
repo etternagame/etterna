@@ -5,7 +5,6 @@
 #include "ScreenManager.h"
 #include "Song.h"
 #include "SongManager.h"
-#include "UnlockManager.h"
 #include "PrefsManager.h"
 #include "MessageManager.h"
 
@@ -79,9 +78,6 @@ void ScreenOptionsToggleSongsSubPage::BeginScreen()
 	FOREACH_CONST( Song *, apAllSongs , s )
 	{
 		Song *pSong = *s;
-		if( UNLOCKMAN->SongIsLocked(pSong) & ~LOCKED_DISABLED )
-			continue;
-
 		vHands.push_back( OptionRowHandlerUtil::MakeNull() );
 		OptionRowDefinition &def = vHands.back()->m_Def;
 

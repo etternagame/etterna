@@ -316,8 +316,6 @@ void MusicWheelItem::RefreshGrades()
 		ProfileSlot ps;
 		if( PROFILEMAN->IsPersistentProfile(p) )
 			ps = (ProfileSlot)p;
-		else if( GRADES_SHOW_MACHINE )
-			ps = ProfileSlot_Machine;
 		else
 			continue;
 

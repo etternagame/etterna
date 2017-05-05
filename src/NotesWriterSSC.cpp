@@ -528,46 +528,6 @@ RString NotesWriterSSC::GetEditFileName( const Song *pSong, const Steps *pSteps 
 
 static LocalizedString DESTINATION_ALREADY_EXISTS	("NotesWriterSSC", "Error renaming file.  Destination file '%s' already exists.");
 static LocalizedString ERROR_WRITING_FILE		("NotesWriterSSC", "Error writing file '%s'.");
-bool NotesWriterSSC::WriteEditFileToMachine( const Song *pSong, Steps *pSteps, RString &sErrorOut )
-{
-	RString sDir = PROFILEMAN->GetProfileDir( ProfileSlot_Machine ) + EDIT_STEPS_SUBDIR;
-
-	RString sPath = sDir + GetEditFileName(pSong,pSteps);
-
-	// Check to make sure that we're not clobering an existing file before opening.
-	bool bFileNameChanging = 
-		pSteps->GetSavedToDisk()  && 
-		pSteps->GetFilename() != sPath;
-	if( bFileNameChanging  &&  DoesFileExist(sPath) )
-	{
-		sErrorOut = ssprintf( DESTINATION_ALREADY_EXISTS.GetValue(), sPath.c_str() );
-		return false;
-	}
-
-	RageFile f;
-	if( !f.Open(sPath, RageFile::WRITE | RageFile::SLOW_FLUSH) )
-	{
-		sErrorOut = ssprintf( ERROR_WRITING_FILE.GetValue(), sPath.c_str() );
-		return false;
-	}
-
-	RString sTag;
-	GetEditFileContents( pSong, pSteps, sTag );
-	if( f.PutLine(sTag) == -1 || f.Flush() == -1 )
-	{
-		sErrorOut = ssprintf( ERROR_WRITING_FILE.GetValue(), sPath.c_str() );
-		return false;
-	}
-
-	/* If the file name of the edit has changed since the last save, then delete the old
-	 * file after saving the new one. If we delete it first, then we'll lose data on error. */
-
-	if( bFileNameChanging )
-		FILEMAN->Remove( pSteps->GetFilename() );
-	pSteps->SetFilename( sPath );
-
-	return true;
-}
 
 /*
  * (c) 2011 Jason Felds

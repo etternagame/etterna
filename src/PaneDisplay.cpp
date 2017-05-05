@@ -147,7 +147,7 @@ void PaneDisplay::GetPaneTextAndLevel( PaneCategory c, RString & sTextOut, int &
 	{
 		RadarValues rv;
 		HighScoreList *pHSL = NULL;
-		ProfileSlot slot = ProfileSlot_Machine;
+		ProfileSlot slot = ProfileSlot_Player1;
 		switch( c )
 		{
 			case PaneCategory_ProfileHighScore:

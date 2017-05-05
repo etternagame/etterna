@@ -142,11 +142,8 @@ void AddPlayerStatsToProfile( Profile *pProfile, const StageStats &ss, PlayerNum
 		pProfile->m_iNumStagesPassedByGrade[ss.m_player[pn].GetGrade()] ++;
 	}
 
-	if (!pProfile->IsMachine()) {
-		SCOREMAN->RecalculateSSRs();
-		SCOREMAN->CalcPlayerRating(pProfile->m_fPlayerRating, pProfile->m_fPlayerSkillsets);
-	}
-		
+	SCOREMAN->RecalculateSSRs();
+	SCOREMAN->CalcPlayerRating(pProfile->m_fPlayerRating, pProfile->m_fPlayerSkillsets);
 }
 
 void StatsManager::CommitStatsToProfiles( const StageStats *pSS )
@@ -167,12 +164,7 @@ void StatsManager::CommitStatsToProfiles( const StageStats *pSS )
 	}
 
 	// Update profile stats
-	Profile* pMachineProfile = PROFILEMAN->GetMachineProfile();
-
 	int iGameplaySeconds = (int)truncf(pSS->m_fGameplaySeconds);
-
-	pMachineProfile->m_iTotalGameplaySeconds += iGameplaySeconds;
-	pMachineProfile->m_iNumTotalSongsPlayed += pSS->m_vpPlayedSongs.size();
 
 	if( !GAMESTATE->m_bMultiplayer )	// FIXME
 	{
@@ -184,9 +176,6 @@ void StatsManager::CommitStatsToProfiles( const StageStats *pSS )
 				pPlayerProfile->m_iTotalGameplaySeconds += iGameplaySeconds;
 				pPlayerProfile->m_iNumTotalSongsPlayed += pSS->m_vpPlayedSongs.size();
 			}
-
-			LOG->Trace("Adding stats to machine profile...");
-			AddPlayerStatsToProfile( pMachineProfile, *pSS, pn );
 
 			if( pPlayerProfile )
 			{

@@ -329,12 +329,8 @@ void ScreenOptionsManageProfiles::HandleScreenMessage( const ScreenMessage SM )
 				}
 				break;
 			case ProfileAction_MergeToMachine:
-				PROFILEMAN->MergeLocalProfileIntoMachine(
-					GetLocalProfileIDWithFocus(), false);
 				break;
 			case ProfileAction_MergeToMachineSkipTotal:
-				PROFILEMAN->MergeLocalProfileIntoMachine(
-					GetLocalProfileIDWithFocus(), true);
 				break;
 			case ProfileAction_MergeToP1:
 				PROFILEMAN->MergeLocalProfiles(GetLocalProfileIDWithFocus(),

@@ -441,7 +441,6 @@ class OptionRowHandlerListSteps : public OptionRowHandlerList
 			vector<Steps*> vpSteps;
 			Song *pSong = GAMESTATE->m_pCurSong;
 			SongUtil::GetSteps( pSong, vpSteps, GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())->m_StepsType );
-			StepsUtil::RemoveLockedSteps( pSong, vpSteps );
 			StepsUtil::SortNotesArrayByDifficulty( vpSteps );
 			for( unsigned i=0; i<vpSteps.size(); i++ )
 			{

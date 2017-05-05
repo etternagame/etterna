@@ -454,13 +454,6 @@ void ThemeManager::SwitchThemeAndLanguage( const RString &sThemeName_, const RSt
 		 * globals first; it's Lua's job to explicitly update cached metrics that it
 		 * uses. */
 		UpdateLuaGlobals();
-
-		// Reload MachineProfile with new theme's CustomLoadFunction
-		if( PROFILEMAN != NULL )
-		{
-			Profile* pProfile = PROFILEMAN->GetMachineProfile();
-			pProfile->LoadCustomFunction( "/Save/MachineProfile/" );
-		}
 	}
 
 	// Use theme metrics for localization.

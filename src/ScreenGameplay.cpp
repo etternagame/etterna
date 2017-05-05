@@ -31,7 +31,6 @@
 #include "CombinedLifeMeterTug.h"
 #include "Inventory.h"
 #include "NoteDataUtil.h"
-#include "UnlockManager.h"
 #include "ProfileManager.h"
 #include "StatsManager.h"
 #include "PlayerAI.h" // for NUM_SKILL_LEVELS

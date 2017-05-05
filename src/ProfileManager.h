@@ -54,18 +54,12 @@ public:
 	void UnloadProfile( PlayerNumber pn );
 
 	void MergeLocalProfiles(RString const& from_id, RString const& to_id);
-	void MergeLocalProfileIntoMachine(RString const& from_id, bool skip_totals);
 	void ChangeProfileType(int index, ProfileType new_type);
 	void MoveProfilePriority(int index, bool up);
 
 	// General data
 	void IncrementToastiesCount( PlayerNumber pn );
 	void AddStepTotals( PlayerNumber pn, int iNumTapsAndHolds, int iNumJumps, int iNumHolds, int iNumRolls, int iNumMines, int iNumHands, int iNumLifts);
-
-	// High scores
-	void LoadMachineProfile();	// including edits
-	void LoadMachineProfileEdits();
-	void SaveMachineProfile() const;
 
 	bool IsPersistentProfile( PlayerNumber pn ) const { return !m_sProfileDir[pn].empty(); }
 	bool IsPersistentProfile( ProfileSlot slot ) const;
@@ -79,8 +73,6 @@ public:
 	const RString& GetProfileDir( ProfileSlot slot ) const;
 	RString GetProfileDirImportedFrom( ProfileSlot slot ) const;
 
-	Profile* GetMachineProfile() { return m_pMachineProfile; }
-
 	RString GetPlayerName( PlayerNumber pn ) const;
 	bool ProfileWasLoadedFromMemoryCard( PlayerNumber pn ) const;
 	bool ProfileFromMemoryCardIsNew( PlayerNumber pn ) const;
@@ -89,7 +81,7 @@ public:
 
 	// Song stats
 	int GetSongNumTimesPlayed( const Song* pSong, ProfileSlot card ) const;
-	bool IsSongNew( const Song* pSong ) const { return GetSongNumTimesPlayed(pSong,ProfileSlot_Machine)==0; }
+	bool IsSongNew( const Song* pSong ) const { return GetSongNumTimesPlayed(pSong,ProfileSlot_Player1)==0; }
 	void AddStepsScore( const Song* pSong, const Steps* pSteps , PlayerNumber pn, const HighScore &hs, int &iPersonalIndexOut, int &iMachineIndexOut );
 	void IncrementStepsPlayCount( const Song* pSong, const Steps* pSteps, PlayerNumber pn );
 
@@ -126,7 +118,6 @@ private:
 	bool m_bNewProfile[NUM_PLAYERS];
 
 	Profile	*m_pMemoryCardProfile[NUM_PLAYERS];	// holds Profile for the currently inserted card
-	Profile *m_pMachineProfile;
 };
 
 extern ProfileManager*	PROFILEMAN;	// global and accessible from anywhere in our program

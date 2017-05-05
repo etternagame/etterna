@@ -11,7 +11,6 @@
 #include "NetworkSyncManager.h"
 #include "Song.h"
 #include "Steps.h"
-#include "UnlockManager.h"
 #include "GameCommand.h"
 #include "ActorUtil.h"
 #include "SongUtil.h"
@@ -408,25 +407,6 @@ void MusicWheel::GetSongList( vector<Song*> &arraySongs, SortOrder so )
 	{
 		Song* pSong = apAllSongs[i];
 
-		int iLocked = UNLOCKMAN->SongIsLocked( pSong );
-		if( iLocked & LOCKED_DISABLED )
-			continue;
-
-		// If we're on an extra stage, and this song is selected, ignore #SELECTABLE.
-		if( pSong != GAMESTATE->m_pCurSong || !GAMESTATE->IsAnExtraStage() )
-		{
-			// Hide songs that asked to be hidden via #SELECTABLE.
-			if( iLocked & LOCKED_SELECTABLE )
-				continue;
-			if( so != SORT_ROULETTE && iLocked & LOCKED_ROULETTE )
-				continue;
-		}
-
-		/* Hide locked songs. If RANDOM_PICKS_LOCKED_SONGS, hide in Roulette
-		 * and Random, too. */
-		if( (so!=SORT_ROULETTE || !RANDOM_PICKS_LOCKED_SONGS) && iLocked )
-			continue;
-
 		if( PREFSMAN->m_bOnlyPreferredDifficulties )
 		{
 			// if the song has steps that fit the preferred difficulty of the default player
@@ -737,8 +717,7 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 					SongUtil::SortSongPointerArrayByGenre( arraySongs );
 					break;
 				case SORT_RECENT:
-					SongUtil::SortByMostRecentlyPlayedForMachine( arraySongs );
-					if( (int) arraySongs.size() > RECENT_SONGS_TO_SHOW )
+					if( static_cast<int>(arraySongs.size()) > RECENT_SONGS_TO_SHOW )
 						arraySongs.erase( arraySongs.begin()+RECENT_SONGS_TO_SHOW, arraySongs.end() );
 					bUseSections = false;
 					break;
@@ -983,37 +962,6 @@ void MusicWheel::FilterWheelItemDatas(vector<MusicWheelItemData *> &aUnFilteredD
 
 			/* Check that we have enough stages to play this song. */
 			if( GAMESTATE->GetNumStagesMultiplierForSong(WID.m_pSong) > iMaxStagesForSong )
-			{
-				aiRemove[i] = true;
-				continue;
-			}
-
-			int iLocked = UNLOCKMAN->SongIsLocked( pSong );
-			if( iLocked & LOCKED_DISABLED )
-			{
-				aiRemove[i] = true;
-				continue;
-			}
-
-			/* If we're on an extra stage, and this song is selected, ignore #SELECTABLE. */
-			if( pSong != GAMESTATE->m_pCurSong || !GAMESTATE->IsAnExtraStage() )
-			{
-				/* Hide songs that asked to be hidden via #SELECTABLE. */
-				if( iLocked & LOCKED_SELECTABLE )
-				{
-					aiRemove[i] = true;
-					continue;
-				}
-				if( so != SORT_ROULETTE && iLocked & LOCKED_ROULETTE )
-				{
-					aiRemove[i] = true;
-					continue;
-				}
-			}
-
-			/* Hide locked songs.  If RANDOM_PICKS_LOCKED_SONGS, hide in Roulette and Random,
-			 * too. */
-			if( (so!=SORT_ROULETTE || !RANDOM_PICKS_LOCKED_SONGS) && iLocked )
 			{
 				aiRemove[i] = true;
 				continue;

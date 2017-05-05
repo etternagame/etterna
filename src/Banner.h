@@ -8,7 +8,6 @@
 #include "GameConstantsAndTypes.h"
 class Song;
 class Character;
-class UnlockEntry;
 
 /** @brief The characteristics of a Banner */
 class Banner : public Sprite
@@ -33,8 +32,6 @@ public:
 	void LoadFromSongGroup( const RString &sSongGroup );
 	void LoadCardFromCharacter( const Character *pCharacter );
 	void LoadIconFromCharacter( const Character *pCharacter );
-	void LoadBannerFromUnlockEntry( const UnlockEntry* pUE );
-	void LoadBackgroundFromUnlockEntry( const UnlockEntry* pUE );
 	void LoadRoulette();
 	void LoadRandom();
 	void LoadFromSortOrder( SortOrder so );
