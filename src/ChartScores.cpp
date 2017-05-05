@@ -202,6 +202,7 @@ void ScoresForChart::LoadFromNode(const XNode* node, const RString& ck) {
 		p->GetAttrValue("Rate", rs);
 		rate = 10 * StringToInt(rs.substr(0, 1) + rs.substr(2, 4));
 		ScoresByRate[rate].LoadFromNode(p, ck,KeyToRate(rate));
+		bestGrade = ScoresByRate[rate].bestGrade;
 	}
 }
 

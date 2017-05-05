@@ -347,7 +347,7 @@ void MusicWheelItem::RefreshGrades()
 					FOREACH_ENUM_N(Difficulty, 6, i) {
 						Steps* pSteps = SongUtil::GetStepsByDifficulty(pWID->m_pSong, st, i);
 						if (pSteps != NULL) {
-							Grade dcg = pProfile->pscores.GetBestGradeFor(pSteps->ChartKey);
+							Grade dcg = pProfile->pscores.GetBestGradeFor(pSteps->GetChartKey());
 							if (gradeBest >= dcg) {
 								dcBest = i;
 								gradeBest = dcg;
