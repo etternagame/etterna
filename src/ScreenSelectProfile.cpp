@@ -3,7 +3,6 @@
 #include "ScreenManager.h"
 #include "ProfileManager.h"
 #include "GameState.h"
-#include "MemoryCardManager.h"
 #include "InputEventPlus.h"
 
 REGISTER_SCREEN_CLASS( ScreenSelectProfile );
@@ -136,8 +135,6 @@ bool ScreenSelectProfile::SetProfileIndex( PlayerNumber pn, int iProfileIndex )
 	{
 		// GAMESTATE->UnjoinPlayer takes care of unloading the profile.
 		GAMESTATE->UnjoinPlayer( pn );
-		MEMCARDMAN->UnlockCard( pn );
-		MEMCARDMAN->UnmountCard( pn );
 		m_iSelectedProfiles[pn]=-1;
 		return true;
 	}
@@ -165,7 +162,7 @@ bool ScreenSelectProfile::Finish(){
 			iUnselectedProfiles++;
 
 		// card not ready
-		if( m_iSelectedProfiles[p] == 0 && MEMCARDMAN->GetCardState( p ) != MemoryCardState_Ready )
+		if( m_iSelectedProfiles[p] == 0)
 			return false;
 
 		// profile index too big
@@ -184,8 +181,6 @@ bool ScreenSelectProfile::Finish(){
 	// all ok - load profiles and go to next screen
 	FOREACH_PlayerNumber( p )
 	{
-		MEMCARDMAN->UnlockCard( p );
-		MEMCARDMAN->UnmountCard( p );
 		PROFILEMAN->UnloadProfile( p );
 
 		if( m_iSelectedProfiles[p] > 0 )
@@ -193,21 +188,6 @@ bool ScreenSelectProfile::Finish(){
 			PROFILEMAN->m_sDefaultLocalProfileID[p].Set( PROFILEMAN->GetLocalProfileIDFromIndex( m_iSelectedProfiles[p] - 1 ) );
 			PROFILEMAN->LoadLocalProfileFromMachine( p );
 			GAMESTATE->LoadCurrentSettingsFromProfile(p);
-		}
-		if( m_iSelectedProfiles[p] == 0 )
-		{
-			MEMCARDMAN->WaitForCheckingToComplete();
-
-			MEMCARDMAN->MountCard( p );
-			bool bSuccess = PROFILEMAN->LoadProfileFromMemoryCard( p, true );	// load full profile
-			MEMCARDMAN->UnmountCard( p );
-
-			// Lock the card on successful load, so we won't allow it to be changed.
-			if( bSuccess )
-			{
-				GAMESTATE->LoadCurrentSettingsFromProfile(p);
-				MEMCARDMAN->LockCard( p );
-			}
 		}
 	}
 	StartTransitioningScreen( SM_GoToNextScreen );

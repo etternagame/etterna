@@ -1,7 +1,6 @@
 #include "global.h"
 #include "ScreenProfileLoad.h"
 #include "GameState.h"
-#include "MemoryCardManager.h"
 #include "ScreenManager.h"
 
 REGISTER_SCREEN_CLASS( ScreenProfileLoad );

@@ -15,7 +15,6 @@
 #include "ProductInfo.h"
 #include "RageUtil.h"
 #include "ThemeManager.h"
-#include "MemoryCardManager.h"
 #include "XmlFile.h"
 #include "StepsUtil.h"
 #include "Style.h"
@@ -46,11 +45,6 @@ const RString NEW_MEM_CARD_NAME	=	"";
 const RString USER_PROFILES_DIR	=	"/Save/LocalProfiles/";
 const RString LAST_GOOD_SUBDIR	=	"LastGood/";
 
-
-// Directories to search for a profile if m_sMemoryCardProfileSubdir doesn't
-// exist, separated by ";":
-static Preference<RString> g_sMemoryCardProfileImportSubdirs( "MemoryCardProfileImportSubdirs", "" );
-
 static RString LocalProfileIDToDir( const RString &sProfileID ) { return USER_PROFILES_DIR + sProfileID + "/"; }
 static RString LocalProfileDirToID( const RString &sDir ) { return Basename( sDir ); }
 
@@ -74,9 +68,7 @@ static ThemeMetric<int>		NUM_FIXED_PROFILES	( "ProfileManager", "NumFixedProfile
 
 ProfileManager::ProfileManager()
 	:m_stats_prefix("")
-{
-	FOREACH_PlayerNumber(pn)
-		m_pMemoryCardProfile[pn] = new Profile;
+{
 	// Register with Lua.
 	{
 		Lua *L = LUA->Get();
@@ -91,16 +83,12 @@ ProfileManager::~ProfileManager()
 {
 	// Unregister with Lua.
 	LUA->UnsetGlobal( "PROFILEMAN" );
-
-	FOREACH_PlayerNumber(pn)
-		SAFE_DELETE( m_pMemoryCardProfile[pn] );
 }
 
 void ProfileManager::Init()
 {
 	FOREACH_PlayerNumber( p )
 	{
-		m_bWasLoadedFromMemoryCard[p] = false;
 		m_bLastLoadWasTamperedOrCorrupt[p] = false;
 		m_bLastLoadWasFromLastGood[p] = false;
 		m_bNeedToBackUpLastLoad[p] = false;
@@ -138,16 +126,15 @@ bool ProfileManager::FixedProfiles() const
 	return FIXED_PROFILES;
 }
 
-ProfileLoadResult ProfileManager::LoadProfile( PlayerNumber pn, const RString &sProfileDir, bool bIsMemCard )
+ProfileLoadResult ProfileManager::LoadProfile( PlayerNumber pn, const RString &sProfileDir)
 {
-	LOG->Trace( "LoadingProfile P%d, %s, %d", pn+1, sProfileDir.c_str(), bIsMemCard );
+	LOG->Trace( "LoadingProfile P%d, %s, %d", pn+1, sProfileDir.c_str());
 
 	ASSERT( !sProfileDir.empty() );
 	ASSERT( sProfileDir.Right(1) == "/" );
 
 
 	m_sProfileDir[pn] = sProfileDir;
-	m_bWasLoadedFromMemoryCard[pn] = bIsMemCard;
 	m_bLastLoadWasFromLastGood[pn] = false;
 	m_bNeedToBackUpLastLoad[pn] = false;
 
@@ -197,7 +184,6 @@ bool ProfileManager::LoadLocalProfileFromMachine( PlayerNumber pn )
 	}
 
 	m_sProfileDir[pn] = LocalProfileIDToDir( sProfileID );
-	m_bWasLoadedFromMemoryCard[pn] = false;
 	m_bLastLoadWasFromLastGood[pn] = false;
 
 	if( GetLocalProfile(sProfileID) == NULL )
@@ -211,111 +197,11 @@ bool ProfileManager::LoadLocalProfileFromMachine( PlayerNumber pn )
 	return true;
 }
 
-void ProfileManager::GetMemoryCardProfileDirectoriesToTry( vector<RString> &asDirsToTry )
-{
-	/* Try to load the preferred profile. */
-	asDirsToTry.push_back( PREFSMAN->m_sMemoryCardProfileSubdir );
-
-	/* If that failed, try loading from all fallback directories. */
-	split( g_sMemoryCardProfileImportSubdirs, ";", asDirsToTry, true );
-}
-
-bool ProfileManager::LoadProfileFromMemoryCard( PlayerNumber pn, bool bLoadEdits )
-{
-	UnloadProfile( pn );
-
-	// mount slot
-	if( MEMCARDMAN->GetCardState(pn) != MemoryCardState_Ready )
-		return false;
-
-	vector<RString> asDirsToTry;
-	GetMemoryCardProfileDirectoriesToTry( asDirsToTry );
-	m_bNewProfile[pn] = true;
-
-	for( unsigned i = 0; i < asDirsToTry.size(); ++i )
-	{
-		const RString &sSubdir = asDirsToTry[i];
-		RString sDir = MEM_CARD_MOUNT_POINT[pn] + sSubdir + "/";
-
-		/* If the load fails with ProfileLoadResult_FailedNoProfile, keep searching.  However,
-		 * if it fails with failed_tampered, data existed but couldn't be loaded;
-		 * we don't want to mess with it, since it's confusing and may wipe out
-		 * recoverable backup data.  The only time we really want to import data
-		 * is on the very first use, when the new profile doesn't exist at all,
-		 * but we also want to import scores in the case where the player created
-		 * a directory for edits before playing, so keep searching if the directory
-		 * exists with exists with no scores. */
-		ProfileLoadResult res = LoadProfile( pn, sDir, true );
-		if( res == ProfileLoadResult_Success )
-		{
-			m_bNewProfile[pn] = false;
-			/* If importing, store the directory we imported from, for display purposes. */
-			if( i > 0 )
-				m_sProfileDirImportedFrom[pn] = asDirsToTry[i];
-			break;
-		}
-
-		if( res == ProfileLoadResult_FailedTampered )
-		{
-			m_bNewProfile[pn] = false;
-			break;
-		}
-	}
-
-	/* If we imported a profile fallback directory, change the memory card
-	 * directory back to the preferred directory: never write over imported
-	 * scores. */
-	m_sProfileDir[pn] = MEM_CARD_MOUNT_POINT[pn] + (RString)PREFSMAN->m_sMemoryCardProfileSubdir + "/";
-
-	/* Load edits from all fallback directories, newest first. */
-	if( bLoadEdits )
-	{
-		for( unsigned i = 0; i < asDirsToTry.size(); ++i )
-		{
-			const RString &sSubdir = asDirsToTry[i];
-			RString sDir = MEM_CARD_MOUNT_POINT[pn] + sSubdir + "/";
-
-			if( m_bProfileStepEdits )
-				SONGMAN->LoadStepEditsFromProfileDir( sDir, (ProfileSlot) pn );
-		}
-	}
-
-	return true; // If a card is inserted, we want to use the memory card to save - even if the Profile load failed.
-}
-
 bool ProfileManager::LoadFirstAvailableProfile( PlayerNumber pn, bool bLoadEdits )
 {
-	if( LoadProfileFromMemoryCard(pn, bLoadEdits) )
-		return true;
-
 	if( LoadLocalProfileFromMachine(pn) )
 		return true;
 	
-	return false;
-}
-
-
-bool ProfileManager::FastLoadProfileNameFromMemoryCard( const RString &sRootDir, RString &sName ) const
-{
-	vector<RString> asDirsToTry;
-	GetMemoryCardProfileDirectoriesToTry( asDirsToTry );
-
-	for( unsigned i = 0; i < asDirsToTry.size(); ++i )
-	{
-		const RString &sSubdir = asDirsToTry[i];
-		RString sDir = sRootDir + sSubdir + "/";
-
-		Profile profile;
-		ProfileLoadResult res = profile.LoadEditableDataFromDir( sDir );
-		if( res == ProfileLoadResult_Success )
-		{
-			sName = profile.GetDisplayNameOrHighScoreName();
-			return true;
-		}
-		else if( res != ProfileLoadResult_FailedNoProfile )
-			break;
-	}
-
 	return false;
 }
 
@@ -385,12 +271,9 @@ void ProfileManager::UnloadProfile( PlayerNumber pn )
 		return;
 	}
 	m_sProfileDir[pn] = "";
-	m_sProfileDirImportedFrom[pn] = "";
-	m_bWasLoadedFromMemoryCard[pn] = false;
 	m_bLastLoadWasTamperedOrCorrupt[pn] = false;
 	m_bLastLoadWasFromLastGood[pn] = false;
 	m_bNeedToBackUpLastLoad[pn] = false;
-	m_pMemoryCardProfile[pn]->InitAll();
 	SONGMAN->FreeAllLoadedFromProfile( (ProfileSlot) pn );
 }
 
@@ -398,20 +281,9 @@ const Profile* ProfileManager::GetProfile( PlayerNumber pn ) const
 {
 	ASSERT( pn >= 0 && pn < NUM_PLAYERS );
 
-	if( m_sProfileDir[pn].empty() )
-	{
-		// return an empty profile
-		return m_pMemoryCardProfile[pn];
-	}
-	else if( ProfileWasLoadedFromMemoryCard(pn) )
-	{
-		return m_pMemoryCardProfile[pn];
-	}
-	else
-	{
-		RString sProfileID = LocalProfileDirToID( m_sProfileDir[pn] );
-		return GetLocalProfile( sProfileID );
-	}
+	ASSERT(!m_sProfileDir[pn].empty());
+	RString sProfileID = LocalProfileDirToID( m_sProfileDir[pn] );
+	return GetLocalProfile( sProfileID );
 }
 
 RString ProfileManager::GetPlayerName( PlayerNumber pn ) const
@@ -655,16 +527,6 @@ bool ProfileManager::DeleteLocalProfile( const RString &sProfileID )
 	return false;
 }
 
-bool ProfileManager::ProfileWasLoadedFromMemoryCard( PlayerNumber pn ) const
-{
-	return !m_sProfileDir[pn].empty() && m_bWasLoadedFromMemoryCard[pn];
-}
-
-bool ProfileManager::ProfileFromMemoryCardIsNew( PlayerNumber pn ) const
-{
-	return GetProfile(pn) && m_bWasLoadedFromMemoryCard[pn] && m_bNewProfile[pn];
-}
-
 bool ProfileManager::LastLoadWasTamperedOrCorrupt( PlayerNumber pn ) const
 {
 	return !m_sProfileDir[pn].empty() && m_bLastLoadWasTamperedOrCorrupt[pn];
@@ -682,18 +544,6 @@ const RString& ProfileManager::GetProfileDir( ProfileSlot slot ) const
 	case ProfileSlot_Player1:
 	case ProfileSlot_Player2:
 		return m_sProfileDir[slot];
-	default:
-		FAIL_M("Invalid profile slot chosen: unable to get the directory!");
-	}
-}
-
-RString ProfileManager::GetProfileDirImportedFrom( ProfileSlot slot ) const
-{
-	switch( slot )
-	{
-	case ProfileSlot_Player1:
-	case ProfileSlot_Player2:
-		return m_sProfileDirImportedFrom[slot];
 	default:
 		FAIL_M("Invalid profile slot chosen: unable to get the directory!");
 	}
@@ -912,14 +762,6 @@ void ProfileManager::SetStatsPrefix(RString const& prefix)
 	{
 		g_vLocalProfile[i].profile.HandleStatsPrefixChange(g_vLocalProfile[i].sDir, PREFSMAN->m_bSignProfileData);
 	}
-	FOREACH_PlayerNumber(pn)
-	{
-		if(ProfileWasLoadedFromMemoryCard(pn))
-		{
-			// This probably runs into a problem if the memory card has been removed. -Kyz
-			GetProfile(pn)->HandleStatsPrefixChange(m_sProfileDir[pn], PREFSMAN->m_bSignProfileData);
-		}
-	}
 }
 
 // lua start
@@ -980,7 +822,6 @@ public:
 	static int GetNumLocalProfiles( T* p, lua_State *L )	{ lua_pushnumber(L, p->GetNumLocalProfiles() ); return 1; }
 	static int GetProfileDir( T* p, lua_State *L ) { lua_pushstring(L, p->GetProfileDir(Enum::Check<ProfileSlot>(L, 1)) ); return 1; }
 	static int IsSongNew( T* p, lua_State *L )	{ lua_pushboolean(L, p->IsSongNew(Luna<Song>::check(L,1)) ); return 1; }
-	static int ProfileWasLoadedFromMemoryCard( T* p, lua_State *L )	{ lua_pushboolean(L, p->ProfileWasLoadedFromMemoryCard(Enum::Check<PlayerNumber>(L, 1)) ); return 1; }
 	static int LastLoadWasTamperedOrCorrupt( T* p, lua_State *L ) { lua_pushboolean(L, p->LastLoadWasTamperedOrCorrupt(Enum::Check<PlayerNumber>(L, 1)) ); return 1; }
 	static int GetPlayerName( T* p, lua_State *L )				{ PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1); lua_pushstring(L, p->GetPlayerName(pn)); return 1; }
 
@@ -993,7 +834,6 @@ public:
 	static int SaveProfile( T* p, lua_State *L ) { lua_pushboolean( L, p->SaveProfile(Enum::Check<PlayerNumber>(L, 1)) ); return 1; }
 	static int ConvertProfile(T* p, lua_State *L) { lua_pushboolean(L, p->ConvertProfile(Enum::Check<PlayerNumber>(L, 1))); return 1; }
 	static int SaveLocalProfile( T* p, lua_State *L ) { lua_pushboolean( L, p->SaveLocalProfile(SArg(1)) ); return 1; }
-	static int ProfileFromMemoryCardIsNew( T* p, lua_State *L ) { lua_pushboolean( L, p->ProfileFromMemoryCardIsNew(Enum::Check<PlayerNumber>(L, 1)) ); return 1; }
 	static int GetSongNumTimesPlayed( T* p, lua_State *L )
 	{
 		lua_pushnumber(L, p->GetSongNumTimesPlayed(Luna<Song>::check(L,1),Enum::Check<ProfileSlot>(L, 2)) );
@@ -1027,14 +867,12 @@ public:
 		ADD_METHOD( GetNumLocalProfiles );
 		ADD_METHOD( GetProfileDir );
 		ADD_METHOD( IsSongNew );
-		ADD_METHOD( ProfileWasLoadedFromMemoryCard );
 		ADD_METHOD( LastLoadWasTamperedOrCorrupt );
 		ADD_METHOD( GetPlayerName );
 		//
 		ADD_METHOD( SaveProfile );
 		ADD_METHOD( ConvertProfile );
 		ADD_METHOD( SaveLocalProfile );
-		ADD_METHOD( ProfileFromMemoryCardIsNew );
 		ADD_METHOD( GetSongNumTimesPlayed );
 		ADD_METHOD( GetLocalProfileIDs );
 		ADD_METHOD( GetLocalProfileDisplayNames );

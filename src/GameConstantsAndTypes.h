@@ -339,22 +339,6 @@ enum ProfileSlot
 const RString& ProfileSlotToString( ProfileSlot ps );
 LuaDeclareType( ProfileSlot );
 
-/** @brief The states of the memory card during play. */
-enum MemoryCardState
-{ 
-	MemoryCardState_Ready, 
-	MemoryCardState_Checking, 
-	MemoryCardState_TooLate, 
-	MemoryCardState_Error, 
-	MemoryCardState_Removed,
-	MemoryCardState_NoCard,
-	NUM_MemoryCardState,
-	MemoryCardState_Invalid,
-};
-
-const RString& MemoryCardStateToString( MemoryCardState mcs );
-LuaDeclareType( MemoryCardState );
-
 /** @brief The different ranking categories based on difficulty meter average. */
 enum RankingCategory
 {

@@ -1,14 +1,7 @@
 #ifndef MemoryCardManager_H
 #define MemoryCardManager_H
 
-#include "GameConstantsAndTypes.h"	// for MemoryCardState
-#include "PlayerNumber.h"
-#include "RageSound.h"
-#include "arch/MemoryCard/MemoryCardDriver.h"
-#include "Preference.h"
-
-
-extern const RString MEM_CARD_MOUNT_POINT[NUM_PLAYERS];
+#include "LuaManager.h"
 
 class MemoryCardManager
 {
@@ -16,63 +9,11 @@ public:
 	MemoryCardManager();
 	~MemoryCardManager();
 
-	void Update();
-
-	MemoryCardState GetCardState( PlayerNumber pn ) const { return m_State[pn]; }
-	RString GetCardError( PlayerNumber pn ) const { return m_sError[pn]; }
-
-	void WaitForCheckingToComplete();
-	bool CardInserted( PlayerNumber pn );
-	void LockCard( PlayerNumber pn ); // prevent removing or changing of memory card
-	void UnlockCard( PlayerNumber pn );
-	bool MountCard( PlayerNumber pn, int iTimeout = 10 );
-	bool MountCard( PlayerNumber pn, const UsbStorageDevice &d, int iTimeout = 10 );
-	void UnmountCard( PlayerNumber pn );
-
-	bool IsMounted( PlayerNumber pn ) const { return m_bMounted[pn]; }
-
-	// When paused, no changes in memory card state will be noticed until unpaused.
-	void PauseMountingThread( int iTimeout = 20 );
-	void UnPauseMountingThread();
-
-	bool GetCardLocked( PlayerNumber pn ) const { return m_bCardLocked[pn]; }
-
-	bool PathIsMemCard( const RString &sDir ) const;
-
-	bool IsNameAvailable( PlayerNumber pn ) const;
-	RString GetName( PlayerNumber pn ) const;
-
-	const vector<UsbStorageDevice> &GetStorageDevices() { return m_vStorageDevices; }
-
-	static Preference1D<RString>	m_sMemoryCardOsMountPoint;
-	static Preference1D<int>	m_iMemoryCardUsbBus;
-	static Preference1D<int>	m_iMemoryCardUsbPort;
-	static Preference1D<int>	m_iMemoryCardUsbLevel;
-
-	static Preference<RString>	m_sEditorMemoryCardOsMountPoint;
-
 	// Lua
 	void PushSelf( lua_State *L );
 
 protected:
-	void UpdateAssignments();
-	void CheckStateChanges();
 
-	vector<UsbStorageDevice> m_vStorageDevices;	// all currently connected
-
-	bool	m_bCardLocked[NUM_PLAYERS];
-	bool	m_bMounted[NUM_PLAYERS];	// card is currently mounted
-
-	UsbStorageDevice m_Device[NUM_PLAYERS];	// device in the memory card slot, blank if none
-	UsbStorageDevice m_FinalDevice[NUM_PLAYERS];	// device in the memory card slot when we finalized, blank if none
-
-	MemoryCardState m_State[NUM_PLAYERS];
-	RString m_sError[NUM_PLAYERS]; // if MemoryCardState_Error
-
-	RageSound m_soundReady;
-	RageSound m_soundError;
-	RageSound m_soundTooLate;
-	RageSound m_soundDisconnect;
 };
 
 extern MemoryCardManager*	MEMCARDMAN;	// global and accessible from anywhere in our program

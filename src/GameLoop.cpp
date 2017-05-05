@@ -12,7 +12,6 @@
 #include "ThemeManager.h"
 #include "SongManager.h"
 #include "GameState.h"
-#include "MemoryCardManager.h"
 #include "ScreenManager.h"
 #include "InputFilter.h"
 #include "InputMapper.h"
@@ -293,7 +292,6 @@ void GameLoop::RunGameLoop()
 		TEXTUREMAN->Update( fDeltaTime );
 		GAMESTATE->Update( fDeltaTime );
 		SCREENMAN->Update( fDeltaTime );
-		MEMCARDMAN->Update();
 		NSMAN->Update( fDeltaTime );
 
 		/* Important: Process input AFTER updating game logic, or input will be

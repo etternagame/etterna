@@ -7,7 +7,6 @@
 #include "ThemeMetric.h"
 
 class MenuTimer;
-class MemoryCardDisplay;
 
 class ScreenWithMenuElements : public Screen
 {
@@ -43,7 +42,6 @@ protected:
 	void SetHelpText( const RString &s );
 
 	AutoActor			m_sprUnderlay;
-	MemoryCardDisplay	*m_MemoryCardDisplay[NUM_PLAYERS];
 	MenuTimer			*m_MenuTimer;
 	AutoActor			m_sprOverlay;
 	vector<Actor*>		m_vDecorations;

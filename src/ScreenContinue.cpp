@@ -6,7 +6,6 @@
 #include "RageLog.h"
 #include "InputEventPlus.h"
 #include "MenuTimer.h"
-#include "MemoryCardManager.h"
 
 
 REGISTER_SCREEN_CLASS( ScreenContinue );
@@ -36,7 +35,6 @@ void ScreenContinue::BeginScreen()
 			if( bPlayerDone )
 			{
 				GAMESTATE->UnjoinPlayer( p );
-				MEMCARDMAN->UnlockCard( p );
 			}
 		}
 		else

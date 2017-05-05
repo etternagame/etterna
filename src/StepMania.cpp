@@ -1241,9 +1241,7 @@ RString StepMania::SaveScreenshot( const RString &Dir, bool SaveCompressed, bool
 	// Save the screenshot. If writing lossy to a memcard, use
 	// SAVE_LOSSY_LOW_QUAL, so we don't eat up lots of space.
 	RageDisplay::GraphicsFileFormat fmt;
-	if( SaveCompressed && MEMCARDMAN->PathIsMemCard(Dir) )
-		fmt = RageDisplay::SAVE_LOSSY_LOW_QUAL;
-	else if( SaveCompressed )
+	if( SaveCompressed )
 		fmt = RageDisplay::SAVE_LOSSY_HIGH_QUAL;
 	else
 		fmt = RageDisplay::SAVE_LOSSLESS_SENSIBLE;
@@ -1627,18 +1625,10 @@ int LuaFunc_SaveScreenshot(lua_State *L)
 	else
 	{
 		dir= PROFILEMAN->GetProfileDir((ProfileSlot)pn) + "Screenshots/";
-		if(PROFILEMAN->ProfileWasLoadedFromMemoryCard(pn))
-		{
-			MEMCARDMAN->MountCard(pn);
-		}
 	}
 	RString filename= StepMania::SaveScreenshot(dir, compress, sign, prefix, suffix);
 	if(pn != PlayerNumber_Invalid)
 	{
-		if(PROFILEMAN->ProfileWasLoadedFromMemoryCard(pn))
-		{
-			MEMCARDMAN->UnmountCard(pn);
-		}
 	}
 	RString path= dir + filename;
 	lua_pushboolean(L, !filename.empty());

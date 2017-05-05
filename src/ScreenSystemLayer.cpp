@@ -5,7 +5,6 @@
 #include "ThemeManager.h"
 #include "ActorUtil.h"
 #include "GameState.h"
-#include "MemoryCardManager.h"
 #include "Profile.h"
 #include "ProfileManager.h"
 #include "RageLog.h"
@@ -40,60 +39,24 @@ namespace
 		bool bShowCreditsMessage;
 		if( SCREENMAN && SCREENMAN->GetTopScreen() && SCREENMAN->GetTopScreen()->GetScreenType() == system_menu )
 			bShowCreditsMessage = true;
-		else if( MEMCARDMAN->GetCardLocked(pn) )
-			bShowCreditsMessage = !GAMESTATE->IsPlayerEnabled( pn );
 		else 
 			bShowCreditsMessage = !GAMESTATE->m_bSideIsJoined[pn];
 			
 		if( !bShowCreditsMessage )
 		{
-			MemoryCardState mcs = MEMCARDMAN->GetCardState( pn );
-			const Profile* pProfile = PROFILEMAN->GetProfile( pn );
-			switch( mcs )
-			{
-			DEFAULT_FAIL( mcs );
-			case MemoryCardState_NoCard:
-				// this is a local machine profile
-				if( PROFILEMAN->LastLoadWasFromLastGood(pn) )
-					return pProfile->GetDisplayNameOrHighScoreName() + CREDITS_LOADED_FROM_LAST_GOOD_APPEND.GetValue();
-				else if( PROFILEMAN->LastLoadWasTamperedOrCorrupt(pn) )
-					return CREDITS_LOAD_FAILED.GetValue();
-				// Prefer the name of the profile over the name of the card.
-				else if( PROFILEMAN->IsPersistentProfile(pn) )
-					return pProfile->GetDisplayNameOrHighScoreName();
-				else if( GAMESTATE->PlayersCanJoin() )
-					return CREDITS_INSERT_CARD.GetValue();
-				else
-					return RString();
-
-			case MemoryCardState_Error: 		return THEME->GetString( "ScreenSystemLayer", "CreditsCard" + MEMCARDMAN->GetCardError(pn) );
-			case MemoryCardState_TooLate:		return CREDITS_CARD_TOO_LATE.GetValue();
-			case MemoryCardState_Checking:		return CREDITS_CARD_CHECKING.GetValue();
-			case MemoryCardState_Removed:		return CREDITS_CARD_REMOVED.GetValue();
-			case MemoryCardState_Ready:
-				{
-					// If the profile failed to load and there was no usable backup...
-					if( PROFILEMAN->LastLoadWasTamperedOrCorrupt(pn) && !PROFILEMAN->LastLoadWasFromLastGood(pn) )
-						return CREDITS_LOAD_FAILED.GetValue();
-
-					// If there is a local profile loaded, prefer it over the name of the memory card.
-					if( PROFILEMAN->IsPersistentProfile(pn) )
-					{
-						RString s = pProfile->GetDisplayNameOrHighScoreName();
-						if( s.empty() )
-							s = CREDITS_CARD_NO_NAME.GetValue();
-						if( PROFILEMAN->LastLoadWasFromLastGood(pn) )
-							s += CREDITS_LOADED_FROM_LAST_GOOD_APPEND.GetValue();
-						return s;
-					}
-					else if( !MEMCARDMAN->IsNameAvailable(pn) )
-						return CREDITS_CARD_READY.GetValue();
-					else if( !MEMCARDMAN->GetName(pn).empty() )
-						return MEMCARDMAN->GetName(pn);
-					else
-						return CREDITS_CARD_NO_NAME.GetValue();
-				}
-			}
+			const Profile* pProfile = PROFILEMAN->GetProfile(pn);
+			// this is a local machine profile
+			if (PROFILEMAN->LastLoadWasFromLastGood(pn))
+				return pProfile->GetDisplayNameOrHighScoreName() + CREDITS_LOADED_FROM_LAST_GOOD_APPEND.GetValue();
+			else if (PROFILEMAN->LastLoadWasTamperedOrCorrupt(pn))
+				return CREDITS_LOAD_FAILED.GetValue();
+			// Prefer the name of the profile over the name of the card.
+			else if (PROFILEMAN->IsPersistentProfile(pn))
+				return pProfile->GetDisplayNameOrHighScoreName();
+			else if (GAMESTATE->PlayersCanJoin())
+				return CREDITS_INSERT_CARD.GetValue();
+			else
+				return RString();
 		}
 		else // bShowCreditsMessage
 		{

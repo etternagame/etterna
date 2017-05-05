@@ -6,7 +6,6 @@
 #include "ArchHooks/ArchHooks_Win32.h"
 #include "LoadingWindow/LoadingWindow_Win32.h"
 #include "LowLevelWindow/LowLevelWindow_Win32.h"
-#include "MemoryCard/MemoryCardDriverThreaded_Windows.h"
 #define DEFAULT_INPUT_DRIVER_LIST "DirectInput,Pump,Para"
 #define DEFAULT_MOVIE_DRIVER_LIST "FFMpeg,DShow,Null"
 #define DEFAULT_SOUND_DRIVER_LIST "WaveOut,DirectSound-sw,WDMKS,Null"
@@ -16,7 +15,6 @@
 #include "ArchHooks/ArchHooks_MacOSX.h"
 #include "LoadingWindow/LoadingWindow_MacOSX.h"
 #include "LowLevelWindow/LowLevelWindow_MacOSX.h"
-#include "MemoryCard/MemoryCardDriverThreaded_MacOSX.h"
 #define DEFAULT_INPUT_DRIVER_LIST "HID"
 #define DEFAULT_MOVIE_DRIVER_LIST "FFMpeg,Null"
 #define DEFAULT_SOUND_DRIVER_LIST "AudioUnit,Null"
@@ -25,10 +23,6 @@
 #elif defined(UNIX)
 #include "ArchHooks/ArchHooks_Unix.h"
 #include "LowLevelWindow/LowLevelWindow_X11.h"
-
-#if defined(LINUX)
-#include "MemoryCard/MemoryCardDriverThreaded_Linux.h"
-#endif
 
 #if defined(HAVE_GTK)
 #include "LoadingWindow/LoadingWindow_Gtk.h"
@@ -53,7 +47,6 @@
 
 /* All use these. */
 #include "LoadingWindow/LoadingWindow_Null.h"
-#include "MemoryCard/MemoryCardDriver_Null.h"
 
 #endif
 

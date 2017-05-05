@@ -7,12 +7,10 @@
 #include "PrefsManager.h"
 #include "ScreenManager.h"
 #include "GameSoundManager.h"
-#include "MemoryCardDisplay.h"
 #include "InputEventPlus.h"
 
 #define TIMER_STEALTH				THEME->GetMetricB(m_sName,"TimerStealth")
 #define SHOW_STAGE_DISPLAY			THEME->GetMetricB(m_sName,"ShowStageDisplay")
-#define MEMORY_CARD_ICONS			THEME->GetMetricB(m_sName,"MemoryCardIcons")
 #define FORCE_TIMER				THEME->GetMetricB(m_sName,"ForceTimer")
 #define STOP_MUSIC_ON_BACK			THEME->GetMetricB(m_sName,"StopMusicOnBack")
 #define WAIT_FOR_CHILDREN_BEFORE_TWEENING_OUT	THEME->GetMetricB(m_sName,"WaitForChildrenBeforeTweeningOut")
@@ -20,9 +18,6 @@
 REGISTER_SCREEN_CLASS( ScreenWithMenuElements );
 ScreenWithMenuElements::ScreenWithMenuElements()
 {
-	m_MenuTimer = NULL;
-	FOREACH_PlayerNumber( p )
-		m_MemoryCardDisplay[p] = NULL;
 	m_MenuTimer = NULL;
 	m_bShouldAllowLateJoin= false;
 }
@@ -38,19 +33,6 @@ void ScreenWithMenuElements::Init()
 	Screen::Init();
 
 	ASSERT( this->m_SubActors.empty() );	// don't call Init twice!
-
-	if( MEMORY_CARD_ICONS )
-	{
-		FOREACH_PlayerNumber( p )
-		{
-			ASSERT( m_MemoryCardDisplay[p] == NULL );
-			m_MemoryCardDisplay[p] = new MemoryCardDisplay;
-			m_MemoryCardDisplay[p]->Load( p );
-			m_MemoryCardDisplay[p]->SetName( ssprintf("MemoryCardDisplayP%d",p+1) );
-			LOAD_ALL_COMMANDS_AND_SET_XY( m_MemoryCardDisplay[p] );
-			this->AddChild( m_MemoryCardDisplay[p] );
-		}
-	}
 
 	if( TIMER_SECONDS != -1 )
 	{
@@ -162,11 +144,6 @@ void ScreenWithMenuElements::HandleScreenMessage( const ScreenMessage SM )
 ScreenWithMenuElements::~ScreenWithMenuElements()
 {
 	SAFE_DELETE( m_MenuTimer );
-	FOREACH_PlayerNumber( p )
-	{
-		if( m_MemoryCardDisplay[p] != NULL )
-			SAFE_DELETE( m_MemoryCardDisplay[p] );
-	}
 	FOREACH( Actor*, m_vDecorations, actor )
 		delete *actor;
 }

@@ -328,17 +328,6 @@ static const char *ProfileSlotNames[] = {
 XToString( ProfileSlot );
 LuaXType( ProfileSlot );
 
-static const char *MemoryCardStateNames[] = {
-	"ready",
-	"checking",
-	"late",
-	"error",
-	"removed",
-	"none",
-};
-XToString( MemoryCardState );
-LuaXType( MemoryCardState );
-
 static const char *StageAwardNames[] = {
 	"FullComboW3",
 	"SingleDigitW3",

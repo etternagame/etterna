@@ -10,7 +10,6 @@
 #include "PrefsManager.h"
 #include "SongManager.h"
 #include "Song.h"
-#include "MemoryCardManager.h"
 #include "GameState.h"
 #include "PlayerState.h"
 #include "LocalizedString.h"
@@ -25,60 +24,9 @@ static RString ClearBookkeepingData()
 	return BOOKKEEPING_DATA_CLEARED.GetValue();
 }
 
-static LocalizedString MACHINE_STATS_CLEARED( "ScreenServiceAction", "Machine stats cleared." );
-static LocalizedString MACHINE_EDITS_CLEARED( "ScreenServiceAction", "%d edits cleared, %d errors." );
-
-static PlayerNumber GetFirstReadyMemoryCard()
-{
-	FOREACH_PlayerNumber( pn )
-	{
-		if( MEMCARDMAN->GetCardState(pn) != MemoryCardState_Ready )
-			continue;	// skip
-
-		if( !MEMCARDMAN->IsMounted(pn) )
-			MEMCARDMAN->MountCard(pn);
-		return pn;
-	}
-
-	return PLAYER_INVALID;
-}
-
-static LocalizedString MEMORY_CARD_EDITS_NOT_CLEARED	( "ScreenServiceAction", "Edits not cleared - No memory cards ready." );
 static LocalizedString EDITS_CLEARED			( "ScreenServiceAction", "%d edits cleared, %d errors." );
-static RString ClearMemoryCardEdits()
-{
-	PlayerNumber pn = GetFirstReadyMemoryCard();
-	if( pn == PLAYER_INVALID )
-		return MEMORY_CARD_EDITS_NOT_CLEARED.GetValue();
-
-	int iNumAttempted = 0;
-	int iNumSuccessful = 0;
-	
-	if( !MEMCARDMAN->IsMounted(pn) )
-		MEMCARDMAN->MountCard(pn);
-
-	RString sDir = MEM_CARD_MOUNT_POINT[pn] + (RString)PREFSMAN->m_sMemoryCardProfileSubdir + "/";
-	vector<RString> vsEditFiles;
-	GetDirListing( sDir+EDIT_STEPS_SUBDIR+"*.edit", vsEditFiles, false, true );
-	FOREACH_CONST( RString, vsEditFiles, i )
-	{
-		iNumAttempted++;
-		bool bSuccess = FILEMAN->Remove( *i );
-		if( bSuccess )
-			iNumSuccessful++;
-	}
-
-	MEMCARDMAN->UnmountCard(pn);
-
-	return ssprintf(EDITS_CLEARED.GetValue(),iNumSuccessful,iNumAttempted-iNumSuccessful);
-}
-
-
 static LocalizedString STATS_NOT_SAVED			( "ScreenServiceAction", "Stats not saved - No memory cards ready." );
-static LocalizedString MACHINE_STATS_SAVED		( "ScreenServiceAction", "Machine stats saved to P%d card." );
-static LocalizedString ERROR_SAVING_MACHINE_STATS	( "ScreenServiceAction", "Error saving machine stats to P%d card." );
 static LocalizedString STATS_NOT_LOADED		( "ScreenServiceAction", "Stats not loaded - No memory cards ready." );
-static LocalizedString MACHINE_STATS_LOADED	( "ScreenServiceAction", "Machine stats loaded from P%d card." );
 static LocalizedString THERE_IS_NO_PROFILE	( "ScreenServiceAction", "There is no machine profile on P%d card." );
 static LocalizedString PROFILE_CORRUPT		( "ScreenServiceAction", "The profile on P%d card contains corrupt or tampered data." );
 
@@ -212,7 +160,6 @@ void ScreenServiceAction::BeginScreen()
 		RString (*pfn)() = NULL;
 
 		if(	 *s == "ClearBookkeepingData" )			pfn = ClearBookkeepingData;
-		else if( *s == "ClearMemoryCardEdits" )			pfn = ClearMemoryCardEdits;
 		else if( *s == "ResetPreferences" )			pfn = ResetPreferences;
 		
 		ASSERT_M( pfn != NULL, *s );

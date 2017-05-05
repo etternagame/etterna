@@ -17,7 +17,6 @@
 #include "HighScore.h"
 #include "LuaReference.h"
 #include "MessageManager.h"
-#include "MemoryCardManager.h"
 #include "NoteData.h"
 #include "NoteSkinManager.h"
 #include "PlayerState.h"
@@ -283,8 +282,7 @@ void GameState::Reset()
 	SetCurrentStyle( NULL, PLAYER_INVALID );
 	FOREACH_MultiPlayer( p )
 		m_MultiPlayerStatus[p] = MultiPlayerStatus_NotJoined;
-	FOREACH_PlayerNumber( pn )
-		MEMCARDMAN->UnlockCard( pn );
+
 	//m_iCoins = 0;	// don't reset coin count!
 	m_bMultiplayer = false;
 	m_iNumMultiplayerNoteFields = 1;
@@ -554,35 +552,20 @@ void GameState::BeginGame()
 	// Play attract on the ending screen, then on the ranking screen
 	// even if attract sounds are set to off.
 	m_iNumTimesThroughAttract = -1;
-
-	FOREACH_PlayerNumber( pn )
-		MEMCARDMAN->UnlockCard( pn );
 }
 
 void GameState::LoadProfiles( bool bLoadEdits )
 {
-	// Unlock any cards that we might want to load.
-	FOREACH_HumanPlayer( pn )
-		if( !PROFILEMAN->IsPersistentProfile(pn) )
-			MEMCARDMAN->UnlockCard( pn );
-
-	MEMCARDMAN->WaitForCheckingToComplete();
-
 	FOREACH_HumanPlayer( pn )
 	{
 		// If a profile is already loaded, this was already called.
 		if( PROFILEMAN->IsPersistentProfile(pn) )
 			continue;
 
-		MEMCARDMAN->MountCard( pn );
 		bool bSuccess = PROFILEMAN->LoadFirstAvailableProfile( pn, bLoadEdits );	// load full profile
-		MEMCARDMAN->UnmountCard( pn );
 
 		if( !bSuccess )
 			continue;
-
-		// Lock the card on successful load, so we won't allow it to be changed.
-		MEMCARDMAN->LockCard( pn );
 
 		LoadCurrentSettingsFromProfile( pn );
 
@@ -609,12 +592,7 @@ void GameState::SavePlayerProfile( PlayerNumber pn )
 	if( m_pPlayerState[pn]->m_PlayerController != PC_HUMAN )
 		return;
 
-	bool bWasMemoryCard = PROFILEMAN->ProfileWasLoadedFromMemoryCard(pn);
-	if( bWasMemoryCard )
-		MEMCARDMAN->MountCard( pn );
 	PROFILEMAN->SaveProfile( pn );
-	if( bWasMemoryCard )
-		MEMCARDMAN->UnmountCard( pn );
 }
 
 bool GameState::HaveProfileToLoad()
@@ -625,9 +603,6 @@ bool GameState::HaveProfileToLoad()
 		if( PROFILEMAN->IsPersistentProfile(pn) )
 			continue;
 
-		// If a memory card is inserted, we'l try to load it.
-		if( MEMCARDMAN->CardInserted(pn) )
-			return true;
 		if( !PROFILEMAN->m_sDefaultLocalProfileID[pn].Get().empty() )
 			return true;
 	}
@@ -2482,17 +2457,6 @@ public:
 		LuaHelpers::Push( L, pStyle );
 		return 1;
 	}
-	static int IsAnyHumanPlayerUsingMemoryCard( T* , lua_State *L )
-	{
-		bool bUsingMemoryCard = false;
-		FOREACH_HumanPlayer( pn )
-		{
-			if( MEMCARDMAN->GetCardState(pn) == MemoryCardState_Ready )
-				bUsingMemoryCard = true;
-		}
-		lua_pushboolean(L, bUsingMemoryCard );
-		return 1;
-	}
 	static int GetNumStagesForCurrentSongAndStepsOrCourse( T* , lua_State *L )
 	{
 		lua_pushnumber(L, GAMESTATE->GetNumStagesForCurrentSongAndStepsOrCourse() );
@@ -2813,7 +2777,6 @@ public:
 		ADD_METHOD( GetHumanPlayers );
 		ADD_METHOD( GetEnabledPlayers );
 		ADD_METHOD( GetCurrentStyle );
-		ADD_METHOD( IsAnyHumanPlayerUsingMemoryCard );
 		ADD_METHOD( GetNumStagesForCurrentSongAndStepsOrCourse );
 		ADD_METHOD( GetNumStagesLeft );
 		ADD_METHOD( GetGameSeed );

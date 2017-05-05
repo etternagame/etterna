@@ -14,7 +14,6 @@
 #include "GameSoundManager.h"
 #include "InputMapper.h"
 #include "RageTextureManager.h"
-#include "MemoryCardManager.h"
 #include "NoteSkinManager.h"
 #include "Bookkeeper.h"
 #include "ProfileManager.h"

@@ -13,7 +13,6 @@ class Steps;
 class Style;
 struct HighScore;
 struct lua_State;
-/** @brief Interface to machine and memory card profiles. */
 class ProfileManager
 {
 public:
@@ -44,10 +43,8 @@ public:
 	RString GetStatsPrefix() { return m_stats_prefix; }
 	void SetStatsPrefix(RString const& prefix);
 
-	bool LoadFirstAvailableProfile( PlayerNumber pn, bool bLoadEdits = true );	// memory card or local profile
+	bool LoadFirstAvailableProfile( PlayerNumber pn, bool bLoadEdits = true );
 	bool LoadLocalProfileFromMachine( PlayerNumber pn );
-	bool LoadProfileFromMemoryCard( PlayerNumber pn, bool bLoadEdits = true );
-	bool FastLoadProfileNameFromMemoryCard( const RString &sRootDir, RString &sName ) const;
 	bool SaveProfile( PlayerNumber pn ) const;
 	bool ConvertProfile(PlayerNumber pn);
 	bool SaveLocalProfile( const RString &sProfileID );
@@ -71,11 +68,8 @@ public:
 	Profile* GetProfile( ProfileSlot slot ) { return (Profile*) ((const ProfileManager *) this)->GetProfile(slot); }
 
 	const RString& GetProfileDir( ProfileSlot slot ) const;
-	RString GetProfileDirImportedFrom( ProfileSlot slot ) const;
 
 	RString GetPlayerName( PlayerNumber pn ) const;
-	bool ProfileWasLoadedFromMemoryCard( PlayerNumber pn ) const;
-	bool ProfileFromMemoryCardIsNew( PlayerNumber pn ) const;
 	bool LastLoadWasTamperedOrCorrupt( PlayerNumber pn ) const;
 	bool LastLoadWasFromLastGood( PlayerNumber pn ) const;
 
@@ -89,8 +83,6 @@ public:
 	void AddCategoryScore( StepsType st, RankingCategory rc, PlayerNumber pn, const HighScore &hs, int &iPersonalIndexOut, int &iMachineIndexOut );
 	void IncrementCategoryPlayCount( StepsType st, RankingCategory rc, PlayerNumber pn );
 
-	static void GetMemoryCardProfileDirectoriesToTry( vector<RString> &asDirsToTry );
-
 	// Lua
 	void PushSelf( lua_State *L );
 
@@ -100,24 +92,18 @@ public:
 	RString currentlyloadingprofile;
 
 private:
-	ProfileLoadResult LoadProfile( PlayerNumber pn, const RString &sProfileDir, bool bIsMemCard );
+	ProfileLoadResult LoadProfile( PlayerNumber pn, const RString &sProfileDir);
 
 	// Directory that contains the profile.  Either on local machine or
 	// on a memory card.
 	RString m_sProfileDir[NUM_PLAYERS];
 
-	// MemoryCardProfileImportSubdirs name, if the profile was imported.
-	RString m_sProfileDirImportedFrom[NUM_PLAYERS];
-
 	RString m_stats_prefix;
 
-	bool m_bWasLoadedFromMemoryCard[NUM_PLAYERS];
 	bool m_bLastLoadWasTamperedOrCorrupt[NUM_PLAYERS];	// true if Stats.xml was present, but failed to load (probably because of a signature failure)
 	bool m_bLastLoadWasFromLastGood[NUM_PLAYERS];		// if true, then m_bLastLoadWasTamperedOrCorrupt is also true
 	mutable bool m_bNeedToBackUpLastLoad[NUM_PLAYERS];	// if true, back up profile on next save
 	bool m_bNewProfile[NUM_PLAYERS];
-
-	Profile	*m_pMemoryCardProfile[NUM_PLAYERS];	// holds Profile for the currently inserted card
 };
 
 extern ProfileManager*	PROFILEMAN;	// global and accessible from anywhere in our program

@@ -42,7 +42,6 @@
 #include "PlayerState.h"
 #include "Style.h"
 #include "LuaManager.h"
-#include "MemoryCardManager.h"
 #include "CommonMetrics.h"
 #include "InputMapper.h"
 #include "Game.h"
@@ -377,11 +376,6 @@ void ScreenGameplay::Init()
 		/* If this is 0, we have no active players and havn't been initialized correctly. */
 		ASSERT( iNumEnabledPlayers > 0 );
 	}
-
-	/* Pause MEMCARDMAN.  If a memory card is removed, we don't want to interrupt the
-	 * player by making a noise until the game finishes. */
-	if( !GAMESTATE->m_bDemonstrationOrJukebox )
-		MEMCARDMAN->PauseMountingThread();
 
 	m_pSoundMusic = NULL;
 	set_paused_internal(false);
@@ -953,9 +947,6 @@ ScreenGameplay::~ScreenGameplay()
 
 	SAFE_DELETE( m_pSongBackground );
 	SAFE_DELETE( m_pSongForeground );
-
-	if( !GAMESTATE->m_bDemonstrationOrJukebox )
-		MEMCARDMAN->UnPauseMountingThread();
 
 	SAFE_DELETE( m_pCombinedLifeMeter );
 	if( m_pSoundMusic )

@@ -22,7 +22,6 @@
 #include "RageDisplay.h"
 #include "StepMania.h"
 #include "CryptManager.h"
-#include "MemoryCardManager.h"
 #include "PlayerState.h"
 #include "CommonMetrics.h"
 #include "ScoreKeeperNormal.h"
@@ -711,9 +710,6 @@ bool ScreenEvaluation::Input( const InputEventPlus &input )
 			if( !m_bSavedScreenshot[pn]  &&	// only allow one screenshot
 				PROFILEMAN->IsPersistentProfile(pn) )
 			{
-				if( PROFILEMAN->ProfileWasLoadedFromMemoryCard(pn) )
-					MEMCARDMAN->MountCard( pn );
-
 				Profile* pProfile = PROFILEMAN->GetProfile(pn);
 				RString sDir = PROFILEMAN->GetProfileDir((ProfileSlot)pn) + "Screenshots/";
 				RString sFileName = StepMania::SaveScreenshot( sDir, true, true, "", "" );
@@ -729,9 +725,6 @@ bool ScreenEvaluation::Input( const InputEventPlus &input )
 					screenshot.highScore = hs;
 					pProfile->AddScreenshot( screenshot );
 				}
-
-				if( PROFILEMAN->ProfileWasLoadedFromMemoryCard(pn) )
-					MEMCARDMAN->UnmountCard( pn );
 
 				m_bSavedScreenshot[pn] = true;
 				return true;	// handled
