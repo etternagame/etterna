@@ -45,98 +45,98 @@ class Steps
 {
 public:
 	/** @brief Set up the Steps with initial values. */
-	Steps( Song* song );
+	Steps(Song* song);
 	/** @brief Destroy the Steps that are no longer needed. */
 	~Steps();
 
 	// initializers
-	void CopyFrom( Steps* pSource, StepsType ntTo, float fMusicLengthSeconds );
-	void CreateBlank( StepsType ntTo );
+	void CopyFrom(Steps* pSource, StepsType ntTo, float fMusicLengthSeconds);
+	void CreateBlank(StepsType ntTo);
 
 	void Compress() const;
-	void Decompress(bool isGameplay) const;
-	void Decompress(bool isGameplay);
-	
-	/** 
+	void Decompress() const;
+	void Decompress();
+
+	/**
 	 * @brief Determine if these steps were created by the autogenerator.
 	 * @return true if they were, false otherwise.
 	 */
 
-	/**
-	 * @brief Determine if this set of Steps is an edit.
-	 *
-	 * Edits have a special value of difficulty to make it easy to determine.
-	 * @return true if this is an edit, false otherwise.
-	 */
-	bool IsAnEdit() const				{ return m_Difficulty == Difficulty_Edit; }
+	 /**
+	  * @brief Determine if this set of Steps is an edit.
+	  *
+	  * Edits have a special value of difficulty to make it easy to determine.
+	  * @return true if this is an edit, false otherwise.
+	  */
+	bool IsAnEdit() const { return m_Difficulty == Difficulty_Edit; }
 	/**
 	 * @brief Determine if this set of Steps is a player edit.
 	 *
 	 * Player edits also have to be loaded from a player's profile slot, not the machine.
 	 * @return true if this is a player edit, false otherwise. */
-	bool IsAPlayerEdit() const			{ return IsAnEdit() && GetLoadedFromProfileSlot() < ProfileSlot_Machine; }
+	bool IsAPlayerEdit() const { return IsAnEdit() && GetLoadedFromProfileSlot() < ProfileSlot_Machine; }
 	/**
 	 * @brief Determine if these steps were loaded from a player's profile.
 	 * @return true if they were from a player profile, false otherwise.
 	 */
-	bool WasLoadedFromProfile() const		{ return m_LoadedFromProfile != ProfileSlot_Invalid; }
-	ProfileSlot GetLoadedFromProfileSlot() const	{ return m_LoadedFromProfile; }
+	bool WasLoadedFromProfile() const { return m_LoadedFromProfile != ProfileSlot_Invalid; }
+	ProfileSlot GetLoadedFromProfileSlot() const { return m_LoadedFromProfile; }
 	/**
 	 * @brief Retrieve the description used for this edit.
 	 * @return the description used for this edit.
 	 */
-	RString GetDescription() const			{ return m_sDescription; }
+	RString GetDescription() const { return m_sDescription; }
 	/**
 	 * @brief Retrieve the ChartStyle used for this chart.
 	 * @return the description used for this chart.
 	 */
-	RString GetChartStyle() const			{ return m_sChartStyle; }
+	RString GetChartStyle() const { return m_sChartStyle; }
 	/**
 	 * @brief Retrieve the difficulty used for this edit.
 	 * @return the difficulty used for this edit.
 	 */
-	Difficulty GetDifficulty() const		{ return m_Difficulty; }
+	Difficulty GetDifficulty() const { return m_Difficulty; }
 	/**
 	 * @brief Retrieve the meter used for this edit.
 	 * @return the meter used for this edit.
 	 */
-	int GetMeter() const				{ return m_iMeter; }
+	int GetMeter() const { return m_iMeter; }
 	const RadarValues& GetRadarValues() const { return m_CachedRadarValues; }
 	/**
 	 * @brief Retrieve the author credit used for this edit.
 	 * @return the author credit used for this edit.
 	 */
-	RString GetCredit() const			{ return m_sCredit; }
+	RString GetCredit() const { return m_sCredit; }
 
 	/** @brief The list of attacks. */
 	AttackArray m_Attacks;
 	/** @brief The stringified list of attacks. */
 	vector<RString> m_sAttackString;
 
-	RString GetChartName() const			{ return chartName; }
-	void SetChartName(const RString &name)	{ this->chartName = name; }
-	void SetFilename( const RString &fn )			{ m_sFilename = fn; }
-	RString GetFilename() const			{ return m_sFilename; }
-	void SetSavedToDisk(bool b)			{ m_bSavedToDisk = b; }
-	bool GetSavedToDisk() const			{ return m_bSavedToDisk; }
-	void SetDifficulty( Difficulty dc )		{ SetDifficultyAndDescription( dc, GetDescription() ); }
-	void SetDescription( const RString &sDescription ) 	{ SetDifficultyAndDescription( this->GetDifficulty(), sDescription ); }
-	void SetDifficultyAndDescription( Difficulty dc, const RString &sDescription );
-	void SetCredit( const RString &sCredit );
-	void SetChartStyle( const RString &sChartStyle );
-	static bool MakeValidEditDescription( RString &sPreferredDescription );	// return true if was modified
+	RString GetChartName() const { return chartName; }
+	void SetChartName(const RString &name) { this->chartName = name; }
+	void SetFilename(const RString &fn) { m_sFilename = fn; }
+	RString GetFilename() const { return m_sFilename; }
+	void SetSavedToDisk(bool b) { m_bSavedToDisk = b; }
+	bool GetSavedToDisk() const { return m_bSavedToDisk; }
+	void SetDifficulty(Difficulty dc) { SetDifficultyAndDescription(dc, GetDescription()); }
+	void SetDescription(const RString &sDescription) { SetDifficultyAndDescription(this->GetDifficulty(), sDescription); }
+	void SetDifficultyAndDescription(Difficulty dc, const RString &sDescription);
+	void SetCredit(const RString &sCredit);
+	void SetChartStyle(const RString &sChartStyle);
+	static bool MakeValidEditDescription(RString &sPreferredDescription);	// return true if was modified
 
-	void SetLoadedFromProfile( ProfileSlot slot )	{ m_LoadedFromProfile = slot; }
-	void SetMeter( int meter );
-	void SetCachedRadarValues( const RadarValues& v );
-	float PredictMeter() const;
+	void SetLoadedFromProfile(ProfileSlot slot) { m_LoadedFromProfile = slot; }
+	void SetMeter(int meter);
+	void SetCachedRadarValues(const RadarValues& v);
+	float PredictMeter() const { return 1.f; }
 
 	unsigned GetHash() const;
-	void GetNoteData( NoteData& noteDataOut, bool isGameplay ) const;
+	void GetNoteData(NoteData& noteDataOut) const;
 	NoteData GetNoteData() const;
-	void SetNoteData( const NoteData& noteDataNew );
-	void SetSMNoteData( const RString &notes_comp );
-	void GetSMNoteData( RString &notes_comp_out ) const;
+	void SetNoteData(const NoteData& noteDataNew);
+	void SetSMNoteData(const RString &notes_comp);
+	void GetSMNoteData(RString &notes_comp_out) const;
 
 	/**
 	 * @brief Retrieve the NoteData from the original source.
@@ -151,9 +151,9 @@ public:
 	bool IsNoteDataEmpty() const;
 
 	void TidyUpData();
-	void CalculateRadarValues( float fMusicLengthSeconds );
+	void CalculateRadarValues(float fMusicLengthSeconds);
 
-	/** 
+	/**
 	 * @brief The TimingData used by the Steps.
 	 *
 	 * This is required to allow Split Timing. */
@@ -163,19 +163,21 @@ public:
 	 * @brief Retrieves the appropriate timing data for the Steps.  Falls
 	 * back on the Song if needed. */
 	const TimingData *GetTimingData() const;
-	TimingData *GetTimingData() { return const_cast<TimingData*>( static_cast<const Steps*>( this )->GetTimingData() ); };
+	TimingData *GetTimingData() { return const_cast<TimingData*>(static_cast<const Steps*>(this)->GetTimingData()); };
 
 	/* Now for half the reason I'm bothering to do this... generate a chart key using note
-	data and timingdata in conjuction. Do it during load and save it in the steps data so 
+	data and timingdata in conjuction. Do it during load and save it in the steps data so
 	that we have to do it as few times as possible.*/
-	RString ChartKey = "Invalid";
+	RString ChartKey = "";
 	RString GetChartKey() const { return ChartKey; }
 	vector<float> thestuffs = { 0.f,0.f,0.f,0.f,0.f };
 	MinaSD stuffnthings = { thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs };
-	void SetChartKey(const RString &k)  { ChartKey = k; }
+	void SetChartKey(const RString &k) { ChartKey = k; }
 	void SetAllMSD(const MinaSD &msd) { stuffnthings = msd; }
-	MinaSD GetAllMSD() const { return stuffnthings;  }
+	MinaSD GetAllMSD() const { return stuffnthings; }
 	map<float, Skillset> SortSkillsetsAtRate(float x, bool includeoverall);
+
+	void CalcEtternaMetadata();
 
 	// this is bugged and returns true for files with negative bpms when it shouldn't - mina
 	bool IsRecalcValid();

@@ -189,8 +189,7 @@ int NoteData::WifeTotalScoreCalc(TimingData *td, int iStartIndex, int iEndIndex)
 	return taps * 2;
 }
 
-vector<NoteInfo> NoteData::SerializeNoteData(const vector<float>& etaner) {
-	vector<NoteInfo> SerializedNoteData;
+const vector<NoteInfo>& NoteData::SerializeNoteData(const vector<float>& etaner) {
 	SerializedNoteData.reserve(NonEmptyRowVector.size());
 
 	int tracks = GetNumTracks();
@@ -218,7 +217,7 @@ vector<NoteInfo> NoteData::SerializeNoteData(const vector<float>& etaner) {
 void NoteData::LogNonEmptyRows() {
 	NonEmptyRowVector.clear();
 	FOREACH_NONEMPTY_ROW_ALL_TRACKS(*this, row)
-		NonEmptyRowVector.push_back(row);
+		NonEmptyRowVector.emplace_back(row);
 }
 
 bool NoteData::IsRowEmpty( int row ) const

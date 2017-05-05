@@ -265,7 +265,6 @@ static void LoadFromSMNoteDataStringWithPlayer( NoteData& out, const RString &sS
 		}
 	}
 	out.RevalidateATIs(vector<int>(), false);
-	out.LogNonEmptyRows();
 }
 
 void NoteDataUtil::LoadFromSMNoteDataString( NoteData &out, const RString &sSMNoteData_, bool bComposite )

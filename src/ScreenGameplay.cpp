@@ -987,7 +987,7 @@ void ScreenGameplay::SetupSong( int iSongIndex )
 		 * This is very bad for transforms like AddMines.
 		 */
 		NoteData originalNoteData;
-		pSteps->GetNoteData( originalNoteData , true);
+		pSteps->GetNoteData( originalNoteData);
 
 		const Style* pStyle = GAMESTATE->GetCurrentStyle(pi->m_pn);
 		NoteData ndTransformed;

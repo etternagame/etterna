@@ -181,14 +181,9 @@ void Steps::SetNoteData( const NoteData& noteDataNew )
 	m_iHash = 0;
 }
 
-void Steps::GetNoteData( NoteData& noteDataOut, bool isGameplay ) const
+void Steps::GetNoteData( NoteData& noteDataOut) const
 {
-	// HACK: isGameplay breaks the logic for not decompressing when already decompressed
-	// because decompress may have been run by a false before hand
-	if( isGameplay )
-		Compress();
-
-	Decompress(isGameplay);
+	Decompress();
 
 	if( m_bNoteDataIsFilled )
 	{
@@ -204,7 +199,7 @@ void Steps::GetNoteData( NoteData& noteDataOut, bool isGameplay ) const
 NoteData Steps::GetNoteData() const
 {
 	NoteData tmp;
-	this->GetNoteData( tmp, false );
+	this->GetNoteData( tmp);
 	return tmp;
 }
 
@@ -234,8 +229,6 @@ void Steps::GetSMNoteData( RString &notes_comp_out ) const
 
 	notes_comp_out = m_sNoteDataCompressed;
 }
-
-float Steps::PredictMeter() const { return 1.f; }
 
 void Steps::TidyUpData()
 {
@@ -277,16 +270,9 @@ void Steps::CalculateRadarValues( float fMusicLengthSeconds )
 		return;
 	}
 
-	// Do write radar values, and leave it up to the reading app whether they want to trust
-	// the cached values without recalculating them.
-	/*
-	// If we're an edit, leave the RadarValues invalid.
-	if( IsAnEdit() )
-		return;
-	*/
-	
+
 	NoteData tempNoteData;
-	this->GetNoteData( tempNoteData, true );
+	this->GetNoteData( tempNoteData);
 
 	m_CachedRadarValues.Zero();
 
@@ -323,12 +309,12 @@ void Steps::CalculateRadarValues( float fMusicLengthSeconds )
 	GAMESTATE->SetProcessedTimingData(NULL);
 }
 
-void Steps::Decompress(bool isGameplay) const
+void Steps::Decompress() const
 {
-	const_cast<Steps *>(this)->Decompress(isGameplay);
+	const_cast<Steps *>(this)->Decompress();
 }
 
-void Steps::Decompress(bool isGameplay)
+void Steps::Decompress()
 {
 
 	if (m_bNoteDataIsFilled) {
@@ -360,23 +346,6 @@ void Steps::Decompress(bool isGameplay)
 		m_bNoteDataIsFilled = true;
 		m_pNoteData->SetNumTracks(GAMEMAN->GetStepsTypeInfo(m_StepsType).iNumTracks);
 		NoteDataUtil::LoadFromSMNoteDataString(*m_pNoteData, m_sNoteDataCompressed, bComposite);
-	}
-	/*	Piggy backing off this function to generate stuff that should only be generated once per song caching
-	This includes a vector for note rows that are not empty, a vector for elapsed time at each note row and
-	the chart key generated on song load. Also this totally needs to be redone and split up into the appropriate
-	places now that I understand the system better. - Mina */
-
-	if (isGameplay)
-	{
-		TimingData *td = Steps::GetTimingData();
-		vector<int>& nerv = m_pNoteData->GetNonEmptyRowVector();
-		vector<float> etaner;
-
-		for (size_t i = 0; i < nerv.size(); i++)
-			etaner.emplace_back(td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(nerv[i])));
-		
-		ChartKey = GenerateChartKey(*m_pNoteData, td);
-		stuffnthings = MinaSDCalc(m_pNoteData->SerializeNoteData(etaner), m_pNoteData->GetNumTracks(), 0.93f, 1.f, td->HasWarps());
 	}
 }
 
@@ -410,8 +379,20 @@ map<float, Skillset> Steps::SortSkillsetsAtRate(float x, bool includeoverall) {
 	return why;
 }
 
-RString Steps::GenerateChartKey(NoteData& nd, TimingData *td)
-{
+void Steps::CalcEtternaMetadata() {
+	const vector<int>& nerv = m_pNoteData->BuildAndGetNerv();
+	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
+	
+	stuffnthings = MinaSDCalc(GetNoteData().SerializeNoteData(etaner), GetNoteData().GetNumTracks(), 0.93f, 1.f, GetTimingData()->HasWarps());
+	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
+
+	m_pNoteData->UnsetNerv();
+	m_pNoteData->UnsetSerializedNoteData();
+	GetTimingData()->UnsetEtaner();
+}
+
+
+RString Steps::GenerateChartKey(NoteData& nd, TimingData *td) {
 	RString o = "X"; // I was thinking of using "C" to indicate chart.. however.. X is cooler... - Mina
 	vector<int>& nerv = nd.GetNonEmptyRowVector();
 	
@@ -499,7 +480,7 @@ void Steps::CopyFrom( Steps* pSource, StepsType ntTo, float fMusicLengthSeconds 
 	m_StepsType = ntTo;
 	m_StepsTypeStr= GAMEMAN->GetStepsTypeInfo(ntTo).szName;
 	NoteData noteData;
-	pSource->GetNoteData( noteData, false );
+	pSource->GetNoteData( noteData);
 	noteData.SetNumTracks( GAMEMAN->GetStepsTypeInfo(ntTo).iNumTracks );
 	m_Timing = pSource->m_Timing;
 	this->m_pSong = pSource->m_pSong;

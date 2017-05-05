@@ -187,7 +187,7 @@ static const int BEATS_PER_MEASURE = 4;
 static void WriteDWINotesField( RageFile &f, const Steps &out, int start )
 {
 	NoteData notedata;
-	out.GetNoteData( notedata , false);
+	out.GetNoteData( notedata);
 	NoteDataUtil::InsertHoldTails( notedata );
 
 	const int iLastMeasure = int( notedata.GetLastBeat()/BEATS_PER_MEASURE );

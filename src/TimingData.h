@@ -470,10 +470,14 @@ public:
 	the power to fundamentally change timing data. If they don't then I suppose all of these checks
 	aren't needed at all :/. Not my responsibility to investigate, though. - Mina.*/ 
 	
+
 	vector<float> ElapsedTimesAtAllRows;
+	vector<float> ElapsedTimesAtNonEmptyRows;
+	const vector<float>& BuildAndGetEtaner(const vector<int>& nerv);
 	void SetElapsedTimesAtAllRows(vector<float>& etar) { ElapsedTimesAtAllRows = etar; }
 	vector<float> GetElapsedTimesAtAllRows() { return ElapsedTimesAtAllRows; }
 	void UnsetElapsedTimesAtAllRows() { std::vector<float> emptyVector; ElapsedTimesAtAllRows.swap(emptyVector); };
+	void UnsetEtaner() { std::vector<float> tmp; ElapsedTimesAtNonEmptyRows.swap(tmp); }
 	float WhereUAtBro(float beat) const;
 	float WhereUAtBro(float beat);
 	float WhereUAtBroNoOffset(float beat) const;

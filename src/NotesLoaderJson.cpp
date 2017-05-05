@@ -136,7 +136,7 @@ static void Deserialize( Steps &o, const Json::Value &root )
 {
 	o.m_StepsType = GAMEMAN->StringToStepsType(root["StepsType"].asString());
 
-	o.Decompress(false);
+	o.Decompress();
 
 	NoteData nd;
 	Deserialize( o.m_StepsType, nd, root["NoteData"] );

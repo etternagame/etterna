@@ -109,7 +109,7 @@ static void Serialize( const Steps &o, Json::Value &root )
 	root["StepsType"] = StringConversion::ToString(o.m_StepsType);
 
 	NoteData nd;
-	o.GetNoteData(nd, false );
+	o.GetNoteData(nd);
 	Serialize( nd, root["NoteData"] );
 	root["Hash"] = o.GetHash();
 	root["Description"] = o.GetDescription();

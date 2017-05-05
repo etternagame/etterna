@@ -480,7 +480,7 @@ bool NotesWriterSSC::Write( RString &sPath, const Song &out, const vector<Steps*
 	FOREACH_CONST(Steps*, vpStepsToSave, s)
 	{
 		const Steps* pSteps = *s;
-		if (pSteps->ChartKey != "Invalid") {		// Avoid writing cache tags for invalid chartkey files(empty steps) -Mina
+		if (pSteps->ChartKey != "") {		// Avoid writing cache tags for invalid chartkey files(empty steps) -Mina
 			RString sTag = GetSSCNoteData(out, *pSteps, bSavingCache);
 			f.PutLine(sTag);
 		}

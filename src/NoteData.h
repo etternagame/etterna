@@ -164,14 +164,19 @@ private:
 
 	// Mina stuf
 	vector<int> NonEmptyRowVector;
+	vector<NoteInfo> SerializedNoteData;
+
 public:
 	void Init();
 
 	// Mina stuf
 	void LogNonEmptyRows();
+	void UnsetNerv() { vector<int> tmp; NonEmptyRowVector.swap(tmp); }
+	void UnsetSerializedNoteData() { vector<NoteInfo> tmp; SerializedNoteData.swap(tmp); }
+	const vector<int>& BuildAndGetNerv() { LogNonEmptyRows(); return NonEmptyRowVector; }
 	int WifeTotalScoreCalc(TimingData *td, int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW);
 	vector<int>& GetNonEmptyRowVector() { return NonEmptyRowVector; };
-	vector<NoteInfo> SerializeNoteData(const vector<float>& etaner);
+	const vector<NoteInfo>& SerializeNoteData(const vector<float>& etaner);
 
 	int GetNumTracks() const { return m_TapNotes.size(); }
 	void SetNumTracks( int iNewNumTracks );

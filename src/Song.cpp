@@ -1056,6 +1056,7 @@ void Song::TidyUpData( bool from_cache, bool /* duringCache */ )
 		CLEAR_NOT_HAS(has_disc, m_sDiscFile);
 		CLEAR_NOT_HAS(has_cdtitle, m_sCDTitleFile);
 #undef CLEAR_NOT_HAS
+
 	}
 
 	/* Generate these before we autogen notes, so the new notes can inherit
@@ -1100,7 +1101,7 @@ void Song::ReCalculateRadarValuesAndLastSecond(bool fromCache, bool duringCache)
 
 		// Must initialize before the gotos.
 		NoteData tempNoteData;
-		pSteps->GetNoteData( tempNoteData, false);
+		pSteps->GetNoteData( tempNoteData);
 
 		// calculate lastSecond
 
@@ -1123,6 +1124,9 @@ void Song::ReCalculateRadarValuesAndLastSecond(bool fromCache, bool duringCache)
 		// Wipe NoteData
 		if (duringCache)
 		{
+			pSteps->CalculateRadarValues(m_fMusicLengthSeconds);
+			pSteps->CalcEtternaMetadata();
+
 			NoteData dummy;
 			dummy.SetNumTracks(tempNoteData.GetNumTracks());
 			pSteps->SetNoteData(dummy);

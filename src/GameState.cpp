@@ -909,7 +909,7 @@ bool GameState::CanSafelyEnterGameplay(RString& reason)
 				return false;
 			}
 			NoteData ndtemp;
-			steps->GetNoteData(ndtemp, false);
+			steps->GetNoteData(ndtemp);
 			if(ndtemp.GetNumTracks() != style->m_iColsPerPlayer)
 			{
 				reason= ssprintf("Steps for player %d have %d columns, style has %d "

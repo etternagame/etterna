@@ -1412,6 +1412,12 @@ float TimingData::WhereUAtBroNoOffset(float beat) const {
 	return GetElapsedTimeFromBeatNoOffset(beat);
 }
 
+const vector<float>& TimingData::BuildAndGetEtaner(const vector<int>& nerv) {
+	for (size_t i = 0; i < nerv.size(); i++)
+		ElapsedTimesAtNonEmptyRows.emplace_back(GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(nerv[i])));
+	return ElapsedTimesAtNonEmptyRows;
+}
+
 /** @brief Allow Lua to have access to the TimingData. */
 class LunaTimingData: public Luna<TimingData>
 {
