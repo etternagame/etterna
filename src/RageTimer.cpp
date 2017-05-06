@@ -122,8 +122,8 @@ RageTimer RageTimer::Sum(const RageTimer &lhs, float tm)
 {
 	/* tm == 5.25  -> secs =  5, us = 5.25  - ( 5) = .25
 	 * tm == -1.25 -> secs = -2, us = -1.25 - (-2) = .75 */
-	int seconds = (int) floorf(tm);
-	int us = int( (tm - seconds) * TIMESTAMP_RESOLUTION );
+	int seconds = static_cast<int>(floorf(tm));
+	int us = static_cast<int>( (tm - seconds) * TIMESTAMP_RESOLUTION );
 
 	RageTimer ret(0,0); // Prevent unnecessarily checking the time
 	ret.m_secs = seconds + lhs.m_secs;
@@ -149,7 +149,7 @@ float RageTimer::Difference(const RageTimer &lhs, const RageTimer &rhs)
 		--secs;
 	}
 
-	return float(secs) + float(us) / TIMESTAMP_RESOLUTION;
+	return static_cast<float>(secs) + static_cast<float>(us) / TIMESTAMP_RESOLUTION;
 }
 
 #include "LuaManager.h"
