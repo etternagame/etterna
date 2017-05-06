@@ -62,6 +62,7 @@ public:
 	RString GetSongGroupBannerPath( const RString &sSongGroup ) const;
 	//RString GetSongGroupBackgroundPath( RString sSongGroup ) const;
 	void GetSongGroupNames( vector<RString> &AddTo ) const;
+	const vector<RString>& GetSongGroupNames() const;
 	bool DoesSongGroupExist( const RString &sSongGroup ) const;
 	RageColor GetSongGroupColor( const RString &sSongGroupName ) const;
 	RageColor GetSongColor( const Song* pSong ) const;

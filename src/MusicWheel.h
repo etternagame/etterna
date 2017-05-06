@@ -60,8 +60,10 @@ protected:
 	bool SelectModeMenuItem();
 
 	void FilterBySearch(vector<Song*>& inv, RString findme);
+	bool SearchGroupNames(RString & findme);
 	void FilterBySkillsets(vector<Song*>& inv);
 	RString lastvalidsearch;
+	RString groupnamesearchmatch;
 
 	virtual void UpdateSwitch();
 

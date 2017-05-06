@@ -244,7 +244,14 @@ void MusicWheel::ReloadSongList(bool searching, RString findme)
 	SCREENMAN->PostMessageToTopScreen(SM_SongChanged, 0);
 
 	// when searching, automatically land on the first search result available -mina & dadbearcop
-	if (findme != "") {
+	if (findme != "") 
+	{
+		if (groupnamesearchmatch != "") {
+			SelectSection(groupnamesearchmatch);
+			SetOpenSection(groupnamesearchmatch);
+			ChangeMusic(1);
+			return;
+		}
 		Song *pSong = GAMESTATE->m_pCurSong;
 		if (pSong) {
 			RString curSongTitle = pSong->GetDisplayMainTitle();
@@ -488,7 +495,8 @@ void MusicWheel::FilterBySearch(vector<Song*>& inv, RString findme) {
 			if (res != string::npos)
 				tmp.emplace_back(inv[i]);
 		}
-	} else {
+	}
+	else {
 		for (size_t i = 0; i < inv.size(); i++) {
 			size_t smells = -1;
 			size_t bs = -1;
@@ -516,13 +524,32 @@ void MusicWheel::FilterBySearch(vector<Song*>& inv, RString findme) {
 			}
 		}
 	}
-	
+
 	if (tmp.size() > 0) {
 		lastvalidsearch = findme;
+		groupnamesearchmatch = "";
 		inv.swap(tmp);
 	}
 	else
+	{
+		if (SearchGroupNames(findme))
+			return;
 		FilterBySearch(inv, lastvalidsearch);
+	}
+}
+
+bool MusicWheel::SearchGroupNames(RString& findme) {
+	const vector<RString>& grps = SONGMAN->GetSongGroupNames();
+	for (size_t i = 0; i < grps.size(); ++i) {
+		string lc = RString(grps[i]).MakeLower();
+		size_t droop = lc.find(findme);
+		if (droop != lc.npos) {
+			groupnamesearchmatch = grps[i];
+			return true;
+		}
+	}
+	groupnamesearchmatch = "";
+	return false;
 }
 
 
@@ -665,7 +692,7 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 
 			if (FILTERMAN->AnyActiveFilter())
 				FilterBySkillsets(arraySongs);
-				
+
 			msg.SetParam("Matches", static_cast<int>(arraySongs.size()));
 			MESSAGEMAN->Broadcast(msg);
 

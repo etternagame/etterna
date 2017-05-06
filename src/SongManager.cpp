@@ -256,6 +256,7 @@ void SongManager::AddGroup( const RString &sDir, const RString &sGroupDirName )
 	LOG->Trace( "Group banner for '%s' is '%s'.", sGroupDirName.c_str(), 
 				sBannerPath != ""? sBannerPath.c_str():"(none)" );
 	*/
+
 	m_sSongGroupNames.push_back( sGroupDirName );
 	m_sSongGroupBannerPaths.push_back( sBannerPath );
 	//m_sSongGroupBackgroundPaths.push_back( sBackgroundPath );
@@ -542,6 +543,11 @@ RString SongManager::GetSongGroupBackgroundPath( RString sSongGroup ) const
 void SongManager::GetSongGroupNames( vector<RString> &AddTo ) const
 {
 	AddTo.insert(AddTo.end(), m_sSongGroupNames.begin(), m_sSongGroupNames.end() );
+}
+
+const vector<RString>& SongManager::GetSongGroupNames() const
+{
+	return m_sSongGroupNames;
 }
 
 bool SongManager::DoesSongGroupExist( const RString &sSongGroup ) const
