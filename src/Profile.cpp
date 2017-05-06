@@ -2267,6 +2267,15 @@ public:
 		return 1;
 	}
 
+	static int GetIgnoreStepCountCalories(T* p, lua_State *L) {
+		lua_pushboolean(L, false);
+		return 1;
+	}
+	static int CalculateCaloriesFromHeartRate(T* p, lua_State *L) {
+		lua_pushnumber(L, 0);
+		return 1;
+	}
+
 	LunaProfile()
 	{
 		ADD_METHOD( AddScreenshot );
@@ -2310,6 +2319,8 @@ public:
 		ADD_METHOD( GetPlayerSkillsetRating );
 		ADD_METHOD( GetNumFaves );
 		ADD_METHOD( GetAllGoals );
+		ADD_METHOD(GetIgnoreStepCountCalories);
+		ADD_METHOD(CalculateCaloriesFromHeartRate);
 	}
 };
 

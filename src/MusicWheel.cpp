@@ -418,7 +418,7 @@ void MusicWheel::GetSongList( vector<Song*> &arraySongs, SortOrder so )
 		{
 			// if the song has steps that fit the preferred difficulty of the default player
 			if( pSong->HasStepsTypeAndDifficulty( GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StepsType,GAMESTATE->m_PreferredDifficulty[GAMESTATE->GetFirstHumanPlayer()] ) )
-				arraySongs.push_back( pSong );
+				arraySongs.emplace_back( pSong );
 		}
 		else
 		{
@@ -440,7 +440,7 @@ void MusicWheel::GetSongList( vector<Song*> &arraySongs, SortOrder so )
 				{
 					if(pSong->HasStepsType(*st))
 					{
-						arraySongs.push_back( pSong );
+						arraySongs.emplace_back( pSong );
 						break;
 					}
 				}
@@ -449,7 +449,7 @@ void MusicWheel::GetSongList( vector<Song*> &arraySongs, SortOrder so )
 			{
 				// If the song has at least one steps, add it.
 				if( pSong->HasStepsType(GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StepsType) )
-					arraySongs.push_back( pSong );
+					arraySongs.emplace_back( pSong );
 			}
 		}
 	}
@@ -463,7 +463,7 @@ void MusicWheel::GetSongList( vector<Song*> &arraySongs, SortOrder so )
 		SONGMAN->GetExtraStageInfo( GAMESTATE->IsExtraStage2(), GAMESTATE->GetCurrentStyle(PLAYER_INVALID), pSong, pSteps );
 
 		if( find( arraySongs.begin(), arraySongs.end(), pSong ) == arraySongs.end() )
-			arraySongs.push_back( pSong );
+			arraySongs.emplace_back( pSong );
 	}
 }
 
@@ -637,6 +637,8 @@ void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
 
 void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelItemDatas, SortOrder so, bool searching, RString findme )
 {
+	
+	map<RString,Commands> commanDZ;
 	switch( so )
 	{
 		case SORT_MODE_MENU:
@@ -655,10 +657,11 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 				if( !wid.m_pAction->IsPlayable() )
 					continue;
 
-				arrayWheelItemDatas.push_back( new MusicWheelItemData(wid) );
+				arrayWheelItemDatas.emplace_back( new MusicWheelItemData(wid) );
 			}
 			break;
 		}
+		
 		case SORT_FAVORITES:
 		case SORT_PREFERRED:
 		case SORT_ROULETTE:
@@ -718,6 +721,7 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 				}
 				case SORT_GROUP:
 					SongUtil::SortSongPointerArrayByGroupAndTitle( arraySongs );
+					
 					if(USE_SECTIONS_WITH_PREFERRED_GROUP)
 						bUseSections = true;
 					else
@@ -831,18 +835,18 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 						// todo: preferred sort section color handling? -aj
 						RageColor colorSection = (so==SORT_GROUP) ? SONGMAN->GetSongGroupColor(pSong->m_sGroupName) : SECTION_COLORS.GetValue(iSectionColorIndex);
 						iSectionColorIndex = (iSectionColorIndex+1) % NUM_SECTION_COLORS;
-						arrayWheelItemDatas.push_back( new MusicWheelItemData(WheelItemDataType_Section, NULL, sThisSection, colorSection, iSectionCount) );
+						arrayWheelItemDatas.emplace_back( new MusicWheelItemData(WheelItemDataType_Section, NULL, sThisSection, colorSection, iSectionCount) );
 						sLastSection = sThisSection;
 					}
 				}
-				arrayWheelItemDatas.push_back( new MusicWheelItemData(WheelItemDataType_Song, pSong, sLastSection, SONGMAN->GetSongColor(pSong), 0) );
+				arrayWheelItemDatas.emplace_back( new MusicWheelItemData(WheelItemDataType_Song, pSong, sLastSection, SONGMAN->GetSongColor(pSong), 0) );
 			}
 
 			if( so != SORT_ROULETTE )
 			{
 				// todo: allow themers to change the order of the items. -aj
 				if( SHOW_ROULETTE )
-					arrayWheelItemDatas.push_back( new MusicWheelItemData(WheelItemDataType_Roulette, NULL, "", ROULETTE_COLOR, 0) );
+					arrayWheelItemDatas.emplace_back( new MusicWheelItemData(WheelItemDataType_Roulette, NULL, "", ROULETTE_COLOR, 0) );
 
 				// Only add WheelItemDataType_Random and WheelItemDataType_Portal if there's at least
 				// one song on the list.
@@ -852,10 +856,10 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 						bFoundAnySong = true;
 
 				if( SHOW_RANDOM && bFoundAnySong )
-					arrayWheelItemDatas.push_back( new MusicWheelItemData(WheelItemDataType_Random, NULL, "", RANDOM_COLOR, 0) );
+					arrayWheelItemDatas.emplace_back( new MusicWheelItemData(WheelItemDataType_Random, NULL, "", RANDOM_COLOR, 0) );
 
 				if( SHOW_PORTAL && bFoundAnySong )
-					arrayWheelItemDatas.push_back( new MusicWheelItemData(WheelItemDataType_Portal, NULL, "", PORTAL_COLOR, 0) );
+					arrayWheelItemDatas.emplace_back( new MusicWheelItemData(WheelItemDataType_Portal, NULL, "", PORTAL_COLOR, 0) );
 
 				// add custom wheel items
 				vector<RString> vsNames;
@@ -871,7 +875,7 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 					if( !wid.m_pAction->IsPlayable() )
 						continue;
 
-					arrayWheelItemDatas.push_back( new MusicWheelItemData(wid) );
+					arrayWheelItemDatas.emplace_back( new MusicWheelItemData(wid) );
 				}
 			}
 
@@ -1017,7 +1021,7 @@ void MusicWheel::FilterWheelItemDatas(vector<MusicWheelItemData *> &aUnFilteredD
 	{
 		if( aiRemove[i] )
 			continue;
-		aFilteredData.push_back( aUnFilteredDatas[i] );
+		aFilteredData.emplace_back( aUnFilteredDatas[i] );
 	}
 
 	// Update the song count in each section header.
@@ -1061,7 +1065,7 @@ void MusicWheel::FilterWheelItemDatas(vector<MusicWheelItemData *> &aUnFilteredD
 
 	// If we've filtered all items, insert a dummy.
 	if( aFilteredData.empty() )
-		aFilteredData.push_back( new MusicWheelItemData(WheelItemDataType_Section, NULL, EMPTY_STRING, EMPTY_COLOR, 0) );
+		aFilteredData.emplace_back( new MusicWheelItemData(WheelItemDataType_Section, NULL, EMPTY_STRING, EMPTY_COLOR, 0) );
 }
 
 void MusicWheel::UpdateSwitch()
@@ -1232,7 +1236,7 @@ bool MusicWheel::NextSort()		// return true if change successful
 		FOREACH_LUATABLEI( L, -1, i )
 		{
 			SortOrder so = Enum::Check<SortOrder>( L, -1, true );
-			aSortOrders.push_back( so );
+			aSortOrders.emplace_back( so );
 		}
 		lua_pop( L, 1 );
 		LUA->Release(L);
@@ -1392,7 +1396,7 @@ void MusicWheel::SetOpenSection( const RString &group )
 			d.m_pSong->IsTutorial() )
 			continue;
 
-		m_CurWheelItemData.push_back(&d);
+		m_CurWheelItemData.emplace_back(&d);
 	}
 
 	//restore the past group song index
@@ -1580,7 +1584,7 @@ Song *MusicWheel::GetPreferredSelectionForRandomOrPortal()
 		if( GAMESTATE->m_PreferredDifficulty[p] == Difficulty_Edit )
 			continue;	// skip
 
-		vDifficultiesToRequire.push_back( GAMESTATE->m_PreferredDifficulty[p] );
+		vDifficultiesToRequire.emplace_back( GAMESTATE->m_PreferredDifficulty[p] );
 	}
 
 	RString sPreferredGroup = m_sExpandedSectionName;

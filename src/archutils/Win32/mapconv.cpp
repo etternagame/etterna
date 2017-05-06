@@ -215,7 +215,7 @@ int main(int argc, char **argv) {
 
 //		printf("Processing RVA entries...\n");
 
-		for(i=0; i<rvabuf.size(); i++) {
+		for(int i=0; i<rvabuf.size(); i++) {
 			long grp, start, rva;
 			char symname[4096];
 
@@ -228,7 +228,7 @@ int main(int argc, char **argv) {
 		
 //		printf("Processing segment entries...\n");
 
-		for(i=0; i<segcnt; i++) {
+		for(int i=0; i<segcnt; i++) {
 			segbuf[i][0] += grpstart[seggrp[i]];
 //			printf("\t#%-2d  %08lx-%08lx\n", i+1, segbuf[i][0], segbuf[i][0]+segbuf[i][1]-1);
 		}

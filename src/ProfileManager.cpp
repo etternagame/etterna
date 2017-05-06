@@ -87,6 +87,7 @@ ProfileManager::~ProfileManager()
 
 void ProfileManager::Init()
 {
+	dummy = new Profile;
 	FOREACH_PlayerNumber( p )
 	{
 		m_bLastLoadWasTamperedOrCorrupt[p] = false;
@@ -277,11 +278,10 @@ void ProfileManager::UnloadProfile( PlayerNumber pn )
 	SONGMAN->FreeAllLoadedFromProfile( (ProfileSlot) pn );
 }
 
-const Profile* ProfileManager::GetProfile( PlayerNumber pn ) const
+const Profile* ProfileManager::GetProfile(PlayerNumber pn) const
 {
-	ASSERT( pn >= 0 && pn < NUM_PLAYERS );
-
-	ASSERT(!m_sProfileDir[pn].empty());
+	if (!m_sProfileDir[pn].empty())
+		return dummy;
 	RString sProfileID = LocalProfileDirToID( m_sProfileDir[pn] );
 	return GetLocalProfile( sProfileID );
 }
@@ -776,7 +776,7 @@ public:
 		COMMON_RETURN_SELF;
 	}
 	static int IsPersistentProfile( T* p, lua_State *L )	{ lua_pushboolean(L, p->IsPersistentProfile(Enum::Check<PlayerNumber>(L, 1)) ); return 1; }
-	static int GetProfile( T* p, lua_State *L )				{ PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1); Profile* pP = p->GetProfile(pn); ASSERT(pP != NULL); pP->PushSelf(L); return 1; }
+	static int GetProfile( T* p, lua_State *L )				{ PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1); Profile* pP = new Profile; ASSERT(pP != NULL); pP->PushSelf(L); return 1; }
 	static int GetMachineProfile(T* p, lua_State *L) {
 		Profile* pP = p->GetProfile(PLAYER_1);
 		pP->PushSelf(L);
@@ -851,7 +851,6 @@ public:
 		LuaHelpers::CreateTableFromArray<RString>( vsProfileNames, L );
 		return 1;
 	}
-
 	LunaProfileManager()
 	{
 		ADD_METHOD(GetStatsPrefix);

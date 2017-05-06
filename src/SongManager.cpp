@@ -1370,6 +1370,12 @@ public:
 		return 1;
 	}
 
+	static int GetNumCourses(T* p, lua_State *L)
+	{
+		lua_pushnumber(L, 0);
+		return 1;
+	}
+
 	LunaSongManager()
 	{
 		ADD_METHOD( GetAllSongs );
@@ -1395,7 +1401,7 @@ public:
 		ADD_METHOD( WasLoadedFromAdditionalSongs );
 		ADD_METHOD( GetSongByChartKey );
 		ADD_METHOD( GetStepsByChartKey );
-		ADD_METHOD(GetStepsByChartKey);
+		ADD_METHOD(GetNumCourses);
 	}
 };
 
