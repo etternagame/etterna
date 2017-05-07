@@ -2373,8 +2373,11 @@ public:
 	static int GetHumanPlayers( T* p, lua_State *L )
 	{
 		vector<PlayerNumber> vHP;
-		FOREACH_HumanPlayer( pn )
-			vHP.push_back( pn );
+		FOREACH_HumanPlayer(pn) {
+			if(pn == PLAYER_1)
+			vHP.push_back(pn);
+		}
+			
 		LuaHelpers::CreateTableFromArray( vHP, L );
 		return 1;
 	}

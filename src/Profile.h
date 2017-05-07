@@ -358,6 +358,7 @@ public:
 	void LoadEttScoresFromNode(const XNode* pNode);
 
 	bool SaveEttXmlToDir(RString sDir) const;
+	XNode* SaveEttGeneralDataCreateNode() const;
 	XNode* SaveEttScoresCreateNode() const;
 	XNode* SaveEttXmlCreateNode() const;
 

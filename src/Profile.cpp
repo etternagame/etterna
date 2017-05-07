@@ -807,7 +807,6 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 {
 	FILEMAN->CreateDir(sDir + REPLAY_SUBDIR);
 	LOG->Trace( "Profile::LoadAllFromDir( %s )", sDir.c_str() );
-
 	ASSERT( sDir.Right(1) == "/" );
 
 	InitAll();
@@ -821,8 +820,6 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 		ret = LoadStatsFromDir(sDir, bRequireSignature);
 	if (ret != ProfileLoadResult_Success)
 		return ret;
-
-	LoadCustomFunction( sDir );
 
 	return ProfileLoadResult_Success;
 }
@@ -1055,37 +1052,14 @@ bool Profile::SaveAllToDir( const RString &sDir, bool bSignData ) const
 	SaveTypeToDir(sDir);
 	// Save editable.ini
 	SaveEditableDataToDir( sDir );
-
+	
 	bool bSaved = SaveEttXmlToDir(sDir);
-
 	SaveStatsWebPageToDir( sDir );
-
+	
 	// Empty directories if none exist.
-	if( ProfileManager::m_bProfileStepEdits )
-		FILEMAN->CreateDir( sDir + EDIT_STEPS_SUBDIR );
 	FILEMAN->CreateDir( sDir + SCREENSHOTS_SUBDIR );
-	FILEMAN->CreateDir( sDir + RIVAL_SUBDIR );
 	FILEMAN->CreateDir( sDir + REPLAY_SUBDIR);
-
-	/* Get the theme's custom save function:
-	 *   [Profile]
-	 *   CustomSaveFunction=function(profile, profileDir) ... end
-	 */
-	Lua *L = LUA->Get();
-	LuaReference customSaveFunc = THEME->GetMetricR("Profile", "CustomSaveFunction");
-	customSaveFunc.PushSelf(L);
-	ASSERT_M(!lua_isnil(L, -1), "CustomSaveFunction not defined");
-
-	// Pass profile and profile directory as arguments
-	const_cast<Profile *>(this)->PushSelf(L);
-	LuaHelpers::Push(L, sDir);
-
-	// Run it
-	RString Error= "Error running CustomSaveFunction: ";
-	LuaHelpers::RunScriptOnStack(L, Error, 2, 0, true);
-
-	LUA->Release(L);
-
+	
 	return bSaved;
 }
 
@@ -1104,10 +1078,8 @@ XNode *Profile::SaveStatsXmlCreateNode() const
 XNode *Profile::SaveEttXmlCreateNode() const
 {
 	XNode *xml = new XNode("Stats");
-
-	xml->AppendChild(SaveGeneralDataCreateNode());
+	xml->AppendChild(SaveEttGeneralDataCreateNode());
 	xml->AppendChild(SaveEttScoresCreateNode());
-
 	return xml;
 }
 
@@ -1168,13 +1140,11 @@ bool Profile::SaveStatsXmlToDir( RString sDir, bool bSignData ) const
 }
 
 bool Profile::SaveEttXmlToDir(RString sDir) const {
-	LOG->Trace("SaveStatsXmlToDir: %s", sDir.c_str());
+	LOG->Trace("Saving Etterna Profile to: %s", sDir.c_str());
 	unique_ptr<XNode> xml(SaveEttXmlCreateNode());
-
 	sDir += PROFILEMAN->GetStatsPrefix();
 	// Save Etterna.xml
 	RString fn = sDir + ETT_XML;
-
 	{
 		RString sError;
 		RageFile f;
@@ -1367,6 +1337,89 @@ XNode* Profile::SaveGeneralDataCreateNode() const
 		// XXX: XNodeFromTable returns a root node with the name "Layer".
 		pUserTable->m_sName = "UserTable";
 		pGeneralDataNode->AppendChild( pUserTable );
+	}
+
+	return pGeneralDataNode;
+}
+
+
+XNode* Profile::SaveEttGeneralDataCreateNode() const
+{
+	XNode* pGeneralDataNode = new XNode("GeneralData");
+
+	// TRICKY: These are write-only elements that are normally never read again.
+	// This data is required by other apps (like internet ranking), but is 
+	// redundant to the game app.
+	pGeneralDataNode->AppendChild("DisplayName", GetDisplayNameOrHighScoreName());
+	pGeneralDataNode->AppendChild("CharacterID", m_sCharacterID);
+	pGeneralDataNode->AppendChild("Guid", m_sGuid);
+	pGeneralDataNode->AppendChild("SortOrder", SortOrderToString(m_SortOrder));
+	pGeneralDataNode->AppendChild("LastDifficulty", DifficultyToString(m_LastDifficulty));
+	if (m_LastStepsType != StepsType_Invalid)
+		pGeneralDataNode->AppendChild("LastStepsType", GAMEMAN->GetStepsTypeInfo(m_LastStepsType).szName);
+	pGeneralDataNode->AppendChild(m_lastSong.CreateNode());
+	pGeneralDataNode->AppendChild("TotalSessions", m_iTotalSessions);
+	pGeneralDataNode->AppendChild("TotalSessionSeconds", m_iTotalSessionSeconds);
+	pGeneralDataNode->AppendChild("TotalGameplaySeconds", m_iTotalGameplaySeconds);
+	pGeneralDataNode->AppendChild("LastPlayedMachineGuid", m_sLastPlayedMachineGuid);
+	pGeneralDataNode->AppendChild("LastPlayedDate", m_LastPlayedDate.GetString());
+	pGeneralDataNode->AppendChild("TotalDancePoints", m_iTotalDancePoints);
+	pGeneralDataNode->AppendChild("NumToasties", m_iNumToasties);
+	pGeneralDataNode->AppendChild("TotalTapsAndHolds", m_iTotalTapsAndHolds);
+	pGeneralDataNode->AppendChild("TotalJumps", m_iTotalJumps);
+	pGeneralDataNode->AppendChild("TotalHolds", m_iTotalHolds);
+	pGeneralDataNode->AppendChild("TotalRolls", m_iTotalRolls);
+	pGeneralDataNode->AppendChild("TotalMines", m_iTotalMines);
+	pGeneralDataNode->AppendChild("TotalHands", m_iTotalHands);
+	pGeneralDataNode->AppendChild("TotalLifts", m_iTotalLifts);
+	pGeneralDataNode->AppendChild("PlayerRating", m_fPlayerRating);
+
+	// Keep declared variables in a very local scope so they aren't 
+	// accidentally used where they're not intended.  There's a lot of
+	// copying and pasting in this code.
+
+	{
+		XNode* pDefaultModifiers = pGeneralDataNode->AppendChild("DefaultModifiers");
+		FOREACHM_CONST(RString, RString, m_sDefaultModifiers, it)
+			pDefaultModifiers->AppendChild(it->first, it->second);
+	}
+
+	{
+		XNode* pFavorites = pGeneralDataNode->AppendChild("Favorites");
+		FOREACH_CONST(RString, FavoritedCharts, it)
+			pFavorites->AppendChild(*it);
+	}
+
+	{
+		XNode* pPlayerSkillsets = pGeneralDataNode->AppendChild("PlayerSkillsets");
+		FOREACH_ENUM(Skillset, ss)
+			pPlayerSkillsets->AppendChild(SkillsetToString(ss), m_fPlayerSkillsets[ss]);
+	}
+
+	pGeneralDataNode->AppendChild("NumTotalSongsPlayed", m_iNumTotalSongsPlayed);
+
+	{
+		XNode* pNumStagesPassedByPlayMode = pGeneralDataNode->AppendChild("NumStagesPassedByPlayMode");
+		FOREACH_ENUM(PlayMode, pm)
+		{
+			// Don't save unplayed PlayModes.
+			if (!m_iNumStagesPassedByPlayMode[pm])
+				continue;
+			pNumStagesPassedByPlayMode->AppendChild(PlayModeToString(pm), m_iNumStagesPassedByPlayMode[pm]);
+		}
+	}
+
+	// Load Lua UserTable from profile
+	if (m_UserTable.IsSet())
+	{
+		Lua *L = LUA->Get();
+		m_UserTable.PushSelf(L);
+		XNode* pUserTable = XmlFileUtil::XNodeFromTable(L);
+		LUA->Release(L);
+
+		// XXX: XNodeFromTable returns a root node with the name "Layer".
+		pUserTable->m_sName = "UserTable";
+		pGeneralDataNode->AppendChild(pUserTable);
 	}
 
 	return pGeneralDataNode;
@@ -1741,9 +1794,9 @@ XNode* Profile::SaveEttScoresCreateNode() const {
 
 	const Profile* pProfile = this;
 	ASSERT(pProfile != NULL);
-
+	LOG->Warn("1sdaf");
 	XNode* pNode = SCOREMAN->CreateNode();
-
+	LOG->Warn("A5234Sd11f2sf");
 	return pNode;
 }
 
