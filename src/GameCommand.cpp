@@ -718,11 +718,6 @@ void GameCommand::ApplySelf( const vector<PlayerNumber> &vpns ) const
 	FOREACH_CONST( RString, m_vsScreensToPrepare, s )
 		SCREENMAN->PrepareScreen( *s );
 
-	if( m_bInsertCredit )
-	{
-		StepMania::InsertCredit();
-	}
-
 	if( m_bClearCredits )
 		StepMania::ClearCredits();
 

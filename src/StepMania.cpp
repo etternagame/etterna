@@ -59,7 +59,6 @@
 #include "ScoreManager.h"
 //#include "BackgroundCache.h"
 #include "RageFileManager.h"
-#include "Bookkeeper.h"
 #include "ModelManager.h"
 #include "CryptManager.h"
 #include "NetworkSyncManager.h"
@@ -305,7 +304,6 @@ void ShutdownGame()
 	SAFE_DELETE( NOTESKIN );
 	SAFE_DELETE( THEME );
 	SAFE_DELETE( ANNOUNCER );
-	SAFE_DELETE( BOOKKEEPER );
 	SAFE_DELETE( SOUNDMAN );
 	SAFE_DELETE( FONT );
 	SAFE_DELETE( TEXTUREMAN );
@@ -1144,7 +1142,6 @@ int sm_main(int argc, char* argv[])
 	SOUNDMAN->Init();
 	SOUNDMAN->SetMixVolume();
 	SOUND		= new GameSoundManager;
-	BOOKKEEPER	= new Bookkeeper;
 	INPUTFILTER	= new InputFilter;
 	INPUTMAPPER	= new InputMapper;
 
@@ -1263,62 +1260,6 @@ RString StepMania::SaveScreenshot( const RString &Dir, bool SaveCompressed, bool
 	return FileName;
 }
 
-void StepMania::InsertCoin( int iNum, bool bCountInBookkeeping )
-{
-	if( bCountInBookkeeping )
-	{
-		BOOKKEEPER->CoinInserted();
-	}
-	int iNumCoinsOld = GAMESTATE->m_iCoins;
-
-	// Don't allow GAMESTATE's coin count to become negative.
-	if (GAMESTATE->m_iCoins + iNum >= 0)
-	{
-		GAMESTATE->m_iCoins.Set( GAMESTATE->m_iCoins + iNum );
-	}
-	
-	int iCredits = GAMESTATE->m_iCoins / PREFSMAN->m_iCoinsPerCredit;
-	bool bMaxCredits = iCredits >= MAX_NUM_CREDITS;
-	if( bMaxCredits )
-	{
-		GAMESTATE->m_iCoins.Set( MAX_NUM_CREDITS * PREFSMAN->m_iCoinsPerCredit );
-	}
-	
-	LOG->Trace("%i coins inserted, %i needed to play", GAMESTATE->m_iCoins.Get(), PREFSMAN->m_iCoinsPerCredit.Get() );
-
-	// If inserting coins, play an appropriate sound; if deducting coins, don't play anything.
-	if (iNum > 0)
-	{
-		if( iNumCoinsOld != GAMESTATE->m_iCoins )
-		{
-			SCREENMAN->PlayCoinSound();
-		} else {
-			SCREENMAN->PlayInvalidSound();
-		}
-	}
-
-	/* If AutoJoin and a player is already joined, then try to join a player.
-	 * (If no players are joined, they'll join on the first JoinInput.) */
-	if( GAMESTATE->m_bAutoJoin.Get() && GAMESTATE->GetNumSidesJoined() > 0 )
-	{
-		if( GAMESTATE->GetNumSidesJoined() > 0 && GAMESTATE->JoinPlayers() )
-			SCREENMAN->PlayStartSound();
-	}
-
-	// TODO: remove this redundant message and things that depend on it
-	Message msg( "CoinInserted" );
-	// below params are unused
-	//msg.SetParam( "Coins", GAMESTATE->m_iCoins );
-	//msg.SetParam( "Inserted", iNum );
-	//msg.SetParam( "MaxCredits", bMaxCredits );
-	MESSAGEMAN->Broadcast( msg );
-}
-
-void StepMania::InsertCredit()
-{
-	InsertCoin( PREFSMAN->m_iCoinsPerCredit, false );
-}
-
 void StepMania::ClearCredits()
 {
 	LOG->Trace("%i coins cleared", GAMESTATE->m_iCoins.Get() );
@@ -1360,15 +1301,6 @@ bool HandleGlobalInputs( const InputEventPlus &input )
 				SCREENMAN->SetNewScreen( CommonMetrics::OPERATOR_MENU_SCREEN );
 			}
 			return true;
-
-		case GAME_BUTTON_COIN:
-			// Handle a coin insertion.
-			if( GAMESTATE->IsEditing() )	// no coins while editing
-			{
-				LOG->Trace( "Ignored coin insertion (editing)" );
-				break;
-			}
-			StepMania::InsertCoin();
 			return false; // Attract needs to know because it goes to TitleMenu on > 1 credit
 		default: break;
 	}

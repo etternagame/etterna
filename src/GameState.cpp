@@ -3,7 +3,6 @@
 #include "Actor.h"
 #include "AdjustSync.h"
 #include "AnnouncerManager.h"
-#include "Bookkeeper.h"
 #include "Character.h"
 #include "CharacterManager.h"
 #include "CommonMetrics.h"
@@ -616,11 +615,6 @@ bool GameState::HaveProfileToSave()
 		if( PROFILEMAN->IsPersistentProfile(pn) )
 			return true;
 	return false;
-}
-
-void GameState::SaveLocalData()
-{
-	BOOKKEEPER->WriteToDisk();
 }
 
 int GameState::GetNumStagesMultiplierForSong( const Song* pSong )
@@ -2470,7 +2464,7 @@ public:
 	}
 	static int GetGameSeed( T* p, lua_State *L )			{ LuaHelpers::Push( L, p->m_iGameSeed ); return 1; }
 	static int GetStageSeed( T* p, lua_State *L )			{ LuaHelpers::Push( L, p->m_iStageSeed ); return 1; }
-	static int SaveLocalData( T* p, lua_State *L )			{ p->SaveLocalData(); COMMON_RETURN_SELF; }
+	static int SaveLocalData( T* p, lua_State *L )			{ COMMON_RETURN_SELF; }
 
 	static int SetJukeboxUsesModifiers( T* p, lua_State *L )
 	{
@@ -2498,19 +2492,10 @@ public:
 	static int AddStageToPlayer( T* p, lua_State *L )				{ p->AddStageToPlayer(Enum::Check<PlayerNumber>(L, 1)); COMMON_RETURN_SELF; }
 	static int InsertCoin( T* p, lua_State *L )
 	{
-		int numCoins = IArg(1);
-		if (GAMESTATE->m_iCoins + numCoins >= 0)
-		{
-			StepMania::InsertCoin(numCoins, false);
-		} else {
-			// Warn themers if they attempt to set credits to a negative value.
-			luaL_error( L, "Credits may not be negative." );
-		}
 		COMMON_RETURN_SELF;
 	}
 	static int InsertCredit( T* p, lua_State *L )
 	{
-		StepMania::InsertCredit();
 		COMMON_RETURN_SELF;
 	}
 	static int CurrentOptionsDisqualifyPlayer( T* p, lua_State *L )	{ lua_pushboolean(L, p->CurrentOptionsDisqualifyPlayer(Enum::Check<PlayerNumber>(L, 1))); return 1; }

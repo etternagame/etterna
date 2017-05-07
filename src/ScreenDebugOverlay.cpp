@@ -15,7 +15,6 @@
 #include "InputMapper.h"
 #include "RageTextureManager.h"
 #include "NoteSkinManager.h"
-#include "Bookkeeper.h"
 #include "ProfileManager.h"
 #include "CodeDetector.h"
 #include "RageInput.h"
