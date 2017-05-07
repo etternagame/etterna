@@ -41,7 +41,6 @@ static void DefaultLocalProfileIDInit( size_t /*PlayerNumber*/ i, RString &sName
 Preference<bool> ProfileManager::m_bProfileStepEdits( "ProfileStepEdits", true );
 Preference1D<RString> ProfileManager::m_sDefaultLocalProfileID( DefaultLocalProfileIDInit, NUM_PLAYERS );
 
-const RString NEW_MEM_CARD_NAME	=	"";
 const RString USER_PROFILES_DIR	=	"/Save/LocalProfiles/";
 const RString LAST_GOOD_SUBDIR	=	"LastGood/";
 
@@ -87,7 +86,7 @@ ProfileManager::~ProfileManager()
 
 void ProfileManager::Init()
 {
-	dummy = new Profile;
+
 	FOREACH_PlayerNumber( p )
 	{
 		m_bLastLoadWasTamperedOrCorrupt[p] = false;
@@ -120,6 +119,9 @@ void ProfileManager::Init()
 
 		ASSERT( (int)g_vLocalProfile.size() == NUM_FIXED_PROFILES );
 	}
+
+	if (!g_vLocalProfile.empty())
+		m_sProfileDir[PLAYER_1] = g_vLocalProfile[0].sDir;
 }
 
 bool ProfileManager::FixedProfiles() const
@@ -280,8 +282,9 @@ void ProfileManager::UnloadProfile( PlayerNumber pn )
 
 const Profile* ProfileManager::GetProfile(PlayerNumber pn) const
 {
-	RString sProfileID = LocalProfileDirToID( m_sProfileDir[pn] );
-	return GetLocalProfile( sProfileID );
+
+	RString sProfileID = LocalProfileDirToID(m_sProfileDir[PLAYER_1]);
+	return GetLocalProfile(sProfileID);
 }
 
 RString ProfileManager::GetPlayerName( PlayerNumber pn ) const
@@ -774,7 +777,7 @@ public:
 		COMMON_RETURN_SELF;
 	}
 	static int IsPersistentProfile( T* p, lua_State *L )	{ lua_pushboolean(L, p->IsPersistentProfile(Enum::Check<PlayerNumber>(L, 1)) ); return 1; }
-	static int GetProfile( T* p, lua_State *L )				{ PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1); Profile* pP = p->GetProfile(pn); ASSERT(pP != NULL); pP->PushSelf(L); return 1; }
+	static int GetProfile( T* p, lua_State *L )				{ PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1); Profile* pP = p->GetProfile(pn); pP->PushSelf(L); return 1; }
 	static int GetMachineProfile(T* p, lua_State *L) {
 		Profile* pP = p->GetProfile(PLAYER_1);
 		pP->PushSelf(L);
