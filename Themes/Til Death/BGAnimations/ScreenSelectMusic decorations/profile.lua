@@ -299,7 +299,7 @@ local function littlebits(i)
 	return t
 end
 
-for i=1,#ms.SkillSets do 
+for i=2,#ms.SkillSets do 
 	r[#r+1] = littlebits(i)
 end
 
