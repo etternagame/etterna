@@ -10,7 +10,6 @@
 #include "Song.h"
 #include "SongManager.h"
 #include "Steps.h"
-#include "Attack.h"
 #include "PrefsManager.h"
 
 // Everything from this line to the creation of sm_parser_helper exists to
@@ -180,12 +179,6 @@ void SMSetKeysounds(SMSongTagInfo& info)
 {
 	split((*info.params)[1], ",", info.song->m_vsKeysoundFile);
 }
-void SMSetAttacks(SMSongTagInfo& info)
-{
-	info.loader->ProcessAttackString(info.song->m_sAttackString, (*info.params));
-	info.loader->ProcessAttacks(info.song->m_Attacks, (*info.params));
-}
-
 typedef std::map<RString, song_tag_func_t> song_handler_map_t;
 
 struct sm_parser_helper_t
@@ -229,7 +222,6 @@ struct sm_parser_helper_t
 		song_tag_handlers["FGCHANGES"]= &SMSetFGChanges;
 		song_tag_handlers["KEYSOUNDS"]= &SMSetKeysounds;
 		// Attacks loaded from file
-		song_tag_handlers["ATTACKS"]= &SMSetAttacks;
 		/* Tags that no longer exist, listed for posterity.  May their names
 		 * never be forgotten for their service to Stepmania. -Kyz
 		 * LASTBEATHINT: // unable to identify at this point: ignore
@@ -242,6 +234,7 @@ struct sm_parser_helper_t
 		 * SAMPLEPATH: // SamplePath was used when the song has a separate preview clip. -aj
 		 * LEADTRACK: // XXX: Does anyone know what LEADTRACK is for? -Wolfman2000
 		 * MUSICLENGTH: // Loaded from the cache now. -Kyz
+		 * ATTACKS: // Stupid. -mina
 		 */
 	}
 };
@@ -364,58 +357,6 @@ void SMLoader::ProcessBGChanges( Song &out, const RString &sValueName, const RSt
 			BackgroundChange change;
 			if( LoadFromBGChangesString( change, aBGChangeExpressions[b] ) )
 				out.AddBackgroundChange( iLayer, change );
-		}
-	}
-}
-
-void SMLoader::ProcessAttackString( vector<RString> & attacks, MsdFile::value_t params )
-{
-	for( unsigned s=1; s < params.params.size(); ++s )
-	{
-		RString tmp = params[s];
-		Trim(tmp);
-		if (tmp.size() > 0)
-			attacks.push_back( tmp );
-	}
-}
-
-void SMLoader::ProcessAttacks( AttackArray &attacks, MsdFile::value_t params )
-{
-	Attack attack;
-	float end = -9999;
-	
-	for( unsigned j=1; j < params.params.size(); ++j )
-	{
-		vector<RString> sBits;
-		split( params[j], "=", sBits, false );
-		
-		// Need an identifer and a value for this to work
-		if( sBits.size() < 2 )
-			continue;
-		
-		Trim( sBits[0] );
-		
-		if( !sBits[0].CompareNoCase("TIME") )
-			attack.fStartSecond = strtof( sBits[1], NULL );
-		else if( !sBits[0].CompareNoCase("LEN") )
-			attack.fSecsRemaining = strtof( sBits[1], NULL );
-		else if( !sBits[0].CompareNoCase("END") )
-			end = strtof( sBits[1], NULL );
-		else if( !sBits[0].CompareNoCase("MODS") )
-		{
-			Trim(sBits[1]);
-			attack.sModifiers = sBits[1];
-			
-			if( end != -9999 )
-			{
-				attack.fSecsRemaining = end - attack.fStartSecond;
-				end = -9999;
-			}
-			
-			if( attack.fSecsRemaining < 0.0f )
-				attack.fSecsRemaining = 0.0f;
-			
-			attacks.push_back( attack );
 		}
 	}
 }

@@ -35,8 +35,6 @@ ScoreKeeper* ScoreKeeper::MakeScoreKeeper( const RString &sClassName, PlayerStat
 {
 	if( sClassName == "ScoreKeeperNormal" )
 		return new ScoreKeeperNormal( pPlayerState, pPlayerStageStats );
-	else if( sClassName == "ScoreKeeperRave" )
-		return new ScoreKeeperRave( pPlayerState, pPlayerStageStats );
 	else if( sClassName == "ScoreKeeperShared" )
 		return new ScoreKeeperShared( pPlayerState, pPlayerStageStats );
 	FAIL_M( ssprintf("Invalid ScoreKeeper named %s!", sClassName.c_str() ));

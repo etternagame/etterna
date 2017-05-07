@@ -1,7 +1,6 @@
 #ifndef SONG_H
 #define SONG_H
 
-#include "Attack.h"
 #include "TimingData.h"
 #include "Difficulty.h"
 #include "EnumHelper.h"
@@ -249,9 +248,6 @@ public:
 	RString m_sCDTitleFile;
 	RString m_sPreviewVidFile;
 
-	AttackArray m_Attacks;
-	vector<RString>	m_sAttackString;
-
 	static RString GetSongAssetPath( RString sPath, const RString &sSongPath );
 	RString GetMusicPath() const;
 	RString GetInstrumentTrackPath( InstrumentTrack it ) const;
@@ -452,11 +448,6 @@ public:
 	vector<RString> m_vsKeysoundFile;
 
 	CachedObject<Song> m_CachedObject;
-
-	RString GetAttackString() const
-	{
-		return join(":", this->m_sAttackString);
-	}
 
 	// Lua
 	void PushSelf( lua_State *L );

@@ -87,7 +87,6 @@ void SongManager::InitAll( LoadingWindow *ld )
 		m_GroupsToNeverCache.insert(*group);
 	}
 	InitSongsFromDisk( ld );
-	InitRandomAttacks();
 }
 
 static LocalizedString RELOADING ( "SongManager", "Reloading..." );
@@ -709,46 +708,6 @@ RString SongManager::ShortenGroupName( const RString &sLongGroupName )
 	tsub.Subst( title );
 	return title.Title;
 }
-
-void SongManager::InitRandomAttacks()
-{
-	GAMESTATE->m_RandomAttacks.clear();
-
-	if( !IsAFile(ATTACK_FILE) )
-		LOG->Trace( "File Data/RandomAttacks.txt was not found" );
-	else
-	{
-		MsdFile msd;
-
-		if( !msd.ReadFile( ATTACK_FILE, true ) )
-			LuaHelpers::ReportScriptErrorFmt( "Error opening file '%s' for reading: %s.", ATTACK_FILE.c_str(), msd.GetError().c_str() );
-		else
-		{
-			for( unsigned i=0; i<msd.GetNumValues(); i++ )
-			{
-				int iNumParams = msd.GetNumParams(i);
-				const MsdFile::value_t &sParams = msd.GetValue(i);
-				RString sType = sParams[0];
-				RString sAttack = sParams[1];
-
-				if( iNumParams > 2 )
-				{
-					LuaHelpers::ReportScriptErrorFmt( "Got \"%s:%s\" tag with too many parameters", sType.c_str(), sAttack.c_str() );
-					continue;
-				}
-
-				if( !sType.EqualsNoCase("ATTACK") )
-				{
-					LuaHelpers::ReportScriptErrorFmt( "Got \"%s:%s\" tag with wrong declaration", sType.c_str(), sAttack.c_str() );
-					continue;
-				}
-
-				GAMESTATE->m_RandomAttacks.push_back( sAttack );
-			}
-		}
-	}
-}
-
 
 /* Called periodically to wipe out cached NoteData. This is called when we
  * change screens. */

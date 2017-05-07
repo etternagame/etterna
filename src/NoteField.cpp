@@ -567,15 +567,6 @@ void NoteField::draw_timing_segment_text(const RString& text,
 	m_textMeasureNumber.Draw();
 }
 
-void NoteField::DrawAttackText(const float beat, const Attack &attack,
-	const RageColor& glow)
-{
-	set_text_measure_number_for_draw(beat, 1, 10, align_left,
-		RageColor(0,0.8f,0.8f,1), glow);
-	m_textMeasureNumber.SetText( attack.GetTextDescription() );
-	m_textMeasureNumber.Draw();
-}
-
 void NoteField::DrawBGChangeText(const float beat, const RString new_bg_name,
 	const RageColor& glow)
 {
@@ -837,24 +828,6 @@ void NoteField::DrawPrimitives()
 				FloatToString(seg->GetDelay()).c_str()), Speed, SPEED);
 		draw_all_segments(FloatToString(seg->GetLength()), Fake, FAKE);
 #undef draw_all_segments
-
-			AttackArray &attacks = GAMESTATE->m_bIsUsingStepTiming ?
-				GAMESTATE->m_pCurSteps[PLAYER_1]->m_Attacks :
-				GAMESTATE->m_pCurSong->m_Attacks;
-			// XXX: We're somehow getting here when attacks is null. Find the actual cause later.
-			if (&attacks)
-			{
-				FOREACH_CONST(Attack, attacks, a)
-				{
-					float fBeat = timing.GetBeatFromElapsedTime(a->fStartSecond);
-					if (BeatToNoteRow(fBeat) >= m_FieldRenderArgs.first_row &&
-						BeatToNoteRow(fBeat) <= m_FieldRenderArgs.last_row &&
-						IS_ON_SCREEN(fBeat))
-					{
-						this->DrawAttackText(fBeat, *a, text_glow);
-					}
-				}
-			}
 
 		if( !GAMESTATE->m_bIsUsingStepTiming )
 		{

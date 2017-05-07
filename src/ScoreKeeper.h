@@ -4,13 +4,11 @@
 #include "GameConstantsAndTypes.h"
 
 class NoteData;
-class Inventory;
 class Song;
 class Steps;
 class PlayerState;
 class PlayerStageStats;
 struct TapNote;
-struct AttackArray;
 
 /**
  * @brief Abstract class to handle scorekeeping, stat-taking, etc.
@@ -38,8 +36,7 @@ public:
 	virtual ~ScoreKeeper() { }
 	virtual void Load(
 		const vector<Song*> &,
-		const vector<Steps*> &,
-		const vector<AttackArray> & ) { }
+		const vector<Steps*> & ) { }
 
 	virtual void DrawPrimitives() { }
 	virtual void Update( float /* fDelta */ ) { }

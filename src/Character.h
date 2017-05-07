@@ -59,7 +59,6 @@ public:
 	 * All of the variables listed below here will be filled in if true. */
 	bool	m_bUsableInRave;
 
-	RString	m_sAttacks[NUM_ATTACK_LEVELS][NUM_ATTACKS_PER_LEVEL];
 	RageTexturePreloader m_Preload;
 	int m_iPreloadRefcount;
 };

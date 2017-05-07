@@ -67,9 +67,7 @@ LuaXType( StepsType );
 
 
 static const char *PlayModeNames[] = {
-	"Regular",
-	"Battle",
-	"Rave",
+	"Regular"
 };
 XToString( PlayMode );
 XToLocalizedString( PlayMode );
@@ -290,7 +288,6 @@ static const char *TimingWindowNames[] = {
 	"W4",
 	"W5",
 	"Mine",
-	"Attack",
 	"Hold",
 	"Roll",
 	"Checkpoint"

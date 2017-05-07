@@ -5,7 +5,6 @@
 #include "HoldJudgment.h"
 #include "NoteDataWithScoring.h"
 #include "RageSound.h"
-#include "AttackDisplay.h"
 #include "NoteData.h"
 #include "ScreenMessage.h"
 #include "ThemeMetric.h"
@@ -15,13 +14,12 @@
 
 class ScoreDisplay;
 class LifeMeter;
-class CombinedLifeMeter;
 class ScoreKeeper;
-class Inventory;
 class RageTimer;
 class NoteField;
 class PlayerStageStats;
 class JudgedRows;
+class PlayerState;
 
 // todo: replace these with a Message and MESSAGEMAN? -aj
 AutoScreenMessage( SM_100Combo );
@@ -84,10 +82,8 @@ public:
 		PlayerState* pPlayerState, 
 		PlayerStageStats* pPlayerStageStats,
 		LifeMeter* pLM, 
-		CombinedLifeMeter* pCombinedLM, 
 		ScoreDisplay* pScoreDisplay, 
 		ScoreDisplay* pSecondaryScoreDisplay, 
-		Inventory* pInventory, 
 		ScoreKeeper* pPrimaryScoreKeeper, 
 		ScoreKeeper* pSecondaryScoreKeeper );
 	void Load();
@@ -112,7 +108,6 @@ public:
 	void FadeToFail();
 	void CacheAllUsedNoteSkins();
 	TapNoteScore GetLastTapNoteScore() const { return m_LastTapNoteScore; }
-	void ApplyWaitingTransforms();
 	void SetPaused( bool bPaused ) { m_bPaused = bPaused; }
 
 	static float GetMaxStepDistanceSeconds();
@@ -173,8 +168,6 @@ protected:
 	int GetClosestNonEmptyRowDirectional( int iStartRow, int iMaxRowsAhead, bool bAllowGraded, bool bForward ) const;
 	int GetClosestNonEmptyRow( int iNoteRow, int iMaxRowsAhead, int iMaxRowsBehind, bool bAllowGraded ) const;
 
-	RString ApplyRandomAttack();
-
 	inline void HideNote( int col, int row )
 	{
 		NoteData::iterator iter = m_NoteData.FindTapNote( col, row );
@@ -204,16 +197,12 @@ protected:
 	Actor			*m_pActorWithJudgmentPosition;
 	Actor			*m_pActorWithComboPosition;
 
-	AttackDisplay		*m_pAttackDisplay;
-
 	TapNoteScore		m_LastTapNoteScore;
 	LifeMeter		*m_pLifeMeter;
-	CombinedLifeMeter	*m_pCombinedLifeMeter;
 	ScoreDisplay		*m_pScoreDisplay;
 	ScoreDisplay		*m_pSecondaryScoreDisplay;
 	ScoreKeeper		*m_pPrimaryScoreKeeper;
 	ScoreKeeper		*m_pSecondaryScoreKeeper;
-	Inventory		*m_pInventory;
 
 	int			m_iFirstUncrossedRow;	// used by hold checkpoints logic
 	NoteData::all_tracks_iterator *m_pIterNeedsTapJudging;
@@ -226,10 +215,6 @@ protected:
 	JudgedRows		*m_pJudgedRows;
 
 	RageSound		m_soundMine;
-	RageSound		m_soundAttackLaunch;
-	RageSound		m_soundAttackEnding;
-
-	float			m_fActiveRandomAttackStart;
 
 	vector<bool>	m_vbFretIsDown;
 
@@ -237,9 +222,6 @@ protected:
 
 	ThemeMetric<float>	GRAY_ARROWS_Y_STANDARD;
 	ThemeMetric<float>	GRAY_ARROWS_Y_REVERSE;
-	ThemeMetric2D<float>	ATTACK_DISPLAY_X;
-	ThemeMetric<float>	ATTACK_DISPLAY_Y;
-	ThemeMetric<float>	ATTACK_DISPLAY_Y_REVERSE;
 	ThemeMetric<float>	HOLD_JUDGMENT_Y_STANDARD;
 	ThemeMetric<float>	HOLD_JUDGMENT_Y_REVERSE;
 	ThemeMetric<int>	BRIGHT_GHOST_COMBO_THRESHOLD;

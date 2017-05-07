@@ -227,11 +227,6 @@ void SetKeysounds(SongTagInfo& info)
 	{ keysounds = keysounds.substr(1); }
 	split(keysounds, ",", info.song->m_vsKeysoundFile);
 }
-void SetAttacks(SongTagInfo& info)
-{
-	info.loader->ProcessAttackString(info.song->m_sAttackString, (*info.params));
-	info.loader->ProcessAttacks(info.song->m_Attacks, (*info.params));
-}
 void SetOffset(SongTagInfo& info)
 {
 	info.song->m_SongTiming.m_fBeat0OffsetInSeconds = StringToFloat((*info.params)[1]);
@@ -479,14 +474,6 @@ void SetStepsLabels(StepsTagInfo& info)
 	}
 	info.ssc_format= true;
 }
-void SetStepsAttacks(StepsTagInfo& info)
-{
-	if(info.song->m_fVersion >= VERSION_SPLIT_TIMING || info.for_load_edit)
-	{
-		info.loader->ProcessAttackString(info.steps->m_sAttackString, *info.params);
-		info.loader->ProcessAttacks(info.steps->m_Attacks, *info.params);
-	}
-}
 void SetStepsOffset(StepsTagInfo& info)
 {
 	if(info.song->m_fVersion >= VERSION_SPLIT_TIMING || info.for_load_edit)
@@ -584,7 +571,6 @@ struct ssc_parser_helper_t
 		song_tag_handlers["ANIMATIONS"]= &SetBGChanges;
 		song_tag_handlers["FGCHANGES"]= &SetFGChanges;
 		song_tag_handlers["KEYSOUNDS"]= &SetKeysounds;
-		song_tag_handlers["ATTACKS"]= &SetAttacks;
 		song_tag_handlers["OFFSET"]= &SetOffset;
 		/* Below are the song based timings that should only be used
 		 * if the steps do not have their own timing. */
@@ -637,7 +623,6 @@ struct ssc_parser_helper_t
 		steps_tag_handlers["LABELS"]= &SetStepsLabels;
 		/* If this is called, the chart does not use the same attacks
 		 * as the Song's timing. No other changes are required. */
-		steps_tag_handlers["ATTACKS"]= &SetStepsAttacks;
 		steps_tag_handlers["OFFSET"]= &SetStepsOffset;
 		steps_tag_handlers["DISPLAYBPM"]= &SetStepsDisplayBPM;
 		steps_tag_handlers["CHARTKEY"] = &SetChartKey;

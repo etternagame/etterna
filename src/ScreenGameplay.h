@@ -9,7 +9,6 @@
 #include "LocalizedString.h"
 #include "BeginnerHelper.h"
 #include "LyricDisplay.h"
-#include "Attack.h"
 #include "NetworkSyncManager.h"
 #include "AutoKeysounds.h"
 #include "ThemeMetric.h"
@@ -20,13 +19,10 @@
 #include "GameplayAssist.h"
 
 class LyricsLoader;
-class ActiveAttackList;
-class CombinedLifeMeter;
 class Player;
 class LifeMeter;
 class ScoreDisplay;
 class StepsDisplay;
-class Inventory;
 class ScoreKeeper;
 class Background;
 class Foreground;
@@ -95,11 +91,6 @@ public:
 	 *
 	 * The size may be greater than 1 if playing a course. */
 	vector<Steps*>		m_vpStepsQueue;
-	/**
-	 * @brief The list of attack modifiers a player has to go through in this set.
-	 *
-	 * The size may be greater than 1 if playing a course. */
-	vector<AttackArray>	m_asModifiersQueue;
 
 	/** @brief The LifeMeter showing a Player's health. */
 	LifeMeter		*m_pLifeMeter;
@@ -117,18 +108,11 @@ public:
 	/** @brief The current PlayerOptions that are activated. */
 	BitmapText		*m_ptextPlayerOptions;
 	/** @brief The current attack modifiers that are in play for the moment. */
-	ActiveAttackList	*m_pActiveAttackList;
 
 	/** @brief The NoteData the Player has to get through. */
 	NoteData		m_NoteData;
 	/** @brief The specific Player that is going to play. */
 	Player			*m_pPlayer;
-
-	/**
-	 * @brief The inventory of attacks.
-	 *
-	 * This is mainly used in PLAY_MODE_BATTLE. */
-	Inventory		*m_pInventory;
 
 	StepsDisplay	*m_pStepsDisplay;
 
@@ -268,8 +252,6 @@ protected:
 
 	/** @brief Used between songs in a course to show the next song. */
 	Transition		m_NextSong;
-
-	CombinedLifeMeter*	m_pCombinedLifeMeter;
 
 	BitmapText		m_textSongOptions;
 	BitmapText		m_Scoreboard[NUM_NSScoreBoardColumn];	// for NSMAN, so we can have a scoreboard

@@ -77,11 +77,6 @@ void Steps::GetDisplayBpms( DisplayBpms &AddTo ) const
 	}
 }
 
-bool Steps::HasAttacks() const
-{
-	return !this->m_Attacks.empty();
-}
-
 unsigned Steps::GetHash() const
 {
 	if( m_iHash )
@@ -484,8 +479,6 @@ void Steps::CopyFrom( Steps* pSource, StepsType ntTo, float fMusicLengthSeconds 
 	noteData.SetNumTracks( GAMEMAN->GetStepsTypeInfo(ntTo).iNumTracks );
 	m_Timing = pSource->m_Timing;
 	this->m_pSong = pSource->m_pSong;
-	this->m_Attacks = pSource->m_Attacks;
-	this->m_sAttackString = pSource->m_sAttackString;
 	this->SetNoteData( noteData );
 	this->SetDescription( pSource->GetDescription() );
 	this->SetDifficulty( pSource->GetDifficulty() );
@@ -602,7 +595,7 @@ public:
 	}
 	static int HasAttacks( T* p, lua_State *L )
 	{ 
-		lua_pushboolean(L, p->HasAttacks()); 
+		lua_pushboolean(L, false); 
 		return 1; 
 	}
 	static int GetRadarValues( T* p, lua_State *L )

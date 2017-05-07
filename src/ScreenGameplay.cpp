@@ -28,8 +28,6 @@
 #include "RageSoundReader.h"
 #include "RageTextureManager.h"
 #include "GameSoundManager.h"
-#include "CombinedLifeMeterTug.h"
-#include "Inventory.h"
 #include "NoteDataUtil.h"
 #include "ProfileManager.h"
 #include "StatsManager.h"
@@ -45,7 +43,6 @@
 #include "CommonMetrics.h"
 #include "InputMapper.h"
 #include "Game.h"
-#include "ActiveAttackList.h"
 #include "Player.h"
 #include "StepsDisplay.h"
 #include "XmlFile.h"
@@ -96,12 +93,12 @@ PlayerInfo::PlayerInfo(): m_pn(PLAYER_INVALID), m_mp(MultiPlayer_Invalid),
 	m_bIsDummy(false), m_iDummyIndex(0), m_iAddToDifficulty(0),
 	m_bPlayerEnabled(false), m_PlayerStateDummy(), 
 	m_PlayerStageStatsDummy(), m_SoundEffectControl(),
-	m_vpStepsQueue(), m_asModifiersQueue(), m_pLifeMeter(NULL), 
+	m_vpStepsQueue(), m_pLifeMeter(NULL), 
 	m_ptextStepsDescription(NULL),
 	m_pPrimaryScoreDisplay(NULL), m_pSecondaryScoreDisplay(NULL),
 	m_pPrimaryScoreKeeper(NULL), m_pSecondaryScoreKeeper(NULL),
-	m_ptextPlayerOptions(NULL), m_pActiveAttackList(NULL),
-	m_NoteData(), m_pPlayer(NULL), m_pInventory(NULL), 
+	m_ptextPlayerOptions(NULL),
+	m_NoteData(), m_pPlayer(NULL),
 	m_pStepsDisplay(NULL), m_sprOniGameOver() {}
 
 void PlayerInfo::Load( PlayerNumber pn, MultiPlayer mp, bool bShowNoteField, int iAddToDifficulty )
@@ -120,12 +117,6 @@ void PlayerInfo::Load( PlayerNumber pn, MultiPlayer mp, bool bShowNoteField, int
 		switch( mode )
 		{
 		case PLAY_MODE_REGULAR:
-		case PLAY_MODE_BATTLE:
-		case PLAY_MODE_RAVE:
-			if( PREFSMAN->m_bPercentageScoring )
-				m_pPrimaryScoreDisplay = new ScoreDisplayPercentage;
-			else
-				m_pPrimaryScoreDisplay = new ScoreDisplayNormal;
 			break;
 		default:
 			FAIL_M(ssprintf("Invalid PlayMode: %i", mode));
@@ -138,32 +129,13 @@ void PlayerInfo::Load( PlayerNumber pn, MultiPlayer mp, bool bShowNoteField, int
 	if( m_pPrimaryScoreDisplay )
 		m_pPrimaryScoreDisplay->Init( pPlayerState, pPlayerStageStats );
 
-	switch( GAMESTATE->m_PlayMode )
-	{
-		case PLAY_MODE_RAVE:
-			m_pSecondaryScoreDisplay = new ScoreDisplayRave;
-			m_pSecondaryScoreDisplay->SetName( "ScoreDisplayRave" );
-		default:
-			break;
-	}
-
 	if( m_pSecondaryScoreDisplay )
 		m_pSecondaryScoreDisplay->Init( pPlayerState, pPlayerStageStats );
 
 	m_pPrimaryScoreKeeper = ScoreKeeper::MakeScoreKeeper( SCORE_KEEPER_CLASS, pPlayerState, pPlayerStageStats );
 
-	switch( GAMESTATE->m_PlayMode )
-	{
-		case PLAY_MODE_RAVE:
-			m_pSecondaryScoreKeeper = new ScoreKeeperRave( pPlayerState, pPlayerStageStats );
-		default:
-			break;
-	}
-
 	m_ptextPlayerOptions = NULL;
-	m_pActiveAttackList = NULL;
 	m_pPlayer = new Player( m_NoteData, bShowNoteField );
-	m_pInventory = NULL;
 	m_pStepsDisplay = NULL;
 
 	if( IsMultiPlayer() )
@@ -196,9 +168,7 @@ PlayerInfo::~PlayerInfo()
 	SAFE_DELETE( m_pPrimaryScoreKeeper );
 	SAFE_DELETE( m_pSecondaryScoreKeeper );
 	SAFE_DELETE( m_ptextPlayerOptions );
-	SAFE_DELETE( m_pActiveAttackList );
 	SAFE_DELETE( m_pPlayer );
-	SAFE_DELETE( m_pInventory );
 	SAFE_DELETE( m_pStepsDisplay );
 }
 
@@ -379,8 +349,6 @@ void ScreenGameplay::Init()
 
 	m_pSoundMusic = NULL;
 	set_paused_internal(false);
-
-	m_pCombinedLifeMeter = NULL;
 
 	if( GAMESTATE->m_pCurSong == NULL)
 		return;	// ScreenDemonstration will move us to the next screen.  We just need to survive for one update without crashing.
@@ -606,19 +574,6 @@ void ScreenGameplay::Init()
 	m_NextSong.SetDrawOrder( DRAW_ORDER_TRANSITIONS-1 );
 	this->AddChild( &m_NextSong );
 
-	// Add combined life meter
-	switch( GAMESTATE->m_PlayMode )
-	{
-		case PLAY_MODE_BATTLE:
-		case PLAY_MODE_RAVE:
-			m_pCombinedLifeMeter = new CombinedLifeMeterTug;
-			m_pCombinedLifeMeter->SetName( "CombinedLife" );
-			LOAD_ALL_COMMANDS_AND_SET_XY( *m_pCombinedLifeMeter );
-			this->AddChild( m_pCombinedLifeMeter );
-		default:
-			break;
-	}
-
 	// Before the lifemeter loads, if Networking is required
 	// we need to wait, so that there is no Dead On Start issues.
 	// if you wait too long at the second checkpoint, you will
@@ -653,8 +608,6 @@ void ScreenGameplay::Init()
 			}
 		}
 		break;
-	case PLAY_MODE_BATTLE:
-	case PLAY_MODE_RAVE:
 	default:
 		break;
 	}
@@ -690,7 +643,7 @@ void ScreenGameplay::Init()
 		{
 			pi->m_pPrimaryScoreDisplay->SetName( ssprintf("Score%s",pi->GetName().c_str()) );
 			LOAD_ALL_COMMANDS_AND_SET_XY( pi->m_pPrimaryScoreDisplay );
-			if( GAMESTATE->m_PlayMode != PLAY_MODE_RAVE || SHOW_SCORE_IN_RAVE ) /* XXX: ugly */
+			if( SHOW_SCORE_IN_RAVE ) /* XXX: ugly */
 				this->AddChild( pi->m_pPrimaryScoreDisplay );
 		}
 
@@ -751,17 +704,6 @@ void ScreenGameplay::Init()
 	m_textSongOptions.SetText( GAMESTATE->m_SongOptions.GetStage().GetLocalizedString() );
 	this->AddChild( &m_textSongOptions );
 
-	FOREACH_VisiblePlayerInfo( m_vPlayerInfo, pi )
-	{
-		ASSERT( pi->m_pActiveAttackList == NULL );
-		pi->m_pActiveAttackList = new ActiveAttackList;
-		pi->m_pActiveAttackList->LoadFromFont( THEME->GetPathF(m_sName,"ActiveAttackList") );
-		pi->m_pActiveAttackList->Init( pi->GetPlayerState() );
-		pi->m_pActiveAttackList->SetName( ssprintf("ActiveAttackList%s",pi->GetName().c_str()) );
-		LOAD_ALL_COMMANDS_AND_SET_XY( pi->m_pActiveAttackList );
-		this->AddChild( pi->m_pActiveAttackList );
-	}
-
 	if( g_bShowLyrics )
 	{
 		m_LyricDisplay.SetName( "LyricDisplay" );
@@ -799,16 +741,6 @@ void ScreenGameplay::Init()
 			m_textSurviveTime.SetDiffuse( RageColor(1,1,1,0) );
 			this->AddChild( &m_textSurviveTime );
 		}
-
-		switch( GAMESTATE->m_PlayMode )
-		{
-			case PLAY_MODE_BATTLE:
-				m_soundBattleTrickLevel1.Load(	THEME->GetPathS(m_sName,"battle trick level1"), true );
-				m_soundBattleTrickLevel2.Load(	THEME->GetPathS(m_sName,"battle trick level2"), true );
-				m_soundBattleTrickLevel3.Load(	THEME->GetPathS(m_sName,"battle trick level3"), true );
-			default:
-				break;
-		}
 	}
 
 	if( m_pSongBackground )
@@ -823,11 +755,9 @@ void ScreenGameplay::Init()
 			sType,
 			pi->GetPlayerState(),
 			pi->GetPlayerStageStats(),
-			pi->m_pLifeMeter, 
-			m_pCombinedLifeMeter, 
+			pi->m_pLifeMeter,
 			pi->m_pPrimaryScoreDisplay, 
 			pi->m_pSecondaryScoreDisplay, 
-			pi->m_pInventory, 
 			pi->m_pPrimaryScoreKeeper, 
 			pi->m_pSecondaryScoreKeeper );
 	}
@@ -849,9 +779,9 @@ void ScreenGameplay::Init()
 		if( pi->GetPlayerStageStats() )
 			pi->GetPlayerStageStats()->m_bJoined = true;
 		if( pi->m_pPrimaryScoreKeeper )
-			pi->m_pPrimaryScoreKeeper->Load( m_apSongsQueue, pi->m_vpStepsQueue, pi->m_asModifiersQueue );
+			pi->m_pPrimaryScoreKeeper->Load( m_apSongsQueue, pi->m_vpStepsQueue );
 		if( pi->m_pSecondaryScoreKeeper )
-			pi->m_pSecondaryScoreKeeper->Load( m_apSongsQueue, pi->m_vpStepsQueue, pi->m_asModifiersQueue );
+			pi->m_pSecondaryScoreKeeper->Load( m_apSongsQueue, pi->m_vpStepsQueue );
 	}
 
 	GAMESTATE->m_bGameplayLeadIn.Set( true );
@@ -873,10 +803,7 @@ bool ScreenGameplay::Center1Player() const
 	 * but for now just ignore Center1Player when it's Battle or Rave
 	 * Mode. This doesn't begin to address two-player solo (6 arrows) */
 	return g_bCenter1Player && 
-		(bool)ALLOW_CENTER_1_PLAYER &&
-		GAMESTATE->m_PlayMode != PLAY_MODE_BATTLE &&
-		GAMESTATE->m_PlayMode != PLAY_MODE_RAVE &&
-		GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StyleType == StyleType_OnePlayerOneSide;
+		(bool)ALLOW_CENTER_1_PLAYER && GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StyleType == StyleType_OnePlayerOneSide;
 }
 
 // fill in m_apSongsQueue, m_vpStepsQueue, m_asModifiersQueue
@@ -888,17 +815,6 @@ void ScreenGameplay::InitSongQueues()
 		Steps *pSteps = GAMESTATE->m_pCurSteps[pi->GetStepsAndTrailIndex()];
 		pi->m_vpStepsQueue.push_back(pSteps);
 		const PlayerOptions &p = pi->GetPlayerState()->m_PlayerOptions.GetCurrent();
-
-		if (p.m_fNoAttack == 0 && p.m_fRandAttack == 0 &&
-			pSteps->m_Attacks.size() > 0)
-		{
-			pi->m_asModifiersQueue.push_back(pSteps->m_Attacks);
-		}
-		else
-		{
-			AttackArray aa;
-			pi->m_asModifiersQueue.push_back(aa);
-		}
 	}
 
 	if (GAMESTATE->m_bMultiplayer)
@@ -948,7 +864,6 @@ ScreenGameplay::~ScreenGameplay()
 	SAFE_DELETE( m_pSongBackground );
 	SAFE_DELETE( m_pSongForeground );
 
-	SAFE_DELETE( m_pCombinedLifeMeter );
 	if( m_pSoundMusic )
 		m_pSoundMusic->StopPlaying();
 
@@ -969,13 +884,6 @@ void ScreenGameplay::SetupSong( int iSongIndex )
 		Steps *pSteps = pi->m_vpStepsQueue[iSongIndex];
  		GAMESTATE->m_pCurSteps[ pi->GetStepsAndTrailIndex() ].Set( pSteps );
 
-		/* Load new NoteData into Player. Do this before 
-		 * RebuildPlayerOptionsFromActiveAttacks or else transform mods will get
-		 * propagated to GAMESTATE->m_pPlayerOptions too early and be double-applied
-		 * to the NoteData:
-		 * once in Player::Load, then again in Player::ApplyActiveAttacks.
-		 * This is very bad for transforms like AddMines.
-		 */
 		NoteData originalNoteData;
 		pSteps->GetNoteData( originalNoteData);
 
@@ -983,28 +891,6 @@ void ScreenGameplay::SetupSong( int iSongIndex )
 		NoteData ndTransformed;
 		pStyle->GetTransformedNoteDataForStyle( pi->GetStepsAndTrailIndex(), originalNoteData, ndTransformed );
 
-		// HACK: Apply NoteSkins from global course options. Do this before
-		// Player::Load, since it needs to know which note skin to load.
-		pi->GetPlayerState()->m_ModsToApply.clear();
-		for( unsigned i=0; i<pi->m_asModifiersQueue[iSongIndex].size(); ++i )
-		{
-			Attack a = pi->m_asModifiersQueue[iSongIndex][i];
-			if( a.fStartSecond != 0 )
-				continue;
-			a.fStartSecond = ATTACK_STARTS_NOW;	// now
-
-			PlayerOptions po;
-			po.FromString( a.sModifiers );
-			if( po.m_sNoteSkin.empty() )
-				continue;
-			a.sModifiers = po.m_sNoteSkin;
-
-			pi->GetPlayerState()->LaunchAttack( a );
-		}
-
-		/* Update attack bOn flags, and rebuild Current-level options
-		 * from Song-level options. The current NoteSkin could have changed
-		 * because of an attack ending. */
 		pi->GetPlayerState()->Update( 0 );
 
 		// load player
@@ -1034,20 +920,6 @@ void ScreenGameplay::SetupSong( int iSongIndex )
 			pi->m_SoundEffectControl.Load( sType, pi->GetPlayerState(), &pi->m_NoteData );
 		}
 
-		// Put course options into effect.  Do this after Player::Load so
-		// that mods aren't double-applied.
-		pi->GetPlayerState()->m_ModsToApply.clear();
-		for( unsigned i=0; i<pi->m_asModifiersQueue[iSongIndex].size(); ++i )
-		{
-			Attack a = pi->m_asModifiersQueue[iSongIndex][i];
-			if( a.fStartSecond == 0 )
-				a.fStartSecond = ATTACK_STARTS_NOW;	// now
-			
-			pi->GetPlayerState()->LaunchAttack( a );
-			GAMESTATE->m_SongOptions.FromString( ModsLevel_Song, a.sModifiers );
-		}
-
-		// Update attack bOn flags.
 		pi->GetPlayerState()->Update( 0 );
 
 		// Hack: Course modifiers that are set to start immediately shouldn't tween on.
@@ -1087,9 +959,6 @@ void ScreenGameplay::LoadNextSong()
 	GAMESTATE->m_pCurSong.Set( m_apSongsQueue[iPlaySongIndex] );
 	STATSMAN->m_CurStageStats.m_vpPlayedSongs.push_back( GAMESTATE->m_pCurSong );
 
-	// No need to do this here.  We do it in SongFinished().
-	//GAMESTATE->RemoveAllActiveAttacks();
-
 	// Force immediate fail behavior changed to theme metric by Kyz.
 	if(FORCE_IMMEDIATE_FAIL_FOR_BATTERY)
 	{
@@ -1126,8 +995,6 @@ void ScreenGameplay::LoadNextSong()
 
 		if( pi->m_ptextPlayerOptions )
 			pi->m_ptextPlayerOptions->SetText( pi->GetPlayerState()->m_PlayerOptions.GetCurrent().GetString() );
-		if( pi->m_pActiveAttackList )
-			pi->m_pActiveAttackList->Refresh();
 
 		// reset oni game over graphic
 		SET_XY_AND_ON_COMMAND( pi->m_sprOniGameOver );
@@ -1262,8 +1129,6 @@ void ScreenGameplay::LoadNextSong()
 				pi->m_pSecondaryScoreDisplay->OnLoadSong();
 		}
 	}
-	if( m_pCombinedLifeMeter )
-		m_pCombinedLifeMeter->OnLoadSong();
 
 	if( m_pSongForeground )
 		m_pSongForeground->LoadFromSong( GAMESTATE->m_pCurSong );
@@ -1761,8 +1626,6 @@ void ScreenGameplay::Update( float fDeltaTime )
 					// HACK:  Load incorrect directory on purpose for now.
 					PlayAnnouncer( "gameplay battle damage level3", 0 );
 
-					GAMESTATE->RemoveAllActiveAttacks();
-
 					FOREACH_EnabledPlayerNumberInfo( m_vPlayerInfo, pi )
 					{
 						if( !GAMESTATE->IsCpuPlayer(pi->m_pn) )
@@ -1822,8 +1685,6 @@ void ScreenGameplay::Update( float fDeltaTime )
 			switch( mode )
 			{
 				case PLAY_MODE_REGULAR:
-				case PLAY_MODE_BATTLE:
-				case PLAY_MODE_RAVE:
 					if( GAMESTATE->OneIsHot() )
 						PlayAnnouncer( "gameplay comment hot", SECONDS_BETWEEN_COMMENTS );
 					else if( GAMESTATE->AllAreInDangerOrWorse() )
@@ -2364,11 +2225,6 @@ void ScreenGameplay::SongFinished()
 	}
 	AdjustSync::HandleSongEnd();
 	SaveStats(); // Let subclasses save the stats.
-	/* Extremely important: if we don't remove attacks before moving on to the next
-	 * screen, they'll still be turned on eventually. */
-	GAMESTATE->RemoveAllActiveAttacks();
-	FOREACH_VisiblePlayerInfo( m_vPlayerInfo, pi )
-		pi->m_pActiveAttackList->Refresh();
 }
 
 void ScreenGameplay::StageFinished( bool bBackedOut )
@@ -2463,10 +2319,6 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 	{
 		ResetGiveUpTimers(false); // don't allow giveup while the next song is loading
 
-		/* Do this in LoadNextSong, so we don't tween off old attacks until
-		 * m_NextSong finishes. */
-		// GAMESTATE->RemoveAllActiveAttacks();
-
 		FOREACH_EnabledPlayerInfo( m_vPlayerInfo, pi )
 		{
 			// Mark failure.
@@ -2545,13 +2397,6 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 			return;		// ignore
 		m_DancingState = STATE_OUTRO;
 		ResetGiveUpTimers(false);
-
-		GAMESTATE->RemoveAllActiveAttacks();
-		FOREACH_EnabledPlayerInfo( m_vPlayerInfo, pi )
-		{
-			if( pi->m_pActiveAttackList )
-				pi->m_pActiveAttackList->Refresh();
-		}
 
 		bool bAllReallyFailed = STATSMAN->m_CurStageStats.AllFailed();
 
@@ -2643,11 +2488,6 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 		if( SM == SM_BattleTrickLevel1 ) m_soundBattleTrickLevel1.Play(false);
 		else if( SM == SM_BattleTrickLevel2 ) m_soundBattleTrickLevel2.Play(false);
 		else if( SM == SM_BattleTrickLevel3 ) m_soundBattleTrickLevel3.Play(false);
-	}
-	else if( SM >= SM_BattleDamageLevel1 && SM <= SM_BattleDamageLevel3 )
-	{
-		int iDamageLevel = SM-SM_BattleDamageLevel1+1;
-		PlayAnnouncer( ssprintf("gameplay battle damage level%d",iDamageLevel), 3 );
 	}
 	else if( SM == SM_DoPrevScreen )
 	{

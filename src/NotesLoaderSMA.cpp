@@ -415,13 +415,6 @@ bool SMALoader::LoadFromSimfile( const RString &sPath, Song &out, bool bFromCach
 			split( sParams[1], ",", out.m_vsKeysoundFile );
 		}
 
-		// Attacks loaded from file
-		else if( sValueName=="ATTACKS" )
-		{
-			ProcessAttackString(out.m_sAttackString, sParams);
-			ProcessAttacks(out.m_Attacks, sParams);
-		}
-
 		else if( sValueName=="NOTES" || sValueName=="NOTES2" )
 		{
 			if( iNumParams < 7 )

@@ -457,24 +457,6 @@ static bool AreStyleAndPlayModeCompatible( const Style *style, PlayMode pm )
 {
 	if( style == NULL || pm == PlayMode_Invalid )
 		return true;
-
-	switch( pm )
-	{
-		case PLAY_MODE_BATTLE:
-		case PLAY_MODE_RAVE:
-			// Can't play rave if there isn't enough room for two players.
-			// This is correct for dance (ie, no rave for solo and doubles),
-			// and should be okay for pump.. not sure about other game types.
-			// Techno Motion scales down versus arrows, though, so allow this.
-			if( style->m_iColsPerPlayer >= 6 && RString(GAMESTATE->m_pCurGame->m_szName) != "techno" )
-				return false;
-
-			// Don't allow battle modes if the style takes both sides.
-			if( style->m_StyleType==StyleType_OnePlayerTwoSides ||
-				style->m_StyleType==StyleType_TwoPlayersSharedSides )
-				return false;
-		default: return true;
-	}
 }
 
 bool GameCommand::IsPlayable( RString *why ) const

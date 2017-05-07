@@ -1129,10 +1129,6 @@ void ScreenSelectMusic::HandleMessage( const Message &msg )
 		m_iSelection[pn] = iSel;
 			Steps* pSteps = m_vpSteps.empty()? NULL: m_vpSteps[m_iSelection[pn]];
 
-			// handle changing rave difficulty on join
-			if(GAMESTATE->m_PlayMode == PLAY_MODE_RAVE)
-				pSteps = m_vpSteps[m_iSelection[master_pn]];
-
 			GAMESTATE->m_pCurSteps[pn].Set( pSteps );
 	}
 

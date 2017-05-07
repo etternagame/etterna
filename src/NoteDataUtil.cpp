@@ -2549,22 +2549,6 @@ void NoteDataUtil::ConvertAdditionsToRegular( NoteData &inout )
 	inout.RevalidateATIs(vector<int>(), false);
 }
 
-void NoteDataUtil::TransformNoteData(NoteData &nd, TimingData const& timing_data, const AttackArray &aa, StepsType st, Song* pSong)
-{
-	FOREACH_CONST( Attack, aa, a )
-	{
-		PlayerOptions po;
-		po.FromString( a->sModifiers );
-		if( po.ContainsTransformOrTurn() )
-		{
-			float fStartBeat, fEndBeat;
-			a->GetAttackBeats( pSong, fStartBeat, fEndBeat );
-
-			NoteDataUtil::TransformNoteData(nd, timing_data, po, st, BeatToNoteRow(fStartBeat), BeatToNoteRow(fEndBeat) );
-		}
-	}
-}
-
 void NoteDataUtil::TransformNoteData( NoteData &nd, TimingData const& timing_data, const PlayerOptions &po, StepsType st, int iStartIndex, int iEndIndex )
 {
 	// Apply remove transforms before others so that we don't go removing

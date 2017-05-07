@@ -63,8 +63,7 @@ public:
 
 	void Load(
 		const vector<Song*>& apSongs,
-		const vector<Steps*>& apSteps,
-		const vector<AttackArray> &asModifiers );
+		const vector<Steps*>& apSteps);
 
 	// before a song plays (called multiple times if course)
 	void OnNextSong( int iSongInCourseIndex, const Steps* pSteps, const NoteData* pNoteData );

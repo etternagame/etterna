@@ -691,18 +691,6 @@ void GameState::BeginStage()
 
 void GameState::CancelStage()
 {
-	FOREACH_CpuPlayer( p )
-	{
-		switch( m_PlayMode )
-		{
-			case PLAY_MODE_BATTLE:
-			case PLAY_MODE_RAVE:
-				m_iPlayerStageTokens[p] = PREFSMAN->m_iSongsPerPlay;
-			default:
-				break;
-		}
-	}
-
 	FOREACH_EnabledPlayer( p )
 		m_iPlayerStageTokens[p] += m_iNumStagesOfThisSong;
 	m_iNumStagesOfThisSong = 0;
@@ -1018,9 +1006,6 @@ void GameState::ResetStageStatistics()
 		}
 	}
 
-	RemoveAllActiveAttacks();
-	FOREACH_PlayerNumber( p )
-		m_pPlayerState[p]->RemoveAllInventory();
 	m_fOpponentHealthPercent = 1;
 	m_fHasteRate = 0;
 	m_fLastHasteUpdateMusicSeconds = 0;
@@ -1028,11 +1013,7 @@ void GameState::ResetStageStatistics()
 	m_fTugLifePercentP1 = 0.5f;
 	FOREACH_PlayerNumber( p )
 	{
-		m_pPlayerState[p]->m_fSuperMeter = 0;
 		m_pPlayerState[p]->m_HealthState = HealthState_Alive;
-
-		m_pPlayerState[p]->m_iLastPositiveSumOfAttackLevels = 0;
-		m_pPlayerState[p]->m_fSecondsUntilAttacksPhasedOut = 0;	// PlayerAI not affected
 	}
 
 
@@ -1382,15 +1363,7 @@ bool GameState::SetCompatibleStyle(StepsType stype, PlayerNumber pn)
 
 bool GameState::IsPlayerEnabled( PlayerNumber pn ) const
 {
-	// In rave, all players are present.  Non-human players are CPU controlled.
-	switch( m_PlayMode )
-	{
-		case PLAY_MODE_BATTLE:
-		case PLAY_MODE_RAVE:
-			return true;
-		default:
-			return IsHumanPlayer(pn);
-	}
+	return IsHumanPlayer(pn);
 }
 
 bool GameState::IsMultiPlayerEnabled( MultiPlayer mp ) const
@@ -1498,13 +1471,7 @@ bool GameState::AnyPlayersAreCpu() const
 
 bool GameState::IsBattleMode() const
 {
-	switch( m_PlayMode )
-	{
-	case PLAY_MODE_BATTLE:
-		return true;
-	default:
-		return false;
-	}
+	return false;
 }
 
 EarnedExtraStage GameState::CalculateEarnedExtraStage() const
@@ -1566,21 +1533,6 @@ PlayerNumber GameState::GetBestPlayer() const
 
 StageResult GameState::GetStageResult( PlayerNumber pn ) const
 {
-	switch( m_PlayMode )
-	{
-		case PLAY_MODE_BATTLE:
-		case PLAY_MODE_RAVE:
-			if( fabsf(m_fTugLifePercentP1 - 0.5f) < 0.0001f )
-				return RESULT_DRAW;
-			switch( pn )
-			{
-			case PLAYER_1:	return (m_fTugLifePercentP1>=0.5f)?RESULT_WIN:RESULT_LOSE;
-			case PLAYER_2:	return (m_fTugLifePercentP1<0.5f)?RESULT_WIN:RESULT_LOSE;
-			default:	FAIL_M("Invalid player for battle! Aborting..."); return RESULT_LOSE;
-			}
-		default: break;
-	}
-
 	StageResult win = RESULT_WIN;
 	FOREACH_PlayerNumber( p )
 	{
@@ -1664,12 +1616,6 @@ void GameState::GetAllUsedNoteSkins( vector<RString> &out ) const
 	// Remove duplicates.
 	sort( out.begin(), out.end() );
 	out.erase( unique( out.begin(), out.end() ), out.end() );
-}
-
-void GameState::RemoveAllActiveAttacks()	// called on end of song
-{
-	FOREACH_PlayerNumber( p )
-		m_pPlayerState[p]->RemoveActiveAttacks();
 }
 
 void GameState::AddStageToPlayer( PlayerNumber pn )
@@ -1763,8 +1709,6 @@ void GameState::GetRankingFeats( PlayerNumber pn, vector<RankingFeat> &asFeatsOu
 	switch( mode )
 	{
 	case PLAY_MODE_REGULAR:
-	case PLAY_MODE_BATTLE:
-	case PLAY_MODE_RAVE:
 		{
 			StepsType st = GetCurrentStyle(pn)->m_StepsType;
 
@@ -1973,8 +1917,6 @@ int GameState::GetNumCols(int pn)
 
 bool GameState::DifficultiesLocked() const
 {
-	if( m_PlayMode == PLAY_MODE_RAVE )
-		return true;
 	if( GetCurrentStyle(PLAYER_INVALID)->m_bLockDifficulties )
 		return true;
 	return false;
@@ -2554,27 +2496,7 @@ public:
 
 	static bool AreStyleAndPlayModeCompatible( T* p, lua_State* L, const Style *style, PlayMode pm )
 	{
-		if( pm != PLAY_MODE_BATTLE && pm != PLAY_MODE_RAVE )
-		{
 			return true;
-		}
-
-		// Do not allow styles with StepsTypes with shared sides or that are one player only with Battle or Rave.
-		if( style->m_StyleType != StyleType_TwoPlayersSharedSides )
-		{
-			vector<const Style*> vpStyles;
-			GAMEMAN->GetCompatibleStyles( p->m_pCurGame, 2, vpStyles );
-			FOREACH_CONST( const Style*, vpStyles, s )
-			{
-				if( (*s)->m_StepsType == style->m_StepsType )
-				{
-					return true;
-				}
-			}
-		}
-		luaL_error( L, "Style %s is incompatible with PlayMode %s",
-			style->m_szName, PlayModeToString( pm ).c_str() );
-		return false;
 	}
 
 	static int SetCurrentStyle( T* p, lua_State *L )

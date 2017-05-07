@@ -49,8 +49,6 @@ public:
 
 	void LoadGroupSymLinks( const RString &sDir, const RString &sGroupFolder );
 
-	void InitRandomAttacks();
-
 	void InitAll( LoadingWindow *ld );	// songs, groups - everything.
 	void Reload( bool bAllowFastLoad, LoadingWindow *ld=NULL );	// songs, groups - everything.
 	void PreloadSongImages();

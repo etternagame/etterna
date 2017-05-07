@@ -904,11 +904,7 @@ bool PlayerOptions::IsEasierForSongAndSteps( Song* pSong, Steps* pSteps, PlayerN
 
 	// This makes songs with sparse notes easier.
 	if( m_bTransforms[TRANSFORM_ECHO] )	return true;
-	
-	// Removing attacks is easier in general.
-	if ((m_fNoAttack && pSteps->HasAttacks()) || m_fRandAttack)
-		return true;
-	
+
 	if( m_fCover )	return true;
 	
 	// M-mods make songs with indefinite BPMs easier because

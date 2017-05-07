@@ -14,7 +14,6 @@
 #include "ThemeManager.h"
 #include "ScoreDisplay.h"
 #include "LifeMeter.h"
-#include "CombinedLifeMeter.h"
 #include "PlayerAI.h"
 #include "NoteField.h"
 #include "NoteDataUtil.h"
@@ -126,9 +125,6 @@ void TimingWindowSecondsInit( size_t /*TimingWindow*/ i, RString &sNameOut, floa
 		case TW_Roll:
 			defaultValueOut = 0.500f;
 			break;
-		case TW_Attack:
-			defaultValueOut = 0.135f;
-			break;
 		case TW_Checkpoint: // similar to TW_Hold, but a little more strict/accurate to Pump play.
 			defaultValueOut = 0.1664f;
 			break;
@@ -237,12 +233,10 @@ Player::Player( NoteData &nd, bool bVisibleParts ) : m_NoteData(nd)
 	m_fNoteFieldHeight = 0;
 
 	m_pLifeMeter = NULL;
-	m_pCombinedLifeMeter = NULL;
 	m_pScoreDisplay = NULL;
 	m_pSecondaryScoreDisplay = NULL;
 	m_pPrimaryScoreKeeper = NULL;
 	m_pSecondaryScoreKeeper = NULL;
-	m_pInventory = NULL;
 	m_pIterNeedsTapJudging = NULL;
 	m_pIterNeedsHoldJudging = NULL;
 	m_pIterUncrossedRows = NULL;
@@ -251,13 +245,6 @@ Player::Player( NoteData &nd, bool bVisibleParts ) : m_NoteData(nd)
 
 	m_bPaused = false;
 	m_bDelay = false;
-
-	m_pAttackDisplay = NULL;
-	if( bVisibleParts )
-	{
-		m_pAttackDisplay = new AttackDisplay;
-		this->AddChild( m_pAttackDisplay );
-	}
 
 	PlayerAI::InitFromDisk();
 
@@ -274,7 +261,6 @@ Player::Player( NoteData &nd, bool bVisibleParts ) : m_NoteData(nd)
 
 Player::~Player()
 {
-	SAFE_DELETE( m_pAttackDisplay );
 	SAFE_DELETE( m_pNoteField );
 	for( unsigned i = 0; i < m_vpHoldJudgment.size(); ++i )
 		SAFE_DELETE( m_vpHoldJudgment[i] );
@@ -293,19 +279,14 @@ void Player::Init(
 	PlayerState* pPlayerState, 
 	PlayerStageStats* pPlayerStageStats,
 	LifeMeter* pLM, 
-	CombinedLifeMeter* pCombinedLM, 
 	ScoreDisplay* pScoreDisplay, 
 	ScoreDisplay* pSecondaryScoreDisplay, 
-	Inventory* pInventory, 
 	ScoreKeeper* pPrimaryScoreKeeper, 
 	ScoreKeeper* pSecondaryScoreKeeper )
 {
 
 	GRAY_ARROWS_Y_STANDARD.Load(			sType, "ReceptorArrowsYStandard" );
 	GRAY_ARROWS_Y_REVERSE.Load(			sType, "ReceptorArrowsYReverse" );
-	ATTACK_DISPLAY_X.Load(				sType, ATTACK_DISPLAY_X_NAME, NUM_PLAYERS, 2 );
-	ATTACK_DISPLAY_Y.Load(				sType, "AttackDisplayY" );
-	ATTACK_DISPLAY_Y_REVERSE.Load(			sType, "AttackDisplayYReverse" );
 	HOLD_JUDGMENT_Y_STANDARD.Load(			sType, "HoldJudgmentYStandard" );
 	HOLD_JUDGMENT_Y_REVERSE.Load(			sType, "HoldJudgmentYReverse" );
 	BRIGHT_GHOST_COMBO_THRESHOLD.Load(		sType, "BrightGhostComboThreshold" );
@@ -380,10 +361,8 @@ void Player::Init(
 	m_pPlayerState = pPlayerState;
 	m_pPlayerStageStats = pPlayerStageStats;
 	m_pLifeMeter = pLM;
-	m_pCombinedLifeMeter = pCombinedLM;
 	m_pScoreDisplay = pScoreDisplay;
 	m_pSecondaryScoreDisplay = pSecondaryScoreDisplay;
-	m_pInventory = pInventory;
 	m_pPrimaryScoreKeeper = pPrimaryScoreKeeper;
 	m_pSecondaryScoreKeeper = pSecondaryScoreKeeper;
 
@@ -406,21 +385,6 @@ void Player::Init(
 	RageSoundLoadParams SoundParams;
 	SoundParams.m_bSupportPan = true;
 	m_soundMine.Load( THEME->GetPathS(sType,"mine"), true, &SoundParams );
-
-	/* Attacks can be launched in course modes and in battle modes.  They both come
-	 * here to play, but allow loading a different sound for different modes. */
-	switch( GAMESTATE->m_PlayMode )
-	{
-	case PLAY_MODE_RAVE:
-	case PLAY_MODE_BATTLE:
-		m_soundAttackLaunch.Load( THEME->GetPathS(sType,"battle attack launch"), true, &SoundParams );
-		m_soundAttackEnding.Load( THEME->GetPathS(sType,"battle attack ending"), true, &SoundParams );
-		break;
-	default:
-		m_soundAttackLaunch.Load( THEME->GetPathS(sType,"course attack launch"), true, &SoundParams );
-		m_soundAttackEnding.Load( THEME->GetPathS(sType,"course attack ending"), true, &SoundParams );
-		break;
-	}
 
 	// calculate M-mod speed here, so we can adjust properly on a per-song basis.
 	// XXX: can we find a better location for this?
@@ -468,8 +432,6 @@ void Player::Init(
 
 	float fBalance = GameSoundManager::GetPlayerBalance( pn );
 	m_soundMine.SetProperty( "Pan", fBalance );
-	m_soundAttackLaunch.SetProperty( "Pan", fBalance );
-	m_soundAttackEnding.SetProperty( "Pan", fBalance );
 
 	if( HasVisibleParts() )
 	{
@@ -523,8 +485,6 @@ void Player::Init(
 	m_vbFretIsDown.resize( GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)->m_iColsPerPlayer );
 	FOREACH( bool, m_vbFretIsDown, b )
 		*b = false;
-
-	m_fActiveRandomAttackStart = -1.0f;
 }
 /**
  * @brief Determine if a TapNote needs a tap note style judgment.
@@ -637,8 +597,6 @@ void Player::Load()
 	{
 		SetCombo( m_pPlayerStageStats->m_iCurCombo, m_pPlayerStageStats->m_iCurMissCombo );	// combo can persist between songs and games
 	}
-	if( m_pAttackDisplay )
-		m_pAttackDisplay->Init( m_pPlayerState );
 
 	/* Don't re-init this; that'll reload graphics.  Add a separate Reset() call
 	 * if some ScoreDisplays need it. */
@@ -675,44 +633,6 @@ void Player::Load()
 	// Generate some cache data structure.
 	GenerateCacheDataStructure(m_pPlayerState, m_NoteData);
 
-	switch( GAMESTATE->m_PlayMode )
-	{
-		case PLAY_MODE_RAVE:
-		case PLAY_MODE_BATTLE:
-		{
-			// ugly, ugly, ugly.  Works only w/ dance.
-			// Why does this work only with dance? - Steve
-			// it has to do with there only being four cases. This is a lame
-			// workaround, but since only DDR has ever really implemented those
-			// modes, it's stayed like this. -aj
-			StepsType st = GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)->m_StepsType;
-			NoteDataUtil::TransformNoteData(m_NoteData, *m_Timing, m_pPlayerState->m_PlayerOptions.GetStage(), st);
-
-			if (BATTLE_RAVE_MIRROR)
-			{
-				// shuffle either p1 or p2
-				static int count = 0;
-				switch( count )
-				{
-				case 0:
-				case 3:
-					NoteDataUtil::Turn( m_NoteData, st, NoteDataUtil::left);
-					break;
-				case 1:
-				case 2:
-					NoteDataUtil::Turn( m_NoteData, st, NoteDataUtil::right);
-					break;
-				default:
-					FAIL_M(ssprintf("Count %i not in range 0-3", count));
-				}
-				count++;
-				count %= 4;
-			}
-			break;
-		}
-		default: break;
-	}
-
 	int iDrawDistanceAfterTargetsPixels = GAMESTATE->IsEditing() ? -100 : DRAW_DISTANCE_AFTER_TARGET_PIXELS;
 	int iDrawDistanceBeforeTargetsPixels = GAMESTATE->IsEditing() ? 400 : DRAW_DISTANCE_BEFORE_TARGET_PIXELS;
 
@@ -725,9 +645,6 @@ void Player::Load()
 	}
 
 	bool bPlayerUsingBothSides = GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)->GetUsesCenteredArrows();
-	if( m_pAttackDisplay )
-		m_pAttackDisplay->SetX( ATTACK_DISPLAY_X.GetValue(pn, bPlayerUsingBothSides) - 40 );
-	// set this in Update //m_pAttackDisplay->SetY( bReverse ? ATTACK_DISPLAY_Y_REVERSE : ATTACK_DISPLAY_Y );
 
 	// set this in Update 
 	//m_pJudgment->SetX( JUDGMENT_X.GetValue(pn,bPlayerUsingBothSides) );
@@ -841,39 +758,6 @@ void Player::Update( float fDeltaTime )
 	// if the Player doesn't show anything on the screen.
 	if( HasVisibleParts() )
 	{
-		// Random Attack Mod
-		if( m_pPlayerState->m_PlayerOptions.GetCurrent().m_fRandAttack )
-		{
-			float fCurrentGameTime = STATSMAN->m_CurStageStats.m_fGameplaySeconds;
-
-			const float fAttackRunTime = ATTACK_RUN_TIME_RANDOM;
-
-			// Don't start until 1 seconds into game, minimum
-			if( fCurrentGameTime > 1.0f )
-			{
-				/* Update the attack if there are no others currently running.
-				 * Note that we have a new one activate a little early; This is
-				 * to have a bit of overlap rather than an abrupt change. */
-				if( (fCurrentGameTime - m_fActiveRandomAttackStart) > (fAttackRunTime - 0.5f) )
-				{
-					m_fActiveRandomAttackStart = fCurrentGameTime;
-
-					Attack attRandomAttack;
-					attRandomAttack.sModifiers = ApplyRandomAttack();
-					attRandomAttack.fSecsRemaining = fAttackRunTime;
-					m_pPlayerState->LaunchAttack( attRandomAttack );
-				}
-			}
-		}
-
-		if( g_bEnableAttackSoundPlayback )
-		{
-			if( m_pPlayerState->m_bAttackBeganThisUpdate )
-				m_soundAttackLaunch.Play(false);
-			if( m_pPlayerState->m_bAttackEndedThisUpdate )
-				m_soundAttackEnding.Play(false);
-		}
-
 		float fMiniPercent = m_pPlayerState->m_PlayerOptions.GetCurrent().m_fEffects[PlayerOptions::EFFECT_MINI];
 		float fTinyPercent = m_pPlayerState->m_PlayerOptions.GetCurrent().m_fEffects[PlayerOptions::EFFECT_TINY];
 		float fJudgmentZoom = min( powf(0.5f, fMiniPercent+fTinyPercent), 1.0f );
@@ -1080,8 +964,6 @@ void Player::Update( float fDeltaTime )
 	{
 		UpdateTapNotesMissedOlderThan( GetMaxStepDistanceSeconds() );
 	}
-	// process transforms that are waiting to be applied
-	ApplyWaitingTransforms();
 }
 
 // Update a group of holds with shared scoring/life. All of these holds will have the same start row.
@@ -1478,29 +1360,6 @@ void Player::UpdateHoldNotes( int iSongRow, float fDeltaTime, vector<TrackRowTap
 	//LOG->Trace("[Player::UpdateHoldNotes] ends");
 }
 
-void Player::ApplyWaitingTransforms()
-{
-	for( unsigned j=0; j<m_pPlayerState->m_ModsToApply.size(); j++ )
-	{
-		const Attack &mod = m_pPlayerState->m_ModsToApply[j];
-		PlayerOptions po;
-		// if re-adding noteskin changes, blank out po.m_sNoteSkin. -aj
-		po.FromString( mod.sModifiers );
-
-		float fStartBeat, fEndBeat;
-		mod.GetRealtimeAttackBeats( GAMESTATE->m_pCurSong, m_pPlayerState, fStartBeat, fEndBeat );
-		fEndBeat = min( fEndBeat, m_NoteData.GetLastBeat() );
-
-		LOG->Trace( "Applying transform '%s' from %f to %f to '%s'", mod.sModifiers.c_str(), fStartBeat, fEndBeat,
-			GAMESTATE->m_pCurSong->GetTranslitMainTitle().c_str() );
-
-		// if re-adding noteskin changes, this is one place to edit -aj
-
-		NoteDataUtil::TransformNoteData(m_NoteData, *m_Timing, po, GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)->m_StepsType, BeatToNoteRow(fStartBeat), BeatToNoteRow(fEndBeat));
-	}
-	m_pPlayerState->m_ModsToApply.clear();
-}
-
 void Player::DrawPrimitives()
 {
 	// TODO: Remove use of PlayerNumber.
@@ -1539,9 +1398,6 @@ void Player::DrawPrimitives()
 		if( m_sprCombo )
 			m_sprCombo->Draw();
 	}
-
-	if( m_pAttackDisplay )
-		m_pAttackDisplay->Draw();
 
 	if( TAP_JUDGMENTS_UNDER_FIELD )
 		DrawTapJudgments();
@@ -1647,8 +1503,6 @@ void Player::ChangeLife( TapNoteScore tns )
 	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 	if( m_pLifeMeter )
 		m_pLifeMeter->ChangeLife( tns );
-	if( m_pCombinedLifeMeter )
-		m_pCombinedLifeMeter->ChangeLife( pn, tns );
 
 	ChangeLifeRecord();
 
@@ -1671,8 +1525,6 @@ void Player::ChangeLife( HoldNoteScore hns, TapNoteScore tns )
 	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 	if( m_pLifeMeter )
 		m_pLifeMeter->ChangeLife( hns, tns );
-	if( m_pCombinedLifeMeter )
-		m_pCombinedLifeMeter->ChangeLife( pn, hns, tns );
 
 	ChangeLifeRecord();
 }
@@ -1689,10 +1541,6 @@ void Player::ChangeLife(float delta)
 	{
 		m_pLifeMeter->ChangeLife(delta);
 	}
-	if(m_pCombinedLifeMeter)
-	{
-		m_pCombinedLifeMeter->ChangeLife(pn, delta);
-	}
 	ChangeLifeRecord();
 }
 
@@ -1708,10 +1556,6 @@ void Player::SetLife(float value)
 	{
 		m_pLifeMeter->SetLife(value);
 	}
-	if(m_pCombinedLifeMeter)
-	{
-		m_pCombinedLifeMeter->SetLife(pn, value);
-	}
 	ChangeLifeRecord();
 }
 
@@ -1722,12 +1566,6 @@ void Player::ChangeLifeRecord()
 	if( m_pLifeMeter )
 	{
 		fLife = m_pLifeMeter->GetLife();
-	}
-	else if( m_pCombinedLifeMeter )
-	{
-		fLife = GAMESTATE->m_fTugLifePercentP1;
-		if( pn == PLAYER_2 )
-			fLife = 1.0f - fLife;
 	}
 	if( fLife != -1 )
 		if( m_pPlayerStageStats )
@@ -1896,8 +1734,6 @@ void Player::DoTapScoreNone()
 		m_pLifeMeter->HandleTapScoreNone();
 	// TODO: Remove use of PlayerNumber
 	PlayerNumber pn = PLAYER_INVALID;
-	if( m_pCombinedLifeMeter )
-		m_pCombinedLifeMeter->HandleTapScoreNone( pn );
 
 	if( PENALIZE_TAP_SCORE_NONE )
 	{
@@ -2164,10 +2000,6 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 				   m_Timing->IsJudgableAtRow(iSongRow))
 					score = TNS_HitMine;   
 				break;
-			case TapNoteType_Attack:
-				if( !bRelease && fSecondsFromExact <= GetWindowSeconds(TW_Attack) && !pTN->result.bHidden )
-					score = AllowW1() ? TNS_W1 : TNS_W2; // sentinel
-				break;
 			case TapNoteType_HoldHead:
 				// oh wow, this was causing the trigger before the hold heads
 				// bug. (It was fNoteOffset > 0.f before) -DaisuMaster
@@ -2310,37 +2142,6 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 		*/
 		default:
 			FAIL_M(ssprintf("Invalid player controller type: %i", m_pPlayerState->m_PlayerController));
-		}
-
-		// handle attack notes
-		if( pTN->type == TapNoteType_Attack && score == TNS_W2 )
-		{
-			score = TNS_None;	// don't score this as anything
-
-			m_soundAttackLaunch.Play(false);
-
-			// put attack in effect
-			Attack attack(
-				ATTACK_LEVEL_1,
-				-1,	// now
-				pTN->fAttackDurationSeconds,
-				pTN->sAttackModifiers,
-				true,
-				false
-				);
-
-			// TODO: Remove use of PlayerNumber
-			PlayerNumber pnToAttack = OPPOSITE_PLAYER[m_pPlayerState->m_PlayerNumber];
-			PlayerState *pPlayerStateToAttack = GAMESTATE->m_pPlayerState[pnToAttack];
-			pPlayerStateToAttack->LaunchAttack( attack );
-
-			// remove all TapAttacks on this row
-			for( int t=0; t<m_NoteData.GetNumTracks(); t++ )
-			{
-				const TapNote &tn = m_NoteData.GetTapNote( t, iRowOfOverlappingNoteOrRow );
-				if( tn.type == TapNoteType_Attack )
-					HideNote( t, iRowOfOverlappingNoteOrRow );
-			}
 		}
 
 		if( m_pPlayerState->m_PlayerController == PC_HUMAN && score >= TNS_W3 ) 
@@ -2586,23 +2387,7 @@ void Player::UpdateJudgedRows(float fDeltaTime)
 			else if( g_bEnableMineSoundPlayback )
 				setSounds.insert( &m_soundMine );
 
-			/* Attack Mines:
-			 * Only difference is these launch an attack rather than affecting
-			 * the lifebar. All the other mine impacts (score, dance points,
-			 * etc.) are still applied. */
-			if( m_pPlayerState->m_PlayerOptions.GetCurrent().m_bTransforms[PlayerOptions::TRANSFORM_ATTACKMINES] )
-			{
-				const float fAttackRunTime = ATTACK_RUN_TIME_MINE;
-
-				Attack attMineAttack;
-				attMineAttack.sModifiers = ApplyRandomAttack();
-				attMineAttack.fStartSecond = ATTACK_STARTS_NOW;
-				attMineAttack.fSecsRemaining = fAttackRunTime;
-
-				m_pPlayerState->LaunchAttack( attMineAttack );
-			}
-			else
-				ChangeLife( tn.result.tns );
+			ChangeLife( tn.result.tns );
 
 			if( m_pScoreDisplay )
 				m_pScoreDisplay->OnJudgment( tn.result.tns );
@@ -3338,18 +3123,6 @@ void Player::IncrementComboOrMissCombo(bool bComboOrMissCombo)
 		}
 
 		SendComboMessages( iOldCombo, iOldMissCombo );
-}
-
-RString Player::ApplyRandomAttack()
-{
-	if( GAMESTATE->m_RandomAttacks.size() < 1 )
-		return "";
-
-	DateTime now = DateTime::GetNowDate();
-	int iSeed = now.tm_hour * now.tm_min * now.tm_sec * now.tm_mday;
-	RandomGen rnd( GAMESTATE->m_iStageSeed * iSeed );
-	int iAttackToUse = rnd() % GAMESTATE->m_RandomAttacks.size();
-	return GAMESTATE->m_RandomAttacks[iAttackToUse];
 }
 
 // lua start

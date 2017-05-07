@@ -671,13 +671,6 @@ void ScreenEvaluation::Init()
 		{
 			switch( GAMESTATE->m_PlayMode )
 			{
-			case PLAY_MODE_BATTLE:
-				{
-					bool bWon = GAMESTATE->GetStageResult(GAMESTATE->GetMasterPlayerNumber()) == RESULT_WIN;
-					RString sResult = bWon ? "win" : "lose";
-					SOUND->PlayOnceFromDir( ANNOUNCER->GetPathTo("evaluation "+sResult) );
-				}
-				break;
 			default:
 				SOUND->PlayOnceFromDir( ANNOUNCER->GetPathTo("evaluation "+GradeToOldString(best_grade)) );
 				break;

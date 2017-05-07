@@ -12,8 +12,7 @@ public:
 
 	virtual void Load(
 	const vector<Song*> &apSongs,
-	const vector<Steps*> &apSteps,
-	const vector<AttackArray> &asModifiers );
+	const vector<Steps*> &apSteps);
 
 	virtual void DrawPrimitives();
 	virtual void Update( float fDelta );

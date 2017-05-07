@@ -187,8 +187,6 @@ static void WriteGlobalTags( RageFile &f, Song &out )
 			f.Write( "," );
 	}
 	f.PutLine( ";" );
-
-	f.PutLine( ssprintf("#ATTACKS:%s;", out.GetAttackString().c_str()) );
 }
 
 /**

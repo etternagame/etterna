@@ -166,7 +166,7 @@ void ScreenHowToPlay::Init()
 			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerController = PC_AUTOPLAY;
 
 			m_Player->Init("Player", GAMESTATE->m_pPlayerState[PLAYER_1],
-				NULL, m_pLifeMeterBar, NULL, NULL, NULL, NULL, NULL, NULL);
+				NULL, m_pLifeMeterBar, NULL, NULL, NULL, NULL);
 			m_Player.Load( m_NoteData );
 			m_Player->SetName( "Player" );
 			this->AddChild( m_Player );

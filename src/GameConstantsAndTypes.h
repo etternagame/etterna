@@ -122,8 +122,6 @@ LuaDeclareType( StepsType );
 enum PlayMode
 {
 	PLAY_MODE_REGULAR, /**< The normal game mode, often with a set number of stages. */
-	PLAY_MODE_BATTLE, /**< Choose when to send attacks to your opponent. */
-	PLAY_MODE_RAVE,	/**< Have attacks launched during play automatically. */
 	NUM_PlayMode,
 	PlayMode_Invalid
 };
@@ -282,7 +280,6 @@ enum TimingWindow
 	TW_W4,
 	TW_W5,
 	TW_Mine,
-	TW_Attack,
 	TW_Hold,
 	TW_Roll,
 	TW_Checkpoint,
@@ -397,20 +394,6 @@ enum StageResult
 	StageResult_Invalid
 };
 LuaDeclareType( StageResult );
-
-// Battle stuff
-/** @brief The number of inventory slots available for attacks. */
-const int NUM_INVENTORY_SLOTS	= 3;
-enum AttackLevel
-{
-	ATTACK_LEVEL_1,
-	ATTACK_LEVEL_2,
-	ATTACK_LEVEL_3,
-	NUM_ATTACK_LEVELS
-};
-const int NUM_ATTACKS_PER_LEVEL	= 3;
-const int ITEM_NONE = -1;
-
 
 // Coin stuff
 /** @brief The different coin modes to determine how one can play. */

@@ -328,24 +328,6 @@ static void WriteGlobalTags( RageFile &f, const Song &out )
 		f.PutLine(";");
 	}
 
-	if (!out.m_Attacks.empty())
-	{
-		// attacks section
-		//f.PutLine(fmt::sprintf("#ATTACKS:%s;", out.GetAttackString().c_str()));
-		f.PutLine("#ATTACKS:");
-		for (unsigned j = 0; j < out.m_Attacks.size(); j++)
-		{
-			const Attack &a = out.m_Attacks[j];
-			f.Write(ssprintf("  TIME=%.2f:LEN=%.2f:MODS=%s",
-				a.fStartSecond, a.fSecsRemaining, a.sModifiers.c_str()));
-
-			if (j + 1 < out.m_Attacks.size())
-			{
-				f.Write(":");
-			}
-		}
-		f.Write(";");
-	}
 	f.PutLine("");
 }
 
@@ -399,10 +381,6 @@ static RString GetSSCNoteData( const Song &song, const Steps &in, bool bSavingCa
 		lines.push_back(ssprintf("#OFFSET:%.6f;", in.m_Timing.m_fBeat0OffsetInSeconds));
 		GetTimingTags(lines, in.m_Timing);
 	}
-
-	// todo: get this to output similar to course mods -aj
-	if (song.GetAttackString() != in.GetAttackString())
-		lines.push_back(ssprintf("#ATTACKS:%s;", in.GetAttackString().c_str()));
 
 	switch (in.GetDisplayBPM())
 	{

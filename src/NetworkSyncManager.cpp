@@ -724,13 +724,8 @@ void NetworkSyncManager::ProcessInput()
 			{
 				PlayerNumber iPlayerNumber = (PlayerNumber)m_packet.Read1();
 
-				if( GAMESTATE->IsPlayerEnabled( iPlayerNumber ) ) // Only attack if the player can be attacked.
+				if( GAMESTATE->IsPlayerEnabled( iPlayerNumber ) ) // There was an attack here, now there isnt
 				{
-					Attack a;
-					a.fSecsRemaining = float( m_packet.Read4() ) / 1000.0f;
-					a.bGlobal = false;
-					a.sModifiers = m_packet.ReadNT();
-					GAMESTATE->m_pPlayerState[iPlayerNumber]->LaunchAttack( a );
 				}
 				m_packet.ClearPacket();
 			}

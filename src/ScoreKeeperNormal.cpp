@@ -33,12 +33,10 @@ ScoreKeeperNormal::ScoreKeeperNormal( PlayerState *pPlayerState, PlayerStageStat
 
 void ScoreKeeperNormal::Load(
 		const vector<Song*>& apSongs,
-		const vector<Steps*>& apSteps,
-		const vector<AttackArray> &asModifiers )
+		const vector<Steps*>& apSteps )
 {
 	m_apSteps = apSteps;
 	ASSERT( apSongs.size() == apSteps.size() );
-	ASSERT( apSongs.size() == asModifiers.size() );
 
 	// True if a jump is one to combo, false if combo is purely based on tap count.
 	m_ComboIsPerRow.Load( "Gameplay", "ComboIsPerRow" );
@@ -64,7 +62,6 @@ void ScoreKeeperNormal::Load(
 		ASSERT( pSong != NULL );
 		Steps* pSteps = apSteps[i];
 		ASSERT( pSteps != NULL );
-		const AttackArray &aa = asModifiers[i];
 		NoteData ndTemp;
 		pSteps->GetNoteData( ndTemp);
 
@@ -74,11 +71,6 @@ void ScoreKeeperNormal::Load(
 		const Style* pStyle = GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber);
 		NoteData ndPre;
 		pStyle->GetTransformedNoteDataForStyle( m_pPlayerState->m_PlayerNumber, ndTemp, ndPre );
-
-		/* Compute RadarValues before applying any user-selected mods. Apply
-		 * Course mods and count them in the "pre" RadarValues because they're
-		 * forced and not chosen by the user. */
-		NoteDataUtil::TransformNoteData(ndPre, *(pSteps->GetTimingData()), aa, pSteps->m_StepsType, pSong );
 
 		/* Apply user transforms to find out how the notes will really look.
 		 *

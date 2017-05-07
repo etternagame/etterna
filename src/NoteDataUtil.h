@@ -8,7 +8,6 @@ class PlayerOptions;
 struct RadarValues;
 class NoteData;
 class Song;
-struct AttackArray;
 class TimingData;
 
 void PlaceAutoKeysound( NoteData &out, int row, TapNote akTap );
@@ -161,8 +160,6 @@ namespace NoteDataUtil
 	// True if no notes in row that aren't true in the mask
 	bool RowPassesValidMask( NoteData &inout, int row, const bool bValidMask[] );
 
-	void TransformNoteData(NoteData &nd, TimingData const& timing_data,
-		const AttackArray &aa, StepsType st, Song* pSong);
 	void TransformNoteData(NoteData &nd, TimingData const& timing_data,
 		const PlayerOptions &po, StepsType st,
 			       int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW );

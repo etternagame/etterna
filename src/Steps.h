@@ -1,7 +1,6 @@
 #ifndef STEPS_H
 #define STEPS_H
 
-#include "Attack.h"
 #include "GameConstantsAndTypes.h"
 #include "PlayerNumber.h"
 #include "Grade.h"
@@ -14,6 +13,7 @@
 class Profile;
 class NoteData;
 struct lua_State;
+class Song;
 
 typedef vector<float> SDiffs;
 typedef vector<SDiffs> MinaSD;
@@ -107,11 +107,6 @@ public:
 	 * @return the author credit used for this edit.
 	 */
 	RString GetCredit() const { return m_sCredit; }
-
-	/** @brief The list of attacks. */
-	AttackArray m_Attacks;
-	/** @brief The stringified list of attacks. */
-	vector<RString> m_sAttackString;
 
 	RString GetChartName() const { return chartName; }
 	void SetChartName(const RString &name) { this->chartName = name; }
@@ -224,11 +219,6 @@ public:
 	void SetMaxBPM(const float f)				{ this->specifiedBPMMax = f; }
 	float GetMaxBPM() const					{ return this->specifiedBPMMax; }
 	void GetDisplayBpms( DisplayBpms &addTo) const;
-
-	RString GetAttackString() const
-	{
-		return join(":", this->m_sAttackString);
-	}
 
 private:
 	/* We can have one or both of these; if we have both, they're always identical.

@@ -55,11 +55,6 @@ bool Character::Load( RString sCharDir )
 	IniFile ini;
 	if( !ini.ReadFile( sCharDir+"character.ini" ) )
 		return false;
-	for( int i=0; i<NUM_ATTACK_LEVELS; i++ )
-	{
-		for( int j=0; j<NUM_ATTACKS_PER_LEVEL; j++ )
-			ini.GetValue( "Character", ssprintf("Level%dAttack%d",i+1,j+1), m_sAttacks[i][j] );
-	}
 
 	// get optional display name
 	ini.GetValue( "Character", "DisplayName", m_sDisplayName );

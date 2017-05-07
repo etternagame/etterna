@@ -120,25 +120,6 @@ TapNoteScore PlayerAI::GetTapNoteScore( const PlayerState* pPlayerState )
 
 	int iCpuSkill = pPlayerState->m_iCpuSkill;
 
-	/* If we're in battle mode, reduce the skill based on the number of modifier
-	 * attacks against us. If we're in demonstration or jukebox mode with
-	 * modifiers attached, don't make demonstration miss a lot. */
-	// Idea: weight certain modifiers (boomerang, tornado) more? (to simulate
-	// readability problems) -aj
-	if( !GAMESTATE->m_bDemonstrationOrJukebox )
-	{
-		int iSumOfAttackLevels = 
-			pPlayerState->m_fSecondsUntilAttacksPhasedOut > 0 ? 
-			pPlayerState->m_iLastPositiveSumOfAttackLevels : 
-			0;
-
-		ASSERT_M( iCpuSkill>=0 && iCpuSkill<NUM_SKILL_LEVELS, ssprintf("%i", iCpuSkill) );
-		ASSERT_M( pPlayerState->m_PlayerController == PC_CPU, ssprintf("%i", pPlayerState->m_PlayerController) );
-
-		iCpuSkill -= iSumOfAttackLevels*3;
-		CLAMP( iCpuSkill, 0, NUM_SKILL_LEVELS-1 );
-	}
-
 	TapScoreDistribution& distribution = g_Distributions[iCpuSkill];
 
 	return distribution.GetTapNoteScore();

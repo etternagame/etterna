@@ -1,7 +1,6 @@
 #ifndef GAMESTATE_H
 #define GAMESTATE_H
 
-#include "Attack.h"
 #include "Difficulty.h"
 #include "GameConstantsAndTypes.h"
 #include "Grade.h"
@@ -275,17 +274,12 @@ public:
 	RageTimer m_DanceStartTime;
 	float m_DanceDuration;
 
-	// Random Attacks & Attack Mines
-	vector<RString>		m_RandomAttacks;
-
 	// used in PLAY_MODE_BATTLE
 	float	m_fOpponentHealthPercent;
 
 	// used in PLAY_MODE_RAVE
 	float	m_fTugLifePercentP1;
 
-	/** @brief Primarily called at the end of a song to stop all attacks. */
-	void RemoveAllActiveAttacks();
 	PlayerNumber GetBestPlayer() const;
 	StageResult GetStageResult( PlayerNumber pn ) const;
 

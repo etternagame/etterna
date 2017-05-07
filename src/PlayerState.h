@@ -4,7 +4,6 @@
 #define PlayerState_H
 
 #include "SongPosition.h"
-#include "Attack.h"
 #include "ModsGroup.h"
 #include "PlayerNumber.h"
 #include "PlayerOptions.h"
@@ -99,22 +98,7 @@ public:
 
 	SampleHistory m_EffectHistory;
 
-	// Used in Battle and Rave
-	void LaunchAttack( const Attack& a );
-	void RemoveActiveAttacks( AttackLevel al=NUM_ATTACK_LEVELS /*all*/ );
-	void EndActiveAttacks();
-	void RebuildPlayerOptionsFromActiveAttacks();
-	int GetSumOfActiveAttackLevels() const;
-	int		m_iCpuSkill;	// only used when m_PlayerController is PC_CPU
-	// Attacks take a while to transition out of use.  Account for this in PlayerAI
-	// by still penalizing it for 1 second after the player options are rebuilt.
-	int		m_iLastPositiveSumOfAttackLevels;
-	float	m_fSecondsUntilAttacksPhasedOut; // positive means PlayerAI is still affected
-	bool	m_bAttackBeganThisUpdate;	// flag for other objects to watch (play sounds)
-	bool	m_bAttackEndedThisUpdate;	// flag for other objects to watch (play sounds)
-
-	AttackArray		m_ActiveAttacks;
-	vector<Attack>	m_ModsToApply;
+	int		m_iCpuSkill; // only used when m_PlayerController is PC_CPU
 
 	// Haste
 	int		m_iTapsHitSinceLastHasteUpdate;
@@ -122,13 +106,6 @@ public:
 
 	// Stores the bpm that was picked for reading the chart if the player is using an mmod.
 	float m_fReadBPM;
-
-	// Used in Rave
-	float	m_fSuperMeter;	// between 0 and NUM_ATTACK_LEVELS
-	float	m_fSuperMeterGrowthScale;
-	// Used in Battle
-	void RemoveAllInventory();
-	Attack	m_Inventory[NUM_INVENTORY_SLOTS];
 
 	/* why is the slow getstyles function called every time to get 
 	number of columns in places where it can't change? - Mina */

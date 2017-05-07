@@ -129,15 +129,6 @@ DancingCharacters::DancingCharacters(): m_bDrawDangerLight(false),
 		else
 			m_pCharacter[p]->SetX( MODEL_X_ONE_PLAYER );
 
-		switch( GAMESTATE->m_PlayMode )
-		{
-			case PLAY_MODE_BATTLE:
-			case PLAY_MODE_RAVE:
-				m_pCharacter[p]->SetRotationY( MODEL_ROTATIONY_TWO_PLAYERS[p] );
-			default:
-				break;
-		}
-
 		m_pCharacter[p]->LoadMilkshapeAscii( pChar->GetModelPath() );
 		m_pCharacter[p]->LoadMilkshapeAsciiBones( "rest", pChar->GetRestAnimationPath() );
 		m_pCharacter[p]->LoadMilkshapeAsciiBones( "warmup", pChar->GetWarmUpAnimationPath() );

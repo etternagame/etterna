@@ -216,8 +216,6 @@ Steps *Song::CreateSteps()
 void Song::InitSteps(Steps *pSteps)
 {
 	// TimingData is initially empty (i.e. defaults to song timing)
-	pSteps->m_sAttackString = this->m_sAttackString;
-	pSteps->m_Attacks = this->m_Attacks;
 	pSteps->SetDisplayBPM(this->m_DisplayBPMType);
 	pSteps->SetMinBPM(this->m_fSpecifiedBPMMin);
 	pSteps->SetMaxBPM(this->m_fSpecifiedBPMMax);
@@ -1460,7 +1458,6 @@ bool Song::HasBGChanges() const
 	}
 	return false;
 }
-bool Song::HasAttacks() const		{return !m_Attacks.empty(); }
 bool Song::HasJacket() const
 {
 	return m_sJacketFile != ""	&& IsAFile(GetJacketPath());
@@ -2211,7 +2208,7 @@ public:
 	}
 	static int HasAttacks( T* p, lua_State *L )
 	{
-		lua_pushboolean(L, p->HasAttacks());
+		lua_pushboolean(L, false);
 		return 1;
 	}
 	static int GetDisplayBpms( T* p, lua_State *L )

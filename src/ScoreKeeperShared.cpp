@@ -13,12 +13,11 @@ ScoreKeeperShared::ScoreKeeperShared( PlayerState *pPlayerState, PlayerStageStat
 
 void ScoreKeeperShared::Load(
 	const vector<Song*> &apSongs,
-	const vector<Steps*> &apSteps,
-	const vector<AttackArray> &asModifiers )
+	const vector<Steps*> &apSteps)
 {
 	if( m_pPlayerState->m_PlayerNumber != GAMESTATE->GetMasterPlayerNumber() )
 		return;
-	ScoreKeeperNormal::Load( apSongs, apSteps, asModifiers );
+	ScoreKeeperNormal::Load( apSongs, apSteps);
 }
 
 // These ScoreKeepers don't get to draw.
