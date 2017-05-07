@@ -1794,9 +1794,7 @@ XNode* Profile::SaveEttScoresCreateNode() const {
 
 	const Profile* pProfile = this;
 	ASSERT(pProfile != NULL);
-	LOG->Warn("1sdaf");
 	XNode* pNode = SCOREMAN->CreateNode();
-	LOG->Warn("A5234Sd11f2sf");
 	return pNode;
 }
 
