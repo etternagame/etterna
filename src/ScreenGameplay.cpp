@@ -16,11 +16,11 @@
 #include "ScoreDisplayPercentage.h"
 #include "ScoreDisplayLifeTime.h"
 #include "ScoreDisplayOni.h"
-#include "ScoreDisplayRave.h"
+
 #include "ThemeManager.h"
 #include "RageTimer.h"
 #include "ScoreKeeperNormal.h"
-#include "ScoreKeeperRave.h"
+
 #include "LyricsLoader.h"
 #include "ActorUtil.h"
 #include "ArrowEffects.h"

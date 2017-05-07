@@ -12,7 +12,7 @@
 #include "Song.h"
 #include "SongManager.h"
 #include "Steps.h"
-#include "Attack.h"
+
 
 void SMALoader::ProcessMultipliers( TimingData &out, const int iRowsPerBeat, const RString &sParam )
 {

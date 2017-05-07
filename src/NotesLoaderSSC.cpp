@@ -11,7 +11,7 @@
 #include "Song.h"
 #include "SongManager.h"
 #include "Steps.h"
-#include "Attack.h"
+
 #include "PrefsManager.h"
 
 // Everything from this line to the creation of parser_helper exists to

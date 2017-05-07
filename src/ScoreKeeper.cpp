@@ -28,7 +28,7 @@ void ScoreKeeper::GetScoreOfLastTapInRow( const NoteData &nd, int iRow,
 }
 
 #include "ScoreKeeperNormal.h"
-#include "ScoreKeeperRave.h"
+
 #include "ScoreKeeperShared.h"
 
 ScoreKeeper* ScoreKeeper::MakeScoreKeeper( const RString &sClassName, PlayerState *pPlayerState, PlayerStageStats *pPlayerStageStats )

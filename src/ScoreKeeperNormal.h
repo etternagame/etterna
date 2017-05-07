@@ -4,7 +4,6 @@
 #define SCORE_KEEPER_NORMAL_H
 
 #include "ScoreKeeper.h"
-#include "Attack.h"
 #include "ScreenMessage.h"
 #include "ThemeMetric.h"
 class Steps;

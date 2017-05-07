@@ -3,7 +3,7 @@
 
 #include "GameConstantsAndTypes.h"
 #include "BackgroundUtil.h"
-#include "Attack.h"
+
 #include "MsdFile.h" // we require the struct from here.
 
 class Song;
