@@ -455,7 +455,6 @@ int GetCreditsRequiredToPlayStyle( const Style *style )
 
 static bool AreStyleAndPlayModeCompatible( const Style *style, PlayMode pm )
 {
-	if( style == NULL || pm == PlayMode_Invalid )
 		return true;
 }
 
