@@ -38,6 +38,8 @@ ScoresAtRate::ScoresAtRate() {
 
 void ScoresAtRate::AddScore(HighScore& hs) {
 	string& key = hs.GetScoreKey();	
+	if (scores.count(key))	// dont duplicate scores
+		return;
 	bestGrade = min(hs.GetWifeGrade(), bestGrade);
 	scores.emplace(key, hs);
 
