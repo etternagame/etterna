@@ -13,6 +13,8 @@
 #include "StyleUtil.h"	// for StyleID
 #include "LuaReference.h"
 
+#include <unordered_map>
+
 class XNode;
 struct lua_State;
 class Character;
@@ -98,6 +100,15 @@ public:
 	bool vacuous = false;
 
 	void PushSelf(lua_State *L);
+};
+
+
+struct GoalsForChart {
+public:
+	XNode* CreateNode() const;
+	void Add(ScoreGoal& sg) { goals.emplace_back(sg); }
+	vector<ScoreGoal>& Get() { return goals; }
+	vector<ScoreGoal> goals;
 };
 
 /** 
@@ -242,19 +253,23 @@ public:
 	int m_iNumStagesPassedByPlayMode[NUM_PlayMode];
 	int m_iNumStagesPassedByGrade[NUM_Grade];
 
-	void AddToFavorites(RString ck) { FavoritedCharts.emplace_back(ck); }
-	void RemoveFromFavorites(RString ck);
+	void AddToFavorites(string& ck) { FavoritedCharts.emplace_back(ck); }
+	void RemoveFromFavorites(string& ck);
+	vector<string> FavoritedCharts;
+	XNode* SaveFavoritesCreateNode() const;
+	XNode* SaveScoreGoalsCreateNode() const;
+	XNode* SavePlaylistsCreateNode() const;
+	void LoadFavoritesFromNode();
 
-	// Vector for now, we can make this more efficient later
-	vector<RString> FavoritedCharts;
 
 	// more future goalman stuff -mina
-	void CreateGoal(RString ck);
-	void DeleteGoal(RString ck, DateTime assigned);
-	map<RString, vector<ScoreGoal>> goalmap;
-	bool HasGoal(RString ck) { return goalmap.count(ck) == 1; }
-	ScoreGoal& GetLowestGoalForRate(RString ck, float rate);
-	void SetAnyAchievedGoals(RString ck, float rate, const HighScore& pscore);
+	void CreateGoal(string& ck);
+	void DeleteGoal(string& ck, DateTime assigned);
+	unordered_map<string, GoalsForChart> goalmap;
+
+	bool HasGoal(string& ck) { return goalmap.count(ck) == 1; }
+	ScoreGoal& GetLowestGoalForRate(string& ck, float rate);
+	void SetAnyAchievedGoals(string& ck, float& rate, const HighScore& pscore);
 
 	/* store arbitrary data for the theme within a profile */
 	LuaTable m_UserTable;

@@ -54,7 +54,7 @@ public:
 	void PreloadSongImages();
 
 	bool IsGroupNeverCached(const RString& group) const;
-	void SetFavoritedStatus(vector<RString>& favs);
+	void SetFavoritedStatus(vector<string>& favs);
 	void SetHasGoal(map<RString, vector<ScoreGoal>> goalmap);
 
 	RString GetSongGroupBannerPath( const RString &sSongGroup ) const;

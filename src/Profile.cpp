@@ -1079,6 +1079,9 @@ XNode *Profile::SaveEttXmlCreateNode() const
 {
 	XNode *xml = new XNode("Stats");
 	xml->AppendChild(SaveEttGeneralDataCreateNode());
+	xml->AppendChild(SaveFavoritesCreateNode());
+	xml->AppendChild(SavePlaylistsCreateNode());
+	xml->AppendChild(SaveScoreGoalsCreateNode());
 	xml->AppendChild(SaveEttScoresCreateNode());
 	return xml;
 }
@@ -1248,7 +1251,7 @@ XNode* Profile::SaveGeneralDataCreateNode() const
 
 	{
 		XNode* pFavorites = pGeneralDataNode->AppendChild("Favorites");
-		FOREACH_CONST(RString, FavoritedCharts, it)
+		FOREACH_CONST(string, FavoritedCharts, it)
 			pFavorites->AppendChild(*it);			
 	}
 
@@ -1342,6 +1345,37 @@ XNode* Profile::SaveGeneralDataCreateNode() const
 	return pGeneralDataNode;
 }
 
+XNode* Profile::SaveFavoritesCreateNode() const {
+	XNode* favs = new XNode("Favorites");
+	FOREACH_CONST(string, FavoritedCharts, it)
+		favs->AppendChild(*it);
+	return favs;
+}
+
+XNode* GoalsForChart::CreateNode() const {
+	XNode* cg = new XNode("GoalsForChart");
+	cg->AppendAttr("Key", goals[0].chartkey);
+	FOREACH_CONST(ScoreGoal, goals, sg)
+		cg->AppendChild(sg->CreateNode());
+	return cg;
+}
+
+XNode* Profile::SaveScoreGoalsCreateNode() const {
+	XNode* goals = new XNode("ScoreGoals");
+	FOREACHUM_CONST(string, GoalsForChart, goalmap, i) {
+		const GoalsForChart& cg = i->second;
+		goals->AppendChild(cg.CreateNode());
+	}
+		
+	return goals;
+}
+
+XNode* Profile::SavePlaylistsCreateNode() const {
+	XNode* playlists = new XNode("PlayLists");
+	FOREACH_CONST(string, FavoritedCharts, it)
+		playlists->AppendChild(*it);
+	return playlists;
+}
 
 XNode* Profile::SaveEttGeneralDataCreateNode() const
 {
@@ -1382,12 +1416,6 @@ XNode* Profile::SaveEttGeneralDataCreateNode() const
 		XNode* pDefaultModifiers = pGeneralDataNode->AppendChild("DefaultModifiers");
 		FOREACHM_CONST(RString, RString, m_sDefaultModifiers, it)
 			pDefaultModifiers->AppendChild(it->first, it->second);
-	}
-
-	{
-		XNode* pFavorites = pGeneralDataNode->AppendChild("Favorites");
-		FOREACH_CONST(RString, FavoritedCharts, it)
-			pFavorites->AppendChild(*it);
 	}
 
 	{
@@ -1508,7 +1536,7 @@ void Profile::LoadGeneralDataFromNode( const XNode* pNode )
 			FOREACH_CONST_Child(pFavorites, ck) {
 				RString tmp = ck->GetName();				// handle duplicated entries caused by an oversight - mina
 				bool duplicated = false;
-				FOREACH(RString, FavoritedCharts, chartkey)
+				FOREACH(string, FavoritedCharts, chartkey)
 					if (*chartkey == tmp)
 						duplicated = true;
 				if (!duplicated)
@@ -1655,7 +1683,7 @@ XNode* Profile::SaveSongScoresCreateNode() const
 	return pNode;
 }
 
-void Profile::RemoveFromFavorites(RString ck) {
+void Profile::RemoveFromFavorites(string& ck) {
 	for (size_t i = 0; i < FavoritedCharts.size(); ++i) {
 		if (FavoritedCharts[i] == ck)
 			FavoritedCharts.erase(FavoritedCharts.begin() + i);
@@ -1804,12 +1832,11 @@ void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
 }
 
 // more future goalman stuff
-void Profile::CreateGoal(RString ck) {
+void Profile::CreateGoal(string& ck) {
 	ScoreGoal goal;
 	goal.timeassigned = DateTime::GetNowDateTime();
 	goal.rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-	goalmap[ck].emplace_back(goal);
-	LOG->Trace("New goal created %i goals", goalmap[ck].size());
+	goalmap[ck].Add(goal);
 }
 
 XNode* ScoreGoal::CreateNode() const {
@@ -1864,8 +1891,8 @@ void ScoreGoal::CheckVacuity() {
 }
 
 // aaa too lazy to write comparators rn -mina
-ScoreGoal& Profile::GetLowestGoalForRate(RString ck, float rate) {
-	auto& sgv = goalmap[ck];
+ScoreGoal& Profile::GetLowestGoalForRate(string& ck, float rate) {
+	auto& sgv = goalmap[ck].Get();
 	float lowest = 100.f;
 	int lowestidx = 0;
 	for (size_t i = 0; i < sgv.size(); ++i) {
@@ -1880,11 +1907,11 @@ ScoreGoal& Profile::GetLowestGoalForRate(RString ck, float rate) {
 	return sgv[lowestidx];
 }
 
-void Profile::SetAnyAchievedGoals(RString ck, float rate, const HighScore& pscore) {
+void Profile::SetAnyAchievedGoals(string& ck, float& rate, const HighScore& pscore) {
 	if (!HasGoal(ck))
 		return;
 
-	auto& sgv = goalmap[ck];
+	auto& sgv = goalmap[ck].Get();
 	for (size_t i = 0; i < sgv.size(); ++i) {
 		ScoreGoal& tmp = sgv[i];
 		if (lround(tmp.rate * 10000.f) == lround(rate * 10000.f) && !tmp.achieved &&tmp.percent < pscore.GetWifeScore()) {
@@ -1895,8 +1922,8 @@ void Profile::SetAnyAchievedGoals(RString ck, float rate, const HighScore& pscor
 	}
 }
 
-void Profile::DeleteGoal(RString ck, DateTime assigned) {
-	auto& sgv = goalmap.at(ck);
+void Profile::DeleteGoal(string& ck, DateTime assigned) {
+	auto& sgv = goalmap.at(ck).Get();
 	for (size_t i = 0; i < sgv.size(); ++i) {
 		if (sgv[i].timeassigned == assigned)
 			sgv.erase(sgv.begin() + i);
@@ -2261,9 +2288,9 @@ public:
 	static int GetAllGoals(T* p, lua_State *L) {
 		lua_newtable(L);
 		int idx = 0;
-		FOREACHM(RString, vector<ScoreGoal>, p->goalmap, i) {
-			const RString &ck = i->first;
-			auto &sgv = i->second;
+		FOREACHUM(string, GoalsForChart, p->goalmap, i) {
+			const string &ck = i->first;
+			auto &sgv = i->second.Get();
 			FOREACH(ScoreGoal, sgv, sg) {
 				ScoreGoal &tsg = *sg;
 				tsg.chartkey = ck;

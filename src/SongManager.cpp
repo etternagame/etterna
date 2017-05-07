@@ -493,11 +493,11 @@ bool SongManager::IsGroupNeverCached(const RString& group) const
 	return m_GroupsToNeverCache.find(group) != m_GroupsToNeverCache.end();
 }
 
-void SongManager::SetFavoritedStatus(vector<RString>& favs) {
+void SongManager::SetFavoritedStatus(vector<string>& favs) {
 	FOREACH(Song*, m_pSongs, song) {
 		FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps) {
 			RString sck = (*steps)->GetChartKey();
-			FOREACH(RString, favs, ck) {
+			FOREACH(string, favs, ck) {
 				if (sck == *ck)
 					(*song)->SetFavorited(true);
 			}
