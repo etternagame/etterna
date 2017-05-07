@@ -280,8 +280,6 @@ void ProfileManager::UnloadProfile( PlayerNumber pn )
 
 const Profile* ProfileManager::GetProfile(PlayerNumber pn) const
 {
-	if (!m_sProfileDir[pn].empty())
-		return dummy;
 	RString sProfileID = LocalProfileDirToID( m_sProfileDir[pn] );
 	return GetLocalProfile( sProfileID );
 }
@@ -776,7 +774,7 @@ public:
 		COMMON_RETURN_SELF;
 	}
 	static int IsPersistentProfile( T* p, lua_State *L )	{ lua_pushboolean(L, p->IsPersistentProfile(Enum::Check<PlayerNumber>(L, 1)) ); return 1; }
-	static int GetProfile( T* p, lua_State *L )				{ PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1); Profile* pP = new Profile; ASSERT(pP != NULL); pP->PushSelf(L); return 1; }
+	static int GetProfile( T* p, lua_State *L )				{ PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1); Profile* pP = p->GetProfile(pn); ASSERT(pP != NULL); pP->PushSelf(L); return 1; }
 	static int GetMachineProfile(T* p, lua_State *L) {
 		Profile* pP = p->GetProfile(PLAYER_1);
 		pP->PushSelf(L);
