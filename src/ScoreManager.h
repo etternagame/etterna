@@ -116,7 +116,7 @@ public:
 	HighScore * GetTopSSRHighScore(unsigned int rank, int ss);
 	
 	bool KeyHasScores(const string& ck) { return pscores.count(ck) == 1; }
-	
+	bool HasAnyScores() { return !AllScores.empty(); }
 
 	
 

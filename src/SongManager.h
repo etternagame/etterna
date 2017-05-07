@@ -19,11 +19,38 @@ struct lua_State;
 #include "RageUtil.h"
 #include "Profile.h"
 
+#include <unordered_map>
+using std::string;
+
 RString SONG_GROUP_COLOR_NAME( size_t i );
 bool CompareNotesPointersForExtra(const Steps *n1, const Steps *n2);
 
 /** @brief The max number of edit steps a profile can have. */
 const int MAX_EDIT_STEPS_PER_PROFILE	= 200;
+
+
+struct Chart {
+	string key;
+	RString lastsong;
+	RString lastpack;
+};
+
+struct Playlist {
+	RString name;
+	vector<Chart> chartlist;
+	void Add(Chart ch) { chartlist.emplace_back(ch); }
+	void SwapPosition();
+
+
+	XNode* CreateNode() const;
+	void LoadFromNode(const XNode* node);
+
+	void PushSelf(lua_State *L);
+};
+
+
+
+
 
 /** @brief The holder for the Songs and its Steps. */
 class SongManager
@@ -140,6 +167,9 @@ public:
 	// Lua
 	void PushSelf( lua_State *L );
 
+
+	vector<Playlist> allplaylists;
+
 protected:
 	void LoadStepManiaSongDir( RString sDir, LoadingWindow *ld );
 	void LoadDWISongDir( const RString &sDir );
@@ -154,8 +184,8 @@ protected:
 
 	// Indexed by chartkeys
 	void AddKeyedPointers(Song* new_song);
-	map<RString, Song*> SongsByKey;
-	map<RString, Steps*> StepsByKey;
+	unordered_map<string, Song*> SongsByKey;
+	unordered_map<string, Steps*> StepsByKey;
 
 	set<RString> m_GroupsToNeverCache;
 	/** @brief Hold pointers to all the songs that have been deleted from disk but must at least be kept temporarily alive for smooth audio transitions. */

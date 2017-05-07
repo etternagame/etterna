@@ -105,10 +105,13 @@ public:
 
 struct GoalsForChart {
 public:
-	XNode* CreateNode() const;
+	
 	void Add(ScoreGoal& sg) { goals.emplace_back(sg); }
 	vector<ScoreGoal>& Get() { return goals; }
 	vector<ScoreGoal> goals;
+
+	XNode* CreateNode() const;
+	void LoadFromNode(const XNode *pNode);
 };
 
 /** 
@@ -259,8 +262,9 @@ public:
 	XNode* SaveFavoritesCreateNode() const;
 	XNode* SaveScoreGoalsCreateNode() const;
 	XNode* SavePlaylistsCreateNode() const;
-	void LoadFavoritesFromNode();
-
+	void LoadFavoritesFromNode(const XNode *pNode);
+	void LoadScoreGoalsFromNode(const XNode *pNode);
+	void LoadPlaylistsFromNode(const XNode *pNode);
 
 	// more future goalman stuff -mina
 	void CreateGoal(string& ck);
@@ -370,6 +374,7 @@ public:
 	// Etterna profile
 	ProfileLoadResult LoadEttFromDir(RString dir);
 	ProfileLoadResult LoadEttXmlFromNode(const XNode* pNode);
+	void LoadEttGeneralDataFromNode(const XNode* pNode);
 	void LoadEttScoresFromNode(const XNode* pNode);
 
 	bool SaveEttXmlToDir(RString sDir) const;

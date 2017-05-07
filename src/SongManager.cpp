@@ -140,6 +140,46 @@ void SongManager::InitSongsFromDisk( LoadingWindow *ld )
 	LOG->Trace( "Found %d songs in %f seconds.", (int)m_pSongs.size(), tm.GetDeltaTime() );
 }
 
+
+
+XNode* Playlist::CreateNode() const {
+	XNode* pl = new XNode("Playlist");
+	pl->AppendAttr("Name", name);
+
+	FOREACH_CONST(Chart, chartlist, ch) {
+		XNode* chart = new XNode(ch->key);
+		Song* song = SONGMAN->GetSongByChartkey(ch->key);
+		if (song) {
+			chart->AppendAttr("Pack", song->m_sGroupName);
+			chart->AppendAttr("Song", song->GetDisplayMainTitle());
+			
+		}
+		else {
+			chart->AppendAttr("Pack", ch->lastpack);
+			chart->AppendAttr("Song", ch->lastsong);
+		}
+		pl->AppendChild(chart);
+	}
+		
+	return pl;
+}
+void Playlist::LoadFromNode(const XNode* node) {
+	node->GetAttrValue("Name", name);
+	FOREACH_CONST_Child(node, chart) {
+		Chart ch;
+		ch.key = chart->GetName();
+		chart->GetAttrValue("Pack", ch.lastpack);
+		chart->GetAttrValue("Song", ch.lastsong);
+
+		Song* song = SONGMAN->GetSongByChartkey(ch.key);
+		if (song) {
+			ch.lastpack = song->m_sGroupName;
+			ch.lastsong = song->GetDisplayMainTitle();
+		}
+		chartlist.emplace_back(ch);
+	}
+}
+
 // Only store 1 steps/song pointer per key -Mina
 void SongManager::AddKeyedPointers(Song* new_song) {
 	const vector<Steps*> steps = new_song->GetAllSteps();
