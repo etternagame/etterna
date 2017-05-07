@@ -6,6 +6,7 @@
 #include "HighScore.h"
 #include "PlayerNumber.h"
 #include <map>
+#include "NoteDataStructures.h"
 class Steps;
 class Style;
 struct lua_State;
@@ -18,6 +19,8 @@ public:
 	void InternalInit();
 	void Init(PlayerNumber pn);
 	void Init(MultiPlayer pn);
+
+	vector<NoteInfo> serializednd;
 
 	/**
 	 * @brief Add stats from one PlayerStageStats to another.

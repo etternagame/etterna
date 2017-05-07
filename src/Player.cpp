@@ -614,6 +614,8 @@ void Player::Load()
 	totalwifescore = m_NoteData.WifeTotalScoreCalc(m_Timing, 0, 1073741824);
 	m_NoteData.LogNonEmptyRows();
 	nerv = m_NoteData.GetNonEmptyRowVector();
+	vector<float> etaner = m_Timing->BuildAndGetEtaner(nerv);
+	m_pPlayerStageStats->serializednd = m_NoteData.SerializeNoteData(etaner);
 
 	Profile *pProfile = PROFILEMAN->GetProfile(pn);
 	HighScore* pb = SCOREMAN->GetChartPBAt(GAMESTATE->m_pCurSteps[pn]->GetChartKey(), GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);

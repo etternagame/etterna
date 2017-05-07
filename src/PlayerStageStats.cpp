@@ -309,18 +309,9 @@ float PlayerStageStats::GetWifeScore() const {
 	return m_fWifeScore;
 }
 vector<float> PlayerStageStats::CalcSSR(float ssrpercent ) const {
-	auto nd = GAMESTATE->m_pCurSteps[m_player_number]->GetNoteData();
-	TimingData* td = GAMESTATE->m_pCurSteps[m_player_number]->GetTimingData();
+	Steps* steps = GAMESTATE->m_pCurSteps[PLAYER_1];
 	float musicrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-	
-	vector<int>& nerv = nd.GetNonEmptyRowVector();
-	auto etar = td->GetElapsedTimesAtAllRows();
-	vector<float> etaner(nerv.size());
-
-	for (size_t i = 0; i < nerv.size(); ++i)
-		etaner[i] = etar[nerv[i]];
-
-	return MinaSDCalc(nd.SerializeNoteData(etaner), nd.GetNumTracks(), musicrate, ssrpercent, 1.f, td->HasWarps());
+	return MinaSDCalc(serializednd, steps->GetNoteData().GetNumTracks(), musicrate, ssrpercent, 1.f, steps->GetTimingData()->HasWarps());
 }
 float PlayerStageStats::GetTimingScale() const {
 	return m_fTimingScale;

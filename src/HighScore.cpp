@@ -479,11 +479,14 @@ bool HighScoreImpl::WriteReplayData(bool duringload) {
 	RString path = profiledir + "ReplayData/" + ScoreKey;
 	ofstream fileStream(path, ios::binary);
 	//check file
+
+	ASSERT(vNoteRowVector.size() > 0);
+
 	if (!fileStream) {
 		LOG->Warn("Failed to create replay file at %s", path);
 		return false;
 	}
-		
+	
 	unsigned int idx = vNoteRowVector.size() - 1;
 	//loop for writing both vectors side by side
 	for (unsigned int i = 0; i < idx; i++) {
@@ -923,7 +926,7 @@ float HighScore::RescoreToWifeJudge(int x) {
 	p += (m_Impl->iHoldNoteScores[HNS_LetGo] + m_Impl->iHoldNoteScores[HNS_Missed]) * -6.f;
 	p += m_Impl->iTapNoteScores[TNS_HitMine] * -8.f;
 
-	UnloadReplayData();
+	//UnloadReplayData();
 	return p / static_cast<float>(m_Impl->vOffsetVector.size() * 2);
 }
 

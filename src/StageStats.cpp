@@ -148,11 +148,6 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 	hs.SetPercentDP( pss.GetPercentDancePoints() );
 	hs.SetWifeScore( pss.GetWifeScore());
 
-	if(pss.GetGrade() == Grade_Failed)
-		hs.SetSSRNormPercent(0.f);
-	else
-		hs.SetSSRNormPercent( hs.RescoreToWifeJudge(4));
-
 	// should prolly be its own fun - mina
 	hs.SetEtternaValid(true);
 	if (pss.GetGrade() == Grade_Failed || pss.m_fWifeScore < 0.1f || GAMESTATE->m_pCurSteps[ps.m_PlayerNumber]->m_StepsType != StepsType_dance_single)
@@ -162,15 +157,6 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 		if (fail->second == 0.f)
 			hs.SetEtternaValid(false);
 
-	if (hs.GetEtternaValid()) {
-		vector<float> dakine = pss.CalcSSR(hs.GetSSRNormPercent());
-		FOREACH_ENUM(Skillset, ss)
-			hs.SetSkillsetSSR(ss, dakine[ss]);
-	} else {
-		FOREACH_ENUM(Skillset, ss)
-			hs.SetSkillsetSSR(ss, 0.f);
-	}
-	
 	hs.SetMusicRate( GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 	hs.SetJudgeScale( pss.GetTimingScale());
 	hs.SetChordCohesion( GAMESTATE->CountNotesSeparately() );
@@ -201,7 +187,6 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 	hs.SetLifeRemainingSeconds( pss.m_fLifeRemainingSeconds );
 	hs.SetDisqualified( pss.IsDisqualified() );
 
-
 	// should maybe just make the setscorekey function do this internally rather than recalling the datetime object -mina
 	RString ScoreKey = "S" + BinaryToHex(CryptManager::GetSHA1ForString(hs.GetDateTime().GetString()));
 	hs.SetScoreKey(ScoreKey);
@@ -210,9 +195,25 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 	// the vectors stored in pss are what are accessed by evaluation so we can write 
 	// them to the replay file instead of the highscore object (if successful) -mina
 	// this is kinda messy meh -mina
+
 	if (pss.m_fWifeScore > 0.f) {
 		hs.SetOffsetVector(pss.GetOffsetVector());
 		hs.SetNoteRowVector(pss.GetNoteRowVector());
+
+		if (pss.GetGrade() == Grade_Failed)
+			hs.SetSSRNormPercent(0.f);
+		else
+			hs.SetSSRNormPercent(hs.RescoreToWifeJudge(4));
+
+		if (hs.GetEtternaValid()) {
+			vector<float> dakine = pss.CalcSSR(hs.GetSSRNormPercent());
+			FOREACH_ENUM(Skillset, ss)
+				hs.SetSkillsetSSR(ss, dakine[ss]);
+		}
+		else {
+			FOREACH_ENUM(Skillset, ss)
+				hs.SetSkillsetSSR(ss, 0.f);
+		}
 		bool writesuccess = hs.WriteReplayData(false);
 		if (writesuccess)
 			hs.UnloadReplayData();
@@ -286,9 +287,6 @@ void StageStats::FinalizeScores( bool bSummary )
 		else
 		{
 			ASSERT( pSteps != NULL );
-
-			PROFILEMAN->AddStepsScore( pSong, pSteps, p, hs, m_player[p].m_iPersonalHighScoreIndex, m_player[p].m_iMachineHighScoreIndex );
-
 			// new score structure -mina
 			Profile* zzz = PROFILEMAN->GetProfile(PLAYER_1);
 			SCOREMAN->AddScore(hs);
