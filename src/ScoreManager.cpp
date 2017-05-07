@@ -37,7 +37,7 @@ ScoresAtRate::ScoresAtRate() {
 }
 
 void ScoresAtRate::AddScore(HighScore& hs) {
-	RString& key = hs.GetScoreKey();	
+	string& key = hs.GetScoreKey();	
 	bestGrade = min(hs.GetWifeGrade(), bestGrade);
 	scores.emplace(key, hs);
 
@@ -45,23 +45,23 @@ void ScoresAtRate::AddScore(HighScore& hs) {
 		PBptr = &scores.find(key)->second;
 }
 
-vector<RString> ScoresAtRate::GetSortedKeys() {
-	map<float, RString, greater<float>> tmp;
-	vector<RString> o;
-	FOREACHM(RString, HighScore, scores, i)
+vector<string> ScoresAtRate::GetSortedKeys() {
+	map<float, string, greater<float>> tmp;
+	vector<string> o;
+	FOREACHUM(string, HighScore, scores, i)
 		 tmp.emplace(i->second.GetWifeScore(), i->first);
-	FOREACHM(float, RString, tmp, j)
+	FOREACHM(float, string, tmp, j)
 		 o.emplace_back(j->second);
 	return o;
 }
 
 /*
 const vector<HighScore*> ScoresAtRate::GetScores() const {
-	map<float, RString, greater<float>> tmp;
+	map<float, string, greater<float>> tmp;
 	vector<HighScore*> o;
-	FOREACHUM_CONST(RString, HighScore, scores, i)
+	FOREACHUM_CONST(string, HighScore, scores, i)
 		tmp.emplace(i->second.GetWifeScore(), i->first);
-	FOREACHM(float, RString, tmp, j)
+	FOREACHM(float, string, tmp, j)
 		o.emplace_back(j->second);
 	return o;
 }
@@ -110,16 +110,16 @@ vector<int> ScoresForChart::GetPlayedRateKeys() {
 	return o;
 }
 
-vector<RString> ScoresForChart::GetPlayedRateDisplayStrings() {
+vector<string> ScoresForChart::GetPlayedRateDisplayStrings() {
 	vector<float> rates = GetPlayedRates();
-	vector<RString> o;
+	vector<string> o;
 	for(size_t i = 0; i < rates.size(); ++i)
 		o.emplace_back(RateKeyToDisplayString(rates[i]));
 	return o;
 }
 
-RString ScoresForChart::RateKeyToDisplayString(float rate) {
-	RString rs = ssprintf("%.2f", rate);
+string ScoresForChart::RateKeyToDisplayString(float rate) {
+	string rs = ssprintf("%.2f", rate);
 	int j = 1;
 	if (rs.find_last_not_of('0') == rs.find('.'))
 		j = 2;
@@ -136,13 +136,13 @@ vector<HighScore*> ScoresForChart::GetAllPBPtrs() {
 	return o;
 }
 
-HighScore* ScoreManager::GetChartPBAt(RString& ck, float& rate) {
+HighScore* ScoreManager::GetChartPBAt(string& ck, float& rate) {
 	if (pscores.count(ck))
 		return pscores.at(ck).GetPBAt(rate);
 	return NULL;
 }
 
-HighScore* ScoreManager::GetChartPBUpTo(RString& ck, float& rate) {
+HighScore* ScoreManager::GetChartPBUpTo(string& ck, float& rate) {
 	if (pscores.count(ck))
 		return pscores.at(ck).GetPBUpTo(rate);
 	return NULL;
@@ -196,7 +196,7 @@ float ScoreManager::AggregateSSRs(Skillset ss, float rating, float res, int iter
 
 void ScoreManager::SortTopSSRPtrs(Skillset ss) {
 	TopSSRs.clear();
-	FOREACHM(RString, ScoresForChart, pscores, i) {
+	FOREACHUM(string, ScoresForChart, pscores, i) {
 		if (!SONGMAN->IsChartLoaded(i->first))
 			continue;
 		vector<HighScore*> pbs = i->second.GetAllPBPtrs();
@@ -229,20 +229,20 @@ HighScore* ScoreManager::GetTopSSRHighScore(unsigned int rank, int ss) {
 XNode* ScoresAtRate::CreateNode(const int& rate) const {
 	XNode* o = new XNode("ScoresAt");
 
-	RString rs = IntToString(rate);
+	string rs = IntToString(rate);
 	rs = rs.substr(0, 1) + "." + rs.substr(1, 3);
 	// should be safe as this is only called if there is at least 1 score (which would be the pb)
 	o->AppendAttr("PBKey", PBptr->GetScoreKey());
 	o->AppendAttr("BestGrade", GradeToString(bestGrade));
 	o->AppendAttr("Rate", rs);
 
-	FOREACHM_CONST(RString, HighScore, scores, i)
+	FOREACHUM_CONST(string, HighScore, scores, i)
 		o->AppendChild(i->second.CreateEttNode());
 
 	return o;
 }
 
-XNode * ScoresForChart::CreateNode(const RString& ck) const {
+XNode * ScoresForChart::CreateNode(const string& ck) const {
 	XNode* o = new XNode("ChartScores");
 	Song* song = SONGMAN->GetSongByChartkey(ck);
 	Steps* steps = SONGMAN->GetStepsByChartkey(ck);
@@ -259,7 +259,7 @@ XNode * ScoresForChart::CreateNode(const RString& ck) const {
 XNode * ScoreManager::CreateNode() const {
 	XNode* o = new XNode("PlayerScores");
 
-	FOREACHM_CONST(RString, ScoresForChart, pscores, ch)
+	FOREACHUM_CONST(string, ScoresForChart, pscores, ch)
 		o->AppendChild(ch->second.CreateNode(ch->first));
 
 	return o;
@@ -267,7 +267,7 @@ XNode * ScoreManager::CreateNode() const {
 
 
 // Read scores from xml
-void ScoresAtRate::LoadFromNode(const XNode* node, const RString& ck, const float& rate) {
+void ScoresAtRate::LoadFromNode(const XNode* node, const string& ck, const float& rate) {
 	RString sk;
 	FOREACH_CONST_Child(node, p) {
 		p->GetAttrValue("Key", sk);
@@ -287,7 +287,7 @@ void ScoresAtRate::LoadFromNode(const XNode* node, const RString& ck, const floa
 	bestGrade = PBptr->GetWifeGrade();
 }
 
-void ScoresForChart::LoadFromNode(const XNode* node, const RString& ck) {
+void ScoresForChart::LoadFromNode(const XNode* node, const string& ck) {
 	RString rs;
 	int rate;
 	FOREACH_CONST_Child(node, p) {
@@ -304,7 +304,7 @@ void ScoreManager::LoadFromNode(const XNode * node) {
 		ASSERT(p->GetName() == "ChartScores");
 		RString tmp;
 		p->GetAttrValue("Key", tmp);
-		const RString ck = tmp;
+		const string ck = tmp;
 		pscores[ck].LoadFromNode(p, ck);
 	}
 }
@@ -318,7 +318,7 @@ ScoresAtRate* ScoresForChart::GetScoresAtRate(const int& rate) {
 	return NULL;
 }
 
-ScoresForChart* ScoreManager::GetScoresForChart(const RString& ck) {
+ScoresForChart* ScoreManager::GetScoresForChart(const string& ck) {
 	auto it = pscores.find(ck);
 	if (it != pscores.end())
 		return &it->second;
@@ -333,7 +333,7 @@ class LunaScoresAtRate: public Luna<ScoresAtRate>
 public:
 	static int GetScores(T* p, lua_State *L) {
 		lua_newtable(L);
-		vector<RString> keys = p->GetSortedKeys();
+		vector<string> keys = p->GetSortedKeys();
 		for (size_t i = 0; i < keys.size(); ++i) {
 			HighScore& wot = p->scores[keys[i]];
 			wot.PushSelf(L);
@@ -367,13 +367,13 @@ class LunaScoreManager : public Luna<ScoreManager>
 {
 public:
 	static int GetScoresByKey(T* p, lua_State *L) {
-		const RString& ck = SArg(1);
+		const string& ck = SArg(1);
 		ScoresForChart* scores = p->GetScoresForChart(ck);
 
 		if (scores) {
 			lua_newtable(L);
 			vector<int> ratekeys = scores->GetPlayedRateKeys();
-			vector<RString> ratedisplay = scores->GetPlayedRateDisplayStrings();
+			vector<string> ratedisplay = scores->GetPlayedRateDisplayStrings();
 			for (size_t i = 0; i < ratekeys.size(); ++i) {
 				LuaHelpers::Push(L, ratedisplay[i]);
 				scores->GetScoresAtRate(ratekeys[i])->PushSelf(L);

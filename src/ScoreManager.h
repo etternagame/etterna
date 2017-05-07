@@ -3,8 +3,13 @@
 
 #include "Grade.h"
 #include "GameConstantsAndTypes.h"
+
 #include <map>
 #include <unordered_map>
+#include <string>
+
+using std::string;
+
 
 // Scores for a specific rate for a specific chart
 struct ScoresAtRate
@@ -19,15 +24,15 @@ public:
 
 	void AddScore(HighScore& hs);
 
-	vector<RString> GetSortedKeys();
+	vector<string> GetSortedKeys();
 	void PushSelf(lua_State *L);
 	
 
 	XNode* CreateNode(const int& rate) const;
-	void LoadFromNode(const XNode* node, const RString& key, const float& rate);
+	void LoadFromNode(const XNode* node, const string& key, const float& rate);
 
-	const vector<HighScore*> GetScores(const RString) const;
-	map<RString, HighScore> scores;
+	const vector<HighScore*> GetScores(const string) const;
+	unordered_map<string, HighScore> scores;
 private:
 
 };
@@ -52,8 +57,8 @@ public:
 
 	vector<float> GetPlayedRates();
 	vector<int> GetPlayedRateKeys();
-	vector<RString> GetPlayedRateDisplayStrings();
-	RString RateKeyToDisplayString(float rate);
+	vector<string> GetPlayedRateDisplayStrings();
+	string RateKeyToDisplayString(float rate);
 	int RateToKey(float& rate) { return lround(rate * 10000.f); }
 	float KeyToRate(int key) { return static_cast<float>(key) / 10000.f; }
 
@@ -63,8 +68,8 @@ public:
 	
 
 	ScoresAtRate* GetScoresAtRate(const int& rate);
-	XNode *CreateNode(const RString& ck) const;
-	void LoadFromNode(const XNode* node, const RString& ck);
+	XNode *CreateNode(const string& ck) const;
+	void LoadFromNode(const XNode* node, const string& ck);
 
 	ScoresAtRate operator[](const int rate) { return ScoresByRate.at(rate); }
 	map<int, ScoresAtRate, greater<int>> ScoresByRate;
@@ -87,12 +92,12 @@ public:
 	~ScoreManager();
 
 
-	HighScore* GetChartPBAt(RString& ck, float& rate);
+	HighScore* GetChartPBAt(string& ck, float& rate);
 
 	// technically "up to and including rate: x" but that's a mouthful -mina
-	HighScore* GetChartPBUpTo(RString& ck, float& rate);
+	HighScore* GetChartPBUpTo(string& ck, float& rate);
 
-	Grade GetBestGradeFor(RString& ck) { if (pscores.count(ck)) return pscores[ck].bestGrade; return Grade_Invalid; }
+	Grade GetBestGradeFor(string& ck) { if (pscores.count(ck)) return pscores[ck].bestGrade; return Grade_Invalid; }
 
 	// for scores achieved during this session
 	void AddScore(const HighScore& hs_) { HighScore hs = hs_; pscores[hs.GetChartKey()].AddScore(hs); }
@@ -109,7 +114,7 @@ public:
 
 	HighScore * GetTopSSRHighScore(unsigned int rank, int ss);
 	
-	bool KeyHasScores(const RString& ck) { return pscores.count(ck) == 1; }
+	bool KeyHasScores(const string& ck) { return pscores.count(ck) == 1; }
 	
 
 	
@@ -117,8 +122,8 @@ public:
 	XNode *CreateNode() const;
 	void LoadFromNode(const XNode* node);
 
-	ScoresForChart* GetScoresForChart(const RString& ck);
-	vector<RString> GetSortedKeys();
+	ScoresForChart* GetScoresForChart(const string& ck);
+	vector<string> GetSortedKeys();
 
 
 	void PushSelf(lua_State *L);
@@ -127,7 +132,7 @@ public:
 	vector<HighScore*> GetAllScores() { return AllScores; }
 	void RegisterScore(HighScore* hs) {	AllScores.emplace_back(hs); }
 private:
-	std::map<RString, ScoresForChart> pscores;	// Profile scores
+	unordered_map<string, ScoresForChart> pscores;	// Profile scores
 
 	// Instead of storing pointers for each skillset just reshuffle the same set of pointers
 	// it's inexpensive and not called often
