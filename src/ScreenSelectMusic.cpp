@@ -1420,6 +1420,7 @@ bool ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 			m_MenuTimer->Start();
 		}
 	}
+	return false;
 }
 
 bool ScreenSelectMusic::MenuBack( const InputEventPlus & /* input */ )
