@@ -296,7 +296,7 @@ inline int   BeatToNoteRow( float fBeatNum )		{ return lround( fBeatNum * ROWS_P
  * @brief Convert the note row to a beat.
  * @param iRow the row to convert.
  * @return the beat. */
-inline float NoteRowToBeat( int iRow )			{ return iRow / (float)ROWS_PER_BEAT; }
+inline float NoteRowToBeat( int iRow )			{ return iRow / static_cast<float>(ROWS_PER_BEAT); }
 
 // These functions can be useful for function templates,
 // where both rows and beats can be specified.

@@ -89,9 +89,9 @@ void Model::LoadPieces( const RString &sMeshesPath, const RString &sMaterialsPat
 	{
 		const msMesh *pMesh = &m_pGeometry->m_Meshes[i];
 
-		if( pMesh->nMaterialIndex >= (int) m_Materials.size() )
+		if( pMesh->nMaterialIndex >= static_cast<int>(m_Materials.size()) )
 			RageException::Throw( "Model \"%s\" mesh \"%s\" references material index %i, but there are only %i materials.",
-				sMeshesPath.c_str(), pMesh->sName.c_str(), pMesh->nMaterialIndex, (int)m_Materials.size() );
+				sMeshesPath.c_str(), pMesh->sName.c_str(), pMesh->nMaterialIndex, static_cast<int>(m_Materials.size()) );
 	}
 
 	if( LoadMilkshapeAsciiBones( DEFAULT_ANIMATION_NAME, sBonesPath ) )

@@ -256,7 +256,7 @@ float Profile::GetSongsPossible( StepsType st, Difficulty dc ) const
 		}
 	}
 
-	return (float) iTotalSteps;
+	return static_cast<float>(iTotalSteps);
 }
 
 float Profile::GetSongsActual( StepsType st, Difficulty dc ) const

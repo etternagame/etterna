@@ -942,7 +942,7 @@ bool SMLoader::LoadFromBGChangesString( BackgroundChange &change, const RString 
 	vector<RString> aBGChangeValues;
 	split( sBGChangeExpression, "=", aBGChangeValues, false );
 
-	aBGChangeValues.resize( min((int)aBGChangeValues.size(),11) );
+	aBGChangeValues.resize( min(static_cast<int>(aBGChangeValues.size()),11) );
 
 	switch( aBGChangeValues.size() )
 	{

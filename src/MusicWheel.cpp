@@ -25,7 +25,7 @@
 static Preference<bool> g_bMoveRandomToEnd( "MoveRandomToEnd", false );
 static Preference<bool> g_bPrecacheAllSorts( "PreCacheAllWheelSorts", false);
 
-#define NUM_WHEEL_ITEMS		((int)ceil(NUM_WHEEL_ITEMS_TO_DRAW+2))
+#define NUM_WHEEL_ITEMS		(static_cast<int>(ceil(NUM_WHEEL_ITEMS_TO_DRAW+2)))
 #define WHEEL_TEXT(s)		THEME->GetString( "MusicWheel", ssprintf("%sText",s.c_str()) );
 #define CUSTOM_ITEM_WHEEL_TEXT(s)		THEME->GetString( "MusicWheel", ssprintf("CustomItem%sText",s.c_str()) );
 
@@ -734,7 +734,7 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 					SongUtil::SortSongPointerArrayByBPM( arraySongs );
 					break;
 				case SORT_POPULARITY:
-					if( (int) arraySongs.size() > MOST_PLAYED_SONGS_TO_SHOW )
+					if(static_cast<int>(arraySongs.size()) > MOST_PLAYED_SONGS_TO_SHOW )
 						arraySongs.erase( arraySongs.begin()+MOST_PLAYED_SONGS_TO_SHOW, arraySongs.end() );
 					bUseSections = false;
 					break;

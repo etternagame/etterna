@@ -1456,7 +1456,7 @@ void Player::UpdateHoldNotes( int iSongRow, float fDeltaTime, vector<TrackRowTap
 		{
 			static float fVol = pVolume->Get();
 
-			if( tn.iKeysoundIndex >= 0 && tn.iKeysoundIndex < (int) m_vKeysounds.size() )
+			if( tn.iKeysoundIndex >= 0 && tn.iKeysoundIndex < static_cast<int>(m_vKeysounds.size()) )
 			{
 				float factor = (tn.subType == TapNoteSubType_Roll ? 2.0f * fLifeFraction : 10.0f * fLifeFraction - 8.5f);
 				m_vKeysounds[tn.iKeysoundIndex].SetProperty ("Volume", max(0.0f, min(1.0f, factor)) * fVol);
@@ -1940,7 +1940,7 @@ void Player::ScoreAllActiveHoldsLetGo()
 void Player::PlayKeysound( const TapNote &tn, TapNoteScore score )
 {
 	// tap note must have keysound
-	if( tn.iKeysoundIndex >= 0 && tn.iKeysoundIndex < (int) m_vKeysounds.size() )
+	if( tn.iKeysoundIndex >= 0 && tn.iKeysoundIndex < static_cast<int>(m_vKeysounds.size()) )
 	{
 		// handle a case for hold notes
 		if( tn.type == TapNoteType_HoldHead )
@@ -2581,7 +2581,7 @@ void Player::UpdateJudgedRows(float fDeltaTime)
 			if( m_pNoteField )
 				m_pNoteField->DidTapNote( iter.Track(), tn.result.tns, false );
 
-			if( tn.iKeysoundIndex >= 0 && tn.iKeysoundIndex < (int) m_vKeysounds.size() )
+			if( tn.iKeysoundIndex >= 0 && tn.iKeysoundIndex < static_cast<int>(m_vKeysounds.size()) )
 				setSounds.insert( &m_vKeysounds[tn.iKeysoundIndex] );
 			else if( g_bEnableMineSoundPlayback )
 				setSounds.insert( &m_soundMine );
@@ -3193,7 +3193,7 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 
 void Player::SetHoldJudgment( TapNote &tn, int iTrack )
 {
-	ASSERT( iTrack < (int)m_vpHoldJudgment.size() );
+	ASSERT( iTrack < static_cast<int>(m_vpHoldJudgment.size()) );
 	if( m_vpHoldJudgment[iTrack] )
 		m_vpHoldJudgment[iTrack]->SetHoldJudgment( tn.HoldResult.hns );
 

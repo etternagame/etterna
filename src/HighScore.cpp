@@ -744,7 +744,7 @@ void HighScoreList::Init()
 void HighScoreList::AddHighScore( HighScore hs, int &iIndexOut, bool bIsMachine )
 {
 	int i;
-	for( i=0; i<(int)vHighScores.size(); i++ )
+	for( i=0; i<static_cast<int>(vHighScores.size()); i++ )
 	{
 		if( hs >= vHighScores[i] )
 			break;
@@ -1170,7 +1170,7 @@ public:
 	static int GetHighScores( T* p, lua_State *L )
 	{
 		lua_newtable(L);
-		for( int i = 0; i < (int) p->vHighScores.size(); ++i )
+		for( int i = 0; i < static_cast<int>(p->vHighScores.size()); ++i )
 		{
 			p->vHighScores[i].PushSelf(L);
 			lua_rawseti( L, -2, i+1 );

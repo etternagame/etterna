@@ -47,7 +47,7 @@ void ActorFrameTexture::Create()
 		return;
 	}
 
-	if( (int)m_size.x < 1 || (int)m_size.y < 1 )
+	if(static_cast<int>(m_size.x) < 1 || static_cast<int>(m_size.y) < 1 )
 	{
 		LuaHelpers::ReportScriptError( "ActorFrameTexture: Cannot have width or height less than 1" );
 		return;
@@ -59,8 +59,8 @@ void ActorFrameTexture::Create()
 	param.bWithDepthBuffer = m_bDepthBuffer;
 	param.bWithAlpha = m_bAlphaBuffer;
 	param.bFloat = m_bFloat;
-	param.iWidth = (int) m_size.x;
-	param.iHeight = (int) m_size.y;
+	param.iWidth = static_cast<int>(m_size.x);
+	param.iHeight = static_cast<int>(m_size.y);
 	m_pRenderTarget = new RageTextureRenderTarget( id, param );
 	m_pRenderTarget->m_bWasUsed = true;
 

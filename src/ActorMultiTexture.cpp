@@ -79,7 +79,7 @@ int ActorMultiTexture::AddTexture( RageTexture *pTexture )
 
 void ActorMultiTexture::SetTextureMode( int iIndex, TextureMode tm )
 {
-	if( iIndex >= (int) m_aTextureUnits.size() )
+	if( iIndex >= static_cast<int>(m_aTextureUnits.size()) )
 	{
 		LOG->Warn( "Can't set texture mode, index %d too high.", iIndex );
 		return;

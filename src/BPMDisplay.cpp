@@ -161,7 +161,7 @@ void BPMDisplay::CycleRandomly()
 
 	RunCommands( SET_RANDOM_COMMAND );
 
-	m_fCycleTime = (float)RANDOM_CYCLE_SPEED;
+	m_fCycleTime = static_cast<float>(RANDOM_CYCLE_SPEED);
 
 	// Go to default value in event of a negative value in the metrics
 	if( m_fCycleTime < 0 )

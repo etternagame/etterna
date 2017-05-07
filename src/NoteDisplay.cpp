@@ -1311,7 +1311,7 @@ void NoteDisplay::DrawActor(const TapNote& tn, Actor* pActor, NotePart part,
 			color = clamp( color, 0, (cache->m_iNoteColorCount[part]-1) );
 			break;
 		case NoteColorType_Progress:
-			color = fmodf( ceilf( fBeat * cache->m_iNoteColorCount[part] ), (float)cache->m_iNoteColorCount[part] );
+			color = fmodf( ceilf( fBeat * cache->m_iNoteColorCount[part] ), static_cast<float>(cache->m_iNoteColorCount[part]) );
 			break;
 		default:
 			FAIL_M(ssprintf("Invalid NoteColorType: %i", cache->m_NoteColorType[part]));

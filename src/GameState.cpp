@@ -723,7 +723,7 @@ void GameState::CommitStageStats()
 	STATSMAN->CommitStatsToProfiles( &STATSMAN->m_CurStageStats );
 
 	// Update TotalPlaySeconds.
-	int iPlaySeconds = max( 0, (int) m_timeGameStarted.GetDeltaTime() );
+	int iPlaySeconds = max( 0, static_cast<int>(m_timeGameStarted.GetDeltaTime()) );
 
 	FOREACH_HumanPlayer( p )
 	{
@@ -2203,7 +2203,7 @@ public:
 			// Legacy behavior: if an old-style numerical argument
 			// is given, decrement it before trying to parse
 			if( lua_isnumber(L,2) ) {
-				int arg = (int) lua_tonumber( L, 2 );
+				int arg = static_cast<int>(lua_tonumber( L, 2 ));
 				arg--;
 				LuaHelpers::Push( L, arg );
 				lua_replace( L, -2 );

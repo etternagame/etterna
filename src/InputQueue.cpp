@@ -87,7 +87,7 @@ bool InputQueueCode::EnteredCode( GameController controller ) const
 
 		bool bMatched = false;
 		int iMinSearchIndexUsed = iQueueIndex;
-		for( int b=0; b<(int) Press.m_aButtonsToPress.size(); ++b )
+		for( int b=0; b<static_cast<int>(Press.m_aButtonsToPress.size()); ++b )
 		{
 			const InputEventPlus *pIEP = NULL;
 			int iQueueSearchIndex = iQueueIndex;
@@ -129,7 +129,7 @@ bool InputQueueCode::EnteredCode( GameController controller ) const
 			if( !bAllHeldButtonsOK )
 				continue;
 			iMinSearchIndexUsed = min( iMinSearchIndexUsed, iQueueSearchIndex );
-			if( b == (int) Press.m_aButtonsToPress.size()-1 )
+			if( b == static_cast<int>(Press.m_aButtonsToPress.size())-1 )
 				bMatched = true;
 		}
 

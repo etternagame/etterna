@@ -47,7 +47,7 @@ RString StepsTypeToString( StepsType st )
 	s.Replace('-','_');
 
 	bool bCapitalizeNextLetter = true;
-	for( int i=0; i<(int)s.length(); i++ )
+	for( int i=0; i<static_cast<int>(s.length()); i++ )
 	{
 		if( bCapitalizeNextLetter )
 		{

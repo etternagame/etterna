@@ -539,7 +539,7 @@ void BackgroundImpl::LoadFromSong( const Song* pSong )
 		// Pick the same random items every time the song is played.
 		RandomGen rnd( GetHashForString(pSong->GetSongDir()) );
 		std::shuffle( vsNames.begin(), vsNames.end(), rnd );
-		int iSize = min( (int)g_iNumBackgrounds, (int)vsNames.size() );
+		int iSize = min(static_cast<int>(g_iNumBackgrounds), static_cast<int>(vsNames.size()) );
 		vsNames.resize( iSize );
 
 		FOREACH_CONST( RString, vsNames, s )

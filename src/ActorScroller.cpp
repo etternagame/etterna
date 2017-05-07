@@ -99,7 +99,7 @@ void ActorScroller::DisableMask()
 void ActorScroller::ScrollThroughAllItems()
 {
 	m_fCurrentItem = ( m_bLoop || m_bWrap )? +m_fNumItemsToDraw/2.0f : -(m_fNumItemsToDraw/2.0f)-1;
-	m_fDestinationItem = (float)(m_iNumItems+m_fNumItemsToDraw/2.0f+1);
+	m_fDestinationItem = static_cast<float>(m_iNumItems+m_fNumItemsToDraw/2.0f+1);
 }
 
 void ActorScroller::ScrollWithPadding( float fItemPaddingStart, float fItemPaddingEnd )
@@ -204,19 +204,19 @@ void ActorScroller::UpdateInternal( float fDeltaTime )
 	}
 
 	// if items changed, then pause
-	if( (int)fOldItemAtTop != (int)m_fCurrentItem )
+	if(static_cast<int>(fOldItemAtTop) != static_cast<int>(m_fCurrentItem) )
 		m_fPauseCountdownSeconds = m_fSecondsPauseBetweenItems;
 
 	if( m_bWrap )
 	{
 		float Delta = m_fDestinationItem - m_fCurrentItem;
-		m_fCurrentItem = fmodf( m_fCurrentItem, (float) m_iNumItems );
+		m_fCurrentItem = fmodf( m_fCurrentItem, static_cast<float>(m_iNumItems) );
 		m_fDestinationItem = m_fCurrentItem + Delta;
 	}
 
 	if( m_bLoop )
 	{
-		m_fCurrentItem = fmodf( m_fCurrentItem, (float) m_iNumItems );
+		m_fCurrentItem = fmodf( m_fCurrentItem, static_cast<float>(m_iNumItems) );
 	}
 }
 
@@ -261,8 +261,8 @@ void ActorScroller::PositionItemsAndDrawPrimitives( bool bDrawPrimitives )
 
 	float fFirstItemToDraw = m_fCurrentItem - fNumItemsToDraw/2.f;
 	float fLastItemToDraw = m_fCurrentItem + fNumItemsToDraw/2.f;
-	int iFirstItemToDraw = (int) ceilf( fFirstItemToDraw );
-	int iLastItemToDraw = (int) ceilf( fLastItemToDraw );
+	int iFirstItemToDraw = static_cast<int>(ceilf( fFirstItemToDraw ));
+	int iLastItemToDraw = static_cast<int>(ceilf( fLastItemToDraw ));
 	if( !m_bLoop && !m_bWrap )
 	{
 		iFirstItemToDraw = clamp( iFirstItemToDraw, 0, m_iNumItems );
@@ -287,7 +287,7 @@ void ActorScroller::PositionItemsAndDrawPrimitives( bool bDrawPrimitives )
 		int iIndex = i; // index into m_SubActors
 		if( m_bLoop || m_bWrap )
 			wrap( iIndex, m_SubActors.size() );
-		else if( iIndex < 0 || iIndex >= (int)m_SubActors.size() )
+		else if( iIndex < 0 || iIndex >= static_cast<int>(m_SubActors.size()) )
 			continue;
 
 		// Optimization: Zero out unused parameters so that they don't create new,

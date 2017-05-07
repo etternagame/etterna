@@ -480,7 +480,7 @@ void InputHandler_DInput::UpdateBuffered( DIDevice &device, const std::chrono::s
 	DeviceInput diDown = DeviceInput(device.dev, MOUSE_WHEELDOWN, 0.0f, tm);
 	ButtonPressed( diDown );
 
-	for( int i = 0; i < (int) numevents; ++i )
+	for( int i = 0; i < static_cast<int>(numevents); ++i )
 	{
 		for(unsigned j = 0; j < device.Inputs.size(); ++j)
 		{
@@ -524,8 +524,8 @@ void InputHandler_DInput::UpdateBuffered( DIDevice &device, const std::chrono::s
 						// convert screen coordinates to client
 						ScreenToClient(GraphicsWindow::GetHwnd(), &cursorPos);
 
-						if( in.ofs == DIMOFS_X ) INPUTFILTER->UpdateCursorLocation((float)cursorPos.x,(float)cursorPos.y);
-						else if( in.ofs == DIMOFS_Y ) INPUTFILTER->UpdateCursorLocation((float)cursorPos.x,(float)cursorPos.y);
+						if( in.ofs == DIMOFS_X ) INPUTFILTER->UpdateCursorLocation(static_cast<float>(cursorPos.x), static_cast<float>(cursorPos.y));
+						else if( in.ofs == DIMOFS_Y ) INPUTFILTER->UpdateCursorLocation(static_cast<float>(cursorPos.x), static_cast<float>(cursorPos.y));
 						else if( in.ofs == DIMOFS_Z )
 						{
 							// positive values: WheelUp
@@ -694,7 +694,7 @@ bool InputHandler_DInput::DevicesChanged()
 	if( iOldNumHidDevices != m_iLastSeenNumHidDevices )
 	{
 		LOG->Warn( "HID devices changes" );
-		m_iNumTimesLeftToPollForJoysticksChanged = (int)(POLL_FOR_JOYSTICK_CHANGES_LENGTH_SECONDS / POLL_FOR_JOYSTICK_CHANGES_EVERY_SECONDS);
+		m_iNumTimesLeftToPollForJoysticksChanged = static_cast<int>(POLL_FOR_JOYSTICK_CHANGES_LENGTH_SECONDS / POLL_FOR_JOYSTICK_CHANGES_EVERY_SECONDS);
 	}
 
 	if( m_iNumTimesLeftToPollForJoysticksChanged > 0 )

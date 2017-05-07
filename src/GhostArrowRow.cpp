@@ -100,7 +100,7 @@ void GhostArrowRow::DrawPrimitives()
 
 void GhostArrowRow::DidTapNote( int iCol, TapNoteScore tns, bool bBright )
 {
-	ASSERT_M( iCol >= 0  &&  iCol < (int) m_Ghost.size(), ssprintf("assert(iCol %i >= 0  && iCol %i < (int)m_Ghost.size() %i) failed",iCol,iCol,(int)m_Ghost.size()) );
+	ASSERT_M( iCol >= 0  &&  iCol < static_cast<int>(m_Ghost.size()), ssprintf("assert(iCol %i >= 0  && iCol %i < (int)m_Ghost.size() %i) failed",iCol,iCol,(int)m_Ghost.size()) );
 
 	Message msg("ColumnJudgment");
 	msg.SetParam( "TapNoteScore", tns );
@@ -121,7 +121,7 @@ void GhostArrowRow::DidTapNote( int iCol, TapNoteScore tns, bool bBright )
 
 void GhostArrowRow::DidHoldNote( int iCol, HoldNoteScore hns, bool bBright )
 {
-	ASSERT( iCol >= 0  &&  iCol < (int) m_Ghost.size() );
+	ASSERT( iCol >= 0  &&  iCol < static_cast<int>(m_Ghost.size()) );
 	Message msg("ColumnJudgment");
 	msg.SetParam( "HoldNoteScore", hns );
 	msg.SetParam( "Column", iCol );
@@ -140,7 +140,7 @@ void GhostArrowRow::DidHoldNote( int iCol, HoldNoteScore hns, bool bBright )
 
 void GhostArrowRow::SetHoldShowing( int iCol, const TapNote &tn )
 {
-	ASSERT( iCol >= 0  &&  iCol < (int) m_Ghost.size() );
+	ASSERT( iCol >= 0  &&  iCol < static_cast<int>(m_Ghost.size()) );
 	m_bHoldShowing[iCol] = tn.subType;
 }
 

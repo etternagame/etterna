@@ -335,7 +335,7 @@ void ActorMultiVertex::DrawInternal( const AMV_TweenState *TS )
 
 bool ActorMultiVertex::EarlyAbortDraw() const
 {
-	if( AMV_current.FirstToDraw >= (int) AMV_current.vertices.size() || AMV_current._DrawMode >= NUM_DrawMode )
+	if( AMV_current.FirstToDraw >= static_cast<int>(AMV_current.vertices.size()) || AMV_current._DrawMode >= NUM_DrawMode )
 	{
 		return true;
 	}
@@ -642,7 +642,7 @@ void ActorMultiVertex::FinishTweening()
 
 void ActorMultiVertex::AMV_TweenState::SetDrawState( DrawMode dm, int first, int num )
 {
-	if(first >= (int)vertices.size() && vertices.size() > 0)
+	if(first >= static_cast<int>(vertices.size()) && vertices.size() > 0)
 	{
 		LuaHelpers::ReportScriptErrorFmt("ActorMultiVertex:SetDrawState: FirstToDraw > vertices.size(), %d > %u", FirstToDraw + 1, (unsigned int)vertices.size() );
 		return;
@@ -766,11 +766,11 @@ public:
 			LuaHelpers::ReportScriptErrorFmt( "ActorMultiVertex::SetVertex: index %d provided, cannot set Index < 1", Index+1 );
 			COMMON_RETURN_SELF;
 		}
-		else if( Index == (int) p->GetNumVertices() )
+		else if( Index == static_cast<int>(p->GetNumVertices()) )
 		{
 			p->AddVertices( 1 );
 		}
-		else if( Index > (int) p->GetNumVertices() )
+		else if( Index > static_cast<int>(p->GetNumVertices()) )
 		{
 			LuaHelpers::ReportScriptErrorFmt( "ActorMultiVertex::SetVertex: Cannot set vertex %d if there is no vertex %d, only %u vertices.", Index+1 , Index, (unsigned int)p->GetNumVertices() );
 			COMMON_RETURN_SELF;
@@ -795,7 +795,7 @@ public:
 			}
 		}
 		int Last = First + lua_objlen(L, StackIndex );
-		if( Last > (int) p->GetNumVertices())
+		if( Last > static_cast<int>(p->GetNumVertices()))
 		{
 			p->AddVertices( Last - p->GetNumVertices() );
 		}

@@ -234,7 +234,7 @@ void BGAnimationLayer::LoadFromAniLayerFile( const RString& sPath )
 				Sprite* pSprite = new Sprite;
 				this->AddChild( pSprite );
 				pSprite->Load( sPath );
-				pSprite->SetZoom( 0.7f + 0.6f*i/(float)iNumParticles );
+				pSprite->SetZoom( 0.7f + 0.6f*i/ static_cast<float>(iNumParticles) );
 				switch( effect )
 				{
 				case EFFECT_PARTICLES_BOUNCE:
@@ -514,8 +514,8 @@ void BGAnimationLayer::LoadFromNode( const XNode* pNode )
 				m_fTilesSpacingX = s->GetUnzoomedWidth();
 			if( m_fTilesSpacingY == -1 )
 				m_fTilesSpacingY = s->GetUnzoomedHeight();
-			m_iNumTilesWide = 2+(int)(SCREEN_WIDTH /m_fTilesSpacingX);
-			m_iNumTilesHigh = 2+(int)(SCREEN_HEIGHT/m_fTilesSpacingY);
+			m_iNumTilesWide = 2 + static_cast<int>(SCREEN_WIDTH /m_fTilesSpacingX);
+			m_iNumTilesHigh = 2 + static_cast<int>(SCREEN_HEIGHT/m_fTilesSpacingY);
 			unsigned NumSprites = m_iNumTilesWide * m_iNumTilesHigh;
 			for( unsigned i=0; i<NumSprites; i++ )
 			{

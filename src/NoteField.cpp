@@ -698,9 +698,9 @@ void NoteField::CalcPixelsBeforeAndAfterTargets()
 	draw_scale*= 1 + fabsf(curr_options.m_fEffects[PlayerOptions::EFFECT_MINI]);
 
 	m_FieldRenderArgs.draw_pixels_after_targets=
-		(int)(m_FieldRenderArgs.draw_pixels_after_targets * draw_scale);
+		static_cast<int>(m_FieldRenderArgs.draw_pixels_after_targets * draw_scale);
 	m_FieldRenderArgs.draw_pixels_before_targets=
-		(int)(m_FieldRenderArgs.draw_pixels_before_targets * draw_scale);
+		static_cast<int>(m_FieldRenderArgs.draw_pixels_before_targets * draw_scale);
 }
 
 void NoteField::DrawPrimitives()
@@ -766,7 +766,7 @@ void NoteField::DrawPrimitives()
 			int iSegmentEndRow = (i + 1 == tSigs.size()) ? m_FieldRenderArgs.last_row : tSigs[i+1]->GetRow();
 
 			// beat bars every 16th note
-			int iDrawBeatBarsEveryRows = BeatToNoteRow( ((float)ts->GetDen()) / 4 ) / 4;
+			int iDrawBeatBarsEveryRows = BeatToNoteRow( (static_cast<float>(ts->GetDen())) / 4 ) / 4;
 
 			// In 4/4, every 16th beat bar is a measure
 			int iMeasureBarFrequency =  ts->GetNum() * 4;

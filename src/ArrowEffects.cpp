@@ -572,7 +572,7 @@ float ArrowEffects::GetXPos( const PlayerState* pPlayerState, int iColNum, float
 	{
 		// Allow Tiny to pull tracks together, but not to push them apart.
 		float fTinyPercent = fEffects[PlayerOptions::EFFECT_TINY];
-		fTinyPercent = min( powf(TINY_PERCENT_BASE, fTinyPercent), (float)TINY_PERCENT_GATE );
+		fTinyPercent = min( powf(TINY_PERCENT_BASE, fTinyPercent), static_cast<float>(TINY_PERCENT_GATE) );
 		fPixelOffsetFromCenter *= fTinyPercent;
 	}
 

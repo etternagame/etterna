@@ -903,7 +903,7 @@ void ScreenGameplay::InitSongQueues()
 
 	if (GAMESTATE->m_bMultiplayer)
 	{
-		for (int i = 0; i<(int)m_apSongsQueue.size(); i++)
+		for (int i = 0; i<static_cast<int>(m_apSongsQueue.size()); i++)
 		{
 			Song *pSong = m_apSongsQueue[i];
 
@@ -1606,7 +1606,7 @@ void ScreenGameplay::Update( float fDeltaTime )
 				if( pi->GetPlayerStageStats()->m_bFailed )
 					continue; /* failed and is already dead */
 
-				LOG->Trace("Player %d failed", (int)pn);
+				LOG->Trace("Player %d failed", static_cast<int>(pn));
 				pi->GetPlayerStageStats()->m_bFailed = true;	// fail
 
 				{

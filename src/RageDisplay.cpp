@@ -787,8 +787,8 @@ void RageDisplay::ChangeCentering( int iTranslateX, int iTranslateY, int iAddWid
 RageMatrix RageDisplay::GetCenteringMatrix( float fTranslateX, float fTranslateY, float fAddWidth, float fAddHeight )
 {
 	// in screen space, left edge = -1, right edge = 1, bottom edge = -1. top edge = 1
-	float fWidth = (float) (*GetActualVideoModeParams()).width;
-	float fHeight = (float) (*GetActualVideoModeParams()).height;
+	float fWidth = static_cast<float>((*GetActualVideoModeParams()).width);
+	float fHeight = static_cast<float>((*GetActualVideoModeParams()).height);
 	float fPercentShiftX = SCALE( fTranslateX, 0, fWidth, 0, +2.0f );
 	float fPercentShiftY = SCALE( fTranslateY, 0, fHeight, 0, -2.0f );
 	float fPercentScaleX = SCALE( fAddWidth, 0, fWidth, 1.0f, 2.0f );
@@ -815,7 +815,7 @@ void RageDisplay::UpdateCentering()
 {
 	const Centering &p = g_CenteringStack.back();
 	g_CenteringMatrix = GetCenteringMatrix( 
-		(float) p.m_iTranslateX, (float) p.m_iTranslateY, (float) p.m_iAddWidth, (float) p.m_iAddHeight );
+		static_cast<float>(p.m_iTranslateX), static_cast<float>(p.m_iTranslateY), static_cast<float>(p.m_iAddWidth), static_cast<float>(p.m_iAddHeight) );
 }
 
 bool RageDisplay::SaveScreenshot( const RString &sPath, GraphicsFileFormat format )
