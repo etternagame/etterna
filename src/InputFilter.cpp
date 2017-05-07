@@ -370,7 +370,7 @@ void InputFilter::Update( float fDeltaTime )
 		{
 			float fAdjustedOldHoldTime = fOldHoldTime - g_fTimeBeforeRepeats;
 			float fAdjustedNewHoldTime = fNewHoldTime - g_fTimeBeforeRepeats;
-			if( int(fAdjustedOldHoldTime/g_fTimeBetweenRepeats) == int(fAdjustedNewHoldTime/g_fTimeBetweenRepeats) )
+			if(static_cast<int>(fAdjustedOldHoldTime/g_fTimeBetweenRepeats) == static_cast<int>(fAdjustedNewHoldTime/g_fTimeBetweenRepeats) )
 				continue;
 			fRepeatTime = ftruncf( fNewHoldTime, g_fTimeBetweenRepeats );
 		}
@@ -378,7 +378,7 @@ void InputFilter::Update( float fDeltaTime )
 		/* Set the timestamp to the exact time of the repeat. This way, as long
 		 * as tab/` aren't being used, the timestamp will always increase steadily
 		 * during repeats. */
-		di.ts = std::chrono::steady_clock::time_point(bs.m_LastInputTime + std::chrono::microseconds((int)(fRepeatTime * 1000000)));
+		di.ts = std::chrono::steady_clock::time_point(bs.m_LastInputTime + std::chrono::microseconds(static_cast<int>(fRepeatTime * 1000000)));
 
 		ReportButtonChange( di, IET_REPEAT );
 	}
