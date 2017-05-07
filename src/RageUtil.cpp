@@ -698,6 +698,60 @@ RString join( const RString &sDelimitor, vector<RString>::const_iterator begin, 
 	return sRet;
 }
 
+
+std::string join(const std::string &sDeliminator, const vector<std::string> &sSource)
+{
+	if (sSource.empty())
+		return std::string();
+
+	std::string sTmp;
+	size_t final_size = 0;
+	size_t delim_size = sDeliminator.size();
+	for (size_t n = 0; n < sSource.size() - 1; ++n)
+	{
+		final_size += sSource[n].size() + delim_size;
+	}
+	final_size += sSource.back().size();
+	sTmp.reserve(final_size);
+
+	for (unsigned iNum = 0; iNum < sSource.size() - 1; iNum++)
+	{
+		sTmp += sSource[iNum];
+		sTmp += sDeliminator;
+	}
+	sTmp += sSource.back();
+	return sTmp;
+}
+
+std::string join(const std::string &sDelimitor, vector<std::string>::const_iterator begin, vector<std::string>::const_iterator end)
+{
+	if (begin == end)
+		return std::string();
+
+	std::string sRet;
+	size_t final_size = 0;
+	size_t delim_size = sDelimitor.size();
+	for (vector<std::string>::const_iterator curr = begin; curr != end; ++curr)
+	{
+		final_size += curr->size();
+		if (curr != end)
+		{
+			final_size += delim_size;
+		}
+	}
+	sRet.reserve(final_size);
+
+	while (begin != end)
+	{
+		sRet += *begin;
+		++begin;
+		if (begin != end)
+			sRet += sDelimitor;
+	}
+
+	return sRet;
+}
+
 RString SmEscape( const RString &sUnescaped )
 {
 	return SmEscape( sUnescaped.c_str(), sUnescaped.size() );
@@ -1372,6 +1426,40 @@ bool GetFileContents( const RString &sPath, RString &sOut, bool bOneLine )
 	return true;
 }
 
+bool GetFileContents(const std::string &sPath, std::string &sOut, bool bOneLine)
+{
+	// Don't warn if the file doesn't exist, but do warn if it exists and fails to open.
+	if (!IsAFile(sPath))
+		return false;
+
+	RageFile file;
+	if (!file.Open(sPath))
+	{
+		LOG->Warn("GetFileContents(%s): %s", sPath.c_str(), file.GetError().c_str());
+		return false;
+	}
+
+	// todo: figure out how to make this UTF-8 safe. -aj
+	RString sData;
+	int iGot;
+	if (bOneLine)
+		iGot = file.GetLine(sData);
+	else
+		iGot = file.Read(sData, file.GetFileSize());
+
+	if (iGot == -1)
+	{
+		LOG->Warn("GetFileContents(%s): %s", sPath.c_str(), file.GetError().c_str());
+		return false;
+	}
+
+	if (bOneLine)
+		StripCrnl(sData);
+
+	sOut = sData;
+	return true;
+}
+
 bool GetFileContents( const RString &sFile, vector<RString> &asOut )
 {
 	RageFile file;
@@ -1384,6 +1472,21 @@ bool GetFileContents( const RString &sFile, vector<RString> &asOut )
 	RString sLine;
 	while( file.GetLine(sLine) )
 		asOut.push_back( sLine );
+	return true;
+}
+
+bool GetFileContents(const std::string &sFile, vector<std::string> &asOut)
+{
+	RageFile file;
+	if (!file.Open(sFile))
+	{
+		LOG->Warn("GetFileContents(%s): %s", sFile.c_str(), file.GetError().c_str());
+		return false;
+	}
+
+	RString sLine;
+	while (file.GetLine(sLine))
+		asOut.push_back(sLine);
 	return true;
 }
 

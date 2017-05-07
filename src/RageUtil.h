@@ -462,6 +462,9 @@ void split( const wstring &sSource, const wstring &sDelimitor, int &iBegin, int 
 RString join( const RString &sDelimitor, const vector<RString>& sSource );
 RString join( const RString &sDelimitor, vector<RString>::const_iterator begin, vector<RString>::const_iterator end );
 
+std::string join(const std::string &sDelimitor, const vector<std::string>& sSource);
+std::string join(const std::string &sDelimitor, vector<std::string>::const_iterator begin, vector<std::string>::const_iterator end);
+
 // These methods escapes a string for saving in a .sm or .crs file
 RString SmEscape( const RString &sUnescaped );
 RString SmEscape( const char *cUnescaped, int len );
@@ -542,6 +545,8 @@ void StripMacResourceForks( vector<RString> &vs ); // Removes files starting wit
 RString DerefRedir( const RString &sPath );
 bool GetFileContents( const RString &sPath, RString &sOut, bool bOneLine = false );
 bool GetFileContents( const RString &sFile, vector<RString> &asOut );
+bool GetFileContents(const std::string &sPath, std::string &sOut, bool bOneLine = false);
+bool GetFileContents(const std::string & sFile, vector<std::string>& asOut);
 
 class Regex
 {

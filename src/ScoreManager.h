@@ -4,7 +4,7 @@
 #include "Grade.h"
 #include "GameConstantsAndTypes.h"
 #include <map>
-
+#include <unordered_map>
 
 // Scores for a specific rate for a specific chart
 struct ScoresAtRate
