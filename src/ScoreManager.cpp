@@ -245,11 +245,14 @@ XNode* ScoresAtRate::CreateNode(const int& rate) const {
 XNode * ScoresForChart::CreateNode(const string& ck) const {
 	XNode* o = new XNode("ChartScores");
 	Song* song = SONGMAN->GetSongByChartkey(ck);
-	Steps* steps = SONGMAN->GetStepsByChartkey(ck);
-	o->AppendAttr("Song", song->GetDisplayMainTitle());
-	o->AppendAttr("Pack", song->m_sGroupName);
-	o->AppendAttr("Key", ck);
-
+	if (song) {
+		o->AppendAttr("Song", song->GetDisplayMainTitle());
+		o->AppendAttr("Pack", song->m_sGroupName);
+	} else {
+		o->AppendAttr("Song", LastSeenSong);
+		o->AppendAttr("Pack", LastSeenPack);
+	}
+	
 	FOREACHM_CONST(int, ScoresAtRate, ScoresByRate, i)
 		o->AppendChild(i->second.CreateNode(i->first));
 
@@ -292,6 +295,8 @@ void ScoresForChart::LoadFromNode(const XNode* node, const string& ck) {
 	int rate;
 	FOREACH_CONST_Child(node, p) {
 		ASSERT(p->GetName() == "ScoresAt");
+		p->GetAttrValue("Song", LastSeenSong);
+		p->GetAttrValue("Pack", LastSeenPack);
 		p->GetAttrValue("Rate", rs);
 		rate = 10 * StringToInt(rs.substr(0, 1) + rs.substr(2, 4));
 		ScoresByRate[rate].LoadFromNode(p, ck, KeyToRate(rate));

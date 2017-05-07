@@ -64,7 +64,8 @@ public:
 
 	void PushSelf(lua_State *L);
 
-	
+	RString LastSeenPack;
+	RString LastSeenSong;
 	
 
 	ScoresAtRate* GetScoresAtRate(const int& rate);
