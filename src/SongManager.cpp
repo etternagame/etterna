@@ -140,6 +140,19 @@ void SongManager::InitSongsFromDisk( LoadingWindow *ld )
 	LOG->Trace( "Found %d songs in %f seconds.", (int)m_pSongs.size(), tm.GetDeltaTime() );
 }
 
+void Chart::FromKey(const string& ck) { 
+	Song* song = SONGMAN->GetSongByChartkey(ck);
+
+	if (song) {
+		Steps* steps = SONGMAN->GetStepsByChartkey(ck);
+		lastpack = song->GetSongDir();
+		lastsong = song->GetDisplayMainTitle();
+		lastdiff = steps->GetDifficulty();
+		loaded = true;
+	}
+
+	loaded = false;
+}
 
 
 XNode* Playlist::CreateNode() const {
@@ -179,6 +192,8 @@ void Playlist::LoadFromNode(const XNode* node) {
 		chartlist.emplace_back(ch);
 	}
 }
+
+
 
 // Only store 1 steps/song pointer per key -Mina
 void SongManager::AddKeyedPointers(Song* new_song) {

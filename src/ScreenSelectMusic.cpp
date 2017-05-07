@@ -32,6 +32,7 @@
 #include "RageInput.h"
 #include "OptionsList.h"
 #include "RageFileManager.h"
+#include "ScreenTextEntry.h"
 
 static const char *SelectionStateNames[] = {
 	"SelectingSong",
@@ -53,6 +54,7 @@ AutoScreenMessage( SM_SortOrderChanging );
 AutoScreenMessage( SM_SortOrderChanged );
 AutoScreenMessage( SM_BackFromPlayerOptions );
 AutoScreenMessage( SM_ConfirmDeleteSong );
+AutoScreenMessage( SM_BackFromNamePlaylist);
 
 static RString g_sCDTitlePath;
 static bool g_bWantFallbackCdTitle;
@@ -509,6 +511,21 @@ bool ScreenSelectMusic::Input( const InputEventPlus &input )
 			m_MusicWheel.ChangeMusic(0);
 			return true;
 		}
+		else if (bHoldingCtrl && c == 'P' && m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS)
+		{
+			ScreenTextEntry::TextEntry(SM_BackFromNamePlaylist, "DOOT DOOT MOTHAFUCKA", "", 255);
+			return true;
+		}
+
+		else if (bHoldingCtrl && c == 'A' && m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS)
+		{
+			Chart ch;
+			string ck = GAMESTATE->m_pCurSteps[PLAYER_1]->ChartKey;
+			ch.FromKey(ck);
+			SONGMAN->allplaylists[SONGMAN->activeplaylist].Add(ch);
+			return true;
+		}
+
 		else if( input.DeviceI.device == DEVICE_KEYBOARD && bHoldingCtrl && input.DeviceI.button == KEY_BACK && input.type == IET_FIRST_PRESS
 			&& m_MusicWheel.IsSettled() )
 		{
@@ -1214,6 +1231,13 @@ void ScreenSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 			// need to resume the song preview that was automatically paused
 			m_MusicWheel.ChangeMusic(0);
 		}
+	}
+
+	if (SM == SM_BackFromNamePlaylist) {
+		Playlist pl;
+		pl.name = ScreenTextEntry::s_sLastAnswer;
+		SONGMAN->allplaylists.emplace_back(pl);
+		SONGMAN->activeplaylist = 0;
 	}
 
 	ScreenWithMenuElements::HandleScreenMessage( SM );

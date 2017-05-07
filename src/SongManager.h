@@ -33,6 +33,10 @@ struct Chart {
 	string key;
 	RString lastsong;
 	RString lastpack;
+	Difficulty lastdiff;
+	
+	bool loaded;
+	void FromKey(const string& ck);
 };
 
 struct Playlist {
@@ -41,6 +45,8 @@ struct Playlist {
 	void Add(Chart ch) { chartlist.emplace_back(ch); }
 	void SwapPosition();
 
+	void Create();
+	
 
 	XNode* CreateNode() const;
 	void LoadFromNode(const XNode* node);
@@ -169,6 +175,7 @@ public:
 
 
 	vector<Playlist> allplaylists;
+	int activeplaylist;
 
 protected:
 	void LoadStepManiaSongDir( RString sDir, LoadingWindow *ld );
