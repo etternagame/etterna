@@ -1020,19 +1020,13 @@ ProfileLoadResult Profile::LoadEttXmlFromNode(const XNode *xml) {
 	if(favs)
 		LoadFavoritesFromNode(favs);
 
-	LOG->Warn("wat");
-
 	const XNode* goals = xml->GetChild("ScoreGoals");
 	if(goals)
 		LoadScoreGoalsFromNode(goals);
-
-	LOG->Warn("wat");
 	
 	const XNode* play = xml->GetChild("Playlists");
 	if (play)
 		LoadPlaylistsFromNode(play);
-
-	LOG->Warn("wat");
 	
 	const XNode* scores = xml->GetChild("PlayerScores");
 	if (scores)

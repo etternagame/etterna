@@ -121,15 +121,12 @@ vector<string> ScoresForChart::GetPlayedRateDisplayStrings() {
 }
 
 string ScoresForChart::RateKeyToDisplayString(float rate) {
-	rate = 0.9f;
-	
 	string rs = ssprintf("%.2f", rate);
 	int j = 1;
 	if (rs.find_last_not_of('0') == rs.find('.'))
 		j = 2;
 	rs.erase(rs.find_last_not_of('0') + j, rs.npos);
 	rs.append("x");
-	LOG->Warn(rs.c_str());
 	return rs;
 }
 
@@ -249,6 +246,7 @@ XNode* ScoresAtRate::CreateNode(const int& rate) const {
 
 XNode * ScoresForChart::CreateNode(const string& ck) const {
 	XNode* o = new XNode("ChartScores");
+	o->AppendAttr("Key", ck);
 	Song* song = SONGMAN->GetSongByChartkey(ck);
 	if (song) {
 		o->AppendAttr("Pack", song->m_sGroupName);
@@ -266,7 +264,6 @@ XNode * ScoresForChart::CreateNode(const string& ck) const {
 
 XNode * ScoreManager::CreateNode() const {
 	XNode* o = new XNode("PlayerScores");
-
 	FOREACHUM_CONST(string, ScoresForChart, pscores, ch)
 		o->AppendChild(ch->second.CreateNode(ch->first));
 
