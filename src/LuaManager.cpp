@@ -20,7 +20,7 @@
 #include <unordered_set>
 #include <array>
 
-#include "stringtest.h"
+#include "RageString.h"
 
 using std::vector;
 

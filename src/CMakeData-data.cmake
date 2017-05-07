@@ -26,26 +26,6 @@ list(APPEND SM_DATA_FONT_HPP
 
 source_group("Data Structures\\\\Fonts" FILES ${SM_DATA_FONT_SRC} ${SM_DATA_FONT_HPP})
 
-list(APPEND SM_DATA_COURSE_SRC
-  "Course.cpp"
-  "CourseLoaderCRS.cpp"
-  "CourseUtil.cpp"
-  "CourseWriterCRS.cpp"
-  "Trail.cpp"
-  "TrailUtil.cpp"
-)
-
-list(APPEND SM_DATA_COURSE_HPP
-  "Course.h"
-  "CourseLoaderCRS.h"
-  "CourseUtil.h"
-  "CourseWriterCRS.h"
-  "Trail.h"
-  "TrailUtil.h"
-)
-
-source_group("Data Structures\\\\Courses and Trails" FILES ${SM_DATA_COURSE_SRC} ${SM_DATA_COURSE_HPP})
-
 list(APPEND SM_DATA_NOTEDATA_SRC
   "NoteData.cpp"
   "NoteDataUtil.cpp"
@@ -103,14 +83,12 @@ source_group("Data Structures\\\\Notes Writers" FILES ${SM_DATA_NOTEWRITE_SRC} $
 list(APPEND SM_DATA_SCORE_SRC
   "ScoreKeeper.cpp"
   "ScoreKeeperNormal.cpp"
-  "ScoreKeeperRave.cpp"
   "ScoreKeeperShared.cpp"
 )
 
 list(APPEND SM_DATA_SCORE_HPP
   "ScoreKeeper.h"
   "ScoreKeeperNormal.h"
-  "ScoreKeeperRave.h"
   "ScoreKeeperShared.h"
 )
 
@@ -152,7 +130,6 @@ source_group("Data Structures\\\\Steps and Styles" FILES ${SM_DATA_STEPS_SRC} ${
 
 list(APPEND SM_DATA_REST_SRC
   "AdjustSync.cpp"
-  "Attack.cpp"
   "AutoKeysounds.cpp"
   "BackgroundUtil.cpp"
   "BannerCache.cpp"
@@ -177,7 +154,6 @@ list(APPEND SM_DATA_REST_SRC
   "GamePreferences.cpp"
   "Grade.cpp"
   "HighScore.cpp"
-  "Inventory.cpp"
   "JsonUtil.cpp"
   "LocalizedString.cpp"
   "LyricsLoader.cpp"
@@ -204,7 +180,6 @@ list(APPEND SM_DATA_REST_SRC
 
 list(APPEND SM_DATA_REST_HPP
   "AdjustSync.h"
-  "Attack.h"
   "AutoKeysounds.h"
   "BackgroundUtil.h"
   "BannerCache.h"
@@ -232,7 +207,6 @@ list(APPEND SM_DATA_REST_HPP
   "Grade.h"
   "HighScore.h"
   "InputEventPlus.h"
-  "Inventory.h"
   "JsonUtil.h"
   "LocalizedString.h"
   "LyricsLoader.h"
@@ -271,7 +245,6 @@ endif()
 source_group("Data Structures\\\\Misc Objects" FILES ${SM_DATA_REST_SRC} ${SM_DATA_REST_HPP})
 
 list(APPEND SMDATA_ALL_DATA_SRC
-  ${SM_DATA_COURSE_SRC}
   ${SM_DATA_FONT_SRC}
   ${SM_DATA_LUA_SRC}
   ${SM_DATA_NOTEDATA_SRC}
@@ -284,7 +257,6 @@ list(APPEND SMDATA_ALL_DATA_SRC
 )
 
 list(APPEND SMDATA_ALL_DATA_HPP
-  ${SM_DATA_COURSE_HPP}
   ${SM_DATA_FONT_HPP}
   ${SM_DATA_LUA_HPP}
   ${SM_DATA_NOTEDATA_HPP}

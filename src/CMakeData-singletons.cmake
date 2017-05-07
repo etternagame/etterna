@@ -1,6 +1,5 @@
 list(APPEND SMDATA_GLOBAL_SINGLETON_SRC
   "AnnouncerManager.cpp"
-  "Bookkeeper.cpp"
   "CharacterManager.cpp"
   "CommandLineActions.cpp"
   "CryptManager.cpp"
@@ -12,7 +11,6 @@ list(APPEND SMDATA_GLOBAL_SINGLETON_SRC
   "InputFilter.cpp"
   "InputMapper.cpp"
   "InputQueue.cpp"
-  "LightsManager.cpp"
   "LuaManager.cpp"
   "MemoryCardManager.cpp"
   "MessageManager.cpp"
@@ -20,15 +18,14 @@ list(APPEND SMDATA_GLOBAL_SINGLETON_SRC
   "NoteSkinManager.cpp"
   "PrefsManager.cpp"
   "ProfileManager.cpp"
+  "ScoreManager.cpp"
   "ScreenManager.cpp"
   "SongManager.cpp"
   "StatsManager.cpp"
   "ThemeManager.cpp"
-  "UnlockManager.cpp"
 )
 list(APPEND SMDATA_GLOBAL_SINGLETON_HPP
   "AnnouncerManager.h"
-  "Bookkeeper.h"
   "CharacterManager.h"
   "CommandLineActions.h"
   "CryptManager.h"
@@ -40,7 +37,6 @@ list(APPEND SMDATA_GLOBAL_SINGLETON_HPP
   "InputFilter.h"
   "InputMapper.h"
   "InputQueue.h"
-  "LightsManager.h"
   "LuaManager.h"
   "MemoryCardManager.h"
   "MessageManager.h"
@@ -48,11 +44,11 @@ list(APPEND SMDATA_GLOBAL_SINGLETON_HPP
   "NoteSkinManager.h"
   "PrefsManager.h"
   "ProfileManager.h"
+  "ScoreManager.h"
   "ScreenManager.h"
   "SongManager.h"
   "StatsManager.h"
   "ThemeManager.h"
-  "UnlockManager.h"
 )
 
 if(WITH_NETWORKING)

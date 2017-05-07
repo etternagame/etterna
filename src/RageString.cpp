@@ -1,9 +1,10 @@
-#include "stringtest.h"
+#include "global.h"
+#include "RageString.h"
+#include "RageUnicode.h"
 #include <cstdlib>
 #include <cstring>
 #include <sstream>
 #include <algorithm>
-#include "stringuni.h"
 
 void make_upper(char *p, size_t len);
 void make_lower(char *p, size_t len);

@@ -28,9 +28,11 @@ list(APPEND SMDATA_RAGE_MISC_SRC
   "RageInputDevice.cpp"
   "RageLog.cpp"
   "RageMath.cpp"
+  "RageString.cpp"
   "RageTypes.cpp"
   "RageThreads.cpp"
   "RageTimer.cpp"
+  "RageUnicode.h"
 )
 
 list(APPEND SMDATA_RAGE_MISC_HPP
@@ -39,9 +41,11 @@ list(APPEND SMDATA_RAGE_MISC_HPP
   "RageInputDevice.h"
   "RageLog.h"
   "RageMath.h"
+  "RageString.h"
   "RageTypes.h"
   "RageThreads.h"
   "RageTimer.h"
+  "RageUnicode.cpp"
 )
 
 source_group("Rage\\\\Misc" FILES ${SMDATA_RAGE_MISC_SRC} ${SMDATA_RAGE_MISC_HPP})

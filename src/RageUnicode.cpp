@@ -1,4 +1,5 @@
-#include "stringuni.h"
+#include "global.h"
+#include "RageUnicode.h"
 #include <vector>
 
 wchar_t const Rage::invalid_char = 0xFFFD;

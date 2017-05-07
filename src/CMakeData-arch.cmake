@@ -151,39 +151,6 @@ endif()
 
 source_group("Arch Specific\\\\Movie Texture" FILES ${SMDATA_ARCH_MOVIE_TEXTURE_SRC} ${SMDATA_ARCH_MOVIE_TEXTURE_HPP})
 
-list(APPEND SMDATA_ARCH_MEMORY_SRC
-  "arch/MemoryCard/MemoryCardDriver.cpp"
-)
-list(APPEND SMDATA_ARCH_MEMORY_HPP
-  "arch/MemoryCard/MemoryCardDriver.h"
-  "arch/MemoryCard/MemoryCardDriver_Null.h"
-)
-
-if(WIN32)
-  list(APPEND SMDATA_ARCH_MEMORY_SRC
-    "arch/MemoryCard/MemoryCardDriverThreaded_Windows.cpp"
-  )
-  list(APPEND SMDATA_ARCH_MEMORY_HPP
-    "arch/MemoryCard/MemoryCardDriverThreaded_Windows.h"
-  )
-elseif(APPLE)
-  list(APPEND SMDATA_ARCH_MEMORY_SRC
-    "arch/MemoryCard/MemoryCardDriverThreaded_MacOSX.cpp"
-  )
-  list(APPEND SMDATA_ARCH_MEMORY_HPP
-    "arch/MemoryCard/MemoryCardDriverThreaded_MacOSX.h"
-  )
-elseif(LINUX)
-  list(APPEND SMDATA_ARCH_MEMORY_SRC
-    "arch/MemoryCard/MemoryCardDriverThreaded_Linux.cpp"
-  )
-  list(APPEND SMDATA_ARCH_MEMORY_HPP
-    "arch/MemoryCard/MemoryCardDriverThreaded_Linux.h"
-  )
-endif()
-
-source_group("Arch Specific\\\\Memory Card" FILES ${SMDATA_ARCH_MEMORY_SRC} ${SMDATA_ARCH_MEMORY_HPP})
-
 list(APPEND SMDATA_ARCH_LOWLEVEL_SRC
   "arch/LowLevelWindow/LowLevelWindow.cpp"
 )
@@ -483,7 +450,6 @@ list(APPEND SMDATA_ALL_ARCH_SRC
   ${SMDATA_ARCH_LIGHTS_SRC}
   ${SMDATA_ARCH_LOADING_SRC}
   ${SMDATA_ARCH_LOWLEVEL_SRC}
-  ${SMDATA_ARCH_MEMORY_SRC}
   ${SMDATA_ARCH_MOVIE_TEXTURE_SRC}
   ${SMDATA_ARCH_SOUND_SRC}
   ${SMDATA_ARCH_THREADS_SRC}
@@ -496,7 +462,6 @@ list(APPEND SMDATA_ALL_ARCH_HPP
   ${SMDATA_ARCH_LIGHTS_HPP}
   ${SMDATA_ARCH_LOADING_HPP}
   ${SMDATA_ARCH_LOWLEVEL_HPP}
-  ${SMDATA_ARCH_MEMORY_HPP}
   ${SMDATA_ARCH_MOVIE_TEXTURE_HPP}
   ${SMDATA_ARCH_SOUND_HPP}
   ${SMDATA_ARCH_THREADS_HPP}
