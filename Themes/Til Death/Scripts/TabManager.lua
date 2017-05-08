@@ -2,10 +2,10 @@
 
 -- Tabs are 0 indexed
 local tabIndex = 0
-local tabSize = 6
+local tabSize = 7
 local availTabSize = 2
 
-local availableTabs1P = {true,true,true,true,true,true,true}
+local availableTabs1P = {true,true,true,true,true,true,true,true}
 local availableTabs2P = {true,false,false,false,true}
 
 --0 indexed tabs... yet 1 indexed lua tables mfw. Will probably go into infinite loop if everything is false.
@@ -16,13 +16,13 @@ local function getNextAvailable(players,index)
 		table = availableTabs1P
 	else
 		table = availableTabs2P
-	end;
+	end
 	if table[index+1] == true then
 		return index
 	else
 		return getNextAvailable(players,(index+1)%tabSize)
-	end;
-end;
+	end
+end
 
 -- Resets the index of the tabs to 0
 function resetTabIndex()
@@ -47,21 +47,21 @@ function incrementTabIndex()
 	tabIndex = (tabIndex+1)%tabSize
 	if players == 1 and availableTabs1P[tabIndex+1] == false then
 		tabIndex = getNextAvailable(players,tabIndex+1)%tabSize
-	end;
+	end
 	if players > 1 and availableTabs2P[tabIndex+1] == false then
 		tabIndex = getNextAvailable(players,tabIndex+1)%tabSize
-	end;
-end;
+	end
+end
 
 -- Returns the current tab index
 function getTabIndex()
 	return tabIndex
-end;
+end
 
 -- Returns the total number of tabs
 function getTabSize()
 	return tabSize
-end;
+end
 
 -- Returns the highest index out of all available tabs
 function getMaxAvailIndex()
@@ -78,7 +78,7 @@ function getMaxAvailIndex()
 		end
 	end
 	return high
-end;
+end
 
 -- Returns whether a certain tab is enabled
 function isTabEnabled(index)
@@ -86,5 +86,5 @@ function isTabEnabled(index)
 		return availableTabs1P[index]
 	else
 		return availableTabs2P[index]
-	end;
-end;
+	end
+end

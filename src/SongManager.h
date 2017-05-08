@@ -29,12 +29,16 @@ bool CompareNotesPointersForExtra(const Steps *n1, const Steps *n2);
 const int MAX_EDIT_STEPS_PER_PROFILE	= 200;
 
 
+
 struct Chart {
 	string key;
 	RString lastsong;
 	RString lastpack;
 	Difficulty lastdiff;
 	
+	Song* songptr;
+	Steps* stepsptr;
+
 	bool loaded;
 	void FromKey(const string& ck);
 };
@@ -42,7 +46,9 @@ struct Chart {
 struct Playlist {
 	RString name;
 	vector<Chart> chartlist;
+	vector<float> chartrates;
 	void Add(Chart ch) { chartlist.emplace_back(ch); }
+	void AddChart(const string& ck) { Chart ch; ch.FromKey(ck); chartlist.emplace_back(); }
 	void SwapPosition();
 
 	void Create();
@@ -51,6 +57,9 @@ struct Playlist {
 	XNode* CreateNode() const;
 	void LoadFromNode(const XNode* node);
 
+	vector<string> GetKeys();
+	vector<float> GetRates() { return chartrates; }
+	string GetName() { return name; }
 	void PushSelf(lua_State *L);
 };
 
@@ -174,8 +183,8 @@ public:
 	void PushSelf( lua_State *L );
 
 
-	vector<Playlist> allplaylists;
-	int activeplaylist;
+	unordered_map<string, Playlist> allplaylists;
+	string activeplaylist;
 
 protected:
 	void LoadStepManiaSongDir( RString sDir, LoadingWindow *ld );

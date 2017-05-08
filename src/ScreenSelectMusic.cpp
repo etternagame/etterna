@@ -1236,8 +1236,8 @@ void ScreenSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 	if (SM == SM_BackFromNamePlaylist) {
 		Playlist pl;
 		pl.name = ScreenTextEntry::s_sLastAnswer;
-		SONGMAN->allplaylists.emplace_back(pl);
-		SONGMAN->activeplaylist = 0;
+		SONGMAN->allplaylists.emplace(pl.name, pl);
+		SONGMAN->activeplaylist = pl.name;
 	}
 
 	ScreenWithMenuElements::HandleScreenMessage( SM );

@@ -72,6 +72,25 @@ function isOver(element)
 	return (withinX and withinY)
 end;
 
+-- for when its just wrong and you need to control the scale yourself
+function isOverScaled(element,scale)
+	if not scale then scale = 1 end
+	local x = getTrueX(element)
+	local y = getTrueY(element)
+	local hAlign = element:GetHAlign()
+	local vAlign = element:GetVAlign()
+	local w = element:GetZoomedWidth() * scale
+	local h = element:GetZoomedHeight() * scale
+
+	local mouseX = INPUTFILTER:GetMouseX()
+	local mouseY = INPUTFILTER:GetMouseY()
+
+	local withinX = (mouseX >= (x-(hAlign*w))) and (mouseX <= ((x+w)-(hAlign*w)))
+	local withinY = (mouseY >= (y-(vAlign*h))) and (mouseY <= ((y+h)-(vAlign*h)))
+
+	return (withinX and withinY)
+end;
+
 --returns if the table contains the key.
 function tableContains(table,key)
 	return (table[key] ~= nil)

@@ -5,7 +5,7 @@ local t = Def.ActorFrame{
 	OnCommand=cmd(bouncebegin,0.2;xy,0,0;diffusealpha,1),
 	SetCommand=function(self)
 		self:finishtweening()
-		if getTabIndex() == 4 then
+		if getTabIndex() == 7 then
 			self:queuecommand("On")
 			self:visible(true)
 			update = true
@@ -35,8 +35,15 @@ local rankingWidth = frameWidth-capWideScale(15,50)
 local rankingX = capWideScale(30,50)
 local rankingY = capWideScale(40,40)
 local rankingTitleSpacing = (rankingWidth/(#ms.SkillSets))
-local buttondiffuse = 0
+local buttondiffuse = 0.4
 local whee
+
+local pl
+local keylist
+local ratelist
+local songlist = {}
+local stepslist = {}
+
 
 if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
 	profile = GetPlayerOrMachineProfile(PLAYER_1)
@@ -45,15 +52,7 @@ end
 
 t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,frameHeight;halign,0;valign,0;diffuse,color("#333333CC"))}
 t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,offsetY;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,0.5)}
-t[#t+1] = LoadFont("Common Normal")..{InitCommand=cmd(xy,frameX+5,frameY+offsetY-9;zoom,0.6;halign,0;diffuse,getMainColor('positive');settext,"Profile Info (WIP)")}
-
-
-local function byValidity(valid)
-	if valid then
-		return getMainColor('positive')
-	end
-	byJudgment("TapNoteScore_Miss")
-end
+t[#t+1] = LoadFont("Common Normal")..{InitCommand=cmd(xy,frameX+5,frameY+offsetY-9;zoom,0.6;halign,0;diffuse,getMainColor('positive');settext,"Playlists (WIP)")}
 
 local function BroadcastIfActive(msg)
 	if update then
@@ -61,27 +60,141 @@ local function BroadcastIfActive(msg)
 	end
 end
 
-local function ButtonActive(self)
-	return isOver(self) and update
+local function ButtonActive(self,scale)
+	return isOverScaled(self,scale) and update
 end
 
--- The input callback for mouse clicks already exists within the tabmanager and redefining it within the local scope does nothing but create confusion - mina
+
+local function makesimpletextbutton(buttontext, leftcmd, rightcmd)
+	local o = Def.ActorFrame{
+		OnCommand=function(self)
+			self:GetChild("Button"):zoomto(self:GetChild("Text"):GetWidth(),self:GetChild("Text"):GetHeight())
+		end,
+		LoadFont("Common Large") .. {
+			Name="Text",
+			InitCommand=cmd(settext,buttontext)
+		},
+		Def.Quad{
+			Name="Button",
+			InitCommand=cmd(diffusealpha,buttondiffuse),
+			MouseLeftClickMessageCommand=function(self)
+				if isOver(self) and update then
+					self:queuecommand("ButtonLeft")
+				end
+			end,
+			ButtonLeftCommand=leftcmd,
+			MouseRightClickMessageCommand=function(self)
+				if isOver(self) and update then
+					self:queuecommand("ButtonRight")
+				end
+			end,
+			ButtonRightCommand=rightcmd
+		}
+	}
+	return o
+end
+
+
 local r = Def.ActorFrame{
 	InitCommand=function(self)
 		self:xy(frameX,frameY)
 	end,
 	OnCommand=function(self)
 		whee = SCREENMAN:GetTopScreen():GetMusicWheel()
-	end
+	end,
+	UpdateRankingMessageCommand=function(self)
+		if update then
+			pl = SONGMAN:GetActivePlaylist()
+			if pl then	
+				keylist = pl:GetChartlist()
+				ratelist = pl:GetRatelist()
+				
+				for j=1,#keylist do
+					songlist[j] = SONGMAN:GetSongByChartKey(keylist[j])
+					stepslist[j] = SONGMAN:GetStepsByChartKey(keylist[j])
+				end
+					
+				--songlist = pl:GetSonglist()
+				--stepslist = pl:GetStepslist()
+				self:visible(true)
+				self:RunCommandsOnChildren(cmd(queuecommand, "Display"))
+			end
+		else
+			self:visible(false)
+		end
+	end,
+	LoadFont("Common Large") .. {
+		InitCommand=cmd(xy,rankingX,rankingY;zoom,0.4;halign,0),
+		DisplayCommand=function(self)
+			self:settext(pl:GetName())
+		end
+	}
 }
+
+r[#r+1] = makesimpletextbutton("Add Chart", function() pl:AddChart(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey()) end)
+
+local function RateDisplayButton(i)
+	local o = Def.ActorFrame{
+		InitCommand=cmd(x,220),
+		ResizeCommand=function(self)
+			self:GetChild("Button"):zoomto(self:GetChild("Text"):GetZoomedWidth(),self:GetChild("Text"):GetZoomedHeight())
+		end,
+		LoadFont("Common Large") .. {
+			Name="Text",
+			DisplayCommand=function(self)
+				local ratestring = string.format("%.2f", ratelist[i]):gsub("%.?0+$", "").."x"
+				self:settext(ratestring)
+				self:GetParent():queuecommand("Resize")
+			end
+		},
+		Def.Quad{
+			Name="Button",
+			InitCommand=cmd(diffusealpha,buttondiffuse),
+			MouseLeftClickMessageCommand=function(self)
+				if ButtonActive(self,fontScale) then
+					pl:ChangeRateAtIndex(i,0.1)
+					BroadcastIfActive("UpdateRanking")
+				end
+			end,
+			MouseRightClickMessageCommand=function(self)
+				if ButtonActive(self,fontScale) then
+					pl:ChangeRateAtIndex(i,-0.1)
+					BroadcastIfActive("UpdateRanking")
+				end
+			end
+		}
+	}
+	return o
+end
+
+local function TitleDisplayButton(i)
+	local o = Def.ActorFrame{
+		InitCommand=cmd(x,15),
+		ResizeCommand=function(self)
+			self:GetChild("Button"):zoomto(self:GetChild("Text"):GetZoomedWidth(),self:GetChild("Text"):GetZoomedHeight())
+		end,
+		LoadFont("Common Large") .. {
+			Name="Text",
+			InitCommand=cmd(halign,0),
+			DisplayCommand=function(self)
+				self:settext(songlist[i]:GetDisplayMainTitle())
+				self:GetParent():queuecommand("Resize")
+			end
+		},
+		Def.Quad{
+			Name="Button",
+			InitCommand=cmd(diffusealpha,buttondiffuse;halign,0),
+			MouseLeftClickMessageCommand=function(self)
+				if ButtonActive(self,fontScale) then
+					whee:SelectSong(songlist[i])
+				end
+			end
+		}
+	}
+	return o
+end
 	
-local function rankingLabel(i)
-	local ths -- the top highscore object - mina
-	local ck
-	local thssteps
-	local thssong
-	local xoffset
-	
+local function rankingLabel(i)	
 	local t = Def.ActorFrame{
 		InitCommand=function(self)
 			self:xy(rankingX + offsetX, rankingY + offsetY + 10 + (i-1)*scoreYspacing)
@@ -90,15 +203,18 @@ local function rankingLabel(i)
 		end,
 		UpdateRankingMessageCommand=function(self)
 			if rankingSkillset > 1 and update then
-				ths = SCOREMAN:GetTopSSRHighScore(i+(scoresperpage*(rankingPage-1)), ms.SkillSets[rankingSkillset])
-				if ths then
-					self:visible(true)
-					ck = ths:GetChartKey()						
-					thssong = SONGMAN:GetSongByChartKey(ck)
-					thssteps = SONGMAN:GetStepsByChartKey(ck)
-					
-					self:RunCommandsOnChildren(cmd(queuecommand, "Display"))
+				pl = SONGMAN:GetActivePlaylist()
+				keylist = pl:GetChartlist()
+				ratelist = pl:GetRatelist()
+				
+				for j=1,#keylist do
+					songlist[j] = SONGMAN:GetSongByChartKey(keylist[j])
+					stepslist[j] = SONGMAN:GetStepsByChartKey(keylist[j])
 				end
+				--songlist = pl:GetSonglist()
+				--stepslist = pl:GetStepslist()
+				self:visible(true)
+				self:RunCommandsOnChildren(cmd(queuecommand, "Display"))
 			else
 				self:visible(false)
 			end
@@ -111,79 +227,34 @@ local function rankingLabel(i)
 				self:settext(((rankingPage-1)*25)+i..".")
 			end
 		},
-		LoadFont("Common Large") .. {
-			InitCommand=cmd(x,30;maxwidth,160),
+		LoadFont("Common Large") .. {	-- pack mouseover for later
+			InitCommand=cmd(x,15;maxwidth,580),
 			DisplayCommand=function(self)
-				self:settextf("%5.2f", ths:GetSkillsetSSR(ms.SkillSets[rankingSkillset]))
-				self:diffuse(byValidity(ths:GetEtternaValid()))
-			end
-		},
-		LoadFont("Common Large") .. {
-			InitCommand=cmd(x,70;maxwidth,580),
-			DisplayCommand=function(self)
-				self:settext(thssong:GetDisplayMainTitle())
-				self:diffuse(byValidity(ths:GetEtternaValid()))
-			end
-		},
-		LoadFont("Common Large") .. {
-			InitCommand=cmd(x,220),
-			DisplayCommand=function(self)
-				self:halign(0.5)
-				local ratestring = string.format("%.2f", ths:GetMusicRate()):gsub("%.?0+$", "").."x"
-				self:settext(ratestring)
-				self:diffuse(byValidity(ths:GetEtternaValid()))
+				--self:settext(songlist[i]:GetGroupName())
 			end
 		},
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(x,256;maxwidth,160),
 			DisplayCommand=function(self)
-				self:settextf("%5.2f%%", ths:GetWifeScore()*100)
-				if not ths:GetEtternaValid() then
-					self:diffuse(byJudgment("TapNoteScore_Miss"))
-				else
-					self:diffuse(getGradeColor(ths:GetWifeGrade()))
-				end
+				local rating = stepslist[i]:GetMSD(1,ratelist[i])
+				self:settextf("%.2f", rating)
+				self:diffuse(ByMSD(rating))
 			end
 		},
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(x,300),
 			DisplayCommand=function(self)
-				local diff = thssteps:GetDifficulty()
+				local diff = stepslist[i]:GetDifficulty()
 				self:halign(0.5)
 				self:diffuse(byDifficulty(diff))
 				self:settext(getShortDifficulty(diff))
 			end
-		},
-		Def.Quad{
-			InitCommand=cmd(diffusealpha,buttondiffuse),
-			DisplayCommand=function(self)	-- hacky
-				self:visible(true)
-				self:zoomto(300,scoreYspacing)
-			end,
-			MouseRightClickMessageCommand=function(self)	
-				if ths and ButtonActive(self) then
-					ths:ToggleEtternaValidation()
-					BroadcastIfActive("UpdateRanking")
-					if ths:GetEtternaValid() then 
-						ms.ok("Score Revalidated")
-					else
-						ms.ok("Score Invalidated")
-					end
-				end
-			end,
-			MouseLeftClickMessageCommand=function(self)
-				if ths and ButtonActive(self) then
-					whee:SelectSong(thssong)
-				end
-			end
 		}
 	}
+	t[#t+1] = RateDisplayButton(i)
+	t[#t+1] = TitleDisplayButton(i)
 	return t
 end
-
-
-
-
 
 local function rankingButton(i)
 	local t = Def.ActorFrame{
@@ -280,89 +351,7 @@ for i=1,#ms.SkillSets do
 	r[#r+1] = rankingButton(i)
 end
 
-local function littlebits(i)
-	local t = Def.ActorFrame{
-		InitCommand=cmd(xy,frameX+30,frameY + 50),
-		UpdateRankingMessageCommand=function(self)
-			if rankingSkillset == 1 and update then
-				self:visible(true)
-			else
-				self:visible(false)
-			end
-		end,
-		LoadFont("Common Large") .. {
-			InitCommand=cmd(y,22*i;halign,0;zoom,0.5;diffuse,getMainColor('positive')),
-			SetCommand=function(self)
-				self:settext(ms.SkillSets[i]..":")
-			end
-		},
-		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,240,22*i;halign,1;zoom,0.5),
-			SetCommand=function(self)
-				local rating = profile:GetPlayerSkillsetRating(ms.SkillSets[i])
-				self:settextf("%5.2f",rating)
-				self:diffuse(ByMSD(rating))
-			end
-		}
-	}
-	return t
-end
-
-for i=2,#ms.SkillSets do 
-	r[#r+1] = littlebits(i)
-end
 
 
-
-local profilebuttons = Def.ActorFrame{
-	InitCommand=cmd(xy,frameX+60,frameHeight + 20),
-	UpdateRankingMessageCommand=function(self)
-		if rankingSkillset == 1 and update then
-			self:visible(true)
-		else
-			self:visible(false)
-		end
-	end,
-	LoadFont("Common Large") .. {
-		InitCommand=cmd(diffuse,getMainColor('positive');settext,"Save Profile";zoom,0.3)
-	},
-	Def.Quad{
-		InitCommand=cmd(zoomto,100,20;diffusealpha,buttondiffuse),
-		MouseLeftClickMessageCommand=function(self)
-			if ButtonActive(self) and rankingSkillset == 1 then
-				if PROFILEMAN:SaveProfile(PLAYER_1) then
-					ms.ok("Save successful")
-				else
-					ms.ok("Save failed")
-				end
-			end
-		end
-	},
-	LoadFont("Common Large") .. {InitCommand=cmd(x,100;diffuse,getMainColor('positive');settext,"Import Scores";zoom,0.3)},
-	Def.Quad{
-		InitCommand=cmd(x,100;zoomto,100,20;diffusealpha,buttondiffuse),
-		MouseLeftClickMessageCommand=function(self)
-			if ButtonActive(self) and rankingSkillset == 1 then
-				if PROFILEMAN:ConvertProfile(PLAYER_1) then
-					ms.ok("Imported scores from stats.xml")
-				else
-					ms.ok("Score import failed")
-				end
-			end
-		end
-	},
-	LoadFont("Common Large") .. {InitCommand=cmd(x,200;diffuse,getMainColor('positive');settext,"Validate All";zoom,0.3)},
-	Def.Quad{
-		InitCommand=cmd(x,200;zoomto,100,20;diffusealpha,buttondiffuse),
-		MouseLeftClickMessageCommand=function(self)
-			if ButtonActive(self) and rankingSkillset == 1 then
-				SCOREMAN:ValidateAllScores()
-			end
-		end
-	},
-	
-}
-
-t[#t+1] = profilebuttons
 t[#t+1] = r
 return t

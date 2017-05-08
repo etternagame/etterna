@@ -149,11 +149,12 @@ void Chart::FromKey(const string& ck) {
 		lastsong = song->GetDisplayMainTitle();
 		lastdiff = steps->GetDifficulty();
 		loaded = true;
+		songptr = song;
+		stepsptr = steps;
+		LOG->Trace(songptr->GetDisplayMainTitle());
 	}
-
 	loaded = false;
 }
-
 
 XNode* Playlist::CreateNode() const {
 	XNode* pl = new XNode("Playlist");
@@ -176,6 +177,7 @@ XNode* Playlist::CreateNode() const {
 		
 	return pl;
 }
+
 void Playlist::LoadFromNode(const XNode* node) {
 	node->GetAttrValue("Name", name);
 	FOREACH_CONST_Child(node, chart) {
@@ -191,9 +193,17 @@ void Playlist::LoadFromNode(const XNode* node) {
 		}
 		chartlist.emplace_back(ch);
 	}
+
+	for (size_t i = 0; i < chartlist.size(); ++i)
+		chartrates.emplace_back(1.f);
 }
 
-
+vector<string> Playlist::GetKeys() {
+	vector<string> o;
+	for (size_t i = 0; i < chartlist.size(); ++i)
+		o.emplace_back(chartlist[i].key);
+	return o;
+}
 
 // Only store 1 steps/song pointer per key -Mina
 void SongManager::AddKeyedPointers(Song* new_song) {
@@ -1390,6 +1400,12 @@ public:
 		return 1;
 	}
 
+	static int GetActivePlaylist(T* p, lua_State *L)
+	{
+		p->allplaylists[p->activeplaylist].PushSelf(L);
+		return 1;
+	}
+
 	LunaSongManager()
 	{
 		ADD_METHOD( GetAllSongs );
@@ -1416,10 +1432,80 @@ public:
 		ADD_METHOD( GetSongByChartKey );
 		ADD_METHOD( GetStepsByChartKey );
 		ADD_METHOD(GetNumCourses);
+		ADD_METHOD(GetActivePlaylist);
 	}
 };
 
 LUA_REGISTER_CLASS( SongManager )
+
+
+/** @brief Allow Lua to have access to the SongManager. */
+class LunaPlaylist : public Luna<Playlist>
+{
+public:
+	static int GetChartlist(T* p, lua_State *L) 
+	{
+		vector<string> keys = p->GetKeys();
+		LuaHelpers::CreateTableFromArray(keys, L);
+		return 1;
+	}
+	
+	static int GetRatelist(T* p, lua_State *L)
+	{
+		vector<float> rates = p->GetRates();
+		LuaHelpers::CreateTableFromArray(rates, L);
+		return 1;
+	}
+
+	static int GetSonglist(T* p, lua_State *L)
+	{
+		lua_newtable(L);
+		for (size_t i = 0; i < p->chartlist.size(); ++i)
+		{
+			p->chartlist[i].songptr->PushSelf(L);
+			lua_rawseti(L, -2, i + 1);
+		}
+		return 1;
+	}
+	
+	static int GetStepslist(T* p, lua_State *L) 
+	{
+		lua_newtable(L);
+		for (size_t i = 0; i < p->chartlist.size(); ++i)
+		{
+			p->chartlist[i].stepsptr->PushSelf(L);
+			lua_rawseti(L, -2, i + 1);
+		}
+		return 1;
+	}
+
+	static int ChangeRateAtIndex(T* p, lua_State *L)
+	{
+		p->chartrates[IArg(1) - 1] += FArg(2);
+		CLAMP(p->chartrates[IArg(1) - 1], 0.7f, 2.f);
+		return 1;
+	}
+
+	static int AddChart(T* p, lua_State *L)
+	{
+		p->AddChart(SArg(1));
+		return 1;
+	}
+	
+	DEFINE_METHOD(GetName, GetName());
+	LunaPlaylist()
+	{
+		ADD_METHOD(AddChart);
+		ADD_METHOD(GetChartlist);
+		ADD_METHOD(GetRatelist);
+		ADD_METHOD(GetName);
+		ADD_METHOD(GetSonglist);
+		ADD_METHOD(GetStepslist);
+		ADD_METHOD(ChangeRateAtIndex);
+	}
+};
+
+LUA_REGISTER_CLASS(Playlist)
 // lua end
 
 /*

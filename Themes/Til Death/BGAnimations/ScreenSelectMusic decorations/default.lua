@@ -9,7 +9,7 @@ t[#t+1] = LoadActor("score")
 t[#t+1] = LoadActor("profile")
 t[#t+1] = LoadActor("filter")
 t[#t+1] = LoadActor("goaltracker")
---t[#t+1] = LoadActor("../ExportSelection")		-- will rewrite this myself later
+t[#t+1] = LoadActor("playlists")
 
 t[#t+1] = Def.ActorFrame {
 	InitCommand=cmd(xy,capWideScale(get43size(384),384)+26,70,halign,0;valign,0;zoom,math.min(1,SCREEN_WIDTH/854)),
