@@ -48,7 +48,7 @@ struct Playlist {
 	vector<Chart> chartlist;
 	vector<float> chartrates;
 	void Add(Chart ch) { chartlist.emplace_back(ch); }
-	void AddChart(const string& ck) { Chart ch; ch.FromKey(ck); chartlist.emplace_back(); }
+	void AddChart(const string& ck) { Chart ch; ch.FromKey(ck); chartlist.emplace_back(ch); chartrates.emplace_back(1.f); }
 	void SwapPosition();
 
 	void Create();
@@ -56,7 +56,7 @@ struct Playlist {
 
 	XNode* CreateNode() const;
 	void LoadFromNode(const XNode* node);
-
+	int GetNumCharts() { return chartlist.size(); }
 	vector<string> GetKeys();
 	vector<float> GetRates() { return chartrates; }
 	string GetName() { return name; }
@@ -183,9 +183,8 @@ public:
 	void PushSelf( lua_State *L );
 
 
-	unordered_map<string, Playlist> allplaylists;
+	map<string, Playlist> allplaylists;
 	string activeplaylist;
-
 protected:
 	void LoadStepManiaSongDir( RString sDir, LoadingWindow *ld );
 	void LoadDWISongDir( const RString &sDir );

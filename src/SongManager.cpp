@@ -32,6 +32,7 @@
 #include "ThemeManager.h"
 #include "TitleSubstitution.h"
 #include "SpecialFiles.h"
+#include "ScreenTextEntry.h"
 
 SongManager*	SONGMAN = NULL;	// global and accessible from anywhere in our program
 
@@ -51,6 +52,8 @@ static Preference<RString> g_sDisabledSongs( "DisabledSongs", "" );
 RString SONG_GROUP_COLOR_NAME( size_t i )   { return ssprintf( "SongGroupColor%i", (int) i+1 ); }
 
 static const float next_loading_window_update= 0.02f;
+
+AutoScreenMessage(SM_BackFromNamePlaylist);
 
 SongManager::SongManager()
 {
@@ -142,7 +145,6 @@ void SongManager::InitSongsFromDisk( LoadingWindow *ld )
 
 void Chart::FromKey(const string& ck) { 
 	Song* song = SONGMAN->GetSongByChartkey(ck);
-
 	if (song) {
 		Steps* steps = SONGMAN->GetStepsByChartkey(ck);
 		lastpack = song->GetSongDir();
@@ -151,6 +153,7 @@ void Chart::FromKey(const string& ck) {
 		loaded = true;
 		songptr = song;
 		stepsptr = steps;
+		key = ck;
 		LOG->Trace(songptr->GetDisplayMainTitle());
 	}
 	loaded = false;
@@ -159,7 +162,6 @@ void Chart::FromKey(const string& ck) {
 XNode* Playlist::CreateNode() const {
 	XNode* pl = new XNode("Playlist");
 	pl->AppendAttr("Name", name);
-
 	FOREACH_CONST(Chart, chartlist, ch) {
 		XNode* chart = new XNode(ch->key);
 		Song* song = SONGMAN->GetSongByChartkey(ch->key);
@@ -201,7 +203,7 @@ void Playlist::LoadFromNode(const XNode* node) {
 vector<string> Playlist::GetKeys() {
 	vector<string> o;
 	for (size_t i = 0; i < chartlist.size(); ++i)
-		o.emplace_back(chartlist[i].key);
+		o.emplace_back(chartlist[i].key);	
 	return o;
 }
 
@@ -1406,6 +1408,33 @@ public:
 		return 1;
 	}
 
+	static int SetActivePlaylist(T* p, lua_State *L)
+	{
+		p->activeplaylist= SArg(1);
+		return 1;
+	}
+
+	static int NewPlaylist(T* p, lua_State *L)
+	{
+		p->allplaylists[p->activeplaylist].PushSelf(L);
+		ScreenTextEntry::TextEntry(SM_BackFromNamePlaylist, "Name Playlist", "", 128);
+		return 1;
+	}
+
+	static int GetPlaylists(T* p, lua_State *L)
+	{
+		int idx = 0;
+		lua_newtable(L);
+		FOREACHM(string, Playlist, p->allplaylists, pl) {
+			pl->second.PushSelf(L);
+			lua_rawseti(L, -2, idx);
+			++idx;
+		}
+
+		return 1;
+	}
+
+
 	LunaSongManager()
 	{
 		ADD_METHOD( GetAllSongs );
@@ -1433,6 +1462,9 @@ public:
 		ADD_METHOD( GetStepsByChartKey );
 		ADD_METHOD(GetNumCourses);
 		ADD_METHOD(GetActivePlaylist);
+		ADD_METHOD(SetActivePlaylist);
+		ADD_METHOD(NewPlaylist);
+		ADD_METHOD(GetPlaylists);
 	}
 };
 
@@ -1489,14 +1521,18 @@ public:
 	static int AddChart(T* p, lua_State *L)
 	{
 		p->AddChart(SArg(1));
+		Message msg("DisplayPlaylist");
+		MESSAGEMAN->Broadcast(msg);
 		return 1;
 	}
 	
 	DEFINE_METHOD(GetName, GetName());
+	DEFINE_METHOD(GetNumCharts, GetNumCharts())
 	LunaPlaylist()
 	{
 		ADD_METHOD(AddChart);
 		ADD_METHOD(GetChartlist);
+		ADD_METHOD(GetNumCharts);
 		ADD_METHOD(GetRatelist);
 		ADD_METHOD(GetName);
 		ADD_METHOD(GetSonglist);

@@ -1394,7 +1394,7 @@ XNode* Profile::SaveScoreGoalsCreateNode() const {
 XNode* Profile::SavePlaylistsCreateNode() const {
 	XNode* playlists = new XNode("Playlists");
 	auto& pls = SONGMAN->allplaylists;
-	FOREACHUM(string, Playlist, pls, i)
+	FOREACHM(string, Playlist, pls, i)
 		playlists->AppendChild(i->second.CreateNode());
 	return playlists;
 }

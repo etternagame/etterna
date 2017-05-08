@@ -511,21 +511,6 @@ bool ScreenSelectMusic::Input( const InputEventPlus &input )
 			m_MusicWheel.ChangeMusic(0);
 			return true;
 		}
-		else if (bHoldingCtrl && c == 'P' && m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS)
-		{
-			ScreenTextEntry::TextEntry(SM_BackFromNamePlaylist, "DOOT DOOT MOTHAFUCKA", "", 255);
-			return true;
-		}
-
-		else if (bHoldingCtrl && c == 'A' && m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS)
-		{
-			Chart ch;
-			string ck = GAMESTATE->m_pCurSteps[PLAYER_1]->ChartKey;
-			ch.FromKey(ck);
-			SONGMAN->allplaylists[SONGMAN->activeplaylist].Add(ch);
-			return true;
-		}
-
 		else if( input.DeviceI.device == DEVICE_KEYBOARD && bHoldingCtrl && input.DeviceI.button == KEY_BACK && input.type == IET_FIRST_PRESS
 			&& m_MusicWheel.IsSettled() )
 		{
@@ -1238,6 +1223,8 @@ void ScreenSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 		pl.name = ScreenTextEntry::s_sLastAnswer;
 		SONGMAN->allplaylists.emplace(pl.name, pl);
 		SONGMAN->activeplaylist = pl.name;
+		Message msg("DisplayAll");
+		MESSAGEMAN->Broadcast(msg);
 	}
 
 	ScreenWithMenuElements::HandleScreenMessage( SM );
