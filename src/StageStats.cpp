@@ -287,6 +287,7 @@ void StageStats::FinalizeScores( bool bSummary )
 		else
 		{
 			ASSERT( pSteps != NULL );
+			PROFILEMAN->AddStepsScore(pSong, pSteps, p, hs, m_player[p].m_iPersonalHighScoreIndex, m_player[p].m_iMachineHighScoreIndex);
 			// new score structure -mina
 			Profile* zzz = PROFILEMAN->GetProfile(PLAYER_1);
 			SCOREMAN->AddScore(hs);
