@@ -48,6 +48,7 @@ local keylist
 local ratelist
 local songlist = {}
 local stepslist = {}
+local chartlist = {}
 
 local allplaylists
 local playlistnames
@@ -66,14 +67,14 @@ local function ButtonActive(self,scale)
 	return isOverScaled(self,scale) and update
 end
 
-local function makesimpletextbutton(buttontext, leftcmd, rightcmd)
+local function makesimpletextbutton(xval, yval, buttontext, leftcmd, rightcmd)
 	local o = Def.ActorFrame{
 		OnCommand=function(self)
 			self:GetChild("Button"):zoomto(self:GetChild("Text"):GetWidth(),self:GetChild("Text"):GetHeight())
 		end,
 		LoadFont("Common Large") .. {
 			Name="Text",
-			InitCommand=cmd(settext,buttontext)
+			InitCommand=cmd(xy,xval,yval;settext,buttontext)
 		},
 		Def.Quad{
 			Name="Button",
@@ -108,6 +109,7 @@ local r = Def.ActorFrame{
 			pl = SONGMAN:GetActivePlaylist()
 			if pl then	
 				keylist = pl:GetChartlist()
+				chartlist = pl:GetChartlistActual()
 				ratelist = pl:GetRatelist()
 				for j=1,#keylist do
 					songlist[j] = SONGMAN:GetSongByChartKey(keylist[j])
@@ -124,11 +126,15 @@ local r = Def.ActorFrame{
 		end
 	end,
 	LoadFont("Common Large") .. {
-		InitCommand=cmd(xy,rankingX,rankingY;zoom,0.4;halign,0),
-		DisplayCommand=function(self)
+		InitCommand=cmd(xy,rankingX,rankingY;zoom,0.4;halign,0;maxwidth,725),
+		DisplayPlaylistMessageCommand=function(self)
 			self:settext(pl:GetName())
+			self:visible(true)
+		end,
+		DisplayAllMessageCommand=function(self)
+			self:visible(false)
 		end
-	}
+	}	
 }
 
 
@@ -141,7 +147,7 @@ local function RateDisplayButton(i)
 		LoadFont("Common Large") .. {
 			Name="Text",
 			DisplayPlaylistCommand=function(self)
-				local ratestring = string.format("%.2f", ratelist[i]):gsub("%.?0+$", "").."x"
+				local ratestring = string.format("%.2f", chartlist[i]:GetRate()):gsub("%.?0+$", "").."x"
 				self:settext(ratestring)
 				self:GetParent():queuecommand("Resize")
 			end
@@ -151,13 +157,13 @@ local function RateDisplayButton(i)
 			InitCommand=cmd(diffusealpha,buttondiffuse),
 			MouseLeftClickMessageCommand=function(self)
 				if ButtonActive(self,fontScale) then
-					pl:ChangeRateAtIndex(i,0.1)
+					chartlist[i]:ChangeRate(0.1)
 					BroadcastIfActive("DisplayPlaylist")
 				end
 			end,
 			MouseRightClickMessageCommand=function(self)
 				if ButtonActive(self,fontScale) then
-					pl:ChangeRateAtIndex(i,-0.1)
+					chartlist[i]:ChangeRate(-0.1)
 					BroadcastIfActive("DisplayPlaylist")
 				end
 			end
@@ -176,15 +182,20 @@ local function TitleDisplayButton(i)
 			Name="Text",
 			InitCommand=cmd(halign,0),
 			DisplayPlaylistCommand=function(self)
-				self:settext(songlist[i]:GetDisplayMainTitle())
+				self:settext(chartlist[i]:GetSongTitle())
 				self:GetParent():queuecommand("Resize")
+				if chartlist[i]:IsLoaded() then
+					self:diffuse(getMainColor("positive"))
+				else
+					self:diffuse(byJudgment("TapNoteScore_Miss"))
+				end
 			end
 		},
 		Def.Quad{
 			Name="Button",
 			InitCommand=cmd(diffusealpha,buttondiffuse;halign,0),
 			MouseLeftClickMessageCommand=function(self)
-				if ButtonActive(self,fontScale) then
+				if ButtonActive(self,fontScale) and chartlist[i]:IsLoaded() then
 					whee:SelectSong(songlist[i])
 				end
 			end
@@ -193,7 +204,9 @@ local function TitleDisplayButton(i)
 	return o
 end
 	
-local function rankingLabel(i)	
+local function rankingLabel(i)
+	local chart
+	local chartloaded
 	local t = Def.ActorFrame{
 		InitCommand=function(self)
 			self:xy(rankingX + offsetX, rankingY + offsetY + 10 + (i-1)*scoreYspacing)
@@ -203,12 +216,14 @@ local function rankingLabel(i)
 		DisplayAllMessageCommand=cmd(visible,false),
 		DisplayPPMessageCommand=function(self)
 			if update then
-				if songlist[i] then
+				chart = chartlist[i]
+				if chart then
+					chartloaded = chartlist[i]:IsLoaded()
 					self:visible(true)
 					self:RunCommandsOnChildren(cmd(queuecommand, "DisplayPlaylist",visible,true))
 				end
 			else
-				self:visible(false)
+				self:visible(true)
 			end
 		end,
 		LoadFont("Common Large") .. {
@@ -228,18 +243,29 @@ local function rankingLabel(i)
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(x,256;maxwidth,160),
 			DisplayPlaylistCommand=function(self)
-				local rating = stepslist[i]:GetMSD(1,ratelist[i])
-				self:settextf("%.2f", rating)
-				self:diffuse(ByMSD(rating))
+				if chartloaded then
+					local rating = stepslist[i]:GetMSD(chart:GetRate(),1)
+					self:settextf("%.2f", rating)
+					self:diffuse(ByMSD(rating))
+				else
+					local rating = 0
+					self:settextf("%.2f", rating)
+					self:diffuse(byJudgment("TapNoteScore_Miss"))
+				end
 			end
 		},
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(x,300),
 			DisplayPlaylistCommand=function(self)
-				local diff = stepslist[i]:GetDifficulty()
 				self:halign(0.5)
-				self:diffuse(byDifficulty(diff))
-				self:settext(getShortDifficulty(diff))
+				local diff = chart:GetDifficulty()
+				if chartloaded then
+					self:diffuse(byDifficulty(diff))
+					self:settext(getShortDifficulty(diff))
+				else
+					self:diffuse(byJudgment("TapNoteScore_Miss"))
+					self:settext(getShortDifficulty(diff))
+				end
 			end
 		}
 	}
@@ -250,12 +276,14 @@ end
 
 
 local b2 = Def.ActorFrame{
-	InitCommand=cmd(xy,260,40;zoom,0.3),
+	InitCommand=cmd(xy,70,frameHeight-10;zoom,0.3),
 	DisplayAllMessageCommand=cmd(visible,false),
 	DisplayPlaylistMessageCommand=cmd(visible,true)
 }
 
-b2[#b2+1] = makesimpletextbutton("Add Chart", function() pl:AddChart(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey()) end)
+b2[#b2+1] = makesimpletextbutton(0,0,"Queue Playlist", function() end)
+b2[#b2+1] = makesimpletextbutton(430,0,"Play As Course", function() end)
+b2[#b2+1] = makesimpletextbutton(800,0,"Add Chart", function() pl:AddChart(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey()) end)
 r[#r+1] = b2
 
 
@@ -344,12 +372,6 @@ local playlists = Def.ActorFrame{
 		self:visible(true)
 		allplaylists = SONGMAN:GetPlaylists()
 		self:RunCommandsOnChildren(cmd(queuecommand, "Display"))
-	end,
-	MouseRightClickMessageCommand=function(self)
-		if update then
-			setTabIndex(7)
-			MESSAGEMAN:Broadcast("TabChanged")
-		end
 	end
 }
 
@@ -359,7 +381,7 @@ local b = Def.ActorFrame{
 	DisplayAllMessageCommand=cmd(visible,true)
 }
 
-b[#b+1] = makesimpletextbutton("New Playlist", function() SONGMAN:NewPlaylist() end)
+b[#b+1] = makesimpletextbutton(0,0,"New Playlist", function() SONGMAN:NewPlaylist() end)
 playlists[#playlists+1] = b
 
 for i=1,scoresperpage do
