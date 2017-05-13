@@ -204,7 +204,7 @@ void Playlist::LoadFromNode(const XNode* node) {
 	}
 
 	for (size_t i = 0; i < chartlist.size(); ++i)
-		chartrates.emplace_back(1.f);
+		chartrates.emplace_back(chartlist[i].rate);
 }
 
 vector<string> Playlist::GetKeys() {
