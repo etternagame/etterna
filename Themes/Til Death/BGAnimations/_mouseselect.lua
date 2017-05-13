@@ -45,7 +45,11 @@ local function mouseInput(event)
 			if m == 0 or doot == "WheelItemDataType_Section" then
 				top:SelectCurrent(0)
 			end
-		
+		end
+	elseif event.DeviceInput.button == "DeviceButton_right mouse button" and event.type == "InputEventType_FirstPress"then
+		if INPUTFILTER:GetMouseX() > capWideScale(370,500) then
+			setTabIndex(7)
+			MESSAGEMAN:Broadcast("TabChanged")
 		end
 	end
 end
