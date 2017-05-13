@@ -34,13 +34,15 @@ struct Chart {
 	string key;
 	RString lastsong;
 	RString lastpack;
-	Difficulty lastdiff;
-	
+	Difficulty lastdiff = Difficulty_Invalid;
+	float rate = 1.f;
 	Song* songptr;
 	Steps* stepsptr;
 
-	bool loaded;
+	bool loaded = false;
 	void FromKey(const string& ck);
+	XNode * CreateNode() const;
+	void LoadFromNode(const XNode * node);
 };
 
 struct Playlist {

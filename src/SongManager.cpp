@@ -147,35 +147,47 @@ void Chart::FromKey(const string& ck) {
 	Song* song = SONGMAN->GetSongByChartkey(ck);
 	if (song) {
 		Steps* steps = SONGMAN->GetStepsByChartkey(ck);
+		key = ck;
+
 		lastpack = song->GetSongDir();
 		lastsong = song->GetDisplayMainTitle();
 		lastdiff = steps->GetDifficulty();
 		loaded = true;
 		songptr = song;
 		stepsptr = steps;
-		key = ck;
 		LOG->Trace(songptr->GetDisplayMainTitle());
 	}
 	loaded = false;
 }
 
+XNode* Chart::CreateNode() const {
+	XNode* ch = new XNode("Chart");
+	ch->AppendAttr("Key", key);
+	ch->AppendAttr("Pack", lastpack);
+	ch->AppendAttr("Song", lastsong);
+	ch->AppendAttr("Steps", DifficultyToString(lastdiff));
+	ch->AppendAttr("Rate", ssprintf("%.3f",rate));
+	return ch;
+}
+
+void Chart::LoadFromNode(const XNode* node) {
+	ASSERT(node->GetName() == "Chart");
+	RString s;
+	node->GetAttrValue("Pack", lastpack);
+	node->GetAttrValue("Song", lastsong);
+	//node->GetAttrValue("Steps", s); lastdiff = StringToDifficulty(s);
+	node->GetAttrValue("Rate", s);	rate = StringToFloat(s);
+	node->GetAttrValue("Key", s); key = s;
+
+	// check if this chart is loaded and overwrite any last-seen values with updated ones
+	FromKey(key);
+}
+
 XNode* Playlist::CreateNode() const {
 	XNode* pl = new XNode("Playlist");
 	pl->AppendAttr("Name", name);
-	FOREACH_CONST(Chart, chartlist, ch) {
-		XNode* chart = new XNode(ch->key);
-		Song* song = SONGMAN->GetSongByChartkey(ch->key);
-		if (song) {
-			chart->AppendAttr("Pack", song->m_sGroupName);
-			chart->AppendAttr("Song", song->GetDisplayMainTitle());
-			
-		}
-		else {
-			chart->AppendAttr("Pack", ch->lastpack);
-			chart->AppendAttr("Song", ch->lastsong);
-		}
-		pl->AppendChild(chart);
-	}
+	FOREACH_CONST(Chart, chartlist, ch)
+		pl->AppendChild(ch->CreateNode());
 		
 	return pl;
 }
@@ -184,15 +196,7 @@ void Playlist::LoadFromNode(const XNode* node) {
 	node->GetAttrValue("Name", name);
 	FOREACH_CONST_Child(node, chart) {
 		Chart ch;
-		ch.key = chart->GetName();
-		chart->GetAttrValue("Pack", ch.lastpack);
-		chart->GetAttrValue("Song", ch.lastsong);
-
-		Song* song = SONGMAN->GetSongByChartkey(ch.key);
-		if (song) {
-			ch.lastpack = song->m_sGroupName;
-			ch.lastsong = song->GetDisplayMainTitle();
-		}
+		ch.LoadFromNode(chart);
 		chartlist.emplace_back(ch);
 	}
 
