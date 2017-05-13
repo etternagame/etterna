@@ -295,7 +295,7 @@ end
 local function PlaylistSelectLabel(i)
 	local t = Def.ActorFrame{
 		InitCommand=function(self)
-			self:xy(rankingX + offsetX, rankingY + offsetY + 10 + (i-1)*PlaylistYspacing)
+			self:xy(rankingX + offsetX, rankingY + offsetY + 20 + (i-1)*PlaylistYspacing)
 			self:RunCommandsOnChildren(cmd(halign,0;zoom,fontScale))
 			self:visible(true)
 		end,
@@ -347,7 +347,8 @@ local playlists = Def.ActorFrame{
 	end,
 	MouseRightClickMessageCommand=function(self)
 		if update then
-			MESSAGEMAN:Broadcast("DislayAll")
+			setTabIndex(7)
+			MESSAGEMAN:Broadcast("TabChanged")
 		end
 	end
 }
