@@ -1427,7 +1427,7 @@ public:
 
 	static int GetPlaylists(T* p, lua_State *L)
 	{
-		int idx = 0;
+		int idx = 1;
 		lua_newtable(L);
 		FOREACHM(string, Playlist, p->allplaylists, pl) {
 			pl->second.PushSelf(L);
