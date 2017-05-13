@@ -344,6 +344,11 @@ local playlists = Def.ActorFrame{
 		self:visible(true)
 		allplaylists = SONGMAN:GetPlaylists()
 		self:RunCommandsOnChildren(cmd(queuecommand, "Display"))
+	end,
+	MouseRightClickMessageCommand=function(self)
+		if update then
+			MESSAGEMAN:Broadcast("DislayAll")
+		end
 	end
 }
 
