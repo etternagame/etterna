@@ -39,10 +39,13 @@ struct Chart {
 	Song* songptr;
 	Steps* stepsptr;
 
+	bool IsLoaded() { return loaded; }
+
 	bool loaded = false;
 	void FromKey(const string& ck);
 	XNode * CreateNode() const;
 	void LoadFromNode(const XNode * node);
+	void PushSelf(lua_State *L);
 };
 
 struct Playlist {

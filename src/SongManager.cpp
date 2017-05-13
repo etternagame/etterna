@@ -156,6 +156,7 @@ void Chart::FromKey(const string& ck) {
 		songptr = song;
 		stepsptr = steps;
 		LOG->Trace(songptr->GetDisplayMainTitle());
+		return;
 	}
 	loaded = false;
 }
@@ -1478,7 +1479,6 @@ public:
 LUA_REGISTER_CLASS( SongManager )
 
 
-/** @brief Allow Lua to have access to the SongManager. */
 class LunaPlaylist : public Luna<Playlist>
 {
 public:
@@ -1486,6 +1486,17 @@ public:
 	{
 		vector<string> keys = p->GetKeys();
 		LuaHelpers::CreateTableFromArray(keys, L);
+		return 1;
+	}
+
+	static int GetChartlistActual(T* p, lua_State *L)
+	{
+		lua_newtable(L);
+		for (size_t i = 0; i < p->chartlist.size(); ++i)
+		{
+			p->chartlist[i].PushSelf(L);
+			lua_rawseti(L, -2, i + 1);
+		}
 		return 1;
 	}
 	
@@ -1539,6 +1550,7 @@ public:
 	{
 		ADD_METHOD(AddChart);
 		ADD_METHOD(GetChartlist);
+		ADD_METHOD(GetChartlistActual);
 		ADD_METHOD(GetNumCharts);
 		ADD_METHOD(GetRatelist);
 		ADD_METHOD(GetName);
@@ -1549,6 +1561,36 @@ public:
 };
 
 LUA_REGISTER_CLASS(Playlist)
+
+
+class LunaChart : public Luna<Chart>
+{
+public:
+	DEFINE_METHOD(GetRate, rate);
+	DEFINE_METHOD(IsLoaded, IsLoaded());
+	DEFINE_METHOD(GetDifficulty, lastdiff);
+	DEFINE_METHOD(GetSongTitle, lastsong);
+	DEFINE_METHOD(GetPackName, lastpack);
+
+	static int ChangeRate(T* p, lua_State *L)
+	{
+		p->rate += FArg(1);
+		CLAMP(p->rate, 0.7f, 3.f);
+		return 1;
+	}
+
+	LunaChart()
+	{
+		ADD_METHOD(GetRate);
+		ADD_METHOD(ChangeRate);
+		ADD_METHOD(GetDifficulty);
+		ADD_METHOD(GetSongTitle);
+		ADD_METHOD(GetPackName);
+		ADD_METHOD(IsLoaded);
+	}
+};
+
+LUA_REGISTER_CLASS(Chart)
 // lua end
 
 /*
