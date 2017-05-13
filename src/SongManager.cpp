@@ -172,6 +172,7 @@ XNode* Chart::CreateNode() const {
 
 void Chart::LoadFromNode(const XNode* node) {
 	ASSERT(node->GetName() == "Chart");
+
 	RString s;
 	node->GetAttrValue("Pack", lastpack);
 	node->GetAttrValue("Song", lastsong);
@@ -193,6 +194,8 @@ XNode* Playlist::CreateNode() const {
 }
 
 void Playlist::LoadFromNode(const XNode* node) {
+	ASSERT(node->GetName() == "Playlist");
+
 	node->GetAttrValue("Name", name);
 	FOREACH_CONST_Child(node, chart) {
 		Chart ch;
