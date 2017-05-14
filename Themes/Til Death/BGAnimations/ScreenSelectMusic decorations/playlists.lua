@@ -38,6 +38,9 @@ local rankingTitleSpacing = (rankingWidth/(#ms.SkillSets))
 local buttondiffuse = 0.4
 local whee
 
+local singleplaylistactive = false
+local allplaylistsactive = true
+
 local PlaylistYspacing = 30
 local playliststodisplay = 10
 
@@ -67,36 +70,6 @@ local function ButtonActive(self,scale)
 	return isOverScaled(self,scale) and update
 end
 
-local function makesimpletextbutton(xval, yval, buttontext, leftcmd, rightcmd)
-	local o = Def.ActorFrame{
-		OnCommand=function(self)
-			self:GetChild("Button"):zoomto(self:GetChild("Text"):GetWidth(),self:GetChild("Text"):GetHeight())
-		end,
-		LoadFont("Common Large") .. {
-			Name="Text",
-			InitCommand=cmd(xy,xval,yval;settext,buttontext)
-		},
-		Def.Quad{
-			Name="Button",
-			InitCommand=cmd(diffusealpha,buttondiffuse),
-			MouseLeftClickMessageCommand=function(self)
-				if isOver(self) and update then
-					self:queuecommand("ButtonLeft")
-				end
-			end,
-			ButtonLeftCommand=leftcmd,
-			MouseRightClickMessageCommand=function(self)
-				if isOver(self) and update then
-					self:queuecommand("ButtonRight")
-				end
-			end,
-			ButtonRightCommand=rightcmd
-		}
-	}
-	return o
-end
-
-
 local r = Def.ActorFrame{
 	InitCommand=function(self)
 		self:xy(frameX,frameY)
@@ -107,7 +80,10 @@ local r = Def.ActorFrame{
 	DisplayPlaylistMessageCommand=function(self)
 		if update then
 			pl = SONGMAN:GetActivePlaylist()
-			if pl then	
+			if pl then
+				singleplaylistactive = true
+				allplaylistsactive = false
+				
 				keylist = pl:GetChartlist()
 				chartlist = pl:GetChartlistActual()
 				ratelist = pl:GetRatelist()
@@ -120,21 +96,25 @@ local r = Def.ActorFrame{
 				--stepslist = pl:GetStepslist()
 				self:visible(true)
 				self:RunCommandsOnChildren(cmd(queuecommand, "DisplayPP"))
+			else
+				singleplaylistactive = false
 			end
 		else
 			self:visible(false)
 		end
 	end,
 	LoadFont("Common Large") .. {
-		InitCommand=cmd(xy,rankingX,rankingY;zoom,0.4;halign,0;maxwidth,725),
+		InitCommand=cmd(xy,rankingX,rankingY;zoom,0.4;halign,0;maxwidth,480),
 		DisplayPlaylistMessageCommand=function(self)
 			self:settext(pl:GetName())
 			self:visible(true)
 		end,
 		DisplayAllMessageCommand=function(self)
 			self:visible(false)
+			singleplaylistactive = false
+			allplaylistsactive = true
 		end
-	}	
+	}
 }
 
 
@@ -156,13 +136,13 @@ local function RateDisplayButton(i)
 			Name="Button",
 			InitCommand=cmd(diffusealpha,buttondiffuse),
 			MouseLeftClickMessageCommand=function(self)
-				if ButtonActive(self,fontScale) then
+				if ButtonActive(self,fontScale) and singleplaylistactive then
 					chartlist[i]:ChangeRate(0.1)
 					BroadcastIfActive("DisplayPlaylist")
 				end
 			end,
 			MouseRightClickMessageCommand=function(self)
-				if ButtonActive(self,fontScale) then
+				if ButtonActive(self,fontScale) and singleplaylistactive then
 					chartlist[i]:ChangeRate(-0.1)
 					BroadcastIfActive("DisplayPlaylist")
 				end
@@ -195,7 +175,7 @@ local function TitleDisplayButton(i)
 			Name="Button",
 			InitCommand=cmd(diffusealpha,buttondiffuse;halign,0),
 			MouseLeftClickMessageCommand=function(self)
-				if ButtonActive(self,fontScale) and chartlist[i]:IsLoaded() then
+				if ButtonActive(self,fontScale) and chartlist[i]:IsLoaded() and singleplaylistactive then
 					whee:SelectSong(songlist[i])
 				end
 			end
@@ -275,15 +255,41 @@ local function rankingLabel(i)
 end
 
 
+-- Buttons for individual playlist manipulation
 local b2 = Def.ActorFrame{
-	InitCommand=cmd(xy,70,frameHeight-10;zoom,0.3),
+	InitCommand=cmd(xy,65,frameHeight-10),
 	DisplayAllMessageCommand=cmd(visible,false),
 	DisplayPlaylistMessageCommand=cmd(visible,true)
 }
 
-b2[#b2+1] = makesimpletextbutton(0,0,"Queue Playlist", function() end)
-b2[#b2+1] = makesimpletextbutton(430,0,"Play As Course", function() end)
-b2[#b2+1] = makesimpletextbutton(800,0,"Add Chart", function() pl:AddChart(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey()) end)
+-- Add chart button
+b2[#b2+1] = LoadFont("Common Large") .. {InitCommand=cmd(zoom,0.3;x,250;settext,"Add Chart")}
+b2[#b2+1] = Def.Quad{
+	InitCommand=cmd(x,250;diffusealpha,buttondiffuse;zoomto,80,20),
+	MouseLeftClickMessageCommand=function(self)
+		if ButtonActive(self) and singleplaylistactive then
+			pl:AddChart(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())
+		end
+	end
+}
+-- Queue Playlist button
+b2[#b2+1] = LoadFont("Common Large") .. {InitCommand=cmd(zoom,0.3;x,130;settext,"Queue As Playlist")}
+b2[#b2+1] = Def.Quad{
+	InitCommand=cmd(x,130;diffusealpha,buttondiffuse;zoomto,130,20),
+	MouseLeftClickMessageCommand=function(self)
+		if ButtonActive(self,0.3) and singleplaylistactive then
+		end
+	end
+}
+-- Play As Course button
+b2[#b2+1] = LoadFont("Common Large") .. {InitCommand=cmd(zoom,0.3;settext,"Play As Course")}
+b2[#b2+1] = Def.Quad{
+	InitCommand=cmd(diffusealpha,buttondiffuse;zoomto,110,20),
+	MouseLeftClickMessageCommand=function(self)
+		if ButtonActive(self,0.3) and singleplaylistactive then
+		end
+	end
+}
 r[#r+1] = b2
 
 
@@ -309,7 +315,7 @@ local function PlaylistTitleDisplayButton(i)
 			Name="Button",
 			InitCommand=cmd(diffusealpha,buttondiffuse;halign,0),
 			MouseLeftClickMessageCommand=function(self)
-				if ButtonActive(self,fontScale) then
+				if ButtonActive(self,fontScale) and allplaylistsactive then
 					SONGMAN:SetActivePlaylist(allplaylists[i]:GetName())
 					pl = allplaylists[i]
 					MESSAGEMAN:Broadcast("DisplayPlaylist")
@@ -381,7 +387,6 @@ local b = Def.ActorFrame{
 	DisplayAllMessageCommand=cmd(visible,true)
 }
 
-b[#b+1] = makesimpletextbutton(0,0,"New Playlist", function() SONGMAN:NewPlaylist() end)
 playlists[#playlists+1] = b
 
 for i=1,scoresperpage do
