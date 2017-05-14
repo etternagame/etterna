@@ -748,21 +748,6 @@ void GameState::FinishStage()
 		Profile* pProfile = PROFILEMAN->GetProfile(p);
 		pProfile->m_iCurrentCombo = STATSMAN->m_CurStageStats.m_player[p].m_iCurCombo;
 	}
-
-	if( m_bDemonstrationOrJukebox )
-		return;
-
-	// todo: simplify. profile saving is accomplished in ScreenProfileSave
-	// now; all this code does differently is save machine profile as well. -aj
-	if( IsEventMode() )
-	{
-		const int iSaveProfileEvery = 3;
-		if( iOldStageIndex/iSaveProfileEvery < m_iCurrentStageIndex/iSaveProfileEvery )
-		{
-			LOG->Trace( "Played %i stages; saving profiles ...", iSaveProfileEvery );
-			this->SavePlayerProfiles();
-		}
-	}
 }
 
 void GameState::LoadCurrentSettingsFromProfile( PlayerNumber pn )
