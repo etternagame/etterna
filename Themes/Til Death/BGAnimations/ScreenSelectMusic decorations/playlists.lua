@@ -263,9 +263,9 @@ local b2 = Def.ActorFrame{
 }
 
 -- Add chart button
-b2[#b2+1] = LoadFont("Common Large") .. {InitCommand=cmd(zoom,0.3;x,250;settext,"Add Chart")}
+b2[#b2+1] = LoadFont("Common Large") .. {InitCommand=cmd(zoom,0.3;x,245;settext,"Add Chart")}
 b2[#b2+1] = Def.Quad{
-	InitCommand=cmd(x,250;diffusealpha,buttondiffuse;zoomto,80,20),
+	InitCommand=cmd(x,245;diffusealpha,buttondiffuse;zoomto,80,20),
 	MouseLeftClickMessageCommand=function(self)
 		if ButtonActive(self) and singleplaylistactive then
 			pl:AddChart(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())
@@ -381,10 +381,22 @@ local playlists = Def.ActorFrame{
 	end
 }
 
+-- Buttons for general playlist manipulation
 local b = Def.ActorFrame{
-	InitCommand=cmd(xy,100,frameHeight+20;zoom,0.3),
+	InitCommand=cmd(xy,100,frameHeight+30),
 	DisplayPlaylistMessageCommand=cmd(visible,false),
 	DisplayAllMessageCommand=cmd(visible,true)
+}
+
+-- New Playlist
+b[#b+1] = LoadFont("Common Large") .. {InitCommand=cmd(zoom,0.3;settext,"New Playlist")}
+b[#b+1] = Def.Quad{
+	InitCommand=cmd(diffusealpha,buttondiffuse;zoomto,110,20),
+	MouseLeftClickMessageCommand=function(self)
+		if ButtonActive(self,0.3) and allplaylistsactive then
+			SONGMAN:NewPlaylist()
+		end
+	end
 }
 
 playlists[#playlists+1] = b
