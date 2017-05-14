@@ -104,7 +104,7 @@ local r = Def.ActorFrame{
 		end
 	end,
 	LoadFont("Common Large") .. {
-		InitCommand=cmd(xy,rankingX,rankingY;zoom,0.4;halign,0;maxwidth,480),
+		InitCommand=cmd(xy,rankingX,rankingY;zoom,0.4;halign,0;maxwidth,720),
 		DisplayPlaylistMessageCommand=function(self)
 			self:settext(pl:GetName())
 			self:visible(true)
@@ -303,7 +303,7 @@ local function PlaylistTitleDisplayButton(i)
 		end,
 		LoadFont("Common Large") .. {
 			Name="Text",
-			InitCommand=cmd(halign,0),
+			InitCommand=cmd(halign,0;maxwidth,frameWidth * 3 + 140),
 			AllDisplayCommand=function(self)
 				if allplaylists[i] then
 					self:settext(allplaylists[i]:GetName())
