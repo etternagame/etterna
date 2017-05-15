@@ -1871,6 +1871,16 @@ public:
 		lua_pushnumber(L, p->GetSelectionState());
 		return 1;
 	}
+
+	static int StartPlaylistAsCourse(T* p, lua_State *L)
+	{
+		SONGMAN->playlistcourse = SArg(1);
+		Playlist& pl = SONGMAN->allplaylists[SONGMAN->playlistcourse];
+		p->GetMusicWheel()->SelectSong(pl.chartlist[0].songptr);
+		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = pl.chartlist[0].rate;
+		p->SelectCurrent(PLAYER_1);
+		return 1;
+	}
 	LunaScreenSelectMusic()
 	{
   		ADD_METHOD( GetGoToOptions );
@@ -1879,6 +1889,7 @@ public:
 		ADD_METHOD( CanOpenOptionsList );
 		ADD_METHOD( SelectCurrent );
 		ADD_METHOD( GetSelectionState );
+		ADD_METHOD(StartPlaylistAsCourse);
 	}
 };
 

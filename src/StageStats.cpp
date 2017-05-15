@@ -291,7 +291,6 @@ void StageStats::FinalizeScores( bool bSummary )
 			// new score structure -mina
 			Profile* zzz = PROFILEMAN->GetProfile(PLAYER_1);
 			SCOREMAN->AddScore(hs);
-			LOG->Warn("added a scaore");
 			zzz->SetAnyAchievedGoals(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey(), GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate, hs);
 		}
 	}
