@@ -356,10 +356,12 @@ bool Steps::IsRecalcValid() {
 }
 
 float Steps::GetMSD(float x, int i) const {
+	if (x > 2.f)	// just extrapolate from 2x+
+		return stuffnthings[13][i] + stuffnthings[13][i] * ((x - 2.f) * .5f);
+
 	int idx = static_cast<int>(x * 10) - 7;
-	CLAMP(idx, 0, 13);	// prevent crashes due to people setting rate mod below 0.7 or above 2.0 somehow - mina
 	float prop = fmod(x * 10.f, 1.f);
-	if ( prop == 0)
+	if (prop == 0 && x <= 2.f)
 		return stuffnthings[idx][i];
 	return lerp(prop, stuffnthings[idx][i], stuffnthings[idx + 1][i]);
 }
@@ -693,7 +695,7 @@ public:
 	static int GetMSD(T* p, lua_State *L) {
 		float rate = FArg(1);
 		int index = IArg(2)-1;
-		CLAMP(rate, 0.7f, 2.f);
+		CLAMP(rate, 0.7f, 3.f);
 		lua_pushnumber(L, p->GetMSD(rate, index));
 		return 1;
 	}
