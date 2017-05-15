@@ -1876,6 +1876,12 @@ public:
 	{
 		SONGMAN->playlistcourse = SArg(1);
 		Playlist& pl = SONGMAN->allplaylists[SONGMAN->playlistcourse];
+
+		// dont allow playlists with an unloaded chart to be played as a course
+		FOREACH(Chart, pl.chartlist, ch)
+			if (!ch->loaded)
+				return 1;
+
 		p->GetMusicWheel()->SelectSong(pl.chartlist[0].songptr);
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = pl.chartlist[0].rate;
 		p->SelectCurrent(PLAYER_1);
