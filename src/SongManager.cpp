@@ -155,7 +155,6 @@ void Chart::FromKey(const string& ck) {
 		loaded = true;
 		songptr = song;
 		stepsptr = steps;
-		LOG->Trace(songptr->GetDisplayMainTitle());
 		return;
 	}
 	loaded = false;
@@ -183,6 +182,16 @@ void Chart::LoadFromNode(const XNode* node) {
 
 	// check if this chart is loaded and overwrite any last-seen values with updated ones
 	FromKey(key);
+}
+
+void Playlist::AddChart(const string & ck)
+{
+	float rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+	Chart ch;
+	ch.FromKey(ck);
+	ch.rate = rate;
+	chartlist.emplace_back(ch);
+	chartrates.emplace_back(rate);
 }
 
 XNode* Playlist::CreateNode() const {

@@ -53,7 +53,7 @@ struct Playlist {
 	vector<Chart> chartlist;
 	vector<float> chartrates;
 	void Add(Chart ch) { chartlist.emplace_back(ch); }
-	void AddChart(const string& ck) { Chart ch; ch.FromKey(ck); chartlist.emplace_back(ch); chartrates.emplace_back(1.f); }
+	void AddChart(const string& ck);
 	void SwapPosition();
 
 	void Create();
