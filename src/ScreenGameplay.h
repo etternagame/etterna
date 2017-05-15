@@ -243,6 +243,7 @@ protected:
 	 * The size can be greater than 1 if playing a course. */
 	vector<Song*>		m_apSongsQueue;
 	vector<float>		ratesqueue;
+	vector<string>		playlistscorekeys;
 
 	float			m_fTimeSinceLastDancingComment;	// this counter is only running while STATE_DANCING
 

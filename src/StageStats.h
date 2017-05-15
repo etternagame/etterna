@@ -69,6 +69,8 @@ public:
 	PlayerStageStats m_multiPlayer[NUM_MultiPlayer];
 
 	void FinalizeScores( bool bSummary );
+	string mostrecentscorekey;
+
 	/**
 	 * @brief Determine if the PlayerNumber has a high score.
 	 * @param pn the PlayerNumber in question.

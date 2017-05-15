@@ -57,7 +57,7 @@ struct Playlist {
 	void SwapPosition();
 
 	void Create();
-	
+	vector<vector<string>> courseruns;
 
 	XNode* CreateNode() const;
 	void LoadFromNode(const XNode* node);

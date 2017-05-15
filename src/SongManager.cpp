@@ -190,7 +190,20 @@ XNode* Playlist::CreateNode() const {
 	pl->AppendAttr("Name", name);
 	FOREACH_CONST(Chart, chartlist, ch)
 		pl->AppendChild(ch->CreateNode());
-		
+	
+	// Proof of concept stuff that will break shit if enabled
+	/*
+	XNode* cr = new XNode("CourseRuns");
+	FOREACH_CONST(vector<string>, courseruns, run) {
+	XNode* r = new XNode("Run");
+	FOREACH_CONST(string, *run, sk) {
+	r->AppendAttr(*sk);
+	}
+	cr->AppendChild(r);
+	}
+	pl->AppendChild(cr);
+	*/
+	
 	return pl;
 }
 

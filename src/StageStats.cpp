@@ -222,11 +222,11 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 	return hs;
 }
 
-void StageStats::FinalizeScores( bool bSummary )
+void StageStats::FinalizeScores(bool bSummary)
 {
-	if( PREFSMAN->m_sTestInitialScreen.Get() != "" )
+	if (PREFSMAN->m_sTestInitialScreen.Get() != "")
 	{
-		FOREACH_PlayerNumber( pn )
+		FOREACH_PlayerNumber(pn)
 		{
 			m_player[pn].m_iPersonalHighScoreIndex = 0;
 			m_player[pn].m_iMachineHighScoreIndex = 0;
@@ -234,68 +234,41 @@ void StageStats::FinalizeScores( bool bSummary )
 	}
 
 	// don't save scores if the player chose not to
-	if( !GAMESTATE->m_SongOptions.GetCurrent().m_bSaveScore )
+	if (!GAMESTATE->m_SongOptions.GetCurrent().m_bSaveScore)
 		return;
 
-	LOG->Trace( "saving stats and high scores" );
+	LOG->Trace("saving stats and high scores");
 
 	// generate a HighScore for each player
 
 	// whether or not to save scores when the stage was failed depends on if this
 	// is a course or not... it's handled below in the switch.
-	FOREACH_HumanPlayer( p )
+	FOREACH_HumanPlayer(p)
 	{
 		RString sPlayerGuid = PROFILEMAN->IsPersistentProfile(p) ? PROFILEMAN->GetProfile(p)->m_sGuid : RString("");
-		m_player[p].m_HighScore = FillInHighScore( m_player[p], *GAMESTATE->m_pPlayerState[p], RANKING_TO_FILL_IN_MARKER[p], sPlayerGuid );
+		m_player[p].m_HighScore = FillInHighScore(m_player[p], *GAMESTATE->m_pPlayerState[p], RANKING_TO_FILL_IN_MARKER[p], sPlayerGuid);
 	}
-	FOREACH_EnabledMultiPlayer( mp )
+	FOREACH_EnabledMultiPlayer(mp)
 	{
 		RString sPlayerGuid = "00000000-0000-0000-0000-000000000000";	// FIXME
-		m_multiPlayer[mp].m_HighScore = FillInHighScore( m_multiPlayer[mp], *GAMESTATE->m_pMultiPlayerState[mp], "", sPlayerGuid );
+		m_multiPlayer[mp].m_HighScore = FillInHighScore(m_multiPlayer[mp], *GAMESTATE->m_pMultiPlayerState[mp], "", sPlayerGuid);
 	}
 
-	FOREACH_HumanPlayer( p )
-	{
-		const HighScore &hs = m_player[p].m_HighScore;
-		StepsType st = GAMESTATE->GetCurrentStyle(p)->m_StepsType;
+	const HighScore &hs = m_player[PLAYER_1].m_HighScore;
+	StepsType st = GAMESTATE->GetCurrentStyle(PLAYER_1)->m_StepsType;
 
-		const Song* pSong = GAMESTATE->m_pCurSong;
-		const Steps* pSteps = GAMESTATE->m_pCurSteps[p];
+	const Song* pSong = GAMESTATE->m_pCurSong;
+	const Steps* pSteps = GAMESTATE->m_pCurSteps[PLAYER_1];
 
-		// Don't save DQ'd scores
-		if( hs.GetDisqualified() )
-			continue;
+	ASSERT(pSteps != NULL);
+	PROFILEMAN->AddStepsScore(pSong, pSteps, PLAYER_1, hs, m_player[PLAYER_1].m_iPersonalHighScoreIndex, m_player[PLAYER_1].m_iMachineHighScoreIndex);
+	// new score structure -mina
+	Profile* zzz = PROFILEMAN->GetProfile(PLAYER_1);
+	SCOREMAN->AddScore(hs);
+	zzz->SetAnyAchievedGoals(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey(), GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate, hs);
+	mostrecentscorekey = hs.GetScoreKey();
 
-		// Don't save autoplay scores
-		if( m_bUsedAutoplay )
-			continue;
-
-		if( bSummary )
-		{
-			// don't save scores if any stage was failed
-			if( m_player[p].m_bFailed || m_player[p].GetGrade() == Grade_Invalid ) 
-				continue;
-
-			int iAverageMeter = GetAverageMeter(p);
-			m_player[p].m_rc = AverageMeterToRankingCategory( iAverageMeter );
-
-			PROFILEMAN->AddCategoryScore( st, m_player[p].m_rc, p, hs, m_player[p].m_iPersonalHighScoreIndex, m_player[p].m_iMachineHighScoreIndex );
-
-			// TRICKY: Increment play count here, and not on ScreenGameplay like the others.
-			PROFILEMAN->IncrementCategoryPlayCount( st, m_player[p].m_rc, p );
-		}
-		else
-		{
-			ASSERT( pSteps != NULL );
-			PROFILEMAN->AddStepsScore(pSong, pSteps, p, hs, m_player[p].m_iPersonalHighScoreIndex, m_player[p].m_iMachineHighScoreIndex);
-			// new score structure -mina
-			Profile* zzz = PROFILEMAN->GetProfile(PLAYER_1);
-			SCOREMAN->AddScore(hs);
-			zzz->SetAnyAchievedGoals(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey(), GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate, hs);
-		}
-	}
-
-	LOG->Trace( "done saving stats and high scores" );
+	LOG->Trace("done saving stats and high scores");
 }
 
 bool StageStats::PlayerHasHighScore( PlayerNumber pn ) const

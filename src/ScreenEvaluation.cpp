@@ -230,10 +230,7 @@ void ScreenEvaluation::Init()
 
 	FOREACH_PlayerNumber( p )
 	{
-		if( GAMESTATE->IsPlayerEnabled(p) )
-			grade[p] = m_pStageStats->m_player[p].GetGrade();
-		else
-			grade[p] = Grade_Failed;
+		grade[p] = Grade_Failed;
 	}
 
 	// load sounds

@@ -818,6 +818,11 @@ void ScreenGameplay::InitSongQueues()
 	}
 
 	if (SONGMAN->playlistcourse != "") {
+
+		m_apSongsQueue.clear();
+		FOREACH_EnabledPlayerInfo(m_vPlayerInfo, pi)
+			pi->m_vpStepsQueue.clear();
+
 		Playlist& pl = SONGMAN->allplaylists[SONGMAN->playlistcourse];
 		FOREACH(Chart, pl.chartlist, ch) {
 			m_apSongsQueue.emplace_back(ch->songptr);
@@ -2365,20 +2370,23 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 			bAllReallyFailed, bIsLastSong, m_gave_up,
 			m_skipped_song);
 
-		if (m_apSongsQueue.size() > 1) {
-			m_apSongsQueue.erase(m_apSongsQueue.begin(), m_apSongsQueue.begin() + 1);
 
+		if (SONGMAN->playlistcourse != "") {
+			m_apSongsQueue.erase(m_apSongsQueue.begin(), m_apSongsQueue.begin() + 1);
 			FOREACH_EnabledPlayerInfo(m_vPlayerInfo, pi)
 				pi->m_vpStepsQueue.erase(pi->m_vpStepsQueue.begin(), pi->m_vpStepsQueue.begin() + 1);
 			ratesqueue.erase(ratesqueue.begin(), ratesqueue.begin() + 1);
 
-			GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = ratesqueue[0];
-			GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = ratesqueue[0];
-			GAMESTATE->m_SongOptions.GetStage().m_fMusicRate = ratesqueue[0];
-			GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = ratesqueue[0];
-			
 			this->StageFinished(false);
-			STATSMAN->m_CurStageStats.m_player[PLAYER_1].InternalInit();
+			if (m_apSongsQueue.size() > 0) {
+				GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = ratesqueue[0];
+				GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = ratesqueue[0];
+				GAMESTATE->m_SongOptions.GetStage().m_fMusicRate = ratesqueue[0];
+				GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = ratesqueue[0];
+
+				STATSMAN->m_CurStageStats.m_player[PLAYER_1].InternalInit();
+			}
+			playlistscorekeys.emplace_back(STATSMAN->m_CurStageStats.mostrecentscorekey);
 		}
 		
 
@@ -2440,6 +2448,9 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 		Message msg("SongFinished");
 		MESSAGEMAN->Broadcast(msg);
 		
+		if (SONGMAN->playlistcourse != "")
+			SONGMAN->allplaylists[SONGMAN->playlistcourse].courseruns.emplace_back(playlistscorekeys);
+
 		TweenOffScreen();
 
 		m_Out.StartTransitioning( SM_DoNextScreen );
