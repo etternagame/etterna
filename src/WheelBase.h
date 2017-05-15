@@ -12,7 +12,7 @@
 #include "ThemeMetric.h"
 #include "LuaExpressionTransform.h"
 
-#define NUM_WHEEL_ITEMS		((int)ceil(NUM_WHEEL_ITEMS_TO_DRAW+2))
+#define NUM_WHEEL_ITEMS		(static_cast<int>(ceil(NUM_WHEEL_ITEMS_TO_DRAW+2)))
 
 enum WheelState {
 	STATE_SELECTING,

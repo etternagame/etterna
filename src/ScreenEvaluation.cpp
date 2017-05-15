@@ -376,8 +376,8 @@ void ScreenEvaluation::Init()
 			// todo: convert this to use category names instead of numbers? -aj
 			for( int r=0; r<NUM_SHOWN_RADAR_CATEGORIES; r++ )	// foreach line
 			{
-				float possible= m_pStageStats->m_player[p].m_radarPossible[r];
-				float actual= m_pStageStats->m_player[p].m_radarActual[r];
+				float possible= static_cast<float>(m_pStageStats->m_player[p].m_radarPossible[r]);
+				float actual= static_cast<float>(m_pStageStats->m_player[p].m_radarActual[r]);
 				if(possible > 1.0)
 				{
 					actual /= possible;
@@ -521,7 +521,7 @@ void ScreenEvaluation::Init()
 				DEFAULT_FAIL( l );
 				}
 
-				m_textJudgmentLineNumber[l][p].SetTargetNumber( iValue );
+				m_textJudgmentLineNumber[l][p].SetTargetNumber( static_cast<float>(iValue) );
 			}
 		}
 	}
@@ -580,7 +580,7 @@ void ScreenEvaluation::Init()
 			m_textScore[p].Load( "RollingNumbersEvaluation" );
 			ActorUtil::LoadAllCommands( m_textScore[p], m_sName );
 			SET_XY( m_textScore[p] );
-			m_textScore[p].SetTargetNumber( m_pStageStats->m_player[p].m_iScore );
+			m_textScore[p].SetTargetNumber( static_cast<float>(m_pStageStats->m_player[p].m_iScore) );
 			this->AddChild( &m_textScore[p] );
 		}
 	}
@@ -666,12 +666,7 @@ void ScreenEvaluation::Init()
 		}
 		else
 		{
-			switch( GAMESTATE->m_PlayMode )
-			{
-			default:
-				SOUND->PlayOnceFromDir( ANNOUNCER->GetPathTo("evaluation "+GradeToOldString(best_grade)) );
-				break;
-			}
+			SOUND->PlayOnceFromDir( ANNOUNCER->GetPathTo("evaluation "+GradeToOldString(best_grade)) );
 		}
 	}
 

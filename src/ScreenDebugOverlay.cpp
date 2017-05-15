@@ -852,7 +852,7 @@ static HighScore MakeRandomHighScore( float fPercentDP )
 	RadarValues rv;
 	FOREACH_ENUM( RadarCategory, rc )
 	{
-		rv[rc] = randomf( 0, 1 );
+		rv[rc] = static_cast<int>(randomf( 0, 1 ));
 	}
 	hs.SetRadarValues( rv );
 
