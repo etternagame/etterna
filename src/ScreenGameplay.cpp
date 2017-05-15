@@ -2448,8 +2448,10 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 		Message msg("SongFinished");
 		MESSAGEMAN->Broadcast(msg);
 		
-		if (SONGMAN->playlistcourse != "")
+		if (SONGMAN->playlistcourse != "") {
 			SONGMAN->allplaylists[SONGMAN->playlistcourse].courseruns.emplace_back(playlistscorekeys);
+			SONGMAN->playlistcourse = "";
+		}
 
 		TweenOffScreen();
 
