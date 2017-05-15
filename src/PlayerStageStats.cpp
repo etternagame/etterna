@@ -42,8 +42,8 @@ void PlayerStageStats::InternalInit()
 	m_iPossibleDancePoints = 0;
 	m_iCurPossibleDancePoints = 0;
 	m_iActualDancePoints = 0;
-	m_fWifeScore = 0;
-	m_fTimingScale = 0;
+	m_fWifeScore = 0.f;
+	m_fTimingScale = 0.f;
 	m_vOffsetVector.clear();
 	m_vNoteRowVector.clear();
 	m_iPossibleGradePoints = 0;

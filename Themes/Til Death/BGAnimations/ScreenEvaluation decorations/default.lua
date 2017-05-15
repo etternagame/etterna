@@ -94,7 +94,7 @@ function scoreBoard(pn,position)
 	t[#t+1] = LoadFont("Common Large")..{
 		InitCommand=cmd(xy,frameWidth+frameX,frameY+32;zoom,0.5;halign,1;valign,0;maxwidth,200),
 		BeginCommand=cmd(queuecommand,"Set"),
-		SetCommand=function(self)
+		Se2tCommand=function(self)
 			local meter = score:GetSkillsetSSR("Overall")
 			self:settextf("%5.2f", meter)
 			self:diffuse(ByMSD(meter))
@@ -213,7 +213,7 @@ function scoreBoard(pn,position)
 	t[#t+1] = LoadFont("Common Large")..{
 			InitCommand=cmd(xy,frameX+40,frameY*2.49;zoom,0.25;halign,0),
 			BeginCommand=cmd(queuecommand,"Set"),
-			SetCommand=function(self) 
+			Se2tCommand=function(self) 
 				if score:GetChordCohesion() == true then
 					self:settext("Chord Cohesion: Yes")
 				else

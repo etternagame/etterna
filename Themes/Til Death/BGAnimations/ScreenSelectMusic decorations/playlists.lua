@@ -287,6 +287,7 @@ b2[#b2+1] = Def.Quad{
 	InitCommand=cmd(diffusealpha,buttondiffuse;zoomto,110,20),
 	MouseLeftClickMessageCommand=function(self)
 		if ButtonActive(self,0.3) and singleplaylistactive then
+			pl:PlayAsCourse()
 		end
 	end
 }

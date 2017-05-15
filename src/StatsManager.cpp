@@ -106,42 +106,6 @@ void StatsManager::CalcAccumPlayedStageStats()
 /* This data is added to each player profile, and to the machine profile per-player. */
 void AddPlayerStatsToProfile( Profile *pProfile, const StageStats &ss, PlayerNumber pn )
 {
-	ss.AssertValid( pn );
-
-	StyleID sID;
-	sID.FromStyle( ss.m_player[pn].m_pStyle );
-
-	ASSERT( (int) ss.m_vpPlayedSongs.size() == ss.m_player[pn].m_iStepsPlayed );
-	for( int i=0; i<ss.m_player[pn].m_iStepsPlayed; i++ )
-	{
-		Steps *pSteps = ss.m_player[pn].m_vpPossibleSteps[i];
-
-		pProfile->m_iNumSongsPlayedByPlayMode[ss.m_playMode]++;
-		pProfile->m_iNumSongsPlayedByStyle[sID] ++;
-		pProfile->m_iNumSongsPlayedByDifficulty[pSteps->GetDifficulty()] ++;
-
-		int iMeter = clamp( pSteps->GetMeter(), 0, MAX_METER );
-		pProfile->m_iNumSongsPlayedByMeter[iMeter] ++;
-	}
-	
-	pProfile->m_iTotalDancePoints += ss.m_player[pn].m_iActualDancePoints;
-
-	if( ss.m_Stage == Stage_Extra1 || ss.m_Stage == Stage_Extra2 )
-	{
-		if( ss.m_player[pn].m_bFailed )
-			++pProfile->m_iNumExtraStagesFailed;
-		else
-			++pProfile->m_iNumExtraStagesPassed;
-	}
-
-	// If you fail in a course, you passed all but the final song.
-	// FIXME: Not true.  If playing with 2 players, one player could have failed earlier.
-	if( !ss.m_player[pn].m_bFailed )
-	{
-		pProfile->m_iNumStagesPassedByPlayMode[ss.m_playMode] ++;
-		pProfile->m_iNumStagesPassedByGrade[ss.m_player[pn].GetGrade()] ++;
-	}
-
 	SCOREMAN->RecalculateSSRs();
 	SCOREMAN->CalcPlayerRating(pProfile->m_fPlayerRating, pProfile->m_fPlayerSkillsets);
 }

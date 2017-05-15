@@ -493,11 +493,11 @@ void ScreenGameplay::Init()
 		if(LuaHelpers::RunScriptOnStack(L, err, 2, 3, true))
 		{
 			RString marge= "Margin value must be a number.";
-			margins[PLAYER_1][0]= SafeFArg(L, -3, marge, 40);
-			float center= SafeFArg(L, -2, marge, 80);
+			margins[PLAYER_1][0]= static_cast<float>(SafeFArg(L, -3, marge, 40));
+			float center= static_cast<float>(SafeFArg(L, -2, marge, 80));
 			margins[PLAYER_1][1]= center / 2.0f;
 			margins[PLAYER_2][0]= center / 2.0f;
-			margins[PLAYER_2][1]= SafeFArg(L, -1, marge, 40);
+			margins[PLAYER_2][1]= static_cast<float>(SafeFArg(L, -1, marge, 40));
 		}
 		lua_settop(L, 0);
 		LUA->Release(L);
@@ -815,6 +815,18 @@ void ScreenGameplay::InitSongQueues()
 		Steps *pSteps = GAMESTATE->m_pCurSteps[pi->GetStepsAndTrailIndex()];
 		pi->m_vpStepsQueue.push_back(pSteps);
 		const PlayerOptions &p = pi->GetPlayerState()->m_PlayerOptions.GetCurrent();
+	}
+
+	if (SONGMAN->playlistcourse != "") {
+		Playlist& pl = SONGMAN->allplaylists[SONGMAN->playlistcourse];
+		FOREACH(Chart, pl.chartlist, ch) {
+			m_apSongsQueue.emplace_back(ch->songptr);
+			FOREACH_EnabledPlayerInfo(m_vPlayerInfo, pi)
+			{
+				pi->m_vpStepsQueue.emplace_back(ch->stepsptr);
+				ratesqueue.emplace_back(ch->rate);
+			}
+		}
 	}
 
 	if (GAMESTATE->m_bMultiplayer)
@@ -2216,6 +2228,7 @@ void ScreenGameplay::SaveStats()
 
 void ScreenGameplay::SongFinished()
 {
+
 	FOREACH_EnabledPlayer(pn)
 	{
 		if(GAMESTATE->m_pCurSteps[pn])
@@ -2228,7 +2241,7 @@ void ScreenGameplay::SongFinished()
 }
 
 void ScreenGameplay::StageFinished( bool bBackedOut )
-{
+{	
 	if( bBackedOut )
 	{
 		GAMESTATE->CancelStage();
@@ -2245,7 +2258,6 @@ void ScreenGameplay::StageFinished( bool bBackedOut )
 	FOREACH_HumanPlayer( pn )
 		STATSMAN->m_CurStageStats.m_player[pn].CalcAwards( pn, STATSMAN->m_CurStageStats.m_bGaveUp, STATSMAN->m_CurStageStats.m_bUsedAutoplay );
 	STATSMAN->m_CurStageStats.FinalizeScores( false );
-
 	GAMESTATE->CommitStageStats();
 
 	// save current stage stats
@@ -2346,12 +2358,29 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 		/* If all players have *really* failed (bFailed, not the life meter or
 		 * bFailedEarlier): */
 		const bool bAllReallyFailed = STATSMAN->m_CurStageStats.AllFailed();
-		const bool bIsLastSong = true;
+		const bool bIsLastSong = m_apSongsQueue.size() == 1;
 
 		LOG->Trace( "bAllReallyFailed = %d "
 			"bIsLastSong = %d, m_gave_up = %d, m_skipped_song = %d",
 			bAllReallyFailed, bIsLastSong, m_gave_up,
 			m_skipped_song);
+
+		if (m_apSongsQueue.size() > 1) {
+			m_apSongsQueue.erase(m_apSongsQueue.begin(), m_apSongsQueue.begin() + 1);
+
+			FOREACH_EnabledPlayerInfo(m_vPlayerInfo, pi)
+				pi->m_vpStepsQueue.erase(pi->m_vpStepsQueue.begin(), pi->m_vpStepsQueue.begin() + 1);
+			ratesqueue.erase(ratesqueue.begin(), ratesqueue.begin() + 1);
+
+			GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = ratesqueue[0];
+			GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = ratesqueue[0];
+			GAMESTATE->m_SongOptions.GetStage().m_fMusicRate = ratesqueue[0];
+			GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = ratesqueue[0];
+			
+			this->StageFinished(false);
+			STATSMAN->m_CurStageStats.m_player[PLAYER_1].InternalInit();
+		}
+		
 
 		if(!bIsLastSong && m_skipped_song)
 		{

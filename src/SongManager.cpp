@@ -1543,6 +1543,12 @@ public:
 		MESSAGEMAN->Broadcast(msg);
 		return 1;
 	}
+
+	static int PlayAsCourse(T* p, lua_State *L)
+	{
+		SONGMAN->playlistcourse = p->name;
+		return 1;
+	}
 	
 	DEFINE_METHOD(GetName, GetName());
 	DEFINE_METHOD(GetNumCharts, GetNumCharts())
@@ -1557,6 +1563,7 @@ public:
 		ADD_METHOD(GetSonglist);
 		ADD_METHOD(GetStepslist);
 		ADD_METHOD(ChangeRateAtIndex);
+		ADD_METHOD(PlayAsCourse);
 	}
 };
 

@@ -611,11 +611,17 @@ void Player::Load()
 	for (int i = 0; i <= lastRow; i++)
 		etarD.push_back(m_Timing->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(i)));
 	m_Timing->SetElapsedTimesAtAllRows(etarD);
+	
 	totalwifescore = m_NoteData.WifeTotalScoreCalc(m_Timing, 0, 1073741824);
+	curwifescore = 0.f;
+	maxwifescore = 0.f;
+	
 	m_NoteData.LogNonEmptyRows();
 	nerv = m_NoteData.GetNonEmptyRowVector();
 	vector<float> etaner = m_Timing->BuildAndGetEtaner(nerv);
 	m_pPlayerStageStats->serializednd = m_NoteData.SerializeNoteData(etaner);
+
+	
 
 	Profile *pProfile = PROFILEMAN->GetProfile(pn);
 	HighScore* pb = SCOREMAN->GetChartPBAt(GAMESTATE->m_pCurSteps[pn]->GetChartKey(), GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);

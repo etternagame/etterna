@@ -668,7 +668,10 @@ local t = Def.ActorFrame{
 }
 
 -- Stuff you probably shouldn't turn off, music rate string display
-t[#t+1] = LoadFont("Common Normal")..{InitCommand=cmd(xy,SCREEN_CENTER_X,SCREEN_BOTTOM-10;zoom,0.35;settext,getCurRateDisplayString())}
+t[#t+1] = LoadFont("Common Normal")..{
+	InitCommand=cmd(xy,SCREEN_CENTER_X,SCREEN_BOTTOM-10;zoom,0.35;settext,getCurRateDisplayString()),
+	DoneLoadingNextSongMessageCommand=cmd(settext,getCurRateDisplayString())
+}
 
 
 
@@ -978,12 +981,18 @@ local p = Def.ActorFrame{
 	},
 	LoadFont("Common Normal")..{																		-- title
 		InitCommand=cmd(zoom,0.35;maxwidth,width*2),
-		BeginCommand=cmd(settext,GAMESTATE:GetCurrentSong():GetDisplayMainTitle())
+		BeginCommand=cmd(settext,GAMESTATE:GetCurrentSong():GetDisplayMainTitle()),
+		DoneLoadingNextSongMessageCommand=cmd(settext,GAMESTATE:GetCurrentSong():GetDisplayMainTitle())
 	},
 	LoadFont("Common Normal")..{																		-- total time
 		InitCommand=cmd(x,width/2;zoom,0.35;maxwidth,width*2;halign,1),
 		BeginCommand=function(self)
-		local ttime = GetPlayableTime()
+			local ttime = GetPlayableTime()
+			settext(self,SecondsToMMSS(ttime))
+			diffuse(self, ByMusicLength(ttime))
+		end,
+		DoneLoadingNextSongMessageCommand=function(self)
+			local ttime = GetPlayableTime()
 			settext(self,SecondsToMMSS(ttime))
 			diffuse(self, ByMusicLength(ttime))
 		end

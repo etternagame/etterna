@@ -190,6 +190,7 @@ public:
 
 	map<string, Playlist> allplaylists;
 	string activeplaylist;
+	string playlistcourse;
 protected:
 	void LoadStepManiaSongDir( RString sDir, LoadingWindow *ld );
 	void LoadDWISongDir( const RString &sDir );
