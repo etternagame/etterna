@@ -8,12 +8,12 @@
 ; when they install StepMania 5. (not recommended)
 !define PRODUCT_ID "Stepmania - Etterna"
 ; TODO: This needs to be updated with the git rev hash
-!define PRODUCT_VER "- Etterna v0.54.2 Installer"
+!define PRODUCT_VER "- Etterna v0.55 Installer"
 !define PRODUCT_DISPLAY "${PRODUCT_FAMILY} ${PRODUCT_VER}"
 !define PRODUCT_BITMAP "sm5"
 
-!define PRODUCT_URL "http://www.stepmania.com/"
-!define UPDATES_URL "http://www.stepmania.com/download/"
+!define PRODUCT_URL "https://github.com/xwidghet/stepmania"
+!define UPDATES_URL "https://github.com/xwidghet/stepmania"
 
 ;!define INSTALL_EXTERNAL_PCKS
 ;!define INSTALL_INTERNAL_PCKS
