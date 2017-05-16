@@ -1069,7 +1069,8 @@ t[#t+1] = Def.ActorFrame{
 	LoadFont("Common Normal")..{
 		Name="BPM",
 		InitCommand=cmd(x,SCREEN_CENTER_X;y,SCREEN_BOTTOM-20;halign,0.5;zoom,0.40)
-	}
+	},
+	DoneLoadingNextSongMessageCommand=cmd(queuecommand,"Init")
 }
 
 
