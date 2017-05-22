@@ -124,6 +124,102 @@ void SongManager::Reload( bool bAllowFastLoad, LoadingWindow *ld )
 	UpdatePreferredSort();
 }
 
+// See InitSongsFromDisk for any comment clarification -mina
+int SongManager::DifferentialReload() {
+	int newsongs = 0;
+	SONGINDEX->delay_save_cache = true;
+	newsongs += DifferentialReloadDir(SpecialFiles::SONGS_DIR);
+
+	const bool bOldVal = PREFSMAN->m_bFastLoad;
+	PREFSMAN->m_bFastLoad.Set(PREFSMAN->m_bFastLoadAdditionalSongs);
+	newsongs += DifferentialReloadDir(ADDITIONAL_SONGS_DIR);
+	PREFSMAN->m_bFastLoad.Set(bOldVal);
+	LoadEnabledSongsFromPref();
+	SONGINDEX->SaveCacheIndex();
+	SONGINDEX->delay_save_cache = false;
+
+	return newsongs;
+}
+
+// See LoadStepManiaSongDir for any comment clarification -mina
+int SongManager::DifferentialReloadDir(string dir) {
+	if (dir.substr(dir.size()) != "/")
+		dir += "/";
+
+	int newsongs = 0;
+
+	vector<RString> arrayGroupDirs;
+	GetDirListing(dir + "*", arrayGroupDirs, true);
+	StripCvsAndSvn(arrayGroupDirs);
+	StripMacResourceForks(arrayGroupDirs);
+	SortRStringArray(arrayGroupDirs);
+
+	vector< vector<RString> > arrayGroupSongDirs;
+	int groupIndex, songCount, songIndex;
+
+	groupIndex = 0;
+	songCount = 0;
+	FOREACH_CONST(RString, arrayGroupDirs, s) {
+		RString sGroupDirName = *s;
+		SanityCheckGroupDir(dir + sGroupDirName);
+
+		vector<RString> arraySongDirs;
+		GetDirListing(dir + sGroupDirName + "/*", arraySongDirs, true, true);
+		StripCvsAndSvn(arraySongDirs);
+		StripMacResourceForks(arraySongDirs);
+		SortRStringArray(arraySongDirs);
+
+		arrayGroupSongDirs.push_back(arraySongDirs);
+		songCount += arraySongDirs.size();
+	}
+
+	if (songCount == 0) return 0;
+
+	groupIndex = 0;
+	songIndex = 0;
+	
+	FOREACH_CONST(RString, arrayGroupDirs, s) {
+		RString sGroupDirName = *s;
+		vector<RString> &arraySongDirs = arrayGroupSongDirs[groupIndex++];
+		int loaded = 0;
+
+		SongPointerVector& index_entry = m_mapSongGroupIndex[sGroupDirName];
+		RString group_base_name = Basename(sGroupDirName);
+		for (size_t j = 0; j < arraySongDirs.size(); ++j) {
+			RString sSongDirName = arraySongDirs[j];
+			
+			// skip any dir we've already loaded -mina
+			RString hur = sSongDirName + "/";
+			hur.MakeLower();
+			if (m_SongsByDir.count(hur))
+				continue;
+
+			Song* pNewSong = new Song;
+			if (!pNewSong->LoadFromSongDir(sSongDirName)) {
+				delete pNewSong;
+				continue;
+			}
+
+			AddSongToList(pNewSong);
+			AddKeyedPointers(pNewSong);
+
+			index_entry.push_back(pNewSong);
+
+			loaded++;
+			songIndex++;
+			newsongs++;
+		}
+
+		LOG->Trace("Differential load of %i songs from \"%s\"", loaded, (dir + sGroupDirName).c_str());
+		if (!loaded) continue;
+
+		AddGroup(dir, sGroupDirName);
+		BANNERCACHE->CacheBanner(GetSongGroupBannerPath(sGroupDirName));
+		LoadGroupSymLinks(dir, sGroupDirName);
+	}
+	return newsongs;
+}
+
 void SongManager::InitSongsFromDisk( LoadingWindow *ld )
 {
 	RageTimer tm;
@@ -140,7 +236,7 @@ void SongManager::InitSongsFromDisk( LoadingWindow *ld )
 	SONGINDEX->SaveCacheIndex();
 	SONGINDEX->delay_save_cache= false;
 
-	LOG->Trace( "Found %d songs in %f seconds.", (int)m_pSongs.size(), tm.GetDeltaTime() );
+	LOG->Trace( "Found %i songs in %f seconds.", m_pSongs.size(), tm.GetDeltaTime() );
 }
 
 void Chart::FromKey(const string& ck) { 

@@ -98,6 +98,8 @@ public:
 
 	void InitAll( LoadingWindow *ld );	// songs, groups - everything.
 	void Reload( bool bAllowFastLoad, LoadingWindow *ld=NULL );	// songs, groups - everything.
+	int DifferentialReload();
+	int DifferentialReloadDir(string dir);
 	void PreloadSongImages();
 
 	bool IsGroupNeverCached(const RString& group) const;
