@@ -821,6 +821,8 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 	if (ret != ProfileLoadResult_Success)
 		return ret;
 
+	LoadOldEttFromDir(sDir);
+
 	return ProfileLoadResult_Success;
 }
 
@@ -1957,6 +1959,59 @@ XNode* Profile::SaveEttScoresCreateNode() const {
 void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
 	CHECKPOINT_M("Loading the node that contains song scores.");
 	SCOREMAN->LoadFromNode(pSongScores);
+}
+
+// Old ett.xml format for conversion
+void Profile::LoadOldEttFromDir(RString dir)
+{
+	dir += PROFILEMAN->GetStatsPrefix();
+	// Check for the existance of stats.xml
+	RString fn = dir + "ETT.xml";
+	bool compressed = false;
+	if (!IsAFile(fn))
+		return;
+
+	int iError;
+	unique_ptr<RageFileBasic> pFile(FILEMAN->Open(fn, RageFile::READ, iError));
+	if (pFile.get() == NULL)
+		LOG->Trace("Error opening %s: %s", fn.c_str(), strerror(iError));
+
+	LOG->Trace("Loading %s", fn.c_str());
+	XNode xml;
+	if (!XmlFileUtil::LoadFromFileShowErrors(xml, *pFile.get()))
+		return;
+	LOG->Trace("Done.");
+
+	return LoadOldEttXmlFromNode(&xml);
+}
+
+void Profile::LoadOldEttXmlFromNode(const XNode *xml) {
+	const XNode* scores = xml->GetChild("SongScores");
+	LoadOldEttScoresFromNode(scores);
+}
+
+void Profile::LoadOldEttScoresFromNode(const XNode* pSongScores) {
+	int loaded = 0;
+	CHECKPOINT_M("Loading the node that contains old ett scores.");
+	FOREACH_CONST_Child(pSongScores, pChart) {
+		if (pChart->GetName() != "Chart")
+			continue;
+
+		RString ck;
+		pChart->GetAttrValue("Key", ck);
+
+		const XNode *pRateScores = pChart->GetChild("RateScores");
+		FOREACH_CONST_Child(pRateScores, pRate) {
+			float rate = StringToFloat(pRate->GetName());
+			FOREACH_CONST_Child(pRate, hs) {
+				HighScore tmp;
+				tmp.LoadFromEttNode(hs);
+				SCOREMAN->AddScore(tmp);
+				loaded++;
+			}
+		}
+	}
+	LOG->Trace("loaded %i scores from old ett.xml format", loaded);
 }
 
 // more future goalman stuff

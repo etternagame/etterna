@@ -388,6 +388,11 @@ public:
 	void LoadStatsXmlForConversion();
 	void ImportScoresToEtterna();
 
+	// Temporary to allow conversion from old ett.xml format
+	void LoadOldEttFromDir(RString dir);
+	void LoadOldEttXmlFromNode(const XNode * xml);
+	void LoadOldEttScoresFromNode(const XNode* pSongScores);
+
 	
 	void SaveStatsWebPageToDir( const RString &sDir ) const;
 	void SaveMachinePublicKeyToDir( const RString &sDir ) const;

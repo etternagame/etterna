@@ -336,7 +336,7 @@ XNode *HighScoreImpl::CreateEttNode() const {
 }
 
 void HighScoreImpl::LoadFromEttNode(const XNode *pNode) {
-	ASSERT(pNode->GetName() == "Score");
+	//ASSERT(pNode->GetName() == "Score");
 
 	RString s;	
 	pNode->GetChildValue("SSRCalcVersion", SSRCalcVersion);
