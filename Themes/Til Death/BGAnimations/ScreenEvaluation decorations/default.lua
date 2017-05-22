@@ -1,5 +1,7 @@
 local t = Def.ActorFrame{}
 
+PROFILEMAN:SaveProfile(PLAYER_1)
+
 local scoreType = themeConfig:get_data().global.DefaultScoreType
 
 if GAMESTATE:GetNumPlayersEnabled() == 1 and themeConfig:get_data().eval.ScoreBoardEnabled then
