@@ -169,7 +169,7 @@ int SongManager::DifferentialReloadDir(string dir) {
 		StripMacResourceForks(arraySongDirs);
 		SortRStringArray(arraySongDirs);
 
-		arrayGroupSongDirs.push_back(arraySongDirs);
+		arrayGroupSongDirs.emplace_back(arraySongDirs);
 		songCount += arraySongDirs.size();
 	}
 
@@ -203,7 +203,7 @@ int SongManager::DifferentialReloadDir(string dir) {
 			AddSongToList(pNewSong);
 			AddKeyedPointers(pNewSong);
 
-			index_entry.push_back(pNewSong);
+			index_entry.emplace_back(pNewSong);
 
 			loaded++;
 			songIndex++;
@@ -449,9 +449,9 @@ void SongManager::AddGroup( const RString &sDir, const RString &sGroupDirName )
 				sBannerPath != ""? sBannerPath.c_str():"(none)" );
 	*/
 
-	m_sSongGroupNames.push_back( sGroupDirName );
-	m_sSongGroupBannerPaths.push_back( sBannerPath );
-	//m_sSongGroupBackgroundPaths.push_back( sBackgroundPath );
+	m_sSongGroupNames.emplace_back( sGroupDirName );
+	m_sSongGroupBannerPaths.emplace_back( sBannerPath );
+	//m_sSongGroupBackgroundPaths.emplace_back( sBackgroundPath );
 }
 
 static LocalizedString LOADING_SONGS ( "SongManager", "Loading songs..." );
@@ -505,7 +505,7 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 		StripMacResourceForks( arraySongDirs );
 		SortRStringArray( arraySongDirs );
 
-		arrayGroupSongDirs.push_back(arraySongDirs);
+		arrayGroupSongDirs.emplace_back(arraySongDirs);
 		songCount += arraySongDirs.size();
 
 	}
@@ -556,7 +556,7 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 			AddSongToList(pNewSong);
 			AddKeyedPointers(pNewSong);
 
-			index_entry.push_back( pNewSong );
+			index_entry.emplace_back( pNewSong );
 
 			loaded++;
 			songIndex++;
@@ -613,7 +613,7 @@ void SongManager::LoadGroupSymLinks(const RString &sDir, const RString &sGroupFo
 			pNewSong->m_bIsSymLink = true;	// Very important so we don't double-parse later
 			pNewSong->m_sGroupName = sGroupFolder;
 			AddSongToList(pNewSong);
-			index_entry.push_back( pNewSong );
+			index_entry.emplace_back( pNewSong );
 		}
 	}
 }
@@ -666,7 +666,7 @@ void SongManager::UnlistSong(Song *song)
 {
 	// cannot immediately free song data, as it is needed temporarily for smooth audio transitions, etc.
 	// Instead, remove it from the m_pSongs list and store it in a special place where it can safely be deleted later.
-	m_pDeletedSongs.push_back(song);
+	m_pDeletedSongs.emplace_back(song);
 
 	// remove all occurences of the song in each of our song vectors
 	vector<Song*>* songVectors[3] = { &m_pSongs, &m_pPopularSongs, &m_pShuffledSongs };
@@ -842,7 +842,7 @@ const vector<Song*> &SongManager::GetSongs( const RString &sGroupName ) const
 void SongManager::GetFavoriteSongs(vector<Song*>& songs) const {
 	FOREACH_CONST(Song*, m_pSongs, song) {
 		if ((*song)->IsFavorited())
-			songs.push_back((*song));
+			songs.emplace_back((*song));
 	}
 }
 
@@ -948,7 +948,7 @@ void SongManager::SaveEnabledSongsToPref()
 		SongID sid;
 		sid.FromSong( pSong );
 		if( !pSong->GetEnabled() )
-			vsDisabledSongs.push_back( sid.ToString() );
+			vsDisabledSongs.emplace_back( sid.ToString() );
 	}
 	g_sDisabledSongs.Set( join(";", vsDisabledSongs) );
 }
@@ -1187,7 +1187,7 @@ void SongManager::UpdatePreferredSort(const RString &sPreferredSongs, const RStr
 			{
 				if( !section.vpSongs.empty() )
 				{
-					m_vPreferredSongSort.push_back( section );
+					m_vPreferredSongSort.emplace_back( section );
 					section = PreferredSortSection();
 				}
 
@@ -1208,7 +1208,7 @@ void SongManager::UpdatePreferredSort(const RString &sPreferredSongs, const RStr
 						const vector<Song *> &vSongs = GetSongs( group );
 						FOREACH_CONST( Song*, vSongs, song )
 						{
-							section.vpSongs.push_back( *song );
+							section.vpSongs.emplace_back( *song );
 						}
 					}
 				}
@@ -1216,13 +1216,13 @@ void SongManager::UpdatePreferredSort(const RString &sPreferredSongs, const RStr
 				Song *pSong = FindSong( sLine );
 				if( pSong == NULL )
 					continue;
-				section.vpSongs.push_back( pSong );
+				section.vpSongs.emplace_back( pSong );
 			}
 		}
 
 		if( !section.vpSongs.empty() )
 		{
-			m_vPreferredSongSort.push_back( section );
+			m_vPreferredSongSort.emplace_back( section );
 			section = PreferredSortSection();
 		}
 
@@ -1345,7 +1345,7 @@ int SongManager::GetNumEditsLoadedFromProfile( ProfileSlot slot ) const
 void SongManager::AddSongToList(Song* new_song)
 {
 	new_song->SetEnabled(true);
-	m_pSongs.push_back(new_song);
+	m_pSongs.emplace_back(new_song);
 	RString dir= new_song->GetSongDir();
 	dir.MakeLower();
 	m_SongsByDir.insert(make_pair(dir, new_song));
