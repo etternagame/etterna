@@ -42,6 +42,7 @@
 #include "PrefsManager.h"
 #include "ScreenManager.h"
 #include "Foreach.h"
+#include "SongManager.h"
 
 vector<TimingData> AdjustSync::s_vpTimingDataOriginal;
 float AdjustSync::s_fGlobalOffsetSecondsOriginal = 0.0f;
@@ -83,7 +84,10 @@ void AdjustSync::ResetAutosync()
 
 bool AdjustSync::IsSyncDataChanged()
 {
-	// Can't sync in course modes
+	// Can't sync in course mode :joy_cat: -mina
+	if(SONGMAN->playlistcourse == "")
+		return false;
+
 	vector<RString> vs;
 	AdjustSync::GetSyncChangeTextGlobal( vs );
 	AdjustSync::GetSyncChangeTextSong( vs );
