@@ -1945,6 +1945,8 @@ void Profile::ImportScoresToEtterna() {
 
 	if (IsEtternaProfile)
 		m_SongHighScores.clear();
+
+	CalculateStatsFromScores();
 }
 
 XNode* Profile::SaveEttScoresCreateNode() const {
