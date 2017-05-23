@@ -164,8 +164,6 @@ public:
 	Preference<bool>	m_bShowStats;
 	Preference<bool>	m_bShowBanners;
 	Preference<bool>	m_bShowMouseCursor;
-
-	Preference<bool>	m_bHiddenSongs;
 	Preference<bool>	m_bVsync;
 	Preference<bool>	m_FastNoteRendering;
 	Preference<bool>	m_bInterlaced;

@@ -171,8 +171,6 @@ PrefsManager::PrefsManager() :
 	m_bShowStats			( "ShowStats",			TRUE_IF_DEBUG),
 	m_bShowBanners			( "ShowBanners",		true ),
 	m_bShowMouseCursor		( "ShowMouseCursor",		true ),
-
-	m_bHiddenSongs			( "HiddenSongs",		false ),
 	m_bVsync			( "Vsync",			false ),
 	m_FastNoteRendering		( "FastNoteRendering",		true),
 	m_bInterlaced			( "Interlaced",			false ),
