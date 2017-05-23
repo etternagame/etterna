@@ -377,6 +377,9 @@ void HighScoreImpl::LoadFromEttNode(const XNode *pNode) {
 
 	pNode->GetChildValue("ValidationKey", ValidationKey);
 
+	if (ScoreKey = "")
+		ScoreKey = "S" + BinaryToHex(CryptManager::GetSHA1ForString(dateTime.GetString()));
+
 	// Validate input.
 	grade = clamp(grade, Grade_Tier01, Grade_Failed);
 }
