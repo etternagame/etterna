@@ -251,8 +251,7 @@ XNode* ScoresAtRate::CreateNode(const int& rate) const {
 	if (o->ChildrenEmpty())
 		return o;
 
-	string rs = IntToString(rate);
-	rs = rs.substr(0, 1) + "." + rs.substr(1, 3);
+	string rs = ssprintf("%.3f", static_cast<float>(rate) / 10000.f);
 	// should be safe as this is only called if there is at least 1 score (which would be the pb)
 	o->AppendAttr("PBKey", PBptr->GetScoreKey());
 	o->AppendAttr("BestGrade", GradeToString(bestGrade));
