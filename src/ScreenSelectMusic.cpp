@@ -33,6 +33,7 @@
 #include "OptionsList.h"
 #include "RageFileManager.h"
 #include "ScreenTextEntry.h"
+#include "ProfileManager.h"
 
 static const char *SelectionStateNames[] = {
 	"SelectingSong",
@@ -527,6 +528,12 @@ bool ScreenSelectMusic::Input( const InputEventPlus &input )
 			int newsongs = SONGMAN->DifferentialReload();
 			m_MusicWheel.ReloadSongList(false, "");
 			SCREENMAN->SystemMessage(ssprintf("Differential reload of %i songs", newsongs));
+			return true;
+		}
+		else if (bHoldingCtrl && c == 'S' && m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS)
+		{
+			PROFILEMAN->SaveProfile(PLAYER_1);
+			SCREENMAN->SystemMessage("Profile Saved");
 			return true;
 		}
 		else if( input.DeviceI.device == DEVICE_KEYBOARD && bHoldingCtrl && input.DeviceI.button == KEY_BACK && input.type == IET_FIRST_PRESS
