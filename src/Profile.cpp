@@ -2001,6 +2001,8 @@ void Profile::LoadOldEttScoresFromNode(const XNode* pSongScores) {
 
 		RString ck;
 		pChart->GetAttrValue("Key", ck);
+		RString title;
+		pChart->GetAttrValue("SongTitle", title);
 
 		const XNode *pRateScores = pChart->GetChild("RateScores");
 		FOREACH_CONST_Child(pRateScores, pRate) {
@@ -2008,7 +2010,7 @@ void Profile::LoadOldEttScoresFromNode(const XNode* pSongScores) {
 			FOREACH_CONST_Child(pRate, hs) {
 				HighScore tmp;
 				tmp.LoadFromEttNode(hs);
-				SCOREMAN->AddScore(tmp, ck, rate);
+				SCOREMAN->AddScore(tmp, ck, rate, title);
 				loaded++;
 			}
 		}

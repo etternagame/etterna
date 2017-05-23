@@ -99,6 +99,17 @@ void ScoresForChart::AddScore(HighScore& hs) {
 	ScoresByRate[key].AddScore(hs);
 }
 
+void ScoresForChart::AddScore(HighScore& hs, const string& title) {
+	bestGrade = min(hs.GetWifeGrade(), bestGrade);
+
+	if(title != "")
+		LastSeenSong = title;
+
+	float rate = hs.GetMusicRate();
+	int key = RateToKey(rate);
+	ScoresByRate[key].AddScore(hs);
+}
+
 vector<float> ScoresForChart::GetPlayedRates() {
 	vector<float> o;
 	FOREACHM(int, ScoresAtRate, ScoresByRate, i)
@@ -227,7 +238,7 @@ HighScore* ScoreManager::GetTopSSRHighScore(unsigned int rank, int ss) {
 
 
 
-void ScoreManager::AddScore(const HighScore& hs_, const string& ck, const float& rate) {
+void ScoreManager::AddScore(const HighScore& hs_, const string& ck, const float& rate, const string& title) {
 	HighScore hs = hs_;
 	// don't save any scores under the percent threshold and dont duplicate scores
 	if (hs.GetWifeScore() <= minpercent || ScoresByKey.count(hs.GetScoreKey()))
@@ -237,7 +248,7 @@ void ScoreManager::AddScore(const HighScore& hs_, const string& ck, const float&
 	hs.SetChartKey(ck);
 	hs.SetMusicRate(rate);
 
-	pscores[hs.GetChartKey()].AddScore(hs);
+	pscores[hs.GetChartKey()].AddScore(hs, title);
 }
 
 // Write scores to xml
@@ -256,7 +267,11 @@ XNode* ScoresAtRate::CreateNode(const int& rate) const {
 	if (o->ChildrenEmpty())
 		return o;
 
-	string rs = ssprintf("%.3f", static_cast<float>(rate) / 10000.f);
+	float oops = rate;
+	if (oops > 30000)
+		oops /= 10;
+
+	string rs = ssprintf("%.3f", static_cast<float>(oops) / 10000.f);
 	// should be safe as this is only called if there is at least 1 score (which would be the pb)
 	o->AppendAttr("PBKey", PBptr->GetScoreKey());
 	o->AppendAttr("BestGrade", GradeToString(bestGrade));
