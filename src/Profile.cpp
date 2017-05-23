@@ -27,6 +27,7 @@
 #include "NoteData.h"
 #include "ScoreManager.h"
 #include <algorithm>
+#include "ScreenManager.h"
 
 const RString STATS_XML            = "Stats.xml";
 const RString STATS_XML_GZ         = "Stats.xml.gz";
@@ -1898,6 +1899,10 @@ void Profile::ImportScoresToEtterna() {
 	if(IsEtternaProfile)
 		LoadStatsXmlForConversion();
 
+	int loaded = 0;
+	int notloaded = 0;
+	LOG->Trace("Beginning import of stats.xml scores");
+
 	string ck;
 	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
 		SongID id = i->first;
@@ -1929,8 +1934,16 @@ void Profile::ImportScoresToEtterna() {
 				Song* song = id.ToSong();
 				Steps* steps = sid.ToSteps(song, true);
 
-				if (!steps)
+				if (!song) {
+					LOG->Trace("Unloaded song %s, skipping score import", id.ToString().c_str());
 					continue;
+				}
+
+				if (!steps) {
+					++notloaded;
+					LOG->Trace("Null steps for %s at %s, skipping score import", song->GetDisplayMainTitle().c_str(), song->m_sGroupName.c_str());
+					continue;
+				}
 
 				ck = steps->GetChartKey();
 				for (size_t i = 0; i < hsv.size(); ++i) {
@@ -1938,14 +1951,22 @@ void Profile::ImportScoresToEtterna() {
 					// ignore historic key and just load from here since the hashing function was changed anyway
 					hs.SetChartKey(ck);		
 					SCOREMAN->AddScore(hs);
+					++loaded;
 				}
-			}			
+			}
+
+			if (!id.IsValid()) {
+				++notloaded;
+				LOG->Trace("Unloaded song %s, skipping score import", id.ToString().c_str());
+			}
 		}
 	}
 
 	if (IsEtternaProfile)
 		m_SongHighScores.clear();
 
+	LOG->Trace("Finished import of %i scores to etterna profile. %i scores were not imported.", loaded, notloaded);
+	SCREENMAN->SystemMessage("Finished import of %i scores. %i scores were not imported. See log for details.");
 	CalculateStatsFromScores();
 }
 
