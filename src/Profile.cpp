@@ -823,6 +823,7 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 
 	LoadOldEttFromDir(sDir);
 
+	CalculateStatsFromScores();
 	return ProfileLoadResult_Success;
 }
 
@@ -1034,7 +1035,6 @@ ProfileLoadResult Profile::LoadEttXmlFromNode(const XNode *xml) {
 	if (scores)
 		LoadEttScoresFromNode(scores);
 
-	CalculateStatsFromScores();
 	return ProfileLoadResult_Success;
 }
 
