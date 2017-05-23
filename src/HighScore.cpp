@@ -330,7 +330,6 @@ XNode *HighScoreImpl::CreateEttNode() const {
 			pSkillsetSSRs->AppendChild(SkillsetToString(ss), FloatToString(fSkillsetSSRs[ss]).substr(0, 5));
 	}
 
-	pNode->AppendChild(radarValues.CreateNode());
 	pNode->AppendChild("ValidationKey", ValidationKey);
 	return pNode;
 }
@@ -370,10 +369,6 @@ void HighScoreImpl::LoadFromEttNode(const XNode *pNode) {
 			FOREACH_ENUM(Skillset, ss)
 			pSkillsetSSRs->GetChildValue(SkillsetToString(ss), fSkillsetSSRs[ss]);
 	}
-
-	const XNode* pRadarValues = pNode->GetChild("RadarValues");
-	if (pRadarValues)
-		radarValues.LoadFromNode(pRadarValues);
 
 	pNode->GetChildValue("ValidationKey", ValidationKey);
 
