@@ -1178,7 +1178,8 @@ void MusicWheel::ChangeMusic( int iDist )
 
 	m_fPositionOffsetFromSelection += iDist;
 
-	SCREENMAN->PostMessageToTopScreen( SM_SongChanged, 0 );
+	if(iDist)
+		SCREENMAN->PostMessageToTopScreen( SM_SongChanged, 0 );
 
 	// If we're moving automatically, don't play this; it'll be called in Update.
 	if(!IsMoving())
