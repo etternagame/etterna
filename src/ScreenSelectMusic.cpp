@@ -467,31 +467,21 @@ bool ScreenSelectMusic::Input( const InputEventPlus &input )
 				return true;
 			}
 		}
-		else if (bHoldingCtrl && c == 'U' && m_MusicWheel.IsSettled())
-		{
-			// Unfavorite the currently selected song. -Not Kyz
-			Song* unfav_me_biatch = m_MusicWheel.GetSelectedSong();
-			if (unfav_me_biatch) {
-				Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
-				if (unfav_me_biatch) {
-					Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
-					unfav_me_biatch->SetFavorited(false);
-					pProfile->RemoveFromFavorites(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
-					Message msg("FavoritesUpdated");
-					MESSAGEMAN->Broadcast(msg);
-					m_MusicWheel.ChangeMusic(0);
-					return true;
-				}
-			}
-		}
 		else if (bHoldingCtrl && c == 'F' && m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS)
 		{
 			// Favorite the currently selected song. -Not Kyz
 			Song* fav_me_biatch = m_MusicWheel.GetSelectedSong();
-			if (fav_me_biatch && !fav_me_biatch->IsFavorited()) {
+			if (fav_me_biatch) {
 				Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
-				fav_me_biatch->SetFavorited(true);
-				pProfile->AddToFavorites(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+
+				if (!fav_me_biatch->IsFavorited()) {
+					fav_me_biatch->SetFavorited(true);
+					pProfile->AddToFavorites(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());	
+				}
+				else {
+					fav_me_biatch->SetFavorited(false);
+					pProfile->RemoveFromFavorites(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+				}
 				Message msg("FavoritesUpdated");
 				MESSAGEMAN->Broadcast(msg);
 				m_MusicWheel.ChangeMusic(0);
