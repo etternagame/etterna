@@ -227,11 +227,16 @@ HighScore* ScoreManager::GetTopSSRHighScore(unsigned int rank, int ss) {
 
 
 
-void ScoreManager::AddScore(const HighScore& hs_) {
+void ScoreManager::AddScore(const HighScore& hs_, const string& ck, const float& rate) {
 	HighScore hs = hs_;
 	// don't save any scores under the percent threshold and dont duplicate scores
 	if (hs.GetWifeScore() <= minpercent || ScoresByKey.count(hs.GetScoreKey()))
 		return;
+
+	// Fill in stuff for the highscores
+	hs.SetChartKey(ck);
+	hs.SetMusicRate(rate);
+
 	pscores[hs.GetChartKey()].AddScore(hs);
 }
 

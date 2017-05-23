@@ -2006,7 +2006,7 @@ void Profile::LoadOldEttScoresFromNode(const XNode* pSongScores) {
 			FOREACH_CONST_Child(pRate, hs) {
 				HighScore tmp;
 				tmp.LoadFromEttNode(hs);
-				SCOREMAN->AddScore(tmp);
+				SCOREMAN->AddScore(tmp, ck, rate);
 				loaded++;
 			}
 		}
