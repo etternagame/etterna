@@ -488,6 +488,27 @@ bool ScreenSelectMusic::Input( const InputEventPlus &input )
 				return true;
 			}
 		}
+		else if (bHoldingCtrl && c == 'M' && m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS)
+		{
+			// Favorite the currently selected song. -Not Kyz
+			Song* alwaysmirrorsmh = m_MusicWheel.GetSelectedSong();
+			if (alwaysmirrorsmh) {
+				Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
+
+				if (!alwaysmirrorsmh->IsPermaMirror()) {
+					alwaysmirrorsmh->SetPermaMirror(true);
+					pProfile->AddToPermaMirror(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+				}
+				else {
+					alwaysmirrorsmh->SetFavorited(false);
+					pProfile->AddToPermaMirror(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+				}
+				Message msg("FavoritesUpdated");
+				MESSAGEMAN->Broadcast(msg);
+				m_MusicWheel.ChangeMusic(0);
+				return true;
+			}
+		}
 		else if (bHoldingCtrl && c == 'G' && m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS)
 		{
 			Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);

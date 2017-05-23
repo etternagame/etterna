@@ -705,15 +705,26 @@ void SongManager::SetFavoritedStatus(vector<string>& favs) {
 	FOREACH(Song*, m_pSongs, song) {
 		FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps) {
 			RString sck = (*steps)->GetChartKey();
-			FOREACH(string, favs, ck) {
+			FOREACH(string, favs, ck)
 				if (sck == *ck)
 					(*song)->SetFavorited(true);
-			}
 		}
 	}
 }
 
-// hurr should probably redo both of these -mina
+void SongManager::SetPermaMirroredStatus(vector<string>& pmir) {
+	FOREACH(Song*, m_pSongs, song) {
+		FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps) {
+			RString sck = (*steps)->GetChartKey();
+			LOG->Warn(sck.c_str());
+			FOREACH(string, pmir, ck)
+				if (sck == *ck)
+					(*song)->SetPermaMirror(true);
+		}
+	}
+}
+
+// hurr should probably redo both (all three) of these -mina
 void SongManager::SetHasGoal(map<RString, vector<ScoreGoal>> goalmap) {
 	FOREACH(Song*, m_pSongs, song) {
 		FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps) {

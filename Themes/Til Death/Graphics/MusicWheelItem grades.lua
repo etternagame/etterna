@@ -22,6 +22,18 @@ return Def.ActorFrame{
 			end
 		end,
 	},
+	Def.Sprite {
+		InitCommand=cmd(xy,-40,-2;zoomto,4,19),
+		SetGradeCommand=function(self,params)
+			if params.PermaMirror then
+				self:Load(THEME:GetPathG("","punchthekeysforgodssake"))
+				self:zoomto(24,24)
+				self:visible(true)
+			else
+				self:visible(false)
+			end
+		end,
+	},
 	Def.Quad{
 		InitCommand=cmd(xy,2,-2;zoomto,4,19),
 		SetGradeCommand=function(self,params)

@@ -256,13 +256,20 @@ public:
 	int m_iNumStagesPassedByPlayMode[NUM_PlayMode];
 	int m_iNumStagesPassedByGrade[NUM_Grade];
 
-	void AddToFavorites(string& ck) { FavoritedCharts.emplace_back(ck); }
-	void RemoveFromFavorites(string& ck);
+	// if anymore of these are added they should be enum'd to reduce copy pasta -mina
+	void AddToFavorites(const string& ck) { FavoritedCharts.emplace_back(ck); }
+	void AddToPermaMirror(const string& ck) { PermaMirrorCharts.emplace_back(ck); }
+	void RemoveFromFavorites(const string& ck);
+	void RemoveFromPermaMirror(const string& ck);
 	vector<string> FavoritedCharts;
+	vector<string> PermaMirrorCharts;
+
 	XNode* SaveFavoritesCreateNode() const;
+	XNode* SavePermaMirrorCreateNode() const;
 	XNode* SaveScoreGoalsCreateNode() const;
 	XNode* SavePlaylistsCreateNode() const;
 	void LoadFavoritesFromNode(const XNode *pNode);
+	void LoadPermaMirrorFromNode(const XNode *pNode);
 	void LoadScoreGoalsFromNode(const XNode *pNode);
 	void LoadPlaylistsFromNode(const XNode *pNode);
 

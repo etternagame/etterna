@@ -1024,6 +1024,10 @@ ProfileLoadResult Profile::LoadEttXmlFromNode(const XNode *xml) {
 	if(favs)
 		LoadFavoritesFromNode(favs);
 
+	const XNode* pmir = xml->GetChild("PermaMirror");
+	if (pmir)
+		LoadPermaMirrorFromNode(pmir);
+
 	const XNode* goals = xml->GetChild("ScoreGoals");
 	if(goals)
 		LoadScoreGoalsFromNode(goals);
@@ -1100,6 +1104,9 @@ XNode *Profile::SaveEttXmlCreateNode() const
 
 	if(!FavoritedCharts.empty())
 		xml->AppendChild(SaveFavoritesCreateNode());
+
+	if (!PermaMirrorCharts.empty())
+		xml->AppendChild(SavePermaMirrorCreateNode());
 	
 	if (!SONGMAN->allplaylists.empty())
 		xml->AppendChild(SavePlaylistsCreateNode());
@@ -1377,6 +1384,13 @@ XNode* Profile::SaveFavoritesCreateNode() const {
 	return favs;
 }
 
+XNode* Profile::SavePermaMirrorCreateNode() const {
+	XNode* pmir = new XNode("PermaMirror");
+	FOREACH_CONST(string, PermaMirrorCharts, it)
+		pmir->AppendChild(*it);
+	return pmir;
+}
+
 XNode* GoalsForChart::CreateNode() const {
 	XNode* cg = new XNode("GoalsForChart");
 	cg->AppendAttr("Key", goals[0].chartkey);
@@ -1403,16 +1417,17 @@ XNode* Profile::SavePlaylistsCreateNode() const {
 }
 
 void Profile::LoadFavoritesFromNode(const XNode *pNode) {
-		FOREACH_CONST_Child(pNode, ck) {
-			RString tmp = ck->GetName();
-			bool duplicated = false;
-			FOREACH(string, FavoritedCharts, chartkey)
-				if (*chartkey == tmp)
-					duplicated = true;
-			if (!duplicated)
-				FavoritedCharts.emplace_back(tmp);
-		}
-		SONGMAN->SetFavoritedStatus(FavoritedCharts);
+	FOREACH_CONST_Child(pNode, ck)
+		FavoritedCharts.emplace_back(ck->GetName());
+
+	SONGMAN->SetFavoritedStatus(FavoritedCharts);
+}
+
+void Profile::LoadPermaMirrorFromNode(const XNode *pNode) {
+	FOREACH_CONST_Child(pNode, ck)
+		PermaMirrorCharts.emplace_back(ck->GetName());
+
+	SONGMAN->SetPermaMirroredStatus(PermaMirrorCharts);
 }
 
 void GoalsForChart::LoadFromNode(const XNode *pNode) {
@@ -1814,11 +1829,16 @@ XNode* Profile::SaveSongScoresCreateNode() const
 	return pNode;
 }
 
-void Profile::RemoveFromFavorites(string& ck) {
-	for (size_t i = 0; i < FavoritedCharts.size(); ++i) {
+void Profile::RemoveFromFavorites(const string& ck) {
+	for (size_t i = 0; i < FavoritedCharts.size(); ++i)
 		if (FavoritedCharts[i] == ck)
 			FavoritedCharts.erase(FavoritedCharts.begin() + i);
-	}
+}
+
+void Profile::RemoveFromPermaMirror(const string& ck) {
+	for (size_t i = 0; i < PermaMirrorCharts.size(); ++i)
+		if (PermaMirrorCharts[i] == ck)
+			PermaMirrorCharts.erase(PermaMirrorCharts.begin() + i);
 }
 
 void Profile::LoadSongScoresFromNode(const XNode* pSongScores)
