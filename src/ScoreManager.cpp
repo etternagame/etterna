@@ -38,13 +38,14 @@ ScoresAtRate::ScoresAtRate() {
 
 void ScoresAtRate::AddScore(HighScore& hs) {
 	string& key = hs.GetScoreKey();	
-	if (scores.count(key))	// dont duplicate scores
-		return;
 	bestGrade = min(hs.GetWifeGrade(), bestGrade);
 	scores.emplace(key, hs);
 
 	if(!PBptr || PBptr->GetWifeScore() < hs.GetWifeScore())
 		PBptr = &scores.find(key)->second;
+
+	SCOREMAN->RegisterScore(&scores.find(key)->second);
+	SCOREMAN->AddToKeyedIndex(&scores.find(key)->second);
 }
 
 vector<string> ScoresAtRate::GetSortedKeys() {
@@ -226,10 +227,29 @@ HighScore* ScoreManager::GetTopSSRHighScore(unsigned int rank, int ss) {
 
 
 
+void ScoreManager::AddScore(const HighScore& hs_) {
+	HighScore hs = hs_;
+	// don't save any scores under the percent threshold and dont duplicate scores
+	if (hs.GetWifeScore() <= minpercent || ScoresByKey.count(hs.GetScoreKey()))
+		return;
+	pscores[hs.GetChartKey()].AddScore(hs);
+}
 
 // Write scores to xml
 XNode* ScoresAtRate::CreateNode(const int& rate) const {
 	XNode* o = new XNode("ScoresAt");
+	int saved = 0;
+
+	// prune out sufficiently low scores
+	FOREACHUM_CONST(string, HighScore, scores, i) {
+		if (i->second.GetWifeScore() > SCOREMAN->minpercent) {
+			o->AppendChild(i->second.CreateEttNode());
+			saved++;
+		}
+	}
+
+	if (o->ChildrenEmpty())
+		return o;
 
 	string rs = IntToString(rate);
 	rs = rs.substr(0, 1) + "." + rs.substr(1, 3);
@@ -237,9 +257,6 @@ XNode* ScoresAtRate::CreateNode(const int& rate) const {
 	o->AppendAttr("PBKey", PBptr->GetScoreKey());
 	o->AppendAttr("BestGrade", GradeToString(bestGrade));
 	o->AppendAttr("Rate", rs);
-
-	FOREACHUM_CONST(string, HighScore, scores, i)
-		o->AppendChild(i->second.CreateEttNode());
 
 	return o;
 }
@@ -256,16 +273,21 @@ XNode * ScoresForChart::CreateNode(const string& ck) const {
 		o->AppendAttr("Song", LastSeenSong);
 	}
 	
-	FOREACHM_CONST(int, ScoresAtRate, ScoresByRate, i)
-		o->AppendChild(i->second.CreateNode(i->first));
-
+	FOREACHM_CONST(int, ScoresAtRate, ScoresByRate, i) {
+		auto node = i->second.CreateNode(i->first);
+		if (!node->ChildrenEmpty())
+			o->AppendChild(node);
+	}
 	return o;
 }
 
 XNode * ScoreManager::CreateNode() const {
 	XNode* o = new XNode("PlayerScores");
-	FOREACHUM_CONST(string, ScoresForChart, pscores, ch)
-		o->AppendChild(ch->second.CreateNode(ch->first));
+	FOREACHUM_CONST(string, ScoresForChart, pscores, ch) {
+		auto node = ch->second.CreateNode(ch->first);
+		if (!node->ChildrenEmpty())
+			o->AppendChild(node);
+	}
 
 	return o;
 }
@@ -283,13 +305,15 @@ void ScoresAtRate::LoadFromNode(const XNode* node, const string& ck, const float
 		scores[sk].SetScoreKey(sk);
 		scores[sk].SetMusicRate(rate);
 
-		// seems kind of awkward?
+		bestGrade = min(scores[sk].GetWifeGrade(), bestGrade);
+
+		// Very awkward, need to figure this out better so there isn't unnecessary redundancy between loading and adding
 		SCOREMAN->RegisterScore(&scores.find(sk)->second);
+		SCOREMAN->AddToKeyedIndex(&scores.find(sk)->second);
 	}
 
 	// Set the pbptr
 	PBptr = &scores.find(sk)->second;
-	bestGrade = PBptr->GetWifeGrade();
 }
 
 void ScoresForChart::LoadFromNode(const XNode* node, const string& ck) {

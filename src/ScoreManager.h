@@ -3,6 +3,7 @@
 
 #include "Grade.h"
 #include "GameConstantsAndTypes.h"
+#include "PrefsManager.h"
 
 #include <map>
 #include <unordered_map>
@@ -81,11 +82,6 @@ private:
 	
 };
 
-struct ScoreHolder
-{
-
-};
-
 class ScoreManager
 {
 public:
@@ -100,9 +96,9 @@ public:
 
 	Grade GetBestGradeFor(string& ck) { if (pscores.count(ck)) return pscores[ck].bestGrade; return Grade_Invalid; }
 
-	// for scores achieved during this session
-	void AddScore(const HighScore& hs_) { HighScore hs = hs_; pscores[hs.GetChartKey()].AddScore(hs); }
-
+	// temporarily to be used for conversion of old ett.xml and not only adding scores obtained in-session
+	void AddScore(const HighScore& hs_);
+	float minpercent = PREFSMAN->m_fMinPercentToSaveScores;	// until i can get this shit to load properly the right way -mina
 
 	// Player Rating and SSR functions
 	void SortTopSSRPtrs(Skillset ss);
@@ -132,6 +128,7 @@ public:
 
 	vector<HighScore*> GetAllScores() { return AllScores; }
 	void RegisterScore(HighScore* hs) {	AllScores.emplace_back(hs); }
+	void AddToKeyedIndex(HighScore* hs) { ScoresByKey.emplace(hs->GetScoreKey(), hs); }
 private:
 	unordered_map<string, ScoresForChart> pscores;	// Profile scores
 
@@ -139,6 +136,9 @@ private:
 	// it's inexpensive and not called often
 	vector<HighScore*> TopSSRs;
 	vector<HighScore*> AllScores;
+
+	// pointers in a keyed index
+	unordered_map<string, HighScore*> ScoresByKey;
 };
 
 extern ScoreManager* SCOREMAN;
