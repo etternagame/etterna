@@ -210,7 +210,7 @@ public:
 	Preference<Maybe>	m_ShowSongOptions;
 	Preference<bool>	m_bDancePointsForOni;
 	Preference<bool>	m_bPercentageScoring;
-	Preference<float>	m_fMinPercentageForMachineSongHighScore;
+	Preference<float>	m_fMinPercentToSaveScores;
 	Preference<bool>	m_bDisqualification;
 	Preference<bool>	m_bOnlyPreferredDifficulties;
 	Preference<bool>	m_bBreakComboToGetItem;

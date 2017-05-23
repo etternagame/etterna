@@ -217,8 +217,7 @@ PrefsManager::PrefsManager() :
 	m_ShowSongOptions		( "ShowSongOptions",		Maybe_NO ),
 	m_bDancePointsForOni		( "DancePointsForOni",		true ),
 	m_bPercentageScoring		( "PercentageScoring",		false ),
-	// Wow, these preference names are *seriously* long -Colby
-	m_fMinPercentageForMachineSongHighScore		( "MinPercentageForMachineSongHighScore",	0.0001f ), // This is for home, who cares how bad you do?
+	m_fMinPercentToSaveScores( "MinPercentToSaveScores",	-1.0f ),
 	m_bDisqualification		( "Disqualification",			false ),
 	m_bOnlyPreferredDifficulties	( "OnlyPreferredDifficulties",		false ),
 	m_bBreakComboToGetItem		( "BreakComboToGetItem",		false ),
