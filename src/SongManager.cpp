@@ -245,7 +245,7 @@ void Chart::FromKey(const string& ck) {
 		Steps* steps = SONGMAN->GetStepsByChartkey(ck);
 		key = ck;
 
-		lastpack = song->GetSongDir();
+		lastpack = song->m_sGroupName;
 		lastsong = song->GetDisplayMainTitle();
 		lastdiff = steps->GetDifficulty();
 		loaded = true;
@@ -293,21 +293,24 @@ void Playlist::AddChart(const string & ck)
 XNode* Playlist::CreateNode() const {
 	XNode* pl = new XNode("Playlist");
 	pl->AppendAttr("Name", name);
+
+	XNode* cl = new XNode("Chartlist");
 	FOREACH_CONST(Chart, chartlist, ch)
-		pl->AppendChild(ch->CreateNode());
-	
-	// Proof of concept stuff that will break shit if enabled
-	/*
+		cl->AppendChild(ch->CreateNode());
+
 	XNode* cr = new XNode("CourseRuns");
 	FOREACH_CONST(vector<string>, courseruns, run) {
-	XNode* r = new XNode("Run");
-	FOREACH_CONST(string, *run, sk) {
-	r->AppendAttr(*sk);
+		XNode* r = new XNode("Run");
+		FOREACH_CONST(string, *run, sk)
+			r->AppendChild(*sk);
+		cr->AppendChild(r);
 	}
-	cr->AppendChild(r);
-	}
-	pl->AppendChild(cr);
-	*/
+
+	if (!cl->ChildrenEmpty())
+		pl->AppendChild(cl);
+
+	if (!cr->ChildrenEmpty())
+		pl->AppendChild(cr);
 	
 	return pl;
 }
@@ -316,12 +319,24 @@ void Playlist::LoadFromNode(const XNode* node) {
 	ASSERT(node->GetName() == "Playlist");
 
 	node->GetAttrValue("Name", name);
-	FOREACH_CONST_Child(node, chart) {
+
+	const XNode* cl = node->GetChild("Chartlist");
+	FOREACH_CONST_Child(cl, chart) {
 		Chart ch;
 		ch.LoadFromNode(chart);
 		chartlist.emplace_back(ch);
 	}
 
+	const XNode* cr = node->GetChild("CourseRuns");
+	if (cr) {
+		FOREACH_CONST_Child(cr, run) {
+			vector<string> tmp;
+			FOREACH_CONST_Child(run, sk)
+				tmp.emplace_back(sk->GetName());
+			courseruns.emplace_back(tmp);
+		}
+	}
+	
 	for (size_t i = 0; i < chartlist.size(); ++i)
 		chartrates.emplace_back(chartlist[i].rate);
 }
