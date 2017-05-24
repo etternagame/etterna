@@ -716,7 +716,6 @@ void SongManager::SetPermaMirroredStatus(vector<string>& pmir) {
 	FOREACH(Song*, m_pSongs, song) {
 		FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps) {
 			RString sck = (*steps)->GetChartKey();
-			LOG->Warn(sck.c_str());
 			FOREACH(string, pmir, ck)
 				if (sck == *ck)
 					(*song)->SetPermaMirror(true);
