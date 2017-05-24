@@ -100,8 +100,7 @@ void WheelBase::BeginScreen()
 
 void WheelBase::SetItemPosition(Actor &item, int item_index, float offset_from_middle)
 {
-	Actor::TweenState ts = m_exprItemTransformFunction.GetTransformCached(offset_from_middle, item_index, NUM_WHEEL_ITEMS);
-	item.DestTweenState() = ts;
+	m_exprItemTransformFunction.TransformItemCached(item, offset_from_middle, item_index, NUM_WHEEL_ITEMS);
 }
 
 void WheelBase::UpdateScrollbar()
