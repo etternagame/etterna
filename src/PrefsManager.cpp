@@ -169,6 +169,7 @@ PrefsManager::PrefsManager() :
 	m_bAllowMultitexture		( "AllowMultitexture",		true ),
 	m_bAllowedLag			("AllowedLag", 0.001f),
 	m_bShowStats			( "ShowStats",			TRUE_IF_DEBUG),
+	m_bShowSkips			( "ShowSkips",			true),
 	m_bShowBanners			( "ShowBanners",		true ),
 	m_bShowMouseCursor		( "ShowMouseCursor",		true ),
 	m_bVsync			( "Vsync",			false ),

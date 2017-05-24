@@ -24,7 +24,7 @@ void ScreenStatsOverlay::Init()
 	m_LastSkip = 0;
 
 	SHOW_SKIPS.Load( m_sName, "ShowSkips" );
-	if( SHOW_SKIPS )
+	if( SHOW_SKIPS && PREFSMAN->m_bShowSkips)
 	{
 		SKIP_X.Load( m_sName, "SkipX" );
 		SKIP_Y.Load( m_sName, "SkipY" );
@@ -78,7 +78,7 @@ void ScreenStatsOverlay::Update( float fDeltaTime )
 	if( PREFSMAN->m_bShowStats )
 	{
 		m_textStats.SetText( DISPLAY->GetStats() );
-		if ( SHOW_SKIPS )
+		if ( SHOW_SKIPS && PREFSMAN->m_bShowSkips)
 			UpdateSkips();
 	}
 }

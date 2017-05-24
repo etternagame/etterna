@@ -162,6 +162,7 @@ public:
 	Preference<bool>	m_bAllowMultitexture;
 	Preference<float>	m_bAllowedLag;
 	Preference<bool>	m_bShowStats;
+	Preference<bool>	m_bShowSkips;
 	Preference<bool>	m_bShowBanners;
 	Preference<bool>	m_bShowMouseCursor;
 	Preference<bool>	m_bVsync;
