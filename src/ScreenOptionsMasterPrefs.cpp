@@ -790,7 +790,6 @@ static void InitializeConfOptions()
 
 	// Gameplay options
 	ADD( ConfOption( "Center1Player",		MovePref<bool>,		"Off","On" ) );
-	ADD( ConfOption( "HiddenSongs",			MovePref<bool>,		"Off","On" ) );
 	ADD( ConfOption( "EasterEggs",			MovePref<bool>,		"Off","On" ) );
 	// W1 is Fantastic Timing
 	ADD( ConfOption( "AllowW1",			MovePref<AllowW1>,	"Never","Courses Only","Always" ) );
