@@ -2512,7 +2512,7 @@ public:
 		return 1;
 	}
 
-	DEFINE_METHOD(GetGUID, m_sGuid);	
+	DEFINE_METHOD(GetGUID, m_sGuid);
 	static int GetAllGoals(T* p, lua_State *L) {
 		lua_newtable(L);
 		int idx = 0;
@@ -2525,7 +2525,7 @@ public:
 				tsg.PushSelf(L);
 				lua_rawseti(L, -2, idx + 1);
 				idx++;
-			}	
+			}
 		}
 		return 1;
 	}
@@ -2539,6 +2539,16 @@ public:
 		return 1;
 	}
 
+	static int IsCurrentChartPermamirror(T* p, lua_State *L) {
+		bool o = false;
+		const string& cck = GAMESTATE->m_pCurSteps[PLAYER_1]->ChartKey;
+		FOREACH(string, p->PermaMirrorCharts, ck)
+			if (*ck == cck)
+				o = true;
+
+		lua_pushboolean(L, o);
+		return 1;
+	}
 	LunaProfile()
 	{
 		ADD_METHOD( AddScreenshot );
@@ -2584,6 +2594,7 @@ public:
 		ADD_METHOD( GetAllGoals );
 		ADD_METHOD(GetIgnoreStepCountCalories);
 		ADD_METHOD(CalculateCaloriesFromHeartRate);
+		ADD_METHOD(IsCurrentChartPermamirror);
 	}
 };
 

@@ -257,6 +257,7 @@ public:
 	int m_iNumStagesPassedByGrade[NUM_Grade];
 
 	// if anymore of these are added they should be enum'd to reduce copy pasta -mina
+	// and also should be sets
 	void AddToFavorites(const string& ck) { FavoritedCharts.emplace_back(ck); }
 	void AddToPermaMirror(const string& ck) { PermaMirrorCharts.emplace_back(ck); }
 	void RemoveFromFavorites(const string& ck);
