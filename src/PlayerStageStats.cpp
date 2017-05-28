@@ -313,6 +313,11 @@ vector<float> PlayerStageStats::CalcSSR(float ssrpercent ) const {
 	float musicrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 	return MinaSDCalc(serializednd, steps->GetNoteData().GetNumTracks(), musicrate, ssrpercent, 1.f, steps->GetTimingData()->HasWarps());
 }
+// to be array'd in future i guess? -mina
+string PlayerStageStats::GenerateValidationKeys() const {
+	string weak = GenerateWeakValidationKey(m_iTapNoteScores, m_iHoldNoteScores);
+	return weak;
+}
 float PlayerStageStats::GetTimingScale() const {
 	return m_fTimingScale;
 }
