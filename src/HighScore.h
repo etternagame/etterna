@@ -10,6 +10,8 @@ class XNode;
 struct RadarValues;
 struct lua_State;
 
+using std::string;
+
 struct HighScoreImpl;
 /** @brief The high score that is earned by a player.
  *
@@ -21,8 +23,8 @@ struct HighScore
 	/**
 	 * @brief Retrieve the name of the player that set the high score.
 	 * @return the name of the player. */
-	RString	GetName() const;
-	RString GetChartKey() const;
+	string	GetName() const;
+	string GetChartKey() const;
 	float GetSSRCalcVersion() const;
 	/**
 	 * @brief Retrieve the grade earned from this score.
@@ -48,7 +50,7 @@ struct HighScore
 	bool GetEtternaValid() const;
 	vector<float> GetOffsetVector() const;
 	vector<int> GetNoteRowVector() const;
-	RString GetScoreKey() const;
+	string GetScoreKey() const;
 	/**
 	 * @brief Determine how many seconds the player had left in Survival mode.
 	 * @return the number of seconds left. */
@@ -60,10 +62,10 @@ struct HighScore
 	/**
 	 * @brief Get the modifiers used for this run.
 	 * @return the modifiers. */
-	RString GetModifiers() const;
+	string GetModifiers() const;
 	DateTime GetDateTime() const;
-	RString GetPlayerGuid() const;
-	RString GetMachineGuid() const;
+	string GetPlayerGuid() const;
+	string GetMachineGuid() const;
 	int GetProductID() const;
 	int GetTapNoteScore( TapNoteScore tns ) const;
 	int GetHoldNoteScore( HoldNoteScore tns ) const;
@@ -77,8 +79,8 @@ struct HighScore
 	/**
 	 * @brief Set the name of the Player that earned the score.
 	 * @param sName the name of the Player. */
-	void SetName( const RString &sName );
-	void SetChartKey( const RString &ck );
+	void SetName( const string &sName );
+	void SetChartKey( const string &ck );
 	void SetSSRCalcVersion(float cv);
 	void SetGrade( Grade g );
 	void SetScore( unsigned int iScore );
@@ -91,16 +93,16 @@ struct HighScore
 	void SetEtternaValid(bool b);
 	void SetOffsetVector(const vector<float>& v);
 	void SetNoteRowVector(const vector<int>& v);
-	void SetScoreKey(const RString& ck);
+	void SetScoreKey(const string& ck);
 	void SetRescoreJudgeVector(const vector<int>& v);
 	void SetAliveSeconds( float f );
 	void SetMaxCombo( unsigned int i );
 	void SetStageAward( StageAward a );
 	void SetPeakComboAward( PeakComboAward a );
-	void SetModifiers( const RString &s );
+	void SetModifiers( const string &s );
 	void SetDateTime( DateTime d );
-	void SetPlayerGuid( const RString &s );
-	void SetMachineGuid( const RString &s );
+	void SetPlayerGuid( const string &s );
+	void SetMachineGuid( const string &s );
 	void SetProductID( int i );
 	void SetTapNoteScore( TapNoteScore tns, int i );
 	void SetHoldNoteScore( HoldNoteScore tns, int i );
@@ -108,8 +110,8 @@ struct HighScore
 	void SetLifeRemainingSeconds( float f );
 	void SetDisqualified( bool b );
 
-	RString *GetNameMutable();
-	const RString *GetNameMutable() const { return const_cast<RString *> (const_cast<HighScore *>(this)->GetNameMutable()); }
+	string *GetNameMutable();
+	const string *GetNameMutable() const { return const_cast<string *> (const_cast<HighScore *>(this)->GetNameMutable()); }
 
 	void Unset();
 
@@ -130,7 +132,7 @@ struct HighScore
 	bool HasReplayData();
 	void UnloadReplayData();
 
-	RString GetDisplayName() const;
+	string GetDisplayName() const;
 
 	// Mina stuff - Mina
 	float RescoreToWifeJudge(int x);

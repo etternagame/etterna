@@ -587,8 +587,8 @@ bool HighScore::IsEmpty() const
 	return true;
 }
 
-RString	HighScore::GetName() const { return m_Impl->sName; }
-RString HighScore::GetChartKey() const { return m_Impl->ChartKey; }
+string	HighScore::GetName() const { return m_Impl->sName; }
+string HighScore::GetChartKey() const { return m_Impl->ChartKey; }
 float HighScore::GetSSRCalcVersion() const { return m_Impl->SSRCalcVersion; }
 Grade HighScore::GetGrade() const { return m_Impl->grade; }
 unsigned int HighScore::GetScore() const { return m_Impl->iScore; }
@@ -605,13 +605,13 @@ bool HighScore::GetChordCohesion() const {
 bool HighScore::GetEtternaValid() const { return m_Impl->bEtternaValid; }
 vector<float> HighScore::GetOffsetVector() const { return m_Impl->vOffsetVector; }
 vector<int> HighScore::GetNoteRowVector() const { return m_Impl->vNoteRowVector; }
-RString HighScore::GetScoreKey() const { return m_Impl->ScoreKey; }
+string HighScore::GetScoreKey() const { return m_Impl->ScoreKey; }
 float HighScore::GetSurviveSeconds() const { return m_Impl->fSurviveSeconds; }
 float HighScore::GetSurvivalSeconds() const { return GetSurviveSeconds() + GetLifeRemainingSeconds(); }
-RString HighScore::GetModifiers() const { return m_Impl->sModifiers; }
+string HighScore::GetModifiers() const { return m_Impl->sModifiers; }
 DateTime HighScore::GetDateTime() const { return m_Impl->dateTime; }
-RString HighScore::GetPlayerGuid() const { return m_Impl->sPlayerGuid; }
-RString HighScore::GetMachineGuid() const { return m_Impl->sMachineGuid; }
+string HighScore::GetPlayerGuid() const { return m_Impl->sPlayerGuid; }
+string HighScore::GetMachineGuid() const { return m_Impl->sMachineGuid; }
 int HighScore::GetProductID() const { return m_Impl->iProductID; }
 int HighScore::GetTapNoteScore( TapNoteScore tns ) const { return m_Impl->iTapNoteScores[tns]; }
 int HighScore::GetHoldNoteScore( HoldNoteScore hns ) const { return m_Impl->iHoldNoteScores[hns]; }
@@ -620,8 +620,8 @@ const RadarValues &HighScore::GetRadarValues() const { return m_Impl->radarValue
 float HighScore::GetLifeRemainingSeconds() const { return m_Impl->fLifeRemainingSeconds; }
 bool HighScore::GetDisqualified() const { return m_Impl->bDisqualified; }
 
-void HighScore::SetName( const RString &sName ) { m_Impl->sName = sName; }
-void HighScore::SetChartKey( const RString &ck) { m_Impl->ChartKey = ck; }
+void HighScore::SetName( const string &sName ) { m_Impl->sName = sName; }
+void HighScore::SetChartKey( const string &ck) { m_Impl->ChartKey = ck; }
 void HighScore::SetSSRCalcVersion(float cv) { m_Impl->SSRCalcVersion = cv; }
 void HighScore::SetGrade( Grade g ) { m_Impl->grade = g; }
 void HighScore::SetScore( unsigned int iScore ) { m_Impl->iScore = iScore; }
@@ -637,13 +637,13 @@ void HighScore::SetChordCohesion(bool b) { m_Impl->bNoChordCohesion = b; }
 void HighScore::SetEtternaValid(bool b) { m_Impl->bEtternaValid = b; }
 void HighScore::SetOffsetVector(const vector<float>& v) { m_Impl->vOffsetVector = v; }
 void HighScore::SetNoteRowVector(const vector<int>& v) { m_Impl->vNoteRowVector = v; }
-void HighScore::SetScoreKey(const RString& sk) { m_Impl->ScoreKey = sk; }
+void HighScore::SetScoreKey(const string& sk) { m_Impl->ScoreKey = sk; }
 void HighScore::SetRescoreJudgeVector(const vector<int>& v) { m_Impl->vRescoreJudgeVector = v; }
 void HighScore::SetAliveSeconds( float f ) { m_Impl->fSurviveSeconds = f; }
-void HighScore::SetModifiers( const RString &s ) { m_Impl->sModifiers = s; }
+void HighScore::SetModifiers( const string &s ) { m_Impl->sModifiers = s; }
 void HighScore::SetDateTime( DateTime d ) { m_Impl->dateTime = d; }
-void HighScore::SetPlayerGuid( const RString &s ) { m_Impl->sPlayerGuid = s; }
-void HighScore::SetMachineGuid( const RString &s ) { m_Impl->sMachineGuid = s; }
+void HighScore::SetPlayerGuid( const string &s ) { m_Impl->sPlayerGuid = s; }
+void HighScore::SetMachineGuid( const string &s ) { m_Impl->sMachineGuid = s; }
 void HighScore::SetProductID( int i ) { m_Impl->iProductID = i; }
 void HighScore::SetTapNoteScore( TapNoteScore tns, int i ) { m_Impl->iTapNoteScores[tns] = i; }
 void HighScore::SetHoldNoteScore( HoldNoteScore hns, int i ) { m_Impl->iHoldNoteScores[hns] = i; }
@@ -659,7 +659,7 @@ void HighScore::UnloadReplayData() {
 /* We normally don't give direct access to the members.  We need this one
  * for NameToFillIn; use a special accessor so it's easy to find where this
  * is used. */
-RString *HighScore::GetNameMutable() { return &m_Impl->sName; }
+string *HighScore::GetNameMutable() { return &m_Impl->sName; }
 
 bool HighScore::operator<(HighScore const& other) const
 {
@@ -731,7 +731,7 @@ void HighScore::LoadFromEttNode(const XNode* pNode)
 	m_Impl->LoadFromEttNode(pNode);
 }
 
-RString HighScore::GetDisplayName() const
+string HighScore::GetDisplayName() const
 {
 	if( GetName().empty() )
 		return EMPTY_NAME;
@@ -1050,7 +1050,7 @@ float HighScore::ConvertDpToWife() {
 class LunaHighScore: public Luna<HighScore>
 {
 public:
-	static int GetName( T* p, lua_State *L )			{ lua_pushstring(L, p->GetName() ); return 1; }
+	static int GetName( T* p, lua_State *L )			{ lua_pushstring(L, p->GetName().c_str()); return 1; }
 	static int GetScore( T* p, lua_State *L )			{ lua_pushnumber(L, p->GetScore() ); return 1; }
 	static int GetPercentDP( T* p, lua_State *L )		{ lua_pushnumber(L, p->GetPercentDP() ); return 1; }
 	static int GetWifeScore(T* p, lua_State *L)			{ lua_pushnumber(L, p->GetWifeScore()); return 1; }
@@ -1067,7 +1067,7 @@ public:
 		return 1;
 	}
 	static int GetMaxCombo( T* p, lua_State *L )			{ lua_pushnumber(L, p->GetMaxCombo() ); return 1; }
-	static int GetModifiers( T* p, lua_State *L )			{ lua_pushstring(L, p->GetModifiers() ); return 1; }
+	static int GetModifiers( T* p, lua_State *L )			{ lua_pushstring(L, p->GetModifiers().c_str() ); return 1; }
 	static int GetTapNoteScore( T* p, lua_State *L )		{ lua_pushnumber(L, p->GetTapNoteScore( Enum::Check<TapNoteScore>(L, 1) ) ); return 1; }
 	static int GetHoldNoteScore( T* p, lua_State *L )		{ lua_pushnumber(L, p->GetHoldNoteScore( Enum::Check<HoldNoteScore>(L, 1) ) ); return 1; }
 	static int RescoreToWifeJudge(T* p, lua_State *L)		{ lua_pushnumber(L, p->RescoreToWifeJudge(IArg(1))); return 1; }
