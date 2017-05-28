@@ -319,6 +319,10 @@ void ScoresAtRate::LoadFromNode(const XNode* node, const string& ck, const float
 		p->GetAttrValue("Key", sk);
 		scores[sk].LoadFromEttNode(p);
 
+		// Set first score as the pbptr
+		if(PBptr == nullptr)
+			PBptr = &scores.find(sk)->second;
+
 		// Fill in stuff for the highscores
 		scores[sk].SetChartKey(ck);
 		scores[sk].SetScoreKey(sk);
@@ -330,9 +334,6 @@ void ScoresAtRate::LoadFromNode(const XNode* node, const string& ck, const float
 		SCOREMAN->RegisterScore(&scores.find(sk)->second);
 		SCOREMAN->AddToKeyedIndex(&scores.find(sk)->second);
 	}
-
-	// Set the pbptr
-	PBptr = &scores.find(sk)->second;
 }
 
 void ScoresForChart::LoadFromNode(const XNode* node, const string& ck) {
