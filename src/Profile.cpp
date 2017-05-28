@@ -1989,6 +1989,8 @@ void Profile::ImportScoresToEtterna() {
 	LOG->Trace("Finished import of %i scores to etterna profile. %i scores were not imported.", loaded, notloaded);
 	SCREENMAN->SystemMessage("Finished import of %i scores. %i scores were not imported. See log for details.");
 	CalculateStatsFromScores();
+
+	PROFILEMAN->SaveProfile(PLAYER_1);
 }
 
 XNode* Profile::SaveEttScoresCreateNode() const {
