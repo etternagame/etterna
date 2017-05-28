@@ -1902,6 +1902,10 @@ public:
 		SONGMAN->playlistcourse = SArg(1);
 		Playlist& pl = SONGMAN->allplaylists[SONGMAN->playlistcourse];
 
+		// don't allow empty playlists to be started as a course
+		if (pl.chartlist.empty())
+			return 1;
+
 		// dont allow playlists with an unloaded chart to be played as a course
 		FOREACH(Chart, pl.chartlist, ch)
 			if (!ch->loaded)
