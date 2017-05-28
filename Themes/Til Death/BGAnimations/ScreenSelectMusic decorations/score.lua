@@ -399,7 +399,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 	SetCommand=function(self)
 		if score ~= nil then
 			if score:HasReplayData() then 
-				self:settext("Replay Data Available (Press Select+Up To View Plot)")
+				self:settext("Replay Data Available (Up To View Plot)")
 			else
 				self:settext("No Replay Data")
 			end
