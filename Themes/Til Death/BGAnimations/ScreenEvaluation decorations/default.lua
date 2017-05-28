@@ -94,9 +94,18 @@ function scoreBoard(pn,position)
 	t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY+55;zoomto,frameWidth,2;halign,0;diffuse,getMainColor('highlight');diffusealpha,0.5)};
 
 	t[#t+1] = LoadFont("Common Large")..{
+		InitCommand=cmd(xy,frameX+5,frameY+32;zoom,0.5;halign,0;valign,0;maxwidth,200),
+		BeginCommand=cmd(queuecommand,"Set"),
+		SetCommand=function(self)
+			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1)
+			self:settextf("%5.2f", meter)
+			self:diffuse(ByMSD(meter))
+		end,
+	};
+	t[#t+1] = LoadFont("Common Large")..{
 		InitCommand=cmd(xy,frameWidth+frameX,frameY+32;zoom,0.5;halign,1;valign,0;maxwidth,200),
 		BeginCommand=cmd(queuecommand,"Set"),
-		Se2tCommand=function(self)
+		SetCommand=function(self)
 			local meter = score:GetSkillsetSSR("Overall")
 			self:settextf("%5.2f", meter)
 			self:diffuse(ByMSD(meter))
