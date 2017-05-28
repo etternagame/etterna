@@ -14,17 +14,17 @@
 #include "CryptManager.h"
 #include "ProfileManager.h"
 
-ThemeMetric<RString> EMPTY_NAME("HighScore","EmptyName");
+ThemeMetric<string> EMPTY_NAME("HighScore","EmptyName");
 
 struct HighScoreImpl
 {
-	RString	sName;	// name that shows in the machine's ranking screen
+	string	sName;	// name that shows in the machine's ranking screen
 	
 	/* a half-misnomer now- since all scores are keyed by the chart key this should never change/be different,
 	but its historical correctness is still correct, though it should prolly be renamed tbh -mina*/ 
-	RString ChartKey;
+	string ChartKey;
 
-	RString ScoreKey;
+	string ScoreKey;
 	float SSRCalcVersion;
 	Grade grade;
 	unsigned int iScore;
@@ -42,10 +42,10 @@ struct HighScoreImpl
 	unsigned int iMaxCombo;			// maximum combo obtained [SM5 alpha 1a+]
 	StageAward stageAward;	// stage award [SM5 alpha 1a+]
 	PeakComboAward peakComboAward;	// peak combo award [SM5 alpha 1a+]
-	RString	sModifiers;
+	string	sModifiers;
 	DateTime dateTime;		// return value of time() for when the highscore object was created (immediately after achieved)
-	RString sPlayerGuid;	// who made this high score
-	RString sMachineGuid;	// where this high score was made
+	string sPlayerGuid;	// who made this high score
+	string sMachineGuid;	// where this high score was made
 	int iProductID;
 	int iTapNoteScores[NUM_TapNoteScore];
 	int iHoldNoteScores[NUM_HoldNoteScore];
@@ -53,7 +53,7 @@ struct HighScoreImpl
 	RadarValues radarValues;
 	float fLifeRemainingSeconds;
 	bool bDisqualified;
-	RString ValidationKey;
+	string ValidationKey;
 
 	HighScoreImpl();
 	XNode *CreateNode() const;
@@ -237,7 +237,7 @@ HighScoreImpl::HighScoreImpl()
 	ZERO( fSkillsetSSRs );
 	radarValues.MakeUnknown();
 	fLifeRemainingSeconds = 0;
-	RString ValidationKey = "";
+	string ValidationKey = "";
 }
 
 XNode *HighScoreImpl::CreateNode() const
@@ -349,9 +349,9 @@ void HighScoreImpl::LoadFromEttNode(const XNode *pNode) {
 	pNode->GetChildValue("EtternaValid", bEtternaValid);
 	pNode->GetChildValue("SurviveSeconds", fSurviveSeconds);
 	pNode->GetChildValue("MaxCombo", iMaxCombo);
-	pNode->GetChildValue("Modifiers", sModifiers);
+	pNode->GetChildValue("Modifiers", s); sModifiers = s;
 	pNode->GetChildValue("DateTime", s); dateTime.FromString(s);
-	pNode->GetChildValue("ScoreKey", ScoreKey);
+	pNode->GetChildValue("ScoreKey", s); ScoreKey = s;
 
 	const XNode* pTapNoteScores = pNode->GetChild("TapNoteScores");
 	if (pTapNoteScores)
@@ -370,9 +370,9 @@ void HighScoreImpl::LoadFromEttNode(const XNode *pNode) {
 			pSkillsetSSRs->GetChildValue(SkillsetToString(ss), fSkillsetSSRs[ss]);
 	}
 
-	pNode->GetChildValue("ValidationKey", ValidationKey);
+	pNode->GetChildValue("ValidationKey", s); ValidationKey = s;
 
-	if (ScoreKey = "")
+	if (ScoreKey == "")
 		ScoreKey = "S" + BinaryToHex(CryptManager::GetSHA1ForString(dateTime.GetString()));
 
 	// Validate input.
@@ -385,8 +385,8 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 
 	RString s;
 
-	pNode->GetChildValue("Name",				sName);
-	pNode->GetChildValue("HistoricChartKey",	ChartKey);
+	pNode->GetChildValue("Name", s); sName = s;
+	pNode->GetChildValue("HistoricChartKey", s); ChartKey = s;
 	pNode->GetChildValue("SSRCalcVersion",		SSRCalcVersion);
 	pNode->GetChildValue("Grade", s);
 	grade = StringToGrade(s);
@@ -404,7 +404,7 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 	pNode->GetChildValue("MaxCombo",			iMaxCombo);
 	pNode->GetChildValue("StageAward", s);		stageAward = StringToStageAward(s);
 	pNode->GetChildValue("PeakComboAward", s);	peakComboAward = StringToPeakComboAward(s);
-	pNode->GetChildValue("Modifiers",			sModifiers);
+	pNode->GetChildValue("Modifiers", s); sModifiers = s;
 	if (fMusicRate == 0.f) {
 		size_t ew = sModifiers.find("xMusic");
 		size_t dew = string::npos;
@@ -417,15 +417,15 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 		}
 	}		
 	pNode->GetChildValue( "DateTime",		s ); dateTime.FromString( s );
-	pNode->GetChildValue( "ScoreKey",			ScoreKey);
+	pNode->GetChildValue("ScoreKey", s); ScoreKey = s;
 
 	if (fWifeScore > 0.f)
 		ScoreKey = "S" + BinaryToHex(CryptManager::GetSHA1ForString(dateTime.GetString()));
 	else
 		ScoreKey = "";
 
-	pNode->GetChildValue( "PlayerGuid",		sPlayerGuid );
-	pNode->GetChildValue( "MachineGuid",	sMachineGuid );
+	pNode->GetChildValue("PlayerGuid", s); sPlayerGuid = s;
+	pNode->GetChildValue("MachineGuid", s); sMachineGuid = s;
 	pNode->GetChildValue( "ProductID",		iProductID );
 
 	const XNode* pTapNoteScores = pNode->GetChild( "TapNoteScores" );
@@ -466,15 +466,15 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 }
 
 bool HighScoreImpl::WriteReplayData(bool duringload) {
-	RString append;
-	RString profiledir;
+	string append;
+	string profiledir;
 
 	if (duringload)
 		profiledir = PROFILEMAN->currentlyloadingprofile;
 	else
 		profiledir = PROFILEMAN->GetProfileDir(ProfileSlot_Player1).substr(1);		// THIS NEEDS TO BE HERE CAUSE LOL!!! -mina
 	
-	RString path = profiledir + "ReplayData/" + ScoreKey;
+	string path = profiledir + "ReplayData/" + ScoreKey;
 	ofstream fileStream(path, ios::binary);
 	//check file
 
@@ -504,7 +504,7 @@ bool HighScore::LoadReplayData(bool duringload) {
 	if (m_Impl->vNoteRowVector.size() > 4 && m_Impl->vOffsetVector.size() > 4)
 		return true;
 
-	RString profiledir;
+	string profiledir;
 	vector<int> vNoteRowVector;
 	vector<float> vOffsetVector;
 
@@ -513,7 +513,7 @@ bool HighScore::LoadReplayData(bool duringload) {
 	else
 		profiledir = PROFILEMAN->GetProfileDir(ProfileSlot_Player1).substr(1);
 
-	RString path = profiledir + "ReplayData/" + m_Impl->ScoreKey;
+	string path = profiledir + "ReplayData/" + m_Impl->ScoreKey;
 	std::ifstream fileStream(path, ios::binary);
 	string line;
 	string buffer;
@@ -557,8 +557,8 @@ bool HighScore::LoadReplayData(bool duringload) {
 }
 
 bool HighScore::HasReplayData() {
-	RString profiledir = PROFILEMAN->GetProfileDir(ProfileSlot_Player1).substr(1);
-	RString path = profiledir + "ReplayData/" + m_Impl->ScoreKey;
+	string profiledir = PROFILEMAN->GetProfileDir(ProfileSlot_Player1).substr(1);
+	string path = profiledir + "ReplayData/" + m_Impl->ScoreKey;
 	return DoesFileExist(path);
 }
 
@@ -1187,7 +1187,7 @@ public:
 
 	static int GetHighestScoreOfName( T* p, lua_State *L )
 	{
-		RString name= SArg(1);
+		string name= SArg(1);
 		for(size_t i= 0; i < p->vHighScores.size(); ++i)
 		{
 			if(name == p->vHighScores[i].GetName())
@@ -1202,7 +1202,7 @@ public:
 
 	static int GetRankOfName( T* p, lua_State *L )
 	{
-		RString name= SArg(1);
+		string name= SArg(1);
 		size_t rank= 0;
 		for(size_t i= 0; i < p->vHighScores.size(); ++i)
 		{
