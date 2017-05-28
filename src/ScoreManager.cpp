@@ -267,7 +267,7 @@ XNode* ScoresAtRate::CreateNode(const int& rate) const {
 	if (o->ChildrenEmpty())
 		return o;
 
-	float oops = rate;
+	int oops = rate;
 	if (oops > 30000)
 		oops /= 10;
 
