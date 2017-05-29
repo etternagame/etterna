@@ -31,8 +31,8 @@
 
 const RString STATS_XML            = "Stats.xml";
 const RString STATS_XML_GZ         = "Stats.xml.gz";
-const RString ETT_XML = "Etterna.xml";
-const RString ETT_XML_GZ = "Etterna.xml.gz";
+const RString ETT_XML			   = "Etterna.xml";
+const RString ETT_XML_GZ		   = "Etterna.xml.gz";
 /** @brief The filename for where one can edit their personal profile information. */
 const RString EDITABLE_INI         = "Editable.ini";
 /** @brief A tiny file containing the type and list priority. */
@@ -2054,8 +2054,52 @@ void Profile::LoadOldEttScoresFromNode(const XNode* pSongScores) {
 			FOREACH_CONST_Child(pRate, hs) {
 				HighScore tmp;
 				tmp.LoadFromEttNode(hs);
-				SCOREMAN->AddScore(tmp, ck, rate, title);
-				loaded++;
+
+				if (!SONGMAN->IsChartLoaded(ck)) {
+					LOG->Warn("Missing key for %s", title.c_str());
+
+					vector<Song*> songs = SONGMAN->GetAllSongs();
+					for (size_t i = 0; i < songs.size(); ++i) {
+						if (songs[i]->GetDisplayMainTitle() == title) {
+							vector<Steps*> demsteps = songs[i]->GetAllSteps();
+							bool matched = false;
+							for (size_t j = 0; j < demsteps.size(); ++j) {
+
+								Steps* steps = demsteps[j];
+								if (!steps) {
+									LOG->Warn("What????");
+									continue;
+								}
+
+								int notes = steps->GetRadarValues()[RadarCategory_Notes];
+								int snotes = 0;
+
+								snotes += tmp.GetTapNoteScore(TNS_Miss);
+								snotes += tmp.GetTapNoteScore(TNS_W1);
+								snotes += tmp.GetTapNoteScore(TNS_W2);
+								snotes += tmp.GetTapNoteScore(TNS_W3);
+								snotes += tmp.GetTapNoteScore(TNS_W4);
+								snotes += tmp.GetTapNoteScore(TNS_W5);
+
+								if (notes == snotes) {
+									LOG->Warn("Matched based on note count");
+									ck = steps->GetChartKey();
+									matched = true;
+									SCOREMAN->AddScore(tmp, ck, rate, title);
+									loaded++;
+									break;
+								}
+							}
+
+							if (!matched)
+								LOG->Warn("Failed to match score asdfor %s", title.c_str());
+						}
+					}
+				}
+				else {
+					SCOREMAN->AddScore(tmp, ck, rate, title);
+					loaded++;
+				}
 			}
 		}
 	}
