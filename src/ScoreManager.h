@@ -4,13 +4,13 @@
 #include "Grade.h"
 #include "GameConstantsAndTypes.h"
 #include "PrefsManager.h"
+#include "SongManager.h"
 
 #include <map>
 #include <unordered_map>
 #include <string>
 
 using std::string;
-
 
 // Scores for a specific rate for a specific chart
 struct ScoresAtRate
@@ -54,7 +54,7 @@ public:
 	vector<HighScore*> GetAllPBPtrs();
 
 	void AddScore(HighScore& hs);
-	void AddScore(HighScore& hs, const string& title);
+	void AddScore(const string& ck, HighScore& hs, const string& title);
 
 	vector<float> GetPlayedRates();
 	vector<int> GetPlayedRateKeys();
@@ -65,9 +65,7 @@ public:
 
 	void PushSelf(lua_State *L);
 
-	RString LastSeenPack;
-	RString LastSeenSong;
-	
+	Chart ch;
 
 	ScoresAtRate* GetScoresAtRate(const int& rate);
 	XNode *CreateNode(const string& ck) const;

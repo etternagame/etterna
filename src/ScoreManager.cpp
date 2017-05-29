@@ -6,7 +6,6 @@
 #include "ScoreManager.h"
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
-#include "SongManager.h"
 #include "Song.h"
 
 ScoreManager* SCOREMAN = NULL;
@@ -99,11 +98,10 @@ void ScoresForChart::AddScore(HighScore& hs) {
 	ScoresByRate[key].AddScore(hs);
 }
 
-void ScoresForChart::AddScore(HighScore& hs, const string& title) {
+void ScoresForChart::AddScore(const string& ck, HighScore& hs, const string& title) {
 	bestGrade = min(hs.GetWifeGrade(), bestGrade);
 
-	if(title != "")
-		LastSeenSong = title;
+	ch.FromKey(ck);
 
 	float rate = hs.GetMusicRate();
 	int key = RateToKey(rate);
@@ -240,15 +238,15 @@ HighScore* ScoreManager::GetTopSSRHighScore(unsigned int rank, int ss) {
 
 void ScoreManager::AddScore(const HighScore& hs_, const string& ck, const float& rate, const string& title) {
 	HighScore hs = hs_;
-	// don't save any scores under the percent threshold and dont duplicate scores
-	if (hs.GetWifeScore() <= minpercent || ScoresByKey.count(hs.GetScoreKey()))
+	// don't save any scores under the percent threshold
+	if (hs.GetWifeScore() <= minpercent)
 		return;
 
 	// Fill in stuff for the highscores
 	hs.SetChartKey(ck);
 	hs.SetMusicRate(rate);
 
-	pscores[hs.GetChartKey()].AddScore(hs, title);
+	pscores[hs.GetChartKey()].AddScore(ck, hs, title);
 }
 
 // Write scores to xml
@@ -281,17 +279,10 @@ XNode* ScoresAtRate::CreateNode(const int& rate) const {
 }
 
 XNode * ScoresForChart::CreateNode(const string& ck) const {
-	XNode* o = new XNode("ChartScores");
-	o->AppendAttr("Key", ck);
-	Song* song = SONGMAN->GetSongByChartkey(ck);
-	if (song) {
-		o->AppendAttr("Pack", song->m_sGroupName);
-		o->AppendAttr("Song", song->GetDisplayMainTitle());
-	} else {
-		o->AppendAttr("Pack", LastSeenPack);
-		o->AppendAttr("Song", LastSeenSong);
-	}
-	
+	Chart ch;
+	ch.FromKey(ck);
+	XNode* o = ch.CreateNode(false);
+
 	FOREACHM_CONST(int, ScoresAtRate, ScoresByRate, i) {
 		auto node = i->second.CreateNode(i->first);
 		if (!node->ChildrenEmpty())
@@ -344,10 +335,15 @@ void ScoresAtRate::LoadFromNode(const XNode* node, const string& ck, const float
 void ScoresForChart::LoadFromNode(const XNode* node, const string& ck) {
 	RString rs;
 	int rate;
+
+	if(node->GetName() == "Chart")
+		ch.LoadFromNode(node);
+
+	if (ch.lastsong == "")
+		return;
+
 	FOREACH_CONST_Child(node, p) {
 		ASSERT(p->GetName() == "ScoresAt");
-		p->GetAttrValue("Song", LastSeenSong);
-		p->GetAttrValue("Pack", LastSeenPack);
 		p->GetAttrValue("Rate", rs);
 		rate = 10 * StringToInt(rs.substr(0, 1) + rs.substr(2, 4));
 		ScoresByRate[rate].LoadFromNode(p, ck, KeyToRate(rate));
@@ -357,7 +353,7 @@ void ScoresForChart::LoadFromNode(const XNode* node, const string& ck) {
 
 void ScoreManager::LoadFromNode(const XNode * node) {
 	FOREACH_CONST_Child(node, p) {
-		ASSERT(p->GetName() == "ChartScores");
+		//ASSERT(p->GetName() == "Chart");
 		RString tmp;
 		p->GetAttrValue("Key", tmp);
 		const string ck = tmp;
