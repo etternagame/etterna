@@ -43,7 +43,7 @@ struct Chart {
 
 	bool loaded = false;
 	void FromKey(const string& ck);
-	XNode * CreateNode() const;
+	XNode * CreateNode(bool includerate) const;
 	void LoadFromNode(const XNode * node);
 	void PushSelf(lua_State *L);
 };

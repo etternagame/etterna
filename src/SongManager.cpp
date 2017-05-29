@@ -241,10 +241,10 @@ void SongManager::InitSongsFromDisk( LoadingWindow *ld )
 
 void Chart::FromKey(const string& ck) { 
 	Song* song = SONGMAN->GetSongByChartkey(ck);
+	key = ck;
+
 	if (song) {
 		Steps* steps = SONGMAN->GetStepsByChartkey(ck);
-		key = ck;
-
 		lastpack = song->m_sGroupName;
 		lastsong = song->GetDisplayMainTitle();
 		lastdiff = steps->GetDifficulty();
@@ -256,13 +256,15 @@ void Chart::FromKey(const string& ck) {
 	loaded = false;
 }
 
-XNode* Chart::CreateNode() const {
+XNode* Chart::CreateNode(bool includerate) const {
 	XNode* ch = new XNode("Chart");
 	ch->AppendAttr("Key", key);
 	ch->AppendAttr("Pack", lastpack);
 	ch->AppendAttr("Song", lastsong);
 	ch->AppendAttr("Steps", DifficultyToString(lastdiff));
-	ch->AppendAttr("Rate", ssprintf("%.3f",rate));
+
+	if(includerate)
+		ch->AppendAttr("Rate", ssprintf("%.3f",rate));
 	return ch;
 }
 
@@ -296,7 +298,7 @@ XNode* Playlist::CreateNode() const {
 
 	XNode* cl = new XNode("Chartlist");
 	FOREACH_CONST(Chart, chartlist, ch)
-		cl->AppendChild(ch->CreateNode());
+		cl->AppendChild(ch->CreateNode(true));
 
 	XNode* cr = new XNode("CourseRuns");
 	FOREACH_CONST(vector<string>, courseruns, run) {
