@@ -146,26 +146,6 @@ function scoreBoard(pn,position)
 		end,
 	};
 	
-	-- DP percent
-	t[#t+1] = LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+5,frameY+34;zoom,0.45;halign,0;valign,0;maxwidth,capWideScale(280,320)),
-		BeginCommand=cmd(queuecommand,"Set"),
-		SetCommand=function(self) 
-			self:diffuse(getGradeColor(pss:GetGrade()))
-			self:settextf("")
-		end,
-		CodeMessageCommand=function(self,params)
-			if params.Name == "PrevJudge" or params.Name == "NextJudge" then
-				if judge == 9 then
-					self:settextf("%05.2f%% (%s)", notShit.floor(score:RescoreToDPJudge(judge)*10000)/100, "DP Justice")
-				else
-					self:settextf("%05.2f%% (%s)", notShit.floor(score:RescoreToDPJudge(judge)*10000)/100, "DP J"..judge)	
-				end
-				
-			end
-		end,
-	}
-	
 	t[#t+1] = LoadFont("Common Normal")..{
 		InitCommand=cmd(xy,frameX+5,frameY+63;zoom,0.40;halign,0;maxwidth,frameWidth/0.4),
 		BeginCommand=cmd(queuecommand,"Set"),
