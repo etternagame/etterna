@@ -150,10 +150,6 @@ function getClearType(pn,ret)
 		hScore = hScoreList[1]
 	end;
 	if hScore ~= nil then
-		-- 00 Utility.lua
-		if not isScoreValid(pn,steps,hScore) then
-			return getClearTypeItem(12,ret)
-		end
 		playCount = profile:GetSongNumTimesPlayed(song)
 		missCount = hScore:GetTapNoteScore('TapNoteScore_Miss')+hScore:GetTapNoteScore('TapNoteScore_W5')+hScore:GetTapNoteScore('TapNoteScore_W4');
 		grade = hScore:GetGrade()

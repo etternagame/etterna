@@ -89,7 +89,7 @@ local function GetBestScoreByFilter(perc,CurRate)
 		
 		for ii=1,#scores do
 			score = scores[ii]
-			if score:ConvertDpToWife() > bestscore and getClearTypeFromScore(PLAYER_1,score,0) ~= "Invalid" then
+			if score:ConvertDpToWife() > bestscore then
 				index = ii
 				bestscore = score:ConvertDpToWife()
 			end
