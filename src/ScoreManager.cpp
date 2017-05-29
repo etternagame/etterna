@@ -7,6 +7,9 @@
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
 #include "Song.h"
+#include "MinaCalc.h"
+#include "NoteDataStructures.h"
+#include "NoteData.h"
 
 ScoreManager* SCOREMAN = NULL;
 
@@ -163,10 +166,42 @@ HighScore* ScoreManager::GetChartPBUpTo(string& ck, float& rate) {
 
 
 
-
-
-
 void ScoreManager::RecalculateSSRs() {
+	for(size_t i = 0; i < AllScores.size(); ++i) {
+		HighScore* hs = AllScores[i];
+		Steps* steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
+
+		if (steps && !steps->IsRecalcValid()) {
+			FOREACH_ENUM(Skillset, ss)
+				hs->SetSkillsetSSR(ss, 0.f);
+			continue;
+		}
+
+		float ssrpercent = hs->GetSSRNormPercent();
+		float musicrate = hs->GetMusicRate();
+
+		if (ssrpercent <= 0.f || hs->GetGrade() == Grade_Failed) {
+			FOREACH_ENUM(Skillset, ss)
+				hs->SetSkillsetSSR(ss, 0.f);
+			continue;
+		}
+
+	//	if (hs->GetSSRCalcVersion() == GetCalcVersion())
+		//	continue;
+
+		TimingData* td = steps->GetTimingData();
+		NoteData& nd = steps->GetNoteData();
+
+		nd.LogNonEmptyRows();
+		auto& nerv = nd.GetNonEmptyRowVector();
+		const vector<float>& etaner = td->BuildAndGetEtaner(nerv);
+		auto& serializednd = nd.SerializeNoteData(etaner);
+
+		auto& dakine = MinaSDCalc(serializednd, steps->GetNoteData().GetNumTracks(), musicrate, ssrpercent, 1.f, false);
+		FOREACH_ENUM(Skillset, ss)
+			hs->SetSkillsetSSR(ss, dakine[ss]);
+		hs->SetSSRCalcVersion(GetCalcVersion());
+	}
 	return;
 }
 
@@ -176,6 +211,9 @@ void ScoreManager::EnableAllScores() {
 }
 
 void ScoreManager::CalcPlayerRating(float& prating, float* pskillsets) {
+	// Force updated calc SSR calculation first
+	RecalculateSSRs();
+
 	float skillsetsum = 0.f;
 	FOREACH_ENUM(Skillset, ss) {
 		// actually skip overall

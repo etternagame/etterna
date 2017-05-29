@@ -1070,6 +1070,9 @@ void Profile::CalculateStatsFromScores() {
 	m_iNumTotalSongsPlayed = all.size();
 	m_iTotalDancePoints = m_iTotalTapsAndHolds * 2;
 	m_iTotalGameplaySeconds = static_cast<int>(TotalGameplaySeconds);
+
+	SCOREMAN->RecalculateSSRs();
+	SCOREMAN->CalcPlayerRating(m_fPlayerRating, m_fPlayerSkillsets);
 }
 
 bool Profile::SaveAllToDir( const RString &sDir, bool bSignData ) const
