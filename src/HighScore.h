@@ -25,7 +25,7 @@ struct HighScore
 	 * @return the name of the player. */
 	string	GetName() const;
 	string GetChartKey() const;
-	float GetSSRCalcVersion() const;
+	int GetSSRCalcVersion() const;
 	/**
 	 * @brief Retrieve the grade earned from this score.
 	 * @return the grade.
@@ -81,7 +81,7 @@ struct HighScore
 	 * @param sName the name of the Player. */
 	void SetName( const string &sName );
 	void SetChartKey( const string &ck );
-	void SetSSRCalcVersion(float cv);
+	void SetSSRCalcVersion(int cv);
 	void SetGrade( Grade g );
 	void SetScore( unsigned int iScore );
 	void SetPercentDP( float f );

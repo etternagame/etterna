@@ -152,5 +152,5 @@ private:
 
 MINACALC_API vector<float> MinaSDCalc(const vector<NoteInfo>& NoteInfo, int numTracks, float musicrate, float goal, float timingscale, bool negbpms);
 MINACALC_API MinaSD MinaSDCalc(const vector<NoteInfo>& NoteInfo, int numTracks, float goal, float timingscale, bool negbpms);
-MINACALC_API float GetCalcVersion();
+MINACALC_API int GetCalcVersion();
 MINACALC_API string GenerateWeakValidationKey(const int* tns, const int* hns);

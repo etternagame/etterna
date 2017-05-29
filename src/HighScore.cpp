@@ -25,7 +25,7 @@ struct HighScoreImpl
 	string ChartKey;
 
 	string ScoreKey;
-	float SSRCalcVersion;
+	int SSRCalcVersion;
 	Grade grade;
 	unsigned int iScore;
 	float fPercentDP;
@@ -211,7 +211,7 @@ HighScoreImpl::HighScoreImpl()
 	sName = "";
 	ChartKey = "";
 	ScoreKey = "";
-	SSRCalcVersion = 0.f;
+	SSRCalcVersion = 0;
 	grade = Grade_NoData;
 	iScore = 0;
 	fPercentDP = 0.f;
@@ -589,7 +589,7 @@ bool HighScore::IsEmpty() const
 
 string	HighScore::GetName() const { return m_Impl->sName; }
 string HighScore::GetChartKey() const { return m_Impl->ChartKey; }
-float HighScore::GetSSRCalcVersion() const { return m_Impl->SSRCalcVersion; }
+int HighScore::GetSSRCalcVersion() const { return m_Impl->SSRCalcVersion; }
 Grade HighScore::GetGrade() const { return m_Impl->grade; }
 unsigned int HighScore::GetScore() const { return m_Impl->iScore; }
 unsigned int HighScore::GetMaxCombo() const { return m_Impl->iMaxCombo; }
@@ -622,7 +622,7 @@ bool HighScore::GetDisqualified() const { return m_Impl->bDisqualified; }
 
 void HighScore::SetName( const string &sName ) { m_Impl->sName = sName; }
 void HighScore::SetChartKey( const string &ck) { m_Impl->ChartKey = ck; }
-void HighScore::SetSSRCalcVersion(float cv) { m_Impl->SSRCalcVersion = cv; }
+void HighScore::SetSSRCalcVersion(int cv) { m_Impl->SSRCalcVersion = cv; }
 void HighScore::SetGrade( Grade g ) { m_Impl->grade = g; }
 void HighScore::SetScore( unsigned int iScore ) { m_Impl->iScore = iScore; }
 void HighScore::SetMaxCombo( unsigned int i ) { m_Impl->iMaxCombo = i; }
@@ -924,7 +924,6 @@ float HighScore::RescoreToWifeJudge(int x) {
 	p += (m_Impl->iHoldNoteScores[HNS_LetGo] + m_Impl->iHoldNoteScores[HNS_Missed]) * -6.f;
 	p += m_Impl->iTapNoteScores[TNS_HitMine] * -8.f;
 
-	//UnloadReplayData();
 	return p / static_cast<float>(m_Impl->vOffsetVector.size() * 2);
 }
 
