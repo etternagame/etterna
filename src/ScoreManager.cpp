@@ -319,9 +319,14 @@ void ScoresAtRate::LoadFromNode(const XNode* node, const string& ck, const float
 		p->GetAttrValue("Key", sk);
 		scores[sk].LoadFromEttNode(p);
 
-		// Set first score as the pbptr
+		// Set any pb
 		if(PBptr == nullptr)
 			PBptr = &scores.find(sk)->second;
+		else {
+			// update pb if a better score is found
+			if (PBptr->GetWifeScore() < scores[sk].GetWifeScore())
+				PBptr = &scores.find(sk)->second;
+		}
 
 		// Fill in stuff for the highscores
 		scores[sk].SetChartKey(ck);
