@@ -103,11 +103,11 @@ void StatsManager::CalcAccumPlayedStageStats()
 	m_AccumPlayedStageStats = AccumPlayedStageStats( m_vPlayedStageStats );
 }
 
-/* This data is added to each player profile, and to the machine profile per-player. */
+// almost deadcode -mina
 void AddPlayerStatsToProfile( Profile *pProfile, const StageStats &ss, PlayerNumber pn )
 {
-	SCOREMAN->RecalculateSSRs();
 	SCOREMAN->CalcPlayerRating(pProfile->m_fPlayerRating, pProfile->m_fPlayerSkillsets);
+	return;
 }
 
 void StatsManager::CommitStatsToProfiles( const StageStats *pSS )
