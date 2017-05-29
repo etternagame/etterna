@@ -817,10 +817,15 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 	LoadEditableDataFromDir( sDir );
 
 	ProfileLoadResult ret= LoadEttFromDir(sDir);
-	if (ret != ProfileLoadResult_Success)
+	if (ret != ProfileLoadResult_Success) {
 		ret = LoadStatsFromDir(sDir, bRequireSignature);
-	if (ret != ProfileLoadResult_Success)
-		return ret;
+
+		if (ret != ProfileLoadResult_Success)
+			return ret;
+
+		IsEtternaProfile = true;
+		ImportScoresToEtterna();
+	}
 
 	LoadOldEttFromDir(sDir);
 
