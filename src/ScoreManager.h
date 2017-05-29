@@ -138,7 +138,7 @@ private:
 	vector<HighScore*> TopSSRs;
 	vector<HighScore*> AllScores;
 
-	// pointers in a keyed index
+	// pointers in a keyed index (by scorekey, in case it's not immediately obvious)
 	unordered_map<string, HighScore*> ScoresByKey;
 };
 
