@@ -274,7 +274,7 @@ void Chart::LoadFromNode(const XNode* node) {
 	RString s;
 	node->GetAttrValue("Pack", lastpack);
 	node->GetAttrValue("Song", lastsong);
-	//node->GetAttrValue("Steps", s); lastdiff = StringToDifficulty(s);
+	node->GetAttrValue("Steps", s); lastdiff = StringToDifficulty(s);
 	node->GetAttrValue("Rate", s);	rate = StringToFloat(s);
 	node->GetAttrValue("Key", s); key = s;
 
