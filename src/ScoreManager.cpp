@@ -171,12 +171,13 @@ void ScoreManager::RecalculateSSRs() {
 		HighScore* hs = AllScores[i];
 		Steps* steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
 
-		if (!steps)
+		if (!steps) {
+			hs->ResetSkillsets();
 			continue;
+		}
 
 		if (!steps->IsRecalcValid()) {
-			FOREACH_ENUM(Skillset, ss)
-				hs->SetSkillsetSSR(ss, 0.f);
+			hs->ResetSkillsets();
 			continue;
 		}
 
@@ -184,26 +185,30 @@ void ScoreManager::RecalculateSSRs() {
 		float musicrate = hs->GetMusicRate();
 
 		if (ssrpercent <= 0.f || hs->GetGrade() == Grade_Failed) {
-			FOREACH_ENUM(Skillset, ss)
-				hs->SetSkillsetSSR(ss, 0.f);
+			hs->ResetSkillsets();
 			continue;
 		}
 
-		if (hs->GetSSRCalcVersion() == GetCalcVersion())
-			continue;
+		//if (hs->GetSSRCalcVersion() == GetCalcVersion())
+			//continue;
 
+		steps->Decompress();
 		TimingData* td = steps->GetTimingData();
 		NoteData& nd = steps->GetNoteData();
 
 		nd.LogNonEmptyRows();
-		auto& nerv = nd.GetNonEmptyRowVector();
-		const vector<float>& etaner = td->BuildAndGetEtaner(nerv);
-		auto& serializednd = nd.SerializeNoteData(etaner);
+		auto nerv = nd.GetNonEmptyRowVector();
+		auto etaner = td->BuildAndGetEtaner(nerv);
+		auto serializednd = nd.SerializeNoteData(etaner);
 
-		auto& dakine = MinaSDCalc(serializednd, steps->GetNoteData().GetNumTracks(), musicrate, ssrpercent, 1.f, false);
+		auto dakine = MinaSDCalc(serializednd, steps->GetNoteData().GetNumTracks(), musicrate, ssrpercent, 1.f, td->HasWarps());
 		FOREACH_ENUM(Skillset, ss)
 			hs->SetSkillsetSSR(ss, dakine[ss]);
 		hs->SetSSRCalcVersion(GetCalcVersion());
+
+		td->UnsetElapsedTimesAtAllRows();
+		nd.UnsetNerv();
+		nd.UnsetSerializedNoteData();
 	}
 	return;
 }

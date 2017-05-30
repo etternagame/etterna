@@ -62,6 +62,7 @@ struct HighScoreImpl
 	void LoadFromEttNode(const XNode *pNode);
 	Grade GetWifeGrade() const;
 	void UnloadReplayData();
+	void ResetSkillsets();
 
 	bool WriteReplayData(bool duringload);
 
@@ -204,6 +205,11 @@ vector<int> HighScoreImpl::NoteRowsToVector(RString s) {
 		startpos = pos + 1;
 	} while (startpos <= s.size());
 	return o;
+}
+
+void HighScoreImpl::ResetSkillsets() {
+	FOREACH_ENUM(Skillset, ss)
+		fSkillsetSSRs[ss] = 0.f;
 }
 
 HighScoreImpl::HighScoreImpl()
@@ -654,6 +660,10 @@ void HighScore::SetDisqualified( bool b ) { m_Impl->bDisqualified = b; }
 
 void HighScore::UnloadReplayData() {
 	m_Impl->UnloadReplayData();
+}
+
+void HighScore::ResetSkillsets() {
+	m_Impl->ResetSkillsets();
 }
 
 /* We normally don't give direct access to the members.  We need this one

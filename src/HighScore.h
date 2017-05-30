@@ -131,6 +131,7 @@ struct HighScore
 	bool LoadReplayData(bool duringload);
 	bool HasReplayData();
 	void UnloadReplayData();
+	void ResetSkillsets();
 
 	string GetDisplayName() const;
 
