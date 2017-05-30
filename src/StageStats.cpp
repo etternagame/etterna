@@ -219,6 +219,9 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 			hs.UnloadReplayData();
 	}
 
+	// ssrcalcversion should be set here so we don't double calculate i guess? dont know why i cant call it
+	// actually this whole thing needs to be redone, ssr calculation should be moved into highscore -mina
+
 	return hs;
 }
 
