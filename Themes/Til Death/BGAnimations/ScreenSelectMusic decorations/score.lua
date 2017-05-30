@@ -399,7 +399,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 	SetCommand=function(self)
 		if score ~= nil then
 			if score:HasReplayData() then 
-				self:settext("Replay Data Available (Up To View Plot)")
+				self:settext("Show Replay Data")
 			else
 				self:settext("No Replay Data")
 			end
@@ -409,5 +409,15 @@ t[#t+1] = LoadFont("Common Normal")..{
 	end,
 	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
 }
+
+t[#t+1] = Def.Quad{
+	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+288;zoomto,120,30;halign,0;diffusealpha,0.3),
+	MouseLeftClickMessageCommand=function(self)
+		if getTabIndex() == 2 and getScoreForPlot() and getScoreForPlot():HasReplayData() then
+			SCREENMAN:AddNewScreenToTop("ScreenScoreTabOffsetPlot")
+		end
+	end
+}
+		
 
 return t

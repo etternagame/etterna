@@ -5,11 +5,6 @@ t[#t+1] = Def.Actor{
 		if params.Name == "AvatarShow" and getTabIndex() == 1 then
 			SCREENMAN:AddNewScreenToTop("ScreenAvatarSwitch")
 		end
-		if params.Name == "PlotLoad" then
-			if getTabIndex() == 2 and getScoreForPlot() and getScoreForPlot():HasReplayData() then
-				SCREENMAN:AddNewScreenToTop("ScreenScoreTabOffsetPlot")
-			end
-		end
 	end
 }
 
