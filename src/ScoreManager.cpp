@@ -171,7 +171,10 @@ void ScoreManager::RecalculateSSRs() {
 		HighScore* hs = AllScores[i];
 		Steps* steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
 
-		if (steps && !steps->IsRecalcValid()) {
+		if (!steps)
+			continue;
+
+		if (!steps->IsRecalcValid()) {
 			FOREACH_ENUM(Skillset, ss)
 				hs->SetSkillsetSSR(ss, 0.f);
 			continue;
@@ -371,14 +374,17 @@ void ScoresAtRate::LoadFromNode(const XNode* node, const string& ck, const float
 }
 
 void ScoresForChart::LoadFromNode(const XNode* node, const string& ck) {
-	RString rs;
+	RString rs = "";
 	int rate;
 
 	if(node->GetName() == "Chart")
 		ch.LoadFromNode(node);
 
-	if (ch.lastsong == "")
-		return;
+	if (node->GetName() == "ChartScores") {
+		node->GetAttrValue("Key", rs);
+		ch.key = rs;
+		node->GetAttrValue("Song", ch.lastsong);
+	}
 
 	FOREACH_CONST_Child(node, p) {
 		ASSERT(p->GetName() == "ScoresAt");
