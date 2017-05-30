@@ -166,6 +166,39 @@ void ScoreManager::RecalculateSSRs() {
 			continue;
 		}
 
+		if (SONGMAN->multichartbs.count(hs->GetChartKey()))
+			continue;
+
+		// sometimes the game gets confused... and decompresses the wrong difficulty's note data...
+		// so... if the notes don't match, don't recalc /shrug (why do i have to do this wtf) - mina
+		int notes = steps->GetRadarValues()[RadarCategory_Notes];
+		int snotes = 0;
+		snotes += hs->GetTapNoteScore(TNS_Miss);
+		snotes += hs->GetTapNoteScore(TNS_W1);
+		snotes += hs->GetTapNoteScore(TNS_W2);
+		snotes += hs->GetTapNoteScore(TNS_W3);
+		snotes += hs->GetTapNoteScore(TNS_W4);
+		snotes += hs->GetTapNoteScore(TNS_W5);
+
+		int holds = steps->GetRadarValues()[RadarCategory_Holds];
+		int snolds = 0;
+		snolds += hs->GetHoldNoteScore(HNS_Held);
+		snolds += hs->GetHoldNoteScore(HNS_LetGo);
+		snolds += hs->GetHoldNoteScore(HNS_Missed);
+
+		if (holds != snolds) {
+			hs->ResetSkillsets();
+			continue;
+		}
+
+		if (notes != snotes) {
+			notes = steps->GetRadarValues()[RadarCategory_TapsAndHolds];
+			if (notes != snotes) {
+				hs->ResetSkillsets();
+				continue;
+			}
+		}
+
 		if (!steps->IsRecalcValid()) {
 			hs->ResetSkillsets();
 			continue;
@@ -182,7 +215,7 @@ void ScoreManager::RecalculateSSRs() {
 		//if (hs->GetSSRCalcVersion() == GetCalcVersion())
 			//continue;
 
-		steps->Decompress();
+
 		TimingData* td = steps->GetTimingData();
 		NoteData& nd = steps->GetNoteData();
 
@@ -199,6 +232,7 @@ void ScoreManager::RecalculateSSRs() {
 		td->UnsetElapsedTimesAtAllRows();
 		nd.UnsetNerv();
 		nd.UnsetSerializedNoteData();
+		steps->Compress();
 	}
 	return;
 }

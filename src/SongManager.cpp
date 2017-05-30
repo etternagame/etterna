@@ -357,6 +357,10 @@ void SongManager::AddKeyedPointers(Song* new_song) {
 	for (size_t i = 0; i < steps.size(); ++i) {
 		const RString& ck = steps[i]->GetChartKey();
 		if (!StepsByKey.count(ck)) {
+			if (steps.size() > 1) {
+				multichartbs.emplace(ck);
+			}
+
 			StepsByKey.emplace(ck, steps[i]);
 			if (!SongsByKey.count(ck)) {
 				SongsByKey.emplace(ck, new_song);
