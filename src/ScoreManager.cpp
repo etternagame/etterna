@@ -165,42 +165,64 @@ HighScore* ScoreManager::GetChartPBUpTo(string& ck, float& rate) {
 
 
 
-
+// Could be multithreaded if needed? This appears to be really slow when called during load instead of gameplay
+// not sure why
 void ScoreManager::RecalculateSSRs() {
-	for(size_t i = 0; i < AllScores.size(); ++i) {
-		HighScore* hs = AllScores[i];
-		Steps* steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
+	// throw everything into a map by chartkey so we reduce labor of calculation
+	unordered_map<string, vector<HighScore*>> scoresbychartkey;
+	for (size_t i = 0; i < AllScores.size(); ++i)
+		scoresbychartkey[AllScores[i]->GetChartKey()].emplace_back(AllScores[i]);
+
+	for (auto it = scoresbychartkey.begin(); it != scoresbychartkey.end(); ++it) {
+		const string& ck = it->first;
+		vector<HighScore*>& scores = it->second;
+		Steps* steps = SONGMAN->GetStepsByChartkey(ck);
 
 		if (steps && !steps->IsRecalcValid()) {
-			FOREACH_ENUM(Skillset, ss)
-				hs->SetSkillsetSSR(ss, 0.f);
+			for(size_t i = 0; i < scores.size(); ++i)
+				FOREACH_ENUM(Skillset, ss)	// should prolly just put this in highscore as a function
+					scores[i]->SetSkillsetSSR(ss, 0.f);
 			continue;
 		}
 
-		float ssrpercent = hs->GetSSRNormPercent();
-		float musicrate = hs->GetMusicRate();
+		bool anyneedsupdate = false;
+		
+		for (size_t i = 0; i < scores.size(); ++i)
+			if (scores[i]->GetSSRCalcVersion() == GetCalcVersion())
+				anyneedsupdate = true;
 
-		if (ssrpercent <= 0.f || hs->GetGrade() == Grade_Failed) {
-			FOREACH_ENUM(Skillset, ss)
-				hs->SetSkillsetSSR(ss, 0.f);
+		if (!anyneedsupdate)
 			continue;
-		}
 
-	//	if (hs->GetSSRCalcVersion() == GetCalcVersion())
-		//	continue;
-
+		// Build serialized notedata... this should probably be a function inside steps
 		TimingData* td = steps->GetTimingData();
 		NoteData& nd = steps->GetNoteData();
-
 		nd.LogNonEmptyRows();
 		auto& nerv = nd.GetNonEmptyRowVector();
 		const vector<float>& etaner = td->BuildAndGetEtaner(nerv);
 		auto& serializednd = nd.SerializeNoteData(etaner);
 
-		auto& dakine = MinaSDCalc(serializednd, steps->GetNoteData().GetNumTracks(), musicrate, ssrpercent, 1.f, false);
-		FOREACH_ENUM(Skillset, ss)
-			hs->SetSkillsetSSR(ss, dakine[ss]);
-		hs->SetSSRCalcVersion(GetCalcVersion());
+
+		for (size_t i = 0; i < scores.size(); ++i) {
+			HighScore* hs = scores[i];
+			float ssrpercent = hs->GetSSRNormPercent();
+			float musicrate = hs->GetMusicRate();
+
+			if (ssrpercent <= 0.f || hs->GetGrade() == Grade_Failed) {
+				FOREACH_ENUM(Skillset, ss)
+					hs->SetSkillsetSSR(ss, 0.f);
+				continue;
+			}
+
+			auto& dakine = MinaSDCalc(serializednd, steps->GetNoteData().GetNumTracks(), musicrate, ssrpercent, 1.f, false);
+			FOREACH_ENUM(Skillset, ss)
+				hs->SetSkillsetSSR(ss, dakine[ss]);
+			hs->SetSSRCalcVersion(GetCalcVersion());
+		}
+		// Hopefully clear out everything properly
+		nd.UnsetSerializedNoteData();
+		nd.UnsetNerv();
+		td->UnsetElapsedTimesAtAllRows();
 	}
 	return;
 }

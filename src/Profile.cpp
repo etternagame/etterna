@@ -1071,7 +1071,9 @@ void Profile::CalculateStatsFromScores() {
 	m_iTotalDancePoints = m_iTotalTapsAndHolds * 2;
 	m_iTotalGameplaySeconds = static_cast<int>(TotalGameplaySeconds);
 
+	// for some reason this is a lot slower than it should be when called here...? -mina
 	SCOREMAN->RecalculateSSRs();
+
 	SCOREMAN->CalcPlayerRating(m_fPlayerRating, m_fPlayerSkillsets);
 }
 
