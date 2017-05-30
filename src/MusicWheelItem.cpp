@@ -19,8 +19,6 @@
 #include "ScreenManager.h"
 #include "ScoreManager.h"
 
-static Preference<bool> uaintnonastypadplayerdog("ShowGradesForAnyDifficulty", true);
-
 static const char *MusicWheelItemTypeNames[] = {
 	"Song",
 	"SectionExpanded",
@@ -338,33 +336,19 @@ void MusicWheelItem::RefreshGrades()
 		HighScoreList *BestpHSL = NULL;
 		Grade gradeBest = Grade_Invalid;
 		Difficulty dcBest = Difficulty_Invalid;
-		if (uaintnonastypadplayerdog) {
-			if (PROFILEMAN->IsPersistentProfile(ps) && dc != Difficulty_Invalid)
+		if (PROFILEMAN->IsPersistentProfile(ps) && dc != Difficulty_Invalid)
+		{
+			if (pWID->m_pSong)
 			{
-				if (pWID->m_pSong)
-				{
-					FOREACH_ENUM_N(Difficulty, 6, i) {
-						Steps* pSteps = SongUtil::GetStepsByDifficulty(pWID->m_pSong, st, i);
-						if (pSteps != NULL) {
-							Grade dcg = SCOREMAN->GetBestGradeFor(pSteps->GetChartKey());
-							if (gradeBest >= dcg) {
-								dcBest = i;
-								gradeBest = dcg;
-							}
+				FOREACH_ENUM_N(Difficulty, 6, i) {
+					Steps* pSteps = SongUtil::GetStepsByDifficulty(pWID->m_pSong, st, i);
+					if (pSteps != NULL) {
+						Grade dcg = SCOREMAN->GetBestGradeFor(pSteps->GetChartKey());
+						if (gradeBest >= dcg) {
+							dcBest = i;
+							gradeBest = dcg;
 						}
 					}
-				}
-			}
-		}
-		else {
-			dcBest = dc;
-			if (PROFILEMAN->IsPersistentProfile(ps) && dc != Difficulty_Invalid)
-			{
-				if (pWID->m_pSong)
-				{
-					const Steps* pSteps = SongUtil::GetStepsByDifficulty(pWID->m_pSong, st, dc);
-					if (pSteps != nullptr)
-						BestpHSL = &pProfile->GetStepsHighScoreList(pWID->m_pSong, pSteps);
 				}
 			}
 		}
@@ -380,14 +364,10 @@ void MusicWheelItem::RefreshGrades()
 				msg.SetParam("PermaMirror", 1);
 			if (pWID->m_pSong->HasGoal())
 				msg.SetParam( "HasGoal", 1);
-			if (BestpHSL)
-				msg.SetParam("Grade", BestpHSL->HighGrade);
-			else
-				msg.SetParam("Grade", gradeBest);
-				
-			msg.SetParam( "Difficulty", DifficultyToString(dcBest));
-			if (BestpHSL)
-				msg.SetParam( "NumTimesPlayed", BestpHSL->GetNumTimesPlayed());
+
+			msg.SetParam("Grade", gradeBest);	
+			msg.SetParam("Difficulty", DifficultyToString(dcBest));
+			msg.SetParam("NumTimesPlayed", 0);
 		}
 		m_pGradeDisplay[p]->HandleMessage( msg );
 	}
@@ -396,9 +376,6 @@ void MusicWheelItem::RefreshGrades()
 void MusicWheelItem::HandleMessage( const Message &msg )
 {
 	static const bool iskyzagoodprogrammer = false;
-	if(iskyzagoodprogrammer || (!uaintnonastypadplayerdog && msg == Message_CurrentStepsP1Changed))
-		RefreshGrades();
-
 	WheelItemBase::HandleMessage( msg );
 }
 
