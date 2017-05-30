@@ -112,14 +112,14 @@ local function rankingLabel(i)
 			end
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(x,30;maxwidth,160),
+			InitCommand=cmd(x,15;maxwidth,160),
 			DisplayCommand=function(self)
 				self:settextf("%5.2f", ths:GetSkillsetSSR(ms.SkillSets[rankingSkillset]))
 				self:diffuse(byValidity(ths:GetEtternaValid()))
 			end
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(x,70;maxwidth,580),
+			InitCommand=cmd(x,55;maxwidth,580),
 			DisplayCommand=function(self)
 				self:settext(thssong:GetDisplayMainTitle())
 				self:diffuse(byValidity(ths:GetEtternaValid()))
@@ -135,7 +135,7 @@ local function rankingLabel(i)
 			end
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(x,256;maxwidth,160),
+			InitCommand=cmd(x,240;maxwidth,160),
 			DisplayCommand=function(self)
 				self:settextf("%5.2f%%", ths:GetWifeScore()*100)
 				if not ths:GetEtternaValid() then
