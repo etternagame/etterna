@@ -827,7 +827,7 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 		ImportScoresToEtterna();
 	}
 
-	LoadOldEttFromDir(sDir);
+	//LoadOldEttFromDir(sDir);
 
 	CalculateStatsFromScores();
 	return ProfileLoadResult_Success;
@@ -1049,6 +1049,7 @@ ProfileLoadResult Profile::LoadEttXmlFromNode(const XNode *xml) {
 }
 
 void Profile::CalculateStatsFromScores() {
+	LOG->Trace("Calculating stats from scores");
 	vector<HighScore*> all = SCOREMAN->GetAllScores();
 	float TotalGameplaySeconds = 0.f;
 	m_iTotalTapsAndHolds = 0;
@@ -1070,9 +1071,6 @@ void Profile::CalculateStatsFromScores() {
 	m_iNumTotalSongsPlayed = all.size();
 	m_iTotalDancePoints = m_iTotalTapsAndHolds * 2;
 	m_iTotalGameplaySeconds = static_cast<int>(TotalGameplaySeconds);
-
-	// for some reason this is a lot slower than it should be when called here...? -mina
-	SCOREMAN->RecalculateSSRs();
 
 	SCOREMAN->CalcPlayerRating(m_fPlayerRating, m_fPlayerSkillsets);
 }
