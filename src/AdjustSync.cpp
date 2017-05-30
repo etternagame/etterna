@@ -169,6 +169,9 @@ void AdjustSync::HandleAutosync( float fNoteOffBySeconds, float fStepTime )
 
 void AdjustSync::HandleSongEnd()
 {
+	if (SONGMAN->playlistcourse == "")
+		return;
+
 	if( GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType == AutosyncType_Tempo )
 	{
 		AutosyncTempo();
