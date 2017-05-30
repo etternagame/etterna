@@ -308,11 +308,7 @@ XNode* ScoresAtRate::CreateNode(const int& rate) const {
 	if (o->ChildrenEmpty())
 		return o;
 
-	int oops = rate;
-	if (oops > 30000)
-		oops /= 10;
-
-	string rs = ssprintf("%.3f", static_cast<float>(oops) / 10000.f);
+	string rs = ssprintf("%.3f", static_cast<float>(rate) / 10000.f);
 	// should be safe as this is only called if there is at least 1 score (which would be the pb)
 	o->AppendAttr("PBKey", PBptr->GetScoreKey());
 	o->AppendAttr("BestGrade", GradeToString(bestGrade));
@@ -386,6 +382,7 @@ void ScoresForChart::LoadFromNode(const XNode* node, const string& ck) {
 		node->GetAttrValue("Key", rs);
 		ch.key = rs;
 		node->GetAttrValue("Song", ch.lastsong);
+		node->GetAttrValue("Pack", ch.lastpack);
 	}
 
 	FOREACH_CONST_Child(node, p) {
@@ -393,7 +390,7 @@ void ScoresForChart::LoadFromNode(const XNode* node, const string& ck) {
 		p->GetAttrValue("Rate", rs);
 		rate = 10 * StringToInt(rs.substr(0, 1) + rs.substr(2, 4));
 		ScoresByRate[rate].LoadFromNode(p, ck, KeyToRate(rate));
-		bestGrade = ScoresByRate[rate].bestGrade;
+		bestGrade = min(ScoresByRate[rate].bestGrade, bestGrade);
 	}
 }
 
