@@ -54,7 +54,6 @@ public:
 	vector<HighScore*> GetAllPBPtrs();
 
 	void AddScore(HighScore& hs);
-	void AddScore(const string& ck, HighScore& hs, const string& title);
 
 	vector<float> GetPlayedRates();
 	vector<int> GetPlayedRateKeys();
@@ -97,9 +96,8 @@ public:
 	// for scores achieved during this session
 	void AddScore(const HighScore& hs_) { HighScore hs = hs_; pscores[hs.GetChartKey()].AddScore(hs); }
 
-	// temporarily to be used for conversion of old ett.xml and not only adding scores obtained in-session
-	void AddScore(const HighScore& hs_, const string& ck, const float& rate, const string& title);
-	float minpercent = PREFSMAN->m_fMinPercentToSaveScores;	// until i can get this shit to load properly the right way -mina
+	// don't save scores under this percentage
+	float minpercent = PREFSMAN->m_fMinPercentToSaveScores;
 
 	// Player Rating and SSR functions
 	void SortTopSSRPtrs(Skillset ss);

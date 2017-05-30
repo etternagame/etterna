@@ -101,16 +101,6 @@ void ScoresForChart::AddScore(HighScore& hs) {
 	ScoresByRate[key].AddScore(hs);
 }
 
-void ScoresForChart::AddScore(const string& ck, HighScore& hs, const string& title) {
-	bestGrade = min(hs.GetWifeGrade(), bestGrade);
-
-	ch.FromKey(ck);
-
-	float rate = hs.GetMusicRate();
-	int key = RateToKey(rate);
-	ScoresByRate[key].AddScore(hs);
-}
-
 vector<float> ScoresForChart::GetPlayedRates() {
 	vector<float> o;
 	FOREACHM(int, ScoresAtRate, ScoresByRate, i)
@@ -277,20 +267,6 @@ HighScore* ScoreManager::GetTopSSRHighScore(unsigned int rank, int ss) {
 
 
 
-
-
-void ScoreManager::AddScore(const HighScore& hs_, const string& ck, const float& rate, const string& title) {
-	HighScore hs = hs_;
-	// don't save any scores under the percent threshold
-	if (hs.GetWifeScore() <= minpercent)
-		return;
-
-	// Fill in stuff for the highscores
-	hs.SetChartKey(ck);
-	hs.SetMusicRate(rate);
-
-	pscores[hs.GetChartKey()].AddScore(ck, hs, title);
-}
 
 // Write scores to xml
 XNode* ScoresAtRate::CreateNode(const int& rate) const {

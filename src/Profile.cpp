@@ -827,8 +827,6 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 		ImportScoresToEtterna();
 	}
 
-	//LoadOldEttFromDir(sDir);
-
 	CalculateStatsFromScores();
 	return ProfileLoadResult_Success;
 }
@@ -1987,7 +1985,10 @@ void Profile::ImportScoresToEtterna() {
 			}
 
 			// if we still haven't correlated a score to a key, match by song title and number of notes
-			// score import is meant to be a qol and pre-existing scores need not undergo strict filtering -mina
+			// score import is meant to be a qol and pre-existing scores need not undergo strict filtering 
+			// edit: this is mostly broken since the idea is to catch renamed packs, if the pack was renamed
+			// the id won't be valid. Need to strip group names from all loaded songdirs and match the latter
+			// half and then load any matched songs and attempt matches -mina
 			if (id.IsValid()) {
 				vector<HighScore>& hsv = j->second.hsl.vHighScores;
 				Song* song = id.ToSong();
@@ -2060,105 +2061,6 @@ XNode* Profile::SaveEttScoresCreateNode() const {
 void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
 	CHECKPOINT_M("Loading the node that contains song scores.");
 	SCOREMAN->LoadFromNode(pSongScores);
-}
-
-// Old ett.xml format for conversion
-void Profile::LoadOldEttFromDir(RString dir)
-{
-	dir += PROFILEMAN->GetStatsPrefix();
-	// Check for the existance of stats.xml
-	RString fn = dir + "ETT.xml";
-	bool compressed = false;
-	if (!IsAFile(fn))
-		return;
-
-	int iError;
-	unique_ptr<RageFileBasic> pFile(FILEMAN->Open(fn, RageFile::READ, iError));
-	if (pFile.get() == NULL)
-		LOG->Trace("Error opening %s: %s", fn.c_str(), strerror(iError));
-
-	LOG->Trace("Loading %s", fn.c_str());
-	XNode xml;
-	if (!XmlFileUtil::LoadFromFileShowErrors(xml, *pFile.get()))
-		return;
-	LOG->Trace("Done.");
-
-	return LoadOldEttXmlFromNode(&xml);
-}
-
-void Profile::LoadOldEttXmlFromNode(const XNode *xml) {
-	const XNode* scores = xml->GetChild("SongScores");
-	LoadOldEttScoresFromNode(scores);
-}
-
-void Profile::LoadOldEttScoresFromNode(const XNode* pSongScores) {
-	int loaded = 0;
-	CHECKPOINT_M("Loading the node that contains old ett scores.");
-	FOREACH_CONST_Child(pSongScores, pChart) {
-		if (pChart->GetName() != "Chart")
-			continue;
-
-		RString ck;
-		pChart->GetAttrValue("Key", ck);
-		RString title;
-		pChart->GetAttrValue("SongTitle", title);
-
-		const XNode *pRateScores = pChart->GetChild("RateScores");
-		FOREACH_CONST_Child(pRateScores, pRate) {
-			float rate = StringToFloat(pRate->GetName());
-			FOREACH_CONST_Child(pRate, hs) {
-				HighScore tmp;
-				tmp.LoadFromEttNode(hs);
-
-				if (!SONGMAN->IsChartLoaded(ck)) {
-					LOG->Warn("Missing key for %s", title.c_str());
-
-					vector<Song*> songs = SONGMAN->GetAllSongs();
-					for (size_t i = 0; i < songs.size(); ++i) {
-						if (songs[i]->GetDisplayMainTitle() == title) {
-							vector<Steps*> demsteps = songs[i]->GetAllSteps();
-							bool matched = false;
-							for (size_t j = 0; j < demsteps.size(); ++j) {
-
-								Steps* steps = demsteps[j];
-								if (!steps) {
-									LOG->Warn("What????");
-									continue;
-								}
-
-								int notes = steps->GetRadarValues()[RadarCategory_Notes];
-								int snotes = 0;
-
-								snotes += tmp.GetTapNoteScore(TNS_Miss);
-								snotes += tmp.GetTapNoteScore(TNS_W1);
-								snotes += tmp.GetTapNoteScore(TNS_W2);
-								snotes += tmp.GetTapNoteScore(TNS_W3);
-								snotes += tmp.GetTapNoteScore(TNS_W4);
-								snotes += tmp.GetTapNoteScore(TNS_W5);
-
-								if (notes == snotes) {
-									LOG->Warn("Matched based on note count");
-									ck = steps->GetChartKey();
-									matched = true;
-									SCOREMAN->AddScore(tmp, ck, rate, title);
-									loaded++;
-									break;
-								}
-							}
-
-							if (!matched)
-								LOG->Warn("Failed to match score asdfor %s", title.c_str());
-						}
-					}
-				}
-				else {
-					SCOREMAN->AddScore(tmp, ck, rate, title);
-					loaded++;
-				}
-			}
-		}
-	}
-	LOG->Trace("loaded %i scores from old ett.xml format", loaded);
 }
 
 // more future goalman stuff
