@@ -330,7 +330,7 @@ XNode *HighScoreImpl::CreateEttNode() const {
 			pHoldNoteScores->AppendChild(HoldNoteScoreToString(hns), iHoldNoteScores[hns]);
 
 	// dont bother writing skillset ssrs for non-applicable scores
-	if (fWifeScore > 0.f) {
+	if (fWifeScore > 0.f || grade == Grade_Failed) {
 		XNode* pSkillsetSSRs = pNode->AppendChild("SkillsetSSRs");
 		FOREACH_ENUM(Skillset, ss)
 			pSkillsetSSRs->AppendChild(SkillsetToString(ss), FloatToString(fSkillsetSSRs[ss]).substr(0, 5));
