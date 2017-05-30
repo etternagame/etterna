@@ -318,8 +318,6 @@ XNode* ScoresAtRate::CreateNode(const int& rate) const {
 }
 
 XNode * ScoresForChart::CreateNode(const string& ck) const {
-	Chart ch;
-	ch.FromKey(ck);
 	XNode* o = ch.CreateNode(false);
 
 	FOREACHM_CONST(int, ScoresAtRate, ScoresByRate, i) {
