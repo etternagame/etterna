@@ -1974,6 +1974,7 @@ void Profile::ImportScoresToEtterna() {
 					continue;
 				}
 
+
 				ck = steps->GetChartKey();
 				for (size_t i = 0; i < hsv.size(); ++i) {
 					HighScore hs = hsv[i];
@@ -1981,6 +1982,50 @@ void Profile::ImportScoresToEtterna() {
 					hs.SetChartKey(ck);		
 					SCOREMAN->AddScore(hs);
 					++loaded;
+				}
+				continue;
+			}
+
+			// if we still haven't correlated a score to a key, match by song title and number of notes
+			// score import is meant to be a qol and pre-existing scores need not undergo strict filtering -mina
+			RString title = id.ToString();
+			vector<Song*> songs = SONGMAN->GetAllSongs();
+
+			LOG->Warn(title.c_str());
+			vector<HighScore>& hsv = j->second.hsl.vHighScores;
+			for (size_t i = 0; i < hsv.size(); ++i) {
+				HighScore tmp = hsv[i];
+				for (size_t i = 0; i < songs.size(); ++i) {
+					if (songs[i]->GetDisplayMainTitle() == title) {
+						vector<Steps*> demsteps = songs[i]->GetAllSteps();
+						bool matched = false;
+						for (size_t j = 0; j < demsteps.size(); ++j) {
+							Steps* steps = demsteps[j];
+							if (!steps) {
+								LOG->Warn("What????");
+								continue;
+							}
+
+							int notes = steps->GetRadarValues()[RadarCategory_Notes];
+							int snotes = 0;
+
+							snotes += tmp.GetTapNoteScore(TNS_Miss);
+							snotes += tmp.GetTapNoteScore(TNS_W1);
+							snotes += tmp.GetTapNoteScore(TNS_W2);
+							snotes += tmp.GetTapNoteScore(TNS_W3);
+							snotes += tmp.GetTapNoteScore(TNS_W4);
+							snotes += tmp.GetTapNoteScore(TNS_W5);
+
+							if (notes == snotes) {
+								LOG->Warn("Matched based on note count");
+								ck = steps->GetChartKey();
+								matched = true;
+								SCOREMAN->AddScore(tmp);
+								loaded++;
+								break;
+							}
+						}
+					}
 				}
 			}
 
