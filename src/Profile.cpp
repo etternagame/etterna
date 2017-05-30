@@ -1070,6 +1070,7 @@ void Profile::CalculateStatsFromScores() {
 	m_iTotalDancePoints = m_iTotalTapsAndHolds * 2;
 	m_iTotalGameplaySeconds = static_cast<int>(TotalGameplaySeconds);
 
+	SCOREMAN->RecalculateSSRs();
 	SCOREMAN->CalcPlayerRating(m_fPlayerRating, m_fPlayerSkillsets);
 }
 
