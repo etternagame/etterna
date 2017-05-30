@@ -159,6 +159,10 @@ HighScore* ScoreManager::GetChartPBUpTo(string& ck, float& rate) {
 void ScoreManager::RecalculateSSRs() {
 	for(size_t i = 0; i < AllScores.size(); ++i) {
 		HighScore* hs = AllScores[i];
+
+		if (hs->GetSSRCalcVersion() == GetCalcVersion())
+			continue;
+
 		Steps* steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
 
 		if (!steps) {
@@ -182,9 +186,6 @@ void ScoreManager::RecalculateSSRs() {
 			hs->ResetSkillsets();
 			continue;
 		}
-
-		//if (hs->GetSSRCalcVersion() == GetCalcVersion())
-			//continue;
 
 
 		TimingData* td = steps->GetTimingData();
