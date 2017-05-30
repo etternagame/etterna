@@ -71,6 +71,7 @@ local f = Def.ActorFrame{
 			MESSAGEMAN:Broadcast("NumericInputEnded")
 			self:visible(false)
 			self:queuecommand("Off")
+			active = false
 		end
 	end,
 	TabChangedMessageCommand=cmd(queuecommand,"Set"),
