@@ -214,9 +214,6 @@ void ScoreManager::EnableAllScores() {
 }
 
 void ScoreManager::CalcPlayerRating(float& prating, float* pskillsets) {
-	// Force updated calc SSR calculation first
-	RecalculateSSRs();
-
 	float skillsetsum = 0.f;
 	FOREACH_ENUM(Skillset, ss) {
 		// actually skip overall
