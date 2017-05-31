@@ -52,7 +52,7 @@ local function byValidity(valid)
 	if valid then
 		return getMainColor('positive')
 	end
-	byJudgment("TapNoteScore_Miss")
+	return byJudgment("TapNoteScore_Miss")
 end
 
 local function BroadcastIfActive(msg)
@@ -107,8 +107,8 @@ local function rankingLabel(i)
 			InitCommand=cmd(maxwidth,100),
 			DisplayCommand=function(self)
 				self:halign(0.5)
-				self:diffuse(getMainColor("positive"))
 				self:settext(((rankingPage-1)*25)+i..".")
+				self:diffuse(byValidity(ths:GetEtternaValid()))
 			end
 		},
 		LoadFont("Common Large") .. {
