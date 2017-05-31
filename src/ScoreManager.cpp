@@ -159,9 +159,12 @@ HighScore* ScoreManager::GetChartPBUpTo(string& ck, float& rate) {
 void ScoreManager::RecalculateSSRs() {
 	for(size_t i = 0; i < AllScores.size(); ++i) {
 		HighScore* hs = AllScores[i];
-
 		if (hs->GetSSRCalcVersion() == GetCalcVersion())
 			continue;
+
+		if (hs->GetChartKey() == "Xda39a3ee5e6b4b0d3255bfef95601890afd80709") {
+			continue;
+		}
 
 		Steps* steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
 
@@ -169,10 +172,6 @@ void ScoreManager::RecalculateSSRs() {
 			hs->ResetSkillsets();
 			continue;
 		}
-
-		// don't hard reset the values for these for now
-		if (SONGMAN->multichartbs.count(hs->GetChartKey()))
-			continue;
 
 		if (!steps->IsRecalcValid()) {
 			hs->ResetSkillsets();
@@ -187,21 +186,20 @@ void ScoreManager::RecalculateSSRs() {
 			continue;
 		}
 
-
 		TimingData* td = steps->GetTimingData();
 		NoteData& nd = steps->GetNoteData();
 
 		nd.LogNonEmptyRows();
-		auto nerv = nd.GetNonEmptyRowVector();
-		auto etaner = td->BuildAndGetEtaner(nerv);
-		auto serializednd = nd.SerializeNoteData(etaner);
+		auto& nerv = nd.GetNonEmptyRowVector();
+		auto& etaner = td->BuildAndGetEtaner(nerv);
+		auto& serializednd = nd.SerializeNoteData(etaner);
 
 		auto dakine = MinaSDCalc(serializednd, steps->GetNoteData().GetNumTracks(), musicrate, ssrpercent, 1.f, td->HasWarps());
 		FOREACH_ENUM(Skillset, ss)
 			hs->SetSkillsetSSR(ss, dakine[ss]);
 		hs->SetSSRCalcVersion(GetCalcVersion());
 
-		td->UnsetElapsedTimesAtAllRows();
+		td->UnsetEtaner();
 		nd.UnsetNerv();
 		nd.UnsetSerializedNoteData();
 		steps->Compress();
