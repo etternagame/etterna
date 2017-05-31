@@ -1,5 +1,45 @@
 local t = Def.ActorFrame {}
 
+local minanyms = {
+	-- the logorrhea of yore
+	"Irate Platypusaurusean",
+	"Pancreatic_MilkTrombone",
+	"Fire_Elevator",
+	"Starchy DarkButter",
+	"Unememorabelia Bedelia",
+	"Cheezits 'N Rice",
+	"Scalding brain fart",
+	
+	-- the profile names of yore
+	"mystic memer",
+	"orange hands",
+	"Sir Smauggy",
+	"ScroogeMcdoot",
+	"The King In The Hall Under The Mountain Amidst The Dragon's Lair",
+	"Just Mash",
+	"Just 5mash",
+	"Player 1",
+	"Minametra",
+	"Noodlesim",
+	"Default Profile",
+	"Mina (backup)",
+	"Mina",
+	"orange hands (backup)",
+	"Don Eon",
+	"Tromwelskintherintherin",
+	"StraitStrix",
+	"UmbralChord",
+
+	-- the nightly builds of yore
+	"AVAST YE STEPMATEY",
+	"ALPHA DINGOBABY",
+	"TOWEL FOR A PHOENIX",
+	"MAYBE ITS RASPBELLINE",
+	"FREE MARKOV",
+}
+
+math.random()
+
 t[#t+1] = Def.ActorFrame {
   InitCommand=cmd(Center),
 	LoadActor("woop") .. {
@@ -14,7 +54,7 @@ t[#t+1] = Def.ActorFrame {
 			OnCommand=cmd(sleep,1;linear,3;diffuse,getDifficultyColor("Difficulty_Couple");diffusealpha,0)
 		},
 		LoadFont("Common Normal") .. {
-			Text="Created by " .. "Irate Platypusaurusean",
+			Text="Created by " .. minanyms[math.random(#minanyms)],
 			InitCommand=cmd(y,16;zoom,0.75),
 			OnCommand=cmd(sleep,1;linear,3;diffuse,getDifficultyColor("Difficulty_Couple");diffusealpha,0)
 		},
