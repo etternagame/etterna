@@ -1414,6 +1414,7 @@ float TimingData::WhereUAtBroNoOffset(float beat) const {
 }
 
 const vector<float>& TimingData::BuildAndGetEtaner(const vector<int>& nerv) {
+	ElapsedTimesAtNonEmptyRows.clear();
 	for (size_t i = 0; i < nerv.size(); i++)
 		ElapsedTimesAtNonEmptyRows.emplace_back(GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(nerv[i])));
 	return ElapsedTimesAtNonEmptyRows;
