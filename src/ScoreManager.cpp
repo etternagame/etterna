@@ -226,7 +226,7 @@ float ScoreManager::AggregateSSRs(Skillset ss, float rating, float res, int iter
 		rating += res;
 		sum = 0.0;
 		for (int i = 0; i < static_cast<int>(TopSSRs.size()); i++) {
-			if(TopSSRs[i]->GetSSRCalcVersion() == GetCalcVersion())
+			if(TopSSRs[i]->GetSSRCalcVersion() == GetCalcVersion() && TopSSRs[i]->GetEtternaValid())
 				sum += max(0.0, 2.f / erfc(0.1*(TopSSRs[i]->GetSkillsetSSR(ss) - rating)) - 1.5);
 		}
 	} while (pow(2, rating * 0.1) < sum);
