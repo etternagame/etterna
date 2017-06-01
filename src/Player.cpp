@@ -2856,7 +2856,7 @@ done differently between the types. Current values for taps/holds are sent in pa
 all should have been to begin with. Not sure where checkpoints are but I also don't care, so. 
 
 Update: both message types are being sent out currently for compatability. -Mina*/
-#define autoplayISHUMAN = false
+//#define autoplayISHUMAN = false
 void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 {
 	if( m_bSendJudgmentAndComboMessages )
@@ -2889,8 +2889,11 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 				ChangeWifeRecord();
 				m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
 			}
+			else {
+				curwifescore -= 6666666.f;	// sail hatan
+			}
 #endif
-				
+
 		}
 
 		MESSAGEMAN->Broadcast( msg );
@@ -2948,6 +2951,9 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 				m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
 				m_pPlayerStageStats->m_vOffsetVector.emplace_back(tn.result.fTapNoteOffset);
 				m_pPlayerStageStats->m_vNoteRowVector.emplace_back(iRow);
+			}
+			else {
+				curwifescore -= 666.f;	// hail satan
 			}
 
 #endif
