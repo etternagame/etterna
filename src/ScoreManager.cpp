@@ -290,7 +290,9 @@ XNode* ScoresAtRate::CreateNode(const int& rate) const {
 }
 
 XNode * ScoresForChart::CreateNode(const string& ck) const {
-	XNode* o = ch.CreateNode(false);
+	Chart loot = ch;
+	loot.FromKey(ck);	// needs to be here (or somewhere along the line, maybe not exactly here) -mina
+	XNode* o = loot.CreateNode(false);
 
 	FOREACHM_CONST(int, ScoresAtRate, ScoresByRate, i) {
 		auto node = i->second.CreateNode(i->first);
