@@ -25,6 +25,7 @@ StepMania-debug
 stepmania-debug
 Xcode/Info.StepMania.plist
 Xcode/plistHelper.hpp
+src/MinaCalc
 src/version_updater/VersionUpdater
 src/generated
 extern/mad-0.15.1b/config.h
