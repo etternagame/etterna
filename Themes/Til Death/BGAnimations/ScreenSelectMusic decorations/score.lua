@@ -411,7 +411,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 }
 
 t[#t+1] = Def.Quad{
-	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+288;zoomto,120,30;halign,0;diffusealpha,0.3),
+	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+288;zoomto,120,30;halign,0;diffusealpha,0),
 	MouseLeftClickMessageCommand=function(self)
 		if update then
 			if getTabIndex() == 2 and getScoreForPlot() and getScoreForPlot():HasReplayData() then

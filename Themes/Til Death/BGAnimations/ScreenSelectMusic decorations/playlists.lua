@@ -35,7 +35,7 @@ local rankingWidth = frameWidth-capWideScale(15,50)
 local rankingX = capWideScale(30,50)
 local rankingY = capWideScale(40,40)
 local rankingTitleSpacing = (rankingWidth/(#ms.SkillSets))
-local buttondiffuse = 0.4
+local buttondiffuse = 0
 local whee
 
 local singleplaylistactive = false
