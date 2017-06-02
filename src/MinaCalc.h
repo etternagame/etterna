@@ -143,6 +143,9 @@ private:
 	const float IntervalSpan = 0.5f;	// Intervals of time we slice the chart at
 	const bool logpatterns = false;
 
+	float vt = 0.f;
+	float vb = 0.f;
+
 	Hand* left = new Hand;
 	Hand* right = new Hand;
 
