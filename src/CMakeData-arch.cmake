@@ -224,82 +224,6 @@ endif()
 
 source_group("Arch Specific\\\\Loading Window" FILES ${SMDATA_ARCH_LOADING_SRC} ${SMDATA_ARCH_LOADING_HPP})
 
-list(APPEND SMDATA_ARCH_LIGHTS_SRC
-  "arch/Lights/LightsDriver.cpp"
-  "arch/Lights/LightsDriver_SystemMessage.cpp"
-)
-list(APPEND SMDATA_ARCH_LIGHTS_HPP
-  "arch/Lights/LightsDriver.h"
-  "arch/Lights/LightsDriver_SystemMessage.h"
-)
-
-list(APPEND SMDATA_ARCH_LIGHTS_SRC
-  "arch/Lights/LightsDriver_SextetStream.cpp"
-)
-list(APPEND SMDATA_ARCH_LIGHTS_HPP
-  "arch/Lights/LightsDriver_SextetStream.h"
-)
-
-# TODO: Confirm if Apple can use the export.
-if(NOT APPLE)
-  list(APPEND SMDATA_ARCH_LIGHTS_SRC
-    "arch/Lights/LightsDriver_Export.cpp"
-  )
-  list(APPEND SMDATA_ARCH_LIGHTS_HPP
-    "arch/Lights/LightsDriver_Export.h"
-  )
-  
-  if(WIN32)
-    list(APPEND SMDATA_ARCH_LIGHTS_SRC
-      "arch/Lights/LightsDriver_Win32Parallel.cpp"
-    )
-    list(APPEND SMDATA_ARCH_LIGHTS_HPP
-      "arch/Lights/LightsDriver_Win32Parallel.h"
-    )
-    if (WITH_MINIMAID)
-      list(APPEND SMDATA_ARCH_LIGHTS_SRC
-        "arch/Lights/LightsDriver_Win32Minimaid.cpp"
-      )
-      list(APPEND SMDATA_ARCH_LIGHTS_HPP
-        "arch/Lights/LightsDriver_Win32Minimaid.h"
-      )
-    endif()
-  else() # Unix/Linux TODO: Linux HAVE_PARALLEL_PORT
-    if(LINUX)
-      list(APPEND SMDATA_ARCH_LIGHTS_SRC
-        "arch/Lights/LightsDriver_Linux_PIUIO.cpp"
-        "arch/Lights/LightsDriver_Linux_PIUIO_Leds.cpp"
-        "arch/Lights/LightsDriver_LinuxWeedTech.cpp"
-        "arch/Lights/LightsDriver_LinuxParallel.cpp"
-      )
-      list(APPEND SMDATA_ARCH_LIGHTS_HPP
-        "arch/Lights/LightsDriver_Linux_PIUIO.h"
-        "arch/Lights/LightsDriver_Linux_PIUIO_Leds.h"
-        "arch/Lights/LightsDriver_LinuxWeedTech.h"
-        "arch/Lights/LightsDriver_LinuxParallel.h"
-      )
-      if (WITH_PARALLEL_PORT)
-        list(APPEND SMDATA_ARCH_LIGHTS_SRC
-          "arch/Lights/LightsDriver_LinuxParallel.cpp"
-        )
-        list(APPEND SMDATA_ARCH_LIGHTS_HPP
-          "arch/Lights/LightsDriver_LinuxParallel.h"
-        )
-      endif()
-      if (WITH_MINIMAID)
-        list(APPEND SMDATA_ARCH_LIGHTS_SRC
-          "arch/Lights/LightsDriver_LinuxMinimaid.cpp"
-        )
-        list(APPEND SMDATA_ARCH_LIGHTS_HPP
-          "arch/Lights/LightsDriver_LinuxMinimaid.h"
-        )
-      endif()
-    endif()
-  endif(WIN32)
-endif(NOT APPLE)
-
-source_group("Arch Specific\\\\Lights" FILES ${SMDATA_ARCH_LIGHTS_SRC} ${SMDATA_ARCH_LIGHTS_HPP})
-
 list(APPEND SMDATA_ARCH_INPUT_SRC
   "arch/InputHandler/InputHandler.cpp"
   "arch/InputHandler/InputHandler_MonkeyKeyboard.cpp"
@@ -447,7 +371,6 @@ list(APPEND SMDATA_ALL_ARCH_SRC
   ${SMDATA_ARCH_DIALOG_SRC}
   ${SMDATA_ARCH_HOOKS_SRC}
   ${SMDATA_ARCH_INPUT_SRC}
-  ${SMDATA_ARCH_LIGHTS_SRC}
   ${SMDATA_ARCH_LOADING_SRC}
   ${SMDATA_ARCH_LOWLEVEL_SRC}
   ${SMDATA_ARCH_MOVIE_TEXTURE_SRC}
@@ -459,7 +382,6 @@ list(APPEND SMDATA_ALL_ARCH_HPP
   ${SMDATA_ARCH_DIALOG_HPP}
   ${SMDATA_ARCH_HOOKS_HPP}
   ${SMDATA_ARCH_INPUT_HPP}
-  ${SMDATA_ARCH_LIGHTS_HPP}
   ${SMDATA_ARCH_LOADING_HPP}
   ${SMDATA_ARCH_LOWLEVEL_HPP}
   ${SMDATA_ARCH_MOVIE_TEXTURE_HPP}
