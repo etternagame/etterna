@@ -167,13 +167,16 @@ function getCurRateString()
 end
 
 function getCurRateDisplayString()
-	local o = getCurRateString()
-	if o == "1x" then
-		o = "1.0x"
-	elseif o == "2x" then
-		o = "2.0x"
+	return getRateDisplayString(getCurRateString())
+end
+
+function getRateDisplayString(x)
+	if x == "1x" then
+		x = "1.0x"
+	elseif x == "2x" then
+		x = "2.0x"
 	end
-	return o.."Music"
+	return x.."Music"
 end
 
 function getCurRateValue()
