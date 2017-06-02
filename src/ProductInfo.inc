@@ -2,18 +2,16 @@
 ; Don't forget to also change ProductInfo.h!
 
 ; a friendly string to refer to the product
-!define PRODUCT_FAMILY "StepMania"
+!define PRODUCT_FAMILY "Etterna"
 
-; PRODUCT_ID must NOT be "StepMania" unless you want people to uninstall 3.9
-; when they install StepMania 5. (not recommended)
-!define PRODUCT_ID "Stepmania - Etterna"
+!define PRODUCT_ID "Etterna"
 ; TODO: This needs to be updated with the git rev hash
-!define PRODUCT_VER "- Etterna v0.55 Installer"
+!define PRODUCT_VER " v0.55 Installer"
 !define PRODUCT_DISPLAY "${PRODUCT_FAMILY} ${PRODUCT_VER}"
-!define PRODUCT_BITMAP "sm5"
+!define PRODUCT_BITMAP "ett"
 
-!define PRODUCT_URL "https://github.com/xwidghet/stepmania"
-!define UPDATES_URL "https://github.com/xwidghet/stepmania"
+!define PRODUCT_URL "https://github.com/etternagame/etterna"
+!define UPDATES_URL "https://github.com/etternagame/etterna"
 
 ;!define INSTALL_EXTERNAL_PCKS
 ;!define INSTALL_INTERNAL_PCKS
