@@ -550,7 +550,7 @@ bool HighScoreImpl::WriteReplayData(bool duringload) {
 	ASSERT(vNoteRowVector.size() > 0);
 
 	if (!fileStream) {
-		LOG->Warn("Failed to create replay file at %s", path);
+		LOG->Warn("Failed to create replay file at %s", path.c_str());
 		return false;
 	}
 	
@@ -563,7 +563,7 @@ bool HighScoreImpl::WriteReplayData(bool duringload) {
 	append = to_string(vNoteRowVector[idx]) + " " + to_string(vOffsetVector[idx]);
 	fileStream.write(append.c_str(), append.size());
 	fileStream.close();
-	LOG->Trace("Created replay file at %s", path);
+	LOG->Trace("Created replay file at %s", path.c_str());
 	return true;
 }
 
@@ -593,7 +593,7 @@ bool HighScore::LoadReplayData(bool duringload) {
 
 	//check file
 	if (!fileStream) {
-		LOG->Warn("Failed to load replay data at %s", path);
+		LOG->Warn("Failed to load replay data at %s", path.c_str());
 		return false;
 	}
 		
@@ -621,7 +621,7 @@ bool HighScore::LoadReplayData(bool duringload) {
 	fileStream.close();
 	SetNoteRowVector(vNoteRowVector);
 	SetOffsetVector(vOffsetVector);
-	LOG->Trace("Loaded replay data at %s", path);
+	LOG->Trace("Loaded replay data at %s", path.c_str());
 	return true;
 }
 
