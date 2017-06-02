@@ -509,14 +509,16 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 	int basecmod = 0;
 
 	// 3.9 doesnt save rates lol....
-	if (is39import && basecmod > 0) {
-		string cmod = sModifiers.substr(0, sModifiers.find_first_of(","));
-		if (cmod.substr(0, 1) == "C") {
-			int playedcmod = StringToInt(cmod.substr(1, cmod.size()));
-			float estrate = static_cast<float>(basecmod) / static_cast<float>(playedcmod);
-			int herp = lround(estrate * 10);
-			estrate = static_cast<float>(herp) / 10.f;
-			fMusicRate = estrate;
+	if (is39import) {
+		if (basecmod > 0) {
+			string cmod = sModifiers.substr(0, sModifiers.find_first_of(","));
+			if (cmod.substr(0, 1) == "C") {
+				int playedcmod = StringToInt(cmod.substr(1, cmod.size()));
+				float estrate = static_cast<float>(basecmod) / static_cast<float>(playedcmod);
+				int herp = lround(estrate * 10);
+				estrate = static_cast<float>(herp) / 10.f;
+				fMusicRate = estrate;
+			}
 		}
 
 		// auto validate 3.95 imports for now
