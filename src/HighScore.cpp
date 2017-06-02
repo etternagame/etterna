@@ -307,7 +307,11 @@ XNode *HighScoreImpl::CreateNode() const
 
 XNode *HighScoreImpl::CreateEttNode() const {
 	XNode *pNode = new XNode("Score");
-	pNode->AppendAttr("Key", ScoreKey);
+
+	if (ScoreKey == "")
+		pNode->AppendAttr("Key", "S" + BinaryToHex(CryptManager::GetSHA1ForString(dateTime.GetString())));
+	else
+		pNode->AppendAttr("Key", ScoreKey);
 	
 	pNode->AppendChild("SSRCalcVersion", SSRCalcVersion);
 	pNode->AppendChild("Grade", GradeToString(GetWifeGrade()));
