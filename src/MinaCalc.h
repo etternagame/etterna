@@ -5,12 +5,12 @@
 using namespace std;
 
 // For internal, must be preprocessor defined
-#ifdef MINADLL_COMPILE
+#if defined(MINADLL_COMPILE) && defined(_WIN32)
 #define MINACALC_API __declspec(dllexport)
 #endif
 
 // For Stepmania
-#ifndef MINADLL_COMPILE
+#ifndef MINACALC_API
 #define MINACALC_API
 #endif
 
@@ -77,9 +77,9 @@ private:
 	float timingscale;			// Timingscale for use in the point proportion function
 	float jumpstreamscaler = 0.975f;
 	float handstreamscaler = 0.92f;
-	float finalscaler = 2.564f*1.05f * 1.1f * 1.10f * 1.10f;	// multiplier to standardize baselines
+	float finalscaler = 2.564f*1.05f * 1.1f * 1.10f * 1.10f * 1.025;	// multiplier to standardize baselines
 
-								// Stamina Model params
+	// Stamina Model params
 	const float ceil = 1.08f;	// stamina multiplier max
 	const float mag = 355.f;	// multiplier generation scaler
 	const float fscale = 2000.f;	// how fast the floor rises (it's lava)
@@ -133,6 +133,8 @@ public:
 	vector<float> HSDownscaler(const vector<NoteInfo>& NoteInfo);
 	vector<float> JumpDownscaler(const vector<NoteInfo>& NoteInfo);
 	vector<float> RollDownscaler(Finger f1, Finger f2);
+	void Purge();
+	float techscaler = 0.97f;
 private:
 	vector<vector<int>> nervIntervals;
 
