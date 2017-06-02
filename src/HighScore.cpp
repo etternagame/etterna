@@ -511,10 +511,13 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 			int playedcmod = StringToInt(cmod.substr(1, cmod.size()));
 			float estrate = static_cast<float>(basecmod) / static_cast<float>(playedcmod);
 			int herp = lround(estrate * 10);
-			estrate = herp / 10.f;
+			estrate = static_cast<float>(herp) / 10.f;
 			fMusicRate = estrate;
 		}
 	}
+
+	if (ScoreKey == "")
+		ScoreKey = "S" + BinaryToHex(CryptManager::GetSHA1ForString(dateTime.GetString()));
 
 	grade = clamp( grade, Grade_Tier01, Grade_Failed );
 }
