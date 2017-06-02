@@ -184,34 +184,8 @@ function filterFileList(fileList,fileTypes)
 end
 
 -- Just something to get rid of scores where the player quit out early.
+-- dead because chord cohesion removal -mina
 function isScoreValid(pn,steps,score)
-	if score:GetGrade() == "Grade_Failed" then
-		return true
-	end
-	local numNotes = 0;
-	if score:GetChordCohesion() == true then
-		numNotes = steps:GetRadarValues(pn):GetValue('RadarCategory_TapsAndHolds');
-	else
-		numNotes = steps:GetRadarValues(pn):GetValue('RadarCategory_Notes');
-	end
-		
-	if not (numNotes == 
-		(score:GetTapNoteScore('TapNoteScore_W1')+
-		score:GetTapNoteScore('TapNoteScore_W2')+
-		score:GetTapNoteScore('TapNoteScore_W3')+
-		score:GetTapNoteScore('TapNoteScore_W4')+
-		score:GetTapNoteScore('TapNoteScore_W5')+
-		score:GetTapNoteScore('TapNoteScore_Miss'))) then
-		return false
-	end
-	if ((score:GetTapNoteScore('TapNoteScore_Miss') == 0) and 
-		((steps:GetRadarValues(pn):GetValue('RadarCategory_Holds')+(steps:GetRadarValues(pn):GetValue('RadarCategory_Rolls')) ~= 
-		(score:GetHoldNoteScore('HoldNoteScore_LetGo')+score:GetHoldNoteScore('HoldNoteScore_Held')+score:GetHoldNoteScore('HoldNoteScore_MissedHold'))
-		))) then 
-		-- miss == 0 as HNS_MissedHold was added rather recently and NG+OK will not add up correctly for older scores.
-		--where the player missed a note with a hold.
-		return false
-	end
 	return true
 end
 
