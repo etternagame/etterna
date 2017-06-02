@@ -1989,13 +1989,12 @@ void Profile::ImportScoresToEtterna() {
 
 			// if we still haven't correlated a score to a key, match by song title and number of notes
 			// score import is meant to be a qol and pre-existing scores need not undergo strict filtering -mina
+			LOG->Trace("Attempting to match score for %s by dir name", id.ToString().c_str());
 			if (!id.IsValid()) {
 				string unloaded = id.ToString();
 				unloaded = unloaded.substr(0, unloaded.size() - 1);
 				int jjq = unloaded.find_last_of("/");
 				unloaded = unloaded.substr(jjq + 1, unloaded.size() - jjq);
-
-				LOG->Trace("Unloaded to be matched %s", id.ToString());
 
 				for (size_t i = 0; i < songs.size(); ++i) {
 					SongID matchid;
@@ -2007,7 +2006,6 @@ void Profile::ImportScoresToEtterna() {
 					matchstring = matchstring.substr(jjq + 1, matchstring.size() - jjq);
 
 					if (unloaded == matchstring) {
-						LOG->Trace("Match at %s", matchid.ToString());
 						id = matchid;
 						break;
 					}
@@ -2016,7 +2014,6 @@ void Profile::ImportScoresToEtterna() {
 				Song* song = id.ToSong();
 
 				if (!song) {
-					LOG->Trace("no match found");
 					continue;
 				}
 
