@@ -214,6 +214,7 @@ void ScoreManager::RecalculateSSRs() {
 		nd.UnsetSerializedNoteData();
 		steps->Compress();
 	}
+	ld->~LoadingWindow();
 	return;
 }
 
