@@ -2538,7 +2538,7 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 
 		m_sNextScreen = GetPrevScreen();
 
-		if( AdjustSync::IsSyncDataChanged() )
+		if( AdjustSync::IsSyncDataChanged() && SONGMAN->playlistcourse != "")
 			ScreenSaveSync::PromptSaveSync( SM_GoToPrevScreen );
 		else
 			HandleScreenMessage( SM_GoToPrevScreen );
@@ -2551,7 +2551,7 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 		if( GAMESTATE->m_SongOptions.GetCurrent().m_bSaveReplay )
 			SaveReplay();
 
-		if( AdjustSync::IsSyncDataChanged() )
+		if( AdjustSync::IsSyncDataChanged() && SONGMAN->playlistcourse != "")
 			ScreenSaveSync::PromptSaveSync( SM_GoToNextScreen );
 		else
 			HandleScreenMessage( SM_GoToNextScreen );
