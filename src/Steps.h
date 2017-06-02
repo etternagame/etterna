@@ -17,6 +17,7 @@ class Song;
 
 typedef vector<float> SDiffs;
 typedef vector<SDiffs> MinaSD;
+using std::string;
 
 /** 
  * @brief Enforce a limit on the number of chars for the description.
@@ -163,8 +164,7 @@ public:
 	/* Now for half the reason I'm bothering to do this... generate a chart key using note
 	data and timingdata in conjuction. Do it during load and save it in the steps data so
 	that we have to do it as few times as possible.*/
-	RString ChartKey = "";
-	RString GetChartKey() const { return ChartKey; }
+	const string& GetChartKey() const { return ChartKey; }
 	vector<float> thestuffs = { 0.f,0.f,0.f,0.f,0.f };
 	MinaSD stuffnthings = { thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs };
 	void SetChartKey(const RString &k) { ChartKey = k; }
@@ -221,6 +221,7 @@ public:
 	void GetDisplayBpms( DisplayBpms &addTo) const;
 
 private:
+	string ChartKey = "";
 	/* We can have one or both of these; if we have both, they're always identical.
 	 * Call Compress() to force us to only have m_sNoteDataCompressed; otherwise, creation of 
 	 * these is transparent. */
