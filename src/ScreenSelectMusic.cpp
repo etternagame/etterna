@@ -502,7 +502,7 @@ bool ScreenSelectMusic::Input( const InputEventPlus &input )
 				}
 				else {
 					alwaysmirrorsmh->SetFavorited(false);
-					pProfile->AddToPermaMirror(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+					pProfile->RemoveFromPermaMirror(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
 				}
 				Message msg("FavoritesUpdated");
 				MESSAGEMAN->Broadcast(msg);
