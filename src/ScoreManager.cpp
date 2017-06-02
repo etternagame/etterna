@@ -1,6 +1,7 @@
 #include "global.h"
 #include "RageLog.h"
 #include "HighScore.h"
+#include "arch/LoadingWindow/LoadingWindow.h"
 #include "GameConstantsAndTypes.h"
 #include "Foreach.h"
 #include "ScoreManager.h"
@@ -10,6 +11,7 @@
 #include "MinaCalc.h"
 #include "NoteDataStructures.h"
 #include "NoteData.h"
+#include "RageTimer.h"
 
 ScoreManager* SCOREMAN = NULL;
 
@@ -155,9 +157,25 @@ HighScore* ScoreManager::GetChartPBUpTo(const string& ck, float& rate) {
 
 
 
-
+static const float ld_update = 0.02f;
 void ScoreManager::RecalculateSSRs() {
+	LoadingWindow *ld = LoadingWindow::Create();
+
+	RageTimer ld_timer;
+	ld_timer.Touch();
+
+	ld->SetIndeterminate(false);
+	ld->SetTotalWork(AllScores.size());
+	ld->SetText("Updating SSR Calculations for Scores...");
+
+	int scoreindex = 0;
 	for(size_t i = 0; i < AllScores.size(); ++i) {
+		if (ld && ld_timer.Ago() > ld_update) {
+			ld_timer.Touch();
+			ld->SetProgress(scoreindex);
+		}
+		++scoreindex;
+
 		HighScore* hs = AllScores[i];
 		if (hs->GetSSRCalcVersion() == GetCalcVersion())
 			continue;
@@ -208,19 +226,32 @@ void ScoreManager::EnableAllScores() {
 }
 
 void ScoreManager::CalcPlayerRating(float& prating, float* pskillsets) {
-	float skillsetsum = 0.f;
+	vector<float> skillz;
 	FOREACH_ENUM(Skillset, ss) {
-		// actually skip overall
-		if (ss == Skill_Overall)
+		// actually skip overall, and jack stamina for now
+		if (ss == Skill_Overall || ss == Skill_JackStamina)
 			continue;
 
 		SortTopSSRPtrs(ss);
 		pskillsets[ss] = AggregateSSRs(ss, 0.f, 10.24f, 1)*0.975f;
 		CLAMP(pskillsets[ss], 0.f, 100.f);
-		skillsetsum += pskillsets[ss];
+		skillz.push_back (pskillsets[ss]);
 	}
 
-	prating = skillsetsum / (NUM_Skillset - 1);
+	sort(skillz.begin(), skillz.end());
+
+	skillz[0] *= 0.1f;
+	skillz[1] *= 0.1f;
+	skillz[2] *= 0.1f;
+	skillz[3] *= 0.1f;
+	skillz[4] *= 0.25f;
+	skillz[5] *= 0.35f;
+
+	float skillsetsum = 0.f;
+	for (auto& n : skillz)
+		skillsetsum += n;
+
+	prating = skillsetsum;
 }
 
 // perhaps we will need a generalized version again someday, but not today

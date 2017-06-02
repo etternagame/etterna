@@ -90,7 +90,6 @@ void SongManager::InitAll( LoadingWindow *ld )
 		m_GroupsToNeverCache.insert(*group);
 	}
 	InitSongsFromDisk( ld );
-	ld->SetText("Updating SSR Calculations for Scores...");
 }
 
 static LocalizedString RELOADING ( "SongManager", "Reloading..." );
