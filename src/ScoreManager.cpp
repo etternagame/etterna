@@ -201,6 +201,9 @@ void ScoreManager::RecalculateSSRs() {
 
 // should deal with this misnomer - mina
 void ScoreManager::EnableAllScores() {
+	for (size_t i = 0; i < AllScores.size(); ++i)
+		AllScores[i]->SetEtternaValid(true);
+
 	return;
 }
 
