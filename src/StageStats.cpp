@@ -14,6 +14,7 @@
 #include <sstream>
 #include "CryptManager.h"
 #include "ScoreManager.h"
+#include "MinaCalc.h"
 
 /* Arcade:	for the current stage (one song).  
  * Nonstop/Oni/Endless:	 for current course (which usually contains multiple songs)
@@ -219,8 +220,8 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 			hs.UnloadReplayData();
 	}
 
-	// ssrcalcversion should be set here so we don't double calculate i guess? dont know why i cant call it
-	// actually this whole thing needs to be redone, ssr calculation should be moved into highscore -mina
+	// this whole thing needs to be redone, ssr calculation should be moved into highscore -mina
+	hs.SetSSRCalcVersion(GetCalcVersion());
 
 	return hs;
 }
