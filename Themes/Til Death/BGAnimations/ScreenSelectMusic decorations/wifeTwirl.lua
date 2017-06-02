@@ -173,23 +173,14 @@ t[#t+1] = Def.ActorFrame{
 		BeginCommand=cmd(queuecommand,"Set"),
 		SetCommand=function(self)
 			if song and score then 
-				local rate = getRate(score)
-			
-				-- need to standardize how this shit is handled (1x vs 1.0x)
-				if rate == "1.0x" then
-					rate = "1x"
-				elseif rate == "2.0x" then
-					rate = "2x"
-				end
+				local rate = notShit.round(score:GetMusicRate(), 3)
+				local notCurRate = notShit.round(getCurRateValue(), 3) ~= rate
 				
-				local notCurRate = getCurRateString() ~= rate
-				
-				-- cause this is getting stupid - mina
-				if rate == "1x" then
-					rate = "1.0x"
-				elseif rate == "2x" then
-					rate = "2.0x"
+				local rate = string.format("%.2f", rate)
+				if rate:sub(#rate,#rate) == "0" then
+					rate = rate:sub(0,#rate-1)
 				end
+				rate = rate.."x"
 					
 				if notCurRate then
 					self:settext("("..rate..")")
