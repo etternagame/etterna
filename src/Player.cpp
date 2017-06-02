@@ -624,7 +624,7 @@ void Player::Load()
 	
 
 	Profile *pProfile = PROFILEMAN->GetProfile(pn);
-	HighScore* pb = SCOREMAN->GetChartPBAt(GAMESTATE->m_pCurSteps[pn]->GetChartKey(), GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
+	const HighScore* pb = SCOREMAN->GetChartPBAt(GAMESTATE->m_pCurSteps[pn]->GetChartKey(), GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 	if (pb)
 		wifescorepersonalbest = pb->GetWifeScore();
 	else
