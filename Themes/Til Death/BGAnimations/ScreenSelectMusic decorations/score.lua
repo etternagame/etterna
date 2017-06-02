@@ -265,7 +265,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 t[#t+1] = LoadFont("Common Normal")..{
 	InitCommand=cmd(xy,frameX+frameWidth-offsetX,frameY+frameHeight-10;zoom,0.4;halign,1),
 	SetCommand=function(self)
-		if rates ~= nil and rtTable[rates[rateIndex]] ~= nil then
+		if rates ~= nil and rtTable[rates[rateIndex]] ~= nil and update then
 			self:settextf("Rate %s - Showing %d/%d",rates[rateIndex],scoreIndex,#rtTable[rates[rateIndex]])
 		else
 			self:settext("No Scores Saved")
@@ -298,7 +298,7 @@ t[#t+1] = Def.Quad{
 	SetCommand=function(self,params)
 		self:finishtweening()
 		self:smooth(0.2)
-		if rates ~= nil and rtTable[rates[rateIndex]] ~= nil then
+		if rates ~= nil and rtTable[rates[rateIndex]] ~= nil and update then
 			self:zoomy(((frameHeight-offsetY)/#rtTable[rates[rateIndex]]))
 			self:y(frameY+offsetY+(((frameHeight-offsetY)/#rtTable[rates[rateIndex]])*scoreIndex))
 		else
@@ -314,7 +314,7 @@ local function makeText(index)
 		SetCommand=function(self)
 			local count = 0
 			if update then
-				if rtTable[rates[index]] ~= nil then
+				if rtTable[rates[index]] ~= nil and update then
 					count = #rtTable[rates[index]]
 				end
 				if index <= #rates then
@@ -368,7 +368,7 @@ local function makeJudge(index,judge)
 	t[#t+1] = LoadFont("Common Normal")..{
 		InitCommand=cmd(x,122;zoom,0.3;halign,0),
 		SetCommand=function(self)
-			if score ~= nil then
+			if score ~= nil and update then
 				if judge ~= 'HoldNoteScore_Held' and judge ~= 'HoldNoteScore_LetGo' then
 					local taps = math.max(1,getMaxNotes(pn))
 					local count = getScoreTapNoteScore(score,judge)
@@ -397,7 +397,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 	Name="Score",
 	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+288;zoom,0.5;halign,0),
 	SetCommand=function(self)
-		if score ~= nil then
+		if score ~= nil and update then
 			if score:HasReplayData() then 
 				self:settext("Show Replay Data")
 			else
@@ -413,8 +413,10 @@ t[#t+1] = LoadFont("Common Normal")..{
 t[#t+1] = Def.Quad{
 	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+288;zoomto,120,30;halign,0;diffusealpha,0.3),
 	MouseLeftClickMessageCommand=function(self)
-		if getTabIndex() == 2 and getScoreForPlot() and getScoreForPlot():HasReplayData() then
-			SCREENMAN:AddNewScreenToTop("ScreenScoreTabOffsetPlot")
+		if update then
+			if getTabIndex() == 2 and getScoreForPlot() and getScoreForPlot():HasReplayData() then
+				SCREENMAN:AddNewScreenToTop("ScreenScoreTabOffsetPlot")
+			end
 		end
 	end
 }
