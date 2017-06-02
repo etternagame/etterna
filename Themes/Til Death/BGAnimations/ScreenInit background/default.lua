@@ -29,6 +29,8 @@ local minanyms = {
 	"Tromwelskintherintherin",
 	"StraitStrix",
 	"UmbralChord",
+	"NoSaucierMagic",
+	"EgomaniaCircus",
 
 	-- the nightly builds of yore
 	"AVAST YE STEPMATEY",
@@ -36,6 +38,8 @@ local minanyms = {
 	"TOWEL FOR A PHOENIX",
 	"MAYBE ITS RASPBELLINE",
 	"FREE MARKOV",
+	"BARK ON MOONSTRING",
+	"CARAMEL CANDELABRABELLUM",
 }
 
 math.random()
