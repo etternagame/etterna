@@ -90,7 +90,6 @@ void SongManager::InitAll( LoadingWindow *ld )
 		m_GroupsToNeverCache.insert(*group);
 	}
 	InitSongsFromDisk( ld );
-	ld->~LoadingWindow();
 }
 
 static LocalizedString RELOADING ( "SongManager", "Reloading..." );
