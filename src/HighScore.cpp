@@ -514,6 +514,9 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 			estrate = static_cast<float>(herp) / 10.f;
 			fMusicRate = estrate;
 		}
+
+		// auto validate 3.95 imports for now
+		bEtternaValid = true;
 	}
 
 	if (ScoreKey == "")
