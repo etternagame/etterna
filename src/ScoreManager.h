@@ -95,6 +95,7 @@ public:
 
 	// for scores achieved during this session
 	void AddScore(const HighScore& hs_) { HighScore hs = hs_; pscores[hs.GetChartKey()].AddScore(hs); }
+	void ImportScore(const HighScore& hs_);
 
 	// don't save scores under this percentage
 	float minpercent = PREFSMAN->m_fMinPercentToSaveScores;

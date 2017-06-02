@@ -1981,7 +1981,7 @@ void Profile::ImportScoresToEtterna() {
 					HighScore hs = hsv[i];
 					// ignore historic key and just load from here since the hashing function was changed anyway
 					hs.SetChartKey(ck);
-					SCOREMAN->AddScore(hs);
+					SCOREMAN->ImportScore(hs);
 					++loaded;
 				}
 				continue;
@@ -2055,7 +2055,7 @@ void Profile::ImportScoresToEtterna() {
 								if (matched) {
 									ck = steps->GetChartKey();
 									loaded++;
-									SCOREMAN->AddScore(tmp);
+									SCOREMAN->ImportScore(tmp);
 								}
 							}
 						}

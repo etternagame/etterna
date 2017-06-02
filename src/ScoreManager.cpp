@@ -264,6 +264,17 @@ HighScore* ScoreManager::GetTopSSRHighScore(unsigned int rank, int ss) {
 	return NULL;
 }
 
+void ScoreManager::ImportScore(const HighScore& hs_) {
+	HighScore hs = hs_;
+
+	// don't import duplicated scores
+	// this may have strange ramifications - mina
+	// actually i'll just disable this for the time being and give myself time to test it later
+	//if(!ScoresByKey.count(hs.GetScoreKey()))
+
+	pscores[hs.GetChartKey()].AddScore(hs);
+}
+
 
 
 
