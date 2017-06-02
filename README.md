@@ -5,7 +5,7 @@ StepMania is an advanced cross-platform rhythm game for home and arcade use.
 
 Advanced cross-platform rhythm game for home and arcade use.
 
-[![Build Status](https://travis-ci.org/xwidghet/stepmania.svg?branch=master)](https://travis-ci.org/xwidghet/stepmania)
+[![Build Status](https://travis-ci.org/etternagame/etterna.svg?branch=master)](https://travis-ci.org/etternagame/etterna)
 [![Build status](https://ci.appveyor.com/api/projects/status/35aogvmifkm43ygd/branch/master?svg=true)](https://ci.appveyor.com/project/xwidghet/stepmania/branch/master)
 
 ## Installation
