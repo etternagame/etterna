@@ -181,6 +181,7 @@ Program/StepMania*.lib
 
 # include calc .a file
 !extern/MinaCalc/MinaCalc.a
+!extern/MinaCalc/libMinaCalc.a
 
 # Unknown File Types
 *.dia
