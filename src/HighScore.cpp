@@ -521,6 +521,9 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 
 		// auto validate 3.95 imports for now
 		bEtternaValid = true;
+
+		// have to assume j4
+		fJudgeScale = 1.f;
 	}
 
 	if (ScoreKey == "")
