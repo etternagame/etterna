@@ -179,6 +179,8 @@ crashinfo.txt
 Utils/temp*
 Program/StepMania*.lib
 
+# include calc .a file
+!extern/MinaCalc/MinaCalc.a
 
 # Unknown File Types
 *.dia
