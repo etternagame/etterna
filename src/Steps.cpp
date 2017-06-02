@@ -693,7 +693,7 @@ public:
 	}	
 
 	static int GetChartKey(T* p, lua_State *L) {
-		lua_pushstring(L, p->GetChartKey());
+		lua_pushstring(L, p->GetChartKey().c_str());
 		return 1;
 	}
 

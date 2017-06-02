@@ -2095,7 +2095,7 @@ void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
 }
 
 // more future goalman stuff
-void Profile::CreateGoal(string& ck) {
+void Profile::CreateGoal(const string& ck) {
 	ScoreGoal goal;
 	goal.timeassigned = DateTime::GetNowDateTime();
 	goal.rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
@@ -2154,7 +2154,7 @@ void ScoreGoal::CheckVacuity() {
 }
 
 // aaa too lazy to write comparators rn -mina
-ScoreGoal& Profile::GetLowestGoalForRate(string& ck, float rate) {
+ScoreGoal& Profile::GetLowestGoalForRate(const string& ck, float rate) {
 	auto& sgv = goalmap[ck].Get();
 	float lowest = 100.f;
 	int lowestidx = 0;
@@ -2170,7 +2170,7 @@ ScoreGoal& Profile::GetLowestGoalForRate(string& ck, float rate) {
 	return sgv[lowestidx];
 }
 
-void Profile::SetAnyAchievedGoals(string& ck, float& rate, const HighScore& pscore) {
+void Profile::SetAnyAchievedGoals(const string& ck, float& rate, const HighScore& pscore) {
 	if (!HasGoal(ck))
 		return;
 
@@ -2185,7 +2185,7 @@ void Profile::SetAnyAchievedGoals(string& ck, float& rate, const HighScore& psco
 	}
 }
 
-void Profile::DeleteGoal(string& ck, DateTime assigned) {
+void Profile::DeleteGoal(const string& ck, DateTime assigned) {
 	auto& sgv = goalmap.at(ck).Get();
 	for (size_t i = 0; i < sgv.size(); ++i) {
 		if (sgv[i].timeassigned == assigned)
@@ -2576,7 +2576,7 @@ public:
 
 	static int IsCurrentChartPermamirror(T* p, lua_State *L) {
 		bool o = false;
-		const string& cck = GAMESTATE->m_pCurSteps[PLAYER_1]->ChartKey;
+		const string& cck = GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey();
 		FOREACH(string, p->PermaMirrorCharts, ck)
 			if (*ck == cck)
 				o = true;
