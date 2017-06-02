@@ -141,13 +141,13 @@ vector<HighScore*> ScoresForChart::GetAllPBPtrs() {
 	return o;
 }
 
-HighScore* ScoreManager::GetChartPBAt(string& ck, float& rate) {
+HighScore* ScoreManager::GetChartPBAt(const string& ck, float& rate) {
 	if (pscores.count(ck))
 		return pscores.at(ck).GetPBAt(rate);
 	return NULL;
 }
 
-HighScore* ScoreManager::GetChartPBUpTo(string& ck, float& rate) {
+HighScore* ScoreManager::GetChartPBUpTo(const string& ck, float& rate) {
 	if (pscores.count(ck))
 		return pscores.at(ck).GetPBUpTo(rate);
 	return NULL;
