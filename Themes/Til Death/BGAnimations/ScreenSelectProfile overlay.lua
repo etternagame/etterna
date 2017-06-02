@@ -5,38 +5,39 @@ function GetLocalProfiles()
 
 	for p = 0,PROFILEMAN:GetNumLocalProfiles()-1 do
 		local profileID = PROFILEMAN:GetLocalProfileIDFromIndex(p)
-		local profile=PROFILEMAN:GetLocalProfileFromIndex(p);
+		local profile=PROFILEMAN:GetLocalProfileFromIndex(p)
 		local ProfileCard = Def.ActorFrame {
 			LoadFont("Common Large") .. {
-				Text=profile:GetDisplayName();
-				InitCommand=cmd(xy,34/2,-10;zoom,0.4;ztest,true,maxwidth,(200-34-4)/0.4);
-			};
+				Text=string.format("%s: %.2f",profile:GetDisplayName(), profile:GetPlayerRating()),
+				InitCommand=cmd(xy,34/2,-10;zoom,0.4;ztest,true,maxwidth,(200-34-4)/0.4)
+			},
+
 			LoadFont("Common Normal") .. {
-				InitCommand=cmd(xy,34/2,8;zoom,0.5;vertspacing,-8;ztest,true;maxwidth,(200-34-4)/0.5);
+				InitCommand=cmd(xy,34/2,8;zoom,0.5;vertspacing,-8;ztest,true;maxwidth,(200-34-4)/0.5),
 				BeginCommand=function(self)
-					local numSongsPlayed = profile:GetNumTotalSongsPlayed();
-					local s = numSongsPlayed == 1 and "Song" or "Songs";
+					local numSongsPlayed = profile:GetNumTotalSongsPlayed()
+					local s = numSongsPlayed == 1 and "Song" or "Songs"
 					-- todo: localize
-					self:settext( numSongsPlayed.." "..s.." Played" );
-				end;
-			};
+					self:settext( numSongsPlayed.." "..s.." Played" )
+				end
+			},
 
 			Def.Sprite {
-				InitCommand=cmd(visible,true;halign,0;xy,-98,-2;ztest,true;);
-				BeginCommand=cmd(queuecommand,"ModifyAvatar");
+				InitCommand=cmd(visible,true;halign,0;xy,-98,-2;ztest,true),
+				BeginCommand=cmd(queuecommand,"ModifyAvatar"),
 				ModifyAvatarCommand=function(self)
-					self:finishtweening();
-					self:LoadBackground(THEME:GetPathG("","../"..getAvatarPathFromProfileID(profileID)));
+					self:finishtweening()
+					self:LoadBackground(THEME:GetPathG("","../"..getAvatarPathFromProfileID(profileID)))
 					self:zoomto(30,30)
-				end;	
-			};
+				end
+			}
 
-		};
-		t[#t+1]=ProfileCard;
-	end;
+		}
+		t[#t+1]=ProfileCard
+	end
 
-	return t;
-end;
+	return t
+end
 
 function LoadCard(cColor)
 	local t = Def.ActorFrame {
@@ -95,12 +96,12 @@ function LoadPlayerStuff(Player)
 		Name = "EffectFrame";
 	};
 	t[#t+1] = LoadFont("Common Normal") .. {
-		Name = 'SelectedProfileText';
-		InitCommand=cmd(y,160;shadowlength,1;);
-	};
+		Name = 'SelectedProfileText',
+		InitCommand=cmd(y,160;maxwidth,SCREEN_WIDTH*0.9)
+	}
 
-	return t;
-end;
+	return t
+end
 
 function UpdateInternal3(self, Player)
 	local pn = (Player == PLAYER_1) and 1;
