@@ -1,9 +1,9 @@
-StepMania
+Etterna
 =========
 
-StepMania is an advanced cross-platform rhythm game for home and arcade use.
+Etterna is an advanced cross-platform rhythm game designed for keyboard.
 
-Advanced cross-platform rhythm game for home and arcade use.
+Advanced cross-platform rhythm game designed for keyboard.
 
 [![Build Status](https://travis-ci.org/etternagame/etterna.svg?branch=master)](https://travis-ci.org/etternagame/etterna)
 [![Build status](https://ci.appveyor.com/api/projects/status/35aogvmifkm43ygd/branch/master?svg=true)](https://ci.appveyor.com/project/xwidghet/stepmania/branch/master)
@@ -23,8 +23,8 @@ StepMania can be compiled using [CMake](http://www.cmake.org/). More information
 
 ## Resources
 
-* Website: http://www.stepmania.com/
-* IRC: irc.freenode.net/#stepmania-devs
+* Website: TBA
+* Discord: discord.gg/ZqpUjsJ
 * Lua for SM5: https://dguzek.github.io/Lua-For-SM5/
 * Lua API Documentation can be found in the Docs folder.
 
@@ -36,10 +36,8 @@ In short- you can do anything you like with the game (including sell products ma
 2. Claim to have created the engine yourself or remove the credits
 3. Not provide source code for any build which differs from any official release which includes MP3 support.
 
-(It's not required, but we would also appreciate it if you link back to http://www.stepmania.com/)
-
 For specific information/legalese:
 
 * All of the our source code is under the [MIT license](http://opensource.org/licenses/MIT).
-* Any songs that are included within this repository are under the [<abbr title="Creative Commons Non-Commercial">CC-NC</abbr> license](https://creativecommons.org/).
+* Any songs that are included within this repository are under the [Creative Commons license](https://creativecommons.org/).
 * The [MAD library](http://www.underbit.com/products/mad/) and [FFmpeg codecs](https://www.ffmpeg.org/) when built with our code use the [GPL license](http://www.gnu.org).
