@@ -361,7 +361,7 @@ static RString GetSSCNoteData( const Song &song, const Steps &in, bool bSavingCa
 	push_back_tag(lines, "#CHARTSTYLE:%s;", in.GetChartStyle());
 	push_back_tag(lines, "#DIFFICULTY:%s;", DifficultyToString(in.GetDifficulty()));
 	lines.push_back(ssprintf("#METER:%d;", in.GetMeter()));
-	lines.push_back(ssprintf("#MSDVALUES:%s;", MSDToString(in.GetAllMSD())));
+	lines.push_back(ssprintf("#MSDVALUES:%s;", MSDToString(in.GetAllMSD()).c_str()));
 	lines.push_back(ssprintf("#CHARTKEY:%s;", SmEscape(in.GetChartKey()).c_str()));
 
 	push_back_tag(lines, "#MUSIC:%s;", in.GetMusicFile());
@@ -464,7 +464,7 @@ bool NotesWriterSSC::Write( RString &sPath, const Song &out, const vector<Steps*
 		}
 		else
 		{
-			LOG->Info("Not caching empty difficulty in file %s", sPath);
+			LOG->Info("Not caching empty difficulty in file %s", sPath.c_str());
 		}
 	}
 	if( f.Flush() == -1 )
