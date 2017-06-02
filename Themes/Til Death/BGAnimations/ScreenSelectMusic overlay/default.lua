@@ -2,7 +2,6 @@ local t = Def.ActorFrame{}
 
 t[#t+1] = Def.Actor{
 	CodeMessageCommand=function(self,params)
-	ms.ok("wot")
 		if params.Name == "AvatarShow" and getTabIndex() == 0 then
 			SCREENMAN:AddNewScreenToTop("ScreenAvatarSwitch")
 		end
