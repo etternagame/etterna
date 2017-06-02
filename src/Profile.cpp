@@ -1931,6 +1931,8 @@ void Profile::ImportScoresToEtterna() {
 	int notloaded = 0;
 	LOG->Trace("Beginning import of stats.xml scores");
 
+	const vector<Song*>& songs = SONGMAN->GetAllSongs();
+
 	string ck;
 	FOREACHM(SongID, HighScoresForASong, m_SongHighScores, i) {
 		SongID id = i->first;
@@ -1978,7 +1980,7 @@ void Profile::ImportScoresToEtterna() {
 				for (size_t i = 0; i < hsv.size(); ++i) {
 					HighScore hs = hsv[i];
 					// ignore historic key and just load from here since the hashing function was changed anyway
-					hs.SetChartKey(ck);		
+					hs.SetChartKey(ck);
 					SCOREMAN->AddScore(hs);
 					++loaded;
 				}
@@ -1986,14 +1988,39 @@ void Profile::ImportScoresToEtterna() {
 			}
 
 			// if we still haven't correlated a score to a key, match by song title and number of notes
-			// score import is meant to be a qol and pre-existing scores need not undergo strict filtering 
-			// edit: this is mostly broken since the idea is to catch renamed packs, if the pack was renamed
-			// the id won't be valid. Need to strip group names from all loaded songdirs and match the latter
-			// half and then load any matched songs and attempt matches -mina
-			if (id.IsValid()) {
-				vector<HighScore>& hsv = j->second.hsl.vHighScores;
+			// score import is meant to be a qol and pre-existing scores need not undergo strict filtering -mina
+			if (!id.IsValid()) {
+				string unloaded = id.ToString();
+				unloaded = unloaded.substr(0, unloaded.size() - 1);
+				int jjq = unloaded.find_last_of("/");
+				unloaded = unloaded.substr(jjq + 1, unloaded.size() - jjq);
+
+				LOG->Trace("Unloaded to be matched %s", id.ToString());
+
+				for (size_t i = 0; i < songs.size(); ++i) {
+					SongID matchid;
+					matchid.FromSong(songs[i]);
+
+					string matchstring = matchid.ToString();
+					matchstring = matchstring.substr(0, matchstring.size() - 1);
+					jjq = matchstring.find_last_of("/");
+					matchstring = matchstring.substr(jjq + 1, matchstring.size() - jjq);
+
+					if (unloaded == matchstring) {
+						LOG->Trace("Match at %s", matchid.ToString());
+						id = matchid;
+						break;
+					}
+				}
+
 				Song* song = id.ToSong();
-				const vector<Song*>& songs = SONGMAN->GetAllSongs();
+
+				if (!song) {
+					LOG->Trace("no match found");
+					continue;
+				}
+
+				vector<HighScore>& hsv = j->second.hsl.vHighScores;
 				string title = song->GetDisplayMainTitle();
 
 				for (size_t i = 0; i < hsv.size(); ++i) {
@@ -2004,12 +2031,7 @@ void Profile::ImportScoresToEtterna() {
 							bool matched = false;
 							for (size_t j = 0; j < demsteps.size(); ++j) {
 								Steps* steps = demsteps[j];
-								if (!steps) {
-									LOG->Warn("What????");
-									continue;
-								}
-
-								int notes = steps->GetRadarValues()[RadarCategory_Notes];
+								int notes = steps->GetRadarValues()[RadarCategory_TapsAndHolds];
 								int snotes = 0;
 
 								snotes += tmp.GetTapNoteScore(TNS_Miss);
@@ -2020,12 +2042,23 @@ void Profile::ImportScoresToEtterna() {
 								snotes += tmp.GetTapNoteScore(TNS_W5);
 
 								if (notes == snotes) {
-									LOG->Warn("Matched based on note count");
-									ck = steps->GetChartKey();
+									LOG->Trace("Matched based on taps count");
 									matched = true;
-									SCOREMAN->AddScore(tmp);
-									loaded++;
 									break;
+								}
+
+								notes = steps->GetRadarValues()[RadarCategory_Notes];
+
+								if (notes == snotes) {
+									LOG->Trace("Matched based on notes count");
+									matched = true;
+									break;
+								}
+
+								if (matched) {
+									ck = steps->GetChartKey();
+									loaded++;
+									SCOREMAN->AddScore(tmp);
 								}
 							}
 						}

@@ -133,6 +133,8 @@ struct HighScore
 	void UnloadReplayData();
 	void ResetSkillsets();
 
+	bool Is39import() const;
+
 	string GetDisplayName() const;
 
 	// Mina stuff - Mina

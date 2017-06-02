@@ -73,6 +73,8 @@ struct HighScoreImpl
 	RString NoteRowsToString(vector<int> v) const;
 	vector<int> NoteRowsToVector(RString s);
 
+	bool is39import = false;
+
 	bool operator==( const HighScoreImpl& other ) const;
 	bool operator!=( const HighScoreImpl& other ) const { return !(*this == other); }
 };
@@ -468,6 +470,52 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 			UnloadReplayData();
 	}
 	// Validate input.
+
+	// 3.9 conversion stuff (wtf is this code??) -mina
+	if (pTapNoteScores)
+		FOREACH_ENUM(TapNoteScore, tns) {
+		pTapNoteScores->GetChildValue(TapNoteScoreToString(tns), iTapNoteScores[tns]);
+		if (tns == TNS_W1 && iTapNoteScores[tns] == 0) {
+			int old = iTapNoteScores[tns];
+			pTapNoteScores->GetChildValue("Marvelous", iTapNoteScores[tns]);
+
+			// only mark as import if loading the other tag changes the values
+			if(old != iTapNoteScores[tns])
+				is39import = true;
+		}
+		else if (tns == TNS_W2 && iTapNoteScores[tns] == 0)
+			pTapNoteScores->GetChildValue("Perfect", iTapNoteScores[tns]);
+		else if (tns == TNS_W3 && iTapNoteScores[tns] == 0)
+			pTapNoteScores->GetChildValue("Great", iTapNoteScores[tns]);
+		else if (tns == TNS_W4 && iTapNoteScores[tns] == 0)
+			pTapNoteScores->GetChildValue("Good", iTapNoteScores[tns]);
+		else if (tns == TNS_W5 && iTapNoteScores[tns] == 0)
+			pTapNoteScores->GetChildValue("Boo", iTapNoteScores[tns]);
+	}
+
+	if (pHoldNoteScores)
+		FOREACH_ENUM(HoldNoteScore, hns) {
+		pHoldNoteScores->GetChildValue(HoldNoteScoreToString(hns), iHoldNoteScores[hns]);
+		if (hns == HNS_Held && iHoldNoteScores[hns] == 0)
+			pHoldNoteScores->GetChildValue("OK", iHoldNoteScores[hns]);
+		else if (hns == HNS_LetGo && iHoldNoteScores[hns] == 0)
+			pHoldNoteScores->GetChildValue("NG", iHoldNoteScores[hns]);
+	}
+
+	int basecmod = 0;
+
+	// 3.9 doesnt save rates lol....
+	if (is39import && basecmod > 0) {
+		string cmod = sModifiers.substr(0, sModifiers.find_first_of(","));
+		if (cmod.substr(0, 1) == "C") {
+			int playedcmod = StringToInt(cmod.substr(1, cmod.size()));
+			float estrate = static_cast<float>(basecmod) / static_cast<float>(playedcmod);
+			int herp = lround(estrate * 10);
+			estrate = herp / 10.f;
+			fMusicRate = estrate;
+		}
+	}
+
 	grade = clamp( grade, Grade_Tier01, Grade_Failed );
 }
 
@@ -592,6 +640,8 @@ bool HighScore::IsEmpty() const
 		return false;
 	return true;
 }
+
+bool HighScore::Is39import() const { return m_Impl->is39import; }
 
 string	HighScore::GetName() const { return m_Impl->sName; }
 string HighScore::GetChartKey() const { return m_Impl->ChartKey; }
