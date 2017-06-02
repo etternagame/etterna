@@ -39,7 +39,7 @@ ScoresAtRate::ScoresAtRate() {
 }
 
 void ScoresAtRate::AddScore(HighScore& hs) {
-	string& key = hs.GetScoreKey();	
+	const string& key = hs.GetScoreKey();
 	bestGrade = min(hs.GetWifeGrade(), bestGrade);
 	scores.emplace(key, hs);
 
@@ -178,7 +178,8 @@ void ScoreManager::RecalculateSSRs() {
 		}
 
 		TimingData* td = steps->GetTimingData();
-		NoteData& nd = steps->GetNoteData();
+		NoteData nd;
+		steps->GetNoteData(nd);
 
 		nd.LogNonEmptyRows();
 		auto& nerv = nd.GetNonEmptyRowVector();
