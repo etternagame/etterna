@@ -102,7 +102,7 @@ static ThemeMetric<bool> ARE_STAGE_SONG_MODS_FORCED	("GameState","AreStageSongMo
 
 static Preference<Premium> g_Premium( "Premium", Premium_DoubleFor1Credit );
 Preference<bool> GameState::m_bAutoJoin( "AutoJoin", false );
-Preference<bool> GameState::m_bOverrideChordCohesion("OverrideChordCohesion", false);
+Preference<bool> GameState::DisableChordCohesion("DisableChordCohesion", true);
 
 GameState::GameState() :
 	processedTiming( NULL ),
@@ -1611,7 +1611,7 @@ void GameState::AddStageToPlayer( PlayerNumber pn )
 
 bool GameState::CountNotesSeparately()
 {
-	return GetCurrentGame()->m_bCountNotesSeparately || m_bOverrideChordCohesion.Get();
+	return GetCurrentGame()->m_bCountNotesSeparately || DisableChordCohesion.Get();
 }
 
 template<class T>

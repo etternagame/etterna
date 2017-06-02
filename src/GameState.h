@@ -352,7 +352,7 @@ public:
 
 	// Preferences
 	static Preference<bool> m_bAutoJoin;
-	static Preference<bool> m_bOverrideChordCohesion;
+	static Preference<bool> DisableChordCohesion;
 
 	// These options have weird interactions depending on m_bEventMode, 
 	// so wrap them.
