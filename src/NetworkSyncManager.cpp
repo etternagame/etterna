@@ -67,7 +67,6 @@ NetworkSyncManager::NetworkSyncManager( LoadingWindow *ld )
 	LANserver = NULL;	//So we know if it has been created yet
 	BroadcastReception = NULL;
 
-	ld->SetText( INITIALIZING_CLIENT_NETWORK );
 	NetPlayerClient = new EzSockets;
 	NetPlayerClient->blocking = false;
 	m_ServerVersion = 0;

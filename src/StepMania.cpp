@@ -1165,7 +1165,7 @@ int sm_main(int argc, char* argv[])
 	PROFILEMAN->Init();				// must load after SONGMAN
 	SONGMAN->UpdatePopular();
 	SONGMAN->UpdatePreferredSort();
-	NSMAN 		= new NetworkSyncManager( pLoadingWindow );
+	NSMAN 		= new NetworkSyncManager( NULL );
 	MESSAGEMAN	= new MessageManager;
 	STATSMAN	= new StatsManager;
 
