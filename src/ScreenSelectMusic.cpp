@@ -1899,7 +1899,6 @@ public:
 
 	static int StartPlaylistAsCourse(T* p, lua_State *L)
 	{
-		SONGMAN->playlistcourse = SArg(1);
 		Playlist& pl = SONGMAN->allplaylists[SONGMAN->playlistcourse];
 
 		// don't allow empty playlists to be started as a course
@@ -1911,6 +1910,7 @@ public:
 			if (!ch->loaded)
 				return 1;
 
+		SONGMAN->playlistcourse = SArg(1);
 		p->GetMusicWheel()->SelectSong(pl.chartlist[0].songptr);
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = pl.chartlist[0].rate;
 		p->SelectCurrent(PLAYER_1);
