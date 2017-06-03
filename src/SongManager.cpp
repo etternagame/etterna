@@ -90,6 +90,7 @@ void SongManager::InitAll( LoadingWindow *ld )
 		m_GroupsToNeverCache.insert(*group);
 	}
 	InitSongsFromDisk( ld );
+	SAFE_DELETE(ld);	// Destroy this before the scoremanager loading window is created
 }
 
 static LocalizedString RELOADING ( "SongManager", "Reloading..." );
@@ -341,6 +342,12 @@ void Playlist::LoadFromNode(const XNode* node) {
 	
 	for (size_t i = 0; i < chartlist.size(); ++i)
 		chartrates.emplace_back(chartlist[i].rate);
+
+	vector<Song*> playlistgroup;
+	for (auto& n : chartlist)
+		playlistgroup.emplace_back(SONGMAN->GetSongByChartkey(n.key));
+
+	SONGMAN->groupderps[name] = playlistgroup;
 }
 
 vector<string> Playlist::GetKeys() {
@@ -366,6 +373,9 @@ void SongManager::AddKeyedPointers(Song* new_song) {
 			}
 		}
 	}
+
+	groupderps[new_song->m_sGroupName].emplace_back(new_song);
+	SongUtil::SortSongPointerArrayByTitle(groupderps[new_song->m_sGroupName]);
 }
 
 // Get a steps pointer given a chartkey, the assumption here is we want _a_ matching steps, not the original steps - mina
@@ -782,7 +792,7 @@ RageColor SongManager::GetSongGroupColor( const RString &sSongGroup ) const
 {
 	for( unsigned i=0; i<m_sSongGroupNames.size(); i++ )
 	{
-		if( m_sSongGroupNames[i] == sSongGroup )
+		if( m_sSongGroupNames[i] == sSongGroup || allplaylists.count(sSongGroup))
 		{
 			return SONG_GROUP_COLOR.GetValue( i%NUM_SONG_GROUP_COLORS );
 		}

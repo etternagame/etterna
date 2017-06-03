@@ -195,6 +195,8 @@ public:
 	map<string, Playlist> allplaylists;
 	string activeplaylist;
 	string playlistcourse;
+
+	map<string, vector<Song*>> groupderps;
 protected:
 	void LoadStepManiaSongDir( RString sDir, LoadingWindow *ld );
 	void LoadDWISongDir( const RString &sDir );
