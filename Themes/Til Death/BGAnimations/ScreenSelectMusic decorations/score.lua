@@ -410,16 +410,17 @@ t[#t+1] = LoadFont("Common Normal")..{
 	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
 }
 
-t[#t+1] = Def.Quad{
-	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+288;zoomto,120,30;halign,0;diffusealpha,0),
-	MouseLeftClickMessageCommand=function(self)
-		if update then
-			if getTabIndex() == 2 and getScoreForPlot() and getScoreForPlot():HasReplayData() then
-				SCREENMAN:AddNewScreenToTop("ScreenScoreTabOffsetPlot")
-			end
-		end
-	end
-}
+-- causes too many lockups to be worth it atm
+-- t[#t+1] = Def.Quad{
+	-- InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+288;zoomto,120,30;halign,0;diffusealpha,0),
+	-- MouseLeftClickMessageCommand=function(self)
+		-- if update then
+			-- if getTabIndex() == 2 and getScoreForPlot() and getScoreForPlot():HasReplayData() then
+				-- SCREENMAN:AddNewScreenToTop("ScreenScoreTabOffsetPlot")
+			-- end
+		-- end
+	-- end
+-- }
 		
 
 return t
