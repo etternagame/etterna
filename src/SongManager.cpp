@@ -357,16 +357,23 @@ vector<string> Playlist::GetKeys() {
 	return o;
 }
 
+void SongManager::ReconcileBustedKeys(string& ck) {
+	if (StepsByKey.count(ck))
+		return;
+
+	FOREACHUM(string, Steps*, StepsByKey, i) {
+		for (auto& n : i->second->bustedkeys)
+			if (ck == n)
+				ck = n;
+	}
+}
+
 // Only store 1 steps/song pointer per key -Mina
 void SongManager::AddKeyedPointers(Song* new_song) {
 	const vector<Steps*> steps = new_song->GetAllSteps();
 	for (size_t i = 0; i < steps.size(); ++i) {
 		const RString& ck = steps[i]->GetChartKey();
 		if (!StepsByKey.count(ck)) {
-			if (steps.size() > 1) {
-				multichartbs.emplace(ck);
-			}
-
 			StepsByKey.emplace(ck, steps[i]);
 			if (!SongsByKey.count(ck)) {
 				SongsByKey.emplace(ck, new_song);

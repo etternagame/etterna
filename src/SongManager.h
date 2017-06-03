@@ -190,11 +190,10 @@ public:
 	// Lua
 	void PushSelf( lua_State *L );
 
-
-	set<string> multichartbs;
 	map<string, Playlist> allplaylists;
 	string activeplaylist;
 	string playlistcourse;
+	void ReconcileBustedKeys(string& ck);
 
 	map<string, vector<Song*>> groupderps;
 protected:

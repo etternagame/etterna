@@ -174,6 +174,10 @@ public:
 
 	void CalcEtternaMetadata();
 
+	string GenerateBustedChartKey(NoteData & nd, TimingData * td, int cores);
+	vector<string> bustedkeys;
+	void MakeBustedKeys();
+
 	// this is bugged and returns true for files with negative bpms when it shouldn't - mina
 	bool IsRecalcValid();
 
