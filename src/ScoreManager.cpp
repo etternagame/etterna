@@ -182,7 +182,10 @@ void ScoreManager::RecalculateSSRs() {
 
 		Steps* steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
 
-		if (!steps || !steps->IsRecalcValid()) {
+		if (!steps)
+			continue;
+
+		if (!steps->IsRecalcValid()) {
 			hs->ResetSkillsets();
 			continue;
 		}
