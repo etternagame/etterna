@@ -154,6 +154,10 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 	if (pss.GetGrade() == Grade_Failed || pss.m_fWifeScore < 0.1f || GAMESTATE->m_pCurSteps[ps.m_PlayerNumber]->m_StepsType != StepsType_dance_single)
 		hs.SetEtternaValid(false);
 
+	// cut out stuff with under 200 notes to prevent super short vibro files from being dumb -mina
+	if(pss.GetTotalTaps() < 200)
+		hs.SetEtternaValid(false);
+
 	FOREACHM_CONST(float, float, pss.m_fLifeRecord, fail)
 		if (fail->second == 0.f)
 			hs.SetEtternaValid(false);
