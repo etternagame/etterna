@@ -804,7 +804,7 @@ void Profile::HandleStatsPrefixChange(RString dir, bool require_signature)
 	}
 }
 
-ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSignature )
+ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSignature, LoadingWindow* ld)
 {
 	FILEMAN->CreateDir(sDir + REPLAY_SUBDIR);
 	LOG->Trace( "Profile::LoadAllFromDir( %s )", sDir.c_str() );
@@ -827,7 +827,7 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 		ImportScoresToEtterna();
 	}
 
-	CalculateStatsFromScores();
+	CalculateStatsFromScores(ld);
 	return ProfileLoadResult_Success;
 }
 
@@ -1046,6 +1046,34 @@ ProfileLoadResult Profile::LoadEttXmlFromNode(const XNode *xml) {
 	return ProfileLoadResult_Success;
 }
 
+void Profile::CalculateStatsFromScores(LoadingWindow* ld) {
+	LOG->Trace("Calculating stats from scores");
+	vector<HighScore*> all = SCOREMAN->GetAllScores();
+	float TotalGameplaySeconds = 0.f;
+	m_iTotalTapsAndHolds = 0;
+	m_iTotalHolds = 0;
+	m_iTotalMines = 0;
+
+	for (size_t i = 0; i < all.size(); ++i) {
+		HighScore* hs = all[i];
+		TotalGameplaySeconds += hs->GetSurvivalSeconds();
+		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W1);
+		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W2);
+		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W3);
+		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W4);
+		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W5);
+		m_iTotalMines += hs->GetTapNoteScore(TNS_HitMine);
+		hs->GetHoldNoteScore(HNS_Held);
+	}
+
+	m_iNumTotalSongsPlayed = all.size();
+	m_iTotalDancePoints = m_iTotalTapsAndHolds * 2;
+	m_iTotalGameplaySeconds = static_cast<int>(TotalGameplaySeconds);
+
+	SCOREMAN->RecalculateSSRs(ld);
+	SCOREMAN->CalcPlayerRating(m_fPlayerRating, m_fPlayerSkillsets);
+}
+
 void Profile::CalculateStatsFromScores() {
 	LOG->Trace("Calculating stats from scores");
 	vector<HighScore*> all = SCOREMAN->GetAllScores();
@@ -1070,7 +1098,7 @@ void Profile::CalculateStatsFromScores() {
 	m_iTotalDancePoints = m_iTotalTapsAndHolds * 2;
 	m_iTotalGameplaySeconds = static_cast<int>(TotalGameplaySeconds);
 
-	SCOREMAN->RecalculateSSRs();
+	SCOREMAN->RecalculateSSRs(NULL);
 	SCOREMAN->CalcPlayerRating(m_fPlayerRating, m_fPlayerSkillsets);
 }
 
@@ -1426,14 +1454,14 @@ XNode* Profile::SavePlaylistsCreateNode() const {
 
 void Profile::LoadFavoritesFromNode(const XNode *pNode) {
 	FOREACH_CONST_Child(pNode, ck)
-		FavoritedCharts.emplace_back(ck->GetName());
+		FavoritedCharts.emplace_back(SONGMAN->ReconcileBustedKeys(ck->GetName()));
 
 	SONGMAN->SetFavoritedStatus(FavoritedCharts);
 }
 
 void Profile::LoadPermaMirrorFromNode(const XNode *pNode) {
 	FOREACH_CONST_Child(pNode, ck)
-		PermaMirrorCharts.emplace_back(ck->GetName());
+		PermaMirrorCharts.emplace_back(SONGMAN->ReconcileBustedKeys(ck->GetName()));
 
 	SONGMAN->SetPermaMirroredStatus(PermaMirrorCharts);
 }
@@ -1450,6 +1478,7 @@ void Profile::LoadScoreGoalsFromNode(const XNode *pNode) {
 	RString ck;
 	FOREACH_CONST_Child(pNode, chgoals) {
 		chgoals->GetAttrValue("Key", ck);
+		ck = SONGMAN->ReconcileBustedKeys(ck);
 		goalmap[ck].LoadFromNode(chgoals);
 	}
 }

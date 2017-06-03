@@ -90,7 +90,6 @@ void SongManager::InitAll( LoadingWindow *ld )
 		m_GroupsToNeverCache.insert(*group);
 	}
 	InitSongsFromDisk( ld );
-	SAFE_DELETE(ld);	// Destroy this before the scoremanager loading window is created
 }
 
 static LocalizedString RELOADING ( "SongManager", "Reloading..." );
@@ -280,6 +279,7 @@ void Chart::LoadFromNode(const XNode* node) {
 	node->GetAttrValue("Key", s); key = s;
 
 	// check if this chart is loaded and overwrite any last-seen values with updated ones
+	key = SONGMAN->ReconcileBustedKeys(key);
 	FromKey(key);
 }
 
@@ -357,15 +357,17 @@ vector<string> Playlist::GetKeys() {
 	return o;
 }
 
-void SongManager::ReconcileBustedKeys(string& ck) {
+string SongManager::ReconcileBustedKeys(const string& ck) {
 	if (StepsByKey.count(ck))
-		return;
+		return ck;
 
-	FOREACHUM(string, Steps*, StepsByKey, i) {
+	FOREACHUM(string, Steps*, StepsByKey, i)
 		for (auto& n : i->second->bustedkeys)
-			if (ck == n)
-				ck = n;
-	}
+			if (ck == n) {
+				LOG->Trace("Reconciled key for %s to %s", ck.c_str(), i->second->GetChartKey().c_str());
+				return i->second->GetChartKey();
+			}
+	return ck;
 }
 
 // Only store 1 steps/song pointer per key -Mina

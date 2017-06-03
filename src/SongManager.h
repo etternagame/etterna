@@ -193,7 +193,7 @@ public:
 	map<string, Playlist> allplaylists;
 	string activeplaylist;
 	string playlistcourse;
-	void ReconcileBustedKeys(string& ck);
+	string ReconcileBustedKeys(const string& ck);
 
 	map<string, vector<Song*>> groupderps;
 protected:

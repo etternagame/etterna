@@ -1162,7 +1162,8 @@ int sm_main(int argc, char* argv[])
 	CHARMAN		= new CharacterManager;
 	SCOREMAN = new ScoreManager;
 	PROFILEMAN	= new ProfileManager;
-	PROFILEMAN->Init();				// must load after SONGMAN
+	PROFILEMAN->Init(pLoadingWindow);				// must load after SONGMAN
+
 	SONGMAN->UpdatePopular();
 	SONGMAN->UpdatePreferredSort();
 	NSMAN 		= new NetworkSyncManager( NULL );
@@ -1179,6 +1180,7 @@ int sm_main(int argc, char* argv[])
 		return 0;
 	}
 
+	SAFE_DELETE(pLoadingWindow);
 	StartDisplay();
 
 	StoreActualGraphicOptions();

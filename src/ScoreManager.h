@@ -102,7 +102,7 @@ public:
 
 	// Player Rating and SSR functions
 	void SortTopSSRPtrs(Skillset ss);
-	void RecalculateSSRs();
+	void RecalculateSSRs(LoadingWindow *ld);
 	void EnableAllScores();
 	void CalcPlayerRating(float& prating, float* pskillsets);
 	float AggregateSSRs(Skillset ss, float rating, float res, int iter) const;

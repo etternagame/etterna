@@ -22,7 +22,6 @@
 #include "Character.h"
 #include "CharacterManager.h"
 
-
 ProfileManager*	PROFILEMAN = NULL;	// global and accessible from anywhere in our program
 
 #define ID_DIGITS 8
@@ -84,7 +83,7 @@ ProfileManager::~ProfileManager()
 	LUA->UnsetGlobal( "PROFILEMAN" );
 }
 
-void ProfileManager::Init()
+void ProfileManager::Init(LoadingWindow* ld)
 {
 
 	FOREACH_PlayerNumber( p )
@@ -95,7 +94,7 @@ void ProfileManager::Init()
 		m_bNewProfile[p] = false;
 	}
 
-	RefreshLocalProfilesFromDisk();
+	RefreshLocalProfilesFromDisk(ld);
 
 	if( FIXED_PROFILES )
 	{
@@ -142,7 +141,7 @@ ProfileLoadResult ProfileManager::LoadProfile( PlayerNumber pn, const RString &s
 	m_bNeedToBackUpLastLoad[pn] = false;
 
 	// Try to load the original, non-backup data.
-	ProfileLoadResult lr = GetProfile(pn)->LoadAllFromDir( m_sProfileDir[pn], PREFSMAN->m_bSignProfileData );
+	ProfileLoadResult lr = GetProfile(pn)->LoadAllFromDir( m_sProfileDir[pn], PREFSMAN->m_bSignProfileData, NULL);
 
 	RString sBackupDir = m_sProfileDir[pn] + LAST_GOOD_SUBDIR;
 
@@ -159,7 +158,7 @@ ProfileLoadResult ProfileManager::LoadProfile( PlayerNumber pn, const RString &s
 	//
 	if( lr == ProfileLoadResult_FailedTampered )
 	{
-		lr = GetProfile(pn)->LoadAllFromDir( sBackupDir, PREFSMAN->m_bSignProfileData );
+		lr = GetProfile(pn)->LoadAllFromDir( sBackupDir, PREFSMAN->m_bSignProfileData, NULL);
 		m_bLastLoadWasFromLastGood[pn] = lr == ProfileLoadResult_Success;
 
 		/* If the LastGood profile doesn't exist at all, and the actual profile was failed_tampered,
@@ -304,7 +303,7 @@ static void add_category_to_global_list(vector<DirAndProfile>& cat)
 	g_vLocalProfile.insert(g_vLocalProfile.end(), cat.begin(), cat.end());
 }
 
-void ProfileManager::RefreshLocalProfilesFromDisk()
+void ProfileManager::RefreshLocalProfilesFromDisk(LoadingWindow* ld)
 {
 	UnloadAllLocalProfiles();
 
@@ -358,7 +357,7 @@ void ProfileManager::RefreshLocalProfilesFromDisk()
 	FOREACH(DirAndProfile, g_vLocalProfile, curr)
 	{
 		currentlyloadingprofile = curr->sDir.substr(1);
-		curr->profile.LoadAllFromDir(curr->sDir, PREFSMAN->m_bSignProfileData);
+		curr->profile.LoadAllFromDir(curr->sDir, PREFSMAN->m_bSignProfileData, ld);
 	}
  }
 

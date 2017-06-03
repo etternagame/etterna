@@ -7,6 +7,7 @@
 #include "Preference.h"
 #include "Grade.h"
 #include "Profile.h"
+#include "arch/LoadingWindow/LoadingWindow.h"
 
 class Song;
 class Steps;
@@ -19,13 +20,14 @@ public:
 	ProfileManager();
 	~ProfileManager();
 
-	void Init();
+	void Init(LoadingWindow* ld);
 
 	bool FixedProfiles() const;	// If true, profiles shouldn't be added/deleted
 
 	// local profiles
 	void UnloadAllLocalProfiles();
 	void RefreshLocalProfilesFromDisk();
+	void RefreshLocalProfilesFromDisk(LoadingWindow* ld);
 	const Profile *GetLocalProfile( const RString &sProfileID ) const;
 	Profile *GetLocalProfile( const RString &sProfileID ) { return (Profile*) ((const ProfileManager *) this)->GetLocalProfile(sProfileID); }
 	Profile *GetLocalProfileFromIndex( int iIndex );

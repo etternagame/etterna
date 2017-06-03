@@ -158,15 +158,14 @@ HighScore* ScoreManager::GetChartPBUpTo(const string& ck, float& rate) {
 
 
 static const float ld_update = 0.02f;
-void ScoreManager::RecalculateSSRs() {
-	LoadingWindow *ld = LoadingWindow::Create();
-
+void ScoreManager::RecalculateSSRs(LoadingWindow *ld) {
 	RageTimer ld_timer;
-	ld_timer.Touch();
-
-	ld->SetIndeterminate(false);
-	ld->SetTotalWork(AllScores.size());
-	ld->SetText("Updating SSR Calculations for Scores...");
+	if (ld) {
+		ld_timer.Touch();
+		ld->SetIndeterminate(false);
+		ld->SetTotalWork(AllScores.size());
+		ld->SetText("Updating SSR Calculations for Scores...");
+	}
 
 	int scoreindex = 0;
 	for(size_t i = 0; i < AllScores.size(); ++i) {
@@ -217,7 +216,6 @@ void ScoreManager::RecalculateSSRs() {
 		nd.UnsetSerializedNoteData();
 		steps->Compress();
 	}
-	ld->~LoadingWindow();
 	return;
 }
 
@@ -421,7 +419,8 @@ void ScoreManager::LoadFromNode(const XNode * node) {
 		//ASSERT(p->GetName() == "Chart");
 		RString tmp;
 		p->GetAttrValue("Key", tmp);
-		const string ck = tmp;
+		string doot = SONGMAN->ReconcileBustedKeys(tmp);
+		const string ck = doot;
 		pscores[ck].LoadFromNode(p, ck);
 	}
 }

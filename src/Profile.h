@@ -12,6 +12,7 @@
 #include "StepsUtil.h"	// for StepsID
 #include "StyleUtil.h"	// for StyleID
 #include "LuaReference.h"
+#include "arch/LoadingWindow/LoadingWindow.h"
 
 #include <unordered_map>
 
@@ -351,7 +352,7 @@ public:
 
 	// Loading and saving
 	void HandleStatsPrefixChange(RString dir, bool require_signature);
-	ProfileLoadResult LoadAllFromDir( const RString &sDir, bool bRequireSignature );
+	ProfileLoadResult LoadAllFromDir( const RString &sDir, bool bRequireSignature, LoadingWindow* ld);
 	ProfileLoadResult LoadStatsFromDir(RString dir, bool require_signature);
 	void LoadTypeFromDir(const RString &dir);
 	void LoadCustomFunction( const RString &sDir );
@@ -390,6 +391,7 @@ public:
 	XNode* SaveEttScoresCreateNode() const;
 	XNode* SaveEttXmlCreateNode() const;
 
+	void CalculateStatsFromScores(LoadingWindow* ld);
 	void CalculateStatsFromScores();
 
 	// For converting to etterna from stats.xml
