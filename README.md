@@ -1,9 +1,7 @@
 Etterna
 =========
 
-Etterna is an advanced cross-platform rhythm game designed for keyboard.
-
-Advanced cross-platform rhythm game designed for keyboard.
+Etterna is an advanced cross-platform rhythm game focused on keyboard play.
 
 [![Build Status](https://travis-ci.org/etternagame/etterna.svg?branch=master)](https://travis-ci.org/etternagame/etterna)
 [![Build status](https://ci.appveyor.com/api/projects/status/35aogvmifkm43ygd/branch/master?svg=true)](https://ci.appveyor.com/project/xwidghet/stepmania/branch/master)
@@ -19,7 +17,7 @@ For those that do not wish to compile the game on their own and use a binary rig
 
 ### From Source
 
-StepMania can be compiled using [CMake](http://www.cmake.org/). More information about using CMake can be found in both the `Build` directory and CMake's documentation.
+Etterna can be compiled using [CMake](http://www.cmake.org/). More information about using CMake can be found in both the `Build` directory and CMake's documentation.
 
 ## Resources
 
