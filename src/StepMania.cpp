@@ -1171,8 +1171,6 @@ int sm_main(int argc, char* argv[])
 
 	FILTERMAN = new FilterManager;
 
-	SAFE_DELETE( pLoadingWindow ); // destroy this before init'ing Display
-
 	/* If the user has tried to quit during the loading, do it before creating
 	* the main window. This prevents going to full screen just to quit. */
 	if( ArchHooks::UserQuit() )
