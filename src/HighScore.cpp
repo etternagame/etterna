@@ -16,6 +16,8 @@
 
 ThemeMetric<string> EMPTY_NAME("HighScore","EmptyName");
 
+const string REPLAY_DIR = "Save/Replays/";
+
 struct HighScoreImpl
 {
 	string	sName;	// name that shows in the machine's ranking screen
@@ -567,6 +569,34 @@ bool HighScoreImpl::WriteReplayData(bool duringload) {
 	return true;
 }
 
+bool HighScore::WriteInputData(const vector<float>& oop) {
+	string append;
+	string profiledir;
+
+	string path = REPLAY_DIR + m_Impl->ScoreKey;
+	ofstream fileStream(path, ios::binary);
+	//check file
+
+	ASSERT(oop.size() > 0);
+
+	if (!fileStream) {
+		LOG->Warn("Failed to create replay file at %s", path.c_str());
+		return false;
+	}
+
+	unsigned int idx = oop.size() - 1;
+	//loop for writing both vectors side by side
+	for (unsigned int i = 0; i < idx; i++) {
+		append = to_string(oop[i]) + "\n";
+		fileStream.write(append.c_str(), append.size());
+	}
+	append = to_string(oop[idx]);
+	fileStream.write(append.c_str(), append.size());
+	fileStream.close();
+	LOG->Trace("Created replay file at %s", path.c_str());
+	return true;
+}
+
 // should just get rid of impl -mina
 bool HighScore::LoadReplayData(bool duringload) {
 	// already exists
@@ -596,7 +626,7 @@ bool HighScore::LoadReplayData(bool duringload) {
 		LOG->Warn("Failed to load replay data at %s", path.c_str());
 		return false;
 	}
-		
+
 	//loop until eof
 	while (getline(fileStream, line))
 	{

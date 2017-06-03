@@ -444,6 +444,9 @@ Section "Main Section" SecMain
 	File /r /x CVS /x .svn "Save\LocalProfiles\00000000\Editable.ini"
 	SetOverwrite on
 	
+	; i dont know where these dirs are created sooo
+	CreateDirectory "$INSTDIR\Save\Replays"
+
 	SetOutPath "$INSTDIR\Program"
 !ifdef INSTALL_EXECUTABLES
 	; normal exec

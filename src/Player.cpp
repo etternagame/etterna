@@ -1829,6 +1829,9 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 	const float fPositionSeconds = m_pPlayerState->m_Position.m_fMusicSeconds - stepAgo;
 	const float fTimeSinceStep = stepAgo;
 
+	// idk if this is the correct value for input logs but we'll use them to test -mina
+	m_pPlayerStageStats->InputData.emplace_back(fPositionSeconds);
+
 	float fSongBeat = m_pPlayerState->m_Position.m_fSongBeat;
 	
 	if( GAMESTATE->m_pCurSteps[m_pPlayerState->m_PlayerNumber] )

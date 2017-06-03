@@ -77,6 +77,7 @@ public:
 	float	m_fTimingScale;
 	vector<float> m_vOffsetVector;
 	vector<int> m_vNoteRowVector;
+	vector<float> InputData;
 	int		m_iTapNoteScores[NUM_TapNoteScore];
 	int		m_iHoldNoteScores[NUM_HoldNoteScore];
 	/** @brief The Player's current combo. */

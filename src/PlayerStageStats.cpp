@@ -46,6 +46,7 @@ void PlayerStageStats::InternalInit()
 	m_fTimingScale = 0.f;
 	m_vOffsetVector.clear();
 	m_vNoteRowVector.clear();
+	InputData.clear();
 	m_iPossibleGradePoints = 0;
 	m_iCurCombo = 0;
 	m_iMaxCombo = 0;

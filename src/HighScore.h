@@ -128,6 +128,7 @@ struct HighScore
 	void LoadFromEttNode(const XNode* pNode);
 
 	bool WriteReplayData(bool duringload);
+	bool WriteInputData(const vector<float>& oop);
 	bool LoadReplayData(bool duringload);
 	bool HasReplayData();
 	void UnloadReplayData();
