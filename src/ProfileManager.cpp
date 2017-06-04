@@ -305,6 +305,8 @@ static void add_category_to_global_list(vector<DirAndProfile>& cat)
 
 void ProfileManager::RefreshLocalProfilesFromDisk(LoadingWindow* ld)
 {
+	if (ld)
+		ld->SetText("Loading Profiles");
 	UnloadAllLocalProfiles();
 
 	vector<RString> profile_ids;

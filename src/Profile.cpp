@@ -776,7 +776,7 @@ void Profile::HandleStatsPrefixChange(RString dir, bool require_signature)
 	bool need_to_create_file= false;
 	if(IsAFile(dir + PROFILEMAN->GetStatsPrefix() + STATS_XML))
 	{
-		LoadAllFromDir(dir, require_signature);
+		LoadAllFromDir(dir, require_signature, NULL);
 	}
 	else
 	{
