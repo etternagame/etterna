@@ -124,7 +124,7 @@ Grade HighScoreImpl::GetWifeGrade() const {
 
 	if (fWifeScore >= 0.9998f)
 		return Grade_Tier01;
-	if (fWifeScore >= 0.9975f)
+	if (fWifeScore >= 0.996f)
 		return Grade_Tier02;
 	if (fWifeScore >= 0.93f)
 		return Grade_Tier03;
