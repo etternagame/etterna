@@ -400,7 +400,8 @@ void Steps::CalcEtternaMetadata() {
 	const vector<int>& nerv = m_pNoteData->BuildAndGetNerv();
 	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
 	
-	stuffnthings = MinaSDCalc(GetNoteData().SerializeNoteData(etaner), GetNoteData().GetNumTracks(), 0.93f, 1.f, GetTimingData()->HasWarps());
+	if(etaner.size() > 0)
+		stuffnthings = MinaSDCalc(GetNoteData().SerializeNoteData(etaner), GetNoteData().GetNumTracks(), 0.93f, 1.f, GetTimingData()->HasWarps());
 
 	//if (GetNoteData().GetNumTracks() == 4 && GetTimingData()->HasWarps() == false)
 		//MinaCalc2(stuffnthings, GetNoteData().SerializeNoteData2(etaner), 1.f, 0.93f);
@@ -409,10 +410,12 @@ void Steps::CalcEtternaMetadata() {
 	for (int i = 0; i < 8; ++i)
 		SONGMAN->keyconversionmap.emplace(GenerateBustedChartKey(*m_pNoteData, GetTimingData(), i), ChartKey);
 
+	/*
 	if (GetNoteData().GetNumTracks() == 4) {
-		NoteDataUtil::GetETTNoteDataString(*m_pNoteData, m_sNoteDataCompressed);
-		m_bNoteDataIsFilled = true;
+	NoteDataUtil::GetETTNoteDataString(*m_pNoteData, m_sNoteDataCompressed);
+	m_bNoteDataIsFilled = true;
 	}
+	*/
 
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();
