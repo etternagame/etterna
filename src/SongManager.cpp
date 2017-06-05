@@ -723,38 +723,26 @@ bool SongManager::IsGroupNeverCached(const RString& group) const
 }
 
 void SongManager::SetFavoritedStatus(set<string>& favs) {
-	FOREACH(Song*, m_pSongs, song) {
-		FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps) {
-			RString sck = (*steps)->GetChartKey();
-			FOREACHS(string, favs, ck)
-				if (sck == *ck)
-					(*song)->SetFavorited(true);
-		}
-	}
+	FOREACH(Song*, m_pSongs, song)
+		FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps)
+		if (favs.count((*steps)->GetChartKey()))
+			(*song)->SetFavorited(true);
 }
 
 void SongManager::SetPermaMirroredStatus(set<string>& pmir) {
-	FOREACH(Song*, m_pSongs, song) {
-		FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps) {
-			RString sck = (*steps)->GetChartKey();
-			FOREACHS(string, pmir, ck)
-				if (sck == *ck)
-					(*song)->SetPermaMirror(true);
-		}
-	}
+	FOREACH(Song*, m_pSongs, song)
+		FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps)
+		if (pmir.count((*steps)->GetChartKey()))
+			(*song)->SetPermaMirror(true);
 }
 
 // hurr should probably redo both (all three) of these -mina
 void SongManager::SetHasGoal(map<RString, vector<ScoreGoal>> goalmap) {
-	FOREACH(Song*, m_pSongs, song) {
-		FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps) {
-			RString sck = (*steps)->GetChartKey();
-			auto it = goalmap.find(sck);
-			if(it != goalmap.end())
+	FOREACH(Song*, m_pSongs, song)
+		FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps)
+			if(goalmap.count((*steps)->GetChartKey()))
 					(*song)->SetHasGoal(true);
-			}
-		}
-	}
+}
 
 RString SongManager::GetSongGroupBannerPath( const RString &sSongGroup ) const
 {
