@@ -12,6 +12,7 @@
 #include "PrefsManager.h"
 #include "CommonMetrics.h"
 #include "MinaCalc.h"
+#include "CryptManager.h"
 
 #define GRADE_PERCENT_TIER(i)	THEME->GetMetricF("PlayerStageStats",ssprintf("GradePercent%s",GradeToString((Grade)i).c_str()))
 // deprecated, but no solution to replace them exists yet:
@@ -314,10 +315,27 @@ vector<float> PlayerStageStats::CalcSSR(float ssrpercent ) const {
 	float musicrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 	return MinaSDCalc(serializednd, steps->GetNoteData().GetNumTracks(), musicrate, ssrpercent, 1.f, steps->GetTimingData()->HasWarps());
 }
-// to be array'd in future i guess? -mina
-string PlayerStageStats::GenerateValidationKeys() const {
-	string weak = GenerateWeakValidationKey(m_iTapNoteScores, m_iHoldNoteScores);
-	return weak;
+
+void PlayerStageStats::GenerateValidationKeys(HighScore& hs) const {
+	string key = "";
+
+	// just designed to catch shameless stats xml tampering by people who aren't experienced enough to look this up -mina
+	FOREACH_ENUM(TapNoteScore, tns)
+		key.append(to_string(hs.GetTapNoteScore(tns)));
+	FOREACH_ENUM(TapNoteScore, tns)
+		key.append(to_string(hs.GetTapNoteScore(tns)));
+
+	key.append(hs.GetScoreKey());
+	key.append(to_string(lround(hs.GetWifeScore() * 1000.f)));
+	key.append(to_string(lround(hs.GetSSRNormPercent() * 1000.f)));
+	key.append(to_string(lround(hs.GetMusicRate() * 1000.f)));
+	key.append(to_string(lround(hs.GetJudgeScale() * 1000.f)));
+	key.append(to_string(hs.GetEtternaValid()));
+
+	hs.SetValidationKey(ValidationKey_Brittle, BinaryToHex(CryptManager::GetSHA1ForString(key)));
+
+	// just testing stuff
+	hs.SetValidationKey(ValidationKey_Weak, GenerateWeakValidationKey(m_iTapNoteScores, m_iHoldNoteScores));
 }
 float PlayerStageStats::GetTimingScale() const {
 	return m_fTimingScale;

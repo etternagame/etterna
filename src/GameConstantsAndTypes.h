@@ -36,6 +36,15 @@ enum Skillset {
 
 const RString& SkillsetToString(Skillset ss);
 
+enum ValidationKey {
+	ValidationKey_Brittle,
+	ValidationKey_Weak,
+	NUM_ValidationKey,
+	ValidationKey_Invalid,
+};
+
+const RString& ValidationKeyToString(ValidationKey ss);
+
 /**
  * @brief The various radar categories available.
  *

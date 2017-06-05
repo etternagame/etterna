@@ -227,6 +227,8 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 	// this whole thing needs to be redone, ssr calculation should be moved into highscore -mina
 	hs.SetSSRCalcVersion(GetCalcVersion());
 
+	pss.GenerateValidationKeys(hs);
+
 	if (!pss.InputData.empty())
 		hs.WriteInputData(pss.InputData);
 	return hs;

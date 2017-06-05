@@ -281,6 +281,18 @@ Skillset StringToSkillset(const RString &s) {
 	return Skill_Overall;
 }
 
+static const char *ValidationKeyNames[] = {
+	"Brittle",
+	"Weak",
+};
+XToString(ValidationKey);
+LuaXType(ValidationKey);
+ValidationKey StringToValidationKey(const RString &s) {
+	if (s == "Brittle")				return ValidationKey_Brittle;
+	if (s == "Weak")				return ValidationKey_Weak;
+	return ValidationKey_Brittle;
+}
+
 static const char *TimingWindowNames[] = {
 	"W1",
 	"W2",

@@ -52,6 +52,7 @@ struct HighScoreImpl
 	int iTapNoteScores[NUM_TapNoteScore];
 	int iHoldNoteScores[NUM_HoldNoteScore];
 	float fSkillsetSSRs[NUM_Skillset];
+	string ValidationKeys[NUM_ValidationKey];
 	RadarValues radarValues;
 	float fLifeRemainingSeconds;
 	bool bDisqualified;
@@ -344,7 +345,10 @@ XNode *HighScoreImpl::CreateEttNode() const {
 			pSkillsetSSRs->AppendChild(SkillsetToString(ss), FloatToString(fSkillsetSSRs[ss]).substr(0, 5));
 	}
 
-	pNode->AppendChild("ValidationKey", ValidationKey);
+	XNode* pValidationKeys = pNode->AppendChild("ValidationKeys");
+	pValidationKeys->AppendChild(ValidationKeyToString(ValidationKey_Brittle), ValidationKeys[ValidationKey_Brittle]);
+	pValidationKeys->AppendChild(ValidationKeyToString(ValidationKey_Weak), ValidationKeys[ValidationKey_Weak]);
+
 	return pNode;
 }
 
@@ -384,7 +388,13 @@ void HighScoreImpl::LoadFromEttNode(const XNode *pNode) {
 			pSkillsetSSRs->GetChildValue(SkillsetToString(ss), fSkillsetSSRs[ss]);
 	}
 
-	pNode->GetChildValue("ValidationKey", s); ValidationKey = s;
+	if (fWifeScore > 0.f) {
+		const XNode* pValidationKeys = pNode->GetChild("ValidationKeys");
+		if (pValidationKeys) {
+			pValidationKeys->GetChildValue(ValidationKeyToString(ValidationKey_Brittle), s); ValidationKeys[ValidationKey_Brittle] = s;
+			pValidationKeys->GetChildValue(ValidationKeyToString(ValidationKey_Weak), s); ValidationKeys[ValidationKey_Weak] = s;
+		}
+	}
 
 	if (ScoreKey == "")
 		ScoreKey = "S" + BinaryToHex(CryptManager::GetSHA1ForString(dateTime.GetString()));
@@ -749,6 +759,7 @@ void HighScore::SetProductID( int i ) { m_Impl->iProductID = i; }
 void HighScore::SetTapNoteScore( TapNoteScore tns, int i ) { m_Impl->iTapNoteScores[tns] = i; }
 void HighScore::SetHoldNoteScore( HoldNoteScore hns, int i ) { m_Impl->iHoldNoteScores[hns] = i; }
 void HighScore::SetSkillsetSSR(Skillset ss, float ssr) { m_Impl->fSkillsetSSRs[ss] = ssr; }
+void HighScore::SetValidationKey(ValidationKey vk, string k) { m_Impl->ValidationKeys[vk] = k; }
 void HighScore::SetRadarValues( const RadarValues &rv ) { m_Impl->radarValues = rv; }
 void HighScore::SetLifeRemainingSeconds( float f ) { m_Impl->fLifeRemainingSeconds = f; }
 void HighScore::SetDisqualified( bool b ) { m_Impl->bDisqualified = b; }
