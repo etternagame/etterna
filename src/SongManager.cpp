@@ -361,12 +361,8 @@ string SongManager::ReconcileBustedKeys(const string& ck) {
 	if (StepsByKey.count(ck))
 		return ck;
 
-	FOREACHUM(string, Steps*, StepsByKey, i)
-		for (auto& n : i->second->bustedkeys)
-			if (ck == n) {
-				LOG->Trace("Reconciled key for %s to %s", ck.c_str(), i->second->GetChartKey().c_str());
-				return i->second->GetChartKey();
-			}
+	if (keyconversionmap.count(ck))
+		return keyconversionmap[ck];
 	return ck;
 }
 

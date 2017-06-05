@@ -194,6 +194,7 @@ public:
 	string activeplaylist;
 	string playlistcourse;
 	string ReconcileBustedKeys(const string& ck);
+	map<string, string> keyconversionmap;
 
 	map<string, vector<Song*>> groupderps;
 protected:

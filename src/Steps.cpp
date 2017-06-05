@@ -386,8 +386,7 @@ void Steps::CalcEtternaMetadata() {
 	stuffnthings = MinaSDCalc(GetNoteData().SerializeNoteData(etaner), GetNoteData().GetNumTracks(), 0.93f, 1.f, GetTimingData()->HasWarps());
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
 	for (int i = 0; i < 8; ++i)
-		bustedkeys.emplace_back(GenerateBustedChartKey(*m_pNoteData, GetTimingData(), i));
-
+		SONGMAN->keyconversionmap.emplace(GenerateBustedChartKey(*m_pNoteData, GetTimingData(), i), ChartKey);
 
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();
