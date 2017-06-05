@@ -31,6 +31,7 @@
 #include <algorithm>
 #include "MinaCalc.h"
 #include <thread>
+#include "NotesWriterETT.h"
 
 /* register DisplayBPM with StringConversion */
 #include "EnumHelper.h"
@@ -225,6 +226,21 @@ void Steps::GetSMNoteData( RString &notes_comp_out ) const
 	notes_comp_out = m_sNoteDataCompressed;
 }
 
+/* XXX: this function should pull data from m_sFilename, like Decompress() */
+void Steps::GetETTNoteData(RString &notes_comp_out) const
+{
+	if (m_sNoteDataCompressed.empty())
+	{
+		if (!m_bNoteDataIsFilled)
+		{
+			/* no data is no data */
+			notes_comp_out = "";
+			return;
+		}
+	}
+	notes_comp_out = m_sNoteDataCompressed;
+}
+
 void Steps::TidyUpData()
 {
 	// Don't set the StepsType to dance single if it's invalid.  That just
@@ -301,6 +317,7 @@ void Steps::CalculateRadarValues( float fMusicLengthSeconds )
 		NoteDataUtil::CalculateRadarValues( tempNoteData, fMusicLengthSeconds, m_CachedRadarValues );
 	}
 
+	tempNoteData.ClearAll();
 	GAMESTATE->SetProcessedTimingData(NULL);
 }
 
@@ -384,14 +401,18 @@ void Steps::CalcEtternaMetadata() {
 	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
 	
 	stuffnthings = MinaSDCalc(GetNoteData().SerializeNoteData(etaner), GetNoteData().GetNumTracks(), 0.93f, 1.f, GetTimingData()->HasWarps());
-	vector<NoteInfo2> hoop = GetNoteData().SerializeNoteData2(etaner);
 
-	if (GetNoteData().GetNumTracks() == 4 && GetTimingData()->HasWarps() == false)
-		MinaCalc2(stuffnthings, hoop, 1.f, 0.93f);
+	//if (GetNoteData().GetNumTracks() == 4 && GetTimingData()->HasWarps() == false)
+		//MinaCalc2(stuffnthings, GetNoteData().SerializeNoteData2(etaner), 1.f, 0.93f);
 
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
 	for (int i = 0; i < 8; ++i)
 		SONGMAN->keyconversionmap.emplace(GenerateBustedChartKey(*m_pNoteData, GetTimingData(), i), ChartKey);
+
+	if (GetNoteData().GetNumTracks() == 4) {
+		NoteDataUtil::GetETTNoteDataString(*m_pNoteData, m_sNoteDataCompressed);
+		m_bNoteDataIsFilled = true;
+	}
 
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();
@@ -498,7 +519,7 @@ void Steps::Compress() const
 		return;
 	}
 
-	if( !m_sFilename.empty() && m_LoadedFromProfile == ProfileSlot_Invalid )
+	if( !m_sFilename.empty())
 	{
 		/* We have a file on disk; clear all data in memory.
 		 * Data on profiles can't be accessed normally (need to mount and time-out

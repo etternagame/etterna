@@ -404,7 +404,7 @@ void SMLoader::ParseBPMs( vector< pair<float, float> > &out, const RString &line
 			continue;
 		}
 
-		out.push_back( make_pair(fBeat, fNewBPM) );
+		out.emplace_back( make_pair(fBeat, fNewBPM) );
 	}
 }
 
@@ -434,7 +434,7 @@ void SMLoader::ParseStops( vector< pair<float, float> > &out, const RString line
 			continue;
 		}
 
-		out.push_back( make_pair(fFreezeBeat, fFreezeSeconds) );
+		out.emplace_back( make_pair(fFreezeBeat, fFreezeSeconds) );
 	}
 }
 
@@ -797,12 +797,12 @@ void SMLoader::ProcessSpeeds( TimingData &out, const RString &line, const int ro
 
 		if( vs2[0] == 0 && vs2.size() == 2 ) // First one always seems to have 2.
 		{
-			vs2.push_back("0");
+			vs2.emplace_back("0");
 		}
 
 		if( vs2.size() == 3 ) // use beats by default.
 		{
-			vs2.push_back("0");
+			vs2.emplace_back("0");
 		}
 
 		if( vs2.size() < 4 )
@@ -1286,7 +1286,7 @@ void SMLoader::TidyUpData( Song &song, bool bFromCache )
 			if( !IsAFile( song.GetBackgroundPath() ) )
 				break;
 
-			bg.push_back( BackgroundChange(lastBeat,song.m_sBackgroundFile) );
+			bg.emplace_back( BackgroundChange(lastBeat,song.m_sBackgroundFile) );
 		} while(0);
 	}
 	if (bFromCache)

@@ -146,6 +146,7 @@ public:
 	 * @return true if our notedata is empty, false otherwise. */
 	bool IsNoteDataEmpty() const;
 
+	void GetETTNoteData(RString & notes_comp_out) const;
 	void TidyUpData();
 	void CalculateRadarValues(float fMusicLengthSeconds);
 

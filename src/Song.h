@@ -121,6 +121,7 @@ public:
 	 * @param bSavingCache a flag to determine if we're saving cache data.
 	 */
 	bool SaveToSSCFile(const RString &sPath, bool bSavingCache, bool autosave= false);
+	bool SaveToETTFile(const RString &sPath, bool bSavingCache, bool autosave = false);
 	/** @brief Save to the SSC and SM files no matter what. */
 	void Save(bool autosave= false);
 	/** 

@@ -519,7 +519,6 @@ void NoteDataUtil::GetETTNoteDataString(const NoteData &in, RString &sRet) {
 	// Get note data
 	vector<NoteData> parts;
 	float fLastBeat = -1.f;
-	LOG->Warn("sdasdfas23dff");
 	SplitCompositeNoteData(in, parts);
 
 	FOREACH(NoteData, parts, nd) {

@@ -1,7 +1,7 @@
 #include "global.h"
 #include <cerrno>
 #include <cstring>
-#include "NotesWriterSSC.h"
+#include "NotesWriterETT.h"
 #include "BackgroundUtil.h"
 #include "Foreach.h"
 #include "GameManager.h"
@@ -33,11 +33,11 @@ static RString JoinLineList( vector<RString> &lines )
 	return join( "\r\n", lines.begin()+j, lines.end() );
 }
 
-RString MSDToString(MinaSD x) {
+RString MSDToString2(MinaSD x) {
 	RString o = "";
 	for (size_t i = 0; i < x.size(); i++) {
 		for (size_t ii = 0; ii < x[i].size(); ii++) {
-			o.append(to_string(x[i][ii]).substr(0,5));
+			o.append(to_string(x[i][ii]).substr(0, 5));
 			if (ii != x[i].size() - 1)
 				o.append(",");
 		}
@@ -346,8 +346,7 @@ static void emplace_back_tag(vector<RString>& lines,
  * @param in the Steps in question.
  * @param bSavingCache a flag to see if we're saving certain cache data.
  * @return the NoteData in RString form. */
-static RString GetSSCNoteData( const Song &song, const Steps &in, bool bSavingCache )
-{
+static RString GetETTNoteData( const Song &song, Steps &in) {
 	vector<RString> lines;
 
 	lines.emplace_back("");
@@ -361,7 +360,7 @@ static RString GetSSCNoteData( const Song &song, const Steps &in, bool bSavingCa
 	emplace_back_tag(lines, "#CHARTSTYLE:%s;", in.GetChartStyle());
 	emplace_back_tag(lines, "#DIFFICULTY:%s;", DifficultyToString(in.GetDifficulty()));
 	lines.emplace_back(ssprintf("#METER:%d;", in.GetMeter()));
-	lines.emplace_back(ssprintf("#MSDVALUES:%s;", MSDToString(in.GetAllMSD()).c_str()));
+	lines.emplace_back(ssprintf("#MSDVALUES:%s;", MSDToString2(in.GetAllMSD()).c_str()));
 	lines.emplace_back(ssprintf("#CHARTKEY:%s;", SmEscape(in.GetChartKey()).c_str()));
 
 	emplace_back_tag(lines, "#MUSIC:%s;", in.GetMusicFile());
@@ -403,35 +402,23 @@ static RString GetSSCNoteData( const Song &song, const Steps &in, bool bSavingCa
 	default:
 		break;
 	}
-	if (bSavingCache)
-	{
-		lines.emplace_back(ssprintf("#STEPFILENAME:%s;", in.GetFilename().c_str()));
-	}
-	else
-	{
-		RString sNoteData;
-		in.GetSMNoteData(sNoteData);
 
-		lines.emplace_back(song.m_vsKeysoundFile.empty() ? "#NOTES:" : "#NOTES2:");
+	RString sNoteData;
+	in.GetETTNoteData(sNoteData);
+	lines.emplace_back(song.m_vsKeysoundFile.empty() ? "#NOTES:" : "#NOTES2:");
 
-		TrimLeft(sNoteData);
-		vector<RString> splitData;
-		split(sNoteData, "\n", splitData);
-		lines.insert(lines.end(), std::make_move_iterator(splitData.begin()), std::make_move_iterator(splitData.end()));
-		lines.emplace_back(";");
-	}
+	TrimLeft(sNoteData);
+	lines.emplace_back(sNoteData);
+	lines.emplace_back(";");
 	return JoinLineList(lines);
 }
 
-bool NotesWriterSSC::Write( RString &sPath, const Song &out, const vector<Steps*>& vpStepsToSave, bool bSavingCache )
-{
+bool NotesWriterETT::Write( RString &sPath, const Song &out, const vector<Steps*>& vpStepsToSave ) {
 	int flags = RageFile::WRITE;
 
 	/* If we're not saving cache, we're saving real data, so enable SLOW_FLUSH
 	 * to prevent data loss. If we're saving cache, this will slow things down
 	 * too much. */
-	if( !bSavingCache )
-		flags |= RageFile::SLOW_FLUSH;
 
 	RageFile f;
 	if( !f.Open( sPath, flags ) )
@@ -442,24 +429,21 @@ bool NotesWriterSSC::Write( RString &sPath, const Song &out, const vector<Steps*
 
 	WriteGlobalTags( f, out );
 	
-	if( bSavingCache )
-	{
-		f.PutLine( ssprintf( "// cache tags:" ) );
-		f.PutLine( ssprintf( "#FIRSTSECOND:%.6f;", out.GetFirstSecond() ) );
-		f.PutLine( ssprintf( "#LASTSECOND:%.6f;", out.GetLastSecond() ) );
-		f.PutLine( ssprintf( "#SONGFILENAME:%s;", out.m_sSongFileName.c_str() ) );
-		f.PutLine( ssprintf( "#HASMUSIC:%i;", out.m_bHasMusic ) );
-		f.PutLine( ssprintf( "#HASBANNER:%i;", out.m_bHasBanner ) );
-		f.PutLine( ssprintf( "#MUSICLENGTH:%.6f;", out.m_fMusicLengthSeconds ) );
-		f.PutLine( ssprintf( "// end cache tags" ) );
-	}
+	f.PutLine(ssprintf("// cache tags:"));
+	f.PutLine(ssprintf("#FIRSTSECOND:%.6f;", out.GetFirstSecond()));
+	f.PutLine(ssprintf("#LASTSECOND:%.6f;", out.GetLastSecond()));
+	f.PutLine(ssprintf("#SONGFILENAME:%s;", out.m_sSongFileName.c_str()));
+	f.PutLine(ssprintf("#HASMUSIC:%i;", out.m_bHasMusic));
+	f.PutLine(ssprintf("#HASBANNER:%i;", out.m_bHasBanner));
+	f.PutLine(ssprintf("#MUSICLENGTH:%.6f;", out.m_fMusicLengthSeconds));
+	f.PutLine(ssprintf("// end cache tags"));
 
 	// Save specified Steps to this file
 	FOREACH_CONST(Steps*, vpStepsToSave, s)
 	{
-		const Steps* pSteps = *s;
+		Steps* pSteps = *s;
 		if (pSteps->GetChartKey() != "") {		// Avoid writing cache tags for invalid chartkey files(empty steps) -Mina
-			RString sTag = GetSSCNoteData(out, *pSteps, bSavingCache);
+			RString sTag = GetETTNoteData(out, *pSteps);
 			f.PutLine(sTag);
 		}
 		else
@@ -471,37 +455,6 @@ bool NotesWriterSSC::Write( RString &sPath, const Song &out, const vector<Steps*
 		return false;
 
 	return true;
-}
-
-void NotesWriterSSC::GetEditFileContents( const Song *pSong, const Steps *pSteps, RString &sOut )
-{
-	sOut = "";
-	RString sDir = pSong->GetSongDir();
-
-	// "Songs/foo/bar"; strip off "Songs/".
-	vector<RString> asParts;
-	split( sDir, "/", asParts );
-	if( asParts.size() )
-		sDir = join( "/", asParts.begin()+1, asParts.end() );
-	sOut += ssprintf( "#SONG:%s;\r\n", sDir.c_str() );
-	sOut += GetSSCNoteData( *pSong, *pSteps, false );
-}
-
-RString NotesWriterSSC::GetEditFileName( const Song *pSong, const Steps *pSteps )
-{
-	/* Try to make a unique name. This isn't guaranteed. Edit descriptions are
-	 * case-sensitive, filenames on disk are usually not, and we decimate certain
-	 * characters for FAT filesystems. */
-	RString sFile = pSong->GetTranslitFullTitle() + " - " + pSteps->GetDescription();
-
-	// HACK:
-	if( pSteps->m_StepsType == StepsType_dance_double )
-		sFile += " (doubles)";
-
-	sFile += ".edit";
-
-	MakeValidFilename( sFile );
-	return sFile;
 }
 
 static LocalizedString DESTINATION_ALREADY_EXISTS	("NotesWriterSSC", "Error renaming file.  Destination file '%s' already exists.");

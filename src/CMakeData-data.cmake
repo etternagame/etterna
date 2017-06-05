@@ -49,6 +49,7 @@ list(APPEND SM_DATA_NOTELOAD_SRC
   "NotesLoaderSM.cpp"
   "NotesLoaderSMA.cpp"
   "NotesLoaderSSC.cpp"
+  "NotesLoaderETT.cpp"
 )
 
 list(APPEND SM_DATA_NOTELOAD_HPP
@@ -60,6 +61,7 @@ list(APPEND SM_DATA_NOTELOAD_HPP
   "NotesLoaderSM.h"
   "NotesLoaderSMA.h"
   "NotesLoaderSSC.h"
+  "NotesLoaderETT.h"
 )
 
 source_group("Data Structures\\\\Notes Loaders" FILES ${SM_DATA_NOTELOAD_SRC} ${SM_DATA_NOTELOAD_HPP})
@@ -69,6 +71,7 @@ list(APPEND SM_DATA_NOTEWRITE_SRC
   "NotesWriterJson.cpp"
   "NotesWriterSM.cpp"
   "NotesWriterSSC.cpp"
+  "NotesWriterETT.cpp"
 )
 
 list(APPEND SM_DATA_NOTEWRITE_HPP
@@ -76,6 +79,7 @@ list(APPEND SM_DATA_NOTEWRITE_HPP
   "NotesWriterJson.h"
   "NotesWriterSM.h"
   "NotesWriterSSC.h"
+  "NotesWriterETT.h"
 )
 
 source_group("Data Structures\\\\Notes Writers" FILES ${SM_DATA_NOTEWRITE_SRC} ${SM_DATA_NOTEWRITE_HPP})

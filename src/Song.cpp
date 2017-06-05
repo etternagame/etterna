@@ -32,6 +32,7 @@
 #include "NotesWriterJson.h"
 #include "NotesWriterSM.h"
 #include "NotesWriterSSC.h"
+#include "NotesWriterETT.h"
 #include "LyricsLoader.h"
 #include "ActorUtil.h"
 
@@ -1118,15 +1119,11 @@ void Song::ReCalculateRadarValuesAndLastSecond(bool fromCache, bool duringCache)
 			}
 		}
 
-		// Wipe NoteData
+		// Cache etterna stuff and 'radar values'
 		if (duringCache)
 		{
 			pSteps->CalculateRadarValues(m_fMusicLengthSeconds);
 			pSteps->CalcEtternaMetadata();
-
-			NoteData dummy;
-			dummy.SetNumTracks(tempNoteData.GetNumTracks());
-			pSteps->SetNoteData(dummy);
 		}
 	}
 
@@ -1299,6 +1296,79 @@ bool Song::SaveToSSCFile( const RString &sPath, bool bSavingCache, bool autosave
 	return true;
 }
 
+
+bool Song::SaveToETTFile(const RString &sPath, bool bSavingCache, bool autosave)
+{
+	RString path = sPath;
+	if (!bSavingCache)
+		path = SetExtension(sPath, "ett");
+	if (autosave)
+	{
+		path = SetExtension(sPath, "ats");
+	}
+
+	LOG->Trace("Song::SaveToETTFile('%s')", path.c_str());
+
+	// If the file exists, make a backup.
+	if (!bSavingCache && !autosave && IsAFile(path))
+		FileCopy(path, path + ".old");
+
+	vector<Steps*> vpStepsToSave;
+	FOREACH_CONST(Steps*, m_vpSteps, s)
+	{
+		Steps *pSteps = *s;
+
+		// Only save steps that weren't loaded from a profile.
+		if (pSteps->WasLoadedFromProfile())
+			continue;
+
+		if (!bSavingCache)
+			pSteps->SetFilename(path);
+		vpStepsToSave.push_back(pSteps);
+	}
+	FOREACH_CONST(Steps*, m_UnknownStyleSteps, s)
+	{
+		vpStepsToSave.push_back(*s);
+	}
+
+	if (bSavingCache || autosave)
+	{
+		return NotesWriterETT::Write(path, *this, vpStepsToSave);
+	}
+
+	if (!NotesWriterETT::Write(path, *this, vpStepsToSave))
+		return false;
+
+	RemoveAutosave();
+
+	if (g_BackUpAllSongSaves.Get())
+	{
+		RString sExt = GetExtension(path);
+		RString sBackupFile = SetExtension(path, "");
+
+		time_t cur_time;
+		time(&cur_time);
+		struct tm now;
+		localtime_r(&cur_time, &now);
+
+		sBackupFile += ssprintf("-%04i-%02i-%02i--%02i-%02i-%02i",
+			1900 + now.tm_year, now.tm_mon + 1, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec);
+		sBackupFile = SetExtension(sBackupFile, sExt);
+		sBackupFile += ssprintf(".old");
+
+		if (FileCopy(path, sBackupFile))
+			LOG->Trace("Backed up %s to %s", path.c_str(), sBackupFile.c_str());
+		else
+			LOG->Trace("Failed to back up %s to %s", path.c_str(), sBackupFile.c_str());
+	}
+
+	// Mark these steps saved to disk.
+	FOREACH(Steps*, vpStepsToSave, s)
+		(*s)->SetSavedToDisk(true);
+
+	return true;
+}
+
 bool Song::SaveToJsonFile( const RString &sPath )
 {
 	LOG->Trace( "Song::SaveToJsonFile('%s')", sPath.c_str() );
@@ -1313,7 +1383,7 @@ bool Song::SaveToCacheFile()
 	}
 	SONGINDEX->AddCacheIndex(m_sSongDir, GetHashForDirectory(m_sSongDir));
 	const RString sPath = GetCacheFilePath();
-	return SaveToSSCFile(sPath, true);
+	return SaveToETTFile(sPath, true);
 }
 
 bool Song::SaveToDWIFile()
