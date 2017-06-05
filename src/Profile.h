@@ -259,12 +259,12 @@ public:
 
 	// if anymore of these are added they should be enum'd to reduce copy pasta -mina
 	// and also should be sets
-	void AddToFavorites(const string& ck) { FavoritedCharts.emplace_back(ck); }
-	void AddToPermaMirror(const string& ck) { PermaMirrorCharts.emplace_back(ck); }
+	void AddToFavorites(const string& ck) { FavoritedCharts.emplace(ck); }
+	void AddToPermaMirror(const string& ck) { PermaMirrorCharts.emplace(ck); }
 	void RemoveFromFavorites(const string& ck);
 	void RemoveFromPermaMirror(const string& ck);
-	vector<string> FavoritedCharts;
-	vector<string> PermaMirrorCharts;
+	set<string> FavoritedCharts;
+	set<string> PermaMirrorCharts;
 
 	XNode* SaveFavoritesCreateNode() const;
 	XNode* SavePermaMirrorCreateNode() const;

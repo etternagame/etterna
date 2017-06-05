@@ -722,22 +722,22 @@ bool SongManager::IsGroupNeverCached(const RString& group) const
 	return m_GroupsToNeverCache.find(group) != m_GroupsToNeverCache.end();
 }
 
-void SongManager::SetFavoritedStatus(vector<string>& favs) {
+void SongManager::SetFavoritedStatus(set<string>& favs) {
 	FOREACH(Song*, m_pSongs, song) {
 		FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps) {
 			RString sck = (*steps)->GetChartKey();
-			FOREACH(string, favs, ck)
+			FOREACHS(string, favs, ck)
 				if (sck == *ck)
 					(*song)->SetFavorited(true);
 		}
 	}
 }
 
-void SongManager::SetPermaMirroredStatus(vector<string>& pmir) {
+void SongManager::SetPermaMirroredStatus(set<string>& pmir) {
 	FOREACH(Song*, m_pSongs, song) {
 		FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps) {
 			RString sck = (*steps)->GetChartKey();
-			FOREACH(string, pmir, ck)
+			FOREACHS(string, pmir, ck)
 				if (sck == *ck)
 					(*song)->SetPermaMirror(true);
 		}

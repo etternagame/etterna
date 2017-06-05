@@ -1318,8 +1318,8 @@ XNode* Profile::SaveGeneralDataCreateNode() const
 
 	{
 		XNode* pFavorites = pGeneralDataNode->AppendChild("Favorites");
-		FOREACH_CONST(string, FavoritedCharts, it)
-			pFavorites->AppendChild(*it);			
+		FOREACHS_CONST(string, FavoritedCharts, it)
+			pFavorites->AppendChild(*it);
 	}
 
 	{
@@ -1416,7 +1416,7 @@ XNode* Profile::SaveFavoritesCreateNode() const {
 	CHECKPOINT_M("Saving the favorites node.");
 
 	XNode* favs = new XNode("Favorites");
-	FOREACH_CONST(string, FavoritedCharts, it)
+	FOREACHS_CONST(string, FavoritedCharts, it)
 		favs->AppendChild(*it);
 	return favs;
 }
@@ -1425,7 +1425,7 @@ XNode* Profile::SavePermaMirrorCreateNode() const {
 	CHECKPOINT_M("Saving the permamirror node.");
 
 	XNode* pmir = new XNode("PermaMirror");
-	FOREACH_CONST(string, PermaMirrorCharts, it)
+	FOREACHS_CONST(string, PermaMirrorCharts, it)
 		pmir->AppendChild(*it);
 	return pmir;
 }
@@ -1464,7 +1464,7 @@ void Profile::LoadFavoritesFromNode(const XNode *pNode) {
 	CHECKPOINT_M("Loading the favorites node.");
 
 	FOREACH_CONST_Child(pNode, ck)
-		FavoritedCharts.emplace_back(SONGMAN->ReconcileBustedKeys(ck->GetName()));
+		FavoritedCharts.emplace(SONGMAN->ReconcileBustedKeys(ck->GetName()));
 
 	SONGMAN->SetFavoritedStatus(FavoritedCharts);
 }
@@ -1473,7 +1473,7 @@ void Profile::LoadPermaMirrorFromNode(const XNode *pNode) {
 	CHECKPOINT_M("Loading the permamirror node.");
 
 	FOREACH_CONST_Child(pNode, ck)
-		PermaMirrorCharts.emplace_back(SONGMAN->ReconcileBustedKeys(ck->GetName()));
+		PermaMirrorCharts.emplace(SONGMAN->ReconcileBustedKeys(ck->GetName()));
 
 	SONGMAN->SetPermaMirroredStatus(PermaMirrorCharts);
 }
@@ -1670,11 +1670,11 @@ void Profile::LoadGeneralDataFromNode( const XNode* pNode )
 			FOREACH_CONST_Child(pFavorites, ck) {
 				RString tmp = ck->GetName();				// handle duplicated entries caused by an oversight - mina
 				bool duplicated = false;
-				FOREACH(string, FavoritedCharts, chartkey)
+				FOREACHS(string, FavoritedCharts, chartkey)
 					if (*chartkey == tmp)
 						duplicated = true;
 				if (!duplicated)
-					FavoritedCharts.emplace_back(tmp);
+					FavoritedCharts.emplace(tmp);
 			}
 			SONGMAN->SetFavoritedStatus(FavoritedCharts);
 		}
@@ -1884,15 +1884,11 @@ XNode* Profile::SaveSongScoresCreateNode() const
 }
 
 void Profile::RemoveFromFavorites(const string& ck) {
-	for (size_t i = 0; i < FavoritedCharts.size(); ++i)
-		if (FavoritedCharts[i] == ck)
-			FavoritedCharts.erase(FavoritedCharts.begin() + i);
+	FavoritedCharts.erase(ck);
 }
 
 void Profile::RemoveFromPermaMirror(const string& ck) {
-	for (size_t i = 0; i < PermaMirrorCharts.size(); ++i)
-		if (PermaMirrorCharts[i] == ck)
-			PermaMirrorCharts.erase(PermaMirrorCharts.begin() + i);
+	PermaMirrorCharts.erase(ck);
 }
 
 void Profile::LoadSongScoresFromNode(const XNode* pSongScores)
@@ -2624,10 +2620,9 @@ public:
 
 	static int IsCurrentChartPermamirror(T* p, lua_State *L) {
 		bool o = false;
-		const string& cck = GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey();
-		FOREACH(string, p->PermaMirrorCharts, ck)
-			if (*ck == cck)
-				o = true;
+		const string& ck = GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey();
+		if (p->PermaMirrorCharts.count(ck));
+			o = true;
 
 		lua_pushboolean(L, o);
 		return 1;
