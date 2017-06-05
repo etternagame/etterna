@@ -95,7 +95,7 @@ static void LoadFromSMNoteDataStringWithPlayer( NoteData& out, const RString &sS
 			while( endLine > beginLine && strchr("\r\n\t ", *(endLine - 1)) )
 				--endLine;
 			if( beginLine < endLine ) // nonempty
-				aMeasureLines.push_back( pair<const char *, const char *>(beginLine, endLine) );
+				aMeasureLines.emplace_back( pair<const char *, const char *>(beginLine, endLine) );
 		}
 
 		for( unsigned l=0; l<aMeasureLines.size(); l++ )
@@ -174,29 +174,6 @@ static void LoadFromSMNoteDataStringWithPlayer( NoteData& out, const RString &sS
 
 				p++;
 				// We won't scan past the end of the line so these are safe to do.
-#if 0
-				// look for optional attack info (e.g. "{tipsy,50% drunk:15.2}")
-				if( *p == '{' )
-				{
-					p++;
-
-					char szModifiers[256] = "";
-					float fDurationSeconds = 0;
-					if( sscanf( p, "%255[^:]:%f}", szModifiers, &fDurationSeconds ) == 2 )	// not fatal if this fails due to malformed data
-					{
-						tn.type = TapNoteType_Attack;
-						tn.sAttackModifiers = szModifiers;
-		 				tn.fAttackDurationSeconds = fDurationSeconds;
-					}
-
-					// skip past the '}'
-					while( p < endLine )
-					{
-						if( *(p++) == '}' )
-							break;
-					}
-				}
-#endif
 
 				// look for optional keysound index (e.g. "[123]")
 				if( *p == '[' )
@@ -213,23 +190,6 @@ static void LoadFromSMNoteDataStringWithPlayer( NoteData& out, const RString &sS
 							break;
 					}
 				}
-
-#if 0
-				// look for optional item name (e.g. "<potion>"),
-				// where the name in the <> is a Lua function defined elsewhere
-				// (Data/ItemTypes.lua, perhaps?) -aj
-				if( *p == '<' )
-				{
-					p++;
-
-					// skip past the '>'
-					while( p < endLine )
-					{
-						if( *(p++) == '>' )
-							break;
-					}
-				}
-#endif
 
 				/* Optimization: if we pass TAP_EMPTY, NoteData will do a search
 				 * to remove anything in this position.  We know that there's nothing
@@ -263,6 +223,78 @@ static void LoadFromSMNoteDataStringWithPlayer( NoteData& out, const RString &sS
 
 			begin = next;
 		}
+	}
+	out.RevalidateATIs(vector<int>(), false);
+}
+
+void NoteDataUtil::LoadFromETTNoteDataString( NoteData& out, const RString &sSMNoteData, int start, int len) {
+	size_t pos = 0;
+
+	int m = 0;
+	int at = 0;
+
+	int lasthead[4];
+	for(;;) {
+		size_t mend = sSMNoteData.find(',', pos);
+		int nt = (mend - pos - 1);
+		if (mend == -1)
+			nt = sSMNoteData.size() - pos - 1;
+
+		for (int r = 0; r < nt / 4; ++r) {
+			const float fPercentIntoMeasure = r / static_cast<float>(nt) * 4;
+			const float fBeat = (m + fPercentIntoMeasure) * BEATS_PER_MEASURE;
+			const int iIndex = BeatToNoteRow(fBeat);
+
+			for (int t = 0; t < 4; ++t) {
+				TapNote tn;
+				const char c = sSMNoteData.at(at);
+				++at;
+				if (c == '0') {
+					continue;
+				}
+				else if (c == '1') {
+					out.SetTapNote(t, iIndex, TAP_ORIGINAL_TAP);
+					continue;
+				}
+				else if (c == '2') {
+					lasthead[t] = iIndex;
+					tn = TAP_ORIGINAL_HOLD_HEAD;
+					tn.iDuration = 1;
+					out.SetTapNote(t, iIndex, tn);
+					continue;
+				}
+				else if (c == '4') {
+					lasthead[t] = iIndex;
+					tn = TAP_ORIGINAL_ROLL_HEAD;
+					tn.iDuration = 1;
+					out.SetTapNote(t, iIndex, tn);
+					continue;
+				}
+				else if (c == '3') {
+					out.FindTapNote(t, lasthead[t])->second.iDuration = iIndex - lasthead[t];
+					continue;
+				}
+				else if (c == 'M') {
+					out.SetTapNote(t, iIndex, TAP_ORIGINAL_MINE);
+					continue;
+				}
+				else if (c == 'L') {
+					out.SetTapNote(t, iIndex, TAP_ORIGINAL_LIFT);
+					continue;
+				}
+				else if (c == 'F') {
+					out.SetTapNote(t, iIndex, TAP_ORIGINAL_FAKE);
+					continue;
+				}
+			}
+		}
+
+		if (mend == -1)
+			break;
+
+		at += 2;
+		pos += nt + 2;
+		++m;
 	}
 	out.RevalidateATIs(vector<int>(), false);
 }
@@ -426,6 +458,123 @@ void NoteDataUtil::GetSMNoteDataString( const NoteData &in, RString &sRet )
 
 				sRet.append( 1, '\n' );
 			}
+		}
+	}
+}
+
+/*
+   Var1 Var2
+1     0    0
+2     1    0
+3     2    0
+4     4    0
+5     3    0
+6     5    0
+7     6    0
+8     0    1
+9     1    1
+10    2    1
+11    4    1
+12    3    1
+13    5    1
+14    6    1
+15    0    2
+16    1    2
+17    2    2
+18    4    2
+19    3    2
+20    5    2
+21    6    2
+22    0    4
+23    1    4
+24    2    4
+25    4    4
+26    3    4
+27    5    4
+28    6    4
+29    0    3
+30    1    3
+31    2    3
+32    4    3
+33    3    3
+34    5    3
+35    6    3
+36    0    5
+37    1    5
+38    2    5
+39    4    5
+40    3    5
+41    5    5
+42    6    5
+43    0    6
+44    1    6
+45    2    6
+46    4    6
+47    3    6
+48    5    6
+49    6    6
+*/
+
+void NoteDataUtil::GetETTNoteDataString(const NoteData &in, RString &sRet) {
+	// Get note data
+	vector<NoteData> parts;
+	float fLastBeat = -1.f;
+	LOG->Warn("sdasdfas23dff");
+	SplitCompositeNoteData(in, parts);
+
+	FOREACH(NoteData, parts, nd) {
+		InsertHoldTails(*nd);
+		fLastBeat = max(fLastBeat, nd->GetLastBeat());
+	}
+
+	int iLastMeasure = static_cast<int>(fLastBeat / BEATS_PER_MEASURE);
+	sRet = "";
+	FOREACH(NoteData, parts, nd) {
+		if (nd != parts.begin())
+			sRet.append("&\n");
+		for (int m = 0; m <= iLastMeasure; ++m) {
+			if (m)
+				sRet.append(1, ',');
+			NoteType nt = GetSmallestNoteTypeForMeasure(*nd, m);
+			int iRowSpacing;
+			if (nt == NoteType_Invalid)
+				iRowSpacing = 1;
+			else
+				iRowSpacing = lround(NoteTypeToBeat(nt) * ROWS_PER_BEAT);
+
+			const int iMeasureStartRow = m * ROWS_PER_MEASURE;
+			const int iMeasureLastRow = (m + 1) * ROWS_PER_MEASURE - 1;
+
+			for (int r = iMeasureStartRow; r <= iMeasureLastRow; r += iRowSpacing) {
+				string halp;
+				for (int t = 0; t < nd->GetNumTracks(); ++t) {
+					const TapNote &tn = nd->GetTapNote(t, r);
+					if (tn.type == TapNoteType_Empty) {
+						halp.append("0");
+						continue;
+					}
+					else if (tn.type == TapNoteType_Tap) {
+						halp.append("1");
+						continue;
+					}
+					else if (tn.type == TapNoteType_HoldHead) {
+						if (tn.subType == TapNoteSubType_Hold) {
+							halp.append("2");
+							continue;
+						}
+						if (tn.subType == TapNoteSubType_Hold) {
+							halp.append("4");
+							continue;
+						}
+					} else if (tn.type == TapNoteType_HoldTail) {
+						halp.append("3");
+						continue;
+					}
+				}
+				sRet.append(halp);
+			}
+			
+			sRet.append("\n");
 		}
 	}
 }
