@@ -1432,9 +1432,12 @@ XNode* Profile::SavePermaMirrorCreateNode() const {
 
 XNode* GoalsForChart::CreateNode() const {
 	XNode* cg = new XNode("GoalsForChart");
-	cg->AppendAttr("Key", goals[0].chartkey);
-	FOREACH_CONST(ScoreGoal, goals, sg)
-		cg->AppendChild(sg->CreateNode());
+
+	if (!goals.empty()) {
+		cg->AppendAttr("Key", goals[0].chartkey);
+		FOREACH_CONST(ScoreGoal, goals, sg)
+			cg->AppendChild(sg->CreateNode());
+	}
 	return cg;
 }
 
@@ -2123,7 +2126,7 @@ void Profile::ImportScoresToEtterna() {
 }
 
 XNode* Profile::SaveEttScoresCreateNode() const {
-	CHECKPOINT_M("Getting the node to save song scores.");
+	CHECKPOINT_M("Saving the player scores node.");
 
 	const Profile* pProfile = this;
 	ASSERT(pProfile != NULL);
@@ -2132,7 +2135,7 @@ XNode* Profile::SaveEttScoresCreateNode() const {
 }
 
 void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
-	CHECKPOINT_M("Loading the node that contains song scores.");
+	CHECKPOINT_M("Loading the player scores node.");
 	SCOREMAN->LoadFromNode(pSongScores);
 }
 
@@ -2621,7 +2624,7 @@ public:
 	static int IsCurrentChartPermamirror(T* p, lua_State *L) {
 		bool o = false;
 		const string& ck = GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey();
-		if (p->PermaMirrorCharts.count(ck));
+		if (p->PermaMirrorCharts.count(ck))
 			o = true;
 
 		lua_pushboolean(L, o);
