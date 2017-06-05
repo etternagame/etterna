@@ -1413,6 +1413,8 @@ XNode* Profile::SaveGeneralDataCreateNode() const
 }
 
 XNode* Profile::SaveFavoritesCreateNode() const {
+	CHECKPOINT_M("Saving the favorites node.");
+
 	XNode* favs = new XNode("Favorites");
 	FOREACH_CONST(string, FavoritedCharts, it)
 		favs->AppendChild(*it);
@@ -1420,6 +1422,8 @@ XNode* Profile::SaveFavoritesCreateNode() const {
 }
 
 XNode* Profile::SavePermaMirrorCreateNode() const {
+	CHECKPOINT_M("Saving the permamirror node.");
+
 	XNode* pmir = new XNode("PermaMirror");
 	FOREACH_CONST(string, PermaMirrorCharts, it)
 		pmir->AppendChild(*it);
@@ -1435,6 +1439,8 @@ XNode* GoalsForChart::CreateNode() const {
 }
 
 XNode* Profile::SaveScoreGoalsCreateNode() const {
+	CHECKPOINT_M("Saving the scoregoals node.");
+
 	XNode* goals = new XNode("ScoreGoals");
 	FOREACHUM_CONST(string, GoalsForChart, goalmap, i) {
 		const GoalsForChart& cg = i->second;
@@ -1444,6 +1450,8 @@ XNode* Profile::SaveScoreGoalsCreateNode() const {
 }
 
 XNode* Profile::SavePlaylistsCreateNode() const {
+	CHECKPOINT_M("Saving the playlists node.");
+
 	XNode* playlists = new XNode("Playlists");
 	auto& pls = SONGMAN->allplaylists;
 	FOREACHM(string, Playlist, pls, i)
@@ -1453,6 +1461,8 @@ XNode* Profile::SavePlaylistsCreateNode() const {
 }
 
 void Profile::LoadFavoritesFromNode(const XNode *pNode) {
+	CHECKPOINT_M("Loading the favorites node.");
+
 	FOREACH_CONST_Child(pNode, ck)
 		FavoritedCharts.emplace_back(SONGMAN->ReconcileBustedKeys(ck->GetName()));
 
@@ -1460,6 +1470,8 @@ void Profile::LoadFavoritesFromNode(const XNode *pNode) {
 }
 
 void Profile::LoadPermaMirrorFromNode(const XNode *pNode) {
+	CHECKPOINT_M("Loading the permamirror node.");
+
 	FOREACH_CONST_Child(pNode, ck)
 		PermaMirrorCharts.emplace_back(SONGMAN->ReconcileBustedKeys(ck->GetName()));
 
@@ -1475,6 +1487,8 @@ void GoalsForChart::LoadFromNode(const XNode *pNode) {
 }
 
 void Profile::LoadScoreGoalsFromNode(const XNode *pNode) {
+	CHECKPOINT_M("Loading the scoregoals node.");
+
 	RString ck;
 	FOREACH_CONST_Child(pNode, chgoals) {
 		chgoals->GetAttrValue("Key", ck);
@@ -1484,6 +1498,8 @@ void Profile::LoadScoreGoalsFromNode(const XNode *pNode) {
 }
 
 void Profile::LoadPlaylistsFromNode(const XNode *pNode) {
+	CHECKPOINT_M("Loading the playlists node.");
+
 	auto& pls = SONGMAN->allplaylists;
 	FOREACH_CONST_Child(pNode, pl) {
 		Playlist tmp;
@@ -1494,8 +1510,9 @@ void Profile::LoadPlaylistsFromNode(const XNode *pNode) {
 }
 
 
-XNode* Profile::SaveEttGeneralDataCreateNode() const
-{
+XNode* Profile::SaveEttGeneralDataCreateNode() const {
+	CHECKPOINT_M("Saving the general node.");
+
 	XNode* pGeneralDataNode = new XNode("GeneralData");
 
 	// TRICKY: These are write-only elements that are normally never read again.
@@ -1745,8 +1762,8 @@ void Profile::LoadGeneralDataFromNode( const XNode* pNode )
 }
 
 
-void Profile::LoadEttGeneralDataFromNode(const XNode* pNode)
-{
+void Profile::LoadEttGeneralDataFromNode(const XNode* pNode) {
+	CHECKPOINT_M("Loading the general node.");
 	ASSERT(pNode->GetName() == "GeneralData");
 
 	RString s;
@@ -2200,6 +2217,8 @@ ScoreGoal& Profile::GetLowestGoalForRate(const string& ck, float rate) {
 }
 
 void Profile::SetAnyAchievedGoals(const string& ck, float& rate, const HighScore& pscore) {
+	CHECKPOINT_M("Scanning for any goals that may have been accomplished.");
+
 	if (!HasGoal(ck))
 		return;
 
