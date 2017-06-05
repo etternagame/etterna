@@ -165,7 +165,7 @@ public:
 	data and timingdata in conjuction. Do it during load and save it in the steps data so
 	that we have to do it as few times as possible.*/
 	const string& GetChartKey() const { return ChartKey; }
-	vector<float> thestuffs = { 0.f,0.f,0.f,0.f,0.f };
+	vector<float> thestuffs = { 0.f,0.f,0.f,0.f,0.f,0.f,0.f,0.f };
 	MinaSD stuffnthings = { thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs, thestuffs };
 	void SetChartKey(const RString &k) { ChartKey = k; }
 	void SetAllMSD(const MinaSD &msd) { stuffnthings = msd; }

@@ -8,5 +8,10 @@ struct NoteInfo {
 	float rowTime;
 };
 
+struct NoteInfo2 {
+	int notes;
+	int rowTime;
+};
+
 #endif 
 

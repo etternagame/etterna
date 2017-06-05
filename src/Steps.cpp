@@ -384,12 +384,18 @@ void Steps::CalcEtternaMetadata() {
 	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
 	
 	stuffnthings = MinaSDCalc(GetNoteData().SerializeNoteData(etaner), GetNoteData().GetNumTracks(), 0.93f, 1.f, GetTimingData()->HasWarps());
+	vector<NoteInfo2> hoop = GetNoteData().SerializeNoteData2(etaner);
+
+	if (GetNoteData().GetNumTracks() == 4 && GetTimingData()->HasWarps() == false)
+		MinaCalc2(stuffnthings, hoop, 1.f, 0.93f);
+
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
 	for (int i = 0; i < 8; ++i)
 		SONGMAN->keyconversionmap.emplace(GenerateBustedChartKey(*m_pNoteData, GetTimingData(), i), ChartKey);
 
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();
+	m_pNoteData->UnsetSerializedNoteData2();
 	GetTimingData()->UnsetEtaner();
 }
 
