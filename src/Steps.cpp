@@ -400,8 +400,7 @@ void Steps::CalcEtternaMetadata() {
 	const vector<int>& nerv = m_pNoteData->BuildAndGetNerv();
 	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
 	
-	if(etaner.size() > 0)
-		stuffnthings = MinaSDCalc(GetNoteData().SerializeNoteData(etaner), GetNoteData().GetNumTracks(), 0.93f, 1.f, GetTimingData()->HasWarps());
+	stuffnthings = MinaSDCalc(GetNoteData().SerializeNoteData(etaner), GetNoteData().GetNumTracks(), 0.93f, 1.f, GetTimingData()->HasWarps());
 
 	//if (GetNoteData().GetNumTracks() == 4 && GetTimingData()->HasWarps() == false)
 		//MinaCalc2(stuffnthings, GetNoteData().SerializeNoteData2(etaner), 1.f, 0.93f);

@@ -1415,6 +1415,11 @@ float TimingData::WhereUAtBroNoOffset(float beat) const {
 
 const vector<float>& TimingData::BuildAndGetEtaner(const vector<int>& nerv) {
 	ElapsedTimesAtNonEmptyRows.clear();
+
+	for (auto& n : nerv)
+		ElapsedTimesAtNonEmptyRows.emplace_back(GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(n)));
+	return ElapsedTimesAtNonEmptyRows;
+
 	const vector<TimingSegment*>* segs = m_avpTimingSegments;
 	const vector<TimingSegment*>& bpms = segs[SEGMENT_BPM];
 	const vector<TimingSegment*>& warps = segs[SEGMENT_WARP];
@@ -1432,7 +1437,7 @@ const vector<float>& TimingData::BuildAndGetEtaner(const vector<int>& nerv) {
 			int event_row = b->GetRow();
 			float time_to_next_event = NoteRowToBeat(event_row - lastbpmrow) / bps;
 			float next_event_time = last_time + time_to_next_event;
-			while (nerv[idx] <= event_row && idx < nerv.size()) {
+			while (nerv[idx] <= event_row && idx < nerv.size() || bpms.size() == 1) {
 				float perc = (nerv[idx] - lastbpmrow) / static_cast<float>(event_row - lastbpmrow);
 				float minatime = last_time + time_to_next_event * perc - m_fBeat0OffsetInSeconds;
 				ElapsedTimesAtNonEmptyRows.emplace_back(minatime);
@@ -1445,8 +1450,7 @@ const vector<float>& TimingData::BuildAndGetEtaner(const vector<int>& nerv) {
 		return ElapsedTimesAtNonEmptyRows;
 	}
 
-	for(auto& n : nerv)
-		ElapsedTimesAtNonEmptyRows.emplace_back(GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(n)));
+
 	return ElapsedTimesAtNonEmptyRows;
 }
 
