@@ -290,7 +290,6 @@ void Playlist::AddChart(const string & ck)
 	ch.FromKey(ck);
 	ch.rate = rate;
 	chartlist.emplace_back(ch);
-	chartrates.emplace_back(rate);
 }
 
 XNode* Playlist::CreateNode() const {
@@ -339,9 +338,6 @@ void Playlist::LoadFromNode(const XNode* node) {
 			courseruns.emplace_back(tmp);
 		}
 	}
-	
-	for (size_t i = 0; i < chartlist.size(); ++i)
-		chartrates.emplace_back(chartlist[i].rate);
 
 	vector<Song*> playlistgroup;
 	for (auto& n : chartlist)
@@ -1590,7 +1586,6 @@ public:
 
 	static int NewPlaylist(T* p, lua_State *L)
 	{
-		p->allplaylists[p->activeplaylist].PushSelf(L);
 		ScreenTextEntry::TextEntry(SM_BackFromNamePlaylist, "Name Playlist", "", 128);
 		return 1;
 	}
@@ -1665,13 +1660,6 @@ public:
 		}
 		return 1;
 	}
-	
-	static int GetRatelist(T* p, lua_State *L)
-	{
-		vector<float> rates = p->GetRates();
-		LuaHelpers::CreateTableFromArray(rates, L);
-		return 1;
-	}
 
 	static int GetSonglist(T* p, lua_State *L)
 	{
@@ -1695,18 +1683,9 @@ public:
 		return 1;
 	}
 
-	static int ChangeRateAtIndex(T* p, lua_State *L)
-	{
-		p->chartrates[IArg(1) - 1] += FArg(2);
-		CLAMP(p->chartrates[IArg(1) - 1], 0.7f, 2.f);
-		return 1;
-	}
-
 	static int AddChart(T* p, lua_State *L)
 	{
 		p->AddChart(SArg(1));
-		Message msg("DisplayPlaylist");
-		MESSAGEMAN->Broadcast(msg);
 		return 1;
 	}
 
@@ -1719,11 +1698,9 @@ public:
 		ADD_METHOD(GetChartlist);
 		ADD_METHOD(GetChartlistActual);
 		ADD_METHOD(GetNumCharts);
-		ADD_METHOD(GetRatelist);
 		ADD_METHOD(GetName);
 		ADD_METHOD(GetSonglist);
 		ADD_METHOD(GetStepslist);
-		ADD_METHOD(ChangeRateAtIndex);
 		ADD_METHOD(GetAverageRating);
 	}
 };

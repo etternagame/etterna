@@ -51,7 +51,6 @@ struct Chart {
 struct Playlist {
 	RString name;
 	vector<Chart> chartlist;
-	vector<float> chartrates;
 	void Add(Chart ch) { chartlist.emplace_back(ch); }
 	void AddChart(const string& ck);
 	void SwapPosition();
@@ -63,7 +62,6 @@ struct Playlist {
 	void LoadFromNode(const XNode* node);
 	int GetNumCharts() { return chartlist.size(); }
 	vector<string> GetKeys();
-	vector<float> GetRates() { return chartrates; }
 	string GetName() { return name; }
 	float GetAverageRating();
 
