@@ -536,6 +536,18 @@ bool ScreenSelectMusic::Input( const InputEventPlus &input )
 			SCREENMAN->SystemMessage("Profile Saved");
 			return true;
 		}
+		else if (bHoldingCtrl && c == 'P' && m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS)
+		{
+			ScreenTextEntry::TextEntry(SM_BackFromNamePlaylist, "Name Playlist", "", 128);
+			MESSAGEMAN->Broadcast("DisplayAll");
+			return true;
+		}
+		else if (bHoldingCtrl && c == 'A' && m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS)
+		{
+			SONGMAN->allplaylists[SONGMAN->activeplaylist].AddChart(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+			MESSAGEMAN->Broadcast("DisplayPlaylist");
+			return true;
+		}
 		else if( input.DeviceI.device == DEVICE_KEYBOARD && bHoldingCtrl && input.DeviceI.button == KEY_BACK && input.type == IET_FIRST_PRESS
 			&& m_MusicWheel.IsSettled() )
 		{
