@@ -42,8 +42,6 @@ local singleplaylistactive = false
 local allplaylistsactive = true
 
 local PlaylistYspacing = 30
-local playliststodisplay = 10
-
 local row2Yoffset = 12
 
 local pl
@@ -55,6 +53,10 @@ local chartlist = {}
 
 local allplaylists
 local playlistnames
+
+local currentplaylistpage = 1
+local numplaylistpages = 10
+local playlistsperpage = 10
 
 t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,frameHeight;halign,0;valign,0;diffuse,color("#333333CC"))}
 t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,offsetY;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,0.5)}
@@ -272,15 +274,6 @@ b2[#b2+1] = Def.Quad{
 		end
 	end
 }
--- Queue Playlist button
-b2[#b2+1] = LoadFont("Common Large") .. {InitCommand=cmd(zoom,0.3;x,130;settext,"Queue As Playlist")}
-b2[#b2+1] = Def.Quad{
-	InitCommand=cmd(x,130;diffusealpha,buttondiffuse;zoomto,130,20),
-	MouseLeftClickMessageCommand=function(self)
-		if ButtonActive(self,0.3) and singleplaylistactive then
-		end
-	end
-}
 -- Play As Course button
 b2[#b2+1] = LoadFont("Common Large") .. {InitCommand=cmd(zoom,0.3;settext,"Play As Course")}
 b2[#b2+1] = Def.Quad{
@@ -306,8 +299,8 @@ local function PlaylistTitleDisplayButton(i)
 			Name="Text",
 			InitCommand=cmd(halign,0;maxwidth,frameWidth * 3 + 140),
 			AllDisplayCommand=function(self)
-				if allplaylists[i] then
-					self:settext(allplaylists[i]:GetName())
+				if allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)] then
+					self:settext(allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)]:GetName())
 					self:GetParent():queuecommand("Resize")
 				end
 			end
@@ -318,7 +311,7 @@ local function PlaylistTitleDisplayButton(i)
 			MouseLeftClickMessageCommand=function(self)
 				if ButtonActive(self,fontScale) and allplaylistsactive then
 					SONGMAN:SetActivePlaylist(allplaylists[i]:GetName())
-					pl = allplaylists[i]
+					pl = allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)]
 					MESSAGEMAN:Broadcast("DisplayPlaylist")
 				end
 			end
@@ -336,7 +329,7 @@ local function PlaylistSelectLabel(i)
 		end,
 		DisplayPlaylistMessageCommand=cmd(visible,false),
 		DisplayAllMessageCommand=function(self)
-			if update and allplaylists[i] then				
+			if update and allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)] then				
 				self:visible(true)
 				self:RunCommandsOnChildren(cmd(queuecommand, "AllDisplay"))
 			else
@@ -348,20 +341,20 @@ local function PlaylistSelectLabel(i)
 			AllDisplayCommand=function(self)
 				self:halign(0.5)
 				self:diffuse(getMainColor("positive"))
-				self:settext(((rankingPage-1)*25)+i..".")
+				self:settext(((rankingPage-1)*25)+i + ((currentplaylistpage - 1) * playlistsperpage)..".")
 			end
 		},
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(xy,15,row2Yoffset),
 			AllDisplayCommand=function(self)
 				self:diffuse(getMainColor("positive"))
-				self:settextf("Number of charts: %d", allplaylists[i]:GetNumCharts())
+				self:settextf("Number of charts: %d", allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)]:GetNumCharts())
 			end
 		},
 		LoadFont("Common Large") .. {
 			InitCommand=cmd(xy,200,row2Yoffset),
 			AllDisplayCommand=function(self)
-				local rating = 0
+				local rating = allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)]:GetAverageRating()
 				self:settextf("Average Rating:%5.2f", rating)
 				self:diffuse(getMainColor("positive"))
 			end
@@ -374,10 +367,12 @@ end
 local playlists = Def.ActorFrame{
 	OnCommand=function(self)
 		allplaylists = SONGMAN:GetPlaylists()
+		numplaylistpages = notShit.ceil(#allplaylists/playlistsperpage)
 	end,
 	DisplayAllMessageCommand=function(self)
 		self:visible(true)
 		allplaylists = SONGMAN:GetPlaylists()
+		numplaylistpages = notShit.ceil(#allplaylists/playlistsperpage)
 		self:RunCommandsOnChildren(cmd(queuecommand, "Display"))
 	end
 }
@@ -396,6 +391,7 @@ b[#b+1] = Def.Quad{
 	MouseLeftClickMessageCommand=function(self)
 		if ButtonActive(self,0.3) and allplaylistsactive then
 			SONGMAN:NewPlaylist()
+			MESSAGEMAN:Broadcast("DisplayAll")
 		end
 	end
 }
@@ -406,10 +402,51 @@ for i=1,scoresperpage do
 	r[#r+1] = rankingLabel(i)
 end
 
-for i=1,playliststodisplay do
+for i=1,playlistsperpage do
 	playlists[#playlists+1] = PlaylistSelectLabel(i)
 end
 
+
+
+r[#r+1] = Def.ActorFrame{
+	InitCommand=cmd(xy,frameX+10,frameY+rankingY+250),
+	Def.Quad{
+		InitCommand=cmd(xy,300,-8;zoomto,40,20;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,buttondiffuse),
+		MouseLeftClickMessageCommand=function(self)
+			if isOver(self) and currentplaylistpage < numplaylistpages and allplaylistsactive then
+				currentplaylistpage = currentplaylistpage + 1
+				MESSAGEMAN:Broadcast("DisplayAll")
+			end
+		end
+	},
+	LoadFont("Common Large") .. {
+		InitCommand=cmd(x,300;halign,0;zoom,0.3;diffuse,getMainColor('positive');settext,"Next"),
+		DisplayPlaylistMessageCommand=cmd(visible,false),
+		DisplayAllMessageCommand=cmd(visible,true)
+	},
+	Def.Quad{
+		InitCommand=cmd(y,-8;zoomto,65,20;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,buttondiffuse),
+		MouseLeftClickMessageCommand=function(self)
+			if isOver(self) and currentplaylistpage > 1 and allplaylistsactive then
+				currentplaylistpage = currentplaylistpage - 1
+				MESSAGEMAN:Broadcast("DisplayAll")
+			end
+		end
+	},
+	LoadFont("Common Large") .. {
+		InitCommand=cmd(halign,0;zoom,0.3;diffuse,getMainColor('positive');settext,"Previous"),
+		DisplayPlaylistMessageCommand=cmd(visible,false),
+		DisplayAllMessageCommand=cmd(visible,true)
+	},
+	LoadFont("Common Large") .. {
+		InitCommand=cmd(x,175;halign,0.5;zoom,0.3;diffuse,getMainColor('positive')),
+		SetCommand=function(self)
+			self:settextf("Showing %i-%i of %i", math.min(((currentplaylistpage-1)*playlistsperpage)+1, #allplaylists), math.min(currentplaylistpage*playlistsperpage, #allplaylists), #allplaylists)
+		end,
+		DisplayAllMessageCommand=cmd(visible,true;queuecommand,"Set"),
+		DisplayPlaylistMessageCommand=cmd(visible,false)
+	}
+}
 
 
 

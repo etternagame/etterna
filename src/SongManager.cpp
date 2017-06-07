@@ -350,6 +350,20 @@ void Playlist::LoadFromNode(const XNode* node) {
 	SONGMAN->groupderps[name] = playlistgroup;
 }
 
+float Playlist::GetAverageRating() {
+	if (chartlist.empty())
+		return 0;
+	float o = 0.f;
+	int numloaded = 0;
+	for (auto& n : chartlist) {
+		if (n.loaded) {
+			o += n.stepsptr->GetMSD(n.rate, 0);
+			++numloaded;
+		}
+	}
+	return o / static_cast<float>(numloaded);
+}
+
 vector<string> Playlist::GetKeys() {
 	vector<string> o;
 	for (size_t i = 0; i < chartlist.size(); ++i)
@@ -1695,7 +1709,8 @@ public:
 		MESSAGEMAN->Broadcast(msg);
 		return 1;
 	}
-	
+
+	DEFINE_METHOD(GetAverageRating, GetAverageRating());
 	DEFINE_METHOD(GetName, GetName());
 	DEFINE_METHOD(GetNumCharts, GetNumCharts())
 	LunaPlaylist()
@@ -1709,6 +1724,7 @@ public:
 		ADD_METHOD(GetSonglist);
 		ADD_METHOD(GetStepslist);
 		ADD_METHOD(ChangeRateAtIndex);
+		ADD_METHOD(GetAverageRating);
 	}
 };
 

@@ -65,6 +65,8 @@ struct Playlist {
 	vector<string> GetKeys();
 	vector<float> GetRates() { return chartrates; }
 	string GetName() { return name; }
+	float GetAverageRating();
+
 	void PushSelf(lua_State *L);
 };
 
