@@ -215,7 +215,6 @@ int SongManager::DifferentialReloadDir(string dir) {
 
 		AddGroup(dir, sGroupDirName);
 		BANNERCACHE->CacheBanner(GetSongGroupBannerPath(sGroupDirName));
-		LoadGroupSymLinks(dir, sGroupDirName);
 	}
 	return newsongs;
 }
@@ -649,49 +648,10 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 
 		// Cache and load the group banner. (and background if it has one -aj)
 		BANNERCACHE->CacheBanner( GetSongGroupBannerPath(sGroupDirName) );
-
-		// Load the group sym links (if any)
-		LoadGroupSymLinks(sDir, sGroupDirName);
 	}
 
 	if( ld ) {
 		ld->SetIndeterminate( true );
-	}
-}
-
-// Instead of "symlinks", songs should have membership in multiple groups. -Chris
-void SongManager::LoadGroupSymLinks(const RString &sDir, const RString &sGroupFolder)
-{
-	// Find all symlink files in this folder
-	vector<RString> arraySymLinks;
-	GetDirListing( sDir+sGroupFolder+"/*.include", arraySymLinks, false );
-	SortRStringArray( arraySymLinks );
-	SongPointerVector& index_entry = m_mapSongGroupIndex[sGroupFolder];
-	for( unsigned s=0; s< arraySymLinks.size(); s++ )	// for each symlink in this dir, add it in as a song.
-	{
-		MsdFile msdF;
-		msdF.ReadFile( sDir+sGroupFolder+"/"+arraySymLinks[s].c_str(), false );  // don't unescape
-		RString	sSymDestination = msdF.GetParam(0,1); // Should only be 1 value & param...period.
-
-		Song* pNewSong = new Song;
-		if( !pNewSong->LoadFromSongDir( sSymDestination ) )
-		{
-			delete pNewSong; // The song failed to load.
-		}
-		else
-		{
-			const vector<Steps*>& vpSteps = pNewSong->GetAllSteps();
-			while( vpSteps.size() )
-				pNewSong->DeleteSteps( vpSteps[0] );
-
-			FOREACH_BackgroundLayer( i )
-				pNewSong->GetBackgroundChanges(i).clear();
-
-			pNewSong->m_bIsSymLink = true;	// Very important so we don't double-parse later
-			pNewSong->m_sGroupName = sGroupFolder;
-			AddSongToList(pNewSong);
-			index_entry.emplace_back( pNewSong );
-		}
 	}
 }
 

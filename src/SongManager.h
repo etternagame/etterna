@@ -95,8 +95,6 @@ public:
 	int GetNumStepsLoadedFromProfile();
 	void FreeAllLoadedFromProfile( ProfileSlot slot = ProfileSlot_Invalid );
 
-	void LoadGroupSymLinks( const RString &sDir, const RString &sGroupFolder );
-
 	void InitAll( LoadingWindow *ld );	// songs, groups - everything.
 	void Reload( bool bAllowFastLoad, LoadingWindow *ld=NULL );	// songs, groups - everything.
 	int DifferentialReload();
