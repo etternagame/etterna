@@ -219,7 +219,7 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 			FOREACH_ENUM(Skillset, ss)
 				hs.SetSkillsetSSR(ss, 0.f);
 		}
-		bool writesuccess = hs.WriteReplayData(false);
+		bool writesuccess = hs.WriteReplayData();
 		if (writesuccess)
 			hs.UnloadReplayData();
 	}
