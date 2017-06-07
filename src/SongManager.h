@@ -106,7 +106,7 @@ public:
 	bool IsGroupNeverCached(const RString& group) const;
 	void SetFavoritedStatus(set<string>& favs);
 	void SetPermaMirroredStatus(set<string>& pmir);
-	void SetHasGoal(map<RString, vector<ScoreGoal>> goalmap);
+	void SetHasGoal(unordered_map<string, GoalsForChart>& goalmap);
 
 	RString GetSongGroupBannerPath( const RString &sSongGroup ) const;
 	//RString GetSongGroupBackgroundPath( RString sSongGroup ) const;

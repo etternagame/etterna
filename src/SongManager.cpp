@@ -778,7 +778,7 @@ void SongManager::SetPermaMirroredStatus(set<string>& pmir) {
 }
 
 // hurr should probably redo both (all three) of these -mina
-void SongManager::SetHasGoal(map<RString, vector<ScoreGoal>> goalmap) {
+void SongManager::SetHasGoal(unordered_map<string, GoalsForChart>& goalmap) {
 	FOREACH(Song*, m_pSongs, song)
 		FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps)
 			if(goalmap.count((*steps)->GetChartKey()))
