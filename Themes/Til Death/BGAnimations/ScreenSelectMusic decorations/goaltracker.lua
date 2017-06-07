@@ -156,7 +156,6 @@ local function makescoregoal(i)
 						else
 							self:visible(false)
 						end
-						self:diffuse(byAchieved(sg))
 					end
 				end,
 				UpdateGoalsMessageCommand=cmd(queuecommand,"Set")
