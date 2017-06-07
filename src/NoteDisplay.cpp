@@ -1342,6 +1342,14 @@ void NoteDisplay::DrawTap(const TapNote& tn,
 		part = NotePart_Addition;
 	}
 	*/
+
+	if (tn.type == TapNoteType_Tap) {
+		pActor = GetTapActor(m_TapNote, NotePart_Tap, fBeat);
+		const float fYOffset = ArrowEffects::GetYOffset(m_pPlayerState, column_args.column, fBeat);
+		DrawActor(tn, pActor, part, field_args, column_args, fYOffset, fBeat, bIsAddition, fPercentFadeToFail, 1.0f, false);
+		return;
+	}
+
 	if( tn.type == TapNoteType_Lift )
 	{
 		pActor = GetTapActor( m_TapLift, NotePart_Lift, fBeat );
@@ -1396,19 +1404,9 @@ void NoteDisplay::DrawTap(const TapNote& tn,
 		pActor = GetTapActor( m_TapNote, NotePart_Tap, fBeat );
 	}
 
-	if( tn.type == TapNoteType_Attack )
-	{
-		Message msg( "SetAttack" );
-		msg.SetParam( "Modifiers", tn.sAttackModifiers );
-		pActor->HandleMessage( msg );
-	}
-
 	const float fYOffset = ArrowEffects::GetYOffset( m_pPlayerState, column_args.column, fBeat );
 	// this is the line that forces the (1,1,1,x) part of the noteskin diffuse -aj
 	DrawActor(tn, pActor, part, field_args, column_args, fYOffset, fBeat, bIsAddition, fPercentFadeToFail, 1.0f, false);
-
-	if( tn.type == TapNoteType_Attack )
-		pActor->PlayCommand( "UnsetAttack" );
 }
 
 void NoteColumnRenderer::UpdateReceptorGhostStuff(Actor* receptor) const
