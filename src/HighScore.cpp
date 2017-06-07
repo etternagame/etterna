@@ -550,12 +550,7 @@ bool HighScoreImpl::WriteReplayData(bool duringload) {
 	string append;
 	string profiledir;
 
-	if (duringload)
-		profiledir = PROFILEMAN->currentlyloadingprofile;
-	else
-		profiledir = PROFILEMAN->GetProfileDir(ProfileSlot_Player1).substr(1);		// THIS NEEDS TO BE HERE CAUSE LOL!!! -mina
-	
-	string path = profiledir + "ReplayData/" + ScoreKey;
+	string path = REPLAY_DIR + ScoreKey;
 	ofstream fileStream(path, ios::binary);
 	//check file
 
