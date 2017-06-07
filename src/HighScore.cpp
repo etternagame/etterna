@@ -67,7 +67,7 @@ struct HighScoreImpl
 	void UnloadReplayData();
 	void ResetSkillsets();
 
-	bool WriteReplayData(bool duringload);
+	bool WriteReplayData();
 
 	float RescoreToWifeTS(float ts);
 
@@ -479,7 +479,7 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 	//if (vOffsetVector.size() > 1 && fWifeScore == 0.f)
 	//	fWifeScore = RescoreToWifeTS(fJudgeScale);
 	if (vNoteRowVector.size() + vOffsetVector.size() > 2 && (vNoteRowVector.size() == vOffsetVector.size()) && fWifeScore > 0.f) {
-		bool writesuccess = WriteReplayData(true);
+		bool writesuccess = WriteReplayData();
 
 		// ensure data is written out somewhere else before destroying it
 		if (writesuccess)
@@ -546,7 +546,7 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 	grade = clamp( grade, Grade_Tier01, Grade_Failed );
 }
 
-bool HighScoreImpl::WriteReplayData(bool duringload) {
+bool HighScoreImpl::WriteReplayData() {
 	string append;
 	string profiledir;
 
@@ -603,7 +603,7 @@ bool HighScore::WriteInputData(const vector<float>& oop) {
 }
 
 // should just get rid of impl -mina
-bool HighScore::LoadReplayData(bool duringload) {
+bool HighScore::LoadReplayData() {
 	// already exists
 	if (m_Impl->vNoteRowVector.size() > 4 && m_Impl->vOffsetVector.size() > 4)
 		return true;
@@ -611,13 +611,8 @@ bool HighScore::LoadReplayData(bool duringload) {
 	string profiledir;
 	vector<int> vNoteRowVector;
 	vector<float> vOffsetVector;
+	string path = REPLAY_DIR + m_Impl->ScoreKey;
 
-	if (duringload)
-		profiledir = PROFILEMAN->currentlyloadingprofile;
-	else
-		profiledir = PROFILEMAN->GetProfileDir(ProfileSlot_Player1).substr(1);
-
-	string path = profiledir + "ReplayData/" + m_Impl->ScoreKey;
 	std::ifstream fileStream(path, ios::binary);
 	string line;
 	string buffer;
@@ -1023,7 +1018,7 @@ void Screenshot::LoadFromNode( const XNode* pNode )
 }
 
 float HighScore::RescoreToWifeJudge(int x) {
-	if (!LoadReplayData(false))
+	if (!LoadReplayData())
 		return m_Impl->fWifeScore;
 
 	const float tso[] = { 1.50f,1.33f,1.16f,1.00f,0.84f,0.66f,0.50f,0.33f,0.20f };
@@ -1039,7 +1034,7 @@ float HighScore::RescoreToWifeJudge(int x) {
 }
 
 float HighScore::RescoreToWifeJudgeDuringLoad(int x) {
-	if (!LoadReplayData(true))
+	if (!LoadReplayData())
 		return m_Impl->fWifeScore;
 
 	const float tso[] = { 1.50f,1.33f,1.16f,1.00f,0.84f,0.66f,0.50f,0.33f,0.20f };
@@ -1125,8 +1120,8 @@ Grade HighScore::GetWifeGrade() {
 	return m_Impl->GetWifeGrade();
 }
 
-bool HighScore::WriteReplayData(bool duringload) {
-	return m_Impl->WriteReplayData(duringload);
+bool HighScore::WriteReplayData() {
+	return m_Impl->WriteReplayData();
 }
 
 // Ok I guess we can be more lenient and convert by midwindow values, but we still have to assume j4 - mina
@@ -1211,7 +1206,7 @@ public:
 
 	// Convert to MS so lua doesn't have to
 	static int GetOffsetVector(T* p, lua_State *L) {
-		if (p->LoadReplayData(false)) {
+		if (p->LoadReplayData()) {
 			vector<float> doot = p->GetOffsetVector();
 			for (size_t i = 0; i < doot.size(); ++i)
 				doot[i] = doot[i] * 1000;
@@ -1224,7 +1219,7 @@ public:
 	}
 
 	static int GetNoteRowVector(T* p, lua_State *L) {
-		if (p->LoadReplayData(false)) {
+		if (p->LoadReplayData()) {
 			LuaHelpers::CreateTableFromArray(p->GetNoteRowVector(), L);
 			p->UnloadReplayData();
 		}
