@@ -474,6 +474,7 @@ public:
 	vector<float> ElapsedTimesAtAllRows;
 	vector<float> ElapsedTimesAtNonEmptyRows;
 	const vector<float>& BuildAndGetEtaner(const vector<int>& nerv);
+	const vector<float>& BuildAndGetEtar(int lastrow);
 	void SetElapsedTimesAtAllRows(vector<float>& etar) { ElapsedTimesAtAllRows = etar; }
 	vector<float> GetElapsedTimesAtAllRows() { return ElapsedTimesAtAllRows; }
 	void UnsetElapsedTimesAtAllRows() { std::vector<float> emptyVector; ElapsedTimesAtAllRows.swap(emptyVector); };

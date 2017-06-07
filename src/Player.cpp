@@ -607,10 +607,7 @@ void Player::Load()
 	m_Timing = GAMESTATE->m_pCurSteps[pn]->GetTimingData();
 	m_Timing->NegStopAndBPMCheck();
 	int lastRow = m_NoteData.GetLastRow();
-	vector<float> etarD;
-	for (int i = 0; i <= lastRow; i++)
-		etarD.push_back(m_Timing->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(i)));
-	m_Timing->SetElapsedTimesAtAllRows(etarD);
+	m_Timing->BuildAndGetEtar(lastRow);
 	
 	totalwifescore = m_NoteData.WifeTotalScoreCalc(m_Timing, 0, 1073741824);
 	curwifescore = 0.f;
