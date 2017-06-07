@@ -25,9 +25,6 @@ using std::string;
 RString SONG_GROUP_COLOR_NAME( size_t i );
 bool CompareNotesPointersForExtra(const Steps *n1, const Steps *n2);
 
-/** @brief The max number of edit steps a profile can have. */
-const int MAX_EDIT_STEPS_PER_PROFILE	= 200;
-
 
 
 struct Chart {
@@ -91,7 +88,6 @@ public:
 	void SaveEnabledSongsToPref();
 	void LoadEnabledSongsFromPref();
 
-	void LoadStepEditsFromProfileDir( const RString &sProfileDir, ProfileSlot slot );
 	int GetNumStepsLoadedFromProfile();
 	void FreeAllLoadedFromProfile( ProfileSlot slot = ProfileSlot_Invalid );
 
@@ -203,7 +199,6 @@ protected:
 	void LoadDWISongDir( const RString &sDir );
 	void SanityCheckGroupDir( const RString &sDir ) const;
 	void AddGroup( const RString &sDir, const RString &sGroupDirName );
-	int GetNumEditsLoadedFromProfile( ProfileSlot slot ) const;
 
 	void AddSongToList(Song* new_song);
 	/** @brief All of the songs that can be played. */
