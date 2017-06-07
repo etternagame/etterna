@@ -347,7 +347,8 @@ void Playlist::LoadFromNode(const XNode* node) {
 
 	vector<Song*> playlistgroup;
 	for (auto& n : chartlist)
-		playlistgroup.emplace_back(SONGMAN->GetSongByChartkey(n.key));
+		if(n.loaded)
+			playlistgroup.emplace_back(SONGMAN->GetSongByChartkey(n.key));
 
 	SONGMAN->groupderps[name] = playlistgroup;
 }
@@ -391,7 +392,8 @@ void SongManager::MakePlaylistFromFavorites(set<string>& favs) {
 
 	vector<Song*> playlistgroup;
 	for (auto& n : pl.chartlist)
-		playlistgroup.emplace_back(SONGMAN->GetSongByChartkey(n.key));
+		if(n.loaded)
+			playlistgroup.emplace_back(SONGMAN->GetSongByChartkey(n.key));
 
 	SONGMAN->groupderps["Favorites"] = playlistgroup;
 	SongUtil::SortSongPointerArrayByTitle(groupderps["Favorites"]);
