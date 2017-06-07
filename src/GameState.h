@@ -265,11 +265,6 @@ public:
 	bool AllAreInDangerOrWorse() const;
 	bool OneIsHot() const;
 
-	// Haste
-	float	m_fHasteRate; // [-1,+1]; 0 = normal speed
-	float	m_fLastHasteUpdateMusicSeconds;
-	float	m_fAccumulatedHasteSeconds;
-
 	// used by themes that support heart rate entry.
 	RageTimer m_DanceStartTime;
 	float m_DanceDuration;

@@ -26,9 +26,6 @@ void PlayerState::Reset()
 	m_PlayerController = PC_HUMAN;
 
 	m_iCpuSkill = 5;
-
-	m_iTapsHitSinceLastHasteUpdate = 0;
-	m_iTapsMissedSinceLastHasteUpdate = 0;
 }
 
 // pointless if attacks are gone?

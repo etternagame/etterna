@@ -1458,7 +1458,7 @@ XNode* Profile::SavePlaylistsCreateNode() const {
 	XNode* playlists = new XNode("Playlists");
 	auto& pls = SONGMAN->allplaylists;
 	FOREACHM(string, Playlist, pls, i)
-		if(i->first != "")
+		if(i->first != "" && i->first != "Favorites")
 			playlists->AppendChild(i->second.CreateNode());
 	return playlists;
 }

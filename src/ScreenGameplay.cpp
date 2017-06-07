@@ -311,21 +311,6 @@ void ScreenGameplay::Init()
 	UNPAUSE_WITH_START.Load(		m_sName, "UnpauseWithStart");
 	SURVIVAL_MOD_OVERRIDE.Load(m_sName, "SurvivalModOverride");
 
-	// Default values.  The theme can set its own through the Lua interface.
-	m_HasteTurningPoints.clear();
-	m_HasteTurningPoints.push_back(-1);
-	m_HasteTurningPoints.push_back(0);
-	m_HasteTurningPoints.push_back(0.3f);
-	m_HasteTurningPoints.push_back(1);
-	m_HasteAddAmounts.clear();
-	m_HasteAddAmounts.push_back(-0.5f);
-	m_HasteAddAmounts.push_back(0);
-	m_HasteAddAmounts.push_back(0.2f);
-	m_HasteAddAmounts.push_back(0.5f);
-	m_fHasteTimeBetweenUpdates= 4;
-	m_fHasteLifeSwitchPoint= 0.5f;
-	m_fCurrHasteRate= 1; // Should this be in BeginSong?  Not sure whether it should carry over between songs.
-
 	if( UseSongBackgroundAndForeground() )
 	{
 		m_pSongBackground = new Background;
@@ -1456,9 +1441,6 @@ void ScreenGameplay::Update( float fDeltaTime )
 
 	{
 		float fSpeed = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-		if( GAMESTATE->m_SongOptions.GetCurrent().m_fHaste != 0.0f )
-			fSpeed *= GetHasteRate();
-
 		RageSoundParams p = m_pSoundMusic->GetParams();
 		if( fabsf(p.m_fSpeed - fSpeed) > 0.01f && fSpeed >= 0.0f)
 		{
@@ -1562,28 +1544,6 @@ void ScreenGameplay::Update( float fDeltaTime )
 			if( curBeat >= s.GetFirstBeat() && curBeat < s.GetLastBeat() )
 			{
 				STATSMAN->m_CurStageStats.m_fStepsSeconds += fUnscaledDeltaTime;
-
-				if( GAMESTATE->m_SongOptions.GetCurrent().m_fHaste != 0.0f )
-				{
-
-					/* Don't know why haste rates are being updated when the mod is not in 
-					use. Quickly checked whether or not doing this affects non-haste gameplay
-					and it doesn't appear to, nor should it. If it somehow does in certain
-					situations that should be addressed. - Mina*/
-					UpdateHasteRate();
-
-					float fHasteRate = GetHasteRate();
-					// For negative haste, accumulate seconds while the song is slowed down.
-					if(GAMESTATE->m_SongOptions.GetCurrent().m_fHaste < 0)
-					{
-						GAMESTATE->m_fAccumulatedHasteSeconds -= (fUnscaledDeltaTime * fHasteRate) - fUnscaledDeltaTime;
-					}
-					// For positive haste, accumulate seconds while the song is sped up.
-					else
-					{
-						GAMESTATE->m_fAccumulatedHasteSeconds += (fUnscaledDeltaTime * fHasteRate) - fUnscaledDeltaTime;
-					}
-				}
 			}
 
 			// Check for end of song
@@ -1768,121 +1728,6 @@ void ScreenGameplay::FailFadeRemovePlayer(PlayerInfo* pi)
 	pi->m_NoteData.Init();		// remove all notes and scoring
 	pi->m_NoteData.SetNumTracks(tracks); // reset the number of tracks.
 	pi->m_pPlayer->FadeToFail();	// tell the NoteField to fade to white
-}
-
-float ScreenGameplay::GetHasteRate()
-{
-	return m_fCurrHasteRate;
-}
-
-void ScreenGameplay::UpdateHasteRate()
-{
-	if( GAMESTATE->m_Position.m_fMusicSeconds < GAMESTATE->m_fLastHasteUpdateMusicSeconds || // new song
-		GAMESTATE->m_Position.m_fMusicSeconds > GAMESTATE->m_fLastHasteUpdateMusicSeconds + m_fHasteTimeBetweenUpdates )
-	{
-		bool bAnyPlayerHitAllNotes = false;
-		FOREACH_EnabledPlayerInfo( m_vPlayerInfo, pi )
-		{
-			if( !GAMESTATE->IsHumanPlayer(pi->m_pn) )
-				continue;
-
-			PlayerState *pPS = pi->GetPlayerState();
-			if( pPS->m_iTapsHitSinceLastHasteUpdate > 0 &&
-				pPS->m_iTapsMissedSinceLastHasteUpdate == 0 )
-				bAnyPlayerHitAllNotes = true;
-
-			pPS->m_iTapsHitSinceLastHasteUpdate = 0;
-			pPS->m_iTapsMissedSinceLastHasteUpdate = 0;
-		}
-
-		if( bAnyPlayerHitAllNotes )
-			GAMESTATE->m_fHasteRate += 0.1f;
-		CLAMP( GAMESTATE->m_fHasteRate, -1.0f, +1.0f );
-
-		GAMESTATE->m_fLastHasteUpdateMusicSeconds = GAMESTATE->m_Position.m_fMusicSeconds;
-	}
-
-	/* If the life meter is less than half full, push the haste rate down to let
-	 * the player use his accumulated haste time. */
-	float fMaxLife = 0;
-	FOREACH_EnabledPlayerInfo( m_vPlayerInfo, pi )
-	{
-		if( !GAMESTATE->IsHumanPlayer(pi->m_pn) )
-			continue;
-		// In Battle/Rave mode, the players don't have life meters.
-		if(pi->m_pLifeMeter)
-		{
-			fMaxLife= max(fMaxLife, pi->m_pLifeMeter->GetLife());
-		}
-		else
-		{
-			fMaxLife= 1;
-		}
-	}
-	if( fMaxLife <= m_fHasteLifeSwitchPoint )
-		GAMESTATE->m_fHasteRate = SCALE( fMaxLife, 0.0f, m_fHasteLifeSwitchPoint, -1.0f, 0.0f );
-	CLAMP( GAMESTATE->m_fHasteRate, -1.0f, +1.0f );
-
-	float fSpeed = 1.0f;
-	// If there are no turning points or no add amounts, the bad themer probably thinks that's a way to disable haste.
-	// Since we're outside a lua function, crashing (asserting) won't point back to the source of the problem.
-	if(m_HasteTurningPoints.size() < 2 || m_HasteAddAmounts.size() < 2 ||
-		m_HasteTurningPoints.size() != m_HasteAddAmounts.size())
-	{
-		m_fCurrHasteRate= fSpeed;
-		return;
-	}
-	float options_haste= GAMESTATE->m_SongOptions.GetCurrent().m_fHaste;
-	float scale_from_low= -1;
-	float scale_from_high= 1;
-	float scale_to_low= 0;
-	float scale_to_high=0;
-	for(size_t turning_point= 0; turning_point < m_HasteTurningPoints.size();
-			++turning_point)
-	{
-		float curr_turning_point= m_HasteTurningPoints[turning_point];
-		scale_from_high= curr_turning_point;
-		scale_to_high= m_HasteAddAmounts[turning_point];
-		if(GAMESTATE->m_fHasteRate < curr_turning_point)
-		{
-			break;
-		}
-		scale_from_low= curr_turning_point;
-		scale_to_low= m_HasteAddAmounts[turning_point];
-	}
-	// If negative haste is being used, the game instead slows down when the player does well.
-	float speed_add= SCALE(GAMESTATE->m_fHasteRate, scale_from_low, scale_from_high, scale_to_low, scale_to_high) * options_haste;
-	if(scale_from_low == scale_from_high)
-	{
-		speed_add= scale_to_high * options_haste;
-	}
-	CLAMP(speed_add, -1.0f, 1.0f);
-
-	// Only adjust speed_add by AccumulatedHasteSeconds when the player is losing seconds.  Otherwise, gaining the first second is interfered with.
-	bool losing_seconds= false;
-	if(options_haste > 0)
-	{
-		losing_seconds= speed_add < 0;
-	}
-	else
-	{
-		losing_seconds= speed_add > 0;
-	}
-	if( losing_seconds && GAMESTATE->m_fAccumulatedHasteSeconds <= 1 )
-	{
-		/* Only allow slowing down the song while the players have accumulated
-		 * haste. This prevents dragging on the song by keeping the life meter
-		 * nearly empty. */
-		/* In positive haste mode, the player accumulates seconds while the song
-		 * is sped up, and loses them while the song is slowed down.  "<= 1"
-		 * means that the player is only eligible to slow the song down when
-		 * they are down to their last accumulated second. -Kyz */
-		// 1 second left is full speed_add, 0 seconds left is no speed_add.
-		float clamp_secs= max(0, GAMESTATE->m_fAccumulatedHasteSeconds);
-		speed_add = speed_add * clamp_secs;
-	}
-	fSpeed += speed_add;
-	m_fCurrHasteRate= fSpeed;
 }
 
 void ScreenGameplay::SendCrossedMessages()
@@ -2789,7 +2634,6 @@ public:
 	}
 	static int PauseGame( T* p, lua_State *L )		{ p->Pause( BArg(1)); return 0; }
 	static int IsPaused( T* p, lua_State *L )		{ lua_pushboolean( L, p->IsPaused() ); return 1; }
-	static int GetHasteRate( T* p, lua_State *L )    { lua_pushnumber( L, p->GetHasteRate() ); return 1; }
 	static bool TurningPointsValid(lua_State* L, int index)
 	{
 		size_t size= lua_objlen(L, index);
@@ -2815,10 +2659,6 @@ public:
 	{
 		return TurningPointsValid(L, index);
 	}
-	FLOAT_TABLE_INTERFACE(HasteTurningPoints, HasteTurningPoints, TurningPointsValid);
-	FLOAT_TABLE_INTERFACE(HasteAddAmounts, HasteAddAmounts, AddAmountsValid);
-	FLOAT_NO_SPEED_INTERFACE(HasteTimeBetweenUpdates, HasteTimeBetweenUpdates, (v > 0));
-	FLOAT_NO_SPEED_INTERFACE(HasteLifeSwitchPoint, HasteLifeSwitchPoint, (v >= 0 && v <= 1));
 	static int begin_backing_out(T* p, lua_State* L)
 	{
 		p->BeginBackingOutFromGameplay();
@@ -2827,10 +2667,9 @@ public:
 	static int GetTrueBPS(T* p, lua_State* L)
 	{
 		PlayerNumber pn= Enum::Check<PlayerNumber>(L, 1);
-		float haste= p->GetHasteRate();
 		float rate= GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 		float bps= GAMESTATE->m_pPlayerState[pn]->m_Position.m_fCurBPS;
-		float true_bps= haste * rate * bps;
+		float true_bps= rate * bps;
 		lua_pushnumber(L, true_bps);
 		return 1;
 	}
@@ -2844,11 +2683,6 @@ public:
 		// sm-ssc additions:
 		ADD_METHOD( PauseGame );
 		ADD_METHOD( IsPaused );
-		ADD_METHOD( GetHasteRate );
-		ADD_METHOD( HasteTurningPoints );
-		ADD_METHOD( HasteAddAmounts );
-		ADD_METHOD( HasteTimeBetweenUpdates );
-		ADD_METHOD( HasteLifeSwitchPoint );
 		ADD_METHOD(begin_backing_out);
 		ADD_METHOD( GetTrueBPS );
 	}

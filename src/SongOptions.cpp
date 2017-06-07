@@ -29,8 +29,6 @@ void SongOptions::Init()
 	m_bAssistMetronome = false;
 	m_fMusicRate = 1.0f;
 	m_SpeedfMusicRate = 1.0f;
-	m_fHaste = 0.0f;
-	m_SpeedfHaste = 1.0f;
 	m_AutosyncType = AutosyncType_Off;
 	m_SoundEffectType = SoundEffectType_Off;
 	m_bStaticBackground = false;
@@ -47,7 +45,6 @@ void SongOptions::Approach( const SongOptions& other, float fDeltaSeconds )
 	x = other.x;
 
 	APPROACH( fMusicRate );
-	APPROACH( fHaste );
 	DO_COPY( m_bAssistClap );
 	DO_COPY( m_bAssistMetronome );
 	DO_COPY( m_AutosyncType );
@@ -79,8 +76,6 @@ void SongOptions::GetMods( vector<RString> &AddTo ) const
 			s.erase( s.size()-1 );
 		AddTo.push_back( s + "xMusic" );
 	}
-
-	AddPart( AddTo, m_fHaste,	"Haste" );
 
 	switch( m_AutosyncType )
 	{
@@ -188,7 +183,6 @@ bool SongOptions::FromOneModString( const RString &sOneMod, RString &sErrorOut )
 	else if( sBit == "randombg" )				m_bRandomBGOnly = on;
 	else if( sBit == "savescore" )				m_bSaveScore = on;
 	else if( sBit == "savereplay" )			m_bSaveReplay = on;
-	else if( sBit == "haste" )				m_fHaste = on? 1.0f:0.0f;
 	else
 		return false;
 
@@ -199,7 +193,6 @@ bool SongOptions::operator==( const SongOptions &other ) const
 {
 #define COMPARE(x) { if( x != other.x ) return false; }
 	COMPARE( m_fMusicRate );
-	COMPARE( m_fHaste );
 	COMPARE( m_bAssistClap );
 	COMPARE( m_bAssistMetronome );
 	COMPARE( m_AutosyncType );
@@ -231,7 +224,6 @@ public:
 	BOOL_INTERFACE(SaveScore, SaveScore);
 	BOOL_INTERFACE(SaveReplay, SaveReplay);
 	FLOAT_INTERFACE(MusicRate, MusicRate, (v > 0.0f && v <= 3.0f)); // Greater than 3 seems to crash frequently, haven't investigated why. -Kyz
-	FLOAT_INTERFACE(Haste, Haste, (v >= -1.0f && v <= 1.0f));
 
 	LunaSongOptions()
 	{
@@ -244,7 +236,6 @@ public:
 		ADD_METHOD(SaveScore);
 		ADD_METHOD(SaveReplay);
 		ADD_METHOD(MusicRate);
-		ADD_METHOD(Haste);
 	}
 };
 

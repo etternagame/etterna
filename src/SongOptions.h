@@ -36,7 +36,6 @@ public:
 	bool m_bAssistClap;
 	bool m_bAssistMetronome;
 	float m_fMusicRate,	m_SpeedfMusicRate;
-	float m_fHaste, m_SpeedfHaste;
 	AutosyncType m_AutosyncType;
 	SoundEffectType m_SoundEffectType;
 	bool m_bStaticBackground;
@@ -51,8 +50,7 @@ public:
 	 * initialization lists. */
 	SongOptions(): m_bAssistClap(false),
 		m_bAssistMetronome(false), m_fMusicRate(1.0f),
-		m_SpeedfMusicRate(1.0f), m_fHaste(0.0f),
-		m_SpeedfHaste(1.0f), m_AutosyncType(AutosyncType_Off),
+		m_SpeedfMusicRate(1.0f), m_AutosyncType(AutosyncType_Off),
 		m_SoundEffectType(SoundEffectType_Off),
 		m_bStaticBackground(false), m_bRandomBGOnly(false),
 		m_bSaveScore(true), m_bSaveReplay(false) {};

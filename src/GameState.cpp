@@ -992,9 +992,6 @@ void GameState::ResetStageStatistics()
 	}
 
 	m_fOpponentHealthPercent = 1;
-	m_fHasteRate = 0;
-	m_fLastHasteUpdateMusicSeconds = 0;
-	m_fAccumulatedHasteSeconds = 0;
 	m_fTugLifePercentP1 = 0.5f;
 	FOREACH_PlayerNumber( p )
 	{

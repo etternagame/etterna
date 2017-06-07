@@ -100,10 +100,6 @@ public:
 
 	int		m_iCpuSkill; // only used when m_PlayerController is PC_CPU
 
-	// Haste
-	int		m_iTapsHitSinceLastHasteUpdate;
-	int		m_iTapsMissedSinceLastHasteUpdate;
-
 	// Stores the bpm that was picked for reading the chart if the player is using an mmod.
 	float m_fReadBPM;
 
