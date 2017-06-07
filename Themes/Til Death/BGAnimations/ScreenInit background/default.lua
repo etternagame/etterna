@@ -31,6 +31,7 @@ local minanyms = {
 	"UmbralChord",
 	"NoSaucierMagic",
 	"EgomaniaCircus",
+	"Stepmania Bakery Hero",
 
 	-- the nightly builds of yore
 	"AVAST YE STEPMATEY",
