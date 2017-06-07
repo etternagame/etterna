@@ -9,6 +9,8 @@ local minanyms = {
 	"Unememorabelia Bedelia",
 	"Cheezits 'N Rice",
 	"Scalding brain fart",
+	"Luridescence",
+	"Frothy Loin",
 	
 	-- the profile names of yore
 	"mystic memer",
@@ -31,7 +33,7 @@ local minanyms = {
 	"UmbralChord",
 	"NoSaucierMagic",
 	"EgomaniaCircus",
-	"Stepmania Bakery Hero",
+	"stepmania bakery hero",
 
 	-- the nightly builds of yore
 	"AVAST YE STEPMATEY",
@@ -45,11 +47,38 @@ local minanyms = {
 	"MOONAR LANDING - THE RETURWN",
 	"ORANGE BLOSSOM SPECIAL",
 	"SERENADE UNDER PORCUPINE",
-	"PURPLE PARKING METERSTICK",
 	"SERRATED HAMBURGER",
 	"INTERGALACTIC TURKEY",
 	"BICYCLE LAUGH",
-	"GODLY PLATE OF THE WHALE"
+	"GODLY PLATE OF THE WHALE",
+	"PURPLE PARKING METERSTICK",
+
+	-- Ye olde names
+	"Shoeeater9000",
+	"Thirdeye",
+	"Otiose Velleity",
+	"MoreLikeYourMomesis",
+	"RofflesTheCat",
+	"MinaEnnui",
+	"FishnaciousGrace",
+	"Forp",
+	"Forp II",
+	"Forp III The Unavenged",
+	"Lady Mericicelourne Ciestrianna De'anstrasvazanne",
+	"Caecita",
+	"Tempestress",
+	"unself",
+	"DefinitelyNotMina",
+	"KillerClown",
+	"Quirky Colonel Kibbles",
+	"2c",
+	"FroggerNanny",
+	"FroggyNanner",
+	"Aeristacicianistriaza",
+	"FroggerNanny The Unfrogged",
+	"ScatPlayKatarina",
+	"Ferric Chloride Matter",
+	"Bananatiger",
 }
 
 math.random()
@@ -69,7 +98,7 @@ t[#t+1] = Def.ActorFrame {
 		},
 		LoadFont("Common Normal") .. {
 			Text="Created by " .. minanyms[math.random(#minanyms)],
-			InitCommand=cmd(y,16;zoom,0.75),
+			InitCommand=cmd(y,16;zoom,0.75;maxwidth,SCREEN_WIDTH * 0.8),
 			OnCommand=cmd(sleep,1;linear,3;diffuse,getDifficultyColor("Difficulty_Couple");diffusealpha,0)
 		},
 	}
