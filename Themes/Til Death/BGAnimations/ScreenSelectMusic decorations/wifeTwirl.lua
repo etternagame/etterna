@@ -152,21 +152,6 @@ t[#t+1] = Def.ActorFrame{
 		CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
 	},
 	
-	-- Primary ScoreType
-	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+125,frameY+40;zoom,0.3;halign,1;valign,1),
-		BeginCommand=cmd(queuecommand,"Set"),
-		SetCommand=function(self)
-			if song and score then
-				self:settext(scoringToText(scoreType))
-			else
-				self:settext("")
-			end
-		end,
-		CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
-		RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
-	},
-	
 	-- Rate for the displayed score
 	LoadFont("Common Normal")..{
 		InitCommand=cmd(xy,frameX+55,frameY+58;zoom,0.5;halign,0.5),
@@ -379,6 +364,68 @@ t[#t+1] = LoadFont("Common Large") .. {
 	CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set"),
 	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
 }
+
+t[#t+1] = LoadFont("Common Large") .. {
+	InitCommand=cmd(xy,frameX+135,frameY+45;zoom,0.3;halign,0.5;valign,1),
+	BeginCommand=cmd(queuecommand,"Set"),
+	SetCommand=function(self)
+		if song and steps then
+			local goal = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
+			if goal then
+				self:settext("Target:")
+			else
+				self:settext("")
+			end
+		else
+			self:settext("")
+		end
+	end,
+	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
+	CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set"),
+	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
+}
+
+t[#t+1] = LoadFont("Common Large") .. {
+	InitCommand=cmd(xy,frameX+135,frameY+60;zoom,0.3;halign,0.5;valign,1),
+	BeginCommand=cmd(queuecommand,"Set"),
+	SetCommand=function(self)
+		if song and steps then
+			local goal = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
+			if goal then
+				self:settextf("%.2f%%", goal:GetPercent() * 100)
+			else
+				self:settext("")
+			end
+		else
+			self:settext("")
+		end
+	end,
+	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
+	CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set"),
+	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
+}
+
+-- perhaps need this perhaps not
+-- t[#t+1] = LoadFont("Common Large") .. {
+	-- InitCommand=cmd(xy,frameX+135,frameY+65;zoom,0.3;halign,0.5;valign,1),
+	-- BeginCommand=cmd(queuecommand,"Set"),
+	-- SetCommand=function(self)
+		-- if steps then
+			-- local goal = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
+			-- if goal then
+				-- self:settextf("%.2f", goal:GetRate())
+			-- else
+				-- self:settext("")
+			-- end
+		-- else
+			-- self:settext("")
+		-- end
+	-- end,
+	-- CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set"),
+	-- RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
+-- }
+
+
 
 -- t[#t+1] = LoadFont("Common Large") .. {
 	-- InitCommand=cmd(xy,(capWideScale(get43size(384),384))+68,SCREEN_BOTTOM-135;halign,1;zoom,0.4,maxwidth,125),

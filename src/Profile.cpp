@@ -2631,6 +2631,30 @@ public:
 		lua_pushboolean(L, o);
 		return 1;
 	}
+
+	// ok i should probably handle this better -mina
+	static int GetEasiestGoalForChartAndRate(T* p, lua_State *L) {
+		string ck = SArg(1);
+		if (!p->goalmap.count(ck)) {
+			lua_pushnil(L);
+			return 1;
+		}
+
+		auto& sgv = p->goalmap[ck].goals;
+		bool herp = false;
+		ScoreGoal& ez = sgv[0];
+		for (auto& n : sgv)
+			if (lround(n.rate * 10000.f) == lround(FArg(2) * 10000.f) && !n.achieved && n.percent <= ez.percent) {
+				ez = n;
+				herp = true;
+			}
+		if (herp)
+			ez.PushSelf(L);
+		else
+			lua_pushnil(L);
+		return 1;
+	}
+
 	LunaProfile()
 	{
 		ADD_METHOD( AddScreenshot );
@@ -2677,6 +2701,7 @@ public:
 		ADD_METHOD(GetIgnoreStepCountCalories);
 		ADD_METHOD(CalculateCaloriesFromHeartRate);
 		ADD_METHOD(IsCurrentChartPermamirror);
+		ADD_METHOD(GetEasiestGoalForChartAndRate);
 	}
 };
 
