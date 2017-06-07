@@ -319,7 +319,7 @@ b2[#b2+1] = Def.Quad{
 -- Back button
 b2[#b2+1] = LoadFont("Common Large") .. {InitCommand=cmd(zoom,0.3;settext,"Back")}
 b2[#b2+1] = Def.Quad{
-	InitCommand=cmd(diffusealpha,1;zoomto,110,20),
+	InitCommand=cmd(diffusealpha,buttondiffuse;zoomto,110,20),
 	MouseLeftClickMessageCommand=function(self)
 		if ButtonActive(self,0.3) and singleplaylistactive then
 			MESSAGEMAN:Broadcast("DisplayAll")
