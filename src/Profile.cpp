@@ -1470,6 +1470,7 @@ void Profile::LoadFavoritesFromNode(const XNode *pNode) {
 		FavoritedCharts.emplace(SONGMAN->ReconcileBustedKeys(ck->GetName()));
 
 	SONGMAN->SetFavoritedStatus(FavoritedCharts);
+	SONGMAN->MakePlaylistFromFavorites(FavoritedCharts);
 }
 
 void Profile::LoadPermaMirrorFromNode(const XNode *pNode) {

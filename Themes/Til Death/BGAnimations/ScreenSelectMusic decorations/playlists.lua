@@ -185,6 +185,36 @@ local function TitleDisplayButton(i)
 	}
 	return o
 end
+
+local function DeleteChartButton(i)
+	local o = Def.ActorFrame{
+		InitCommand=cmd(x,315),
+		ResizeCommand=function(self)
+			self:GetChild("Button"):zoomto(self:GetChild("Text"):GetZoomedWidth(),self:GetChild("Text"):GetZoomedHeight())
+		end,
+		LoadFont("Common Large") .. {
+			Name="Text",
+			InitCommand=cmd(halign,0),
+			DisplayPlaylistCommand=function(self)
+				self:settext("Del")
+				self:GetParent():queuecommand("Resize")
+				self:diffuse(byJudgment("TapNoteScore_Miss"))
+			end
+		},
+		Def.Quad{
+			Name="Button",
+			InitCommand=cmd(diffusealpha,buttondiffuse;halign,0),
+			MouseLeftClickMessageCommand=function(self)
+				if ButtonActive(self,fontScale) and singleplaylistactive then
+					pl:DeleteChart(i)
+					MESSAGEMAN:Broadcast("DisplayAll")
+					MESSAGEMAN:Broadcast("DisplayPlaylist")
+				end
+			end
+		}
+	}
+	return o
+end
 	
 local function rankingLabel(i)
 	local chart
@@ -253,6 +283,7 @@ local function rankingLabel(i)
 	}
 	t[#t+1] = RateDisplayButton(i)
 	t[#t+1] = TitleDisplayButton(i)
+	t[#t+1] = DeleteChartButton(i)
 	return t
 end
 
@@ -331,6 +362,37 @@ local function PlaylistTitleDisplayButton(i)
 	return o
 end
 
+local function DeletePlaylistButton(i)
+	local o = Def.ActorFrame{
+		InitCommand=cmd(x,315),
+		ResizeCommand=function(self)
+			self:GetChild("Button"):zoomto(self:GetChild("Text"):GetZoomedWidth(),self:GetChild("Text"):GetZoomedHeight())
+		end,
+		LoadFont("Common Large") .. {
+			Name="Text",
+			InitCommand=cmd(halign,0;maxwidth,frameWidth * 3 + 140),
+			AllDisplayCommand=function(self)
+				if allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)] then
+					self:settext("Del")
+					self:GetParent():queuecommand("Resize")
+					self:diffuse(byJudgment("TapNoteScore_Miss"))
+				end
+			end
+		},
+		Def.Quad{
+			Name="Button",
+			InitCommand=cmd(diffusealpha,buttondiffuse;halign,0),
+			MouseLeftClickMessageCommand=function(self)
+				if ButtonActive(self,fontScale) and allplaylistsactive then
+					SONGMAN:DeletePlaylist(allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)]:GetName())
+					MESSAGEMAN:Broadcast("DisplayAll")
+				end
+			end
+		}
+	}
+	return o
+end
+
 local function PlaylistSelectLabel(i)
 	local t = Def.ActorFrame{
 		InitCommand=function(self)
@@ -379,6 +441,7 @@ local function PlaylistSelectLabel(i)
 		},
 	}
 	t[#t+1] = PlaylistTitleDisplayButton(i)
+	t[#t+1] = DeletePlaylistButton(i)
 	return t
 end
 

@@ -283,14 +283,21 @@ void Chart::LoadFromNode(const XNode* node) {
 	FromKey(key);
 }
 
-void Playlist::AddChart(const string & ck)
-{
+void Playlist::AddChart(const string & ck) {
 	float rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 	Chart ch;
 	ch.FromKey(ck);
 	ch.rate = rate;
 	chartlist.emplace_back(ch);
 }
+
+void Playlist::DeleteChart(int i) {
+	if (chartlist.size() == 0 || i < 0 || i > static_cast<int>(chartlist.size()))
+		return;
+
+	chartlist.erase(chartlist.begin() + i);
+}
+
 
 XNode* Playlist::CreateNode() const {
 	XNode* pl = new XNode("Playlist");
@@ -365,6 +372,30 @@ vector<string> Playlist::GetKeys() {
 	for (size_t i = 0; i < chartlist.size(); ++i)
 		o.emplace_back(chartlist[i].key);	
 	return o;
+}
+
+void SongManager::DeletePlaylist(const string& pl) {
+	allplaylists.erase(pl);
+
+	// stuff gets weird if all playlists have been deleted and a chart is added - mina
+	if(allplaylists.size() > 0)
+		activeplaylist = allplaylists.begin()->first;
+}
+
+void SongManager::MakePlaylistFromFavorites(set<string>& favs) {
+	Playlist pl;
+	pl.name = "Favorites";
+	for (auto& n : favs)
+		pl.AddChart(n);
+
+	allplaylists.emplace("Favorites", pl);
+
+	vector<Song*> playlistgroup;
+	for (auto& n : pl.chartlist)
+		playlistgroup.emplace_back(SONGMAN->GetSongByChartkey(n.key));
+
+	SONGMAN->groupderps["Favorites"] = playlistgroup;
+	SongUtil::SortSongPointerArrayByTitle(groupderps["Favorites"]);
 }
 
 string SongManager::ReconcileBustedKeys(const string& ck) {
@@ -1603,6 +1634,12 @@ public:
 		return 1;
 	}
 
+	static int DeletePlaylist(T* p, lua_State *L)
+	{
+		p->DeletePlaylist(SArg(1));
+		return 1;
+	}
+
 
 	LunaSongManager()
 	{
@@ -1634,6 +1671,7 @@ public:
 		ADD_METHOD(SetActivePlaylist);
 		ADD_METHOD(NewPlaylist);
 		ADD_METHOD(GetPlaylists);
+		ADD_METHOD(DeletePlaylist);
 	}
 };
 
@@ -1689,6 +1727,13 @@ public:
 		return 1;
 	}
 
+	static int DeleteChart(T* p, lua_State *L)
+	{
+		p->DeleteChart(IArg(1) - 1);
+		return 1;
+	}
+
+
 	DEFINE_METHOD(GetAverageRating, GetAverageRating());
 	DEFINE_METHOD(GetName, GetName());
 	DEFINE_METHOD(GetNumCharts, GetNumCharts())
@@ -1702,6 +1747,7 @@ public:
 		ADD_METHOD(GetSonglist);
 		ADD_METHOD(GetStepslist);
 		ADD_METHOD(GetAverageRating);
+		ADD_METHOD(DeleteChart);
 	}
 };
 

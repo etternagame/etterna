@@ -64,6 +64,7 @@ struct Playlist {
 	vector<string> GetKeys();
 	string GetName() { return name; }
 	float GetAverageRating();
+	void DeleteChart(int i);
 
 	void PushSelf(lua_State *L);
 };
@@ -195,6 +196,8 @@ public:
 	string playlistcourse;
 	string ReconcileBustedKeys(const string& ck);
 	map<string, string> keyconversionmap;
+	void DeletePlaylist(const string& ck);
+	void MakePlaylistFromFavorites(set<string>& favs);
 
 	map<string, vector<Song*>> groupderps;
 protected:
