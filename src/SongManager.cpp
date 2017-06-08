@@ -388,8 +388,12 @@ void SongManager::MakePlaylistFromFavorites(set<string>& favs) {
 	for (auto& n : favs)
 		pl.AddChart(n);
 
-	allplaylists.emplace("Favorites", pl);
+	// kinda messy but, trim unloaded charts from the favorites playlist -mina
+	for (size_t i = 0; i < pl.chartlist.size(); ++i)
+		if (!pl.chartlist[i].loaded)
+			pl.DeleteChart(i);
 
+	allplaylists.emplace("Favorites", pl);
 	vector<Song*> playlistgroup;
 	for (auto& n : pl.chartlist)
 		if(n.loaded)
