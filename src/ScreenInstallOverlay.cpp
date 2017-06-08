@@ -93,9 +93,7 @@ static void InstallSmzip( const RString &sZipFile, PlayAfterLaunchInfo &out )
 		Parse( sDir, out );
 		out.bAnySongChanged = true;
 
-		FILEMAN->CreateDir( sDir );
-
-		if( !FileCopy( *sSrcFile, sDestFile ) )
+		if( !FileCopy( *sSrcFile, "Songs/" + sDestFile ) )
 		{
 			sResult = "Error extracting " + sDestFile;
 			break;
@@ -306,6 +304,7 @@ PlayAfterLaunchInfo DoInstalls( CommandLineActions::CommandLineArgs args )
 		else if( IsPackageFile(s) )
 			InstallSmzipOsArg(s, ret);
 	}
+	SONGMAN->DifferentialReload();
 	return ret;
 }
 
@@ -346,7 +345,6 @@ void ScreenInstallOverlay::Update( float fDeltaTime )
 		CommandLineActions::CommandLineArgs args = CommandLineActions::ToProcess.back();
 		CommandLineActions::ToProcess.pop_back();
  		PlayAfterLaunchInfo pali2 = DoInstalls( args );
-		playAfterLaunchInfo.OverlayWith( pali2 );
 	}
 #if !defined(WITHOUT_NETWORKING)
 	for(int i=g_pDownloadTasks.size()-1; i>=0; --i)
