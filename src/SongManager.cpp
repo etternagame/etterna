@@ -364,6 +364,8 @@ float Playlist::GetAverageRating() {
 			++numloaded;
 		}
 	}
+	if (numloaded == 0)
+		return 0.f;
 	return o / static_cast<float>(numloaded);
 }
 
