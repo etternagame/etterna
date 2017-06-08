@@ -1038,9 +1038,6 @@ int sm_main(int argc, char* argv[])
 			FILEMAN->Mount( "dir", dirs[i], "/AdditionalSongs" );
 	}
 
-	MountTreeOfZips( SpecialFiles::PACKAGES_DIR );
-	MountTreeOfZips( SpecialFiles::USER_PACKAGES_DIR );
-
 	/* One of the above filesystems might contain files that affect preferences
 	 * (e.g. Data/Static.ini). Re-read preferences. */
 	PREFSMAN->ReadPrefsFromDisk();
