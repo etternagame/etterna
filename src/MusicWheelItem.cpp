@@ -328,18 +328,12 @@ void MusicWheelItem::RefreshGrades()
 
 		Profile *pProfile = PROFILEMAN->GetProfile(ps);
 
-		/*	Quick hack to make the highest grade for any difficulty show up, 
-		should make optional later, also should make it descend through the 
-		difficulties and stop once a valid grade has been hit - Mina*/
-
 		HighScoreList *pHSL = NULL;
 		HighScoreList *BestpHSL = NULL;
 		Grade gradeBest = Grade_Invalid;
 		Difficulty dcBest = Difficulty_Invalid;
-		if (PROFILEMAN->IsPersistentProfile(ps) && dc != Difficulty_Invalid)
-		{
-			if (pWID->m_pSong)
-			{
+		if (PROFILEMAN->IsPersistentProfile(ps) && dc != Difficulty_Invalid) {
+			if (pWID->m_pSong) {
 				FOREACH_ENUM_N(Difficulty, 6, i) {
 					Steps* pSteps = SongUtil::GetStepsByDifficulty(pWID->m_pSong, st, i);
 					if (pSteps != NULL) {
@@ -356,15 +350,13 @@ void MusicWheelItem::RefreshGrades()
 		// still needs cleaning up -mina
 		Message msg( "SetGrade" );
 		msg.SetParam( "PlayerNumber", p );
-		if(gradeBest != Grade_Invalid || BestpHSL)
-		{
-			if(pWID->m_pSong->IsFavorited())
-				msg.SetParam( "Favorited", 1);
-			if (pWID->m_pSong->IsPermaMirror())
-				msg.SetParam("PermaMirror", 1);
-			if (pWID->m_pSong->HasGoal())
-				msg.SetParam( "HasGoal", 1);
-
+		if (pWID->m_pSong->IsFavorited())
+			msg.SetParam("Favorited", 1);
+		if (pWID->m_pSong->IsPermaMirror())
+			msg.SetParam("PermaMirror", 1);
+		if (pWID->m_pSong->HasGoal())
+			msg.SetParam("HasGoal", 1);
+		if(gradeBest != Grade_Invalid || BestpHSL) {
 			msg.SetParam("Grade", gradeBest);	
 			msg.SetParam("Difficulty", DifficultyToString(dcBest));
 			msg.SetParam("NumTimesPlayed", 0);
