@@ -544,35 +544,80 @@ void NoteDataUtil::GetETTNoteDataString(const NoteData &in, RString &sRet) {
 			const int iMeasureStartRow = m * ROWS_PER_MEASURE;
 			const int iMeasureLastRow = (m + 1) * ROWS_PER_MEASURE - 1;
 
+			sRet.append(to_string(nt));
 			for (int r = iMeasureStartRow; r <= iMeasureLastRow; r += iRowSpacing) {
 				string halp;
 				for (int t = 0; t < nd->GetNumTracks(); ++t) {
 					const TapNote &tn = nd->GetTapNote(t, r);
 					if (tn.type == TapNoteType_Empty) {
-						halp.append("0");
+						halp.append("E");
 						continue;
 					}
 					else if (tn.type == TapNoteType_Tap) {
-						halp.append("1");
+						halp.append("T");
 						continue;
 					}
 					else if (tn.type == TapNoteType_HoldHead) {
 						if (tn.subType == TapNoteSubType_Hold) {
-							halp.append("2");
+							halp.append("H");
 							continue;
 						}
-						if (tn.subType == TapNoteSubType_Hold) {
-							halp.append("4");
+						if (tn.subType == TapNoteSubType_Roll) {
+							halp.append("R");
 							continue;
 						}
-					} else if (tn.type == TapNoteType_HoldTail) {
-						halp.append("3");
+					}
+					else if (tn.type == TapNoteType_HoldTail) {
+						halp.append("J");
+						continue;
+					}
+					else if (tn.type == TapNoteType_Mine) {
+						halp.append("*");
+						continue;
+					}
+					else if (tn.type == TapNoteType_Lift) {
+						halp.append("^");
+						continue;
+					}
+					else if (tn.type == TapNoteType_Fake) {
+						halp.append("O");
 						continue;
 					}
 				}
+
+				if (halp == "EEEE")
+					halp = "?";
+				else if (halp == "TTEE")
+					halp = "M";
+				else if (halp == "EETT")
+					halp = "W";
+				else if (halp == "TEEE")
+					halp = "L";
+				else if (halp == "ETEE")
+					halp = "D";
+				else if (halp == "EETE")
+					halp = "U";
+				else if (halp == "EEET")
+					halp = "R";
+				else if (halp == "TEET")
+					halp = "B";
+				else if (halp == "ETTE")
+					halp = "Z";
+				else if (halp == "ETET")
+					halp = "G";
+				else if (halp == "TETE")
+					halp = "R";
+				else if (halp == "TTTE")
+					halp = "U";
+				else if (halp == "ETTT")
+					halp = "I";
+				else if (halp == "TETT")
+					halp = "O";
+				else if (halp == "TTET")
+					halp = "P";
+
 				sRet.append(halp);
 			}
-			
 			sRet.append("\n");
 		}
 	}
