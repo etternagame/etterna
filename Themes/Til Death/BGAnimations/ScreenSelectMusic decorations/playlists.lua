@@ -110,7 +110,7 @@ local r = Def.ActorFrame{
 		end
 	end,
 	LoadFont("Common Large") .. {
-		InitCommand=cmd(xy,rankingX,rankingY;zoom,0.4;halign,0;maxwidth,720),
+		InitCommand=cmd(xy,rankingX,rankingY;zoom,0.4;halign,0;maxwidth,360),
 		DisplayPlaylistMessageCommand=function(self)
 		pl = SONGMAN:GetActivePlaylist()
 			self:settext(pl:GetName())
@@ -182,7 +182,7 @@ local function TitleDisplayButton(i)
 			Name="Button",
 			InitCommand=cmd(diffusealpha,buttondiffuse;halign,0),
 			MouseLeftClickMessageCommand=function(self)
-				if ButtonActive(self,fontScale) and chartlist[i + ((currentchartpage - 1) * chartsperplaylist)]:IsLoaded() and singleplaylistactive then
+				if ButtonActive(self,fontScale) and chartlist[i + ((currentchartpage - 1) * chartsperplaylist)] and chartlist[i + ((currentchartpage - 1) * chartsperplaylist)]:IsLoaded() and singleplaylistactive then
 					whee:SelectSong(songlist[i + ((currentchartpage - 1) * chartsperplaylist)])
 				end
 			end
@@ -297,7 +297,7 @@ end
 
 -- Buttons for individual playlist manipulation
 local b2 = Def.ActorFrame{
-	InitCommand=cmd(xy,55,frameHeight-18),
+	InitCommand=cmd(xy,215,rankingY),
 	DisplayAllMessageCommand=cmd(visible,false),
 	DisplayPlaylistMessageCommand=cmd(visible,true)
 }
@@ -313,9 +313,9 @@ local b2 = Def.ActorFrame{
 	-- end
 -- }
 -- Play As Course button
-b2[#b2+1] = LoadFont("Common Large") .. {InitCommand=cmd(zoom,0.3;x,125;settext,"Play As Course")}
+b2[#b2+1] = LoadFont("Common Large") .. {InitCommand=cmd(zoom,0.3;x,85;settext,"Play As Course")}
 b2[#b2+1] = Def.Quad{
-	InitCommand=cmd(x,125;diffusealpha,buttondiffuse;zoomto,110,20),
+	InitCommand=cmd(x,85;diffusealpha,buttondiffuse;zoomto,110,20),
 	MouseLeftClickMessageCommand=function(self)
 		if ButtonActive(self,0.3) and singleplaylistactive then
 			SCREENMAN:GetTopScreen():StartPlaylistAsCourse(pl:GetName())
