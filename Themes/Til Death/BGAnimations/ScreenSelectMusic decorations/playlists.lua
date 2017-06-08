@@ -295,16 +295,16 @@ local b2 = Def.ActorFrame{
 	DisplayPlaylistMessageCommand=cmd(visible,true)
 }
 
--- Add chart button
-b2[#b2+1] = LoadFont("Common Large") .. {InitCommand=cmd(zoom,0.3;x,245;settext,"Add Chart")}
-b2[#b2+1] = Def.Quad{
-	InitCommand=cmd(x,245;diffusealpha,buttondiffuse;zoomto,80,20),
-	MouseLeftClickMessageCommand=function(self)
-		if ButtonActive(self) and singleplaylistactive then
-			pl:AddChart(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())
-		end
-	end
-}
+--Add chart button
+-- b2[#b2+1] = LoadFont("Common Large") .. {InitCommand=cmd(zoom,0.3;x,245;settext,"Add Chart")}
+-- b2[#b2+1] = Def.Quad{
+	-- InitCommand=cmd(x,245;diffusealpha,buttondiffuse;zoomto,80,20),
+	-- MouseLeftClickMessageCommand=function(self)
+		-- if ButtonActive(self) and singleplaylistactive then
+			-- pl:AddChart(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())
+		-- end
+	-- end
+-- }
 -- Play As Course button
 b2[#b2+1] = LoadFont("Common Large") .. {InitCommand=cmd(zoom,0.3;x,125;settext,"Play As Course")}
 b2[#b2+1] = Def.Quad{
