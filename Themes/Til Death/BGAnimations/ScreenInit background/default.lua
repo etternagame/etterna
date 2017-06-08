@@ -98,7 +98,7 @@ t[#t+1] = Def.ActorFrame {
 		},
 		LoadFont("Common Normal") .. {
 			Text="Created by " .. minanyms[math.random(#minanyms)],
-			InitCommand=cmd(y,16;zoom,0.75;maxwidth,SCREEN_WIDTH * 0.8),
+			InitCommand=cmd(y,16;zoom,0.75;maxwidth,SCREEN_WIDTH),
 			OnCommand=cmd(sleep,1;linear,3;diffuse,getDifficultyColor("Difficulty_Couple");diffusealpha,0)
 		},
 	}
