@@ -87,7 +87,7 @@ function scoreBoard(pn,position)
 	
 	local judge = GetTimingDifficulty()
 	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
-	local score = getScoreFromTable(getScoreList(PLAYER_1),pss:GetPersonalHighScoreIndex()+1)
+	local score = SCOREMAN:GetMostRecentScore()
 	
 	t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX-5,frameY;zoomto,frameWidth+10,220;halign,0;valign,0;diffuse,color("#333333CC"))};
 	t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY+30;zoomto,frameWidth,2;halign,0;diffuse,getMainColor('highlight');diffusealpha,0.5)};

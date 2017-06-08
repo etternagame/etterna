@@ -122,7 +122,7 @@ public:
 	vector<string> GetSortedKeys();
 
 	void PushSelf(lua_State *L);
-
+	HighScore* GetMostRecentScore() { return AllScores.back(); }
 	vector<HighScore*> GetAllScores() { return AllScores; }
 	void RegisterScore(HighScore* hs) {	AllScores.emplace_back(hs); }
 	void AddToKeyedIndex(HighScore* hs) { ScoresByKey.emplace(hs->GetScoreKey(), hs); }

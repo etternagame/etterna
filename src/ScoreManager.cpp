@@ -556,12 +556,19 @@ public:
 		return 1;
 	}
 
-	static int 	GetTopSSRHighScore(T* p, lua_State *L) {
+	static int GetTopSSRHighScore(T* p, lua_State *L) {
 		HighScore* ths = p->GetTopSSRHighScore(IArg(1) - 1, Enum::Check<Skillset>(L, 2));
 		if (ths)
 			ths->PushSelf(L);
 		else
 			lua_pushnil(L);
+		return 1;
+	}
+
+	static int GetMostRecentScore(T* p, lua_State *L) {
+		// this _should_ always be viable if only called from eval
+		HighScore* last = p->GetMostRecentScore();
+		last->PushSelf(L);
 		return 1;
 	}
 
@@ -571,6 +578,7 @@ public:
 		ADD_METHOD(SortSSRs);
 		ADD_METHOD(ValidateAllScores);
 		ADD_METHOD(GetTopSSRHighScore);
+		ADD_METHOD(GetMostRecentScore);
 	}
 };
 
