@@ -74,6 +74,49 @@ const vector<HighScore*> ScoresAtRate::GetScores() const {
 }
 */
 
+void ScoreManager::RatingOverTime() {
+	auto compdate = [](HighScore* a, HighScore* b) { return (a->GetDateTime() < b->GetDateTime()); };
+
+
+	vector<bool> wasvalid;
+	sort(AllScores.begin(), AllScores.end(), compdate);
+
+	for (auto& n : AllScores) {
+		wasvalid.emplace_back(n->GetEtternaValid());
+		n->SetEtternaValid(false);
+	}
+
+	float doot = 10.f;
+	float doot2[8];
+	LOG->Warn("wer");
+	if (AllScores.empty())
+		return;
+
+	DateTime lastvalidday = AllScores.front()->GetDateTime();
+	lastvalidday.StripTime();
+
+	CalcPlayerRating(doot, doot2);
+	LOG->Warn(lastvalidday.GetString());
+
+	DateTime finalvalidday = AllScores.back()->GetDateTime();
+	finalvalidday.StripTime();
+	while (lastvalidday != finalvalidday) {
+		for (auto& n : AllScores) {
+			DateTime date = n->GetDateTime();
+			date.StripTime();
+
+			if (lastvalidday < date) {
+				lastvalidday = date;
+				break;
+			}
+
+			n->SetEtternaValid(true);
+		}
+		CalcPlayerRating(doot, doot2);
+		LOG->Trace("%f", doot);
+	}
+}
+
 ScoresForChart::ScoresForChart() {
 	bestGrade = Grade_Invalid;
 	ScoresByRate.clear();

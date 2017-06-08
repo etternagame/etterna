@@ -113,8 +113,7 @@ public:
 	
 	bool KeyHasScores(const string& ck) { return pscores.count(ck) == 1; }
 	bool HasAnyScores() { return !AllScores.empty(); }
-
-	
+	void RatingOverTime();
 
 	XNode *CreateNode() const;
 	void LoadFromNode(const XNode* node);
@@ -122,9 +121,7 @@ public:
 	ScoresForChart* GetScoresForChart(const string& ck);
 	vector<string> GetSortedKeys();
 
-
 	void PushSelf(lua_State *L);
-
 
 	vector<HighScore*> GetAllScores() { return AllScores; }
 	void RegisterScore(HighScore* hs) {	AllScores.emplace_back(hs); }
