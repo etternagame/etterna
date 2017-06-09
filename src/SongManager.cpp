@@ -210,8 +210,8 @@ int SongManager::DifferentialReloadDir(string dir) {
 			newsongs++;
 		}
 
-		LOG->Trace("Differential load of %i songs from \"%s\"", loaded, (dir + sGroupDirName).c_str());
 		if (!loaded) continue;
+		LOG->Trace("Differential load of %i songs from \"%s\"", loaded, (dir + sGroupDirName).c_str());
 
 		AddGroup(dir, sGroupDirName);
 		BANNERCACHE->CacheBanner(GetSongGroupBannerPath(sGroupDirName));
