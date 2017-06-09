@@ -416,15 +416,6 @@ void ScreenSelectMusic::Update( float fDeltaTime )
 
 bool ScreenSelectMusic::Input( const InputEventPlus &input )
 {
-	if (hasntalreadydifferentiallfartedsongs) {
-		int newsongs = SONGMAN->DifferentialReload();
-
-		if (newsongs > 0) {
-			hasntalreadydifferentiallfartedsongs = false;
-			m_MusicWheel.ReloadSongList(false, "");
-		}
-	}
-
 	// HACK: This screen eats mouse inputs if we don't check for them first.
 	bool mouse_evt = false;
 	for (int i = MOUSE_LEFT; i <= MOUSE_WHEELDOWN; i++)

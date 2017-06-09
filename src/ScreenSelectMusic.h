@@ -59,7 +59,6 @@ public:
 	virtual void PushSelf( lua_State *L );
 
 protected:
-	bool hasntalreadydifferentiallfartedsongs = true;
 	virtual bool GenericTweenOn() const { return true; }
 	virtual bool GenericTweenOff() const { return true; }
 	void UpdateSelectButton( PlayerNumber pn, bool bBeingPressed );

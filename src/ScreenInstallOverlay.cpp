@@ -99,6 +99,7 @@ static void InstallSmzip( const RString &sZipFile, PlayAfterLaunchInfo &out )
 			break;
 		}
 	}
+	SONGMAN->DifferentialReloadDir(TEMP_ZIP_MOUNT_POINT);
 	FILEMAN->Unmount( "zip", sZipFile, TEMP_ZIP_MOUNT_POINT );
 
 	SCREENMAN->SystemMessage( sResult );
