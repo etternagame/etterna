@@ -251,27 +251,6 @@ while drawindex<#hsTable and startind<=finishind do
 	drawindex  = drawindex+1
 end
 
-if tonumber(PREFSMAN:GetPreference("MaxHighScoresPerListForPlayer")) ~= 3 then
-	themeConfig:get_data().global.ScoreBoardNag = false
-	themeConfig:set_dirty()
-	themeConfig:save()
-end
-
-if themeConfig:get_data().global.ScoreBoardNag and #origTable == tonumber(PREFSMAN:GetPreference("MaxHighScoresPerListForPlayer")) then
-	t[#t+1] = LoadFont("Common normal")..{
-		InitCommand=cmd(xy,framex+frameWidth/2,framey+4*spacing;zoom,0.30;valign,0;diffusealpha,0.8;maxwidth,frameWidth/0.30),
-		BeginCommand=function(self)
-			local text = string.format("You have reached the maximum number of saved scores for this chart."..
-							" \n Lower ranked scores will be removed as you save more scores.\n\n"..
-							" Please increase the values for 'Max Machine Scores' and \n'Max Player Scores'"..
-							" from the Arcade Options to raise this limit.\n\n\n"..
-							"This will no longer appear once the limit is set to any non-default value.\n(You may change back afterwards if you want)\n\n"..
-							"The current limit is %s. (Default is 3)",PREFSMAN:GetPreference("MaxHighScoresPerListForPlayer") or 0)
-			self:settext(text)
-		end
-	}
-end
-
 --Update function for showing mouse rollovers
 local function Update(self)
 	t.InitCommand=cmd(SetUpdateFunction,Update);
