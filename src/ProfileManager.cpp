@@ -121,6 +121,8 @@ void ProfileManager::Init(LoadingWindow* ld)
 
 	if (!g_vLocalProfile.empty())
 		m_sProfileDir[PLAYER_1] = g_vLocalProfile[0].sDir;
+
+	dummy = new Profile;
 }
 
 bool ProfileManager::FixedProfiles() const
@@ -373,7 +375,7 @@ const Profile *ProfileManager::GetLocalProfile( const RString &sProfileID ) cons
 			return &dap->profile;
 	}
 
-	return NULL;
+	return dummy;
 }
 
 bool ProfileManager::CreateLocalProfile( const RString &sName, RString &sProfileIDOut )
