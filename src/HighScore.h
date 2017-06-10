@@ -179,7 +179,6 @@ public:
 	void AddHighScore( HighScore hs, int &iIndexOut, bool bIsMachine );
 	void IncrementPlayCount( DateTime dtLastPlayed );
 	void RemoveAllButOneOfEachName();
-	void ClampSize( bool bIsMachine );
 
 	void MergeFromOtherHSL(HighScoreList& other, bool is_machine);
 
