@@ -227,7 +227,7 @@ static void LoadFromSMNoteDataStringWithPlayer( NoteData& out, const RString &sS
 	out.RevalidateATIs(vector<int>(), false);
 }
 
-void NoteDataUtil::LoadFromETTNoteDataString( NoteData& out, const RString &sSMNoteData, int start, int len) {
+void NoteDataUtil::LoadFromETTNoteDataString( NoteData& out, const RString &sSMNoteData) {
 	size_t pos = 0;
 
 	int m = 0;
@@ -240,53 +240,247 @@ void NoteDataUtil::LoadFromETTNoteDataString( NoteData& out, const RString &sSMN
 		if (mend == -1)
 			nt = sSMNoteData.size() - pos - 1;
 
-		for (int r = 0; r < nt / 4; ++r) {
+		const char cnt = sSMNoteData.at(at);
+		++at;
+
+		if (cnt == '0')
+			nt = 16;
+		else if(cnt == '1')
+			nt = 32;
+		else if (cnt == '2')
+			nt = 48;
+		else if (cnt == '3')
+			nt = 64;
+		else if (cnt == '4')
+			nt = 96;
+		else if (cnt == '5')
+			nt = 128;
+		else if (cnt == '6')
+			nt = 192;
+		else if (cnt == '7')
+			nt = 256;
+		else if (cnt == '8')
+			nt = 768;
+
+		int tps = 0;
+		int tr = 0;
+		int r = 0;
+		while (tps < nt) {
 			const float fPercentIntoMeasure = r / static_cast<float>(nt) * 4;
 			const float fBeat = (m + fPercentIntoMeasure) * BEATS_PER_MEASURE;
 			const int iIndex = BeatToNoteRow(fBeat);
 
-			for (int t = 0; t < 4; ++t) {
-				TapNote tn;
-				const char c = sSMNoteData.at(at);
-				++at;
-				if (c == '0') {
-					continue;
-				}
-				else if (c == '1') {
-					out.SetTapNote(t, iIndex, TAP_ORIGINAL_TAP);
-					continue;
-				}
-				else if (c == '2') {
-					lasthead[t] = iIndex;
-					tn = TAP_ORIGINAL_HOLD_HEAD;
-					tn.iDuration = 1;
-					out.SetTapNote(t, iIndex, tn);
-					continue;
-				}
-				else if (c == '4') {
-					lasthead[t] = iIndex;
-					tn = TAP_ORIGINAL_ROLL_HEAD;
-					tn.iDuration = 1;
-					out.SetTapNote(t, iIndex, tn);
-					continue;
-				}
-				else if (c == '3') {
-					out.FindTapNote(t, lasthead[t])->second.iDuration = iIndex - lasthead[t];
-					continue;
-				}
-				else if (c == 'M') {
-					out.SetTapNote(t, iIndex, TAP_ORIGINAL_MINE);
-					continue;
-				}
-				else if (c == 'L') {
-					out.SetTapNote(t, iIndex, TAP_ORIGINAL_LIFT);
-					continue;
-				}
-				else if (c == 'F') {
-					out.SetTapNote(t, iIndex, TAP_ORIGINAL_FAKE);
-					continue;
-				}
+			const char c = sSMNoteData.at(at);
+			++at;
+			if (c == '.') {
+				tps += 256;
+				r += 64;
+				continue;
 			}
+			else if (c == '|') {
+				tps += 16;
+				r += 4;
+				continue;
+			}
+			else if (c == '~') {
+				tps += 8;
+				r += 2;
+				continue;
+			}
+			else if (c == '?') {
+				tps += 4;
+				++r;
+				continue;
+			}
+			else if(c == 'M') {
+				tps += 4;
+				++r;
+				out.SetTapNote(0, iIndex, TAP_ORIGINAL_TAP);
+				out.SetTapNote(1, iIndex, TAP_ORIGINAL_TAP);
+				continue;
+			}
+			else if (c == 'W') {
+				tps += 4; ++r;
+				out.SetTapNote(2, iIndex, TAP_ORIGINAL_TAP);
+				out.SetTapNote(3, iIndex, TAP_ORIGINAL_TAP);
+				continue;
+			}
+			else if (c == 'L') {
+				tps += 4; ++r;
+				out.SetTapNote(0, iIndex, TAP_ORIGINAL_TAP);
+				continue;
+			}
+			else if (c == 'D') {
+				tps += 4; ++r;
+				out.SetTapNote(1, iIndex, TAP_ORIGINAL_TAP);
+				continue;
+			}
+			else if (c == 'U') {
+				tps += 4; ++r;
+				out.SetTapNote(2, iIndex, TAP_ORIGINAL_TAP);
+				continue;
+			}
+			else if (c == 'Y') {
+				tps += 4; ++r;
+				out.SetTapNote(3, iIndex, TAP_ORIGINAL_TAP);
+				continue;
+			}
+			else if (c == 'B') {
+				tps += 4; ++r;
+				out.SetTapNote(0, iIndex, TAP_ORIGINAL_TAP);
+				out.SetTapNote(3, iIndex, TAP_ORIGINAL_TAP);
+				continue;
+			}
+			else if (c == 'Z') {
+				tps += 4; ++r;
+				out.SetTapNote(1, iIndex, TAP_ORIGINAL_TAP);
+				out.SetTapNote(2, iIndex, TAP_ORIGINAL_TAP);
+				continue;
+			}
+			else if (c == 'G') {
+				tps += 4; ++r;
+				out.SetTapNote(1, iIndex, TAP_ORIGINAL_TAP);
+				out.SetTapNote(3, iIndex, TAP_ORIGINAL_TAP);
+				continue;
+			}
+			else if (c == 'K') {
+				tps += 4; ++r;
+				out.SetTapNote(0, iIndex, TAP_ORIGINAL_TAP);
+				out.SetTapNote(2, iIndex, TAP_ORIGINAL_TAP);
+				continue;
+			}
+			else if (c == 'U') {
+				tps += 4; ++r;
+				out.SetTapNote(0, iIndex, TAP_ORIGINAL_TAP);
+				out.SetTapNote(1, iIndex, TAP_ORIGINAL_TAP);
+				out.SetTapNote(2, iIndex, TAP_ORIGINAL_TAP);
+				continue;
+			}
+			else if (c == 'I') {
+				tps += 4; ++r;
+				out.SetTapNote(1, iIndex, TAP_ORIGINAL_TAP);
+				out.SetTapNote(2, iIndex, TAP_ORIGINAL_TAP);
+				out.SetTapNote(3, iIndex, TAP_ORIGINAL_TAP);
+				continue;
+			}
+			else if (c == 'O') {
+				tps += 4; ++r;
+				out.SetTapNote(0, iIndex, TAP_ORIGINAL_TAP);
+				out.SetTapNote(2, iIndex, TAP_ORIGINAL_TAP);
+				out.SetTapNote(3, iIndex, TAP_ORIGINAL_TAP);
+				continue;
+			}
+			else if (c == 'P') {
+				tps += 4; ++r;
+				out.SetTapNote(0, iIndex, TAP_ORIGINAL_TAP);
+				out.SetTapNote(1, iIndex, TAP_ORIGINAL_TAP);
+				out.SetTapNote(3, iIndex, TAP_ORIGINAL_TAP);
+				continue;
+			}
+			else if (c == '`') {	// compressed notes this far are pretty rare
+				tps += 128;
+				r += 32;
+				continue;
+			}
+			else if (c == '-') {
+				tps += 64;
+				r += 16;
+				continue;
+			}
+			else if (c == '!') {
+				tps += 32;
+				r += 8;
+				continue;
+			}
+			else if (c == 'E') {
+				++tps;
+				++tr;
+				if (tr == 4) {
+					++r;
+					tr = 0;
+				}
+				continue;
+			}
+			else if (c == 'T') {
+				++tps;
+				out.SetTapNote(tr, iIndex, TAP_ORIGINAL_TAP);
+				++tr;
+				if (tr == 4) {
+					++r;
+					tr = 0;
+				}
+				continue;
+			}
+			else if (c == 'H') {
+				++tps;
+				lasthead[tr] = iIndex;
+				TapNote tn = TAP_ORIGINAL_HOLD_HEAD;
+				tn.iDuration = 1;
+				out.SetTapNote(tr, iIndex, TAP_ORIGINAL_HOLD_HEAD);
+				++tr;
+				if (tr == 4) {
+					++r;
+					tr = 0;
+				}
+				continue;
+			}
+			else if (c == 'R') {
+				++tps;
+				lasthead[tr] = iIndex;
+				TapNote tn = TAP_ORIGINAL_HOLD_HEAD;
+				tn.iDuration = 1;
+				out.SetTapNote(tr, iIndex, TAP_ORIGINAL_ROLL_HEAD);
+				++tr;
+				if (tr == 4) {
+					++r;
+					tr = 0;
+				}
+				continue;
+			}
+			else if (c == 'J') {
+				++tps;
+				lasthead[tr] = iIndex;
+				TapNote tn = TAP_ORIGINAL_HOLD_HEAD;
+				tn.iDuration = 1;
+				out.FindTapNote(tr, lasthead[tr])->second.iDuration = iIndex - lasthead[tr];
+				++tr;
+				if (tr == 4) {
+					++r;
+					tr = 0;
+				}
+				continue;
+			}
+			else if (c == '*') {
+				++tps;
+				out.SetTapNote(tr, iIndex, TAP_ORIGINAL_MINE);
+				++tr;
+				if (tr == 4) {
+					++r;
+					tr = 0;
+				}
+				continue;
+			}
+			else if (c == '^') {
+				++tps;
+				out.SetTapNote(tr, iIndex, TAP_ORIGINAL_LIFT);
+				++tr;
+				if (tr == 4) {
+					++r;
+					tr = 0;
+				}
+				continue;
+			}
+			else if (c == 'V') {
+				++tps;
+				out.SetTapNote(tr, iIndex, TAP_ORIGINAL_FAKE);
+				++tr;
+				if (tr == 4) {
+					++r;
+					tr = 0;
+				}
+				continue;
+			}
+
 		}
 
 		if (mend == -1)
@@ -462,59 +656,6 @@ void NoteDataUtil::GetSMNoteDataString( const NoteData &in, RString &sRet )
 	}
 }
 
-/*
-   Var1 Var2
-1     0    0
-2     1    0
-3     2    0
-4     4    0
-5     3    0
-6     5    0
-7     6    0
-8     0    1
-9     1    1
-10    2    1
-11    4    1
-12    3    1
-13    5    1
-14    6    1
-15    0    2
-16    1    2
-17    2    2
-18    4    2
-19    3    2
-20    5    2
-21    6    2
-22    0    4
-23    1    4
-24    2    4
-25    4    4
-26    3    4
-27    5    4
-28    6    4
-29    0    3
-30    1    3
-31    2    3
-32    4    3
-33    3    3
-34    5    3
-35    6    3
-36    0    5
-37    1    5
-38    2    5
-39    4    5
-40    3    5
-41    5    5
-42    6    5
-43    0    6
-44    1    6
-45    2    6
-46    4    6
-47    3    6
-48    5    6
-49    6    6
-*/
-
 void NoteDataUtil::GetETTNoteDataString(const NoteData &in, RString &sRet) {
 	// Get note data
 	vector<NoteData> parts;
@@ -522,12 +663,18 @@ void NoteDataUtil::GetETTNoteDataString(const NoteData &in, RString &sRet) {
 	SplitCompositeNoteData(in, parts);
 
 	FOREACH(NoteData, parts, nd) {
-		InsertHoldTails(*nd);
 		fLastBeat = max(fLastBeat, nd->GetLastBeat());
 	}
 
 	int iLastMeasure = static_cast<int>(fLastBeat / BEATS_PER_MEASURE);
+
 	sRet = "";
+
+	if (in.GetNumTracks() != 4) {
+		sRet.shrink_to_fit();
+		return;
+	}
+
 	FOREACH(NoteData, parts, nd) {
 		if (nd != parts.begin())
 			sRet.append("&\n");
@@ -580,7 +727,7 @@ void NoteDataUtil::GetETTNoteDataString(const NoteData &in, RString &sRet) {
 						continue;
 					}
 					else if (tn.type == TapNoteType_Fake) {
-						halp.append("O");
+						halp.append("V");
 						continue;
 					}
 				}
@@ -598,7 +745,7 @@ void NoteDataUtil::GetETTNoteDataString(const NoteData &in, RString &sRet) {
 				else if (halp == "EETE")
 					halp = "U";
 				else if (halp == "EEET")
-					halp = "R";
+					halp = "Y";
 				else if (halp == "TEET")
 					halp = "B";
 				else if (halp == "ETTE")
@@ -606,7 +753,7 @@ void NoteDataUtil::GetETTNoteDataString(const NoteData &in, RString &sRet) {
 				else if (halp == "ETET")
 					halp = "G";
 				else if (halp == "TETE")
-					halp = "R";
+					halp = "K";
 				else if (halp == "TTTE")
 					halp = "U";
 				else if (halp == "ETTT")
@@ -620,7 +767,50 @@ void NoteDataUtil::GetETTNoteDataString(const NoteData &in, RString &sRet) {
 			}
 			sRet.append("\n");
 		}
+		size_t oop = 1;
+		for (;;) {
+			oop = sRet.find("??", oop - 1);
+			if (oop == string::npos)
+				break;
+			sRet.replace(sRet.begin() + oop, sRet.begin() + oop + 2, "~");
+		}
+		oop = 1;
+		for (;;) {
+			oop = sRet.find("~~", oop - 1);
+			if (oop == string::npos)
+				break;
+			sRet.replace(sRet.begin() + oop, sRet.begin() + oop + 2, "|");
+		}
+		oop = 1;
+		for (;;) {
+			oop = sRet.find("||", oop - 1);
+			if (oop == string::npos)
+				break;
+			sRet.replace(sRet.begin() + oop, sRet.begin() + oop + 2, "!");
+		}
+		oop = 1;
+		for (;;) {
+			oop = sRet.find("!!", oop - 1);
+			if (oop == string::npos)
+				break;
+			sRet.replace(sRet.begin() + oop, sRet.begin() + oop + 2, "-");
+		}
+		oop = 1;
+		for (;;) {
+			oop = sRet.find("--", oop - 1);
+			if (oop == string::npos)
+				break;
+			sRet.replace(sRet.begin() + oop, sRet.begin() + oop + 2, "`");
+		}
+		oop = 1;
+		for (;;) {
+			oop = sRet.find("``", oop - 1);
+			if (oop == string::npos)
+				break;
+			sRet.replace(sRet.begin() + oop, sRet.begin() + oop + 2, ".");
+		}
 	}
+	sRet.shrink_to_fit();
 }
 
 void NoteDataUtil::SplitCompositeNoteData( const NoteData &in, vector<NoteData> &out )
