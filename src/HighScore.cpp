@@ -868,8 +868,6 @@ void HighScoreList::AddHighScore( HighScore hs, int &iIndexOut, bool bIsMachine 
 	// and not here so that we don't end up with fewer than iMaxScores after 
 	// removing HighScores with duplicate names.
 	//
-	if( !bIsMachine )
-		ClampSize( bIsMachine );
 	HighGrade = min( hs.GetWifeGrade(), HighGrade);
 }
 
@@ -964,18 +962,6 @@ void HighScoreList::RemoveAllButOneOfEachName()
 	}
 }
 
-/* commented out functionality instead of obliterating in 
-case some of you for whatever reason want to reenable this
-- Mina */
-void HighScoreList::ClampSize( bool bIsMachine )
-{
-	const int iMaxScores = bIsMachine ? 
-		PREFSMAN->m_iMaxHighScoresPerListForMachine : 
-		PREFSMAN->m_iMaxHighScoresPerListForPlayer;
-	//if( vHighScores.size() > unsigned(iMaxScores) )		
-	//	vHighScores.erase( vHighScores.begin()+iMaxScores, vHighScores.end() );
-}
-
 void HighScoreList::MergeFromOtherHSL(HighScoreList& other, bool is_machine)
 {
 	iNumTimesPlayed+= other.iNumTimesPlayed;
@@ -991,7 +977,6 @@ void HighScoreList::MergeFromOtherHSL(HighScoreList& other, bool is_machine)
 	vHighScores.erase(unique_end, vHighScores.end());
 	// Reverse it because sort moved the lesser scores to the top.
 	std::reverse(vHighScores.begin(), vHighScores.end());
-	ClampSize(is_machine);
 }
 
 XNode* Screenshot::CreateNode() const

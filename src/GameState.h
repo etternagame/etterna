@@ -353,8 +353,6 @@ public:
 	// so wrap them.
 	bool		m_bTemporaryEventMode;
 	bool		IsEventMode() const;
-	CoinMode	GetCoinMode() const;
-	Premium		GetPremium() const;
 
 	// Edit stuff
 	

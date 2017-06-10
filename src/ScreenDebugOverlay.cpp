@@ -688,24 +688,6 @@ class DebugLineAutosync : public IDebugLine
 	}
 };
 
-class DebugLineCoinMode : public IDebugLine
-{
-	virtual RString GetDisplayTitle() { return COIN_MODE.GetValue(); }
-	virtual RString GetDisplayValue() { return CoinModeToString(GAMESTATE->GetCoinMode()); }
-	virtual bool IsEnabled() { return true; }
-	virtual void DoAndLog( RString &sMessageOut )
-	{
-		if (GAMESTATE->GetCoinMode() == CoinMode_Home)
-			GamePreferences::m_CoinMode.Set(CoinMode_Free);
-		else if (GAMESTATE->GetCoinMode() == CoinMode_Free && !GAMESTATE->IsEventMode())
-			GamePreferences::m_CoinMode.Set(CoinMode_Pay);
-		else
-			GamePreferences::m_CoinMode.Set(CoinMode_Home);
-		SCREENMAN->RefreshCreditsMessages();
-		IDebugLine::DoAndLog( sMessageOut );
-	}
-};
-
 class DebugLineSlow : public IDebugLine
 {
 	virtual RString GetDisplayTitle() { return SLOW.GetValue(); }
@@ -870,7 +852,7 @@ static void FillProfileStats( Profile *pProfile )
 	s_iCount = (s_iCount+1)%2;
 
 
-	int iCount = PREFSMAN->m_iMaxHighScoresPerListForPlayer.Get();
+	int iCount = 20;
 
 	vector<Song*> vpAllSongs = SONGMAN->GetAllSongs();
 	FOREACH( Song*, vpAllSongs, pSong )
@@ -1255,7 +1237,6 @@ class DebugLineUptime : public IDebugLine
 DECLARE_ONE( DebugLineAutoplay );
 DECLARE_ONE( DebugLineAssist );
 DECLARE_ONE( DebugLineAutosync );
-DECLARE_ONE( DebugLineCoinMode );
 DECLARE_ONE( DebugLineSlow );
 DECLARE_ONE( DebugLineHalt );
 DECLARE_ONE( DebugLineStats );

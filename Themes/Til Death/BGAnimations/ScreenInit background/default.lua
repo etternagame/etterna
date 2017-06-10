@@ -11,6 +11,7 @@ local minanyms = {
 	"Scalding brain fart",
 	"Luridescence",
 	"Frothy Loin",
+	"Ministry of Silly Steps",
 	
 	-- the profile names of yore
 	"mystic memer",
@@ -49,9 +50,11 @@ local minanyms = {
 	"SERENADE UNDER PORCUPINE",
 	"SERRATED HAMBURGER",
 	"INTERGALACTIC TURKEY",
+	"TURTLE LOVE",
 	"BICYCLE LAUGH",
 	"GODLY PLATE OF THE WHALE",
 	"PURPLE PARKING METERSTICK",
+	"BROCCOLI MOISTURIZER",
 
 	-- Ye olde names
 	"Shoeeater9000",

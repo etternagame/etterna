@@ -168,25 +168,15 @@ enum SortOrder
 	SORT_TOP_GRADES, /**< Sort by the highest grades earned on a Song. */
 	SORT_ARTIST, /**< Sort by the name of the artist of the Song. */
 	SORT_GENRE, /**< Sort by the Song's genre. */
-	SORT_BEGINNER_METER, /**< Sort by the difficulty of the single beginner meter. */
-	SORT_EASY_METER, /**< Sort by the difficulty of the single easy meter. */
-	SORT_MEDIUM_METER, /**< Sort by the difficulty of the single medium meter. */
-	SORT_HARD_METER, /**< Sort by the difficulty of the single hard meter. */
-	SORT_CHALLENGE_METER, /**< Sort by the difficulty of the single challenge meter. */
-	SORT_DOUBLE_EASY_METER, /**< Sort by the difficulty of the double easy meter. */
-	SORT_DOUBLE_MEDIUM_METER, /**< Sort by the difficulty of the double medium meter. */
-	SORT_DOUBLE_HARD_METER, /**< Sort by the difficulty of the double hard meter. */
-	SORT_DOUBLE_CHALLENGE_METER, /**< Sort by the difficulty of the double challenge meter. */
 	//
 	SORT_MODE_MENU, /**< Have access to the menu for choosing the sort. */
-	SORT_ROULETTE,
 	SORT_RECENT,
 	SORT_FAVORITES,
 	NUM_SortOrder,
 	SortOrder_Invalid
 };
 /** @brief Only allow certain sort modes to be selectable. */
-const SortOrder MAX_SELECTABLE_SORT = (SortOrder)(SORT_ROULETTE-1);
+const SortOrder MAX_SELECTABLE_SORT = (SortOrder)(SORT_RECENT-1);
 /**
  * @brief Turn the sort order into a proper string.
  * @param so the sort order.
@@ -211,7 +201,7 @@ LuaDeclareType( SortOrder );
  *
  * This function is mainly used for saving sort order to the profile. -aj
  */
-inline bool IsSongSort( SortOrder so ) { return so >= SORT_PREFERRED && so <= SORT_DOUBLE_CHALLENGE_METER; }
+inline bool IsSongSort( SortOrder so ) { return so >= SORT_PREFERRED && so <= SORT_GENRE; }
 
 /** @brief The list of tap note scores available during play. */
 enum TapNoteScore { 
@@ -403,34 +393,6 @@ enum StageResult
 	StageResult_Invalid
 };
 LuaDeclareType( StageResult );
-
-// Coin stuff
-/** @brief The different coin modes to determine how one can play. */
-enum CoinMode
-{
-	CoinMode_Home, /**< The full range of options are available. */
-	CoinMode_Pay, /**< Coins must be inserted before a game can begin. */
-	CoinMode_Free, /**< It costs no money to play, but otherwise is similar to Pay mode. */
-	NUM_CoinMode,
-	CoinMode_Invalid
-};
-const RString& CoinModeToString( CoinMode cm );
-LuaDeclareType( CoinMode );
-
-
-/** @brief The different types of premiums available to take advantage of. */
-enum Premium
-{
-	Premium_Off, /**< It will cost one credit per side of the machine. */
-	Premium_DoubleFor1Credit, /**< It will cost one credit per player of the machine. */
-	Premium_2PlayersFor1Credit, /**< One credit gives one or both players full access. */
-	NUM_Premium,
-	Premium_Invalid
-};
-const RString& PremiumToString( Premium p );
-const RString& PremiumToLocalizedString( Premium p );
-LuaDeclareType( Premium );
-
 
 /** @brief The various stage awards that can be given based on excellent play. */
 enum StageAward

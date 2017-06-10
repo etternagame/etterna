@@ -28,8 +28,6 @@ ScreenTitleMenu::ScreenTitleMenu()
 	 * [aj] Well... Can't #2 be done in Lua nowadays? and #1 as well? (hi shake)
 	 */
 	GAMESTATE->Reset();
-
-	this->SubscribeToMessage( GamePreferences::m_CoinMode.GetName()+"Changed" );
 }
 
 void ScreenTitleMenu::Init()
@@ -79,13 +77,6 @@ bool ScreenTitleMenu::Input( const InputEventPlus &input )
 
 void ScreenTitleMenu::HandleMessage( const Message &msg )
 {
-	if( msg == GamePreferences::m_CoinMode.GetName()+"Changed" )
-	{
-		/* If the CoinMode was changed, we need to reload this screen
-		 * so that the right m_aGameCommands will show */
-		SCREENMAN->SetNewScreen( COIN_MODE_CHANGE_SCREEN );
-	}
-
 	ScreenSelectMaster::HandleMessage( msg );
 }
 

@@ -282,31 +282,10 @@ void StageStats::FinalizeScores(bool bSummary)
 	LOG->Trace("done saving stats and high scores");
 }
 
+// all scores are saved so all scores are highscores, remove this later -mina
 bool StageStats::PlayerHasHighScore( PlayerNumber pn ) const
 {
-	const Song *pSong = m_vpPlayedSongs[0];
-	const Steps *pSteps = m_player[pn].m_vpPossibleSteps[0];
-
-	// Don't show high scores for tutorial songs.
-	if( pSong->IsTutorial() == Song::SHOW_NEVER )
-		return false;
-
-	const HighScoreList &hsl = 	PROFILEMAN->GetProfile(pn)->GetStepsHighScoreList(pSong, pSteps);
-
-	int iScore = m_player[pn].m_iScore;
-	float fPercentDP = m_player[pn].GetPercentDancePoints();
-	for( int h=0; h<(int)hsl.vHighScores.size() && h<PREFSMAN->m_iMaxHighScoresPerListForMachine; ++h )
-	{
-		const HighScore &hs = hsl.vHighScores[h];
-		if( hs.GetName() == RANKING_TO_FILL_IN_MARKER[pn]  &&
-			hs.GetPercentDP() == fPercentDP  && 
-			hs.GetScore() == iScore )
-		{
-			return true;
-		}
-	}
-
-	return false;
+	return true;
 }
 
 unsigned int StageStats::GetMinimumMissCombo() const

@@ -124,27 +124,6 @@ static const char *StageResultNames[] = {
 XToString( StageResult );
 LuaXType( StageResult );
 
-static const char *CoinModeNames[] = {
-	"Home",
-	"Pay",
-	"Free",
-};
-XToString( CoinMode );
-StringToX( CoinMode );
-LuaXType( CoinMode );
-
-
-static const char *PremiumNames[] = {
-	"Off",
-	"DoubleFor1Credit",
-	"2PlayersFor1Credit",
-};
-XToString( Premium );
-StringToX( Premium );
-XToLocalizedString( Premium );
-LuaXType( Premium );
-
-
 static const char *SortOrderNames[] = {
 	"Preferred",
 	"Group",
@@ -154,17 +133,7 @@ static const char *SortOrderNames[] = {
 	"TopGrades",
 	"Artist",
 	"Genre",
-	"BeginnerMeter",
-	"EasyMeter",
-	"MediumMeter",
-	"HardMeter",
-	"ChallengeMeter",
-	"DoubleEasyMeter",
-	"DoubleMediumMeter",
-	"DoubleHardMeter",
-	"DoubleChallengeMeter",
 	"ModeMenu",
-	"Roulette",
 	"Recent",
 	"Favorites",
 };

@@ -419,65 +419,6 @@ static void InputDebounceTime(int& sel, bool to_sel, ConfOption const* conf_opti
 }
 
 // Machine options
-static void CoinModeNoHome( int &sel, bool ToSel, const ConfOption *pConfOption )
-{
-	// 0 = Pay, 1 = Free
-	// But MovePref<CoinMode> thinks 0 = Home, 1 = Pay, 2 = Free
-	if( ToSel )
-	{
-		MovePref<CoinMode>( sel, ToSel, pConfOption );
-		// If the mode was Pay, the index is 0; otherwise, set the index
-		// to 1 to avoid out-of-range crashing.
-		if (sel == 1)
-			sel = 0;
-		else
-			sel = 1;
-	}
-	else 
-	{
-		int tmp = sel + 1;
-		MovePref<CoinMode>( tmp, ToSel, pConfOption );
-	}
-}
-
-static void CoinsPerCredit( int &sel, bool ToSel, const ConfOption *pConfOption )
-{
-	if( ToSel )
-	{
-		MovePref<int>( sel, ToSel, pConfOption );
-		sel--;
-	}
-	else
-	{
-		int tmp = sel + 1;
-		MovePref<int>( tmp, ToSel, pConfOption );
-	}
-}
-
-static void JointPremium( int &sel, bool ToSel, const ConfOption *pConfOption )
-{
-	const Premium mapping[] = { Premium_DoubleFor1Credit, Premium_2PlayersFor1Credit };
-	MoveMap( sel, pConfOption, ToSel, mapping, ARRAYLEN(mapping) );
-}
-
-static void SongsPerPlay( int &sel, bool ToSel, const ConfOption *pConfOption )
-{
-	const int mapping[] = { 1,2,3,4,5 };
-	MoveMap( sel, pConfOption, ToSel, mapping, ARRAYLEN(mapping) );
-}
-
-static void SongsPerPlayOrEventMode( int &sel, bool ToSel, const ConfOption *pConfOption )
-{
-	const int mapping[] = { 1,2,3,4,5,6 };
-	MoveMap( sel, pConfOption, ToSel, mapping, ARRAYLEN(mapping) );
-
-	if( ToSel && PREFSMAN->m_bEventMode )
-		sel = 5;
-	if( !ToSel )
-		PREFSMAN->m_bEventMode.Set( sel == 5 );
-}
-
-// Machine options
 /** @brief Timing Window scale */
 static void TimingWindowScale( int &sel, bool ToSel, const ConfOption *pConfOption )
 {
@@ -795,25 +736,14 @@ static void InitializeConfOptions()
 	ADD( ConfOption( "AllowExtraStage",		MovePref<bool>,		"Off","On" ) );
 	ADD( ConfOption( "AllowMultipleHighScoreWithSameName", MovePref<bool>, "Off", "On" ) );
 	ADD( ConfOption( "ComboContinuesBetweenSongs", MovePref<bool>, "Off", "On") );
-	ADD(ConfOption("AllowMultipleToasties", MovePref<bool>, "Off", "On"));
 	ADD( ConfOption( "Disqualification", MovePref<bool>,		"Off","On" ) );
 	ADD( ConfOption( "HarshHotLifePenalty", MovePref<bool>,      "Off", "On") );
 	ADD( ConfOption( "FailOffForFirstStageEasy", MovePref<bool>, "Off","On" ) );
 	ADD( ConfOption( "FailOffInBeginner",       MovePref<bool>, "Off","On" ) );
 	ADD( ConfOption( "PickExtraStage",		MovePref<bool>,		"Off","On" ) );
-	ADD( ConfOption( "UseUnlockSystem",		MovePref<bool>,		"Off","On" ) );
 	ADD( ConfOption( "AllowSongDeletion",   MovePref<bool>,     "Off","On" ) );
 
 	// Machine options
-	ADD( ConfOption( "MenuTimer",			MovePref<bool>,		"Off","On" ) );
-	ADD( ConfOption( "CoinMode",			MovePref<CoinMode>,	"Home","Pay","Free Play" ) );
-	ADD( ConfOption( "CoinModeNoHome",		CoinModeNoHome,		"Pay","Free Play" ) );
-	g_ConfOptions.back().m_sPrefName = "CoinMode";
-	ADD( ConfOption( "CoinsPerCredit",		CoinsPerCredit,		"|1","|2","|3","|4","|5","|6","|7","|8","|9","|10","|11","|12","|13","|14","|15","|16" ) );
-
-	ADD( ConfOption( "SongsPerPlay",		SongsPerPlay,		"|1","|2","|3","|4","|5" ) );
-	ADD( ConfOption( "SongsPerPlayOrEvent",		SongsPerPlayOrEventMode,"|1","|2","|3","|4","|5","Event" ) );
-	g_ConfOptions.back().m_sPrefName = "SongsPerPlay";
 
 	ADD( ConfOption( "EventMode",			MovePref<bool>,		"Off","On (recommended)" ) );
 	ADD( ConfOption( "TimingWindowScale",		TimingWindowScale,	"|1","|2","|3","|4","|5","|6","|7","|8","Justice" ) );
@@ -823,15 +753,7 @@ static void InitializeConfOptions()
 	ADD( ConfOption( "ProgressiveStageLifebar",	MovePref<int>,		"Off","|1","|2","|3","|4","|5","|6","|7","|8","Insanity") );
 	ADD( ConfOption( "ProgressiveNonstopLifebar",	MovePref<int>,		"Off","|1","|2","|3","|4","|5","|6","|7","|8","Insanity") );
 	ADD( ConfOption( "DefaultFailType", DefaultFailType, DefaultFailChoices ) );
-	ADD( ConfOption( "CoinsPerCredit",		CoinsPerCredit,		"|1","|2","|3","|4","|5","|6","|7","|8","|9","|10","|11","|12","|13","|14","|15","|16" ) );
-	ADD( ConfOption( "Premium",			MovePref<Premium>,	"Off","Double for 1 Credit","2 Players for 1 Credit" ) );
-	ADD( ConfOption( "JointPremium",		JointPremium,		"Off","2 Players for 1 Credit" ) );
-	g_ConfOptions.back().m_sPrefName = "Premium";
 	ADD( ConfOption( "ShowSongOptions",		MovePref<Maybe>,	"Ask", "Hide","Show" ) );
-	ADD( ConfOption( "PercentageScoring",	MovePref<bool>,	"Off","On" ) );
-	ADD( ConfOption( "GetRankingName",		MovePref<GetRankingName>, "Off", "On", "Ranking Songs" ) );
-	ADD( ConfOption( "MaxHighScoresPerListForMachine", MaxHighScoresPerListForMachine, "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20") );
-	ADD( ConfOption( "MaxHighScoresPerListForPlayer", MaxHighScoresPerListForPlayer, "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20") );
 	ADD( ConfOption( "MinTNSToHideNotes", MovePref<TapNoteScore>, "TNS_None", "TNS_HitMine", "TNS_AvoidMine", "TNS_CheckpointMiss", "TNS_Miss", "TNS_W5", "TNS_W4", "TNS_W3", "TNS_W2", "TNS_W1", "TNS_CheckpointHit"));
 
 

@@ -6,7 +6,6 @@
 /** @brief Quick access to other variables. */
 namespace GamePreferences
 {
-	extern Preference<CoinMode> m_CoinMode;
 	extern Preference<PlayerController> m_AutoPlay;
 	extern Preference<bool> m_AxisFix;
 };

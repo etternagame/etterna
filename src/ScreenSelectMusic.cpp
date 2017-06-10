@@ -1190,7 +1190,6 @@ void ScreenSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 		}
 		else if( DO_ROULETTE_ON_MENU_TIMER  &&  m_MusicWheel.GetSelectedSong() == NULL )
 		{
-			m_MusicWheel.StartRoulette();
 			m_MenuTimer->SetSeconds( ROULETTE_TIMER_SECONDS );
 			m_MenuTimer->Start();
 		}
@@ -1199,8 +1198,6 @@ void ScreenSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 			// Finish sort changing so that the wheel can respond immediately to
 			// our request to choose random.
 			m_MusicWheel.FinishChangingSorts();
-			if( m_MusicWheel.GetSelectedSong() == NULL )
-				m_MusicWheel.StartRandom();
 
 			MenuStart( InputEventPlus() );
 		}
