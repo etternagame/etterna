@@ -665,7 +665,6 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 		
 		case SORT_FAVORITES:
 		case SORT_PREFERRED:
-		case SORT_ROULETTE:
 		case SORT_GROUP:
 		case SORT_TITLE:
 		case SORT_BPM:
@@ -673,15 +672,6 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 		case SORT_TOP_GRADES:
 		case SORT_ARTIST:
 		case SORT_GENRE:
-		case SORT_BEGINNER_METER:
-		case SORT_EASY_METER:
-		case SORT_MEDIUM_METER:
-		case SORT_HARD_METER:
-		case SORT_CHALLENGE_METER:
-		case SORT_DOUBLE_EASY_METER:
-		case SORT_DOUBLE_MEDIUM_METER:
-		case SORT_DOUBLE_HARD_METER:
-		case SORT_DOUBLE_CHALLENGE_METER:
 		case SORT_RECENT:
 		{
 			// Make an array of Song*, then sort them
@@ -709,17 +699,6 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 				case SORT_PREFERRED:
 					// obey order specified by the preferred sort list
 					break;
-				case SORT_ROULETTE:
-				{
-					StepsType st;
-					Difficulty dc;
-					SongUtil::GetStepsTypeAndDifficultyFromSortOrder( SORT_EASY_METER, st, dc );
-					SongUtil::SortSongPointerArrayByStepsTypeAndMeter( arraySongs, st, dc );
-					if( (bool)PREFSMAN->m_bPreferredSortUsesGroups )
-						stable_sort( arraySongs.begin(), arraySongs.end(), SongUtil::CompareSongPointersByGroup );
-					bUseSections = false;
-					break;
-				}
 				case SORT_GROUP:
 					SongUtil::SortSongPointerArrayByGroupAndTitle( arraySongs );
 					
@@ -752,20 +731,6 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 					if( static_cast<int>(arraySongs.size()) > RECENT_SONGS_TO_SHOW )
 						arraySongs.erase( arraySongs.begin()+RECENT_SONGS_TO_SHOW, arraySongs.end() );
 					bUseSections = false;
-					break;
-				case SORT_BEGINNER_METER:
-				case SORT_EASY_METER:
-				case SORT_MEDIUM_METER:
-				case SORT_HARD_METER:
-				case SORT_CHALLENGE_METER:
-				case SORT_DOUBLE_EASY_METER:
-				case SORT_DOUBLE_MEDIUM_METER:
-				case SORT_DOUBLE_HARD_METER:
-				case SORT_DOUBLE_CHALLENGE_METER:
-					StepsType st;
-					Difficulty dc;
-					SongUtil::GetStepsTypeAndDifficultyFromSortOrder( so, st, dc );
-					SongUtil::SortSongPointerArrayByStepsTypeAndMeter( arraySongs, st, dc );
 					break;
 				default:
 					FAIL_M("Unhandled sort order! Aborting...");
@@ -839,43 +804,6 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 				for (auto& s : gsongs)
 					if (hurp.count(s))
 						arrayWheelItemDatas.emplace_back(new MusicWheelItemData(WheelItemDataType_Song, s, gname, SONGMAN->GetSongColor(s), 0));
-			}
-
-			if( so != SORT_ROULETTE )
-			{
-				// todo: allow themers to change the order of the items. -aj
-				if( SHOW_ROULETTE )
-					arrayWheelItemDatas.emplace_back( new MusicWheelItemData(WheelItemDataType_Roulette, NULL, "", ROULETTE_COLOR, 0) );
-
-				// Only add WheelItemDataType_Random and WheelItemDataType_Portal if there's at least
-				// one song on the list.
-				bool bFoundAnySong = false;
-				for( unsigned i=0; !bFoundAnySong && i < arrayWheelItemDatas.size(); i++ )
-					if( arrayWheelItemDatas[i]->m_Type == WheelItemDataType_Song )
-						bFoundAnySong = true;
-
-				if( SHOW_RANDOM && bFoundAnySong )
-					arrayWheelItemDatas.emplace_back( new MusicWheelItemData(WheelItemDataType_Random, NULL, "", RANDOM_COLOR, 0) );
-
-				if( SHOW_PORTAL && bFoundAnySong )
-					arrayWheelItemDatas.emplace_back( new MusicWheelItemData(WheelItemDataType_Portal, NULL, "", PORTAL_COLOR, 0) );
-
-				// add custom wheel items
-				vector<RString> vsNames;
-				split( CUSTOM_WHEEL_ITEM_NAMES, ",", vsNames );
-				for( unsigned i=0; i<vsNames.size(); ++i )
-				{
-					MusicWheelItemData wid( WheelItemDataType_Custom, NULL, "", CUSTOM_CHOICE_COLORS.GetValue(vsNames[i]), 0 );
-					wid.m_pAction = HiddenPtr<GameCommand>( new GameCommand );
-					wid.m_pAction->m_sName = vsNames[i];
-					wid.m_pAction->Load( i, ParseCommands(CUSTOM_CHOICES.GetValue(vsNames[i])) );
-					wid.m_sLabel = CUSTOM_ITEM_WHEEL_TEXT( vsNames[i] );
-
-					if( !wid.m_pAction->IsPlayable() )
-						continue;
-
-					arrayWheelItemDatas.emplace_back( new MusicWheelItemData(wid) );
-				}
 			}
 
 			if( GAMESTATE->IsAnExtraStageAndSelectionLocked() )
@@ -1287,10 +1215,8 @@ bool MusicWheel::Select()	// return true if this selection ends the screen
 	switch( m_CurWheelItemData[m_iSelection]->m_Type )
 	{
 		case WheelItemDataType_Roulette:  
-			StartRoulette();
 			return false;
 		case WheelItemDataType_Random:
-			StartRandom();
 			return false;
 		case WheelItemDataType_Sort:
 			GetCurWheelItemData(m_iSelection)->m_pAction->ApplyToAllPlayers();
@@ -1305,48 +1231,6 @@ bool MusicWheel::Select()	// return true if this selection ends the screen
 				return false;
 		default: return true;
 	}
-}
-
-void MusicWheel::StartRoulette() 
-{
-	MESSAGEMAN->Broadcast("StartRoulette");
-	m_WheelState = STATE_ROULETTE_SPINNING;
-	m_Moving = 1;
-	m_TimeBeforeMovingBegins = 0;
-	m_SpinSpeed = 1.0f/ROULETTE_SWITCH_SECONDS;
-	GAMESTATE->m_SortOrder.Set( SORT_ROULETTE );
-	SetOpenSection( "" );
-	RebuildWheelItems();
-}
-
-void MusicWheel::StartRandom()
-{
-	MESSAGEMAN->Broadcast("StartRandom");
-	/* If RANDOM_PICKS_LOCKED_SONGS is disabled, pick a song from the active sort and
-	 * section.  If enabled, picking from the section makes it too easy to trick the
-	 * game into picking a locked song, so pick from SORT_ROULETTE. */
-	if( RANDOM_PICKS_LOCKED_SONGS )
-	{
-		// Shuffle and use the roulette wheel.
-		RandomGen rnd;
-		std::shuffle( getWheelItemsData(SORT_ROULETTE).begin(), getWheelItemsData(SORT_ROULETTE).end(), rnd );
-		GAMESTATE->m_SortOrder.Set( SORT_ROULETTE );
-	}
-	else
-	{
-		GAMESTATE->m_SortOrder.Set( GAMESTATE->m_PreferredSortOrder );
-	}
-	SetOpenSection( "" );
-
-	m_Moving = -1;
-	m_TimeBeforeMovingBegins = 0;
-	m_SpinSpeed = 1.0f/ROULETTE_SWITCH_SECONDS;
-	m_SpinSpeed *= 20.0f; /* faster! */
-	m_WheelState = STATE_RANDOM_SPINNING;
-
-	SelectSong( GetPreferredSelectionForRandomOrPortal() );
-
-	RebuildWheelItems();
 }
 
 void MusicWheel::SetOpenSection( const RString &group )

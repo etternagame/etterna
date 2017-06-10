@@ -25,8 +25,6 @@ public:
 
 	bool ChangeSort( SortOrder new_so, bool allowSameSort = false );	// return true if change successful
 	bool NextSort();						// return true if change successful
-	void StartRoulette();
-	void StartRandom();
 	bool IsRouletting() const;
 
 	virtual bool Select();				// return true if this selection ends the screen

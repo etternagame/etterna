@@ -608,23 +608,6 @@ RString SongUtil::GetSectionNameFromSongAndSort( const Song* pSong, SortOrder so
 			}
 			return GradeToLocalizedString( Grade_NoData );
 		}
-	case SORT_BEGINNER_METER:
-	case SORT_EASY_METER:
-	case SORT_MEDIUM_METER:
-	case SORT_HARD_METER:
-	case SORT_CHALLENGE_METER:
-	case SORT_DOUBLE_EASY_METER:
-	case SORT_DOUBLE_MEDIUM_METER:
-	case SORT_DOUBLE_HARD_METER:
-	case SORT_DOUBLE_CHALLENGE_METER:
-		{
-			StepsType st;
-			Difficulty dc;
-			SongUtil::GetStepsTypeAndDifficultyFromSortOrder( so, st, dc );
-
-			Steps* pSteps = GetStepsByDifficulty(pSong,st,dc);
-			return SORT_NOT_AVAILABLE.GetValue();
-		}
 	case SORT_MODE_MENU:
 		return RString();
 	default:
@@ -1002,52 +985,6 @@ bool SongUtil::IsSongPlayable( Song *s )
 
 bool SongUtil::GetStepsTypeAndDifficultyFromSortOrder( SortOrder so, StepsType &stOut, Difficulty &dcOut )
 {
-	switch( so )
-	{
-	case SORT_BEGINNER_METER:			dcOut = Difficulty_Beginner;	break;
-	case SORT_EASY_METER:				dcOut = Difficulty_Easy;		break;
-	case SORT_MEDIUM_METER:			dcOut = Difficulty_Medium;		break;
-	case SORT_HARD_METER:				dcOut = Difficulty_Hard;		break;
-	case SORT_CHALLENGE_METER:			dcOut = Difficulty_Challenge;	break;
-	case SORT_DOUBLE_EASY_METER:		dcOut = Difficulty_Easy;		break;
-	case SORT_DOUBLE_MEDIUM_METER:		dcOut = Difficulty_Medium;		break;
-	case SORT_DOUBLE_HARD_METER:		dcOut = Difficulty_Hard;		break;
-	case SORT_DOUBLE_CHALLENGE_METER:	dcOut = Difficulty_Challenge;	break;
-	default:
-		return false;
-	}
-
-	switch( so )
-	{
-	DEFAULT_FAIL( so );
-	case SORT_BEGINNER_METER:
-	case SORT_EASY_METER:
-	case SORT_MEDIUM_METER:
-	case SORT_HARD_METER:
-	case SORT_CHALLENGE_METER:
-		stOut = GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())->m_StepsType;
-		break;
-	case SORT_DOUBLE_EASY_METER:
-	case SORT_DOUBLE_MEDIUM_METER:
-	case SORT_DOUBLE_HARD_METER:
-	case SORT_DOUBLE_CHALLENGE_METER:
-		stOut = GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())->m_StepsType;	// in case we don't find any matches below
-		vector<const Style*> vpStyles;
-		GAMEMAN->GetStylesForGame(GAMESTATE->m_pCurGame,vpStyles);
-		FOREACH_CONST( const Style*, vpStyles, i )
-		{
-			if( (*i)->m_StyleType == StyleType_OnePlayerTwoSides )
-			{
-				// Ugly hack to ignore pump's half-double.
-				bool bContainsHalf = ((RString)(*i)->m_szName).find("half") != RString::npos;
-				if( bContainsHalf )
-					continue;
-				stOut = (*i)->m_StepsType;
-				break;
-			}
-		}
-	}
-
 	return true;
 }
 
