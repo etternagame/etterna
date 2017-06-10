@@ -555,6 +555,8 @@ void BackgroundImpl::LoadFromSong( const Song* pSong )
 	RageTextureID::TexPolicy OldPolicy = TEXTUREMAN->GetDefaultTexturePolicy();
 	TEXTUREMAN->SetDefaultTexturePolicy( RageTextureID::TEX_VOLATILE );
 
+	TEXTUREMAN->DisableOddDimensionWarning();
+
 	// Set to not show any BGChanges, whether scripted or random if m_bStaticBackground is on
 	if( !g_bSongBackgrounds || GAMESTATE->m_SongOptions.GetCurrent().m_bStaticBackground )
 	{
@@ -688,6 +690,8 @@ void BackgroundImpl::LoadFromSong( const Song* pSong )
 
 	// Re-sort.
 	BackgroundUtil::SortBackgroundChangesArray( mainlayer.m_aBGChanges );
+
+	TEXTUREMAN->EnableOddDimensionWarning();
 
 	if( m_pDancingCharacters )
 		m_pDancingCharacters->LoadNextSong();

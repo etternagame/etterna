@@ -42,6 +42,7 @@ namespace
 };
 
 RageTextureManager::RageTextureManager():
+	m_iNoWarnAboutOddDimensions(0),
 	m_TexturePolicy(RageTextureID::TEX_DEFAULT) {}
 
 RageTextureManager::~RageTextureManager()
@@ -344,6 +345,8 @@ void RageTextureManager::GarbageCollect( GCType type )
 
 void RageTextureManager::ReloadAll()
 {
+	DisableOddDimensionWarning();
+
 	/* Let's get rid of all unreferenced textures, so we don't reload a
 	 * ton of cached data that we're not necessarily going to use. */
 	DoDelayedDelete();
@@ -352,6 +355,8 @@ void RageTextureManager::ReloadAll()
 	{
 		i->second->Reload();
 	}
+
+	EnableOddDimensionWarning();
 }
 
 /* In some cases, changing the display mode will reset the rendering context,

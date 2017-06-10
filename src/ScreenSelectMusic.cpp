@@ -322,8 +322,10 @@ void ScreenSelectMusic::CheckBackgroundRequests( bool bForce )
 
 		if( !sCDTitlePath.empty() )
 		{
+			TEXTUREMAN->DisableOddDimensionWarning();
 			m_sprCDTitleFront.Load( sCDTitlePath );
 			m_sprCDTitleBack.Load( sCDTitlePath );
+			TEXTUREMAN->EnableOddDimensionWarning();
 		}
 
 		m_BackgroundLoader.FinishedWithCachedFile( g_sCDTitlePath );

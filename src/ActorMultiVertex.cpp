@@ -920,7 +920,9 @@ public:
 		else
 		{
 			RageTextureID ID( SArg(1) );
+			TEXTUREMAN->DisableOddDimensionWarning();
 			p->LoadFromTexture( ID );
+			TEXTUREMAN->EnableOddDimensionWarning();
 		}
 		COMMON_RETURN_SELF;
 	}

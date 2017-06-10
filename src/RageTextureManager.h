@@ -79,6 +79,10 @@ public:
 	void AdjustTextureID( RageTextureID &ID ) const;
 	void DiagnosticOutput() const;
 
+	void DisableOddDimensionWarning() { m_iNoWarnAboutOddDimensions++; }
+	void EnableOddDimensionWarning() { m_iNoWarnAboutOddDimensions--; }
+	bool GetOddDimensionWarning() const { return m_iNoWarnAboutOddDimensions == 0; }
+
 	RageTextureID GetDefaultTextureID();
 	RageTextureID GetScreenTextureID();
 	RageSurface* GetScreenSurface();
@@ -90,6 +94,7 @@ private:
 	RageTexture* LoadTextureInternal( RageTextureID ID );
 
 	RageTextureManagerPrefs m_Prefs;
+	int m_iNoWarnAboutOddDimensions;
 	RageTextureID::TexPolicy m_TexturePolicy;
 };
 
