@@ -376,9 +376,6 @@ bool Song::LoadFromSongDir( RString sDir, bool load_autosave )
 			this->m_sSongFileName = sDir + songName;
 			// Continue on with a blank Song so that people can make adjustments using the editor.
 		}
-		// If edits are not cached, looking for them causes a substantial hit to
-		// loading time. -Kyz
-		LoadEditsFromSongDir(sDir);
 
 		TidyUpData(false, true);
 
@@ -506,27 +503,6 @@ bool Song::ReloadFromSongDir( const RString &sDir )
 		}
 	}
 	return true;
-}
-
-void Song::LoadEditsFromSongDir(const RString &dir)
-{
-	// Load any .edit files in the song folder.
-	vector<RString> vs;
-	GetDirListing(dir + "*.edit", vs, false, false);
-	// XXX: I'm sure there's a StepMania way of doing this, but familiar with this codebase I am not.
-	for(unsigned int i = 0; i < vs.size(); ++i)
-	{
-		// Try SSCLoader
-		SSCLoader ldSSC;
-		if(ldSSC.LoadEditFromFile(dir + vs[i], ProfileSlot_Invalid, true, this) != true)
-		{
-			// No dice? Try SMLoader then. If SMLoader fails too, well whatever.
-			// We don't have to do anything to fail gracefully.
-			SMLoader ldSM;
-			ldSM.LoadEditFromFile(dir + vs[i], ProfileSlot_Invalid, true, this);
-		}
-	}
-	// Note: If vs.empty() then this loop is skipped entirely (vs.size() == 0)
 }
 
 bool Song::HasAutosaveFile()
@@ -1082,54 +1058,34 @@ void Song::TranslateTitles()
 
 void Song::ReCalculateRadarValuesAndLastSecond(bool fromCache, bool duringCache)
 {
-	if( fromCache && this->GetFirstSecond() >= 0 && this->GetLastSecond() > 0 )
-	{
+	if( fromCache )
 		return;
-	}
 	
 	float localFirst = FLT_MAX; // inf
 	// Make sure we're at least as long as the specified amount below.
 	float localLast = this->specifiedLastSecond;
 
-	for( unsigned i=0; i<m_vpSteps.size(); i++ )
+	for (unsigned i = 0; i<m_vpSteps.size(); i++)
 	{
-		Steps* pSteps = m_vpSteps[i];
-
-		pSteps->CalculateRadarValues( m_fMusicLengthSeconds );
-
-		// Must initialize before the gotos.
-		NoteData tempNoteData;
-		pSteps->GetNoteData( tempNoteData);
-
-		// calculate lastSecond
-
-		/* 1. Don't calculate with edits unless the song only contains an edit
-		 * chart, like those in Mungyodance 2. Otherwise, edits installed on
-		 * the machine could extend the length of the song. */
-		if( !( pSteps->IsAnEdit() && m_vpSteps.size() > 1 ) )
-		{
-			/* Many songs have stray, empty song patterns. Ignore them, so they
-			 * don't force the first beat of the whole song to 0. */
-			if( tempNoteData.GetLastRow() != 0 )
-			{
-				localFirst = min(localFirst,
-					pSteps->GetTimingData()->WhereUAtBro(tempNoteData.GetFirstBeat()));
-				localLast = max(localLast,
-					pSteps->GetTimingData()->WhereUAtBro(tempNoteData.GetLastBeat()));
-			}
-		}
-
 		// Cache etterna stuff and 'radar values'
 		if (duringCache)
 		{
-			pSteps->CalculateRadarValues(m_fMusicLengthSeconds);
-			pSteps->CalcEtternaMetadata();
+			// only ever decompress the notedata when writing the cache file
+			// for this we don't use the etterna compressed format -mina
+			m_vpSteps[i]->Decompress(false);
+
+			// calc etterna metadata will replace the unwieldy notedata string with a compressed format for both cache and internal use
+			m_vpSteps[i]->CalcEtternaMetadata();
+			m_vpSteps[i]->CalculateRadarValues(m_fMusicLengthSeconds);
+
+			// calculate lastSecond
+			localFirst = min(localFirst, m_vpSteps[i]->firstsecond);
+			localLast = max(localLast, m_vpSteps[i]->lastsecond);
 		}
 	}
 
-	// Yes, for some reason we can have freaky stuff take place here.
-	this->firstSecond = (localFirst < localLast) ? localFirst : 0;
-	this->lastSecond = localLast;
+	firstSecond = localFirst;
+	lastSecond = localLast;
 }
 
 // Return whether the song is playable in the given style.
@@ -1364,7 +1320,7 @@ bool Song::SaveToETTFile(const RString &sPath, bool bSavingCache, bool autosave)
 
 	// Mark these steps saved to disk.
 	FOREACH(Steps*, vpStepsToSave, s)
-		(*s)->SetSavedToDisk(true);
+		(*s)->SetSavedToDisk(true);		
 
 	return true;
 }
@@ -1383,7 +1339,7 @@ bool Song::SaveToCacheFile()
 	}
 	SONGINDEX->AddCacheIndex(m_sSongDir, GetHashForDirectory(m_sSongDir));
 	const RString sPath = GetCacheFilePath();
-	return SaveToSSCFile(sPath, true);
+	return SaveToETTFile(sPath, true);
 }
 
 bool Song::SaveToDWIFile()
@@ -1782,6 +1738,7 @@ void Song::AddSteps( Steps* pSteps )
 	// won't delete those steps. -Kyz
 	if(pSteps->m_StepsType != StepsType_Invalid)
 	{
+
 		m_vpSteps.push_back( pSteps );
 		ASSERT_M( pSteps->m_StepsType < NUM_StepsType, ssprintf("%i", pSteps->m_StepsType) );
 		m_vpStepsByType[pSteps->m_StepsType].push_back( pSteps );

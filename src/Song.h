@@ -90,7 +90,6 @@ public:
 	// This one takes the effort to reuse Steps pointers as best as it can
 	bool ReloadFromSongDir( const RString &sDir );
 	bool ReloadFromSongDir() { return ReloadFromSongDir(GetSongDir()); }
-	void LoadEditsFromSongDir(const RString &dir);
 
 	RString m_sFileHash;
 	RString GetFileHash();
