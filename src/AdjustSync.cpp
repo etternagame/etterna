@@ -85,7 +85,7 @@ void AdjustSync::ResetAutosync()
 bool AdjustSync::IsSyncDataChanged()
 {
 	// Can't sync in course mode :joy_cat: -mina
-	if(SONGMAN->playlistcourse == "")
+	if(!GAMESTATE->IsPlaylistCourse())
 		return false;
 
 	vector<RString> vs;
@@ -169,7 +169,7 @@ void AdjustSync::HandleAutosync( float fNoteOffBySeconds, float fStepTime )
 
 void AdjustSync::HandleSongEnd()
 {
-	if (SONGMAN->playlistcourse == "")
+	if (!GAMESTATE->IsPlaylistCourse())
 		return;
 
 	if( GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType == AutosyncType_Tempo )

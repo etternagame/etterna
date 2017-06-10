@@ -630,8 +630,11 @@ void ScreenGameplay::Init()
 	}
 
 	// Add stage / SongNumber
+
 	FOREACH_EnabledPlayerNumberInfo( m_vPlayerInfo, pi )
 	{
+	// Theme already contains all of this... so we don't need it? -mina
+		/*
 		ASSERT( pi->m_ptextStepsDescription == NULL );
 		pi->m_ptextStepsDescription = new BitmapText;
 		pi->m_ptextStepsDescription->LoadFromFont( THEME->GetPathF(m_sName,"StepsDescription") );
@@ -657,7 +660,7 @@ void ScreenGameplay::Init()
 			pi->m_pStepsDisplay->PlayCommand( "Set" + pi->GetName() );
 		LOAD_ALL_COMMANDS_AND_SET_XY( pi->m_pStepsDisplay );
 		this->AddChild( pi->m_pStepsDisplay );
-
+		*/
 /*
 		switch( GAMESTATE->m_PlayMode )
 		{
@@ -2175,7 +2178,7 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 			m_skipped_song);
 
 
-		if (SONGMAN->playlistcourse != "") {
+		if (GAMESTATE->IsPlaylistCourse()) {
 			m_apSongsQueue.erase(m_apSongsQueue.begin(), m_apSongsQueue.begin() + 1);
 			FOREACH_EnabledPlayerInfo(m_vPlayerInfo, pi)
 				pi->m_vpStepsQueue.erase(pi->m_vpStepsQueue.begin(), pi->m_vpStepsQueue.begin() + 1);
@@ -2252,9 +2255,9 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 		Message msg("SongFinished");
 		MESSAGEMAN->Broadcast(msg);
 		
-		if (SONGMAN->playlistcourse != "") {
+		if (GAMESTATE->IsPlaylistCourse()) {
 			SONGMAN->allplaylists[SONGMAN->playlistcourse].courseruns.emplace_back(playlistscorekeys);
-			SONGMAN->playlistcourse = "";
+			GAMESTATE->isplaylistcourse = false;
 		}
 
 		TweenOffScreen();
@@ -2337,7 +2340,7 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 
 		m_sNextScreen = GetPrevScreen();
 
-		if( AdjustSync::IsSyncDataChanged() && SONGMAN->playlistcourse != "")
+		if( AdjustSync::IsSyncDataChanged() && GAMESTATE->IsPlaylistCourse())
 			ScreenSaveSync::PromptSaveSync( SM_GoToPrevScreen );
 		else
 			HandleScreenMessage( SM_GoToPrevScreen );
@@ -2350,7 +2353,7 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 		if( GAMESTATE->m_SongOptions.GetCurrent().m_bSaveReplay )
 			SaveReplay();
 
-		if( AdjustSync::IsSyncDataChanged() && SONGMAN->playlistcourse != "")
+		if( AdjustSync::IsSyncDataChanged() && GAMESTATE->IsPlaylistCourse())
 			ScreenSaveSync::PromptSaveSync( SM_GoToNextScreen );
 		else
 			HandleScreenMessage( SM_GoToNextScreen );

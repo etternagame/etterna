@@ -1836,6 +1836,7 @@ public:
 				return 1;
 
 		SONGMAN->playlistcourse = name;
+		GAMESTATE->isplaylistcourse = true;
 		p->GetMusicWheel()->SelectSong(pl.chartlist[0].songptr);
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = pl.chartlist[0].rate;
 		p->SelectCurrent(PLAYER_1);

@@ -214,6 +214,8 @@ public:
 	int		GetLoadingCourseSongIndex() const;
 
 	RString GetEtternaVersion() { return "0.55"; }
+	bool isplaylistcourse = false;
+	bool IsPlaylistCourse() { return isplaylistcourse; }
 	bool CountNotesSeparately();
 
 	// State Info used during gameplay
