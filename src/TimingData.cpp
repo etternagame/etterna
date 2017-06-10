@@ -1368,7 +1368,7 @@ float TimingData::WhereUAtBro(float beat) {
 	if (beat < 0) return 0;
 	size_t row = BeatToNoteRow(beat);
 
-	if ( ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size() )
+	if ( ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size() && GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType == AutosyncType_Off)
 		return ElapsedTimesAtAllRows[row] - GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * PREFSMAN->m_fGlobalOffsetSeconds;
 
 	return GetElapsedTimeFromBeat(beat);
@@ -1378,7 +1378,7 @@ float TimingData::WhereUAtBro(float beat) const {
 	if (beat < 0) return 0;
 	size_t row = BeatToNoteRow(beat);
 
-	if ( ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size() )
+	if ( ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size() && GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType == AutosyncType_Off)
 		return ElapsedTimesAtAllRows[row] - GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * PREFSMAN->m_fGlobalOffsetSeconds;
 
 	return GetElapsedTimeFromBeat(beat);
@@ -1387,7 +1387,7 @@ float TimingData::WhereUAtBro(float beat) const {
 float TimingData::WhereUAtBro(int row) {
 	if (row < 0) return 0;
 
-	if ( ValidSequentialAssumption && static_cast<size_t>(row) < ElapsedTimesAtAllRows.size() )
+	if ( ValidSequentialAssumption && static_cast<size_t>(row) < ElapsedTimesAtAllRows.size() && GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType == AutosyncType_Off)
 		return ElapsedTimesAtAllRows[row] - GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * PREFSMAN->m_fGlobalOffsetSeconds;
 
 	return GetElapsedTimeFromBeat(NoteRowToBeat(row));
@@ -1397,7 +1397,7 @@ float TimingData::WhereUAtBroNoOffset(float beat) {
 	if (beat < 0) return 0;
 	size_t row = BeatToNoteRow(beat);
 
-	if (ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size())
+	if (ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size() && GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType == AutosyncType_Off)
 		return ElapsedTimesAtAllRows[row];
 
 	return GetElapsedTimeFromBeatNoOffset(beat);
@@ -1407,7 +1407,7 @@ float TimingData::WhereUAtBroNoOffset(float beat) const {
 	if (beat < 0) return 0;
 	size_t row = BeatToNoteRow(beat);
 
-	if (ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size())
+	if (ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size() && GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType == AutosyncType_Off)
 		return ElapsedTimesAtAllRows[row];
 
 	return GetElapsedTimeFromBeatNoOffset(beat);
