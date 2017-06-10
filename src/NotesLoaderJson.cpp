@@ -94,11 +94,6 @@ static void Deserialize( TapNote &o, const Json::Value &root )
 		o.type = (TapNoteType)root["Type"].asInt();
 	//if( o.type == TapNoteType_HoldHead )
 		o.subType = (TapNoteSubType)root["SubType"].asInt();
-	//root["Source"] = (int)source;
-	//if( !o.sAttackModifiers.empty() )
-		o.sAttackModifiers = root["AttackModifiers"].asString();
-	//if( o.fAttackDurationSeconds > 0 )
-		o.fAttackDurationSeconds = (float)root["AttackDurationSeconds"].asDouble();
 	//if( o.bKeysound )
 		o.iKeysoundIndex = root["KeysoundIndex"].asInt();
 	//if( o.iDuration > 0 )

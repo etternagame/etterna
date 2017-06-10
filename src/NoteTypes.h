@@ -90,7 +90,6 @@ enum TapNoteType
 	TapNoteType_HoldTail,	/**< In 2sand3s mode, holds are deleted and hold_tail is added. */
 	TapNoteType_Mine,		/**< In most modes, it is suggested to not step on these mines. */
 	TapNoteType_Lift,		/**< Lift your foot up when it crosses the target area. */
-	TapNoteType_Attack,		/**< Hitting this note causes an attack to take place. */
 	TapNoteType_AutoKeysound,	/**< A special sound is played when this note crosses the target area. */
 	TapNoteType_Fake,		/**< This arrow can't be scored for or against the player. */
 	NUM_TapNoteType,
@@ -139,10 +138,6 @@ struct TapNote
 	/** @brief The Player that is supposed to hit this note. This is mainly for Routine Mode. */
 	PlayerNumber	pn;
 
-	// used only if Type == attack:
-	RString		sAttackModifiers;
-	float		fAttackDurationSeconds;
-
 	// Index into Song's vector of keysound files if nonnegative:
 	int		iKeysoundIndex;
 
@@ -161,29 +156,23 @@ struct TapNote
 	bool IsNote() const { return type == TapNoteType_Tap || type == TapNoteType_HoldHead; }
 
 	TapNote(): type(TapNoteType_Empty), subType(TapNoteSubType_Invalid),
-		source(TapNoteSource_Original),	result(), pn(PLAYER_INVALID),  sAttackModifiers(""), 
-		fAttackDurationSeconds(0), iKeysoundIndex(-1), iDuration(0), HoldResult() {}
+		source(TapNoteSource_Original),	result(), pn(PLAYER_INVALID), iKeysoundIndex(-1), iDuration(0), HoldResult() {}
 	void Init()
 	{
 		type = TapNoteType_Empty;
 		subType = TapNoteSubType_Invalid; 
 		source = TapNoteSource_Original; 
 		pn = PLAYER_INVALID, 
-		fAttackDurationSeconds = 0.f; 
 		iKeysoundIndex = -1;
 		iDuration = 0;
 	}
 	TapNote( 
 		TapNoteType type_,
 		TapNoteSubType subType_,
-		TapNoteSource source_, 
-		RString sAttackModifiers_,
-		float fAttackDurationSeconds_,
+		TapNoteSource source_,
 		int iKeysoundIndex_ ):
 		type(type_), subType(subType_), source(source_), result(),
-		pn(PLAYER_INVALID), sAttackModifiers(sAttackModifiers_),
-		fAttackDurationSeconds(fAttackDurationSeconds_),
-		iKeysoundIndex(iKeysoundIndex_), iDuration(0), HoldResult()
+		pn(PLAYER_INVALID), iKeysoundIndex(iKeysoundIndex_), iDuration(0), HoldResult()
 	{
 		if (type_ > TapNoteType_Fake )
 		{
@@ -202,8 +191,6 @@ struct TapNote
 		COMPARE(type);
 		COMPARE(subType);
 		COMPARE(source);
-		COMPARE(sAttackModifiers);
-		COMPARE(fAttackDurationSeconds);
 		COMPARE(iKeysoundIndex);
 		COMPARE(iDuration);
 		COMPARE(pn);

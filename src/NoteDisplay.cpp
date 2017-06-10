@@ -1504,7 +1504,6 @@ void NoteColumnRenderer::DrawPrimitives()
 			case TapNoteType_HoldTail:
 			case TapNoteType_Mine:
 			case TapNoteType_Lift:
-			case TapNoteType_Attack:
 			case TapNoteType_AutoKeysound:
 			case TapNoteType_Fake:
 				if(!tn.result.bHidden)

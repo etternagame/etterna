@@ -59,11 +59,6 @@ static void Serialize( const TapNote &o, Json::Value &root )
 		root["Type"] = (int)o.type;
 	if( o.type == TapNoteType_HoldHead )
 		root["SubType"] = (int)o.subType;
-	//root["Source"] = (int)source;
-	if( !o.sAttackModifiers.empty() )
-		root["AttackModifiers"] = o.sAttackModifiers;
-	if( o.fAttackDurationSeconds > 0 )
-		root["AttackDurationSeconds"] = o.fAttackDurationSeconds;
 	if( o.iKeysoundIndex != -1 )
 		root["KeysoundIndex"] = o.iKeysoundIndex;
 	if( o.iDuration > 0 )

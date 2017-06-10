@@ -630,7 +630,6 @@ void NoteDataUtil::GetSMNoteDataString( const NoteData &in, RString &sRet )
 						break;
 					case TapNoteType_HoldTail:		c = '3'; break;
 					case TapNoteType_Mine:			c = 'M'; break;
-					case TapNoteType_Attack:			c = 'A'; break;
 					case TapNoteType_AutoKeysound:	c = 'K'; break;
 					case TapNoteType_Lift:			c = 'L'; break;
 					case TapNoteType_Fake:			c = 'F'; break;
@@ -640,11 +639,6 @@ void NoteDataUtil::GetSMNoteDataString( const NoteData &in, RString &sRet )
 					}
 					sRet.append( 1, c );
 
-					if( tn.type == TapNoteType_Attack )
-					{
-						sRet.append( ssprintf("{%s:%.2f}", tn.sAttackModifiers.c_str(),
-								      tn.fAttackDurationSeconds) );
-					}
 					// hey maybe if we have TapNoteType_Item we can do things here.
 					if( tn.iKeysoundIndex >= 0 )
 						sRet.append( ssprintf("[%d]",tn.iKeysoundIndex) );
@@ -1173,7 +1167,6 @@ void NoteDataUtil::CalculateRadarValues( const NoteData &in, float fSongSeconds,
 				case TapNoteType_Lift:
 					// HoldTails and Attacks are counted by IsTap.  But it doesn't
 					// make sense to count HoldTails as hittable notes. -Kyz
-				case TapNoteType_Attack:
 					++out[RadarCategory_Notes];
 					++state.num_notes_on_curr_row;
 					++total_taps;
@@ -1858,7 +1851,6 @@ static void SuperShuffleTaps( NoteData &inout, int iStartIndex, int iEndIndex )
 				continue;	// skip
 			case TapNoteType_Tap:
 			case TapNoteType_Mine:
-			case TapNoteType_Attack:
 			case TapNoteType_Lift:
 			case TapNoteType_Fake:
 				break;	// shuffle this
@@ -1890,7 +1882,6 @@ static void SuperShuffleTaps( NoteData &inout, int iStartIndex, int iEndIndex )
 				case TapNoteType_Empty:
 				case TapNoteType_Tap:
 				case TapNoteType_Mine:
-				case TapNoteType_Attack:
 				case TapNoteType_Lift:
 				case TapNoteType_Fake:
 					break;	// ok to swap with this
@@ -2987,34 +2978,6 @@ void NoteDataUtil::TransformNoteData( NoteData &nd, TimingData const& timing_dat
 	if( po.m_bTurns[PlayerOptions::TURN_SOFT_SHUFFLE] )			NoteDataUtil::Turn( nd, st, NoteDataUtil::soft_shuffle, iStartIndex, iEndIndex );
 	if( po.m_bTurns[PlayerOptions::TURN_SUPER_SHUFFLE] )		NoteDataUtil::Turn( nd, st, NoteDataUtil::super_shuffle, iStartIndex, iEndIndex );
 
-	nd.RevalidateATIs(vector<int>(), false);
-}
-
-void NoteDataUtil::AddTapAttacks( NoteData &nd, Song* pSong )
-{
-	// throw an attack in every 30 seconds
-
-	const char* szAttacks[3] =
-	{
-		"2x",
-		"drunk",
-		"dizzy",
-	};
-
-	for( float sec=15; sec<pSong->m_fMusicLengthSeconds; sec+=30 )
-	{
-		float fBeat = pSong->m_SongTiming.GetBeatFromElapsedTime( sec );
-		int iBeat = (int)fBeat;
-		int iTrack = iBeat % nd.GetNumTracks();	// deterministically calculates track
-		TapNote tn(
-			TapNoteType_Attack,
-			TapNoteSubType_Invalid,
-			TapNoteSource_Original, 
-			szAttacks[RandomInt(ARRAYLEN(szAttacks))],
-			15.0f, 
-			-1 );
-		nd.SetTapNote( iTrack, BeatToNoteRow(fBeat), tn );
-	}
 	nd.RevalidateATIs(vector<int>(), false);
 }
 

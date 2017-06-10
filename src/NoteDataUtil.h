@@ -165,7 +165,6 @@ namespace NoteDataUtil
 	void TransformNoteData(NoteData &nd, TimingData const& timing_data,
 		const PlayerOptions &po, StepsType st,
 			       int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW );
-	void AddTapAttacks( NoteData &nd, Song* pSong );
 
 	void Scale( NoteData &nd, float fScale );
 	void ScaleRegion( NoteData &nd, float fScale, int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW );

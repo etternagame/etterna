@@ -500,7 +500,6 @@ static bool NeedsTapJudging( const TapNote &tn )
 	case TapNoteType_Lift:
 		return tn.result.tns == TNS_None;
 	case TapNoteType_HoldTail:
-	case TapNoteType_Attack:
 	case TapNoteType_AutoKeysound:
 	case TapNoteType_Fake:
 	case TapNoteType_Empty:
@@ -523,7 +522,6 @@ static bool NeedsHoldJudging( const TapNote &tn )
 	case TapNoteType_HoldTail:
 	case TapNoteType_Mine:
 	case TapNoteType_Lift:
-	case TapNoteType_Attack:
 	case TapNoteType_AutoKeysound:
 	case TapNoteType_Fake:
 	case TapNoteType_Empty:
@@ -2053,7 +2051,7 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 					score = TNS_HitMine;
 			}
 
-			if( pTN->type == TapNoteType_Attack && score > TNS_W4 )
+			if( score > TNS_W4 )
 				score = TNS_W2; // sentinel
 
 			/* AI will generate misses here. Don't handle a miss like a regular

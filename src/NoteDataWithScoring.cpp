@@ -313,7 +313,6 @@ void NoteDataWithScoring::GetActualRadarValues(const NoteData &in,
 				case TapNoteType_HoldHead:
 					// HoldTails and Attacks are counted by IsTap.  But it doesn't
 					// make sense to count HoldTails as hittable notes. -Kyz
-				case TapNoteType_Attack:
 				case TapNoteType_Lift:
 					UpdateHittable(state.curr_row, first_hittable_row, last_hittable_row);
 					++state.num_notes_on_curr_row;
