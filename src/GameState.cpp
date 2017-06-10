@@ -100,7 +100,6 @@ static const ThemeMetric<Grade> GRADE_TIER_FOR_EXTRA_2	("GameState","GradeTierFo
 static ThemeMetric<bool> ARE_STAGE_PLAYER_MODS_FORCED	("GameState","AreStagePlayerModsForced");
 static ThemeMetric<bool> ARE_STAGE_SONG_MODS_FORCED	("GameState","AreStageSongModsForced");
 
-static Preference<Premium> g_Premium( "Premium", Premium_DoubleFor1Credit );
 Preference<bool> GameState::m_bAutoJoin( "AutoJoin", false );
 Preference<bool> GameState::DisableChordCohesion("DisableChordCohesion", true);
 
@@ -371,13 +370,6 @@ void GameState::JoinPlayer( PlayerNumber pn )
 			}
 		}
 	}
-	/* If joint premium and we're not taking away a credit for the 2nd join,
-	 * give the new player the same number of stage tokens that the old player
-	 * has. */
-	if( GetCoinMode() == CoinMode_Pay && GetPremium() == Premium_2PlayersFor1Credit && GetNumSidesJoined() == 1 )
-		m_iPlayerStageTokens[pn] = m_iPlayerStageTokens[this->GetMasterPlayerNumber()];
-	else
-		m_iPlayerStageTokens[pn] = PREFSMAN->m_iSongsPerPlay;
 
 	m_bSideIsJoined[pn] = true;
 
@@ -475,16 +467,7 @@ namespace
 		if( GAMESTATE->m_bSideIsJoined[pn] )
 			return false;
 
-		// subtract coins
-		int iCoinsNeededToJoin = GAMESTATE->GetCoinsNeededToJoin();
-
-		if( GAMESTATE->m_iCoins < iCoinsNeededToJoin )
-			return false;	// not enough coins
-
-		GAMESTATE->m_iCoins.Set( GAMESTATE->m_iCoins - iCoinsNeededToJoin );
-
 		GAMESTATE->JoinPlayer( pn );
-
 		return true;
 	}
 };
@@ -509,21 +492,6 @@ bool GameState::JoinPlayers()
 			bJoined = true;
 	}
 	return bJoined;
-}
-
-int GameState::GetCoinsNeededToJoin() const
-{
-	int iCoinsToCharge = 0;
-
-	if( GetCoinMode() == CoinMode_Pay )
-		iCoinsToCharge = PREFSMAN->m_iCoinsPerCredit;
-
-	// If joint premium, don't take away a credit for the second join.
-	if( GetPremium() == Premium_2PlayersFor1Credit  &&
-		GetNumSidesJoined() == 1 )
-		iCoinsToCharge = 0;
-
-	return iCoinsToCharge;
 }
 
 /* Game flow:
@@ -1639,8 +1607,6 @@ FailType GameState::GetPlayerFailType( const PlayerState *pPlayerState ) const
 			dc = m_pCurSteps[pn]->GetDifficulty();
 
 		bool bFirstStage = false;
-		if( !IsEventMode() )
-			bFirstStage |= m_iPlayerStageTokens[pPlayerState->m_PlayerNumber] == PREFSMAN->m_iSongsPerPlay-1; // HACK; -1 because this is called during gameplay
 
 		// Easy and beginner are never harder than FAIL_IMMEDIATE_CONTINUE.
 		if( dc <= Difficulty_Easy )
@@ -2002,21 +1968,6 @@ bool GameState::IsEventMode() const
 	return m_bTemporaryEventMode || PREFSMAN->m_bEventMode;
 }
 
-CoinMode GameState::GetCoinMode() const
-{
-	// XXX: Event mode shouldn't be valid if CoinMode_Pay
-	if( IsEventMode() && GamePreferences::m_CoinMode == CoinMode_Pay )
-		return CoinMode_Free;
-	else
-		return GamePreferences::m_CoinMode;
-}
-
-ThemeMetric<bool> DISABLE_PREMIUM_IN_EVENT_MODE("GameState","DisablePremiumInEventMode");
-Premium	GameState::GetPremium() const
-{
-	return DISABLE_PREMIUM_IN_EVENT_MODE ? Premium_Off : g_Premium;
-}
-
 bool GameState::PlayerIsUsingModifier( PlayerNumber pn, const RString &sModifier )
 {
 	PlayerOptions po = m_pPlayerState[pn]->m_PlayerOptions.GetCurrent();
@@ -2236,14 +2187,9 @@ public:
 	}
 	DEFINE_METHOD( GetLastGameplayDuration, m_DanceDuration )
 	DEFINE_METHOD( GetGameplayLeadIn,		m_bGameplayLeadIn )
-	DEFINE_METHOD( GetCoins,			m_iCoins )
 	DEFINE_METHOD( IsSideJoined,			m_bSideIsJoined[Enum::Check<PlayerNumber>(L, 1)] )
-	DEFINE_METHOD( GetCoinsNeededToJoin,		GetCoinsNeededToJoin() )
-	DEFINE_METHOD( EnoughCreditsToJoin,		EnoughCreditsToJoin() )
 	DEFINE_METHOD( PlayersCanJoin,			PlayersCanJoin() )
 	DEFINE_METHOD( GetNumSidesJoined,		GetNumSidesJoined() )
-	DEFINE_METHOD( GetCoinMode,			GetCoinMode() )
-	DEFINE_METHOD( GetPremium,			GetPremium() )
 	DEFINE_METHOD( GetSongOptionsString,		m_SongOptions.GetCurrent().GetString() )
 	DEFINE_METHOD( CountNotesSeparately, CountNotesSeparately() )
 	static int GetSessionTime(T* p, lua_State *L) { lua_pushnumber(L, p->m_timeGameStarted.GetTimeSinceStart()); return 1; }
@@ -2590,6 +2536,10 @@ public:
 		lua_pushboolean(L, false);
 		return 1;
 	}
+	static int GetCoinMode(T* p, lua_State* L) {
+		lua_pushstring(L, "CoinMode_Home");
+		return 1;
+	}
 	DEFINE_METHOD(GetEtternaVersion, GetEtternaVersion())
 	LunaGameState()
 	{
@@ -2641,14 +2591,9 @@ public:
 		ADD_METHOD( GetSongPosition );
 		ADD_METHOD( GetLastGameplayDuration );
 		ADD_METHOD( GetGameplayLeadIn );
-		ADD_METHOD( GetCoins );
 		ADD_METHOD( IsSideJoined );
-		ADD_METHOD( GetCoinsNeededToJoin );
-		ADD_METHOD( EnoughCreditsToJoin );
 		ADD_METHOD( PlayersCanJoin );
 		ADD_METHOD( GetNumSidesJoined );
-		ADD_METHOD( GetCoinMode );
-		ADD_METHOD( GetPremium );
 		ADD_METHOD( GetSongOptionsString );
 		ADD_METHOD( GetSongOptions );
 		ADD_METHOD( GetSongOptionsObject );
@@ -2703,6 +2648,7 @@ public:
 		ADD_METHOD( IsCourseMode );
 		ADD_METHOD( GetEtternaVersion );
 		ADD_METHOD( CountNotesSeparately );
+		ADD_METHOD(GetCoinMode);
 	}
 };
 

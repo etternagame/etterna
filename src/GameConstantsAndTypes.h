@@ -404,34 +404,6 @@ enum StageResult
 };
 LuaDeclareType( StageResult );
 
-// Coin stuff
-/** @brief The different coin modes to determine how one can play. */
-enum CoinMode
-{
-	CoinMode_Home, /**< The full range of options are available. */
-	CoinMode_Pay, /**< Coins must be inserted before a game can begin. */
-	CoinMode_Free, /**< It costs no money to play, but otherwise is similar to Pay mode. */
-	NUM_CoinMode,
-	CoinMode_Invalid
-};
-const RString& CoinModeToString( CoinMode cm );
-LuaDeclareType( CoinMode );
-
-
-/** @brief The different types of premiums available to take advantage of. */
-enum Premium
-{
-	Premium_Off, /**< It will cost one credit per side of the machine. */
-	Premium_DoubleFor1Credit, /**< It will cost one credit per player of the machine. */
-	Premium_2PlayersFor1Credit, /**< One credit gives one or both players full access. */
-	NUM_Premium,
-	Premium_Invalid
-};
-const RString& PremiumToString( Premium p );
-const RString& PremiumToLocalizedString( Premium p );
-LuaDeclareType( Premium );
-
-
 /** @brief The various stage awards that can be given based on excellent play. */
 enum StageAward
 {

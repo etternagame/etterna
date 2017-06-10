@@ -345,7 +345,6 @@ void LifeMeterBar::UpdateNonstopLifebar()
 			return;
 
 		iCleared = GAMESTATE->m_iCurrentStageIndex;
-		iTotal = PREFSMAN->m_iSongsPerPlay;
 		iProgressiveLifebarDifficulty = PREFSMAN->m_iProgressiveStageLifebar;
 		break;
 	default:

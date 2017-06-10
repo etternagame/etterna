@@ -142,11 +142,6 @@ void ValidateDisplayAspectRatio( float &val )
 		val = 16/9.f;
 }
 
-void ValidateSongsPerPlay( int &val )
-{
-	CLAMP(val,0,MAX_SONGS_PER_PLAY);
-}
-
 PrefsManager::PrefsManager() :
 	m_sCurrentGame			( "CurrentGame",		"" ),
 
@@ -209,21 +204,15 @@ PrefsManager::PrefsManager() :
 	m_iMusicWheelSwitchSpeed	( "MusicWheelSwitchSpeed",	15 ),
 	m_AllowW1			( "AllowW1",			ALLOW_W1_EVERYWHERE ),
 	m_bEventMode			( "EventMode",			true ),
-	m_iCoinsPerCredit		( "CoinsPerCredit",		1 ),
-	m_iSongsPerPlay			( "SongsPerPlay",		3, ValidateSongsPerPlay ),
-	m_bDelayedCreditsReconcile	( "DelayedCreditsReconcile",	false ),
 	m_bComboContinuesBetweenSongs	( "ComboContinuesBetweenSongs",	false ),
-	m_AllowMultipleToasties		("AllowMultipleToasties",	false ),
 	m_MinTNSToHideNotes		("MinTNSToHideNotes",		TNS_W3 ),
 	m_ShowSongOptions		( "ShowSongOptions",		Maybe_NO ),
 	m_bDancePointsForOni		( "DancePointsForOni",		true ),
-	m_bPercentageScoring		( "PercentageScoring",		false ),
 	m_fMinPercentToSaveScores( "MinPercentToSaveScores",	-1.0f ),
 	m_bDisqualification		( "Disqualification",			false ),
 	m_bOnlyPreferredDifficulties	( "OnlyPreferredDifficulties",		false ),
 	m_bBreakComboToGetItem		( "BreakComboToGetItem",		false ),
 	m_ShowDancingCharacters		( "ShowDancingCharacters",		SDC_Off ),
-	m_bUseUnlockSystem		( "UseUnlockSystem",			false ),
 	m_fGlobalOffsetSeconds		( "GlobalOffsetSeconds",		0 ),
 	m_iProgressiveLifebar		( "ProgressiveLifebar",			0 ),
 	m_iProgressiveStageLifebar	( "ProgressiveStageLifebar",		0 ),
@@ -238,8 +227,6 @@ PrefsManager::PrefsManager() :
 	m_fCenterImageAddHeight		( "CenterImageAddHeight",		0 ),
 	m_AttractSoundFrequency		( "AttractSoundFrequency",		ASF_EVERY_TIME ),
 	m_bAllowExtraStage		( "AllowExtraStage",			true ),
-	m_iMaxHighScoresPerListForMachine	( "MaxHighScoresPerListForMachine",	10 ), // Should be removed since they are no longer referenced - Mina
-	m_iMaxHighScoresPerListForPlayer	( "MaxHighScoresPerListForPlayer",	10 ),
 	m_bAllowMultipleHighScoreWithSameName	( "AllowMultipleHighScoreWithSameName",	true ),
 	m_DisableUploadDir("DisableUploadDir", false),
 	m_bCelShadeModels		( "CelShadeModels",			false ),	// Work-In-Progress.. disable by default.

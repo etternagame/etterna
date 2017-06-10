@@ -17,9 +17,6 @@ class Style;
 struct Game;
 struct lua_State;
 
-int GetNumCreditsPaid();
-int GetCreditsRequiredToPlayStyle( const Style *style );
-
 class GameCommand
 {
 public:
@@ -35,7 +32,6 @@ public:
 		m_sSongGroup(""), m_SortOrder(SortOrder_Invalid),
 		m_sSoundPath(""), m_vsScreensToPrepare(),
 		m_sProfileID(""), m_sUrl(""), m_bUrlExits(true),
-		m_bInsertCredit(false), m_bClearCredits(false),
 		m_bStopMusic(false), m_bApplyDefaultOptions(false),
 		m_bFadeMusic(false), m_fMusicFadeOutVolume(-1),
 		m_fMusicFadeOutSeconds(-1), m_bApplyCommitsScreens(true)
@@ -95,8 +91,6 @@ public:
 	// sm-ssc adds:
 	bool		m_bUrlExits;	// for making stepmania not exit on url
 
-	bool m_bInsertCredit;
-	bool m_bClearCredits;
 	bool m_bStopMusic;
 	bool m_bApplyDefaultOptions;
 	// sm-ssc also adds:

@@ -51,9 +51,6 @@ void GameCommand::Init()
 	m_sProfileID = "";
 	m_sUrl = "";
 	m_bUrlExits = true;
-
-	m_bInsertCredit = false;
-	m_bClearCredits = false;
 	m_bStopMusic = false;
 	m_bApplyDefaultOptions = false;
 	m_bFadeMusic = false;
@@ -342,16 +339,6 @@ void GameCommand::LoadOne( const Command& cmd )
 		m_vsScreensToPrepare.push_back( sValue );
 	}
 
-	else if( sName == "insertcredit" )
-	{
-		m_bInsertCredit = true;
-	}
-
-	else if( sName == "clearcredits" )
-	{
-		m_bClearCredits = true;
-	}
-
 	else if( sName == "stopmusic" )
 	{
 		m_bStopMusic = true;
@@ -414,45 +401,6 @@ void GameCommand::LoadOne( const Command& cmd )
 #undef MAKE_INVALID
 }
 
-int GetNumCreditsPaid()
-{
-	int iNumCreditsPaid = GAMESTATE->GetNumSidesJoined();
-
-	// players other than the first joined for free
-	if( GAMESTATE->GetPremium() == Premium_2PlayersFor1Credit )
-		iNumCreditsPaid = min( iNumCreditsPaid, 1 );
-
-	return iNumCreditsPaid;
-}
-
-
-int GetCreditsRequiredToPlayStyle( const Style *style )
-{
-	// GameState::GetCoinsNeededToJoin returns 0 if the coin mode isn't
-	// CoinMode_Pay, which means the theme can't make sure that there are
-	// enough credits available.
-	// So we have to check the coin mode here
-	// and return 0 if the player doesn't have to pay.
-	if( GAMESTATE->GetCoinMode() != CoinMode_Pay )
-	{
-		return 0;
-	}
-	if( GAMESTATE->GetPremium() == Premium_2PlayersFor1Credit )
-		return 1;
-
-	switch( style->m_StyleType )
-	{
-	case StyleType_OnePlayerOneSide:
-		return 1;
-	case StyleType_TwoPlayersSharedSides:
-	case StyleType_TwoPlayersTwoSides:
-		return 2;
-	case StyleType_OnePlayerTwoSides:
-		return (GAMESTATE->GetPremium() == Premium_DoubleFor1Credit) ? 1 : 2;
-	DEFAULT_FAIL( style->m_StyleType );
-	}
-}
-
 static bool AreStyleAndPlayModeCompatible( const Style *style, PlayMode pm )
 {
 		return true;
@@ -465,43 +413,6 @@ bool GameCommand::IsPlayable( RString *why ) const
 		if( why )
 			*why = m_sInvalidReason;
 		return false;
-	}
-
-	if ( m_pStyle )
-	{
-		int iCredits;
-		if( GAMESTATE->GetCoinMode() == CoinMode_Pay )
-			iCredits = GAMESTATE->m_iCoins / PREFSMAN->m_iCoinsPerCredit;
-		else
-			iCredits = NUM_PLAYERS;
-
-		const int iNumCreditsPaid = GetNumCreditsPaid();
-		const int iNumCreditsRequired = GetCreditsRequiredToPlayStyle(m_pStyle);
-		
-		/* With PREFSMAN->m_bDelayedCreditsReconcile disabled, enough credits must
-		 * be paid. (This means that enough sides must be joined.)  Enabled, simply
-		 * having enough credits lying in the machine is sufficient; we'll deduct the
-		 * extra in Apply(). */
-		int iNumCreditsAvailable = iNumCreditsPaid;
-		if( PREFSMAN->m_bDelayedCreditsReconcile )
-			iNumCreditsAvailable += iCredits;
-
-		if( iNumCreditsAvailable < iNumCreditsRequired )
-		{
-			if( why )
-				*why = ssprintf( "need %i credits, have %i", iNumCreditsRequired, iNumCreditsAvailable );
-			return false;
-		}
-
-		/* If both sides are joined, disallow singles modes, since easy to select
-		 * them accidentally, instead of versus mode. */
-		if( m_pStyle->m_StyleType == StyleType_OnePlayerOneSide &&
-			GAMESTATE->GetNumPlayersEnabled() > 1 )
-		{
-			if( why )
-				*why = "too many players joined for ONE_PLAYER_ONE_CREDIT";
-			return false;
-		}
 	}
 
 	/* Don't allow a PlayMode that's incompatible with our current Style (if set),
@@ -581,20 +492,6 @@ void GameCommand::ApplySelf( const vector<PlayerNumber> &vpns ) const
 	if( m_pStyle != NULL )
 	{
 		GAMESTATE->SetCurrentStyle( m_pStyle, GAMESTATE->GetMasterPlayerNumber() );
-
-		// It's possible to choose a style that didn't have enough players joined.
-		// If enough players aren't joined, then  we need to subtract credits
-		// for the sides that will be joined as a result of applying this option.
-		if( GAMESTATE->GetCoinMode() == CoinMode_Pay )
-		{
-			int iNumCreditsRequired = GetCreditsRequiredToPlayStyle(m_pStyle);
-			int iNumCreditsPaid = GetNumCreditsPaid();
-			int iNumCreditsOwed = iNumCreditsRequired - iNumCreditsPaid;
-			GAMESTATE->m_iCoins.Set( GAMESTATE->m_iCoins - iNumCreditsOwed * PREFSMAN->m_iCoinsPerCredit );
-			LOG->Trace( "Deducted %i coins, %i remaining",
-					iNumCreditsOwed * PREFSMAN->m_iCoinsPerCredit, GAMESTATE->m_iCoins.Get() );
-		}
-		
 		// If only one side is joined and we picked a style that requires both
 		// sides, join the other side.
 		switch( m_pStyle->m_StyleType )
@@ -698,9 +595,6 @@ void GameCommand::ApplySelf( const vector<PlayerNumber> &vpns ) const
 
 	FOREACH_CONST( RString, m_vsScreensToPrepare, s )
 		SCREENMAN->PrepareScreen( *s );
-
-	if( m_bClearCredits )
-		StepMania::ClearCredits();
 
 	if( m_bApplyDefaultOptions )
 	{

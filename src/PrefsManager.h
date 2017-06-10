@@ -7,12 +7,6 @@
 class IniFile;
 
 void ValidateDisplayAspectRatio( float &val );
-void ValidateSongsPerPlay( int &val );
-
-/** @brief How many songs can be played during a normal game max?
- *
- * This assumes no extra stages, no event mode, no course modes. */
-const int MAX_SONGS_PER_PLAY = 7;
 
 enum MusicWheelUsesSections
 { 
@@ -202,21 +196,15 @@ public:
 	Preference<int>	m_iMusicWheelSwitchSpeed;
 	Preference<AllowW1>	m_AllowW1; // this should almost always be on, given use cases. -aj
 	Preference<bool>	m_bEventMode;
-	Preference<int>	m_iCoinsPerCredit;
-	Preference<int>	m_iSongsPerPlay;
-	Preference<bool>	m_bDelayedCreditsReconcile; // zuh?
 	Preference<bool>	m_bComboContinuesBetweenSongs;
-	Preference<bool>	m_AllowMultipleToasties;
 	Preference<TapNoteScore> m_MinTNSToHideNotes;
 	Preference<Maybe>	m_ShowSongOptions;
 	Preference<bool>	m_bDancePointsForOni;
-	Preference<bool>	m_bPercentageScoring;
 	Preference<float>	m_fMinPercentToSaveScores;
 	Preference<bool>	m_bDisqualification;
 	Preference<bool>	m_bOnlyPreferredDifficulties;
 	Preference<bool>	m_bBreakComboToGetItem;
 	Preference<ShowDancingCharacters>		m_ShowDancingCharacters;
-	Preference<bool>	m_bUseUnlockSystem;
 	Preference<float>	m_fGlobalOffsetSeconds;
 	Preference<int>	m_iProgressiveLifebar;
 	Preference<int>	m_iProgressiveStageLifebar;
@@ -231,8 +219,6 @@ public:
 	Preference<int>	m_fCenterImageAddHeight;
 	Preference<AttractSoundFrequency>	m_AttractSoundFrequency;
 	Preference<bool>	m_bAllowExtraStage;
-	Preference<int>	m_iMaxHighScoresPerListForMachine;
-	Preference<int>	m_iMaxHighScoresPerListForPlayer;
 	Preference<bool>	m_bAllowMultipleHighScoreWithSameName;
 	Preference<bool> m_DisableUploadDir;
 	Preference<bool>	m_bCelShadeModels;
