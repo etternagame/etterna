@@ -85,10 +85,6 @@ void RageBitmapTexture::Create()
 	/* Tolerate corrupt/unknown images. */
 	if( pImg == NULL )
 	{
-		RString warning = ssprintf("RageBitmapTexture: Couldn't load %s: %s",
-			actualID.filename.c_str(), error.c_str());
-		LOG->Warn("%s", warning.c_str());
-		Dialog::OK(warning, "missing_texture");
 		pImg = RageSurfaceUtils::MakeDummySurface( 64, 64 );
 		ASSERT( pImg != NULL );
 	}
@@ -269,62 +265,6 @@ void RageBitmapTexture::Create()
 	m_uTexHandle = DISPLAY->CreateTexture( pixfmt, pImg, actualID.bMipMaps );
 
 	CreateFrameRects();
-
-
-	{
-		// Enforce frames in the image have even dimensions.
-		// Otherwise, pixel/texel alignment will be off.
-		int iDimensionMultiple = 2;
-
-		if( sHintString.find("doubleres") != string::npos )
-		{
-			iDimensionMultiple = 4;
-		}
-
-		bool bRunCheck = true;
-
-		// Don't check if the artist intentionally blanked the image by making it very tiny.
-		if( this->GetSourceWidth()<=iDimensionMultiple || this->GetSourceHeight()<=iDimensionMultiple )
-			bRunCheck = false;
-
-		// HACK: Don't check song graphics. Many of them are weird dimensions.
-		if( !TEXTUREMAN->GetOddDimensionWarning() )
-			bRunCheck = false;
-
-		// Don't check if this is the screen texture, the theme can't do anything
-		// about it. -Kyz
-		if(actualID == TEXTUREMAN->GetScreenTextureID())
-		{
-			bRunCheck= false;
-		}
-
-		if( bRunCheck  )
-		{
-			float fFrameWidth = this->GetSourceWidth() / static_cast<float>(this->GetFramesWide());
-			float fFrameHeight = this->GetSourceHeight() / static_cast<float>(this->GetFramesHigh());
-			float fBetterFrameWidth = ceilf(fFrameWidth/iDimensionMultiple) * iDimensionMultiple;
-			float fBetterFrameHeight = ceilf(fFrameHeight/iDimensionMultiple) * iDimensionMultiple;
-			float fBetterSourceWidth = this->GetFramesWide() * fBetterFrameWidth;
-			float fBetterSourceHeight = this->GetFramesHigh() * fBetterFrameHeight;
-			if( fFrameWidth!=fBetterFrameWidth || fFrameHeight!=fBetterFrameHeight )
-			{
-				RString sWarning = ssprintf(
-					"The graphic '%s' has frame dimensions that aren't a multiple of %d.\n"
-					"The entire image is %dx%d and frame size is %.1fx%.1f.\n"
-					"Image quality will be much improved if you resize the graphic to %.0fx%.0f, which is a frame size of %.0fx%.0f.", 
-					actualID.filename.c_str(), 
-					iDimensionMultiple,
-					this->GetSourceWidth(), this->GetSourceHeight(), 
-					fFrameWidth, fFrameHeight,
-					fBetterSourceWidth, fBetterSourceHeight,
-					fBetterFrameWidth, fBetterFrameHeight );
-				LOG->Warn( "%s", sWarning.c_str() );
-				Dialog::OK( sWarning, "FRAME_DIMENSIONS_WARNING" );
-			}
-		}
-	}
-
-
 	delete pImg;
 
 	// Check for hints that override the apparent "size".
