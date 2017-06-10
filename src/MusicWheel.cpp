@@ -138,13 +138,6 @@ void MusicWheel::BeginScreen()
 
 	WheelBase::BeginScreen();
 
-	if( GAMESTATE->IsAnExtraStageAndSelectionLocked() )
-	{
-		m_WheelState = STATE_LOCKED;
-		SCREENMAN->PlayStartSound();
-		m_fLockedWheelVelocity = 0;
-	}
-
 	GAMESTATE->m_SortOrder.Set( GAMESTATE->m_PreferredSortOrder );
 
 	// Never start in the mode menu; some elements may not initialize correctly.
