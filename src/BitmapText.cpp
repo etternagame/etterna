@@ -702,21 +702,6 @@ void BitmapText::DrawPrimitives()
 	// Draw if we're not fully transparent or the zbuffer is enabled
 	if( m_pTempState->diffuse[0].a != 0 )
 	{
-		// render the shadow
-		if( m_fShadowLengthX != 0  ||  m_fShadowLengthY != 0 )
-		{
-			DISPLAY->PushMatrix();
-			DISPLAY->TranslateWorld( m_fShadowLengthX, m_fShadowLengthY, 0 );
-
-			RageColor c = m_ShadowColor;
-			c.a *= m_pTempState->diffuse[0].a;
-			for( unsigned i=0; i<m_aVertices.size(); i++ )
-				m_aVertices[i].c = c;
-			DrawChars( false );
-
-			DISPLAY->PopMatrix();
-		}
-
 		// render the stroke
 		RageColor stroke_color= GetCurrStrokeColor();
 		if( stroke_color.a > 0 )
