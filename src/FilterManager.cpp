@@ -2,7 +2,7 @@
 #include "FilterManager.h"
 #include "PlayerState.h"
 
-FilterManager* FILTERMAN = NULL;
+unique_ptr<FilterManager> FILTERMAN;
 
 FilterManager::FilterManager() {
 	// filter stuff - mina

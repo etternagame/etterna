@@ -19,7 +19,7 @@
 
 #include "arch/Sound/RageSoundDriver.h"
 
-GameSoundManager *SOUND = NULL;
+unique_ptr<GameSoundManager> SOUND;
 
 /*
  * When playing music, automatically search for an SM file for timing data.  If one is

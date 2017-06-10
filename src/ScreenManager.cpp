@@ -74,7 +74,7 @@
 #include "ActorUtil.h"
 #include "InputEventPlus.h"
 
-ScreenManager*	SCREENMAN = NULL;	// global and accessible from anywhere in our program
+unique_ptr<ScreenManager>	SCREENMAN;	// global and accessible from anywhere in our program
 
 static Preference<bool> g_bDelayedScreenLoad( "DelayedScreenLoad", false );
 //static Preference<bool> g_bPruneFonts( "PruneFonts", true );

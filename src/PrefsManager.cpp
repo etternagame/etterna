@@ -20,7 +20,7 @@
 //STATIC_INI_PATH	= "Data/Static.ini";		// overlay on the 2 above, can't be overridden
 //TYPE_TXT_FILE	= "Data/Type.txt";
 
-PrefsManager*	PREFSMAN = NULL;	// global and accessible from anywhere in our program
+unique_ptr<PrefsManager>	PREFSMAN;	// global and accessible from anywhere in our program
 
 static const char *MusicWheelUsesSectionsNames[] = {
 	"Never",

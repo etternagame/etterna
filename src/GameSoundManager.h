@@ -70,7 +70,7 @@ public:
 	void PushSelf( lua_State *L );
 };
 
-extern GameSoundManager *SOUND;
+extern unique_ptr<GameSoundManager> SOUND;
 #endif
 
 /*

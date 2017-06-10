@@ -2,7 +2,7 @@
 #include "MemoryCardManager.h"
 #include "LuaManager.h"
 
-MemoryCardManager*	MEMCARDMAN = NULL;	// global and accessible from anywhere in our program
+unique_ptr<MemoryCardManager>	MEMCARDMAN;	// global and accessible from anywhere in our program
 
 MemoryCardManager::MemoryCardManager()
 {

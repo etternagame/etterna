@@ -34,7 +34,7 @@
 #include "SpecialFiles.h"
 #include "ScreenTextEntry.h"
 
-SongManager*	SONGMAN = NULL;	// global and accessible from anywhere in our program
+unique_ptr<SongManager>	SONGMAN;	// global and accessible from anywhere in our program
 
 const RString ADDITIONAL_SONGS_DIR	= "/AdditionalSongs/";
 const RString EDIT_SUBDIR		= "Edits/";

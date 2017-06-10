@@ -11,7 +11,7 @@
 
 #include "libtomcrypt/src/headers/tomcrypt.h"
 
-CryptManager*	CRYPTMAN	= NULL;	// global and accessible from anywhere in our program
+unique_ptr<CryptManager>	CRYPTMAN;	// global and accessible from anywhere in our program
 
 static const RString PRIVATE_KEY_PATH = "Data/private.rsa";
 static const RString PUBLIC_KEY_PATH = "Data/public.rsa";

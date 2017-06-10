@@ -1,6 +1,8 @@
 #ifndef LUA_MANAGER_H
 #define LUA_MANAGER_H
 
+#include <memory>
+
 struct lua_State;
 typedef lua_State Lua;
 typedef void (*RegisterWithLuaFn)(lua_State*);
@@ -51,7 +53,7 @@ private:
 	LuaManager(const LuaManager& rhs);
 };
 
-extern LuaManager *LUA;
+extern unique_ptr<LuaManager> LUA;
 
 
 /** @brief Utilities for working with Lua. */

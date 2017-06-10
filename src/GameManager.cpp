@@ -14,7 +14,7 @@
 #include "Style.h"
 #include "Foreach.h"
 
-GameManager*	GAMEMAN = NULL;	// global and accessible from anywhere in our program
+unique_ptr<GameManager>	GAMEMAN;	// global and accessible from anywhere in our program
 
 enum 
 {

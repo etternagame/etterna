@@ -5,7 +5,7 @@
 #include "RageLog.h"
 #include "RageDisplay.h"
 
-ModelManager*		MODELMAN		= NULL; // global and accessible from anywhere in our program
+unique_ptr<ModelManager>		MODELMAN; // global and accessible from anywhere in our program
 
 ModelManager::ModelManager()
 {

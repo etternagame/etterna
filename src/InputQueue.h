@@ -53,7 +53,7 @@ private:
 	float m_fMaxSecondsBack;
 };	
 
-extern InputQueue*	INPUTQUEUE;	// global and accessible from anywhere in our program
+extern unique_ptr<InputQueue>	INPUTQUEUE;	// global and accessible from anywhere in our program
 
 #endif
 

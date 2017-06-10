@@ -33,7 +33,7 @@
 static RageMutex g_SoundManMutex("SoundMan");
 static Preference<RString> g_sSoundDrivers( "SoundDrivers", "" ); // "" == DEFAULT_SOUND_DRIVER_LIST
 
-RageSoundManager *SOUNDMAN = NULL;
+unique_ptr<RageSoundManager> SOUNDMAN;
 
 RageSoundManager::RageSoundManager(): m_pDriver(NULL), m_fMixVolume(1.0f),
 	m_fVolumeOfNonCriticalSounds(1.0f) {}

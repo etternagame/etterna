@@ -22,7 +22,7 @@
 #include "Character.h"
 #include "CharacterManager.h"
 
-ProfileManager*	PROFILEMAN = NULL;	// global and accessible from anywhere in our program
+unique_ptr<ProfileManager>	PROFILEMAN;	// global and accessible from anywhere in our program
 
 #define ID_DIGITS 8
 #define ID_DIGITS_STR "8"

@@ -13,7 +13,7 @@
 #include "NoteData.h"
 #include "RageTimer.h"
 
-ScoreManager* SCOREMAN = NULL;
+unique_ptr<ScoreManager> SCOREMAN;
 
 ScoreManager::ScoreManager() {
 	// Register with Lua.

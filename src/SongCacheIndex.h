@@ -2,6 +2,7 @@
 #define SONG_CACHE_INDEX_H
 
 #include "IniFile.h"
+#include <memory>
 
 class SongCacheIndex
 {
@@ -21,7 +22,7 @@ public:
 	bool delay_save_cache;
 };
 
-extern SongCacheIndex *SONGINDEX;	// global and accessible from anywhere in our program
+extern unique_ptr<SongCacheIndex> SONGINDEX;	// global and accessible from anywhere in our program
 
 #endif
 

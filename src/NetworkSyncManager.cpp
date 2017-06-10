@@ -4,7 +4,7 @@
 #include "LocalizedString.h"
 #include <errno.h>
 
-NetworkSyncManager *NSMAN;
+unique_ptr<NetworkSyncManager> NSMAN;
 
 // Aldo: version_num used by GetCurrentSMVersion()
 // XXX: That's probably not what you want... --root

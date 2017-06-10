@@ -224,7 +224,7 @@ private:
 #endif
 };
 
-extern NetworkSyncManager *NSMAN;
+extern unique_ptr<NetworkSyncManager> NSMAN;
  
 #endif
  

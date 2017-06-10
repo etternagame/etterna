@@ -15,7 +15,7 @@
 #include "XmlFileUtil.h"
 #include "ScoreManager.h"
 
-StatsManager*	STATSMAN = NULL;	// global object accessible from anywhere in the program
+unique_ptr<StatsManager>	STATSMAN;	// global object accessible from anywhere in the program
 
 void AddPlayerStatsToProfile( Profile *pProfile, const StageStats &ss, PlayerNumber pn );
 

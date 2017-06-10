@@ -6,7 +6,7 @@
 #include "Foreach.h"
 #include "InputMapper.h"
 
-InputQueue*	INPUTQUEUE = NULL;	// global and accessible from anywhere in our program
+unique_ptr<InputQueue>	INPUTQUEUE;	// global and accessible from anywhere in our program
 
 const unsigned MAX_INPUT_QUEUE_LENGTH = 32;
 

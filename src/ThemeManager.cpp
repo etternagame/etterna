@@ -29,7 +29,7 @@
 #include "XmlFileUtil.h"
 #include <deque>
 
-ThemeManager*	THEME = NULL;	// global object accessible from anywhere in the program
+unique_ptr<ThemeManager>	THEME;	// global object accessible from anywhere in the program
 
 static const RString THEME_INFO_INI = "ThemeInfo.ini";
 
@@ -152,8 +152,6 @@ static RString MetricsGroupAndElementToFileName( const RString &sMetricsGroup, c
 
 ThemeManager::ThemeManager()
 {
-	THEME = this;	// so that we can Register THEME on construction
-
 	// Register with Lua.
 	{
 		Lua *L = LUA->Get();

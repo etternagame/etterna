@@ -10,7 +10,7 @@
 #include <set>
 #include <map>
 
-MessageManager*	MESSAGEMAN = NULL;	// global and accessible from anywhere in our program
+unique_ptr<MessageManager>	MESSAGEMAN;	// global and accessible from anywhere in our program
 
 
 static const char *MessageIDNames[] = {

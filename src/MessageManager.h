@@ -2,6 +2,8 @@
 #define MessageManager_H
 
 #include "LuaManager.h"
+#include <memory>
+
 struct lua_State;
 class LuaTable;
 class LuaReference;
@@ -204,7 +206,7 @@ public:
 	void PushSelf( lua_State *L );
 };
 
-extern MessageManager*	MESSAGEMAN;	// global and accessible from anywhere in our program
+extern unique_ptr<MessageManager>	MESSAGEMAN;	// global and accessible from anywhere in our program
 
 template<class T>
 class BroadcastOnChange

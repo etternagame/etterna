@@ -129,7 +129,7 @@ protected:
 	bool m_bPseudoLocalize;
 };
 
-extern ThemeManager*	THEME;	// global and accessible from anywhere in our program
+extern unique_ptr<ThemeManager>	THEME;	// global and accessible from anywhere in our program
 
 #endif
 

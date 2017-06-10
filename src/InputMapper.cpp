@@ -26,7 +26,7 @@ namespace
 	PlayerNumber g_JoinControllers;
 };
 
-InputMapper*	INPUTMAPPER = NULL;	// global and accessible from anywhere in our program
+unique_ptr<InputMapper>	INPUTMAPPER;	// global and accessible from anywhere in our program
 
 InputMapper::InputMapper()
 {

@@ -3,6 +3,8 @@
 #ifndef FONTMANAGER_H
 #define FONTMANAGER_H
 
+#include <memory>
+
 class Font;
 struct Game;
 
@@ -18,7 +20,7 @@ public:
 	//void PruneFonts();
 };
 
-extern FontManager*	FONT;	// global and accessible from anywhere in our program
+extern unique_ptr<FontManager>	FONT;	// global and accessible from anywhere in our program
 
 
 #endif

@@ -25,6 +25,6 @@ public:
 	void PushSelf(lua_State *L);
 };
 
-extern FilterManager* FILTERMAN;
+extern unique_ptr<FilterManager> FILTERMAN;
 
 #endif
