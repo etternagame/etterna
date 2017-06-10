@@ -80,13 +80,7 @@ end
 -- [en] returns if you are able to select options
 -- on ScreenSelectMusic.
 function AllowOptionsMenu()
-  if GAMESTATE:IsAnExtraStage() then
-    return false
-  elseif GAMESTATE:GetPlayMode() == "PlayMode_Oni" then 
-    return false
-  else
     return true
-  end
 end
 
 -- GameCompatibleModes:

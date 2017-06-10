@@ -1227,8 +1227,6 @@ RString StepMania::SaveScreenshot( const RString &Dir, bool SaveCompressed, bool
 
 void StepMania::ClearCredits()
 {
-	LOG->Trace("%i coins cleared", GAMESTATE->m_iCoins.Get() );
-	GAMESTATE->m_iCoins.Set( 0 );
 	SCREENMAN->PlayInvalidSound();
 
 	// TODO: remove this redundant message and things that depend on it

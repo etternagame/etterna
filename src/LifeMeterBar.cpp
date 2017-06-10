@@ -38,32 +38,28 @@ LifeMeterBar::LifeMeterBar()
 	m_fLifeDifficulty = m_fBaseLifeDifficulty;
 
 	// set up progressive lifebar
-	m_iProgressiveLifebar = PREFSMAN->m_iProgressiveLifebar;
 	m_iMissCombo = 0;
 
 	// set up combotoregainlife
 	m_iComboToRegainLife = 0;
 
-	bool bExtra = GAMESTATE->IsAnExtraStage();
-	RString sExtra = bExtra ? "extra " : "";
-
-	m_sprUnder.Load( THEME->GetPathG(sType,sExtra+"Under") );
+	m_sprUnder.Load( THEME->GetPathG(sType, "Under") );
 	m_sprUnder->SetName( "Under" );
 	ActorUtil::LoadAllCommandsAndSetXY( m_sprUnder, sType );
 	this->AddChild( m_sprUnder );
 
-	m_sprDanger.Load( THEME->GetPathG(sType,sExtra+"Danger") );
+	m_sprDanger.Load( THEME->GetPathG(sType, "Danger") );
 	m_sprDanger->SetName( "Danger" );
 	ActorUtil::LoadAllCommandsAndSetXY( m_sprDanger, sType );
 	this->AddChild( m_sprDanger );
 
 	m_pStream = new StreamDisplay;
-	m_pStream->Load( bExtra ? "StreamDisplayExtra" : "StreamDisplay" );
+	m_pStream->Load( "StreamDisplay" );
 	m_pStream->SetName( "Stream" );
 	ActorUtil::LoadAllCommandsAndSetXY( m_pStream, sType );
 	this->AddChild( m_pStream );
 
-	m_sprOver.Load( THEME->GetPathG(sType,sExtra+"Over") );
+	m_sprOver.Load( THEME->GetPathG(sType, "Over") );
 	m_sprOver->SetName( "Over" );
 	ActorUtil::LoadAllCommandsAndSetXY( m_sprOver, sType );
 	this->AddChild( m_sprOver );
@@ -106,13 +102,6 @@ void LifeMeterBar::Load( const PlayerState *pPlayerState, PlayerStageStats *pPla
 			FAIL_M(ssprintf("Invalid DrainType: %i", dtype));
 	}
 
-	// Change life difficulty to really easy if merciful beginner on
-	m_bMercifulBeginnerInEffect = 
-		GAMESTATE->m_PlayMode == PLAY_MODE_REGULAR  &&  
-		GAMESTATE->IsPlayerEnabled( pPlayerState )  &&
-		GAMESTATE->m_pCurSteps[pn]->GetDifficulty() == Difficulty_Beginner  &&
-		PREFSMAN->m_bMercifulBeginner;
-
 	AfterLifeChanged();
 }
 
@@ -140,10 +129,6 @@ void LifeMeterBar::ChangeLife( TapNoteScore score )
 	case TNS_CheckpointHit:	fDeltaLife = m_Change_SE_CheckpointHit;	break;
 	case TNS_CheckpointMiss:fDeltaLife = m_Change_SE_CheckpointMiss;	break;
 	}
-
-	// this was previously if( IsHot()  &&  score < TNS_GOOD ) in 3.9... -freem
-	if(PREFSMAN->m_HarshHotLifePenalty && IsHot()  &&  fDeltaLife < 0)
-		fDeltaLife = min( fDeltaLife, -0.10f );		// make it take a while to get back to "hot"
 
 	switch(m_pPlayerState->m_PlayerOptions.GetSong().m_DrainType)
 	{
@@ -179,8 +164,6 @@ void LifeMeterBar::ChangeLife( HoldNoteScore score, TapNoteScore tscore )
 		default:
 			FAIL_M(ssprintf("Invalid HoldNoteScore: %i", score));
 		}
-		if(PREFSMAN->m_HarshHotLifePenalty && IsHot()  &&  score == HNS_LetGo)
-			fDeltaLife = -0.10f;		// make it take a while to get back to "hot"
 		break;
 	case DrainType_NoRecover:
 		switch( score )
@@ -211,32 +194,6 @@ void LifeMeterBar::ChangeLife( HoldNoteScore score, TapNoteScore tscore )
 
 void LifeMeterBar::ChangeLife( float fDeltaLife )
 {
-	bool bUseMercifulDrain = m_bMercifulBeginnerInEffect || PREFSMAN->m_bMercifulDrain;
-	if( bUseMercifulDrain  &&  fDeltaLife < 0 )
-		fDeltaLife *= SCALE( m_fLifePercentage, 0.f, 1.f, 0.5f, 1.f);
-
-	// handle progressiveness and ComboToRegainLife here
-	if( fDeltaLife >= 0 )
-	{
-		m_iMissCombo = 0;
-		m_iComboToRegainLife = max( m_iComboToRegainLife-1, 0 );
-		if ( m_iComboToRegainLife > 0 )
-			fDeltaLife = 0.0f;
-	}
-	else
-	{
-		fDeltaLife *= 1.f + static_cast<float>(m_iProgressiveLifebar)/8.f * static_cast<float>(m_iMissCombo);
-		// do this after; only successive W5/miss will increase the amount of life lost.
-		m_iMissCombo++;
-		/* Increase by m_iRegenComboAfterMiss; never push it beyond m_iMaxRegenComboAfterMiss
-		 * but don't reduce it if it's already past. */
-		const int NewComboToRegainLife = min(
-			static_cast<int>(PREFSMAN->m_iMaxRegenComboAfterMiss),
-			 m_iComboToRegainLife + PREFSMAN->m_iRegenComboAfterMiss );
-
-		m_iComboToRegainLife = max( m_iComboToRegainLife, NewComboToRegainLife );
-	}
-
 	// If we've already failed, there's no point in letting them fill up the bar again.
 	if( m_pPlayerStageStats->m_bFailed )
 		return;
@@ -331,90 +288,6 @@ void LifeMeterBar::Update( float fDeltaTime )
 		m_sprDanger->SetVisible( true );
 	else
 		m_sprDanger->SetVisible( false );
-}
-
-
-void LifeMeterBar::UpdateNonstopLifebar()
-{
-	int iCleared, iTotal, iProgressiveLifebarDifficulty;
-
-	switch( GAMESTATE->m_PlayMode )
-	{
-	case PLAY_MODE_REGULAR:
-		if( GAMESTATE->IsEventMode() || GAMESTATE->m_bDemonstrationOrJukebox )
-			return;
-
-		iCleared = GAMESTATE->m_iCurrentStageIndex;
-		iProgressiveLifebarDifficulty = PREFSMAN->m_iProgressiveStageLifebar;
-		break;
-	default:
-		return;
-	}
-
-//	if (iCleared > iTotal) iCleared = iTotal; // clear/iTotal <= 1
-//	if (iTotal == 0) iTotal = 1;  // no division by 0
-
-	if( GAMESTATE->IsAnExtraStage() && FORCE_LIFE_DIFFICULTY_ON_EXTRA_STAGE )
-	{
-		// extra stage is its own thing, should not be progressive
-		// and it should be as difficult as life 4
-		// (e.g. it should not depend on life settings)
-
-		m_iProgressiveLifebar = 0;
-		m_fLifeDifficulty = EXTRA_STAGE_LIFE_DIFFICULTY;
-		return;
-	}
-
-	if( iTotal > 1 )
-		m_fLifeDifficulty = m_fBaseLifeDifficulty - 0.2f * static_cast<int>((iProgressiveLifebarDifficulty * iCleared / (iTotal - 1)));
-	else
-		m_fLifeDifficulty = m_fBaseLifeDifficulty - 0.2f * iProgressiveLifebarDifficulty;
-
-	if( m_fLifeDifficulty >= 0.4f )
-		return;
-
-	/* Approximate deductions for a miss
-	 * Life 1 :    5   %
-	 * Life 2 :    5.7 %
-	 * Life 3 :    6.6 %
-	 * Life 4 :    8   %
-	 * Life 5 :   10   %
-	 * Life 6 :   13.3 %
-	 * Life 7 :   20   %
-	 * Life 8 :   26.6 %
-	 * Life 9 :   32   %
-	 * Life 10:   40   %
-	 * Life 11:   50   %
-	 * Life 12:   57.1 %
-	 * Life 13:   66.6 %
-	 * Life 14:   80   %
-	 * Life 15:  100   %
-	 * Life 16+: 200   %
-	 *
-	 * Note there is 200%, because boos take off 1/2 as much as
-	 * a miss, and a W5 would suck up half of your lifebar.
-	 *
-	 * Everything past 7 is intended mainly for nonstop mode.
-	 */
-
-	// the lifebar is pretty harsh at 0.4 already (you lose
-	// about 20% of your lifebar); at 0.2 it would be 40%, which
-	// is too harsh at one difficulty level higher.  Override.
-	int iLifeDifficulty = static_cast<int>( (1.8f - m_fLifeDifficulty)/0.2f );
-
-	// first eight values don't matter
-	float fDifficultyValues[16] = {0,0,0,0,0,0,0,0, 
-		0.3f, 0.25f, 0.2f, 0.16f, 0.14f, 0.12f, 0.10f, 0.08f};
-
-	if( iLifeDifficulty >= 16 )
-	{
-		// judge 16 or higher
-		m_fLifeDifficulty = 0.04f;
-		return;
-	}
-
-	m_fLifeDifficulty = fDifficultyValues[iLifeDifficulty];
-	return;
 }
 
 void LifeMeterBar::FillForHowToPlay( int NumW2s, int NumMisses )

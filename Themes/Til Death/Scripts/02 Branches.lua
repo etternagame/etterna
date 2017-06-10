@@ -208,8 +208,6 @@ Branch = {
 		return Branch.EvaluationScreen()
 	end,
 	AfterEvaluation = function()
-			local maxStages = PREFSMAN:GetPreference("SongsPerPlay")
-			local stagesLeft = GAMESTATE:GetSmallestNumStagesLeftForAnyHumanPlayer()
 			local allFailed = STATSMAN:GetCurStageStats():AllFailed()
 			local song = GAMESTATE:GetCurrentSong()
 

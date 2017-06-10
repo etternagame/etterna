@@ -27,7 +27,6 @@ StageStats::StageStats()
 	m_iStageIndex = -1;
 	m_vpPlayedSongs.clear();
 	m_vpPossibleSongs.clear();
-	m_EarnedExtraStage = EarnedExtraStage_No;
 	m_bGaveUp = false;
 	m_bUsedAutoplay = false;
 	m_fGameplaySeconds = 0;
@@ -183,7 +182,6 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 
 	hs.SetDateTime( DateTime::GetNowDateTime() );
 	hs.SetPlayerGuid( sPlayerGuid );
-	hs.SetProductID( PREFSMAN->m_iProductID );
 	FOREACH_ENUM( TapNoteScore, tns )
 		hs.SetTapNoteScore( tns, pss.m_iTapNoteScores[tns] );
 	FOREACH_ENUM( HoldNoteScore, hns )
@@ -337,7 +335,6 @@ public:
 		lua_pushboolean(L, p->PlayerHasHighScore(Enum::Check<PlayerNumber>(L, 1)));
 		return 1;
 	}
-	DEFINE_METHOD( GetEarnedExtraStage,			m_EarnedExtraStage )
 
 	LunaStageStats()
 	{
@@ -352,7 +349,6 @@ public:
 		ADD_METHOD( GetStageIndex );
 		ADD_METHOD( GetStepsSeconds );
 		ADD_METHOD( PlayerHasHighScore );
-		ADD_METHOD( GetEarnedExtraStage );
 	}
 };
 

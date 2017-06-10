@@ -963,12 +963,7 @@ void Player::Update( float fDeltaTime )
 
 	// Check for completely judged rows.
 	UpdateJudgedRows(fDeltaTime);
-
-	// Check for TapNote misses
-	if ( !GAMESTATE->m_bInStepEditor )
-	{
-		UpdateTapNotesMissedOlderThan( GetMaxStepDistanceSeconds() );
-	}
+	UpdateTapNotesMissedOlderThan( GetMaxStepDistanceSeconds() );
 }
 
 // Update a group of holds with shared scoring/life. All of these holds will have the same start row.
@@ -2530,21 +2525,17 @@ void Player::CrossedRows( int iLastRowCrossed, const std::chrono::steady_clock::
 		// TODO: Can we remove the iLastSeenRow logic and the
 		// autokeysound for loop, since the iterator in this loop will
 		// already be iterating over all of the tracks?
-		if( iRow != iLastSeenRow )
+		if (iRow != iLastSeenRow)
 		{
 			// crossed a new not-empty row
 			iLastSeenRow = iRow;
 
-			// handle autokeysounds here (if not in the editor).
-			if (!GAMESTATE->m_bInStepEditor)
+			for (int t = 0; t < m_NoteData.GetNumTracks(); ++t)
 			{
-				for (int t = 0; t < m_NoteData.GetNumTracks(); ++t)
+				const TapNote &tap = m_NoteData.GetTapNote(t, iRow);
+				if (tap.type == TapNoteType_AutoKeysound)
 				{
-					const TapNote &tap = m_NoteData.GetTapNote(t, iRow);
-					if (tap.type == TapNoteType_AutoKeysound)
-					{
-						PlayKeysound(tap, TNS_None);
-					}
+					PlayKeysound(tap, TNS_None);
 				}
 			}
 		}

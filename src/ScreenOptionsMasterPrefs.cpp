@@ -443,18 +443,6 @@ static void LifeDifficulty( int &sel, bool ToSel, const ConfOption *pConfOption 
 	MoveMap( sel, pConfOption, ToSel, mapping, ARRAYLEN(mapping) );
 }
 
-static void MaxHighScoresPerListForMachine(int& sel, bool to_sel, ConfOption const* conf_option)
-{
-	int const mapping[]= {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
-	MoveMap(sel, conf_option, to_sel, mapping, ARRAYLEN(mapping));
-}
-
-static void MaxHighScoresPerListForPlayer(int& sel, bool to_sel, ConfOption const* conf_option)
-{
-	int const mapping[]= {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
-	MoveMap(sel, conf_option, to_sel, mapping, ARRAYLEN(mapping));
-}
-
 
 #include "LuaManager.h"
 static int GetTimingDifficulty()
@@ -679,9 +667,7 @@ static void InitializeConfOptions()
 	ADD( ConfOption( "DefaultNoteSkin",		DefaultNoteSkin,	DefaultNoteSkinChoices ) );
 	ADD( ConfOption( "ShowInstructions",		MovePref<bool>,		"Skip","Show") );
 	ADD( ConfOption( "ShowCaution",			MovePref<bool>,		"Skip","Show") );
-	ADD( ConfOption( "DancePointsForOni",		MovePref<bool>,		"Percent","Dance Points") );
 	ADD( ConfOption( "MusicWheelUsesSections",	MovePref<MusicWheelUsesSections>, "Never","Always","Title Only") );
-	ADD( ConfOption( "MoveRandomToEnd",		MovePref<bool>,		"No","Yes") );
 	ADD( ConfOption( "ShowNativeLanguage",		MovePref<bool>,		"Romanization","Native Language") );
 	ADD( ConfOption( "ShowLyrics",			MovePref<bool>,		"Hide","Show") );
 
@@ -699,7 +685,6 @@ static void InitializeConfOptions()
 		}
 		ADD(c);
 	}
-	ADD(ConfOption("EditClearPromptThreshold", EditClearPromptThreshold, "-1", "10", "50", "100", "1000", "1000000"));
 
 	// Background options
 	ADD( ConfOption( "RandomBackgroundMode",	MovePref<RandomBackgroundMode>, "Off","Animations","Random Movies" ) );
@@ -734,18 +719,11 @@ static void InitializeConfOptions()
 	// W1 is Fantastic Timing
 	ADD( ConfOption( "AllowW1",			MovePref<AllowW1>,	"Never","Courses Only","Always" ) );
 	ADD( ConfOption( "AllowExtraStage",		MovePref<bool>,		"Off","On" ) );
-	ADD( ConfOption( "AllowMultipleHighScoreWithSameName", MovePref<bool>, "Off", "On" ) );
 	ADD( ConfOption( "ComboContinuesBetweenSongs", MovePref<bool>, "Off", "On") );
 	ADD( ConfOption( "Disqualification", MovePref<bool>,		"Off","On" ) );
-	ADD( ConfOption( "HarshHotLifePenalty", MovePref<bool>,      "Off", "On") );
-	ADD( ConfOption( "FailOffForFirstStageEasy", MovePref<bool>, "Off","On" ) );
-	ADD( ConfOption( "FailOffInBeginner",       MovePref<bool>, "Off","On" ) );
-	ADD( ConfOption( "PickExtraStage",		MovePref<bool>,		"Off","On" ) );
 	ADD( ConfOption( "AllowSongDeletion",   MovePref<bool>,     "Off","On" ) );
 
 	// Machine options
-
-	ADD( ConfOption( "EventMode",			MovePref<bool>,		"Off","On (recommended)" ) );
 	ADD( ConfOption( "TimingWindowScale",		TimingWindowScale,	"|1","|2","|3","|4","|5","|6","|7","|8","Justice" ) );
 	ADD( ConfOption( "LifeDifficulty",		LifeDifficulty,		"|1","|2","|3","|4","|5","|6","|7" ) );
 	g_ConfOptions.back().m_sPrefName = "LifeDifficultyScale";
@@ -804,12 +782,7 @@ static void InitializeConfOptions()
 			c.AddOption( ssprintf("%+i ms", i) );
 		ADD( c );
 	}
-	ADD( ConfOption( "EnableAttackSounds",		MovePref<bool>,		"No","Yes" ) );
 	ADD( ConfOption( "EnableMineHitSound",		MovePref<bool>,		"No","Yes" ) );
-
-	// Editor options
-	ADD( ConfOption( "EditorShowBGChangesPlay",	MovePref<bool>,		"Hide","Show") );
-
 	ADD( ConfOption( "Invalid",			MoveNop,		"|Invalid option") );
 }
 

@@ -128,22 +128,7 @@ function GetDefaultOptionLines()
 		"1,8,14,2,3,4,5,6,R,7,9,10,11,12,13,15,16,SF,17,18", -- All
 		"1,8,14,2,7,13,16,SF,17,18", -- DDR Essentials ( no turns, fx )
 	};
-	local function IsExtra()
-		if GAMESTATE:IsExtraStage() or GAMESTATE:IsExtraStage2() then
-			return true
-		else
-			return false
-		end
-	end
-	if not IsExtra() then
-		if GetUserPrefB("UserPrefShowLotsaOptions") then
-			return GetUserPrefB("UserPrefShowLotsaOptions") and LineSets[1] or LineSets[2];
-		else
-			return LineSets[2]; -- Just make sure!
-		end
-	else
-		return "1,8,14,2,7,13,16,SF,17,18" -- "failsafe" list
-	end
+	return "1,8,14,2,7,13,16,SF,17,18" -- "failsafe" list
 end;
 
 --[[ end themeoption rows ]]

@@ -40,8 +40,6 @@ public:
 	vector<Song*>	m_vpPlayedSongs;
 	vector<Song*>	m_vpPossibleSongs;
 
-	/** @brief Was an extra stage earned this goaround? */
-	EarnedExtraStage m_EarnedExtraStage;
 	/** @brief Was the gameplay exited by the Player giving up? */
 	bool	m_bGaveUp;
 	/** @brief Did the PLayer use Autoplay at any point during gameplay? */

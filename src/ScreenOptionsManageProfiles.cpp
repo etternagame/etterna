@@ -268,7 +268,6 @@ void ScreenOptionsManageProfiles::HandleScreenMessage( const ScreenMessage SM )
 	{
 		if( ScreenPrompt::s_LastAnswer == ANSWER_YES )
 		{
-			GAMESTATE->GetEditLocalProfile()->InitAll();
 
 			SCREENMAN->SetNewScreen( this->m_sName ); // reload
 		}

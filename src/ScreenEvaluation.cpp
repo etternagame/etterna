@@ -105,7 +105,6 @@ void ScreenEvaluation::Init()
 		ss.m_playMode = GAMESTATE->m_PlayMode;
 		ss.m_Stage = Stage_1st;
 		enum_add(ss.m_Stage, random_up_to(3));
-		ss.m_EarnedExtraStage = (EarnedExtraStage)(random_up_to(NUM_EarnedExtraStage));
 		GAMESTATE->SetMasterPlayerNumber(PLAYER_1);
 		GAMESTATE->m_pCurSong.Set( SONGMAN->GetRandomSong() );
 		ss.m_vpPlayedSongs.push_back( GAMESTATE->m_pCurSong );
@@ -641,11 +640,7 @@ void ScreenEvaluation::Init()
 	FOREACH_PlayerNumber( p )
 		best_grade = min( best_grade, grade[p] ); 
 
-	if( m_pStageStats->m_EarnedExtraStage != EarnedExtraStage_No )
-	{
-		SOUND->PlayOnce( THEME->GetPathS(m_sName,"try " + EarnedExtraStageToString(m_pStageStats->m_EarnedExtraStage)) );
-	}
-	else if( bOneHasNewTopRecord && ANNOUNCER->HasSoundsFor("evaluation new record") )
+	if( bOneHasNewTopRecord && ANNOUNCER->HasSoundsFor("evaluation new record") )
 	{
 		SOUND->PlayOnceFromDir( ANNOUNCER->GetPathTo("evaluation new record") );
 	}

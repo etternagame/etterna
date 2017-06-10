@@ -338,16 +338,6 @@ void ScreenGameplay::Init()
 	if( GAMESTATE->m_pCurSong == NULL)
 		return;	// ScreenDemonstration will move us to the next screen.  We just need to survive for one update without crashing.
 
-	/* Save settings to the profile now.  Don't do this on extra stages, since the
-	 * user doesn't have full control; saving would force profiles to Difficulty_Hard
-	 * and save over their default modifiers every time someone got an extra stage.
-	 * Do this before course modifiers are set up. */
-	if( !GAMESTATE->IsAnExtraStage() )
-	{
-		FOREACH_HumanPlayer( pn )
-			GAMESTATE->SaveCurrentSettingsToProfile(pn);
-	}
-
 	/* Called once per stage (single song or single course). */
 	GAMESTATE->BeginStage();
 
@@ -392,8 +382,6 @@ void ScreenGameplay::Init()
 			ASSERT( GAMESTATE->m_pCurSteps[p].Get() != NULL );
 	}
 
-	STATSMAN->m_CurStageStats.m_Stage = GAMESTATE->GetCurrentStage();
-	STATSMAN->m_CurStageStats.m_iStageIndex = GAMESTATE->m_iCurrentStageIndex;
 	STATSMAN->m_CurStageStats.m_playMode = GAMESTATE->m_PlayMode;
 	FOREACH_PlayerNumber(pn)
 	{
@@ -715,17 +703,6 @@ void ScreenGameplay::Init()
 		this->AddChild( &m_textDebug );
 
 		m_GameplayAssist.Init();
-
-		if( GAMESTATE->IsAnExtraStage() )	// only load if we're going to use it
-		{
-			m_textSurviveTime.LoadFromFont( THEME->GetPathF(m_sName,"survive time") );
-			m_textSurviveTime.SetShadowLength( 0 );
-			m_textSurviveTime.SetName( "SurviveTime" );
-			LOAD_ALL_COMMANDS_AND_SET_XY( m_textSurviveTime );
-			m_textSurviveTime.SetDrawOrder( DRAW_ORDER_TRANSITIONS-1 );
-			m_textSurviveTime.SetDiffuse( RageColor(1,1,1,0) );
-			this->AddChild( &m_textSurviveTime );
-		}
 	}
 
 	if( m_pSongBackground )
@@ -1839,14 +1816,7 @@ void ScreenGameplay::BeginBackingOutFromGameplay()
 
 	this->ClearMessageQueue();
 
-	// If this is the final stage, don't allow extra stage
-	if( GAMESTATE->GetSmallestNumStagesLeftForAnyHumanPlayer() == 0 )
-		GAMESTATE->m_bBackedOutOfFinalStage = true;
-	// Disallow backing out of extra stage
-	if( GAMESTATE->IsAnExtraStage() )
-		SCREENMAN->PostMessageToTopScreen( SM_BeginFailed, 0 );
-	else
-		m_Cancel.StartTransitioning( SM_DoPrevScreen );
+	m_Cancel.StartTransitioning( SM_DoPrevScreen );
 }
 
 void ScreenGameplay::AbortGiveUpText(bool show_abort_text)
@@ -2158,18 +2128,7 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 		}
 		if(should_play_go)
 		{
-			if( GAMESTATE->IsAnExtraStage() )
-			{
-				SOUND->PlayOnceFromAnnouncer( "gameplay here we go extra" );
-			}
-			else if( GAMESTATE->GetSmallestNumStagesLeftForAnyHumanPlayer() == 0 )
-			{
-				SOUND->PlayOnceFromAnnouncer( "gameplay here we go final" );
-			}
-			else
-			{
-				SOUND->PlayOnceFromAnnouncer( "gameplay here we go normal" );
-			}
+			SOUND->PlayOnceFromAnnouncer( "gameplay here we go normal" );
 		}
 
 		GAMESTATE->m_DanceStartTime.Touch();
@@ -2301,12 +2260,7 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 		TweenOffScreen();
 
 		m_Out.StartTransitioning( SM_DoNextScreen );
-
-		// do they deserve an extra stage?
-		if( GAMESTATE->HasEarnedExtraStage() )
-			SOUND->PlayOnceFromAnnouncer( "gameplay extra" );
-		else
-			SOUND->PlayOnceFromAnnouncer( "gameplay cleared" );
+		SOUND->PlayOnceFromAnnouncer( "gameplay cleared" );
 	}
 	else if( SM == SM_StartLoadingNextSong )
 	{
@@ -2418,16 +2372,6 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 		m_GameplayAssist.StopPlaying(); // Stop any queued assist ticks.
 		TweenOffScreen();
 		m_Failed.StartTransitioning( SM_DoNextScreen );
-
-		// show the survive time if extra stage
-		if( GAMESTATE->IsAnExtraStage() )
-		{
-			float fMaxAliveSeconds = 0;
-			FOREACH_EnabledPlayer(p)
-				fMaxAliveSeconds = max( fMaxAliveSeconds, STATSMAN->m_CurStageStats.m_player[p].m_fAliveSeconds );
-			m_textSurviveTime.SetText( "TIME: " + SecondsToMMSSMsMs(fMaxAliveSeconds) );
-			ON_COMMAND( m_textSurviveTime );
-		}
 
 		SOUND->PlayOnceFromAnnouncer( "gameplay failed" );
 	}

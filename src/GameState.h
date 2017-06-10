@@ -98,13 +98,7 @@ public:
 	bool					m_bSideIsJoined[NUM_PLAYERS];	// left side, right side
 	MultiPlayerStatus			m_MultiPlayerStatus[NUM_MultiPlayer];
 	BroadcastOnChange<PlayMode>		m_PlayMode;			// many screens display different info depending on this value
-	/**
-	 * @brief The number of coins presently in the machine.
-	 *
-	 * Note that coins are not "credits". One may have to put in two coins 
-	 * to get one credit, only to have to put in another four coins to get
-	 * the three credits needed to begin the game. */
-	BroadcastOnChange<int>			m_iCoins;
+
 	bool			m_bMultiplayer;
 	int				m_iNumMultiplayerNoteFields;
 	bool DifficultiesLocked() const;
@@ -126,9 +120,6 @@ public:
 	 * @brief Determine if a second player can join in at this time.
 	 * @return true if a player can still enter the game, false otherwise. */
 	bool	PlayersCanJoin() const;
-	int 	GetCoinsNeededToJoin() const;
-	bool	EnoughCreditsToJoin() const { return m_iCoins >= GetCoinsNeededToJoin(); }
-	int		GetNumSidesJoined() const;
 
 	const Game*	GetCurrentGame() const;
 	const Style*	GetCurrentStyle(PlayerNumber pn) const;
@@ -171,8 +162,6 @@ public:
 	 * @brief Set the timing data to be used with processing.
 	 * @param t the timing data. */
 	void SetProcessedTimingData(TimingData * t);
-
-	bool IsBattleMode() const; // not Rave
 
 	/**
 	 * @brief Do we show the W1 timing judgment?
@@ -218,15 +207,6 @@ public:
 	void		CancelStage();
 	void		CommitStageStats();
 	void		FinishStage();
-	int			GetNumStagesLeft( PlayerNumber pn ) const;
-	int			GetSmallestNumStagesLeftForAnyHumanPlayer() const;
-	bool		IsFinalStageForAnyHumanPlayer() const;
-	bool		IsFinalStageForEveryHumanPlayer() const;
-	bool		IsAnExtraStage() const;
-	bool		IsAnExtraStageAndSelectionLocked() const;
-	bool		IsExtraStage() const;
-	bool		IsExtraStage2() const;
-	Stage		GetCurrentStage() const;
 	int		GetCourseSongIndex() const;
 	RString		GetPlayerDisplayName( PlayerNumber pn ) const;
 
@@ -243,8 +223,6 @@ public:
 	// The last Song that the user manually changed to.
 	Song*		m_pPreferredSong;
 	BroadcastOnChangePtr1D<Steps,NUM_PLAYERS> m_pCurSteps;
-
-	bool		m_bBackedOutOfFinalStage;
 
 	// Music statistics:
 	SongPosition m_Position;
@@ -306,8 +284,7 @@ public:
 	// character stuff
 	Character* m_pCurCharacters[NUM_PLAYERS];
 
-	bool HasEarnedExtraStage() const { return m_bEarnedExtraStage; }
-	EarnedExtraStage GetEarnedExtraStage() const { return CalculateEarnedExtraStage(); }
+	int GetNumSidesJoined() const;
 
 	// Ranking Stuff
 	struct RankingFeat
@@ -361,14 +338,6 @@ public:
 	 *
 	 * Different options are available depending on this setting. */
 	bool m_bIsUsingStepTiming;
-	/**
-	 * @brief Are we presently in the Step Editor, where some rules apply differently?
-	 *
-	 * TODO: Find a better way to implement this. */
-	bool m_bInStepEditor;
-	BroadcastOnChange<StepsType> m_stEdit;
-	BroadcastOnChangePtr<Steps> m_pEditSourceSteps;
-	BroadcastOnChange<StepsType> m_stEditSource;
 	BroadcastOnChange<RString> m_sEditLocalProfileID;
 	Profile* GetEditLocalProfile();
 
@@ -379,10 +348,6 @@ public:
 
 	// Keep extra stage logic internal to GameState.
 private:
-	EarnedExtraStage	CalculateEarnedExtraStage() const;
-	int	m_iAwardedExtraStages[NUM_PLAYERS];
-	bool	m_bEarnedExtraStage;
-
 	// Timing position corrections
 	RageTimer m_LastPositionTimer;
 	float m_LastPositionSeconds;

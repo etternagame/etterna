@@ -557,18 +557,6 @@ const RString& StageToString( Stage s );
 LuaDeclareType( Stage );
 const RString& StageToLocalizedString( Stage i );
 
-/** @brief The different possibilities of earning an extra stage. */
-enum EarnedExtraStage
-{
-	EarnedExtraStage_No, /**< No extra stage was earned. */
-	EarnedExtraStage_Extra1, /**< The first extra stage was earned. */
-	EarnedExtraStage_Extra2, /**< The second extra stage (or encore extra stage) was earned. */
-	NUM_EarnedExtraStage,
-	EarnedExtraStage_Invalid
-};
-const RString& EarnedExtraStageToString( EarnedExtraStage s );
-LuaDeclareType( EarnedExtraStage );
-
 /** @brief The different results of loading a profile. */
 enum ProfileLoadResult
 {

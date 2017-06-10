@@ -108,7 +108,6 @@ GameState::GameState() :
 	m_pCurGame(				Message_CurrentGameChanged ),
 	m_pCurStyle(			Message_CurrentStyleChanged ),
 	m_PlayMode(				Message_PlayModeChanged ),
-	m_iCoins(				Message_CoinsChanged ),
 	m_sPreferredSongGroup(	Message_PreferredSongGroupChanged ),
 	m_PreferredStepsType(	Message_PreferredStepsTypeChanged ),
 	m_PreferredDifficulty(	Message_PreferredDifficultyP1Changed ),
@@ -118,11 +117,7 @@ GameState::GameState() :
 	m_bGameplayLeadIn(		Message_GameplayLeadInChanged ),
 	m_bDidModeChangeNoteSkin(	false ),
 	m_bIsUsingStepTiming(		true ),
-	m_bInStepEditor(		false ),
-	m_stEdit(				Message_EditStepsTypeChanged ),
-	m_pEditSourceSteps(		Message_EditSourceStepsChanged ),
-	m_stEditSource(			Message_EditSourceStepsTypeChanged ),
-	m_sEditLocalProfileID(		Message_EditLocalProfileIDChanged )
+	m_sEditLocalProfileID(Message_EditLocalProfileIDChanged)
 {
 	g_pImpl = new GameStateImpl;
 
@@ -133,7 +128,6 @@ GameState::GameState() :
 	}
 
 	m_pCurGame.Set( NULL );
-	m_iCoins.Set( 0 );
 	m_timeGameStarted.SetZero();
 	m_bDemonstrationOrJukebox = false;
 
@@ -253,7 +247,6 @@ void GameState::ResetPlayer( PlayerNumber pn )
 	m_PreferredStepsType.Set( StepsType_Invalid );
 	m_PreferredDifficulty[pn].Set( Difficulty_Invalid );
 	m_iPlayerStageTokens[pn] = 0;
-	m_iAwardedExtraStages[pn] = 0;
 	m_pCurSteps[pn].Set( NULL );
 	m_pPlayerState[pn]->Reset();
 	PROFILEMAN->UnloadProfile( pn );
@@ -334,14 +327,6 @@ void GameState::Reset()
 	}
 
 	m_bTemporaryEventMode = false;
-
-	m_stEdit.Set( StepsType_Invalid );
-	m_pEditSourceSteps.Set( NULL );
-	m_stEditSource.Set( StepsType_Invalid );
-	m_sEditLocalProfileID.Set( "" );
-
-	m_bBackedOutOfFinalStage = false;
-	m_bEarnedExtraStage = false;
 	sExpandedSectionName = "";
 
 	ApplyCmdline();
@@ -598,10 +583,8 @@ int GameState::GetNumStagesMultiplierForSong( const Song* pSong )
 	return iNumStages;
 }
 
-int GameState::GetNumStagesForCurrentSongAndStepsOrCourse() const{	int iNumStagesOfThisSong = 1;	if (m_pCurSong)	{		/* Extra stages need to only count as one stage in case a multi-stage		* song is chosen. */		if (IsAnExtraStage())
-			iNumStagesOfThisSong = 1;
-		else
-			iNumStagesOfThisSong = GameState::GetNumStagesMultiplierForSong(m_pCurSong);
+int GameState::GetNumStagesForCurrentSongAndStepsOrCourse() const{	int iNumStagesOfThisSong = 1;	if (m_pCurSong)	{
+		iNumStagesOfThisSong = GameState::GetNumStagesMultiplierForSong(m_pCurSong);
 	}
 	else
 		return -1;
@@ -653,7 +636,6 @@ void GameState::BeginStage()
 	FOREACH_HumanPlayer( pn )
 		if( CurrentOptionsDisqualifyPlayer(pn) )
 			STATSMAN->m_CurStageStats.m_player[pn].m_bDisqualified = true;
-	m_bEarnedExtraStage = false;
 	m_sStageGUID = CryptManager::GenerateRandomUUID();
 }
 
@@ -692,23 +674,6 @@ void GameState::FinishStage()
 	++m_iCurrentStageIndex;
 
 	m_iNumStagesOfThisSong = 0;
-
-	EarnedExtraStage e = CalculateEarnedExtraStage();
-	STATSMAN->m_CurStageStats.m_EarnedExtraStage = e;
-	if( e != EarnedExtraStage_No )
-	{
-		LOG->Trace( "awarded extra stage" );
-		FOREACH_HumanPlayer( p )
-		{
-			// todo: unhardcode the extra stage limit? -aj
-			if( m_iAwardedExtraStages[p] < 2 )
-			{
-				++m_iAwardedExtraStages[p];
-				++m_iPlayerStageTokens[p];
-				m_bEarnedExtraStage = true;
-			}
-		}
-	}
 
 	// Save the current combo to the profiles so it can be used for ComboContinuesBetweenSongs.
 	FOREACH_HumanPlayer( p )
@@ -1026,108 +991,13 @@ float GameState::GetSongPercent( float beat ) const
 	return (curTime - m_pCurSong->GetFirstSecond()) / m_pCurSong->GetLastSecond();
 }
 
-int GameState::GetNumStagesLeft( PlayerNumber pn ) const
+int GameState::GetNumSidesJoined() const
 {
-	return m_iPlayerStageTokens[pn];
-}
-
-int GameState::GetSmallestNumStagesLeftForAnyHumanPlayer() const
-{
-	if( IsEventMode() )
-		return 999;
-	int iSmallest = INT_MAX;
-	FOREACH_HumanPlayer( p )
-		iSmallest = min( iSmallest, m_iPlayerStageTokens[p] );
-	return iSmallest;
-}
-
-bool GameState::IsFinalStageForAnyHumanPlayer() const
-{
-	return GetSmallestNumStagesLeftForAnyHumanPlayer() == 1;
-}
-
-bool GameState::IsFinalStageForEveryHumanPlayer() const
-{
-	int song_cost= 1;
-	if(m_pCurSong != NULL)
-	{
-		if(m_pCurSong->IsLong())
-		{
-			song_cost= 2;
-		}
-		else if(m_pCurSong->IsMarathon())
-		{
-			song_cost= 3;
-		}
-	}
-	// If we're on gameplay or evaluation, they set this to false because those
-	// screens have already had the stage tokens subtracted.
-	song_cost*= m_AdjustTokensBySongCostForFinalStageCheck;
-	int num_on_final= 0;
-	int num_humans= 0;
-	FOREACH_HumanPlayer(p)
-	{
-		if(m_iPlayerStageTokens[p] - song_cost <= 0)
-		{
-			++num_on_final;
-		}
-		++num_humans;
-	}
-	return num_on_final >= num_humans;
-}
-
-bool GameState::IsAnExtraStage() const
-{
-	if( this->GetMasterPlayerNumber() == PlayerNumber_Invalid )
-		return false;
-	return !IsEventMode()  && m_iAwardedExtraStages[this->GetMasterPlayerNumber()] > 0;
-}
-
-static ThemeMetric<bool> LOCK_EXTRA_STAGE_SELECTION("GameState","LockExtraStageSelection");
-bool GameState::IsAnExtraStageAndSelectionLocked() const
-{
-	return IsAnExtraStage() && LOCK_EXTRA_STAGE_SELECTION;
-}
-
-bool GameState::IsExtraStage() const
-{
-	if( this->GetMasterPlayerNumber() == PlayerNumber_Invalid )
-		return false;
-	return !IsEventMode() && m_iAwardedExtraStages[this->GetMasterPlayerNumber()] == 1;
-}
-
-bool GameState::IsExtraStage2() const
-{
-	if( this->GetMasterPlayerNumber() == PlayerNumber_Invalid )
-		return false;
-	return !IsEventMode() && m_iAwardedExtraStages[this->GetMasterPlayerNumber()] == 2;
-}
-
-Stage GameState::GetCurrentStage() const
-{
-	if( m_bDemonstrationOrJukebox )			return Stage_Demo;
-	// "event" has precedence
-	else if( IsEventMode() )			return Stage_Event;
-	else if( IsExtraStage() )			return Stage_Extra1;
-	else if( IsExtraStage2() )			return Stage_Extra2;
-	// Previous logic did not factor in current song length, or the fact that
-	// players aren't allowed to start a song with 0 tokens.  This new
-	// function also has logic for handling the Gameplay and Evaluation cases
-	// which used to require workarounds on the theme side. -Kyz
-	else if(IsFinalStageForEveryHumanPlayer()) return Stage_Final;
-	else
-	{
-		switch( this->m_iCurrentStageIndex )
-		{
-		case 0:	return Stage_1st;
-		case 1:	return Stage_2nd;
-		case 2:	return Stage_3rd;
-		case 3:	return Stage_4th;
-		case 4:	return Stage_5th;
-		case 5:	return Stage_6th;
-		default:	return Stage_Next;
-		}
-	}
+	int iNumSidesJoined = 0;
+	FOREACH_PlayerNumber(p)
+		if (m_bSideIsJoined[p])
+			iNumSidesJoined++;	// left side, and right side
+	return iNumSidesJoined;
 }
 
 int GameState::GetCourseSongIndex() const
@@ -1214,15 +1084,6 @@ bool GameState::PlayersCanJoin() const
 		return true;
 	}
 	return false;
-}
-
-int GameState::GetNumSidesJoined() const
-{
-	int iNumSidesJoined = 0;
-	FOREACH_PlayerNumber( p )
-		if( m_bSideIsJoined[p] )
-			iNumSidesJoined++;	// left side, and right side
-	return iNumSidesJoined;
 }
 
 const Game* GameState::GetCurrentGame() const
@@ -1419,60 +1280,6 @@ bool GameState::AnyPlayersAreCpu() const
 	return false;
 }
 
-bool GameState::IsBattleMode() const
-{
-	return false;
-}
-
-EarnedExtraStage GameState::CalculateEarnedExtraStage() const
-{
-	if( IsEventMode() )
-		return EarnedExtraStage_No;
-
-	if( !PREFSMAN->m_bAllowExtraStage )
-		return EarnedExtraStage_No;
-
-	if( m_PlayMode != PLAY_MODE_REGULAR )
-		return EarnedExtraStage_No;
-
-	if( m_bBackedOutOfFinalStage )
-		return EarnedExtraStage_No;
-
-	if( GetSmallestNumStagesLeftForAnyHumanPlayer() > 0 )
-		return EarnedExtraStage_No;
-
-	if( m_iAwardedExtraStages[this->GetMasterPlayerNumber()] >= 2 )
-		return EarnedExtraStage_No;
-
-	FOREACH_EnabledPlayer( pn )
-	{
-		Difficulty dc = m_pCurSteps[pn]->GetDifficulty();
-		switch( dc )
-		{
-		case Difficulty_Edit:
-			if( !EDIT_ALLOWED_FOR_EXTRA )
-				continue; // can't use edit steps
-			break;
-		default:
-			if( dc < MIN_DIFFICULTY_FOR_EXTRA )
-				continue; // not hard enough!
-			break;
-		}
-
-		if( IsExtraStage() )
-		{
-			if( ALLOW_EXTRA_2  &&  STATSMAN->m_CurStageStats.m_player[pn].GetGrade() <= GRADE_TIER_FOR_EXTRA_2 )
-				return EarnedExtraStage_Extra2;
-		}
-		else if( STATSMAN->m_CurStageStats.m_player[pn].GetGrade() <= GRADE_TIER_FOR_EXTRA_1 )
-		{
-			return EarnedExtraStage_Extra1;
-		}
-	}
-
-	return EarnedExtraStage_No;
-}
-
 PlayerNumber GameState::GetBestPlayer() const
 {
 	FOREACH_PlayerNumber( pn )
@@ -1612,15 +1419,10 @@ FailType GameState::GetPlayerFailType( const PlayerState *pPlayerState ) const
 		if( dc <= Difficulty_Easy )
 			setmax( ft, FailType_ImmediateContinue );
 
-		if( dc <= Difficulty_Easy && bFirstStage && PREFSMAN->m_bFailOffForFirstStageEasy )
-			setmax( ft, FailType_Off );
 
 		/* If beginner's steps were chosen, and this is the first stage,
 		 * turn off failure completely. */
 		if( dc == Difficulty_Beginner && bFirstStage )
-			setmax( ft, FailType_Off );
-
-		if( dc == Difficulty_Beginner && PREFSMAN->m_bFailOffInBeginner )
 			setmax( ft, FailType_Off );
 
 	return ft;
@@ -1637,6 +1439,7 @@ bool GameState::ShowW1() const
 		FAIL_M(ssprintf("Invalid AllowW1 preference: %i", pref));
 	}
 }
+
 
 
 static ThemeMetric<bool> PROFILE_RECORD_FEATS("GameState","ProfileRecordFeats");
@@ -1978,11 +1781,10 @@ bool GameState::PlayerIsUsingModifier( PlayerNumber pn, const RString &sModifier
 	return po == m_pPlayerState[pn]->m_PlayerOptions.GetCurrent()  &&  so == m_SongOptions.GetCurrent();
 }
 
-Profile* GameState::GetEditLocalProfile()
-{
-	if( m_sEditLocalProfileID.Get().empty() )
+Profile* GameState::GetEditLocalProfile() {
+	if (m_sEditLocalProfileID.Get().empty())
 		return NULL;
-	return PROFILEMAN->GetLocalProfile( m_sEditLocalProfileID );
+	return PROFILEMAN->GetLocalProfile(m_sEditLocalProfileID);
 }
 
 
@@ -2044,7 +1846,6 @@ public:
 		p->m_bMultiplayer = BArg(1);
 		COMMON_RETURN_SELF;
 	}
-	DEFINE_METHOD( InStepEditor,			m_bInStepEditor );
 	DEFINE_METHOD( GetNumMultiplayerNoteFields,	m_iNumMultiplayerNoteFields )
 	DEFINE_METHOD( ShowW1,				ShowW1() )
 
@@ -2141,13 +1942,6 @@ public:
 	}
 	static int SetTemporaryEventMode( T* p, lua_State *L )	{ p->m_bTemporaryEventMode = BArg(1); COMMON_RETURN_SELF; }
 	static int Env( T* p, lua_State *L )	{ p->m_Environment->PushSelf(L); return 1; }
-	static int GetEditSourceSteps( T* p, lua_State *L )
-	{
-		Steps *pSteps = p->m_pEditSourceSteps;
-		if( pSteps ) { pSteps->PushSelf(L); }
-		else		 { lua_pushnil(L); }
-		return 1;
-	}
 	static int SetPreferredDifficulty( T* p, lua_State *L )
 	{
 		PlayerNumber pn = Enum::Check<PlayerNumber>( L, 1 );
@@ -2157,29 +1951,16 @@ public:
 	}
 	DEFINE_METHOD( GetPreferredDifficulty,		m_PreferredDifficulty[Enum::Check<PlayerNumber>(L, 1)] )
 	DEFINE_METHOD( AnyPlayerHasRankingFeats,	AnyPlayerHasRankingFeats() )
-	DEFINE_METHOD( IsBattleMode,			IsBattleMode() )
 	DEFINE_METHOD( IsDemonstration,			m_bDemonstrationOrJukebox )
 	DEFINE_METHOD( GetPlayMode,			m_PlayMode )
 	DEFINE_METHOD( GetSortOrder,			m_SortOrder )
 	DEFINE_METHOD( GetCurrentStageIndex,		m_iCurrentStageIndex )
 	DEFINE_METHOD( PlayerIsUsingModifier,		PlayerIsUsingModifier(Enum::Check<PlayerNumber>(L, 1), SArg(2)) )
 	DEFINE_METHOD( GetLoadingCourseSongIndex,	GetLoadingCourseSongIndex() )
-	DEFINE_METHOD( GetSmallestNumStagesLeftForAnyHumanPlayer, GetSmallestNumStagesLeftForAnyHumanPlayer() )
-	DEFINE_METHOD( IsAnExtraStage,			IsAnExtraStage() )
-	DEFINE_METHOD( IsExtraStage,			IsExtraStage() )
-	DEFINE_METHOD( IsExtraStage2,			IsExtraStage2() )
-	DEFINE_METHOD( GetCurrentStage,			GetCurrentStage() )
-	DEFINE_METHOD( HasEarnedExtraStage,		HasEarnedExtraStage() )
-	DEFINE_METHOD( GetEarnedExtraStage,		GetEarnedExtraStage() )
 	DEFINE_METHOD( GetEasiestStepsDifficulty,	GetEasiestStepsDifficulty() )
 	DEFINE_METHOD( GetHardestStepsDifficulty,	GetHardestStepsDifficulty() )
 	DEFINE_METHOD( IsEventMode,			IsEventMode() )
 	DEFINE_METHOD( GetNumPlayersEnabled,		GetNumPlayersEnabled() )
-	/*DEFINE_METHOD( GetSongBeat,			m_Position.m_fSongBeat )
-	DEFINE_METHOD( GetSongBeatVisible,		m_Position.m_fSongBeatVisible )
-	DEFINE_METHOD( GetSongBPS,			m_Position.m_fCurBPS )
-	DEFINE_METHOD( GetSongFreeze,			m_Position.m_bFreeze )
-	DEFINE_METHOD( GetSongDelay,			m_Position.m_bDelay )*/
 	static int GetSongPosition( T* p, lua_State *L )
 	{
 		p->m_Position.PushSelf(L);
@@ -2255,7 +2036,7 @@ public:
 		lua_pushboolean(L, p->GetStageResult(PLAYER_1)==RESULT_DRAW); return 1;
 	}
 	static int GetCurrentGame( T* p, lua_State *L )			{ const_cast<Game*>(p->GetCurrentGame())->PushSelf( L ); return 1; }
-	DEFINE_METHOD( GetEditLocalProfileID,		m_sEditLocalProfileID.Get() )
+	DEFINE_METHOD(GetEditLocalProfileID, m_sEditLocalProfileID.Get());
 	static int GetEditLocalProfile( T* p, lua_State *L )
 	{
 		Profile *pProfile = p->GetEditLocalProfile();
@@ -2326,13 +2107,12 @@ public:
 	}
 	static int GetNumStagesForCurrentSongAndStepsOrCourse( T* , lua_State *L )
 	{
-		lua_pushnumber(L, GAMESTATE->GetNumStagesForCurrentSongAndStepsOrCourse() );
+		lua_pushnumber(L, 1 );
 		return 1;
 	}
 	static int GetNumStagesLeft( T* p, lua_State *L )
 	{
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
-		lua_pushnumber(L, p->GetNumStagesLeft(pn));
+		lua_pushnumber(L, 1);
 		return 1;
 	}
 	static int GetGameSeed( T* p, lua_State *L )			{ LuaHelpers::Push( L, p->m_iGameSeed ); return 1; }
@@ -2480,58 +2260,6 @@ public:
 		COMMON_RETURN_SELF;
 	}
 
-	static int SetStepsForEditMode(T* p, lua_State *L)
-	{
-		// Arg forms:
-		// 1.  Edit existing steps:
-		//    song, steps
-		// 2.  Create new steps to edit:
-		//    song, nil, stepstype, difficulty
-		// 3.  Copy steps to new difficulty to edit:
-		//    song, steps, stepstype, difficulty
-		Song* song= Luna<Song>::check(L, 1);
-		Steps* steps= NULL;
-		if(!lua_isnil(L, 2))
-		{
-			steps= Luna<Steps>::check(L, 2);
-		}
-		// Form 1.
-		if(steps != NULL && lua_gettop(L) == 2)
-		{
-			p->m_pCurSong.Set(song);
-			p->m_pCurSteps[PLAYER_1].Set(steps);
-			p->SetCurrentStyle(GAMEMAN->GetEditorStyleForStepsType(
-					steps->m_StepsType), PLAYER_INVALID);
-			return 0;
-		}
-		StepsType stype= Enum::Check<StepsType>(L, 3);
-		Difficulty diff= Enum::Check<Difficulty>(L, 4);
-		Steps* new_steps= song->CreateSteps();
-		RString edit_name;
-		// Form 2.
-		if(steps == NULL)
-		{
-			new_steps->CreateBlank(stype);
-			new_steps->SetMeter(1);
-			edit_name= "";
-		}
-		// Form 3.
-		else
-		{
-			new_steps->CopyFrom(steps, stype, song->m_fMusicLengthSeconds);
-			edit_name= steps->GetDescription();
-		}
-		SongUtil::MakeUniqueEditDescription(song, stype, edit_name);
-		steps->SetDescription(edit_name);
-		song->AddSteps(new_steps);
-		p->m_pCurSong.Set(song);
-		p->m_pCurSteps[PLAYER_1].Set(steps);
-		p->SetCurrentStyle(GAMEMAN->GetEditorStyleForStepsType(
-				steps->m_StepsType), PLAYER_INVALID);
-		return 0;
-	}
-
-
 	static int IsCourseMode(T* p, lua_State* L) {	// course mode is dead but leave this here for now -mina
 		lua_pushboolean(L, false);
 		return 1;
@@ -2549,7 +2277,6 @@ public:
 		ADD_METHOD( GetMasterPlayerNumber );
 		ADD_METHOD( GetMultiplayer );
 		ADD_METHOD( SetMultiplayer );
-		ADD_METHOD( InStepEditor );
 		ADD_METHOD( GetNumMultiplayerNoteFields );
 		ADD_METHOD( SetNumMultiplayerNoteFields );
 		ADD_METHOD( ShowW1 );
@@ -2566,24 +2293,15 @@ public:
 		ADD_METHOD( GetPreferredSong );
 		ADD_METHOD( SetTemporaryEventMode );
 		ADD_METHOD( Env );
-		ADD_METHOD( GetEditSourceSteps );
 		ADD_METHOD( SetPreferredDifficulty );
 		ADD_METHOD( GetPreferredDifficulty );
 		ADD_METHOD( AnyPlayerHasRankingFeats );
-		ADD_METHOD( IsBattleMode );
 		ADD_METHOD( IsDemonstration );
 		ADD_METHOD( GetPlayMode );
 		ADD_METHOD( GetSortOrder );
 		ADD_METHOD( GetCurrentStageIndex );
 		ADD_METHOD( PlayerIsUsingModifier );
 		ADD_METHOD( GetLoadingCourseSongIndex );
-		ADD_METHOD( GetSmallestNumStagesLeftForAnyHumanPlayer );
-		ADD_METHOD( IsAnExtraStage );
-		ADD_METHOD( IsExtraStage );
-		ADD_METHOD( IsExtraStage2 );
-		ADD_METHOD( GetCurrentStage );
-		ADD_METHOD( HasEarnedExtraStage );
-		ADD_METHOD( GetEarnedExtraStage );
 		ADD_METHOD( GetEasiestStepsDifficulty );
 		ADD_METHOD( GetHardestStepsDifficulty );
 		ADD_METHOD( IsEventMode );
@@ -2644,7 +2362,6 @@ public:
 		ADD_METHOD( StoreRankingName );
 		ADD_METHOD( SetCurrentStyle );
 		ADD_METHOD( SetCurrentPlayMode );
-		ADD_METHOD( SetStepsForEditMode );
 		ADD_METHOD( IsCourseMode );
 		ADD_METHOD( GetEtternaVersion );
 		ADD_METHOD( CountNotesSeparately );

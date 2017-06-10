@@ -1,57 +1,12 @@
 function AreStagePlayerModsForced()
-	return GAMESTATE:IsAnExtraStage() or (GAMESTATE:GetPlayMode() == "PlayMode_Oni")
+	return false
 end
 
 function AreStageSongModsForced()
-	local pm = GAMESTATE:GetPlayMode()
-	local bOni = pm == "PlayMode_Oni"
-	local bBattle = pm == "PlayMode_Battle"
-	local bRave = pm == "PlayMode_Rave"
-	return GAMESTATE:IsAnExtraStage() or bOni or bBattle or bRave
+	return false
 end
 
 function ScreenSelectMusic:setupmusicstagemods()
-	Trace( "setupmusicstagemods" )
-	local pm = GAMESTATE:GetPlayMode()
-
-	if pm == "PlayMode_Battle" or pm == "PlayMode_Rave" then
-		local so = GAMESTATE:GetDefaultSongOptions()
-		GAMESTATE:SetSongOptions( "ModsLevel_Stage", so )
-		MESSAGEMAN:Broadcast( "SongOptionsChanged" )
-	elseif GAMESTATE:IsAnExtraStage() then
-		if GAMESTATE:GetPreferredSongGroup() == "---Group All---" then
-			local song = GAMESTATE:GetCurrentSong()
-			GAMESTATE:SetPreferredSongGroup( song:GetGroupName() )
-		end
-
-		local bExtra2 = GAMESTATE:IsExtraStage2()
-		local style = GAMESTATE:GetCurrentStyle()
-		local song, steps = SONGMAN:GetExtraStageInfo( bExtra2, style )
-		local po, so
-		if bExtra2 then
-			po = THEME:GetMetric("SongManager","OMESPlayerModifiers")
-			so = THEME:GetMetric("SongManager","OMESStageModifiers")
-		else
-			po = THEME:GetMetric("SongManager","ExtraStagePlayerModifiers")
-			so = THEME:GetMetric("SongManager","ExtraStageStageModifiers")
-		end
-
-		local difficulty = steps:GetDifficulty()
-		local Reverse = PlayerNumber:Reverse()
-
-		GAMESTATE:SetCurrentSong( song )
-		GAMESTATE:SetPreferredSong( song )
-
-		for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
-			GAMESTATE:SetCurrentSteps( pn, steps )
-			GAMESTATE:GetPlayerState(pn):SetPlayerOptions( "ModsLevel_Stage", po )
-			GAMESTATE:SetPreferredDifficulty( pn, difficulty )
-			MESSAGEMAN:Broadcast( "PlayerOptionsChanged", {PlayerNumber = pn} )
-		end
-
-		GAMESTATE:SetSongOptions( "ModsLevel_Stage", so )
-		MESSAGEMAN:Broadcast( "SongOptionsChanged" )
-	end
 	return self
 end
 

@@ -65,7 +65,7 @@ void PercentageDisplay::LoadFromNode( const XNode* pNode )
 	this->AddChild( &m_textPercent );
 
 	pChild = pNode->GetChild( "PercentRemainder" );
-	if( !ShowDancePointsNotPercentage()  &&  pChild != NULL )
+	if( pChild != NULL )
 	{
 		m_bUseRemainder = true;
 		m_textPercentRemainder.LoadFromNode( pChild );
@@ -106,17 +106,14 @@ void PercentageDisplay::Load( const PlayerState *pPlayerState, const PlayerStage
 		m_FormatPercentScore.SetFromExpression( "FormatPercentScore" );
 	}
 
-	if( ShowDancePointsNotPercentage() )
-		m_textPercent.SetName( "DancePoints" + PlayerNumberToString(m_pPlayerState->m_PlayerNumber) );
-	else
-		m_textPercent.SetName( "Percent" + PlayerNumberToString(m_pPlayerState->m_PlayerNumber) );
+	m_textPercent.SetName( "Percent" + PlayerNumberToString(m_pPlayerState->m_PlayerNumber) );
 
 	m_textPercent.LoadFromFont( THEME->GetPathF(sMetricsGroup,"text") );
 	ActorUtil::SetXY( m_textPercent, sMetricsGroup );
 	ActorUtil::LoadAllCommands( m_textPercent, sMetricsGroup );
 	this->AddChild( &m_textPercent );
 
-	if( !ShowDancePointsNotPercentage() && m_bUseRemainder )
+	if( m_bUseRemainder )
 	{
 		m_textPercentRemainder.SetName( "PercentRemainder" + PlayerNumberToString(m_pPlayerState->m_PlayerNumber) );
 		m_textPercentRemainder.LoadFromFont( THEME->GetPathF(sMetricsGroup,"remainder") );
@@ -143,7 +140,7 @@ void PercentageDisplay::Refresh()
 	const int iActualDancePoints = m_pPlayerStageStats->m_iActualDancePoints;
 	const int iCurPossibleDancePoints = m_pPlayerStageStats->m_iCurPossibleDancePoints;
 
-	if( iActualDancePoints == m_Last && iCurPossibleDancePoints == m_LastMax )
+	if (iActualDancePoints == m_Last && iCurPossibleDancePoints == m_LastMax)
 		return;
 
 	m_Last = iActualDancePoints;
@@ -151,55 +148,37 @@ void PercentageDisplay::Refresh()
 
 	RString sNumToDisplay;
 
-	if( ShowDancePointsNotPercentage() )
+	float fPercentDancePoints = m_pPlayerStageStats->GetPercentDancePoints();
+
+	// clamp percentage - feedback is that negative numbers look weird here.
+	CLAMP(fPercentDancePoints, 0.f, 1.f);
+
+	if (m_bUseRemainder)
 	{
-		sNumToDisplay = ssprintf( "%*d", m_iDancePointsDigits, max( 0, iActualDancePoints ) );
+		int iPercentWhole = static_cast<int>(fPercentDancePoints * 100);
+		int iPercentRemainder = static_cast<int>((fPercentDancePoints * 100 - static_cast<int>(fPercentDancePoints * 100)) * 10);
+		sNumToDisplay = ssprintf(m_sPercentFormat, iPercentWhole);
+		m_textPercentRemainder.SetText(ssprintf(m_sRemainderFormat, iPercentRemainder));
 	}
 	else
 	{
-		float fPercentDancePoints = m_pPlayerStageStats->GetPercentDancePoints();
-
-		// clamp percentage - feedback is that negative numbers look weird here.
-		CLAMP( fPercentDancePoints, 0.f, 1.f );
-
-		if( m_bUseRemainder )
+		if (m_FormatPercentScore.GetLuaType() == LUA_TFUNCTION)
 		{
-			int iPercentWhole = static_cast<int>(fPercentDancePoints*100);
-			int iPercentRemainder = static_cast<int>( (fPercentDancePoints*100 - static_cast<int>(fPercentDancePoints*100)) * 10 );
-			sNumToDisplay = ssprintf( m_sPercentFormat, iPercentWhole );
-			m_textPercentRemainder.SetText( ssprintf(m_sRemainderFormat, iPercentRemainder) );
+			Lua *L = LUA->Get();
+			m_FormatPercentScore.PushSelf(L);
+			LuaHelpers::Push(L, fPercentDancePoints);
+			RString Error = "Error running FormatPercentScore: ";
+			LuaHelpers::RunScriptOnStack(L, Error, 1, 1, true); // 1 arg, 1 result
+			LuaHelpers::Pop(L, sNumToDisplay);
+			LUA->Release(L);
 		}
-		else
-		{
-			if(m_FormatPercentScore.GetLuaType() == LUA_TFUNCTION)
-			{
-				Lua *L = LUA->Get();
-				m_FormatPercentScore.PushSelf( L );
-				LuaHelpers::Push( L, fPercentDancePoints );
-				RString Error= "Error running FormatPercentScore: ";
-				LuaHelpers::RunScriptOnStack(L, Error, 1, 1, true); // 1 arg, 1 result
-				LuaHelpers::Pop( L, sNumToDisplay );
-				LUA->Release(L);
-			}
 
-			// HACK: Use the last frame in the numbers texture as '-'
-			sNumToDisplay.Replace('-','x');
-		}
+		// HACK: Use the last frame in the numbers texture as '-'
+		sNumToDisplay.Replace('-', 'x');
 	}
 
-	m_textPercent.SetText( sNumToDisplay );
+	m_textPercent.SetText(sNumToDisplay);
 }
-
-bool PercentageDisplay::ShowDancePointsNotPercentage() const
-{
-	// Use straight dance points in workout because the percentage denominator isn't accurate - we don't know when the players are going to stop.
-
-	if( PREFSMAN->m_bDancePointsForOni )
-		return true;
-
-	return false;
-}
-
 
 #include "LuaBinding.h"
 

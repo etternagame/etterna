@@ -515,12 +515,6 @@ void Steps::FillStringWithBPMs(size_t startRow, size_t endRow, vector<int>& nerv
 
 void Steps::Compress() const
 {
-	// Don't compress data in the editor: it's still in use.
-	if (GAMESTATE->m_bInStepEditor)
-	{
-		return;
-	}
-
 	if( !m_sFilename.empty())
 	{
 		/* We have a file on disk; clear all data in memory.

@@ -77,12 +77,10 @@ void LifeMeterTime::Load( const PlayerState *pPlayerState, PlayerStageStats *pPl
 	this->AddChild( &m_quadDangerGlow );
 
 	m_pStream = new StreamDisplay;
-	bool bExtra = GAMESTATE->IsAnExtraStage();
-	m_pStream->Load( bExtra ? "StreamDisplayExtra" : "StreamDisplay" );
+	m_pStream->Load( "StreamDisplay" );
 	this->AddChild( m_pStream );
 
-	RString sExtra = bExtra ? "extra " : "";
-	m_sprFrame.Load( THEME->GetPathG(sType,sExtra+"frame") );
+	m_sprFrame.Load( THEME->GetPathG(sType, "frame") );
 	m_sprFrame->SetName( "Frame" );
 	this->AddChild( m_sprFrame );
 

@@ -179,12 +179,6 @@ public:
 	// Whoever added these: Please add a comment saying what they do. -Chris
 	Preference<int>		m_iRegenComboAfterMiss; // combo that must be met after a Miss to regen life
 	Preference<int>		m_iMaxRegenComboAfterMiss; // caps RegenComboAfterMiss if multiple Misses occur in rapid succession
-	Preference<bool>	m_bMercifulDrain; // negative life deltas are scaled by the players life percentage
-	Preference<bool>	m_HarshHotLifePenalty; // See LifeMeterBar.cpp -Kyz
-	Preference<bool>	m_bFailOffInBeginner;
-	Preference<bool>	m_bFailOffForFirstStageEasy;
-	Preference<bool>	m_bMercifulBeginner; // don't subtract from percent score or grade DP, larger W5 window
-	Preference<bool>	m_bMercifulSuperMeter; // negative super deltas are scaled by the players life percentage
 	Preference<bool>	m_bDelayedBack;
 	Preference<bool>	m_AllowHoldForOptions;
 	Preference<bool>	m_bShowInstructions; // how to play a mode
@@ -199,31 +193,20 @@ public:
 	Preference<bool>	m_bComboContinuesBetweenSongs;
 	Preference<TapNoteScore> m_MinTNSToHideNotes;
 	Preference<Maybe>	m_ShowSongOptions;
-	Preference<bool>	m_bDancePointsForOni;
 	Preference<float>	m_fMinPercentToSaveScores;
 	Preference<bool>	m_bDisqualification;
-	Preference<bool>	m_bOnlyPreferredDifficulties;
-	Preference<bool>	m_bBreakComboToGetItem;
 	Preference<ShowDancingCharacters>		m_ShowDancingCharacters;
 	Preference<float>	m_fGlobalOffsetSeconds;
-	Preference<int>	m_iProgressiveLifebar;
-	Preference<int>	m_iProgressiveStageLifebar;
-	Preference<int>	m_iProgressiveNonstopLifebar;
 	Preference<bool>	m_bShowBeginnerHelper;
-	Preference<bool>	m_bDisableScreenSaver;
 	Preference<RString>	m_sLanguage;
-	Preference<int>	m_iProductID; // Saved in HighScore to track what software version a score came from.
 	Preference<int>	m_iCenterImageTranslateX;
 	Preference<int>	m_iCenterImageTranslateY;
 	Preference<int>	m_fCenterImageAddWidth;
 	Preference<int>	m_fCenterImageAddHeight;
 	Preference<AttractSoundFrequency>	m_AttractSoundFrequency;
-	Preference<bool>	m_bAllowExtraStage;
-	Preference<bool>	m_bAllowMultipleHighScoreWithSameName;
 	Preference<bool> m_DisableUploadDir;
 	Preference<bool>	m_bCelShadeModels;
 	Preference<bool>	m_bPreferredSortUsesGroups;
-	Preference<float>	m_fDebounceCoinInputTime; // allow users to apply a distinct debounce to coin input
 
 	// Number of seconds it takes for a button on the controller to release
 	// after pressed.
@@ -231,8 +214,6 @@ public:
 
 	// Lead in time before recording starts in edit mode.
 	Preference<float> m_EditRecordModeLeadIn;
-	// User is prompted on clearing an area with more than this note count.
-	Preference<int> m_EditClearPromptThreshold;
 
 	// Useful for non 4:3 displays and resolutions < 640x480 where texels don't
 	// map directly to pixels.
@@ -245,8 +226,6 @@ public:
 	// on different machines that don't have the same key, or else the
 	// profile's data will be discarded.
 	Preference<bool>	m_bSignProfileData;
-
-	Preference<GetRankingName>	m_GetRankingName;
 
 	Preference<RString>	m_sAdditionalSongFolders;
 	Preference<RString>	m_sAdditionalFolders;
@@ -264,7 +243,6 @@ public:
 	Preference<bool>	m_bThreadedInput;
 	Preference<bool>	m_bThreadedMovieDecode;
 	Preference<RString>	m_sTestInitialScreen;
-	Preference<RString>	m_sMachineName;
 	Preference<bool> m_MuteActions;
 	Preference<bool> m_bAllowSongDeletion; // Allow the user to remove songs from their collection through UI / keyboard shortcut
 

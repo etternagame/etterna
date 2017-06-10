@@ -922,9 +922,7 @@ void SongUtil::GetPlayableStepsTypes( const Song *pSong, set<StepsType> &vOut )
 	FOREACH( const Style*, vpPossibleStyles, s )
 		vStepsTypes.insert( (*s)->m_StepsType );
 
-	/* filter out hidden StepsTypes, and remove steps that we don't have enough
-	 * stages left to play. */
-	// this being const may have caused some problems... -aj
+	/* filter out hidden StepsTypes */
 	const vector<StepsType> &vstToShow = CommonMetrics::STEPS_TYPES_TO_SHOW.GetValue();
 	FOREACHS( StepsType, vStepsTypes, st )
 	{
@@ -933,11 +931,7 @@ void SongUtil::GetPlayableStepsTypes( const Song *pSong, set<StepsType> &vOut )
 		int iNumPlayers = GAMESTATE->GetNumPlayersEnabled();
 		iNumPlayers = max( iNumPlayers, 1 );
 
-		bool bEnoughStages = GAMESTATE->IsAnExtraStage() || 
-			GAMESTATE->GetSmallestNumStagesLeftForAnyHumanPlayer() >= 
-			GAMESTATE->GetNumStagesMultiplierForSong(pSong);
-
-		if( bShowThisStepsType && bEnoughStages )
+		if( bShowThisStepsType)
 			vOut.insert( *st );
 	}
 }

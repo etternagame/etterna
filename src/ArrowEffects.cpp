@@ -301,18 +301,13 @@ float ArrowEffects::GetYOffset( const PlayerState* pPlayerState, int iCol, float
 	Steps *pCurSteps = GAMESTATE->m_pCurSteps[pn];
 
 	/* Usually, fTimeSpacing is 0 or 1, in which case we use entirely beat spacing or
-	 * entirely time spacing (respectively). Occasionally, we tween between them. */
-	if( curr_options->m_fTimeSpacing != 1.0f )
+	* entirely time spacing (respectively). Occasionally, we tween between them. */
+	if (curr_options->m_fTimeSpacing != 1.0f)
 	{
-		if( GAMESTATE->m_bInStepEditor ) {
-			// Use constant spacing in step editor
-			fYOffset = fNoteBeat - fSongBeat;
-		} else {
-			fYOffset = GetDisplayedBeat(pPlayerState, fNoteBeat) - GetDisplayedBeat(pPlayerState, fSongBeat);
-			fYOffset *= pCurSteps->GetTimingData()->GetDisplayedSpeedPercent(
-								     position.m_fSongBeatVisible,
-								     position.m_fMusicSecondsVisible );
-		}
+		fYOffset = GetDisplayedBeat(pPlayerState, fNoteBeat) - GetDisplayedBeat(pPlayerState, fSongBeat);
+		fYOffset *= pCurSteps->GetTimingData()->GetDisplayedSpeedPercent(
+			position.m_fSongBeatVisible,
+			position.m_fMusicSecondsVisible);
 		fYOffset *= 1 - curr_options->m_fTimeSpacing;
 	}
 

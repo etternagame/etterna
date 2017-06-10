@@ -722,8 +722,6 @@ int ScoreKeeperNormal::TapNoteScoreToDancePoints( TapNoteScore tns, bool bBeginn
 	case TNS_CheckpointHit:	iWeight = g_iPercentScoreWeight.GetValue(SE_CheckpointHit);		break;
 	case TNS_CheckpointMiss:iWeight = g_iPercentScoreWeight.GetValue(SE_CheckpointMiss);	break;
 	}
-	if( bBeginner && PREFSMAN->m_bMercifulBeginner )
-		iWeight = max( 0, iWeight );
 	return iWeight;
 }
 
@@ -738,8 +736,6 @@ int ScoreKeeperNormal::HoldNoteScoreToDancePoints( HoldNoteScore hns, bool bBegi
 	case HNS_Held:	iWeight = g_iPercentScoreWeight.GetValue(SE_Held);	break;
 	case HNS_Missed:	iWeight = g_iPercentScoreWeight.GetValue(SE_Missed);	break;
 	}
-	if( bBeginner && PREFSMAN->m_bMercifulBeginner )
-		iWeight = max( 0, iWeight );
 	return iWeight;
 }
 
@@ -766,8 +762,6 @@ int ScoreKeeperNormal::TapNoteScoreToGradePoints( TapNoteScore tns, bool bBeginn
 	case TNS_CheckpointHit:	iWeight = g_iGradeWeight.GetValue(SE_CheckpointHit);	break;
 	case TNS_CheckpointMiss:iWeight = g_iGradeWeight.GetValue(SE_CheckpointMiss);	break;
 	}
-	if( bBeginner && PREFSMAN->m_bMercifulBeginner )
-		iWeight = max( 0, iWeight );
 	return iWeight;
 }
 
@@ -782,8 +776,6 @@ int ScoreKeeperNormal::HoldNoteScoreToGradePoints( HoldNoteScore hns, bool bBegi
 	case HNS_Held:	iWeight = g_iGradeWeight.GetValue(SE_Held);		break;
 	case HNS_Missed:	iWeight = g_iGradeWeight.GetValue(SE_Missed);		break;
 	}
-	if( bBeginner && PREFSMAN->m_bMercifulBeginner )
-		iWeight = max( 0, iWeight );
 	return iWeight;
 }
 

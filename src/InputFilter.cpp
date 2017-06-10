@@ -260,11 +260,6 @@ void InputFilter::CheckButtonChange( ButtonState &bs, DeviceInput di, const std:
 		{
 			return;
 		}
-	} else {
-		if(delta < PREFSMAN->m_fDebounceCoinInputTime )
-		{
-			return;
-		}
 	}
 	
 	bs.m_LastReportTime = now;
