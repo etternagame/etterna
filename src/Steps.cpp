@@ -195,7 +195,7 @@ void Steps::GetNoteData( NoteData& noteDataOut) const
 NoteData Steps::GetNoteData() const
 {
 	NoteData tmp;
-	this->GetNoteData( tmp);
+	this->GetNoteData(tmp);
 	return tmp;
 }
 
@@ -237,6 +237,8 @@ void Steps::GetETTNoteData(RString &notes_comp_out) const
 			notes_comp_out = "";
 			return;
 		}
+
+		NoteDataUtil::GetETTNoteDataString(*m_pNoteData, m_sNoteDataCompressed);
 	}
 	notes_comp_out = m_sNoteDataCompressed;
 }
@@ -273,51 +275,21 @@ void Steps::TidyUpData()
 		SetMeter(static_cast<int>(1) );
 }
 
-void Steps::CalculateRadarValues( float fMusicLengthSeconds )
-{
-	if( m_bAreCachedRadarValuesJustLoaded )
-	{
+void Steps::CalculateRadarValues( float fMusicLengthSeconds ) {
+	if( m_bAreCachedRadarValuesJustLoaded )	{
 		m_bAreCachedRadarValuesJustLoaded = false;
 		return;
 	}
 
-
 	NoteData tempNoteData;
-	this->GetNoteData( tempNoteData);
+	this->GetNoteData(tempNoteData);
 
 	m_CachedRadarValues.Zero();
 
 	GAMESTATE->SetProcessedTimingData(this->GetTimingData());
-	if( tempNoteData.IsComposite() )
-	{
-		vector<NoteData> vParts;
-
-		NoteDataUtil::SplitCompositeNoteData( tempNoteData, vParts );
-		for( size_t pn = 0; pn < min(vParts.size(), size_t(NUM_PLAYERS)); ++pn )
-			NoteDataUtil::CalculateRadarValues( vParts[pn], fMusicLengthSeconds, m_CachedRadarValues );
-	}
-	else if (GAMEMAN->GetStepsTypeInfo(this->m_StepsType).m_StepsTypeCategory == StepsTypeCategory_Couple)
-	{
-		NoteData p1 = tempNoteData;
-		// XXX: Assumption that couple will always have an even number of notes.
-		const int tracks = tempNoteData.GetNumTracks() / 2;
-		p1.SetNumTracks(tracks);
-		NoteDataUtil::CalculateRadarValues(p1,
-										   fMusicLengthSeconds,
-										   m_CachedRadarValues);
-		// at this point, p2 is tempNoteData.
-		NoteDataUtil::ShiftTracks(tempNoteData, tracks);
-		tempNoteData.SetNumTracks(tracks);
-		NoteDataUtil::CalculateRadarValues(tempNoteData,
-										   fMusicLengthSeconds,
-										   m_CachedRadarValues);
-	}
-	else
-	{
-		NoteDataUtil::CalculateRadarValues( tempNoteData, fMusicLengthSeconds, m_CachedRadarValues );
-	}
-
+	NoteDataUtil::CalculateRadarValues( tempNoteData, fMusicLengthSeconds, m_CachedRadarValues );
 	tempNoteData.ClearAll();
+
 	GAMESTATE->SetProcessedTimingData(NULL);
 }
 
@@ -326,12 +298,9 @@ void Steps::Decompress() const
 	const_cast<Steps *>(this)->Decompress();
 }
 
-void Steps::Decompress()
-{
-
-	if (m_bNoteDataIsFilled) {
+void Steps::Decompress() {
+	if (m_bNoteDataIsFilled)
 		return;	// already decompressed
-	}
 
 	if( !m_sFilename.empty() && m_sNoteDataCompressed.empty() )
 	{
@@ -354,7 +323,7 @@ void Steps::Decompress()
 	else
 	{
 		// load from compressed
-		bool bComposite = GAMEMAN->GetStepsTypeInfo(m_StepsType).m_StepsTypeCategory == StepsTypeCategory_Routine;
+		bool bComposite = false;
 		m_bNoteDataIsFilled = true;
 		m_pNoteData->SetNumTracks(GAMEMAN->GetStepsTypeInfo(m_StepsType).iNumTracks);
 		NoteDataUtil::LoadFromSMNoteDataString(*m_pNoteData, m_sNoteDataCompressed, bComposite);
@@ -399,26 +368,36 @@ map<float, Skillset> Steps::SortSkillsetsAtRate(float x, bool includeoverall) {
 void Steps::CalcEtternaMetadata() {
 	const vector<int>& nerv = m_pNoteData->BuildAndGetNerv();
 	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
+	const vector<NoteInfo>& cereal = m_pNoteData->SerializeNoteData(etaner);
 	
-	stuffnthings = MinaSDCalc(GetNoteData().SerializeNoteData(etaner), GetNoteData().GetNumTracks(), 0.93f, 1.f, GetTimingData()->HasWarps());
+	stuffnthings = MinaSDCalc(cereal, m_pNoteData->GetNumTracks(), 0.93f, 1.f, GetTimingData()->HasWarps());
 
 	//if (GetNoteData().GetNumTracks() == 4 && GetTimingData()->HasWarps() == false)
 		//MinaCalc2(stuffnthings, GetNoteData().SerializeNoteData2(etaner), 1.f, 0.93f);
 
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
-	for (int i = 0; i < 8; ++i)
+	for (int i = 0; i < std::thread::hardware_concurrency(); ++i)
 		SONGMAN->keyconversionmap.emplace(GenerateBustedChartKey(*m_pNoteData, GetTimingData(), i), ChartKey);
 
-	/*
-	if (GetNoteData().GetNumTracks() == 4) {
+	// replace the old sm notedata string with the new ett notedata string compressed format for internal use
+	/*	Not yet though
+	if (m_pNoteData->GetNumTracks() == 4 && m_StepsType == StepsType_dance_single)
 	NoteDataUtil::GetETTNoteDataString(*m_pNoteData, m_sNoteDataCompressed);
-	m_bNoteDataIsFilled = true;
+	else {
+	m_sNoteDataCompressed = "";
+	m_sNoteDataCompressed.shrink_to_fit();
 	}
 	*/
 
+	// set first and last second for this steps object
+	if (!etaner.empty()) {
+		firstsecond = etaner.front();
+		lastsecond = etaner.back();
+	}
+
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();
-	m_pNoteData->UnsetSerializedNoteData2();
+	//m_pNoteData->UnsetSerializedNoteData2();
 	GetTimingData()->UnsetEtaner();
 }
 
@@ -525,9 +504,8 @@ void Steps::Compress() const
 		m_pNoteData->Init();
 		m_bNoteDataIsFilled = false;
 
-		/* Be careful; 'x = ""', m_sNoteDataCompressed.clear() and m_sNoteDataCompressed.reserve(0)
-		 * don't always free the allocated memory. */
-		m_sNoteDataCompressed = RString();
+		m_sNoteDataCompressed = "";
+		m_sNoteDataCompressed.shrink_to_fit();
 		return;
 	}
 
@@ -548,7 +526,7 @@ void Steps::CopyFrom( Steps* pSource, StepsType ntTo, float fMusicLengthSeconds 
 	m_StepsType = ntTo;
 	m_StepsTypeStr= GAMEMAN->GetStepsTypeInfo(ntTo).szName;
 	NoteData noteData;
-	pSource->GetNoteData( noteData);
+	pSource->GetNoteData(noteData);
 	noteData.SetNumTracks( GAMEMAN->GetStepsTypeInfo(ntTo).iNumTracks );
 	m_Timing = pSource->m_Timing;
 	this->m_pSong = pSource->m_pSong;

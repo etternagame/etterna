@@ -134,7 +134,7 @@ void StepsDisplay::SetFromSteps( const Steps* pSteps )
 		return;
 	}
 
-	SetParams params = { pSteps, 2934, pSteps->m_StepsType, pSteps->GetDifficulty() };
+	SetParams params = { pSteps, pSteps->GetMeter(), pSteps->m_StepsType, pSteps->GetDifficulty() };
 	SetInternal( params );
 }
 

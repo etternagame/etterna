@@ -1072,9 +1072,10 @@ void Song::ReCalculateRadarValuesAndLastSecond(bool fromCache, bool duringCache)
 		{
 			// only ever decompress the notedata when writing the cache file
 			// for this we don't use the etterna compressed format -mina
-			m_vpSteps[i]->Decompress(false);
+			m_vpSteps[i]->Decompress();
 
 			// calc etterna metadata will replace the unwieldy notedata string with a compressed format for both cache and internal use
+			// but not yet
 			m_vpSteps[i]->CalcEtternaMetadata();
 			m_vpSteps[i]->CalculateRadarValues(m_fMusicLengthSeconds);
 
@@ -1339,7 +1340,7 @@ bool Song::SaveToCacheFile()
 	}
 	SONGINDEX->AddCacheIndex(m_sSongDir, GetHashForDirectory(m_sSongDir));
 	const RString sPath = GetCacheFilePath();
-	return SaveToETTFile(sPath, true);
+	return SaveToSSCFile(sPath, true);
 }
 
 bool Song::SaveToDWIFile()

@@ -179,6 +179,10 @@ public:
 	vector<string> bustedkeys;
 	void MakeBustedKeys();
 
+	// you are all idiots for not just doing this in the first place -mina
+	float firstsecond = 0.f;
+	float lastsecond = 0.f;
+
 	// this is bugged and returns true for files with negative bpms when it shouldn't - mina
 	bool IsRecalcValid();
 
