@@ -428,7 +428,6 @@ void SongManager::AddKeyedPointers(Song* new_song) {
 	}
 
 	groupderps[new_song->m_sGroupName].emplace_back(new_song);
-	SongUtil::SortSongPointerArrayByTitle(groupderps[new_song->m_sGroupName]);
 }
 
 // Get a steps pointer given a chartkey, the assumption here is we want _a_ matching steps, not the original steps - mina
@@ -702,6 +701,11 @@ void SongManager::FreeSongs()
 
 	m_mapSongGroupIndex.clear();
 	m_sSongGroupBannerPaths.clear();
+
+	SongsByKey.clear();
+	StepsByKey.clear();
+	groupderps.clear();
+	allplaylists.clear();
 
 	m_pPopularSongs.clear();
 	m_pShuffledSongs.clear();

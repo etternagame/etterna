@@ -822,8 +822,10 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 			auto& groups = SONGMAN->groupderps;
 
 			map<string, string> shitterstrats;
-			for (auto& n : groups)
+			for (auto& n : groups) {
 				shitterstrats[Rage::make_lower(n.first)] = n.first;
+				SongUtil::SortSongPointerArrayByTitle(groups[n.first]);
+			}
 
 			for(auto& n : shitterstrats) {
 				auto& gname = n.second;

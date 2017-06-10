@@ -183,8 +183,8 @@ public:
 	void PushSelf( lua_State *L );
 
 	map<string, Playlist> allplaylists;
-	string activeplaylist;
-	string playlistcourse;
+	string activeplaylist = "";
+	string playlistcourse = "";
 	string ReconcileBustedKeys(const string& ck);
 	map<string, string> keyconversionmap;
 	void DeletePlaylist(const string& ck);
