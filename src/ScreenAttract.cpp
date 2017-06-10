@@ -82,6 +82,18 @@ bool ScreenAttract::AttractInput( const InputEventPlus &input, ScreenWithMenuEle
 				break;
 			// fall through
 		case GAME_BUTTON_START:
+		case GAME_BUTTON_COIN:
+			// If we're not in a game and there aren't enough credits to start,
+			// eat the input and do nothing.
+			if( pScreen->IsTransitioning() )
+				return false;
+
+			// HandleGlobalInputs() already played the coin sound. Don't play it again.
+			if( input.MenuI != GAME_BUTTON_COIN )
+				SCREENMAN->PlayStartSound();
+
+			pScreen->Cancel( SM_GoToStartScreen );
+			return true;
 		default: break;
 	}
 
