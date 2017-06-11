@@ -19,23 +19,23 @@ local function fitY(y)	-- Scale offset values to fit within plot height
 	return -1*y/maxOffset*plotHeight/2
 end
 
-local function plotOffset(nr,dv)
-	if dv == 1000 then 	-- 1000 denotes a miss for which we use a different marker
-		return Def.Quad{InitCommand=cmd(xy,fitX(nr),fitY(tst[judge]*184);zoomto,dotDims,dotDims;diffuse,offsetToJudgeColor(dv/1000);valign,0)}
-	end
-	return Def.Quad{
-		InitCommand=cmd(xy,fitX(nr),fitY(dv);zoomto,dotDims,dotDims;diffuse,offsetToJudgeColor(dv/1000)),
-		JudgeDisplayChangedMessageCommand=function(self)
-			local pos = fitY(dv)
-			if math.abs(pos) > plotHeight/2 then
-				self:y(fitY(tst[judge]*184))
-			else
-				self:y(pos)
-			end
-			self:diffuse(offsetToJudgeColor(dv/1000, tst[judge]))
-		end
-	}
-end
+--local function plotOffset(nr,dv)
+--	if dv == 1000 then 	-- 1000 denotes a miss for which we use a different marker
+--		return Def.Quad{InitCommand=cmd(xy,fitX(nr),fitY(tst[judge]*184);zoomto,dotDims,dotDims;diffuse,offsetToJudgeColor(dv/1000);valign,0)}
+--	end
+--	return Def.Quad{
+--		InitCommand=cmd(xy,fitX(nr),fitY(dv);zoomto,dotDims,dotDims;diffuse,offsetToJudgeColor(dv/1000)),
+--		JudgeDisplayChangedMessageCommand=function(self)
+--			local pos = fitY(dv)
+--			if math.abs(pos) > plotHeight/2 then
+--				self:y(fitY(tst[judge]*184))
+--			else
+--				self:y(pos)
+--			end
+--			self:diffuse(offsetToJudgeColor(dv/1000, tst[judge]))
+--		end
+--	}
+--end
 
 local o = Def.ActorFrame{
 	InitCommand=cmd(xy,plotX,plotY),
@@ -63,8 +63,48 @@ o[#o+1] = Def.Quad{InitCommand=cmd(zoomto,plotWidth+plotMargin,plotHeight+plotMa
 local wuab = {}
 for i=1,#nrt do
 	wuab[i] = td:GetElapsedTimeFromNoteRow(nrt[i])
-	o[#o+1] = plotOffset(wuab[i], dvt[i])
 end
+
+local dotWidth = dotDims / 2;
+o[#o+1] = Def.ActorMultiVertex{
+	Name= "AMV_Quads",
+	InitCommand=function(self)
+		self:visible(true)
+		self:xy(0, 0)
+		local verts = {};
+		for i=1,#nrt do
+			local color = offsetToJudgeColor(dvt[i]/1000);
+			local x = fitX(wuab[i]);
+			local y = fitY(dvt[i]);
+			if math.abs(y) > plotHeight/2 then
+				y = fitY(tst[judge]*183);
+			end
+			verts[#verts+1] = {{x-dotWidth,y+dotWidth,0}, color}
+			verts[#verts+1] = {{x+dotWidth,y+dotWidth,0}, color}
+			verts[#verts+1] = {{x+dotWidth,y-dotWidth,0}, color}
+			verts[#verts+1] = {{x-dotWidth,y-dotWidth,0}, color}
+		end
+		self:SetVertices(verts)
+		self:SetDrawState{Mode="DrawMode_Quads", First = 1, Num=#verts}
+	end,
+	JudgeDisplayChangedMessageCommand=function(self)
+		local verts = {};
+		for i=1,#nrt do
+			local x = fitX(wuab[i]);
+			local y = fitY(dvt[i]);
+			local color = offsetToJudgeColor(dvt[i]/1000, tst[judge]);
+			if math.abs(y) > plotHeight/2 then
+					y = fitY(tst[judge]*183);
+			end
+			verts[#verts+1] = {{x-dotWidth,y+dotWidth,0}, color}
+			verts[#verts+1] = {{x+dotWidth,y+dotWidth,0}, color}
+			verts[#verts+1] = {{x+dotWidth,y-dotWidth,0}, color}
+			verts[#verts+1] = {{x-dotWidth,y-dotWidth,0}, color}
+		end
+		self:SetVertices(verts)
+	end
+}
+
 -- Early/Late markers
 o[#o+1] = LoadFont("Common Normal")..{
 	InitCommand=cmd(xy,-plotWidth/2,-plotHeight/2+2;settextf,"Late (+%ims)", maxOffset;zoom,0.35;halign,0;valign,0),
