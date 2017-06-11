@@ -335,7 +335,7 @@ void PlayerStageStats::GenerateValidationKeys(HighScore& hs) const {
 	hs.SetValidationKey(ValidationKey_Brittle, BinaryToHex(CryptManager::GetSHA1ForString(key)));
 
 	// just testing stuff
-	hs.SetValidationKey(ValidationKey_Weak, GenerateWeakValidationKey(m_iTapNoteScores, m_iHoldNoteScores));
+	//hs.SetValidationKey(ValidationKey_Weak, GenerateWeakValidationKey(m_iTapNoteScores, m_iHoldNoteScores));
 }
 float PlayerStageStats::GetTimingScale() const {
 	return m_fTimingScale;
