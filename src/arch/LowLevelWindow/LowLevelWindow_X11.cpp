@@ -299,7 +299,7 @@ void LowLevelWindow_X11::SwapBuffers()
 {
 	glXSwapBuffers( Dpy, Win );
 
-	if( PREFSMAN->m_bDisableScreenSaver )
+	if( true )
 	{
 		// Disable the screensaver.
 #if defined(HAVE_LIBXTST)
