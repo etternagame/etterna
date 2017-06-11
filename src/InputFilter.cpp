@@ -111,7 +111,7 @@ namespace
  * this won't cause timing problems, because the event timestamp is preserved. */
 static Preference<float> g_fInputDebounceTime( "InputDebounceTime", 0 );
 
-unique_ptr<InputFilter>	INPUTFILTER;	// global and accessible from anywhere in our program
+InputFilter*	INPUTFILTER = NULL;	// global and accessible from anywhere in our program
 
 static const float TIME_BEFORE_REPEATS = 0.375f;
 

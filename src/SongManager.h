@@ -234,7 +234,7 @@ protected:
 	ThemeMetric1D<RageColor>	SONG_GROUP_COLOR;
 };
 
-extern unique_ptr<SongManager>	SONGMAN;	// global and accessible from anywhere in our program
+extern SongManager*	SONGMAN;	// global and accessible from anywhere in our program
 
 #endif
 

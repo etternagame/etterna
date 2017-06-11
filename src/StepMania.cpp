@@ -162,7 +162,7 @@ static void StoreActualGraphicOptions()
 	Dialog::SetWindowed( params.windowed );
 }
 
-static unique_ptr<RageDisplay> CreateDisplay();
+static RageDisplay *CreateDisplay();
 
 bool StepMania::GetHighResolutionTextures()
 {
@@ -197,7 +197,7 @@ static void StartDisplay()
 
 	update_centering();
 
-	TEXTUREMAN	= make_unique<RageTextureManager>();
+	TEXTUREMAN	= new RageTextureManager;
 	TEXTUREMAN->SetPrefs(
 		RageTextureManagerPrefs(
 			PREFSMAN->m_iTextureColorDepth,
@@ -209,7 +209,7 @@ static void StartDisplay()
 			)
 		);
 
-	MODELMAN	= make_unique<ModelManager>();
+	MODELMAN	= new ModelManager;
 	MODELMAN->SetPrefs(
 		ModelManagerPrefs(
 			PREFSMAN->m_bDelayedModelDelete
@@ -278,10 +278,41 @@ void ShutdownGame()
 	if( SOUNDMAN )
 		SOUNDMAN->Shutdown();
 
-	// Need to ensure LOG is released before it's too late.
-	LOG.reset();
-
+	SAFE_DELETE( SCREENMAN );
+	SAFE_DELETE( STATSMAN );
+	SAFE_DELETE( MESSAGEMAN );
+	SAFE_DELETE( NSMAN );
+	/* Delete INPUTMAN before the other INPUTFILTER handlers, or an input
+	 * driver may try to send a message to INPUTFILTER after we delete it. */
+	SAFE_DELETE( INPUTMAN );
+	SAFE_DELETE( INPUTQUEUE );
+	SAFE_DELETE( INPUTMAPPER );
+	SAFE_DELETE( INPUTFILTER );
+	SAFE_DELETE( MODELMAN );
+	SAFE_DELETE( PROFILEMAN ); // PROFILEMAN needs the songs still loaded
+	SAFE_DELETE( CHARMAN );
+	SAFE_DELETE( CRYPTMAN );
+	SAFE_DELETE( MEMCARDMAN );
+	SAFE_DELETE( SONGMAN );
+	SAFE_DELETE( BANNERCACHE );
+	//SAFE_DELETE( BACKGROUNDCACHE );
+	SAFE_DELETE( SONGINDEX );
+	SAFE_DELETE( SOUND ); // uses GAMESTATE, PREFSMAN
+	SAFE_DELETE( PREFSMAN );
+	SAFE_DELETE( GAMESTATE );
+	SAFE_DELETE( GAMEMAN );
+	SAFE_DELETE( NOTESKIN );
+	SAFE_DELETE( THEME );
+	SAFE_DELETE( ANNOUNCER );
+	SAFE_DELETE( SOUNDMAN );
+	SAFE_DELETE( FONT );
+	SAFE_DELETE( TEXTUREMAN );
+	SAFE_DELETE( DISPLAY );
 	Dialog::Shutdown();
+	SAFE_DELETE( LOG );
+	SAFE_DELETE( FILEMAN );
+	SAFE_DELETE( LUA );
+	SAFE_DELETE( HOOKS );
 }
 
 static void HandleException( const RString &sError )
@@ -686,7 +717,7 @@ static LocalizedString ERROR_NO_VIDEO_RENDERERS		( "StepMania", "No video render
 static LocalizedString ERROR_INITIALIZING		( "StepMania", "Initializing %s..." );
 static LocalizedString ERROR_UNKNOWN_VIDEO_RENDERER	( "StepMania", "Unknown video renderer value: %s" );
 
-unique_ptr<RageDisplay> CreateDisplay()
+RageDisplay *CreateDisplay()
 {
 	/* We never want to bother users with having to decide which API to use.
 	 *
@@ -728,7 +759,7 @@ unique_ptr<RageDisplay> CreateDisplay()
 	if( asRenderers.empty() )
 		RageException::Throw( "%s", ERROR_NO_VIDEO_RENDERERS.GetValue().c_str() );
 
-	unique_ptr<RageDisplay> pRet;
+	RageDisplay *pRet = NULL;
 	for( unsigned i=0; i<asRenderers.size(); i++ )
 	{
 		RString sRenderer = asRenderers[i];
@@ -736,39 +767,39 @@ unique_ptr<RageDisplay> CreateDisplay()
 		if( sRenderer.CompareNoCase("opengl")==0 )
 		{
 #if defined(SUPPORT_OPENGL)
-			pRet = make_unique<RageDisplay_Legacy>();
+			pRet = new RageDisplay_Legacy;
 #endif
 		}
 		else if( sRenderer.CompareNoCase("gles2")==0 )
 		{
 #if defined(SUPPORT_GLES2)
-			pRet = make_unique<RageDisplay_GLES2>();
+			pRet = new RageDisplay_GLES2;
 #endif
 		}
 		else if( sRenderer.CompareNoCase("d3d")==0 )
 		{
 // TODO: ANGLE/RageDisplay_Modern
 #if defined(SUPPORT_D3D)
-			pRet = make_unique<RageDisplay_D3D>();
+			pRet = new RageDisplay_D3D;
 #endif
 		}
 		else if( sRenderer.CompareNoCase("null")==0 )
 		{
-			return make_unique<RageDisplay_Null>();
+			return new RageDisplay_Null;
 		}
 		else
 		{
 			RageException::Throw( ERROR_UNKNOWN_VIDEO_RENDERER.GetValue(), sRenderer.c_str() );
 		}
 
-		if( pRet == nullptr)
+		if( pRet == NULL )
 			continue;
 
 		RString sError = pRet->Init( params, PREFSMAN->m_bAllowUnacceleratedRenderer );
 		if( !sError.empty() )
 		{
 			error += ssprintf(ERROR_INITIALIZING.GetValue(), sRenderer.c_str())+"\n" + sError;
-			pRet.reset();
+			SAFE_DELETE( pRet );
 			error += "\n\n\n";
 			continue;
 		}
@@ -776,7 +807,7 @@ unique_ptr<RageDisplay> CreateDisplay()
 		break; // the display is ready to go
 	}
 
-	if( pRet == nullptr )
+	if( pRet == NULL)
 		RageException::Throw( "%s", error.c_str() );
 
 	return pRet;
@@ -954,7 +985,7 @@ int sm_main(int argc, char* argv[])
 	HOOKS = ArchHooks::Create();
 	HOOKS->Init();
 
-	LUA		= make_unique<LuaManager>();
+	LUA		= new LuaManager;
 	HOOKS->RegisterWithLua();
 
 	// Initialize the file extension type lists so everything can ask ActorUtil
@@ -962,7 +993,7 @@ int sm_main(int argc, char* argv[])
 	ActorUtil::InitFileTypeLists();
 
 	// Almost everything uses this to read and write files.  Load this early.
-	FILEMAN = make_unique<RageFileManager>( argv[0] );
+	FILEMAN = new RageFileManager( argv[0] );
 	FILEMAN->MountInitialFilesystems();
 
 	bool bPortable = DoesFileExist("Portable.ini");
@@ -970,12 +1001,12 @@ int sm_main(int argc, char* argv[])
 		FILEMAN->MountUserFilesystems();
 
 	// Set this up next. Do this early, since it's needed for RageException::Throw.
-	LOG		= make_unique<RageLog>();
+	LOG		= new RageLog;
 
 	// Whew--we should be able to crash safely now!
 
 	// load preferences and mount any alternative trees.
-	PREFSMAN	= make_unique<PrefsManager>();
+	PREFSMAN	= new PrefsManager;
 
 	/* Allow HOOKS to check for multiple instances.  We need to do this after PREFS is initialized,
 	 * so ArchHooks can use a preference to turn this off.  We want to do this before ApplyLogPreferences,
@@ -1017,7 +1048,7 @@ int sm_main(int argc, char* argv[])
 
 	// Create game objects
 
-	GAMESTATE	= make_unique<GameState>();
+	GAMESTATE	= new GameState;
 
 	// This requires PREFSMAN, for PREFSMAN->m_bShowLoadingWindow.
 	LoadingWindow *pLoadingWindow = LoadingWindow::Create();
@@ -1036,10 +1067,10 @@ int sm_main(int argc, char* argv[])
 
 	AdjustForChangedSystemCapabilities();
 
-	GAMEMAN		= make_unique<GameManager>();
-	THEME		= make_unique<ThemeManager>();
-	ANNOUNCER	= make_unique<AnnouncerManager>();
-	NOTESKIN	= make_unique<NoteSkinManager>();
+	GAMEMAN		= new GameManager;
+	THEME		= new ThemeManager;
+	ANNOUNCER	= new AnnouncerManager;
+	NOTESKIN	= new NoteSkinManager;
 
 	// Switch to the last used game type, and set up the theme and announcer.
 	SwitchToLastPlayedGame();
@@ -1104,38 +1135,39 @@ int sm_main(int argc, char* argv[])
 	if( PREFSMAN->m_iSoundWriteAhead )
 		LOG->Info( "Sound writeahead has been overridden to %i", PREFSMAN->m_iSoundWriteAhead.Get() );
 
-	SOUNDMAN	= make_unique<RageSoundManager>();
+	SOUNDMAN	= new RageSoundManager;
 	SOUNDMAN->Init();
 	SOUNDMAN->SetMixVolume();
-	SOUND		= make_unique<GameSoundManager>();
-	INPUTFILTER	= make_unique<InputFilter>();
-	INPUTMAPPER	= make_unique<InputMapper>();
+	SOUND		= new GameSoundManager;
+	INPUTFILTER	= new InputFilter;
+	INPUTMAPPER	= new InputMapper;
 
 	StepMania::InitializeCurrentGame( GAMESTATE->GetCurrentGame() );
 
-	INPUTQUEUE	= make_unique<InputQueue>();
-	SONGINDEX	= make_unique<SongCacheIndex>();
-	BANNERCACHE	= make_unique<BannerCache>();
+	INPUTQUEUE	= new InputQueue;
+	SONGINDEX	= new SongCacheIndex;
+	BANNERCACHE	= new BannerCache;
+	//BACKGROUNDCACHE	= new BackgroundCache;
 
 	// depends on SONGINDEX:
-	SONGMAN		= make_unique<SongManager>();
+	SONGMAN		= new SongManager;
 	SONGMAN->InitAll( pLoadingWindow );	// this takes a long time
-	CRYPTMAN	= make_unique<CryptManager>();		// need to do this before ProfileMan
+	CRYPTMAN	= new CryptManager;		// need to do this before ProfileMan
 	if( PREFSMAN->m_bSignProfileData )
 		CRYPTMAN->GenerateGlobalKeys();
-	MEMCARDMAN	= make_unique<MemoryCardManager>();
-	CHARMAN		= make_unique<CharacterManager>();
-	SCOREMAN = make_unique<ScoreManager>();
-	PROFILEMAN	= make_unique<ProfileManager>();
+	MEMCARDMAN	= new MemoryCardManager;
+	CHARMAN		= new CharacterManager;
+	SCOREMAN = new ScoreManager;
+	PROFILEMAN	= new ProfileManager;
 	PROFILEMAN->Init(pLoadingWindow);				// must load after SONGMAN
 
 	SONGMAN->UpdatePopular();
 	SONGMAN->UpdatePreferredSort();
-	NSMAN 		= make_unique<NetworkSyncManager>();
-	MESSAGEMAN	= make_unique<MessageManager>();
-	STATSMAN	= make_unique<StatsManager>();
+	NSMAN 		= new NetworkSyncManager( NULL );
+	MESSAGEMAN	= new MessageManager;
+	STATSMAN	= new StatsManager;
 
-	FILTERMAN = make_unique<FilterManager>();
+	FILTERMAN = new FilterManager;
 
 	/* If the user has tried to quit during the loading, do it before creating
 	* the main window. This prevents going to full screen just to quit. */
@@ -1155,11 +1187,11 @@ int sm_main(int argc, char* argv[])
 
 	/* Input handlers can have dependences on the video system so
 	 * INPUTMAN must be initialized after DISPLAY. */
-	INPUTMAN	= make_unique<RageInput>();
+	INPUTMAN	= new RageInput;
 
 	// These things depend on the TextureManager, so do them after!
-	FONT		= make_unique<FontManager>();
-	SCREENMAN	= make_unique<ScreenManager>();
+	FONT		= new FontManager;
+	SCREENMAN	= new ScreenManager;
 
 	StepMania::ResetGame();
 

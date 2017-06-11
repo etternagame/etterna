@@ -133,6 +133,7 @@ namespace
 {
 	void DoChangeTheme()
 	{
+		SAFE_DELETE( SCREENMAN );
 		TEXTUREMAN->DoDelayedDelete();
 
 		// In case the previous theme overloaded class bindings, reinitialize them.
@@ -146,7 +147,7 @@ namespace
 		// Apply the new window title, icon and aspect ratio.
 		StepMania::ApplyGraphicOptions();
 
-		SCREENMAN = make_unique<ScreenManager>();
+		SCREENMAN = new ScreenManager();
 
 		StepMania::ResetGame();
 		SCREENMAN->ThemeChanged();
@@ -196,13 +197,14 @@ namespace
 
 		if(theme_changing)
 		{
+			SAFE_DELETE(SCREENMAN);
 			TEXTUREMAN->DoDelayedDelete();
 			LUA->RegisterTypes();
 			THEME->SwitchThemeAndLanguage(g_NewTheme, THEME->GetCurLanguage(),
 				PREFSMAN->m_bPseudoLocalize);
 			PREFSMAN->m_sTheme.Set(g_NewTheme);
 			StepMania::ApplyGraphicOptions();
-			SCREENMAN= make_unique<ScreenManager>();
+			SCREENMAN= new ScreenManager();
 		}
 		StepMania::ResetGame();
 		RString new_screen= THEME->GetMetric("Common", "InitialScreen");

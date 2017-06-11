@@ -42,7 +42,7 @@ protected:
 };
 
 
-extern unique_ptr<AnnouncerManager>	ANNOUNCER;	// global and accessible from anywhere in our program
+extern AnnouncerManager*	ANNOUNCER;	// global and accessible from anywhere in our program
 	
 #endif
 

@@ -12,7 +12,7 @@
 #endif
 #include <map>
 
-unique_ptr<RageLog> LOG;		// global and accessible from anywhere in the program
+RageLog* LOG;		// global and accessible from anywhere in the program
 
 /*
  * We have a couple log types and a couple logs.
@@ -438,7 +438,7 @@ void ShowWarningOrTrace( const char *file, int line, const char *message, bool b
 	void (RageLog::*method)(const char *fmt, ...) = bWarning ? &RageLog::Warn : &RageLog::Trace;
 
 	if( LOG )
-		(LOG.get()->*method)( "%s:%i: %s", file, line, message );
+		(LOG->*method)( "%s:%i: %s", file, line, message );
 	else
 		fprintf( stderr, "%s:%i: %s\n", file, line, message );
 }

@@ -18,7 +18,7 @@
 #include "SpecialFiles.h"
 
 /** @brief Have the NoteSkinManager available throughout the program. */
-unique_ptr<NoteSkinManager>	NOTESKIN; // global and accessible from anywhere in our program
+NoteSkinManager*	NOTESKIN = NULL; // global and accessible from anywhere in our program
 
 const RString GAME_COMMON_NOTESKIN_NAME = "common";
 const RString GAME_BASE_NOTESKIN_NAME = "default";

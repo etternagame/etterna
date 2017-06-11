@@ -122,7 +122,7 @@ private:
 };
 
 
-extern unique_ptr<ScreenManager>	SCREENMAN;	// global and accessible from anywhere in our program
+extern ScreenManager*	SCREENMAN;	// global and accessible from anywhere in our program
 
 #endif
 

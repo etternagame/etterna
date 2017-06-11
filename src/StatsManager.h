@@ -39,7 +39,7 @@ private:
 	StageStats m_AccumPlayedStageStats;
 };
 
-extern unique_ptr<StatsManager>	STATSMAN;	// global and accessible from anywhere in our program
+extern StatsManager*	STATSMAN;	// global and accessible from anywhere in our program
 
 #endif
 

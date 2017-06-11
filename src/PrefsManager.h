@@ -298,7 +298,7 @@ protected:
  * pointer anyway). */
 extern bool			g_bAutoRestart;
 
-extern unique_ptr<PrefsManager>	PREFSMAN;	// global and accessible from anywhere in our program
+extern PrefsManager*	PREFSMAN;	// global and accessible from anywhere in our program
 
 #endif
 

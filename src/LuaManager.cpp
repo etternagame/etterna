@@ -24,7 +24,7 @@
 
 using std::vector;
 
-unique_ptr<LuaManager> LUA;
+LuaManager *LUA = nullptr;
 struct Impl
 {
 	Impl(): g_pLock("Lua") {}
@@ -621,6 +621,7 @@ void LuaManager::Register( RegisterWithLuaFn pfn )
 LuaManager::LuaManager()
 {
 	pImpl = new Impl;
+	LUA = this; // so that LUA is available when we call the Register functions
 
 	lua_State *L = lua_open();
 	ASSERT( L != nullptr );

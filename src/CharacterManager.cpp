@@ -7,7 +7,7 @@
 
 #define CHARACTERS_DIR "/Characters/"
 
-unique_ptr<CharacterManager>	CHARMAN;	// global object accessible from anywhere in the program
+CharacterManager*	CHARMAN = NULL;	// global object accessible from anywhere in the program
 
 CharacterManager::CharacterManager()
 {

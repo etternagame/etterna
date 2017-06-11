@@ -1,8 +1,6 @@
 #ifndef CryptManager_H
 #define CryptManager_H
 
-#include <memory>
-
 class RageFileBasic;
 struct lua_State;
 
@@ -37,7 +35,7 @@ public:
 	void PushSelf( lua_State *L );
 };
 
-extern unique_ptr<CryptManager>	CRYPTMAN;	// global and accessible from anywhere in our program
+extern CryptManager*	CRYPTMAN;	// global and accessible from anywhere in our program
 
 #endif
 

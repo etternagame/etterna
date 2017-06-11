@@ -18,7 +18,7 @@
 #include <paths.h>
 #endif
 
-unique_ptr<RageFileManager> FILEMAN;
+RageFileManager *FILEMAN = NULL;
 
 /* Lock this before touching any of these globals (except FILEMAN itself). */
 static RageEvent *g_Mutex;

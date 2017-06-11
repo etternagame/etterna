@@ -3,8 +3,6 @@
 #ifndef RAGE_LOG_H
 #define RAGE_LOG_H
 
-#include <memory>
-
 class RageLog
 {
 public:
@@ -45,7 +43,7 @@ private:
 	void AddToRecentLogs( const RString &buf );
 };
 
-extern unique_ptr<RageLog>	LOG;	// global and accessible from anywhere in our program
+extern RageLog*	LOG;	// global and accessible from anywhere in our program
 #endif
 
 /*

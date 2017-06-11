@@ -1,8 +1,5 @@
 #ifndef RAGE_FILE_MANAGER_H
 #define RAGE_FILE_MANAGER_H
-
-#include <memory>
-
 /** @brief Constants for working with the RageFileManager. */
 namespace RageFileManagerUtil
 {
@@ -84,7 +81,7 @@ private:
 	RageFileBasic *OpenForWriting( const RString &sPath, int iMode, int &iError );
 };
 
-extern unique_ptr<RageFileManager> FILEMAN;
+extern RageFileManager *FILEMAN;
 
 #endif
 

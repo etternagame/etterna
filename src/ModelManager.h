@@ -52,7 +52,7 @@ protected:
 	ModelManagerPrefs m_Prefs;
 };
 
-extern unique_ptr<ModelManager>	MODELMAN;	// global and accessible from anywhere in our program
+extern ModelManager*	MODELMAN;	// global and accessible from anywhere in our program
 
 #endif
 

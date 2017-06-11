@@ -5,7 +5,6 @@
 
 #include <set>
 #include <map>
-#include <memory>
 #include "RageUtil_CircularBuffer.h"
 
 class RageSound;
@@ -61,7 +60,7 @@ private:
 	RageSoundManager(const RageSoundManager& rhs);
 };
 
-extern unique_ptr<RageSoundManager> SOUNDMAN;
+extern RageSoundManager *SOUNDMAN;
 
 #endif
 

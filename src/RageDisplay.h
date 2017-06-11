@@ -422,7 +422,7 @@ protected:
 };
 
 
-extern unique_ptr<RageDisplay>		DISPLAY;	// global and accessible from anywhere in our program
+extern RageDisplay*		DISPLAY;	// global and accessible from anywhere in our program
 
 #endif
 /*

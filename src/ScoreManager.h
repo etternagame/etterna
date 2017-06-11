@@ -138,6 +138,6 @@ private:
 	unordered_map<string, HighScore*> ScoresByKey;
 };
 
-extern unique_ptr<ScoreManager> SCOREMAN;
+extern ScoreManager* SCOREMAN;
 
 #endif

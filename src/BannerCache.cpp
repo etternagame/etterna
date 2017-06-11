@@ -47,7 +47,7 @@ static Preference<bool> g_bPalettedBannerCache( "PalettedBannerCache", false );
  * CacheBanner to avoid doing extra work.
  */
 
-unique_ptr<BannerCache> BANNERCACHE; // global and accessible from anywhere in our program
+BannerCache *BANNERCACHE; // global and accessible from anywhere in our program
 
 
 static map<RString,RageSurface *> g_BannerPathToImage;

@@ -52,7 +52,7 @@ struct Centering
 
 static vector<Centering> g_CenteringStack( 1, Centering(0, 0, 0, 0) );
 
-unique_ptr<RageDisplay>		DISPLAY; // global and accessible from anywhere in our program
+RageDisplay*		DISPLAY	= NULL; // global and accessible from anywhere in our program
 
 Preference<bool>  LOG_FPS( "LogFPS", true );
 Preference<float> g_fFrameLimitPercent( "FrameLimitPercent", 0.90f );

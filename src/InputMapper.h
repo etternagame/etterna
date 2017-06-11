@@ -207,7 +207,7 @@ private:
 	InputMapper& operator=(const InputMapper& rhs);
 };
 
-extern unique_ptr<InputMapper>	INPUTMAPPER;	// global and accessible from anywhere in our program
+extern InputMapper*	INPUTMAPPER;	// global and accessible from anywhere in our program
 
 #endif
 

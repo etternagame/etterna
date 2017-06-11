@@ -39,7 +39,7 @@
 #include <ctime>
 #include <set>
 
-unique_ptr<GameState>	GAMESTATE;	// global and accessible from anywhere in our program
+GameState*	GAMESTATE = NULL;	// global and accessible from anywhere in our program
 
 #define NAME_BLACKLIST_FILE "/Data/NamesBlacklist.txt"
 

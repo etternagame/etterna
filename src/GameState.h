@@ -379,7 +379,7 @@ MultiPlayer GetNextEnabledMultiPlayer( MultiPlayer mp );
 
 
 
-extern unique_ptr<GameState>	GAMESTATE;	// global and accessible from anywhere in our program
+extern GameState*	GAMESTATE;	// global and accessible from anywhere in our program
 
 #endif
 

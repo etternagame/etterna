@@ -96,7 +96,7 @@ private:
 	InputFilter& operator=(const InputFilter& rhs);
 };
 
-extern unique_ptr<InputFilter>	INPUTFILTER;	// global and accessible from anywhere in our program
+extern InputFilter*	INPUTFILTER;	// global and accessible from anywhere in our program
 
 #endif
 

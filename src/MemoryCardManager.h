@@ -2,7 +2,6 @@
 #define MemoryCardManager_H
 
 #include "LuaManager.h"
-#include <memory>
 
 class MemoryCardManager
 {
@@ -17,7 +16,7 @@ protected:
 
 };
 
-extern unique_ptr<MemoryCardManager>	MEMCARDMAN;	// global and accessible from anywhere in our program
+extern MemoryCardManager*	MEMCARDMAN;	// global and accessible from anywhere in our program
 
 #endif
 

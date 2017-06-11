@@ -32,7 +32,7 @@
 
 #include <map>
 
-unique_ptr<RageTextureManager>		TEXTUREMAN; // global and accessible from anywhere in our program
+RageTextureManager*		TEXTUREMAN		= NULL; // global and accessible from anywhere in our program
 
 namespace
 {

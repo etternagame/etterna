@@ -55,7 +55,7 @@ public:
 	void PushSelf( lua_State *L );
 };
 
-extern unique_ptr<GameManager>	GAMEMAN;	// global and accessible from anywhere in our program
+extern GameManager*	GAMEMAN;	// global and accessible from anywhere in our program
 
 #endif
 

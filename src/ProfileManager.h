@@ -104,7 +104,7 @@ private:
 	bool m_bNewProfile[NUM_PLAYERS];
 };
 
-extern unique_ptr<ProfileManager>	PROFILEMAN;	// global and accessible from anywhere in our program
+extern ProfileManager*	PROFILEMAN;	// global and accessible from anywhere in our program
 
 #endif
 
