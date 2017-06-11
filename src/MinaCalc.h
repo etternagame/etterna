@@ -158,4 +158,3 @@ private:
 MINACALC_API vector<float> MinaSDCalc(const vector<NoteInfo>& NoteInfo, int numTracks, float musicrate, float goal, float timingscale, bool negbpms);
 MINACALC_API MinaSD MinaSDCalc(const vector<NoteInfo>& NoteInfo, int numTracks, float goal, float timingscale, bool negbpms);
 MINACALC_API int GetCalcVersion();
-MINACALC_API string MinaCalc2(MinaSD& output, vector<NoteInfo2>& NoteInfo, float musicrate, float goal);
