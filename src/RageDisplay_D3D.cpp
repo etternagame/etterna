@@ -562,6 +562,9 @@ RString RageDisplay_D3D::TryVideoMode( const VideoModeParams &_p, bool &bNewDevi
 
 	ResolutionChanged();
 
+	// Present once the window is created so we don't display a white frame while initializing
+	g_pd3dDevice->Present(0, 0, 0, 0);
+
 	return RString(); // mode change successful
 }
 
