@@ -846,6 +846,10 @@ ScreenGameplay::~ScreenGameplay()
 	SAFE_DELETE( m_pSongBackground );
 	SAFE_DELETE( m_pSongForeground );
 
+	if (GAMESTATE->IsPlaylistCourse()) {
+		GAMESTATE->isplaylistcourse = false;
+		SONGMAN->playlistcourse = "";
+	}
 	if( m_pSoundMusic )
 		m_pSoundMusic->StopPlaying();
 
