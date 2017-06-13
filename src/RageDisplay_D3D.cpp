@@ -45,7 +45,7 @@ D3DCAPS9			g_DeviceCaps;
 D3DDISPLAYMODE		g_DesktopMode;
 D3DPRESENT_PARAMETERS	g_d3dpp;
 int					g_ModelMatrixCnt=0;
-DWORD				lastFVF = 0;
+DWORD				g_lastFVF = 0;
 static bool		g_bSphereMapping[NUM_TextureUnit] = { false, false };
 
 // Need default color and depth buffer to restore them after using render targets
@@ -566,6 +566,9 @@ RString RageDisplay_D3D::TryVideoMode( const VideoModeParams &_p, bool &bNewDevi
 	// Present once the window is created so we don't display a white frame while initializing
 	g_pd3dDevice->Present(0, 0, 0, 0);
 
+	// Ensure device is in a clean state when resolution changes occur
+	RecoverFromDeviceLoss();
+
 	return RString(); // mode change successful
 }
 
@@ -574,6 +577,12 @@ void RageDisplay_D3D::ResolutionChanged()
 	//LOG->Warn( "RageDisplay_D3D::ResolutionChanged" );
 
 	RageDisplay::ResolutionChanged();
+}
+
+// Reset anything which doesn't survive device loss
+void RageDisplay_D3D::RecoverFromDeviceLoss()
+{
+	g_lastFVF = 0;
 }
 
 int RageDisplay_D3D::GetMaxTextureSize() const
@@ -588,6 +597,7 @@ bool RageDisplay_D3D::BeginFrame()
 	switch( g_pd3dDevice->TestCooperativeLevel() )
 	{
 	case D3DERR_DEVICELOST:
+		RecoverFromDeviceLoss();
 		return false;
 	case D3DERR_DEVICENOTRESET:
 		{
@@ -835,9 +845,9 @@ public:
 			g_pd3dDevice->SetTransform( D3DTS_TEXTURE0, (D3DMATRIX*)&m );
 		}
 
-		if ( lastFVF != D3DFVF_RageModelVertex )
+		if ( g_lastFVF != D3DFVF_RageModelVertex )
 		{
-			lastFVF = D3DFVF_RageModelVertex;
+			g_lastFVF = D3DFVF_RageModelVertex;
 			g_pd3dDevice->SetFVF( D3DFVF_RageModelVertex );
 		}
 		
@@ -890,9 +900,9 @@ void RageDisplay_D3D::DrawQuadsInternal( const RageSpriteVertex v[], int iNumVer
 		vIndices[i*6+5] = i*4+0;
 	}
 
-	if ( lastFVF != D3DFVF_RageSpriteVertex )
+	if ( g_lastFVF != D3DFVF_RageSpriteVertex )
 	{
-		lastFVF = D3DFVF_RageSpriteVertex;
+		g_lastFVF = D3DFVF_RageSpriteVertex;
 		g_pd3dDevice->SetFVF( D3DFVF_RageSpriteVertex );
 	}
 	
@@ -931,9 +941,9 @@ void RageDisplay_D3D::DrawQuadStripInternal( const RageSpriteVertex v[], int iNu
 		vIndices[i*6+5] = i*2+3;
 	}
 
-	if ( lastFVF != D3DFVF_RageSpriteVertex )
+	if ( g_lastFVF != D3DFVF_RageSpriteVertex )
 	{
-		lastFVF = D3DFVF_RageSpriteVertex;
+		g_lastFVF = D3DFVF_RageSpriteVertex;
 		g_pd3dDevice->SetFVF( D3DFVF_RageSpriteVertex );
 	}
 	
@@ -978,9 +988,9 @@ void RageDisplay_D3D::DrawSymmetricQuadStripInternal( const RageSpriteVertex v[]
 		vIndices[i*12+11] = i*3+5;
 	}
 
-	if ( lastFVF != D3DFVF_RageSpriteVertex )
+	if ( g_lastFVF != D3DFVF_RageSpriteVertex )
 	{
-		lastFVF = D3DFVF_RageSpriteVertex;
+		g_lastFVF = D3DFVF_RageSpriteVertex;
 		g_pd3dDevice->SetFVF( D3DFVF_RageSpriteVertex );
 	}
 
@@ -999,9 +1009,9 @@ void RageDisplay_D3D::DrawSymmetricQuadStripInternal( const RageSpriteVertex v[]
 
 void RageDisplay_D3D::DrawFanInternal( const RageSpriteVertex v[], int iNumVerts )
 {
-	if ( lastFVF != D3DFVF_RageSpriteVertex )
+	if ( g_lastFVF != D3DFVF_RageSpriteVertex )
 	{
-		lastFVF = D3DFVF_RageSpriteVertex;
+		g_lastFVF = D3DFVF_RageSpriteVertex;
 		g_pd3dDevice->SetFVF( D3DFVF_RageSpriteVertex );
 	}
 
@@ -1016,9 +1026,9 @@ void RageDisplay_D3D::DrawFanInternal( const RageSpriteVertex v[], int iNumVerts
 
 void RageDisplay_D3D::DrawStripInternal( const RageSpriteVertex v[], int iNumVerts )
 {
-	if ( lastFVF != D3DFVF_RageSpriteVertex )
+	if ( g_lastFVF != D3DFVF_RageSpriteVertex )
 	{
-		lastFVF = D3DFVF_RageSpriteVertex;
+		g_lastFVF = D3DFVF_RageSpriteVertex;
 		g_pd3dDevice->SetFVF( D3DFVF_RageSpriteVertex );
 	}
 
@@ -1033,9 +1043,9 @@ void RageDisplay_D3D::DrawStripInternal( const RageSpriteVertex v[], int iNumVer
 
 void RageDisplay_D3D::DrawTrianglesInternal( const RageSpriteVertex v[], int iNumVerts )
 {
-	if ( lastFVF != D3DFVF_RageSpriteVertex )
+	if ( g_lastFVF != D3DFVF_RageSpriteVertex )
 	{
-		lastFVF = D3DFVF_RageSpriteVertex;
+		g_lastFVF = D3DFVF_RageSpriteVertex;
 		g_pd3dDevice->SetFVF( D3DFVF_RageSpriteVertex );
 	}
 
