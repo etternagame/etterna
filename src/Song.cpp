@@ -1056,32 +1056,30 @@ void Song::TranslateTitles()
 						m_sMainTitleTranslit, m_sSubTitleTranslit, m_sArtistTranslit );
 }
 
-void Song::ReCalculateRadarValuesAndLastSecond(bool fromCache, bool duringCache)
-{
-	if( fromCache )
+void Song::ReCalculateRadarValuesAndLastSecond(bool fromCache, bool duringCache) {
+	if (fromCache)
 		return;
-	
+
 	float localFirst = FLT_MAX; // inf
 	// Make sure we're at least as long as the specified amount below.
 	float localLast = this->specifiedLastSecond;
 
-	for (unsigned i = 0; i<m_vpSteps.size(); i++)
-	{
-		// Cache etterna stuff and 'radar values'
-		if (duringCache)
-		{
+	if (duringCache) {
+		for (auto& n : m_vpSteps) {
+			// Cache etterna stuff and 'radar values'
+
 			// only ever decompress the notedata when writing the cache file
 			// for this we don't use the etterna compressed format -mina
-			m_vpSteps[i]->Decompress();
+			n->Decompress();
 
 			// calc etterna metadata will replace the unwieldy notedata string with a compressed format for both cache and internal use
 			// but not yet
-			m_vpSteps[i]->CalcEtternaMetadata();
-			m_vpSteps[i]->CalculateRadarValues(m_fMusicLengthSeconds);
+			n->CalcEtternaMetadata();
+			n->CalculateRadarValues(m_fMusicLengthSeconds);
 
 			// calculate lastSecond
-			localFirst = min(localFirst, m_vpSteps[i]->firstsecond);
-			localLast = max(localLast, m_vpSteps[i]->lastsecond);
+			localFirst = min(localFirst, n->firstsecond);
+			localLast = max(localLast, n->lastsecond);
 		}
 	}
 

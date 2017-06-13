@@ -371,9 +371,6 @@ void Steps::CalcEtternaMetadata() {
 	const vector<NoteInfo>& cereal = m_pNoteData->SerializeNoteData(etaner);
 	
 	stuffnthings = MinaSDCalc(cereal, m_pNoteData->GetNumTracks(), 0.93f, 1.f, GetTimingData()->HasWarps());
-	auto stuffcomp = [](vector<float>& a, vector<float>& b) {return a.front() < b.front(); };
-
-	sort(stuffnthings.begin(), stuffnthings.end(), stuffcomp);
 
 	//if (GetNoteData().GetNumTracks() == 4 && GetTimingData()->HasWarps() == false)
 		//MinaCalc2(stuffnthings, GetNoteData().SerializeNoteData2(etaner), 1.f, 0.93f);
