@@ -1416,29 +1416,35 @@ float TimingData::WhereUAtBroNoOffset(float beat) const {
 const vector<float>& TimingData::BuildAndGetEtaner(const vector<int>& nerv) {
 	ElapsedTimesAtNonEmptyRows.clear();
 
-	// default old until the below is thoroughly checked
-	for (auto& n : nerv)
-		ElapsedTimesAtNonEmptyRows.emplace_back(GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(n)));
-	return ElapsedTimesAtNonEmptyRows;
-
-
 	const vector<TimingSegment*>* segs = m_avpTimingSegments;
 	const vector<TimingSegment*>& bpms = segs[SEGMENT_BPM];
 	const vector<TimingSegment*>& warps = segs[SEGMENT_WARP];
 	const vector<TimingSegment*>& stops = segs[SEGMENT_STOP];
 	const vector<TimingSegment*>& delays = segs[SEGMENT_DELAY];
 
+	// use original functions and move on if time isn't linear -mina
+	if (!stops.empty() || !warps.empty() || !delays.empty() || nerv.empty()) {
+		for (auto& n : nerv)
+			ElapsedTimesAtNonEmptyRows.emplace_back(GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(n)));
+		return ElapsedTimesAtNonEmptyRows;
+	}
+
+	if (nerv.empty())
+		return ElapsedTimesAtAllRows;
+
+
 	// handle simple single bpm case if applicable -mina
 	if (bpms.size() == 1) {
 		float last_time = 0.f;
 		float bps = GetBPMAtRow(0) / 60.f;
-		for (auto& n : nerv)
+		for (auto& n : nerv) {
 			ElapsedTimesAtNonEmptyRows.emplace_back(NoteRowToBeat(n) / bps - m_fBeat0OffsetInSeconds);
+			//LOG->Trace("%f", abs(ElapsedTimesAtNonEmptyRows.back() - GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(n))));
+		}
 		return ElapsedTimesAtNonEmptyRows;
 	}
 
-	// use linear calculations if linear time is determined -mina
-	if (warps.size() + stops.size() + delays.size() == 0 && nerv.size() > 0) {
+	if (bpms.size() > 1) {
 		float last_time = 0.f;
 		float bps = GetBPMAtRow(0) / 60.f;
 		int lastbpmrow = 0;
@@ -1448,15 +1454,13 @@ const vector<float>& TimingData::BuildAndGetEtaner(const vector<int>& nerv) {
 
 		// start at one because the initial bpm is already handled
 		for (size_t i = 1; i < bpms.size(); ++i) {
-			LOG->Trace("bpm %f", bps * 60.f);
 			event_row = bpms[i]->GetRow();
 			time_to_next_event = NoteRowToBeat(event_row - lastbpmrow) / bps;
 			float next_event_time = last_time + time_to_next_event;
-			while (nerv[idx] <= event_row && idx < nerv.size()) {
+			while (nerv[idx] < event_row && idx < nerv.size()) {
 				float perc = (nerv[idx] - lastbpmrow) / static_cast<float>(event_row - lastbpmrow);
 				ElapsedTimesAtNonEmptyRows.emplace_back(last_time + time_to_next_event * perc - m_fBeat0OffsetInSeconds);
-				LOG->Trace("%f, %f", ElapsedTimesAtNonEmptyRows.back(), GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(nerv[idx])));
-				LOG->Trace("idx%i, row%i", idx, nerv[idx]);
+				//LOG->Trace("%f", abs(ElapsedTimesAtNonEmptyRows.back() - GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(nerv[idx]))));
 				++idx;
 			}
 			last_time = next_event_time;
@@ -1465,18 +1469,17 @@ const vector<float>& TimingData::BuildAndGetEtaner(const vector<int>& nerv) {
 		}
 
 		// fill out any timestamps that lie beyond the last bpm change
-		LOG->Warn("bps %f", bps * 60.f);
+		time_to_next_event = NoteRowToBeat(nerv.back() - lastbpmrow) / bps;
 		while (idx < nerv.size()) {
-			float perc = (nerv[idx] - lastbpmrow) / static_cast<float>(event_row - lastbpmrow);
+			float perc = (nerv[idx] - lastbpmrow) / static_cast<float>(nerv.back() - lastbpmrow);
 			ElapsedTimesAtNonEmptyRows.emplace_back(last_time + time_to_next_event * perc - m_fBeat0OffsetInSeconds);
-			LOG->Trace("%f, %f", ElapsedTimesAtNonEmptyRows.back(), GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(nerv[idx])));
-			LOG->Trace("idx%i, row%i", idx, nerv[idx]);
+			//LOG->Trace("%f", abs(ElapsedTimesAtNonEmptyRows.back() - GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(nerv[idx]))));
 			++idx;
 		}
-
-		LOG->Trace("etaner %i, nerv %i", ElapsedTimesAtNonEmptyRows.size(), nerv.size());
 		return ElapsedTimesAtNonEmptyRows;
 	}
+	// should never get here but prevent compiler whining
+	return ElapsedTimesAtAllRows;
 }
 
 const vector<float>& TimingData::BuildAndGetEtar(int lastrow) {
