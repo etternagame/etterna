@@ -1045,7 +1045,7 @@ public:
 		glDrawElements( 
 			GL_TRIANGLES, 
 			meshInfo.iTriangleCount*3, 
-			GL_UNSIGNED_SHORT, 
+			GL_INT,
 			&m_vTriangles[0]+meshInfo.iTriangleStart );
 	}
 
@@ -1389,7 +1389,7 @@ void RageCompiledGeometryHWOGL::Draw( int iMeshIndex ) const
 		meshInfo.iVertexStart+meshInfo.iVertexCount-1,
 					// maximum array index contained in indices
 		meshInfo.iTriangleCount*3,	// number of elements to be rendered
-		GL_UNSIGNED_SHORT,
+		GL_INT,
 		BUFFER_OFFSET(meshInfo.iTriangleStart*sizeof(msTriangle)) );
 	DebugAssertNoGLError();
 
@@ -1436,11 +1436,11 @@ void RageDisplay_Legacy::DrawSymmetricQuadStripInternal( const RageSpriteVertex 
 	int iNumIndices = iNumTriangles*3;
 
 	// make a temporary index buffer
-	static vector<uint16_t> vIndices;
-	unsigned uOldSize = vIndices.size();
-	unsigned uNewSize = max(uOldSize,(unsigned)iNumIndices);
-	vIndices.resize( uNewSize );
-	for( uint16_t i=(uint16_t)uOldSize/12; i<(uint16_t)iNumPieces; i++ )
+	static vector<int> vIndices;
+	int iOldSize = vIndices.size();
+	int iNewSize = max( iOldSize,iNumIndices );
+	vIndices.resize( iNewSize );
+	for( int i=iOldSize/12; i<iNumPieces; i++ )
 	{
 		// { 1, 3, 0 } { 1, 4, 3 } { 1, 5, 4 } { 1, 2, 5 }
 		vIndices[i*12+0] = i*3+1;
@@ -1457,14 +1457,13 @@ void RageDisplay_Legacy::DrawSymmetricQuadStripInternal( const RageSpriteVertex 
 		vIndices[i*12+11] = i*3+5;
 	}
 
-	//
 	SendCurrentMatrices();
 
 	SetupVertices( v, iNumVerts );
 	glDrawElements( 
 		GL_TRIANGLES, 
 		iNumIndices,
-		GL_UNSIGNED_SHORT, 
+		GL_INT,
 		&vIndices[0] );
 }
 

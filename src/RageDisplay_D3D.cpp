@@ -847,7 +847,7 @@ public:
 			meshInfo.iVertexCount,		// NumVertices
 			meshInfo.iTriangleCount,	// PrimitiveCount,
 			&m_vTriangles[0]+meshInfo.iTriangleStart,// pIndexData,
-			D3DFMT_INDEX16,				// IndexDataFormat,
+			D3DFMT_INDEX32,				// IndexDataFormat,
 			&m_vVertex[0],				// pVertexStreamZeroData,
 			sizeof(m_vVertex[0])		// VertexStreamZeroStride
 		);
@@ -876,11 +876,11 @@ void RageDisplay_D3D::DrawQuadsInternal( const RageSpriteVertex v[], int iNumVer
 	int iNumIndices = iNumTriangles*3;
 
 	// make a temporary index buffer
-	static vector<uint16_t> vIndices;
-	unsigned uOldSize = vIndices.size();
-	unsigned uNewSize = max(uOldSize, static_cast<unsigned>(iNumIndices));
+	static vector<int> vIndices;
+	int iOldSize = vIndices.size();
+	int uNewSize = max( iOldSize, iNumIndices );
 	vIndices.resize( uNewSize );
-	for( uint16_t i=static_cast<uint16_t>(uOldSize/6); i<static_cast<uint16_t>(iNumQuads); i++ )
+	for(int i= iOldSize/6; i<iNumQuads; i++ )
 	{
 		vIndices[i*6+0] = i*4+0;
 		vIndices[i*6+1] = i*4+1;
@@ -903,7 +903,7 @@ void RageDisplay_D3D::DrawQuadsInternal( const RageSpriteVertex v[], int iNumVer
 		iNumVerts, // NumVertices
 		iNumTriangles, // PrimitiveCount,
 		&vIndices[0], // pIndexData,
-		D3DFMT_INDEX16, // IndexDataFormat,
+		D3DFMT_INDEX32, // IndexDataFormat,
 		v, // pVertexStreamZeroData,
 		sizeof(RageSpriteVertex) // VertexStreamZeroStride
 	);
@@ -917,11 +917,11 @@ void RageDisplay_D3D::DrawQuadStripInternal( const RageSpriteVertex v[], int iNu
 	int iNumIndices = iNumTriangles*3;
 
 	// make a temporary index buffer
-	static vector<uint16_t> vIndices;
-	unsigned uOldSize = vIndices.size();
-	unsigned uNewSize = max(uOldSize,(unsigned)iNumIndices);
-	vIndices.resize( uNewSize );
-	for( uint16_t i=(uint16_t)uOldSize/6; i<(uint16_t)iNumQuads; i++ )
+	static vector<int> vIndices;
+	int iOldSize = vIndices.size();
+	int iNewSize = max( iOldSize,iNumIndices );
+	vIndices.resize( iNewSize );
+	for( int i=iOldSize/6; i<iNumQuads; i++ )
 	{
 		vIndices[i*6+0] = i*2+0;
 		vIndices[i*6+1] = i*2+1;
@@ -944,7 +944,7 @@ void RageDisplay_D3D::DrawQuadStripInternal( const RageSpriteVertex v[], int iNu
 		iNumVerts, // NumVertices
 		iNumTriangles, // PrimitiveCount,
 		&vIndices[0], // pIndexData,
-		D3DFMT_INDEX16, // IndexDataFormat,
+		D3DFMT_INDEX32, // IndexDataFormat,
 		v, // pVertexStreamZeroData,
 		sizeof(RageSpriteVertex) // VertexStreamZeroStride
 	);
@@ -957,11 +957,11 @@ void RageDisplay_D3D::DrawSymmetricQuadStripInternal( const RageSpriteVertex v[]
 	int iNumIndices = iNumTriangles*3;
 
 	// make a temporary index buffer
-	static vector<uint16_t> vIndices;
-	unsigned uOldSize = vIndices.size();
-	unsigned uNewSize = max(uOldSize,(unsigned)iNumIndices);
-	vIndices.resize( uNewSize );
-	for( uint16_t i=(uint16_t)uOldSize/12; i<(uint16_t)iNumPieces; i++ )
+	static vector<int> vIndices;
+	int iOldSize = vIndices.size();
+	int iNewSize = max( iOldSize,iNumIndices );
+	vIndices.resize( iNewSize );
+	for(int i=iOldSize/12; i<iNumPieces; i++ )
 	{
 		// { 1, 3, 0 } { 1, 4, 3 } { 1, 5, 4 } { 1, 2, 5 }
 		vIndices[i*12+0] = i*3+1;
@@ -991,7 +991,7 @@ void RageDisplay_D3D::DrawSymmetricQuadStripInternal( const RageSpriteVertex v[]
 		iNumVerts, // NumVertices
 		iNumTriangles, // PrimitiveCount,
 		&vIndices[0], // pIndexData,
-		D3DFMT_INDEX16, // IndexDataFormat,
+		D3DFMT_INDEX32, // IndexDataFormat,
 		v, // pVertexStreamZeroData,
 		sizeof(RageSpriteVertex) // VertexStreamZeroStride
 	);
