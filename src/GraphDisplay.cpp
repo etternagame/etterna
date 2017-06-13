@@ -26,8 +26,6 @@ public:
 	{
 		Actor::SetGlobalRenderStates();	// set Actor-specified render states
 
-		DISPLAY->ClearAllTextures();
-
 		// Must call this after setting the texture or else texture 
 		// parameters have no effect.
 		Actor::SetTextureRenderStates();
@@ -133,7 +131,6 @@ public:
 	{
 		Actor::SetGlobalRenderStates();	// set Actor-specified render states
 
-		DISPLAY->ClearAllTextures();
 		DISPLAY->SetTexture( TextureUnit_1, m_pTexture->GetTexHandle() );
 
 		// Must call this after setting the texture or else texture 

@@ -418,7 +418,6 @@ void Model::DrawPrimitives()
 				static const RageColor specular( 0.2f,0.2f,0.2f,1 );
 				static const float shininess = 1;
 				DISPLAY->SetMaterial( emissive, ambient, diffuse, specular, shininess );
-				DISPLAY->ClearAllTextures();
 				DISPLAY->SetSphereEnvironmentMapping( TextureUnit_1, false );
 				DrawMesh( i );
 			}
@@ -445,17 +444,12 @@ void Model::DrawPrimitives()
 			float shininess = 1;
 
 			DISPLAY->SetMaterial( emissive, ambient, diffuse, specular, shininess );
-			DISPLAY->ClearAllTextures();
 
 			if( pMesh->nMaterialIndex != -1 )
 			{
 				msMaterial& mat = m_Materials[ pMesh->nMaterialIndex ];
 				DISPLAY->SetTexture( TextureUnit_1, mat.diffuse.GetCurrentTexture() ? mat.diffuse.GetCurrentTexture()->GetTexHandle() : 0 );
 				Actor::SetTextureRenderStates();	// set Actor-specified render states
-			}
-			else
-			{
-				// hey why is this otherwise empty else block here? -aj
 			}
 
 			DrawMesh( i );

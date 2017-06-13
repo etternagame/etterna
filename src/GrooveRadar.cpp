@@ -146,7 +146,6 @@ void GrooveRadar::GrooveRadarValueMap::DrawPrimitives()
 	// draw radar filling
 	const float fRadius = GetUnzoomedWidth()/2.0f*1.1f;
 
-	DISPLAY->ClearAllTextures();
 	DISPLAY->SetTextureMode( TextureUnit_1, TextureMode_Modulate );
 	RageSpriteVertex v[12]; // needed to draw 5 fan primitives and 10 strip primitives
 

@@ -45,6 +45,7 @@ D3DCAPS9			g_DeviceCaps;
 D3DDISPLAYMODE		g_DesktopMode;
 D3DPRESENT_PARAMETERS	g_d3dpp;
 int					g_ModelMatrixCnt=0;
+DWORD				g_lastFVF = 0;
 static bool		g_bSphereMapping[NUM_TextureUnit] = { false, false };
 
 // Need default color and depth buffer to restore them after using render targets
@@ -565,6 +566,9 @@ RString RageDisplay_D3D::TryVideoMode( const VideoModeParams &_p, bool &bNewDevi
 	// Present once the window is created so we don't display a white frame while initializing
 	g_pd3dDevice->Present(0, 0, 0, 0);
 
+	// Ensure device is in a clean state when resolution changes occur
+	RecoverFromDeviceLoss();
+
 	return RString(); // mode change successful
 }
 
@@ -573,6 +577,12 @@ void RageDisplay_D3D::ResolutionChanged()
 	//LOG->Warn( "RageDisplay_D3D::ResolutionChanged" );
 
 	RageDisplay::ResolutionChanged();
+}
+
+// Reset anything which doesn't survive device loss
+void RageDisplay_D3D::RecoverFromDeviceLoss()
+{
+	g_lastFVF = 0;
 }
 
 int RageDisplay_D3D::GetMaxTextureSize() const
@@ -587,6 +597,7 @@ bool RageDisplay_D3D::BeginFrame()
 	switch( g_pd3dDevice->TestCooperativeLevel() )
 	{
 	case D3DERR_DEVICELOST:
+		RecoverFromDeviceLoss();
 		return false;
 	case D3DERR_DEVICENOTRESET:
 		{
@@ -715,70 +726,79 @@ const VideoModeParams* RageDisplay_D3D::GetActualVideoModeParams() const
 
 void RageDisplay_D3D::SendCurrentMatrices()
 {
-	RageMatrix m;
-	RageMatrixMultiply( &m, GetCentering(), GetProjectionTop() );
+	static RageMatrix Centering;
+	static RageMatrix Projection;
 
-	if (g_bInvertY)
+	if ( Centering != *GetCentering() || Projection != *GetProjectionTop() )
 	{
-		RageMatrix flip;
-		RageMatrixScale(&flip, +1, -1, +1);
-		RageMatrixMultiply(&m, &flip, &m);
-	}
+		Centering = *GetCentering();
+		Projection = *GetProjectionTop();
 
-	// Convert to OpenGL-style "pixel-centered" coords
-	RageMatrix m2 = GetCenteringMatrix( -0.5f, -0.5f, 0, 0 );
-	RageMatrix projection;
-	RageMatrixMultiply( &projection, &m2, &m );
-	g_pd3dDevice->SetTransform( D3DTS_PROJECTION, (D3DMATRIX*)&projection );
+		RageMatrix m;
+		RageMatrixMultiply( &m, GetCentering(), GetProjectionTop() );
 
-	g_pd3dDevice->SetTransform( D3DTS_VIEW, (D3DMATRIX*)GetViewTop() );
-	g_pd3dDevice->SetTransform( D3DTS_WORLD, (D3DMATRIX*)GetWorldTop() );
-
-	FOREACH_ENUM( TextureUnit, tu )
-	{
-		// Optimization opportunity: Turn off texture transform if not using texture coords.
-		g_pd3dDevice->SetTextureStageState( tu, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_COUNT2 );
-
-		// If no texture is set for this texture unit, don't bother setting it up.
-		IDirect3DBaseTexture9* pTexture = NULL;
-		g_pd3dDevice->GetTexture( tu, &pTexture );
-		if( pTexture == NULL )
-			 continue;
-		pTexture->Release();
-
-		if( g_bSphereMapping[tu] )
+		if ( g_bInvertY )
 		{
-			static const RageMatrix tex = RageMatrix
-			(
-				0.5f,   0.0f,  0.0f, 0.0f,
-				0.0f,  -0.5f,  0.0f, 0.0f,
-				0.0f,   0.0f,  0.0f, 0.0f,
-				0.5f,  -0.5f,  0.0f, 1.0f
-			);
-			g_pd3dDevice->SetTransform( (D3DTRANSFORMSTATETYPE)(D3DTS_TEXTURE0+tu), (D3DMATRIX*)&tex );
-
-			// Tell D3D to use transformed reflection vectors as texture co-ordinate 0
-			// and then transform this coordinate by the specified texture matrix.
-			g_pd3dDevice->SetTextureStageState( tu, D3DTSS_TEXCOORDINDEX, D3DTSS_TCI_CAMERASPACEREFLECTIONVECTOR );
+			RageMatrix flip;
+			RageMatrixScale( &flip, +1, -1, +1 );
+			RageMatrixMultiply( &m, &flip, &m );
 		}
-		else
+
+		// Convert to OpenGL-style "pixel-centered" coords
+		RageMatrix m2 = GetCenteringMatrix( -0.5f, -0.5f, 0, 0 );
+		RageMatrix projection;
+		RageMatrixMultiply( &projection, &m2, &m );
+		g_pd3dDevice->SetTransform( D3DTS_PROJECTION, (D3DMATRIX*)&projection );
+
+		g_pd3dDevice->SetTransform( D3DTS_VIEW, (D3DMATRIX*)GetViewTop() );
+		g_pd3dDevice->SetTransform( D3DTS_WORLD, (D3DMATRIX*)GetWorldTop() );
+		
+		FOREACH_ENUM( TextureUnit, tu )
 		{
-			/* Direct3D is expecting a 3x3 matrix loaded into the 4x4 in order
-			 * to transform the 2-component texture coordinates. We currently
-			 * only use translate and scale, and ignore the z component entirely,
-			 * so convert the texture matrix from 4x4 to 3x3 by dropping z. */
+			// If no texture is set for this texture unit, don't bother setting it up.
+			IDirect3DBaseTexture9* pTexture = NULL;
+			g_pd3dDevice->GetTexture( tu, &pTexture );
+			if (pTexture == NULL)
+				continue;
+			pTexture->Release();
 
-			const RageMatrix &tex1 = *GetTextureTop();
-			const RageMatrix tex2 = RageMatrix
-			(
-				tex1.m[0][0], tex1.m[0][1],  tex1.m[0][3],	0,
-				tex1.m[1][0], tex1.m[1][1],  tex1.m[1][3],	0,
-				tex1.m[3][0], tex1.m[3][1],  tex1.m[3][3],	0,
-				0,				0,			0,		0
-			);
-			g_pd3dDevice->SetTransform( D3DTRANSFORMSTATETYPE(D3DTS_TEXTURE0+tu), (D3DMATRIX*)&tex2 );
+			// Optimization opportunity: Turn off texture transform if not using texture coords.
+			g_pd3dDevice->SetTextureStageState(tu, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_COUNT2);
+			
+			if ( g_bSphereMapping[tu] )
+			{
+				static const RageMatrix tex = RageMatrix
+				(
+					0.5f, 0.0f, 0.0f, 0.0f,
+					0.0f, -0.5f, 0.0f, 0.0f,
+					0.0f, 0.0f, 0.0f, 0.0f,
+					0.5f, -0.5f, 0.0f, 1.0f
+				);
+				g_pd3dDevice->SetTransform( (D3DTRANSFORMSTATETYPE)(D3DTS_TEXTURE0 + tu), (D3DMATRIX*)&tex );
 
-			g_pd3dDevice->SetTextureStageState( tu, D3DTSS_TEXCOORDINDEX, D3DTSS_TCI_PASSTHRU );
+				// Tell D3D to use transformed reflection vectors as texture co-ordinate 0
+				// and then transform this coordinate by the specified texture matrix.
+				g_pd3dDevice->SetTextureStageState( tu, D3DTSS_TEXCOORDINDEX, D3DTSS_TCI_CAMERASPACEREFLECTIONVECTOR );
+			}
+			else
+			{
+				/* Direct3D is expecting a 3x3 matrix loaded into the 4x4 in order
+				* to transform the 2-component texture coordinates. We currently
+				* only use translate and scale, and ignore the z component entirely,
+				* so convert the texture matrix from 4x4 to 3x3 by dropping z. */
+
+				const RageMatrix &tex1 = *GetTextureTop();
+				const RageMatrix tex2 = RageMatrix
+				(
+					tex1.m[0][0], tex1.m[0][1], tex1.m[0][3], 0,
+					tex1.m[1][0], tex1.m[1][1], tex1.m[1][3], 0,
+					tex1.m[3][0], tex1.m[3][1], tex1.m[3][3], 0,
+					0, 0, 0, 0
+				);
+				g_pd3dDevice->SetTransform( D3DTRANSFORMSTATETYPE(D3DTS_TEXTURE0 + tu), (D3DMATRIX*)&tex2 );
+
+				g_pd3dDevice->SetTextureStageState( tu, D3DTSS_TEXCOORDINDEX, D3DTSS_TCI_PASSTHRU );
+			}
 		}
 	}
 }
@@ -825,14 +845,19 @@ public:
 			g_pd3dDevice->SetTransform( D3DTS_TEXTURE0, (D3DMATRIX*)&m );
 		}
 
-		g_pd3dDevice->SetFVF( D3DFVF_RageModelVertex );
+		if ( g_lastFVF != D3DFVF_RageModelVertex )
+		{
+			g_lastFVF = D3DFVF_RageModelVertex;
+			g_pd3dDevice->SetFVF( D3DFVF_RageModelVertex );
+		}
+		
 		g_pd3dDevice->DrawIndexedPrimitiveUP(
 			D3DPT_TRIANGLELIST,			// PrimitiveType
 			meshInfo.iVertexStart,		// MinIndex
 			meshInfo.iVertexCount,		// NumVertices
 			meshInfo.iTriangleCount,	// PrimitiveCount,
 			&m_vTriangles[0]+meshInfo.iTriangleStart,// pIndexData,
-			D3DFMT_INDEX16,				// IndexDataFormat,
+			D3DFMT_INDEX32,				// IndexDataFormat,
 			&m_vVertex[0],				// pVertexStreamZeroData,
 			sizeof(m_vVertex[0])		// VertexStreamZeroStride
 		);
@@ -861,11 +886,11 @@ void RageDisplay_D3D::DrawQuadsInternal( const RageSpriteVertex v[], int iNumVer
 	int iNumIndices = iNumTriangles*3;
 
 	// make a temporary index buffer
-	static vector<uint16_t> vIndices;
-	unsigned uOldSize = vIndices.size();
-	unsigned uNewSize = max(uOldSize, static_cast<unsigned>(iNumIndices));
+	static vector<int> vIndices;
+	int iOldSize = vIndices.size();
+	int uNewSize = max( iOldSize, iNumIndices );
 	vIndices.resize( uNewSize );
-	for( uint16_t i=static_cast<uint16_t>(uOldSize/6); i<static_cast<uint16_t>(iNumQuads); i++ )
+	for(int i= iOldSize/6; i<iNumQuads; i++ )
 	{
 		vIndices[i*6+0] = i*4+0;
 		vIndices[i*6+1] = i*4+1;
@@ -875,7 +900,12 @@ void RageDisplay_D3D::DrawQuadsInternal( const RageSpriteVertex v[], int iNumVer
 		vIndices[i*6+5] = i*4+0;
 	}
 
-	g_pd3dDevice->SetFVF( D3DFVF_RageSpriteVertex );
+	if ( g_lastFVF != D3DFVF_RageSpriteVertex )
+	{
+		g_lastFVF = D3DFVF_RageSpriteVertex;
+		g_pd3dDevice->SetFVF( D3DFVF_RageSpriteVertex );
+	}
+	
 	SendCurrentMatrices();
 	g_pd3dDevice->DrawIndexedPrimitiveUP(
 		D3DPT_TRIANGLELIST, // PrimitiveType
@@ -883,7 +913,7 @@ void RageDisplay_D3D::DrawQuadsInternal( const RageSpriteVertex v[], int iNumVer
 		iNumVerts, // NumVertices
 		iNumTriangles, // PrimitiveCount,
 		&vIndices[0], // pIndexData,
-		D3DFMT_INDEX16, // IndexDataFormat,
+		D3DFMT_INDEX32, // IndexDataFormat,
 		v, // pVertexStreamZeroData,
 		sizeof(RageSpriteVertex) // VertexStreamZeroStride
 	);
@@ -897,11 +927,11 @@ void RageDisplay_D3D::DrawQuadStripInternal( const RageSpriteVertex v[], int iNu
 	int iNumIndices = iNumTriangles*3;
 
 	// make a temporary index buffer
-	static vector<uint16_t> vIndices;
-	unsigned uOldSize = vIndices.size();
-	unsigned uNewSize = max(uOldSize,(unsigned)iNumIndices);
-	vIndices.resize( uNewSize );
-	for( uint16_t i=(uint16_t)uOldSize/6; i<(uint16_t)iNumQuads; i++ )
+	static vector<int> vIndices;
+	int iOldSize = vIndices.size();
+	int iNewSize = max( iOldSize,iNumIndices );
+	vIndices.resize( iNewSize );
+	for( int i=iOldSize/6; i<iNumQuads; i++ )
 	{
 		vIndices[i*6+0] = i*2+0;
 		vIndices[i*6+1] = i*2+1;
@@ -911,7 +941,12 @@ void RageDisplay_D3D::DrawQuadStripInternal( const RageSpriteVertex v[], int iNu
 		vIndices[i*6+5] = i*2+3;
 	}
 
-	g_pd3dDevice->SetFVF( D3DFVF_RageSpriteVertex );
+	if ( g_lastFVF != D3DFVF_RageSpriteVertex )
+	{
+		g_lastFVF = D3DFVF_RageSpriteVertex;
+		g_pd3dDevice->SetFVF( D3DFVF_RageSpriteVertex );
+	}
+	
 	SendCurrentMatrices();
 	g_pd3dDevice->DrawIndexedPrimitiveUP(
 		D3DPT_TRIANGLELIST, // PrimitiveType
@@ -919,7 +954,7 @@ void RageDisplay_D3D::DrawQuadStripInternal( const RageSpriteVertex v[], int iNu
 		iNumVerts, // NumVertices
 		iNumTriangles, // PrimitiveCount,
 		&vIndices[0], // pIndexData,
-		D3DFMT_INDEX16, // IndexDataFormat,
+		D3DFMT_INDEX32, // IndexDataFormat,
 		v, // pVertexStreamZeroData,
 		sizeof(RageSpriteVertex) // VertexStreamZeroStride
 	);
@@ -932,11 +967,11 @@ void RageDisplay_D3D::DrawSymmetricQuadStripInternal( const RageSpriteVertex v[]
 	int iNumIndices = iNumTriangles*3;
 
 	// make a temporary index buffer
-	static vector<uint16_t> vIndices;
-	unsigned uOldSize = vIndices.size();
-	unsigned uNewSize = max(uOldSize,(unsigned)iNumIndices);
-	vIndices.resize( uNewSize );
-	for( uint16_t i=(uint16_t)uOldSize/12; i<(uint16_t)iNumPieces; i++ )
+	static vector<int> vIndices;
+	int iOldSize = vIndices.size();
+	int iNewSize = max( iOldSize,iNumIndices );
+	vIndices.resize( iNewSize );
+	for(int i=iOldSize/12; i<iNumPieces; i++ )
 	{
 		// { 1, 3, 0 } { 1, 4, 3 } { 1, 5, 4 } { 1, 2, 5 }
 		vIndices[i*12+0] = i*3+1;
@@ -953,7 +988,12 @@ void RageDisplay_D3D::DrawSymmetricQuadStripInternal( const RageSpriteVertex v[]
 		vIndices[i*12+11] = i*3+5;
 	}
 
-	g_pd3dDevice->SetFVF( D3DFVF_RageSpriteVertex );
+	if ( g_lastFVF != D3DFVF_RageSpriteVertex )
+	{
+		g_lastFVF = D3DFVF_RageSpriteVertex;
+		g_pd3dDevice->SetFVF( D3DFVF_RageSpriteVertex );
+	}
+
 	SendCurrentMatrices();
 	g_pd3dDevice->DrawIndexedPrimitiveUP(
 		D3DPT_TRIANGLELIST, // PrimitiveType
@@ -961,7 +1001,7 @@ void RageDisplay_D3D::DrawSymmetricQuadStripInternal( const RageSpriteVertex v[]
 		iNumVerts, // NumVertices
 		iNumTriangles, // PrimitiveCount,
 		&vIndices[0], // pIndexData,
-		D3DFMT_INDEX16, // IndexDataFormat,
+		D3DFMT_INDEX32, // IndexDataFormat,
 		v, // pVertexStreamZeroData,
 		sizeof(RageSpriteVertex) // VertexStreamZeroStride
 	);
@@ -969,7 +1009,12 @@ void RageDisplay_D3D::DrawSymmetricQuadStripInternal( const RageSpriteVertex v[]
 
 void RageDisplay_D3D::DrawFanInternal( const RageSpriteVertex v[], int iNumVerts )
 {
-	g_pd3dDevice->SetFVF( D3DFVF_RageSpriteVertex );
+	if ( g_lastFVF != D3DFVF_RageSpriteVertex )
+	{
+		g_lastFVF = D3DFVF_RageSpriteVertex;
+		g_pd3dDevice->SetFVF( D3DFVF_RageSpriteVertex );
+	}
+
 	SendCurrentMatrices();
 	g_pd3dDevice->DrawPrimitiveUP(
 		D3DPT_TRIANGLEFAN, // PrimitiveType
@@ -981,7 +1026,12 @@ void RageDisplay_D3D::DrawFanInternal( const RageSpriteVertex v[], int iNumVerts
 
 void RageDisplay_D3D::DrawStripInternal( const RageSpriteVertex v[], int iNumVerts )
 {
-	g_pd3dDevice->SetFVF( D3DFVF_RageSpriteVertex );
+	if ( g_lastFVF != D3DFVF_RageSpriteVertex )
+	{
+		g_lastFVF = D3DFVF_RageSpriteVertex;
+		g_pd3dDevice->SetFVF( D3DFVF_RageSpriteVertex );
+	}
+
 	SendCurrentMatrices();
 	g_pd3dDevice->DrawPrimitiveUP(
 		D3DPT_TRIANGLESTRIP, // PrimitiveType
@@ -993,7 +1043,12 @@ void RageDisplay_D3D::DrawStripInternal( const RageSpriteVertex v[], int iNumVer
 
 void RageDisplay_D3D::DrawTrianglesInternal( const RageSpriteVertex v[], int iNumVerts )
 {
-	g_pd3dDevice->SetFVF( D3DFVF_RageSpriteVertex );
+	if ( g_lastFVF != D3DFVF_RageSpriteVertex )
+	{
+		g_lastFVF = D3DFVF_RageSpriteVertex;
+		g_pd3dDevice->SetFVF( D3DFVF_RageSpriteVertex );
+	}
+
 	SendCurrentMatrices();
 	g_pd3dDevice->DrawPrimitiveUP(
 		D3DPT_TRIANGLELIST, // PrimitiveType

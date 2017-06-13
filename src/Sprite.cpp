@@ -527,7 +527,6 @@ void Sprite::DrawTexture( const TweenState *state )
 		}
 	}
 
-	DISPLAY->ClearAllTextures();
 	DISPLAY->SetTexture( TextureUnit_1, m_pTexture? m_pTexture->GetTexHandle():0 );
 
 	// Must call this after setting the texture or else texture 
@@ -612,7 +611,9 @@ void Sprite::DrawTexture( const TweenState *state )
 		v[0].c = v[1].c = v[2].c = v[3].c = state->glow;
 		DISPLAY->DrawQuad( v );
 	}
-	DISPLAY->SetEffectMode( EffectMode_Normal );
+
+	if ( m_EffectMode != EffectMode_Normal )
+		DISPLAY->SetEffectMode( EffectMode_Normal );
 }
 
 bool Sprite::EarlyAbortDraw() const
