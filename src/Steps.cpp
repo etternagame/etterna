@@ -378,6 +378,8 @@ void Steps::CalcEtternaMetadata() {
 		//MinaCalc2(stuffnthings, GetNoteData().SerializeNoteData2(etaner), 1.f, 0.93f);
 
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
+
+	// need to figure out a better place to put this as it is fairly slow
 	for (unsigned i = 0; i < std::thread::hardware_concurrency(); ++i)
 		SONGMAN->keyconversionmap.emplace(GenerateBustedChartKey(*m_pNoteData, GetTimingData(), i), ChartKey);
 

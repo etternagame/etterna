@@ -17,6 +17,9 @@ REGISTER_CLASS_TRAITS( NoteData, new NoteData(*pCopy) )
 
 void NoteData::Init()
 {
+	UnsetNerv();
+	UnsetSerializedNoteData();
+	UnsetSerializedNoteData2();
 	m_TapNotes = vector<TrackMap>();	// ensure that the memory is freed
 }
 
