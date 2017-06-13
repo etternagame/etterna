@@ -189,7 +189,7 @@ public:
 
 	/* Return the note at the given track and row.  Row may be out of
 	 * range; pretend the song goes on with TAP_EMPTYs indefinitely. */
-	inline const TapNote &GetTapNote( unsigned track, int row ) const
+	inline const TapNote &GetTapNote( const unsigned& track, const int& row ) const
 	{
 		const TrackMap &mapTrack = m_TapNotes[track];
 		TrackMap::const_iterator iter = mapTrack.find( row );

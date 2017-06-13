@@ -116,7 +116,7 @@ static void LoadFromSMNoteDataStringWithPlayer( NoteData& out, const RString &sS
 
 				switch( ch )
 				{
-				case '0': tn = TAP_EMPTY;				break;
+				case '0': break;	// massive waste of processor time to initialize a tapnote with type empty only to do nothing with it -mina
 				case '1': tn = TAP_ORIGINAL_TAP;			break;
 				case '2':
 				case '4':
@@ -168,7 +168,9 @@ static void LoadFromSMNoteDataStringWithPlayer( NoteData& out, const RString &sS
 					 * due to invalid data. We should probably check for this when
 					 * we load SM data for the first time ... */
 					// FAIL_M("Invalid data in SM");
-					tn = TAP_EMPTY;
+
+					// massive waste of processor time -mina
+					//tn = TAP_EMPTY;
 					break;
 				}
 
