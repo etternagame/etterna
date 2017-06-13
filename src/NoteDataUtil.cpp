@@ -1188,7 +1188,7 @@ void NoteDataUtil::CalculateRadarValues( const NoteData &in, float fSongSeconds,
 					}
 					if(curr_note->type == TapNoteType_HoldHead)
 					{
-						state.hold_ends.push_back(curr_row + curr_note->iDuration);
+						state.hold_ends.emplace_back(curr_row + curr_note->iDuration);
 						++state.num_holds_on_curr_row;
 						switch(curr_note->subType)
 						{
@@ -2418,7 +2418,7 @@ void NoteDataUtil::IcyWorld(NoteData &inout, StepsType st, TimingData const& tim
 			}
 
 		}
-		rowsWithNotes.push_back(tuple<int, int>(r, currentTap));
+		rowsWithNotes.emplace_back(tuple<int, int>(r, currentTap));
 	}
 
 	int lastTap = -1;
@@ -2494,7 +2494,7 @@ void NoteDataUtil::AnchorJS(NoteData &inout, StepsType st, TimingData const& tim
 			}
 				
 		}
-		rowsWithNotes.push_back(tuple<int, int>(r, currentTap));
+		rowsWithNotes.emplace_back(tuple<int, int>(r, currentTap));
 	}
 
 	int lastTap = -1;
@@ -2572,7 +2572,7 @@ void NoteDataUtil::JackJS(NoteData &inout, StepsType st, TimingData const& timin
 			}
 				
 		}
-		rowsWithNotes.push_back(tuple<int, int>(r, currentTap));
+		rowsWithNotes.emplace_back(tuple<int, int>(r, currentTap));
 	}
 
 	int lastTap = -1;

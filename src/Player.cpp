@@ -614,7 +614,7 @@ void Player::Load()
 	nerv = m_NoteData.GetNonEmptyRowVector();
 	const vector<float>& etaner = m_Timing->BuildAndGetEtaner(nerv);
 	m_pPlayerStageStats->serializednd = m_NoteData.SerializeNoteData(etaner);
-
+	m_NoteData.UnsetSerializedNoteData();
 	
 
 	Profile *pProfile = PROFILEMAN->GetProfile(pn);
