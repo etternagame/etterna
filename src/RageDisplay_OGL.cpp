@@ -933,26 +933,35 @@ static void SetupVertices( const RageSpriteVertex v[], int iNumVerts )
 
 void RageDisplay_Legacy::SendCurrentMatrices()
 {
-	RageMatrix projection;
-	RageMatrixMultiply( &projection, GetCentering(), GetProjectionTop() );
+	static RageMatrix Centering;
+	static RageMatrix Projection;
 
-	if (g_bInvertY)
+	if ( Centering != *GetCentering() || Projection != *GetProjectionTop() )
 	{
-		RageMatrix flip;
-		RageMatrixScale( &flip, +1, -1, +1 );
-		RageMatrixMultiply( &projection, &flip, &projection );
+		Centering = *GetCentering();
+		Projection = *GetProjectionTop();
+
+		RageMatrix projection;
+		RageMatrixMultiply( &projection, GetCentering(), GetProjectionTop() );
+
+		if ( g_bInvertY )
+		{
+			RageMatrix flip;
+			RageMatrixScale( &flip, +1, -1, +1 );
+			RageMatrixMultiply( &projection, &flip, &projection );
+		}
+		glMatrixMode( GL_PROJECTION );
+		glLoadMatrixf( (const float*)&projection );
+
+		// OpenGL has just "modelView", whereas D3D has "world" and "view"
+		RageMatrix modelView;
+		RageMatrixMultiply( &modelView, GetViewTop(), GetWorldTop() );
+		glMatrixMode( GL_MODELVIEW );
+		glLoadMatrixf( (const float*)&modelView );
+
+		glMatrixMode( GL_TEXTURE );
+		glLoadMatrixf( (const float*)GetTextureTop() );
 	}
-	glMatrixMode( GL_PROJECTION );
-	glLoadMatrixf( (const float*)&projection );
-
-	// OpenGL has just "modelView", whereas D3D has "world" and "view"
-	RageMatrix modelView;
-	RageMatrixMultiply( &modelView, GetViewTop(), GetWorldTop() );
-	glMatrixMode( GL_MODELVIEW );
-	glLoadMatrixf( (const float*)&modelView );
-
-	glMatrixMode( GL_TEXTURE );
-	glLoadMatrixf( (const float*)GetTextureTop() );
 }
 
 class RageCompiledGeometrySWOGL : public RageCompiledGeometry
@@ -995,8 +1004,6 @@ public:
 	}
 	void Draw( int iMeshIndex ) const
 	{
-		TurnOffHardwareVBO();
-
 		const MeshInfo& meshInfo = m_vMeshInfo[iMeshIndex];
 
 		glEnableClientState(GL_VERTEX_ARRAY);
@@ -1408,7 +1415,6 @@ void RageDisplay_Legacy::DeleteCompiledGeometry( RageCompiledGeometry* p )
 
 void RageDisplay_Legacy::DrawQuadsInternal( const RageSpriteVertex v[], int iNumVerts )
 {
-	TurnOffHardwareVBO();
 	SendCurrentMatrices();
 
 	SetupVertices( v, iNumVerts );
@@ -1417,7 +1423,6 @@ void RageDisplay_Legacy::DrawQuadsInternal( const RageSpriteVertex v[], int iNum
 
 void RageDisplay_Legacy::DrawQuadStripInternal( const RageSpriteVertex v[], int iNumVerts )
 {
-	TurnOffHardwareVBO();
 	SendCurrentMatrices();
 
 	SetupVertices( v, iNumVerts );
@@ -1452,7 +1457,7 @@ void RageDisplay_Legacy::DrawSymmetricQuadStripInternal( const RageSpriteVertex 
 		vIndices[i*12+11] = i*3+5;
 	}
 
-	TurnOffHardwareVBO();
+	//
 	SendCurrentMatrices();
 
 	SetupVertices( v, iNumVerts );
@@ -1465,7 +1470,6 @@ void RageDisplay_Legacy::DrawSymmetricQuadStripInternal( const RageSpriteVertex 
 
 void RageDisplay_Legacy::DrawFanInternal( const RageSpriteVertex v[], int iNumVerts )
 {
-	TurnOffHardwareVBO();
 	SendCurrentMatrices();
 
 	SetupVertices( v, iNumVerts );
@@ -1474,7 +1478,6 @@ void RageDisplay_Legacy::DrawFanInternal( const RageSpriteVertex v[], int iNumVe
 
 void RageDisplay_Legacy::DrawStripInternal( const RageSpriteVertex v[], int iNumVerts )
 {
-	TurnOffHardwareVBO();
 	SendCurrentMatrices();
 
 	SetupVertices( v, iNumVerts );
@@ -1483,7 +1486,6 @@ void RageDisplay_Legacy::DrawStripInternal( const RageSpriteVertex v[], int iNum
 
 void RageDisplay_Legacy::DrawTrianglesInternal( const RageSpriteVertex v[], int iNumVerts )
 {
-	TurnOffHardwareVBO();
 	SendCurrentMatrices();
 
 	SetupVertices( v, iNumVerts );
@@ -1492,7 +1494,6 @@ void RageDisplay_Legacy::DrawTrianglesInternal( const RageSpriteVertex v[], int 
 
 void RageDisplay_Legacy::DrawCompiledGeometryInternal( const RageCompiledGeometry *p, int iMeshIndex )
 {
-	TurnOffHardwareVBO();
 	SendCurrentMatrices();
 
 	p->Draw( iMeshIndex );
@@ -1500,8 +1501,6 @@ void RageDisplay_Legacy::DrawCompiledGeometryInternal( const RageCompiledGeometr
 
 void RageDisplay_Legacy::DrawLineStripInternal( const RageSpriteVertex v[], int iNumVerts, float fLineWidth )
 {
-	TurnOffHardwareVBO();
-
 	if (!(*GetActualVideoModeParams()).bSmoothLines)
 	{
 		/* Fall back on the generic polygon-based line strip. */

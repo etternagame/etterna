@@ -97,7 +97,6 @@ void ActorMultiTexture::DrawPrimitives()
 	quadVerticies.top    = -m_size.y/2.0f;
 	quadVerticies.bottom = +m_size.y/2.0f;
 
-	DISPLAY->ClearAllTextures();
 	for( size_t i = 0; i < m_aTextureUnits.size(); ++i )
 	{
 		TextureUnit tu = enum_add2(TextureUnit_1, i);
@@ -130,7 +129,8 @@ void ActorMultiTexture::DrawPrimitives()
 	for( size_t i = 0; i < m_aTextureUnits.size(); ++i )
 		DISPLAY->SetTexture( enum_add2(TextureUnit_1, i), 0 );
 
-	DISPLAY->SetEffectMode( EffectMode_Normal );
+	if ( m_EffectMode != EffectMode_Normal )
+		DISPLAY->SetEffectMode(EffectMode_Normal);
 }
 
 bool ActorMultiTexture::EarlyAbortDraw() const

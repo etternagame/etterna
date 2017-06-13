@@ -218,7 +218,6 @@ void ActorMultiVertex::DrawPrimitives()
 {
 	Actor::SetGlobalRenderStates();	// set Actor-specified render states
 
-	DISPLAY->ClearAllTextures();
 	DISPLAY->SetTexture( TextureUnit_1, _Texture->GetTexHandle() );
 
 	Actor::SetTextureRenderStates();
@@ -330,7 +329,8 @@ void ActorMultiVertex::DrawInternal( const AMV_TweenState *TS )
 			break;
 	}
 
-	DISPLAY->SetEffectMode( EffectMode_Normal );
+	if ( _EffectMode != EffectMode_Normal )
+		DISPLAY->SetEffectMode(EffectMode_Normal);
 }
 
 bool ActorMultiVertex::EarlyAbortDraw() const

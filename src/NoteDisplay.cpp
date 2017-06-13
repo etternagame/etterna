@@ -789,8 +789,6 @@ void NoteDisplay::DrawHoldPart(vector<Sprite*> &vpSpr,
 		}
 	}
 
-	DISPLAY->ClearAllTextures();
-
 	const float fTexCoordLeft	= rect.left;
 	const float fTexCoordRight	= rect.right;
 	const float fTexCoordCenter	= (fTexCoordLeft+fTexCoordRight)/2;

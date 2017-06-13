@@ -424,7 +424,6 @@ void BitmapText::DrawChars( bool bUseStrokeTexture )
 	bool haveTextures = false;
 	int startingPoint = iStartGlyph;
 
-	DISPLAY->ClearAllTextures();
 	for ( int start = iStartGlyph; start < iEndGlyph; )
 	{
 		int end = start;
@@ -465,7 +464,6 @@ void BitmapText::DrawChars( bool bUseStrokeTexture )
 			DISPLAY->DrawQuads(&m_aVertices[startingPoint * 4], (end - startingPoint) * 4);
 
 			// Setup for the next render pass
-			DISPLAY->ClearAllTextures();
 			startingPoint = end;
 			haveTextures = false;
 		}
