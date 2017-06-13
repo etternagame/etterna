@@ -1457,7 +1457,7 @@ const vector<float>& TimingData::BuildAndGetEtaner(const vector<int>& nerv) {
 			event_row = bpms[i]->GetRow();
 			time_to_next_event = NoteRowToBeat(event_row - lastbpmrow) / bps;
 			float next_event_time = last_time + time_to_next_event;
-			while (nerv[idx] < event_row && idx < nerv.size()) {
+			while (nerv[idx] <= event_row && idx < nerv.size()) {
 				float perc = (nerv[idx] - lastbpmrow) / static_cast<float>(event_row - lastbpmrow);
 				ElapsedTimesAtNonEmptyRows.emplace_back(last_time + time_to_next_event * perc - m_fBeat0OffsetInSeconds);
 				//LOG->Trace("%f", abs(ElapsedTimesAtNonEmptyRows.back() - GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(nerv[idx]))));
