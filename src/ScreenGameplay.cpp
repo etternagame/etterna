@@ -782,7 +782,7 @@ void ScreenGameplay::InitSongQueues()
 		const PlayerOptions &p = pi->GetPlayerState()->m_PlayerOptions.GetCurrent();
 	}
 
-	if (SONGMAN->playlistcourse != "") {
+	if (GAMESTATE->IsPlaylistCourse()) {
 
 		m_apSongsQueue.clear();
 		FOREACH_EnabledPlayerInfo(m_vPlayerInfo, pi)
@@ -1818,7 +1818,6 @@ void ScreenGameplay::BeginBackingOutFromGameplay()
 	m_GameplayAssist.StopPlaying(); // Stop any queued assist ticks.
 
 	if (GAMESTATE->IsPlaylistCourse()) {
-		SONGMAN->allplaylists[SONGMAN->playlistcourse].courseruns.emplace_back(playlistscorekeys);
 		GAMESTATE->isplaylistcourse = false;
 		SONGMAN->playlistcourse = "";
 	}
@@ -2347,7 +2346,7 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 
 		m_sNextScreen = GetPrevScreen();
 
-		if( AdjustSync::IsSyncDataChanged() && GAMESTATE->IsPlaylistCourse())
+		if(!GAMESTATE->IsPlaylistCourse() && AdjustSync::IsSyncDataChanged())
 			ScreenSaveSync::PromptSaveSync( SM_GoToPrevScreen );
 		else
 			HandleScreenMessage( SM_GoToPrevScreen );
@@ -2360,7 +2359,7 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 		if( GAMESTATE->m_SongOptions.GetCurrent().m_bSaveReplay )
 			SaveReplay();
 
-		if( AdjustSync::IsSyncDataChanged() && GAMESTATE->IsPlaylistCourse())
+		if(!GAMESTATE->IsPlaylistCourse() && AdjustSync::IsSyncDataChanged())
 			ScreenSaveSync::PromptSaveSync( SM_GoToNextScreen );
 		else
 			HandleScreenMessage( SM_GoToNextScreen );
