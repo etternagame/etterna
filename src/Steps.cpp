@@ -281,14 +281,16 @@ void Steps::CalculateRadarValues( float fMusicLengthSeconds ) {
 		return;
 	}
 
-	NoteData tempNoteData;
-	this->GetNoteData(tempNoteData);
-
 	m_CachedRadarValues.Zero();
 
+	// this is only ever called from copyfrom and recalculateradarvalues
+	// the former is obsolete and in the case of the latter we know
+	// the note data is decompressed already, so, we don't need to copy(?)
+	// the decompressed note data, again, a decompress call can be placed here
+	// instead of getnotedata if it turns out we need it -mina
+
 	GAMESTATE->SetProcessedTimingData(this->GetTimingData());
-	NoteDataUtil::CalculateRadarValues( tempNoteData, fMusicLengthSeconds, m_CachedRadarValues );
-	tempNoteData.ClearAll();
+	NoteDataUtil::CalculateRadarValues( *m_pNoteData, fMusicLengthSeconds, m_CachedRadarValues );
 
 	GAMESTATE->SetProcessedTimingData(NULL);
 }
