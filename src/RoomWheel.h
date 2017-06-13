@@ -7,6 +7,23 @@
 #include "WheelItemBase.h"
 #include "ThemeMetric.h"
 
+class RoomData {
+public:
+	void SetName(const RString& name) { m_name = name; }
+	void SetDescription(const RString& desc) { m_description = desc; }
+	void SetState(unsigned int state) { m_state = state; }
+	void SetFlags(unsigned int iFlags) { m_iFlags = iFlags; }
+	inline RString Name() { return m_name; }
+	inline RString Description() { return m_description; }
+	inline unsigned int State() { return m_state; }
+	inline unsigned int GetFlags() { return m_iFlags; }
+private:
+	RString m_name;
+	RString m_description;
+	unsigned int m_state;
+	unsigned int m_iFlags;
+};
+
 struct RoomWheelItemData : public WheelItemBaseData
 {
 	RoomWheelItemData() = default;
@@ -61,7 +78,14 @@ public:
 	int GetPerminateOffset() const { return m_offset; }
 	void AddItem( WheelItemBaseData *itemdata );
 	void RemoveItem( int index );
-	
+
+	vector<RoomData> * allRooms;
+	vector<RoomData> roomsInWheel;
+	RString search;
+	bool searching;
+	void UpdateRoomsList(vector<RoomData> * m_Roomsptr);
+	void FilterBySearch();
+
 	// Lua
 	void PushSelf(lua_State *L) override;
 

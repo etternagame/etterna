@@ -29,6 +29,9 @@ void RoomWheel::Load( const RString &sType )
 	m_offset = 0;
 	LOG->Trace( "RoomWheel::Load('%s')", sType.c_str() );
 
+	searching = false;
+	search = "";
+
 	AddPermanentItem( new RoomWheelItemData(WheelItemDataType_Generic, "Create Room", "Create a new game room", THEME->GetMetricC( m_sName, "CreateRoomColor")) );
 
 	BuildWheelItemsData( m_CurWheelItemData );
@@ -195,6 +198,73 @@ unsigned int RoomWheel::GetNumItems() const
 }
 
 
+
+void RoomWheel::FilterBySearch()
+{
+	RString title;
+	RString desc;
+	bool pw;
+	bool ingame;
+	bool selecting;
+	roomsInWheel = (*allRooms);
+}
+void RoomWheel::UpdateRoomsList(vector<RoomData> * roomsptr)
+{
+	allRooms = roomsptr;
+	if (searching)
+		FilterBySearch();
+	else
+		roomsInWheel = (*allRooms);
+	int difference = 0;
+	RoomWheelItemData* itemData = NULL;
+
+	difference = GetNumItems() - roomsInWheel.size();
+
+	if (!IsEmpty())
+	{
+		if (difference > 0)
+			for (int x = 0; x < difference; ++x)
+				RemoveItem(GetNumItems() - 1);
+		else
+		{
+			difference = abs(difference);
+			for (int x = 0; x < difference; ++x)
+				AddItem(new RoomWheelItemData(WheelItemDataType_Generic, "", "", RageColor(1, 1, 1, 1)));
+		}
+	}
+	else
+	{
+		for (unsigned int x = 0; x < roomsInWheel.size(); ++x)
+			AddItem(new RoomWheelItemData(WheelItemDataType_Generic, "", "", RageColor(1, 1, 1, 1)));
+	}
+
+	for (unsigned int i = 0; i < roomsInWheel.size(); ++i)
+	{
+		itemData = GetItem(i);
+
+		itemData->m_sText = roomsInWheel[i].Name();
+		itemData->m_sDesc = roomsInWheel[i].Description();
+		itemData->m_iFlags = roomsInWheel[i].GetFlags();
+
+		switch (roomsInWheel[i].State())
+		{
+		case 0:
+			itemData->m_color = THEME->GetMetricC(m_sName, "OpenRoomColor");
+			break;
+		case 2:
+			itemData->m_color = THEME->GetMetricC(m_sName, "InGameRoomColor");
+			break;
+		default:
+			itemData->m_color = THEME->GetMetricC(m_sName, "OpenRoomColor");
+			break;
+		}
+
+		if (roomsInWheel[i].GetFlags() % 2)
+			itemData->m_color = THEME->GetMetricC(m_sName, "PasswdRoomColor");
+	}
+
+	RebuildWheelItems();
+}
 // lua start
 #include "LuaBinding.h"
 

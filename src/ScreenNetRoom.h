@@ -9,23 +9,6 @@
 #include "RoomWheel.h"
 #include "RoomInfoDisplay.h"
 
-class RoomData {
-public:
-	void SetName( const RString& name ) { m_name = name; }
-	void SetDescription( const RString& desc ) { m_description = desc; }
-	void SetState(unsigned int state) { m_state = state; }
-	void SetFlags( unsigned int iFlags ) { m_iFlags = iFlags; }
-	inline RString Name() { return m_name; }
-	inline RString Description() { return m_description; }
-	inline unsigned int State() { return m_state; }
-	inline unsigned int GetFlags() { return m_iFlags; }
-private:
-	RString m_name;
-	RString m_description;
-	unsigned int m_state;
-	unsigned int m_iFlags;
-};
-
 class ScreenNetRoom : public ScreenNetSelectBase
 {
 public:

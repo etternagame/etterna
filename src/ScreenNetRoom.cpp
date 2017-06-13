@@ -261,55 +261,7 @@ bool ScreenNetRoom::MenuRight( const InputEventPlus &input )
 
 void ScreenNetRoom::UpdateRoomsList()
 {
-	int difference = 0;
-	RoomWheelItemData* itemData = NULL;
-
-	difference = m_RoomWheel.GetNumItems() - m_Rooms.size();
-
-	if( !m_RoomWheel.IsEmpty() )
-	{
-		if( difference > 0 )
-			for( int x = 0; x < difference; ++x )
-				m_RoomWheel.RemoveItem( m_RoomWheel.GetNumItems() - 1 );
-		else
-		{
-			difference = abs( difference );
-			for( int x = 0; x < difference; ++x )
-				m_RoomWheel.AddItem( new RoomWheelItemData(WheelItemDataType_Generic, "", "", RageColor(1,1,1,1)) );
-		}
-	}
-	else
-	{
-		for ( unsigned int x = 0; x < m_Rooms.size(); ++x)
-				m_RoomWheel.AddItem( new RoomWheelItemData(WheelItemDataType_Generic, "", "", RageColor(1,1,1,1)) );
-	}
-
-	for( unsigned int i = 0; i < m_Rooms.size(); ++i )
-	{
-		itemData = m_RoomWheel.GetItem( i );
-
-		itemData->m_sText = m_Rooms[i].Name();
-		itemData->m_sDesc = m_Rooms[i].Description();
-		itemData->m_iFlags = m_Rooms[i].GetFlags();
-
-		switch( m_Rooms[i].State() )
-		{
-		case 0:
-			itemData->m_color = THEME->GetMetricC( m_sName, "OpenRoomColor");
-			break;
-		case 2:
-			itemData->m_color = THEME->GetMetricC( m_sName, "InGameRoomColor");
-			break;
-		default:
-			itemData->m_color = THEME->GetMetricC( m_sName, "OpenRoomColor");
-			break;
-		}
-
-		if ( m_Rooms[i].GetFlags() % 2 )
-			itemData->m_color = THEME->GetMetricC( m_sName, "PasswdRoomColor");
-	}
-
-	m_RoomWheel.RebuildWheelItems();
+	m_RoomWheel.UpdateRoomsList(&m_Rooms);
 }
 
 void ScreenNetRoom::CreateNewRoom( const RString& rName,  const RString& rDesc, const RString& rPass )
