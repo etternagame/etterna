@@ -34,14 +34,14 @@ static void InitVectors( vector<int> &s0, vector<int> &s1, vector<uint32_t> &per
 			const float xstep = sx/4.0f;
 
 			// source x coordinates of left and right pixels to sample
-			s0.push_back(int(sax-xstep));
-			s1.push_back(int(sax+xstep));
+			s0.emplace_back(static_cast<int>(sax-xstep));
+			s1.emplace_back(static_cast<int>(sax+xstep));
 
 			if( s0[x] == s1[x] )
 			{
 				/* If the sampled pixels happen to be the same, the distance
 				 * will be 0.  Avoid division by zero. */
-				percent.push_back( 1<<24 );
+				percent.emplace_back( 1<<24 );
 			} else {
 				const int xdist = s1[x] - s0[x];
 
@@ -50,8 +50,7 @@ static void InitVectors( vector<int> &s0, vector<int> &s1, vector<uint32_t> &per
 
 				/* sax is somewhere between the centers of both sampled
 				 * pixels; find the percentage: */
-				const float p = (1.0f - (sax - fleft) / xdist) * 16777216.0f;
-				percent.push_back( uint32_t(p) );
+				percent.emplace_back( uint32_t((1.0f - (sax - fleft) / xdist) * 16777216.0f) );
 			}
 		}
 	}
@@ -70,11 +69,9 @@ static void InitVectors( vector<int> &s0, vector<int> &s1, vector<uint32_t> &per
 			const float sax = sx*x;
 
 			// source x coordinates of left and right pixels to sample
-			s0.push_back( clamp(int(sax), 0, src-1));
-			s1.push_back( clamp(int(sax+1), 0, src-1) );
-
-			const float p = (1.0f - (sax - floorf(sax))) * 16777216.0f;
-			percent.push_back( uint32_t(p) );
+			s0.emplace_back( clamp(static_cast<int>(sax), 0, src-1));
+			s1.emplace_back( clamp(static_cast<int>(sax+1), 0, src-1) );
+			percent.emplace_back( uint32_t((1.0f - (sax - floorf(sax))) * 16777216.0f) );
 		}
 	}
 }
@@ -148,8 +145,8 @@ void RageSurfaceUtils::Zoom( RageSurface *&src, int dstwidth, int dstheight )
 
 	while( src->w != dstwidth || src->h != dstheight )
 	{
-		float xscale = float(dstwidth)/src->w;
-		float yscale = float(dstheight)/src->h;
+		float xscale = static_cast<float>(dstwidth)/src->w;
+		float yscale = static_cast<float>(dstheight) / src->h;
 
 		/* Our filter is a simple linear filter, so it can't scale to less than
 		 * 1:2 or more than 2:1 very well. If we need to go beyond that, do it
