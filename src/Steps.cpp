@@ -376,7 +376,7 @@ void Steps::CalcEtternaMetadata() {
 		//MinaCalc2(stuffnthings, GetNoteData().SerializeNoteData2(etaner), 1.f, 0.93f);
 
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
-	for (int i = 0; i < std::thread::hardware_concurrency(); ++i)
+	for (unsigned i = 0; i < std::thread::hardware_concurrency(); ++i)
 		SONGMAN->keyconversionmap.emplace(GenerateBustedChartKey(*m_pNoteData, GetTimingData(), i), ChartKey);
 
 	// replace the old sm notedata string with the new ett notedata string compressed format for internal use
