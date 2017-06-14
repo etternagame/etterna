@@ -857,7 +857,7 @@ public:
 			meshInfo.iVertexCount,		// NumVertices
 			meshInfo.iTriangleCount,	// PrimitiveCount,
 			&m_vTriangles[0]+meshInfo.iTriangleStart,// pIndexData,
-			D3DFMT_INDEX32,				// IndexDataFormat,
+			D3DFMT_INDEX16,				// IndexDataFormat,
 			&m_vVertex[0],				// pVertexStreamZeroData,
 			sizeof(m_vVertex[0])		// VertexStreamZeroStride
 		);
