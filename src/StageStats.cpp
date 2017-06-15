@@ -276,6 +276,7 @@ void StageStats::FinalizeScores(bool bSummary)
 	SCOREMAN->AddScore(hs);
 	zzz->SetAnyAchievedGoals(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey(), GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate, hs);
 	mostrecentscorekey = hs.GetScoreKey();
+	zzz->m_lastSong.FromSong(GAMESTATE->m_pCurSong);
 
 	LOG->Trace("done saving stats and high scores");
 }
