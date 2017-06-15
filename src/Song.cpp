@@ -1068,6 +1068,10 @@ void Song::ReCalculateRadarValuesAndLastSecond(bool fromCache, bool duringCache)
 		for (auto& n : m_vpSteps) {
 			// Cache etterna stuff and 'radar values'
 
+			// Skip difficulties without notes
+			if (n->IsNoteDataEmpty())
+				continue;
+
 			// only ever decompress the notedata when writing the cache file
 			// for this we don't use the etterna compressed format -mina
 			n->Decompress();
