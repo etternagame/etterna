@@ -274,13 +274,14 @@ bool MusicWheel::SelectSong( const Song *p )
 
 	unsigned i;
 	vector<MusicWheelItemData *> &from = getWheelItemsData(GAMESTATE->m_SortOrder);
-	for( i=0; i<from.size(); i++ )
-	{
-		if( from[i]->m_pSong == p )
-		{
+	for( i=0; i<from.size(); i++ ) {
+		if( from[i]->m_pSong == p ) {
 			// make its group the currently expanded group
 			SetOpenSection( from[i]->m_sText );
-			break;
+
+			// skip any playlist groups
+			if (!SONGMAN->allplaylists.count(GetExpandedSectionName()))
+				break;
 		}
 	}
 
