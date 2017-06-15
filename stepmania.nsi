@@ -286,11 +286,6 @@ Section "Main Section" SecMain
 	File /r /x CVS /x .svn "Characters\default"
 	File "Characters\instructions.txt"
 
-	CreateDirectory "$INSTDIR\Courses"
-	SetOutPath "$INSTDIR\Courses"
-	File "Courses\instructions.txt"
-	File /r /x CVS /x .svn "Courses\Default"
-
 	CreateDirectory "$INSTDIR\Packages"
 	;File "Packages\Instructions.txt"
 
