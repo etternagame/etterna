@@ -201,7 +201,7 @@ const vector<NoteInfo>& NoteData::SerializeNoteData(const vector<float>& etaner)
 		int rowNotes = 0;
 		for (size_t q = 0; q < tracks; q++)
 		{
-			if(m_TapNotes[q][NonEmptyRowVector[i]].IsNote())
+			if(GetTapNote(q, NonEmptyRowVector[i]).IsNote())
 			{
 				rowNotes |= 1 << q;
 			}
@@ -226,7 +226,7 @@ vector<NoteInfo2>& NoteData::SerializeNoteData2(const vector<float>& etaner) {
 		int rowNotes = 0;
 		for (size_t q = 0; q < tracks; q++)
 		{
-			if (m_TapNotes[q][NonEmptyRowVector[i]].IsNote())
+			if (GetTapNote(q, NonEmptyRowVector[i]).IsNote())
 			{
 				rowNotes |= 1 << q;
 			}
