@@ -283,6 +283,10 @@ void Steps::CalculateRadarValues( float fMusicLengthSeconds ) {
 
 	m_CachedRadarValues.Zero();
 
+	// skip anything that uhh, doesn't have any notes to calculate radar values from?
+	if (m_pNoteData->GetNumTracks() == 0)
+		return;
+
 	// this is only ever called from copyfrom and recalculateradarvalues
 	// the former is obsolete and in the case of the latter we know
 	// the note data is decompressed already, so, we don't need to copy(?)
