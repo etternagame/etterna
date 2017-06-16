@@ -382,6 +382,9 @@ void SongManager::DeletePlaylist(const string& pl) {
 	// stuff gets weird if all playlists have been deleted and a chart is added - mina
 	if(allplaylists.size() > 0)
 		activeplaylist = allplaylists.begin()->first;
+
+	// clear out the entry for the music wheel as well or it'll crash -mina
+	groupderps.erase(pl);
 }
 
 void SongManager::MakePlaylistFromFavorites(set<string>& favs) {
