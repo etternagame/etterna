@@ -89,7 +89,7 @@ public:
 	static int SetMaxFilterRate(T* p, lua_State* L) {
 		float mfr = FArg(1);
 		auto loot = p->m_pPlayerState[0];
-		CLAMP(mfr, loot->wtFFF, 2.f);
+		CLAMP(mfr, loot->wtFFF, 3.f);
 		p->MaxFilterRate = mfr;
 		return 1;
 	}
