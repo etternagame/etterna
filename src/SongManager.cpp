@@ -708,7 +708,6 @@ void SongManager::FreeSongs()
 	SongsByKey.clear();
 	StepsByKey.clear();
 	groupderps.clear();
-	allplaylists.clear();
 
 	m_pPopularSongs.clear();
 	m_pShuffledSongs.clear();
