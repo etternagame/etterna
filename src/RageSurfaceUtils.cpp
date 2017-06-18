@@ -4,6 +4,7 @@
 #include "RageUtil.h"
 #include "RageLog.h"
 #include "RageFile.h"
+#include <thread>
 
 uint32_t RageSurfaceUtils::decodepixel( const uint8_t *p, int bpp )
 {
@@ -574,33 +575,104 @@ static bool blit_rgba_to_rgba( const RageSurface *src_surf, const RageSurface *d
 					lookup[c][i] = (uint8_t) SCALE( i, 0, max_src_val, 0, max_dst_val );
 		}
 	}
+	
+	// Use multiple threads to do in-place pixel conversion
+	unsigned int numThreads = max(std::thread::hardware_concurrency(), 2u)/2;
+	size_t segmentSize = height / numThreads;
+	std::vector<std::thread> threads;
+	threads.reserve(numThreads);
 
-	while( height-- )
+	for (int curThread = 0; curThread < numThreads; ++curThread)
 	{
-		int x = 0;
-		while( x++ < width )
-		{
-			unsigned int pixel = RageSurfaceUtils::decodepixel( src, src_surf->format->BytesPerPixel );
+		threads.push_back(std::thread([&, curThread] {
+			int startingPoint = segmentSize*curThread;
+			int localHeight = segmentSize + segmentSize*curThread;
+			int localEnd = localHeight - segmentSize;
 
-			// Convert pixel to the destination format.
-			unsigned int opixel = 0;
-			for( int c = 0; c < 4; ++c )
+			auto localSrc = src;
+			auto localDst = dst;
+
+			// Skip pixels until we arrive at this thread's starting point
+			// -
+			// handle width
+			localSrc += src_surf->format->BytesPerPixel*width*startingPoint;
+			localDst += dst_surf->format->BytesPerPixel*width*startingPoint;
+			// handle height
+			localSrc += srcskip*startingPoint;
+			localDst += dstskip*startingPoint;
+
+			while (localHeight-- > localEnd)
 			{
-				int lSrc = (pixel & src_masks[c]) >> src_shifts[c];
-				opixel |= lookup[c][lSrc] << dst_shifts[c];
+				int x = 0;
+				while (x++ < width)
+				{
+					unsigned int pixel = RageSurfaceUtils::decodepixel(localSrc, src_surf->format->BytesPerPixel);
+
+					// Convert pixel to the destination format.
+					unsigned int opixel = 0;
+					for (int c = 0; c < 4; ++c)
+					{
+						int lSrc = (pixel & src_masks[c]) >> src_shifts[c];
+						opixel |= lookup[c][lSrc] << dst_shifts[c];
+					}
+
+					// Store it.
+					RageSurfaceUtils::encodepixel(localDst, dst_surf->format->BytesPerPixel, opixel);
+
+					localSrc += src_surf->format->BytesPerPixel;
+					localDst += dst_surf->format->BytesPerPixel;
+				}
+
+				localSrc += srcskip;
+				localDst += dstskip;
 			}
-
-			// Store it.
-			RageSurfaceUtils::encodepixel( dst, dst_surf->format->BytesPerPixel, opixel );
-
-			src += src_surf->format->BytesPerPixel;
-			dst += dst_surf->format->BytesPerPixel;
-		}
-
-		src += srcskip;
-		dst += dstskip;
+		}));
 	}
 
+	for (auto& t : threads)
+		t.join();
+	
+	// Convert any left over pixels
+	int endHeight = segmentSize + segmentSize*(numThreads-1);
+	if (endHeight < height)
+	{
+		int startingPoint = segmentSize*numThreads;
+		// Skip pixels until we arrive at this thread's starting point
+		// -
+		// handle width
+		src += src_surf->format->BytesPerPixel*width*startingPoint;
+		dst += dst_surf->format->BytesPerPixel*width*startingPoint;
+		// handle height
+		src += srcskip*startingPoint;
+		dst += dstskip*startingPoint;
+
+		while (height-- > endHeight)
+		{
+			int x = 0;
+			while (x++ < width)
+			{
+				unsigned int pixel = RageSurfaceUtils::decodepixel(src, src_surf->format->BytesPerPixel);
+
+				// Convert pixel to the destination format.
+				unsigned int opixel = 0;
+				for (int c = 0; c < 4; ++c)
+				{
+					int lSrc = (pixel & src_masks[c]) >> src_shifts[c];
+					opixel |= lookup[c][lSrc] << dst_shifts[c];
+				}
+
+				// Store it.
+				RageSurfaceUtils::encodepixel(dst, dst_surf->format->BytesPerPixel, opixel);
+
+				src += src_surf->format->BytesPerPixel;
+				dst += dst_surf->format->BytesPerPixel;
+			}
+
+			src += srcskip;
+			dst += dstskip;
+		}
+	}
+	
 	return true;
 }
 
