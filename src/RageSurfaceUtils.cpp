@@ -589,6 +589,10 @@ static bool blit_rgba_to_rgba( const RageSurface *src_surf, const RageSurface *d
 			int localHeight = segmentSize + segmentSize*curThread;
 			int localEnd = localHeight - segmentSize;
 
+			// Ensure no pixels are missed when the height isn't divisible by thread count
+			if (curThread == numThreads - 1)
+				localHeight = height;
+
 			auto localSrc = src;
 			auto localDst = dst;
 
@@ -631,47 +635,6 @@ static bool blit_rgba_to_rgba( const RageSurface *src_surf, const RageSurface *d
 
 	for (auto& t : threads)
 		t.join();
-	
-	// Convert any left over pixels
-	int endHeight = segmentSize + segmentSize*(numThreads-1);
-	if (endHeight < height)
-	{
-		int startingPoint = segmentSize*numThreads;
-		// Skip pixels until we arrive at this thread's starting point
-		// -
-		// handle width
-		src += src_surf->format->BytesPerPixel*width*startingPoint;
-		dst += dst_surf->format->BytesPerPixel*width*startingPoint;
-		// handle height
-		src += srcskip*startingPoint;
-		dst += dstskip*startingPoint;
-
-		while (height-- > endHeight)
-		{
-			int x = 0;
-			while (x++ < width)
-			{
-				unsigned int pixel = RageSurfaceUtils::decodepixel(src, src_surf->format->BytesPerPixel);
-
-				// Convert pixel to the destination format.
-				unsigned int opixel = 0;
-				for (int c = 0; c < 4; ++c)
-				{
-					int lSrc = (pixel & src_masks[c]) >> src_shifts[c];
-					opixel |= lookup[c][lSrc] << dst_shifts[c];
-				}
-
-				// Store it.
-				RageSurfaceUtils::encodepixel(dst, dst_surf->format->BytesPerPixel, opixel);
-
-				src += src_surf->format->BytesPerPixel;
-				dst += dst_surf->format->BytesPerPixel;
-			}
-
-			src += srcskip;
-			dst += dstskip;
-		}
-	}
 	
 	return true;
 }
