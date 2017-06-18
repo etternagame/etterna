@@ -577,7 +577,7 @@ static bool blit_rgba_to_rgba( const RageSurface *src_surf, const RageSurface *d
 	}
 	
 	// Use multiple threads to do in-place pixel conversion
-	unsigned int numThreads = max(std::thread::hardware_concurrency(), 2u)/2;
+	unsigned int numThreads = max(std::thread::hardware_concurrency(), 2u);
 	size_t segmentSize = height / numThreads;
 	std::vector<std::thread> threads;
 	threads.reserve(numThreads);
