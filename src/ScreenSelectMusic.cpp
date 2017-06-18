@@ -173,6 +173,10 @@ void ScreenSelectMusic::Init()
 	BANNERCACHE->Demand();
 	//BACKGROUNDCACHE->Demand();
 
+	// build the playlist groups here, songmanager's init from disk can't because 
+	// profiles aren't loaded until after that's done -mina
+	SONGMAN->MakeSongGroupsFromPlaylists();
+
 	m_MusicWheel.SetName("MusicWheel");
 	m_MusicWheel.Load(MUSIC_WHEEL_TYPE);
 	LOAD_ALL_COMMANDS_AND_SET_XY(m_MusicWheel);

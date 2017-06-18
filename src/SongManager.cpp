@@ -344,13 +344,19 @@ void Playlist::LoadFromNode(const XNode* node) {
 			courseruns.emplace_back(tmp);
 		}
 	}
+}
 
-	vector<Song*> playlistgroup;
-	for (auto& n : chartlist)
-		if(n.loaded)
-			playlistgroup.emplace_back(SONGMAN->GetSongByChartkey(n.key));
+void SongManager::MakeSongGroupsFromPlaylists() {
+	for (auto& p : allplaylists) {
+		vector<Song*> playlistgroup;
+		for (auto& n : p.second.chartlist)
+			if (n.loaded)
+				playlistgroup.emplace_back(SONGMAN->GetSongByChartkey(n.key));
 
-	SONGMAN->groupderps[name] = playlistgroup;
+		groupderps.erase(p.first);
+		groupderps[p.first] = playlistgroup;
+		SongUtil::SortSongPointerArrayByTitle(groupderps[p.first]);
+	}
 }
 
 float Playlist::GetAverageRating() {
@@ -399,13 +405,6 @@ void SongManager::MakePlaylistFromFavorites(set<string>& favs) {
 			pl.DeleteChart(i);
 
 	allplaylists.emplace("Favorites", pl);
-	vector<Song*> playlistgroup;
-	for (auto& n : pl.chartlist)
-		if(n.loaded)
-			playlistgroup.emplace_back(SONGMAN->GetSongByChartkey(n.key));
-
-	SONGMAN->groupderps["Favorites"] = playlistgroup;
-	SongUtil::SortSongPointerArrayByTitle(groupderps["Favorites"]);
 }
 
 string SongManager::ReconcileBustedKeys(const string& ck) {
@@ -708,7 +707,6 @@ void SongManager::FreeSongs()
 	SongsByKey.clear();
 	StepsByKey.clear();
 	groupderps.clear();
-	allplaylists.clear();
 
 	m_pPopularSongs.clear();
 	m_pShuffledSongs.clear();
