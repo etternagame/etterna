@@ -67,7 +67,9 @@ t[#t+1] = Def.Actor{
 }
 
 local function GetBestScoreByFilter(perc,CurRate)
-	local rtTable = getRateTable(PROFILEMAN:GetProfile(PLAYER_1):GetHighScoresByKey(getCurKey()))
+	local rtTable = getRateTable()
+	if not rtTable then return nil end
+	
 	local rates = tableKeys(rtTable)
 	local scores, score
 	
@@ -86,7 +88,7 @@ local function GetBestScoreByFilter(perc,CurRate)
 		
 		for ii=1,#scores do
 			score = scores[ii]
-			if score:ConvertDpToWife() > bestscore and getClearTypeFromScore(PLAYER_1,score,0) ~= "Invalid" then
+			if score:ConvertDpToWife() > bestscore then
 				index = ii
 				bestscore = score:ConvertDpToWife()
 			end
@@ -313,6 +315,9 @@ t[#t+1] = Def.ActorFrame{
 		end,
 		RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
 		CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
+		CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
+		CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set");
+		CurrentStepsP2ChangedMessageCommand=cmd(queuecommand,"Set");
 	},
 	
 	-- Primary ScoreType
@@ -332,6 +337,9 @@ t[#t+1] = Def.ActorFrame{
 		end,
 		CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
 		RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
+		CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
+		CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set");
+		CurrentStepsP2ChangedMessageCommand=cmd(queuecommand,"Set");
 	},
 	
 	-- Secondary percent score
@@ -449,6 +457,9 @@ t[#t+1] = LoadFont("Common Large") .. {
 	end,
 	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
 	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
+	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
+	CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set");
+	CurrentStepsP2ChangedMessageCommand=cmd(queuecommand,"Set");
 }
 
 --Tier Label revamped. -Misterkister
