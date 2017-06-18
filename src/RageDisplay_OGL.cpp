@@ -1004,6 +1004,8 @@ public:
 	}
 	void Draw( int iMeshIndex ) const
 	{
+		TurnOffHardwareVBO();
+
 		const MeshInfo& meshInfo = m_vMeshInfo[iMeshIndex];
 
 		glEnableClientState(GL_VERTEX_ARRAY);
@@ -1045,7 +1047,7 @@ public:
 		glDrawElements( 
 			GL_TRIANGLES, 
 			meshInfo.iTriangleCount*3, 
-			GL_INT,
+			GL_UNSIGNED_SHORT, 
 			&m_vTriangles[0]+meshInfo.iTriangleStart );
 	}
 
@@ -1389,7 +1391,7 @@ void RageCompiledGeometryHWOGL::Draw( int iMeshIndex ) const
 		meshInfo.iVertexStart+meshInfo.iVertexCount-1,
 					// maximum array index contained in indices
 		meshInfo.iTriangleCount*3,	// number of elements to be rendered
-		GL_INT,
+		GL_UNSIGNED_SHORT,
 		BUFFER_OFFSET(meshInfo.iTriangleStart*sizeof(msTriangle)) );
 	DebugAssertNoGLError();
 
@@ -1415,6 +1417,7 @@ void RageDisplay_Legacy::DeleteCompiledGeometry( RageCompiledGeometry* p )
 
 void RageDisplay_Legacy::DrawQuadsInternal( const RageSpriteVertex v[], int iNumVerts )
 {
+	TurnOffHardwareVBO();
 	SendCurrentMatrices();
 
 	SetupVertices( v, iNumVerts );
@@ -1423,6 +1426,7 @@ void RageDisplay_Legacy::DrawQuadsInternal( const RageSpriteVertex v[], int iNum
 
 void RageDisplay_Legacy::DrawQuadStripInternal( const RageSpriteVertex v[], int iNumVerts )
 {
+	TurnOffHardwareVBO();
 	SendCurrentMatrices();
 
 	SetupVertices( v, iNumVerts );
@@ -1436,11 +1440,11 @@ void RageDisplay_Legacy::DrawSymmetricQuadStripInternal( const RageSpriteVertex 
 	int iNumIndices = iNumTriangles*3;
 
 	// make a temporary index buffer
-	static vector<int> vIndices;
-	int iOldSize = vIndices.size();
-	int iNewSize = max( iOldSize,iNumIndices );
-	vIndices.resize( iNewSize );
-	for( int i=iOldSize/12; i<iNumPieces; i++ )
+	static vector<uint16_t> vIndices;
+	unsigned uOldSize = vIndices.size();
+	unsigned uNewSize = max(uOldSize,(unsigned)iNumIndices);
+	vIndices.resize( uNewSize );
+	for( uint16_t i=(uint16_t)uOldSize/12; i<(uint16_t)iNumPieces; i++ )
 	{
 		// { 1, 3, 0 } { 1, 4, 3 } { 1, 5, 4 } { 1, 2, 5 }
 		vIndices[i*12+0] = i*3+1;
@@ -1457,18 +1461,20 @@ void RageDisplay_Legacy::DrawSymmetricQuadStripInternal( const RageSpriteVertex 
 		vIndices[i*12+11] = i*3+5;
 	}
 
+	TurnOffHardwareVBO();
 	SendCurrentMatrices();
 
 	SetupVertices( v, iNumVerts );
 	glDrawElements( 
 		GL_TRIANGLES, 
 		iNumIndices,
-		GL_INT,
+		GL_UNSIGNED_SHORT, 
 		&vIndices[0] );
 }
 
 void RageDisplay_Legacy::DrawFanInternal( const RageSpriteVertex v[], int iNumVerts )
 {
+	TurnOffHardwareVBO();
 	SendCurrentMatrices();
 
 	SetupVertices( v, iNumVerts );
@@ -1477,6 +1483,7 @@ void RageDisplay_Legacy::DrawFanInternal( const RageSpriteVertex v[], int iNumVe
 
 void RageDisplay_Legacy::DrawStripInternal( const RageSpriteVertex v[], int iNumVerts )
 {
+	TurnOffHardwareVBO();
 	SendCurrentMatrices();
 
 	SetupVertices( v, iNumVerts );
@@ -1485,6 +1492,7 @@ void RageDisplay_Legacy::DrawStripInternal( const RageSpriteVertex v[], int iNum
 
 void RageDisplay_Legacy::DrawTrianglesInternal( const RageSpriteVertex v[], int iNumVerts )
 {
+	TurnOffHardwareVBO();
 	SendCurrentMatrices();
 
 	SetupVertices( v, iNumVerts );
@@ -1493,6 +1501,7 @@ void RageDisplay_Legacy::DrawTrianglesInternal( const RageSpriteVertex v[], int 
 
 void RageDisplay_Legacy::DrawCompiledGeometryInternal( const RageCompiledGeometry *p, int iMeshIndex )
 {
+	TurnOffHardwareVBO();
 	SendCurrentMatrices();
 
 	p->Draw( iMeshIndex );
