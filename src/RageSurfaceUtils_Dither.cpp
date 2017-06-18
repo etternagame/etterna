@@ -64,11 +64,11 @@ void RageSurfaceUtils::OrderedDither( const RageSurface *src, RageSurface *dst )
 	}
 
 	// We can't dither to paletted surfaces.
-	ASSERT( dst->format->BytesPerPixel > 1 );
+	ASSERT( dst->fmt.BytesPerPixel > 1 );
 
 	uint32_t src_cbits[4], dst_cbits[4];
-	RageSurfaceUtils::GetBitsPerChannel( src->format, src_cbits );
-	RageSurfaceUtils::GetBitsPerChannel( dst->format, dst_cbits );
+	RageSurfaceUtils::GetBitsPerChannel( src->fmt, src_cbits );
+	RageSurfaceUtils::GetBitsPerChannel( dst->fmt, dst_cbits );
 
 	// Calculate the ratio from the old bit depth to the new for each color channel.
 	int conv[4];
@@ -123,8 +123,8 @@ void RageSurfaceUtils::OrderedDither( const RageSurface *src, RageSurface *dst )
 			// Raw value -> int -> pixel
 			RageSurfaceUtils::SetRawRGBAV(dstp, dst, colors);
 
-			srcp += src->format->BytesPerPixel;
-			dstp += dst->format->BytesPerPixel;
+			srcp += src->fmt.BytesPerPixel;
+			dstp += dst->fmt.BytesPerPixel;
 		}
 	}
 }
@@ -168,11 +168,11 @@ static uint8_t EDDitherPixel( int x, int y, int intensity, int conv, int32_t &ac
 void RageSurfaceUtils::ErrorDiffusionDither( const RageSurface *src, RageSurface *dst )
 {
 	// We can't dither to paletted surfaces.
-	ASSERT( dst->format->BytesPerPixel > 1 );
+	ASSERT( dst->fmt.BytesPerPixel > 1 );
 
 	uint32_t src_cbits[4], dst_cbits[4];
-	RageSurfaceUtils::GetBitsPerChannel( src->format, src_cbits );
-	RageSurfaceUtils::GetBitsPerChannel( dst->format, dst_cbits );
+	RageSurfaceUtils::GetBitsPerChannel( src->fmt, src_cbits );
+	RageSurfaceUtils::GetBitsPerChannel( dst->fmt, dst_cbits );
 
 	// Calculate the ratio from the old bit depth to the new for each color channel.
 	int conv[4];
@@ -226,8 +226,8 @@ void RageSurfaceUtils::ErrorDiffusionDither( const RageSurface *src, RageSurface
 
 			RageSurfaceUtils::SetRawRGBAV( dstp, dst, colors );
 
-			srcp += src->format->BytesPerPixel;
-			dstp += dst->format->BytesPerPixel;
+			srcp += src->fmt.BytesPerPixel;
+			dstp += dst->fmt.BytesPerPixel;
 		}
 	}
 }

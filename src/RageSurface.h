@@ -70,7 +70,6 @@ struct RageSurfaceFormat
 
 struct RageSurface
 {
-	RageSurfaceFormat *format; /* compatibility only */
 	RageSurfaceFormat fmt;
 
 	uint8_t *pixels;

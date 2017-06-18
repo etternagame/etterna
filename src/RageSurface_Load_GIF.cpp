@@ -194,7 +194,7 @@ RageSurfaceUtils::OpenResult RageSurface_Load_GIF( const RString &sPath, RageSur
 				continue;
 
 			if( transparency != -1 )
-				ret->format->palette->colors[ transparency ].a = 0;
+				ret->fmt.palette->colors[ transparency ].a = 0;
 
 			return RageSurfaceUtils::OPEN_OK;
 		}

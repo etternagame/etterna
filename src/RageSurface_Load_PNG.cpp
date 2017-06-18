@@ -221,7 +221,7 @@ static RageSurface *RageSurface_Load_PNG( RageFile *f, const char *fn, char erro
 		memcpy( img->fmt.palette->colors, colors, 256*sizeof(RageSurfaceColor) );
 
 		if( iColorKey != -1 )
-			img->format->palette->colors[ iColorKey ].a = 0;
+			img->fmt.palette->colors[ iColorKey ].a = 0;
 
 		break;
 	case RGBX:

@@ -118,15 +118,12 @@ bool RageSurfaceFormat::Equivalent( const RageSurfaceFormat &rhs ) const
 
 RageSurface::RageSurface()
 {
-	format = &fmt;
 	pixels = NULL;
 	pixels_owned = true;
 }
 
 RageSurface::RageSurface( const RageSurface &cpy )
 {
-	format = &fmt;
-
 	w = cpy.w;
 	h = cpy.h;
 	pitch = cpy.pitch;

@@ -2053,7 +2053,7 @@ void RageDisplay_Legacy::DeleteTexture( unsigned iTexture )
 
 RagePixelFormat RageDisplay_Legacy::GetImgPixelFormat( RageSurface* &img, bool &bFreeImg, int width, int height, bool bPalettedTexture )
 {
-	RagePixelFormat pixfmt = FindPixelFormat( img->format->BitsPerPixel, img->format->Rmask, img->format->Gmask, img->format->Bmask, img->format->Amask );
+	RagePixelFormat pixfmt = FindPixelFormat( img->fmt.BitsPerPixel, img->fmt.Rmask, img->fmt.Gmask, img->fmt.Bmask, img->fmt.Amask );
 	
 	/* If img is paletted, we're setting up a non-paletted texture, and color indexes
 	 * are too small, depalettize. */
@@ -2137,7 +2137,7 @@ unsigned RageDisplay_Legacy::CreateTexture(
 
 	/* If the image is paletted, but we're not sending it to a paletted image,
 	 * set up glPixelMap. */
-	SetPixelMapForSurface( glImageFormat, glTexFormat, pImg->format->palette );
+	SetPixelMapForSurface( glImageFormat, glTexFormat, pImg->fmt.palette );
 
 	// HACK:  OpenGL 1.2 types aren't available in GLU 1.3.  Don't call GLU for mip
 	// mapping if we're using an OGL 1.2 type and don't have >= GLU 1.3.
@@ -2180,7 +2180,7 @@ unsigned RageDisplay_Legacy::CreateTexture(
 	SetTextureFiltering( TextureUnit_1, true );
 	SetTextureWrapping( TextureUnit_1, false );
 
-	glPixelStorei( GL_UNPACK_ROW_LENGTH, pImg->pitch / pImg->format->BytesPerPixel );
+	glPixelStorei( GL_UNPACK_ROW_LENGTH, pImg->pitch / pImg->fmt.BytesPerPixel );
 
 
 	if (pixfmt == RagePixelFormat_PAL)
@@ -2190,12 +2190,12 @@ unsigned RageDisplay_Legacy::CreateTexture(
 		memset( palette, 0, sizeof(palette) );
 		int p = 0;
 		/* Copy the palette to the format OpenGL expects. */
-		for( int i = 0; i < pImg->format->palette->ncolors; ++i )
+		for( int i = 0; i < pImg->fmt.palette->ncolors; ++i )
 		{
-			palette[p++] = pImg->format->palette->colors[i].r;
-			palette[p++] = pImg->format->palette->colors[i].g;
-			palette[p++] = pImg->format->palette->colors[i].b;
-			palette[p++] = pImg->format->palette->colors[i].a;
+			palette[p++] = pImg->fmt.palette->colors[i].r;
+			palette[p++] = pImg->fmt.palette->colors[i].g;
+			palette[p++] = pImg->fmt.palette->colors[i].b;
+			palette[p++] = pImg->fmt.palette->colors[i].a;
 		}
 
 		/* Set the palette. */
@@ -2346,18 +2346,18 @@ void RageDisplay_Legacy::UpdateTexture(
 	bool bFreeImg;
 	RagePixelFormat SurfacePixFmt = GetImgPixelFormat( pImg, bFreeImg, iWidth, iHeight, false );
 
-	glPixelStorei( GL_UNPACK_ROW_LENGTH, pImg->pitch / pImg->format->BytesPerPixel );
+	glPixelStorei( GL_UNPACK_ROW_LENGTH, pImg->pitch / pImg->fmt.BytesPerPixel );
 
 	GLenum glImageFormat = g_GLPixFmtInfo[SurfacePixFmt].format;
 	GLenum glImageType = g_GLPixFmtInfo[SurfacePixFmt].type;
 
 	/* If the image is paletted, but we're not sending it to a paletted image,
 	 * set up glPixelMap. */
-	if (pImg->format->palette)
+	if (pImg->fmt.palette)
 	{
 		GLenum glTexFormat = 0;
 		glGetTexLevelParameteriv( GL_PROXY_TEXTURE_2D, 0, GLenum(GL_TEXTURE_INTERNAL_FORMAT), (GLint *) &glTexFormat );
-		SetPixelMapForSurface( glImageFormat, glTexFormat, pImg->format->palette );
+		SetPixelMapForSurface( glImageFormat, glTexFormat, pImg->fmt.palette );
 	}
 
 	glTexSubImage2D( GL_TEXTURE_2D, 0,

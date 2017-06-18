@@ -152,11 +152,11 @@ void RageSurfaceUtils::Palettize( RageSurface *&pImg, int iColors, bool bDither 
 	}
 
 	RageSurface *pRet = CreateSurface( pImg->w, pImg->h, 8, 0, 0, 0, 0 );
-	pRet->format->palette->ncolors = newcolors;
+	pRet->fmt.palette->ncolors = newcolors;
 
 	// Rescale the palette colors to a maxval of 255.
 	{
-		RageSurfacePalette *pal = pRet->format->palette;
+		RageSurfacePalette *pal = pRet->fmt.palette;
 		for( int x = 0; x < pal->ncolors; ++x )
 		{
 			// This is really just PAM_DEPTH() broken out for the palette.
@@ -510,7 +510,7 @@ static acolorhist_item *mediancut( acolorhist_item *achv, int colors, int sum, i
 
 static bool pam_computeacolorhash( const RageSurface *src, int maxacolors, int* acolorsP, acolorhash_hash &hash )
 {
-	ASSERT( src->format->BytesPerPixel == 4 );
+	ASSERT( src->fmt.BytesPerPixel == 4 );
 
 	*acolorsP = 0;
 

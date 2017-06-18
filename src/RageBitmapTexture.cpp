@@ -129,7 +129,7 @@ void RageBitmapTexture::Create()
 	/* No iGrayscaleBits for images that are already paletted.  We don't support
 	 * that; and that hint is intended for use on images that are already grayscale,
 	 * it's not intended to change a color image into a grayscale image. */
-	if( actualID.iGrayscaleBits != -1 && pImg->format->BitsPerPixel == 8 )
+	if( actualID.iGrayscaleBits != -1 && pImg->fmt.BitsPerPixel == 8 )
 		actualID.iGrayscaleBits = -1;
 
 	/* Cap the max texture size to the hardware max. */
@@ -195,7 +195,7 @@ void RageBitmapTexture::Create()
 	RagePixelFormat pixfmt;
 
 	// If the source is palleted, always load as paletted if supported.
-	if( pImg->format->BitsPerPixel == 8 && DISPLAY->SupportsTextureFormat(RagePixelFormat_PAL) )
+	if( pImg->fmt.BitsPerPixel == 8 && DISPLAY->SupportsTextureFormat(RagePixelFormat_PAL) )
 	{
 		pixfmt = RagePixelFormat_PAL;
 	}
@@ -207,7 +207,7 @@ void RageBitmapTexture::Create()
 		case 16:
 			{
 				// Bits of alpha in the source:
-				int iSourceAlphaBits = 8 - pImg->format->Loss[3];
+				int iSourceAlphaBits = 8 - pImg->fmt.Loss[3];
 
 				// Don't use more than we were hinted to.
 				iSourceAlphaBits = min( actualID.iAlphaBits, iSourceAlphaBits );

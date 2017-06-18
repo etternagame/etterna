@@ -108,9 +108,9 @@ void MovieTexture_Generic::DestroyTexture()
 class RageMovieTexture_Generic_Intermediate : public RageTexture
 {
 public:
-	RageMovieTexture_Generic_Intermediate( RageTextureID ID, int iWidth, int iHeight, 
-		int iImageWidth, int iImageHeight, int iTextureWidth, int iTextureHeight,
-		RageSurfaceFormat SurfaceFormat, RagePixelFormat pixfmt ):
+	RageMovieTexture_Generic_Intermediate( const RageTextureID &ID, const int iWidth, const int iHeight, 
+		const int iImageWidth, const int iImageHeight, const int iTextureWidth, const int iTextureHeight,
+		const RageSurfaceFormat &SurfaceFormat, const RagePixelFormat &pixfmt ):
 		RageTexture(ID),
 		m_SurfaceFormat( SurfaceFormat )
 	{
@@ -223,11 +223,11 @@ void MovieTexture_Generic::CreateTexture()
 
 	}
 
-	RagePixelFormat pixfmt = DISPLAY->FindPixelFormat( m_pSurface->format->BitsPerPixel,
-			m_pSurface->format->Mask[0],
-			m_pSurface->format->Mask[1],
-			m_pSurface->format->Mask[2],
-			m_pSurface->format->Mask[3] );
+	RagePixelFormat pixfmt = DISPLAY->FindPixelFormat( m_pSurface->fmt.BitsPerPixel,
+			m_pSurface->fmt.Mask[0],
+			m_pSurface->fmt.Mask[1],
+			m_pSurface->fmt.Mask[2],
+			m_pSurface->fmt.Mask[3] );
 
 	if( pixfmt == RagePixelFormat_Invalid )
 	{
@@ -281,7 +281,7 @@ void MovieTexture_Generic::CreateTexture()
 			m_pDecoder->GetWidth(), m_pDecoder->GetHeight(),
 			m_pSurface->w, m_pSurface->h,
 			power_of_two(m_pSurface->w), power_of_two(m_pSurface->h),
-			*m_pSurface->format, pixfmt );
+			m_pSurface->fmt, pixfmt );
 
 		/* Configure the sprite.  This blits the intermediate onto the ifnal render target. */
 		m_pSprite->SetHorizAlign( align_left );

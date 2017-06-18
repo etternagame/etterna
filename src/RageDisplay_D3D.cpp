@@ -701,9 +701,9 @@ RageSurface* RageDisplay_D3D::CreateScreenshot()
 				// We need to make a copy, since lr.pBits will go away when we call UnlockRect().
 				result = 
 					CreateSurface( surface->w, surface->h,
-						surface->format->BitsPerPixel,
-						surface->format->Rmask, surface->format->Gmask,
-						surface->format->Bmask, surface->format->Amask );
+						surface->fmt.BitsPerPixel,
+						surface->fmt.Rmask, surface->fmt.Gmask,
+						surface->fmt.Bmask, surface->fmt.Amask );
 				RageSurfaceUtils::CopySurface( surface, result );
 				delete surface;
 
@@ -1466,9 +1466,9 @@ unsigned RageDisplay_D3D::CreateTexture(
 		// Save palette
 		TexturePalette pal;
 		memset( pal.p, 0, sizeof(pal.p) );
-		for( int i=0; i<img->format->palette->ncolors; i++ )
+		for( int i=0; i<img->fmt.palette->ncolors; i++ )
 		{
-			RageSurfaceColor &c = img->format->palette->colors[i];
+			RageSurfaceColor &c = img->fmt.palette->colors[i];
 			pal.p[i].peRed = c.r;
 			pal.p[i].peGreen = c.g;
 			pal.p[i].peBlue = c.b;

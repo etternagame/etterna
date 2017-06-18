@@ -54,7 +54,7 @@ static HBITMAP LoadWin32Surface( const RageSurface *pSplash, HWND hWnd )
 		unsigned const char *line = ((unsigned char *) s->pixels) + (y * s->pitch);
 		for( int x = 0; x < s->w; ++x )
 		{
-			unsigned const char *data = line + (x*s->format->BytesPerPixel);
+			unsigned const char *data = line + (x*s->fmt.BytesPerPixel);
 			
 			SetPixelV( BitmapDC, x, y, RGB( data[3], data[2], data[1] ) );
 		}

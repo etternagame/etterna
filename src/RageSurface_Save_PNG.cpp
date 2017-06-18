@@ -67,7 +67,7 @@ static void PNG_Warning( png_struct *png, const char *warning )
  * objects, and needs to watch out for memleaks. */
 static bool RageSurface_Save_PNG( RageFile &f, char szErrorbuf[1024], RageSurface *pImgIn )
 {
-	bool bAlpha = pImgIn->format->Amask != 0;
+	bool bAlpha = pImgIn->fmt.Amask != 0;
 	RageSurface *pImg;
 	bool bDeleteImg = RageSurfaceUtils::ConvertSurface( pImgIn, pImg, pImgIn->w, pImgIn->h, 32,
 			Swap32BE( 0xFF000000 ),
