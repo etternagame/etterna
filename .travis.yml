@@ -1,84 +1,90 @@
 language: cpp
 sudo: false
 git:
-    submodules: false
+  submodules: false
 notifications:
-    email: false
+  email: false
 
 matrix:
-    include:
-        -
-            env: CXX_COMPILER=clang++-3.6 CC_COMPILER=clang-3.6 BUILD_TYPE=Release WITH_FFMPEG=OFF WITH_FFMPEG_JOBS=1
-            compiler: clang
-            addons: &clang36
-                apt:
-                    sources:
-                        - ubuntu-toolchain-r-test
-                        - llvm-toolchain-precise-3.6
-                    packages:
-                        - nasm
-                        - libudev-dev
-                        - clang-3.6
-                        - libmad0-dev
-                        - libgtk2.0-dev
-                        - binutils-dev
-                        - libasound-dev
-                        - libpulse-dev
-                        - libjack-dev
-                        - libc6-dev
-                        - libogg-dev
-                        - libvorbis-dev
-                        - libxtst-dev
-                        - libxrandr-dev
-                        - libglew-dev
-
-        -
-            env: CXX_COMPILER=clang++-3.6 CC_COMPILER=clang-3.6 BUILD_TYPE=Release WITH_FFMPEG=ON WITH_FFMPEG_JOBS=1
-            compiler: clang
-            addons: *clang36
-
-        -
-            env: CXX_COMPILER=g++-5 CC_COMPILER=gcc-5 BUILD_TYPE=Release WITH_FFMPEG=OFF WITH_FFMPEG_JOBS=1
-            compiler: gcc
-            addons: &gcc5
-                apt:
-                    sources:
-                        - ubuntu-toolchain-r-test
-                    packages:
-                        - nasm
-                        - libudev-dev
-                        - gcc-5
-                        - g++-5
-                        - libmad0-dev
-                        - libgtk2.0-dev
-                        - binutils-dev
-                        - libasound-dev
-                        - libpulse-dev
-                        - libjack-dev
-                        - libc6-dev
-                        - libogg-dev
-                        - libvorbis-dev
-                        - libxtst-dev
-                        - libxrandr-dev
-                        - libglew-dev
+  include:
+  - env: CXX_COMPILER=clang++-3.6 CC_COMPILER=clang-3.6 BUILD_TYPE=Release WITH_FFMPEG=OFF
+      WITH_FFMPEG_JOBS=1
+    compiler: clang
+    addons: &1
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-precise-3.6
+        packages:
+        - nasm
+        - libudev-dev
+        - clang-3.6
+        - libmad0-dev
+        - libgtk2.0-dev
+        - binutils-dev
+        - libasound-dev
+        - libpulse-dev
+        - libjack-dev
+        - libc6-dev
+        - libogg-dev
+        - libvorbis-dev
+        - libxtst-dev
+        - libxrandr-dev
+        - libglew-dev
+  - env: CXX_COMPILER=clang++-3.6 CC_COMPILER=clang-3.6 BUILD_TYPE=Release WITH_FFMPEG=ON
+      WITH_FFMPEG_JOBS=1
+    compiler: clang
+    addons: *1
+  - env: CXX_COMPILER=g++-5 CC_COMPILER=gcc-5 BUILD_TYPE=Release WITH_FFMPEG=OFF WITH_FFMPEG_JOBS=1
+    compiler: gcc
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - nasm
+        - libudev-dev
+        - gcc-5
+        - g++-5
+        - libmad0-dev
+        - libgtk2.0-dev
+        - binutils-dev
+        - libasound-dev
+        - libpulse-dev
+        - libjack-dev
+        - libc6-dev
+        - libogg-dev
+        - libvorbis-dev
+        - libxtst-dev
+        - libxrandr-dev
+        - libglew-dev
+      coverity_scan:
+        project:
+          name: etternagame/etterna
+          description: "Build submitted via Travis CI"
+        notification_email: etternadev@gmail.com
+        build_command_prepend: "cov-configure --comptype g++ --compiler g++-5 --template"
+        build_command: "make -j 4"
+        branch_pattern: coverity_scan
 
 install:
-    # Setup a directory for necessary dependencies.
-    - cd ~
-    - export DEPS_DIR="${PWD}/deps"
-    - mkdir ${DEPS_DIR}
-    - cd ${DEPS_DIR}
-    # Use the binary for cmake instead of building it now.
-    - export CMAKE_URL=https://cmake.org/files/v3.3/cmake-3.3.2-Linux-x86_64.tar.gz
-    - mkdir cmake
-    - wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
-    - export PATH=${PWD}/cmake/bin:${PATH}
+  - cd ~
+  - export DEPS_DIR="${PWD}/deps"
+  - mkdir ${DEPS_DIR}
+  - cd ${DEPS_DIR}
+  - export CMAKE_URL=https://cmake.org/files/v3.3/cmake-3.3.2-Linux-x86_64.tar.gz
+  - mkdir cmake
+  - wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
+  - export PATH=${PWD}/cmake/bin:${PATH}
 
 before_script:
-    - cd ${TRAVIS_BUILD_DIR}
-    - cd Build
-    - cmake .. -DCMAKE_CXX_COMPILER=${CXX_COMPILER} -DCMAKE_C_COMPILER=${CC_COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DWITH_FFMPEG=${WITH_FFMPEG} -DWITH_FFMPEG_JOBS=${WITH_FFMPEG_JOBS}
+  - cd ${TRAVIS_BUILD_DIR}
+  - cd Build
+  - cmake .. -DCMAKE_CXX_COMPILER=${CXX_COMPILER} -DCMAKE_C_COMPILER=${CC_COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DWITH_FFMPEG=${WITH_FFMPEG} -DWITH_FFMPEG_JOBS=${WITH_FFMPEG_JOBS}
 
 script:
-    - make -j2
+  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make -j 4; fi
 
+env:
+  global:
+    secure: gXXVXUQdzic8X/WhHgPih7zEPOMvzz1o4XudnEgiIGrk5gwVajXLVc0TEVT9uogeuHZxhT0sM7idYmtSXTe6zUBfoV/WXnyfeZVQhI59iy35bWUKdbpPpO9bAafdmMB2d9b3v5QT8iubOPAudVNGENBZiXiGovAJBmqxnjpjdU1aQBsy5rhFssSOcizIV7GrOcsCGoilTceonPtLp8xX2mt/WQJhPHrAUmZks5uPNNYDXv9a8BoLeTYKzbFoz7GNvoxEUfmFV2W2jr/szfpnbmvRMqKgErsJDlc2b/oaD0EKUJOdu8eNNuOpLKZSPiMQstmDZtQ65boOuXVudAx3T1zFaDhhP3PZwG6KLwnrf0ttLRSdIW5Mm+SzEHuJXp2qwBPyAQJIKJLqqu/OUeNorWfz0jFvYyVlNZlTX5ZaxjEj05qj3DAEfokCuueNY+KFccdouMQX0ks3of4/WKLYH1BL743Binc5SYgK38xA7bzwcjFyyEBQFoc9FayrLkk0Yi/ed2mV1XdBvr7vmFxYDlZQkg425KLtCX7GN/++5FVF01IH1cZa3siJ7XT5EJBu6vxisByHRwPSWWagn2WgvkxHjgAnBcvgYBIcoKsxFBytsyyh3g5fVSWovSnTerr5glwv7cXdyhMAXp1gGL900tjij0BiEWRzKfbiroDjVn0=
