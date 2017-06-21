@@ -417,9 +417,9 @@ bool ProfileManager::CreateLocalProfile( const RString &sName, RString &sProfile
 	RString profile_id = ssprintf( "%0" ID_DIGITS_STR "d", profile_number );
 
 	// make sure this id doesn't already exist
-	ASSERT_M(GetLocalProfile(profile_id) == NULL,
-		ssprintf("creating profile with ID \"%s\" that already exists",
-		profile_id.c_str()));
+	//ASSERT_M(GetLocalProfile(profile_id) == NULL,
+		//ssprintf("creating profile with ID \"%s\" that already exists",
+		//profile_id.c_str()));
 
 	// Create the new profile.
 	Profile *pProfile = new Profile;
@@ -469,9 +469,9 @@ static void InsertProfileIntoList(DirAndProfile& derp)
 void ProfileManager::AddLocalProfileByID( Profile *pProfile, const RString &sProfileID )
 {
 	// make sure this id doesn't already exist
-	ASSERT_M( GetLocalProfile(sProfileID) == NULL,
-		ssprintf("creating \"%s\" \"%s\" that already exists",
-		pProfile->m_sDisplayName.c_str(), sProfileID.c_str()) );
+	//ASSERT_M( GetLocalProfile(sProfileID) == NULL,
+		//ssprintf("creating \"%s\" \"%s\" that already exists",
+		//pProfile->m_sDisplayName.c_str(), sProfileID.c_str()) );
 
 	DirAndProfile derp;
 	derp.sDir= LocalProfileIDToDir(sProfileID);
