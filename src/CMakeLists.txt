@@ -239,7 +239,6 @@ elseif(APPLE)
       cp -r "${SM_ROOT_DIR}/BackgroundTransitions" .\;
       cp -r "${SM_ROOT_DIR}/BGAnimations" .\;
       cp -r "${SM_ROOT_DIR}/Characters" .\;
-      cp -r "${SM_ROOT_DIR}/Courses" .\;
       cp -r "${SM_ROOT_DIR}/Data" .\;
       cp -r "${SM_ROOT_DIR}/Docs" .\;
       cp -r "${SM_ROOT_DIR}/Manual" .\;
@@ -636,7 +635,6 @@ if(NOT APPLE)
   install(DIRECTORY "${SM_ROOT_DIR}/Themes" DESTINATION "${SM_INSTALL_DESTINATION}")
   install(DIRECTORY "${SM_ROOT_DIR}/Characters" DESTINATION "${SM_INSTALL_DESTINATION}")
   install(DIRECTORY "${SM_ROOT_DIR}/Scripts" DESTINATION "${SM_INSTALL_DESTINATION}")
-  install(DIRECTORY "${SM_ROOT_DIR}/Courses" DESTINATION "${SM_INSTALL_DESTINATION}")
   install(DIRECTORY "${SM_ROOT_DIR}/BackgroundEffects" DESTINATION "${SM_INSTALL_DESTINATION}")
   install(DIRECTORY "${SM_ROOT_DIR}/Data" DESTINATION "${SM_INSTALL_DESTINATION}")
   install(DIRECTORY "${SM_ROOT_DIR}/BackgroundTransitions" DESTINATION "${SM_INSTALL_DESTINATION}")
