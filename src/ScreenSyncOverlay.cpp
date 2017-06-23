@@ -11,6 +11,8 @@
 #include "AdjustSync.h"
 #include "ActorUtil.h"
 
+static bool previousGameplayState;
+
 static bool IsGameplay()
 {
 	return SCREENMAN && SCREENMAN->GetTopScreen() && SCREENMAN->GetTopScreen()->GetScreenType() == gameplay;
@@ -21,19 +23,30 @@ REGISTER_SCREEN_CLASS( ScreenSyncOverlay );
 void ScreenSyncOverlay::Init()
 {
 	Screen::Init();
-
 	m_overlay.Load(THEME->GetPathB(m_sName, "overlay"));
 	AddChild(m_overlay);
+
+	// When the screen is initialized we know it will not be gameplay
+	// but we want Update to start in the correct state to hide help.
+	previousGameplayState = true;
 	
 	Update( 0 );
 }
 
 void ScreenSyncOverlay::Update( float fDeltaTime )
 {
-	this->SetVisible( IsGameplay() );
-	if( !IsGameplay() )
+	bool isGameplay = IsGameplay();
+
+	this->SetVisible( isGameplay );
+
+	if( !isGameplay )
 	{
-		HideHelp();
+		if ( previousGameplayState )
+		{
+			previousGameplayState = isGameplay;
+			HideHelp();
+		}
+		
 		return;
 	}
 
@@ -125,7 +138,9 @@ static LocalizedString CANT_SYNC_WHILE_PLAYING_A_COURSE	("ScreenSyncOverlay","Ca
 static LocalizedString SYNC_CHANGES_REVERTED		("ScreenSyncOverlay","Sync changes reverted.");
 bool ScreenSyncOverlay::Input( const InputEventPlus &input )
 {
-	if( !IsGameplay() )
+	bool isGameplay = IsGameplay();
+
+	if( !isGameplay )
 		return Screen::Input(input);
 
 	if( input.DeviceI.device != DEVICE_KEYBOARD )
@@ -283,7 +298,12 @@ bool ScreenSyncOverlay::Input( const InputEventPlus &input )
 		FAIL_M(ssprintf("Invalid sync action choice: %i", a));
 	}
 
-	ShowHelp();
+	if ( !previousGameplayState )
+	{
+		previousGameplayState = isGameplay;
+		ShowHelp();
+	}
+	
 	UpdateText();
 	return true;
 }
