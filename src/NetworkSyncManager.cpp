@@ -513,6 +513,8 @@ void NetworkSyncManager::Update(float fDeltaTime)
 {
 	if (useSMserver)
 		ProcessInput();
+	else
+		return;
 
 	PacketFunctions BroadIn;
 	if ( BroadcastReception->ReadPack( (char*)&BroadIn.Data, 1020 ) )
