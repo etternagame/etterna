@@ -298,13 +298,21 @@ void GameLoop::RunGameLoop()
 		 * acting on song beat from last frame */
 		HandleInputEvents( fDeltaTime );
 
-		if( INPUTMAN->DevicesChanged() )
+		static float deviceCheckWait = 0.f;
+		deviceCheckWait += fDeltaTime;
+		
+		if( deviceCheckWait >= 1.0f )
 		{
-			INPUTFILTER->Reset();	// fix "buttons stuck" if button held while unplugged
-			INPUTMAN->LoadDrivers();
-			RString sMessage;
-			if( INPUTMAPPER->CheckForChangedInputDevicesAndRemap(sMessage) )
-				SCREENMAN->SystemMessage( sMessage );
+			deviceCheckWait = 0.f;
+
+			if ( INPUTMAN->DevicesChanged() )
+			{
+				INPUTFILTER->Reset();	// fix "buttons stuck" if button held while unplugged
+				INPUTMAN->LoadDrivers();
+				RString sMessage;
+				if (INPUTMAPPER->CheckForChangedInputDevicesAndRemap(sMessage))
+					SCREENMAN->SystemMessage(sMessage);
+			}
 		}
 
 		// Render
