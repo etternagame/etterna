@@ -1,0 +1,33 @@
+version: 5.0.12.{build}.{branch}
+pull_requests:
+  do_not_increment_build_number: true
+image: Visual Studio 2015
+configuration: Release
+shallow_clone: true
+clone_folder: C:\etterna
+
+install:
+- cmd: choco install nsis
+
+before_build:
+- cmd: >-
+    cd Build
+    
+    "C:\Program Files (x86)\cmake\bin\cmake" -G "Visual Studio 14 2015" ..
+    
+    del "C:\Program Files (x86)\MSBuild\14.0\Microsoft.Common.targets\ImportAfter\Xamarin.Common.targets"
+    
+build:
+  project: C:\etterna\Build\StepMania.sln
+  verbosity: normal
+  
+after_build:
+- cmd: msbuild "C:\etterna\Build\PACKAGE.vcxproj" /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+
+notifications:
+- provider: Email
+  to:
+  - etternadevs@gmail.com
+  on_build_success: false
+  on_build_failure: true
+  on_build_status_changed: true
