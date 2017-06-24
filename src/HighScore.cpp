@@ -630,7 +630,7 @@ bool HighScore::LoadReplayData() {
 	//loop until eof
 	while (getline(fileStream, line))
 	{
-		ss = stringstream(line);
+		ss.str(line);
 		//split line into tokens
 		while (ss >> buffer)
 			tokens.emplace_back(buffer);
