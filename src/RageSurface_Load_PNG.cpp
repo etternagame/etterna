@@ -40,16 +40,14 @@ void RageFile_png_read( png_struct *png, png_byte *p, png_size_t size )
 struct error_info
 {
 	char *err;
-	const char *fn;
+	const char *file_name;
 };
 
 void PNG_Error( png_struct *png, const char *error )
 {
 	CHECKPOINT_M(ssprintf("PNG error during processing: %s", error));
-	error_info *info = (error_info *) png_get_error_ptr(png);
-	strncpy( info->err, error, 1024 );
-	info->err[1023] = 0;
-	LOG->Trace( "loading \"%s\": err: %s", info->fn, info->err );
+	error_info *info = (error_info *)png_get_error_ptr(png);
+	LOG->Trace( "PNG_Error on (%s): %s", info->file_name, error );
 	longjmp( png_jmpbuf(png), 1 );
 }
 
@@ -57,8 +55,8 @@ void PNG_Warning( png_struct *png, const char *warning )
 {
 	// FIXME: Mismatched libpng headers vs. library causes a segfault here on MinGW
 	CHECKPOINT_M(ssprintf("PNG warning during processing: %s", warning));
-	error_info *info = (error_info *) png_get_io_ptr(png);
-	LOG->Trace( "loading \"%s\": warning: %s", info->fn, warning );
+	error_info *info = (error_info *)png_get_error_ptr(png);
+	LOG->Trace( "PNG_Warn on (%s): %s", info->file_name, warning );
 }
 
 /* Since libpng forces us to use longjmp (gross!), this function shouldn't create any C++
@@ -67,7 +65,7 @@ static RageSurface *RageSurface_Load_PNG( RageFile *f, const char *fn, char erro
 {
 	error_info error;
 	error.err = errorbuf;
-	error.fn = fn;
+	error.file_name = fn;
 
 	png_struct *png = png_create_read_struct( PNG_LIBPNG_VER_STRING, &error, PNG_Error, PNG_Warning );
 
