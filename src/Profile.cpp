@@ -1548,6 +1548,9 @@ XNode* Profile::SaveEttGeneralDataCreateNode() const {
 	pGeneralDataNode->AppendChild("TotalLifts", m_iTotalLifts);
 	pGeneralDataNode->AppendChild("PlayerRating", m_fPlayerRating);
 
+	// apparently this got ripped out in the course of streamlining things -mina
+	GAMESTATE->SaveCurrentSettingsToProfile(PLAYER_1);
+
 	// Keep declared variables in a very local scope so they aren't 
 	// accidentally used where they're not intended.  There's a lot of
 	// copying and pasting in this code.
