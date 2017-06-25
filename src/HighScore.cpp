@@ -608,6 +608,9 @@ bool HighScore::LoadReplayData() {
 	if (m_Impl->vNoteRowVector.size() > 4 && m_Impl->vOffsetVector.size() > 4)
 		return true;
 
+	// disable until presumed race condition crash is resolved -mina
+	return false;
+
 	string profiledir;
 	vector<int> vNoteRowVector;
 	vector<float> vOffsetVector;
