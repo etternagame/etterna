@@ -548,6 +548,9 @@ bool ScreenSelectMusic::Input(const InputEventPlus &input)
 		}
 		else if (bHoldingCtrl && c == 'A' && m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS)
 		{
+			if (SONGMAN->allplaylists.empty())
+				return true;
+
 			SONGMAN->allplaylists[SONGMAN->activeplaylist].AddChart(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
 			MESSAGEMAN->Broadcast("DisplayPlaylist");
 			SCREENMAN->SystemMessage(ssprintf("Added chart: %s to playlist: %s", GAMESTATE->m_pCurSong->GetDisplayMainTitle().c_str(), SONGMAN->activeplaylist));
