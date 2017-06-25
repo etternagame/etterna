@@ -2629,9 +2629,13 @@ public:
 
 	static int IsCurrentChartPermamirror(T* p, lua_State *L) {
 		bool o = false;
-		const string& ck = GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey();
-		if (p->PermaMirrorCharts.count(ck))
-			o = true;
+
+		if (GAMESTATE->m_pCurSteps[PLAYER_1]) {
+			const string& ck = GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey();
+
+			if (p->PermaMirrorCharts.count(ck))
+				o = true;
+		}
 
 		lua_pushboolean(L, o);
 		return 1;
