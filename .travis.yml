@@ -1,9 +1,6 @@
 language: cpp
-sudo: false
-git:
-  submodules: false
-notifications:
-  email: false
+dist: trusty
+sudo: required
 
 matrix:
   include:
@@ -67,19 +64,9 @@ matrix:
         build_command: "make -j 4"
         branch_pattern: coverity_scan
 
-install:
-  - cd ~
-  - export DEPS_DIR="${PWD}/deps"
-  - mkdir ${DEPS_DIR}
-  - cd ${DEPS_DIR}
-  - export CMAKE_URL=https://cmake.org/files/v3.3/cmake-3.3.2-Linux-x86_64.tar.gz
-  - mkdir cmake
-  - wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
-  - export PATH=${PWD}/cmake/bin:${PATH}
-
 before_script:
-  - cd ${TRAVIS_BUILD_DIR}
-  - cd Build
+  - sudo ln -s /usr/include/x86_64-linux-gnu/zconf.h /usr/include
+  - cd ${TRAVIS_BUILD_DIR}/Build
   - cmake .. -DCMAKE_CXX_COMPILER=${CXX_COMPILER} -DCMAKE_C_COMPILER=${CC_COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DWITH_FFMPEG=${WITH_FFMPEG} -DWITH_FFMPEG_JOBS=${WITH_FFMPEG_JOBS}
 
 script:
