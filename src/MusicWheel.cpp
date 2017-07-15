@@ -394,65 +394,92 @@ void MusicWheel::GetSongList( vector<Song*> &arraySongs, SortOrder so )
 		}
 	}
 }
-
+bool contains(std::string container, std::string findme) {
+	std::transform(begin(container), end(container), begin(container), ::tolower);
+	return container.find(findme) != string::npos;
+}
 void MusicWheel::FilterBySearch(vector<Song*>& inv, RString findme) {
-	// uhh ok yeah come back to this mess later - mina
-	bool super_search = false;
-	size_t fart = findme.find("artist=");
-	size_t faux = findme.find("author=");
-	size_t fitty = findme.find("title=");
-	RString findfart = "";
-	RString findfaux = "";
-	RString findfitty = "";
 
-	if (fart != findme.npos || faux != findme.npos || fitty != findme.npos) {
+	std::transform(begin(findme), end(findme), begin(findme), ::tolower);
+
+	//Super Search: With specified stuff(Not just the title)
+	bool super_search = false;
+	size_t artist = findme.find("artist=");
+	size_t author = findme.find("author=");
+	size_t title = findme.find("title=");
+	std::string findartist = "";
+	std::string findauthor = "";
+	std::string findtitle = "";
+
+	if (artist != findme.npos || author != findme.npos || title != findme.npos) {
 		super_search = true;
-		if (fart != findme.npos)
-			findfart = findme.substr(fart + 7, findme.find(fart, ';') - fart);
-		if (faux != findme.npos)
-			findfaux = findme.substr(faux + 7, findme.find(faux, ';') - faux);
-		if (fitty != findme.npos)
-			findfitty = findme.substr(fitty + 6, findme.find(fitty, ';') - fitty);
+		if (artist != findme.npos)
+			findartist = findme.substr(artist + 7, findme.find(artist, ';') - artist);
+		if (author != findme.npos)
+			findauthor = findme.substr(author + 7, findme.find(author, ';') - author);
+		if (title != findme.npos)
+			findtitle = findme.substr(title + 6, findme.find(title, ';') - title);
 	}
 
 	vector<Song*> tmp;
+	std::function<bool(Song*)> check;
 	if (super_search == false) {
-		for (size_t i = 0; i < inv.size(); i++) {
-			RString scoot = inv[i]->GetDisplayMainTitle().MakeLower();
-			size_t res = scoot.find(findme);
-			if (res != string::npos)
-				tmp.emplace_back(inv[i]);
-		}
+		check = [&findme](Song* x) {
+			return contains(x->GetDisplayMainTitle(), findme);
+		};
 	}
 	else {
-		for (size_t i = 0; i < inv.size(); i++) {
-			size_t smells = -1;
-			size_t bs = -1;
-			size_t gimmie = -1;
-
-			if (findfart != "") {
-				RString fartS = inv[i]->GetDisplayArtist().MakeLower();
-				smells = fartS.find(findfart);
-				if (smells != fartS.npos)
-					tmp.emplace_back(inv[i]);
+		if (findartist != "" && findtitle != "" && findauthor != "") {
+			check = [&findauthor, &findartist, &findtitle](Song* x) {
+				return contains(x->GetDisplayArtist(), findartist) || 
+					contains(x->GetOrTryAtLeastToGetSimfileAuthor(), findauthor)
+					|| contains(x->GetDisplayMainTitle(), findtitle);
+			};
+		}
+		else {
+			if (findauthor == "") {
+				if (findtitle == "")
+					check = [&findauthor, &findartist, &findtitle](Song* x) {
+						return contains(x->GetDisplayArtist(), findartist);
+					};
+				else {
+					if (findartist == "")
+						check = [&findauthor, &findartist, &findtitle](Song* x) {
+							return  contains(x->GetDisplayMainTitle(), findtitle);
+						};
+					else
+						check = [&findauthor, &findartist, &findtitle](Song* x) {
+							return contains(x->GetDisplayArtist(), findartist) ||
+								contains(x->GetDisplayMainTitle(), findtitle);
+						};
+				}
 			}
-
-			if (findfaux != "") {
-				RString fauxS = inv[i]->GetOrTryAtLeastToGetSimfileAuthor().MakeLower();
-				bs = fauxS.find(findfaux);
-				if (bs != fauxS.npos)
-					tmp.emplace_back(inv[i]);
-			}
-
-			if (findfitty != "") {
-				RString fittyS = inv[i]->GetDisplayMainTitle().MakeLower();
-				gimmie = fittyS.find(findfitty);
-				if (gimmie != fittyS.npos)
-					tmp.emplace_back(inv[i]);
+			else {
+				if (findtitle == "") {
+					if (findartist == "")
+						check = [&findauthor, &findartist, &findtitle](Song* x) {
+							return  contains(x->GetOrTryAtLeastToGetSimfileAuthor(), findauthor);
+						};
+					else
+						check = [&findauthor, &findartist, &findtitle](Song* x) {
+							return  contains(x->GetDisplayArtist(), findartist) ||
+								contains(x->GetOrTryAtLeastToGetSimfileAuthor(), findauthor);
+						};
+				}
+				else {
+					check = [&findauthor, &findartist, &findtitle](Song* x) {
+						return  contains(x->GetDisplayMainTitle(), findtitle) ||
+							contains(x->GetOrTryAtLeastToGetSimfileAuthor(), findauthor);
+					};
+				}
 			}
 		}
 	}
 
+	for (Song*& x : inv) {
+		if (check(x))
+			tmp.emplace_back(x);
+	}
 	if (tmp.size() > 0) {
 		lastvalidsearch = findme;
 		groupnamesearchmatch = "";
