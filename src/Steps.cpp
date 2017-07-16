@@ -94,7 +94,7 @@ unsigned Steps::GetHash() const
 
 bool Steps::IsNoteDataEmpty() const
 {
-	return this->m_sNoteDataCompressed.empty();
+	return this->m_sNoteDataCompressed.empty() && !m_bNoteDataIsFilled;
 }
 
 bool Steps::GetNoteDataFromSimfile()
