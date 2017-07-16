@@ -37,7 +37,7 @@ end
 
 local t = Def.ActorFrame{
 	BeginCommand=function(self)
-		whee = SCREENMAN:GetTopScreen():GetMusicWheel()
+		whee = SCREENMAN:GetTopScreen():GetRoomWheel()
 		top = SCREENMAN:GetTopScreen()
 		top:AddInputCallback(scrollInput)
 		self:visible(false)

@@ -691,7 +691,7 @@ MusicWheel* ScreenNetSelectMusic::GetMusicWheel()
 class LunaScreenNetSelectMusic : public Luna<ScreenNetSelectMusic>
 {
 public:
-	static int GetMusicWheel(T* p, lua_State *L) {
+	static int GetRoomWheel(T* p, lua_State *L) {
 		p->GetMusicWheel()->PushSelf(L);
 		return 1;
 	}
@@ -701,7 +701,7 @@ public:
 	}
 	LunaScreenNetSelectMusic()
 	{
-		ADD_METHOD(GetMusicWheel);
+		ADD_METHOD(GetRoomWheel);
 		ADD_METHOD(SelectCurrent);
 	}
 };
