@@ -2083,7 +2083,6 @@ public:
 	{
 		vector<PlayerNumber> vHP;
 		FOREACH_HumanPlayer(pn) {
-			if(pn == PLAYER_1)
 			vHP.push_back(pn);
 		}
 			
