@@ -1,10 +1,11 @@
 local searchstring = ""
-local englishes = {"a", "b", "c", "d", "e","f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",";"}
+local englishes = {"?","-",".",",","1","2","3","4","5","6","7","8","9","0","a", "b", "c", "d", "e","f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",";"}
 local frameX = 10
 local frameY = 180+capWideScale(get43size(120),120)
 local active = false
 local whee
 local lastsearchstring = ""
+local CtrlPressed = false
 
 local function searchInput(event)
 	if event.type ~= "InputEventType_Release" and active == true then
@@ -25,7 +26,9 @@ local function searchInput(event)
 		elseif event.DeviceInput.button == "DeviceButton_delete"  then
 			searchstring = ""
 		elseif event.DeviceInput.button == "DeviceButton_="  then
-			searchstring = searchstring.."="
+			searchstring = searchstring.."="	
+		elseif event.DeviceInput.button == "DeviceButton_v" and CtrlPressed then
+			searchstring = searchstring..HOOKS:GetClipboard()
 		else
 			for i=1,#englishes do														-- add standard characters to string
 				if event.DeviceInput.button == "DeviceButton_"..englishes[i] then
@@ -37,6 +40,13 @@ local function searchInput(event)
 			MESSAGEMAN:Broadcast("UpdateString")
 			whee:SongSearch(searchstring)
 			lastsearchstring = searchstring
+		end
+	end
+	if event.DeviceInput.button == "DeviceButton_right ctrl" or event.DeviceInput.button == "DeviceButton_left ctrl" then
+		if event.type == "InputEventType_Release" then
+			CtrlPressed = false
+		else
+			CtrlPressed = true
 		end
 	end
 end
