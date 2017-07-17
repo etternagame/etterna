@@ -56,6 +56,7 @@ public:
 	void ShowNextMsg();
 	unsigned int GetScroll() { return scroll; }
 	unsigned int GetLines() { return m_textChatOutput.lines; }
+	void PasteClipboard();
 	// Lua
 	virtual void PushSelf(lua_State *L);
 private:
