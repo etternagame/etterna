@@ -5,7 +5,9 @@ local pressingtab = false
 local top
 
 local function scrollInput(event)
-	if event.DeviceInput.button == "DeviceButton_tab" then
+	if top:GetSelectionState() == 2 then
+		return
+	elseif event.DeviceInput.button == "DeviceButton_tab" then
 		if event.type == "InputEventType_FirstPress" then
 			pressingtab = true
 		elseif event.type == "InputEventType_Release" then
