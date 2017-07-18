@@ -4,6 +4,7 @@
 #include "RageLog.h"
 #include "RageThreads.h"
 #include "arch/arch_default.h"
+#include "PrefsManager.h"
 
 bool ArchHooks::g_bQuitting = false;
 bool ArchHooks::g_bToggleWindowed = false;
@@ -59,6 +60,17 @@ bool ArchHooks::GoToURL( const RString &sUrl )
 ArchHooks *ArchHooks::Create()
 {
 	return new ARCH_HOOKS;
+}
+
+int ArchHooks::GetWindowWidth()
+{
+	return (PREFSMAN->m_iDisplayHeight * PREFSMAN->m_fDisplayAspectRatio);
+}
+
+
+int ArchHooks::GetWindowHeight() 
+{
+	return PREFSMAN->m_iDisplayHeight;
 }
 
 RString ArchHooks::GetClipboard()

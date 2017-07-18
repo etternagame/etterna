@@ -11,6 +11,7 @@
 #include "archutils/win32/RestartProgram.h"
 #include "archutils/win32/GotoURL.h"
 #include "archutils/Win32/RegistryAccess.h"
+#include "archutils/Win32/GraphicsWindow.h"
 
 static HANDLE g_hInstanceMutex;
 static bool g_bIsMultipleInstance = false;
@@ -186,6 +187,22 @@ void ArchHooks_Win32::SetupConcurrentRenderingThread()
 bool ArchHooks_Win32::GoToURL( const RString &sUrl )
 {
 	return ::GotoURL( sUrl );
+}
+
+int ArchHooks_Win32::GetWindowWidth()
+{
+	RECT rect;
+	GetClientRect(GraphicsWindow::GetHwnd(), &rect);
+	return rect.right - rect.left;
+
+}
+
+int ArchHooks_Win32::GetWindowHeight()
+{
+	RECT rect;
+	GetClientRect(GraphicsWindow::GetHwnd(), &rect);
+	return rect.bottom - rect.top;
+
 }
 
 float ArchHooks_Win32::GetDisplayAspectRatio()

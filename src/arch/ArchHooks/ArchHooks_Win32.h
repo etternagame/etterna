@@ -23,6 +23,11 @@ public:
 	bool GoToURL( const RString &sUrl );
 	virtual float GetDisplayAspectRatio();
 	RString GetClipboard();
+	/** @brief Fetch the window width. */
+	int GetWindowWidth();
+
+	/** @brief Fetch the window height. */
+	int GetWindowHeight();
 };
 
 #ifdef ARCH_HOOKS

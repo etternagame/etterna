@@ -120,7 +120,13 @@ public:
 	
 	/** @brief Fetch the contents of the system clipboard. */
 	virtual RString GetClipboard();
-	
+
+	/** @brief Fetch the window width. */
+	virtual int GetWindowWidth();
+
+	/** @brief Fetch the window height. */
+	virtual int GetWindowHeight();
+
 	// Lua
 	void PushSelf( lua_State *L );
 	void RegisterWithLua();
