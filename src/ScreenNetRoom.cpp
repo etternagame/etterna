@@ -341,10 +341,15 @@ public:
 		p->SelectCurrent();
 		return 1;
 	}
+	static int GetSelectionState(T* p, lua_State *L) {
+		lua_pushnumber(L, 0);
+		return 1;
+	}
 	LunaScreenNetRoom()
 	{
 		ADD_METHOD(GetMusicWheel);
 		ADD_METHOD(SelectCurrent);
+		ADD_METHOD(GetSelectionState);
 	}
 };
 
