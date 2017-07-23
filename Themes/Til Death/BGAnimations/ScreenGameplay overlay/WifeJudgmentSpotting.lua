@@ -643,7 +643,9 @@ end
 local t = Def.ActorFrame{										
 	Name = "WifePerch",
 	OnCommand=function()
-		SCREENMAN:GetTopScreen():AddInputCallback(froot)
+		if not IsNetSMOnline() then
+			SCREENMAN:GetTopScreen():AddInputCallback(froot)
+		end
 		if(playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay) then
 			SCREENMAN:GetTopScreen():AddInputCallback(firstHalfInput)
 			SCREENMAN:GetTopScreen():AddInputCallback(secondHalfInput)
