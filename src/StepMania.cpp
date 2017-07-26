@@ -1394,10 +1394,10 @@ bool HandleGlobalInputs( const InputEventPlus &input )
 #endif
 	if( bDoScreenshot )
 	{
-		// If holding Shift save uncompressed, else save compressed
+		// If holding Shift save resized, else save normally
 		bool bHoldingShift = ( INPUTFILTER->IsBeingPressed( DeviceInput(DEVICE_KEYBOARD, KEY_LSHIFT) )
 								|| INPUTFILTER->IsBeingPressed( DeviceInput(DEVICE_KEYBOARD, KEY_RSHIFT) ) );
-		bool bSaveCompressed = !bHoldingShift;
+		bool bSaveCompressed = bHoldingShift;
 		RageTimer timer;
 		StepMania::SaveScreenshot("Screenshots/", bSaveCompressed, false, "", "");
 		LOG->Trace( "Screenshot took %f seconds.", timer.GetDeltaTime() );
