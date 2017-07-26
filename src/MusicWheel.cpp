@@ -478,7 +478,7 @@ void MusicWheel::FilterBySearch(vector<Song*>& inv, RString findme) {
 
 	for (Song*& x : inv) {
 		if (check(x))
-			tmp.emplace_back(x);
+			tmp.push_back(x);
 	}
 	if (tmp.size() > 0) {
 		lastvalidsearch = findme;
