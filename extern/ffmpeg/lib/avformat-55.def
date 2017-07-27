@@ -57,6 +57,7 @@ EXPORTS
     av_sdp_create
     av_seek_frame
     av_set_pts_info
+    av_stream_get_parser
     av_stream_get_r_frame_rate
     av_stream_set_r_frame_rate
     av_url_split
@@ -147,6 +148,4 @@ EXPORTS
     ffurl_seek
     ffurl_size
     ffurl_write
-    get_crc_table
-    get_extension
     url_feof

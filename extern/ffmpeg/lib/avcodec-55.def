@@ -86,7 +86,6 @@ EXPORTS
     av_resample_init
     av_shrink_packet
     av_xiphlacing
-    available_bits
     avcodec_align_dimensions
     avcodec_align_dimensions2
     avcodec_alloc_context3
@@ -144,7 +143,6 @@ EXPORTS
     avcodec_set_dimensions
     avcodec_string
     avcodec_version
-    aver_isf_history
     avpicture_alloc
     avpicture_deinterlace
     avpicture_fill
