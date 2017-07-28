@@ -1,5 +1,4 @@
 #include "newRageSoundReader_MP3.h"
-#include "mpg123.h"
 #include <io.h>
 
 
