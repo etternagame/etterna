@@ -102,7 +102,7 @@ newRageSoundReader_MP3::~newRageSoundReader_MP3()
 		avcodec::av_frame_free(&decodedFrame);
 }
 
-void RegisterProtocols()
+void newRageSoundReader_MP3::RegisterProtocols()
 {
 	static bool Done = false;
 	if (Done)
@@ -298,9 +298,6 @@ int newRageSoundReader_MP3::Read(float *pBuf, int iFrames)
 int newRageSoundReader_MP3::WriteSamplesForAllChannels(void *pBuf, int samplesToRead)
 {
 	uint8_t *buf = (uint8_t*)(pBuf);
-	static int qty = 0;
-	static int sw = 0;
-	qty++;
 	int samplesWritten = 0;
 	if ((numSamples - curSample) <= samplesToRead) {
 		for (; curSample < numSamples; curSample++) {
@@ -321,7 +318,6 @@ int newRageSoundReader_MP3::WriteSamplesForAllChannels(void *pBuf, int samplesTo
 			samplesWritten++;
 		}
 	}
-	sw += samplesWritten;
 	return samplesWritten;
 
 }

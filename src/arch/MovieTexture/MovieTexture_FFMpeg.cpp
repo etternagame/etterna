@@ -401,7 +401,7 @@ static int64_t AVIORageFile_Seek( void *opaque, int64_t offset, int whence )
 
 RString MovieDecoder_FFMpeg::Open( const RString &sFile )
 {
-	RegisterProtocols();
+	newRageSoundReader_MP3::RegisterProtocols();
     
 	m_fctx = avcodec::avformat_alloc_context();
 	if( !m_fctx )
