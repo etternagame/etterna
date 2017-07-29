@@ -19,12 +19,13 @@ namespace avcodec
 };
 
 
-void RegisterProtocols();
+
 
 class newRageSoundReader_MP3 :
 	public RageSoundReader_FileReader
 {
 public:
+	static void RegisterProtocols();
 	OpenResult Open(RageFileBasic *pFile); 
 	void Close();
 	int GetLength() const {  return length; }
