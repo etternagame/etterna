@@ -1,7 +1,7 @@
 
 #ifndef RAGE_SOUND_READER_MP3_H
 #define RAGE_SOUND_READER_MP3_H
-
+#define MP3_BUFFERSIZE 40960
 
 #include "RageSoundReader_FileReader.h"
 #include "RageFile.h"
@@ -26,11 +26,11 @@ class newRageSoundReader_MP3 :
 public:
 	OpenResult Open(RageFileBasic *pFile); 
 	void Close();
-	int GetLength() const { return length; }
+	int GetLength() const {  return length; }
 	int SetPosition(int iFrame);
 	int aux;
 	int Read(float *pBuf, int iSample);
-	int GetSampleRate() const { return sampleRate; }
+	int GetSampleRate() const {  return sampleRate; }
 	unsigned GetNumChannels() const { return numChannels; }
 	int GetNextSourceFrame() const ;
 	newRageSoundReader_MP3();
@@ -40,7 +40,7 @@ public:
 private:
 	int sampleRate;
 	int length;
-	uint8_t buffer[20480 + 64];
+	uint8_t buffer[MP3_BUFFERSIZE + 64];
 	int audioStream;
 	int numChannels;
 	avcodec::AVIOContext* IOCtx;
@@ -49,7 +49,6 @@ private:
 	int WriteSamplesForAllChannels(void *pBuf, int samplesToRead);
 	int bitrate;
 	int dataSize;
-	int WriteFrame(char *pBuf);
 	int curFrame;
 	int curSample; 
 	double timeBase;
@@ -57,7 +56,6 @@ private:
 	avcodec::AVCodec *codec; 
 	avcodec::AVCodecContext *codecCtx;
 	avcodec::AVFrame *decodedFrame;
-	int WriteSamples(void *pBuf, int samples);
 	int ReadAFrame();
 };
 
