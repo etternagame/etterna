@@ -13,6 +13,7 @@ namespace avcodec
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
 #include <libavutil/pixdesc.h>
+#include <libavutil/rational.h>
 #include <libavcodec/avcodec.h>
 	}
 };
