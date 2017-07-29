@@ -152,11 +152,12 @@ set_target_properties("${SM_EXE_NAME}" PROPERTIES
 )
 
 list(APPEND SM_WINDOWS_PROGRAM_DLLS
-  "${SM_PROGRAM_DIR}/avcodec-55.dll"
-  "${SM_PROGRAM_DIR}/avformat-55.dll"
-  "${SM_PROGRAM_DIR}/avutil-52.dll"
+  "${SM_PROGRAM_DIR}/avcodec-56.dll"
+  "${SM_PROGRAM_DIR}/avformat-56.dll"
+  "${SM_PROGRAM_DIR}/avutil-54.dll"
   "${SM_PROGRAM_DIR}/parallel_lights_io.dll"
-  "${SM_PROGRAM_DIR}/swscale-2.dll"
+  "${SM_PROGRAM_DIR}/swresample-1.dll"
+  "${SM_PROGRAM_DIR}/swscale-3.dll"
 )
 
 if(WIN32)
@@ -614,11 +615,12 @@ if(NOT APPLE)
     if (WITH_FULL_RELEASE OR WITH_TEXTURE_GENERATOR)
       install(FILES "${SM_PROGRAM_DIR}/Texture Font Generator.exe" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
     endif()
-    install(FILES "${SM_PROGRAM_DIR}/avcodec-55.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
-    install(FILES "${SM_PROGRAM_DIR}/avformat-55.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
-    install(FILES "${SM_PROGRAM_DIR}/avutil-52.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    install(FILES "${SM_PROGRAM_DIR}/avcodec-56.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    install(FILES "${SM_PROGRAM_DIR}/avformat-56.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    install(FILES "${SM_PROGRAM_DIR}/avutil-54.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
     install(FILES "${SM_PROGRAM_DIR}/parallel_lights_io.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
-    install(FILES "${SM_PROGRAM_DIR}/swscale-2.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+	install(FILES "${SM_PROGRAM_DIR}/swresample-1.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    install(FILES "${SM_PROGRAM_DIR}/swscale-3.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
     install(FILES "${SM_PROGRAM_DIR}/StepMania.vdi" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
 
     # foreach(SM_WINDOW_DLL "${SM_WINDOWS_PROGRAM_DLLS}")
