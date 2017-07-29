@@ -482,11 +482,12 @@ Section "Main Section" SecMain
 	continue:
 	
 	; FFmpeg and related
-	File "Program\avcodec-55.dll"
+	File "Program\avcodec-56.dll"
 	;File "Program\avdevice-52.dll"
-	File "Program\avformat-55.dll"
-	File "Program\avutil-52.dll"
-	File "Program\swscale-2.dll"
+	File "Program\avformat-56.dll"
+	File "Program\avutil-54.dll"
+	File "Program\swresample-1.dll"
+	File "Program\swscale-3.dll"
 	; parallel lights
 	File "Program\parallel_lights_io.dll"
 	; others
@@ -902,16 +903,21 @@ Section "Uninstall"
 	Delete "$INSTDIR\Program\msvcr90.dll"
 	Delete "$INSTDIR\Program\msvcp90.dll"
 	; FFmpeg and related
+	Delete "$INSTDIR\Program\avcodec-56.dll"
 	Delete "$INSTDIR\Program\avcodec-55.dll"
 	Delete "$INSTDIR\Program\avcodec-53.dll"
 	Delete "$INSTDIR\Program\avcodec-52.dll"
 	Delete "$INSTDIR\Program\avdevice-52.dll"
+	Delete "$INSTDIR\Program\avformat-56.dll"
 	Delete "$INSTDIR\Program\avformat-55.dll"
 	Delete "$INSTDIR\Program\avformat-53.dll"
 	Delete "$INSTDIR\Program\avformat-52.dll"
+	Delete "$INSTDIR\Program\avutil-54.dll"
 	Delete "$INSTDIR\Program\avutil-52.dll"
 	Delete "$INSTDIR\Program\avutil-51.dll"
 	Delete "$INSTDIR\Program\avutil-50.dll"
+	Delete "$INSTDIR\Program\swresample-1.dll"
+	Delete "$INSTDIR\Program\swscale-3.dll"
 	Delete "$INSTDIR\Program\swscale-2.dll"
 	Delete "$INSTDIR\Program\swscale-0.dll"
 	; others
