@@ -201,8 +201,8 @@ if (HAS_OGG)
 endif()
 
 if (HAS_MP3)
-  list(APPEND SMDATA_RAGE_SOUND_SRC "RageSoundReader_MP3.cpp")
-  list(APPEND SMDATA_RAGE_SOUND_HPP "RageSoundReader_MP3.h")
+  list(APPEND SMDATA_RAGE_SOUND_SRC "newRageSoundReader_MP3.cpp")
+  list(APPEND SMDATA_RAGE_SOUND_HPP "newRageSoundReader_MP3.h")
 endif()
 
 source_group("Rage\\\\Sound" FILES ${SMDATA_RAGE_SOUND_SRC} ${SMDATA_RAGE_SOUND_HPP})
