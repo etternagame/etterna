@@ -3,6 +3,7 @@
 #define RAGE_SOUND_READER_MP3_H
 #define MP3_BUFFERSIZE 40960
 
+#include "global.h"
 #include "RageSoundReader_FileReader.h"
 #include "RageFile.h"
 
