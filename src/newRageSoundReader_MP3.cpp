@@ -1,7 +1,7 @@
 #include "newRageSoundReader_MP3.h"
 #include <io.h>
 #include "RageUtil.h"
-
+#include "RageLog.h"
 
 
 //Copied from RageSoundReader_WAV.cpp
@@ -142,7 +142,7 @@ RageSoundReader_FileReader::OpenResult newRageSoundReader_MP3::Open(RageFileBasi
 	if (decodedFrame)
 		avcodec::av_frame_free(&decodedFrame);
 
-	IOCtx = avcodec::avio_alloc_context(buffer, 20480,  // internal Buffer and its size
+	IOCtx = avcodec::avio_alloc_context(buffer, MP3_BUFFERSIZE,  // internal Buffer and its size
 		0,                  // bWriteable (1=true,0=false) 
 		pFile,          // user data ; will be passed to our callback functions
 		ReadFunc,
@@ -155,7 +155,7 @@ RageSoundReader_FileReader::OpenResult newRageSoundReader_MP3::Open(RageFileBasi
 
 	// Determining the input format:
 	int readBytes = 0;
-	readBytes += m_pFile->Read(buffer, 20480);
+	readBytes += m_pFile->Read(buffer, MP3_BUFFERSIZE);
 	m_pFile->Seek(0, SEEK_SET);
 	avcodec::AVProbeData probeData;
 	probeData.buf = buffer;
@@ -230,7 +230,7 @@ int newRageSoundReader_MP3::SetPosition(int iFrame)
 {
 	if (decodedFrame)
 		avcodec::av_frame_free(&decodedFrame);
-	return avcodec::av_seek_frame(formatCtx, audioStream, (int64_t)iFrame*timeBase, AVSEEK_FLAG_ANY);
+	return avcodec::av_seek_frame(formatCtx, audioStream, (int64_t)iFrame, AVSEEK_FLAG_ANY);
 }
 
 //I think this is supposed to read samples, not frames
@@ -258,7 +258,10 @@ int newRageSoundReader_MP3::Read(float *pBuf, int iFrames)
 				return END_OF_FILE;
 				break;
 			};
-		samplesRead += WriteSamplesForAllChannels(buf + samplesRead*numChannels*dataSize, iFrames-samplesRead);
+		int read = WriteSamplesForAllChannels(buf + samplesRead*numChannels*dataSize, iFrames - samplesRead);
+		if (!read)
+			return ERROR;
+		samplesRead += read;
 	}
 	//Translate the raw data into something SM or whatever it is that uses it can understand
 	switch (dataSize)
@@ -285,7 +288,6 @@ int newRageSoundReader_MP3::Read(float *pBuf, int iFrames)
 int newRageSoundReader_MP3::WriteSamplesForAllChannels(void *pBuf, int samplesToRead)
 {
 	uint8_t *buf = (uint8_t*)(pBuf);
-
 	int samplesWritten = 0;
 	if ((numSamples - curSample) <= samplesToRead) {
 		for (; curSample < numSamples; curSample++) {
@@ -295,22 +297,24 @@ int newRageSoundReader_MP3::WriteSamplesForAllChannels(void *pBuf, int samplesTo
 		}
 		//Free the frame since we've read it all
 		avcodec::av_frame_free(&decodedFrame);
+		decodedFrame = NULL;
 		curSample = 0;
 	}
 	else {
-		for (; curSample < samplesToRead; curSample++) {
+		int end = samplesToRead + curSample;
+		for (; curSample < end; curSample++) {
 			for (curChannel=0; curChannel < numChannels; curChannel++)
 				memcpy(buf + (samplesWritten*numChannels + curChannel)*dataSize, decodedFrame->data[curChannel] + dataSize*curSample, (unsigned int)dataSize);
 			samplesWritten++;
 		}
-	}
-	curFrame += samplesWritten;
+	};
 	return samplesWritten;
 
 }
 
-int newRageSoundReader_MP3::GetNextSourceFrame() const {
-	return curFrame;
+int newRageSoundReader_MP3::GetNextSourceFrame() const
+{
+	return curSample+curFrame*numSamples;
 }
 //Return: -1 => Error already set. -2 => EOF. >=0 => bytesRead
 int newRageSoundReader_MP3::ReadAFrame()
@@ -321,7 +325,7 @@ int newRageSoundReader_MP3::ReadAFrame()
 	if (decodedFrame)
 		avcodec::av_frame_free(&decodedFrame);
 	if (!(decodedFrame = avcodec::av_frame_alloc())) {
-		SetError("Error allocating memory for frame");
+		SetError("Error allocating memory for frame");;
 		return -1;
 	}
 	while (avcodec::av_read_frame(formatCtx, &avpkt) >= 0) {
@@ -334,7 +338,7 @@ int newRageSoundReader_MP3::ReadAFrame()
 				int gotFrame = 0;
 				int len = avcodec_decode_audio4(codecCtx, decodedFrame, &gotFrame, &avpkt);
 				if (len == -1) {
-					SetError("Error while decoding\n");
+					SetError("Error while decoding\n");;
 					return -1;
 				}
 				//avpkt.size -= len;
@@ -343,6 +347,7 @@ int newRageSoundReader_MP3::ReadAFrame()
 					curChannel = 0;
 					curSample = 0;
 					numSamples = decodedFrame->nb_samples;
+					curFrame++;
 					dataSize = avcodec::av_get_bytes_per_sample(codecCtx->sample_fmt);
 					numChannels = codecCtx->channels;
 					//m_pFile->Seek(m_pFile->Tell() - avpkt.size);
@@ -354,7 +359,7 @@ int newRageSoundReader_MP3::ReadAFrame()
 			}
 			break;
 		}
-	}
+	};
 	av_free_packet(&avpkt);
 	return -2;
 }
