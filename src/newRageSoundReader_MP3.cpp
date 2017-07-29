@@ -1,3 +1,4 @@
+#include "global.h"
 #include "newRageSoundReader_MP3.h"
 #include <io.h>
 #include "RageUtil.h"
