@@ -85,6 +85,8 @@ newRageSoundReader_MP3::newRageSoundReader_MP3()
 	dataSize = 0;
 	numSamples = 0;
 	sampleRate = 1;
+	for (int x = 0; x < MP3_BUFFER_PADDING; x++)
+		buffer[MP3_BUFFER_SIZE + x] = 0x00000000;
 }
 
 
@@ -143,7 +145,7 @@ RageSoundReader_FileReader::OpenResult newRageSoundReader_MP3::Open(RageFileBasi
 	if (decodedFrame)
 		avcodec::av_frame_free(&decodedFrame);
 
-	IOCtx = avcodec::avio_alloc_context(buffer, MP3_BUFFERSIZE,  // internal Buffer and its size
+	IOCtx = avcodec::avio_alloc_context(buffer, MP3_BUFFER_SIZE,  // internal Buffer and its size
 		0,                  // bWriteable (1=true,0=false) 
 		pFile,          // user data ; will be passed to our callback functions
 		ReadFunc,
@@ -155,16 +157,30 @@ RageSoundReader_FileReader::OpenResult newRageSoundReader_MP3::Open(RageFileBasi
 
 
 	// Determining the input format:
+	unsigned char buff[1024+64];
+	for (int x = 0; x < 64; x++)
+		buff[1024 + x] = 0x00000000;
 	int readBytes = 0;
-	readBytes += m_pFile->Read(buffer, MP3_BUFFERSIZE);
-	m_pFile->Seek(0, SEEK_SET);
+	readBytes += m_pFile->Read(buff, 1024);
+	if(readBytes <= 0){
+		SetError("Error probing (read)");
+		return OPEN_UNKNOWN_FILE_FORMAT;
+	}
+	if(m_pFile->Seek(0, SEEK_SET)<0) {
+		SetError("Error probing (seek)");
+		return OPEN_UNKNOWN_FILE_FORMAT;
+	}
 	avcodec::AVProbeData probeData;
-	probeData.buf = buffer;
+	probeData.buf = buff;
 	probeData.buf_size = readBytes;
 	probeData.filename = "";
 
 	// Determine the input-format:
 	formatCtx->iformat = av_probe_input_format(&probeData, 1);
+	if(!formatCtx->iformat) {
+		SetError("Error probing (Interpreting)");
+		return OPEN_UNKNOWN_FILE_FORMAT;
+	}
 	formatCtx->flags = AVFMT_FLAG_CUSTOM_IO;
 	if (avcodec::avformat_open_input(&formatCtx, "", 0, 0) != 0) {
 		SetError("Error opening file");
@@ -193,7 +209,6 @@ RageSoundReader_FileReader::OpenResult newRageSoundReader_MP3::Open(RageFileBasi
 	}
 	// Get a pointer to the codec context for the audio stream
 	codecCtx = formatCtx->streams[audioStream]->codec;
-
 	// Find the decoder for the audio stream
 	codec = avcodec::avcodec_find_decoder(codecCtx->codec_id);
 	if (codec == NULL) {
@@ -217,14 +232,20 @@ RageSoundReader_FileReader::OpenResult newRageSoundReader_MP3::Open(RageFileBasi
 	//And if i add breakpoints in the debug in that line and the ones inmediately above(4) they're never reached
 	//I have even less of an idea why multiplying by timeBase makes it not do that, 
 	//I have tried doing something like 
-	//length = formatCtx->duration*1.0;
+	//length = static_cast<double>(formatCtx->duration)*0.001;
 	//length = length / 1000;
 	//But it doesn't work either
 	//Anyways, this works, and then we can just divide it by that and properly calculate the ms
 	//Come back to this mess later
-	timeBase = (double)codecCtx->time_base.num  / (double)codecCtx->time_base.den;
-	length = formatCtx->duration * timeBase;
-	length = (length/timeBase) /1000;
+	//timeBase = (double)codecCtx->time_base.num  / (double)codecCtx->time_base.den;
+	//length = formatCtx->duration * timeBase;
+	//length = (length/timeBase) /1000;
+
+	//After much trial and error it seems using another buffer for the probe
+	//and placing 0's in the padding at the end of the buffer make this work
+	//I have no idea why that nonesense made it work
+	//I'm keeping these comments for now in case this starts giving trouble again
+	length = static_cast<double>(formatCtx->duration)*0.001;
 	switch (ReadAFrame()) {
 	case -1:
 		return OPEN_UNKNOWN_FILE_FORMAT;;
@@ -258,12 +279,14 @@ int newRageSoundReader_MP3::SetPosition(int iFrame)
 	//Calculate the second to seek to (No idea why the *100 seems to work)
 	double sec = ((static_cast<double>(iFrame)) / sampleRate * 100);
 	//Calculate what we need to pass to the seek function (In the stream's time units)
-	int seekFrame = sec * ((stream->time_base.den) / (stream->time_base.num));
+	timeBase = ((stream->time_base.den) / (stream->time_base.num));
+	int seekFrame = sec * timeBase;
 	const int flags = AVSEEK_FLAG_ANY | AVSEEK_FLAG_BACKWARD;
 	int ret=-1;
-	LOG->Warn("setpos iframe: %d seek: %d sec: %f length: %d", iFrame, seekFrame, sec, length);
-	if (seekFrame >= 0)
+	if (seekFrame >= 0 && seekFrame>= timeBase*length/1000)
 		ret = avcodec::av_seek_frame(formatCtx, audioStream, seekFrame, flags);
+	else
+		ret = avcodec::av_seek_frame(formatCtx, audioStream, 0, flags);
 	return ret;
 }
 
@@ -297,6 +320,7 @@ int newRageSoundReader_MP3::Read(float *pBuf, int iFrames)
 			return ERROR;
 		samplesRead += read;
 	}
+	
 	//Translate the raw data into something SM or whatever it is that uses it can understand
 	switch (dataSize)
 	{
@@ -311,9 +335,10 @@ int newRageSoundReader_MP3::Read(float *pBuf, int iFrames)
 		break;
 	case 4:
 		ConvertLittleEndian32BitToFloat(buf, samplesRead*numChannels);
-		/* otherwise 3; already a float */
+		// otherwise 3; already a float 
 		break;
 	}
+	
 	return samplesRead;
 }
 

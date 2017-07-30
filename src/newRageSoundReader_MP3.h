@@ -1,7 +1,8 @@
 
 #ifndef RAGE_SOUND_READER_MP3_H
 #define RAGE_SOUND_READER_MP3_H
-#define MP3_BUFFERSIZE 40960
+#define MP3_BUFFER_SIZE 5120
+#define MP3_BUFFER_PADDING 64
 
 #include "global.h"
 #include "RageSoundReader_FileReader.h"
@@ -43,7 +44,7 @@ public:
 private:
 	int sampleRate;
 	int length;
-	uint8_t buffer[MP3_BUFFERSIZE + 64];
+	uint8_t buffer[MP3_BUFFER_SIZE + MP3_BUFFER_PADDING];
 	int audioStream;
 	int numChannels;
 	avcodec::AVIOContext* IOCtx;
