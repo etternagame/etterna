@@ -1,6 +1,5 @@
 #include "global.h"
 #include "newRageSoundReader_MP3.h"
-#include <io.h>
 #include "RageUtil.h"
 #include "RageLog.h"
 
@@ -198,7 +197,7 @@ RageSoundReader_FileReader::OpenResult newRageSoundReader_MP3::Open(RageFileBasi
 	int i = 0;
 	int nbStreams = formatCtx->nb_streams;
 	for (i = 0; i<nbStreams; i++) {
-		if (formatCtx->streams[i]->codec->codec_type == avcodec::AVMEDIA_TYPE_AUDIO) {
+		if (formatCtx->streams[i]->codecpar->codec_type == avcodec::AVMEDIA_TYPE_AUDIO) {
 			audioStream = i;
 			break;
 		}
@@ -409,13 +408,13 @@ int newRageSoundReader_MP3::ReadAFrame()
 					dataSize = avcodec::av_get_bytes_per_sample(codecCtx->sample_fmt);
 					numChannels = codecCtx->channels;
 					int read = avpkt.size;
-					av_free_packet(&avpkt);
+					avcodec::av_packet_unref(&avpkt);
 					return read;
 				}
 			}
 			break;
 		}
 	}
-	av_free_packet(&avpkt);
+	avcodec::av_packet_unref(&avpkt);
 	return -2;
 }
