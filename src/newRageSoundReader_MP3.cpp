@@ -283,7 +283,7 @@ int newRageSoundReader_MP3::SetPosition(int iFrame)
 	int seekFrame = sec * timeBase;
 	const int flags = AVSEEK_FLAG_ANY | AVSEEK_FLAG_BACKWARD;
 	int ret=-1;
-	if (seekFrame >= 0 && seekFrame>= timeBase*length/1000)
+	if (seekFrame >= 0 && seekFrame<= timeBase*length/1000)
 		ret = avcodec::av_seek_frame(formatCtx, audioStream, seekFrame, flags);
 	else
 		ret = avcodec::av_seek_frame(formatCtx, audioStream, 0, flags);
