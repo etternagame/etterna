@@ -210,9 +210,30 @@ RageSoundReader_FileReader::OpenResult newRageSoundReader_MP3::Open(RageFileBasi
 	curSample = 0;
 	numChannels = codecCtx->channels;
 	bitrate = codecCtx->bit_rate;
-	sampleRate = codecCtx->sample_rate; 
-	timeBase = (double)codecCtx->time_base.num * AV_TIME_BASE / (double)codecCtx->time_base.den;
+	sampleRate = codecCtx->sample_rate;
+	//Length is being calculated to be in miliseconds(Not sure if that's what SM wants to read. Edit GetLength accordingly once we know)
+	//I have no idea what's wrong with calculating length as formatCtx->duration/1000
+	//But it makes it so an error with RageFile's Seek leads to a crash(Probably accessing memory we shouldn't be accessing)
+	//And if i add breakpoints in the debug in that line and the ones inmediately above(4) they're never reached
+	//I have even less of an idea why multiplying by timeBase makes it not do that, 
+	//I have tried doing something like 
+	//length = formatCtx->duration*1.0;
+	//length = length / 1000;
+	//But it doesn't work either
+	//Anyways, this works, and then we can just divide it by that and properly calculate the ms
+	//Come back to this mess later
+	timeBase = (double)codecCtx->time_base.num  / (double)codecCtx->time_base.den;
 	length = formatCtx->duration * timeBase;
+	length = (length/timeBase) /1000;
+	switch (ReadAFrame()) {
+	case -1:
+		return OPEN_UNKNOWN_FILE_FORMAT;;
+		break;
+	case -2:
+		SetError("EOF");
+		return OPEN_UNKNOWN_FILE_FORMAT;
+		break;
+	};
 	return OPEN_OK;
 }
 
@@ -229,18 +250,20 @@ newRageSoundReader_MP3 *newRageSoundReader_MP3::Copy() const
 //0=> EOF. -1=> Error . >=0 => Properly SetPosition
 int newRageSoundReader_MP3::SetPosition(int iFrame)
 {
-
+	curFrame = iFrame;
+	//Free the last read frame if there is one (So when we read after this we read from the frame we seeked)
 	if (decodedFrame)
 		avcodec::av_frame_free(&decodedFrame);
-	__int64 seekTime = (__int64)iFrame;
-	__int64 seekStreamDuration = formatCtx->streams[audioStream]->duration;
-
-	int flags = AVSEEK_FLAG_BACKWARD;
-	if (seekTime > 0 && seekTime < seekStreamDuration)
-		seekTime=0;
-	int ret = avcodec::av_seek_frame(formatCtx, audioStream, seekTime, flags);
-	if (ret < 0)
-		avcodec::av_seek_frame(formatCtx, audioStream, seekTime, AVSEEK_FLAG_ANY);
+	avcodec::AVStream * stream = formatCtx->streams[audioStream];
+	//Calculate the second to seek to (No idea why the *100 seems to work)
+	double sec = ((static_cast<double>(iFrame)) / sampleRate * 100);
+	//Calculate what we need to pass to the seek function (In the stream's time units)
+	int seekFrame = sec * ((stream->time_base.den) / (stream->time_base.num));
+	const int flags = AVSEEK_FLAG_ANY | AVSEEK_FLAG_BACKWARD;
+	int ret=-1;
+	LOG->Warn("setpos iframe: %d seek: %d sec: %f length: %d", iFrame, seekFrame, sec, length);
+	if (seekFrame >= 0)
+		ret = avcodec::av_seek_frame(formatCtx, audioStream, seekFrame, flags);
 	return ret;
 }
 
@@ -299,7 +322,7 @@ int newRageSoundReader_MP3::Read(float *pBuf, int iFrames)
 int newRageSoundReader_MP3::WriteSamplesForAllChannels(void *pBuf, int samplesToRead)
 {
 	uint8_t *buf = (uint8_t*)(pBuf);
-	int samplesWritten = 0;
+	int samplesWritten = 0; //For all channels(If 2 written and 2 channels then it's 1. samplesRead/numChannels)
 	if ((numSamples - curSample) <= samplesToRead) {
 		for (; curSample < numSamples; curSample++) {
 			for (curChannel=0; curChannel < numChannels; curChannel++)
@@ -319,13 +342,14 @@ int newRageSoundReader_MP3::WriteSamplesForAllChannels(void *pBuf, int samplesTo
 			samplesWritten++;
 		}
 	}
+	curFrame += samplesWritten;
 	return samplesWritten;
 
 }
 
 int newRageSoundReader_MP3::GetNextSourceFrame() const
 {
-	return curSample+curFrame*numSamples;
+	return curFrame;
 }
 //Return: -1 => Error already set. -2 => EOF. >=0 => bytesRead
 int newRageSoundReader_MP3::ReadAFrame()
@@ -353,17 +377,12 @@ int newRageSoundReader_MP3::ReadAFrame()
 					return -1;
 				}
 				size -= len;
-				//avpkt.size -= len;
-				//avpkt.data += len;
 				if (gotFrame) {
 					curChannel = 0;
 					curSample = 0;
 					numSamples = decodedFrame->nb_samples;
-					curFrame++;
 					dataSize = avcodec::av_get_bytes_per_sample(codecCtx->sample_fmt);
 					numChannels = codecCtx->channels;
-					//m_pFile->Seek(m_pFile->Tell() - avpkt.size);
-					//return bytesRead-avpkt.size;
 					int read = avpkt.size;
 					av_free_packet(&avpkt);
 					return read;
