@@ -244,7 +244,7 @@ RageSoundReader_FileReader::OpenResult newRageSoundReader_MP3::Open(RageFileBasi
 	//and placing 0's in the padding at the end of the buffer make this work
 	//I have no idea why that nonesense made it work
 	//I'm keeping these comments for now in case this starts giving trouble again
-	length = static_cast<double>(formatCtx->duration)*0.001;
+	length = static_cast<int>(static_cast<double>(formatCtx->duration)*0.001);
 	switch (ReadAFrame()) {
 	case -1:
 		return OPEN_UNKNOWN_FILE_FORMAT;;
@@ -279,7 +279,7 @@ int newRageSoundReader_MP3::SetPosition(int iFrame)
 	double sec = ((static_cast<double>(iFrame)) / sampleRate * 100);
 	//Calculate what we need to pass to the seek function (In the stream's time units)
 	timeBase = ((stream->time_base.den) / (stream->time_base.num));
-	int seekFrame = sec * timeBase;
+	int seekFrame = static_cast<int>(sec * timeBase);
 	const int flags = AVSEEK_FLAG_ANY | AVSEEK_FLAG_BACKWARD;
 	int ret=-1;
 	if (seekFrame >= 0 && seekFrame<= timeBase*length/1000)
@@ -296,7 +296,7 @@ int newRageSoundReader_MP3::SetPosition(int iFrame)
 //Then either return the samples read or read and decode another frame
 int newRageSoundReader_MP3::Read(float *pBuf, int iFrames)
 {
-	uint8_t* buf = (uint8_t*)(pBuf);//Increases by 1 byte
+	uint8_t* buf = reinterpret_cast<uint8_t*>(pBuf);//Increases by 1 byte
 	int samplesRead = 0;
 	if (iFrames <= 0)
 		return iFrames;
@@ -345,7 +345,7 @@ int newRageSoundReader_MP3::Read(float *pBuf, int iFrames)
 //Also, the data is stored as follows: [sample1ch1,sample1ch2,sample1ch2,..]
 int newRageSoundReader_MP3::WriteSamplesForAllChannels(void *pBuf, int samplesToRead)
 {
-	uint8_t *buf = (uint8_t*)(pBuf);
+	uint8_t *buf = reinterpret_cast<uint8_t*>(pBuf);
 	int samplesWritten = 0; //For all channels(If 2 written and 2 channels then it's 1. samplesRead/numChannels)
 	if ((numSamples - curSample) <= samplesToRead) {
 		for (; curSample < numSamples; curSample++) {
