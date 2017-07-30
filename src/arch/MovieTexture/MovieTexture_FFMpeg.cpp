@@ -435,7 +435,7 @@ RString MovieDecoder_FFMpeg::Open( const RString &sFile )
 		return "Couldn't find any video streams";
 	m_pStream = m_fctx->streams[stream_idx];
 
-	if( m_pStream->codec->codec_id == avcodec::CODEC_ID_NONE )
+	if( m_pStream->codec->codec_id == avcodec::AV_CODEC_ID_NONE )
 		return ssprintf( "Unsupported codec %08x", m_pStream->codec->codec_tag );
 
 	RString sError = OpenCodec();
