@@ -11,7 +11,7 @@
 #endif
 
 #if defined(HAS_MP3)
-#include "RageSoundReader_MP3.h"
+#include "newRageSoundReader_MP3.h"
 #endif
 
 #if defined(HAS_OGG)
@@ -29,7 +29,7 @@ RageSoundReader_FileReader *RageSoundReader_FileReader::TryOpenFile( RageFileBas
 
 #if defined(HAS_MP3)
 	if( !format.CompareNoCase("mp3") )
-		Sample = new RageSoundReader_MP3;
+		Sample = new newRageSoundReader_MP3;
 #endif
 
 #if defined(HAS_OGG)

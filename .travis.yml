@@ -4,7 +4,7 @@ sudo: required
 
 matrix:
   include:
-  - env: CXX_COMPILER=clang++-3.6 CC_COMPILER=clang-3.6 BUILD_TYPE=Release WITH_FFMPEG=OFF
+  - env: CXX_COMPILER=clang++-3.6 CC_COMPILER=clang-3.6 BUILD_TYPE=Release WITH_FFMPEG=ON
       WITH_FFMPEG_JOBS=1
     compiler: clang
     addons: &1
