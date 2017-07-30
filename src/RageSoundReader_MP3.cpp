@@ -311,7 +311,7 @@ bool RageSoundReader_MP3::handle_first_frame()
 		mad->bitrate = (int)(bytes * 8 / (mad->length/1000.f));
 
 		if( mad->xingtag.type == xing::XING )
-			ret = 1;
+			ret = true;
 	}
 
 	/* If there's no Xing tag, mad->length will be filled in by _open. */
@@ -673,7 +673,7 @@ RageSoundReader_FileReader::OpenResult RageSoundReader_MP3::Open( RageFileBasic 
 
 RageSoundReader_MP3 *RageSoundReader_MP3::Copy() const
 {
-	RageSoundReader_MP3 *ret = new RageSoundReader_MP3;
+	auto *ret = new RageSoundReader_MP3;
 
 	ret->m_pFile = m_pFile->Copy();
 	ret->m_pFile->Seek( 0 );
@@ -787,7 +787,7 @@ int RageSoundReader_MP3::SetPosition_toc( int iFrame, bool Xing )
 		/* We can speed up the seek using the XING tag.  First, figure
 		 * out what percentage the requested position falls in. */
 		ASSERT( SampleRate != 0 );
-		int ms = int( (iFrame * 1000LL) / SampleRate );
+		auto ms = int( (iFrame * 1000LL) / SampleRate );
 		ASSERT( mad->length != 0 );
 		int percent = ms * 100 / mad->length;
 		if( percent < 100 )

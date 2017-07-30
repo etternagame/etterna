@@ -28,10 +28,10 @@ LuaDeclareType(InputEventType);
 
 struct InputEvent
 {
-	InputEvent(): type(IET_FIRST_PRESS) {}
+	InputEvent() = default;
 
 	DeviceInput di;
-	InputEventType type;
+	InputEventType type{IET_FIRST_PRESS};
 
 	// A list of all buttons that were pressed at the time of this event:
 	DeviceInputList m_ButtonState;
@@ -65,9 +65,9 @@ public:
 	void RepeatStopKey( const DeviceInput &di );
 
 	// If aButtonState is NULL, use the last reported state.
-	bool IsBeingPressed( const DeviceInput &di, const DeviceInputList *pButtonState = NULL ) const;
-	float GetSecsHeld( const DeviceInput &di, const DeviceInputList *pButtonState = NULL ) const;
-	float GetLevel( const DeviceInput &di, const DeviceInputList *pButtonState = NULL ) const;
+	bool IsBeingPressed( const DeviceInput &di, const DeviceInputList *pButtonState = nullptr ) const;
+	float GetSecsHeld( const DeviceInput &di, const DeviceInputList *pButtonState = nullptr ) const;
+	float GetLevel( const DeviceInput &di, const DeviceInputList *pButtonState = nullptr ) const;
 	RString GetButtonComment( const DeviceInput &di ) const;
 
 	void GetInputEvents( vector<InputEvent> &aEventOut );

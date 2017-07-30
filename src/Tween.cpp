@@ -18,23 +18,23 @@ LuaXType( TweenType );
 
 struct TweenLinear: public ITween
 {
-	float Tween( float f ) const { return f; }
-	ITween *Copy() const { return new TweenLinear(*this); }
+	float Tween( float f ) const override { return f; }
+	ITween *Copy() const override { return new TweenLinear(*this); }
 };
 struct TweenAccelerate: public ITween
 {
-	float Tween( float f ) const { return f*f; }
-	ITween *Copy() const { return new TweenAccelerate(*this); }
+	float Tween( float f ) const override { return f*f; }
+	ITween *Copy() const override { return new TweenAccelerate(*this); }
 };
 struct TweenDecelerate: public ITween
 {
-	float Tween( float f ) const { return 1 - (1-f) * (1-f); }
-	ITween *Copy() const { return new TweenDecelerate(*this); }
+	float Tween( float f ) const override { return 1 - (1-f) * (1-f); }
+	ITween *Copy() const override { return new TweenDecelerate(*this); }
 };
 struct TweenSpring: public ITween
 {
-	float Tween( float f ) const { return 1 - RageFastCos( f*PI*2.5f )/(1+f*3); }
-	ITween *Copy() const { return new TweenSpring(*this); }
+	float Tween( float f ) const override { return 1 - RageFastCos( f*PI*2.5f )/(1+f*3); }
+	ITween *Copy() const override { return new TweenSpring(*this); }
 };
 
 
@@ -43,8 +43,8 @@ struct TweenSpring: public ITween
  */
 struct InterpolateBezier1D: public ITween
 {
-	float Tween( float f ) const;
-	ITween *Copy() const { return new InterpolateBezier1D(*this); }
+	float Tween( float f ) const override;
+	ITween *Copy() const override { return new InterpolateBezier1D(*this); }
 
 	RageQuadratic m_Bezier;
 };
@@ -59,8 +59,8 @@ float InterpolateBezier1D::Tween( float f ) const
  */
 struct InterpolateBezier2D: public ITween
 {
-	float Tween( float f ) const;
-	ITween *Copy() const { return new InterpolateBezier2D(*this); }
+	float Tween( float f ) const override;
+	ITween *Copy() const override { return new InterpolateBezier2D(*this); }
 
 	RageBezier2D m_Bezier;
 };
@@ -112,13 +112,13 @@ ITween *ITween::CreateFromStack( Lua *L, int iStackPos )
 		lua_pop( L, iArgs );
 		if( iArgs == 4 )
 		{
-			InterpolateBezier1D *pBezier = new InterpolateBezier1D;
+			auto *pBezier = new InterpolateBezier1D;
 			pBezier->m_Bezier.SetFromBezier( fC[0], fC[1], fC[2], fC[3] );
 			return pBezier;
 		}
 		else if( iArgs == 8 )
 		{
-			InterpolateBezier2D *pBezier = new InterpolateBezier2D;
+			auto *pBezier = new InterpolateBezier2D;
 			pBezier->m_Bezier.SetFromBezier( fC[0], fC[1], fC[2], fC[3], fC[4], fC[5], fC[6], fC[7] );
 			return pBezier;
 		}

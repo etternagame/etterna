@@ -9,8 +9,7 @@ LuaExpressionTransform::LuaExpressionTransform()
 }
 
 LuaExpressionTransform::~LuaExpressionTransform()
-{
-}
+= default;
 
 void LuaExpressionTransform::SetFromReference( const LuaReference &ref )
 {

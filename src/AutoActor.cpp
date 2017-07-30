@@ -6,17 +6,17 @@
 
 void AutoActor::Unload()
 {
-	if(m_pActor != NULL)
+	if(m_pActor != nullptr)
 	{
 		delete m_pActor;
 	}
-	m_pActor=NULL;
+	m_pActor=nullptr;
 }
 
 AutoActor::AutoActor( const AutoActor &cpy )
 { 
-	if( cpy.m_pActor == NULL )
-		m_pActor = NULL;
+	if( cpy.m_pActor == nullptr )
+		m_pActor = nullptr;
 	else
 		m_pActor = cpy.m_pActor->Copy();
 }
@@ -25,8 +25,8 @@ AutoActor &AutoActor::operator=( const AutoActor &cpy )
 {
 	Unload();
 
-	if( cpy.m_pActor == NULL )
-		m_pActor = NULL;
+	if( cpy.m_pActor == nullptr )
+		m_pActor = nullptr;
 	else
 		m_pActor = cpy.m_pActor->Copy();
 	return *this;
@@ -44,7 +44,7 @@ void AutoActor::Load( const RString &sPath )
 	m_pActor = ActorUtil::MakeActor( sPath );
 
 	// If a Condition is false, MakeActor will return NULL.
-	if( m_pActor == NULL )
+	if( m_pActor == nullptr )
 		m_pActor = new Actor;
 }
 

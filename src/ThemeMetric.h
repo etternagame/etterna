@@ -13,7 +13,7 @@
 class IThemeMetric
 {
 public:
-	virtual ~IThemeMetric() { }
+	virtual ~IThemeMetric() = default;
 	virtual void Read() = 0;
 	virtual void Clear() = 0;
 };
@@ -69,7 +69,7 @@ public:
 		ThemeManager::Subscribe( this );
 	}
 
-	~ThemeMetric()
+	~ThemeMetric() override
 	{
 		ThemeManager::Unsubscribe( this );
 	}
@@ -91,7 +91,7 @@ public:
 	}
 	/**
 	 * @brief Actually read the metric and get its data. */
-	void Read()
+	void Read() override
 	{
 		if( m_sName != ""  &&  THEME  &&   THEME->IsThemeLoaded() )
 		{
@@ -118,7 +118,7 @@ public:
 		m_Value.PushSelf(L);
 	}
 
-	void Clear()
+	void Clear() override
 	{
 		m_Value.Unset();
 	}
@@ -179,12 +179,12 @@ public:
 	bool operator == ( const T& input ) const { return GetValue() == input; }
 };
 
-typedef RString (*MetricName1D)(size_t N);
+using MetricName1D = RString (*)(size_t);
 
 template <class T>
 class ThemeMetric1D : public IThemeMetric
 {
-	typedef ThemeMetric<T> ThemeMetricT;
+	using ThemeMetricT = ThemeMetric<T>;
 	vector<ThemeMetricT> m_metric;
 
 public:
@@ -202,12 +202,12 @@ public:
 		for( unsigned i=0; i<N; i++ )
 			m_metric[i].Load( sGroup, pfn(i) );
 	}
-	void Read()
+	void Read() override
 	{
 		for( unsigned i=0; i<m_metric.size(); i++ )
 			m_metric[i].Read();
 	}
-	void Clear()
+	void Clear() override
 	{
 		for( unsigned i=0; i<m_metric.size(); i++ )
 			m_metric[i].Clear();
@@ -218,17 +218,17 @@ public:
 	}
 };
 
-typedef RString (*MetricName2D)(size_t N, size_t M);
+using MetricName2D = RString (*)(size_t, size_t);
 
 template <class T>
 class ThemeMetric2D : public IThemeMetric
 {
-	typedef ThemeMetric<T> ThemeMetricT;
+	using ThemeMetricT = ThemeMetric<T>;
 	typedef vector<ThemeMetricT> ThemeMetricTVector;
 	vector<ThemeMetricTVector> m_metric;
 
 public:
-	ThemeMetric2D( const RString& sGroup = "", MetricName2D pfn = NULL, size_t N = 0, size_t M = 0 )
+	ThemeMetric2D( const RString& sGroup = "", MetricName2D pfn = nullptr, size_t N = 0, size_t M = 0 )
 	{
 		Load( sGroup, pfn, N, M );
 	}
@@ -242,13 +242,13 @@ public:
 				m_metric[i][j].Load( sGroup, pfn(i,j) );
 		}
 	}
-	void Read()
+	void Read() override
 	{
 		for( unsigned i=0; i<m_metric.size(); i++ )
 			for( unsigned j=0; j<m_metric[i].size(); j++ )
 				m_metric[i][j].Read();
 	}
-	void Clear()
+	void Clear() override
 	{
 		for( unsigned i=0; i<m_metric.size(); i++ )
 			for( unsigned j=0; j<m_metric[i].size(); j++ )
@@ -260,16 +260,16 @@ public:
 	}
 };
 
-typedef RString (*MetricNameMap)(RString s);
+using MetricNameMap = RString (*)(RString);
 
 template <class T>
 class ThemeMetricMap : public IThemeMetric
 {
-	typedef ThemeMetric<T> ThemeMetricT;
+	using ThemeMetricT = ThemeMetric<T>;
 	map<RString,ThemeMetricT> m_metric;
 
 public:
-	ThemeMetricMap( const RString& sGroup = "", MetricNameMap pfn = NULL, const vector<RString> &vsValueNames = vector<RString>() )
+	ThemeMetricMap( const RString& sGroup = "", MetricNameMap pfn = nullptr, const vector<RString> &vsValueNames = vector<RString>() )
 	{
 		Load( sGroup, pfn, vsValueNames );
 	}
@@ -279,14 +279,14 @@ public:
 		FOREACH_CONST( RString, vsValueNames, s )
 			m_metric[*s].Load( sGroup, pfn(*s) );
 	}
-	void Read()
+	void Read() override
 	{
 		// HACK: GCC (3.4) takes this and pretty much nothing else.
 		// I don't know why.
 		for( typename map<RString,ThemeMetric<T> >::iterator m = m_metric.begin(); m != m_metric.end(); ++m )
 			m->second.Read();
 	}
-	void Clear()
+	void Clear() override
 	{
 		for( typename map<RString,ThemeMetric<T> >::iterator m = m_metric.begin(); m != m_metric.end(); ++m )
 			m->second.Clear();

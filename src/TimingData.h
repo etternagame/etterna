@@ -4,7 +4,7 @@
 #include "NoteTypes.h"
 #include "TimingSegments.h"
 #include "PrefsManager.h"
-#include <float.h> // max float
+#include <cfloat> // max float
 struct lua_State;
 
 /** @brief Compare a TimingData segment's properties with one another. */
@@ -85,28 +85,26 @@ public:
 	// -Kyz
 	struct GetBeatArgs
 	{
-		float elapsed_time;
-		float beat;
-		float bps_out;
-		float warp_dest_out;
-		int warp_begin_out;
-		bool freeze_out;
-		bool delay_out;
-	GetBeatArgs() :elapsed_time(0), beat(0), bps_out(0), warp_dest_out(0),
-			warp_begin_out(-1), freeze_out(false), delay_out(false) {}
+		float elapsed_time{0};
+		float beat{0};
+		float bps_out{0};
+		float warp_dest_out{0};
+		int warp_begin_out{-1};
+		bool freeze_out{false};
+		bool delay_out{false};
+	GetBeatArgs()  = default;
 	};
 	struct GetBeatStarts
 	{
-		unsigned int bpm;
-		unsigned int warp;
-		unsigned int stop;
-		unsigned int delay;
-		int last_row;
-		float last_time;
-		float warp_destination;
-		bool is_warping;
-	GetBeatStarts() :bpm(0), warp(0), stop(0), delay(0), last_row(0),
-			last_time(0), warp_destination(0), is_warping(false) {}
+		unsigned int bpm{0};
+		unsigned int warp{0};
+		unsigned int stop{0};
+		unsigned int delay{0};
+		int last_row{0};
+		float last_time{0};
+		float warp_destination{0};
+		bool is_warping{false};
+	GetBeatStarts()  = default;
 	};
 	// map can't be used for the lookup table because its find or *_bound
 	// functions would return the wrong entry.

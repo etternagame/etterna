@@ -7,11 +7,11 @@
 class ScreenSelectLanguage : public ScreenSelectMaster
 {
 public:
-	virtual void Init();
-	virtual RString GetDefaultChoice();
-	virtual void BeginScreen();
-	virtual bool MenuStart( const InputEventPlus &input );
-	virtual bool MenuBack( const InputEventPlus &input );
+	void Init() override;
+	RString GetDefaultChoice() override;
+	void BeginScreen() override;
+	bool MenuStart( const InputEventPlus &input ) override;
+	bool MenuBack( const InputEventPlus &input ) override;
 };
 
 #endif

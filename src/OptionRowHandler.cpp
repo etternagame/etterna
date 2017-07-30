@@ -138,7 +138,7 @@ public:
 	vector<RString> m_vsBroadcastOnExport;
 
 	OptionRowHandlerList() { Init(); }
-	virtual void Init()
+	void Init() override
 	{
 		OptionRowHandler::Init();
 		m_aListEntries.clear();
@@ -146,7 +146,7 @@ public:
 		m_bUseModNameForIcon = false;
 		m_vsBroadcastOnExport.clear();
 	}
-	virtual bool LoadInternal( const Commands &cmds )
+	bool LoadInternal( const Commands &cmds ) override
 	{
 		const Command &command = cmds.v[0];
 		RString sParam = command.GetArg(1).s;
@@ -245,7 +245,7 @@ public:
 		}
 		return true;
 	}
-	void ImportOption( OptionRow *pRow, const vector<PlayerNumber> &vpns, vector<bool> vbSelectedOut[NUM_PLAYERS] ) const
+	void ImportOption( OptionRow *pRow, const vector<PlayerNumber> &vpns, vector<bool> vbSelectedOut[NUM_PLAYERS] ) const override
 	{
 		FOREACH_CONST( PlayerNumber, vpns, pn )
 		{
@@ -311,7 +311,7 @@ public:
 		}
 	}
 
-	int ExportOption( const vector<PlayerNumber> &vpns, const vector<bool> vbSelected[NUM_PLAYERS] ) const
+	int ExportOption( const vector<PlayerNumber> &vpns, const vector<bool> vbSelected[NUM_PLAYERS] ) const override
 	{
 		FOREACH_CONST( PlayerNumber, vpns, pn )
 		{
@@ -330,12 +330,12 @@ public:
 		return 0;
 	}
 
-	virtual int GetDefaultOption() const
+	int GetDefaultOption() const override
 	{
 		return m_Def.m_iDefault;
 	}
 
-	virtual void GetIconTextAndGameCommand( int iFirstSelection, RString &sIconTextOut, GameCommand &gcOut ) const
+	void GetIconTextAndGameCommand( int iFirstSelection, RString &sIconTextOut, GameCommand &gcOut ) const override
 	{
 		sIconTextOut = m_bUseModNameForIcon ?
 			m_aListEntries[iFirstSelection].m_sPreferredModifiers :
@@ -343,13 +343,13 @@ public:
 
 		gcOut = m_aListEntries[iFirstSelection];
 	}
-	virtual RString GetScreen( int iChoice ) const
+	RString GetScreen( int iChoice ) const override
 	{ 
 		const GameCommand &gc = m_aListEntries[iChoice];
 		return gc.m_sScreen;
 	}
 
-	virtual ReloadChanged Reload()
+	ReloadChanged Reload() override
 	{
 		// HACK: always reload "speed", to update the BPM text in the name of the speed line
 		if( !m_Def.m_sName.CompareNoCase("speed") )
@@ -411,7 +411,7 @@ class OptionRowHandlerListNoteSkins : public OptionRowHandlerList
 // XXX: very similar to OptionRowHandlerSteps
 class OptionRowHandlerListSteps : public OptionRowHandlerList
 {
-	virtual bool LoadInternal( const Commands & )
+	bool LoadInternal( const Commands & ) override
 	{
 		m_Def.m_sName = "Steps";
 		m_Def.m_bAllowThemeItems = false;	// we theme the text ourself
@@ -423,7 +423,7 @@ class OptionRowHandlerListSteps : public OptionRowHandlerList
 		return true;
 	}
 
-	virtual ReloadChanged Reload()
+	ReloadChanged Reload() override
 	{
 		m_Def.m_vsChoices.clear();
 		m_aListEntries.clear();
@@ -502,7 +502,7 @@ public:
 	vector<Difficulty> m_vDifficulties;
 
 	OptionRowHandlerSteps() { Init(); }
-	void Init()
+	void Init() override
 	{
 		OptionRowHandler::Init();
 		m_ppStepsToFill = NULL;
@@ -511,7 +511,7 @@ public:
 		m_vDifficulties.clear();
 	}
 
-	virtual bool LoadInternal( const Commands &cmds )
+	bool LoadInternal( const Commands &cmds ) override
 	{
 		const Command &command = cmds.v[0];
 		RString sParam = command.GetArg(1).s;
@@ -592,7 +592,7 @@ public:
 		m_ppStepsToFill->Set( m_vSteps[0] );
 		return true;
 	}
-	virtual void ImportOption( OptionRow *pRow, const vector<PlayerNumber> &vpns, vector<bool> vbSelectedOut[NUM_PLAYERS] ) const
+	void ImportOption( OptionRow *pRow, const vector<PlayerNumber> &vpns, vector<bool> vbSelectedOut[NUM_PLAYERS] ) const override
 	{
 		FOREACH_CONST( PlayerNumber, vpns, pn )
 		{
@@ -634,7 +634,7 @@ public:
 			}
 		}
 	}
-	virtual int ExportOption( const vector<PlayerNumber> &vpns, const vector<bool> vbSelected[NUM_PLAYERS] ) const
+	int ExportOption( const vector<PlayerNumber> &vpns, const vector<bool> vbSelected[NUM_PLAYERS] ) const override
 	{
 		FOREACH_CONST( PlayerNumber, vpns, pn )
 		{
@@ -655,7 +655,7 @@ public:
 
 class OptionRowHandlerListCharacters: public OptionRowHandlerList
 {
-	virtual bool LoadInternal( const Commands & )
+	bool LoadInternal( const Commands & ) override
 	{
 		m_Def.m_bOneChoiceForAllPlayers = false;
 		m_Def.m_bAllowThemeItems = false;
@@ -689,7 +689,7 @@ class OptionRowHandlerListCharacters: public OptionRowHandlerList
 
 class OptionRowHandlerListStyles: public OptionRowHandlerList
 {
-	virtual bool LoadInternal( const Commands & )
+	bool LoadInternal( const Commands & ) override
 	{
 		m_Def.m_bOneChoiceForAllPlayers = true;
 		m_Def.m_sName = "Style";
@@ -713,7 +713,7 @@ class OptionRowHandlerListStyles: public OptionRowHandlerList
 
 class OptionRowHandlerListGroups: public OptionRowHandlerList
 {
-	virtual bool LoadInternal( const Commands & )
+	bool LoadInternal( const Commands & ) override
 	{
 		m_Def.m_bOneChoiceForAllPlayers = true;
 		m_Def.m_bAllowThemeItems = false;	// we theme the text ourself
@@ -744,7 +744,7 @@ class OptionRowHandlerListGroups: public OptionRowHandlerList
 
 class OptionRowHandlerListDifficulties: public OptionRowHandlerList
 {
-	virtual bool LoadInternal( const Commands & )
+	bool LoadInternal( const Commands & ) override
 	{
 		m_Def.m_bOneChoiceForAllPlayers = true;
 		m_Def.m_sName = "Difficulty";
@@ -776,7 +776,7 @@ class OptionRowHandlerListDifficulties: public OptionRowHandlerList
 // XXX: very similar to OptionRowHandlerSongChoices
 class OptionRowHandlerListSongsInCurrentSongGroup: public OptionRowHandlerList
 {
-	virtual bool LoadInternal( const Commands & )
+	bool LoadInternal( const Commands & ) override
 	{
 		const vector<Song*> &vpSongs = SONGMAN->GetSongs( GAMESTATE->m_sPreferredSongGroup );
 
@@ -805,13 +805,13 @@ public:
 	LuaReference *m_pLuaTable;
 	LuaReference m_EnabledForPlayersFunc;
 
-	bool m_TableIsSane;
-	bool m_GoToFirstOnStart;
+	bool m_TableIsSane{false};
+	bool m_GoToFirstOnStart{false};
 
-	OptionRowHandlerLua(): m_TableIsSane(false), m_GoToFirstOnStart(false)
+	OptionRowHandlerLua() 
 	{ m_pLuaTable = new LuaReference; Init(); }
-	virtual ~OptionRowHandlerLua() { delete m_pLuaTable; }
-	void Init()
+	~OptionRowHandlerLua() override { delete m_pLuaTable; }
+	void Init() override
 	{
 		OptionRowHandler::Init();
 		m_pLuaTable->Unset();
@@ -977,7 +977,7 @@ public:
 		LUA->Release(L);
 	}
 
-	virtual bool LoadInternal( const Commands &cmds )
+	bool LoadInternal( const Commands &cmds ) override
 	{
 		const Command &command = cmds.v[0];
 		RString sParam = command.GetArg(1).s;
@@ -1070,13 +1070,13 @@ public:
 		return m_TableIsSane;
 	}
 
-	virtual ReloadChanged Reload()
+	ReloadChanged Reload() override
 	{
 		SetEnabledForPlayers();
 		return RELOAD_CHANGED_ENABLED;
 	}
 
-	virtual void ImportOption( OptionRow *pRow, const vector<PlayerNumber> &vpns, vector<bool> vbSelectedOut[NUM_PLAYERS] ) const
+	void ImportOption( OptionRow *pRow, const vector<PlayerNumber> &vpns, vector<bool> vbSelectedOut[NUM_PLAYERS] ) const override
 	{
 		if(!m_TableIsSane)
 		{
@@ -1134,7 +1134,7 @@ public:
 
 		LUA->Release(L);
 	}
-	virtual int ExportOption( const vector<PlayerNumber> &vpns, const vector<bool> vbSelected[NUM_PLAYERS] ) const
+	int ExportOption( const vector<PlayerNumber> &vpns, const vector<bool> vbSelected[NUM_PLAYERS] ) const override
 	{
 		if(!m_TableIsSane)
 		{
@@ -1190,7 +1190,7 @@ public:
 		// XXX: allow specifying the mask
 		return 0;
 	}
-	virtual bool NotifyOfSelection(PlayerNumber pn, int choice)
+	bool NotifyOfSelection(PlayerNumber pn, int choice) override
 	{
 		if(!m_TableIsSane)
 		{
@@ -1231,7 +1231,7 @@ public:
 		LUA->Release(L);
 		return changed;
 	}
-	virtual bool GoToFirstOnStart()
+	bool GoToFirstOnStart() override
 	{
 		return m_GoToFirstOnStart;
 	}
@@ -1243,12 +1243,12 @@ public:
 	const ConfOption *m_pOpt;
 
 	OptionRowHandlerConfig() { Init(); }
-	void Init()
+	void Init() override
 	{
 		OptionRowHandler::Init();
 		m_pOpt = NULL;
 	}
-	virtual bool LoadInternal( const Commands &cmds )
+	bool LoadInternal( const Commands &cmds ) override
 	{
 		const Command &command = cmds.v[0];
 		RString sParam = command.GetArg(1).s;
@@ -1273,7 +1273,7 @@ public:
 		m_Def.m_sName = m_pOpt->name;
 		return true;
 	}
-	virtual void ImportOption( OptionRow *, const vector<PlayerNumber> &vpns, vector<bool> vbSelectedOut[NUM_PLAYERS] ) const
+	void ImportOption( OptionRow *, const vector<PlayerNumber> &vpns, vector<bool> vbSelectedOut[NUM_PLAYERS] ) const override
 	{
 		FOREACH_CONST( PlayerNumber, vpns, pn )
 		{
@@ -1284,7 +1284,7 @@ public:
 			OptionRowHandlerUtil::SelectExactlyOne( iSelection, vbSelOut );
 		}
 	}
-	virtual int ExportOption( const vector<PlayerNumber> &vpns, const vector<bool> vbSelected[NUM_PLAYERS] ) const
+	int ExportOption( const vector<PlayerNumber> &vpns, const vector<bool> vbSelected[NUM_PLAYERS] ) const override
 	{
 		bool bChanged = false;
 
@@ -1320,14 +1320,14 @@ public:
 	vector<StepsType> m_vStepsTypesToShow;
 
 	OptionRowHandlerStepsType() { Init(); }
-	void Init()
+	void Init() override
 	{
 		OptionRowHandler::Init();
 		m_pstToFill = NULL;
 		m_vStepsTypesToShow.clear();
 	}
 
-	virtual bool LoadInternal( const Commands &cmds )
+	bool LoadInternal( const Commands &cmds ) override
 	{
 		const Command &command = cmds.v[0];
 		RString sParam = command.GetArg(1).s;
@@ -1370,7 +1370,7 @@ public:
 		return true;
 	}
 
-	virtual void ImportOption( OptionRow *pRow, const vector<PlayerNumber> &vpns, vector<bool> vbSelectedOut[NUM_PLAYERS] ) const
+	void ImportOption( OptionRow *pRow, const vector<PlayerNumber> &vpns, vector<bool> vbSelectedOut[NUM_PLAYERS] ) const override
 	{
 		FOREACH_CONST( PlayerNumber, vpns, pn )
 		{
@@ -1391,7 +1391,7 @@ public:
 			vbSelOut[0] = true;
 		}
 	}
-	virtual int ExportOption( const vector<PlayerNumber> &vpns, const vector<bool> vbSelected[NUM_PLAYERS] ) const
+	int ExportOption( const vector<PlayerNumber> &vpns, const vector<bool> vbSelected[NUM_PLAYERS] ) const override
 	{
 		FOREACH_CONST( PlayerNumber, vpns, pn )
 		{
@@ -1413,13 +1413,13 @@ public:
 	GameCommand m_gc;
 
 	OptionRowHandlerGameCommand() { Init(); }
-	void Init()
+	void Init() override
 	{
 		OptionRowHandler::Init();
 		m_gc.Init();
 		m_gc.ApplyCommitsScreens( false );
 	}
-	virtual bool LoadInternal( const Commands &cmds )
+	bool LoadInternal( const Commands &cmds ) override
 	{
 		ROW_INVALID_IF(cmds.v.size() <= 1, "No args to construct GameCommand.", false);
 
@@ -1434,21 +1434,21 @@ public:
 		m_Def.m_vsChoices.push_back( "" );
 		return true;
 	}
-	virtual void ImportOption( OptionRow *pRow, const vector<PlayerNumber> &vpns, vector<bool> vbSelectedOut[NUM_PLAYERS] ) const
+	void ImportOption( OptionRow *pRow, const vector<PlayerNumber> &vpns, vector<bool> vbSelectedOut[NUM_PLAYERS] ) const override
 	{
 	}
-	virtual int ExportOption( const vector<PlayerNumber> &vpns, const vector<bool> vbSelected[NUM_PLAYERS] ) const
+	int ExportOption( const vector<PlayerNumber> &vpns, const vector<bool> vbSelected[NUM_PLAYERS] ) const override
 	{
 		if( vbSelected[PLAYER_1][0] || vbSelected[PLAYER_2][0] )
 			m_gc.ApplyToAllPlayers();
 		return 0;
 	}
-	virtual void GetIconTextAndGameCommand( int iFirstSelection, RString &sIconTextOut, GameCommand &gcOut ) const
+	void GetIconTextAndGameCommand( int iFirstSelection, RString &sIconTextOut, GameCommand &gcOut ) const override
 	{
 		sIconTextOut = "";
 		gcOut = m_gc;
 	}
-	virtual RString GetScreen( int iChoice ) const
+	RString GetScreen( int iChoice ) const override
 	{ 
 		return m_gc.m_sScreen;
 	}

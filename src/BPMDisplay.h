@@ -16,15 +16,15 @@ public:
 	/** @brief Set up the BPM Display with default values. */
 	BPMDisplay();
 	/** @brief Copy the BPMDisplay to another. */
-	virtual BPMDisplay *Copy() const;
+	BPMDisplay *Copy() const override;
 	/** @brief Load the various metrics needed. */
 	void Load();
 	/**
 	 * @brief Update the display as required.
 	 * @param fDeltaTime the changed time.
 	 */
-	virtual void Update( float fDeltaTime ); 
-	void LoadFromNode( const XNode *pNode );
+	void Update( float fDeltaTime ) override; 
+	void LoadFromNode( const XNode *pNode ) override;
 	/**
 	 * @brief Use the BPM[s] from a song.
 	 * @param pSong the song in question.
@@ -52,7 +52,7 @@ public:
 	void SetFromGameState();
 
 	// Lua
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 protected:
 	/**

@@ -45,7 +45,7 @@ GameState*	GAMESTATE = NULL;	// global and accessible from anywhere in our progr
 
 class GameStateMessageHandler: public MessageSubscriber
 {
-	void HandleMessage( const Message &msg )
+	void HandleMessage( const Message &msg ) override
 	{
 		if( msg.GetName() == "RefreshCreditText" )
 		{
@@ -115,8 +115,6 @@ GameState::GameState() :
 	m_pCurSong(				Message_CurrentSongChanged ),
 	m_pCurSteps(			Message_CurrentStepsP1Changed ),
 	m_bGameplayLeadIn(		Message_GameplayLeadInChanged ),
-	m_bDidModeChangeNoteSkin(	false ),
-	m_bIsUsingStepTiming(		true ),
 	m_sEditLocalProfileID(Message_EditLocalProfileIDChanged)
 {
 	g_pImpl = new GameStateImpl;
@@ -337,9 +335,9 @@ void GameState::JoinPlayer( PlayerNumber pn )
 	// Make sure the join will be successful before doing it. -Kyz
 	{
 		int players_joined= 0;
-		for(int i= 0; i < NUM_PLAYERS; ++i)
+		for(bool i : m_bSideIsJoined)
 		{
-			players_joined+= m_bSideIsJoined[i];
+			players_joined+= i;
 		}
 		if(players_joined > 0)
 		{
@@ -1715,7 +1713,7 @@ Difficulty GameState::GetClosestShownDifficulty( PlayerNumber pn ) const
 {
 	const vector<Difficulty> &v = CommonMetrics::DIFFICULTIES_TO_SHOW.GetValue();
 
-	Difficulty iClosest = (Difficulty) 0;
+	auto iClosest = (Difficulty) 0;
 	int iClosestDist = -1;
 	FOREACH_CONST( Difficulty, v, dc )
 	{
@@ -1873,7 +1871,7 @@ public:
 			// Legacy behavior: if an old-style numerical argument
 			// is given, decrement it before trying to parse
 			if( lua_isnumber(L,2) ) {
-				int arg = static_cast<int>(lua_tonumber( L, 2 ));
+				auto arg = static_cast<int>(lua_tonumber( L, 2 ));
 				arg--;
 				LuaHelpers::Push( L, arg );
 				lua_replace( L, -2 );

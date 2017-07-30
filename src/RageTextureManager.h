@@ -8,17 +8,14 @@
 
 struct RageTextureManagerPrefs
 {
-	int m_iTextureColorDepth;
-	int m_iMovieColorDepth;
-	bool m_bDelayedDelete;
-	int m_iMaxTextureResolution;
-	bool m_bHighResolutionTextures;
-	bool m_bMipMaps;
+	int m_iTextureColorDepth{16};
+	int m_iMovieColorDepth{16};
+	bool m_bDelayedDelete{false};
+	int m_iMaxTextureResolution{1024};
+	bool m_bHighResolutionTextures{true};
+	bool m_bMipMaps{false};
 	
-	RageTextureManagerPrefs(): m_iTextureColorDepth(16),
-		m_iMovieColorDepth(16), m_bDelayedDelete(false),
-		m_iMaxTextureResolution(1024),
-		m_bHighResolutionTextures(true), m_bMipMaps(false) {}
+	RageTextureManagerPrefs() = default;
 	RageTextureManagerPrefs( 
 		int iTextureColorDepth,
 		int iMovieColorDepth,
@@ -94,8 +91,8 @@ private:
 	RageTexture* LoadTextureInternal( RageTextureID ID );
 
 	RageTextureManagerPrefs m_Prefs;
-	int m_iNoWarnAboutOddDimensions;
-	RageTextureID::TexPolicy m_TexturePolicy;
+	int m_iNoWarnAboutOddDimensions{0};
+	RageTextureID::TexPolicy m_TexturePolicy{RageTextureID::TEX_DEFAULT};
 };
 
 extern RageTextureManager*	TEXTUREMAN;	// global and accessible from anywhere in our program

@@ -1,7 +1,7 @@
 #include "global.h"
 #include "StreamDisplay.h"
 #include "GameState.h"
-#include <float.h>
+#include <cfloat>
 #include "RageDisplay.h"
 #include "ThemeManager.h"
 #include "EnumHelper.h"
@@ -47,7 +47,7 @@ void StreamDisplay::Load( const RString & /* unreferenced: _sMetricsGroup  */)
 
 		for( int i=0; i<iNumPills; i++ )
 		{
-			Sprite *pSpr = new Sprite;
+			auto *pSpr = new Sprite;
 
 			pSpr->Load( THEME->GetPathG( sMetricsGroup, StreamTypeToString(st) ) );
 			m_vpSprPill[st].push_back( pSpr );

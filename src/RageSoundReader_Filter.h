@@ -13,17 +13,17 @@ public:
 	{
 	}
 
-	virtual int GetLength() const { return m_pSource->GetLength(); }
-	virtual int GetLength_Fast() const { return m_pSource->GetLength_Fast(); }
-	virtual int SetPosition( int iFrame ) { return m_pSource->SetPosition( iFrame ); }
-	virtual int Read( float *pBuf, int iFrames ) { return m_pSource->Read( pBuf, iFrames ); }
-	virtual int GetSampleRate() const { return m_pSource->GetSampleRate(); }
-	virtual unsigned GetNumChannels() const { return m_pSource->GetNumChannels(); }
-	virtual bool SetProperty( const RString &sProperty, float fValue ) { return m_pSource->SetProperty( sProperty, fValue ); }
-	virtual int GetNextSourceFrame() const { return m_pSource->GetNextSourceFrame(); }
-	virtual float GetStreamToSourceRatio() const { return m_pSource->GetStreamToSourceRatio(); }
-	virtual RageSoundReader *GetSource() { return &*m_pSource; }
-	virtual RString GetError() const { return m_pSource->GetError(); }
+	int GetLength() const override { return m_pSource->GetLength(); }
+	int GetLength_Fast() const override { return m_pSource->GetLength_Fast(); }
+	int SetPosition( int iFrame ) override { return m_pSource->SetPosition( iFrame ); }
+	int Read( float *pBuf, int iFrames ) override { return m_pSource->Read( pBuf, iFrames ); }
+	int GetSampleRate() const override { return m_pSource->GetSampleRate(); }
+	unsigned GetNumChannels() const override { return m_pSource->GetNumChannels(); }
+	bool SetProperty( const RString &sProperty, float fValue ) override { return m_pSource->SetProperty( sProperty, fValue ); }
+	int GetNextSourceFrame() const override { return m_pSource->GetNextSourceFrame(); }
+	float GetStreamToSourceRatio() const override { return m_pSource->GetStreamToSourceRatio(); }
+	RageSoundReader *GetSource() override { return &*m_pSource; }
+	RString GetError() const override { return m_pSource->GetError(); }
 
 protected:
 	HiddenPtr<RageSoundReader> m_pSource;

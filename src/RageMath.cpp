@@ -8,7 +8,7 @@
 #include "RageLog.h"
 #include "RageMath.h"
 #include "RageTypes.h"
-#include <float.h>
+#include <cfloat>
 
 #if defined (_WINDOWS)
 #include <d3dx9math.h>
@@ -676,7 +676,7 @@ float RageFastSin(float angle)
 {
 	if(angle == 0) { return 0; }
 	float index= angle * sine_table_index_mult;
-	int first_index= static_cast<int>(index);
+	auto first_index= static_cast<int>(index);
 	int second_index= (first_index + 1) % sine_index_mod;
 	float remainder= index - first_index;
 	first_index%= sine_index_mod;
@@ -883,7 +883,7 @@ LUA_REGISTER_CLASS(RageBezier2D);
 int LuaFunc_create_bezier(lua_State* L);
 int LuaFunc_create_bezier(lua_State* L)
 {
-	RageBezier2D* bezier= new RageBezier2D;
+	auto* bezier= new RageBezier2D;
 	bezier->PushSelf(L);
 	return 1;
 }

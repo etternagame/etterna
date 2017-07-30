@@ -9,8 +9,8 @@ class ActorFrameTexture: public ActorFrame
 public:
 	ActorFrameTexture();
 	ActorFrameTexture( const ActorFrameTexture &cpy );
-	virtual ~ActorFrameTexture();
-	virtual ActorFrameTexture *Copy() const;
+	~ActorFrameTexture() override;
+	ActorFrameTexture *Copy() const override;
 
 	/**
 	 * @brief Set the texture name. 
@@ -34,10 +34,10 @@ public:
 
 	void Create();
 
-	virtual void DrawPrimitives();
+	void DrawPrimitives() override;
 
 	// Commands
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 private:
 	RageTextureRenderTarget *m_pRenderTarget;
@@ -54,8 +54,8 @@ class ActorFrameTextureAutoDeleteChildren : public ActorFrameTexture
 {
 public:
 	ActorFrameTextureAutoDeleteChildren() { DeleteChildrenWhenDone(true); }
-	virtual bool AutoLoadChildren() const { return true; }
-	virtual ActorFrameTextureAutoDeleteChildren *Copy() const;
+	bool AutoLoadChildren() const override { return true; }
+	ActorFrameTextureAutoDeleteChildren *Copy() const override;
 };
 
 #endif

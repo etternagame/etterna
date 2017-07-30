@@ -4,7 +4,7 @@
 class ILocalizedStringImpl
 {
 public:
-	virtual ~ILocalizedStringImpl() { }
+	virtual ~ILocalizedStringImpl() = default;
 	virtual void Load( const RString& sGroup, const RString& sName ) = 0;
 	virtual const RString &GetLocalized() const = 0;
 };
@@ -19,7 +19,7 @@ public:
 	operator const RString &() const { return GetValue(); }
 	const RString &GetValue() const;
 
-	typedef ILocalizedStringImpl *(*MakeLocalizer)();
+	using MakeLocalizer = ILocalizedStringImpl *(*)();
 	static void RegisterLocalizer( MakeLocalizer pFunc );
 
 private:
@@ -27,7 +27,7 @@ private:
 	RString m_sGroup, m_sName;
 	ILocalizedStringImpl *m_pImpl;
 	// Swallow up warnings. If they must be used, define them.
-	LocalizedString& operator=(const LocalizedString& rhs);
+	LocalizedString& operator=(const LocalizedString& rhs) = delete;
 };
 
 #endif

@@ -13,19 +13,19 @@ class ScoreDisplayAliveTime : public BitmapText
 {
 public:
 	ScoreDisplayAliveTime();
-	~ScoreDisplayAliveTime();
+	~ScoreDisplayAliveTime() override;
 
-	virtual void Update( float fDelta );
+	void Update( float fDelta ) override;
 
-	void LoadFromNode( const XNode* pNode );
-	virtual ScoreDisplayAliveTime *Copy() const;
+	void LoadFromNode( const XNode* pNode ) override;
+	ScoreDisplayAliveTime *Copy() const override;
 
-	virtual void HandleMessage( const Message &msg );
+	void HandleMessage( const Message &msg ) override;
 
 	void UpdateNumber();
 
 	// Commands
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 private:
 	PlayerNumber m_PlayerNumber;

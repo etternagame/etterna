@@ -11,8 +11,8 @@ class RageSoundReader_Chain: public RageSoundReader
 {
 public:
 	RageSoundReader_Chain();
-	~RageSoundReader_Chain();
-	RageSoundReader_Chain *Copy() const;
+	~RageSoundReader_Chain() override;
+	RageSoundReader_Chain *Copy() const override;
 
 	/* Set the preferred sample rate.  This will only be used if the source sounds
 	 * use different sample rates. */
@@ -31,16 +31,16 @@ public:
 	/* Return the number of added sounds. */
 	int GetNumSounds() const { return m_aSounds.size(); }
 	
-	int GetLength() const;
-	int GetLength_Fast() const;
-	int SetPosition( int iFrame );
-	int Read( float *pBuf, int iFrames );
-	int GetSampleRate() const { return m_iActualSampleRate; }
-	unsigned GetNumChannels() const { return m_iChannels; }
-	bool SetProperty( const RString &sProperty, float fValue );
-	int GetNextSourceFrame() const;
-	float GetStreamToSourceRatio() const;
-	RString GetError() const { return ""; }
+	int GetLength() const override;
+	int GetLength_Fast() const override;
+	int SetPosition( int iFrame ) override;
+	int Read( float *pBuf, int iFrames ) override;
+	int GetSampleRate() const override { return m_iActualSampleRate; }
+	unsigned GetNumChannels() const override { return m_iChannels; }
+	bool SetProperty( const RString &sProperty, float fValue ) override;
+	int GetNextSourceFrame() const override;
+	float GetStreamToSourceRatio() const override;
+	RString GetError() const override { return ""; }
 
 private:
 	int GetSampleRateInternal() const;

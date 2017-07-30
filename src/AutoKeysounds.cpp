@@ -107,9 +107,9 @@ void AutoKeysounds::LoadTracks( const Song *pSong, RageSoundReader *&pShared, Ra
 	// two-track sound.
 	//bool bTwoPlayers = GAMESTATE->GetNumPlayersEnabled() == 2;
 
-	pPlayer1 = NULL;
-	pPlayer2 = NULL;
-	pShared = NULL;
+	pPlayer1 = nullptr;
+	pPlayer2 = nullptr;
+	pShared = nullptr;
 
 	vector<RString> vsMusicFile;
 	const RString sMusicPath = GAMESTATE->m_pCurSteps[GAMESTATE->GetMasterPlayerNumber()]->GetMusicPath();
@@ -145,7 +145,7 @@ void AutoKeysounds::LoadTracks( const Song *pSong, RageSoundReader *&pShared, Ra
 	}
 	else if( !vpSounds.empty() )
 	{
-		RageSoundReader_Merge *pMerge = new RageSoundReader_Merge;
+		auto *pMerge = new RageSoundReader_Merge;
 
 		FOREACH( RageSoundReader *, vpSounds, so )
 			pMerge->AddSound( *so );
@@ -244,7 +244,7 @@ void AutoKeysounds::FinishLoading()
 
 	// Load autoplay sounds, if any.
 	{
-		RageSoundReader_Chain *pChain = new RageSoundReader_Chain;
+		auto *pChain = new RageSoundReader_Chain;
 		pChain->SetPreferredSampleRate( SOUNDMAN->GetDriverSampleRate() );
 		LoadAutoplaySoundsInto( pChain );
 
@@ -263,14 +263,14 @@ void AutoKeysounds::FinishLoading()
 			delete pChain;
 		}
 	}
-	ASSERT_M( m_pSharedSound != NULL, ssprintf("No keysounds were loaded for the song %s!", pSong->m_sMainTitle.c_str() ));
+	ASSERT_M( m_pSharedSound != nullptr, ssprintf("No keysounds were loaded for the song %s!", pSong->m_sMainTitle.c_str() ));
 
 	m_pSharedSound = new RageSoundReader_PitchChange( m_pSharedSound );
 	m_pSharedSound = new RageSoundReader_PostBuffering( m_pSharedSound );
 	m_pSharedSound = new RageSoundReader_Pan( m_pSharedSound );
 	apSounds.push_back( m_pSharedSound );
 
-	if( m_pPlayerSounds[0] != NULL )
+	if( m_pPlayerSounds[0] != nullptr )
 	{
 		m_pPlayerSounds[0] = new RageSoundReader_PitchChange( m_pPlayerSounds[0] );
 		m_pPlayerSounds[0] = new RageSoundReader_PostBuffering( m_pPlayerSounds[0] );
@@ -278,7 +278,7 @@ void AutoKeysounds::FinishLoading()
 		apSounds.push_back( m_pPlayerSounds[0] );
 	}
 
-	if( m_pPlayerSounds[1] != NULL )
+	if( m_pPlayerSounds[1] != nullptr )
 	{
 		m_pPlayerSounds[1] = new RageSoundReader_PitchChange( m_pPlayerSounds[1] );
 		m_pPlayerSounds[1] = new RageSoundReader_PostBuffering( m_pPlayerSounds[1] );
@@ -291,7 +291,7 @@ void AutoKeysounds::FinishLoading()
 
 	if( apSounds.size() > 1 )
 	{
-		RageSoundReader_Merge *pMerge = new RageSoundReader_Merge;
+		auto *pMerge = new RageSoundReader_Merge;
 
 		FOREACH( RageSoundReader *, apSounds, ps )
 			pMerge->AddSound( *ps );

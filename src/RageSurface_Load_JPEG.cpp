@@ -5,7 +5,7 @@
 #include "RageFile.h"
 #include "RageSurface.h"
 
-#include <setjmp.h>
+#include <csetjmp>
 
 extern "C" {
 #include "jpeglib.h"

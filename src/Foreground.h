@@ -9,12 +9,12 @@ class Song;
 class Foreground: public ActorFrame
 {
 public:
-	~Foreground();
+	~Foreground() override;
 	void Unload();
 	void LoadFromSong( const Song *pSong );
 
-	virtual void Update( float fDeltaTime );
-	virtual void HandleMessage( const Message &msg );
+	void Update( float fDeltaTime ) override;
+	void HandleMessage( const Message &msg ) override;
 
 protected:
 	struct LoadedBGA

@@ -8,7 +8,7 @@ struct lua_State;
 
 struct CubicSpline
 {
-CubicSpline() :m_spatial_extent(0.0f) {}
+CubicSpline()  = default;
 	void solve_looped();
 	void solve_straight();
 	void solve_polygonal();
@@ -25,7 +25,7 @@ CubicSpline() :m_spatial_extent(0.0f) {}
 	void resize(size_t s);
 	size_t size() const;
 	bool empty() const;
-	float m_spatial_extent;
+	float m_spatial_extent{0.0f};
 private:
 	bool check_minimum_size();
 	void prep_inner(size_t last, vector<float>& results);
@@ -41,8 +41,8 @@ private:
 struct CubicSplineN
 {
 	CubicSplineN()
-		:m_owned_by_actor(false), m_loop(false), m_polygonal(false), m_dirty(true)
-	{}
+		 
+	= default;
 	static void weighted_average(CubicSplineN& out, const CubicSplineN& from,
 		const CubicSplineN& to, float between);
 	void solve();
@@ -75,13 +75,13 @@ struct CubicSplineN
 	bool get_polygonal() const;
 	void set_dirty(bool d);
 	bool get_dirty() const;
-	bool m_owned_by_actor;
+	bool m_owned_by_actor{false};
 
 	void PushSelf(lua_State* L);
 private:
-	bool m_loop;
-	bool m_polygonal;
-	bool m_dirty;
+	bool m_loop{false};
+	bool m_polygonal{false};
+	bool m_dirty{true};
 	spline_cont_t m_splines;
 };
 

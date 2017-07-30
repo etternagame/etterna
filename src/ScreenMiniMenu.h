@@ -1,4 +1,4 @@
-/* ScreenMiniMenu - Displays a simple menu over the top of another screen. */
+﻿/* ScreenMiniMenu - Displays a simple menu over the top of another screen. */
 
 #ifndef SCREEN_MINI_MENU_H
 #define SCREEN_MINI_MENU_H
@@ -6,23 +6,22 @@
 #include "ScreenOptions.h"
 #include "GameConstantsAndTypes.h"
 
-typedef bool (*MenuRowUpdateEnabled)();
+using MenuRowUpdateEnabled = bool (*)();
 
 struct MenuRowDef
 {
-	int			iRowCode;
+	int			iRowCode{0};
 	RString		sName;
-	bool		bEnabled;
-	MenuRowUpdateEnabled	pfnEnabled;	// if ! NULL, used instead of bEnabled
-	EditMode	emShowIn;
-	int			iDefaultChoice;
+	bool		bEnabled{false};
+	MenuRowUpdateEnabled	pfnEnabled{};	// if ! NULL, used instead of bEnabled
+	EditMode	emShowIn{};
+	int			iDefaultChoice{0};
 	vector<RString>		choices;
-	bool		bThemeTitle;
-	bool		bThemeItems;
+	bool		bThemeTitle{false};
+	bool		bThemeItems{false};
 
-	MenuRowDef(): iRowCode(0), sName(""), bEnabled(false),
-		pfnEnabled(), emShowIn(), iDefaultChoice(0),
-		choices(), bThemeTitle(false), bThemeItems(false) {}
+	MenuRowDef():  sName(""), 
+		choices() {};
 	MenuRowDef( int r, const RString &n, MenuRowUpdateEnabled pe, EditMode s, 
 		   bool bTT, bool bTI, int d, const char *c0=NULL, 
 		   const char *c1=NULL, const char *c2=NULL, 
@@ -163,16 +162,16 @@ public:
 			     ScreenMessage smSendOnCancel = SM_None, 
 			     float fX = 0, float fY = 0 );
 
-	void Init();
-	void BeginScreen();
-	void HandleScreenMessage( const ScreenMessage SM );
+	void Init() override;
+	void BeginScreen() override;
+	void HandleScreenMessage( const ScreenMessage SM ) override;
 
 protected:
-	virtual void AfterChangeValueOrRow( PlayerNumber pn );
-	virtual void ImportOptions( int iRow, const vector<PlayerNumber> &vpns );
-	virtual void ExportOptions( int iRow, const vector<PlayerNumber> &vpns );
+	void AfterChangeValueOrRow( PlayerNumber pn ) override;
+	void ImportOptions( int iRow, const vector<PlayerNumber> &vpns ) override;
+	void ExportOptions( int iRow, const vector<PlayerNumber> &vpns ) override;
 
-	virtual bool FocusedItemEndsScreen( PlayerNumber pn ) const;
+	bool FocusedItemEndsScreen( PlayerNumber pn ) const override;
 
 	void LoadMenu( const MenuDef* pDef );
 

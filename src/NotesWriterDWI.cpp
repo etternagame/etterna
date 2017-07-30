@@ -190,7 +190,7 @@ static void WriteDWINotesField( RageFile &f, const Steps &out, int start )
 	out.GetNoteData( notedata);
 	NoteDataUtil::InsertHoldTails( notedata );
 
-	const int iLastMeasure = int( notedata.GetLastBeat()/BEATS_PER_MEASURE );
+	const auto iLastMeasure = int( notedata.GetLastBeat()/BEATS_PER_MEASURE );
 	for( int m=0; m<=iLastMeasure; m++ )	// foreach measure
 	{
 		NoteType nt = NoteDataUtil::GetSmallestNoteTypeForMeasure( notedata, m );

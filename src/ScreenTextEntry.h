@@ -72,17 +72,16 @@ public:
 
 	struct TextEntrySettings {
 		TextEntrySettings(): smSendOnPop(), sQuestion(""),
-			sInitialAnswer(""), iMaxInputLength(0),
-			bPassword(false), Validate(), OnOK(), OnCancel(),
+			sInitialAnswer(""),  Validate(), OnOK(), OnCancel(),
 			ValidateAppend(), FormatAnswerForDisplay() { }
 		ScreenMessage smSendOnPop;
 		RString sQuestion;
 		RString sInitialAnswer;
-		int iMaxInputLength;
+		int iMaxInputLength{0};
 		/** @brief Is there a password involved with this setting?
 		 *
 		 * This parameter doesn't have to be used. */
-		bool bPassword;
+		bool bPassword{false};
 		LuaReference Validate; // (RString sAnswer, RString sErrorOut; optional)
 		LuaReference OnOK; // (RString sAnswer; optional)
 		LuaReference OnCancel; // (optional)
@@ -99,17 +98,17 @@ public:
 	static bool FloatValidate( const RString &sAnswer, RString &sErrorOut );
 	static bool IntValidate( const RString &sAnswer, RString &sErrorOut );
 
-	virtual void Init();
-	virtual void BeginScreen();
+	void Init() override;
+	void BeginScreen() override;
 
-	virtual void Update( float fDelta );
-	virtual bool Input( const InputEventPlus &input );
+	void Update( float fDelta ) override;
+	bool Input( const InputEventPlus &input ) override;
 
 	static RString s_sLastAnswer;
 	static bool s_bCancelledLast;
 
 	// Lua
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 protected:
 	void TryAppendToAnswer( const RString &s );
@@ -118,8 +117,8 @@ protected:
 
 	virtual void End( bool bCancelled );
 private:
-	virtual bool MenuStart( const InputEventPlus &input );
-	virtual bool MenuBack( const InputEventPlus &input );
+	bool MenuStart( const InputEventPlus &input ) override;
+	bool MenuBack( const InputEventPlus &input ) override;
 
 	void UpdateAnswerText();
 
@@ -141,23 +140,23 @@ private:
 class ScreenTextEntryVisual: public ScreenTextEntry
 {
 public:
-	~ScreenTextEntryVisual();
-	void Init();
-	void BeginScreen();
+	~ScreenTextEntryVisual() override;
+	void Init() override;
+	void BeginScreen() override;
 
 protected:
 	void MoveX( int iDir );
 	void MoveY( int iDir );
 	void PositionCursor();
 
-	virtual void TextEnteredDirectly();
+	void TextEnteredDirectly() override;
 
-	virtual bool MenuLeft( const InputEventPlus &input );
-	virtual bool MenuRight( const InputEventPlus &input );
-	virtual bool MenuUp( const InputEventPlus &input );
-	virtual bool MenuDown( const InputEventPlus &input );
+	bool MenuLeft( const InputEventPlus &input ) override;
+	bool MenuRight( const InputEventPlus &input ) override;
+	bool MenuUp( const InputEventPlus &input ) override;
+	bool MenuDown( const InputEventPlus &input ) override;
 
-	virtual bool MenuStart( const InputEventPlus &input );
+	bool MenuStart( const InputEventPlus &input ) override;
 
 	int			m_iFocusX;
 	KeyboardRow m_iFocusY;

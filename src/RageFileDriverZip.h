@@ -12,10 +12,10 @@ public:
 	bool Load( const RString &sPath );
 	bool Load( RageFileBasic *pFile );
 
-	virtual ~RageFileDriverZip();
+	~RageFileDriverZip() override;
 
-	RageFileBasic *Open( const RString &sPath, int iMode, int &iErr );
-	void FlushDirCache( const RString &sPath );
+	RageFileBasic *Open( const RString &sPath, int iMode, int &iErr ) override;
+	void FlushDirCache( const RString &sPath ) override;
 
 	void DeleteFileWhenFinished() { m_bFileOwned = true; }
 

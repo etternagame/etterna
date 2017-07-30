@@ -14,10 +14,10 @@ public:
 	BitmapText();
 	BitmapText( const BitmapText &cpy );
 	BitmapText &operator=(const BitmapText &cpy);
-	virtual ~BitmapText();
+	~BitmapText() override;
 
-	virtual void LoadFromNode( const XNode* pNode );
-	virtual BitmapText *Copy() const;
+	void LoadFromNode( const XNode* pNode ) override;
+	BitmapText *Copy() const override;
 
 	struct BMT_TweenState
 	{
@@ -43,16 +43,16 @@ public:
 	}
 	BMT_TweenState const& BMT_DestTweenState() const { return const_cast<BitmapText*>(this)->BMT_DestTweenState(); }
 
-	virtual void SetCurrentTweenStart();
-	virtual void EraseHeadTween();
-	virtual void UpdatePercentThroughTween(float between);
-	virtual void BeginTweening(float time, ITween* interp);
+	void SetCurrentTweenStart() override;
+	void EraseHeadTween() override;
+	void UpdatePercentThroughTween(float between) override;
+	void BeginTweening(float time, ITween* interp) override;
 	// This function exists because the compiler tried to connect a call of
 	// "BeginTweening(1.2f)" to the function above. -Kyz
 	virtual void BeginTweening(float time, TweenType tt = TWEEN_LINEAR)
 	{ Actor::BeginTweening(time, tt); }
-	virtual void StopTweening();
-	virtual void FinishTweening();
+	void StopTweening() override;
+	void FinishTweening() override;
 
 	bool LoadFromFont( const RString& sFontName );
 	bool LoadFromTextureAndChars( const RString& sTexturePath, const RString& sChars );
@@ -65,8 +65,8 @@ public:
 	void CropLineToWidth(size_t l, int width);
 	void CropToWidth(int width);
 
-	virtual bool EarlyAbortDraw() const;
-	virtual void DrawPrimitives();
+	bool EarlyAbortDraw() const override;
+	void DrawPrimitives() override;
 
 	void SetUppercase( bool b );
 	void SetRainbowScroll( bool b )	{ m_bRainbowScroll = b; }
@@ -76,7 +76,7 @@ public:
 	void set_mult_attrs_with_diffuse(bool m);
 	bool get_mult_attrs_with_diffuse();
 
-	void SetHorizAlign( float f );
+	void SetHorizAlign( float f ) override;
 
 	void SetStrokeColor(const RageColor &c) { BMT_DestTweenState().SetStrokeColor(c); }
 	RageColor const& GetStrokeColor()		{ return BMT_DestTweenState().GetStrokeColor(); }
@@ -94,8 +94,8 @@ public:
 
 	struct Attribute
 	{
-		Attribute() : length(-1), glow() { }
-		int		length;
+		Attribute() :  glow() { }
+		int		length{-1};
 		RageColor	diffuse[NUM_DIFFUSE_COLORS];
 		RageColor	glow;
 
@@ -107,7 +107,7 @@ public:
 	void ClearAttributes();
 
 	// Commands
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 protected:
 	Font		*m_pFont;

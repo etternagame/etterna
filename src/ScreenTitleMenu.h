@@ -9,11 +9,11 @@ class ScreenTitleMenu : public ScreenSelectMaster
 {
 public:
 	ScreenTitleMenu();
-	virtual void Init();
+	void Init() override;
 
-	virtual bool Input( const InputEventPlus &input );
+	bool Input( const InputEventPlus &input ) override;
 
-	virtual void HandleMessage( const Message &msg );
+	void HandleMessage( const Message &msg ) override;
 };
 
 #endif

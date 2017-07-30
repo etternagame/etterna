@@ -57,9 +57,7 @@ void ScreenOptionsEditProfile::BeginScreen()
 }
 
 ScreenOptionsEditProfile::~ScreenOptionsEditProfile()
-{
-
-}
+= default;
 
 void ScreenOptionsEditProfile::ImportOptions( int iRow, const vector<PlayerNumber> &vpns )
 {

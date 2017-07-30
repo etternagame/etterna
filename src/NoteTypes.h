@@ -13,9 +13,9 @@ class XNode;
 struct TapNoteResult
 {
 	/** @brief Set up the TapNoteResult with default values. The default offset value should be 1 not 0 as to diffrentiate from 0 offset hits, idiots -Mina*/
-	TapNoteResult() : tns(TNS_None), fTapNoteOffset(1.f), bHidden(false) { }
+	TapNoteResult()  = default;
 	/** @brief The TapNoteScore that was achieved by the player. */
-	TapNoteScore	tns;
+	TapNoteScore	tns{TNS_None};
 
 	/**
 	 * @brief Offset, in seconds, for a tap grade.
@@ -23,10 +23,10 @@ struct TapNoteResult
 	 * Negative numbers mean the note was hit early; positive numbers mean 
 	 * it was hit late. These values are only meaningful for graded taps
 	 * (tns >= TNS_W5). */
-	float		fTapNoteOffset;
+	float		fTapNoteOffset{1.f};
 
 	/** @brief If the whole row has been judged, all taps on the row will be set to hidden. */
-	bool		bHidden;
+	bool		bHidden{false};
 
 	// XML
 	XNode* CreateNode() const;
@@ -38,10 +38,10 @@ struct TapNoteResult
 /** @brief The result of holding (or letting go of) a hold note. */
 struct HoldNoteResult
 {
-	HoldNoteResult() : hns(HNS_None), fLife(1.f), fOverlappedTime(0), iLastHeldRow(0), iCheckpointsHit(0), iCheckpointsMissed(0), bHeld(false), bActive(false) { }
+	HoldNoteResult()  = default;
 	float GetLastHeldBeat() const;
 
-	HoldNoteScore	hns;
+	HoldNoteScore	hns{HNS_None};
 
 	/**
 	 * @brief the current life of the hold.
@@ -52,26 +52,26 @@ struct HoldNoteResult
 	 * 
 	 * When this value hits 0.0 for the first time, m_HoldScore becomes HNS_LetGo.
 	 * If the life is > 0.0 when the HoldNote ends, then m_HoldScore becomes HNS_Held. */
-	float	fLife;
+	float	fLife{1.f};
 
 	/** @brief The number of seconds the hold note has overlapped the current beat.
 	 *
 	 * This value is 0 if it doesn't overlap. */
-	float	fOverlappedTime;
+	float	fOverlappedTime{0};
 
 	/** @brief Last index where fLife was greater than 0. If the tap was missed, this
 	 * will be the first index of the hold. */
-	int		iLastHeldRow;
+	int		iLastHeldRow{0};
 
 	/** @brief If checkpoint holds are enabled, the number of checkpoints hit. */
-	int		iCheckpointsHit;
+	int		iCheckpointsHit{0};
 	/** @brief If checkpoint holds are enabled, the number of checkpoints missed. */
-	int		iCheckpointsMissed;
+	int		iCheckpointsMissed{0};
 
 	/** @brief Was the button held during the last update? */
-	bool		bHeld;
+	bool		bHeld{false};
 	/** @brief Is there life in the hold and does it overlap the current beat? */
-	bool		bActive;
+	bool		bActive{false};
 
 	// XML
 	XNode* CreateNode() const;
@@ -128,21 +128,21 @@ LuaDeclareType( TapNoteSource );
 struct TapNote
 {
 	/** @brief The core note type that is about to cross the target area. */
-	TapNoteType		type;
+	TapNoteType		type{TapNoteType_Empty};
 	/** @brief The sub type of the note. This is only used if the type is hold_head. */
-	TapNoteSubType		subType;
+	TapNoteSubType		subType{TapNoteSubType_Invalid};
 	/** @brief The originating source of the TapNote. */
-	TapNoteSource		source;
+	TapNoteSource		source{TapNoteSource_Original};
 	/** @brief The result of hitting or missing the TapNote. */
 	TapNoteResult	result;
 	/** @brief The Player that is supposed to hit this note. This is mainly for Routine Mode. */
 	PlayerNumber	pn;
 
 	// Index into Song's vector of keysound files if nonnegative:
-	int		iKeysoundIndex;
+	int		iKeysoundIndex{-1};
 
 	// also used for hold_head only:
-	int		iDuration;
+	int		iDuration{0};
 	HoldNoteResult	HoldResult;
 	
 	// XML
@@ -155,8 +155,7 @@ struct TapNote
 	// So I'm not repeatedly typing this out - Mina
 	bool IsNote() const { return type == TapNoteType_Tap || type == TapNoteType_HoldHead; }
 
-	TapNote(): type(TapNoteType_Empty), subType(TapNoteSubType_Invalid),
-		source(TapNoteSource_Original),	result(), pn(PLAYER_INVALID), iKeysoundIndex(-1), iDuration(0), HoldResult() {}
+	TapNote(): 	result(), pn(PLAYER_INVALID),  HoldResult() {}
 	void Init()
 	{
 		type = TapNoteType_Empty;
@@ -172,7 +171,7 @@ struct TapNote
 		TapNoteSource source_,
 		int iKeysoundIndex_ ):
 		type(type_), subType(subType_), source(source_), result(),
-		pn(PLAYER_INVALID), iKeysoundIndex(iKeysoundIndex_), iDuration(0), HoldResult()
+		pn(PLAYER_INVALID), iKeysoundIndex(iKeysoundIndex_),  HoldResult()
 	{
 		if (type_ > TapNoteType_Fake )
 		{

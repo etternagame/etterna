@@ -14,20 +14,20 @@ public:
 	/* pFile will be freed if DeleteFileWhenFinished is called. */
 	RageFileDriverReadAhead( RageFileBasic *pFile, int iCacheBytes, int iPostBufferReadAhead = -1 );
 	RageFileDriverReadAhead( const RageFileDriverReadAhead &cpy );
-	~RageFileDriverReadAhead();
-	RageFileDriverReadAhead *Copy() const;
+	~RageFileDriverReadAhead() override;
+	RageFileDriverReadAhead *Copy() const override;
 
 	void DeleteFileWhenFinished() { m_bFileOwned = true; }
 
-	virtual RString GetError() const { return m_pFile->GetError(); }
-	virtual void ClearError()  { return m_pFile->ClearError(); }
+	RString GetError() const override { return m_pFile->GetError(); }
+	void ClearError() override  { return m_pFile->ClearError(); }
 
-	int ReadInternal( void *pBuffer, size_t iBytes );
-	int WriteInternal( const void *pBuffer, size_t iBytes ) { return m_pFile->Write( pBuffer, iBytes ); }
-	int SeekInternal( int iOffset );
-	int GetFileSize() const { return m_pFile->GetFileSize(); }
-	int GetFD() { return m_pFile->GetFD(); }
-	int Tell() const { return m_iFilePos; }
+	int ReadInternal( void *pBuffer, size_t iBytes ) override;
+	int WriteInternal( const void *pBuffer, size_t iBytes ) override { return m_pFile->Write( pBuffer, iBytes ); }
+	int SeekInternal( int iOffset ) override;
+	int GetFileSize() const override { return m_pFile->GetFileSize(); }
+	int GetFD() override { return m_pFile->GetFD(); }
+	int Tell() const override { return m_iFilePos; }
 
 private:
 	void FillBuffer( int iBytes );

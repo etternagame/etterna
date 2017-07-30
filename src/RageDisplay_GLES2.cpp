@@ -368,7 +368,7 @@ RageDisplay_GLES2::Init( const VideoModeParams &p, bool bAllowUnacceleratedRende
 RString RageDisplay_GLES2::TryVideoMode( const VideoModeParams &p, bool &bNewDeviceOut )
 {
 	VideoModeParams vm = p;
-	vm.windowed = 1; // force windowed until I trust this thing.
+	vm.windowed = true; // force windowed until I trust this thing.
 	LOG->Warn( "RageDisplay_GLES2::TryVideoMode( %d, %d, %d, %d, %d, %d )",
 		vm.windowed, vm.width, vm.height, vm.bpp, vm.rate, vm.vsync );
 
@@ -485,15 +485,15 @@ class RageCompiledGeometryGLES2 : public RageCompiledGeometry
 {
 public:
 	
-	void Allocate( const vector<msMesh> &vMeshes )
+	void Allocate( const vector<msMesh> &vMeshes ) override
 	{
 		// TODO
 	}
-	void Change( const vector<msMesh> &vMeshes )
+	void Change( const vector<msMesh> &vMeshes ) override
 	{
 		// TODO
 	}
-	void Draw( int iMeshIndex ) const
+	void Draw( int iMeshIndex ) const override
 	{
 		// TOO
 	}

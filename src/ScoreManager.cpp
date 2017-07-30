@@ -514,8 +514,7 @@ class LunaScoresForChart : public Luna<ScoresForChart>
 {
 public:
 	LunaScoresForChart()
-	{
-	}
+	= default;
 };
 
 LUA_REGISTER_CLASS(ScoresForChart)

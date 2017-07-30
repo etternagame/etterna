@@ -15,7 +15,7 @@ public:
 	InputQueue();
 
 	void RememberInput( const InputEventPlus &gi );
-	bool WasPressedRecently( GameController c, const GameButton button, const std::chrono::steady_clock::time_point &OldestTimeAllowed, InputEventPlus *pIEP = NULL );
+	bool WasPressedRecently( GameController c, const GameButton button, const std::chrono::steady_clock::time_point &OldestTimeAllowed, InputEventPlus *pIEP = nullptr );
 	const vector<InputEventPlus> &GetQueue( GameController c ) const { return m_aQueue[c]; }
 	void ClearQueue( GameController c );
 
@@ -35,8 +35,7 @@ private:
 	struct ButtonPress
 	{
 		ButtonPress(): m_aButtonsToHold(), m_aButtonsToNotHold(),
-			m_aButtonsToPress(),
-			m_bAllowIntermediatePresses(false)
+			m_aButtonsToPress()
 		{
 			memset( m_InputTypes, 0, sizeof(m_InputTypes) );
 			m_InputTypes[IET_FIRST_PRESS] = true;
@@ -46,7 +45,7 @@ private:
 		vector<GameButton> m_aButtonsToPress;
 
 		bool m_InputTypes[NUM_InputEventType];
-		bool m_bAllowIntermediatePresses;
+		bool m_bAllowIntermediatePresses{false};
 	};
 	vector<ButtonPress> m_aPresses;
 

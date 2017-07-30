@@ -5,7 +5,7 @@
 #include "LuaManager.h"
 
 struct lua_State;
-typedef lua_State Lua;
+using Lua = lua_State;
 /** @brief A self-cleaning Lua reference. */
 class LuaReference
 {
@@ -93,7 +93,7 @@ private:
 	int m_iReference;
 };
 
-typedef AutoPtrCopyOnWrite<LuaReference> apActorCommands;
+using apActorCommands = AutoPtrCopyOnWrite<LuaReference>;
 
 class LuaTable: public LuaReference
 {

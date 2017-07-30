@@ -527,7 +527,7 @@ void GzipString( const RString &sIn, RString &sOut )
 
 bool GunzipString( const RString &sIn, RString &sOut, RString &sError )
 {
-	RageFileObjMem *mem = new RageFileObjMem;
+	auto *mem = new RageFileObjMem;
 	mem->PutString( sIn );
 
 	uint32_t iCRC32;

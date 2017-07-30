@@ -33,8 +33,8 @@ void ScoreDisplayNormal::Init( const PlayerState* pPlayerState, const PlayerStag
 {
 	ScoreDisplay::Init( pPlayerState, pPlayerStageStats );
 
-	PlayerState* pPlayerState_ = const_cast<PlayerState*>(pPlayerState);
-	PlayerStageStats* pPlayerStageStats_ = const_cast<PlayerStageStats*>(pPlayerStageStats);
+	auto* pPlayerState_ = const_cast<PlayerState*>(pPlayerState);
+	auto* pPlayerStageStats_ = const_cast<PlayerStageStats*>(pPlayerStageStats);
 
 	Message msg("Load");
 	msg.SetParam( "PlayerState", LuaReference::CreateFromPush(*pPlayerState_) );
@@ -44,7 +44,7 @@ void ScoreDisplayNormal::Init( const PlayerState* pPlayerState, const PlayerStag
 
 void ScoreDisplayNormal::SetScore( int iNewScore ) 
 {
-	float fScore = (float)iNewScore;
+	auto fScore = (float)iNewScore;
 
 	m_text.SetTargetNumber( fScore );
 }

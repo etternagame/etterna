@@ -15,10 +15,10 @@ class MenuTimer : public ActorFrame
 {
 public:
 	MenuTimer();
-	virtual ~MenuTimer();
+	~MenuTimer() override;
 	void Load( const RString &sMetricsGroup );
 	
-	virtual void Update( float fDeltaTime ); 
+	void Update( float fDeltaTime ) override; 
 
 	void SetSeconds( float fSeconds );
 	float GetSeconds() const { return m_fSecondsLeft; }
@@ -32,7 +32,7 @@ public:
 
 
 	// Lua
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 protected:
 	float m_fSecondsLeft;

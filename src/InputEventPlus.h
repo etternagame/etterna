@@ -10,16 +10,15 @@ class InputEventPlus
 public:
 	InputEventPlus():
 		DeviceI(), GameI(),
-		type(IET_FIRST_PRESS),
-		MenuI(GameButton_Invalid),
+		
 		pn(PLAYER_INVALID),
-		mp(MultiPlayer_Invalid), InputList() { }
+		 InputList() { }
 	DeviceInput DeviceI;
 	GameInput GameI;
-	InputEventType type;
-	GameButton MenuI;
+	InputEventType type{IET_FIRST_PRESS};
+	GameButton MenuI{GameButton_Invalid};
 	PlayerNumber pn;
-	MultiPlayer mp;
+	MultiPlayer mp{MultiPlayer_Invalid};
 	DeviceInputList InputList;
 };
 

@@ -6,7 +6,7 @@
 class RageTimer
 {
 public:
-	RageTimer(): m_secs(0), m_us(0) { Touch(); }
+	RageTimer() { Touch(); }
 	RageTimer( int secs, int us ): m_secs(secs), m_us(us) { }
 
 	/* Time ago this RageTimer represents. */
@@ -43,7 +43,7 @@ public:
 	 * several days, we'll lose a lot of resolution.  I don't want to use double
 	 * everywhere, since it's slow.  I'd rather not use double just for RageTimers, since
 	 * it's too easy to get a type wrong and end up with obscure resolution problems. */
-	unsigned m_secs, m_us;
+	unsigned m_secs{0}, m_us{0};
 
 private:
 	static RageTimer Sum( const RageTimer &lhs, float tm );

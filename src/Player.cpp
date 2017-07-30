@@ -51,8 +51,8 @@ void TimingWindowSecondsInit( size_t /*TimingWindow*/ i, RString &sNameOut, floa
 class JudgedRows
 {
 	vector<bool> m_vRows;
-	int m_iStart;
-	int m_iOffset;
+	int m_iStart{0};
+	int m_iOffset{0};
 
 	void Resize( size_t iMin )
 	{
@@ -65,7 +65,7 @@ class JudgedRows
 		m_iOffset = 0;
 	}
 public:
-	JudgedRows() : m_iStart(0), m_iOffset(0) { Resize( 32 ); }
+	JudgedRows()  { Resize( 32 ); }
 	// Returns true if the row has already been judged.
 	bool JudgeRow( int iRow )
 	{
@@ -465,7 +465,7 @@ void Player::Init(
 	{
 		for( int i = 0; i < GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)->m_iColsPerPlayer; ++i )
 		{
-			HoldJudgment *pJudgment = new HoldJudgment;
+			auto *pJudgment = new HoldJudgment;
 			// xxx: assumes sprite; todo: don't force 1x2 -aj
 			pJudgment->Load( THEME->GetPathG("HoldJudgment","label 1x2") );
 			m_vpHoldJudgment[i] = pJudgment;

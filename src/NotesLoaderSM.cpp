@@ -29,7 +29,7 @@ struct SMSongTagInfo
 	{}
 };
 
-typedef void (*song_tag_func_t)(SMSongTagInfo& info);
+using song_tag_func_t = void (*)(SMSongTagInfo &);
 
 // Functions for song tags go below this line. -Kyz
 /****************************************************************/

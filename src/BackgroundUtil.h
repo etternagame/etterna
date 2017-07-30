@@ -44,8 +44,7 @@ struct BackgroundDef
 
 struct BackgroundChange
 {
-	BackgroundChange(): m_def(), m_fStartBeat(-1), m_fRate(1),
-		m_sTransition("") {}
+	BackgroundChange(): m_def(), m_sTransition("") {}
 
 	BackgroundChange( 
 		float s, 
@@ -59,8 +58,8 @@ struct BackgroundChange
 		m_fRate(r), m_sTransition(t) {}
 
 	BackgroundDef m_def;
-	float m_fStartBeat;
-	float m_fRate;
+	float m_fStartBeat{-1};
+	float m_fRate{1};
 	RString m_sTransition;
 
 	RString GetTextDescription() const;

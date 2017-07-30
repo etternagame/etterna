@@ -11,17 +11,17 @@ public:
 	HelpDisplay();
 	void Load( const RString &sType );
 
-	virtual HelpDisplay *Copy() const;
+	HelpDisplay *Copy() const override;
 
 	void SetTips( const vector<RString> &arrayTips ) { SetTips( arrayTips, arrayTips ); }
 	void SetTips( const vector<RString> &arrayTips, const vector<RString> &arrayTipsAlt );
 	void GetTips( vector<RString> &arrayTipsOut, vector<RString> &arrayTipsAltOut ) const { arrayTipsOut = m_arrayTips; arrayTipsAltOut = m_arrayTipsAlt; }
 	void SetSecsBetweenSwitches( float fSeconds ) { m_fSecsBetweenSwitches = m_fSecsUntilSwitch = fSeconds; }
 
-	virtual void Update( float fDeltaTime );
+	void Update( float fDeltaTime ) override;
 
 	// Lua
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 protected:
 	vector<RString> m_arrayTips, m_arrayTipsAlt;

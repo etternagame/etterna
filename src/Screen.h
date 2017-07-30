@@ -12,7 +12,7 @@
 
 class InputEventPlus;
 class Screen;
-typedef Screen* (*CreateScreenFn)(const RString& sClassName);
+using CreateScreenFn = Screen *(*)(const RString &);
 /**
  * @brief Allow registering the screen for easier access.
  *
@@ -42,7 +42,7 @@ class Screen : public ActorFrame
 public:
 	static void InitScreen( Screen *pScreen );
 
-	virtual ~Screen();
+	~Screen() override;
 
 	/**
 	 * @brief This is called immediately after construction, 
@@ -57,7 +57,7 @@ public:
 	/** @brief This is called when the screen is popped. */
 	virtual void EndScreen();
 
-	virtual void Update( float fDeltaTime );
+	void Update( float fDeltaTime ) override;
 	virtual bool Input( const InputEventPlus &input );
 	virtual void HandleScreenMessage( const ScreenMessage SM );
 	void SetLockInputSecs( float f ) { m_fLockInputSecs = f; }
@@ -82,7 +82,7 @@ public:
 	virtual bool AllowLateJoin() const { return false; }
 
 	// Lua
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 protected:
 	/** @brief Holds the messages sent to a Screen. */
@@ -148,7 +148,7 @@ public:
 private:
 	// void* is the key so that we can use lua_topointer to find the callback
 	// to remove when removing a callback.
-	typedef void const* callback_key_t;
+	using callback_key_t = const void *;
 	map<callback_key_t, LuaReference> m_InputCallbacks;
 	vector<callback_key_t> m_DelayedCallbackRemovals;
 	bool m_CallingInputCallbacks;

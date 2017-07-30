@@ -33,11 +33,11 @@ LuaDeclareType( WheelState );
 class WheelBase : public ActorFrame
 {
 public:
-	virtual ~WheelBase();
+	~WheelBase() override;
 	virtual void Load( const RString &sType );
 	void BeginScreen();
 
-	virtual void Update( float fDeltaTime );
+	void Update( float fDeltaTime ) override;
 
 	virtual void Move(int n);
 	void ChangeMusicUnlessLocked( int n ); /* +1 or -1 */
@@ -70,7 +70,7 @@ public:
 	WheelItemDataType GetSelectedType() { return m_CurWheelItemData[m_iSelection]->m_Type; }
 
 	// Lua
-	void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 protected:
 	void TweenOnScreenForSort();

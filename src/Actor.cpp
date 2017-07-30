@@ -28,7 +28,7 @@ class HiddenActor: public Actor
 {
 public:
 	HiddenActor() { SetVisible(false); }
-	virtual HiddenActor *Copy() const;
+	HiddenActor *Copy() const override;
 };
 REGISTER_ACTOR_CLASS_WITH_NAME( HiddenActor, Actor );
 
@@ -78,7 +78,7 @@ void Actor::InitState()
 {
 	this->StopTweening();
 
-	m_pTempState = NULL;
+	m_pTempState = nullptr;
 
 	m_baseRotation = RageVector3( 0, 0, 0 );
 	m_baseScale = RageVector3( 1, 1, 1 );
@@ -153,8 +153,8 @@ Actor::Actor()
 	
 	m_size = RageVector2( 1, 1 );
 	InitState();
-	m_pParent = NULL;
-	m_FakeParent= NULL;
+	m_pParent = nullptr;
+	m_FakeParent= nullptr;
 	m_bFirstUpdate = true;
 	m_tween_uses_effect_delta= false;
 }
@@ -174,8 +174,8 @@ Actor::Actor( const Actor &cpy ):
 	MessageSubscriber( cpy )
 {
 	/* Don't copy an Actor in the middle of rendering. */
-	ASSERT( cpy.m_pTempState == NULL );
-	m_pTempState = NULL;
+	ASSERT( cpy.m_pTempState == nullptr );
+	m_pTempState = nullptr;
 
 #define CPY(x) x = cpy.x
 	CPY( m_sName );
@@ -376,7 +376,7 @@ void Actor::Draw()
 			this->SetInternalGlow(last_glow);
 		}
 		this->PreDraw();
-		ASSERT( m_pTempState != NULL );
+		ASSERT( m_pTempState != nullptr );
 		if(PartiallyOpaque())
 		{
 			this->BeginDraw();
@@ -394,16 +394,16 @@ void Actor::Draw()
 		}
 		abort_with_end_draw= true;
 		state->PostDraw();
-		state->m_pTempState= NULL;
+		state->m_pTempState= nullptr;
 	}
 
 	if(m_FakeParent)
 	{
 		m_FakeParent->EndDraw();
 		m_FakeParent->PostDraw();
-		m_FakeParent->m_pTempState= NULL;
+		m_FakeParent->m_pTempState= nullptr;
 	}
-	m_pTempState = NULL;
+	m_pTempState = nullptr;
 }
 
 void Actor::PostDraw() // reset internal diffuse and glow
@@ -475,24 +475,24 @@ void Actor::PreDraw() // calculate actor properties
 			/* XXX: Should diffuse_blink and diffuse_shift multiply the tempState color? 
 			 * (That would have the same effect with 1,1,1,1, and allow tweening the diffuse
 			 * while blinking and shifting.) */
-			for(int i=0; i<NUM_DIFFUSE_COLORS; i++)
+			for(auto & i : tempState.diffuse)
 			{
-				tempState.diffuse[i] = bBlinkOn ? m_effectColor1 : m_effectColor2;
-				tempState.diffuse[i].a *= fOriginalAlpha;	// multiply the alphas so we can fade even while an effect is playing
+				i = bBlinkOn ? m_effectColor1 : m_effectColor2;
+				i.a *= fOriginalAlpha;	// multiply the alphas so we can fade even while an effect is playing
 			}
 			break;
 		case diffuse_shift:
-			for(int i=0; i<NUM_DIFFUSE_COLORS; i++)
+			for(auto & i : tempState.diffuse)
 			{
-				tempState.diffuse[i] = m_effectColor1*fPercentBetweenColors + m_effectColor2*(1.0f-fPercentBetweenColors);
-				tempState.diffuse[i].a *= fOriginalAlpha;	// multiply the alphas so we can fade even while an effect is playing
+				i = m_effectColor1*fPercentBetweenColors + m_effectColor2*(1.0f-fPercentBetweenColors);
+				i.a *= fOriginalAlpha;	// multiply the alphas so we can fade even while an effect is playing
 			}
 			break;
 		case diffuse_ramp:
-			for(int i=0; i<NUM_DIFFUSE_COLORS; i++)
+			for(auto & i : tempState.diffuse)
 			{
-				tempState.diffuse[i] = m_effectColor1*fPercentThroughEffect + m_effectColor2*(1.0f-fPercentThroughEffect);
-				tempState.diffuse[i].a *= fOriginalAlpha;	// multiply the alphas so we can fade even while an effect is playing
+				i = m_effectColor1*fPercentThroughEffect + m_effectColor2*(1.0f-fPercentThroughEffect);
+				i.a *= fOriginalAlpha;	// multiply the alphas so we can fade even while an effect is playing
 			}
 			break;
 		case glow_blink:
@@ -570,9 +570,9 @@ void Actor::PreDraw() // calculate actor properties
 			tempState = m_current;
 		}
 
-		for( int i=0; i<NUM_DIFFUSE_COLORS; i++ )
+		for(auto & i : tempState.diffuse)
 		{
-			tempState.diffuse[i] *= m_internalDiffuse;
+			i *= m_internalDiffuse;
 		}
 	}
 
@@ -902,7 +902,7 @@ RString Actor::GetLineage() const
 
 void Actor::AddWrapperState()
 {
-	ActorFrame* wrapper= new ActorFrame;
+	auto* wrapper= new ActorFrame;
 	wrapper->InitState();
 	m_WrapperStates.push_back(wrapper);
 }
@@ -1268,7 +1268,7 @@ void Actor::RunCommands( const LuaReference& cmds, const LuaReference *pParamTab
 	this->PushSelf( L );
 
 	// 2nd parameter
-	if( pParamTable == NULL )
+	if( pParamTable == nullptr )
 		lua_pushnil( L );
 	else
 		pParamTable->PushSelf( L );
@@ -1320,11 +1320,11 @@ void Actor::SetGlobalDiffuseColor( const RageColor &c )
 
 void Actor::SetDiffuseColor( const RageColor &c )
 {
-	for( int i=0; i<NUM_DIFFUSE_COLORS; i++ )
+	for(auto & i : DestTweenState().diffuse)
 	{
-		DestTweenState().diffuse[i].r = c.r;
-		DestTweenState().diffuse[i].g = c.g;
-		DestTweenState().diffuse[i].b = c.b;
+		i.r = c.r;
+		i.g = c.g;
+		i.b = c.b;
 	}
 }
 
@@ -1339,8 +1339,8 @@ void Actor::TweenState::Init()
 	fSkewY = 0;
 	crop = RectF( 0,0,0,0 );
 	fade = RectF( 0,0,0,0 );
-	for( int i=0; i<NUM_DIFFUSE_COLORS; i++ )
-		diffuse[i] = RageColor( 1, 1, 1, 1 );
+	for(auto & i : diffuse)
+		i = RageColor( 1, 1, 1, 1 );
 	glow = RageColor( 1, 1, 1, 0 );
 	aux = 0;
 }
@@ -1437,14 +1437,14 @@ void Actor::AddCommand( const RString &sCmdName, apActorCommands apac, bool warn
 
 bool Actor::HasCommand( const RString &sCmdName ) const
 {
-	return GetCommand(sCmdName) != NULL;
+	return GetCommand(sCmdName) != nullptr;
 }
 
 const apActorCommands *Actor::GetCommand( const RString &sCommandName ) const
 {
 	map<RString, apActorCommands>::const_iterator it = m_mapNameToCommands.find( sCommandName );
 	if( it == m_mapNameToCommands.end() )
-		return NULL;
+		return nullptr;
 	return &it->second;
 }
 
@@ -1488,7 +1488,7 @@ void Actor::SetParent( Actor *pParent )
 
 Actor::TweenInfo::TweenInfo()
 {
-	m_pTween = NULL;
+	m_pTween = nullptr;
 }
 
 Actor::TweenInfo::~TweenInfo()
@@ -1498,14 +1498,14 @@ Actor::TweenInfo::~TweenInfo()
 
 Actor::TweenInfo::TweenInfo( const TweenInfo &cpy )
 {
-	m_pTween = NULL;
+	m_pTween = nullptr;
 	*this = cpy;
 }
 
 Actor::TweenInfo &Actor::TweenInfo::operator=( const TweenInfo &rhs )
 {
 	delete m_pTween;
-	m_pTween = (rhs.m_pTween? rhs.m_pTween->Copy():NULL);
+	m_pTween = (rhs.m_pTween? rhs.m_pTween->Copy():nullptr);
 	m_fTimeLeftInTween = rhs.m_fTimeLeftInTween;
 	m_fTweenTime = rhs.m_fTweenTime;
 	m_sCommandName = rhs.m_sCommandName;
@@ -1584,7 +1584,7 @@ public:
 			COMMON_RETURN_SELF;
 		}
 		ITween *pTween = ITween::CreateFromStack( L, 2 );
-		if(pTween != NULL)
+		if(pTween != nullptr)
 		{
 			p->BeginTweening(fTime, pTween);
 		}
@@ -1771,7 +1771,7 @@ public:
 	static int queuemessage( T* p, lua_State *L )		{ p->QueueMessage(SArg(1)); COMMON_RETURN_SELF; }
 	static int addcommand( T* p, lua_State *L )
 	{
-		LuaReference *pRef = new LuaReference;
+		auto *pRef = new LuaReference;
 		pRef->SetFromStack( L );
 		p->AddCommand( SArg(1), apActorCommands(pRef) );
 		COMMON_RETURN_SELF;
@@ -1779,7 +1779,7 @@ public:
 	static int GetCommand( T* p, lua_State *L )
 	{
 		const apActorCommands *pCommand = p->GetCommand(SArg(1));
-		if( pCommand == NULL )
+		if( pCommand == nullptr )
 			lua_pushnil( L );
 		else
 			(*pCommand)->PushSelf(L);
@@ -1837,7 +1837,7 @@ public:
 	static int GetParent( T* p, lua_State *L )
 	{
 		Actor *pParent = p->GetParent();
-		if( pParent == NULL )
+		if( pParent == nullptr )
 			lua_pushnil( L );
 		else
 			pParent->PushSelf(L);
@@ -1846,7 +1846,7 @@ public:
 	static int GetFakeParent(T* p, lua_State *L)
 	{
 		Actor* fake= p->GetFakeParent();
-		if(fake == NULL)
+		if(fake == nullptr)
 		{
 			lua_pushnil(L);
 		}
@@ -1879,7 +1879,7 @@ public:
 	{
 		// Lua is one indexed.
 		int i= IArg(stack_index)-1;
-		const size_t si= static_cast<size_t>(i);
+		const auto si= static_cast<size_t>(i);
 		if(i < 0 || si >= p->GetNumWrapperStates())
 		{
 			luaL_error(L, "%d is not a valid wrapper state index.", i+1);

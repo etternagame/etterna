@@ -10,7 +10,7 @@
 #include "Song.h"
 #include "Steps.h"
 
-#include <limits.h>
+#include <climits>
 
 REGISTER_ACTOR_CLASS( BPMDisplay );
 
@@ -175,7 +175,7 @@ void BPMDisplay::NoBPM()
 
 void BPMDisplay::SetBpmFromSong( const Song* pSong )
 {
-	ASSERT( pSong != NULL );
+	ASSERT( pSong != nullptr );
 	switch( pSong->m_DisplayBPMType )
 	{
 	case DISPLAY_BPM_ACTUAL:
@@ -197,7 +197,7 @@ void BPMDisplay::SetBpmFromSong( const Song* pSong )
 
 void BPMDisplay::SetBpmFromSteps( const Steps* pSteps )
 {
-	ASSERT( pSteps != NULL );
+	ASSERT( pSteps != nullptr );
 	DisplayBpms bpms;
 	float fMinBPM, fMaxBPM;
 	pSteps->GetTimingData()->GetActualBPM( fMinBPM, fMaxBPM );
@@ -235,8 +235,8 @@ class SongBPMDisplay: public BPMDisplay
 {
 public:
 	SongBPMDisplay();
-	virtual SongBPMDisplay *Copy() const;
-	virtual void Update( float fDeltaTime ); 
+	SongBPMDisplay *Copy() const override;
+	void Update( float fDeltaTime ) override; 
 
 private:
 	float m_fLastGameStateBPM;

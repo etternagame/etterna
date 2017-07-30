@@ -166,7 +166,7 @@ void RoomWheelItem::LoadFromWheelItemData( const WheelItemBaseData *pWID, int iI
 	m_text.SetText( pWID->m_sText );
 	m_text.SetDiffuseColor( pWID->m_color );
 
-	const RoomWheelItemData *tmpdata = dynamic_cast<const RoomWheelItemData*>( pWID );
+	const auto *tmpdata = dynamic_cast<const RoomWheelItemData*>( pWID );
 	WheelItemBase::LoadFromWheelItemData( pWID, iIndex, bHasFocus, iDrawIndex );
 	m_Desc.SetText( tmpdata->m_sDesc );
 	m_Desc.SetDiffuseColor( pWID->m_color );

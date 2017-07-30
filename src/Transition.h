@@ -15,11 +15,11 @@ public:
 
 	void Load( const RString &sBGAniDir );
 
-	virtual void UpdateInternal( float fDeltaTime );
+	void UpdateInternal( float fDeltaTime ) override;
 
 	virtual void StartTransitioning( ScreenMessage send_when_done = SM_None );
-	virtual bool EarlyAbortDraw() const;
-	virtual float GetTweenTimeLeft() const;
+	bool EarlyAbortDraw() const override;
+	float GetTweenTimeLeft() const override;
 	void Reset(); // explicitly allow transitioning again
 
 	bool IsWaiting() const { return m_State == waiting; };

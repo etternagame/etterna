@@ -14,13 +14,13 @@ public:
 	/* We own source. */
 	RageSoundReader_Resample_Good( RageSoundReader *pSource, int iSampleRate );
 	RageSoundReader_Resample_Good( const RageSoundReader_Resample_Good &cpy );
-	int SetPosition( int iFrame );
-	int Read( float *pBuf, int iFrames );
-	virtual ~RageSoundReader_Resample_Good();
-	RageSoundReader_Resample_Good *Copy() const;
-	bool SetProperty( const RString &sProperty, float fValue );
-	int GetNextSourceFrame() const;
-	float GetStreamToSourceRatio() const;
+	int SetPosition( int iFrame ) override;
+	int Read( float *pBuf, int iFrames ) override;
+	~RageSoundReader_Resample_Good() override;
+	RageSoundReader_Resample_Good *Copy() const override;
+	bool SetProperty( const RString &sProperty, float fValue ) override;
+	int GetNextSourceFrame() const override;
+	float GetStreamToSourceRatio() const override;
 
 	/**
 	 * @brief Change the rate of a sound without changing the sample rate.
@@ -32,7 +32,7 @@ public:
 	 * @return the exact rate. */
 	float GetRate() const;
 
-	int GetSampleRate() const { return m_iSampleRate; }
+	int GetSampleRate() const override { return m_iSampleRate; }
 
 private:
 	void Reset();

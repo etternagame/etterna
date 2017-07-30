@@ -178,7 +178,7 @@ void MusicWheelItem::LoadFromWheelItemData( const WheelItemBaseData *pData, int 
 {
 	WheelItemBase::LoadFromWheelItemData( pData, iIndex, bHasFocus, iDrawIndex );
 
-	const MusicWheelItemData *pWID = dynamic_cast<const MusicWheelItemData*>( pData );
+	const auto *pWID = dynamic_cast<const MusicWheelItemData*>( pData );
 
 	// hide all
 	FOREACH_ENUM( MusicWheelItemType, i )
@@ -294,7 +294,7 @@ void MusicWheelItem::LoadFromWheelItemData( const WheelItemBaseData *pData, int 
 
 void MusicWheelItem::RefreshGrades()
 {
-	const MusicWheelItemData *pWID = dynamic_cast<const MusicWheelItemData*>( m_pData );
+	const auto *pWID = dynamic_cast<const MusicWheelItemData*>( m_pData );
 
 	if( pWID == NULL )
 		return; // LoadFromWheelItemData() hasn't been called yet.

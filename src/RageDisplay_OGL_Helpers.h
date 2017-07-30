@@ -25,7 +25,7 @@ namespace RageDisplay_Legacy_Helpers
 class RenderTarget
 {
 public:
-	virtual ~RenderTarget() { }
+	virtual ~RenderTarget() = default;
 	virtual void Create( const RenderTargetParam &param, int &iTextureWidthOut, int &iTextureHeightOut ) = 0;
 
 	virtual unsigned GetTexture() const = 0;

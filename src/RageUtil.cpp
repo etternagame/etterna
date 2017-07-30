@@ -8,7 +8,7 @@
 #include "LocalizedString.h"
 #include "LuaBinding.h"
 #include "LuaManager.h"
-#include <float.h>
+#include <cfloat>
 
 #include <numeric>
 #include <ctime>
@@ -16,7 +16,7 @@
 #include <map>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <math.h>
+#include <cmath>
 
 bool HexToBinary(const RString&, RString&);
 void utf8_sanitize(RString &);
@@ -163,7 +163,7 @@ bool IsHexVal( const RString &s )
 
 RString BinaryToHex( const void *pData_, int iNumBytes )
 {
-	const unsigned char *pData = (const unsigned char *) pData_;
+	const auto *pData = (const unsigned char *) pData_;
 	RString s;
 	for( int i=0; i<iNumBytes; i++ )
 	{
@@ -231,7 +231,7 @@ RString SecondsToMMSSMsMs( float fSecs )
 {
 	const int iMinsDisplay = (int)fSecs/60;
 	const int iSecsDisplay = (int)fSecs - iMinsDisplay*60;
-	const int iLeftoverDisplay = (int) ( (fSecs - iMinsDisplay*60 - iSecsDisplay) * 100 );
+	const auto iLeftoverDisplay = (int) ( (fSecs - iMinsDisplay*60 - iSecsDisplay) * 100 );
 	RString sReturn = ssprintf( "%02d:%02d.%02d", iMinsDisplay, iSecsDisplay, min(99,iLeftoverDisplay) );
 	return sReturn;
 }
@@ -240,7 +240,7 @@ RString SecondsToMSSMsMs( float fSecs )
 {
 	const int iMinsDisplay = (int)fSecs/60;
 	const int iSecsDisplay = (int)fSecs - iMinsDisplay*60;
-	const int iLeftoverDisplay = (int) ( (fSecs - iMinsDisplay*60 - iSecsDisplay) * 100 );
+	const auto iLeftoverDisplay = (int) ( (fSecs - iMinsDisplay*60 - iSecsDisplay) * 100 );
 	RString sReturn = ssprintf( "%01d:%02d.%02d", iMinsDisplay, iSecsDisplay, min(99,iLeftoverDisplay) );
 	return sReturn;
 }
@@ -249,7 +249,7 @@ RString SecondsToMMSSMsMsMs( float fSecs )
 {
 	const int iMinsDisplay = (int)fSecs/60;
 	const int iSecsDisplay = (int)fSecs - iMinsDisplay*60;
-	const int iLeftoverDisplay = (int) ( (fSecs - iMinsDisplay*60 - iSecsDisplay) * 1000 );
+	const auto iLeftoverDisplay = (int) ( (fSecs - iMinsDisplay*60 - iSecsDisplay) * 1000 );
 	RString sReturn = ssprintf( "%02d:%02d.%03d", iMinsDisplay, iSecsDisplay, min(999,iLeftoverDisplay) );
 	return sReturn;
 }
@@ -405,7 +405,7 @@ RString vssprintf( const char *szFormat, va_list argList )
 		int iNeeded = vsnprintf( &ignore, 0, szFormat, tmp );
 		va_end(tmp);
 
-		char *buf = new char[iNeeded + 1];
+		auto *buf = new char[iNeeded + 1];
 		std::fill(buf, buf + iNeeded + 1, '\0');
 		vsnprintf( buf, iNeeded+1, szFormat, argList );
 		RString ret(buf);
@@ -418,7 +418,7 @@ RString vssprintf( const char *szFormat, va_list argList )
 	for (;;)
 	{
 		// Grow more than linearly (e.g. 512, 1536, 3072, etc)
-		char *buf = new char[iChars];
+		auto *buf = new char[iChars];
 		std::fill(buf, buf + iChars, '\0');
 		int used = vsnprintf( buf, iChars - 1, szFormat, argList );
 		if ( used == -1 )
@@ -1161,7 +1161,7 @@ void CRC32( unsigned int &iCRC, const void *pVoidBuffer, size_t iSize )
 
 	iCRC ^= 0xFFFFFFFF;
 
-	const char *pBuffer = (const char *) pVoidBuffer;
+	const auto *pBuffer = (const char *) pVoidBuffer;
 	for( unsigned i = 0; i < iSize; ++i )
 		iCRC = (iCRC >> 8) ^ tab[(iCRC ^ pBuffer[i]) & 0xFF];
 

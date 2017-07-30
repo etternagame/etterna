@@ -10,7 +10,7 @@ public:
 	virtual int GetLength_Fast() const { return GetLength(); } /* ms */
 	virtual int SetPosition( int iFrame ) = 0;
 	virtual int Read( float *pBuf, int iFrames ) = 0;
-	virtual ~RageSoundReader() { }
+	virtual ~RageSoundReader() = default;
 	virtual RageSoundReader *Copy() const = 0;
 	virtual int GetSampleRate() const = 0;
 	virtual unsigned GetNumChannels() const = 0;

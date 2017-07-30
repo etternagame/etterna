@@ -11,12 +11,12 @@ public:
 	RollingNumbers();
 
 	void Load( const RString &sMetricsGroup );
-	virtual RollingNumbers *Copy() const;
+	RollingNumbers *Copy() const override;
 
 	void DrawPart(RageColor const* diffuse, RageColor const& stroke,
 		float crop_left, float crop_right);
-	virtual void DrawPrimitives();
-	virtual void Update( float fDeltaTime );
+	void DrawPrimitives() override;
+	void Update( float fDeltaTime ) override;
 
 	/** 
 	 * @brief Set the new target number to be reached.
@@ -26,7 +26,7 @@ public:
 	void UpdateText();
 
 	// Commands
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 private:
 	ThemeMetric<RString> TEXT_FORMAT;

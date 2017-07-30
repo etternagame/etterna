@@ -9,12 +9,12 @@
 
 struct RoomWheelItemData : public WheelItemBaseData
 {
-	RoomWheelItemData() : m_iFlags(0) { }
+	RoomWheelItemData() = default;
 	RoomWheelItemData( WheelItemDataType type, const RString& sTitle, const RString& sDesc, const RageColor &color ):
 		WheelItemBaseData( type, sTitle, color ), m_sDesc(sDesc), m_iFlags(0) { };
 
 	RString		m_sDesc;
-	unsigned int	m_iFlags;
+	unsigned int	m_iFlags{0};
 };
 
 class RoomWheelItem : public WheelItemBase
@@ -24,8 +24,8 @@ public:
 	RoomWheelItem( const RoomWheelItem &cpy );
 
 	void Load( const RString &sType );
-	virtual void LoadFromWheelItemData( const WheelItemBaseData* pWID, int iIndex, bool bHasFocus, int iDrawIndex );
-	virtual RoomWheelItem *Copy() const { return new RoomWheelItem(*this); }
+	void LoadFromWheelItemData( const WheelItemBaseData* pWID, int iIndex, bool bHasFocus, int iDrawIndex ) override;
+	RoomWheelItem *Copy() const override { return new RoomWheelItem(*this); }
 
 private:
 	AutoActor	m_sprNormalPart;
@@ -48,12 +48,12 @@ struct RoomInfo
 class RoomWheel : public WheelBase
 {
 public:
-	virtual ~RoomWheel();
-	virtual void Load( const RString &sType );
+	~RoomWheel() override;
+	void Load( const RString &sType ) override;
 	virtual void BuildWheelItemsData( vector<WheelItemBaseData*> &arrayWheelItemDatas );
-	virtual unsigned int GetNumItems() const;
-	virtual bool Select();
-	virtual void Move( int n );
+	unsigned int GetNumItems() const override;
+	bool Select() override;
+	void Move( int n ) override;
 
 	inline RoomWheelItemData *GetItem( unsigned int i ) { return dynamic_cast<RoomWheelItemData*>( WheelBase::GetItem(i + m_offset) ); }
 	void AddPermanentItem( RoomWheelItemData *itemdata );
@@ -63,10 +63,10 @@ public:
 	void RemoveItem( int index );
 	
 	// Lua
-	void PushSelf(lua_State *L);
+	void PushSelf(lua_State *L) override;
 
 private:
-	virtual WheelItemBase *MakeItem();
+	WheelItemBase *MakeItem() override;
 	int m_offset;
 };
 

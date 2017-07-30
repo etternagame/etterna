@@ -123,7 +123,7 @@ void BannerCache::LoadBanner( const RString &sBannerPath )
 
 		CHECKPOINT_M( ssprintf( "BannerCache::LoadBanner: %s", sCachePath.c_str() ) );
 		RageSurface *pImage = RageSurfaceUtils::LoadSurface( sCachePath );
-		if( pImage == NULL )
+		if( pImage == nullptr )
 		{
 			if( tries == 0 )
 			{
@@ -185,7 +185,7 @@ void BannerCache::ReadFromDisk()
 struct BannerTexture: public RageTexture
 {
 	unsigned m_uTexHandle;
-	unsigned GetTexHandle() const { return m_uTexHandle; };	// accessed by RageDisplay
+	unsigned GetTexHandle() const override { return m_uTexHandle; };	// accessed by RageDisplay
 	/* This is a reference to a pointer in g_BannerPathToImage. */
 	RageSurface *&m_pImage;
 	int m_iWidth, m_iHeight;
@@ -196,14 +196,14 @@ struct BannerTexture: public RageTexture
 		Create();
 	}
 
-	~BannerTexture()
+	~BannerTexture() override
 	{ 
 		Destroy();
 	}
 	
 	void Create()
 	{
-		ASSERT( m_pImage != NULL );
+		ASSERT( m_pImage != nullptr );
 
 		/* The image is preprocessed; do as little work as possible. */
 
@@ -239,7 +239,7 @@ struct BannerTexture: public RageTexture
 
 		ASSERT( DISPLAY->SupportsTextureFormat(pf) );
 
-		ASSERT(m_pImage != NULL);
+		ASSERT(m_pImage != nullptr);
 		m_uTexHandle = DISPLAY->CreateTexture( pf, m_pImage, false );
 
 		CreateFrameRects();
@@ -252,13 +252,13 @@ struct BannerTexture: public RageTexture
 		m_uTexHandle = 0;
 	}
 
-	void Reload()
+	void Reload() override
 	{
 		Destroy();
 		Create();
 	}
 
-	void Invalidate()
+	void Invalidate() override
 	{
 		m_uTexHandle = 0; /* don't Destroy() */
 	}
@@ -293,7 +293,7 @@ RageTextureID BannerCache::LoadCachedBanner( const RString &sBannerPath )
 	 * when converting; this way, the conversion will end up in the map so we
 	 * only have to convert once. */
 	RageSurface *&pImage = g_BannerPathToImage[sBannerPath];
-	ASSERT( pImage != NULL );
+	ASSERT( pImage != nullptr );
 
 	int iSourceWidth = 0, iSourceHeight = 0;
 	BannerData.GetValue( sBannerPath, "Width", iSourceWidth );
@@ -371,7 +371,7 @@ void BannerCache::CacheBannerInternal( const RString &sBannerPath )
 {
 	RString sError;
 	RageSurface *pImage = RageSurfaceUtils::LoadFile( sBannerPath, sError );
-	if( pImage == NULL )
+	if( pImage == nullptr )
 	{
 		LOG->UserLog( "Cache file", sBannerPath, "couldn't be loaded: %s", sError.c_str() );
 		return;

@@ -49,7 +49,7 @@ struct SSCLoader : public SMLoader
 	 * @param bFromCache a check to see if we are getting certain information from the cache file.
 	 * @return its success or failure.
 	 */
-	virtual bool LoadFromSimfile( const RString &sPath, Song &out, bool bFromCache = false );
+	bool LoadFromSimfile( const RString &sPath, Song &out, bool bFromCache = false ) override;
 	
 	/**
 	 * @brief Attempt to load an edit from the hard drive.
@@ -58,7 +58,7 @@ struct SSCLoader : public SMLoader
 	 * @param bAddStepsToSong a flag to determine if we add the edit steps to the song file.
 	 * @return its success or failure.
 	 */
-	bool LoadEditFromFile( const RString &sEditFilePath, ProfileSlot slot, bool bAddStepsToSong, Song *givenSong=NULL );
+	bool LoadEditFromFile( const RString &sEditFilePath, ProfileSlot slot, bool bAddStepsToSong, Song *givenSong=NULL ) override;
 	/**
 	 * @brief Attempt to parse the edit file in question.
 	 * @param msd the edit file itself.
@@ -67,20 +67,20 @@ struct SSCLoader : public SMLoader
 	 * @param bAddStepsToSong a flag to determine if we add the edit steps to the song file.
 	 * @return its success or failure.
 	 */
-	bool LoadEditFromMsd( const MsdFile &msd, const RString &sEditFilePath, ProfileSlot slot, bool bAddStepsToSong, Song *givenSong=NULL );
+	bool LoadEditFromMsd( const MsdFile &msd, const RString &sEditFilePath, ProfileSlot slot, bool bAddStepsToSong, Song *givenSong=NULL ) override;
 	
 	/**
 	 * @brief Retrieve the specific NoteData from the file.
 	 * @param cachePath the path to the cache file.
 	 * @param out the Steps to receive just the particular notedata.
 	 * @return true if successful, false otherwise. */
-	virtual bool LoadNoteDataFromSimfile( const RString &cachePath, Steps &out );
+	bool LoadNoteDataFromSimfile( const RString &cachePath, Steps &out ) override;
 	
 	void ProcessBPMs( TimingData &, const RString &sParam );
 	void ProcessStops( TimingData &, const RString &sParam );
 	void ProcessWarps( TimingData &, const RString &sParam, const float );
 	void ProcessLabels( TimingData &, const RString &param );
-	virtual void ProcessCombos( TimingData &, const RString &line, const int = -1 );
+	void ProcessCombos( TimingData &, const RString &line, const int = -1 ) override;
 	void ProcessScrolls( TimingData &, const RString );
 };
 

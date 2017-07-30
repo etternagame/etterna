@@ -28,22 +28,22 @@ const RString& SelectionStateToString( SelectionState ss );
 class ScreenSelectMusic : public ScreenWithMenuElements
 {
 public:
-	virtual ~ScreenSelectMusic();
-	virtual void Init();
-	virtual void BeginScreen();
+	~ScreenSelectMusic() override;
+	void Init() override;
+	void BeginScreen() override;
 
-	virtual void Update( float fDeltaTime );
-	virtual bool Input( const InputEventPlus &input );
-	virtual void HandleMessage( const Message &msg );
-	virtual void HandleScreenMessage( const ScreenMessage SM );
-	virtual bool AllowLateJoin() const { return true; }
+	void Update( float fDeltaTime ) override;
+	bool Input( const InputEventPlus &input ) override;
+	void HandleMessage( const Message &msg ) override;
+	void HandleScreenMessage( const ScreenMessage SM ) override;
+	bool AllowLateJoin() const override { return true; }
 
-	virtual bool MenuStart( const InputEventPlus &input );
-	virtual bool MenuBack( const InputEventPlus &input );
+	bool MenuStart( const InputEventPlus &input ) override;
+	bool MenuBack( const InputEventPlus &input ) override;
 	bool SelectCurrent(PlayerNumber pn);
 
 	// ScreenWithMenuElements override: never play music here; we do it ourself.
-	virtual void StartPlayingMusic() { }
+	void StartPlayingMusic() override { }
 
 	bool GetGoToOptions() const { return m_bGoToOptions; }
 	MusicWheel *GetMusicWheel() { return &m_MusicWheel; }
@@ -56,7 +56,7 @@ public:
 	int GetSelectionState();
 
 	// Lua
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 protected:
 	virtual bool GenericTweenOn() const { return true; }

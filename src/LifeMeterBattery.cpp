@@ -182,7 +182,7 @@ void LifeMeterBattery::ChangeLife( HoldNoteScore score, TapNoteScore tscore )
 
 void LifeMeterBattery::SetLife(float value)
 {
-	int new_lives= static_cast<int>(value);
+	auto new_lives= static_cast<int>(value);
 	bool lost= (new_lives < m_iLivesLeft);
 	m_iLivesLeft= new_lives;
 	BroadcastLifeChanged(lost);

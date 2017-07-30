@@ -14,12 +14,12 @@ class DifficultyIcon : public Sprite
 {
 public:
 	DifficultyIcon();
-	virtual bool EarlyAbortDraw() const { return m_bBlank || Sprite::EarlyAbortDraw(); }
+	bool EarlyAbortDraw() const override { return m_bBlank || Sprite::EarlyAbortDraw(); }
 
 	bool Load( const RString &sFilePath );
-	virtual void Load( const RageTextureID &ID ) { Load( ID.filename ); }
-	virtual void LoadFromNode( const XNode* pNode );
-	virtual DifficultyIcon *Copy() const;
+	void Load( const RageTextureID &ID ) override { Load( ID.filename ); }
+	void LoadFromNode( const XNode* pNode ) override;
+	DifficultyIcon *Copy() const override;
 
 	void SetPlayer( PlayerNumber pn );
 	void Unset();
@@ -27,7 +27,7 @@ public:
 	void SetFromDifficulty( Difficulty dc );
 
 	// Lua
-	void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 protected:
 	bool m_bBlank;

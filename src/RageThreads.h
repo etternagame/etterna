@@ -31,7 +31,7 @@ public:
 	static const char *GetThreadNameByID( uint64_t iID );
 	static bool EnumThreadIDs( int n, uint64_t &iID );
 	int Wait();
-	bool IsCreated() const { return m_pSlot != NULL; }
+	bool IsCreated() const { return m_pSlot != nullptr; }
 
 	/* A system can define HAVE_TLS, indicating that it can compile thread_local
 	 * code, but an individual environment may not actually have functional TLS.
@@ -68,8 +68,8 @@ public:
 private:
 	ThreadSlot *m_pSlot;
 	// Swallow up warnings. If they must be used, define them.
-	RageThreadRegister& operator=(const RageThreadRegister& rhs);
-	RageThreadRegister(const RageThreadRegister& rhs);
+	RageThreadRegister& operator=(const RageThreadRegister& rhs) = delete;
+	RageThreadRegister(const RageThreadRegister& rhs) = delete;
 };
 
 namespace Checkpoints
@@ -131,9 +131,9 @@ class LockMutex
 
 public:
 	LockMutex(RageMutex &mut, const char *file, int line);
-	LockMutex(RageMutex &mut): mutex(mut), file(NULL), line(-1), locked_at(-1), locked(true) { mutex.Lock(); }
+	LockMutex(RageMutex &mut): mutex(mut), file(nullptr), line(-1), locked_at(-1), locked(true) { mutex.Lock(); }
 	~LockMutex();
-	LockMutex(LockMutex &cpy): mutex(cpy.mutex), file(NULL), line(-1), locked_at(cpy.locked_at), locked(true) { mutex.Lock(); }
+	LockMutex(LockMutex &cpy): mutex(cpy.mutex), file(nullptr), line(-1), locked_at(cpy.locked_at), locked(true) { mutex.Lock(); }
 
 	/**
 	 * @brief Unlock the mutex (before this would normally go out of scope).
@@ -142,7 +142,7 @@ public:
 	void Unlock();
 private:
 	// Swallow up warnings. If they must be used, define them.
-	LockMutex& operator=(const LockMutex& rhs);
+	LockMutex& operator=(const LockMutex& rhs) = delete;
 };
 
 #define LockMut(m) LockMutex SM_UNIQUE_NAME(LocalLock) (m, __FILE__, __LINE__)
@@ -152,7 +152,7 @@ class RageEvent: public RageMutex
 {
 public:
 	RageEvent( const RString &name );
-	~RageEvent();
+	~RageEvent() override;
 
 	/*
 	 * If pTimeout is non-NULL, the event will be automatically signalled at the given
@@ -160,7 +160,7 @@ public:
 	 * If false is returned, the wait timed out (and the mutex is locked, as if the
 	 * event had been signalled).
 	 */
-	bool Wait( RageTimer *pTimeout = NULL );
+	bool Wait( RageTimer *pTimeout = nullptr );
 	void Signal();
 	void Broadcast();
 	bool WaitTimeoutSupported() const;
@@ -190,8 +190,8 @@ private:
 	RString m_sName;
 	
 	// Swallow up warnings. If they must be used, define them.
-	RageSemaphore& operator=(const RageSemaphore& rhs);
-	RageSemaphore(const RageSemaphore& rhs);
+	RageSemaphore& operator=(const RageSemaphore& rhs) = delete;
+	RageSemaphore(const RageSemaphore& rhs) = delete;
 };
 
 #endif

@@ -2,7 +2,7 @@
 #include "RageSurface.h"
 #include "RageUtil.h"
 
-#include <limits.h>
+#include <climits>
 
 
 int32_t RageSurfacePalette::FindColor( const RageSurfaceColor &color ) const
@@ -212,7 +212,7 @@ void SetupFormat( RageSurfaceFormat &fmt,
 
 RageSurface *CreateSurface( int width, int height, int BitsPerPixel, uint32_t Rmask, uint32_t Gmask, uint32_t Bmask, uint32_t Amask )
 {
-	RageSurface *pImg = new RageSurface;
+	auto *pImg = new RageSurface;
 
 	SetupFormat( pImg->fmt, width, height, BitsPerPixel, Rmask, Gmask, Bmask, Amask );
 
@@ -234,7 +234,7 @@ RageSurface *CreateSurface( int width, int height, int BitsPerPixel, uint32_t Rm
 
 RageSurface *CreateSurfaceFrom( int width, int height, int BitsPerPixel, uint32_t Rmask, uint32_t Gmask, uint32_t Bmask, uint32_t Amask, uint8_t *pPixels, uint32_t pitch )
 {
-	RageSurface *pImg = new RageSurface;
+	auto *pImg = new RageSurface;
 
 	SetupFormat( pImg->fmt, width, height, BitsPerPixel, Rmask, Gmask, Bmask, Amask );
 

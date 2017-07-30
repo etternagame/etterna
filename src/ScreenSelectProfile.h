@@ -8,18 +8,18 @@
 class ScreenSelectProfile : public ScreenWithMenuElements
 {
 public:
-	virtual void Init();
-	virtual bool Input( const InputEventPlus &input );
-	virtual bool MenuLeft( const InputEventPlus &input );
-	virtual bool MenuRight( const InputEventPlus &input );
-	virtual bool MenuUp( const InputEventPlus &input );
-	virtual bool MenuDown( const InputEventPlus &input );
-	virtual void HandleScreenMessage( const ScreenMessage SM );
+	void Init() override;
+	bool Input( const InputEventPlus &input ) override;
+	bool MenuLeft( const InputEventPlus &input ) override;
+	bool MenuRight( const InputEventPlus &input ) override;
+	bool MenuUp( const InputEventPlus &input ) override;
+	bool MenuDown( const InputEventPlus &input ) override;
+	void HandleScreenMessage( const ScreenMessage SM ) override;
 
 	GameButton m_TrackingRepeatingInput;
 
 	// Lua
-	void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 	bool SetProfileIndex( PlayerNumber pn, int iProfileIndex );
 	int GetProfileIndex( PlayerNumber pn ) { return m_iSelectedProfiles[pn]; }
 	bool Finish();

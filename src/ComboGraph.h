@@ -16,11 +16,11 @@ public:
 	ComboGraph();
 	void Load( const RString &sMetricsGroup );
 	void Set( const StageStats &s, const PlayerStageStats &pss );
-	virtual ComboGraph *Copy() const;
-	virtual bool AutoLoadChildren() const { return true; }
+	ComboGraph *Copy() const override;
+	bool AutoLoadChildren() const override { return true; }
 
 	// Commands
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 private:
 	ThemeMetric<float> BODY_WIDTH;

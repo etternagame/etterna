@@ -164,50 +164,40 @@ struct hold_status
 
 struct garv_state
 {
-	int curr_row;
-	int notes_hit_for_stream;
-	int jumps_hit_for_air;
-	int holds_held;
-	int rolls_held;
-	int notes_hit;
-	int taps_hit;
-	int jumps_hit;
-	int hands_hit;
-	int mines_avoided;
-	int lifts_hit;
+	int curr_row{-1};
+	int notes_hit_for_stream{0};
+	int jumps_hit_for_air{0};
+	int holds_held{0};
+	int rolls_held{0};
+	int notes_hit{0};
+	int taps_hit{0};
+	int jumps_hit{0};
+	int hands_hit{0};
+	int mines_avoided{0};
+	int lifts_hit{0};
 	// hold_ends tracks where currently active holds will end, which is used
 	// to count the number of hands. -Kyz
 	vector<hold_status> hold_ends;
-	int num_notes_on_curr_row;
+	int num_notes_on_curr_row{0};
 	// num_holds_on_curr_row saves us the work of tracking where holds started
 	// just to keep a jump of two holds from counting as a hand.
-	int num_holds_on_curr_row;
-	int num_notes_hit_on_curr_row;
+	int num_holds_on_curr_row{0};
+	int num_notes_hit_on_curr_row{0};
 	// last_tns_on_row and last_time_on_row are used for deciding whether a jump
 	// or hand was successfully hit.
-	TapNoteScore last_tns_on_row;
-	float last_time_on_row;
+	TapNoteScore last_tns_on_row{TapNoteScore_Invalid};
+	float last_time_on_row{-9999};
 	// A hand is considered missed if any of the notes is missed.
-	TapNoteScore worst_tns_on_row;
+	TapNoteScore worst_tns_on_row{TapNoteScore_Invalid};
 	// TODO?  Make these configurable in some way?
-	TapNoteScore stream_tns;
-	TapNoteScore air_tns;
-	TapNoteScore taps_tns;
-	TapNoteScore jumps_tns;
-	TapNoteScore hands_tns;
+	TapNoteScore stream_tns{TNS_W2};
+	TapNoteScore air_tns{TNS_W2};
+	TapNoteScore taps_tns{TNS_W4};
+	TapNoteScore jumps_tns{TNS_W4};
+	TapNoteScore hands_tns{TNS_W4};
 	TapNoteScore lifts_tns;
-	bool judgable;
-	garv_state()
-		:curr_row(-1), notes_hit_for_stream(0), jumps_hit_for_air(0),
-		 holds_held(0), rolls_held(0), notes_hit(0), taps_hit(0), jumps_hit(0),
-		 hands_hit(0), mines_avoided(0), lifts_hit(0), num_notes_on_curr_row(0),
-		 num_holds_on_curr_row(0), num_notes_hit_on_curr_row(0),
-		 last_tns_on_row(TapNoteScore_Invalid), last_time_on_row(-9999),
-		 worst_tns_on_row(TapNoteScore_Invalid), stream_tns(TNS_W2),
-		 air_tns(TNS_W2), taps_tns(TNS_W4), jumps_tns(TNS_W4), hands_tns(TNS_W4),
-		 lifts_tns(MIN_SCORE_TO_MAINTAIN_COMBO),
-		 judgable(false)
-	{}
+	bool judgable{false};
+	garv_state(): lifts_tns(MIN_SCORE_TO_MAINTAIN_COMBO) {}
 };
 
 static void DoRowEndRadarActualCalc(garv_state& state, RadarValues& out)

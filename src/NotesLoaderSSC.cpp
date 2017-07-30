@@ -63,8 +63,8 @@ enum LoadNoteDataTagIDs
 	LNDID_notedata
 };
 
-typedef void (*steps_tag_func_t)(StepsTagInfo& info);
-typedef void (*song_tag_func_t)(SongTagInfo& info);
+using steps_tag_func_t = void (*)(StepsTagInfo &);
+using song_tag_func_t = void (*)(SongTagInfo &);
 
 // Functions for song tags go below this line. -Kyz
 /****************************************************************/

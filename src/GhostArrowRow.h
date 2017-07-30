@@ -11,9 +11,9 @@ class PlayerState;
 class GhostArrowRow : public ActorFrame
 {
 public:
-	virtual ~GhostArrowRow();
-	virtual void Update( float fDeltaTime );
-	virtual void DrawPrimitives();
+	~GhostArrowRow() override;
+	void Update( float fDeltaTime ) override;
+	void DrawPrimitives() override;
 
 	void Load( const PlayerState* pPlayerState, float fYReverseOffset );
 	void SetColumnRenderers(vector<NoteColumnRenderer>& renderers);

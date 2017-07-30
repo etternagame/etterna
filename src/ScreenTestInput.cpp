@@ -13,7 +13,7 @@
 class DeviceList: public BitmapText
 {
 public:
-	void Update( float fDeltaTime )
+	void Update( float fDeltaTime ) override
 	{
 		// Update devices text
 		this->SetText( INPUTMAN->GetDisplayDevicesString() );
@@ -21,7 +21,7 @@ public:
 		BitmapText::Update( fDeltaTime );
 	}
 
-	virtual DeviceList *Copy() const;
+	DeviceList *Copy() const override;
 };
 
 REGISTER_ACTOR_CLASS( DeviceList );
@@ -31,9 +31,9 @@ static LocalizedString SECONDARY	( "ScreenTestInput", "secondary" );
 static LocalizedString NOT_MAPPED	( "ScreenTestInput", "not mapped" );
 class InputList: public BitmapText
 {
-	virtual InputList *Copy() const;
+	InputList *Copy() const override;
 
-	void Update( float fDeltaTime )
+	void Update( float fDeltaTime ) override
 	{
 		// Update input texts
 		vector<RString> asInputs;

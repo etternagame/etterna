@@ -16,32 +16,32 @@
 class ScreenNetSelectMusic : public ScreenNetSelectBase
 {
 public:
-	virtual void Init();
+	void Init() override;
 
-	virtual bool Input( const InputEventPlus &input );
-	virtual void HandleScreenMessage( const ScreenMessage SM );
+	bool Input( const InputEventPlus &input ) override;
+	void HandleScreenMessage( const ScreenMessage SM ) override;
 
 	void StartSelectedSong();
 	bool SelectCurrent();
 
 	MusicWheel* GetMusicWheel();
 	// Lua
-	virtual void PushSelf(lua_State *L);
+	void PushSelf(lua_State *L) override;
 	
 protected:
-	virtual bool MenuStart( const InputEventPlus &input );
-	virtual bool MenuBack( const InputEventPlus &input );
-	virtual bool MenuLeft( const InputEventPlus &input );
-	virtual bool MenuRight( const InputEventPlus &input );
-	virtual bool MenuUp( const InputEventPlus &input );
-	virtual bool MenuDown( const InputEventPlus &input );
+	bool MenuStart( const InputEventPlus &input ) override;
+	bool MenuBack( const InputEventPlus &input ) override;
+	bool MenuLeft( const InputEventPlus &input ) override;
+	bool MenuRight( const InputEventPlus &input ) override;
+	bool MenuUp( const InputEventPlus &input ) override;
+	bool MenuDown( const InputEventPlus &input ) override;
 	bool LeftAndRightPressed( const PlayerNumber pn );
 
-	virtual void Update( float fDeltaTime );
+	void Update( float fDeltaTime ) override;
 
 	void MusicChanged();
 
-	void TweenOffScreen();
+	void TweenOffScreen() override;
 
 	ThemeMetric<SampleMusicPreviewMode> SAMPLE_MUSIC_PREVIEW_MODE;
 	RString m_sSectionMusicPath;

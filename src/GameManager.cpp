@@ -2781,10 +2781,9 @@ void GameManager::GetStylesForGame( const Game *pGame, vector<const Style*>& aSt
 
 const Game *GameManager::GetGameForStyle( const Style *pStyle )
 {
-	for( size_t g=0; g<ARRAYLEN(g_Games); ++g )
+	for(auto pGame : g_Games)
 	{
-		const Game *pGame = g_Games[g];
-		for( int s=0; pGame->m_apStyles[s]; ++s ) 
+			for( int s=0; pGame->m_apStyles[s]; ++s ) 
 		{
 			if( pGame->m_apStyles[s] == pStyle )
 				return pGame;
@@ -2795,10 +2794,9 @@ const Game *GameManager::GetGameForStyle( const Style *pStyle )
 
 const Style* GameManager::GetEditorStyleForStepsType( StepsType st )
 {
-	for( size_t g=0; g<ARRAYLEN(g_Games); ++g )
+	for(auto pGame : g_Games)
 	{
-		const Game *pGame = g_Games[g];
-		for( int s=0; pGame->m_apStyles[s]; ++s ) 
+			for( int s=0; pGame->m_apStyles[s]; ++s ) 
 		{
 			const Style *style = pGame->m_apStyles[s];
 			if( style->m_StepsType == st && style->m_bUsedForEdit )
@@ -3045,7 +3043,7 @@ public:
 		lua_createtable(L, 0, 0);
 		for( int s=0; pGame->m_apStyles[s]; ++s ) 
 		{
-			Style *pStyle = const_cast<Style *>( pGame->m_apStyles[s] );
+			auto *pStyle = const_cast<Style *>( pGame->m_apStyles[s] );
 			pStyle->PushSelf(L);
 			lua_rawseti(L, -2, s+1);
 		}		

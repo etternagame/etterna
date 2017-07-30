@@ -24,7 +24,7 @@ public:
 
 	void Load( const RString &sMetricsGroup, const PlayerState *pPlayerState );
 
-	virtual StepsDisplay *Copy() const;
+	StepsDisplay *Copy() const override;
 
 	void SetFromGameState( PlayerNumber pn );
 	void SetFromStepsTypeAndMeterAndDifficultyAndCourseType( StepsType st, int iMeter, Difficulty dc);
@@ -32,7 +32,7 @@ public:
 	void Unset();
 
 	// Lua
-	void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 private:
 	struct SetParams

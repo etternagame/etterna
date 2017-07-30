@@ -37,8 +37,8 @@ template <typename Type>
 class Luna: public LuaBinding
 {
 protected:
-	typedef Type T;
-	typedef int (binding_t)(T *p, lua_State *L);
+	using T = Type;
+	using binding_t = int (T *, lua_State *);
 
 	struct RegType
 	{
@@ -46,7 +46,7 @@ protected:
 		binding_t *mfunc;
 	};
 
-	void Register( Lua *L, int iMethods, int iMetatable )
+	void Register( Lua *L, int iMethods, int iMetatable ) override
 	{
 		lua_pushcfunction( L, tostring_T );
 		lua_setfield( L, iMetatable, "__tostring" );
@@ -61,8 +61,8 @@ protected:
 	}
 
 public:
-	virtual const std::string &GetClassName() const { return m_sClassName; }
-	virtual const std::string &GetBaseClassName() const { return m_sBaseClassName; }
+	const std::string &GetClassName() const override { return m_sClassName; }
+	const std::string &GetBaseClassName() const override { return m_sBaseClassName; }
 	static std::string m_sClassName;
 	static std::string m_sBaseClassName;
 
@@ -131,9 +131,9 @@ private:
 class LuaClass: public LuaTable
 {
 public:
-	LuaClass() { }
+	LuaClass() = default;
 	LuaClass( const LuaClass &cpy );
-	virtual ~LuaClass();
+	~LuaClass() override;
 	LuaClass &operator=( const LuaClass &cpy );
 };
 

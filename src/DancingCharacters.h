@@ -28,27 +28,27 @@ class DancingCharacters : public ActorFrame
 {
 public:
 	DancingCharacters();
-	virtual ~DancingCharacters();
+	~DancingCharacters() override;
 
 	void LoadNextSong();
  
-	virtual void Update( float fDelta );
-	virtual void DrawPrimitives();
-	bool	m_bDrawDangerLight;
+	void Update( float fDelta ) override;
+	void DrawPrimitives() override;
+	bool	m_bDrawDangerLight{false};
 	void Change2DAnimState( PlayerNumber pn, int iState );
 protected:
 
 	Model	*m_pCharacter[NUM_PLAYERS];
 
 	/** @brief How far away is the camera from the dancer? */
-	float	m_CameraDistance;
-	float	m_CameraPanYStart;
-	float	m_CameraPanYEnd;
-	float	m_fLookAtHeight;
-	float	m_fCameraHeightStart;
-	float	m_fCameraHeightEnd;
-	float	m_fThisCameraStartBeat;
-	float	m_fThisCameraEndBeat;
+	float	m_CameraDistance{0};
+	float	m_CameraPanYStart{0};
+	float	m_CameraPanYEnd{0};
+	float	m_fLookAtHeight{0};
+	float	m_fCameraHeightStart{0};
+	float	m_fCameraHeightEnd{0};
+	float	m_fThisCameraStartBeat{0};
+	float	m_fThisCameraEndBeat{0};
 
 	bool m_bHas2DElements[NUM_PLAYERS];
 	

@@ -12,18 +12,18 @@ public:
 
 	virtual void Load(
 	const vector<Song*> &apSongs,
-	const vector<Steps*> &apSteps);
+	const vector<Steps*> &apSteps) override;
 
-	virtual void DrawPrimitives();
-	virtual void Update( float fDelta );
+	void DrawPrimitives() override;
+	void Update( float fDelta ) override;
 
-	virtual void OnNextSong( int iSongInCourseIndex, const Steps* pSteps, const NoteData* pNoteData );
-	virtual void HandleTapScore( const TapNote &tn );
-	virtual void HandleTapRowScore( const NoteData &nd, int iRow );
-	virtual void HandleHoldScore( const TapNote &tn );
-	virtual void HandleHoldActiveSeconds( float fMusicSecondsHeld );
-	virtual void HandleHoldCheckpointScore( const NoteData &nd, int iRow, int iNumHoldsHeldThisRow, int iNumHoldsMissedThisRow );
-	virtual void HandleTapScoreNone();
+	void OnNextSong( int iSongInCourseIndex, const Steps* pSteps, const NoteData* pNoteData ) override;
+	void HandleTapScore( const TapNote &tn ) override;
+	void HandleTapRowScore( const NoteData &nd, int iRow ) override;
+	void HandleHoldScore( const TapNote &tn ) override;
+	void HandleHoldActiveSeconds( float fMusicSecondsHeld ) override;
+	void HandleHoldCheckpointScore( const NoteData &nd, int iRow, int iNumHoldsHeldThisRow, int iNumHoldsMissedThisRow ) override;
+	void HandleTapScoreNone() override;
 };
 #endif
 

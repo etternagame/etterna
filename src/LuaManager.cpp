@@ -1544,7 +1544,7 @@ namespace
 		FOREACH_LUATABLE( L, 2 )
 		{
 			lua_pushvalue( L, -2 );
-			LuaThreadVariable *pVar = new LuaThreadVariable( L );
+			auto *pVar = new LuaThreadVariable( L );
 			apVars.push_back( pVar );
 		}
 

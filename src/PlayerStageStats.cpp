@@ -4,7 +4,7 @@
 #include "ThemeManager.h"
 #include "Foreach.h"
 #include "LuaManager.h"
-#include <float.h>
+#include <cfloat>
 #include "GameState.h"
 #include "Steps.h"
 #include "NoteData.h"
@@ -355,7 +355,7 @@ float PlayerStageStats::GetCurMaxPercentDancePoints() const
 	if ( m_iCurPossibleDancePoints == m_iPossibleDancePoints )
 		return 1; // correct for rounding error
 
-	float fCurMaxPercentDancePoints = static_cast<float>(m_iCurPossibleDancePoints / m_iPossibleDancePoints);
+	auto fCurMaxPercentDancePoints = static_cast<float>(m_iCurPossibleDancePoints / m_iPossibleDancePoints);
 
 	return fCurMaxPercentDancePoints;
 }

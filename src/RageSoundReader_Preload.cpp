@@ -20,7 +20,7 @@ Preference<int> g_iSoundPreloadMaxSamples( "SoundPreloadMaxSamples", 1024*1024 )
 
 bool RageSoundReader_Preload::PreloadSound( RageSoundReader *&pSound )
 {
-	RageSoundReader_Preload *pPreload = new RageSoundReader_Preload;
+	auto *pPreload = new RageSoundReader_Preload;
 	if( !pPreload->Open(pSound) )
 	{
 		/* Preload failed.  It read some data, so we need to rewind the reader. */
@@ -34,8 +34,7 @@ bool RageSoundReader_Preload::PreloadSound( RageSoundReader *&pSound )
 }
 
 RageSoundReader_Preload::RageSoundReader_Preload():
-	m_Buffer( new RString ), m_bBufferIs16Bit(false),
-	m_iPosition(0), m_iSampleRate(0), m_iChannels(0), m_fRate(0.0f)
+	m_Buffer( new RString ) 
 {
 	m_bBufferIs16Bit = g_bSoundPreload16bit.Get();
 }

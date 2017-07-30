@@ -54,7 +54,7 @@ class OptionRow : public ActorFrame
 {
 public:
 	OptionRow( const OptionRowType *pType );
-	~OptionRow();
+	~OptionRow() override;
 
 	void Clear();
 	void LoadNormal( OptionRowHandler *pHand, bool bFirstItemGoesDown );
@@ -121,10 +121,10 @@ public:
 	void Reload();
 
 	// Messages
-	virtual void HandleMessage( const Message &msg );
+	void HandleMessage( const Message &msg ) override;
 
 	// Lua
-	void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 protected:
 	const OptionRowType *m_pParentType;

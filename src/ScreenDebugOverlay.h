@@ -13,12 +13,12 @@ void ChangeVisualDelay( float fDelta );
 class ScreenDebugOverlay : public Screen
 {
 public:
-	virtual ~ScreenDebugOverlay();
-	virtual void Init();
+	~ScreenDebugOverlay() override;
+	void Init() override;
 
-	bool Input( const InputEventPlus &input );
+	bool Input( const InputEventPlus &input ) override;
 
-	void Update( float fDeltaTime );
+	void Update( float fDeltaTime ) override;
 
 private:
 	void UpdateText();

@@ -18,9 +18,9 @@ class NoteField : public ActorFrame
 {
 public:
 	NoteField();
-	~NoteField();
-	virtual void Update( float fDeltaTime );
-	virtual void DrawPrimitives();
+	~NoteField() override;
+	void Update( float fDeltaTime ) override;
+	void DrawPrimitives() override;
 	void CalcPixelsBeforeAndAfterTargets();
 	void DrawBoardPrimitive();
 
@@ -34,7 +34,7 @@ public:
 	void ensure_note_displays_have_skin();
 	void InitColumnRenderers();
 
-	virtual void HandleMessage( const Message &msg );
+	void HandleMessage( const Message &msg ) override;
 
 	// This is done automatically by Init(), but can be re-called explicitly if the
 	// note skin changes.
@@ -46,7 +46,7 @@ public:
 	void DidTapNote(int col, TapNoteScore score, bool bright, bool from_lua= false);
 	void DidHoldNote(int col, HoldNoteScore score, bool bright, bool from_lua= false);
 
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 	// Allows the theme to modify the parameters to Step, SetPressed,
 	// DidTapNote, and DidHoldNote before they pass on to the ghost arrows or

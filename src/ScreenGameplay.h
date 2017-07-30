@@ -77,11 +77,11 @@ public:
 	/** @brief The present Player's number. */
 	PlayerNumber		m_pn;
 	/** @brief The present Player's multiplayer number. */
-	MultiPlayer		m_mp;
-	bool			m_bIsDummy;
-	int			m_iDummyIndex;
-	int			m_iAddToDifficulty;	// if > 0, use the Nth harder Steps
-	bool			m_bPlayerEnabled; // IsEnabled cache for iterators
+	MultiPlayer		m_mp{MultiPlayer_Invalid};
+	bool			m_bIsDummy{false};
+	int			m_iDummyIndex{0};
+	int			m_iAddToDifficulty{0};	// if > 0, use the Nth harder Steps
+	bool			m_bPlayerEnabled{false}; // IsEnabled cache for iterators
 	PlayerState		m_PlayerStateDummy;
 	PlayerStageStats	m_PlayerStageStatsDummy;
 	SoundEffectControl	m_SoundEffectControl;
@@ -124,22 +124,22 @@ class ScreenGameplay : public ScreenWithMenuElements
 {
 public:
 	ScreenGameplay();
-	virtual void Init();
-	virtual ~ScreenGameplay();
-	virtual void BeginScreen();
+	void Init() override;
+	~ScreenGameplay() override;
+	void BeginScreen() override;
 
-	virtual void Update( float fDeltaTime );
-	virtual bool Input( const InputEventPlus &input );
-	virtual void HandleScreenMessage( const ScreenMessage SM );
-	virtual void HandleMessage( const Message &msg );
-	virtual void Cancel( ScreenMessage smSendWhenDone );
+	void Update( float fDeltaTime ) override;
+	bool Input( const InputEventPlus &input ) override;
+	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleMessage( const Message &msg ) override;
+	void Cancel( ScreenMessage smSendWhenDone ) override;
 
-	virtual void DrawPrimitives();
+	void DrawPrimitives() override;
 
 	/**
 	 * @brief Retrieve the current ScreenType.
 	 * @return the gameplay ScreenType. */
-	virtual ScreenType GetScreenType() const { return gameplay; }
+	ScreenType GetScreenType() const override { return gameplay; }
 
 	/**
 	 * @brief Determine if we are to center the columns for just one player.
@@ -147,7 +147,7 @@ public:
 	bool Center1Player() const;
 
 	// Lua
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 	LifeMeter *GetLifeMeter( PlayerNumber pn );
 	PlayerInfo *GetPlayerInfo( PlayerNumber pn );
 	PlayerInfo *GetDummyPlayerInfo( int iDummyIndex );

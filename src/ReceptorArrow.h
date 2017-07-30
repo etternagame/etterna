@@ -14,8 +14,8 @@ public:
 	ReceptorArrow();
 	void Load( const PlayerState* pPlayerState, int iColNo );
 
-	virtual void DrawPrimitives();
-	virtual void Update( float fDeltaTime );
+	void DrawPrimitives() override;
+	void Update( float fDeltaTime ) override;
 	void Step( TapNoteScore score );
 	void SetPressed() { m_bIsPressed = true; };
 	void SetNoteUpcoming( bool b );

@@ -14,13 +14,13 @@ struct TapScoreDistribution
 	void ChangeWeightsToPercents()
 	{
 		float sum= 0;
-		for(int i= 0; i < NUM_TapNoteScore; ++i)
+		for(float i : fPercent)
 		{
-			sum+= fPercent[i];
+			sum+= i;
 		}
-		for(int i= 0; i < NUM_TapNoteScore; ++i)
+		for(float & i : fPercent)
 		{
-			fPercent[i]/= sum;
+			i/= sum;
 		}
 	}
 	void SetDefaultWeights()
@@ -59,10 +59,10 @@ void PlayerAI::InitFromDisk()
 	if(!bSuccess)
 	{
 		LuaHelpers::ReportScriptErrorFmt("Error trying to read \"%s\" to load AI player skill settings.", AI_PATH);
-		for(int i= 0; i < NUM_SKILL_LEVELS; ++i)
+		for(auto & g_Distribution : g_Distributions)
 		{
-			g_Distributions[i].SetDefaultWeights();
-			g_Distributions[i].ChangeWeightsToPercents();
+			g_Distribution.SetDefaultWeights();
+			g_Distribution.ChangeWeightsToPercents();
 		}
 	}
 	else

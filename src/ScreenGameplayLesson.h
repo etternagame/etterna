@@ -9,13 +9,13 @@ class ScreenGameplayLesson : public ScreenGameplayNormal
 {
 public:
 	ScreenGameplayLesson();
-	virtual void Init();
+	void Init() override;
 
-	virtual bool Input( const InputEventPlus &input );
-	virtual void HandleScreenMessage( const ScreenMessage SM );
+	bool Input( const InputEventPlus &input ) override;
+	void HandleScreenMessage( const ScreenMessage SM ) override;
 
-	virtual bool MenuStart( const InputEventPlus &input );
-	virtual bool MenuBack( const InputEventPlus &input );
+	bool MenuStart( const InputEventPlus &input ) override;
+	bool MenuBack( const InputEventPlus &input ) override;
 
 protected:
 	void ChangeLessonPage( int iDir );

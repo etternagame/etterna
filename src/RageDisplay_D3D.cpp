@@ -29,7 +29,7 @@
 	#pragma comment(lib, "DxErr.lib")
 #endif
 
-#include <math.h>
+#include <cmath>
 #include <list>
 
 RString GetErrorString( HRESULT hr )
@@ -193,9 +193,7 @@ const RageDisplay::RagePixelFormatDesc *RageDisplay_D3D::GetPixelFormatDesc(Rage
 
 
 RageDisplay_D3D::RageDisplay_D3D()
-{
-
-}
+= default;
 
 static LocalizedString D3D_NOT_INSTALLED ( "RageDisplay_D3D", "DirectX 9.0c or greater is not installed.  You can download it from:" );
 const RString D3D_URL = "http://www.microsoft.com/en-us/download/details.aspx?id=8109";
@@ -535,7 +533,7 @@ RString RageDisplay_D3D::TryVideoMode( const VideoModeParams &_p, bool &bNewDevi
 	SetPresentParametersFromVideoModeParams( p, &g_d3dpp );
 
 	// Display the window immediately, so we don't display the desktop ...
-	while( 1 )
+	while( true )
 	{
 		// Try the video mode.
 		RString sErr = SetD3DParams( bNewDeviceOut );
@@ -828,7 +826,7 @@ public:
 					m_vTriangles[meshInfo.iTriangleStart+j].nVertexIndices[k] = (uint16_t) meshInfo.iVertexStart + Triangles[j].nVertexIndices[k];
 		}
 	}
-	void Draw( int iMeshIndex ) const
+	void Draw( int iMeshIndex ) const override
 	{
 		const MeshInfo& meshInfo = m_vMeshInfo[iMeshIndex];
 
@@ -1548,13 +1546,13 @@ class D3DRenderTarget_FramebufferObject : public RenderTarget
 {
 public:
 	D3DRenderTarget_FramebufferObject();
-	~D3DRenderTarget_FramebufferObject();
-	void Create(const RenderTargetParam &param, int &iTextureWidthOut, int &iTextureHeightOut);
-	unsigned GetTexture() const { return (unsigned)m_uTexHandle; }
-	void StartRenderingTo();
-	void FinishRenderingTo();
+	~D3DRenderTarget_FramebufferObject() override;
+	void Create(const RenderTargetParam &param, int &iTextureWidthOut, int &iTextureHeightOut) override;
+	unsigned GetTexture() const override { return (unsigned)m_uTexHandle; }
+	void StartRenderingTo() override;
+	void FinishRenderingTo() override;
 
-	virtual bool InvertY() const { return true; }
+	bool InvertY() const override { return true; }
 
 private:
 	IDirect3DSurface9* m_iFrameBufferHandle;
@@ -1643,7 +1641,7 @@ void D3DRenderTarget_FramebufferObject::FinishRenderingTo()
 
 unsigned RageDisplay_D3D::CreateRenderTarget(const RenderTargetParam &param, int &iTextureWidthOut, int &iTextureHeightOut)
 {
-	D3DRenderTarget_FramebufferObject *pTarget = new D3DRenderTarget_FramebufferObject;
+	auto *pTarget = new D3DRenderTarget_FramebufferObject;
 
 	pTarget->Create(param, iTextureWidthOut, iTextureHeightOut);
 

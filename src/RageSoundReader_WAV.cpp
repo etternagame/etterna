@@ -23,7 +23,7 @@ namespace
 	{
 		/* Convert in reverse, so we can do it in-place. */
 		const uint8_t *pIn = (uint8_t *) pBuf;
-		float *pOut = (float *) pBuf;
+		auto *pOut = (float *) pBuf;
 		for( int i = iSamples-1; i >= 0; --i )
 		{
 			int iSample = pIn[i];
@@ -38,7 +38,7 @@ namespace
 	{
 		/* Convert in reverse, so we can do it in-place. */
 		const int16_t *pIn = (int16_t *) pBuf;
-		float *pOut = (float *) pBuf;
+		auto *pOut = (float *) pBuf;
 		for( int i = iSamples-1; i >= 0; --i )
 		{
                         int16_t iSample = Swap16LE( pIn[i] );
@@ -50,7 +50,7 @@ namespace
 	{
 		/* Convert in reverse, so we can do it in-place. */
 		const unsigned char *pIn = (unsigned char *) pBuf;
-		float *pOut = (float *) pBuf;
+		auto *pOut = (float *) pBuf;
 		pIn += iSamples * 3;
 		for( int i = iSamples-1; i >= 0; --i )
 		{
@@ -73,7 +73,7 @@ namespace
 	{
 		/* Convert in reverse, so we can do it in-place. */
 		const int32_t *pIn = (int32_t *) pBuf;
-		float *pOut = (float *) pBuf;
+		auto *pOut = (float *) pBuf;
 		for( int i = iSamples-1; i >= 0; --i )
 		{
                         int32_t iSample = Swap32LE( pIn[i] );
@@ -86,7 +86,7 @@ struct WavReader
 {
 	WavReader( RageFileBasic &f, const RageSoundReader_WAV::WavData &data ):
 		m_File(f), m_WavData(data) { }
-	virtual ~WavReader() { }
+	virtual ~WavReader() = default;
 	virtual int Read( float *pBuf, int iFrames ) = 0;
 	virtual int GetLength() const = 0;
 	virtual bool Init() = 0;
@@ -105,7 +105,7 @@ struct WavReaderPCM: public WavReader
 	WavReaderPCM( RageFileBasic &f, const RageSoundReader_WAV::WavData &data ):
 		WavReader(f, data) { }
 
-	bool Init()
+	bool Init() override
 	{
 		if( QuantizeUp(m_WavData.m_iBitsPerSample, 8) < 8 ||
 		    QuantizeUp(m_WavData.m_iBitsPerSample, 8) > 32 )
@@ -124,7 +124,7 @@ struct WavReaderPCM: public WavReader
 		return true;
 	}
 
-	int Read( float *buf, int iFrames )
+	int Read( float *buf, int iFrames ) override
 	{
 		int iBytesPerSample = QuantizeUp(m_WavData.m_iBitsPerSample, 8) / 8;
 		int len = iFrames * m_WavData.m_iChannels;
@@ -160,14 +160,14 @@ struct WavReaderPCM: public WavReader
 		return iGotSamples / m_WavData.m_iChannels;
 	}
 
-	int GetLength() const
+	int GetLength() const override
 	{
 		const int iBytesPerSec = m_WavData.m_iSampleRate * m_WavData.m_iChannels * m_WavData.m_iBitsPerSample / 8;
 		int64_t iMS = (int64_t(m_WavData.m_iDataChunkSize) * 1000) / iBytesPerSec;
 		return (int) iMS;
 	}
 
-	int SetPosition( int iFrame )
+	int SetPosition( int iFrame ) override
 	{
 		int iByte = (int) (int64_t(iFrame) * m_WavData.m_iChannels * m_WavData.m_iBitsPerSample / 8);
 		if( iByte > m_WavData.m_iDataChunkSize )
@@ -181,7 +181,7 @@ struct WavReaderPCM: public WavReader
 	}
 
 	// XXX: untested
-	int GetNextSourceFrame() const
+	int GetNextSourceFrame() const override
 	{
 		int iByte = m_File.Tell() - m_WavData.m_iDataChunkPos;
 		int iFrame = iByte / (m_WavData.m_iChannels * m_WavData.m_iBitsPerSample / 8);
@@ -203,12 +203,12 @@ public:
 		m_pBuffer = NULL;
 	}
 
-	virtual ~WavReaderADPCM()
+	~WavReaderADPCM() override
 	{
 		delete[] m_pBuffer;
 	}
 
-	bool Init()
+	bool Init() override
 	{
 		if( m_WavData.m_iBitsPerSample != 4 )
 		{
@@ -353,7 +353,7 @@ public:
 		return true;
 	}
 
-	int Read( float *buf, int iFrames )
+	int Read( float *buf, int iFrames ) override
 	{
 		int iGotFrames = 0;
 		
@@ -382,7 +382,7 @@ public:
 		return iGotFrames;
 	}
 
-	int GetLength() const
+	int GetLength() const override
 	{
 		const int iNumWholeBlocks = m_WavData.m_iDataChunkSize / m_WavData.m_iBlockAlign;
 		const int iExtraBytes = m_WavData.m_iDataChunkSize - (iNumWholeBlocks*m_WavData.m_iBlockAlign);
@@ -402,7 +402,7 @@ public:
 		return iMS;
 	}
 
-	int SetPosition( int iFrame )
+	int SetPosition( int iFrame ) override
 	{
 		const int iBlock = iFrame / m_iFramesPerBlock;
 
@@ -434,7 +434,7 @@ public:
 	}
 
 	// XXX: untested
-	int GetNextSourceFrame() const
+	int GetNextSourceFrame() const override
 	{
 		int iByte = m_File.Tell() - m_WavData.m_iDataChunkPos;
 		int iBlock = iByte / m_WavData.m_iBlockAlign;
@@ -453,7 +453,7 @@ RString ReadString( RageFileBasic &f, int iSize, RString &sError )
 	if( sError.size() != 0 )
 		return RString();
 
-	char *buf = new char[iSize + 1];
+	auto *buf = new char[iSize + 1];
 	std::fill(buf, buf + iSize + 1, '\0');
 	FileReading::ReadBytes( f, buf, iSize, sError );
 	RString ret(buf);
@@ -615,7 +615,7 @@ RageSoundReader_WAV::~RageSoundReader_WAV()
 
 RageSoundReader_WAV *RageSoundReader_WAV::Copy() const
 {
-	RageSoundReader_WAV *ret = new RageSoundReader_WAV;
+	auto *ret = new RageSoundReader_WAV;
 	RageFileBasic *pFile = m_pFile->Copy();
 	pFile->Seek( 0 );
 	ret->Open( pFile );

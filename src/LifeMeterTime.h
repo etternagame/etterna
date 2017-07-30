@@ -16,22 +16,22 @@ class LifeMeterTime : public LifeMeter
 public:
 	LifeMeterTime();
 
-	virtual ~LifeMeterTime();
+	~LifeMeterTime() override;
 
-	virtual void Load( const PlayerState *pPlayerState, PlayerStageStats *pPlayerStageStats );
+	void Load( const PlayerState *pPlayerState, PlayerStageStats *pPlayerStageStats ) override;
 
-	virtual void Update( float fDeltaTime );
+	void Update( float fDeltaTime ) override;
 
-	virtual void OnLoadSong();
-	virtual void ChangeLife( TapNoteScore score );
-	virtual void ChangeLife( HoldNoteScore score, TapNoteScore tscore );
-	virtual void ChangeLife(float delta);
-	virtual void SetLife(float value);
-	virtual void HandleTapScoreNone();
-	virtual bool IsInDanger() const;
-	virtual bool IsHot() const;
-	virtual bool IsFailing() const;
-	virtual float GetLife() const;
+	void OnLoadSong() override;
+	void ChangeLife( TapNoteScore score ) override;
+	void ChangeLife( HoldNoteScore score, TapNoteScore tscore ) override;
+	void ChangeLife(float delta) override;
+	void SetLife(float value) override;
+	void HandleTapScoreNone() override;
+	bool IsInDanger() const override;
+	bool IsHot() const override;
+	bool IsFailing() const override;
+	float GetLife() const override;
 
 private:
 	float GetLifeSeconds() const;

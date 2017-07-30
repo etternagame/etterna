@@ -21,13 +21,13 @@ public:
 	void EnableMask( float fWidth, float fHeight );
 	void DisableMask();
 
-	virtual void UpdateInternal( float fDelta );
-	virtual void DrawPrimitives();	// handles drawing and doesn't call ActorFrame::DrawPrimitives
+	void UpdateInternal( float fDelta ) override;
+	void DrawPrimitives() override;	// handles drawing and doesn't call ActorFrame::DrawPrimitives
 
 	void PositionItems();
 
-	void LoadFromNode( const XNode *pNode );
-	virtual ActorScroller *Copy() const;
+	void LoadFromNode( const XNode *pNode ) override;
+	ActorScroller *Copy() const override;
 
 	void SetLoop( bool bLoop )						{ m_bLoop = bLoop; }
 	void SetWrap( bool bWrap )						{ m_bWrap = bWrap; }
@@ -49,7 +49,7 @@ public:
 	int GetNumItems() const						{ return m_iNumItems; }
 
 	// Commands
-	void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 protected:
 	void PositionItemsAndDrawPrimitives( bool bDrawPrimitives );
@@ -92,8 +92,8 @@ class ActorScrollerAutoDeleteChildren : public ActorScroller
 {
 public:
 	ActorScrollerAutoDeleteChildren() { DeleteChildrenWhenDone(true); }
-	virtual bool AutoLoadChildren() const { return true; }
-	virtual ActorScrollerAutoDeleteChildren *Copy() const;
+	bool AutoLoadChildren() const override { return true; }
+	ActorScrollerAutoDeleteChildren *Copy() const override;
 };
 
 #endif

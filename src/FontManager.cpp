@@ -12,8 +12,7 @@ typedef pair<RString,RString> FontName;
 static map<FontName, Font*> g_mapPathToFont;
 
 FontManager::FontManager()
-{
-}
+= default;
 
 FontManager::~FontManager()
 {
@@ -47,7 +46,7 @@ Font* FontManager::LoadFont( const RString &sFontOrTextureFilePath, RString sCha
 		return pFont;
 	}
 
-	Font *f = new Font;
+	auto *f = new Font;
 	f->Load(sFontOrTextureFilePath, sChars);
 	g_mapPathToFont[NewName] = f;
 	return f;

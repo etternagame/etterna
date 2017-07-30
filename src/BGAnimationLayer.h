@@ -12,12 +12,12 @@ class BGAnimationLayer : public ActorFrame
 {
 public:
 	BGAnimationLayer();
-	~BGAnimationLayer();
+	~BGAnimationLayer() override;
 
 	void LoadFromAniLayerFile( const RString& sPath );
-	void LoadFromNode( const XNode* pNode );
+	void LoadFromNode( const XNode* pNode ) override;
 
-	void UpdateInternal( float fDeltaTime );
+	void UpdateInternal( float fDeltaTime ) override;
 
 	float GetMaxTweenTimeLeft() const;
 

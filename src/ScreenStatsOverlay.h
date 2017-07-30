@@ -13,9 +13,9 @@ const int NUM_SKIPS_TO_SHOW = 5;
 class ScreenStatsOverlay : public Screen
 {
 public:
-	virtual void Init();
+	void Init() override;
 	
-	void Update( float fDeltaTime );
+	void Update( float fDeltaTime ) override;
 
 private:
 	void AddTimestampLine( const RString &txt, const RageColor &color );

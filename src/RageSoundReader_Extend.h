@@ -9,13 +9,13 @@ class RageSoundReader_Extend: public RageSoundReader_Filter
 {
 public:
 	RageSoundReader_Extend( RageSoundReader *pSource );
-	virtual int SetPosition( int iFrame );
-	virtual int Read( float *pBuffer, int iFrames );
-	virtual int GetNextSourceFrame() const;
-	virtual bool SetProperty( const RString &sProperty, float fValue );
+	int SetPosition( int iFrame ) override;
+	int Read( float *pBuffer, int iFrames ) override;
+	int GetNextSourceFrame() const override;
+	bool SetProperty( const RString &sProperty, float fValue ) override;
 
-	RageSoundReader_Extend *Copy() const { return new RageSoundReader_Extend(*this); }
-	~RageSoundReader_Extend() { }
+	RageSoundReader_Extend *Copy() const override { return new RageSoundReader_Extend(*this); }
+	~RageSoundReader_Extend() override = default;
 
 private:
 	int GetEndFrame() const;

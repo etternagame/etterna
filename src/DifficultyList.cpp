@@ -30,8 +30,7 @@ StepsDisplayList::StepsDisplayList()
 }
 
 StepsDisplayList::~StepsDisplayList()
-{
-}
+= default;
 
 void StepsDisplayList::LoadFromNode( const XNode* pNode )
 {

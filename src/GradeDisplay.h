@@ -13,10 +13,10 @@ public:
 	virtual void Load( const RString &sMetricsGroup );
 	void SetGrade( Grade g );
 
-	virtual GradeDisplay *Copy() const;
+	GradeDisplay *Copy() const override;
 
 	// Lua
-	void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 protected:
 	vector<AutoActor>	m_vSpr;
 };

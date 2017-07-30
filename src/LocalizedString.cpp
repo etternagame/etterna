@@ -11,12 +11,12 @@ class LocalizedStringImplDefault: public ILocalizedStringImpl
 public:
 	static ILocalizedStringImpl *Create() { return new LocalizedStringImplDefault; }
 
-	void Load( const RString& sGroup, const RString& sName )
+	void Load( const RString& sGroup, const RString& sName ) override
 	{
 		m_sValue = sName;
 	}
 
-	const RString &GetLocalized() const { return m_sValue; }
+	const RString &GetLocalized() const override { return m_sValue; }
 
 private:
 	RString m_sValue;

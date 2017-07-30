@@ -14,13 +14,13 @@ class ScoreDisplayLifeTime : public ScoreDisplay
 public:
 	ScoreDisplayLifeTime();
 
-	virtual void Init( const PlayerState* pPlayerState, const PlayerStageStats* pPlayerStageStats );
+	void Init( const PlayerState* pPlayerState, const PlayerStageStats* pPlayerStageStats ) override;
 
-	virtual void Update( float fDelta );
+	void Update( float fDelta ) override;
 
-	virtual void OnLoadSong();
-	virtual void OnJudgment( TapNoteScore score );
-	virtual void OnJudgment( HoldNoteScore score, TapNoteScore tscore );
+	void OnLoadSong() override;
+	void OnJudgment( TapNoteScore score ) override;
+	void OnJudgment( HoldNoteScore score, TapNoteScore tscore ) override;
 
 protected:
 	AutoActor	m_sprFrame;

@@ -27,7 +27,7 @@ public:
 	MsdFile(): values(), error("") {}
 
 	/** @brief Remove the MSDFile. */
-	virtual ~MsdFile() { }
+	virtual ~MsdFile() = default;
 
 	/**
 	 * @brief Attempt to read an MSD file.

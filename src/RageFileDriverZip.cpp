@@ -15,7 +15,7 @@
 static struct FileDriverEntry_ZIP: public FileDriverEntry
 {
 	FileDriverEntry_ZIP(): FileDriverEntry( "ZIP" ) { }
-	RageFileDriver *Create( const RString &sRoot ) const { return new RageFileDriverZip( sRoot ); }
+	RageFileDriver *Create( const RString &sRoot ) const override { return new RageFileDriverZip( sRoot ); }
 } const g_RegisterDriver;
 
 
@@ -44,7 +44,7 @@ bool RageFileDriverZip::Load( const RString &sPath )
 	m_sPath = sPath;
 	m_Mutex.SetName( ssprintf("RageFileDriverZip(%s)", sPath.c_str()) );
 
-	RageFile *pFile = new RageFile;
+	auto *pFile = new RageFile;
 
 	if( !pFile->Open(sPath) )
 	{
@@ -154,7 +154,7 @@ bool RageFileDriverZip::ParseZipfile()
 		if( got == 0 ) /* skip */
 			continue;
 
-		FileInfo *pInfo = new FileInfo( info );
+		auto *pInfo = new FileInfo( info );
 		m_pFiles.push_back( pInfo );
 		FDB->AddFile( "/" + pInfo->m_sName, pInfo->m_iUncompressedSize, pInfo->m_iCRC32, pInfo );
 	}
@@ -299,7 +299,7 @@ RageFileBasic *RageFileDriverZip::Open( const RString &sPath, int iMode, int &iE
 		return NULL;
 	}
 
-	FileInfo *info = (FileInfo *) FDB->GetFilePriv( sPath );
+	auto *info = (FileInfo *) FDB->GetFilePriv( sPath );
 	if( info == NULL )
 	{
 		iErr = ENOENT;
@@ -322,7 +322,7 @@ RageFileBasic *RageFileDriverZip::Open( const RString &sPath, int iMode, int &iE
 	 * threadsafe), so we can unlock now. */
 	m_Mutex.Unlock();
 
-	RageFileDriverSlice *pSlice = new RageFileDriverSlice( m_pZip->Copy(), info->m_iDataOffset, info->m_iCompressedSize );
+	auto *pSlice = new RageFileDriverSlice( m_pZip->Copy(), info->m_iDataOffset, info->m_iCompressedSize );
 	pSlice->DeleteFileWhenFinished();
 	
 	switch( info->m_iCompressionMethod )

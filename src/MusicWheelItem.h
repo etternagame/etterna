@@ -36,11 +36,11 @@ class MusicWheelItem : public WheelItemBase
 public:
 	MusicWheelItem(RString sType = "MusicWheelItem");
 	MusicWheelItem( const MusicWheelItem &cpy );
-	virtual ~MusicWheelItem();
-	virtual MusicWheelItem *Copy() const { return new MusicWheelItem(*this); }
+	~MusicWheelItem() override;
+	MusicWheelItem *Copy() const override { return new MusicWheelItem(*this); }
 
-	virtual void LoadFromWheelItemData( const WheelItemBaseData* pWID, int iIndex, bool bHasFocus, int iDrawIndex );
-	virtual void HandleMessage( const Message &msg );
+	void LoadFromWheelItemData( const WheelItemBaseData* pWID, int iIndex, bool bHasFocus, int iDrawIndex ) override;
+	void HandleMessage( const Message &msg ) override;
 	void RefreshGrades();
 
 private:
@@ -61,7 +61,7 @@ private:
 struct MusicWheelItemData : public WheelItemBaseData
 {
 	MusicWheelItemData() : m_pSong(NULL), m_Flags(),
-		m_iSectionCount(0), m_sLabel(""), m_pAction() { }
+		 m_sLabel(""), m_pAction() { }
 	MusicWheelItemData( WheelItemDataType type, Song* pSong, 
 			   RString sSectionName,
 			   RageColor color, int iSectionCount );
@@ -70,7 +70,7 @@ struct MusicWheelItemData : public WheelItemBaseData
 	WheelNotifyIcon::Flags  m_Flags;
 
 	// for TYPE_SECTION
-	int			m_iSectionCount;
+	int			m_iSectionCount{0};
 
 	// for TYPE_SORT
 	RString			m_sLabel;

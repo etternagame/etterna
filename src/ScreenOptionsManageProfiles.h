@@ -8,17 +8,17 @@
 class ScreenOptionsManageProfiles : public ScreenOptions
 {
 public:
-	void Init();
-	virtual void BeginScreen();
+	void Init() override;
+	void BeginScreen() override;
 
-	virtual void HandleScreenMessage( const ScreenMessage SM );
+	void HandleScreenMessage( const ScreenMessage SM ) override;
 
 protected:
-	virtual void ImportOptions( int iRow, const vector<PlayerNumber> &vpns );
-	virtual void ExportOptions( int iRow, const vector<PlayerNumber> &vpns );
+	void ImportOptions( int iRow, const vector<PlayerNumber> &vpns ) override;
+	void ExportOptions( int iRow, const vector<PlayerNumber> &vpns ) override;
 	
-	virtual void AfterChangeRow( PlayerNumber pn );
-	virtual void ProcessMenuStart( const InputEventPlus &input );
+	void AfterChangeRow( PlayerNumber pn ) override;
+	void ProcessMenuStart( const InputEventPlus &input ) override;
 
 	int GetLocalProfileIndexWithFocus() const;
 	RString GetLocalProfileIDWithFocus() const;

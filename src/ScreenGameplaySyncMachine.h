@@ -7,17 +7,17 @@
 class ScreenGameplaySyncMachine : public ScreenGameplayNormal
 {
 public:
-	virtual void Init();
+	void Init() override;
 
-	virtual void Update( float fDelta );
-	virtual bool Input( const InputEventPlus &input );
+	void Update( float fDelta ) override;
+	bool Input( const InputEventPlus &input ) override;
 
-	virtual ScreenType GetScreenType() const { return system_menu; }
+	ScreenType GetScreenType() const override { return system_menu; }
 
-	void HandleScreenMessage( const ScreenMessage SM );
+	void HandleScreenMessage( const ScreenMessage SM ) override;
 	void ResetAndRestartCurrentSong();
 protected:
-	virtual bool UseSongBackgroundAndForeground() const { return false; }
+	bool UseSongBackgroundAndForeground() const override { return false; }
 	void RefreshText();
 
 	/** @brief the Song used for this screen. */

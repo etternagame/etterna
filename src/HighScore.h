@@ -160,8 +160,7 @@ public:
 	 * @brief Set up the HighScore List with default values.
 	 *
 	 * This used to call Init(), but it's better to be explicit here. */
-	HighScoreList(): vHighScores(), HighGrade(Grade_NoData),
-		iNumTimesPlayed(0), dtLastPlayed() {}
+	HighScoreList(): vHighScores(),  dtLastPlayed() {}
 
 	void Init();
 	
@@ -186,13 +185,13 @@ public:
 	void LoadFromNode( const XNode* pNode );
 
 	vector<HighScore> vHighScores;
-	Grade HighGrade;
+	Grade HighGrade{Grade_NoData};
 
 	// Lua
 	void PushSelf( lua_State *L );
 
 private:
-	int iNumTimesPlayed;
+	int iNumTimesPlayed{0};
 	DateTime dtLastPlayed;	// meaningless if iNumTimesPlayed == 0
 
 };

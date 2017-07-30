@@ -11,12 +11,12 @@ const int nsounds = 5;
 class ScreenTestSound : public Screen
 {
 public:
-	virtual void Init();
-	~ScreenTestSound();
+	void Init() override;
+	~ScreenTestSound() override;
 
-	virtual bool Input( const InputEventPlus &input );
+	bool Input( const InputEventPlus &input ) override;
 
-	void Update(float f);
+	void Update(float f) override;
 	void UpdateText(int n);
 
 	struct Sound {

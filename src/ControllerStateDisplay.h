@@ -62,13 +62,13 @@ public:
 	ControllerStateDisplay();
 	void LoadMultiPlayer( const RString &sType, MultiPlayer mp );
 	void LoadGameController( const RString &sType, GameController gc );
-	virtual void Update( float fDelta );
+	void Update( float fDelta ) override;
 	bool IsLoaded() const { return m_bIsLoaded; }
 
-	virtual ControllerStateDisplay *Copy() const;
+	ControllerStateDisplay *Copy() const override;
 
 	// Lua
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 protected:
 	void LoadInternal( const RString &sType, MultiPlayer mp, GameController gc );

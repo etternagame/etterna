@@ -10,12 +10,12 @@ class BGAnimation : public ActorFrameAutoDeleteChildren
 {
 public:
 	BGAnimation();
-	virtual ~BGAnimation();
+	~BGAnimation() override;
 
 	void LoadFromAniDir( const RString &sAniDir );
-	void LoadFromNode( const XNode* pNode );
+	void LoadFromNode( const XNode* pNode ) override;
 
-	virtual BGAnimation *Copy() const;
+	BGAnimation *Copy() const override;
 
 protected:
 	void AddLayersFromAniDir( const RString &_sAniDir, const XNode *pNode );

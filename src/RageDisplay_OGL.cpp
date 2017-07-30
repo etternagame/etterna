@@ -437,7 +437,7 @@ void InitShaders()
 		g_iAttribTextureMatrixScale = glGetAttribLocationARB( g_bTextureMatrixShader, "TextureMatrixScale" );
 		if (g_iAttribTextureMatrixScale == -1)
 		{
-			LOG->Trace( "Scaling shader link failed: couldn't bind attribute \"TextureMatrixScale\"" );
+			LOG->Trace( R"(Scaling shader link failed: couldn't bind attribute "TextureMatrixScale")" );
 			glDeleteObjectARB( g_bTextureMatrixShader );
 			g_bTextureMatrixShader = 0;
 		}
@@ -643,7 +643,7 @@ static void CheckPalettedTextures()
 			sError = ssprintf( "GL_COLOR_TABLE_FORMAT returned %s instead of GL_RGBA8", GLToString(iRealFormat).c_str() );
 			break;
 		}
-	} while(0);
+	} while(false);
 #undef GL_CHECK_ERROR
 
 	if (sError == "")
@@ -968,7 +968,7 @@ class RageCompiledGeometrySWOGL : public RageCompiledGeometry
 {
 public:
 	
-	void Allocate( const vector<msMesh> &vMeshes )
+	void Allocate( const vector<msMesh> &vMeshes ) override
 	{
 		/* Always allocate at least 1 entry, so &x[0] is valid. */
 		m_vPosition.resize( max(1u, GetTotalVertices()) );
@@ -977,7 +977,7 @@ public:
 		m_vTexMatrixScale.resize( max(1u, GetTotalVertices()) );
 		m_vTriangles.resize( max(1u, GetTotalTriangles()) );
 	}
-	void Change( const vector<msMesh> &vMeshes )
+	void Change( const vector<msMesh> &vMeshes ) override
 	{
 		for( unsigned i=0; i<vMeshes.size(); i++ )
 		{
@@ -1002,7 +1002,7 @@ public:
 				}
 		}
 	}
-	void Draw( int iMeshIndex ) const
+	void Draw( int iMeshIndex ) const override
 	{
 		TurnOffHardwareVBO();
 
@@ -1090,14 +1090,14 @@ protected:
 
 public:
 	RageCompiledGeometryHWOGL();
-	~RageCompiledGeometryHWOGL();
+	~RageCompiledGeometryHWOGL() override;
 
 	/* This is called when our OpenGL context is invalidated. */
-	void Invalidate();
+	void Invalidate() override;
 	
-	void Allocate( const vector<msMesh> &vMeshes );
-	void Change( const vector<msMesh> &vMeshes );
-	void Draw( int iMeshIndex ) const;
+	void Allocate( const vector<msMesh> &vMeshes ) override;
+	void Change( const vector<msMesh> &vMeshes ) override;
+	void Draw( int iMeshIndex ) const override;
 };
 
 RageCompiledGeometryHWOGL::RageCompiledGeometryHWOGL()
@@ -2267,19 +2267,19 @@ public:
 		CreateObject();
 	}
 
-	~RageTextureLock_OGL()
+	~RageTextureLock_OGL() override
 	{
 		ASSERT( m_iTexHandle == 0 ); // locked!
 		glDeleteBuffersARB( 1, &m_iBuffer );
 	}
 
 	/* This is called when our OpenGL context is invalidated. */
-	void Invalidate()
+	void Invalidate() override
 	{
 		m_iTexHandle = 0;
 	}
 
-	void Lock( unsigned iTexHandle, RageSurface *pSurface )
+	void Lock( unsigned iTexHandle, RageSurface *pSurface ) override
 	{
 		ASSERT( m_iTexHandle == 0 );
 		ASSERT( pSurface->pixels == NULL );
@@ -2297,7 +2297,7 @@ public:
 		pSurface->pixels_owned = false;
 	}
 
-	void Unlock( RageSurface *pSurface, bool bChanged )
+	void Unlock( RageSurface *pSurface, bool bChanged ) override
 	{
 		glUnmapBufferARB( GL_PIXEL_UNPACK_BUFFER_ARB );
 
@@ -2377,13 +2377,13 @@ class RenderTarget_FramebufferObject: public RenderTarget
 {
 public:
 	RenderTarget_FramebufferObject();
-	~RenderTarget_FramebufferObject();
-	void Create( const RenderTargetParam &param, int &iTextureWidthOut, int &iTextureHeightOut );
-	unsigned GetTexture() const { return m_iTexHandle; }
-	void StartRenderingTo();
-	void FinishRenderingTo();
+	~RenderTarget_FramebufferObject() override;
+	void Create( const RenderTargetParam &param, int &iTextureWidthOut, int &iTextureHeightOut ) override;
+	unsigned GetTexture() const override { return m_iTexHandle; }
+	void StartRenderingTo() override;
+	void FinishRenderingTo() override;
 	
-	virtual bool InvertY() const { return true; }
+	bool InvertY() const override { return true; }
 
 private:
 	unsigned int m_iFrameBufferHandle;

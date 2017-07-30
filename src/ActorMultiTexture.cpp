@@ -65,7 +65,7 @@ void ActorMultiTexture::ClearTextures()
 
 int ActorMultiTexture::AddTexture( RageTexture *pTexture )
 {
-	if( pTexture == NULL )
+	if( pTexture == nullptr )
 	{
 		LOG->Warn( "Can't add nil texture to ActorMultiTexture" );
 		return m_aTextureUnits.size();

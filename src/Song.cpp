@@ -37,9 +37,9 @@
 #include "ActorUtil.h"
 
 #include "GameState.h"
-#include <time.h>
+#include <ctime>
 #include <set>
-#include <float.h>
+#include <cfloat>
 
 //-Nick12 Used for song file hashing
 #include <CryptManager.h>
@@ -209,7 +209,7 @@ void Song::AddLyricSegment( LyricSegment seg )
 
 Steps *Song::CreateSteps()
 {
-	Steps *pSteps = new Steps(this);
+	auto *pSteps = new Steps(this);
 	InitSteps( pSteps );
 	return pSteps;
 }

@@ -16,21 +16,20 @@ struct AutoMappingEntry
 	AutoMappingEntry( int i, DeviceButton db, GameButton gb, bool b ):
 		m_iSlotIndex(i), m_deviceButton(db),
 		m_gb(gb), m_bSecondController(b) {}
-	AutoMappingEntry(): m_iSlotIndex(-1), 
-		m_deviceButton(DeviceButton_Invalid), m_gb(GameButton_Invalid),
-		m_bSecondController(false) {}
+	AutoMappingEntry()
+		= default;
 	bool IsEmpty() const { return m_deviceButton == DeviceButton_Invalid  &&  m_gb == GameButton_Invalid; }
 
-	int m_iSlotIndex;
-	DeviceButton m_deviceButton;
-	GameButton m_gb; // GameButton_Invalid means unmap this button
+	int m_iSlotIndex{-1};
+	DeviceButton m_deviceButton{DeviceButton_Invalid};
+	GameButton m_gb{GameButton_Invalid}; // GameButton_Invalid means unmap this button
 	/* If this is true, this is an auxilliary mapping assigned to the second
 	 * player. If two of the same device are found, and the device has secondary
 	 * entries, the later entries take precedence. This way, if a Pump pad is
 	 * found, it'll map P1 to the primary pad and P2 to the secondary pad. (We
 	 * can't tell if a slave pad is actually there.) Then, if a second primary
 	 * is found (DEVICE_PUMP2), 2P will be mapped to it. */
-	bool m_bSecondController;
+	bool m_bSecondController{false};
 };
 
 struct AutoMappings

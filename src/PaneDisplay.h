@@ -36,15 +36,15 @@ enum PaneCategory
 class PaneDisplay: public ActorFrame
 {
 public:
-	virtual PaneDisplay *Copy() const;
+	PaneDisplay *Copy() const override;
 
 	void Load( const RString &sMetricsGroup, PlayerNumber pn );
 	void SetFromGameState();
 
-	void LoadFromNode( const XNode *pNode );
+	void LoadFromNode( const XNode *pNode ) override;
 
 	// Lua
-	void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 private:
 	void GetPaneTextAndLevel( PaneCategory c, RString & sTextOut, int & fLevelOut );

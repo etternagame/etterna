@@ -113,50 +113,41 @@ public:
 		PAL(PAL_),
 		fDisplayAspectRatio(fDisplayAspectRatio_) {}
 
-	VideoModeParams(): windowed(false), width(0), height(0),
-		bpp(0), rate(0), vsync(false), interlaced(false),
-		bSmoothLines(false), bTrilinearFiltering(false),
-		bAnisotropicFiltering(false), sWindowTitle(RString()),
-		sIconFile(RString()), PAL(false), fDisplayAspectRatio(0.0f) {}
+	VideoModeParams():  sWindowTitle(RString()),
+		sIconFile(RString()) {};
 
-	bool windowed;
-	int width;
-	int height;
-	int bpp;
-	int rate;
-	bool vsync;
-	bool interlaced;
-	bool bSmoothLines;
-	bool bTrilinearFiltering;
-	bool bAnisotropicFiltering;
+	bool windowed{false};
+	int width{0};
+	int height{0};
+	int bpp{0};
+	int rate{0};
+	bool vsync{false};
+	bool interlaced{false};
+	bool bSmoothLines{false};
+	bool bTrilinearFiltering{false};
+	bool bAnisotropicFiltering{false};
 	RString sWindowTitle;
 	RString sIconFile;
-	bool PAL;
-	float fDisplayAspectRatio;
+	bool PAL{false};
+	float fDisplayAspectRatio{0.0f};
 };
 
 struct RenderTargetParam
 {
-	RenderTargetParam():
-		iWidth(0),
-		iHeight(0),
-		bWithDepthBuffer(false),
-		bWithAlpha(false),
-		bFloat(false)
-	{
-	}
+	RenderTargetParam()
+	= default;
 
 	// The dimensions of the actual render target, analogous to a window size:
-	int iWidth, iHeight;
+	int iWidth{0}, iHeight{0};
 
-	bool bWithDepthBuffer;
-	bool bWithAlpha;
-	bool bFloat;
+	bool bWithDepthBuffer{false};
+	bool bWithAlpha{false};
+	bool bFloat{false};
 };
 
 struct RageTextureLock
 {
-	virtual ~RageTextureLock() { }
+	virtual ~RageTextureLock() = default;
 
 	/* Given a surface with a format and no pixel data, lock the texture into the
 	 * surface. The data is write-only. */
@@ -232,7 +223,7 @@ public:
 	virtual void DeleteTexture( unsigned iTexHandle ) = 0;
 	/* Return an object to lock pixels for streaming. If not supported, returns NULL.
 	 * Delete the object normally. */
-	virtual RageTextureLock *CreateTextureLock() { return NULL; }
+	virtual RageTextureLock *CreateTextureLock() { return nullptr; }
 	virtual void ClearAllTextures() = 0;
 	virtual int GetNumTextureUnits() = 0;
 	virtual void SetTexture( TextureUnit, unsigned /* iTexture */ ) = 0;
@@ -323,7 +314,7 @@ public:
 
 	virtual RString GetTextureDiagnostics( unsigned /* id */ ) const { return RString(); }
 	virtual RageSurface* CreateScreenshot() = 0;	// allocates a surface.  Caller must delete it.
-	virtual RageSurface *GetTexture( unsigned /* iTexture */ ) { return NULL; } // allocates a surface.  Caller must delete it.
+	virtual RageSurface *GetTexture( unsigned /* iTexture */ ) { return nullptr; } // allocates a surface.  Caller must delete it.
 
 protected:
 	virtual void DrawQuadsInternal( const RageSpriteVertex v[], int iNumVerts ) = 0;

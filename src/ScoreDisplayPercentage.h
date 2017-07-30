@@ -10,7 +10,7 @@ class ScoreDisplayPercentage: public ScoreDisplay
 {
 public:
 	ScoreDisplayPercentage();
-	void Init( const PlayerState* pPlayerState, const PlayerStageStats* pPlayerStageStats );
+	void Init( const PlayerState* pPlayerState, const PlayerStageStats* pPlayerStageStats ) override;
 
 private:
 	AutoActor		m_sprFrame;

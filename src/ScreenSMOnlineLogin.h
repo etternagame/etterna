@@ -6,14 +6,14 @@
 class ScreenSMOnlineLogin : public ScreenOptions
 {
 public:
-	virtual void Init();
-	virtual void HandleScreenMessage(const ScreenMessage SM);
-	virtual bool MenuStart( const InputEventPlus &input );
+	void Init() override;
+	void HandleScreenMessage(const ScreenMessage SM) override;
+	bool MenuStart( const InputEventPlus &input ) override;
 	void SendLogin( RString sPassword );
 
 private:
-	void ImportOptions( int iRow, const vector<PlayerNumber> &vpns );
-	void ExportOptions( int iRow, const vector<PlayerNumber> &vpns );
+	void ImportOptions( int iRow, const vector<PlayerNumber> &vpns ) override;
+	void ExportOptions( int iRow, const vector<PlayerNumber> &vpns ) override;
 	RString GetSelectedProfileID();
 	int	m_iPlayer;
 };

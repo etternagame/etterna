@@ -89,9 +89,7 @@ static Preference<float> g_fNetStartOffset( "NetworkStartOffset", -3.0 );
 static Preference<bool> g_bEasterEggs( "EasterEggs", true );
 
 
-PlayerInfo::PlayerInfo(): m_pn(PLAYER_INVALID), m_mp(MultiPlayer_Invalid),
-	m_bIsDummy(false), m_iDummyIndex(0), m_iAddToDifficulty(0),
-	m_bPlayerEnabled(false), m_PlayerStateDummy(), 
+PlayerInfo::PlayerInfo(): m_pn(PLAYER_INVALID),  m_PlayerStateDummy(), 
 	m_PlayerStageStatsDummy(), m_SoundEffectControl(),
 	m_vpStepsQueue(), m_pLifeMeter(NULL), 
 	m_ptextStepsDescription(NULL),

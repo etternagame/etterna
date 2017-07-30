@@ -192,7 +192,7 @@ static NoteResource *MakeNoteResource( const RString &sButton, const RString &sE
 	map<NoteSkinAndPath, NoteResource *>::iterator it = g_NoteResource.find( nsap );
 	if( it == g_NoteResource.end() )
 	{
-		NoteResource *pRes = new NoteResource( nsap );
+		auto *pRes = new NoteResource( nsap );
 
 		NOTESKIN->SetPlayerNumber( pn );
 		NOTESKIN->SetGameController( gc );

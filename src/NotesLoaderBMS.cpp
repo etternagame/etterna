@@ -201,8 +201,7 @@ public:
 };
 
 BMSChart::BMSChart()
-{
-}
+= default;
 
 bool BMSChart::GetHeader( const RString &header, RString &out )
 {
@@ -271,12 +270,11 @@ struct bmsCommandTree
 	}
 
 	~bmsCommandTree()
-	{
-	}
+	= default;
 
 	bmsNodeS *addConditionalChain()
 	{
-		bmsNodeS *newNode = new bmsNodeS;
+		auto *newNode = new bmsNodeS;
 
 		newNode->conditionValue = randomStack[currentNode->branchHeight];
 		newNode->parent = currentNode;
@@ -289,7 +287,7 @@ struct bmsCommandTree
 
 	bmsNodeS* createIfNode(bmsNodeS *Chain, int value)
 	{
-		bmsNodeS *newNode = new bmsNodeS;
+		auto *newNode = new bmsNodeS;
 
 		newNode->conditionValue = randomStack[currentNode->branchHeight];
 		newNode->parent = Chain;
@@ -303,7 +301,7 @@ struct bmsCommandTree
 
 	bmsNodeS* createElseIfNode(bmsNodeS *Chain, int value)
 	{
-		bmsNodeS *newNode = new bmsNodeS;
+		auto *newNode = new bmsNodeS;
 
 		newNode->conditionValue = randomStack[Chain->branchHeight];
 		newNode->parent = Chain;
@@ -317,7 +315,7 @@ struct bmsCommandTree
 
 	bmsNodeS* createElseNode(bmsNodeS *Chain)
 	{
-		bmsNodeS *newNode = new bmsNodeS;
+		auto *newNode = new bmsNodeS;
 
 		newNode->conditionValue = randomStack[Chain->branchHeight];
 		newNode->parent = Chain;
@@ -1122,9 +1120,9 @@ bool BMSChartReader::ReadNoteData()
 	td.SetBPMAtRow( 0, currentBPM = initialBPM );
 
 	// set up note transformation vector.
-	int *transform = new int[tracks];
-	int *holdStart = new int[tracks];
-	int *lastNote = new int[tracks];
+	auto *transform = new int[tracks];
+	auto *holdStart = new int[tracks];
+	auto *lastNote = new int[tracks];
 
 	for( int i = 0; i < tracks; i ++ ) holdStart[i] = -1;
 	for( int i = 0; i < tracks; i ++ ) lastNote[i] = -1;
@@ -1266,7 +1264,7 @@ bool BMSChartReader::ReadNoteData()
 	}
 
 	int reverseTransform[30];
-	for( int i = 0; i < 30; i ++ ) reverseTransform[i] = -1;
+	for(int & i : reverseTransform) i = -1;
 	for( int i = 0; i < tracks; i ++ ) reverseTransform[transform[i]] = i;
 
 	int trackMeasure = -1;

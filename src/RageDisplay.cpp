@@ -787,8 +787,8 @@ void RageDisplay::ChangeCentering( int iTranslateX, int iTranslateY, int iAddWid
 RageMatrix RageDisplay::GetCenteringMatrix( float fTranslateX, float fTranslateY, float fAddWidth, float fAddHeight )
 {
 	// in screen space, left edge = -1, right edge = 1, bottom edge = -1. top edge = 1
-	float fWidth = static_cast<float>((*GetActualVideoModeParams()).width);
-	float fHeight = static_cast<float>((*GetActualVideoModeParams()).height);
+	auto fWidth = static_cast<float>((*GetActualVideoModeParams()).width);
+	auto fHeight = static_cast<float>((*GetActualVideoModeParams()).height);
 	float fPercentShiftX = SCALE( fTranslateX, 0, fWidth, 0, +2.0f );
 	float fPercentShiftY = SCALE( fTranslateY, 0, fHeight, 0, -2.0f );
 	float fPercentScaleX = SCALE( fAddWidth, 0, fWidth, 1.0f, 2.0f );

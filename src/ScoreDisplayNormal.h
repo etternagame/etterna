@@ -11,9 +11,9 @@ class ScoreDisplayNormal : public ScoreDisplay
 public:
 	ScoreDisplayNormal();
 
-	virtual void Init( const PlayerState* pPlayerState, const PlayerStageStats* pPlayerStageStats );
+	void Init( const PlayerState* pPlayerState, const PlayerStageStats* pPlayerStageStats ) override;
 
-	virtual void SetScore( int iNewScore );
+	void SetScore( int iNewScore ) override;
 	virtual void SetText( const RString &s ) { m_text.SetText(s); }
 
 protected:

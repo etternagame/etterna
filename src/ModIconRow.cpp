@@ -128,9 +128,9 @@ int OptionToPreferredColumn( RString sOptionText )
 		return 0;
 	}
 
-	for( unsigned i=0; i<ARRAYLEN(g_OptionColumnEntries); i++ )
-		if( g_OptionColumnEntries[i].szString == sOptionText )
-			return g_OptionColumnEntries[i].iSlotIndex;
+	for(auto g_OptionColumnEntry : g_OptionColumnEntries)
+		if( g_OptionColumnEntry.szString == sOptionText )
+			return g_OptionColumnEntry.iSlotIndex;
 
 	// This warns about C1234 and noteskins.
 //	LOG->Warn("Unknown option: '%s'", sOptionText.c_str() );

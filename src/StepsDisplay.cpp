@@ -18,8 +18,7 @@ REGISTER_ACTOR_CLASS( StepsDisplay );
 
 
 StepsDisplay::StepsDisplay()
-{
-}
+= default;
 
 /* sID experiment:
  *
@@ -108,7 +107,7 @@ void StepsDisplay::Load( const RString &sMetricsGroup, const PlayerState *pPlaye
 	}
 
 	// Play Load Command
-	PlayerState* pPlayerState_ = const_cast<PlayerState*>(pPlayerState);
+	auto* pPlayerState_ = const_cast<PlayerState*>(pPlayerState);
 	Message msg("Load");
 	if( pPlayerState_ )
 		msg.SetParam( "PlayerState", LuaReference::CreateFromPush(*pPlayerState_) );
@@ -185,7 +184,7 @@ void StepsDisplay::SetInternal( const SetParams &params )
 	if( m_bShowTicks )
 	{
 		// todo: let themers handle the logic of tick text. -aj
-		char on = char('1');
+		auto on = char('1');
 		char off = '0';
 
 		RString sNewText;

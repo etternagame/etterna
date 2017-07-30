@@ -65,7 +65,7 @@ void ScreenWithMenuElements::Init()
 		decorations.LoadB( m_sName, "decorations" );
 		decorations->SetName("Decorations");
 		decorations->SetDrawOrder( DRAW_ORDER_DECORATIONS );
-		ActorFrame *pFrame = dynamic_cast<ActorFrame*>(static_cast<Actor*>(decorations));
+		auto *pFrame = dynamic_cast<ActorFrame*>(static_cast<Actor*>(decorations));
 		if( pFrame )
 		{
 			m_vDecorations = pFrame->GetChildren();
@@ -372,8 +372,7 @@ class LunaScreenWithMenuElementsSimple: public Luna<ScreenWithMenuElementsSimple
 {
 public:
 	LunaScreenWithMenuElementsSimple()
-	{
-	}
+	= default;
 };
 
 LUA_REGISTER_DERIVED_CLASS( ScreenWithMenuElementsSimple, ScreenWithMenuElements )

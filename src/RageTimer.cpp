@@ -123,7 +123,7 @@ RageTimer RageTimer::Sum(const RageTimer &lhs, float tm)
 	/* tm == 5.25  -> secs =  5, us = 5.25  - ( 5) = .25
 	 * tm == -1.25 -> secs = -2, us = -1.25 - (-2) = .75 */
 	int seconds = static_cast<int>(floorf(tm));
-	int us = static_cast<int>( (tm - seconds) * TIMESTAMP_RESOLUTION );
+	auto us = static_cast<int>( (tm - seconds) * TIMESTAMP_RESOLUTION );
 
 	RageTimer ret(0,0); // Prevent unnecessarily checking the time
 	ret.m_secs = seconds + lhs.m_secs;

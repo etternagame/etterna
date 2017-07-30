@@ -183,12 +183,12 @@ GameButton StringToGameButton( const InputScheme* pInputs, const RString& s );
 /** @brief An input event specific to an InputScheme defined by a logical controller and button. */
 struct GameInput
 {
-	GameInput(): controller(GameController_Invalid), button(GameButton_Invalid) { }
+	GameInput() = default;
 
 	GameInput( GameController c, GameButton b ): controller(c), button(b) { }
 
-	GameController	controller;
-	GameButton	button;
+	GameController	controller{GameController_Invalid};
+	GameButton	button{GameButton_Invalid};
 
 	bool operator==( const GameInput &other ) const { return controller == other.controller && button == other.button; };
 	bool operator<( const GameInput &other ) const

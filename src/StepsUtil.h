@@ -19,17 +19,17 @@ public:
 	 * @brief the Difficulty to search for.
 	 *
 	 * Don't filter here if the Difficulty is Difficulty_Invalid. */
-	Difficulty m_difficulty;
+	Difficulty m_difficulty{Difficulty_Invalid};
 	/**
 	 * @brief The lowest meter to search for.
 	 *
 	 * Don't filter here if the meter is -1. */
-	int m_iLowMeter;
+	int m_iLowMeter{-1};
 	/**
 	 * @brief The highest meter to search for.
 	 *
 	 * Don't filter here if the meter is -1. */
-	int m_iHighMeter;
+	int m_iHighMeter{-1};
 	// Currently, Songs have BPM since TimingData is by Song. These are just
 	// here for the inevitable chart-based BPMs future. -aj
 	// float m_fLowBPM;		// don't filter if -1
@@ -38,11 +38,10 @@ public:
 	 * @brief the step type to search for.
 	 *
 	 * Don't filter here if the StepsType is StepsType_Invalid. */
-	StepsType m_st;
+	StepsType m_st{StepsType_Invalid};
 	/** @brief Set up the initial criteria. */
-	StepsCriteria(): m_difficulty(Difficulty_Invalid),
-		m_iLowMeter(-1), m_iHighMeter(-1),
-		m_st(StepsType_Invalid)
+	StepsCriteria()
+		
 	{
 		//m_fLowBPM = -1;
 		//m_fHighBPM = -1;
@@ -77,12 +76,12 @@ class SongAndSteps
 {
 public:
 	/** @brief the Song we're using. */
-	Song *pSong;
+	Song *pSong{NULL};
 	/** @brief the Steps we're using. */
-	Steps *pSteps;
+	Steps *pSteps{NULL};
 	/** @brief Set up a blank Song and 
 	 * <a class="el" href="class_steps.html">Step</a>. */
-	SongAndSteps() : pSong(NULL), pSteps(NULL) { }
+	SongAndSteps()  = default;
 	/**
 	 * @brief Set up the specified Song and 
 	 * <a class="el" href="class_steps.html">Step</a>.
@@ -154,11 +153,11 @@ namespace StepsUtil
 
 class StepsID
 {
-	StepsType st;
-	Difficulty dc;
+	StepsType st{StepsType_Invalid};
+	Difficulty dc{Difficulty_Invalid};
 	RString ck;
 	RString sDescription;
-	unsigned uHash;
+	unsigned uHash{0};
 	mutable CachedObjectPointer<Steps> m_Cache;
 
 public:
@@ -167,9 +166,9 @@ public:
 	 *
 	 * This used to call Unset(), which set the variables to
 	 * the same thing. */
-	StepsID(): st(StepsType_Invalid), dc(Difficulty_Invalid),
+	StepsID(): 
 		sDescription(""), uHash(0), m_Cache() {}
-	void Unset() { FromSteps(NULL); }
+	void Unset() { FromSteps(nullptr); }
 	void FromSteps( const Steps *p );
 	Steps *ToSteps( const Song *p, bool bAllowNull ) const;
 	// FIXME: (interferes with unlimited charts per song)

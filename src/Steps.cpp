@@ -59,8 +59,7 @@ Steps::Steps(Song *song): m_StepsType(StepsType_Invalid), m_pSong(song),
 	specifiedBPMMin(0), specifiedBPMMax(0) {}
 
 Steps::~Steps()
-{
-}
+= default;
 
 void Steps::GetDisplayBpms( DisplayBpms &AddTo ) const
 {

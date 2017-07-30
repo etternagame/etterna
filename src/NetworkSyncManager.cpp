@@ -2,7 +2,7 @@
 #include "NetworkSyncManager.h"
 #include "LuaManager.h"
 #include "LocalizedString.h"
-#include <errno.h>
+#include <cerrno>
 
 NetworkSyncManager *NSMAN;
 
@@ -267,7 +267,7 @@ void NetworkSyncManager::ReportScore(int playerID, int step, int score, int comb
 
 	// ASSUMED: No step will be more than 16 seconds off center.
 	// If this assumption is false, read 16 seconds in either direction.
-	int iOffset = int((offset + 16.384)*2000.0f);
+	auto iOffset = int((offset + 16.384)*2000.0f);
 
 	if (iOffset>65535)
 		iOffset = 65535;
@@ -311,7 +311,7 @@ void NetworkSyncManager::ReportScore(int playerID, int step, int score, int comb
 
 	// ASSUMED: No step will be more than 16 seconds off center.
 	// If this assumption is false, read 16 seconds in either direction.
-	int iOffset = int( (offset+16.384)*2000.0f );
+	auto iOffset = int( (offset+16.384)*2000.0f );
 
 	if( iOffset>65535 )
 		iOffset=65535;
@@ -343,7 +343,7 @@ void NetworkSyncManager::ReportSongOver()
 
 void NetworkSyncManager::ReportStyle() 
 {
-	LOG->Trace( "Sending \"Style\" to server" );
+	LOG->Trace( R"(Sending "Style" to server)" );
 
 	if( !useSMserver )
 		return;

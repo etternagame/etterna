@@ -29,25 +29,25 @@ private:
 class ScreenNetRoom : public ScreenNetSelectBase
 {
 public:
-	virtual void Init();
-	virtual bool Input( const InputEventPlus &input );
-	virtual void HandleScreenMessage( const ScreenMessage SM );
+	void Init() override;
+	bool Input( const InputEventPlus &input ) override;
+	void HandleScreenMessage( const ScreenMessage SM ) override;
 	RoomWheel* GetRoomWheel();
 	void SelectCurrent();
 
 	// Lua
-	void PushSelf(lua_State *L);
+	void PushSelf(lua_State *L) override;
 
 protected:
-	virtual bool MenuStart( const InputEventPlus &input );
-	virtual bool MenuBack( const InputEventPlus &input );
+	bool MenuStart( const InputEventPlus &input ) override;
+	bool MenuBack( const InputEventPlus &input ) override;
 
-	virtual void TweenOffScreen( );
+	void TweenOffScreen( ) override;
 
 private:
 	void UpdateRoomsList();
-	bool MenuLeft( const InputEventPlus &input );
-	bool MenuRight( const InputEventPlus &input );
+	bool MenuLeft( const InputEventPlus &input ) override;
+	bool MenuRight( const InputEventPlus &input ) override;
 	void CreateNewRoom( const RString& rName,  const RString& rDesc, const RString& rPass );
 
 	RageSound m_soundChangeSel;

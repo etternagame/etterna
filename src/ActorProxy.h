@@ -10,17 +10,17 @@ class ActorProxy: public Actor
 public:
 	ActorProxy();
 
-	virtual bool EarlyAbortDraw() const;
-	virtual void DrawPrimitives();
+	bool EarlyAbortDraw() const override;
+	void DrawPrimitives() override;
 
-	void LoadFromNode( const XNode* pNode );
-	virtual ActorProxy *Copy() const;
+	void LoadFromNode( const XNode* pNode ) override;
+	ActorProxy *Copy() const override;
 
 	Actor *GetTarget() { return m_pActorTarget; }
 	void SetTarget( Actor *pTarget ) { m_pActorTarget = pTarget; }
 
 	// Lua
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 private:
 	Actor *m_pActorTarget;

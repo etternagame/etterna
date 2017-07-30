@@ -38,15 +38,15 @@ void ScrollBar::SetBarHeight( int iHeight )
 	m_sprTop->SetY( -m_iBarHeight/2.0f );
 	m_sprBottom->SetY( +m_iBarHeight/2.0f );
 	m_sprScrollTickThumb->SetY( 0 );
-	for( unsigned i=0; i<ARRAYLEN(m_sprScrollStretchThumb); i++ )
-		m_sprScrollStretchThumb[i]->SetY( 0 );
+	for(auto & i : m_sprScrollStretchThumb)
+		i->SetY( 0 );
 }
 
 void ScrollBar::SetPercentage( float fCenterPercent, float fSizePercent )
 {
 	wrap( fCenterPercent, 1.0f );
 
-	const int iBarContentHeight = static_cast<int>(m_sprMiddle->GetZoomedHeight());
+	const auto iBarContentHeight = static_cast<int>(m_sprMiddle->GetZoomedHeight());
 	ASSERT( iBarContentHeight != 0 );
 
 	/* Set tick thumb */

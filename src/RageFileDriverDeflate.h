@@ -5,7 +5,7 @@
 
 #include "RageFileBasic.h"
 
-typedef struct z_stream_s z_stream;
+using z_stream = struct z_stream_s;
 
 class RageFileObjInflate: public RageFileObj
 {
@@ -14,13 +14,13 @@ public:
 	 * container format must store the file size. */
 	RageFileObjInflate( RageFileBasic *pFile, int iUncompressedSize );
 	RageFileObjInflate( const RageFileObjInflate &cpy );
-	~RageFileObjInflate();
-	int ReadInternal( void *pBuffer, size_t iBytes );
-	int WriteInternal( const void * /* pBuffer */, size_t /* iBytes */ ) { SetError( "Not implemented" ); return -1; }
-	int SeekInternal( int iOffset );
-	int GetFileSize() const { return m_iUncompressedSize; }
-	int GetFD() { return m_pFile->GetFD(); }
-	RageFileObjInflate *Copy() const;
+	~RageFileObjInflate() override;
+	int ReadInternal( void *pBuffer, size_t iBytes ) override;
+	int WriteInternal( const void * /* pBuffer */, size_t /* iBytes */ ) override { SetError( "Not implemented" ); return -1; }
+	int SeekInternal( int iOffset ) override;
+	int GetFileSize() const override { return m_iUncompressedSize; }
+	int GetFD() override { return m_pFile->GetFD(); }
+	RageFileObjInflate *Copy() const override;
 
 	void DeleteFileWhenFinished() { m_bFileOwned = true; }
 
@@ -41,15 +41,15 @@ class RageFileObjDeflate: public RageFileObj
 public:
 	/* By default, pFile will not be freed. */
 	RageFileObjDeflate( RageFileBasic *pOutput );
-	~RageFileObjDeflate();
+	~RageFileObjDeflate() override;
 
-	int GetFileSize() const { return m_pFile->GetFileSize(); }
+	int GetFileSize() const override { return m_pFile->GetFileSize(); }
 	void DeleteFileWhenFinished() { m_bFileOwned = true; }
 
 protected:
-	int ReadInternal( void * /* pBuffer */, size_t /* iBytes */ ) { SetError( "Not implemented" ); return -1; }
-	int WriteInternal( const void *pBuffer, size_t iBytes );
-	int FlushInternal();
+	int ReadInternal( void * /* pBuffer */, size_t /* iBytes */ ) override { SetError( "Not implemented" ); return -1; }
+	int WriteInternal( const void *pBuffer, size_t iBytes ) override;
+	int FlushInternal() override;
 	
 	RageFileBasic *m_pFile;
 	z_stream *m_pDeflate;

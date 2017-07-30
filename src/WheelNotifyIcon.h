@@ -19,8 +19,8 @@ public:
 
 	void SetFlags( Flags flags );
 
-	virtual void Update( float fDeltaTime );
-	virtual bool EarlyAbortDraw() const;
+	void Update( float fDeltaTime ) override;
+	bool EarlyAbortDraw() const override;
 
 protected:
 	/** @brief What types of icons are available for the Song? */

@@ -8,13 +8,13 @@
 class ScreenContinue : public ScreenWithMenuElementsSimple
 {
 public:
-	virtual void Init();
+	void Init() override;
 
-	virtual void BeginScreen();
-	virtual bool Input( const InputEventPlus &input );
-	virtual void HandleScreenMessage( const ScreenMessage SM );
-	virtual void HandleMessage( const Message &msg );
-	virtual bool AllowLateJoin() const { return true; }
+	void BeginScreen() override;
+	bool Input( const InputEventPlus &input ) override;
+	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleMessage( const Message &msg ) override;
+	bool AllowLateJoin() const override { return true; }
 
 private:
 	ThemeMetric<bool> FORCE_TIMER_WAIT;

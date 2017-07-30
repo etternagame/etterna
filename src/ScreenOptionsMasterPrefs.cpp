@@ -466,8 +466,8 @@ LuaFunction( GetLifeDifficulty, GetLifeDifficulty() );
 // Graphic options
 struct res_t
 {
-	int w, h;
-	res_t(): w(0), h(0) { }
+	int w{0}, h{0};
+	res_t() = default;
 	res_t( int w_, int h_ ): w(w_), h(h_) { }
 	
 	res_t& operator-=( res_t const &rhs) {

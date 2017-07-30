@@ -133,29 +133,29 @@ public:
 		 * @brief The start time of the combo.
 		 *
 		 * This uses the same scale as the combo list mapping. */
-		float m_fStartSecond;
+		float m_fStartSecond{0};
 		/**
 		 * @brief The size time of the combo.
 		 *
 		 * This uses the same scale as the life record. */
-		float m_fSizeSeconds;
+		float m_fSizeSeconds{0};
 
 		/** @brief The size of the Combo, in steps. */
-		int m_cnt;
+		int m_cnt{0};
 
 		/**
 		 * @brief The size of the combo that didn't come from this stage.
 		 *
 		 * This is generally rolled over from the last song.
 		 * It is also a subset of m_cnt. */
-		int m_rollover;
+		int m_rollover{0};
 
 		/**
 		 * @brief Retrieve the size of the combo that came from this song.
 		 * @return this song's combo size. */
 		int GetStageCnt() const { return m_cnt - m_rollover; }
 
-		Combo_t(): m_fStartSecond(0), m_fSizeSeconds(0), m_cnt(0), m_rollover(0) { }
+		Combo_t() = default;
 		bool IsZero() const { return m_fStartSecond < 0; }
 	};
 	vector<Combo_t> m_ComboList;

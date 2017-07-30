@@ -1,16 +1,16 @@
 #include "global.h"
 
-#include <stdio.h>
+#include <cstdio>
 
 #if defined(_WINDOWS)
 #include <tchar.h>
 #else
 #define _tcslen strlen
 #define _tcscpy strcpy
-typedef char TCHAR;
+using TCHAR = char;
 #endif
 
-#include <time.h>
+#include <ctime>
 #include "CreateZip.h"
 #include "RageFile.h"
 #include "RageUtil.h"
@@ -141,12 +141,12 @@ typedef char TCHAR;
 	}
 
 
-typedef unsigned char uch;      // unsigned 8-bit value
-typedef unsigned short ush;     // unsigned 16-bit value
-typedef unsigned long ulg;      // unsigned 32-bit value
-typedef size_t extent;          // file size
-typedef unsigned Pos;   // must be at least 32 bits
-typedef unsigned IPos; // A Pos is an index in the character window. Pos is used only for parameter passing
+using uch = unsigned char;      // unsigned 8-bit value
+using ush = unsigned short;     // unsigned 16-bit value
+using ulg = unsigned long;      // unsigned 32-bit value
+using extent = size_t;          // file size
+using Pos = unsigned int;   // must be at least 32 bits
+using IPos = unsigned int; // A Pos is an index in the character window. Pos is used only for parameter passing
 
 #ifndef EOF
 #define EOF (-1)
@@ -338,7 +338,7 @@ typedef unsigned IPos; // A Pos is an index in the character window. Pos is used
 
 
 
-typedef int64_t lutime_t;       // define it ourselves since we don't include time.h
+using lutime_t = int;       // define it ourselves since we don't include time.h
 
 typedef struct iztimes {
 	lutime_t atime,mtime,ctime;
@@ -374,9 +374,9 @@ void __cdecl Tracec(bool ,const char *x, ...) {va_list paramList; va_start(param
 
 
 struct TState;
-typedef unsigned (*READFUNC)(TState &state, char *buf,unsigned size);
-typedef unsigned (*FLUSHFUNC)(void *param, const char *buf, unsigned *size);
-typedef unsigned (*WRITEFUNC)(void *param, const char *buf, unsigned size);
+using READFUNC = unsigned int (*)(TState &, char *, unsigned int);
+using FLUSHFUNC = unsigned int (*)(void *, const char *, unsigned int *);
+using WRITEFUNC = unsigned int (*)(void *, const char *, unsigned int);
 struct TState
 {
 	void *param;
@@ -400,7 +400,7 @@ int putlocal(struct zlist *z, WRITEFUNC wfunc,void *param)
 	PUTLG(z->len, f);
 	PUTSH(z->nam, f);
 	PUTSH(z->ext, f);
-	size_t res = (size_t)wfunc(param, z->iname, (unsigned int)z->nam);
+	auto res = (size_t)wfunc(param, z->iname, (unsigned int)z->nam);
 	if (res!=z->nam)
 		return ZE_TEMP;
 	if (z->ext)
@@ -543,24 +543,23 @@ ulg crc32(ulg crc, const uch *buf, size_t len)
 class TZip
 {
 public:
-	TZip() : pfout(NULL),ooffset(0),oerr(false),writ(0),hasputcen(false),zfis(0),hfin(0)
+	TZip() : pfout(NULL)
 	{
 	}
 	~TZip()
-	{
-	}
+	= default;
 
 	// These variables say about the file we're writing into
 	// We can write to pipe, file-by-handle, file-by-name, memory-to-memmapfile
 	RageFile *pfout;             // if valid, we'll write here (for files or pipes)
-	unsigned ooffset;         // for pfout, this is where the pointer was initially
-	ZRESULT oerr;             // did a write operation give rise to an error?
-	unsigned writ;            // how have we written. This is maintained by Add, not write(), to avoid confusion over seeks
+	unsigned ooffset{0};         // for pfout, this is where the pointer was initially
+	ZRESULT oerr{false};             // did a write operation give rise to an error?
+	unsigned writ{0};            // how have we written. This is maintained by Add, not write(), to avoid confusion over seeks
 	unsigned int opos;        // current pos in the mmap
 	unsigned int mapsize;     // the size of the map we created
-	bool hasputcen;           // have we yet placed the central directory?
+	bool hasputcen{false};           // have we yet placed the central directory?
 	//
-	TZipFileInfo *zfis;       // each file gets added onto this list, for writing the table at the end
+	TZipFileInfo *zfis{nullptr};       // each file gets added onto this list, for writing the table at the end
 
 	ZRESULT Start(RageFile *f);
 	static unsigned sflush(void *param,const char *buf, unsigned *size);
@@ -575,7 +574,7 @@ public:
 	ulg attr; iztimes times; ulg timestamp;  // all open_* methods set these
 	long isize,ired;         // size is not set until close() on pips
 	ulg crc;                                 // crc is not set until close(). iwrit is cumulative
-	RageFile *hfin;           // for input files and pipes
+	RageFile *hfin{nullptr};           // for input files and pipes
 	const char *bufin; unsigned int lenin,posin; // for memory
 	// and a variable for what we've done with the input: (i.e. compressed it!)
 	ulg csize;                               // compressed size, set by the compression routines
@@ -601,7 +600,7 @@ public:
 
 ZRESULT TZip::Start(RageFile *f)
 {
-	if (pfout!=0 || writ!=0 || oerr!=ZR_OK || hasputcen)
+	if (pfout!=nullptr || writ!=0 || oerr!=ZR_OK || hasputcen)
 		return ZR_NOTINITED;
 	//
 	pfout = f;
@@ -614,7 +613,7 @@ unsigned TZip::sflush(void *param,const char *buf, unsigned *size)
 	// static
 	if (*size==0)
 		return 0;
-	TZip *zip = (TZip*)param;
+	auto *zip = (TZip*)param;
 	unsigned int writ = zip->write(buf,*size);
 	if (writ!=0)
 		*size=0;
@@ -625,7 +624,7 @@ unsigned TZip::swrite(void *param,const char *buf, unsigned size)
 	// static
 	if (size==0)
 		return 0;
-	TZip *zip=(TZip*)param;
+	auto *zip=(TZip*)param;
 	return zip->write(buf,size);
 }
 unsigned int TZip::write(const char *buf,unsigned int size)
@@ -673,8 +672,8 @@ ZRESULT TZip::Close()
 
 ZRESULT TZip::open_file(const TCHAR *fn)
 {
-	hfin=0; bufin=0; crc=CRCVAL_INITIAL; isize=0; csize=0; ired=0;
-	if (fn==0)
+	hfin=nullptr; bufin=nullptr; crc=CRCVAL_INITIAL; isize=0; csize=0; ired=0;
+	if (fn==nullptr)
 		return ZR_ARGS;
 	hfin = new RageFile();
 	if( !hfin->Open(fn) )
@@ -689,7 +688,7 @@ ZRESULT TZip::open_file(const TCHAR *fn)
 
 ZRESULT TZip::open_dir()
 {
-	hfin=0; bufin=0; crc=CRCVAL_INITIAL; isize=0; csize=0; ired=0;
+	hfin=nullptr; bufin=nullptr; crc=CRCVAL_INITIAL; isize=0; csize=0; ired=0;
 	attr= ZIP_ATTR_DIRECTORY2 | ZIP_ATTR_READABLE | ZIP_ATTR_WRITEABLE | ZIP_ATTR_DIRECTORY;
 	isize = 0;
 	return set_times();
@@ -726,7 +725,7 @@ ZRESULT TZip::set_times()
 
 unsigned TZip::read(char *buf, unsigned size)
 {
-	if (bufin!=0)
+	if (bufin!=nullptr)
 	{
 		if (posin>=lenin) return 0; // end of input
 		ulg red = lenin-posin;
@@ -738,7 +737,7 @@ unsigned TZip::read(char *buf, unsigned size)
 		crc = crc32(crc, (uch*)buf, red);
 		return red;
 	}
-	else if (hfin!=0)
+	else if (hfin!=nullptr)
 	{
 		int red = hfin->Read(buf,size);
 		if (red <= 0)
@@ -756,7 +755,7 @@ unsigned TZip::read(char *buf, unsigned size)
 
 ZRESULT TZip::iclose()
 {
-	if (hfin!=0)
+	if (hfin!=nullptr)
 		SAFE_DELETE( hfin);
 	bool mismatch = (isize!=-1 && isize!=ired);
 	isize=ired; // and crc has been being updated anyway
@@ -933,8 +932,8 @@ ZRESULT TZip::Add(const TCHAR *odstzn, const TCHAR *src,unsigned long flags)
 		return oerr;
 
 	// Keep a copy of the zipfileinfo, for our end-of-zip directory
-	char *cextra = new char[zfi.cext]; memcpy(cextra,zfi.cextra,zfi.cext); zfi.cextra=cextra;
-	TZipFileInfo *pzfi = new TZipFileInfo; memcpy(pzfi,&zfi,sizeof(zfi));
+	auto *cextra = new char[zfi.cext]; memcpy(cextra,zfi.cextra,zfi.cext); zfi.cextra=cextra;
+	auto *pzfi = new TZipFileInfo; memcpy(pzfi,&zfi,sizeof(zfi));
 	if (zfis==NULL)
 		zfis=pzfi;
 	else

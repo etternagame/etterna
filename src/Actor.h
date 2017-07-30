@@ -13,7 +13,7 @@ class LuaClass;
 #include "MessageManager.h"
 #include "Tween.h"
 
-typedef AutoPtrCopyOnWrite<LuaReference> apActorCommands;
+using apActorCommands = AutoPtrCopyOnWrite<LuaReference>;
 
 /** @brief The background layer. */
 #define DRAW_ORDER_BEFORE_EVERYTHING		-200
@@ -111,7 +111,7 @@ public:
 	 * @brief Copy a new Actor to the old one.
 	 * @param cpy the new Actor to use in place of this one. */
 	Actor( const Actor &cpy );
-	virtual ~Actor();
+	~Actor() override;
 	virtual Actor *Copy() const;
 	virtual void InitState();
 	virtual void LoadFromNode( const XNode* pNode );
@@ -453,7 +453,7 @@ public:
 
 	void SetGlobalDiffuseColor( const RageColor &c );
 
-	virtual void SetDiffuse( const RageColor &c )		{ for(int i=0; i<NUM_DIFFUSE_COLORS; i++) DestTweenState().diffuse[i] = c; };
+	virtual void SetDiffuse( const RageColor &c )		{ for(auto & i : DestTweenState().diffuse) i = c; };
 	virtual void SetDiffuseAlpha( float f )		{ for(int i = 0; i < NUM_DIFFUSE_COLORS; ++i) { RageColor c = GetDiffuses( i ); c.a = f; SetDiffuses( i, c ); } }
 	float GetCurrentDiffuseAlpha() const		{ return m_current.diffuse[0].a; }
 	void SetDiffuseColor( const RageColor &c );
@@ -601,14 +601,14 @@ public:
 	void PlayCommandNoRecurse( const Message &msg );
 
 	// Commands by reference
-	virtual void RunCommands( const LuaReference& cmds, const LuaReference *pParamTable = NULL );
-	void RunCommands( const apActorCommands& cmds, const LuaReference *pParamTable = NULL ) { this->RunCommands( *cmds, pParamTable ); }	// convenience
-	virtual void RunCommandsRecursively( const LuaReference& cmds, const LuaReference *pParamTable = NULL ) { RunCommands(cmds, pParamTable); }
+	virtual void RunCommands( const LuaReference& cmds, const LuaReference *pParamTable = nullptr );
+	void RunCommands( const apActorCommands& cmds, const LuaReference *pParamTable = nullptr ) { this->RunCommands( *cmds, pParamTable ); }	// convenience
+	virtual void RunCommandsRecursively( const LuaReference& cmds, const LuaReference *pParamTable = nullptr ) { RunCommands(cmds, pParamTable); }
 	// If we're a leaf, then execute this command.
-	virtual void RunCommandsOnLeaves( const LuaReference& cmds, const LuaReference *pParamTable = NULL ) { RunCommands(cmds, pParamTable); }
+	virtual void RunCommandsOnLeaves( const LuaReference& cmds, const LuaReference *pParamTable = nullptr ) { RunCommands(cmds, pParamTable); }
 
 	// Messages
-	virtual void HandleMessage( const Message &msg );
+	void HandleMessage( const Message &msg ) override;
 
 	// Animation
 	virtual int GetNumStates() const { return 1; }

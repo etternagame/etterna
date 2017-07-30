@@ -13,13 +13,13 @@ class ActorMultiTexture: public Actor
 public:
 	ActorMultiTexture();
 	ActorMultiTexture( const ActorMultiTexture &cpy );
-	virtual ~ActorMultiTexture();
+	~ActorMultiTexture() override;
 
-	void LoadFromNode( const XNode* pNode );
-	virtual ActorMultiTexture *Copy() const;
+	void LoadFromNode( const XNode* pNode ) override;
+	ActorMultiTexture *Copy() const override;
 
-	virtual bool EarlyAbortDraw() const;
-	virtual void DrawPrimitives();
+	bool EarlyAbortDraw() const override;
+	void DrawPrimitives() override;
 
 	void ClearTextures();
 	int AddTexture( RageTexture *pTexture );
@@ -29,15 +29,15 @@ public:
 	void SetTextureCoords( const RectF &r );
 	void SetEffectMode( EffectMode em ) { m_EffectMode = em; }
 
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 private:
 	EffectMode m_EffectMode;
 	struct TextureUnitState
 	{
-		TextureUnitState(): m_pTexture(NULL), m_TextureMode(TextureMode_Modulate) {}
-		RageTexture *m_pTexture;
-		TextureMode m_TextureMode;
+		TextureUnitState() = default;
+		RageTexture *m_pTexture{NULL};
+		TextureMode m_TextureMode{TextureMode_Modulate};
 	};
 	vector<TextureUnitState> m_aTextureUnits;
 	RectF m_Rect;

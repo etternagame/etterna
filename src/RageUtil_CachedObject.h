@@ -77,7 +77,7 @@ public:
 	}
 
 private:
-	typedef CachedObjectPointer<T> ObjectPointer;
+	using ObjectPointer = CachedObjectPointer<T>;
 	friend class CachedObjectPointer<T>;
 
 	static void Register( ObjectPointer *p )
@@ -107,7 +107,7 @@ template<typename T>
 class CachedObjectPointer
 {
 public:
-	typedef CachedObject<T> Object;
+	using Object = CachedObject<T>;
 
 	CachedObjectPointer() : m_pCache(NULL), m_bCacheIsSet(false)
 	{

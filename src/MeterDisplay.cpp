@@ -12,8 +12,7 @@ REGISTER_ACTOR_CLASS(MeterDisplay);
 REGISTER_ACTOR_CLASS(SongMeterDisplay);
 
 MeterDisplay::MeterDisplay()
-{
-}
+= default;
 
 void MeterDisplay::Load( const RString &sStreamPath, float fStreamWidth, const RString &sTipPath )
 {

@@ -10,9 +10,9 @@ class RoomInfoDisplay : public ActorFrame
 {
 public:
 	RoomInfoDisplay();
-	~RoomInfoDisplay();
+	~RoomInfoDisplay() override;
 	virtual void Load( const RString &sType );
-	virtual void Update( float fDeltaTime );
+	void Update( float fDeltaTime ) override;
 	void SetRoom( const RoomWheelItemData* roomData );
 	void SetRoomInfo( const RoomInfo& info);
 	void DeployInfoBox();
@@ -26,7 +26,7 @@ private:
 		LOCKED
 	};
 
-	RoomInfoDisplayState m_state;
+	RoomInfoDisplayState m_state{ OPEN };
 	AutoActor m_bg;
 	BitmapText m_Title;
 	BitmapText m_Desc;

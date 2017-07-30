@@ -72,15 +72,15 @@ void RageSurfaceUtils::OrderedDither( const RageSurface *src, RageSurface *dst )
 
 	// Calculate the ratio from the old bit depth to the new for each color channel.
 	int conv[4];
-	for( int i = 0; i < 4; ++i )
+	for(int & i : conv)
 	{
 		int MaxInputIntensity = (1 << src_cbits[i])-1;
 		int MaxOutputIntensity = (1 << dst_cbits[i])-1;
 		// If the source is missing the channel, avoid div/0.
 		if( MaxInputIntensity == 0 )
-			conv[i] = 0;
+			i = 0;
 		else
-			conv[i] = MaxOutputIntensity * 65536 / MaxInputIntensity;
+			i = MaxOutputIntensity * 65536 / MaxInputIntensity;
 	}
 
 	// Max alpha value; used when there's no alpha source.
@@ -176,15 +176,15 @@ void RageSurfaceUtils::ErrorDiffusionDither( const RageSurface *src, RageSurface
 
 	// Calculate the ratio from the old bit depth to the new for each color channel.
 	int conv[4];
-	for( int i = 0; i < 4; ++i )
+	for(int & i : conv)
 	{
 		int MaxInputIntensity = (1 << src_cbits[i])-1;
 		int MaxOutputIntensity = (1 << dst_cbits[i])-1;
 		// If the source is missing the channel, avoid div/0.
 		if( MaxInputIntensity == 0 )
-			conv[i] = 0;
+			i = 0;
 		else
-			conv[i] = MaxOutputIntensity * 65536 / MaxInputIntensity;
+			i = MaxOutputIntensity * 65536 / MaxInputIntensity;
 	}
 
 	// Max alpha value; used when there's no alpha source.

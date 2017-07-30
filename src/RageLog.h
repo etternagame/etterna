@@ -32,11 +32,11 @@ public:
 	void SetFlushing( bool b );	// enable or disable flushing
 
 private:
-	bool m_bLogToDisk;
-	bool m_bInfoToDisk;
-	bool m_bUserLogToDisk;
-	bool m_bFlush;
-	bool m_bShowLogOutput;
+	bool m_bLogToDisk{false};
+	bool m_bInfoToDisk{false};
+	bool m_bUserLogToDisk{false};
+	bool m_bFlush{false};
+	bool m_bShowLogOutput{false};
 	void Write( int, const RString &str );
 	void UpdateMappedLog();
 	void AddToInfo( const RString &buf );

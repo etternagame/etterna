@@ -477,7 +477,7 @@ RString GetCwd();
 
 void SetCommandlineArguments( int argc, char **argv );
 void GetCommandLineArguments( int &argc, char **&argv );
-bool GetCommandlineArgument( const RString &option, RString *argument=NULL, int iIndex=0 );
+bool GetCommandlineArgument( const RString &option, RString *argument=nullptr, int iIndex=0 );
 extern int g_argc;
 extern char **g_argv;
 
@@ -624,7 +624,7 @@ struct char_traits_char_nocase: public char_traits<char>
 
 		if(fasttoupper(*s) == a)
 			return s;
-		return NULL;
+		return nullptr;
 	}
 };
 typedef basic_string<char,char_traits_char_nocase> istring;
@@ -660,7 +660,7 @@ namespace StringConversion
 
 class RageFileBasic;
 bool FileCopy( const RString &sSrcFile, const RString &sDstFile );
-bool FileCopy( RageFileBasic &in, RageFileBasic &out, RString &sError, bool *bReadError = NULL );
+bool FileCopy( RageFileBasic &in, RageFileBasic &out, RString &sError, bool *bReadError = nullptr );
 
 template<class T>
 void GetAsNotInBs( const vector<T> &as, const vector<T> &bs, vector<T> &difference )

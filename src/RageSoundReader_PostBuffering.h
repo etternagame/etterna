@@ -9,9 +9,9 @@ class RageSoundReader_PostBuffering: public RageSoundReader_Filter
 {
 public:
 	RageSoundReader_PostBuffering( RageSoundReader *pSource );
-	RageSoundReader_PostBuffering *Copy() const { return new RageSoundReader_PostBuffering(*this); }
-	virtual int Read( float *pBuf, int iFrames );
-	virtual bool SetProperty( const RString &sProperty, float fValue );
+	RageSoundReader_PostBuffering *Copy() const override { return new RageSoundReader_PostBuffering(*this); }
+	int Read( float *pBuf, int iFrames ) override;
+	bool SetProperty( const RString &sProperty, float fValue ) override;
 
 private:
 	float m_fVolume;

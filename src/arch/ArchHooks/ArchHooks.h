@@ -7,7 +7,7 @@ class ArchHooks
 public:
 	static ArchHooks *Create();
 	ArchHooks();
-	virtual ~ArchHooks() { }
+	virtual ~ArchHooks() = default;
 	virtual void Init() { }
 	/*
 	 * Return the general name of the architecture, eg. "Windows", "OS X", "Unix".
