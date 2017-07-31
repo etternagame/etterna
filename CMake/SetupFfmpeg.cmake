@@ -61,10 +61,11 @@ if (IS_DIRECTORY "${SM_FFMPEG_SRC_DIR}")
     INSTALL_COMMAND ""
     TEST_COMMAND ""
   )
+  
 else()
   # --shlibdir=$our_installdir/stepmania-$VERSION
   externalproject_add("ffmpeg"
-    DOWNLOAD_COMMAND git clone "--branch" "n3.3.3" "--depth" "1" "https://git.ffmpeg.org/ffmpeg.git" "${SM_FFMPEG_SRC_DIR}"
+    DOWNLOAD_COMMAND git clone "--branch" "release/3.3" "--depth" "1" "git://github.com/FFmpeg/FFmpeg.git" "${SM_FFMPEG_SRC_DIR}"
     CONFIGURE_COMMAND "${FFMPEG_CONFIGURE}"
     BUILD_COMMAND "${SM_FFMPEG_MAKE}"
     UPDATE_COMMAND ""
