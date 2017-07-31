@@ -1,4 +1,4 @@
-set(SM_FFMPEG_VERSION "2.1.3")
+set(SM_FFMPEG_VERSION "3.3.3")
 set(SM_FFMPEG_SRC_LIST "${SM_EXTERN_DIR}" "/ffmpeg-linux-" "${SM_FFMPEG_VERSION}")
 sm_join("${SM_FFMPEG_SRC_LIST}" "" SM_FFMPEG_SRC_DIR)
 set(SM_FFMPEG_CONFIGURE_EXE "${SM_FFMPEG_SRC_DIR}/configure")
@@ -12,13 +12,8 @@ if (MINGW)
 endif()
 list(APPEND FFMPEG_CONFIGURE
   "${SM_FFMPEG_CONFIGURE_EXE}"
-  "--disable-programs"
-  "--disable-doc"
-  "--disable-avdevice"
-  "--disable-swresample"
-  "--disable-postproc"
-  "--disable-avfilter"
-  "--disable-shared"
+  "--disable-muxers"
+  "--disable-encoders"
   "--enable-static"
 )
 
