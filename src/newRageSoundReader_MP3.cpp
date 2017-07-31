@@ -116,16 +116,18 @@ void newRageSoundReader_MP3::RegisterProtocols()
 }
 int ReadFunc(void* ptr, uint8_t* buf, int buf_size)
 {
-	RageFileBasic *pFile = reinterpret_cast<RageFileBasic *>(ptr);
-	return pFile->Read(buf, buf_size);
+	HiddenPtr<RageFileBasic>* ppFile = reinterpret_cast<HiddenPtr<RageFileBasic>*>(ptr);
+	//RageFileBasic *pFile = reinterpret_cast<RageFileBasic *>(ptr);
+	return (*ppFile)->Read(buf, buf_size);
 }
 // whence: SEEK_SET, SEEK_CUR, SEEK_END (like fseek) and AVSEEK_SIZE
 int64_t SeekFunc(void* ptr, int64_t pos, int whence)
 {
-	RageFileBasic *pFile = reinterpret_cast<RageFileBasic *>(ptr);
+	HiddenPtr<RageFileBasic>* ppFile = reinterpret_cast<HiddenPtr<RageFileBasic>*>(ptr);
+	//RageFileBasic *pFile = reinterpret_cast<RageFileBasic *>(ptr);
 	if (whence == AVSEEK_SIZE)
 		return -1;
-	return pFile->Seek(static_cast<int>(pos), whence);
+	return (*ppFile)->Seek(static_cast<int>(pos), whence);
 }
 RageSoundReader_FileReader::OpenResult newRageSoundReader_MP3::Open(RageFileBasic *pFile)
 {
@@ -146,7 +148,7 @@ RageSoundReader_FileReader::OpenResult newRageSoundReader_MP3::Open(RageFileBasi
 
 	IOCtx = avcodec::avio_alloc_context(buffer, MP3_BUFFER_SIZE,  // internal Buffer and its size
 		0,                  // bWriteable (1=true,0=false) 
-		pFile,          // user data ; will be passed to our callback functions
+		&m_pFile,          // user data ; will be passed to our callback functions
 		ReadFunc,
 		0,                  // Write callback function 
 		SeekFunc);
@@ -155,7 +157,8 @@ RageSoundReader_FileReader::OpenResult newRageSoundReader_MP3::Open(RageFileBasi
 	formatCtx->pb = IOCtx;
 
 
-	// Determining the input format:
+	// Determining the input format
+	/* I'm commenting this. I read a probe should be done to prevent crashes, but it seems the probe is making us crash randomly
 	unsigned char buff[1024+64];
 	for (int x = 0; x < 64; x++)
 		buff[1024 + x] = 0x00000000;
@@ -180,6 +183,7 @@ RageSoundReader_FileReader::OpenResult newRageSoundReader_MP3::Open(RageFileBasi
 		SetError("Error probing (Interpreting)");
 		return OPEN_UNKNOWN_FILE_FORMAT;
 	}
+	*/
 	formatCtx->flags = AVFMT_FLAG_CUSTOM_IO;
 	if (avcodec::avformat_open_input(&formatCtx, "", 0, 0) != 0) {
 		SetError("Error opening file");
@@ -206,14 +210,18 @@ RageSoundReader_FileReader::OpenResult newRageSoundReader_MP3::Open(RageFileBasi
 		SetError("Didn't find a audio stream");
 		return OPEN_UNKNOWN_FILE_FORMAT;
 	}
-	// Get a pointer to the codec context for the audio stream
-	codecCtx = formatCtx->streams[audioStream]->codec;
 	// Find the decoder for the audio stream
-	codec = avcodec::avcodec_find_decoder(codecCtx->codec_id);
+	codec = avcodec::avcodec_find_decoder(formatCtx->streams[audioStream]->codecpar->codec_id);
 	if (codec == NULL) {
 		SetError("Codec not found\n");
 		return OPEN_UNKNOWN_FILE_FORMAT;
 	}
+	// Get a pointer to the codec context for the audio stream
+	avcodec::AVCodecParameters * codecParams = formatCtx->streams[audioStream]->codecpar;
+	//deprecated
+	//codecCtx = formatCtx->streams[audioStream]->codec; 
+	codecCtx = avcodec::avcodec_alloc_context3(codec);
+	avcodec::avcodec_parameters_to_context(codecCtx, codecParams);
 
 	if (avcodec::avcodec_open2(codecCtx, codec, NULL) < 0) {
 		SetError("Error opening decoder");
@@ -223,7 +231,7 @@ RageSoundReader_FileReader::OpenResult newRageSoundReader_MP3::Open(RageFileBasi
 	curChannel = 0;
 	curSample = 0;
 	numChannels = codecCtx->channels;
-	bitrate = codecCtx->bit_rate;
+	bitrate = static_cast<int>(codecCtx->bit_rate);
 	sampleRate = codecCtx->sample_rate;
 	//Length is being calculated to be in miliseconds(Not sure if that's what SM wants to read. Edit GetLength accordingly once we know)
 	//I have no idea what's wrong with calculating length as formatCtx->duration/1000
@@ -392,10 +400,42 @@ int newRageSoundReader_MP3::ReadAFrame()
 		avpkt.dts =
 			avpkt.pts = AV_NOPTS_VALUE;
 		if (avpkt.stream_index == audioStream) {
+			
+			int ret = avcodec::avcodec_send_packet(codecCtx, &avpkt);
+			if (ret < 0) {
+				SetError("Error submitting the packet to the decoder\n");
+				return -1;
+			}
+			while (ret >= 0) {
+				ret = avcodec::avcodec_receive_frame(codecCtx, decodedFrame);
+				if (ret == AVERROR_EOF)
+					return -2;
+				if (ret == AVERROR(EAGAIN)) {
+					ret = avcodec::avcodec_send_packet(codecCtx, &avpkt);
+					if (ret < 0) {
+						SetError("Error submitting the packet to the decoder\n");
+						return -1;
+					}
+					break;
+				}
+				else if (ret < 0) {
+					SetError("Error during decoding\n");
+					return -1;
+				}
+				numChannels = avcodec::av_get_channel_layout_nb_channels(decodedFrame->channel_layout);
+				dataSize = avcodec::av_get_bytes_per_sample(codecCtx->sample_fmt);
+				numSamples = decodedFrame->nb_samples;
+				curChannel = 0;
+				curSample = 0;
+				avcodec::av_packet_unref(&avpkt);
+				return numSamples*numChannels*dataSize;
+			}
+			break;
+			/* avcodec_decode_audio4 deprecated
 			int size = avpkt.size;
 			while (size > 0 && avpkt.stream_index == audioStream) {
 				int gotFrame = 0;
-				int len = avcodec_decode_audio4(codecCtx, decodedFrame, &gotFrame, &avpkt);
+				int len = avcodec::avcodec_decode_audio4(codecCtx, decodedFrame, &gotFrame, &avpkt);
 				if (len == -1) {
 					SetError("Error while decoding\n");
 					return -1;
@@ -413,6 +453,7 @@ int newRageSoundReader_MP3::ReadAFrame()
 				}
 			}
 			break;
+			*/
 		}
 	}
 	avcodec::av_packet_unref(&avpkt);
