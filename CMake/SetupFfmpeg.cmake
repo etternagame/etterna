@@ -15,7 +15,6 @@ list(APPEND FFMPEG_CONFIGURE
   "--disable-muxers"
   "--disable-encoders"
   "--disable-swresample"
-  "--disable-resampling"
   "--enable-static"
 )
 
