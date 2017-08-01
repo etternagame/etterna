@@ -12,10 +12,12 @@ if (MINGW)
 endif()
 list(APPEND FFMPEG_CONFIGURE
   "${SM_FFMPEG_CONFIGURE_EXE}"
+  "--disable-programs"
+  "--disable-doc"
+  "--disable-avdevice"
+  "--disable-avfilter"
   "--disable-muxers"
   "--disable-encoders"
-  "--disable-swresample"
-  "--enable-static"
   "--disable-lzma"
 )
 
