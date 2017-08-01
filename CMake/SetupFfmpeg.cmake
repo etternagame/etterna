@@ -15,6 +15,7 @@ list(APPEND FFMPEG_CONFIGURE
   "--disable-muxers"
   "--disable-encoders"
   "--enable-static"
+  "-lswresample"
 )
 
 if(CMAKE_POSITION_INDEPENDENT_CODE)
@@ -29,11 +30,11 @@ if(MACOSX)
   )
 endif()
 
-if(WITH_GPL_LIBS)
-  list(APPEND FFMPEG_CONFIGURE
-    "--enable-gpl"
-  )
-endif()
+#if(WITH_GPL_LIBS)
+#  list(APPEND FFMPEG_CONFIGURE
+#    "--enable-gpl"
+#  )
+#endif()
 
 if (WITH_CRYSTALHD_DISABLED)
   list(APPEND FFMPEG_CONFIGURE "--disable-crystalhd")
