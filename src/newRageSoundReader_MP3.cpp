@@ -283,17 +283,14 @@ int newRageSoundReader_MP3::SetPosition(int iFrame)
 	if (decodedFrame)
 		avcodec::av_frame_free(&decodedFrame);
 	avcodec::AVStream * stream = formatCtx->streams[audioStream];
-	//Calculate the second to seek to (No idea why the *100 seems to work)
-	double sec = ((static_cast<double>(iFrame)) / sampleRate * 100);
 	//Calculate what we need to pass to the seek function (In the stream's time units)
 	timeBase = ((stream->time_base.den) / (stream->time_base.num));
-	int seekFrame = static_cast<int>(sec * timeBase);
+	double sec = (static_cast<double>(iFrame) / sampleRate);
+	unsigned int seekFrame = static_cast<int>(sec * timeBase);
 	const int flags = AVSEEK_FLAG_ANY | AVSEEK_FLAG_BACKWARD;
 	int ret=-1;
-	if (seekFrame >= 0 && seekFrame<= timeBase*length/1000)
+	if (seekFrame >= 0 && sec<= stream->duration)
 		ret = avcodec::av_seek_frame(formatCtx, audioStream, seekFrame, flags);
-	else
-		ret = avcodec::av_seek_frame(formatCtx, audioStream, 0, flags);
 	return ret;
 }
 
@@ -304,13 +301,11 @@ int newRageSoundReader_MP3::SetPosition(int iFrame)
 //Then either return the samples read or read and decode another frame
 int newRageSoundReader_MP3::Read(float *pBuf, int iFrames)
 {
+	//uint8_t *buf = new uint8_t[max(static_cast<int>(sizeof(float)), dataSize)*iFrames*numChannels];
 	uint8_t* buf = reinterpret_cast<uint8_t*>(pBuf);//Increases by 1 byte
 	int samplesRead = 0;
 	if (iFrames <= 0)
 		return iFrames;
-	if (decodedFrame != NULL) {
-		samplesRead += WriteSamplesForAllChannels(buf + samplesRead*numChannels*dataSize, iFrames - samplesRead);
-	}
 	while (samplesRead < iFrames) {
 		if (!decodedFrame)
 			switch (ReadAFrame()) {
@@ -322,6 +317,8 @@ int newRageSoundReader_MP3::Read(float *pBuf, int iFrames)
 				return END_OF_FILE;
 				break;
 			};
+		if(decodedFrame->nb_samples<=0)
+			return ERROR;
 		int read = WriteSamplesForAllChannels(buf + samplesRead*numChannels*dataSize, iFrames - samplesRead);
 		if (!read)
 			return ERROR;
