@@ -17,7 +17,6 @@ list(APPEND FFMPEG_CONFIGURE
   "--disable-swresample"
   "--disable-resampling"
   "--enable-static"
-  "--enable-shared"
 )
 
 if(CMAKE_POSITION_INDEPENDENT_CODE)
