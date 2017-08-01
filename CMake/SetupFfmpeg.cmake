@@ -12,9 +12,14 @@ if (MINGW)
 endif()
 list(APPEND FFMPEG_CONFIGURE
   "${SM_FFMPEG_CONFIGURE_EXE}"
+  "--disable-programs"
+  "--disable-doc"
+  "--disable-avdevice"
+  "--disable-avfilter"
+  "--disable-swresample"
   "--disable-muxers"
   "--disable-encoders"
-  "--enable-static"
+  "--disable-lzma"
 )
 
 if(CMAKE_POSITION_INDEPENDENT_CODE)
@@ -29,11 +34,11 @@ if(MACOSX)
   )
 endif()
 
-if(WITH_GPL_LIBS)
-  list(APPEND FFMPEG_CONFIGURE
-    "--enable-gpl"
-  )
-endif()
+#if(WITH_GPL_LIBS)
+#  list(APPEND FFMPEG_CONFIGURE
+#    "--enable-gpl"
+#  )
+#endif()
 
 if (WITH_CRYSTALHD_DISABLED)
   list(APPEND FFMPEG_CONFIGURE "--disable-crystalhd")
@@ -61,10 +66,11 @@ if (IS_DIRECTORY "${SM_FFMPEG_SRC_DIR}")
     INSTALL_COMMAND ""
     TEST_COMMAND ""
   )
+  
 else()
   # --shlibdir=$our_installdir/stepmania-$VERSION
   externalproject_add("ffmpeg"
-    DOWNLOAD_COMMAND git clone "--branch" "n${SM_FFMPEG_VERSION}" "--depth" "1" "git://github.com/stepmania/ffmpeg.git" "${SM_FFMPEG_SRC_DIR}"
+    DOWNLOAD_COMMAND git clone "--branch" "release/3.3" "--depth" "1" "git://github.com/FFmpeg/FFmpeg.git" "${SM_FFMPEG_SRC_DIR}"
     CONFIGURE_COMMAND "${FFMPEG_CONFIGURE}"
     BUILD_COMMAND "${SM_FFMPEG_MAKE}"
     UPDATE_COMMAND ""
