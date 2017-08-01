@@ -14,8 +14,10 @@ list(APPEND FFMPEG_CONFIGURE
   "${SM_FFMPEG_CONFIGURE_EXE}"
   "--disable-muxers"
   "--disable-encoders"
+  "--disable-swresample"
+  "--disable-resampling"
   "--enable-static"
-  "-lswresample"
+  "--enable-shared"
 )
 
 if(CMAKE_POSITION_INDEPENDENT_CODE)
