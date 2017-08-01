@@ -16,6 +16,7 @@ list(APPEND FFMPEG_CONFIGURE
   "--disable-doc"
   "--disable-avdevice"
   "--disable-avfilter"
+  "--disable-swresample"
   "--disable-muxers"
   "--disable-encoders"
   "--disable-lzma"
