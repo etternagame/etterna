@@ -485,8 +485,8 @@ Section "Main Section" SecMain
 	File "Program\avcodec-57.dll"
 	;File "Program\avdevice-52.dll"
 	File "Program\avformat-57.dll"
-	File "Program\avutil-57.dll"
-	File "Program\swresample-4.dll"
+	File "Program\avutil-55.dll"
+	File "Program\swresample-2.dll"
 	File "Program\swscale-4.dll"
 	; parallel lights
 	File "Program\parallel_lights_io.dll"
