@@ -16,6 +16,7 @@ list(APPEND FFMPEG_CONFIGURE
   "--disable-encoders"
   "--disable-swresample"
   "--enable-static"
+  "--disable-lzma"
 )
 
 if(CMAKE_POSITION_INDEPENDENT_CODE)
