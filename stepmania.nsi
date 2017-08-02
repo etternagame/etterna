@@ -251,7 +251,6 @@ Section "Main Section" SecMain
 !endif
 
 !ifdef INSTALL_NON_PCK_FILES
-	File "portable.ini"
 	
 	CreateDirectory "$INSTDIR\Announcers"
 	SetOutPath "$INSTDIR\Announcers"
@@ -765,7 +764,6 @@ Section "Uninstall"
 !endif
 
 !ifdef INSTALL_NON_PCK_FILES
-	Delete "$INSTDIR\portable.ini"
 	
 	Delete "$INSTDIR\Announcers\instructions.txt"
 	RMDir "$INSTDIR\Announcers"

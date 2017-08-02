@@ -732,16 +732,8 @@ BOOL CrashDialog::HandleMessage( UINT msg, WPARAM wParam, LPARAM lParam )
 			return TRUE;
 		case IDC_VIEW_LOG:
 			{
-				RString sLogPath;
-				FILE *pFile = fopen( SpliceProgramPath("../Portable.ini"), "r" );
-				if(pFile != NULL)
-				{
-					sLogPath = SpliceProgramPath("../Logs/log.txt");
-					fclose( pFile );
-				}
-				else
-					sLogPath = SpecialDirs::GetAppDataDir() + PRODUCT_ID +"/Logs/log.txt";
-
+				RString sLogPath = SpliceProgramPath("../Logs/log.txt");
+				
 				ShellExecute( NULL, "open", sLogPath, "", "", SW_SHOWNORMAL );
 			}
 			break;
