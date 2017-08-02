@@ -12,7 +12,7 @@
 // for mouse stuff: -aj
 #include "PrefsManager.h"
 #include "ScreenDimensions.h"
-
+#include "arch/ArchHooks/ArchHooks.h"
 #include <set>
 
 static const char *InputEventTypeNames[] = {
@@ -481,20 +481,16 @@ void InputFilter::UpdateMouseWheel(float _fZ)
 class LunaInputFilter: public Luna<InputFilter>
 {
 public:
-	// todo: Should the input be locked to the theme's width/height instead of
-	// the window's width/height? -aj
-	static int GetMouseX( T* p, lua_State *L ){
+	static int GetMouseX(T* p, lua_State *L) {
 		float fX = p->GetCursorX();
-		// Scale input to the theme's dimensions
-		fX = SCALE( fX, 0, (PREFSMAN->m_iDisplayHeight * PREFSMAN->m_fDisplayAspectRatio), SCREEN_LEFT, SCREEN_RIGHT );
-		lua_pushnumber( L, fX );
+		fX = SCALE(fX, 0, HOOKS->GetWindowWidth(), SCREEN_LEFT, SCREEN_RIGHT);
+		lua_pushnumber(L, fX);
 		return 1;
 	}
-	static int GetMouseY( T* p, lua_State *L ){
+	static int GetMouseY(T* p, lua_State *L) {
 		float fY = p->GetCursorY();
-		// Scale input to the theme's dimensions
-		fY = SCALE( fY, 0, PREFSMAN->m_iDisplayHeight, SCREEN_TOP, SCREEN_BOTTOM );
-		lua_pushnumber( L, fY );
+		fY = SCALE(fY, 0, HOOKS->GetWindowHeight(), SCREEN_TOP, SCREEN_BOTTOM);
+		lua_pushnumber(L, fY);
 		return 1;
 	}
 	static int GetMouseWheel( T* p, lua_State *L ){
