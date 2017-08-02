@@ -331,11 +331,6 @@ void RageFileManager::MountInitialFilesystems()
 	HOOKS->MountInitialFilesystems( RageFileManagerUtil::sDirOfExecutable );
 }
 
-void RageFileManager::MountUserFilesystems()
-{
-	HOOKS->MountUserFilesystems( RageFileManagerUtil::sDirOfExecutable );
-}
-
 RageFileManager::~RageFileManager()
 {
 	// Unregister with Lua.

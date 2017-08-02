@@ -394,31 +394,6 @@ void ArchHooks::MountInitialFilesystems( const RString &sDirOfExecutable )
 	FILEMAN->Mount( "dir", Root, "/" );
 }
 
-void ArchHooks::MountUserFilesystems( const RString &sDirOfExecutable )
-{
-	/* Path to write general mutable user data when not Portable
-	 * Lowercase the PRODUCT_ID; dotfiles and directories are almost always lowercase.
-	 */
-	const char *szHome = getenv( "HOME" );
-	RString sUserDataPath = ssprintf( "%s/.%s", szHome? szHome:".", "stepmania-5.0" ); //call an ambulance!
-	FILEMAN->Mount( "dir", sUserDataPath + "/Announcers", "/Announcers" );
-	FILEMAN->Mount( "dir", sUserDataPath + "/BGAnimations", "/BGAnimations" );
-	FILEMAN->Mount( "dir", sUserDataPath + "/BackgroundEffects", "/BackgroundEffects" );
-	FILEMAN->Mount( "dir", sUserDataPath + "/BackgroundTransitions", "/BackgroundTransitions" );
-	FILEMAN->Mount( "dir", sUserDataPath + "/Cache", "/Cache" );
-	FILEMAN->Mount( "dir", sUserDataPath + "/CDTitles", "/CDTitles" );
-	FILEMAN->Mount( "dir", sUserDataPath + "/Characters", "/Characters" );
-	FILEMAN->Mount( "dir", sUserDataPath + "/Courses", "/Courses" );
-	FILEMAN->Mount( "dir", sUserDataPath + "/Logs", "/Logs" );
-	FILEMAN->Mount( "dir", sUserDataPath + "/NoteSkins", "/NoteSkins" );
-	FILEMAN->Mount( "dir", sUserDataPath + "/Packages", "/" + SpecialFiles::USER_PACKAGES_DIR );
-	FILEMAN->Mount( "dir", sUserDataPath + "/Save", "/Save" );
-	FILEMAN->Mount( "dir", sUserDataPath + "/Screenshots", "/Screenshots" );
-	FILEMAN->Mount( "dir", sUserDataPath + "/Songs", "/Songs" );
-	FILEMAN->Mount( "dir", sUserDataPath + "/RandomMovies", "/RandomMovies" );
-	FILEMAN->Mount( "dir", sUserDataPath + "/Themes", "/Themes" );
-}
-
 /*
  * (c) 2003-2004 Glenn Maynard
  * All rights reserved.
