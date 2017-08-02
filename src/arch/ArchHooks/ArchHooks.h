@@ -91,11 +91,6 @@ public:
 	 */
 	static void MountInitialFilesystems( const RString &sDirOfExecutable );
 
-	/* 
-	 * Add file search paths for user-writable directories. 
-	 */
-	static void MountUserFilesystems( const RString &sDirOfExecutable );
-
 	/*
 	 * Platform-specific code calls this to indicate focus changes.
 	 */

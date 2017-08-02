@@ -59,38 +59,6 @@ void ArchHooks::MountInitialFilesystems( const RString &sDirOfExecutable )
 	FILEMAN->Mount( "dir", sDir, "/" );
 }
 
-void ArchHooks::MountUserFilesystems( const RString &sDirOfExecutable )
-{
-	/*
-	 * Look, I know what you're thinking: "Hey, let's put all this stuff into
-	 * their respective 'proper' places on the filesystem!" Stop. Now.
-	 * This was done before and it was the most ungodly confusing thing to ever
-	 * happen. Just don't do it, seriously. Keep them in one place.
-	 * - Colby
-	 */
-	RString sAppDataDir = SpecialDirs::GetAppDataDir() + PRODUCT_ID;
-	//RString sCommonAppDataDir = SpecialDirs::GetCommonAppDataDir() + PRODUCT_ID;
-	//RString sLocalAppDataDir = SpecialDirs::GetLocalAppDataDir() + PRODUCT_ID;
-	//RString sPicturesDir = SpecialDirs::GetPicturesDir() + PRODUCT_ID;
-
-	FILEMAN->Mount( "dir", sAppDataDir + "/Announcers", "/Announcers" );
-	FILEMAN->Mount( "dir", sAppDataDir + "/BGAnimations", "/BGAnimations" );
-	FILEMAN->Mount( "dir", sAppDataDir + "/BackgroundEffects", "/BackgroundEffects" );
-	FILEMAN->Mount( "dir", sAppDataDir + "/BackgroundTransitions", "/BackgroundTransitions" );
-	FILEMAN->Mount( "dir", sAppDataDir + "/Cache", "/Cache" );
-	FILEMAN->Mount( "dir", sAppDataDir + "/CDTitles", "/CDTitles" );
-	FILEMAN->Mount( "dir", sAppDataDir + "/Characters", "/Characters" );
-	FILEMAN->Mount( "dir", sAppDataDir + "/Courses", "/Courses" );
-	FILEMAN->Mount( "dir", sAppDataDir + "/Logs", "/Logs" );
-	FILEMAN->Mount( "dir", sAppDataDir + "/NoteSkins", "/NoteSkins" );
-	FILEMAN->Mount( "dir", sAppDataDir + "/Packages", "/" + SpecialFiles::USER_PACKAGES_DIR );
-	FILEMAN->Mount( "dir", sAppDataDir + "/Save", "/Save" );
-	FILEMAN->Mount( "dir", sAppDataDir + "/Screenshots", "/Screenshots" );
-	FILEMAN->Mount( "dir", sAppDataDir + "/Songs", "/Songs" );
-	FILEMAN->Mount( "dir", sAppDataDir + "/RandomMovies", "/RandomMovies" );
-	FILEMAN->Mount( "dir", sAppDataDir + "/Themes", "/Themes" );
-}
-
 static RString LangIdToString( LANGID l )
 {
 	switch( PRIMARYLANGID(l) )

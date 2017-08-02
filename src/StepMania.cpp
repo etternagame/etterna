@@ -996,10 +996,6 @@ int sm_main(int argc, char* argv[])
 	FILEMAN = new RageFileManager( argv[0] );
 	FILEMAN->MountInitialFilesystems();
 
-	//bool bPortable = DoesFileExist("Portable.ini");
-	//if( !bPortable )
-	//	FILEMAN->MountUserFilesystems();
-
 	// Set this up next. Do this early, since it's needed for RageException::Throw.
 	LOG		= new RageLog;
 
