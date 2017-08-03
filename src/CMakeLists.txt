@@ -410,7 +410,6 @@ elseif(APPLE)
       "${SM_FFMPEG_ROOT}/libavformat/libavformat.a"
       "${SM_FFMPEG_ROOT}/libavcodec/libavcodec.a"
       "${SM_FFMPEG_ROOT}/libswscale/libswscale.a"
-	  "${SM_FFMPEG_ROOT}/libswresample/libswresample.a"
       "${SM_FFMPEG_ROOT}/libavutil/libavutil.a"
     )
   endif()
@@ -424,7 +423,6 @@ else() # Unix / Linux
         "${FFMPEG_avformat_LIBRARY}"
         "${FFMPEG_avcodec_LIBRARY}"
         "${FFMPEG_swscale_LIBRARY}"
-		"${FFMPEG_swresample_LIBRARY}"
         "${FFMPEG_avutil_LIBRARY}"
       )
     else()
@@ -432,7 +430,6 @@ else() # Unix / Linux
         "${SM_FFMPEG_ROOT}/libavformat/libavformat.a"
         "${SM_FFMPEG_ROOT}/libavcodec/libavcodec.a"
         "${SM_FFMPEG_ROOT}/libswscale/libswscale.a"
-		"${SM_FFMPEG_ROOT}/libswresample/libswresample.a"
         "${SM_FFMPEG_ROOT}/libavutil/libavutil.a"
       )
     endif()
