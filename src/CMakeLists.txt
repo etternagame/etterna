@@ -332,15 +332,6 @@ list(APPEND SMDATA_LINK_LIB
 )
 include(../extern/CMakeProject-mmmagic.cmake)
 
-if (HAS_MP3)
-  list(FIND SMDATA_LINK_LIB "jsoncpp" JSON_INDEX)
-  if (WIN32 OR MACOSX)
-    list(INSERT SMDATA_LINK_LIB ${JSON_INDEX} "mad")
-  else()
-    list(INSERT SMDATA_LINK_LIB ${JSON_INDEX} ${LIBMAD_LIBRARY})
-  endif()
-endif()
-
 if (NOT SYSTEM_PCRE_FOUND)
   list(APPEND SMDATA_LINK_LIB "pcre")
 endif()
@@ -419,6 +410,7 @@ elseif(APPLE)
       "${SM_FFMPEG_ROOT}/libavformat/libavformat.a"
       "${SM_FFMPEG_ROOT}/libavcodec/libavcodec.a"
       "${SM_FFMPEG_ROOT}/libswscale/libswscale.a"
+	  "${SM_FFMPEG_ROOT}/libswresample/libswresample.a"
       "${SM_FFMPEG_ROOT}/libavutil/libavutil.a"
     )
   endif()
@@ -432,6 +424,7 @@ else() # Unix / Linux
         "${FFMPEG_avformat_LIBRARY}"
         "${FFMPEG_avcodec_LIBRARY}"
         "${FFMPEG_swscale_LIBRARY}"
+		"${FFMPEG_swresample_LIBRARY}"
         "${FFMPEG_avutil_LIBRARY}"
       )
     else()
@@ -439,6 +432,7 @@ else() # Unix / Linux
         "${SM_FFMPEG_ROOT}/libavformat/libavformat.a"
         "${SM_FFMPEG_ROOT}/libavcodec/libavcodec.a"
         "${SM_FFMPEG_ROOT}/libswscale/libswscale.a"
+		"${SM_FFMPEG_ROOT}/libswresample/libswresample.a"
         "${SM_FFMPEG_ROOT}/libavutil/libavutil.a"
       )
     endif()

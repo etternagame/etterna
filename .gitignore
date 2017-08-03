@@ -28,7 +28,6 @@ Xcode/plistHelper.hpp
 src/MinaCalc
 src/version_updater/VersionUpdater
 src/generated
-extern/mad-0.15.1b/config.h
 extern/libjpeg/jconfig.h
 extern/newogg/include/ogg/config_types.h
 
