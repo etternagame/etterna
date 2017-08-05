@@ -6,57 +6,27 @@
 # CMake Files/Directories
 CMakeFiles/
 CMakeCache.txt
-CMakeScripts/
 cmake_install.cmake
 CPackConfig.cmake
 CPackSourceConfig.cmake
 # The following are generated from CMake, and thus should be stopped.
-.codelite/
-StepMania.project
-StepMania.workspace
-version.hpp
-Build/*
-Build/*/*
+install_manifest.txt
+_CPack_Packages
+Build/**
 Debug/
+MinSizeRel/
 Release/
+RelWithDebInfo/
 Contents/
-verdata.*
-StepMania-debug
-stepmania-debug
 Xcode/Info.StepMania.plist
 Xcode/plistHelper.hpp
-src/MinaCalc
-src/version_updater/VersionUpdater
 src/generated
 extern/mad-0.15.1b/config.h
 extern/libjpeg/jconfig.h
 extern/newogg/include/ogg/config_types.h
 
 # Text Editor Based Items
-___*
-*~
 *.log
-*.sublime-project
-*.sublime-workspace
-*.old
-.idea
-cmake-build-release
-cmake-build-debug
-
-# Repository Files
-*.orig
-.git
-.hg
-.hgignore
-.hgtags
-.svn
-.cvsignore
-*.diff
-*.patch
-*_BACKUP_*
-*_BASE_*
-*_LOCAL_*
-*_REMOTE_*
 
 # Mac Programming Files
 *.pbxuser
@@ -79,21 +49,16 @@ PBProject/Hardware.plist
 .DS_Store
 
 # Visual Studio
+*.sln
+*.vcxproj
+*.vcxproj.filters
 *.pdb
-*.sdf
-*.opensdf
-*.suo
-*.exp
 *.ilk
 *.map
-*.aps
 *.res
 
 # Windows General Files
-Thumbs.db
 *.exe
-*.dll
-nsis_strings_temp.inc
 
 # Linux General Files
 .dirstamp
@@ -115,92 +80,22 @@ GtkModule.so
 StepMania
 core
 
-# Version control specific.
-*.BACKUP.*
-*.BASE.*
-*.LOCAL.*
-*.REMOTE.*
-
 # StepMania Specific
-*.smzip
-ver.cpp
-gitversion.h
 Cache/
-Save/*
-!Save/LocalProfiles
-Save/*/*
-Save/LocalProfiles/*
+Save/**
 !Save/LocalProfiles/00000000
-Save/LocalProfiles/00000000/
 Logs/
-Songs/*
-!Songs/Etterna
-Screenshots/
-Docs/doxygen
-Data/UserPrefs
-Data/uPrefs
-Data/GamePrefs/*.cfg
-Data/Static.ini
-Themes/pump
-Themes/pump-*
-Themes/optical-release
-Themes/moonlight
-Themes/ultralight
-Themes/test
-Themes/Transcendence
-Noteskins/Dance/dbzdefaultbackup
-Noteskins/Dance/USWdefault9SM5
-src/version.bin
-src/verstub.cpp
-bundle/ffmpeg/.config
-bundle/ffmpeg/.version
-bundle/ffmpeg/config.*
-bundle/ffmpeg/doc/config.texi
-bundle/ffmpeg/libavutil/avconfig.h
-bundle/ffmpeg/version.h
-bundle/ffmpeg/*/*.so
-bundle/ffmpeg/*/*.so.*
-bundle/ffmpeg/*/*.ver
-bundle/ffmpeg/*/*.def
-bundle/ffmpeg/*/*.orig.def
-bundle/ffmpeg/*/*.lib
-src/build-*
-src/Release-*
-src/libtomcrypt/build-*
-src/libtomcrypt/Release-*
-src/libtomcrypt/Debug
-src/libtommath/build-*
-src/libtommath/Release-*
-src/libtommath/Debug
 src/*.so
-ffmpeg-*
-Data/SpeedMods.txt
 crashinfo.txt
-Utils/temp*
-Program/StepMania*.lib
 
 # include calc .a file
 !extern/MinaCalc/MinaCalc.a
 !extern/MinaCalc/libMinaCalc.a
 
 # Unknown File Types
-*.dia
-.deps
-*.rej
 tests/*.err
 *.ncb
 *.tlog
-*.lastbuildstate
-*.unsuccessfulbuild
-*.ipch
-*.dep
-*.idb
 *.user
-*.mode1v3
 *.vdi
-*.lnk
-BuildLog.htm
 *.pch
-*.swp
-*.pc
-*.d
