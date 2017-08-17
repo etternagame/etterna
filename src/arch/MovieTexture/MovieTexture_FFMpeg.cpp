@@ -1,6 +1,6 @@
 #include "global.h"
 #include "MovieTexture_FFMpeg.h"
-
+#include "RageSoundReader_MP3.h"
 #include "RageDisplay.h"
 #include "RageLog.h"
 #include "RageUtil.h"
@@ -377,16 +377,6 @@ static RString averr_ssprintf( int err, const char *fmt, ... )
 	return s + " (" + Error + ")";
 }
 
-void MovieTexture_FFMpeg::RegisterProtocols()
-{
-	static bool Done = false;
-	if( Done )
-		return;
-	Done = true;
-
-	avcodec::avcodec_register_all();
-	avcodec::av_register_all();
-}
 
 static int AVIORageFile_ReadPacket( void *opaque, uint8_t *buf, int buf_size )
 {
@@ -411,7 +401,7 @@ static int64_t AVIORageFile_Seek( void *opaque, int64_t offset, int whence )
 
 RString MovieDecoder_FFMpeg::Open( const RString &sFile )
 {
-	MovieTexture_FFMpeg::RegisterProtocols();
+	RageSoundReader_MP3::RegisterProtocols();
     
 	m_fctx = avcodec::avformat_alloc_context();
 	if( !m_fctx )
