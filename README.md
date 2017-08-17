@@ -39,4 +39,4 @@ For specific information/legalese:
 
 * All of the our source code is under the [MIT license](http://opensource.org/licenses/MIT).
 * Any songs that are included within this repository are under the [Creative Commons license](https://creativecommons.org/).
-* The [MAD library](http://www.underbit.com/products/mad/) and [FFmpeg codecs](https://www.ffmpeg.org/) when built with our code use the [GPL license](http://www.gnu.org).
+* The [FFmpeg codecs](https://www.ffmpeg.org/) when built with our code use the [LGPL license](http://www.gnu.org).
