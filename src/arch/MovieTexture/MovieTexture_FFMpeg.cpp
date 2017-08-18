@@ -1,6 +1,6 @@
 #include "global.h"
 #include "MovieTexture_FFMpeg.h"
-
+#include "RageSoundReader_MP3.h"
 #include "RageDisplay.h"
 #include "RageLog.h"
 #include "RageUtil.h"
@@ -121,7 +121,7 @@ MovieDecoder_FFMpeg::~MovieDecoder_FFMpeg()
 {
 	if( m_iCurrentPacketOffset != -1 )
 	{
-		avcodec::av_free_packet( &m_Packet );
+		avcodec::av_packet_unref( &m_Packet );
 		m_iCurrentPacketOffset = -1;
 	}
 	if (m_swsctx)
@@ -156,7 +156,7 @@ void MovieDecoder_FFMpeg::Init()
 
 	if( m_iCurrentPacketOffset != -1 )
 	{
-		avcodec::av_free_packet( &m_Packet );
+		avcodec::av_packet_unref( &m_Packet );
 		m_iCurrentPacketOffset = -1;
 	}
 }
@@ -221,7 +221,7 @@ int MovieDecoder_FFMpeg::ReadPacket()
 		if( m_iCurrentPacketOffset != -1 )
 		{
 			m_iCurrentPacketOffset = -1;
-			avcodec::av_free_packet( &m_Packet );
+			avcodec::av_packet_unref( &m_Packet );
 		}
 
 		int ret = avcodec::av_read_frame( m_fctx, &m_Packet );
@@ -242,7 +242,7 @@ int MovieDecoder_FFMpeg::ReadPacket()
 		}
 
 		/* It's not for the video stream; ignore it. */
-		avcodec::av_free_packet( &m_Packet );
+		avcodec::av_packet_unref( &m_Packet );
 	}
 }
 
@@ -377,16 +377,6 @@ static RString averr_ssprintf( int err, const char *fmt, ... )
 	return s + " (" + Error + ")";
 }
 
-void MovieTexture_FFMpeg::RegisterProtocols()
-{
-	static bool Done = false;
-	if( Done )
-		return;
-	Done = true;
-
-	avcodec::avcodec_register_all();
-	avcodec::av_register_all();
-}
 
 static int AVIORageFile_ReadPacket( void *opaque, uint8_t *buf, int buf_size )
 {
@@ -411,7 +401,7 @@ static int64_t AVIORageFile_Seek( void *opaque, int64_t offset, int whence )
 
 RString MovieDecoder_FFMpeg::Open( const RString &sFile )
 {
-	MovieTexture_FFMpeg::RegisterProtocols();
+	RageSoundReader_MP3::RegisterProtocols();
     
 	m_fctx = avcodec::avformat_alloc_context();
 	if( !m_fctx )
@@ -445,7 +435,7 @@ RString MovieDecoder_FFMpeg::Open( const RString &sFile )
 		return "Couldn't find any video streams";
 	m_pStream = m_fctx->streams[stream_idx];
 
-	if( m_pStream->codec->codec_id == avcodec::CODEC_ID_NONE )
+	if( m_pStream->codec->codec_id == avcodec::AV_CODEC_ID_NONE )
 		return ssprintf( "Unsupported codec %08x", m_pStream->codec->codec_tag );
 
 	RString sError = OpenCodec();
