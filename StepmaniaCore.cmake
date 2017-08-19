@@ -190,16 +190,18 @@ if(WITH_WAV)
 endif()
 
 if(WITH_MP3)
-  if(WIN32 OR MACOSX)
+  if(MSVC)
     set(HAS_MP3 TRUE)
   else()
-    find_package(Mad)
-    if(NOT LIBMAD_FOUND)
-      message(FATAL_ERROR "Libmad library not found. If you wish to skip mp3 support, set WITH_MP3 to OFF when configuring.")
+    if(NOT WITH_FFMPEG)
+      message("FFmpeg is required for mp3 support. WITH_MP3 is set to off.")
+	  set(WITH_MP3 FALSE)
     else()
       set(HAS_MP3 TRUE)
     endif()
   endif()
+else()
+  set(HAS_MP3 FALSE)
 endif()
 
 if(WITH_OGG)
@@ -254,6 +256,11 @@ if(WIN32)
     )
     get_filename_component(LIB_SWSCALE ${LIB_SWSCALE} NAME)
 
+	find_library(LIB_SWRESAMPLE NAMES "swresample"
+      PATHS "${SM_EXTERN_DIR}/ffmpeg/lib" NO_DEFAULT_PATH
+    )
+    get_filename_component(LIB_SWRESAMPLE ${LIB_SWRESAMPLE} NAME)
+	
     find_library(LIB_AVCODEC NAMES "avcodec"
       PATHS "${SM_EXTERN_DIR}/ffmpeg/lib" NO_DEFAULT_PATH
     )
@@ -392,8 +399,9 @@ elseif(LINUX)
   endif()
 
   if (WITH_FFMPEG AND NOT YASM_FOUND AND NOT NASM_FOUND)
-    message("Neither NASM nor YASM were found. Please install at least one of them if you wish for ffmpeg support.")
+    message("Neither NASM nor YASM were found. Please install at least one of them if you wish for ffmpeg and mp3 support.")
     set(WITH_FFMPEG OFF)
+	set(WITH_MP3 OFF)
   endif()
 
   find_package("Va")
@@ -414,6 +422,7 @@ elseif(LINUX)
     endif()
   else()
     set(HAS_FFMPEG FALSE)
+	set(HAS_MP3 FALSE)
   endif()
 
   find_package(OpenGL REQUIRED)
