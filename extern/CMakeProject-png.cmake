@@ -1,8 +1,31 @@
-file(GLOB pnglib_sources libpng/*.c)
-set(PNG_SRC ${pnglib_sources})
+set(PNG_SRC
+  "libpng/include/png.c"
+  "libpng/include/pngerror.c"
+  "libpng/include/pngget.c"
+  "libpng/include/pngmem.c"
+  "libpng/include/pngpread.c"
+  "libpng/include/pngread.c"
+  "libpng/include/pngrio.c"
+  "libpng/include/pngrtran.c"
+  "libpng/include/pngrutil.c"
+  "libpng/include/pngset.c"
+  "libpng/include/pngtest.c"
+  "libpng/include/pngtrans.c"
+  "libpng/include/pngwio.c"
+  "libpng/include/pngwrite.c"
+  "libpng/include/pngwtran.c"
+  "libpng/include/pngwutil.c"
+)
 
-file(GLOB pnglib_headers libpng/*.h)
-set(PNG_HPP ${pnglib_headers})
+set(PNG_HPP
+  "libpng/include/png.h"
+  "libpng/include/pngconf.h"
+  "libpng/include/pngdebug.h"
+  "libpng/include/pnginfo.h"
+  "libpng/include/pnglibconf.h"
+  "libpng/include/pngpriv.h"
+  "libpng/include/pngstruct.h"
+)
 
 source_group("" FILES ${PNG_SRC})
 source_group("" FILES ${PNG_HPP})
@@ -10,15 +33,12 @@ source_group("" FILES ${PNG_HPP})
 add_library("png" STATIC ${PNG_SRC} ${PNG_HPP})
 
 set_property(TARGET "png" PROPERTY FOLDER "External Libraries")
-set_target_properties("png" PROPERTIES LINKER_LANGUAGE C)
 
-# include_directories(src)
+disable_project_warnings("png")
 
 if(MSVC)
   sm_add_compile_definition("png" _CRT_SECURE_NO_WARNINGS)
-endif(MSVC)
-
-disable_project_warnings("png")
+endif()
 
 target_include_directories("png" PUBLIC "zlib")
 
