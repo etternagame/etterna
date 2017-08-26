@@ -4,8 +4,7 @@
 #include <array>
 #include "RageSoundReader_FileReader.h"
 
-constexpr unsigned int MP3_BUFFER_SIZE = 5120;
-constexpr unsigned int MP3_BUFFER_PADDING = 64;
+constexpr unsigned int MP3_BUFFER_SIZE = 4096;
 
 namespace avcodec
 {
@@ -27,7 +26,7 @@ public:
 	int GetSampleRate() const override {  return sampleRate; }
 	unsigned GetNumChannels() const override { return numChannels; }
 	int GetNextSourceFrame() const override;
-	RageSoundReader_MP3() = default;
+	RageSoundReader_MP3();
 	~RageSoundReader_MP3() override;
 	RageSoundReader_MP3(const RageSoundReader_MP3 &) = delete;
 	RageSoundReader_MP3 *Copy() const override;
@@ -36,7 +35,7 @@ private:
 	int WriteSamplesForAllChannels(void *pBuf, int samplesToRead);
 	int sampleRate{1};
 	int length{};
-	std::array<uint8_t, MP3_BUFFER_SIZE + MP3_BUFFER_PADDING> buffer{};
+	uint8_t *buffer{nullptr};
 	int audioStream{};
 	int numChannels{};
 	int numSamples{};

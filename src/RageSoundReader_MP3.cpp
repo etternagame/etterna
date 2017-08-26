@@ -70,13 +70,20 @@ namespace
 	}
 }; // namespace
 
+RageSoundReader_MP3::RageSoundReader_MP3()
+{
+	buffer = static_cast<uint8_t *>(avcodec::av_malloc(MP3_BUFFER_SIZE));
+}
+
 RageSoundReader_MP3::~RageSoundReader_MP3()
 {
 	//Free everything if it isn't already
 	avcodec::avformat_close_input(&formatCtx);  // AVFormatContext is released by avformat_close_input
-	avcodec::av_free(IOCtx);             // AVIOContext is released by av_free
+	if (IOCtx) {
+		avcodec::av_freep(&IOCtx->buffer);
+		avcodec::av_freep(&IOCtx);
+	}
 	avcodec::avcodec_close(codecCtx);
-	avcodec::av_free(codec);
 	avcodec::av_frame_free(&decodedFrame);
 }
 
@@ -102,12 +109,14 @@ RageSoundReader_FileReader::OpenResult RageSoundReader_MP3::Open(RageFileBasic *
 
 	//Free everything if it isn't already
 	avcodec::avformat_close_input(&formatCtx);  // AVFormatContext is released by avformat_close_input
-	avcodec::av_free(IOCtx);             // AVIOContext is released by av_free
+	if (IOCtx) {
+		avcodec::av_freep(&IOCtx->buffer);
+		avcodec::av_freep(&IOCtx);
+	}
 	avcodec::avcodec_close(codecCtx);
-	avcodec::av_free(codec);
 	avcodec::av_frame_free(&decodedFrame);
 
-	IOCtx = avcodec::avio_alloc_context(buffer.data(), MP3_BUFFER_SIZE,  // internal Buffer and its size
+	IOCtx = avcodec::avio_alloc_context(buffer, MP3_BUFFER_SIZE,  // internal Buffer and its size
 		0, // bWriteable (1 = true, 0 = false) 
 		&m_pFile, // user data -- will be passed to our callback functions
 		ReadFunc,
@@ -118,7 +127,7 @@ RageSoundReader_FileReader::OpenResult RageSoundReader_MP3::Open(RageFileBasic *
 	formatCtx->pb = IOCtx;
 	formatCtx->flags = AVFMT_FLAG_CUSTOM_IO;
 
-	if (avcodec::avformat_open_input(&formatCtx, "", nullptr, nullptr) != 0) {
+	if (avcodec::avformat_open_input(&formatCtx, nullptr, nullptr, nullptr) != 0) {
 		SetError("Error opening file");
 		return OPEN_UNKNOWN_FILE_FORMAT;
 	}
@@ -315,12 +324,13 @@ int RageSoundReader_MP3::GetNextSourceFrame() const
 {
 	return curFrame;
 }
+
 // Return: -1 => Error already set. -2 => EOF. >=0 => bytesRead
 int RageSoundReader_MP3::ReadAFrame()
 {
 	avcodec::AVPacket avpkt;
 	avcodec::av_init_packet(&avpkt);
-	avpkt.data = buffer.data();
+	avpkt.data = buffer;
 
 	avcodec::av_frame_free(&decodedFrame);
 	if (!(decodedFrame = avcodec::av_frame_alloc())) {
