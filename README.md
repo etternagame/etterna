@@ -18,8 +18,9 @@ For those that do not wish to compile the game on their own and use a binary rig
 
 ### From Source
 
-Install CMake
-==
+
+#### Install CMake
+
 
 First CMake needs to be installed on your system.
 
@@ -28,8 +29,8 @@ The common way of installing CMake is to go to [CMake's download page](http://ww
 If this approach is used, consider using the binary distributions. Most should also provide a friendly GUI interface.
 
 
-CMake Command Line
-===
+#### CMake Command Line
+
 
 If you are unfamiliar with cmake, first run `cmake --help`. This will present a list of options and generators.
 The generators are used for setting up your project.
@@ -55,8 +56,8 @@ The reason for running cmake at least twice is to make sure that all of the vari
 Environment variables can be modified at this stage. If you want to pass `-ggdb` or any other flag that is not set up by default,
 utilize `CXXFLAGS` or any appropriate variable.
 
-Release vs Debug
-==
+#### Release vs Debug
+
 
 If you are generating makefiles with cmake, you will also need to specify your build type.
 Most users will want to use `RELEASE` while some developers may want to use `DEBUG`.
