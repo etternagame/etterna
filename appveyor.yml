@@ -11,18 +11,18 @@ install:
 
 before_build:
 - cmd: >-
-    cd Build
-    
-    "C:\Program Files (x86)\cmake\bin\cmake" -G "Visual Studio 14 2015" ..
-    
+    mkdir build && cd build
+
+    "C:\Program Files (x86)\cmake\bin\cmake" .. -G "Visual Studio 14 2015"
+
     del "C:\Program Files (x86)\MSBuild\14.0\Microsoft.Common.targets\ImportAfter\Xamarin.Common.targets"
-    
+
 build:
-  project: C:\etterna\Build\StepMania.sln
+  project: C:\etterna\build\StepMania.sln
   verbosity: normal
-  
+
 after_build:
-- cmd: msbuild "C:\etterna\Build\PACKAGE.vcxproj" /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+- cmd: msbuild "C:\etterna\build\PACKAGE.vcxproj" /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
 notifications:
 - provider: Email
