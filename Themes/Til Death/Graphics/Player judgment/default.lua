@@ -5,6 +5,13 @@ local changed = false
 local c
 local x = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.JudgeX
 local y = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.JudgeY
+
+-- CUZ WIDESCREEN DEFAULTS SCREAAAAAAAAAAAAAAAAAAAAAAAAAM -mina
+if IsUsingWideScreen( ) then
+	y = y - 5
+	x = x + 5
+end
+
 local zoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.JudgeZoom
 
 local JudgeCmds = {

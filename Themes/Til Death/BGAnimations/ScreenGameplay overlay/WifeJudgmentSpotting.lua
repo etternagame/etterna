@@ -61,6 +61,9 @@ local screen 			-- the screen after it is loaded
 local messageBox		-- the message box from when you try to move something
 local judgeCounter      -- pa counter actor frame
 
+local WIDESCREENWHY = -5
+local WIDESCREENWHX = -5
+
 --error bar things
 local errorBarX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ErrorBarX 								
 local errorBarY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ErrorBarY
@@ -84,9 +87,20 @@ local targetTrackerX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).Gamep
 local targetTrackerY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.TargetTrackerY
 local targetTrackerZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.TargetTrackerZoom
 
+if IsUsingWideScreen( ) then
+	targetTrackerY = targetTrackerY + WIDESCREENWHY
+	targetTrackerX = targetTrackerX - WIDESCREENWHX
+end
+
 --mini progress bar things
 local miniProgressBarX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.MiniProgressBarX
 local miniProgressBarY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.MiniProgressBarY
+
+-- CUZ WIDESCREEN DEFAULTS SCREAAAAAAAAAAAAAAAAAAAAAAAAAM -mina
+if IsUsingWideScreen( ) then
+	miniProgressBarY = miniProgressBarY + WIDESCREENWHY
+	miniProgressBarX = miniProgressBarX - WIDESCREENWHX
+end
 
 --full progress bar things
 local fullProgressBarX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.FullProgressBarX
@@ -1083,6 +1097,12 @@ t[#t+1] = Def.ActorFrame{
 local x = 0
 local y = 60
 
+-- CUZ WIDESCREEN DEFAULTS SCREAAAAAAAAAAAAAAAAAAAAAAAAAM -mina
+if IsUsingWideScreen( ) then
+	y = y - WIDESCREENWHY
+	x = x + WIDESCREENWHX
+end
+
 --This just initializes the initial point or not idk not needed to mess with this any more
 function ComboTransformCommand( self, params )
 	self:x( x )
@@ -1349,6 +1369,7 @@ t[#t+1] = Def.ActorFrame{
 		UpdateCommand=function(self)
 			local x = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ComboX
 			local y = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ComboY
+
 			local text= {
 				"Combo Position:",
 				"X: " .. x,
