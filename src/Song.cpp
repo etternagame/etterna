@@ -12,8 +12,7 @@
 #include "Style.h"
 #include "FontCharAliases.h"
 #include "TitleSubstitution.h"
-#include "BannerCache.h"
-//#include "BackgroundCache.h"
+#include "ImageCache.h"
 #include "Sprite.h"
 #include "RageFileManager.h"
 #include "RageSurface.h"
@@ -88,6 +87,7 @@ Song::Song()
 	m_bHasMusic = false;
 	m_bHasBanner = false;
 	m_bHasBackground = false;
+	m_bHasCDTitle = false;
 	m_loaded_from_autosave= false;
 }
 
@@ -398,12 +398,15 @@ bool Song::LoadFromSongDir( RString sDir, bool load_autosave )
 
 	// Load the cached banners, if it's not loaded already.
 	if( PREFSMAN->m_BannerCache == BNCACHE_LOW_RES_PRELOAD && m_bHasBanner )
-		BANNERCACHE->LoadBanner( GetBannerPath() );
-	// Load the cached background, if it's not loaded already.
-	/*
+		IMAGECACHE->LoadImage( "Banner", GetBannerPath() );
+	
 	if( PREFSMAN->m_BackgroundCache == BGCACHE_LOW_RES_PRELOAD && m_bHasBackground )
-		BACKGROUNDCACHE->LoadBackground( GetBackgroundPath() );
-	*/
+		LOG->Trace( GetBackgroundPath());
+		IMAGECACHE->LoadImage( "Background", GetBackgroundPath() );
+	
+	if( PREFSMAN->m_CDTitleCache == CDTCACHE_LOW_RES_PRELOAD && m_bHasCDTitle )
+		LOG->Trace( GetCDTitlePath());
+		IMAGECACHE->LoadImage( "CDTitle", GetCDTitlePath() );
 
 	if( !m_bHasMusic )
 	{
@@ -618,13 +621,14 @@ void Song::TidyUpData( bool from_cache, bool /* duringCache */ )
 		m_bHasMusic = HasMusic();
 		m_bHasBanner = HasBanner();
 		m_bHasBackground = HasBackground();
+		m_bHasCDTitle = HasCDTitle();
 
 		if(m_bHasBanner)
-		{ BANNERCACHE->CacheBanner(GetBannerPath()); }
-		/*
-			if(m_bHasBackground)
-			{ BANNERCACHE->CacheBackground(GetBackgroundPath()); }
-		*/
+		{ IMAGECACHE->CacheImage("Banner",GetBannerPath()); }
+		if(m_bHasBackground)
+		{ IMAGECACHE->CacheImage("Background",GetBackgroundPath()); }
+		if(m_bHasCDTitle)
+		{ IMAGECACHE->CacheImage("CDTitle",GetCDTitlePath()); }
 
 		// There are several things that need to find a file from the dir with a
 		// particular extension or type of extension.  So fetch a list of all
@@ -803,7 +807,6 @@ void Song::TidyUpData( bool from_cache, bool /* duringCache */ )
 		bool has_jacket= HasJacket();
 		bool has_cdimage= HasCDImage();
 		bool has_disc= HasDisc();
-		bool has_cdtitle= HasCDTitle();
 
 		// First, check the file name for hints.
 		if(!m_bHasBanner)
@@ -832,6 +835,14 @@ void Song::TidyUpData( bool from_cache, bool /* duringCache */ )
 				m_sBackgroundFile, empty_list, contains, ends_with);
 		}
 
+		if(!m_bHasCDTitle)
+		{
+			// find an image with "cdtitle" in the file name
+			vector<RString> contains(1, "cdtitle");
+			m_bHasCDTitle= FindFirstFilenameContaining(image_list,
+				m_sCDTitleFile, empty_list, contains, empty_list);
+		}
+		
 		if(!has_jacket)
 		{
 			// find an image with "jacket" or "albumart" in the filename.
@@ -864,14 +875,6 @@ void Song::TidyUpData( bool from_cache, bool /* duringCache */ )
 				m_sDiscFile, empty_list, empty_list, ends_with);
 		}
 
-		if(!has_cdtitle)
-		{
-			// find an image with "cdtitle" in the file name
-			vector<RString> contains(1, "cdtitle");
-			has_cdtitle= FindFirstFilenameContaining(image_list,
-				m_sCDTitleFile, empty_list, contains, empty_list);
-		}
-
 		if(!HasLyrics())
 		{
 			// Check if there is a lyric file in here
@@ -885,7 +888,7 @@ void Song::TidyUpData( bool from_cache, bool /* duringCache */ )
 		 * look at the image dimensions of the remaining unclassified images. */
 		for(unsigned int i= 0; i < image_list.size(); ++i) // foreach image
 		{
-			if(m_bHasBanner && m_bHasBackground && has_cdtitle)
+			if(m_bHasBanner && m_bHasBackground && m_bHasCDTitle)
 				break; // done
 
 			// ignore DWI "-char" graphics
@@ -902,7 +905,7 @@ void Song::TidyUpData( bool from_cache, bool /* duringCache */ )
 			if(m_bHasBackground && m_sBackgroundFile.EqualsNoCase(image_list[i]))
 				continue;	// skip
 
-			if(has_cdtitle && m_sCDTitleFile.EqualsNoCase(image_list[i]))
+			if(m_bHasCDTitle && m_sCDTitleFile.EqualsNoCase(image_list[i]))
 				continue;	// skip
 
 			if(has_jacket && m_sJacketFile.EqualsNoCase(image_list[i]))
@@ -968,10 +971,10 @@ void Song::TidyUpData( bool from_cache, bool /* duringCache */ )
 			 * various information about the song in question). As it stands,
 			 * I'm keeping this code until I figure out wtf to do -aj
 			 */
-			if(!has_cdtitle && width <= 100 && height <= 48)
+			if(!m_bHasCDTitle && width <= 100 && height <= 48)
 			{
 				m_sCDTitleFile = image_list[i];
-				has_cdtitle= true;
+				m_bHasCDTitle= true;
 				continue;
 			}
 
@@ -1025,10 +1028,10 @@ void Song::TidyUpData( bool from_cache, bool /* duringCache */ )
 #define CLEAR_NOT_HAS(has_name, field_name) if(!has_name) { field_name= ""; }
 		CLEAR_NOT_HAS(m_bHasBanner, m_sBannerFile);
 		CLEAR_NOT_HAS(m_bHasBackground, m_sBackgroundFile);
+		CLEAR_NOT_HAS(m_bHasCDTitle, m_sCDTitleFile);
 		CLEAR_NOT_HAS(has_jacket, m_sJacketFile);
 		CLEAR_NOT_HAS(has_cdimage, m_sCDFile);
 		CLEAR_NOT_HAS(has_disc, m_sDiscFile);
-		CLEAR_NOT_HAS(has_cdtitle, m_sCDTitleFile);
 #undef CLEAR_NOT_HAS
 
 	}

@@ -4,7 +4,7 @@
 #include "ActorUtil.h"
 #include "AnnouncerManager.h"
 #include "BackgroundUtil.h"
-#include "BannerCache.h"
+#include "ImageCache.h"
 #include "CommonMetrics.h"
 #include "Foreach.h"
 #include "GameManager.h"
@@ -214,7 +214,7 @@ int SongManager::DifferentialReloadDir(string dir) {
 		LOG->Trace("Differential load of %i songs from \"%s\"", loaded, (dir + sGroupDirName).c_str());
 
 		AddGroup(dir, sGroupDirName);
-		BANNERCACHE->CacheBanner(GetSongGroupBannerPath(sGroupDirName));
+		IMAGECACHE->CacheImage("Banner",GetSongGroupBannerPath(sGroupDirName));
 	}
 	return newsongs;
 }
@@ -655,8 +655,8 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 		// Add this group to the group array.
 		AddGroup(sDir, sGroupDirName);
 
-		// Cache and load the group banner. (and background if it has one -aj)
-		BANNERCACHE->CacheBanner( GetSongGroupBannerPath(sGroupDirName) );
+		// Cache and load the group banner.
+		IMAGECACHE->CacheImage( "Banner", GetSongGroupBannerPath(sGroupDirName) );
 	}
 
 	if( ld ) {

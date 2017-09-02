@@ -1,6 +1,6 @@
 #include "global.h"
 #include "Banner.h"
-#include "BannerCache.h"
+#include "ImageCache.h"
 #include "SongManager.h"
 #include "RageUtil.h"
 #include "Song.h"
@@ -63,7 +63,7 @@ void Banner::LoadFromCachedBanner( const RString &sPath )
 	else
 	{
 		// Try to load the low quality version.
-		ID = BANNERCACHE->LoadCachedBanner( sPath );
+		ID = IMAGECACHE->LoadCachedImage( "Banner", sPath );
 	}
 
 	if( TEXTUREMAN->IsTextureRegistered(ID) )
