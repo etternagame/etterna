@@ -401,9 +401,11 @@ bool Song::LoadFromSongDir( RString sDir, bool load_autosave )
 		IMAGECACHE->LoadImage( "Banner", GetBannerPath() );
 	
 	if( PREFSMAN->m_BackgroundCache == BGCACHE_LOW_RES_PRELOAD && m_bHasBackground )
+		LOG->Trace( GetBackgroundPath());
 		IMAGECACHE->LoadImage( "Background", GetBackgroundPath() );
 	
 	if( PREFSMAN->m_CDTitleCache == CDTCACHE_LOW_RES_PRELOAD && m_bHasCDTitle )
+		LOG->Trace( GetCDTitlePath());
 		IMAGECACHE->LoadImage( "CDTitle", GetCDTitlePath() );
 
 	if( !m_bHasMusic )
