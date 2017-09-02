@@ -269,7 +269,7 @@ public:
 	bool IsSkillsetHighestOfAnySteps(Skillset ss, float rate);
 
 	// For loading only:
-	bool m_bHasMusic, m_bHasBanner, m_bHasBackground;
+	bool m_bHasMusic, m_bHasBanner, m_bHasBackground, m_bHasCDTitle;
 
 	bool HasMusic() const;
 	bool HasInstrumentTrack( InstrumentTrack it ) const;

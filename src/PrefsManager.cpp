@@ -86,7 +86,7 @@ static const char *BannerCacheModeNames[] = {
 XToString( BannerCacheMode );
 StringToX( BannerCacheMode );
 LuaXType( BannerCacheMode );
-/*
+
 static const char *BackgroundCacheModeNames[] = {
 	"Off",
 	"LowResPreload",
@@ -96,7 +96,17 @@ static const char *BackgroundCacheModeNames[] = {
 XToString( BackgroundCacheMode );
 StringToX( BackgroundCacheMode );
 LuaXType( BackgroundCacheMode );
-*/
+
+static const char *CDTitleCacheModeNames[] = {
+	"Off",
+	"LowResPreload",
+	"LowResLoadOnDemand",
+	"Full"
+};
+XToString( CDTitleCacheMode );
+StringToX( CDTitleCacheMode );
+LuaXType( CDTitleCacheMode );
+
 static const char *HighResolutionTexturesNames[] = {
 	"Auto",
 	"ForceOff",
@@ -174,7 +184,8 @@ PrefsManager::PrefsManager() :
 	m_bDelayedTextureDelete		( "DelayedTextureDelete",	false ),
 	m_bDelayedModelDelete		( "DelayedModelDelete",		false ),
 	m_BannerCache			( "BannerCache",		BNCACHE_LOW_RES_PRELOAD ),
-	//m_BackgroundCache		( "BackgroundCache",		BGCACHE_LOW_RES_PRELOAD ),
+	m_BackgroundCache			( "BackgroundCache",		BGCACHE_LOW_RES_PRELOAD ),
+	m_CDTitleCache			( "CDTitleCache",		CDTCACHE_LOW_RES_PRELOAD ),
 	m_bFastLoad			( "FastLoad",			true ),
 	m_bFastLoadAdditionalSongs      ( "FastLoadAdditionalSongs",    true ),
 	m_NeverCacheList		( "NeverCacheList", ""),

@@ -66,7 +66,6 @@ enum BannerCacheMode
 	NUM_BannerCacheMode,
 	BannerCacheMode_Invalid
 };
-/*
 enum BackgroundCacheMode
 {
 	BGCACHE_OFF,
@@ -76,7 +75,15 @@ enum BackgroundCacheMode
 	NUM_BackgroundCacheMode,
 	BackgroundCacheMode_Invalid
 };
-*/
+enum CDTitleCacheMode
+{
+	CDTCACHE_OFF,
+	CDTCACHE_LOW_RES_PRELOAD, // preload low-res on start
+	CDTCACHE_LOW_RES_LOAD_ON_DEMAND, // preload low-res on screen load
+	CDTCACHE_FULL,
+	NUM_CDTitleCacheMode,
+	CDTitleCacheMode_Invalid
+};
 enum HighResolutionTextures
 {
 	HighResolutionTextures_Auto,
@@ -166,7 +173,8 @@ public:
 	Preference<bool>	m_bDelayedTextureDelete;
 	Preference<bool>	m_bDelayedModelDelete;
 	Preference<BannerCacheMode>		m_BannerCache;
-	//Preference<BackgroundCacheMode>		m_BackgroundCache;
+	Preference<BackgroundCacheMode>		m_BackgroundCache;
+	Preference<CDTitleCacheMode>		m_CDTitleCache;
 	Preference<bool>	m_bFastLoad;
 	Preference<bool>	m_bFastLoadAdditionalSongs;
 	Preference<RString> m_NeverCacheList;

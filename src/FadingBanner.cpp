@@ -1,7 +1,7 @@
 #include "global.h"
 #include "FadingBanner.h"
 #include "RageTextureManager.h"
-#include "BannerCache.h"
+#include "ImageCache.h"
 #include "Song.h"
 #include "RageLog.h"
 #include "PrefsManager.h"
@@ -136,7 +136,7 @@ bool FadingBanner::LoadFromCachedBanner( const RString &path )
 	else
 	{
 		// Try to load the low quality version.
-		ID = BANNERCACHE->LoadCachedBanner( path );
+		ID = IMAGECACHE->LoadCachedImage( "Banner", path );
 	}
 
 	if( !TEXTUREMAN->IsTextureRegistered(ID) )
