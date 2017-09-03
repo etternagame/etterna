@@ -19,7 +19,9 @@ local function scroller(index)
 	local t = Def.ActorFrame{}
 
 	t[#t+1] = LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,SCREEN_CENTER_X-60+index*20,SCREEN_CENTER_Y;zoom,0.8;);
+		InitCommand=function(self)
+			self:xy(SCREEN_CENTER_X-60+index*20,SCREEN_CENTER_Y):zoom(0.8)
+		end;
 		OnCommand=function(self)
 			self:settext(string.format("%01X",number or 0))
 			if index == cursor then
@@ -99,17 +101,23 @@ local t = Def.ActorFrame{
 
 
 t[#t+1] = Def.Quad{
-	InitCommand=cmd(xy,0,0;halign,0;valign,0;zoomto,SCREEN_WIDTH,SCREEN_HEIGHT;diffuse,color("#000000EE"););
+	InitCommand=function(self)
+		self:xy(0,0):halign(0):valign(0):zoomto(SCREEN_WIDTH,SCREEN_HEIGHT):diffuse(color("#000000EE"))
+	end;
 };
 
 t[#t+1] = LoadActor("_frame");
 t[#t+1] = LoadFont("Common Large")..{
-	InitCommand=cmd(xy,5,32;halign,0;valign,1;zoom,0.55;diffuse,getMainColor('highlight');settext,"Color Config:";);
+	InitCommand=function(self)
+		self:xy(5,32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor('highlight')):settext("Color Config:")
+	end;
 }
 
 
 t[#t+1] = Def.Quad{
-	InitCommand=cmd(xy,SCREEN_CENTER_X,SCREEN_CENTER_Y+40;zoomto,200,30;);
+	InitCommand=function(self)
+		self:xy(SCREEN_CENTER_X,SCREEN_CENTER_Y+40):zoomto(200,30)
+	end;
 	OnCommand=function(self)
 		self:diffuse(color(themeColor))
 	end;
@@ -127,7 +135,9 @@ t[#t+1] = Def.Quad{
 }
 
 t[#t+1] = LoadFont("Common Normal") .. {
-	InitCommand=cmd(xy,SCREEN_CENTER_X-60,SCREEN_CENTER_Y;zoom,0.8;);
+	InitCommand=function(self)
+		self:xy(SCREEN_CENTER_X-60,SCREEN_CENTER_Y):zoom(0.8)
+	end;
 	OnCommand=function(self)
 		self:settext("#")
 		self:diffuse(color("#666666"))
@@ -135,7 +145,9 @@ t[#t+1] = LoadFont("Common Normal") .. {
 }
 
 t[#t+1] = LoadFont("Common Normal") .. {
-	InitCommand=cmd(xy,SCREEN_CENTER_X,SCREEN_CENTER_Y+100;zoom,0.4;);
+	InitCommand=function(self)
+		self:xy(SCREEN_CENTER_X,SCREEN_CENTER_Y+100):zoom(0.4)
+	end;
 	OnCommand=function(self)
 		self:settextf("This will change the color \"%s - %s\".\n\nPress <Left>/<Right> to move cursor, <Up>/<Down> to change value.\nPress <Start> to confirm and <Back> to exit.\nPlease reload metrics after changing colors as some colors will not update unless you do so.",selected[1],selected[2])
 		self:diffuse(color("#FFFFFF"))

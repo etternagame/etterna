@@ -1,8 +1,14 @@
 local update = false
 local t = Def.ActorFrame{
-	BeginCommand=cmd(queuecommand,"Set";visible,false);
-	OffCommand=cmd(bouncebegin,0.2;xy,-500,0;diffusealpha,0;); -- visible(false) doesn't seem to work with sleep
-	OnCommand=cmd(bouncebegin,0.2;xy,0,0;diffusealpha,1;);
+	BeginCommand=function(self)
+		self:queuecommand("Set"):visible(false)
+	end;
+	OffCommand=function(self)
+		self:bouncebegin(0.2):xy(-500,0):diffusealpha(0):)(): -- visible(false()
+	end,
+	OnCommand=function(self)
+		self:bouncebegin(0.2):xy(0,0):diffusealpha(1)
+	end;
 	SetCommand=function(self)
 		self:finishtweening()
 		if getTabIndex() == 3 then
@@ -14,8 +20,12 @@ local t = Def.ActorFrame{
 			update = false
 		end;
 	end;
-	TabChangedMessageCommand=cmd(queuecommand,"Set");
-	PlayerJoinedMessageCommand=cmd(queuecommand,"Set");
+	TabChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
+	PlayerJoinedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
 };
 
 local frameX = 10
@@ -29,15 +39,21 @@ local offsetY = 20
 local pn = GAMESTATE:GetEnabledPlayers()[1]
 
 t[#t+1] = Def.Quad{
-	InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,frameHeight;halign,0;valign,0;diffuse,color("#333333CC"));
+	InitCommand=function(self)
+		self:xy(frameX,frameY):zoomto(frameWidth,frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
+	end;
 };
 
 t[#t+1] = Def.Quad{
-	InitCommand=cmd(xy,frameX+5,frameY+offsetY+5;zoomto,150,150*3/4;halign,0;valign,0;diffuse,color("#000000CC"));
+	InitCommand=function(self)
+		self:xy(frameX+5,frameY+offsetY+5):zoomto(150,150*3/4):halign(0):valign(0):diffuse(color("#000000CC"))
+	end;
 };
 
 t[#t+1] = Def.Sprite {
-	InitCommand=cmd(xy,frameX,frameY+offsetY-75;diffusealpha,0.8;);
+	InitCommand=function(self)
+		self:xy(frameX,frameY+offsetY-75):diffusealpha(0.8)
+	end;
 	Name="BG";
 	SetCommand=function(self)
 		if update then
@@ -65,12 +81,18 @@ t[#t+1] = Def.Sprite {
 			self:diffusealpha(0.8)
 		end
 	end;
-	BeginCommand=cmd(queuecommand,"Set");
-	CurrentSongChangedMessageCommand=cmd(finishtweening;smooth,0.5;diffusealpha,0;sleep,0.35;queuecommand,"Set");
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end;
+	CurrentSongChangedMessageCommand=function(self)
+		self:finishtweening():smooth(0.5):diffusealpha(0):sleep(0.35):queuecommand("Set")
+	end;
 };
 
 t[#t+1] = Def.Sprite {
-		InitCommand=cmd(xy,frameX+75,frameY+125;zoomy,0;valign,1);
+		InitCommand=function(self)
+			self:xy(frameX+75,frameY+125):zoomy(0):valign(1)
+		end;
 		Name="CDTitle";
 		SetCommand=function(self)
 			if update then
@@ -107,14 +129,20 @@ t[#t+1] = Def.Sprite {
 				self:diffusealpha(1)
 			end
 		end;
-	BeginCommand=cmd(queuecommand,"Set");
-	CurrentSongChangedMessageCommand=cmd(finishtweening;smooth,0.5;diffusealpha,0;sleep,0.35;queuecommand,"Set");
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end;
+	CurrentSongChangedMessageCommand=function(self)
+		self:finishtweening():smooth(0.5):diffusealpha(0):sleep(0.35):queuecommand("Set")
+	end;
 };
 		
 
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="StepsAndMeter";
-	InitCommand=cmd(xy,frameX+frameWidth-offsetX,frameY+offsetY+10;zoom,0.5;halign,1;);
+	InitCommand=function(self)
+		self:xy(frameX+frameWidth-offsetX,frameY+offsetY+10):zoom(0.5):halign(1)
+	end;
 	SetCommand=function(self)
 		local steps = GAMESTATE:GetCurrentSteps(pn)
 		if steps ~= nil and update then
@@ -125,13 +153,21 @@ t[#t+1] = LoadFont("Common Normal")..{
 			self:diffuse(getDifficultyColor(GetCustomDifficulty(steps:GetStepsType(),steps:GetDifficulty())))
 		end
 	end;
-	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
-	CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set");
-	CurrentStepsP2ChangedMessageCommand=cmd(queuecommand,"Set");
+	CurrentSongChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
+	CurrentStepsP1ChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
+	CurrentStepsP2ChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
 };
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="StepsAndMeter";
-	InitCommand=cmd(xy,frameX+frameWidth-offsetX,frameY+offsetY+23;zoom,0.4;halign,1;);
+	InitCommand=function(self)
+		self:xy(frameX+frameWidth-offsetX,frameY+offsetY+23):zoom(0.4):halign(1)
+	end;
 	SetCommand=function(self)
 		local steps = GAMESTATE:GetCurrentSteps(pn)
 		local song = GAMESTATE:GetCurrentSong()
@@ -146,14 +182,22 @@ t[#t+1] = LoadFont("Common Normal")..{
 			self:settext("0.00 Average NPS")
 		end
 	end;
-	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
-	CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set");
-	CurrentStepsP2ChangedMessageCommand=cmd(queuecommand,"Set");
+	CurrentSongChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
+	CurrentStepsP1ChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
+	CurrentStepsP2ChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
 };
 
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="Song Title";
-	InitCommand=cmd(xy,frameX+offsetX+150,frameY+offsetY+45;zoom,0.6;halign,0;maxwidth,((frameWidth-offsetX*2-150)/0.6)-40);
+	InitCommand=function(self)
+		self:xy(frameX+offsetX+150,frameY+offsetY+45):zoom(0.6):halign(0):maxwidth(((frameWidth-offsetX*2-150)/0.6)-40)
+	end;
 	SetCommand=function(self)
 		if update then
 			local song = GAMESTATE:GetCurrentSong()
@@ -167,12 +211,16 @@ t[#t+1] = LoadFont("Common Normal")..{
 			self:GetParent():GetChild("Song Length"):x(math.min(((frameWidth-offsetX*2-150)/0.6)-5,self:GetWidth()*0.6+self:GetX()+5))
 		end
 	end;
-	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
+	CurrentSongChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
 };
 
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="Song SubTitle";
-	InitCommand=cmd(xy,frameX+offsetX+150,frameY+offsetY+60;zoom,0.4;halign,0;maxwidth,(frameWidth-offsetX*2-150)/0.4);
+	InitCommand=function(self)
+		self:xy(frameX+offsetX+150,frameY+offsetY+60):zoom(0.4):halign(0):maxwidth((frameWidth-offsetX*2-150)/0.4)
+	end;
 	SetCommand=function(self)
 		if update then
 			local song = GAMESTATE:GetCurrentSong()
@@ -184,11 +232,15 @@ t[#t+1] = LoadFont("Common Normal")..{
 			end
 		end
 	end;
-	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
+	CurrentSongChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
 };
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="Song Artist";
-	InitCommand=cmd(xy,frameX+offsetX+150,frameY+offsetY+73;zoom,0.4;halign,0;maxwidth,(frameWidth-offsetX*2-150)/0.4);
+	InitCommand=function(self)
+		self:xy(frameX+offsetX+150,frameY+offsetY+73):zoom(0.4):halign(0):maxwidth((frameWidth-offsetX*2-150)/0.4)
+	end;
 	SetCommand=function(self)
 		local song = GAMESTATE:GetCurrentSong()
 		if song ~= nil then
@@ -206,12 +258,16 @@ t[#t+1] = LoadFont("Common Normal")..{
 			self:diffuse(getMainColor("disabled"))
 		end
 	end;
-	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
+	CurrentSongChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
 };
 
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="Song BPM";
-	InitCommand=cmd(xy,frameX+offsetX+150,frameY+offsetY+130;zoom,0.4;halign,0;maxwidth,(frameWidth-offsetX*2-150)/0.4);
+	InitCommand=function(self)
+		self:xy(frameX+offsetX+150,frameY+offsetY+130):zoom(0.4):halign(0):maxwidth((frameWidth-offsetX*2-150)/0.4)
+	end;
 	SetCommand=function(self)
 		local song = GAMESTATE:GetCurrentSong()
 		local bpms = {0,0}
@@ -232,12 +288,16 @@ t[#t+1] = LoadFont("Common Normal")..{
 			self:diffuse(getMainColor("disabled"))
 		end
 	end;
-	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
+	CurrentSongChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
 };
 
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="BPM Change Count";
-	InitCommand=cmd(xy,frameX+offsetX+150,frameY+offsetY+145;zoom,0.4;halign,0;maxwidth,(frameWidth-offsetX*2-150)/0.4);
+	InitCommand=function(self)
+		self:xy(frameX+offsetX+150,frameY+offsetY+145):zoom(0.4):halign(0):maxwidth((frameWidth-offsetX*2-150)/0.4)
+	end;
 	SetCommand=function(self)
 		local song = GAMESTATE:GetCurrentSong()
 		local bpms = {0,0}
@@ -249,7 +309,9 @@ t[#t+1] = LoadFont("Common Normal")..{
 			self:diffuse(getMainColor("disabled"))
 		end
 	end;
-	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
+	CurrentSongChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
 };
 
 local radarValues = {
@@ -264,14 +326,18 @@ local radarValues = {
 
 for k,v in ipairs(radarValues) do
 	t[#t+1] = LoadFont("Common Normal")..{
-		InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+130+(15*(k-1));zoom,0.4;halign,0;maxwidth,(frameWidth-offsetX*2-150)/0.4);
+		InitCommand=function(self)
+			self:xy(frameX+offsetX,frameY+offsetY+130+(15*(k-1))):zoom(0.4):halign(0):maxwidth((frameWidth-offsetX*2-150)/0.4)
+		end;
 		OnCommand=function(self)
 			self:settext(v[2]..": ")
 		end;
 	}
 	t[#t+1] = LoadFont("Common Normal")..{
 		Name="RadarValue"..v[1];
-		InitCommand=cmd(xy,frameX+offsetX+40,frameY+offsetY+130+(15*(k-1));zoom,0.4;halign,0;maxwidth,(frameWidth-offsetX*2-150)/0.4);
+		InitCommand=function(self)
+			self:xy(frameX+offsetX+40,frameY+offsetY+130+(15*(k-1))):zoom(0.4):halign(0):maxwidth((frameWidth-offsetX*2-150)/0.4)
+		end;
 		SetCommand=function(self)
 			local song = GAMESTATE:GetCurrentSong()
 			local steps = GAMESTATE:GetCurrentSteps(pn)
@@ -285,22 +351,34 @@ for k,v in ipairs(radarValues) do
 				self:diffuse(getMainColor("disabled"))
 			end
 		end;
-		CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
-		CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set");
-		CurrentStepsP2ChangedMessageCommand=cmd(queuecommand,"Set");
+		CurrentSongChangedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end;
+		CurrentStepsP1ChangedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end;
+		CurrentStepsP2ChangedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end;
 	}
 end
 
 t[#t+1] = LoadFont("Common Normal")..{
-	InitCommand=cmd(xy,frameX+offsetX,frameY+frameHeight-10-distY*2;zoom,fontScale;halign,0;);
+	InitCommand=function(self)
+		self:xy(frameX+offsetX,frameY+frameHeight-10-distY*2):zoom(fontScale):halign(0)
+	end;
 	BeginCommand=function(self)
 		self:settext("Path:")
 	end
 }
 
 t[#t+1] = LoadFont("Common Normal")..{
-	InitCommand=cmd(xy,frameX+offsetX+35,frameY+frameHeight-10-distY*2;zoom,fontScale;halign,0;maxwidth,(frameWidth-35-offsetX-10)/fontScale);
-	BeginCommand=cmd(queuecommand,"Set");
+	InitCommand=function(self)
+		self:xy(frameX+offsetX+35,frameY+frameHeight-10-distY*2):zoom(fontScale):halign(0):maxwidth((frameWidth-35-offsetX-10)/fontScale)
+	end;
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end;
 	SetCommand=function(self)
 		if update then
 			local song = GAMESTATE:GetCurrentSong()
@@ -313,21 +391,29 @@ t[#t+1] = LoadFont("Common Normal")..{
 			end
 		end
 	end;
-	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
+	CurrentSongChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
 }
 
 
 
 t[#t+1] = LoadFont("Common Normal")..{
-	InitCommand=cmd(xy,frameX+offsetX,frameY+frameHeight-10-distY;zoom,fontScale;halign,0;);
+	InitCommand=function(self)
+		self:xy(frameX+offsetX,frameY+frameHeight-10-distY):zoom(fontScale):halign(0)
+	end;
 	BeginCommand=function(self)
 		self:settext("SHA-1:")
 	end
 }
 
 t[#t+1] = LoadFont("Common Normal")..{
-	InitCommand=cmd(xy,frameX+offsetX+35,frameY+frameHeight-10-distY;zoom,fontScale;halign,0;maxwidth,(frameWidth-35)/fontScale);
-	BeginCommand=cmd(queuecommand,"Set");
+	InitCommand=function(self)
+		self:xy(frameX+offsetX+35,frameY+frameHeight-10-distY):zoom(fontScale):halign(0):maxwidth((frameWidth-35)/fontScale)
+	end;
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end;
 	SetCommand=function(self)
 		if update then
 			local pn = GAMESTATE:GetEnabledPlayers()[1]
@@ -341,18 +427,24 @@ t[#t+1] = LoadFont("Common Normal")..{
 			end
 		end
 	end;
-	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
+	CurrentSongChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
 };
 
 t[#t+1] = LoadFont("Common Normal")..{
-	InitCommand=cmd(xy,frameX+offsetX,frameY+frameHeight-10;zoom,fontScale;halign,0;);
+	InitCommand=function(self)
+		self:xy(frameX+offsetX,frameY+frameHeight-10):zoom(fontScale):halign(0)
+	end;
 	BeginCommand=function(self)
 		self:settext("MD5:")
 	end
 }
 
 t[#t+1] = LoadFont("Common Normal")..{
-	InitCommand=cmd(xy,frameX+frameWidth/2,frameY+frameHeight-75;zoom,fontScale;);
+	InitCommand=function(self)
+		self:xy(frameX+frameWidth/2,frameY+frameHeight-75):zoom(fontScale)
+	end;
 	BeginCommand=function(self)
 		self:settext("More to be added soon(TM)....ish")
 		self:diffusealpha(0.2)
@@ -360,8 +452,12 @@ t[#t+1] = LoadFont("Common Normal")..{
 }
 
 t[#t+1] = LoadFont("Common Normal")..{
-	InitCommand=cmd(xy,frameX+offsetX+35,frameY+frameHeight-10;zoom,fontScale;halign,0;maxwidth,(frameWidth-35)/fontScale);
-	BeginCommand=cmd(queuecommand,"Set");
+	InitCommand=function(self)
+		self:xy(frameX+offsetX+35,frameY+frameHeight-10):zoom(fontScale):halign(0):maxwidth((frameWidth-35)/fontScale)
+	end;
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end;
 	SetCommand=function(self)
 		if update then
 			local pn = GAMESTATE:GetEnabledPlayers()[1]
@@ -375,16 +471,24 @@ t[#t+1] = LoadFont("Common Normal")..{
 			end
 		end
 	end;
-	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
+	CurrentSongChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
 };
 
 t[#t+1] = Def.Quad{
-	InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,offsetY;halign,0;valign,0;diffuse,getMainColor('frames'));
+	InitCommand=function(self)
+		self:xy(frameX,frameY):zoomto(frameWidth,offsetY):halign(0):valign(0):diffuse(getMainColor('frames'))
+	end;
 };
 
 t[#t+1] = LoadFont("Common Normal")..{
-	InitCommand=cmd(xy,frameX+5,frameY+offsetY-9;zoom,0.6;halign,0;diffuse,getMainColor('highlight'));
-	BeginCommand=cmd(settext,"Simfile Info")
+	InitCommand=function(self)
+		self:xy(frameX+5,frameY+offsetY-9):zoom(0.6):halign(0):diffuse(getMainColor('highlight'))
+	end;
+	BeginCommand=function(self)
+		self:settext("Simfile Info")
+	end	
 };
 
 return t

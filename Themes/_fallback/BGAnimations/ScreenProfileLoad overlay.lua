@@ -1,13 +1,17 @@
 local x = Def.ActorFrame{
 	Def.Quad{
-		InitCommand=cmd(Center;zoomto,SCREEN_WIDTH,80;diffuse,color("0,0,0,0.5"));
-		OnCommand=cmd();
-		OffCommand=cmd();
+		InitCommand=function(self)
+			self:Center():zoomto(SCREEN_WIDTH,80):diffuse(color("0,0,0,0.5"))
+		end;
 	};
 	LoadFont("Common Normal")..{
 		Text=ScreenString("Loading Profiles");
-		InitCommand=cmd(Center;diffuse,color("1,1,1,1");shadowlength,1);
-		OffCommand=cmd(linear,0.15;diffusealpha,0);
+		InitCommand=function(self)
+			self:Center():diffuse(color("1,1,1,1")):shadowlength(1)
+		end;
+		OffCommand=function(self)
+			self:linear(0.15):diffusealpha(0)
+		end;
 	};
 };
 

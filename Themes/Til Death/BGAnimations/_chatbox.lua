@@ -91,7 +91,9 @@ local t = Def.ActorFrame{
 }
 
 t[#t+1] = Def.Quad{
-	InitCommand=cmd(xy,inputX-border,inputY-border;zoomto,outputWidth+border*2,inputHeight+border*2;halign,0;valign,0;diffuse,color("#00000099");),
+	InitCommand=function(self)
+		self:xy(inputX-border,inputY-border):zoomto(outputWidth+border*2,inputHeight+border*2):halign(0):valign(0):diffuse(color("#00000099"))
+	end,
 	TabChangedMessageCommand=function(self)
 		local top= SCREENMAN:GetTopScreen()
 		if getTabIndex() == 0 then
@@ -102,7 +104,9 @@ t[#t+1] = Def.Quad{
 	end,
 	}
 t[#t+1] = Def.Quad{
-	InitCommand=cmd(xy,outputX-border,outputY-border;zoomto,outputWidth+border*2,outputHeight+border*2;halign,0;valign,0;diffuse,color("#00000099");),
+	InitCommand=function(self)
+		self:xy(outputX-border,outputY-border):zoomto(outputWidth+border*2,outputHeight+border*2):halign(0):valign(0):diffuse(color("#00000099"))
+	end,
 	TabChangedMessageCommand=function(self)
 		local top= SCREENMAN:GetTopScreen()
 		if getTabIndex() == 0 then
@@ -114,7 +118,9 @@ t[#t+1] = Def.Quad{
 }
 
 t[#t+1] = Def.Quad{
-	InitCommand=cmd(xy,outputX+outputWidth - 1,outputHeight;zoomto,border,outputHeight;halign,0;valign,0;diffuse,getMainColor('highlight');queuecommand,"Set"),
+	InitCommand=function(self)
+		self:xy(outputX+outputWidth - 1,outputHeight):zoomto(border,outputHeight):halign(0):valign(0):diffuse(getMainColor('highlight')):queuecommand("Set")
+	end,
 	SetCommand=function(self)
 		if getTabIndex() == 0 then
 			local lineqty = top:GetChatLines()
@@ -132,8 +138,12 @@ t[#t+1] = Def.Quad{
 			self:visible(false)
 		end
 	end,
-	ScrollMessageCommand=cmd(queuecommand,"Set"),
-	TabChangedMessageCommand=cmd(queuecommand,"Set"),
+	ScrollMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	TabChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
 }
 
 return t

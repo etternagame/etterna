@@ -1,6 +1,8 @@
 return Def.BPMDisplay {
 	Name="BPMDisplay";
-	InitCommand=cmd(horizalign,left;zoom,0.50;);
+	InitCommand=function(self)
+		self:horizalign(left):zoom(0.50)
+	end;
 	SetCommand=function(self)
     self:SetFromGameState()
     if getTabIndex() == 0 then 
@@ -9,7 +11,13 @@ return Def.BPMDisplay {
       self:diffusealpha(0); 
     end; 
 	end;
-	CurrentSongChangedMessageCommand=cmd(playcommand,"Set");
-	CurrentSongChangedMessageCommand=cmd(playcommand,"Set");
-	CurrentCourseChangedMessageCommand=cmd(playcommand,"Set");
+	CurrentSongChangedMessageCommand=function(self)
+		self:playcommand("Set")
+	end;
+	CurrentSongChangedMessageCommand=function(self)
+		self:playcommand("Set")
+	end;
+	CurrentCourseChangedMessageCommand=function(self)
+		self:playcommand("Set")
+	end;
 };

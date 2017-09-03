@@ -1,8 +1,14 @@
 local update = false
 local t = Def.ActorFrame{
-	BeginCommand=cmd(queuecommand,"Set"),
-	OffCommand=cmd(bouncebegin,0.2;xy,-500,0), -- visible(false) doesn't seem to work with sleep
-	OnCommand=cmd(bouncebegin,0.2;xy,0,0),
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	OffCommand=function(self)
+		self:bouncebegin(0.2):xy(-500,0) -- visible(false)
+	end,
+	OnCommand=function(self)
+		self:bouncebegin(0.2):xy(0,0)
+	end,
 	SetCommand=function(self)
 		self:finishtweening()
 		if getTabIndex() == 0 then
@@ -13,13 +19,19 @@ local t = Def.ActorFrame{
 			update = false
 		end
 	end,
-	TabChangedMessageCommand=cmd(queuecommand,"Set"),
-	PlayerJoinedMessageCommand=cmd(queuecommand,"Set")
+	TabChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	PlayerJoinedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end	
 }
 
 
 t[#t+1] = Def.Banner{
-	InitCommand=cmd(x,10;y,61;halign,0;valign,0;scaletoclipped,capWideScale(get43size(384),384),capWideScale(get43size(120),120)),
+	InitCommand=function(self)
+		self:x(10):y(61):halign(0):valign(0):scaletoclipped(capWideScale(get43size(384),384),capWideScale(get43size(120),120))
+	end,
 	SetMessageCommand=function(self)
 		if update then
 			local top = SCREENMAN:GetTopScreen()
@@ -35,7 +47,9 @@ t[#t+1] = Def.Banner{
 		end
 		self:scaletoclipped(capWideScale(get43size(384),384),capWideScale(get43size(120),120))
 	end,
-	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set")
+	CurrentSongChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end	
 }
 
 return t

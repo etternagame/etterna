@@ -20,8 +20,12 @@ local t = Def.ActorFrame {
 			end
 			self:effectclock("music")
 		end;
-		GainFocusCommand=cmd(play);
-		LoseFocusCommand=cmd(pause);
+		GainFocusCommand=function(self)
+			self:play()
+		end;
+		LoseFocusCommand=function(self)
+			self:pause()
+		end;
 	};
 };
 

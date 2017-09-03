@@ -20,8 +20,12 @@ local sortTable = {
 };
 
 t[#t+1] = LoadFont("Common Normal") .. {
-	InitCommand=cmd(xy,frameX-5,frameY;halign,1;zoom,0.3;maxwidth,40/0.45);
-	BeginCommand=cmd(queuecommand,"Set");
+	InitCommand=function(self)
+		self:xy(frameX-5,frameY):halign(1):zoom(0.3):maxwidth(40/0.45)
+	end;
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end;
 	SetCommand=function(self)
 		local top = SCREENMAN:GetTopScreen()
 		if top:GetName() == "ScreenSelectMusic" or top:GetName() == "ScreenNetSelectMusic" then
@@ -29,8 +33,12 @@ t[#t+1] = LoadFont("Common Normal") .. {
 			self:settextf("%d/%d",wheel:GetCurrentIndex()+1,wheel:GetNumItems())
 		end;
 	end;
-	SortOrderChangedMessageCommand=cmd(queuecommand,"Set");
-	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
+	SortOrderChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
+	CurrentSongChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
 };
 
 return t

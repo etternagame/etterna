@@ -10,7 +10,9 @@ local judge = GetTimingDifficulty()
 local maxOffset = 180*tst[judge]
 
 local o = Def.ActorFrame{
-	InitCommand=cmd(xy,plotX,plotY),
+	InitCommand=function(self)
+		self:xy(plotX,plotY)
+	end,
 	CodeMessageCommand=function(self,params)
 		if params.Name == "PlotCancel" or params.Name == "PlotExit" or params.Name == "PlotThickens" or params.Name == "PlotTwist" or params.Name == "StarPlot64" or params.Name == "SheriffOfPlottingham" then
 			SCREENMAN:GetTopScreen():Cancel()
@@ -40,10 +42,14 @@ end
 
 local function plotOffset(nr,dv)
 	if dv == 1000 then 	-- 1000 denotes a miss for which we use a different marker
-		return Def.Quad{InitCommand=cmd(xy,fitX(nr),fitY(tst[judge]*184);zoomto,dotDims,dotDims;diffuse,offsetToJudgeColor(dv/1000);valign,0)}
+		return Def.Quad{InitCommand=function(self)
+			self:xy(fitX(nr),fitY(tst[judge]*184)):zoomto(dotDims,dotDims):diffuse(offsetToJudgeColor(dv/1000)):valign(0)
+		end}
 	end
 	return Def.Quad{
-		InitCommand=cmd(xy,fitX(nr),fitY(dv);zoomto,dotDims,dotDims;diffuse,offsetToJudgeColor(dv/1000)),
+		InitCommand=function(self)
+			self:xy(fitX(nr),fitY(dv)):zoomto(dotDims,dotDims):diffuse(offsetToJudgeColor(dv/1000))
+		end,
 		JudgeDisplayChangedMessageCommand=function(self)
 			local pos = fitY(dv)
 			if math.abs(pos) > plotHeight/2 then
@@ -57,15 +63,23 @@ local function plotOffset(nr,dv)
 end
 
 -- Center Bar
-o[#o+1] = Def.Quad{InitCommand=cmd(zoomto,plotWidth+plotMargin,1;diffuse,byJudgment("TapNoteScore_W1"))}
+o[#o+1] = Def.Quad{InitCommand=function(self)
+	self:zoomto(plotWidth+plotMargin,1):diffuse(byJudgment("TapNoteScore_W1"))
+end}
 local fantabars = {22.5, 45, 90, 135}
 local bantafars = {"TapNoteScore_W2", "TapNoteScore_W3", "TapNoteScore_W4", "TapNoteScore_W5"}
 for i=1, #fantabars do 
-	o[#o+1] = Def.Quad{InitCommand=cmd(y, fitY(tst[judge]*fantabars[i]); zoomto,plotWidth+plotMargin,1;diffuse,byJudgment(bantafars[i]))}
-	o[#o+1] = Def.Quad{InitCommand=cmd(y, fitY(-tst[judge]*fantabars[i]); zoomto,plotWidth+plotMargin,1;diffuse,byJudgment(bantafars[i]))}
+	o[#o+1] = Def.Quad{InitCommand=function(self)
+		self:y( fitY(tst[judge]*fantabars[i])): zoomto(plotWidth+plotMargin,1):diffuse(byJudgment(bantafars[i]))
+	end}
+	o[#o+1] = Def.Quad{InitCommand=function(self)
+		self:y( fitY(-tst[judge]*fantabars[i])): zoomto(plotWidth+plotMargin,1):diffuse(byJudgment(bantafars[i]))
+	end}
 end
 -- Background
-o[#o+1] = Def.Quad{InitCommand=cmd(zoomto,plotWidth+plotMargin,plotHeight+plotMargin;diffuse,color("0.05,0.05,0.05,0.05");diffusealpha,0.95)}
+o[#o+1] = Def.Quad{InitCommand=function(self)
+	self:zoomto(plotWidth+plotMargin,plotHeight+plotMargin):diffuse(color("0.05,0.05,0.05,0.05")):diffusealpha(0.95)
+end}
 -- Convert noterows to timestamps and plot dots
 local wuab = {}
 for i=1,#nrt do
@@ -75,13 +89,17 @@ end
 
 -- Early/Late markers
 o[#o+1] = LoadFont("Common Normal")..{
-	InitCommand=cmd(xy,-plotWidth/2,-plotHeight/2+2;settextf,"Late (+%ims)", maxOffset;zoom,0.35;halign,0;valign,0),
+	InitCommand=function(self)
+		self:xy(-plotWidth/2,-plotHeight/2+2):settextf("Late (+%ims)", maxOffset):zoom(0.35):halign(0):valign(0)
+	end,
 	JudgeDisplayChangedMessageCommand=function(self)
 		self:settextf("Late (+%ims)", maxOffset)
 	end
 }
 o[#o+1] = LoadFont("Common Normal")..{
-	InitCommand=cmd(xy,-plotWidth/2,plotHeight/2-2;settextf,"Early (-%ims)", maxOffset;zoom,0.35;halign,0;valign,1),
+	InitCommand=function(self)
+		self:xy(-plotWidth/2,plotHeight/2-2):settextf("Early (-%ims)", maxOffset):zoom(0.35):halign(0):valign(1)
+	end,
 	JudgeDisplayChangedMessageCommand=function(self)
 		self:settextf("Early (-%ims)", maxOffset)
 	end
