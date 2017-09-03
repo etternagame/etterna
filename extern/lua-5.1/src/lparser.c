@@ -1,5 +1,5 @@
 /*
-** $Id: lparser.c 25896 2007-04-21 20:58:22Z stevecheckoway $
+** $Id: lparser.c,v 2.42.1.4 2011/10/21 19:31:42 roberto Exp $
 ** Lua Parser
 ** See Copyright Notice in lua.h
 */
@@ -361,7 +361,7 @@ static void close_func (LexState *ls) {
   luaK_ret(fs, 0, 0);  /* final return */
   luaM_reallocvector(L, f->code, f->sizecode, fs->pc, Instruction);
   f->sizecode = fs->pc;
-  luaM_reallocvector(L, f->lineinfo, f->sizelineinfo, fs->pc, uint32_t);
+  luaM_reallocvector(L, f->lineinfo, f->sizelineinfo, fs->pc, int);
   f->sizelineinfo = fs->pc;
   luaM_reallocvector(L, f->k, f->sizek, fs->nk, TValue);
   f->sizek = fs->nk;
@@ -374,9 +374,9 @@ static void close_func (LexState *ls) {
   lua_assert(luaG_checkcode(f));
   lua_assert(fs->bl == NULL);
   ls->fs = fs->prev;
-  L->top -= 2;  /* remove table and prototype from the stack */
   /* last token read was anchored in defunct function; must reanchor it */
   if (fs) anchor_token(ls);
+  L->top -= 2;  /* remove table and prototype from the stack */
 }
 
 
@@ -489,7 +489,7 @@ static void lastlistfield (FuncState *fs, struct ConsControl *cc) {
 
 static void listfield (LexState *ls, struct ConsControl *cc) {
   expr(ls, &cc->v);
-  luaY_checklimit(ls->fs, cc->na, MAXARG_Bx, "items in a constructor");
+  luaY_checklimit(ls->fs, cc->na, MAX_INT, "items in a constructor");
   cc->na++;
   cc->tostore++;
 }
@@ -592,86 +592,6 @@ static void body (LexState *ls, expdesc *e, int needself, int line) {
   pushclosure(ls, &new_fs, e);
 }
 
-static int explist1 (LexState *ls, expdesc *v);
-static void cmd_funcargs (LexState *ls, expdesc *f) {
-  /* cmd_funcargs -> [ ',' explist1 ] */
-  FuncState *fs = ls->fs;
-  expdesc args;
-  int base, nparams;
-  int line = ls->linenumber;
-  if (ls->t.token == ')' || ls->t.token == ';')  /* arg list is empty? */
-    args.k = VVOID;
-  else if (ls->t.token == ',')
-  {
-    luaX_next(ls);
-    explist1(ls, &args);
-    luaK_setmultret(fs, &args);
-  }
-  else {
-    luaX_syntaxerror(ls, LUA_QL(")") " expected");
-    return;
-  }
-  lua_assert(f->k == VNONRELOC);
-  base = f->u.s.info;  /* base register for call */
-  if (hasmultret(args.k))
-    nparams = LUA_MULTRET;  /* open call */
-  else {
-    if (args.k != VVOID)
-      luaK_exp2nextreg(fs, &args);  /* close last argument */
-    nparams = fs->freereg - (base+1);
-  }
-  init_exp(f, VCALL, luaK_codeABC(fs, OP_CALL, base, nparams+1, 2));
-  luaK_fixline(fs, line);
-  fs->freereg = base+1;  /* call remove function and arguments and leaves
-                            (unless changed) one result */
-}
-
-static void cmd_body (LexState *ls, expdesc *e) {
-  /* cmd_body -> [ [ ';' ] Name cmd_funcargs } */
-  FuncState *fs = ls->fs;
-  while(1) {
-    switch (ls->t.token) {
-      case ')':
-        return;
-      case ';':
-        luaX_next(ls);
-	continue;
-      default: {
-        expdesc key;
-        init_exp(e, VLOCAL, 0);
-        checkname(ls, &key);
-        luaK_self(fs, e, &key);
-        cmd_funcargs(ls, e);
-        if (e->k == VCALL)  /* stat -> func */
-          SETARG_C(getcode(fs, e), 1);  /* call statement uses no results */
-      }
-    }
-  }
-}
-
-static void cmd (LexState *ls, expdesc *e, int line) {
-  /* cmd -> STRING */
-  FuncState new_fs;
-  open_func(ls, &new_fs);
-  new_fs.f->linedefined = line;
-
-  checknext(ls, '(');
-
-  new_localvarliteral(ls, "self", 0);
-  adjustlocalvars(ls, 1);
-
-  new_fs.f->is_vararg |= VARARG_ISVARARG;
-  adjustlocalvars(ls, 0);
-  new_fs.f->numparams = cast_byte(new_fs.nactvar);
-  luaK_reserveregs(&new_fs, new_fs.nactvar);  /* reserve register for parameters */
-
-  cmd_body (ls, e);
-
-  new_fs.f->lastlinedefined = ls->linenumber;
-  check_match(ls, ')', TK_CMD, line);
-  close_func(ls);
-  pushclosure(ls, &new_fs, e);
-}
 
 static int explist1 (LexState *ls, expdesc *v) {
   /* explist1 -> expr { `,' expr } */
@@ -846,11 +766,6 @@ static void simpleexp (LexState *ls, expdesc *v) {
       body(ls, v, 0, ls->linenumber);
       return;
     }
-    case TK_CMD: {
-      luaX_next(ls);
-      cmd(ls, v, ls->linenumber);
-      return;
-    }
     default: {
       primaryexp(ls, v);
       return;
@@ -1023,6 +938,8 @@ static void assignment (LexState *ls, struct LHS_assign *lh, int nvars) {
     primaryexp(ls, &nv.v);
     if (nv.v.k == VLOCAL)
       check_conflict(ls, lh, &nv.v);
+    luaY_checklimit(ls->fs, nvars, LUAI_MAXCCALLS - ls->L->nCcalls,
+                    "variables in assignment");
     assignment(ls, &nv, nvars+1);
   }
   else {  /* assignment -> `=' explist1 */

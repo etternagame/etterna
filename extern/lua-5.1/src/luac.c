@@ -1,5 +1,5 @@
 /*
-** $Id: luac.c 23036 2006-09-25 07:35:34Z gmaynard $
+** $Id: luac.c,v 1.54 2006/06/02 17:37:11 lhf Exp $
 ** Lua compiler (saves bytecodes to files; also list bytecodes)
 ** See Copyright Notice in lua.h
 */
