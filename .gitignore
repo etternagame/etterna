@@ -55,6 +55,8 @@ PBProject/Hardware.plist
 *.ilk
 *.map
 *.res
+*.suo
+UpgradeLog*.htm
 
 # Windows General Files
 *.exe
