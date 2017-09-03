@@ -147,7 +147,9 @@ local t = Def.ActorFrame{
 if enabledP1 then
 	t[#t+1] = Def.Quad{
 		Name="CoverP1";
-		InitCommand=cmd(xy,P1X,SCREEN_TOP;zoomto,(width+padding)*getNoteFieldScale(PLAYER_1),heightP1;valign,0;diffuse,laneColor);
+		InitCommand=function(self)
+			self:xy(P1X,SCREEN_TOP):zoomto((width+padding)*getNoteFieldScale(PLAYER_1),heightP1):valign(0):diffuse(laneColor)
+		end;
 		BeginCommand=function(self)
 			if isReverseP1 then
 				self:y(SCREEN_TOP)
@@ -161,7 +163,9 @@ if enabledP1 then
 
 	t[#t+1] = LoadFont("Common Normal")..{
 		Name="CoverTextP1White";
-		InitCommand=cmd(x,P1X-(width*getNoteFieldScale(PLAYER_1)/8);settext,0;valign,1;zoom,0.5;);
+		InitCommand=function(self)
+			self:x(P1X-(width*getNoteFieldScale(PLAYER_1)/8)):settext(0):valign(1):zoom(0.5)
+		end;
 		BeginCommand=function(self)
 			self:settext(0)
 			if isReverseP1 then
@@ -180,7 +184,9 @@ if enabledP1 then
 	};
 	t[#t+1] = LoadFont("Common Normal")..{
 		Name="CoverTextP1Green";
-		InitCommand=cmd(x,P1X+(width*getNoteFieldScale(PLAYER_1)/8);settext,0;valign,1;zoom,0.5;diffuse,color("#4CBB17"));
+		InitCommand=function(self)
+			self:x(P1X+(width*getNoteFieldScale(PLAYER_1)/8)):settext(0):valign(1):zoom(0.5):diffuse(color("#4CBB17"))
+		end;
 		BeginCommand=function(self)
 			self:settext(math.floor(getSpeed(PLAYER_1)))
 			if isReverseP1 then
@@ -202,7 +208,9 @@ end;
 if enabledP2 then
 	t[#t+1] = Def.Quad{
 		Name="CoverP2";
-		InitCommand=cmd(xy,P2X,SCREEN_TOP;zoomto,(width+padding)*getNoteFieldScale(PLAYER_2),heightP2;valign,0;diffuse,laneColor);
+		InitCommand=function(self)
+			self:xy(P2X,SCREEN_TOP):zoomto((width+padding)*getNoteFieldScale(PLAYER_2),heightP2):valign(0):diffuse(laneColor)
+		end;
 		BeginCommand=function(self)
 			if isReverseP2 then
 				self:y(SCREEN_TOP)
@@ -216,7 +224,9 @@ if enabledP2 then
 
 	t[#t+1] = LoadFont("Common Normal")..{
 		Name="CoverTextP2White";
-		InitCommand=cmd(x,P2X-(width*getNoteFieldScale(PLAYER_2)/8);settext,0;valign,1;zoom,0.5;);
+		InitCommand=function(self)
+			self:x(P2X-(width*getNoteFieldScale(PLAYER_2)/8)):settext(0):valign(1):zoom(0.5)
+		end;
 		BeginCommand=function(self)
 			self:settext(0)
 			if isReverseP2 then
@@ -236,7 +246,9 @@ if enabledP2 then
 
 	t[#t+1] = LoadFont("Common Normal")..{
 		Name="CoverTextP2Green";
-		InitCommand=cmd(x,P2X+(width*getNoteFieldScale(PLAYER_2)/8);settext,0;valign,1;zoom,0.5;diffuse,color("#4CBB17"));
+		InitCommand=function(self)
+			self:x(P2X+(width*getNoteFieldScale(PLAYER_2)/8)):settext(0):valign(1):zoom(0.5):diffuse(color("#4CBB17"))
+		end;
 		BeginCommand=function(self)
 			self:settext(math.floor(getSpeed(PLAYER_1)))
 			if isReverseP2 then
@@ -256,7 +268,9 @@ if enabledP2 then
 end;
 
 local function Update(self)
-	t.InitCommand=cmd(SetUpdateFunction,Update);
+	t.InitCommand=function(self)
+		self:SetUpdateFunction(Update)
+	end;
 	self:SetUpdateRate(0.5)
 	if enabledP1 then
 		if moveDownP1 then
@@ -345,7 +359,9 @@ local function Update(self)
 		end;
 	end;
 end; 
-t.InitCommand=cmd(SetUpdateFunction,Update);
+t.InitCommand=function(self)
+	self:SetUpdateFunction(Update)
+end;
 
 
 return t

@@ -1,14 +1,20 @@
 local t = Def.ActorFrame {
-	InitCommand=cmd(runcommandsonleaves,cmd(ztest,true));
+	InitCommand=function(self)
+		self:runcommandsonleaves()
+	end;
 };
 
 t[#t+1] = LoadActor("frame") .. {
-	InitCommand=cmd(diffusealpha,0.1;);
+	InitCommand=function(self)
+		self:diffusealpha(0.1)
+	end;
 };
 
 
 t[#t+1] = Def.TextBanner {
-	InitCommand=cmd(x,-196;y,0;Load,"TextBannerHighScores");
+	InitCommand=function(self)
+		self:x(-196):y(0):Load("TextBannerHighScores")
+	end;
 	SetCommand=function(self, params)
 		if params.Song then
 			self:SetFromSong( params.Song );
@@ -34,19 +40,27 @@ for idx=1,NumColumns do
 	local x_pos = -60 + 80 * (idx-1);
 	Scores[#Scores+1] = LoadFont(Var "LoadingScreen","Name") .. {
 		Name = idx .. "Name";
-		InitCommand=cmd(x,x_pos;y,6;shadowlengthx,0;shadowlengthy,2;shadowcolor,color("#000000");maxwidth,68;);
+		InitCommand=function(self)
+			self:x(x_pos):y(6):shadowlengthx(0):shadowlengthy(2):shadowcolor(color("#000000")):maxwidth(68)
+		end;
 	};
 	Scores[#Scores+1] = LoadFont(Var "LoadingScreen","Score") .. {
 		Name = idx .. "Score";
-		InitCommand=cmd(x,x_pos;y,-10;shadowlengthx,0;shadowlengthy,2;shadowcolor,color("#000000");maxwidth,68;);
+		InitCommand=function(self)
+			self:x(x_pos):y(-10):shadowlengthx(0):shadowlengthy(2):shadowcolor(color("#000000")):maxwidth(68)
+		end;
 	};
 	Scores[#Scores+1] = LoadActor("filled") .. {
 		Name = idx .. "Filled";
-		InitCommand=cmd(x,x_pos;);
+		InitCommand=function(self)
+			self:x(x_pos)
+		end;
 	};
 	Scores[#Scores+1] = LoadActor("empty") .. {
 		Name = idx .. "Empty";
-		InitCommand=cmd(x,x_pos;);
+		InitCommand=function(self)
+			self:x(x_pos)
+		end;
 	};
 	
 end

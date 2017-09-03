@@ -36,7 +36,9 @@ end
 
 -- P1 Avatar
 t[#t+1] = Def.Actor{
-	BeginCommand=cmd(queuecommand,"Set");
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end;
 	SetCommand=function(self)
 		if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
 			profileP1 = GetPlayerOrMachineProfile(PLAYER_1)
@@ -62,13 +64,19 @@ t[#t+1] = Def.Actor{
 			noteCountP1 = 0
 		end;
 	end;
-	PlayerJoinedMessageCommand=cmd(queuecommand,"Set");
-	PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set");
+	PlayerJoinedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
+	PlayerUnjoinedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
 }
 
 t[#t+1] = Def.ActorFrame{
 	Name="Avatar"..PLAYER_1;
-	BeginCommand=cmd(queuecommand,"Set");
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end;
 	SetCommand=function(self)
 		if profileP1 == nil then
 			self:visible(false)
@@ -76,15 +84,27 @@ t[#t+1] = Def.ActorFrame{
 			self:visible(true)
 		end;
 	end;
-	PlayerJoinedMessageCommand=cmd(queuecommand,"Set");
-	PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set");
+	PlayerJoinedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
+	PlayerUnjoinedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
 
 	Def.Sprite {
 		Name="Image";
-		InitCommand=cmd(visible,true;halign,0;valign,0;xy,AvatarXP1,AvatarYP1);
-		BeginCommand=cmd(queuecommand,"ModifyAvatar");
-		PlayerJoinedMessageCommand=cmd(queuecommand,"ModifyAvatar");
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"ModifyAvatar");
+		InitCommand=function(self)
+			self:visible(true):halign(0):valign(0):xy(AvatarXP1,AvatarYP1)
+		end;
+		BeginCommand=function(self)
+			self:queuecommand("ModifyAvatar")
+		end;
+		PlayerJoinedMessageCommand=function(self)
+			self:queuecommand("ModifyAvatar")
+		end;
+		PlayerUnjoinedMessageCommand=function(self)
+			self:queuecommand("ModifyAvatar")
+		end;
 		ModifyAvatarCommand=function(self)
 			self:finishtweening();
 			self:LoadBackground(THEME:GetPathG("","../"..getAvatarPath(PLAYER_1)));
@@ -92,22 +112,36 @@ t[#t+1] = Def.ActorFrame{
 		end;
 	};
 	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,AvatarXP1+33,AvatarYP1+6;halign,0;zoom,0.45;);
-		BeginCommand=cmd(queuecommand,"Set");
+		InitCommand=function(self)
+			self:xy(AvatarXP1+33,AvatarYP1+6):halign(0):zoom(0.45)
+		end;
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end;
 		SetCommand=function(self)
 			self:settext(profileNameP1.."'s Scroll Speed:")
 		end;
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set");
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set");
+		PlayerJoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end;
+		PlayerUnjoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end;
 	};
 	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,AvatarXP1+33,AvatarYP1+19;halign,0;zoom,0.40;);
+		InitCommand=function(self)
+			self:xy(AvatarXP1+33,AvatarYP1+19):halign(0):zoom(0.40)
+		end;
 		BeginCommand=function(self)
 			local speed, mode= GetSpeedModeAndValueFromPoptions(PLAYER_1)
 			self:playcommand("SpeedChoiceChanged", {pn= PLAYER_1, mode= mode, speed= speed})
 		end;
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set");
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set");
+		PlayerJoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end;
+		PlayerUnjoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end;
 		SpeedChoiceChangedMessageCommand=function(self,param)
 			if param.pn == PLAYER_1 then
 				local text = ""
@@ -139,15 +173,21 @@ t[#t+1] = Def.ActorFrame{
 
 --Frames
 t[#t+1] = Def.Quad{
-	InitCommand=cmd(xy,0,0;halign,0;valign,0;zoomto,SCREEN_WIDTH,topFrameHeight;diffuse,color("#000000"););
+	InitCommand=function(self)
+		self:xy(0,0):halign(0):valign(0):zoomto(SCREEN_WIDTH,topFrameHeight):diffuse(color("#000000"))
+	end;
 };
 t[#t+1] = Def.Quad{
-	InitCommand=cmd(xy,0,topFrameHeight;halign,0;valign,1;zoomto,SCREEN_WIDTH,borderWidth;diffuse,getMainColor('highlight');diffusealpha,0.5);
+	InitCommand=function(self)
+		self:xy(0,topFrameHeight):halign(0):valign(1):zoomto(SCREEN_WIDTH,borderWidth):diffuse(getMainColor('highlight')):diffusealpha(0.5)
+	end;
 };
 
 --t[#t+1] = LoadActor("_frame");
 t[#t+1] = LoadFont("Common Large")..{
-	InitCommand=cmd(xy,5,32;halign,0;valign,1;zoom,0.55;diffuse,getMainColor('positive');settext,"Player Options:";);
+	InitCommand=function(self)
+		self:xy(5,32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor('positive')):settext("Player Options:")
+	end;
 }
 
 return t

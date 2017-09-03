@@ -20,7 +20,9 @@ end
 
 return Def.ActorFrame {
 	-- COMMANDS --
-	InitCommand=cmd(SetUpdateFunction,Beat);
+	InitCommand=function(self)
+		self:SetUpdateFunction(Beat)
+	end;
 	
 	-- LAYERS --
 	NOTESKIN:LoadActor("Center", "Outline Receptor")..{
@@ -39,24 +41,34 @@ return Def.ActorFrame {
 		Frames={
 			{ Frame = 0 }
 		};
-		PressCommand=cmd(finishtweening;linear,0.05;zoom,0.9;linear,0.1;zoom,1);
+		PressCommand=function(self)
+			self:finishtweening():linear(0.05):zoom(0.9):linear(0.1):zoom(1)
+		end;
 	};
 	NOTESKIN:LoadActor(Var "Button", "Ready Receptor")..{
 		Name="Glow";
 		Frames= {
 			{ Frame = 1 }
 		};
-		InitCommand=cmd(blend,'BlendMode_Add');
-		PressCommand=cmd(finishtweening;linear,0.05;zoom,0.9;linear,0.1;zoom,1);
+		InitCommand=function(self)
+			self:blend('BlendMode_Add')
+		end;
+		PressCommand=function(self)
+			self:finishtweening():linear(0.05):zoom(0.9):linear(0.1):zoom(1)
+		end;
 	};
 	--[[
 	NOTESKIN:LoadActor(Var "Button", "Ready Receptor")..{
 		Name="Tap";
 		Frames = { Frame = 2 };
-		InitCommand=cmd(zoom,1;diffusealpha,0;glow,1,1,1,0);
+		InitCommand=function(self)
+			self:zoom(1):diffusealpha(0):glow(1,1,1,0)
+		end;
 		--NOTESKIN:GetMetricA(Var "Button", "TapInitCommand");
 		--
-		PressCommand=cmd(finishtweening;glow,1,1,1,1;zoom,1;linear,0.2;glow,1,1,1,0;zoom,1.2);
+		PressCommand=function(self)
+			self:finishtweening():glow(1,1,1,1):zoom(1):linear(0.2):glow(1,1,1,0):zoom(1.2)
+		end;
 		--NOTESKIN:GetMetricA(Var "Button", "TapHeldCommand");
 		--
 	};

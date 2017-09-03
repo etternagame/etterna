@@ -22,12 +22,18 @@ local sortTable = {
 
 t[#t+1] = Def.Quad{
 	Name="CurrentSort";
-	InitCommand=cmd(xy,frameX,frameY;halign,1;zoomto,frameWidth,frameHeight;diffuse,getMainColor('frames'););
+	InitCommand=function(self)
+		self:xy(frameX,frameY):halign(1):zoomto(frameWidth,frameHeight):diffuse(getMainColor('frames'))
+	end;
 };
 
 t[#t+1] = LoadFont("Common Large") .. {
-	InitCommand=cmd(xy,frameX,frameY+5;halign,1;zoom,0.55;maxwidth,(frameWidth-40)/0.35);
-	BeginCommand=cmd(queuecommand,"Set");
+	InitCommand=function(self)
+		self:xy(frameX,frameY+5):halign(1):zoom(0.55):maxwidth((frameWidth-40)/0.35)
+	end;
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end;
 	SetCommand=function(self)
 		local sort = GAMESTATE:GetSortOrder()
 		local song = GAMESTATE:GetCurrentSong()
@@ -40,8 +46,12 @@ t[#t+1] = LoadFont("Common Large") .. {
 		end
 
 	end;
-	SortOrderChangedMessageCommand=cmd(queuecommand,"Set";diffuse,getMainColor('positive'));
-	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
+	SortOrderChangedMessageCommand=function(self)
+		self:queuecommand("Set"):diffuse(getMainColor('positive'))
+	end;
+	CurrentSongChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
 };
 
 t[#t+1] = StandardDecorationFromFileOptional("BPMDisplay","BPMDisplay");
@@ -50,7 +60,9 @@ t[#t+1] = StandardDecorationFromFileOptional("BPMLabel","BPMLabel");
 --just a simple mouse rollover test.
 --[[ 
 local function Update(self)
-	t.InitCommand=cmd(SetUpdateFunction,Update);
+	t.InitCommand=function(self)
+		self:SetUpdateFunction(Update)
+	end;
 	if isOver(self:GetChild("CurrentSort")) then
     	self:GetChild("CurrentSort"):diffusealpha(0.5)
     else
@@ -58,7 +70,9 @@ local function Update(self)
     end;
 end; 
 
-t.InitCommand=cmd(SetUpdateFunction,Update);
+t.InitCommand=function(self)
+	self:SetUpdateFunction(Update)
+end;
 --]]
 
 return t

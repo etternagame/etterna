@@ -12,7 +12,9 @@ local LabelMinZoom = THEME:GetMetric("Combo", "LabelMinZoom");
 local LabelMaxZoom = THEME:GetMetric("Combo", "LabelMaxZoom");
 
 local t = Def.ActorFrame {
-	InitCommand=cmd(vertalign,bottom);
+	InitCommand=function(self)
+		self:vertalign(bottom)
+	end;
 	LoadFont( "Combo", "numbers" ) .. {
 		Name="Number";
 		OnCommand = THEME:GetMetric("Combo", "NumberOnCommand");
@@ -39,11 +41,11 @@ local t = Def.ActorFrame {
 			return
 		end; --]]
 	TwentyFiveMilestoneCommand=function(self,parent)
-		(cmd(skewy,-0.125;decelerate,0.325;skewy,0))(self);
+		self:skewy(-0.125):decelerate(0.325):skewy(0);
 	end;
 	ToastyAchievedMessageCommand=function(self,params)
 		if params.PlayerNumber == player then
-			(cmd(thump,2;effectclock,'beat'))(self);
+			self:thump(2):effectclock('beat')
 		end;
 	end;
 	ComboCommand=function(self, param)
@@ -88,11 +90,11 @@ local t = Def.ActorFrame {
 			c.Number:diffuse(Color("White"));
 -- 			c.Number:diffuse(PlayerColor(player));
 			c.Number:stopeffect();
-			(cmd(diffuse,Color("White");diffusebottomedge,color("0.5,0.5,0.5,1")))(c.Label);
+			c.Label:diffuse(Color("White")):diffusebottomedge(color("0.5,0.5,0.5,1"));
 		else
 			c.Number:diffuse(color("#ff0000"));
 			c.Number:stopeffect();
-			(cmd(diffuse,Color("Red");diffusebottomedge,color("0.5,0,0,1")))(c.Label);
+			c.Label:diffuse(Color("Red")):diffusebottomedge(color("0.5,0,0,1"));
 		end
 		-- Pulse
 		Pulse( c.Number, param );

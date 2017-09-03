@@ -2,12 +2,16 @@ local t = Def.ActorFrame{}
 
 t[#t+1] = LoadFont("Common Normal") .. {
 	Name = "currentTime",
-	InitCommand=cmd(xy,SCREEN_WIDTH-5,SCREEN_BOTTOM-5;halign,1;valign,1;zoom,0.45)
+	InitCommand=function(self)
+		self:xy(SCREEN_WIDTH-5,SCREEN_BOTTOM-5):halign(1):valign(1):zoom(0.45)
+	end	
 }
 
 t[#t+1] = LoadFont("Common Normal") .. {
 	Name = "SessionTime",
-	InitCommand=cmd(xy,SCREEN_CENTER_X,SCREEN_BOTTOM-5;halign,0.5;valign,1;zoom,0.45)
+	InitCommand=function(self)
+		self:xy(SCREEN_CENTER_X,SCREEN_BOTTOM-5):halign(0.5):valign(1):zoom(0.45)
+	end	
 }
 
 local function Update(self)
@@ -24,5 +28,7 @@ local function Update(self)
 	self:diffuse(getMainColor('positive'))
 end
 
-t.InitCommand=cmd(SetUpdateFunction,Update)
+t.InitCommand=function(self)
+	self:SetUpdateFunction(Update)
+end	
 return t

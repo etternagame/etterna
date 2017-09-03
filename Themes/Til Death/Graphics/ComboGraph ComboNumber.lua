@@ -1,3 +1,5 @@
 return LoadFont("Common normal") .. {
-	InitCommand=cmd(zoom,0.4;diffuse,color("#FFFFFF"););
+	InitCommand=function(self)
+		self:zoom(0.4):diffuse(color("#FFFFFF"))
+	end;
 };

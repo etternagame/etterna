@@ -89,7 +89,9 @@ local function scoreitem(pn,index,scoreIndex,drawindex)
 
 		--The main quad
 		Def.Quad{
-			InitCommand=cmd(xy,framex,framey+(drawindex*spacing)-4;zoomto,frameWidth,30;halign,0;valign,0;diffuse,color("#333333");diffusealpha,1;diffuserightedge,color("#33333333")),
+			InitCommand=function(self)
+				self:xy(framex,framey+(drawindex*spacing)-4):zoomto(frameWidth,30):halign(0):valign(0):diffuse(color("#333333")):diffusealpha(1):diffuserightedge(color("#33333333"))
+			end,
 			BeginCommand=function(self)
 				self:visible(GAMESTATE:IsHumanPlayer(pn))
 			end
@@ -97,7 +99,9 @@ local function scoreitem(pn,index,scoreIndex,drawindex)
 
 		--Highlight quad for the current score
 		Def.Quad{
-			InitCommand=cmd(xy,framex,framey+(drawindex*spacing)-4;zoomto,frameWidth,30;halign,0;valign,0;diffuse,color("#ffffff");diffusealpha,0.3;diffuserightedge,color("#33333300")),
+			InitCommand=function(self)
+				self:xy(framex,framey+(drawindex*spacing)-4):zoomto(frameWidth,30):halign(0):valign(0):diffuse(color("#ffffff")):diffusealpha(0.3):diffuserightedge(color("#33333300"))
+			end,
 			BeginCommand=function(self)
 				self:visible(GAMESTATE:IsHumanPlayer(pn) and equals)
 			end
@@ -106,7 +110,9 @@ local function scoreitem(pn,index,scoreIndex,drawindex)
 		--Quad that will act as the bounding box for mouse rollover/click stuff.
 		Def.Quad{
 			Name="mouseOver";
-			InitCommand=cmd(xy,framex,framey+(drawindex*spacing)-4;zoomto,frameWidth,30;halign,0;valign,0;diffuse,getMainColor('highlight');diffusealpha,0.05),
+			InitCommand=function(self)
+				self:xy(framex,framey+(drawindex*spacing)-4):zoomto(frameWidth,30):halign(0):valign(0):diffuse(getMainColor('highlight')):diffusealpha(0.05)
+			end,
 			BeginCommand=function(self)
 				self:visible(false)
 			end
@@ -114,7 +120,9 @@ local function scoreitem(pn,index,scoreIndex,drawindex)
 
 		--ClearType lamps
 		Def.Quad{
-			InitCommand=cmd(xy,framex,framey+(drawindex*spacing)-4;zoomto,8,30;halign,0;valign,0;diffuse,getClearTypeFromScore(pn,hsTable[index],2)),
+			InitCommand=function(self)
+				self:xy(framex,framey+(drawindex*spacing)-4):zoomto(8,30):halign(0):valign(0):diffuse(getClearTypeFromScore(pn,hsTable[index],2))
+			end,
 			BeginCommand=function(self)
 				self:visible(GAMESTATE:IsHumanPlayer(pn))
 			end
@@ -122,7 +130,9 @@ local function scoreitem(pn,index,scoreIndex,drawindex)
 
 		--rank
 		LoadFont("Common normal")..{
-			InitCommand=cmd(xy,framex-8,framey+12+(drawindex*spacing);zoom,0.35),
+			InitCommand=function(self)
+				self:xy(framex-8,framey+12+(drawindex*spacing)):zoom(0.35)
+			end,
 			BeginCommand=function(self)
 				if #hsTable >= 1 then
 					self:settext(index)
@@ -138,7 +148,9 @@ local function scoreitem(pn,index,scoreIndex,drawindex)
 		-- DP grade and %score
 		LoadFont("Common normal")..{
 			Name="grade",
-			InitCommand=cmd(xy,framex+10,framey+(drawindex*spacing)+2;zoom,0.35;halign,0;maxwidth,(frameWidth-15)/0.3),
+			InitCommand=function(self)
+				self:xy(framex+10,framey+(drawindex*spacing)+2):zoom(0.35):halign(0):maxwidth((frameWidth-15)/0.3)
+			end,
 			BeginCommand=function(self)
 				local curscore = getScore(hsTable[index])
 				local maxscore = getMaxScore(pn,0)
@@ -153,7 +165,9 @@ local function scoreitem(pn,index,scoreIndex,drawindex)
 		-- Wife grade and %score
 		LoadFont("Common normal")..{
 			Name="grade",
-			InitCommand=cmd(xy,framex+10,framey+11+(drawindex*spacing);zoom,0.35;halign,0;maxwidth,(frameWidth-15)/0.3),
+			InitCommand=function(self)
+				self:xy(framex+10,framey+11+(drawindex*spacing)):zoom(0.35):halign(0):maxwidth((frameWidth-15)/0.3)
+			end,
 			BeginCommand=function(self)
 				if hsTable[index]:GetWifeScore() == 0 then 
 					self:settextf("NA (%s)", "Wife")
@@ -166,7 +180,9 @@ local function scoreitem(pn,index,scoreIndex,drawindex)
 		--mods
 		LoadFont("Common normal")..{
 			Name="option",
-			InitCommand=cmd(xy,framex+10,framey+11+(drawindex*spacing);zoom,0.35;halign,0;maxwidth,(frameWidth-15)/0.35),
+			InitCommand=function(self)
+				self:xy(framex+10,framey+11+(drawindex*spacing)):zoom(0.35):halign(0):maxwidth((frameWidth-15)/0.35)
+			end,
 			BeginCommand=function(self)
 				self:settext(hsTable[index]:GetModifiers())
 				self:visible(false)
@@ -175,7 +191,9 @@ local function scoreitem(pn,index,scoreIndex,drawindex)
 	
 		--grade text
 		LoadFont("Common normal")..{
-			InitCommand=cmd(xy,framex+130+capWideScale(get43size(0),50),framey+2+(drawindex*spacing);zoom,0.35;halign,0.5;maxwidth,(frameWidth-15)/0.35),
+			InitCommand=function(self)
+				self:xy(framex+130+capWideScale(get43size(0),50),framey+2+(drawindex*spacing)):zoom(0.35):halign(0.5):maxwidth((frameWidth-15)/0.35)
+			end,
 			BeginCommand=function(self)
 				if #hsTable >= 1 and index>= 1 then
 					self:settext(gradestring(hsTable[index]:GetGrade()))
@@ -186,7 +204,9 @@ local function scoreitem(pn,index,scoreIndex,drawindex)
 		
 		--cleartype text
 		LoadFont("Common normal")..{
-			InitCommand=cmd(xy,framex+130+capWideScale(get43size(0),50),framey+12+(drawindex*spacing);zoom,0.35;halign,0.5;maxwidth,(frameWidth-15)/0.35),
+			InitCommand=function(self)
+				self:xy(framex+130+capWideScale(get43size(0),50),framey+12+(drawindex*spacing)):zoom(0.35):halign(0.5):maxwidth((frameWidth-15)/0.35)
+			end,
 			BeginCommand=function(self)
 				if #hsTable >= 1 and index>= 1 then
 					self:settext(getClearTypeFromScore(pn,hsTable[index],0))
@@ -197,7 +217,9 @@ local function scoreitem(pn,index,scoreIndex,drawindex)
 		
 		--max combo
 		LoadFont("Common normal")..{
-			InitCommand=cmd(xy,framex+130+capWideScale(get43size(0),50),framey+22+(drawindex*spacing);zoom,0.35;halign,0.5;maxwidth,(frameWidth-15)/0.35),
+			InitCommand=function(self)
+				self:xy(framex+130+capWideScale(get43size(0),50),framey+22+(drawindex*spacing)):zoom(0.35):halign(0.5):maxwidth((frameWidth-15)/0.35)
+			end,
 			BeginCommand=function(self)
 				if #hsTable >= 1 and index>= 1 then
 					self:settextf("%sx",hsTable[index]:GetMaxCombo())
@@ -208,7 +230,9 @@ local function scoreitem(pn,index,scoreIndex,drawindex)
 		--judgment
 		LoadFont("Common normal")..{
 			Name="judge";
-			InitCommand=cmd(xy,framex+10,framey+20+(drawindex*spacing);zoom,0.35;halign,0;maxwidth,(frameWidth-15)/0.35),
+			InitCommand=function(self)
+				self:xy(framex+10,framey+20+(drawindex*spacing)):zoom(0.35):halign(0):maxwidth((frameWidth-15)/0.35)
+			end,
 			BeginCommand=function(self)
 				if #hsTable >= 1 and index>= 1 then
 					self:settextf("%d / %d / %d / %d / %d / %d",
@@ -225,7 +249,9 @@ local function scoreitem(pn,index,scoreIndex,drawindex)
 		--date
 		LoadFont("Common normal")..{
 			Name="date";
-			InitCommand=cmd(xy,framex+10,framey+20+(drawindex*spacing);zoom,0.35;halign,0),
+			InitCommand=function(self)
+				self:xy(framex+10,framey+20+(drawindex*spacing)):zoom(0.35):halign(0)
+			end,
 			BeginCommand=function(self)
 				if #hsTable >= 1 and index>= 1 then
 					self:settext(hsTable[index]:GetDate())
@@ -274,7 +300,9 @@ end
 
 if themeConfig:get_data().global.ScoreBoardNag and #origTable == tonumber(PREFSMAN:GetPreference("MaxHighScoresPerListForPlayer")) then
 	t[#t+1] = LoadFont("Common normal")..{
-		InitCommand=cmd(xy,framex+frameWidth/2,framey+4*spacing;zoom,0.30;valign,0;diffusealpha,0.8;maxwidth,frameWidth/0.30),
+		InitCommand=function(self)
+			self:xy(framex+frameWidth/2,framey+4*spacing):zoom(0.30):valign(0):diffusealpha(0.8):maxwidth(frameWidth/0.30)
+		end,
 		BeginCommand=function(self)
 			local text = string.format("You have reached the maximum number of saved scores for this chart."..
 							" \n Lower ranked scores will be removed as you save more scores.\n\n"..
@@ -289,7 +317,9 @@ end
 
 --Update function for showing mouse rollovers
 local function Update(self)
-	t.InitCommand=cmd(SetUpdateFunction,Update);
+	t.InitCommand=function(self)
+		self:SetUpdateFunction(Update)
+	end;
 	for i=0,drawindex-1 do
 		if isOver(self:GetChild("scoreItem"..tostring(i)):GetChild("mouseOver")) then
 			self:GetChild("scoreItem"..tostring(i)):GetChild("mouseOver"):visible(true)
@@ -302,6 +332,8 @@ local function Update(self)
 		end
 	end
 end
-t.InitCommand=cmd(SetUpdateFunction,Update)
+t.InitCommand=function(self)
+	self:SetUpdateFunction(Update)
+end	
 
 return t

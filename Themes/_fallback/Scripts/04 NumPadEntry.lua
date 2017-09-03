@@ -317,7 +317,9 @@ local numpad_entry_mt= {
 			end
 			add_default_commands_to_actor({"EntryDoneCommand"}, args)
 			local default_cursor= Def.Quad{
-				Name= "cursor", InitCommand= cmd(setsize, 16, 24; diffuse, params.cursor_color or Color.Black),
+				Name= "cursor", InitCommand= function(self)
+					self:setsize( 16, 24): diffuse( params.cursor_color or Color.Black)
+				end,
 				MoveCommand= function(subself, param)
 					subself:stoptweening()
 					subself:linear(.1)
@@ -343,7 +345,9 @@ local numpad_entry_mt= {
 				"GainFocusCommand", "LoseFocusCommand", "PressCommand"}
 			local default_bat= Def.BitmapText{
 				Font= params.button_font or params.Font or "Common Normal",
-				InitCommand= cmd(diffuse, params.button_color or Color.White),
+				InitCommand= function(self)
+					self:diffuse( params.button_color or Color.White)
+				end,
 				SetCommand= function(subself, param)
 					subself:settext(param[1])
 				end
@@ -386,8 +390,9 @@ local numpad_entry_mt= {
 			local default_prompt= Def.BitmapText{
 				Name= "prompt",
 				Font= params.prompt_font or params.Font or "Common Normal",
-				InitCommand= cmd(xy, prompt_pos[1], prompt_pos[2];
-					diffuse, params.prompt_color or Color.White),
+				InitCommand= function(self)
+					self:xy( prompt_pos[1], prompt_pos[2]):diffuse(params.prompt_color or Color.White)
+				end,
 				Text= params.prompt_text or "",
 				SetCommand= function(subself, param) subself:settext(param[1]) end}
 			local prompt_template= params.prompt or default_prompt
