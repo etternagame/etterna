@@ -9,6 +9,7 @@
 #include "Steps.h"
 #include "NoteData.h"
 #include "ScoreKeeperNormal.h"
+#include "ScoreManager.h"
 #include "PrefsManager.h"
 #include "CommonMetrics.h"
 #include "MinaCalc.h"
@@ -866,27 +867,27 @@ public:
 	DEFINE_METHOD( GetCurrentCombo,				m_iCurCombo )
 	DEFINE_METHOD( GetCurrentMissCombo,			m_iCurMissCombo )
 	DEFINE_METHOD( GetCurrentScoreMultiplier,	m_iCurScoreMultiplier )
-	DEFINE_METHOD( GetScore,					m_iScore )
-	DEFINE_METHOD( GetWifeScore,				m_fWifeScore )
+	static int GetScore(T* p, lua_State *L) { lua_pushnumber(L, SCOREMAN->GetMostRecentScore()->GetScore()); return 1; }
+	static int GetWifeScore(T* p, lua_State *L) { lua_pushnumber(L, SCOREMAN->GetMostRecentScore()->GetWifeScore()); return 1; }
 	DEFINE_METHOD( GetCurMaxScore,				m_iCurMaxScore )
-	DEFINE_METHOD( GetTapNoteScores,			m_iTapNoteScores[Enum::Check<TapNoteScore>(L, 1)] )
-	DEFINE_METHOD( GetHoldNoteScores,			m_iHoldNoteScores[Enum::Check<HoldNoteScore>(L, 1)] )
+	static int GetTapNoteScores(T* p, lua_State *L) { lua_pushnumber(L, SCOREMAN->GetMostRecentScore()->GetTapNoteScore(Enum::Check<TapNoteScore>(L, 1))); return 1; }
+	static int GetHoldNoteScores(T* p, lua_State *L) { lua_pushnumber(L, SCOREMAN->GetMostRecentScore()->GetHoldNoteScore(Enum::Check<HoldNoteScore>(L, 1))); return 1; }
 	DEFINE_METHOD( FullCombo,					FullCombo() )
 	DEFINE_METHOD( FullComboOfScore,			FullComboOfScore( Enum::Check<TapNoteScore>(L, 1) ) )
-	DEFINE_METHOD( MaxCombo,					GetMaxCombo().m_cnt )
+	static int MaxCombo(T* p, lua_State *L) { lua_pushnumber(L, SCOREMAN->GetMostRecentScore()->GetMaxCombo()); return 1; }
 	DEFINE_METHOD( GetCurrentLife,				GetCurrentLife() )
-	DEFINE_METHOD( GetGrade,					GetGrade() )
-	DEFINE_METHOD( GetWifeGrade,				GetWifeGrade())
+	static int GetGrade(T* p, lua_State *L) { lua_pushnumber(L, SCOREMAN->GetMostRecentScore()->GetGrade()); return 1; }
+	static int GetWifeGrade(T* p, lua_State *L) { lua_pushnumber(L, SCOREMAN->GetMostRecentScore()->GetWifeGrade()); return 1; }
 	DEFINE_METHOD( GetActualDancePoints,		m_iActualDancePoints )
 	DEFINE_METHOD( GetPossibleDancePoints,		m_iPossibleDancePoints )
 	DEFINE_METHOD( GetCurrentPossibleDancePoints,		m_iCurPossibleDancePoints )
-	DEFINE_METHOD( GetPercentDancePoints,		GetPercentDancePoints() )
+	static int GetPercentDancePoints(T* p, lua_State *L) { lua_pushnumber(L, SCOREMAN->GetMostRecentScore()->GetPercentDP()); return 1; }
 	DEFINE_METHOD( GetLessonScoreActual,		GetLessonScoreActual() )
 	DEFINE_METHOD( GetLessonScoreNeeded,		GetLessonScoreNeeded() )
 	DEFINE_METHOD( GetPersonalHighScoreIndex,	m_iPersonalHighScoreIndex )
 	DEFINE_METHOD( GetMachineHighScoreIndex,	m_iMachineHighScoreIndex )
-	DEFINE_METHOD( GetStageAward,				m_StageAward )
-	DEFINE_METHOD( GetPeakComboAward,			m_PeakComboAward )
+	static int GetStageAward(T* p, lua_State *L) { lua_pushnumber(L, SCOREMAN->GetMostRecentScore()->GetStageAward()); return 1; }
+	static int GetPeakComboAward(T* p, lua_State *L) { lua_pushnumber(L, SCOREMAN->GetMostRecentScore()->GetPeakComboAward()); return 1; }
 	DEFINE_METHOD( IsDisqualified,				IsDisqualified() )
 	DEFINE_METHOD( GetAliveSeconds,				m_fAliveSeconds )
 	DEFINE_METHOD( GetTotalTaps,				GetTotalTaps() )
@@ -898,7 +899,7 @@ public:
 
 	static int GetHighScore( T* p, lua_State *L )
 	{
-		p->m_HighScore.PushSelf(L);
+		SCOREMAN->GetMostRecentScore()->PushSelf(L);
 		return 1;
 	}
 
