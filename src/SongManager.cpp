@@ -4,7 +4,7 @@
 #include "ActorUtil.h"
 #include "AnnouncerManager.h"
 #include "BackgroundUtil.h"
-#include "BannerCache.h"
+#include "ImageCache.h"
 #include "CommonMetrics.h"
 #include "Foreach.h"
 #include "GameManager.h"
@@ -214,7 +214,7 @@ int SongManager::DifferentialReloadDir(string dir) {
 		LOG->Trace("Differential load of %i songs from \"%s\"", loaded, (dir + sGroupDirName).c_str());
 
 		AddGroup(dir, sGroupDirName);
-		BANNERCACHE->CacheBanner(GetSongGroupBannerPath(sGroupDirName));
+		IMAGECACHE->CacheImage("Banner",GetSongGroupBannerPath(sGroupDirName));
 	}
 	return newsongs;
 }
@@ -656,7 +656,7 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 		AddGroup(sDir, sGroupDirName);
 
 		// Cache and load the group banner. (and background if it has one -aj)
-		BANNERCACHE->CacheBanner( GetSongGroupBannerPath(sGroupDirName) );
+		IMAGECACHE->CacheImage( "Banner", GetSongGroupBannerPath(sGroupDirName) );
 	}
 
 	if( ld ) {
@@ -666,7 +666,7 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 
 void SongManager::PreloadSongImages()
 {
-	if( PREFSMAN->m_BannerCache != BNCACHE_FULL )
+	if( PREFSMAN->m_ImageCache != IMGCACHE_FULL )
 		return;
 
 	/* Load textures before unloading old ones, so we don't reload textures

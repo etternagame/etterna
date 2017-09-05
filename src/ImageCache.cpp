@@ -1,6 +1,6 @@
 #include "global.h"
 
-#include "BannerCache.h"
+#include "ImageCache.h"
 #include "Foreach.h"
 #include "RageDisplay.h"
 #include "RageUtil.h"
@@ -19,184 +19,184 @@
 #include "RageSurfaceUtils_Zoom.h"
 #include "SpecialFiles.h"
 
-#include "Banner.h"
+//#include "Banner.h"
 
-static Preference<bool> g_bPalettedBannerCache( "PalettedBannerCache", false );
+static Preference<bool> g_bPalettedImageCache( "PalettedImageCache", false );
 
 /* Neither a global or a file scope static can be used for this because
  * the order of initialization of nonlocal objects is unspecified. */
-//const RString BANNER_CACHE_INDEX = SpecialFiles::CACHE_DIR + "banners.cache";
-#define BANNER_CACHE_INDEX (SpecialFiles::CACHE_DIR + "banners.cache")
+//const std::string IMAGE_CACHE_INDEX = SpecialFiles::CACHE_DIR + "images.cache";
+#define IMAGE_CACHE_INDEX (SpecialFiles::CACHE_DIR + "images.cache")
 
-/* Call CacheBanner to cache a banner by path.  If the banner is already
- * cached, it'll be recreated.  This is efficient if the banner hasn't changed,
+/* Call CacheImage to cache a image by path.  If the image is already
+ * cached, it'll be recreated.  This is efficient if the image hasn't changed,
  * but we still only do this in TidyUpData for songs.
  *
- * Call LoadBanner to load a cached banner into main memory.  This will call
- * CacheBanner only if needed.  This will not do a date/size check; call CacheBanner
+ * Call LoadImage to load a cached image into main memory.  This will call
+ * CacheImage only if needed.  This will not do a date/size check; call CacheImage
  * directly if you need that.
  *
- * Call LoadCachedBanner to load a banner into a texture and retrieve an ID
- * for it.  You can check if the banner was actually preloaded by calling
- * TEXTUREMAN->IsTextureRegistered() on the ID; it might not be if the banner cache
+ * Call LoadCachedImage to load a image into a texture and retrieve an ID
+ * for it.  You can check if the image was actually preloaded by calling
+ * TEXTUREMAN->IsTextureRegistered() on the ID; it might not be if the image cache
  * is missing or disabled.
  *
  * Note that each cache entries has two hashes.  The cache path is based soley
  * on the pathname; this way, loading the cache doesn't have to do a stat on every
- * banner.  The full hash includes the file size and date, and is used only by
- * CacheBanner to avoid doing extra work.
+ * image.  The full hash includes the file size and date, and is used only by
+ * CacheImage to avoid doing extra work.
  */
 
-BannerCache *BANNERCACHE; // global and accessible from anywhere in our program
+ImageCache *IMAGECACHE; // global and accessible from anywhere in our program
 
 
-static map<RString,RageSurface *> g_BannerPathToImage;
+static map<std::string,RageSurface *> g_ImagePathToImage;
 static int g_iDemandRefcount = 0;
 
-RString BannerCache::GetBannerCachePath( const RString &sBannerPath )
+std::string ImageCache::GetImageCachePath( const std::string &sImageDir, const std::string &sImagePath )
 {
-	return SongCacheIndex::GetCacheFilePath( "Banners", sBannerPath );
+	return SongCacheIndex::GetCacheFilePath( sImageDir, sImagePath );
 }
 
-/* If in on-demand mode, load all cached banners.  This must be fast, so
+/* If in on-demand mode, load all cached images.  This must be fast, so
  * cache files will not be created if they don't exist; that should be done
- * by CacheBanner or LoadBanner on startup. */
-void BannerCache::Demand()
+ * by CacheImage or LoadImage on startup. */
+void ImageCache::Demand( const std::string &sImageDir )
 {
 	++g_iDemandRefcount;
 	if( g_iDemandRefcount > 1 )
 		return;
 	
-	if( PREFSMAN->m_BannerCache != BNCACHE_LOW_RES_LOAD_ON_DEMAND )
+	if( PREFSMAN->m_ImageCache != IMGCACHE_LOW_RES_LOAD_ON_DEMAND )
 		return;
 
-	FOREACH_CONST_Child( &BannerData, p )
+	FOREACH_CONST_Child( &ImageData, p )
 	{
-		RString sBannerPath = p->GetName();
+		std::string sImagePath = p->GetName();
 
-		if( g_BannerPathToImage.find(sBannerPath) != g_BannerPathToImage.end() )
+		if( g_ImagePathToImage.find(sImagePath) != g_ImagePathToImage.end() )
 			continue; /* already loaded */
 
-		const RString sCachePath = GetBannerCachePath(sBannerPath);
+		const std::string sCachePath = GetImageCachePath(sImageDir,sImagePath);
 		RageSurface *pImage = RageSurfaceUtils::LoadSurface( sCachePath );
 		if( pImage == NULL )
 		{
 			continue; /* doesn't exist */
 		}
 
-		g_BannerPathToImage[sBannerPath] = pImage;
+		g_ImagePathToImage[sImagePath] = pImage;
 	}
 }
 
-/* Release banners loaded on demand. */
-void BannerCache::Undemand()
+/* Release images loaded on demand. */
+void ImageCache::Undemand( const std::string &sImageDir )
 {
 	--g_iDemandRefcount;
 	if( g_iDemandRefcount != 0 )
 		return;
 	
-	if( PREFSMAN->m_BannerCache != BNCACHE_LOW_RES_LOAD_ON_DEMAND )
+	if( PREFSMAN->m_ImageCache != IMGCACHE_LOW_RES_LOAD_ON_DEMAND )
 		return;
 
-	UnloadAllBanners();
+	UnloadAllImages();
 }
 
-/* If in a low-res banner mode, load a low-res banner into memory, creating
- * the cache file if necessary.  Unlike CacheBanner(), the original file will
- * not be examined unless the cached banner doesn't exist, so the banner will
+/* If in a low-res image mode, load a low-res image into memory, creating
+ * the cache file if necessary.  Unlike CacheImage(), the original file will
+ * not be examined unless the cached image doesn't exist, so the image will
  * not be updated if the original file changes, for efficiency. */
-void BannerCache::LoadBanner( const RString &sBannerPath )
+void ImageCache::LoadImage( const std::string &sImageDir, const std::string &sImagePath )
 {
-	if( sBannerPath == "" )
+	if( sImagePath == "" )
 		return; // nothing to do
-	if( PREFSMAN->m_BannerCache != BNCACHE_LOW_RES_PRELOAD &&
-	    PREFSMAN->m_BannerCache != BNCACHE_LOW_RES_LOAD_ON_DEMAND )
+	if( PREFSMAN->m_ImageCache != IMGCACHE_LOW_RES_PRELOAD &&
+	    PREFSMAN->m_ImageCache != IMGCACHE_LOW_RES_LOAD_ON_DEMAND )
 		return;
 
 	/* Load it. */
-	const RString sCachePath = GetBannerCachePath(sBannerPath);
+	const std::string sCachePath = GetImageCachePath(sImageDir,sImagePath);
 
 	for( int tries = 0; tries < 2; ++tries )
 	{
-		if( g_BannerPathToImage.find(sBannerPath) != g_BannerPathToImage.end() )
+		if( g_ImagePathToImage.find(sImagePath) != g_ImagePathToImage.end() )
 			return; /* already loaded */
 
-		CHECKPOINT_M( ssprintf( "BannerCache::LoadBanner: %s", sCachePath.c_str() ) );
+		CHECKPOINT_M( ssprintf( "ImageCache::LoadImage: %s", sCachePath.c_str() ) );
 		RageSurface *pImage = RageSurfaceUtils::LoadSurface( sCachePath );
 		if( pImage == nullptr )
 		{
 			if( tries == 0 )
 			{
-				/* The file doesn't exist.  It's possible that the banner cache file is
+				/* The file doesn't exist.  It's possible that the image cache file is
 				 * missing, so try to create it.  Don't do this first, for efficiency. */
-				//LOG->Trace( "Cached banner load of '%s' ('%s') failed, trying to cache ...", sBannerPath.c_str(), sCachePath.c_str() );
+				//LOG->Trace( "Cached image load of '%s' ('%s') failed, trying to cache ...", sImagePath.c_str(), sCachePath.c_str() );
 
 				/* Skip the up-to-date check; it failed to load, so it can't be up
 				 * to date. */
-				CacheBannerInternal( sBannerPath );
+				CacheImageInternal( sImageDir, sImagePath );
 				continue;
 			}
 			else
 			{
-				//LOG->Trace( "Cached banner load of '%s' ('%s') failed", sBannerPath.c_str(), sCachePath.c_str() );
+				//LOG->Trace( "Cached image load of '%s' ('%s') failed", sImagePath.c_str(), sCachePath.c_str() );
 				return;
 			}
 		}
 
-		g_BannerPathToImage[sBannerPath] = pImage;
+		g_ImagePathToImage[sImagePath] = pImage;
 	}
 }
 
-void BannerCache::OutputStats() const
+void ImageCache::OutputStats() const
 {
 	int iTotalSize = 0;
-	FOREACHM_CONST( RString, RageSurface *, g_BannerPathToImage, it )
+	FOREACHM_CONST( std::string, RageSurface *, g_ImagePathToImage, it )
 	{
 		const RageSurface *pImage = it->second;
 		const int iSize = pImage->pitch * pImage->h;
 		iTotalSize += iSize;
 	}
-	LOG->Info( "%i bytes of banners loaded", iTotalSize );
+	LOG->Info( "%i bytes of images loaded", iTotalSize );
 }
 
-void BannerCache::UnloadAllBanners()
+void ImageCache::UnloadAllImages()
 {
-	FOREACHM( RString, RageSurface *, g_BannerPathToImage, it )
+	FOREACHM( std::string, RageSurface *, g_ImagePathToImage, it )
 		delete it->second;
 
-	g_BannerPathToImage.clear();
+	g_ImagePathToImage.clear();
 }
 
-BannerCache::BannerCache()
+ImageCache::ImageCache()
 {
 	ReadFromDisk();
 }
 
-BannerCache::~BannerCache()
+ImageCache::~ImageCache()
 {
-	UnloadAllBanners();
+	UnloadAllImages();
 }
 
-void BannerCache::ReadFromDisk()
+void ImageCache::ReadFromDisk()
 {
-	BannerData.ReadFile( BANNER_CACHE_INDEX );	// don't care if this fails
+	ImageData.ReadFile( IMAGE_CACHE_INDEX );	// don't care if this fails
 }
 
-struct BannerTexture: public RageTexture
+struct ImageTexture: public RageTexture
 {
 	unsigned m_uTexHandle;
 	unsigned GetTexHandle() const override { return m_uTexHandle; };	// accessed by RageDisplay
-	/* This is a reference to a pointer in g_BannerPathToImage. */
+	/* This is a reference to a pointer in g_ImagePathToImage. */
 	RageSurface *&m_pImage;
 	int m_iWidth, m_iHeight;
 
-	BannerTexture( RageTextureID id, RageSurface *&pImage, int iWidth, int iHeight ):
+	ImageTexture( RageTextureID id, RageSurface *&pImage, int iWidth, int iHeight ):
 		RageTexture(id), m_pImage(pImage), m_iWidth(iWidth), m_iHeight(iHeight)
 	{
 		Create();
 	}
 
-	~BannerTexture() override
+	~ImageTexture() override
 	{ 
 		Destroy();
 	}
@@ -264,53 +264,54 @@ struct BannerTexture: public RageTexture
 	}
 };
 
-/* If a banner is cached, get its ID for use. */
-RageTextureID BannerCache::LoadCachedBanner( const RString &sBannerPath )
+/* If a image is cached, get its ID for use. */
+RageTextureID ImageCache::LoadCachedImage( const std::string &sImageDir, const std::string &sImagePath )
 {
-	RageTextureID ID( GetBannerCachePath(sBannerPath) );
+	RageTextureID ID( GetImageCachePath(sImageDir,sImagePath) );
 
-	if( sBannerPath == "" )
+	if( sImagePath == "" )
 		return ID;
 
-	//LOG->Trace( "BannerCache::LoadCachedBanner(%s): %s", sBannerPath.c_str(), ID.filename.c_str() );
+	//LOG->Trace( "ImageCache::LoadCachedImage(%s): %s", sImagePath.c_str(), ID.filename.c_str() );
 
-	/* Hack: make sure Banner::Load doesn't change our return value and end up
+	/* Hack: make sure Image::Load doesn't change our return value and end up
 	 * reloading. */
-	ID = Sprite::SongBannerTexture(ID);
+	if(sImageDir == "Banner")
+		ID = Sprite::SongBannerTexture(ID);
 
 	/* It's not in a texture.  Do we have it loaded? */
-	if( g_BannerPathToImage.find(sBannerPath) == g_BannerPathToImage.end() )
+	if( g_ImagePathToImage.find(sImagePath) == g_ImagePathToImage.end() )
 	{
 		/* Oops, the image is missing.  Warn and continue. */
-		if(PREFSMAN->m_BannerCache != BNCACHE_OFF)
+		if(PREFSMAN->m_ImageCache != IMGCACHE_OFF)
 		{
-			LOG->Warn( "Banner cache for '%s' wasn't loaded", sBannerPath.c_str() );
+			LOG->Warn( "%s cache for '%s' wasn't loaded", sImageDir.c_str(), sImagePath.c_str() );
 		}
 		return ID;
 	}
 
-	/* This is a reference to a pointer.  BannerTexture's ctor may change it
+	/* This is a reference to a pointer.  ImageTexture's ctor may change it
 	 * when converting; this way, the conversion will end up in the map so we
 	 * only have to convert once. */
-	RageSurface *&pImage = g_BannerPathToImage[sBannerPath];
+	RageSurface *&pImage = g_ImagePathToImage[sImagePath];
 	ASSERT( pImage != nullptr );
 
 	int iSourceWidth = 0, iSourceHeight = 0;
-	BannerData.GetValue( sBannerPath, "Width", iSourceWidth );
-	BannerData.GetValue( sBannerPath, "Height", iSourceHeight );
+	ImageData.GetValue( sImagePath, "Width", iSourceWidth );
+	ImageData.GetValue( sImagePath, "Height", iSourceHeight );
 	if( iSourceWidth == 0 || iSourceHeight == 0 )
 	{
-		LOG->UserLog( "Cache file", sBannerPath, "couldn't be loaded." );
+		LOG->UserLog( "Cache file", sImagePath, "couldn't be loaded." );
 		return ID;
 	}
 
-	/* Is the banner already in a texture? */
+	/* Is the image already in a texture? */
 	if( TEXTUREMAN->IsTextureRegistered(ID) )
 		return ID; /* It's all set. */
 
-	//LOG->Trace( "Loading banner texture %s; src %ix%i; image %ix%i",
+	//LOG->Trace( "Loading image texture %s; src %ix%i; image %ix%i",
 	//	    ID.filename.c_str(), iSourceWidth, iSourceHeight, pImage->w, pImage->h );
-	RageTexture *pTexture = new BannerTexture( ID, pImage, iSourceWidth, iSourceHeight );
+	RageTexture *pTexture = new ImageTexture( ID, pImage, iSourceWidth, iSourceHeight );
 
 	ID.Policy = RageTextureID::TEX_VOLATILE;
 	TEXTUREMAN->RegisterTexture( ID, pTexture );
@@ -326,19 +327,20 @@ static inline int closest( int num, int n1, int n2 )
 	return n1;
 }
 
-/* Create or update the banner cache file as necessary.  If in preload mode,
+/* Create or update the image cache file as necessary.  If in preload mode,
  * load the cache file, too.  (This is done at startup.) */
-void BannerCache::CacheBanner( const RString &sBannerPath )
+void ImageCache::CacheImage( const std::string &sImageDir, const std::string &sImagePath )
 {
-	if( PREFSMAN->m_BannerCache != BNCACHE_LOW_RES_PRELOAD &&
-	    PREFSMAN->m_BannerCache != BNCACHE_LOW_RES_LOAD_ON_DEMAND )
+	if( PREFSMAN->m_ImageCache != IMGCACHE_LOW_RES_PRELOAD &&
+	    PREFSMAN->m_ImageCache != IMGCACHE_LOW_RES_LOAD_ON_DEMAND )
 		return;
 
-	CHECKPOINT_M( sBannerPath );
-	if( !DoesFileExist(sBannerPath) )
+	RString otImagePath = sImagePath; // Remove this when Global RString to std::string convert.
+	CHECKPOINT_M( otImagePath );
+	if( !DoesFileExist(sImagePath) )
 		return;
 
-	const RString sCachePath = GetBannerCachePath(sBannerPath);
+	const std::string sCachePath = GetImageCachePath(sImageDir,sImagePath);
 
 	/* Check the full file hash.  If it's the loaded and identical, don't recache. */
 	if( DoesFileExist(sCachePath) )
@@ -347,41 +349,45 @@ void BannerCache::CacheBanner( const RString &sBannerPath )
 		if( !bCacheUpToDate )
 		{
 			unsigned CurFullHash;
-			const unsigned FullHash = GetHashForFile( sBannerPath );
-			if( BannerData.GetValue( sBannerPath, "FullHash", CurFullHash ) && CurFullHash == FullHash )
+			const unsigned FullHash = GetHashForFile( sImagePath );
+			if( ImageData.GetValue( sImagePath, "FullHash", CurFullHash ) && CurFullHash == FullHash )
 				bCacheUpToDate = true;
 		}
 
 		if( bCacheUpToDate )
 		{
 			/* It's identical.  Just load it, if in preload. */
-			if( PREFSMAN->m_BannerCache == BNCACHE_LOW_RES_PRELOAD )
-				LoadBanner( sBannerPath );
-
+			if( PREFSMAN->m_ImageCache == IMGCACHE_LOW_RES_PRELOAD )
+				LoadImage( sImageDir, sImagePath );
+			
 			return;
 		}
 	}
 
 	/* The cache file doesn't exist, or is out of date.  Cache it.  This
 	 * will also load the cache into memory if in PRELOAD. */
-	CacheBannerInternal( sBannerPath );
+	CacheImageInternal( sImageDir, sImagePath );
 }
 
-void BannerCache::CacheBannerInternal( const RString &sBannerPath )
+void ImageCache::CacheImageInternal( const std::string &sImageDir, const std::string &sImagePath )
 {
-	RString sError;
-	RageSurface *pImage = RageSurfaceUtils::LoadFile( sBannerPath, sError );
+	std::string sError;
+	RString otImagePath = sImagePath; RString otError = sError; // Remove this when Global RString to std::string convert.
+	RageSurface *pImage = RageSurfaceUtils::LoadFile( otImagePath, otError );
 	if( pImage == nullptr )
 	{
-		LOG->UserLog( "Cache file", sBannerPath, "couldn't be loaded: %s", sError.c_str() );
+		LOG->UserLog( "Cache file", sImagePath, "couldn't be loaded: %s", sError.c_str() );
 		return;
 	}
 
 	const int iSourceWidth = pImage->w, iSourceHeight = pImage->h;
 
-	// cap banners to reasonable dimensions....? -mina
-	int iWidth = min(pImage->w, 256), iHeight = min(pImage->h, 64);
-
+	// cap images to reasonable dimensions....? -mina
+	// int iWidth = min(pImage->w, 256), iHeight = min(pImage->h, 64);
+	
+	// I rather have it Cache everything -Jousway
+	int iWidth = pImage->w / 2.5, iHeight = pImage->h / 2.5;
+	
 	/* Round to the nearest power of two.  This simplifies the actual texture load. */
 	iWidth = closest( iWidth, power_of_two(iWidth), power_of_two(iWidth) / 2 );
 	iHeight = closest( iHeight, power_of_two(iHeight), power_of_two(iHeight) / 2 );
@@ -396,22 +402,22 @@ void BannerCache::CacheBannerInternal( const RString &sBannerPath )
 	RageSurfaceUtils::Zoom( pImage, iWidth, iHeight );
 
 	/*
-	 * When paletted banner cache is enabled, cached banners are paletted.  Cached
-	 * 32-bit banners take 1/16 as much memory, 16-bit banners take 1/8, and paletted
-	 * banners take 1/4.
+	 * When paletted image cache is enabled, cached images are paletted.  Cached
+	 * 32-bit images take 1/16 as much memory, 16-bit images take 1/8, and paletted
+	 * images take 1/4.
 	 *
-	 * When paletted banner cache is disabled, cached banners are stored in 16-bit
-	 * RGBA.  Cached 32-bit banners take 1/8 as much memory, cached 16-bit banners
-	 * take 1/4, and cached paletted banners take 1/2.
+	 * When paletted image cache is disabled, cached images are stored in 16-bit
+	 * RGBA.  Cached 32-bit images take 1/8 as much memory, cached 16-bit images
+	 * take 1/4, and cached paletted images take 1/2.
 	 *
 	 * Paletted cache is disabled by default because palettization takes time, causing
 	 * the initial cache run to take longer.  Also, newer ATI hardware doesn't supported
 	 * paletted textures, which would slow down runtime, because we have to depalettize
 	 * on use.  They'd still have the same memory benefits, though, since we only load
-	 * one cached banner into a texture at once, and the speed hit may not matter on
+	 * one cached image into a texture at once, and the speed hit may not matter on
 	 * newer ATI cards.  RGBA is safer, though.
 	 */
-	if( g_bPalettedBannerCache )
+	if( g_bPalettedImageCache )
 	{
 		if( pImage->fmt.BytesPerPixel != 1 )
 			RageSurfaceUtils::Palettize( pImage );
@@ -430,31 +436,31 @@ void BannerCache::CacheBannerInternal( const RString &sBannerPath )
 		pImage = dst;
 	}
 
-	const RString sCachePath = GetBannerCachePath(sBannerPath);
+	const std::string sCachePath = GetImageCachePath(sImageDir,sImagePath);
 	RageSurfaceUtils::SaveSurface( pImage, sCachePath );
 
 	/* If an old image is loaded, free it. */
-	if( g_BannerPathToImage.find(sBannerPath) != g_BannerPathToImage.end() )
+	if( g_ImagePathToImage.find(sImagePath) != g_ImagePathToImage.end() )
 	{
-		RageSurface *oldimg = g_BannerPathToImage[sBannerPath];
+		RageSurface *oldimg = g_ImagePathToImage[sImagePath];
 		delete oldimg;
-		g_BannerPathToImage.erase(sBannerPath);
+		g_ImagePathToImage.erase(sImagePath);
 	}
 
-	if( PREFSMAN->m_BannerCache == BNCACHE_LOW_RES_PRELOAD )
+	if( PREFSMAN->m_ImageCache == IMGCACHE_LOW_RES_PRELOAD )
 	{
 		/* Keep it; we're just going to load it anyway. */
-		g_BannerPathToImage[sBannerPath] = pImage;
+		g_ImagePathToImage[sImagePath] = pImage;
 	}
 	else
 		delete pImage;
 
 	/* Remember the original size. */
-	BannerData.SetValue( sBannerPath, "Path", sCachePath );
-	BannerData.SetValue( sBannerPath, "Width", iSourceWidth );
-	BannerData.SetValue( sBannerPath, "Height", iSourceHeight );
-	BannerData.SetValue( sBannerPath, "FullHash", GetHashForFile( sBannerPath ) );
-	BannerData.WriteFile( BANNER_CACHE_INDEX );
+	ImageData.SetValue( sImagePath, "Path", sCachePath );
+	ImageData.SetValue( sImagePath, "Width", iSourceWidth );
+	ImageData.SetValue( sImagePath, "Height", iSourceHeight );
+	ImageData.SetValue( sImagePath, "FullHash", GetHashForFile( sImagePath ) );
+	ImageData.WriteFile( IMAGE_CACHE_INDEX );
 }
 
 /*

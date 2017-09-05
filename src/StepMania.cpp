@@ -54,10 +54,9 @@
 #include "InputMapper.h"
 #include "InputQueue.h"
 #include "SongCacheIndex.h"
-#include "BannerCache.h"
+#include "ImageCache.h"
 #include "FilterManager.h"
 #include "ScoreManager.h"
-//#include "BackgroundCache.h"
 #include "RageFileManager.h"
 #include "ModelManager.h"
 #include "CryptManager.h"
@@ -294,8 +293,7 @@ void ShutdownGame()
 	SAFE_DELETE( CRYPTMAN );
 	SAFE_DELETE( MEMCARDMAN );
 	SAFE_DELETE( SONGMAN );
-	SAFE_DELETE( BANNERCACHE );
-	//SAFE_DELETE( BACKGROUNDCACHE );
+	SAFE_DELETE( IMAGECACHE );
 	SAFE_DELETE( SONGINDEX );
 	SAFE_DELETE( SOUND ); // uses GAMESTATE, PREFSMAN
 	SAFE_DELETE( PREFSMAN );
@@ -402,9 +400,7 @@ static void AdjustForChangedSystemCapabilities()
 	/* Preloaded banners takes about 9k per song. Although it's smaller than the
 	 * actual song data, it still adds up with a lot of songs.
 	 * Disable it for 64-meg systems. */
-	PREFSMAN->m_BannerCache.Set( LowMemory ? BNCACHE_OFF:BNCACHE_LOW_RES_PRELOAD );
-	// might wanna do this for backgrounds, too... -aj
-	//PREFSMAN->m_BackgroundCache.Set( LowMemory ? BGCACHE_OFF:BGCACHE_LOW_RES_PRELOAD );
+	PREFSMAN->m_ImageCache.Set( LowMemory ? IMGCACHE_OFF:IMGCACHE_LOW_RES_PRELOAD );
 
 	PREFSMAN->SavePrefsToDisk();
 #endif
@@ -1146,8 +1142,7 @@ int sm_main(int argc, char* argv[])
 
 	INPUTQUEUE	= new InputQueue;
 	SONGINDEX	= new SongCacheIndex;
-	BANNERCACHE	= new BannerCache;
-	//BACKGROUNDCACHE	= new BackgroundCache;
+	IMAGECACHE	= new ImageCache;
 
 	// depends on SONGINDEX:
 	SONGMAN		= new SongManager;
