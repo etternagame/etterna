@@ -98,7 +98,7 @@ void MouseDevice::Open()
 		AddElementToQueue( i->first );
 }
 
-void MouseDevice::GetButtonPresses( vector<DeviceInput>& vPresses, IOHIDElementCookie cookie, int value, const RageTimer& now ) const
+void MouseDevice::GetButtonPresses( vector<DeviceInput>& vPresses, IOHIDElementCookie cookie, int value, const std::chrono::steady_clock &now) const
 {
 	// todo: add mouse axis stuff -aj
 	const Mouse& m = m_Mouse;
@@ -119,14 +119,14 @@ void MouseDevice::GetButtonPresses( vector<DeviceInput>& vPresses, IOHIDElementC
 	else if( m.z_axis == cookie )
 	{
 		float level = SCALE( value, m.z_min, m.z_max, -1.0f, 1.0f );
-		INPUTFILTER->ButtonPressed( DeviceInput(DEVICE_MOUSE, MOUSE_WHEELUP, max(-level,0), now) );
-		INPUTFILTER->ButtonPressed( DeviceInput(DEVICE_MOUSE, MOUSE_WHEELDOWN, max(+level,0), now) );
+		INPUTFILTER->ButtonPressed( DeviceInput(DEVICE_MOUSE, MOUSE_WHEELUP, max(-level,0), std::chrono::steady_clock::now()) );
+		INPUTFILTER->ButtonPressed( DeviceInput(DEVICE_MOUSE, MOUSE_WHEELDOWN, max(+level,0), std::chrono::steady_clock::now()) );
 	}
 	else
 	{
 		hash_map<IOHIDElementCookie, DeviceButton>::const_iterator iter = m_Mapping.find( cookie );
 		if( iter != m_Mapping.end() )
-			vPresses.push_back( DeviceInput(DEVICE_MOUSE, iter->second, value, now) );
+			vPresses.push_back( DeviceInput(DEVICE_MOUSE, iter->second, value, std::chrono::steady_clock::now()) );
 	}
 }
 

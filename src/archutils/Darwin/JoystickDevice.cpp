@@ -154,7 +154,7 @@ bool JoystickDevice::InitDevice( int vid, int pid )
 	return ret == kIOReturnSuccess;
 }
 
-void JoystickDevice::GetButtonPresses( vector<DeviceInput>& vPresses, IOHIDElementCookie cookie, int value, const RageTimer& now ) const
+void JoystickDevice::GetButtonPresses( vector<DeviceInput>& vPresses, IOHIDElementCookie cookie, int value, const std::chrono::steady_clock &now) const
 {
 	FOREACH_CONST( Joystick, m_vSticks, i )
 	{
@@ -164,48 +164,48 @@ void JoystickDevice::GetButtonPresses( vector<DeviceInput>& vPresses, IOHIDEleme
 		{
 			float level = SCALE( value, js.x_min, js.x_max, -1.0f, 1.0f );
 
-			vPresses.push_back( DeviceInput(js.id, JOY_LEFT, max(-level, 0.0f), now) );
-			vPresses.push_back( DeviceInput(js.id, JOY_RIGHT, max(level, 0.0f), now) );
+            vPresses.push_back( DeviceInput(js.id, JOY_LEFT, max(-level, 0.0f), std::chrono::steady_clock::now()) );
+			vPresses.push_back( DeviceInput(js.id, JOY_RIGHT, max(level, 0.0f), std::chrono::steady_clock::now()) );
 			break;
 		}
 		else if( js.y_axis == cookie )
 		{
 			float level = SCALE( value, js.y_min, js.y_max, -1.0f, 1.0f );
 
-			vPresses.push_back( DeviceInput(js.id, JOY_UP, max(-level, 0.0f), now) );
-			vPresses.push_back( DeviceInput(js.id, JOY_DOWN, max(level, 0.0f), now) );
+			vPresses.push_back( DeviceInput(js.id, JOY_UP, max(-level, 0.0f), std::chrono::steady_clock::now()) );
+			vPresses.push_back( DeviceInput(js.id, JOY_DOWN, max(level, 0.0f), std::chrono::steady_clock::now()) );
 			break;
 		}
 		else if( js.z_axis == cookie )
 		{
 			float level = SCALE( value, js.z_min, js.z_max, -1.0f, 1.0f );
 
-			vPresses.push_back( DeviceInput(js.id, JOY_Z_UP, max(-level, 0.0f), now) );
-			vPresses.push_back( DeviceInput(js.id, JOY_Z_DOWN, max(level, 0.0f), now) );
+			vPresses.push_back( DeviceInput(js.id, JOY_Z_UP, max(-level, 0.0f), std::chrono::steady_clock::now()) );
+			vPresses.push_back( DeviceInput(js.id, JOY_Z_DOWN, max(level, 0.0f), std::chrono::steady_clock::now()) );
 			break;
 		}
 		else if( js.x_rot == cookie )
 		{
 			float level = SCALE( value, js.rx_min, js.rx_max, -1.0f, 1.0f );
 
-			vPresses.push_back( DeviceInput(js.id, JOY_ROT_LEFT, max(-level, 0.0f), now) );
-			vPresses.push_back( DeviceInput(js.id, JOY_ROT_RIGHT, max(level, 0.0f), now) );
+			vPresses.push_back( DeviceInput(js.id, JOY_ROT_LEFT, max(-level, 0.0f), std::chrono::steady_clock::now()) );
+			vPresses.push_back( DeviceInput(js.id, JOY_ROT_RIGHT, max(level, 0.0f), std::chrono::steady_clock::now()) );
 			break;
 		}
 		else if( js.y_rot == cookie )
 		{
 			float level = SCALE( value, js.ry_min, js.ry_max, -1.0f, 1.0f );
 
-			vPresses.push_back( DeviceInput(js.id, JOY_ROT_UP, max(-level, 0.0f), now) );
-			vPresses.push_back( DeviceInput(js.id, JOY_ROT_DOWN, max(level, 0.0f), now) );
+			vPresses.push_back( DeviceInput(js.id, JOY_ROT_UP, max(-level, 0.0f), std::chrono::steady_clock::now()) );
+			vPresses.push_back( DeviceInput(js.id, JOY_ROT_DOWN, max(level, 0.0f), std::chrono::steady_clock::now()) );
 			break;
 		}
 		else if( js.z_rot == cookie )
 		{
 			float level = SCALE( value, js.rz_min, js.rz_max, -1.0f, 1.0f );
 
-			vPresses.push_back( DeviceInput(js.id, JOY_ROT_Z_UP, max(-level, 0.0f), now) );
-			vPresses.push_back( DeviceInput(js.id, JOY_ROT_Z_DOWN, max(level, 0.0f), now) );
+			vPresses.push_back( DeviceInput(js.id, JOY_ROT_Z_UP, max(-level, 0.0f), std::chrono::steady_clock::now()) );
+			vPresses.push_back( DeviceInput(js.id, JOY_ROT_Z_DOWN, max(level, 0.0f), std::chrono::steady_clock::now()) );
 			break;
 		}
 		else if( js.hat == cookie )
@@ -226,10 +226,10 @@ void JoystickDevice::GetButtonPresses( vector<DeviceInput>& vPresses, IOHIDEleme
 			case 6:	levelLeft = 1.f;	break;	// L
 			case 7:	levelUp = 1.f;		levelLeft = 1.f;	break;	// UL
 			}
-			vPresses.push_back( DeviceInput(js.id, JOY_HAT_UP,	levelUp,	now) );
-			vPresses.push_back( DeviceInput(js.id, JOY_HAT_RIGHT,	levelRight,	now) );
-			vPresses.push_back( DeviceInput(js.id, JOY_HAT_DOWN,	levelDown,	now) );
-			vPresses.push_back( DeviceInput(js.id, JOY_HAT_LEFT,	levelLeft,	now) );
+			vPresses.push_back( DeviceInput(js.id, JOY_HAT_UP,	levelUp,	std::chrono::steady_clock::now()) );
+			vPresses.push_back( DeviceInput(js.id, JOY_HAT_RIGHT,	levelRight,	std::chrono::steady_clock::now()) );
+			vPresses.push_back( DeviceInput(js.id, JOY_HAT_DOWN,	levelDown,	std::chrono::steady_clock::now()) );
+			vPresses.push_back( DeviceInput(js.id, JOY_HAT_LEFT,	levelLeft,	std::chrono::steady_clock::now()) );
 			break;
 		}
 		else
@@ -240,7 +240,7 @@ void JoystickDevice::GetButtonPresses( vector<DeviceInput>& vPresses, IOHIDEleme
 			iter = js.mapping.find( cookie );
 			if( iter != js.mapping.end() )
 			{
-				vPresses.push_back( DeviceInput(js.id, iter->second, value, now) );
+				vPresses.push_back( DeviceInput(js.id, iter->second, value, std::chrono::steady_clock::now()) );
 				break;
 			}
 		}

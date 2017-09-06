@@ -32,7 +32,7 @@ protected:
 	bool InitDevice( int vid, int pid );
 
 public:
-	void GetButtonPresses( vector<DeviceInput>& vPresses, IOHIDElementCookie cookie, int value, const RageTimer& now ) const;
+	void GetButtonPresses( vector<DeviceInput>& vPresses, IOHIDElementCookie cookie, int value, const std::chrono::steady_clock &now ) const;
 	int AssignIDs( InputDevice startID );
 	void GetDevicesAndDescriptions( vector<InputDeviceInfo>& vDevices ) const;
 };

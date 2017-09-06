@@ -30,7 +30,7 @@ protected:
 	Mouse GetMouse(){ return m_Mouse; }
 
 public:
-	void GetButtonPresses( vector<DeviceInput>& vPresses, IOHIDElementCookie cookie, int value, const RageTimer& now ) const;
+	void GetButtonPresses( vector<DeviceInput>& vPresses, IOHIDElementCookie cookie, int value, const std::chrono::steady_clock &now) const;
 	void GetDevicesAndDescriptions( vector<InputDeviceInfo>& vDevices ) const;
 };
 
