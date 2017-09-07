@@ -699,7 +699,7 @@ RString join( const RString &sDelimitor, vector<RString>::const_iterator begin, 
 }
 
 
-std::string join(const std::string &sDeliminator, const vector<std::string> &sSource)
+std::string luajoin(const std::string &sDeliminator, const vector<std::string> &sSource)
 {
 	if (sSource.empty())
 		return std::string();
@@ -723,7 +723,7 @@ std::string join(const std::string &sDeliminator, const vector<std::string> &sSo
 	return sTmp;
 }
 
-std::string join(const std::string &sDelimitor, vector<std::string>::const_iterator begin, vector<std::string>::const_iterator end)
+std::string luajoin(const std::string &sDelimitor, vector<std::string>::const_iterator begin, vector<std::string>::const_iterator end)
 {
 	if (begin == end)
 		return std::string();

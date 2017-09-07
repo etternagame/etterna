@@ -109,7 +109,7 @@ public:
 - (void) setParams:(NSValue *)params
 {
 	const VideoModeParams &p = *(const VideoModeParams *)[params pointerValue];
-	NSRect contentRect = { { 0, 0 }, { p.width, p.height } };	
+	NSRect contentRect = { { 0, 0 }, { static_cast<CGFloat>(p.width), static_cast<CGFloat>(p.height) } };	
 
 	[m_Window setContentSize:contentRect.size];
 	[m_Window setTitle:[NSString stringWithUTF8String:p.sWindowTitle.c_str()]];		
@@ -582,7 +582,7 @@ void LowLevelWindow_MacOSX::GetDisplayResolutions( DisplayResolutions &dr ) cons
 			continue;
 		if( safe && !GetBoolValue( safe ) )
 			continue;
-		DisplayResolution res = { width, height, stretched };
+		DisplayResolution res = { static_cast<unsigned int>(width), static_cast<unsigned int>(height), stretched };
 		dr.insert( res );
 	}
 	// Do not release modes! We don't own them here.

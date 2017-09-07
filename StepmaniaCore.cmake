@@ -283,6 +283,8 @@ elseif(MACOSX)
     set(HAS_FFMPEG TRUE)
   endif()
 
+  link_libraries(${SM_EXTERN_DIR}/MinaCalc/libMinaCalc.a)
+
   set(SYSTEM_PCRE_FOUND FALSE)
   set(WITH_CRASH_HANDLER TRUE)
   # Apple Archs needs to be 32-bit for now.

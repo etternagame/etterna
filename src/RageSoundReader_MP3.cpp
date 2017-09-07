@@ -72,19 +72,19 @@ namespace
 
 RageSoundReader_MP3::RageSoundReader_MP3()
 {
-	buffer = static_cast<uint8_t *>(avcodec::av_malloc(MP3_BUFFER_SIZE));
+	buffer = static_cast<uint8_t *>(av_malloc(MP3_BUFFER_SIZE));
 }
 
 RageSoundReader_MP3::~RageSoundReader_MP3()
 {
 	//Free everything if it isn't already
-	avcodec::avformat_close_input(&formatCtx);  // AVFormatContext is released by avformat_close_input
+	avformat_close_input(&formatCtx);  // AVFormatContext is released by avformat_close_input
 	if (IOCtx) {
-		avcodec::av_freep(&IOCtx->buffer);
-		avcodec::av_freep(&IOCtx);
+		av_freep(&IOCtx->buffer);
+		av_freep(&IOCtx);
 	}
-	avcodec::avcodec_close(codecCtx);
-	avcodec::av_frame_free(&decodedFrame);
+	avcodec_close(codecCtx);
+	av_frame_free(&decodedFrame);
 }
 
 int ReadFunc(void* ptr, uint8_t* buf, int buf_size)
@@ -104,36 +104,36 @@ int64_t SeekFunc(void* ptr, int64_t pos, int whence)
 
 RageSoundReader_FileReader::OpenResult RageSoundReader_MP3::Open(RageFileBasic *pFile)
 {
-	avcodec::av_register_all();
+	av_register_all();
 	m_pFile = pFile;
 
 	//Free everything if it isn't already
-	avcodec::avformat_close_input(&formatCtx);  // AVFormatContext is released by avformat_close_input
+	avformat_close_input(&formatCtx);  // AVFormatContext is released by avformat_close_input
 	if (IOCtx) {
-		avcodec::av_freep(&IOCtx->buffer);
-		avcodec::av_freep(&IOCtx);
+		av_freep(&IOCtx->buffer);
+		av_freep(&IOCtx);
 	}
-	avcodec::avcodec_close(codecCtx);
-	avcodec::av_frame_free(&decodedFrame);
+	avcodec_close(codecCtx);
+	av_frame_free(&decodedFrame);
 
-	IOCtx = avcodec::avio_alloc_context(buffer, MP3_BUFFER_SIZE,  // internal Buffer and its size
+	IOCtx = avio_alloc_context(buffer, MP3_BUFFER_SIZE,  // internal Buffer and its size
 		0, // bWriteable (1 = true, 0 = false) 
 		&m_pFile, // user data -- will be passed to our callback functions
 		ReadFunc,
 		nullptr, // Write callback function 
 		SeekFunc);
 
-	formatCtx = avcodec::avformat_alloc_context();
+	formatCtx = avformat_alloc_context();
 	formatCtx->pb = IOCtx;
 	formatCtx->flags = AVFMT_FLAG_CUSTOM_IO;
 
-	if (avcodec::avformat_open_input(&formatCtx, nullptr, nullptr, nullptr) != 0) {
+	if (avformat_open_input(&formatCtx, nullptr, nullptr, nullptr) != 0) {
 		SetError("Error opening file");
 		return OPEN_UNKNOWN_FILE_FORMAT;
 	}
 
 	// Retrieve stream information
-	if (avcodec::avformat_find_stream_info(formatCtx, nullptr) < 0) {
+	if (avformat_find_stream_info(formatCtx, nullptr) < 0) {
 		SetError("Couldn't find stream information");
 		return OPEN_UNKNOWN_FILE_FORMAT;
 	}
@@ -142,7 +142,7 @@ RageSoundReader_FileReader::OpenResult RageSoundReader_MP3::Open(RageFileBasic *
 	audioStream = -1;
 	int nbStreams = formatCtx->nb_streams;
 	for (int i = 0; i<nbStreams; i++) {
-		if (formatCtx->streams[i]->codecpar->codec_type == avcodec::AVMEDIA_TYPE_AUDIO) {
+		if (formatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
 			audioStream = i;
 			break;
 		}
@@ -152,17 +152,17 @@ RageSoundReader_FileReader::OpenResult RageSoundReader_MP3::Open(RageFileBasic *
 		return OPEN_UNKNOWN_FILE_FORMAT;
 	}
 	// Find the decoder for the audio stream
-	codec = avcodec::avcodec_find_decoder(formatCtx->streams[audioStream]->codecpar->codec_id);
+	codec = avcodec_find_decoder(formatCtx->streams[audioStream]->codecpar->codec_id);
 	if (codec == nullptr) {
 		SetError("Codec not found\n");
 		return OPEN_UNKNOWN_FILE_FORMAT;
 	}
 	// Get a pointer to the codec context for the audio stream
-	avcodec::AVCodecParameters * codecParams = formatCtx->streams[audioStream]->codecpar;
-	codecCtx = avcodec::avcodec_alloc_context3(codec);
-	avcodec::avcodec_parameters_to_context(codecCtx, codecParams);
+	AVCodecParameters * codecParams = formatCtx->streams[audioStream]->codecpar;
+	codecCtx = avcodec_alloc_context3(codec);
+	avcodec_parameters_to_context(codecCtx, codecParams);
 
-	if (avcodec::avcodec_open2(codecCtx, codec, nullptr) < 0) {
+	if (avcodec_open2(codecCtx, codec, nullptr) < 0) {
 		SetError("Error opening decoder");
 		return OPEN_UNKNOWN_FILE_FORMAT;
 	}
@@ -218,9 +218,9 @@ int RageSoundReader_MP3::SetPosition(int iFrame)
 	int ret = -1;
 
 	// Free the last read frame if there is one (So when we read after this we read from the frame we seeked)
-	avcodec::av_frame_free(&decodedFrame);
+	av_frame_free(&decodedFrame);
 	
-	avcodec::AVStream * stream = formatCtx->streams[audioStream];
+	AVStream * stream = formatCtx->streams[audioStream];
 	// Calculate what we need to pass to the seek function (In the stream's time units)
 	timeBase = ((stream->time_base.den) / (stream->time_base.num));
 	double sec = (static_cast<double>(iFrame) / sampleRate);
@@ -228,7 +228,7 @@ int RageSoundReader_MP3::SetPosition(int iFrame)
 
 	if (seekFrame >= 0 && sec <= stream->duration) {
 		const int flags = AVSEEK_FLAG_ANY | AVSEEK_FLAG_BACKWARD;
-		ret = avcodec::av_seek_frame(formatCtx, audioStream, seekFrame, flags);
+		ret = av_seek_frame(formatCtx, audioStream, seekFrame, flags);
 		avcodec_flush_buffers(codecCtx);
 	}
 	return ret;
@@ -302,7 +302,7 @@ int RageSoundReader_MP3::WriteSamplesForAllChannels(void *pBuf, int samplesToRea
 			samplesWritten++;
 		}
 		// Free the frame since we've read it all
-		avcodec::av_frame_free(&decodedFrame);
+		av_frame_free(&decodedFrame);
 		decodedFrame = nullptr;
 		curSample = 0;
 	}
@@ -328,31 +328,31 @@ int RageSoundReader_MP3::GetNextSourceFrame() const
 // Return: -1 => Error already set. -2 => EOF. >=0 => bytesRead
 int RageSoundReader_MP3::ReadAFrame()
 {
-	avcodec::AVPacket avpkt;
-	avcodec::av_init_packet(&avpkt);
+	AVPacket avpkt;
+	av_init_packet(&avpkt);
 	avpkt.data = buffer;
 
-	avcodec::av_frame_free(&decodedFrame);
-	if (!(decodedFrame = avcodec::av_frame_alloc())) {
+	av_frame_free(&decodedFrame);
+	if (!(decodedFrame = av_frame_alloc())) {
 		SetError("Error allocating memory for frame");
 		return -1;
 	}
 
-	while (avcodec::av_read_frame(formatCtx, &avpkt) >= 0) {
+	while (av_read_frame(formatCtx, &avpkt) >= 0) {
 		avpkt.dts = avpkt.pts = AV_NOPTS_VALUE;
 		if (avpkt.stream_index == audioStream) {
-			int ret = avcodec::avcodec_send_packet(codecCtx, &avpkt);
+			int ret = avcodec_send_packet(codecCtx, &avpkt);
 			if (ret < 0) {
 				SetError("Error submitting the packet to the decoder\n");
 				return -1;
 			}
 
 			while (ret >= 0) {
-				ret = avcodec::avcodec_receive_frame(codecCtx, decodedFrame);
+				ret = avcodec_receive_frame(codecCtx, decodedFrame);
 				if (ret == AVERROR_EOF)
 					return -2;
 				if (ret == AVERROR(EAGAIN)) {
-					ret = avcodec::avcodec_send_packet(codecCtx, &avpkt);
+					ret = avcodec_send_packet(codecCtx, &avpkt);
 					if (ret < 0) {
 						SetError("Error submitting the packet to the decoder\n");
 						return -1;
@@ -364,19 +364,19 @@ int RageSoundReader_MP3::ReadAFrame()
 					return -1;
 				}
 
-				numChannels = avcodec::av_get_channel_layout_nb_channels(decodedFrame->channel_layout);
-				dataSize = avcodec::av_get_bytes_per_sample(codecCtx->sample_fmt);
+				numChannels = av_get_channel_layout_nb_channels(decodedFrame->channel_layout);
+				dataSize = av_get_bytes_per_sample(codecCtx->sample_fmt);
 				numSamples = decodedFrame->nb_samples;
 				curChannel = 0;
 				curSample = 0;
-				avcodec::av_packet_unref(&avpkt);
+				av_packet_unref(&avpkt);
 				return numSamples*numChannels*dataSize;
 			}
 			break;
 		}
 	}
 
-	avcodec::av_packet_unref(&avpkt);
+	av_packet_unref(&avpkt);
 	return -2;
 }
 

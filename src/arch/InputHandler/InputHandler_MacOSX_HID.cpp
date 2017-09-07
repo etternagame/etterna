@@ -20,7 +20,7 @@ void InputHandler_MacOSX_HID::QueueCallback( void *target, int result, void *ref
 	// The result seems useless as you can't actually return anything...
 	// refcon is the Device number
 
-	RageTimer now;
+	auto now = std::chrono::steady_clock::now();
 	InputHandler_MacOSX_HID *This = (InputHandler_MacOSX_HID *)target;
 	IOHIDQueueInterface **queue = (IOHIDQueueInterface **)sender;
 	IOHIDEventStruct event;
@@ -36,7 +36,7 @@ void InputHandler_MacOSX_HID::QueueCallback( void *target, int result, void *ref
 			continue;
 		}
 		//LOG->Trace( "Got event with cookie %p, value %d", event.elementCookie, int(event.value) );
-		dev->GetButtonPresses( vPresses, event.elementCookie, event.value, now );
+		dev->GetButtonPresses( vPresses, event.elementCookie, event.value, now);
 	}
 	FOREACH_CONST( DeviceInput, vPresses, i )
 		INPUTFILTER->ButtonPressed( *i );
@@ -173,10 +173,8 @@ static HIDDevice *MakeDevice( InputDevice id )
 {
 	if( id == DEVICE_KEYBOARD )
 		return new KeyboardDevice;
-	/*
 	if( id == DEVICE_MOUSE )
 		return new MouseDevice;
-	*/
 	if( IsJoystick(id) )
 		return new JoystickDevice;
 	if( IsPump(id) )

@@ -23,7 +23,7 @@
 @implementation SMApplication
 - (void)fullscreen:(id)sender
 {
-	ArchHooks::SetToggleWindowed();
+	[[self mainWindow] toggleFullScreen:nil];
 }
 
 - (void)sendEvent:(NSEvent *)event

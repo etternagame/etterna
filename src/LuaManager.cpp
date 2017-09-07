@@ -588,7 +588,7 @@ static int GetLuaStack( lua_State *L )
 		{
 			sErr += ssprintf( " unknown" );
 		}
-		sErr += ssprintf( "(%s)", join(",", vArgs).c_str() );
+		sErr += ssprintf( "(%s)", luajoin(",", vArgs).c_str() );
 	}
 
 	LuaHelpers::Push( L, sErr );
