@@ -20,7 +20,7 @@ void InputHandler_MacOSX_HID::QueueCallback( void *target, int result, void *ref
 	// The result seems useless as you can't actually return anything...
 	// refcon is the Device number
 
-	std::chrono::steady_clock now;
+	auto now = std::chrono::steady_clock::now();
 	InputHandler_MacOSX_HID *This = (InputHandler_MacOSX_HID *)target;
 	IOHIDQueueInterface **queue = (IOHIDQueueInterface **)sender;
 	IOHIDEventStruct event;
