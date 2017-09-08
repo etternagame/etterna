@@ -462,8 +462,8 @@ void split( const wstring &sSource, const wstring &sDelimitor, int &iBegin, int 
 RString join( const RString &sDelimitor, const vector<RString>& sSource );
 RString join( const RString &sDelimitor, vector<RString>::const_iterator begin, vector<RString>::const_iterator end );
 
-std::string join(const std::string &sDelimitor, const vector<std::string>& sSource);
-std::string join(const std::string &sDelimitor, vector<std::string>::const_iterator begin, vector<std::string>::const_iterator end);
+std::string luajoin(const std::string &sDelimitor, const vector<std::string>& sSource);
+std::string luajoin(const std::string &sDelimitor, vector<std::string>::const_iterator begin, vector<std::string>::const_iterator end);
 
 // These methods escapes a string for saving in a .sm or .crs file
 RString SmEscape( const RString &sUnescaped );
