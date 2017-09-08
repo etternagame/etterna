@@ -82,7 +82,7 @@ void ScoreManager::RatingOverTime() {
 	sort(AllScores.begin(), AllScores.end(), compdate);
 
 	for (auto& n : AllScores) {
-		wasvalid.emplace_back(n->GetEtternaValid());
+		wasvalid.push_back(n->GetEtternaValid());
 		n->SetEtternaValid(false);
 	}
 

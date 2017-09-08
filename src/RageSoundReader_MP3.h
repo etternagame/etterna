@@ -6,13 +6,11 @@
 
 constexpr unsigned int MP3_BUFFER_SIZE = 4096;
 
-namespace avcodec
+
+extern "C"
 {
-	extern "C"
-	{
-		#include <libavformat/avformat.h>
-	}
-}; // namespace avcodec
+    #include <libavformat/avformat.h>
+}
 
 class RageSoundReader_MP3: public RageSoundReader_FileReader
 {
@@ -45,11 +43,11 @@ private:
 	int curSample{}; 
 	double timeBase{};
 	int curChannel{};
-	avcodec::AVIOContext* IOCtx{nullptr};
-	avcodec::AVFormatContext* formatCtx{nullptr};
-	avcodec::AVCodec *codec{nullptr}; 
-	avcodec::AVCodecContext *codecCtx{nullptr};
-	avcodec::AVFrame *decodedFrame{nullptr};
+	AVIOContext* IOCtx{nullptr};
+	AVFormatContext* formatCtx{nullptr};
+	AVCodec *codec{nullptr};
+	AVCodecContext *codecCtx{nullptr};
+    AVFrame *decodedFrame{nullptr};
 };
 
 #endif
