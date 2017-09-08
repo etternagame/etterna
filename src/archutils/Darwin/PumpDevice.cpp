@@ -11,7 +11,7 @@ void PumpDevice::Open()
 	AddElementToQueue( IOHIDElementCookie(8) );
 }
 
-void PumpDevice::GetButtonPresses( vector<DeviceInput>& vPresses, IOHIDElementCookie cookie, int value, const RageTimer& now ) const
+void PumpDevice::GetButtonPresses( vector<DeviceInput>& vPresses, IOHIDElementCookie cookie, int value, const std::chrono::time_point<std::chrono::steady_clock> &now) const
 {
 	DeviceButton db1 = DeviceButton_Invalid;
 	DeviceButton db2 = DeviceButton_Invalid;
@@ -45,9 +45,9 @@ void PumpDevice::GetButtonPresses( vector<DeviceInput>& vPresses, IOHIDElementCo
 		break;
 	}
 	if( db1 != DeviceButton_Invalid )
-		vPresses.push_back( DeviceInput(m_Id, db1, pressed1 ? 1.0f : 0.0f , now) );
+		vPresses.push_back( DeviceInput(m_Id, db1, pressed1 ? 1.0f : 0.0f , now));
 	if( db2 != DeviceButton_Invalid )
-		vPresses.push_back( DeviceInput(m_Id, db2, pressed2 ? 1.0f : 0.0f , now) );
+		vPresses.push_back( DeviceInput(m_Id, db2, pressed2 ? 1.0f : 0.0f , now));
 }
 
 int PumpDevice::AssignIDs( InputDevice startID )
