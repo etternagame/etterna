@@ -699,10 +699,15 @@ public:
 		p->SelectCurrent();
 		return 1;
 	}
+	static int GetSelectionState(T* p, lua_State *L) {
+		lua_pushnumber(L, NSMAN->m_iSelectMode);
+		return 1;
+	}
 	LunaScreenNetSelectMusic()
 	{
 		ADD_METHOD(GetMusicWheel);
 		ADD_METHOD(SelectCurrent);
+		ADD_METHOD(GetSelectionState);
 	}
 };
 
