@@ -1,3 +1,4 @@
+local judges = { "marv", "perf", "great", "good", "boo", "miss" }
 
 local gradeTiers = {
 	Grade_Tier01 = 0,
@@ -373,4 +374,68 @@ function getScoreList(pn)
 		end
 	end
 	return nil
+end
+
+function getRescoredJudge(offsetVector, judgeScale, judge)
+	local tso = { 1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20 }
+	local ts = tso[judgeScale]
+	local windows = { 22.5, 45.0, 90.0, 135.0, 180.0, 500.0 }
+	local lowerBound = judge > 1 and windows[judge - 1] * ts or 0.0
+	local upperBound = windows[judge] * ts
+	local judgeCount = 0
+
+	if judge > 5 then
+		for i = 1, #offsetVector do
+			x = math.abs(offsetVector[i])
+			if (x > lowerBound) then
+				judgeCount = judgeCount + 1
+			end
+		end
+	else
+		for i = 1, #offsetVector do
+			x = math.abs(offsetVector[i])
+			if (x > lowerBound and x <= upperBound) then
+				judgeCount = judgeCount + 1
+			end
+		end
+	end
+	return judgeCount
+end
+
+function getRescoredCustomJudge(offsetVector, windows, judge)
+	local lowerBound = judge > 1 and windows[judges[judge - 1]] or 0.0
+	local upperBound = windows[judges[judge]]
+	local judgeCount = 0
+
+	if judge > 5 then
+		for i = 1, #offsetVector do
+			x = math.abs(offsetVector[i])
+			if (x > lowerBound) then
+				judgeCount = judgeCount + 1
+			end
+		end
+	else
+		for i = 1, #offsetVector do
+			x = math.abs(offsetVector[i])
+			if (x > lowerBound and x <= upperBound) then
+				judgeCount = judgeCount + 1
+			end
+		end
+	end
+	return judgeCount
+end
+
+function getRescoredCustomPercentage(offsetVector, customWindows, totalHolds, holdsHit, minesHit, totalNotes)
+	local perc = 0.0
+	local weights = customWindows.judgeWeights
+	local windows = customWindows.judgeWindows
+	local holdsMissed = totalHolds - holdsHit
+	for i = 1, 6 do
+		perc = perc + (getRescoredCustomJudge(offsetVector, windows, i) * weights[judges[i]])
+	end
+	perc = perc + (holdsHit * weights.holdHit)
+	perc = perc + (holdsMissed * weights.holdMiss)
+	perc = perc + (minesHit * weights.mineHit)
+	perc = perc / ((totalNotes * weights.marv) + (totalHolds * weights.holdHit))
+	return perc * 100.0
 end
