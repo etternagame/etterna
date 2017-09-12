@@ -1,23 +1,22 @@
-#include "global.h"
+﻿#include "global.h"
 
 #include "BannerCache.h"
 #include "Foreach.h"
-#include "RageDisplay.h"
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "RageSurface_Load.h"
-#include "SongCacheIndex.h"
-#include "Sprite.h"
 #include "PrefsManager.h"
 #include "RageDisplay.h"
-#include "RageTexture.h"
-#include "RageTextureManager.h"
+#include "RageLog.h"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
-#include "RageSurfaceUtils_Palettize.h"
 #include "RageSurfaceUtils_Dither.h"
+#include "RageSurfaceUtils_Palettize.h"
 #include "RageSurfaceUtils_Zoom.h"
+#include "RageSurface_Load.h"
+#include "RageTexture.h"
+#include "RageTextureManager.h"
+#include "RageUtil.h"
+#include "SongCacheIndex.h"
 #include "SpecialFiles.h"
+#include "Sprite.h"
 
 #include "Banner.h"
 
@@ -136,11 +135,11 @@ void BannerCache::LoadBanner( const RString &sBannerPath )
 				CacheBannerInternal( sBannerPath );
 				continue;
 			}
-			else
-			{
+			
+			
 				//LOG->Trace( "Cached banner load of '%s' ('%s') failed", sBannerPath.c_str(), sCachePath.c_str() );
 				return;
-			}
+			
 		}
 
 		g_BannerPathToImage[sBannerPath] = pImage;
@@ -247,7 +246,7 @@ struct BannerTexture: public RageTexture
 
 	void Destroy()
 	{
-		if( m_uTexHandle )
+		if( m_uTexHandle != 0u )
 			DISPLAY->DeleteTexture( m_uTexHandle );
 		m_uTexHandle = 0;
 	}

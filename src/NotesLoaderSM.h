@@ -1,8 +1,8 @@
-#ifndef NotesLoaderSM_H
+﻿#ifndef NotesLoaderSM_H
 #define NotesLoaderSM_H
 
-#include "GameConstantsAndTypes.h"
 #include "BackgroundUtil.h"
+#include "GameConstantsAndTypes.h"
 
 #include "MsdFile.h" // we require the struct from here.
 
@@ -111,7 +111,7 @@ struct SMLoader
 	 * @param rowsPerBeat the number of rows per beat for this purpose. */
 	void ProcessDelays(TimingData & out,
 			  const RString &line,
-			  const int rowsPerBeat = -1);
+			  int rowsPerBeat = -1);
 	/**
 	 * @brief Process the Time Signature Segments from the string.
 	 * @param out the TimingData being modified.
@@ -119,7 +119,7 @@ struct SMLoader
 	 * @param rowsPerBeat the number of rows per beat for this purpose. */
 	void ProcessTimeSignatures(TimingData & out,
 			   const RString &line,
-			   const int rowsPerBeat = -1);
+			   int rowsPerBeat = -1);
 	/**
 	 * @brief Process the Tickcount Segments from the string.
 	 * @param out the TimingData being modified.
@@ -127,7 +127,7 @@ struct SMLoader
 	 * @param rowsPerBeat the number of rows per beat for this purpose. */
 	void ProcessTickcounts(TimingData & out,
 				   const RString &line,
-				   const int rowsPerBeat = -1);
+				   int rowsPerBeat = -1);
 	
 	/**
 	 * @brief Process the Speed Segments from the string.
@@ -136,11 +136,11 @@ struct SMLoader
 	 * @param rowsPerBeat the number of rows per beat for this purpose. */
 	virtual void ProcessSpeeds(TimingData & out,
 				   const RString &line,
-				   const int rowsPerBeat = -1);
+				   int rowsPerBeat = -1);
 	
 	virtual void ProcessCombos(TimingData & /* out */,
 				   const RString &line,
-				   const int /* rowsPerBeat */ = -1) {}
+				   int /* rowsPerBeat */ = -1) {}
 	
 	/**
 	 * @brief Process the Fake Segments from the string.
@@ -149,7 +149,7 @@ struct SMLoader
 	 * @param rowsPerBeat the number of rows per beat for this purpose. */
 	virtual void ProcessFakes(TimingData & out,
 				  const RString &line,
-				  const int rowsPerBeat = -1);
+				  int rowsPerBeat = -1);
 	
 	virtual void ProcessBGChanges( Song &out, const RString &sValueName, 
 			      const RString &sPath, const RString &sParam );
@@ -163,7 +163,7 @@ struct SMLoader
 	 * @param line The line that contains the value.
 	 * @param rowsPerBeat the number of rows per beat according to the original file.
 	 * @return the converted beat value. */
-	float RowToBeat(const RString &line, const int rowsPerBeat);
+	float RowToBeat(const RString &line, int rowsPerBeat);
 	
 protected:
 	/**

@@ -1,4 +1,4 @@
-/* Handle loading and decoding of sounds.
+﻿/* Handle loading and decoding of sounds.
  *
  * For small files, pre-decode the entire file into a regular buffer.  We
  * might want to play many samples at once, and we don't want to have to decode
@@ -20,20 +20,20 @@
  */
 
 #include "global.h"
+#include "PrefsManager.h"
+#include "RageLog.h"
 #include "RageSound.h"
 #include "RageSoundManager.h"
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "PrefsManager.h"
 #include "RageSoundUtil.h"
+#include "RageUtil.h"
 
 #include "RageSoundReader_Extend.h"
+#include "RageSoundReader_FileReader.h"
 #include "RageSoundReader_Pan.h"
 #include "RageSoundReader_PitchChange.h"
 #include "RageSoundReader_PostBuffering.h"
 #include "RageSoundReader_Preload.h"
 #include "RageSoundReader_Resample_Good.h"
-#include "RageSoundReader_FileReader.h"
 #include "RageSoundReader_ThreadedBuffer.h"
 
 #define samplerate() m_pSource->GetSampleRate()
@@ -85,7 +85,7 @@ RageSound &RageSound::operator=( const RageSound &cpy )
 	{
 		delete m_pSource;
 	}
-	if( cpy.m_pSource )
+	if( cpy.m_pSource != nullptr )
 		m_pSource = cpy.m_pSource->Copy();
 	else
 		m_pSource = NULL;
@@ -204,7 +204,7 @@ bool RageSound::Load( const RString &sSoundFilePath, bool bPrecache, const RageS
 		if( RageSoundReader_Preload::PreloadSound(m_pSource) )
 		{
 			/* We've preloaded the sound.  Pass it to SOUNDMAN, for reuse. */
-			SOUNDMAN->AddLoadedSound( sSoundFilePath, (RageSoundReader_Preload *) m_pSource );
+			SOUNDMAN->AddLoadedSound( sSoundFilePath, reinterpret_cast<RageSoundReader_Preload *>( m_pSource) );
 		}
 		bNeedBuffer = false;
 	}
@@ -288,9 +288,9 @@ int RageSound::GetDataToPlay( float *pBuffer, int iFrames, int64_t &iStreamFrame
 
 		if( iGotFrames < 0 )
 		{
-			if( !iFramesStored )
+			if( iFramesStored == 0 )
 				return iGotFrames;
-			else
+			
 				break;
 		}
 
@@ -411,7 +411,7 @@ void RageSound::Play(bool is_action, const RageSoundParams *pParams)
 		return;
 	}
 
-	if( pParams )
+	if( pParams != nullptr )
 		SetParams( *pParams );
 
 	StartPlaying();
@@ -425,7 +425,7 @@ void RageSound::PlayCopy(bool is_action, const RageSoundParams *pParams) const
 	}
 	auto *pSound = new RageSound( *this );
 
-	if( pParams )
+	if( pParams != nullptr )
 		pSound->SetParams( *pParams );
 
 	pSound->StartPlaying();
@@ -474,10 +474,10 @@ int RageSound::GetSourceFrameFromHardwareFrame( int64_t iHardwareFrame, bool *bA
 
 	bool bApprox;
 	int64_t iStreamFrame = m_HardwareToStreamMap.Search( iHardwareFrame, &bApprox );
-	if( bApproximate && bApprox )
+	if( (bApproximate != nullptr) && bApprox )
 		*bApproximate = true;
 	int64_t iSourceFrame = m_StreamToSourceMap.Search( iStreamFrame, &bApprox );
-	if( bApproximate && bApprox )
+	if( (bApproximate != nullptr) && bApprox )
 		*bApproximate = true;
 	return (int) iSourceFrame;
 }
@@ -498,7 +498,7 @@ float RageSound::GetPositionSeconds( bool *bApproximate, RageTimer *pTimestamp )
 	 * calls with our mutex locked (driver mutex < sound mutex). */
 	LockMut( m_Mutex );
 
-	if( bApproximate )
+	if( bApproximate != nullptr )
 		*bApproximate = false;
 
 	/* If we're not playing, just report the static position. */
@@ -510,7 +510,7 @@ float RageSound::GetPositionSeconds( bool *bApproximate, RageTimer *pTimestamp )
 	if( m_HardwareToStreamMap.IsEmpty() || m_StreamToSourceMap.IsEmpty() )
 	{
 		// LOG->Trace( "no data yet; %i", m_iStoppedSourceFrame );
-		if( bApproximate )
+		if( bApproximate != nullptr )
 			*bApproximate = true;
 		return m_iStoppedSourceFrame / float(samplerate());
 	}
@@ -610,7 +610,7 @@ RageSoundParams::StopMode_t RageSound::GetStopMode() const
 
 	if( m_sFilePath.find("loop") != string::npos )
 		return RageSoundParams::M_LOOP;
-	else
+	
 		return RageSoundParams::M_STOP;
 }
 

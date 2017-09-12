@@ -1,11 +1,11 @@
 #ifndef STEPS_H
 #define STEPS_H
 
-#include "GameConstantsAndTypes.h"
-#include "PlayerNumber.h"
-#include "Grade.h"
-#include "RadarValues.h"
 #include "Difficulty.h"
+#include "GameConstantsAndTypes.h"
+#include "Grade.h"
+#include "PlayerNumber.h"
+#include "RadarValues.h"
 #include "RageUtil_AutoPtr.h"
 #include "RageUtil_CachedObject.h"
 #include "TimingData.h"

@@ -1,9 +1,9 @@
-#include "ScreenEvaluation.h"
+#include "BitmapText.h"
+#include "DifficultyIcon.h"
 #include "NetworkSyncManager.h"
 #include "Quad.h"
-#include "BitmapText.h"
+#include "ScreenEvaluation.h"
 #include "ScreenMessage.h"
-#include "DifficultyIcon.h"
 #include "StepsDisplay.h"
 
 class ScreenNetEvaluation: public ScreenEvaluation
@@ -22,7 +22,7 @@ protected:
 	bool MenuUp( const InputEventPlus &input ) override;
 	bool MenuRight( const InputEventPlus &input ) override;
 	bool MenuDown( const InputEventPlus &input ) override;
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 	void TweenOffScreen( ) override;
 
 	void UpdateStats( );

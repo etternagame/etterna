@@ -36,7 +36,7 @@ FilterManager::~FilterManager() {
 float FilterManager::GetSSFilter(Skillset ss, int bound) {
 	if (bound == 0)
 		return SSFilterLowerBounds[ss];
-	else
+	
 		return SSFilterUpperBounds[ss];
 }
 

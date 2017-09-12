@@ -1,22 +1,22 @@
 #ifndef SCREEN_GAMEPLAY_H
 #define SCREEN_GAMEPLAY_H
 
-#include "ScreenWithMenuElements.h"
-#include "Sprite.h"
-#include "Transition.h"
-#include "BitmapText.h"
-#include "RageSound.h"
-#include "LocalizedString.h"
+#include "AutoKeysounds.h"
 #include "BeginnerHelper.h"
+#include "BitmapText.h"
+#include "GameplayAssist.h"
+#include "InputEventPlus.h"
+#include "LocalizedString.h"
 #include "LyricDisplay.h"
 #include "NetworkSyncManager.h"
-#include "AutoKeysounds.h"
-#include "ThemeMetric.h"
 #include "PlayerStageStats.h"
 #include "PlayerState.h"
-#include "InputEventPlus.h"
+#include "RageSound.h"
+#include "ScreenWithMenuElements.h"
 #include "SoundEffectControl.h"
-#include "GameplayAssist.h"
+#include "Sprite.h"
+#include "ThemeMetric.h"
+#include "Transition.h"
 
 class LyricsLoader;
 class Player;
@@ -46,7 +46,7 @@ public:
 	 * @brief Retrieve the player's state and stage stats index.
 	 * @return the player's state and stage stats index.
 	 */
-	MultiPlayer GetPlayerStateAndStageStatsIndex()	{ return m_pn == PLAYER_INVALID ? m_mp : (MultiPlayer)m_pn; }
+	MultiPlayer GetPlayerStateAndStageStatsIndex()	{ return m_pn == PLAYER_INVALID ? m_mp : static_cast<MultiPlayer>(m_pn); }
 	PlayerState *GetPlayerState();
 	PlayerStageStats *GetPlayerStageStats();
 	PlayerNumber GetStepsAndTrailIndex()		{ return m_pn == PLAYER_INVALID ? PLAYER_1 : m_pn; }
@@ -130,7 +130,7 @@ public:
 
 	void Update( float fDeltaTime ) override;
 	bool Input( const InputEventPlus &input ) override;
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 	void HandleMessage( const Message &msg ) override;
 	void Cancel( ScreenMessage smSendWhenDone ) override;
 

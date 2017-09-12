@@ -14,7 +14,7 @@ private:
 	int m_iChangeMask;
 
 protected:
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 
 	void ImportOptions( int iRow, const vector<PlayerNumber> &vpns ) override;
 	void ExportOptions( int iRow, const vector<PlayerNumber> &vpns ) override;

@@ -3,71 +3,71 @@
 #include "StepMania.h"
 
 // Rage global classes
-#include "RageLog.h"
-#include "RageTextureManager.h"
-#include "RageSoundManager.h"
 #include "GameSoundManager.h"
-#include "RageInput.h"
-#include "RageTimer.h"
-#include "RageMath.h"
-#include "RageDisplay.h"
-#include "RageThreads.h"
 #include "LocalizedString.h"
+#include "RageDisplay.h"
+#include "RageInput.h"
+#include "RageLog.h"
+#include "RageMath.h"
+#include "RageSoundManager.h"
+#include "RageTextureManager.h"
+#include "RageThreads.h"
+#include "RageTimer.h"
 
 #include "arch/ArchHooks/ArchHooks.h"
-#include "arch/LoadingWindow/LoadingWindow.h"
 #include "arch/Dialog/Dialog.h"
+#include "arch/LoadingWindow/LoadingWindow.h"
 #include <ctime>
 
 #include "ProductInfo.h"
 
-#include "Screen.h"
-#include "InputEventPlus.h"
-#include "ScreenDimensions.h"
 #include "CodeDetector.h"
+#include "CommandLineActions.h"
 #include "CommonMetrics.h"
 #include "Game.h"
+#include "InputEventPlus.h"
 #include "RageSurface.h"
 #include "RageSurface_Load.h"
-#include "CommandLineActions.h"
+#include "Screen.h"
+#include "ScreenDimensions.h"
 
 #if !defined(SUPPORT_OPENGL) && !defined(SUPPORT_D3D)
 #define SUPPORT_OPENGL
 #endif
 
 // StepMania global classes
-#include "ThemeManager.h"
-#include "NoteSkinManager.h"
-#include "PrefsManager.h"
-#include "Song.h"
-#include "SongManager.h"
-#include "CharacterManager.h"
-#include "GameState.h"
 #include "AnnouncerManager.h"
-#include "ProfileManager.h"
-#include "MemoryCardManager.h"
-#include "ScreenManager.h"
-#include "LuaManager.h"
-#include "GameManager.h"
+#include "BannerCache.h"
+#include "CharacterManager.h"
+#include "FilterManager.h"
 #include "FontManager.h"
+#include "GameManager.h"
+#include "GameState.h"
 #include "InputFilter.h"
 #include "InputMapper.h"
 #include "InputQueue.h"
-#include "SongCacheIndex.h"
-#include "BannerCache.h"
-#include "FilterManager.h"
+#include "LuaManager.h"
+#include "MemoryCardManager.h"
+#include "NoteSkinManager.h"
+#include "PrefsManager.h"
+#include "ProfileManager.h"
 #include "ScoreManager.h"
+#include "ScreenManager.h"
+#include "Song.h"
+#include "SongCacheIndex.h"
+#include "SongManager.h"
+#include "ThemeManager.h"
 //#include "BackgroundCache.h"
-#include "RageFileManager.h"
-#include "ModelManager.h"
-#include "CryptManager.h"
-#include "NetworkSyncManager.h"
-#include "MessageManager.h"
-#include "StatsManager.h"
-#include "GameLoop.h"
-#include "SpecialFiles.h"
-#include "Profile.h"
 #include "ActorUtil.h"
+#include "CryptManager.h"
+#include "GameLoop.h"
+#include "MessageManager.h"
+#include "ModelManager.h"
+#include "NetworkSyncManager.h"
+#include "Profile.h"
+#include "RageFileManager.h"
+#include "SpecialFiles.h"
+#include "StatsManager.h"
 #include "ver.h"
 
 #if defined(WIN32)
@@ -275,7 +275,7 @@ void ShutdownGame()
 	/* First, tell SOUNDMAN that we're shutting down. This signals sound drivers to
 	 * stop sounds, which we want to do before any threads that may have started sounds
 	 * are closed; this prevents annoying DirectSound glitches and delays. */
-	if( SOUNDMAN )
+	if( SOUNDMAN != nullptr )
 		SOUNDMAN->Shutdown();
 
 	SAFE_DELETE( SCREENMAN );
@@ -891,7 +891,7 @@ void StepMania::InitializeCurrentGame( const Game* g )
 	THEME->SwitchThemeAndLanguage( sTheme, sLanguage, PREFSMAN->m_bPseudoLocalize );
 
 	// Set the input scheme for the new game, and load keymaps.
-	if( INPUTMAPPER )
+	if( INPUTMAPPER != nullptr )
 	{
 		INPUTMAPPER->SetInputScheme( &g->m_InputScheme );
 		INPUTMAPPER->ReadMappingsFromDisk();
@@ -1540,8 +1540,8 @@ int LuaFunc_SaveScreenshot(lua_State *L)
 	// If pn is provided, save to that player's profile.
 	// Otherwise, save to the machine.
 	PlayerNumber pn= Enum::Check<PlayerNumber>(L, 1, true);
-	bool compress= lua_toboolean(L, 2);
-	bool sign= lua_toboolean(L, 3);
+	bool compress= lua_toboolean(L, 2) != 0;
+	bool sign= lua_toboolean(L, 3) != 0;
 	RString prefix= luaL_optstring(L, 4, "");
 	RString suffix= luaL_optstring(L, 5, "");
 	RString dir;

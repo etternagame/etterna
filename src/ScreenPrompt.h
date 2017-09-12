@@ -3,9 +3,9 @@
 #ifndef SCREEN_PROMPT_H
 #define SCREEN_PROMPT_H
 
-#include "ScreenWithMenuElements.h"
 #include "BitmapText.h"
 #include "RageSound.h"
+#include "ScreenWithMenuElements.h"
 
 enum PromptType
 {

@@ -1,17 +1,17 @@
 #include "global.h"
-#include "ScreenSelectMaster.h"
-#include "ScreenManager.h"
+#include "ActorUtil.h"
+#include "AnnouncerManager.h"
+#include "Foreach.h"
+#include "GameCommand.h"
 #include "GameManager.h"
-#include "ThemeManager.h"
 #include "GameSoundManager.h"
 #include "GameState.h"
-#include "AnnouncerManager.h"
-#include "GameCommand.h"
-#include "ActorUtil.h"
-#include "RageLog.h"
-#include <set>
-#include "Foreach.h"
 #include "InputEventPlus.h"
+#include "RageLog.h"
+#include "ScreenManager.h"
+#include "ScreenSelectMaster.h"
+#include "ThemeManager.h"
+#include <set>
 
 static const char *MenuDirNames[] = {
 	"Up",
@@ -33,10 +33,10 @@ REGISTER_SCREEN_CLASS( ScreenSelectMaster );
 
 #define GetActiveElementPlayerNumbers( vpns ) \
 if( SHARED_SELECTION ) { \
-	vpns.push_back( PLAYER_1 ); \
+	(vpns).push_back( PLAYER_1 ); \
 } else { \
 	FOREACH_HumanPlayer( p ) \
-		vpns.push_back( p ); \
+		(vpns).push_back( p ); \
 }
 
 ScreenSelectMaster::ScreenSelectMaster()
@@ -147,7 +147,7 @@ void ScreenSelectMaster::Init()
 						{
 #define SET_POS_PART(i, part) \
 							lua_rawgeti(L, -1, i); \
-							pos.part= lua_tonumber(L, -1); \
+							pos.part= static_cast<float>(lua_tonumber(L, -1)); \
 							lua_pop(L, 1);
 							// If part of the position is not provided, we want it to
 							// default to zero, which lua_tonumber does. -Kyz
@@ -541,8 +541,8 @@ bool ScreenSelectMaster::MenuLeft( const InputEventPlus &input )
 	{
 		m_TrackingRepeatingInput = input.MenuI;
 		m_soundChange.Play(true);
-		MESSAGEMAN->Broadcast( (MessageID)(Message_MenuLeftP1+pn) );
-		MESSAGEMAN->Broadcast( (MessageID)(Message_MenuSelectionChanged) );
+		MESSAGEMAN->Broadcast( (Message_MenuSelectionChanged) );
+		MESSAGEMAN->Broadcast( static_cast<MessageID>(Message_MenuLeftP1+pn) );
 
 		// if they use double select
 		if(DOUBLE_PRESS_TO_SELECT)
@@ -572,8 +572,8 @@ bool ScreenSelectMaster::MenuRight( const InputEventPlus &input )
 	{
 		m_TrackingRepeatingInput = input.MenuI;
 		m_soundChange.Play(true);
-		MESSAGEMAN->Broadcast( (MessageID)(Message_MenuRightP1+pn) );
-		MESSAGEMAN->Broadcast( (MessageID)(Message_MenuSelectionChanged) );
+		MESSAGEMAN->Broadcast( (Message_MenuSelectionChanged) );
+		MESSAGEMAN->Broadcast( static_cast<MessageID>(Message_MenuRightP1+pn) );
 
 		// if they use double select
 		if(DOUBLE_PRESS_TO_SELECT)
@@ -603,8 +603,8 @@ bool ScreenSelectMaster::MenuUp( const InputEventPlus &input )
 	{
 		m_TrackingRepeatingInput = input.MenuI;
 		m_soundChange.Play(true);
-		MESSAGEMAN->Broadcast( (MessageID)(Message_MenuUpP1+pn) );
-		MESSAGEMAN->Broadcast( (MessageID)(Message_MenuSelectionChanged) );
+		MESSAGEMAN->Broadcast( (Message_MenuSelectionChanged) );
+		MESSAGEMAN->Broadcast( static_cast<MessageID>(Message_MenuUpP1+pn) );
 
 		// if they use double select
 		if(DOUBLE_PRESS_TO_SELECT)
@@ -634,8 +634,8 @@ bool ScreenSelectMaster::MenuDown( const InputEventPlus &input )
 	{
 		m_TrackingRepeatingInput = input.MenuI;
 		m_soundChange.Play(true);
-		MESSAGEMAN->Broadcast( (MessageID)(Message_MenuDownP1+pn) );
-		MESSAGEMAN->Broadcast( (MessageID)(Message_MenuSelectionChanged) );
+		MESSAGEMAN->Broadcast( (Message_MenuSelectionChanged) );
+		MESSAGEMAN->Broadcast( static_cast<MessageID>(Message_MenuDownP1+pn) );
 
 		// if they use double select
 		if(DOUBLE_PRESS_TO_SELECT)
@@ -961,7 +961,7 @@ bool ScreenSelectMaster::MenuStart( const InputEventPlus &input )
 		mc->ApplyToAllPlayers();
 		// We want to be able to broadcast a Start message to the theme, in
 		// case a themer wants to handle something. -aj
-		Message msg( MessageIDToString((MessageID)(Message_MenuStartP1+pn)) );
+		Message msg( MessageIDToString(static_cast<MessageID>(Message_MenuStartP1+pn)) );
 		msg.SetParam( "ScreenEmpty", true );
 		MESSAGEMAN->Broadcast( msg );
 		return true;
@@ -989,7 +989,7 @@ bool ScreenSelectMaster::MenuStart( const InputEventPlus &input )
 	if( bAllDone )
 	{
 		// broadcast MenuStart just like MenuLeft/Right/etc.
-		MESSAGEMAN->Broadcast( (MessageID)(Message_MenuStartP1+pn) );
+		MESSAGEMAN->Broadcast( static_cast<MessageID>(Message_MenuStartP1+pn) );
 		this->PostScreenMessage( SM_BeginFadingOut, fSecs );// tell our owner it's time to move on
 	}
 	return true;

@@ -1,4 +1,4 @@
-#ifndef LYRICS_LOADER_H
+﻿#ifndef LYRICS_LOADER_H
 #define LYRICS_LOADER_H
 
 class Song;

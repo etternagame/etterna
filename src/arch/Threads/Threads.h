@@ -26,7 +26,7 @@ class MutexImpl
 public:
 	RageMutex *m_Parent;
 
-	MutexImpl( RageMutex *pParent ): m_Parent(pParent) {}
+	explicit MutexImpl( RageMutex *pParent ): m_Parent(pParent) {}
 	virtual ~MutexImpl() = default;
 
 	/* Lock the mutex. If mutex timeouts are implemented, and the mutex

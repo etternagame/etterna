@@ -1,32 +1,32 @@
 #include "global.h"
 
 #if !defined(WITHOUT_NETWORKING)
-#include "ScreenNetSelectMusic.h"
-#include "ScreenManager.h"
-#include "GameSoundManager.h"
-#include "GameConstantsAndTypes.h"
-#include "ThemeManager.h"
-#include "GameState.h"
-#include "Style.h"
-#include "Steps.h"
-#include "RageTimer.h"
 #include "ActorUtil.h"
 #include "AnnouncerManager.h"
-#include "MenuTimer.h"
-#include "NetworkSyncManager.h"
-#include "StepsUtil.h"
-#include "RageUtil.h"
-#include "MusicWheel.h"
-#include "InputMapper.h"
-#include "RageLog.h"
-#include "Song.h"
-#include "InputEventPlus.h"
-#include "SongUtil.h"
-#include "RageInput.h"
-#include "SongManager.h"
 #include "CodeDetector.h"
-#include "ProfileManager.h"
 #include "FilterManager.h"
+#include "GameConstantsAndTypes.h"
+#include "GameSoundManager.h"
+#include "GameState.h"
+#include "InputEventPlus.h"
+#include "InputMapper.h"
+#include "MenuTimer.h"
+#include "MusicWheel.h"
+#include "NetworkSyncManager.h"
+#include "ProfileManager.h"
+#include "RageInput.h"
+#include "RageLog.h"
+#include "RageTimer.h"
+#include "RageUtil.h"
+#include "ScreenManager.h"
+#include "ScreenNetSelectMusic.h"
+#include "Song.h"
+#include "SongManager.h"
+#include "SongUtil.h"
+#include "Steps.h"
+#include "StepsUtil.h"
+#include "Style.h"
+#include "ThemeManager.h"
 
 AutoScreenMessage( SM_NoSongs );
 AutoScreenMessage( SM_ChangeSong );
@@ -149,7 +149,7 @@ bool ScreenNetSelectMusic::Input( const InputEventPlus &input )
 	{
 		// Reload the currently selected song. -Kyz
 		Song* to_reload = m_MusicWheel.GetSelectedSong();
-		if (to_reload)
+		if (to_reload != nullptr)
 		{
 			to_reload->ReloadFromSongDir();
 			MusicChanged();
@@ -160,9 +160,9 @@ bool ScreenNetSelectMusic::Input( const InputEventPlus &input )
 	{
 		// Unfavorite the currently selected song. -Not Kyz
 		Song* unfav_me_biatch = m_MusicWheel.GetSelectedSong();
-		if (unfav_me_biatch) {
+		if (unfav_me_biatch != nullptr) {
 			Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
-			if (unfav_me_biatch) {
+			if (unfav_me_biatch != nullptr) {
 				Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
 				unfav_me_biatch->SetFavorited(false);
 				pProfile->RemoveFromFavorites(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
@@ -175,7 +175,7 @@ bool ScreenNetSelectMusic::Input( const InputEventPlus &input )
 	{
 		// Favorite the currently selected song. -Not Kyz
 		Song* fav_me_biatch = m_MusicWheel.GetSelectedSong();
-		if (fav_me_biatch) {
+		if (fav_me_biatch != nullptr) {
 			Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
 			fav_me_biatch->SetFavorited(true);
 			pProfile->AddToFavorites(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
@@ -467,7 +467,7 @@ bool ScreenNetSelectMusic::MenuDown( const InputEventPlus &input )
 		{
 			if( (dcs[i]) && (i > m_DC[pn]) )
 			{
-				m_DC[pn] = (Difficulty)i;
+				m_DC[pn] = static_cast<Difficulty>(i);
 				break;
 			}
 		}
@@ -478,7 +478,7 @@ bool ScreenNetSelectMusic::MenuDown( const InputEventPlus &input )
 			{
 				if(dcs[i])
 				{
-					m_DC[pn] = (Difficulty)i;
+					m_DC[pn] = static_cast<Difficulty>(i);
 					break;
 				}
 			}
@@ -630,10 +630,10 @@ void ScreenNetSelectMusic::MusicChanged()
 			for( i=0; i<NUM_Difficulty; ++i )
 				if( dcs[i] )
 				{
-					Target = (Difficulty)i;
+					Target = static_cast<Difficulty>(i);
 					if( i >= m_DC[pn] )
 					{
-						m_DC[pn] = (Difficulty)i;
+						m_DC[pn] = static_cast<Difficulty>(i);
 						break;
 					}
 				}

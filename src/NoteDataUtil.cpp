@@ -1,14 +1,14 @@
-#include "global.h"
-#include "NoteDataUtil.h"
+﻿#include "global.h"
+#include "Foreach.h"
+#include "GameState.h"
 #include "NoteData.h"
-#include "RageUtil.h"
-#include "RageLog.h"
+#include "NoteDataUtil.h"
 #include "PlayerOptions.h"
+#include "RadarValues.h"
+#include "RageLog.h"
+#include "RageUtil.h"
 #include "Song.h"
 #include "Style.h"
-#include "GameState.h"
-#include "RadarValues.h"
-#include "Foreach.h"
 #include "TimingData.h"
 #include <utility>
 
@@ -48,7 +48,7 @@ NoteType NoteDataUtil::GetSmallestNoteTypeInRange( const NoteData &n, int iStart
 
 		if( bFoundSmallerNote )
 			continue;	// searching the next NoteType
-		else
+		
 			return nt;	// stop searching. We found the smallest NoteType
 	}
 	return NoteType_Invalid;	// well-formed notes created in the editor should never get here
@@ -279,12 +279,12 @@ void NoteDataUtil::LoadFromETTNoteDataString( NoteData& out, const RString &sSMN
 				r += 64;
 				continue;
 			}
-			else if (c == '|') {
+			if (c == '|') {
 				tps += 16;
 				r += 4;
 				continue;
 			}
-			else if (c == '~') {
+			if (c == '~') {
 				tps += 8;
 				r += 2;
 				continue;
@@ -895,7 +895,7 @@ void NoteDataUtil::LoadTransformedSlidingWindow( const NoteData &in, NoteData &o
 	int iCurTrackOffset = 0;
 	int iTrackOffsetMin = 0;
 	int iTrackOffsetMax = abs( iNewNumTracks - in.GetNumTracks() );
-	int bOffsetIncreasing = true;
+	int bOffsetIncreasing = 1;
 
 	int iLastMeasure = 0;
 	int iMeasuresSinceChange = 0;
@@ -924,9 +924,9 @@ void NoteDataUtil::LoadTransformedSlidingWindow( const NoteData &in, NoteData &o
 			if( !bHoldCrossesThisMeasure )
 			{
 				iMeasuresSinceChange = 0;
-				iCurTrackOffset += bOffsetIncreasing ? 1 : -1;
+				iCurTrackOffset += bOffsetIncreasing != 0 ? 1 : -1;
 				if( iCurTrackOffset == iTrackOffsetMin  ||  iCurTrackOffset == iTrackOffsetMax )
-					bOffsetIncreasing ^= true;
+					bOffsetIncreasing ^= 1;
 				CLAMP( iCurTrackOffset, iTrackOffsetMin, iTrackOffsetMax );
 			}
 		}
@@ -2364,7 +2364,7 @@ void NoteDataUtil::ConvertTapsToHolds( NoteData &inout, int iSimultaneousHolds, 
 					iTapsLeft -= tracksDown.size();
 					if( iTapsLeft == 0 )
 						break;	// we found the ending row for this hold
-					else if( iTapsLeft < 0 )
+					if( iTapsLeft < 0 )
 					{
 						addHold = false;
 						break;
@@ -2421,7 +2421,7 @@ void NoteDataUtil::IcyWorld(NoteData &inout, StepsType st, TimingData const& tim
 	int lastTap = -1;
 	bool flipStartSide = false;
 	bool skipLine = true;
-	int i = 0;
+	size_t i = 0;
 	for (auto iterator : rowsWithNotes)
 	{
 		// Every second row with note, insert a note which doesn't collide with the previous
@@ -2434,7 +2434,7 @@ void NoteDataUtil::IcyWorld(NoteData &inout, StepsType st, TimingData const& tim
 				continue;
 			}
 
-			int tempI = (i + 1 < rowsWithNotes.size() ? i + 1 : i);
+			size_t tempI = (i + 1 < rowsWithNotes.size() ? i + 1 : i);
 			if (flipStartSide)
 			{
 				for (int c = 3; c >-1; c--)
@@ -2497,7 +2497,7 @@ void NoteDataUtil::AnchorJS(NoteData &inout, StepsType st, TimingData const& tim
 	int lastTap = -1;
 	bool flipStartSide = false;
 	bool skipLine = true;
-	int i = 0;
+	size_t i = 0;
 	for (auto iterator : rowsWithNotes)
 	{
 		// Every second row with note, insert a note which doesn't collide with the previous
@@ -2510,7 +2510,7 @@ void NoteDataUtil::AnchorJS(NoteData &inout, StepsType st, TimingData const& tim
 				continue;
 			}
 				
-			int tempI = (i + 1 < rowsWithNotes.size() ? i + 1 : i);
+			size_t tempI = (i + 1 < rowsWithNotes.size() ? i + 1 : i);
 			if (flipStartSide)
 			{
 				for (int c = 3; c >-1; c--)
@@ -3008,7 +3008,7 @@ static inline int GetScaledRow( float fScale, int iStartIndex, int iEndIndex, in
 {
 	if( iRow < iStartIndex )
 		return iRow;
-	else if( iRow > iEndIndex )
+	if( iRow > iEndIndex )
 		return iRow + lround( (iEndIndex - iStartIndex) * (fScale - 1) );
 	else
 		return lround( (iRow - iStartIndex) * fScale ) + iStartIndex;

@@ -1,23 +1,20 @@
-#include "global.h"
-#include "MusicWheelItem.h"
-#include "RageUtil.h"
-#include "SongManager.h"
-#include "GameManager.h"
-#include "RageLog.h"
+﻿#include "global.h"
+#include "ActorUtil.h"
 #include "GameConstantsAndTypes.h"
 #include "GameState.h"
-#include "ThemeManager.h"
-#include "Steps.h"
-#include "Song.h"
-#include "ProfileManager.h"
-#include "Profile.h"
-#include "Style.h"
-#include "ActorUtil.h"
-#include "ThemeMetric.h"
 #include "HighScore.h"
-#include "ScreenSelectMusic.h"
-#include "ScreenManager.h"
+#include "MusicWheelItem.h"
+#include "Profile.h"
+#include "ProfileManager.h"
+#include "RageUtil.h"
 #include "ScoreManager.h"
+#include "ScreenSelectMusic.h"
+#include "Song.h"
+#include "SongManager.h"
+#include "Steps.h"
+#include "Style.h"
+#include "ThemeManager.h"
+#include "ThemeMetric.h"
 
 static const char *MusicWheelItemTypeNames[] = {
 	"Song",
@@ -260,7 +257,7 @@ void MusicWheelItem::LoadFromWheelItemData( const WheelItemBaseData *pData, int 
 	m_sprNormalPart[type]->SetVisible( true );
 	m_sprOverPart[type]->SetVisible( true );
 	BitmapText *bt = m_pText[type];
-	if( bt )
+	if( bt != nullptr )
 	{
 		bt->SetText( sDisplayName, sTranslitName );
 		bt->SetDiffuse( pWID->m_color );
@@ -313,7 +310,7 @@ void MusicWheelItem::RefreshGrades()
 
 		ProfileSlot ps;
 		if( PROFILEMAN->IsPersistentProfile(p) )
-			ps = (ProfileSlot)p;
+			ps = static_cast<ProfileSlot>(p);
 		else
 			continue;
 
@@ -333,7 +330,7 @@ void MusicWheelItem::RefreshGrades()
 		Grade gradeBest = Grade_Invalid;
 		Difficulty dcBest = Difficulty_Invalid;
 		if (PROFILEMAN->IsPersistentProfile(ps) && dc != Difficulty_Invalid) {
-			if (pWID->m_pSong) {
+			if (pWID->m_pSong != nullptr) {
 				FOREACH_ENUM_N(Difficulty, 6, i) {
 					Steps* pSteps = SongUtil::GetStepsByDifficulty(pWID->m_pSong, st, i);
 					if (pSteps != NULL) {
@@ -356,7 +353,7 @@ void MusicWheelItem::RefreshGrades()
 			msg.SetParam("PermaMirror", 1);
 		if (pWID->m_pSong->HasGoal())
 			msg.SetParam("HasGoal", 1);
-		if(gradeBest != Grade_Invalid || BestpHSL) {
+		if(gradeBest != Grade_Invalid || (BestpHSL != nullptr)) {
 			msg.SetParam("Grade", gradeBest);	
 			msg.SetParam("Difficulty", DifficultyToString(dcBest));
 			msg.SetParam("NumTimesPlayed", 0);

@@ -1,8 +1,8 @@
 #ifndef ScreenOptionsManageProfiles_H
 #define ScreenOptionsManageProfiles_H
 
-#include "ScreenOptions.h"
 #include "ScreenMiniMenu.h"
+#include "ScreenOptions.h"
 
 
 class ScreenOptionsManageProfiles : public ScreenOptions
@@ -11,7 +11,7 @@ public:
 	void Init() override;
 	void BeginScreen() override;
 
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 
 protected:
 	void ImportOptions( int iRow, const vector<PlayerNumber> &vpns ) override;

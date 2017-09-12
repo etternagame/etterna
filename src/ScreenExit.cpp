@@ -1,10 +1,10 @@
 #include "global.h"
-#include "ScreenExit.h"
-#include "RageUtil.h"
-#include "RageSoundManager.h"
 #include "GameSoundManager.h"
-#include "RageSound.h"
 #include "RageLog.h"
+#include "RageSound.h"
+#include "RageSoundManager.h"
+#include "RageUtil.h"
+#include "ScreenExit.h"
 #include "arch/ArchHooks/ArchHooks.h"
 
 /* This screen used to wait for sounds to stop. However, implementing

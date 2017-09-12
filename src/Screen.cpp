@@ -1,13 +1,13 @@
 #include "global.h"
-#include "Screen.h"
-#include "PrefsManager.h"
-#include "RageSound.h"
-#include "RageLog.h"
-#include "ThemeManager.h"
-#include "ScreenManager.h"
 #include "ActorUtil.h"
 #include "InputEventPlus.h"
 #include "InputMapper.h"
+#include "PrefsManager.h"
+#include "RageLog.h"
+#include "RageSound.h"
+#include "Screen.h"
+#include "ScreenManager.h"
+#include "ThemeManager.h"
 
 #define NEXT_SCREEN		THEME->GetMetric (m_sName,"NextScreen")
 #define PREV_SCREEN		THEME->GetMetric (m_sName,"PrevScreen")
@@ -191,16 +191,16 @@ bool Screen::Input( const InputEventPlus &input )
 
 	// Always broadcast mouse input so themers can grab it. -aj
 	if( input.DeviceI == DeviceInput( DEVICE_MOUSE, MOUSE_LEFT ) )
-		MESSAGEMAN->Broadcast( (MessageID)(Message_LeftClick) );
+		MESSAGEMAN->Broadcast( (Message_LeftClick) );
 	if( input.DeviceI == DeviceInput( DEVICE_MOUSE, MOUSE_RIGHT ) )
-		MESSAGEMAN->Broadcast( (MessageID)(Message_RightClick) );
+		MESSAGEMAN->Broadcast( (Message_RightClick) );
 	if( input.DeviceI == DeviceInput( DEVICE_MOUSE, MOUSE_MIDDLE ) )
-		MESSAGEMAN->Broadcast( (MessageID)(Message_MiddleClick) );
+		MESSAGEMAN->Broadcast( (Message_MiddleClick) );
 	// Can't do MouseWheelUp and MouseWheelDown at the same time. -aj
 	if( input.DeviceI == DeviceInput( DEVICE_MOUSE, MOUSE_WHEELUP ) )
-		MESSAGEMAN->Broadcast( (MessageID)(Message_MouseWheelUp) );
+		MESSAGEMAN->Broadcast( (Message_MouseWheelUp) );
 	else if( input.DeviceI == DeviceInput( DEVICE_MOUSE, MOUSE_WHEELDOWN ) )
-		MESSAGEMAN->Broadcast( (MessageID)(Message_MouseWheelDown) );
+		MESSAGEMAN->Broadcast( (Message_MouseWheelDown) );
 
 	// default input handler used by most menus
 	switch( input.MenuI )
@@ -360,7 +360,7 @@ bool Screen::PassInputToLua(const InputEventPlus& input)
 		lua_pushvalue(L, -2);
 		RString error= "Error running input callback: ";
 		LuaHelpers::RunScriptOnStack(L, error, 1, 1, true);
-		handled= lua_toboolean(L, -1);
+		handled= lua_toboolean(L, -1) != 0;
 		lua_pop(L, 1);
 	}
 	lua_pop(L, 1);
@@ -424,7 +424,7 @@ public:
 	{
 		RString sMessage = SArg(1);
 		ScreenMessage SM = ScreenMessageHelpers::ToScreenMessage( sMessage );
-		p->PostScreenMessage( SM, IArg(2) );
+		p->PostScreenMessage( SM, static_cast<float>(IArg(2)) );
 		COMMON_RETURN_SELF;
 	}
 

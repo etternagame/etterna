@@ -1,11 +1,9 @@
-#include "global.h"
-#include "PlayerState.h"
-#include "Foreach.h"
+﻿#include "global.h"
 #include "GameState.h"
-#include "RageLog.h"
+#include "PlayerState.h"
 #include "RadarValues.h"
-#include "Steps.h"
 #include "Song.h"
+#include "Steps.h"
 
 PlayerState::PlayerState()
 {

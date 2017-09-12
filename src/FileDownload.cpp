@@ -1,13 +1,12 @@
-#include "global.h"
+﻿#include "global.h"
 
 #if !defined(WITHOUT_NETWORKING)
 #include "FileDownload.h"
-#include "RageUtil.h"
-#include "RageFileManager.h"
-#include "SpecialFiles.h"
-#include "RageLog.h"
-#include "Preference.h"
 #include "Foreach.h"
+#include "Preference.h"
+#include "RageFileManager.h"
+#include "RageLog.h"
+#include "RageUtil.h"
 
 FileTransfer::FileTransfer()
 {
@@ -223,9 +222,9 @@ static size_t FindEndOfHeaders( const RString &buf )
 	LOG->Trace("end: %u, %u", unsigned(iPos1), unsigned(iPos2));
 	if( iPos1 != string::npos && (iPos2 == string::npos || iPos2 > iPos1) )
 		return iPos1 + 2;
-	else if( iPos2 != string::npos && (iPos1 == string::npos || iPos1 > iPos2) )
+	if( iPos2 != string::npos && (iPos1 == string::npos || iPos1 > iPos2) )
 		return iPos2 + 4;
-	else
+	
 		return string::npos;
 }
 

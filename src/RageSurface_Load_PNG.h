@@ -1,9 +1,10 @@
-/* RageSurface_Load_PNG - PNG file loader */
+﻿/* RageSurface_Load_PNG - PNG file loader */
 
 #ifndef RAGE_SURFACE_LOAD_PNG_H
 #define RAGE_SURFACE_LOAD_PNG_H
 
 #include "RageSurface_Load.h"
+
 RageSurfaceUtils::OpenResult RageSurface_Load_PNG( const RString &sPath, RageSurface *&ret, bool bHeaderOnly, RString &error );
 
 #endif

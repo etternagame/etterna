@@ -1,39 +1,39 @@
 #include "global.h"
-#include "ScreenSelectMusic.h"
-#include "ScreenManager.h"
-#include "PrefsManager.h"
-#include "SongManager.h"
+#include "ActorUtil.h"
+#include "BannerCache.h"
+#include "CodeDetector.h"
+#include "CommonMetrics.h"
+#include "Foreach.h"
 #include "Game.h"
+#include "GameConstantsAndTypes.h"
 #include "GameManager.h"
 #include "GameSoundManager.h"
-#include "GameConstantsAndTypes.h"
-#include "RageLog.h"
-#include "InputMapper.h"
 #include "GameState.h"
-#include "CodeDetector.h"
-#include "ThemeManager.h"
-#include "Steps.h"
-#include "ActorUtil.h"
-#include "RageTextureManager.h"
-#include "ProfileManager.h"
-#include "Profile.h"
+#include "InputMapper.h"
 #include "MenuTimer.h"
-#include "StatsManager.h"
-#include "StepsUtil.h"
-#include "Foreach.h"
-#include "Style.h"
 #include "PlayerState.h"
-#include "CommonMetrics.h"
-#include "BannerCache.h"
-//#include "BackgroundCache.h"
-#include "ScreenPrompt.h"
-#include "Song.h"
-#include "InputEventPlus.h"
-#include "RageInput.h"
-#include "OptionsList.h"
-#include "RageFileManager.h"
-#include "ScreenTextEntry.h"
+#include "PrefsManager.h"
+#include "Profile.h"
 #include "ProfileManager.h"
+#include "RageLog.h"
+#include "RageTextureManager.h"
+#include "ScreenManager.h"
+#include "ScreenSelectMusic.h"
+#include "SongManager.h"
+#include "StatsManager.h"
+#include "Steps.h"
+#include "StepsUtil.h"
+#include "Style.h"
+#include "ThemeManager.h"
+//#include "BackgroundCache.h"
+#include "InputEventPlus.h"
+#include "OptionsList.h"
+#include "ProfileManager.h"
+#include "RageFileManager.h"
+#include "RageInput.h"
+#include "ScreenPrompt.h"
+#include "ScreenTextEntry.h"
+#include "Song.h"
 
 static const char *SelectionStateNames[] = {
 	"SelectingSong",
@@ -465,7 +465,7 @@ bool ScreenSelectMusic::Input(const InputEventPlus &input)
 		{
 			// Reload the currently selected song. -Kyz
 			Song* to_reload = m_MusicWheel.GetSelectedSong();
-			if (to_reload)
+			if (to_reload != nullptr)
 			{
 				to_reload->ReloadFromSongDir();
 				AfterMusicChange();
@@ -476,7 +476,7 @@ bool ScreenSelectMusic::Input(const InputEventPlus &input)
 		{
 			// Favorite the currently selected song. -Not Kyz
 			Song* fav_me_biatch = m_MusicWheel.GetSelectedSong();
-			if (fav_me_biatch) {
+			if (fav_me_biatch != nullptr) {
 				Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
 
 				if (!fav_me_biatch->IsFavorited()) {
@@ -497,7 +497,7 @@ bool ScreenSelectMusic::Input(const InputEventPlus &input)
 		{
 			// Favorite the currently selected song. -Not Kyz
 			Song* alwaysmirrorsmh = m_MusicWheel.GetSelectedSong();
-			if (alwaysmirrorsmh) {
+			if (alwaysmirrorsmh != nullptr) {
 				Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
 
 				if (!alwaysmirrorsmh->IsPermaMirror()) {
@@ -722,8 +722,8 @@ bool ScreenSelectMusic::Input(const InputEventPlus &input)
 				if (SELECT_MENU_AVAILABLE && INPUTMAPPER->IsBeingPressed(GAME_BUTTON_SELECT, p))
 					continue;
 
-				bLeftIsDown |= INPUTMAPPER->IsBeingPressed(m_GameButtonPreviousSong, p);
-				bRightIsDown |= INPUTMAPPER->IsBeingPressed(m_GameButtonNextSong, p);
+				bLeftIsDown |= static_cast<int>(INPUTMAPPER->IsBeingPressed(m_GameButtonPreviousSong, p));
+				bRightIsDown |= static_cast<int>(INPUTMAPPER->IsBeingPressed(m_GameButtonNextSong, p));
 			}
 
 			bool bBothDown = bLeftIsDown && bRightIsDown;
@@ -1279,7 +1279,7 @@ bool ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 		{
 			if (p == pn)
 				continue;
-			bAllOtherHumanPlayersDone &= m_bStepsChosen[p];
+			bAllOtherHumanPlayersDone &= static_cast<int>(m_bStepsChosen[p]);
 		}
 
 		bool bAllPlayersDoneSelectingSteps = bInitiatedByMenuTimer || bAllOtherHumanPlayersDone;
@@ -1514,7 +1514,7 @@ void ScreenSelectMusic::AfterMusicChange()
 
 	Song* pSong = m_MusicWheel.GetSelectedSong();
 	GAMESTATE->m_pCurSong.Set(pSong);
-	if (pSong)
+	if (pSong != nullptr)
 		GAMESTATE->m_pPreferredSong = pSong;
 
 	m_vpSteps.clear();
@@ -1744,7 +1744,7 @@ void ScreenSelectMusic::OpenOptionsList(PlayerNumber pn)
 void ScreenSelectMusic::OnConfirmSongDeletion()
 {
 	Song* deletedSong = m_pSongAwaitingDeletionConfirmation;
-	if (!deletedSong)
+	if (deletedSong == nullptr)
 	{
 		LOG->Warn("Attempted to delete a null song (ScreenSelectMusic::OnConfirmSongDeletion)");
 		return;

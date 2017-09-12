@@ -23,7 +23,7 @@
 #endif
 
 #if !defined(SOCKET_ERROR)
-#define SOCKET_ERROR -1
+#define SOCKET_ERROR (-1)
 #endif
 
 //There are cases where 0 isn't a proper socket
@@ -32,7 +32,7 @@
 #endif
 
 #if !defined(INVALID_SOCKET)
-#define INVALID_SOCKET -1
+#define INVALID_SOCKET (-1)
 #endif
 
 // Returns a timeval set to the given number of milliseconds.
@@ -111,7 +111,7 @@ bool EzSockets::bind(unsigned short port)
 	addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	addr.sin_port        = htons(port);
 	lastCode = ::bind(sock,(struct sockaddr*)&addr, sizeof(addr));
-	return !lastCode;
+	return lastCode == 0;
 }
 
 bool EzSockets::listen()
@@ -362,7 +362,7 @@ int EzSockets::PeekPack(char *data, unsigned int max)
 		return -1;
 
 	unsigned int size;
-	PeekData((char*)&size, 4);
+	PeekData(reinterpret_cast<char*>(&size), 4);
 	size = ntohl(size);
 
 	if (blocking)

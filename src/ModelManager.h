@@ -1,4 +1,4 @@
-#ifndef MODEL_MANAGER_H
+﻿#ifndef MODEL_MANAGER_H
 #define MODEL_MANAGER_H
 
 #include "RageModelGeometry.h"

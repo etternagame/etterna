@@ -1,6 +1,4 @@
-#include "global.h"
-
-#include <cstdio>
+﻿#include "global.h"
 
 #if defined(_WINDOWS)
 #include <tchar.h>
@@ -10,10 +8,10 @@
 using TCHAR = char;
 #endif
 
-#include <ctime>
 #include "CreateZip.h"
 #include "RageFile.h"
 #include "RageUtil.h"
+#include <ctime>
 
 #define MAX_PATH 1024
 
@@ -156,7 +154,7 @@ using IPos = unsigned int; // A Pos is an index in the character window. Pos is 
 // Error return values.  The values 0..4 and 12..18 follow the conventions
 // of PKZIP.   The values 4..10 are all assigned to "insufficient memory"
 // by PKZIP, so the codes 5..10 are used here for other purposes.
-#define ZE_MISS         -1      // used by procname(), zipbare()
+#define ZE_MISS         (-1)      // used by procname(), zipbare()
 #define ZE_OK           0       // success
 #define ZE_EOF          2       // unexpected end of zip file
 #define ZE_FORM         3       // zip file structure error
@@ -324,16 +322,16 @@ using IPos = unsigned int; // A Pos is an index in the character window. Pos is 
 
 // Output a 16 bit value to the bit stream, lower (oldest) byte first
 #define PUTSHORT(state,w) \
-{ if (state.bs.out_offset >= state.bs.out_size-1) \
-	state.flush_outbuf(state.param,state.bs.out_buf, &state.bs.out_offset); \
-	state.bs.out_buf[state.bs.out_offset++] = (char) ((w) & 0xff); \
-	state.bs.out_buf[state.bs.out_offset++] = (char) ((ush)(w) >> 8); \
+{ if ((state).bs.out_offset >= (state).bs.out_size-1) \
+	(state).flush_outbuf((state).param,(state).bs.out_buf, &(state).bs.out_offset); \
+	(state).bs.out_buf[(state).bs.out_offset++] = (char) ((w) & 0xff); \
+	(state).bs.out_buf[(state).bs.out_offset++] = (char) ((ush)(w) >> 8); \
 }
 
 #define PUTBYTE(state,b) \
-{ if (state.bs.out_offset >= state.bs.out_size) \
-	state.flush_outbuf(state.param,state.bs.out_buf, &state.bs.out_offset); \
-	state.bs.out_buf[state.bs.out_offset++] = (char) (b); \
+{ if ((state).bs.out_offset >= (state).bs.out_size) \
+	(state).flush_outbuf((state).param,(state).bs.out_buf, &(state).bs.out_offset); \
+	(state).bs.out_buf[(state).bs.out_offset++] = (char) (b); \
 }
 
 
@@ -400,12 +398,12 @@ int putlocal(struct zlist *z, WRITEFUNC wfunc,void *param)
 	PUTLG(z->len, f);
 	PUTSH(z->nam, f);
 	PUTSH(z->ext, f);
-	auto res = (size_t)wfunc(param, z->iname, (unsigned int)z->nam);
+	auto res = static_cast<size_t>(wfunc(param, z->iname, static_cast<unsigned int>(z->nam)));
 	if (res!=z->nam)
 		return ZE_TEMP;
-	if (z->ext)
+	if (z->ext != 0u)
 	{
-		res = (size_t)wfunc(param, z->extra, (unsigned int)z->ext);
+		res = static_cast<size_t>(wfunc(param, z->extra, static_cast<unsigned int>(z->ext)));
 		if (res!=z->ext)
 			return ZE_TEMP;
 	}
@@ -441,9 +439,9 @@ int putcentral(struct zlist *z, WRITEFUNC wfunc, void *param)
 	PUTSH(z->att, f);
 	PUTLG(z->atx, f);
 	PUTLG(z->off, f);
-	if ((size_t)wfunc(param, z->iname, (unsigned int)z->nam) != z->nam ||
-		(z->cext && (size_t)wfunc(param, z->cextra, (unsigned int)z->cext) != z->cext) ||
-		(z->com && (size_t)wfunc(param, z->comment, (unsigned int)z->com) != z->com))
+	if (static_cast<size_t>(wfunc(param, z->iname, static_cast<unsigned int>(z->nam))) != z->nam ||
+		((z->cext != 0u) && static_cast<size_t>(wfunc(param, z->cextra, static_cast<unsigned int>(z->cext))) != z->cext) ||
+		((z->com != 0u) && static_cast<size_t>(wfunc(param, z->comment, static_cast<unsigned int>(z->com))) != z->com))
 		return ZE_TEMP;
 	return ZE_OK;
 }
@@ -461,7 +459,7 @@ int putend(int n, ulg s, ulg c, size_t m, char *z, WRITEFUNC wfunc, void *param)
 	PUTLG(c, f);
 	PUTSH(m, f);
 	// Write the comment, if any
-	if (m && wfunc(param, z, (unsigned int)m) != m) return ZE_TEMP;
+	if ((m != 0u) && wfunc(param, z, static_cast<unsigned int>(m)) != m) return ZE_TEMP;
 	return ZE_OK;
 }
 
@@ -525,7 +523,7 @@ const ulg crc_table[256] = {
 };
 
 #define CRC32(c, b) (crc_table[((int)(c) ^ (b)) & 0xff] ^ ((c) >> 8))
-#define DO1(buf)  crc = CRC32(crc, *buf++)
+#define DO1(buf)  crc = CRC32(crc, *(buf)++)
 #define DO2(buf)  DO1(buf); DO1(buf)
 #define DO4(buf)  DO2(buf); DO2(buf)
 #define DO8(buf)  DO4(buf); DO4(buf)
@@ -535,7 +533,7 @@ ulg crc32(ulg crc, const uch *buf, size_t len)
 	if (buf==NULL) return 0L;
 	crc = crc ^ 0xffffffffL;
 	while (len >= 8) {DO8(buf); len -= 8;}
-	if (len) do {DO1(buf);} while (--len);
+	if (len != 0u) do {DO1(buf);} while (--len != 0u);
 	return crc ^ 0xffffffffL;  // (instead of ~c for 64-bit machines)
 }
 
@@ -553,7 +551,7 @@ public:
 	// We can write to pipe, file-by-handle, file-by-name, memory-to-memmapfile
 	RageFile *pfout;             // if valid, we'll write here (for files or pipes)
 	unsigned ooffset{0};         // for pfout, this is where the pointer was initially
-	ZRESULT oerr{false};             // did a write operation give rise to an error?
+	ZRESULT oerr{0u};             // did a write operation give rise to an error?
 	unsigned writ{0};            // how have we written. This is maintained by Add, not write(), to avoid confusion over seeks
 	unsigned int opos;        // current pos in the mmap
 	unsigned int mapsize;     // the size of the map we created
@@ -613,7 +611,7 @@ unsigned TZip::sflush(void *param,const char *buf, unsigned *size)
 	// static
 	if (*size==0)
 		return 0;
-	auto *zip = (TZip*)param;
+	auto *zip = reinterpret_cast<TZip*>(param);
 	unsigned int writ = zip->write(buf,*size);
 	if (writ!=0)
 		*size=0;
@@ -624,7 +622,7 @@ unsigned TZip::swrite(void *param,const char *buf, unsigned size)
 	// static
 	if (size==0)
 		return 0;
-	auto *zip=(TZip*)param;
+	auto *zip=reinterpret_cast<TZip*>(param);
 	return zip->write(buf,size);
 }
 unsigned int TZip::write(const char *buf,unsigned int size)
@@ -716,10 +714,10 @@ ZRESULT TZip::set_times()
 
 	unsigned short dosdate,dostime;
 	filetime2dosdatetime(*ptm,&dosdate,&dostime);
-	times.atime = time(NULL);
+	times.atime = time(nullptr);
 	times.mtime = times.atime;
 	times.ctime = times.atime;
-	timestamp = (unsigned short)dostime | (((unsigned long)dosdate)<<16);
+	timestamp = dostime | ((static_cast<unsigned long>(dosdate))<<16);
 	return ZR_OK;
 }
 
@@ -734,23 +732,23 @@ unsigned TZip::read(char *buf, unsigned size)
 		memcpy(buf, bufin+posin, red);
 		posin += red;
 		ired += red;
-		crc = crc32(crc, (uch*)buf, red);
+		crc = crc32(crc, reinterpret_cast<uch*>(buf), red);
 		return red;
 	}
-	else if (hfin!=nullptr)
+	if (hfin!=nullptr)
 	{
 		int red = hfin->Read(buf,size);
 		if (red <= 0)
 			return 0;
 		ired += red;
-		crc = crc32(crc, (uch*)buf, red);
+		crc = crc32(crc, reinterpret_cast<uch*>(buf), red);
 		return red;
 	}
-	else
-	{
+	
+	
 		oerr=ZR_NOTINITED;
 		return 0;
-	}
+	
 }
 
 ZRESULT TZip::iclose()
@@ -761,7 +759,7 @@ ZRESULT TZip::iclose()
 	isize=ired; // and crc has been being updated anyway
 	if (mismatch)
 		return ZR_MISSIZE;
-	else
+	
 		return ZR_OK;
 }
 
@@ -772,7 +770,7 @@ ZRESULT TZip::istore()
 	for (;;)
 	{
 		unsigned int cin=read(buf,16384);
-		if (cin<=0 || cin==(unsigned int)EOF)
+		if (cin<=0 || cin==static_cast<unsigned int>EOF)
 			break;
 		unsigned int cout = write(buf,cin);
 		if (cout!=cin)
@@ -790,7 +788,7 @@ ZRESULT TZip::istore()
 bool has_seeded=false;
 ZRESULT TZip::Add(const TCHAR *odstzn, const TCHAR *src,unsigned long flags)
 {
-	if (oerr)
+	if (oerr != 0u)
 		return ZR_FAILED;
 	if (hasputcen)
 		return ZR_ENDED;
@@ -844,17 +842,17 @@ ZRESULT TZip::Add(const TCHAR *odstzn, const TCHAR *src,unsigned long flags)
 	zfi.comment=NULL; zfi.com=0; // comment, and its length
 	zfi.mark = 1;
 	zfi.dosflag = 0;
-	zfi.att = (ush)BINARY;
-	zfi.vem = (ush)0xB17; // 0xB00 is win32 os-code. 0x17 is 23 in decimal: zip 2.3
-	zfi.ver = (ush)20;    // Needs PKUNZIP 2.0 to unzip it
+	zfi.att = static_cast<ush>(BINARY);
+	zfi.vem = static_cast<ush>(0xB17); // 0xB00 is win32 os-code. 0x17 is 23 in decimal: zip 2.3
+	zfi.ver = static_cast<ush>(20);    // Needs PKUNZIP 2.0 to unzip it
 	zfi.tim = timestamp;
 	// Even though we write the header now, it will have to be rewritten, since we don't know compressed size or crc.
 	zfi.crc = 0;            // to be updated later
 	zfi.flg = 8;            // 8 means 'there is an extra header'. Assume for the moment that we need it.
 	zfi.lflg = zfi.flg;     // to be updated later
-	zfi.how = (ush)method;  // to be updated later
-	zfi.siz = (ulg)(method==STORE && isize>=0 ? isize : 0); // to be updated later
-	zfi.len = (ulg)(isize);  // to be updated later
+	zfi.how = static_cast<ush>(method);  // to be updated later
+	zfi.siz = static_cast<ulg>(method==STORE && isize>=0 ? isize : 0); // to be updated later
+	zfi.len = static_cast<ulg>(isize);  // to be updated later
 	zfi.dsk = 0;
 	zfi.atx = attr;
 	zfi.off = writ+ooffset;         // offset within file of the start of this local record
@@ -868,18 +866,18 @@ ZRESULT TZip::Add(const TCHAR *odstzn, const TCHAR *src,unsigned long flags)
 	xloc[2]  = EB_UT_LEN(3);       // length of data part of e.f.
 	xloc[3]  = 0;
 	xloc[4]  = EB_UT_FL_MTIME | EB_UT_FL_ATIME | EB_UT_FL_CTIME;
-	xloc[5]  = (char)(times.mtime);
-	xloc[6]  = (char)(times.mtime >> 8);
-	xloc[7]  = (char)(times.mtime >> 16);
-	xloc[8]  = (char)(times.mtime >> 24);
-	xloc[9]  = (char)(times.atime);
-	xloc[10] = (char)(times.atime >> 8);
-	xloc[11] = (char)(times.atime >> 16);
-	xloc[12] = (char)(times.atime >> 24);
-	xloc[13] = (char)(times.ctime);
-	xloc[14] = (char)(times.ctime >> 8);
-	xloc[15] = (char)(times.ctime >> 16);
-	xloc[16] = (char)(times.ctime >> 24);
+	xloc[5]  = static_cast<char>(times.mtime);
+	xloc[6]  = static_cast<char>(times.mtime >> 8);
+	xloc[7]  = static_cast<char>(times.mtime >> 16);
+	xloc[8]  = static_cast<char>(times.mtime >> 24);
+	xloc[9]  = static_cast<char>(times.atime);
+	xloc[10] = static_cast<char>(times.atime >> 8);
+	xloc[11] = static_cast<char>(times.atime >> 16);
+	xloc[12] = static_cast<char>(times.atime >> 24);
+	xloc[13] = static_cast<char>(times.ctime);
+	xloc[14] = static_cast<char>(times.ctime >> 8);
+	xloc[15] = static_cast<char>(times.ctime >> 16);
+	xloc[16] = static_cast<char>(times.ctime >> 24);
 	memcpy(zfi.cextra,zfi.extra,EB_C_UT_SIZE);
 	zfi.cextra[EB_LEN] = EB_UT_LEN(1);
 
@@ -891,7 +889,7 @@ ZRESULT TZip::Add(const TCHAR *odstzn, const TCHAR *src,unsigned long flags)
 		iclose();
 		return ZR_WRITE;
 	}
-	writ += 4 + LOCHEAD + (unsigned int)zfi.nam + (unsigned int)zfi.ext;
+	writ += 4 + LOCHEAD + static_cast<unsigned int>(zfi.nam) + static_cast<unsigned int>(zfi.ext);
 	if (oerr!=ZR_OK)
 	{
 		iclose();
@@ -919,7 +917,7 @@ ZRESULT TZip::Add(const TCHAR *odstzn, const TCHAR *src,unsigned long flags)
 	zfi.siz = csize;
 	zfi.len = isize;
 	// (4) ... or put an updated header at the end
-	if (zfi.how != (ush) method)
+	if (zfi.how != static_cast<ush>( method))
 		return ZR_NOCHANGE;
 	if (method==STORE && !first_header_has_size_right)
 		return ZR_NOCHANGE;

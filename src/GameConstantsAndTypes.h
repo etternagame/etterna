@@ -1,10 +1,9 @@
-/* GameConstantsAndTypes - Things used in many places that don't change often. */
+﻿/* GameConstantsAndTypes - Things used in many places that don't change often. */
 
 #ifndef GAME_CONSTANTS_AND_TYPES_H
 #define GAME_CONSTANTS_AND_TYPES_H
 
 #include "EnumHelper.h"
-#include <cfloat> // need the max for default.
 
 // Note definitions
 /** @brief Define the mininum difficulty value allowed. */
@@ -176,7 +175,7 @@ enum SortOrder
 	SortOrder_Invalid
 };
 /** @brief Only allow certain sort modes to be selectable. */
-const SortOrder MAX_SELECTABLE_SORT = (SortOrder)(SORT_RECENT-1);
+const SortOrder MAX_SELECTABLE_SORT = static_cast<SortOrder>(SORT_RECENT-1);
 /**
  * @brief Turn the sort order into a proper string.
  * @param so the sort order.

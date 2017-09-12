@@ -1,8 +1,8 @@
-#include "global.h"
+﻿#include "global.h"
 
-#include "RageUtil.h"
-#include "RageSoundReader_Vorbisfile.h"
 #include "RageLog.h"
+#include "RageSoundReader_Vorbisfile.h"
+#include "RageUtil.h"
 
 #if defined(INTEGER_VORBIS)
 #include <tremor/ivorbisfile.h>
@@ -10,18 +10,17 @@
 #include <vorbis/vorbisfile.h>
 #endif
 
-#include <cstring>
-#include <cerrno>
 #include "RageFile.h"
+
 static size_t OggRageFile_read_func( void *ptr, size_t size, size_t nmemb, void *datasource )
 {
-	auto *f = (RageFileBasic *) datasource;
+	auto *f = reinterpret_cast<RageFileBasic *>( datasource);
 	return f->Read( ptr, size, nmemb );
 }
 
 static int OggRageFile_seek_func( void *datasource, ogg_int64_t offset, int whence )
 {
-	auto *f = (RageFileBasic *) datasource;
+	auto *f = reinterpret_cast<RageFileBasic *>( datasource);
 	return f->Seek( (int) offset, whence );
 }
 
@@ -32,7 +31,7 @@ static int OggRageFile_close_func( void *datasource )
 
 static long OggRageFile_tell_func( void *datasource )
 {
-	auto *f = (RageFileBasic *) datasource;
+	auto *f = reinterpret_cast<RageFileBasic *>( datasource);
 	return f->Tell();
 }
 
@@ -145,7 +144,7 @@ int RageSoundReader_Vorbisfile::Read( float *buf, int iFrames )
 {
 	int frames_read = 0;
 
-	while( iFrames && !eof )
+	while( (iFrames != 0) && !eof )
 	{
 		const int bytes_per_frame = sizeof(float)*channels;
 

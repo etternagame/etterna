@@ -1,4 +1,4 @@
-#include "global.h"
+﻿#include "global.h"
 #include "LuaExpressionTransform.h"
 #include "LuaManager.h"
 #include "RageUtil.h"

@@ -1,15 +1,14 @@
-#include "global.h"
-#include "GraphDisplay.h"
-#include "ThemeManager.h"
-#include "RageTextureManager.h"
-#include "RageDisplay.h"
+﻿#include "global.h"
 #include "ActorUtil.h"
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "RageMath.h"
-#include "StageStats.h"
 #include "Foreach.h"
+#include "GraphDisplay.h"
+#include "RageDisplay.h"
+#include "RageMath.h"
+#include "RageTextureManager.h"
+#include "RageUtil.h"
 #include "Song.h"
+#include "StageStats.h"
+#include "ThemeManager.h"
 #include "XmlFile.h"
 
 //#define DIVIDE_LINE_WIDTH			THEME->GetMetricI(m_sName,"TexturedBottomHalf")
@@ -111,7 +110,7 @@ REGISTER_ACTOR_CLASS( GraphLine );
 class GraphBody: public Actor
 {
 public:
-	GraphBody( RString sFile )
+	explicit GraphBody( RString sFile )
 	{
 		m_pTexture = TEXTUREMAN->LoadTexture( sFile );
 
@@ -217,8 +216,8 @@ void GraphDisplay::Set( const StageStats &ss, const PlayerStageStats &pss )
 
 void GraphDisplay::Load( const RString &sMetricsGroup )
 {
-	m_size.x = THEME->GetMetricI( sMetricsGroup, "BodyWidth" );
-	m_size.y = THEME->GetMetricI( sMetricsGroup, "BodyHeight" );
+	m_size.x = static_cast<float>(THEME->GetMetricI( sMetricsGroup, "BodyWidth" ));
+	m_size.y = static_cast<float>(THEME->GetMetricI( sMetricsGroup, "BodyHeight" ));
 
 	m_sprBacking.Load( THEME->GetPathG(sMetricsGroup,"Backing") );
 	m_sprBacking->ZoomToWidth( m_size.x );

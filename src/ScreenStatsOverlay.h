@@ -3,9 +3,9 @@
 #ifndef ScreenStatsOverlay_H
 #define ScreenStatsOverlay_H
 
-#include "Screen.h"
 #include "BitmapText.h"
 #include "Quad.h"
+#include "Screen.h"
 #include <chrono>
 
 const int NUM_SKIPS_TO_SHOW = 5;

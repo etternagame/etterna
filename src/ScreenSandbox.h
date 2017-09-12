@@ -7,7 +7,7 @@ class ScreenSandbox : public Screen
 {
 public:
 	bool Input( const InputEventPlus &input ) override;
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 	void Update(float f) override;
 	void DrawPrimitives() override;
 };

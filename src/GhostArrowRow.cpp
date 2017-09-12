@@ -1,14 +1,11 @@
-#include "global.h"
-#include "GhostArrowRow.h"
-#include "RageUtil.h"
+﻿#include "global.h"
 #include "GameConstantsAndTypes.h"
-#include "ArrowEffects.h"
-#include "NoteSkinManager.h"
 #include "GameState.h"
-#include "Game.h"
+#include "GhostArrowRow.h"
+#include "NoteSkinManager.h"
 #include "PlayerState.h"
+#include "RageUtil.h"
 #include "Style.h"
-#include "ActorUtil.h"
 
 void GhostArrowRow::Load( const PlayerState* pPlayerState, float fYReverseOffset )
 {

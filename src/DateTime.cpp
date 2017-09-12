@@ -1,9 +1,9 @@
 #include "global.h"
 #include "DateTime.h"
-#include "RageUtil.h"
 #include "EnumHelper.h"
-#include "LuaManager.h"
 #include "LocalizedString.h"
+#include "LuaManager.h"
+#include "RageUtil.h"
 
 DateTime::DateTime()
 {
@@ -17,7 +17,7 @@ void DateTime::Init()
 
 bool DateTime::operator<( const DateTime& other ) const
 {
-#define COMPARE( v ) if(v!=other.v) return v<other.v;
+#define COMPARE( v ) if((v)!=other.v) return (v)<other.v;
 	COMPARE( tm_year );
 	COMPARE( tm_mon );
 	COMPARE( tm_mday );
@@ -31,7 +31,7 @@ bool DateTime::operator<( const DateTime& other ) const
 
 bool DateTime::operator==( const DateTime& other ) const 
 {
-#define COMPARE(x)	if( x!=other.x )	return false;
+#define COMPARE(x)	if( (x)!=other.x )	return false;
 	COMPARE( tm_year );
 	COMPARE( tm_mon );
 	COMPARE( tm_mday );
@@ -44,7 +44,7 @@ bool DateTime::operator==( const DateTime& other ) const
 
 bool DateTime::operator>( const DateTime& other ) const
 {
-#define COMPARE( v ) if(v!=other.v) return v>other.v;
+#define COMPARE( v ) if((v)!=other.v) return (v)>other.v;
 	COMPARE( tm_year );
 	COMPARE( tm_mon );
 	COMPARE( tm_mday );

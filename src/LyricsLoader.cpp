@@ -1,12 +1,10 @@
-#include "global.h"
+﻿#include "global.h"
+#include "LyricsLoader.h"
+#include "RageFile.h"
 #include "RageLog.h"
 #include "RageUtil.h"
-#include "LyricsLoader.h"
-#include "ThemeManager.h"
-#include "RageFile.h"
 #include "Song.h"
-
-#include <map>
+#include "ThemeManager.h"
 
 // TODO: Use a marker for default color instead of a specific color that may
 // accidentally get written back into a lyrics file.
@@ -14,7 +12,7 @@
 
 static int CompareLyricSegments(const LyricSegment &seg1, const LyricSegment &seg2)
 {
-   return seg1.m_fStartTime < seg2.m_fStartTime;
+   return static_cast<int>(seg1.m_fStartTime < seg2.m_fStartTime);
 }
 
 bool LyricsLoader::LoadFromLRCFile(const RString& sPath, Song& out)

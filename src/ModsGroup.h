@@ -1,4 +1,4 @@
-#ifndef MODS_GROUP_H
+﻿#ifndef MODS_GROUP_H
 #define MODS_GROUP_H
 
 #include "EnumHelper.h"

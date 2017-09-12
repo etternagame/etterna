@@ -1,9 +1,7 @@
-#ifndef BACKGROUND_H
+﻿#ifndef BACKGROUND_H
 #define BACKGROUND_H
 
 #include "ActorFrame.h"
-#include "Quad.h"
-#include "PlayerNumber.h"
 #include "BackgroundUtil.h"
 
 class DancingCharacters;

@@ -1,4 +1,4 @@
-#ifndef RAGE_EXCEPTION_H
+﻿#ifndef RAGE_EXCEPTION_H
 #define RAGE_EXCEPTION_H
 
 #if defined(CMAKE_POWERED)

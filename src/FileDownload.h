@@ -3,8 +3,8 @@
 
 #if !defined(WITHOUT_NETWORKING)
 
-#include "ezsockets.h"
 #include "RageFile.h"
+#include "ezsockets.h"
 
 class FileTransfer
 {

@@ -1,18 +1,18 @@
 #include "global.h"
-#include "ScreenTextEntry.h"
-#include "RageUtil.h"
-#include "Preference.h"
-#include "ScreenManager.h"
-#include "ThemeManager.h"
-#include "FontCharAliases.h"
-#include "ScreenDimensions.h"
-#include "ScreenPrompt.h"
 #include "ActorUtil.h"
+#include "FontCharAliases.h"
 #include "InputEventPlus.h"
-#include "RageInput.h"
 #include "LocalizedString.h"
-#include "RageLog.h"
 #include "LuaBinding.h"
+#include "Preference.h"
+#include "RageInput.h"
+#include "RageLog.h"
+#include "RageUtil.h"
+#include "ScreenDimensions.h"
+#include "ScreenManager.h"
+#include "ScreenPrompt.h"
+#include "ScreenTextEntry.h"
+#include "ThemeManager.h"
 #include "arch/ArchHooks/ArchHooks.h" // HOOKS->GetClipboard()
 
 static const char* g_szKeys[NUM_KeyboardRow][KEYS_PER_ROW] =
@@ -327,7 +327,7 @@ void ScreenTextEntry::End( bool bCancelled )
 {
 	if( bCancelled )
 	{
-		if( g_pOnCancel ) 
+		if( g_pOnCancel != nullptr ) 
 			g_pOnCancel();
 
 		Cancel( SM_GoToNextScreen );
@@ -347,7 +347,7 @@ void ScreenTextEntry::End( bool bCancelled )
 			}
 		}
 
-		if( g_pOnOK )
+		if( g_pOnOK != nullptr )
 		{
 			RString ret = WStringToRString(m_sAnswer);
 			FontCharAliases::ReplaceMarkers(ret);
@@ -416,14 +416,14 @@ void ScreenTextEntry::TextEntrySettings::FromStack( lua_State *L )
 
 	// Get Password
 	lua_getfield( L, iTab, "Password" );
-	bPassword = !!lua_toboolean( L, -1 );
+	bPassword = !(lua_toboolean( L, -1 ) == 0);
 	lua_settop( L, iTab );
 
 #define SET_FUNCTION_MEMBER(memname) \
 	lua_getfield(L, iTab, #memname); \
 	if(lua_isfunction(L, -1)) \
 	{ \
-		memname.SetFromStack(L); \
+		(memname).SetFromStack(L); \
 	} \
 	else if(!lua_isnil(L, -1)) \
 	{ \
@@ -461,7 +461,7 @@ static bool ValidateFromLua( const RString &sAnswer, RString &sErrorOut )
 	RString error= "Lua error in ScreenTextEntry Validate: ";
 	if(LuaHelpers::RunScriptOnStack(L, error, 2, 2, true))
 	{
-		if(!lua_isstring(L, -1) || !lua_isboolean(L, -2))
+		if((lua_isstring(L, -1) == 0) || !lua_isboolean(L, -2))
 		{
 			LuaHelpers::ReportScriptError("Lua error: ScreenTextEntry Validate did not return 'bool, string'.");
 		}
@@ -564,7 +564,7 @@ static RString FormatAnswerForDisplayFromLua( const RString &sAnswer )
 	RString error= "Lua error in ScreenTextEntry FormatAnswerForDisplay: ";
 	if(LuaHelpers::RunScriptOnStack(L, error, 1, 1, true))
 	{
-		if( !lua_isstring(L, -1) )
+		if( lua_isstring(L, -1) == 0 )
 		{
 			LuaHelpers::ReportScriptError("\"FormatAnswerForDisplay\" did not return a string.");
 		}
@@ -677,7 +677,7 @@ void ScreenTextEntryVisual::BeginScreen()
 	ScreenTextEntry::BeginScreen();
 
 	m_iFocusX = 0;
-	m_iFocusY = (KeyboardRow)0;
+	m_iFocusY = static_cast<KeyboardRow>(0);
 
 	FOREACH_KeyboardRow( r )
 	{

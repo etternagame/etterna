@@ -3,10 +3,10 @@
 #ifndef SCREEN_NET_SELECT_BASE_H
 #define SCREEN_NET_SELECT_BASE_H
 
+#include "BitmapText.h"
+#include "Quad.h"
 #include "ScreenWithMenuElements.h"
 #include "Sprite.h"
-#include "Quad.h"
-#include "BitmapText.h"
 
 // With the addition of Attributes to BitmapText, this class may very well be
 // redundant. (Leave it in for now, though.) -aj
@@ -17,7 +17,7 @@ public:
 	void ResetText();
 	void DrawPrimitives() override;
 	int lines=0;
-	void SetMaxLines(int iNumLines, int iDirection, unsigned int &scroll);
+	void SetMaxLines(size_t iNumLines, int iDirection, unsigned int &scroll);
 	void SetMaxLines( int iLines, bool bCutBottom = true );	//if bCutBottom = false then, it will crop the top
 	void SimpleAddLine( const RString &sAddition, int iWidthPixels );
 	void SetMaxLines( int iNumLines, int iDirection );
@@ -37,7 +37,7 @@ public:
 	void Init() override;
 
 	bool Input( const InputEventPlus &input ) override;
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 	void TweenOffScreen() override;
 
 	void UpdateUsers();
@@ -48,7 +48,7 @@ public:
 	void SetChatboxVisible(bool visibility);
 	void SetUsersVisible(bool visibility);
 	vector<BitmapText>* ToUsers();
-	void Scroll(int movescroll);
+	void Scroll(unsigned int movescroll);
 	RString GetPreviousMsg();
 	RString GetNextMsg();
 	void SetInputText(RString text);

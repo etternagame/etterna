@@ -1,16 +1,16 @@
-#include "global.h"
-#include "BitmapText.h"
-#include "XmlFile.h"
-#include "FontManager.h"
-#include "RageLog.h"
-#include "RageTimer.h"
-#include "RageDisplay.h"
-#include "ThemeManager.h"
-#include "Font.h"
+﻿#include "global.h"
 #include "ActorUtil.h"
-#include "LuaBinding.h"
+#include "BitmapText.h"
+#include "Font.h"
+#include "FontManager.h"
 #include "Foreach.h"
+#include "LuaBinding.h"
 #include "PrefsManager.h"
+#include "RageDisplay.h"
+#include "RageTexture.h"
+#include "RageTimer.h"
+#include "ThemeManager.h"
+#include "XmlFile.h"
 
 REGISTER_ACTOR_CLASS( BitmapText );
 
@@ -26,7 +26,7 @@ REGISTER_ACTOR_CLASS( BitmapText );
  * fading are annoying to optimize, but rarely used. Iterating over every
  * character in Draw() is dumb. */
 #define NUM_RAINBOW_COLORS	THEME->GetMetricI("BitmapText","NumRainbowColors")
-#define RAINBOW_COLOR(n)	THEME->GetMetricC("BitmapText",ssprintf("RainbowColor%i", n+1))
+#define RAINBOW_COLOR(n)	THEME->GetMetricC("BitmapText",ssprintf("RainbowColor%i", (n)+1))
 
 static vector<RageColor> RAINBOW_COLORS;
 
@@ -68,7 +68,7 @@ BitmapText::BitmapText()
 
 BitmapText::~BitmapText()
 {
-	if( m_pFont )
+	if( m_pFont != nullptr )
 		FONT->UnloadFont( m_pFont );
 }
 
@@ -100,7 +100,7 @@ BitmapText & BitmapText::operator=(const BitmapText &cpy)
 	CPY( BMT_start );
 #undef CPY
 
-	if( m_pFont )
+	if( m_pFont != nullptr )
 		FONT->UnloadFont( m_pFont );
 
 	if( cpy.m_pFont != nullptr )
@@ -210,7 +210,7 @@ bool BitmapText::LoadFromFont( const RString& sFontFilePath )
 {
 	CHECKPOINT_M( ssprintf("BitmapText::LoadFromFont(%s)", sFontFilePath.c_str()) );
 
-	if( m_pFont )
+	if( m_pFont != nullptr )
 	{
 		FONT->UnloadFont( m_pFont );
 		m_pFont = nullptr;
@@ -229,7 +229,7 @@ bool BitmapText::LoadFromTextureAndChars( const RString& sTexturePath, const RSt
 {
 	CHECKPOINT_M( ssprintf("BitmapText::LoadFromTextureAndChars(\"%s\",\"%s\")", sTexturePath.c_str(), sChars.c_str()) );
 
-	if( m_pFont )
+	if( m_pFont != nullptr )
 	{
 		FONT->UnloadFont( m_pFont );
 		m_pFont = nullptr;
@@ -426,8 +426,8 @@ void BitmapText::DrawChars( bool bUseStrokeTexture )
 
 	for ( int start = iStartGlyph; start < iEndGlyph; )
 	{
-		int end = start;
-		while (end < iEndGlyph  &&  m_vpFontPageTextures[end] == m_vpFontPageTextures[start])
+		size_t end = start;
+		while (end < static_cast<size_t>(iEndGlyph)  &&  m_vpFontPageTextures[end] == m_vpFontPageTextures[start])
 			end++;
 
 		bool bHaveATexture = !bUseStrokeTexture || (bUseStrokeTexture && m_vpFontPageTextures[start]->m_pTextureStroke);
@@ -459,7 +459,7 @@ void BitmapText::DrawChars( bool bUseStrokeTexture )
 			renderNow = true;
 		}
 
-		if ( haveTextures && (renderNow || end >= iEndGlyph) )
+		if ( haveTextures && (renderNow || end >= static_cast<size_t>(iEndGlyph)) )
 		{
 			DISPLAY->DrawQuads(&m_aVertices[startingPoint * 4], (end - startingPoint) * 4);
 
@@ -620,7 +620,7 @@ void BitmapText::UpdateBaseZoom()
 	// Factor in the non-base zoom so that maxwidth will be in terms of theme
 	// pixels when zoom is used.
 #define APPLY_DIMENSION_ZOOM(dimension_max, dimension_get, dimension_zoom_get, base_zoom_set) \
-	if(dimension_max == 0) \
+	if((dimension_max) == 0) \
 	{ \
 		base_zoom_set(1); \
 	} \
@@ -633,7 +633,7 @@ void BitmapText::UpdateBaseZoom()
 		} \
 		if(dimension != 0) \
 		{ \
-			const float zoom= min(1, dimension_max / dimension); \
+			const float zoom= min(1, (dimension_max) / dimension); \
 			base_zoom_set(zoom); \
 		} \
 	}
@@ -668,7 +668,7 @@ void BitmapText::CropLineToWidth(size_t l, int width)
 	{
 		int used_width= width;
 		wstring& line= m_wTextLines[l];
-		int fit= m_pFont->GetGlyphsThatFit(line, &used_width);
+		size_t fit= m_pFont->GetGlyphsThatFit(line, &used_width);
 		if(fit < line.size())
 		{
 			line.erase(line.begin()+fit, line.end());
@@ -777,7 +777,7 @@ void BitmapText::DrawPrimitives()
 
 			for( unsigned i=0; i<m_aVertices.size(); i+=4 )
 			{
-				RageVector3 jitter( rnd()%2, rnd()%3, 0 );
+				RageVector3 jitter( static_cast<float>(rnd()%2), static_cast<float>(rnd()%3), 0.f );
 				vGlyphJitter.push_back( jitter );
 
 				m_aVertices[i+0].p += jitter;	// top left
@@ -959,7 +959,7 @@ public:
 #undef MAX_DIMENSION
 	static int max_dimension_use_zoom(T* p, lua_State* L)
 	{
-		p->SetMaxDimUseZoom(lua_toboolean(L, 1));
+		p->SetMaxDimUseZoom(lua_toboolean(L, 1) != 0);
 		COMMON_RETURN_SELF;
 	}
 	static int vertspacing( T* p, lua_State *L )		{ p->SetVertSpacing( IArg(1) ); COMMON_RETURN_SELF; }

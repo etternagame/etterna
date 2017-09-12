@@ -1,21 +1,20 @@
-#include "global.h"
-#include "NoteSkinManager.h"
-#include "RageFileManager.h"
-#include "RageLog.h"
+﻿#include "global.h"
+#include "ActorUtil.h"
+#include "Foreach.h"
+#include "Game.h"
 #include "GameInput.h"
 #include "GameState.h"
-#include "Game.h"
-#include "Style.h"
-#include "RageUtil.h"
+#include "IniFile.h"
+#include "NoteSkinManager.h"
 #include "RageDisplay.h"
-#include "arch/Dialog/Dialog.h"
-#include "PrefsManager.h"
-#include "Foreach.h"
-#include "ActorUtil.h"
-#include "XmlFileUtil.h"
-#include "Sprite.h"
-#include <map>
+#include "RageFileManager.h"
+#include "RageLog.h"
+#include "RageUtil.h"
 #include "SpecialFiles.h"
+#include "Sprite.h"
+#include "XmlFileUtil.h"
+#include "arch/Dialog/Dialog.h"
+#include <map>
 
 /** @brief Have the NoteSkinManager available throughout the program. */
 NoteSkinManager*	NOTESKIN = NULL; // global and accessible from anywhere in our program
@@ -43,7 +42,7 @@ struct NoteSkinData
 namespace
 {
 	static map<RString,NoteSkinData> g_mapNameToData;
-};
+} // namespace;
 
 NoteSkinManager::NoteSkinManager()
 {
@@ -564,7 +563,7 @@ public:
 	static int x ## ForNoteSkin( T* p, lua_State *L ) \
 	{ \
 		const RString sOldNoteSkin = p->GetCurrentNoteSkin(); \
-		RString nsname= SArg(n+1); \
+		RString nsname= SArg((n)+1); \
 		if(!p->DoesNoteSkinExist(nsname)) \
 		{ \
 			luaL_error(L, "Noteskin \"%s\" does not exist.", nsname.c_str()); \

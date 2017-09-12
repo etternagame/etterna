@@ -9,10 +9,10 @@
  */
 
 #include "global.h"
-#include "ScreenSandbox.h"
-#include "ThemeManager.h"
 #include "RageDisplay.h"
 #include "RageLog.h"
+#include "ScreenSandbox.h"
+#include "ThemeManager.h"
 
 
 REGISTER_SCREEN_CLASS( ScreenSandbox );

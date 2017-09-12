@@ -1,4 +1,4 @@
-/* LuaBinding - helpers to expose Lua bindings for C++ classes. */
+﻿/* LuaBinding - helpers to expose Lua bindings for C++ classes. */
 
 #ifndef LuaBinding_H
 #define LuaBinding_H

@@ -1,4 +1,4 @@
-#ifndef GAMESTATE_H
+﻿#ifndef GAMESTATE_H
 #define GAMESTATE_H
 
 #include "Difficulty.h"
@@ -6,15 +6,13 @@
 #include "Grade.h"
 #include "MessageManager.h"
 #include "ModsGroup.h"
-#include "RageTimer.h"
 #include "PlayerOptions.h"
+#include "Preference.h"
+#include "RageTimer.h"
 #include "SongOptions.h"
 #include "SongPosition.h"
-#include "Preference.h"
 
-#include <map>
 #include <deque>
-#include <set>
 
 class Character;
 struct Game;
@@ -367,15 +365,15 @@ PlayerNumber GetNextPotentialCpuPlayer( PlayerNumber pn );
 MultiPlayer GetNextEnabledMultiPlayer( MultiPlayer mp );
 
 /** @brief A foreach loop to act on each human Player. */
-#define FOREACH_HumanPlayer( pn ) for( PlayerNumber pn=GetNextHumanPlayer((PlayerNumber)-1); pn!=PLAYER_INVALID; pn=GetNextHumanPlayer(pn) )
+#define FOREACH_HumanPlayer( pn ) for( PlayerNumber pn=GetNextHumanPlayer((PlayerNumber)-1); (pn)!=PLAYER_INVALID; (pn)=GetNextHumanPlayer(pn) )
 /** @brief A foreach loop to act on each enabled Player. */
-#define FOREACH_EnabledPlayer( pn ) for( PlayerNumber pn=GetNextEnabledPlayer((PlayerNumber)-1); pn!=PLAYER_INVALID; pn=GetNextEnabledPlayer(pn) )
+#define FOREACH_EnabledPlayer( pn ) for( PlayerNumber pn=GetNextEnabledPlayer((PlayerNumber)-1); (pn)!=PLAYER_INVALID; (pn)=GetNextEnabledPlayer(pn) )
 /** @brief A foreach loop to act on each CPU Player. */
-#define FOREACH_CpuPlayer( pn ) for( PlayerNumber pn=GetNextCpuPlayer((PlayerNumber)-1); pn!=PLAYER_INVALID; pn=GetNextCpuPlayer(pn) )
+#define FOREACH_CpuPlayer( pn ) for( PlayerNumber pn=GetNextCpuPlayer((PlayerNumber)-1); (pn)!=PLAYER_INVALID; (pn)=GetNextCpuPlayer(pn) )
 /** @brief A foreach loop to act on each potential CPU Player. */
-#define FOREACH_PotentialCpuPlayer( pn ) for( PlayerNumber pn=GetNextPotentialCpuPlayer((PlayerNumber)-1); pn!=PLAYER_INVALID; pn=GetNextPotentialCpuPlayer(pn) )
+#define FOREACH_PotentialCpuPlayer( pn ) for( PlayerNumber pn=GetNextPotentialCpuPlayer((PlayerNumber)-1); (pn)!=PLAYER_INVALID; (pn)=GetNextPotentialCpuPlayer(pn) )
 /** @brief A foreach loop to act on each Player in MultiPlayer. */
-#define FOREACH_EnabledMultiPlayer( mp ) for( MultiPlayer mp=GetNextEnabledMultiPlayer((MultiPlayer)-1); mp!=MultiPlayer_Invalid; mp=GetNextEnabledMultiPlayer(mp) )
+#define FOREACH_EnabledMultiPlayer( mp ) for( MultiPlayer mp=GetNextEnabledMultiPlayer((MultiPlayer)-1); (mp)!=MultiPlayer_Invalid; (mp)=GetNextEnabledMultiPlayer(mp) )
 
 
 

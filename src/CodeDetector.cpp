@@ -1,15 +1,13 @@
-#include "global.h"
+﻿#include "global.h"
 #include "CodeDetector.h"
-#include "PlayerOptions.h"
-#include "GameState.h"
-#include "InputQueue.h"
-#include "ThemeManager.h"
-#include "RageLog.h"
 #include "Game.h"
-#include "RageUtil.h"
-#include "PlayerState.h"
+#include "GameState.h"
 #include "InputEventPlus.h"
-#include "OptionRowHandler.h"
+#include "InputQueue.h"
+#include "PlayerOptions.h"
+#include "PlayerState.h"
+#include "RageUtil.h"
+#include "ThemeManager.h"
 
 const char *CodeNames[] = {
 	"PrevSteps1",
@@ -116,14 +114,14 @@ bool CodeDetector::EnteredModeMenu( GameController controller )
 	return EnteredCode(controller,CODE_MODE_MENU1) || EnteredCode(controller,CODE_MODE_MENU2);
 }
 
-#define  TOGGLE(v,a,b)	if(v!=a) v=a; else v=b;
-#define  FLOAT_TOGGLE(v)	if(v!=1.f) v=1.f; else v=0.f;
+#define  TOGGLE(v,a,b)	if((v)!=(a)) (v)=a; else (v)=b;
+#define  FLOAT_TOGGLE(v)	if((v)!=1.f) (v)=1.f; else (v)=0.f;
 // XXX: Read the metrics file instead!
 // Using this can give us unlisted scroll speeds on the Options screen.
 // Zmey: done.
 // AJ: thanks Zmey! :D
-#define  INCREMENT_SCROLL_SPEED(s)	(s==0.5f) ? s=0.75f : (s==0.75f) ? s=1.0f : (s==1.0f) ? s=1.5f : (s==1.5f) ? s=2.0f : (s==2.0f) ? s=3.0f : (s==3.0f) ? s=4.0f : (s==4.0f) ? s=5.0f : (s==5.0f) ? s=8.0f : s=0.5f;
-#define  DECREMENT_SCROLL_SPEED(s)	(s==0.75f) ? s=0.5f : (s==1.0f) ? s=0.75f : (s==1.5f) ? s=1.0f : (s==2.0f) ? s=1.5f : (s==3.0f) ? s=2.0f : (s==4.0f) ? s=3.0f : (s==5.0f) ? s=4.0f : (s==8.0f) ? s=4.0f : s=8.0f;
+#define  INCREMENT_SCROLL_SPEED(s)	((s)==0.5f) ? (s)=0.75f : ((s)==0.75f) ? (s)=1.0f : ((s)==1.0f) ? (s)=1.5f : ((s)==1.5f) ? (s)=2.0f : ((s)==2.0f) ? (s)=3.0f : ((s)==3.0f) ? (s)=4.0f : ((s)==4.0f) ? (s)=5.0f : ((s)==5.0f) ? (s)=8.0f : (s)=0.5f;
+#define  DECREMENT_SCROLL_SPEED(s)	((s)==0.75f) ? (s)=0.5f : ((s)==1.0f) ? (s)=0.75f : ((s)==1.5f) ? (s)=1.0f : ((s)==2.0f) ? (s)=1.5f : ((s)==3.0f) ? (s)=2.0f : ((s)==4.0f) ? (s)=3.0f : ((s)==5.0f) ? (s)=4.0f : ((s)==8.0f) ? (s)=4.0f : (s)=8.0f;
 
 // from Pumpmania
 void CodeDetector::ChangeScrollSpeed( GameController controller, bool bIncrement )
@@ -192,7 +190,7 @@ bool CodeDetector::DetectAndAdjustMusicOptions( GameController controller )
 
 	for( int c=CODE_MIRROR; c<=CODE_CANCEL_ALL; c++ )
 	{
-		auto code = (Code)c;
+		auto code = static_cast<Code>(c);
 
 		PlayerOptions po = GAMESTATE->m_pPlayerState[pn]->m_PlayerOptions.GetPreferred();
 

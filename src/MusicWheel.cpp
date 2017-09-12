@@ -1,31 +1,29 @@
-#include "global.h"
-#include "MusicWheel.h"
-#include "RageUtil.h"
-#include "SongManager.h"
-#include "GameManager.h"
-#include "PrefsManager.h"
-#include "ScreenManager.h"
-#include "RageLog.h"
-#include "GameState.h"
-#include "ThemeManager.h"
-#include "NetworkSyncManager.h"
-#include "Song.h"
-#include "Steps.h"
-#include "GameCommand.h"
+﻿#include "global.h"
 #include "ActorUtil.h"
-#include "SongUtil.h"
-#include "Foreach.h"
-#include "Style.h"
-#include "PlayerState.h"
 #include "CommonMetrics.h"
-#include "MessageManager.h"
-#include "LocalizedString.h"
 #include "FilterManager.h"
+#include "Foreach.h"
+#include "GameCommand.h"
+#include "GameManager.h"
+#include "GameState.h"
+#include "LocalizedString.h"
+#include "MessageManager.h"
+#include "MusicWheel.h"
+#include "NetworkSyncManager.h"
+#include "PlayerState.h"
+#include "PrefsManager.h"
+#include "RageLog.h"
 #include "RageString.h"
+#include "RageUtil.h"
+#include "ScreenManager.h"
+#include "Song.h"
+#include "SongManager.h"
+#include "SongUtil.h"
+#include "Style.h"
+#include "ThemeManager.h"
 
 #define NUM_WHEEL_ITEMS		(static_cast<int>(ceil(NUM_WHEEL_ITEMS_TO_DRAW+2)))
-#define WHEEL_TEXT(s)		THEME->GetString( "MusicWheel", ssprintf("%sText",s.c_str()) );
-#define CUSTOM_ITEM_WHEEL_TEXT(s)		THEME->GetString( "MusicWheel", ssprintf("CustomItem%sText",s.c_str()) );
+#define CUSTOM_ITEM_WHEEL_TEXT(s)		THEME->GetString( "MusicWheel", ssprintf("CustomItem%sText",(s).c_str()) );
 
 static RString SECTION_COLORS_NAME( size_t i )	{ return ssprintf("SectionColor%d", static_cast<int>(i+1)); }
 static RString CHOICE_NAME( RString s )		{ return ssprintf("Choice%s",s.c_str()); }
@@ -208,7 +206,7 @@ void MusicWheel::ReloadSongList(bool searching, RString findme)
 			return;
 		}
 		Song *pSong = GAMESTATE->m_pCurSong;
-		if (pSong) {
+		if (pSong != nullptr) {
 			RString curSongTitle = pSong->GetDisplayMainTitle();
 			if (GetSelectedSection() != NULL && curSongTitle != prevSongTitle) {
 				prevSongTitle = curSongTitle;
@@ -236,7 +234,7 @@ void MusicWheel::SelectSongAfterSearch() {
  * available. */
 bool MusicWheel::SelectSongOrCourse()
 {
-	if( GAMESTATE->m_pPreferredSong && SelectSong( GAMESTATE->m_pPreferredSong ) )
+	if( (GAMESTATE->m_pPreferredSong != nullptr) && SelectSong( GAMESTATE->m_pPreferredSong ) )
 		return true;
 	if( GAMESTATE->m_pCurSong && SelectSong( GAMESTATE->m_pCurSong ) )
 		return true;
@@ -607,7 +605,7 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 				wid.m_pAction = HiddenPtr<GameCommand>( new GameCommand );
 				wid.m_pAction->m_sName = vsNames[i];
 				wid.m_pAction->Load( i, ParseCommands(CHOICE.GetValue(vsNames[i])) );
-				wid.m_sLabel = WHEEL_TEXT( vsNames[i] );
+				wid.m_sLabel = THEME->GetString("MusicWheel", ssprintf("%sText", vsNames[i].c_str()));
 
 				if( !wid.m_pAction->IsPlayable() )
 					continue;
@@ -1485,7 +1483,7 @@ class LunaMusicWheel : public Luna<MusicWheel>
 public:
 	static int ChangeSort(T* p, lua_State *L)
 	{
-		if (lua_isnil(L, 1)) { lua_pushboolean(L, false); }
+		if (lua_isnil(L, 1)) { lua_pushboolean(L, 0); }
 		else
 		{
 			SortOrder so = Enum::Check<SortOrder>(L, 1);
@@ -1497,7 +1495,7 @@ public:
 	static int IsRouletting(T* p, lua_State *L) { lua_pushboolean(L, p->IsRouletting()); return 1; }
 	static int SelectSong(T* p, lua_State *L)
 	{
-		if (lua_isnil(L, 1)) { lua_pushboolean(L, false); }
+		if (lua_isnil(L, 1)) { lua_pushboolean(L, 0); }
 		else
 		{
 			Song *pS = Luna<Song>::check(L, 1, true);

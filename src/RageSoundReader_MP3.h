@@ -1,11 +1,9 @@
 ﻿#ifndef RAGE_SOUND_READER_MP3_H
 #define RAGE_SOUND_READER_MP3_H
 
-#include <array>
 #include "RageSoundReader_FileReader.h"
 
 constexpr unsigned int MP3_BUFFER_SIZE = 4096;
-
 
 extern "C"
 {
@@ -28,6 +26,7 @@ public:
 	~RageSoundReader_MP3() override;
 	RageSoundReader_MP3(const RageSoundReader_MP3 &) = delete;
 	RageSoundReader_MP3 *Copy() const override;
+
 private:
 	int ReadAFrame();
 	int WriteSamplesForAllChannels(void *pBuf, int samplesToRead);
@@ -47,7 +46,7 @@ private:
 	AVFormatContext* formatCtx{nullptr};
 	AVCodec *codec{nullptr};
 	AVCodecContext *codecCtx{nullptr};
-    AVFrame *decodedFrame{nullptr};
+	AVFrame *decodedFrame{nullptr};
 };
 
 #endif

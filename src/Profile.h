@@ -1,18 +1,17 @@
-#ifndef Profile_H
+﻿#ifndef Profile_H
 #define Profile_H
 
+#include "DateTime.h"
 #include "GameConstantsAndTypes.h"
 #include "Grade.h"
-#include <map>
-#include <set>
-#include <deque>
 #include "HighScore.h"
-#include "DateTime.h"
+#include "LuaReference.h"
 #include "SongUtil.h"	// for SongID
 #include "StepsUtil.h"	// for StepsID
 #include "StyleUtil.h"	// for StyleID
-#include "LuaReference.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
+#include <map>
+#include <set>
 
 #include <unordered_map>
 

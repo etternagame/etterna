@@ -1,4 +1,4 @@
-#ifndef LUA_MANAGER_H
+﻿#ifndef LUA_MANAGER_H
 #define LUA_MANAGER_H
 
 struct lua_State;
@@ -10,14 +10,13 @@ class LuaReference;
 
 extern "C"
 {
-#include "../extern/lua-5.1/src/lua.h"
-#include "../extern/lua-5.1/src/lualib.h"
 #include "../extern/lua-5.1/src/lauxlib.h"
+#include "../extern/lua-5.1/src/lua.h"
 }
 
 // For Dialog::Result
-#include "arch/Dialog/Dialog.h"
 #include "RageUtil.h"
+#include "arch/Dialog/Dialog.h"
 
 class LuaManager
 {

@@ -2,7 +2,6 @@
 #include "EnumHelper.h"
 #include "LuaManager.h"
 #include "RageUtil.h"
-#include "RageLog.h"
 
 int CheckEnum( lua_State *L, LuaReference &table, int iPos, int iInvalid, const char *szType, bool bAllowInvalid, bool bAllowAnything )
 {
@@ -22,7 +21,7 @@ int CheckEnum( lua_State *L, LuaReference &table, int iPos, int iInvalid, const 
 	lua_gettable( L, -2 );
 
 	// If not found, check case-insensitively for legacy compatibility
-	if( lua_isnil(L, -1) && lua_isstring(L, iPos) ) {
+	if( lua_isnil(L, -1) && (lua_isstring(L, iPos) != 0) ) {
 		RString sLower;
 
 		// Get rid of nil value on stack
@@ -45,7 +44,7 @@ int CheckEnum( lua_State *L, LuaReference &table, int iPos, int iInvalid, const 
 	if( unlikely(lua_isnil(L, -1)) )
 	{
 		RString sGot;
-		if( lua_isstring(L, iPos) )
+		if( lua_isstring(L, iPos) != 0 )
 		{
 			/* We were given a string, but it wasn't a valid value for this enum.  Show
 			 * the string. */
@@ -131,7 +130,7 @@ namespace
 
 		/* Look up the reverse table.  If there is no metafield, then we were
 		 * called on the wrong type. */
-		if( !luaL_getmetafield(L, 1, "reverse") )
+		if( luaL_getmetafield(L, 1, "reverse") == 0 )
 			luaL_typerror( L, 1, "enum" );
 
 		return 1;

@@ -1,11 +1,11 @@
 #ifndef ScreenRanking_H
 #define ScreenRanking_H
 
-#include "ScreenAttract.h"
-#include "BitmapText.h"
 #include "Banner.h"
-#include "Difficulty.h"
+#include "BitmapText.h"
 #include "CommonMetrics.h"
+#include "Difficulty.h"
+#include "ScreenAttract.h"
 
 typedef pair<Difficulty, StepsType> DifficultyAndStepsType;
 
@@ -26,7 +26,7 @@ public:
 	void Init() override;
 	void BeginScreen() override;
 
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 
 protected:
 	struct PageToShow

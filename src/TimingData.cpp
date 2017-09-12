@@ -1,12 +1,12 @@
 #include "global.h"
-#include "TimingData.h"
-#include "PrefsManager.h"
-#include "GameState.h"
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "ThemeManager.h"
-#include "NoteTypes.h"
 #include "Foreach.h"
+#include "GameState.h"
+#include "NoteTypes.h"
+#include "PrefsManager.h"
+#include "RageLog.h"
+#include "RageUtil.h"
+#include "ThemeManager.h"
+#include "TimingData.h"
 #include <cfloat>
 
 static void EraseSegment(vector<TimingSegment*> &vSegs, int index, TimingSegment *cur);
@@ -130,9 +130,9 @@ void TimingData::ReleaseLookup()
 	// small trick is required to actually free the memory. -Kyz
 #define CLEAR_LOOKUP(lookup) \
 	{ \
-		lookup.clear(); \
+		(lookup).clear(); \
 		beat_start_lookup_t tmp= lookup; \
-		lookup.swap(tmp); \
+		(lookup).swap(tmp); \
 	}
 	CLEAR_LOOKUP(m_beat_start_lookup);
 	CLEAR_LOOKUP(m_time_start_lookup);
@@ -272,7 +272,7 @@ void TimingData::ShiftRange(int start_row, int end_row,
 			int first_row= min(start_row, start_row + shift_amount);
 			int last_row= max(end_row, end_row + shift_amount);
 			int first_affected= GetSegmentIndexAtRow(seg_type, first_row);
-			int last_affected= GetSegmentIndexAtRow(seg_type, last_row);
+			size_t last_affected= GetSegmentIndexAtRow(seg_type, last_row);
 			if(first_affected == INVALID_INDEX)
 			{
 				continue;
@@ -412,7 +412,7 @@ int TimingData::GetSegmentIndexAtRow(TimingSegmentType tst, int iRow ) const
 		{
 			return m;
 		}
-		else if( vSegs[m]->GetRow() <= iRow )
+		if( vSegs[m]->GetRow() <= iRow )
 		{
 			l = m + 1;
 		}
@@ -572,7 +572,7 @@ const TimingSegment* TimingData::GetSegmentAtRow( int iNoteRow, TimingSegmentTyp
 			// we don't want it, return a dummy instead
 			if( seg->GetRow() == iNoteRow )
 				return seg;
-			else
+			
 				return DummySegments[tst];
 		}
 	}
@@ -832,7 +832,7 @@ void TimingData::GetBeatInternal(GetBeatStarts& start, GetBeatArgs& args,
 	unsigned int curr_segment= start.bpm+start.warp+start.stop+start.delay;
 
 	float bps= GetBPMAtRow(start.last_row) / 60.0f;
-#define INC_INDEX(index) ++curr_segment; ++index;
+#define INC_INDEX(index) ++curr_segment; ++(index);
 
 	while(curr_segment < max_segment)
 	{
@@ -950,7 +950,7 @@ float TimingData::GetElapsedTimeInternal(GetBeatStarts& start, float beat,
 	unsigned int curr_segment= start.bpm+start.warp+start.stop+start.delay;
 
 	float bps= GetBPMAtRow(start.last_row) / 60.0f;
-#define INC_INDEX(index) ++curr_segment; ++index;
+#define INC_INDEX(index) ++curr_segment; ++(index);
 	bool find_marker= beat < FLT_MAX;
 
 	while(curr_segment < max_segment)
@@ -1152,7 +1152,7 @@ float TimingData::GetDisplayedSpeedPercent( float fSongBeat, float fMusicSeconds
 	 * isn't existing. */
 	/* ...but force a crash, so debuggers will catch it and stop here.
 	 * That'll make us keep this bug in mind. -- vyhd */
-	if( !this )
+	if( this == nullptr )
 	{
 		DEBUG_ASSERT( this );
 		return 1.0f;
@@ -1191,7 +1191,7 @@ float TimingData::GetDisplayedSpeedPercent( float fSongBeat, float fMusicSeconds
 	{
 		return 1.0f;
 	}
-	else if( fEndTime >= fCurTime && ( index > 0 || first->GetDelay() > 0.0 ) )
+	if( fEndTime >= fCurTime && ( index > 0 || first->GetDelay() > 0.0 ) )
 	{
 		const float fPriorSpeed = (index == 0) ? 1 :
 			ToSpeed(speeds[index-1])->GetRatio();
@@ -1204,10 +1204,10 @@ float TimingData::GetDisplayedSpeedPercent( float fSongBeat, float fMusicSeconds
 		float fRatioNeed = fRatioUsed * -fDistance;
 		return (fPriorSpeed + fRatioNeed);
 	}
-	else
-	{
+	
+	
 		return seg->GetRatio();
-	}
+	
 
 }
 

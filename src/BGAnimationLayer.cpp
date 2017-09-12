@@ -1,18 +1,15 @@
-#include "global.h"
+﻿#include "global.h"
+#include "ActorUtil.h"
+#include "AutoActor.h"
 #include "BGAnimationLayer.h"
 #include "GameState.h"
-#include "XmlFile.h"
-#include "RageMath.h"
-#include "RageLog.h"
-#include "Song.h"
-#include "ScreenDimensions.h"
-#include "Sprite.h"
 #include "RageDisplay.h"
-#include "ActorUtil.h"
-#include "arch/ArchHooks/ArchHooks.h"
-#include "LuaManager.h"
-#include "AutoActor.h"
+#include "RageMath.h"
+#include "ScreenDimensions.h"
+#include "Song.h"
+#include "Sprite.h"
 #include "ThemeManager.h"
+#include "XmlFile.h"
 
 
 const float PARTICLE_SPEED = 300;
@@ -156,7 +153,7 @@ void BGAnimationLayer::LoadFromAniLayerFile( const RString& sPath )
 
 	for( int i=0; i<NUM_EFFECTS; i++ )
 		if( lcPath.find(EFFECT_STRING[i]) != string::npos )
-			effect = (Effect)i;
+			effect = static_cast<Effect>(i);
 
 	switch( effect )
 	{
@@ -550,7 +547,7 @@ void BGAnimationLayer::UpdateInternal( float fDeltaTime )
 	switch( m_Type )
 	{
 	case TYPE_SPRITE:
-		if( m_fTexCoordVelocityX || m_fTexCoordVelocityY )
+		if( (m_fTexCoordVelocityX != 0.0f) || (m_fTexCoordVelocityY != 0.0f) )
 		{
 			for( unsigned i=0; i<m_SubActors.size(); i++ )
 			{

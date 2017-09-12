@@ -1,4 +1,4 @@
-#ifndef NOTEDATAUTIL_H
+﻿#ifndef NOTEDATAUTIL_H
 #define NOTEDATAUTIL_H
 
 #include "GameConstantsAndTypes.h"

@@ -1,11 +1,11 @@
 #include "global.h"
-#include "ScreenRanking.h"
-#include "ScreenManager.h"
-#include "SongManager.h"
-#include "GameState.h"
 #include "GameManager.h"
-#include "ProfileManager.h"
+#include "GameState.h"
 #include "Profile.h"
+#include "ProfileManager.h"
+#include "ScreenManager.h"
+#include "ScreenRanking.h"
+#include "SongManager.h"
 
 
 static const char *RankingTypeNames[] = {
@@ -20,16 +20,16 @@ AutoScreenMessage( SM_HidePage );
 
 REGISTER_SCREEN_CLASS( ScreenRanking );
 
-#define BULLET_X(row)	(BULLET_START_X+ROW_SPACING_X*row)
-#define BULLET_Y(row)	(BULLET_START_Y+ROW_SPACING_Y*row)
-#define NAME_X(row)	(NAME_START_X+ROW_SPACING_X*row)
-#define NAME_Y(row)	(NAME_START_Y+ROW_SPACING_Y*row)
-#define SCORE_X(row)	(SCORE_START_X+ROW_SPACING_X*row)
-#define SCORE_Y(row)	(SCORE_START_Y+ROW_SPACING_Y*row)
-#define POINTS_X(row)	(POINTS_START_X+ROW_SPACING_X*row)
-#define POINTS_Y(row)	(POINTS_START_Y+ROW_SPACING_Y*row)
-#define TIME_X(row)	(TIME_START_X+ROW_SPACING_X*row)
-#define TIME_Y(row)	(TIME_START_Y+ROW_SPACING_Y*row)
+#define BULLET_X(row)	(BULLET_START_X+ROW_SPACING_X*(row))
+#define BULLET_Y(row)	(BULLET_START_Y+ROW_SPACING_Y*(row))
+#define NAME_X(row)	(NAME_START_X+ROW_SPACING_X*(row))
+#define NAME_Y(row)	(NAME_START_Y+ROW_SPACING_Y*(row))
+#define SCORE_X(row)	(SCORE_START_X+ROW_SPACING_X*(row))
+#define SCORE_Y(row)	(SCORE_START_Y+ROW_SPACING_Y*(row))
+#define POINTS_X(row)	(POINTS_START_X+ROW_SPACING_X*(row))
+#define POINTS_Y(row)	(POINTS_START_Y+ROW_SPACING_Y*(row))
+#define TIME_X(row)	(TIME_START_X+ROW_SPACING_X*(row))
+#define TIME_Y(row)	(TIME_START_Y+ROW_SPACING_Y*(row))
 
 static RString STEPS_TYPE_COLOR_NAME( size_t i ) { return ssprintf("StepsTypeColor%d",int(i+1)); }
 

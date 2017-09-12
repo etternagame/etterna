@@ -1,31 +1,31 @@
 #include "global.h"
+#include "CodeDetector.h"
+#include "GameCommand.h"
+#include "GameLoop.h"
+#include "GamePreferences.h"
+#include "GameSoundManager.h"
+#include "GameState.h"
+#include "InputEventPlus.h"
+#include "InputMapper.h"
+#include "LocalizedString.h"
+#include "NoteSkinManager.h"
+#include "PlayerState.h"
+#include "PrefsManager.h"
+#include "Profile.h"
+#include "ProfileManager.h"
+#include "RageDisplay.h"
+#include "RageInput.h"
+#include "RageLog.h"
+#include "RageSoundManager.h"
+#include "RageTextureManager.h"
 #include "ScreenDebugOverlay.h"
 #include "ScreenDimensions.h"
-#include "ScreenManager.h"
-#include "PrefsManager.h"
-#include "GamePreferences.h"
-#include "RageLog.h"
-#include "GameState.h"
-#include "PlayerState.h"
-#include "StepMania.h"
-#include "GameCommand.h"
 #include "ScreenGameplay.h"
-#include "RageSoundManager.h"
-#include "GameSoundManager.h"
-#include "InputMapper.h"
-#include "RageTextureManager.h"
-#include "NoteSkinManager.h"
-#include "ProfileManager.h"
-#include "CodeDetector.h"
-#include "RageInput.h"
-#include "RageDisplay.h"
-#include "InputEventPlus.h"
-#include "LocalizedString.h"
-#include "Profile.h"
-#include "SongManager.h"
-#include "GameLoop.h"
-#include "Song.h"
+#include "ScreenManager.h"
 #include "ScreenSyncOverlay.h"
+#include "Song.h"
+#include "SongManager.h"
+#include "StepMania.h"
 #include "ThemeMetric.h"
 #include "XmlToLua.h"
 
@@ -87,7 +87,7 @@ public:
 
 static bool IsGameplay()
 {
-	return SCREENMAN && SCREENMAN->GetTopScreen() && SCREENMAN->GetTopScreen()->GetScreenType() == gameplay;
+	return (SCREENMAN != nullptr) && (SCREENMAN->GetTopScreen() != nullptr) && SCREENMAN->GetTopScreen()->GetScreenType() == gameplay;
 }
 
 
@@ -767,7 +767,7 @@ class DebugLineShowMasks : public IDebugLine
 static ProfileSlot g_ProfileSlot = ProfileSlot_Player1;
 static bool IsSelectProfilePersistent()
 {
-	return PROFILEMAN->IsPersistentProfile( (PlayerNumber) g_ProfileSlot );
+	return PROFILEMAN->IsPersistentProfile( static_cast<PlayerNumber>( g_ProfileSlot) );
 }
 
 class DebugLineProfileSlot : public IDebugLine
@@ -813,7 +813,7 @@ static HighScore MakeRandomHighScore( float fPercentDP )
 {
 	HighScore hs;
 	hs.SetName( "FAKE" );
-	auto g = (Grade)SCALE( RandomInt(6), 0, 4, Grade_Tier01, Grade_Tier06 );
+	auto g = static_cast<Grade>SCALE( RandomInt(6), 0, 4, Grade_Tier01, Grade_Tier06 );
 	if( g == Grade_Tier06 )
 		g = Grade_Failed;
 	hs.SetGrade( g );
@@ -848,7 +848,7 @@ static void FillProfileStats( Profile *pProfile )
 	static int s_iCount = 0;
 	// Choose a percent for all scores. This is useful for testing unlocks
 	// where some elements are unlocked at a certain percent complete.
-	float fPercentDP = s_iCount ? randomf( 0.6f, 1.0f ) : 1.0f;
+	float fPercentDP = s_iCount != 0 ? randomf( 0.6f, 1.0f ) : 1.0f;
 	s_iCount = (s_iCount+1)%2;
 
 
@@ -1072,7 +1072,7 @@ class DebugLineConvertXML : public IDebugLine
 	void DoAndLog( RString &sMessageOut ) override
 	{
 		Song* cur_song= GAMESTATE->m_pCurSong;
-		if(cur_song)
+		if(cur_song != nullptr)
 		{
 			convert_xmls_in_dir(cur_song->GetSongDir() + "/");
 			IDebugLine::DoAndLog(sMessageOut);
@@ -1088,7 +1088,7 @@ class DebugLineWriteProfiles : public IDebugLine
 	RString GetPageName() const override { return "Profiles"; }
 	void DoAndLog(RString &sMessageOut) override
 	{
-		auto pn = (PlayerNumber)g_ProfileSlot;
+		auto pn = static_cast<PlayerNumber>(g_ProfileSlot);
 		GAMESTATE->SaveCurrentSettingsToProfile(pn);
 		GAMESTATE->SavePlayerProfile(pn);
 		IDebugLine::DoAndLog(sMessageOut);

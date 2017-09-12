@@ -1,10 +1,10 @@
 #include "global.h"
 
-#include "SongCacheIndex.h"
+#include "RageFileManager.h"
 #include "RageLog.h"
 #include "RageUtil.h"
-#include "RageFileManager.h"
 #include "Song.h"
+#include "SongCacheIndex.h"
 #include "SpecialFiles.h"
 
 /*
@@ -24,7 +24,7 @@
  * path; we don't have to actually look in the directory (to find out the directory hash)
  * in order to find the cache file.
  */
-#define CACHE_INDEX SpecialFiles::CACHE_DIR + "index.cache"
+#define CACHE_INDEX (SpecialFiles::CACHE_DIR + "index.cache")
 
 
 SongCacheIndex *SONGINDEX; // global and accessible from anywhere in our program

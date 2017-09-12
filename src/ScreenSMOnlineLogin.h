@@ -7,7 +7,7 @@ class ScreenSMOnlineLogin : public ScreenOptions
 {
 public:
 	void Init() override;
-	void HandleScreenMessage(const ScreenMessage SM) override;
+	void HandleScreenMessage(ScreenMessage SM) override;
 	bool MenuStart( const InputEventPlus &input ) override;
 	void SendLogin( RString sPassword );
 

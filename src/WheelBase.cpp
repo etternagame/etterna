@@ -1,20 +1,20 @@
 #include "global.h"
-#include "WheelBase.h"
-#include "RageUtil.h"
-#include "GameManager.h"
-#include "PrefsManager.h"
-#include "ScreenManager.h"	// for sending SM_PlayMusicSample
-#include "RageLog.h"
-#include "GameConstantsAndTypes.h"
-#include "GameState.h"
-#include "RageMath.h"
-#include "ThemeManager.h"
-#include "RageTextureManager.h"
 #include "ActorUtil.h"
 #include "Foreach.h"
-#include "Style.h"
-#include "ThemeMetric.h"
+#include "GameConstantsAndTypes.h"
+#include "GameManager.h"
+#include "GameState.h"
+#include "PrefsManager.h"
+#include "RageLog.h"
+#include "RageMath.h"
+#include "RageTextureManager.h"
+#include "RageUtil.h"
 #include "ScreenDimensions.h"
+#include "ScreenManager.h"	// for sending SM_PlayMusicSample
+#include "Style.h"
+#include "ThemeManager.h"
+#include "ThemeMetric.h"
+#include "WheelBase.h"
 
 const int MAX_WHEEL_SOUND_SPEED = 15;
 AutoScreenMessage( SM_SongChanged ); // TODO: Replace this with a Message and MESSAGEMAN
@@ -119,7 +119,7 @@ void WheelBase::UpdateScrollbar()
 
 bool WheelBase::IsSettled() const
 {
-	if( m_Moving )
+	if( m_Moving != 0 )
 		return false;
 	if( m_WheelState != STATE_SELECTING && m_WheelState != STATE_LOCKED )
 		return false;
@@ -165,7 +165,7 @@ void WheelBase::Update( float fDeltaTime )
 	// to break something.
 	UpdateScrollbar();
 
-	if( m_Moving )
+	if( m_Moving != 0 )
 	{
 		m_TimeBeforeMovingBegins -= fDeltaTime;
 		m_TimeBeforeMovingBegins = max(m_TimeBeforeMovingBegins, 0);
@@ -204,7 +204,7 @@ void WheelBase::Update( float fDeltaTime )
 		}
 	}
 
-	if( IsMoving() )
+	if( IsMoving() != 0 )
 	{
 		// We're automatically moving. Move linearly, and don't clamp to the selection.
 		float fSpinSpeed = m_SpinSpeed*m_Moving;
@@ -310,7 +310,7 @@ WheelItemBaseData* WheelBase::GetItem( unsigned int iIndex )
 
 int WheelBase::IsMoving() const
 {
-	return m_Moving && m_TimeBeforeMovingBegins == 0;
+	return (static_cast<int>(m_Moving != 0) && m_TimeBeforeMovingBegins == 0);
 }
 
 void WheelBase::TweenOnScreenForSort()
@@ -341,7 +341,7 @@ void WheelBase::ChangeMusicUnlessLocked( int n )
 {
 	if( m_WheelState == STATE_LOCKED )
 	{
-		if(n)
+		if(n != 0)
 		{
 			int iSign = n/abs(n);
 			m_fLockedWheelVelocity = iSign*LOCKED_INITIAL_VELOCITY;
@@ -360,7 +360,7 @@ void WheelBase::Move(int n)
 
 	if( m_WheelState == STATE_LOCKED )
 	{
-		if(n)
+		if(n != 0)
 		{
 			int iSign = n/abs(n);
 			m_fLockedWheelVelocity = iSign*LOCKED_INITIAL_VELOCITY;
@@ -376,7 +376,7 @@ void WheelBase::Move(int n)
 	m_SpinSpeed = float(PREFSMAN->m_iMusicWheelSwitchSpeed);
 	m_Moving = n;
 
-	if( m_Moving )
+	if( m_Moving != 0 )
 		ChangeMusic(m_Moving);
 }
 
@@ -488,7 +488,7 @@ WheelItemBaseData* WheelBase::LastSelected()
 {
 	if( m_bEmpty )
 		return NULL;
-	else
+	
 		return m_LastSelection;
 }
 

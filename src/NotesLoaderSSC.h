@@ -1,4 +1,4 @@
-/** @brief SSCLoader - Reads a Song and its Steps from a .SSC file. */
+﻿/** @brief SSCLoader - Reads a Song and its Steps from a .SSC file. */
 #ifndef NotesLoaderSSC_H
 #define NotesLoaderSSC_H
 
@@ -78,10 +78,10 @@ struct SSCLoader : public SMLoader
 	
 	void ProcessBPMs( TimingData &, const RString &sParam );
 	void ProcessStops( TimingData &, const RString &sParam );
-	void ProcessWarps( TimingData &, const RString &sParam, const float );
+	void ProcessWarps( TimingData &, const RString &sParam, float );
 	void ProcessLabels( TimingData &, const RString &param );
-	void ProcessCombos( TimingData &, const RString &line, const int = -1 ) override;
-	void ProcessScrolls( TimingData &, const RString );
+	void ProcessCombos( TimingData &, const RString &line, int = -1 ) override;
+	void ProcessScrolls( TimingData &, RString );
 };
 
 #endif

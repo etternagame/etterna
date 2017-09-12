@@ -1,19 +1,19 @@
 #include "global.h"
 #if !defined(WITHOUT_NETWORKING)
-#include "ScreenSMOnlineLogin.h"
-#include "RageLog.h"
-#include "ProfileManager.h"
 #include "GameSoundManager.h"
-#include "ThemeManager.h"
-#include "PrefsManager.h"
-#include "ScreenManager.h"
-#include "ScreenTextEntry.h"
-#include "ScreenPrompt.h"
 #include "GameState.h"
-#include "NetworkSyncManager.h"
-#include "Profile.h"
 #include "LocalizedString.h"
+#include "NetworkSyncManager.h"
 #include "OptionRowHandler.h"
+#include "PrefsManager.h"
+#include "Profile.h"
+#include "ProfileManager.h"
+#include "RageLog.h"
+#include "ScreenManager.h"
+#include "ScreenPrompt.h"
+#include "ScreenSMOnlineLogin.h"
+#include "ScreenTextEntry.h"
+#include "ThemeManager.h"
 
 REGISTER_SCREEN_CLASS(ScreenSMOnlineLogin);
 
@@ -116,7 +116,7 @@ void ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 	else if( SM == SM_SMOnlinePack )
 	{
 		LOG->Trace("[ScreenSMOnlineLogin::HandleScreenMessage] SMOnlinePack");
-		if(!GAMESTATE->IsPlayerEnabled((PlayerNumber) m_iPlayer))
+		if(!GAMESTATE->IsPlayerEnabled(static_cast<PlayerNumber>( m_iPlayer)))
 		{
 			LuaHelpers::ReportScriptErrorFmt("Invalid player number: %i", m_iPlayer);
 			return;
@@ -134,7 +134,7 @@ void ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 			{
 				NSMAN->isSMOLoggedIn[m_iPlayer] = true;
 				m_iPlayer++;
-				if( GAMESTATE->IsPlayerEnabled((PlayerNumber) m_iPlayer) && m_iPlayer < NUM_PLAYERS )
+				if( GAMESTATE->IsPlayerEnabled(static_cast<PlayerNumber>( m_iPlayer)) && m_iPlayer < NUM_PLAYERS )
 				{
 					ScreenTextEntry::Password(SM_PasswordDone, sLoginQuestion, NULL );
 				}
@@ -162,7 +162,7 @@ void ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 		PREFSMAN->SavePrefsToDisk();
 		FOREACH_EnabledPlayer(pn)
 		{
-			PROFILEMAN->LoadLocalProfileFromMachine((PlayerNumber) pn);
+			PROFILEMAN->LoadLocalProfileFromMachine( pn);
 		}
 
 		if(GAMESTATE->IsPlayerEnabled((PlayerNumber) 0) && GAMESTATE->IsPlayerEnabled((PlayerNumber) 1) &&
@@ -174,7 +174,7 @@ void ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 		else
 		{
 			m_iPlayer=0;
-			while(!GAMESTATE->IsPlayerEnabled((PlayerNumber) m_iPlayer))
+			while(!GAMESTATE->IsPlayerEnabled(static_cast<PlayerNumber>( m_iPlayer)))
 				++m_iPlayer;
 			sLoginQuestion = YOU_ARE_LOGGING_ON_AS.GetValue() + "\n" + GAMESTATE->GetPlayerDisplayName((PlayerNumber) m_iPlayer) + "\n" + ENTER_YOUR_PASSWORD.GetValue();
 			ScreenTextEntry::Password(SM_PasswordDone, sLoginQuestion, NULL );

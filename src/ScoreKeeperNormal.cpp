@@ -1,24 +1,24 @@
 #include "global.h"
-#include "ScoreKeeperNormal.h"
-#include "GameState.h"
-#include "PrefsManager.h"
-#include "GamePreferences.h"
-#include "Steps.h"
-#include "ScreenManager.h"
-#include "GameState.h"
-#include "SongManager.h"
-#include "NoteDataUtil.h"
-#include "NoteData.h"
-#include "RageLog.h"
-#include "StageStats.h"
-#include "ProfileManager.h"
-#include "NetworkSyncManager.h"
-#include "PlayerState.h"
 #include "Game.h"
-#include "Style.h"
-#include "Song.h"
-#include "TimingData.h"
+#include "GamePreferences.h"
+#include "GameState.h"
+#include "GameState.h"
+#include "NetworkSyncManager.h"
+#include "NoteData.h"
+#include "NoteDataUtil.h"
 #include "NoteDataWithScoring.h"
+#include "PlayerState.h"
+#include "PrefsManager.h"
+#include "ProfileManager.h"
+#include "RageLog.h"
+#include "ScoreKeeperNormal.h"
+#include "ScreenManager.h"
+#include "Song.h"
+#include "SongManager.h"
+#include "StageStats.h"
+#include "Steps.h"
+#include "Style.h"
+#include "TimingData.h"
 
 static RString PercentScoreWeightName( size_t i ) { return "PercentScoreWeight" + ScoreEventToString( (ScoreEvent)i ); }
 static RString GradeWeightName( size_t i ) { return "GradeWeight" + ScoreEventToString( (ScoreEvent)i ); }
@@ -294,7 +294,7 @@ int ScoreKeeperNormal::CalcNextToastyAt(int level)
 				lua_pushnumber(L, level);
 				if(LuaHelpers::RunScriptOnStack(L, err, 2, 1, true))
 				{
-					if(lua_isnumber(L, -1))
+					if(lua_isnumber(L, -1) != 0)
 					{
 						amount= lua_tointeger(L, -1);
 					}

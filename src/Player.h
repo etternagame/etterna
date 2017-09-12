@@ -1,14 +1,12 @@
-#ifndef PLAYER_H
+﻿#ifndef PLAYER_H
 #define PLAYER_H
 
 #include "ActorFrame.h"
 #include "HoldJudgment.h"
-#include "NoteDataWithScoring.h"
-#include "RageSound.h"
 #include "NoteData.h"
+#include "RageSound.h"
 #include "ScreenMessage.h"
 #include "ThemeMetric.h"
-#include "InputEventPlus.h"
 #include "TimingData.h"
 #include <chrono>
 

@@ -1,19 +1,18 @@
-#include "global.h"
-#include "InputHandler_DirectInput.h"
-
-#include "RageUtil.h"
-#include "RageLog.h"
+﻿#include "global.h"
 #include "archutils/Win32/AppInstance.h"
 #include "archutils/Win32/DirectXHelpers.h"
 #include "archutils/Win32/ErrorStrings.h"
 #include "archutils/Win32/GraphicsWindow.h"
 #include "archutils/Win32/RegistryAccess.h"
-#include "InputFilter.h"
-#include "PrefsManager.h"
-#include "GamePreferences.h" //needed for Axis Fix
 #include "Foreach.h"
-
+#include "GamePreferences.h" //needed for Axis Fix
+#include "InputFilter.h"
+#include "InputHandler_DirectInput.h"
 #include "InputHandler_DirectInputHelper.h"
+#include "PrefsManager.h"
+#include "RageLog.h"
+#include "RageTimer.h"
+#include "RageUtil.h"
 
 REGISTER_INPUT_HANDLER_CLASS2( DirectInput, DInput );
 
@@ -417,20 +416,20 @@ void InputHandler_DInput::UpdatePolled( DIDevice &device, const std::chrono::ste
 						neg = MOUSE_WHEELDOWN; pos = MOUSE_WHEELUP;
 						val = state.lZ;
 						//LOG->Trace("MouseWheel polled: %i",val);
-						INPUTFILTER->UpdateMouseWheel(val);
+						INPUTFILTER->UpdateMouseWheel(static_cast<float>(val));
 						if( val == 0 )
 						{
 							// release all
 							ButtonPressed( DeviceInput(dev, pos, 0, tm) );
 							ButtonPressed( DeviceInput(dev, neg, 0, tm) );
 						}
-						else if( static_cast<int>(val) > 0 )
+						else if( val > 0 )
 						{
 							// positive values: WheelUp
 							ButtonPressed( DeviceInput(dev, pos, 1, tm) );
 							ButtonPressed( DeviceInput(dev, neg, 0, tm) );
 						}
-						else if( static_cast<int>(val) < 0 )
+						else if( val < 0 )
 						{
 							// negative values: WheelDown
 							ButtonPressed( DeviceInput(dev, neg, 1, tm) );

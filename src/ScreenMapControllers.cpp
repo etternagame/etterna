@@ -1,20 +1,20 @@
 #include "global.h"
-#include "ScreenMapControllers.h"
-#include "ScreenManager.h"
-#include "ScreenPrompt.h"
-#include "RageLog.h"
-#include "RageInput.h"
-#include "InputMapper.h"
-#include "ThemeManager.h"
-#include "ScreenDimensions.h"
 #include "InputEventPlus.h"
+#include "InputMapper.h"
 #include "LocalizedString.h"
+#include "RageInput.h"
+#include "RageLog.h"
+#include "ScreenDimensions.h"
+#include "ScreenManager.h"
+#include "ScreenMapControllers.h"
+#include "ScreenPrompt.h"
+#include "ThemeManager.h"
 
 AutoScreenMessage(SM_DoSaveAndExit);
 #define BUTTONS_TO_MAP			THEME->GetMetric ( m_sName, "ButtonsToMap" )
 static LocalizedString INVALID_BUTTON   ( "ScreenMapControllers", "InvalidButton" );
 static LocalizedString SAVE_PROMPT("ScreenMapControllers", "SavePrompt");
-#define MAPPED_TO_COMMAND(gc,slot)	THEME->GetMetricA( m_sName, ssprintf("MappedToP%iS%iCommand", gc+1, slot+1) )
+#define MAPPED_TO_COMMAND(gc,slot)	THEME->GetMetricA( m_sName, ssprintf("MappedToP%iS%iCommand", (gc)+1, (slot)+1) )
 
 static const float g_fSecondsToWaitForInput = 0.05f;
 
@@ -289,7 +289,7 @@ void ScreenMapControllers::Update( float fDeltaTime )
 		ASSERT(CursorOnKey());
 		const KeyToMap *pKey = &m_KeysToMap[CurKeyIndex()];
 		
-		GameInput curGameI( (GameController)m_CurController, pKey->m_GameButton );
+		GameInput curGameI( static_cast<GameController>(m_CurController), pKey->m_GameButton );
 
 		INPUTMAPPER->SetInputMap( m_DeviceIToMap, curGameI, m_CurSlot );
 		INPUTMAPPER->AddDefaultMappingsForCurrentGameIfUnmapped();
@@ -457,7 +457,7 @@ bool ScreenMapControllers::Input( const InputEventPlus &input )
 			}
 			{
 				const KeyToMap *pKey = &m_KeysToMap[CurKeyIndex()];
-				GameInput curGameI( (GameController)m_CurController, pKey->m_GameButton );
+				GameInput curGameI( static_cast<GameController>(m_CurController), pKey->m_GameButton );
 				if( !INPUTMAPPER->ClearFromInputMap(curGameI, m_CurSlot) )
 					break;
 
@@ -797,8 +797,8 @@ bool ScreenMapControllers::SanityCheckWrapper()
 	{
 		return true;
 	}
-	else
-	{
+	
+	
 		FOREACH(RString, reasons_not_sane, reason)
 		{
 			*reason= THEME->GetString("ScreenMapControllers", *reason);
@@ -810,7 +810,7 @@ bool ScreenMapControllers::SanityCheckWrapper()
 		m_SanityMessage->HandleMessage(msg);
 		m_AutoDismissSanitySecs= THEME->GetMetricF(m_sName, "AutoDismissSanitySecs");
 		return false;
-	}
+	
 }
 
 void ScreenMapControllers::ActionRow::Load(RString const& scr_name,

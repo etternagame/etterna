@@ -1,4 +1,4 @@
-AUTOMAKE_OPTIONS = subdir-objects
+﻿AUTOMAKE_OPTIONS = subdir-objects
 
 # Windows resource files
 # Using $^ here makes it add .dirstamp garbage as well. So just the first file please.

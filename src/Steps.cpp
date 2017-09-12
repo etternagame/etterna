@@ -12,26 +12,26 @@
  * Data can be on disk (always compressed), compressed in memory, and uncompressed in
  * memory. */
 #include "global.h"
-#include "Steps.h"
-#include "StepsUtil.h"
-#include "GameState.h"
-#include "Song.h"
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "NoteData.h"
 #include "GameManager.h"
-#include "SongManager.h"
+#include "GameState.h"
+#include "MinaCalc.h"
+#include "NoteData.h"
 #include "NoteDataUtil.h"
-#include "NotesLoaderSSC.h"
-#include "NotesLoaderSM.h"
-#include "NotesLoaderSMA.h"
+#include "NotesLoaderBMS.h"
 #include "NotesLoaderDWI.h"
 #include "NotesLoaderKSF.h"
-#include "NotesLoaderBMS.h"
-#include <algorithm>
-#include "MinaCalc.h"
-#include <thread>
+#include "NotesLoaderSM.h"
+#include "NotesLoaderSMA.h"
+#include "NotesLoaderSSC.h"
 #include "NotesWriterETT.h"
+#include "RageLog.h"
+#include "RageUtil.h"
+#include "Song.h"
+#include "SongManager.h"
+#include "Steps.h"
+#include "StepsUtil.h"
+#include <algorithm>
+#include <thread>
 
 /* register DisplayBPM with StringConversion */
 #include "EnumHelper.h"
@@ -79,7 +79,7 @@ void Steps::GetDisplayBpms( DisplayBpms &AddTo ) const
 
 unsigned Steps::GetHash() const
 {
-	if( m_iHash )
+	if( m_iHash != 0u )
 		return m_iHash;
 	if( m_sNoteDataCompressed.empty() )
 	{
@@ -325,14 +325,14 @@ void Steps::Decompress() {
 		/* there is no data, do nothing */
 		return;
 	}
-	else
-	{
+	
+	
 		// load from compressed
 		bool bComposite = false;
 		m_bNoteDataIsFilled = true;
 		m_pNoteData->SetNumTracks(GAMEMAN->GetStepsTypeInfo(m_StepsType).iNumTracks);
 		NoteDataUtil::LoadFromSMNoteDataString(*m_pNoteData, m_sNoteDataCompressed, bComposite);
-	}
+	
 }
 
 bool Steps::IsRecalcValid() {
@@ -653,7 +653,7 @@ public:
 	}
 	static int HasAttacks( T* p, lua_State *L )
 	{ 
-		lua_pushboolean(L, false); 
+		lua_pushboolean(L, 0); 
 		return 1; 
 	}
 	static int GetRadarValues( T* p, lua_State *L )
@@ -721,14 +721,14 @@ public:
 	{
 		DisplayBpms temp;
 		p->GetDisplayBpms(temp);
-		lua_pushboolean( L, temp.IsSecret() );
+		lua_pushboolean( L, static_cast<int>(temp.IsSecret()) );
 		return 1;
 	}
 	static int IsDisplayBpmConstant( T* p, lua_State *L )
 	{
 		DisplayBpms temp;
 		p->GetDisplayBpms(temp);
-		lua_pushboolean( L, temp.BpmIsConstant() );
+		lua_pushboolean( L, static_cast<int>(temp.BpmIsConstant()) );
 		return 1;
 	}
 	static int IsDisplayBpmRandom( T* p, lua_State *L )

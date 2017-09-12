@@ -1,9 +1,8 @@
-#include "global.h"
-#include "ModIcon.h"
-#include "ThemeManager.h"
-#include "PlayerOptions.h"
-#include "RageUtil.h"
+﻿#include "global.h"
 #include "ActorUtil.h"
+#include "ModIcon.h"
+#include "RageUtil.h"
+#include "ThemeManager.h"
 
 ModIcon::ModIcon()
 = default;

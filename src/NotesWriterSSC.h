@@ -1,4 +1,4 @@
-#ifndef NOTES_WRITER_SSC_H
+﻿#ifndef NOTES_WRITER_SSC_H
 #define NOTES_WRITER_SSC_H
 
 class Song;

@@ -1,8 +1,8 @@
 #include "global.h"
-#include "SongOptions.h"
-#include "RageUtil.h"
-#include "GameState.h"
 #include "CommonMetrics.h"
+#include "GameState.h"
+#include "RageUtil.h"
+#include "SongOptions.h"
 
 static const char *AutosyncTypeNames[] = {
 	"Off",
@@ -191,7 +191,7 @@ bool SongOptions::FromOneModString( const RString &sOneMod, RString &sErrorOut )
 
 bool SongOptions::operator==( const SongOptions &other ) const
 {
-#define COMPARE(x) { if( x != other.x ) return false; }
+#define COMPARE(x) { if( (x) != other.x ) return false; }
 	COMPARE( m_fMusicRate );
 	COMPARE( m_bAssistClap );
 	COMPARE( m_bAssistMetronome );

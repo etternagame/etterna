@@ -34,15 +34,15 @@
  */
 
 #include "global.h"
-#include "Song.h"
-#include "Steps.h"
 #include "AdjustSync.h"
+#include "Foreach.h"
 #include "GameState.h"
 #include "LocalizedString.h"
 #include "PrefsManager.h"
 #include "ScreenManager.h"
-#include "Foreach.h"
+#include "Song.h"
 #include "SongManager.h"
+#include "Steps.h"
 
 vector<TimingData> AdjustSync::s_vpTimingDataOriginal;
 float AdjustSync::s_fGlobalOffsetSecondsOriginal = 0.0f;
@@ -326,7 +326,7 @@ void AdjustSync::GetSyncChangeTextSong( vector<RString> &vsAddTo )
 	if( GAMESTATE->m_pCurSong.Get() )
 	{
 #define SEGMENTS_MISMATCH_MESSAGE(orig, test, segments_name) \
-	if(orig.size() != test.size()) \
+	if((orig).size() != (test).size()) \
 	{ \
 		LuaHelpers::ReportScriptError("The sync overlay's " #segments_name " segment list is a different size from the song's.  Please report this bug with steps to reproduce it."); \
 	}

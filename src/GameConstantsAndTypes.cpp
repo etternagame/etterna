@@ -1,15 +1,14 @@
-#include "global.h"
-#include "GameConstantsAndTypes.h"
-#include "GameState.h"
-#include "RageUtil.h"
-#include "ThemeMetric.h"
+﻿#include "global.h"
 #include "EnumHelper.h"
 #include "Foreach.h"
-#include "LuaManager.h"
+#include "GameConstantsAndTypes.h"
 #include "GameManager.h"
+#include "GameState.h"
 #include "LocalizedString.h"
+#include "LuaManager.h"
 #include "PlayerNumber.h"
-#include <cfloat>
+#include "RageUtil.h"
+#include "ThemeMetric.h"
 
 RString StepsTypeToString( StepsType st );
 

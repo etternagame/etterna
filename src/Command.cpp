@@ -1,9 +1,7 @@
-#include "global.h"
+﻿#include "global.h"
 #include "Command.h"
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "arch/Dialog/Dialog.h"
 #include "Foreach.h"
+#include "RageUtil.h"
 
 
 RString Command::GetName() const 

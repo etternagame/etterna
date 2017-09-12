@@ -1,4 +1,4 @@
-/*
+﻿/*
  * When streaming files in gameplay, we need to be able to access files without blocking.
  * If we read data and it's not currently in the OS's read-ahead cache, we'll block while
  * it reads, which will usually take 10-20ms and cause a frame skip.
@@ -39,17 +39,8 @@
 
 #include "global.h"
 #include "RageFileDriverReadAhead.h"
-#include "RageLog.h"
-#include "RageUtil.h"
 #include "RageFileManager_ReadAhead.h"
-
-#if defined(HAVE_FCNTL_H)
-#include <fcntl.h>
-#endif
-#include <cerrno>
-#if defined(WIN32)
-#include <io.h>
-#endif
+#include "RageUtil.h"
 
 /* If GetFD() isn't supported on the underlying file, this filter won't do anything. */
 bool RageFileDriverReadAhead::FileSupported( RageFileBasic *pFile )

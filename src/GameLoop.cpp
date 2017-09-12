@@ -1,24 +1,22 @@
-#include "global.h"
+﻿#include "global.h"
 #include "GameLoop.h"
-#include "RageLog.h"
-#include "RageTextureManager.h"
-#include "RageSoundManager.h"
 #include "PrefsManager.h"
 #include "RageDisplay.h"
+#include "RageLog.h"
+#include "RageSoundManager.h"
+#include "RageTextureManager.h"
 
 #include "arch/ArchHooks/ArchHooks.h"
 
 #include "GameSoundManager.h"
-#include "ThemeManager.h"
-#include "SongManager.h"
 #include "GameState.h"
-#include "ScreenManager.h"
 #include "InputFilter.h"
 #include "InputMapper.h"
-#include "RageFileManager.h"
 #include "NetworkSyncManager.h"
-#include "RageTimer.h"
 #include "RageInput.h"
+#include "ScreenManager.h"
+#include "SongManager.h"
+#include "ThemeManager.h"
 #include <chrono>
 
 static auto g_AccurateGameplayTimer = std::chrono::steady_clock::now();
@@ -126,9 +124,9 @@ void GameLoop::ChangeGame(const RString& new_game, const RString& new_theme)
 	g_NewTheme= new_theme;
 }
 
-#include "StepMania.h" // XXX
-#include "GameManager.h"
 #include "Game.h"
+#include "GameManager.h"
+#include "StepMania.h" // XXX
 namespace
 {
 	void DoChangeTheme()
@@ -231,7 +229,7 @@ namespace
 		SCREENMAN->SetNewScreen(new_screen);
 
 		// Set the input scheme for the new game, and load keymaps.
-		if( INPUTMAPPER )
+		if( INPUTMAPPER != nullptr )
 		{
 			INPUTMAPPER->SetInputScheme(&g->m_InputScheme);
 			INPUTMAPPER->ReadMappingsFromDisk();
@@ -247,7 +245,7 @@ namespace
 		g_NewGame= RString();
 		g_NewTheme= RString();
 	}
-}
+} // namespace
 
 void GameLoop::RunGameLoop()
 {
@@ -441,7 +439,7 @@ void ConcurrentRenderer::RenderThread()
 
 int ConcurrentRenderer::StartRenderThread( void *p )
 {
-	((ConcurrentRenderer *) p)->RenderThread();
+	(reinterpret_cast<ConcurrentRenderer *>( p))->RenderThread();
 	return 0;
 }
 

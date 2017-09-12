@@ -1,15 +1,15 @@
 #include "global.h"
 
 #if !defined(WITHOUT_NETWORKING)
-#include "ScreenNetRoom.h"
-#include "ScreenManager.h"
-#include "NetworkSyncManager.h"
 #include "GameState.h"
-#include "ThemeManager.h"
-#include "ScreenTextEntry.h"
-#include "WheelItemBase.h"
 #include "InputEventPlus.h"
 #include "LocalizedString.h"
+#include "NetworkSyncManager.h"
+#include "ScreenManager.h"
+#include "ScreenNetRoom.h"
+#include "ScreenTextEntry.h"
+#include "ThemeManager.h"
+#include "WheelItemBase.h"
 
 AutoScreenMessage( SM_SMOnlinePack );
 AutoScreenMessage( SM_BackFromRoomName );
@@ -206,9 +206,9 @@ void ScreenNetRoom::SelectCurrent()
 
 	m_RoomWheel.Select();
 	RoomWheelItemData* rwd = dynamic_cast<RoomWheelItemData*>(m_RoomWheel.LastSelected());
-	if (rwd)
+	if (rwd != nullptr)
 	{
-		if (rwd->m_iFlags % 2)
+		if ((rwd->m_iFlags % 2) != 0u)
 		{
 			m_sLastPickedRoom = rwd->m_sText;
 			ScreenTextEntry::TextEntry(SM_BackFromReqPass, ENTER_ROOM_REQPASSWORD, "", 255);

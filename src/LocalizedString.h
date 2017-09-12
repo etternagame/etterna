@@ -1,4 +1,4 @@
-#ifndef LocalizedString_H
+﻿#ifndef LocalizedString_H
 #define LocalizedString_H
 
 class ILocalizedStringImpl

@@ -1,7 +1,7 @@
 #ifndef FilterManager_H
 #define FilterManager_H
-#include "PlayerNumber.h"
 #include "GameConstantsAndTypes.h"
+#include "PlayerNumber.h"
 
 class PlayerState;
 class FilterManager {

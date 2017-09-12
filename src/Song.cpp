@@ -1,45 +1,45 @@
 #include "global.h"
-#include "Song.h"
-#include "Steps.h"
-#include "RageUtil.h"
-#include "RageLog.h"
+#include "BannerCache.h"
+#include "FontCharAliases.h"
+#include "GameManager.h"
 #include "NoteData.h"
+#include "PrefsManager.h"
+#include "RageLog.h"
 #include "RageSoundReader_FileReader.h"
 #include "RageSurface_Load.h"
+#include "RageUtil.h"
+#include "Song.h"
 #include "SongCacheIndex.h"
-#include "GameManager.h"
-#include "PrefsManager.h"
+#include "Steps.h"
 #include "Style.h"
-#include "FontCharAliases.h"
 #include "TitleSubstitution.h"
-#include "BannerCache.h"
 //#include "BackgroundCache.h"
-#include "Sprite.h"
-#include "RageFileManager.h"
-#include "RageSurface.h"
-#include "RageTextureManager.h"
-#include "NoteDataUtil.h"
-#include "SongUtil.h"
-#include "SongManager.h"
-#include "StepsUtil.h"
-#include "Foreach.h"
+#include "ActorUtil.h"
 #include "BackgroundUtil.h"
-#include "SpecialFiles.h"
+#include "Foreach.h"
+#include "LyricsLoader.h"
+#include "NoteDataUtil.h"
 #include "NotesLoader.h"
 #include "NotesLoaderSM.h"
 #include "NotesLoaderSSC.h"
 #include "NotesWriterDWI.h"
+#include "NotesWriterETT.h"
 #include "NotesWriterJson.h"
 #include "NotesWriterSM.h"
 #include "NotesWriterSSC.h"
-#include "NotesWriterETT.h"
-#include "LyricsLoader.h"
-#include "ActorUtil.h"
+#include "RageFileManager.h"
+#include "RageSurface.h"
+#include "RageTextureManager.h"
+#include "SongManager.h"
+#include "SongUtil.h"
+#include "SpecialFiles.h"
+#include "Sprite.h"
+#include "StepsUtil.h"
 
 #include "GameState.h"
+#include <cfloat>
 #include <ctime>
 #include <set>
-#include <cfloat>
 
 //-Nick12 Used for song file hashing
 #include <CryptManager.h>
@@ -1022,7 +1022,7 @@ void Song::TidyUpData( bool from_cache, bool /* duringCache */ )
 		SongUtil::AdjustDuplicateSteps(this);
 
 		// Clear fields for files that turned out to not exist.
-#define CLEAR_NOT_HAS(has_name, field_name) if(!has_name) { field_name= ""; }
+#define CLEAR_NOT_HAS(has_name, field_name) if(!(has_name)) { (field_name)= ""; }
 		CLEAR_NOT_HAS(m_bHasBanner, m_sBannerFile);
 		CLEAR_NOT_HAS(m_bHasBackground, m_sBackgroundFile);
 		CLEAR_NOT_HAS(has_jacket, m_sJacketFile);
@@ -1409,11 +1409,11 @@ bool Song::IsEasy( StepsType st ) const
 	 * "beginner", can play and actually get a very easy song: if there are
 	 * actual beginner steps, or if the light steps are 1- or 2-foot. */
 	const Steps* pBeginnerNotes = SongUtil::GetStepsByDifficulty( this, st, Difficulty_Beginner );
-	if( pBeginnerNotes )
+	if( pBeginnerNotes != nullptr )
 		return true;
 
 	const Steps* pEasyNotes = SongUtil::GetStepsByDifficulty( this, st, Difficulty_Easy );
-	if( pEasyNotes && pEasyNotes->GetMeter() == 1 )
+	if( (pEasyNotes != nullptr) && pEasyNotes->GetMeter() == 1 )
 		return true;
 
 	return false;
@@ -2142,7 +2142,7 @@ public:
 		StepsType st = Enum::Check<StepsType>(L, 1);
 		Difficulty dc = Enum::Check<Difficulty>( L, 2 );
 		Steps *pSteps = SongUtil::GetOneSteps( p, st, dc );
-		if( pSteps )
+		if( pSteps != nullptr )
 			pSteps->PushSelf(L);
 		else
 			lua_pushnil(L);
@@ -2238,7 +2238,7 @@ public:
 	}
 	static int HasAttacks( T* p, lua_State *L )
 	{
-		lua_pushboolean(L, false);
+		lua_pushboolean(L, 0);
 		return 1;
 	}
 	static int GetDisplayBpms( T* p, lua_State *L )
@@ -2257,14 +2257,14 @@ public:
 	{
 		DisplayBpms temp;
 		p->GetDisplayBpms(temp);
-		lua_pushboolean( L, temp.IsSecret() );
+		lua_pushboolean( L, static_cast<int>(temp.IsSecret()) );
 		return 1;
 	}
 	static int IsDisplayBpmConstant( T* p, lua_State *L )
 	{
 		DisplayBpms temp;
 		p->GetDisplayBpms(temp);
-		lua_pushboolean( L, temp.BpmIsConstant() );
+		lua_pushboolean( L, static_cast<int>(temp.BpmIsConstant()) );
 		return 1;
 	}
 	static int IsDisplayBpmRandom( T* p, lua_State *L )

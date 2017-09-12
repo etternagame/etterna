@@ -1,17 +1,17 @@
 #include "global.h"
-#include "ScreenSystemLayer.h"
-#include "ScreenManager.h"
-#include "PrefsManager.h"
-#include "ThemeManager.h"
 #include "ActorUtil.h"
 #include "GameState.h"
+#include "LocalizedString.h"
+#include "PlayerState.h"
+#include "PrefsManager.h"
 #include "Profile.h"
 #include "ProfileManager.h"
 #include "RageLog.h"
 #include "ScreenDimensions.h"
+#include "ScreenManager.h"
+#include "ScreenSystemLayer.h"
+#include "ThemeManager.h"
 #include "ThemeMetric.h"
-#include "LocalizedString.h"
-#include "PlayerState.h"
 
 namespace
 {
@@ -37,7 +37,7 @@ namespace
 			return RString();
 
 		bool bShowCreditsMessage;
-		if( SCREENMAN && SCREENMAN->GetTopScreen() && SCREENMAN->GetTopScreen()->GetScreenType() == system_menu )
+		if( (SCREENMAN != nullptr) && (SCREENMAN->GetTopScreen() != nullptr) && SCREENMAN->GetTopScreen()->GetScreenType() == system_menu )
 			bShowCreditsMessage = true;
 		else 
 			bShowCreditsMessage = !GAMESTATE->m_bSideIsJoined[pn];
@@ -81,7 +81,7 @@ namespace
 		LIST_METHOD( GetCreditsMessage ),
 		{ NULL, NULL }
 	};
-}
+} // namespace
 
 LUA_REGISTER_NAMESPACE( ScreenSystemLayerHelpers )
 

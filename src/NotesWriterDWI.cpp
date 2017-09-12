@@ -1,13 +1,11 @@
-#include "global.h"
-#include "NotesWriterDWI.h"
-#include "NoteTypes.h"
+﻿#include "global.h"
 #include "NoteData.h"
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "RageFileManager.h"
-#include "RageFile.h"
 #include "NoteDataUtil.h"
+#include "NoteTypes.h"
+#include "NotesWriterDWI.h"
 #include "RageFile.h"
+#include "RageLog.h"
+#include "RageUtil.h"
 #include "Song.h"
 #include "Steps.h"
 
@@ -234,7 +232,7 @@ static void WriteDWINotesField( RageFile &f, const Steps &out, int start )
 
 		for( double b=fFirstBeatInMeasure; b<=fLastBeatInMeasure-1/64.0f; b+=fCurrentIncrementer )	// need the -0.0001 to account for rounding errors
 		{
-			int row = BeatToNoteRow( (float)b );
+			int row = BeatToNoteRow( static_cast<float>(b) );
 
 			RString str;
 			switch( out.m_StepsType )

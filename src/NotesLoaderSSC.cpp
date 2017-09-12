@@ -1,18 +1,16 @@
-#include "global.h"
-#include "NotesLoaderSSC.h"
+﻿#include "global.h"
 #include "BackgroundUtil.h"
 #include "GameManager.h"
 #include "MsdFile.h" // No JSON here.
 #include "NoteTypes.h"
 #include "NotesLoaderSM.h" // For programming shortcuts.
+#include "NotesLoaderSSC.h"
 #include "RageFileManager.h"
 #include "RageLog.h"
 #include "RageUtil.h"
 #include "Song.h"
 #include "SongManager.h"
 #include "Steps.h"
-
-#include "PrefsManager.h"
 
 // Everything from this line to the creation of parser_helper exists to
 // speed up parsing by allowing the use of std::map.  All these functions
@@ -1188,7 +1186,7 @@ bool SSCLoader::LoadEditFromMsd(const MsdFile &msd,
 		{
 			if(sValueName == "SONG")
 			{
-				if(pSong)
+				if(pSong != nullptr)
 				{
 					/* LOG->UserLog("Edit file", sEditFilePath, "has more than one #SONG tag.");
 						 return false; */

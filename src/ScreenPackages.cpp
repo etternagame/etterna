@@ -1,18 +1,18 @@
 #include "global.h"
 
 #if !defined(WITHOUT_NETWORKING)
-#include "ScreenPackages.h"
 #include "GameConstantsAndTypes.h"
 #include "GameState.h"
-#include "ThemeManager.h"
+#include "LocalizedString.h"
 #include "RageDisplay.h"
+#include "RageFile.h"
 #include "RageLog.h"
 #include "RageUtil.h"
-#include "RageFile.h"
-#include "ScreenTextEntry.h"
 #include "ScreenManager.h"
+#include "ScreenPackages.h"
+#include "ScreenTextEntry.h"
+#include "ThemeManager.h"
 #include <cstdlib>
-#include "LocalizedString.h"
 
 AutoScreenMessage( SM_BackFromURL );
 
@@ -225,7 +225,7 @@ bool ScreenPackages::MenuLeft( const InputEventPlus &input )
 {
 	if ( m_bIsDownloading )
 		return false;
-	if ( !m_bCanDL )
+	if ( m_bCanDL == 0 )
 		return false;
 
 	/*
@@ -582,9 +582,9 @@ static size_t FindEndOfHeaders( const RString &buf )
 	LOG->Trace("end: %u, %u", unsigned(iPos1), unsigned(iPos2));
 	if( iPos1 != string::npos && (iPos2 == string::npos || iPos2 > iPos1) )
 		return iPos1 + 2;
-	else if( iPos2 != string::npos && (iPos1 == string::npos || iPos1 > iPos2) )
+	if( iPos2 != string::npos && (iPos1 == string::npos || iPos1 > iPos2) )
 		return iPos2 + 4;
-	else
+	
 		return string::npos;
 }
 

@@ -1,4 +1,4 @@
-#ifndef MemoryCardManager_H
+﻿#ifndef MemoryCardManager_H
 #define MemoryCardManager_H
 
 #include "LuaManager.h"
@@ -11,9 +11,6 @@ public:
 
 	// Lua
 	void PushSelf( lua_State *L );
-
-protected:
-
 };
 
 extern MemoryCardManager*	MEMCARDMAN;	// global and accessible from anywhere in our program
