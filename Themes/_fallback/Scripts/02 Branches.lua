@@ -19,8 +19,6 @@ end
 function SelectMusicOrCourse()
 	if IsNetSMOnline() then
 		return "ScreenNetSelectMusic"
-	elseif GAMESTATE:IsCourseMode() then
-		return "ScreenSelectCourse"
 	else
 		return "ScreenSelectMusic"
 	end
@@ -130,12 +128,6 @@ Branch = {
 			return SelectMusicOrCourse()
 		elseif STATSMAN:GetCurStageStats():AllFailed() then
 			return GameOverOrContinue()
-		elseif GAMESTATE:GetSmallestNumStagesLeftForAnyHumanPlayer() == 0 then
-			if not GAMESTATE:IsCourseMode() then
-				return "ScreenEvaluationSummary"
-			else
-				return GameOverOrContinue()
-			end
 		else
 			return SelectMusicOrCourse()
 		end
@@ -213,28 +205,7 @@ Branch = {
 		return Branch.EvaluationScreen()
 	end,
 	AfterEvaluation = function()
-		if GAMESTATE:IsCourseMode() then
-			return "ScreenProfileSave"
-		else
-			local maxStages = PREFSMAN:GetPreference("SongsPerPlay")
-			local stagesLeft = GAMESTATE:GetSmallestNumStagesLeftForAnyHumanPlayer()
-			local allFailed = STATSMAN:GetCurStageStats():AllFailed()
-			local song = GAMESTATE:GetCurrentSong()
-
-			if GAMESTATE:IsEventMode() or stagesLeft >= 1 then
-				return "ScreenProfileSave"
-			elseif song:IsLong() and maxStages <= 2 and stagesLeft < 1 and allFailed then
-				return "ScreenProfileSaveSummary"
-			elseif song:IsMarathon() and maxStages <= 3 and stagesLeft < 1 and allFailed then
-				return "ScreenProfileSaveSummary"
-			elseif maxStages >= 2 and stagesLeft < 1 and allFailed then
-				return "ScreenProfileSaveSummary"
-			elseif allFailed then
-				return "ScreenProfileSaveSummary"
-			else
-				return "ScreenProfileSave"
-			end
-		end
+		return "ScreenProfileSave"
 	end,
 	AfterSummary = function()
 		return "ScreenProfileSaveSummary"
@@ -244,8 +215,6 @@ Branch = {
 	end,
  	AfterSaveSummary = function()
 		return GameOverOrContinue()
---		[[ Enable when Finished ]]
--- 		return GAMESTATE:AnyPlayerHasRankingFeats() and "ScreenNameEntryTraditional" or "ScreenGameOver"
 	end,
 	AfterContinue = function()
 		if GAMESTATE:GetNumPlayersEnabled() == 0 then
