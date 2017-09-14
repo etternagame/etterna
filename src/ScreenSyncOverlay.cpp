@@ -100,7 +100,7 @@ void ScreenSyncOverlay::UpdateText()
 		FAIL_M(ssprintf("Invalid autosync type: %i", type));
 	}
 
-	if( GAMESTATE->m_pCurSong != NULL && pc == 0)	// sync controls available (don't turn on for autoplay) - Mina.
+	if( GAMESTATE->m_pCurSong != NULL)
 	{
 		AdjustSync::GetSyncChangeTextGlobal( vs );
 		AdjustSync::GetSyncChangeTextSong( vs );
