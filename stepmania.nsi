@@ -874,6 +874,7 @@ Section "Uninstall"
 
 	Delete "$INSTDIR\Themes\instructions.txt"
 	RMDir /r "$INSTDIR\Themes\_fallback"
+	RMDir /r "$INSTDIR\Cache"
 	RMDir /r "$INSTDIR\Themes\_portKit-sm4"
 	RMDir /r "$INSTDIR\Themes\default"
 	RMDir "$INSTDIR\Themes"
