@@ -38,6 +38,7 @@ ScoresAtRate::ScoresAtRate() {
 	bestGrade = Grade_Invalid;
 	scores.clear();
 	PBptr = nullptr;
+	noccPBptr = nullptr;
 }
 
 void ScoresAtRate::AddScore(HighScore& hs) {
@@ -389,6 +390,8 @@ XNode* ScoresAtRate::CreateNode(const int& rate) const {
 	string rs = ssprintf("%.3f", static_cast<float>(rate) / 10000.f);
 	// should be safe as this is only called if there is at least 1 score (which would be the pb)
 	o->AppendAttr("PBKey", PBptr->GetScoreKey());
+	if(noccPBptr != nullptr)
+		o->AppendAttr("noccPBKey", noccPBptr->GetScoreKey());
 	o->AppendAttr("BestGrade", GradeToString(bestGrade));
 	o->AppendAttr("Rate", rs);
 
@@ -434,6 +437,15 @@ void ScoresAtRate::LoadFromNode(const XNode* node, const string& ck, const float
 			// update pb if a better score is found
 			if (PBptr->GetWifeScore() < scores[sk].GetWifeScore())
 				PBptr = &scores.find(sk)->second;
+		}
+
+		// Set any nocc pb
+		if (noccPBptr == nullptr)
+			noccPBptr = &scores.find(sk)->second;
+		else {
+			// update nocc pb if a better score is found
+			if (noccPBptr->GetWifeScore() < scores[sk].GetWifeScore() && scores[sk].GetChordCohesion() == 1)
+				noccPBptr = &scores.find(sk)->second;
 		}
 
 		// Fill in stuff for the highscores
