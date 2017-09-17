@@ -55,6 +55,18 @@ void NORETURN sm_crash( const char *reason )
 #endif
 }
 
+std::string StringConvert(RString String)
+{
+	std::string rString = String;
+	return rString;	
+}
+
+RString StringConvert(std::string String)
+{
+	RString rString = String;
+	return rString;
+}
+
 /*
  * (c) 2004 Glenn Maynard
  * All rights reserved.
