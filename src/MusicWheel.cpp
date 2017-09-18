@@ -730,34 +730,71 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 			}
 
 			// make WheelItemDatas with sections
-			// forces sections for now because who doesnt use sections wtf -mina
-			RString sLastSection = "";
-			int iSectionColorIndex = 0;
 
-			set<Song*> hurp;
-			for (auto& a : arraySongs)
-				hurp.emplace(a);
+			if (so != SORT_GROUP) {
+				// the old code, to unbreak title sort etc -mina
+				RString sLastSection = "";
+				int iSectionColorIndex = 0;
+				for (unsigned i = 0; i< arraySongs.size(); i++)
+				{
+					Song* pSong = arraySongs[i];
+					if (bUseSections)
+					{
+						RString sThisSection = SongUtil::GetSectionNameFromSongAndSort(pSong, so);
 
-			auto& groups = SONGMAN->groupderps;
+						if (sThisSection != sLastSection)
+						{
+							int iSectionCount = 0;
+							// Count songs in this section
+							unsigned j;
+							for (j = i; j < arraySongs.size(); j++)
+							{
+								if (SongUtil::GetSectionNameFromSongAndSort(arraySongs[j], so) != sThisSection)
+									break;
+							}
+							iSectionCount = j - i;
 
-			map<string, string> shitterstrats;
-			for (auto& n : groups) {
-				shitterstrats[Rage::make_lower(n.first)] = n.first;
-				SongUtil::SortSongPointerArrayByTitle(groups[n.first]);
-			}
+							// new section, make a section item
+							// todo: preferred sort section color handling? -aj
+							RageColor colorSection = (so == SORT_GROUP) ? SONGMAN->GetSongGroupColor(pSong->m_sGroupName) : SECTION_COLORS.GetValue(iSectionColorIndex);
+							iSectionColorIndex = (iSectionColorIndex + 1) % NUM_SECTION_COLORS;
+							arrayWheelItemDatas.emplace_back(new MusicWheelItemData(WheelItemDataType_Section, NULL, sThisSection, colorSection, iSectionCount));
+							sLastSection = sThisSection;
+						}
+					}
+					arrayWheelItemDatas.emplace_back(new MusicWheelItemData(WheelItemDataType_Song, pSong, sLastSection, SONGMAN->GetSongColor(pSong), 0));
+				}
+			} else {
 
-			for(auto& n : shitterstrats) {
-				auto& gname = n.second;
-				auto& gsongs = groups[n.second];
+				// forces sections for now because who doesnt use sections wtf -mina
+				RString sLastSection = "";
+				int iSectionColorIndex = 0;
 
-				RageColor colorSection = (so == SORT_GROUP) ? SONGMAN->GetSongGroupColor(gname) : SECTION_COLORS.GetValue(iSectionColorIndex);
-				iSectionColorIndex = (iSectionColorIndex + 1) % NUM_SECTION_COLORS;
-				arrayWheelItemDatas.emplace_back(new MusicWheelItemData(WheelItemDataType_Section, NULL, gname, colorSection, gsongs.size()));
+				set<Song*> hurp;
+				for (auto& a : arraySongs)
+					hurp.emplace(a);
 
-				// need to interact with the filter/search system so check if the song is in the arraysongs set defined above -mina
-				for (auto& s : gsongs)
-					if (hurp.count(s))
-						arrayWheelItemDatas.emplace_back(new MusicWheelItemData(WheelItemDataType_Song, s, gname, SONGMAN->GetSongColor(s), 0));
+				auto& groups = SONGMAN->groupderps;
+
+				map<string, string> shitterstrats;
+				for (auto& n : groups) {
+					shitterstrats[Rage::make_lower(n.first)] = n.first;
+					SongUtil::SortSongPointerArrayByTitle(groups[n.first]);
+				}
+
+				for (auto& n : shitterstrats) {
+					auto& gname = n.second;
+					auto& gsongs = groups[n.second];
+
+					RageColor colorSection = (so == SORT_GROUP) ? SONGMAN->GetSongGroupColor(gname) : SECTION_COLORS.GetValue(iSectionColorIndex);
+					iSectionColorIndex = (iSectionColorIndex + 1) % NUM_SECTION_COLORS;
+					arrayWheelItemDatas.emplace_back(new MusicWheelItemData(WheelItemDataType_Section, NULL, gname, colorSection, gsongs.size()));
+
+					// need to interact with the filter/search system so check if the song is in the arraysongs set defined above -mina
+					for (auto& s : gsongs)
+						if (hurp.count(s))
+							arrayWheelItemDatas.emplace_back(new MusicWheelItemData(WheelItemDataType_Song, s, gname, SONGMAN->GetSongColor(s), 0));
+				}
 			}
 			break;
 		}

@@ -327,21 +327,22 @@ void Playlist::LoadFromNode(const XNode* node) {
 	ASSERT(node->GetName() == "Playlist");
 
 	node->GetAttrValue("Name", name);
+	if (!node->ChildrenEmpty()) {
+		const XNode* cl = node->GetChild("Chartlist");
+		FOREACH_CONST_Child(cl, chart) {
+			Chart ch;
+			ch.LoadFromNode(chart);
+			chartlist.emplace_back(ch);
+		}
 
-	const XNode* cl = node->GetChild("Chartlist");
-	FOREACH_CONST_Child(cl, chart) {
-		Chart ch;
-		ch.LoadFromNode(chart);
-		chartlist.emplace_back(ch);
-	}
-
-	const XNode* cr = node->GetChild("CourseRuns");
-	if (cr) {
-		FOREACH_CONST_Child(cr, run) {
-			vector<string> tmp;
-			FOREACH_CONST_Child(run, sk)
-				tmp.emplace_back(sk->GetName());
-			courseruns.emplace_back(tmp);
+		const XNode* cr = node->GetChild("CourseRuns");
+		if (cr) {
+			FOREACH_CONST_Child(cr, run) {
+				vector<string> tmp;
+				FOREACH_CONST_Child(run, sk)
+					tmp.emplace_back(sk->GetName());
+				courseruns.emplace_back(tmp);
+			}
 		}
 	}
 }
