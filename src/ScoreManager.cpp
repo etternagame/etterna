@@ -38,6 +38,7 @@ ScoresAtRate::ScoresAtRate() {
 	bestGrade = Grade_Invalid;
 	scores.clear();
 	PBptr = nullptr;
+	noccPBptr = nullptr;
 }
 
 void ScoresAtRate::AddScore(HighScore& hs) {
@@ -258,6 +259,21 @@ void ScoreManager::RecalculateSSRs(LoadingWindow *ld) {
 		nd.UnsetNerv();
 		nd.UnsetSerializedNoteData();
 		steps->Compress();
+
+		/* Some scores were being incorrectly marked as ccon despite chord cohesion being disabled. Re-determine chord cohesion 
+		status from notecount, this should be robust as every score up to this point should be a fully completed pass. This will 
+		also allow us to mark files with 0 chords as being nocc (since it doesn't apply to them). -mina */ 
+		int totalstepsnotes = steps->GetRadarValues()[RadarCategory_Notes];
+		int totalscorenotes = 0;
+		totalscorenotes += hs->GetTapNoteScore(TNS_W1);
+		totalscorenotes += hs->GetTapNoteScore(TNS_W2);
+		totalscorenotes += hs->GetTapNoteScore(TNS_W3);
+		totalscorenotes += hs->GetTapNoteScore(TNS_W4);
+		totalscorenotes += hs->GetTapNoteScore(TNS_W5);
+		totalscorenotes += hs->GetTapNoteScore(TNS_Miss);
+
+		if (totalstepsnotes - totalscorenotes == 0)
+			hs->SetChordCohesion(1); // we are setting nochordcohesion to 1 here, functions should be renamed? -mina
 	}
 	return;
 }
@@ -374,6 +390,8 @@ XNode* ScoresAtRate::CreateNode(const int& rate) const {
 	string rs = ssprintf("%.3f", static_cast<float>(rate) / 10000.f);
 	// should be safe as this is only called if there is at least 1 score (which would be the pb)
 	o->AppendAttr("PBKey", PBptr->GetScoreKey());
+	if(noccPBptr != nullptr && PBptr->GetScoreKey() != noccPBptr->GetScoreKey())	// don't write unless it's different from the pbkey -mina
+		o->AppendAttr("noccPBKey", noccPBptr->GetScoreKey());
 	o->AppendAttr("BestGrade", GradeToString(bestGrade));
 	o->AppendAttr("Rate", rs);
 
@@ -419,6 +437,15 @@ void ScoresAtRate::LoadFromNode(const XNode* node, const string& ck, const float
 			// update pb if a better score is found
 			if (PBptr->GetWifeScore() < scores[sk].GetWifeScore())
 				PBptr = &scores.find(sk)->second;
+		}
+
+		// Set any nocc pb
+		if (noccPBptr == nullptr)
+			noccPBptr = &scores.find(sk)->second;
+		else {
+			// update nocc pb if a better score is found
+			if (noccPBptr->GetWifeScore() < scores[sk].GetWifeScore() && scores[sk].GetChordCohesion() == 1)
+				noccPBptr = &scores.find(sk)->second;
 		}
 
 		// Fill in stuff for the highscores
