@@ -227,7 +227,7 @@ HighScoreImpl::HighScoreImpl()
 	iScore = 0;
 	fPercentDP = 0.f;
 	fWifeScore = 0.f;
-	fSSRNormPercent = 11111.f;
+	fSSRNormPercent = 0.f;
 	fMusicRate = 0.f;
 	fJudgeScale = 0.f;
 	bEtternaValid = true;
