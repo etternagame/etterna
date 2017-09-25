@@ -824,7 +824,7 @@ void HighScore::LoadFromNode( const XNode* pNode )
 		m_Impl->bEtternaValid = false;
 	}
 
-	if (m_Impl->fSSRNormPercent == 11111.f) {
+	if (m_Impl->fSSRNormPercent > 1000.f) {
 		if (m_Impl->grade != Grade_Failed)
 			m_Impl->fSSRNormPercent = RescoreToWifeJudgeDuringLoad(4);
 		else
