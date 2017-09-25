@@ -220,7 +220,7 @@ void ScoreManager::RecalculateSSRs(LoadingWindow *ld) {
 		++scoreindex;
 
 		HighScore* hs = AllScores[i];
-		if (hs->GetSSRCalcVersion() == GetCalcVersion())
+		if (hs->GetSSRCalcVersion() == 236) // temp hack
 			continue;
 
 		Steps* steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
@@ -253,7 +253,7 @@ void ScoreManager::RecalculateSSRs(LoadingWindow *ld) {
 		auto dakine = MinaSDCalc(serializednd, steps->GetNoteData().GetNumTracks(), musicrate, ssrpercent, 1.f, td->HasWarps());
 		FOREACH_ENUM(Skillset, ss)
 			hs->SetSkillsetSSR(ss, dakine[ss]);
-		hs->SetSSRCalcVersion(GetCalcVersion());
+		hs->SetSSRCalcVersion(236); // temp hack
 
 		td->UnsetEtaner();
 		nd.UnsetNerv();
@@ -322,7 +322,7 @@ float ScoreManager::AggregateSSRs(Skillset ss, float rating, float res, int iter
 		rating += res;
 		sum = 0.0;
 		for (int i = 0; i < static_cast<int>(TopSSRs.size()); i++) {
-			if(TopSSRs[i]->GetSSRCalcVersion() == GetCalcVersion() && TopSSRs[i]->GetEtternaValid())
+			if(TopSSRs[i]->GetSSRCalcVersion() == 236 && TopSSRs[i]->GetEtternaValid()) // temp hack
 				sum += max(0.0, 2.f / erfc(0.1*(TopSSRs[i]->GetSkillsetSSR(ss) - rating)) - 1.5);
 		}
 	} while (pow(2, rating * 0.1) < sum);
