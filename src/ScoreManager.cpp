@@ -273,7 +273,9 @@ void ScoreManager::RecalculateSSRs(LoadingWindow *ld) {
 		totalscorenotes += hs->GetTapNoteScore(TNS_Miss);
 
 		if (totalstepsnotes - totalscorenotes == 0)
-			hs->SetChordCohesion(1); // we are setting nochordcohesion to 1 here, functions should be renamed? -mina
+			hs->SetChordCohesion(1); // the set function isn't inverted but the get function is, this sets bnochordcohesion to 1
+		else
+			hs->SetChordCohesion(0);
 	}
 	return;
 }
