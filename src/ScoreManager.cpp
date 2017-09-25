@@ -390,8 +390,11 @@ XNode* ScoresAtRate::CreateNode(const int& rate) const {
 	string rs = ssprintf("%.3f", static_cast<float>(rate) / 10000.f);
 	// should be safe as this is only called if there is at least 1 score (which would be the pb)
 	o->AppendAttr("PBKey", PBptr->GetScoreKey());
-	if(noccPBptr != nullptr && PBptr->GetScoreKey() != noccPBptr->GetScoreKey())	// don't write unless it's different from the pbkey -mina
-		o->AppendAttr("noccPBKey", noccPBptr->GetScoreKey());
+	if (noccPBptr != nullptr) {
+		if(PBptr->GetScoreKey() != noccPBptr->GetScoreKey())
+			o->AppendAttr("noccPBKey", noccPBptr->GetScoreKey()); // don't write unless it's different from the pbkey -mina
+	}
+
 	o->AppendAttr("BestGrade", GradeToString(bestGrade));
 	o->AppendAttr("Rate", rs);
 
@@ -439,13 +442,17 @@ void ScoresAtRate::LoadFromNode(const XNode* node, const string& ck, const float
 				PBptr = &scores.find(sk)->second;
 		}
 
-		// Set any nocc pb
-		if (noccPBptr == nullptr)
-			noccPBptr = &scores.find(sk)->second;
-		else {
-			// update nocc pb if a better score is found
-			if (noccPBptr->GetWifeScore() < scores[sk].GetWifeScore() && scores[sk].GetChordCohesion() == 1)
+		// lurker says:
+		// don't even TRY to fuck with nocc pb unless the score is nocc
+		if (scores[sk].GetChordCohesion() == 0) {
+			// Set any nocc pb
+			if (noccPBptr == nullptr)
 				noccPBptr = &scores.find(sk)->second;
+			else {
+				// update nocc pb if a better score is found
+				if (noccPBptr->GetSSRNormPercent() < scores[sk].GetSSRNormPercent())
+					noccPBptr = &scores.find(sk)->second;
+			}
 		}
 
 		// Fill in stuff for the highscores
