@@ -763,6 +763,7 @@ void HighScore::SetHoldNoteScore( HoldNoteScore hns, int i ) { m_Impl->iHoldNote
 void HighScore::SetSkillsetSSR(Skillset ss, float ssr) { m_Impl->fSkillsetSSRs[ss] = ssr; }
 void HighScore::SetValidationKey(ValidationKey vk, string k) { m_Impl->ValidationKeys[vk] = k; }
 void HighScore::SetTopScore(int i) { m_Impl->TopScore = i; }
+string HighScore::GetValidationKey(ValidationKey vk) const { return m_Impl->ValidationKeys[vk]; }
 void HighScore::SetRadarValues( const RadarValues &rv ) { m_Impl->radarValues = rv; }
 void HighScore::SetLifeRemainingSeconds( float f ) { m_Impl->fLifeRemainingSeconds = f; }
 void HighScore::SetDisqualified( bool b ) { m_Impl->bDisqualified = b; }
@@ -1127,7 +1128,7 @@ vector<int> HighScore::GetRescoreJudgeVector(int x) {
 	return m_Impl->vRescoreJudgeVector;
 }
 
-Grade HighScore::GetWifeGrade() {
+Grade HighScore::GetWifeGrade() const {
 	return m_Impl->GetWifeGrade();
 }
 

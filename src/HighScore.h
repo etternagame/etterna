@@ -39,7 +39,7 @@ struct HighScore
 	 * @brief Determine if any judgments were tallied during this run.
 	 * @return true if no judgments were recorded, false otherwise. */
 	bool IsEmpty() const;
-	Grade GetWifeGrade();
+	Grade GetWifeGrade() const;
 	float ConvertDpToWife();
 	float GetPercentDP() const;
 	float GetWifeScore() const;
@@ -150,6 +150,7 @@ struct HighScore
 	void SetSkillsetSSR(Skillset ss, float ssr);
 	void SetValidationKey(ValidationKey vk, string k);
 	void SetTopScore(int i);
+	string GetValidationKey(ValidationKey vk) const; 
 	vector<int> GetRescoreJudgeVector(int x);
 	// Lua
 	void PushSelf( lua_State *L );

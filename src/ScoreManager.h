@@ -133,6 +133,8 @@ public:
 
 	void SetAllTopScores();
 	void PurgeScores();
+	unordered_map<string, ScoresForChart>* GetProfileScores() { return &pscores; };
+
 private:
 	unordered_map<string, ScoresForChart> pscores;	// Profile scores
 
