@@ -92,7 +92,7 @@ void Profile::ClearStats()
 
 RString Profile::MakeGuid()
 {
-	RString s;
+	string s;
 	s.reserve( GUID_SIZE_BYTES*2 );
 	unsigned char buf[GUID_SIZE_BYTES];
 	CryptManager::GetRandomBytes( buf, GUID_SIZE_BYTES );
@@ -791,16 +791,21 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 	LoadTypeFromDir(sDir);
 	// Not critical if this fails
 	LoadEditableDataFromDir( sDir );
-
-	ProfileLoadResult ret= XMLProf.LoadEttFromDir(sDir);
+	DBProf.SetLoadingProfile(this);
+	XMLProf.SetLoadingProfile(this);
+	ProfileLoadResult ret = DBProf.LoadDBFromDir(sDir);
 	if (ret != ProfileLoadResult_Success) {
-		ret = LoadStatsFromDir(sDir, bRequireSignature);
+		ret = XMLProf.LoadEttFromDir(sDir);
+		ProfileLoadResult ret = XMLProf.LoadEttFromDir(sDir);
+		if (ret != ProfileLoadResult_Success) {
+			ret = XMLProf.LoadStatsFromDir(sDir, bRequireSignature);
 
-		if (ret != ProfileLoadResult_Success)
-			return ret;
+			if (ret != ProfileLoadResult_Success)
+				return ret;
 
-		IsEtternaProfile = true;
-		ImportScoresToEtterna();
+			IsEtternaProfile = true;
+			ImportScoresToEtterna();
+		}
 	}
 
 	// move old profile specific replays to the new aggregate folder
@@ -932,9 +937,12 @@ bool Profile::SaveAllToDir( const RString &sDir, bool bSignData ) const
 	SaveTypeToDir(sDir);
 	// Save editable.ini
 	SaveEditableDataToDir( sDir );
-	
-	bool bSaved = XMLProf.SaveEttXmlToDir(sDir);
+
+	GAMESTATE->SaveCurrentSettingsToProfile(PLAYER_1);
+
+	bool bSaved = XMLProf.SaveEttXmlToDir(sDir, this);
 	SaveStatsWebPageToDir( sDir );
+	bool dbSabed = DBProf.SaveDBToDir(sDir, this);
 	
 	// Empty directories if none exist.
 	FILEMAN->CreateDir( sDir + SCREENSHOTS_SUBDIR );
