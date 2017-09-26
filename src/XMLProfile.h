@@ -16,9 +16,16 @@ public:
 	static void MoveBackupToDir(const RString &sFromDir, const RString &sToDir);
 	// For converting to etterna from stats.xml
 	void LoadStatsXmlForConversion();
-	ProfileLoadResult LoadStatsXmlFromNode(const XNode* pNode, bool bIgnoreEditable = true);
+
 	// Etterna profile
 	ProfileLoadResult LoadEttFromDir(RString dir);
+	ProfileLoadResult LoadStatsFromDir(RString dir, bool require_signature);
+
+	bool SaveStatsXmlToDir(RString sDir, bool bSignData);
+	bool SaveEttXmlToDir(RString sDir) const;
+private:
+	ProfileLoadResult LoadStatsXmlFromNode(const XNode* pNode, bool bIgnoreEditable = true);
+
 	ProfileLoadResult LoadEttXmlFromNode(const XNode* pNode);
 
 	void LoadEttGeneralDataFromNode(const XNode* pNode);
@@ -31,11 +38,7 @@ public:
 	void LoadSongScoresFromNode(const XNode* pNode);
 	void LoadCategoryScoresFromNode(const XNode* pNode);
 	void LoadScreenshotDataFromNode(const XNode* pNode);
-	ProfileLoadResult LoadStatsFromDir(RString dir, bool require_signature);
 
-	bool SaveStatsXmlToDir(RString sDir, bool bSignData);
-	bool SaveEttXmlToDir(RString sDir) const;
-	bool SaveStatsXmlToDir(RString sDir, bool bSignData) const;
 
 	XNode* SaveEttGeneralDataCreateNode() const;
 	XNode* SaveEttScoresCreateNode() const;

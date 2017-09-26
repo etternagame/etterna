@@ -13,6 +13,7 @@
 #include "StyleUtil.h"	// for StyleID
 #include "LuaReference.h"
 #include "XMLProfile.h"
+#include "DBProfile.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 
 #include <unordered_map>
@@ -163,7 +164,8 @@ public:
 		FOREACH_ENUM( StepsType,st )
 			FOREACH_ENUM( RankingCategory,rc )
 				m_CategoryHighScores[st][rc].Init();
-		XMLProf.profile = this;
+		XMLProf.profile = this
+		DBProf.profile = this;
 	}
 
 	// smart accessors
@@ -364,13 +366,14 @@ public:
 	static RString MakeUniqueFileNameNoExtension( const RString &sDir, const RString &sFileNameBeginning );
 	static RString MakeFileNameNoExtension( const RString &sFileNameBeginning, int iIndex );
 
-	XMLProfile XMLProf;
 
 	// Lua
 	void PushSelf( lua_State *L );
 
 private:
 	const HighScoresForASong *GetHighScoresForASong( const SongID& songID ) const;
+	XMLProfile XMLProf;
+	DBProfile DBProf;
 };
 
 
