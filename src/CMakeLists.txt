@@ -329,6 +329,7 @@ list(APPEND SMDATA_LINK_LIB
   "png"
   "glew"
   "jpeg"
+  "sqlite3"
   "SQLiteCpp"
 )
 include(../extern/CMakeProject-mmmagic.cmake)

@@ -5,7 +5,9 @@
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
 #include "Profile.h"
-#include "SQLiteCpp/SQLiteCpp.h"
+#include "sqlite3.h"
+#include <SQLiteCpp/SQLiteCpp.h>
+#include <SQLiteCpp/VariadicBind.h>
 
 
 
@@ -13,25 +15,31 @@ class DBProfile {
 public:
 
 	ProfileLoadResult LoadDBFromDir(RString dir);
-	void LoadFavourites(SQLite::Database db);
-	void LoadPlayLists(SQLite::Database db);
-	void LoadPlayerScores(SQLite::Database db);
-	void LoadGeneralData(SQLite::Database db);
-	void LoadPermaMirrors(SQLite::Database db);
-	void LoadScoreGoals(SQLite::Database db);
 
-	bool SaveDBToDir(RString sDir);
-	void SaveFavourites(SQLite::Database db);
-	void SavePlayLists(SQLite::Database db);
-	void SavePlayerScores(SQLite::Database db);
-	void SaveGeneralData(SQLite::Database db);
-	void SavePermaMirrors(SQLite::Database db);
-	void SaveScoreGoals(SQLite::Database db);
+	ProfileLoadResult SaveDBToDir(RString sDir) const;
 
 	static void MoveBackupToDir(const RString &sFromDir, const RString &sToDir);
 
 	Profile* profile;
-	RString profiledir;
+private:
+	int GetChartID(SQLite::Database* db, RString key) const;
+	RString GetChartByID(SQLite::Database* db, int id) const;
+	int DBProfile::AddOrCreateChart(SQLite::Database* db, RString key) const;
+
+	void LoadFavourites(SQLite::Database* db);
+	void LoadPlayLists(SQLite::Database* db);
+	void LoadPlayerScores(SQLite::Database* db);
+	bool LoadGeneralData(SQLite::Database* db);
+	void LoadPermaMirrors(SQLite::Database* db);
+	void LoadScoreGoals(SQLite::Database* db);
+
+	void SaveFavourites(SQLite::Database* db) const;
+	void SavePlayLists(SQLite::Database* db) const;
+	void SavePlayerScores(SQLite::Database* db) const;
+	void SaveGeneralData(SQLite::Database* db) const;
+	void SavePermaMirrors(SQLite::Database* db) const;
+	void SaveScoreGoals(SQLite::Database* db) const;
+
 };
 
 

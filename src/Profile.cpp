@@ -793,16 +793,20 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 	// Not critical if this fails
 	LoadEditableDataFromDir( sDir );
 
-	ProfileLoadResult ret= XMLProf.LoadEttFromDir(sDir);
-	if (ret != ProfileLoadResult_Success) {
-		ret = LoadStatsFromDir(sDir, bRequireSignature);
+	//ProfileLoadResult ret = DBProf.LoadDBFromDir(sDir);
+	//if (ret != ProfileLoadResult_Success) {
+		//ret = XMLProf.LoadEttFromDir(sDir);
+		ProfileLoadResult ret = XMLProf.LoadEttFromDir(sDir);
+		if (ret != ProfileLoadResult_Success) {
+			ret = LoadStatsFromDir(sDir, bRequireSignature);
 
-		if (ret != ProfileLoadResult_Success)
-			return ret;
+			if (ret != ProfileLoadResult_Success)
+				return ret;
 
-		IsEtternaProfile = true;
-		ImportScoresToEtterna();
-	}
+			IsEtternaProfile = true;
+			ImportScoresToEtterna();
+		}
+	//}
 
 	CalculateStatsFromScores(ld);
 	return ProfileLoadResult_Success;
@@ -905,7 +909,10 @@ bool Profile::SaveAllToDir( const RString &sDir, bool bSignData ) const
 	SaveTypeToDir(sDir);
 	// Save editable.ini
 	SaveEditableDataToDir( sDir );
-	
+
+	GAMESTATE->SaveCurrentSettingsToProfile(PLAYER_1);
+
+	DBProf.SaveDBToDir(sDir);
 	bool bSaved = XMLProf.SaveEttXmlToDir(sDir);
 	SaveStatsWebPageToDir( sDir );
 	

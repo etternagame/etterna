@@ -23,6 +23,7 @@ public:
 
 	bool SaveStatsXmlToDir(RString sDir, bool bSignData);
 	bool SaveEttXmlToDir(RString sDir) const;
+	Profile* profile;
 private:
 	ProfileLoadResult LoadStatsXmlFromNode(const XNode* pNode, bool bIgnoreEditable = true);
 
@@ -44,7 +45,6 @@ private:
 	XNode* SaveEttScoresCreateNode() const;
 	XNode* SaveEttXmlCreateNode() const;
 
-	Profile* profile;
 
 	XNode* SaveFavoritesCreateNode() const;
 	XNode* SavePermaMirrorCreateNode() const;

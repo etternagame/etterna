@@ -164,7 +164,7 @@ public:
 		FOREACH_ENUM( StepsType,st )
 			FOREACH_ENUM( RankingCategory,rc )
 				m_CategoryHighScores[st][rc].Init();
-		XMLProf.profile = this
+		XMLProf.profile = this;
 		DBProf.profile = this;
 	}
 
