@@ -220,7 +220,7 @@ void ScoreManager::RecalculateSSRs(LoadingWindow *ld) {
 		++scoreindex;
 
 		HighScore* hs = AllScores[i];
-		if (hs->GetSSRCalcVersion() == GetCalcVersion())
+		if (hs->GetSSRCalcVersion() == 236) // temp hack
 			continue;
 
 		Steps* steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
@@ -253,7 +253,7 @@ void ScoreManager::RecalculateSSRs(LoadingWindow *ld) {
 		auto dakine = MinaSDCalc(serializednd, steps->GetNoteData().GetNumTracks(), musicrate, ssrpercent, 1.f, td->HasWarps());
 		FOREACH_ENUM(Skillset, ss)
 			hs->SetSkillsetSSR(ss, dakine[ss]);
-		hs->SetSSRCalcVersion(GetCalcVersion());
+		hs->SetSSRCalcVersion(236); // temp hack
 
 		td->UnsetEtaner();
 		nd.UnsetNerv();
@@ -273,7 +273,9 @@ void ScoreManager::RecalculateSSRs(LoadingWindow *ld) {
 		totalscorenotes += hs->GetTapNoteScore(TNS_Miss);
 
 		if (totalstepsnotes - totalscorenotes == 0)
-			hs->SetChordCohesion(1); // we are setting nochordcohesion to 1 here, functions should be renamed? -mina
+			hs->SetChordCohesion(1); // the set function isn't inverted but the get function is, this sets bnochordcohesion to 1
+		else
+			hs->SetChordCohesion(0);
 	}
 	return;
 }
@@ -322,7 +324,7 @@ float ScoreManager::AggregateSSRs(Skillset ss, float rating, float res, int iter
 		rating += res;
 		sum = 0.0;
 		for (int i = 0; i < static_cast<int>(TopSSRs.size()); i++) {
-			if(TopSSRs[i]->GetSSRCalcVersion() == GetCalcVersion() && TopSSRs[i]->GetEtternaValid())
+			if(TopSSRs[i]->GetSSRCalcVersion() == 236 && TopSSRs[i]->GetEtternaValid()) // temp hack
 				sum += max(0.0, 2.f / erfc(0.1*(TopSSRs[i]->GetSkillsetSSR(ss) - rating)) - 1.5);
 		}
 	} while (pow(2, rating * 0.1) < sum);
@@ -390,8 +392,11 @@ XNode* ScoresAtRate::CreateNode(const int& rate) const {
 	string rs = ssprintf("%.3f", static_cast<float>(rate) / 10000.f);
 	// should be safe as this is only called if there is at least 1 score (which would be the pb)
 	o->AppendAttr("PBKey", PBptr->GetScoreKey());
-	if(noccPBptr != nullptr && PBptr->GetScoreKey() != noccPBptr->GetScoreKey())	// don't write unless it's different from the pbkey -mina
-		o->AppendAttr("noccPBKey", noccPBptr->GetScoreKey());
+	if (noccPBptr != nullptr) {
+		if(PBptr->GetScoreKey() != noccPBptr->GetScoreKey())
+			o->AppendAttr("noccPBKey", noccPBptr->GetScoreKey()); // don't write unless it's different from the pbkey -mina
+	}
+
 	o->AppendAttr("BestGrade", GradeToString(bestGrade));
 	o->AppendAttr("Rate", rs);
 
@@ -439,13 +444,17 @@ void ScoresAtRate::LoadFromNode(const XNode* node, const string& ck, const float
 				PBptr = &scores.find(sk)->second;
 		}
 
-		// Set any nocc pb
-		if (noccPBptr == nullptr)
-			noccPBptr = &scores.find(sk)->second;
-		else {
-			// update nocc pb if a better score is found
-			if (noccPBptr->GetWifeScore() < scores[sk].GetWifeScore() && scores[sk].GetChordCohesion() == 1)
+		// lurker says:
+		// don't even TRY to fuck with nocc pb unless the score is nocc
+		if (scores[sk].GetChordCohesion() == 0) {
+			// Set any nocc pb
+			if (noccPBptr == nullptr)
 				noccPBptr = &scores.find(sk)->second;
+			else {
+				// update nocc pb if a better score is found
+				if (noccPBptr->GetSSRNormPercent() < scores[sk].GetSSRNormPercent())
+					noccPBptr = &scores.find(sk)->second;
+			}
 		}
 
 		// Fill in stuff for the highscores
