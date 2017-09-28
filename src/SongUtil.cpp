@@ -1044,7 +1044,7 @@ void SongID::LoadFromString(const char * dir)
 
 RString SongID::ToString() const
 {
-	return sDir;
+	return (sDir.empty() ? RString() : sDir);
 }
 
 bool SongID::IsValid() const

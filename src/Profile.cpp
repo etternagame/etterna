@@ -93,7 +93,7 @@ void Profile::ClearStats()
 
 RString Profile::MakeGuid()
 {
-	RString s;
+	string s;
 	s.reserve( GUID_SIZE_BYTES*2 );
 	unsigned char buf[GUID_SIZE_BYTES];
 	CryptManager::GetRandomBytes( buf, GUID_SIZE_BYTES );
@@ -792,13 +792,14 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 	LoadTypeFromDir(sDir);
 	// Not critical if this fails
 	LoadEditableDataFromDir( sDir );
-
+	DBProf.SetLoadingProfile(this);
+	XMLProf.SetLoadingProfile(this);
 	//ProfileLoadResult ret = DBProf.LoadDBFromDir(sDir);
 	//if (ret != ProfileLoadResult_Success) {
 		//ret = XMLProf.LoadEttFromDir(sDir);
 		ProfileLoadResult ret = XMLProf.LoadEttFromDir(sDir);
 		if (ret != ProfileLoadResult_Success) {
-			ret = LoadStatsFromDir(sDir, bRequireSignature);
+			ret = XMLProf.LoadStatsFromDir(sDir, bRequireSignature);
 
 			if (ret != ProfileLoadResult_Success)
 				return ret;
@@ -912,9 +913,9 @@ bool Profile::SaveAllToDir( const RString &sDir, bool bSignData ) const
 
 	GAMESTATE->SaveCurrentSettingsToProfile(PLAYER_1);
 
-	DBProf.SaveDBToDir(sDir);
-	bool bSaved = XMLProf.SaveEttXmlToDir(sDir);
+	bool bSaved = XMLProf.SaveEttXmlToDir(sDir, this);
 	SaveStatsWebPageToDir( sDir );
+	bool dbSabed = DBProf.SaveDBToDir(sDir, this);
 	
 	// Empty directories if none exist.
 	FILEMAN->CreateDir( sDir + SCREENSHOTS_SUBDIR );

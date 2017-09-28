@@ -126,6 +126,8 @@ public:
 	vector<HighScore*> GetAllScores() { return AllScores; }
 	void RegisterScore(HighScore* hs) {	AllScores.emplace_back(hs); }
 	void AddToKeyedIndex(HighScore* hs) { ScoresByKey.emplace(hs->GetScoreKey(), hs); }
+	unordered_map<string, ScoresForChart>* GetProfileScores() { return &pscores; };
+
 private:
 	unordered_map<string, ScoresForChart> pscores;	// Profile scores
 

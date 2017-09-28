@@ -21,10 +21,11 @@ public:
 	ProfileLoadResult LoadEttFromDir(RString dir);
 	ProfileLoadResult LoadStatsFromDir(RString dir, bool require_signature);
 
-	bool SaveStatsXmlToDir(RString sDir, bool bSignData);
-	bool SaveEttXmlToDir(RString sDir) const;
-	Profile* profile;
+	bool SaveStatsXmlToDir(RString sDir, bool bSignData, const Profile* profile);
+	bool SaveEttXmlToDir(RString sDir, const Profile* profile) const;
+	void SetLoadingProfile(Profile* p) { loadingProfile = p; }
 private:
+	Profile* loadingProfile;
 	ProfileLoadResult LoadStatsXmlFromNode(const XNode* pNode, bool bIgnoreEditable = true);
 
 	ProfileLoadResult LoadEttXmlFromNode(const XNode* pNode);
@@ -41,25 +42,25 @@ private:
 	void LoadScreenshotDataFromNode(const XNode* pNode);
 
 
-	XNode* SaveEttGeneralDataCreateNode() const;
-	XNode* SaveEttScoresCreateNode() const;
-	XNode* SaveEttXmlCreateNode() const;
+	XNode* SaveEttGeneralDataCreateNode(const Profile* profile) const;
+	XNode* SaveEttScoresCreateNode(const Profile* profile) const;
+	XNode* SaveEttXmlCreateNode(const Profile* profile) const;
 
 
-	XNode* SaveFavoritesCreateNode() const;
-	XNode* SavePermaMirrorCreateNode() const;
-	XNode* SaveScoreGoalsCreateNode() const;
-	XNode* SavePlaylistsCreateNode() const;
+	XNode* SaveFavoritesCreateNode(const Profile* profile) const;
+	XNode* SavePermaMirrorCreateNode(const Profile* profile) const;
+	XNode* SaveScoreGoalsCreateNode(const Profile* profile) const;
+	XNode* SavePlaylistsCreateNode(const Profile* profile) const;
 
-	XNode* SaveStatsXmlCreateNode() const;
+	XNode* SaveStatsXmlCreateNode(const Profile* profile) const;
 
-	XNode* SaveGeneralDataCreateNode() const;
-	XNode* SaveSongScoresCreateNode() const;
+	XNode* SaveGeneralDataCreateNode(const Profile* profile) const;
+	XNode* SaveSongScoresCreateNode(const Profile* profile) const;
 
-	XNode* SaveCategoryScoresCreateNode() const;
-	XNode* SaveScreenshotDataCreateNode() const;
+	XNode* SaveCategoryScoresCreateNode(const Profile* profile) const;
+	XNode* SaveScreenshotDataCreateNode(const Profile* profile) const;
 
-	XNode* SaveCoinDataCreateNode() const;
+	XNode* SaveCoinDataCreateNode(const Profile* profile) const;
 	RString profiledir;
 };
 

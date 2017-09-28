@@ -1104,7 +1104,7 @@ vector<int> HighScore::GetRescoreJudgeVector(int x) {
 	return m_Impl->vRescoreJudgeVector;
 }
 
-Grade HighScore::GetWifeGrade() {
+Grade HighScore::GetWifeGrade() const {
 	return m_Impl->GetWifeGrade();
 }
 

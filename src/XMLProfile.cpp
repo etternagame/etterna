@@ -123,7 +123,7 @@ ProfileLoadResult XMLProfile::LoadStatsFromDir(RString dir, bool require_signatu
 ProfileLoadResult XMLProfile::LoadEttFromDir(RString dir) {
 	dir += PROFILEMAN->GetStatsPrefix();
 	profiledir = dir;
-	profile->IsEtternaProfile = true;
+	loadingProfile->IsEtternaProfile = true;
 	RString fn = dir + ETT_XML;
 	bool compressed = false;
 	if (!IsAFile(fn)) {
@@ -160,10 +160,10 @@ ProfileLoadResult XMLProfile::LoadEttFromDir(RString dir) {
 	return LoadEttXmlFromNode(&xml);
 }
 
-bool XMLProfile::SaveStatsXmlToDir(RString sDir, bool bSignData)
+bool XMLProfile::SaveStatsXmlToDir(RString sDir, bool bSignData, const Profile* profile)
 {
 	LOG->Trace("SaveStatsXmlToDir: %s", sDir.c_str());
-	unique_ptr<XNode> xml(SaveStatsXmlCreateNode());
+	unique_ptr<XNode> xml(SaveStatsXmlCreateNode(profile));
 
 	sDir += PROFILEMAN->GetStatsPrefix();
 	// Save stats.xml
@@ -216,9 +216,9 @@ bool XMLProfile::SaveStatsXmlToDir(RString sDir, bool bSignData)
 	return true;
 }
 
-bool XMLProfile::SaveEttXmlToDir(RString sDir) const {
+bool XMLProfile::SaveEttXmlToDir(RString sDir, const Profile* profile) const {
 	LOG->Trace("Saving Etterna Profile to: %s", sDir.c_str());
-	unique_ptr<XNode> xml(SaveEttXmlCreateNode());
+	unique_ptr<XNode> xml(SaveEttXmlCreateNode(profile));
 	sDir += PROFILEMAN->GetStatsPrefix();
 	// Save Etterna.xml
 	RString fn = sDir + ETT_XML;
@@ -259,7 +259,7 @@ bool XMLProfile::SaveEttXmlToDir(RString sDir) const {
 	return true;
 }
 
-XNode* XMLProfile::SaveGeneralDataCreateNode() const
+XNode* XMLProfile::SaveGeneralDataCreateNode(const Profile* profile) const
 {
 	XNode* pGeneralDataNode = new XNode("GeneralData");
 
@@ -400,7 +400,7 @@ XNode* XMLProfile::SaveGeneralDataCreateNode() const
 	return pGeneralDataNode;
 }
 
-XNode* XMLProfile::SaveFavoritesCreateNode() const {
+XNode* XMLProfile::SaveFavoritesCreateNode(const Profile* profile) const {
 	CHECKPOINT_M("Saving the favorites node.");
 
 	XNode* favs = new XNode("Favorites");
@@ -409,7 +409,7 @@ XNode* XMLProfile::SaveFavoritesCreateNode() const {
 	return favs;
 }
 
-XNode* XMLProfile::SavePermaMirrorCreateNode() const {
+XNode* XMLProfile::SavePermaMirrorCreateNode(const Profile* profile) const {
 	CHECKPOINT_M("Saving the permamirror node.");
 
 	XNode* pmir = new XNode("PermaMirror");
@@ -429,7 +429,7 @@ XNode* GoalsForChart::CreateNode() const {
 	return cg;
 }
 
-XNode* XMLProfile::SaveScoreGoalsCreateNode() const {
+XNode* XMLProfile::SaveScoreGoalsCreateNode(const Profile* profile) const {
 	CHECKPOINT_M("Saving the scoregoals node.");
 
 	XNode* goals = new XNode("ScoreGoals");
@@ -440,7 +440,7 @@ XNode* XMLProfile::SaveScoreGoalsCreateNode() const {
 	return goals;
 }
 
-XNode* XMLProfile::SavePlaylistsCreateNode() const {
+XNode* XMLProfile::SavePlaylistsCreateNode(const Profile* profile) const {
 	CHECKPOINT_M("Saving the playlists node.");
 
 	XNode* playlists = new XNode("Playlists");
@@ -455,19 +455,19 @@ void XMLProfile::LoadFavoritesFromNode(const XNode *pNode) {
 	CHECKPOINT_M("Loading the favorites node.");
 
 	FOREACH_CONST_Child(pNode, ck)
-		profile->FavoritedCharts.emplace(SONGMAN->ReconcileBustedKeys(ck->GetName()));
+		loadingProfile->FavoritedCharts.emplace(SONGMAN->ReconcileBustedKeys(ck->GetName()));
 
-	SONGMAN->SetFavoritedStatus(profile->FavoritedCharts);
-	SONGMAN->MakePlaylistFromFavorites(profile->FavoritedCharts);
+	SONGMAN->SetFavoritedStatus(loadingProfile->FavoritedCharts);
+	SONGMAN->MakePlaylistFromFavorites(loadingProfile->FavoritedCharts);
 }
 
 void XMLProfile::LoadPermaMirrorFromNode(const XNode *pNode) {
 	CHECKPOINT_M("Loading the permamirror node.");
 
 	FOREACH_CONST_Child(pNode, ck)
-		profile->PermaMirrorCharts.emplace(SONGMAN->ReconcileBustedKeys(ck->GetName()));
+		loadingProfile->PermaMirrorCharts.emplace(SONGMAN->ReconcileBustedKeys(ck->GetName()));
 
-	SONGMAN->SetPermaMirroredStatus(profile->PermaMirrorCharts);
+	SONGMAN->SetPermaMirroredStatus(loadingProfile->PermaMirrorCharts);
 }
 
 void GoalsForChart::LoadFromNode(const XNode *pNode) {
@@ -485,9 +485,9 @@ void XMLProfile::LoadScoreGoalsFromNode(const XNode *pNode) {
 	FOREACH_CONST_Child(pNode, chgoals) {
 		chgoals->GetAttrValue("Key", ck);
 		ck = SONGMAN->ReconcileBustedKeys(ck);
-		profile->goalmap[ck].LoadFromNode(chgoals);
+		loadingProfile->goalmap[ck].LoadFromNode(chgoals);
 	}
-	SONGMAN->SetHasGoal(profile->goalmap);
+	SONGMAN->SetHasGoal(loadingProfile->goalmap);
 }
 
 void XMLProfile::LoadPlaylistsFromNode(const XNode *pNode) {
@@ -503,7 +503,7 @@ void XMLProfile::LoadPlaylistsFromNode(const XNode *pNode) {
 }
 
 
-XNode* XMLProfile::SaveEttGeneralDataCreateNode() const {
+XNode* XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const {
 	CHECKPOINT_M("Saving the general node.");
 
 	XNode* pGeneralDataNode = new XNode("GeneralData");
@@ -641,32 +641,33 @@ void XMLProfile::LoadGeneralDataFromNode(const XNode* pNode)
 	RString s;
 	const XNode* pTemp;
 
-	pNode->GetChildValue("DisplayName", profile->m_sDisplayName);
-	pNode->GetChildValue("CharacterID", profile->m_sCharacterID);
-	pNode->GetChildValue("LastUsedHighScoreName", profile->m_sLastUsedHighScoreName);
-	pNode->GetChildValue("Guid", profile->m_sGuid);
-	pNode->GetChildValue("SortOrder", s);	profile->m_SortOrder = StringToSortOrder(s);
-	pNode->GetChildValue("LastDifficulty", s);	profile->m_LastDifficulty = StringToDifficulty(s);
-	pNode->GetChildValue("LastStepsType", s);	profile->m_LastStepsType = GAMEMAN->StringToStepsType(s);
-	pTemp = pNode->GetChild("Song");				if (pTemp) profile->m_lastSong.LoadFromNode(pTemp);
-	pNode->GetChildValue("CurrentCombo", profile->m_iCurrentCombo);
-	pNode->GetChildValue("TotalSessions", profile->m_iTotalSessions);
-	pNode->GetChildValue("TotalSessionSeconds", profile->m_iTotalSessionSeconds);
-	pNode->GetChildValue("TotalGameplaySeconds", profile->m_iTotalGameplaySeconds);
-	pNode->GetChildValue("LastPlayedMachineGuid", profile->m_sLastPlayedMachineGuid);
-	pNode->GetChildValue("LastPlayedDate", s); profile->m_LastPlayedDate.FromString(s);
-	pNode->GetChildValue("TotalDancePoints", profile->m_iTotalDancePoints);
-	pNode->GetChildValue("NumExtraStagesPassed", profile->m_iNumExtraStagesPassed);
-	pNode->GetChildValue("NumExtraStagesFailed", profile->m_iNumExtraStagesFailed);
-	pNode->GetChildValue("NumToasties", profile->m_iNumToasties);
-	pNode->GetChildValue("TotalTapsAndHolds", profile->m_iTotalTapsAndHolds);
-	pNode->GetChildValue("TotalJumps", profile->m_iTotalJumps);
-	pNode->GetChildValue("TotalHolds", profile->m_iTotalHolds);
-	pNode->GetChildValue("TotalRolls", profile->m_iTotalRolls);
-	pNode->GetChildValue("TotalMines", profile->m_iTotalMines);
-	pNode->GetChildValue("TotalHands", profile->m_iTotalHands);
-	pNode->GetChildValue("TotalLifts", profile->m_iTotalLifts);
-	pNode->GetChildValue("PlayerRating", profile->m_fPlayerRating);
+	pNode->GetChildValue("DisplayName", loadingProfile->m_sDisplayName);
+	pNode->GetChildValue("CharacterID", loadingProfile->m_sCharacterID);
+	pNode->GetChildValue("LastUsedHighScoreName", loadingProfile->m_sLastUsedHighScoreName);
+	pNode->GetChildValue("Guid", s);
+	loadingProfile->m_sGuid = s;
+	pNode->GetChildValue("SortOrder", s);	loadingProfile->m_SortOrder = StringToSortOrder(s);
+	pNode->GetChildValue("LastDifficulty", s);	loadingProfile->m_LastDifficulty = StringToDifficulty(s);
+	pNode->GetChildValue("LastStepsType", s);	loadingProfile->m_LastStepsType = GAMEMAN->StringToStepsType(s);
+	pTemp = pNode->GetChild("Song");				if (pTemp) loadingProfile->m_lastSong.LoadFromNode(pTemp);
+	pNode->GetChildValue("CurrentCombo", loadingProfile->m_iCurrentCombo);
+	pNode->GetChildValue("TotalSessions", loadingProfile->m_iTotalSessions);
+	pNode->GetChildValue("TotalSessionSeconds", loadingProfile->m_iTotalSessionSeconds);
+	pNode->GetChildValue("TotalGameplaySeconds", loadingProfile->m_iTotalGameplaySeconds);
+	pNode->GetChildValue("LastPlayedMachineGuid", loadingProfile->m_sLastPlayedMachineGuid);
+	pNode->GetChildValue("LastPlayedDate", s); loadingProfile->m_LastPlayedDate.FromString(s);
+	pNode->GetChildValue("TotalDancePoints", loadingProfile->m_iTotalDancePoints);
+	pNode->GetChildValue("NumExtraStagesPassed", loadingProfile->m_iNumExtraStagesPassed);
+	pNode->GetChildValue("NumExtraStagesFailed", loadingProfile->m_iNumExtraStagesFailed);
+	pNode->GetChildValue("NumToasties", loadingProfile->m_iNumToasties);
+	pNode->GetChildValue("TotalTapsAndHolds", loadingProfile->m_iTotalTapsAndHolds);
+	pNode->GetChildValue("TotalJumps", loadingProfile->m_iTotalJumps);
+	pNode->GetChildValue("TotalHolds", loadingProfile->m_iTotalHolds);
+	pNode->GetChildValue("TotalRolls", loadingProfile->m_iTotalRolls);
+	pNode->GetChildValue("TotalMines", loadingProfile->m_iTotalMines);
+	pNode->GetChildValue("TotalHands", loadingProfile->m_iTotalHands);
+	pNode->GetChildValue("TotalLifts", loadingProfile->m_iTotalLifts);
+	pNode->GetChildValue("PlayerRating", loadingProfile->m_fPlayerRating);
 
 	{
 		const XNode* pDefaultModifiers = pNode->GetChild("DefaultModifiers");
@@ -674,7 +675,7 @@ void XMLProfile::LoadGeneralDataFromNode(const XNode* pNode)
 		{
 			FOREACH_CONST_Child(pDefaultModifiers, game_type)
 			{
-				game_type->GetTextValue(profile->m_sDefaultModifiers[game_type->GetName()]);
+				game_type->GetTextValue(loadingProfile->m_sDefaultModifiers[game_type->GetName()]);
 			}
 		}
 	}
@@ -685,13 +686,13 @@ void XMLProfile::LoadGeneralDataFromNode(const XNode* pNode)
 			FOREACH_CONST_Child(pFavorites, ck) {
 				RString tmp = ck->GetName();				// handle duplicated entries caused by an oversight - mina
 				bool duplicated = false;
-				FOREACHS(string, profile->FavoritedCharts, chartkey)
+				FOREACHS(string, loadingProfile->FavoritedCharts, chartkey)
 					if (*chartkey == tmp)
 						duplicated = true;
 				if (!duplicated)
-					profile->FavoritedCharts.emplace(tmp);
+					loadingProfile->FavoritedCharts.emplace(tmp);
 			}
-			SONGMAN->SetFavoritedStatus(profile->FavoritedCharts);
+			SONGMAN->SetFavoritedStatus(loadingProfile->FavoritedCharts);
 		}
 	}
 
@@ -699,7 +700,7 @@ void XMLProfile::LoadGeneralDataFromNode(const XNode* pNode)
 		const XNode* pPlayerSkillsets = pNode->GetChild("PlayerSkillsets");
 		if (pPlayerSkillsets) {
 			FOREACH_ENUM(Skillset, ss)
-				pPlayerSkillsets->GetChildValue(SkillsetToString(ss), profile->m_fPlayerSkillsets[ss]);
+				pPlayerSkillsets->GetChildValue(SkillsetToString(ss), loadingProfile->m_fPlayerSkillsets[ss]);
 		}
 	}
 
@@ -707,7 +708,7 @@ void XMLProfile::LoadGeneralDataFromNode(const XNode* pNode)
 		const XNode* pNumSongsPlayedByPlayMode = pNode->GetChild("NumSongsPlayedByPlayMode");
 		if (pNumSongsPlayedByPlayMode)
 			FOREACH_ENUM(PlayMode, pm)
-			pNumSongsPlayedByPlayMode->GetChildValue(PlayModeToString(pm), profile->m_iNumSongsPlayedByPlayMode[pm]);
+			pNumSongsPlayedByPlayMode->GetChildValue(PlayModeToString(pm), loadingProfile->m_iNumSongsPlayedByPlayMode[pm]);
 	}
 
 	{
@@ -725,7 +726,7 @@ void XMLProfile::LoadGeneralDataFromNode(const XNode* pNode)
 				if (!sID.IsValid())
 					WARN_AND_CONTINUE;
 
-				style->GetTextValue(profile->m_iNumSongsPlayedByStyle[sID]);
+				style->GetTextValue(loadingProfile->m_iNumSongsPlayedByStyle[sID]);
 			}
 		}
 	}
@@ -734,30 +735,30 @@ void XMLProfile::LoadGeneralDataFromNode(const XNode* pNode)
 		const XNode* pNumSongsPlayedByDifficulty = pNode->GetChild("NumSongsPlayedByDifficulty");
 		if (pNumSongsPlayedByDifficulty)
 			FOREACH_ENUM(Difficulty, dc)
-			pNumSongsPlayedByDifficulty->GetChildValue(DifficultyToString(dc), profile->m_iNumSongsPlayedByDifficulty[dc]);
+			pNumSongsPlayedByDifficulty->GetChildValue(DifficultyToString(dc), loadingProfile->m_iNumSongsPlayedByDifficulty[dc]);
 	}
 
 	{
 		const XNode* pNumSongsPlayedByMeter = pNode->GetChild("NumSongsPlayedByMeter");
 		if (pNumSongsPlayedByMeter)
 			for (int i = 0; i<MAX_METER + 1; i++)
-				pNumSongsPlayedByMeter->GetChildValue(ssprintf("Meter%d", i), profile->m_iNumSongsPlayedByMeter[i]);
+				pNumSongsPlayedByMeter->GetChildValue(ssprintf("Meter%d", i), loadingProfile->m_iNumSongsPlayedByMeter[i]);
 	}
 
-	pNode->GetChildValue("NumTotalSongsPlayed", profile->m_iNumTotalSongsPlayed);
+	pNode->GetChildValue("NumTotalSongsPlayed", loadingProfile->m_iNumTotalSongsPlayed);
 
 	{
 		const XNode* pNumStagesPassedByGrade = pNode->GetChild("NumStagesPassedByGrade");
 		if (pNumStagesPassedByGrade)
 			FOREACH_ENUM(Grade, g)
-			pNumStagesPassedByGrade->GetChildValue(GradeToString(g), profile->m_iNumStagesPassedByGrade[g]);
+			pNumStagesPassedByGrade->GetChildValue(GradeToString(g), loadingProfile->m_iNumStagesPassedByGrade[g]);
 	}
 
 	{
 		const XNode* pNumStagesPassedByPlayMode = pNode->GetChild("NumStagesPassedByPlayMode");
 		if (pNumStagesPassedByPlayMode)
 			FOREACH_ENUM(PlayMode, pm)
-			pNumStagesPassedByPlayMode->GetChildValue(PlayModeToString(pm), profile->m_iNumStagesPassedByPlayMode[pm]);
+			pNumStagesPassedByPlayMode->GetChildValue(PlayModeToString(pm), loadingProfile->m_iNumStagesPassedByPlayMode[pm]);
 
 	}
 
@@ -771,7 +772,7 @@ void XMLProfile::LoadGeneralDataFromNode(const XNode* pNode)
 	else
 		lua_newtable(L);
 
-	profile->m_UserTable.SetFromStack(L);
+	loadingProfile->m_UserTable.SetFromStack(L);
 	LUA->Release(L);
 
 }
@@ -784,29 +785,29 @@ void XMLProfile::LoadEttGeneralDataFromNode(const XNode* pNode) {
 	RString s;
 	const XNode* pTemp;
 
-	pNode->GetChildValue("DisplayName", profile->m_sDisplayName);
-	pNode->GetChildValue("CharacterID", profile->m_sCharacterID);
-	pNode->GetChildValue("LastUsedHighScoreName", profile->m_sLastUsedHighScoreName);
-	pNode->GetChildValue("Guid", profile->m_sGuid);
-	pNode->GetChildValue("SortOrder", s);	profile->m_SortOrder = StringToSortOrder(s);
-	pNode->GetChildValue("LastDifficulty", s);	profile->m_LastDifficulty = StringToDifficulty(s);
-	pNode->GetChildValue("LastStepsType", s);	profile->m_LastStepsType = GAMEMAN->StringToStepsType(s);
-	pTemp = pNode->GetChild("Song");				if (pTemp) profile->m_lastSong.LoadFromNode(pTemp);
-	pNode->GetChildValue("CurrentCombo", profile->m_iCurrentCombo);
-	pNode->GetChildValue("TotalSessions", profile->m_iTotalSessions);
-	pNode->GetChildValue("TotalSessionSeconds", profile->m_iTotalSessionSeconds);
-	pNode->GetChildValue("TotalGameplaySeconds", profile->m_iTotalGameplaySeconds);
-	pNode->GetChildValue("LastPlayedDate", s); profile->m_LastPlayedDate.FromString(s);
-	pNode->GetChildValue("TotalDancePoints", profile->m_iTotalDancePoints);
-	pNode->GetChildValue("NumToasties", profile->m_iNumToasties);
-	pNode->GetChildValue("TotalTapsAndHolds", profile->m_iTotalTapsAndHolds);
-	pNode->GetChildValue("TotalJumps", profile->m_iTotalJumps);
-	pNode->GetChildValue("TotalHolds", profile->m_iTotalHolds);
-	pNode->GetChildValue("TotalRolls", profile->m_iTotalRolls);
-	pNode->GetChildValue("TotalMines", profile->m_iTotalMines);
-	pNode->GetChildValue("TotalHands", profile->m_iTotalHands);
-	pNode->GetChildValue("TotalLifts", profile->m_iTotalLifts);
-	pNode->GetChildValue("PlayerRating", profile->m_fPlayerRating);
+	pNode->GetChildValue("DisplayName", loadingProfile->m_sDisplayName);
+	pNode->GetChildValue("CharacterID", loadingProfile->m_sCharacterID);
+	pNode->GetChildValue("LastUsedHighScoreName", loadingProfile->m_sLastUsedHighScoreName);
+	pNode->GetChildValue("Guid", (*loadingProfile->GetGuid()));
+	pNode->GetChildValue("SortOrder", s);	loadingProfile->m_SortOrder = StringToSortOrder(s);
+	pNode->GetChildValue("LastDifficulty", s);	loadingProfile->m_LastDifficulty = StringToDifficulty(s);
+	pNode->GetChildValue("LastStepsType", s);	loadingProfile->m_LastStepsType = GAMEMAN->StringToStepsType(s);
+	pTemp = pNode->GetChild("Song");				if (pTemp) loadingProfile->m_lastSong.LoadFromNode(pTemp);
+	pNode->GetChildValue("CurrentCombo", loadingProfile->m_iCurrentCombo);
+	pNode->GetChildValue("TotalSessions", loadingProfile->m_iTotalSessions);
+	pNode->GetChildValue("TotalSessionSeconds", loadingProfile->m_iTotalSessionSeconds);
+	pNode->GetChildValue("TotalGameplaySeconds", loadingProfile->m_iTotalGameplaySeconds);
+	pNode->GetChildValue("LastPlayedDate", s); loadingProfile->m_LastPlayedDate.FromString(s);
+	pNode->GetChildValue("TotalDancePoints", loadingProfile->m_iTotalDancePoints);
+	pNode->GetChildValue("NumToasties", loadingProfile->m_iNumToasties);
+	pNode->GetChildValue("TotalTapsAndHolds", loadingProfile->m_iTotalTapsAndHolds);
+	pNode->GetChildValue("TotalJumps", loadingProfile->m_iTotalJumps);
+	pNode->GetChildValue("TotalHolds", loadingProfile->m_iTotalHolds);
+	pNode->GetChildValue("TotalRolls", loadingProfile->m_iTotalRolls);
+	pNode->GetChildValue("TotalMines", loadingProfile->m_iTotalMines);
+	pNode->GetChildValue("TotalHands", loadingProfile->m_iTotalHands);
+	pNode->GetChildValue("TotalLifts", loadingProfile->m_iTotalLifts);
+	pNode->GetChildValue("PlayerRating", loadingProfile->m_fPlayerRating);
 
 	{
 		const XNode* pDefaultModifiers = pNode->GetChild("DefaultModifiers");
@@ -814,7 +815,7 @@ void XMLProfile::LoadEttGeneralDataFromNode(const XNode* pNode) {
 		{
 			FOREACH_CONST_Child(pDefaultModifiers, game_type)
 			{
-				game_type->GetTextValue(profile->m_sDefaultModifiers[game_type->GetName()]);
+				game_type->GetTextValue(loadingProfile->m_sDefaultModifiers[game_type->GetName()]);
 			}
 		}
 	}
@@ -823,7 +824,7 @@ void XMLProfile::LoadEttGeneralDataFromNode(const XNode* pNode) {
 		const XNode* pPlayerSkillsets = pNode->GetChild("PlayerSkillsets");
 		if (pPlayerSkillsets) {
 			FOREACH_ENUM(Skillset, ss)
-				pPlayerSkillsets->GetChildValue(SkillsetToString(ss), profile->m_fPlayerSkillsets[ss]);
+				pPlayerSkillsets->GetChildValue(SkillsetToString(ss), loadingProfile->m_fPlayerSkillsets[ss]);
 		}
 	}
 
@@ -837,12 +838,12 @@ void XMLProfile::LoadEttGeneralDataFromNode(const XNode* pNode) {
 	else
 		lua_newtable(L);
 
-	profile->m_UserTable.SetFromStack(L);
+	loadingProfile->m_UserTable.SetFromStack(L);
 	LUA->Release(L);
 
 }
 
-XNode* XMLProfile::SaveSongScoresCreateNode() const
+XNode* XMLProfile::SaveSongScoresCreateNode(const Profile* profile) const
 {
 	CHECKPOINT_M("Getting the node to save song scores.");
 
@@ -886,7 +887,7 @@ XNode* XMLProfile::SaveSongScoresCreateNode() const
 }
 
 
-XNode* XMLProfile::SaveEttScoresCreateNode() const {
+XNode* XMLProfile::SaveEttScoresCreateNode(const Profile* profile) const {
 	CHECKPOINT_M("Saving the player scores node.");
 
 	ASSERT(profile != NULL);
@@ -913,11 +914,11 @@ void XMLProfile::LoadScreenshotDataFromNode(const XNode* pScreenshotData)
 		Screenshot ss;
 		ss.LoadFromNode(pScreenshot);
 
-		profile->m_vScreenshots.push_back(ss);
+		loadingProfile->m_vScreenshots.push_back(ss);
 	}
 }
 
-XNode* XMLProfile::SaveScreenshotDataCreateNode() const
+XNode* XMLProfile::SaveScreenshotDataCreateNode(const Profile* profile) const
 {
 	CHECKPOINT_M("Getting the node containing screenshot data.");
 
@@ -966,14 +967,14 @@ void XMLProfile::LoadCategoryScoresFromNode(const XNode* pCategoryScores)
 			if (pHighScoreListNode == NULL)
 				WARN_AND_CONTINUE;
 
-			HighScoreList &hsl = profile->GetCategoryHighScoreList(st, rc);
+			HighScoreList &hsl = loadingProfile->GetCategoryHighScoreList(st, rc);
 			hsl.LoadFromNode(pHighScoreListNode);
 		}
 	}
 }
 
 
-XNode* XMLProfile::SaveCategoryScoresCreateNode() const
+XNode* XMLProfile::SaveCategoryScoresCreateNode(const Profile* profile) const
 {
 	CHECKPOINT_M("Getting the node that saves category scores.");
 
@@ -1062,9 +1063,9 @@ ProfileLoadResult XMLProfile::LoadStatsXmlFromNode(const XNode *xml, bool bIgnor
 	}
 
 	// These are loaded from Editable, so we usually want to ignore them here.
-	RString sName = profile->m_sDisplayName;
-	RString sCharacterID = profile->m_sCharacterID;
-	RString sLastUsedHighScoreName = profile->m_sLastUsedHighScoreName;
+	RString sName = loadingProfile->m_sDisplayName;
+	RString sCharacterID = loadingProfile->m_sCharacterID;
+	RString sLastUsedHighScoreName = loadingProfile->m_sLastUsedHighScoreName;
 
 	LOAD_NODE(GeneralData);
 	LOAD_NODE(SongScores);
@@ -1073,9 +1074,9 @@ ProfileLoadResult XMLProfile::LoadStatsXmlFromNode(const XNode *xml, bool bIgnor
 
 	if (bIgnoreEditable)
 	{
-		profile->m_sDisplayName = sName;
-		profile->m_sCharacterID = sCharacterID;
-		profile->m_sLastUsedHighScoreName = sLastUsedHighScoreName;
+		loadingProfile->m_sDisplayName = sName;
+		loadingProfile->m_sCharacterID = sCharacterID;
+		loadingProfile->m_sLastUsedHighScoreName = sLastUsedHighScoreName;
 	}
 
 	return ProfileLoadResult_Success;
@@ -1114,42 +1115,42 @@ void XMLProfile::LoadSongScoresFromNode(const XNode* pSongScores)
 			if (pHighScoreListNode == NULL)
 				WARN_AND_CONTINUE;
 
-			HighScoreList &hsl = profile->m_SongHighScores[songID].m_StepsHighScores[stepsID].hsl;
+			HighScoreList &hsl = loadingProfile->m_SongHighScores[songID].m_StepsHighScores[stepsID].hsl;
 			hsl.LoadFromNode(pHighScoreListNode);
 		}
 	}
 }
 
 
-XNode *XMLProfile::SaveStatsXmlCreateNode() const
+XNode *XMLProfile::SaveStatsXmlCreateNode(const Profile* profile) const
 {
 	XNode *xml = new XNode("Stats");
 
-	xml->AppendChild(SaveGeneralDataCreateNode());
-	xml->AppendChild(SaveSongScoresCreateNode());
-	xml->AppendChild(SaveCategoryScoresCreateNode());
-	xml->AppendChild(SaveScreenshotDataCreateNode());
+	xml->AppendChild(SaveGeneralDataCreateNode(profile));
+	xml->AppendChild(SaveSongScoresCreateNode(profile));
+	xml->AppendChild(SaveCategoryScoresCreateNode(profile));
+	xml->AppendChild(SaveScreenshotDataCreateNode(profile));
 
 	return xml;
 }
 
-XNode *XMLProfile::SaveEttXmlCreateNode() const
+XNode *XMLProfile::SaveEttXmlCreateNode(const Profile* profile) const
 {
 	XNode *xml = new XNode("Stats");
-	xml->AppendChild(SaveEttGeneralDataCreateNode());
+	xml->AppendChild(SaveEttGeneralDataCreateNode(profile));
 
 	if (!profile->FavoritedCharts.empty())
-		xml->AppendChild(SaveFavoritesCreateNode());
+		xml->AppendChild(SaveFavoritesCreateNode(profile));
 
 	if (!profile->PermaMirrorCharts.empty())
-		xml->AppendChild(SavePermaMirrorCreateNode());
+		xml->AppendChild(SavePermaMirrorCreateNode(profile));
 
 	if (!SONGMAN->allplaylists.empty())
-		xml->AppendChild(SavePlaylistsCreateNode());
+		xml->AppendChild(SavePlaylistsCreateNode(profile));
 
 	if (!profile->goalmap.empty())
-		xml->AppendChild(SaveScoreGoalsCreateNode());
+		xml->AppendChild(SaveScoreGoalsCreateNode(profile));
 
-	xml->AppendChild(SaveEttScoresCreateNode());
+	xml->AppendChild(SaveEttScoresCreateNode(profile));
 	return xml;
 }

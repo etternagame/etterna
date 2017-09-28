@@ -164,8 +164,6 @@ public:
 		FOREACH_ENUM( StepsType,st )
 			FOREACH_ENUM( RankingCategory,rc )
 				m_CategoryHighScores[st][rc].Init();
-		XMLProf.profile = this;
-		DBProf.profile = this;
 	}
 
 	// smart accessors
@@ -201,7 +199,7 @@ public:
 
 	// General data
 	static RString MakeGuid();
-
+	RString* GetGuid() { return &m_sGuid; }
 	RString m_sGuid;
 	map<RString,RString> m_sDefaultModifiers;
 	SortOrder m_SortOrder{SortOrder_Invalid};

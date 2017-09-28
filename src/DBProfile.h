@@ -15,16 +15,18 @@ class DBProfile {
 public:
 
 	ProfileLoadResult LoadDBFromDir(RString dir);
+	ProfileLoadResult LoadDBFromDir(RString dir, Profile* profile);
 
-	ProfileLoadResult SaveDBToDir(RString sDir) const;
+	ProfileLoadResult SaveDBToDir(RString sDir, const Profile* profile) const;
 
 	static void MoveBackupToDir(const RString &sFromDir, const RString &sToDir);
 
-	Profile* profile;
+	void SetLoadingProfile(Profile* p) { loadingProfile = p; }
 private:
-	int GetChartID(SQLite::Database* db, RString key) const;
-	RString GetChartByID(SQLite::Database* db, int id) const;
-	int DBProfile::AddOrCreateChart(SQLite::Database* db, RString key) const;
+	Profile* loadingProfile;
+	int GetChartKeyID(SQLite::Database* db, RString key) const;
+	RString GetChartKeyByID(SQLite::Database* db, int id) const;
+	int FindOrCreateChartKey(SQLite::Database* db, RString key) const;
 
 	void LoadFavourites(SQLite::Database* db);
 	void LoadPlayLists(SQLite::Database* db);
@@ -33,12 +35,12 @@ private:
 	void LoadPermaMirrors(SQLite::Database* db);
 	void LoadScoreGoals(SQLite::Database* db);
 
-	void SaveFavourites(SQLite::Database* db) const;
-	void SavePlayLists(SQLite::Database* db) const;
-	void SavePlayerScores(SQLite::Database* db) const;
-	void SaveGeneralData(SQLite::Database* db) const;
-	void SavePermaMirrors(SQLite::Database* db) const;
-	void SaveScoreGoals(SQLite::Database* db) const;
+	void SaveFavourites(SQLite::Database* db, const Profile* profile) const;
+	void SavePlayLists(SQLite::Database* db, const Profile* profile) const;
+	void SavePlayerScores(SQLite::Database* db, const Profile* profile) const;
+	void SaveGeneralData(SQLite::Database* db, const Profile* profile) const;
+	void SavePermaMirrors(SQLite::Database* db, const Profile* profile) const;
+	void SaveScoreGoals(SQLite::Database* db, const Profile* profile) const;
 
 };
 
