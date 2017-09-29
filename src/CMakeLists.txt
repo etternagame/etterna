@@ -105,7 +105,7 @@ if (WITH_PORTABLE_TOMCRYPT)
 elseif (WITH_NO_ROLC_TOMCRYPT OR APPLE)
   sm_add_compile_definition("${SM_EXE_NAME}" LTC_NO_ROLC)
 endif()
-
+sm_add_compile_definition("${SM_EXE_NAME}" CURL_STATICLIB)
 sm_add_compile_definition("${SM_EXE_NAME}" CMAKE_POWERED)
 
 if (NOT WITH_NETWORKING)
@@ -346,6 +346,7 @@ if (WIN32)
     "${LIB_AVFORMAT}"
     "${LIB_AVUTIL}"
     "${LIB_CURL}"
+    "${LIB_WLDAP32}"
   )
   
   if (WITH_OGG)

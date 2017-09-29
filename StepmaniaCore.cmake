@@ -155,6 +155,8 @@ check_type_size(pid_t SIZEOF_PID_T)
 check_type_size(size_t SIZEOF_SIZE_T)
 check_type_size(ssize_t SIZEOF_SSIZE_T)
 
+set(CMAKE_CXX_FLAGS_RELEASE "/MT")
+set(CMAKE_CXX_FLAGS_DEBUG "/MTd")
 include(TestBigEndian)
 test_big_endian(BIGENDIAN)
 if (${BIGENDIAN})
@@ -281,6 +283,11 @@ if(WIN32)
 	PATHS "${SM_EXTERN_DIR}/libcurl" NO_DEFAULT_PATH
 	)
   get_filename_component(LIB_CURL ${LIB_CURL} NAME)
+  
+  find_library(LIB_WLDAP32 NAMES "wldap32"
+	PATHS "${SM_EXTERN_DIR}/libcurl" NO_DEFAULT_PATH
+	)
+  get_filename_component(LIB_WLDAP32 ${LIB_WLDAP32} NAME)
 elseif(MACOSX)
 
   if (WITH_FFMPEG)
