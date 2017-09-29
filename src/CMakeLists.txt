@@ -345,6 +345,7 @@ if (WIN32)
     "${LIB_AVCODEC}"
     "${LIB_AVFORMAT}"
     "${LIB_AVUTIL}"
+    "${LIB_CURL}"
   )
   
   if (WITH_OGG)
@@ -365,6 +366,7 @@ if (WIN32)
   
   sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${DIRECTX_LIBRARY_DIR}\"")
   sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_EXTERN_DIR}/ffmpeg/lib\"")
+  sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_EXTERN_DIR}/libcurl\"")
   sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_SRC_DIR}/archutils/Win32/ddk\"")
   sm_add_link_flag("${SM_EXE_NAME}" "/ERRORREPORT:SEND")
   sm_add_link_flag("${SM_EXE_NAME}" "/MAPINFO:EXPORTS")
@@ -404,6 +406,7 @@ elseif(APPLE)
     "${BZIP2_LIBRARY_RELEASE}"
     "${ICONV_LIBRARIES}"
     "pcre"
+    "${CURL_LIBRARIES}"
   )
 
   if(HAS_FFMPEG)
@@ -457,6 +460,7 @@ else() # Unix / Linux
 
   list(APPEND SMDATA_LINK_LIB
     "${OPENGL_LIBRARY}"
+    "${CURL_LIBRARIES}"
   )
 
   if(GTK2_FOUND)
@@ -531,6 +535,9 @@ if(NOT APPLE)
     list(APPEND SM_INCLUDE_DIRS
       "${SM_EXTERN_DIR}/ffmpeg/include"
     )
+    list(APPEND SM_INCLUDE_DIRS
+      "${SM_EXTERN_DIR}/libcurl/include"
+    )
   else()
     if(WITH_OGG)
       list(APPEND SM_INCLUDE_DIRS
@@ -551,6 +558,9 @@ if(NOT APPLE)
         )
       endif()
     endif()
+    list(APPEND SM_INCLUDE_DIRS
+	  "${CURL_INCLUDE_DIR}"
+    )
     if (HAS_GTK2)
       list(APPEND SM_INCLUDE_DIRS "${GTK2_INCLUDE_DIRS}")
     endif()
@@ -565,6 +575,9 @@ if(NOT APPLE)
     endif()
   endif()
 else()
+  list(APPEND SM_INCLUDE_DIRS
+	"${CURL_INCLUDE_DIR}"
+  )
   if(WITH_OGG)
     list(APPEND SM_INCLUDE_DIRS
       "${SM_EXTERN_DIR}/newogg/include"
