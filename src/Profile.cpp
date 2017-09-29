@@ -794,9 +794,9 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 	LoadEditableDataFromDir( sDir );
 	DBProf.SetLoadingProfile(this);
 	XMLProf.SetLoadingProfile(this);
-	//ProfileLoadResult ret = DBProf.LoadDBFromDir(sDir);
-	//if (ret != ProfileLoadResult_Success) {
-		//ret = XMLProf.LoadEttFromDir(sDir);
+	ProfileLoadResult ret = DBProf.LoadDBFromDir(sDir);
+	if (ret != ProfileLoadResult_Success) {
+		ret = XMLProf.LoadEttFromDir(sDir);
 		ProfileLoadResult ret = XMLProf.LoadEttFromDir(sDir);
 		if (ret != ProfileLoadResult_Success) {
 			ret = XMLProf.LoadStatsFromDir(sDir, bRequireSignature);
@@ -807,7 +807,7 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 			IsEtternaProfile = true;
 			ImportScoresToEtterna();
 		}
-	//}
+	}
 
 	CalculateStatsFromScores(ld);
 	return ProfileLoadResult_Success;

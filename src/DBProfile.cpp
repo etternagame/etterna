@@ -34,10 +34,11 @@ ProfileLoadResult DBProfile::LoadDBFromDir(RString dir, Profile* profile)
 
 ProfileLoadResult DBProfile::LoadDBFromDir(RString dir)
 {
+	
 	SQLite::Database *db;
 	try {
 		// Open a database file
-		db = new SQLite::Database(PROFILEMAN->GetProfileDir(static_cast<ProfileSlot>(0)) + dir + PROFILE_DB, SQLite::OPEN_READWRITE);
+		db = new SQLite::Database(FILEMAN->ResolvePath(dir) + PROFILE_DB, SQLite::OPEN_READWRITE);
 	}catch (std::exception& e)
 	{
 		return ProfileLoadResult_FailedNoProfile;
@@ -57,6 +58,7 @@ ProfileLoadResult DBProfile::LoadDBFromDir(RString dir)
 		return ProfileLoadResult_FailedTampered;
 	}
 	delete db;
+	return ProfileLoadResult_Success;
 }
 
 bool DBProfile::LoadGeneralData(SQLite::Database* db)
@@ -71,7 +73,7 @@ bool DBProfile::LoadGeneralData(SQLite::Database* db)
 	loadingProfile->m_sLastUsedHighScoreName = static_cast<const char*>(gDataQuery.getColumn(3));
 	loadingProfile->m_sGuid = static_cast<const char*>(gDataQuery.getColumn(4));
 	loadingProfile->m_SortOrder = StringToSortOrder(static_cast<const char*>(gDataQuery.getColumn(5)));
-	loadingProfile->m_LastDifficulty = StringToDifficulty(static_cast<const char*>(gDataQuery.getColumn(6)));
+	loadingProfile->m_LastDifficulty = static_cast<Difficulty>(static_cast<int>(gDataQuery.getColumn(6)));
 	loadingProfile->m_LastStepsType = GAMEMAN->StringToStepsType(static_cast<const char*>(gDataQuery.getColumn(7)));
 
 	const char* song = gDataQuery.getColumn(8);
@@ -102,7 +104,7 @@ bool DBProfile::LoadGeneralData(SQLite::Database* db)
 	}
 
 	SQLite::Statement   skillsetsQuery(*db, "SELECT * FROM playerskillsets");
-	while(modifierQuery.executeStep())
+	while(skillsetsQuery.executeStep())
 	{
 		int skillsetNum = skillsetsQuery.getColumn(1);
 		float skillsetValue = static_cast<double>(skillsetsQuery.getColumn(2));
@@ -132,11 +134,12 @@ bool DBProfile::LoadGeneralData(SQLite::Database* db)
 }
 void DBProfile::LoadFavourites(SQLite::Database* db)
 {
-	SQLite::Statement   query(*db, "SELECT * FROM favourites");
+	SQLite::Statement   query(*db, "SELECT chartkeys.chartkey FROM favourites INNER JOIN chartkeys ON favourites.chartkeyid = chartkeys.id");
 	while (query.executeStep())
 	{
-		const char* key = query.getColumn(1);
-		loadingProfile->FavoritedCharts.emplace(SONGMAN->ReconcileBustedKeys(key));
+		const char* key = query.getColumn(0);
+		//loadingProfile->FavoritedCharts.emplace(SONGMAN->ReconcileBustedKeys(key));
+		loadingProfile->FavoritedCharts.emplace(key);
 	}
 	SONGMAN->SetFavoritedStatus(loadingProfile->FavoritedCharts);
 	SONGMAN->MakePlaylistFromFavorites(loadingProfile->FavoritedCharts);
@@ -145,15 +148,337 @@ void DBProfile::LoadFavourites(SQLite::Database* db)
 
 void DBProfile::LoadPlayLists(SQLite::Database* db) 
 {
+	SQLite::Statement   query(*db, "SELECT playlists.name, chartkeys.chartkey, "
+		"charts.difficulty, charts.song, charts.pack, chartplaylists.rate "
+		"FROM chartplaylists INNER JOIN playlists ON chartplaylists.playlistid = playlists.id "
+		"INNER JOIN charts ON charts.id = chartplaylists.chartid "
+		"INNER JOIN chartkeys ON charts.chartkeyid = chartkeys.id "
+		"ORDER BY playlists.name, chartkeys.chartkey, chartplaylists.rate");
+	auto& pls = SONGMAN->allplaylists;
+
+	Playlist *tmp;
+
+
+	//Read one row
+	if (query.executeStep()) {
+		tmp = new Playlist;
+		tmp->name = static_cast<const char*>(query.getColumn(0));
+		
+		//Load chart
+		Chart ch;
+		ch.lastdiff = static_cast<Difficulty>(static_cast<int>(query.getColumn(3)));
+		ch.lastsong = static_cast<const char*>(query.getColumn(4));
+		ch.lastpack = static_cast<const char*>(query.getColumn(5));
+		ch.rate = static_cast<double>(query.getColumn(6));
+		ch.key = static_cast<const char*>(query.getColumn(1));
+
+		// check if this chart is loaded and overwrite any last-seen values with updated ones
+		//ch.key = SONGMAN->ReconcileBustedKeys(ch.key);
+		ch.FromKey(ch.key);
+
+		//Add chart to playlist
+		tmp->chartlist.emplace_back(ch);
+	}
+	else
+		return;
+	//Read the rest
+	while (query.executeStep())
+	{
+		const char* curName = query.getColumn(0);
+		const char* key = query.getColumn(1);
+
+		if (curName != tmp->name) {
+			//If the playlist changed add it and start a new one
+			pls.emplace(tmp->name, *tmp);
+			delete tmp;
+			tmp = new Playlist;
+			tmp->name = curName;
+		}
+
+		//Load the chart
+		Chart ch;
+
+		ch.lastdiff = static_cast<Difficulty>(static_cast<int>(query.getColumn(3)));
+		ch.lastsong = static_cast<const char*>(query.getColumn(4));
+		ch.lastpack = static_cast<const char*>(query.getColumn(5));
+		ch.rate = static_cast<double>(query.getColumn(6));
+		ch.key = static_cast<const char*>(query.getColumn(1));
+
+		// check if this chart is loaded and overwrite any last-seen values with updated ones
+		//ch.key = SONGMAN->ReconcileBustedKeys(ch.key);
+		ch.FromKey(ch.key);
+
+		//Add chart to playlist
+		tmp->chartlist.emplace_back(ch);
+
+		//TODO: courses
+	}
+	SONGMAN->activeplaylist = tmp->name;
+	delete tmp;
+	return;
+	
 }
 void DBProfile::LoadPlayerScores(SQLite::Database* db) 
-{
+{	
+	SQLite::Statement   query(*db, "SELECT chartkeys.chartkey, "
+		"charts.song, charts.pack, charts.difficulty, "
+		"scoresatrates.rate, " // "scoresatrates.bestgrade, scoresatrates.pbkey, "
+		"scores.scorekey, scores.calcversion, "
+		"scores.grade, scores.wifescore, scores.ssrnormpercent, "
+		"scores.judgescale, scores.nochordcohesion, scores.etternavalid, "
+		"scores.surviveseconds, scores.maxcombo, scores.modifiers, scores.datetime, "
+		"scores.hitmine, scores.avoidmine, scores.miss, scores.w5, scores.w4, scores.w3, "
+		"scores.w2, scores.w1, scores.letgoholds, scores.heldholds, scores.missedholds, "
+		"scores.overall, scores.stream, scores.jumpstream, "
+		"scores.handstream, stamina, scores.jackspeed, "
+		"scores.jackstamina, scores.technical FROM scores "
+		"INNER JOIN scoresatrates ON scoresatrates.id = scores.scoresatrateid "
+		"INNER JOIN charts ON charts.id=scoresatrates.chartid "
+		"INNER JOIN chartkeys ON chartkeys.id=charts.chartkeyid "
+		"ORDER BY chartkeys.id, charts.id, scoresatrates.id");
+
+	unordered_map<string, ScoresForChart>& scores = *(SCOREMAN->GetProfileScores());
+
+	string curCK = "";
+
+	while (query.executeStep())
+	{
+		const string key = static_cast<const char*>(query.getColumn(0));
+		if (key != curCK)
+		{
+			//Per Chart
+			curCK = key;
+			scores[key].ch.key = key;
+			scores[key].ch.lastsong = static_cast<const char*>(query.getColumn(1));
+			scores[key].ch.lastpack = static_cast<const char*>(query.getColumn(2));
+			scores[key].ch.lastdiff = static_cast<Difficulty>(static_cast<int>(query.getColumn(3)));
+		}
+
+		int rate = query.getColumn(4);
+
+		//Per Score
+		string ScoreKey = query.getColumn(5);
+		scores[key].ScoresByRate[rate].scores[ScoreKey].SetSSRCalcVersion(query.getColumn(6));
+		scores[key].ScoresByRate[rate].scores[ScoreKey].SetGrade(static_cast<Grade>(static_cast<int>(query.getColumn(7))));
+		scores[key].ScoresByRate[rate].scores[ScoreKey].SetWifeScore(static_cast<double>(query.getColumn(8)));
+		scores[key].ScoresByRate[rate].scores[ScoreKey].SetSSRNormPercent(static_cast<double>(query.getColumn(9)));
+		scores[key].ScoresByRate[rate].scores[ScoreKey].SetMusicRate(scores[key].KeyToRate(rate));
+		scores[key].ScoresByRate[rate].scores[ScoreKey].SetJudgeScale(static_cast<double>(query.getColumn(10)));
+		scores[key].ScoresByRate[rate].scores[ScoreKey].SetChordCohesion(static_cast<int>(query.getColumn(11))!=0);
+		scores[key].ScoresByRate[rate].scores[ScoreKey].SetEtternaValid(static_cast<int>(query.getColumn(12))!=0);
+		scores[key].ScoresByRate[rate].scores[ScoreKey].SetChartKey(key);
+		scores[key].ScoresByRate[rate].scores[ScoreKey].SetScoreKey(ScoreKey);
+		//TODO:surviveseconds
+		//scores[key].ScoresByRate[rate].scores[ScoreKey].SetSurviveSeconds(query.getColumn(13));
+		scores[key].ScoresByRate[rate].scores[ScoreKey].SetMaxCombo(query.getColumn(14));
+		scores[key].ScoresByRate[rate].scores[ScoreKey].SetModifiers(query.getColumn(15));
+		DateTime d;
+		d.FromString(static_cast<const char*>(query.getColumn(16)));
+		scores[key].ScoresByRate[rate].scores[ScoreKey].SetDateTime(d);
+		
+		
+		int index = 17;
+
+		FOREACH_ENUM(TapNoteScore, tns)
+			if (tns != TNS_None && tns != TNS_CheckpointMiss && tns != TNS_CheckpointHit)
+				scores[key].ScoresByRate[rate].scores[ScoreKey].SetTapNoteScore(tns, query.getColumn(index++));
+
+		FOREACH_ENUM(HoldNoteScore, hns)
+			if (hns != HNS_None)
+				scores[key].ScoresByRate[rate].scores[ScoreKey].SetHoldNoteScore(hns, query.getColumn(index++));
+		
+		//int index = 28;
+		if (scores[key].ScoresByRate[rate].scores[ScoreKey].GetWifeScore() > 0.f) {
+			FOREACH_ENUM(Skillset, ss)
+				scores[key].ScoresByRate[rate].scores[ScoreKey].SetSkillsetSSR(ss, static_cast<double>(query.getColumn(index++)));
+		}
+
+		//TODO: validation keys
+
+
+		if (scores[key].ScoresByRate[rate].scores[ScoreKey].GetScoreKey() == "")
+			scores[key].ScoresByRate[rate].scores[ScoreKey].SetScoreKey("S" + BinaryToHex(CryptManager::GetSHA1ForString(scores[key].ScoresByRate[rate].scores[ScoreKey].GetDateTime().GetString())));
+
+		// Validate input.
+		scores[key].ScoresByRate[rate].scores[ScoreKey].SetGrade(clamp(scores[key].ScoresByRate[rate].scores[ScoreKey].GetGrade(), Grade_Tier01, Grade_Failed));
+
+
+		// Set any pb
+		if (scores[key].ScoresByRate[rate].PBptr == nullptr)
+			scores[key].ScoresByRate[rate].PBptr = &scores[key].ScoresByRate[rate].scores.find(ScoreKey)->second;
+		else {
+			// update pb if a better score is found
+			if (scores[key].ScoresByRate[rate].PBptr->GetWifeScore() < scores[key].ScoresByRate[rate].scores[ScoreKey].GetWifeScore())
+				scores[key].ScoresByRate[rate].PBptr = &scores[key].ScoresByRate[rate].scores.find(ScoreKey)->second;
+		};
+
+		scores[key].ScoresByRate[rate].bestGrade = min(scores[key].ScoresByRate[rate].scores[ScoreKey].GetWifeGrade(), scores[key].ScoresByRate[rate].bestGrade);
+
+		// Very awkward, need to figure this out better so there isn't unnecessary redundancy between loading and adding
+		SCOREMAN->RegisterScore(&scores[key].ScoresByRate[rate].scores.find(ScoreKey)->second);
+		SCOREMAN->AddToKeyedIndex(&scores[key].ScoresByRate[rate].scores.find(ScoreKey)->second);
+
+		scores[key].bestGrade = min(scores[key].ScoresByRate[rate].bestGrade, scores[key].bestGrade);
+	}
+	/*
+// Read scores from xml
+void ScoresForChart::LoadFromNode(const XNode* node, const string& ck) {
+	RString rs = "";
+	int rate;
+
+	if(node->GetName() == "Chart")
+		ch.LoadFromNode(node);
+
+	if (node->GetName() == "ChartScores") {
+		node->GetAttrValue("Key", rs);
+		ch.key = rs;
+		node->GetAttrValue("Song", ch.lastsong);
+		node->GetAttrValue("Pack", ch.lastpack);
+	}
+
+	FOREACH_CONST_Child(node, p) {
+		ASSERT(p->GetName() == "ScoresAt");
+		p->GetAttrValue("Rate", rs);
+		rate = 10 * StringToInt(rs.substr(0, 1) + rs.substr(2, 4));
+		ScoresByRate[rate].LoadFromNode(p, ck, KeyToRate(rate));
+		bestGrade = min(ScoresByRate[rate].bestGrade, bestGrade);
+	}
+}
+void ScoreManager::LoadFromNode(const XNode * node) {
+	FOREACH_CONST_Child(node, p) {
+		//ASSERT(p->GetName() == "Chart");
+		RString tmp;
+		p->GetAttrValue("Key", tmp);
+		string doot = SONGMAN->ReconcileBustedKeys(tmp);
+		const string ck = doot;
+		pscores[ck].LoadFromNode(p, ck);
+	}
+
+void ScoresAtRate::LoadFromNode(const XNode* node, const string& ck, const float& rate) {
+	RString sk;
+	FOREACH_CONST_Child(node, p) {
+		p->GetAttrValue("Key", sk);
+		scores[sk].LoadFromEttNode(p);
+
+		// Set any pb
+		if(PBptr == nullptr)
+			PBptr = &scores.find(sk)->second;
+		else {
+			// update pb if a better score is found
+			if (PBptr->GetWifeScore() < scores[sk].GetWifeScore())
+				PBptr = &scores.find(sk)->second;
+		}
+
+		// Fill in stuff for the highscores
+		scores[sk].SetChartKey(ck);
+		scores[sk].SetScoreKey(sk);
+		scores[sk].SetMusicRate(rate);
+
+		bestGrade = min(scores[sk].GetWifeGrade(), bestGrade);
+
+		// Very awkward, need to figure this out better so there isn't unnecessary redundancy between loading and adding
+		SCOREMAN->RegisterScore(&scores.find(sk)->second);
+		SCOREMAN->AddToKeyedIndex(&scores.find(sk)->second);
+	}
+}
+void HighScoreImpl::LoadFromEttNode(const XNode *pNode) {
+	//ASSERT(pNode->GetName() == "Score");
+
+	RString s;	
+	pNode->GetChildValue("SSRCalcVersion", SSRCalcVersion);
+	pNode->GetChildValue("Grade", s);
+	grade = StringToGrade(s);
+	pNode->GetChildValue("WifeScore", fWifeScore);
+	pNode->GetChildValue("SSRNormPercent", fSSRNormPercent);
+	pNode->GetChildValue("Rate", fMusicRate);
+	pNode->GetChildValue("JudgeScale", fJudgeScale);
+	pNode->GetChildValue("NoChordCohesion", bNoChordCohesion);
+	pNode->GetChildValue("EtternaValid", bEtternaValid);
+	pNode->GetChildValue("SurviveSeconds", fSurviveSeconds);
+	pNode->GetChildValue("MaxCombo", iMaxCombo);
+	pNode->GetChildValue("Modifiers", s); sModifiers = s;
+	pNode->GetChildValue("DateTime", s); dateTime.FromString(s);
+	pNode->GetChildValue("ScoreKey", s); ScoreKey = s;
+
+	const XNode* pTapNoteScores = pNode->GetChild("TapNoteScores");
+	if (pTapNoteScores)
+		FOREACH_ENUM(TapNoteScore, tns)
+		pTapNoteScores->GetChildValue(TapNoteScoreToString(tns), iTapNoteScores[tns]);
+
+	const XNode* pHoldNoteScores = pNode->GetChild("HoldNoteScores");
+	if (pHoldNoteScores)
+		FOREACH_ENUM(HoldNoteScore, hns)
+		pHoldNoteScores->GetChildValue(HoldNoteScoreToString(hns), iHoldNoteScores[hns]);
+
+	if (fWifeScore > 0.f) {
+		const XNode* pSkillsetSSRs = pNode->GetChild("SkillsetSSRs");
+		if (pSkillsetSSRs)
+			FOREACH_ENUM(Skillset, ss)
+			pSkillsetSSRs->GetChildValue(SkillsetToString(ss), fSkillsetSSRs[ss]);
+	}
+
+	if (fWifeScore > 0.f) {
+		const XNode* pValidationKeys = pNode->GetChild("ValidationKeys");
+		if (pValidationKeys) {
+			pValidationKeys->GetChildValue(ValidationKeyToString(ValidationKey_Brittle), s); ValidationKeys[ValidationKey_Brittle] = s;
+			pValidationKeys->GetChildValue(ValidationKeyToString(ValidationKey_Weak), s); ValidationKeys[ValidationKey_Weak] = s;
+		}
+	}
+
+	if (ScoreKey == "")
+		ScoreKey = "S" + BinaryToHex(CryptManager::GetSHA1ForString(dateTime.GetString()));
+
+	// Validate input.
+	grade = clamp(grade, Grade_Tier01, Grade_Failed);
+}
+
+*/
 }
 void DBProfile::LoadPermaMirrors(SQLite::Database* db) 
 {
+	SQLite::Statement   query(*db, "SELECT chartkeys.chartkey FROM permamirrors INNER "
+		"JOIN chartkeys ON permamirrors.chartkeyid = chartkeys.id");
+	while (query.executeStep())
+	{
+		const char* key = query.getColumn(0);
+		//loadingProfile->PermaMirrorCharts.emplace(SONGMAN->ReconcileBustedKeys(key));
+		loadingProfile->PermaMirrorCharts.emplace(key);
+	}
+	SONGMAN->SetPermaMirroredStatus(loadingProfile->PermaMirrorCharts);
 }
 void DBProfile::LoadScoreGoals(SQLite::Database* db)
 {
+	SQLite::Statement   query(*db, "SELECT chartkeys.chartkey, scoregoals.rate, scoregoals.priority, scoregoals.percent, "
+		"scoregoals.timeassigned, scoregoals.timeachieved, scoregoals.scorekey, "
+		"scoregoals.comment FROM scoregoals INNER JOIN chartkeys ON "
+		"scoregoals.chartkeyid = chartkeys.id ORDER BY chartkeys.chartkey ASC");
+	//string lastKey="";
+	RString ck;
+	while (query.executeStep())
+	{
+		ck = static_cast<const char*>(query.getColumn(0));
+		/* comment this for now (Also uncomment lastkey if uncommenting this)
+		//Check if its a new key or the one we were already working on
+		if (curKey != lastKey && curKey != ck) {
+			lastKey = curKey;
+			ck = SONGMAN->ReconcileBustedKeys(lastKey);
+		}
+		*/
+
+		//Load the scoregoal
+		ScoreGoal sg;
+		sg.rate = static_cast<double>(query.getColumn(1));
+		sg.priority = query.getColumn(2);
+		sg.percent = static_cast<double>(query.getColumn(3));
+		sg.timeassigned.FromString(static_cast<const char*>(query.getColumn(4)));
+		sg.timeachieved.FromString(static_cast<const char*>(query.getColumn(5)));
+		sg.scorekey = static_cast<const char*>(query.getColumn(6));
+		sg.comment = static_cast<const char*>(query.getColumn(7));
+		//Add it to the GoalsForAChart goalmap[chart]
+		loadingProfile->goalmap[ck].Add(sg);
+	}
+	
+	SONGMAN->SetHasGoal(loadingProfile->goalmap);
 }
 ProfileLoadResult DBProfile::SaveDBToDir(RString dir, const Profile* profile) const
 {
@@ -180,6 +505,7 @@ ProfileLoadResult DBProfile::SaveDBToDir(RString dir, const Profile* profile) co
 		SaveFavourites(db, profile);
 		SavePermaMirrors(db, profile);
 		SaveScoreGoals(db, profile);
+		//Make sure playlists are loaded after playerscores
 		SavePlayerScores(db, profile);
 		SavePlayLists(db, profile);
 		transaction.commit();
@@ -215,7 +541,7 @@ void DBProfile::SaveGeneralData(SQLite::Database* db, const Profile* profile) co
 	db->exec("DROP TABLE IF EXISTS generaldata");
 	db->exec("CREATE TABLE generaldata (id INTEGER PRIMARY KEY, "
 		"displayname TEXT, characterid TEXT, guid TEXT, sortorder TEXT, "
-		"lastdiff TEXT, laststeps TEXT, lastsong TEXT, totalsessions INTEGER, totalsessionseconds INTEGER, "
+		"lastdiff INTEGER, laststeps TEXT, lastsong TEXT, totalsessions INTEGER, totalsessionseconds INTEGER, "
 		"totalgameplayseconds INTEGER, lastplayedmachineguid TEXT, lastplayeddate DATE, "
 		"totaldancepoints INTEGER, numtoasties INTEGER, totaltapsandholds INTEGER, "
 		"totaljumps INTEGER, totalholds INTEGER, totalrolls INTEGER, totalmines INTEGER, "
@@ -227,7 +553,7 @@ void DBProfile::SaveGeneralData(SQLite::Database* db, const Profile* profile) co
 	insertGData.bind(2, profile->m_sCharacterID);
 	insertGData.bind(3, profile->m_sGuid);
 	insertGData.bind(4, SortOrderToString(profile->m_SortOrder));
-	insertGData.bind(5, DifficultyToString(profile->m_LastDifficulty));
+	insertGData.bind(5, profile->m_LastDifficulty);
 	insertGData.bind(6, 
 		((profile->m_LastStepsType != StepsType_Invalid && profile->m_LastStepsType < NUM_StepsType) ?
 			GAMEMAN->GetStepsTypeInfo(profile->m_LastStepsType).szName : ""));
@@ -318,7 +644,7 @@ void DBProfile::SaveScoreGoals(SQLite::Database* db, const Profile* profile) con
 				continue;
 			int chID = FindOrCreateChartKey(db, cg.goals[0].chartkey);
 			FOREACH_CONST(ScoreGoal, cg.goals, sg) {
-				SQLite::Statement insertScoreGoal(*db, "INSERT INTO scoregoals VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?");
+				SQLite::Statement insertScoreGoal(*db, "INSERT INTO scoregoals VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)");
 				insertScoreGoal.bind(1, chID);
 				insertScoreGoal.bind(2, sg->rate);
 				insertScoreGoal.bind(3, sg->priority);
@@ -348,7 +674,7 @@ void DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) cons
 		db->exec("CREATE TABLE playlists (id INTEGER PRIMARY KEY, name TEXT)");
 		db->exec("DROP TABLE IF EXISTS chartplaylists");
 		db->exec("CREATE TABLE chartplaylists (id INTEGER PRIMARY KEY, chartid INTEGER, "
-			"playlistid INTEGER, "
+			"playlistid INTEGER, rate FLOAT, "
 			"CONSTRAINT fk_chartid FOREIGN KEY (chartid) REFERENCES charts(id), "
 			"CONSTRAINT fk_playlistid FOREIGN KEY (playlistid) REFERENCES playlists(id))");
 
@@ -370,7 +696,7 @@ void DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) cons
 						query.bind(1, chartKeyID);
 						query.bind(2, ch->lastsong);
 						query.bind(3, ch->lastpack);
-						query.bind(4, DifficultyToString(ch->lastdiff));
+						query.bind(4, ch->lastdiff);
 						//if not
 						if (!query.executeStep())
 						{
@@ -380,16 +706,17 @@ void DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) cons
 							insertChart.bind(1, chartKeyID);
 							insertChart.bind(2, ch->lastpack);
 							insertChart.bind(3, ch->lastsong);
-							insertChart.bind(4, DifficultyToString(ch->lastdiff));
+							insertChart.bind(4, ch->lastdiff);
 							insertChart.exec();
 							chartID = sqlite3_last_insert_rowid(db->getHandle());
 						}
 						else {
 							chartID = query.getColumn(0);
 						}
-						SQLite::Statement insertChartPlaylist(*db, "INSERT INTO chartplaylists VALUES (NULL, ?, ?)");
+						SQLite::Statement insertChartPlaylist(*db, "INSERT INTO chartplaylists VALUES (NULL, ?, ?, ?)");
 						insertChartPlaylist.bind(1, chartID);
-						insertChartPlaylist.bind(1, plID);
+						insertChartPlaylist.bind(2, plID);
+						insertChartPlaylist.bind(3, ch->rate);
 					}
 					//TODO : courseruns, cl, cr
 				}
@@ -405,31 +732,28 @@ void DBProfile::SavePlayerScores(SQLite::Database* db, const Profile* profile) c
 
 	db->exec("DROP TABLE IF EXISTS scores");
 	db->exec("CREATE TABLE scores (id INTEGER PRIMARY KEY, scoresatrateid INTEGER, "
-		"scorekey TEXT, calcversion INT, grade TEXT, wifescore FLOAT, ssrnormpercent FLOAT, judgescale FLOAT, "
-		"nochordcohesion INTEGER, etternavalid INTEGER, surviveseconds FLOAT, maxcombo INTEGER, modifiers TEXT, datetime DATE, "
+		"scorekey TEXT, calcversion INT, grade INTEGER, wifescore FLOAT, "
+		"ssrnormpercent FLOAT, judgescale FLOAT, nochordcohesion INTEGER, "
+		"etternavalid INTEGER, surviveseconds FLOAT, maxcombo INTEGER, modifiers TEXT, datetime DATE, "
 		"hitmine INTEGER, avoidmine INTEGER, miss INTEGER, w5 INTEGER, w4 INTEGER, "
-		"w INTEGER, w2 INTEGER, w1 INTEGER, letgoholds INTEGER, heldholds INTEGER, "
-		"missedholds INTEGER, CONSTRAINT fk_scoresatrateid FOREIGN KEY (scoresatrateid) REFERENCES scoresatrates(id))");
+		"w3 INTEGER, w2 INTEGER, w1 INTEGER, letgoholds INTEGER, heldholds INTEGER, "
+		"missedholds INTEGER, overall FLOAT, stream FLOAT, jumpstream FLOAT, "
+		"handstream FLOAT, stamina FLOAT, jackspeed FLOAT, "
+		"jackstamina FLOAT, technical FLOAT, "
+		"CONSTRAINT fk_scoresatrateid FOREIGN KEY (scoresatrateid) REFERENCES scoresatrates(id))");
 
-	db->exec("DROP TABLE IF EXISTS skillsetssrs");
-	db->exec("CREATE TABLE skillsetssrs (id INTEGER PRIMARY KEY, scoreid INTEGER, "
-		"skillsetnum INTEGER, ssr FLOAT,"
-		"CONSTRAINT fk_scoreid FOREIGN KEY (scoreid) REFERENCES scores(id), "
-		"CONSTRAINT fk_skillsetnum FOREIGN KEY (skillsetnum) REFERENCES skillsets(skillsetnum))");
-
-	
 
 	//TODO: validation keys
 
 	db->exec("DROP TABLE IF EXISTS scoresatrates");
 	db->exec("CREATE TABLE scoresatrates (id INTEGER PRIMARY KEY, chartid INTEGER, "
-		"rate FLOAT, bestgrade TEXT, pbkey TEXT, "
+		"rate INTEGER, bestgrade TEXT, pbkey TEXT, "
 		"CONSTRAINT fk_chartid FOREIGN KEY (chartid) REFERENCES charts(id))");
 
 
 	db->exec("DROP TABLE IF EXISTS charts");
 	db->exec("CREATE TABLE charts (id INTEGER PRIMARY KEY, chartkeyid INTEGER, "
-		"pack TEXT, song TEXT, difficulty TEXT, "
+		"pack TEXT, song TEXT, difficulty INTEGER, "
 		"CONSTRAINT fk_chartkeyid FOREIGN KEY (chartkeyid) REFERENCES chartkeys(id))");
 	unordered_map<string, ScoresForChart> & pScores = *SCOREMAN->GetProfileScores();
 	FOREACHUM_CONST(string, ScoresForChart, pScores, chartPair) {
@@ -446,7 +770,7 @@ void DBProfile::SavePlayerScores(SQLite::Database* db, const Profile* profile) c
 		insertChart.bind(1, chartKeyID);
 		insertChart.bind(2, ch.lastpack);
 		insertChart.bind(3, ch.lastsong);
-		insertChart.bind(4, DifficultyToString(ch.lastdiff));
+		insertChart.bind(4, ch.lastdiff);
 		insertChart.exec();
 		int chartID = sqlite3_last_insert_rowid(db->getHandle());
 
@@ -456,7 +780,7 @@ void DBProfile::SavePlayerScores(SQLite::Database* db, const Profile* profile) c
 			int rate = ratePair->first;
 			SQLite::Statement insertScoresAtRate(*db, "INSERT INTO scoresatrates VALUES (NULL, ?, ?, ?, ?)");
 			insertScoresAtRate.bind(1, chartID);
-			insertScoresAtRate.bind(2, (static_cast<float>(rate) / 10000.f) );
+			insertScoresAtRate.bind(2, rate );
 			insertScoresAtRate.bind(3, GradeToString(ratePair->second.bestGrade));
 			insertScoresAtRate.bind(4, ratePair->second.PBptr->GetScoreKey());
 			insertScoresAtRate.exec();
@@ -467,13 +791,13 @@ void DBProfile::SavePlayerScores(SQLite::Database* db, const Profile* profile) c
 					const HighScore* hs = &(i->second);
 					//Add scores
 					SQLite::Statement insertScore(*db, "INSERT INTO scores VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, "
-							"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+							"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 					insertScore.bind(1, scoresAtRateID);
 					insertScore.bind(2, (hs->GetScoreKey() == "" ? "S" +
 						BinaryToHex(CryptManager::GetSHA1ForString(hs->GetDateTime().GetString())) :
 						hs->GetScoreKey()));
 					insertScore.bind(3, hs->GetSSRCalcVersion());
-					insertScore.bind(4, GradeToString(hs->GetWifeGrade()));
+					insertScore.bind(4, hs->GetWifeGrade());
 					insertScore.bind(5, hs->GetWifeScore());
 					insertScore.bind(6, hs->GetSSRNormPercent());
 					insertScore.bind(7, hs->GetJudgeScale());
@@ -483,6 +807,7 @@ void DBProfile::SavePlayerScores(SQLite::Database* db, const Profile* profile) c
 					insertScore.bind(11, hs->GetMaxCombo());
 					insertScore.bind(12, hs->GetModifiers());
 					insertScore.bind(13, hs->GetDateTime().GetString());
+
 					int index = 14;
 					FOREACH_ENUM(TapNoteScore, tns)
 						if (tns != TNS_None && tns != TNS_CheckpointMiss && tns != TNS_CheckpointHit)
@@ -491,7 +816,16 @@ void DBProfile::SavePlayerScores(SQLite::Database* db, const Profile* profile) c
 					FOREACH_ENUM(HoldNoteScore, hns)
 						if (hns != HNS_None)
 							insertScore.bind(index++, hs->GetHoldNoteScore(hns));
+
+					if (hs->GetWifeScore() > 0.f && hs->GetWifeGrade() != Grade_Failed && hs->GetSkillsetSSR(Skill_Overall) > 0.f) 
+						FOREACH_ENUM(Skillset, ss)
+							insertScore.bind(index++, hs->GetSkillsetSSR(ss));
+					else
+						FOREACH_ENUM(Skillset, ss)
+							insertScore.bind(index++, 0);
+
 					insertScore.exec();
+					/*
 					int scoreID = sqlite3_last_insert_rowid(db->getHandle());
 					// dont bother writing skillset ssrs for non-applicable scores
 					if (hs->GetWifeScore() > 0.f && hs->GetWifeGrade() != Grade_Failed && hs->GetSkillsetSSR(Skill_Overall) > 0.f) {;
@@ -502,6 +836,7 @@ void DBProfile::SavePlayerScores(SQLite::Database* db, const Profile* profile) c
 							insertSkillsetSSR.exec();
 						}
 					}
+					*/
 				}
 			}
 		}
