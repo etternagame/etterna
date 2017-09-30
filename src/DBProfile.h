@@ -27,7 +27,7 @@ private:
 	int GetChartKeyID(SQLite::Database* db, RString key) const;
 	RString GetChartKeyByID(SQLite::Database* db, int id) const;
 	int FindOrCreateChartKey(SQLite::Database* db, RString key) const;
-	int FindOrCreateSong(SQLite::Database* db, string pack, string song, Difficulty diff) const;
+	int FindOrCreateSong(SQLite::Database* db, string pack, string song) const;
 
 	void LoadFavourites(SQLite::Database* db);
 	void LoadPlayLists(SQLite::Database* db);

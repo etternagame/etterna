@@ -150,7 +150,7 @@ void DBProfile::LoadPlayLists(SQLite::Database* db)
 {
 	//First load playlists
 	SQLite::Statement   query(*db, "SELECT playlists.name, chartkeys.chartkey, "
-		"songs.difficulty, songs.song, songs.pack, chartplaylists.rate "
+		"charts.difficulty, songs.song, songs.pack, chartplaylists.rate "
 		"FROM chartplaylists INNER JOIN playlists ON chartplaylists.playlistid = playlists.id "
 		"INNER JOIN charts ON charts.id = chartplaylists.chartid "
 		"INNER JOIN songs ON songs.id = charts.songid "
@@ -263,7 +263,7 @@ void DBProfile::LoadPlayLists(SQLite::Database* db)
 void DBProfile::LoadPlayerScores(SQLite::Database* db) 
 {	
 	SQLite::Statement   query(*db, "SELECT chartkeys.chartkey, "
-		"songs.song, songs.pack, songs.difficulty, "
+		"songs.song, songs.pack, charts.difficulty, "
 		"scoresatrates.rate, " // "scoresatrates.bestgrade, scoresatrates.pbkey, "
 		"scores.scorekey, scores.calcversion, "
 		"scores.grade, scores.wifescore, scores.ssrnormpercent, "
@@ -759,12 +759,13 @@ void DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) cons
 						{
 							//insert the chart
 							
-							int songID = FindOrCreateSong(db, ch->lastpack, ch->lastsong, ch->lastdiff);
+							int songID = FindOrCreateSong(db, ch->lastpack, ch->lastsong);
 
-							SQLite::Statement insertChart(*db, "INSERT INTO charts VALUES (NULL, ?, ?)");
+							SQLite::Statement insertChart(*db, "INSERT INTO charts VALUES (NULL, ?, ?, ?)");
 
 							insertChart.bind(1, chartKeyID);
 							insertChart.bind(2, songID);
+							insertChart.bind(3, ch->lastdiff);
 							insertChart.exec();
 							chartID = sqlite3_last_insert_rowid(db->getHandle());
 						}
@@ -830,13 +831,13 @@ void DBProfile::SavePlayerScores(SQLite::Database* db, const Profile* profile) c
 		"CONSTRAINT fk_chartkeyid FOREIGN KEY (chartkeyid) REFERENCES chartkeys(id))");*/
 	db->exec("DROP TABLE IF EXISTS charts");
 	db->exec("CREATE TABLE charts (id INTEGER PRIMARY KEY, chartkeyid INTEGER, "
-		"songid INTEGER, "
+		"songid INTEGER, difficulty INTEGER, "
 		"CONSTRAINT fk_chartkeyid FOREIGN KEY (chartkeyid) REFERENCES chartkeys(id), "
 		"CONSTRAINT fk_songid FOREIGN KEY (songid) REFERENCES songs(id))");
 
 	db->exec("DROP TABLE IF EXISTS songs");
 	db->exec("CREATE TABLE songs (id INTEGER PRIMARY KEY, "
-		"pack TEXT, song TEXT, difficulty INTEGER)");
+		"pack TEXT, song TEXT)");
 
 	unordered_map<string, ScoresForChart> & pScores = *SCOREMAN->GetProfileScores();
 	FOREACHUM_CONST(string, ScoresForChart, pScores, chartPair) {
@@ -848,12 +849,13 @@ void DBProfile::SavePlayerScores(SQLite::Database* db, const Profile* profile) c
 		//add chart ch
 		int chartKeyID = FindOrCreateChartKey(db, ch.key);
 
-		int songID = FindOrCreateSong(db, ch.lastpack, ch.lastsong, ch.lastdiff);
+		int songID = FindOrCreateSong(db, ch.lastpack, ch.lastsong);
 
-		SQLite::Statement insertChart(*db, "INSERT INTO charts VALUES (NULL, ?, ?)");
+		SQLite::Statement insertChart(*db, "INSERT INTO charts VALUES (NULL, ?, ?, ?)");
 		
 		insertChart.bind(1, chartKeyID);
 		insertChart.bind(2, songID);
+		insertChart.bind(3, ch.lastdiff);
 		
 		insertChart.exec();
 		int chartID = sqlite3_last_insert_rowid(db->getHandle());
@@ -960,18 +962,16 @@ int DBProfile::FindOrCreateChartKey(SQLite::Database* db, RString key) const
 }
 
 
-int DBProfile::FindOrCreateSong(SQLite::Database* db, string pack, string song, Difficulty diff) const
+int DBProfile::FindOrCreateSong(SQLite::Database* db, string pack, string song) const
 {
-	SQLite::Statement   query(*db, "SELECT songs.id FROM songs WHERE song=? AND pack =? AND difficulty=?");
+	SQLite::Statement   query(*db, "SELECT songs.id FROM songs WHERE song=? AND pack =?");
 	query.bind(1, song);
-	query.bind(1, pack);
-	query.bind(1, diff);
+	query.bind(2, pack);
 	if (!query.executeStep()) {
-		SQLite::Statement insertSong(*db, "INSERT INTO songs VALUES (NULL, ?, ?, ?)");
+		SQLite::Statement insertSong(*db, "INSERT INTO songs VALUES (NULL, ?, ?)");
 
 		insertSong.bind(1, pack);
 		insertSong.bind(2, song);
-		insertSong.bind(3, diff);
 		insertSong.exec();
 		return sqlite3_last_insert_rowid(db->getHandle());
 	}
