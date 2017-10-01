@@ -168,11 +168,11 @@ void DBProfile::LoadPlayLists(SQLite::Database* db)
 		
 		//Load chart
 		Chart ch;
-		ch.lastdiff = static_cast<Difficulty>(static_cast<int>(query.getColumn(3)));
-		ch.lastsong = static_cast<const char*>(query.getColumn(4));
-		ch.lastpack = static_cast<const char*>(query.getColumn(5));
-		ch.rate = static_cast<double>(query.getColumn(6));
 		ch.key = static_cast<const char*>(query.getColumn(1));
+		ch.lastdiff = static_cast<Difficulty>(static_cast<int>(query.getColumn(2)));
+		ch.lastsong = static_cast<const char*>(query.getColumn(3));
+		ch.lastpack = static_cast<const char*>(query.getColumn(4));
+		ch.rate = static_cast<double>(query.getColumn(5));
 
 		// check if this chart is loaded and overwrite any last-seen values with updated ones
 		//ch.key = SONGMAN->ReconcileBustedKeys(ch.key);
@@ -200,11 +200,11 @@ void DBProfile::LoadPlayLists(SQLite::Database* db)
 		//Load the chart
 		Chart ch;
 
-		ch.lastdiff = static_cast<Difficulty>(static_cast<int>(query.getColumn(3)));
-		ch.lastsong = static_cast<const char*>(query.getColumn(4));
-		ch.lastpack = static_cast<const char*>(query.getColumn(5));
-		ch.rate = static_cast<double>(query.getColumn(6));
-		ch.key = static_cast<const char*>(query.getColumn(1));
+		ch.lastdiff = static_cast<Difficulty>(static_cast<int>(query.getColumn(2)));
+		ch.lastsong = static_cast<const char*>(query.getColumn(3));
+		ch.lastpack = static_cast<const char*>(query.getColumn(4));
+		ch.rate = static_cast<double>(query.getColumn(5));
+		ch.key = key;
 
 		// check if this chart is loaded and overwrite any last-seen values with updated ones
 		//ch.key = SONGMAN->ReconcileBustedKeys(ch.key);
@@ -213,10 +213,11 @@ void DBProfile::LoadPlayLists(SQLite::Database* db)
 		//Add chart to playlist
 		tmp->chartlist.emplace_back(ch);
 
-		//TODO: courses
 	}
-	SONGMAN->activeplaylist = tmp->name;
+
+	pls.emplace(tmp->name, *tmp);
 	delete tmp;
+	SONGMAN->activeplaylist = tmp->name;
 	//Now read courseruns
 
 	SQLite::Statement   courseRunsQuery(*db, "SELECT runs.scorekey, courseruns.id, playlists.name "
@@ -252,11 +253,14 @@ void DBProfile::LoadPlayLists(SQLite::Database* db)
 			pls[lastPlayListName].courseruns.emplace_back(tmpCourseRun);
 			tmpCourseRun.clear();
 			lastPlayListName = static_cast<const char*>(query.getColumn(2));
+			lastCourseRunID = curCourseRunID;
 		}
 
 		tmpCourseRun.emplace_back(curScoreKey);
 		
 	}
+	pls[lastPlayListName].courseruns.emplace_back(tmpCourseRun);
+	tmpCourseRun.clear();
 	return;
 }
 
@@ -740,26 +744,30 @@ void DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) cons
 			{
 				if (pl->first != "" && pl->first != "Favorites")
 				{
-					db->exec("INSERT INTO playlists VALUES (NULL, \"" + (pl->second).name + "\")");
+					SQLite::Statement insertPlaylist(*db, "INSERT INTO playlists VALUES (NULL, ?)");
+					insertPlaylist.bind(1, (pl->second).name);
+					insertPlaylist.exec();
+					//db->exec("INSERT INTO playlists VALUES (NULL, \"" + (pl->second).name + "\")");
 					int plID = sqlite3_last_insert_rowid(db->getHandle());
 					FOREACH_CONST(Chart, (pl->second).chartlist, ch)
 					{
 
 						int chartKeyID = FindOrCreateChartKey(db, ch->key);
 						int chartID;
+
+						int songID = FindOrCreateSong(db, ch->lastpack, ch->lastsong);
+
 						//Find or create chart now
 						//Check if chart already exists
-						SQLite::Statement   query(*db, "SELECT * FROM charts WHERE chartkeyid=? AND song=? AND pack= AND difficulty=?");
+						SQLite::Statement   query(*db, "SELECT * FROM charts WHERE chartkeyid=? AND songid=? AND difficulty=?");
 						query.bind(1, chartKeyID);
-						query.bind(2, ch->lastsong);
-						query.bind(3, ch->lastpack);
-						query.bind(4, ch->lastdiff);
+						query.bind(2, songID);
+						query.bind(3, ch->lastdiff);
 						//if not
 						if (!query.executeStep())
 						{
 							//insert the chart
 							
-							int songID = FindOrCreateSong(db, ch->lastpack, ch->lastsong);
 
 							SQLite::Statement insertChart(*db, "INSERT INTO charts VALUES (NULL, ?, ?, ?)");
 
@@ -776,6 +784,7 @@ void DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) cons
 						insertChartPlaylist.bind(1, chartID);
 						insertChartPlaylist.bind(2, plID);
 						insertChartPlaylist.bind(3, ch->rate);
+						insertChartPlaylist.exec();
 					}
 				
 					FOREACH_CONST(vector<string>, (pl->second).courseruns, run) {
