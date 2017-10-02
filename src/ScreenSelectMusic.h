@@ -53,6 +53,8 @@ public:
 
 	bool can_open_options_list(PlayerNumber pn);
 
+	void DifferentialReload();
+
 	int GetSelectionState();
 
 	// Lua

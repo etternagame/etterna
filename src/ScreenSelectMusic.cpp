@@ -411,12 +411,17 @@ void ScreenSelectMusic::Update(float fDeltaTime)
 			m_timerIdleComment.GetDeltaTime();
 		}
 	}
-
 	ScreenWithMenuElements::Update(fDeltaTime);
 
 	CheckBackgroundRequests(false);
 }
 
+void ScreenSelectMusic::DifferentialReload()
+{
+	int newsongs = SONGMAN->DifferentialReload();
+	SCREENMAN->SystemMessage(ssprintf("Differential reload of %i songs", newsongs));
+	m_MusicWheel.ReloadSongList(false, "");
+}
 
 bool ScreenSelectMusic::Input(const InputEventPlus &input)
 {
@@ -529,9 +534,7 @@ bool ScreenSelectMusic::Input(const InputEventPlus &input)
 		}
 		else if (bHoldingCtrl && c == 'Q' && m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS)
 		{
-			int newsongs = SONGMAN->DifferentialReload();
-			m_MusicWheel.ReloadSongList(false, "");
-			SCREENMAN->SystemMessage(ssprintf("Differential reload of %i songs", newsongs));
+			DifferentialReload();
 			return true;
 		}
 		else if (bHoldingCtrl && c == 'S' && m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS)

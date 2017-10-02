@@ -12,12 +12,20 @@ class Song;
 #include "SongManager.h"
 #include "GameState.h"
 #include "GameManager.h"
+#include "ScreenSelectMusic.h"
 #include "CommonMetrics.h"
 #include "SongManager.h"
 #include "CommandLineActions.h"
 #include "ScreenDimensions.h"
 #include "StepMania.h"
 #include "ActorUtil.h"
+#include "curl/curl.h"
+
+struct ProgressData {
+	curl_off_t total = 0; //total bytes
+	curl_off_t downloaded = 0; //bytes downloaded
+	float time = 0;//seconds passed
+};
 
 struct PlayAfterLaunchInfo
 {
@@ -99,8 +107,9 @@ static void InstallSmzip( const RString &sZipFile, PlayAfterLaunchInfo &out )
 			break;
 		}
 	}
-	SONGMAN->DifferentialReloadDir(TEMP_ZIP_MOUNT_POINT);
-	FILEMAN->Unmount( "zip", sZipFile, TEMP_ZIP_MOUNT_POINT );
+	
+	//FILEMAN->Unmount( "zip", sZipFile, TEMP_ZIP_MOUNT_POINT );
+
 
 	SCREENMAN->SystemMessage( sResult );
 }
@@ -116,9 +125,9 @@ void InstallSmzipOsArg( const RString &sOsZipFile, PlayAfterLaunchInfo &out )
 		FAIL_M("Failed to mount " + sOsDir );
 	InstallSmzip( TEMP_OS_MOUNT_POINT + sFilename + sExt, out );
 
-	FILEMAN->Unmount( "dir", sOsDir, TEMP_OS_MOUNT_POINT );
-}
+	//FILEMAN->Unmount( "dir", sOsDir, TEMP_OS_MOUNT_POINT );
 
+}
 struct FileCopyResult
 {
 	FileCopyResult( RString _sFile, RString _sComment ) : sFile(_sFile), sComment(_sComment) {}
@@ -128,11 +137,22 @@ struct FileCopyResult
 #if !defined(WITHOUT_NETWORKING)
 Preference<RString> g_sCookie( "Cookie", "" );
 
+int progressfunc(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow)
+{
+	auto ptr = static_cast<ProgressData*>(clientp);
+	ptr->total = dltotal;
+	ptr->downloaded = dlnow;
+	return 0;
+
+}
+size_t write_data(void *dlBuffer, size_t size, size_t nmemb, void *pnf) 
+{
+	auto file = static_cast<RageFile*>(pnf);
+	int bytes = size*nmemb;
+	return file->Write(dlBuffer, bytes);
+}
 class DownloadTask
 {
-	FileTransfer *m_pTransfer;
-	vector<RString> m_vsQueuedPackageUrls;
-	RString m_sCurrentPackageTempFile;
 	enum
 	{
 		control,
@@ -140,133 +160,170 @@ class DownloadTask
 	} m_DownloadState;
 	PlayAfterLaunchInfo m_playAfterLaunchInfo;
 public:
-	DownloadTask(const RString &sControlFileUri)
+	CURL* download;
+	CURLM* mHandle;
+	int running;
+	ProgressData progress;
+	string m_TempFileName;
+	string status;
+	string speed;
+	curl_off_t downloadedAtLastUpdate=0;
+	curl_off_t lastUpdateDone=0;
+	string m_Url;
+	RageFile m_TempFile;
+	string aux;
+	DownloadTask(const RString &url)
 	{
-		//SCREENMAN->SystemMessage( "Downloading control file." );
-		m_pTransfer = new FileTransfer();
-		m_pTransfer->StartDownload( sControlFileUri, "" );
+		m_Url = url;
+		download = curl_easy_init();
+		m_TempFileName = MakeTempFileName(url);
+		m_TempFile.Open(m_TempFileName, 2);
+
+		curl_easy_setopt(download, CURLOPT_WRITEDATA, &m_TempFile);
+		curl_easy_setopt(download, CURLOPT_WRITEFUNCTION, write_data);
+		curl_easy_setopt(download, CURLOPT_URL, url);
+		curl_easy_setopt(download, CURLOPT_USERAGENT, "libcurl-agent/1.0");	
+		//curl_easy_setopt(download, CURLOPT_PROGRESSDATA, &progress);
+		//curl_easy_setopt(download, CURLOPT_PROGRESSFUNCTION, progressfunc);
+		curl_easy_setopt(download, CURLOPT_XFERINFODATA, &progress);
+		curl_easy_setopt(download, CURLOPT_XFERINFOFUNCTION, progressfunc);
+		curl_easy_setopt(download, CURLOPT_NOPROGRESS, 0);
+		running = 1;
+		lastUpdateDone = 0;
+		mHandle = curl_multi_init();
+		curl_multi_add_handle(mHandle, download);
+		curl_multi_perform(mHandle, &running);
+		SCREENMAN->SystemMessage( "Downloading file "+m_TempFileName+" from "+url);
+		//m_pTransfer = new FileTransfer();
+		//m_pTransfer->StartDownload( sControlFileUri, "" );
 		m_DownloadState = control;
 	}
 	~DownloadTask()
 	{
-		SAFE_DELETE(m_pTransfer);
+		//SAFE_DELETE(m_pTransfer);
+		if(mHandle!=nullptr)
+			curl_multi_cleanup(mHandle);
+		mHandle = nullptr;
+		if (download != nullptr)
+			curl_easy_cleanup(download);
+		download = nullptr;
+		if(m_TempFile.IsOpen())
+			m_TempFile.Close();
 	}
 	RString GetStatus()
 	{
-		if( m_pTransfer == NULL )
-			return "";
-		else
-			return m_pTransfer->GetStatus();
+		return status;
 	}
 	bool UpdateAndIsFinished( float fDeltaSeconds, PlayAfterLaunchInfo &playAfterLaunchInfo )
 	{
-		m_pTransfer->Update( fDeltaSeconds );
-		switch( m_DownloadState )
+		if (!running)
 		{
-		case control:
-			if( m_pTransfer->IsFinished() )
-			{
-				SCREENMAN->SystemMessage( "Downloading required .smzip" );
+			if (mHandle != nullptr)
+				curl_multi_cleanup(mHandle);
+			mHandle = nullptr;
+			if (download != nullptr)
+				curl_easy_cleanup(download);
+			download = nullptr;
+			if (m_TempFile.IsOpen())
+				m_TempFile.Close();
+			//install smzip
+			InstallSmzip(m_TempFileName, m_playAfterLaunchInfo);
 
-				RString sResponse = m_pTransfer->GetResponse();
-				SAFE_DELETE( m_pTransfer );
-
-				Json::Value root;
-				RString sError;
-				if( !JsonUtil::LoadFromString(root, sResponse, sError) )
-				{
-					SCREENMAN->SystemMessage( sError );
-					return true;
-				}
-
-				// Parse the JSON response, make a list of all packages need to be downloaded.
-				{
-					if( root["Cookie"].isString() )
-						g_sCookie.Set( root["Cookie"].asString() );
-					Json::Value require = root["Require"];
-					if( require.isArray() )
-					{
-						for( unsigned i=0; i<require.size(); i++)
-						{
-							Json::Value iter = require[i];
-							if( iter["Dir"].isString() )
-							{
-								RString sDir = iter["Dir"].asString();
-								Parse( sDir, m_playAfterLaunchInfo );
-								if( DoesFileExist( sDir ) )
-									continue;
-							}
-
-							RString sUri;
-							if( iter["Uri"].isString() )
-							{
-								sUri = iter["Uri"].asString();
-								m_vsQueuedPackageUrls.push_back( sUri );
-							}
-						}
-					}
-				}
-
-				/*
-				{
-					// TODO: Validate that this zip contains files for this version of StepMania
-
-					bool bFileExists = DoesFileExist( SpecialFiles::PACKAGES_DIR + sFilename + sExt );
-					if( FileCopy( TEMP_MOUNT_POINT + sFilename + sExt, SpecialFiles::PACKAGES_DIR + sFilename + sExt ) )
-						vSucceeded.push_back( FileCopyResult(*s,bFileExists ? "overwrote existing file" : "") );
-					else
-						vFailed.push_back( FileCopyResult(*s,ssprintf("error copying file to '%s'",sOsDir.c_str())) );
-
-				}
-				*/
-				m_DownloadState = packages;
-				if( !m_vsQueuedPackageUrls.empty() )
-				{
-					RString sUrl = m_vsQueuedPackageUrls.back();
-					m_vsQueuedPackageUrls.pop_back();
-					m_sCurrentPackageTempFile = MakeTempFileName(sUrl);
-					ASSERT(m_pTransfer == NULL);
-					m_pTransfer = new FileTransfer();
-					m_pTransfer->StartDownload( sUrl, m_sCurrentPackageTempFile );
-				}
+			auto screen = SCREENMAN->GetScreen(0);
+			if (screen && screen->GetName() == "ScreenSelectMusic") {
+				static_cast<ScreenSelectMusic*>(screen)->DifferentialReload();
 			}
-			break;
-		case packages:
+			else
 			{
-				if( m_pTransfer->IsFinished() )
-				{
-					SAFE_DELETE( m_pTransfer );
-					InstallSmzip( m_sCurrentPackageTempFile, m_playAfterLaunchInfo );
-					FILEMAN->Remove( m_sCurrentPackageTempFile );	// Harmless if this fails because download didn't finish
-				}
-				if( !m_vsQueuedPackageUrls.empty() )
-				{
-					RString sUrl = m_vsQueuedPackageUrls.back();
-					m_vsQueuedPackageUrls.pop_back();
-					m_sCurrentPackageTempFile = MakeTempFileName(sUrl);
-					ASSERT(m_pTransfer == NULL);
-					m_pTransfer = new FileTransfer();
-					m_pTransfer->StartDownload( sUrl, m_sCurrentPackageTempFile );
-				}
+				SONGMAN->DifferentialReload();
 			}
-			break;
-		}
-		bool bFinished = m_DownloadState == packages  &&  
-			m_vsQueuedPackageUrls.empty() && 
-			m_pTransfer == NULL;
-		if( bFinished )
-		{
-			Message msg( "DownloadFinished" );
+			//SONGMAN->Reload(false, NULL);
+			Message msg("Download("+m_Url+") Finished");
 			MESSAGEMAN->Broadcast(msg);
 
 			playAfterLaunchInfo = m_playAfterLaunchInfo;
 			return true;
 		}
-		else
-		{
+		struct timeval timeout;
+		int rc; /* select() return code */
+		CURLMcode mc; /* curl_multi_fdset() return code */
+
+		fd_set fdread;
+		fd_set fdwrite;
+		fd_set fdexcep;
+		int maxfd = -1;
+
+		long curl_timeo = -1;
+
+		FD_ZERO(&fdread);
+		FD_ZERO(&fdwrite);
+		FD_ZERO(&fdexcep);
+
+		/* set a suitable timeout to play around with */
+		timeout.tv_sec = 1;
+		timeout.tv_usec = 0;
+
+		curl_multi_timeout(mHandle, &curl_timeo);
+		if (curl_timeo >= 0) {
+			timeout.tv_sec = curl_timeo / 1000;
+			if (timeout.tv_sec > 1)
+				timeout.tv_sec = 1;
+			else
+				timeout.tv_usec = (curl_timeo % 1000) * 1000;
+		}
+
+		/* get file descriptors from the transfers */
+		mc = curl_multi_fdset(mHandle, &fdread, &fdwrite, &fdexcep, &maxfd);
+
+		if (mc != CURLM_OK) {
+			status = "curl_multi_fdset() failed, code " + mc;
 			return false;
 		}
+
+		/* On success the value of maxfd is guaranteed to be >= -1. We call
+		select(maxfd + 1, ...); specially in case of (maxfd == -1) there are
+		no fds ready yet so we call select(0, ...) --or Sleep() on Windows--
+		to sleep 100ms, which is the minimum suggested value in the
+		curl_multi_fdset() doc. */
+
+		if (maxfd == -1) {
+#ifdef _WIN32
+			Sleep(1);
+			rc = 0;
+#else
+			/* Portable sleep for platforms other than Windows. */
+			struct timeval wait = { 0, 1 * 1000 }; /* 100ms */
+			rc = select(0, NULL, NULL, NULL, &wait);
+#endif
+		}
+		else {
+			/* Note that on some platforms 'timeout' may be modified by select().
+			If you need access to the original value save a copy beforehand. */
+			rc = select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &timeout);
+		}
+
+		switch (rc) {
+		case -1:
+			status = "select error" + mc;
+			break;
+		case 0: /* timeout */
+		default: /* action */
+			curl_multi_perform(mHandle, &running);
+			progress.time += fDeltaSeconds;
+			if (progress.time > 1.0) {
+				speed = to_string(progress.downloaded/1024 - downloadedAtLastUpdate);
+				progress.time = 0;
+				downloadedAtLastUpdate = progress.downloaded/1024;
+			}
+			status = m_TempFileName+"\n"+speed+" KB/s\n"+
+				"Downloaded "+ to_string(progress.downloaded/1024) +"/"+to_string(progress.total / 1024)+" (KB)";
+			
+			break;
+		}
+		return false;
+
 	}
+
 	static RString MakeTempFileName( RString s )
 	{
 		return SpecialFiles::CACHE_DIR + "Downloads/" + Basename(s);
@@ -279,7 +336,7 @@ static bool IsStepManiaProtocol(const RString &arg)
 {
 	// for now, only load from the StepMania domain until the security implications of this feature are better understood.
 	//return BeginsWith(arg,"stepmania://beta.stepmania.com/");
-	return BeginsWith(arg,"stepmania://");
+	return BeginsWith(arg,"http://");
 }
 
 static bool IsPackageFile(const RString &arg)
@@ -291,21 +348,35 @@ static bool IsPackageFile(const RString &arg)
 PlayAfterLaunchInfo DoInstalls( CommandLineActions::CommandLineArgs args )
 {
 	PlayAfterLaunchInfo ret;
+	bool reload = false;
 	for( int i = 0; i<(int)args.argv.size(); i++ )
 	{
 		RString s = args.argv[i];
 		if( IsStepManiaProtocol(s) )
     {
+
+			curl_global_init(CURL_GLOBAL_ALL);
 #if !defined(WITHOUT_NETWORKING)
 			g_pDownloadTasks.push_back( new DownloadTask(s) );
 #else
       // TODO: Figure out a meaningful log message.
 #endif
     }
-		else if( IsPackageFile(s) )
+		else if (IsPackageFile(s)) {
 			InstallSmzipOsArg(s, ret);
+			reload = true;
+		}
 	}
-	SONGMAN->DifferentialReload();
+	if (reload) {
+		auto screen = SCREENMAN->GetScreen(0);
+		if (screen && screen->GetName() == "ScreenSelectMusic") {
+			static_cast<ScreenSelectMusic*>(screen)->DifferentialReload();
+		}
+		else
+		{
+			SONGMAN->DifferentialReload();
+		}
+	}
 	return ret;
 }
 
@@ -368,37 +439,6 @@ void ScreenInstallOverlay::Update( float fDeltaTime )
 		m_textStatus.SetText( join("\n", vsMessages) );
 	}
 #endif
-	if( playAfterLaunchInfo.bAnySongChanged )
-		SONGMAN->Reload( false, NULL );
-
-	if( !playAfterLaunchInfo.sSongDir.empty() )
-	{
-		Song* pSong = NULL;
-		GAMESTATE->Reset();
-		RString sInitialScreen;
-		if( playAfterLaunchInfo.sSongDir.length() > 0 )
-			pSong = SONGMAN->GetSongFromDir( playAfterLaunchInfo.sSongDir );
-		if( pSong )
-		{
-			vector<const Style*> vpStyle;
-			GAMEMAN->GetStylesForGame( GAMESTATE->m_pCurGame, vpStyle, false );
-			GAMESTATE->m_PlayMode.Set( PLAY_MODE_REGULAR );
-			GAMESTATE->m_bSideIsJoined[0] = true;
-			GAMESTATE->SetMasterPlayerNumber(PLAYER_1);
-			GAMESTATE->SetCurrentStyle( vpStyle[0], PLAYER_1 );
-			GAMESTATE->m_pCurSong.Set( pSong );
-			GAMESTATE->m_pPreferredSong = pSong;
-			sInitialScreen = StepMania::GetSelectMusicScreen();
-		}
-		else
-		{
-			sInitialScreen = StepMania::GetInitialScreen();
-		}
-
-		Screen *curScreen = SCREENMAN->GetTopScreen();
-		if(curScreen->GetScreenType() == game_menu || curScreen->GetScreenType() == attract)
-			SCREENMAN->SetNewScreen( sInitialScreen );
-	}
 }
 
 /*
