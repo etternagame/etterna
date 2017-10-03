@@ -46,8 +46,13 @@ void ScoresAtRate::AddScore(HighScore& hs) {
 	bestGrade = min(hs.GetWifeGrade(), bestGrade);
 	scores.emplace(key, hs);
 
-	if(!PBptr || PBptr->GetWifeScore() < hs.GetWifeScore())
+	if(!PBptr || PBptr->GetSSRNormPercent() < hs.GetSSRNormPercent())
 		PBptr = &scores.find(key)->second;
+
+	if (hs.GetChordCohesion() == 0) {
+		if(!noccPBptr || noccPBptr->GetSSRNormPercent() < hs.GetSSRNormPercent())
+			noccPBptr = &scores.find(key)->second;
+	}
 
 	SCOREMAN->RegisterScore(&scores.find(key)->second);
 	SCOREMAN->AddToKeyedIndex(&scores.find(key)->second);
