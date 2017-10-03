@@ -20,7 +20,6 @@ private:
 
 	BitmapText m_textStatus;
 };
-
 #endif
 
 /*

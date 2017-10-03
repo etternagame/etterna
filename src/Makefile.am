@@ -147,7 +147,7 @@ DateTime.cpp DateTime.h \
 Difficulty.cpp Difficulty.h \
 DisplayResolutions.h \
 EnumHelper.cpp EnumHelper.h \
-FileDownload.cpp FileDownload.h \
+DownloadManager.cpp DownloadManager.h \
 Font.cpp Font.h \
 FontCharAliases.cpp FontCharAliases.h \
 FontCharmaps.cpp FontCharmaps.h Game.cpp Game.h GameCommand.cpp GameCommand.h \

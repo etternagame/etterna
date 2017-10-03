@@ -56,6 +56,9 @@
 #include "SongCacheIndex.h"
 #include "BannerCache.h"
 #include "FilterManager.h"
+#if !defined(WITHOUT_NETWORKING)
+#include "DownloadManager.h"
+#endif
 #include "ScoreManager.h"
 //#include "BackgroundCache.h"
 #include "RageFileManager.h"
@@ -1168,6 +1171,10 @@ int sm_main(int argc, char* argv[])
 	STATSMAN	= new StatsManager;
 
 	FILTERMAN = new FilterManager;
+
+#if !defined(WITHOUT_NETWORKING)
+	DLMAN = new DownloadManager;
+#endif
 
 	/* If the user has tried to quit during the loading, do it before creating
 	* the main window. This prevents going to full screen just to quit. */
