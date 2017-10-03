@@ -440,7 +440,7 @@ void ScoresAtRate::LoadFromNode(const XNode* node, const string& ck, const float
 			PBptr = &scores.find(sk)->second;
 		else {
 			// update pb if a better score is found
-			if (PBptr->GetWifeScore() < scores[sk].GetWifeScore())
+			if (PBptr->GetSSRNormPercent() < scores[sk].GetSSRNormPercent())
 				PBptr = &scores.find(sk)->second;
 		}
 
