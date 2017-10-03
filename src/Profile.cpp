@@ -1528,7 +1528,7 @@ XNode* Profile::SaveEttGeneralDataCreateNode() const {
 	pGeneralDataNode->AppendChild("CharacterID", m_sCharacterID);
 	pGeneralDataNode->AppendChild("Guid", m_sGuid);
 	pGeneralDataNode->AppendChild("SortOrder", SortOrderToString(m_SortOrder));
-	pGeneralDataNode->AppendChild("LastDifficulty", DifficultyToString(m_LastDifficulty));
+	pGeneralDataNode->AppendChild("LastDifficulty", DifficultyToString(Difficulty_Invalid));
 	if (m_LastStepsType != StepsType_Invalid)
 		pGeneralDataNode->AppendChild("LastStepsType", GAMEMAN->GetStepsTypeInfo(m_LastStepsType).szName);
 	pGeneralDataNode->AppendChild(m_lastSong.CreateNode());
