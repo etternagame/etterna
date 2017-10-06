@@ -288,6 +288,7 @@ if(WIN32)
 	PATHS "${SM_EXTERN_DIR}/libcurl" NO_DEFAULT_PATH
 	)
   get_filename_component(LIB_WLDAP32 ${LIB_WLDAP32} NAME)
+  
 elseif(MACOSX)
 
   if (WITH_FFMPEG)
@@ -296,7 +297,7 @@ elseif(MACOSX)
   endif()
   
   set(CURL_LIBRARY "-lcurl") 
-  find_package(CURL REQUIRED) 
+  find_package(CURL 7.56.0 REQUIRED) 
   if(not CURL_FOUND)
 	MESSAGE(FATAL_ERROR "Could not find the CURL library")
   endif()
@@ -447,7 +448,7 @@ elseif(LINUX)
   endif()
 
   set(CURL_LIBRARY "-lcurl") 
-  find_package(CURL REQUIRED) 
+  find_package(CURL 7.56.0 REQUIRED) 
   if(not CURL_FOUND)
 	MESSAGE(FATAL_ERROR "Could not find the CURL library")
   endif()

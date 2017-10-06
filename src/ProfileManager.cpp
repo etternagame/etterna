@@ -21,6 +21,7 @@
 #include "HighScore.h"
 #include "Character.h"
 #include "CharacterManager.h"
+#include "DownloadManager.h"
 
 ProfileManager*	PROFILEMAN = NULL;	// global and accessible from anywhere in our program
 
@@ -38,6 +39,7 @@ static void DefaultLocalProfileIDInit( size_t /*PlayerNumber*/ i, RString &sName
 }
 
 Preference1D<RString> ProfileManager::m_sDefaultLocalProfileID( DefaultLocalProfileIDInit, NUM_PLAYERS );
+Preference<RString> profileUploadURL("profileUploadURL", "https://etternaonline.com/api/upload_xml");
 
 const RString USER_PROFILES_DIR	=	"/Save/LocalProfiles/";
 const RString LAST_GOOD_SUBDIR	=	"LastGood/";
@@ -852,6 +854,16 @@ public:
 		p->GetLocalProfileDisplayNames(vsProfileNames);
 		LuaHelpers::CreateTableFromArray<RString>( vsProfileNames, L );
 		return 1;
+	}
+	static int UploadProfile(T* p, lua_State *L)
+	{
+		Profile* prof = p->GetProfile(PLAYER_1);
+		if (prof == nullptr) {
+			return 1;
+		}
+		string user = SArg(1);
+		string pass = SArg(2);
+		lua_pushboolean(L, DLMAN->UploadProfile(profileUploadURL, prof->profiledir + "Etterna.xml", user, pass)==0);
 	}
 	LunaProfileManager()
 	{

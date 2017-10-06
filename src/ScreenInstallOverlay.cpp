@@ -24,16 +24,30 @@ class Song;
 #endif
 
 
+const RString TEMP_OS_MOUNT_POINT = "/@temp-os/";
+
 struct FileCopyResult
 {
 	FileCopyResult(RString _sFile, RString _sComment) : sFile(_sFile), sComment(_sComment) {}
 	RString sFile, sComment;
 };
 
-static bool IsStepManiaProtocol(const RString &arg)
+void InstallSmzipOsArg(const string &sOsZipFile)
 {
-	// for now, only load from the StepMania domain until the security implications of this feature are better understood.
-	//return BeginsWith(arg,"stepmania://beta.stepmania.com/");
+	SCREENMAN->SystemMessage("Installing " + sOsZipFile);
+
+	RString sOsDir, sFilename, sExt;
+	splitpath(sOsZipFile, sOsDir, sFilename, sExt);
+
+	if (!FILEMAN->Mount("dir", sOsDir, TEMP_OS_MOUNT_POINT))
+		FAIL_M("Failed to mount " + sOsDir);
+	DLMAN->InstallSmzip(TEMP_OS_MOUNT_POINT + sFilename + sExt);
+
+	FILEMAN->Unmount("dir", sOsDir, TEMP_OS_MOUNT_POINT);
+
+}
+static bool IsHTTPProtocol(const RString &arg)
+{
 	return BeginsWith(arg, "http://") || BeginsWith(arg, "https://");
 }
 
@@ -49,12 +63,11 @@ void DoInstalls(CommandLineActions::CommandLineArgs args)
 	for (int i = 0; i<(int)args.argv.size(); i++)
 	{
 		RString s = args.argv[i];
-		if (IsStepManiaProtocol(s))
+		if (IsHTTPProtocol(s))
 		{
 
 #if !defined(WITHOUT_NETWORKING)
-			DLMAN->Download(s);
-			//g_pDownloadTasks.push_back(new DownloadTask(s));
+			DLMAN->DownloadAndInstallPack(s);
 #else
 			// TODO: Figure out a meaningful log message.
 #endif
@@ -92,7 +105,6 @@ void ScreenInstallOverlay::Init()
 
 	ActorUtil::LoadAllCommandsAndSetXY(m_textStatus, "ScreenInstallOverlay");
 	this->AddChild(&m_textStatus);
-	curl_global_init(CURL_GLOBAL_ALL);
 }
 
 bool ScreenInstallOverlay::Input(const InputEventPlus &input)
@@ -119,7 +131,7 @@ void ScreenInstallOverlay::Update(float fDeltaTime)
 	}
 #if !defined(WITHOUT_NETWORKING)
 	DLMAN->UpdateAndIsFinished(fDeltaTime);
-	vector<download*>& dls = DLMAN->downloads;
+	vector<Download*>& dls = DLMAN->downloads;
 	vector<RString> vsMessages;
 	for(auto dl : dls)
 	{

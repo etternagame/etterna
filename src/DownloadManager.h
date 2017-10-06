@@ -3,6 +3,10 @@
 
 #define SM_DOWNMANAGER
 
+
+
+
+
 #include "global.h"
 #include "CommandLineActions.h"
 #include "RageFile.h"
@@ -12,11 +16,10 @@
 
 
 
-void InstallSmzipOsArg(const RString &sOsZipFile);
-void InstallSmzip(const RString &sZipFile);
 
 #if !defined(WITHOUT_NETWORKING)
 
+class DownloadablePack;
 
 struct ProgressData {
 	curl_off_t total = 0; //total bytes
@@ -24,7 +27,12 @@ struct ProgressData {
 	float time = 0;//seconds passed
 };
 
-struct download {
+struct WriteThis {
+	RageFile* file;
+	bool stop = false;
+};
+
+struct Download {
 	CURL* handle;
 	int running;
 	ProgressData progress;
@@ -35,25 +43,62 @@ struct download {
 	curl_off_t lastUpdateDone = 0;
 	RageFile m_TempFile;
 	string m_Url;
+	WriteThis* wt;
+	DownloadablePack* pack;
+
+};
+
+class DownloadablePack {
+public:
+	string name = "";
+	size_t size = 0;
+	int id = 0;
+	float avgDifficulty = 0;
+	string url = "";
+	bool downloading = false;
+	Download* download;
+	// Lua
+	void PushSelf(lua_State *L);
 };
 
 class DownloadManager
 {
 public:
-	vector<download*> downloads;
+	DownloadManager();
+	~DownloadManager();
+	vector<Download*> downloads;
 	CURLM* mHandle;
 	string aux;
 	int running;
 	bool gameplay;
 	string error;
-	DownloadManager();
-	void Download(const RString &url);
-	~DownloadManager();
+	int lastid;
+
+	vector<DownloadablePack> downloadablePacks;
+
+	Download* DownloadAndInstallPack(const string &url);
+	Download* DownloadManager::DownloadAndInstallPack(DownloadablePack* pack);
+
+	bool GetAndCachePackList(string url);
+
+	vector<DownloadablePack>* GetPackList(string url, bool &result);
+
+	void UpdateDLSpeed();
+	void UpdateDLSpeed(bool gameplay);
+
+	bool DownloadManager::EncodeSpaces(string& str);
+
+	void InstallSmzip(const string &sZipFile);
 	
-	RString GetError() { return error; }
+	string GetError() { return error; }
 	bool Error() { return error == ""; }
 	bool UpdateAndIsFinished(float fDeltaSeconds);
-	RString MakeTempFileName(RString s);
+	string MakeTempFileName(string s);
+
+	bool UploadProfile(string url, string file, string user, string pass);
+
+	// Lua
+	void PushSelf(lua_State *L);
 };
 
 extern DownloadManager *DLMAN;
