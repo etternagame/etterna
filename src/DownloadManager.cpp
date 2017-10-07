@@ -16,7 +16,7 @@
 #include "JsonUtil.h"
 #include "Foreach.h"
 
-shared_ptr<DownloadManager> DLMAN = nullptr;
+DownloadManager* DLMAN = nullptr;
 
 static Preference<unsigned int> maxDLPerSecond("maximumBytesDownloadedPerSecond", 0);
 static Preference<unsigned int> maxDLPerSecondGameplay("maximumBytesDownloadedPerSecondDuringGameplay", 0);
@@ -120,8 +120,9 @@ int progressfunc(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t
 size_t write_data(void *dlBuffer, size_t size, size_t nmemb, void *pnf)
 {
 	auto wt = static_cast<WriteThis*>(pnf);
-	wt->bytes += size*nmemb;
-	return wt->stop ? 0 : wt->file->Write(dlBuffer, size*nmemb);
+	size_t b = wt->stop ? 0 : wt->file->Write(dlBuffer, size*nmemb);
+	wt->bytes += b;
+	return b; 
 }
 
 DownloadManager::DownloadManager() {
@@ -153,9 +154,9 @@ DownloadManager::~DownloadManager()
 	curl_global_cleanup();
 }
 
-shared_ptr<Download> DownloadManager::DownloadAndInstallPack(const string &url)
+Download* DownloadManager::DownloadAndInstallPack(const string &url)
 {
-	shared_ptr<Download> dl = make_shared<Download>(Download(url));
+	Download* dl = new Download(url);
 
 	if (mHandle == nullptr)
 		mHandle = curl_multi_init();
@@ -217,9 +218,9 @@ void Download::Update(float fDeltaSeconds)
 		downloadedAtLastUpdate = progress.downloaded / 1024;
 	}
 }
-shared_ptr<Download> DownloadManager::DownloadAndInstallPack(shared_ptr<DownloadablePack> pack)
+Download* DownloadManager::DownloadAndInstallPack(DownloadablePack* pack)
 {
-	shared_ptr<Download> dl = DownloadAndInstallPack(pack->url);
+	Download* dl = DownloadAndInstallPack(pack->url);
 	dl->pack = pack;
 	return dl;
 }
@@ -282,7 +283,7 @@ bool DownloadManager::UpdateAndIsFinished(float fDeltaSeconds)
 	int msgs_left;
 	bool addedPacks = false;	
 	while (msg = curl_multi_info_read(mHandle, &msgs_left)) {
-		shared_ptr<Download> finishedDl;
+		Download* finishedDl;
 		/* Find out which handle this message is about */
 		for (auto i = downloads.begin(); i < downloads.end(); i++) {
 			if (msg->easy_handle == (*i)->handle) {
@@ -425,7 +426,7 @@ vector<DownloadablePack>* DownloadManager::GetPackList(string url, bool &result)
 				tmp.name = packs[index].get("packname", "").asString();
 			else
 				if (packs[index].isMember("name"))
-					tmp.name = packs[index].get("", "").asString();
+					tmp.name = packs[index].get("name", "").asString();
 				else
 					continue;
 
@@ -463,7 +464,7 @@ Download::Download(string url)
 	wt->stop = NULL;
 	DLMAN->EncodeSpaces(m_Url);
 
-	curl_easy_setopt(handle, CURLOPT_WRITEDATA, &wt);
+	curl_easy_setopt(handle, CURLOPT_WRITEDATA, wt);
 	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_data);
 	curl_easy_setopt(handle, CURLOPT_URL, m_Url);
 	curl_easy_setopt(handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
@@ -569,7 +570,7 @@ public:
 			return 1;
 
 		p->downloading = true;
-		p->download = DLMAN->DownloadAndInstallPack(shared_ptr<DownloadablePack>(p));
+		p->download = DLMAN->DownloadAndInstallPack(p);
 		lua_pushboolean(L, 0);
 		return 1;
 	}

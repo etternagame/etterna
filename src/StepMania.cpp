@@ -1173,7 +1173,7 @@ int sm_main(int argc, char* argv[])
 	FILTERMAN = new FilterManager;
 
 #if !defined(WITHOUT_NETWORKING)
-	DLMAN = std::make_shared<DownloadManager>(DownloadManager());
+	DLMAN = new DownloadManager();
 #endif
 
 	/* If the user has tried to quit during the loading, do it before creating

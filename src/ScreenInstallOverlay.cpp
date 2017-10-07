@@ -131,7 +131,7 @@ void ScreenInstallOverlay::Update(float fDeltaTime)
 	}
 #if !defined(WITHOUT_NETWORKING)
 	DLMAN->UpdateAndIsFinished(fDeltaTime);
-	vector<shared_ptr<Download>>& dls = DLMAN->downloads;
+	vector<Download*>& dls = DLMAN->downloads;
 	vector<RString> vsMessages;
 	for(auto dl : dls)
 	{

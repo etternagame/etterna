@@ -54,7 +54,7 @@ public:
 	RageFile m_TempFile;
 	string m_Url;
 	WriteThis* wt;
-	shared_ptr<DownloadablePack> pack;
+	DownloadablePack* pack;
 	string m_TempFileName;
 protected:
 	string MakeTempFileName(string s);
@@ -68,7 +68,7 @@ public:
 	float avgDifficulty = 0;
 	string url = "";
 	bool downloading = false;
-	shared_ptr<Download> download;
+	Download* download;
 	// Lua
 	void PushSelf(lua_State *L);
 };
@@ -78,7 +78,7 @@ class DownloadManager
 public:
 	DownloadManager();
 	~DownloadManager();
-	vector<shared_ptr<Download>> downloads;
+	vector<Download*> downloads;
 	CURLM* mHandle{nullptr};
 	string aux;
 	CURLMcode ret;
@@ -89,8 +89,8 @@ public:
 
 	vector<DownloadablePack> downloadablePacks;
 
-	shared_ptr<Download> DownloadAndInstallPack(const string &url);
-	shared_ptr<Download>  DownloadAndInstallPack(shared_ptr<DownloadablePack> pack);
+	Download* DownloadAndInstallPack(const string &url);
+	Download*  DownloadAndInstallPack(DownloadablePack* pack);
 
 	bool GetAndCachePackList(string url);
 
@@ -113,7 +113,7 @@ public:
 	void PushSelf(lua_State *L);
 };
 
-extern shared_ptr<DownloadManager> DLMAN;
+extern DownloadManager* DLMAN;
 
 #endif
 
