@@ -139,8 +139,6 @@ DownloadManager::DownloadManager() {
 		LUA->Release(L);
 	}
 	GetAndCachePackList(packListURL);
-	vector<RString> vsRawFiles;
-	GetDirListingRecursive(TEMP_ZIP_MOUNT_POINT, "*", vsRawFiles);
 }
 
 DownloadManager::~DownloadManager()
@@ -181,6 +179,7 @@ void DownloadManager::UpdateDLSpeed()
 void DownloadManager::UpdateDLSpeed(bool gameplay)
 {
 	size_t maxDLSpeed;
+	this->gameplay = gameplay;
 	if (gameplay) {
 		maxDLSpeed = maxDLPerSecondGameplay;
 	}
@@ -208,6 +207,15 @@ bool DownloadManager::EncodeSpaces(string& str)
 	return foundSpaces;
 }
 
+void Download::Update(float fDeltaSeconds)
+{
+	progress.time += fDeltaSeconds;
+	if (progress.time > 1.0) {
+		speed = to_string(progress.downloaded / 1024 - downloadedAtLastUpdate);
+		progress.time = 0;
+		downloadedAtLastUpdate = progress.downloaded / 1024;
+	}
+}
 shared_ptr<Download> DownloadManager::DownloadAndInstallPack(shared_ptr<DownloadablePack> pack)
 {
 	shared_ptr<Download> dl = DownloadAndInstallPack(pack->url);
@@ -220,24 +228,15 @@ bool DownloadManager::UpdateAndIsFinished(float fDeltaSeconds)
 	if (!running)
 		return true;
 	timeval timeout;
-	int rc; /* select() return code */
-	CURLMcode mc; /* curl_multi_fdset() return code */
-
-	fd_set fdread;
-	fd_set fdwrite;
-	fd_set fdexcep;
-	int maxfd = -1;
-
+	int rc, maxfd = -1;
+	CURLMcode mc;
+	fd_set fdread, fdwrite, fdexcep;
 	long curl_timeo = -1;
-
 	FD_ZERO(&fdread);
 	FD_ZERO(&fdwrite);
 	FD_ZERO(&fdexcep);
-
-	/* set a suitable timeout to play around with */
 	timeout.tv_sec = 1;
 	timeout.tv_usec = 0;
-
 	curl_multi_timeout(mHandle, &curl_timeo);
 	if (curl_timeo >= 0) {
 		timeout.tv_sec = curl_timeo / 1000;
@@ -247,20 +246,11 @@ bool DownloadManager::UpdateAndIsFinished(float fDeltaSeconds)
 			timeout.tv_usec = (curl_timeo % 1000) * 1000;
 	}
 
-	/* get file descriptors from the transfers */
 	mc = curl_multi_fdset(mHandle, &fdread, &fdwrite, &fdexcep, &maxfd);
-
 	if (mc != CURLM_OK) {
 		error = "curl_multi_fdset() failed, code " + mc;
 		return false;
 	}
-
-	/* On success the value of maxfd is guaranteed to be >= -1. We call
-	select(maxfd + 1, ...); specially in case of (maxfd == -1) there are
-	no fds ready yet so we call select(0, ...) --or Sleep() on Windows--
-	to sleep 100ms, which is the minimum suggested value in the
-	curl_multi_fdset() doc. */
-
 	if (maxfd == -1) {
 #ifdef _WIN32
 		Sleep(1);
@@ -272,11 +262,8 @@ bool DownloadManager::UpdateAndIsFinished(float fDeltaSeconds)
 #endif
 	}
 	else {
-		/* Note that on some platforms 'timeout' may be modified by select().
-		If you need access to the original value save a copy beforehand. */
 		rc = select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &timeout);
 	}
-
 	switch (rc) {
 	case -1:
 		error = "select error" + mc;
@@ -284,23 +271,15 @@ bool DownloadManager::UpdateAndIsFinished(float fDeltaSeconds)
 	case 0: /* timeout */
 	default: /* action */
 		curl_multi_perform(mHandle, &running);
-		for (auto dl : downloads) {
-			dl->progress.time += fDeltaSeconds;
-			if (dl->progress.time > 1.0) {
-				dl->speed = to_string(dl->progress.downloaded / 1024 - dl->downloadedAtLastUpdate);
-				dl->progress.time = 0;
-				dl->downloadedAtLastUpdate = dl->progress.downloaded / 1024;
-			}
-		}
-
+		for (auto dl : downloads) 
+			dl->Update(fDeltaSeconds);
 		break;
 	}
+
 	//Check for finished downloads
 	CURLMsg *msg;
 	int msgs_left;
-	bool addedPacks = false;
-
-	while (msg = curl_multi_info_read(mHandle, &msgs_left)) {
+	bool addedPacks = false;	while (msg = curl_multi_info_read(mHandle, &msgs_left)) {
 		shared_ptr<Download> finishedDl;
 		/* Find out which handle this message is about */
 		for (auto i = downloads.begin(); i < downloads.end(); i++) {
@@ -317,45 +296,19 @@ bool DownloadManager::UpdateAndIsFinished(float fDeltaSeconds)
 			finishedDl->m_TempFile.Close();
 		if (msg->msg == CURLMSG_DONE) {
 			addedPacks = true;
-
-			//install smzip
 			finishedDl->Install();
-
-			if (finishedDl->pack != nullptr) {
-				Message msg("PackDownloaded");
-				msg.SetParam("pack", LuaReference::CreateFromPush(*(finishedDl->pack)));
-				MESSAGEMAN->Broadcast(msg);
-			}
-		} 
-		else {
-			if (finishedDl->pack != nullptr) {
-				Message msg("DownloadFailed");
-				msg.SetParam("pack", LuaReference::CreateFromPush(*(finishedDl->pack)));
-				MESSAGEMAN->Broadcast(msg);
-			}
+		} else {
+			finishedDl->Failed();
 		}
 	}
 	if (addedPacks) {
 		curl_off_t maxDLSpeed = 0;
 		auto screen = SCREENMAN->GetScreen(0);
-		if (screen && screen->GetName() == "ScreenSelectMusic") {
+		if (screen && screen->GetName() == "ScreenSelectMusic") 
 			static_cast<ScreenSelectMusic*>(screen)->DifferentialReload();
-		}
-		else
-		{
-			SONGMAN->DifferentialReload();
-			if (screen && screen->GetName() == "ScreenGamePlay" && !gameplay) {
-				gameplay = true;
-				maxDLSpeed = maxDLPerSecondGameplay;
-			}
-			else {
-				maxDLSpeed = maxDLPerSecond;
-				gameplay = false;
-			}
-		}
-		for (auto x : downloads)
-			curl_easy_setopt(x->handle, CURLOPT_MAX_RECV_SPEED_LARGE, static_cast<curl_off_t>(maxDLSpeed / downloads.size()));
-
+		else if (!gameplay) 
+				SONGMAN->DifferentialReload();
+		UpdateDLSpeed();
 	}
 
 	return false;
@@ -369,78 +322,42 @@ string Download::MakeTempFileName(string s)
 
 bool DownloadManager::UploadProfile(string url, string file, string user, string pass)
 {
-
 	CURL *curlForm = curl_easy_init();
 
 	ReadThis w;
-	//d = PROFILEMAN->GetProfileDir(ProfileSlot_Player1)+"etterna.xml";
 	w.file.Open(file);
 
 	curl_httppost *formpost = NULL;
 	curl_httppost *lastptr = NULL;
 	curl_slist *headerlist = NULL;
 
-	/* Fill in the file upload field *//*
-	curl_formadd(&formpost,
-		&lastptr,
-		CURLFORM_COPYNAME, "xml",
-		//CURLFORM_FILE, "postit2.c",
-		CURLFORM_STREAM, &w, //Use this instead to use the read_function
-		CURLFORM_FILENAME, "etterna.xml",
-		CURLFORM_CONTENTLEN, static_cast<long>(w.file.GetFileSize()),
-		CURLFORM_CONTENTSLENGTH, static_cast<long>(w.file.GetFileSize()),
-		CURLFORM_END);
-	w.file.Seek(SEEK_SET);
-	*/
 	RString text;
 	w.file.Read(text, w.file.GetFileSize());
 	w.file.Close();
-	//w.file.Seek(SEEK_SET);
-	//text = curl_easy_escape(curlForm, text, 0);
+
 	curl_formadd(&formpost,
 		&lastptr,
 		CURLFORM_COPYNAME, "xml",
-		//CURLFORM_STREAM, &w, //Use this instead to use the read_function
-		//CURLFORM_FILENAME, "etterna.xml",
-		//CURLFORM_CONTENTLEN, static_cast<long>(w.file.GetFileSize()),
-		//CURLFORM_CONTENTSLENGTH, static_cast<long>(w.file.GetFileSize()),
-		//CURLFORM_FILENAME, "etterna.xml",
-		//CURLFORM_COPYCONTENTS, text,
 		CURLFORM_BUFFER, "etterna.xml",
-		//CURLFORM_BUFFERPTR, curl_easy_escape(curlForm, text.c_str(), 0),
 		CURLFORM_BUFFERPTR, text.c_str(),
 		CURLFORM_BUFFERLENGTH, 0,
 		CURLFORM_END);
-
 	curl_formadd(&formpost,
 		&lastptr,
 		CURLFORM_COPYNAME, "user",
 		CURLFORM_COPYCONTENTS, curl_easy_escape(curlForm, user.c_str(), 0), 
 		CURLFORM_END);
-
-
 	curl_formadd(&formpost,
 		&lastptr,
 		CURLFORM_COPYNAME, "pass",
 		CURLFORM_COPYCONTENTS, curl_easy_escape(curlForm, pass.c_str(), 0) ,
 		CURLFORM_END);
 
-
-
-	//headerlist = curl_slist_append(headerlist, "Content - Type: multipart / form - data");
-
 	EncodeSpaces(url);
 	curl_easy_setopt(curlForm, CURLOPT_URL, url.c_str());
 	curl_easy_setopt(curlForm, CURLOPT_POST, 1L);
-	//curl_easy_setopt(curlForm, CURLOPT_HTTPHEADER, headerlist);
 	curl_easy_setopt(curlForm, CURLOPT_HTTPPOST, formpost);
 
-	//curl_easy_setopt(curlForm, CURLOPT_READFUNCTION, ReadThisReadCallback);
-	//curl_easy_setopt(curlForm, CURLOPT_SEEKFUNCTION, ReadThisSeekCallback);
-
-	BufferStruct bs;
-	curl_easy_setopt(curlForm, CURLOPT_WRITEDATA, &bs);
-	curl_easy_setopt(curlForm, CURLOPT_WRITEFUNCTION, write_memory_buffer);
 	CURLcode ret = curl_easy_perform(curlForm);
 
 	curl_easy_cleanup(curlForm);
@@ -470,15 +387,13 @@ vector<DownloadablePack>* DownloadManager::GetPackList(string url, bool &result)
 	BufferStruct bs;
 	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 
-	//curl_easy_setopt(curl, CURLOPT_POST, 1L);
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &bs);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_memory_buffer);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 
-	//curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "key=nick");
+	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "key=nick");
 
 	CURLcode res = curl_easy_perform(curl);
 	
@@ -504,7 +419,13 @@ vector<DownloadablePack>* DownloadManager::GetPackList(string url, bool &result)
 		if (packs[index].isMember("pack"))
 			tmp.name = packs[index].get("pack", "").asString();
 		else
-			continue;
+			if (packs[index].isMember("packname"))
+				tmp.name = packs[index].get("packname", "").asString();
+			else
+				if (packs[index].isMember("name"))
+					tmp.name = packs[index].get("name", "").asString();
+				else
+					continue;
 
 		if (packs[index].isMember("url"))
 			tmp.url = packs[index].get("url", baseUrl + tmp.name + ".zip").asString();
@@ -559,7 +480,17 @@ Download::~Download()
 void Download::Install()
 {
 	DLMAN->InstallSmzip(m_TempFileName);
+	Message msg("PackDownloaded");
+	msg.SetParam("pack", LuaReference::CreateFromPush(*pack));
+	MESSAGEMAN->Broadcast(msg);
 
+}
+
+void Download::Failed()
+{
+	Message msg("DownloadFailed");
+	msg.SetParam("pack", LuaReference::CreateFromPush(*pack));
+	MESSAGEMAN->Broadcast(msg);
 }
 /// Try to find in the Haystack the Needle - ignore case
 bool findStringIC(const std::string & strHaystack, const std::string & strNeedle)

@@ -39,6 +39,8 @@ public:
 	Download(string url);
 	~Download();
 	void Install();
+	void Update(float fDeltaSeconds);
+	void Failed();
 	string StartMessage() { return "Downloading file " + m_TempFileName + " from " + m_Url; };
 	string Status() { return m_TempFileName + "\n" + speed + " KB/s\n" +
 		"Downloaded " + to_string(progress.downloaded / 1024) + "/" + to_string(progress.total / 1024) + " (KB)"; }
