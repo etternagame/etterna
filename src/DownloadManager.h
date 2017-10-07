@@ -30,7 +30,8 @@ public:
 
 class WriteThis {
 public:
-	shared_ptr<RageFile> file;
+	RageFile* file;
+	size_t bytes{ 0 };
 	bool stop = false;
 };
 
@@ -43,7 +44,7 @@ public:
 	void Failed();
 	string StartMessage() { return "Downloading file " + m_TempFileName + " from " + m_Url; };
 	string Status() { return m_TempFileName + "\n" + speed + " KB/s\n" +
-		"Downloaded " + to_string(progress.downloaded / 1024) + "/" + to_string(progress.total / 1024) + " (KB)"; }
+		"Downloaded " + to_string((progress.downloaded>0? progress.downloaded : wt->bytes) / 1024) + (progress.total>0? "/" + to_string(progress.total / 1024) + " (KB)":""); }
 	CURL* handle;
 	int running;
 	ProgressData progress;
@@ -52,11 +53,11 @@ public:
 	curl_off_t lastUpdateDone = 0;
 	RageFile m_TempFile;
 	string m_Url;
-	shared_ptr<WriteThis> wt;
+	WriteThis* wt;
 	shared_ptr<DownloadablePack> pack;
+	string m_TempFileName;
 protected:
 	string MakeTempFileName(string s);
-	string m_TempFileName;
 };
 
 class DownloadablePack {
@@ -78,8 +79,9 @@ public:
 	DownloadManager();
 	~DownloadManager();
 	vector<shared_ptr<Download>> downloads;
-	CURLM* mHandle;
+	CURLM* mHandle{nullptr};
 	string aux;
+	CURLMcode ret;
 	int running;
 	bool gameplay;
 	string error;

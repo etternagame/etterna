@@ -120,14 +120,13 @@ int progressfunc(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t
 size_t write_data(void *dlBuffer, size_t size, size_t nmemb, void *pnf)
 {
 	auto wt = static_cast<WriteThis*>(pnf);
-	int bytes = size*nmemb;
-	return wt->stop ? 0 : wt->file->Write(dlBuffer, bytes);
+	wt->bytes += size*nmemb;
+	return wt->stop ? 0 : wt->file->Write(dlBuffer, size*nmemb);
 }
 
 DownloadManager::DownloadManager() {
 	curl_global_init(CURL_GLOBAL_ALL);
 	gameplay = false;
-	mHandle = curl_multi_init();
 	error = "";
 	lastid = 0;
 	// Register with Lua.
@@ -158,12 +157,14 @@ shared_ptr<Download> DownloadManager::DownloadAndInstallPack(const string &url)
 {
 	shared_ptr<Download> dl = make_shared<Download>(Download(url));
 
+	if (mHandle == nullptr)
+		mHandle = curl_multi_init();
 	curl_multi_add_handle(mHandle, dl->handle);
 	downloads.push_back(dl);
 
 	UpdateDLSpeed();
 
-	curl_multi_perform(mHandle, &running);
+	ret = curl_multi_perform(mHandle, &running);
 	SCREENMAN->SystemMessage(dl->StartMessage());
 
 	return dl;
@@ -279,7 +280,8 @@ bool DownloadManager::UpdateAndIsFinished(float fDeltaSeconds)
 	//Check for finished downloads
 	CURLMsg *msg;
 	int msgs_left;
-	bool addedPacks = false;	while (msg = curl_multi_info_read(mHandle, &msgs_left)) {
+	bool addedPacks = false;	
+	while (msg = curl_multi_info_read(mHandle, &msgs_left)) {
 		shared_ptr<Download> finishedDl;
 		/* Find out which handle this message is about */
 		for (auto i = downloads.begin(); i < downloads.end(); i++) {
@@ -289,9 +291,6 @@ bool DownloadManager::UpdateAndIsFinished(float fDeltaSeconds)
 				break;
 			}
 		}
-		if (finishedDl->handle != nullptr)
-			curl_easy_cleanup(finishedDl->handle);
-		finishedDl->handle = nullptr;
 		if (finishedDl->m_TempFile.IsOpen())
 			finishedDl->m_TempFile.Close();
 		if (msg->msg == CURLMSG_DONE) {
@@ -300,6 +299,9 @@ bool DownloadManager::UpdateAndIsFinished(float fDeltaSeconds)
 		} else {
 			finishedDl->Failed();
 		}
+		if (finishedDl->handle != nullptr)
+			curl_easy_cleanup(finishedDl->handle);
+		finishedDl->handle = nullptr;
 	}
 	if (addedPacks) {
 		curl_off_t maxDLSpeed = 0;
@@ -456,12 +458,12 @@ Download::Download(string url)
 	handle = curl_easy_init();
 	m_TempFileName = MakeTempFileName(url);
 	m_TempFile.Open(m_TempFileName, 2);
-	wt = make_shared<WriteThis>(WriteThis());
-	wt->file = make_shared<RageFile>(m_TempFile);
+	wt = new WriteThis();
+	wt->file = &m_TempFile;
 	wt->stop = NULL;
 	DLMAN->EncodeSpaces(m_Url);
 
-	curl_easy_setopt(handle, CURLOPT_WRITEDATA, wt);
+	curl_easy_setopt(handle, CURLOPT_WRITEDATA, &wt);
 	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_data);
 	curl_easy_setopt(handle, CURLOPT_URL, m_Url);
 	curl_easy_setopt(handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
