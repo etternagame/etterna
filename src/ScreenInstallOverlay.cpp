@@ -135,7 +135,7 @@ void ScreenInstallOverlay::Update(float fDeltaTime)
 	vector<RString> vsMessages;
 	for(auto dl : dls)
 	{
-		vsMessages.push_back(dl->status);
+		vsMessages.push_back(dl->Status());
 	}
 	m_textStatus.SetText(join("\n", vsMessages));
 

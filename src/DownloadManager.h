@@ -47,7 +47,6 @@ public:
 	CURL* handle;
 	int running;
 	ProgressData progress;
-	string status;
 	string speed;
 	curl_off_t downloadedAtLastUpdate = 0;
 	curl_off_t lastUpdateDone = 0;

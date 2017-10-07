@@ -423,7 +423,7 @@ vector<DownloadablePack>* DownloadManager::GetPackList(string url, bool &result)
 				tmp.name = packs[index].get("packname", "").asString();
 			else
 				if (packs[index].isMember("name"))
-					tmp.name = packs[index].get("name", "").asString();
+					tmp.name = packs[index].get("", "").asString();
 				else
 					continue;
 
