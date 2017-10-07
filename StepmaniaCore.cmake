@@ -298,7 +298,7 @@ elseif(MACOSX)
   
   set(CURL_LIBRARY "-lcurl") 
   find_package(CURL 7.56.0 REQUIRED) 
-  if(not CURL_FOUND)
+  if(NOT CURL_FOUND)
 	MESSAGE(FATAL_ERROR "Could not find the CURL library")
   endif()
 
@@ -449,7 +449,7 @@ elseif(LINUX)
 
   set(CURL_LIBRARY "-lcurl") 
   find_package(CURL 7.56.0 REQUIRED) 
-  if(not CURL_FOUND)
+  if(NOT CURL_FOUND)
 	MESSAGE(FATAL_ERROR "Could not find the CURL library")
   endif()
   
