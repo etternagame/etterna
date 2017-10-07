@@ -30,7 +30,6 @@ local currentpage = 1
 local numpages = 1
 local perpage = 10
 
---local packlist = DLMAN:GetPackList()
 local packlist = DLMAN:GetPackList()
 numpages = notShit.ceil(#packlist/perpage)
 
@@ -309,6 +308,60 @@ local filters = Def.ActorFrame{
 	OnCommand=function(self)
 	end
 }
+local function numFilter(i,x,y)
+	return Def.ActorFrame{
+		Def.Quad{
+			InitCommand=function(self)
+				self:addx(x):addy(y):zoomto(18,18):halign(1)
+			end,
+			MouseLeftClickMessageCommand=function(self)
+				if isOver(self) and update then
+					inputting = i
+					curInput = ""
+					MESSAGEMAN:Broadcast("DlInputActive")
+					self:diffusealpha(0.1)
+					SCREENMAN:set_input_redirected(PLAYER_1, true)
+				end
+			end,
+			SetCommand=function(self)
+				if inputting == i then
+					self:diffuse(color("#666666"))
+				else
+					self:diffuse(color("#000000"))
+				end
+			end,
+			UpdatePacksMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+			DlInputEndedMessageCommand=function(self) self:queuecommand("Set") end,
+			DlInputActiveMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+		},
+		LoadFont("Common Large")..{
+			InitCommand=function(self)
+				self:addx(x):addy(y):halign(1):maxwidth(40):zoom(fontScale)
+			end,
+			SetCommand=function(self)
+				local fval= getFilter(i)
+				self:settext(fval)
+				if tonumber(fval) > 0 or inputting == i then
+					self:diffuse(color("#FFFFFF"))
+				else
+					self:diffuse(color("#666666"))
+				end
+			end,
+			UpdatePacksMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+			DlInputEndedMessageCommand=function(self) self:queuecommand("Set") end,
+			DlInputActiveMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+		}
+	}
+end
+
 filters[#filters+1] = Def.ActorFrame{
 		InitCommand=function(self)
 			self:xy(rankingX + offsetX, rankingY + offsetY*2)
