@@ -857,12 +857,15 @@ public:
 	}
 	static int UploadProfile(T* p, lua_State *L)
 	{
-		Profile* prof = p->GetProfile(PLAYER_1);
-		if (prof == nullptr) {
-			return 1;
+		if (lua_gettop(L) != 3) {
+			return luaL_error(L, "UploadProfile expects exactly 3 arguments(player number, user, pass)");
 		}
-		string user = SArg(1);
-		string pass = SArg(2);
+		Profile* prof = p->GetProfile(Enum::Check<PlayerNumber>(L, 1));
+		if (prof == nullptr) {
+			return luaL_error(L, "UploadProfile needs a profile to be currently selected");
+		}
+		string user = SArg(2);
+		string pass = SArg(3);
 		lua_pushboolean(L, DLMAN->UploadProfile(profileUploadURL, prof->profiledir + "Etterna.xml", user, pass)==0);
 	}
 	LunaProfileManager()
@@ -884,6 +887,7 @@ public:
 		//
 		ADD_METHOD( SaveProfile );
 		ADD_METHOD( ConvertProfile );
+		ADD_METHOD( UploadProfile );
 		ADD_METHOD( SaveLocalProfile );
 		ADD_METHOD( GetSongNumTimesPlayed );
 		ADD_METHOD( GetLocalProfileIDs );

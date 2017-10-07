@@ -552,29 +552,34 @@ public:
 			packs[i].PushSelf(L);
 			lua_rawseti(L, -2, i + 1);
 		}
-		/*
-		for (unsigned i = 0; i < packs.size(); ++i)
-		{
 
-			lua_createtable(L, 0, 3);
-
-			LuaHelpers::Push(L, packs[i].name);
-			lua_setfield(L, -2, "name");
-
-			LuaHelpers::Push(L, packs[i].avgDifficulty);
-			lua_setfield(L, -2, "avgDifficulty");
-
-			LuaHelpers::Push(L, packs[i].id);
-			lua_setfield(L, -2, "id");
-
+		return 1;
+	}
+	static int GetFilteredAndSearchedPackList(T* p, lua_State* L)
+	{
+		if (lua_gettop(L) != 3) {
+			return luaL_error(L, "GetFilteredAndSearchedPackList expects exactly 3 arguments(packname, lower diff, upper diff)");
+		}
+		string name = SArg(1);
+		int lower = IArg(2);
+		int upper = IArg(3);
+		vector<DownloadablePack>& packs = p->downloadablePacks;
+		vector<DownloadablePack*> retPacklist;
+		for (unsigned i = 0; i < packs.size(); ++i) {
+			if (packs[i].name.find(name) != string::npos && packs[i].avgDifficulty > lower && packs[i].avgDifficulty < upper)
+				retPacklist.push_back(&(packs[i]));
+		}
+		lua_createtable(L, retPacklist.size(), 0);
+		for (unsigned i = 0; i < retPacklist.size(); ++i) {
+			retPacklist[i]->PushSelf(L);
 			lua_rawseti(L, -2, i + 1);
 		}
-		*/
 		return 1;
 	}
 	LunaDownloadManager()
 	{
 		ADD_METHOD(GetPackList);
+		ADD_METHOD(GetFilteredAndSearchedPackList);
 	}
 };
 LUA_REGISTER_CLASS(DownloadManager) 
