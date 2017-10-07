@@ -1,4 +1,118 @@
 local update = false
+
+
+local frameX = 10
+local frameY = 45
+local frameWidth = capWideScale(360,400)
+local frameHeight = 350
+local fontScale = 0.25
+
+local scoreYspacing = 10
+local distY = 15
+local offsetX = -10
+local offsetY = 20
+local rankingPage=1	
+local rankingWidth = frameWidth-capWideScale(15,50)
+local rankingX = capWideScale(30,50)
+local rankingY = capWideScale(40,40)
+local rankingTitleSpacing = (rankingWidth/(#ms.SkillSets))
+local buttondiffuse = 0
+local whee
+local listYOffset=100
+
+local Yspacing = 20
+local row2Yoffset = 12
+
+local pl
+
+
+local currentpage = 1
+local numpages = 1
+local perpage = 10
+
+--local packlist = DLMAN:GetPackList()
+local packlist = DLMAN:GetPackList()
+numpages = notShit.ceil(#packlist/perpage)
+
+local filters = {"", "0", "0", "0", "0", "0", "0"}--1=name 2=lowerdiff 3=upperdiff 4=lowersize 5=uppersize
+
+local curInput = ""
+local inputting = 0 --1=name 2=lowerdiff 3=upperdiff 4=lowersize 5=uppersize 0=none
+local function getFilter(index)
+	return filters[index]
+end
+local numbershers = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "0"}
+local englishes = {"a", "b", "c", "d", "e","f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",";"}
+local function DlInput(event)
+	if event.type ~= "InputEventType_Release" and update then
+		local changed = false
+		if event.button == "Start" then
+			curInput = ""
+			inputting = 0
+			packlist = DLMAN:GetFilteredAndSearchedPackList(tostring(filters[1]), tonumber(filters[2]), tonumber(filters[3]), tonumber(filters[4]*1024*1024), tonumber(filters[5]*1024*1024))
+			numpages = notShit.ceil(#packlist/perpage)
+			if currentpage > numpages or currentpage < 1 then
+				currentpage = 1
+			end
+			MESSAGEMAN:Broadcast("DlInputEnded")
+			SCREENMAN:set_input_redirected(PLAYER_1, false)
+			return true
+		elseif event.button == "Back" then
+			curInput = ""
+			if inputting == 2 or inputting == 3 or inputting == 4 or inputting == 5 then
+				if curInput == "" or not tonumber(curInput) then 
+					curInput = "0"
+				end
+			end
+			filters[inputting] = curInput
+			inputting = 0
+			packlist = DLMAN:GetFilteredAndSearchedPackList(tostring(filters[1]), tonumber(filters[2]), tonumber(filters[3]), tonumber(filters[4]*1024*1024), tonumber(filters[5]*1024*1024))
+			MESSAGEMAN:Broadcast("DlInputEnded")
+			SCREENMAN:set_input_redirected(PLAYER_1, false)
+			return true
+		elseif event.DeviceInput.button == "DeviceButton_backspace" then
+			curInput = curInput:sub(1, -2)
+			changed = true
+		elseif event.DeviceInput.button == "DeviceButton_delete"  then
+			curInput = ""
+			changed = true
+		else
+			if inputting == 2 or inputting == 3 or inputting == 4 or inputting == 5 then
+				for i=1,#numbershers do
+					if event.DeviceInput.button == "DeviceButton_"..numbershers[i] then
+						curInput = curInput..numbershers[i]
+						changed = true
+						break
+					end
+				end
+			else
+				for i=1,#englishes do														-- add standard characters to string
+					if event.DeviceInput.button == "DeviceButton_"..englishes[i] then
+						curInput = curInput..englishes[i]
+						changed = true
+						break
+					end
+				end
+			end
+		end
+		if changed then
+			if inputting == 2 or inputting == 3 or inputting == 4 or inputting == 5 then
+				if curInput == "" or not tonumber(curInput) then 
+					curInput = "0"
+				end
+			end
+			filters[inputting] = curInput
+			packlist = DLMAN:GetFilteredAndSearchedPackList(tostring(filters[1]), tonumber(filters[2]), tonumber(filters[3]), tonumber(filters[4]*1024*1024), tonumber(filters[5]*1024*1024))
+			numpages = notShit.ceil(#packlist/perpage)
+			if currentpage > numpages or currentpage < 1 then
+				currentpage = 1
+			end
+			MESSAGEMAN:Broadcast("UpdatePacks")
+			return true
+		end
+	end
+end
+
 local t = Def.ActorFrame{
 	BeginCommand=function(self)
 		self:queuecommand("Set"):visible(false)
@@ -7,7 +121,15 @@ local t = Def.ActorFrame{
 		self:bouncebegin(0.2):xy(-500,0):diffusealpha(0)
 	end,
 	OnCommand=function(self)
+		SCREENMAN:GetTopScreen():AddInputCallback(DlInput)
 		self:bouncebegin(0.2):xy(0,0):diffusealpha(1)
+	end,
+	MouseRightClickMessageCommand=function(self)
+		inputting = 0
+		curInput = 0
+		MESSAGEMAN:Broadcast("DlInputEnded")
+		MESSAGEMAN:Broadcast("UpdatePacks")
+		SCREENMAN:set_input_redirected(PLAYER_1, false)
 	end,
 	SetCommand=function(self)
 		self:finishtweening()
@@ -28,37 +150,6 @@ local t = Def.ActorFrame{
 		self:queuecommand("Set")
 	end,
 }
-
-local frameX = 10
-local frameY = 45
-local frameWidth = capWideScale(360,400)
-local frameHeight = 350
-local fontScale = 0.25
-
-local scoreYspacing = 10
-local distY = 15
-local offsetX = -10
-local offsetY = 20
-local rankingPage=1	
-local rankingWidth = frameWidth-capWideScale(15,50)
-local rankingX = capWideScale(30,50)
-local rankingY = capWideScale(40,40)
-local rankingTitleSpacing = (rankingWidth/(#ms.SkillSets))
-local buttondiffuse = 0
-local whee
-
-
-local Yspacing = 30
-local row2Yoffset = 12
-
-local pl
-
-
-local currentpage = 1
-local numpages = 1
-local perpage = 10
-
-local packlist = DLMAN:GetPackList()
 
 t[#t+1] = Def.Quad{InitCommand=function(self)
 	self:xy(frameX,frameY):zoomto(frameWidth,frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
@@ -86,7 +177,7 @@ end
 local function DownloadButton(i)
 	local o = Def.ActorFrame{
 		InitCommand=function(self)
-			self:x(15):y(25)
+			self:x(250):y(row2Yoffset)
 		end,
 		LoadFont("Common Large") .. {
 			Name="Text",
@@ -117,6 +208,16 @@ local function PackLabel(i)
 		InitCommand=function(self)
 			self:xy(rankingX + offsetX, rankingY + offsetY  +12+ (i-1)*Yspacing)
 		end,
+		PacksPageMessageCommand=function(self)
+			if not packlist[i + ((currentpage - 1) * perpage)] then
+				self:visible(false)
+			else
+				self:visible(true)
+			end
+		end,
+		UpdatePacksMessageCommand=function(self) self:queuecommand("PacksPage") end,
+		DlInputEndedMessageCommand=function(self) self:queuecommand("PacksPage") end,
+		DisplayAllMessageCommand = function(self) self:queuecommand("PacksPage") end,
 		LoadFont("Common Large") .. {
 			InitCommand=function(self)
 				self:halign(0):zoom(fontScale)
@@ -127,13 +228,15 @@ local function PackLabel(i)
 			end,
 			PacksPageMessageCommand=function(self)
 				self:diffuse(getMainColor("positive"))
-				self:settext(((rankingPage-1)*25)+i + ((currentpage - 1) * perpage)..".")
+				self:settext(packlist[i + ((currentpage - 1) * perpage)] and tostring(notShit.floor((packlist[i + ((currentpage - 1) * perpage)]:GetSize()/1024)/1024)) or "")
 			end,
+			UpdatePacksMessageCommand=function(self) self:queuecommand("PacksPage") end,
+			DlInputEndedMessageCommand=function(self) self:queuecommand("PacksPage") end,
 			DisplayAllMessageCommand = function(self) self:queuecommand("PacksPage") end
 		},
 		LoadFont("Common Large") .. {
 			InitCommand=function(self)
-				self:halign(0):zoom(fontScale):maxwidth(250/fontScale)
+				self:halign(0):zoom(fontScale):maxwidth(230/fontScale)
 				self:xy(15,row2Yoffset)
 				self:queuecommand("PacksPageMessage")
 			end,
@@ -141,6 +244,8 @@ local function PackLabel(i)
 				self:diffuse(getMainColor("positive"))
 				self:settext(packlist[i + ((currentpage - 1) * perpage)] and packlist[i + ((currentpage - 1) * perpage)]:GetName() or "")
 			end,
+			UpdatePacksMessageCommand=function(self) self:queuecommand("PacksPage") end,
+			DlInputEndedMessageCommand=function(self) self:queuecommand("PacksPage") end,
 			DisplayAllMessageCommand = function(self) self:queuecommand("PacksPage") end
 		},
 		LoadFont("Common Large") .. {
@@ -154,6 +259,8 @@ local function PackLabel(i)
 				self:settextf("%.2f", rating)
 				self:diffuse(ByMSD(rating))
 			end,
+			UpdatePacksMessageCommand=function(self) self:queuecommand("PacksPage") end,
+			DlInputEndedMessageCommand=function(self) self:queuecommand("PacksPage") end,
 			DisplayAllMessageCommand = function(self) self:queuecommand("PacksPage") end
 		},
 	}
@@ -163,6 +270,7 @@ end
 
 local packs = Def.ActorFrame{
 	OnCommand=function(self)
+		self:y(listYOffset)
 		numpages = notShit.ceil(#packlist/perpage)
 	end
 }
@@ -181,7 +289,301 @@ packs[#packs+1] = LoadFont("Common Large") .. {
 		self:diffuse(getMainColor("positive"))
 	end
 }
-
+packs[#packs+1] = LoadFont("Common Large") .. {
+	InitCommand=function(self)
+		self:xy(rankingX + offsetX-10, rankingY + 8+offsetY)
+		self:halign(0):zoom(fontScale)
+		self:settextf("Size(MB)")
+		self:diffuse(getMainColor("positive"))
+	end
+}
+packs[#packs+1] = LoadFont("Common Large") .. {
+	InitCommand=function(self)
+		self:xy(rankingX + offsetX+100, rankingY + 8+offsetY)
+		self:halign(0):zoom(fontScale)
+		self:settextf("Name")
+		self:diffuse(getMainColor("positive"))
+	end
+}
+local filters = Def.ActorFrame{
+	OnCommand=function(self)
+	end
+}
+filters[#filters+1] = Def.ActorFrame{
+		InitCommand=function(self)
+			self:xy(rankingX + offsetX, rankingY + offsetY*2)
+		end,
+		LoadFont("Common Large")..{
+			InitCommand=function(self)
+				self:halign(0):zoom(fontScale)
+			end,
+			SetCommand=function(self)
+				self:settext( "Avg Difficulty:")
+			end	
+		},
+		Def.Quad{
+			InitCommand=function(self)
+				self:addx(110):zoomto(18,18):halign(1)
+			end,
+			MouseLeftClickMessageCommand=function(self)
+				if isOver(self) and update then
+					inputting = 2
+					curInput = ""
+					MESSAGEMAN:Broadcast("DlInputActive")
+					self:diffusealpha(0.1)
+					SCREENMAN:set_input_redirected(PLAYER_1, true)
+				end
+			end,
+			SetCommand=function(self)
+				if inputting == 2 then
+					self:diffuse(color("#666666"))
+				else
+					self:diffuse(color("#000000"))
+				end
+			end,
+			UpdatePacksMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+			DlInputEndedMessageCommand=function(self) self:queuecommand("Set") end,
+			DlInputActiveMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+		},
+		LoadFont("Common Large")..{
+			InitCommand=function(self)
+				self:addx(110):halign(1):maxwidth(40):zoom(fontScale)
+			end,
+			SetCommand=function(self)
+				local fval= getFilter(2)
+				self:settext(fval)
+				if tonumber(fval) > 0 or inputting == 2 then
+					self:diffuse(color("#FFFFFF"))
+				else
+					self:diffuse(color("#666666"))
+				end
+			end,
+			UpdatePacksMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+			DlInputEndedMessageCommand=function(self) self:queuecommand("Set") end,
+			DlInputActiveMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+		},
+		Def.Quad{
+			InitCommand=function(self)
+				self:addx(140):zoomto(18,18):halign(1):diffuse(color("#666666"))
+			end,
+			MouseLeftClickMessageCommand=function(self)
+				if isOver(self) and update then
+					inputting=3
+					curInput = ""
+					MESSAGEMAN:Broadcast("DlInputActive")
+					self:diffusealpha(0.1)
+					SCREENMAN:set_input_redirected(PLAYER_1, true)
+				end
+			end,
+			SetCommand=function(self)
+				if inputting == 3 then
+					self:diffuse(color("#666666"))
+				else
+					self:diffuse(color("#000000"))
+				end
+			end,
+			UpdatePacksMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+			DlInputEndedMessageCommand=function(self) self:queuecommand("Set") end,
+			DlInputActiveMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+		},
+		LoadFont("Common Large")..{
+			InitCommand=function(self)
+				self:addx(140):halign(1):maxwidth(40):zoom(fontScale)
+			end,
+			SetCommand=function(self)
+				local fval= getFilter(3)
+				self:settext(fval)
+				if tonumber(fval) > 0 or inputting == 3 then
+					self:diffuse(color("#FFFFFF"))
+				else
+					self:diffuse(color("#666666"))
+				end
+			end,
+			UpdatePacksMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+			DlInputEndedMessageCommand=function(self) self:queuecommand("Set") end,
+			DlInputActiveMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+		},
+		LoadFont("Common Large")..{
+			InitCommand=function(self)
+				self:addx(230):halign(0):zoom(fontScale)
+			end,
+			SetCommand=function(self)
+				self:settext( "Size(MB):")
+			end	
+		},
+		Def.Quad{
+			InitCommand=function(self)
+				self:addx(310):zoomto(18,18):halign(1)
+			end,
+			MouseLeftClickMessageCommand=function(self)
+				if isOver(self) and update then
+					inputting = 4
+					curInput = ""
+					MESSAGEMAN:Broadcast("DlInputActive")
+					self:diffusealpha(0.1)
+					SCREENMAN:set_input_redirected(PLAYER_1, true)
+				end
+			end,
+			SetCommand=function(self)
+				if inputting == 4 then
+					self:diffuse(color("#666666"))
+				else
+					self:diffuse(color("#000000"))
+				end
+			end,
+			UpdatePacksMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+			DlInputEndedMessageCommand=function(self) self:queuecommand("Set") end,
+			DlInputActiveMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+		},
+		LoadFont("Common Large")..{
+			InitCommand=function(self)
+				self:addx(310):halign(1):maxwidth(40):zoom(fontScale)
+			end,
+			SetCommand=function(self)
+				local fval= getFilter(4)
+				self:settext(fval)
+				if tonumber(fval) > 0 or inputting == 4 then
+					self:diffuse(color("#FFFFFF"))
+				else
+					self:diffuse(color("#666666"))
+				end
+			end,
+			UpdatePacksMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+			DlInputEndedMessageCommand=function(self) self:queuecommand("Set") end,
+			DlInputActiveMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+		},
+		Def.Quad{
+			InitCommand=function(self)
+				self:addx(340):zoomto(18,18):halign(1):diffuse(color("#666666"))
+			end,
+			MouseLeftClickMessageCommand=function(self)
+				if isOver(self) and update then
+					inputting=5
+					curInput = ""
+					MESSAGEMAN:Broadcast("DlInputActive")
+					self:diffusealpha(0.1)
+					SCREENMAN:set_input_redirected(PLAYER_1, true)
+				end
+			end,
+			SetCommand=function(self)
+				if inputting == 5 then
+					self:diffuse(color("#666666"))
+				else
+					self:diffuse(color("#000000"))
+				end
+			end,
+			UpdatePacksMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+			DlInputEndedMessageCommand=function(self) self:queuecommand("Set") end,
+			DlInputActiveMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+		},
+		LoadFont("Common Large")..{
+			InitCommand=function(self)
+				self:addx(340):halign(1):maxwidth(40):zoom(fontScale)
+			end,
+			SetCommand=function(self)
+				local fval= getFilter(5)
+				self:settext(fval)
+				if tonumber(fval) > 0 or inputting == 5 then
+					self:diffuse(color("#FFFFFF"))
+				else
+					self:diffuse(color("#666666"))
+				end
+			end,
+			UpdatePacksMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+			DlInputEndedMessageCommand=function(self) self:queuecommand("Set") end,
+			DlInputActiveMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+		},
+		Def.Quad{
+			InitCommand=function(self)
+				self:addy(25):addx(150):zoomto(110,15):halign(1):diffuse(color("#666666"))
+			end,
+			MouseLeftClickMessageCommand=function(self)
+				if isOver(self) and update then
+					inputting=1
+					curInput = ""
+					MESSAGEMAN:Broadcast("DlInputActive")
+					self:diffusealpha(0.1)
+					SCREENMAN:set_input_redirected(PLAYER_1, true)
+				end
+			end,
+			SetCommand=function(self)
+				if inputting == 1 then
+					self:diffuse(color("#999999"))
+				else
+					self:diffuse(color("#000000"))
+				end
+			end,
+			UpdatePacksMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+			DlInputEndedMessageCommand=function(self) self:queuecommand("Set") end,
+			DlInputActiveMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+		},
+		LoadFont("Common Large")..{
+			InitCommand=function(self)
+				self:addy(25):halign(0):zoom(fontScale)
+			end,
+			SetCommand=function(self)
+				self:settext( "Name:")
+			end	
+		},
+		LoadFont("Common Large")..{
+			InitCommand=function(self)
+				self:addy(25):addx(45):halign(0):maxwidth(400):zoom(fontScale)
+			end,
+			SetCommand=function(self)
+				local fval= getFilter(1)
+				self:settext(fval)
+				if fval ~= "" or inputting == 1 then
+					self:diffuse(color("#FFFFFF"))
+				else
+					self:diffuse(color("#666666"))
+				end
+			end,
+			UpdatePacksMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+			DlInputEndedMessageCommand=function(self) self:queuecommand("Set") end,
+			DlInputActiveMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+		},
+	}
+t[#t+1] = filters
 -- next/prev page buttons
 pageButtons = Def.ActorFrame{
 	InitCommand=function(self)
@@ -193,6 +595,7 @@ pageButtons = Def.ActorFrame{
 		end,
 		MouseLeftClickMessageCommand=function(self)
 			if update and isOver(self) then
+				numpages = notShit.ceil(#packlist/perpage)
 				if currentpage < numpages then
 					currentpage = currentpage + 1
 					MESSAGEMAN:Broadcast("PacksPage")
@@ -218,7 +621,7 @@ pageButtons = Def.ActorFrame{
 					currentpage = currentpage-1
 					MESSAGEMAN:Broadcast("PacksPage")
 				else
-					currentpage = numpages
+					currentpage = numpages ~= 1 and numpages or 1
 					MESSAGEMAN:Broadcast("PacksPage")
 				end
 			end
@@ -236,7 +639,10 @@ pageButtons = Def.ActorFrame{
 		SetCommand=function(self)
 			self:settextf("Showing %i-%i of %i", math.min(((currentpage-1)*perpage)+1, #packlist), math.min(currentpage*perpage, #packlist), #packlist)
 		end,
-		PacksPageMessageCommand=function(self) self:queuecommand("Set") end
+		PacksPageMessageCommand=function(self) self:queuecommand("Set") end,
+		DlInputActiveMessageCommand=function(self) self:queuecommand("Set") end,
+		DlInputEndedMessageCommand=function(self) self:queuecommand("Set") end,
+		UpdatePacksMessageCommand=function(self) self:queuecommand("Set") end
 	}
 }
 

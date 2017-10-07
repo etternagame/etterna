@@ -16,15 +16,16 @@
 #include "JsonUtil.h"
 #include "Foreach.h"
 
-DownloadManager *DLMAN = NULL;
+shared_ptr<DownloadManager> DLMAN = nullptr;
 
 static Preference<unsigned int> maxDLPerSecond("maximumBytesDownloadedPerSecond", 0);
 static Preference<unsigned int> maxDLPerSecondGameplay("maximumBytesDownloadedPerSecondDuringGameplay", 0);
 static Preference<RString> packListURL("packListURL", "");
 
-static const RString TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
+static const string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
 
-struct BufferStruct {
+class BufferStruct {
+public:
 	string str;
 };
 
@@ -37,7 +38,8 @@ size_t write_memory_buffer(void *contents, size_t size, size_t nmemb, void *user
 
 }
 
-struct ReadThis {
+class ReadThis {
+public:
 	RageFile file;
 
 };
@@ -62,12 +64,12 @@ void DownloadManager::InstallSmzip(const string &sZipFile)
 	if (!FILEMAN->Mount("zip", sZipFile, TEMP_ZIP_MOUNT_POINT))
 		FAIL_M(static_cast<string>("Failed to mount " + sZipFile).c_str());
 
-	vector<RString> vsFiles;
+	vector<string> vsFiles;
 	{
 		vector<RString> vsRawFiles;
 		GetDirListingRecursive(TEMP_ZIP_MOUNT_POINT, "*", vsRawFiles);
 
-		vector<RString> vsPrettyFiles;
+		vector<string> vsPrettyFiles;
 		FOREACH_CONST(RString, vsRawFiles, s)
 		{
 			if (GetExtension(*s).EqualsNoCase("ctl"))
@@ -75,17 +77,17 @@ void DownloadManager::InstallSmzip(const string &sZipFile)
 
 			vsFiles.push_back(*s);
 
-			RString s2 = s->Right(s->length() - TEMP_ZIP_MOUNT_POINT.length());
+			string s2 = s->Right(s->length() - TEMP_ZIP_MOUNT_POINT.length());
 			vsPrettyFiles.push_back(s2);
 		}
 		sort(vsPrettyFiles.begin(), vsPrettyFiles.end());
 	}
 
-	RString sResult = "Success installing " + sZipFile;
-	FOREACH_CONST(RString, vsFiles, sSrcFile)
+	string sResult = "Success installing " + sZipFile;
+	FOREACH_CONST(string, vsFiles, sSrcFile)
 	{
-		RString sDestFile = *sSrcFile;
-		sDestFile = sDestFile.Right(sDestFile.length() - TEMP_ZIP_MOUNT_POINT.length());
+		string sDestFile = *sSrcFile;
+		sDestFile = RString(sDestFile.c_str()).Right(sDestFile.length() - TEMP_ZIP_MOUNT_POINT.length());
 
 		RString sDir, sThrowAway;
 		splitpath(sDestFile, sDir, sThrowAway, sThrowAway);
@@ -148,14 +150,25 @@ DownloadManager::~DownloadManager()
 	mHandle = nullptr;
 	for (auto dl : downloads)
 		if (dl->handle != nullptr) {
-			curl_easy_cleanup(dl);
+			curl_easy_cleanup(dl->handle);
 			dl->handle = nullptr;
-
-
-
-			FILEMAN->Remove(dl->m_TempFileName);
 		}
 	curl_global_cleanup();
+}
+
+shared_ptr<Download> DownloadManager::DownloadAndInstallPack(const string &url)
+{
+	shared_ptr<Download> dl = make_shared<Download>(Download(url));
+
+	curl_multi_add_handle(mHandle, dl->handle);
+	downloads.push_back(dl);
+
+	UpdateDLSpeed();
+
+	curl_multi_perform(mHandle, &running);
+	SCREENMAN->SystemMessage(dl->StartMessage());
+
+	return dl;
 }
 
 void DownloadManager::UpdateDLSpeed()
@@ -195,42 +208,9 @@ bool DownloadManager::EncodeSpaces(string& str)
 	return foundSpaces;
 }
 
-Download* DownloadManager::DownloadAndInstallPack(const string &url)
+shared_ptr<Download> DownloadManager::DownloadAndInstallPack(shared_ptr<DownloadablePack> pack)
 {
-	Download* dl = new Download();
-	dl->m_Url = url;
-	dl->handle = curl_easy_init();
-	dl->m_TempFileName = MakeTempFileName(url);
-	dl->m_TempFile.Open(dl->m_TempFileName, 2);
-	WriteThis *wt=new WriteThis;
-	wt->file = &(dl->m_TempFile);
-	wt->stop = NULL;
-	EncodeSpaces(dl->m_Url);
-
-	curl_easy_setopt(dl->handle, CURLOPT_WRITEDATA, wt);
-	curl_easy_setopt(dl->handle, CURLOPT_WRITEFUNCTION, write_data);
-	curl_easy_setopt(dl->handle, CURLOPT_URL, dl->m_Url);
-	curl_easy_setopt(dl->handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-	curl_easy_setopt(dl->handle, CURLOPT_XFERINFODATA, &(dl->progress));
-	curl_easy_setopt(dl->handle, CURLOPT_XFERINFOFUNCTION, progressfunc);
-	curl_easy_setopt(dl->handle, CURLOPT_NOPROGRESS, 0);
-	dl->running = 1;
-	dl->lastUpdateDone = 0;
-	dl->wt = wt;
-	curl_multi_add_handle(mHandle, dl->handle);
-	downloads.push_back(dl);
-
-	UpdateDLSpeed();
-
-	curl_multi_perform(mHandle, &running);
-	SCREENMAN->SystemMessage("Downloading file " + dl->m_TempFileName + " from " + url);
-
-	return dl;
-}
-
-Download* DownloadManager::DownloadAndInstallPack(DownloadablePack* pack)
-{
-	Download* dl = DownloadAndInstallPack(pack->url);
+	shared_ptr<Download> dl = DownloadAndInstallPack(pack->url);
 	dl->pack = pack;
 	return dl;
 }
@@ -311,8 +291,6 @@ bool DownloadManager::UpdateAndIsFinished(float fDeltaSeconds)
 				dl->progress.time = 0;
 				dl->downloadedAtLastUpdate = dl->progress.downloaded / 1024;
 			}
-			dl->status = dl->m_TempFileName + "\n" + dl->speed + " KB/s\n" +
-				"Downloaded " + to_string(dl->progress.downloaded / 1024) + "/" + to_string(dl->progress.total / 1024) + " (KB)";
 		}
 
 		break;
@@ -323,7 +301,7 @@ bool DownloadManager::UpdateAndIsFinished(float fDeltaSeconds)
 	bool addedPacks = false;
 
 	while (msg = curl_multi_info_read(mHandle, &msgs_left)) {
-		Download* finishedDl;
+		shared_ptr<Download> finishedDl;
 		/* Find out which handle this message is about */
 		for (auto i = downloads.begin(); i < downloads.end(); i++) {
 			if (msg->easy_handle == (*i)->handle) {
@@ -341,7 +319,7 @@ bool DownloadManager::UpdateAndIsFinished(float fDeltaSeconds)
 			addedPacks = true;
 
 			//install smzip
-			InstallSmzip(finishedDl->m_TempFileName);
+			finishedDl->Install();
 
 			if (finishedDl->pack != nullptr) {
 				Message msg("PackDownloaded");
@@ -356,8 +334,6 @@ bool DownloadManager::UpdateAndIsFinished(float fDeltaSeconds)
 				MESSAGEMAN->Broadcast(msg);
 			}
 		}
-		FILEMAN->Remove(finishedDl->m_TempFileName);
-		delete finishedDl;
 	}
 	if (addedPacks) {
 		curl_off_t maxDLSpeed = 0;
@@ -386,7 +362,7 @@ bool DownloadManager::UpdateAndIsFinished(float fDeltaSeconds)
 
 }
 
-string DownloadManager::MakeTempFileName(string s)
+string Download::MakeTempFileName(string s)
 {
 	return SpecialFiles::CACHE_DIR + "Downloads/" + Basename(s);
 }
@@ -492,17 +468,19 @@ vector<DownloadablePack>* DownloadManager::GetPackList(string url, bool &result)
 	CURL *curl = curl_easy_init();
 
 	BufferStruct bs;
-
 	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 
-	curl_easy_setopt(curl, CURLOPT_POST, 1L);
+	//curl_easy_setopt(curl, CURLOPT_POST, 1L);
+	curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
 
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &bs);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_memory_buffer);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "key=nick");
+	//curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "key=nick");
 
-	int res = curl_easy_perform(curl);
+	CURLcode res = curl_easy_perform(curl);
 	
 	curl_easy_cleanup(curl);
 	if (res != CURLE_OK) {
@@ -510,7 +488,7 @@ vector<DownloadablePack>* DownloadManager::GetPackList(string url, bool &result)
 	}
 	Json::Value packs;
 	RString error;
-	vector<DownloadablePack>* packlist = new vector<DownloadablePack>;
+	auto packlist = new vector<DownloadablePack>;
 	bool parsed = JsonUtil::LoadFromString(packs, bs.str, error);
 
 	if (!parsed) {
@@ -522,12 +500,27 @@ vector<DownloadablePack>* DownloadManager::GetPackList(string url, bool &result)
 
 	for (int index = 0; index < packs.size(); ++index) {
 		DownloadablePack tmp;
-		tmp.name = packs[index].get("packname", "").asString();
+
+		if (packs[index].isMember("pack"))
+			tmp.name = packs[index].get("pack", "").asString();
+		else
+			continue;
+
 		if (packs[index].isMember("url"))
 			tmp.url = packs[index].get("url", baseUrl + tmp.name + ".zip").asString();
 		else
 			tmp.url = baseUrl + tmp.name + ".zip";
-		tmp.avgDifficulty = static_cast<float>(packs[index].get("average", 0).asDouble());
+
+		if (packs[index].isMember("average"))
+			tmp.avgDifficulty = static_cast<float>(packs[index].get("average", 0).asDouble());
+		else
+			tmp.avgDifficulty = 0.0;
+
+		if (packs[index].isMember("size"))
+			tmp.size = packs[index].get("size", 0).asInt();
+		else
+			tmp.size = 0;
+
 		tmp.id = ++lastid;
 		packlist->push_back(tmp); 
 	}
@@ -535,7 +528,49 @@ vector<DownloadablePack>* DownloadManager::GetPackList(string url, bool &result)
 	return packlist;
 }
 
+Download::Download(string url)
+{
 
+	m_Url = url;
+	handle = curl_easy_init();
+	m_TempFileName = MakeTempFileName(url);
+	m_TempFile.Open(m_TempFileName, 2);
+	wt = make_shared<WriteThis>(WriteThis());
+	wt->file = make_shared<RageFile>(m_TempFile);
+	wt->stop = NULL;
+	DLMAN->EncodeSpaces(m_Url);
+
+	curl_easy_setopt(handle, CURLOPT_WRITEDATA, wt);
+	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_data);
+	curl_easy_setopt(handle, CURLOPT_URL, m_Url);
+	curl_easy_setopt(handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+	curl_easy_setopt(handle, CURLOPT_XFERINFODATA, &progress);
+	curl_easy_setopt(handle, CURLOPT_XFERINFOFUNCTION, progressfunc);
+	curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 0);
+	running = 1;
+	lastUpdateDone = 0;
+}
+
+Download::~Download()
+{
+	FILEMAN->Remove(m_TempFileName);
+}
+
+void Download::Install()
+{
+	DLMAN->InstallSmzip(m_TempFileName);
+
+}
+/// Try to find in the Haystack the Needle - ignore case
+bool findStringIC(const std::string & strHaystack, const std::string & strNeedle)
+{
+	auto it = std::search(
+		strHaystack.begin(), strHaystack.end(),
+		strNeedle.begin(), strNeedle.end(),
+		[](char ch1, char ch2) { return std::toupper(ch1) == std::toupper(ch2); }
+	);
+	return (it != strHaystack.end());
+}
 
 // lua start
 #include "LuaBinding.h"
@@ -546,7 +581,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 public:
 	static int GetPackList(T* p, lua_State* L)
 	{
-		vector<DownloadablePack>& packs = p->downloadablePacks;
+		vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
 		lua_createtable(L, packs.size(), 0);
 		for (unsigned i = 0; i < packs.size(); ++i) {
 			packs[i].PushSelf(L);
@@ -557,16 +592,22 @@ public:
 	}
 	static int GetFilteredAndSearchedPackList(T* p, lua_State* L)
 	{
-		if (lua_gettop(L) != 3) {
-			return luaL_error(L, "GetFilteredAndSearchedPackList expects exactly 3 arguments(packname, lower diff, upper diff)");
+		if (lua_gettop(L) < 5) {
+			return luaL_error(L, "GetFilteredAndSearchedPackList expects exactly 5 arguments(packname, lower diff, upper diff, lower size, upper size)");
 		}
 		string name = SArg(1);
-		int lower = IArg(2);
-		int upper = IArg(3);
-		vector<DownloadablePack>& packs = p->downloadablePacks;
+		double avgLower = max(luaL_checknumber(L, 2), 0);
+		double avgUpper = max(luaL_checknumber(L, 3),0);
+		size_t sizeLower = luaL_checknumber(L, 4);
+		size_t sizeUpper = luaL_checknumber(L, 5);
+		vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
 		vector<DownloadablePack*> retPacklist;
 		for (unsigned i = 0; i < packs.size(); ++i) {
-			if (packs[i].name.find(name) != string::npos && packs[i].avgDifficulty > lower && packs[i].avgDifficulty < upper)
+			if(DLMAN->downloadablePacks[i].avgDifficulty >= avgLower && 
+				findStringIC(DLMAN->downloadablePacks[i].name, name) &&  
+				(avgUpper <= 0 || DLMAN->downloadablePacks[i].avgDifficulty < avgUpper) &&
+				DLMAN->downloadablePacks[i].size >= sizeLower &&
+				(sizeUpper <= 0 || DLMAN->downloadablePacks[i].size < sizeUpper))
 				retPacklist.push_back(&(packs[i]));
 		}
 		lua_createtable(L, retPacklist.size(), 0);
@@ -595,13 +636,18 @@ public:
 			return 1;
 
 		p->downloading = true;
-		p->download = DLMAN->DownloadAndInstallPack(p);
+		p->download = DLMAN->DownloadAndInstallPack(shared_ptr<DownloadablePack>(p));
 		lua_pushboolean(L, 0);
 		return 1;
 	}
 	static int GetName(T* p, lua_State* L)
 	{
 		lua_pushstring(L, p->name.c_str());
+		return 1;
+	}
+	static int GetSize(T* p, lua_State* L)
+	{
+		lua_pushnumber(L, p->size);
 		return 1;
 	}
 	static int GetAvgDifficulty(T* p, lua_State* L)
@@ -639,6 +685,7 @@ public:
 		ADD_METHOD(IsDownloading);
 		ADD_METHOD(GetAvgDifficulty);
 		ADD_METHOD(GetName);
+		ADD_METHOD(GetSize);
 		ADD_METHOD(Stop);
 	}
 };
