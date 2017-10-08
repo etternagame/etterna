@@ -24,7 +24,8 @@
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <SQLiteCpp/VariadicBind.h>
 
-const RString PROFILE_DB= "profile.db";
+const string PROFILE_DB= "profile.db";
+const string WRITE_ONLY_PROFILE_DB = "webprofile.db";
 
 ProfileLoadResult DBProfile::LoadDBFromDir(RString dir, Profile* profile)
 {
@@ -45,8 +46,8 @@ ProfileLoadResult DBProfile::LoadDBFromDir(RString dir)
 	}
 	try {
 		// Use the db
-		if(!LoadGeneralData(db))
-			return ProfileLoadResult_FailedTampered;
+		//if(!LoadGeneralData(db))
+		//	return ProfileLoadResult_FailedTampered;
 		LoadFavourites(db);
 		LoadPermaMirrors(db);
 		LoadScoreGoals(db);
@@ -138,7 +139,6 @@ void DBProfile::LoadFavourites(SQLite::Database* db)
 	while (query.executeStep())
 	{
 		const char* key = query.getColumn(0);
-		//loadingProfile->FavoritedCharts.emplace(SONGMAN->ReconcileBustedKeys(key));
 		loadingProfile->FavoritedCharts.emplace(key);
 	}
 	SONGMAN->SetFavoritedStatus(loadingProfile->FavoritedCharts);
@@ -175,7 +175,6 @@ void DBProfile::LoadPlayLists(SQLite::Database* db)
 		ch.rate = static_cast<double>(query.getColumn(5));
 
 		// check if this chart is loaded and overwrite any last-seen values with updated ones
-		//ch.key = SONGMAN->ReconcileBustedKeys(ch.key);
 		ch.FromKey(ch.key);
 
 		//Add chart to playlist
@@ -207,7 +206,6 @@ void DBProfile::LoadPlayLists(SQLite::Database* db)
 		ch.key = key;
 
 		// check if this chart is loaded and overwrite any last-seen values with updated ones
-		//ch.key = SONGMAN->ReconcileBustedKeys(ch.key);
 		ch.FromKey(ch.key);
 
 		//Add chart to playlist
@@ -268,8 +266,8 @@ void DBProfile::LoadPlayerScores(SQLite::Database* db)
 {	
 	SQLite::Statement   query(*db, "SELECT chartkeys.chartkey, "
 		"songs.song, songs.pack, charts.difficulty, "
-		"scoresatrates.rate, " // "scoresatrates.bestgrade, scoresatrates.pbkey, "
-		"scores.scorekey, scores.calcversion, "
+		"scoresatrates.rate, " 
+		"scorekeys.scorekey, scores.calcversion, "
 		"scores.grade, scores.wifescore, scores.ssrnormpercent, "
 		"scores.judgescale, scores.nochordcohesion, scores.etternavalid, "
 		"scores.surviveseconds, scores.maxcombo, scores.modifiers, scores.datetime, "
@@ -278,6 +276,7 @@ void DBProfile::LoadPlayerScores(SQLite::Database* db)
 		"scores.overall, scores.stream, scores.jumpstream, "
 		"scores.handstream, stamina, scores.jackspeed, "
 		"scores.jackstamina, scores.technical, scores.brittle, scores.weak FROM scores "
+		"INNER JOIN scorekeys ON scores.scorekeyid = scorekeys.id "
 		"INNER JOIN scoresatrates ON scoresatrates.id = scores.scoresatrateid "
 		"INNER JOIN charts ON charts.id=scoresatrates.chartid "
 		"INNER JOIN songs ON songs.id = charts.songid "
@@ -315,8 +314,7 @@ void DBProfile::LoadPlayerScores(SQLite::Database* db)
 		scores[key].ScoresByRate[rate].scores[ScoreKey].SetEtternaValid(static_cast<int>(query.getColumn(12))!=0);
 		scores[key].ScoresByRate[rate].scores[ScoreKey].SetChartKey(key);
 		scores[key].ScoresByRate[rate].scores[ScoreKey].SetScoreKey(ScoreKey);
-		//TODO:surviveseconds
-		//scores[key].ScoresByRate[rate].scores[ScoreKey].SetSurviveSeconds(query.getColumn(13));
+		scores[key].ScoresByRate[rate].scores[ScoreKey].SetSurviveSeconds(static_cast<double>(query.getColumn(13)));
 		scores[key].ScoresByRate[rate].scores[ScoreKey].SetMaxCombo(query.getColumn(14));
 		scores[key].ScoresByRate[rate].scores[ScoreKey].SetModifiers(query.getColumn(15));
 		DateTime d;
@@ -334,15 +332,12 @@ void DBProfile::LoadPlayerScores(SQLite::Database* db)
 			if (hns != HNS_None)
 				scores[key].ScoresByRate[rate].scores[ScoreKey].SetHoldNoteScore(hns, query.getColumn(index++));
 		
-		//int index = 28;
 		if (scores[key].ScoresByRate[rate].scores[ScoreKey].GetWifeScore() > 0.f) {
 			FOREACH_ENUM(Skillset, ss)
 				scores[key].ScoresByRate[rate].scores[ScoreKey].SetSkillsetSSR(ss, static_cast<double>(query.getColumn(index++)));
 		}
 		scores[key].ScoresByRate[rate].scores[ScoreKey].SetValidationKey(ValidationKey_Brittle, static_cast<const char*>(query.getColumn(index++)));
 		scores[key].ScoresByRate[rate].scores[ScoreKey].SetValidationKey(ValidationKey_Weak, static_cast<const char*>(query.getColumn(index++)));
-
-		//TODO: validation keys
 
 
 		if (scores[key].ScoresByRate[rate].scores[ScoreKey].GetScoreKey() == "")
@@ -369,119 +364,6 @@ void DBProfile::LoadPlayerScores(SQLite::Database* db)
 
 		scores[key].bestGrade = min(scores[key].ScoresByRate[rate].bestGrade, scores[key].bestGrade);
 	}
-	/*
-// Read scores from xml
-void ScoresForChart::LoadFromNode(const XNode* node, const string& ck) {
-	RString rs = "";
-	int rate;
-
-	if(node->GetName() == "Chart")
-		ch.LoadFromNode(node);
-
-	if (node->GetName() == "ChartScores") {
-		node->GetAttrValue("Key", rs);
-		ch.key = rs;
-		node->GetAttrValue("Song", ch.lastsong);
-		node->GetAttrValue("Pack", ch.lastpack);
-	}
-
-	FOREACH_CONST_Child(node, p) {
-		ASSERT(p->GetName() == "ScoresAt");
-		p->GetAttrValue("Rate", rs);
-		rate = 10 * StringToInt(rs.substr(0, 1) + rs.substr(2, 4));
-		ScoresByRate[rate].LoadFromNode(p, ck, KeyToRate(rate));
-		bestGrade = min(ScoresByRate[rate].bestGrade, bestGrade);
-	}
-}
-void ScoreManager::LoadFromNode(const XNode * node) {
-	FOREACH_CONST_Child(node, p) {
-		//ASSERT(p->GetName() == "Chart");
-		RString tmp;
-		p->GetAttrValue("Key", tmp);
-		string doot = SONGMAN->ReconcileBustedKeys(tmp);
-		const string ck = doot;
-		pscores[ck].LoadFromNode(p, ck);
-	}
-
-void ScoresAtRate::LoadFromNode(const XNode* node, const string& ck, const float& rate) {
-	RString sk;
-	FOREACH_CONST_Child(node, p) {
-		p->GetAttrValue("Key", sk);
-		scores[sk].LoadFromEttNode(p);
-
-		// Set any pb
-		if(PBptr == nullptr)
-			PBptr = &scores.find(sk)->second;
-		else {
-			// update pb if a better score is found
-			if (PBptr->GetWifeScore() < scores[sk].GetWifeScore())
-				PBptr = &scores.find(sk)->second;
-		}
-
-		// Fill in stuff for the highscores
-		scores[sk].SetChartKey(ck);
-		scores[sk].SetScoreKey(sk);
-		scores[sk].SetMusicRate(rate);
-
-		bestGrade = min(scores[sk].GetWifeGrade(), bestGrade);
-
-		// Very awkward, need to figure this out better so there isn't unnecessary redundancy between loading and adding
-		SCOREMAN->RegisterScore(&scores.find(sk)->second);
-		SCOREMAN->AddToKeyedIndex(&scores.find(sk)->second);
-	}
-}
-void HighScoreImpl::LoadFromEttNode(const XNode *pNode) {
-	//ASSERT(pNode->GetName() == "Score");
-
-	RString s;	
-	pNode->GetChildValue("SSRCalcVersion", SSRCalcVersion);
-	pNode->GetChildValue("Grade", s);
-	grade = StringToGrade(s);
-	pNode->GetChildValue("WifeScore", fWifeScore);
-	pNode->GetChildValue("SSRNormPercent", fSSRNormPercent);
-	pNode->GetChildValue("Rate", fMusicRate);
-	pNode->GetChildValue("JudgeScale", fJudgeScale);
-	pNode->GetChildValue("NoChordCohesion", bNoChordCohesion);
-	pNode->GetChildValue("EtternaValid", bEtternaValid);
-	pNode->GetChildValue("SurviveSeconds", fSurviveSeconds);
-	pNode->GetChildValue("MaxCombo", iMaxCombo);
-	pNode->GetChildValue("Modifiers", s); sModifiers = s;
-	pNode->GetChildValue("DateTime", s); dateTime.FromString(s);
-	pNode->GetChildValue("ScoreKey", s); ScoreKey = s;
-
-	const XNode* pTapNoteScores = pNode->GetChild("TapNoteScores");
-	if (pTapNoteScores)
-		FOREACH_ENUM(TapNoteScore, tns)
-		pTapNoteScores->GetChildValue(TapNoteScoreToString(tns), iTapNoteScores[tns]);
-
-	const XNode* pHoldNoteScores = pNode->GetChild("HoldNoteScores");
-	if (pHoldNoteScores)
-		FOREACH_ENUM(HoldNoteScore, hns)
-		pHoldNoteScores->GetChildValue(HoldNoteScoreToString(hns), iHoldNoteScores[hns]);
-
-	if (fWifeScore > 0.f) {
-		const XNode* pSkillsetSSRs = pNode->GetChild("SkillsetSSRs");
-		if (pSkillsetSSRs)
-			FOREACH_ENUM(Skillset, ss)
-			pSkillsetSSRs->GetChildValue(SkillsetToString(ss), fSkillsetSSRs[ss]);
-	}
-
-	if (fWifeScore > 0.f) {
-		const XNode* pValidationKeys = pNode->GetChild("ValidationKeys");
-		if (pValidationKeys) {
-			pValidationKeys->GetChildValue(ValidationKeyToString(ValidationKey_Brittle), s); ValidationKeys[ValidationKey_Brittle] = s;
-			pValidationKeys->GetChildValue(ValidationKeyToString(ValidationKey_Weak), s); ValidationKeys[ValidationKey_Weak] = s;
-		}
-	}
-
-	if (ScoreKey == "")
-		ScoreKey = "S" + BinaryToHex(CryptManager::GetSHA1ForString(dateTime.GetString()));
-
-	// Validate input.
-	grade = clamp(grade, Grade_Tier01, Grade_Failed);
-}
-
-*/
 }
 void DBProfile::LoadPermaMirrors(SQLite::Database* db) 
 {
@@ -501,19 +383,11 @@ void DBProfile::LoadScoreGoals(SQLite::Database* db)
 		"scoregoals.timeassigned, scoregoals.timeachieved, scoregoals.scorekey, "
 		"scoregoals.comment FROM scoregoals INNER JOIN chartkeys ON "
 		"scoregoals.chartkeyid = chartkeys.id ORDER BY chartkeys.chartkey ASC");
-	//string lastKey="";
-	RString ck;
+
+	string ck;
 	while (query.executeStep())
 	{
 		ck = static_cast<const char*>(query.getColumn(0));
-		/* comment this for now (Also uncomment lastkey if uncommenting this)
-		//Check if its a new key or the one we were already working on
-		if (curKey != lastKey && curKey != ck) {
-			lastKey = curKey;
-			ck = SONGMAN->ReconcileBustedKeys(lastKey);
-		}
-		*/
-
 		//Load the scoregoal
 		ScoreGoal sg;
 		sg.rate = static_cast<double>(query.getColumn(1));
@@ -529,12 +403,23 @@ void DBProfile::LoadScoreGoals(SQLite::Database* db)
 	
 	SONGMAN->SetHasGoal(loadingProfile->goalmap);
 }
-ProfileLoadResult DBProfile::SaveDBToDir(RString dir, const Profile* profile) const
+
+ProfileLoadResult DBProfile::SaveDBToDir(RString dir, const Profile* profile, DBProfileMode mode) const
 {
+	string filename;
+	switch (mode) {
+	case WriteOnlyWebExport:
+		filename = FILEMAN->ResolvePath(dir) + WRITE_ONLY_PROFILE_DB;
+		break;
+	case LocalWithReplayData:
+	case LocalWithoutReplayData:
+		filename = FILEMAN->ResolvePath(dir) + PROFILE_DB;
+		break;
+	}
 	SQLite::Database *db;
 	try {
 		// Open a database file
-		db = new SQLite::Database(FILEMAN->ResolvePath(dir) + PROFILE_DB, SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE);
+		db = new SQLite::Database(filename, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
 	}
 	catch (std::exception& e)
 	{
@@ -550,13 +435,35 @@ ProfileLoadResult DBProfile::SaveDBToDir(RString dir, const Profile* profile) co
 		db->exec("CREATE TABLE skillsets (skillsetnum INTEGER PRIMARY KEY, skillset TEXT)");
 		FOREACH_ENUM(Skillset, ss)
 			db->exec("INSERT INTO skillsets VALUES (" + to_string(static_cast<int>(ss)) + ", \"" + SkillsetToString(ss) + "\")");
-		SaveGeneralData(db, profile);
+		if(mode == WriteOnlyWebExport)
+			SaveGeneralData(db, profile);
 		SaveFavourites(db, profile);
 		SavePermaMirrors(db, profile);
 		SaveScoreGoals(db, profile);
 		//Make sure playlists are loaded after playerscores
-		SavePlayerScores(db, profile);
+		SavePlayerScores(db, profile, mode);
 		SavePlayLists(db, profile);
+
+		db->exec("CREATE INDEX IF NOT EXISTS idx_scoregoals "
+			"ON scoregoals(chartkeyid, id)");
+		db->exec("CREATE INDEX IF NOT EXISTS idx_scoresatrates "
+			"ON scoresatrates(chartid, id)");
+		db->exec("CREATE INDEX IF NOT EXISTS idx_favs "
+			"ON favourites(chartkeyid, id)");
+		db->exec("CREATE INDEX IF NOT EXISTS idx_permamirrors "
+			"ON permamirrors(chartkeyid, id)");
+		db->exec("CREATE INDEX IF NOT EXISTS idx_playlists "
+			"ON playlists(id, name)");
+		db->exec("CREATE INDEX IF NOT EXISTS  idx_chartplaylists "
+			"ON chartplaylists(playlistid, chartid, rate)");
+		db->exec("CREATE INDEX IF NOT EXISTS idx_charts "
+			"ON charts(chartkeyid, songid, difficulty, id)");
+		db->exec("CREATE INDEX IF NOT EXISTS idx_chartkeys1 "
+			"ON chartkeys(id, chartkey)");
+		db->exec("CREATE INDEX IF NOT EXISTS idx_chartkeys2 "
+			"ON chartkeys(chartkey, id)");
+		db->exec("CREATE INDEX IF NOT EXISTS idx_songs "
+			"ON songs(song, pack, id)");
 		transaction.commit();
 	}
 	catch (std::exception& e)
@@ -569,7 +476,7 @@ ProfileLoadResult DBProfile::SaveDBToDir(RString dir, const Profile* profile) co
 }
 
 void DBProfile::SaveFavourites(SQLite::Database* db, const Profile* profile) const
-{;
+{
 
 	db->exec("DROP TABLE IF EXISTS favourites");
 	db->exec("CREATE TABLE favourites (id INTEGER PRIMARY KEY, chartkeyid INTEGER, CONSTRAINT fk_chartkeyid FOREIGN KEY (chartkeyid) REFERENCES chartkeys(id))");
@@ -657,10 +564,21 @@ void DBProfile::SaveGeneralData(SQLite::Database* db, const Profile* profile) co
 }
 
 
-void DBProfile::MoveBackupToDir(const RString &sFromDir, const RString &sToDir)
+void DBProfile::MoveBackupToDir(const RString &sFromDir, const RString &sToDir, DBProfileMode mode)
 {
-	if (FILEMAN->IsAFile(sFromDir + PROFILE_DB))
-		FILEMAN->Move(sFromDir + PROFILE_DB, sToDir + PROFILE_DB);
+	string filename;
+	switch (mode) {
+	case WriteOnlyWebExport:
+		filename = WRITE_ONLY_PROFILE_DB;
+		break;
+	case LocalWithReplayData:
+	case LocalWithoutReplayData:
+		filename = PROFILE_DB;
+		break;
+	}
+
+	if (FILEMAN->IsAFile(sFromDir + filename))
+		FILEMAN->Move(sFromDir + filename, sToDir + filename);
 }
 
 void DBProfile::SavePermaMirrors(SQLite::Database* db, const Profile* profile) const
@@ -713,236 +631,240 @@ void DBProfile::SaveScoreGoals(SQLite::Database* db, const Profile* profile) con
 			}
 		}
 	}
-
 }
 
 void DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) const
-{
+{	db->exec("DROP TABLE IF EXISTS playlists");
+	db->exec("CREATE TABLE playlists (id INTEGER PRIMARY KEY, name TEXT)");
 
-		db->exec("DROP TABLE IF EXISTS playlists");
-		db->exec("CREATE TABLE playlists (id INTEGER PRIMARY KEY, name TEXT)");
+	db->exec("DROP TABLE IF EXISTS chartplaylists");
+	db->exec("CREATE TABLE chartplaylists (id INTEGER PRIMARY KEY, chartid INTEGER, "
+		"playlistid INTEGER, rate FLOAT, "
+		"CONSTRAINT fk_chartid FOREIGN KEY (chartid) REFERENCES charts(id), "
+		"CONSTRAINT fk_playlistid FOREIGN KEY (playlistid) REFERENCES playlists(id))");
 
-		db->exec("DROP TABLE IF EXISTS chartplaylists");
-		db->exec("CREATE TABLE chartplaylists (id INTEGER PRIMARY KEY, chartid INTEGER, "
-			"playlistid INTEGER, rate FLOAT, "
-			"CONSTRAINT fk_chartid FOREIGN KEY (chartid) REFERENCES charts(id), "
-			"CONSTRAINT fk_playlistid FOREIGN KEY (playlistid) REFERENCES playlists(id))");
+	db->exec("DROP TABLE IF EXISTS courseruns");
+	db->exec("CREATE TABLE courseruns (id INTEGER PRIMARY KEY, playlistid INTEGER, "
+		"CONSTRAINT fk_playlistid FOREIGN KEY (playlistid) REFERENCES playlists(id))");
 
-		db->exec("DROP TABLE IF EXISTS courseruns");
-		db->exec("CREATE TABLE courseruns (id INTEGER PRIMARY KEY, playlistid INTEGER, "
-			"CONSTRAINT fk_playlistid FOREIGN KEY (playlistid) REFERENCES playlists(id))");
-
-		db->exec("DROP TABLE IF EXISTS runs");
-		db->exec("CREATE TABLE runs (id INTEGER PRIMARY KEY, scorekey TEXT, "
-			"courserunid INTEGER, "
-			"CONSTRAINT fk_courserunid FOREIGN KEY (courserunid) REFERENCES courseruns(id))");
+	db->exec("DROP TABLE IF EXISTS runs");
+	db->exec("CREATE TABLE runs (id INTEGER PRIMARY KEY, scorekey TEXT, "
+		"courserunid INTEGER, "
+		"CONSTRAINT fk_courserunid FOREIGN KEY (courserunid) REFERENCES courseruns(id))");
 
 
-		auto& pls = SONGMAN->allplaylists;
-		if (!pls.empty()) {
-			FOREACHM(string, Playlist, pls, pl)
+	auto& pls = SONGMAN->allplaylists;
+	if (!pls.empty()) {
+		FOREACHM(string, Playlist, pls, pl)
+		{
+			if (pl->first != "" && pl->first != "Favorites")
 			{
-				if (pl->first != "" && pl->first != "Favorites")
+				SQLite::Statement insertPlaylist(*db, "INSERT INTO playlists VALUES (NULL, ?)");
+				insertPlaylist.bind(1, (pl->second).name);
+				insertPlaylist.exec();
+				//db->exec("INSERT INTO playlists VALUES (NULL, \"" + (pl->second).name + "\")");
+				int plID = sqlite3_last_insert_rowid(db->getHandle());
+				FOREACH_CONST(Chart, (pl->second).chartlist, ch)
 				{
-					SQLite::Statement insertPlaylist(*db, "INSERT INTO playlists VALUES (NULL, ?)");
-					insertPlaylist.bind(1, (pl->second).name);
-					insertPlaylist.exec();
-					//db->exec("INSERT INTO playlists VALUES (NULL, \"" + (pl->second).name + "\")");
-					int plID = sqlite3_last_insert_rowid(db->getHandle());
-					FOREACH_CONST(Chart, (pl->second).chartlist, ch)
-					{
-
-						int chartKeyID = FindOrCreateChartKey(db, ch->key);
-						int chartID;
-
-						int songID = FindOrCreateSong(db, ch->lastpack, ch->lastsong);
-
-						//Find or create chart now
-						//Check if chart already exists
-						SQLite::Statement   query(*db, "SELECT * FROM charts WHERE chartkeyid=? AND songid=? AND difficulty=?");
-						query.bind(1, chartKeyID);
-						query.bind(2, songID);
-						query.bind(3, ch->lastdiff);
-						//if not
-						if (!query.executeStep())
-						{
-							//insert the chart
-							
-
-							SQLite::Statement insertChart(*db, "INSERT INTO charts VALUES (NULL, ?, ?, ?)");
-
-							insertChart.bind(1, chartKeyID);
-							insertChart.bind(2, songID);
-							insertChart.bind(3, ch->lastdiff);
-							insertChart.exec();
-							chartID = sqlite3_last_insert_rowid(db->getHandle());
-						}
-						else {
-							chartID = query.getColumn(0);
-						}
-						SQLite::Statement insertChartPlaylist(*db, "INSERT INTO chartplaylists VALUES (NULL, ?, ?, ?)");
-						insertChartPlaylist.bind(1, chartID);
-						insertChartPlaylist.bind(2, plID);
-						insertChartPlaylist.bind(3, ch->rate);
-						insertChartPlaylist.exec();
-					}
-				
-					FOREACH_CONST(vector<string>, (pl->second).courseruns, run) {
-
-						SQLite::Statement insertCourseRun(*db, "INSERT INTO courseruns VALUES (NULL, ?)");
-						insertCourseRun.bind(1, plID);
-						insertCourseRun.exec();
-						int courseRunID = sqlite3_last_insert_rowid(db->getHandle());
-						FOREACH_CONST(string, *run, scorekey) {
-							SQLite::Statement insertRun(*db, "INSERT INTO runs VALUES (NULL, ?, ?)");
-							insertRun.bind(1, *scorekey);
-							insertRun.bind(2, courseRunID);
-							insertRun.exec();
-
-						}
-					}
+					int chartID = FindOrCreateChart(db, ch->key, ch->lastpack, ch->lastsong, ch->lastdiff);
+					SQLite::Statement insertChartPlaylist(*db, "INSERT INTO chartplaylists VALUES (NULL, ?, ?, ?)");
+					insertChartPlaylist.bind(1, chartID);
+					insertChartPlaylist.bind(2, plID);
+					insertChartPlaylist.bind(3, ch->rate);
+					insertChartPlaylist.exec();
 				}
-			}
-		}
+			
+				FOREACH_CONST(vector<string>, (pl->second).courseruns, run) {
 
-}
-
-
-void DBProfile::SavePlayerScores(SQLite::Database* db, const Profile* profile) const
-{
-
-
-	db->exec("DROP TABLE IF EXISTS scores");
-	db->exec("CREATE TABLE scores (id INTEGER PRIMARY KEY, scoresatrateid INTEGER, "
-		"scorekey TEXT, calcversion INT, grade INTEGER, wifescore FLOAT, "
-		"ssrnormpercent FLOAT, judgescale FLOAT, nochordcohesion INTEGER, "
-		"etternavalid INTEGER, surviveseconds FLOAT, maxcombo INTEGER, modifiers TEXT, datetime DATE, "
-		"hitmine INTEGER, avoidmine INTEGER, miss INTEGER, w5 INTEGER, w4 INTEGER, "
-		"w3 INTEGER, w2 INTEGER, w1 INTEGER, letgoholds INTEGER, heldholds INTEGER, "
-		"missedholds INTEGER, overall FLOAT, stream FLOAT, jumpstream FLOAT, "
-		"handstream FLOAT, stamina FLOAT, jackspeed FLOAT, "
-		"jackstamina FLOAT, technical FLOAT, brittle TEXT, weak TEXT, "
-		"CONSTRAINT fk_scoresatrateid FOREIGN KEY (scoresatrateid) REFERENCES scoresatrates(id))");
-
-
-	//TODO: validation keys
-
-
-	db->exec("DROP TABLE IF EXISTS scoresatrates");
-	db->exec("CREATE TABLE scoresatrates (id INTEGER PRIMARY KEY, chartid INTEGER, "
-		"rate INTEGER, bestgrade TEXT, pbkey TEXT, "
-		"CONSTRAINT fk_chartid FOREIGN KEY (chartid) REFERENCES charts(id))");
-
-	/*
-	db->exec("DROP TABLE IF EXISTS charts");
-	db->exec("CREATE TABLE charts (id INTEGER PRIMARY KEY, chartkeyid INTEGER, "
-		"pack TEXT, song TEXT, difficulty INTEGER, "
-		"CONSTRAINT fk_chartkeyid FOREIGN KEY (chartkeyid) REFERENCES chartkeys(id))");*/
-	db->exec("DROP TABLE IF EXISTS charts");
-	db->exec("CREATE TABLE charts (id INTEGER PRIMARY KEY, chartkeyid INTEGER, "
-		"songid INTEGER, difficulty INTEGER, "
-		"CONSTRAINT fk_chartkeyid FOREIGN KEY (chartkeyid) REFERENCES chartkeys(id), "
-		"CONSTRAINT fk_songid FOREIGN KEY (songid) REFERENCES songs(id))");
-
-	db->exec("DROP TABLE IF EXISTS songs");
-	db->exec("CREATE TABLE songs (id INTEGER PRIMARY KEY, "
-		"pack TEXT, song TEXT)");
-
-	unordered_map<string, ScoresForChart> & pScores = *SCOREMAN->GetProfileScores();
-	FOREACHUM_CONST(string, ScoresForChart, pScores, chartPair) {
-		// First is ckey and two is ScoresForChart
-
-		Chart ch = ((chartPair->second).ch);
-		ch.FromKey(chartPair->first);
-
-		//add chart ch
-		int chartKeyID = FindOrCreateChartKey(db, ch.key);
-
-		int songID = FindOrCreateSong(db, ch.lastpack, ch.lastsong);
-
-		SQLite::Statement insertChart(*db, "INSERT INTO charts VALUES (NULL, ?, ?, ?)");
-		
-		insertChart.bind(1, chartKeyID);
-		insertChart.bind(2, songID);
-		insertChart.bind(3, ch.lastdiff);
-		
-		insertChart.exec();
-		int chartID = sqlite3_last_insert_rowid(db->getHandle());
-
-		//Add scores per rate
-		FOREACHM_CONST(int, ScoresAtRate, chartPair->second.ScoresByRate, ratePair) {
-			//first is rate int and second is ScoresAtRate
-			int rate = ratePair->first;
-			SQLite::Statement insertScoresAtRate(*db, "INSERT INTO scoresatrates VALUES (NULL, ?, ?, ?, ?)");
-			insertScoresAtRate.bind(1, chartID);
-			insertScoresAtRate.bind(2, rate );
-			insertScoresAtRate.bind(3, GradeToString(ratePair->second.bestGrade));
-			insertScoresAtRate.bind(4, ratePair->second.PBptr->GetScoreKey());
-			insertScoresAtRate.exec();
-			int scoresAtRateID = sqlite3_last_insert_rowid(db->getHandle());
-			FOREACHUM_CONST(string, HighScore, ratePair->second.scores, i) {
-				// prune out sufficiently low scores
-				if (i->second.GetWifeScore() > SCOREMAN->minpercent) {
-					const HighScore* hs = &(i->second);
-					//Add scores
-					SQLite::Statement insertScore(*db, "INSERT INTO scores VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, "
-							"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-					insertScore.bind(1, scoresAtRateID);
-					insertScore.bind(2, (hs->GetScoreKey() == "" ? "S" +
-						BinaryToHex(CryptManager::GetSHA1ForString(hs->GetDateTime().GetString())) :
-						hs->GetScoreKey()));
-					insertScore.bind(3, hs->GetSSRCalcVersion());
-					insertScore.bind(4, hs->GetWifeGrade());
-					insertScore.bind(5, hs->GetWifeScore());
-					insertScore.bind(6, hs->GetSSRNormPercent());
-					insertScore.bind(7, hs->GetJudgeScale());
-					insertScore.bind(8, hs->GetChordCohesion());
-					insertScore.bind(9, hs->GetEtternaValid());
-					insertScore.bind(10, hs->GetSurviveSeconds());
-					insertScore.bind(11, hs->GetMaxCombo());
-					insertScore.bind(12, hs->GetModifiers());
-					insertScore.bind(13, hs->GetDateTime().GetString());
-
-					int index = 14;
-					FOREACH_ENUM(TapNoteScore, tns)
-						if (tns != TNS_None && tns != TNS_CheckpointMiss && tns != TNS_CheckpointHit)
-							insertScore.bind(index++, hs->GetTapNoteScore(tns));
-
-					FOREACH_ENUM(HoldNoteScore, hns)
-						if (hns != HNS_None)
-							insertScore.bind(index++, hs->GetHoldNoteScore(hns));
-
-					if (hs->GetWifeScore() > 0.f && hs->GetWifeGrade() != Grade_Failed && hs->GetSkillsetSSR(Skill_Overall) > 0.f) 
-						FOREACH_ENUM(Skillset, ss)
-							insertScore.bind(index++, hs->GetSkillsetSSR(ss));
-					else
-						FOREACH_ENUM(Skillset, ss)
-							insertScore.bind(index++, 0);
-
-					insertScore.bind(index++, hs->GetValidationKey(ValidationKey_Brittle));
-					insertScore.bind(index++, hs->GetValidationKey(ValidationKey_Weak));
-					insertScore.exec();
-					
-					/*
-					int scoreID = sqlite3_last_insert_rowid(db->getHandle());
-					// dont bother writing skillset ssrs for non-applicable scores
-					if (hs->GetWifeScore() > 0.f && hs->GetWifeGrade() != Grade_Failed && hs->GetSkillsetSSR(Skill_Overall) > 0.f) {;
-						FOREACH_ENUM(Skillset, ss) {
-							SQLite::Statement insertSkillsetSSR(*db, "INSERT INTO skillsetssrs VALUES (NULL, " + to_string(scoreID) + ", ?, ?)");
-							insertSkillsetSSR.bind(1, static_cast<int>(ss));
-							insertSkillsetSSR.bind(2, hs->GetSkillsetSSR(ss)); 
-							insertSkillsetSSR.exec();
-						}
+					SQLite::Statement insertCourseRun(*db, "INSERT INTO courseruns VALUES (NULL, ?)");
+					insertCourseRun.bind(1, plID);
+					insertCourseRun.exec();
+					int courseRunID = sqlite3_last_insert_rowid(db->getHandle());
+					FOREACH_CONST(string, *run, scorekey) {
+						SQLite::Statement insertRun(*db, "INSERT INTO runs VALUES (NULL, ?, ?)");
+						insertRun.bind(1, *scorekey);
+						insertRun.bind(2, courseRunID);
+						insertRun.exec();
 					}
-					*/
 				}
 			}
 		}
 	}
 }
 
+void DBProfile::SavePlayerScores(SQLite::Database* db, const Profile* profile, DBProfileMode mode) const
+{
+	if (mode != WriteOnlyWebExport) {
+		// Separate scorekeys table so we can not drop it when saving, and 
+		// we can relate offsets/replaydata(Which is saved after each score) to scorekeys
+		db->exec("CREATE TABLE IF NOT EXISTS scorekeys (id INTEGER PRIMARY KEY, scorekey TEXT)");
 
-int DBProfile::GetChartKeyID(SQLite::Database* db, RString key) const
+		db->exec("DROP TABLE IF EXISTS scores");
+		db->exec("CREATE TABLE IF NOT EXISTS scores (id INTEGER PRIMARY KEY, scoresatrateid INTEGER, "
+			"scorekeyid INTEGER, calcversion INT, grade INTEGER, wifescore FLOAT, "
+			"ssrnormpercent FLOAT, judgescale FLOAT, nochordcohesion INTEGER, "
+			"etternavalid INTEGER, surviveseconds FLOAT, maxcombo INTEGER, modifiers TEXT, datetime DATE, "
+			"hitmine INTEGER, avoidmine INTEGER, miss INTEGER, w5 INTEGER, w4 INTEGER, "
+			"w3 INTEGER, w2 INTEGER, w1 INTEGER, letgoholds INTEGER, heldholds INTEGER, "
+			"missedholds INTEGER, overall FLOAT, stream FLOAT, jumpstream FLOAT, "
+			"handstream FLOAT, stamina FLOAT, jackspeed FLOAT, "
+			"jackstamina FLOAT, technical FLOAT, brittle TEXT, weak TEXT, "
+			"CONSTRAINT fk_scoresatrateid FOREIGN KEY (scoresatrateid) REFERENCES scoresatrates(id), "
+			"CONSTRAINT fk_scorekeyid FOREIGN KEY (scorekeyid) REFERENCES scorekeys(id))");
+
+		db->exec("DROP TABLE IF EXISTS scoresatrates");
+		db->exec("CREATE TABLE IF NOT EXISTS scoresatrates (id INTEGER PRIMARY KEY, chartid INTEGER, "
+			"rate INTEGER, bestgrade TEXT, pbkey TEXT, "
+			"CONSTRAINT fk_chartid FOREIGN KEY (chartid) REFERENCES charts(id))");
+
+	}
+	else {
+		db->exec("DROP TABLE IF EXISTS scoresatrates");
+		db->exec("CREATE TABLE IF NOT EXISTS scoresatrates (id INTEGER PRIMARY KEY, chartid INTEGER, "
+			"scorekey TEXT, calcversion INT, grade INTEGER, wifescore FLOAT, "
+			"ssrnormpercent FLOAT, judgescale FLOAT, nochordcohesion INTEGER, "
+			"etternavalid INTEGER, surviveseconds FLOAT, maxcombo INTEGER, modifiers TEXT, datetime DATE, "
+			"hitmine INTEGER, avoidmine INTEGER, miss INTEGER, w5 INTEGER, w4 INTEGER, "
+			"w3 INTEGER, w2 INTEGER, w1 INTEGER, letgoholds INTEGER, heldholds INTEGER, "
+			"missedholds INTEGER, overall FLOAT, stream FLOAT, jumpstream FLOAT, "
+			"handstream FLOAT, stamina FLOAT, jackspeed FLOAT, "
+			"jackstamina FLOAT, technical FLOAT, brittle TEXT, weak TEXT, rate INTEGER, "
+			"CONSTRAINT fk_chartid FOREIGN KEY (chartid) REFERENCES charts(id))");
+	}
+
+	db->exec("DROP TABLE IF EXISTS charts");
+	db->exec("CREATE TABLE IF NOT EXISTS charts (id INTEGER PRIMARY KEY, chartkeyid INTEGER, "
+		"songid INTEGER, difficulty INTEGER, "
+		"CONSTRAINT fk_chartkeyid FOREIGN KEY (chartkeyid) REFERENCES chartkeys(id), "
+		"CONSTRAINT fk_songid FOREIGN KEY (songid) REFERENCES songs(id))");
+
+	db->exec("DROP TABLE IF EXISTS songs");
+	db->exec("CREATE TABLE IF NOT EXISTS songs (id INTEGER PRIMARY KEY, "
+		"pack TEXT, song TEXT)");
+
+	if (mode != WriteOnlyWebExport) {
+		db->exec("CREATE TABLE IF NOT EXISTS offsets (id INTEGER PRIMARY KEY, "
+			"row INTEGER, offset FLOAT, scorekeyid INTEGER, "
+			"CONSTRAINT fk_scorekeyid FOREIGN KEY (scorekeyid) REFERENCES scorekeys(id))");
+	}
+
+	unordered_map<string, ScoresForChart> & pScores = *SCOREMAN->GetProfileScores();
+	FOREACHUM(string, ScoresForChart, pScores, chartPair) {
+		// First is ckey and two is ScoresForChart
+		Chart ch = ((chartPair->second).ch);
+		ch.FromKey(chartPair->first);
+
+		int chartKeyID = FindOrCreateChartKey(db, ch.key);
+		int songID = FindOrCreateSong(db, ch.lastpack, ch.lastsong);
+		SQLite::Statement insertChart(*db, "INSERT INTO charts VALUES (NULL, ?, ?, ?)");
+		insertChart.bind(1, chartKeyID);
+		insertChart.bind(2, songID);
+		insertChart.bind(3, ch.lastdiff);
+		insertChart.exec();
+		int chartID = sqlite3_last_insert_rowid(db->getHandle());
+
+		//Add scores per rate
+		FOREACHM(int, ScoresAtRate, chartPair->second.ScoresByRate, ratePair) {
+			//first is rate int and second is ScoresAtRate
+			int rate = ratePair->first; 
+			int scoresAtRateID;
+			if (mode != WriteOnlyWebExport) {
+				SQLite::Statement insertScoresAtRate(*db, "INSERT INTO scoresatrates VALUES (NULL, ?, ?, ?, ?)");
+				insertScoresAtRate.bind(1, chartID);
+				insertScoresAtRate.bind(2, rate);
+				insertScoresAtRate.bind(3, GradeToString(ratePair->second.bestGrade));
+				insertScoresAtRate.bind(4, ratePair->second.PBptr->GetScoreKey());
+				insertScoresAtRate.exec();
+				scoresAtRateID = sqlite3_last_insert_rowid(db->getHandle());
+			}
+			FOREACHUM(string, HighScore, ratePair->second.scores, i) {
+				if (mode != WriteOnlyWebExport || i->second.GetScoreKey() == ratePair->second.PBptr->GetScoreKey()) {
+					// prune out sufficiently low scores
+					if (i->second.GetWifeScore() > SCOREMAN->minpercent) {
+						HighScore* hs = &(i->second);
+						//Add scores
+						SQLite::Statement* insertScore;
+						int scorekeyID;
+						if (mode != WriteOnlyWebExport) {
+							insertScore = new SQLite::Statement(*db, "INSERT INTO scores VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, "
+								"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+							insertScore->bind(1, scoresAtRateID);
+							scorekeyID = FindOrCreateScoreKey(db, (hs->GetScoreKey() == "" ? "S" +
+								BinaryToHex(CryptManager::GetSHA1ForString(hs->GetDateTime().GetString())) :
+								hs->GetScoreKey()));
+							insertScore->bind(2, scorekeyID);
+						}
+						else {
+							insertScore = new SQLite::Statement(*db, "INSERT INTO scoresatrates VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, "
+								"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+							insertScore->bind(1, chartID);
+							insertScore->bind(2, (hs->GetScoreKey() == "" ? "S" +
+								BinaryToHex(CryptManager::GetSHA1ForString(hs->GetDateTime().GetString())) :
+								hs->GetScoreKey()));
+						}
+						insertScore->bind(3, hs->GetSSRCalcVersion());
+						insertScore->bind(4, hs->GetWifeGrade());
+						insertScore->bind(5, hs->GetWifeScore());
+						insertScore->bind(6, hs->GetSSRNormPercent());
+						insertScore->bind(7, hs->GetJudgeScale());
+						insertScore->bind(8, hs->GetChordCohesion());
+						insertScore->bind(9, hs->GetEtternaValid());
+						insertScore->bind(10, hs->GetSurviveSeconds());
+						insertScore->bind(11, hs->GetMaxCombo());
+						insertScore->bind(12, hs->GetModifiers());
+						insertScore->bind(13, hs->GetDateTime().GetString());
+
+						int index = 14;
+						FOREACH_ENUM(TapNoteScore, tns)
+							if (tns != TNS_None && tns != TNS_CheckpointMiss && tns != TNS_CheckpointHit)
+								insertScore->bind(index++, hs->GetTapNoteScore(tns));
+
+						FOREACH_ENUM(HoldNoteScore, hns)
+							if (hns != HNS_None)
+								insertScore->bind(index++, hs->GetHoldNoteScore(hns));
+
+						if (hs->GetWifeScore() > 0.f && hs->GetWifeGrade() != Grade_Failed && hs->GetSkillsetSSR(Skill_Overall) > 0.f)
+							FOREACH_ENUM(Skillset, ss)
+							insertScore->bind(index++, hs->GetSkillsetSSR(ss));
+						else
+							FOREACH_ENUM(Skillset, ss)
+							insertScore->bind(index++, 0);
+
+						insertScore->bind(index++, hs->GetValidationKey(ValidationKey_Brittle));
+						insertScore->bind(index++, hs->GetValidationKey(ValidationKey_Weak));
+
+						if (mode == WriteOnlyWebExport)
+							insertScore->bind(index++, rate);
+
+						insertScore->exec();
+						delete insertScore;
+						if (mode == WriteOnlyWebExport)
+							break;
+						if (mode == LocalWithReplayData) {
+							int scoreID = sqlite3_last_insert_rowid(db->getHandle());
+							try {
+								//Save Replay Data
+								hs->LoadReplayData();
+								auto &offsets = hs->GetOffsetVector();
+								auto &rows = hs->GetNoteRowVector();
+								unsigned int idx = rows.size() >= 1 ? rows.size() - 1 : 0U;
+								//loop for writing both vectors side by side
+								for (unsigned int offsetIndex = 0; offsetIndex < idx; offsetIndex++) {
+									SQLite::Statement insertOffset(*db, "INSERT INTO offsets VALUES (NULL, ?, ?, ?)");
+									insertOffset.bind(1, rows[offsetIndex]);
+									insertOffset.bind(2, offsets[offsetIndex]);
+									insertOffset.bind(3, scorekeyID);
+									insertOffset.exec();
+								}
+							} catch (std::exception& e) { }
+						}
+					}
+				}
+			}
+		}
+	}
+}
+int DBProfile::GetChartKeyID(SQLite::Database* db, string key)
 {
 	SQLite::Statement   query(*db, "SELECT * FROM chartkeys WHERE chartkey=?");
 	query.bind(1, key);
@@ -951,7 +873,7 @@ int DBProfile::GetChartKeyID(SQLite::Database* db, RString key) const
 	return query.getColumn(0);
 }
 
-RString DBProfile::GetChartKeyByID(SQLite::Database* db, int id) const
+string DBProfile::GetChartKeyByID(SQLite::Database* db, int id)
 {
 	SQLite::Statement   query(*db, "SELECT * FROM chartkeys WHERE id=?");
 	query.bind(1, id);
@@ -961,7 +883,7 @@ RString DBProfile::GetChartKeyByID(SQLite::Database* db, int id) const
 }
 
 
-int DBProfile::FindOrCreateChartKey(SQLite::Database* db, RString key) const
+int DBProfile::FindOrCreateChartKey(SQLite::Database* db, string key)
 {
 	int exists = GetChartKeyID(db, key);
 	if (exists)
@@ -971,7 +893,7 @@ int DBProfile::FindOrCreateChartKey(SQLite::Database* db, RString key) const
 }
 
 
-int DBProfile::FindOrCreateSong(SQLite::Database* db, string pack, string song) const
+int DBProfile::FindOrCreateSong(SQLite::Database* db, string pack, string song)
 {
 	SQLite::Statement   query(*db, "SELECT songs.id FROM songs WHERE song=? AND pack =?");
 	query.bind(1, song);
@@ -985,4 +907,89 @@ int DBProfile::FindOrCreateSong(SQLite::Database* db, string pack, string song) 
 		return sqlite3_last_insert_rowid(db->getHandle());
 	}
 	return query.getColumn(0);
+}
+
+int DBProfile::FindOrCreateChart(SQLite::Database* db, string chartkey, string pack, string song, Difficulty diff)
+{
+	int chartKeyID = FindOrCreateChartKey(db, chartkey);
+	int songID = FindOrCreateSong(db, pack, song);
+	//Find or create chart now
+	//Check if chart already exists
+	SQLite::Statement   query(*db, "SELECT * FROM charts WHERE chartkeyid=? AND songid=? AND difficulty=?");
+	query.bind(1, chartKeyID);
+	query.bind(2, songID);
+	query.bind(3, diff);
+	//if not
+	if (!query.executeStep())
+	{
+		//insert the chart
+		SQLite::Statement insertChart(*db, "INSERT INTO charts VALUES (NULL, ?, ?, ?)");
+		insertChart.bind(1, chartKeyID);
+		insertChart.bind(2, songID);
+		insertChart.bind(3, diff);
+		insertChart.exec();
+		return  sqlite3_last_insert_rowid(db->getHandle());
+	}
+	else {
+		return query.getColumn(0);
+	}
+}
+
+int DBProfile::GetScoreKeyID(SQLite::Database* db, string key)
+{
+	SQLite::Statement   query(*db, "SELECT * FROM scorekeys WHERE scorekey=?");
+	query.bind(1, key);
+	if (!query.executeStep())
+		return 0;
+	return query.getColumn(0);
+}
+
+int DBProfile::FindOrCreateScoreKey(SQLite::Database* db, string key)
+{
+	int exists = GetScoreKeyID(db, key);
+	if (exists)
+		return exists;
+	db->exec("INSERT INTO scorekeys VALUES (NULL, \"" + key + "\")");
+	return sqlite3_last_insert_rowid(db->getHandle());
+}
+
+bool DBProfile::WriteReplayData(const HighScore* hs)
+{
+	string profiledir = PROFILEMAN->GetProfileDir(ProfileSlot_Player1).substr(1);
+	string filename = profiledir + PROFILE_DB;
+
+	SQLite::Database *db;
+	try {
+		// Open a database file
+		db = new SQLite::Database(filename, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+	}
+	catch (std::exception& e)
+	{
+		return ProfileLoadResult_FailedNoProfile;
+	}
+	try {
+		// Use the db
+		// Begin transaction
+		SQLite::Transaction transaction(*db);
+		auto& rows = hs->GetNoteRowVector();
+		auto& offsets = hs->GetOffsetVector();
+		unsigned int idx = rows.size() >= 1 ? rows.size() - 1 : 0U;
+		//loop for writing both vectors side by side
+		int scoreKeyID = FindOrCreateScoreKey(db, hs->GetScoreKey());
+		for (unsigned int i = 0; i < idx; i++) {
+			SQLite::Statement insertOffset(*db, "INSERT INTO offsets VALUES (NULL, ?, ?, ?)");
+			insertOffset.bind(1, rows[i]);
+			insertOffset.bind(2, offsets[i]);
+			insertOffset.bind(3, scoreKeyID);
+			insertOffset.exec();
+		}
+		transaction.commit();
+	}
+	catch (std::exception& e)
+	{
+		return ProfileLoadResult_FailedTampered;
+	}
+	delete db;
+	return true;
+
 }

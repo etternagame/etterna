@@ -458,9 +458,12 @@ XNode* ScoresAtRate::CreateNode(const int& rate) const {
 
 	// prune out sufficiently low scores
 	FOREACHUM_CONST(string, HighScore, scores, i) {
-		if (i->second.GetWifeScore() > SCOREMAN->minpercent) {
-			o->AppendChild(i->second.CreateEttNode());
-			saved++;
+		if (i->second.GetScoreKey() == PBptr->GetScoreKey()) {
+			if (i->second.GetWifeScore() > SCOREMAN->minpercent) {
+				o->AppendChild(i->second.CreateEttNode());
+				saved++;
+			}
+			break;
 		}
 	}
 
