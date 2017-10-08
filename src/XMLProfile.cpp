@@ -271,7 +271,7 @@ XNode* XMLProfile::SaveGeneralDataCreateNode(const Profile* profile) const
 	pGeneralDataNode->AppendChild("LastUsedHighScoreName", profile->m_sLastUsedHighScoreName);
 	pGeneralDataNode->AppendChild("Guid", profile->m_sGuid);
 	pGeneralDataNode->AppendChild("SortOrder", SortOrderToString(profile->m_SortOrder));
-	pGeneralDataNode->AppendChild("LastDifficulty", DifficultyToString(profile->m_LastDifficulty));
+	pGeneralDataNode->AppendChild("LastDifficulty", DifficultyToString(Difficulty_Invalid));
 	if (profile->m_LastStepsType != StepsType_Invalid)
 		pGeneralDataNode->AppendChild("LastStepsType", GAMEMAN->GetStepsTypeInfo(profile->m_LastStepsType).szName);
 	pGeneralDataNode->AppendChild(profile->m_lastSong.CreateNode());

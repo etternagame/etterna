@@ -736,6 +736,7 @@ void HighScore::SetPercentDP( float f ) { m_Impl->fPercentDP = f; }
 void HighScore::SetWifeScore(float f) {m_Impl->fWifeScore = f;}
 void HighScore::SetSSRNormPercent(float f) { m_Impl->fSSRNormPercent = f; }
 void HighScore::SetMusicRate(float f) { m_Impl->fMusicRate = f; }
+void HighScore::SetSurviveSeconds(float f) { m_Impl->fSurviveSeconds = f; }
 void HighScore::SetJudgeScale(float f) { m_Impl->fJudgeScale = f; }
 void HighScore::SetChordCohesion(bool b) { m_Impl->bNoChordCohesion = b; }
 void HighScore::SetEtternaValid(bool b) { m_Impl->bEtternaValid = b; }
@@ -1110,7 +1111,8 @@ Grade HighScore::GetWifeGrade() const {
 }
 
 bool HighScore::WriteReplayData() {
-	return m_Impl->WriteReplayData();
+	return DBProfile::WriteReplayData(this);
+	//return m_Impl->WriteReplayData();
 }
 
 // Ok I guess we can be more lenient and convert by midwindow values, but we still have to assume j4 - mina

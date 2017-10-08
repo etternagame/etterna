@@ -88,6 +88,7 @@ struct HighScore
 	void SetWifeScore(float f);
 	void SetSSRNormPercent(float f);
 	void SetMusicRate(float f);
+	void SetSurviveSeconds(float f);
 	void SetJudgeScale(float f);
 	void SetChordCohesion(bool b);
 	void SetEtternaValid(bool b);

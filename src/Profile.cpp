@@ -807,6 +807,7 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 			IsEtternaProfile = true;
 			ImportScoresToEtterna();
 		}
+		DBProf.SaveDBToDir(sDir, this, LocalWithReplayData);
 	}
 
 	CalculateStatsFromScores(ld);
@@ -915,7 +916,7 @@ bool Profile::SaveAllToDir( const RString &sDir, bool bSignData ) const
 
 	bool bSaved = XMLProf.SaveEttXmlToDir(sDir, this);
 	SaveStatsWebPageToDir( sDir );
-	bool dbSabed = DBProf.SaveDBToDir(sDir, this);
+	bool dbSabed = DBProf.SaveDBToDir(sDir, this, LocalWithReplayData);
 	
 	// Empty directories if none exist.
 	FILEMAN->CreateDir( sDir + SCREENSHOTS_SUBDIR );
