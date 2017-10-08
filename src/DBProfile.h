@@ -22,19 +22,19 @@ enum DBProfileMode {
 class DBProfile {
 public:
 	enum 
-	ProfileLoadResult LoadDBFromDir(RString dir);
-	ProfileLoadResult LoadDBFromDir(RString dir, Profile* profile);
+	ProfileLoadResult LoadDBFromDir(string dir);
+	ProfileLoadResult LoadDBFromDir(string dir, Profile* profile);
 
-	ProfileLoadResult SaveDBToDir(RString sDir, const Profile* profile, DBProfileMode mode) const;
+	ProfileLoadResult SaveDBToDir(string sDir, const Profile* profile, DBProfileMode mode) const;
 
-	void MoveBackupToDir(const RString &sFromDir, const RString &sToDir, DBProfileMode mode);
+	void MoveBackupToDir(const string &sFromDir, const string &sToDir, DBProfileMode mode);
 
 	void SetLoadingProfile(Profile* p) { loadingProfile = p; }
 
 	static bool WriteReplayData(const HighScore* hs);
 
 private:
-	Profile* loadingProfile;
+	Profile* loadingProfile{nullptr};
 	static int GetChartKeyID(SQLite::Database* db, string key);
 	static string GetChartKeyByID(SQLite::Database* db, int id);
 	static int FindOrCreateChartKey(SQLite::Database* db, string key);
