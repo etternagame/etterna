@@ -133,7 +133,7 @@ void ScreenInstallOverlay::Update(float fDeltaTime)
 	DLMAN->UpdateAndIsFinished(fDeltaTime);
 	vector<Download*>& dls = DLMAN->downloads;
 	vector<RString> vsMessages;
-	for(auto dl : dls)
+	for(auto &dl : dls)
 	{
 		vsMessages.push_back(dl->Status());
 	}

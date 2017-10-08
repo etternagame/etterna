@@ -195,8 +195,7 @@ local function DownloadButton(i)
 				if update and isOver(self) and packlist[i + ((currentpage - 1) * perpage)] then
 					packlist[i + ((currentpage - 1) * perpage)]:DownloadAndInstall()
 				end
-			end,
-			PackDownloadedMessageCommand=function(self, params) SCREENMAN:SystemMessage(params.pack:GetName()) end
+			end
 		}
 	}
 	return o

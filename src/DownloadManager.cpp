@@ -16,7 +16,7 @@
 #include "JsonUtil.h"
 #include "Foreach.h"
 
-DownloadManager* DLMAN = nullptr;
+shared_ptr<DownloadManager> DLMAN = nullptr;
 
 static Preference<unsigned int> maxDLPerSecond("maximumBytesDownloadedPerSecond", 0);
 static Preference<unsigned int> maxDLPerSecondGameplay("maximumBytesDownloadedPerSecondDuringGameplay", 0);
@@ -24,16 +24,12 @@ static Preference<RString> packListURL("packListURL", "");
 
 static const string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
 
-class BufferStruct {
-public:
-	string str;
-};
 
 size_t write_memory_buffer(void *contents, size_t size, size_t nmemb, void *userp)
 {
 	size_t realsize = size * nmemb;
 	string tmp(static_cast<char*>(contents), realsize);
-	static_cast<BufferStruct*>(userp)->str.append(tmp);
+	static_cast<string*>(userp)->append(tmp);
 	return realsize;
 
 }
@@ -119,17 +115,14 @@ int progressfunc(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t
 }
 size_t write_data(void *dlBuffer, size_t size, size_t nmemb, void *pnf)
 {
-	auto wt = static_cast<WriteThis*>(pnf);
-	size_t b = wt->stop ? 0 : wt->file->Write(dlBuffer, size*nmemb);
-	wt->bytes += b;
+	auto RFW = static_cast<RageFileWrapper*>(pnf);
+	size_t b = RFW->stop ? 0 : RFW->file.Write(dlBuffer, size*nmemb);
+	RFW->bytes += b;
 	return b; 
 }
 
 DownloadManager::DownloadManager() {
 	curl_global_init(CURL_GLOBAL_ALL);
-	gameplay = false;
-	error = "";
-	lastid = 0;
 	// Register with Lua.
 	{
 		Lua *L = LUA->Get();
@@ -138,7 +131,7 @@ DownloadManager::DownloadManager() {
 		lua_settable(L, LUA_GLOBALSINDEX);
 		LUA->Release(L);
 	}
-	GetAndCachePackList(packListURL);
+	CachePackList(packListURL);
 }
 
 DownloadManager::~DownloadManager()
@@ -146,11 +139,13 @@ DownloadManager::~DownloadManager()
 	if (mHandle != nullptr)
 		curl_multi_cleanup(mHandle);
 	mHandle = nullptr;
-	for (auto dl : downloads)
+	for (auto &dl : downloads) {
 		if (dl->handle != nullptr) {
 			curl_easy_cleanup(dl->handle);
 			dl->handle = nullptr;
 		}
+		delete dl;
+	}
 	curl_global_cleanup();
 }
 
@@ -188,7 +183,7 @@ void DownloadManager::UpdateDLSpeed(bool gameplay)
 	else {
 		maxDLSpeed = maxDLPerSecond;
 	}
-	for (auto x : downloads)
+	for (auto &x : downloads)
 		curl_easy_setopt(x->handle, CURLOPT_MAX_RECV_SPEED_LARGE, static_cast<curl_off_t>(maxDLSpeed / downloads.size()));
 
 }
@@ -221,7 +216,7 @@ void Download::Update(float fDeltaSeconds)
 Download* DownloadManager::DownloadAndInstallPack(DownloadablePack* pack)
 {
 	Download* dl = DownloadAndInstallPack(pack->url);
-	dl->pack = pack;
+	dl->p_Pack = pack;
 	return dl;
 }
 
@@ -260,7 +255,7 @@ bool DownloadManager::UpdateAndIsFinished(float fDeltaSeconds)
 #else
 		/* Portable sleep for platforms other than Windows. */
 		timeval wait = { 0, 1 };
-		rc = select(0, NULL, NULL, NULL, &wait);
+		rc = select(0, nullptr, nullptr, nullptr, &wait);
 #endif
 	}
 	else {
@@ -273,7 +268,7 @@ bool DownloadManager::UpdateAndIsFinished(float fDeltaSeconds)
 	case 0: /* timeout */
 	default: /* action */
 		curl_multi_perform(mHandle, &running);
-		for (auto dl : downloads) 
+		for (auto &dl : downloads) 
 			dl->Update(fDeltaSeconds);
 		break;
 	}
@@ -283,26 +278,26 @@ bool DownloadManager::UpdateAndIsFinished(float fDeltaSeconds)
 	int msgs_left;
 	bool addedPacks = false;	
 	while (msg = curl_multi_info_read(mHandle, &msgs_left)) {
-		Download* finishedDl;
 		/* Find out which handle this message is about */
 		for (auto i = downloads.begin(); i < downloads.end(); i++) {
 			if (msg->easy_handle == (*i)->handle) {
-				finishedDl = *i;
+				if ((*i)->p_RFWrapper.file.IsOpen())
+					(*i)->p_RFWrapper.file.Close();
+				if (msg->msg == CURLMSG_DONE) {
+					addedPacks = true;
+					(*i)->Install();
+				}
+				else {
+					(*i)->Failed();
+				}
+				if ((*i)->handle != nullptr)
+					curl_easy_cleanup((*i)->handle);
+				(*i)->handle = nullptr;
+				delete (*i);
 				downloads.erase(i);
 				break;
 			}
 		}
-		if (finishedDl->m_TempFile.IsOpen())
-			finishedDl->m_TempFile.Close();
-		if (msg->msg == CURLMSG_DONE) {
-			addedPacks = true;
-			finishedDl->Install();
-		} else {
-			finishedDl->Failed();
-		}
-		if (finishedDl->handle != nullptr)
-			curl_easy_cleanup(finishedDl->handle);
-		finishedDl->handle = nullptr;
 	}
 	if (addedPacks) {
 		curl_off_t maxDLSpeed = 0;
@@ -330,9 +325,9 @@ bool DownloadManager::UploadProfile(string url, string file, string user, string
 	ReadThis w;
 	w.file.Open(file);
 
-	curl_httppost *formpost = NULL;
-	curl_httppost *lastptr = NULL;
-	curl_slist *headerlist = NULL;
+	curl_httppost *formpost = nullptr;
+	curl_httppost *lastptr = nullptr;
+	curl_slist *headerlist = nullptr;
 
 	RString text;
 	w.file.Read(text, w.file.GetFileSize());
@@ -369,7 +364,7 @@ bool DownloadManager::UploadProfile(string url, string file, string user, string
 
 
 
-bool DownloadManager::GetAndCachePackList(string url)
+bool DownloadManager::CachePackList(string url)
 {
 	bool result;
 	auto ptr = GetPackList(url, result);
@@ -383,11 +378,11 @@ vector<DownloadablePack>* DownloadManager::GetPackList(string url, bool &result)
 {
 	if (url == "") {
 		result = false;
-		return NULL;
+		return nullptr;
 	}
-	CURL *curl = curl_easy_init();
 
-	BufferStruct bs;
+	CURL *curl = curl_easy_init();
+	string bs;
 	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
@@ -395,7 +390,6 @@ vector<DownloadablePack>* DownloadManager::GetPackList(string url, bool &result)
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_memory_buffer);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "key=nick");
 
 	CURLcode res = curl_easy_perform(curl);
@@ -407,13 +401,11 @@ vector<DownloadablePack>* DownloadManager::GetPackList(string url, bool &result)
 	Json::Value packs;
 	RString error;
 	auto packlist = new vector<DownloadablePack>;
-	bool parsed = JsonUtil::LoadFromString(packs, bs.str, error);
-
+	bool parsed = JsonUtil::LoadFromString(packs, bs, error);
 	if (!parsed) {
 		result = false;
 		return packlist;
 	}
-
 	string baseUrl = "http://simfiles.stepmania-online.com/";
 
 	for (int index = 0; index < packs.size(); ++index) {
@@ -421,14 +413,12 @@ vector<DownloadablePack>* DownloadManager::GetPackList(string url, bool &result)
 
 		if (packs[index].isMember("pack"))
 			tmp.name = packs[index].get("pack", "").asString();
+		else if (packs[index].isMember("packname"))
+			tmp.name = packs[index].get("packname", "").asString();
+		else if (packs[index].isMember("name"))
+			tmp.name = packs[index].get("name", "").asString();
 		else
-			if (packs[index].isMember("packname"))
-				tmp.name = packs[index].get("packname", "").asString();
-			else
-				if (packs[index].isMember("name"))
-					tmp.name = packs[index].get("name", "").asString();
-				else
-					continue;
+			continue;
 
 		if (packs[index].isMember("url"))
 			tmp.url = packs[index].get("url", baseUrl + tmp.name + ".zip").asString();
@@ -454,45 +444,41 @@ vector<DownloadablePack>* DownloadManager::GetPackList(string url, bool &result)
 
 Download::Download(string url)
 {
-
 	m_Url = url;
 	handle = curl_easy_init();
 	m_TempFileName = MakeTempFileName(url);
-	m_TempFile.Open(m_TempFileName, 2);
-	wt = new WriteThis();
-	wt->file = &m_TempFile;
-	wt->stop = NULL;
+	p_RFWrapper.file.Open(m_TempFileName, 2);
 	DLMAN->EncodeSpaces(m_Url);
 
-	curl_easy_setopt(handle, CURLOPT_WRITEDATA, wt);
+	curl_easy_setopt(handle, CURLOPT_WRITEDATA, &p_RFWrapper);
 	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_data);
 	curl_easy_setopt(handle, CURLOPT_URL, m_Url);
 	curl_easy_setopt(handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
 	curl_easy_setopt(handle, CURLOPT_XFERINFODATA, &progress);
 	curl_easy_setopt(handle, CURLOPT_XFERINFOFUNCTION, progressfunc);
 	curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 0);
-	running = 1;
-	lastUpdateDone = 0;
 }
 
 Download::~Download()
 {
 	FILEMAN->Remove(m_TempFileName);
+	if (p_Pack) 
+		p_Pack->downloading = false;
 }
 
 void Download::Install()
 {
 	DLMAN->InstallSmzip(m_TempFileName);
 	Message msg("PackDownloaded");
-	msg.SetParam("pack", LuaReference::CreateFromPush(*pack));
+	msg.SetParam("pack", LuaReference::CreateFromPush(*p_Pack));
 	MESSAGEMAN->Broadcast(msg);
-
+	return;
 }
 
 void Download::Failed()
 {
 	Message msg("DownloadFailed");
-	msg.SetParam("pack", LuaReference::CreateFromPush(*pack));
+	msg.SetParam("pack", LuaReference::CreateFromPush(*p_Pack));
 	MESSAGEMAN->Broadcast(msg);
 }
 /// Try to find in the Haystack the Needle - ignore case
@@ -537,11 +523,11 @@ public:
 		vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
 		vector<DownloadablePack*> retPacklist;
 		for (unsigned i = 0; i < packs.size(); ++i) {
-			if(DLMAN->downloadablePacks[i].avgDifficulty >= avgLower && 
-				findStringIC(DLMAN->downloadablePacks[i].name, name) &&  
-				(avgUpper <= 0 || DLMAN->downloadablePacks[i].avgDifficulty < avgUpper) &&
-				DLMAN->downloadablePacks[i].size >= sizeLower &&
-				(sizeUpper <= 0 || DLMAN->downloadablePacks[i].size < sizeUpper))
+			if(packs[i].avgDifficulty >= avgLower &&
+				findStringIC(packs[i].name, name) &&
+				(avgUpper <= 0 || packs[i].avgDifficulty < avgUpper) &&
+				packs[i].size >= sizeLower &&
+				(sizeUpper <= 0 || packs[i].size < sizeUpper))
 				retPacklist.push_back(&(packs[i]));
 		}
 		lua_createtable(L, retPacklist.size(), 0);
@@ -565,13 +551,10 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 public:
 	static int DownloadAndInstall(T* p, lua_State* L)
 	{
-
 		if (p->downloading)
 			return 1;
-
 		p->downloading = true;
-		p->download = DLMAN->DownloadAndInstallPack(p);
-		lua_pushboolean(L, 0);
+		DLMAN->DownloadAndInstallPack(p)->PushSelf(L);
 		return 1;
 	}
 	static int GetName(T* p, lua_State* L)
@@ -594,37 +577,48 @@ public:
 		lua_pushboolean(L, p->downloading ==0);
 		return 1;
 	}
-	static int GetKBDownloaded(T* p, lua_State* L)
-	{
-		lua_pushnumber(L, p->download != nullptr ? p->download->progress.downloaded : 0);
-		return 1;
-	}
-	static int GetTotalKB(T* p, lua_State* L)
-	{
-		lua_pushnumber(L, p->download != nullptr ? p->download->progress.total : 0);
-		return 1;
-	}
-	static int Stop(T* p, lua_State* L)
-	{
-		if(p->download && p->download->wt)
-			p->download->wt->stop = true;
-		lua_pushnumber(L, p->download != nullptr ? p->download->progress.total : 0);
-		return 1;
-	}
 	LunaDownloadablePack()
 	{
 		ADD_METHOD(DownloadAndInstall);
-		ADD_METHOD(GetTotalKB);
-		ADD_METHOD(GetKBDownloaded);
 		ADD_METHOD(IsDownloading);
 		ADD_METHOD(GetAvgDifficulty);
 		ADD_METHOD(GetName);
 		ADD_METHOD(GetSize);
-		ADD_METHOD(Stop);
 	}
 };
 
 LUA_REGISTER_CLASS(DownloadablePack) 
+
+
+class LunaDownload : public Luna<Download>
+{
+public:
+	static int GetKBDownloaded(T* p, lua_State* L)
+	{
+		lua_pushnumber(L, p->progress.downloaded);
+		return 1;
+	}
+	static int GetTotalKB(T* p, lua_State* L)
+	{
+		lua_pushnumber(L, p->progress.total);
+		return 1;
+	}
+	static int Stop(T* p, lua_State* L)
+	{
+		p->p_RFWrapper.stop = true;
+		return 1;
+	}
+	LunaDownload()
+	{
+		ADD_METHOD(GetTotalKB);
+		ADD_METHOD(GetKBDownloaded);
+		ADD_METHOD(Stop);
+	}
+};
+
+LUA_REGISTER_CLASS(Download)
+
+
 
 
 #endif
