@@ -11,23 +11,37 @@
 
 
 
+enum DBProfileMode {
+	WriteOnlyWebExport,
+	LocalWithReplayData ,
+	LocalWithoutReplayData,
+	NUM_DBProfileMode,
+	DBProfileMode_Invalid,
+};
+
 class DBProfile {
 public:
-
+	enum 
 	ProfileLoadResult LoadDBFromDir(RString dir);
 	ProfileLoadResult LoadDBFromDir(RString dir, Profile* profile);
 
-	ProfileLoadResult SaveDBToDir(RString sDir, const Profile* profile) const;
+	ProfileLoadResult SaveDBToDir(RString sDir, const Profile* profile, DBProfileMode mode) const;
 
-	static void MoveBackupToDir(const RString &sFromDir, const RString &sToDir);
+	void MoveBackupToDir(const RString &sFromDir, const RString &sToDir, DBProfileMode mode);
 
 	void SetLoadingProfile(Profile* p) { loadingProfile = p; }
+
+	static bool WriteReplayData(const HighScore* hs);
+
 private:
 	Profile* loadingProfile;
-	int GetChartKeyID(SQLite::Database* db, RString key) const;
-	RString GetChartKeyByID(SQLite::Database* db, int id) const;
-	int FindOrCreateChartKey(SQLite::Database* db, RString key) const;
-	int FindOrCreateSong(SQLite::Database* db, string pack, string song) const;
+	static int GetChartKeyID(SQLite::Database* db, string key);
+	static string GetChartKeyByID(SQLite::Database* db, int id);
+	static int FindOrCreateChartKey(SQLite::Database* db, string key);
+	static int FindOrCreateSong(SQLite::Database* db, string pack, string song);
+	static int FindOrCreateChart(SQLite::Database* db, string chartkey, string pack, string song, Difficulty diff);
+	static int GetScoreKeyID(SQLite::Database* db, string key);
+	static int FindOrCreateScoreKey(SQLite::Database* db, string key);
 
 	void LoadFavourites(SQLite::Database* db);
 	void LoadPlayLists(SQLite::Database* db);
@@ -38,7 +52,7 @@ private:
 
 	void SaveFavourites(SQLite::Database* db, const Profile* profile) const;
 	void SavePlayLists(SQLite::Database* db, const Profile* profile) const;
-	void SavePlayerScores(SQLite::Database* db, const Profile* profile) const;
+	void SavePlayerScores(SQLite::Database* db, const Profile* profile, DBProfileMode mode) const;
 	void SaveGeneralData(SQLite::Database* db, const Profile* profile) const;
 	void SavePermaMirrors(SQLite::Database* db, const Profile* profile) const;
 	void SaveScoreGoals(SQLite::Database* db, const Profile* profile) const;
