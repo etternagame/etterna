@@ -27,13 +27,13 @@
 const string PROFILE_DB= "profile.db";
 const string WRITE_ONLY_PROFILE_DB = "webprofile.db";
 
-ProfileLoadResult DBProfile::LoadDBFromDir(RString dir, Profile* profile)
+ProfileLoadResult DBProfile::LoadDBFromDir(string dir, Profile* profile)
 {
 	loadingProfile = profile;
 	return LoadDBFromDir(dir);
 }
 
-ProfileLoadResult DBProfile::LoadDBFromDir(RString dir)
+ProfileLoadResult DBProfile::LoadDBFromDir(string dir)
 {
 	
 	SQLite::Database *db;
@@ -404,7 +404,7 @@ void DBProfile::LoadScoreGoals(SQLite::Database* db)
 	SONGMAN->SetHasGoal(loadingProfile->goalmap);
 }
 
-ProfileLoadResult DBProfile::SaveDBToDir(RString dir, const Profile* profile, DBProfileMode mode) const
+ProfileLoadResult DBProfile::SaveDBToDir(string dir, const Profile* profile, DBProfileMode mode) const
 {
 	string filename;
 	switch (mode) {
@@ -564,7 +564,7 @@ void DBProfile::SaveGeneralData(SQLite::Database* db, const Profile* profile) co
 }
 
 
-void DBProfile::MoveBackupToDir(const RString &sFromDir, const RString &sToDir, DBProfileMode mode)
+void DBProfile::MoveBackupToDir(const string &sFromDir, const string &sToDir, DBProfileMode mode)
 {
 	string filename;
 	switch (mode) {
