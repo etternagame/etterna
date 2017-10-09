@@ -11,6 +11,8 @@ install:
 
 before_build:
 - cmd: >-
+    git module update --init
+    
     mkdir build && cd build
 
     "C:\Program Files (x86)\cmake\bin\cmake" .. -G "Visual Studio 14 2015"
