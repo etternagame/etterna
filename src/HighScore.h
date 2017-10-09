@@ -50,9 +50,11 @@ struct HighScore
 	bool GetChordCohesion() const;
 	bool GetEtternaValid() const;
 	bool IsUploadedToServer(string s) const;
-	vector<float> GetOffsetVector() const;
-	vector<int> GetNoteRowVector() const;
 	vector<float> timeStamps;
+	const vector<float>& GetOffsetVector() const;
+	const vector<int>& GetNoteRowVector() const;
+	vector<float> HighScore::GetCopyOfOffsetVector() const;
+	vector<int> HighScore::GetCopyOfNoteRowVector() const;
 	string GetScoreKey() const;
 	int GetTopScore() const;
 	/**
