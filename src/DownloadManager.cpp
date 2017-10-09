@@ -452,7 +452,7 @@ Download::Download(string url)
 
 	curl_easy_setopt(handle, CURLOPT_WRITEDATA, &p_RFWrapper);
 	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_data);
-	curl_easy_setopt(handle, CURLOPT_URL, m_Url);
+	curl_easy_setopt(handle, CURLOPT_URL, m_Url.c_str());
 	curl_easy_setopt(handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
 	curl_easy_setopt(handle, CURLOPT_XFERINFODATA, &progress);
 	curl_easy_setopt(handle, CURLOPT_XFERINFOFUNCTION, progressfunc);
