@@ -155,8 +155,7 @@ check_type_size(pid_t SIZEOF_PID_T)
 check_type_size(size_t SIZEOF_SIZE_T)
 check_type_size(ssize_t SIZEOF_SSIZE_T)
 
-set(CMAKE_CXX_FLAGS_RELEASE "/MT")
-set(CMAKE_CXX_FLAGS_DEBUG "/MTd")
+
 include(TestBigEndian)
 test_big_endian(BIGENDIAN)
 if (${BIGENDIAN})
