@@ -52,8 +52,8 @@ struct HighScore
 	vector<float> timeStamps;
 	const vector<float>& GetOffsetVector() const;
 	const vector<int>& GetNoteRowVector() const;
-	vector<float> HighScore::GetCopyOfOffsetVector() const;
-	vector<int> HighScore::GetCopyOfNoteRowVector() const;
+	vector<float> GetCopyOfOffsetVector() const;
+	vector<int> GetCopyOfNoteRowVector() const;
 	string GetScoreKey() const;
 	int GetTopScore() const;
 	/**
