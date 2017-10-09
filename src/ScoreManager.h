@@ -19,6 +19,7 @@ public:
 	ScoresAtRate();
 
 	HighScore* PBptr;
+	HighScore* noccPBptr;
 
 	// -technically- your pb could be a fail grade so use "bestgrade" -mina
 	Grade bestGrade;

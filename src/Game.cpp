@@ -60,7 +60,7 @@ class LunaGame: public Luna<Game>
 {
 public:
 	static int GetName( T* p, lua_State *L )			{ lua_pushstring( L, p->m_szName ); return 1; }
-	static int CountNotesSeparately( T* p, lua_State *L )	{ lua_pushboolean( L, p->m_bCountNotesSeparately ); return 1; }
+	static int CountNotesSeparately( T* p, lua_State *L )	{ lua_pushstring( L, "deprecated use GAMESTATE function instead" ); return 1; }
 	DEFINE_METHOD( GetMapJudgmentTo, GetMapJudgmentTo(Enum::Check<TapNoteScore>(L, 1)) )
 	DEFINE_METHOD(GetSeparateStyles, m_PlayersHaveSeparateStyles);
 

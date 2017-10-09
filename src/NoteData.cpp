@@ -214,6 +214,12 @@ const vector<NoteInfo>& NoteData::SerializeNoteData(const vector<float>& etaner)
 		}
 	}
 	
+	// normalize first note to time 0 -mina
+	if (!SerializedNoteData.empty()) {
+		float offset = SerializedNoteData[0].rowTime;
+		for (size_t i = 0; i < SerializedNoteData.size(); i++)
+			SerializedNoteData[i].rowTime -= offset;
+	}
 	return SerializedNoteData;
 }
 

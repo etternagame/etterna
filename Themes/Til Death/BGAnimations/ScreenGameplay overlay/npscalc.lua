@@ -366,8 +366,7 @@ local function npsDisplay(pn)
 		local chordsize = 0
 
 		if params.Player == pn then
-			if params.TapNoteScore and params.TapNoteScore ~= 'TapNoteScore_HitMine' or 
-				params.TapNoteScore ~= 'TapNoteScore_AvoidMine' then
+			if params.Type == "Tap" then
 				-- The notes parameter contains a table where the table indices 
 				-- correspond to the columns in game. 
 				-- The items in the table either contains a TapNote object (if there is a note)

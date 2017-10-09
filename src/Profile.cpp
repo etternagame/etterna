@@ -944,6 +944,7 @@ void Profile::SaveEditableDataToDir( const RString &sDir ) const
 	ini.WriteFile( sDir + EDITABLE_INI );
 }
 
+
 ProfileLoadResult Profile::LoadEditableDataFromDir( const RString &sDir )
 {
 	RString fn = sDir + EDITABLE_INI;

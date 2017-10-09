@@ -227,7 +227,7 @@ HighScoreImpl::HighScoreImpl()
 	iScore = 0;
 	fPercentDP = 0.f;
 	fWifeScore = 0.f;
-	fSSRNormPercent = 11111.f;
+	fSSRNormPercent = 0.f;
 	fMusicRate = 0.f;
 	fJudgeScale = 0.f;
 	bEtternaValid = true;
@@ -812,6 +812,7 @@ XNode* HighScore::CreateEttNode() const
 	return m_Impl->CreateEttNode();
 }
 
+// Used for importing from stats.xml -mina
 void HighScore::LoadFromNode( const XNode* pNode ) 
 {
 	m_Impl->LoadFromNode( pNode );
@@ -826,7 +827,7 @@ void HighScore::LoadFromNode( const XNode* pNode )
 		m_Impl->bEtternaValid = false;
 	}
 
-	if (m_Impl->fSSRNormPercent == 11111.f) {
+	if (m_Impl->fSSRNormPercent > 1000.f) {
 		if (m_Impl->grade != Grade_Failed)
 			m_Impl->fSSRNormPercent = RescoreToWifeJudgeDuringLoad(4);
 		else
@@ -837,9 +838,20 @@ void HighScore::LoadFromNode( const XNode* pNode )
 	}
 }
 
+// Used to load from etterna.xml -mina
 void HighScore::LoadFromEttNode(const XNode* pNode)
 {
 	m_Impl->LoadFromEttNode(pNode);
+
+	if (m_Impl->fSSRNormPercent > 1000.f) {
+		if (m_Impl->grade != Grade_Failed)
+			m_Impl->fSSRNormPercent = RescoreToWifeJudgeDuringLoad(4);
+		else
+			m_Impl->fSSRNormPercent = m_Impl->fWifeScore;
+
+		m_Impl->vNoteRowVector.clear();
+		m_Impl->vOffsetVector.clear();
+	}
 }
 
 string HighScore::GetDisplayName() const
