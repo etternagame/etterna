@@ -8,10 +8,10 @@ clone_folder: C:\etterna
 
 install:
 - cmd: choco install nsis
+- cmd: git -C "etterna" submodule update --init --recursive
 
 before_build:
 - cmd: >-
-    git submodule update --init
     
     mkdir build && cd build
 
