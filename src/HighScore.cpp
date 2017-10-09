@@ -707,8 +707,10 @@ float HighScore::GetJudgeScale() const { return m_Impl->fJudgeScale; }
 bool HighScore::GetChordCohesion() const {
 	return !m_Impl->bNoChordCohesion;  }
 bool HighScore::GetEtternaValid() const { return m_Impl->bEtternaValid; }
-vector<float> HighScore::GetOffsetVector() const { return m_Impl->vOffsetVector; }
-vector<int> HighScore::GetNoteRowVector() const { return m_Impl->vNoteRowVector; }
+vector<float> HighScore::GetCopyOfOffsetVector() const { return m_Impl->vOffsetVector; }
+vector<int> HighScore::GetCopyOfNoteRowVector() const { return m_Impl->vNoteRowVector; }
+const vector<float>& HighScore::GetOffsetVector() const { return m_Impl->vOffsetVector; }
+const vector<int>& HighScore::GetNoteRowVector() const { return m_Impl->vNoteRowVector; }
 string HighScore::GetScoreKey() const { return m_Impl->ScoreKey; }
 float HighScore::GetSurviveSeconds() const { return m_Impl->fSurviveSeconds; }
 float HighScore::GetSurvivalSeconds() const { return GetSurviveSeconds() + GetLifeRemainingSeconds(); }

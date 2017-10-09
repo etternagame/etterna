@@ -48,8 +48,10 @@ struct HighScore
 	float GetJudgeScale() const;
 	bool GetChordCohesion() const;
 	bool GetEtternaValid() const;
-	vector<float> GetOffsetVector() const;
-	vector<int> GetNoteRowVector() const;
+	const vector<float>& GetOffsetVector() const;
+	const vector<int>& GetNoteRowVector() const;
+	vector<float> HighScore::GetCopyOfOffsetVector() const;
+	vector<int> HighScore::GetCopyOfNoteRowVector() const;
 	string GetScoreKey() const;
 	/**
 	 * @brief Determine how many seconds the player had left in Survival mode.
