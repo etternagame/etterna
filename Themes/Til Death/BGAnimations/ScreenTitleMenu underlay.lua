@@ -19,6 +19,6 @@ t[#t+1] = LoadFont("Common Large") .. {
 }
 
 t[#t+1] = LoadActor(THEME:GetPathG("","_ring")) .. {
-	InitCommand=cmd(xy,capWideScale(get43size(SCREEN_WIDTH-10),SCREEN_WIDTH-256),frameY-180;diffuse,getDifficultyColor("Difficulty_Couple")diffusealpha,1;baserotationx,420)
+	InitCommand=cmd(xy,capWideScale(get43size(SCREEN_WIDTH-10),SCREEN_WIDTH-530),frameY-130;diffuse,getDifficultyColor("Difficulty_Couple")diffusealpha,1;baserotationx,0)
 }
 return t
