@@ -40,7 +40,7 @@ struct SMLoader
 	 * @param song a reference to the song that may need cleaning up.
 	 * @param bFromCache a flag to determine if this song is loaded from a cache file.
 	 */
-	virtual void TidyUpData( Song &song, bool bFromCache );
+	static void TidyUpData( Song &song, bool bFromCache );
 
 	/**
 	 * @brief Retrieve the relevant notedata from the simfile.
@@ -112,6 +112,9 @@ struct SMLoader
 	void ProcessDelays(TimingData & out,
 			  const RString &line,
 			  const int rowsPerBeat = -1);
+	static void ProcessDelays(TimingData & out,
+		const RString &line, string songname,
+		const int rowsPerBeat = -1);
 	/**
 	 * @brief Process the Time Signature Segments from the string.
 	 * @param out the TimingData being modified.
@@ -120,6 +123,9 @@ struct SMLoader
 	void ProcessTimeSignatures(TimingData & out,
 			   const RString &line,
 			   const int rowsPerBeat = -1);
+	static void ProcessTimeSignatures(TimingData & out,
+		const RString &line, string songname,
+		const int rowsPerBeat = -1);
 	/**
 	 * @brief Process the Tickcount Segments from the string.
 	 * @param out the TimingData being modified.
@@ -128,6 +134,9 @@ struct SMLoader
 	void ProcessTickcounts(TimingData & out,
 				   const RString &line,
 				   const int rowsPerBeat = -1);
+	static void ProcessTickcounts(TimingData & out,
+		const RString &line, string songname,
+		const int rowsPerBeat = -1);
 	
 	/**
 	 * @brief Process the Speed Segments from the string.
@@ -137,6 +146,9 @@ struct SMLoader
 	virtual void ProcessSpeeds(TimingData & out,
 				   const RString &line,
 				   const int rowsPerBeat = -1);
+	static void ProcessSpeeds(TimingData & out,
+		const RString &line, string songname,
+		const int rowsPerBeat = -1);
 	
 	virtual void ProcessCombos(TimingData & /* out */,
 				   const RString &line,
@@ -150,6 +162,9 @@ struct SMLoader
 	virtual void ProcessFakes(TimingData & out,
 				  const RString &line,
 				  const int rowsPerBeat = -1);
+	static void ProcessFakes(TimingData & out,
+		const RString &line, string songname, 
+		const int rowsPerBeat = -1);
 	
 	virtual void ProcessBGChanges( Song &out, const RString &sValueName, 
 			      const RString &sPath, const RString &sParam );
@@ -163,7 +178,7 @@ struct SMLoader
 	 * @param line The line that contains the value.
 	 * @param rowsPerBeat the number of rows per beat according to the original file.
 	 * @return the converted beat value. */
-	float RowToBeat(const RString &line, const int rowsPerBeat);
+	static float RowToBeat(const RString &line, const int rowsPerBeat);
 	
 protected:
 	/**

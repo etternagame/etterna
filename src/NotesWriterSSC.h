@@ -34,6 +34,7 @@ namespace NotesWriterSSC
 	 * @param sErrorOut any error messages that may have occurred.
 	 * @return its success or failure. */
 	bool WriteEditFileToMachine( const Song *pSong, Steps *pSteps, RString &sErrorOut );
+	RString MSDToString(MinaSD x);
 }
 
 #endif
