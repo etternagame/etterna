@@ -195,6 +195,9 @@ public:
 	{ 
 		return m_sMainTitleTranslit.size()? m_sMainTitleTranslit: m_sMainTitle; 
 	}
+
+	vector<Steps*> GetStepsToSave(bool bSavingCache=true, string path="");
+
 	/**
 	 * @brief Retrieve the transliterated subtitle, or the main subtitle if there is no translit.
 	 * @return the proper subtitle. */

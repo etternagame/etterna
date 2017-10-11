@@ -19,159 +19,116 @@
 // are put into a map of function pointers which is used when loading.
 // -Kyz
 /****************************************************************/
-struct StepsTagInfo
-{
-	SSCLoader* loader;
-	Song* song;
-	Steps* steps;
-	TimingData* timing;
-	const MsdFile::value_t* params;
-	const RString& path;
-	bool has_own_timing;
-	bool ssc_format;
-	bool from_cache;
-	bool for_load_edit;
-	StepsTagInfo(SSCLoader* l, Song* s, const RString& p, bool fc)
-		:loader(l), song(s), path(p), has_own_timing(false), ssc_format(false),
-		 from_cache(fc), for_load_edit(false)
-	{}
-};
-struct SongTagInfo
-{
-	SSCLoader* loader;
-	Song* song;
-	const MsdFile::value_t* params;
-	const RString& path;
-	bool from_cache;
-	SongTagInfo(SSCLoader* l, Song* s, const RString& p, bool fc)
-		:loader(l), song(s), path(p), from_cache(fc)
-	{}
-};
-// LoadNoteDataFromSimfile uses LoadNoteDataTagIDs because its parts operate
-// on state variables internal to the function.
-enum LoadNoteDataTagIDs
-{
-	LNDID_version,
-	LNDID_stepstype,
-	LNDID_chartname,
-	LNDID_description,
-	LNDID_difficulty,
-	LNDID_meter,
-	LNDID_credit,
-	LNDID_notes,
-	LNDID_notes2,
-	LNDID_notedata
-};
 
-using steps_tag_func_t = void (*)(StepsTagInfo &);
-using song_tag_func_t = void (*)(SongTagInfo &);
+using steps_tag_func_t = void (*)(SSC::StepsTagInfo &);
+using song_tag_func_t = void (*)(SSC::SongTagInfo &);
 
 // Functions for song tags go below this line. -Kyz
 /****************************************************************/
-void SetVersion(SongTagInfo& info)
+void SetVersion(SSC::SongTagInfo& info)
 {
 	info.song->m_fVersion = StringToFloat((*info.params)[1]);
 }
-void SetTitle(SongTagInfo& info)
+void SetTitle(SSC::SongTagInfo& info)
 {
 	info.song->m_sMainTitle = (*info.params)[1];
 	info.loader->SetSongTitle((*info.params)[1]);
 }
-void SetSubtitle(SongTagInfo& info)
+void SetSubtitle(SSC::SongTagInfo& info)
 {
 	info.song->m_sSubTitle = (*info.params)[1];
 }
-void SetArtist(SongTagInfo& info)
+void SetArtist(SSC::SongTagInfo& info)
 {
 	info.song->m_sArtist = (*info.params)[1];
 }
-void SetMainTitleTranslit(SongTagInfo& info)
+void SetMainTitleTranslit(SSC::SongTagInfo& info)
 {
 	info.song->m_sMainTitleTranslit = (*info.params)[1];
 }
-void SetSubtitleTranslit(SongTagInfo& info)
+void SetSubtitleTranslit(SSC::SongTagInfo& info)
 {
 	info.song->m_sSubTitleTranslit = (*info.params)[1];
 }
-void SetArtistTranslit(SongTagInfo& info)
+void SetArtistTranslit(SSC::SongTagInfo& info)
 {
 	info.song->m_sArtistTranslit = (*info.params)[1];
 }
-void SetGenre(SongTagInfo& info)
+void SetGenre(SSC::SongTagInfo& info)
 {
 	info.song->m_sGenre = (*info.params)[1];
 }
-void SetOrigin(SongTagInfo& info)
+void SetOrigin(SSC::SongTagInfo& info)
 {
 	info.song->m_sOrigin = (*info.params)[1];
 }
-void SetCredit(SongTagInfo& info)
+void SetCredit(SSC::SongTagInfo& info)
 {
 	info.song->m_sCredit = (*info.params)[1];
 	Trim(info.song->m_sCredit);
 }
-void SetBanner(SongTagInfo& info)
+void SetBanner(SSC::SongTagInfo& info)
 {
 	info.song->m_sBannerFile = (*info.params)[1];
 }
-void SetBackground(SongTagInfo& info)
+void SetBackground(SSC::SongTagInfo& info)
 {
 	info.song->m_sBackgroundFile = (*info.params)[1];
 }
-void SetPreviewVid(SongTagInfo& info)
+void SetPreviewVid(SSC::SongTagInfo& info)
 {
 	info.song->m_sPreviewVidFile = (*info.params)[1];
 }
-void SetJacket(SongTagInfo& info)
+void SetJacket(SSC::SongTagInfo& info)
 {
 	info.song->m_sJacketFile = (*info.params)[1];
 }
-void SetCDImage(SongTagInfo& info)
+void SetCDImage(SSC::SongTagInfo& info)
 {
 	info.song->m_sCDFile = (*info.params)[1];
 }
-void SetDiscImage(SongTagInfo& info)
+void SetDiscImage(SSC::SongTagInfo& info)
 {
 	info.song->m_sDiscFile = (*info.params)[1];
 }
-void SetLyricsPath(SongTagInfo& info)
+void SetLyricsPath(SSC::SongTagInfo& info)
 {
 	info.song->m_sLyricsFile = (*info.params)[1];
 }
-void SetCDTitle(SongTagInfo& info)
+void SetCDTitle(SSC::SongTagInfo& info)
 {
 	info.song->m_sCDTitleFile = (*info.params)[1];
 }
-void SetMusic(SongTagInfo& info)
+void SetMusic(SSC::SongTagInfo& info)
 {
 	info.song->m_sMusicFile = (*info.params)[1];
 }
-void SetPreview(SongTagInfo& info)
+void SetPreview(SSC::SongTagInfo& info)
 {
 	info.song->m_PreviewFile= (*info.params)[1];
 }
-void SetInstrumentTrack(SongTagInfo& info)
+void SetInstrumentTrack(SSC::SongTagInfo& info)
 {
 	info.loader->ProcessInstrumentTracks(*info.song, (*info.params)[1]);
 }
-void SetMusicLength(SongTagInfo& info)
+void SetMusicLength(SSC::SongTagInfo& info)
 {
 	if(info.from_cache)
 	info.song->m_fMusicLengthSeconds = StringToFloat((*info.params)[1]);
 }
-void SetLastSecondHint(SongTagInfo& info)
+void SetLastSecondHint(SSC::SongTagInfo& info)
 {
 	info.song->SetSpecifiedLastSecond(StringToFloat((*info.params)[1]));
 }
-void SetSampleStart(SongTagInfo& info)
+void SetSampleStart(SSC::SongTagInfo& info)
 {
 	info.song->m_fMusicSampleStartSeconds = HHMMSSToSeconds((*info.params)[1]);
 }
-void SetSampleLength(SongTagInfo& info)
+void SetSampleLength(SSC::SongTagInfo& info)
 {
 	info.song->m_fMusicSampleLengthSeconds = HHMMSSToSeconds((*info.params)[1]);
 }
-void SetDisplayBPM(SongTagInfo& info)
+void SetDisplayBPM(SSC::SongTagInfo& info)
 {
 	// #DISPLAYBPM:[xxx][xxx:xxx]|[*];
 	if((*info.params)[1] == "*")
@@ -186,7 +143,7 @@ void SetDisplayBPM(SongTagInfo& info)
 		{ info.song->m_fSpecifiedBPMMax = StringToFloat((*info.params)[2]); }
 	}
 }
-void SetSelectable(SongTagInfo& info)
+void SetSelectable(SSC::SongTagInfo& info)
 {
 	if((*info.params)[1].EqualsNoCase("YES"))
 	{ info.song->m_SelectionDisplay = info.song->SHOW_ALWAYS; }
@@ -204,11 +161,11 @@ void SetSelectable(SongTagInfo& info)
 	else
 	{ LOG->UserLog("Song file", info.path, "has an unknown #SELECTABLE value, \"%s\"; ignored.", (*info.params)[1].c_str()); }
 }
-void SetBGChanges(SongTagInfo& info)
+void SetBGChanges(SSC::SongTagInfo& info)
 {
 	info.loader->ProcessBGChanges(*info.song, (*info.params)[0], info.path, (*info.params)[1]);
 }
-void SetFGChanges(SongTagInfo& info)
+void SetFGChanges(SSC::SongTagInfo& info)
 {
 	vector<RString> aFGChangeExpressions;
 	split((*info.params)[1], ",", aFGChangeExpressions);
@@ -220,82 +177,82 @@ void SetFGChanges(SongTagInfo& info)
 		{ info.song->AddForegroundChange(change); }
 	}
 }
-void SetKeysounds(SongTagInfo& info)
+void SetKeysounds(SSC::SongTagInfo& info)
 {
 	RString keysounds = (*info.params)[1];
 	if(keysounds.length() >= 2 && keysounds.substr(0, 2) == "\\#")
 	{ keysounds = keysounds.substr(1); }
 	split(keysounds, ",", info.song->m_vsKeysoundFile);
 }
-void SetOffset(SongTagInfo& info)
+void SetOffset(SSC::SongTagInfo& info)
 {
 	info.song->m_SongTiming.m_fBeat0OffsetInSeconds = StringToFloat((*info.params)[1]);
 }
-void SetSongStops(SongTagInfo& info)
+void SetSongStops(SSC::SongTagInfo& info)
 {
-	info.loader->ProcessStops(info.song->m_SongTiming, (*info.params)[1]);
+	info.loader->ProcessStops(info.song->m_SongTiming, (*info.params)[1], info.loader->GetSongTitle());
 }
-void SetSongDelays(SongTagInfo& info)
+void SetSongDelays(SSC::SongTagInfo& info)
 {
 	info.loader->ProcessDelays(info.song->m_SongTiming, (*info.params)[1]);
 }
-void SetSongBPMs(SongTagInfo& info)
+void SetSongBPMs(SSC::SongTagInfo& info)
 {
-	info.loader->ProcessBPMs(info.song->m_SongTiming, (*info.params)[1]);
+	info.loader->ProcessBPMs(info.song->m_SongTiming, (*info.params)[1], info.loader->GetSongTitle());
 }
-void SetSongWarps(SongTagInfo& info)
+void SetSongWarps(SSC::SongTagInfo& info)
 {
-	info.loader->ProcessWarps( info.song->m_SongTiming, (*info.params)[1], info.song->m_fVersion );
+	info.loader->ProcessWarps( info.song->m_SongTiming, (*info.params)[1], info.song->m_fVersion, info.loader->GetSongTitle() );
 }
-void SetSongLabels(SongTagInfo& info)
+void SetSongLabels(SSC::SongTagInfo& info)
 {
-	info.loader->ProcessLabels( info.song->m_SongTiming, (*info.params)[1] );
+	info.loader->ProcessLabels( info.song->m_SongTiming, (*info.params)[1], info.loader->GetSongTitle());
 }
-void SetSongTimeSignatures(SongTagInfo& info)
+void SetSongTimeSignatures(SSC::SongTagInfo& info)
 {
 	info.loader->ProcessTimeSignatures(info.song->m_SongTiming, (*info.params)[1]);
 }
-void SetSongTickCounts(SongTagInfo& info)
+void SetSongTickCounts(SSC::SongTagInfo& info)
 {
 	info.loader->ProcessTickcounts(info.song->m_SongTiming, (*info.params)[1]);
 }
-void SetSongCombos(SongTagInfo& info)
+void SetSongCombos(SSC::SongTagInfo& info)
 {
 	info.loader->ProcessCombos( info.song->m_SongTiming, (*info.params)[1] );
 }
-void SetSongSpeeds(SongTagInfo& info)
+void SetSongSpeeds(SSC::SongTagInfo& info)
 {
 	info.loader->ProcessSpeeds(info.song->m_SongTiming, (*info.params)[1]);
 }
-void SetSongScrolls(SongTagInfo& info)
+void SetSongScrolls(SSC::SongTagInfo& info)
 {
-	info.loader->ProcessScrolls(info.song->m_SongTiming, (*info.params)[1]);
+	info.loader->ProcessScrolls(info.song->m_SongTiming, (*info.params)[1], info.loader->GetSongTitle());
 }
-void SetSongFakes(SongTagInfo& info)
+void SetSongFakes(SSC::SongTagInfo& info)
 {
 	info.loader->ProcessFakes(info.song->m_SongTiming, (*info.params)[1]);
 }
-void SetFirstSecond(SongTagInfo& info)
+void SetFirstSecond(SSC::SongTagInfo& info)
 {
 	if(info.from_cache)
 	{ info.song->SetFirstSecond(StringToFloat((*info.params)[1])); }
 }
-void SetLastSecond(SongTagInfo& info)
+void SetLastSecond(SSC::SongTagInfo& info)
 {
 	if(info.from_cache)
 	{ info.song->SetLastSecond(StringToFloat((*info.params)[1])); }
 }
-void SetSongFilename(SongTagInfo& info)
+void SetSongFilename(SSC::SongTagInfo& info)
 {
 	if(info.from_cache)
 	{ info.song->m_sSongFileName = (*info.params)[1]; }
 }
-void SetHasMusic(SongTagInfo& info)
+void SetHasMusic(SSC::SongTagInfo& info)
 {
 	if(info.from_cache)
 	{ info.song->m_bHasMusic = StringToInt((*info.params)[1]) != 0; }
 }
-void SetHasBanner(SongTagInfo& info)
+void SetHasBanner(SSC::SongTagInfo& info)
 {
 	if(info.from_cache)
 	{ info.song->m_bHasBanner = StringToInt((*info.params)[1]) != 0; }
@@ -303,28 +260,28 @@ void SetHasBanner(SongTagInfo& info)
 
 // Functions for steps tags go below this line. -Kyz
 /****************************************************************/
-void SetStepsVersion(StepsTagInfo& info)
+void SetStepsVersion(SSC::StepsTagInfo& info)
 {
 	info.song->m_fVersion = StringToFloat((*info.params)[1]);
 }
-void SetChartName(StepsTagInfo& info)
+void SetChartName(SSC::StepsTagInfo& info)
 {
 	RString name= (*info.params)[1];
 	Trim(name);
 	info.steps->SetChartName(name);
 }
-void SetStepsType(StepsTagInfo& info)
+void SetStepsType(SSC::StepsTagInfo& info)
 {
 	info.steps->m_StepsType = GAMEMAN->StringToStepsType((*info.params)[1]);
 	info.steps->m_StepsTypeStr= (*info.params)[1];
 	info.ssc_format= true;
 }
-void SetChartStyle(StepsTagInfo& info)
+void SetChartStyle(SSC::StepsTagInfo& info)
 {
 	info.steps->SetChartStyle((*info.params)[1]);
 	info.ssc_format= true;
 }
-void SetDescription(StepsTagInfo& info)
+void SetDescription(SSC::StepsTagInfo& info)
 {
 	RString name= (*info.params)[1];
 	Trim(name);
@@ -338,17 +295,17 @@ void SetDescription(StepsTagInfo& info)
 	}
 	info.ssc_format= true;
 }
-void SetDifficulty(StepsTagInfo& info)
+void SetDifficulty(SSC::StepsTagInfo& info)
 {
 	info.steps->SetDifficulty(StringToDifficulty((*info.params)[1]));
 	info.ssc_format= true;
 }
-void SetMeter(StepsTagInfo& info)
+void SetMeter(SSC::StepsTagInfo& info)
 {
 	info.steps->SetMeter(StringToInt((*info.params)[1]));
 	info.ssc_format= true;
 }
-void SetRadarValues(StepsTagInfo& info)
+void SetRadarValues(SSC::StepsTagInfo& info)
 {
 	if(info.from_cache || info.for_load_edit)
 	{
@@ -366,34 +323,34 @@ void SetRadarValues(StepsTagInfo& info)
 	}
 	info.ssc_format= true;
 }
-void SetCredit(StepsTagInfo& info)
+void SetCredit(SSC::StepsTagInfo& info)
 {
 	info.steps->SetCredit((*info.params)[1]);
 	info.ssc_format= true;
 }
-void SetStepsMusic(StepsTagInfo& info)
+void SetStepsMusic(SSC::StepsTagInfo& info)
 {
 	info.steps->SetMusicFile((*info.params)[1]);
 }
-void SetStepsBPMs(StepsTagInfo& info)
+void SetStepsBPMs(SSC::StepsTagInfo& info)
 {
 	if(info.song->m_fVersion >= VERSION_SPLIT_TIMING || info.for_load_edit)
 	{
-		info.loader->ProcessBPMs(*info.timing, (*info.params)[1]);
+		info.loader->ProcessBPMs(*info.timing, (*info.params)[1], info.loader->GetSongTitle());
 		info.has_own_timing = true;
 	}
 	info.ssc_format= true;
 }
-void SetStepsStops(StepsTagInfo& info)
+void SetStepsStops(SSC::StepsTagInfo& info)
 {
 	if(info.song->m_fVersion >= VERSION_SPLIT_TIMING || info.for_load_edit)
 	{
-		info.loader->ProcessStops(*info.timing, (*info.params)[1]);
+		info.loader->ProcessStops(*info.timing, (*info.params)[1], info.loader->GetSongTitle());
 		info.has_own_timing = true;
 	}
 	info.ssc_format= true;
 }
-void SetStepsDelays(StepsTagInfo& info)
+void SetStepsDelays(SSC::StepsTagInfo& info)
 {
 	if(info.song->m_fVersion >= VERSION_SPLIT_TIMING || info.for_load_edit)
 	{
@@ -402,7 +359,7 @@ void SetStepsDelays(StepsTagInfo& info)
 	}
 	info.ssc_format= true;
 }
-void SetStepsTimeSignatures(StepsTagInfo& info)
+void SetStepsTimeSignatures(SSC::StepsTagInfo& info)
 {
 	if(info.song->m_fVersion >= VERSION_SPLIT_TIMING || info.for_load_edit)
 	{
@@ -411,7 +368,7 @@ void SetStepsTimeSignatures(StepsTagInfo& info)
 	}
 	info.ssc_format= true;
 }
-void SetStepsTickCounts(StepsTagInfo& info)
+void SetStepsTickCounts(SSC::StepsTagInfo& info)
 {
 	if(info.song->m_fVersion >= VERSION_SPLIT_TIMING || info.for_load_edit)
 	{
@@ -420,7 +377,7 @@ void SetStepsTickCounts(StepsTagInfo& info)
 	}
 	info.ssc_format= true;
 }
-void SetStepsCombos(StepsTagInfo& info)
+void SetStepsCombos(SSC::StepsTagInfo& info)
 {
 	if(info.song->m_fVersion >= VERSION_SPLIT_TIMING || info.for_load_edit)
 	{
@@ -429,16 +386,16 @@ void SetStepsCombos(StepsTagInfo& info)
 	}
 	info.ssc_format= true;
 }
-void SetStepsWarps(StepsTagInfo& info)
+void SetStepsWarps(SSC::StepsTagInfo& info)
 {
 	if(info.song->m_fVersion >= VERSION_SPLIT_TIMING || info.for_load_edit)
 	{
-		info.loader->ProcessWarps(*info.timing, (*info.params)[1], info.song->m_fVersion);
+		info.loader->ProcessWarps(*info.timing, (*info.params)[1], info.song->m_fVersion, info.loader->GetSongTitle());
 		info.has_own_timing = true;
 	}
 	info.ssc_format= true;
 }
-void SetStepsSpeeds(StepsTagInfo& info)
+void SetStepsSpeeds(SSC::StepsTagInfo& info)
 {
 	if(info.song->m_fVersion >= VERSION_SPLIT_TIMING || info.for_load_edit)
 	{
@@ -447,16 +404,16 @@ void SetStepsSpeeds(StepsTagInfo& info)
 	}
 	info.ssc_format= true;
 }
-void SetStepsScrolls(StepsTagInfo& info)
+void SetStepsScrolls(SSC::StepsTagInfo& info)
 {
 	if(info.song->m_fVersion >= VERSION_SPLIT_TIMING || info.for_load_edit)
 	{
-		info.loader->ProcessScrolls(*info.timing, (*info.params)[1]);
+		info.loader->ProcessScrolls(*info.timing, (*info.params)[1], info.loader->GetSongTitle());
 		info.has_own_timing = true;
 	}
 	info.ssc_format= true;
 }
-void SetStepsFakes(StepsTagInfo& info)
+void SetStepsFakes(SSC::StepsTagInfo& info)
 {
 	if(info.song->m_fVersion >= VERSION_SPLIT_TIMING || info.for_load_edit)
 	{
@@ -465,16 +422,16 @@ void SetStepsFakes(StepsTagInfo& info)
 	}
 	info.ssc_format= true;
 }
-void SetStepsLabels(StepsTagInfo& info)
+void SetStepsLabels(SSC::StepsTagInfo& info)
 {
 	if(info.song->m_fVersion >= VERSION_SPLIT_TIMING || info.for_load_edit)
 	{
-		info.loader->ProcessLabels(*info.timing, (*info.params)[1]);
+		info.loader->ProcessLabels(*info.timing, (*info.params)[1], info.loader->GetSongTitle());
 		info.has_own_timing = true;
 	}
 	info.ssc_format= true;
 }
-void SetStepsOffset(StepsTagInfo& info)
+void SetStepsOffset(SSC::StepsTagInfo& info)
 {
 	if(info.song->m_fVersion >= VERSION_SPLIT_TIMING || info.for_load_edit)
 	{
@@ -482,7 +439,7 @@ void SetStepsOffset(StepsTagInfo& info)
 		info.has_own_timing = true;
 	}
 }
-void SetStepsDisplayBPM(StepsTagInfo& info)
+void SetStepsDisplayBPM(SSC::StepsTagInfo& info)
 {
 	// #DISPLAYBPM:[xxx][xxx:xxx]|[*];
 	if((*info.params)[1] == "*")
@@ -499,7 +456,7 @@ void SetStepsDisplayBPM(StepsTagInfo& info)
 	}
 }
 
-void SetChartKey(StepsTagInfo& info) {
+void SetChartKey(SSC::StepsTagInfo& info) {
 	info.steps->SetChartKey((*info.params)[1]);
 }
 
@@ -512,7 +469,7 @@ vector<float> msdsplit(const RString& s) {
 	return o;
 }
 
-void SetMSDValues(StepsTagInfo& info) {
+void SetMSDValues(SSC::StepsTagInfo& info) {
 	MinaSD o;
 
 	// Optimize by calling those only once instead of multiple times inside the loop.
@@ -526,7 +483,7 @@ void SetMSDValues(StepsTagInfo& info) {
 
 typedef std::map<RString, steps_tag_func_t> steps_handler_map_t;
 typedef std::map<RString, song_tag_func_t> song_handler_map_t;
-typedef std::map<RString, LoadNoteDataTagIDs> load_note_data_handler_map_t;
+typedef std::map<RString, SSC::LoadNoteDataTagIDs> load_note_data_handler_map_t;
 
 struct ssc_parser_helper_t
 {
@@ -628,23 +585,23 @@ struct ssc_parser_helper_t
 		steps_tag_handlers["CHARTKEY"] = &SetChartKey;
 		steps_tag_handlers["MSDVALUES"] = &SetMSDValues;
 
-		load_note_data_handlers["VERSION"]= LNDID_version;
-		load_note_data_handlers["STEPSTYPE"]= LNDID_stepstype;
-		load_note_data_handlers["CHARTNAME"]= LNDID_chartname;
-		load_note_data_handlers["DESCRIPTION"]= LNDID_description;
-		load_note_data_handlers["DIFFICULTY"]= LNDID_difficulty;
-		load_note_data_handlers["METER"]= LNDID_meter;
-		load_note_data_handlers["CREDIT"]= LNDID_credit;
-		load_note_data_handlers["NOTES"]= LNDID_notes;
-		load_note_data_handlers["NOTES2"]= LNDID_notes2;
-		load_note_data_handlers["NOTEDATA"]= LNDID_notedata;
+		load_note_data_handlers["VERSION"]= SSC::LNDID_version;
+		load_note_data_handlers["STEPSTYPE"]= SSC::LNDID_stepstype;
+		load_note_data_handlers["CHARTNAME"]= SSC::LNDID_chartname;
+		load_note_data_handlers["DESCRIPTION"]= SSC::LNDID_description;
+		load_note_data_handlers["DIFFICULTY"]= SSC::LNDID_difficulty;
+		load_note_data_handlers["METER"]= SSC::LNDID_meter;
+		load_note_data_handlers["CREDIT"]= SSC::LNDID_credit;
+		load_note_data_handlers["NOTES"]= SSC::LNDID_notes;
+		load_note_data_handlers["NOTES2"]= SSC::LNDID_notes2;
+		load_note_data_handlers["NOTEDATA"]= SSC::LNDID_notedata;
 	}
 };
 ssc_parser_helper_t parser_helper;
 // End parser_helper related functions. -Kyz
 /****************************************************************/
 
-void SSCLoader::ProcessBPMs( TimingData &out, const RString &sParam )
+void SSCLoader::ProcessBPMs( TimingData &out, const RString &sParam, string songName)
 {
 	vector<RString> arrayBPMExpressions;
 	split( sParam, ",", arrayBPMExpressions );
@@ -656,9 +613,9 @@ void SSCLoader::ProcessBPMs( TimingData &out, const RString &sParam )
 		if( arrayBPMValues.size() != 2 )
 		{
 			LOG->UserLog("Song file",
-				     this->GetSongTitle(),
-				     "has an invalid #BPMS value \"%s\" (must have exactly one '='), ignored.",
-				     arrayBPMExpressions[b].c_str() );
+				songName,
+				"has an invalid #BPMS value \"%s\" (must have exactly one '='), ignored.",
+				arrayBPMExpressions[b].c_str() );
 			continue;
 		}
 		
@@ -671,14 +628,14 @@ void SSCLoader::ProcessBPMs( TimingData &out, const RString &sParam )
 		else
 		{
 			LOG->UserLog("Song file",
-				     this->GetSongTitle(),
-				     "has an invalid BPM at beat %f, BPM %f.",
-				     fBeat, fNewBPM );
+				songName,
+				"has an invalid BPM at beat %f, BPM %f.",
+				fBeat, fNewBPM );
 		}
 	}
 }
 
-void SSCLoader::ProcessStops( TimingData &out, const RString &sParam )
+void SSCLoader::ProcessStops( TimingData &out, const RString &sParam, string songName)
 {
 	vector<RString> arrayStopExpressions;
 	split( sParam, ",", arrayStopExpressions );
@@ -690,9 +647,9 @@ void SSCLoader::ProcessStops( TimingData &out, const RString &sParam )
 		if( arrayStopValues.size() != 2 )
 		{
 			LOG->UserLog("Song file",
-				     this->GetSongTitle(),
-				     "has an invalid #STOPS value \"%s\" (must have exactly one '='), ignored.",
-				     arrayStopExpressions[b].c_str() );
+				songName,
+				"has an invalid #STOPS value \"%s\" (must have exactly one '='), ignored.",
+				arrayStopExpressions[b].c_str() );
 			continue;
 		}
 		
@@ -703,14 +660,14 @@ void SSCLoader::ProcessStops( TimingData &out, const RString &sParam )
 		else
 		{
 			LOG->UserLog("Song file",
-				     this->GetSongTitle(),
-				     "has an invalid Stop at beat %f, length %f.",
-				     fBeat, fNewStop );
+				songName,
+				"has an invalid Stop at beat %f, length %f.",
+				fBeat, fNewStop );
 		}
 	}
 }
 
-void SSCLoader::ProcessWarps( TimingData &out, const RString &sParam, const float fVersion )
+void SSCLoader::ProcessWarps( TimingData &out, const RString &sParam, const float fVersion, string songName)
 {
 	vector<RString> arrayWarpExpressions;
 	split( sParam, ",", arrayWarpExpressions );
@@ -722,9 +679,9 @@ void SSCLoader::ProcessWarps( TimingData &out, const RString &sParam, const floa
 		if( arrayWarpValues.size() != 2 )
 		{
 			LOG->UserLog("Song file",
-				     this->GetSongTitle(),
-				     "has an invalid #WARPS value \"%s\" (must have exactly one '='), ignored.",
-				     arrayWarpExpressions[b].c_str() );
+				songName,
+				"has an invalid #WARPS value \"%s\" (must have exactly one '='), ignored.",
+				arrayWarpExpressions[b].c_str() );
 			continue;
 		}
 		
@@ -740,14 +697,14 @@ void SSCLoader::ProcessWarps( TimingData &out, const RString &sParam, const floa
 		else
 		{
 			LOG->UserLog("Song file",
-				     this->GetSongTitle(),
-				     "has an invalid Warp at beat %f, BPM %f.",
-				     fBeat, fNewBeat );
+				songName,
+				"has an invalid Warp at beat %f, BPM %f.",
+				fBeat, fNewBeat );
 		}
 	}
 }
 
-void SSCLoader::ProcessLabels( TimingData &out, const RString &sParam )
+void SSCLoader::ProcessLabels( TimingData &out, const RString &sParam , string songName)
 {
 	vector<RString> arrayLabelExpressions;
 	split( sParam, ",", arrayLabelExpressions );
@@ -759,9 +716,9 @@ void SSCLoader::ProcessLabels( TimingData &out, const RString &sParam )
 		if( arrayLabelValues.size() != 2 )
 		{
 			LOG->UserLog("Song file",
-				     this->GetSongTitle(),
-				     "has an invalid #LABELS value \"%s\" (must have exactly one '='), ignored.",
-				     arrayLabelExpressions[b].c_str() );
+				 songName,
+				 "has an invalid #LABELS value \"%s\" (must have exactly one '='), ignored.",
+				 arrayLabelExpressions[b].c_str() );
 			continue;
 		}
 		
@@ -773,15 +730,18 @@ void SSCLoader::ProcessLabels( TimingData &out, const RString &sParam )
 		else 
 		{
 			LOG->UserLog("Song file",
-				     this->GetSongTitle(),
-				     "has an invalid Label at beat %f called %s.",
-				     fBeat, sLabel.c_str() );
+				 songName,
+				 "has an invalid Label at beat %f called %s.",
+				 fBeat, sLabel.c_str() );
 		}
 		
 	}
 }
-
-void SSCLoader::ProcessCombos( TimingData &out, const RString &line, const int rowsPerBeat )
+void SSCLoader::ProcessCombos(TimingData &out, const RString &line, const int rowsPerBeat)
+{
+	ProcessCombos(out, line, this->GetSongTitle(), rowsPerBeat);
+}
+void SSCLoader::ProcessCombos( TimingData &out, const RString &line, string songName, const int rowsPerBeat)
 {
 	vector<RString> arrayComboExpressions;
 	split( line, ",", arrayComboExpressions );
@@ -794,9 +754,9 @@ void SSCLoader::ProcessCombos( TimingData &out, const RString &line, const int r
 		if( size < 2 )
 		{
 			LOG->UserLog("Song file",
-				     this->GetSongTitle(),
-				     "has an invalid #COMBOS value \"%s\" (must have at least one '='), ignored.",
-				     arrayComboExpressions[f].c_str() );
+				songName,
+				"has an invalid #COMBOS value \"%s\" (must have at least one '='), ignored.",
+				arrayComboExpressions[f].c_str() );
 			continue;
 		}
 		const float fComboBeat = StringToFloat( arrayComboValues[0] );
@@ -806,7 +766,7 @@ void SSCLoader::ProcessCombos( TimingData &out, const RString &line, const int r
 	}
 }
 
-void SSCLoader::ProcessScrolls( TimingData &out, const RString sParam )
+void SSCLoader::ProcessScrolls( TimingData &out, const RString sParam, string songName)
 {
 	vector<RString> vs1;
 	split( sParam, ",", vs1 );
@@ -819,9 +779,9 @@ void SSCLoader::ProcessScrolls( TimingData &out, const RString sParam )
 		if( vs2.size() < 2 )
 		{
 			LOG->UserLog("Song file",
-				     this->GetSongTitle(),
-				     "has an scroll change with %i values.",
-				     static_cast<int>(vs2.size()) );
+				songName,
+				"has an scroll change with %i values.",
+				static_cast<int>(vs2.size()) );
 			continue;
 		}
 
@@ -831,9 +791,9 @@ void SSCLoader::ProcessScrolls( TimingData &out, const RString sParam )
 		if( fBeat < 0 )
 		{
 			LOG->UserLog("Song file",
-				     this->GetSongTitle(),
-				     "has an scroll change with beat %f.",
-				     fBeat );
+				songName,
+				"has an scroll change with beat %f.",
+				 fBeat );
 			continue;
 		}
 
@@ -875,21 +835,21 @@ bool SSCLoader::LoadNoteDataFromSimfile( const RString & cachePath, Steps &out )
 			{
 				switch(handler->second)
 				{
-					case LNDID_version:
+					case SSC::LNDID_version:
 						// Note that version is in both switches.  Formerly, it was
 						// checked before the tryingSteps condition. -Kyz
 						storedVersion = StringToFloat(matcher);
 						break;
-					case LNDID_stepstype:
+					case SSC::LNDID_stepstype:
 						if(out.m_StepsType != GAMEMAN->StringToStepsType(matcher))
 						{ tryingSteps = false; }
 						break;
-					case LNDID_chartname:
+					case SSC::LNDID_chartname:
 						if(storedVersion >= VERSION_CHART_NAME_TAG &&
 							out.GetChartName() != matcher)
 						{ tryingSteps = false; }
 						break;
-					case LNDID_description:
+					case SSC::LNDID_description:
 						if(storedVersion < VERSION_CHART_NAME_TAG)
 						{
 							if(out.GetChartName() != matcher)
@@ -898,7 +858,7 @@ bool SSCLoader::LoadNoteDataFromSimfile( const RString & cachePath, Steps &out )
 						else if(out.GetDescription() != matcher)
 						{ tryingSteps = false; }
 						break;
-					case LNDID_difficulty:
+					case SSC::LNDID_difficulty:
 						// Accept any difficulty if it's an edit because LoadEditFromMsd
 						// forces edits onto Edit difficulty even if they have a difficulty
 						// tag. -Kyz
@@ -907,16 +867,16 @@ bool SSCLoader::LoadNoteDataFromSimfile( const RString & cachePath, Steps &out )
 								GetExtension(cachePath).MakeLower() == "edit"))
 						{ tryingSteps = false; }
 						break;
-					case LNDID_meter:
+					case SSC::LNDID_meter:
 						if(out.GetMeter() != StringToInt(matcher))
 						{ tryingSteps = false; }
 						break;
-					case LNDID_credit:
+					case SSC::LNDID_credit:
 						if(out.GetCredit() != matcher)
 						{ tryingSteps = false; }
 						break;
-					case LNDID_notes:
-					case LNDID_notes2:
+					case SSC::LNDID_notes:
+					case SSC::LNDID_notes2:
 						out.SetSMNoteData(matcher);
 						out.TidyUpData();
 						return true;
@@ -928,12 +888,12 @@ bool SSCLoader::LoadNoteDataFromSimfile( const RString & cachePath, Steps &out )
 			{
 				switch(handler->second)
 				{
-					case LNDID_version:
+					case SSC::LNDID_version:
 						// Note that version is in both switches.  Formerly, it was
 						// checked before the tryingSteps condition. -Kyz
 						storedVersion = StringToFloat(matcher);
 						break;
-					case LNDID_notedata:
+					case SSC::LNDID_notedata:
 						tryingSteps = true;
 						break;
 					default:
@@ -968,8 +928,8 @@ bool SSCLoader::LoadFromSimfile( const RString &sPath, Song &out, bool bFromCach
 	Steps* pNewNotes = NULL;
 	TimingData stepsTiming;
 
-	SongTagInfo reused_song_info(&*this, &out, sPath, bFromCache);
-	StepsTagInfo reused_steps_info(&*this, &out, sPath, bFromCache);
+	SSC::SongTagInfo reused_song_info(&*this, &out, sPath, bFromCache);
+	SSC::StepsTagInfo reused_steps_info(&*this, &out, sPath, bFromCache);
 
 	for( unsigned i = 0; i < values; i++ )
 	{
@@ -1046,7 +1006,7 @@ bool SSCLoader::LoadFromSimfile( const RString &sPath, Song &out, bool bFromCach
 		}
 	}
 	out.m_fVersion = STEPFILE_VERSION_NUMBER;
-	TidyUpData(out, bFromCache);
+	SMLoader::TidyUpData(out, bFromCache);
 	return true;
 }
 
@@ -1085,7 +1045,7 @@ bool SSCLoader::LoadEditFromMsd(const MsdFile &msd,
 	Steps* pNewNotes = NULL;
 	TimingData stepsTiming;
 
-	StepsTagInfo reused_steps_info(&*this, pSong, sEditFilePath, false);
+	SSC::StepsTagInfo reused_steps_info(&*this, pSong, sEditFilePath, false);
 	reused_steps_info.for_load_edit= true;
 	reused_steps_info.timing= &stepsTiming;
 

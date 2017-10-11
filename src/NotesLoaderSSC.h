@@ -20,6 +20,55 @@ enum SSCLoadingStates
 	NUM_SSCLoadingStates /**< The number of states used. */
 };
 
+// LoadNoteDataFromSimfile uses LoadNoteDataTagIDs because its parts operate
+// on state variables internal to the function.
+namespace SSC {
+	enum LoadNoteDataTagIDs
+	{
+		LNDID_version,
+		LNDID_stepstype,
+		LNDID_chartname,
+		LNDID_description,
+		LNDID_difficulty,
+		LNDID_meter,
+		LNDID_credit,
+		LNDID_notes,
+		LNDID_notes2,
+		LNDID_notedata
+	};
+
+	// LoadNoteDataFromSimfile uses LoadNoteDataTagIDs because its parts operate
+	// on state variables internal to the function.struct StepsTagInfo
+	struct StepsTagInfo
+	{
+		SSCLoader* loader;
+		Song* song;
+		Steps* steps;
+		TimingData* timing;
+		const MsdFile::value_t* params;
+		const RString& path;
+		bool has_own_timing;
+		bool ssc_format;
+		bool from_cache;
+		bool for_load_edit;
+		StepsTagInfo(SSCLoader* l, Song* s, const RString& p, bool fc)
+			:loader(l), song(s), path(p), has_own_timing(false), ssc_format(false),
+			from_cache(fc), for_load_edit(false)
+		{}
+	};
+	struct SongTagInfo
+	{
+		SSCLoader* loader;
+		Song* song;
+		const MsdFile::value_t* params;
+		const RString& path;
+		bool from_cache;
+		SongTagInfo(SSCLoader* l, Song* s, const RString& p, bool fc)
+			:loader(l), song(s), path(p), from_cache(fc)
+		{}
+	};
+	vector<float> msdsplit(const RString& s);
+}
 /** @brief The version where fakes started to be used as a radar category. */
 const float VERSION_RADAR_FAKE = 0.53f;
 /** @brief The version where WarpSegments started to be utilized. */
@@ -76,12 +125,14 @@ struct SSCLoader : public SMLoader
 	 * @return true if successful, false otherwise. */
 	bool LoadNoteDataFromSimfile( const RString &cachePath, Steps &out ) override;
 	
-	void ProcessBPMs( TimingData &, const RString &sParam );
-	void ProcessStops( TimingData &, const RString &sParam );
-	void ProcessWarps( TimingData &, const RString &sParam, const float );
-	void ProcessLabels( TimingData &, const RString &param );
-	void ProcessCombos( TimingData &, const RString &line, const int = -1 ) override;
-	void ProcessScrolls( TimingData &, const RString );
+	static void ProcessBPMs( TimingData &, const RString &sParam, string songName);
+	static void ProcessStops( TimingData &, const RString &sParam, string songName);
+	static void ProcessWarps( TimingData &, const RString &sParam, const float, string songName);
+	static void ProcessLabels(TimingData &out, const RString &sParam, string songName);
+	static void ProcessCombos( TimingData &, const RString &line, string songName, const int = -1);
+	void ProcessCombos(TimingData &, const RString &line, const int = -1) override;
+	static void ProcessScrolls( TimingData &, const RString sParam, string songName);
+
 };
 
 #endif
