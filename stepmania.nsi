@@ -410,6 +410,7 @@ Section "Main Section" SecMain
 
 	; remove and install themes
 	RMDir /r "$INSTDIR\Themes\_fallback"
+	RMDir /r "$INSTDIR\Themes\Til Death"
 	RMDir /r "$INSTDIR\Themes\_portKit-sm4"
 	RMDir /r "$INSTDIR\Themes\default"
 	CreateDirectory "$INSTDIR\Themes"
