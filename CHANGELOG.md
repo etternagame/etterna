@@ -1,3 +1,28 @@
+## [0.55.3] - 2017-10-12
+
+As always backup your profile. Backup any theme files you have significantly edited as they will be overwritten. 
+
+### Fixed
+- MP3 offset is no longer early.
+- Songs now reload automatically after autosyncing them so you can un-re-sync in an expedited fashion.
+
+### Notes
+This will be the last patch of the `0.55` series and the next release will be `0.56`.
+
+## [0.55.2] - 2017-10-03
+
+As always backup your profile. Backup any theme files you have significantly edited as they will be overwritten. 
+
+### Fixed
+- Cold warriors is fixed but you may have to manually reload it or clear the cache.
+- The garbage difficulty enum crash on profile save should be fixed. It was hard to pin down due to the erratic nature of it however we managed to get a reproducible case and fix that. The other cases crash in the same area under similar circumstances so they should be fixed as well.
+- Forced in-session updating of various pb markers that should prevent the need to reload your profile after closing the game after a session in order for certain scores to register on EO.
+- Various other minor fixes to the way scores are internally ordered and then communicated to EO.
+- Idiotic 1111100% flags should be properly dealt with now (hopefully). 
+
+### Known issues
+- It's possible there may be some obscure issues related to the movement of the replay folder in the save hierarchy. If you aren't sure manually move your replays in your 000000 etc folder to the new replay folder above it, or wait for 0.56 where they'll be automatically transferred.
+
 ## [0.55.1] - 2017-09-18
 
 As always backup your profile. Backup any theme files you have significantly edited as they will be overwritten. You are advised to clear your song cache however this should *technically* not be necessary.
