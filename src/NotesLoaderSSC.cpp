@@ -460,7 +460,7 @@ void SetChartKey(SSC::StepsTagInfo& info) {
 	info.steps->SetChartKey((*info.params)[1]);
 }
 
-vector<float> msdsplit(const RString& s) {
+vector<float> SSC::msdsplit(const RString& s) {
 	vector<float> o;
 	for (size_t i = 0; i < s.size(); ++i) {
 		o.emplace_back(StringToFloat(s.substr(i, 5)));
@@ -477,7 +477,7 @@ void SetMSDValues(SSC::StepsTagInfo& info) {
 	auto size = params.params.size();
 	// Start from index 1
 	for (size_t i = 1; i <= size; i++)
-		o.emplace_back(msdsplit(params[i]));
+		o.emplace_back(SSC::msdsplit(params[i]));
 	info.steps->SetAllMSD(o);
 }
 
