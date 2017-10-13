@@ -1129,7 +1129,7 @@ bool Song::SaveToSMFile()
 	return NotesWriterSM::Write( sPath, *this, vpStepsToSave );
 
 }
-vector<Steps*> Song::GetStepsToSave(bool bSavingCache=true, string path="")
+vector<Steps*> Song::GetStepsToSave(bool bSavingCache, string path)
 {
 
 	vector<Steps*> vpStepsToSave;
@@ -1172,7 +1172,7 @@ bool Song::SaveToSSCFile( const RString &sPath, bool bSavingCache, bool autosave
 
 	if(bSavingCache || autosave)
 	{
-		return NotesWriterSSC::Write(path, *this, vpStepsToSave, bSavingCache);
+		return SONGINDEX->CacheSong(*this, path);
 	}
 
 	if( !NotesWriterSSC::Write(path, *this, vpStepsToSave, bSavingCache) )
@@ -1225,23 +1225,7 @@ bool Song::SaveToETTFile(const RString &sPath, bool bSavingCache, bool autosave)
 	if (!bSavingCache && !autosave && IsAFile(path))
 		FileCopy(path, path + ".old");
 
-	vector<Steps*> vpStepsToSave;
-	FOREACH_CONST(Steps*, m_vpSteps, s)
-	{
-		Steps *pSteps = *s;
-
-		// Only save steps that weren't loaded from a profile.
-		if (pSteps->WasLoadedFromProfile())
-			continue;
-
-		if (!bSavingCache)
-			pSteps->SetFilename(path);
-		vpStepsToSave.push_back(pSteps);
-	}
-	FOREACH_CONST(Steps*, m_UnknownStyleSteps, s)
-	{
-		vpStepsToSave.push_back(*s);
-	}
+	vector<Steps*> vpStepsToSave = GetStepsToSave(bSavingCache, sPath);
 
 	if (bSavingCache || autosave)
 	{
@@ -1293,7 +1277,7 @@ bool Song::SaveToCacheFile()
 	{
 		return true;
 	}
-	return SONGINDEX->SaveSong(*this, m_sSongDir);
+	return SONGINDEX->CacheSong(*this, m_sSongDir);
 	SONGINDEX->AddCacheIndex(m_sSongDir, GetHashForDirectory(m_sSongDir));
 	const RString sPath = GetCacheFilePath();
 	return SaveToSSCFile(sPath, true);

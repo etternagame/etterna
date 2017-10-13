@@ -1,6 +1,8 @@
 #ifndef NOTES_WRITER_SSC_H
 #define NOTES_WRITER_SSC_H
 
+#include "Steps.h"
+
 class Song;
 class Steps;
 /** @brief Writes a Song to an .SSC file. */
@@ -35,6 +37,7 @@ namespace NotesWriterSSC
 	 * @return its success or failure. */
 	bool WriteEditFileToMachine( const Song *pSong, Steps *pSteps, RString &sErrorOut );
 	RString MSDToString(MinaSD x);
+	RString SkillsetDiffsToString(SDiffs x);
 }
 
 #endif

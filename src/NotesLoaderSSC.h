@@ -9,7 +9,7 @@ class MsdFile;
 class Song;
 class Steps;
 class TimingData;
-
+class SSCLoader;
 /**
  * @brief The various states while parsing a .ssc file.
  */
