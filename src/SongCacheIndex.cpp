@@ -15,6 +15,7 @@
 #include <SQLiteCpp/VariadicBind.h>
 #include "sqlite3.h"
 
+
 /*
  * A quick explanation of song cache hashes: Each song has two hashes; a hash of the
  * song path, and a hash of the song directory.  The former is Song::GetCacheFilePath;
@@ -34,7 +35,7 @@
  */
 const string CACHE_INDEX = SpecialFiles::CACHE_DIR + "index.cache";
 const string CACHE_DB = SpecialFiles::CACHE_DIR + "cache.db";
-const string CACHE_DB_VERSION = "1.0";
+const unsigned int CACHE_DB_VERSION = 236;
 
 
 SongCacheIndex *SONGINDEX; // global and accessible from anywhere in our program
@@ -244,8 +245,7 @@ int SongCacheIndex::InsertSteps(const Steps* pSteps, int songID)
 		*/
 	SQLite::Statement insertSteps(*db, "INSERT INTO steps VALUES (NULL, "
 		"?, ?, ?, ?, ?, "
-		"?, ?, ?, ?, ?, "
-		"?, ?, ?, ?, ?, "
+		"?, ?, ?, "
 		"?, ?, ?, "
 		"?, ?, ?, ?, ?)");
 	vector<RString> lines;
@@ -258,8 +258,7 @@ int SongCacheIndex::InsertSteps(const Steps* pSteps, int songID)
 	insertSteps.bind(stepsIndex++, pSteps->GetMeter());
 		
 	MinaSD o = pSteps->GetAllMSD();
-	for (size_t i = 0; i < NUM_Skillset; i++)
-		insertSteps.bind(stepsIndex++, NotesWriterSSC::SkillsetDiffsToString(o[i]));
+	insertSteps.bind(stepsIndex++, NotesWriterSSC::MSDToString(o));
 
 	insertSteps.bind(stepsIndex++, SmEscape(pSteps->GetChartKey()).c_str());//chartkey
 
@@ -524,12 +523,15 @@ void SongCacheIndex::CreateDBTables()
 {
 	db->exec("CREATE TABLE IF NOT EXISTS dbinfo (ID INTEGER PRIMARY KEY, "
 		"VERSION INTEGER)");
+	db->exec("CREATE TABLE IF NOT EXISTS msdsatrates (ID INTEGER PRIMARY KEY, "
+		"MSD FLOAT, RATE INTEGER, SONGID INTEGER, "
+		"CONSTRAINT fk_songid FOREIGN KEY (SONGID) REFERENCES songs(ID))");
 	db->exec("CREATE TABLE IF NOT EXISTS timingdatas (ID INTEGER PRIMARY KEY, "
 		"OFFSET TEXT, BPMS TEXT, STOPS TEXT, "
 		"DELAYS TEXT, WARPS TEXT, TIMESIGNATURESEGMENT TEXT, TICKCOUNTS TEXT, "
 		"COMBOS TEXT, SPEEDS TEXT, SCROLLS TEXT, FAKES TEXT, LABELS TEXT)");
 	db->exec("CREATE TABLE IF NOT EXISTS songs (ID INTEGER PRIMARY KEY, "
-		"VERSION TEXT, TITLE TEXT, SUBTITLE TEXT, ARTIST TEXT, TITLETRANSLIT TEXT, "
+		"VERSION FLOAT, TITLE TEXT, SUBTITLE TEXT, ARTIST TEXT, TITLETRANSLIT TEXT, "
 		"SUBTITLETRANSLIT TEXT, ARTISTTRANSLIT TEXT, GENRE TEXT, "
 		"ORIGIN TEXT, CREDIT TEXT, BANNER TEXT, BACKGROUND TEXT, "
 		"PREVIEWVID TEXT, JACKET TEXT, CDIMAGE TEXT, DISCIMAGE TEXT, "
@@ -543,19 +545,20 @@ void SongCacheIndex::CreateDBTables()
 		"SONGFILENAME TEXT, HASMUSIC INTEGER, HASBANNER INTEGER, MUSICLENGTH FLOAT, DIRHASH INTEGER, DIR TEXT)");
 	db->exec("CREATE TABLE IF NOT EXISTS steps (id INTEGER PRIMARY KEY, "
 		"CHARTNAME TEXT, STEPSTYPE TEXT, DESCRIPTION TEXT, CHARTSTYLE TEXT, DIFFICULTY INTEGER, "
-		"METER INTEGER, OVERALL TEXT, STREAM TEXT, JUMPSTREAM TEXT, HANDSTREAM TEXT, "
-		"STAMINA TEXT, JACKSPEED TEXT, JACKSTAMINA TEXT, TECHNICAL TEXT, CHARTKEY TEXT, "
+		"METER INTEGER, MSD TEXT, CHARTKEY TEXT, "
 		"MUSIC TEXT, RADARVALUES TEXT, CREDIT TEXT, "
 		"TIMINGDATAID INTEGER, DISPLAYBPMMIN FLOAT, DISPLAYBPMMAX FLOAT, STEPFILENAME TEXT, SONGID INTEGER, "
-		"CONSTRAINT fk_songid FOREIGN KEY (SONGID) REFERENCES songs(id), "
-		"CONSTRAINT fk_timingdataid FOREIGN KEY (TIMINGDATAID) REFERENCES songs(ID))");
+		"CONSTRAINT fk_songid FOREIGN KEY (SONGID) REFERENCES songs(ID), "
+		"CONSTRAINT fk_timingdataid FOREIGN KEY (TIMINGDATAID) REFERENCES timingdatas(ID))");
 	db->exec("CREATE INDEX IF NOT EXISTS idx_dirs "
 		"ON songs(DIR, DIRHASH)");
 	db->exec("CREATE INDEX IF NOT EXISTS idx_timingdatas "
 		"ON timingdatas(ID)");
 	db->exec("CREATE INDEX IF NOT EXISTS idx_steps "
 		"ON steps(SONGID)");
-	db->exec("INSERT INTO dbinfo VALUES (NULL, " + CACHE_DB_VERSION + ")");
+	//db->exec("CREATE INDEX IF NOT EXISTS idx_msds "
+	//	"ON msdsatrates(RATE, SONGID)");
+	db->exec("INSERT INTO dbinfo VALUES (NULL, " + to_string(CACHE_DB_VERSION) + ")");
 }
 /*	Returns weather or not the db had valid data*/
 bool SongCacheIndex::OpenDB()
@@ -565,12 +568,6 @@ bool SongCacheIndex::OpenDB()
 	try {
 		db = new SQLite::Database(FILEMAN->ResolvePath(CACHE_DB), SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE | SQLITE_OPEN_FULLMUTEX);
 		StartTransaction();
-		db->exec("CREATE INDEX IF NOT EXISTS idx_dirs "
-			"ON songs(DIR, DIRHASH)");
-		db->exec("CREATE INDEX IF NOT EXISTS idx_timingdatas "
-			"ON timingdatas(ID)");
-		db->exec("CREATE INDEX IF NOT EXISTS idx_steps "
-			"ON steps(SONGID)");
 		if (!ret) {
 			ResetDB();
 			FinishTransaction();
@@ -584,8 +581,8 @@ bool SongCacheIndex::OpenDB()
 			FinishTransaction();
 			return false;
 		}
-		string cacheVersion = "";
-		cacheVersion = static_cast<const char *>(qDBInfo.getColumn(1));
+		unsigned int cacheVersion;
+		cacheVersion = qDBInfo.getColumn(1);
 		if (cacheVersion == CACHE_DB_VERSION) {
 			FinishTransaction();
 			return true;
@@ -683,12 +680,17 @@ RString SongCacheIndex::MangleName(const RString &Name)
 
 void SongCacheIndex::StartTransaction()
 {
+	if (db == nullptr)
+		return;
 	if (curTransaction != nullptr)
 		return;
 	curTransaction = new SQLite::Transaction(*db);
+	return;
 }
 void SongCacheIndex::FinishTransaction()
 {
+	if (curTransaction == nullptr || curTransaction != nullptr)
+		return;
 	curTransaction->commit();
 	delete curTransaction;
 	curTransaction = nullptr;
@@ -751,9 +753,9 @@ bool SongCacheIndex::LoadSongFromCache(Song* song, string dir)
 		if (query.isColumnNull(bpmminIndex) || query.isColumnNull(bpmmaxIndex))
 		{
 			if (query.isColumnNull(bpmminIndex) && query.isColumnNull(bpmmaxIndex))
-				song->m_DisplayBPMType = DISPLAY_BPM_RANDOM;
-			else
 				song->m_DisplayBPMType = DISPLAY_BPM_ACTUAL;
+			else
+				song->m_DisplayBPMType = DISPLAY_BPM_RANDOM;
 		}	
 		else
 		{
@@ -762,17 +764,17 @@ bool SongCacheIndex::LoadSongFromCache(Song* song, string dir)
 			song->m_fSpecifiedBPMMax = BPMmax;
 		}
 
-		loader.ProcessBPMs(song->m_SongTiming, song->GetMainTitle(), static_cast<const char *>(query.getColumn(index++)));
-		loader.ProcessStops(song->m_SongTiming, song->GetMainTitle(), static_cast<const char *>(query.getColumn(index++)));
+		loader.ProcessBPMs(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)), song->GetMainTitle());
+		loader.ProcessStops(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)), song->GetMainTitle());
 		loader.ProcessDelays(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)));
 		loader.ProcessWarps(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)), song->m_fVersion, song->GetMainTitle());
 		loader.ProcessTimeSignatures(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)));
 		loader.ProcessTickcounts(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)));
 		loader.ProcessCombos(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)));
 		loader.ProcessSpeeds(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)));
-		loader.ProcessScrolls(song->m_SongTiming, song->GetMainTitle(), static_cast<const char *>(query.getColumn(index++)));
+		loader.ProcessScrolls(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)), song->GetMainTitle());
 		loader.ProcessFakes(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)));
-		loader.ProcessLabels(song->m_SongTiming, song->GetMainTitle(), static_cast<const char *>(query.getColumn(index++)));
+		loader.ProcessLabels(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)), song->GetMainTitle());
 
 		song->SetSpecifiedLastSecond(static_cast<double>(query.getColumn(index++)));
 
@@ -824,21 +826,33 @@ bool SongCacheIndex::LoadSongFromCache(Song* song, string dir)
 			pNewNotes = song->CreateSteps();
 			int stepsID = qSteps.getColumn(stepsIndex++);
 			RString chartName = static_cast<const char*>(qSteps.getColumn(stepsIndex++));
-			Trim(chartName);
 			pNewNotes->SetChartName(chartName);
 			string stepsType = static_cast<const char*>(qSteps.getColumn(stepsIndex++));
 			pNewNotes->m_StepsType = GAMEMAN->StringToStepsType(stepsType);
 			pNewNotes->m_StepsTypeStr = stepsType;
 			RString description = static_cast<const char*>(qSteps.getColumn(stepsIndex++));
-			Trim(description);
 			pNewNotes->SetDescription(description);
 			pNewNotes->SetChartStyle(static_cast<const char*>(qSteps.getColumn(stepsIndex++)));
 			pNewNotes->SetDifficulty(static_cast<Difficulty>(static_cast<int>(qSteps.getColumn(stepsIndex++))));
 			pNewNotes->SetMeter(qSteps.getColumn(stepsIndex++));
 
 			MinaSD o;
-			for (size_t i = 0; i < NUM_Skillset; i++)
-				o.emplace_back(SSC::msdsplit(static_cast<const char*>(qSteps.getColumn(stepsIndex++))));
+			//for (size_t i = 0; i < NUM_Skillset; i++)
+			//	o.emplace_back(SSC::msdsplit(static_cast<const char*>(qSteps.getColumn(stepsIndex++))));
+			/*
+			SQLite::Statement qMsdsForARate(*db, "SELECT * FROM msdsatrates WHERE SONGID=" + to_string(songid)+ " ORDER BY RATE ASC");
+			while (qMsdsForARate.executeStep()) {
+				SDiffs temp;
+				for (size_t i = 1; i <= NUM_Skillset; i++)
+					temp.emplace_back(qMsdsForARate.getColumn(i));
+				o.emplace_back(temp);
+			}
+			*/
+			stringstream msds;
+			msds.str(static_cast<const char*>(qSteps.getColumn(stepsIndex++)));
+			string msdsatrate;
+			while (std::getline(msds, msdsatrate, ':')) 
+				o.emplace_back(SSC::msdsplit(msdsatrate));
 			pNewNotes->SetAllMSD(o);
 
 			pNewNotes->SetChartKey(static_cast<const char*>(qSteps.getColumn(stepsIndex++)));
@@ -897,9 +911,9 @@ bool SongCacheIndex::LoadSongFromCache(Song* song, string dir)
 			if (qSteps.isColumnNull(bpmminIndex) || qSteps.isColumnNull(bpmmaxIndex))
 			{
 				if (qSteps.isColumnNull(bpmminIndex) && qSteps.isColumnNull(bpmmaxIndex))
-					pNewNotes->SetDisplayBPM(DISPLAY_BPM_RANDOM);
-				else
 					pNewNotes->SetDisplayBPM(DISPLAY_BPM_ACTUAL);
+				else
+					pNewNotes->SetDisplayBPM(DISPLAY_BPM_RANDOM);
 			}
 			else
 			{

@@ -37,7 +37,7 @@ namespace NotesWriterSSC
 	 * @return its success or failure. */
 	bool WriteEditFileToMachine( const Song *pSong, Steps *pSteps, RString &sErrorOut );
 	RString MSDToString(MinaSD x);
-	RString SkillsetDiffsToString(SDiffs x);
+	RString MSDsAtRateToString(SDiffs x);
 }
 
 #endif
