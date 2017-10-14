@@ -36,14 +36,14 @@ static RString JoinLineList( vector<RString> &lines )
 RString NotesWriterSSC::MSDToString(MinaSD x) {
 	RString o = "";
 	for (size_t i = 0; i < x.size(); i++) {
-		o.append(NotesWriterSSC::SkillsetDiffsToString(x[i]));
+		o.append(NotesWriterSSC::MSDsAtRateToString(x[i]));
 		if (i != x.size() - 1)
 			o.append(":");
 	}
 	return o;
 }
 
-RString NotesWriterSSC::SkillsetDiffsToString(SDiffs x) {
+RString NotesWriterSSC::MSDsAtRateToString(SDiffs x) {
 	RString o = "";
 	for (size_t ii = 0; ii < x.size(); ii++) {
 		o.append(to_string(x[ii]).substr(0, 5));

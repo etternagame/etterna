@@ -19,8 +19,8 @@ class SongCacheIndex
 	void DeleteDB();
 	void CreateDBTables();
 	bool DBEmpty{true};
-	SQLite::Database *db;
-	SQLite::Transaction *curTransaction;
+	SQLite::Database *db{nullptr};
+	SQLite::Transaction *curTransaction{nullptr};
 public:
 	SongCacheIndex();
 	~SongCacheIndex();

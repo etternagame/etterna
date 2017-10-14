@@ -462,10 +462,8 @@ void SetChartKey(SSC::StepsTagInfo& info) {
 
 vector<float> SSC::msdsplit(const RString& s) {
 	vector<float> o;
-	for (size_t i = 0; i < s.size(); ++i) {
+	for (size_t i = 0; i < s.size(); i+=6) 
 		o.emplace_back(StringToFloat(s.substr(i, 5)));
-		i += 5;
-	}
 	return o;
 }
 
