@@ -17,6 +17,7 @@ public:
 	void HandleScreenMessage( const ScreenMessage SM ) override;
 	RoomWheel* GetRoomWheel();
 	void SelectCurrent();
+	void InfoSetVisible(bool visibility);
 
 	// Lua
 	void PushSelf(lua_State *L) override;

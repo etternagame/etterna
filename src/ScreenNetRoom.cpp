@@ -276,6 +276,12 @@ void ScreenNetRoom::CreateNewRoom( const RString& rName,  const RString& rDesc, 
 	NSMAN->SendSMOnline( );
 }
 
+
+void ScreenNetRoom::InfoSetVisible(bool visibility)
+{
+	m_roomInfo.SetVisible(visibility);
+}
+
 #endif
 
 // lua start
@@ -301,12 +307,18 @@ public:
 		lua_pushnumber(L, 0);
 		return 1;
 	}
+	static int InfoSetVisible(T* p, lua_State *L) {
+		p->InfoSetVisible(BArg(1));
+		return 1;
+	}
+	
 	LunaScreenNetRoom()
 	{
 		ADD_METHOD(GetMusicWheel);
 		ADD_METHOD(GetRoomWheel);
 		ADD_METHOD(SelectCurrent);
 		ADD_METHOD(GetSelectionState);
+		ADD_METHOD(InfoSetVisible);
 	}
 };
 
