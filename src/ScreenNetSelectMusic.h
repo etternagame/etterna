@@ -39,6 +39,9 @@ protected:
 
 	void Update( float fDeltaTime ) override;
 
+	Song* m_pSongAwaitingDeletionConfirmation;
+	void OnConfirmSongDeletion();
+
 	void MusicChanged();
 
 	void TweenOffScreen() override;
