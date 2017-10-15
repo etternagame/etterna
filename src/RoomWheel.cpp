@@ -22,7 +22,7 @@ RoomWheel::~RoomWheel()
 	m_CurWheelItemData.clear();
 }
 
-void RoomWheel::Load( const RString &sType ) 
+void RoomWheel::Load( const std::string &sType ) 
 {
 	WheelBase::Load( sType );
 
@@ -30,7 +30,11 @@ void RoomWheel::Load( const RString &sType )
 	LOG->Trace( "RoomWheel::Load('%s')", sType.c_str() );
 
 	searching = false;
-	search = "";
+	currentSearch.title = "";
+	currentSearch.desc = "";
+	currentSearch.ingame = true;
+	currentSearch.open = true;
+	currentSearch.password = true;
 
 	AddPermanentItem( new RoomWheelItemData(WheelItemDataType_Generic, "Create Room", "Create a new game room", THEME->GetMetricC( m_sName, "CreateRoomColor")) );
 
@@ -43,7 +47,7 @@ WheelItemBase *RoomWheel::MakeItem()
 	return new RoomWheelItem;
 }
 
-RoomWheelItem::RoomWheelItem( const RString &sType ):
+RoomWheelItem::RoomWheelItem( const std::string &sType ):
 	WheelItemBase( sType )
 {
 	Load( sType );
@@ -67,7 +71,7 @@ RoomWheelItem::RoomWheelItem( const RoomWheelItem &cpy ):
 	}
 }
 
-void RoomWheelItem::Load( const RString &sType )
+void RoomWheelItem::Load( const std::string &sType )
 {
 	// colorpart gets added first in MusicWheelItem, so follow that here.
 	m_sprColorPart.Load( THEME->GetPathG(sType,"ColorPart") );
@@ -198,19 +202,66 @@ unsigned int RoomWheel::GetNumItems() const
 }
 
 
+bool findme(std::string str, std::string findme)
+{
+	std::transform(begin(str), end(str), begin(str), ::tolower);
+	return str.find(findme) != string::npos;
+}
 
 void RoomWheel::FilterBySearch()
 {
-	RString title;
-	RString desc;
-	bool pw;
-	bool ingame;
-	bool selecting;
-	roomsInWheel = (*allRooms);
+	std::function<bool (RoomData)> check;
+
+	//Function that checks if we should remove the room based on it's state
+	std::function<bool(RoomData)> checkState = [this](RoomData x) {
+		return (x.State() == 2 && !currentSearch.ingame) ||
+			(x.State() != 2 && !currentSearch.open) ||
+			(x.GetFlags() % 2 && !currentSearch.password);
+	};
+	//Assign check function
+	if (!(currentSearch.ingame && currentSearch.open && currentSearch.password)) {
+		if (currentSearch.title == "" && currentSearch.desc == "")
+			check = checkState;
+		else {
+			if (currentSearch.title == "")
+				check = [this, checkState](RoomData x) {
+				return checkState(x) ||
+					!findme(x.Description(), currentSearch.desc);
+			};
+			else {
+				if (currentSearch.desc == "")
+					check = [this, checkState](RoomData x) {
+					return checkState(x) ||
+						!findme(x.Name(), currentSearch.title);
+				};
+				else
+					check = [this, checkState](RoomData x) {
+					return checkState(x) ||
+						!(findme(x.Name(), currentSearch.title) && findme(x.Description(), currentSearch.desc));
+				};
+			}
+		}
+	}
+	else {
+		if (currentSearch.title == "")
+			check = [this](RoomData x) { return !findme(x.Description(), currentSearch.desc); };
+		else {
+			if (currentSearch.desc == "")
+				check = [this](RoomData x) { return !findme(x.Name(), currentSearch.title); };
+			else
+				check = [this](RoomData x) { return !(findme(x.Name(), currentSearch.title) && 
+					findme(x.Description(), currentSearch.desc)); };
+		}
+	}
+	roomsInWheel.clear();
+	for (RoomData x : *allRooms)
+		if (!check(x))
+			roomsInWheel.emplace_back(x);
 }
-void RoomWheel::UpdateRoomsList(vector<RoomData> * roomsptr)
+void RoomWheel::BuildFromRoomDatas()
 {
-	allRooms = roomsptr;
+	if (allRooms == NULL)
+		return;
 	if (searching)
 		FilterBySearch();
 	else
@@ -246,24 +297,44 @@ void RoomWheel::UpdateRoomsList(vector<RoomData> * roomsptr)
 		itemData->m_sDesc = roomsInWheel[i].Description();
 		itemData->m_iFlags = roomsInWheel[i].GetFlags();
 
+		std::string color;
 		switch (roomsInWheel[i].State())
 		{
-		case 0:
-			itemData->m_color = THEME->GetMetricC(m_sName, "OpenRoomColor");
-			break;
 		case 2:
-			itemData->m_color = THEME->GetMetricC(m_sName, "InGameRoomColor");
+			color = "InGameRoomColor";
 			break;
 		default:
-			itemData->m_color = THEME->GetMetricC(m_sName, "OpenRoomColor");
+			color = "OpenRoomColor";
 			break;
 		}
+		itemData->m_color = THEME->GetMetricC(m_sName, color);
 
 		if (roomsInWheel[i].GetFlags() % 2)
 			itemData->m_color = THEME->GetMetricC(m_sName, "PasswdRoomColor");
 	}
 
 	RebuildWheelItems();
+}
+void RoomWheel::UpdateRoomsList(vector<RoomData> * roomsptr)
+{
+	allRooms = roomsptr;
+	BuildFromRoomDatas();
+}
+void RoomWheel::Search(RoomSearch findme)
+{
+	searching = true;
+	currentSearch = findme;
+	BuildFromRoomDatas();
+}
+void RoomWheel::StopSearch()
+{
+	searching = false;
+	currentSearch.title = "";
+	currentSearch.desc = "";
+	currentSearch.ingame = true;
+	currentSearch.open = true;
+	currentSearch.password = true;
+	BuildFromRoomDatas();
 }
 // lua start
 #include "LuaBinding.h"
@@ -277,6 +348,29 @@ public:
 		else
 		{
 			p->Move(IArg(1));
+		}
+		return 1;
+	}
+	static int StopSearch(T* p, lua_State *L)
+	{
+		p->StopSearch();
+		return 1;
+	}
+	static int Search(T* p, lua_State *L)
+	{
+		if (lua_isnil(L, 5))
+		{
+			p->StopSearch();
+		}
+		else
+		{
+			RoomSearch findme;
+			findme.title = SArg(1);
+			findme.desc = SArg(2);
+			findme.ingame = BArg(3);
+			findme.password = BArg(4);
+			findme.open = BArg(5);
+			p->Search(findme);
 		}
 		return 1;
 	}
@@ -294,6 +388,8 @@ public:
 	{
 		ADD_METHOD(Move);
 		ADD_METHOD(MoveAndCheckType);
+		ADD_METHOD(StopSearch);
+		ADD_METHOD(Search);
 	}
 };
 
