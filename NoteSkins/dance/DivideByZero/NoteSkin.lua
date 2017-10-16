@@ -21,6 +21,8 @@ USWN.ButtonRedir =
 	Down = "Down",
 	Left = "Down",
 	Right = "Down",
+	UpLeft = "Down",
+	UpRight = "Down",
 };
 
 -- Defined the parts to be rotated at which degree
@@ -30,6 +32,8 @@ USWN.Rotate =
 	Down = 0,
 	Left = 90,
 	Right = -90,
+	UpLeft = 135,
+	UpRight = 225,
 };
 
 
