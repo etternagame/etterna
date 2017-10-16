@@ -7,7 +7,9 @@ local t = Def.ActorFrame {
 		Texture=NOTESKIN:GetPath( "_downleftp1", "Tap Note" );
 		Frame0000=99;
 		Delay0000=1;
-		InitCommand=cmd(;glowblink;effectcolor1,0.4,0.4,0.4,0.4;effectcolor2,0.8,0.8,0.8,0.4;effectclock,'beat';effecttiming,0.2,0,0.8,0);
+		InitCommand=function(self)
+			self:glowblink():effectcolor1(0.4,0.4,0.4,0.4):effectcolor2(0.8,0.8,0.8,0.4):effectclock('beat'):effecttiming(0.2,0,0.8,0)
+		end;
 		NoneCommand=NOTESKIN:GetMetricA("ReceptorArrow", "NoneCommand");
 		PressCommand=NOTESKIN:GetMetricA("ReceptorArrow", "PressCommand");
 		LiftCommand=NOTESKIN:GetMetricA("ReceptorArrow", "LiftCommand");

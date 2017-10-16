@@ -1,5 +1,7 @@
 local t = LoadActor("AnyRightFist Receptor") .. {
-	InitCommand=cmd(zoomx,-1);
+	InitCommand=function(self)
+		self:zoomx(-1)
+	end;
 }
 
 return t;

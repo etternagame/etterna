@@ -107,6 +107,7 @@ void AdjustSync::SaveSyncChanges()
 		else
 		{
 			GAMESTATE->m_pCurSong->Save();
+			GAMESTATE->m_pCurSong->ReloadFromSongDir();
 		}
 	}
 	if( s_fGlobalOffsetSecondsOriginal != PREFSMAN->m_fGlobalOffsetSeconds )

@@ -16,7 +16,9 @@ local AvatarY = SCREEN_HEIGHT-50
 local playerRating = 0
 
 t[#t+1] = Def.Actor{
-	BeginCommand=cmd(queuecommand,"Set"),
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end,
 	SetCommand=function(self)
 		profile = GetPlayerOrMachineProfile(PLAYER_1)
 		profileName = profile:GetDisplayName()
@@ -26,13 +28,19 @@ t[#t+1] = Def.Actor{
 		profileXP = math.floor(profile:GetTotalDancePoints() / 10 + profile:GetTotalNumSongsPlayed() * 50)
 		playerRating = profile:GetPlayerRating()
 	end,
-	PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-	PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set")
+	PlayerJoinedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	PlayerUnjoinedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end	
 }
 
 t[#t+1] = Def.ActorFrame{
 	Name="Avatar"..PLAYER_1,
-	BeginCommand=cmd(queuecommand,"Set"),
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end,
 	SetCommand=function(self)
 		if profile == nil then
 			self:visible(false)
@@ -40,15 +48,27 @@ t[#t+1] = Def.ActorFrame{
 			self:visible(true)
 		end
 	end,
-	PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-	PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+	PlayerJoinedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	PlayerUnjoinedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
 
 	Def.Sprite {
 		Name="Image",
-		InitCommand=cmd(visible,true;halign,0;valign,0;xy,AvatarX,AvatarY),
-		BeginCommand=cmd(queuecommand,"ModifyAvatar"),
-		PlayerJoinedMessageCommand=cmd(queuecommand,"ModifyAvatar"),
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"ModifyAvatar"),
+		InitCommand=function(self)
+			self:visible(true):halign(0):valign(0):xy(AvatarX,AvatarY)
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("ModifyAvatar")
+		end,
+		PlayerJoinedMessageCommand=function(self)
+			self:queuecommand("ModifyAvatar")
+		end,
+		PlayerUnjoinedMessageCommand=function(self)
+			self:queuecommand("ModifyAvatar")
+		end,
 		ModifyAvatarCommand=function(self)
 			self:finishtweening()
 			self:Load(THEME:GetPathG("","../"..getAvatarPath(PLAYER_1)))
@@ -57,8 +77,12 @@ t[#t+1] = Def.ActorFrame{
 	},
 	--Revamped. SMO stuff for now. -Misterkister
 	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,AvatarX+53,AvatarY+7;halign,0;zoom,0.6;diffuse,getMainColor('positive')),
-		BeginCommand=cmd(queuecommand,"Set"),
+		InitCommand=function(self)
+			self:xy(AvatarX+53,AvatarY+7):halign(0):zoom(0.6):diffuse(getMainColor('positive'))
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			local tiers = {[0] = "1: Novice", [7] = "2: Basic", [13] = "3: Intermediate", [17] = "4: Advanced", [21] = "5: Expert", [25] = "6: Master", [29] = "7: Veteran", [35] = "8: Legendary", [40] = "9: Vibro Legend"}
 			local index = math.floor(playerRating)
@@ -71,50 +95,90 @@ t[#t+1] = Def.ActorFrame{
 			self:settextf("%s: %5.2f",profileName,playerRating)
 			end
 		end,
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+		PlayerJoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		PlayerUnjoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,AvatarX+53,AvatarY+20;halign,0;zoom,0.35;diffuse,getMainColor('positive')),
-		BeginCommand=cmd(queuecommand,"Set"),
+		InitCommand=function(self)
+			self:xy(AvatarX+53,AvatarY+20):halign(0):zoom(0.35):diffuse(getMainColor('positive'))
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			self:settext(playCount.." Plays")
 		end,
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+		PlayerJoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		PlayerUnjoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,AvatarX+53,AvatarY+30;halign,0;zoom,0.35;diffuse,getMainColor('positive')),
-		BeginCommand=cmd(queuecommand,"Set"),
+		InitCommand=function(self)
+			self:xy(AvatarX+53,AvatarY+30):halign(0):zoom(0.35):diffuse(getMainColor('positive'))
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			self:settext(noteCount.." Arrows Smashed")
 		end,
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+		PlayerJoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		PlayerUnjoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,AvatarX+53,AvatarY+40;halign,0;zoom,0.35;diffuse,getMainColor('positive')),
-		BeginCommand=cmd(queuecommand,"Set"),
+		InitCommand=function(self)
+			self:xy(AvatarX+53,AvatarY+40):halign(0):zoom(0.35):diffuse(getMainColor('positive'))
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			local time = SecondsToHHMMSS(playTime)
 			self:settextf(time.." PlayTime")
 		end,
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+		PlayerJoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		PlayerUnjoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,SCREEN_CENTER_X-125,AvatarY+40;halign,0.5;zoom,0.35;diffuse,getMainColor('positive')),
-		BeginCommand=cmd(queuecommand,"Set"),
+		InitCommand=function(self)
+			self:xy(SCREEN_CENTER_X-125,AvatarY+40):halign(0.5):zoom(0.35):diffuse(getMainColor('positive'))
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			self:settext("Judge: "..GetTimingDifficulty())
 		end,
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+		PlayerJoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		PlayerUnjoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	--Level system revamped. -Misterkister
 	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,SCREEN_CENTER_X,AvatarY+25;halign,0.5;zoom,0.35;diffuse,getMainColor('positive')),
-		BeginCommand=cmd(queuecommand,"Set"),
+		InitCommand=function(self)
+			self:xy(SCREEN_CENTER_X,AvatarY+25):halign(0.5):zoom(0.35):diffuse(getMainColor('positive'))
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 		local level = 1
 			if profileXP > 0 then
@@ -126,46 +190,80 @@ t[#t+1] = Def.ActorFrame{
 				self:settext("")
 			end
 		end,
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+		PlayerJoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		PlayerUnjoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,SCREEN_WIDTH-5,AvatarY+10;halign,1;zoom,0.35;diffuse,getMainColor('positive')),
-		BeginCommand=cmd(queuecommand,"Set"),
+		InitCommand=function(self)
+			self:xy(SCREEN_WIDTH-5,AvatarY+10):halign(1):zoom(0.35):diffuse(getMainColor('positive'))
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			self:settext(GAMESTATE:GetEtternaVersion())
 		end,
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+		PlayerJoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		PlayerUnjoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,SCREEN_WIDTH-5,AvatarY+20;halign,1;zoom,0.35;diffuse,getMainColor('positive')),
-		BeginCommand=cmd(queuecommand,"Set"),
+		InitCommand=function(self)
+			self:xy(SCREEN_WIDTH-5,AvatarY+20):halign(1):zoom(0.35):diffuse(getMainColor('positive'))
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			self:settextf("Songs Loaded: %i", SONGMAN:GetNumSongs())
 		end,
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+		PlayerJoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		PlayerUnjoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,SCREEN_WIDTH-5,AvatarY+30;halign,1;zoom,0.35;diffuse,getMainColor('positive')),
-		BeginCommand=cmd(queuecommand,"Set"),
+		InitCommand=function(self)
+			self:xy(SCREEN_WIDTH-5,AvatarY+30):halign(1):zoom(0.35):diffuse(getMainColor('positive'))
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			self:settextf("Songs Favorited: %i",  profile:GetNumFaves())
 		end,
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
-		FavoritesUpdatedMessageCommand=cmd(queuecommand,"Set"),
+		PlayerJoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		PlayerUnjoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		FavoritesUpdatedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 }
 
 local function Update(self)
-	t.InitCommand=cmd(SetUpdateFunction,Update);
+	t.InitCommand=function(self)
+		self:SetUpdateFunction(Update)
+	end;
 	if getAvatarUpdateStatus(PLAYER_1) then
     	self:GetChild("Avatar"..PLAYER_1):GetChild("Image"):queuecommand("ModifyAvatar")
     	setAvatarUpdateStatus(PLAYER_1,false)
     end;
 end
-t.InitCommand=cmd(SetUpdateFunction,Update)
+t.InitCommand=function(self)
+	self:SetUpdateFunction(Update)
+end	
 
 return t

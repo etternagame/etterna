@@ -1,6 +1,8 @@
 return Def.ActorFrame{
 	Def.Quad{
-		InitCommand=cmd(xy,2,-2;zoomto,4,38),
+		InitCommand=function(self)
+			self:xy(2,-2):zoomto(4,38)
+		end,
 		SetGradeCommand=function(self,params)
 			if params.Grade then
 				self:diffuse(getDifficultyColor("Difficulty_"..params.Difficulty))
@@ -11,7 +13,9 @@ return Def.ActorFrame{
 		end
 	},
 	Def.Sprite {
-		InitCommand=cmd(xy,-14,-2;zoomto,4,19),
+		InitCommand=function(self)
+			self:xy(-14,-2):zoomto(4,19)
+		end,
 		SetGradeCommand=function(self,params)
 			if params.Favorited then
 				self:Load(THEME:GetPathG("","urthemannowdog"))
@@ -23,7 +27,9 @@ return Def.ActorFrame{
 		end,
 	},
 	Def.Sprite {
-		InitCommand=cmd(xy,-40,-2;zoomto,4,19),
+		InitCommand=function(self)
+			self:xy(-40,-2):zoomto(4,19)
+		end,
 		SetGradeCommand=function(self,params)
 			if params.PermaMirror then
 				self:Load(THEME:GetPathG("","punchthekeysforgodssake"))
@@ -35,7 +41,9 @@ return Def.ActorFrame{
 		end,
 	},
 	Def.Quad{
-		InitCommand=cmd(xy,2,-2;zoomto,4,19),
+		InitCommand=function(self)
+			self:xy(2,-2):zoomto(4,19)
+		end,
 		SetGradeCommand=function(self,params)
 			if params.HasGoal then
 				self:diffuse(byJudgment("TapNoteScore_Miss"))
@@ -46,7 +54,9 @@ return Def.ActorFrame{
 		end
 	},
 	LoadFont("Common Normal") .. {
-        InitCommand=cmd(xy,16,-1;zoom,0.5;maxwidth,WideScale(get43size(20),20)/0.5),
+        InitCommand=function(self)
+        	self:xy(16,-1):zoom(0.5):maxwidth(WideScale(get43size(20),20)/0.5)
+        end,
         SetGradeCommand=function(self,params)
 			local sGrade = params.Grade or 'Grade_None'
 			self:valign(0.5)

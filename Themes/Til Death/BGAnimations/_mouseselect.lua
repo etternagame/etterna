@@ -2,7 +2,9 @@
 local whee
 local top
 local function mouseInput(event)
-	if event.DeviceInput.button == "DeviceButton_left mouse button" and event.type == "InputEventType_FirstPress"then
+	if top:GetSelectionState() == 2 then
+		return
+	elseif event.DeviceInput.button == "DeviceButton_left mouse button" and event.type == "InputEventType_FirstPress"then
 		if INPUTFILTER:GetMouseX() > capWideScale(370,500) then
 			local n=0
 			local m=1

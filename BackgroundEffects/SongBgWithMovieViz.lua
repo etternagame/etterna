@@ -24,8 +24,12 @@ local t = Def.ActorFrame {
 				self:GetTexture():rate(self:GetParent():GetUpdateRate())
 			end
 		end;
-		GainFocusCommand=cmd(play);
-		LoseFocusCommand=cmd(pause);
+		GainFocusCommand=function(self)
+			self:play()
+		end;
+		LoseFocusCommand=function(self)
+			self:pause()
+		end;
 	};
 };
 

@@ -53,10 +53,24 @@ local function FilterInput(event)
 end
 
 local f = Def.ActorFrame{
-	InitCommand=cmd(xy,frameX,frameY;halign,0),
-	Def.Quad{InitCommand=cmd(zoomto,frameWidth,frameHeight;halign,0;valign,0;diffuse,color("#333333CC"))},
-	Def.Quad{InitCommand=cmd(zoomto,frameWidth,offsetY;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,0.5)},
-	LoadFont("Common Normal")..{InitCommand=cmd(xy,5,offsetY-9;zoom,0.6;halign,0;diffuse,getMainColor('positive');settext,"Filters (WIP)")},
+	InitCommand=function(self)
+		self:xy(frameX,frameY):halign(0)
+	end,
+	Def.Quad{
+		InitCommand=function(self)
+			self:zoomto(frameWidth,frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
+		end,
+	},
+	Def.Quad{
+		InitCommand=function(self)
+			self:zoomto(frameWidth,offsetY):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(0.5)
+		end,
+	},
+	LoadFont("Common Normal")..{
+		InitCommand=function(self)
+			self:xy(5,offsetY-9):zoom(0.6):halign(0):diffuse(getMainColor('positive')):settext("Filters (WIP)")
+		end,
+	},
 	OnCommand=function(self)
 		whee = SCREENMAN:GetTopScreen():GetMusicWheel()
 		SCREENMAN:GetTopScreen():AddInputCallback(FilterInput)
@@ -74,7 +88,9 @@ local f = Def.ActorFrame{
 			active = false
 		end
 	end,
-	TabChangedMessageCommand=cmd(queuecommand,"Set"),
+	TabChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
 	MouseRightClickMessageCommand=function(self)
 		ActiveSS = 0
 		MESSAGEMAN:Broadcast("NumericInputEnded")
@@ -82,44 +98,60 @@ local f = Def.ActorFrame{
 		SCREENMAN:set_input_redirected(PLAYER_1, false)
 	end,
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX,frameY;zoom,0.3;halign,0),
+		InitCommand=function(self)
+			self:xy(frameX,frameY):zoom(0.3):halign(0)
+		end,
 		SetCommand=function(self) 
 			self:settext("Left click on the filter value to set it.")
 		end,
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX,frameY+20;zoom,0.3;halign,0),
+		InitCommand=function(self)
+			self:xy(frameX,frameY+20):zoom(0.3):halign(0)
+		end,
 		SetCommand=function(self) 
 			self:settext("Right click/Start/Back to cancel input.")
 		end,
 	},
-		LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX,frameY+40;zoom,0.3;halign,0),
+	LoadFont("Common Large")..{
+		InitCommand=function(self)
+			self:xy(frameX,frameY+40):zoom(0.3):halign(0)
+		end,
 		SetCommand=function(self) 
 			self:settext("Greyed out values are inactive.")
 		end,
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX,frameY+60;zoom,0.3;halign,0),
+		InitCommand=function(self)
+			self:xy(frameX,frameY+60):zoom(0.3):halign(0)
+		end,
 		SetCommand=function(self) 
 			self:settext("Using both bounds creates a range.")
 		end,
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX,frameY+80;zoom,0.3;halign,0),
+		InitCommand=function(self)
+			self:xy(frameX,frameY+80):zoom(0.3):halign(0)
+		end,
 		SetCommand=function(self) 
 			self:settext("'Highest Only' applies only to Mode: Or")
 		end,
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+frameWidth/2,175;zoom,textzoom;halign,0),
+		InitCommand=function(self)
+			self:xy(frameX+frameWidth/2,175):zoom(textzoom):halign(0)
+		end,
 		SetCommand=function(self) 
 			self:settextf("Max Rate:%5.1fx",FILTERMAN:GetMaxFilterRate())
 		end,
-		MaxFilterRateChangedMessageCommand=cmd(queuecommand,"Set"),
+		MaxFilterRateChangedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	Def.Quad{
-		InitCommand=cmd(xy,frameX+frameWidth/2,175;zoomto,130,18;halign,0;diffusealpha,0),
+		InitCommand=function(self)
+			self:xy(frameX+frameWidth/2,175):zoomto(130,18):halign(0):diffusealpha(0)
+		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) and active then
 				FILTERMAN:SetMaxFilterRate(FILTERMAN:GetMaxFilterRate()+0.1)
@@ -136,14 +168,20 @@ local f = Def.ActorFrame{
 		end,
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY;zoom,textzoom;halign,0),
+		InitCommand=function(self)
+			self:xy(frameX+frameWidth/2,175 + spacingY):zoom(textzoom):halign(0)
+		end,
 		SetCommand=function(self) 
 			self:settextf("Min Rate:%5.1fx",FILTERMAN:GetMinFilterRate())
 		end,
-		MaxFilterRateChangedMessageCommand=cmd(queuecommand,"Set"),
+		MaxFilterRateChangedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	Def.Quad{
-		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY;zoomto,130,18;halign,0;diffusealpha,0),
+		InitCommand=function(self)
+			self:xy(frameX+frameWidth/2,175 + spacingY):zoomto(130,18):halign(0):diffusealpha(0)
+		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) and active then
 				FILTERMAN:SetMinFilterRate(FILTERMAN:GetMinFilterRate()+0.1)
@@ -160,7 +198,9 @@ local f = Def.ActorFrame{
 		end,
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY * 2;zoom,textzoom;halign,0),
+		InitCommand=function(self)
+			self:xy(frameX+frameWidth/2,175 + spacingY * 2):zoom(textzoom):halign(0)
+		end,
 		SetCommand=function(self)
 			if FILTERMAN:GetFilterMode() then 
 				self:settext("Mode: ".."AND")
@@ -168,10 +208,14 @@ local f = Def.ActorFrame{
 				self:settext("Mode: ".."OR")
 			end
 		end,
-		FilterModeChangedMessageCommand=cmd(queuecommand,"Set"),
+		FilterModeChangedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	Def.Quad{
-		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY * 2;zoomto,120,18;halign,0;diffusealpha,0),
+		InitCommand=function(self)
+			self:xy(frameX+frameWidth/2,175 + spacingY * 2):zoomto(120,18):halign(0):diffusealpha(0)
+		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) and active then
 				FILTERMAN:ToggleFilterMode()
@@ -181,7 +225,9 @@ local f = Def.ActorFrame{
 		end,
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY * 3;zoom,textzoom;halign,0),
+		InitCommand=function(self)
+			self:xy(frameX+frameWidth/2,175 + spacingY * 3):zoom(textzoom):halign(0)
+		end,
 		SetCommand=function(self)
 			if FILTERMAN:GetHighestSkillsetsOnly() then 
 				self:settext("Highest Only: ".."ON")
@@ -194,10 +240,14 @@ local f = Def.ActorFrame{
 				self:diffuse(color("#FFFFFF"))
 			end
 		end,
-		FilterModeChangedMessageCommand=cmd(queuecommand,"Set"),
+		FilterModeChangedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	Def.Quad{
-		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY * 3;zoomto,160,18;halign,0;diffusealpha,0),
+		InitCommand=function(self)
+			self:xy(frameX+frameWidth/2,175 + spacingY * 3):zoomto(160,18):halign(0):diffusealpha(0)
+		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) and active then
 				FILTERMAN:ToggleHighestSkillsetsOnly()
@@ -207,7 +257,9 @@ local f = Def.ActorFrame{
 		end,
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+frameWidth/2,175 + spacingY * 4;zoom,textzoom;halign,0;settext,""),
+		InitCommand=function(self)
+			self:xy(frameX+frameWidth/2,175 + spacingY * 4):zoom(textzoom):halign(0):settext("")
+		end,
 		FilterResultsMessageCommand=function(self, msg)
 			self:settext("Matches: "..msg.Matches.."/"..msg.Total)
 		end
@@ -217,11 +269,17 @@ local f = Def.ActorFrame{
 local function CreateFilterInputBox(i)
 	local t = Def.ActorFrame{
 		LoadFont("Common Large")..{
-			InitCommand=cmd(addx,10;addy,175 + (i-1)*spacingY;halign,0;zoom,textzoom),
-			SetCommand=cmd(settext, ms.SkillSets[i])
+			InitCommand=function(self)
+				self:addx(10):addy(175 + (i-1)*spacingY):halign(0):zoom(textzoom)
+			end,
+			SetCommand=function(self)
+				self:settext( ms.SkillSets[i])
+			end	
 		},
 		Def.Quad{
-			InitCommand=cmd(addx,150;addy,175 + (i-1)*spacingY;zoomto,18,18;halign,1),
+			InitCommand=function(self)
+				self:addx(150):addy(175 + (i-1)*spacingY):zoomto(18,18):halign(1)
+			end,
 			MouseLeftClickMessageCommand=function(self)
 				if isOver(self) and active then
 					ActiveSS = i
@@ -238,12 +296,20 @@ local function CreateFilterInputBox(i)
 					self:diffuse(color("#000000"))
 				end
 			end,
-			UpdateFilterMessageCommand=cmd(queuecommand,"Set"),
-			NumericInputEndedMessageCommand=cmd(queuecommand,"Set"),
-			NumericInputActiveMessageCommand=cmd(queuecommand,"Set"),
+			UpdateFilterMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+			NumericInputEndedMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+			NumericInputActiveMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
 		},
 		LoadFont("Common Large")..{
-			InitCommand=cmd(addx,150;addy,175 + (i-1)*spacingY;halign,1;maxwidth,40;zoom,textzoom),
+			InitCommand=function(self)
+				self:addx(150):addy(175 + (i-1)*spacingY):halign(1):maxwidth(40):zoom(textzoom)
+			end,
 			SetCommand=function(self)
 				local fval = FILTERMAN:GetSSFilter(i,0)				-- lower bounds
 				self:settext(fval)
@@ -253,11 +319,17 @@ local function CreateFilterInputBox(i)
 					self:diffuse(color("#FFFFFF"))
 				end
 			end,
-			UpdateFilterMessageCommand=cmd(queuecommand,"Set"),
-			NumericInputActiveMessageCommand=cmd(queuecommand,"Set"),
+			UpdateFilterMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+			NumericInputActiveMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
 		},
 		Def.Quad{
-			InitCommand=cmd(addx,175;addy,175 + (i-1)*spacingY;zoomto,18,18;halign,1),
+			InitCommand=function(self)
+				self:addx(175):addy(175 + (i-1)*spacingY):zoomto(18,18):halign(1)
+			end,
 			MouseLeftClickMessageCommand=function(self)
 				if isOver(self) and active then
 					ActiveSS = i
@@ -274,12 +346,20 @@ local function CreateFilterInputBox(i)
 					self:diffuse(color("#000000"))
 				end
 			end,
-			UpdateFilterMessageCommand=cmd(queuecommand,"Set"),
-			NumericInputEndedMessageCommand=cmd(queuecommand,"Set"),
-			NumericInputActiveMessageCommand=cmd(queuecommand,"Set"),
+			UpdateFilterMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+			NumericInputEndedMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+			NumericInputActiveMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
 		},
 		LoadFont("Common Large")..{
-			InitCommand=cmd(addx,175;addy,175 + (i-1)*spacingY;halign,1;maxwidth,40;zoom,textzoom),
+			InitCommand=function(self)
+				self:addx(175):addy(175 + (i-1)*spacingY):halign(1):maxwidth(40):zoom(textzoom)
+			end,
 			SetCommand=function(self)
 				local fval = FILTERMAN:GetSSFilter(i,1)				-- upper bounds
 				self:settext(fval)
@@ -289,8 +369,12 @@ local function CreateFilterInputBox(i)
 					self:diffuse(color("#FFFFFF"))
 				end
 			end,
-			UpdateFilterMessageCommand=cmd(queuecommand,"Set"),
-			NumericInputActiveMessageCommand=cmd(queuecommand,"Set"),
+			UpdateFilterMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+			NumericInputActiveMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
 		},
 	}
 	return t
@@ -298,7 +382,9 @@ end
 
 --reset button
 f[#f+1] = Def.Quad{
-    InitCommand=cmd(xy,frameX+frameWidth-150,frameY+250;zoomto,60,20;halign,0.5;diffuse,getMainColor('frames');diffusealpha,0),
+    InitCommand=function(self)
+    	self:xy(frameX+frameWidth-150,frameY+250):zoomto(60,20):halign(0.5):diffuse(getMainColor('frames')):diffusealpha(0)
+    end,
     MouseLeftClickMessageCommand=function(self)
         if isOver(self) and active then
             FILTERMAN:ResetSSFilters()
@@ -314,7 +400,9 @@ f[#f+1] = Def.Quad{
     end
     }
 f[#f+1] = LoadFont("Common Large") .. {
-        InitCommand=cmd(xy,frameX+frameWidth-150,frameY+250;halign,0.5;zoom,0.35),
+        InitCommand=function(self)
+        	self:xy(frameX+frameWidth-150,frameY+250):halign(0.5):zoom(0.35)
+        end,
         BeginCommand=function(self)
             self:settext( 'Reset' )
         end

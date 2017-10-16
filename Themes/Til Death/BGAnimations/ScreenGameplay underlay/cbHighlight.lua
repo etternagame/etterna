@@ -35,7 +35,9 @@ local function laneHighlight(pn)
 
 	for i=1,cols do
 		t[#t+1] = Def.Quad{
-			InitCommand=cmd(xy,xpos-(arrowWidth*(cols/2)*getNoteFieldScale(pn))+((i-1)*arrowWidth*getNoteFieldScale(pn))+(getNoteFieldScale(pn)*arrowWidth/2),0;zoomto,getNoteFieldScale(pn)*(arrowWidth-4),SCREEN_HEIGHT/4.5;valign,0;diffusealpha,0);
+			InitCommand=function(self)
+				self:xy(xpos-(arrowWidth*(cols/2)*getNoteFieldScale(pn))+((i-1)*arrowWidth*getNoteFieldScale(pn))+(getNoteFieldScale(pn)*arrowWidth/2),0):zoomto(getNoteFieldScale(pn)*(arrowWidth-4),SCREEN_HEIGHT/4.5):valign(0):diffusealpha(0)
+			end;
 			BeginCommand=function(self)
 				self:fadeleft(0.2)
 				self:faderight(0.2)

@@ -2,11 +2,15 @@ t = Def.ActorFrame{}
 
 
 t[#t+1] = Def.Quad{
-	InitCommand=cmd(zoomto,22,22;diffuse,color("#ffffff");diffusealpha,0.7);
+	InitCommand=function(self)
+		self:zoomto(22,22):diffuse(color("#ffffff")):diffusealpha(0.7)
+	end;
 };
 
 t[#t+1] = Def.Quad{
-	InitCommand=cmd(x,22;zoomto,66,22;diffuse,color("#ffffff");diffusealpha,0.5);
+	InitCommand=function(self)
+		self:x(22):zoomto(66,22):diffuse(color("#ffffff")):diffusealpha(0.5)
+	end;
 };
 
 

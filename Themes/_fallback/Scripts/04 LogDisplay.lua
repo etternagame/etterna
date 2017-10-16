@@ -245,7 +245,9 @@ local log_display_mt= {
 							subself:diffuse(self.text_color)
 							subself:visible(false)
 						end,
-						OffCommand= cmd(visible,false),
+						OffCommand= function(self)
+							self:visible(false)
+						end,
 					}
 			end
 			return Def.ActorFrame(args)

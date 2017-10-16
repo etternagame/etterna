@@ -1,4 +1,4 @@
-#include "global.h"
+﻿#include "global.h"
 #include "LuaManager.h"
 #include "LuaReference.h"
 #include "RageUtil.h"
@@ -1413,7 +1413,8 @@ void LuaHelpers::ParseCommandList( Lua *L, const std::string &sCommands, const s
 int LuaHelpers::TypeError( Lua *L, int iArgNo, std::string const &szName )
 {
 	std::string sType;
-	luaL_pushtype( L, iArgNo );
+	if (!luaL_callmeta(L, iArgNo, "__type"))
+		lua_pushstring(L, luaL_typename(L, iArgNo));
 	LuaHelpers::Pop( L, sType );
 
 	lua_Debug debug;

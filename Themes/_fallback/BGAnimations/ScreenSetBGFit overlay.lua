@@ -35,7 +35,9 @@ function BGFitNormalExampleText(w, h)
 			self:y(mini_screen_h * .5 + 9)
 			self:zoom(.375)
 		end,
-		OnCommand=cmd(shadowlength,1)
+		OnCommand=function(self)
+			self:shadowlength(1)
+		end	
 	}
 end
 
@@ -62,7 +64,9 @@ for i, mode in ipairs(BackgroundFitMode) do
 				self:y(mini_screen_h * -2.5)
 				self:zoom(.75)
 			end,
-			OnCommand=cmd(diffusebottomedge,color("0.875,0.875,0.875");shadowlength,1)
+			OnCommand=function(self)
+				self:diffusebottomedge(color("0.875,0.875,0.875")):shadowlength(1)
+			end	
 		},
 		-- BGFitChoiceExample is a function that creates an example to show how
 		-- a bg with a given aspect ratio is affected by the fitting mode for

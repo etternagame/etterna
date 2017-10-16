@@ -1,8 +1,14 @@
 local update = false
 local t = Def.ActorFrame{
-	BeginCommand=cmd(queuecommand,"Set";visible,false),
-	OffCommand=cmd(bouncebegin,0.2;xy,-500,0;diffusealpha,0),
-	OnCommand=cmd(bouncebegin,0.2;xy,0,0;diffusealpha,1),
+	BeginCommand=function(self)
+		self:queuecommand("Set"):visible(false)
+	end,
+	OffCommand=function(self)
+		self:bouncebegin(0.2):xy(-500,0):diffusealpha(0)
+	end,
+	OnCommand=function(self)
+		self:bouncebegin(0.2):xy(0,0):diffusealpha(1)
+	end,
 	SetCommand=function(self)
 		self:finishtweening()
 		if getTabIndex() == 4 then
@@ -14,8 +20,12 @@ local t = Def.ActorFrame{
 			update = false
 		end
 	end,
-	TabChangedMessageCommand=cmd(queuecommand,"Set"),
-	PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
+	TabChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	PlayerJoinedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
 }
 
 local frameX = 10
@@ -43,9 +53,17 @@ if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
 end
 
 
-t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,frameHeight;halign,0;valign,0;diffuse,color("#333333CC"))}
-t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,offsetY;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,0.5)}
-t[#t+1] = LoadFont("Common Normal")..{InitCommand=cmd(xy,frameX+5,frameY+offsetY-9;zoom,0.6;halign,0;diffuse,getMainColor('positive');settext,"Profile Info (WIP)")}
+t[#t+1] = Def.Quad{InitCommand=function(self)
+	self:xy(frameX,frameY):zoomto(frameWidth,frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
+end}
+t[#t+1] = Def.Quad{InitCommand=function(self)
+	self:xy(frameX,frameY):zoomto(frameWidth,offsetY):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(0.5)
+end}
+t[#t+1] = LoadFont("Common Normal")..{
+	InitCommand=function(self)
+		self:xy(frameX+5,frameY+offsetY-9):zoom(0.6):halign(0):diffuse(getMainColor('positive')):settext("Profile Info (WIP)")
+	end	
+}
 
 
 local function byValidity(valid)
@@ -85,7 +103,7 @@ local function rankingLabel(i)
 	local t = Def.ActorFrame{
 		InitCommand=function(self)
 			self:xy(rankingX + offsetX, rankingY + offsetY + 10 + (i-1)*scoreYspacing)
-			self:RunCommandsOnChildren(cmd(halign,0;zoom,fontScale))
+			-- self:RunCommandsOnChildren(cmd(halign,0;zoom,fontScale))
 			self:visible(false)
 		end,
 		UpdateRankingMessageCommand=function(self)
@@ -93,18 +111,24 @@ local function rankingLabel(i)
 				ths = SCOREMAN:GetTopSSRHighScore(i+(scoresperpage*(rankingPage-1)), ms.SkillSets[rankingSkillset])
 				if ths then
 					self:visible(true)
-					ck = ths:GetChartKey()						
+					ck = ths:GetChartKey()
 					thssong = SONGMAN:GetSongByChartKey(ck)
 					thssteps = SONGMAN:GetStepsByChartKey(ck)
-					
-					self:RunCommandsOnChildren(cmd(queuecommand, "Display"))
+					if not self and self.GetChildren then
+						for child in self:GetChildren() do
+							child:queuecommand("Display")
+						end
+					end
 				end
 			else
 				self:visible(false)
 			end
 		end,
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(maxwidth,100),
+			InitCommand=function(self)
+				self:halign(0):zoom(fontScale)
+				self:maxwidth(100)
+			end,
 			DisplayCommand=function(self)
 				self:halign(0.5)
 				self:settext(((rankingPage-1)*25)+i..".")
@@ -112,21 +136,30 @@ local function rankingLabel(i)
 			end
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(x,15;maxwidth,160),
+			InitCommand=function(self)
+				self:halign(0):zoom(fontScale)
+				self:x(15):maxwidth(160)
+			end,
 			DisplayCommand=function(self)
 				self:settextf("%5.2f", ths:GetSkillsetSSR(ms.SkillSets[rankingSkillset]))
 				self:diffuse(byValidity(ths:GetEtternaValid()))
 			end
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(x,55;maxwidth,580),
+			InitCommand=function(self)
+				self:halign(0):zoom(fontScale)
+				self:x(55):maxwidth(580)
+			end,
 			DisplayCommand=function(self)
 				self:settext(thssong:GetDisplayMainTitle())
 				self:diffuse(byValidity(ths:GetEtternaValid()))
 			end
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(x,220),
+			InitCommand=function(self)
+				self:halign(0):zoom(fontScale)
+				self:x(220)
+			end,
 			DisplayCommand=function(self)
 				self:halign(0.5)
 				local ratestring = string.format("%.2f", ths:GetMusicRate()):gsub("%.?0+$", "").."x"
@@ -135,7 +168,10 @@ local function rankingLabel(i)
 			end
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(x,240;maxwidth,160),
+			InitCommand=function(self)
+				self:halign(0):zoom(fontScale)
+				self:x(240):maxwidth(160)
+			end,
 			DisplayCommand=function(self)
 				self:settextf("%5.2f%%", ths:GetWifeScore()*100)
 				if not ths:GetEtternaValid() then
@@ -146,7 +182,10 @@ local function rankingLabel(i)
 			end
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(x,300),
+			InitCommand=function(self)
+				self:halign(0):zoom(fontScale)
+				self:x(300)
+			end,
 			DisplayCommand=function(self)
 				local diff = thssteps:GetDifficulty()
 				self:halign(0.5)
@@ -155,7 +194,10 @@ local function rankingLabel(i)
 			end
 		},
 		Def.Quad{
-			InitCommand=cmd(diffusealpha,buttondiffuse),
+			InitCommand=function(self)
+				self:halign(0):zoom(fontScale)
+				self:diffusealpha(buttondiffuse)
+			end,
 			DisplayCommand=function(self)	-- hacky
 				self:visible(true)
 				self:zoomto(300,scoreYspacing)
@@ -191,7 +233,9 @@ local function rankingButton(i)
 			self:xy(rankingX + (i-1)*rankingTitleSpacing, rankingY)
 		end,
 		Def.Quad{
-			InitCommand=cmd(zoomto,rankingTitleSpacing,30;diffuse,getMainColor('frames');diffusealpha,0.35),
+			InitCommand=function(self)
+				self:zoomto(rankingTitleSpacing,30):diffuse(getMainColor('frames')):diffusealpha(0.35)
+			end,
 			SetCommand=function(self)
 				if i == rankingSkillset then
 					self:diffusealpha(1)
@@ -207,10 +251,14 @@ local function rankingButton(i)
 					BroadcastIfActive("UpdateRanking")
 				end
 			end,
-			UpdateRankingMessageCommand=cmd(queuecommand,"Set")
+			UpdateRankingMessageCommand=function(self)
+				self:queuecommand("Set")
+			end	
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(diffuse,getMainColor('positive');maxwidth,rankingTitleSpacing;maxheight,25;zoom,0.85),
+			InitCommand=function(self)
+				self:diffuse(getMainColor('positive')):maxwidth(rankingTitleSpacing):maxheight(25):zoom(0.85)
+			end,
 			BeginCommand=function(self)
 				self:settext(ms.SkillSets[i])
 			end
@@ -221,17 +269,25 @@ end
 
 -- prev/next page
 r[#r+1] = Def.ActorFrame{
-	InitCommand=cmd(xy, 10, frameHeight - offsetY;visible,false),
+	InitCommand=function(self)
+		self:xy( 10, frameHeight - offsetY):visible(false)
+	end,
 	UpdateRankingMessageCommand=function(self)
 		if rankingSkillset > 1 then 
 			self:visible(true)
-			self:RunCommandsOnChildren(cmd(queuecommand, "Display"))
+			if not self and self.GetChildren then
+				for child in self:GetChildren() do
+					child:queuecommand("Display")
+				end
+			end
 		else
 			self:visible(false)
 		end
 	end,
 	Def.Quad{
-		InitCommand=cmd(xy,300,-8;zoomto,40,20;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,buttondiffuse),
+		InitCommand=function(self)
+			self:xy(300,-8):zoomto(40,20):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(buttondiffuse)
+		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
 				if	rankingPage < numrankingpages then
@@ -244,10 +300,14 @@ r[#r+1] = Def.ActorFrame{
 		end
 	},
 	LoadFont("Common Large") .. {
-		InitCommand=cmd(x,300;halign,0;zoom,0.3;diffuse,getMainColor('positive');settext,"Next"),
+		InitCommand=function(self)
+			self:x(300):halign(0):zoom(0.3):diffuse(getMainColor('positive')):settext("Next")
+		end,
 	},	
 	Def.Quad{
-		InitCommand=cmd(y,-8;zoomto,65,20;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,buttondiffuse),
+		InitCommand=function(self)
+			self:y(-8):zoomto(65,20):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(buttondiffuse)
+		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then 
 				if rankingPage > 1 then
@@ -260,10 +320,14 @@ r[#r+1] = Def.ActorFrame{
 		end
 	},
 	LoadFont("Common Large") .. {
-		InitCommand=cmd(halign,0;zoom,0.3;diffuse,getMainColor('positive');settext,"Previous"),
+		InitCommand=function(self)
+			self:halign(0):zoom(0.3):diffuse(getMainColor('positive')):settext("Previous")
+		end,
 	},
 	LoadFont("Common Large") .. {
-		InitCommand=cmd(x,175;halign,0.5;zoom,0.3;diffuse,getMainColor('positive')),
+		InitCommand=function(self)
+			self:x(175):halign(0.5):zoom(0.3):diffuse(getMainColor('positive'))
+		end,
 		DisplayCommand=function(self)
 			self:settextf("%i-%i", ((rankingPage-1)*25)+1, rankingPage*25)
 		end
@@ -282,7 +346,9 @@ end
 
 local function littlebits(i)
 	local t = Def.ActorFrame{
-		InitCommand=cmd(xy,frameX+30,frameY + 50),
+		InitCommand=function(self)
+			self:xy(frameX+30,frameY + 50)
+		end,
 		UpdateRankingMessageCommand=function(self)
 			if rankingSkillset == 1 and update then
 				self:visible(true)
@@ -291,13 +357,17 @@ local function littlebits(i)
 			end
 		end,
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(y,22*i;halign,0;zoom,0.5;diffuse,getMainColor('positive')),
+			InitCommand=function(self)
+				self:y(22*i):halign(0):zoom(0.5):diffuse(getMainColor('positive'))
+			end,
 			SetCommand=function(self)
 				self:settext(ms.SkillSets[i]..":")
 			end
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,240,22*i;halign,1;zoom,0.5),
+			InitCommand=function(self)
+				self:xy(240,22*i):halign(1):zoom(0.5)
+			end,
 			SetCommand=function(self)
 				local rating = profile:GetPlayerSkillsetRating(ms.SkillSets[i])
 				self:settextf("%5.2f",rating)
@@ -315,7 +385,9 @@ end
 
 
 local profilebuttons = Def.ActorFrame{
-	InitCommand=cmd(xy,frameX+60,frameHeight + 20),
+	InitCommand=function(self)
+		self:xy(frameX+60,frameHeight + 20)
+	end,
 	UpdateRankingMessageCommand=function(self)
 		if rankingSkillset == 1 and update then
 			self:visible(true)
@@ -324,10 +396,14 @@ local profilebuttons = Def.ActorFrame{
 		end
 	end,
 	LoadFont("Common Large") .. {
-		InitCommand=cmd(diffuse,getMainColor('positive');settext,"Save Profile";zoom,0.3)
+		InitCommand=function(self)
+			self:diffuse(getMainColor('positive')):settext("Save Profile"):zoom(0.3)
+		end	
 	},
 	Def.Quad{
-		InitCommand=cmd(zoomto,100,20;diffusealpha,buttondiffuse),
+		InitCommand=function(self)
+			self:zoomto(100,20):diffusealpha(buttondiffuse)
+		end,
 		MouseLeftClickMessageCommand=function(self)
 			if ButtonActive(self) and rankingSkillset == 1 then
 				if PROFILEMAN:SaveProfile(PLAYER_1) then
@@ -338,9 +414,15 @@ local profilebuttons = Def.ActorFrame{
 			end
 		end
 	},
-	LoadFont("Common Large") .. {InitCommand=cmd(x,100;diffuse,getMainColor('positive');settext,"Import Scores";zoom,0.3)},
+	LoadFont("Common Large") .. {
+		InitCommand=function(self)
+			self:x(100):diffuse(getMainColor('positive')):settext("Import Scores"):zoom(0.3)
+		end,
+	},
 	Def.Quad{
-		InitCommand=cmd(x,100;zoomto,100,20;diffusealpha,buttondiffuse),
+		InitCommand=function(self)
+			self:x(100):zoomto(100,20):diffusealpha(buttondiffuse)
+		end,
 		MouseLeftClickMessageCommand=function(self)
 			if ButtonActive(self) and rankingSkillset == 1 then
 				if PROFILEMAN:ConvertProfile(PLAYER_1) then
@@ -351,9 +433,15 @@ local profilebuttons = Def.ActorFrame{
 			end
 		end
 	},
-	LoadFont("Common Large") .. {InitCommand=cmd(x,200;diffuse,getMainColor('positive');settext,"Validate All";zoom,0.3)},
+	LoadFont("Common Large") .. {
+		InitCommand=function(self)
+			self:x(200):diffuse(getMainColor('positive')):settext("Validate All"):zoom(0.3)
+		end,
+	},
 	Def.Quad{
-		InitCommand=cmd(x,200;zoomto,100,20;diffusealpha,buttondiffuse),
+		InitCommand=function(self)
+			self:x(200):zoomto(100,20):diffusealpha(buttondiffuse)
+		end,
 		MouseLeftClickMessageCommand=function(self)
 			if ButtonActive(self) and rankingSkillset == 1 then
 				SCOREMAN:ValidateAllScores()
