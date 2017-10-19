@@ -552,7 +552,7 @@ bool ScreenSelectMusic::Input(const InputEventPlus &input)
 				return true;
 
 			SONGMAN->allplaylists[SONGMAN->activeplaylist].AddChart(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
-			MESSAGEMAN->Broadcast("DisplayPlaylist");
+			MESSAGEMAN->Broadcast("DisplaySinglePlaylist");
 			SCREENMAN->SystemMessage(ssprintf("Added chart: %s to playlist: %s", GAMESTATE->m_pCurSong->GetDisplayMainTitle().c_str(), SONGMAN->activeplaylist.c_str()));
 			return true;
 		}
