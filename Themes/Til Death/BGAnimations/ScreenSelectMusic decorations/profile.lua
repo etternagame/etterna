@@ -114,11 +114,7 @@ local function rankingLabel(i)
 					ck = ths:GetChartKey()
 					thssong = SONGMAN:GetSongByChartKey(ck)
 					thssteps = SONGMAN:GetStepsByChartKey(ck)
-					if not self and self.GetChildren then
-						for child in self:GetChildren() do
-							child:queuecommand("Display")
-						end
-					end
+					MESSAGEMAN:Broadcast("DisplayProfileRankingLabels")
 				end
 			else
 				self:visible(false)
@@ -129,10 +125,12 @@ local function rankingLabel(i)
 				self:halign(0):zoom(fontScale)
 				self:maxwidth(100)
 			end,
-			DisplayCommand=function(self)
-				self:halign(0.5)
-				self:settext(((rankingPage-1)*25)+i..".")
-				self:diffuse(byValidity(ths:GetEtternaValid()))
+			DisplayProfileRankingLabelsMessageCommand=function(self)
+				if ths then
+					self:halign(0.5)
+					self:settext(((rankingPage-1)*25)+i..".")
+					self:diffuse(byValidity(ths:GetEtternaValid()))
+				end
 			end
 		},
 		LoadFont("Common Large") .. {
@@ -140,9 +138,11 @@ local function rankingLabel(i)
 				self:halign(0):zoom(fontScale)
 				self:x(15):maxwidth(160)
 			end,
-			DisplayCommand=function(self)
-				self:settextf("%5.2f", ths:GetSkillsetSSR(ms.SkillSets[rankingSkillset]))
-				self:diffuse(byValidity(ths:GetEtternaValid()))
+			DisplayProfileRankingLabelsMessageCommand=function(self)
+				if ths then
+					self:settextf("%5.2f", ths:GetSkillsetSSR(ms.SkillSets[rankingSkillset]))
+					self:diffuse(byValidity(ths:GetEtternaValid()))
+				end
 			end
 		},
 		LoadFont("Common Large") .. {
@@ -150,9 +150,11 @@ local function rankingLabel(i)
 				self:halign(0):zoom(fontScale)
 				self:x(55):maxwidth(580)
 			end,
-			DisplayCommand=function(self)
-				self:settext(thssong:GetDisplayMainTitle())
-				self:diffuse(byValidity(ths:GetEtternaValid()))
+			DisplayProfileRankingLabelsMessageCommand=function(self)
+				if thssong then
+					self:settext(thssong:GetDisplayMainTitle())
+					self:diffuse(byValidity(ths:GetEtternaValid()))
+				end
 			end
 		},
 		LoadFont("Common Large") .. {
@@ -160,11 +162,13 @@ local function rankingLabel(i)
 				self:halign(0):zoom(fontScale)
 				self:x(220)
 			end,
-			DisplayCommand=function(self)
-				self:halign(0.5)
-				local ratestring = string.format("%.2f", ths:GetMusicRate()):gsub("%.?0+$", "").."x"
-				self:settext(ratestring)
-				self:diffuse(byValidity(ths:GetEtternaValid()))
+			DisplayProfileRankingLabelsMessageCommand=function(self)
+				if ths then
+					self:halign(0.5)
+					local ratestring = string.format("%.2f", ths:GetMusicRate()):gsub("%.?0+$", "").."x"
+					self:settext(ratestring)
+					self:diffuse(byValidity(ths:GetEtternaValid()))
+				end
 			end
 		},
 		LoadFont("Common Large") .. {
@@ -172,12 +176,14 @@ local function rankingLabel(i)
 				self:halign(0):zoom(fontScale)
 				self:x(240):maxwidth(160)
 			end,
-			DisplayCommand=function(self)
-				self:settextf("%5.2f%%", ths:GetWifeScore()*100)
-				if not ths:GetEtternaValid() then
-					self:diffuse(byJudgment("TapNoteScore_Miss"))
-				else
-					self:diffuse(getGradeColor(ths:GetWifeGrade()))
+			DisplayProfileRankingLabelsMessageCommand=function(self)
+				if ths then
+					self:settextf("%5.2f%%", ths:GetWifeScore()*100)
+					if not ths:GetEtternaValid() then
+						self:diffuse(byJudgment("TapNoteScore_Miss"))
+					else
+						self:diffuse(getGradeColor(ths:GetWifeGrade()))
+					end
 				end
 			end
 		},
@@ -186,11 +192,13 @@ local function rankingLabel(i)
 				self:halign(0):zoom(fontScale)
 				self:x(300)
 			end,
-			DisplayCommand=function(self)
-				local diff = thssteps:GetDifficulty()
-				self:halign(0.5)
-				self:diffuse(byDifficulty(diff))
-				self:settext(getShortDifficulty(diff))
+			DisplayProfileRankingLabelsMessageCommand=function(self)
+				if thssteps then
+					local diff = thssteps:GetDifficulty()
+					self:halign(0.5)
+					self:diffuse(byDifficulty(diff))
+					self:settext(getShortDifficulty(diff))
+				end
 			end
 		},
 		Def.Quad{
@@ -198,7 +206,7 @@ local function rankingLabel(i)
 				self:halign(0):zoom(fontScale)
 				self:diffusealpha(buttondiffuse)
 			end,
-			DisplayCommand=function(self)	-- hacky
+			DisplayProfileRankingLabelsMessageCommand=function(self)	-- hacky
 				self:visible(true)
 				self:zoomto(300,scoreYspacing)
 			end,
