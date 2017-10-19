@@ -35,6 +35,7 @@ local minanyms = {
 	"NoSaucierMagic",
 	"EgomaniaCircus",
 	"stepmania bakery hero",
+	"infinite swirling squid spacecraft",
 
 	-- the nightly builds of yore
 	"AVAST YE STEPMATEY",
@@ -85,6 +86,8 @@ local minanyms = {
 	"ScatPlayKatarina",
 	"Ferric Chloride Matter",
 	"Bananatiger",
+	"Unapologetically Hostile Entity",
+	"Perpetual Sarcasm Dispensary",
 }
 
 math.random()
