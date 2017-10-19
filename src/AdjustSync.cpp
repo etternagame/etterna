@@ -324,7 +324,7 @@ void AdjustSync::GetSyncChangeTextGlobal( vector<RString> &vsAddTo )
 // XXX: needs cleanup still -- vyhd
 void AdjustSync::GetSyncChangeTextSong( vector<RString> &vsAddTo )
 {
-	if( GAMESTATE->m_pCurSong.Get() )
+	if( !GAMESTATE->isplaylistcourse && GAMESTATE->m_pCurSong.Get() )
 	{
 #define SEGMENTS_MISMATCH_MESSAGE(orig, test, segments_name) \
 	if(orig.size() != test.size()) \

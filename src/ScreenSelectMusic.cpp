@@ -297,6 +297,11 @@ void ScreenSelectMusic::BeginScreen()
 
 	SOUND->PlayOnceFromAnnouncer("select music intro");
 
+	if (GAMESTATE->IsPlaylistCourse()) {
+		GAMESTATE->isplaylistcourse = false;
+		SONGMAN->playlistcourse = "";
+	}
+
 	ScreenWithMenuElements::BeginScreen();
 }
 

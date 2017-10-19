@@ -1814,12 +1814,6 @@ void ScreenGameplay::BeginBackingOutFromGameplay()
 
 	m_pSoundMusic->StopPlaying();
 	m_GameplayAssist.StopPlaying(); // Stop any queued assist ticks.
-
-	if (GAMESTATE->IsPlaylistCourse()) {
-		GAMESTATE->isplaylistcourse = false;
-		SONGMAN->playlistcourse = "";
-	}
-
 	this->ClearMessageQueue();
 
 	m_Cancel.StartTransitioning( SM_DoPrevScreen );
@@ -2260,8 +2254,6 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 		
 		if (GAMESTATE->IsPlaylistCourse()) {
 			SONGMAN->allplaylists[SONGMAN->playlistcourse].courseruns.emplace_back(playlistscorekeys);
-			GAMESTATE->isplaylistcourse = false;
-			SONGMAN->playlistcourse = "";
 		}
 
 		TweenOffScreen();
@@ -2361,6 +2353,11 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 			ScreenSaveSync::PromptSaveSync( SM_GoToNextScreen );
 		else
 			HandleScreenMessage( SM_GoToNextScreen );
+
+		if (GAMESTATE->IsPlaylistCourse()) {
+			GAMESTATE->isplaylistcourse = false;
+			SONGMAN->playlistcourse = "";
+		}
 	}
 	else if( SM == SM_GainFocus )
 	{
