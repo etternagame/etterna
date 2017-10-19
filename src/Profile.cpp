@@ -44,7 +44,6 @@ const RString SCREENSHOTS_SUBDIR   = "Screenshots/";
 const RString EDIT_STEPS_SUBDIR    = "Edits/";
 //const RString UPLOAD_SUBDIR         = "Upload/";
 const RString RIVAL_SUBDIR         = "Rivals/";
-const RString REPLAY_SUBDIR	       = "ReplayData/";
 
 ThemeMetric<bool> SHOW_COIN_DATA( "Profile", "ShowCoinData" );
 static Preference<bool> g_bProfileDataCompress( "ProfileDataCompress", false );
@@ -806,7 +805,6 @@ void Profile::HandleStatsPrefixChange(RString dir, bool require_signature)
 
 ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSignature, LoadingWindow* ld)
 {
-	FILEMAN->CreateDir(sDir + REPLAY_SUBDIR);
 	LOG->Trace( "Profile::LoadAllFromDir( %s )", sDir.c_str() );
 	ASSERT( sDir.Right(1) == "/" );
 
@@ -1117,7 +1115,6 @@ bool Profile::SaveAllToDir( const RString &sDir, bool bSignData ) const
 	
 	// Empty directories if none exist.
 	FILEMAN->CreateDir( sDir + SCREENSHOTS_SUBDIR );
-	FILEMAN->CreateDir( sDir + REPLAY_SUBDIR);
 	
 	return bSaved;
 }
