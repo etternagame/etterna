@@ -315,7 +315,7 @@ function scoreBoard(pn,position)
 	local doot = {"Mean", "Mean(Abs)", "Sd", "Smallest", "Largest"}
 	local mcscoot = {
 		wifeMean(devianceTable), 
-		ms.tableSum(devianceTable, 1,true)/#devianceTable,
+		wifeAbsMean(devianceTable),
 		wifeSd(devianceTable),
 		smallest, 
 		largest

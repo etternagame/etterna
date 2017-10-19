@@ -112,6 +112,18 @@ function wifeMean(t)
 	return o/c
 end
 
+function wifeAbsMean(t)
+	local c = #t
+	if c == 0 then return 0 end
+	local o = 0
+	for i=1,c do 
+		if t[i] ~= 1000 then
+			o = o + math.abs(t[i])
+		end
+	end
+	return o/c
+end
+
 function wifeSd(t)
 	local u = wifeMean(t)
 	local u2 = 0
