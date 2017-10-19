@@ -1070,7 +1070,6 @@ void Profile::CalculateStatsFromScores(LoadingWindow* ld) {
 
 	SCOREMAN->RecalculateSSRs(ld);
 	SCOREMAN->CalcPlayerRating(m_fPlayerRating, m_fPlayerSkillsets);
-	SaveEttXmlToDir(profiledir);
 	//SCOREMAN->RatingOverTime();
 }
 
