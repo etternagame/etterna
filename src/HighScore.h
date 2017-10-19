@@ -43,6 +43,7 @@ struct HighScore
 	float ConvertDpToWife();
 	float GetPercentDP() const;
 	float GetWifeScore() const;
+	float GetWifePoints() const;
 	float GetSSRNormPercent() const;
 	float GetMusicRate() const;
 	float GetJudgeScale() const;
@@ -86,6 +87,7 @@ struct HighScore
 	void SetScore( unsigned int iScore );
 	void SetPercentDP( float f );
 	void SetWifeScore(float f);
+	void SetWifePoints(float f);
 	void SetSSRNormPercent(float f);
 	void SetMusicRate(float f);
 	void SetJudgeScale(float f);
