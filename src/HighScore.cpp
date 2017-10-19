@@ -825,7 +825,8 @@ void HighScore::LoadFromNode( const XNode* pNode )
 		m_Impl->bEtternaValid = false;
 	}
 
-	if (m_Impl->fSSRNormPercent > 1000.f) {
+	// If imported scores have no normpercent check for replays to calculate it or fallback to wifescore (assume j4) -mina
+	if (m_Impl->fSSRNormPercent == 0.f) {
 		if (m_Impl->grade != Grade_Failed)
 			m_Impl->fSSRNormPercent = RescoreToWifeJudgeDuringLoad(4);
 		else
