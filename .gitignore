@@ -57,6 +57,7 @@ PBProject/Hardware.plist
 *.res
 *.suo
 UpgradeLog*.htm
+.vs/
 
 # Windows General Files
 *.exe
