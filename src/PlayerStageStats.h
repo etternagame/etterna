@@ -36,6 +36,8 @@ public:
 	void GenerateValidationKeys(HighScore& hs) const;
 	float GetPercentDancePoints() const;
 	float GetWifeScore() const;
+	float GetCurWifeScore() const;
+	float GetMaxWifeScore() const;
 	float GetTimingScale() const;
 	vector<float> GetOffsetVector() const;
 	vector<int> GetNoteRowVector() const;
@@ -74,6 +76,8 @@ public:
 	int		m_iActualDancePoints;
 	int		m_iPossibleGradePoints;
 	float   m_fWifeScore;
+	float	CurWifeScore;
+	float	MaxWifeScore;
 	float	m_fTimingScale;
 	vector<float> m_vOffsetVector;
 	vector<int> m_vNoteRowVector;

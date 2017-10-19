@@ -44,6 +44,8 @@ void PlayerStageStats::InternalInit()
 	m_iCurPossibleDancePoints = 0;
 	m_iActualDancePoints = 0;
 	m_fWifeScore = 0.f;
+	CurWifeScore = 0.f;
+	MaxWifeScore = 0.f;
 	m_fTimingScale = 0.f;
 	m_vOffsetVector.clear();
 	m_vNoteRowVector.clear();
@@ -309,6 +311,12 @@ float PlayerStageStats::GetPercentDancePoints() const {
 }
 float PlayerStageStats::GetWifeScore() const {
 	return m_fWifeScore;
+}
+float PlayerStageStats::GetCurWifeScore() const {
+	return CurWifeScore;
+}
+float PlayerStageStats::GetMaxWifeScore() const {
+	return MaxWifeScore;
 }
 vector<float> PlayerStageStats::CalcSSR(float ssrpercent ) const {
 	Steps* steps = GAMESTATE->m_pCurSteps[PLAYER_1];
@@ -868,6 +876,8 @@ public:
 	DEFINE_METHOD( GetCurrentScoreMultiplier,	m_iCurScoreMultiplier )
 	DEFINE_METHOD( GetScore,					m_iScore )
 	DEFINE_METHOD( GetWifeScore,				m_fWifeScore )
+	DEFINE_METHOD( GetCurWifeScore,				CurWifeScore)
+	DEFINE_METHOD( GetMaxWifeScore,				MaxWifeScore)
 	DEFINE_METHOD( GetCurMaxScore,				m_iCurMaxScore )
 	DEFINE_METHOD( GetTapNoteScores,			m_iTapNoteScores[Enum::Check<TapNoteScore>(L, 1)] )
 	DEFINE_METHOD( GetHoldNoteScores,			m_iHoldNoteScores[Enum::Check<HoldNoteScore>(L, 1)] )
@@ -1060,6 +1070,8 @@ public:
 		ADD_METHOD( WifeScoreOffset );
 		ADD_METHOD( GetNoteRowVector );
 		ADD_METHOD( GetWifeScore );
+		ADD_METHOD( GetCurWifeScore );
+		ADD_METHOD( GetMaxWifeScore );
 		ADD_METHOD( GetCurMaxScore );
 		ADD_METHOD( GetTapNoteScores );
 		ADD_METHOD( GetHoldNoteScores );
