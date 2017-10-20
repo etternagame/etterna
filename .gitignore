@@ -93,6 +93,9 @@ crashinfo.txt
 !extern/MinaCalc/MinaCalc.a
 !extern/MinaCalc/libMinaCalc.a
 
+# calc
+src/MinaCalc
+
 # Unknown File Types
 tests/*.err
 *.ncb
