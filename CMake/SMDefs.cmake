@@ -1,7 +1,7 @@
 # Set up version numbers according to the new scheme.
 set(SM_VERSION_MAJOR 0)
-set(SM_VERSION_MINOR 55)
-set(SM_VERSION_PATCH 3)
+set(SM_VERSION_MINOR 56)
+set(SM_VERSION_PATCH 0)
 set(SM_VERSION_TRADITIONAL "${SM_VERSION_MAJOR}.${SM_VERSION_MINOR}.${SM_VERSION_PATCH}")
 
 execute_process(COMMAND git rev-parse --short HEAD
