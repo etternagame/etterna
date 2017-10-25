@@ -615,6 +615,9 @@ void Player::Load()
 	const vector<float>& etaner = m_Timing->BuildAndGetEtaner(nerv);
 	m_pPlayerStageStats->serializednd = m_NoteData.SerializeNoteData(etaner);
 	m_NoteData.UnsetSerializedNoteData();
+
+	if (m_Timing->HasWarps())
+		m_pPlayerStageStats->filehadnegbpms = true;
 	
 
 	Profile *pProfile = PROFILEMAN->GetProfile(pn);
