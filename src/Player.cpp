@@ -2849,7 +2849,11 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 			curwifescore -= 8.f;
 
 		if (m_pPlayerStageStats) {
-			msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
+			if(maxwifescore == 0.f)
+				msg.SetParam("WifePercent", 0);
+			else
+				msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
+			
 			msg.SetParam("CurWifeScore", curwifescore);
 			msg.SetParam("MaxWifeScore", maxwifescore);
 			msg.SetParam("WifeDifferential", curwifescore - maxwifescore * m_pPlayerState->playertargetgoal);
