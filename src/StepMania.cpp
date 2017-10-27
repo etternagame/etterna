@@ -987,6 +987,8 @@ int sm_main(int argc, char* argv[])
 
 	LUA		= new LuaManager;
 	HOOKS->RegisterWithLua();
+	
+	MESSAGEMAN	= new MessageManager;
 
 	// Initialize the file extension type lists so everything can ask ActorUtil
 	// what the type of a file is.
@@ -1164,7 +1166,6 @@ int sm_main(int argc, char* argv[])
 	SONGMAN->UpdatePopular();
 	SONGMAN->UpdatePreferredSort();
 	NSMAN 		= new NetworkSyncManager( NULL );
-	MESSAGEMAN	= new MessageManager;
 	STATSMAN	= new StatsManager;
 
 	FILTERMAN = new FilterManager;
