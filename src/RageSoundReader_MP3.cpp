@@ -322,7 +322,7 @@ int RageSoundReader_MP3::WriteSamplesForAllChannels(void *pBuf, int samplesToRea
 
 int RageSoundReader_MP3::GetNextSourceFrame() const
 {
-	return curFrame + codecCtx->frame_number;
+	return curFrame + codecCtx->frame_size;
 }
 
 // Return: -1 => Error already set. -2 => EOF. >=0 => bytesRead
