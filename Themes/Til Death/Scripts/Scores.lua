@@ -376,11 +376,18 @@ function getScoreList(pn)
 	return nil
 end
 
+function wife2(maxms, ts)
+	local avedeviation = 95 * ts
+	local y = 1 - (2 ^ (-1 * maxms*maxms / (avedeviation*avedeviation)))
+	y = y ^ 2
+	return (2 - -8)*(1 - y) + -8
+end
+
 function getRescoredJudge(offsetVector, judgeScale, judge)
 	local tso = { 1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20 }
 	local ts = tso[judgeScale]
 	local windows = { 22.5, 45.0, 90.0, 135.0, 180.0, 500.0 }
-	local lowerBound = judge > 1 and windows[judge - 1] * ts or 0.0
+	local lowerBound = judge > 1 and windows[judge - 1] * ts or -1.0
 	local upperBound = windows[judge] * ts
 	local judgeCount = 0
 
@@ -403,7 +410,7 @@ function getRescoredJudge(offsetVector, judgeScale, judge)
 end
 
 function getRescoredCustomJudge(offsetVector, windows, judge)
-	local lowerBound = judge > 1 and windows[judges[judge - 1]] or 0.0
+	local lowerBound = judge > 1 and windows[judges[judge - 1]] or -1.0
 	local upperBound = windows[judges[judge]]
 	local judgeCount = 0
 
@@ -425,17 +432,29 @@ function getRescoredCustomJudge(offsetVector, windows, judge)
 	return judgeCount
 end
 
+function getRescoredWifeJudge(offsetVector, judgeScale, holdsMissed, minesHit, totalNotes)
+	local tso = { 1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20 }
+	local ts = tso[judgeScale]
+	local p = 0.0
+	for i = 1, #offsetVector do
+		p = p + wife2(offsetVector[i], ts)
+	end
+	p = p + (holdsMissed * -6)
+	p = p + (minesHit * -8)
+	return (p/(totalNotes*2)) * 100.0
+end
+
 function getRescoredCustomPercentage(offsetVector, customWindows, totalHolds, holdsHit, minesHit, totalNotes)
-	local perc = 0.0
+	local p = 0.0
 	local weights = customWindows.judgeWeights
 	local windows = customWindows.judgeWindows
 	local holdsMissed = totalHolds - holdsHit
 	for i = 1, 6 do
-		perc = perc + (getRescoredCustomJudge(offsetVector, windows, i) * weights[judges[i]])
+		p = p + (getRescoredCustomJudge(offsetVector, windows, i) * weights[judges[i]])
 	end
-	perc = perc + (holdsHit * weights.holdHit)
-	perc = perc + (holdsMissed * weights.holdMiss)
-	perc = perc + (minesHit * weights.mineHit)
-	perc = perc / ((totalNotes * weights.marv) + (totalHolds * weights.holdHit))
-	return perc * 100.0
+	p = p + (holdsHit * weights.holdHit)
+	p = p + (holdsMissed * weights.holdMiss)
+	p = p + (minesHit * weights.mineHit)
+	p = p / ((totalNotes * weights.marv) + (totalHolds * weights.holdHit))
+	return p * 100.0
 end

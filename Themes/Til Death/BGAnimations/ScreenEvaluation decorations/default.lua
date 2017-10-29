@@ -175,33 +175,28 @@ function scoreBoard(pn,position)
 			self:settextf("%05.2f%% (%s)",notShit.floor(pss:GetWifeScore()*10000)/100, "Wife")
 		end,
 		CodeMessageCommand=function(self,params)
+			local totalHolds = pss:GetRadarPossible():GetValue("RadarCategory_Holds") + pss:GetRadarPossible():GetValue("RadarCategory_Rolls")
+			local holdsHit = pss:GetRadarActual():GetValue("RadarCategory_Holds") + pss:GetRadarActual():GetValue("RadarCategory_Rolls")
+			local minesHit = pss:GetRadarPossible():GetValue("RadarCategory_Mines") -  pss:GetRadarActual():GetValue("RadarCategory_Mines")
 			if enabledCustomWindows then
 				if params.Name == "PrevJudge" then
 					judge = judge < 2 and #customWindows or judge - 1
 					customWindow = timingWindowConfig:get_data()[customWindows[judge]]
-					local totalHolds = pss:GetRadarPossible():GetValue("RadarCategory_Holds") + pss:GetRadarPossible():GetValue("RadarCategory_Rolls")
-					local holdsHit = pss:GetRadarActual():GetValue("RadarCategory_Holds") + pss:GetRadarActual():GetValue("RadarCategory_Rolls")
-					local minesHit = pss:GetRadarPossible():GetValue("RadarCategory_Mines") -  pss:GetRadarActual():GetValue("RadarCategory_Mines")
-					local perc = getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps)
-					self:settextf("%05.2f%% (%s)", perc, customWindow.name)
+					self:settextf("%05.2f%% (%s)", getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps), customWindow.name)
 				elseif params.Name == "NextJudge" then
 					judge = judge == #customWindows and 1 or judge + 1
 					customWindow = timingWindowConfig:get_data()[customWindows[judge]]
-					local totalHolds = pss:GetRadarPossible():GetValue("RadarCategory_Holds") + pss:GetRadarPossible():GetValue("RadarCategory_Rolls")
-					local holdsHit = pss:GetRadarActual():GetValue("RadarCategory_Holds") + pss:GetRadarActual():GetValue("RadarCategory_Rolls")
-					local minesHit = pss:GetRadarPossible():GetValue("RadarCategory_Mines") -  pss:GetRadarActual():GetValue("RadarCategory_Mines")
-					local perc = getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps)
-					self:settextf("%05.2f%% (%s)", perc, customWindow.name)
+					self:settextf("%05.2f%% (%s)", getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps), customWindow.name)
 				end
 			elseif params.Name == "PrevJudge" and judge > 1 then
 				judge = judge - 1
-				self:settextf("%05.2f%% (%s)", notShit.floor(score:RescoreToWifeJudge(judge)*10000)/100, "Wife J"..judge)
+				self:settextf("%05.2f%% (%s)", getRescoredWifeJudge(dvt, judge, totalHolds - holdsHit, minesHit, totalTaps), "Wife J"..judge)
 			elseif params.Name == "NextJudge" and judge < 9 then
 				judge = judge + 1
 				if judge == 9 then
-					self:settextf("%05.2f%% (%s)", notShit.floor(score:RescoreToWifeJudge(judge)*10000)/100, "Wife Justice")
+					self:settextf("%05.2f%% (%s)", getRescoredWifeJudge(dvt, judge, (totalHolds - holdsHit), minesHit, totalTaps), "Wife Justice")
 				else
-					self:settextf("%05.2f%% (%s)", notShit.floor(score:RescoreToWifeJudge(judge)*10000)/100, "Wife J"..judge)
+					self:settextf("%05.2f%% (%s)", getRescoredWifeJudge(dvt, judge, (totalHolds - holdsHit), minesHit, totalTaps), "Wife J"..judge)
 				end
 			end
 			if params.Name == "ResetJudge" then
