@@ -1527,6 +1527,7 @@ t[#t+1] = Def.ActorFrame{
 		end,
 		OnCommand=function(self)
 			local text= {
+				"Enable AutoplayCPU with shift+f8\n",
 				"Hold the following and press the arrow",
 				"keys to alter the associated element\n",
 				"1: Judgement Text Position",
