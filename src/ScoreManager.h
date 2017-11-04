@@ -73,6 +73,9 @@ public:
 
 	ScoresAtRate operator[](const int rate) { return ScoresByRate.at(rate); }
 	map<int, ScoresAtRate, greater<int>> ScoresByRate;
+
+	// Sets rate indepdendent topscore tags inside highscores. 1 = best. 2 = 2nd. 0 = the rest. -mina
+	void SetTopScores();
 private:
 	/* It makes sense internally to have the map keys sorted highest rate to lowest
 	however my experience in lua is that it tends to be more friendly to approach things
@@ -127,6 +130,8 @@ public:
 	vector<HighScore*> GetAllScores() { return AllScores; }
 	void RegisterScore(HighScore* hs) {	AllScores.emplace_back(hs); }
 	void AddToKeyedIndex(HighScore* hs) { ScoresByKey.emplace(hs->GetScoreKey(), hs); }
+
+	void SetAllTopScores();
 private:
 	unordered_map<string, ScoresForChart> pscores;	// Profile scores
 

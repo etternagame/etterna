@@ -184,6 +184,32 @@ string ScoresForChart::RateKeyToDisplayString(float rate) {
 	return rs;
 }
 
+// seems like this could be handled more elegantly by splitting operations up -mina
+void ScoresForChart::SetTopScores() {
+	vector<HighScore*> eligiblescores;
+	FOREACHM(int, ScoresAtRate, ScoresByRate, i) {
+		auto& hs = i->second.noccPBptr;
+			if (hs && hs->GetSSRCalcVersion() == GetCalcVersion() && hs->GetEtternaValid() && hs->GetChordCohesion() == 0 && hs->GetGrade() != Grade_Failed)
+				eligiblescores.emplace_back(hs);
+	}
+
+	if (eligiblescores.empty())
+		return;
+
+	if (eligiblescores.size() == 1) {
+		eligiblescores[0]->SetTopScore(1);
+		return;
+	}	
+
+	auto ssrcomp = [](HighScore* a, HighScore* b) { return (a->GetSkillsetSSR(Skill_Overall) > b->GetSkillsetSSR(Skill_Overall)); };
+	sort(eligiblescores.begin(), eligiblescores.end(), ssrcomp);
+
+	for (auto hs : eligiblescores)
+		hs->SetTopScore(0);
+
+	eligiblescores[0]->SetTopScore(1);
+	eligiblescores[1]->SetTopScore(2);
+}
 
 vector<HighScore*> ScoresForChart::GetAllPBPtrs() {
 	vector<HighScore*> o;
@@ -204,7 +230,13 @@ HighScore* ScoreManager::GetChartPBUpTo(const string& ck, float& rate) {
 	return NULL;
 }
 
-
+void ScoreManager::SetAllTopScores() {
+	FOREACHUM(string, ScoresForChart, pscores, i) {
+		if (!SONGMAN->IsChartLoaded(i->first))
+			continue;
+		i->second.SetTopScores();
+	}
+}
 
 static const float ld_update = 0.02f;
 void ScoreManager::RecalculateSSRs(LoadingWindow *ld) {
