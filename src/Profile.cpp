@@ -1071,7 +1071,6 @@ void Profile::CalculateStatsFromScores(LoadingWindow* ld) {
 	m_iTotalGameplaySeconds = static_cast<int>(TotalGameplaySeconds);
 
 	SCOREMAN->RecalculateSSRs(ld);
-	SCOREMAN->SetAllTopScores();
 	SCOREMAN->CalcPlayerRating(m_fPlayerRating, m_fPlayerSkillsets);
 	//SCOREMAN->RatingOverTime();
 }

@@ -326,6 +326,8 @@ void ScoreManager::EnableAllScores() {
 }
 
 void ScoreManager::CalcPlayerRating(float& prating, float* pskillsets) {
+	SetAllTopScores();
+
 	vector<float> skillz;
 	FOREACH_ENUM(Skillset, ss) {
 		// actually skip overall, and jack stamina for now
