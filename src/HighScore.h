@@ -51,6 +51,7 @@ struct HighScore
 	vector<float> GetOffsetVector() const;
 	vector<int> GetNoteRowVector() const;
 	string GetScoreKey() const;
+	int GetTopScore() const;
 	/**
 	 * @brief Determine how many seconds the player had left in Survival mode.
 	 * @return the number of seconds left. */

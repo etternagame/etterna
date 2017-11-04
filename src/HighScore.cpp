@@ -373,7 +373,6 @@ void HighScoreImpl::LoadFromEttNode(const XNode *pNode) {
 	pNode->GetChildValue("Modifiers", s); sModifiers = s;
 	pNode->GetChildValue("DateTime", s); dateTime.FromString(s);
 	pNode->GetChildValue("ScoreKey", s); ScoreKey = s;
-	pNode->GetChildValue("TopScore", TopScore);
 
 	const XNode* pTapNoteScores = pNode->GetChild("TapNoteScores");
 	if (pTapNoteScores)
@@ -727,6 +726,7 @@ float HighScore::GetSkillsetSSR(Skillset ss) const { return m_Impl->fSkillsetSSR
 const RadarValues &HighScore::GetRadarValues() const { return m_Impl->radarValues; }
 float HighScore::GetLifeRemainingSeconds() const { return m_Impl->fLifeRemainingSeconds; }
 bool HighScore::GetDisqualified() const { return m_Impl->bDisqualified; }
+int HighScore::GetTopScore() const { return m_Impl->TopScore; }
 
 void HighScore::SetName( const string &sName ) { m_Impl->sName = sName; }
 void HighScore::SetChartKey( const string &ck) { m_Impl->ChartKey = ck; }
