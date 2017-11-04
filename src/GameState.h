@@ -213,7 +213,7 @@ public:
 	bool		m_bLoadingNextSong;
 	int		GetLoadingCourseSongIndex() const;
 
-	RString GetEtternaVersion() { return "0.56.1-CalcOnly"; }
+	RString GetEtternaVersion() { return "0.56.2-CalcOnly"; }
 	bool isplaylistcourse = false;
 	bool IsPlaylistCourse() { return isplaylistcourse; }
 	bool CountNotesSeparately();
