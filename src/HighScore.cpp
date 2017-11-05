@@ -58,6 +58,7 @@ struct HighScoreImpl
 	float fLifeRemainingSeconds;
 	bool bDisqualified;
 	string ValidationKey;
+	int TopScore;
 
 	HighScoreImpl();
 	XNode *CreateNode() const;
@@ -251,6 +252,7 @@ HighScoreImpl::HighScoreImpl()
 	radarValues.MakeUnknown();
 	fLifeRemainingSeconds = 0;
 	string ValidationKey = "";
+	TopScore = 0;
 }
 
 XNode *HighScoreImpl::CreateNode() const
@@ -333,6 +335,7 @@ XNode *HighScoreImpl::CreateEttNode() const {
 	pNode->AppendChild("MaxCombo", iMaxCombo);
 	pNode->AppendChild("Modifiers", sModifiers);
 	pNode->AppendChild("DateTime", dateTime.GetString());
+	pNode->AppendChild("TopScore", TopScore);
 
 	XNode* pTapNoteScores = pNode->AppendChild("TapNoteScores");
 	FOREACH_ENUM(TapNoteScore, tns)
@@ -731,6 +734,7 @@ float HighScore::GetSkillsetSSR(Skillset ss) const { return m_Impl->fSkillsetSSR
 const RadarValues &HighScore::GetRadarValues() const { return m_Impl->radarValues; }
 float HighScore::GetLifeRemainingSeconds() const { return m_Impl->fLifeRemainingSeconds; }
 bool HighScore::GetDisqualified() const { return m_Impl->bDisqualified; }
+int HighScore::GetTopScore() const { return m_Impl->TopScore; }
 
 void HighScore::SetName( const string &sName ) { m_Impl->sName = sName; }
 void HighScore::SetChartKey( const string &ck) { m_Impl->ChartKey = ck; }
@@ -762,6 +766,7 @@ void HighScore::SetTapNoteScore( TapNoteScore tns, int i ) { m_Impl->iTapNoteSco
 void HighScore::SetHoldNoteScore( HoldNoteScore hns, int i ) { m_Impl->iHoldNoteScores[hns] = i; }
 void HighScore::SetSkillsetSSR(Skillset ss, float ssr) { m_Impl->fSkillsetSSRs[ss] = ssr; }
 void HighScore::SetValidationKey(ValidationKey vk, string k) { m_Impl->ValidationKeys[vk] = k; }
+void HighScore::SetTopScore(int i) { m_Impl->TopScore = i; }
 void HighScore::SetRadarValues( const RadarValues &rv ) { m_Impl->radarValues = rv; }
 void HighScore::SetLifeRemainingSeconds( float f ) { m_Impl->fLifeRemainingSeconds = f; }
 void HighScore::SetDisqualified( bool b ) { m_Impl->bDisqualified = b; }

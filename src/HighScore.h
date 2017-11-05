@@ -52,6 +52,7 @@ struct HighScore
 	vector<float> GetOffsetVector() const;
 	vector<int> GetNoteRowVector() const;
 	string GetScoreKey() const;
+	int GetTopScore() const;
 	/**
 	 * @brief Determine how many seconds the player had left in Survival mode.
 	 * @return the number of seconds left. */
@@ -147,6 +148,7 @@ struct HighScore
 	float GetSkillsetSSR(Skillset ss) const;
 	void SetSkillsetSSR(Skillset ss, float ssr);
 	void SetValidationKey(ValidationKey vk, string k);
+	void SetTopScore(int i);
 	vector<int> GetRescoreJudgeVector(int x);
 	// Lua
 	void PushSelf( lua_State *L );

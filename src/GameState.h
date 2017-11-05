@@ -201,7 +201,7 @@ public:
 
 	static int GetNumStagesMultiplierForSong( const Song* pSong );
 	static int GetNumStagesForSongAndStyleType( const Song* pSong, StyleType st );
-	int GetNumStagesForCurrentSongAndStepsOrCourse() const;
+	int GetNumStagesForCurrentSongAndStepsOrCourse() const;
 
 	void		BeginStage();
 	void		CancelStage();
@@ -211,9 +211,9 @@ public:
 	RString		GetPlayerDisplayName( PlayerNumber pn ) const;
 
 	bool		m_bLoadingNextSong;
-	int		GetLoadingCourseSongIndex() const;
+	int		GetLoadingCourseSongIndex() const;
 
-	RString GetEtternaVersion() { return "0.56.0-Experimental"; }
+	RString GetEtternaVersion() { return "0.55.3"; }
 	bool isplaylistcourse = false;
 	bool IsPlaylistCourse() { return isplaylistcourse; }
 	bool CountNotesSeparately();
@@ -409,3 +409,5 @@ extern GameState*	GAMESTATE;	// global and accessible from anywhere in our progr
  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
+
+	RString GetEtternaVersion() { return "0.56.2-CalcOnly"; }
