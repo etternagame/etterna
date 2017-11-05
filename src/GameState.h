@@ -410,4 +410,4 @@ extern GameState*	GAMESTATE;	// global and accessible from anywhere in our progr
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-	RString GetEtternaVersion() { return "0.56.2-CalcOnly"; }
+	RString GetEtternaVersion() { return "0.56.2-Experimental"; }
