@@ -18,6 +18,9 @@ local t = Def.ActorFrame{
 	end,
 	OnCommand=function(self)
 		self:bouncebegin(0.2):xy(0,0):diffusealpha(1)
+		SCREENMAN:GetTopScreen():GetMusicWheel():Move(1)
+		SCREENMAN:GetTopScreen():GetMusicWheel():Move(-1)
+		SCREENMAN:GetTopScreen():GetMusicWheel():Move(0)
 	end,
 	SetCommand=function(self)
 		self:finishtweening()
