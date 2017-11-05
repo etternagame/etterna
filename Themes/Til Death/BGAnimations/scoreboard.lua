@@ -196,8 +196,8 @@ local function scoreitem(pn,index,scoreIndex,drawindex)
 			end,
 			BeginCommand=function(self)
 				if #hsTable >= 1 and index>= 1 then
-					self:settext(gradestring(hsTable[index]:GetGrade()))
-					self:diffuse(getGradeColor(hsTable[index]:GetGrade()))
+					self:settext(gradestring(hsTable[index]:GetWifeGrade()))
+					self:diffuse(getGradeColor(hsTable[index]:GetWifeGrade()))
 				end
 			end
 		},

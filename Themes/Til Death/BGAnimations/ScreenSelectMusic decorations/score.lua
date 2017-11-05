@@ -138,8 +138,8 @@ t[#t+1] = LoadFont("Common Large")..{
 	end,
 	SetCommand=function(self)
 		if score and update then
-			self:settext(THEME:GetString("Grade",ToEnumShortString(score:GetGrade())))
-			self:diffuse(getGradeColor(score:GetGrade()))
+			self:settext(THEME:GetString("Grade",ToEnumShortString(score:GetWifeGrade())))
+			self:diffuse(getGradeColor(score:GetWifeGrade()))
 		else
 			self:settext("")
 		end
