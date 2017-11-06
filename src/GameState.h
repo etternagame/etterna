@@ -213,7 +213,7 @@ public:
 	bool		m_bLoadingNextSong;
 	int		GetLoadingCourseSongIndex() const;
 
-	RString GetEtternaVersion() { return "0.55.3"; }
+	RString GetEtternaVersion() { return "0.56.2-Experimental"; }
 	bool isplaylistcourse = false;
 	bool IsPlaylistCourse() { return isplaylistcourse; }
 	bool CountNotesSeparately();
@@ -409,5 +409,3 @@ extern GameState*	GAMESTATE;	// global and accessible from anywhere in our progr
  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-
-	RString GetEtternaVersion() { return "0.56.2-Experimental"; }
