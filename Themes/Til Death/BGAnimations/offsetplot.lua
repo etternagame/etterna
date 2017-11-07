@@ -12,7 +12,7 @@ local customWindow
 local plotWidth, plotHeight = 400,120
 local plotX, plotY = SCREEN_WIDTH - 9 - plotWidth/2, SCREEN_HEIGHT - 56 - plotHeight/2
 local dotDims, plotMargin = 2, 4
-local maxOffset = 180*tso
+local maxOffset = math.max(180, 180*tso)
 
 local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(PLAYER_1)
 local dvt = pss:GetOffsetVector()
