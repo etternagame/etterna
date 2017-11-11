@@ -21,6 +21,7 @@
 #include "HighScore.h"
 #include "Character.h"
 #include "CharacterManager.h"
+#include "DownloadManager.h"
 
 ProfileManager*	PROFILEMAN = NULL;	// global and accessible from anywhere in our program
 
@@ -38,6 +39,7 @@ static void DefaultLocalProfileIDInit( size_t /*PlayerNumber*/ i, RString &sName
 }
 
 Preference1D<RString> ProfileManager::m_sDefaultLocalProfileID( DefaultLocalProfileIDInit, NUM_PLAYERS );
+Preference<RString> profileUploadURL("profileUploadURL", "https://etternaonline.com/api/upload_xml");
 
 const RString USER_PROFILES_DIR	=	"/Save/LocalProfiles/";
 const RString LAST_GOOD_SUBDIR	=	"LastGood/";
@@ -853,6 +855,19 @@ public:
 		LuaHelpers::CreateTableFromArray<RString>( vsProfileNames, L );
 		return 1;
 	}
+	static int UploadProfile(T* p, lua_State *L)
+	{
+		if (lua_gettop(L) != 3) {
+			return luaL_error(L, "UploadProfile expects exactly 3 arguments(player number, user, pass)");
+		}
+		Profile* prof = p->GetProfile(Enum::Check<PlayerNumber>(L, 1));
+		if (prof == nullptr) {
+			return luaL_error(L, "UploadProfile needs a profile to be currently selected");
+		}
+		string user = SArg(2);
+		string pass = SArg(3);
+		lua_pushboolean(L, DLMAN->UploadProfile(profileUploadURL, prof->profiledir + "Etterna.xml", user, pass)==0);
+	}
 	LunaProfileManager()
 	{
 		ADD_METHOD(GetStatsPrefix);
@@ -872,6 +887,7 @@ public:
 		//
 		ADD_METHOD( SaveProfile );
 		ADD_METHOD( ConvertProfile );
+		ADD_METHOD( UploadProfile );
 		ADD_METHOD( SaveLocalProfile );
 		ADD_METHOD( GetSongNumTimesPlayed );
 		ADD_METHOD( GetLocalProfileIDs );

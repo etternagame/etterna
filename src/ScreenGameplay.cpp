@@ -54,6 +54,7 @@
 #include "Song.h"
 #include "XmlFileUtil.h"
 #include "Profile.h" // for replay data stuff
+#include "DownloadManager.h"
 
 // Defines
 #define SHOW_LIFE_METER_FOR_DISABLED_PLAYERS	THEME->GetMetricB(m_sName,"ShowLifeMeterForDisabledPlayers")
@@ -280,6 +281,9 @@ ScreenGameplay::ScreenGameplay()
 	m_bForceNoNetwork = false;
 	m_delaying_ready_announce= false;
 	GAMESTATE->m_AdjustTokensBySongCostForFinalStageCheck= false;
+#if !defined(WITHOUT_NETWORKING)
+	DLMAN->UpdateDLSpeed(true);
+#endif
 }
 
 void ScreenGameplay::Init()
@@ -851,6 +855,9 @@ ScreenGameplay::~ScreenGameplay()
 
 	if( !m_bForceNoNetwork )
 		NSMAN->ReportSongOver();
+#if !defined(WITHOUT_NETWORKING)
+	DLMAN->UpdateDLSpeed(false);
+#endif
 }
 
 void ScreenGameplay::SetupSong( int iSongIndex )

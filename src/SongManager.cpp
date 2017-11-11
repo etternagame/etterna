@@ -36,10 +36,10 @@
 
 SongManager*	SONGMAN = NULL;	// global and accessible from anywhere in our program
 
-const RString ADDITIONAL_SONGS_DIR	= "/AdditionalSongs/";
-const RString EDIT_SUBDIR		= "Edits/";
 
 /** @brief The file that contains various random attacks. */
+const RString ADDITIONAL_SONGS_DIR = "/AdditionalSongs/";
+const RString EDIT_SUBDIR = "Edits/";
 const RString ATTACK_FILE		= "/Data/RandomAttacks.txt";
 
 static const ThemeMetric<RageColor>	EXTRA_COLOR			( "SongManager", "ExtraColor" );
@@ -126,6 +126,9 @@ void SongManager::Reload( bool bAllowFastLoad, LoadingWindow *ld )
 
 // See InitSongsFromDisk for any comment clarification -mina
 int SongManager::DifferentialReload() {
+	FILEMAN->FlushDirCache(SpecialFiles::SONGS_DIR);
+	FILEMAN->FlushDirCache(ADDITIONAL_SONGS_DIR);
+	FILEMAN->FlushDirCache(EDIT_SUBDIR);
 	int newsongs = 0;
 	SONGINDEX->delay_save_cache = true;
 	newsongs += DifferentialReloadDir(SpecialFiles::SONGS_DIR);

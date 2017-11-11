@@ -23,6 +23,7 @@ list(APPEND SMDATA_GLOBAL_SINGLETON_SRC
   "SongManager.cpp"
   "StatsManager.cpp"
   "ThemeManager.cpp"
+  "DownloadManager.cpp"
 )
 list(APPEND SMDATA_GLOBAL_SINGLETON_HPP
   "AnnouncerManager.h"
@@ -49,6 +50,7 @@ list(APPEND SMDATA_GLOBAL_SINGLETON_HPP
   "SongManager.h"
   "StatsManager.h"
   "ThemeManager.h"
+  "DownloadManager.h"
 )
 
 if(WITH_NETWORKING)

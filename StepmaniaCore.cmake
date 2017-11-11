@@ -155,6 +155,7 @@ check_type_size(pid_t SIZEOF_PID_T)
 check_type_size(size_t SIZEOF_SIZE_T)
 check_type_size(ssize_t SIZEOF_SSIZE_T)
 
+
 include(TestBigEndian)
 test_big_endian(BIGENDIAN)
 if (${BIGENDIAN})
@@ -276,13 +277,31 @@ if(WIN32)
     )
     get_filename_component(LIB_AVUTIL ${LIB_AVUTIL} NAME)
   endif()
+  
+  find_library(LIB_CURL NAMES "libcurl"
+	PATHS "${SM_EXTERN_DIR}/libcurl" NO_DEFAULT_PATH
+	)
+  get_filename_component(LIB_CURL ${LIB_CURL} NAME)
+  
+  find_library(LIB_WLDAP32 NAMES "wldap32"
+	PATHS "${SM_EXTERN_DIR}/libcurl" NO_DEFAULT_PATH
+	)
+  get_filename_component(LIB_WLDAP32 ${LIB_WLDAP32} NAME)
+  
 elseif(MACOSX)
 
   if (WITH_FFMPEG)
     include("${SM_CMAKE_DIR}/SetupFfmpeg.cmake")
     set(HAS_FFMPEG TRUE)
   endif()
+  
+  set(CURL_LIBRARY "-lcurl") 
+  find_package(CURL REQUIRED) 
+  if(NOT CURL_FOUND)
+	MESSAGE(FATAL_ERROR "Could not find the CURL library")
+  endif()
 
+  
   link_libraries(${SM_EXTERN_DIR}/MinaCalc/libMinaCalc.a)
 
   set(SYSTEM_PCRE_FOUND FALSE)
@@ -427,6 +446,12 @@ elseif(LINUX)
 	set(HAS_MP3 FALSE)
   endif()
 
+  set(CURL_LIBRARY "-lcurl") 
+  find_package(CURL REQUIRED) 
+  if(NOT CURL_FOUND)
+	MESSAGE(FATAL_ERROR "Could not find the CURL library")
+  endif()
+  
   find_package(OpenGL REQUIRED)
   if (NOT ${OPENGL_FOUND})
     message(FATAL_ERROR "OpenGL required to compile StepMania.")
