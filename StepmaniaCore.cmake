@@ -245,6 +245,8 @@ if(WIN32)
   find_package(DirectX REQUIRED)
   
   link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc.lib)
+  include_directories(${SM_EXTERN_DIR}/discord-rpc-2.0.1/include)
+  link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/discord-rpc.lib)
   
   if (MINGW AND WITH_FFMPEG)
     include("${SM_CMAKE_DIR}/SetupFfmpeg.cmake")
