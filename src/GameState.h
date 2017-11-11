@@ -11,6 +11,7 @@
 #include "SongOptions.h"
 #include "SongPosition.h"
 #include "Preference.h"
+#include "discord-rpc.h"
 
 #include <map>
 #include <deque>
@@ -344,6 +345,11 @@ public:
 	Profile* GetEditLocalProfile();
 
 	bool m_bDopefish;
+
+	// Discord Rich Presence
+	void discordInit();
+	void updateDiscordPresence( const RString &largeImageText, const RString &details, const RString &state, const int64_t endTime );
+	void updateDiscordPresenceMenu( const RString &largeImageText );
 
 	// Lua
 	void PushSelf( lua_State *L );

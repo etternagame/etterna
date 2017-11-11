@@ -402,4 +402,14 @@ end
 
 t[#t+1] = LoadActor("../offsetplot")
 
+-- Discord thingies
+local largeImageTooltip = GetPlayerOrMachineProfile(PLAYER_1):GetDisplayName() .. ": " .. string.format("%5.2f", GetPlayerOrMachineProfile(PLAYER_1):GetPlayerRating())
+local detail = GAMESTATE:GetCurrentSong():GetDisplayMainTitle() .. " " .. string.gsub(getCurRateDisplayString(), "Music", "") .. " [" .. GAMESTATE:GetCurrentSong():GetGroupName() .. "]"
+-- truncated to 128 characters(discord hard limit)
+detail = #detail < 128 and detail or string.sub(detail, 1, 124) .. "..."
+local state = "MSD: " .. string.format("%05.2f", GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(),1)) .. 
+	" - " .. string.format("%05.2f%%",notShit.floor(pssP1:GetWifeScore()*10000)/100) .. 
+	" " .. THEME:GetString("Grade",ToEnumShortString(SCOREMAN:GetMostRecentScore():GetWifeGrade()))
+GAMESTATE:UpdateDiscordPresence(largeImageTooltip, detail, state, 0)
+
 return t
