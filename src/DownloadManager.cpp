@@ -20,7 +20,7 @@ shared_ptr<DownloadManager> DLMAN = nullptr;
 
 static Preference<unsigned int> maxDLPerSecond("maximumBytesDownloadedPerSecond", 0);
 static Preference<unsigned int> maxDLPerSecondGameplay("maximumBytesDownloadedPerSecondDuringGameplay", 0);
-static Preference<RString> packListURL("packListURL", "");
+static Preference<RString> packListURL("packListURL", "https://etternaonline.com/api/pack_list");
 
 static const string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
 
