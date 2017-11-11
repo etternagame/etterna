@@ -2300,6 +2300,17 @@ public:
 		lua_pushstring(L, "CoinMode_Home");
 		return 1;
 	}
+
+	static int UpdateDiscordMenu(T* p, lua_State* L) {
+		p->updateDiscordPresenceMenu(SArg(1));
+		return 1;
+	}
+
+	static int UpdateDiscordPresence(T* p, lua_State* L) {
+		p->updateDiscordPresence(SArg(1), SArg(2), SArg(3), IArg(4));
+		return 1;
+	}
+
 	DEFINE_METHOD(GetEtternaVersion, GetEtternaVersion())
 	LunaGameState()
 	{
@@ -2398,6 +2409,8 @@ public:
 		ADD_METHOD( GetEtternaVersion );
 		ADD_METHOD( CountNotesSeparately );
 		ADD_METHOD(GetCoinMode);
+		ADD_METHOD( UpdateDiscordMenu );
+		ADD_METHOD( UpdateDiscordPresence );
 	}
 };
 
