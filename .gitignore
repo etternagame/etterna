@@ -103,3 +103,5 @@ tests/*.err
 *.user
 *.vdi
 *.pch
+
+nsis_strings_temp\.inc
