@@ -70,7 +70,7 @@ local o = Def.ActorFrame{
 			judge = enabledCustomWindows and 0 or GetTimingDifficulty()
 			tso = tst[GetTimingDifficulty()]
 		end
-		maxOffset = (enabledCustomWindows and judge ~= 0) and customWindow.judgeWindows.boo or 180*tso
+		maxOffset = (enabledCustomWindows and judge ~= 0) and customWindow.judgeWindows.boo or math.max(180, 180*tso)
 		MESSAGEMAN:Broadcast("JudgeDisplayChanged")
 	end,
 }
@@ -124,7 +124,7 @@ o[#o+1] = Def.ActorMultiVertex{
 			local x = fitX(wuab[i]);
 			local y = fitY(dvt[i]);
 			if math.abs(y) > plotHeight/2 then
-				y = fitY(tso*183);
+				y = fitY(math.max(183, 183*tso));
 			end
 			verts[#verts+1] = {{x-dotWidth,y+dotWidth,0}, color}
 			verts[#verts+1] = {{x+dotWidth,y+dotWidth,0}, color}
@@ -139,7 +139,7 @@ o[#o+1] = Def.ActorMultiVertex{
 		for i=1,#nrt do
 			local x = fitX(wuab[i]);
 			local y = fitY(dvt[i]);
-			local fit = (enabledCustomWindows and judge ~= 0) and customWindow.judgeWindows.boo + 3 or tso*183
+			local fit = (enabledCustomWindows and judge ~= 0) and customWindow.judgeWindows.boo + 3 or math.max(183, 183*tso)
 			local color = (enabledCustomWindows and judge ~= 0) and customOffsetToJudgeColor(dvt[i], customWindow.judgeWindows) or offsetToJudgeColor(dvt[i]/1000, tst[judge]);
 			if math.abs(y) > plotHeight/2 then
 				y = fitY(fit);

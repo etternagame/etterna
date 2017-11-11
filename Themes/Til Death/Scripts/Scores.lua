@@ -387,6 +387,7 @@ function getRescoredJudge(offsetVector, judgeScale, judge)
 	local tso = { 1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20 }
 	local ts = tso[judgeScale]
 	local windows = { 22.5, 45.0, 90.0, 135.0, 180.0, 500.0 }
+	windows[5] = math.max(windows[5], 180.0)
 	local lowerBound = judge > 1 and windows[judge - 1] * ts or -1.0
 	local upperBound = windows[judge] * ts
 	local judgeCount = 0
