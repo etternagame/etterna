@@ -7,6 +7,7 @@
 #include "CharacterManager.h"
 #include "CommonMetrics.h"
 #include "CryptManager.h"
+#include "discord-rpc.h"
 #include "Foreach.h"
 #include "Game.h"
 #include "GameCommand.h"
@@ -883,6 +884,8 @@ void GameState::SetCurGame( const Game *pGame )
 	m_pCurGame.Set( pGame );
 	RString sGame = pGame ? RString(pGame->m_szName) : RString();
 	PREFSMAN->SetCurrentGame( sGame );
+	discordInit();
+	updateDiscordPresenceMenu("");
 }
 
 const float GameState::MUSIC_SECONDS_INVALID = -5000.0f;
@@ -1824,6 +1827,37 @@ MultiPlayer GetNextEnabledMultiPlayer( MultiPlayer mp )
 		if( GAMESTATE->IsMultiPlayerEnabled(mp) )
 			return mp;
 	return MultiPlayer_Invalid;
+}
+
+void GameState::discordInit()
+{
+		DiscordEventHandlers handlers;
+		memset(&handlers, 0, sizeof(handlers));
+		Discord_Initialize("378543094531883009", &handlers, 1, NULL);
+}
+
+void GameState::updateDiscordPresence(const RString &largeImageText, const RString &details, const RString &state, const int64_t endTime)
+{
+		DiscordRichPresence discordPresence;
+		memset(&discordPresence, 0, sizeof(discordPresence));
+		discordPresence.details = details;
+		discordPresence.state = state;
+		discordPresence.endTimestamp = endTime;
+		discordPresence.largeImageKey = "default";
+		discordPresence.largeImageText = largeImageText;
+		Discord_RunCallbacks();
+		Discord_UpdatePresence(&discordPresence);
+}
+
+void GameState::updateDiscordPresenceMenu( const RString &largeImageText )
+{
+		DiscordRichPresence discordPresence;
+		memset(&discordPresence, 0, sizeof(discordPresence));
+		discordPresence.details = "In Menus";
+		discordPresence.largeImageKey = "default";
+		discordPresence.largeImageText = largeImageText;
+		Discord_RunCallbacks();
+		Discord_UpdatePresence(&discordPresence);
 }
 
 // lua start
