@@ -357,7 +357,10 @@ elseif(LINUX)
   endif()
 
   link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc.a)
-  
+
+  include_directories(${SM_EXTERN_DIR}/discord-rpc-2.0.1/include)
+  link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/libdiscord-rpc.a)  
+
   find_package(X11)
   if(${X11_FOUND})
     set(HAS_X11 TRUE)
