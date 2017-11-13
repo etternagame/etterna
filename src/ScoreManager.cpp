@@ -343,8 +343,8 @@ void ScoreManager::CalcPlayerRating(float& prating, float* pskillsets) {
 	sort(skillz.begin(), skillz.end());
 
 	float skillsetsum = 0.f;
-	for (auto& n : skillz)
-		skillsetsum += n;
+	for (size_t i = 1; i < skillz.size(); ++i)	// drop the lowest skillset
+		skillsetsum += skillz[i];
 
 	prating = skillsetsum / 6.f;
 }
