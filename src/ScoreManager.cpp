@@ -80,6 +80,18 @@ const vector<HighScore*> ScoresAtRate::GetScores() const {
 }
 */
 
+void ScoreManager::PurgeScores() {
+	TopSSRs.clear();
+	TopSSRs.shrink_to_fit();
+
+	AllScores.clear();
+	AllScores.shrink_to_fit();
+
+	ScoresByKey.clear();
+
+	pscores.clear();
+}
+
 void ScoreManager::RatingOverTime() {
 	auto compdate = [](HighScore* a, HighScore* b) { return (a->GetDateTime() < b->GetDateTime()); };
 

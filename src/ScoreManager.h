@@ -132,6 +132,7 @@ public:
 	void AddToKeyedIndex(HighScore* hs) { ScoresByKey.emplace(hs->GetScoreKey(), hs); }
 
 	void SetAllTopScores();
+	void PurgeScores();
 private:
 	unordered_map<string, ScoresForChart> pscores;	// Profile scores
 
