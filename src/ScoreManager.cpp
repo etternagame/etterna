@@ -331,7 +331,7 @@ void ScoreManager::CalcPlayerRating(float& prating, float* pskillsets) {
 	vector<float> skillz;
 	FOREACH_ENUM(Skillset, ss) {
 		// actually skip overall, and jack stamina for now
-		if (ss == Skill_Overall || ss == Skill_JackStamina)
+		if (ss == Skill_Overall)
 			continue;
 
 		SortTopSSRPtrs(ss);
