@@ -61,7 +61,7 @@ ms.SkillSets = {
 	"Handstream", 
 	"Stamina",
 	"JackSpeed",
-	"JackStamina",
+	"Chordjack",
 	"Technical"
 }
 
@@ -72,7 +72,7 @@ ms.SkillSetsShort = {
 	"HS", 
 	"Stam",
 	"Jack Speed",
-	"Jack Stam",
+	"Chordjack",
 	"Tech"
 }
 
