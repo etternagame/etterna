@@ -866,7 +866,10 @@ public:
 		}
 		string user = SArg(2);
 		string pass = SArg(3);
-		lua_pushboolean(L, DLMAN->UploadProfile(profileUploadURL, prof->profiledir + "Etterna.xml", user, pass)==0);
+		if(prof->profiledir == "")
+			lua_pushboolean(L, false);
+		else
+			lua_pushboolean(L, DLMAN->UploadProfile(profileUploadURL, prof->profiledir + "Etterna.xml", user, pass)==0);
 	}
 	LunaProfileManager()
 	{
