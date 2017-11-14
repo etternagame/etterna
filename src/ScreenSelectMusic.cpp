@@ -500,7 +500,7 @@ bool ScreenSelectMusic::Input(const InputEventPlus &input)
 		}
 		else if (bHoldingCtrl && c == 'M' && m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS)
 		{
-			// Favorite the currently selected song. -Not Kyz
+			// PermaMirror the currently selected song. -Not Kyz
 			Song* alwaysmirrorsmh = m_MusicWheel.GetSelectedSong();
 			if (alwaysmirrorsmh) {
 				Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);

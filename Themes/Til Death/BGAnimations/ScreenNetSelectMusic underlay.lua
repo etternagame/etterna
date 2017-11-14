@@ -14,9 +14,6 @@ if enabled then
 		CurrentSongChangedMessageCommand=function(self)
 			self:finishtweening():smooth(0.5):diffusealpha(0):sleep(0.35):queuecommand("ModifySongBackground")
 		end;
-		--BeginCommand=function(self)
-			self:scaletocover(0,0,SCREEN_WIDTH+maxDistX/4,SCREEN_BOTTOM+maxDistY/4):diffusealpha(0.3)
-		end;
 		ModifySongBackgroundCommand=function(self)
 			if GAMESTATE:GetCurrentSong() then
 				if GAMESTATE:GetCurrentSong():GetBackgroundPath() then

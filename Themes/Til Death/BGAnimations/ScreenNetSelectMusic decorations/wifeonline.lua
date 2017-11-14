@@ -556,44 +556,6 @@ t[#t+1] = LoadFont("Common Large") .. {
 	end;
 }
 
---Tier Label revamped. -Misterkister
-t[#t+1] = LoadFont("Common Normal") .. {
-	InitCommand=function(self)
-		self:xy(frameX+415,frameY-294):halign(0.5):zoom(0.8):maxwidth(110/0.6)
-	end;
-	BeginCommand=function(self)
-		self:queuecommand("Set")
-	end;
-	SetCommand=function(self)
-	local tiers = {[0] = "Tier 1", [7] = "Tier 2", [13] = "Tier 3", [17] = "Tier 4", [21] = "Tier 5", [25] = "Tier 6", [29] = "Tier 7", [35] = "Tier 8", [40] = "Tier 9"}
-	local meter = 0
-	if song and steps then
-	meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1)
-	end
-	local index = math.floor(meter)
-		while tiers[index] == nil do
-        index = index - 1
-        end
-		if IsNetSMOnline() then
-			if steps and song then
-				self:settextf("%s",tiers[index])
-				self:diffuse(ByMSD(meter))
-			else
-				self:settextf("")
-			end
-			if steps and steps:GetTimingData():HasWarps() then
-				self:settextf("")
-			end
-		end
-	end,
-	RefreshChartInfoMessageCommand=function(self)
-		self:queuecommand("Set")
-	end,
-	CurrentRateChangedMessageCommand=function(self)
-		self:queuecommand("Set")
-	end,
-}
-		
 t[#t+1] = Def.Sprite {
 	InitCommand=function(self)
 		self:xy(cdtitleX,cdtitleY):halign(0.5):valign(1)
