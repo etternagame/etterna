@@ -19,8 +19,8 @@
 shared_ptr<DownloadManager> DLMAN = nullptr;
 
 static Preference<unsigned int> maxDLPerSecond("maximumBytesDownloadedPerSecond", 0);
-static Preference<unsigned int> maxDLPerSecondGameplay("maximumBytesDownloadedPerSecondDuringGameplay", 0);
-static Preference<RString> packListURL("packListURL", "");
+static Preference<unsigned int> maxDLPerSecondGameplay("maximumBytesDownloadedPerSecondDuringGameplay", 300000);
+static Preference<RString> packListURL("packListURL", "https://etternaonline.com/api/pack_list");
 
 static const string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
 
@@ -140,23 +140,23 @@ DownloadManager::~DownloadManager()
 		curl_multi_cleanup(mHandle);
 	mHandle = nullptr;
 	for (auto &dl : downloads) {
-		if (dl->handle != nullptr) {
-			curl_easy_cleanup(dl->handle);
-			dl->handle = nullptr;
+		if (dl.second->handle != nullptr) {
+			curl_easy_cleanup(dl.second->handle);
+			dl.second->handle = nullptr;
 		}
-		delete dl;
+		delete dl.second;
 	}
 	curl_global_cleanup();
 }
 
 Download* DownloadManager::DownloadAndInstallPack(const string &url)
-{
+{	
 	Download* dl = new Download(url);
 
 	if (mHandle == nullptr)
 		mHandle = curl_multi_init();
 	curl_multi_add_handle(mHandle, dl->handle);
-	downloads.push_back(dl);
+	downloads[url] = dl;
 
 	UpdateDLSpeed();
 
@@ -168,24 +168,21 @@ Download* DownloadManager::DownloadAndInstallPack(const string &url)
 
 void DownloadManager::UpdateDLSpeed()
 {
-
-	auto screen = SCREENMAN->GetScreen(0);
-	UpdateDLSpeed(screen && screen->GetName() == "ScreenGamePlay");
-}
-
-void DownloadManager::UpdateDLSpeed(bool gameplay)
-{
 	size_t maxDLSpeed;
-	this->gameplay = gameplay;
-	if (gameplay) {
+	if (this->gameplay) {
 		maxDLSpeed = maxDLPerSecondGameplay;
 	}
 	else {
 		maxDLSpeed = maxDLPerSecond;
 	}
 	for (auto &x : downloads)
-		curl_easy_setopt(x->handle, CURLOPT_MAX_RECV_SPEED_LARGE, static_cast<curl_off_t>(maxDLSpeed / downloads.size()));
+		curl_easy_setopt(x.second->handle, CURLOPT_MAX_RECV_SPEED_LARGE, static_cast<curl_off_t>(maxDLSpeed / downloads.size()));
+}
 
+void DownloadManager::UpdateDLSpeed(bool gameplay)
+{
+	this->gameplay = gameplay;
+	UpdateDLSpeed();
 }
 
 bool DownloadManager::EncodeSpaces(string& str)
@@ -222,6 +219,14 @@ Download* DownloadManager::DownloadAndInstallPack(DownloadablePack* pack)
 
 bool DownloadManager::UpdateAndIsFinished(float fDeltaSeconds)
 {
+	if (reloadPending && !gameplay) {
+		auto screen = SCREENMAN->GetScreen(0);
+		if (screen && screen->GetName() == "ScreenSelectMusic")
+			static_cast<ScreenSelectMusic*>(screen)->DifferentialReload();
+		else
+			SONGMAN->DifferentialReload();
+		reloadPending = false;
+	}
 	if (!running)
 		return true;
 	timeval timeout;
@@ -269,7 +274,7 @@ bool DownloadManager::UpdateAndIsFinished(float fDeltaSeconds)
 	default: /* action */
 		curl_multi_perform(mHandle, &running);
 		for (auto &dl : downloads) 
-			dl->Update(fDeltaSeconds);
+			dl.second->Update(fDeltaSeconds);
 		break;
 	}
 
@@ -279,21 +284,21 @@ bool DownloadManager::UpdateAndIsFinished(float fDeltaSeconds)
 	bool addedPacks = false;	
 	while (msg = curl_multi_info_read(mHandle, &msgs_left)) {
 		/* Find out which handle this message is about */
-		for (auto i = downloads.begin(); i < downloads.end(); i++) {
-			if (msg->easy_handle == (*i)->handle) {
-				if ((*i)->p_RFWrapper.file.IsOpen())
-					(*i)->p_RFWrapper.file.Close();
+		for (auto i = downloads.begin(); i != downloads.end(); i++) {
+			if (msg->easy_handle == i->second->handle) {
+				if (i->second->p_RFWrapper.file.IsOpen())
+					i->second->p_RFWrapper.file.Close();
 				if (msg->msg == CURLMSG_DONE) {
 					addedPacks = true;
-					(*i)->Install();
+					i->second->Install();
 				}
 				else {
-					(*i)->Failed();
+					i->second->Failed();
 				}
-				if ((*i)->handle != nullptr)
-					curl_easy_cleanup((*i)->handle);
-				(*i)->handle = nullptr;
-				delete (*i);
+				if (i->second->handle != nullptr)
+					curl_easy_cleanup(i->second->handle);
+				i->second->handle = nullptr;
+				delete i->second;
 				downloads.erase(i);
 				break;
 			}
@@ -302,10 +307,12 @@ bool DownloadManager::UpdateAndIsFinished(float fDeltaSeconds)
 	if (addedPacks) {
 		curl_off_t maxDLSpeed = 0;
 		auto screen = SCREENMAN->GetScreen(0);
-		if (screen && screen->GetName() == "ScreenSelectMusic") 
+		if (screen && screen->GetName() == "ScreenSelectMusic")
 			static_cast<ScreenSelectMusic*>(screen)->DifferentialReload();
-		else if (!gameplay) 
-				SONGMAN->DifferentialReload();
+		else if (!gameplay)
+			SONGMAN->DifferentialReload();
+		else
+			reloadPending = true;
 		UpdateDLSpeed();
 	}
 
@@ -323,7 +330,8 @@ bool DownloadManager::UploadProfile(string url, string file, string user, string
 	CURL *curlForm = curl_easy_init();
 
 	ReadThis w;
-	w.file.Open(file);
+	if(!w.file.Open(file))
+		return false;
 
 	curl_httppost *formpost = nullptr;
 	curl_httppost *lastptr = nullptr;
@@ -374,12 +382,24 @@ bool DownloadManager::CachePackList(string url)
 	return result;
 }
 
+inline bool ends_with(std::string const & value, std::string const & ending)
+{
+	if (ending.size() > value.size()) return false;
+	return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+}
+inline bool starts_with(std::string const & value, std::string const & start)
+{
+	return value.rfind(start, 0) == 0;
+}
+
 vector<DownloadablePack>* DownloadManager::GetPackList(string url, bool &result)
 {
 	if (url == "") {
 		result = false;
 		return nullptr;
 	}
+	if (!(starts_with(url, "https://") || starts_with(url, "http://")))
+		url = string("http://").append(url);
 
 	CURL *curl = curl_easy_init();
 	string bs;
@@ -510,6 +530,19 @@ public:
 
 		return 1;
 	}
+	static int GetDownloadingPacks(T* p, lua_State* L)
+	{
+		vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
+		lua_createtable(L, packs.size(), 0);
+		for (unsigned i = 0; i < packs.size(); ++i) {
+			if (packs[i].downloading) {
+				packs[i].PushSelf(L);
+				lua_rawseti(L, -2, i + 1);
+			}
+		}
+
+		return 1;
+	}
 	static int GetFilteredAndSearchedPackList(T* p, lua_State* L)
 	{
 		if (lua_gettop(L) < 5) {
@@ -540,6 +573,7 @@ public:
 	LunaDownloadManager()
 	{
 		ADD_METHOD(GetPackList);
+		ADD_METHOD(GetDownloadingPacks);
 		ADD_METHOD(GetFilteredAndSearchedPackList);
 	}
 };
@@ -577,6 +611,14 @@ public:
 		lua_pushboolean(L, p->downloading ==0);
 		return 1;
 	}
+	static int GetDownload(T* p, lua_State* L)
+	{
+		if (p->downloading)
+			DLMAN->downloads[p->url]->PushSelf(L);
+		else
+			lua_pushnil(L);
+		return 1;
+	}
 	LunaDownloadablePack()
 	{
 		ADD_METHOD(DownloadAndInstall);
@@ -584,6 +626,7 @@ public:
 		ADD_METHOD(GetAvgDifficulty);
 		ADD_METHOD(GetName);
 		ADD_METHOD(GetSize);
+		ADD_METHOD(GetDownload);
 	}
 };
 

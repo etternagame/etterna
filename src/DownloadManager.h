@@ -80,7 +80,7 @@ class DownloadManager
 public:
 	DownloadManager();
 	~DownloadManager();
-	vector<Download*> downloads;
+	map<string, Download*> downloads;
 	CURLM* mHandle{nullptr};
 	CURLMcode ret;
 	int running{0};
@@ -88,7 +88,7 @@ public:
 	string error{""};
 	int lastid{0};
 	vector<DownloadablePack> downloadablePacks;
-
+	bool reloadPending{ false };
 	bool CachePackList(string url);
 	vector<DownloadablePack>* GetPackList(string url, bool &result);
 
