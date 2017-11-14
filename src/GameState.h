@@ -214,7 +214,7 @@ public:
 	bool		m_bLoadingNextSong;
 	int		GetLoadingCourseSongIndex() const;
 
-	RString GetEtternaVersion() { return "0.57.0-SuperExperimental"; }
+	RString GetEtternaVersion() { return "0.57.1"; }
 	bool isplaylistcourse = false;
 	bool IsPlaylistCourse() { return isplaylistcourse; }
 	bool CountNotesSeparately();
