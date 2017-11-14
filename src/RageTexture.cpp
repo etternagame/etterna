@@ -15,9 +15,7 @@ RageTexture::RageTexture( const RageTextureID &name ):
 
 
 RageTexture::~RageTexture()
-{
-
-}
+= default;
 
 
 void RageTexture::CreateFrameRects()

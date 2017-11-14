@@ -59,8 +59,7 @@ Steps::Steps(Song *song): m_StepsType(StepsType_Invalid), m_pSong(song),
 	specifiedBPMMin(0), specifiedBPMMax(0) {}
 
 Steps::~Steps()
-{
-}
+= default;
 
 void Steps::GetDisplayBpms( DisplayBpms &AddTo ) const
 {
@@ -94,7 +93,7 @@ unsigned Steps::GetHash() const
 
 bool Steps::IsNoteDataEmpty() const
 {
-	return this->m_sNoteDataCompressed.empty();
+	return this->m_sNoteDataCompressed.empty() && !m_bNoteDataIsFilled;
 }
 
 bool Steps::GetNoteDataFromSimfile()

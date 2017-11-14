@@ -33,7 +33,7 @@ protected:
 
 public:
 	ScoreKeeper( PlayerState *pPlayerState, PlayerStageStats *pPlayerStageStats );
-	virtual ~ScoreKeeper() { }
+	virtual ~ScoreKeeper() = default;
 	virtual void Load(
 		const vector<Song*> &,
 		const vector<Steps*> & ) { }

@@ -5,6 +5,13 @@ local changed = false
 local c
 local x = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.JudgeX
 local y = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.JudgeY
+
+-- CUZ WIDESCREEN DEFAULTS SCREAAAAAAAAAAAAAAAAAAAAAAAAAM -mina
+if IsUsingWideScreen( ) then
+	y = y - 5
+	x = x + 5
+end
+
 local zoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.JudgeZoom
 
 local JudgeCmds = {
@@ -86,8 +93,12 @@ end
 local t = Def.ActorFrame {
 	LoadActor(THEME:GetPathG("Judgment","Normal")) .. {
 		Name="Judgment",
-		InitCommand=cmd(pause;visible,false;xy,x,y;zoom,zoom),
-		ResetCommand=cmd(finishtweening;stopeffect;visible,false),
+		InitCommand=function(self)
+			self:pause():visible(false):xy(x,y):zoom(zoom)
+		end,
+		ResetCommand=function(self)
+			self:finishtweening():stopeffect():visible(false)
+		end,
 	},
 	
 	InitCommand = function(self)

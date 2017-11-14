@@ -11,9 +11,9 @@ class ScoreDisplayOni : public ScoreDisplay
 public:
 	ScoreDisplayOni();
 
-	virtual void Init( const PlayerState* pPlayerState, const PlayerStageStats* pPlayerStageStats );
+	void Init( const PlayerState* pPlayerState, const PlayerStageStats* pPlayerStageStats ) override;
 
-	virtual void Update( float fDelta );
+	void Update( float fDelta ) override;
 
 protected:
 	Sprite		m_sprFrame;

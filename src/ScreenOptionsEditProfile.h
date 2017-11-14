@@ -7,22 +7,22 @@
 class ScreenOptionsEditProfile : public ScreenOptions
 {
 public:
-	virtual ~ScreenOptionsEditProfile();
+	~ScreenOptionsEditProfile() override;
 
-	virtual void Init();
-	virtual void BeginScreen();
+	void Init() override;
+	void BeginScreen() override;
 
 protected:
 private:
-	virtual void ImportOptions( int row, const vector<PlayerNumber> &vpns );
-	virtual void ExportOptions( int row, const vector<PlayerNumber> &vpns );
+	void ImportOptions( int row, const vector<PlayerNumber> &vpns ) override;
+	void ExportOptions( int row, const vector<PlayerNumber> &vpns ) override;
 
 	virtual void GoToNextScreen();
 	virtual void GoToPrevScreen();
 	
-	virtual void HandleScreenMessage( const ScreenMessage SM );
-	virtual void AfterChangeValueInRow( int iRow, PlayerNumber pn );
-	virtual void ProcessMenuStart( const InputEventPlus &input );
+	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void AfterChangeValueInRow( int iRow, PlayerNumber pn ) override;
+	void ProcessMenuStart( const InputEventPlus &input ) override;
 
 	Profile	m_Original;	// restore this on revert
 };

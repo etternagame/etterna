@@ -7,81 +7,81 @@ class RageDisplay_Null: public RageDisplay
 {
 public:
 	RageDisplay_Null();
-	virtual RString Init( const VideoModeParams &p, bool bAllowUnacceleratedRenderer );
+	RString Init( const VideoModeParams &p, bool bAllowUnacceleratedRenderer ) override;
 
-	virtual RString GetApiDescription() const { return "Null"; }
-	virtual void GetDisplayResolutions( DisplayResolutions &out ) const;
-	const RagePixelFormatDesc *GetPixelFormatDesc(RagePixelFormat pf) const;
+	RString GetApiDescription() const override { return "Null"; }
+	void GetDisplayResolutions( DisplayResolutions &out ) const override;
+	const RagePixelFormatDesc *GetPixelFormatDesc(RagePixelFormat pf) const override;
 
-	bool BeginFrame() { return true; }
-	void EndFrame();
-	const VideoModeParams* GetActualVideoModeParams() const { return (VideoModeParams*)&m_Params; }
-	void SetBlendMode( BlendMode ) { }
-	bool SupportsTextureFormat( RagePixelFormat, bool /* realtime */ =false ) { return true; }
-	bool SupportsPerVertexMatrixScale() { return false; }
+	bool BeginFrame() override { return true; }
+	void EndFrame() override;
+	const VideoModeParams* GetActualVideoModeParams() const override { return (VideoModeParams*)&m_Params; }
+	void SetBlendMode( BlendMode ) override { }
+	bool SupportsTextureFormat( RagePixelFormat, bool /* realtime */ =false ) override { return true; }
+	bool SupportsPerVertexMatrixScale() override { return false; }
 	unsigned CreateTexture( 
 		RagePixelFormat, 
 		RageSurface* /* img */,
-		bool /* bGenerateMipMaps */ ) { return 1; }
+		bool /* bGenerateMipMaps */ ) override { return 1; }
 	void UpdateTexture( 
 		unsigned /* iTexHandle */, 
 		RageSurface* /* img */,
 		int /* xoffset */, int /* yoffset */, int /* width */, int /* height */ 
-		) { }
-	void DeleteTexture( unsigned /* iTexHandle */ ) { }
-	void ClearAllTextures() { }
-	int GetNumTextureUnits() { return 1; }
-	void SetTexture( TextureUnit, unsigned /* iTexture */ ) { }
-	void SetTextureMode( TextureUnit, TextureMode ) { }
-	void SetTextureWrapping( TextureUnit, bool ) { }
-	int GetMaxTextureSize() const { return 2048; }
-	void SetTextureFiltering( TextureUnit, bool ) { }
-	bool IsZWriteEnabled() const { return false; }
-	bool IsZTestEnabled() const { return false; }
-	void SetZWrite( bool ) { }
-	void SetZBias( float ) { }
-	void SetZTestMode( ZTestMode ) { }
-	void ClearZBuffer() { }
-	void SetCullMode( CullMode ) { }
-	void SetAlphaTest( bool ) { }
+		) override { }
+	void DeleteTexture( unsigned /* iTexHandle */ ) override { }
+	void ClearAllTextures() override { }
+	int GetNumTextureUnits() override { return 1; }
+	void SetTexture( TextureUnit, unsigned /* iTexture */ ) override { }
+	void SetTextureMode( TextureUnit, TextureMode ) override { }
+	void SetTextureWrapping( TextureUnit, bool ) override { }
+	int GetMaxTextureSize() const override { return 2048; }
+	void SetTextureFiltering( TextureUnit, bool ) override { }
+	bool IsZWriteEnabled() const override { return false; }
+	bool IsZTestEnabled() const override { return false; }
+	void SetZWrite( bool ) override { }
+	void SetZBias( float ) override { }
+	void SetZTestMode( ZTestMode ) override { }
+	void ClearZBuffer() override { }
+	void SetCullMode( CullMode ) override { }
+	void SetAlphaTest( bool ) override { }
 	void SetMaterial( 
 		const RageColor & /* unreferenced: emissive */,
 		const RageColor & /* unreferenced: ambient */,
 		const RageColor & /* unreferenced: diffuse */,
 		const RageColor & /* unreferenced: specular */,
 		float /* unreferenced: shininess */
-		) { }
-	void SetLighting( bool ) { }
-	void SetLightOff( int /* index */ ) { }
+		) override { }
+	void SetLighting( bool ) override { }
+	void SetLightOff( int /* index */ ) override { }
 	void SetLightDirectional( 
 		int /* index */, 
 		const RageColor & /* unreferenced: ambient */, 
 		const RageColor & /* unreferenced: diffuse */, 
 		const RageColor & /* unreferenced: specular */, 
-		const RageVector3 & /* unreferenced: dir */ ) { }
+		const RageVector3 & /* unreferenced: dir */ ) override { }
 
-	void SetSphereEnvironmentMapping( TextureUnit /* tu */, bool /* b */ ) { }
-	void SetCelShaded( int /* stage */ ) { }
+	void SetSphereEnvironmentMapping( TextureUnit /* tu */, bool /* b */ ) override { }
+	void SetCelShaded( int /* stage */ ) override { }
 
-	bool IsD3DInternal();
+	bool IsD3DInternal() override;
 
-	RageCompiledGeometry* CreateCompiledGeometry();
-	void DeleteCompiledGeometry( RageCompiledGeometry* );
+	RageCompiledGeometry* CreateCompiledGeometry() override;
+	void DeleteCompiledGeometry( RageCompiledGeometry* ) override;
 
 protected:
-	void DrawQuadsInternal( const RageSpriteVertex v[], int /* iNumVerts */ ) { }
-	void DrawQuadStripInternal( const RageSpriteVertex v[], int /* iNumVerts */ ) { }
-	void DrawFanInternal( const RageSpriteVertex v[], int /* iNumVerts */ ) { }
-	void DrawStripInternal( const RageSpriteVertex v[], int /* iNumVerts */ ) { }
-	void DrawTrianglesInternal( const RageSpriteVertex v[], int /* iNumVerts */ ) { }
-	void DrawCompiledGeometryInternal( const RageCompiledGeometry *p, int /* iMeshIndex */ ) { }
-	void DrawLineStripInternal( const RageSpriteVertex v[], int /* iNumVerts */, float /* LineWidth */ ) { }
-	void DrawSymmetricQuadStripInternal( const RageSpriteVertex v[], int /* iNumVerts */ ) { }
+	void DrawQuadsInternal( const RageSpriteVertex v[], int /* iNumVerts */ ) override { }
+	void DrawQuadStripInternal( const RageSpriteVertex v[], int /* iNumVerts */ ) override { }
+	void DrawFanInternal( const RageSpriteVertex v[], int /* iNumVerts */ ) override { }
+	void DrawStripInternal( const RageSpriteVertex v[], int /* iNumVerts */ ) override { }
+	void DrawTrianglesInternal( const RageSpriteVertex v[], int /* iNumVerts */ ) override { }
+	void DrawCompiledGeometryInternal( const RageCompiledGeometry *p, int /* iMeshIndex */ ) override { }
+	void DrawLineStripInternal( const RageSpriteVertex v[], int /* iNumVerts */, float /* LineWidth */ ) override { }
+	void DrawSymmetricQuadStripInternal( const RageSpriteVertex v[], int /* iNumVerts */ ) override { }
 
 	VideoModeParams m_Params;
-	RString TryVideoMode( const VideoModeParams &p, bool & /* bNewDeviceOut */ ) { m_Params = p; return RString(); }
-	RageSurface* CreateScreenshot();
-	RageMatrix GetOrthoMatrix( float l, float r, float b, float t, float zn, float zf ); 
+	RString TryVideoMode( const VideoModeParams &p, bool & /* bNewDeviceOut */ ) override { m_Params = p; return RString(); }
+	RageSurface* CreateScreenshot() override;
+	RageMatrix GetOrthoMatrix( float l, float r, float b, float t, float zn, float zf ) override; 
 	bool SupportsSurfaceFormat( RagePixelFormat ) { return true; }
 };
 

@@ -19,8 +19,7 @@ ScoreDisplayAliveTime::ScoreDisplayAliveTime()
 }
 
 ScoreDisplayAliveTime::~ScoreDisplayAliveTime()
-{
-}
+= default;
 
 void ScoreDisplayAliveTime::LoadFromNode( const XNode* pNode )
 {
@@ -73,8 +72,7 @@ class LunaScoreDisplayAliveTime: public Luna<ScoreDisplayAliveTime>
 {
 public:
 	LunaScoreDisplayAliveTime()
-	{
-	}
+	= default;
 };
 
 LUA_REGISTER_DERIVED_CLASS( ScoreDisplayAliveTime, BitmapText )

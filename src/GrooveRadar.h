@@ -13,8 +13,8 @@ class GrooveRadar : public ActorFrame
 {
 public:
 	GrooveRadar();
-	virtual GrooveRadar *Copy() const;
-	virtual void LoadFromNode( const XNode* pNode );
+	GrooveRadar *Copy() const override;
+	void LoadFromNode( const XNode* pNode ) override;
 
 	/** 
 	 * @brief Give the Player an empty GrooveRadar.
@@ -29,7 +29,7 @@ public:
 	void SetFromValues( PlayerNumber pn, vector<float> vals );
 
 	// Lua
-	void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 protected:
 	/**
@@ -41,8 +41,8 @@ protected:
 	public:
 		GrooveRadarValueMap();
 
-		virtual void Update( float fDeltaTime );
-		virtual void DrawPrimitives();
+		void Update( float fDeltaTime ) override;
+		void DrawPrimitives() override;
 
 		void SetEmpty();
 		void SetFromSteps( const RadarValues &rv );

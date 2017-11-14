@@ -11,8 +11,12 @@ t[#t+1] = LoadActor(Var "File1") .. {
 			self:GetTexture():rate(self:GetParent():GetUpdateRate())
 		end
 	end,
-	GainFocusCommand=cmd(play);
-	LoseFocusCommand=cmd(pause);
+	GainFocusCommand=function(self)
+		self:play()
+	end;
+	LoseFocusCommand=function(self)
+		self:pause()
+	end;
 };
 
 if Var("File2") ~= nil then
@@ -24,8 +28,12 @@ if Var("File2") ~= nil then
 				self:GetTexture():rate(self:GetParent():GetUpdateRate())
 			end
 		end,
-		GainFocusCommand=cmd(play);
-		LoseFocusCommand=cmd(pause);
+		GainFocusCommand=function(self)
+			self:play()
+		end;
+		LoseFocusCommand=function(self)
+			self:pause()
+		end;
 	};
 end;
 

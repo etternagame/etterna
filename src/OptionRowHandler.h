@@ -40,31 +40,31 @@ struct OptionRowDefinition
 	/** @brief an explanation of the row's purpose. */
 	RString m_sExplanationName;
 	/** @brief Do all players have to share one option from the row? */
-	bool m_bOneChoiceForAllPlayers;
-	SelectType m_selectType;
-	LayoutType m_layoutType;
+	bool m_bOneChoiceForAllPlayers{false};
+	SelectType m_selectType{SELECT_ONE};
+	LayoutType m_layoutType{LAYOUT_SHOW_ALL_IN_ROW};
 	vector<RString> m_vsChoices;
 	set<PlayerNumber> m_vEnabledForPlayers;	// only players in this set may change focus to this row
-	int m_iDefault;
-	bool	m_bExportOnChange;
+	int m_iDefault{-1};
+	bool	m_bExportOnChange{false};
 	/**
 	 * @brief Are theme items allowed here?
 	 *
 	 * This should be true for dynamic strings. */
-	bool	m_bAllowThemeItems;
+	bool	m_bAllowThemeItems{true};
 	/**
 	 * @brief Are theme titles allowed here?
 	 *
 	 * This should be true for dynamic strings. */
-	bool	m_bAllowThemeTitle;
+	bool	m_bAllowThemeTitle{true};
 	/**
 	 * @brief Are explanations allowed for this row?
 	 *
 	 * If this is false, it will ignore the ScreenOptions::SHOW_EXPLANATIONS metric.
 	 *
 	 * This should be true for dynamic strings. */
-	bool	m_bAllowExplanation;
-	bool	m_bShowChoicesListOnSelect; // (currently unused)
+	bool	m_bAllowExplanation{true};
+	bool	m_bShowChoicesListOnSelect{false}; // (currently unused)
 
 	/**
 	 * @brief Is this option enabled for the Player?
@@ -76,12 +76,9 @@ struct OptionRowDefinition
 	}
 
 	OptionRowDefinition(): m_sName(""), m_sExplanationName(""),
-		m_bOneChoiceForAllPlayers(false), m_selectType(SELECT_ONE),
-		m_layoutType(LAYOUT_SHOW_ALL_IN_ROW), m_vsChoices(), 
-		m_vEnabledForPlayers(), m_iDefault(-1),
-		m_bExportOnChange(false), m_bAllowThemeItems(true),
-		m_bAllowThemeTitle(true), m_bAllowExplanation(true),
-		m_bShowChoicesListOnSelect(false)
+		 m_vsChoices(), 
+		m_vEnabledForPlayers()
+		
 	{
 		FOREACH_PlayerNumber( pn )
 			m_vEnabledForPlayers.insert( pn ); 
@@ -117,12 +114,9 @@ struct OptionRowDefinition
 			    const char *c17=NULL, const char *c18=NULL, 
 			    const char *c19=NULL ): m_sName(n),
 		m_sExplanationName(""), m_bOneChoiceForAllPlayers(b),
-		m_selectType(SELECT_ONE),
-		m_layoutType(LAYOUT_SHOW_ALL_IN_ROW), m_vsChoices(), 
-		m_vEnabledForPlayers(), m_iDefault(-1),
-		m_bExportOnChange(false), m_bAllowThemeItems(true),
-		m_bAllowThemeTitle(true), m_bAllowExplanation(true),
-		m_bShowChoicesListOnSelect(false)
+		 m_vsChoices(), 
+		m_vEnabledForPlayers()
+		
 	{
 		FOREACH_PlayerNumber( pn )
 			m_vEnabledForPlayers.insert( pn );
@@ -144,7 +138,7 @@ public:
 	vector<RString> m_vsReloadRowMessages;	// refresh this row on on these messages
 
 	OptionRowHandler(): m_Def(), m_vsReloadRowMessages() { }
-	virtual ~OptionRowHandler() { }
+	virtual ~OptionRowHandler() = default;
 	virtual void Init()
 	{
 		m_Def.Init();

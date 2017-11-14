@@ -28,9 +28,9 @@ public:
 	static void SetPromptSettings( const RString &sText, PromptType type = PROMPT_OK, PromptAnswer defaultAnswer = ANSWER_NO, void(*OnYes)(void*) = NULL, void(*OnNo)(void*) = NULL, void* pCallbackData = NULL );
 	static void Prompt( ScreenMessage smSendOnPop, const RString &sText, PromptType type = PROMPT_OK, PromptAnswer defaultAnswer = ANSWER_NO, void(*OnYes)(void*) = NULL, void(*OnNo)(void*) = NULL, void* pCallbackData = NULL );
 
-	virtual void Init();
-	virtual void BeginScreen();
-	virtual bool Input( const InputEventPlus &input );
+	void Init() override;
+	void BeginScreen() override;
+	bool Input( const InputEventPlus &input ) override;
 
 	static PromptAnswer s_LastAnswer;
 	static bool s_bCancelledLast;
@@ -42,15 +42,15 @@ protected:
 	bool CanGoLeft() { return m_Answer > 0; }
 	bool CanGoRight();
 	void Change( int dir );
-	bool MenuLeft( const InputEventPlus &input );
-	bool MenuRight( const InputEventPlus &input );
-	bool MenuBack( const InputEventPlus &input );
-	bool MenuStart( const InputEventPlus &input );
+	bool MenuLeft( const InputEventPlus &input ) override;
+	bool MenuRight( const InputEventPlus &input ) override;
+	bool MenuBack( const InputEventPlus &input ) override;
+	bool MenuStart( const InputEventPlus &input ) override;
 
 	virtual void End( bool bCancelled );
 	void PositionCursor();
 
-	virtual void TweenOffScreen();
+	void TweenOffScreen() override;
 
 	BitmapText		m_textQuestion;
 	AutoActor		m_sprCursor;

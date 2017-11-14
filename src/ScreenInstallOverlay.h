@@ -9,11 +9,11 @@
 class ScreenInstallOverlay : public Screen
 {
 public:
-	virtual ~ScreenInstallOverlay();
-	virtual void Init();
+	~ScreenInstallOverlay() override;
+	void Init() override;
 
-	void Update( float fDeltaTime );
-	bool Input( const InputEventPlus &input );
+	void Update( float fDeltaTime ) override;
+	bool Input( const InputEventPlus &input ) override;
 
 private:
 	void UpdateText();

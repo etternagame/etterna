@@ -707,7 +707,7 @@ void RageSurfaceUtils::Blit( const RageSurface *src, RageSurface *dst, int width
 			break;
 
 		FAIL_M("We don't do RGBA->PAL");
-	} while(0);
+	} while(false);
 
 	/* The destination surface may be larger than the source. For example, we may be
 	 * blitting a 200x200 image onto a 256x256 surface for OpenGL. Normally, that extra
@@ -1068,7 +1068,7 @@ void RageSurfaceUtils::FlipVertically( RageSurface *img )
 {
 	const int pitch = img->pitch;
 	const int bytes_per_row = img->fmt.BytesPerPixel * img->w;
-	char *row = new char[bytes_per_row];
+	auto *row = new char[bytes_per_row];
 
 	for( int y=0; y < img->h/2; y++ )
 	{

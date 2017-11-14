@@ -1,4 +1,4 @@
-#include "global.h"
+﻿#include "global.h"
 #include "LuaManager.h"
 #include "LuaReference.h"
 #include "RageUtil.h"
@@ -588,7 +588,7 @@ static int GetLuaStack( lua_State *L )
 		{
 			sErr += ssprintf( " unknown" );
 		}
-		sErr += ssprintf( "(%s)", join(",", vArgs).c_str() );
+		sErr += ssprintf( "(%s)", luajoin(",", vArgs).c_str() );
 	}
 
 	LuaHelpers::Push( L, sErr );
@@ -1413,7 +1413,8 @@ void LuaHelpers::ParseCommandList( Lua *L, const std::string &sCommands, const s
 int LuaHelpers::TypeError( Lua *L, int iArgNo, std::string const &szName )
 {
 	std::string sType;
-	luaL_pushtype( L, iArgNo );
+	if (!luaL_callmeta(L, iArgNo, "__type"))
+		lua_pushstring(L, luaL_typename(L, iArgNo));
 	LuaHelpers::Pop( L, sType );
 
 	lua_Debug debug;
@@ -1544,7 +1545,7 @@ namespace
 		FOREACH_LUATABLE( L, 2 )
 		{
 			lua_pushvalue( L, -2 );
-			LuaThreadVariable *pVar = new LuaThreadVariable( L );
+			auto *pVar = new LuaThreadVariable( L );
 			apVars.push_back( pVar );
 		}
 

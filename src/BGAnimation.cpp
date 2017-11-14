@@ -11,8 +11,7 @@
 REGISTER_ACTOR_CLASS(BGAnimation);
 
 BGAnimation::BGAnimation()
-{
-}
+= default;
 
 BGAnimation::~BGAnimation()
 {
@@ -169,7 +168,7 @@ void BGAnimation::LoadFromNode( const XNode* pNode )
 	float fLengthSeconds = 0;
 	if( pNode->GetAttrValue( "LengthSeconds", fLengthSeconds ) )
 	{
-		Actor *pActor = new Actor;
+		auto *pActor = new Actor;
 		pActor->SetName( "BGAnimation dummy" );
 		pActor->SetVisible( false );
 		apActorCommands ap = ActorUtil::ParseActorCommands( ssprintf("sleep,%f",fLengthSeconds) );

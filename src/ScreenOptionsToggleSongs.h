@@ -13,12 +13,12 @@ namespace ToggleSongs
 class ScreenOptionsToggleSongs: public ScreenOptions
 {
 public:
-	virtual void BeginScreen();
+	void BeginScreen() override;
 
 private:
-	virtual void ImportOptions( int row, const vector<PlayerNumber> &vpns );
-	virtual void ExportOptions( int row, const vector<PlayerNumber> &vpns );
-	virtual void ProcessMenuStart( const InputEventPlus &input );
+	void ImportOptions( int row, const vector<PlayerNumber> &vpns ) override;
+	void ExportOptions( int row, const vector<PlayerNumber> &vpns ) override;
+	void ProcessMenuStart( const InputEventPlus &input ) override;
 
 	vector<RString> m_asGroups;
 };
@@ -26,11 +26,11 @@ private:
 class ScreenOptionsToggleSongsSubPage: public ScreenOptions
 {
 public:
-	virtual void BeginScreen();
+	void BeginScreen() override;
 
 private:
-	virtual void ImportOptions( int row, const vector<PlayerNumber> &vpns );
-	virtual void ExportOptions( int row, const vector<PlayerNumber> &vpns );
+	void ImportOptions( int row, const vector<PlayerNumber> &vpns ) override;
+	void ExportOptions( int row, const vector<PlayerNumber> &vpns ) override;
 
 	vector<Song *> m_apSongs;
 };

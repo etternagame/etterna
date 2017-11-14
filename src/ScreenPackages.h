@@ -14,19 +14,19 @@
 class ScreenPackages : public ScreenWithMenuElements
 {
 public:
-	virtual void Init();
+	void Init() override;
 
-	virtual void HandleScreenMessage( const ScreenMessage SM );
+	void HandleScreenMessage( const ScreenMessage SM ) override;
 
-	virtual bool MenuStart( const InputEventPlus &input );
-	virtual bool MenuUp( const InputEventPlus &input );
-	virtual bool MenuDown( const InputEventPlus &input );
-	virtual bool MenuLeft( const InputEventPlus &input );
-	virtual bool MenuRight( const InputEventPlus &input );
-	virtual bool MenuBack( const InputEventPlus &input );
+	bool MenuStart( const InputEventPlus &input ) override;
+	bool MenuUp( const InputEventPlus &input ) override;
+	bool MenuDown( const InputEventPlus &input ) override;
+	bool MenuLeft( const InputEventPlus &input ) override;
+	bool MenuRight( const InputEventPlus &input ) override;
+	bool MenuBack( const InputEventPlus &input ) override;
 
-	virtual void TweenOffScreen( );
-	virtual void Update(float f);
+	void TweenOffScreen( ) override;
+	void Update(float f) override;
 
 protected:
 	ThemeMetric<float> EXISTINGBG_WIDTH; // "PackagesBGWidth"

@@ -6,10 +6,10 @@
 class ScreenInstructions : public ScreenWithMenuElements
 {
 public:
-	virtual bool Input( const InputEventPlus &input );
+	bool Input( const InputEventPlus &input ) override;
 
-	virtual bool MenuBack( const InputEventPlus &input );
-	virtual bool MenuStart( const InputEventPlus &input );
+	bool MenuBack( const InputEventPlus &input ) override;
+	bool MenuStart( const InputEventPlus &input ) override;
 };
 
 

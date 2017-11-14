@@ -9,7 +9,7 @@
 #include "Foreach.h"
 #include "Style.h"
 #include "CommonMetrics.h"
-#include <float.h>
+#include <cfloat>
 
 static const char *LifeTypeNames[] = {
 	"Bar",

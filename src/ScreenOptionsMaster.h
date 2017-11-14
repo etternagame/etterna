@@ -1,4 +1,4 @@
-#ifndef SCREEN_OPTIONS_MASTER_H
+﻿#ifndef SCREEN_OPTIONS_MASTER_H
 #define SCREEN_OPTIONS_MASTER_H
 
 #include "ScreenOptions.h"
@@ -8,16 +8,16 @@ class OptionRowHandler;
 class ScreenOptionsMaster : public ScreenOptions
 {
 public:
-	virtual void Init();
+	void Init() override;
 
 private:
 	int m_iChangeMask;
 
 protected:
-	virtual void HandleScreenMessage( const ScreenMessage SM );
+	void HandleScreenMessage( const ScreenMessage SM ) override;
 
-	virtual void ImportOptions( int iRow, const vector<PlayerNumber> &vpns );
-	virtual void ExportOptions( int iRow, const vector<PlayerNumber> &vpns );
+	void ImportOptions( int iRow, const vector<PlayerNumber> &vpns ) override;
+	void ExportOptions( int iRow, const vector<PlayerNumber> &vpns ) override;
 };
 
 #endif

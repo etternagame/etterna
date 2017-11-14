@@ -307,7 +307,7 @@ RageFileManager::RageFileManager( const RString &argv0 )
 	g_Mutex = new RageEvent("RageFileManager");
 
 	g_Mountpoints = new RageFileDriverMountpoints;
-	LoadedDriver *pLoadedDriver = new LoadedDriver;
+	auto *pLoadedDriver = new LoadedDriver;
 	pLoadedDriver->m_pDriver = g_Mountpoints;
 	pLoadedDriver->m_sMountPoint = "/";
 	pLoadedDriver->m_sType = "mountpoints";
@@ -596,7 +596,7 @@ bool RageFileManager::Mount( const RString &sType, const RString &sRoot_, const 
 
 	CHECKPOINT_M("Driver %s successfully made.");
 
-	LoadedDriver *pLoadedDriver = new LoadedDriver;
+	auto *pLoadedDriver = new LoadedDriver;
 	pLoadedDriver->m_pDriver = pDriver;
 	pLoadedDriver->m_sType = sType;
 	pLoadedDriver->m_sRoot = sRoot;
@@ -613,7 +613,7 @@ void RageFileManager::Mount( RageFileDriver *pDriver, const RString &sMountPoint
 	
 	AdjustMountpoint( sMountPoint );
 
-	LoadedDriver *pLoadedDriver = new LoadedDriver;
+	auto *pLoadedDriver = new LoadedDriver;
 	pLoadedDriver->m_pDriver = pDriver;
 	pLoadedDriver->m_sType = "";
 	pLoadedDriver->m_sRoot = "";

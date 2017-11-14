@@ -13,16 +13,16 @@ public:
 	static RageMovieTexture *Create( const RageTextureID &ID );
 
 	RageMovieTexture( const RageTextureID &ID ): RageTexture(ID) { }
-	virtual ~RageMovieTexture() { }
-	virtual void Update( float /* fDeltaTime */ ) { }
+	~RageMovieTexture() override = default;
+	void Update( float /* fDeltaTime */ ) override { }
 
-	virtual void Reload() = 0;
+	void Reload() override = 0;
 
-	virtual void SetPosition( float fSeconds ) = 0;
-	virtual void SetPlaybackRate( float fRate ) = 0;
-	virtual void SetLooping( bool = true ) { }
+	void SetPosition( float fSeconds ) override = 0;
+	void SetPlaybackRate( float fRate ) override = 0;
+	void SetLooping( bool = true ) override { }
 
-	bool IsAMovie() const { return true; }
+	bool IsAMovie() const override { return true; }
 
 	static bool GetFourCC( const RString &fn, RString &handler, RString &type );
 };
@@ -30,7 +30,7 @@ public:
 class RageMovieTextureDriver: public RageDriver
 {
 public:
-	virtual ~RageMovieTextureDriver() { }
+	~RageMovieTextureDriver() override = default;
 	virtual RageMovieTexture *Create( const RageTextureID &ID, RString &sError ) = 0;
 	static DriverList m_pDriverList;
 };

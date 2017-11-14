@@ -13,14 +13,14 @@ class ScreenMapControllers : public ScreenWithMenuElements
 {
 public:
 	ScreenMapControllers();
-	~ScreenMapControllers();
-	virtual void Init();
-	virtual void BeginScreen();
+	~ScreenMapControllers() override;
+	void Init() override;
+	void BeginScreen() override;
 
-	virtual void Update( float fDeltaTime );
-	virtual bool Input( const InputEventPlus &input );
-	virtual void HandleMessage( const Message &msg );
-	virtual void HandleScreenMessage( const ScreenMessage SM );
+	void Update( float fDeltaTime ) override;
+	bool Input( const InputEventPlus &input ) override;
+	void HandleMessage( const Message &msg ) override;
+	void HandleScreenMessage( const ScreenMessage SM ) override;
 
 private:
 
@@ -99,7 +99,7 @@ private:
 	set<SetListEntry>::iterator m_SetListCurrent;
 	bool m_InSetListMode;
 
-	typedef void (ScreenMapControllers::* action_fun_t)();
+	using action_fun_t = void (ScreenMapControllers::*)();
 	struct ActionRow
 	{
 		RString m_name;

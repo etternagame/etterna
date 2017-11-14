@@ -1,4 +1,4 @@
-/*
+﻿/*
  * If you're going to use threads, remember this: 
  *
  * Threads suck.
@@ -44,7 +44,7 @@ struct ThreadSlot
 	/* Format this beforehand, since it's easier to do that than to do it under crash conditions. */
 	char m_szThreadFormattedOutput[1024];
 
-	bool m_bUsed;
+	bool m_bUsed{false};
 	uint64_t m_iID;
 
 	ThreadImpl *m_pImpl;
@@ -62,11 +62,11 @@ struct ThreadSlot
 		const char *GetFormattedCheckpoint();
 	};
 	ThreadCheckpoint m_Checkpoints[CHECKPOINT_COUNT];
-	int m_iCurCheckpoint, m_iNumCheckpoints;
+	int m_iCurCheckpoint{0}, m_iNumCheckpoints{0};
 	const char *GetFormattedCheckpoint( int lineno );
 
-	ThreadSlot(): m_bUsed(false), m_iID(GetInvalidThreadId()),
-		m_pImpl(NULL), m_iCurCheckpoint(0), m_iNumCheckpoints(0) {}
+	ThreadSlot():  m_iID(GetInvalidThreadId()),
+		m_pImpl(NULL) {};
 	void Init()
 	{
 		m_iID = GetInvalidThreadId();
@@ -187,12 +187,12 @@ static ThreadSlot *GetThreadSlotFromID( uint64_t iID )
 {
 	InitThreads();
 
-	for( int entry = 0; entry < MAX_THREADS; ++entry )
+	for(auto & g_ThreadSlot : g_ThreadSlots)
 	{
-		if( !g_ThreadSlots[entry].m_bUsed )
+		if( !g_ThreadSlot.m_bUsed )
 			continue;
-		if( g_ThreadSlots[entry].m_iID == iID )
-			return &g_ThreadSlots[entry];
+		if( g_ThreadSlot.m_iID == iID )
+			return &g_ThreadSlot;
 	}
 	return NULL;
 }
@@ -337,27 +337,27 @@ void RageThread::Resume() {
 void RageThread::HaltAllThreads( bool Kill )
 {
 	const uint64_t ThisThreadID = GetThisThreadId();
-	for( int entry = 0; entry < MAX_THREADS; ++entry )
+	for(auto & g_ThreadSlot : g_ThreadSlots)
 	{
-		if( !g_ThreadSlots[entry].m_bUsed )
+		if( !g_ThreadSlot.m_bUsed )
 			continue;
-		if( ThisThreadID == g_ThreadSlots[entry].m_iID || g_ThreadSlots[entry].m_pImpl == NULL )
+		if( ThisThreadID == g_ThreadSlot.m_iID || g_ThreadSlot.m_pImpl == NULL )
 			continue;
-		g_ThreadSlots[entry].m_pImpl->Halt( Kill );
+		g_ThreadSlot.m_pImpl->Halt( Kill );
 	}
 }
 
 void RageThread::ResumeAllThreads()
 {
 	const uint64_t ThisThreadID = GetThisThreadId();
-	for( int entry = 0; entry < MAX_THREADS; ++entry )
+	for(auto & g_ThreadSlot : g_ThreadSlots)
 	{
-		if( !g_ThreadSlots[entry].m_bUsed )
+		if( !g_ThreadSlot.m_bUsed )
 			continue;
-		if( ThisThreadID == g_ThreadSlots[entry].m_iID || g_ThreadSlots[entry].m_pImpl == NULL )
+		if( ThisThreadID == g_ThreadSlot.m_iID || g_ThreadSlot.m_pImpl == NULL )
 			continue;
 
-		g_ThreadSlots[entry].m_pImpl->Resume();
+		g_ThreadSlot.m_pImpl->Resume();
 	}
 }
 

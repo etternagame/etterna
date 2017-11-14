@@ -192,7 +192,7 @@ bool CodeDetector::DetectAndAdjustMusicOptions( GameController controller )
 
 	for( int c=CODE_MIRROR; c<=CODE_CANCEL_ALL; c++ )
 	{
-		Code code = (Code)c;
+		auto code = (Code)c;
 
 		PlayerOptions po = GAMESTATE->m_pPlayerState[pn]->m_PlayerOptions.GetPreferred();
 

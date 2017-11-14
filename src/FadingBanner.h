@@ -11,7 +11,7 @@ class FadingBanner : public ActorFrame
 {
 public:
 	FadingBanner();
-	virtual FadingBanner *Copy() const;
+	FadingBanner *Copy() const override;
 
 	void ScaleToClipped( float fWidth, float fHeight );
 
@@ -32,14 +32,14 @@ public:
 	bool LoadFromCachedBackground( const RString &path );
 
 	void SetMovingFast( bool fast ) { m_bMovingFast=fast; }
-	virtual void UpdateInternal( float fDeltaTime );
-	virtual void DrawPrimitives();
+	void UpdateInternal( float fDeltaTime ) override;
+	void DrawPrimitives() override;
 
 	int GetLatestIndex(){ return m_iIndexLatest; }
 	Banner GetBanner(int i){ return m_Banner[i]; }
 
 	// Lua
-	void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 protected:
 	void BeforeChange( bool bLowResToHighRes=false );

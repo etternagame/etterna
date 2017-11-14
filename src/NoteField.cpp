@@ -15,7 +15,7 @@
 #include "PlayerState.h"
 #include "Style.h"
 #include "CommonMetrics.h"
-#include <float.h>
+#include <cfloat>
 #include "BackgroundUtil.h"
 #include "NoteData.h"
 #include "RageDisplay.h"
@@ -98,7 +98,7 @@ void NoteField::CacheNoteSkin( const RString &sNoteSkin_ )
 	LockNoteSkin l( sNoteSkin_ );
 
 	LOG->Trace("NoteField::CacheNoteSkin: cache %s", sNoteSkin_.c_str() );
-	NoteDisplayCols *nd = new NoteDisplayCols( GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber)->m_iColsPerPlayer );
+	auto *nd = new NoteDisplayCols( GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber)->m_iColsPerPlayer );
 
 	for( int c=0; c<GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber)->m_iColsPerPlayer; c++ )
 		nd->display[c].Load( c, m_pPlayerState, m_fYReverseOffsetPixels );
@@ -443,7 +443,7 @@ void NoteField::DrawBeatBar( const float fBeat, BeatBarType type, int iMeasureIn
 void NoteField::DrawBoard( int iDrawDistanceAfterTargetsPixels, int iDrawDistanceBeforeTargetsPixels )
 {
 	// todo: make this an AutoActor instead? -aj
-	Sprite *pSprite = dynamic_cast<Sprite *>( (Actor*)m_sprBoard );
+	auto *pSprite = dynamic_cast<Sprite *>( (Actor*)m_sprBoard );
 	if( pSprite == NULL )
 	{
 		m_sprBoard->Draw();

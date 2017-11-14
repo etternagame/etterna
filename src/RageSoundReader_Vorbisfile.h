@@ -5,23 +5,23 @@
 
 #include "RageSoundReader_FileReader.h"
 
-typedef struct OggVorbis_File OggVorbis_File;
+using OggVorbis_File = struct OggVorbis_File;
 class RageFileBasic;
 
 class RageSoundReader_Vorbisfile: public RageSoundReader_FileReader
 {
 public:
-	OpenResult Open( RageFileBasic *pFile );
+	OpenResult Open( RageFileBasic *pFile ) override;
 
-	int GetLength() const;
-	int SetPosition( int iFrame );
-	int Read( float *pBuf, int iFrames );
-	int GetSampleRate() const;
-	unsigned GetNumChannels() const { return channels; }
-	int GetNextSourceFrame() const;
+	int GetLength() const override;
+	int SetPosition( int iFrame ) override;
+	int Read( float *pBuf, int iFrames ) override;
+	int GetSampleRate() const override;
+	unsigned GetNumChannels() const override { return channels; }
+	int GetNextSourceFrame() const override;
 	RageSoundReader_Vorbisfile();
-	~RageSoundReader_Vorbisfile();
-	RageSoundReader_Vorbisfile *Copy() const;
+	~RageSoundReader_Vorbisfile() override;
+	RageSoundReader_Vorbisfile *Copy() const override;
 
 private:
 	OggVorbis_File *vf;

@@ -6,10 +6,10 @@
 class RageDriver
 {
 public:
-	virtual ~RageDriver() { }
+	virtual ~RageDriver() = default;
 };
 
-typedef RageDriver *(*CreateRageDriverFn)();
+using CreateRageDriverFn = RageDriver *(*)();
 
 /* This is created and accessed during C++ static initialization; it must be a POD. */
 struct DriverList

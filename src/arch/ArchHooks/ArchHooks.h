@@ -7,7 +7,7 @@ class ArchHooks
 public:
 	static ArchHooks *Create();
 	ArchHooks();
-	virtual ~ArchHooks() { }
+	virtual ~ArchHooks() = default;
 	virtual void Init() { }
 	/*
 	 * Return the general name of the architecture, eg. "Windows", "OS X", "Unix".
@@ -120,7 +120,13 @@ public:
 	
 	/** @brief Fetch the contents of the system clipboard. */
 	virtual RString GetClipboard();
-	
+
+	/** @brief Fetch the window width. */
+	virtual int GetWindowWidth();
+
+	/** @brief Fetch the window height. */
+	virtual int GetWindowHeight();
+
 	// Lua
 	void PushSelf( lua_State *L );
 	void RegisterWithLua();

@@ -8,9 +8,7 @@
 ModelManager*		MODELMAN		= NULL; // global and accessible from anywhere in our program
 
 ModelManager::ModelManager()
-{
-
-}
+= default;
 
 ModelManager::~ModelManager()
 {
@@ -36,7 +34,7 @@ RageModelGeometry* ModelManager::LoadMilkshapeAscii( const RString& sFile, bool 
 		return pGeom;
 	}
 
-	RageModelGeometry* pGeom = new RageModelGeometry;
+	auto* pGeom = new RageModelGeometry;
 	pGeom->LoadMilkshapeAscii( sFile, bNeedNormals );
 
 	m_mapFileToGeometry[sFile] = pGeom;

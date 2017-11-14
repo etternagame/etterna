@@ -7,7 +7,7 @@
 
 #define CHARACTERS_DIR "/Characters/"
 
-CharacterManager*	CHARMAN = NULL;	// global object accessible from anywhere in the program
+CharacterManager*	CHARMAN = nullptr;	// global object accessible from anywhere in the program
 
 CharacterManager::CharacterManager()
 {
@@ -127,7 +127,7 @@ public:
 	static int GetCharacter( T* p, lua_State *L )
 	{
 		Character *pCharacter = p->GetCharacterFromID(SArg(1));
-		if( pCharacter != NULL )
+		if( pCharacter != nullptr )
 			pCharacter->PushSelf( L );
 		else
 			lua_pushnil( L );
@@ -137,7 +137,7 @@ public:
 	static int GetRandomCharacter( T* p, lua_State *L )
 	{
 		Character *pCharacter = p->GetRandomCharacter();
-		if( pCharacter != NULL )
+		if( pCharacter != nullptr )
 			pCharacter->PushSelf( L );
 		else
 			lua_pushnil( L );

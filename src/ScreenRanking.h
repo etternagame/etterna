@@ -23,17 +23,16 @@ LuaDeclareType( RankingType );
 class ScreenRanking : public ScreenAttract
 {
 public:
-	virtual void Init();
-	virtual void BeginScreen();
+	void Init() override;
+	void BeginScreen() override;
 
-	void HandleScreenMessage( const ScreenMessage SM );
+	void HandleScreenMessage( const ScreenMessage SM ) override;
 
 protected:
 	struct PageToShow
 	{
 		PageToShow()
-		{
-		}
+		= default;
 
 		int		colorIndex;
 		vector<DifficultyAndStepsType> aTypes;

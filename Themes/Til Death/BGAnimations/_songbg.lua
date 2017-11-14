@@ -10,8 +10,12 @@ local t = Def.ActorFrame{}
 if enabled then
  	t[#t+1] = Def.ActorFrame{
  		Def.Sprite {
- 			CurrentSongChangedMessageCommand=cmd(finishtweening;smooth,0.5;diffusealpha,0;sleep,0.2;queuecommand,"ModifySongBackground"),
-			BeginCommand=cmd(scaletocover,0,0,SCREEN_WIDTH+maxDistX/4,SCREEN_BOTTOM+maxDistY/4;diffusealpha,0.3),
+ 			CurrentSongChangedMessageCommand=function(self)
+ 				self:finishtweening():smooth(0.5):diffusealpha(0):sleep(0.2):queuecommand("ModifySongBackground")
+ 			end,
+			BeginCommand=function(self)
+				self:scaletocover(0,0,SCREEN_WIDTH+maxDistX/4,SCREEN_BOTTOM+maxDistY/4):diffusealpha(0.3)
+			end,
  			ModifySongBackgroundCommand=function(self)
 				self:finishtweening()
  					if GAMESTATE:GetCurrentSong() and GAMESTATE:GetCurrentSong():GetBackgroundPath() then
@@ -31,7 +35,9 @@ if enabled then
  						self:visible(false)
  					end
  			end,
-			OffCommand=cmd(smooth,0.5;diffusealpha,0),
+			OffCommand=function(self)
+				self:smooth(0.5):diffusealpha(0)
+			end,
  			BGOffMessageCommand=function(self)
  				self:finishtweening()
  				self:visible(false)
@@ -40,7 +46,11 @@ if enabled then
  	}
  end
 
-t[#t+1] = Def.Quad{InitCommand=cmd(xy,SCREEN_WIDTH,0;halign,1;valign,0;zoomto,capWideScale(get43size(350),350),SCREEN_HEIGHT;diffuse,color("#33333399"))}
-t[#t+1] = Def.Quad{InitCommand=cmd(xy,SCREEN_WIDTH-capWideScale(get43size(350),350),0;halign,0;valign,0;zoomto,4,SCREEN_HEIGHT;diffuse,getMainColor("highlight");diffusealpha,0.5)}
+t[#t+1] = Def.Quad{InitCommand=function(self)
+	self:xy(SCREEN_WIDTH,0):halign(1):valign(0):zoomto(capWideScale(get43size(350),350),SCREEN_HEIGHT):diffuse(color("#33333399"))
+end}
+t[#t+1] = Def.Quad{InitCommand=function(self)
+	self:xy(SCREEN_WIDTH-capWideScale(get43size(350),350),0):halign(0):valign(0):zoomto(4,SCREEN_HEIGHT):diffuse(getMainColor("highlight")):diffusealpha(0.5)
+end}
 
 return t

@@ -1,5 +1,5 @@
 /*
-** $Id: luaconf.h 27862 2009-01-05 22:02:30Z GRIM657 $
+** $Id: luaconf.h,v 1.82.1.7 2008/02/11 16:25:08 roberto Exp $
 ** Configuration file for Lua
 ** See Copyright Notice in lua.h
 */
@@ -10,16 +10,7 @@
 
 #include <limits.h>
 #include <stddef.h>
-#if defined(_WIN32)
-typedef unsigned int uint32_t;
-typedef int int32_t;
-#else
-#include <inttypes.h>
-#endif
 
-#if defined(HAVE_CONFIG_H)
-#include <config.h>
-#endif
 
 /*
 ** ==================================================================
@@ -216,7 +207,7 @@ typedef int int32_t;
 @* of a function in debug information.
 ** CHANGE it if you want a different size.
 */
-#define LUA_IDSIZE	150
+#define LUA_IDSIZE	60
 
 
 /*
@@ -369,7 +360,7 @@ typedef int int32_t;
 /*
 @@ LUA_COMPAT_OPENLIB controls compatibility with old 'luaL_openlib'
 @* behavior.
-** CHANGE it to undefined as soon as you replace to 'luaL_registry'
+** CHANGE it to undefined as soon as you replace to 'luaL_register'
 ** your uses of 'luaL_openlib'
 */
 #define LUA_COMPAT_OPENLIB
@@ -419,11 +410,20 @@ typedef int int32_t;
 ** part always works, but may waste space on machines with 64-bit
 ** longs.) Probably you do not need to change this.
 */
-#define LUAI_UINT32	uint32_t
-#define LUAI_INT32	int32_t
+#if LUAI_BITSINT >= 32
+#define LUAI_UINT32	unsigned int
+#define LUAI_INT32	int
 #define LUAI_MAXINT32	INT_MAX
 #define LUAI_UMEM	size_t
 #define LUAI_MEM	ptrdiff_t
+#else
+/* 16-bit ints */
+#define LUAI_UINT32	unsigned long
+#define LUAI_INT32	long
+#define LUAI_MAXINT32	LONG_MAX
+#define LUAI_UMEM	unsigned long
+#define LUAI_MEM	long
+#endif
 
 
 /*
@@ -440,9 +440,10 @@ typedef int int32_t;
 @* can use.
 ** CHANGE it if you need lots of (Lua) stack space for your C
 ** functions. This limit is arbitrary; its only purpose is to stop C
-** functions to consume unlimited stack space.
+** functions to consume unlimited stack space. (must be smaller than
+** -LUA_REGISTRYINDEX)
 */
-#define LUAI_MAXCSTACK	2048
+#define LUAI_MAXCSTACK	8000
 
 
 
@@ -666,7 +667,7 @@ union luai_Cast { double l_d; long l_l; };
 */
 #if defined(LUA_USE_POPEN)
 
-#define lua_popen(L,c,m)	((void)L, popen(c,m))
+#define lua_popen(L,c,m)	((void)L, fflush(NULL), popen(c,m))
 #define lua_pclose(L,file)	((void)L, (pclose(file) != -1))
 
 #elif defined(LUA_WIN)
@@ -703,6 +704,7 @@ union luai_Cast { double l_d; long l_l; };
 #if defined(LUA_WIN)
 #define LUA_DL_DLL
 #endif
+
 
 /*
 @@ LUAI_EXTRASPACE allows you to add user-specific data in a lua_State

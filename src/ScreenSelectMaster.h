@@ -26,27 +26,27 @@ class ScreenSelectMaster : public ScreenSelect
 public:
 	ScreenSelectMaster();
 	//~ScreenSelectMaster();
-	virtual void Init();
+	void Init() override;
 	virtual RString GetDefaultChoice();
-	virtual void BeginScreen();
+	void BeginScreen() override;
 
-	virtual bool MenuLeft( const InputEventPlus &input );
-	virtual bool MenuRight( const InputEventPlus &input );
-	virtual bool MenuUp( const InputEventPlus &input );
-	virtual bool MenuDown( const InputEventPlus &input );
-	virtual bool MenuStart( const InputEventPlus &input );
-	virtual void TweenOnScreen();
-	virtual void TweenOffScreen();
+	bool MenuLeft( const InputEventPlus &input ) override;
+	bool MenuRight( const InputEventPlus &input ) override;
+	bool MenuUp( const InputEventPlus &input ) override;
+	bool MenuDown( const InputEventPlus &input ) override;
+	bool MenuStart( const InputEventPlus &input ) override;
+	void TweenOnScreen() override;
+	void TweenOffScreen() override;
 
-	virtual void HandleScreenMessage( const ScreenMessage SM );
-	virtual void HandleMessage( const Message &msg );
-	virtual bool AllowLateJoin() const { return true; }
+	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleMessage( const Message &msg ) override;
+	bool AllowLateJoin() const override { return true; }
 
 	// sm-ssc additions:
 	int GetPlayerSelectionIndex(PlayerNumber pn){ return GetSelectionIndex(pn); }
 
 	// Lua
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 protected:
 	enum Page { PAGE_1, PAGE_2, NUM_Page };	// on PAGE_2, cursors are locked together
@@ -82,8 +82,8 @@ protected:
 
 	map<int,int> m_mapCurrentChoiceToNextChoice[NUM_MenuDir];
 
-	virtual int GetSelectionIndex( PlayerNumber pn );
-	virtual void UpdateSelectableChoices();
+	int GetSelectionIndex( PlayerNumber pn ) override;
+	void UpdateSelectableChoices() override;
 	bool AnyOptionsArePlayable() const;
 
 	bool Move( PlayerNumber pn, MenuDir dir );

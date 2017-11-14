@@ -11,19 +11,19 @@ class RageSoundReader_Split: public RageSoundReader
 {
 public:
 	RageSoundReader_Split( const RageSoundReader_Split &cpy );
-	~RageSoundReader_Split();
-	virtual RageSoundReader_Split *Copy() const { return new RageSoundReader_Split(*this); }
+	~RageSoundReader_Split() override;
+	RageSoundReader_Split *Copy() const override { return new RageSoundReader_Split(*this); }
 
-	virtual int GetLength() const;
-	virtual int GetLength_Fast() const;
-	virtual int SetPosition( int iFrame );
-	virtual int Read( float *pBuf, int iFrames );
-	virtual int GetSampleRate() const;
-	virtual unsigned GetNumChannels() const;
-	virtual bool SetProperty( const RString &sProperty, float fValue );
-	virtual int GetNextSourceFrame() const;
-	virtual float GetStreamToSourceRatio() const;
-	virtual RString GetError() const;
+	int GetLength() const override;
+	int GetLength_Fast() const override;
+	int SetPosition( int iFrame ) override;
+	int Read( float *pBuf, int iFrames ) override;
+	int GetSampleRate() const override;
+	unsigned GetNumChannels() const override;
+	bool SetProperty( const RString &sProperty, float fValue ) override;
+	int GetNextSourceFrame() const override;
+	float GetStreamToSourceRatio() const override;
+	RString GetError() const override;
 
 	void AddSourceChannelToSound( int iFromChannel, int iToChannel );
 

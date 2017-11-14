@@ -9,21 +9,21 @@
 class ScreenNetEvaluation: public ScreenEvaluation
 {
 public:
-	virtual void Init();
+	void Init() override;
 
 	// sm-ssc:
 	int GetNumActivePlayers(){ return m_iActivePlayers; }
 
 	// Lua
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 protected:
-	virtual bool MenuLeft( const InputEventPlus &input );
-	virtual bool MenuUp( const InputEventPlus &input );
-	virtual bool MenuRight( const InputEventPlus &input );
-	virtual bool MenuDown( const InputEventPlus &input );
-	virtual void HandleScreenMessage( const ScreenMessage SM );
-	virtual void TweenOffScreen( );
+	bool MenuLeft( const InputEventPlus &input ) override;
+	bool MenuUp( const InputEventPlus &input ) override;
+	bool MenuRight( const InputEventPlus &input ) override;
+	bool MenuDown( const InputEventPlus &input ) override;
+	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void TweenOffScreen( ) override;
 
 	void UpdateStats( );
 private:

@@ -1,6 +1,6 @@
 #include "global.h"
 #include <cassert>
-#include <float.h>
+#include <cfloat>
 
 #include "Sprite.h"
 #include "RageTextureManager.h"
@@ -47,7 +47,7 @@ Sprite::Sprite()
 // dig through either of those, NoteSkinManager uses this special function.
 Sprite* Sprite::NewBlankSprite()
 {
-	Sprite* news= new Sprite;
+	auto* news= new Sprite;
 	news->Load(TEXTUREMAN->GetDefaultTextureID());
 	return news;
 }
@@ -548,9 +548,9 @@ void Sprite::DrawTexture( const TweenState *state )
 				RageVector2( f[6], f[7] ) 	// top right
 			};
 
-			for( int i = 0; i < 4; ++i )
+			for(auto & i : v)
 			{
-				RageSpriteVertex *pVert = &v[i];
+				RageSpriteVertex *pVert = &i;
 
 				float fTopX = SCALE( pVert->p.x, quadVerticies.left, quadVerticies.right, texCoords[0].x, texCoords[3].x );
 				float fBottomX = SCALE( pVert->p.x, quadVerticies.left, quadVerticies.right, texCoords[1].x, texCoords[2].x );
@@ -572,8 +572,8 @@ void Sprite::DrawTexture( const TweenState *state )
 	else
 	{
 		// Just make sure we don't throw NaN/INF at the renderer:
-		for( unsigned i = 0; i < 4; ++i )
-			v[i].t.x = v[i].t.y = 0;
+		for(auto & i : v)
+			i.t.x = i.t.y = 0;
 	}
 
 	// Draw if we're not fully transparent

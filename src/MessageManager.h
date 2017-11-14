@@ -153,7 +153,7 @@ public:
 class IMessageSubscriber
 {
 public:
-	virtual ~IMessageSubscriber() { }
+	virtual ~IMessageSubscriber() = default;
 	virtual void HandleMessage( const Message &msg ) = 0;
 	void ClearMessages( const RString &sMessage = "" );
 
@@ -235,7 +235,7 @@ template<class T, int N>
 class BroadcastOnChange1D
 {
 private:
-	typedef BroadcastOnChange<T> MyType;
+	using MyType = BroadcastOnChange<T>;
 	vector<MyType> val;
 public:
 	explicit BroadcastOnChange1D( MessageID m )
@@ -269,7 +269,7 @@ template<class T, int N>
 class BroadcastOnChangePtr1D
 {
 private:
-	typedef BroadcastOnChangePtr<T> MyType;
+	using MyType = BroadcastOnChangePtr<T>;
 	vector<MyType> val;
 public:
 	explicit BroadcastOnChangePtr1D( MessageID m )

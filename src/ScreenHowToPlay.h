@@ -12,14 +12,14 @@ class ScreenHowToPlay : public ScreenAttract
 {
 public:
 	ScreenHowToPlay();
-	virtual void Init();
-	~ScreenHowToPlay();
+	void Init() override;
+	~ScreenHowToPlay() override;
 
-	virtual void Update( float fDelta );
-	virtual void HandleScreenMessage( const ScreenMessage SM );
+	void Update( float fDelta ) override;
+	void HandleScreenMessage( const ScreenMessage SM ) override;
 
 	// Lua
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 	LifeMeterBar	*m_pLifeMeterBar;
 
 protected:

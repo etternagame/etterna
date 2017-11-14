@@ -107,8 +107,9 @@ t[#t+1] = Def.ActorFrame{
 	end;
 	LoadActor(THEME:GetPathG("","SearchBar/searchButton")) .. {
 		Name = "searchButton";
-		InitCommand=cmd(xy,(SCREEN_WIDTH/2)+50,SCREEN_TOP+15;setsize,24,24);
-		OnCommand=cmd();
+		InitCommand=function(self)
+			self:xy((SCREEN_WIDTH/2)+50,SCREEN_TOP+15):setsize(24,24)
+		end;
 	};
 }
 
@@ -151,10 +152,14 @@ t[#t+1] = Def.ActorFrame{
 	end;
 	
 	Def.Quad{
-		InitCommand=cmd(xy,frameX+20,frameY-210;zoomto,400,300;halign,0;valign,0;diffuse,color("#333333CC"););
+		InitCommand=function(self)
+			self:xy(frameX+20,frameY-210):zoomto(400,300):halign(0):valign(0):diffuse(color("#333333CC"))
+		end;
 	};
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+250-capWideScale(get43size(120),30),frameY-90;zoom,0.7;halign,0.5;maxwidth,470),
+		InitCommand=function(self)
+			self:xy(frameX+250-capWideScale(get43size(120),30),frameY-90):zoom(0.7):halign(0.5):maxwidth(470)
+		end,
 		SetCommand=function(self) 
 			if active then
 				self:settext("Search Active:")
@@ -164,42 +169,64 @@ t[#t+1] = Def.ActorFrame{
 				self:diffuse(byJudgment("TapNoteScore_Miss"))
 			end
 		end,
-		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+		UpdateStringMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+250-capWideScale(get43size(120),30),frameY-50;zoom,0.7;halign,0.5;maxwidth,470;settext,searchstring),
+		InitCommand=function(self)
+			self:xy(frameX+250-capWideScale(get43size(120),30),frameY-50):zoom(0.7):halign(0.5):maxwidth(470):settext(searchstring)
+		end,
 		SetCommand=function(self) 
 			self:settext(searchstring)
 		end,
-		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+		UpdateStringMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+20,frameY-200;zoom,0.4;halign,0),
+		InitCommand=function(self)
+			self:xy(frameX+20,frameY-200):zoom(0.4):halign(0)
+		end,
 		SetCommand=function(self) 
 			self:settext("Start to lock search results.")
 		end,
-		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+		UpdateStringMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+20,frameY-175;zoom,0.4;halign,0;settext,"Back to cancel search.";),
+		InitCommand=function(self)
+			self:xy(frameX+20,frameY-175):zoom(0.4):halign(0):settext("Back to cancel search.")
+		end,
 		SetCommand=function(self) 
 			self:settext("Back to cancel search.")
 		end,
-		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+		UpdateStringMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+20,frameY-150;zoom,0.4;halign,0;settext,"Delete resets search query.";),
+		InitCommand=function(self)
+			self:xy(frameX+20,frameY-150):zoom(0.4):halign(0):settext("Delete resets search query.")
+		end,
 		SetCommand=function(self) 
 			self:settext("Delete resets search query.")
 		end,
-		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+		UpdateStringMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	LoadFont("Common Normal")..{
-		InitCommand=cmd(xy,frameX+20,frameY+70;zoom,0.5;halign,0;settext,"Currently supports standard english alphabet only.";),
+		InitCommand=function(self)
+			self:xy(frameX+20,frameY+70):zoom(0.5):halign(0):settext("Currently supports standard english alphabet only.")
+		end,
 		SetCommand=function(self) 
 			self:settext("Currently supports standard english alphabet only.")
 		end,
-		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+		UpdateStringMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 }
 

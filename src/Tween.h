@@ -4,7 +4,7 @@
 #include "EnumHelper.h"
 
 struct lua_State;
-typedef lua_State Lua;
+using Lua = lua_State;
 
 /** @brief The different tweening types available. */
 enum TweenType
@@ -29,7 +29,7 @@ class ITween
 {
 public:
 	/** @brief Create the initial interface. */
-	virtual ~ITween() { }
+	virtual ~ITween() = default;
 	virtual float Tween( float f ) const = 0;
 	virtual ITween *Copy() const = 0;
 

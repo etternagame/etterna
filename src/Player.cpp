@@ -51,8 +51,8 @@ void TimingWindowSecondsInit( size_t /*TimingWindow*/ i, RString &sNameOut, floa
 class JudgedRows
 {
 	vector<bool> m_vRows;
-	int m_iStart;
-	int m_iOffset;
+	int m_iStart{0};
+	int m_iOffset{0};
 
 	void Resize( size_t iMin )
 	{
@@ -65,7 +65,7 @@ class JudgedRows
 		m_iOffset = 0;
 	}
 public:
-	JudgedRows() : m_iStart(0), m_iOffset(0) { Resize( 32 ); }
+	JudgedRows()  { Resize( 32 ); }
 	// Returns true if the row has already been judged.
 	bool JudgeRow( int iRow )
 	{
@@ -465,7 +465,7 @@ void Player::Init(
 	{
 		for( int i = 0; i < GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)->m_iColsPerPlayer; ++i )
 		{
-			HoldJudgment *pJudgment = new HoldJudgment;
+			auto *pJudgment = new HoldJudgment;
 			// xxx: assumes sprite; todo: don't force 1x2 -aj
 			pJudgment->Load( THEME->GetPathG("HoldJudgment","label 1x2") );
 			m_vpHoldJudgment[i] = pJudgment;
@@ -2850,6 +2850,8 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 
 		if (m_pPlayerStageStats) {
 			msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
+			msg.SetParam("CurWifeScore", curwifescore);
+			msg.SetParam("MaxWifeScore", maxwifescore);
 			msg.SetParam("WifeDifferential", curwifescore - maxwifescore * m_pPlayerState->playertargetgoal);
 			msg.SetParam("TotalPercent", 100 * curwifescore / totalwifescore);
 			if (wifescorepersonalbest != m_pPlayerState->playertargetgoal) {
@@ -2864,6 +2866,8 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 			if (m_pPlayerState->m_PlayerController == PC_HUMAN) {
 				ChangeWifeRecord();
 				m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
+				m_pPlayerStageStats->CurWifeScore = curwifescore;
+				m_pPlayerStageStats->MaxWifeScore = maxwifescore;
 			}
 			else {
 				curwifescore -= 6666666.f;	// sail hatan
@@ -2911,6 +2915,8 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 			maxwifescore += 2;
 			
 			msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
+			msg.SetParam("CurWifeScore", curwifescore);
+			msg.SetParam("MaxWifeScore", maxwifescore);
 			msg.SetParam("WifeDifferential", curwifescore - maxwifescore * m_pPlayerState->playertargetgoal);
 			msg.SetParam("TotalPercent", 100 * curwifescore / totalwifescore);
 			if (wifescorepersonalbest != m_pPlayerState->playertargetgoal) {
@@ -2925,6 +2931,8 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 #else
 			if (m_pPlayerState->m_PlayerController == PC_HUMAN) {
 				m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
+				m_pPlayerStageStats->CurWifeScore = curwifescore;
+				m_pPlayerStageStats->MaxWifeScore = maxwifescore;
 				m_pPlayerStageStats->m_vOffsetVector.emplace_back(tn.result.fTapNoteOffset);
 				m_pPlayerStageStats->m_vNoteRowVector.emplace_back(iRow);
 			}
@@ -2991,6 +2999,8 @@ void Player::SetHoldJudgment( TapNote &tn, int iTrack )
 				curwifescore -= 6.f;
 
 			msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
+			msg.SetParam("CurWifeScore", curwifescore);
+			msg.SetParam("MaxWifeScore", maxwifescore);
 			msg.SetParam("WifeDifferential", curwifescore - maxwifescore *  m_pPlayerState->playertargetgoal);
 			msg.SetParam("TotalPercent", 100 * curwifescore / totalwifescore);
 			if (wifescorepersonalbest != m_pPlayerState->playertargetgoal) {
@@ -3001,8 +3011,12 @@ void Player::SetHoldJudgment( TapNote &tn, int iTrack )
 			m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
 			ChangeWifeRecord();
 #else
-			if (m_pPlayerState->m_PlayerController == PC_HUMAN)
-		 		m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
+			if (m_pPlayerState->m_PlayerController == PC_HUMAN) {
+				m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
+				m_pPlayerStageStats->CurWifeScore = curwifescore;
+				m_pPlayerStageStats->MaxWifeScore = maxwifescore;
+			}
+		 		
 #endif
 		}
 			

@@ -40,7 +40,7 @@
 #include "RageSoundUtil.h"
 #include "Foreach.h"
 
-#include <limits.h>
+#include <climits>
 #include <set>
 
 class RageSoundReader_Split;

@@ -101,8 +101,8 @@ public:
 	};
 	typedef _all_tracks_iterator<NoteData, NoteData::iterator, TapNote> 			all_tracks_iterator;
 	typedef _all_tracks_iterator<const NoteData, NoteData::const_iterator, const TapNote>	all_tracks_const_iterator;
-	typedef all_tracks_iterator								all_tracks_reverse_iterator;
-	typedef all_tracks_const_iterator							all_tracks_const_reverse_iterator;
+	using all_tracks_reverse_iterator = all_tracks_iterator;
+	using all_tracks_const_reverse_iterator = all_tracks_const_iterator;
 	friend class _all_tracks_iterator<NoteData, NoteData::iterator, TapNote>;
 	friend class _all_tracks_iterator<const NoteData, NoteData::const_iterator, const TapNote>;
 private:
@@ -398,7 +398,7 @@ public:
 /** @brief Allow a quick way to swap notedata. */
 namespace std
 {
-	template<> inline void swap<NoteData>( NoteData &nd1, NoteData &nd2 ) { nd1.swap( nd2 ); }
+	template<> inline void swap<NoteData>( NoteData &nd1, NoteData &nd2 ) noexcept { nd1.swap( nd2 ); }
 }
 
 #endif

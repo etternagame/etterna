@@ -12,16 +12,16 @@ class ScreenWithMenuElements : public Screen
 {
 public:
 	ScreenWithMenuElements();
-	virtual void Init();
-	virtual void BeginScreen();
-	virtual ~ScreenWithMenuElements();
+	void Init() override;
+	void BeginScreen() override;
+	~ScreenWithMenuElements() override;
 
-	virtual void HandleScreenMessage( const ScreenMessage SM );
-	void Update( float fDeltaTime );
+	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void Update( float fDeltaTime ) override;
 	void StartTransitioningScreen( ScreenMessage smSendWhenDone );
 	virtual void Cancel( ScreenMessage smSendWhenDone );
 	bool IsTransitioning();
-	virtual bool AllowCallbackInput() { return !IsTransitioning(); }
+	bool AllowCallbackInput() override { return !IsTransitioning(); }
 
 	void StopTimer();
 	void ResetTimer();
@@ -31,9 +31,9 @@ public:
 	virtual void TweenOffScreen();
 
 	// Lua
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
-	virtual bool AllowLateJoin() const { return m_bShouldAllowLateJoin; }
+	bool AllowLateJoin() const override { return m_bShouldAllowLateJoin; }
 	bool m_bShouldAllowLateJoin; // So that it can be exposed to Lua.
 
 protected:
@@ -65,11 +65,11 @@ private:
 class ScreenWithMenuElementsSimple: public ScreenWithMenuElements
 {
 public:
-	bool MenuStart( const InputEventPlus &input );
-	bool MenuBack( const InputEventPlus &input );
+	bool MenuStart( const InputEventPlus &input ) override;
+	bool MenuBack( const InputEventPlus &input ) override;
 
 	// Lua
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 protected:
 };

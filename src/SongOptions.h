@@ -33,27 +33,22 @@ LuaDeclareType( SoundEffectType );
 class SongOptions
 {
 public:
-	bool m_bAssistClap;
-	bool m_bAssistMetronome;
-	float m_fMusicRate,	m_SpeedfMusicRate;
-	AutosyncType m_AutosyncType;
-	SoundEffectType m_SoundEffectType;
-	bool m_bStaticBackground;
-	bool m_bRandomBGOnly;
-	bool m_bSaveScore;
-	bool m_bSaveReplay;
+	bool m_bAssistClap{false};
+	bool m_bAssistMetronome{false};
+	float m_fMusicRate{1.0f},	m_SpeedfMusicRate{1.0f};
+	AutosyncType m_AutosyncType{AutosyncType_Off};
+	SoundEffectType m_SoundEffectType{SoundEffectType_Off};
+	bool m_bStaticBackground{false};
+	bool m_bRandomBGOnly{false};
+	bool m_bSaveScore{true};
+	bool m_bSaveReplay{false};
 
 	/**
 	 * @brief Set up the SongOptions with reasonable defaults.
 	 *
 	 * This is taken from Init(), but uses the intended
 	 * initialization lists. */
-	SongOptions(): m_bAssistClap(false),
-		m_bAssistMetronome(false), m_fMusicRate(1.0f),
-		m_SpeedfMusicRate(1.0f), m_AutosyncType(AutosyncType_Off),
-		m_SoundEffectType(SoundEffectType_Off),
-		m_bStaticBackground(false), m_bRandomBGOnly(false),
-		m_bSaveScore(true), m_bSaveReplay(false) {};
+	SongOptions() = default;
 	void Init();
 	void Approach( const SongOptions& other, float fDeltaSeconds );
 	void GetMods( vector<RString> &AddTo ) const;

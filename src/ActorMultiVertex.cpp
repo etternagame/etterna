@@ -100,13 +100,13 @@ ActorMultiVertex::ActorMultiVertex( const ActorMultiVertex &cpy ):
 	CPY(_states);
 #undef CPY
 
-	if( cpy._Texture != NULL )
+	if( cpy._Texture != nullptr )
 	{
 		_Texture = TEXTUREMAN->CopyTexture( cpy._Texture );
 	}
 	else
 	{
-		_Texture = NULL;
+		_Texture = nullptr;
 	}
 }
 
@@ -137,7 +137,7 @@ void ActorMultiVertex::SetTexture( RageTexture *Texture )
 
 void ActorMultiVertex::LoadFromTexture( const RageTextureID &ID )
 {
-	RageTexture *Texture = NULL;
+	RageTexture *Texture = nullptr;
 	if( _Texture && _Texture->GetID() == ID )
 	{
 		return;
@@ -148,10 +148,10 @@ void ActorMultiVertex::LoadFromTexture( const RageTextureID &ID )
 
 void ActorMultiVertex::UnloadTexture()
 {
-	if( _Texture != NULL )
+	if( _Texture != nullptr )
 	{
 		TEXTUREMAN->UnloadTexture( _Texture );
-		_Texture = NULL;
+		_Texture = nullptr;
 	}
 }
 
@@ -358,7 +358,7 @@ void ActorMultiVertex::SetVertsFromSplinesInternal(size_t num_splines, size_t of
 	{
 		vector<float> pos;
 		const int spi= v%num_splines;
-		float part= static_cast<float>(v/num_splines);
+		auto part= static_cast<float>(v/num_splines);
 		_splines[spi].evaluate(part * tper[spi], pos);
 		verts[v+first].p.x= pos[0];
 		verts[v+first].p.y= pos[1];
@@ -929,7 +929,7 @@ public:
 
 	static int GetSpline(T* p, lua_State* L)
 	{
-		size_t i= static_cast<size_t>(IArg(1)-1);
+		auto i= static_cast<size_t>(IArg(1)-1);
 		if(i >= ActorMultiVertex::num_vert_splines)
 		{
 			luaL_error(L, "Spline index must be greater than 0 and less than or equal to %zu.", ActorMultiVertex::num_vert_splines);
@@ -958,7 +958,7 @@ public:
 	static void FillStateFromLua(lua_State *L, ActorMultiVertex::State& state,
 		RageTexture* tex, int index)
 	{
-		if(tex == NULL)
+		if(tex == nullptr)
 		{
 			luaL_error(L, "The texture must be set before adding states.");
 		}
@@ -1027,7 +1027,7 @@ public:
 	static int GetStateData(T* p, lua_State *L)
 	{
 		RageTexture* tex= p->GetTexture();
-		if(tex == NULL)
+		if(tex == nullptr)
 		{
 			luaL_error(L, "The texture must be set before adding states.");
 		}
@@ -1065,7 +1065,7 @@ public:
 			luaL_error(L, "The states must be inside a table.");
 		}
 		RageTexture* tex= p->GetTexture();
-		if(tex == NULL)
+		if(tex == nullptr)
 		{
 			luaL_error(L, "The texture must be set before adding states.");
 		}
@@ -1148,7 +1148,7 @@ public:
 	static int GetTexture(T* p, lua_State *L)
 	{
 		RageTexture *texture = p->GetTexture();
-		if(texture != NULL)
+		if(texture != nullptr)
 		{
 			texture->PushSelf(L);
 		}

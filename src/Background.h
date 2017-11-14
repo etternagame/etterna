@@ -14,7 +14,7 @@ class Background : public ActorFrame
 {
 public:
 	Background();
-	~Background();
+	~Background() override;
 	void Init();
 
 	virtual void LoadFromSong( const Song *pSong );
@@ -28,7 +28,7 @@ public:
 	// ScreenGameplay can draw the background manually, and still have it as a
 	// child. -Kyz
 	bool m_disable_draw;
-	virtual bool EarlyAbortDraw() const { return m_disable_draw; }
+	bool EarlyAbortDraw() const override { return m_disable_draw; }
 
 	/**
 	 * @brief Retrieve whatever dancing characters are in use.

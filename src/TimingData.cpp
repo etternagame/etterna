@@ -7,7 +7,7 @@
 #include "ThemeManager.h"
 #include "NoteTypes.h"
 #include "Foreach.h"
-#include <float.h>
+#include <cfloat>
 
 static void EraseSegment(vector<TimingSegment*> &vSegs, int index, TimingSegment *cur);
 static const int INVALID_INDEX = -1;

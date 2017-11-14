@@ -41,10 +41,10 @@ class Player: public ActorFrame
 public:
 	// The passed in NoteData isn't touched until Load() is called.
 	Player( NoteData &nd, bool bVisibleParts = true );
-	~Player();
+	~Player() override;
 
-	virtual void Update( float fDeltaTime );
-	virtual void DrawPrimitives();
+	void Update( float fDeltaTime ) override;
+	void DrawPrimitives() override;
 	// PushPlayerMatrix and PopPlayerMatrix are separate functions because
 	// they need to be used twice so that the notefield board can rendered
 	// underneath the combo and judgment.  They're not embedded in
@@ -121,7 +121,7 @@ public:
 	void SetSendJudgmentAndComboMessages( bool b ) { m_bSendJudgmentAndComboMessages = b; }
 
 	// Lua
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 	
 	PlayerState * GetPlayerState() { return this->m_pPlayerState; }
 	void ChangeLife(float delta);

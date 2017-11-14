@@ -13,15 +13,16 @@ const int NUM_SKIPS_TO_SHOW = 5;
 class ScreenStatsOverlay : public Screen
 {
 public:
-	virtual void Init();
+	void Init() override;
 	
-	void Update( float fDeltaTime );
+	void Update( float fDeltaTime ) override;
 
 private:
 	void AddTimestampLine( const RString &txt, const RageColor &color );
 	void UpdateSkips();
 
 	BitmapText m_textStats;
+	Quad m_quadStatBackground;
 	Quad m_quadSkipBackground;
 	BitmapText m_textSkips[NUM_SKIPS_TO_SHOW];
 	std::chrono::steady_clock::time_point g_AccurateSkipTimer = std::chrono::steady_clock::now();

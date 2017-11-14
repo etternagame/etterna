@@ -43,7 +43,7 @@
 
 	; don't forget to change this before releasing a new version.
 	; wish this could be automated, but it requires "X.Y.Z.a" format. -aj
-	VIProductVersion "5.0.0.12"
+	VIProductVersion "0.55.3.0"
 	VIAddVersionKey "ProductName" "${PRODUCT_ID}"
 	VIAddVersionKey "FileVersion" "${PRODUCT_VER}"
 	VIAddVersionKey "FileDescription" "${PRODUCT_ID} Installer"
@@ -406,7 +406,7 @@ Section "Main Section" SecMain
 	CreateDirectory "$INSTDIR\Songs"
 	SetOutPath "$INSTDIR\Songs"
 	;File "Songs\Instructions.txt"
-	;File /r /x CVS /x .svn "Songs\Etterna*"
+	File /r /x CVS /x .svn "Songs\Etterna*"
 
 	; remove and install themes
 	RMDir /r "$INSTDIR\Themes\_fallback"
@@ -482,11 +482,12 @@ Section "Main Section" SecMain
 	continue:
 	
 	; FFmpeg and related
-	File "Program\avcodec-55.dll"
+	File "Program\avcodec-57.dll"
 	;File "Program\avdevice-52.dll"
-	File "Program\avformat-55.dll"
-	File "Program\avutil-52.dll"
-	File "Program\swscale-2.dll"
+	File "Program\avformat-57.dll"
+	File "Program\avutil-55.dll"
+	File "Program\swresample-2.dll"
+	File "Program\swscale-4.dll"
 	; parallel lights
 	File "Program\parallel_lights_io.dll"
 	; others
@@ -873,6 +874,10 @@ Section "Uninstall"
 
 	Delete "$INSTDIR\Themes\instructions.txt"
 	RMDir /r "$INSTDIR\Themes\_fallback"
+
+	; comment out forced cache deletion until we can make it optional -mina
+	;RMDir /r "$INSTDIR\Cache"
+
 	RMDir /r "$INSTDIR\Themes\_portKit-sm4"
 	RMDir /r "$INSTDIR\Themes\default"
 	RMDir "$INSTDIR\Themes"
@@ -902,16 +907,21 @@ Section "Uninstall"
 	Delete "$INSTDIR\Program\msvcr90.dll"
 	Delete "$INSTDIR\Program\msvcp90.dll"
 	; FFmpeg and related
+	Delete "$INSTDIR\Program\avcodec-57.dll"
 	Delete "$INSTDIR\Program\avcodec-55.dll"
 	Delete "$INSTDIR\Program\avcodec-53.dll"
 	Delete "$INSTDIR\Program\avcodec-52.dll"
 	Delete "$INSTDIR\Program\avdevice-52.dll"
+	Delete "$INSTDIR\Program\avformat-57.dll"
 	Delete "$INSTDIR\Program\avformat-55.dll"
 	Delete "$INSTDIR\Program\avformat-53.dll"
 	Delete "$INSTDIR\Program\avformat-52.dll"
+	Delete "$INSTDIR\Program\avutil-55.dll"
 	Delete "$INSTDIR\Program\avutil-52.dll"
 	Delete "$INSTDIR\Program\avutil-51.dll"
 	Delete "$INSTDIR\Program\avutil-50.dll"
+	Delete "$INSTDIR\Program\swresample-2.dll"
+	Delete "$INSTDIR\Program\swscale-4.dll"
 	Delete "$INSTDIR\Program\swscale-2.dll"
 	Delete "$INSTDIR\Program\swscale-0.dll"
 	; others

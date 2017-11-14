@@ -53,8 +53,8 @@ private:
 	RageSoundDriver *m_pDriver;
 
 	/* Prefs: */
-	float m_fMixVolume;
-	float m_fVolumeOfNonCriticalSounds;
+	float m_fMixVolume{1.0f};
+	float m_fVolumeOfNonCriticalSounds{1.0f};
 	// Swallow up warnings. If they must be used, define them.
 	RageSoundManager& operator=(const RageSoundManager& rhs);
 	RageSoundManager(const RageSoundManager& rhs);

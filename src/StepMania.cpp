@@ -438,7 +438,7 @@ struct VideoCardDefaults
 	int iTextureSize;
 	bool bSmoothLines;
 
-	VideoCardDefaults() {}
+	VideoCardDefaults() = default;
 	VideoCardDefaults(
 		RString sDriverRegex_,
 		RString sVideoRenderers_,
@@ -824,7 +824,7 @@ static void SwitchToLastPlayedGame()
 	if( !GAMEMAN->IsGameEnabled( pGame ) && pGame != GAMEMAN->GetDefaultGame() )
 	{
 		pGame = GAMEMAN->GetDefaultGame();
-		LOG->Warn( "Default NoteSkin for \"%s\" missing, reverting to \"%s\"",
+		LOG->Warn( R"(Default NoteSkin for "%s" missing, reverting to "%s")",
 			pGame->m_szName, GAMEMAN->GetDefaultGame()->m_szName );
 	}
 
@@ -1394,10 +1394,10 @@ bool HandleGlobalInputs( const InputEventPlus &input )
 #endif
 	if( bDoScreenshot )
 	{
-		// If holding Shift save uncompressed, else save compressed
+		// If holding Shift save resized, else save normally
 		bool bHoldingShift = ( INPUTFILTER->IsBeingPressed( DeviceInput(DEVICE_KEYBOARD, KEY_LSHIFT) )
 								|| INPUTFILTER->IsBeingPressed( DeviceInput(DEVICE_KEYBOARD, KEY_RSHIFT) ) );
-		bool bSaveCompressed = !bHoldingShift;
+		bool bSaveCompressed = bHoldingShift;
 		RageTimer timer;
 		StepMania::SaveScreenshot("Screenshots/", bSaveCompressed, false, "", "");
 		LOG->Trace( "Screenshot took %f seconds.", timer.GetDeltaTime() );

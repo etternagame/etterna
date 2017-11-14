@@ -13,18 +13,18 @@ RString ReadString( RageFileBasic &f, int iSize, RString &sError );
 class RageSoundReader_WAV: public RageSoundReader_FileReader
 {
 public:
-	OpenResult Open( RageFileBasic *pFile );
+	OpenResult Open( RageFileBasic *pFile ) override;
 	void Close();
-	int GetLength() const;
-	int SetPosition( int iFrame );
-	int Read( float *pBuf, int iFrames );
-	int GetSampleRate() const { return m_WavData.m_iSampleRate; }
-	unsigned GetNumChannels() const { return m_WavData.m_iChannels; }
-	int GetNextSourceFrame() const;
+	int GetLength() const override;
+	int SetPosition( int iFrame ) override;
+	int Read( float *pBuf, int iFrames ) override;
+	int GetSampleRate() const override { return m_WavData.m_iSampleRate; }
+	unsigned GetNumChannels() const override { return m_WavData.m_iChannels; }
+	int GetNextSourceFrame() const override;
 	RageSoundReader_WAV();
-	~RageSoundReader_WAV();
+	~RageSoundReader_WAV() override;
 	RageSoundReader_WAV( const RageSoundReader_WAV & ); /* not defined; don't use */
-	RageSoundReader_WAV *Copy() const;
+	RageSoundReader_WAV *Copy() const override;
 
 	struct WavData
 	{

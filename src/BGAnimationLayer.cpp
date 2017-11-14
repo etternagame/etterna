@@ -86,7 +86,7 @@ void BGAnimationLayer::LoadFromAniLayerFile( const RString& sPath )
 		else
 			sSongBGPath = THEME->GetPathG("Common","fallback background");
 
-		Sprite* pSprite = new Sprite;
+		auto* pSprite = new Sprite;
 		pSprite->Load( Sprite::SongBGTexture(sSongBGPath) );
 		pSprite->StretchTo( FullScreenRectF );
 		this->AddChild( pSprite );
@@ -163,7 +163,7 @@ void BGAnimationLayer::LoadFromAniLayerFile( const RString& sPath )
 	case EFFECT_CENTER:
 		{
 			m_Type = TYPE_SPRITE;
-			Sprite* pSprite = new Sprite;
+			auto* pSprite = new Sprite;
 			this->AddChild( pSprite );
 			pSprite->Load( sPath );
 			pSprite->SetXY( SCREEN_CENTER_X, SCREEN_CENTER_Y );
@@ -179,7 +179,7 @@ void BGAnimationLayer::LoadFromAniLayerFile( const RString& sPath )
 	case EFFECT_STRETCH_TWIST:
 		{
 			m_Type = TYPE_SPRITE;
-			Sprite* pSprite = new Sprite;
+			auto* pSprite = new Sprite;
 			this->AddChild( pSprite );
 			RageTextureID ID(sPath);
 			ID.bStretch = true;
@@ -200,7 +200,7 @@ void BGAnimationLayer::LoadFromAniLayerFile( const RString& sPath )
 	case EFFECT_STRETCH_SPIN:
 		{
 			m_Type = TYPE_SPRITE;
-			Sprite* pSprite = new Sprite;
+			auto* pSprite = new Sprite;
 			this->AddChild( pSprite );
 			pSprite->Load( Sprite::SongBGTexture(sPath) );
 			const RectF StretchedFullScreenRectF(
@@ -225,13 +225,13 @@ void BGAnimationLayer::LoadFromAniLayerFile( const RString& sPath )
 			Sprite s;
 			s.Load( sPath );
 			int iSpriteArea = static_cast<int>( s.GetUnzoomedWidth()*s.GetUnzoomedHeight() );
-			const int iMaxArea = static_cast<int>(SCREEN_WIDTH*SCREEN_HEIGHT);
+			const auto iMaxArea = static_cast<int>(SCREEN_WIDTH*SCREEN_HEIGHT);
 			int iNumParticles = iMaxArea / iSpriteArea;
 			iNumParticles = min( iNumParticles, MAX_SPRITES );
 
 			for( int i=0; i<iNumParticles; i++ )
 			{
-				Sprite* pSprite = new Sprite;
+				auto* pSprite = new Sprite;
 				this->AddChild( pSprite );
 				pSprite->Load( sPath );
 				pSprite->SetZoom( 0.7f + 0.6f*i/ static_cast<float>(iNumParticles) );
@@ -303,7 +303,7 @@ void BGAnimationLayer::LoadFromAniLayerFile( const RString& sPath )
 			{
 				for( int y=0; y<m_iNumTilesHigh; y++ )
 				{
-					Sprite* pSprite = new Sprite;
+					auto* pSprite = new Sprite;
 					this->AddChild( pSprite );
 					pSprite->Load( ID );
 					pSprite->SetTextureWrapping( true );	// gets rid of some "cracks"
@@ -482,7 +482,7 @@ void BGAnimationLayer::LoadFromNode( const XNode* pNode )
 			for( int i=0; i<iNumParticles; i++ )
 			{
 				Actor* pActor = ActorUtil::MakeActor( sFile, this );
-				if( pActor == NULL )
+				if( pActor == nullptr )
 					continue;
 				this->AddChild( pActor );
 				pActor->SetXY( randomf(float(FullScreenRectF.left),float(FullScreenRectF.right)),
@@ -520,7 +520,7 @@ void BGAnimationLayer::LoadFromNode( const XNode* pNode )
 			for( unsigned i=0; i<NumSprites; i++ )
 			{
 				Actor* pSprite = ActorUtil::MakeActor( sFile, this );
-				if( pSprite == NULL )
+				if( pSprite == nullptr )
 					continue;
 				this->AddChild( pSprite );
 				pSprite->SetTextureWrapping( true );		// gets rid of some "cracks"

@@ -12,9 +12,9 @@ class ReceptorArrowRow : public ActorFrame
 {
 public:
 	ReceptorArrowRow();
-	virtual ~ReceptorArrowRow();
-	virtual void Update( float fDeltaTime );
-	virtual void DrawPrimitives();
+	~ReceptorArrowRow() override;
+	void Update( float fDeltaTime ) override;
+	void DrawPrimitives() override;
 
 	void Load( const PlayerState* pPlayerState, float fYReverseOffset );
 	void SetColumnRenderers(vector<NoteColumnRenderer>& renderers);

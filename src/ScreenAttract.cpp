@@ -163,8 +163,7 @@ class LunaScreenAttract: public Luna<ScreenAttract>
 public:
 
 	LunaScreenAttract()
-	{
-	}
+	= default;
 };
 
 LUA_REGISTER_DERIVED_CLASS( ScreenAttract, ScreenWithMenuElements )

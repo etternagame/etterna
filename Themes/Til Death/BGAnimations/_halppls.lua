@@ -30,7 +30,9 @@ end
 
 local function Update(self)
 	if show then
-		t.InitCommand=cmd(SetUpdateFunction,Update);
+		t.InitCommand=function(self)
+			self:SetUpdateFunction(Update)
+		end;
 		curTime = GetTimeSinceStart()
 		if (not enabled) and (curTime-lastTime > showTime) then
 			MESSAGEMAN:Broadcast("ShowHelpOverlay")
@@ -41,30 +43,46 @@ local function Update(self)
 end; 
 
 local t = Def.ActorFrame{
-	InitCommand=cmd(SetUpdateFunction,Update);
+	InitCommand=function(self)
+		self:SetUpdateFunction(Update)
+	end;
 	OnCommand=function(self) self:diffusealpha(0) SCREENMAN:GetTopScreen():AddInputCallback(input) end;
-	ShowHelpOverlayMessageCommand=cmd(stoptweening;smooth,0.3;diffusealpha,0.8);
-	HideHelpOverlayMessageCommand=cmd(stoptweening;smooth,0.3;diffusealpha,0);
+	ShowHelpOverlayMessageCommand=function(self)
+		self:stoptweening():smooth(0.3):diffusealpha(0.8)
+	end;
+	HideHelpOverlayMessageCommand=function(self)
+		self:stoptweening():smooth(0.3):diffusealpha(0)
+	end;
 };
 
 t[#t+1] = Def.Quad{
-	InitCommand=cmd(xy,0,0;halign,0;valign,0;zoomto,SCREEN_WIDTH,SCREEN_HEIGHT;diffuse,color("#000000"););
+	InitCommand=function(self)
+		self:xy(0,0):halign(0):valign(0):zoomto(SCREEN_WIDTH,SCREEN_HEIGHT):diffuse(color("#000000"))
+	end;
 };
 
 t[#t+1] = Def.Quad{
-	InitCommand=cmd(xy,0,35;halign,0;valign,1;zoomto,SCREEN_WIDTH/2,4;faderight,1;);
+	InitCommand=function(self)
+		self:xy(0,35):halign(0):valign(1):zoomto(SCREEN_WIDTH/2,4):faderight(1)
+	end;
 };
 
 t[#t+1] = LoadFont("Common Large")..{
-	InitCommand=cmd(xy,5,32;halign,0;valign,1;zoom,0.55;settext,"Help Menu:";);
+	InitCommand=function(self)
+		self:xy(5,32):halign(0):valign(1):zoom(0.55):settext("Help Menu:")
+	end;
 };
 	
 t[#t+1] = LoadFont("Common Normal")..{
-	InitCommand=cmd(xy,5,SCREEN_HEIGHT-15;halign,0;valign,1;zoom,0.35;settext,"Press any key to hide this overlay.";);
+	InitCommand=function(self)
+		self:xy(5,SCREEN_HEIGHT-15):halign(0):valign(1):zoom(0.35):settext("Press any key to hide this overlay.")
+	end;
 };
 
 t[#t+1] = LoadFont("Common Normal")..{
-	InitCommand=cmd(xy,5,SCREEN_HEIGHT-5;halign,0;valign,1;zoom,0.35;settext,"You can disable this overlay showing up automatically in Theme Options, but it can still be accessed by pressing F12.");
+	InitCommand=function(self)
+		self:xy(5,SCREEN_HEIGHT-5):halign(0):valign(1):zoom(0.35):settext("You can disable this overlay showing up automatically in Theme Options, but it can still be accessed by pressing F12.")
+	end;
 };
 
 --have these strings in a separate file...?
@@ -82,20 +100,32 @@ local stringList = {
 local function makeText(index)
 	local t = Def.ActorFrame{}
 	t[#t+1] = LoadFont("Common Normal")..{
-		InitCommand=cmd(xy,5,50+(15*(index-1));zoom,0.4;halign,0;maxwidth,170/0.4);
-		BeginCommand=cmd(queuecommand,"Set");
+		InitCommand=function(self)
+			self:xy(5,50+(15*(index-1))):zoom(0.4):halign(0):maxwidth(170/0.4)
+		end;
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end;
 		SetCommand=function(self)
 			self:settext(stringList[index][1])
 		end;
-		CodeMessageCommand=cmd(queuecommand,"Set");
+		CodeMessageCommand=function(self)
+			self:queuecommand("Set")
+		end;
 	};
 	t[#t+1] = LoadFont("Common Normal")..{
-		InitCommand=cmd(xy,180,50+(15*(index-1));zoom,0.4;halign,0;);
-		BeginCommand=cmd(queuecommand,"Set");
+		InitCommand=function(self)
+			self:xy(180,50+(15*(index-1))):zoom(0.4):halign(0)
+		end;
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end;
 		SetCommand=function(self)
 			self:settext(stringList[index][2])
 		end;
-		CodeMessageCommand=cmd(queuecommand,"Set");
+		CodeMessageCommand=function(self)
+			self:queuecommand("Set")
+		end;
 	};
 	return t
 end;
@@ -103,7 +133,9 @@ end;
 --[[ --debug
 t[#t+1] = LoadFont("Common Large")..{
 	Name="Timer";
-	InitCommand=cmd(xy,SCREEN_CENTER_X,SCREEN_CENTER_Y+80;settext,"0.0");
+	InitCommand=function(self)
+		self:xy(SCREEN_CENTER_X,SCREEN_CENTER_Y+80):settext("0.0")
+	end;
 	SetCommand=function(self)
 		self:settextf("%0.2f %s",curTime-lastTime,tostring(curTime-showTime > lastTime))
 	end;

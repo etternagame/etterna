@@ -100,7 +100,7 @@ struct lua_State;
 struct RageVector2
 {
 public:
-	RageVector2(): x(0), y(0) {}
+	RageVector2() = default;
 	RageVector2( const float * f ): x(f[0]), y(f[1]) {}
 	RageVector2( float x1, float y1 ): x(x1), y(y1) {}
 	
@@ -122,14 +122,14 @@ public:
 	
 	friend RageVector2 operator * ( float f, const RageVector2& other )	{ return other*f; }
 	
-	float x, y;
+	float x{0}, y{0};
 };
 
 
 struct RageVector3
 {
 public:
-	RageVector3(): x(0), y(0), z(0) {}
+	RageVector3() = default;
 	RageVector3( const float * f ):	x(f[0]), y(f[1]), z(f[2]) {}
 	RageVector3( float x1, float y1, float z1 ): x(x1), y(y1), z(z1) {}
 	
@@ -151,14 +151,14 @@ public:
 	
 	friend RageVector3 operator * ( float f, const RageVector3& other )	{ return other*f; }
 	
-	float x, y, z;
+	float x{0}, y{0}, z{0};
 };
 
 
 struct RageVector4
 {
 public:
-	RageVector4(): x(0), y(0), z(0), w(0) {}
+	RageVector4() = default;
 	RageVector4( const float * f ): x(f[0]), y(f[1]), z(f[2]), w(f[3]) {}
 	RageVector4( float x1, float y1, float z1, float w1 ): x(x1), y(y1), z(z1), w(w1) {}
 	
@@ -180,13 +180,13 @@ public:
 	
 	friend RageVector4 operator * ( float f, const RageVector4& other )	{ return other*f; }
 	
-	float x, y, z, w;
+	float x{0}, y{0}, z{0}, w{0};
 };
 
 struct RageColor
 {
 public:
-	RageColor(): r(0), g(0), b(0), a(0) {}
+	RageColor() = default;
 	explicit RageColor( const float * f ): r(f[0]), g(f[1]), b(f[2]), a(f[3]) {}
 	RageColor( float r1, float g1, float b1, float a1 ): r(r1), g(g1), b(b1), a(a1) {}
 	
@@ -250,7 +250,7 @@ public:
 	void FromStack( lua_State *L, int iPos );
 	void FromStackCompat( lua_State *L, int iPos );
 
-	float r, g, b, a;
+	float r{0}, g{0}, b{0}, a{0};
 };
 
 inline unsigned char FTOC(float a)
@@ -260,7 +260,7 @@ inline unsigned char FTOC(float a)
 	converted to be one shade different compared to using lround. This is
 	not a level of precision I care about. - Mina */
 
-	int ret = static_cast<int>(a*256.f);
+	auto ret = static_cast<int>(a*256.f);
 	CLAMP(ret, 0, 255);
 	return static_cast<unsigned char>(ret);
 }
@@ -314,8 +314,8 @@ public:
 		T left, top, right, bottom;
 	};
 }
-typedef StepMania::Rect<int> RectI;
-typedef StepMania::Rect<float> RectF;
+using RectI = StepMania::Rect<int>;
+using RectF = StepMania::Rect<float>;
 
 /* Structure for our custom vertex type.  Note that these data structes 
  * have the same layout that D3D expects. */
@@ -358,7 +358,7 @@ struct RageModelVertex	// doesn't have color.  Relies on material color
 struct RageMatrix
 {
 public:
-	RageMatrix() {};
+	RageMatrix() = default;
 	RageMatrix( const float *f )	{ for(int i=0; i<4; i++) for(int j=0; j<4; j++) m[j][i]=f[j*4+i]; }
 	RageMatrix( const RageMatrix& other )	{ for(int i=0; i<4; i++) for(int j=0; j<4; j++) m[j][i]=other.m[j][i]; }
 	RageMatrix( float v00, float v01, float v02, float v03,

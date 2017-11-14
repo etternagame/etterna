@@ -41,7 +41,7 @@ public:
 	friend class OptionListRow;
 
 	OptionsList();
-	~OptionsList();
+	~OptionsList() override;
 
 	void Load( const RString &sType, PlayerNumber pn );
 	void Reset();

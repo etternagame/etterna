@@ -12,7 +12,7 @@
 #include "GameState.h"
 #include "Style.h"
 #include "ThemeMetric.h"
-#include <float.h>
+#include <cfloat>
 
 static ThemeMetric<float>	ARROW_SPACING( "ArrowEffects", "ArrowSpacing" );
 static ThemeMetric<bool>	QUANTIZE_ARROW_Y( "ArrowEffects", "QuantizeArrowYPosition");
@@ -60,7 +60,7 @@ static ThemeMetric<float>	TINY_PERCENT_BASE( "ArrowEffects", "TinyPercentBase" )
 static ThemeMetric<float>	TINY_PERCENT_GATE( "ArrowEffects", "TinyPercentGate" );
 static ThemeMetric<bool>	DIZZY_HOLD_HEADS( "ArrowEffects", "DizzyHoldHeads" );
 
-static const PlayerOptions* curr_options= NULL;
+static const PlayerOptions* curr_options= nullptr;
 
 float ArrowGetPercentVisible(float fYPosWithoutReverse);
 
@@ -209,9 +209,9 @@ void ArrowEffects::Update()
 		}
 		else
 		{
-			for (int col = 0; col < MAX_COLS_PER_PLAYER; ++col)
+			for (float & col : data.m_tipsy_result)
 			{
-				data.m_tipsy_result[col] = 0;
+				col = 0;
 			}
 		}
 
@@ -1089,7 +1089,7 @@ namespace
 		LIST_METHOD( NeedZBuffer ),
 		LIST_METHOD( GetZoom ),
 		LIST_METHOD( GetFrameWidthScale ),
-		{ NULL, NULL }
+		{ nullptr, nullptr }
 	};
 }
 

@@ -419,13 +419,13 @@ namespace PolyphaseFilterCache
 			return pPolyphase;
 		}
 		int iWinSize = L*iUpFactor;
-		float *pFIR = new float[iWinSize];
+		auto *pFIR = new float[iWinSize];
 		GenerateSincLowPassFilter( pFIR, iWinSize, fCutoffFrequency );
 		ApplyKaiserWindow( pFIR, iWinSize, 8 );
 		NormalizeVector( pFIR, iWinSize );
 		MultiplyVector( &pFIR[0], &pFIR[iWinSize], (float) iUpFactor );
 
-		PolyphaseFilter *pPolyphase = new PolyphaseFilter( iUpFactor );
+		auto *pPolyphase = new PolyphaseFilter( iUpFactor );
 		pPolyphase->Generate( pFIR );
 		delete [] pFIR;
 

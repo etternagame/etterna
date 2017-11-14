@@ -131,7 +131,7 @@ namespace
 			// Backward compatibility hacks for "special" filenames
 			if (sFile.EqualsNoCase("songbackground"))
 			{
-				XNodeStringValue *pVal = new XNodeStringValue;
+				auto *pVal = new XNodeStringValue;
 				Song *pSong = GAMESTATE->m_pCurSong;
 				if (pSong && pSong->HasBackground())
 					pVal->SetValue(pSong->GetBackgroundPath());
@@ -142,7 +142,7 @@ namespace
 			}
 			else if (sFile.EqualsNoCase("songbanner"))
 			{
-				XNodeStringValue *pVal = new XNodeStringValue;
+				auto *pVal = new XNodeStringValue;
 				Song *pSong = GAMESTATE->m_pCurSong;
 				if (pSong && pSong->HasBanner())
 					pVal->SetValue(pSong->GetBannerPath());
@@ -160,7 +160,7 @@ namespace
 
 Actor *ActorUtil::LoadFromNode( const XNode* _pNode, Actor *pParentActor )
 {
-	ASSERT( _pNode != NULL );
+	ASSERT( _pNode != nullptr );
 
 	XNode node = *_pNode;
 
@@ -170,7 +170,7 @@ Actor *ActorUtil::LoadFromNode( const XNode* _pNode, Actor *pParentActor )
 	{
 		bool bCond;
 		if( node.GetAttrValue("Condition", bCond) && !bCond )
-			return NULL;
+			return nullptr;
 	}
 
 	RString sClass;
@@ -197,8 +197,8 @@ Actor *ActorUtil::LoadFromNode( const XNode* _pNode, Actor *pParentActor )
 			if (ResolvePath(sPath, GetWhere(&node)))
 			{
 				Actor *pNewActor = MakeActor(sPath, pParentActor);
-				if (pNewActor == NULL)
-					return NULL;
+				if (pNewActor == nullptr)
+					return nullptr;
 				if (pParentActor)
 					pNewActor->SetParent(pParentActor);
 				pNewActor->LoadFromNode(&node);
@@ -229,7 +229,7 @@ namespace
 	{
 		RString sScript;
 		if( !GetFileContents(sFile, sScript) )
-			return NULL;
+			return nullptr;
 
 		Lua *L = LUA->Get();
 
@@ -239,10 +239,10 @@ namespace
 			LUA->Release( L );
 			sError = ssprintf( "Lua runtime error: %s", sError.c_str() );
 			LuaHelpers::ReportScriptError(sError);
-			return NULL;
+			return nullptr;
 		}
 
-		XNode *pRet = NULL;
+		XNode *pRet = nullptr;
 		if( ActorUtil::LoadTableFromStackShowErrors(L) )
 			pRet = XmlFileUtil::XNodeFromTable( L );
 
@@ -421,7 +421,7 @@ apActorCommands ActorUtil::ParseActorCommands( const RString &sCommands, const R
 {
 	Lua *L = LUA->Get();
 	LuaHelpers::ParseCommandList( L, sCommands, sName, false );
-	LuaReference *pRet = new LuaReference;
+	auto *pRet = new LuaReference;
 	pRet->SetFromStack( L );
 	LUA->Release( L );
 
@@ -668,7 +668,7 @@ namespace
 		LIST_METHOD( LoadAllCommands ),
 		LIST_METHOD( LoadAllCommandsFromName ), 
 		LIST_METHOD( LoadAllCommandsAndSetXY ),
-		{ NULL, NULL }
+		{ nullptr, nullptr }
 	};
 }
 

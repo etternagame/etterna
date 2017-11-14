@@ -11,8 +11,7 @@
 #include "FontCharAliases.h"
 #include "arch/Dialog/Dialog.h"
 
-FontPage::FontPage(): m_iHeight(0), m_iLineSpacing(0), m_fVshift(0),
-	m_iDrawExtraPixelsLeft(0), m_iDrawExtraPixelsRight(0),
+FontPage::FontPage(): 
 	m_FontPageTextures(), m_sTexturePath(""), m_aGlyphs(),
 	m_iCharToGlyphNo() {}
 
@@ -274,8 +273,8 @@ int Font::GetGlyphsThatFit(const wstring& line, int* width) const
 	return i;
 }
 
-Font::Font(): m_iRefCount(1), path(""), m_apPages(), m_pDefault(NULL),
-	m_iCharToGlyph(), m_bRightToLeft(false),
+Font::Font():  path(""), m_apPages(), m_pDefault(NULL),
+	m_iCharToGlyph(), 
 	// strokes aren't shown by default, hence the Color.
 	m_DefaultStrokeColor(RageColor(0,0,0,0)), m_sChars("") {}
 Font::~Font()

@@ -9,12 +9,12 @@ class ActorFrame : public Actor
 public:
 	ActorFrame();
 	ActorFrame( const ActorFrame &cpy );
-	virtual ~ActorFrame();
+	~ActorFrame() override;
 
 	/** @brief Set up the initial state. */
-	virtual void InitState();
-	void LoadFromNode( const XNode* pNode );
-	virtual ActorFrame *Copy() const;
+	void InitState() override;
+	void LoadFromNode( const XNode* pNode ) override;
+	ActorFrame *Copy() const override;
 
 	/**
 	 * @brief Add a new child to the ActorFrame.
@@ -53,30 +53,30 @@ public:
 	void DeleteAllChildren();
 
 	// Commands
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 	void PushChildrenTable( lua_State *L );
 	void PushChildTable( lua_State *L, const RString &sName );
-	void PlayCommandOnChildren( const RString &sCommandName, const LuaReference *pParamTable = NULL );
-	void PlayCommandOnLeaves( const RString &sCommandName, const LuaReference *pParamTable = NULL );
+	void PlayCommandOnChildren( const RString &sCommandName, const LuaReference *pParamTable = nullptr );
+	void PlayCommandOnLeaves( const RString &sCommandName, const LuaReference *pParamTable = nullptr );
 
-	virtual void RunCommandsRecursively( const LuaReference& cmds, const LuaReference *pParamTable = NULL );
-	virtual void RunCommandsOnChildren( const LuaReference& cmds, const LuaReference *pParamTable = NULL ); /* but not on self */
-	void RunCommandsOnChildren( const apActorCommands& cmds, const LuaReference *pParamTable = NULL ) { this->RunCommandsOnChildren( *cmds, pParamTable ); }	// convenience
-	virtual void RunCommandsOnLeaves( const LuaReference& cmds, const LuaReference *pParamTable = NULL ); /* but not on self */
+	void RunCommandsRecursively( const LuaReference& cmds, const LuaReference *pParamTable = nullptr ) override;
+	virtual void RunCommandsOnChildren( const LuaReference& cmds, const LuaReference *pParamTable = nullptr ); /* but not on self */
+	void RunCommandsOnChildren( const apActorCommands& cmds, const LuaReference *pParamTable = nullptr ) { this->RunCommandsOnChildren( *cmds, pParamTable ); }	// convenience
+	void RunCommandsOnLeaves( const LuaReference& cmds, const LuaReference *pParamTable = nullptr ) override; /* but not on self */
 
-	virtual void UpdateInternal( float fDeltaTime );
-	virtual void BeginDraw();
-	virtual void DrawPrimitives();
-	virtual void EndDraw();
+	void UpdateInternal( float fDeltaTime ) override;
+	void BeginDraw() override;
+	void DrawPrimitives() override;
+	void EndDraw() override;
 
 	// propagated commands
-	virtual void SetZTestMode( ZTestMode mode );
-	virtual void SetZWrite( bool b );
-	virtual void FinishTweening();
-	virtual void HurryTweening( float factor );
+	void SetZTestMode( ZTestMode mode ) override;
+	void SetZWrite( bool b ) override;
+	void FinishTweening() override;
+	void HurryTweening( float factor ) override;
 
-	void SetUpdateRate(float rate) { if(rate > 0.0f) { m_fUpdateRate = rate; }}
-	float GetUpdateRate() { return m_fUpdateRate; }
+	void SetUpdateRate(float rate) override { if(rate > 0.0f) { m_fUpdateRate = rate; }}
+	float GetUpdateRate() override { return m_fUpdateRate; }
 	void SetFOV( float fFOV ) { m_fFOV = fFOV; }
 	void SetVanishPoint( float fX, float fY) { m_fVanishX = fX; m_fVanishY = fY; }
 
@@ -89,11 +89,11 @@ public:
 	virtual void SetPropagateCommands( bool b );
 
 	/** @brief Amount of time until all tweens (and all children's tweens) have stopped: */
-	virtual float GetTweenTimeLeft() const;
+	float GetTweenTimeLeft() const override;
 
-	virtual void HandleMessage( const Message &msg );
-	virtual void RunCommands( const LuaReference& cmds, const LuaReference *pParamTable = NULL );
-	void RunCommands( const apActorCommands& cmds, const LuaReference *pParamTable = NULL ) { this->RunCommands( *cmds, pParamTable ); }	// convenience
+	void HandleMessage( const Message &msg ) override;
+	void RunCommands( const LuaReference& cmds, const LuaReference *pParamTable = nullptr ) override;
+	void RunCommands( const apActorCommands& cmds, const LuaReference *pParamTable = nullptr ) { this->RunCommands( *cmds, pParamTable ); }	// convenience
 
 protected:
 	void LoadChildrenFromNode( const XNode* pNode );
@@ -129,8 +129,8 @@ class ActorFrameAutoDeleteChildren : public ActorFrame
 {
 public:
 	ActorFrameAutoDeleteChildren() { DeleteChildrenWhenDone(true); }
-	virtual bool AutoLoadChildren() const { return true; }
-	virtual ActorFrameAutoDeleteChildren *Copy() const;
+	bool AutoLoadChildren() const override { return true; }
+	ActorFrameAutoDeleteChildren *Copy() const override;
 };
 
 #endif

@@ -19,7 +19,7 @@
 #if defined(HAVE_FCNTL_H)
 #include <fcntl.h>
 #endif
-#include <ctype.h>
+#include <cctype>
 
 #if defined(_WINDOWS)
 #include <winsock2.h>

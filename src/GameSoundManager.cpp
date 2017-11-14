@@ -124,7 +124,7 @@ static void StartMusic( MusicToPlay &ToPlay )
 	MusicPlaying *NewMusic;
 	{
 		g_Mutex->Unlock();
-		RageSound *pSound = new RageSound;
+		auto *pSound = new RageSound;
 		RageSoundLoadParams params;
 		params.m_bSupportRateChanging = ToPlay.bApplyMusicRate;
 		pSound->Load( ToPlay.m_sFile, false, &params );
@@ -262,7 +262,7 @@ static void StartMusic( MusicToPlay &ToPlay )
 static void DoPlayOnce( RString sPath )
 {
 	/* We want this to start quickly, so don't try to prebuffer it. */
-	RageSound *pSound = new RageSound;
+	auto *pSound = new RageSound;
 	pSound->Load( sPath, false );
 
 	pSound->Play(false);

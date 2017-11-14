@@ -21,7 +21,7 @@ class StreamDisplay : public ActorFrame
 public:
 	StreamDisplay();
 
-	virtual void Update( float fDeltaSecs );
+	void Update( float fDeltaSecs ) override;
 
 	void Load( const RString &sMetricsGroup );
 

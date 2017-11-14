@@ -15,20 +15,20 @@ class LifeMeterBattery : public LifeMeter
 public:
 	LifeMeterBattery();
 
-	virtual void Load( const PlayerState *pPlayerState, PlayerStageStats *pPlayerStageStats );
+	void Load( const PlayerState *pPlayerState, PlayerStageStats *pPlayerStageStats ) override;
 
-	virtual void Update( float fDeltaTime );
+	void Update( float fDeltaTime ) override;
 
-	virtual void OnSongEnded();
-	virtual void ChangeLife( TapNoteScore score );
-	virtual void ChangeLife( HoldNoteScore score, TapNoteScore tscore );
-	virtual void ChangeLife( float fDeltaLifePercent );
-	virtual void SetLife(float value);
-	virtual void HandleTapScoreNone();
-	virtual bool IsInDanger() const;
-	virtual bool IsHot() const;
-	virtual bool IsFailing() const;
-	virtual float GetLife() const;
+	void OnSongEnded() override;
+	void ChangeLife( TapNoteScore score ) override;
+	void ChangeLife( HoldNoteScore score, TapNoteScore tscore ) override;
+	void ChangeLife( float fDeltaLifePercent ) override;
+	void SetLife(float value) override;
+	void HandleTapScoreNone() override;
+	bool IsInDanger() const override;
+	bool IsHot() const override;
+	bool IsFailing() const override;
+	float GetLife() const override;
 	virtual int GetRemainingLives() const;
 
 	virtual void BroadcastLifeChanged(bool lost_life);
@@ -39,7 +39,7 @@ public:
 	void ChangeLives(int iLifeDiff);
 
 	// Lua
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 private:
 	void SubtractLives( int iLives );

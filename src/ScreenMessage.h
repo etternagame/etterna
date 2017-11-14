@@ -1,7 +1,7 @@
 #ifndef ScreenMessage_H
 #define ScreenMessage_H
 /** @brief Definition of common ScreenMessages and helpers. */
-typedef RString ScreenMessage;
+using ScreenMessage = RString;
 
 extern const ScreenMessage SM_Invalid;
 extern const ScreenMessage SM_None;

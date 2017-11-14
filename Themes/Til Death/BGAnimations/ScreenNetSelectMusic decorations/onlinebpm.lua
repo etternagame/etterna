@@ -16,16 +16,24 @@ local t = Def.ActorFrame{}
 
 t[#t+1] = LoadFont("Common Normal") .. {
 		Text="BPM";
-		InitCommand=cmd(x,bpmx;y,bpmy;;zoom,0.50;);
+		InitCommand=function(self)
+			self:x(bpmx):y(bpmy):zoom(0.50)
+		end;
 	};
 	
 t[#t+1] = Def.BPMDisplay{
 	File=THEME:GetPathF("BPMDisplay", "bpm");
 	Name="BPMDisplay";
-	InitCommand=cmd(x,displayx;y,displayy;zoom,0.50;);
+	InitCommand=function(self)
+		self:x(displayx):y(displayy):zoom(0.50)
+	end;
 	SetCommand=function(self) self:SetFromGameState() end;
-	CurrentSongChangedMessageCommand=cmd(playcommand,"Set");
-	CurrentCourseChangedMessageCommand=cmd(playcommand,"Set");
+	CurrentSongChangedMessageCommand=function(self)
+		self:playcommand("Set")
+	end;
+	CurrentCourseChangedMessageCommand=function(self)
+		self:playcommand("Set")
+	end;
 };
 
 return t

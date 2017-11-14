@@ -21,7 +21,7 @@ public:
 	{
 	}
 
-	void SetText( const RString &str )
+	void SetText( const RString &str ) override
 	{
 		m_BitmapText.SetText( str );
 		Paint();
@@ -45,7 +45,7 @@ public:
  * computer while songs load. */
 REGISTER_SCREEN_CLASS( ScreenReloadSongs );
 
-ScreenReloadSongs::ScreenReloadSongs() {}
+ScreenReloadSongs::ScreenReloadSongs() = default;
 
 void ScreenReloadSongs::Init()
 {

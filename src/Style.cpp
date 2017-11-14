@@ -19,7 +19,7 @@
 #include "RageUtil.h"
 #include "InputMapper.h"
 #include "NoteData.h"
-#include <float.h>
+#include <cfloat>
 
 bool Style::GetUsesCenteredArrows() const
 {

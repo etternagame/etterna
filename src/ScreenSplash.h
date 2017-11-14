@@ -9,12 +9,12 @@
 class ScreenSplash : public ScreenWithMenuElements
 {
 public:
-	virtual void Init();
-	virtual void BeginScreen();
+	void Init() override;
+	void BeginScreen() override;
 
-	virtual void HandleScreenMessage( const ScreenMessage SM );
-	virtual bool MenuBack( const InputEventPlus &input );
-	virtual bool MenuStart( const InputEventPlus &input );
+	void HandleScreenMessage( const ScreenMessage SM ) override;
+	bool MenuBack( const InputEventPlus &input ) override;
+	bool MenuStart( const InputEventPlus &input ) override;
 
 protected:
 	ThemeMetric<bool> ALLOW_START_TO_SKIP;

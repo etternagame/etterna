@@ -25,8 +25,8 @@ public:
 	static void Create( const RString &sDrivers, vector<InputHandler *> &apAdd );
 	static DriverList m_pDriverList;
 
-	InputHandler(): m_LastUpdate(), m_iInputsSinceUpdate(0) {}
-	virtual ~InputHandler() { }
+	InputHandler(): m_LastUpdate() {}
+	~InputHandler() override = default;
 	virtual void Update() { }
 	virtual bool DevicesChanged() { return false; }
 	virtual void GetDevicesAndDescriptions( vector<InputDeviceInfo>& vDevicesOut ) = 0;
@@ -65,7 +65,7 @@ protected:
 
 private:
 	std::chrono::time_point<std::chrono::steady_clock> m_LastUpdate;
-	int m_iInputsSinceUpdate;
+	int m_iInputsSinceUpdate{0};
 };
 
 #define REGISTER_INPUT_HANDLER_CLASS2( name, x ) \

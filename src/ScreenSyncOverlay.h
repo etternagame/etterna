@@ -7,11 +7,11 @@
 class ScreenSyncOverlay : public Screen
 {
 public:
-	virtual void Init();
+	void Init() override;
 	
-	bool Input( const InputEventPlus &input );
+	bool Input( const InputEventPlus &input ) override;
 
-	void Update( float fDeltaTime );
+	void Update( float fDeltaTime ) override;
 
 	static void SetShowAutoplay( bool b );
 private:

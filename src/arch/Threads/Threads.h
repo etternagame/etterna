@@ -8,7 +8,7 @@ class RageTimer;
 class ThreadImpl
 {
 public:
-	virtual ~ThreadImpl() { }
+	virtual ~ThreadImpl() = default;
 	virtual void Halt( bool Kill ) = 0;
 	virtual void Resume() = 0;
 
@@ -27,7 +27,7 @@ public:
 	RageMutex *m_Parent;
 
 	MutexImpl( RageMutex *pParent ): m_Parent(pParent) {}
-	virtual ~MutexImpl() { }
+	virtual ~MutexImpl() = default;
 
 	/* Lock the mutex. If mutex timeouts are implemented, and the mutex
 	 * times out, return false and do not lock the mutex. No other failure
@@ -44,14 +44,14 @@ public:
 	virtual void Unlock() = 0;
 
 private:
-	MutexImpl(const MutexImpl& rhs);
-	MutexImpl& operator=(const MutexImpl& rhs);
+	MutexImpl(const MutexImpl& rhs) = delete;
+	MutexImpl& operator=(const MutexImpl& rhs) = delete;
 };
 
 class EventImpl
 {
 public:
-	virtual ~EventImpl() { }
+	virtual ~EventImpl() = default;
 	virtual bool Wait( RageTimer *pTimeout ) = 0;
 	virtual void Signal() = 0;
 	virtual void Broadcast() = 0;
@@ -61,7 +61,7 @@ public:
 class SemaImpl
 {
 public:
-	virtual ~SemaImpl() { }
+	virtual ~SemaImpl() = default;
 	virtual int GetValue() const = 0;
 	virtual void Post() = 0;
 	virtual bool Wait() = 0;

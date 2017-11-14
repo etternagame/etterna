@@ -159,12 +159,16 @@ local function avatarSwitch(pn)
 
 	--Background Quad
 	t[#t+1] = Def.Quad{
-		InitCommand=cmd(xy,frameX,frameY;zoomto,width,height;halign,0;valign,1;diffuse,color("#00000066"));
+		InitCommand=function(self)
+			self:xy(frameX,frameY):zoomto(width,height):halign(0):valign(1):diffuse(color("#00000066"))
+		end;
 	}
 
 	--MASKING SCKS
 	t[#t+1] = Def.Quad{
-		InitCommand=cmd(xy,width,0;zoomto,SCREEN_WIDTH-width,SCREEN_HEIGHT;halign,0;valign,0;zwrite,true;clearzbuffer,true;blend,'BlendMode_NoEffect';);
+		InitCommand=function(self)
+			self:xy(width,0):zoomto(SCREEN_WIDTH-width,SCREEN_HEIGHT):halign(0):valign(0):zwrite(true):clearzbuffer(true):blend('BlendMode_NoEffect')
+		end;
 		BeginCommand=function(self)
 			if pn == PLAYER_2 then
 				self:x(0)
@@ -176,7 +180,9 @@ local function avatarSwitch(pn)
 	--Cursor
 	t[#t+1] = Def.Quad{
 		Name="AvatarCursor";
-		InitCommand=cmd(xy,frameX-2+border,frameY+2-border;zoomto,itemHeight+4,itemWidth+4;halign,0;valign,1;diffuse,color("#FFFFFF"));
+		InitCommand=function(self)
+			self:xy(frameX-2+border,frameY+2-border):zoomto(itemHeight+4,itemWidth+4):halign(0):valign(1):diffuse(color("#FFFFFF"))
+		end;
 		BeginCommand=function(self)
 			shift(self,(data[pn]["cursorIndex"]-1))
 		end;
@@ -193,8 +199,12 @@ local function avatarSwitch(pn)
 	t[#t+1] = avatarTable
 	for k,v in pairs(avatars) do
 		avatarTable[#avatarTable+1] = Def.Sprite {
-			InitCommand=cmd(visible,true;halign,0;valign,1;xy,frameX+border+((border+itemWidth)*(k-1)),frameY-border;ztest,true;);
-			BeginCommand=cmd(queuecommand,"ModifyAvatar");
+			InitCommand=function(self)
+				self:visible(true):halign(0):valign(1):xy(frameX+border+((border+itemWidth)*(k-1)),frameY-border):ztest(true)
+			end;
+			BeginCommand=function(self)
+				self:queuecommand("ModifyAvatar")
+			end;
 			ModifyAvatarCommand=function(self)
 				self:finishtweening();
 				self:LoadBackground(THEME:GetPathG("","Player avatar/"..v));
@@ -205,8 +215,12 @@ local function avatarSwitch(pn)
 
 	--Text
 	t[#t+1] = LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,frameX,frameY-height;halign,0;valign,1;zoom,0.35;);
-		BeginCommand=cmd(queuecommand,"Set");
+		InitCommand=function(self)
+			self:xy(frameX,frameY-height):halign(0):valign(1):zoom(0.35)
+		end;
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end;
 		SetCommand=function(self,params)
 			--self:settextf("Player 1 avatar: ci%d ai%d",cursorIndex,avatarIndex)
 			if pn == PLAYER_1 then
@@ -216,7 +230,9 @@ local function avatarSwitch(pn)
 				self:settextf("Player 2 Avatar: %s",avatars[data[pn]["avatarIndex"]])
 			end;
 		end;
-		CodeMessageCommand=cmd(queuecommand,"Set");
+		CodeMessageCommand=function(self)
+			self:queuecommand("Set")
+		end;
 	};
 	return t
 end

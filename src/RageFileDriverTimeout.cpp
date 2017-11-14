@@ -47,7 +47,7 @@
 #include "RageUtil_FileDB.h"
 #include "RageUtil_WorkerThread.h"
 #include "RageLog.h"
-#include <errno.h>
+#include <cerrno>
 
 enum ThreadRequest
 {
@@ -71,7 +71,7 @@ class ThreadedFileWorker: public RageWorkerThread
 {
 public:
 	ThreadedFileWorker( RString sPath );
-	~ThreadedFileWorker();
+	~ThreadedFileWorker() override;
 
 	/* Threaded operations.  If a file operation times out, the caller loses all access
 	 * to the file and should fail all future operations; this is because the thread
@@ -92,8 +92,8 @@ public:
 	bool PopulateFileSet( FileSet &fs, const RString &sPath );
 
 protected:
-	void HandleRequest( int iRequest );
-	void RequestTimedOut();
+	void HandleRequest( int iRequest ) override;
+	void RequestTimedOut() override;
 
 private:
 
@@ -708,7 +708,7 @@ public:
 			EnableReadBuffering();
 	}
 
-	~RageFileObjTimeout()
+	~RageFileObjTimeout() override
 	{
 		if( m_pFile != NULL )
 		{
@@ -717,12 +717,12 @@ public:
 		}
 	}
 
-	int GetFileSize() const
+	int GetFileSize() const override
 	{
 		return m_iFileSize;
 	}
 
-	int GetFD()
+	int GetFD() override
 	{
 		RString sError;
 		int iRet = m_pWorker->GetFD( m_pFile );
@@ -739,7 +739,7 @@ public:
 		return iRet;
 	}
 
-	RageFileBasic *Copy() const
+	RageFileBasic *Copy() const override
 	{
 		RString sError;
 		RageFileBasic *pCopy = m_pWorker->Copy( m_pFile, sError );
@@ -760,7 +760,7 @@ public:
 	}
 
 protected:
-	int SeekInternal( int iPos )
+	int SeekInternal( int iPos ) override
 	{
 		RString sError;
 		int iRet = m_pWorker->Seek( m_pFile, iPos, sError );
@@ -778,7 +778,7 @@ protected:
 	}
 
 
-	int ReadInternal( void *pBuffer, size_t iBytes )
+	int ReadInternal( void *pBuffer, size_t iBytes ) override
 	{
 		RString sError;
 		int iRet = m_pWorker->Read( m_pFile, pBuffer, iBytes, sError );
@@ -795,7 +795,7 @@ protected:
 		return iRet;
 	}
 
-	int WriteInternal( const void *pBuffer, size_t iBytes )
+	int WriteInternal( const void *pBuffer, size_t iBytes ) override
 	{
 		RString sError;
 		int iRet = m_pWorker->Write( m_pFile, pBuffer, iBytes, sError );
@@ -812,7 +812,7 @@ protected:
 		return iRet;
 	}
 
-	int FlushInternal()
+	int FlushInternal() override
 	{
 		RString sError;
 		int iRet = m_pWorker->Flush( m_pFile, sError );
@@ -857,7 +857,7 @@ public:
 		m_pWorker = pWorker;
 	}
 
-	void PopulateFileSet( FileSet &fs, const RString &sPath )
+	void PopulateFileSet( FileSet &fs, const RString &sPath ) override
 	{
 		ASSERT( m_pWorker != NULL );
 		m_pWorker->PopulateFileSet( fs, sPath );
@@ -937,7 +937,7 @@ RageFileDriverTimeout::~RageFileDriverTimeout()
 static struct FileDriverEntry_Timeout: public FileDriverEntry
 {
         FileDriverEntry_Timeout(): FileDriverEntry( "TIMEOUT" ) { }
-        RageFileDriver *Create( const RString &sRoot ) const { return new RageFileDriverTimeout( sRoot ); }
+        RageFileDriver *Create( const RString &sRoot ) const override { return new RageFileDriverTimeout( sRoot ); }
 } const g_RegisterDriver;
 
 /*

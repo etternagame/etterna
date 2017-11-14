@@ -698,8 +698,8 @@ void ScreenOptions::PositionRows( bool bTween )
 		tsDestination.Init();
 		tsDestination.pos.y = SEPARATE_EXIT_ROW_Y;
 
-		for( int j=0; j<NUM_DIFFUSE_COLORS; j++ )
-			tsDestination.diffuse[j].a = 1.0f;
+		for(auto & j : tsDestination.diffuse)
+			j.a = 1.0f;
 		pSeparateExitRow->SetDestination( tsDestination, bTween );
 	}
 }

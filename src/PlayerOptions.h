@@ -43,24 +43,7 @@ public:
 	 * @brief Set up the PlayerOptions with some reasonable defaults.
 	 *
 	 * This code was taken from Init() to use proper initialization. */
-	PlayerOptions(): m_LifeType(LifeType_Bar), m_DrainType(DrainType_Normal),
-		m_BatteryLives(4),
-		m_bSetScrollSpeed(false),
-		m_fTimeSpacing(0), m_SpeedfTimeSpacing(1.0f),
-		m_fMaxScrollBPM(0), m_SpeedfMaxScrollBPM(1.0f),
-		m_fScrollSpeed(1.0f), m_SpeedfScrollSpeed(1.0f),
-		m_fScrollBPM(200), m_SpeedfScrollBPM(1.0f),
-		m_fDark(0), m_SpeedfDark(1.0f),
-		m_fBlind(0), m_SpeedfBlind(1.0f),
-		m_fCover(0), m_SpeedfCover(1.0f),
-		m_fRandAttack(0), m_SpeedfRandAttack(1.0f),
-		m_fNoAttack(0), m_SpeedfNoAttack(1.0f),
-		m_fPlayerAutoPlay(0), m_SpeedfPlayerAutoPlay(1.0f),
-		m_fPerspectiveTilt(0), m_SpeedfPerspectiveTilt(1.0f),
-		m_fSkew(0), m_SpeedfSkew(1.0f),
-		m_fPassmark(0), m_SpeedfPassmark(1.0f),
-		m_fRandomSpeed(0), m_SpeedfRandomSpeed(1.0f),
-		m_bMuteOnError(false), m_FailType(FailType_Immediate),
+	PlayerOptions(): 
 		m_MinTNSToHideNotes(PREFSMAN->m_MinTNSToHideNotes)
 	{
 		m_sNoteSkin = "";
@@ -185,40 +168,40 @@ public:
 
 	PlayerNumber m_pn; // Needed for fetching the style.
 
-	LifeType m_LifeType;
-	DrainType m_DrainType;	// only used with LifeBar
-	int m_BatteryLives;
+	LifeType m_LifeType{LifeType_Bar};
+	DrainType m_DrainType{DrainType_Normal};	// only used with LifeBar
+	int m_BatteryLives{4};
 	/* All floats have a corresponding speed setting, which determines how fast
 	 * PlayerOptions::Approach approaches. */
-	bool	m_bSetScrollSpeed;				// true if the scroll speed was set by FromString
-	float	m_fTimeSpacing,			m_SpeedfTimeSpacing;	// instead of Beat spacing (CMods, mMods)
-	float	m_fMaxScrollBPM,		m_SpeedfMaxScrollBPM;
-	float	m_fScrollSpeed,			m_SpeedfScrollSpeed;	// used if !m_bTimeSpacing (xMods)
-	float	m_fScrollBPM,			m_SpeedfScrollBPM;		// used if m_bTimeSpacing (CMod)
+	bool	m_bSetScrollSpeed{false};				// true if the scroll speed was set by FromString
+	float	m_fTimeSpacing{0},			m_SpeedfTimeSpacing{1.0f};	// instead of Beat spacing (CMods, mMods)
+	float	m_fMaxScrollBPM{0},		m_SpeedfMaxScrollBPM{1.0f};
+	float	m_fScrollSpeed{1.0f},			m_SpeedfScrollSpeed{1.0f};	// used if !m_bTimeSpacing (xMods)
+	float	m_fScrollBPM{200},			m_SpeedfScrollBPM{1.0f};		// used if m_bTimeSpacing (CMod)
 	float	m_fAccels[NUM_ACCELS],		m_SpeedfAccels[NUM_ACCELS];
 	float	m_fEffects[NUM_EFFECTS],	m_SpeedfEffects[NUM_EFFECTS];
 	float	m_fAppearances[NUM_APPEARANCES],m_SpeedfAppearances[NUM_APPEARANCES];
 	float	m_fScrolls[NUM_SCROLLS],	m_SpeedfScrolls[NUM_SCROLLS];
-	float	m_fDark,			m_SpeedfDark;
-	float	m_fBlind,			m_SpeedfBlind;
-	float	m_fCover,			m_SpeedfCover;	// hide the background per-player--can't think of a good name
-	float	m_fRandAttack,			m_SpeedfRandAttack;
-	float	m_fNoAttack,			m_SpeedfNoAttack;
-	float	m_fPlayerAutoPlay,		m_SpeedfPlayerAutoPlay;
-	float	m_fPerspectiveTilt,		m_SpeedfPerspectiveTilt;		// -1 = near, 0 = overhead, +1 = space
-	float	m_fSkew,			m_SpeedfSkew;		// 0 = vanish point is in center of player, 1 = vanish point is in center of screen
+	float	m_fDark{0},			m_SpeedfDark{1.0f};
+	float	m_fBlind{0},			m_SpeedfBlind{1.0f};
+	float	m_fCover{0},			m_SpeedfCover{1.0f};	// hide the background per-player--can't think of a good name
+	float	m_fRandAttack{0},			m_SpeedfRandAttack{1.0f};
+	float	m_fNoAttack{0},			m_SpeedfNoAttack{1.0f};
+	float	m_fPlayerAutoPlay{0},		m_SpeedfPlayerAutoPlay{1.0f};
+	float	m_fPerspectiveTilt{0},		m_SpeedfPerspectiveTilt{1.0f};		// -1 = near, 0 = overhead, +1 = space
+	float	m_fSkew{0},			m_SpeedfSkew{1.0f};		// 0 = vanish point is in center of player, 1 = vanish point is in center of screen
 
 	/* If this is > 0, then the player must have life above this value at the end of
 	 * the song to pass.  This is independent of SongOptions::m_FailType. */
-	float		m_fPassmark,			m_SpeedfPassmark;
+	float		m_fPassmark{0},			m_SpeedfPassmark{1.0f};
 
-	float	m_fRandomSpeed,			m_SpeedfRandomSpeed;
+	float	m_fRandomSpeed{0},			m_SpeedfRandomSpeed{1.0f};
 
 	bool		m_bTurns[NUM_TURNS];
 	bool		m_bTransforms[NUM_TRANSFORMS];
-	bool		m_bMuteOnError;
+	bool		m_bMuteOnError{false};
 	/** @brief The method for which a player can fail a song. */
-	FailType m_FailType;
+	FailType m_FailType{FailType_Immediate};
 	TapNoteScore m_MinTNSToHideNotes;
 
 	/**

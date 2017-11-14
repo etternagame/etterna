@@ -14,11 +14,11 @@ class StepsDisplayList: public ActorFrame
 {
 public:
 	StepsDisplayList();
-	virtual ~StepsDisplayList();
-	virtual StepsDisplayList *Copy() const;
-	virtual void LoadFromNode( const XNode* pNode );
+	~StepsDisplayList() override;
+	StepsDisplayList *Copy() const override;
+	void LoadFromNode( const XNode* pNode ) override;
 
-	void HandleMessage( const Message &msg );
+	void HandleMessage( const Message &msg ) override;
 
 	void SetFromGameState();
 	void TweenOnScreen();
@@ -27,7 +27,7 @@ public:
 	void Show();
 
 	// Lua
-	void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 private:
 	void UpdatePositions();

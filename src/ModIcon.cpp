@@ -6,8 +6,7 @@
 #include "ActorUtil.h"
 
 ModIcon::ModIcon()
-{
-}
+= default;
 
 ModIcon::ModIcon( const ModIcon &cpy ):
 	ActorFrame(cpy),

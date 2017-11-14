@@ -37,9 +37,9 @@
 #include "ActorUtil.h"
 
 #include "GameState.h"
-#include <time.h>
+#include <ctime>
 #include <set>
-#include <float.h>
+#include <cfloat>
 
 //-Nick12 Used for song file hashing
 #include <CryptManager.h>
@@ -48,7 +48,7 @@
  * @brief The internal version of the cache for StepMania.
  *
  * Increment this value to invalidate the current cache. */
-const int FILE_CACHE_VERSION = 238;
+const int FILE_CACHE_VERSION = 239;
 
 /** @brief How long does a song sample last by default? */
 const float DEFAULT_MUSIC_SAMPLE_LENGTH = 25.f;
@@ -209,7 +209,7 @@ void Song::AddLyricSegment( LyricSegment seg )
 
 Steps *Song::CreateSteps()
 {
-	Steps *pSteps = new Steps(this);
+	auto *pSteps = new Steps(this);
 	InitSteps( pSteps );
 	return pSteps;
 }

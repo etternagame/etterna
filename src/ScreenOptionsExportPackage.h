@@ -15,14 +15,14 @@ namespace ExportPackages
 class ScreenOptionsExportPackage : public ScreenOptions
 {
 public:
-	void Init();
-	virtual void BeginScreen();
+	void Init() override;
+	void BeginScreen() override;
 
 protected:
-	virtual void ImportOptions( int iRow, const vector<PlayerNumber> &vpns );
-	virtual void ExportOptions( int iRow, const vector<PlayerNumber> &vpns );
+	void ImportOptions( int iRow, const vector<PlayerNumber> &vpns ) override;
+	void ExportOptions( int iRow, const vector<PlayerNumber> &vpns ) override;
 
-	virtual void ProcessMenuStart( const InputEventPlus &input );
+	void ProcessMenuStart( const InputEventPlus &input ) override;
 
 	vector<RString> m_vsPackageTypes;
 };
@@ -30,14 +30,14 @@ protected:
 class ScreenOptionsExportPackageSubPage : public ScreenOptions
 {
 public:
-	void Init();
-	virtual void BeginScreen();
+	void Init() override;
+	void BeginScreen() override;
 
 protected:
-	virtual void ImportOptions( int iRow, const vector<PlayerNumber> &vpns );
-	virtual void ExportOptions( int iRow, const vector<PlayerNumber> &vpns );
+	void ImportOptions( int iRow, const vector<PlayerNumber> &vpns ) override;
+	void ExportOptions( int iRow, const vector<PlayerNumber> &vpns ) override;
 
-	virtual void ProcessMenuStart( const InputEventPlus &input );
+	void ProcessMenuStart( const InputEventPlus &input ) override;
 
 	vector<RString> m_vsPossibleDirsToExport;
 };

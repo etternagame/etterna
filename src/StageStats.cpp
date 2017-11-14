@@ -147,6 +147,7 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 	hs.SetScore( pss.m_iScore );
 	hs.SetPercentDP( pss.GetPercentDancePoints() );
 	hs.SetWifeScore( pss.GetWifeScore());
+	hs.SetWifePoints( pss.GetCurWifeScore());
 
 	// should prolly be its own fun - mina
 	hs.SetEtternaValid(true);

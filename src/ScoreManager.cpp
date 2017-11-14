@@ -38,6 +38,7 @@ ScoresAtRate::ScoresAtRate() {
 	bestGrade = Grade_Invalid;
 	scores.clear();
 	PBptr = nullptr;
+	noccPBptr = nullptr;
 }
 
 void ScoresAtRate::AddScore(HighScore& hs) {
@@ -45,8 +46,13 @@ void ScoresAtRate::AddScore(HighScore& hs) {
 	bestGrade = min(hs.GetWifeGrade(), bestGrade);
 	scores.emplace(key, hs);
 
-	if(!PBptr || PBptr->GetWifeScore() < hs.GetWifeScore())
+	if(!PBptr || PBptr->GetSSRNormPercent() < hs.GetSSRNormPercent())
 		PBptr = &scores.find(key)->second;
+
+	if (hs.GetChordCohesion() == 0) {
+		if(!noccPBptr || noccPBptr->GetSSRNormPercent() < hs.GetSSRNormPercent())
+			noccPBptr = &scores.find(key)->second;
+	}
 
 	SCOREMAN->RegisterScore(&scores.find(key)->second);
 	SCOREMAN->AddToKeyedIndex(&scores.find(key)->second);
@@ -82,7 +88,7 @@ void ScoreManager::RatingOverTime() {
 	sort(AllScores.begin(), AllScores.end(), compdate);
 
 	for (auto& n : AllScores) {
-		wasvalid.emplace_back(n->GetEtternaValid());
+		wasvalid.push_back(n->GetEtternaValid());
 		n->SetEtternaValid(false);
 	}
 
@@ -258,6 +264,23 @@ void ScoreManager::RecalculateSSRs(LoadingWindow *ld) {
 		nd.UnsetNerv();
 		nd.UnsetSerializedNoteData();
 		steps->Compress();
+
+		/* Some scores were being incorrectly marked as ccon despite chord cohesion being disabled. Re-determine chord cohesion 
+		status from notecount, this should be robust as every score up to this point should be a fully completed pass. This will 
+		also allow us to mark files with 0 chords as being nocc (since it doesn't apply to them). -mina */ 
+		int totalstepsnotes = steps->GetRadarValues()[RadarCategory_Notes];
+		int totalscorenotes = 0;
+		totalscorenotes += hs->GetTapNoteScore(TNS_W1);
+		totalscorenotes += hs->GetTapNoteScore(TNS_W2);
+		totalscorenotes += hs->GetTapNoteScore(TNS_W3);
+		totalscorenotes += hs->GetTapNoteScore(TNS_W4);
+		totalscorenotes += hs->GetTapNoteScore(TNS_W5);
+		totalscorenotes += hs->GetTapNoteScore(TNS_Miss);
+
+		if (totalstepsnotes - totalscorenotes == 0)
+			hs->SetChordCohesion(1); // the set function isn't inverted but the get function is, this sets bnochordcohesion to 1
+		else
+			hs->SetChordCohesion(0);
 	}
 	return;
 }
@@ -374,6 +397,11 @@ XNode* ScoresAtRate::CreateNode(const int& rate) const {
 	string rs = ssprintf("%.3f", static_cast<float>(rate) / 10000.f);
 	// should be safe as this is only called if there is at least 1 score (which would be the pb)
 	o->AppendAttr("PBKey", PBptr->GetScoreKey());
+	if (noccPBptr != nullptr) {
+		if(PBptr->GetScoreKey() != noccPBptr->GetScoreKey())
+			o->AppendAttr("noccPBKey", noccPBptr->GetScoreKey()); // don't write unless it's different from the pbkey -mina
+	}
+
 	o->AppendAttr("BestGrade", GradeToString(bestGrade));
 	o->AppendAttr("Rate", rs);
 
@@ -417,8 +445,21 @@ void ScoresAtRate::LoadFromNode(const XNode* node, const string& ck, const float
 			PBptr = &scores.find(sk)->second;
 		else {
 			// update pb if a better score is found
-			if (PBptr->GetWifeScore() < scores[sk].GetWifeScore())
+			if (PBptr->GetSSRNormPercent() < scores[sk].GetSSRNormPercent())
 				PBptr = &scores.find(sk)->second;
+		}
+
+		// lurker says:
+		// don't even TRY to fuck with nocc pb unless the score is nocc
+		if (scores[sk].GetChordCohesion() == 0) {
+			// Set any nocc pb
+			if (noccPBptr == nullptr)
+				noccPBptr = &scores.find(sk)->second;
+			else {
+				// update nocc pb if a better score is found
+				if (noccPBptr->GetSSRNormPercent() < scores[sk].GetSSRNormPercent())
+					noccPBptr = &scores.find(sk)->second;
+			}
 		}
 
 		// Fill in stuff for the highscores
@@ -514,8 +555,7 @@ class LunaScoresForChart : public Luna<ScoresForChart>
 {
 public:
 	LunaScoresForChart()
-	{
-	}
+	= default;
 };
 
 LUA_REGISTER_CLASS(ScoresForChart)

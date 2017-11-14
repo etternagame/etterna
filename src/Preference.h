@@ -57,30 +57,30 @@ public:
 		LoadDefault();
 	}
 
-	RString ToString() const { return StringConversion::ToString<T>( m_currentValue ); }
-	void FromString( const RString &s )
+	RString ToString() const override { return StringConversion::ToString<T>( m_currentValue ); }
+	void FromString( const RString &s ) override
 	{
 		if( !StringConversion::FromString<T>(s, m_currentValue) )
 			m_currentValue = m_defaultValue;
 		if( m_pfnValidate ) 
 			m_pfnValidate( m_currentValue );
 	}
-	void SetFromStack( lua_State *L )
+	void SetFromStack( lua_State *L ) override
 	{
 		LuaHelpers::Pop<T>( L, m_currentValue );
 		if( m_pfnValidate )
 			m_pfnValidate( m_currentValue );
 	}
-	void PushValue( lua_State *L ) const
+	void PushValue( lua_State *L ) const override
 	{
 		LuaHelpers::Push<T>( L, m_currentValue );
 	}
 
-	void LoadDefault()
+	void LoadDefault() override
 	{
 		m_currentValue = m_defaultValue;
 	}
-	void SetDefaultFromString( const RString &s )
+	void SetDefaultFromString( const RString &s ) override
 	{
 		T def = m_defaultValue;
 		if( !StringConversion::FromString<T>(s, m_defaultValue) )
@@ -128,7 +128,7 @@ template <class T>
 class Preference1D
 {
 public:
-	typedef Preference<T> PreferenceT;
+	using PreferenceT = Preference<T>;
 	vector<PreferenceT*> m_v;
 	
 	Preference1D( void pfn(size_t i, RString &sNameOut, T &defaultValueOut ), size_t N )

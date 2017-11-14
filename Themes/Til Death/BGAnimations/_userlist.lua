@@ -14,12 +14,18 @@ local posit = getMainColor('positive')
 local negat = getMainColor('negative')
 local enable = getMainColor('enabled')
 local r = Def.ActorFrame{
-	BeginCommand=cmd(queuecommand,"Set"),
-	InitCommand=cmd(queuecommand,"Set"),
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	InitCommand=function(self)
+		self:queuecommand("Set")
+	end,
 	SetCommand=function(self)
 		top = SCREENMAN:GetTopScreen()
 	end,
-	UsersUpdateMessageCommand=cmd(queuecommand,"Set"),
+	UsersUpdateMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
 }
 
 
@@ -47,7 +53,9 @@ local function userLabel(i)
 	end
 	local aux = LoadFont("Common Normal") .. {
 		Name = i,
-		BeginCommand=cmd(xy,x,y;zoom,usersZoom;diffuse,posit;queuecommand,"Set"),
+		BeginCommand=function(self)
+			self:xy(x,y):zoom(usersZoom):diffuse(posit):queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			local num = self:GetName()+0
 			qty = top:GetUserQty()
@@ -71,9 +79,15 @@ local function userLabel(i)
 				self:maxwidth(usersWidthSmallZoom)
 			end
 		end,
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
-		UsersUpdateMessageCommand=cmd(queuecommand,"Set"),
+		PlayerJoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		PlayerUnjoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		UsersUpdateMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	}
 	return aux
 end

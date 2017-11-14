@@ -209,8 +209,8 @@ bool LuaBinding::Equal( lua_State *L )
 	if( lua_objlen(L, iArg2) != sizeof(void *) )
 		return false;
 
-	void **pData1 = (void **) lua_touserdata( L, iArg1 );
-	void **pData2 = (void **) lua_touserdata( L, iArg2 );
+	auto **pData1 = (void **) lua_touserdata( L, iArg1 );
+	auto **pData2 = (void **) lua_touserdata( L, iArg2 );
 	return *pData1 == *pData2;
 }
 

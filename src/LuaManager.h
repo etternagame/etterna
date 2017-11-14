@@ -2,8 +2,8 @@
 #define LUA_MANAGER_H
 
 struct lua_State;
-typedef lua_State Lua;
-typedef void (*RegisterWithLuaFn)(lua_State*);
+using Lua = struct lua_State;
+using RegisterWithLuaFn = void (*)(struct lua_State *);
 class RageMutex;
 class XNode;
 class LuaReference;

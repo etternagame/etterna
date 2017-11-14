@@ -9,7 +9,7 @@
 #include "GameManager.h"
 #include "LocalizedString.h"
 #include "PlayerNumber.h"
-#include <float.h>
+#include <cfloat>
 
 RString StepsTypeToString( StepsType st );
 

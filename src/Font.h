@@ -36,22 +36,21 @@ struct glyph
 	FontPageTextures *GetFontPageTextures() const { return const_cast<FontPageTextures *>(&m_FontPageTextures); }
 
 	/** @brief Number of pixels to advance horizontally after drawing this character. */
-	int m_iHadvance;
+	int m_iHadvance{0};
 
 	/** @brief Width of the actual rendered character. */
-	float m_fWidth;
+	float m_fWidth{0};
 	/** @brief Height of the actual rendered character. */
-	float m_fHeight;
+	float m_fHeight{0};
 
 	/** @brief Number of pixels to offset this character when rendering. */
-	float m_fHshift; // , m_fVshift;
+	float m_fHshift{0}; // , m_fVshift;
 
 	/** @brief Texture coordinate rect. */
 	RectF m_TexRect;
 	
 	/** @brief Set up the glyph with default values. */
-	glyph() : m_pPage(NULL), m_FontPageTextures(), m_iHadvance(0),
-		m_fWidth(0), m_fHeight(0), m_fHshift(0), m_TexRect() {}
+	glyph() : m_pPage(NULL), m_FontPageTextures(),  m_TexRect() {}
 };
 
 /** @brief The settings used for the FontPage. */
@@ -59,15 +58,15 @@ struct FontPageSettings
 {
 	RString m_sTexturePath;
 
-	int m_iDrawExtraPixelsLeft,
-		m_iDrawExtraPixelsRight,
-		m_iAddToAllWidths,
-		m_iLineSpacing,
-		m_iTop,
-		m_iBaseline,
-		m_iDefaultWidth,
-		m_iAdvanceExtraPixels;
-	float m_fScaleAllWidthsBy;
+	int m_iDrawExtraPixelsLeft{0},
+		m_iDrawExtraPixelsRight{0},
+		m_iAddToAllWidths{0},
+		m_iLineSpacing{-1},
+		m_iTop{-1},
+		m_iBaseline{-1},
+		m_iDefaultWidth{-1},
+		m_iAdvanceExtraPixels{1};
+	float m_fScaleAllWidthsBy{1};
 	RString m_sTextureHints;
 
 	map<wchar_t,int> CharToGlyphNo;
@@ -76,14 +75,6 @@ struct FontPageSettings
 
 	/** @brief The initial settings for the FontPage. */
 	FontPageSettings(): m_sTexturePath(""),
-		m_iDrawExtraPixelsLeft(0), m_iDrawExtraPixelsRight(0),
-		m_iAddToAllWidths(0), 
-		m_iLineSpacing(-1),
-		m_iTop(-1),
-		m_iBaseline(-1),
-		m_iDefaultWidth(-1),
-		m_iAdvanceExtraPixels(1),
-		m_fScaleAllWidthsBy(1),
 		m_sTextureHints("default"),
 		CharToGlyphNo(),
 		m_mapGlyphWidths()
@@ -108,14 +99,14 @@ public:
 	void Load( const FontPageSettings &cfg );
 
 	// Page-global properties.
-	int m_iHeight;
-	int m_iLineSpacing;
-	float m_fVshift;
+	int m_iHeight{0};
+	int m_iLineSpacing{0};
+	float m_fVshift{0};
 	int GetCenter() const { return m_iHeight/2; }
 
 	// Remember these only for GetLineWidthInSourcePixels.
-	int m_iDrawExtraPixelsLeft,
-	m_iDrawExtraPixelsRight;
+	int m_iDrawExtraPixelsLeft{0},
+	m_iDrawExtraPixelsRight{0};
 
 	FontPageTextures m_FontPageTextures;
 
@@ -135,7 +126,7 @@ private:
 class Font
 {
 public:
-	int m_iRefCount;
+	int m_iRefCount{1};
 	RString path;
 
 	Font();
@@ -197,7 +188,7 @@ private:
 	 *
 	 * This will also change the way glyphs from the default FontPage are rendered. 
 	 * There may be a better way to handle this. */
-	bool m_bRightToLeft;
+	bool m_bRightToLeft{false};
 
 	RageColor m_DefaultStrokeColor;
 

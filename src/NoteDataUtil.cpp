@@ -585,7 +585,7 @@ void NoteDataUtil::GetSMNoteDataString( const NoteData &in, RString &sRet )
 		fLastBeat = max( fLastBeat, nd->GetLastBeat() );
 	}
 
-	int iLastMeasure = static_cast<int>( fLastBeat/BEATS_PER_MEASURE );
+	auto iLastMeasure = static_cast<int>( fLastBeat/BEATS_PER_MEASURE );
 
 	sRet = "";
 	FOREACH( NoteData, parts, nd )
@@ -662,7 +662,7 @@ void NoteDataUtil::GetETTNoteDataString(const NoteData &in, RString &sRet) {
 		fLastBeat = max(fLastBeat, nd->GetLastBeat());
 	}
 
-	int iLastMeasure = static_cast<int>(fLastBeat / BEATS_PER_MEASURE);
+	auto iLastMeasure = static_cast<int>(fLastBeat / BEATS_PER_MEASURE);
 
 	sRet = "";
 
@@ -954,9 +954,9 @@ void PlaceAutoKeysound( NoteData &out, int row, TapNote akTap )
 	bool bFoundEmptyTrack = false;
 	int iRowsToLook[3] = {0, -1, 1};
 	
-	for( int j = 0; j < 3; j ++ )
+	for(int j : iRowsToLook)
 	{
-		int r = iRowsToLook[j] + row;
+		int r = j + row;
 		if( r < 0 )
 			continue;
 		for( int i = 0; i < iNewNumTracks; ++i )
@@ -1078,10 +1078,9 @@ int FindLongestOverlappingHoldNoteForAnyTrack( const NoteData &in, int iRow )
 
 struct recent_note
 {
-	int row;
-	int track;
-	recent_note()
-		:row(0), track(0) {}
+	int row{0};
+	int track{0};
+	recent_note() = default;
 	recent_note(int r, int t)
 		:row(r), track(t) {}
 };
@@ -1094,18 +1093,16 @@ struct recent_note
 // DoRowEndRadarCalc would be a nested function. -Kyz
 struct crv_state
 {
-	bool judgable;
+	bool judgable{false};
 	// hold_ends tracks where currently active holds will end, which is used
 	// to count the number of hands. -Kyz
 	vector<int> hold_ends;
 	// num_holds_on_curr_row saves us the work of tracking where holds started
 	// just to keep a jump of two holds from counting as a hand.
-	int num_holds_on_curr_row;
-	int num_notes_on_curr_row;
+	int num_holds_on_curr_row{0};
+	int num_notes_on_curr_row{0};
 
-	crv_state()
-		:judgable(false), num_holds_on_curr_row(0), num_notes_on_curr_row(0)
-	{}
+	crv_state() = default;
 };
 
 static void DoRowEndRadarCalc(crv_state& state, RadarValues& out)

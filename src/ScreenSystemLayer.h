@@ -9,7 +9,7 @@
 class ScreenSystemLayer : public Screen
 {
 public:
-	virtual void Init();
+	void Init() override;
 
 private:
 	AutoActor m_sprOverlay;

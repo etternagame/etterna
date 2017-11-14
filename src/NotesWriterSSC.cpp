@@ -409,9 +409,13 @@ static RString GetSSCNoteData( const Song &song, const Steps &in, bool bSavingCa
 	}
 	else
 	{
-		RString sNoteData;
-		in.GetSMNoteData(sNoteData);
+		RString sNoteData = "";
 
+		/* hack to ensure notedata exists when changing offset from gameplay not sure what i/we could have done 
+		to mess up the original flow but all the save/load functions should be rewritten anyway -mina */ 
+		in.Decompress();
+
+		in.GetSMNoteData(sNoteData);
 		lines.emplace_back(song.m_vsKeysoundFile.empty() ? "#NOTES:" : "#NOTES2:");
 
 		TrimLeft(sNoteData);
@@ -419,6 +423,9 @@ static RString GetSSCNoteData( const Song &song, const Steps &in, bool bSavingCa
 		split(sNoteData, "\n", splitData);
 		lines.insert(lines.end(), std::make_move_iterator(splitData.begin()), std::make_move_iterator(splitData.end()));
 		lines.emplace_back(";");
+
+		// cause of the decompress call above- maybe unnecessary because who's going to resync a file and not play it? -mina
+		in.Compress();
 	}
 	return JoinLineList(lines);
 }

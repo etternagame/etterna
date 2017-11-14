@@ -10,24 +10,24 @@ AutoScreenMessage( SM_GoToStartScreen );
 class ScreenAttract : public ScreenWithMenuElements
 {
 public:
-	virtual void Init();
-	virtual void BeginScreen();
+	void Init() override;
+	void BeginScreen() override;
 
 	static bool AttractInput( const InputEventPlus &input, ScreenWithMenuElements *pScreen );
 	static void GoToStartScreen( RString sScreenName );
 	static void SetAttractVolume( bool bInAttract );
 
-	virtual bool Input( const InputEventPlus &input );
-	virtual void HandleScreenMessage( const ScreenMessage SM );
-	virtual void Cancel( ScreenMessage smSendWhenDone );
+	bool Input( const InputEventPlus &input ) override;
+	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void Cancel( ScreenMessage smSendWhenDone ) override;
 
-	virtual ScreenType GetScreenType() const { return attract; }
+	ScreenType GetScreenType() const override { return attract; }
 
 	// Lua
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 protected:
-	virtual void StartPlayingMusic();
+	void StartPlayingMusic() override;
 	ThemeMetric<bool> RESET_GAME_STATE;
 	ThemeMetric<bool> ATTRACT_VOLUME;
 };

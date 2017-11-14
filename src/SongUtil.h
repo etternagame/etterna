@@ -24,13 +24,13 @@ public:
 	 *
 	 * If an empty string, don't bother using this for searching. */
 	RString m_sGroupName;
-	bool m_bUseSongGenreAllowedList;
+	bool m_bUseSongGenreAllowedList{false};
 	vector<RString> m_vsSongGenreAllowedList;
-	enum Selectable { Selectable_Yes, Selectable_No, Selectable_DontCare } m_Selectable;
-	bool m_bUseSongAllowedList;
+	enum Selectable { Selectable_Yes, Selectable_No, Selectable_DontCare } m_Selectable{Selectable_DontCare};
+	bool m_bUseSongAllowedList{false};
 	vector<Song*> m_vpSongAllowedList;
 	/** @brief How many songs does this take max? Don't use this if it's -1. */
-	int m_iMaxStagesForSong;		// don't filter if -1
+	int m_iMaxStagesForSong{-1};		// don't filter if -1
 	// float m_fMinBPM;		// don't filter if -1
 	// float m_fMaxBPM;		// don't filter if -1
 	/** @brief Is this song used for tutorial purposes? */
@@ -39,21 +39,19 @@ public:
 		Tutorial_Yes, /**< This song is used for tutorial purposes. */
 		Tutorial_No, /**< This song is not used for tutorial purposes. */
 		Tutorial_DontCare /**< This song can or cannot be used for tutorial purposes. */
-	} m_Tutorial;
+	} m_Tutorial{Tutorial_DontCare};
 	/** @brief Is this song used for locking/unlocking purposes? */
 	enum Locked 
 	{
 		Locked_Locked, /**< This song is a locked song. */
 		Locked_Unlocked, /**< This song is an unlocked song. */
 		Locked_DontCare /**< This song can or cannot be locked or unlocked. */
-	} m_Locked;
+	} m_Locked{Locked_DontCare};
 
 	/** @brief Set up some initial song criteria. */
-	SongCriteria(): m_sGroupName(""), m_bUseSongGenreAllowedList(false),
-		m_vsSongGenreAllowedList(), m_Selectable(Selectable_DontCare),
-		m_bUseSongAllowedList(false), m_vpSongAllowedList(),
-		m_iMaxStagesForSong(-1), m_Tutorial(Tutorial_DontCare),
-		m_Locked(Locked_DontCare)
+	SongCriteria(): m_sGroupName(""), 
+		m_vsSongGenreAllowedList(),  m_vpSongAllowedList()
+		
 	{
 		// m_fMinBPM = -1;
 		// m_fMaxBPM = -1;
@@ -202,7 +200,7 @@ public:
 	 *
 	 * This used to call Unset() to do the same thing. */
 	SongID(): sDir(""), m_Cache() { m_Cache.Unset(); }
-	void Unset() { FromSong(NULL); }
+	void Unset() { FromSong(nullptr); }
 	void FromSong( const Song *p );
 	Song *ToSong() const;
 	bool operator<( const SongID &other ) const

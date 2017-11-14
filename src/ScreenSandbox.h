@@ -6,10 +6,10 @@
 class ScreenSandbox : public Screen
 {
 public:
-	virtual bool Input( const InputEventPlus &input );
-	virtual void HandleScreenMessage( const ScreenMessage SM );
-	virtual void Update(float f);
-	virtual void DrawPrimitives();
+	bool Input( const InputEventPlus &input ) override;
+	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void Update(float f) override;
+	void DrawPrimitives() override;
 };
 
 #endif

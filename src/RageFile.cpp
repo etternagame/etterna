@@ -468,7 +468,7 @@ namespace RageFileUtil
 {
 	int CreateRageFile( lua_State *L )
 	{
-		RageFile *pFile = new RageFile;
+		auto *pFile = new RageFile;
 		pFile->PushSelf( L );
 		return 1;
 	}

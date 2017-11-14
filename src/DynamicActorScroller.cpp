@@ -28,7 +28,7 @@ void DynamicActorScroller::LoadFromNode( const XNode *pNode )
 		m_SubActors.resize(1);
 	}
 
-	int iNumCopies = (int) m_fNumItemsToDraw;
+	auto iNumCopies = (int) m_fNumItemsToDraw;
 	if( m_quadMask.GetVisible() )
 		iNumCopies += 1;
 	for( int i = 1; i < iNumCopies; ++i )

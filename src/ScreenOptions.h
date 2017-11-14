@@ -35,19 +35,19 @@ class ScreenOptions : public ScreenWithMenuElements
 {
 public:
 	ScreenOptions();
-	virtual void Init();
-	virtual void BeginScreen();
+	void Init() override;
+	void BeginScreen() override;
 	void InitMenu( const vector<OptionRowHandler*> &vHands );
-	virtual ~ScreenOptions();
-	virtual void Update( float fDeltaTime );
-	virtual bool Input( const InputEventPlus &input );
-	virtual void HandleScreenMessage( const ScreenMessage SM );
+	~ScreenOptions() override;
+	void Update( float fDeltaTime ) override;
+	bool Input( const InputEventPlus &input ) override;
+	void HandleScreenMessage( const ScreenMessage SM ) override;
 
-	virtual void TweenOnScreen();
-	virtual void TweenOffScreen();
+	void TweenOnScreen() override;
+	void TweenOffScreen() override;
 
 	// Lua
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 	friend class LunaScreenOptions;
 
 protected:
@@ -84,14 +84,14 @@ protected:
 	virtual void AfterChangeRow( PlayerNumber pn );
 	virtual void AfterChangeValueOrRow( PlayerNumber pn );
 
-	virtual bool MenuBack( const InputEventPlus &input );
-	virtual bool MenuStart( const InputEventPlus &input );
+	bool MenuBack( const InputEventPlus &input ) override;
+	bool MenuStart( const InputEventPlus &input ) override;
 	virtual void ProcessMenuStart( const InputEventPlus &input );
-	virtual bool MenuLeft( const InputEventPlus &input );
-	virtual bool MenuRight( const InputEventPlus &input );
-	virtual bool MenuUp( const InputEventPlus &input );
-	virtual bool MenuDown( const InputEventPlus &input );
-	virtual bool MenuSelect( const InputEventPlus &input );
+	bool MenuLeft( const InputEventPlus &input ) override;
+	bool MenuRight( const InputEventPlus &input ) override;
+	bool MenuUp( const InputEventPlus &input ) override;
+	bool MenuDown( const InputEventPlus &input ) override;
+	bool MenuSelect( const InputEventPlus &input ) override;
 	virtual void MenuUpDown( const InputEventPlus &input, int iDir );	// iDir == -1 or iDir == +1
 
 	int GetCurrentRow( PlayerNumber pn = PLAYER_1 ) const { return m_iCurrentRow[pn]; }

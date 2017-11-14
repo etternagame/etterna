@@ -18,7 +18,7 @@ public:
 
 	void Load( const RString &sMetricsGroup, bool bLoadCanGos );
 
-	void StopTweening();
+	void StopTweening() override;
 	void BeginTweening( float fSecs );
 	void SetBarWidth( int iWidth );
 	int GetBarWidth() const;

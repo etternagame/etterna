@@ -8,8 +8,7 @@
 RString GetRandomFileInDir( const RString &sDir );
 
 Character::Character(): m_sCharDir(""), m_sCharacterID(""),
-	m_sDisplayName(""), m_sCardPath(""), m_sIconPath(""),
-	m_bUsableInRave(false), m_iPreloadRefcount(0) {}
+	m_sDisplayName(""), m_sCardPath(""), m_sIconPath("") {}
 
 bool Character::Load( RString sCharDir )
 {

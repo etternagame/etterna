@@ -13,13 +13,13 @@ class RageFileObjMem: public RageFileObj
 public:
 	RageFileObjMem( RageFileObjMemFile *pFile = NULL );
 	RageFileObjMem( const RageFileObjMem &cpy );
-	~RageFileObjMem();
+	~RageFileObjMem() override;
 
-	int ReadInternal( void *buffer, size_t bytes );
-	int WriteInternal( const void *buffer, size_t bytes );
-	int SeekInternal( int offset );
-	int GetFileSize() const;
-	RageFileObjMem *Copy() const;
+	int ReadInternal( void *buffer, size_t bytes ) override;
+	int WriteInternal( const void *buffer, size_t bytes ) override;
+	int SeekInternal( int offset ) override;
+	int GetFileSize() const override;
+	RageFileObjMem *Copy() const override;
 
 	/* Retrieve the contents of this file. */
 	const RString &GetString() const;
@@ -34,12 +34,12 @@ class RageFileDriverMem: public RageFileDriver
 {
 public:
 	RageFileDriverMem();
-	~RageFileDriverMem();
+	~RageFileDriverMem() override;
 
-	RageFileBasic *Open( const RString &sPath, int mode, int &err );
-	void FlushDirCache( const RString & /* sPath */ ) { }
+	RageFileBasic *Open( const RString &sPath, int mode, int &err ) override;
+	void FlushDirCache( const RString & /* sPath */ ) override { }
 
-	bool Remove( const RString &sPath );
+	bool Remove( const RString &sPath ) override;
 
 private:
 	RageMutex m_Mutex;

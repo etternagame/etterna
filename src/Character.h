@@ -5,14 +5,14 @@
 #include "RageTexturePreloader.h"
 #include "LuaReference.h"
 struct lua_State;
-typedef lua_State Lua;
+using Lua = lua_State;
 
 /** @brief A persona that defines attacks for use in battle. */
 class Character
 {
 public:
 	Character();
-	~Character() { }
+	~Character() = default;
 
 	bool Load( RString sCharDir ); // return true if successful
 
@@ -57,10 +57,10 @@ public:
 	 * @brief Is this character playable in the Rave mode?
 	 *
 	 * All of the variables listed below here will be filled in if true. */
-	bool	m_bUsableInRave;
+	bool	m_bUsableInRave{false};
 
 	RageTexturePreloader m_Preload;
-	int m_iPreloadRefcount;
+	int m_iPreloadRefcount{0};
 };
 
 #endif

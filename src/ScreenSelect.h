@@ -8,16 +8,16 @@
 class ScreenSelect : public ScreenWithMenuElements
 {
 public:
-	virtual void Init();
-	virtual void BeginScreen();
-	virtual ~ScreenSelect();
+	void Init() override;
+	void BeginScreen() override;
+	~ScreenSelect() override;
 
-	virtual void Update( float fDelta );
-	virtual bool Input( const InputEventPlus &input );
-	virtual void HandleScreenMessage( const ScreenMessage SM );
-	virtual void HandleMessage( const Message &msg );
+	void Update( float fDelta ) override;
+	bool Input( const InputEventPlus &input ) override;
+	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleMessage( const Message &msg ) override;
 
-	virtual bool MenuBack( const InputEventPlus &input );
+	bool MenuBack( const InputEventPlus &input ) override;
 
 protected:
 	virtual int GetSelectionIndex( PlayerNumber pn ) = 0;

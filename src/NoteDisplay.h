@@ -294,8 +294,8 @@ struct NoteColumnRenderer : public Actor
 	// and receptor positions follow the splines.  It's called by their row
 	// update functions. -Kyz
 	void UpdateReceptorGhostStuff(Actor* receptor) const;
-	virtual void DrawPrimitives();
-	virtual void PushSelf(lua_State* L);
+	void DrawPrimitives() override;
+	void PushSelf(lua_State* L) override;
 
 	struct NCR_TweenState
 	{
@@ -318,12 +318,12 @@ struct NoteColumnRenderer : public Actor
 	}
 	const NCR_TweenState& NCR_DestTweenState() const { return const_cast<NoteColumnRenderer*>(this)->NCR_DestTweenState(); }
 
-	virtual void SetCurrentTweenStart();
-	virtual void EraseHeadTween();
-	virtual void UpdatePercentThroughTween(float between);
-	virtual void BeginTweening(float time, ITween* interp);
-	virtual void StopTweening();
-	virtual void FinishTweening();
+	void SetCurrentTweenStart() override;
+	void EraseHeadTween() override;
+	void UpdatePercentThroughTween(float between) override;
+	void BeginTweening(float time, ITween* interp) override;
+	void StopTweening() override;
+	void FinishTweening() override;
 
 	NCSplineHandler* GetPosHandler() { return &NCR_DestTweenState().m_pos_handler; }
 	NCSplineHandler* GetRotHandler() { return &NCR_DestTweenState().m_rot_handler; }

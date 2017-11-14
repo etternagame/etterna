@@ -252,7 +252,7 @@ int LWZState::Code::Get( RageFile &f, int code_size )
 		buf[0] = buf[last_byte - 2];
 		buf[1] = buf[last_byte - 1];
 
-		unsigned char count = (unsigned char) GetDataBlock( f, &buf[2] );
+		auto count = (unsigned char) GetDataBlock( f, &buf[2] );
 		if( count == 0 )
 			done = true;
 

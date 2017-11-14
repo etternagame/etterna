@@ -8,15 +8,15 @@ struct lua_State;
 class ScreenPlayerOptions : public ScreenOptionsMaster
 {
 public:
-	virtual void Init();
-	virtual void BeginScreen();
+	void Init() override;
+	void BeginScreen() override;
 
-	virtual bool Input( const InputEventPlus &input );
-	virtual void HandleScreenMessage( const ScreenMessage SM );
+	bool Input( const InputEventPlus &input ) override;
+	void HandleScreenMessage( const ScreenMessage SM ) override;
 	bool GetGoToOptions() const { return m_bGoToOptions; }
 
 	// Lua
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 private:
 	vector<bool>	m_bRowCausesDisqualified[NUM_PLAYERS];

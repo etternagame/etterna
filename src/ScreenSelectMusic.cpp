@@ -297,6 +297,11 @@ void ScreenSelectMusic::BeginScreen()
 
 	SOUND->PlayOnceFromAnnouncer("select music intro");
 
+	if (GAMESTATE->IsPlaylistCourse()) {
+		GAMESTATE->isplaylistcourse = false;
+		SONGMAN->playlistcourse = "";
+	}
+
 	ScreenWithMenuElements::BeginScreen();
 }
 
@@ -495,7 +500,7 @@ bool ScreenSelectMusic::Input(const InputEventPlus &input)
 		}
 		else if (bHoldingCtrl && c == 'M' && m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS)
 		{
-			// Favorite the currently selected song. -Not Kyz
+			// PermaMirror the currently selected song. -Not Kyz
 			Song* alwaysmirrorsmh = m_MusicWheel.GetSelectedSong();
 			if (alwaysmirrorsmh) {
 				Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
@@ -552,7 +557,7 @@ bool ScreenSelectMusic::Input(const InputEventPlus &input)
 				return true;
 
 			SONGMAN->allplaylists[SONGMAN->activeplaylist].AddChart(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
-			MESSAGEMAN->Broadcast("DisplayPlaylist");
+			MESSAGEMAN->Broadcast("DisplaySinglePlaylist");
 			SCREENMAN->SystemMessage(ssprintf("Added chart: %s to playlist: %s", GAMESTATE->m_pCurSong->GetDisplayMainTitle().c_str(), SONGMAN->activeplaylist.c_str()));
 			return true;
 		}

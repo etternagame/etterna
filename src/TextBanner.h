@@ -12,9 +12,9 @@ class TextBanner : public ActorFrame
 public:
 	TextBanner();
 	TextBanner( const TextBanner &cpy );
-	virtual TextBanner *Copy() const;
+	TextBanner *Copy() const override;
 
-	void LoadFromNode( const XNode* pNode );
+	void LoadFromNode( const XNode* pNode ) override;
 	void Load( const RString &sMetricsGroup );	// load metrics
 	void SetFromSong( const Song *pSong );
 	void SetFromString( 
@@ -23,7 +23,7 @@ public:
 		const RString &sDisplayArtist, const RString &sTranslitArtist );
 
 	// Lua
-	void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 private:
 	bool m_bInitted;

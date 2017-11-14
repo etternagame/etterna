@@ -9,7 +9,7 @@ public:
 	static LoadingWindow *Create();
 
 	virtual RString Init() { return RString(); }
-	virtual ~LoadingWindow() { }
+	virtual ~LoadingWindow() = default;
 
 	virtual void SetText( const RString &str ) = 0;
 	virtual void SetIcon( const RageSurface *pIcon ) { }

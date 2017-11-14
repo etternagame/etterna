@@ -169,14 +169,14 @@ void KeyboardDevice::Open()
 	}
 }
 
-void KeyboardDevice::GetButtonPresses( vector<DeviceInput>& vPresses, IOHIDElementCookie cookie, int value, const RageTimer& now ) const
+void KeyboardDevice::GetButtonPresses( vector<DeviceInput>& vPresses, IOHIDElementCookie cookie, int value, const std::chrono::time_point<std::chrono::steady_clock> &now) const
 {
 	hash_map<IOHIDElementCookie, DeviceButton>::const_iterator iter = m_Mapping.find( cookie );
 
 	if( iter != m_Mapping.end() )
 	{
 		//LOG->Trace( "Pushed %s", DeviceButtonToString(iter->second).c_str() );
-		vPresses.push_back( DeviceInput(DEVICE_KEYBOARD, iter->second, value, now) );
+		vPresses.push_back( DeviceInput(DEVICE_KEYBOARD, iter->second, value, now));
 	}
 }
 

@@ -6,7 +6,7 @@
 #include "RageSurface.h"
 
 #if defined(_MSC_VER)
-#include "../extern/libpng/png.h"
+#include "../extern/libpng/include/png.h"
 #if defined(_BINARY_PNG)
 #pragma comment(lib, "libpng.lib")
 #endif

@@ -80,8 +80,7 @@ enum
 	WRITE_TO_TIME= 0x08
 };
 
-RageLog::RageLog(): m_bLogToDisk(false), m_bInfoToDisk(false),
-m_bUserLogToDisk(false), m_bFlush(false), m_bShowLogOutput(false)
+RageLog::RageLog() 
 {
 	g_fileLog = new RageFile;
 	g_fileInfo = new RageFile;

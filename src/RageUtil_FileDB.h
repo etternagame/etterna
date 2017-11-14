@@ -89,7 +89,7 @@ class FilenameDB
 {
 public:
 	FilenameDB():
-		m_Mutex("FilenameDB"), ExpireSeconds( -1 ) { }
+		m_Mutex("FilenameDB") { }
 	virtual ~FilenameDB() { FlushDirCache(); }
 
 	void AddFile( const RString &sPath, int iSize, int iHash, void *pPriv=NULL );
@@ -125,7 +125,7 @@ protected:
 	/* Directories we have cached: */
 	map<RString, FileSet *> dirs;
 
-	int ExpireSeconds;
+	int ExpireSeconds{ -1 };
 
 	void GetFilesEqualTo( const RString &sDir, const RString &sName, vector<RString> &asOut, bool bOnlyDirs );
 	void GetFilesMatching( const RString &sDir,
@@ -142,7 +142,7 @@ class NullFilenameDB: public FilenameDB
 {
 public:
 	NullFilenameDB() { ExpireSeconds = -1; }
-	void CacheFile( const RString & /* sPath */ ) { }
+	void CacheFile( const RString & /* sPath */ ) override { }
 };
 
 #endif

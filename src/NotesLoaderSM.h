@@ -26,7 +26,7 @@ struct SMLoader
 	
 	SMLoader(RString ext) : fileExt(ext), songTitle() {}
 	
-	virtual ~SMLoader() {}
+	virtual ~SMLoader() = default;
 	
 	/**
 	 * @brief Attempt to load a song from a specified path.

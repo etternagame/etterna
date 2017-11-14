@@ -10,10 +10,10 @@ class ScreenReloadSongs: public Screen
 {
 public:
 	ScreenReloadSongs();
-	~ScreenReloadSongs();
+	~ScreenReloadSongs() override;
 
-	virtual void Init();
-	void Update( float fDeltaTime );
+	void Init() override;
+	void Update( float fDeltaTime ) override;
 private:
 	int m_iUpdates;
 	LoadingWindow *m_pLoadingWindow;

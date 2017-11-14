@@ -15,9 +15,15 @@ else
 end
 
 local t = Def.ActorFrame{
-	BeginCommand=cmd(queuecommand,"Set";visible,false),
-	OffCommand=cmd(bouncebegin,0.2;xy,-500,0;diffusealpha,0), -- visible(false) doesn't seem to work with sleep
-	OnCommand=cmd(bouncebegin,0.2;xy,0,0;diffusealpha,1),
+	BeginCommand=function(self)
+		self:queuecommand("Set"):visible(false)
+	end,
+	OffCommand=function(self)
+		self:bouncebegin(0.2):xy(-500,0):diffusealpha(0) -- visible(false)
+	end,
+	OnCommand=function(self)
+		self:bouncebegin(0.2):xy(0,0):diffusealpha(1)
+	end,
 	SetCommand=function(self)
 		self:finishtweening()
 		if getTabIndex() == 2 then
@@ -30,7 +36,9 @@ local t = Def.ActorFrame{
 			update = false
 		end
 	end,
-	TabChangedMessageCommand=cmd(queuecommand,"Set"),
+	TabChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
 	CodeMessageCommand=function(self,params)
 		if update then
 			if params.Name == "NextRate" then
@@ -55,10 +63,18 @@ local t = Def.ActorFrame{
 			end
 		end
 	end,
-	PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set"),
-	CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set"),
-	CurrentStepsP2ChangedMessageCommand=cmd(queuecommand,"Set"),
+	PlayerJoinedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	CurrentSongChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	CurrentStepsP1ChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	CurrentStepsP2ChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
 	InitScoreCommand=function(self)
 			if GAMESTATE:GetCurrentSong() ~= nil then
 				rtTable = getRateTable()
@@ -99,17 +115,27 @@ local offsetY = 20
 
 local judges = {'TapNoteScore_W1','TapNoteScore_W2','TapNoteScore_W3','TapNoteScore_W4','TapNoteScore_W5','TapNoteScore_Miss','HoldNoteScore_Held','HoldNoteScore_LetGo'}
 
-t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,frameHeight;halign,0;valign,0;diffuse,color("#333333CC"))}
-t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,offsetY;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,0.5)}
+t[#t+1] = Def.Quad{InitCommand=function(self)
+	self:xy(frameX,frameY):zoomto(frameWidth,frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
+end}
+t[#t+1] = Def.Quad{InitCommand=function(self)
+	self:xy(frameX,frameY):zoomto(frameWidth,offsetY):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(0.5)
+end}
 
 t[#t+1] = LoadFont("Common Normal")..{
-	InitCommand=cmd(xy,frameX+5,frameY+offsetY-9;zoom,0.6;halign,0;diffuse,getMainColor('positive')),
-	BeginCommand=cmd(settext,"Score Info")
+	InitCommand=function(self)
+		self:xy(frameX+5,frameY+offsetY-9):zoom(0.6):halign(0):diffuse(getMainColor('positive'))
+	end,
+	BeginCommand=function(self)
+		self:settext("Score Info")
+	end	
 }
 
 t[#t+1] = LoadFont("Common Large")..{
 	Name="Grades",
-	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+20;zoom,0.6;halign,0;maxwidth,50/0.6),
+	InitCommand=function(self)
+		self:xy(frameX+offsetX,frameY+offsetY+20):zoom(0.6):halign(0):maxwidth(50/0.6)
+	end,
 	SetCommand=function(self)
 		if score and update then
 			self:settext(THEME:GetString("Grade",ToEnumShortString(score:GetGrade())))
@@ -118,13 +144,17 @@ t[#t+1] = LoadFont("Common Large")..{
 			self:settext("")
 		end
 	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+	ScoreUpdateMessageCommand=function(self)
+		self:queuecommand("Set")
+	end	
 }
 
 -- Wife display
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="Score",
-	InitCommand=cmd(xy,frameX+offsetX+55,frameY+offsetY+28;zoom,0.5;halign,0),
+	InitCommand=function(self)
+		self:xy(frameX+offsetX+55,frameY+offsetY+28):zoom(0.5):halign(0)
+	end,
 	SetCommand=function(self)
 		if score and update then
 			if score:GetWifeScore() == 0 then 
@@ -136,13 +166,17 @@ t[#t+1] = LoadFont("Common Normal")..{
 			self:settextf("00.00%% (%s)", "Wife")
 		end
 	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+	ScoreUpdateMessageCommand=function(self)
+		self:queuecommand("Set")
+	end	
 }
 
 -- Rescoring stuff
 -- t[#t+1] = LoadFont("Common Normal")..{
 	-- Name="Score",
-	-- InitCommand=cmd(xy,frameX+offsetX+155,frameY+offsetY+14;zoom,0.5;halign,0),
+	-- InitCommand=function(self)
+	-- 	self:xy(frameX+offsetX+155,frameY+offsetY+14):zoom(0.5):halign(0)
+	-- end,
 	-- SetCommand=function(self)
 		-- if score and update then
 			-- if score:GetWifeScore() == 0 then 
@@ -154,12 +188,16 @@ t[#t+1] = LoadFont("Common Normal")..{
 			-- self:settextf("00.00%% (%s)", "Wife")
 		-- end
 	-- end,
-	-- ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+	-- ScoreUpdateMessageCommand=function(self)
+	-- 	self:queuecommand("Set")
+	-- end	
 -- }
 
 -- t[#t+1] = LoadFont("Common Normal")..{
 	-- Name="Score",
-	-- InitCommand=cmd(xy,frameX+offsetX+155,frameY+offsetY+58;zoom,0.5;halign,0),
+	-- InitCommand=function(self)
+	-- 	self:xy(frameX+offsetX+155,frameY+offsetY+58):zoom(0.5):halign(0)
+	-- end,
 	-- SetCommand=function(self)
 		-- if score and update then
 			-- if score:GetWifeScore() == 0 then 
@@ -171,24 +209,32 @@ t[#t+1] = LoadFont("Common Normal")..{
 			-- self:settext("")
 		-- end
 	-- end,
-	-- ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+	-- ScoreUpdateMessageCommand=function(self)
+	-- 	self:queuecommand("Set")
+	-- end	
 -- }
 
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="ClearType",
-	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+41;zoom,0.5;halign,0);
+	InitCommand=function(self)
+		self:xy(frameX+offsetX,frameY+offsetY+41):zoom(0.5):halign(0)
+	end;
 	SetCommand=function(self)
 		if score and update then
 			self:settext(getClearTypeFromScore(pn,score,0))
 			self:diffuse(getClearTypeFromScore(pn,score,2))
 		end
 	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+	ScoreUpdateMessageCommand=function(self)
+		self:queuecommand("Set")
+	end	
 }
 
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="Combo",
-	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+58;zoom,0.4;halign,0);
+	InitCommand=function(self)
+		self:xy(frameX+offsetX,frameY+offsetY+58):zoom(0.4):halign(0)
+	end;
 	SetCommand=function(self)
 		if score and update then
 			local maxCombo = getScoreMaxCombo(score)
@@ -197,12 +243,16 @@ t[#t+1] = LoadFont("Common Normal")..{
 			self:settext("Max Combo: 0")
 		end
 	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+	ScoreUpdateMessageCommand=function(self)
+		self:queuecommand("Set")
+	end	
 }
 
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="MissCount",
-	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+73;zoom,0.4;halign,0);
+	InitCommand=function(self)
+		self:xy(frameX+offsetX,frameY+offsetY+73):zoom(0.4):halign(0)
+	end;
 	SetCommand=function(self)
 		if score and update then
 			local missCount = getScoreMissCount(score)
@@ -215,12 +265,16 @@ t[#t+1] = LoadFont("Common Normal")..{
 			self:settext("Miss Count: -")
 		end;
 	end;
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+	ScoreUpdateMessageCommand=function(self)
+		self:queuecommand("Set")
+	end	
 }
 
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="Date",
-	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+88;zoom,0.4;halign,0);
+	InitCommand=function(self)
+		self:xy(frameX+offsetX,frameY+offsetY+88):zoom(0.4):halign(0)
+	end;
 	SetCommand=function(self)
 		if score and update then
 			self:settext("Date Achieved: "..getScoreDate(score))
@@ -228,12 +282,16 @@ t[#t+1] = LoadFont("Common Normal")..{
 			self:settext("Date Achieved: ")
 		end
 	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+	ScoreUpdateMessageCommand=function(self)
+		self:queuecommand("Set")
+	end	
 }
 
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="Mods",
-	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+103;zoom,0.4;halign,0);
+	InitCommand=function(self)
+		self:xy(frameX+offsetX,frameY+offsetY+103):zoom(0.4):halign(0)
+	end;
 	SetCommand=function(self)
 		if score and update then
 			self:settext("Mods: " ..score:GetModifiers())
@@ -241,12 +299,16 @@ t[#t+1] = LoadFont("Common Normal")..{
 			self:settext("Mods:")
 		end
 	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+	ScoreUpdateMessageCommand=function(self)
+		self:queuecommand("Set")
+	end	
 }
 
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="StepsAndMeter",
-	InitCommand=cmd(xy,frameX+frameWidth-offsetX,frameY+offsetY+10;zoom,0.5;halign,1),
+	InitCommand=function(self)
+		self:xy(frameX+frameWidth-offsetX,frameY+offsetY+10):zoom(0.5):halign(1)
+	end,
 	SetCommand=function(self)
 		local steps = GAMESTATE:GetCurrentSteps(pn)
 		if score and update then
@@ -259,11 +321,15 @@ t[#t+1] = LoadFont("Common Normal")..{
 			end
 		end
 	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+	ScoreUpdateMessageCommand=function(self)
+		self:queuecommand("Set")
+	end	
 }
 
 t[#t+1] = LoadFont("Common Normal")..{
-	InitCommand=cmd(xy,frameX+frameWidth-offsetX,frameY+frameHeight-10;zoom,0.4;halign,1),
+	InitCommand=function(self)
+		self:xy(frameX+frameWidth-offsetX,frameY+frameHeight-10):zoom(0.4):halign(1)
+	end,
 	SetCommand=function(self)
 		if rates ~= nil and rtTable[rates[rateIndex]] ~= nil and update then
 			self:settextf("Rate %s - Showing %d/%d",rates[rateIndex],scoreIndex,#rtTable[rates[rateIndex]])
@@ -271,12 +337,16 @@ t[#t+1] = LoadFont("Common Normal")..{
 			self:settext("No Scores Saved")
 		end
 	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+	ScoreUpdateMessageCommand=function(self)
+		self:queuecommand("Set")
+	end	
 }
 
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="ChordCohesion",
-	InitCommand=cmd(xy,frameX+frameWidth/40,frameY+frameHeight-10;zoom,0.4;halign,0),
+	InitCommand=function(self)
+		self:xy(frameX+frameWidth/40,frameY+frameHeight-10):zoom(0.4):halign(0)
+	end,
 	SetCommand=function(self)
 		if score and update then
 			if score:GetChordCohesion() == true then
@@ -288,13 +358,19 @@ t[#t+1] = LoadFont("Common Normal")..{
 			self:settext("Chord Cohesion:")
 		end
 	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+	ScoreUpdateMessageCommand=function(self)
+		self:queuecommand("Set")
+	end	
 }
 
 t[#t+1] = Def.Quad{
 	Name="ScrollBar",
-	InitCommand=cmd(xy,frameX+frameWidth,frameY+frameHeight;zoomto,4,0;halign,1;valign,1;diffuse,getMainColor('highlight');diffusealpha,0.5),
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set"),
+	InitCommand=function(self)
+		self:xy(frameX+frameWidth,frameY+frameHeight):zoomto(4,0):halign(1):valign(1):diffuse(getMainColor('highlight')):diffusealpha(0.5)
+	end,
+	ScoreUpdateMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
 	SetCommand=function(self,params)
 		self:finishtweening()
 		self:smooth(0.2)
@@ -310,7 +386,9 @@ t[#t+1] = Def.Quad{
 
 local function makeText(index)
 	return LoadFont("Common Normal")..{
-		InitCommand=cmd(xy,frameX+frameWidth-offsetX,frameY+offsetY+15+(index*15);zoom,fontScale;halign,1),
+		InitCommand=function(self)
+			self:xy(frameX+frameWidth-offsetX,frameY+offsetY+15+(index*15)):zoom(fontScale):halign(1)
+		end,
 		SetCommand=function(self)
 			local count = 0
 			if update then
@@ -329,7 +407,9 @@ local function makeText(index)
 				end
 			end
 		end,
-		ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+		ScoreUpdateMessageCommand=function(self)
+			self:queuecommand("Set")
+		end	
 	}
 end
 
@@ -338,11 +418,15 @@ for i=1,10 do
 end
 
 local function makeJudge(index,judge)
-	local t = Def.ActorFrame{InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+125+((index-1)*18))}
+	local t = Def.ActorFrame{InitCommand=function(self)
+		self:xy(frameX+offsetX,frameY+offsetY+125+((index-1)*18))
+	end}
 
 	--labels
 	t[#t+1] = LoadFont("Common Normal")..{
-		InitCommand=cmd(zoom,0.5;halign,0),
+		InitCommand=function(self)
+			self:zoom(0.5):halign(0)
+		end,
 		BeginCommand=function(self)
 			self:settext(getJudgeStrings(judge))
 			self:diffuse(byJudgment(judge))
@@ -350,7 +434,9 @@ local function makeJudge(index,judge)
 	};
 
 	t[#t+1] = LoadFont("Common Normal")..{
-		InitCommand=cmd(x,120;zoom,0.5;halign,1),
+		InitCommand=function(self)
+			self:x(120):zoom(0.5):halign(1)
+		end,
 		SetCommand=function(self)
 			if score and update then
 				if judge ~= 'HoldNoteScore_Held' and judge ~= 'HoldNoteScore_LetGo' then
@@ -362,11 +448,15 @@ local function makeJudge(index,judge)
 				self:settext("0")
 			end
 		end,
-		ScoreUpdateMessageCommand=cmd(queuecommand,"Set"),
+		ScoreUpdateMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	};
 
 	t[#t+1] = LoadFont("Common Normal")..{
-		InitCommand=cmd(x,122;zoom,0.3;halign,0),
+		InitCommand=function(self)
+			self:x(122):zoom(0.3):halign(0)
+		end,
 		SetCommand=function(self)
 			if score ~= nil and update then
 				if judge ~= 'HoldNoteScore_Held' and judge ~= 'HoldNoteScore_LetGo' then
@@ -383,7 +473,9 @@ local function makeJudge(index,judge)
 				self:settext("(0.00%)")
 			end
 		end,
-		ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+		ScoreUpdateMessageCommand=function(self)
+			self:queuecommand("Set")
+		end	
 	};
 
 	return t
@@ -395,7 +487,9 @@ end
 
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="Score",
-	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+288;zoom,0.5;halign,0),
+	InitCommand=function(self)
+		self:xy(frameX+offsetX,frameY+offsetY+288):zoom(0.5):halign(0)
+	end,
 	SetCommand=function(self)
 		if score ~= nil and update then
 			if score:HasReplayData() then 
@@ -407,12 +501,16 @@ t[#t+1] = LoadFont("Common Normal")..{
 			self:settext("")
 		end
 	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+	ScoreUpdateMessageCommand=function(self)
+		self:queuecommand("Set")
+	end	
 }
 
 -- causes too many lockups to be worth it atm
 -- t[#t+1] = Def.Quad{
-	-- InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+288;zoomto,120,30;halign,0;diffusealpha,0),
+	-- InitCommand=function(self)
+	-- 	self:xy(frameX+offsetX,frameY+offsetY+288):zoomto(120,30):halign(0):diffusealpha(0)
+	-- end,
 	-- MouseLeftClickMessageCommand=function(self)
 		-- if update then
 			-- if getTabIndex() == 2 and getScoreForPlot() and getScoreForPlot():HasReplayData() then

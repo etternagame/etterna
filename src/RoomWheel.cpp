@@ -166,7 +166,7 @@ void RoomWheelItem::LoadFromWheelItemData( const WheelItemBaseData *pWID, int iI
 	m_text.SetText( pWID->m_sText );
 	m_text.SetDiffuseColor( pWID->m_color );
 
-	const RoomWheelItemData *tmpdata = dynamic_cast<const RoomWheelItemData*>( pWID );
+	const auto *tmpdata = dynamic_cast<const RoomWheelItemData*>( pWID );
 	WheelItemBase::LoadFromWheelItemData( pWID, iIndex, bHasFocus, iDrawIndex );
 	m_Desc.SetText( tmpdata->m_sDesc );
 	m_Desc.SetDiffuseColor( pWID->m_color );
@@ -211,9 +211,19 @@ public:
 		return 1;
 	}
 
+	static int MoveAndCheckType(T* p, lua_State *L)
+	{
+		int n = IArg(1);
+		p->Move(n);
+		auto tt = p->GetSelectedType();
+		LuaHelpers::Push(L, tt);
+
+		return 1;
+	}
 	LunaRoomWheel()
 	{
 		ADD_METHOD(Move);
+		ADD_METHOD(MoveAndCheckType);
 	}
 };
 

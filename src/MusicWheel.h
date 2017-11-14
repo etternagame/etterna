@@ -1,4 +1,4 @@
-/* MusicWheel - A wheel with song names used in the Select Music screen. */
+﻿/* MusicWheel - A wheel with song names used in the Select Music screen. */
 
 #ifndef MUSIC_WHEEL_H
 #define MUSIC_WHEEL_H
@@ -19,15 +19,15 @@ class MusicWheel : public WheelBase
 	friend struct CompareSongPointerArrayBySectionName;
 
 public:
-	virtual ~MusicWheel();
-	virtual void Load( const RString &sType );
+	~MusicWheel() override;
+	void Load( const RString &sType ) override;
 	void BeginScreen();
 
 	bool ChangeSort( SortOrder new_so, bool allowSameSort = false );	// return true if change successful
 	bool NextSort();						// return true if change successful
 	bool IsRouletting() const;
 
-	virtual bool Select();				// return true if this selection ends the screen
+	bool Select() override;				// return true if this selection ends the screen
 	WheelItemDataType	GetSelectedType()	{ return GetCurWheelItemData(m_iSelection)->m_Type; }
 	Song			*GetSelectedSong();
 	RString			GetSelectedSection()	{ return GetCurWheelItemData(m_iSelection)->m_sText; }
@@ -36,9 +36,9 @@ public:
 
 	bool SelectSong( const Song *p );
 	bool SelectSection( const RString & SectionName );
-	void SetOpenSection( const RString &group );
+	void SetOpenSection( const RString &group ) override;
 	SortOrder GetSortOrder() const { return m_SortOrder; }
-	virtual void ChangeMusic( int dist ); /* +1 or -1 */ //CHECK THIS
+	void ChangeMusic( int dist ) override; /* +1 or -1 */ //CHECK THIS
 	void FinishChangingSorts();
 	void PlayerJoined();
 	// sm-ssc additions
@@ -49,10 +49,10 @@ public:
 	virtual void ReloadSongList(bool searching, RString findme);
 
 	// Lua
-	void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 protected:
-	MusicWheelItem *MakeItem();
+	MusicWheelItem *MakeItem() override;
 
 	void GetSongList( vector<Song*> &arraySongs, SortOrder so );
 	bool SelectSongOrCourse();
@@ -64,7 +64,7 @@ protected:
 	RString lastvalidsearch;
 	RString groupnamesearchmatch;
 
-	virtual void UpdateSwitch();
+	void UpdateSwitch() override;
 
 	vector<MusicWheelItemData *> & getWheelItemsData(SortOrder so);
 	void readyWheelItemsData(SortOrder so, bool searching, RString findme);

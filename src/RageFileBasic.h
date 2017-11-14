@@ -9,7 +9,7 @@
 class RageFileBasic
 {
 public:
-	virtual ~RageFileBasic() { }
+	virtual ~RageFileBasic() = default;
 
 	virtual RString GetError() const = 0;
 	virtual void ClearError() = 0;
@@ -65,37 +65,37 @@ class RageFileObj: public RageFileBasic
 public:
 	RageFileObj();
 	RageFileObj( const RageFileObj &cpy );
-	virtual ~RageFileObj();
+	~RageFileObj() override;
 
-	virtual RString GetError() const { return m_sError; }
-	virtual void ClearError() { SetError(""); }
+	RString GetError() const override { return m_sError; }
+	void ClearError() override { SetError(""); }
 	
-	bool AtEOF() const { return m_bEOF; }
+	bool AtEOF() const override { return m_bEOF; }
 
-	int Seek( int iOffset );
-	int Seek( int offset, int whence );
-	int Tell() const { return m_iFilePos; }
+	int Seek( int iOffset ) override;
+	int Seek( int offset, int whence ) override;
+	int Tell() const override { return m_iFilePos; }
 
-	int Read( void *pBuffer, size_t iBytes );
-	int Read( RString &buffer, int bytes = -1 );
-	int Read( void *buffer, size_t bytes, int nmemb );
+	int Read( void *pBuffer, size_t iBytes ) override;
+	int Read( RString &buffer, int bytes = -1 ) override;
+	int Read( void *buffer, size_t bytes, int nmemb ) override;
 
-	int Write( const void *pBuffer, size_t iBytes );
-	int Write( const RString &sString ) { return Write( sString.data(), sString.size() ); }
-	int Write( const void *buffer, size_t bytes, int nmemb );
+	int Write( const void *pBuffer, size_t iBytes ) override;
+	int Write( const RString &sString ) override { return Write( sString.data(), sString.size() ); }
+	int Write( const void *buffer, size_t bytes, int nmemb ) override;
 
-	int Flush();
+	int Flush() override;
 
-	int GetLine( RString &out );
-	int PutLine( const RString &str );
+	int GetLine( RString &out ) override;
+	int PutLine( const RString &str ) override;
 
-	void EnableCRC32( bool on=true );
-	bool GetCRC32( uint32_t *iRet );
+	void EnableCRC32( bool on=true ) override;
+	bool GetCRC32( uint32_t *iRet ) override;
 
-	virtual int GetFileSize() const = 0;
-	virtual int GetFD() { return -1; }
-	virtual RString GetDisplayPath() const { return RString(); }
-	virtual RageFileBasic *Copy() const { FAIL_M( "Copying unimplemented" ); }
+	int GetFileSize() const override = 0;
+	int GetFD() override { return -1; }
+	RString GetDisplayPath() const override { return RString(); }
+	RageFileBasic *Copy() const override { FAIL_M( "Copying unimplemented" ); }
 
 protected:
 	virtual int SeekInternal( int /* iOffset */ ) { FAIL_M( "Seeking unimplemented" ); }

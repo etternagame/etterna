@@ -15,13 +15,13 @@
 #include "RageFile.h"
 static size_t OggRageFile_read_func( void *ptr, size_t size, size_t nmemb, void *datasource )
 {
-	RageFileBasic *f = (RageFileBasic *) datasource;
+	auto *f = (RageFileBasic *) datasource;
 	return f->Read( ptr, size, nmemb );
 }
 
 static int OggRageFile_seek_func( void *datasource, ogg_int64_t offset, int whence )
 {
-	RageFileBasic *f = (RageFileBasic *) datasource;
+	auto *f = (RageFileBasic *) datasource;
 	return f->Seek( (int) offset, whence );
 }
 
@@ -32,7 +32,7 @@ static int OggRageFile_close_func( void *datasource )
 
 static long OggRageFile_tell_func( void *datasource )
 {
-	RageFileBasic *f = (RageFileBasic *) datasource;
+	auto *f = (RageFileBasic *) datasource;
 	return f->Tell();
 }
 
@@ -292,7 +292,7 @@ RageSoundReader_Vorbisfile *RageSoundReader_Vorbisfile::Copy() const
 {
 	RageFileBasic *pFile = m_pFile->Copy();
 	pFile->Seek(0);
-	RageSoundReader_Vorbisfile *ret = new RageSoundReader_Vorbisfile;
+	auto *ret = new RageSoundReader_Vorbisfile;
 
 	/* If we were able to open the sound in the first place, we expect to
 	 * be able to reopen it. */

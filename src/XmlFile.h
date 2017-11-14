@@ -11,7 +11,7 @@ struct lua_State;
 class XNodeValue
 {
 public:
-	virtual ~XNodeValue() { }
+	virtual ~XNodeValue() = default;
 	virtual XNodeValue *Copy() const = 0;
 
 	virtual void GetValue( RString &out ) const = 0;
@@ -36,20 +36,20 @@ class XNodeStringValue: public XNodeValue
 public:
 	RString	m_sValue;
 
-	XNodeValue *Copy() const { return new XNodeStringValue( *this ); }
+	XNodeValue *Copy() const override { return new XNodeStringValue( *this ); }
 
-	void GetValue( RString &out ) const;
-	void GetValue( int &out ) const;
-	void GetValue( float &out ) const;
-	void GetValue( bool &out ) const;
-	void GetValue( unsigned &out ) const;
-	void PushValue( lua_State *L ) const;
+	void GetValue( RString &out ) const override;
+	void GetValue( int &out ) const override;
+	void GetValue( float &out ) const override;
+	void GetValue( bool &out ) const override;
+	void GetValue( unsigned &out ) const override;
+	void PushValue( lua_State *L ) const override;
 
-	void SetValue( const RString &v );
-	void SetValue( int v );
-	void SetValue( float v );
-	void SetValue( unsigned v );
-	void SetValueFromStack( lua_State *L );
+	void SetValue( const RString &v ) override;
+	void SetValue( int v ) override;
+	void SetValue( float v ) override;
+	void SetValue( unsigned v ) override;
+	void SetValueFromStack( lua_State *L ) override;
 };
 
 typedef map<RString,XNodeValue*> XAttrs;
@@ -120,7 +120,7 @@ public:
 	// modify DOM
 	template <typename T>
 	XNode *AppendChild( const RString &sName, T value )	{ XNode *p=AppendChild(sName); p->AppendAttr(XNode::TEXT_ATTRIBUTE, value); return p; }
-	XNode *AppendChild( const RString &sName )		{ XNode *p=new XNode(sName); return AppendChild(p); }
+	XNode *AppendChild( const RString &sName )		{ auto *p=new XNode(sName); return AppendChild(p); }
 	XNode *AppendChild( XNode *node );
 	bool RemoveChild( XNode *node, bool bDelete = true );
 	void RemoveChildFromByName(XNode *node);
@@ -141,7 +141,7 @@ public:
 
 private:
 	void Free();
-	XNode &operator=( const XNode &cpy ); // don't use
+	XNode &operator=( const XNode &cpy ) = delete; // don't use
 };
 
 #endif

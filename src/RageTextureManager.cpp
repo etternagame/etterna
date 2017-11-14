@@ -41,9 +41,8 @@ namespace
 	map<RageTexture*, RageTextureID> m_texture_ids_by_pointer;
 };
 
-RageTextureManager::RageTextureManager():
-	m_iNoWarnAboutOddDimensions(0),
-	m_TexturePolicy(RageTextureID::TEX_DEFAULT) {}
+RageTextureManager::RageTextureManager()
+	{}
 
 RageTextureManager::~RageTextureManager()
 {
@@ -139,17 +138,17 @@ class RageTexture_Default: public RageTexture
 {
 public:
 	RageTexture_Default():
-		RageTexture( RageTextureID() ), m_uTexHandle(0)
+		RageTexture( RageTextureID() ) 
 	{
 		m_iSourceWidth = m_iSourceHeight = 1;
 		m_iTextureWidth = m_iTextureHeight = 1;
 		m_iImageWidth = m_iImageHeight = 1;
 		CreateFrameRects();
 	}
-	unsigned GetTexHandle() const { return m_uTexHandle; }
+	unsigned GetTexHandle() const override { return m_uTexHandle; }
 
 private:
-	unsigned m_uTexHandle;
+	unsigned m_uTexHandle{0};
 };
 
 // Load and unload textures from disk.

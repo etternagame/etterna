@@ -14,7 +14,7 @@ class LowLevelWindow
 public:
 	static LowLevelWindow *Create();
 
-	virtual ~LowLevelWindow() { }
+	virtual ~LowLevelWindow() = default;
 
 	virtual void *GetProcAddress( const RString &s ) = 0;
 

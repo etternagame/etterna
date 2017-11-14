@@ -12,7 +12,7 @@ static const int MAX_OPTIONS=16;
 
 struct ConfOption
 {
-	static ConfOption *Find( RString name );
+	static struct ConfOption *Find( RString name );
 
 	// Name of this option.
 	RString name;
@@ -20,7 +20,7 @@ struct ConfOption
 	// Name of the preference this option affects.
 	RString m_sPrefName;
 
-	typedef void (*MoveData_t)( int &sel, bool ToSel, const ConfOption *pConfOption );
+	using MoveData_t = void (*)(int &, bool, const ConfOption *);
 	MoveData_t MoveData;
 	int m_iEffects;
 	bool m_bAllowThemeItems;

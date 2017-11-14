@@ -11,12 +11,12 @@ class RageFileDriverTimeout: public RageFileDriver
 {
 public:
 	RageFileDriverTimeout( const RString &path );
-	virtual ~RageFileDriverTimeout();
+	~RageFileDriverTimeout() override;
 
-	RageFileBasic *Open( const RString &path, int mode, int &err );
-	void FlushDirCache( const RString &sPath );
-	bool Move( const RString &sOldPath, const RString &sNewPath );
-	bool Remove( const RString &sPath );
+	RageFileBasic *Open( const RString &path, int mode, int &err ) override;
+	void FlushDirCache( const RString &sPath ) override;
+	bool Move( const RString &sOldPath, const RString &sNewPath ) override;
+	bool Remove( const RString &sPath ) override;
 
 	static void SetTimeout( float fSeconds );
 	static void ResetTimeout() { SetTimeout( -1 ); }

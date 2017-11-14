@@ -31,16 +31,15 @@ public:
 	static const size_t num_vert_splines= 4;
 	ActorMultiVertex();
 	ActorMultiVertex( const ActorMultiVertex &cpy );
-	virtual ~ActorMultiVertex();
+	~ActorMultiVertex() override;
 
-	void LoadFromNode( const XNode* Node );
-	virtual ActorMultiVertex *Copy() const;
+	void LoadFromNode( const XNode* Node ) override;
+	ActorMultiVertex *Copy() const override;
 
 	struct AMV_TweenState
 	{
-	AMV_TweenState(): _DrawMode(DrawMode_Invalid), FirstToDraw(0),
-			NumToDraw(-1), line_width(1.0f)
-		{}
+	AMV_TweenState() 
+		= default;
 		static void MakeWeightedAverage(AMV_TweenState& average_out, const AMV_TweenState& ts1, const AMV_TweenState& ts2, float percent_between);
 		bool operator==(const AMV_TweenState& other) const;
 		bool operator!=(const AMV_TweenState& other) const { return !operator==(other); }
@@ -51,12 +50,12 @@ public:
 		vector<RageSpriteVertex> vertices;
 		vector<size_t> quad_states;
 
-		DrawMode _DrawMode;
-		int FirstToDraw;
-		int NumToDraw;
+		DrawMode _DrawMode{DrawMode_Invalid};
+		int FirstToDraw{0};
+		int NumToDraw{-1};
 
 		// needed for DrawMode_LineStrip
-		float line_width;
+		float line_width{1.0f};
 	};
 
 	AMV_TweenState& AMV_DestTweenState()
@@ -68,19 +67,19 @@ public:
 	}
 	const AMV_TweenState& AMV_DestTweenState() const { return const_cast<ActorMultiVertex*>(this)->AMV_DestTweenState(); }
 
-	virtual void EnableAnimation(bool bEnable);
-	virtual void Update(float fDelta);
-	virtual bool EarlyAbortDraw() const;
-	virtual void DrawPrimitives();
+	void EnableAnimation(bool bEnable) override;
+	void Update(float fDelta) override;
+	bool EarlyAbortDraw() const override;
+	void DrawPrimitives() override;
 	virtual void DrawInternal( const AMV_TweenState *TS );
 	
-	void SetCurrentTweenStart();
-	void EraseHeadTween();
-	void UpdatePercentThroughTween( float PercentThroughTween );
-	void BeginTweening( float time, ITween *pInterp );
+	void SetCurrentTweenStart() override;
+	void EraseHeadTween() override;
+	void UpdatePercentThroughTween( float PercentThroughTween ) override;
+	void BeginTweening( float time, ITween *pInterp ) override;
 
-	void StopTweening();
-	void FinishTweening();
+	void StopTweening() override;
+	void FinishTweening() override;
 	
 	void SetTexture( RageTexture *Texture );
 	RageTexture* GetTexture() { return _Texture; };
@@ -119,7 +118,7 @@ public:
 		RectF rect;
 		float delay;
 	};
-	int GetNumStates() const { return _states.size(); }
+	int GetNumStates() const override { return _states.size(); }
 	void AddState(const State& new_state) { _states.push_back(new_state); }
 	void RemoveState(size_t i)
 	{ ASSERT(i < _states.size()); _states.erase(_states.begin()+i); }
@@ -132,8 +131,8 @@ public:
 	{ _states= new_states; SetState(0); }
 	void SetState(size_t i);
 	void SetAllStateDelays(float delay);
-	float GetAnimationLengthSeconds() const;
-	void SetSecondsIntoAnimation(float seconds);
+	float GetAnimationLengthSeconds() const override;
+	void SetSecondsIntoAnimation(float seconds) override;
 	void UpdateAnimationState(bool force_update= false);
 	size_t GetNumQuadStates() const
 	{ return AMV_DestTweenState().quad_states.size(); }
@@ -148,7 +147,7 @@ public:
 	bool _use_animation_state;
 	bool _decode_movie;
 
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 private:
 	RageTexture* _Texture;

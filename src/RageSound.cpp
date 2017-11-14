@@ -39,19 +39,14 @@
 #define samplerate() m_pSource->GetSampleRate()
 
 RageSoundParams::RageSoundParams():
-	m_StartSecond(0), m_LengthSeconds(-1), m_fFadeInSeconds(0),
-	m_fFadeOutSeconds(0), m_Volume(1.0f), m_fAttractVolume(1.0f),
-	m_fPitch(1.0f), m_fSpeed(1.0f), m_StartTime( RageZeroTimer ),
-	StopMode(M_AUTO), m_bIsCriticalSound(false) {}
+	 m_StartTime( RageZeroTimer ) {}
 
-RageSoundLoadParams::RageSoundLoadParams():
-	m_bSupportRateChanging(false), m_bSupportPan(false) {}
+RageSoundLoadParams::RageSoundLoadParams() = default;
 
 RageSound::RageSound():
 	m_Mutex( "RageSound" ), m_pSource(NULL), 
 	m_sFilePath(""), m_Param(), m_iStreamFrame(0),
-	m_iStoppedSourceFrame(0), m_bPlaying(false),
-	m_bDeleteWhenFinished(false), m_sError("")
+	 m_sError("")
 {
 	ASSERT( SOUNDMAN != NULL );
 }
@@ -142,16 +137,16 @@ bool RageSound::IsLoaded() const
 class RageSoundReader_Silence: public RageSoundReader
 {
 public:
-	int GetLength() const { return 0; }
-	int GetLength_Fast() const { return 0; }
-	int SetPosition( int iFrame )  { return 1; }
-	int Read( float *pBuf, int iFrames ) { return RageSoundReader::END_OF_FILE; }
-	RageSoundReader *Copy() const { return new RageSoundReader_Silence; }
-	int GetSampleRate() const { return 44100; }
-	unsigned GetNumChannels() const { return 1; }
-	int GetNextSourceFrame() const { return 0; }
-	float GetStreamToSourceRatio() const { return 1.0f; }
-	RString GetError() const { return ""; }
+	int GetLength() const override { return 0; }
+	int GetLength_Fast() const override { return 0; }
+	int SetPosition( int iFrame ) override  { return 1; }
+	int Read( float *pBuf, int iFrames ) override { return RageSoundReader::END_OF_FILE; }
+	RageSoundReader *Copy() const override { return new RageSoundReader_Silence; }
+	int GetSampleRate() const override { return 44100; }
+	unsigned GetNumChannels() const override { return 1; }
+	int GetNextSourceFrame() const override { return 0; }
+	float GetStreamToSourceRatio() const override { return 1.0f; }
+	RString GetError() const override { return ""; }
 };
 
 
@@ -221,7 +216,7 @@ bool RageSound::Load( const RString &sSoundFilePath, bool bPrecache, const RageS
 
 	if( pParams->m_bSupportRateChanging )
 	{
-		RageSoundReader_PitchChange *pRate = new RageSoundReader_PitchChange( m_pSource );
+		auto *pRate = new RageSoundReader_PitchChange( m_pSource );
 		m_pSource = pRate;
 	}
 
@@ -245,7 +240,7 @@ void RageSound::LoadSoundReader( RageSoundReader *pSound )
 	bool bSupportRateChange = false;
 	if( iNeededRate != pSound->GetSampleRate() || bSupportRateChange )
 	{
-		RageSoundReader_Resample_Good *Resample = new RageSoundReader_Resample_Good( pSound, iNeededRate );
+		auto *Resample = new RageSoundReader_Resample_Good( pSound, iNeededRate );
 		pSound = Resample;
 	}
 
@@ -428,7 +423,7 @@ void RageSound::PlayCopy(bool is_action, const RageSoundParams *pParams) const
 	{
 		return;
 	}
-	RageSound *pSound = new RageSound( *this );
+	auto *pSound = new RageSound( *this );
 
 	if( pParams )
 		pSound->SetParams( *pParams );

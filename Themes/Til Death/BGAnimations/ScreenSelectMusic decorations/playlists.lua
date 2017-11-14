@@ -1,8 +1,14 @@
 local update = false
 local t = Def.ActorFrame{
-	BeginCommand=cmd(queuecommand,"Set";visible,false),
-	OffCommand=cmd(bouncebegin,0.2;xy,-500,0;diffusealpha,0),
-	OnCommand=cmd(bouncebegin,0.2;xy,0,0;diffusealpha,1),
+	BeginCommand=function(self)
+		self:queuecommand("Set"):visible(false)
+	end,
+	OffCommand=function(self)
+		self:bouncebegin(0.2):xy(-500,0):diffusealpha(0)
+	end,
+	OnCommand=function(self)
+		self:bouncebegin(0.2):xy(0,0):diffusealpha(1)
+	end,
 	SetCommand=function(self)
 		self:finishtweening()
 		if getTabIndex() == 7 then
@@ -15,8 +21,12 @@ local t = Def.ActorFrame{
 		end
 		MESSAGEMAN:Broadcast("DisplayAll")
 	end,
-	TabChangedMessageCommand=cmd(queuecommand,"Set"),
-	PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
+	TabChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	PlayerJoinedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
 }
 
 local frameX = 10
@@ -58,13 +68,25 @@ local currentplaylistpage = 1
 local numplaylistpages = 1
 local playlistsperpage = 10
 
-t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,frameHeight;halign,0;valign,0;diffuse,color("#333333CC"))}
-t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,offsetY;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,0.5)}
-t[#t+1] = LoadFont("Common Normal")..{InitCommand=cmd(xy,frameX+5,frameY+offsetY-9;zoom,0.6;halign,0;diffuse,getMainColor('positive');settext,"Playlists (WIP)")}
+t[#t+1] = Def.Quad{InitCommand=function(self)
+	self:xy(frameX,frameY):zoomto(frameWidth,frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
+end}
+t[#t+1] = Def.Quad{InitCommand=function(self)
+	self:xy(frameX,frameY):zoomto(frameWidth,offsetY):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(0.5)
+end}
+t[#t+1] = LoadFont("Common Normal")..{InitCommand=function(self)
+	self:xy(frameX+5,frameY+offsetY-9):zoom(0.6):halign(0):diffuse(getMainColor('positive')):settext("Playlists (WIP)")
+end}
 t[#t+1] = LoadFont("Common Normal")..{
-	InitCommand=cmd(xy,frameWidth,frameY+offsetY-9;zoom,0.6;halign,1;diffuse,getMainColor('positive')),
-	DisplayPlaylistMessageCommand=cmd(settext,"Ctrl+A to add a new chart"),
-	DisplayAllMessageCommand=cmd(settext,"Ctrl+P to add a new playlist"),
+	InitCommand=function(self)
+		self:xy(frameWidth,frameY+offsetY-9):zoom(0.6):halign(1):diffuse(getMainColor('positive'))
+	end,
+	DisplaySinglePlaylistMessageCommand=function(self)
+		self:settext("Ctrl+A to add a new chart")
+	end,
+	DisplayAllMessageCommand=function(self)
+		self:settext("Ctrl+P to add a new playlist")
+	end,
 }
 
 local function BroadcastIfActive(msg)
@@ -84,7 +106,7 @@ local r = Def.ActorFrame{
 	OnCommand=function(self)
 		whee = SCREENMAN:GetTopScreen():GetMusicWheel()
 	end,
-	DisplayPlaylistMessageCommand=function(self)
+	DisplaySinglePlaylistMessageCommand=function(self)
 		if update then
 			pl = SONGMAN:GetActivePlaylist()
 			if pl then
@@ -101,7 +123,7 @@ local r = Def.ActorFrame{
 				numplaylistpages = notShit.ceil(#chartlist/chartsperplaylist)
 
 				self:visible(true)
-				self:RunCommandsOnChildren(cmd(queuecommand, "DisplayPP"))
+				MESSAGEMAN:Broadcast("DisplayPP")
 			else
 				singleplaylistactive = false
 			end
@@ -110,8 +132,10 @@ local r = Def.ActorFrame{
 		end
 	end,
 	LoadFont("Common Large") .. {
-		InitCommand=cmd(xy,rankingX,rankingY;zoom,0.4;halign,0;maxwidth,360),
-		DisplayPlaylistMessageCommand=function(self)
+		InitCommand=function(self)
+			self:xy(rankingX,rankingY):zoom(0.4):halign(0):maxwidth(360)
+		end,
+		DisplaySinglePlaylistMessageCommand=function(self)
 		pl = SONGMAN:GetActivePlaylist()
 			self:settext(pl:GetName())
 			self:visible(true)
@@ -127,31 +151,37 @@ local r = Def.ActorFrame{
 
 local function RateDisplayButton(i)
 	local o = Def.ActorFrame{
-		InitCommand=cmd(x,220),
+		Name="RateDisplay",
+		InitCommand=function(self)
+			self:x(220)
+		end,
 		ResizeCommand=function(self)
-			self:GetChild("Button"):zoomto(self:GetChild("Text"):GetZoomedWidth(),self:GetChild("Text"):GetZoomedHeight())
+			self:GetChild("Button"):zoomto(self:GetChild("Text"):GetWidth(),self:GetChild("Text"):GetHeight())
 		end,
 		LoadFont("Common Large") .. {
 			Name="Text",
-			DisplayPlaylistCommand=function(self)
+			DisplaySinglePlaylistLevel2MessageCommand=function(self)
 				local ratestring = string.format("%.2f", chartlist[i + ((currentchartpage - 1) * chartsperplaylist)]:GetRate()):gsub("%.?0+$", "").."x"
 				self:settext(ratestring)
+				self:zoom(fontScale)
 				self:GetParent():queuecommand("Resize")
 			end
 		},
 		Def.Quad{
 			Name="Button",
-			InitCommand=cmd(diffusealpha,buttondiffuse),
+			InitCommand=function(self)
+				self:diffusealpha(buttondiffuse)
+			end,
 			MouseLeftClickMessageCommand=function(self)
 				if ButtonActive(self,fontScale) and singleplaylistactive then
 					chartlist[i + ((currentchartpage - 1) * chartsperplaylist)]:ChangeRate(0.1)
-					BroadcastIfActive("DisplayPlaylist")
+					BroadcastIfActive("DisplaySinglePlaylist")
 				end
 			end,
 			MouseRightClickMessageCommand=function(self)
 				if ButtonActive(self,fontScale) and singleplaylistactive then
 					chartlist[i + ((currentchartpage - 1) * chartsperplaylist)]:ChangeRate(-0.1)
-					BroadcastIfActive("DisplayPlaylist")
+					BroadcastIfActive("DisplaySinglePlaylist")
 				end
 			end
 		}
@@ -161,14 +191,21 @@ end
 
 local function TitleDisplayButton(i)
 	local o = Def.ActorFrame{
-		InitCommand=cmd(x,15),
+		Name="TitleDisplay",
+		InitCommand=function(self)
+			self:x(15)
+		end,
 		ResizeCommand=function(self)
-			self:GetChild("Button"):zoomto(self:GetChild("Text"):GetZoomedWidth(),self:GetChild("Text"):GetZoomedHeight())
+			self:GetChild("Button"):zoomto(self:GetChild("Text"):GetWidth(),self:GetChild("Text"):GetHeight())
 		end,
 		LoadFont("Common Large") .. {
 			Name="Text",
-			InitCommand=cmd(halign,0),
-			DisplayPlaylistCommand=function(self)
+			InitCommand=function(self)
+				self:halign(0)
+			end,
+			DisplaySinglePlaylistLevel2MessageCommand=function(self)
+				self:zoom(fontScale)
+				self:maxwidth(480)
 				self:settext(chartlist[i + ((currentchartpage - 1) * chartsperplaylist)]:GetSongTitle())
 				self:GetParent():queuecommand("Resize")
 				if chartlist[i + ((currentchartpage - 1) * chartsperplaylist)]:IsLoaded() then
@@ -180,7 +217,9 @@ local function TitleDisplayButton(i)
 		},
 		Def.Quad{
 			Name="Button",
-			InitCommand=cmd(diffusealpha,buttondiffuse;halign,0),
+			InitCommand=function(self)
+				self:diffusealpha(buttondiffuse):halign(0)
+			end,
 			MouseLeftClickMessageCommand=function(self)
 				if ButtonActive(self,fontScale) and chartlist[i + ((currentchartpage - 1) * chartsperplaylist)] and chartlist[i + ((currentchartpage - 1) * chartsperplaylist)]:IsLoaded() and singleplaylistactive then
 					whee:SelectSong(songlist[i + ((currentchartpage - 1) * chartsperplaylist)])
@@ -193,14 +232,20 @@ end
 
 local function DeleteChartButton(i)
 	local o = Def.ActorFrame{
-		InitCommand=cmd(x,315),
+		Name="DeleteButton",
+		InitCommand=function(self)
+			self:x(315)
+		end,
 		ResizeCommand=function(self)
-			self:GetChild("Button"):zoomto(self:GetChild("Text"):GetZoomedWidth(),self:GetChild("Text"):GetZoomedHeight())
+			self:GetChild("Button"):zoomto(self:GetChild("Text"):GetWidth(),self:GetChild("Text"):GetHeight())
 		end,
 		LoadFont("Common Large") .. {
 			Name="Text",
-			InitCommand=cmd(halign,0),
-			DisplayPlaylistCommand=function(self)
+			InitCommand=function(self)
+				self:halign(0)
+			end,
+			DisplaySinglePlaylistLevel2Command=function(self)
+				self:zoom(fontScale)
 				self:settext("Del")
 				self:GetParent():queuecommand("Resize")
 				self:diffuse(byJudgment("TapNoteScore_Miss"))
@@ -208,12 +253,14 @@ local function DeleteChartButton(i)
 		},
 		Def.Quad{
 			Name="Button",
-			InitCommand=cmd(diffusealpha,buttondiffuse;halign,0),
+			InitCommand=function(self)
+				self:diffusealpha(buttondiffuse):halign(0)
+			end,
 			MouseLeftClickMessageCommand=function(self)
 				if ButtonActive(self,fontScale) and singleplaylistactive then
 					pl:DeleteChart(i + ((currentchartpage - 1) * chartsperplaylist))
 					MESSAGEMAN:Broadcast("DisplayAll")
-					MESSAGEMAN:Broadcast("DisplayPlaylist")
+					MESSAGEMAN:Broadcast("DisplaySinglePlaylist")
 				end
 			end
 		}
@@ -227,41 +274,58 @@ local function rankingLabel(i)
 	local t = Def.ActorFrame{
 		InitCommand=function(self)
 			self:xy(rankingX + offsetX, rankingY + offsetY + 10 + (i-1)*scoreYspacing)
-			self:RunCommandsOnChildren(cmd(halign,0;zoom,fontScale))
 			self:visible(false)
 		end,
-		DisplayAllMessageCommand=cmd(visible,false),
+		DisplayAllMessageCommand=function(self)
+			self:visible(false)
+		end,
 		DisplayPPMessageCommand=function(self)
 			if update then
 				chart = chartlist[i + ((currentchartpage - 1) * chartsperplaylist)]
 				if chart then
 					chartloaded = chartlist[i + ((currentchartpage - 1) * chartsperplaylist)]:IsLoaded()
 					self:visible(true)
-					self:RunCommandsOnChildren(cmd(queuecommand, "DisplayPlaylist";visible,true))
+					self:GetChild("DeleteButton"):queuecommand("DisplaySinglePlaylistLevel2")
+					self:GetChild("TitleDisplay"):queuecommand("DisplaySinglePlaylistLevel2")
+					self:GetChild("RateDisplay"):queuecommand("DisplaySinglePlaylistLevel2")
+					self:GetChild("DeleteButton"):visible(true)
+					self:GetChild("TitleDisplay"):visible(true)
+					self:GetChild("RateDisplay"):visible(true)
 				else
-					self:RunCommandsOnChildren(cmd(visible,false))
+					self:GetChild("DeleteButton"):visible(false)
+					self:GetChild("TitleDisplay"):visible(false)
+					self:GetChild("RateDisplay"):visible(false)
 				end
 			else
 				self:visible(true)
 			end
 		end,
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(maxwidth,100),
-			DisplayPlaylistCommand=function(self)
+			InitCommand=function(self)
+				self:maxwidth(100)
+				self:halign(0):zoom(fontScale)
+			end,
+			DisplayPPMessageCommand=function(self)
 				self:halign(0.5)
 				self:diffuse(getMainColor("positive"))
-				self:settext(((rankingPage-1)*25)+ i + ((currentchartpage - 1) * chartsperplaylist.."."))
+				self:settext(((rankingPage-1)*25)+ i + ((currentchartpage - 1) * chartsperplaylist)..".")
 			end
 		},
 		LoadFont("Common Large") .. {	-- pack mouseover for later
-			InitCommand=cmd(x,15;maxwidth,580),
-			DisplayPlaylistCommand=function(self)
+			InitCommand=function(self)
+				self:x(15):maxwidth(580)
+				self:halign(0):zoom(fontScale)
+			end,
+			DisplaySinglePlaylistLevel2MessageCommand=function(self)
 				--self:settext(songlist[i]:GetGroupName())
 			end
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(x,256;maxwidth,160),
-			DisplayPlaylistCommand=function(self)
+			InitCommand=function(self)
+				self:x(256):maxwidth(160)
+				self:halign(0):zoom(fontScale)
+			end,
+			DisplaySinglePlaylistLevel2MessageCommand=function(self)
 				if chartloaded then
 					local rating = stepslist[i + ((currentchartpage - 1) * chartsperplaylist)]:GetMSD(chart:GetRate(),1)
 					self:settextf("%.2f", rating)
@@ -274,14 +338,18 @@ local function rankingLabel(i)
 			end
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(x,300),
-			DisplayPlaylistCommand=function(self)
+			InitCommand=function(self)
+				self:x(300)
+				self:halign(0):zoom(fontScale)
+			end,
+			DisplaySinglePlaylistLevel2MessageCommand=function(self)
 				self:halign(0.5)
-				local diff = chart:GetDifficulty()
+				local diff = stepslist[i + ((currentchartpage - 1) * chartsperplaylist)]:GetDifficulty()
 				if chartloaded then
 					self:diffuse(byDifficulty(diff))
 					self:settext(getShortDifficulty(diff))
 				else
+					local diff = chart:GetDifficulty()
 					self:diffuse(byJudgment("TapNoteScore_Miss"))
 					self:settext(getShortDifficulty(diff))
 				end
@@ -297,15 +365,23 @@ end
 
 -- Buttons for individual playlist manipulation
 local b2 = Def.ActorFrame{
-	InitCommand=cmd(xy,215,rankingY),
-	DisplayAllMessageCommand=cmd(visible,false),
-	DisplayPlaylistMessageCommand=cmd(visible,true)
+	InitCommand=function(self)
+		self:xy(215,rankingY)
+	end,
+	DisplayAllMessageCommand=function(self)
+		self:visible(false)
+	end,
+	DisplaySinglePlaylistMessageCommand=function(self)
+		self:visible(true)
+	end	
 }
 
 --Add chart button
 -- b2[#b2+1] = LoadFont("Common Large") .. {InitCommand=cmd(zoom,0.3;x,245;settext,"Add Chart")}
 -- b2[#b2+1] = Def.Quad{
-	-- InitCommand=cmd(x,245;diffusealpha,buttondiffuse;zoomto,80,20),
+	-- InitCommand=function(self)
+	-- 	self:x(245):diffusealpha(buttondiffuse):zoomto(80,20)
+	-- end,
 	-- MouseLeftClickMessageCommand=function(self)
 		-- if ButtonActive(self) and singleplaylistactive then
 			-- pl:AddChart(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())
@@ -313,9 +389,13 @@ local b2 = Def.ActorFrame{
 	-- end
 -- }
 -- Play As Course button
-b2[#b2+1] = LoadFont("Common Large") .. {InitCommand=cmd(zoom,0.3;x,85;settext,"Play As Course")}
+b2[#b2+1] = LoadFont("Common Large") .. {InitCommand=function(self)
+	self:zoom(0.3):x(85):settext("Play As Course")
+end}
 b2[#b2+1] = Def.Quad{
-	InitCommand=cmd(x,85;diffusealpha,buttondiffuse;zoomto,110,20),
+	InitCommand=function(self)
+		self:x(85):diffusealpha(buttondiffuse):zoomto(110,20)
+	end,
 	MouseLeftClickMessageCommand=function(self)
 		if ButtonActive(self,0.3) and singleplaylistactive then
 			SCREENMAN:GetTopScreen():StartPlaylistAsCourse(pl:GetName())
@@ -324,9 +404,13 @@ b2[#b2+1] = Def.Quad{
 }
 
 -- Back button
-b2[#b2+1] = LoadFont("Common Large") .. {InitCommand=cmd(zoom,0.3;settext,"Back")}
+b2[#b2+1] = LoadFont("Common Large") .. {InitCommand=function(self)
+	self:zoom(0.3):settext("Back")
+end}
 b2[#b2+1] = Def.Quad{
-	InitCommand=cmd(diffusealpha,buttondiffuse;zoomto,110,20),
+	InitCommand=function(self)
+		self:diffusealpha(buttondiffuse):zoomto(110,20)
+	end,
 	MouseLeftClickMessageCommand=function(self)
 		if ButtonActive(self,0.3) and singleplaylistactive then
 			MESSAGEMAN:Broadcast("DisplayAll")
@@ -337,44 +421,68 @@ r[#r+1] = b2
 
 -- next/prev pages for individual playlists, i guess these could be merged with the allplaylists buttons for efficiency but meh
 r[#r+1] = Def.ActorFrame{
-	InitCommand=cmd(xy,frameX+10,frameY+rankingY+250),
+	InitCommand=function(self)
+		self:xy(frameX+10,frameY+rankingY+250)
+	end,
 	Def.Quad{
-		InitCommand=cmd(xy,300,-8;zoomto,40,20;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,buttondiffuse),
+		InitCommand=function(self)
+			self:xy(300,-8):zoomto(40,20):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(buttondiffuse)
+		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) and currentchartpage < numplaylistpages and singleplaylistactive then
 				currentchartpage = currentchartpage + 1
-				MESSAGEMAN:Broadcast("DisplayPlaylist")
+				MESSAGEMAN:Broadcast("DisplaySinglePlaylist")
 				MESSAGEMAN:Broadcast("DisplayPP")
 			end
 		end
 	},
 	LoadFont("Common Large") .. {
-		InitCommand=cmd(x,300;halign,0;zoom,0.3;diffuse,getMainColor('positive');settext,"Next"),
-		DisplayAllMessageCommand=cmd(visible,false),
-		DisplayPlaylistMessageCommand=cmd(visible,true)
+		InitCommand=function(self)
+			self:x(300):halign(0):zoom(0.3):diffuse(getMainColor('positive')):settext("Next")
+		end,
+		DisplayAllMessageCommand=function(self)
+			self:visible(false)
+		end,
+		DisplaySinglePlaylistMessageCommand=function(self)
+			self:visible(true)
+		end	
 	},
 	Def.Quad{
-		InitCommand=cmd(y,-8;zoomto,65,20;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,buttondiffuse),
+		InitCommand=function(self)
+			self:y(-8):zoomto(65,20):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(buttondiffuse)
+		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) and currentchartpage > 1 and singleplaylistactive then
 				currentchartpage = currentchartpage - 1
-				MESSAGEMAN:Broadcast("DisplayPlaylist")
+				MESSAGEMAN:Broadcast("DisplaySinglePlaylist")
 				MESSAGEMAN:Broadcast("DisplayPP")
 			end
 		end
 	},
 	LoadFont("Common Large") .. {
-		InitCommand=cmd(halign,0;zoom,0.3;diffuse,getMainColor('positive');settext,"Previous"),
-		DisplayAllMessageCommand=cmd(visible,false),
-		DisplayPlaylistMessageCommand=cmd(visible,true)
+		InitCommand=function(self)
+			self:halign(0):zoom(0.3):diffuse(getMainColor('positive')):settext("Previous")
+		end,
+		DisplayAllMessageCommand=function(self)
+			self:visible(false)
+		end,
+		DisplaySinglePlaylistMessageCommand=function(self)
+			self:visible(true)
+		end	
 	},
 	LoadFont("Common Large") .. {
-		InitCommand=cmd(x,175;halign,0.5;zoom,0.3;diffuse,getMainColor('positive')),
+		InitCommand=function(self)
+			self:x(175):halign(0.5):zoom(0.3):diffuse(getMainColor('positive'))
+		end,
 		SetCommand=function(self)
 			self:settextf("Showing %i-%i of %i", math.min(((currentchartpage-1)*chartsperplaylist)+1, #chartlist), math.min(currentchartpage*chartsperplaylist, #chartlist), #chartlist)
 		end,
-		DisplayAllMessageCommand=cmd(visible,false),
-		DisplayPlaylistMessageCommand=cmd(visible,true;queuecommand,"Set")
+		DisplayAllMessageCommand=function(self)
+			self:visible(false)
+		end,
+		DisplaySinglePlaylistMessageCommand=function(self)
+			self:visible(true):queuecommand("Set")
+		end	
 	}
 }
 
@@ -389,14 +497,19 @@ r[#r+1] = Def.ActorFrame{
 
 local function PlaylistTitleDisplayButton(i)
 	local o = Def.ActorFrame{
-		InitCommand=cmd(x,15),
+		InitCommand=function(self)
+			self:x(15)
+		end,
 		ResizeCommand=function(self)
-			self:GetChild("Button"):zoomto(self:GetChild("Text"):GetZoomedWidth(),self:GetChild("Text"):GetZoomedHeight())
+			self:GetChild("Button"):zoomto(self:GetChild("Text"):GetWidth(),self:GetChild("Text"):GetHeight())
 		end,
 		LoadFont("Common Large") .. {
 			Name="Text",
-			InitCommand=cmd(halign,0;maxwidth,frameWidth * 3 + 140),
-			AllDisplayCommand=function(self)
+			InitCommand=function(self)
+				self:halign(0):maxwidth(frameWidth * 3 + 140)
+			end,
+			AllDisplayMessageCommand=function(self)
+				self:zoom(fontScale)
 				if allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)] then
 					self:settext(allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)]:GetName())
 					self:GetParent():queuecommand("Resize")
@@ -405,12 +518,14 @@ local function PlaylistTitleDisplayButton(i)
 		},
 		Def.Quad{
 			Name="Button",
-			InitCommand=cmd(diffusealpha,buttondiffuse;halign,0),
+			InitCommand=function(self)
+				self:diffusealpha(buttondiffuse):halign(0)
+			end,
 			MouseLeftClickMessageCommand=function(self)
 				if ButtonActive(self,fontScale) and allplaylistsactive then
 					SONGMAN:SetActivePlaylist(allplaylists[i]:GetName())
 					pl = allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)]
-					MESSAGEMAN:Broadcast("DisplayPlaylist")
+					MESSAGEMAN:Broadcast("DisplaySinglePlaylist")
 				end
 			end
 		}
@@ -420,16 +535,21 @@ end
 
 local function DeletePlaylistButton(i)
 	local o = Def.ActorFrame{
-		InitCommand=cmd(x,315),
+		InitCommand=function(self)
+			self:x(315)
+		end,
 		ResizeCommand=function(self)
-			self:GetChild("Button"):zoomto(self:GetChild("Text"):GetZoomedWidth(),self:GetChild("Text"):GetZoomedHeight())
+			self:GetChild("Button"):zoomto(self:GetChild("Text"):GetWidth(),self:GetChild("Text"):GetHeight())
 		end,
 		LoadFont("Common Large") .. {
 			Name="Text",
-			InitCommand=cmd(halign,0;maxwidth,frameWidth * 3 + 140),
-			AllDisplayCommand=function(self)
+			InitCommand=function(self)
+				self:halign(0):maxwidth(frameWidth * 3 + 140)
+			end,
+			AllDisplayMessageCommand=function(self)
 				if allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)] then
 					self:settext("Del")
+					self:zoom(fontScale)
 					self:GetParent():queuecommand("Resize")
 					self:diffuse(byJudgment("TapNoteScore_Miss"))
 				end
@@ -437,7 +557,9 @@ local function DeletePlaylistButton(i)
 		},
 		Def.Quad{
 			Name="Button",
-			InitCommand=cmd(diffusealpha,buttondiffuse;halign,0),
+			InitCommand=function(self)
+				self:diffusealpha(buttondiffuse):halign(0)
+			end,
 			MouseLeftClickMessageCommand=function(self)
 				if ButtonActive(self,fontScale) and allplaylistsactive then
 					SONGMAN:DeletePlaylist(allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)]:GetName())
@@ -453,43 +575,56 @@ local function PlaylistSelectLabel(i)
 	local t = Def.ActorFrame{
 		InitCommand=function(self)
 			self:xy(rankingX + offsetX, rankingY + offsetY + 20 + (i-1)*PlaylistYspacing)
-			self:RunCommandsOnChildren(cmd(halign,0;zoom,fontScale))
 			self:visible(true)
 		end,
-		DisplayPlaylistMessageCommand=cmd(visible,false),
+		DisplaySinglePlaylistMessageCommand=function(self)
+			self:visible(false)
+		end,
 		DisplayAllMessageCommand=function(self)
 			if update and allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)] then				
 				self:visible(true)
-				self:RunCommandsOnChildren(cmd(queuecommand, "AllDisplay"))
+				MESSAGEMAN:Broadcast("AllDisplay")
 			else
 				self:visible(false)
 			end
 		end,
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(maxwidth,100),
-			AllDisplayCommand=function(self)
+			InitCommand=function(self)
+				self:halign(0):zoom(fontScale)
+				self:maxwidth(100)
+			end,
+			AllDisplayMessageCommand=function(self)
 				self:halign(0.5)
 				self:diffuse(getMainColor("positive"))
 				self:settext(((rankingPage-1)*25)+i + ((currentplaylistpage - 1) * playlistsperpage)..".")
 			end
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,15,row2Yoffset),
-			AllDisplayCommand=function(self)
+			InitCommand=function(self)
+				self:halign(0):zoom(fontScale)
+				self:xy(15,row2Yoffset)
+			end,
+			AllDisplayMessageCommand=function(self)
 				self:diffuse(getMainColor("positive"))
 				self:settextf("Number of charts: %d", allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)]:GetNumCharts())
 			end
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,200,row2Yoffset),
-			AllDisplayCommand=function(self)
+			InitCommand=function(self)
+				self:halign(0):zoom(fontScale)
+				self:xy(200,row2Yoffset)
+			end,
+			AllDisplayMessageCommand=function(self)
 				self:settextf("Average Rating:")
 				self:diffuse(getMainColor("positive"))
 			end
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,295,row2Yoffset),
-			AllDisplayCommand=function(self)
+			InitCommand=function(self)
+				self:halign(0):zoom(fontScale)
+				self:xy(295,row2Yoffset)
+			end,
+			AllDisplayMessageCommand=function(self)
 				local rating = allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)]:GetAverageRating()
 				self:settextf("%.2f", rating)
 				self:diffuse(ByMSD(rating))
@@ -510,22 +645,29 @@ local playlists = Def.ActorFrame{
 		self:visible(true)
 		allplaylists = SONGMAN:GetPlaylists()
 		numplaylistpages = notShit.ceil(#allplaylists/playlistsperpage)
-		self:RunCommandsOnChildren(cmd(queuecommand, "Display"))
 	end
 }
 
 -- Buttons for general playlist manipulation
 local b = Def.ActorFrame{
-	InitCommand=cmd(xy,100,frameHeight+30),
-	DisplayPlaylistMessageCommand=cmd(visible,false),
-	DisplayAllMessageCommand=cmd(visible,true)
+	InitCommand=function(self)
+		self:xy(100,frameHeight+30)
+	end,
+	DisplaySinglePlaylistMessageCommand=function(self)
+		self:visible(false)
+	end,
+	DisplayAllMessageCommand=function(self)
+		self:visible(true)
+	end	
 }
 
 -- zzzz button positioning is lame... use shortcut key for now whynot
 -- New Playlist
 -- b[#b+1] = LoadFont("Common Large") .. {InitCommand=cmd(zoom,0.3;settext,"New Playlist")}
 -- b[#b+1] = Def.Quad{
-	-- InitCommand=cmd(diffusealpha,buttondiffuse;zoomto,110,20),
+	-- InitCommand=function(self)
+	-- 	self:diffusealpha(buttondiffuse):zoomto(110,20)
+	-- end,
 	-- MouseLeftClickMessageCommand=function(self)
 		-- if ButtonActive(self,0.3) and allplaylistsactive then
 			-- SONGMAN:NewPlaylist()
@@ -547,9 +689,13 @@ end
 
 -- next/prev for all playlists
 r[#r+1] = Def.ActorFrame{
-	InitCommand=cmd(xy,frameX+10,frameY+rankingY+250),
+	InitCommand=function(self)
+		self:xy(frameX+10,frameY+rankingY+250)
+	end,
 	Def.Quad{
-		InitCommand=cmd(xy,300,-8;zoomto,40,20;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,buttondiffuse),
+		InitCommand=function(self)
+			self:xy(300,-8):zoomto(40,20):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(buttondiffuse)
+		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) and currentplaylistpage < numplaylistpages and allplaylistsactive then
 				currentplaylistpage = currentplaylistpage + 1
@@ -558,12 +704,20 @@ r[#r+1] = Def.ActorFrame{
 		end
 	},
 	LoadFont("Common Large") .. {
-		InitCommand=cmd(x,300;halign,0;zoom,0.3;diffuse,getMainColor('positive');settext,"Next"),
-		DisplayPlaylistMessageCommand=cmd(visible,false),
-		DisplayAllMessageCommand=cmd(visible,true)
+		InitCommand=function(self)
+			self:x(300):halign(0):zoom(0.3):diffuse(getMainColor('positive')):settext("Next")
+		end,
+		DisplaySinglePlaylistMessageCommand=function(self)
+			self:visible(false)
+		end,
+		DisplayAllMessageCommand=function(self)
+			self:visible(true)
+		end	
 	},
 	Def.Quad{
-		InitCommand=cmd(y,-8;zoomto,65,20;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,buttondiffuse),
+		InitCommand=function(self)
+			self:y(-8):zoomto(65,20):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(buttondiffuse)
+		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) and currentplaylistpage > 1 and allplaylistsactive then
 				currentplaylistpage = currentplaylistpage - 1
@@ -572,17 +726,29 @@ r[#r+1] = Def.ActorFrame{
 		end
 	},
 	LoadFont("Common Large") .. {
-		InitCommand=cmd(halign,0;zoom,0.3;diffuse,getMainColor('positive');settext,"Previous"),
-		DisplayPlaylistMessageCommand=cmd(visible,false),
-		DisplayAllMessageCommand=cmd(visible,true)
+		InitCommand=function(self)
+			self:halign(0):zoom(0.3):diffuse(getMainColor('positive')):settext("Previous")
+		end,
+		DisplaySinglePlaylistMessageCommand=function(self)
+			self:visible(false)
+		end,
+		DisplayAllMessageCommand=function(self)
+			self:visible(true)
+		end	
 	},
 	LoadFont("Common Large") .. {
-		InitCommand=cmd(x,175;halign,0.5;zoom,0.3;diffuse,getMainColor('positive')),
+		InitCommand=function(self)
+			self:x(175):halign(0.5):zoom(0.3):diffuse(getMainColor('positive'))
+		end,
 		SetCommand=function(self)
 			self:settextf("Showing %i-%i of %i", math.min(((currentplaylistpage-1)*playlistsperpage)+1, #allplaylists), math.min(currentplaylistpage*playlistsperpage, #allplaylists), #allplaylists)
 		end,
-		DisplayAllMessageCommand=cmd(visible,true;queuecommand,"Set"),
-		DisplayPlaylistMessageCommand=cmd(visible,false)
+		DisplayAllMessageCommand=function(self)
+			self:visible(true):queuecommand("Set")
+		end,
+		DisplaySinglePlaylistMessageCommand=function(self)
+			self:visible(false)
+		end	
 	}
 }
 

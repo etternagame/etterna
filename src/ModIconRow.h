@@ -13,17 +13,17 @@ class ModIconRow : public ActorFrame
 {
 public:
 	ModIconRow();
-	~ModIconRow();
+	~ModIconRow() override;
 
 	void Load( const RString &sMetricsGroup, PlayerNumber pn );
 
-	virtual ModIconRow *Copy() const;
+	ModIconRow *Copy() const override;
 	void SetFromGameState();
 
-	virtual void HandleMessage( const Message &msg );
+	void HandleMessage( const Message &msg ) override;
 
 	// Commands
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 protected:
 	RString m_sMetricsGroup;

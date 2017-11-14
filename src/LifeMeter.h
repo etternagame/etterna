@@ -12,8 +12,8 @@ class PlayerStageStats;
 class LifeMeter : public ActorFrame
 {
 public:
-	LifeMeter() {};
-	virtual ~LifeMeter() {};
+	LifeMeter() = default;
+	~LifeMeter() override = default;
 	
 	virtual void Load( const PlayerState *pPlayerState, PlayerStageStats *pPlayerStageStats )
 	{
@@ -48,7 +48,7 @@ public:
 	//
 	// Lua
 	//
-	virtual void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 protected:
 	const PlayerState *m_pPlayerState;

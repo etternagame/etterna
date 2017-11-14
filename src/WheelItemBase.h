@@ -27,9 +27,9 @@ LuaDeclareType( WheelItemDataType );
 
 struct WheelItemBaseData
 {
-	WheelItemBaseData() {}
+	WheelItemBaseData() = default;
 	WheelItemBaseData( WheelItemDataType type, const RString &sText, const RageColor &color );
-	virtual ~WheelItemBaseData() {}
+	virtual ~WheelItemBaseData() = default;
 	WheelItemDataType m_Type;
 	RString		m_sText;
 	RageColor	m_color;	// either text color or section background color
@@ -40,8 +40,8 @@ class WheelItemBase : public ActorFrame
 public:
 	WheelItemBase( const RString &sType );
 	WheelItemBase( const WheelItemBase &cpy );
-	virtual void DrawPrimitives();
-	virtual WheelItemBase *Copy() const { return new WheelItemBase(*this); }
+	void DrawPrimitives() override;
+	WheelItemBase *Copy() const override { return new WheelItemBase(*this); }
 
 	void Load();
 	void DrawGrayBar( Actor& bar );
@@ -57,7 +57,7 @@ public:
 	bool IsLoaded(){ return m_pData != NULL; }
 
 	// Lua
-	void PushSelf( lua_State *L );
+	void PushSelf( lua_State *L ) override;
 
 protected:
 	void SetGrayBar( Actor *pBar ) { m_pGrayBar = pBar; }

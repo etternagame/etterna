@@ -72,7 +72,7 @@ void RageSurfaceUtils::OrderedDither( const RageSurface *src, RageSurface *dst )
 
 	// Calculate the ratio from the old bit depth to the new for each color channel.
 	int conv[4];
-	for( int i = 0; i < 4; ++i )
+	for(unsigned i = 0; i < 4; ++i)
 	{
 		int MaxInputIntensity = (1 << src_cbits[i])-1;
 		int MaxOutputIntensity = (1 << dst_cbits[i])-1;
@@ -176,7 +176,7 @@ void RageSurfaceUtils::ErrorDiffusionDither( const RageSurface *src, RageSurface
 
 	// Calculate the ratio from the old bit depth to the new for each color channel.
 	int conv[4];
-	for( int i = 0; i < 4; ++i )
+	for(unsigned i = 0; i < 4; ++i)
 	{
 		int MaxInputIntensity = (1 << src_cbits[i])-1;
 		int MaxOutputIntensity = (1 << dst_cbits[i])-1;

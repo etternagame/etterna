@@ -316,30 +316,30 @@ DeviceButton StringToDeviceButton( const RString& s );
 struct DeviceInput
 {
 public:
-	InputDevice device;
-	DeviceButton button;
+	InputDevice device{InputDevice_Invalid};
+	DeviceButton button{DeviceButton_Invalid};
 
 	/* This is usually 0 or 1. Analog joystick inputs can set this to a percentage
 	 * (0..1). This should be 0 for analog axes within the dead zone. */
-	float level;
+	float level{0};
 
 	// Mouse coordinates
 	//unsigned x;
 	//unsigned y;
-	int z; // mousewheel
+	int z{0}; // mousewheel
 
 	/* Whether this button is pressed. This is level with a threshold and
 	 * debouncing applied. */
-	bool bDown;
+	bool bDown{false};
 
 	std::chrono::steady_clock::time_point ts;
 
-	DeviceInput(): device(InputDevice_Invalid), button(DeviceButton_Invalid), level(0), z(0), bDown(false), ts(std::chrono::microseconds{ 0 }) { }
-	DeviceInput( InputDevice d, DeviceButton b, float l=0 ): device(d), button(b), level(l), z(0), bDown(l > 0.5f), ts(std::chrono::microseconds{ 0 }) { }
+	DeviceInput():  ts(std::chrono::microseconds{ 0 }) { }
+	DeviceInput( InputDevice d, DeviceButton b, float l=0 ): device(d), button(b), level(l),  bDown(l > 0.5f), ts(std::chrono::microseconds{ 0 }) { }
 	DeviceInput( InputDevice d, DeviceButton b, float l, const std::chrono::steady_clock::time_point &t ):
-		device(d), button(b), level(l), z(0), bDown(level > 0.5f), ts(t) { }
+		device(d), button(b), level(l),  bDown(level > 0.5f), ts(t) { }
 	DeviceInput( InputDevice d, DeviceButton b, const std::chrono::steady_clock::time_point &t, int zVal=0 ):
-		device(d), button(b), level(0), z(zVal), bDown(false), ts(t) { }
+		device(d), button(b), level(0), z(zVal),  ts(t) { }
 
 	RString ToString() const;
 	bool FromString( const RString &s );

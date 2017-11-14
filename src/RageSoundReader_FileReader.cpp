@@ -93,7 +93,7 @@ RageSoundReader_FileReader *RageSoundReader_FileReader::OpenFile( const RString 
 {
 	HiddenPtr<RageFileBasic> pFile;
 	{
-		RageFile *pFileOpen = new RageFile;
+		auto *pFileOpen = new RageFile;
 		if( !pFileOpen->Open(filename) )
 		{
 			error = pFileOpen->GetError();
@@ -107,7 +107,7 @@ RageSoundReader_FileReader *RageSoundReader_FileReader::OpenFile( const RString 
 	{
 		if( pFile->GetFileSize() < 1024*50 )
 		{
-			RageFileObjMem *pMem = new RageFileObjMem;
+			auto *pMem = new RageFileObjMem;
 			bool bRet = FileCopy( *pFile, *pMem, error, NULL );
 			if( !bRet )
 			{

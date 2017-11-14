@@ -213,7 +213,7 @@ public:
 	bool		m_bLoadingNextSong;
 	int		GetLoadingCourseSongIndex() const;
 
-	RString GetEtternaVersion() { return "0.55"; }
+	RString GetEtternaVersion() { return "0.55.3"; }
 	bool isplaylistcourse = false;
 	bool IsPlaylistCourse() { return isplaylistcourse; }
 	bool CountNotesSeparately();
@@ -269,7 +269,7 @@ public:
 	 *
 	 * This is true if it has: see Edit/Sync Songs for a common example.
 	 * Note: any mode that wants to use this must set it explicitly. */
-	bool m_bDidModeChangeNoteSkin;
+	bool m_bDidModeChangeNoteSkin{	false };
 
 	void GetDefaultPlayerOptions( PlayerOptions &po );
 	void GetDefaultSongOptions( SongOptions &so );
@@ -339,7 +339,7 @@ public:
 	 * @brief Is the game right now using Song timing or Steps timing?
 	 *
 	 * Different options are available depending on this setting. */
-	bool m_bIsUsingStepTiming;
+	bool m_bIsUsingStepTiming{		true };
 	BroadcastOnChange<RString> m_sEditLocalProfileID;
 	Profile* GetEditLocalProfile();
 

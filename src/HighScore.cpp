@@ -32,6 +32,7 @@ struct HighScoreImpl
 	unsigned int iScore;
 	float fPercentDP;
 	float fWifeScore;
+	float fWifePoints;
 	float fSSRNormPercent;
 	float fSurviveSeconds;
 	float fMusicRate;
@@ -227,7 +228,8 @@ HighScoreImpl::HighScoreImpl()
 	iScore = 0;
 	fPercentDP = 0.f;
 	fWifeScore = 0.f;
-	fSSRNormPercent = 11111.f;
+	fWifePoints = 0.f;
+	fSSRNormPercent = 0.f;
 	fMusicRate = 0.f;
 	fJudgeScale = 0.f;
 	bEtternaValid = true;
@@ -319,6 +321,10 @@ XNode *HighScoreImpl::CreateEttNode() const {
 	pNode->AppendChild("SSRCalcVersion", SSRCalcVersion);
 	pNode->AppendChild("Grade", GradeToString(GetWifeGrade()));
 	pNode->AppendChild("WifeScore", fWifeScore);
+	
+	if (fWifePoints > 0.f)
+		pNode->AppendChild("WifePoints", fWifePoints);
+	
 	pNode->AppendChild("SSRNormPercent", fSSRNormPercent);
 	pNode->AppendChild("JudgeScale", fJudgeScale);
 	pNode->AppendChild("NoChordCohesion", bNoChordCohesion);
@@ -360,6 +366,7 @@ void HighScoreImpl::LoadFromEttNode(const XNode *pNode) {
 	pNode->GetChildValue("Grade", s);
 	grade = StringToGrade(s);
 	pNode->GetChildValue("WifeScore", fWifeScore);
+	pNode->GetChildValue("WifePoints", fWifePoints);
 	pNode->GetChildValue("SSRNormPercent", fSSRNormPercent);
 	pNode->GetChildValue("Rate", fMusicRate);
 	pNode->GetChildValue("JudgeScale", fJudgeScale);
@@ -701,6 +708,7 @@ StageAward HighScore::GetStageAward() const { return m_Impl->stageAward; }
 PeakComboAward HighScore::GetPeakComboAward() const { return m_Impl->peakComboAward; }
 float HighScore::GetPercentDP() const { return m_Impl->fPercentDP; }
 float HighScore::GetWifeScore() const { return m_Impl->fWifeScore; }
+float HighScore::GetWifePoints() const { return m_Impl->fWifePoints; }
 float HighScore::GetSSRNormPercent() const { return m_Impl->fSSRNormPercent; }
 float HighScore::GetMusicRate() const { return m_Impl->fMusicRate; }
 float HighScore::GetJudgeScale() const { return m_Impl->fJudgeScale; }
@@ -734,6 +742,7 @@ void HighScore::SetStageAward( StageAward a ) { m_Impl->stageAward = a; }
 void HighScore::SetPeakComboAward( PeakComboAward a ) { m_Impl->peakComboAward = a; }
 void HighScore::SetPercentDP( float f ) { m_Impl->fPercentDP = f; }
 void HighScore::SetWifeScore(float f) {m_Impl->fWifeScore = f;}
+void HighScore::SetWifePoints(float f) { m_Impl->fWifePoints= f; }
 void HighScore::SetSSRNormPercent(float f) { m_Impl->fSSRNormPercent = f; }
 void HighScore::SetMusicRate(float f) { m_Impl->fMusicRate = f; }
 void HighScore::SetJudgeScale(float f) { m_Impl->fJudgeScale = f; }
@@ -810,6 +819,7 @@ XNode* HighScore::CreateEttNode() const
 	return m_Impl->CreateEttNode();
 }
 
+// Used for importing from stats.xml -mina
 void HighScore::LoadFromNode( const XNode* pNode ) 
 {
 	m_Impl->LoadFromNode( pNode );
@@ -824,7 +834,8 @@ void HighScore::LoadFromNode( const XNode* pNode )
 		m_Impl->bEtternaValid = false;
 	}
 
-	if (m_Impl->fSSRNormPercent == 11111.f) {
+	// If imported scores have no normpercent check for replays to calculate it or fallback to wifescore (assume j4) -mina
+	if (m_Impl->fSSRNormPercent == 0.f) {
 		if (m_Impl->grade != Grade_Failed)
 			m_Impl->fSSRNormPercent = RescoreToWifeJudgeDuringLoad(4);
 		else
@@ -835,9 +846,20 @@ void HighScore::LoadFromNode( const XNode* pNode )
 	}
 }
 
+// Used to load from etterna.xml -mina
 void HighScore::LoadFromEttNode(const XNode* pNode)
 {
 	m_Impl->LoadFromEttNode(pNode);
+
+	if (m_Impl->fSSRNormPercent > 1000.f) {
+		if (m_Impl->grade != Grade_Failed)
+			m_Impl->fSSRNormPercent = RescoreToWifeJudgeDuringLoad(4);
+		else
+			m_Impl->fSSRNormPercent = m_Impl->fWifeScore;
+
+		m_Impl->vNoteRowVector.clear();
+		m_Impl->vOffsetVector.clear();
+	}
 }
 
 string HighScore::GetDisplayName() const
@@ -1147,6 +1169,7 @@ public:
 	static int GetScore( T* p, lua_State *L )			{ lua_pushnumber(L, p->GetScore() ); return 1; }
 	static int GetPercentDP( T* p, lua_State *L )		{ lua_pushnumber(L, p->GetPercentDP() ); return 1; }
 	static int GetWifeScore(T* p, lua_State *L)			{ lua_pushnumber(L, p->GetWifeScore()); return 1; }
+	static int GetWifePoints(T* p, lua_State *L)		{ lua_pushnumber(L, p->GetWifePoints()); return 1; }
 	static int GetMusicRate(T* p, lua_State *L)			{ lua_pushnumber(L, p->GetMusicRate()); return 1; }
 	static int GetJudgeScale(T* p, lua_State *L)		{ lua_pushnumber(L, p->GetJudgeScale()); return 1; }
 	static int GetDate( T* p, lua_State *L )			{ lua_pushstring(L, p->GetDateTime().GetString() ); return 1; }
@@ -1232,6 +1255,7 @@ public:
 		ADD_METHOD( GetPercentDP );
 		ADD_METHOD( ConvertDpToWife );
 		ADD_METHOD( GetWifeScore );
+		ADD_METHOD( GetWifePoints );
 		ADD_METHOD( RescoreToWifeJudge );
 		ADD_METHOD( RescoreToDPJudge );
 		ADD_METHOD( RescoreJudges );

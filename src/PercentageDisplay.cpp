@@ -155,8 +155,8 @@ void PercentageDisplay::Refresh()
 
 	if (m_bUseRemainder)
 	{
-		int iPercentWhole = static_cast<int>(fPercentDancePoints * 100);
-		int iPercentRemainder = static_cast<int>((fPercentDancePoints * 100 - static_cast<int>(fPercentDancePoints * 100)) * 10);
+		auto iPercentWhole = static_cast<int>(fPercentDancePoints * 100);
+		auto iPercentRemainder = static_cast<int>((fPercentDancePoints * 100 - static_cast<int>(fPercentDancePoints * 100)) * 10);
 		sNumToDisplay = ssprintf(m_sPercentFormat, iPercentWhole);
 		m_textPercentRemainder.SetText(ssprintf(m_sRemainderFormat, iPercentRemainder));
 	}

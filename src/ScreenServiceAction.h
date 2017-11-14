@@ -8,7 +8,7 @@
 class ScreenServiceAction : public ScreenPrompt
 {
 public:
-	virtual void BeginScreen();
+	void BeginScreen() override;
 };
 
 

@@ -14,7 +14,7 @@
 class TZip;
 class RageFile;
 
-typedef unsigned long ZRESULT;
+using ZRESULT = unsigned long;
 // return codes from any of the zip functions. Listed later.
 
 

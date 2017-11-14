@@ -32,9 +32,9 @@ class DirectFilenameDB: public FilenameDB
 public:
 	DirectFilenameDB( const RString &root );
 	void SetRoot( const RString &root );
-	void CacheFile( const RString &sPath );
+	void CacheFile( const RString &sPath ) override;
 protected:
-	virtual void PopulateFileSet( FileSet &fs, const RString &sPath );
+	void PopulateFileSet( FileSet &fs, const RString &sPath ) override;
 	RString root;
 };
 

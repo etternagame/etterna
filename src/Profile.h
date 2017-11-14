@@ -132,25 +132,17 @@ public:
 	// added to SwapExceptPriority won't be swapped correctly when the user
 	// changes the list priority of a profile. -Kyz
 	Profile():
-	m_Type(ProfileType_Normal), m_ListPriority(0),
+	
 		m_sDisplayName(""), m_sCharacterID(""),
 		m_sLastUsedHighScoreName(""),
 		m_sGuid(MakeGuid()), m_sDefaultModifiers(),
-		m_SortOrder(SortOrder_Invalid),
-		m_LastDifficulty(Difficulty_Invalid),
-		m_LastStepsType(StepsType_Invalid), m_lastSong()
-		, m_iCurrentCombo(0), m_iTotalSessions(0),
-		m_iTotalSessionSeconds(0), m_iTotalGameplaySeconds(0),
-		m_iTotalDancePoints(0),
-		m_iNumExtraStagesPassed(0), m_iNumExtraStagesFailed(0),
-		m_iNumToasties(0), m_iTotalTapsAndHolds(0), m_iTotalJumps(0),
-		m_iTotalHolds(0), m_iTotalRolls(0), m_iTotalMines(0),
-		m_iTotalHands(0), m_iTotalLifts(0), m_bNewProfile(false),
+		 m_lastSong()
+		, 
 		m_sLastPlayedMachineGuid(""),
 		m_LastPlayedDate(),m_iNumSongsPlayedByStyle(),
-		m_iNumTotalSongsPlayed(0), m_UserTable(), m_SongHighScores(),
+		 m_UserTable(), m_SongHighScores(),
 		m_vScreenshots(), 
-		profiledir(""), IsEtternaProfile(false)
+		profiledir("") 
 	{
 		m_lastSong.Unset();
 		
@@ -160,8 +152,8 @@ public:
 			m_iNumSongsPlayedByPlayMode[i] = 0;
 		FOREACH_ENUM( Difficulty, i )
 			m_iNumSongsPlayedByDifficulty[i] = 0;
-		for( int i=0; i<MAX_METER+1; i++ )
-			m_iNumSongsPlayedByMeter[i] = 0;
+		for(int & i : m_iNumSongsPlayedByMeter)
+			i = 0;
 		
 		ZERO( m_iNumStagesPassedByPlayMode );
 		ZERO( m_iNumStagesPassedByGrade );
@@ -189,9 +181,9 @@ public:
 	void AddStepTotals( int iNumTapsAndHolds, int iNumJumps, int iNumHolds, int iNumRolls, int iNumMines, 
 			   int iNumHands, int iNumLifts );
 
-	ProfileType m_Type;
+	ProfileType m_Type{ProfileType_Normal};
 	// Profiles of the same type and priority are sorted by dir name.
-	int m_ListPriority;
+	int m_ListPriority{0};
 
 	// Editable data
 	RString m_sDisplayName;
@@ -208,33 +200,33 @@ public:
 
 	RString m_sGuid;
 	map<RString,RString> m_sDefaultModifiers;
-	SortOrder m_SortOrder;
-	Difficulty m_LastDifficulty;
-	StepsType m_LastStepsType;
+	SortOrder m_SortOrder{SortOrder_Invalid};
+	Difficulty m_LastDifficulty{Difficulty_Invalid};
+	StepsType m_LastStepsType{StepsType_Invalid};
 	SongID m_lastSong;
-	int m_iCurrentCombo;
-	int m_iTotalSessions;
-	int m_iTotalSessionSeconds;
-	int m_iTotalGameplaySeconds;
-	int m_iTotalDancePoints;
-	int m_iNumExtraStagesPassed;
-	int m_iNumExtraStagesFailed;
-	int m_iNumToasties;
-	int m_iTotalTapsAndHolds;
-	int m_iTotalJumps;
-	int m_iTotalHolds;
-	int m_iTotalRolls;
-	int m_iTotalMines;
-	int m_iTotalHands;
-	int m_iTotalLifts;
+	int m_iCurrentCombo{0};
+	int m_iTotalSessions{0};
+	int m_iTotalSessionSeconds{0};
+	int m_iTotalGameplaySeconds{0};
+	int m_iTotalDancePoints{0};
+	int m_iNumExtraStagesPassed{0};
+	int m_iNumExtraStagesFailed{0};
+	int m_iNumToasties{0};
+	int m_iTotalTapsAndHolds{0};
+	int m_iTotalJumps{0};
+	int m_iTotalHolds{0};
+	int m_iTotalRolls{0};
+	int m_iTotalMines{0};
+	int m_iTotalHands{0};
+	int m_iTotalLifts{0};
 	float m_fPlayerRating;
 	float m_fPlayerSkillsets[NUM_Skillset];
 	/** @brief Is this a brand new profile? */
-	bool m_bNewProfile;
+	bool m_bNewProfile{false};
 
 	// seriously why is this not a thing -mina
 	string profiledir;
-	bool IsEtternaProfile;
+	bool IsEtternaProfile{false};
 	/**
 	 * @brief Which machine did we play on last, based on the Guid?
 	 *
@@ -253,7 +245,7 @@ public:
 	 * @brief Count the total number of songs played.
 	 * 
 	 * This stat counts once per song, even if two players are active. */
-	int m_iNumTotalSongsPlayed;
+	int m_iNumTotalSongsPlayed{0};
 	int m_iNumStagesPassedByPlayMode[NUM_PlayMode];
 	int m_iNumStagesPassedByGrade[NUM_Grade];
 

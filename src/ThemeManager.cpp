@@ -73,12 +73,12 @@ class LocalizedStringImplThemeMetric : public ILocalizedStringImpl, public Theme
 public:
 	static ILocalizedStringImpl *Create() { return new LocalizedStringImplThemeMetric; }
 
-	void Load( const RString& sGroup, const RString& sName )
+	void Load( const RString& sGroup, const RString& sName ) override
 	{
 		ThemeMetric<RString>::Load( sGroup, sName );
 	}
 
-	virtual void Read()
+	void Read() override
 	{
 		if( m_sName != ""  &&  THEME  &&   THEME->IsThemeLoaded() )
 		{
@@ -87,7 +87,7 @@ public:
 		}
 	}
 
-	const RString &GetLocalized() const
+	const RString &GetLocalized() const override
 	{
 		if( IsLoaded() )
 		{

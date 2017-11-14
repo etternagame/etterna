@@ -44,7 +44,6 @@ const RString SCREENSHOTS_SUBDIR   = "Screenshots/";
 const RString EDIT_STEPS_SUBDIR    = "Edits/";
 //const RString UPLOAD_SUBDIR         = "Upload/";
 const RString RIVAL_SUBDIR         = "Rivals/";
-const RString REPLAY_SUBDIR	       = "ReplayData/";
 
 ThemeMetric<bool> SHOW_COIN_DATA( "Profile", "ShowCoinData" );
 static Preference<bool> g_bProfileDataCompress( "ProfileDataCompress", false );
@@ -806,7 +805,6 @@ void Profile::HandleStatsPrefixChange(RString dir, bool require_signature)
 
 ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSignature, LoadingWindow* ld)
 {
-	FILEMAN->CreateDir(sDir + REPLAY_SUBDIR);
 	LOG->Trace( "Profile::LoadAllFromDir( %s )", sDir.c_str() );
 	ASSERT( sDir.Right(1) == "/" );
 
@@ -1092,7 +1090,7 @@ void Profile::CalculateStatsFromScores() {
 		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W4);
 		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W5);
 		m_iTotalMines += hs->GetTapNoteScore(TNS_HitMine);
-		hs->GetHoldNoteScore(HNS_Held);
+		m_iTotalTapsAndHolds += hs->GetHoldNoteScore(HNS_Held);
 	}
 
 	m_iNumTotalSongsPlayed = all.size();
@@ -1116,7 +1114,6 @@ bool Profile::SaveAllToDir( const RString &sDir, bool bSignData ) const
 	
 	// Empty directories if none exist.
 	FILEMAN->CreateDir( sDir + SCREENSHOTS_SUBDIR );
-	FILEMAN->CreateDir( sDir + REPLAY_SUBDIR);
 	
 	return bSaved;
 }
@@ -1528,7 +1525,7 @@ XNode* Profile::SaveEttGeneralDataCreateNode() const {
 	pGeneralDataNode->AppendChild("CharacterID", m_sCharacterID);
 	pGeneralDataNode->AppendChild("Guid", m_sGuid);
 	pGeneralDataNode->AppendChild("SortOrder", SortOrderToString(m_SortOrder));
-	pGeneralDataNode->AppendChild("LastDifficulty", DifficultyToString(m_LastDifficulty));
+	pGeneralDataNode->AppendChild("LastDifficulty", DifficultyToString(Difficulty_Invalid));
 	if (m_LastStepsType != StepsType_Invalid)
 		pGeneralDataNode->AppendChild("LastStepsType", GAMEMAN->GetStepsTypeInfo(m_LastStepsType).szName);
 	pGeneralDataNode->AppendChild(m_lastSong.CreateNode());

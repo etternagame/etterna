@@ -15,6 +15,17 @@ void ScreenStatsOverlay::Init()
  	m_textStats.LoadFromFont( THEME->GetPathF(m_sName,"stats") );
 	m_textStats.SetName( "Stats" );
 	LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND( m_textStats ); 
+	
+	RectF rectStats = RectF(
+		SCREEN_WIDTH - 80, 
+		0, 
+		SCREEN_WIDTH, 
+		80
+		);
+	m_quadStatBackground.StretchTo( rectStats );
+	m_quadStatBackground.SetDiffuse( RageColor(0,0,0,0.4f) );
+	this->AddChild(&m_quadStatBackground);
+	
 	this->AddChild( &m_textStats );
 
 	/* "Was that a skip?"  This displays a message when an update takes

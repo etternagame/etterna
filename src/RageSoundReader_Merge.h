@@ -7,20 +7,20 @@ class RageSoundReader_Merge: public RageSoundReader
 {
 public:
 	RageSoundReader_Merge();
-	virtual ~RageSoundReader_Merge();
+	~RageSoundReader_Merge() override;
 	RageSoundReader_Merge( const RageSoundReader_Merge &cpy );
-	virtual RageSoundReader_Merge *Copy() const { return new RageSoundReader_Merge( *this ); }
+	RageSoundReader_Merge *Copy() const override { return new RageSoundReader_Merge( *this ); }
 
-	virtual int GetLength() const;
-	virtual int GetLength_Fast() const;
-	virtual int SetPosition( int iFrame );
-	virtual int Read( float *pBuf, int iFrames );
-	virtual int GetSampleRate() const { return m_iSampleRate; }
-	virtual unsigned GetNumChannels() const { return m_iChannels; }
-	virtual bool SetProperty( const RString &sProperty, float fValue );
-	virtual int GetNextSourceFrame() const { return m_iNextSourceFrame; }
-	virtual float GetStreamToSourceRatio() const { return m_fCurrentStreamToSourceRatio; }
-	virtual RString GetError() const { return ""; }
+	int GetLength() const override;
+	int GetLength_Fast() const override;
+	int SetPosition( int iFrame ) override;
+	int Read( float *pBuf, int iFrames ) override;
+	int GetSampleRate() const override { return m_iSampleRate; }
+	unsigned GetNumChannels() const override { return m_iChannels; }
+	bool SetProperty( const RString &sProperty, float fValue ) override;
+	int GetNextSourceFrame() const override { return m_iNextSourceFrame; }
+	float GetStreamToSourceRatio() const override { return m_fCurrentStreamToSourceRatio; }
+	RString GetError() const override { return ""; }
 
 	void AddSound( RageSoundReader *pSound );
 

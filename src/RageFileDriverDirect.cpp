@@ -29,14 +29,14 @@
 static struct FileDriverEntry_DIR: public FileDriverEntry
 {
 	FileDriverEntry_DIR(): FileDriverEntry( "DIR" ) { }
-	RageFileDriver *Create( const RString &sRoot ) const { return new RageFileDriverDirect( sRoot ); }
+	RageFileDriver *Create( const RString &sRoot ) const override { return new RageFileDriverDirect( sRoot ); }
 } const g_RegisterDriver;
 
 /* Direct read-only filesystem access: */
 static struct FileDriverEntry_DIRRO: public FileDriverEntry
 {
 	FileDriverEntry_DIRRO(): FileDriverEntry( "DIRRO" ) { }
-	RageFileDriver *Create( const RString &sRoot ) const { return new RageFileDriverDirectReadOnly( sRoot ); }
+	RageFileDriver *Create( const RString &sRoot ) const override { return new RageFileDriverDirectReadOnly( sRoot ); }
 } const g_RegisterDriver2;
 
 RageFileDriverDirect::RageFileDriverDirect( const RString &sRoot ):
@@ -364,7 +364,7 @@ RageFileObjDirect::~RageFileObjDirect()
 		// Success.
 		return;
 #endif
-	} while(0);
+	} while(false);
 
 	// The write or the rename failed. Delete the incomplete temporary file.
 	DoRemove( MakeTempFilename(m_sPath) );

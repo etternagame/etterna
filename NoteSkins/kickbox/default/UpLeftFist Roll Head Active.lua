@@ -1,4 +1,6 @@
 return Def.Sprite {
 	Texture=NOTESKIN:GetPath('UpRightFist','Roll Head Active');
-	InitCommand=cmd(basezoomx,-1);
+	InitCommand=function(self)
+		self:basezoomx(-1)
+	end;
 };

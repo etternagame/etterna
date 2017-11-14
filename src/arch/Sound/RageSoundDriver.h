@@ -23,7 +23,7 @@ public:
 	friend class RageSoundManager;
 
 	RageSoundDriver();
-	virtual ~RageSoundDriver();
+	~RageSoundDriver() override;
 
 	/* Initialize.  On failure, an error message is returned. */
 	virtual RString Init() { return RString(); }
@@ -151,10 +151,9 @@ private:
 	{
 		float m_Buffer[samples_per_block];
 		float *m_BufferNext; // beginning of the unread data
-		int m_FramesInBuffer; // total number of frames at m_BufferNext
+		int m_FramesInBuffer{0}; // total number of frames at m_BufferNext
 		int64_t m_iPosition; // stream frame of m_BufferNext
-		sound_block(): m_BufferNext(m_Buffer),
-			m_FramesInBuffer(0), m_iPosition(0) {} 
+		sound_block(): m_BufferNext(m_Buffer), m_iPosition(0) {}
 	};
 
 	struct Sound

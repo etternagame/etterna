@@ -13,9 +13,9 @@
 class ColorBitmapText : public BitmapText
 {
 public:
-	void SetText( const RString &sText, const RString &sAlternateText = "", int iWrapWidthPixels = -1 );
+	void SetText( const RString &sText, const RString &sAlternateText = "", int iWrapWidthPixels = -1 ) override;
 	void ResetText();
-	void DrawPrimitives();
+	void DrawPrimitives() override;
 	int lines=0;
 	void SetMaxLines(int iNumLines, int iDirection, unsigned int &scroll);
 	void SetMaxLines( int iLines, bool bCutBottom = true );	//if bCutBottom = false then, it will crop the top
@@ -34,11 +34,11 @@ protected:
 class ScreenNetSelectBase : public ScreenWithMenuElements
 {
 public:
-	virtual void Init();
+	void Init() override;
 
-	bool Input( const InputEventPlus &input );
-	virtual void HandleScreenMessage( const ScreenMessage SM );
-	virtual void TweenOffScreen();
+	bool Input( const InputEventPlus &input ) override;
+	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void TweenOffScreen() override;
 
 	void UpdateUsers();
 	void UpdateTextInput();
@@ -58,7 +58,7 @@ public:
 	unsigned int GetLines() { return m_textChatOutput.lines; }
 	void PasteClipboard();
 	// Lua
-	virtual void PushSelf(lua_State *L);
+	void PushSelf(lua_State *L) override;
 private:
 	//Chatting
 	ColorBitmapText		m_textChatInput;

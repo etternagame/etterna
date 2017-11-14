@@ -420,7 +420,7 @@ void CubicSpline::p_and_tfrac_from_t(float t, bool loop, size_t& p, float& tfrac
 	}
 	else
 	{
-		int flort= static_cast<int>(t);
+		auto flort= static_cast<int>(t);
 		if(flort < 0)
 		{
 			p= 0;
@@ -1018,7 +1018,7 @@ LUA_REGISTER_CLASS(CubicSplineN);
 int LuaFunc_create_spline(lua_State* L);
 int LuaFunc_create_spline(lua_State* L)
 {
-	CubicSplineN* spline= new CubicSplineN;
+	auto* spline= new CubicSplineN;
 	spline->PushSelf(L);
 	return 1;
 }

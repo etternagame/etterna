@@ -133,9 +133,9 @@ class RageCompiledGeometryNull : public RageCompiledGeometry
 {
 public:
 	
-	void Allocate( const vector<msMesh> & ) {}
-	void Change( const vector<msMesh> & ) {}
-	void Draw( int iMeshIndex ) const {}
+	void Allocate( const vector<msMesh> & ) override {}
+	void Change( const vector<msMesh> & ) override {}
+	void Draw( int iMeshIndex ) const override {}
 };
 
 RageCompiledGeometry* RageDisplay_Null::CreateCompiledGeometry()

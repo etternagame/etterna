@@ -92,7 +92,7 @@ public:
 	void FreeAllLoadedFromProfile( ProfileSlot slot = ProfileSlot_Invalid );
 
 	void InitAll( LoadingWindow *ld );	// songs, groups - everything.
-	void Reload( bool bAllowFastLoad, LoadingWindow *ld=NULL );	// songs, groups - everything.
+	void Reload( bool bAllowFastLoad, LoadingWindow *ld=nullptr );	// songs, groups - everything.
 	int DifferentialReload();
 	int DifferentialReloadDir(string dir);
 	void PreloadSongImages();
