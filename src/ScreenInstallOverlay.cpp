@@ -131,11 +131,10 @@ void ScreenInstallOverlay::Update(float fDeltaTime)
 	}
 #if !defined(WITHOUT_NETWORKING)
 	DLMAN->UpdateAndIsFinished(fDeltaTime);
-	vector<Download*>& dls = DLMAN->downloads;
 	vector<RString> vsMessages;
-	for(auto &dl : dls)
+	for(auto &dl : DLMAN->downloads)
 	{
-		vsMessages.push_back(dl->Status());
+		vsMessages.push_back(dl.second->Status());
 	}
 	m_textStatus.SetText(join("\n", vsMessages));
 
