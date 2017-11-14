@@ -214,6 +214,7 @@ public:
 
 	XNode* CreateNode() const;
 	void LoadFromNode( const XNode* pNode );
+	void LoadFromString(const char * dir);
 	void FromString( RString _sDir ) { sDir = _sDir; }
 	RString ToString() const;
 	bool IsValid() const;

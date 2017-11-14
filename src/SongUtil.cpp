@@ -1036,9 +1036,15 @@ void SongID::LoadFromNode( const XNode* pNode )
 	m_Cache.Unset();
 }
 
+void SongID::LoadFromString(const char * dir)
+{
+	sDir = dir;
+	m_Cache.Unset();
+}
+
 RString SongID::ToString() const
 {
-	return sDir;
+	return (sDir.empty() ? RString() : sDir);
 }
 
 bool SongID::IsValid() const

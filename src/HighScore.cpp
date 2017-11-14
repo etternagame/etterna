@@ -715,8 +715,10 @@ float HighScore::GetJudgeScale() const { return m_Impl->fJudgeScale; }
 bool HighScore::GetChordCohesion() const {
 	return !m_Impl->bNoChordCohesion;  }
 bool HighScore::GetEtternaValid() const { return m_Impl->bEtternaValid; }
-vector<float> HighScore::GetOffsetVector() const { return m_Impl->vOffsetVector; }
-vector<int> HighScore::GetNoteRowVector() const { return m_Impl->vNoteRowVector; }
+vector<float> HighScore::GetCopyOfOffsetVector() const { return m_Impl->vOffsetVector; }
+vector<int> HighScore::GetCopyOfNoteRowVector() const { return m_Impl->vNoteRowVector; }
+const vector<float>& HighScore::GetOffsetVector() const { return m_Impl->vOffsetVector; }
+const vector<int>& HighScore::GetNoteRowVector() const { return m_Impl->vNoteRowVector; }
 string HighScore::GetScoreKey() const { return m_Impl->ScoreKey; }
 float HighScore::GetSurviveSeconds() const { return m_Impl->fSurviveSeconds; }
 float HighScore::GetSurvivalSeconds() const { return GetSurviveSeconds() + GetLifeRemainingSeconds(); }
@@ -745,6 +747,7 @@ void HighScore::SetWifeScore(float f) {m_Impl->fWifeScore = f;}
 void HighScore::SetWifePoints(float f) { m_Impl->fWifePoints= f; }
 void HighScore::SetSSRNormPercent(float f) { m_Impl->fSSRNormPercent = f; }
 void HighScore::SetMusicRate(float f) { m_Impl->fMusicRate = f; }
+void HighScore::SetSurviveSeconds(float f) { m_Impl->fSurviveSeconds = f; }
 void HighScore::SetJudgeScale(float f) { m_Impl->fJudgeScale = f; }
 void HighScore::SetChordCohesion(bool b) { m_Impl->bNoChordCohesion = b; }
 void HighScore::SetEtternaValid(bool b) { m_Impl->bEtternaValid = b; }
@@ -762,6 +765,7 @@ void HighScore::SetTapNoteScore( TapNoteScore tns, int i ) { m_Impl->iTapNoteSco
 void HighScore::SetHoldNoteScore( HoldNoteScore hns, int i ) { m_Impl->iHoldNoteScores[hns] = i; }
 void HighScore::SetSkillsetSSR(Skillset ss, float ssr) { m_Impl->fSkillsetSSRs[ss] = ssr; }
 void HighScore::SetValidationKey(ValidationKey vk, string k) { m_Impl->ValidationKeys[vk] = k; }
+string HighScore::GetValidationKey(ValidationKey vk) const { return m_Impl->ValidationKeys[vk]; }
 void HighScore::SetRadarValues( const RadarValues &rv ) { m_Impl->radarValues = rv; }
 void HighScore::SetLifeRemainingSeconds( float f ) { m_Impl->fLifeRemainingSeconds = f; }
 void HighScore::SetDisqualified( bool b ) { m_Impl->bDisqualified = b; }
@@ -1126,12 +1130,13 @@ vector<int> HighScore::GetRescoreJudgeVector(int x) {
 	return m_Impl->vRescoreJudgeVector;
 }
 
-Grade HighScore::GetWifeGrade() {
+Grade HighScore::GetWifeGrade() const {
 	return m_Impl->GetWifeGrade();
 }
 
 bool HighScore::WriteReplayData() {
-	return m_Impl->WriteReplayData();
+	return DBProfile::WriteReplayData(this);
+	//return m_Impl->WriteReplayData();
 }
 
 // Ok I guess we can be more lenient and convert by midwindow values, but we still have to assume j4 - mina

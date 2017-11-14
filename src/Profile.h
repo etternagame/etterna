@@ -12,6 +12,8 @@
 #include "StepsUtil.h"	// for StepsID
 #include "StyleUtil.h"	// for StyleID
 #include "LuaReference.h"
+#include "XMLProfile.h"
+#include "DBProfile.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 
 #include <unordered_map>
@@ -197,7 +199,7 @@ public:
 
 	// General data
 	static RString MakeGuid();
-
+	RString* GetGuid() { return &m_sGuid; }
 	RString m_sGuid;
 	map<RString,RString> m_sDefaultModifiers;
 	SortOrder m_SortOrder{SortOrder_Invalid};
@@ -258,14 +260,6 @@ public:
 	set<string> FavoritedCharts;
 	set<string> PermaMirrorCharts;
 
-	XNode* SaveFavoritesCreateNode() const;
-	XNode* SavePermaMirrorCreateNode() const;
-	XNode* SaveScoreGoalsCreateNode() const;
-	XNode* SavePlaylistsCreateNode() const;
-	void LoadFavoritesFromNode(const XNode *pNode);
-	void LoadPermaMirrorFromNode(const XNode *pNode);
-	void LoadScoreGoalsFromNode(const XNode *pNode);
-	void LoadPlaylistsFromNode(const XNode *pNode);
 
 	// more future goalman stuff -mina
 	void CreateGoal(const string& ck);
@@ -351,44 +345,17 @@ public:
 	bool SaveAllToDir( const RString &sDir, bool bSignData ) const;
 
 	ProfileLoadResult LoadEditableDataFromDir( const RString &sDir );
-	ProfileLoadResult LoadStatsXmlFromNode( const XNode* pNode, bool bIgnoreEditable = true );
 
-	void LoadGeneralDataFromNode( const XNode* pNode );
-	void LoadSongScoresFromNode( const XNode* pNode );
-	void LoadCategoryScoresFromNode( const XNode* pNode );
-	void LoadScreenshotDataFromNode( const XNode* pNode );
+
+	void ImportScoresToEtterna();
 
 	void SaveTypeToDir(const RString &dir) const;
 	void SaveEditableDataToDir( const RString &sDir ) const;
-	bool SaveStatsXmlToDir( RString sDir, bool bSignData ) const;
-	
-	XNode* SaveStatsXmlCreateNode() const;
-	
-	XNode* SaveGeneralDataCreateNode() const;
-	XNode* SaveSongScoresCreateNode() const;
 
-	XNode* SaveCategoryScoresCreateNode() const;
-	XNode* SaveScreenshotDataCreateNode() const;
-
-	XNode* SaveCoinDataCreateNode() const;
-
-	// Etterna profile
-	ProfileLoadResult LoadEttFromDir(RString dir);
-	ProfileLoadResult LoadEttXmlFromNode(const XNode* pNode);
-	void LoadEttGeneralDataFromNode(const XNode* pNode);
-	void LoadEttScoresFromNode(const XNode* pNode);
-
-	bool SaveEttXmlToDir(RString sDir) const;
-	XNode* SaveEttGeneralDataCreateNode() const;
-	XNode* SaveEttScoresCreateNode() const;
-	XNode* SaveEttXmlCreateNode() const;
 
 	void CalculateStatsFromScores(LoadingWindow* ld);
 	void CalculateStatsFromScores();
 
-	// For converting to etterna from stats.xml
-	void LoadStatsXmlForConversion();
-	void ImportScoresToEtterna();
 	
 	void SaveStatsWebPageToDir( const RString &sDir ) const;
 	void SaveMachinePublicKeyToDir( const RString &sDir ) const;
@@ -397,11 +364,14 @@ public:
 	static RString MakeUniqueFileNameNoExtension( const RString &sDir, const RString &sFileNameBeginning );
 	static RString MakeFileNameNoExtension( const RString &sFileNameBeginning, int iIndex );
 
+
 	// Lua
 	void PushSelf( lua_State *L );
 
 private:
 	const HighScoresForASong *GetHighScoresForASong( const SongID& songID ) const;
+	XMLProfile XMLProf;
+	DBProfile DBProf;
 };
 
 

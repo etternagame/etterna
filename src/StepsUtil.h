@@ -201,6 +201,8 @@ public:
 	StepsType GetStepsType() const { return st; }
 	Difficulty GetDifficulty() const { return dc; }
 	RString GetKey() const { return ck; }
+	RString GetDescription() const { return (dc == Difficulty_Edit ? sDescription : RString()); }
+	unsigned GetHash() const { return uHash; }
 };
 
 #endif

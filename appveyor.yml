@@ -8,9 +8,11 @@ clone_folder: C:\etterna
 
 install:
 - cmd: choco install nsis
+- cmd: git submodule update --init --recursive
 
 before_build:
 - cmd: >-
+    
     mkdir build && cd build
 
     "C:\Program Files (x86)\cmake\bin\cmake" .. -G "Visual Studio 14 2015"
