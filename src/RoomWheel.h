@@ -7,25 +7,43 @@
 #include "WheelItemBase.h"
 #include "ThemeMetric.h"
 
+class RoomData {
+public:
+	void SetName(const std::string& name) { m_name = name; }
+	void SetDescription(const std::string& desc) { m_description = desc; }
+	void SetState(unsigned int state) { m_state = state; }
+	void SetFlags(unsigned int iFlags) { m_iFlags = iFlags; }
+	inline std::string Name() { return m_name; }
+	inline std::string Description() { return m_description; }
+	inline unsigned int State() { return m_state; }
+	inline unsigned int GetFlags() { return m_iFlags; }
+	RoomData() { m_name=""; m_description=""; m_state=0; m_iFlags=0; }
+private:
+	std::string m_name;
+	std::string m_description;
+	unsigned int m_state;
+	unsigned int m_iFlags;
+};
+
 struct RoomWheelItemData : public WheelItemBaseData
 {
 	RoomWheelItemData() = default;
-	RoomWheelItemData( WheelItemDataType type, const RString& sTitle, const RString& sDesc, const RageColor &color ):
+	RoomWheelItemData( WheelItemDataType type, const std::string& sTitle, const std::string& sDesc, const RageColor &color ):
 		WheelItemBaseData( type, sTitle, color ), m_sDesc(sDesc), m_iFlags(0) { };
 
-	RString		m_sDesc;
+	std::string		m_sDesc;
 	unsigned int	m_iFlags{0};
 };
 
 class RoomWheelItem : public WheelItemBase
 {
 public:
-	RoomWheelItem( const RString &sType = "RoomWheelItem" );
+	RoomWheelItem( const std::string &sType = "RoomWheelItem" );
 	RoomWheelItem( const RoomWheelItem &cpy );
 
-	void Load( const RString &sType );
 	void LoadFromWheelItemData( const WheelItemBaseData* pWID, int iIndex, bool bHasFocus, int iDrawIndex ) override;
 	RoomWheelItem *Copy() const override { return new RoomWheelItem(*this); }
+	void Load( const std::string &sType );
 
 private:
 	AutoActor	m_sprNormalPart;
@@ -37,19 +55,30 @@ private:
 
 struct RoomInfo
 {
-	RString songTitle;
-	RString songSubTitle;
-	RString songArtist;
+	std::string songTitle;
+	std::string songSubTitle;
+	std::string songArtist;
 	int numPlayers;
 	int maxPlayers;
-	vector<RString> players;
+	vector<std::string> players;
 };
+
+struct RoomSearch
+{
+	std::string title;
+	std::string desc;
+	bool ingame;
+	bool password;
+	bool open;
+	RoomSearch() { ingame = password = open = true; title = desc = ""; }
+};
+
 
 class RoomWheel : public WheelBase
 {
 public:
 	~RoomWheel() override;
-	void Load( const RString &sType ) override;
+	void Load( const std::string&sType ) override;
 	virtual void BuildWheelItemsData( vector<WheelItemBaseData*> &arrayWheelItemDatas );
 	unsigned int GetNumItems() const override;
 	bool Select() override;
@@ -61,13 +90,27 @@ public:
 	int GetPerminateOffset() const { return m_offset; }
 	void AddItem( WheelItemBaseData *itemdata );
 	void RemoveItem( int index );
-	
+
+
+	void StopSearch();
+	void Search(RoomSearch findme);
+
+	void BuildFromRoomDatas();
+	void UpdateRoomsList(vector<RoomData> * m_Roomsptr);
+	void FilterBySearch();
+
 	// Lua
 	void PushSelf(lua_State *L) override;
 
 private:
 	WheelItemBase *MakeItem() override;
 	int m_offset;
+
+	vector<RoomData> * allRooms;
+	vector<RoomData> roomsInWheel;
+
+	RoomSearch currentSearch;
+	bool searching;
 };
 
 #endif
