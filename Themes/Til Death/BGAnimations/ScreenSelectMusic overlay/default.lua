@@ -22,4 +22,6 @@ t[#t+1] = LoadActor("../_mouseselect")
 t[#t+1] = LoadActor("../_halppls")
 t[#t+1] = LoadActor("currenttime")
 
+GAMESTATE:UpdateDiscordMenu(GetPlayerOrMachineProfile(PLAYER_1):GetDisplayName() .. ": " .. string.format("%5.2f", GetPlayerOrMachineProfile(PLAYER_1):GetPlayerRating()))
+
 return t

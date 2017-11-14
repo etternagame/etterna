@@ -657,6 +657,15 @@ end
 local t = Def.ActorFrame{										
 	Name = "WifePerch",
 	OnCommand=function()
+		-- Discord thingies
+		local largeImageTooltip = GetPlayerOrMachineProfile(PLAYER_1):GetDisplayName() .. ": " .. string.format("%5.2f", GetPlayerOrMachineProfile(PLAYER_1):GetPlayerRating())
+		local detail = GAMESTATE:GetCurrentSong():GetDisplayMainTitle() .. " " .. string.gsub(getCurRateDisplayString(), "Music", "") .. " [" .. GAMESTATE:GetCurrentSong():GetGroupName() .. "]"
+		-- truncated to 128 characters(discord hard limit)
+		detail = #detail < 128 and detail or string.sub(detail, 1, 124) .. "..."
+		local state = "MSD: " .. string.format("%05.2f", GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(),1))
+		local endTime = os.time() + GetPlayableTime()
+		GAMESTATE:UpdateDiscordPresence(largeImageTooltip, detail, state, endTime)
+
 		if not IsNetSMOnline() then
 			SCREENMAN:GetTopScreen():AddInputCallback(froot)
 		end
