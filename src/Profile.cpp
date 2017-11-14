@@ -803,6 +803,7 @@ void Profile::HandleStatsPrefixChange(RString dir, bool require_signature)
 	}
 }
 
+static const float ld_update = 0.02f;
 ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSignature, LoadingWindow* ld)
 {
 	LOG->Trace( "Profile::LoadAllFromDir( %s )", sDir.c_str() );
@@ -823,6 +824,34 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 
 		IsEtternaProfile = true;
 		ImportScoresToEtterna();
+	}
+
+	// move old profile specific replays to the new aggregate folder
+	RString oldreplaydir = sDir + "ReplayData/";
+
+	if (FILEMAN->IsADirectory(oldreplaydir)) {
+		vector<RString> replays;
+		GetDirListing(oldreplaydir, replays);
+
+		if (!replays.empty()) {
+			RageTimer ld_timer;
+			if (ld) {
+				ld_timer.Touch();
+				ld->SetIndeterminate(false);
+				ld->SetTotalWork(replays.size());
+				ld->SetText("Migrating replay data to new folder...");
+			}
+			int replayindex = 0;
+			
+			for (auto r : replays) {
+				if (ld && ld_timer.Ago() > ld_update) {
+					ld_timer.Touch();
+					ld->SetProgress(replayindex);
+					++replayindex;
+				}
+				FILEMAN->Move(oldreplaydir + r, "Save/Replays/" + r);
+			}
+		}
 	}
 
 	CalculateStatsFromScores(ld);
