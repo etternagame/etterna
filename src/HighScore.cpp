@@ -1261,8 +1261,8 @@ public:
 		ADD_METHOD( ConvertDpToWife );
 		ADD_METHOD( GetWifeScore );
 		ADD_METHOD( GetWifePoints );
-		ADD_METHOD( RescoreToWifeJudge );
-		ADD_METHOD( RescoreToDPJudge );
+		//ADD_METHOD( RescoreToWifeJudge );
+		//ADD_METHOD( RescoreToDPJudge );
 		ADD_METHOD( RescoreJudges );
 		ADD_METHOD( GetSkillsetSSR );
 		ADD_METHOD( GetMusicRate );
