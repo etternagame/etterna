@@ -17,6 +17,7 @@
 #include "Font.h"
 #include "RageDisplay.h"
 #include "PlayerState.h"
+#include "arch/ArchHooks/ArchHooks.h"
 
 #define CHAT_TEXT_OUTPUT_WIDTH		THEME->GetMetricF(m_sName,"ChatTextOutputWidth")
 #define CHAT_TEXT_INPUT_WIDTH		THEME->GetMetricF(m_sName,"ChatTextInputWidth")
@@ -91,8 +92,15 @@ bool ScreenNetSelectBase::Input(const InputEventPlus &input)
 	
 	//If holding control skip chatbox input
 	//This allows lua input bindings to work on regular keys+control
-	if(bHoldingCtrl)
+	if(bHoldingCtrl) {
+    wchar_t ch = INPUTMAN->DeviceInputToChar(input.DeviceI, false);
+		MakeUpper(&ch, 1);
+		if (ch == 'V')
+		{
+			PasteClipboard();
+		}
 		return ScreenWithMenuElements::Input(input);
+  }
 	
 	switch(input.DeviceI.button)
 	{
@@ -130,6 +138,7 @@ bool ScreenNetSelectBase::Input(const InputEventPlus &input)
 		UpdateTextInput();
 		break;
 	default:
+
 		wchar_t c;
 		c = INPUTMAN->DeviceInputToChar(input.DeviceI, true);
 
@@ -180,7 +189,13 @@ void ScreenNetSelectBase::TweenOffScreen()
 
 void ScreenNetSelectBase::UpdateTextInput()
 {
-	m_textChatInput.SetText( m_sTextInput );  
+	m_textChatInput.SetText(m_sTextInput);
+}
+
+void ScreenNetSelectBase::PasteClipboard()
+{
+	m_sTextInput.append(HOOKS->GetClipboard() );
+	UpdateTextInput();
 }
 
 void ScreenNetSelectBase::UpdateUsers()
@@ -813,6 +828,11 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 		lua_pushnumber(L, p->GetLines());
 		return 1;
 	}
+	static int PasteClipboard(T* p, lua_State *L)
+	{
+		p->PasteClipboard();
+		return 1;
+	}
 public:
 	LunaScreenNetSelectBase()
 	{
@@ -831,6 +851,7 @@ public:
 		ADD_METHOD(ShowPreviousMsg);
 		ADD_METHOD(GetChatScroll);
 		ADD_METHOD(GetChatLines);
+		ADD_METHOD(PasteClipboard);
 	}
 };
 
