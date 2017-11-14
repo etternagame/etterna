@@ -378,6 +378,11 @@ public:
 	void LoadEttGeneralDataFromNode(const XNode* pNode);
 	void LoadEttScoresFromNode(const XNode* pNode);
 
+	// Batch recalc stuff
+	ProfileLoadResult EoBatchRecalc(const RString & sDir, LoadingWindow * ld);
+	ProfileLoadResult LoadEttXmlFromNodeForBatchRecalc(const XNode * xml, RString p);
+	bool SaveEttXmlToDirForBatchRecalc(RString p) const;
+
 	bool SaveEttXmlToDir(RString sDir) const;
 	XNode* SaveEttGeneralDataCreateNode() const;
 	XNode* SaveEttScoresCreateNode() const;

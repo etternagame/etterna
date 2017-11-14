@@ -105,3 +105,4 @@ tests/*.err
 *.pch
 
 nsis_strings_temp\.inc
+BatchRecalc/*
