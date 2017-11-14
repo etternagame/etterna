@@ -125,27 +125,45 @@ local t = Def.ActorFrame{
 			active = false
 		end
 	end,
-	TabChangedMessageCommand=cmd(queuecommand,"Set"),
+	TabChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
 	
-	Def.Quad{SetCommand=cmd(xy,frameX,45;zoomto,frameWidth,frameHeight;halign,0;valign,0;diffuse,color("#333333CC"))},
-	Def.Quad{SetCommand=cmd(xy,frameX,45;zoomto,frameWidth,offsetY;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,0.5)},
+	Def.Quad{SetCommand=function(self)
+			self:xy(frameX,45):zoomto(frameWidth,frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
+		end,
+	},
+	Def.Quad{SetCommand=function(self)
+			self:xy(frameX,45):zoomto(frameWidth,offsetY):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(0.5)
+		end,
+	},
 	
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+225,frameY-200;zoom,0.4;maxwidth,700),
+		InitCommand=function(self)
+			self:xy(frameX+225,frameY-200):zoom(0.4):maxwidth(700)
+		end,
 		SetCommand=function(self) 
 			self:settext(searchtitle)
 		end,
-		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+		UpdateStringMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+20,frameY-200;zoom,0.4;halign,0),
+		InitCommand=function(self)
+			self:xy(frameX+20,frameY-200):zoom(0.4):halign(0)
+		end,
 		SetCommand=function(self) 
 			self:settext("Title: ")
 		end,
-		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+		UpdateStringMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	Def.Quad{
-		InitCommand=cmd(xy,frameX+225,frameY-200;zoomto,300,25;diffuse,getMainColor('frames');diffusealpha,0.55),
+		InitCommand=function(self)
+			self:xy(frameX+225,frameY-200):zoomto(300,25):diffuse(getMainColor('frames')):diffusealpha(0.55)
+		end,
 		SetCommand=function(self)
 			if 1 == inputting then
 				self:diffusealpha(0.25)
@@ -153,7 +171,9 @@ local t = Def.ActorFrame{
 				self:diffusealpha(0.55)
 			end
 		end,
-		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+		UpdateStringMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		MouseLeftClicksMessageCommand=function(self)
 			if isOver(self) and active then
 				inputting = 1
@@ -162,21 +182,31 @@ local t = Def.ActorFrame{
 		end
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+225,frameY-150;zoom,0.4;maxwidth,700),
+		InitCommand=function(self)
+			self:xy(frameX+225,frameY-150):zoom(0.4):maxwidth(700)
+		end,
 		SetCommand=function(self) 
 			self:settext(searchdesc)
 		end,
-		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+		UpdateStringMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+20,frameY-150;zoom,0.4;halign,0),
+		InitCommand=function(self)
+			self:xy(frameX+20,frameY-150):zoom(0.4):halign(0)
+		end,
 		SetCommand=function(self) 
 			self:settext("Desc: ")
 		end,
-		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+		UpdateStringMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	Def.Quad{
-		InitCommand=cmd(xy,frameX+225,frameY-150;zoomto,300,25;diffuse,getMainColor('frames');diffusealpha,0.55),
+		InitCommand=function(self)
+			self:xy(frameX+225,frameY-150):zoomto(300,25):diffuse(getMainColor('frames')):diffusealpha(0.55)
+		end,
 		SetCommand=function(self)
 			if 2 == inputting then
 				self:diffusealpha(0.25)
@@ -184,7 +214,9 @@ local t = Def.ActorFrame{
 				self:diffusealpha(0.55)
 			end
 		end,
-		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+		UpdateStringMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		MouseLeftClicksMessageCommand=function(self)
 			if isOver(self) and active then
 				inputting = 2
@@ -193,14 +225,20 @@ local t = Def.ActorFrame{
 		end
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+20,frameY-50;zoom,0.4;halign,0),
-		SetCommand=function(self) 
-			self:settext("Ingame")
+		InitCommand=function(self)
+			self:xy(frameX+20,frameY-50):zoom(0.4):halign(0)
 		end,
-		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+		SetCommand=function(self) 
+			self:settext("Open")
+		end,
+		UpdateStringMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	Def.Quad{
-		InitCommand=cmd(xy,frameX+50,frameY;zoomto,25,25;diffuse,getMainColor('positive');diffusealpha,0.35),
+		InitCommand=function(self)
+			self:xy(frameX+50,frameY):zoomto(25,25):diffuse(getMainColor('positive')):diffusealpha(0.35)
+		end,
 		SetCommand=function(self)
 			if searchingame then
 				self:diffuse(getMainColor('positive'))
@@ -208,7 +246,9 @@ local t = Def.ActorFrame{
 				self:diffuse(getMainColor('negative'))
 			end
 		end,
-		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+		UpdateStringMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		MouseLeftClicksMessageCommand=function(self)
 			if isOver(self) and active then
 				searchingame = not searchingame
@@ -218,14 +258,20 @@ local t = Def.ActorFrame{
 		end
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+frameWidth/2-50,frameY-50;zoom,0.4;halign,0),
+		InitCommand=function(self)
+			self:xy(frameX+frameWidth/2-50,frameY-50):zoom(0.4):halign(0)
+		end,
 		SetCommand=function(self) 
 			self:settext("Password")
 		end,
-		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+		UpdateStringMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	Def.Quad{
-		InitCommand=cmd(xy,frameX+frameWidth/2-12,frameY;zoomto,25,25;diffuse,getMainColor('positive');diffusealpha,0.35),
+		InitCommand=function(self)
+			self:xy(frameX+frameWidth/2-12,frameY):zoomto(25,25):diffuse(getMainColor('positive')):diffusealpha(0.35)
+		end,
 		SetCommand=function(self)
 			if searchpassword then
 				self:diffuse(getMainColor('positive'))
@@ -233,7 +279,9 @@ local t = Def.ActorFrame{
 				self:diffuse(getMainColor('negative'))
 			end
 		end,
-		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+		UpdateStringMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		MouseLeftClicksMessageCommand=function(self)
 			if isOver(self) and active then
 				searchpassword = not searchpassword
@@ -243,14 +291,20 @@ local t = Def.ActorFrame{
 		end
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+frameWidth-100,frameY-50;zoom,0.4;halign,0),
-		SetCommand=function(self) 
-			self:settext("Open")
+		InitCommand=function(self)
+			self:xy(frameX+frameWidth-100,frameY-50):zoom(0.4):halign(0)
 		end,
-		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+		SetCommand=function(self) 
+			self:settext("Ingame")
+		end,
+		UpdateStringMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	Def.Quad{
-		InitCommand=cmd(xy,frameX+frameWidth-80,frameY;zoomto,25,25;diffuse,getMainColor('positive');diffusealpha,0.35),
+		InitCommand=function(self)
+			self:xy(frameX+frameWidth-80,frameY):zoomto(25,25):diffuse(getMainColor('positive')):diffusealpha(0.35)
+		end,
 		SetCommand=function(self)
 			if searchopen then
 				self:diffuse(getMainColor('positive'))
@@ -258,7 +312,9 @@ local t = Def.ActorFrame{
 				self:diffuse(getMainColor('negative'))
 			end
 		end,
-		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+		UpdateStringMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		MouseLeftClicksMessageCommand=function(self)
 			if isOver(self) and active then
 				searchopen = not searchopen
@@ -268,14 +324,20 @@ local t = Def.ActorFrame{
 		end
 	},
 	LoadFont("Common Normal")..{
-		InitCommand=cmd(xy,frameX+20,frameY+70;zoom,0.5;halign,0),
+		InitCommand=function(self)
+			self:xy(frameX+20,frameY+70):zoom(0.5):halign(0)
+		end,
 		SetCommand=function(self) 
 			self:settext("Currently supports standard english alphabet only.")
 		end,
-		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+		UpdateStringMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	
-	LoadFont("Common Normal")..{InitCommand=cmd(xy,frameX+5,offsetY+36;zoom,0.6;halign,0;diffuse,getMainColor('positive');settext,"Search")
+	LoadFont("Common Normal")..{InitCommand=function(self)
+		self:xy(frameX+5,offsetY+36):zoom(0.6):halign(0):diffuse(getMainColor('positive')):settext("Search")
+	end
 	}
 
 }
