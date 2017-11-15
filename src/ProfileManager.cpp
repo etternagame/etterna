@@ -67,7 +67,8 @@ static ThemeMetric<int>		NUM_FIXED_PROFILES	( "ProfileManager", "NumFixedProfile
 
 ProfileManager::ProfileManager()
 	:m_stats_prefix("")
-{
+{
+
 	// Register with Lua.
 	{
 		Lua *L = LUA->Get();
@@ -870,6 +871,7 @@ public:
 			lua_pushboolean(L, false);
 		else
 			lua_pushboolean(L, DLMAN->UploadProfile(profileUploadURL, prof->profiledir + "Etterna.xml", user, pass)==0);
+		return 1;
 	}
 	LunaProfileManager()
 	{
