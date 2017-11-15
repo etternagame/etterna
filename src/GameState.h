@@ -202,7 +202,7 @@ public:
 
 	static int GetNumStagesMultiplierForSong( const Song* pSong );
 	static int GetNumStagesForSongAndStyleType( const Song* pSong, StyleType st );
-	int GetNumStagesForCurrentSongAndStepsOrCourse() const;
+	int GetNumStagesForCurrentSongAndStepsOrCourse() const;
 
 	void		BeginStage();
 	void		CancelStage();
@@ -212,9 +212,9 @@ public:
 	RString		GetPlayerDisplayName( PlayerNumber pn ) const;
 
 	bool		m_bLoadingNextSong;
-	int		GetLoadingCourseSongIndex() const;
+	int		GetLoadingCourseSongIndex() const;
 
-	RString GetEtternaVersion() { return "0.55.3"; }
+	RString GetEtternaVersion() { return "0.56.2-Experimental"; }
 	bool isplaylistcourse = false;
 	bool IsPlaylistCourse() { return isplaylistcourse; }
 	bool CountNotesSeparately();

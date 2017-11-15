@@ -117,6 +117,8 @@ public:
 	// workout
 	float		m_iNumControllerSteps;
 
+	bool filehadnegbpms; // the call after gameplay is over is apparently unreliable -mina
+
 	map<float,float> m_fLifeRecord;
 	void	SetLifeRecordAt( float fLife, float fStepsSecond );
 	void	GetLifeRecord( float *fLifeOut, int iNumSamples, float fStepsEndSecond ) const;

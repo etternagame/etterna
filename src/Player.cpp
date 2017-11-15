@@ -615,6 +615,9 @@ void Player::Load()
 	const vector<float>& etaner = m_Timing->BuildAndGetEtaner(nerv);
 	m_pPlayerStageStats->serializednd = m_NoteData.SerializeNoteData(etaner);
 	m_NoteData.UnsetSerializedNoteData();
+
+	if (m_Timing->HasWarps())
+		m_pPlayerStageStats->filehadnegbpms = true;
 	
 
 	Profile *pProfile = PROFILEMAN->GetProfile(pn);
@@ -2004,7 +2007,7 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 					else if( fSecondsFromExact <= GetWindowSeconds(TW_W2) )	score = TNS_W2;
 					else if( fSecondsFromExact <= GetWindowSeconds(TW_W3) )	score = TNS_W3;
 					else if( fSecondsFromExact <= GetWindowSeconds(TW_W4) )	score = TNS_W4;
-					else if( fSecondsFromExact <= GetWindowSeconds(TW_W5) )	score = TNS_W5;
+					else if( fSecondsFromExact <= max(GetWindowSeconds(TW_W5), 0.18f) )	score = TNS_W5;
 				}
 				break;
 			}
@@ -2849,7 +2852,11 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 			curwifescore -= 8.f;
 
 		if (m_pPlayerStageStats) {
-			msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
+			if(maxwifescore == 0.f)
+				msg.SetParam("WifePercent", 0);
+			else
+				msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
+			
 			msg.SetParam("CurWifeScore", curwifescore);
 			msg.SetParam("MaxWifeScore", maxwifescore);
 			msg.SetParam("WifeDifferential", curwifescore - maxwifescore * m_pPlayerState->playertargetgoal);

@@ -2133,6 +2133,8 @@ XNode* Profile::SaveEttScoresCreateNode() const {
 
 	const Profile* pProfile = this;
 	ASSERT(pProfile != NULL);
+
+	SCOREMAN->SetAllTopScores();
 	XNode* pNode = SCOREMAN->CreateNode();
 	return pNode;
 }

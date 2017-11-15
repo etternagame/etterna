@@ -62,6 +62,7 @@ void PlayerStageStats::InternalInit()
 	m_iSongsPlayed = 0;
 	m_fLifeRemainingSeconds = 0;
 	m_iNumControllerSteps = 0;
+	filehadnegbpms = false;
 
 	ZERO( m_iTapNoteScores );
 	ZERO( m_iHoldNoteScores );

@@ -138,8 +138,8 @@ t[#t+1] = LoadFont("Common Large")..{
 	end,
 	SetCommand=function(self)
 		if score and update then
-			self:settext(THEME:GetString("Grade",ToEnumShortString(score:GetGrade())))
-			self:diffuse(getGradeColor(score:GetGrade()))
+			self:settext(THEME:GetString("Grade",ToEnumShortString(score:GetWifeGrade())))
+			self:diffuse(getGradeColor(score:GetWifeGrade()))
 		else
 			self:settext("")
 		end
@@ -153,7 +153,7 @@ t[#t+1] = LoadFont("Common Large")..{
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="Score",
 	InitCommand=function(self)
-		self:xy(frameX+offsetX+55,frameY+offsetY+28):zoom(0.5):halign(0)
+		self:xy(frameX+offsetX+55,frameY+offsetY+15):zoom(0.5):halign(0)
 	end,
 	SetCommand=function(self)
 		if score and update then
@@ -171,48 +171,26 @@ t[#t+1] = LoadFont("Common Normal")..{
 	end	
 }
 
--- Rescoring stuff
--- t[#t+1] = LoadFont("Common Normal")..{
-	-- Name="Score",
-	-- InitCommand=function(self)
-	-- 	self:xy(frameX+offsetX+155,frameY+offsetY+14):zoom(0.5):halign(0)
-	-- end,
-	-- SetCommand=function(self)
-		-- if score and update then
-			-- if score:GetWifeScore() == 0 then 
-				-- self:settextf("NA (%s)", "Wife")
-			-- else
-				-- self:settextf("%05.2f%% (%s)", notShit.floor(score:RescoreToWifeJudge(4)*10000)/100, "Wife J4")
-			-- end
-		-- else
-			-- self:settextf("00.00%% (%s)", "Wife")
-		-- end
-	-- end,
-	-- ScoreUpdateMessageCommand=function(self)
-	-- 	self:queuecommand("Set")
-	-- end	
--- }
-
--- t[#t+1] = LoadFont("Common Normal")..{
-	-- Name="Score",
-	-- InitCommand=function(self)
-	-- 	self:xy(frameX+offsetX+155,frameY+offsetY+58):zoom(0.5):halign(0)
-	-- end,
-	-- SetCommand=function(self)
-		-- if score and update then
-			-- if score:GetWifeScore() == 0 then 
-				-- self:settext("")
-			-- else
-				-- self:settextf("%5.2f", score:GetSkillsetSSR(5))
-			-- end
-		-- else
-			-- self:settext("")
-		-- end
-	-- end,
-	-- ScoreUpdateMessageCommand=function(self)
-	-- 	self:queuecommand("Set")
-	-- end	
--- }
+t[#t+1] = LoadFont("Common Normal")..{
+	Name="Score",
+	InitCommand=function(self)
+		self:xy(frameX+offsetX+55,frameY+offsetY+33):zoom(0.5):halign(0)
+	end,
+	SetCommand=function(self)
+		if score and update then
+			if score:GetWifeScore() == 0 then 
+				self:settext("")
+			else
+				self:settextf("Highest SSR: %5.2f", score:GetSkillsetSSR("Overall"))
+			end
+		else
+			self:settext("")
+		end
+	end,
+	ScoreUpdateMessageCommand=function(self)
+		self:queuecommand("Set")
+	end	
+}
 
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="ClearType",

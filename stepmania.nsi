@@ -43,7 +43,7 @@
 
 	; don't forget to change this before releasing a new version.
 	; wish this could be automated, but it requires "X.Y.Z.a" format. -aj
-	VIProductVersion "0.55.3.0"
+	VIProductVersion "0.56.2.0"
 	VIAddVersionKey "ProductName" "${PRODUCT_ID}"
 	VIAddVersionKey "FileVersion" "${PRODUCT_VER}"
 	VIAddVersionKey "FileDescription" "${PRODUCT_ID} Installer"
@@ -874,9 +874,6 @@ Section "Uninstall"
 
 	Delete "$INSTDIR\Themes\instructions.txt"
 	RMDir /r "$INSTDIR\Themes\_fallback"
-
-	; comment out forced cache deletion until we can make it optional -mina
-	;RMDir /r "$INSTDIR\Cache"
 
 	RMDir /r "$INSTDIR\Themes\_portKit-sm4"
 	RMDir /r "$INSTDIR\Themes\default"

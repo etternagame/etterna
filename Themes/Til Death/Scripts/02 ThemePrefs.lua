@@ -313,6 +313,34 @@ function CustomizeGameplay()
 	return t
 end
 
+function CustomEvalWindows()
+	local t = {
+		Name = "CustomEvalWindows",
+		LayoutType = "ShowAllInRow",
+		SelectType = "SelectOne",
+		OneChoiceForAllPlayers = false,
+		ExportOnChange = true,
+		Choices = { THEME:GetString('OptionNames','Off'),'On'},
+		LoadSelections = function(self, list, pn)
+			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).CustomEvaluationWindowTimings
+			if pref then
+				list[2] = true
+			else
+				list[1] = true
+			end
+		end,
+		SaveSelections = function(self, list, pn)
+			local value
+			value = list[2]
+			playerConfig:get_data(pn_to_profile_slot(pn)).CustomEvaluationWindowTimings = value
+			playerConfig:set_dirty(pn_to_profile_slot(pn))
+			playerConfig:save(pn_to_profile_slot(pn))
+		end,
+	}
+	setmetatable( t, t )
+	return t
+end
+
 function ErrorBar()
 	local t = {
 		Name = "ErrorBar",
