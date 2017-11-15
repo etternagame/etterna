@@ -80,6 +80,18 @@ const vector<HighScore*> ScoresAtRate::GetScores() const {
 }
 */
 
+void ScoreManager::PurgeScores() {
+	TopSSRs.clear();
+	TopSSRs.shrink_to_fit();
+
+	AllScores.clear();
+	AllScores.shrink_to_fit();
+
+	ScoresByKey.clear();
+
+	pscores.clear();
+}
+
 void ScoreManager::RatingOverTime() {
 	auto compdate = [](HighScore* a, HighScore* b) { return (a->GetDateTime() < b->GetDateTime()); };
 
@@ -331,7 +343,7 @@ void ScoreManager::CalcPlayerRating(float& prating, float* pskillsets) {
 	vector<float> skillz;
 	FOREACH_ENUM(Skillset, ss) {
 		// actually skip overall, and jack stamina for now
-		if (ss == Skill_Overall || ss == Skill_JackStamina)
+		if (ss == Skill_Overall)
 			continue;
 
 		SortTopSSRPtrs(ss);
@@ -343,8 +355,8 @@ void ScoreManager::CalcPlayerRating(float& prating, float* pskillsets) {
 	sort(skillz.begin(), skillz.end());
 
 	float skillsetsum = 0.f;
-	for (auto& n : skillz)
-		skillsetsum += n;
+	for (size_t i = 1; i < skillz.size(); ++i)	// drop the lowest skillset
+		skillsetsum += skillz[i];
 
 	prating = skillsetsum / 6.f;
 }

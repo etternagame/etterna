@@ -618,9 +618,6 @@ bool HighScore::LoadReplayData() {
 	if (m_Impl->vNoteRowVector.size() > 4 && m_Impl->vOffsetVector.size() > 4)
 		return true;
 
-	// disable until presumed race condition crash is resolved -mina
-	return false;
-
 	string profiledir;
 	vector<int> vNoteRowVector;
 	vector<float> vOffsetVector;
@@ -643,7 +640,7 @@ bool HighScore::LoadReplayData() {
 	//loop until eof
 	while (getline(fileStream, line))
 	{
-		ss.str(line);
+		ss = stringstream(line);
 		//split line into tokens
 		while (ss >> buffer)
 			tokens.emplace_back(buffer);
@@ -669,8 +666,7 @@ bool HighScore::LoadReplayData() {
 }
 
 bool HighScore::HasReplayData() {
-	string profiledir = PROFILEMAN->GetProfileDir(ProfileSlot_Player1).substr(1);
-	string path = profiledir + "ReplayData/" + m_Impl->ScoreKey;
+	string path = REPLAY_DIR + m_Impl->ScoreKey;
 	return DoesFileExist(path);
 }
 
@@ -1261,8 +1257,8 @@ public:
 		ADD_METHOD( ConvertDpToWife );
 		ADD_METHOD( GetWifeScore );
 		ADD_METHOD( GetWifePoints );
-		ADD_METHOD( RescoreToWifeJudge );
-		ADD_METHOD( RescoreToDPJudge );
+		//ADD_METHOD( RescoreToWifeJudge );
+		//ADD_METHOD( RescoreToDPJudge );
 		ADD_METHOD( RescoreJudges );
 		ADD_METHOD( GetSkillsetSSR );
 		ADD_METHOD( GetMusicRate );

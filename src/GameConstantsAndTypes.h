@@ -28,7 +28,7 @@ enum Skillset {
 	Skill_Handstream,
 	Skill_Stamina,
 	Skill_JackSpeed,
-	Skill_JackStamina,
+	Skill_Chordjack,
 	Skill_Technical,
 	NUM_Skillset,
 	Skillset_Invalid,

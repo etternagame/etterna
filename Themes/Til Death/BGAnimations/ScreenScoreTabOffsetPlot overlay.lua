@@ -7,7 +7,7 @@ local plotWidth, plotHeight = SCREEN_WIDTH,SCREEN_WIDTH*0.3
 local plotX, plotY = SCREEN_CENTER_X, SCREEN_CENTER_Y
 local dotDims, plotMargin = 2, 4
 local judge = GetTimingDifficulty()
-local maxOffset = 180*tst[judge]
+local maxOffset = math.max(180, 180*tst[judge])
 
 local o = Def.ActorFrame{
 	InitCommand=function(self)
@@ -22,7 +22,7 @@ local o = Def.ActorFrame{
 		elseif params.Name == "NextJudge" and judge < 9 then
 			judge = judge + 1
 		end
-		maxOffset = 180*tst[judge]
+		maxOffset = math.max(180, 180*tst[judge])	
 		MESSAGEMAN:Broadcast("JudgeDisplayChanged")
 	end
 }
@@ -42,9 +42,11 @@ end
 
 local function plotOffset(nr,dv)
 	if dv == 1000 then 	-- 1000 denotes a miss for which we use a different marker
-		return Def.Quad{InitCommand=function(self)
-			self:xy(fitX(nr),fitY(tst[judge]*184)):zoomto(dotDims,dotDims):diffuse(offsetToJudgeColor(dv/1000)):valign(0)
-		end}
+		return Def.Quad{
+			InitCommand=function(self)
+				self:xy(fitX(nr),fitY(math.max(184, tst[judge]*184))):zoomto(dotDims,dotDims):diffuse(offsetToJudgeColor(dv/1000)):valign(0)
+			end
+		}
 	end
 	return Def.Quad{
 		InitCommand=function(self)
@@ -53,7 +55,7 @@ local function plotOffset(nr,dv)
 		JudgeDisplayChangedMessageCommand=function(self)
 			local pos = fitY(dv)
 			if math.abs(pos) > plotHeight/2 then
-				self:y(fitY(tst[judge]*184))
+				self:y(fitY(math.max(184, tst[judge]*184)))
 			else
 				self:y(pos)
 			end
