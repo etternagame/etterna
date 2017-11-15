@@ -75,6 +75,23 @@ t[#t+1] = Def.ActorFrame{
 	},
 	LoadFont("Common Normal") .. {
 		InitCommand=function(self)
+			self:xy(AvatarX+53,AvatarY+7):halign(0):zoom(0.6):diffuse(getMainColor('positive'))
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		SetCommand=function(self)
+			self:settextf("%s: %5.2f",profileName,playerRating)
+		end,
+		PlayerJoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		PlayerUnjoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+	},
+	LoadFont("Common Normal") .. {
+		InitCommand=function(self)
 			self:xy(AvatarX+53,AvatarY+20):halign(0):zoom(0.35):diffuse(getMainColor('positive'))
 		end,
 		BeginCommand=function(self)
