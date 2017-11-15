@@ -5,9 +5,11 @@ local whee
 
 local tabNames = {"General","MSD","Score","Search","Profile","Filters", "Goals", "Playlists", "Packs"} -- this probably should be in tabmanager.
 
+local CtrlPressed = false
+
 local function input(event)
 	if event.type ~= "InputEventType_Release" and active then
-		if numericinputactive == false and packinputactive == false then
+		if not CtrlPressed and numericinputactive == false and packinputactive == false then
 			for i=1,#tabNames do
 				if event.DeviceInput.button == "DeviceButton_"..i then
 					setTabIndex(i-1)
@@ -19,6 +21,13 @@ local function input(event)
 			MESSAGEMAN:Broadcast("MouseLeftClick")
 		elseif event.DeviceInput.button == "DeviceButton_right mouse button" then
 			MESSAGEMAN:Broadcast("MouseRightClick")
+		end
+	end
+	if event.DeviceInput.button == "DeviceButton_right ctrl" or event.DeviceInput.button == "DeviceButton_left ctrl" then
+		if event.type == "InputEventType_Release" then
+			CtrlPressed = false
+		else
+			CtrlPressed = true
 		end
 	end
 	return false

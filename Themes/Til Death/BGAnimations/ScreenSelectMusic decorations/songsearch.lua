@@ -1,5 +1,6 @@
 local searchstring = ""
-local englishes = {"?","-",".",",","1","2","3","4","5","6","7","8","9","0","a", "b", "c", "d", "e","f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",";"}
+local englishes = {"?","-",".",",","a", "b", "c", "d", "e","f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",";"}
+local numberinos = {"1","2","3","4","5","6","7","8","9","0"}
 local frameX = 10
 local frameY = 180+capWideScale(get43size(120),120)
 local active = false
@@ -33,6 +34,13 @@ local function searchInput(event)
 			for i=1,#englishes do														-- add standard characters to string
 				if event.DeviceInput.button == "DeviceButton_"..englishes[i] then
 					searchstring = searchstring..englishes[i]
+				end
+			end
+			if CtrlPressed or IsNetSMOnline() then
+				for i=1,#numberinos do														-- add standard characters to string
+					if event.DeviceInput.button == "DeviceButton_"..numberinos[i] then
+						searchstring = searchstring..numberinos[i]
+					end
 				end
 			end
 		end
