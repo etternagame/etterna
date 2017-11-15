@@ -1,11 +1,14 @@
 local active = true
 local numericinputactive = false
+local packinputactive = false
 local whee
+
+local tabNames = {"General","MSD","Score","Search","Profile","Filters", "Goals", "Playlists", "Packs"} -- this probably should be in tabmanager.
 
 local function input(event)
 	if event.type ~= "InputEventType_Release" and active then
-		if numericinputactive == false then
-			for i=1,8 do
+		if numericinputactive == false and packinputactive == false then
+			for i=1,#tabNames do
 				if event.DeviceInput.button == "DeviceButton_"..i then
 					setTabIndex(i-1)
 					MESSAGEMAN:Broadcast("TabChanged")
@@ -32,6 +35,8 @@ local t = Def.ActorFrame{
 	EndingSearchMessageCommand=function(self) active = true end,
 	NumericInputActiveMessageCommand=function(self) numericinputactive = true end,
 	NumericInputEndedMessageCommand=function(self) numericinputactive = false end,
+	DlInputActiveMessageCommand=function(self) packinputactive = true end,
+	DlInputEndedMessageCommand=function(self) packinputactive = false end,
 }
 
 -- Just for debug
@@ -52,8 +57,6 @@ t[#t+1] = LoadFont("Common Normal") .. {
 };
 --]]
 --======================================================================================
-
-local tabNames = {"General","MSD","Score","Search","Profile","Filters", "Goals", "Playlists"} -- this probably should be in tabmanager.
 
 local frameWidth = (SCREEN_WIDTH*(403/854))/(#tabNames-1)
 local frameX = frameWidth/2

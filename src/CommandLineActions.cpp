@@ -12,7 +12,7 @@
 #include "arch/Dialog/Dialog.h"
 #include "RageFileManager.h"
 #include "SpecialFiles.h"
-#include "FileDownload.h"
+
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "Preference.h"
 #include "JsonUtil.h"

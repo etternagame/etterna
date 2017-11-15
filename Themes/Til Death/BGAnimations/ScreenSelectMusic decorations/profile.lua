@@ -391,10 +391,33 @@ for i=2,#ms.SkillSets do
 end
 
 
+function easyInputStringWithParams(question, maxLength, isPassword, f, params)
+	SCREENMAN:AddNewScreenToTop("ScreenTextEntry");
+	local settings = {
+		Question = question,
+		MaxInputLength = maxLength,
+		Password = isPassword,
+		OnOK = function(answer)
+			f(answer, params)
+		end
+	};
+	SCREENMAN:GetTopScreen():Load(settings);
+end
 
+function easyInputStringWithFunction(question, maxLength, isPassword, f)
+	easyInputStringWithParams(question, maxLength, isPassword, function(answer, params) f(answer) end, {})
+end
+
+--Tables are passed by reference right? So the value is tablewithvalue to pass it by ref
+function easyInputString(question, maxLength, isPassword, tablewithvalue)
+	easyInputStringWithParams(question, maxLength, isPassword, function(answer, params) tablewithvalue.inputString=answer end, {})
+end
+
+local user
+local pass
 local profilebuttons = Def.ActorFrame{
 	InitCommand=function(self)
-		self:xy(frameX+60,frameHeight + 20)
+		self:xy(frameX+45,frameHeight + 20)
 	end,
 	UpdateRankingMessageCommand=function(self)
 		if rankingSkillset == 1 and update then
@@ -456,6 +479,33 @@ local profilebuttons = Def.ActorFrame{
 			end
 		end
 	},
+	LoadFont("Common Large") .. {
+		InitCommand=function(self)
+			self:x(300):diffuse(getMainColor('positive')):settext("Upload Profile"):zoom(0.3)
+		end,
+	},
+	Def.Quad{
+		InitCommand=function(self)
+			self:x(300):zoomto(110,20):diffusealpha(buttondiffuse)
+		end,
+		MouseLeftClickMessageCommand=function(self)
+			if ButtonActive(self) and rankingSkillset == 1 then 
+				username = function(answer) 
+						user=answer
+					end
+				password = function(answer) 
+						pass=answer
+						if PROFILEMAN:UploadProfile(PLAYER_1, user, pass) then
+							ms.ok("Uploaded profile")
+						else
+							ms.ok("Profile upload failed")
+						end
+					end
+				easyInputStringWithFunction("Password:", 50, true, password)
+				easyInputStringWithFunction("Username:",50, false, username)
+			end
+		end
+	}
 	
 }
 
