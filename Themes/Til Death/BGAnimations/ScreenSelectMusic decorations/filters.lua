@@ -14,7 +14,7 @@ local frameHeight = 350
 local offsetX = 10
 local offsetY = 20
 local activebound = 0
-for i=1,#ms.SkillSets do 
+for i=1,#ms.SkillSets+1 do 
 	SSQuery[0][i] = "0"
 	SSQuery[1][i] = "0"
 end
@@ -37,7 +37,7 @@ local function FilterInput(event)
 						SSQuery[activebound][ActiveSS] = ""
 					end
 					SSQuery[activebound][ActiveSS] = SSQuery[activebound][ActiveSS]..numbershers[i]
-					if #SSQuery[activebound][ActiveSS] > 2 then 
+					if (ActiveSS < #ms.SkillSets+1 and #SSQuery[activebound][ActiveSS] > 2) or #SSQuery[activebound][ActiveSS] > 3 then 
 						SSQuery[activebound][ActiveSS] = numbershers[i]
 					end
 				end
@@ -273,12 +273,12 @@ local function CreateFilterInputBox(i)
 				self:addx(10):addy(175 + (i-1)*spacingY):halign(0):zoom(textzoom)
 			end,
 			SetCommand=function(self)
-				self:settext( ms.SkillSets[i])
+				self:settext( i == (#ms.SkillSets+1) and "Length" or ms.SkillSets[i])
 			end	
 		},
 		Def.Quad{
 			InitCommand=function(self)
-				self:addx(150):addy(175 + (i-1)*spacingY):zoomto(18,18):halign(1)
+				self:addx(i == (#ms.SkillSets+1) and 159 or 150):addy(175 + (i-1)*spacingY):zoomto(i == (#ms.SkillSets+1) and 27 or 18,18):halign(1)
 			end,
 			MouseLeftClickMessageCommand=function(self)
 				if isOver(self) and active then
@@ -308,7 +308,7 @@ local function CreateFilterInputBox(i)
 		},
 		LoadFont("Common Large")..{
 			InitCommand=function(self)
-				self:addx(150):addy(175 + (i-1)*spacingY):halign(1):maxwidth(40):zoom(textzoom)
+				self:addx(i == (#ms.SkillSets+1) and 159 or 150):addy(175 + (i-1)*spacingY):halign(1):maxwidth(60):zoom(textzoom)
 			end,
 			SetCommand=function(self)
 				local fval = FILTERMAN:GetSSFilter(i,0)				-- lower bounds
@@ -328,7 +328,7 @@ local function CreateFilterInputBox(i)
 		},
 		Def.Quad{
 			InitCommand=function(self)
-				self:addx(175):addy(175 + (i-1)*spacingY):zoomto(18,18):halign(1)
+				self:addx(i == (#ms.SkillSets+1) and 193 or 175):addy(175 + (i-1)*spacingY):zoomto(i == (#ms.SkillSets+1) and 27 or 18,18):halign(1)
 			end,
 			MouseLeftClickMessageCommand=function(self)
 				if isOver(self) and active then
@@ -358,7 +358,7 @@ local function CreateFilterInputBox(i)
 		},
 		LoadFont("Common Large")..{
 			InitCommand=function(self)
-				self:addx(175):addy(175 + (i-1)*spacingY):halign(1):maxwidth(40):zoom(textzoom)
+				self:addx(i == (#ms.SkillSets+1) and 193 or 175):addy(175 + (i-1)*spacingY):halign(1):maxwidth(60):zoom(textzoom)
 			end,
 			SetCommand=function(self)
 				local fval = FILTERMAN:GetSSFilter(i,1)				-- upper bounds
@@ -408,8 +408,7 @@ f[#f+1] = LoadFont("Common Large") .. {
         end
     }
 
-for i=1,#ms.SkillSets do 
+for i=1,(#ms.SkillSets+1) do 
 	f[#f+1] = CreateFilterInputBox(i)
 end
-
 return f
