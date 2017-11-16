@@ -87,9 +87,16 @@ public:
 	bool gameplay{false};
 	string error{""};
 	int lastid{0};
+	string sessionCookie{ "" };
 	vector<DownloadablePack> downloadablePacks;
 	bool reloadPending{ false };
 	bool CachePackList(string url);
+	string session{ "" };
+	string sessionUser{ "" };
+	string sessionPass{ "" };
+	bool LoggedIn();
+	void EndSessionIfExists();
+	bool StartSession(string user, string pass);
 	vector<DownloadablePack>* GetPackList(string url, bool &result);
 
 	Download* DownloadAndInstallPack(const string &url);
@@ -106,6 +113,7 @@ public:
 	bool EncodeSpaces(string& str);
 
 	bool UploadProfile(string url, string file, string user, string pass);
+	bool UploadProfile(string url, string file);
 
 	// Lua
 	void PushSelf(lua_State *L);

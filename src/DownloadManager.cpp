@@ -21,6 +21,8 @@ shared_ptr<DownloadManager> DLMAN = nullptr;
 static Preference<unsigned int> maxDLPerSecond("maximumBytesDownloadedPerSecond", 0);
 static Preference<unsigned int> maxDLPerSecondGameplay("maximumBytesDownloadedPerSecondDuringGameplay", 300000);
 static Preference<RString> packListURL("packListURL", "https://etternaonline.com/api/pack_list");
+static Preference<RString> loginURL("sessionLoginURL", "https://etternaonline.com/api/login");
+static Preference<RString> destroyURL("sessionDestroyURL", "https://etternaonline.com/api/destroy");
 
 static const string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
 
@@ -324,8 +326,19 @@ string Download::MakeTempFileName(string s)
 {
 	return SpecialFiles::CACHE_DIR + "Downloads/" + Basename(s);
 }
-
+bool DownloadManager::LoggedIn()
+{
+	return !session.empty();
+}
 bool DownloadManager::UploadProfile(string url, string file, string user, string pass)
+{
+	if (user != sessionUser || pass != sessionPass)
+		if (!StartSession(user, pass))
+			return false;
+	return UploadProfile(url, file);
+}
+
+bool DownloadManager::UploadProfile(string url, string file)
 {
 	CURL *curlForm = curl_easy_init();
 
@@ -348,26 +361,135 @@ bool DownloadManager::UploadProfile(string url, string file, string user, string
 		CURLFORM_BUFFERPTR, text.c_str(),
 		CURLFORM_BUFFERLENGTH, 0,
 		CURLFORM_END);
+
+	EncodeSpaces(url);
+	curl_easy_setopt(curlForm, CURLOPT_URL, url.c_str());
+	curl_easy_setopt(curlForm, CURLOPT_POST, 1L);
+
+	curl_easy_setopt(curlForm, CURLOPT_COOKIEFILE, ""); /* start cookie engine */
+	curl_easy_setopt(curlForm, CURLOPT_COOKIE, ("ci_session=" + session + ";").c_str());
+
+	string result;
+	curl_easy_setopt(curlForm, CURLOPT_WRITEDATA, &result);
+	curl_easy_setopt(curlForm, CURLOPT_WRITEFUNCTION, write_memory_buffer);
+
+	curl_easy_setopt(curlForm, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+	curl_easy_setopt(curlForm, CURLOPT_SSL_VERIFYPEER, 0L);
+	curl_easy_setopt(curlForm, CURLOPT_SSL_VERIFYHOST, 0L);
+	curl_easy_setopt(curlForm, CURLOPT_HTTPPOST, formpost);
+
+	CURLcode ret = curl_easy_perform(curlForm);
+
+	curl_easy_cleanup(curlForm);
+	return ret==0 && result == "\"Success\"";
+}
+
+void DownloadManager::EndSessionIfExists()
+{
+	if (!LoggedIn())
+		return;
+	string url = destroyURL;
+	CURL *curl = curl_easy_init();
+	string bs;
+	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+
+	curl_easy_setopt(curl, CURLOPT_COOKIEFILE, ""); /* start cookie engine */
+	curl_easy_setopt(curl, CURLOPT_COOKIE, ("ci_session=" + session + ";").c_str());
+
+	curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &bs);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_memory_buffer);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+	curl_easy_setopt(curl, CURLOPT_COOKIE, curl_easy_escape(curl, ("ci_session=" + session + ";").c_str(), 0));
+	CURLcode ret = curl_easy_perform(curl);
+
+	curl_easy_cleanup(curl);
+}
+
+std::vector<std::string> split(const std::string& s, char delimiter)
+{
+	std::vector<std::string> tokens;
+	std::string token;
+	std::istringstream tokenStream(s);
+	while (std::getline(tokenStream, token, delimiter))
+	{
+		tokens.push_back(token);
+	}
+	return tokens;
+}
+bool DownloadManager::StartSession(string user, string pass)
+{
+	string url = loginURL;
+	if (user == sessionUser && pass == sessionPass) {
+		return true;
+	}
+	EndSessionIfExists();
+	CURL *curlForm = curl_easy_init();
+	curl_easy_setopt(curlForm, CURLOPT_COOKIEFILE, ""); /* start cookie engine */
+
+
+	curl_httppost *formpost = nullptr;
+	curl_httppost *lastptr = nullptr;
+	curl_slist *headerlist = nullptr;
+
+
 	curl_formadd(&formpost,
 		&lastptr,
-		CURLFORM_COPYNAME, "user",
-		CURLFORM_COPYCONTENTS, curl_easy_escape(curlForm, user.c_str(), 0), 
+		CURLFORM_COPYNAME, "username",
+		CURLFORM_COPYCONTENTS, curl_easy_escape(curlForm, user.c_str(), 0),
 		CURLFORM_END);
 	curl_formadd(&formpost,
 		&lastptr,
-		CURLFORM_COPYNAME, "pass",
-		CURLFORM_COPYCONTENTS, curl_easy_escape(curlForm, pass.c_str(), 0) ,
+		CURLFORM_COPYNAME, "password",
+		CURLFORM_COPYCONTENTS, curl_easy_escape(curlForm, pass.c_str(), 0),
 		CURLFORM_END);
 
 	EncodeSpaces(url);
 	curl_easy_setopt(curlForm, CURLOPT_URL, url.c_str());
 	curl_easy_setopt(curlForm, CURLOPT_POST, 1L);
 	curl_easy_setopt(curlForm, CURLOPT_HTTPPOST, formpost);
-
+	curl_easy_setopt(curlForm, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+	string result;
+	curl_easy_setopt(curlForm, CURLOPT_WRITEDATA, &result);
+	curl_easy_setopt(curlForm, CURLOPT_WRITEFUNCTION, write_memory_buffer);
+	curl_easy_setopt(curlForm, CURLOPT_SSL_VERIFYPEER, 0L);
+	curl_easy_setopt(curlForm, CURLOPT_SSL_VERIFYHOST, 0L);
+	vector<string> v_cookies;
 	CURLcode ret = curl_easy_perform(curlForm);
+	if (result == "\"Success\"") {
+		struct curl_slist *cookies;
+		struct curl_slist *cookieIterator;
 
-	curl_easy_cleanup(curlForm);
-	return ret==0;
+		printf("Cookies, curl knows:\n");
+		curl_easy_getinfo(curlForm, CURLINFO_COOKIELIST, &cookies);
+
+		cookieIterator = cookies;
+		while (cookieIterator) {
+			v_cookies.push_back(cookieIterator->data);
+			cookieIterator = cookieIterator->next;
+		}
+		curl_slist_free_all(cookies);
+		curl_easy_cleanup(curlForm);
+		for (auto& cook : v_cookies) {
+			vector<string> parts = split(cook, '\t');
+			for (auto x = parts.begin(); x != parts.end(); x++) {
+				if (*x == "ci_session") {
+					session = *(x + 1);
+					sessionCookie = cook;
+					break;
+				}
+			}
+			if (!session.empty())
+				break;
+		}
+		sessionUser = user;
+		sessionPass = pass;
+	}
+	else {
+		session = sessionUser = sessionPass = "";
+	}
+	return !session.empty();
 }
 
 
@@ -391,16 +513,18 @@ inline bool starts_with(std::string const & value, std::string const & start)
 {
 	return value.rfind(start, 0) == 0;
 }
-
+inline void checkProtocol(string& url)
+{
+	if (!(starts_with(url, "https://") || starts_with(url, "http://")))
+		url = string("http://").append(url);
+}
 vector<DownloadablePack>* DownloadManager::GetPackList(string url, bool &result)
 {
 	if (url == "") {
 		result = false;
 		return nullptr;
 	}
-	if (!(starts_with(url, "https://") || starts_with(url, "http://")))
-		url = string("http://").append(url);
-
+	checkProtocol(url);
 	CURL *curl = curl_easy_init();
 	string bs;
 	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
@@ -533,14 +657,40 @@ public:
 	static int GetDownloadingPacks(T* p, lua_State* L)
 	{
 		vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
-		lua_createtable(L, packs.size(), 0);
+		vector<DownloadablePack*> dling;
 		for (unsigned i = 0; i < packs.size(); ++i) {
-			if (packs[i].downloading) {
-				packs[i].PushSelf(L);
-				lua_rawseti(L, -2, i + 1);
-			}
+			if (packs[i].downloading) 
+				dling.push_back(&(packs[i]));
 		}
-
+		lua_createtable(L, dling.size(), 0);
+		for (unsigned i = 0; i < dling.size(); ++i) {
+			dling[i]->PushSelf(L);
+			lua_rawseti(L, -2, i + 1);
+		}
+		return 1;
+	}
+	static int GetDownloads(T* p, lua_State* L)
+	{
+		map<string, Download*>& dls = DLMAN->downloads;
+		lua_createtable(L, dls.size(), 0);
+		int j = 0;
+		for (auto it = dls.begin(); it != dls.end(); ++it) {
+			it->second->PushSelf(L);
+			lua_rawseti(L, -2, j + 1);
+			j++;
+		}
+		return 1;
+	}
+	static int IsLoggedIn(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, DLMAN->LoggedIn());
+		return 1;
+	}
+	static int Login(T* p, lua_State* L)
+	{
+		string user = SArg(1);
+		string pass = SArg(2);
+		lua_pushboolean(L, DLMAN->StartSession(user, pass));
 		return 1;
 	}
 	static int GetFilteredAndSearchedPackList(T* p, lua_State* L)
@@ -574,7 +724,10 @@ public:
 	{
 		ADD_METHOD(GetPackList);
 		ADD_METHOD(GetDownloadingPacks);
+		ADD_METHOD(GetDownloads);
 		ADD_METHOD(GetFilteredAndSearchedPackList);
+		ADD_METHOD(IsLoggedIn);
+		ADD_METHOD(Login);
 	}
 };
 LUA_REGISTER_CLASS(DownloadManager) 

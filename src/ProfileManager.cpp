@@ -869,12 +869,15 @@ public:
 		if (prof == nullptr) {
 			return luaL_error(L, "UploadProfile needs a profile to be currently selected");
 		}
-		string user = SArg(2);
-		string pass = SArg(3);
+		if (!lua_isnil(L, 2) && !lua_isnil(L, 3)) {
+			string user = SArg(2);
+			string pass = SArg(3);
+			DLMAN->StartSession(user, pass);
+		}
 		if(prof->profiledir == "")
 			lua_pushboolean(L, false);
 		else
-			lua_pushboolean(L, DLMAN->UploadProfile(profileUploadURL, prof->profiledir + "Etterna.xml", user, pass)==0);
+			lua_pushboolean(L, DLMAN->UploadProfile(profileUploadURL, prof->profiledir + "Etterna.xml")==0);
 		return 1;
 	}
 	LunaProfileManager()
