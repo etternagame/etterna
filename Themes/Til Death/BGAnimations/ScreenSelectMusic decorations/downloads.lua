@@ -77,20 +77,14 @@ local function DlInput(event)
 			changed = true
 		else
 			if inputting == 2 or inputting == 3 or inputting == 4 or inputting == 5 then
-				for i=1,#numbershers do
-					if event.DeviceInput.button == "DeviceButton_"..numbershers[i] then
-						curInput = curInput..numbershers[i]
-						changed = true
-						break
-					end
+				if tonumber(event.char) ~= nil then
+					curInput = curInput..event.char
+					changed = true
 				end
 			else
-				for i=1,#englishes do														-- add standard characters to string
-					if event.DeviceInput.button == "DeviceButton_"..englishes[i] then
-						curInput = curInput..englishes[i]
-						changed = true
-						break
-					end
+				if event.char and event.char ~= "" then
+					curInput = curInput..event.char
+					changed = true
 				end
 			end
 		end
