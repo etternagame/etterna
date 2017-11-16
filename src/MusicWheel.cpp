@@ -523,7 +523,7 @@ void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
 					do {
 						currate = currate - 0.1f;
 						if (FILTERMAN->HighestSkillsetsOnly)
-							if (!inv[i]->IsSkillsetHighestOfAnySteps(static_cast<Skillset>(ss), currate))
+							if (!inv[i]->IsSkillsetHighestOfAnySteps(static_cast<Skillset>(ss), currate) && ss < NUM_Skillset)
 								continue;
 						float val;
 						if (ss < NUM_Skillset)
