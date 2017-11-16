@@ -1,4 +1,4 @@
-
+#pragma once
 #ifndef SM_DOWNMANAGER
 
 #define SM_DOWNMANAGER
@@ -81,6 +81,7 @@ public:
 	DownloadManager();
 	~DownloadManager();
 	map<string, Download*> downloads;
+	map<string, Download*> finishedDownloads;
 	CURLM* mHandle{nullptr};
 	CURLMcode ret;
 	int running{0};
