@@ -258,7 +258,7 @@ function scoreBoard(pn,position)
 			self:queuecommand("Set")
 		end,
 		SetCommand=function(self)
-			local meter = score:GetSkillsetSSR(1)
+			local meter = score:GetSkillsetSSR("Overall")
 			self:settextf("%5.2f", meter)
 			self:diffuse(ByMSD(meter))
 		end,
