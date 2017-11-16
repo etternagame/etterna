@@ -514,7 +514,7 @@ void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
 	if (!FILTERMAN->ExclusiveFilter) {
 		for (size_t i = 0; i < inv.size(); i++) {
 			bool addsong = false;
-			FOREACH_ENUM(Skillset, ss) {
+			for (int ss = 0; ss < NUM_Skillset + 1; ss++) {
 				float lb = FILTERMAN->SSFilterLowerBounds[ss];
 				float ub = FILTERMAN->SSFilterUpperBounds[ss];
 				if (lb > 0.f || ub > 0.f) {				// if either bound is active, continue to evaluation
@@ -523,10 +523,15 @@ void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
 					do {
 						currate = currate - 0.1f;
 						if (FILTERMAN->HighestSkillsetsOnly)
-							if (!inv[i]->IsSkillsetHighestOfAnySteps(ss, currate))
+							if (!inv[i]->IsSkillsetHighestOfAnySteps(static_cast<Skillset>(ss), currate) && ss < NUM_Skillset)
 								continue;
-
-						float val = inv[i]->GetHighestOfSkillsetAllSteps(static_cast<int>(ss), currate);
+						float val;
+						if (ss < NUM_Skillset)
+							val = inv[i]->GetHighestOfSkillsetAllSteps(ss, currate);
+						else {
+							TimingData* td = inv[i]->GetAllSteps()[0]->GetTimingData();
+							val = (td->GetElapsedTimeFromBeat(inv[i]->GetLastBeat()) - td->GetElapsedTimeFromBeat(inv[i]->GetFirstBeat()));
+						}
 
 						bool isrange = lb > 0.f && ub > 0.f;	// both bounds are active and create an explicit range
 						if (isrange) {
@@ -542,7 +547,6 @@ void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
 					} while (currate > minrate);
 				}
 			}
-
 			// only add the song if it's cleared the gauntlet
 			if (addsong)
 				tmp.emplace_back(inv[i]);
@@ -551,7 +555,7 @@ void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
 	else {
 		for (size_t i = 0; i < inv.size(); i++) {
 			bool addsong = true;
-			FOREACH_ENUM(Skillset, ss) {
+			for (int ss = 0; ss < NUM_Skillset + 1; ss++) {
 				bool pineapple = true;
 				float lb = FILTERMAN->SSFilterLowerBounds[ss];
 				float ub = FILTERMAN->SSFilterUpperBounds[ss];
@@ -563,7 +567,13 @@ void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
 					do {
 						localaddsong = true;
 						currate = currate - 0.1f;
-						float val = inv[i]->GetHighestOfSkillsetAllSteps(static_cast<int>(ss), currate);
+						float val;
+						if (ss < NUM_Skillset)
+							val = inv[i]->GetHighestOfSkillsetAllSteps(ss, currate);
+						else {
+							TimingData* td = inv[i]->GetAllSteps()[0]->GetTimingData();
+							val = (td->GetElapsedTimeFromBeat(inv[i]->GetLastBeat()) - td->GetElapsedTimeFromBeat(inv[i]->GetFirstBeat()));
+						}
 						bool isrange = lb > 0.f && ub > 0.f;
 						if (isrange) {
 							if (val < lb || val > ub)
@@ -581,7 +591,6 @@ void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
 				}
 				addsong = addsong && pineapple;
 			}
-			
 			if (addsong)
 				tmp.emplace_back(inv[i]);
 		}

@@ -49,7 +49,7 @@ void FilterManager::SetSSFilter(float v, Skillset ss, int bound) {
 
 // reset button for filters
 void FilterManager::ResetSSFilters() {
-	FOREACH_ENUM(Skillset, ss) {
+	for (int ss = 0; ss < NUM_Skillset + 1; ss++) {
 		SSFilterLowerBounds[ss] = 0;
 		SSFilterUpperBounds[ss] = 0;
 	}
@@ -57,7 +57,7 @@ void FilterManager::ResetSSFilters() {
 
 // tmp filter stuff - mina
 bool FilterManager::AnyActiveFilter() {
-	FOREACH_ENUM(Skillset, ss) {
+	for(int ss=0; ss < NUM_Skillset + 1; ss++) {
 		if (SSFilterLowerBounds[ss] > 0)
 			return true;
 		if (SSFilterUpperBounds[ss] > 0)
