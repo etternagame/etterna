@@ -265,7 +265,7 @@ public:
 	// how have i not jammed anything here yet - mina 
 
 	// Get the highest value for a specific skillset across all the steps objects for the song at a given rate
-	float GetHighestOfSkillsetAllSteps(int x, float rate);
+	float GetHighestOfSkillsetAllSteps(int x, float rate) const;
 	bool IsSkillsetHighestOfAnySteps(Skillset ss, float rate);
 
 	// For loading only:

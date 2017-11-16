@@ -172,6 +172,14 @@ enum SortOrder
 	SORT_MODE_MENU, /**< Have access to the menu for choosing the sort. */
 	SORT_RECENT,
 	SORT_FAVORITES,
+	SORT_Overall,
+	SORT_Stream,
+	SORT_Jumpstream,
+	SORT_Handstream,
+	SORT_Stamina,
+	SORT_JackSpeed,
+	SORT_Chordjack,
+	SORT_Technical,
 	NUM_SortOrder,
 	SortOrder_Invalid
 };

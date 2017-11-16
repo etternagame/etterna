@@ -17,7 +17,15 @@ local sortTable = {
 	SortOrder_ModeMenu 				= 'Mode Menu',
 	SortOrder_Length 				= 'Song Length',
 	SortOrder_Recent 				= 'Recently Played',
-	SortOrder_Favorites				= 'Favorites'
+	SortOrder_Favorites				= 'Favorites',
+	SortOrder_Overall				= 'Overall',
+	SortOrder_Stream				= 'Stream',
+	SortOrder_Jumpstream				= 'Jumpstream',
+	SortOrder_Handstream				= 'Handstream',
+	SortOrder_Stamina				= 'Stamina',
+	SortOrder_JackSpeed				= 'JackSpeed',
+	SortOrder_Chordjack				= 'Chordjack',
+	SortOrder_Technical				= 'Technical'
 }
 
 t[#t+1] = Def.Quad{
