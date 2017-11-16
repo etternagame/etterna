@@ -1,4 +1,7 @@
+#pragma once
+
 #include "global.h"
+#if !defined(WITHOUT_NETWORKING)
 #include "RageFileManager.h"
 #include "ScreenManager.h"
 #include "Preference.h"
@@ -15,6 +18,7 @@
 #include "curl/curl.h"
 #include "JsonUtil.h"
 #include "Foreach.h"
+#include "Song.h"
 
 shared_ptr<DownloadManager> DLMAN = nullptr;
 
@@ -103,7 +107,6 @@ void DownloadManager::InstallSmzip(const string &sZipFile)
 }
 
 
-#if !defined(WITHOUT_NETWORKING)
 
 int progressfunc(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow)
 {
@@ -212,6 +215,15 @@ void Download::Update(float fDeltaSeconds)
 }
 Download* DownloadManager::DownloadAndInstallPack(DownloadablePack* pack)
 {
+	auto songs = SONGMAN->GetAllSongs();
+	vector<RString> packs;
+	SONGMAN->GetSongGroupNames(packs);
+	for (auto packName : packs) {
+		if (packName == pack->name) {
+			SCREENMAN->SystemMessage("Already have pack " + packName + ", not downloading");
+			return nullptr;
+		}
+	}
 	Download* dl = DownloadAndInstallPack(pack->url);
 	dl->p_Pack = pack;
 	return dl;
@@ -298,7 +310,9 @@ bool DownloadManager::UpdateAndIsFinished(float fDeltaSeconds)
 				if (i->second->handle != nullptr)
 					curl_easy_cleanup(i->second->handle);
 				i->second->handle = nullptr;
-				delete i->second;
+				if (i->second->p_Pack != nullptr)
+					i->second->p_Pack->downloading = false;
+				finishedDownloads[i->second->m_Url] = i->second;
 				downloads.erase(i);
 				break;
 			}
@@ -588,7 +602,11 @@ public:
 		if (p->downloading)
 			return 1;
 		p->downloading = true;
-		DLMAN->DownloadAndInstallPack(p)->PushSelf(L);
+		Download * dl = DLMAN->DownloadAndInstallPack(p);
+		if (dl)
+			dl->PushSelf(L);
+		else
+			lua_pushnil(L);
 		return 1;
 	}
 	static int GetName(T* p, lua_State* L)
@@ -661,7 +679,7 @@ public:
 
 LUA_REGISTER_CLASS(Download)
 
-
-
-
 #endif
+
+
+
