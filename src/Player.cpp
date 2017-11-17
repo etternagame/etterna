@@ -2278,7 +2278,7 @@ void Player::UpdateTapNotesMissedOlderThan( float fMissIfOlderThanSeconds )
 			tn.result.tns = TNS_Miss;
 			if ( GAMESTATE->CountNotesSeparately() )
 			{
-				SetJudgment(iter.Row(), m_NoteData.GetFirstTrackWithTapOrHoldHead(iter.Row()), tn);
+				SetJudgment(iter.Row(), (GAMESTATE->CountNotesSeparately() ? iter.Track() : m_NoteData.GetFirstTrackWithTapOrHoldHead(iter.Row())), tn);
 				HandleTapRowScore(iter.Row());
 			}
 		}
@@ -2323,7 +2323,7 @@ void Player::UpdateJudgedRows(float fDeltaTime)
 				if(lastTN.result.tns < TNS_Miss )
 					continue;
 				
-				SetJudgment( iRow, m_NoteData.GetFirstTrackWithTapOrHoldHead(iRow), lastTN );
+				SetJudgment( iRow, (GAMESTATE->CountNotesSeparately() ? iter.Track() : m_NoteData.GetFirstTrackWithTapOrHoldHead(iter.Row())), lastTN );
 				HandleTapRowScore(iRow);
 			}
 		}
@@ -2954,22 +2954,22 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 		lua_createtable( L, 0, m_NoteData.GetNumTracks() ); // TapNotes this row
 		lua_createtable( L, 0, m_NoteData.GetNumTracks() ); // HoldHeads of tracks held at this row.
 
-		for( int iTrack = 0; iTrack < m_NoteData.GetNumTracks(); ++iTrack )
+		for( int jTrack = 0; jTrack < m_NoteData.GetNumTracks(); ++jTrack )
 		{
-			NoteData::iterator tn = m_NoteData.FindTapNote(iTrack, iRow);
-			if( tn != m_NoteData.end(iTrack) )
+			NoteData::iterator tn = m_NoteData.FindTapNote(jTrack, iRow);
+			if( tn != m_NoteData.end(jTrack)  && (jTrack == iTrack || !GAMESTATE->CountNotesSeparately()))
 			{
 				tn->second.PushSelf(L);
-				lua_rawseti(L, -3, iTrack + 1);
+				lua_rawseti(L, -3, jTrack + 1);
 			}
 			else
 			{
 				int iHeadRow;
-				if( m_NoteData.IsHoldNoteAtRow( iTrack, iRow, &iHeadRow ) )
+				if( m_NoteData.IsHoldNoteAtRow( jTrack, iRow, &iHeadRow ) )
 				{
-					NoteData::iterator hold = m_NoteData.FindTapNote(iTrack, iHeadRow);
+					NoteData::iterator hold = m_NoteData.FindTapNote(jTrack, iHeadRow);
 					hold->second.PushSelf(L);
-					lua_rawseti(L, -2, iTrack + 1);
+					lua_rawseti(L, -2, jTrack + 1);
 				}
 			}
 		}
