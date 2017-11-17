@@ -136,6 +136,14 @@ static const char *SortOrderNames[] = {
 	"ModeMenu",
 	"Recent",
 	"Favorites",
+	"Overall",
+	"Stream",
+	"Jumpstream",
+	"Handstream",
+	"Stamina",
+	"JackSpeed",
+	"Chordjack",
+	"Technical"
 };
 XToString( SortOrder );
 StringToX( SortOrder );
