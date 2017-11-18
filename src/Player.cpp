@@ -2278,7 +2278,7 @@ void Player::UpdateTapNotesMissedOlderThan( float fMissIfOlderThanSeconds )
 			tn.result.tns = TNS_Miss;
 			if ( GAMESTATE->CountNotesSeparately() )
 			{
-				SetJudgment(iter.Row(), (GAMESTATE->CountNotesSeparately() ? iter.Track() : m_NoteData.GetFirstTrackWithTapOrHoldHead(iter.Row())), tn);
+				SetJudgment(iter.Row(), iter.Track(), tn);
 				HandleTapRowScore(iter.Row());
 			}
 		}
@@ -2323,7 +2323,7 @@ void Player::UpdateJudgedRows(float fDeltaTime)
 				if(lastTN.result.tns < TNS_Miss )
 					continue;
 				
-				SetJudgment( iRow, (GAMESTATE->CountNotesSeparately() ? iter.Track() : m_NoteData.GetFirstTrackWithTapOrHoldHead(iter.Row())), lastTN );
+				SetJudgment( iRow, m_NoteData.GetFirstTrackWithTapOrHoldHead(iter.Row()), lastTN );
 				HandleTapRowScore(iRow);
 			}
 		}
@@ -2953,23 +2953,45 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 		Lua* L= LUA->Get();
 		lua_createtable( L, 0, m_NoteData.GetNumTracks() ); // TapNotes this row
 		lua_createtable( L, 0, m_NoteData.GetNumTracks() ); // HoldHeads of tracks held at this row.
-
-		for( int jTrack = 0; jTrack < m_NoteData.GetNumTracks(); ++jTrack )
-		{
-			NoteData::iterator tn = m_NoteData.FindTapNote(jTrack, iRow);
-			if( tn != m_NoteData.end(jTrack)  && (jTrack == iTrack || !GAMESTATE->CountNotesSeparately()))
+		if (GAMESTATE->CountNotesSeparately()) {
+			for (int jTrack = 0; jTrack < m_NoteData.GetNumTracks(); ++jTrack)
 			{
-				tn->second.PushSelf(L);
-				lua_rawseti(L, -3, jTrack + 1);
-			}
-			else
-			{
-				int iHeadRow;
-				if( m_NoteData.IsHoldNoteAtRow( jTrack, iRow, &iHeadRow ) )
+				NoteData::iterator tn = m_NoteData.FindTapNote(jTrack, iRow);
+				if (tn != m_NoteData.end(jTrack) && jTrack == iTrack )
 				{
-					NoteData::iterator hold = m_NoteData.FindTapNote(jTrack, iHeadRow);
-					hold->second.PushSelf(L);
-					lua_rawseti(L, -2, jTrack + 1);
+					tn->second.PushSelf(L);
+					lua_rawseti(L, -3, jTrack + 1);
+				}
+				else
+				{
+					int iHeadRow;
+					if (m_NoteData.IsHoldNoteAtRow(jTrack, iRow, &iHeadRow))
+					{
+						NoteData::iterator hold = m_NoteData.FindTapNote(jTrack, iHeadRow);
+						hold->second.PushSelf(L);
+						lua_rawseti(L, -2, jTrack + 1);
+					}
+				}
+			}
+		}
+		else {
+			for (int jTrack = 0; jTrack < m_NoteData.GetNumTracks(); ++jTrack)
+			{
+				NoteData::iterator tn = m_NoteData.FindTapNote(jTrack, iRow);
+				if (tn != m_NoteData.end(jTrack))
+				{
+					tn->second.PushSelf(L);
+					lua_rawseti(L, -3, jTrack + 1);
+				}
+				else
+				{
+					int iHeadRow;
+					if (m_NoteData.IsHoldNoteAtRow(jTrack, iRow, &iHeadRow))
+					{
+						NoteData::iterator hold = m_NoteData.FindTapNote(jTrack, iHeadRow);
+						hold->second.PushSelf(L);
+						lua_rawseti(L, -2, jTrack + 1);
+					}
 				}
 			}
 		}
