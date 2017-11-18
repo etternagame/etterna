@@ -69,7 +69,6 @@ t[#t+1] = Def.Actor{
 	CurrentStepsP1ChangedMessageCommand=function(self)	
 		song = GAMESTATE:GetCurrentSong()			
 		MESSAGEMAN:Broadcast("UpdateChart")
-		alreadybroadcasted = true
 	end,
 	CurrentSongChangedMessageCommand=function(self)
 		-- This will disable mirror when switching songs if OneShotMirror is enabled or if permamirror is flagged on the chart (it is enabled if so in screengameplayunderlay/default)
