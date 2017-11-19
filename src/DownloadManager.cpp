@@ -183,7 +183,7 @@ inline void SetCURLFormPostField(CURL* curlHandle, curl_httppost *&form, curl_ht
 	curl_formadd(&form,
 		&lastPtr,
 		CURLFORM_COPYNAME, field,
-		CURLFORM_COPYCONTENTS, curl_easy_escape(curlHandle, value.c_str(), 0),
+		CURLFORM_COPYCONTENTS, curlHandle, value.c_str(),
 		CURLFORM_END);
 }
 inline void SetCURLFormPostField(CURL* curlHandle, curl_httppost *&form, curl_httppost *&lastPtr, string field, string value)
@@ -191,12 +191,8 @@ inline void SetCURLFormPostField(CURL* curlHandle, curl_httppost *&form, curl_ht
 	curl_formadd(&form,
 		&lastPtr,
 		CURLFORM_COPYNAME, field.c_str(),
-		CURLFORM_COPYCONTENTS, curl_easy_escape(curlHandle, value.c_str(), 0),
+		CURLFORM_COPYCONTENTS, value.c_str(),
 		CURLFORM_END);
-}
-inline void SetCURLFormPostField(CURL* curlHandle, curl_httppost *&form, curl_httppost *&lastPtr, string field, bool value)
-{
-	SetCURLFormPostField(curlHandle, form, lastPtr, field, string(value?"true":"false"));
 }
 template<typename T>
 inline void SetCURLFormPostField(CURL* curlHandle, curl_httppost *&form, curl_httppost *&lastPtr, string field, T value)
@@ -462,7 +458,7 @@ bool DownloadManager::UploadScore(HighScore* hs)
 		SetCURLFormPostField(curlHandle, form, lastPtr, SkillsetToString(ss), hs->GetSkillsetSSR(ss));
 	SetCURLFormPostField(curlHandle, form, lastPtr, "ssr_norm", hs->GetSSRNormPercent());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "max_combo", hs->GetMaxCombo());
-	SetCURLFormPostField(curlHandle, form, lastPtr, "valid", hs->GetEtternaValid());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "valid", static_cast<int>(hs->GetEtternaValid()));
 	SetCURLFormPostField(curlHandle, form, lastPtr, "mods", hs->GetModifiers());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "miss", hs->GetTapNoteScore(TNS_Miss));
 	SetCURLFormPostField(curlHandle, form, lastPtr, "bad", hs->GetTapNoteScore(TNS_W5));
@@ -477,7 +473,7 @@ bool DownloadManager::UploadScore(HighScore* hs)
 	SetCURLFormPostField(curlHandle, form, lastPtr, "ng", hs->GetHoldNoteScore(HNS_Missed));
 	SetCURLFormPostField(curlHandle, form, lastPtr, "chartkey", hs->GetChartKey());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "rate", hs->GetMusicRate());
-	SetCURLFormPostField(curlHandle, form, lastPtr, "cc", hs->GetChordCohesion());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "cc", static_cast<int>(!hs->GetChordCohesion()));
 	SetCURLFormPostField(curlHandle, form, lastPtr, "calc_version", hs->GetSSRCalcVersion());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "topscore", hs->GetTopScore());
 	string replayString = "[";
