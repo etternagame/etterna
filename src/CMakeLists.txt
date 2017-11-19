@@ -56,19 +56,19 @@ if(NOT APPLE)
 endif()
 
 if(MSVC OR APPLE)
-  set(SM_NAME_RELEASE "StepMania")
-  set(SM_NAME_DEBUG "StepMania-debug")
-  set(SM_NAME_MINSIZEREL "StepMania-min-size")
-  set(SM_NAME_RELWITHDEBINFO "StepMania-release-symbols")
+  set(SM_NAME_RELEASE "Etterna")
+  set(SM_NAME_DEBUG "Etterna-debug")
+  set(SM_NAME_MINSIZEREL "Etterna-min-size")
+  set(SM_NAME_RELWITHDEBINFO "Etterna-release-symbols")
 else()
-  set(SM_NAME_RELEASE "stepmania")
-  set(SM_NAME_DEBUG "stepmania-debug")
-  set(SM_NAME_MINSIZEREL "stepmania-min-size")
-  set(SM_NAME_RELWITHDEBINFO "stepmania-release-symbols")
+  set(SM_NAME_RELEASE "etterna")
+  set(SM_NAME_DEBUG "etterna-debug")
+  set(SM_NAME_MINSIZEREL "etterna-min-size")
+  set(SM_NAME_RELWITHDEBINFO "etterna-release-symbols")
 endif()
 
 # Configure generated files here.
-configure_file("${SM_XCODE_DIR}/Info.plist.in.xml" "${SM_XCODE_DIR}/Info.StepMania.plist")
+configure_file("${SM_XCODE_DIR}/Info.plist.in.xml" "${SM_XCODE_DIR}/Info.Etterna.plist")
 configure_file("${SM_XCODE_DIR}/plistHelper.in.hpp" "${SM_XCODE_DIR}/plistHelper.hpp")
 
 # TODO: Make this actually be data and not an executable.
@@ -190,15 +190,15 @@ elseif(APPLE)
     RUNTIME_OUTPUT_DIRECTORY_DEBUG "${SM_ROOT_DIR}"
     RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${SM_ROOT_DIR}"
     RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${SM_ROOT_DIR}"
-    MACOSX_BUNDLE_INFO_PLIST "${SM_XCODE_DIR}/Info.StepMania.plist"
-    XCODE_ATTRIBUTE_INFOPLIST_FILE "${SM_XCODE_DIR}/Info.StepMania.plist"
+    MACOSX_BUNDLE_INFO_PLIST "${SM_XCODE_DIR}/Info.Etterna.plist"
+    XCODE_ATTRIBUTE_INFOPLIST_FILE "${SM_XCODE_DIR}/Info.Etterna.plist"
     XCODE_ATTRIBUTE_INFOPLIST_PREPROCESS "YES"
     XCODE_ATTRIBUTE_INFOPLIST_PREPROCESSOR_DEFINITIONS[variant=Release] "RELEASE"
     XCODE_ATTRIBUTE_INFOPLIST_PREPROCESSOR_DEFINITIONS[variant=Debug] "DEBUG"
     XCODE_ATTRIBUTE_INFOPLIST_PREPROCESSOR_DEFINITIONS[variant=MinSizeRel] "MINSIZEREL"
     XCODE_ATTRIBUTE_INFOPLIST_PREPROCESSOR_DEFINITIONS[variant=RelWithDebInfo] "RELWITHDEBINFO"
     XCODE_ATTRIBUTE_INFOPLIST_PREFIX_HEADER "${SM_XCODE_DIR}/plistHelper.hpp"
-    XCODE_ATTRIBUTE_GCC_PREFIX_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/archutils/Darwin/StepMania.pch"
+    XCODE_ATTRIBUTE_GCC_PREFIX_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/archutils/Darwin/Etterna.pch"
     XCODE_ATTRIBUTE_LIBRARY_SEARCH_PATHS "${SM_XCODE_DIR}/Libraries"
   )
 
@@ -250,7 +250,7 @@ elseif(APPLE)
       cp -r "${SM_ROOT_DIR}/${SM_APP_RELEASE_NAME}.app" .\;
       cd ${SM_ROOT_DIR}\;
       hdiutil create "${SM_DMG_RELEASE_NAME}"
-        -volname "StepMania ${SM_DMG_VERSION}"
+        -volname "Etterna ${SM_DMG_VERSION}"
         -srcfolder "dmgtmpdir/${SM_NAME_VERSION}/"
         -ov\;
       rm -rf dmgtmpdir\;
@@ -260,9 +260,9 @@ elseif(APPLE)
   # Add the ability to copy the resource file.
   add_custom_command(TARGET "${SM_EXE_NAME}"
     POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:StepMania>/../Resources"
-    COMMAND ${CMAKE_COMMAND} -E copy "${SM_XCODE_DIR}/smicon.icns" "$<TARGET_FILE_DIR:StepMania>/../Resources/"
-    COMMAND ${CMAKE_COMMAND} -E copy "${SM_XCODE_DIR}/Hardware.plist" "$<TARGET_FILE_DIR:StepMania>/../Resources/"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:Etterna>/../Resources"
+    COMMAND ${CMAKE_COMMAND} -E copy "${SM_XCODE_DIR}/smicon.icns" "$<TARGET_FILE_DIR:Etterna>/../Resources/"
+    COMMAND ${CMAKE_COMMAND} -E copy "${SM_XCODE_DIR}/Hardware.plist" "$<TARGET_FILE_DIR:Etterna>/../Resources/"
   )
 else() # Linux
   set_target_properties("${SM_EXE_NAME}" PROPERTIES
@@ -493,7 +493,7 @@ else() # Unix / Linux
     list(APPEND SMDATA_LINK_LIB ${PULSEAUDIO_LIBRARY})
     # PACKAGE_NAME and PACKAGE_VERSION are only used in this scenario. Why is not clear.
     # TODO: Remove this silliness.
-    sm_add_compile_definition("${SM_EXE_NAME}" PACKAGE_NAME="StepMania")
+    sm_add_compile_definition("${SM_EXE_NAME}" PACKAGE_NAME="Etterna")
     set(PACKAGE_VERSION "${SM_VERSION_MAJOR}.${SM_VERSION_MINOR}")
     sm_add_compile_definition("${SM_EXE_NAME}" PACKAGE_VERSION="${PACKAGE_VERSION}")
   endif()
@@ -612,7 +612,7 @@ target_include_directories("${SM_EXE_NAME}" PUBLIC ${SM_INCLUDE_DIRS})
 if(WIN32)
   set(SM_INSTALL_DESTINATION ".")
 else()
-  set(SM_INSTALL_DESTINATION "stepmania-5.0")
+  set(SM_INSTALL_DESTINATION "Etterna")
 endif()
 
 if(NOT APPLE)
@@ -630,7 +630,7 @@ if(NOT APPLE)
     install(FILES "${SM_PROGRAM_DIR}/parallel_lights_io.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
 	install(FILES "${SM_PROGRAM_DIR}/swresample-2.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
     install(FILES "${SM_PROGRAM_DIR}/swscale-4.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
-    install(FILES "${SM_PROGRAM_DIR}/StepMania.vdi" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    install(FILES "${SM_PROGRAM_DIR}/Etterna.vdi" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
 
     # foreach(SM_WINDOW_DLL "${SM_WINDOWS_PROGRAM_DLLS}")
     #   install(FILES "${SM_WINDOW_DLL}" DESTINATION "${SM_INSTALL_DESTINATION}")
