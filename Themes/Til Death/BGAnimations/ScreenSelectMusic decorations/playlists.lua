@@ -605,8 +605,10 @@ local function PlaylistSelectLabel(i)
 				self:xy(15,row2Yoffset)
 			end,
 			AllDisplayMessageCommand=function(self)
-				self:diffuse(getMainColor("positive"))
-				self:settextf("Number of charts: %d", allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)]:GetNumCharts())
+				if allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)] then
+					self:diffuse(getMainColor("positive"))
+					self:settextf("Number of charts: %d", allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)]:GetNumCharts())
+				end
 			end
 		},
 		LoadFont("Common Large") .. {
@@ -625,9 +627,11 @@ local function PlaylistSelectLabel(i)
 				self:xy(295,row2Yoffset)
 			end,
 			AllDisplayMessageCommand=function(self)
-				local rating = allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)]:GetAverageRating()
-				self:settextf("%.2f", rating)
-				self:diffuse(ByMSD(rating))
+				if allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)] then
+					local rating = allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)]:GetAverageRating()
+					self:settextf("%.2f", rating)
+					self:diffuse(ByMSD(rating))
+				end
 			end
 		},
 	}
