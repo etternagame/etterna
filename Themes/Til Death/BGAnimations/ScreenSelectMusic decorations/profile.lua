@@ -490,19 +490,27 @@ local profilebuttons = Def.ActorFrame{
 		end,
 		MouseLeftClickMessageCommand=function(self)
 			if ButtonActive(self) and rankingSkillset == 1 then 
-				username = function(answer) 
-						user=answer
-					end
-				password = function(answer) 
-						pass=answer
-						if PROFILEMAN:UploadProfile(PLAYER_1, user, pass) then
-							ms.ok("Uploaded profile")
-						else
-							ms.ok("Profile upload failed")
+				if not DLMAN:IsLoggedIn() then
+					username = function(answer) 
+							user=answer
 						end
+					password = function(answer) 
+							pass=answer
+							if PROFILEMAN:UploadProfile(PLAYER_1, user, pass) then
+								ms.ok("Uploaded profile")
+							else
+								ms.ok("Profile upload failed")
+							end
+						end
+					easyInputStringWithFunction("Password:", 50, true, password)
+					easyInputStringWithFunction("Username:",50, false, username)
+				else
+					if PROFILEMAN:UploadProfile(PLAYER_1) then
+						ms.ok("Uploaded profile")
+					else
+						ms.ok("Profile upload failed")
 					end
-				easyInputStringWithFunction("Password:", 50, true, password)
-				easyInputStringWithFunction("Username:",50, false, username)
+				end
 			end
 		end
 	}

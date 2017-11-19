@@ -51,6 +51,7 @@ struct HighScore
 	bool GetEtternaValid() const;
 	vector<float> GetOffsetVector() const;
 	vector<int> GetNoteRowVector() const;
+	vector<float> timeStamps;
 	string GetScoreKey() const;
 	int GetTopScore() const;
 	/**

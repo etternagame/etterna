@@ -39,7 +39,6 @@ static void DefaultLocalProfileIDInit( size_t /*PlayerNumber*/ i, RString &sName
 }
 
 Preference1D<RString> ProfileManager::m_sDefaultLocalProfileID( DefaultLocalProfileIDInit, NUM_PLAYERS );
-Preference<RString> profileUploadURL("profileUploadURL", "https://etternaonline.com/api/upload_xml");
 
 const RString USER_PROFILES_DIR	=	"/Save/LocalProfiles/";
 const RString LAST_GOOD_SUBDIR	=	"LastGood/";
@@ -877,7 +876,7 @@ public:
 		if(prof->profiledir == "")
 			lua_pushboolean(L, false);
 		else
-			lua_pushboolean(L, DLMAN->UploadProfile(profileUploadURL, prof->profiledir + "Etterna.xml")==0);
+			lua_pushboolean(L, DLMAN->UploadProfile(prof->profiledir + "Etterna.xml"));
 		return 1;
 	}
 	LunaProfileManager()

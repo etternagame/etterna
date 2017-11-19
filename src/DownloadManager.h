@@ -11,6 +11,7 @@
 #include "global.h"
 #include "CommandLineActions.h"
 #include "RageFile.h"
+#include "HighScore.h"
 #include "ScreenManager.h"
 #include "RageFileManager.h"
 #include "curl/curl.h"
@@ -112,8 +113,16 @@ public:
 	bool Error() { return error == ""; }
 	bool EncodeSpaces(string& str);
 
-	bool UploadProfile(string url, string file, string user, string pass);
-	bool UploadProfile(string url, string file);
+	bool UploadProfile(string file, string user, string pass);
+	bool UploadProfile(string file);
+
+	bool UploadScore(HighScore* hs);
+
+	bool ShouldUploadScores();
+
+	inline void AddSessionCookieToCURL(CURL *curlHandle);
+	inline void SetCURLPostToURL(CURL *curlHandle, string url);
+
 
 	// Lua
 	void PushSelf(lua_State *L);

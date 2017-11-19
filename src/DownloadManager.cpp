@@ -21,9 +21,8 @@ shared_ptr<DownloadManager> DLMAN = nullptr;
 static Preference<unsigned int> maxDLPerSecond("maximumBytesDownloadedPerSecond", 0);
 static Preference<unsigned int> maxDLPerSecondGameplay("maximumBytesDownloadedPerSecondDuringGameplay", 300000);
 static Preference<RString> packListURL("packListURL", "https://etternaonline.com/api/pack_list");
-static Preference<RString> loginURL("sessionLoginURL", "https://etternaonline.com/api/login");
-static Preference<RString> destroyURL("sessionDestroyURL", "https://etternaonline.com/api/destroy");
-
+static Preference<RString> serverURL("UploadServerURL", "https://etternaonline.com/api");
+static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 static const string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
 
 
@@ -107,6 +106,7 @@ void DownloadManager::InstallSmzip(const string &sZipFile)
 
 #if !defined(WITHOUT_NETWORKING)
 
+//Functions used to read/write data
 int progressfunc(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow)
 {
 	auto ptr = static_cast<ProgressData*>(clientp);
@@ -122,7 +122,87 @@ size_t write_data(void *dlBuffer, size_t size, size_t nmemb, void *pnf)
 	RFW->bytes += b;
 	return b; 
 }
-
+//A couple utility inline string functions
+inline bool ends_with(std::string const & value, std::string const & ending)
+{
+	if (ending.size() > value.size()) return false;
+	return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+}
+inline bool starts_with(std::string const & value, std::string const & start)
+{
+	return value.rfind(start, 0) == 0;
+}
+inline void checkProtocol(string& url)
+{
+	if (!(starts_with(url, "https://") || starts_with(url, "http://")))
+		url = string("http://").append(url);
+}
+//Utility inline functions to deal with CURL
+inline CURL* initCURLHandle() {
+	CURL *curlHandle = curl_easy_init();
+	curl_easy_setopt(curlHandle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+	curl_easy_setopt(curlHandle, CURLOPT_SSL_VERIFYPEER, 0L);
+	curl_easy_setopt(curlHandle, CURLOPT_SSL_VERIFYHOST, 0L);
+	return curlHandle;
+}
+inline bool addFileToForm(curl_httppost *&form, curl_httppost *&lastPtr, string field, string fileName, string filePath, RString &contents)
+{
+	RageFile rFile;
+	if (!rFile.Open(filePath))
+		return false;
+	rFile.Read(contents, rFile.GetFileSize());
+	rFile.Close();
+	curl_formadd(&form,
+		&lastPtr,
+		CURLFORM_COPYNAME, field.c_str(),
+		CURLFORM_BUFFER, fileName.c_str(),
+		CURLFORM_BUFFERPTR, contents.c_str(),
+		CURLFORM_BUFFERLENGTH, 0,
+		CURLFORM_END);
+	return true;
+}
+inline void DownloadManager::AddSessionCookieToCURL(CURL *curlHandle)
+{
+	curl_easy_setopt(curlHandle, CURLOPT_COOKIEFILE, ""); /* start cookie engine */
+	curl_easy_setopt(curlHandle, CURLOPT_COOKIE, ("ci_session=" + session + ";").c_str());
+}
+inline void SetCURLResultsString(CURL *curlHandle, string& str)
+{
+	curl_easy_setopt(curlHandle, CURLOPT_WRITEDATA, &str);
+	curl_easy_setopt(curlHandle, CURLOPT_WRITEFUNCTION, write_memory_buffer);
+}
+inline void DownloadManager::SetCURLPostToURL(CURL *curlHandle, string url)
+{
+	checkProtocol(url);
+	EncodeSpaces(url);
+	curl_easy_setopt(curlHandle, CURLOPT_URL, url.c_str());
+	curl_easy_setopt(curlHandle, CURLOPT_POST, 1L);
+}
+inline void SetCURLFormPostField(CURL* curlHandle, curl_httppost *&form, curl_httppost *&lastPtr, char* field, string value)
+{
+	curl_formadd(&form,
+		&lastPtr,
+		CURLFORM_COPYNAME, field,
+		CURLFORM_COPYCONTENTS, curl_easy_escape(curlHandle, value.c_str(), 0),
+		CURLFORM_END);
+}
+inline void SetCURLFormPostField(CURL* curlHandle, curl_httppost *&form, curl_httppost *&lastPtr, string field, string value)
+{
+	curl_formadd(&form,
+		&lastPtr,
+		CURLFORM_COPYNAME, field.c_str(),
+		CURLFORM_COPYCONTENTS, curl_easy_escape(curlHandle, value.c_str(), 0),
+		CURLFORM_END);
+}
+inline void SetCURLFormPostField(CURL* curlHandle, curl_httppost *&form, curl_httppost *&lastPtr, string field, bool value)
+{
+	SetCURLFormPostField(curlHandle, form, lastPtr, field, string(value?"true":"false"));
+}
+template<typename T>
+inline void SetCURLFormPostField(CURL* curlHandle, curl_httppost *&form, curl_httppost *&lastPtr, string field, T value)
+{
+	SetCURLFormPostField(curlHandle, form, lastPtr, field, to_string(value));
+}
 DownloadManager::DownloadManager() {
 	curl_global_init(CURL_GLOBAL_ALL);
 	// Register with Lua.
@@ -330,81 +410,112 @@ bool DownloadManager::LoggedIn()
 {
 	return !session.empty();
 }
-bool DownloadManager::UploadProfile(string url, string file, string user, string pass)
+bool DownloadManager::UploadProfile(string file, string user, string pass)
 {
 	if (user != sessionUser || pass != sessionPass)
 		if (!StartSession(user, pass))
 			return false;
-	return UploadProfile(url, file);
+	return UploadProfile(file);
 }
 
-bool DownloadManager::UploadProfile(string url, string file)
+bool DownloadManager::UploadProfile(string file)
 {
-	CURL *curlForm = curl_easy_init();
-
-	ReadThis w;
-	if(!w.file.Open(file))
+	if (!LoggedIn())
 		return false;
-
-	curl_httppost *formpost = nullptr;
-	curl_httppost *lastptr = nullptr;
+	string url = serverURL.Get() + "/upload_xml";
+	CURL *curlHandle = initCURLHandle();
+	curl_httppost *form = nullptr;
+	curl_httppost *lastPtr = nullptr;
 	curl_slist *headerlist = nullptr;
-
-	RString text;
-	w.file.Read(text, w.file.GetFileSize());
-	w.file.Close();
-
-	curl_formadd(&formpost,
-		&lastptr,
-		CURLFORM_COPYNAME, "xml",
-		CURLFORM_BUFFER, "etterna.xml",
-		CURLFORM_BUFFERPTR, text.c_str(),
-		CURLFORM_BUFFERLENGTH, 0,
-		CURLFORM_END);
-
-	EncodeSpaces(url);
-	curl_easy_setopt(curlForm, CURLOPT_URL, url.c_str());
-	curl_easy_setopt(curlForm, CURLOPT_POST, 1L);
-
-	curl_easy_setopt(curlForm, CURLOPT_COOKIEFILE, ""); /* start cookie engine */
-	curl_easy_setopt(curlForm, CURLOPT_COOKIE, ("ci_session=" + session + ";").c_str());
-
+	RString contents;
+	if (!addFileToForm(form, lastPtr, "xml", "etterna.xml", file, contents))
+		return false;
+	SetCURLPostToURL(curlHandle, url);
+	AddSessionCookieToCURL(curlHandle);
 	string result;
-	curl_easy_setopt(curlForm, CURLOPT_WRITEDATA, &result);
-	curl_easy_setopt(curlForm, CURLOPT_WRITEFUNCTION, write_memory_buffer);
-
-	curl_easy_setopt(curlForm, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-	curl_easy_setopt(curlForm, CURLOPT_SSL_VERIFYPEER, 0L);
-	curl_easy_setopt(curlForm, CURLOPT_SSL_VERIFYHOST, 0L);
-	curl_easy_setopt(curlForm, CURLOPT_HTTPPOST, formpost);
-
-	CURLcode ret = curl_easy_perform(curlForm);
-
-	curl_easy_cleanup(curlForm);
-	return ret==0 && result == "\"Success\"";
+	SetCURLResultsString(curlHandle, result);
+	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
+	CURLcode ret = curl_easy_perform(curlHandle);
+	curl_easy_cleanup(curlHandle);
+	if (result != "\"Success\"") {
+		LOG->Trace(result.c_str());
+		return false;
+	}
+	return ret == 0;
 }
 
+bool DownloadManager::ShouldUploadScores()
+{
+	return LoggedIn() && automaticSync;
+}
+bool DownloadManager::UploadScore(HighScore* hs) 
+{
+	if (!LoggedIn())
+		return false;
+	CURL *curlHandle = initCURLHandle();
+	string url = serverURL.Get() + "/upload_score";
+	curl_httppost *form = nullptr;
+	curl_httppost *lastPtr = nullptr;
+	curl_slist *headerlist = nullptr;
+	SetCURLFormPostField(curlHandle, form, lastPtr, "scorekey", hs->GetScoreKey());
+	FOREACH_ENUM(Skillset, ss)
+		SetCURLFormPostField(curlHandle, form, lastPtr, SkillsetToString(ss), hs->GetSkillsetSSR(ss));
+	SetCURLFormPostField(curlHandle, form, lastPtr, "ssr_norm", hs->GetSSRNormPercent());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "max_combo", hs->GetMaxCombo());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "valid", hs->GetEtternaValid());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "mods", hs->GetModifiers());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "miss", hs->GetTapNoteScore(TNS_Miss));
+	SetCURLFormPostField(curlHandle, form, lastPtr, "bad", hs->GetTapNoteScore(TNS_W5));
+	SetCURLFormPostField(curlHandle, form, lastPtr, "good", hs->GetTapNoteScore(TNS_W4));
+	SetCURLFormPostField(curlHandle, form, lastPtr, "great", hs->GetTapNoteScore(TNS_W3));
+	SetCURLFormPostField(curlHandle, form, lastPtr, "perfect", hs->GetTapNoteScore(TNS_W2));
+	SetCURLFormPostField(curlHandle, form, lastPtr, "marv", hs->GetTapNoteScore(TNS_W1));
+	SetCURLFormPostField(curlHandle, form, lastPtr, "datetime", string(hs->GetDateTime().GetString().c_str()));
+	SetCURLFormPostField(curlHandle, form, lastPtr, "hitmine", hs->GetTapNoteScore(TNS_HitMine));
+	SetCURLFormPostField(curlHandle, form, lastPtr, "held", hs->GetHoldNoteScore(HNS_Held));
+	SetCURLFormPostField(curlHandle, form, lastPtr, "letgo", hs->GetHoldNoteScore(HNS_LetGo));
+	SetCURLFormPostField(curlHandle, form, lastPtr, "ng", hs->GetHoldNoteScore(HNS_Missed));
+	SetCURLFormPostField(curlHandle, form, lastPtr, "chartkey", hs->GetChartKey());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "rate", hs->GetMusicRate());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "cc", hs->GetChordCohesion());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "calc_version", hs->GetSSRCalcVersion());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "topscore", hs->GetTopScore());
+	string replayString = "[";
+	vector<float> timestamps = hs->timeStamps;
+	vector<float> offsets = hs->GetOffsetVector();
+	for (int i = 0; i < offsets.size(); i++) {
+		replayString += "[" + to_string(timestamps[i]) + "," + to_string(offsets[i]) + "],";
+	}
+	replayString = replayString.substr(0, replayString.size() - 1); //remove ","
+	replayString += "]";
+	SetCURLFormPostField(curlHandle, form, lastPtr, "replay_data", replayString);
+	SetCURLPostToURL(curlHandle, url);
+	AddSessionCookieToCURL(curlHandle);
+	string result;
+	SetCURLResultsString(curlHandle, result);
+	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
+	CURLcode ret = curl_easy_perform(curlHandle);
+	curl_easy_cleanup(curlHandle);
+	if (result != "\"Success\"") {
+		LOG->Trace(result.c_str());
+		return false;
+	}
+	return ret == 0;
+}
 void DownloadManager::EndSessionIfExists()
 {
 	if (!LoggedIn())
 		return;
-	string url = destroyURL;
-	CURL *curl = curl_easy_init();
-	string bs;
-	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+	string url = serverURL.Get() +"/destroy";
+	CURL *curlHandle = initCURLHandle();
 
-	curl_easy_setopt(curl, CURLOPT_COOKIEFILE, ""); /* start cookie engine */
-	curl_easy_setopt(curl, CURLOPT_COOKIE, ("ci_session=" + session + ";").c_str());
+	SetCURLPostToURL(curlHandle, url);
 
-	curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &bs);
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_memory_buffer);
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-	curl_easy_setopt(curl, CURLOPT_COOKIE, curl_easy_escape(curl, ("ci_session=" + session + ";").c_str(), 0));
-	CURLcode ret = curl_easy_perform(curl);
+	AddSessionCookieToCURL(curlHandle);
 
-	curl_easy_cleanup(curl);
+	CURLcode ret = curl_easy_perform(curlHandle);
+
+	curl_easy_cleanup(curlHandle);
 }
 
 std::vector<std::string> split(const std::string& s, char delimiter)
@@ -418,51 +529,40 @@ std::vector<std::string> split(const std::string& s, char delimiter)
 	}
 	return tokens;
 }
+
 bool DownloadManager::StartSession(string user, string pass)
 {
-	string url = loginURL;
+	string url = serverURL.Get() + "/login";
 	if (user == sessionUser && pass == sessionPass) {
 		return true;
 	}
 	EndSessionIfExists();
-	CURL *curlForm = curl_easy_init();
-	curl_easy_setopt(curlForm, CURLOPT_COOKIEFILE, ""); /* start cookie engine */
+	CURL *curlHandle = initCURLHandle();
+	curl_easy_setopt(curlHandle, CURLOPT_COOKIEFILE, ""); /* start cookie engine */
 
 
-	curl_httppost *formpost = nullptr;
-	curl_httppost *lastptr = nullptr;
-	curl_slist *headerlist = nullptr;
+	curl_httppost *form = nullptr;
+	curl_httppost *lastPtr = nullptr;
 
+	SetCURLFormPostField(curlHandle, form, lastPtr, "username", user);
+	SetCURLFormPostField(curlHandle, form, lastPtr, "password", pass);
 
-	curl_formadd(&formpost,
-		&lastptr,
-		CURLFORM_COPYNAME, "username",
-		CURLFORM_COPYCONTENTS, curl_easy_escape(curlForm, user.c_str(), 0),
-		CURLFORM_END);
-	curl_formadd(&formpost,
-		&lastptr,
-		CURLFORM_COPYNAME, "password",
-		CURLFORM_COPYCONTENTS, curl_easy_escape(curlForm, pass.c_str(), 0),
-		CURLFORM_END);
+	SetCURLPostToURL(curlHandle, url);
 
-	EncodeSpaces(url);
-	curl_easy_setopt(curlForm, CURLOPT_URL, url.c_str());
-	curl_easy_setopt(curlForm, CURLOPT_POST, 1L);
-	curl_easy_setopt(curlForm, CURLOPT_HTTPPOST, formpost);
-	curl_easy_setopt(curlForm, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
+
 	string result;
-	curl_easy_setopt(curlForm, CURLOPT_WRITEDATA, &result);
-	curl_easy_setopt(curlForm, CURLOPT_WRITEFUNCTION, write_memory_buffer);
-	curl_easy_setopt(curlForm, CURLOPT_SSL_VERIFYPEER, 0L);
-	curl_easy_setopt(curlForm, CURLOPT_SSL_VERIFYHOST, 0L);
+	SetCURLResultsString(curlHandle, result);
+
+	CURLcode ret = curl_easy_perform(curlHandle);
+
 	vector<string> v_cookies;
-	CURLcode ret = curl_easy_perform(curlForm);
 	if (result == "\"Success\"") {
 		struct curl_slist *cookies;
 		struct curl_slist *cookieIterator;
 
 		printf("Cookies, curl knows:\n");
-		curl_easy_getinfo(curlForm, CURLINFO_COOKIELIST, &cookies);
+		curl_easy_getinfo(curlHandle, CURLINFO_COOKIELIST, &cookies);
 
 		cookieIterator = cookies;
 		while (cookieIterator) {
@@ -470,7 +570,7 @@ bool DownloadManager::StartSession(string user, string pass)
 			cookieIterator = cookieIterator->next;
 		}
 		curl_slist_free_all(cookies);
-		curl_easy_cleanup(curlForm);
+		curl_easy_cleanup(curlHandle);
 		for (auto& cook : v_cookies) {
 			vector<string> parts = split(cook, '\t');
 			for (auto x = parts.begin(); x != parts.end(); x++) {
@@ -487,7 +587,7 @@ bool DownloadManager::StartSession(string user, string pass)
 		sessionPass = pass;
 	}
 	else {
-		session = sessionUser = sessionPass = "";
+		session = sessionUser = sessionPass = sessionCookie = "";
 	}
 	return !session.empty();
 }
@@ -504,37 +604,19 @@ bool DownloadManager::CachePackList(string url)
 	return result;
 }
 
-inline bool ends_with(std::string const & value, std::string const & ending)
-{
-	if (ending.size() > value.size()) return false;
-	return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
-}
-inline bool starts_with(std::string const & value, std::string const & start)
-{
-	return value.rfind(start, 0) == 0;
-}
-inline void checkProtocol(string& url)
-{
-	if (!(starts_with(url, "https://") || starts_with(url, "http://")))
-		url = string("http://").append(url);
-}
 vector<DownloadablePack>* DownloadManager::GetPackList(string url, bool &result)
 {
 	if (url == "") {
 		result = false;
 		return nullptr;
 	}
-	checkProtocol(url);
-	CURL *curl = curl_easy_init();
-	string bs;
-	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 
-	curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &bs);
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_memory_buffer);
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "key=nick");
+	CURL *curl = initCURLHandle();
+
+	SetCURLPostToURL(curl, url);
+
+	string response;
+	SetCURLResultsString(curl, response);
 
 	CURLcode res = curl_easy_perform(curl);
 	
@@ -545,7 +627,7 @@ vector<DownloadablePack>* DownloadManager::GetPackList(string url, bool &result)
 	Json::Value packs;
 	RString error;
 	auto packlist = new vector<DownloadablePack>;
-	bool parsed = JsonUtil::LoadFromString(packs, bs, error);
+	bool parsed = JsonUtil::LoadFromString(packs, response, error);
 	if (!parsed) {
 		result = false;
 		return packlist;
@@ -589,7 +671,7 @@ vector<DownloadablePack>* DownloadManager::GetPackList(string url, bool &result)
 Download::Download(string url)
 {
 	m_Url = url;
-	handle = curl_easy_init();
+	handle = initCURLHandle();
 	m_TempFileName = MakeTempFileName(url);
 	p_RFWrapper.file.Open(m_TempFileName, 2);
 	DLMAN->EncodeSpaces(m_Url);
@@ -597,7 +679,6 @@ Download::Download(string url)
 	curl_easy_setopt(handle, CURLOPT_WRITEDATA, &p_RFWrapper);
 	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_data);
 	curl_easy_setopt(handle, CURLOPT_URL, m_Url.c_str());
-	curl_easy_setopt(handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
 	curl_easy_setopt(handle, CURLOPT_XFERINFODATA, &progress);
 	curl_easy_setopt(handle, CURLOPT_XFERINFOFUNCTION, progressfunc);
 	curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 0);

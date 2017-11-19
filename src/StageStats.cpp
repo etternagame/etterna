@@ -14,6 +14,7 @@
 #include <sstream>
 #include "CryptManager.h"
 #include "ScoreManager.h"
+#include "DownloadManager.h"
 #include "MinaCalc.h"
 
 /* Arcade:	for the current stage (one song).  
@@ -217,6 +218,10 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 		else {
 			FOREACH_ENUM(Skillset, ss)
 				hs.SetSkillsetSSR(ss, 0.f);
+		}
+		hs.timeStamps = pss.timeStamps;
+		if (DLMAN->ShouldUploadScores()) {
+			DLMAN->UploadScore(&hs);
 		}
 		bool writesuccess = hs.WriteReplayData();
 		if (writesuccess)
