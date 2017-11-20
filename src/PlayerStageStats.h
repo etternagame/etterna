@@ -33,6 +33,7 @@ public:
 	// Calculate the difficulty rating for a specific score obtained by a player - Mina
 	Grade GetWifeGrade();
 	vector<float> CalcSSR(float ssrpercent) const;
+	vector<float> timeStamps;
 	void GenerateValidationKeys(HighScore& hs) const;
 	float GetPercentDancePoints() const;
 	float GetWifeScore() const;
