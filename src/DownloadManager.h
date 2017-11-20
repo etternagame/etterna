@@ -114,11 +114,12 @@ public:
 	bool Error() { return error == ""; }
 	bool EncodeSpaces(string& str);
 
-	bool UploadProfile(string file, string user, string pass);
-	bool UploadProfile(string file);
+	bool LoginAndUploadProfile(string file, string profileName, string user, string pass);
+	bool UploadProfile(string file, string profileName);
 
 	bool UploadScore(HighScore* hs);
 
+	DateTime GetLastUploadDate(string profileName);
 	bool ShouldUploadScores();
 
 	inline void AddSessionCookieToCURL(CURL *curlHandle);

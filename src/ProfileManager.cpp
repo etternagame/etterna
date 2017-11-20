@@ -861,8 +861,8 @@ public:
 	}
 	static int UploadProfile(T* p, lua_State *L)
 	{
-		if (lua_gettop(L) != 3) {
-			return luaL_error(L, "UploadProfile expects exactly 3 arguments(player number, user, pass)");
+		if (lua_gettop(L) <1 ) {
+			return luaL_error(L, "UploadProfile expects at least 1 argument(player number[, user, pass])");
 		}
 		Profile* prof = p->GetProfile(Enum::Check<PlayerNumber>(L, 1));
 		if (prof == nullptr) {
@@ -876,7 +876,7 @@ public:
 		if(prof->profiledir == "")
 			lua_pushboolean(L, false);
 		else
-			lua_pushboolean(L, DLMAN->UploadProfile(prof->profiledir + "Etterna.xml"));
+			lua_pushboolean(L, DLMAN->UploadProfile(prof->profiledir + "Etterna.xml", prof->m_sDisplayName.c_str()));
 		return 1;
 	}
 	LunaProfileManager()
