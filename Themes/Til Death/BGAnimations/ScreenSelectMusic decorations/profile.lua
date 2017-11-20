@@ -480,8 +480,20 @@ local profilebuttons = Def.ActorFrame{
 		end
 	},
 	LoadFont("Common Large") .. {
+		LoggedInMessageCommand=function(self)
+			if DLMAN:IsLoggedIn() then
+				self:settext("Logout")
+			else
+				self:settext("Login")
+			end
+		end,
 		InitCommand=function(self)
-			self:x(300):diffuse(getMainColor('positive')):settext("Upload Profile"):zoom(0.3)
+			if DLMAN:IsLoggedIn() then
+				self:settext("Logout")
+			else
+				self:settext("Login")
+			end
+			self:x(300):diffuse(getMainColor('positive')):zoom(0.3)
 		end,
 	},
 	Def.Quad{
@@ -496,20 +508,18 @@ local profilebuttons = Def.ActorFrame{
 						end
 					password = function(answer) 
 							pass=answer
-							if PROFILEMAN:UploadProfile(PLAYER_1, user, pass) then
-								ms.ok("Uploaded profile")
+							if DLMAN:Login(user, pass) then
+								ms.ok("Succesfully logged in")
 							else
-								ms.ok("Profile upload failed")
+								ms.ok("Login failed!")
 							end
+							MESSAGEMAN:Broadcast("LoggedIn")
 						end
 					easyInputStringWithFunction("Password:", 50, true, password)
 					easyInputStringWithFunction("Username:",50, false, username)
 				else
-					if PROFILEMAN:UploadProfile(PLAYER_1) then
-						ms.ok("Uploaded profile")
-					else
-						ms.ok("Profile upload failed")
-					end
+					DLMAN:Logout()
+					MESSAGEMAN:Broadcast("LoggedIn")
 				end
 			end
 		end

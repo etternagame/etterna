@@ -20,6 +20,13 @@
 #include "Foreach.h"
 #include "Song.h"
 
+#ifdef _WIN32 
+#include <windows.h>
+#else
+#include <unistd.h>
+#include <limits.h>
+#endif
+
 shared_ptr<DownloadManager> DLMAN = nullptr;
 
 static Preference<unsigned int> maxDLPerSecond("maximumBytesDownloadedPerSecond", 0);
@@ -28,7 +35,6 @@ static Preference<RString> packListURL("packListURL", "https://etternaonline.com
 static Preference<RString> serverURL("UploadServerURL", "https://etternaonline.com/api");
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 static const string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
-
 
 size_t write_memory_buffer(void *contents, size_t size, size_t nmemb, void *userp)
 {
@@ -42,10 +48,28 @@ size_t write_memory_buffer(void *contents, size_t size, size_t nmemb, void *user
 class ReadThis {
 public:
 	RageFile file;
-
 };
 
-
+string ComputerIdentity() {
+	string computerName = "";
+	string userName = "";
+#ifdef _WIN32 
+	TCHAR  infoBuf[1024];
+	DWORD  bufCharCount = 1024;
+	if (GetComputerName(infoBuf, &bufCharCount))
+		computerName = infoBuf;
+	if (GetUserName(infoBuf, &bufCharCount))
+		userName = infoBuf;
+#else
+	char hostname[1024];
+	char username[1024];
+	gethostname(hostname, 1024);
+	getlogin_r(username, 1024);
+	computerName - hostname;
+	userName = username;
+#endif
+	return computerName + ":_:" + userName;
+}
 size_t ReadThisReadCallback(void *dest, size_t size, size_t nmemb, void *userp)
 {
 	auto rt = static_cast<ReadThis*>(userp);
@@ -181,26 +205,30 @@ inline void DownloadManager::SetCURLPostToURL(CURL *curlHandle, string url)
 	curl_easy_setopt(curlHandle, CURLOPT_URL, url.c_str());
 	curl_easy_setopt(curlHandle, CURLOPT_POST, 1L);
 }
-inline void SetCURLFormPostField(CURL* curlHandle, curl_httppost *&form, curl_httppost *&lastPtr, char* field, string value)
+void CURLFormPostField(CURL* curlHandle, curl_httppost *&form, curl_httppost *&lastPtr, const char* field, const char* value)
 {
 	curl_formadd(&form,
-		&lastPtr,
-		CURLFORM_COPYNAME, field,
-		CURLFORM_COPYCONTENTS, curlHandle, value.c_str(),
+		&lastPtr, 
+		CURLFORM_COPYNAME, field, 
+		CURLFORM_COPYCONTENTS, value,
 		CURLFORM_END);
+}
+inline void SetCURLFormPostField(CURL* curlHandle, curl_httppost *&form, curl_httppost *&lastPtr, char* field, char* value)
+{
+	CURLFormPostField(curlHandle, form, lastPtr, field, value);
+}
+inline void SetCURLFormPostField(CURL* curlHandle, curl_httppost *&form, curl_httppost *&lastPtr, const char* field, string value)
+{
+	CURLFormPostField(curlHandle, form, lastPtr, field, value.c_str());
 }
 inline void SetCURLFormPostField(CURL* curlHandle, curl_httppost *&form, curl_httppost *&lastPtr, string field, string value)
 {
-	curl_formadd(&form,
-		&lastPtr,
-		CURLFORM_COPYNAME, field.c_str(),
-		CURLFORM_COPYCONTENTS, value.c_str(),
-		CURLFORM_END);
+	CURLFormPostField(curlHandle, form, lastPtr, field.c_str(), value.c_str());
 }
 template<typename T>
 inline void SetCURLFormPostField(CURL* curlHandle, curl_httppost *&form, curl_httppost *&lastPtr, string field, T value)
 {
-	SetCURLFormPostField(curlHandle, form, lastPtr, field, to_string(value));
+	CURLFormPostField(curlHandle, form, lastPtr, field.c_str(), to_string(value).c_str());
 }
 DownloadManager::DownloadManager() {
 	curl_global_init(CURL_GLOBAL_ALL);
@@ -420,15 +448,15 @@ bool DownloadManager::LoggedIn()
 {
 	return !session.empty();
 }
-bool DownloadManager::UploadProfile(string file, string user, string pass)
+bool DownloadManager::LoginAndUploadProfile(string file, string profileName, string user, string pass)
 {
 	if (user != sessionUser || pass != sessionPass)
 		if (!StartSession(user, pass))
 			return false;
-	return UploadProfile(file);
+	return UploadProfile(file, profileName);
 }
 
-bool DownloadManager::UploadProfile(string file)
+bool DownloadManager::UploadProfile(string file, string profileName)
 {
 	if (!LoggedIn())
 		return false;
@@ -440,6 +468,8 @@ bool DownloadManager::UploadProfile(string file)
 	RString contents;
 	if (!addFileToForm(form, lastPtr, "xml", "etterna.xml", file, contents))
 		return false;
+	ComputerIdentity();
+	SetCURLFormPostField(curlHandle, form, lastPtr, "origin", ComputerIdentity()+":_:"+profileName);
 	SetCURLPostToURL(curlHandle, url);
 	AddSessionCookieToCURL(curlHandle);
 	string result;
@@ -526,6 +556,7 @@ void DownloadManager::EndSessionIfExists()
 	CURLcode ret = curl_easy_perform(curlHandle);
 
 	curl_easy_cleanup(curlHandle);
+	session = sessionUser = sessionPass = sessionCookie = "";
 }
 
 std::vector<std::string> split(const std::string& s, char delimiter)
@@ -540,6 +571,28 @@ std::vector<std::string> split(const std::string& s, char delimiter)
 	return tokens;
 }
 
+DateTime DownloadManager::GetLastUploadDate(string profileName)
+{
+	string url = serverURL.Get() + "/last_upload";
+	DateTime t;
+	if (!LoggedIn())
+		return DateTime::GetNowDateTime();
+	CURL *curlHandle = initCURLHandle();
+	curl_httppost *form = nullptr;
+	curl_httppost *lastPtr = nullptr;
+	curl_slist *headerlist = nullptr;
+	ComputerIdentity();
+	SetCURLFormPostField(curlHandle, form, lastPtr, "origin", ComputerIdentity() + ":_:" + profileName);
+	SetCURLPostToURL(curlHandle, url);
+	AddSessionCookieToCURL(curlHandle);
+	string result;
+	SetCURLResultsString(curlHandle, result);
+	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
+	CURLcode ret = curl_easy_perform(curlHandle);
+	curl_easy_cleanup(curlHandle);
+	t.FromString(result.c_str());
+	return t;
+}
 bool DownloadManager::StartSession(string user, string pass)
 {
 	string url = serverURL.Get() + "/login";
@@ -784,6 +837,11 @@ public:
 		lua_pushboolean(L, DLMAN->StartSession(user, pass));
 		return 1;
 	}
+	static int Logout(T* p, lua_State* L)
+	{
+		DLMAN->EndSessionIfExists();
+		return 1;
+	}
 	static int GetFilteredAndSearchedPackList(T* p, lua_State* L)
 	{
 		if (lua_gettop(L) < 5) {
@@ -819,6 +877,7 @@ public:
 		ADD_METHOD(GetFilteredAndSearchedPackList);
 		ADD_METHOD(IsLoggedIn);
 		ADD_METHOD(Login);
+		ADD_METHOD(Logout);
 	}
 };
 LUA_REGISTER_CLASS(DownloadManager) 
