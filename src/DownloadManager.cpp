@@ -510,7 +510,7 @@ bool DownloadManager::UploadScore(HighScore* hs)
 	vector<float> timestamps = hs->timeStamps;
 	vector<float> offsets = hs->GetOffsetVector();
 	for (int i = 0; i < offsets.size(); i++) {
-		replayString += "[" + to_string(timestamps[i]) + "," + to_string(offsets[i]) + "],";
+		replayString += "[" + to_string(timestamps[i]) + "," + to_string(1000.f * offsets[i]) + "],";
 	}
 	replayString = replayString.substr(0, replayString.size() - 1); //remove ","
 	replayString += "]";
