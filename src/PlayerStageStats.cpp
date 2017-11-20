@@ -62,7 +62,12 @@ void PlayerStageStats::InternalInit()
 	m_iSongsPlayed = 0;
 	m_fLifeRemainingSeconds = 0;
 	m_iNumControllerSteps = 0;
+	
+	// this should probably be handled better-mina
+	everusedautoplay = false;
+	luascriptwasloaded = false;
 	filehadnegbpms = false;
+	filegotmines = false;
 
 	ZERO( m_iTapNoteScores );
 	ZERO( m_iHoldNoteScores );
@@ -331,15 +336,19 @@ void PlayerStageStats::GenerateValidationKeys(HighScore& hs) const {
 	// just designed to catch shameless stats xml tampering by people who aren't experienced enough to look this up -mina
 	FOREACH_ENUM(TapNoteScore, tns)
 		key.append(to_string(hs.GetTapNoteScore(tns)));
-	FOREACH_ENUM(TapNoteScore, tns)
-		key.append(to_string(hs.GetTapNoteScore(tns)));
+	FOREACH_ENUM(HoldNoteScore, hns)
+		key.append(to_string(hs.GetHoldNoteScore(hns)));
 
 	key.append(hs.GetScoreKey());
-	key.append(to_string(lround(hs.GetWifeScore() * 1000.f)));
-	key.append(to_string(lround(hs.GetSSRNormPercent() * 1000.f)));
-	key.append(to_string(lround(hs.GetMusicRate() * 1000.f)));
-	key.append(to_string(lround(hs.GetJudgeScale() * 1000.f)));
-	key.append(to_string(hs.GetEtternaValid()));
+	key.append(hs.GetChartKey());
+	key.append(hs.GetModifiers());
+	key.append(to_string(static_cast<int>(hs.GetWifeScore() * 1000.f)));
+	key.append(to_string(static_cast<int>(hs.GetSSRNormPercent() * 1000.f)));
+	key.append(to_string(static_cast<int>(hs.GetMusicRate() * 1000.f)));
+	key.append(to_string(static_cast<int>(hs.GetJudgeScale() * 1000.f)));
+	key.append(to_string(static_cast<int>(hs.GetWifePoints() * 1000.f)));
+	key.append(to_string(static_cast<int>(!hs.GetChordCohesion())));
+	key.append(to_string(static_cast<int>(hs.GetEtternaValid())));
 
 	hs.SetValidationKey(ValidationKey_Brittle, BinaryToHex(CryptManager::GetSHA1ForString(key)));
 

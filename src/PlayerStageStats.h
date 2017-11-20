@@ -118,7 +118,10 @@ public:
 	// workout
 	float		m_iNumControllerSteps;
 
+	bool everusedautoplay;
+	bool luascriptwasloaded;
 	bool filehadnegbpms; // the call after gameplay is over is apparently unreliable -mina
+	bool filegotmines; // this needs to be set before any notedata transforms
 
 	map<float,float> m_fLifeRecord;
 	void	SetLifeRecordAt( float fLife, float fStepsSecond );

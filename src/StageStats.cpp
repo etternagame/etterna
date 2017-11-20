@@ -137,6 +137,69 @@ float StageStats::GetTotalPossibleStepsSeconds() const
 	return fSecs / m_fMusicRate;
 }
 
+// all the dumb reasons your score doesnt matter (or at least, most of them) -mina
+bool DetermineScoreEligibility(const PlayerStageStats &pss, const PlayerState &ps) {
+	
+	// 4k only
+	if (GAMESTATE->m_pCurSteps[ps.m_PlayerNumber]->m_StepsType != StepsType_dance_single)
+		return false;
+
+	// chord cohesion is invalid
+	if (!GAMESTATE->CountNotesSeparately())
+		return false;
+
+	// you failed.
+	if (pss.GetGrade() == Grade_Failed)
+		return false;
+
+	// just because you had failoff, doesn't mean you didn't fail.
+	FOREACHM_CONST(float, float, pss.m_fLifeRecord, fail)
+		if (fail->second == 0.f)
+			return false;
+
+	// cut out stuff with under 200 notes to prevent super short vibro files from being dumb
+	if (pss.GetTotalTaps() < 200)
+		return false;
+
+	// i'm not actually sure why this is here but if you activate this you don't deserve points anyway
+	if (pss.m_fWifeScore < 0.1f)
+		return false;
+
+	// no negative bpm garbage
+	if (pss.filehadnegbpms)
+		return false;
+
+	// no lau script shenanigans
+	if (pss.luascriptwasloaded)
+		return false;
+
+	// it would take some amount of effort to abuse this but hey, whatever
+	if (pss.everusedautoplay)
+		return false;
+
+	// mods that modify notedata other than mirror (too lazy to figure out how to check for these in po)
+	string mods = ps.m_PlayerOptions.GetStage().GetString();
+
+	// should take care of all 3 shuffle mods
+	if (mods.find("Shuffle") != mods.npos)
+		return false;
+
+	// only do this if the file doesnt have mines
+	if (mods.find("NoMines") != mods.npos && pss.filegotmines)
+		return false;
+
+	if (mods.find("Left") != mods.npos)
+		return false;
+
+	if (mods.find("Right") != mods.npos)
+		return false;
+
+	if (mods.find("Backwards") != mods.npos)
+		return false;
+
+	return true;
+}
+
 static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState &ps, RString sRankingToFillInMarker, RString sPlayerGuid)
 {
 	HighScore hs;
@@ -149,20 +212,6 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 	hs.SetPercentDP( pss.GetPercentDancePoints() );
 	hs.SetWifeScore( pss.GetWifeScore());
 	hs.SetWifePoints( pss.GetCurWifeScore());
-
-	// should prolly be its own fun - mina
-	hs.SetEtternaValid(true);
-	if (pss.GetGrade() == Grade_Failed || pss.m_fWifeScore < 0.1f || GAMESTATE->m_pCurSteps[ps.m_PlayerNumber]->m_StepsType != StepsType_dance_single || !GAMESTATE->CountNotesSeparately() || pss.filehadnegbpms)
-		hs.SetEtternaValid(false);
-
-	// cut out stuff with under 200 notes to prevent super short vibro files from being dumb -mina
-	if(pss.GetTotalTaps() < 200)
-		hs.SetEtternaValid(false);
-
-	FOREACHM_CONST(float, float, pss.m_fLifeRecord, fail)
-		if (fail->second == 0.f)
-			hs.SetEtternaValid(false);
-
 	hs.SetMusicRate( GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 	hs.SetJudgeScale( pss.GetTimingScale());
 	hs.SetChordCohesion( GAMESTATE->CountNotesSeparately() );
@@ -191,6 +240,9 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 	hs.SetRadarValues( pss.m_radarActual );
 	hs.SetLifeRemainingSeconds( pss.m_fLifeRemainingSeconds );
 	hs.SetDisqualified( pss.IsDisqualified() );
+
+	// Etterna validity check, used for ssr/eo eligibility -mina
+	hs.SetEtternaValid(DetermineScoreEligibility(pss, ps));
 
 	// should maybe just make the setscorekey function do this internally rather than recalling the datetime object -mina
 	RString ScoreKey = "S" + BinaryToHex(CryptManager::GetSHA1ForString(hs.GetDateTime().GetString()));

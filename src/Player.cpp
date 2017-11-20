@@ -609,7 +609,7 @@ void Player::Load()
 	totalwifescore = m_NoteData.WifeTotalScoreCalc(m_Timing, 0, 1073741824);
 	curwifescore = 0.f;
 	maxwifescore = 0.f;
-	
+
 	m_NoteData.LogNonEmptyRows();
 	nerv = m_NoteData.GetNonEmptyRowVector();
 	const vector<float>& etaner = m_Timing->BuildAndGetEtaner(nerv);
@@ -618,7 +618,14 @@ void Player::Load()
 
 	if (m_Timing->HasWarps())
 		m_pPlayerStageStats->filehadnegbpms = true;
-	
+
+	// check before nomines transform
+	if(GAMESTATE->m_pCurSteps[pn]->GetRadarValues()[RadarCategory_Mines] > 0)
+		m_pPlayerStageStats->filegotmines = true;
+
+	// check for lua script load (technically this is redundant a little with negbpm but whatever) -mina
+	if (!m_Timing->ValidSequentialAssumption)
+		m_pPlayerStageStats->luascriptwasloaded = true;
 
 	Profile *pProfile = PROFILEMAN->GetProfile(pn);
 	const HighScore* pb = SCOREMAN->GetChartPBAt(GAMESTATE->m_pCurSteps[pn]->GetChartKey(), GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
@@ -862,6 +869,7 @@ void Player::Update( float fDeltaTime )
 			if( m_pPlayerState->m_PlayerController == PC_AUTOPLAY )
 			{
 				STATSMAN->m_CurStageStats.m_bUsedAutoplay = true;
+				m_pPlayerStageStats->everusedautoplay = true;
 				if( m_pPlayerStageStats )
 					m_pPlayerStageStats->m_bDisqualified = true;
 			}
@@ -1107,6 +1115,7 @@ void Player::UpdateHoldNotes( int iSongRow, float fDeltaTime, vector<TrackRowTap
 				if( m_pPlayerState->m_PlayerController == PC_AUTOPLAY )
 				{
 					STATSMAN->m_CurStageStats.m_bUsedAutoplay = true;
+					m_pPlayerStageStats->everusedautoplay = true;
 					if( m_pPlayerStageStats != NULL )
 						m_pPlayerStageStats->m_bDisqualified = true;
 				}
