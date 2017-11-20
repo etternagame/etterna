@@ -498,12 +498,21 @@ public:
 		lua_pushnumber( L, fZ );
 		return 1;
 	}
-
+	static int IsBeingPressed(T* p, lua_State *L) {
+		if (lua_isnil(L, 1)) {
+			return luaL_error(L, "IsBeingPressed(button, inputDevice=keyboard) expects at least one parameter");
+		}
+		DeviceButton button = StringToDeviceButton(SArg(1));
+		InputDevice device = (lua_isnil(L, 2) ? StringToInputDevice(SArg(2)) : DEVICE_KEYBOARD);
+		lua_pushboolean(L, INPUTFILTER->IsBeingPressed(DeviceInput(device, button)));
+		return 1;
+	}
 	LunaInputFilter()
 	{
-		ADD_METHOD( GetMouseX );
-		ADD_METHOD( GetMouseY );
-		ADD_METHOD( GetMouseWheel );
+		ADD_METHOD(GetMouseX);
+		ADD_METHOD(GetMouseY);
+		ADD_METHOD(GetMouseWheel);
+		ADD_METHOD(IsBeingPressed);
 	}
 };
 
