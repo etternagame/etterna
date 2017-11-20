@@ -490,7 +490,7 @@ t[#t+1] = Def.Quad{
 	end,
 	MouseLeftClickMessageCommand=function(self)
 		if update then
-			if getTabIndex() == 2 and getScoreForPlot() and getScoreForPlot():HasReplayData() then
+			if getTabIndex() == 2 and getScoreForPlot() and getScoreForPlot():HasReplayData() and isOver(self) then
 				SCREENMAN:AddNewScreenToTop("ScreenScoreTabOffsetPlot")
 			end
 		end
