@@ -36,6 +36,7 @@ local minanyms = {
 	"EgomaniaCircus",
 	"stepmania bakery hero",
 	"infinite swirling squid spacecraft",
+	"Jack Can't Reacher",
 
 	-- the nightly builds of yore
 	"AVAST YE STEPMATEY",
@@ -88,6 +89,10 @@ local minanyms = {
 	"Bananatiger",
 	"Unapologetically Hostile Entity",
 	"Perpetual Sarcasm Dispensary",
+	"dehydrated mandelbrot pulsar",
+	"desires a pink anime avatar",
+	"theamishwillneverseethis.jpg",
+	"Restore missing legacy Stepmania Team credits #1588",
 }
 
 math.random()
