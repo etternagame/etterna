@@ -100,7 +100,7 @@
 		# These indented statements modify settings for MUI_PAGE_FINISH
 		!define MUI_FINISHPAGE_NOAUTOCLOSE
 
-		!define MUI_FINISHPAGE_RUN "$INSTDIR\Program\StepMania.exe"
+		!define MUI_FINISHPAGE_RUN "$INSTDIR\Program\Etterna.exe"
 		!define MUI_FINISHPAGE_RUN_NOTCHECKED
 		!define MUI_FINISHPAGE_RUN_TEXT "$(TEXT_IO_LAUNCH_THE_GAME)"
 
@@ -170,7 +170,7 @@
 	; generate, then include installer strings
 	;!delfile "nsis_strings_temp.inc"
 
-	!system '"Program\StepMania.exe" --ExportNsisStrings'
+	!system '"Program\Etterna.exe" --ExportNsisStrings'
 	!include "nsis_strings_temp.inc"
 
 ;-------------------------------------------------------------------------------
@@ -217,10 +217,10 @@ Section "Main Section" SecMain
 	WriteRegStr HKEY_LOCAL_MACHINE "SOFTWARE\${PRODUCT_ID}" "" "$INSTDIR"
 	WriteRegStr HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_ID}" "DisplayName" "$(TEXT_IO_REMOVE_ONLY)"
 	WriteRegStr HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_ID}" "DisplayVersion" "$(PRODUCT_VER)"
-	WriteRegStr HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_ID}" "Comments" "StepMania 5 is a rhythm game simulator."
-	WriteRegStr HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_ID}" "Publisher" "StepMania Team"
-	WriteRegStr HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_ID}" "URLInfoAbout" "http://www.stepmania.com/"
-	WriteRegStr HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_ID}" "URLUpdateInfo" "http://code.google.com/p/stepmania/"
+	WriteRegStr HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_ID}" "Comments" "Etterna is a rhythm game"
+	WriteRegStr HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_ID}" "Publisher" "Etterna Team"
+	WriteRegStr HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_ID}" "URLInfoAbout" "https://etternaonline.com/"
+	WriteRegStr HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_ID}" "URLUpdateInfo" "https://etternaonline.com/"
 	WriteRegStr HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_ID}" "UninstallString" '"$INSTDIR\uninstall.exe"'
 !endif
 
@@ -238,16 +238,16 @@ Section "Main Section" SecMain
 
 !ifdef ASSOCIATE_SMZIP
 	WriteRegStr HKEY_LOCAL_MACHINE "SOFTWARE\Classes\smzipfile" "" "$(TEXT_IO_SMZIP_PACKAGE)"
-	WriteRegStr HKEY_LOCAL_MACHINE "SOFTWARE\Classes\smzipfile\DefaultIcon" "" "$INSTDIR\Program\StepMania.exe,1"
-	WriteRegStr HKEY_LOCAL_MACHINE "SOFTWARE\Classes\smzipfile\shell\open\command" "" '"$INSTDIR\Program\StepMania.exe" "%1"'
+	WriteRegStr HKEY_LOCAL_MACHINE "SOFTWARE\Classes\smzipfile\DefaultIcon" "" "$INSTDIR\Program\Etterna.exe,1"
+	WriteRegStr HKEY_LOCAL_MACHINE "SOFTWARE\Classes\smzipfile\shell\open\command" "" '"$INSTDIR\Program\Etterna.exe" "%1"'
 	WriteRegStr HKEY_LOCAL_MACHINE "SOFTWARE\Classes\.smzip" "" "smzipfile"
 !endif
 
 !ifdef ASSOCIATE_SMURL
-	WriteRegStr HKEY_LOCAL_MACHINE "SOFTWARE\Classes\stepmania" "" "StepMania protocol handler"
+	WriteRegStr HKEY_LOCAL_MACHINE "SOFTWARE\Classes\stepmania" "" "Etterna protocol handler"
 	WriteRegStr HKEY_LOCAL_MACHINE "SOFTWARE\Classes\stepmania" "URL Protocol" ""
-	WriteRegStr HKEY_LOCAL_MACHINE "SOFTWARE\Classes\stepmania\DefaultIcon" "" "$INSTDIR\Program\StepMania.exe"
-	WriteRegStr HKEY_LOCAL_MACHINE "SOFTWARE\Classes\stepmania\shell\open\command" "" '"$INSTDIR\Program\StepMania.exe" "%1"'
+	WriteRegStr HKEY_LOCAL_MACHINE "SOFTWARE\Classes\stepmania\DefaultIcon" "" "$INSTDIR\Program\Etterna.exe"
+	WriteRegStr HKEY_LOCAL_MACHINE "SOFTWARE\Classes\stepmania\shell\open\command" "" '"$INSTDIR\Program\Etterna.exe" "%1"'
 !endif
 
 !ifdef INSTALL_NON_PCK_FILES
@@ -445,8 +445,8 @@ Section "Main Section" SecMain
 	SetOutPath "$INSTDIR\Program"
 !ifdef INSTALL_EXECUTABLES
 	; normal exec
-	File "Program\StepMania.exe"
-	File "Program\StepMania.vdi"
+	File "Program\Etterna.exe"
+	File "Program\Etterna.vdi"
 	; other programs
 	;File "Program\Texture Font Generator.exe"
 	; AJ can never get this built properly:
@@ -471,7 +471,7 @@ Section "Main Section" SecMain
 		ExecWait 'Prerequisites\vc_redist.x86.exe' $0
 		
 		${If} $0 != 0
-		MessageBox MB_OK "Stepmania 5 requires visual studio 2015 x86 C++ runtimes to run."
+		MessageBox MB_OK "Etterna requires visual studio 2015 x86 C++ runtimes to run."
 		${EndIf}
 		
 		; Clear nsis errors as we already delt with it
@@ -519,10 +519,10 @@ Section "Main Section" SecMain
 	CreateDirectory "$SMPROGRAMS\${PRODUCT_ID}\"
 	; todo: make desktop shortcut an option
 	!ifdef MAKE_DESKTOP_SHORTCUT
-		CreateShortCut "$DESKTOP\$(TEXT_IO_RUN).lnk" "$INSTDIR\Program\StepMania.exe"
+		CreateShortCut "$DESKTOP\$(TEXT_IO_RUN).lnk" "$INSTDIR\Program\Etterna.exe"
 	!endif
 
-	CreateShortCut "$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_RUN).lnk" "$INSTDIR\Program\StepMania.exe"
+	CreateShortCut "$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_RUN).lnk" "$INSTDIR\Program\Etterna.exe"
 
 	!ifdef MAKE_OPEN_PROGRAM_FOLDER_SHORTCUT
 		CreateShortCut "$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_OPEN_PROGRAM_FOLDER).lnk" "$WINDIR\explorer.exe" "$INSTDIR\"
@@ -540,7 +540,7 @@ Section "Main Section" SecMain
 	!ifdef MAKE_UPDATES_SHORTCUT
 		CreateShortCut "$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_CHECK_FOR_UPDATES).lnk" "${UPDATES_URL}"
 	!endif
-	CreateShortCut "$INSTDIR\${PRODUCT_ID}.lnk" "$INSTDIR\Program\StepMania.exe"
+	CreateShortCut "$INSTDIR\${PRODUCT_ID}.lnk" "$INSTDIR\Program\Etterna.exe"
 !endif
 
 	IfErrors do_error do_no_error
@@ -615,7 +615,7 @@ Function LeaveAutorun
 	GoTo proceed
 
 	play:
-	Exec "$INSTDIR\Program\StepMania.exe"
+	Exec "$INSTDIR\Program\Etterna.exe"
 	IfErrors play_error
 	quit
 
@@ -687,7 +687,7 @@ Function PreInstall
 			ExecWait "Prerequisites\dxwebsetup.exe" $0
 		
 			${If} $0 != 0
-				MessageBox MB_OK "Stepmania 5 requires directX runtimes."
+				MessageBox MB_OK "Etterna requires directX runtimes."
 			${EndIf}
 			
 			; Clear nsis errors as we already delt with it
@@ -697,7 +697,7 @@ Function PreInstall
 		continue:
 !else
 		; Check that full version is installed.
-		IfFileExists "$INSTDIR\Program\StepMania.exe" proceed_with_patch
+		IfFileExists "$INSTDIR\Program\Etterna.exe" proceed_with_patch
 		MessageBox MB_YESNO|MB_ICONINFORMATION "$(TEXT_IO_FULL_INSTALL_NOT_FOUND)" IDYES proceed_with_patch
 		Abort
 		proceed_with_patch:
@@ -744,7 +744,7 @@ FunctionEnd
 ; The file deletions bellow don't simply recursively delete things because some
 ; people might decide it's a good idea to use a folder like Program Files as
 ; the folder for installation, and we don't want to delete everything in there.
-; ex. C:\Program Files\Program\Stepmania.exe
+; ex. C:\Program Files\Program\Etterna.exe
 
 Section "Uninstall"
 
@@ -885,6 +885,10 @@ Section "Uninstall"
 	Delete "$INSTDIR\Program\StepMania.vdi"
 	Delete "$INSTDIR\Program\StepMania-SSE2.exe"
 	Delete "$INSTDIR\Program\StepMania-SSE2.vdi"
+	Delete "$INSTDIR\Program\Etterna.exe"
+	Delete "$INSTDIR\Program\Etterna.vdi"
+	Delete "$INSTDIR\Program\Etterna-SSE2.exe"
+	Delete "$INSTDIR\Program\Etterna-SSE2.vdi"
 	Delete "$INSTDIR\Program\tools.exe"
 	Delete "$INSTDIR\Program\Texture Font Generator.exe"
 !endif

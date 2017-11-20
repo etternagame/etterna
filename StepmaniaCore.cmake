@@ -14,7 +14,7 @@ set(SM_DOC_DIR "${CMAKE_CURRENT_LIST_DIR}/Docs")
 set(SM_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}")
 
 # TODO: Reconsile the OS dependent naming scheme.
-set(SM_EXE_NAME "StepMania")
+set(SM_EXE_NAME "Etterna")
 
 # Some OS specific helpers.
 if (CMAKE_SYSTEM_NAME MATCHES "Linux")
@@ -456,12 +456,12 @@ elseif(LINUX)
   
   find_package(OpenGL REQUIRED)
   if (NOT ${OPENGL_FOUND})
-    message(FATAL_ERROR "OpenGL required to compile StepMania.")
+    message(FATAL_ERROR "OpenGL required to compile Etterna.")
   endif()
 
   find_package(GLEW REQUIRED)
   if (NOT ${GLEW_FOUND})
-    message(FATAL_ERROR "GLEW required to compile StepMania.")
+    message(FATAL_ERROR "GLEW required to compile Etterna.")
   endif()
 
 endif()
