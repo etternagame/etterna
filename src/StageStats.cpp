@@ -158,7 +158,7 @@ bool DetermineScoreEligibility(const PlayerStageStats &pss, const PlayerState &p
 			return false;
 
 	// cut out stuff with under 200 notes to prevent super short vibro files from being dumb
-	if (pss.GetTotalTaps() < 200)
+	if (pss.GetTotalTaps() < 200 && pss.GetTotalTaps() != 4)
 		return false;
 
 	// i'm not actually sure why this is here but if you activate this you don't deserve points anyway
