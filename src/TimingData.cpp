@@ -1413,10 +1413,10 @@ float TimingData::WhereUAtBroNoOffset(float beat) const {
 	return GetElapsedTimeFromBeatNoOffset(beat);
 }
 
-vector<float> TimingData::ConvertReplayNoteRowsToTimestamps(vector<int> nrv) {
+vector<float> TimingData::ConvertReplayNoteRowsToTimestamps(vector<int> nrv, float rate) {
 	vector<float> o;
 	for (auto nr : nrv)
-		o.emplace_back(WhereUAtBroNoOffset(nr));
+		o.emplace_back(WhereUAtBro(nr) / rate);
 	return o;
 }
 

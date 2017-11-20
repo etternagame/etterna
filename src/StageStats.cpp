@@ -278,7 +278,7 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 			auto steps = SONGMAN->GetStepsByChartkey(hs.GetChartKey());
 			auto td = steps->GetTimingData();
 			SCOREMAN->SetAllTopScores();	// this is super lazy and a chart specific function should be made -mina
-			hs.timeStamps = td->ConvertReplayNoteRowsToTimestamps(pss.GetNoteRowVector());
+			hs.timeStamps = td->ConvertReplayNoteRowsToTimestamps(pss.GetNoteRowVector(), hs.GetMusicRate());
 			DLMAN->UploadScore(&hs);
 			hs.timeStamps.clear();
 			hs.timeStamps.shrink_to_fit();
