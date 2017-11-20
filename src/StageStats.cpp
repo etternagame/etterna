@@ -266,22 +266,27 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 			vector<float> dakine = pss.CalcSSR(hs.GetSSRNormPercent());
 			FOREACH_ENUM(Skillset, ss)
 				hs.SetSkillsetSSR(ss, dakine[ss]);
+
+			hs.SetSSRCalcVersion(GetCalcVersion());
 		}
 		else {
 			FOREACH_ENUM(Skillset, ss)
 				hs.SetSkillsetSSR(ss, 0.f);
 		}
-		hs.timeStamps = pss.timeStamps;
+
 		if (DLMAN->ShouldUploadScores()) {
+			auto steps = SONGMAN->GetStepsByChartkey(hs.GetChartKey());
+			auto td = steps->GetTimingData();
+			SCOREMAN->SetAllTopScores();	// this is super lazy and a chart specific function should be made -mina
+			hs.timeStamps = td->ConvertReplayNoteRowsToTimestamps(pss.GetNoteRowVector());
 			DLMAN->UploadScore(&hs);
+			hs.timeStamps.clear();
+			hs.timeStamps.shrink_to_fit();
 		}
 		bool writesuccess = hs.WriteReplayData();
 		if (writesuccess)
 			hs.UnloadReplayData();
 	}
-
-	// this whole thing needs to be redone, ssr calculation should be moved into highscore -mina
-	hs.SetSSRCalcVersion(GetCalcVersion());
 
 	pss.GenerateValidationKeys(hs);
 

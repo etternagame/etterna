@@ -1413,6 +1413,13 @@ float TimingData::WhereUAtBroNoOffset(float beat) const {
 	return GetElapsedTimeFromBeatNoOffset(beat);
 }
 
+vector<float> TimingData::ConvertReplayNoteRowsToTimestamps(vector<int> nrv) {
+	vector<float> o;
+	for (auto nr : nrv)
+		o.emplace_back(WhereUAtBroNoOffset(nr));
+	return o;
+}
+
 const vector<float>& TimingData::BuildAndGetEtaner(const vector<int>& nerv) {
 	ElapsedTimesAtNonEmptyRows.clear();
 

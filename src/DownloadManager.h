@@ -124,6 +124,8 @@ public:
 	inline void AddSessionCookieToCURL(CURL *curlHandle);
 	inline void SetCURLPostToURL(CURL *curlHandle, string url);
 
+	// most recent single score upload result -mina
+	RString mostrecentresult = "";
 
 	// Lua
 	void PushSelf(lua_State *L);

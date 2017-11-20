@@ -510,6 +510,9 @@ bool DownloadManager::UploadScore(HighScore* hs)
 		LOG->Trace(result.c_str());
 		return false;
 	}
+
+	mostrecentresult = result;
+
 	return ret == 0;
 }
 void DownloadManager::EndSessionIfExists()
@@ -811,6 +814,11 @@ public:
 		}
 		return 1;
 	}
+	static int GetMostRecentUploadResult(T* p, lua_State* L)
+	{
+		lua_pushstring(L, p->mostrecentresult);
+		return 1;
+	}
 	LunaDownloadManager()
 	{
 		ADD_METHOD(GetPackList);
@@ -819,6 +827,7 @@ public:
 		ADD_METHOD(GetFilteredAndSearchedPackList);
 		ADD_METHOD(IsLoggedIn);
 		ADD_METHOD(Login);
+		ADD_METHOD(GetMostRecentUploadResult);
 	}
 };
 LUA_REGISTER_CLASS(DownloadManager) 

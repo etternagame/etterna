@@ -2950,7 +2950,6 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 				m_pPlayerStageStats->CurWifeScore = curwifescore;
 				m_pPlayerStageStats->MaxWifeScore = maxwifescore;
 				m_pPlayerStageStats->m_vOffsetVector.emplace_back(tn.result.fTapNoteOffset);
-				m_pPlayerStageStats->timeStamps.emplace_back(m_Timing->WhereUAtBroNoOffset(iRow));
 				m_pPlayerStageStats->m_vNoteRowVector.emplace_back(iRow);
 			}
 			else {
