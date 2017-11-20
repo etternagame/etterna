@@ -158,10 +158,14 @@ local function makescoregoal(i)
 							ck = sg:GetChartKey()
 							goalsong = SONGMAN:GetSongByChartKey(ck)
 							goalsteps = SONGMAN:GetStepsByChartKey(ck)
-							
-							local diff = goalsteps:GetDifficulty()
-							self:settext(getShortDifficulty(diff))
-							self:diffuse(byDifficulty(diff))
+							if goalsteps and goalsong then
+								local diff = goalsteps:GetDifficulty()
+								self:settext(getShortDifficulty(diff))
+								self:diffuse(byDifficulty(diff))
+							else
+								self:settext("??")
+								self:diffuse(getMainColor('negative'))
+							end
 							self:visible(true)
 						else
 							self:visible(false)
@@ -179,7 +183,13 @@ local function makescoregoal(i)
 				SetCommand=function(self)
 					if update then
 						if sg then 
-							self:settextf(goalsong:GetDisplayMainTitle())
+							if goalsong then
+								self:settextf(goalsong:GetDisplayMainTitle())
+								self:diffuse(getMainColor('positive'))
+							else
+								self:settext("Song not found")
+								self:diffuse(getMainColor('negative'))
+							end
 							self:visible(true)
 						else
 							self:visible(false)
@@ -315,7 +325,7 @@ local function makescoregoal(i)
 				end,
 				SetCommand=function(self)
 					if update then 
-						if sg then
+						if sg and goalsteps then
 							local msd = goalsteps:GetMSD(sg:GetRate(), 1)
 							self:settextf("%5.1f", msd)
 							self:diffuse(ByMSD(msd))
