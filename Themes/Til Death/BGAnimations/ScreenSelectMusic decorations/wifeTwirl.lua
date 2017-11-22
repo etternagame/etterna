@@ -95,7 +95,7 @@ local function GetBestScoreByFilter(perc,CurRate)
 		if not rtTable[rates[1]] then return nil end
 	end
 	
-	table.sort(rates)
+	table.sort(rates,function(a,b) a=a:gsub("x","") b=b:gsub("x","") return a<b end)
 	for i=#rates,1,-1 do
 		scores = rtTable[rates[i]]
 		local bestscore = 0
