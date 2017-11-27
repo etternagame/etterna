@@ -550,7 +550,7 @@ bool DownloadManager::ShouldUploadScores()
 {
 	return LoggedIn() && automaticSync;
 }
-inline void SetCURLPOSTScore(CURL* curlHandle, curl_httppost* form, curl_httppost* lastPtr, HighScore* hs)
+inline void SetCURLPOSTScore(CURL*& curlHandle, curl_httppost*& form, curl_httppost*& lastPtr, HighScore*& hs)
 {
 	SetCURLFormPostField(curlHandle, form, lastPtr, "scorekey", hs->GetScoreKey());
 	FOREACH_ENUM(Skillset, ss)
@@ -585,15 +585,7 @@ void DownloadManager::UploadScore(HighScore* hs)
 	curl_httppost *form = nullptr;
 	curl_httppost *lastPtr = nullptr;
 	SetCURLPOSTScore(curlHandle, form, lastPtr, hs);
-	string replayString = "[";
-	vector<float> timestamps = hs->timeStamps;
-	vector<float> offsets = hs->GetOffsetVector();
-	for (int i = 0; i < offsets.size(); i++) {
-		replayString += "[" + to_string(timestamps[i]) + "," + to_string(1000.f * offsets[i]) + "],";
-	}
-	replayString = replayString.substr(0, replayString.size() - 1); //remove ","
-	replayString += "]";
-	SetCURLFormPostField(curlHandle, form, lastPtr, "replay_data", replayString);
+	CURLFormPostField(curlHandle, form, lastPtr, "replay_data", "");
 	SetCURLPostToURL(curlHandle, url);
 	AddSessionCookieToCURL(curlHandle);
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);

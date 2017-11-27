@@ -279,7 +279,7 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 			auto td = steps->GetTimingData();
 			SCOREMAN->SetAllTopScores();	// this is super lazy and a chart specific function should be made -mina
 			hs.timeStamps = td->ConvertReplayNoteRowsToTimestamps(pss.GetNoteRowVector(), hs.GetMusicRate());
-			DLMAN->UploadScore(&hs);
+			DLMAN->UploadScoreWithReplayData(&hs);
 			hs.timeStamps.clear();
 			hs.timeStamps.shrink_to_fit();
 		}
