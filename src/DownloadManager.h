@@ -97,6 +97,7 @@ public:
 	string chartkey;
 	string scorekey;
 	Difficulty difficulty;
+	string steps;
 };
 class DownloadManager
 {

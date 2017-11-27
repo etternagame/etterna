@@ -656,7 +656,6 @@ void DownloadManager::EndSessionIfExists()
 	if (!LoggedIn())
 		return;
 	EndSession();
-	MESSAGEMAN->Broadcast("LogOut");
 }
 void DownloadManager::EndSession()
 {
@@ -669,6 +668,7 @@ void DownloadManager::EndSession()
 	session = sessionUser = sessionPass = sessionCookie = "";
 	scores.clear();
 	sessionRatings.clear();
+	MESSAGEMAN->Broadcast("LogOut");
 }
 
 std::vector<std::string> split(const std::string& s, char delimiter)
@@ -738,8 +738,6 @@ void DownloadManager::RefreshTop25(Skillset ss)
 		if (!JsonUtil::LoadFromString(json, req.result, error) || (json.isObject() && json.isMember("error")))
 			return;
 		vector<OnlineScore> & vec = DLMAN->scores[ss];
-		LOG->Trace(req.result.c_str());
-		LOG->Flush();
 		for (auto it = json.begin(); it != json.end(); ++it) {
 			OnlineScore tmp;
 			tmp.songName = (*it).get("songname", "").asString();
@@ -1101,7 +1099,7 @@ public:
 	{
 		string user = SArg(1);
 		string pass = SArg(2);
-		DLMAN->StartSession(user, pass); 
+		DLMAN->StartSession(user, pass);
 		return 1;
 	}
 	static int Logout(T* p, lua_State* L)
