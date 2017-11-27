@@ -1196,6 +1196,11 @@ public:
 		lua_pushnumber(L, p->progress.downloaded);
 		return 1;
 	}
+	static int GetKBPerSecond(T* p, lua_State* L)
+	{
+		lua_pushnumber(L, atoi(p->speed.c_str()));
+		return 1;
+	}
 	static int GetTotalKB(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, p->progress.total);
@@ -1210,6 +1215,7 @@ public:
 	{
 		ADD_METHOD(GetTotalKB);
 		ADD_METHOD(GetKBDownloaded);
+		ADD_METHOD(GetKBPerSecond);
 		ADD_METHOD(Stop);
 	}
 };
