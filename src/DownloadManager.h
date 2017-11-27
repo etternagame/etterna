@@ -76,16 +76,41 @@ public:
 	void PushSelf(lua_State *L);
 };
 
+class HTTPRequest {
+public:
+	HTTPRequest(CURL * h, function<void(HTTPRequest&)> done = [](HTTPRequest& req) {return; },
+		curl_httppost* postform = nullptr, function<void(HTTPRequest&)> fail = [](HTTPRequest& req) {return; }):
+		handle(h), form(postform), Done(done), Failed(fail) {};
+	CURL * handle{ nullptr };
+	curl_httppost* form{ nullptr };
+	string result;
+	function<void(HTTPRequest&)> Done;
+	function<void(HTTPRequest&)> Failed;
+};
+class OnlineScore {
+public:
+	float wifeScore{ 0.0f };
+	string songName;
+	float rate{ 0.0f };
+	float ssr{ 0.0f };
+	string chartkey;
+	string scorekey;
+	string steps;
+};
 class DownloadManager
 {
 public:
 	DownloadManager();
 	~DownloadManager();
 	map<string, Download*> downloads;
+	vector<HTTPRequest*> HTTPRequests;
 	map<string, Download*> finishedDownloads;
-	CURLM* mHandle{nullptr};
+	CURLM* mPackHandle{nullptr};
+	CURLM* mHTTPHandle{ nullptr };
 	CURLMcode ret;
-	int running{0};
+	int downloadingPacks{0};
+	int HTTPRunning{ 0 }; 
+	bool loggingIn{ false };
 	bool gameplay{false};
 	string error{""};
 	int lastid{0};
@@ -96,15 +121,19 @@ public:
 	string session{ "" };
 	string sessionUser{ "" };
 	string sessionPass{ "" };
+	double sessionRating{ 0.0 };
+	int sessionRank{ 0 };
 	bool LoggedIn();
 	void EndSessionIfExists();
-	bool StartSession(string user, string pass);
+	void StartSession(string user, string pass);
 	vector<DownloadablePack>* GetPackList(string url, bool &result);
 
 	Download* DownloadAndInstallPack(const string &url);
 	Download*  DownloadAndInstallPack(DownloadablePack* pack);
 	bool UpdateAndIsFinished(float fDeltaSeconds);
-	void InstallSmzip(const string &sZipFile);
+	bool UpdatePacksAndIsFinished(float fDeltaSeconds);
+	bool UpdateHTTPAndIsFinished(float fDeltaSeconds);
+	bool InstallSmzip(const string &sZipFile);
 
 	void UpdateDLSpeed();
 	void UpdateDLSpeed(bool gameplay);
@@ -114,16 +143,26 @@ public:
 	bool Error() { return error == ""; }
 	bool EncodeSpaces(string& str);
 
-	bool LoginAndUploadProfile(string file, string profileName, string user, string pass);
 	bool UploadProfile(string file, string profileName);
 
-	bool UploadScore(HighScore* hs);
+	void UploadScoreWithReplayData(HighScore* hs);
+	void UploadScore(HighScore* hs);
 
 	DateTime GetLastUploadDate(string profileName);
 	bool ShouldUploadScores();
 
 	inline void AddSessionCookieToCURL(CURL *curlHandle);
 	inline void SetCURLPostToURL(CURL *curlHandle, string url);
+	inline void SetCURLURL(CURL *curlHandle, string url);
+
+	void RefreshUserData();
+	void RefreshUserRank();
+	void RefreshTop25(Skillset ss);
+	map<Skillset, double> sessionRatings;
+	map<Skillset, vector<OnlineScore>> scores;
+	OnlineScore GetTopSkillsetScore(unsigned int rank, Skillset ss, bool &result);
+	float GetSkillsetRating(Skillset ss);
+	int GetRank();
 
 	// most recent single score upload result -mina
 	RString mostrecentresult = "";

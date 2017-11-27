@@ -43,7 +43,7 @@ end
 local numbershers = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "0"}
 local englishes = {"a", "b", "c", "d", "e","f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",";"}
 local function DlInput(event)
-	if event.type ~= "InputEventType_Release" and update then
+	if event.type ~= "InputEventType_Release" and update and inputting ~= 0 then
 		local changed = false
 		if event.button == "Start" then
 			curInput = ""
@@ -53,8 +53,9 @@ local function DlInput(event)
 			if currentpage > numpages or currentpage < 1 then
 				currentpage = 1
 			end
+			MESSAGEMAN:Broadcast("UpdatePacks")
 			MESSAGEMAN:Broadcast("DlInputEnded")
-			SCREENMAN:set_input_redirected(PLAYER_1, false)
+			MESSAGEMAN:Broadcast("NumericInputEnded")
 			return true
 		elseif event.button == "Back" then
 			curInput = ""
@@ -66,8 +67,9 @@ local function DlInput(event)
 			filters[inputting] = curInput
 			inputting = 0
 			packlist = DLMAN:GetFilteredAndSearchedPackList(tostring(filters[1]), tonumber(filters[2]), tonumber(filters[3]), tonumber(filters[4]*1024*1024), tonumber(filters[5]*1024*1024))
+			MESSAGEMAN:Broadcast("UpdatePacks")
 			MESSAGEMAN:Broadcast("DlInputEnded")
-			SCREENMAN:set_input_redirected(PLAYER_1, false)
+			MESSAGEMAN:Broadcast("NumericInputEnded")
 			return true
 		elseif event.DeviceInput.button == "DeviceButton_backspace" then
 			curInput = curInput:sub(1, -2)
@@ -118,11 +120,13 @@ local t = Def.ActorFrame{
 		self:bouncebegin(0.2):xy(0,0):diffusealpha(1)
 	end,
 	MouseRightClickMessageCommand=function(self)
-		inputting = 0
-		curInput = 0
-		MESSAGEMAN:Broadcast("DlInputEnded")
-		MESSAGEMAN:Broadcast("UpdatePacks")
-		SCREENMAN:set_input_redirected(PLAYER_1, false)
+		if update == true then
+			inputting = 0
+			curInput = 0
+			MESSAGEMAN:Broadcast("DlInputEnded")
+			MESSAGEMAN:Broadcast("NumericInputEnded")
+			MESSAGEMAN:Broadcast("UpdatePacks")
+		end
 	end,
 	SetCommand=function(self)
 		self:finishtweening()
@@ -312,6 +316,7 @@ local function numFilter(i,x,y)
 					inputting = i
 					curInput = ""
 					MESSAGEMAN:Broadcast("DlInputActive")
+					MESSAGEMAN:Broadcast("NumericInputActive")
 					self:diffusealpha(0.1)
 					SCREENMAN:set_input_redirected(PLAYER_1, true)
 				end
@@ -376,6 +381,7 @@ filters[#filters+1] = Def.ActorFrame{
 					inputting = 2
 					curInput = ""
 					MESSAGEMAN:Broadcast("DlInputActive")
+					MESSAGEMAN:Broadcast("NumericInputActive")
 					self:diffusealpha(0.1)
 					SCREENMAN:set_input_redirected(PLAYER_1, true)
 				end
@@ -425,6 +431,7 @@ filters[#filters+1] = Def.ActorFrame{
 					inputting=3
 					curInput = ""
 					MESSAGEMAN:Broadcast("DlInputActive")
+					MESSAGEMAN:Broadcast("NumericInputActive")
 					self:diffusealpha(0.1)
 					SCREENMAN:set_input_redirected(PLAYER_1, true)
 				end
@@ -482,6 +489,7 @@ filters[#filters+1] = Def.ActorFrame{
 					inputting = 4
 					curInput = ""
 					MESSAGEMAN:Broadcast("DlInputActive")
+					MESSAGEMAN:Broadcast("NumericInputActive")
 					self:diffusealpha(0.1)
 					SCREENMAN:set_input_redirected(PLAYER_1, true)
 				end
@@ -531,6 +539,7 @@ filters[#filters+1] = Def.ActorFrame{
 					inputting=5
 					curInput = ""
 					MESSAGEMAN:Broadcast("DlInputActive")
+					MESSAGEMAN:Broadcast("NumericInputActive")
 					self:diffusealpha(0.1)
 					SCREENMAN:set_input_redirected(PLAYER_1, true)
 				end
@@ -580,6 +589,7 @@ filters[#filters+1] = Def.ActorFrame{
 					inputting=1
 					curInput = ""
 					MESSAGEMAN:Broadcast("DlInputActive")
+					MESSAGEMAN:Broadcast("NumericInputActive")
 					self:diffusealpha(0.1)
 					SCREENMAN:set_input_redirected(PLAYER_1, true)
 				end

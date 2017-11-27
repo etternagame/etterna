@@ -1,6 +1,5 @@
 local active = true
 local numericinputactive = false
-local packinputactive = false
 local whee
 
 local tabNames = {"General","MSD","Score","Search","Profile","Filters", "Goals", "Playlists", "Packs"} -- this probably should be in tabmanager.
@@ -9,7 +8,7 @@ local tabNames = {"General","MSD","Score","Search","Profile","Filters", "Goals",
 ]]
 local function input(event)
 	if event.type ~= "InputEventType_Release" and active then
-		if numericinputactive == false and packinputactive == false then
+		if numericinputactive == false then
 			for i=1,#tabNames do
 				if not (INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl") or IsNetSMOnline()) and event.char and tonumber(event.char) and  tonumber(event.char)==i then
 					setTabIndex(i-1)
@@ -37,8 +36,6 @@ local t = Def.ActorFrame{
 	EndingSearchMessageCommand=function(self) active = true end,
 	NumericInputActiveMessageCommand=function(self) numericinputactive = true end,
 	NumericInputEndedMessageCommand=function(self) numericinputactive = false end,
-	DlInputActiveMessageCommand=function(self) packinputactive = true end,
-	DlInputEndedMessageCommand=function(self) packinputactive = false end,
 }
 
 -- Just for debug
