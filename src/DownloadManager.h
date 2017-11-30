@@ -15,6 +15,7 @@
 #include "ScreenManager.h"
 #include "RageFileManager.h"
 #include "curl/curl.h"
+#include "Difficulty.h"
 
 
 
@@ -95,7 +96,7 @@ public:
 	float ssr{ 0.0f };
 	string chartkey;
 	string scorekey;
-	string steps;
+	Difficulty difficulty;
 };
 class DownloadManager
 {
@@ -122,7 +123,7 @@ public:
 	string sessionUser{ "" };
 	string sessionPass{ "" };
 	double sessionRating{ 0.0 };
-	int sessionRank{ 0 };
+	map<Skillset, int> sessionRanks;
 	bool LoggedIn();
 	void EndSessionIfExists();
 	void StartSession(string user, string pass);
@@ -162,7 +163,7 @@ public:
 	map<Skillset, vector<OnlineScore>> scores;
 	OnlineScore GetTopSkillsetScore(unsigned int rank, Skillset ss, bool &result);
 	float GetSkillsetRating(Skillset ss);
-	int GetRank();
+	int GetSkillsetRank(Skillset ss);
 
 	// most recent single score upload result -mina
 	RString mostrecentresult = "";

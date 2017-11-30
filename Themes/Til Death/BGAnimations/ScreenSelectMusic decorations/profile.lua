@@ -240,10 +240,15 @@ local function rankingLabel(i)
 				self:x(300)
 			end,
 			DisplayProfileRankingLabelsMessageCommand=function(self)
-				self:visible(not showOnline)
-				if thssteps then
-					local diff = thssteps:GetDifficulty()
-					self:halign(0.5)
+				self:halign(0.5)
+				if not showOnline then
+					if thssteps then
+						local diff = thssteps:GetDifficulty()
+						self:diffuse(byDifficulty(diff))
+						self:settext(getShortDifficulty(diff))
+					end
+				elseif onlineScore then
+					local diff = onlineScore.difficulty
 					self:diffuse(byDifficulty(diff))
 					self:settext(getShortDifficulty(diff))
 				end
@@ -539,10 +544,11 @@ local function littlebits(i)
 				local rating = 0
 				if not showOnline then
 					rating = profile:GetPlayerSkillsetRating(ms.SkillSets[i])
+					self:settextf("%5.2f",rating):x(240)
 				else
 					rating = DLMAN:GetSkillsetRating(ms.SkillSets[i])
+					self:settextf("%5.2f(#%i)",rating, DLMAN:GetSkillsetRank(ms.SkillSets[i])):x(270)
 				end
-				self:settextf("%5.2f",rating)
 				self:diffuse(ByMSD(rating))
 			end,
 			UpdateRankingMessageCommand=function(self)

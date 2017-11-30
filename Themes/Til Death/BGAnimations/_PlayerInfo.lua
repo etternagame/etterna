@@ -94,7 +94,7 @@ t[#t+1] = Def.ActorFrame{
 		InitCommand=function(self)
 			self:xy(SCREEN_CENTER_X+100,AvatarY+40):halign(0):zoom(0.35):diffuse(getMainColor('positive'))
 			if DLMAN:IsLoggedIn() then
-				self:settextf("Logged in as %s (#%i)",DLMAN:GetUsername(),DLMAN:GetUserRank())
+				self:settextf("Logged in as %s (#%i)",DLMAN:GetUsername(),DLMAN:GetSkillsetRank(ms.SkillSets[1]))
 			else
 				self:settext("Not logged in")
 			end
@@ -105,8 +105,8 @@ t[#t+1] = Def.ActorFrame{
 		LogOutMessageCommand=function(self)
 			self:settext("Not logged in")
 		end,
-		LogInMessageCommand=function(self)
-			self:settextf("Logged in as %s (#%i)",DLMAN:GetUsername(),DLMAN:GetUserRank())
+		LoginMessageCommand=function(self)
+			self:settextf("Logged in as %s (#%i)",DLMAN:GetUsername(),DLMAN:GetSkillsetRank(ms.SkillSets[1]))
 		end,
 	},
 	LoadFont("Common Normal") .. {

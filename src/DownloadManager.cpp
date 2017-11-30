@@ -663,10 +663,12 @@ void DownloadManager::RefreshUserRank()
 		Json::Value json;
 		RString error;
 		if (!JsonUtil::LoadFromString(json, req.result, error)) {
-			DLMAN->sessionRank = 0;
+			FOREACH_ENUM(Skillset, ss)
+				(DLMAN->sessionRanks)[ss] = 0.0f;
 			return;
 		}
-		DLMAN->sessionRank = atoi(json.get("rank", "error").asString().c_str());
+		FOREACH_ENUM(Skillset, ss)
+			(DLMAN->sessionRanks)[ss] = atoi(json.get(SkillsetToString(ss), "0").asCString());
 		MESSAGEMAN->Broadcast("OnlineUpdate");
 	};
 	HTTPRequest* req = new HTTPRequest(curlHandle, done);
@@ -691,9 +693,9 @@ void DownloadManager::RefreshTop25(Skillset ss)
 {
 	if (!LoggedIn())
 		return;
-	string url = serverURL.Get() + "/user_top25_scores";
+	string url = serverURL.Get() + "/user_top_scores?num=25";
 	CURL *curlHandle = initCURLHandle();
-	url += "?username=" + sessionUser;
+	url += "&username=" + sessionUser;
 	if(ss!= Skill_Overall)
 		url += "&ss="+SkillsetToString(ss);
 	SetCURLURL(curlHandle, url);
@@ -703,14 +705,17 @@ void DownloadManager::RefreshTop25(Skillset ss)
 		if (!JsonUtil::LoadFromString(json, req.result, error) || (json.isObject() && json.isMember("error")))
 			return;
 		vector<OnlineScore> & vec = DLMAN->scores[ss];
+		LOG->Trace(req.result.c_str());
+		LOG->Flush();
 		for (auto it = json.begin(); it != json.end(); ++it) {
 			OnlineScore tmp;
 			tmp.songName = (*it).get("songname", "").asString();
 			tmp.wifeScore = atof((*it).get("wifescore", "0.0").asCString());
 			tmp.ssr = atof((*it).get("calcscore", "0.0").asCString());
-			tmp.chartkey = (*it).get("chartkey", "").asString();
+			tmp.chartkey = (*it).get("chartkey", "").asString(); 
 			tmp.scorekey = (*it).get("scorekey", "").asString();
 			tmp.rate = atof((*it).get("user_chart_rate_rate", "0.0").asCString());
+			tmp.difficulty = StringToDifficulty((*it).get("difficulty", "Invalid").asCString());
 			vec.push_back(tmp);
 		}
 		MESSAGEMAN->Broadcast("OnlineUpdate");
@@ -849,11 +854,11 @@ bool DownloadManager::CachePackList(string url)
 	return result;
 }
 
-int DownloadManager::GetRank()
+int DownloadManager::GetSkillsetRank(Skillset ss)
 {
 	if (!LoggedIn())
 		return 0;
-	return sessionRank;
+	return sessionRanks[ss];
 }
 
 float DownloadManager::GetSkillsetRating(Skillset ss)
@@ -1016,9 +1021,9 @@ public:
 		lua_pushstring(L, DLMAN->sessionUser.c_str());
 		return 1;
 	}
-	static int GetUserRank(T* p, lua_State* L)
+	static int GetSkillsetRank(T* p, lua_State* L)
 	{
-		lua_pushnumber(L, DLMAN->GetRank());
+		lua_pushnumber(L, DLMAN->GetSkillsetRank(Enum::Check<Skillset>(L, 1)));
 		return 1;
 	}
 	static int GetSkillsetRating(T* p, lua_State* L)
@@ -1065,7 +1070,7 @@ public:
 			lua_pushnil(L);
 			return 1;
 		}
-		lua_createtable(L, 0, 5);
+		lua_createtable(L, 0, 6);
 		lua_pushstring(L, onlineScore.songName.c_str());
 		lua_setfield(L, -2, "songName");
 		lua_pushnumber(L, onlineScore.rate);
@@ -1075,7 +1080,9 @@ public:
 		lua_pushnumber(L, onlineScore.wifeScore);
 		lua_setfield(L, -2, "wife");
 		lua_pushstring(L, onlineScore.chartkey.c_str());
-		lua_setfield(L, -2, "ck");
+		lua_setfield(L, -2, "chartkey");
+		LuaHelpers::Push(L, onlineScore.difficulty);
+		lua_setfield(L, -2, "difficulty");
 		return 1;
 	}
 	static int GetFilteredAndSearchedPackList(T* p, lua_State* L)
@@ -1114,7 +1121,7 @@ public:
 		ADD_METHOD(IsLoggedIn);
 		ADD_METHOD(Login);
 		ADD_METHOD(GetUsername);
-		ADD_METHOD(GetUserRank);
+		ADD_METHOD(GetSkillsetRank);
 		ADD_METHOD(GetSkillsetRating);
 		ADD_METHOD(GetTopSkillsetScore);
 		ADD_METHOD(Logout);
