@@ -18,6 +18,14 @@ class Song;
 #include "ScreenDimensions.h"
 #include "StepMania.h"
 #include "ActorUtil.h"
+#include "Song.h"
+#include "NoteData.h"
+#include "Steps.h"
+#include <algorithm>
+#include <iostream>
+#include <iterator>
+#include <vector>
+#include <fstream>
 
 #if !defined(WITHOUT_NETWORKING)
 #include "DownloadManager.h"
@@ -63,6 +71,39 @@ void DoInstalls(CommandLineActions::CommandLineArgs args)
 	for (int i = 0; i<(int)args.argv.size(); i++)
 	{
 		RString s = args.argv[i];
+		if (s == "notedataCache") {
+			FOREACH_CONST(Song*, SONGMAN->GetAllSongs(), iSong) {
+				Song *pSong = (*iSong);
+				FOREACH_CONST(Steps*, pSong->GetAllSteps(), iSteps) {
+					Steps* steps = (*iSteps);
+					TimingData* td = steps->GetTimingData();
+					NoteData nd;
+					steps->GetNoteData(nd);
+
+					nd.LogNonEmptyRows();
+					auto& nerv = nd.GetNonEmptyRowVector();
+					auto& etaner = td->BuildAndGetEtaner(nerv);
+					auto& serializednd = nd.SerializeNoteData(etaner);
+
+					string path = args.argv[i+1]+ steps->GetChartKey()+".cache";
+					ofstream FILE(path, ios::out | ofstream::binary);
+					FILE.write((char *)&serializednd[0], serializednd.size() * sizeof(NoteInfo));
+					FILE.close();
+					vector<NoteInfo> newVector;
+					std::ifstream INFILE(path, std::ios::in | std::ifstream::binary);
+					INFILE.seekg(0, ios::end);
+					newVector.resize(INFILE.tellg() / sizeof(NoteInfo));
+					INFILE.seekg(0, ios::beg);
+					INFILE.read((char *)&newVector[0], newVector.capacity() * sizeof(NoteData));
+					INFILE.close();
+
+					td->UnsetEtaner();
+					nd.UnsetNerv();
+					nd.UnsetSerializedNoteData();
+					steps->Compress();
+			}
+		}
+	}
 		if (IsHTTPProtocol(s))
 		{
 
