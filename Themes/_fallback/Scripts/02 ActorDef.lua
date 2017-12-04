@@ -65,13 +65,13 @@ setmetatable( Def, {
 			local info = debug.getinfo(level,"Sl");
 
 			-- Source file of caller:
-			local Source = info.source
+			local Source = info and info.source or ""
 			t._Source = Source
 
 			t._Dir = DebugPathToRealPath( Source )
 
 			-- Line number of caller:
-			t._Line = info.currentline
+			t._Line = info and info.currentline or 0
 
 			setmetatable( t, DefMetatable )
 			return t

@@ -248,6 +248,8 @@ if(WIN32)
   link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc.lib)
   include_directories(${SM_EXTERN_DIR}/discord-rpc-2.0.1/include)
   link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/discord-rpc.lib)
+  link_libraries(${SM_EXTERN_DIR}/LuaJIT/lua51.lib)
+  include_directories(${SM_EXTERN_DIR}/LuaJIT/include)
   
   if (MINGW AND WITH_FFMPEG)
     include("${SM_CMAKE_DIR}/SetupFfmpeg.cmake")
@@ -305,6 +307,8 @@ elseif(MACOSX)
 
   
   link_libraries(${SM_EXTERN_DIR}/MinaCalc/libMinaCalc.a)
+  link_libraries(${SM_EXTERN_DIR}/LuaJIT/lua51Mac.a)
+  include_directories(${SM_EXTERN_DIR}/LuaJIT/include)
 
   set(SYSTEM_PCRE_FOUND FALSE)
   set(WITH_CRASH_HANDLER TRUE)
@@ -357,6 +361,8 @@ elseif(LINUX)
   endif()
 
   link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc.a)
+  link_libraries(${SM_EXTERN_DIR}/LuaJIT/lua51.a)
+  include_directories(${SM_EXTERN_DIR}/LuaJIT/include)
   
   find_package(X11)
   if(${X11_FOUND})

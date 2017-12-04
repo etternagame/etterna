@@ -1,4 +1,3 @@
-include(CMakeProject-lua.cmake)
 include(CMakeProject-glew.cmake)
 include(CMakeProject-json.cmake)
 if (APPLE OR MSVC)
