@@ -1141,6 +1141,7 @@ int sm_main(int argc, char* argv[])
 	if( PREFSMAN->m_iSoundWriteAhead )
 		LOG->Info( "Sound writeahead has been overridden to %i", PREFSMAN->m_iSoundWriteAhead.Get() );
 
+	SONGINDEX = new SongCacheIndex;
 	SOUNDMAN	= new RageSoundManager;
 	SOUNDMAN->Init();
 	SOUNDMAN->SetMixVolume();
@@ -1151,13 +1152,14 @@ int sm_main(int argc, char* argv[])
 	StepMania::InitializeCurrentGame( GAMESTATE->GetCurrentGame() );
 
 	INPUTQUEUE	= new InputQueue;
-	SONGINDEX	= new SongCacheIndex;
 	BANNERCACHE	= new BannerCache;
 	//BACKGROUNDCACHE	= new BackgroundCache;
 
 	// depends on SONGINDEX:
 	SONGMAN		= new SongManager;
+	SONGINDEX->StartTransaction();
 	SONGMAN->InitAll( pLoadingWindow );	// this takes a long time
+	SONGINDEX->FinishTransaction();
 	CRYPTMAN	= new CryptManager;		// need to do this before ProfileMan
 	if( PREFSMAN->m_bSignProfileData )
 		CRYPTMAN->GenerateGlobalKeys();
