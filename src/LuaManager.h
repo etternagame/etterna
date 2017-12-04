@@ -10,9 +10,10 @@ class LuaReference;
 
 extern "C"
 {
-#include "../extern/lua-5.1/src/lua.h"
-#include "../extern/lua-5.1/src/lualib.h"
-#include "../extern/lua-5.1/src/lauxlib.h"
+#include "lua.h"
+#include "luajit.h"
+#include "lualib.h"
+#include "lauxlib.h"
 }
 
 // For Dialog::Result

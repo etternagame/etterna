@@ -686,7 +686,7 @@ namespace
 					 * we added this one already above. */
 					lua_Number f = lua_tonumber( L, -1 );
 					int i;
-					lua_number2int(i, f);
+					((i) = (int)(f));
 					if( i >= 1 && i <= iLen && float(i) == f )
 						continue;
 				}
