@@ -1,4 +1,5 @@
 local t = Def.ActorFrame {
+	LoadActor(NOTESKIN:GetPath("Fallback", "Overlayceptor" ));
 	NOTESKIN:LoadActor( Var "Button", "Hold Explosion" ) .. {
 		HoldingOnCommand=NOTESKIN:GetMetricA("HoldGhostArrow", "HoldingOnCommand");
 		HoldingOffCommand=NOTESKIN:GetMetricA("HoldGhostArrow", "HoldingOffCommand");
@@ -22,6 +23,12 @@ local t = Def.ActorFrame {
 		W3Command=NOTESKIN:GetMetricA("GhostArrowDim", "W3Command");
 		W2Command=NOTESKIN:GetMetricA("GhostArrowDim", "W2Command");
 		W1Command=NOTESKIN:GetMetricA("GhostArrowDim", "W1Command");
+		JudgmentCommand=cmd(finishtweening);
+		BrightCommand=cmd(visible,false);
+		DimCommand=cmd(visible,true);
+	};
+	NOTESKIN:LoadActor( Var "Button", "Held Explosion Dim" ) .. {
+		InitCommand=cmd(diffusealpha,0);
 		HeldCommand=NOTESKIN:GetMetricA("GhostArrowDim", "HeldCommand");
 		JudgmentCommand=function(self)
 			self:finishtweening()
@@ -42,6 +49,12 @@ local t = Def.ActorFrame {
 		W3Command=NOTESKIN:GetMetricA("GhostArrowBright", "W3Command");
 		W2Command=NOTESKIN:GetMetricA("GhostArrowBright", "W2Command");
 		W1Command=NOTESKIN:GetMetricA("GhostArrowBright", "W1Command");
+		JudgmentCommand=cmd(finishtweening);
+		BrightCommand=cmd(visible,true);
+		DimCommand=cmd(visible,false);
+	};
+	NOTESKIN:LoadActor( Var "Button", "Held Explosion Bright" ) .. {
+		InitCommand=cmd(diffusealpha,0);
 		HeldCommand=NOTESKIN:GetMetricA("GhostArrowBright", "HeldCommand");
 		JudgmentCommand=function(self)
 			self:finishtweening()
