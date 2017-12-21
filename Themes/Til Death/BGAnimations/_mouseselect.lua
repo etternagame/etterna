@@ -4,40 +4,45 @@ local top
 local function mouseInput(event)
 	if top:GetSelectionState() == 2 then
 		return
-	elseif event.DeviceInput.button == "DeviceButton_left mouse button" and event.type == "InputEventType_FirstPress"then
-		if INPUTFILTER:GetMouseX() > capWideScale(370,500) then
+	end
+	
+	local mouseX = INPUTFILTER:GetMouseX()
+	local mouseY = INPUTFILTER:GetMouseY()
+	
+	if mouseX > capWideScale(370,500) and mouseX < SCREEN_WIDTH then
+		if event.DeviceInput.button == "DeviceButton_left mouse button" and event.type == "InputEventType_FirstPress"then
 			local n=0
 			local m=1
-			if INPUTFILTER:GetMouseY() > 220 and INPUTFILTER:GetMouseY() < 256 then
+			if mouseY > 220 and mouseY < 256 then
 				m=0
-			elseif INPUTFILTER:GetMouseY() > 256 and INPUTFILTER:GetMouseY() < 292 then
+			elseif mouseY > 256 and mouseY < 292 then
 				m=1
 				n=1
-			elseif INPUTFILTER:GetMouseY() > 292 and INPUTFILTER:GetMouseY() < 328 then
+			elseif mouseY > 292 and mouseY < 328 then
 				m=1
 				n=2
-			elseif INPUTFILTER:GetMouseY() > 328 and INPUTFILTER:GetMouseY() < 364 then
+			elseif mouseY > 328 and mouseY < 364 then
 				m=1
 				n=3
-			elseif INPUTFILTER:GetMouseY() > 364 and INPUTFILTER:GetMouseY() < 400 then
+			elseif mouseY > 364 and mouseY < 400 then
 				m=1
 				n=4
-			elseif INPUTFILTER:GetMouseY() > 400 and INPUTFILTER:GetMouseY() < 436 then
+			elseif mouseY > 400 and mouseY < 436 then
 				m=1
 				n=5
-			elseif INPUTFILTER:GetMouseY() > 184 and INPUTFILTER:GetMouseY() < 220 then
+			elseif mouseY > 184 and mouseY < 220 then
 				m=-1
 				n=1
-			elseif INPUTFILTER:GetMouseY() > 148 and INPUTFILTER:GetMouseY() < 184 then
+			elseif mouseY > 148 and mouseY < 184 then
 				m=-1
 				n=2
-			elseif INPUTFILTER:GetMouseY() > 112 and INPUTFILTER:GetMouseY() < 148 then
+			elseif mouseY > 112 and mouseY < 148 then
 				m=-1
 				n=3
-			elseif INPUTFILTER:GetMouseY() > 76 and INPUTFILTER:GetMouseY() < 112 then
+			elseif mouseY > 76 and mouseY < 112 then
 				m=-1
 				n=4
-			elseif INPUTFILTER:GetMouseY() > 40 and INPUTFILTER:GetMouseY() <76 then
+			elseif mouseY > 40 and mouseY <76 then
 				m=-1
 				n=5
 			end
@@ -47,9 +52,7 @@ local function mouseInput(event)
 			if m == 0 or doot == "WheelItemDataType_Section" then
 				top:SelectCurrent(0)
 			end
-		end
-	elseif event.DeviceInput.button == "DeviceButton_right mouse button" and event.type == "InputEventType_FirstPress"then
-		if INPUTFILTER:GetMouseX() > capWideScale(370,500) then
+		elseif event.DeviceInput.button == "DeviceButton_right mouse button" and event.type == "InputEventType_FirstPress"then
 			setTabIndex(7)
 			MESSAGEMAN:Broadcast("TabChanged")
 		end
