@@ -409,9 +409,53 @@ void InputHandler_DInput::UpdatePolled( DIDevice &device, const std::chrono::ste
 					DeviceButton neg = DeviceButton_Invalid, pos = DeviceButton_Invalid;
 					int val = 0;
 					if( in.ofs == DIMOFS_X )
-						{ neg = MOUSE_X_LEFT; pos = MOUSE_X_RIGHT; val = state.lX; }
+					{ 
+						neg = MOUSE_X_LEFT;  
+						pos = MOUSE_X_RIGHT; 
+						val = state.lX;
+						if (val == 0)
+						{
+							// release all
+							ButtonPressed(DeviceInput(dev, pos, 0, tm));
+							ButtonPressed(DeviceInput(dev, neg, 0, tm));
+						}
+						else if (static_cast<int>(val) > 0)
+						{
+							// positive values: MouseRight
+							ButtonPressed(DeviceInput(dev, pos, 1, tm));
+							ButtonPressed(DeviceInput(dev, neg, 0, tm));
+						}
+						else if (static_cast<int>(val) < 0)
+						{
+							// negative values: MouseLeft
+							ButtonPressed(DeviceInput(dev, neg, 1, tm));
+							ButtonPressed(DeviceInput(dev, pos, 0, tm));
+						}
+					}
 					else if( in.ofs == DIMOFS_Y )
-						{ neg = MOUSE_Y_UP; pos = MOUSE_Y_DOWN; val = state.lY; }
+					{ 
+						neg = MOUSE_Y_UP; 
+						pos = MOUSE_Y_DOWN; 
+						val = state.lY;
+						if (val == 0)
+						{
+							// release all
+							ButtonPressed(DeviceInput(dev, pos, 0, tm));
+							ButtonPressed(DeviceInput(dev, neg, 0, tm));
+						}
+						else if (static_cast<int>(val) > 0)
+						{
+							// positive values: MouseDown
+							ButtonPressed(DeviceInput(dev, pos, 1, tm));
+							ButtonPressed(DeviceInput(dev, neg, 0, tm));
+						}
+						else if (static_cast<int>(val) < 0)
+						{
+							// negative values: MouseUp
+							ButtonPressed(DeviceInput(dev, neg, 1, tm));
+							ButtonPressed(DeviceInput(dev, pos, 0, tm));
+						}
+					}
 					else if( in.ofs == DIMOFS_Z )
 					{
 						neg = MOUSE_WHEELDOWN; pos = MOUSE_WHEELUP;
@@ -479,6 +523,11 @@ void InputHandler_DInput::UpdateBuffered( DIDevice &device, const std::chrono::s
 	ButtonPressed( diUp );
 	DeviceInput diDown = DeviceInput(device.dev, MOUSE_WHEELDOWN, 0.0f, tm);
 	ButtonPressed( diDown );
+	// reset mouse movement
+	ButtonPressed(DeviceInput(device.dev, MOUSE_X_LEFT, 0.0f, tm));
+	ButtonPressed(DeviceInput(device.dev, MOUSE_X_RIGHT, 0.0f, tm));
+	ButtonPressed(DeviceInput(device.dev, MOUSE_Y_DOWN, 0.0f, tm));
+	ButtonPressed(DeviceInput(device.dev, MOUSE_Y_UP, 0.0f, tm));
 
 	for( int i = 0; i < static_cast<int>(numevents); ++i )
 	{
@@ -515,8 +564,8 @@ void InputHandler_DInput::UpdateBuffered( DIDevice &device, const std::chrono::s
 
 				case input_t::AXIS:
 				{
-					DeviceButton up = DeviceButton_Invalid, down = DeviceButton_Invalid;
-					if(dev == DEVICE_MOUSE)
+					DeviceButton pos = DeviceButton_Invalid, neg = DeviceButton_Invalid;
+					if (dev == DEVICE_MOUSE)
 					{
 						float l = static_cast<int>(evtbuf[i].dwData);
 						POINT cursorPos;
@@ -524,21 +573,67 @@ void InputHandler_DInput::UpdateBuffered( DIDevice &device, const std::chrono::s
 						// convert screen coordinates to client
 						ScreenToClient(GraphicsWindow::GetHwnd(), &cursorPos);
 
-						if( in.ofs == DIMOFS_X ) INPUTFILTER->UpdateCursorLocation(static_cast<float>(cursorPos.x), static_cast<float>(cursorPos.y));
-						else if( in.ofs == DIMOFS_Y ) INPUTFILTER->UpdateCursorLocation(static_cast<float>(cursorPos.x), static_cast<float>(cursorPos.y));
+						if (in.ofs == DIMOFS_X) 
+						{ 
+							INPUTFILTER->UpdateCursorLocation(static_cast<float>(cursorPos.x), static_cast<float>(cursorPos.y));
+							neg = MOUSE_X_LEFT;
+							pos = MOUSE_X_RIGHT;
+							if (l == 0)
+							{
+								// release all
+								ButtonPressed(DeviceInput(dev, pos, 0, tm));
+								ButtonPressed(DeviceInput(dev, neg, 0, tm));
+							}
+							else if (l > 0)
+							{
+								// positive values: MouseRight
+								ButtonPressed(DeviceInput(dev, pos, 1, tm));
+								ButtonPressed(DeviceInput(dev, neg, 0, tm));
+							}
+							else if (l < 0)
+							{
+								// negative values: MouseLeft
+								ButtonPressed(DeviceInput(dev, neg, 1, tm));
+								ButtonPressed(DeviceInput(dev, pos, 0, tm));
+							}
+						}
+						else if (in.ofs == DIMOFS_Y) 
+						{
+							INPUTFILTER->UpdateCursorLocation(static_cast<float>(cursorPos.x), static_cast<float>(cursorPos.y));
+							neg = MOUSE_Y_UP;
+							pos = MOUSE_Y_DOWN;
+							if (l == 0)
+							{
+								// release all
+								ButtonPressed(DeviceInput(dev, pos, 0, tm));
+								ButtonPressed(DeviceInput(dev, neg, 0, tm));
+							}
+							else if (l > 0)
+							{
+								// positive values: MouseDown
+								ButtonPressed(DeviceInput(dev, pos, 1, tm));
+								ButtonPressed(DeviceInput(dev, neg, 0, tm));
+							}
+							else if (l < 0)
+							{
+								// negative values: MouseUp
+								ButtonPressed(DeviceInput(dev, neg, 1, tm));
+								ButtonPressed(DeviceInput(dev, pos, 0, tm));
+							}
+						}
 						else if( in.ofs == DIMOFS_Z )
 						{
 							// positive values: WheelUp
 							// negative values: WheelDown
 							INPUTFILTER->UpdateMouseWheel(l);
 							{
-								up = MOUSE_WHEELUP; down = MOUSE_WHEELDOWN;
+								pos = MOUSE_WHEELUP; neg = MOUSE_WHEELDOWN;
 								float fWheelDelta = l;
 								//l = SCALE( static_cast<int>(evtbuf[i].dwData), -WHEEL_DELTA, WHEEL_DELTA, 1.0f, -1.0f );
 								if( l > 0 )
 								{
-									DeviceInput diUp = DeviceInput(dev, up, 1.0f, tm);
-									DeviceInput diDown = DeviceInput(dev, down, 0.0f, tm);
+									DeviceInput diUp = DeviceInput(dev, pos, 1.0f, tm);
+									DeviceInput diDown = DeviceInput(dev, neg, 0.0f, tm);
 									// This if statement used to be a while loop.  But Kevin
 									// reported that scrolling the mouse wheel locked up input.
 									// I assume that fWheelDelta was some absurdly large value,
@@ -556,8 +651,8 @@ void InputHandler_DInput::UpdateBuffered( DIDevice &device, const std::chrono::s
 								}
 								else if( l < 0 )
 								{
-									DeviceInput diDown = DeviceInput(dev, down, 1.0f, tm);
-									DeviceInput diUp = DeviceInput(dev, up, 0.0f, tm);
+									DeviceInput diDown = DeviceInput(dev, neg, 1.0f, tm);
+									DeviceInput diUp = DeviceInput(dev, pos, 0.0f, tm);
 									// See comment for the l > 0 case. -Kyz
 									if( fWheelDelta <= -WHEEL_DELTA )
 									{
@@ -569,9 +664,9 @@ void InputHandler_DInput::UpdateBuffered( DIDevice &device, const std::chrono::s
 								}
 								else
 								{
-									DeviceInput diUp = DeviceInput(dev, up, 0.0f, tm);
+									DeviceInput diUp = DeviceInput(dev, pos, 0.0f, tm);
 									ButtonPressed( diUp );
-									DeviceInput diDown = DeviceInput(dev, down, 0.0f, tm);
+									DeviceInput diDown = DeviceInput(dev, neg, 0.0f, tm);
 									ButtonPressed( diDown );
 								}
 							}
@@ -583,14 +678,14 @@ void InputHandler_DInput::UpdateBuffered( DIDevice &device, const std::chrono::s
 					else
 					{
 						// joystick
-						if( in.ofs == DIJOFS_X ) { up = JOY_LEFT; down = JOY_RIGHT; }
-						else if( in.ofs == DIJOFS_Y ) { up = JOY_UP; down = JOY_DOWN; }
-						else if( in.ofs == DIJOFS_Z ) { up = JOY_Z_UP; down = JOY_Z_DOWN; }
-						else if( in.ofs == DIJOFS_RX ) { up = JOY_ROT_UP; down = JOY_ROT_DOWN; }
-						else if( in.ofs == DIJOFS_RY ) { up = JOY_ROT_LEFT; down = JOY_ROT_RIGHT; }
-						else if( in.ofs == DIJOFS_RZ ) { up = JOY_ROT_Z_UP; down = JOY_ROT_Z_DOWN; }
-						else if( in.ofs == DIJOFS_SLIDER(0) ) { up = JOY_AUX_1; down = JOY_AUX_2; }
-						else if( in.ofs == DIJOFS_SLIDER(1) ) { up = JOY_AUX_3; down = JOY_AUX_4; }
+						if( in.ofs == DIJOFS_X ) { pos = JOY_LEFT; neg = JOY_RIGHT; }
+						else if( in.ofs == DIJOFS_Y ) { pos = JOY_UP; neg = JOY_DOWN; }
+						else if( in.ofs == DIJOFS_Z ) { pos = JOY_Z_UP; neg = JOY_Z_DOWN; }
+						else if( in.ofs == DIJOFS_RX ) { pos = JOY_ROT_UP; neg = JOY_ROT_DOWN; }
+						else if( in.ofs == DIJOFS_RY ) { pos = JOY_ROT_LEFT; neg = JOY_ROT_RIGHT; }
+						else if( in.ofs == DIJOFS_RZ ) { pos = JOY_ROT_Z_UP; neg = JOY_ROT_Z_DOWN; }
+						else if( in.ofs == DIJOFS_SLIDER(0) ) { pos = JOY_AUX_1; neg = JOY_AUX_2; }
+						else if( in.ofs == DIJOFS_SLIDER(1) ) { pos = JOY_AUX_3; neg = JOY_AUX_4; }
 						else LOG->MapLog( "unknown input", 
 										 "Controller '%s' is returning an unknown joystick offset, %i",
 										 device.m_sName.c_str(), in.ofs );
@@ -598,14 +693,14 @@ void InputHandler_DInput::UpdateBuffered( DIDevice &device, const std::chrono::s
 						float l = SCALE( static_cast<int>(evtbuf[i].dwData), 0.0f, 100.0f, 0.0f, 1.0f );
 						if(GamePreferences::m_AxisFix)
 						{
-						  ButtonPressed( DeviceInput(dev, up, (l == 0) || (l == -1), tm) );
-						  ButtonPressed( DeviceInput(dev, down,(l == 0) || (l == 1), tm) );
+						  ButtonPressed( DeviceInput(dev, pos, (l == 0) || (l == -1), tm) );
+						  ButtonPressed( DeviceInput(dev, neg,(l == 0) || (l == 1), tm) );
 
 						}
 						else
 						{
-						  ButtonPressed( DeviceInput(dev, up, max(-l,0), tm) );
-						  ButtonPressed( DeviceInput(dev, down, max(+l,0), tm) ); 
+						  ButtonPressed( DeviceInput(dev, pos, max(-l,0), tm) );
+						  ButtonPressed( DeviceInput(dev, neg, max(+l,0), tm) ); 
 						}
 					}
 					break;
