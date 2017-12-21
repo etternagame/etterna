@@ -311,6 +311,7 @@ void ShutdownGame()
 	SAFE_DELETE( DISPLAY );
 	Dialog::Shutdown();
 	SAFE_DELETE( LOG );
+	DLMAN.reset();
 	SAFE_DELETE( FILEMAN );
 	SAFE_DELETE( LUA );
 	SAFE_DELETE( HOOKS );
