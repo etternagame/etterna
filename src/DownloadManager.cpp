@@ -598,7 +598,7 @@ void DownloadManager::UploadScore(HighScore* hs)
 	curl_httppost *form = nullptr;
 	curl_httppost *lastPtr = nullptr;
 	SetCURLPOSTScore(curlHandle, form, lastPtr, hs);
-	CURLFormPostField(curlHandle, form, lastPtr, "replay_data", "");
+	CURLFormPostField(curlHandle, form, lastPtr, "replay_data", "[]");
 	SetCURLPostToURL(curlHandle, url);
 	AddSessionCookieToCURL(curlHandle);
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
@@ -1099,7 +1099,7 @@ public:
 	{
 		string user = SArg(1);
 		string pass = SArg(2);
-		DLMAN->StartSession(user, pass);
+		DLMAN->StartSession(user, pass); 
 		return 1;
 	}
 	static int Logout(T* p, lua_State* L)

@@ -744,6 +744,7 @@ vector<float> HighScore::GetCopyOfOffsetVector() const { return m_Impl->vOffsetV
 vector<int> HighScore::GetCopyOfNoteRowVector() const { return m_Impl->vNoteRowVector; }
 const vector<float>& HighScore::GetOffsetVector() const { return m_Impl->vOffsetVector; }
 const vector<int>& HighScore::GetNoteRowVector() const { return m_Impl->vNoteRowVector; }
+bool HighScore::GetUploaded() const { return m_Impl->uploaded; }
 string HighScore::GetScoreKey() const { return m_Impl->ScoreKey; }
 float HighScore::GetSurviveSeconds() const { return m_Impl->fSurviveSeconds; }
 float HighScore::GetSurvivalSeconds() const { return GetSurviveSeconds() + GetLifeRemainingSeconds(); }
