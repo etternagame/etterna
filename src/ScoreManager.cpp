@@ -230,6 +230,16 @@ vector<HighScore*> ScoresForChart::GetAllPBPtrs() {
 	return o;
 }
 
+vector<vector<HighScore*>> ScoreManager::GetAllPBPtrs() {
+	vector<vector<HighScore*>> vec;
+	FOREACHUM(string, ScoresForChart, pscores, i) {
+		if (!SONGMAN->IsChartLoaded(i->first))
+			continue;
+		vec.emplace_back(i->second.GetAllPBPtrs());
+	}
+	return vec;
+}
+
 HighScore* ScoreManager::GetChartPBAt(const string& ck, float& rate) {
 	if (pscores.count(ck))
 		return pscores.at(ck).GetPBAt(rate);

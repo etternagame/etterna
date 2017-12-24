@@ -5,6 +5,8 @@ local function BroadcastIfActive(msg)
 		MESSAGEMAN:Broadcast(msg)
 	end
 end
+
+
 local t = Def.ActorFrame{
 	BeginCommand=function(self)
 		self:queuecommand("Set"):visible(false)
@@ -591,6 +593,16 @@ local pass
 local profilebuttons = Def.ActorFrame{
 	InitCommand=function(self)
 		self:xy(frameX+45,frameHeight + 20)
+		user = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName
+		pass = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).Password
+		if pass ~= "" and answer ~= "" then
+			if not DLMAN:IsLoggedIn() then
+				DLMAN:Login(user, pass)
+			end
+		else
+			pass = ""
+			user = ""
+		end
 	end,
 	UpdateRankingMessageCommand=function(self)
 		if rankingSkillset == 1 and update then
@@ -687,6 +699,10 @@ local profilebuttons = Def.ActorFrame{
 					password = function(answer) 
 							pass=answer
 							DLMAN:Login(user, pass) 
+							playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = user
+							playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).Password = pass
+							playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+							playerConfig:save(pn_to_profile_slot(PLAYER_1))
 						end
 					easyInputStringWithFunction("Password:", 50, true, password)
 					easyInputStringWithFunction("Username:",50, false, username)

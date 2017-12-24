@@ -91,6 +91,7 @@ public:
 
 
 	HighScore* GetChartPBAt(const string& ck, float& rate);
+	vector<vector<HighScore*>> GetAllPBPtrs();
 
 	// technically "up to and including rate: x" but that's a mouthful -mina
 	HighScore* GetChartPBUpTo(const string& ck, float& rate);

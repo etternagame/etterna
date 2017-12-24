@@ -39,6 +39,7 @@ struct HighScoreImpl
 	float fJudgeScale;
 	bool bNoChordCohesion;
 	bool bEtternaValid;
+	bool uploaded{ false };
 	vector<float> vOffsetVector;
 	vector<int> vNoteRowVector;
 	vector<int> vRescoreJudgeVector;
@@ -273,6 +274,7 @@ XNode *HighScoreImpl::CreateNode() const
 	pNode->AppendChild( "JudgeScale",		fJudgeScale);
 	pNode->AppendChild( "NoChordCohesion",	bNoChordCohesion);
 	pNode->AppendChild( "EtternaValid",		bEtternaValid);
+	pNode->AppendChild("Uploaded", uploaded);
 
 	if (vOffsetVector.size() > 1) {
 		pNode->AppendChild("Offsets", OffsetsToString(vOffsetVector));
@@ -336,6 +338,7 @@ XNode *HighScoreImpl::CreateEttNode() const {
 	pNode->AppendChild("Modifiers", sModifiers);
 	pNode->AppendChild("DateTime", dateTime.GetString());
 	pNode->AppendChild("TopScore", TopScore);
+	pNode->AppendChild("Uploaded", uploaded);
 
 	XNode* pTapNoteScores = pNode->AppendChild("TapNoteScores");
 	FOREACH_ENUM(TapNoteScore, tns)
@@ -375,6 +378,7 @@ void HighScoreImpl::LoadFromEttNode(const XNode *pNode) {
 	pNode->GetChildValue("JudgeScale", fJudgeScale);
 	pNode->GetChildValue("NoChordCohesion", bNoChordCohesion);
 	pNode->GetChildValue("EtternaValid", bEtternaValid);
+	pNode->GetChildValue("Uploaded", uploaded);
 	pNode->GetChildValue("SurviveSeconds", fSurviveSeconds);
 	pNode->GetChildValue("MaxCombo", iMaxCombo);
 	pNode->GetChildValue("Modifiers", s); sModifiers = s;
@@ -714,6 +718,7 @@ float HighScore::GetJudgeScale() const { return m_Impl->fJudgeScale; }
 bool HighScore::GetChordCohesion() const {
 	return !m_Impl->bNoChordCohesion;  }
 bool HighScore::GetEtternaValid() const { return m_Impl->bEtternaValid; }
+bool HighScore::GetUploaded() const { return m_Impl->uploaded; }
 vector<float> HighScore::GetOffsetVector() const { return m_Impl->vOffsetVector; }
 vector<int> HighScore::GetNoteRowVector() const { return m_Impl->vNoteRowVector; }
 string HighScore::GetScoreKey() const { return m_Impl->ScoreKey; }
@@ -748,6 +753,7 @@ void HighScore::SetMusicRate(float f) { m_Impl->fMusicRate = f; }
 void HighScore::SetJudgeScale(float f) { m_Impl->fJudgeScale = f; }
 void HighScore::SetChordCohesion(bool b) { m_Impl->bNoChordCohesion = b; }
 void HighScore::SetEtternaValid(bool b) { m_Impl->bEtternaValid = b; }
+bool HighScore::SetUploaded(bool b) { return m_Impl->uploaded = b; }
 void HighScore::SetOffsetVector(const vector<float>& v) { m_Impl->vOffsetVector = v; }
 void HighScore::SetNoteRowVector(const vector<int>& v) { m_Impl->vNoteRowVector = v; }
 void HighScore::SetScoreKey(const string& sk) { m_Impl->ScoreKey = sk; }

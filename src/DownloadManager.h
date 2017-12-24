@@ -127,6 +127,7 @@ public:
 	bool LoggedIn();
 	void EndSessionIfExists();
 	void StartSession(string user, string pass);
+	bool UploadScores();
 	vector<DownloadablePack>* GetPackList(string url, bool &result);
 
 	Download* DownloadAndInstallPack(const string &url);

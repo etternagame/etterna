@@ -49,6 +49,7 @@ struct HighScore
 	float GetJudgeScale() const;
 	bool GetChordCohesion() const;
 	bool GetEtternaValid() const;
+	bool GetUploaded() const;
 	vector<float> GetOffsetVector() const;
 	vector<int> GetNoteRowVector() const;
 	vector<float> timeStamps;
@@ -95,6 +96,7 @@ struct HighScore
 	void SetJudgeScale(float f);
 	void SetChordCohesion(bool b);
 	void SetEtternaValid(bool b);
+	bool SetUploaded(bool b);
 	void SetOffsetVector(const vector<float>& v);
 	void SetNoteRowVector(const vector<int>& v);
 	void SetScoreKey(const string& ck);

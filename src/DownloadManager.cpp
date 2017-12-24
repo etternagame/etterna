@@ -8,6 +8,7 @@
 #include "RageLog.h"
 #include "RageFile.h"
 #include "DownloadManager.h"
+#include "ScoreManager.h"
 #include "RageFileManager.h"
 #include "ProfileManager.h"
 #include "SongManager.h"
@@ -32,7 +33,7 @@ shared_ptr<DownloadManager> DLMAN = nullptr;
 static Preference<unsigned int> maxDLPerSecond("maximumBytesDownloadedPerSecond", 0);
 static Preference<unsigned int> maxDLPerSecondGameplay("maximumBytesDownloadedPerSecondDuringGameplay", 300000);
 static Preference<RString> packListURL("packListURL", "https://etternaonline.com/api/pack_list");
-static Preference<RString> serverURL("UploadServerURL", "https://etternaonline.com/api");
+static Preference<RString> serverURL("UploadServerURL", "https://api.etternaonline.com/v1/");
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 static const string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
 
@@ -585,11 +586,16 @@ void DownloadManager::UploadScore(HighScore* hs)
 	curl_httppost *form = nullptr;
 	curl_httppost *lastPtr = nullptr;
 	SetCURLPOSTScore(curlHandle, form, lastPtr, hs);
-	CURLFormPostField(curlHandle, form, lastPtr, "replay_data", "");
+	CURLFormPostField(curlHandle, form, lastPtr, "replay_data", "[]");
 	SetCURLPostToURL(curlHandle, url);
 	AddSessionCookieToCURL(curlHandle);
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
-	HTTPRequest* req = new HTTPRequest(curlHandle);
+	function<void(HTTPRequest&)> done = [hs](HTTPRequest& req) {
+		if (req.result == "\"Success\"") {
+			hs->SetUploaded(true);
+		}
+	};
+	HTTPRequest* req = new HTTPRequest(curlHandle, done);
 	SetCURLResultsString(curlHandle, req->result);
 	curl_multi_add_handle(mHTTPHandle, req->handle);
 	HTTPRequests.push_back(req);
@@ -617,7 +623,12 @@ void DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	SetCURLPostToURL(curlHandle, url);
 	AddSessionCookieToCURL(curlHandle);
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
-	HTTPRequest* req = new HTTPRequest(curlHandle);
+	function<void(HTTPRequest&)> done = [hs](HTTPRequest& req) {
+		if (req.result == "\"Success\"") {
+			hs->SetUploaded(true);
+		}
+	};
+	HTTPRequest* req = new HTTPRequest(curlHandle, done);
 	SetCURLResultsString(curlHandle, req->result);
 	curl_multi_add_handle(mHTTPHandle, req->handle);
 	HTTPRequests.push_back(req);
@@ -711,7 +722,7 @@ void DownloadManager::RefreshTop25(Skillset ss)
 			OnlineScore tmp;
 			tmp.songName = (*it).get("songname", "").asString();
 			tmp.wifeScore = atof((*it).get("wifescore", "0.0").asCString());
-			tmp.ssr = atof((*it).get("calcscore", "0.0").asCString());
+			tmp.ssr = atof((*it).get("Overall", "0.0").asCString());
 			tmp.chartkey = (*it).get("chartkey", "").asString(); 
 			tmp.scorekey = (*it).get("scorekey", "").asString();
 			tmp.rate = atof((*it).get("user_chart_rate_rate", "0.0").asCString());
@@ -826,6 +837,7 @@ void DownloadManager::StartSession(string user, string pass)
 			DLMAN->RefreshUserData();
 			FOREACH_ENUM(Skillset, ss)
 				DLMAN->RefreshTop25(ss);
+			DLMAN->UploadScores();
 			MESSAGEMAN->Broadcast("Login");
 		}
 		else {
@@ -842,7 +854,20 @@ void DownloadManager::StartSession(string user, string pass)
 	HTTPRequests.push_back(req);
 }
 
-
+bool DownloadManager::UploadScores()
+{
+	if (!LoggedIn())
+		return false;
+	auto scores = SCOREMAN->GetAllPBPtrs();
+	for (auto&vec : scores) {
+		for (auto&scorePtr : vec) {
+			if (!scorePtr->GetUploaded())
+				UploadScore(scorePtr);
+			scorePtr->SetUploaded(true);
+		}
+	}
+	return true;
+}
 
 bool DownloadManager::CachePackList(string url)
 {
@@ -1052,7 +1077,7 @@ public:
 	{
 		string user = SArg(1);
 		string pass = SArg(2);
-		DLMAN->StartSession(user, pass);
+		DLMAN->StartSession(user, pass); 
 		return 1;
 	}
 	static int Logout(T* p, lua_State* L)
