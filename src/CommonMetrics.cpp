@@ -18,6 +18,7 @@ ThemeMetricDifficultiesToShow	CommonMetrics::DIFFICULTIES_TO_SHOW		("Common","Di
 ThemeMetricStepsTypesToShow	CommonMetrics::STEPS_TYPES_TO_SHOW		("Common","StepsTypesToHide");
 ThemeMetric<bool>			CommonMetrics::AUTO_SET_STYLE			("Common","AutoSetStyle");
 ThemeMetric<int>			CommonMetrics::PERCENT_SCORE_DECIMAL_PLACES	("Common","PercentScoreDecimalPlaces");
+ThemeMetric<RString>		CommonMetrics::IMAGES_TO_CACHE	("Common","ImageCache");
 
 ThemeMetricDifficultiesToShow::ThemeMetricDifficultiesToShow( const RString& sGroup, const RString& sName ) : 
 	ThemeMetric<RString>(sGroup,sName)

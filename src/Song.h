@@ -248,6 +248,8 @@ public:
 	RString m_sCDTitleFile;
 	RString m_sPreviewVidFile;
 
+	vector<RString> ImageDir;
+	
 	static RString GetSongAssetPath( RString sPath, const RString &sSongPath );
 	RString GetMusicPath() const;
 	RString GetInstrumentTrackPath( InstrumentTrack it ) const;
@@ -261,6 +263,7 @@ public:
 	RString GetPreviewVidPath() const;
 	RString GetPreviewMusicPath() const;
 	float GetPreviewStartSeconds() const;
+	std::string GetCacheFile( std::string sPath );
 
 	// how have i not jammed anything here yet - mina 
 

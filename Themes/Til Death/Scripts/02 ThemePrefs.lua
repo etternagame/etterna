@@ -839,11 +839,13 @@ function ProgressBar()
 			end
 		end,
 		SaveSelections = function(self, list, pn)
-			local value
+			local value = playerConfig:get_data(pn_to_profile_slot(pn)).ProgressBarPos
 			if list[1] == true then
-				value = 0
-				playerConfig:get_data(pn_to_profile_slot(pn)).GameplayXYCoordinates.FullProgressBarY = SCREEN_BOTTOM - 30
-			else
+				if value ~= 0 then
+					value = 0
+					playerConfig:get_data(pn_to_profile_slot(pn)).GameplayXYCoordinates.FullProgressBarY = SCREEN_BOTTOM - 30
+				end
+			elseif value ~= 1 then
 				value = 1
 				playerConfig:get_data(pn_to_profile_slot(pn)).GameplayXYCoordinates.FullProgressBarY = 20
 			end
