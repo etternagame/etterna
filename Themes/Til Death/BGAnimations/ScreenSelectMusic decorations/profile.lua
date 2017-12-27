@@ -707,6 +707,10 @@ local profilebuttons = Def.ActorFrame{
 					easyInputStringWithFunction("Password:", 50, true, password)
 					easyInputStringWithFunction("Username:",50, false, username)
 				else
+					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = ""
+					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).Password = ""
+					playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+					playerConfig:save(pn_to_profile_slot(PLAYER_1))
 					DLMAN:Logout()
 				end
 			end

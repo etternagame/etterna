@@ -274,15 +274,6 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 				hs.SetSkillsetSSR(ss, 0.f);
 		}
 
-		if (DLMAN->ShouldUploadScores()) {
-			auto steps = SONGMAN->GetStepsByChartkey(hs.GetChartKey());
-			auto td = steps->GetTimingData();
-			SCOREMAN->SetAllTopScores();	// this is super lazy and a chart specific function should be made -mina
-			hs.timeStamps = td->ConvertReplayNoteRowsToTimestamps(pss.GetNoteRowVector(), hs.GetMusicRate());
-			DLMAN->UploadScoreWithReplayData(&hs);
-			hs.timeStamps.clear();
-			hs.timeStamps.shrink_to_fit();
-		}
 		bool writesuccess = hs.WriteReplayData();
 		if (writesuccess)
 			hs.UnloadReplayData();
@@ -327,7 +318,7 @@ void StageStats::FinalizeScores(bool bSummary)
 		m_multiPlayer[mp].m_HighScore = FillInHighScore(m_multiPlayer[mp], *GAMESTATE->m_pMultiPlayerState[mp], "", sPlayerGuid);
 	}
 
-	const HighScore &hs = m_player[PLAYER_1].m_HighScore;
+	HighScore &hs = m_player[PLAYER_1].m_HighScore;
 	StepsType st = GAMESTATE->GetCurrentStyle(PLAYER_1)->m_StepsType;
 
 	const Song* pSong = GAMESTATE->m_pCurSong;
@@ -337,6 +328,15 @@ void StageStats::FinalizeScores(bool bSummary)
 	// new score structure -mina
 	Profile* zzz = PROFILEMAN->GetProfile(PLAYER_1);
 	SCOREMAN->AddScore(hs);
+	if (DLMAN->ShouldUploadScores()) {
+		auto steps = SONGMAN->GetStepsByChartkey(hs.GetChartKey());
+		auto td = steps->GetTimingData();
+		SCOREMAN->SetAllTopScores();	// this is super lazy and a chart specific function should be made -mina
+		hs.timeStamps = td->ConvertReplayNoteRowsToTimestamps(m_player[PLAYER_1].GetNoteRowVector(), hs.GetMusicRate());
+		DLMAN->UploadScoreWithReplayData(&hs);
+		hs.timeStamps.clear();
+		hs.timeStamps.shrink_to_fit();
+	}
 	zzz->SetAnyAchievedGoals(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey(), GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate, hs);
 	mostrecentscorekey = hs.GetScoreKey();
 	zzz->m_lastSong.FromSong(GAMESTATE->m_pCurSong);

@@ -260,6 +260,25 @@ void ScoreManager::SetAllTopScores() {
 	}
 }
 
+bool ScoresAtRate::HandleNoCCPB(HighScore& hs) {
+	// lurker says:
+	// don't even TRY to fuck with nocc pb unless the score is nocc
+	if (hs.GetChordCohesion() == 0) {
+		// Set any nocc pb
+		if (noccPBptr == nullptr) {
+			noccPBptr = &hs;
+			return true;
+		}
+		else {
+			// update nocc pb if a better score is found
+			if (noccPBptr->GetSSRNormPercent() < hs.GetSSRNormPercent()) {
+				noccPBptr = &hs;
+				return true;
+			}
+		}
+	}
+	return false;
+}
 static const float ld_update = 0.02f;
 void ScoreManager::RecalculateSSRs(LoadingWindow *ld) {
 	RageTimer ld_timer;
@@ -498,18 +517,7 @@ void ScoresAtRate::LoadFromNode(const XNode* node, const string& ck, const float
 				PBptr = &scores.find(sk)->second;
 		}
 
-		// lurker says:
-		// don't even TRY to fuck with nocc pb unless the score is nocc
-		if (scores[sk].GetChordCohesion() == 0) {
-			// Set any nocc pb
-			if (noccPBptr == nullptr)
-				noccPBptr = &scores.find(sk)->second;
-			else {
-				// update nocc pb if a better score is found
-				if (noccPBptr->GetSSRNormPercent() < scores[sk].GetSSRNormPercent())
-					noccPBptr = &scores.find(sk)->second;
-			}
-		}
+		HandleNoCCPB(scores[sk]);
 
 		// Fill in stuff for the highscores
 		scores[sk].SetChartKey(ck);

@@ -28,7 +28,8 @@ public:
 
 	vector<string> GetSortedKeys();
 	void PushSelf(lua_State *L);
-	
+
+	bool HandleNoCCPB(HighScore& hs);
 
 	XNode* CreateNode(const int& rate) const;
 	void LoadFromNode(const XNode* node, const string& key, const float& rate);

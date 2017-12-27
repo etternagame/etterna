@@ -126,6 +126,7 @@ public:
 	map<Skillset, int> sessionRanks;
 	bool LoggedIn();
 	void EndSessionIfExists();
+	void EndSession();
 	void StartSession(string user, string pass);
 	bool UploadScores();
 	vector<DownloadablePack>* GetPackList(string url, bool &result);

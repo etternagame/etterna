@@ -268,7 +268,7 @@ DownloadManager::~DownloadManager()
 	}
 	curl_global_cleanup();
 	if (LoggedIn())
-		EndSessionIfExists();
+		EndSession();
 }
 
 Download* DownloadManager::DownloadAndInstallPack(const string &url)
@@ -592,7 +592,7 @@ void DownloadManager::UploadScore(HighScore* hs)
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
 	function<void(HTTPRequest&)> done = [hs](HTTPRequest& req) {
 		if (req.result == "\"Success\"") {
-			hs->SetUploaded(true);
+			hs->AddUploadedServer(serverURL.Get());
 		}
 	};
 	HTTPRequest* req = new HTTPRequest(curlHandle, done);
@@ -625,7 +625,7 @@ void DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
 	function<void(HTTPRequest&)> done = [hs](HTTPRequest& req) {
 		if (req.result == "\"Success\"") {
-			hs->SetUploaded(true);
+			hs->AddUploadedServer(serverURL.Get());
 		}
 	};
 	HTTPRequest* req = new HTTPRequest(curlHandle, done);
@@ -638,6 +638,11 @@ void DownloadManager::EndSessionIfExists()
 {
 	if (!LoggedIn())
 		return;
+	EndSession();
+	MESSAGEMAN->Broadcast("LogOut");
+}
+void DownloadManager::EndSession()
+{
 	string url = serverURL.Get() + "/destroy";
 	CURL *curlHandle = initCURLHandle();
 	SetCURLPostToURL(curlHandle, url);
@@ -647,7 +652,6 @@ void DownloadManager::EndSessionIfExists()
 	session = sessionUser = sessionPass = sessionCookie = "";
 	scores.clear();
 	sessionRatings.clear();
-	MESSAGEMAN->Broadcast("LogOut");
 }
 
 std::vector<std::string> split(const std::string& s, char delimiter)
@@ -700,6 +704,7 @@ OnlineScore DownloadManager::GetTopSkillsetScore(unsigned int rank, Skillset ss,
 	result=false;
 	return OnlineScore();
 }
+
 void DownloadManager::RefreshTop25(Skillset ss)
 {
 	if (!LoggedIn())
@@ -861,9 +866,10 @@ bool DownloadManager::UploadScores()
 	auto scores = SCOREMAN->GetAllPBPtrs();
 	for (auto&vec : scores) {
 		for (auto&scorePtr : vec) {
-			if (!scorePtr->GetUploaded())
+			if (!scorePtr->IsUploadedToServer(serverURL.Get())) {
 				UploadScore(scorePtr);
-			scorePtr->SetUploaded(true);
+				scorePtr->AddUploadedServer(serverURL.Get());
+			}
 		}
 	}
 	return true;
