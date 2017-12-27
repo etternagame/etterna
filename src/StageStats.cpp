@@ -273,7 +273,6 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 			FOREACH_ENUM(Skillset, ss)
 				hs.SetSkillsetSSR(ss, 0.f);
 		}
-
 	}
 
 	pss.GenerateValidationKeys(hs);
