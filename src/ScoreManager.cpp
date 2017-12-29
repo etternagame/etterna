@@ -257,7 +257,7 @@ HighScore* ScoreManager::GetChartPBUpTo(const string& ck, float& rate) {
 	return NULL;
 }
 
-void ScoreManager::SetAllTopScores() {
+void ScoreManager::SetAllTopScores() { 
 	FOREACHUM(string, ScoresForChart, pscores, i) {
 		if (!SONGMAN->IsChartLoaded(i->first))
 			continue;

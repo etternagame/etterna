@@ -775,6 +775,7 @@ void DownloadManager::RefreshUserData()
 		}
 		FOREACH_ENUM(Skillset, ss)
 			(DLMAN->sessionRatings)[ss] = atof(json.get(SkillsetToString(ss), "0.0").asCString());
+		MESSAGEMAN->Broadcast("OnlineUpdate");
 	};
 	HTTPRequest* req = new HTTPRequest(curlHandle, done);
 	SetCURLResultsString(curlHandle, req->result);
