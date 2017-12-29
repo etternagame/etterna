@@ -327,11 +327,11 @@ void StageStats::FinalizeScores(bool bSummary)
 	ASSERT(pSteps != NULL);
 	// new score structure -mina
 	Profile* zzz = PROFILEMAN->GetProfile(PLAYER_1);
-	SCOREMAN->AddScore(hs);
+	int istop2 = SCOREMAN->AddScore(hs);
 	if (DLMAN->ShouldUploadScores()) {
+		hs.SetTopScore(istop2);	// ayy i did it --lurker
 		auto steps = SONGMAN->GetStepsByChartkey(hs.GetChartKey());
 		auto td = steps->GetTimingData();
-		SCOREMAN->SetAllTopScores();	// this is super lazy and a chart specific function should be made -mina
 		hs.timeStamps = td->ConvertReplayNoteRowsToTimestamps(m_player[PLAYER_1].GetNoteRowVector(), hs.GetMusicRate());
 		DLMAN->UploadScoreWithReplayData(&hs);
 		hs.timeStamps.clear();

@@ -582,14 +582,20 @@ int GameState::GetNumStagesMultiplierForSong( const Song* pSong )
 	return iNumStages;
 }
 
-int GameState::GetNumStagesForCurrentSongAndStepsOrCourse() const{	int iNumStagesOfThisSong = 1;	if (m_pCurSong)	{
+int GameState::GetNumStagesForCurrentSongAndStepsOrCourse() const
+{
+	int iNumStagesOfThisSong = 1;
+	if (m_pCurSong)
+	{
 		iNumStagesOfThisSong = GameState::GetNumStagesMultiplierForSong(m_pCurSong);
 	}
 	else
 		return -1;
 	iNumStagesOfThisSong = max(iNumStagesOfThisSong, 1);
-	return iNumStagesOfThisSong;
-}
+	return iNumStagesOfThisSong;
+
+}
+
 
 // Called by ScreenGameplay. Set the length of the current song.
 void GameState::BeginStage()
@@ -1007,8 +1013,10 @@ int GameState::GetCourseSongIndex() const
 	if( GAMESTATE->m_bMultiplayer )
 	{
 		FOREACH_EnabledMultiPlayer(mp)
-			return STATSMAN->m_CurStageStats.m_multiPlayer[mp].m_iSongsPlayed - 1;
-		FAIL_M("At least one MultiPlayer must be joined.");
+			return STATSMAN->m_CurStageStats.m_multiPlayer[mp].m_iSongsPlayed - 1;
+
+		FAIL_M("At least one MultiPlayer must be joined.");
+
 	}
 	else
 	{

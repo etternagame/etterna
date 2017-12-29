@@ -162,6 +162,9 @@ void ScoresForChart::AddScore(HighScore& hs) {
 	float rate = hs.GetMusicRate();
 	int key = RateToKey(rate);
 	ScoresByRate[key].AddScore(hs);
+	// ok let's try this --lurker
+	SetTopScores();
+	hs.SetTopScore(ScoresByRate[key].scores[hs.GetScoreKey()].GetTopScore());
 }
 
 vector<float> ScoresForChart::GetPlayedRates() {
@@ -213,14 +216,16 @@ void ScoresForChart::SetTopScores() {
 		return;
 	}	
 
-	auto ssrcomp = [](HighScore* a, HighScore* b) { return (a->GetSkillsetSSR(Skill_Overall) > b->GetSkillsetSSR(Skill_Overall)); };
-	sort(eligiblescores.begin(), eligiblescores.end(), ssrcomp);
+	else{
+		auto ssrcomp = [](HighScore* a, HighScore* b) { return (a->GetSkillsetSSR(Skill_Overall) > b->GetSkillsetSSR(Skill_Overall)); };
+		sort(eligiblescores.begin(), eligiblescores.end(), ssrcomp);
 
-	for (auto hs : eligiblescores)
-		hs->SetTopScore(0);
+		for (auto hs : eligiblescores)
+			hs->SetTopScore(0);
 
-	eligiblescores[0]->SetTopScore(1);
-	eligiblescores[1]->SetTopScore(2);
+		eligiblescores[0]->SetTopScore(1);
+		eligiblescores[1]->SetTopScore(2);
+	}
 }
 
 vector<HighScore*> ScoresForChart::GetAllPBPtrs() {

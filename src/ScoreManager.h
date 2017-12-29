@@ -100,7 +100,8 @@ public:
 	Grade GetBestGradeFor(const string& ck) { if (pscores.count(ck)) return pscores[ck].bestGrade; return Grade_Invalid; }
 
 	// for scores achieved during this session
-	void AddScore(const HighScore& hs_) { HighScore hs = hs_; pscores[hs.GetChartKey()].AddScore(hs); }
+	// now returns top score status because i'm bad at coding --lurker
+	int AddScore(const HighScore& hs_) { HighScore hs = hs_; pscores[hs.GetChartKey()].AddScore(hs); return hs.GetTopScore(); }
 	void ImportScore(const HighScore& hs_);
 
 	// don't save scores under this percentage
