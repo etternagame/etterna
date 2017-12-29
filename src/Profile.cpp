@@ -1175,6 +1175,7 @@ void Profile::ImportScoresToEtterna() {
 	PROFILEMAN->SaveProfile(PLAYER_1);
 }
 
+
 // more future goalman stuff
 void Profile::CreateGoal(const string& ck) {
 	ScoreGoal goal;
