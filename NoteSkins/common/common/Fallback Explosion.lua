@@ -23,12 +23,20 @@ local t = Def.ActorFrame {
 		W3Command=NOTESKIN:GetMetricA("GhostArrowDim", "W3Command");
 		W2Command=NOTESKIN:GetMetricA("GhostArrowDim", "W2Command");
 		W1Command=NOTESKIN:GetMetricA("GhostArrowDim", "W1Command");
-		JudgmentCommand=cmd(finishtweening);
-		BrightCommand=cmd(visible,false);
-		DimCommand=cmd(visible,true);
+		JudgmentCommand=function(self)
+			self:finishtweening()
+		end;
+		BrightCommand=function(self)
+			self:visible(false)
+		end;
+		DimCommand=function(self)
+			self:visible(true)
+		end;
 	};
 	NOTESKIN:LoadActor( Var "Button", "Held Explosion Dim" ) .. {
-		InitCommand=cmd(diffusealpha,0);
+		InitCommand=function(self)
+			self:diffusealpha(0)
+		end;
 		HeldCommand=NOTESKIN:GetMetricA("GhostArrowDim", "HeldCommand");
 		JudgmentCommand=function(self)
 			self:finishtweening()
@@ -49,12 +57,20 @@ local t = Def.ActorFrame {
 		W3Command=NOTESKIN:GetMetricA("GhostArrowBright", "W3Command");
 		W2Command=NOTESKIN:GetMetricA("GhostArrowBright", "W2Command");
 		W1Command=NOTESKIN:GetMetricA("GhostArrowBright", "W1Command");
-		JudgmentCommand=cmd(finishtweening);
-		BrightCommand=cmd(visible,true);
-		DimCommand=cmd(visible,false);
+		JudgmentCommand=function(self)
+			self:finishtweening()
+		end;
+		BrightCommand=function(self)
+			self:visible(true)
+		end;
+		DimCommand=function(self)
+			self:visible(false)
+		end;
 	};
 	NOTESKIN:LoadActor( Var "Button", "Held Explosion Bright" ) .. {
-		InitCommand=cmd(diffusealpha,0);
+		InitCommand=function(self)
+			self:diffusealpha(0)
+		end;
 		HeldCommand=NOTESKIN:GetMetricA("GhostArrowBright", "HeldCommand");
 		JudgmentCommand=function(self)
 			self:finishtweening()

@@ -40,23 +40,37 @@
 -- Here is a simple actor that dims the screen and displays the text.
 ----------------------------------------------------------------
 return Def.ActorFrame{
-	InitCommand=cmd(xy, SCREEN_CENTER_X, SCREEN_CENTER_Y),
+	InitCommand=function(self)
+		self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+	end,
 	Def.Quad{
-		TweenOnCommand=cmd(zoomto, SCREEN_WIDTH, SCREEN_HEIGHT; diffuse, Color.Black),
-		TweenOffCommand=cmd(linear, 0.5; diffusealpha, 0),
+		TweenOnCommand=function(self)
+			self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT):diffuse(Color.Black)
+		end,
+		TweenOffCommand=function(self)
+			self:linear(0.5):diffusealpha(0)
+		end,
 	},
 	Def.BitmapText{
 		Font="Common Normal",
 		Text=ScreenString("WarningHeader"),
-		TweenOnCommand=cmd(y,-80;diffuse,Color.Red),
-		TweenOffCommand=cmd(linear,0.5;diffusealpha,0),
+		TweenOnCommand=function(self)
+			self:y(-80):diffuse(Color.Red)
+		end,
+		TweenOffCommand=function(self)
+			self:linear(0.5):diffusealpha(0)
+		end,
 		
 	},
 	Def.BitmapText{
 		Font="Common Normal",
 		Text=ScreenString("WarningText"),
-		TweenOnCommand=cmd(y,10;wrapwidthpixels,SCREEN_WIDTH-48),
-		TweenOffCommand=cmd(linear,0.5;diffusealpha,0),
+		TweenOnCommand=function(self)
+			self:y(10):wrapwidthpixels(SCREEN_WIDTH-48)
+		end,
+		TweenOffCommand=function(self)
+			self:linear(0.5):diffusealpha(0)
+		end,
 	},
 }
 
@@ -70,7 +84,9 @@ return Def.ActorFrame{
 ----------------------------------------------------------------
 return Def.BitmapText{
 	Font="Common Normal",
-	InitCommand= cmd(x, SCREEN_CENTER_X; zoom, .75; diffuse, color("#808080")),
+	InitCommand= function(self)
+		self:x(SCREEN_CENTER_X):zoom(.75):diffuse(color("#808080"))
+	end,
 	OnCommand= function(self)
 		self:diffusealpha(0)
 		self:decelerate(0.5)
@@ -84,10 +100,18 @@ return Def.BitmapText{
 		self:settext(
 			THEME:GetString("ScreenMapControllers", "Action" .. self:GetName()))
 	end,
-	OffCommand=cmd(stoptweening;accelerate,0.3;diffusealpha,0;queuecommand,"Hide"),
-	HideCommand=cmd(visible,false),
-	GainFocusCommand=cmd(diffuseshift;effectcolor2,color("#808080");effectcolor1,color("#FFFFFF")),
-	LoseFocusCommand=cmd(stopeffect),
+	OffCommand=function(self)
+		self:stoptweening():accelerate(0.3):diffusealpha(0):queuecommand("Hide")
+	end,
+	HideCommand=function(self)
+		self:visible(false)
+	end,
+	GainFocusCommand=function(self)
+		self:diffuseshift():effectcolor2(color("#808080")):effectcolor1(color("#FFFFFF"))
+	end,
+	LoseFocusCommand=function(self)
+		self:stopeffect()
+	end,
 }
 
 ----------------------------------------------------------------
@@ -116,19 +140,33 @@ return Def.BitmapText{
 -- the player from overflowing the tween stack by mashing.
 ----------------------------------------------------------------
 return Def.ActorFrame{
-	InitCommand=cmd(x,SCREEN_CENTER_X;y,SCREEN_CENTER_Y),
+	InitCommand=function(self)
+		self:x(SCREEN_CENTER_X):y(SCREEN_CENTER_Y)
+	end,
 	Def.Quad{
-		InitCommand=cmd(zoomto,SCREEN_WIDTH,SCREEN_HEIGHT;diffuse,Color.Black;diffusealpha,0),
-		TweenOnCommand=cmd(stoptweening;diffusealpha,1;linear,0.5;diffusealpha,0.8),
-		TweenOffCommand=cmd(stoptweening;linear,0.5;diffusealpha,0),
+		InitCommand=function(self)
+			self:zoomto(SCREEN_WIDTH,SCREEN_HEIGHT):diffuse(Color.Black):diffusealpha(0)
+		end,
+		TweenOnCommand=function(self)
+			self:stoptweening():diffusealpha(1):linear(0.5):diffusealpha(0.8)
+		end,
+		TweenOffCommand=function(self)
+			self:stoptweening():linear(0.5):diffusealpha(0)
+		end,
 	},
 	Def.ActorFrame{
 		Def.BitmapText{
 			Font="Common Normal",
 			Text=ScreenString("NoSetListPrompt"),
-			InitCommand=cmd(y,10;wrapwidthpixels,SCREEN_WIDTH-48;diffusealpha,0),
-			TweenOnCommand=cmd(stoptweening;diffusealpha,0;sleep,0.5125;linear,0.125;diffusealpha,1),
-			TweenOffCommand=cmd(stoptweening;linear,0.5;diffusealpha,0),
+			InitCommand=function(self)
+				self:y(10):wrapwidthpixels(SCREEN_WIDTH-48):diffusealpha(0)
+			end,
+			TweenOnCommand=function(self)
+				self:stoptweening():diffusealpha(0):sleep(0.5125):linear(0.125):diffusealpha(1)
+			end,
+			TweenOffCommand=function(self)
+				self:stoptweening():linear(0.5):diffusealpha(0)
+			end,
 		},
 	},
 }
