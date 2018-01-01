@@ -94,7 +94,9 @@ local Example3_Diffuse = { 1,0.5,1,1 } -- Note that with Green of 50%, there is 
 local Examples = { }
 
 Examples[1] = Def.ActorFrame{
-	Def.Quad{ InitCommand=cmd(FullScreen) }; -- a blank background.
+	Def.Quad{ InitCommand=function(self)
+		self:FullScreen() -- a blank background.
+	end;
 	Def.ActorFrameTexture{
 		InitCommand=function(self)
 			self:SetTextureName( "Example 1" )
@@ -110,20 +112,32 @@ Examples[1] = Def.ActorFrame{
 		Def.ActorFrame{
 			Name = "Draw";
 			-- three random quads, two of them strattling the edge of the texture.
-			Def.Quad{ InitCommand=cmd(zoom,50;diffuse,1,0,0,0.5) };
-			Def.Quad{ InitCommand=cmd(zoom,50;diffuse,0,1,0,0.5;x,64;y,64) };
-			Def.Quad{ InitCommand=cmd(zoom,50;diffuse,0,0,1,0.5;x,120;y,100) };
+			Def.Quad{ InitCommand=function(self)
+				self:zoom(50):diffuse(1,0,0,0.5)
+			end;
+			Def.Quad{ InitCommand=function(self)
+				self:zoom(50):diffuse(0,1,0,0.5):x(64):y(64)
+			end;
+			Def.Quad{ InitCommand=function(self)
+				self:zoom(50):diffuse(0,0,1,0.5):x(120):y(100)
+			end;
 		};
 	};
 	Def.Sprite{ 
 		Texture="Example 1";
-		InitCommand=cmd(Center;sleep,1;queuecommand,"Scroll");
-		ScrollCommand=cmd(texcoordvelocity,1,0.5); -- Scroll the texture. Texture manipulation is one of the things that makes AFT special.
+		InitCommand=function(self)
+			self:Center():sleep(1):queuecommand("Scroll")
+		end;
+		ScrollCommand=function(self)
+			self:texcoordvelocity(1,0.5) - Scroll the texture. Texture manipulation is one of the things that makes AFT special.
+		end;
 	};
 }
 
 Examples[2] = Def.ActorFrame{
-	Def.Quad{ InitCommand=cmd(FullScreen;diffuse,0,0,0,1) }; -- a blank background.
+	Def.Quad{ InitCommand=function(self)
+		self:FullScreen():diffuse(0,0,0,1) -- a blank background.
+	end;
 	Def.ActorFrameTexture{
 		InitCommand=function(self)
 			self:SetTextureName( "Example 2" )
@@ -138,17 +152,29 @@ Examples[2] = Def.ActorFrame{
 		end;
 		Def.ActorFrame{
 			Name = "Draw";
-			InitCommand=cmd(spin;x,64;y,64); -- Something has to change to demonstrate PreserveTexture.
-			Def.Quad{ InitCommand=cmd(zoom,50;rainbow;effectperiod,3;effectoffset,1;x,-40;y,-56) };
-			Def.Quad{ InitCommand=cmd(zoom,50;rainbow;effectperiod,3;effectoffset,0) };
-			Def.Quad{ InitCommand=cmd(zoom,50;rainbow;effectperiod,3;effectoffset,2;x,64;y,50) };
+			InitCommand=function(self)
+				self:spin():x(64):y(64) -Something has to change to demonstrate PreserveTexture.
+			end;
+			Def.Quad{ InitCommand=function(self)
+				self:zoom(50):rainbow():effectperiod(3):effectoffset(1):x(-40):y(-56)
+			end;
+			Def.Quad{ InitCommand=function(self)
+				self:zoom(50):rainbow():effectperiod(3):effectoffset(0)
+			end;
+			Def.Quad{ InitCommand=function(self)
+				self:zoom(50):rainbow():effectperiod(3):effectoffset(2):x(64):y(50)
+			end;
 		};
 	};
-	Def.Sprite{ Texture="Example 2"; InitCommand=cmd(Center); };
+	Def.Sprite{ Texture="Example 2"; InitCommand=function(self)
+		self:Center()
+	end;
 }
 
 Examples[3] = Def.ActorFrame{
-	Def.Quad{ InitCommand=cmd(FullScreen;diffuse,0,0,0,1) }; -- a blank background.
+	Def.Quad{ InitCommand=function(self)
+		self:FullScreen():diffuse(0,0,0,1) -- a blank background.
+	end;
 	Def.ActorFrameTexture{
 		InitCommand=function(self)
 			self:SetTextureName( "Example 3" )
@@ -163,13 +189,23 @@ Examples[3] = Def.ActorFrame{
 		end;
 		Def.ActorFrame{
 			Name = "Draw";
-			Def.Quad{ InitCommand=cmd(zoom,80;diffuse,1,1,1,1;x,64;y,64) };
-			Def.Quad{ InitCommand=cmd(zoom,80;diffuse,1,0,0,1;x,14;y,80;blend,"BlendMode_Add") };
-			Def.Quad{ InitCommand=cmd(zoom,80;diffuse,0,1,0,1;x,74;y,20;blend,"BlendMode_Add") };
-			Def.Quad{ InitCommand=cmd(zoom,80;diffuse,0,0,1,1;x,128;y,100;blend,"BlendMode_Add") };
+			Def.Quad{ InitCommand=function(self)
+				self:zoom(80):diffuse(1,1,1,1):x(64):y(64)
+			end;
+			Def.Quad{ InitCommand=function(self)
+				self:zoom(80):diffuse(1,0,0,1):x(14):y(80):blend("BlendMode_Add")
+			end;
+			Def.Quad{ InitCommand=function(self)
+				self:zoom(80):diffuse(0,1,0,1):x(74):y(20):blend("BlendMode_Add")
+			end;
+			Def.Quad{ InitCommand=function(self)
+				self:zoom(80):diffuse(0,0,1,1):x(128):y(100):blend("BlendMode_Add")
+			end;
 		};
 	};
-	Def.Sprite{ Texture = "Example 3"; InitCommand=cmd(Center;diffuse,Example3_Diffuse); };
+	Def.Sprite{ Texture = "Example 3"; InitCommand=function(self)
+		self:Center():diffuse(Example3_Diffuse)
+	end;
 }
 
 --[[
@@ -187,7 +223,9 @@ Examples[3] = Def.ActorFrame{
 --]]
 
 Examples[4] = Def.ActorFrame{
-	Def.Quad{ InitCommand=cmd(FullScreen;diffuse,0,0,0,1) }; -- a blank background.
+	Def.Quad{ InitCommand=function(self)
+		self:FullScreen():diffuse(0,0,0,1) -- a blank background.
+	end;
 	Def.ActorFrameTexture{
 		Name = "Memory";
 		InitCommand=function(self)
@@ -198,7 +236,9 @@ Examples[4] = Def.ActorFrame{
 			self:Create();
 		end;
 		-- Cannot call the second AFT's texture by name as it has not been created when this Sprite loads.
-		Def.Sprite{ Name = "Sprite"; InitCommand=cmd(x,128;y,128) };
+		Def.Sprite{ Name = "Sprite"; InitCommand=function(self)
+			self:x(128):y(128)
+		end;
 	};
 	Def.ActorFrameTexture{
 		InitCommand=function(self)
@@ -211,23 +251,45 @@ Examples[4] = Def.ActorFrame{
 			self:GetParent():GetChild("Memory"):GetChild("Sprite"):SetTexture( self:GetTexture() );
 		end;
 		-- A sprite to draw the 'trail' with.
-		Def.Sprite{	Texture = "Memory"; InitCommand=cmd(x,128;y,128;diffuse,1,1,1,.995); };
+		Def.Sprite{	Texture = "Memory"; InitCommand=function(self)
+			self:x(128):y(128):diffuse(1,1,1,.995)
+		end;
 		Def.ActorFrame{ -- eliptical motion.
-			InitCommand=cmd(x,128;y,128;bob;effectmagnitude,96,0,0;effectoffset,0.5);
+			InitCommand=function(self)
+				self:x(128):y(128):bob():effectmagnitude(96,0,0):effectoffset(0.5)
+			end;
 			Def.ActorFrame{
-				InitCommand=cmd(bob;effectmagnitude,0,64,0);
+				InitCommand=function(self)
+					self:bob():effectmagnitude(0,64,0)
+				end;
 				-- A pixel ghost.
-				Def.Quad{ InitCommand=cmd(zoomto,32,40); };
-				Def.Quad{ InitCommand=cmd(zoomto,8,8;x,-8;y,-8;diffuse,0,0,0,1); };
-				Def.Quad{ InitCommand=cmd(zoomto,8,8;x,8;y,-8;diffuse,0,0,0,1); };
-				Def.Quad{ InitCommand=cmd(zoomto,24,8;x,0;y,2;diffuse,0,0,0,1); };
-				Def.Quad{ InitCommand=cmd(zoomto,8,16;x,-12;y,24); };
-				Def.Quad{ InitCommand=cmd(zoomto,8,16;x,12;y,24); };
-				Def.Quad{ InitCommand=cmd(zoomto,8,16;x,0;y,24); };
+				Def.Quad{ InitCommand=function(self)
+					self:zoomto(32,40)
+				end;
+				Def.Quad{ InitCommand=function(self)
+					self:zoomto(8,8):x(-8):y(-8):diffuse(0,0,0,1)
+				end;
+				Def.Quad{ InitCommand=function(self)
+					self:zoomto(8,8):x(8):y(-8):diffuse(0,0,0,1)
+				end;
+				Def.Quad{ InitCommand=function(self)
+					self:zoomto(24,8):x(0):y(2):diffuse(0,0,0,1)
+				end;
+				Def.Quad{ InitCommand=function(self)
+					self:zoomto(8,16):x(-12):y(24)
+				end;
+				Def.Quad{ InitCommand=function(self)
+					self:zoomto(8,16):x(12):y(24)
+				end;
+				Def.Quad{ InitCommand=function(self)
+					self:zoomto(8,16):x(0):y(24)
+				end;
 			};
 		};
 	};
-	Def.Sprite{ Name = "Ghosting"; Texture = "Output"; InitCommand=cmd(Center); };
+	Def.Sprite{ Name = "Ghosting"; Texture = "Output"; InitCommand=function(self)
+		self:Center()
+	end;
 }
 
 return Examples[ ExampleToShow ]
