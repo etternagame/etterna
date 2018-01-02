@@ -94,7 +94,7 @@ t[#t+1] = Def.ActorFrame{
 		InitCommand=function(self)
 			self:xy(SCREEN_CENTER_X+100,AvatarY+40):halign(0):zoom(0.35):diffuse(getMainColor('positive'))
 			if DLMAN:IsLoggedIn() then
-				self:settextf("Logged in as %s (#%i)",DLMAN:GetUsername(),DLMAN:GetSkillsetRank(ms.SkillSets[1]))
+				self:settextf("Logged in as %s (%i: #%i)",DLMAN:GetUsername(),DLMAN:GetSkillsetRating("Overall"),DLMAN:GetSkillsetRank(ms.SkillSets[1]))
 			else
 				self:settext("Not logged in")
 			end
@@ -106,11 +106,11 @@ t[#t+1] = Def.ActorFrame{
 			self:settext("Not logged in")
 		end,
 		LoginMessageCommand=function(self)
-			self:settextf("Logged in as %s (#%i)",DLMAN:GetUsername(),DLMAN:GetSkillsetRank(ms.SkillSets[1]))
+				self:settextf("Logged in as %s (%i: #%i)",DLMAN:GetUsername(),DLMAN:GetSkillsetRating("Overall"),DLMAN:GetSkillsetRank(ms.SkillSets[1]))
 		end,
 		OnlineUpdateMessageCommand=function(self)
 			if DLMAN:IsLoggedIn() then
-				self:settextf("Logged in as %s (#%i)",DLMAN:GetUsername(),DLMAN:GetSkillsetRank(ms.SkillSets[1]))
+				self:settextf("Logged in as %s (%i: #%i)",DLMAN:GetUsername(),DLMAN:GetSkillsetRating("Overall"),DLMAN:GetSkillsetRank(ms.SkillSets[1]))
 			else
 				self:settext("Not logged in")
 			end
