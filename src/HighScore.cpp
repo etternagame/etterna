@@ -13,6 +13,7 @@
 #include <sstream>
 #include "CryptManager.h"
 #include "ProfileManager.h"
+#include "RageFileManager.h"
 
 ThemeMetric<string> EMPTY_NAME("HighScore","EmptyName");
 
@@ -580,7 +581,9 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 bool HighScoreImpl::WriteReplayData() {
 	string append;
 	string profiledir;
-
+	//These two lines should probably be somewhere else
+	if (!FILEMAN->IsADirectory(REPLAY_DIR))
+		FILEMAN->CreateDir(REPLAY_DIR);
 	string path = REPLAY_DIR + ScoreKey;
 	ofstream fileStream(path, ios::binary);
 	//check file
