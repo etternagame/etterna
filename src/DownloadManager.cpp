@@ -598,7 +598,7 @@ void DownloadManager::UploadScore(HighScore* hs)
 	curl_httppost *form = nullptr;
 	curl_httppost *lastPtr = nullptr;
 	SetCURLPOSTScore(curlHandle, form, lastPtr, hs);
-	CURLFormPostField(curlHandle, form, lastPtr, "replay_data", "[]");
+	CURLFormPostField(curlHandle, form, lastPtr, "replay_data", "");
 	SetCURLPostToURL(curlHandle, url);
 	AddSessionCookieToCURL(curlHandle);
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
@@ -623,14 +623,19 @@ void DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	curl_httppost *lastPtr = nullptr;
 	curl_slist *headerlist = nullptr;
 	SetCURLPOSTScore(curlHandle, form, lastPtr, hs);
-	string replayString = "[";
-	vector<float> timestamps = hs->timeStamps;
+	string replayString;
 	vector<float> offsets = hs->GetOffsetVector();
-	for (int i = 0; i < offsets.size(); i++) {
-		replayString += "[" + to_string(timestamps[i]) + "," + to_string(1000.f * offsets[i]) + "],";
+	if (offsets.size() > 0) {
+		replayString = "[";
+		vector<float> timestamps = hs->timeStamps;
+		for (int i = 0; i < offsets.size(); i++) {
+			replayString += "[" + to_string(timestamps[i]) + "," + to_string(1000.f * offsets[i]) + "],";
+		}
+		replayString = replayString.substr(0, replayString.size() - 1); //remove ","
+		replayString += "]";
 	}
-	replayString = replayString.substr(0, replayString.size() - 1); //remove ","
-	replayString += "]";
+	else
+		replayString = "";
 	SetCURLFormPostField(curlHandle, form, lastPtr, "replay_data", replayString);
 	SetCURLPostToURL(curlHandle, url);
 	AddSessionCookieToCURL(curlHandle);
