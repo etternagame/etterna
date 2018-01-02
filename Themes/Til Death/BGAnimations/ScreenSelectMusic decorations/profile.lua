@@ -126,6 +126,8 @@ local function rankingLabel(i)
 						thssong = SONGMAN:GetSongByChartKey(ck)
 						thssteps = SONGMAN:GetStepsByChartKey(ck)
 						MESSAGEMAN:Broadcast("DisplayProfileRankingLabels")
+					else
+						self:visible(false)
 					end
 				else
 					onlineScore = DLMAN:GetTopSkillsetScore(i, ms.SkillSets[rankingSkillset])
@@ -170,10 +172,16 @@ local function rankingLabel(i)
 					if ths then
 						self:settextf("%5.2f", ths:GetSkillsetSSR(ms.SkillSets[rankingSkillset]))
 						self:diffuse(byValidity(ths:GetEtternaValid()))
+					else
+						self:settext("")
 					end
-				elseif onlineScore then
+				else
+					if onlineScore then
 						self:settextf("%5.2f", onlineScore.ssr)
 						self:diffuse(getMainColor('positive'))
+					else
+						self:settext("")
+					end
 				end
 			end
 		},
@@ -187,10 +195,16 @@ local function rankingLabel(i)
 					if thssong then
 						self:settext(thssong:GetDisplayMainTitle())
 						self:diffuse(byValidity(ths:GetEtternaValid()))
+					else
+						self:settext("")
 					end
-				elseif onlineScore then
+				else
+					if onlineScore then
 					self:settext(onlineScore.songName)
 					self:diffuse(getMainColor('positive'))
+					else
+						self:settext("")
+					end
 				end
 			end
 		},
@@ -206,12 +220,18 @@ local function rankingLabel(i)
 						local ratestring = string.format("%.2f", ths:GetMusicRate()):gsub("%.?0+$", "").."x"
 						self:settext(ratestring)
 						self:diffuse(byValidity(ths:GetEtternaValid()))
+					else
+						self:settext("")
 					end
-				elseif onlineScore then
-					local ratestring = string.format("%.2f", onlineScore.rate):gsub("%.?0+$", "").."x"
-					self:halign(0.5)
-					self:settext(ratestring)
-					self:diffuse(getMainColor('positive'))
+				else
+					if onlineScore then
+						local ratestring = string.format("%.2f", onlineScore.rate):gsub("%.?0+$", "").."x"
+						self:halign(0.5)
+						self:settext(ratestring)
+						self:diffuse(getMainColor('positive'))
+					else
+						self:settext("")
+					end
 				end
 			end
 		},
@@ -229,10 +249,16 @@ local function rankingLabel(i)
 						else
 							self:diffuse(getGradeColor(ths:GetWifeGrade()))
 						end
+					else
+						self:settext("")
 					end
-				elseif onlineScore then
-					self:settextf("%5.2f%%", onlineScore.wife*100)
-					self:diffuse(getGradeColor("Grade_Tier03"))
+				else
+					if onlineScore then
+						self:settextf("%5.2f%%", onlineScore.wife*100)
+						self:diffuse(getGradeColor("Grade_Tier03"))
+					else
+						self:settext("")
+					end
 				end
 			end
 		},
@@ -248,11 +274,17 @@ local function rankingLabel(i)
 						local diff = thssteps:GetDifficulty()
 						self:diffuse(byDifficulty(diff))
 						self:settext(getShortDifficulty(diff))
+					else
+						self:settext("")
 					end
-				elseif onlineScore then
-					local diff = onlineScore.difficulty
-					self:diffuse(byDifficulty(diff))
-					self:settext(getShortDifficulty(diff))
+				else
+					if onlineScore then
+						local diff = onlineScore.difficulty
+						self:diffuse(byDifficulty(diff))
+						self:settext(getShortDifficulty(diff))
+					else
+						self:settext("")
+					end
 				end
 			end
 		},
@@ -277,7 +309,7 @@ local function rankingLabel(i)
 				end
 			end,
 			MouseLeftClickMessageCommand=function(self)
-				if rankingSkillset>1 and ths and ButtonActive(self) then
+				if rankingSkillset>1 and ButtonActive(self) then
 					if not showOnline then
 						if ths then
 							whee:SelectSong(thssong)

@@ -108,6 +108,13 @@ t[#t+1] = Def.ActorFrame{
 		LoginMessageCommand=function(self)
 			self:settextf("Logged in as %s (#%i)",DLMAN:GetUsername(),DLMAN:GetSkillsetRank(ms.SkillSets[1]))
 		end,
+		OnlineUpdateMessageCommand=function(self)
+			if DLMAN:IsLoggedIn() then
+				self:settextf("Logged in as %s (#%i)",DLMAN:GetUsername(),DLMAN:GetSkillsetRank(ms.SkillSets[1]))
+			else
+				self:settext("Not logged in")
+			end
+		end,
 	},
 	LoadFont("Common Normal") .. {
 		InitCommand=function(self)
