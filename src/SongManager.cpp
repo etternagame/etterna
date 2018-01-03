@@ -601,6 +601,15 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 
 	if( songCount==0 ) return;
 
+	map<pair<RString, unsigned int>, Song*> cache;
+	map<RString, Song*> hyperCache;
+	if (PREFSMAN->m_bHyperLoad) {
+		SONGINDEX->LoadHyperCache(ld, hyperCache);
+	}
+	else {
+		SONGINDEX->LoadCache(ld, cache);
+	}
+
 	if( ld ) {
 		ld->SetIndeterminate( false );
 		ld->SetTotalWork( songCount );
@@ -619,28 +628,57 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 
 		SongPointerVector& index_entry = m_mapSongGroupIndex[sGroupDirName];
 		RString group_base_name= Basename(sGroupDirName);
-		for( unsigned j=0; j< arraySongDirs.size(); ++j )	// for each song dir
+		for (unsigned j = 0; j < arraySongDirs.size(); ++j)	// for each song dir
 		{
 			RString sSongDirName = arraySongDirs[j];
 
 			// this is a song directory. Load a new song.
-			if(ld && loading_window_last_update_time.Ago() > next_loading_window_update)
+			if (ld && loading_window_last_update_time.Ago() > next_loading_window_update)
 			{
 				loading_window_last_update_time.Touch();
 				ld->SetProgress(songIndex);
-				ld->SetText( LOADING_SONGS.GetValue() +
+				ld->SetText(LOADING_SONGS.GetValue() +
 					ssprintf("\n%s\n%s",
 						group_base_name.c_str(),
 						Basename(sSongDirName).c_str()
 					)
 				);
 			}
-			Song* pNewSong = new Song;
-			if( !pNewSong->LoadFromSongDir( sSongDirName ) )
-			{
-				// The song failed to load.
-				delete pNewSong;
-				continue;
+			Song* pNewSong = nullptr;
+			if (sSongDirName.Right(1) != "/")
+				sSongDirName += "/";
+			if (PREFSMAN->m_bHyperLoad) {
+				if (hyperCache.count(sSongDirName) > 0) {
+					pNewSong = hyperCache[sSongDirName];
+					pNewSong->FinalizeLoading();
+					hyperCache.erase(sSongDirName); //Only erases pointer
+				}
+				else {
+					pNewSong = new Song;
+					if (!pNewSong->LoadFromSongDir(sSongDirName))
+					{
+						// The song failed to load.
+						delete pNewSong;
+						continue;
+					}
+				}
+			}
+			else {
+				pair<RString, unsigned int> songID = { sSongDirName, GetHashForDirectory(sSongDirName) };
+				if (cache.count(songID) > 0) {
+					pNewSong = cache[songID];
+					pNewSong->FinalizeLoading();
+					cache.erase(songID); //Only erases pointer
+				}
+				else {
+					pNewSong = new Song;
+					if (!pNewSong->LoadFromSongDir(sSongDirName))
+					{
+						// The song failed to load.
+						delete pNewSong;
+						continue;
+					}
+				}
 			}
 			AddSongToList(pNewSong);
 			AddKeyedPointers(pNewSong);
@@ -662,7 +700,10 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 		// Cache and load the group banner. (and background if it has one -aj)
 		IMAGECACHE->CacheImage( "Banner", GetSongGroupBannerPath(sGroupDirName) );
 	}
-
+	for (auto& pair : cache) {
+		SONGINDEX->DeleteSongFromDB(pair.second);
+		delete pair.second;
+	}
 	if( ld ) {
 		ld->SetIndeterminate( true );
 	}

@@ -5,10 +5,14 @@
 #include "TimingData.h"
 #include "Song.h"
 #include "Steps.h"
+#include "arch/LoadingWindow/LoadingWindow.h"
 
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <SQLiteCpp/VariadicBind.h>
 
+class SongDBCacheItem {
+
+};
 class SongCacheIndex
 {
 	IniFile CacheIndex;
@@ -24,6 +28,10 @@ class SongCacheIndex
 public:
 	SongCacheIndex();
 	~SongCacheIndex();
+	inline pair<RString, int> SongFromStatement(Song* song, SQLite::Statement &query);
+	void LoadHyperCache(LoadingWindow * ld, map<RString, Song*>& hyperCache);
+	void LoadCache(LoadingWindow* ld, map<pair<RString, unsigned int>, Song*>&cache);
+	void DeleteSongFromDB(Song* songPtr);
 	void ReadFromDisk();
 	static RString GetCacheFilePath( const RString &sGroup, const RString &sPath );
 
