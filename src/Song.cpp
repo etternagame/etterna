@@ -308,14 +308,8 @@ bool Song::LoadFromSongDir( RString sDir, bool load_autosave )
 	// save song dir
 	m_sSongDir = sDir;
 
-	// save group name
-	vector<RString> sDirectoryParts;
-	split( m_sSongDir, "/", sDirectoryParts, false );
-	ASSERT( sDirectoryParts.size() >= 4 ); /* e.g. "/Songs/Slow/Taps/" */
-	m_sGroupName = sDirectoryParts[sDirectoryParts.size()-3];	// second from last item
-	ASSERT( m_sGroupName != "" );
 
-	if (!SONGINDEX->LoadSongFromCache(this, sDir)) {
+	//if (!SONGINDEX->LoadSongFromCache(this, sDir)) {
 		// There was no entry in the cache for this song, or it was out of date.
 		// Let's load it from a file, then write a cache entry.
 		if (!NotesLoader::LoadFromDir(sDir, *this, BlacklistedImages, load_autosave))
@@ -349,22 +343,9 @@ bool Song::LoadFromSongDir( RString sDir, bool load_autosave )
 			// save a cache file so we don't have to parse it all over again next time
 			SaveToCacheFile();
 		}
-	}
-	FOREACH( Steps*, m_vpSteps, s )
-	{
-		/* Compress all Steps. During initial caching, this will remove cached
-		 * NoteData; during cached loads, this will just remove cached SMData. */
-		(*s)->Compress();
-	}
+	//}
 
-	// Load the cached banners, if it's not loaded already.
-	if( PREFSMAN->m_BannerCache == BNCACHE_LOW_RES_PRELOAD && m_bHasBanner )
-		BANNERCACHE->LoadBanner( GetBannerPath() );
-	// Load the cached background, if it's not loaded already.
-	/*
-	if( PREFSMAN->m_BackgroundCache == BGCACHE_LOW_RES_PRELOAD && m_bHasBackground )
-		BACKGROUNDCACHE->LoadBackground( GetBackgroundPath() );
-	*/
+	FinalizeLoading();
 
 	if( !m_bHasMusic )
 	{
@@ -374,6 +355,31 @@ bool Song::LoadFromSongDir( RString sDir, bool load_autosave )
 	return true;	// do load this song
 }
 
+void Song::FinalizeLoading()
+{
+	// save group name
+	vector<RString> sDirectoryParts;
+	split(m_sSongDir, "/", sDirectoryParts, false);
+	ASSERT(sDirectoryParts.size() >= 4); /* e.g. "/Songs/Slow/Taps/" */
+	m_sGroupName = sDirectoryParts[sDirectoryParts.size() - 3];	// second from last item
+	ASSERT(m_sGroupName != "");
+
+	FOREACH(Steps*, m_vpSteps, s)
+	{
+		/* Compress all Steps. During initial caching, this will remove cached
+		* NoteData; during cached loads, this will just remove cached SMData. */
+		(*s)->Compress();
+	}
+
+	// Load the cached banners, if it's not loaded already.
+	if (PREFSMAN->m_BannerCache == BNCACHE_LOW_RES_PRELOAD && m_bHasBanner)
+		BANNERCACHE->LoadBanner(GetBannerPath());
+	// Load the cached background, if it's not loaded already.
+	/*
+	if( PREFSMAN->m_BackgroundCache == BGCACHE_LOW_RES_PRELOAD && m_bHasBackground )
+	BACKGROUNDCACHE->LoadBackground( GetBackgroundPath() );
+	*/
+}
 /* This function feels EXTREMELY hacky - copying things on top of pointers so
  * they don't break elsewhere.  Maybe it could be rewritten to politely ask the
  * Song/Steps objects to reload themselves. -- djpohly */

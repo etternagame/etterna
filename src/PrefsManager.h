@@ -168,6 +168,7 @@ public:
 	Preference<BannerCacheMode>		m_BannerCache;
 	//Preference<BackgroundCacheMode>		m_BackgroundCache;
 	Preference<bool>	m_bFastLoad;
+	Preference<bool>	m_bHyperLoad;
 	Preference<bool>	m_bFastLoadAdditionalSongs;
 	Preference<RString> m_NeverCacheList;
 
