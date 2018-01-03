@@ -793,20 +793,15 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 	LoadEditableDataFromDir( sDir );
 	DBProf.SetLoadingProfile(this);
 	XMLProf.SetLoadingProfile(this);
-	ProfileLoadResult ret = DBProf.LoadDBFromDir(sDir);
+	ProfileLoadResult ret = XMLProf.LoadEttFromDir(sDir);
 	if (ret != ProfileLoadResult_Success) {
-		ret = XMLProf.LoadEttFromDir(sDir);
-		ProfileLoadResult ret = XMLProf.LoadEttFromDir(sDir);
-		if (ret != ProfileLoadResult_Success) {
-			ret = XMLProf.LoadStatsFromDir(sDir, bRequireSignature);
+		ret = XMLProf.LoadStatsFromDir(sDir, bRequireSignature);
 
-			if (ret != ProfileLoadResult_Success)
-				return ret;
+		if (ret != ProfileLoadResult_Success)
+			return ret;
 
-			IsEtternaProfile = true;
-			ImportScoresToEtterna();
-		}
-		DBProf.SaveDBToDir(sDir, this, LocalWithReplayData);
+		IsEtternaProfile = true;
+		ImportScoresToEtterna();
 	}
 
 	// move old profile specific replays to the new aggregate folder
@@ -943,7 +938,6 @@ bool Profile::SaveAllToDir( const RString &sDir, bool bSignData ) const
 
 	bool bSaved = XMLProf.SaveEttXmlToDir(sDir, this);
 	SaveStatsWebPageToDir( sDir );
-	bool dbSabed = DBProf.SaveDBToDir(sDir, this, LocalWithReplayData);
 	
 	// Empty directories if none exist.
 	FILEMAN->CreateDir( sDir + SCREENSHOTS_SUBDIR );

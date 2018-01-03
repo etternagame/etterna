@@ -361,39 +361,39 @@ bool SongCacheIndex::CacheSong(Song& song, string dir)
 		//Selectable should be stored as int
 		switch (song.m_SelectionDisplay)
 		{
-		default: ASSERT_M(0, "An invalid selectable value was found for this song!"); // fall through
-		case Song::SHOW_ALWAYS:	insertSong.bind(index++, 0);		break;
-		case Song::SHOW_NEVER:		insertSong.bind(index++, 1);		break;
+			default: ASSERT_M(0, "An invalid selectable value was found for this song!"); // fall through
+			case Song::SHOW_ALWAYS:	insertSong.bind(index++, 0);		break;
+			case Song::SHOW_NEVER:		insertSong.bind(index++, 1);		break;
 		}
 
 		switch (song.m_DisplayBPMType)
 		{
-		case DISPLAY_BPM_ACTUAL:
-			// write nothing(Both nulls)
-			insertSong.bind(index++);
-			insertSong.bind(index++);
-			break;
-		case DISPLAY_BPM_SPECIFIED:
-			if (song.m_fSpecifiedBPMMin == song.m_fSpecifiedBPMMax)
-			{
-				insertSong.bind(index++, song.m_fSpecifiedBPMMin);
-				insertSong.bind(index++, song.m_fSpecifiedBPMMin);
-			}
-			else
-			{
-				insertSong.bind(index++, song.m_fSpecifiedBPMMin);
-				insertSong.bind(index++, song.m_fSpecifiedBPMMax);
-			}
-			break;
-		case DISPLAY_BPM_RANDOM:
-			//Write only one as null
-			insertSong.bind(index++);
-			insertSong.bind(index++, 0.0);
-			break;
-		default:
-			insertSong.bind(index++);
-			insertSong.bind(index++);
-			break;
+			case DISPLAY_BPM_ACTUAL:
+				// write nothing(Both nulls)
+				insertSong.bind(index++);
+				insertSong.bind(index++);
+				break;
+			case DISPLAY_BPM_SPECIFIED:
+				if (song.m_fSpecifiedBPMMin == song.m_fSpecifiedBPMMax)
+				{
+					insertSong.bind(index++, song.m_fSpecifiedBPMMin);
+					insertSong.bind(index++, song.m_fSpecifiedBPMMin);
+				}
+				else
+				{
+					insertSong.bind(index++, song.m_fSpecifiedBPMMin);
+					insertSong.bind(index++, song.m_fSpecifiedBPMMax);
+				}
+				break;
+			case DISPLAY_BPM_RANDOM:
+				//Write only one as null
+				insertSong.bind(index++);
+				insertSong.bind(index++, 0.0);
+				break;
+			default:
+				insertSong.bind(index++);
+				insertSong.bind(index++);
+				break;
 		}
 		insertSong.bind(index++, join(",\r\n", song.m_SongTiming.ToVectorString(SEGMENT_BPM, 3)));
 		insertSong.bind(index++, join(",\r\n", song.m_SongTiming.ToVectorString(SEGMENT_STOP, 3)));
