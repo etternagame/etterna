@@ -1278,9 +1278,6 @@ bool Song::SaveToCacheFile()
 		return true;
 	}
 	return SONGINDEX->CacheSong(*this, m_sSongDir);
-	SONGINDEX->AddCacheIndex(m_sSongDir, GetHashForDirectory(m_sSongDir));
-	const RString sPath = GetCacheFilePath();
-	return SaveToSSCFile(sPath, true);
 }
 
 bool Song::SaveToDWIFile()
