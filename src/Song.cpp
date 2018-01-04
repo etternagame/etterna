@@ -378,7 +378,7 @@ void Song::FinalizeLoading()
 	{
 		for( std::string Image : ImageDir )
 		{
-			IMAGECACHE->LoadImage( Image, GetCacheFile( Image ) );
+			//IMAGECACHE->LoadImage( Image, GetCacheFile( Image ) );
 		}		
 	}
 

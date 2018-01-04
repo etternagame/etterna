@@ -612,7 +612,7 @@ void SongCacheIndex::LoadHyperCache(LoadingWindow * ld, map<RString, Song*>& hyp
 			if (ld)
 			{
 				ld->SetProgress(progress);
-				ld->SetText(("Loading Cache (" + lastDir + ")").c_str());
+				ld->SetText(("Loading Cache\n (" + lastDir + ")").c_str());
 				progress++;
 			}
 		}
@@ -647,7 +647,7 @@ void SongCacheIndex::LoadCache(LoadingWindow * ld, map<pair<RString, unsigned in
 			if (ld)
 			{
 				ld->SetProgress(progress);
-				ld->SetText(("Loading Cache (" + lastDir + ")").c_str());
+				ld->SetText(("Loading Cache\n(" + lastDir + ")").c_str());
 				progress++;
 			}
 		}
