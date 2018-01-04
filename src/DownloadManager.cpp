@@ -35,6 +35,7 @@ static Preference<RString> packListURL("packListURL", "https://etternaonline.com
 static Preference<RString> serverURL("UploadServerURL", "https://etternaonline.com/api");
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 static const string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
+static const string DL_DIR = SpecialFiles::CACHE_DIR + "Downloads/";
 
 size_t write_memory_buffer(void *contents, size_t size, size_t nmemb, void *userp)
 {
@@ -230,7 +231,17 @@ inline void SetCURLFormPostField(CURL* curlHandle, curl_httppost *&form, curl_ht
 {
 	CURLFormPostField(curlHandle, form, lastPtr, field.c_str(), to_string(value).c_str());
 }
+inline void EmptyTempDLFileDir() 
+{
+	vector<RString> files;
+	FILEMAN->GetDirListing(DL_DIR + "*", files, false, true);
+	for (auto& file : files) {
+		if (FILEMAN->IsAFile(file))
+			FILEMAN->Remove(file);
+	}
+}
 DownloadManager::DownloadManager() {
+	EmptyTempDLFileDir();
 	curl_global_init(CURL_GLOBAL_ALL);
 	// Register with Lua.
 	{
@@ -245,6 +256,7 @@ DownloadManager::DownloadManager() {
 
 DownloadManager::~DownloadManager()
 {
+	EmptyTempDLFileDir();
 	if (mHandle != nullptr)
 		curl_multi_cleanup(mHandle);
 	mHandle = nullptr;
@@ -428,7 +440,7 @@ bool DownloadManager::UpdateAndIsFinished(float fDeltaSeconds)
 
 string Download::MakeTempFileName(string s)
 {
-	return SpecialFiles::CACHE_DIR + "Downloads/" + Basename(s);
+	return DL_DIR + Basename(s);
 }
 bool DownloadManager::LoggedIn()
 {

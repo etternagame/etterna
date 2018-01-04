@@ -12,8 +12,7 @@
 #include "Style.h"
 #include "FontCharAliases.h"
 #include "TitleSubstitution.h"
-#include "BannerCache.h"
-//#include "BackgroundCache.h"
+#include "ImageCache.h"
 #include "Sprite.h"
 #include "RageFileManager.h"
 #include "RageSurface.h"
@@ -35,6 +34,7 @@
 #include "NotesWriterETT.h"
 #include "LyricsLoader.h"
 #include "ActorUtil.h"
+#include "CommonMetrics.h"
 
 #include "GameState.h"
 #include <ctime>
@@ -89,6 +89,8 @@ Song::Song()
 	m_bHasBanner = false;
 	m_bHasBackground = false;
 	m_loaded_from_autosave= false;
+	ImageDir.clear();
+	split( CommonMetrics::IMAGES_TO_CACHE, ",", ImageDir );
 }
 
 Song::~Song()
@@ -371,14 +373,14 @@ void Song::FinalizeLoading()
 		(*s)->Compress();
 	}
 
-	// Load the cached banners, if it's not loaded already.
-	if (PREFSMAN->m_BannerCache == BNCACHE_LOW_RES_PRELOAD && m_bHasBanner)
-		BANNERCACHE->LoadBanner(GetBannerPath());
-	// Load the cached background, if it's not loaded already.
-	/*
-	if( PREFSMAN->m_BackgroundCache == BGCACHE_LOW_RES_PRELOAD && m_bHasBackground )
-	BACKGROUNDCACHE->LoadBackground( GetBackgroundPath() );
-	*/
+	// Load the cached Images, if it's not loaded already.
+	if( PREFSMAN->m_ImageCache == IMGCACHE_LOW_RES_PRELOAD )
+	{
+		for( std::string Image : ImageDir )
+		{
+			IMAGECACHE->LoadImage( Image, GetCacheFile( Image ) );
+		}		
+	}
 }
 /* This function feels EXTREMELY hacky - copying things on top of pointers so
  * they don't break elsewhere.  Maybe it could be rewritten to politely ask the
@@ -585,13 +587,10 @@ void Song::TidyUpData( bool from_cache, bool /* duringCache */ )
 		m_bHasMusic = HasMusic();
 		m_bHasBanner = HasBanner();
 		m_bHasBackground = HasBackground();
-
-		if(m_bHasBanner)
-		{ BANNERCACHE->CacheBanner(GetBannerPath()); }
-		/*
-			if(m_bHasBackground)
-			{ BANNERCACHE->CacheBackground(GetBackgroundPath()); }
-		*/
+		for( std::string Image : ImageDir)
+		{
+			IMAGECACHE->LoadImage( Image, GetCacheFile( Image ) );
+		}
 
 		// There are several things that need to find a file from the dir with a
 		// particular extension or type of extension.  So fetch a list of all
@@ -1310,6 +1309,73 @@ void Song::RemoveAutosave()
 		FILEMAN->Remove(autosave_path);
 		m_loaded_from_autosave= false;
 	}
+}
+
+// We want to return a filename, We use this function for that.
+std::string Song::GetCacheFile(std::string sType)
+{
+	// We put the Predefined images into a map.
+	map< std::string, std::string > PreDefs;
+	PreDefs["Banner"] = GetBannerPath();
+	PreDefs["Background"] = GetBackgroundPath();
+	PreDefs["CDTitle"] = GetCDTitlePath();
+	PreDefs["Jacket"] = GetJacketPath();
+	PreDefs["CDImage"] = GetCDImagePath();
+	PreDefs["Disc"] = GetDiscPath();
+	
+	// Check if Predefined images exist, And return function if they do.
+	if(PreDefs[sType.c_str()].c_str())
+		return PreDefs[sType.c_str()].c_str();	
+	
+	// Get all image files and put them into a vector.
+	vector<RString> song_dir_listing;
+	FILEMAN->GetDirListing(m_sSongDir + "*", song_dir_listing, false, false);
+	vector<RString> image_list;
+	vector<RString> fill_exts = ActorUtil::GetTypeExtensionList(FT_Bitmap);
+	for( std::string Image : song_dir_listing )
+	{
+		std::string FileExt = GetExtension(Image);	
+		transform(FileExt.begin(), FileExt.end(), FileExt.begin(),::tolower);
+		for ( std::string FindExt : fill_exts )
+		{
+			if(FileExt == FindExt)
+				image_list.push_back(Image);
+		}
+	}
+	
+	// Create a map that contains all the filenames to search for.
+	map<std::string, map< int, std::string > > PreSets;
+	PreSets["Banner"][1] = "bn";
+	PreSets["Banner"][2] = "banner";
+	PreSets["Background"][1] = "bg";
+	PreSets["Background"][2] = "background";
+	PreSets["CDTitle"][1] = "cdtitle";
+	PreSets["Jacket"][1] = "jk_";	
+	PreSets["Jacket"][2] = "jacket";
+	PreSets["Jacket"][3] = "albumart";
+	PreSets["CDImage"][1] = "-cd";
+	PreSets["Disc"][1] = " disc";
+	PreSets["Disc"][2] = " title";	
+	
+	for( std::string Image : image_list)
+	{
+		// We want to make it lower case.
+		transform(Image.begin(), Image.end(), Image.begin(),::tolower);
+		for( std::pair< const int, std::string> PreSet : PreSets[sType.c_str()] )
+		{
+			// Search for image using PreSets.
+			size_t Found = Image.find(PreSet.second.c_str());
+			if(Found!=std::string::npos)
+				return GetSongAssetPath( Image, m_sSongDir );
+		}
+		// Search for the image directly if it doesnt exist in PreSets, 
+		// Or incase we define our own stuff.
+		size_t Found = Image.find(sType.c_str());
+		if(Found!=std::string::npos)
+			return GetSongAssetPath( Image, m_sSongDir );
+	}
+	// Return empty if nothing found.
+	return "";
 }
 
 RString Song::GetFileHash()

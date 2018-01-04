@@ -31,7 +31,9 @@ for i, pn in ipairs(GAMESTATE:GetEnabledPlayers()) do
 		-- numpad in detail.
 		heart_entries[pn]= new_numpad_entry{
 			Name= pn .. "_heart_entry",
-			InitCommand= cmd(xy, heart_xs[pn], SCREEN_CENTER_Y+48),
+			InitCommand= function(self)
+				self:xy(heart_xs[pn], SCREEN_CENTER_Y+48)
+			end,
 			-- Settings for value are optional, but you will probably want to
 			-- change them, so they are provided in this example.
 			-- If a simple colored BitmapText isn't what you want for displaying
@@ -168,8 +170,12 @@ local args= {
 		-- The BitmapText used to display the elapsed time.
 		Def.BitmapText{
 			Name= "timer_text", Font= "Common Normal", Text= "00.0",
-			InitCommand= cmd(xy, SCREEN_CENTER_X, SCREEN_CENTER_Y-80; diffuse, Color.White),
-			OnCommand= cmd(strokecolor,Color.Outline),
+			InitCommand= function(self)
+				self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y-80):diffuse(Color.White)
+			end,
+			OnCommand= function(self)
+				self:strokecolor(Color.Outline)
+			end,
 		}
 	},
 }
