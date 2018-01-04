@@ -166,6 +166,7 @@ PrefsManager::PrefsManager() :
 	m_ImageCache			( "ImageCache",		IMGCACHE_LOW_RES_PRELOAD ),
 	m_bFastLoad			( "FastLoad",			true ),
 	m_bFastLoadAdditionalSongs      ( "FastLoadAdditionalSongs",    true ),
+	m_bHyperLoad("HyperLoad", false),
 	m_NeverCacheList		( "NeverCacheList", ""),
 
 	m_bOnlyDedicatedMenuButtons	( "OnlyDedicatedMenuButtons",	false ),

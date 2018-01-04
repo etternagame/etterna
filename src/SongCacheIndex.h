@@ -2,15 +2,38 @@
 #define SONG_CACHE_INDEX_H
 
 #include "IniFile.h"
+#include "TimingData.h"
+#include "Song.h"
+#include "Steps.h"
+#include "arch/LoadingWindow/LoadingWindow.h"
 
+#include <SQLiteCpp/SQLiteCpp.h>
+#include <SQLiteCpp/VariadicBind.h>
+
+class SongDBCacheItem {
+
+};
 class SongCacheIndex
 {
 	IniFile CacheIndex;
 	static RString MangleName( const RString &Name );
 
+	bool OpenDB();
+	void ResetDB();
+	void DeleteDB();
+	void CreateDBTables();
+	bool DBEmpty{true};
+	SQLite::Database *db{nullptr};
+	SQLite::Transaction *curTransaction{nullptr};
 public:
 	SongCacheIndex();
 	~SongCacheIndex();
+	inline pair<RString, int> SongFromStatement(Song* song, SQLite::Statement &query);
+	void LoadHyperCache(LoadingWindow * ld, map<RString, Song*>& hyperCache);
+	void LoadCache(LoadingWindow* ld, map<pair<RString, unsigned int>, Song*>&cache);
+	void DeleteSongFromDB(Song* songPtr); 
+	void DeleteSongFromDBByDir(string dir);
+	void DeleteSongFromDBByDirHash(unsigned int hash);
 	void ReadFromDisk();
 	static RString GetCacheFilePath( const RString &sGroup, const RString &sPath );
 
@@ -19,6 +42,13 @@ public:
 	void AddCacheIndex( const RString &path, unsigned hash );
 	unsigned GetCacheHash( const RString &path ) const;
 	bool delay_save_cache;
+	
+	int InsertStepsTimingData(TimingData timing);
+	int InsertSteps(const Steps* pSteps, int songID);
+	bool LoadSongFromCache(Song* song, string dir);
+	bool CacheSong(Song& song, string dir);
+	void StartTransaction();
+	void FinishTransaction();
 };
 
 extern SongCacheIndex *SONGINDEX;	// global and accessible from anywhere in our program

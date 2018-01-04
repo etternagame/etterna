@@ -18,6 +18,9 @@ For those that do not wish to compile the game on their own and use a binary rig
 
 ### From Source
 
+Remember to do
+```git module update --init```
+Before building
 
 #### Install CMake
 

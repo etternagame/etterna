@@ -156,6 +156,7 @@ public:
 	Preference<bool>	m_bDelayedModelDelete;
 	Preference<ImageCacheMode>		m_ImageCache;
 	Preference<bool>	m_bFastLoad;
+	Preference<bool>	m_bHyperLoad;
 	Preference<bool>	m_bFastLoadAdditionalSongs;
 	Preference<RString> m_NeverCacheList;
 

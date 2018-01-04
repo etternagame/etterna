@@ -310,65 +310,22 @@ bool Song::LoadFromSongDir( RString sDir, bool load_autosave )
 	// save song dir
 	m_sSongDir = sDir;
 
-	// save group name
-	vector<RString> sDirectoryParts;
-	split( m_sSongDir, "/", sDirectoryParts, false );
-	ASSERT( sDirectoryParts.size() >= 4 ); /* e.g. "/Songs/Slow/Taps/" */
-	m_sGroupName = sDirectoryParts[sDirectoryParts.size()-3];	// second from last item
-	ASSERT( m_sGroupName != "" );
 
-	// First, look in the cache for this song (without loading NoteData)
-	bool bUseCache = true;
-	RString sCacheFilePath = GetCacheFilePath();
-
-	if( !DoesFileExist(sCacheFilePath) )
-	{ bUseCache = false; }
-	else if(!PREFSMAN->m_bFastLoad && GetHashForDirectory(m_sSongDir) != SONGINDEX->GetCacheHash(m_sSongDir))
-	{ bUseCache = false; } // this cache is out of date
-	else if(load_autosave)
-	{ bUseCache= false; }
-
-	if( bUseCache )
-	{
-		/*
-		LOG->Trace("Loading '%s' from cache file '%s'.",
-				   m_sSongDir.c_str(),
-				   GetCacheFilePath().c_str());
-		*/
-		SSCLoader loaderSSC;
-		bool bLoadedFromSSC = loaderSSC.LoadFromSimfile( sCacheFilePath, *this, true );
-		if( !bLoadedFromSSC )
-		{
-			// load from .sm
-			SMLoader loaderSM;
-			loaderSM.LoadFromSimfile( sCacheFilePath, *this, true );
-			loaderSM.TidyUpData( *this, true );
-		}
-		if(m_sMainTitle == "" || (m_sMusicFile == "" && m_vsKeysoundFile.empty()))
-		{
-			LOG->Warn("Main title or music file for '%s' came up blank, forced to fall back on TidyUpData to fix title and paths.  Do not use # or ; in a song title.", m_sSongDir.c_str());
-			// Tell TidyUpData that it's not loaded from the cache because it needs
-			// to hit the song folder to find the files that weren't found. -Kyz
-			TidyUpData(false, false);
-		}
-	}
-	else
-	{
+	//if (!SONGINDEX->LoadSongFromCache(this, sDir)) {
 		// There was no entry in the cache for this song, or it was out of date.
 		// Let's load it from a file, then write a cache entry.
-
-		if(!NotesLoader::LoadFromDir(sDir, *this, BlacklistedImages, load_autosave))
+		if (!NotesLoader::LoadFromDir(sDir, *this, BlacklistedImages, load_autosave))
 		{
-			LOG->UserLog( "Song", sDir, "has no SSC, SM, SMA, DWI, BMS, or KSF files." );
+			LOG->UserLog("Song", sDir, "has no SSC, SM, SMA, DWI, BMS, or KSF files.");
 
 			vector<RString> vs;
 			FILEMAN->GetDirListingWithMultipleExtensions(sDir, ActorUtil::GetTypeExtensionList(FT_Sound), vs, false, false);
 
 			bool bHasMusic = !vs.empty();
 
-			if( !bHasMusic )
+			if (!bHasMusic)
 			{
-				LOG->UserLog( "Song", sDir, "has no music file either. Ignoring this song directory." );
+				LOG->UserLog("Song", sDir, "has no music file either. Ignoring this song directory.");
 				return false;
 			}
 			// Make sure we have a future filename figured out.
@@ -383,18 +340,36 @@ bool Song::LoadFromSongDir( RString sDir, bool load_autosave )
 
 		// Don't save a cache file if the autosave is being loaded, because the
 		// cache file would contain the autosave filename. -Kyz
-		if(!load_autosave)
+		if (!load_autosave)
 		{
 			// save a cache file so we don't have to parse it all over again next time
-			if(!SaveToCacheFile())
-			{ sCacheFilePath = RString(); }
+			SaveToCacheFile();
 		}
-	}
+	//}
 
-	FOREACH( Steps*, m_vpSteps, s )
+	FinalizeLoading();
+
+	if( !m_bHasMusic )
+	{
+		LOG->UserLog( "Song", sDir, "has no music; ignored." );
+		return false;	// don't load this song
+	}
+	return true;	// do load this song
+}
+
+void Song::FinalizeLoading()
+{
+	// save group name
+	vector<RString> sDirectoryParts;
+	split(m_sSongDir, "/", sDirectoryParts, false);
+	ASSERT(sDirectoryParts.size() >= 4); /* e.g. "/Songs/Slow/Taps/" */
+	m_sGroupName = sDirectoryParts[sDirectoryParts.size() - 3];	// second from last item
+	ASSERT(m_sGroupName != "");
+
+	FOREACH(Steps*, m_vpSteps, s)
 	{
 		/* Compress all Steps. During initial caching, this will remove cached
-		 * NoteData; during cached loads, this will just remove cached SMData. */
+		* NoteData; during cached loads, this will just remove cached SMData. */
 		(*s)->Compress();
 	}
 
@@ -406,15 +381,7 @@ bool Song::LoadFromSongDir( RString sDir, bool load_autosave )
 			IMAGECACHE->LoadImage( Image, GetCacheFile( Image ) );
 		}		
 	}
-
-	if( !m_bHasMusic )
-	{
-		LOG->UserLog( "Song", sDir, "has no music; ignored." );
-		return false;	// don't load this song
-	}
-	return true;	// do load this song
 }
-
 /* This function feels EXTREMELY hacky - copying things on top of pointers so
  * they don't break elsewhere.  Maybe it could be rewritten to politely ask the
  * Song/Steps objects to reload themselves. -- djpohly */
@@ -1162,26 +1129,34 @@ bool Song::SaveToSMFile()
 	if( IsAFile(sPath) )
 		FileCopy( sPath, sPath + ".old" );
 
+	vector<Steps*> vpStepsToSave = GetStepsToSave();
+
+
+	return NotesWriterSM::Write( sPath, *this, vpStepsToSave );
+
+}
+vector<Steps*> Song::GetStepsToSave(bool bSavingCache, string path)
+{
+
 	vector<Steps*> vpStepsToSave;
-	FOREACH_CONST( Steps*, m_vpSteps, s )
+	FOREACH_CONST(Steps*, m_vpSteps, s)
 	{
 		Steps *pSteps = *s;
 
 		// Only save steps that weren't loaded from a profile.
-		if( pSteps->WasLoadedFromProfile() )
+		if (pSteps->WasLoadedFromProfile())
 			continue;
 
-		vpStepsToSave.push_back( pSteps );
+		if (!bSavingCache)
+			pSteps->SetFilename(path);
+		vpStepsToSave.push_back(pSteps);
 	}
 	FOREACH_CONST(Steps*, m_UnknownStyleSteps, s)
 	{
 		vpStepsToSave.push_back(*s);
 	}
-
-	return NotesWriterSM::Write( sPath, *this, vpStepsToSave );
-
+	return vpStepsToSave;
 }
-
 bool Song::SaveToSSCFile( const RString &sPath, bool bSavingCache, bool autosave )
 {
 	RString path = sPath;
@@ -1198,27 +1173,12 @@ bool Song::SaveToSSCFile( const RString &sPath, bool bSavingCache, bool autosave
 	if(!bSavingCache && !autosave && IsAFile(path))
 		FileCopy( path, path + ".old" );
 
-	vector<Steps*> vpStepsToSave;
-	FOREACH_CONST( Steps*, m_vpSteps, s )
-	{
-		Steps *pSteps = *s;
+	vector<Steps*> vpStepsToSave= GetStepsToSave(bSavingCache, path);
 
-		// Only save steps that weren't loaded from a profile.
-		if( pSteps->WasLoadedFromProfile() )
-			continue;
-
-		if (!bSavingCache)
-			pSteps->SetFilename(path);
-		vpStepsToSave.push_back( pSteps );
-	}
-	FOREACH_CONST(Steps*, m_UnknownStyleSteps, s)
-	{
-		vpStepsToSave.push_back(*s);
-	}
 
 	if(bSavingCache || autosave)
 	{
-		return NotesWriterSSC::Write(path, *this, vpStepsToSave, bSavingCache);
+		return SONGINDEX->CacheSong(*this, path);
 	}
 
 	if( !NotesWriterSSC::Write(path, *this, vpStepsToSave, bSavingCache) )
@@ -1271,23 +1231,7 @@ bool Song::SaveToETTFile(const RString &sPath, bool bSavingCache, bool autosave)
 	if (!bSavingCache && !autosave && IsAFile(path))
 		FileCopy(path, path + ".old");
 
-	vector<Steps*> vpStepsToSave;
-	FOREACH_CONST(Steps*, m_vpSteps, s)
-	{
-		Steps *pSteps = *s;
-
-		// Only save steps that weren't loaded from a profile.
-		if (pSteps->WasLoadedFromProfile())
-			continue;
-
-		if (!bSavingCache)
-			pSteps->SetFilename(path);
-		vpStepsToSave.push_back(pSteps);
-	}
-	FOREACH_CONST(Steps*, m_UnknownStyleSteps, s)
-	{
-		vpStepsToSave.push_back(*s);
-	}
+	vector<Steps*> vpStepsToSave = GetStepsToSave(bSavingCache, sPath);
 
 	if (bSavingCache || autosave)
 	{
@@ -1339,9 +1283,7 @@ bool Song::SaveToCacheFile()
 	{
 		return true;
 	}
-	SONGINDEX->AddCacheIndex(m_sSongDir, GetHashForDirectory(m_sSongDir));
-	const RString sPath = GetCacheFilePath();
-	return SaveToSSCFile(sPath, true);
+	return SONGINDEX->CacheSong(*this, m_sSongDir);
 }
 
 bool Song::SaveToDWIFile()

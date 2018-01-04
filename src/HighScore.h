@@ -39,7 +39,7 @@ struct HighScore
 	 * @brief Determine if any judgments were tallied during this run.
 	 * @return true if no judgments were recorded, false otherwise. */
 	bool IsEmpty() const;
-	Grade GetWifeGrade();
+	Grade GetWifeGrade() const;
 	float ConvertDpToWife();
 	float GetPercentDP() const;
 	float GetWifeScore() const;
@@ -49,9 +49,11 @@ struct HighScore
 	float GetJudgeScale() const;
 	bool GetChordCohesion() const;
 	bool GetEtternaValid() const;
-	vector<float> GetOffsetVector() const;
-	vector<int> GetNoteRowVector() const;
 	vector<float> timeStamps;
+	const vector<float>& GetOffsetVector() const;
+	const vector<int>& GetNoteRowVector() const;
+	vector<float> GetCopyOfOffsetVector() const;
+	vector<int> GetCopyOfNoteRowVector() const;
 	string GetScoreKey() const;
 	int GetTopScore() const;
 	/**
@@ -92,6 +94,7 @@ struct HighScore
 	void SetWifePoints(float f);
 	void SetSSRNormPercent(float f);
 	void SetMusicRate(float f);
+	void SetSurviveSeconds(float f);
 	void SetJudgeScale(float f);
 	void SetChordCohesion(bool b);
 	void SetEtternaValid(bool b);
@@ -150,6 +153,7 @@ struct HighScore
 	void SetSkillsetSSR(Skillset ss, float ssr);
 	void SetValidationKey(ValidationKey vk, string k);
 	void SetTopScore(int i);
+	string GetValidationKey(ValidationKey vk) const; 
 	vector<int> GetRescoreJudgeVector(int x);
 	// Lua
 	void PushSelf( lua_State *L );
