@@ -68,6 +68,9 @@ RString SongCacheIndex::GetCacheFilePath( const RString &sGroup, const RString &
 
 SongCacheIndex::SongCacheIndex()
 {
+	//Should prevent crashes when /Cache/ doesnt exist
+	if (!FILEMAN->IsADirectory(SpecialFiles::CACHE_DIR)) 
+		 FILEMAN->CreateDir(SpecialFiles::CACHE_DIR); 
 	ReadCacheIndex();
 	DBEmpty = !OpenDB();
 }
@@ -298,6 +301,7 @@ int SongCacheIndex::InsertSteps(const Steps* pSteps, int songID)
 /*	Save a song to the cache db*/
 bool SongCacheIndex::CacheSong(Song& song, string dir)
 {
+	DeleteSongFromDBByDir(dir);
 	try {
 		SQLite::Statement insertSong(*db, "INSERT INTO songs VALUES (NULL, "
 			"?, ?, ?, ?, ?, "
@@ -510,9 +514,6 @@ void SongCacheIndex::CreateDBTables()
 {
 	db->exec("CREATE TABLE IF NOT EXISTS dbinfo (ID INTEGER PRIMARY KEY, "
 		"VERSION INTEGER)");
-	db->exec("CREATE TABLE IF NOT EXISTS msdsatrates (ID INTEGER PRIMARY KEY, "
-		"MSD FLOAT, RATE INTEGER, SONGID INTEGER, "
-		"CONSTRAINT fk_songid FOREIGN KEY (SONGID) REFERENCES songs(ID))");
 	db->exec("CREATE TABLE IF NOT EXISTS timingdatas (ID INTEGER PRIMARY KEY, "
 		"OFFSET TEXT, BPMS TEXT, STOPS TEXT, "
 		"DELAYS TEXT, WARPS TEXT, TIMESIGNATURESEGMENT TEXT, TICKCOUNTS TEXT, "
@@ -543,29 +544,29 @@ void SongCacheIndex::CreateDBTables()
 		"ON timingdatas(ID)");
 	db->exec("CREATE INDEX IF NOT EXISTS idx_steps "
 		"ON steps(SONGID)");
-	//db->exec("CREATE INDEX IF NOT EXISTS idx_msds "
-	//	"ON msdsatrates(RATE, SONGID)");
 	db->exec("INSERT INTO dbinfo VALUES (NULL, " + to_string(CACHE_DB_VERSION) + ")");
 }
 /*	Returns weather or not the db had valid data*/
 bool SongCacheIndex::OpenDB()
 {
-	bool ret = IsAFile(CACHE_DB);
+	bool ret = FILEMAN->IsAFile(("/"+CACHE_DB).c_str());
+	if (!ret) {
+		ResetDB();
+		return false;
+	}
 	//Try to open ane existing db
 	try {
 		db = new SQLite::Database(FILEMAN->ResolvePath(CACHE_DB), SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE | SQLITE_OPEN_FULLMUTEX);
 		StartTransaction();
-		if (!ret) {
-			ResetDB();
-			FinishTransaction();
-			return false;
-		}
 		SQLite::Statement   qDBInfo(*db, "SELECT * FROM dbinfo");
 
 		//Should only have one row so no executeStep loop
 		if (!qDBInfo.executeStep()) {
+			if (curTransaction != nullptr) {
+				delete curTransaction;
+				curTransaction = nullptr;
+			}
 			ResetDB();
-			FinishTransaction();
 			return false;
 		}
 		unsigned int cacheVersion;
@@ -578,6 +579,10 @@ bool SongCacheIndex::OpenDB()
 	catch (std::exception& e)
 	{
 		LOG->Trace("Error reading cache db: %s", e.what());
+		if (curTransaction != nullptr) {
+			delete curTransaction;
+			curTransaction = nullptr;
+		}
 	}
 	FinishTransaction();
 	ResetDB();
@@ -658,7 +663,33 @@ void SongCacheIndex::LoadCache(LoadingWindow * ld, map<pair<RString, unsigned in
 }
 void SongCacheIndex::DeleteSongFromDB(Song* songPtr)
 {
-	db->exec(("DELETE * FROM songs WHERE dir=" + songPtr->GetSongDir() + " AND hash=" + to_string(GetHashForDirectory(songPtr->GetSongDir()))).c_str());
+	if (curTransaction != nullptr)
+		db->exec(("DELETE FROM songs WHERE dir=" + songPtr->GetSongDir() + " AND hash=" + to_string(GetHashForDirectory(songPtr->GetSongDir()))).c_str());
+	else {
+		StartTransaction();
+		db->exec(("DELETE FROM songs WHERE dir=" + songPtr->GetSongDir() + " AND hash=" + to_string(GetHashForDirectory(songPtr->GetSongDir()))).c_str());
+		FinishTransaction();
+	}
+}
+void SongCacheIndex::DeleteSongFromDBByDir(string dir)
+{
+	if (curTransaction != nullptr)
+		db->exec(("DELETE FROM songs WHERE dir=\"" + dir+"\"").c_str());
+	else {
+		StartTransaction();
+		db->exec(("DELETE FROM songs WHERE dir=\"" + dir + "\"").c_str());
+		FinishTransaction();
+	}
+}
+void SongCacheIndex::DeleteSongFromDBByDirHash(unsigned int hash)
+{
+	if(curTransaction!=nullptr)
+		db->exec(("DELETE FROM songs WHERE hash=" + to_string(hash)).c_str());
+	else {
+		StartTransaction();
+		db->exec(("DELETE FROM songs WHERE hash=" + to_string(hash)).c_str());
+		FinishTransaction();
+	}
 }
 void SongCacheIndex::ReadFromDisk()
 {
@@ -753,7 +784,7 @@ void SongCacheIndex::StartTransaction()
 }
 void SongCacheIndex::FinishTransaction()
 {
-	if (curTransaction == nullptr || curTransaction != nullptr)
+	if (curTransaction == nullptr)
 		return;
 	curTransaction->commit();
 	delete curTransaction;

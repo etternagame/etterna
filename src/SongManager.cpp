@@ -701,7 +701,7 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 		IMAGECACHE->CacheImage( "Banner", GetSongGroupBannerPath(sGroupDirName) );
 	}
 	for (auto& pair : cache) {
-		SONGINDEX->DeleteSongFromDB(pair.second);
+		//SONGINDEX->DeleteSongFromDB(pair.second);
 		delete pair.second;
 	}
 	if( ld ) {

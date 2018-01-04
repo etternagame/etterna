@@ -31,7 +31,9 @@ public:
 	inline pair<RString, int> SongFromStatement(Song* song, SQLite::Statement &query);
 	void LoadHyperCache(LoadingWindow * ld, map<RString, Song*>& hyperCache);
 	void LoadCache(LoadingWindow* ld, map<pair<RString, unsigned int>, Song*>&cache);
-	void DeleteSongFromDB(Song* songPtr);
+	void DeleteSongFromDB(Song* songPtr); 
+	void DeleteSongFromDBByDir(string dir);
+	void DeleteSongFromDBByDirHash(unsigned int hash);
 	void ReadFromDisk();
 	static RString GetCacheFilePath( const RString &sGroup, const RString &sPath );
 
