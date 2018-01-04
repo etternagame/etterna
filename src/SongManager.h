@@ -196,12 +196,14 @@ protected:
 	void LoadStepManiaSongDir( RString sDir, LoadingWindow *ld );
 	void LoadDWISongDir( const RString &sDir );
 	void SanityCheckGroupDir( const RString &sDir ) const;
-	void AddGroup( const RString &sDir, const RString &sGroupDirName );
+	bool AddGroup( const RString &sDir, const RString &sGroupDirName );
 
 	void AddSongToList(Song* new_song);
 	/** @brief All of the songs that can be played. */
 	vector<Song*>		m_pSongs;
 	map<RString, Song*> m_SongsByDir;
+
+	map<pair<RString, unsigned int>, Song*> cache;
 
 	// Indexed by chartkeys
 	void AddKeyedPointers(Song* new_song);
