@@ -86,6 +86,7 @@ public:
 	 *
 	 * This assumes that there is no song present right now.
 	 * @param sDir the song directory from which to load. */
+	void FinalizeLoading();
 	bool LoadFromSongDir( RString sDir, bool load_autosave= false );
 	// This one takes the effort to reuse Steps pointers as best as it can
 	bool ReloadFromSongDir( const RString &sDir );
@@ -195,6 +196,9 @@ public:
 	{ 
 		return m_sMainTitleTranslit.size()? m_sMainTitleTranslit: m_sMainTitle; 
 	}
+
+	vector<Steps*> GetStepsToSave(bool bSavingCache=true, string path="");
+
 	/**
 	 * @brief Retrieve the transliterated subtitle, or the main subtitle if there is no translit.
 	 * @return the proper subtitle. */

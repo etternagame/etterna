@@ -1153,7 +1153,9 @@ int sm_main(int argc, char* argv[])
 
 	// depends on SONGINDEX:
 	SONGMAN		= new SongManager;
+	SONGINDEX->StartTransaction();
 	SONGMAN->InitAll( pLoadingWindow );	// this takes a long time
+	SONGINDEX->FinishTransaction();
 	CRYPTMAN	= new CryptManager;		// need to do this before ProfileMan
 	if( PREFSMAN->m_bSignProfileData )
 		CRYPTMAN->GenerateGlobalKeys();

@@ -130,17 +130,9 @@ int SongManager::DifferentialReload() {
 	FILEMAN->FlushDirCache(ADDITIONAL_SONGS_DIR);
 	FILEMAN->FlushDirCache(EDIT_SUBDIR);
 	int newsongs = 0;
-	SONGINDEX->delay_save_cache = true;
 	newsongs += DifferentialReloadDir(SpecialFiles::SONGS_DIR);
-
-	const bool bOldVal = PREFSMAN->m_bFastLoad;
-	PREFSMAN->m_bFastLoad.Set(PREFSMAN->m_bFastLoadAdditionalSongs);
 	newsongs += DifferentialReloadDir(ADDITIONAL_SONGS_DIR);
-	PREFSMAN->m_bFastLoad.Set(bOldVal);
 	LoadEnabledSongsFromPref();
-	SONGINDEX->SaveCacheIndex();
-	SONGINDEX->delay_save_cache = false;
-
 	return newsongs;
 }
 
@@ -228,14 +220,35 @@ void SongManager::InitSongsFromDisk( LoadingWindow *ld )
 	// Tell SONGINDEX to not write the cache index file every time a song adds
 	// an entry. -Kyz
 	SONGINDEX->delay_save_cache= true;
+	if(PREFSMAN->m_bFastLoad)
+		SONGINDEX->LoadCache(ld, cache);
+	if( ld ) {
+		ld->SetIndeterminate( false );
+		ld->SetTotalWork( cache.size() );
+		ld->SetText("Loading songs from cache");
+	}
+	int cacheIndex = 0;
+	for (auto& pair : cache) {
+		cacheIndex++;
+		ld->SetProgress(cacheIndex);
+		auto& pNewSong = pair.second;
+		RString& dir = pNewSong->GetSongDir();
+		if (!FILEMAN->IsADirectory(dir.substr(0, dir.length() - 1)) || (!PREFSMAN->m_bBlindlyTrustCache.Get() && pair.first.second != GetHashForDirectory(dir))) {
+			if (PREFSMAN->m_bShrinkSongCache) 
+				SONGINDEX->DeleteSongFromDB(pair.second);
+			delete pair.second;
+			continue;
+		}
+		pNewSong->FinalizeLoading();
+		AddSongToList(pNewSong);
+		AddKeyedPointers(pNewSong);
+		m_mapSongGroupIndex[pNewSong->m_sGroupName].emplace_back(pNewSong);
+		if (AddGroup(dir.substr(0, dir.find('/', 1) + 1),  pNewSong->m_sGroupName))
+			IMAGECACHE->CacheImage("Banner", GetSongGroupBannerPath(pNewSong->m_sGroupName));
+	}
 	LoadStepManiaSongDir( SpecialFiles::SONGS_DIR, ld );
-
-	const bool bOldVal = PREFSMAN->m_bFastLoad;
-	PREFSMAN->m_bFastLoad.Set( PREFSMAN->m_bFastLoadAdditionalSongs );
 	LoadStepManiaSongDir( ADDITIONAL_SONGS_DIR, ld );
-	PREFSMAN->m_bFastLoad.Set( bOldVal );
 	LoadEnabledSongsFromPref();
-	SONGINDEX->SaveCacheIndex();
 	SONGINDEX->delay_save_cache= false;
 
 	LOG->Trace( "Found %i songs in %f seconds.", m_pSongs.size(), tm.GetDeltaTime() );
@@ -478,7 +491,7 @@ void SongManager::SanityCheckGroupDir( const RString &sDir ) const
 	}
 }
 
-void SongManager::AddGroup( const RString &sDir, const RString &sGroupDirName )
+bool SongManager::AddGroup( const RString &sDir, const RString &sGroupDirName )
 {
 	unsigned j;
 	for(j = 0; j < m_sSongGroupNames.size(); ++j)
@@ -486,7 +499,7 @@ void SongManager::AddGroup( const RString &sDir, const RString &sGroupDirName )
 			break;
 
 	if( j != m_sSongGroupNames.size() )
-		return; // the group is already added
+		return false; // the group is already added
 
 	// Look for a group banner in this group folder
 	vector<RString> arrayGroupBanners;
@@ -541,128 +554,80 @@ void SongManager::AddGroup( const RString &sDir, const RString &sGroupDirName )
 	m_sSongGroupNames.emplace_back( sGroupDirName );
 	m_sSongGroupBannerPaths.emplace_back( sBannerPath );
 	//m_sSongGroupBackgroundPaths.emplace_back( sBackgroundPath );
+	return true;
 }
 
 static LocalizedString LOADING_SONGS ( "SongManager", "Loading songs..." );
 void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 {
-	// Compositors and other stuff can impose some overhead on updating the
-	// loading window, which slows down startup time for some people.
-	// loading_window_last_update_time provides a timer so the loading window
-	// isn't updated after every song and course. -Kyz
-	RageTimer loading_window_last_update_time;
-	loading_window_last_update_time.Touch();
-	// Make sure sDir has a trailing slash.
-	if( sDir.Right(1) != "/" )
-		sDir += "/";
 
-	// Find all group directories in "Songs" folder
+
 	vector<RString> arrayGroupDirs;
-	GetDirListing( sDir+"*", arrayGroupDirs, true );
-	StripCvsAndSvn( arrayGroupDirs );
-	StripMacResourceForks( arrayGroupDirs );
+	GetDirListing(sDir + "*", arrayGroupDirs, true);
+	StripCvsAndSvn(arrayGroupDirs);
+	StripMacResourceForks(arrayGroupDirs);
 	SortRStringArray(arrayGroupDirs);
-
 	vector< vector<RString> > arrayGroupSongDirs;
-	int groupIndex, songCount, songIndex;
-
-	groupIndex = 0;
-	songCount = 0;
-	if(ld)
+	int songCount = 0;
+	if (ld)
 	{
 		ld->SetIndeterminate(false);
 		ld->SetTotalWork(arrayGroupDirs.size());
+		ld->SetText("Sanity checking groups");
 	}
-	int sanity_index= 0;
-	FOREACH_CONST( RString, arrayGroupDirs, s )	// foreach dir in /Songs/
-	{
+	int groupsChecked = 0;
+	FOREACH_CONST(RString, arrayGroupDirs, s) {
 		RString sGroupDirName = *s;
-		if(ld && loading_window_last_update_time.Ago() > next_loading_window_update)
-		{
-			loading_window_last_update_time.Touch();
-			ld->SetProgress(sanity_index);
-			ld->SetText(SANITY_CHECKING_GROUPS.GetValue() + ssprintf("\n%s",
-					Basename(sGroupDirName).c_str()));
-		}
-		// TODO: If this check fails, log a warning instead of crashing.
-		SanityCheckGroupDir(sDir+sGroupDirName);
-
-		// Find all Song folders in this group directory
+		SanityCheckGroupDir(sDir + sGroupDirName);
 		vector<RString> arraySongDirs;
-		GetDirListing( sDir+sGroupDirName + "/*", arraySongDirs, true, true );
-		StripCvsAndSvn( arraySongDirs );
-		StripMacResourceForks( arraySongDirs );
-		SortRStringArray( arraySongDirs );
-
+		GetDirListing(sDir + sGroupDirName + "/*", arraySongDirs, true, true);
+		StripCvsAndSvn(arraySongDirs);
+		StripMacResourceForks(arraySongDirs);
+		SortRStringArray(arraySongDirs);
 		arrayGroupSongDirs.emplace_back(arraySongDirs);
 		songCount += arraySongDirs.size();
-
+		ld->SetProgress(++groupsChecked);
 	}
 
-	if( songCount==0 ) return;
-
-	if( ld ) {
-		ld->SetIndeterminate( false );
-		ld->SetTotalWork( songCount );
-	}
-
-	groupIndex = 0;
-	songIndex = 0;
-	FOREACH_CONST( RString, arrayGroupDirs, s )	// foreach dir in /Songs/
+	if (ld)
 	{
-		RString sGroupDirName = *s;	
+		ld->SetIndeterminate(false);
+		ld->SetTotalWork(songCount);
+	}
+	int groupIndex = 0;
+	int songIndex = 0;
+	FOREACH_CONST(RString, arrayGroupDirs, s) {
+		RString sGroupDirName = *s;
 		vector<RString> &arraySongDirs = arrayGroupSongDirs[groupIndex++];
-
-		LOG->Trace("Attempting to load %i songs from \"%s\"", static_cast<int>(arraySongDirs.size()),
-				   (sDir+sGroupDirName).c_str() );
 		int loaded = 0;
-
 		SongPointerVector& index_entry = m_mapSongGroupIndex[sGroupDirName];
-		RString group_base_name= Basename(sGroupDirName);
-		for( unsigned j=0; j< arraySongDirs.size(); ++j )	// for each song dir
-		{
+		RString group_base_name = Basename(sGroupDirName);
+		for (size_t j = 0; j < arraySongDirs.size(); ++j) {
+			songIndex++;
 			RString sSongDirName = arraySongDirs[j];
-
-			// this is a song directory. Load a new song.
-			if(ld && loading_window_last_update_time.Ago() > next_loading_window_update)
-			{
-				loading_window_last_update_time.Touch();
-				ld->SetProgress(songIndex);
-				ld->SetText( LOADING_SONGS.GetValue() +
-					ssprintf("\n%s\n%s",
-						group_base_name.c_str(),
-						Basename(sSongDirName).c_str()
-					)
-				);
-			}
+			RString hur = sSongDirName + "/";
+			hur.MakeLower();
+			if (m_SongsByDir.count(hur))
+				continue;
 			Song* pNewSong = new Song;
-			if( !pNewSong->LoadFromSongDir( sSongDirName ) )
-			{
-				// The song failed to load.
+			if (!pNewSong->LoadFromSongDir(sSongDirName)) {
 				delete pNewSong;
 				continue;
 			}
 			AddSongToList(pNewSong);
 			AddKeyedPointers(pNewSong);
-
-			index_entry.emplace_back( pNewSong );
-
+			index_entry.emplace_back(pNewSong);
 			loaded++;
-			songIndex++;
 		}
-
-		LOG->Trace("Loaded %i songs from \"%s\"", loaded, (sDir+sGroupDirName).c_str() );
-
-		// Don't add the group name if we didn't load any songs in this group.
-		if(!loaded) continue;
-
-		// Add this group to the group array.
+		if (ld) {
+			ld->SetProgress(songIndex);
+			ld->SetText("Loading Songs From Disk\n (" + sGroupDirName + ")");
+		}
+		if (!loaded) continue;
+		LOG->Trace("Loaded %i songs from \"%s\"", loaded, (sDir + sGroupDirName).c_str());
 		AddGroup(sDir, sGroupDirName);
-
-		// Cache and load the group banner. (and background if it has one -aj)
-		IMAGECACHE->CacheImage( "Banner", GetSongGroupBannerPath(sGroupDirName) );
+		IMAGECACHE->CacheImage("Banner", GetSongGroupBannerPath(sGroupDirName));
 	}
-
 	if( ld ) {
 		ld->SetIndeterminate( true );
 	}

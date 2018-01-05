@@ -163,9 +163,10 @@ PrefsManager::PrefsManager() :
 	m_bPAL				( "PAL",			false ),
 	m_bDelayedTextureDelete		( "DelayedTextureDelete",	false ),
 	m_bDelayedModelDelete		( "DelayedModelDelete",		false ),
-	m_ImageCache			( "ImageCache",		IMGCACHE_LOW_RES_PRELOAD ),
+	m_ImageCache			( "ImageCache", IMGCACHE_OFF),
 	m_bFastLoad			( "FastLoad",			true ),
-	m_bFastLoadAdditionalSongs      ( "FastLoadAdditionalSongs",    true ),
+	m_bBlindlyTrustCache ("BlindlyTrustCache", true),
+	m_bShrinkSongCache("RemoveCacheEnriesForDeletedSongs", false),
 	m_NeverCacheList		( "NeverCacheList", ""),
 
 	m_bOnlyDedicatedMenuButtons	( "OnlyDedicatedMenuButtons",	false ),
