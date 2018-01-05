@@ -225,14 +225,15 @@ void SongManager::InitSongsFromDisk( LoadingWindow *ld )
 	if( ld ) {
 		ld->SetIndeterminate( false );
 		ld->SetTotalWork( cache.size() );
+		ld->SetText("Loading songs from cache");
 	}
 	int cacheIndex = 0;
 	for (auto& pair : cache) {
 		cacheIndex++;
 		ld->SetProgress(cacheIndex);
 		auto& pNewSong = pair.second;
-		RString dir = pNewSong->GetSongDir();
-		if (!FILEMAN->IsADirectory(dir.substr(0, dir.length() - 1))) {
+		RString& dir = pNewSong->GetSongDir();
+		if (!FILEMAN->IsADirectory(dir.substr(0, dir.length() - 1)) || (!PREFSMAN->m_bBlindlyTrustCache.Get() && pair.first.second != GetHashForDirectory(dir))) {
 			if (PREFSMAN->m_bShrinkSongCache) 
 				SONGINDEX->DeleteSongFromDB(pair.second);
 			delete pair.second;

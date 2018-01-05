@@ -165,6 +165,7 @@ PrefsManager::PrefsManager() :
 	m_bDelayedModelDelete		( "DelayedModelDelete",		false ),
 	m_ImageCache			( "ImageCache", IMGCACHE_OFF),
 	m_bFastLoad			( "FastLoad",			true ),
+	m_bBlindlyTrustCache ("BlindlyTrustCache", true),
 	m_bShrinkSongCache("RemoveCacheEnriesForDeletedSongs", false),
 	m_NeverCacheList		( "NeverCacheList", ""),
 
