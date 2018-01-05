@@ -222,6 +222,30 @@ void SongManager::InitSongsFromDisk( LoadingWindow *ld )
 	SONGINDEX->delay_save_cache= false;
 	if(PREFSMAN->m_bFastLoad)
 		SONGINDEX->LoadCache(ld, cache);
+	if( ld ) {
+		ld->SetIndeterminate( false );
+		ld->SetTotalWork( cache.size() );
+	}
+	int cacheIndex = 0;
+	for (auto& pair : cache) {
+		cacheIndex++;
+		ld->SetProgress(cacheIndex);
+		auto& pNewSong = pair.second;
+		if (!FILEMAN->IsADirectory(pNewSong->GetSongDir().substr(0, pNewSong->GetSongDir().size() - 1))) {
+			if (PREFSMAN->m_bShrinkSongCache) 
+				SONGINDEX->DeleteSongFromDB(pair.second);
+			delete pair.second;
+			continue;
+		}
+		pNewSong->FinalizeLoading();
+		AddSongToList(pNewSong);
+		AddKeyedPointers(pNewSong);
+		m_mapSongGroupIndex[pNewSong->m_sGroupName].emplace_back(pNewSong);
+		vector<RString> folders;
+		split(pNewSong->GetSongDir(), "/", folders);
+		if (AddGroup(folders[0],  pNewSong->m_sGroupName))
+			IMAGECACHE->CacheImage("Banner", GetSongGroupBannerPath(pNewSong->m_sGroupName));
+	}
 	LoadStepManiaSongDir( SpecialFiles::SONGS_DIR, ld );
 	LoadStepManiaSongDir( ADDITIONAL_SONGS_DIR, ld );
 	LoadEnabledSongsFromPref();
@@ -538,28 +562,6 @@ static LocalizedString LOADING_SONGS ( "SongManager", "Loading songs..." );
 void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 {
 
-	if( ld ) {
-		ld->SetIndeterminate( false );
-		ld->SetTotalWork( cache.size() );
-	}
-	int cacheIndex = 0;
-	for (auto& pair : cache) {
-		cacheIndex++;
-		ld->SetProgress(cacheIndex);
-		auto& pNewSong = pair.second;
-		if (!FILEMAN->IsADirectory(pNewSong->GetSongDir().substr(0, pNewSong->GetSongDir().size() - 1))) {
-			if (PREFSMAN->m_bShrinkSongCache) 
-				SONGINDEX->DeleteSongFromDB(pair.second);
-			delete pair.second;
-			continue;
-		}
-		pNewSong->FinalizeLoading();
-		AddSongToList(pNewSong);
-		AddKeyedPointers(pNewSong);
-		m_mapSongGroupIndex[pNewSong->m_sGroupName].emplace_back(pNewSong);
-		if (AddGroup(sDir, pNewSong->m_sGroupName))
-			IMAGECACHE->CacheImage("Banner", GetSongGroupBannerPath(pNewSong->m_sGroupName));
-	}
 
 	vector<RString> arrayGroupDirs;
 	GetDirListing(sDir + "*", arrayGroupDirs, true);
