@@ -219,7 +219,7 @@ void SongManager::InitSongsFromDisk( LoadingWindow *ld )
 	RageTimer tm;
 	// Tell SONGINDEX to not write the cache index file every time a song adds
 	// an entry. -Kyz
-	SONGINDEX->delay_save_cache= false;
+	SONGINDEX->delay_save_cache= true;
 	if(PREFSMAN->m_bFastLoad)
 		SONGINDEX->LoadCache(ld, cache);
 	if( ld ) {
@@ -231,7 +231,8 @@ void SongManager::InitSongsFromDisk( LoadingWindow *ld )
 		cacheIndex++;
 		ld->SetProgress(cacheIndex);
 		auto& pNewSong = pair.second;
-		if (!FILEMAN->IsADirectory(pNewSong->GetSongDir().substr(0, pNewSong->GetSongDir().size() - 1))) {
+		RString dir = pNewSong->GetSongDir();
+		if (!FILEMAN->IsADirectory(dir.substr(0, dir.length() - 1))) {
 			if (PREFSMAN->m_bShrinkSongCache) 
 				SONGINDEX->DeleteSongFromDB(pair.second);
 			delete pair.second;
@@ -241,16 +242,13 @@ void SongManager::InitSongsFromDisk( LoadingWindow *ld )
 		AddSongToList(pNewSong);
 		AddKeyedPointers(pNewSong);
 		m_mapSongGroupIndex[pNewSong->m_sGroupName].emplace_back(pNewSong);
-		vector<RString> folders;
-		split(pNewSong->GetSongDir(), "/", folders);
-		if (AddGroup(folders[0],  pNewSong->m_sGroupName))
+		if (AddGroup(dir.substr(0, dir.find('/', 1) + 1),  pNewSong->m_sGroupName))
 			IMAGECACHE->CacheImage("Banner", GetSongGroupBannerPath(pNewSong->m_sGroupName));
 	}
 	LoadStepManiaSongDir( SpecialFiles::SONGS_DIR, ld );
 	LoadStepManiaSongDir( ADDITIONAL_SONGS_DIR, ld );
 	LoadEnabledSongsFromPref();
-	//SONGINDEX->SaveCacheIndex();
-	//SONGINDEX->delay_save_cache= false;
+	SONGINDEX->delay_save_cache= false;
 
 	LOG->Trace( "Found %i songs in %f seconds.", m_pSongs.size(), tm.GetDeltaTime() );
 }
@@ -622,7 +620,7 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 		}
 		if (ld) {
 			ld->SetProgress(songIndex);
-			ld->SetText("Loading Songs From Disk\n (" + sGroupDirName + "()");
+			ld->SetText("Loading Songs From Disk\n (" + sGroupDirName + ")");
 		}
 		if (!loaded) continue;
 		LOG->Trace("Loaded %i songs from \"%s\"", loaded, (sDir + sGroupDirName).c_str());

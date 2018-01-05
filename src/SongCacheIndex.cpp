@@ -95,8 +95,9 @@ int SongCacheIndex::InsertStepsTimingData(TimingData timing)
 			for (auto&& seg : segs)
 			{
 				const  BPMSegment* segment = ToBPM(seg);
-				bpms.append(ssprintf("%.6f=%.6f", NoteRowToBeat(segment->GetRow()), segment->GetBPM()));
+				bpms.append(ssprintf("%.6f=%.6f,", NoteRowToBeat(segment->GetRow()), segment->GetBPM()));
 			}
+			bpms = bpms.substr(0, bpms.size() - 1);//Remove trailing ','
 		}
 		insertTimingData.bind(timingDataIndex++, bpms);
 	}
@@ -943,7 +944,7 @@ inline pair<RString, int> SongCacheIndex::SongFromStatement(Song* song, SQLite::
 				TimingData stepsTiming = TimingData(song->m_SongTiming.m_fBeat0OffsetInSeconds);
 				//Load timing data
 				stepsTiming.m_fBeat0OffsetInSeconds = static_cast<double>(qTiming.getColumn(timingIndex++));
-				SSCLoader::ProcessBPMs(stepsTiming, static_cast<const char*>(qSteps.getColumn(timingIndex++)), dir);
+				SSCLoader::ProcessBPMs(stepsTiming, static_cast<const char*>(qTiming.getColumn(timingIndex++)), dir);
 				//steps_tag_handlers["BPMS"] = &SetStepsBPMs;
 				SSCLoader::ProcessStops(stepsTiming, static_cast<const char*>(qTiming.getColumn(timingIndex++)), dir);
 				//steps_tag_handlers["STOPS"] = &SetStepsStops;
