@@ -378,8 +378,8 @@ void Song::FinalizeLoading()
 	{
 		for( std::string Image : ImageDir )
 		{
-			//IMAGECACHE->LoadImage( Image, GetCacheFile( Image ) );
-		}		
+			IMAGECACHE->LoadImage( Image, GetCacheFile( Image ) );
+		}
 	}
 }
 /* This function feels EXTREMELY hacky - copying things on top of pointers so
