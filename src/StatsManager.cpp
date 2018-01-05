@@ -106,7 +106,7 @@ void StatsManager::CalcAccumPlayedStageStats()
 // fffff this is back here because some scores/files dont calc properly if called during load -mina
 void AddPlayerStatsToProfile( Profile *pProfile, const StageStats &ss, PlayerNumber pn )
 {
-	SCOREMAN->CalcPlayerRating(pProfile->m_fPlayerRating, pProfile->m_fPlayerSkillsets);
+	SCOREMAN->CalcPlayerRating(pProfile->m_fPlayerRating, pProfile->m_fPlayerSkillsets, pProfile->m_sProfileID);
 }
 
 void StatsManager::CommitStatsToProfiles( const StageStats *pSS )

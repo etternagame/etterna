@@ -331,6 +331,7 @@ void ProfileManager::RefreshLocalProfilesFromDisk(LoadingWindow* ld)
 	{
 		DirAndProfile derp;
 		derp.sDir= *id + "/";
+		derp.profile.m_sProfileID = derp.sDir;
 		derp.profile.LoadTypeFromDir(derp.sDir);
 		map<ProfileType, vector<DirAndProfile> >::iterator category=
 			categorized_profiles.find(derp.profile.m_Type);
@@ -431,6 +432,7 @@ bool ProfileManager::CreateLocalProfile( const RString &sName, RString &sProfile
 	Profile *pProfile = new Profile;
 	pProfile->m_sDisplayName = sName;
 	pProfile->m_sCharacterID = CHARMAN->GetRandomCharacter()->m_sCharacterID;
+	pProfile->m_sProfileID = profile_id;
 
 	// Save it to disk.
 	RString sProfileDir = LocalProfileIDToDir(profile_id);

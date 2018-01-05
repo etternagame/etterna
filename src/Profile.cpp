@@ -871,7 +871,7 @@ void Profile::LoadTypeFromDir(const RString &dir)
 
 void Profile::CalculateStatsFromScores(LoadingWindow* ld) {
 	LOG->Trace("Calculating stats from scores");
-	vector<HighScore*> all = SCOREMAN->GetAllScores();
+	const vector<HighScore*>& all = SCOREMAN->GetAllProfileScores(m_sProfileID);
 	float TotalGameplaySeconds = 0.f;
 	m_iTotalTapsAndHolds = 0;
 	m_iTotalHolds = 0;
@@ -893,14 +893,14 @@ void Profile::CalculateStatsFromScores(LoadingWindow* ld) {
 	m_iTotalDancePoints = m_iTotalTapsAndHolds * 2;
 	m_iTotalGameplaySeconds = static_cast<int>(TotalGameplaySeconds);
 
-	SCOREMAN->RecalculateSSRs(ld);
-	SCOREMAN->CalcPlayerRating(m_fPlayerRating, m_fPlayerSkillsets);
+	SCOREMAN->RecalculateSSRs(ld, m_sProfileID);
+	SCOREMAN->CalcPlayerRating(m_fPlayerRating, m_fPlayerSkillsets, m_sProfileID);
 	//SCOREMAN->RatingOverTime();
 }
 
 void Profile::CalculateStatsFromScores() {
 	LOG->Trace("Calculating stats from scores");
-	vector<HighScore*> all = SCOREMAN->GetAllScores();
+	const vector<HighScore*> all = SCOREMAN->GetAllProfileScores(m_sProfileID);
 	float TotalGameplaySeconds = 0.f;
 	m_iTotalTapsAndHolds = 0;
 	m_iTotalHolds = 0;
@@ -922,8 +922,8 @@ void Profile::CalculateStatsFromScores() {
 	m_iTotalDancePoints = m_iTotalTapsAndHolds * 2;
 	m_iTotalGameplaySeconds = static_cast<int>(TotalGameplaySeconds);
 
-	SCOREMAN->RecalculateSSRs(NULL);
-	SCOREMAN->CalcPlayerRating(m_fPlayerRating, m_fPlayerSkillsets);
+	SCOREMAN->RecalculateSSRs(NULL, m_sProfileID);
+	SCOREMAN->CalcPlayerRating(m_fPlayerRating, m_fPlayerSkillsets, m_sProfileID);
 }
 
 bool Profile::SaveAllToDir( const RString &sDir, bool bSignData ) const
@@ -1076,7 +1076,7 @@ void Profile::ImportScoresToEtterna() {
 					HighScore hs = hsv[i];
 					// ignore historic key and just load from here since the hashing function was changed anyway
 					hs.SetChartKey(ck);
-					SCOREMAN->ImportScore(hs);
+					SCOREMAN->ImportScore(hs, m_sProfileID);
 					++loaded;
 				}
 				continue;
@@ -1150,7 +1150,7 @@ void Profile::ImportScoresToEtterna() {
 								if (matched) {
 									ck = steps->GetChartKey();
 									loaded++;
-									SCOREMAN->ImportScore(tmp);
+									SCOREMAN->ImportScore(tmp, m_sProfileID);
 								}
 							}
 						}
@@ -1174,6 +1174,7 @@ void Profile::ImportScoresToEtterna() {
 
 	PROFILEMAN->SaveProfile(PLAYER_1);
 }
+
 
 
 // more future goalman stuff
