@@ -100,7 +100,7 @@ public:
 	//HighScore* GetChartPBUpTo(const string& ck, float& rate);
 	HighScore* GetChartPBUpTo(const string& ck, float& rate, const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
 
-	Grade GetBestGradeFor(const string& ck, const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID) { if (pscores.count(ck)) return pscores[profileID][ck].bestGrade; return Grade_Invalid; }
+	Grade GetBestGradeFor(const string& ck, const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID) { if (KeyHasScores(ck, profileID)) return pscores[profileID][ck].bestGrade; return Grade_Invalid; }
 
 	// for scores achieved during this session
 	// now returns top score status because i'm bad at coding --lurker
@@ -121,7 +121,7 @@ public:
 
 	HighScore * GetTopSSRHighScore(unsigned int rank, int ss);
 	
-	bool KeyHasScores(const string& ck) { return pscores.count(ck) == 1; }
+	bool KeyHasScores(const string& ck, const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID) { return pscores[profileID].count(ck) == 1; }
 	bool HasAnyScores() { return !AllScores.empty(); }
 	void RatingOverTime(const string& profileID);
 

@@ -270,13 +270,13 @@ vector<vector<HighScore*>> ScoreManager::GetAllPBPtrs(const string& profileID ) 
 
 
 HighScore* ScoreManager::GetChartPBAt(const string& ck, float& rate, const string& profileID) {
-	if (pscores.count(ck))
+	if (KeyHasScores(ck, profileID))
 		return pscores[profileID].at(ck).GetPBAt(rate);
 	return NULL;
 }
 
 HighScore* ScoreManager::GetChartPBUpTo(const string& ck, float& rate, const string& profileID) {
-	if (pscores.count(ck))
+	if (KeyHasScores(ck, profileID))
 		return pscores[profileID].at(ck).GetPBUpTo(rate);
 	return NULL;
 }
