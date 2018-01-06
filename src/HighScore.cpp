@@ -13,6 +13,7 @@
 #include <sstream>
 #include "CryptManager.h"
 #include "ProfileManager.h"
+#include "RageFileManager.h"
 
 ThemeMetric<string> EMPTY_NAME("HighScore","EmptyName");
 
@@ -39,6 +40,7 @@ struct HighScoreImpl
 	float fJudgeScale;
 	bool bNoChordCohesion;
 	bool bEtternaValid;
+	vector<string> uploaded;
 	vector<float> vOffsetVector;
 	vector<int> vNoteRowVector;
 	vector<int> vRescoreJudgeVector;
@@ -257,23 +259,28 @@ HighScoreImpl::HighScoreImpl()
 
 XNode *HighScoreImpl::CreateNode() const
 {
-	XNode *pNode = new XNode( "HighScore" );
+	XNode *pNode = new XNode("HighScore");
 
 	// TRICKY:  Don't write "name to fill in" markers.
-	pNode->AppendChild( "Name",				IsRankingToFillIn(sName) ? RString("") : sName );
-	pNode->AppendChild( "HistoricChartKey", ChartKey);
-	pNode->AppendChild( "ScoreKey",			ScoreKey);
-	pNode->AppendChild( "SSRCalcVersion",	SSRCalcVersion);
-	pNode->AppendChild( "Grade",			GradeToString(grade) );
-	pNode->AppendChild( "Score",			iScore );
-	pNode->AppendChild( "PercentDP",		fPercentDP );
-	pNode->AppendChild( "WifeScore",		fWifeScore);
-	pNode->AppendChild( "SSRNormPercent",	fSSRNormPercent);
-	pNode->AppendChild( "Rate",				fMusicRate);
-	pNode->AppendChild( "JudgeScale",		fJudgeScale);
-	pNode->AppendChild( "NoChordCohesion",	bNoChordCohesion);
-	pNode->AppendChild( "EtternaValid",		bEtternaValid);
-
+	pNode->AppendChild("Name", IsRankingToFillIn(sName) ? RString("") : sName);
+	pNode->AppendChild("HistoricChartKey", ChartKey);
+	pNode->AppendChild("ScoreKey", ScoreKey);
+	pNode->AppendChild("SSRCalcVersion", SSRCalcVersion);
+	pNode->AppendChild("Grade", GradeToString(grade));
+	pNode->AppendChild("Score", iScore);
+	pNode->AppendChild("PercentDP", fPercentDP);
+	pNode->AppendChild("WifeScore", fWifeScore);
+	pNode->AppendChild("SSRNormPercent", fSSRNormPercent);
+	pNode->AppendChild("Rate", fMusicRate);
+	pNode->AppendChild("JudgeScale", fJudgeScale);
+	pNode->AppendChild("NoChordCohesion", bNoChordCohesion);
+	pNode->AppendChild("EtternaValid", bEtternaValid);
+	if (!uploaded.empty()) {
+		XNode *pServerNode = new XNode("Servers");
+		for (auto server : uploaded)
+			pServerNode->AppendChild("server", server);
+		pNode->AppendChild(pServerNode);
+	}
 	if (vOffsetVector.size() > 1) {
 		pNode->AppendChild("Offsets", OffsetsToString(vOffsetVector));
 		pNode->AppendChild("NoteRows", NoteRowsToString(vNoteRowVector));
@@ -336,6 +343,12 @@ XNode *HighScoreImpl::CreateEttNode() const {
 	pNode->AppendChild("Modifiers", sModifiers);
 	pNode->AppendChild("DateTime", dateTime.GetString());
 	pNode->AppendChild("TopScore", TopScore);
+	if (!uploaded.empty()) {
+		XNode *pServerNode = new XNode("Servers");
+		for (auto server : uploaded)
+			pServerNode->AppendChild("server", server);
+		pNode->AppendChild(pServerNode);
+	}
 
 	XNode* pTapNoteScores = pNode->AppendChild("TapNoteScores");
 	FOREACH_ENUM(TapNoteScore, tns)
@@ -375,6 +388,15 @@ void HighScoreImpl::LoadFromEttNode(const XNode *pNode) {
 	pNode->GetChildValue("JudgeScale", fJudgeScale);
 	pNode->GetChildValue("NoChordCohesion", bNoChordCohesion);
 	pNode->GetChildValue("EtternaValid", bEtternaValid);
+	const XNode* pUploadedServers = pNode->GetChild("Servers");
+	if (pUploadedServers != nullptr) {
+		FOREACH_CONST_Child(pUploadedServers, p)
+		{
+			RString server;
+			p->GetTextValue(server);
+			uploaded.emplace_back(server.c_str());
+		}
+	}
 	pNode->GetChildValue("SurviveSeconds", fSurviveSeconds);
 	pNode->GetChildValue("MaxCombo", iMaxCombo);
 	pNode->GetChildValue("Modifiers", s); sModifiers = s;
@@ -559,7 +581,9 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 bool HighScoreImpl::WriteReplayData() {
 	string append;
 	string profiledir;
-
+	//These two lines should probably be somewhere else
+	if (!FILEMAN->IsADirectory(REPLAY_DIR))
+		FILEMAN->CreateDir(REPLAY_DIR);
 	string path = REPLAY_DIR + ScoreKey;
 	ofstream fileStream(path, ios::binary);
 	//check file
@@ -711,9 +735,11 @@ float HighScore::GetWifePoints() const { return m_Impl->fWifePoints; }
 float HighScore::GetSSRNormPercent() const { return m_Impl->fSSRNormPercent; }
 float HighScore::GetMusicRate() const { return m_Impl->fMusicRate; }
 float HighScore::GetJudgeScale() const { return m_Impl->fJudgeScale; }
-bool HighScore::GetChordCohesion() const {
-	return !m_Impl->bNoChordCohesion;  }
+bool HighScore::GetChordCohesion() const {	return !m_Impl->bNoChordCohesion;  }
 bool HighScore::GetEtternaValid() const { return m_Impl->bEtternaValid; }
+bool HighScore::IsUploadedToServer(string s) const { 
+	return find(m_Impl->uploaded.begin(), m_Impl->uploaded.end(), s) != m_Impl->uploaded.end(); 
+}
 vector<float> HighScore::GetOffsetVector() const { return m_Impl->vOffsetVector; }
 vector<int> HighScore::GetNoteRowVector() const { return m_Impl->vNoteRowVector; }
 string HighScore::GetScoreKey() const { return m_Impl->ScoreKey; }
@@ -748,6 +774,10 @@ void HighScore::SetMusicRate(float f) { m_Impl->fMusicRate = f; }
 void HighScore::SetJudgeScale(float f) { m_Impl->fJudgeScale = f; }
 void HighScore::SetChordCohesion(bool b) { m_Impl->bNoChordCohesion = b; }
 void HighScore::SetEtternaValid(bool b) { m_Impl->bEtternaValid = b; }
+void HighScore::AddUploadedServer(string s) { 
+	if (find(m_Impl->uploaded.begin(), m_Impl->uploaded.end(), s) == m_Impl->uploaded.end())
+		m_Impl->uploaded.emplace_back(s); 
+}
 void HighScore::SetOffsetVector(const vector<float>& v) { m_Impl->vOffsetVector = v; }
 void HighScore::SetNoteRowVector(const vector<int>& v) { m_Impl->vNoteRowVector = v; }
 void HighScore::SetScoreKey(const string& sk) { m_Impl->ScoreKey = sk; }

@@ -854,7 +854,7 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 		}
 	}
 
-	CalculateStatsFromScores(ld);
+	CalculateStatsFromScores(ld);		// note to self: figure out how to tell if this is necessary
 	return ProfileLoadResult_Success;
 }
 
@@ -2287,7 +2287,7 @@ XNode* Profile::SaveEttScoresCreateNode() const {
 	const Profile* pProfile = this;
 	ASSERT(pProfile != NULL);
 
-	SCOREMAN->SetAllTopScores();
+	//SCOREMAN->SetAllTopScores(); if this isn't already settled before you save the xml what the fuck are you doing -lurker
 	XNode* pNode = SCOREMAN->CreateNode();
 	return pNode;
 }

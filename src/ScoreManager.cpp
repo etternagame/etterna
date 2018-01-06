@@ -162,6 +162,9 @@ void ScoresForChart::AddScore(HighScore& hs) {
 	float rate = hs.GetMusicRate();
 	int key = RateToKey(rate);
 	ScoresByRate[key].AddScore(hs);
+	// ok let's try this --lurker
+	SetTopScores();
+	hs.SetTopScore(ScoresByRate[key].scores[hs.GetScoreKey()].GetTopScore());
 }
 
 vector<float> ScoresForChart::GetPlayedRates() {
@@ -213,14 +216,16 @@ void ScoresForChart::SetTopScores() {
 		return;
 	}	
 
-	auto ssrcomp = [](HighScore* a, HighScore* b) { return (a->GetSkillsetSSR(Skill_Overall) > b->GetSkillsetSSR(Skill_Overall)); };
-	sort(eligiblescores.begin(), eligiblescores.end(), ssrcomp);
+	else{
+		auto ssrcomp = [](HighScore* a, HighScore* b) { return (a->GetSkillsetSSR(Skill_Overall) > b->GetSkillsetSSR(Skill_Overall)); };
+		sort(eligiblescores.begin(), eligiblescores.end(), ssrcomp);
 
-	for (auto hs : eligiblescores)
-		hs->SetTopScore(0);
+		for (auto hs : eligiblescores)
+			hs->SetTopScore(0);
 
-	eligiblescores[0]->SetTopScore(1);
-	eligiblescores[1]->SetTopScore(2);
+		eligiblescores[0]->SetTopScore(1);
+		eligiblescores[1]->SetTopScore(2);
+	}
 }
 
 vector<HighScore*> ScoresForChart::GetAllPBPtrs() {
@@ -228,6 +233,16 @@ vector<HighScore*> ScoresForChart::GetAllPBPtrs() {
 	FOREACHM(int, ScoresAtRate, ScoresByRate, i)
 		o.emplace_back(i->second.PBptr);
 	return o;
+}
+
+vector<vector<HighScore*>> ScoreManager::GetAllPBPtrs() {
+	vector<vector<HighScore*>> vec;
+	FOREACHUM(string, ScoresForChart, pscores, i) {
+		if (!SONGMAN->IsChartLoaded(i->first))
+			continue;
+		vec.emplace_back(i->second.GetAllPBPtrs());
+	}
+	return vec;
 }
 
 HighScore* ScoreManager::GetChartPBAt(const string& ck, float& rate) {
@@ -242,7 +257,7 @@ HighScore* ScoreManager::GetChartPBUpTo(const string& ck, float& rate) {
 	return NULL;
 }
 
-void ScoreManager::SetAllTopScores() {
+void ScoreManager::SetAllTopScores() { 
 	FOREACHUM(string, ScoresForChart, pscores, i) {
 		if (!SONGMAN->IsChartLoaded(i->first))
 			continue;
@@ -250,6 +265,25 @@ void ScoreManager::SetAllTopScores() {
 	}
 }
 
+bool ScoresAtRate::HandleNoCCPB(HighScore& hs) {
+	// lurker says:
+	// don't even TRY to fuck with nocc pb unless the score is nocc
+	if (hs.GetChordCohesion() == 0) {
+		// Set any nocc pb
+		if (noccPBptr == nullptr) {
+			noccPBptr = &hs;
+			return true;
+		}
+		else {
+			// update nocc pb if a better score is found
+			if (noccPBptr->GetSSRNormPercent() < hs.GetSSRNormPercent()) {
+				noccPBptr = &hs;
+				return true;
+			}
+		}
+	}
+	return false;
+}
 static const float ld_update = 0.02f;
 void ScoreManager::RecalculateSSRs(LoadingWindow *ld) {
 	RageTimer ld_timer;
@@ -488,18 +522,7 @@ void ScoresAtRate::LoadFromNode(const XNode* node, const string& ck, const float
 				PBptr = &scores.find(sk)->second;
 		}
 
-		// lurker says:
-		// don't even TRY to fuck with nocc pb unless the score is nocc
-		if (scores[sk].GetChordCohesion() == 0) {
-			// Set any nocc pb
-			if (noccPBptr == nullptr)
-				noccPBptr = &scores.find(sk)->second;
-			else {
-				// update nocc pb if a better score is found
-				if (noccPBptr->GetSSRNormPercent() < scores[sk].GetSSRNormPercent())
-					noccPBptr = &scores.find(sk)->second;
-			}
-		}
+		HandleNoCCPB(scores[sk]);
 
 		// Fill in stuff for the highscores
 		scores[sk].SetChartKey(ck);
