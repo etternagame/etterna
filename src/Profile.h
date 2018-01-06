@@ -188,6 +188,8 @@ public:
 	// Editable data
 	RString m_sDisplayName;
 	RString m_sCharacterID;
+	//Dont edit this. Should be unique (Is it?)
+	RString m_sProfileID;
 	/**
 	 * @brief The last used name for high scoring purposes.
 	 *
