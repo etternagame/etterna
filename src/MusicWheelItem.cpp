@@ -334,12 +334,28 @@ void MusicWheelItem::RefreshGrades()
 		Difficulty dcBest = Difficulty_Invalid;
 		if (PROFILEMAN->IsPersistentProfile(ps) && dc != Difficulty_Invalid) {
 			if (pWID->m_pSong) {
+				bool hasCurrentStyleSteps = false;
 				FOREACH_ENUM_N(Difficulty, 6, i) {
 					Steps* pSteps = SongUtil::GetStepsByDifficulty(pWID->m_pSong, st, i);
 					if (pSteps != NULL) {
+						hasCurrentStyleSteps = true;
 						Grade dcg = SCOREMAN->GetBestGradeFor(pSteps->GetChartKey());
 						if (gradeBest >= dcg) {
 							dcBest = i;
+							gradeBest = dcg;
+						}
+					}
+				}
+				//If no grade was found for the current style/stepstype
+				if (!hasCurrentStyleSteps) {
+					//Get the best grade among all steps
+					auto& allSteps = pWID->m_pSong->GetAllSteps();
+					for (auto& stepsPtr : allSteps) {
+						if (stepsPtr->m_StepsType == st) //Skip already checked steps of type st
+							continue;
+						Grade dcg = SCOREMAN->GetBestGradeFor(stepsPtr->GetChartKey());
+						if (gradeBest >= dcg) {
+							dcBest = stepsPtr->GetDifficulty();
 							gradeBest = dcg;
 						}
 					}
