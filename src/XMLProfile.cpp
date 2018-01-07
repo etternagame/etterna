@@ -898,7 +898,7 @@ XNode* XMLProfile::SaveEttScoresCreateNode(const Profile* profile) const {
 
 void XMLProfile::LoadEttScoresFromNode(const XNode* pSongScores) {
 	CHECKPOINT_M("Loading the player scores node.");
-	SCOREMAN->LoadFromNode(pSongScores, loadingProfile->->m_sProfileID);
+	SCOREMAN->LoadFromNode(pSongScores, loadingProfile->m_sProfileID);
 }
 
 
