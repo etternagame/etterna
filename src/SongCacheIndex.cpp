@@ -75,7 +75,7 @@ SongCacheIndex::SongCacheIndex()
 	DBEmpty = !OpenDB();
 }
 
-int SongCacheIndex::InsertStepsTimingData(TimingData timing)
+__int64 SongCacheIndex::InsertStepsTimingData(TimingData timing)
 {
 	SQLite::Statement insertTimingData(*db, "INSERT INTO timingdatas VALUES (NULL, "
 		"?, ?, ?, "
@@ -232,7 +232,7 @@ int SongCacheIndex::InsertStepsTimingData(TimingData timing)
 	return sqlite3_last_insert_rowid(db->getHandle());
 }
 
-int SongCacheIndex::InsertSteps(const Steps* pSteps, int songID)
+__int64 SongCacheIndex::InsertSteps(const Steps* pSteps, __int64 songID)
 {
 	SQLite::Statement insertSteps(*db, "INSERT INTO steps VALUES (NULL, "
 		"?, ?, ?, ?, ?, "
@@ -269,7 +269,7 @@ int SongCacheIndex::InsertSteps(const Steps* pSteps, int songID)
 		insertSteps.bind(stepsIndex++);
 	}
 	else {
-		int timingDataID = InsertStepsTimingData(pSteps->m_Timing);
+		sqlite3_int64 timingDataID = InsertStepsTimingData(pSteps->m_Timing);
 		insertSteps.bind(stepsIndex++, timingDataID);
 	}
 
@@ -538,7 +538,8 @@ void SongCacheIndex::CreateDBTables()
 		"MUSIC TEXT, RADARVALUES TEXT, CREDIT TEXT, "
 		"TIMINGDATAID INTEGER, DISPLAYBPMMIN FLOAT, DISPLAYBPMMAX FLOAT, STEPFILENAME TEXT, SONGID INTEGER, "
 		"CONSTRAINT fk_songid FOREIGN KEY (SONGID) REFERENCES songs(ID), "
-		"CONSTRAINT fk_timingdataid FOREIGN KEY (TIMINGDATAID) REFERENCES timingdatas(ID))");
+		"CONSTRAINT fk_timingdataid FOREIGN KEY (TIMINGDATAID) REFERENCES timingdatas(ID), "
+		"CONSTRAINT unique_diffandsong UNIQUE(SONGID, DIFFICULTY))");
 	db->exec("CREATE INDEX IF NOT EXISTS idx_dirs "
 		"ON songs(DIR, DIRHASH)");
 	db->exec("CREATE INDEX IF NOT EXISTS idx_timingdatas "
@@ -662,35 +663,26 @@ void SongCacheIndex::LoadCache(LoadingWindow * ld, map<pair<RString, unsigned in
 	}
 	return;
 }
+void SongCacheIndex::DeleteSongFromDBByCondition(string& condition)
+{
+	db->exec(("DELETE FROM timingdatas WHERE ID IN (SELECT TIMINGDATAID FROM steps WHERE SONGID IN(SELECT ID from songs WHERE "+condition+"))").c_str());
+	db->exec(("DELETE FROM steps WHERE SONGID IN (SELECT ID from songs WHERE "+condition+")").c_str());
+	db->exec(("DELETE FROM songs WHERE "+condition).c_str());
+}
 void SongCacheIndex::DeleteSongFromDB(Song* songPtr)
 {
-	if (curTransaction != nullptr)
-		db->exec(("DELETE FROM songs WHERE dir=" + songPtr->GetSongDir() + " AND hash=" + to_string(GetHashForDirectory(songPtr->GetSongDir()))).c_str());
-	else {
-		StartTransaction();
-		db->exec(("DELETE FROM songs WHERE dir=" + songPtr->GetSongDir() + " AND hash=" + to_string(GetHashForDirectory(songPtr->GetSongDir()))).c_str());
-		FinishTransaction();
-	}
+	string cond = "dir = " + songPtr->GetSongDir() + " AND hash = " + to_string(GetHashForDirectory(songPtr->GetSongDir()));
+	DeleteSongFromDBByCondition(cond);
 }
 void SongCacheIndex::DeleteSongFromDBByDir(string dir)
 {
-	if (curTransaction != nullptr)
-		db->exec(("DELETE FROM songs WHERE dir=\"" + dir+"\"").c_str());
-	else {
-		StartTransaction();
-		db->exec(("DELETE FROM songs WHERE dir=\"" + dir + "\"").c_str());
-		FinishTransaction();
-	}
+	string cond = "dir=\"" + dir+"\"";
+	DeleteSongFromDBByCondition(cond);
 }
 void SongCacheIndex::DeleteSongFromDBByDirHash(unsigned int hash)
 {
-	if(curTransaction!=nullptr)
-		db->exec(("DELETE FROM songs WHERE hash=" + to_string(hash)).c_str());
-	else {
-		StartTransaction();
-		db->exec(("DELETE FROM songs WHERE hash=" + to_string(hash)).c_str());
-		FinishTransaction();
-	}
+	string cond = "hash=" + to_string(hash);
+	DeleteSongFromDBByCondition(cond);
 }
 void SongCacheIndex::ReadFromDisk()
 {

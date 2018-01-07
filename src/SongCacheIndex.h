@@ -31,6 +31,7 @@ public:
 	inline pair<RString, int> SongFromStatement(Song* song, SQLite::Statement &query);
 	void LoadHyperCache(LoadingWindow * ld, map<RString, Song*>& hyperCache);
 	void LoadCache(LoadingWindow* ld, map<pair<RString, unsigned int>, Song*>&cache);
+	void DeleteSongFromDBByCondition(string& condition);
 	void DeleteSongFromDB(Song* songPtr); 
 	void DeleteSongFromDBByDir(string dir);
 	void DeleteSongFromDBByDirHash(unsigned int hash);
@@ -43,8 +44,8 @@ public:
 	unsigned GetCacheHash( const RString &path ) const;
 	bool delay_save_cache;
 	
-	int InsertStepsTimingData(TimingData timing);
-	int InsertSteps(const Steps* pSteps, int songID);
+	__int64 InsertStepsTimingData(TimingData timing);
+	__int64 InsertSteps(const Steps* pSteps, __int64 songID);
 	bool LoadSongFromCache(Song* song, string dir);
 	bool CacheSong(Song& song, string dir);
 	void StartTransaction();
