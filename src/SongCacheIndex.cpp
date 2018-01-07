@@ -671,7 +671,7 @@ void SongCacheIndex::DeleteSongFromDBByCondition(string& condition)
 }
 void SongCacheIndex::DeleteSongFromDB(Song* songPtr)
 {
-	string cond = "dir = " + songPtr->GetSongDir() + " AND hash = " + to_string(GetHashForDirectory(songPtr->GetSongDir()));
+	string cond = "dir = \"" + songPtr->GetSongDir() + "\" AND hash = \"" + to_string(GetHashForDirectory(songPtr->GetSongDir()))+ "\"";
 	DeleteSongFromDBByCondition(cond);
 }
 void SongCacheIndex::DeleteSongFromDBByDir(string dir)
@@ -681,7 +681,7 @@ void SongCacheIndex::DeleteSongFromDBByDir(string dir)
 }
 void SongCacheIndex::DeleteSongFromDBByDirHash(unsigned int hash)
 {
-	string cond = "hash=" + to_string(hash);
+	string cond = "hash=\"" + to_string(hash)+"\"";
 	DeleteSongFromDBByCondition(cond);
 }
 void SongCacheIndex::ReadFromDisk()
