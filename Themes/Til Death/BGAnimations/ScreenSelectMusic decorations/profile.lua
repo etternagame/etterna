@@ -567,7 +567,7 @@ local function littlebits(i)
 		end,
 		LoadFont("Common Large") .. {
 			InitCommand=function(self)
-				self:y(22*i):halign(0):zoom(0.5):diffuse(getMainColor('positive'))
+				self:y(22*i):maxwidth(170*2):halign(0):zoom(0.5):diffuse(getMainColor('positive'))
 			end,
 			SetCommand=function(self)
 				self:settext(ms.SkillSets[i]..":")
@@ -575,16 +575,16 @@ local function littlebits(i)
 		},
 		LoadFont("Common Large") .. {
 			InitCommand=function(self)
-				self:xy(240,22*i):halign(1):zoom(0.5)
+				self:xy(170,22*i):halign(0):zoom(0.5)
 			end,
 			SetCommand=function(self)
 				local rating = 0
 				if not showOnline then
 					rating = profile:GetPlayerSkillsetRating(ms.SkillSets[i])
-					self:settextf("%5.2f",rating):x(240)
+					self:settextf("%5.2f",rating)
 				else
 					rating = DLMAN:GetSkillsetRating(ms.SkillSets[i])
-					self:settextf("%5.2f(#%i)",rating, DLMAN:GetSkillsetRank(ms.SkillSets[i])):x(270)
+					self:settextf("%5.2f(#%i)",rating, DLMAN:GetSkillsetRank(ms.SkillSets[i]))
 				end
 				self:diffuse(ByMSD(rating))
 			end,
