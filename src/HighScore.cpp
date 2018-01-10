@@ -1169,8 +1169,8 @@ Grade HighScore::GetWifeGrade() const {
 }
 
 bool HighScore::WriteReplayData() {
-	return DBProfile::WriteReplayData(this);
-	//return m_Impl->WriteReplayData();
+	//return DBProfile::WriteReplayData(this);
+	return m_Impl->WriteReplayData();
 }
 
 // Ok I guess we can be more lenient and convert by midwindow values, but we still have to assume j4 - mina

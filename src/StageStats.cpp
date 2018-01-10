@@ -333,9 +333,11 @@ void StageStats::FinalizeScores(bool bSummary)
 		hs.timeStamps.clear();
 		hs.timeStamps.shrink_to_fit();
 	}
-	bool writesuccess = hs.WriteReplayData();
-	if (writesuccess)
-		hs.UnloadReplayData();
+	if (m_player[PLAYER_1].m_fWifeScore > 0.f) {
+		bool writesuccess = hs.WriteReplayData();
+		if (writesuccess)
+			hs.UnloadReplayData();
+	}
 	zzz->SetAnyAchievedGoals(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey(), GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate, hs);
 	mostrecentscorekey = hs.GetScoreKey();
 	zzz->m_lastSong.FromSong(GAMESTATE->m_pCurSong);
