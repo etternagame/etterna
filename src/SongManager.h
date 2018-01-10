@@ -7,6 +7,7 @@ class Style;
 class Steps;
 class PlayerOptions;
 struct lua_State;
+struct GoalsForChart;
 
 #include "RageTypes.h"
 #include "GameConstantsAndTypes.h"
@@ -83,7 +84,7 @@ public:
 	void Cleanup();
 
 	void Invalidate( const Song *pStaleSong );
-
+	static map<string, Playlist>& GetPlaylists();
 	void SetPreferences();
 	void SaveEnabledSongsToPref();
 	void LoadEnabledSongsFromPref();
@@ -107,7 +108,7 @@ public:
 	void GetSongGroupNames( vector<RString> &AddTo ) const;
 	const vector<RString>& GetSongGroupNames() const;
 	bool DoesSongGroupExist( const RString &sSongGroup ) const;
-	RageColor GetSongGroupColor( const RString &sSongGroupName ) const;
+	RageColor GetSongGroupColor( const RString &sSongGroupName, map<string, Playlist>& playlists = GetPlaylists()) const;
 	RageColor GetSongColor( const Song* pSong ) const;
 
 	// temporary solution to reorganizing the entire songid/stepsid system - mina
@@ -182,16 +183,16 @@ public:
 	// Lua
 	void PushSelf( lua_State *L );
 
-	map<string, Playlist> allplaylists;
 	string activeplaylist = "";
 	string playlistcourse = "";
 	string ReconcileBustedKeys(const string& ck);
 	map<string, string> keyconversionmap;
-	void MakeSongGroupsFromPlaylists();
-	void DeletePlaylist(const string& ck);
-	void MakePlaylistFromFavorites(set<string>& favs);
+	void MakeSongGroupsFromPlaylists(map<string, Playlist>& playlists = GetPlaylists());
+	void DeletePlaylist(const string& ck, map<string, Playlist>& playlists = GetPlaylists());
+	void MakePlaylistFromFavorites(set<string>& favs, map<string, Playlist>& playlists = GetPlaylists());
 
 	map<string, vector<Song*>> groupderps;
+	vector<string> playlistGroups; // To delete from groupderps when rebuilding playlist groups
 protected:
 	void LoadStepManiaSongDir( RString sDir, LoadingWindow *ld );
 	void LoadDWISongDir( const RString &sDir );

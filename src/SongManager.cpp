@@ -363,8 +363,11 @@ void Playlist::LoadFromNode(const XNode* node) {
 	}
 }
 
-void SongManager::MakeSongGroupsFromPlaylists() {
-	for (auto& p : allplaylists) {
+void SongManager::MakeSongGroupsFromPlaylists(map<string, Playlist>& playlists) {
+	for(auto& plName : playlistGroups)
+		groupderps.erase(plName);
+	playlistGroups.clear();
+	for (auto& p : playlists) {
 		vector<Song*> playlistgroup;
 		for (auto& n : p.second.chartlist)
 			if (n.loaded)
@@ -373,6 +376,7 @@ void SongManager::MakeSongGroupsFromPlaylists() {
 		groupderps.erase(p.first);
 		groupderps[p.first] = playlistgroup;
 		SongUtil::SortSongPointerArrayByTitle(groupderps[p.first]);
+		playlistGroups.emplace_back(p.first);
 	}
 }
 
@@ -399,18 +403,18 @@ vector<string> Playlist::GetKeys() {
 	return o;
 }
 
-void SongManager::DeletePlaylist(const string& pl) {
-	allplaylists.erase(pl);
+void SongManager::DeletePlaylist(const string& pl, map<string, Playlist> &playlists) {
+	playlists.erase(pl);
 
 	// stuff gets weird if all playlists have been deleted and a chart is added - mina
-	if(allplaylists.size() > 0)
-		activeplaylist = allplaylists.begin()->first;
+	if(playlists.size() > 0)
+		activeplaylist = playlists.begin()->first;
 
 	// clear out the entry for the music wheel as well or it'll crash -mina
 	groupderps.erase(pl);
 }
 
-void SongManager::MakePlaylistFromFavorites(set<string>& favs) {
+void SongManager::MakePlaylistFromFavorites(set<string>& favs, map<string, Playlist>& playlists) {
 	Playlist pl;
 	pl.name = "Favorites";
 	for (auto& n : favs)
@@ -421,7 +425,7 @@ void SongManager::MakePlaylistFromFavorites(set<string>& favs) {
 		if (!pl.chartlist[i].loaded)
 			pl.DeleteChart(i);
 
-	allplaylists.emplace("Favorites", pl);
+	playlists.emplace("Favorites", pl);
 }
 
 string SongManager::ReconcileBustedKeys(const string& ck) {
@@ -706,10 +710,13 @@ bool SongManager::IsGroupNeverCached(const RString& group) const
 }
 
 void SongManager::SetFavoritedStatus(set<string>& favs) {
-	FOREACH(Song*, m_pSongs, song)
+	FOREACH(Song*, m_pSongs, song) {
+		bool fav = false;
 		FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps)
-		if (favs.count((*steps)->GetChartKey()))
-			(*song)->SetFavorited(true);
+			if (favs.count((*steps)->GetChartKey()))
+				fav = true;
+		(*song)->SetFavorited(fav);
+	}
 }
 
 void SongManager::SetPermaMirroredStatus(set<string>& pmir) {
@@ -764,11 +771,11 @@ bool SongManager::DoesSongGroupExist( const RString &sSongGroup ) const
 	return find( m_sSongGroupNames.begin(), m_sSongGroupNames.end(), sSongGroup ) != m_sSongGroupNames.end();
 }
 
-RageColor SongManager::GetSongGroupColor( const RString &sSongGroup ) const
+RageColor SongManager::GetSongGroupColor( const RString &sSongGroup, map<string, Playlist>& playlists) const
 {
 	for( unsigned i=0; i<m_sSongGroupNames.size(); i++ )
 	{
-		if( m_sSongGroupNames[i] == sSongGroup || allplaylists.count(sSongGroup))
+		if( m_sSongGroupNames[i] == sSongGroup || playlists.count(sSongGroup))
 		{
 			return SONG_GROUP_COLOR.GetValue( i%NUM_SONG_GROUP_COLORS );
 		}
@@ -946,6 +953,11 @@ void SongManager::Invalidate( const Song *pStaleSong )
 {
 	UpdatePopular();
 	UpdateShuffled();
+}
+
+map<string, Playlist>& SongManager::GetPlaylists()
+{
+	return PROFILEMAN->GetProfile(PLAYER_1)->allplaylists;
 }
 
 void SongManager::SetPreferences()
@@ -1447,7 +1459,7 @@ public:
 
 	static int GetActivePlaylist(T* p, lua_State *L)
 	{
-		p->allplaylists[p->activeplaylist].PushSelf(L);
+		p->GetPlaylists()[p->activeplaylist].PushSelf(L);
 		return 1;
 	}
 
@@ -1467,7 +1479,7 @@ public:
 	{
 		int idx = 1;
 		lua_newtable(L);
-		FOREACHM(string, Playlist, p->allplaylists, pl) {
+		FOREACHM(string, Playlist, p->GetPlaylists(), pl) {
 			pl->second.PushSelf(L);
 			lua_rawseti(L, -2, idx);
 			++idx;

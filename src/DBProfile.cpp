@@ -156,7 +156,7 @@ void DBProfile::LoadPlayLists(SQLite::Database* db)
 		"INNER JOIN songs ON songs.id = charts.songid "
 		"INNER JOIN chartkeys ON charts.chartkeyid = chartkeys.id "
 		"ORDER BY playlists.name, chartkeys.chartkey, chartplaylists.rate");
-	auto& pls = SONGMAN->allplaylists;
+	auto& pls = loadingProfile->allplaylists;
 
 	Playlist *tmp;
 
@@ -653,9 +653,9 @@ void DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) cons
 		"CONSTRAINT fk_courserunid FOREIGN KEY (courserunid) REFERENCES courseruns(id))");
 
 
-	auto& pls = SONGMAN->allplaylists;
+	auto& pls = profile->allplaylists;
 	if (!pls.empty()) {
-		FOREACHM(string, Playlist, pls, pl)
+		FOREACHM_CONST(string, Playlist, pls, pl)
 		{
 			if (pl->first != "" && pl->first != "Favorites")
 			{

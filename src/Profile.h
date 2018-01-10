@@ -14,6 +14,7 @@
 #include "LuaReference.h"
 #include "XMLProfile.h"
 #include "DBProfile.h"
+#include "SongManager.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 
 #include <unordered_map>
@@ -21,6 +22,7 @@
 class XNode;
 struct lua_State;
 class Character;
+struct Playlist;
 
 // Current file versions
 extern const RString STATS_XML;
@@ -186,6 +188,8 @@ public:
 	ProfileType m_Type{ProfileType_Normal};
 	// Profiles of the same type and priority are sorted by dir name.
 	int m_ListPriority{0};
+	// Profile Playlists
+	map<string, Playlist> allplaylists;
 
 	// Editable data
 	RString m_sDisplayName;

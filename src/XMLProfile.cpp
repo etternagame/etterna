@@ -444,8 +444,8 @@ XNode* XMLProfile::SavePlaylistsCreateNode(const Profile* profile) const {
 	CHECKPOINT_M("Saving the playlists node.");
 
 	XNode* playlists = new XNode("Playlists");
-	auto& pls = SONGMAN->allplaylists;
-	FOREACHM(string, Playlist, pls, i)
+	auto& pls = profile->allplaylists;
+	FOREACHM_CONST(string, Playlist, pls, i)
 		if (i->first != "" && i->first != "Favorites")
 			playlists->AppendChild(i->second.CreateNode());
 	return playlists;
@@ -458,7 +458,7 @@ void XMLProfile::LoadFavoritesFromNode(const XNode *pNode) {
 		loadingProfile->FavoritedCharts.emplace(SONGMAN->ReconcileBustedKeys(ck->GetName()));
 
 	SONGMAN->SetFavoritedStatus(loadingProfile->FavoritedCharts);
-	SONGMAN->MakePlaylistFromFavorites(loadingProfile->FavoritedCharts);
+	SONGMAN->MakePlaylistFromFavorites(loadingProfile->FavoritedCharts, loadingProfile->allplaylists);
 }
 
 void XMLProfile::LoadPermaMirrorFromNode(const XNode *pNode) {
@@ -493,7 +493,7 @@ void XMLProfile::LoadScoreGoalsFromNode(const XNode *pNode) {
 void XMLProfile::LoadPlaylistsFromNode(const XNode *pNode) {
 	CHECKPOINT_M("Loading the playlists node.");
 
-	auto& pls = SONGMAN->allplaylists;
+	auto& pls = loadingProfile->allplaylists;
 	FOREACH_CONST_Child(pNode, pl) {
 		Playlist tmp;
 		tmp.LoadFromNode(pl);
@@ -1146,7 +1146,7 @@ XNode *XMLProfile::SaveEttXmlCreateNode(const Profile* profile) const
 	if (!profile->PermaMirrorCharts.empty())
 		xml->AppendChild(SavePermaMirrorCreateNode(profile));
 
-	if (!SONGMAN->allplaylists.empty())
+	if (!loadingProfile->allplaylists.empty())
 		xml->AppendChild(SavePlaylistsCreateNode(profile));
 
 	if (!profile->goalmap.empty())

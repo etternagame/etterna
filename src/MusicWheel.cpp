@@ -280,7 +280,7 @@ bool MusicWheel::SelectSong( const Song *p )
 			SetOpenSection( from[i]->m_sText );
 
 			// skip any playlist groups
-			if (!SONGMAN->allplaylists.count(GetExpandedSectionName()))
+			if (!SONGMAN->GetPlaylists().count(GetExpandedSectionName()))
 				break;
 		}
 	}

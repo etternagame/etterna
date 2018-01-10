@@ -229,6 +229,9 @@ void ScreenSelectMusic::BeginScreen()
 	g_ScreenStartedLoadingAt.Touch();
 	m_timerIdleComment.GetDeltaTime();
 
+
+	SONGMAN->MakeSongGroupsFromPlaylists();
+	SONGMAN->SetFavoritedStatus(PROFILEMAN->GetProfile(PLAYER_1)->FavoritedCharts);
 	if (CommonMetrics::AUTO_SET_STYLE)
 	{
 		GAMESTATE->SetCompatibleStylesForPlayers();
@@ -477,6 +480,8 @@ bool ScreenSelectMusic::Input(const InputEventPlus &input)
 				if (!fav_me_biatch->IsFavorited()) {
 					fav_me_biatch->SetFavorited(true);
 					pProfile->AddToFavorites(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+					pProfile->allplaylists.erase("Favorites");
+					SONGMAN->MakePlaylistFromFavorites(pProfile->FavoritedCharts, pProfile->allplaylists);
 				}
 				else {
 					fav_me_biatch->SetFavorited(false);
@@ -541,10 +546,10 @@ bool ScreenSelectMusic::Input(const InputEventPlus &input)
 		}
 		else if (bHoldingCtrl && c == 'A' && m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS)
 		{
-			if (SONGMAN->allplaylists.empty())
+			if (SONGMAN->GetPlaylists().empty())
 				return true;
 
-			SONGMAN->allplaylists[SONGMAN->activeplaylist].AddChart(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+			SONGMAN->GetPlaylists()[SONGMAN->activeplaylist].AddChart(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
 			MESSAGEMAN->Broadcast("DisplaySinglePlaylist");
 			SCREENMAN->SystemMessage(ssprintf("Added chart: %s to playlist: %s", GAMESTATE->m_pCurSong->GetDisplayMainTitle().c_str(), SONGMAN->activeplaylist.c_str()));
 			return true;
@@ -1176,7 +1181,7 @@ void ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 		Playlist pl;
 		pl.name = ScreenTextEntry::s_sLastAnswer;
 		if (pl.name != "") {
-			SONGMAN->allplaylists.emplace(pl.name, pl);
+			SONGMAN->GetPlaylists().emplace(pl.name, pl);
 			SONGMAN->activeplaylist = pl.name;
 			Message msg("DisplayAll");
 			MESSAGEMAN->Broadcast(msg);
@@ -1825,7 +1830,7 @@ public:
 	static int StartPlaylistAsCourse(T* p, lua_State *L)
 	{
 		string name = SArg(1);
-		Playlist& pl = SONGMAN->allplaylists[name];
+		Playlist& pl = SONGMAN->GetPlaylists()[name];
 
 		// don't allow empty playlists to be started as a course
 		if (pl.chartlist.empty())

@@ -790,7 +790,7 @@ void ScreenGameplay::InitSongQueues()
 		FOREACH_EnabledPlayerInfo(m_vPlayerInfo, pi)
 			pi->m_vpStepsQueue.clear();
 
-		Playlist& pl = SONGMAN->allplaylists[SONGMAN->playlistcourse];
+		Playlist& pl = SONGMAN->GetPlaylists()[SONGMAN->playlistcourse];
 		FOREACH(Chart, pl.chartlist, ch) {
 			m_apSongsQueue.emplace_back(ch->songptr);
 			FOREACH_EnabledPlayerInfo(m_vPlayerInfo, pi)
@@ -2260,7 +2260,7 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 		MESSAGEMAN->Broadcast(msg);
 		
 		if (GAMESTATE->IsPlaylistCourse()) {
-			SONGMAN->allplaylists[SONGMAN->playlistcourse].courseruns.emplace_back(playlistscorekeys);
+			SONGMAN->GetPlaylists()[SONGMAN->playlistcourse].courseruns.emplace_back(playlistscorekeys);
 		}
 
 		TweenOffScreen();
