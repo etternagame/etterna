@@ -94,6 +94,7 @@ public:
 	string songName;
 	float rate{ 0.0f };
 	float ssr{ 0.0f };
+	float overall{ 0.0f };
 	string chartkey;
 	string scorekey;
 	Difficulty difficulty;

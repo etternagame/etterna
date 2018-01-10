@@ -734,6 +734,8 @@ void DownloadManager::RefreshTop25(Skillset ss)
 	function<void(HTTPRequest&)> done = [ss](HTTPRequest& req) {
 		Json::Value json;
 		RString error;
+		LOG->Trace(req.result.c_str());
+		LOG->Flush();
 		if (!JsonUtil::LoadFromString(json, req.result, error) || (json.isObject() && json.isMember("error")))
 			return;
 		vector<OnlineScore> & vec = DLMAN->scores[ss];
@@ -741,7 +743,8 @@ void DownloadManager::RefreshTop25(Skillset ss)
 			OnlineScore tmp;
 			tmp.songName = (*it).get("songname", "").asString();
 			tmp.wifeScore = atof((*it).get("wifescore", "0.0").asCString());
-			tmp.ssr = atof((*it).get("Overall", "0.0").asCString());
+			tmp.ssr = atof((*it).get(SkillsetToString(ss), "0.0").asCString());
+			tmp.overall = atof((*it).get("Overall", "0.0").asCString());
 			tmp.chartkey = (*it).get("chartkey", "").asString(); 
 			tmp.scorekey = (*it).get("scorekey", "").asString();
 			tmp.rate = atof((*it).get("user_chart_rate_rate", "0.0").asCString());
