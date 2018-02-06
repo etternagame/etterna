@@ -111,6 +111,7 @@ void SongManager::Reload( bool bAllowFastLoad, LoadingWindow *ld )
 		ld->SetText( UNLOADING_SONGS );
 
 	FreeSongs();
+	cache.clear();
 
 	const bool OldVal = PREFSMAN->m_bFastLoad;
 	if( !bAllowFastLoad )
@@ -230,7 +231,8 @@ void SongManager::InitSongsFromDisk( LoadingWindow *ld )
 	int cacheIndex = 0;
 	for (auto& pair : cache) {
 		cacheIndex++;
-		ld->SetProgress(cacheIndex);
+		if(ld)
+			ld->SetProgress(cacheIndex);
 		auto& pNewSong = pair.second;
 		RString& dir = pNewSong->GetSongDir();
 		if (!FILEMAN->IsADirectory(dir.substr(0, dir.length() - 1)) || (!PREFSMAN->m_bBlindlyTrustCache.Get() && pair.first.second != GetHashForDirectory(dir))) {
@@ -609,6 +611,10 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 		for (size_t j = 0; j < arraySongDirs.size(); ++j) {
 			songIndex++;
 			RString sSongDirName = arraySongDirs[j];
+			if (ld) {
+				ld->SetProgress(songIndex);
+				ld->SetText("Loading Songs From Disk\n" + sSongDirName);
+			}
 			RString hur = sSongDirName + "/";
 			hur.MakeLower();
 			if (m_SongsByDir.count(hur))
@@ -622,10 +628,6 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 			AddKeyedPointers(pNewSong);
 			index_entry.emplace_back(pNewSong);
 			loaded++;
-		}
-		if (ld) {
-			ld->SetProgress(songIndex);
-			ld->SetText("Loading Songs From Disk\n (" + sGroupDirName + ")");
 		}
 		if (!loaded) continue;
 		LOG->Trace("Loaded %i songs from \"%s\"", loaded, (sDir + sGroupDirName).c_str());
