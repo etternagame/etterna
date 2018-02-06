@@ -75,7 +75,7 @@ You can edit the build type directly in the IDE.
 
 ## Resources
 
-* Website: TBA
+* Website: https://etternaonline.com/
 * Discord: discord.gg/ZqpUjsJ
 * Lua for SM5: https://dguzek.github.io/Lua-For-SM5/
 * Lua API Documentation can be found in the Docs folder.
