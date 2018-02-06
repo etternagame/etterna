@@ -54,6 +54,7 @@
 #include "Song.h"
 #include "XmlFileUtil.h"
 #include "Profile.h" // for replay data stuff
+#include "DownloadManager.h"
 
 // Defines
 #define SHOW_LIFE_METER_FOR_DISABLED_PLAYERS	THEME->GetMetricB(m_sName,"ShowLifeMeterForDisabledPlayers")
@@ -280,6 +281,9 @@ ScreenGameplay::ScreenGameplay()
 	m_bForceNoNetwork = false;
 	m_delaying_ready_announce= false;
 	GAMESTATE->m_AdjustTokensBySongCostForFinalStageCheck= false;
+#if !defined(WITHOUT_NETWORKING)
+	DLMAN->UpdateDLSpeed(true);
+#endif
 }
 
 void ScreenGameplay::Init()
@@ -851,6 +855,9 @@ ScreenGameplay::~ScreenGameplay()
 
 	if( !m_bForceNoNetwork )
 		NSMAN->ReportSongOver();
+#if !defined(WITHOUT_NETWORKING)
+	DLMAN->UpdateDLSpeed(false);
+#endif
 }
 
 void ScreenGameplay::SetupSong( int iSongIndex )
@@ -1814,12 +1821,6 @@ void ScreenGameplay::BeginBackingOutFromGameplay()
 
 	m_pSoundMusic->StopPlaying();
 	m_GameplayAssist.StopPlaying(); // Stop any queued assist ticks.
-
-	if (GAMESTATE->IsPlaylistCourse()) {
-		GAMESTATE->isplaylistcourse = false;
-		SONGMAN->playlistcourse = "";
-	}
-
 	this->ClearMessageQueue();
 
 	m_Cancel.StartTransitioning( SM_DoPrevScreen );
@@ -2260,8 +2261,6 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 		
 		if (GAMESTATE->IsPlaylistCourse()) {
 			SONGMAN->allplaylists[SONGMAN->playlistcourse].courseruns.emplace_back(playlistscorekeys);
-			GAMESTATE->isplaylistcourse = false;
-			SONGMAN->playlistcourse = "";
 		}
 
 		TweenOffScreen();
@@ -2361,6 +2360,11 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 			ScreenSaveSync::PromptSaveSync( SM_GoToNextScreen );
 		else
 			HandleScreenMessage( SM_GoToNextScreen );
+
+		if (GAMESTATE->IsPlaylistCourse()) {
+			GAMESTATE->isplaylistcourse = false;
+			SONGMAN->playlistcourse = "";
+		}
 	}
 	else if( SM == SM_GainFocus )
 	{

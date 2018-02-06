@@ -109,7 +109,9 @@ else
 		local metricName = "PlayerP".. pNum .."TwoPlayersSharedSidesX"
 		t[#t+1] = Def.Quad{
 			Name="RoutineFilter";
-			InitCommand=cmd(x,THEME:GetMetric("ScreenGameplay",metricName);CenterY;zoomto,filterWidth*getNoteFieldScale(player),SCREEN_HEIGHT;diffusecolor,filterColor;diffusealpha,filterAlphas[player]);
+			InitCommand=function(self)
+				self:x(THEME:GetMetric("ScreenGameplay",metricName)):CenterY():zoomto(filterWidth*getNoteFieldScale(player),SCREEN_HEIGHT):diffusecolor(filterColor):diffusealpha(filterAlphas[player])
+			end;
 		};
 	else
 		-- otherwise we need two separate ones. to the pairsmobile!
@@ -120,7 +122,9 @@ else
 			local pos = THEME:GetMetric("ScreenGameplay",metricName)
 			t[#t+1] = Def.Quad{
 				Name="Player"..pNum.."Filter";
-				InitCommand=cmd(x,pos;CenterY;zoomto,filterWidth*getNoteFieldScale(player),SCREEN_HEIGHT;diffusecolor,filterColor;diffusealpha,filterAlphas[player]);
+				InitCommand=function(self)
+					self:x(pos):CenterY():zoomto(filterWidth*getNoteFieldScale(player),SCREEN_HEIGHT):diffusecolor(filterColor):diffusealpha(filterAlphas[player])
+				end;
 			};
 		end
 	end

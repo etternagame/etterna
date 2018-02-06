@@ -44,6 +44,8 @@ void PlayerStageStats::InternalInit()
 	m_iCurPossibleDancePoints = 0;
 	m_iActualDancePoints = 0;
 	m_fWifeScore = 0.f;
+	CurWifeScore = 0.f;
+	MaxWifeScore = 0.f;
 	m_fTimingScale = 0.f;
 	m_vOffsetVector.clear();
 	m_vNoteRowVector.clear();
@@ -60,6 +62,12 @@ void PlayerStageStats::InternalInit()
 	m_iSongsPlayed = 0;
 	m_fLifeRemainingSeconds = 0;
 	m_iNumControllerSteps = 0;
+	
+	// this should probably be handled better-mina
+	everusedautoplay = false;
+	luascriptwasloaded = false;
+	filehadnegbpms = false;
+	filegotmines = false;
 
 	ZERO( m_iTapNoteScores );
 	ZERO( m_iHoldNoteScores );
@@ -310,6 +318,12 @@ float PlayerStageStats::GetPercentDancePoints() const {
 float PlayerStageStats::GetWifeScore() const {
 	return m_fWifeScore;
 }
+float PlayerStageStats::GetCurWifeScore() const {
+	return CurWifeScore;
+}
+float PlayerStageStats::GetMaxWifeScore() const {
+	return MaxWifeScore;
+}
 vector<float> PlayerStageStats::CalcSSR(float ssrpercent ) const {
 	Steps* steps = GAMESTATE->m_pCurSteps[PLAYER_1];
 	float musicrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
@@ -322,15 +336,19 @@ void PlayerStageStats::GenerateValidationKeys(HighScore& hs) const {
 	// just designed to catch shameless stats xml tampering by people who aren't experienced enough to look this up -mina
 	FOREACH_ENUM(TapNoteScore, tns)
 		key.append(to_string(hs.GetTapNoteScore(tns)));
-	FOREACH_ENUM(TapNoteScore, tns)
-		key.append(to_string(hs.GetTapNoteScore(tns)));
+	FOREACH_ENUM(HoldNoteScore, hns)
+		key.append(to_string(hs.GetHoldNoteScore(hns)));
 
 	key.append(hs.GetScoreKey());
-	key.append(to_string(lround(hs.GetWifeScore() * 1000.f)));
-	key.append(to_string(lround(hs.GetSSRNormPercent() * 1000.f)));
-	key.append(to_string(lround(hs.GetMusicRate() * 1000.f)));
-	key.append(to_string(lround(hs.GetJudgeScale() * 1000.f)));
-	key.append(to_string(hs.GetEtternaValid()));
+	key.append(hs.GetChartKey());
+	key.append(hs.GetModifiers());
+	key.append(to_string(static_cast<int>(hs.GetWifeScore() * 1000.f)));
+	key.append(to_string(static_cast<int>(hs.GetSSRNormPercent() * 1000.f)));
+	key.append(to_string(static_cast<int>(hs.GetMusicRate() * 1000.f)));
+	key.append(to_string(static_cast<int>(hs.GetJudgeScale() * 1000.f)));
+	key.append(to_string(static_cast<int>(hs.GetWifePoints() * 1000.f)));
+	key.append(to_string(static_cast<int>(!hs.GetChordCohesion())));
+	key.append(to_string(static_cast<int>(hs.GetEtternaValid())));
 
 	hs.SetValidationKey(ValidationKey_Brittle, BinaryToHex(CryptManager::GetSHA1ForString(key)));
 
@@ -868,6 +886,8 @@ public:
 	DEFINE_METHOD( GetCurrentScoreMultiplier,	m_iCurScoreMultiplier )
 	DEFINE_METHOD( GetScore,					m_iScore )
 	DEFINE_METHOD( GetWifeScore,				m_fWifeScore )
+	DEFINE_METHOD( GetCurWifeScore,				CurWifeScore)
+	DEFINE_METHOD( GetMaxWifeScore,				MaxWifeScore)
 	DEFINE_METHOD( GetCurMaxScore,				m_iCurMaxScore )
 	DEFINE_METHOD( GetTapNoteScores,			m_iTapNoteScores[Enum::Check<TapNoteScore>(L, 1)] )
 	DEFINE_METHOD( GetHoldNoteScores,			m_iHoldNoteScores[Enum::Check<HoldNoteScore>(L, 1)] )
@@ -1060,6 +1080,8 @@ public:
 		ADD_METHOD( WifeScoreOffset );
 		ADD_METHOD( GetNoteRowVector );
 		ADD_METHOD( GetWifeScore );
+		ADD_METHOD( GetCurWifeScore );
+		ADD_METHOD( GetMaxWifeScore );
 		ADD_METHOD( GetCurMaxScore );
 		ADD_METHOD( GetTapNoteScores );
 		ADD_METHOD( GetHoldNoteScores );

@@ -4,7 +4,7 @@
 #include "ActorUtil.h"
 #include "AnnouncerManager.h"
 #include "BackgroundUtil.h"
-#include "BannerCache.h"
+#include "ImageCache.h"
 #include "CommonMetrics.h"
 #include "Foreach.h"
 #include "GameManager.h"
@@ -36,10 +36,10 @@
 
 SongManager*	SONGMAN = NULL;	// global and accessible from anywhere in our program
 
-const RString ADDITIONAL_SONGS_DIR	= "/AdditionalSongs/";
-const RString EDIT_SUBDIR		= "Edits/";
 
 /** @brief The file that contains various random attacks. */
+const RString ADDITIONAL_SONGS_DIR = "/AdditionalSongs/";
+const RString EDIT_SUBDIR = "Edits/";
 const RString ATTACK_FILE		= "/Data/RandomAttacks.txt";
 
 static const ThemeMetric<RageColor>	EXTRA_COLOR			( "SongManager", "ExtraColor" );
@@ -126,6 +126,9 @@ void SongManager::Reload( bool bAllowFastLoad, LoadingWindow *ld )
 
 // See InitSongsFromDisk for any comment clarification -mina
 int SongManager::DifferentialReload() {
+	FILEMAN->FlushDirCache(SpecialFiles::SONGS_DIR);
+	FILEMAN->FlushDirCache(ADDITIONAL_SONGS_DIR);
+	FILEMAN->FlushDirCache(EDIT_SUBDIR);
 	int newsongs = 0;
 	SONGINDEX->delay_save_cache = true;
 	newsongs += DifferentialReloadDir(SpecialFiles::SONGS_DIR);
@@ -214,7 +217,7 @@ int SongManager::DifferentialReloadDir(string dir) {
 		LOG->Trace("Differential load of %i songs from \"%s\"", loaded, (dir + sGroupDirName).c_str());
 
 		AddGroup(dir, sGroupDirName);
-		BANNERCACHE->CacheBanner(GetSongGroupBannerPath(sGroupDirName));
+		IMAGECACHE->CacheImage("Banner",GetSongGroupBannerPath(sGroupDirName));
 	}
 	return newsongs;
 }
@@ -657,7 +660,7 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 		AddGroup(sDir, sGroupDirName);
 
 		// Cache and load the group banner. (and background if it has one -aj)
-		BANNERCACHE->CacheBanner( GetSongGroupBannerPath(sGroupDirName) );
+		IMAGECACHE->CacheImage( "Banner", GetSongGroupBannerPath(sGroupDirName) );
 	}
 
 	if( ld ) {
@@ -667,7 +670,7 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 
 void SongManager::PreloadSongImages()
 {
-	if( PREFSMAN->m_BannerCache != BNCACHE_FULL )
+	if( PREFSMAN->m_ImageCache != IMGCACHE_FULL )
 		return;
 
 	/* Load textures before unloading old ones, so we don't reload textures

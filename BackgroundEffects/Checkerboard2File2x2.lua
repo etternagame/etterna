@@ -10,8 +10,12 @@ local a1 = LoadActor(Var "File1") .. {
 			self:GetTexture():rate(self:GetParent():GetUpdateRate())
 		end
 	end,
-	GainFocusCommand=cmd(play);
-	LoseFocusCommand=cmd(pause);
+	GainFocusCommand=function(self)
+		self:play()
+	end;
+	LoseFocusCommand=function(self)
+		self:pause()
+	end;
 };
 local a2 = LoadActor(Var "File2") .. {
 	OnCommand= function(self)
@@ -21,13 +25,21 @@ local a2 = LoadActor(Var "File2") .. {
 			self:GetTexture():rate(self:GetParent():GetUpdateRate())
 		end
 	end,
-	GainFocusCommand=cmd(play);
-	LoseFocusCommand=cmd(pause);
+	GainFocusCommand=function(self)
+		self:play()
+	end;
+	LoseFocusCommand=function(self)
+		self:pause()
+	end;
 };
 
 local t = Def.ActorFrame {
-	a1 .. { OnCommand=cmd(x,scale(1,0,4,SCREEN_LEFT,SCREEN_RIGHT);y,scale(1,0,4,SCREEN_TOP,SCREEN_BOTTOM)); };
-	a2 .. { OnCommand=cmd(x,scale(3,0,4,SCREEN_LEFT,SCREEN_RIGHT);y,scale(1,0,4,SCREEN_TOP,SCREEN_BOTTOM)); };
+	a1 .. { OnCommand=function(self)
+					 self:x(scale(1,0,4,SCREEN_LEFT,SCREEN_RIGHT)):y(scale(1,0,4,SCREEN_TOP,SCREEN_BOTTOM))
+			 	end };
+	a2 .. { OnCommand=function(self)
+					 self:x(scale(3,0,4,SCREEN_LEFT,SCREEN_RIGHT)):y(scale(1,0,4,SCREEN_TOP,SCREEN_BOTTOM))
+		 		end };
 	a2 .. { OnCommand=function(self)
 						self:x(scale(1,0,4,SCREEN_LEFT,SCREEN_RIGHT)):y(scale(3,0,4,SCREEN_TOP,SCREEN_BOTTOM))
 						if self.SetDecodeMovie then self:SetDecodeMovie(false) end

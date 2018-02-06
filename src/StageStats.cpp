@@ -14,6 +14,7 @@
 #include <sstream>
 #include "CryptManager.h"
 #include "ScoreManager.h"
+#include "DownloadManager.h"
 #include "MinaCalc.h"
 
 /* Arcade:	for the current stage (one song).  
@@ -136,6 +137,69 @@ float StageStats::GetTotalPossibleStepsSeconds() const
 	return fSecs / m_fMusicRate;
 }
 
+// all the dumb reasons your score doesnt matter (or at least, most of them) -mina
+bool DetermineScoreEligibility(const PlayerStageStats &pss, const PlayerState &ps) {
+	
+	// 4k only
+	if (GAMESTATE->m_pCurSteps[ps.m_PlayerNumber]->m_StepsType != StepsType_dance_single)
+		return false;
+
+	// chord cohesion is invalid
+	if (!GAMESTATE->CountNotesSeparately())
+		return false;
+
+	// you failed.
+	if (pss.GetGrade() == Grade_Failed)
+		return false;
+
+	// just because you had failoff, doesn't mean you didn't fail.
+	FOREACHM_CONST(float, float, pss.m_fLifeRecord, fail)
+		if (fail->second == 0.f)
+			return false;
+
+	// cut out stuff with under 200 notes to prevent super short vibro files from being dumb
+	if (pss.GetTotalTaps() < 200 && pss.GetTotalTaps() != 4)
+		return false;
+
+	// i'm not actually sure why this is here but if you activate this you don't deserve points anyway
+	if (pss.m_fWifeScore < 0.1f)
+		return false;
+
+	// no negative bpm garbage
+	if (pss.filehadnegbpms)
+		return false;
+
+	// no lau script shenanigans
+	if (pss.luascriptwasloaded)
+		return false;
+
+	// it would take some amount of effort to abuse this but hey, whatever
+	if (pss.everusedautoplay)
+		return false;
+
+	// mods that modify notedata other than mirror (too lazy to figure out how to check for these in po)
+	string mods = ps.m_PlayerOptions.GetStage().GetString();
+
+	// should take care of all 3 shuffle mods
+	if (mods.find("Shuffle") != mods.npos)
+		return false;
+
+	// only do this if the file doesnt have mines
+	if (mods.find("NoMines") != mods.npos && pss.filegotmines)
+		return false;
+
+	if (mods.find("Left") != mods.npos)
+		return false;
+
+	if (mods.find("Right") != mods.npos)
+		return false;
+
+	if (mods.find("Backwards") != mods.npos)
+		return false;
+
+	return true;
+}
+
 static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState &ps, RString sRankingToFillInMarker, RString sPlayerGuid)
 {
 	HighScore hs;
@@ -147,20 +211,7 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 	hs.SetScore( pss.m_iScore );
 	hs.SetPercentDP( pss.GetPercentDancePoints() );
 	hs.SetWifeScore( pss.GetWifeScore());
-
-	// should prolly be its own fun - mina
-	hs.SetEtternaValid(true);
-	if (pss.GetGrade() == Grade_Failed || pss.m_fWifeScore < 0.1f || GAMESTATE->m_pCurSteps[ps.m_PlayerNumber]->m_StepsType != StepsType_dance_single || !GAMESTATE->CountNotesSeparately())
-		hs.SetEtternaValid(false);
-
-	// cut out stuff with under 200 notes to prevent super short vibro files from being dumb -mina
-	if(pss.GetTotalTaps() < 200)
-		hs.SetEtternaValid(false);
-
-	FOREACHM_CONST(float, float, pss.m_fLifeRecord, fail)
-		if (fail->second == 0.f)
-			hs.SetEtternaValid(false);
-
+	hs.SetWifePoints( pss.GetCurWifeScore());
 	hs.SetMusicRate( GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 	hs.SetJudgeScale( pss.GetTimingScale());
 	hs.SetChordCohesion( GAMESTATE->CountNotesSeparately() );
@@ -190,6 +241,9 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 	hs.SetLifeRemainingSeconds( pss.m_fLifeRemainingSeconds );
 	hs.SetDisqualified( pss.IsDisqualified() );
 
+	// Etterna validity check, used for ssr/eo eligibility -mina
+	hs.SetEtternaValid(DetermineScoreEligibility(pss, ps));
+
 	// should maybe just make the setscorekey function do this internally rather than recalling the datetime object -mina
 	RString ScoreKey = "S" + BinaryToHex(CryptManager::GetSHA1ForString(hs.GetDateTime().GetString()));
 	hs.SetScoreKey(ScoreKey);
@@ -212,18 +266,15 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 			vector<float> dakine = pss.CalcSSR(hs.GetSSRNormPercent());
 			FOREACH_ENUM(Skillset, ss)
 				hs.SetSkillsetSSR(ss, dakine[ss]);
+
+			hs.SetSSRCalcVersion(GetCalcVersion());
 		}
 		else {
 			FOREACH_ENUM(Skillset, ss)
 				hs.SetSkillsetSSR(ss, 0.f);
 		}
-		bool writesuccess = hs.WriteReplayData();
-		if (writesuccess)
-			hs.UnloadReplayData();
-	}
 
-	// this whole thing needs to be redone, ssr calculation should be moved into highscore -mina
-	hs.SetSSRCalcVersion(GetCalcVersion());
+	}
 
 	pss.GenerateValidationKeys(hs);
 
@@ -264,7 +315,7 @@ void StageStats::FinalizeScores(bool bSummary)
 		m_multiPlayer[mp].m_HighScore = FillInHighScore(m_multiPlayer[mp], *GAMESTATE->m_pMultiPlayerState[mp], "", sPlayerGuid);
 	}
 
-	const HighScore &hs = m_player[PLAYER_1].m_HighScore;
+	HighScore &hs = m_player[PLAYER_1].m_HighScore;
 	StepsType st = GAMESTATE->GetCurrentStyle(PLAYER_1)->m_StepsType;
 
 	const Song* pSong = GAMESTATE->m_pCurSong;
@@ -273,7 +324,19 @@ void StageStats::FinalizeScores(bool bSummary)
 	ASSERT(pSteps != NULL);
 	// new score structure -mina
 	Profile* zzz = PROFILEMAN->GetProfile(PLAYER_1);
-	SCOREMAN->AddScore(hs);
+	int istop2 = SCOREMAN->AddScore(hs);
+	if (DLMAN->ShouldUploadScores()) {
+		hs.SetTopScore(istop2);	// ayy i did it --lurker
+		auto steps = SONGMAN->GetStepsByChartkey(hs.GetChartKey());
+		auto td = steps->GetTimingData();
+		hs.timeStamps = td->ConvertReplayNoteRowsToTimestamps(m_player[PLAYER_1].GetNoteRowVector(), hs.GetMusicRate());
+		DLMAN->UploadScoreWithReplayData(&hs);
+		hs.timeStamps.clear();
+		hs.timeStamps.shrink_to_fit();
+	}
+	bool writesuccess = hs.WriteReplayData();
+	if (writesuccess)
+		hs.UnloadReplayData();
 	zzz->SetAnyAchievedGoals(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey(), GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate, hs);
 	mostrecentscorekey = hs.GetScoreKey();
 	zzz->m_lastSong.FromSong(GAMESTATE->m_pCurSong);

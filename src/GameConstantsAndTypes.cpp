@@ -136,6 +136,14 @@ static const char *SortOrderNames[] = {
 	"ModeMenu",
 	"Recent",
 	"Favorites",
+	"Overall",
+	"Stream",
+	"Jumpstream",
+	"Handstream",
+	"Stamina",
+	"JackSpeed",
+	"Chordjack",
+	"Technical"
 };
 XToString( SortOrder );
 StringToX( SortOrder );
@@ -232,7 +240,7 @@ static const char *SkillsetNames[] = {
 	"Handstream",
 	"Stamina",
 	"JackSpeed",
-	"JackStamina",
+	"Chordjack",
 	"Technical",
 };
 XToString(Skillset);
@@ -244,7 +252,7 @@ Skillset StringToSkillset(const RString &s) {
 	else if (s == "Handstream")		return Skill_Jumpstream;
 	else if (s == "Stamina")		return Skill_Stamina;
 	else if (s == "JackSpeed")		return Skill_JackSpeed;
-	else if (s == "JackStamina")	return Skill_JackStamina;
+	else if (s == "Chordjack")		return Skill_Chordjack;
 	else if (s == "Technical")		return Skill_Technical;
 
 	return Skill_Overall;

@@ -609,13 +609,23 @@ void Player::Load()
 	totalwifescore = m_NoteData.WifeTotalScoreCalc(m_Timing, 0, 1073741824);
 	curwifescore = 0.f;
 	maxwifescore = 0.f;
-	
+
 	m_NoteData.LogNonEmptyRows();
 	nerv = m_NoteData.GetNonEmptyRowVector();
 	const vector<float>& etaner = m_Timing->BuildAndGetEtaner(nerv);
 	m_pPlayerStageStats->serializednd = m_NoteData.SerializeNoteData(etaner);
 	m_NoteData.UnsetSerializedNoteData();
-	
+
+	if (m_Timing->HasWarps())
+		m_pPlayerStageStats->filehadnegbpms = true;
+
+	// check before nomines transform
+	if(GAMESTATE->m_pCurSteps[pn]->GetRadarValues()[RadarCategory_Mines] > 0)
+		m_pPlayerStageStats->filegotmines = true;
+
+	// check for lua script load (technically this is redundant a little with negbpm but whatever) -mina
+	if (!m_Timing->ValidSequentialAssumption)
+		m_pPlayerStageStats->luascriptwasloaded = true;
 
 	Profile *pProfile = PROFILEMAN->GetProfile(pn);
 	const HighScore* pb = SCOREMAN->GetChartPBAt(GAMESTATE->m_pCurSteps[pn]->GetChartKey(), GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
@@ -859,6 +869,7 @@ void Player::Update( float fDeltaTime )
 			if( m_pPlayerState->m_PlayerController == PC_AUTOPLAY )
 			{
 				STATSMAN->m_CurStageStats.m_bUsedAutoplay = true;
+				m_pPlayerStageStats->everusedautoplay = true;
 				if( m_pPlayerStageStats )
 					m_pPlayerStageStats->m_bDisqualified = true;
 			}
@@ -1104,6 +1115,7 @@ void Player::UpdateHoldNotes( int iSongRow, float fDeltaTime, vector<TrackRowTap
 				if( m_pPlayerState->m_PlayerController == PC_AUTOPLAY )
 				{
 					STATSMAN->m_CurStageStats.m_bUsedAutoplay = true;
+					m_pPlayerStageStats->everusedautoplay = true;
 					if( m_pPlayerStageStats != NULL )
 						m_pPlayerStageStats->m_bDisqualified = true;
 				}
@@ -2004,7 +2016,7 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 					else if( fSecondsFromExact <= GetWindowSeconds(TW_W2) )	score = TNS_W2;
 					else if( fSecondsFromExact <= GetWindowSeconds(TW_W3) )	score = TNS_W3;
 					else if( fSecondsFromExact <= GetWindowSeconds(TW_W4) )	score = TNS_W4;
-					else if( fSecondsFromExact <= GetWindowSeconds(TW_W5) )	score = TNS_W5;
+					else if( fSecondsFromExact <= max(GetWindowSeconds(TW_W5), 0.18f) )	score = TNS_W5;
 				}
 				break;
 			}
@@ -2275,7 +2287,7 @@ void Player::UpdateTapNotesMissedOlderThan( float fMissIfOlderThanSeconds )
 			tn.result.tns = TNS_Miss;
 			if ( GAMESTATE->CountNotesSeparately() )
 			{
-				SetJudgment(iter.Row(), m_NoteData.GetFirstTrackWithTapOrHoldHead(iter.Row()), tn);
+				SetJudgment(iter.Row(), iter.Track(), tn);
 				HandleTapRowScore(iter.Row());
 			}
 		}
@@ -2320,7 +2332,7 @@ void Player::UpdateJudgedRows(float fDeltaTime)
 				if(lastTN.result.tns < TNS_Miss )
 					continue;
 				
-				SetJudgment( iRow, m_NoteData.GetFirstTrackWithTapOrHoldHead(iRow), lastTN );
+				SetJudgment( iRow, m_NoteData.GetFirstTrackWithTapOrHoldHead(iter.Row()), lastTN );
 				HandleTapRowScore(iRow);
 			}
 		}
@@ -2849,7 +2861,13 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 			curwifescore -= 8.f;
 
 		if (m_pPlayerStageStats) {
-			msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
+			if(maxwifescore == 0.f)
+				msg.SetParam("WifePercent", 0);
+			else
+				msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
+			
+			msg.SetParam("CurWifeScore", curwifescore);
+			msg.SetParam("MaxWifeScore", maxwifescore);
 			msg.SetParam("WifeDifferential", curwifescore - maxwifescore * m_pPlayerState->playertargetgoal);
 			msg.SetParam("TotalPercent", 100 * curwifescore / totalwifescore);
 			if (wifescorepersonalbest != m_pPlayerState->playertargetgoal) {
@@ -2864,6 +2882,8 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 			if (m_pPlayerState->m_PlayerController == PC_HUMAN) {
 				ChangeWifeRecord();
 				m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
+				m_pPlayerStageStats->CurWifeScore = curwifescore;
+				m_pPlayerStageStats->MaxWifeScore = maxwifescore;
 			}
 			else {
 				curwifescore -= 6666666.f;	// sail hatan
@@ -2911,6 +2931,8 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 			maxwifescore += 2;
 			
 			msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
+			msg.SetParam("CurWifeScore", curwifescore);
+			msg.SetParam("MaxWifeScore", maxwifescore);
 			msg.SetParam("WifeDifferential", curwifescore - maxwifescore * m_pPlayerState->playertargetgoal);
 			msg.SetParam("TotalPercent", 100 * curwifescore / totalwifescore);
 			if (wifescorepersonalbest != m_pPlayerState->playertargetgoal) {
@@ -2925,6 +2947,8 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 #else
 			if (m_pPlayerState->m_PlayerController == PC_HUMAN) {
 				m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
+				m_pPlayerStageStats->CurWifeScore = curwifescore;
+				m_pPlayerStageStats->MaxWifeScore = maxwifescore;
 				m_pPlayerStageStats->m_vOffsetVector.emplace_back(tn.result.fTapNoteOffset);
 				m_pPlayerStageStats->m_vNoteRowVector.emplace_back(iRow);
 			}
@@ -2938,23 +2962,45 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 		Lua* L= LUA->Get();
 		lua_createtable( L, 0, m_NoteData.GetNumTracks() ); // TapNotes this row
 		lua_createtable( L, 0, m_NoteData.GetNumTracks() ); // HoldHeads of tracks held at this row.
-
-		for( int iTrack = 0; iTrack < m_NoteData.GetNumTracks(); ++iTrack )
-		{
-			NoteData::iterator tn = m_NoteData.FindTapNote(iTrack, iRow);
-			if( tn != m_NoteData.end(iTrack) )
+		if (GAMESTATE->CountNotesSeparately()) {
+			for (int jTrack = 0; jTrack < m_NoteData.GetNumTracks(); ++jTrack)
 			{
-				tn->second.PushSelf(L);
-				lua_rawseti(L, -3, iTrack + 1);
-			}
-			else
-			{
-				int iHeadRow;
-				if( m_NoteData.IsHoldNoteAtRow( iTrack, iRow, &iHeadRow ) )
+				NoteData::iterator tn = m_NoteData.FindTapNote(jTrack, iRow);
+				if (tn != m_NoteData.end(jTrack) && jTrack == iTrack )
 				{
-					NoteData::iterator hold = m_NoteData.FindTapNote(iTrack, iHeadRow);
-					hold->second.PushSelf(L);
-					lua_rawseti(L, -2, iTrack + 1);
+					tn->second.PushSelf(L);
+					lua_rawseti(L, -3, jTrack + 1);
+				}
+				else
+				{
+					int iHeadRow;
+					if (m_NoteData.IsHoldNoteAtRow(jTrack, iRow, &iHeadRow))
+					{
+						NoteData::iterator hold = m_NoteData.FindTapNote(jTrack, iHeadRow);
+						hold->second.PushSelf(L);
+						lua_rawseti(L, -2, jTrack + 1);
+					}
+				}
+			}
+		}
+		else {
+			for (int jTrack = 0; jTrack < m_NoteData.GetNumTracks(); ++jTrack)
+			{
+				NoteData::iterator tn = m_NoteData.FindTapNote(jTrack, iRow);
+				if (tn != m_NoteData.end(jTrack))
+				{
+					tn->second.PushSelf(L);
+					lua_rawseti(L, -3, jTrack + 1);
+				}
+				else
+				{
+					int iHeadRow;
+					if (m_NoteData.IsHoldNoteAtRow(jTrack, iRow, &iHeadRow))
+					{
+						NoteData::iterator hold = m_NoteData.FindTapNote(jTrack, iHeadRow);
+						hold->second.PushSelf(L);
+						lua_rawseti(L, -2, jTrack + 1);
+					}
 				}
 			}
 		}
@@ -2991,6 +3037,8 @@ void Player::SetHoldJudgment( TapNote &tn, int iTrack )
 				curwifescore -= 6.f;
 
 			msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
+			msg.SetParam("CurWifeScore", curwifescore);
+			msg.SetParam("MaxWifeScore", maxwifescore);
 			msg.SetParam("WifeDifferential", curwifescore - maxwifescore *  m_pPlayerState->playertargetgoal);
 			msg.SetParam("TotalPercent", 100 * curwifescore / totalwifescore);
 			if (wifescorepersonalbest != m_pPlayerState->playertargetgoal) {
@@ -3001,8 +3049,12 @@ void Player::SetHoldJudgment( TapNote &tn, int iTrack )
 			m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
 			ChangeWifeRecord();
 #else
-			if (m_pPlayerState->m_PlayerController == PC_HUMAN)
-		 		m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
+			if (m_pPlayerState->m_PlayerController == PC_HUMAN) {
+				m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
+				m_pPlayerStageStats->CurWifeScore = curwifescore;
+				m_pPlayerStageStats->MaxWifeScore = maxwifescore;
+			}
+		 		
 #endif
 		}
 			

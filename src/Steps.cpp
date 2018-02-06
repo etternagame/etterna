@@ -339,7 +339,7 @@ bool Steps::IsRecalcValid() {
 	if (m_StepsType != StepsType_dance_single)
 		return false;
 
-	if (m_CachedRadarValues[RadarCategory_Notes] < 200)
+	if (m_CachedRadarValues[RadarCategory_Notes] < 200 && m_CachedRadarValues[RadarCategory_Notes] != 4)
 		return false;
 
 	TimingData* td = GetTimingData();

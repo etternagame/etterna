@@ -1,3 +1,6 @@
+local judges = { "marv", "perf", "great", "good", "boo", "miss" }
+local defaultJudges = {'TapNoteScore_W1','TapNoteScore_W2','TapNoteScore_W3','TapNoteScore_W4','TapNoteScore_W5','TapNoteScore_Miss'}
+
 local shortDiffName = {
 	Difficulty_Beginner	= 'BG',
 	Difficulty_Easy		= 'EZ',
@@ -99,10 +102,15 @@ function getJudgeStrings(judge)
 	end
 end;
 
-
 function getShortJudgeStrings(judge)
 	if judge ~= nil then
 		return shortJudgeString[judge] or judge
+	end
+end;
+
+function getCustomJudgeString(customNames, judge)
+	if judge ~= nil then
+		return customNames and customNames[judges[judge]] or getJudgeStrings(defaultJudges[judge])
 	end
 end;
 

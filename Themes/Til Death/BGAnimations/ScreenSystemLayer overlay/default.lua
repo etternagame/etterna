@@ -32,15 +32,23 @@ end;
 	t[#t+1] = Def.ActorFrame {
 		Name = "Background";
 		Def.Quad {
-			InitCommand=cmd(zoomto,160,28;queuecommand,"On");
-			OnCommand=cmd(diffuse,PlayerColor(PlayerNumber);fadebottom,1);
+			InitCommand=function(self)
+				self:zoomto(160,28):queuecommand("On")
+			end;
+			OnCommand=function(self)
+				self:diffuse(PlayerColor(PlayerNumber)):fadebottom(1)
+			end;
 		};
 	};
 	t[#t+1] = Def.BitmapText{
 		Font="Common Normal";
 		Name = "PlayerText";
-		InitCommand=cmd(x,-60;maxwidth,80/0.5;zoom,0.5;queuecommand,"On");
-		OnCommand=cmd(playcommand,"Set");
+		InitCommand=function(self)
+			self:x(-60):maxwidth(80/0.5):zoom(0.5):queuecommand("On")
+		end;
+		OnCommand=function(self)
+			self:playcommand("Set")
+		end;
 		SetCommand=function(self)
 			local profile = PROFILEMAN:GetProfile( PlayerNumber) or PROFILEMAN:GetMachineProfile()
 			if profile then
@@ -60,7 +68,9 @@ t[#t+1] = LoadActor(THEME:GetPathB("ScreenSystemLayer","aux"));
 --[[
 t[#t+1] = Def.ActorFrame {
 	 	PlayerPane( PLAYER_1 ) .. {
-		InitCommand=cmd(x,scale(0.125,0,1,SCREEN_LEFT,SCREEN_WIDTH);y,SCREEN_BOTTOM-16)
+		InitCommand=function(self)
+			self:x(scale(0.125,0,1,SCREEN_LEFT,SCREEN_WIDTH)):y(SCREEN_BOTTOM-16)
+		end	
 	};
  	CreditsText( PLAYER_1 );
 	CreditsText( PLAYER_2 ); 
@@ -68,16 +78,28 @@ t[#t+1] = Def.ActorFrame {
 	-- Text
 t[#t+1] = Def.ActorFrame {
 	Def.Quad {
-		InitCommand=cmd(zoomtowidth,SCREEN_WIDTH;zoomtoheight,30;horizalign,left;vertalign,top;y,SCREEN_TOP;diffuse,color("0,0,0,0"));
-		OnCommand=cmd(finishtweening;diffusealpha,0.85;);
-		OffCommand=cmd(sleep,3;linear,0.5;diffusealpha,0;);
+		InitCommand=function(self)
+			self:zoomtowidth(SCREEN_WIDTH):zoomtoheight(30):horizalign(left):vertalign(top):y(SCREEN_TOP):diffuse(color("0,0,0,0"))
+		end;
+		OnCommand=function(self)
+			self:finishtweening():diffusealpha(0.85)
+		end;
+		OffCommand=function(self)
+			self:sleep(3):linear(0.5):diffusealpha(0)
+		end;
 	};
 	Def.BitmapText{
 		Font="Common Normal";
 		Name="Text";
-		InitCommand=cmd(maxwidth,750;horizalign,left;vertalign,top;y,SCREEN_TOP+10;x,SCREEN_LEFT+10;shadowlength,1;diffusealpha,0;);
-		OnCommand=cmd(finishtweening;diffusealpha,1;zoom,0.5);
-		OffCommand=cmd(sleep,3;linear,0.5;diffusealpha,0;);
+		InitCommand=function(self)
+			self:maxwidth(750):horizalign(left):vertalign(top):y(SCREEN_TOP+10):x(SCREEN_LEFT+10):shadowlength(1):diffusealpha(0)
+		end;
+		OnCommand=function(self)
+			self:finishtweening():diffusealpha(1):zoom(0.5)
+		end;
+		OffCommand=function(self)
+			self:sleep(3):linear(0.5):diffusealpha(0)
+		end;
 	};
 	SystemMessageMessageCommand = function(self, params)
 		self:GetChild("Text"):settext( params.Message );
@@ -87,7 +109,9 @@ t[#t+1] = Def.ActorFrame {
 		end
 		self:playcommand( "Off" );
 	end;
-	HideSystemMessageMessageCommand = cmd(finishtweening);
+	HideSystemMessageMessageCommand = function(self)
+		self:finishtweening()
+	end;
 };
 
 return t;

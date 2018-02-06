@@ -1,8 +1,14 @@
 local update = false
 local t = Def.ActorFrame{
-	BeginCommand=cmd(queuecommand,"Set";visible,false),
-	OffCommand=cmd(bouncebegin,0.2;xy,-500,0;diffusealpha,0),
-	OnCommand=cmd(bouncebegin,0.2;xy,0,0;diffusealpha,1),
+	BeginCommand=function(self)
+		self:queuecommand("Set"):visible(false)
+	end,
+	OffCommand=function(self)
+		self:bouncebegin(0.2):xy(-500,0):diffusealpha(0)
+	end,
+	OnCommand=function(self)
+		self:bouncebegin(0.2):xy(0,0):diffusealpha(1)
+	end,
 	SetCommand=function(self)
 		self:finishtweening()
 		
@@ -16,8 +22,12 @@ local t = Def.ActorFrame{
 			update = false
 		end
 	end,
-	TabChangedMessageCommand=cmd(queuecommand,"Set"),
-	PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
+	TabChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	PlayerJoinedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
 }
 
 local frameX = 10
@@ -39,7 +49,7 @@ local buttondiffuse = 0
 local buttonheight = 10
 local goalYspacing = 30
 local goalrow2Y = 12
-local currentgoalpage = 1
+local currentgoalpage = {1, 1, 1}
 local numgoalpages = 1
 
 if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
@@ -49,9 +59,15 @@ end
 local playergoals = profile:GetAllGoals()
 local displayindex = {}
 
-t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,frameHeight;halign,0;valign,0;diffuse,color("#333333CC"))}
-t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,offsetY;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,0.5)}
-t[#t+1] = LoadFont("Common Normal")..{InitCommand=cmd(xy,frameX+5,frameY+offsetY-9;zoom,0.6;halign,0;diffuse,getMainColor('positive');settext,"Goal Tracker (WIP)")}
+t[#t+1] = Def.Quad{InitCommand=function(self)
+	self:xy(frameX,frameY):zoomto(frameWidth,frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
+end}
+t[#t+1] = Def.Quad{InitCommand=function(self)
+	self:xy(frameX,frameY):zoomto(frameWidth,offsetY):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(0.5)
+end}
+t[#t+1] = LoadFont("Common Normal")..{InitCommand=function(self)
+	self:xy(frameX+5,frameY+offsetY-9):zoom(0.6):halign(0):diffuse(getMainColor('positive')):settext("Goal Tracker (WIP)")
+end}
 
 -- prolly a clever way to cut this down to like 5 lines - mina
 local function filterDisplay (playergoals)
@@ -117,51 +133,77 @@ local function makescoregoal(i)
 	local goalsteps
 	
 	local t = Def.ActorFrame{
-		InitCommand=cmd(xy,frameX+rankingX,frameY+rankingY+220),
+		InitCommand=function(self)
+			self:xy(frameX+rankingX,frameY+rankingY+220)
+		end,
 		-- Nest actor frames for each goal so we can control spacing from a single point -mina
 		Def.ActorFrame{
 			InitCommand=function(self)
 				self:y((goalsperpage-i)*-goalYspacing)
 			end,
-			Def.Quad{InitCommand=cmd(xy,-16,20;zoomto,frameWidth-10,goalYspacing-2;halign,0;valign,1;diffuse,getMainColor('frames');diffusealpha,0.35)},
+			Def.Quad{
+				InitCommand=function(self)
+					self:xy(-16,20):zoomto(frameWidth-10,goalYspacing-2):halign(0):valign(1):diffuse(getMainColor('frames')):diffusealpha(0.35)
+				end,
+	},
 			LoadFont("Common Large") .. {
-				InitCommand=cmd(xy,-14,goalrow2Y;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,56),
+				InitCommand=function(self)
+					self:xy(-14,goalrow2Y):halign(0):zoom(0.25):diffuse(getMainColor('positive')):maxwidth(56)
+				end,
 				SetCommand=function(self)
 					if update then 
-						sg = playergoals[displayindex[i+( (currentgoalpage - 1) *goalsperpage)]]
+						sg = playergoals[displayindex[i+( (currentgoalpage[goalFilter] - 1) *goalsperpage)]]
 						if sg then
 							-- should do this initialization better -mina
 							ck = sg:GetChartKey()
 							goalsong = SONGMAN:GetSongByChartKey(ck)
 							goalsteps = SONGMAN:GetStepsByChartKey(ck)
-							
-							local diff = goalsteps:GetDifficulty()
-							self:settext(getShortDifficulty(diff))
-							self:diffuse(byDifficulty(diff))
+							if goalsteps and goalsong then
+								local diff = goalsteps:GetDifficulty()
+								self:settext(getShortDifficulty(diff))
+								self:diffuse(byDifficulty(diff))
+							else
+								self:settext("??")
+								self:diffuse(getMainColor('negative'))
+							end
 							self:visible(true)
 						else
 							self:visible(false)
 						end
 					end
 				end,
-				UpdateGoalsMessageCommand=cmd(queuecommand,"Set")
+				UpdateGoalsMessageCommand=function(self)
+					self:queuecommand("Set")
+				end	
 			},
 			LoadFont("Common Large") .. {
-				InitCommand=cmd(x,30;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,600),
+				InitCommand=function(self)
+					self:x(30):halign(0):zoom(0.25):diffuse(getMainColor('positive')):maxwidth(600)
+				end,
 				SetCommand=function(self)
 					if update then
 						if sg then 
-							self:settextf(goalsong:GetDisplayMainTitle())
+							if goalsong then
+								self:settextf(goalsong:GetDisplayMainTitle())
+								self:diffuse(getMainColor('positive'))
+							else
+								self:settext("Song not found")
+								self:diffuse(getMainColor('negative'))
+							end
 							self:visible(true)
 						else
 							self:visible(false)
 						end
 					end
 				end,
-				UpdateGoalsMessageCommand=cmd(queuecommand,"Set")
+				UpdateGoalsMessageCommand=function(self)
+					self:queuecommand("Set")
+				end	
 			},
 			Def.Quad{
-				InitCommand=cmd(x,30;zoomto,150,buttonheight;halign,0;diffuse,getMainColor('frames');diffusealpha,buttondiffuse),
+				InitCommand=function(self)
+					self:x(30):zoomto(150,buttonheight):halign(0):diffuse(getMainColor('frames')):diffusealpha(buttondiffuse)
+				end,
 				MouseLeftClickMessageCommand=function(self)
 					if update and sg then 
 						if isOver(self) then
@@ -176,7 +218,9 @@ local function makescoregoal(i)
 				end
 			},
 			LoadFont("Common Large") .. {
-				InitCommand=cmd(halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,80),
+				InitCommand=function(self)
+					self:halign(0):zoom(0.25):diffuse(getMainColor('positive')):maxwidth(80)
+				end,
 				SetCommand=function(self)
 					if update then 
 						if sg then
@@ -188,10 +232,14 @@ local function makescoregoal(i)
 						end
 					end
 				end,
-				UpdateGoalsMessageCommand=cmd(queuecommand,"Set")
+				UpdateGoalsMessageCommand=function(self)
+					self:queuecommand("Set")
+				end	
 			},
 			Def.Quad{
-				InitCommand=cmd(halign,0;zoomto,28,buttonheight;diffuse,getMainColor('positive');diffusealpha,buttondiffuse),
+				InitCommand=function(self)
+					self:halign(0):zoomto(28,buttonheight):diffuse(getMainColor('positive')):diffusealpha(buttondiffuse)
+				end,
 				MouseLeftClickMessageCommand=function(self)
 					if sg and isOver(self) and update then
 						sg:SetRate(sg:GetRate()+0.1)
@@ -206,7 +254,9 @@ local function makescoregoal(i)
 				end
 			},
 			LoadFont("Common Large") .. {
-				InitCommand=cmd(xy,-6,goalrow2Y;halign,0;zoom,0.2;diffuse,getMainColor('positive')),
+				InitCommand=function(self)
+					self:xy(-6,goalrow2Y):halign(0):zoom(0.2):diffuse(getMainColor('positive'))
+				end,
 				SetCommand=function(self)
 					if update then 
 						if sg then 
@@ -218,10 +268,14 @@ local function makescoregoal(i)
 						self:diffuse(byAchieved(sg))
 					end
 				end,
-				UpdateGoalsMessageCommand=cmd(queuecommand,"Set")
+				UpdateGoalsMessageCommand=function(self)
+					self:queuecommand("Set")
+				end	
 			},
 			LoadFont("Common Large") .. {
-				InitCommand=cmd(xy,30,goalrow2Y;halign,0;zoom,0.2;diffuse,getMainColor('positive')),
+				InitCommand=function(self)
+					self:xy(30,goalrow2Y):halign(0):zoom(0.2):diffuse(getMainColor('positive'))
+				end,
 				SetCommand=function(self)
 					if update then 
 						if sg then 
@@ -244,10 +298,14 @@ local function makescoregoal(i)
 						end
 					end
 				end,
-				UpdateGoalsMessageCommand=cmd(queuecommand,"Set")
+				UpdateGoalsMessageCommand=function(self)
+					self:queuecommand("Set")
+				end	
 			},
 			Def.Quad{
-				InitCommand=cmd(y,goalrow2Y;halign,0;zoomto,25,buttonheight;diffuse,getMainColor('positive');diffusealpha,buttondiffuse),
+				InitCommand=function(self)
+					self:y(goalrow2Y):halign(0):zoomto(25,buttonheight):diffuse(getMainColor('positive')):diffusealpha(buttondiffuse)
+				end,
 				MouseLeftClickMessageCommand=function(self)
 					if sg and isOver(self) and update then
 						sg:SetPercent(sg:GetPercent()+0.01)
@@ -262,10 +320,12 @@ local function makescoregoal(i)
 				end
 			},
 			LoadFont("Common Large") .. {
-				InitCommand=cmd(xy,300,goalrow2Y;halign,0;zoom,0.2;diffuse,getMainColor('positive');maxwidth,80),
+				InitCommand=function(self)
+					self:xy(300,goalrow2Y):halign(0):zoom(0.2):diffuse(getMainColor('positive')):maxwidth(80)
+				end,
 				SetCommand=function(self)
 					if update then 
-						if sg then
+						if sg and goalsteps then
 							local msd = goalsteps:GetMSD(sg:GetRate(), 1)
 							self:settextf("%5.1f", msd)
 							self:diffuse(ByMSD(msd))
@@ -275,10 +335,14 @@ local function makescoregoal(i)
 						end
 					end
 				end,
-				UpdateGoalsMessageCommand=cmd(queuecommand,"Set")
+				UpdateGoalsMessageCommand=function(self)
+					self:queuecommand("Set")
+				end	
 			},
 			LoadFont("Common Large") .. {
-				InitCommand=cmd(x,200;halign,0;zoom,0.2;diffuse,getMainColor('positive');maxwidth,800),
+				InitCommand=function(self)
+					self:x(200):halign(0):zoom(0.2):diffuse(getMainColor('positive')):maxwidth(800)
+				end,
 				SetCommand=function(self)
 					if update then
 						if sg then
@@ -290,10 +354,14 @@ local function makescoregoal(i)
 						self:diffuse(byAchieved(sg))
 					end
 				end,
-				UpdateGoalsMessageCommand=cmd(queuecommand,"Set")
+				UpdateGoalsMessageCommand=function(self)
+					self:queuecommand("Set")
+				end	
 			},
 			LoadFont("Common Large") .. {
-				InitCommand=cmd(xy,200,goalrow2Y;halign,0;zoom,0.2;diffuse,getMainColor('positive');maxwidth,800),
+				InitCommand=function(self)
+					self:xy(200,goalrow2Y):halign(0):zoom(0.2):diffuse(getMainColor('positive')):maxwidth(800)
+				end,
 				SetCommand=function(self)
 					if update then 
 						if sg then 
@@ -311,10 +379,14 @@ local function makescoregoal(i)
 						self:diffuse(byAchieved(sg))
 					end
 				end,
-				UpdateGoalsMessageCommand=cmd(queuecommand,"Set")
+				UpdateGoalsMessageCommand=function(self)
+					self:queuecommand("Set")
+				end	
 			},
 			LoadFont("Common Large") .. {
-				InitCommand=cmd(x,-12;halign,0;zoom,0.25;diffuse,getMainColor('positive');maxwidth,160),
+				InitCommand=function(self)
+					self:x(-12):halign(0):zoom(0.25):diffuse(getMainColor('positive')):maxwidth(160)
+				end,
 				SetCommand=function(self)
 					if update then 
 						if sg then 
@@ -325,10 +397,14 @@ local function makescoregoal(i)
 						end
 					end
 				end,
-				UpdateGoalsMessageCommand=cmd(queuecommand,"Set")
+				UpdateGoalsMessageCommand=function(self)
+					self:queuecommand("Set")
+				end	
 			},
 			Def.Quad{
-				InitCommand=cmd(x,-16;halign,0;zoomto,16,buttonheight;diffuse,getMainColor('positive');diffusealpha,buttondiffuse),
+				InitCommand=function(self)
+					self:x(-16):halign(0):zoomto(16,buttonheight):diffuse(getMainColor('positive')):diffusealpha(buttondiffuse)
+				end,
 				MouseLeftClickMessageCommand=function(self)
 					if sg and isOver(self) and update then
 						sg:SetPriority(sg:GetPriority()+1)
@@ -343,7 +419,9 @@ local function makescoregoal(i)
 				end
 			},
 			Def.Quad{
-				InitCommand=cmd(x,325;halign,0;zoomto,4,4;diffuse,byJudgment('TapNoteScore_Miss');diffusealpha,1),
+				InitCommand=function(self)
+					self:x(325):halign(0):zoomto(4,4):diffuse(byJudgment('TapNoteScore_Miss')):diffusealpha(1)
+				end,
 				MouseLeftClickMessageCommand=function(self)
 					if sg and isOver(self) and update and sg then
 						sg:Delete()
@@ -362,7 +440,9 @@ local fawa = {"All Goals","Completed","Incomplete"}
 local function filterButton(i)
 	local t = Def.ActorFrame{
 		Def.Quad{
-		InitCommand=cmd(xy,20+frameX+rankingX+(i-1+i*(1/(1+3)))*rankingTitleWidth,frameY+rankingY-60;zoomto,rankingTitleWidth,30;halign,0.5;valign,0;diffuse,getMainColor('frames');diffusealpha,0.35),
+		InitCommand=function(self)
+			self:xy(20+frameX+rankingX+(i-1+i*(1/(1+3)))*rankingTitleWidth,frameY+rankingY-60):zoomto(rankingTitleWidth,30):halign(0.5):valign(0):diffuse(getMainColor('frames')):diffusealpha(0.35)
+		end,
 		SetCommand=function(self)
 			if i == goalFilter then
 				self:diffusealpha(1)
@@ -376,10 +456,14 @@ local function filterButton(i)
 				MESSAGEMAN:Broadcast("UpdateGoals")
 			end
 		end,
-		UpdateGoalsMessageCommand=cmd(queuecommand,"Set"),
+		UpdateGoalsMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,20+frameX+rankingX+(i-1+i*(1/(1+3)))*rankingTitleWidth,frameY+rankingY-45;halign,0.5;diffuse,getMainColor('positive');maxwidth,rankingTitleWidth;maxheight,25),
+			InitCommand=function(self)
+				self:xy(20+frameX+rankingX+(i-1+i*(1/(1+3)))*rankingTitleWidth,frameY+rankingY-45):halign(0.5):diffuse(getMainColor('positive')):maxwidth(rankingTitleWidth):maxheight(25)
+			end,
 			BeginCommand=function(self)
 				self:settext(fawa[i])
 			end,
@@ -389,37 +473,51 @@ local function filterButton(i)
 end
 
 r[#r+1] = Def.ActorFrame{
-	InitCommand=cmd(xy,frameX+10,frameY+rankingY+250),
+	InitCommand=function(self)
+		self:xy(frameX+10,frameY+rankingY+250)
+	end,
 	Def.Quad{
-		InitCommand=cmd(xy,300,-8;zoomto,40,20;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,buttondiffuse),
+		InitCommand=function(self)
+			self:xy(300,-8):zoomto(40,20):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(buttondiffuse)
+		end,
 		MouseLeftClickMessageCommand=function(self)
-			if isOver(self) and currentgoalpage < numgoalpages then
-				currentgoalpage = currentgoalpage + 1
+			if isOver(self) and currentgoalpage[goalFilter] < numgoalpages then
+				currentgoalpage[goalFilter] = currentgoalpage[goalFilter] + 1
 				MESSAGEMAN:Broadcast("UpdateGoals")
 			end
 		end
 	},
 	LoadFont("Common Large") .. {
-		InitCommand=cmd(x,300;halign,0;zoom,0.3;diffuse,getMainColor('positive');settext,"Next"),
+		InitCommand=function(self)
+			self:x(300):halign(0):zoom(0.3):diffuse(getMainColor('positive')):settext("Next")
+		end,
 	},	
 	Def.Quad{
-		InitCommand=cmd(y,-8;zoomto,65,20;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,buttondiffuse),
+		InitCommand=function(self)
+			self:y(-8):zoomto(65,20):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(buttondiffuse)
+		end,
 		MouseLeftClickMessageCommand=function(self)
-			if isOver(self) and currentgoalpage > 1 then
-				currentgoalpage = currentgoalpage - 1
+			if isOver(self) and currentgoalpage[goalFilter] > 1 then
+				currentgoalpage[goalFilter] = currentgoalpage[goalFilter] - 1
 				MESSAGEMAN:Broadcast("UpdateGoals")
 			end
 		end
 	},
 	LoadFont("Common Large") .. {
-		InitCommand=cmd(halign,0;zoom,0.3;diffuse,getMainColor('positive');settext,"Previous"),
+		InitCommand=function(self)
+			self:halign(0):zoom(0.3):diffuse(getMainColor('positive')):settext("Previous")
+		end,
 	},
 	LoadFont("Common Large") .. {
-		InitCommand=cmd(x,175;halign,0.5;zoom,0.3;diffuse,getMainColor('positive')),
-		SetCommand=function(self)
-			self:settextf("Showing %i-%i of %i", math.min(((currentgoalpage-1)*goalsperpage)+1, #displayindex), math.min(currentgoalpage*goalsperpage, #displayindex), #displayindex)
+		InitCommand=function(self)
+			self:x(175):halign(0.5):zoom(0.3):diffuse(getMainColor('positive'))
 		end,
-		UpdateGoalsMessageCommand=cmd(queuecommand,"Set"),
+		SetCommand=function(self)
+			self:settextf("Showing %i-%i of %i", math.min(((currentgoalpage[goalFilter]-1)*goalsperpage)+1, #displayindex), math.min(currentgoalpage[goalFilter]*goalsperpage, #displayindex), #displayindex)
+		end,
+		UpdateGoalsMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	}
 }
 

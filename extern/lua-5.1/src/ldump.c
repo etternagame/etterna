@@ -1,5 +1,5 @@
 /*
-** $Id: ldump.c 25893 2007-04-21 20:08:12Z stevecheckoway $
+** $Id: ldump.c,v 2.8.1.1 2007/12/27 13:02:25 roberto Exp $
 ** save precompiled Lua chunks
 ** See Copyright Notice in lua.h
 */
@@ -42,7 +42,7 @@ static void DumpChar(int y, DumpState* D)
  DumpVar(x,D);
 }
 
-static void DumpInt(uint32_t x, DumpState* D)
+static void DumpInt(int x, DumpState* D)
 {
  DumpVar(x,D);
 }
@@ -62,12 +62,13 @@ static void DumpString(const TString* s, DumpState* D)
 {
  if (s==NULL || getstr(s)==NULL)
  {
-  DumpInt(0,D);
+  size_t size=0;
+  DumpVar(size,D);
  }
  else
  {
-  lu_int32 size=s->tsv.len+1;		/* include trailing '\0' */
-  DumpInt(size,D);
+  size_t size=s->tsv.len+1;		/* include trailing '\0' */
+  DumpVar(size,D);
   DumpBlock(getstr(s),size,D);
  }
 }
@@ -111,7 +112,7 @@ static void DumpDebug(const Proto* f, DumpState* D)
 {
  int i,n;
  n= (D->strip) ? 0 : f->sizelineinfo;
- DumpVector(f->lineinfo,n,sizeof(uint32_t),D);
+ DumpVector(f->lineinfo,n,sizeof(int),D);
  n= (D->strip) ? 0 : f->sizelocvars;
  DumpInt(n,D);
  for (i=0; i<n; i++)

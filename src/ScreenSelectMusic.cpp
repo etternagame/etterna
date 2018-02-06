@@ -24,8 +24,7 @@
 #include "Style.h"
 #include "PlayerState.h"
 #include "CommonMetrics.h"
-#include "BannerCache.h"
-//#include "BackgroundCache.h"
+#include "ImageCache.h"
 #include "ScreenPrompt.h"
 #include "Song.h"
 #include "InputEventPlus.h"
@@ -148,7 +147,7 @@ void ScreenSelectMusic::Init()
 	m_TexturePreload.Load(m_sFallbackCDTitlePath);
 
 	// load banners
-	if (PREFSMAN->m_BannerCache != BNCACHE_OFF)
+	if (PREFSMAN->m_ImageCache != IMGCACHE_OFF)
 	{
 		m_TexturePreload.Load(Banner::SongBannerTexture(THEME->GetPathG("Banner", "all music")));
 		m_TexturePreload.Load(Banner::SongBannerTexture(THEME->GetPathG("Common", "fallback banner")));
@@ -156,22 +155,9 @@ void ScreenSelectMusic::Init()
 		m_TexturePreload.Load(Banner::SongBannerTexture(THEME->GetPathG("Banner", "random")));
 		m_TexturePreload.Load(Banner::SongBannerTexture(THEME->GetPathG("Banner", "mode")));
 	}
-	// load backgrounds
-	/*
-	if( PREFSMAN->m_BackgroundCache != BGCACHE_OFF )
-	{
-	m_TexturePreload.Load( Sprite::SongBGTexture(THEME->GetPathG("SongBackgroundItem","AllMusic")) );
-	m_TexturePreload.Load( Sprite::SongBGTexture(THEME->GetPathG("Common","fallback banner")) );
-	m_TexturePreload.Load( Sprite::SongBGTexture(THEME->GetPathG("SongBackgroundItem","roulette")) );
-	m_TexturePreload.Load( Sprite::SongBGTexture(THEME->GetPathG("SongBackgroundItem","random")) );
-	m_TexturePreload.Load( Sprite::SongBGTexture(THEME->GetPathG("SongBackgroundItem","Mode")) );
-	m_TexturePreload.Load( Sprite::SongBGTexture(THEME->GetPathG("SongBackgroundItem","group fallback")) );
-	}
-	*/
 
 	// Load low-res banners and backgrounds if needed.
-	BANNERCACHE->Demand();
-	//BACKGROUNDCACHE->Demand();
+	IMAGECACHE->Demand("Banner");
 
 	// build the playlist groups here, songmanager's init from disk can't because 
 	// profiles aren't loaded until after that's done -mina
@@ -297,14 +283,18 @@ void ScreenSelectMusic::BeginScreen()
 
 	SOUND->PlayOnceFromAnnouncer("select music intro");
 
+	if (GAMESTATE->IsPlaylistCourse()) {
+		GAMESTATE->isplaylistcourse = false;
+		SONGMAN->playlistcourse = "";
+	}
+
 	ScreenWithMenuElements::BeginScreen();
 }
 
 ScreenSelectMusic::~ScreenSelectMusic()
 {
 	LOG->Trace("ScreenSelectMusic::~ScreenSelectMusic()");
-	BANNERCACHE->Undemand();
-	//BACKGROUNDCACHE->Undemand();
+	IMAGECACHE->Undemand("Banner");
 }
 
 // If bForce is true, the next request will be started even if it might cause a skip.
@@ -411,12 +401,17 @@ void ScreenSelectMusic::Update(float fDeltaTime)
 			m_timerIdleComment.GetDeltaTime();
 		}
 	}
-
 	ScreenWithMenuElements::Update(fDeltaTime);
 
 	CheckBackgroundRequests(false);
 }
 
+void ScreenSelectMusic::DifferentialReload()
+{
+	int newsongs = SONGMAN->DifferentialReload();
+	SCREENMAN->SystemMessage(ssprintf("Differential reload of %i songs", newsongs));
+	m_MusicWheel.ReloadSongList(false, "");
+}
 
 bool ScreenSelectMusic::Input(const InputEventPlus &input)
 {
@@ -495,7 +490,7 @@ bool ScreenSelectMusic::Input(const InputEventPlus &input)
 		}
 		else if (bHoldingCtrl && c == 'M' && m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS)
 		{
-			// Favorite the currently selected song. -Not Kyz
+			// PermaMirror the currently selected song. -Not Kyz
 			Song* alwaysmirrorsmh = m_MusicWheel.GetSelectedSong();
 			if (alwaysmirrorsmh) {
 				Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
@@ -529,9 +524,7 @@ bool ScreenSelectMusic::Input(const InputEventPlus &input)
 		}
 		else if (bHoldingCtrl && c == 'Q' && m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS)
 		{
-			int newsongs = SONGMAN->DifferentialReload();
-			m_MusicWheel.ReloadSongList(false, "");
-			SCREENMAN->SystemMessage(ssprintf("Differential reload of %i songs", newsongs));
+			DifferentialReload();
 			return true;
 		}
 		else if (bHoldingCtrl && c == 'S' && m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS)
@@ -552,7 +545,7 @@ bool ScreenSelectMusic::Input(const InputEventPlus &input)
 				return true;
 
 			SONGMAN->allplaylists[SONGMAN->activeplaylist].AddChart(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
-			MESSAGEMAN->Broadcast("DisplayPlaylist");
+			MESSAGEMAN->Broadcast("DisplaySinglePlaylist");
 			SCREENMAN->SystemMessage(ssprintf("Added chart: %s to playlist: %s", GAMESTATE->m_pCurSong->GetDisplayMainTitle().c_str(), SONGMAN->activeplaylist.c_str()));
 			return true;
 		}

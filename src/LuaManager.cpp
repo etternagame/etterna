@@ -1,4 +1,4 @@
-#include "global.h"
+﻿#include "global.h"
 #include "LuaManager.h"
 #include "LuaReference.h"
 #include "RageUtil.h"
@@ -635,11 +635,11 @@ LuaManager::LuaManager()
 	lua_pushcfunction( L, luaopen_table ); lua_call( L, 0, 0 );
 	lua_pushcfunction( L, luaopen_debug ); lua_call( L, 0, 0 );
 	lua_pushcfunction( L, luaopen_package ); lua_call( L, 0, 0 ); // this one seems safe -shake
+	lua_pushcfunction( L, luaopen_os ); lua_call( L, 0, 0 );
 	// these two can be dangerous. don't use them
 	// (unless you know what you are doing). -aj
 #if 0
 	lua_pushcfunction( L, luaopen_io ); lua_call( L, 0, 0 );
-	lua_pushcfunction( L, luaopen_os ); lua_call( L, 0, 0 );
 #endif
 
 	// Store the thread pool in a table on the stack, in the main thread.
@@ -1413,7 +1413,8 @@ void LuaHelpers::ParseCommandList( Lua *L, const std::string &sCommands, const s
 int LuaHelpers::TypeError( Lua *L, int iArgNo, std::string const &szName )
 {
 	std::string sType;
-	luaL_pushtype( L, iArgNo );
+	if (!luaL_callmeta(L, iArgNo, "__type"))
+		lua_pushstring(L, luaL_typename(L, iArgNo));
 	LuaHelpers::Pop( L, sType );
 
 	lua_Debug debug;

@@ -28,7 +28,7 @@ enum Skillset {
 	Skill_Handstream,
 	Skill_Stamina,
 	Skill_JackSpeed,
-	Skill_JackStamina,
+	Skill_Chordjack,
 	Skill_Technical,
 	NUM_Skillset,
 	Skillset_Invalid,
@@ -172,6 +172,14 @@ enum SortOrder
 	SORT_MODE_MENU, /**< Have access to the menu for choosing the sort. */
 	SORT_RECENT,
 	SORT_FAVORITES,
+	SORT_Overall,
+	SORT_Stream,
+	SORT_Jumpstream,
+	SORT_Handstream,
+	SORT_Stamina,
+	SORT_JackSpeed,
+	SORT_Chordjack,
+	SORT_Technical,
 	NUM_SortOrder,
 	SortOrder_Invalid
 };

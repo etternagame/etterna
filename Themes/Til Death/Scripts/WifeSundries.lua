@@ -61,7 +61,7 @@ ms.SkillSets = {
 	"Handstream", 
 	"Stamina",
 	"JackSpeed",
-	"JackStamina",
+	"Chordjack",
 	"Technical"
 }
 
@@ -72,7 +72,7 @@ ms.SkillSetsShort = {
 	"HS", 
 	"Stam",
 	"Jack Speed",
-	"Jack Stam",
+	"Chordjack",
 	"Tech"
 }
 
@@ -102,25 +102,46 @@ end
 
 function wifeMean(t)
 	local c = #t
+	local m = 0
 	if c == 0 then return 0 end
 	local o = 0
 	for i=1,c do 
 		if t[i] ~= 1000 then
 			o = o + t[i]
+		else
+			m = m + 1
 		end
 	end
-	return o/c
+	return o/(c-m)
+end
+
+function wifeAbsMean(t)
+	local c = #t
+	local m = 0
+	if c == 0 then return 0 end
+	local o = 0
+	for i=1,c do 
+		if t[i] ~= 1000 then
+			o = o + math.abs(t[i])
+		else
+			m = m + 1
+		end
+	end
+	return o/(c-m)
 end
 
 function wifeSd(t)
 	local u = wifeMean(t)
 	local u2 = 0
+	local m = 0
 	for i=1,#t do
 		if t[i] ~= 1000 then
 			u2 = u2 + (t[i]-u)^2
+		else
+			m = m + 1
 		end
 	end
-	return math.sqrt(u2/(#t-1))
+	return math.sqrt(u2/(#t-1-m))
 end
 
 function wifeRange(t)

@@ -11,6 +11,7 @@
 #include "SongOptions.h"
 #include "SongPosition.h"
 #include "Preference.h"
+#include "discord-rpc.h"
 
 #include <map>
 #include <deque>
@@ -201,7 +202,7 @@ public:
 
 	static int GetNumStagesMultiplierForSong( const Song* pSong );
 	static int GetNumStagesForSongAndStyleType( const Song* pSong, StyleType st );
-	int GetNumStagesForCurrentSongAndStepsOrCourse() const;
+	int GetNumStagesForCurrentSongAndStepsOrCourse() const;
 
 	void		BeginStage();
 	void		CancelStage();
@@ -211,9 +212,9 @@ public:
 	RString		GetPlayerDisplayName( PlayerNumber pn ) const;
 
 	bool		m_bLoadingNextSong;
-	int		GetLoadingCourseSongIndex() const;
+	int		GetLoadingCourseSongIndex() const;
 
-	RString GetEtternaVersion() { return "0.55.3"; }
+	RString GetEtternaVersion() { return "0.58.0"; }
 	bool isplaylistcourse = false;
 	bool IsPlaylistCourse() { return isplaylistcourse; }
 	bool CountNotesSeparately();
@@ -344,6 +345,11 @@ public:
 	Profile* GetEditLocalProfile();
 
 	bool m_bDopefish;
+
+	// Discord Rich Presence
+	void discordInit();
+	void updateDiscordPresence( const RString &largeImageText, const RString &details, const RString &state, const int64_t endTime );
+	void updateDiscordPresenceMenu( const RString &largeImageText );
 
 	// Lua
 	void PushSelf( lua_State *L );

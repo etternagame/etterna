@@ -22,7 +22,10 @@ local defaultConfig = {
 	ReceptorSize = 100,
 	BackgroundType = 1,
 	ProgressBarPos = 1, --moved from theme options into here, 1 = top; 0 = bottom
+	UserName = "",
+	Password = "",
 	CustomizeGameplay = false,
+	CustomEvaluationWindowTimings = false,
 	GameplayXYCoordinates = {
 		JudgeX = 0,
 		JudgeY = 40,

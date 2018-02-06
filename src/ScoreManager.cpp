@@ -80,6 +80,18 @@ const vector<HighScore*> ScoresAtRate::GetScores() const {
 }
 */
 
+void ScoreManager::PurgeScores() {
+	TopSSRs.clear();
+	TopSSRs.shrink_to_fit();
+
+	AllScores.clear();
+	AllScores.shrink_to_fit();
+
+	ScoresByKey.clear();
+
+	pscores.clear();
+}
+
 void ScoreManager::RatingOverTime() {
 	auto compdate = [](HighScore* a, HighScore* b) { return (a->GetDateTime() < b->GetDateTime()); };
 
@@ -150,6 +162,9 @@ void ScoresForChart::AddScore(HighScore& hs) {
 	float rate = hs.GetMusicRate();
 	int key = RateToKey(rate);
 	ScoresByRate[key].AddScore(hs);
+	// ok let's try this --lurker
+	SetTopScores();
+	hs.SetTopScore(ScoresByRate[key].scores[hs.GetScoreKey()].GetTopScore());
 }
 
 vector<float> ScoresForChart::GetPlayedRates() {
@@ -184,12 +199,50 @@ string ScoresForChart::RateKeyToDisplayString(float rate) {
 	return rs;
 }
 
+// seems like this could be handled more elegantly by splitting operations up -mina
+void ScoresForChart::SetTopScores() {
+	vector<HighScore*> eligiblescores;
+	FOREACHM(int, ScoresAtRate, ScoresByRate, i) {
+		auto& hs = i->second.noccPBptr;
+			if (hs && hs->GetSSRCalcVersion() == GetCalcVersion() && hs->GetEtternaValid() && hs->GetChordCohesion() == 0 && hs->GetGrade() != Grade_Failed)
+				eligiblescores.emplace_back(hs);
+	}
+
+	if (eligiblescores.empty())
+		return;
+
+	if (eligiblescores.size() == 1) {
+		eligiblescores[0]->SetTopScore(1);
+		return;
+	}	
+
+	else{
+		auto ssrcomp = [](HighScore* a, HighScore* b) { return (a->GetSkillsetSSR(Skill_Overall) > b->GetSkillsetSSR(Skill_Overall)); };
+		sort(eligiblescores.begin(), eligiblescores.end(), ssrcomp);
+
+		for (auto hs : eligiblescores)
+			hs->SetTopScore(0);
+
+		eligiblescores[0]->SetTopScore(1);
+		eligiblescores[1]->SetTopScore(2);
+	}
+}
 
 vector<HighScore*> ScoresForChart::GetAllPBPtrs() {
 	vector<HighScore*> o;
 	FOREACHM(int, ScoresAtRate, ScoresByRate, i)
 		o.emplace_back(i->second.PBptr);
 	return o;
+}
+
+vector<vector<HighScore*>> ScoreManager::GetAllPBPtrs() {
+	vector<vector<HighScore*>> vec;
+	FOREACHUM(string, ScoresForChart, pscores, i) {
+		if (!SONGMAN->IsChartLoaded(i->first))
+			continue;
+		vec.emplace_back(i->second.GetAllPBPtrs());
+	}
+	return vec;
 }
 
 HighScore* ScoreManager::GetChartPBAt(const string& ck, float& rate) {
@@ -204,8 +257,33 @@ HighScore* ScoreManager::GetChartPBUpTo(const string& ck, float& rate) {
 	return NULL;
 }
 
+void ScoreManager::SetAllTopScores() { 
+	FOREACHUM(string, ScoresForChart, pscores, i) {
+		if (!SONGMAN->IsChartLoaded(i->first))
+			continue;
+		i->second.SetTopScores();
+	}
+}
 
-
+bool ScoresAtRate::HandleNoCCPB(HighScore& hs) {
+	// lurker says:
+	// don't even TRY to fuck with nocc pb unless the score is nocc
+	if (hs.GetChordCohesion() == 0) {
+		// Set any nocc pb
+		if (noccPBptr == nullptr) {
+			noccPBptr = &hs;
+			return true;
+		}
+		else {
+			// update nocc pb if a better score is found
+			if (noccPBptr->GetSSRNormPercent() < hs.GetSSRNormPercent()) {
+				noccPBptr = &hs;
+				return true;
+			}
+		}
+	}
+	return false;
+}
 static const float ld_update = 0.02f;
 void ScoreManager::RecalculateSSRs(LoadingWindow *ld) {
 	RageTimer ld_timer;
@@ -294,32 +372,27 @@ void ScoreManager::EnableAllScores() {
 }
 
 void ScoreManager::CalcPlayerRating(float& prating, float* pskillsets) {
+	SetAllTopScores();
+
 	vector<float> skillz;
 	FOREACH_ENUM(Skillset, ss) {
 		// actually skip overall, and jack stamina for now
-		if (ss == Skill_Overall || ss == Skill_JackStamina)
+		if (ss == Skill_Overall)
 			continue;
 
 		SortTopSSRPtrs(ss);
-		pskillsets[ss] = AggregateSSRs(ss, 0.f, 10.24f, 1)*0.975f;
+		pskillsets[ss] = AggregateSSRs(ss, 0.f, 10.24f, 1) * 1.04f;
 		CLAMP(pskillsets[ss], 0.f, 100.f);
 		skillz.push_back (pskillsets[ss]);
 	}
 
 	sort(skillz.begin(), skillz.end());
 
-	skillz[0] *= 0.1f;
-	skillz[1] *= 0.1f;
-	skillz[2] *= 0.1f;
-	skillz[3] *= 0.1f;
-	skillz[4] *= 0.25f;
-	skillz[5] *= 0.35f;
-
 	float skillsetsum = 0.f;
-	for (auto& n : skillz)
-		skillsetsum += n;
+	for (size_t i = 1; i < skillz.size(); ++i)	// drop the lowest skillset
+		skillsetsum += skillz[i];
 
-	prating = skillsetsum;
+	prating = skillsetsum / 6.f;
 }
 
 // perhaps we will need a generalized version again someday, but not today
@@ -329,8 +402,8 @@ float ScoreManager::AggregateSSRs(Skillset ss, float rating, float res, int iter
 		rating += res;
 		sum = 0.0;
 		for (int i = 0; i < static_cast<int>(TopSSRs.size()); i++) {
-			if(TopSSRs[i]->GetSSRCalcVersion() == GetCalcVersion() && TopSSRs[i]->GetEtternaValid())
-				sum += max(0.0, 2.f / erfc(0.1*(TopSSRs[i]->GetSkillsetSSR(ss) - rating)) - 1.5);
+			if(TopSSRs[i]->GetSSRCalcVersion() == GetCalcVersion() && TopSSRs[i]->GetEtternaValid() && TopSSRs[i]->GetChordCohesion() == 0 && TopSSRs[i]->GetTopScore() != 0)
+				sum += max(0.0, 2.f / erfc(0.1*(TopSSRs[i]->GetSkillsetSSR(ss) - rating)) - 2);
 		}
 	} while (pow(2, rating * 0.1) < sum);
 	if (iter == 11)
@@ -449,18 +522,7 @@ void ScoresAtRate::LoadFromNode(const XNode* node, const string& ck, const float
 				PBptr = &scores.find(sk)->second;
 		}
 
-		// lurker says:
-		// don't even TRY to fuck with nocc pb unless the score is nocc
-		if (scores[sk].GetChordCohesion() == 0) {
-			// Set any nocc pb
-			if (noccPBptr == nullptr)
-				noccPBptr = &scores.find(sk)->second;
-			else {
-				// update nocc pb if a better score is found
-				if (noccPBptr->GetSSRNormPercent() < scores[sk].GetSSRNormPercent())
-					noccPBptr = &scores.find(sk)->second;
-			}
-		}
+		HandleNoCCPB(scores[sk]);
 
 		// Fill in stuff for the highscores
 		scores[sk].SetChartKey(ck);

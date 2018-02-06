@@ -483,6 +483,8 @@ public:
 	float WhereUAtBroNoOffset(float beat);
 	float WhereUAtBro(int row);
 
+	vector<float> ConvertReplayNoteRowsToTimestamps(vector<int> nrv, float rate);
+
 	bool ValidSequentialAssumption = true;
 	void InvalidateSequentialAssmption() { ValidSequentialAssumption = false; }
 	bool IsSequentialAssumptionValid() { return  ValidSequentialAssumption; }

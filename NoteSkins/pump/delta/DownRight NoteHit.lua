@@ -1,3 +1,5 @@
 return NOTESKIN:LoadActor("DownLeft","NoteHit")..{
-	OnCommand=cmd(x,-2;zoomx,-1);
+	OnCommand=function(self)
+		self:x(-2):zoomx(-1)
+	end;
 }

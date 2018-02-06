@@ -44,7 +44,6 @@ const RString SCREENSHOTS_SUBDIR   = "Screenshots/";
 const RString EDIT_STEPS_SUBDIR    = "Edits/";
 //const RString UPLOAD_SUBDIR         = "Upload/";
 const RString RIVAL_SUBDIR         = "Rivals/";
-const RString REPLAY_SUBDIR	       = "ReplayData/";
 
 ThemeMetric<bool> SHOW_COIN_DATA( "Profile", "ShowCoinData" );
 static Preference<bool> g_bProfileDataCompress( "ProfileDataCompress", false );
@@ -804,9 +803,9 @@ void Profile::HandleStatsPrefixChange(RString dir, bool require_signature)
 	}
 }
 
+static const float ld_update = 0.02f;
 ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSignature, LoadingWindow* ld)
 {
-	FILEMAN->CreateDir(sDir + REPLAY_SUBDIR);
 	LOG->Trace( "Profile::LoadAllFromDir( %s )", sDir.c_str() );
 	ASSERT( sDir.Right(1) == "/" );
 
@@ -827,7 +826,35 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 		ImportScoresToEtterna();
 	}
 
-	CalculateStatsFromScores(ld);
+	// move old profile specific replays to the new aggregate folder
+	RString oldreplaydir = sDir + "ReplayData/";
+
+	if (FILEMAN->IsADirectory(oldreplaydir)) {
+		vector<RString> replays;
+		GetDirListing(oldreplaydir, replays);
+
+		if (!replays.empty()) {
+			RageTimer ld_timer;
+			if (ld) {
+				ld_timer.Touch();
+				ld->SetIndeterminate(false);
+				ld->SetTotalWork(replays.size());
+				ld->SetText("Migrating replay data to new folder...");
+			}
+			int replayindex = 0;
+			
+			for (auto r : replays) {
+				if (ld && ld_timer.Ago() > ld_update) {
+					ld_timer.Touch();
+					ld->SetProgress(replayindex);
+					++replayindex;
+				}
+				FILEMAN->Move(oldreplaydir + r, "Save/Replays/" + r);
+			}
+		}
+	}
+
+	CalculateStatsFromScores(ld);		// note to self: figure out how to tell if this is necessary
 	return ProfileLoadResult_Success;
 }
 
@@ -945,6 +972,130 @@ ProfileLoadResult Profile::LoadEttFromDir(RString dir) {
 	return LoadEttXmlFromNode(&xml);
 }
 
+ProfileLoadResult Profile::EoBatchRecalc(const RString &sDir, LoadingWindow* ld) {
+	LOG->Trace("Profile::LoadAllFromDir( %s )", sDir.c_str());
+	ASSERT(sDir.Right(1) == "/");
+
+	InitAll();
+	LoadTypeFromDir(sDir);
+	// Not critical if this fails
+	LoadEditableDataFromDir(sDir);
+
+	RString batchdir = sDir;
+	vector<RString> profs;
+	GetDirListing(sDir, profs, false, true);
+
+	for (auto p : profs) {
+		if (p.Right(3) != "xml")
+			continue;
+
+		if (p.Right(11).MakeLower() == "etterna.xml" || p.Right(9).MakeLower() == "stats.xml")
+			continue;
+
+		RString profid = p.substr(p.find_last_of('/'));
+		RString newpath = "/BatchRecalc/" + profid;
+
+		// skip recalc unless batchfolder doesnt have an updated file
+		if (FILEMAN->IsAFile(newpath))
+			continue;
+
+		int iError;
+		unique_ptr<RageFileBasic> pFile(FILEMAN->Open(p, RageFile::READ, iError));
+		if (pFile.get() == NULL) {
+			LOG->Trace("Error opening %s: %s", p.c_str(), strerror(iError));
+			continue;
+		}
+
+		LOG->Trace("Loading %s", p.c_str());
+
+		XNode xml;
+		if (!XmlFileUtil::LoadFromFileShowErrors(xml, *pFile.get()))
+			continue;
+		LOG->Trace("Done.");
+
+		LoadEttXmlFromNodeForBatchRecalc(&xml, p);
+		CalculateStatsFromScores(ld);
+
+		SaveEttXmlToDirForBatchRecalc(newpath);
+		InitAll();
+		SCOREMAN->PurgeScores();
+	}
+
+	return ProfileLoadResult_Success;
+}
+
+ProfileLoadResult Profile::LoadEttXmlFromNodeForBatchRecalc(const XNode *xml, RString p) {
+	/* The placeholder stats.xml file has an <html> tag. Don't load it,
+	* but don't warn about it. */
+	if (xml->GetName() == "html")
+		return ProfileLoadResult_FailedNoProfile;
+
+	if (xml->GetName() != "Stats")
+	{
+		WARN_M(xml->GetName());
+		return ProfileLoadResult_FailedTampered;
+	}
+
+	const XNode* gen = xml->GetChild("GeneralData");
+	if (gen)
+		LoadEttGeneralDataFromNode(gen);
+
+	const XNode* favs = xml->GetChild("Favorites");
+	if (favs)
+		LoadFavoritesFromNode(favs);
+
+	const XNode* pmir = xml->GetChild("PermaMirror");
+	if (pmir)
+		LoadPermaMirrorFromNode(pmir);
+
+	const XNode* goals = xml->GetChild("ScoreGoals");
+	if (goals)
+		LoadScoreGoalsFromNode(goals);
+
+	const XNode* play = xml->GetChild("Playlists");
+	if (play)
+		LoadPlaylistsFromNode(play);
+
+	const XNode* scores = xml->GetChild("PlayerScores");
+	if (scores)
+		LoadEttScoresFromNode(scores);
+
+	return ProfileLoadResult_Success;
+}
+
+bool Profile::SaveEttXmlToDirForBatchRecalc(RString p) const {
+	LOG->Trace("Saving Etterna Profile to: %s", p.c_str());
+	unique_ptr<XNode> xml(SaveEttXmlCreateNode());
+	// Save Etterna.xml
+	RString fn = p;
+	{
+		RString sError;
+		RageFile f;
+		if (!f.Open(fn, RageFile::WRITE))
+		{
+			LuaHelpers::ReportScriptErrorFmt("Couldn't open %s for writing: %s", fn.c_str(), f.GetError().c_str());
+			return false;
+		}
+
+		if (g_bProfileDataCompress)
+		{
+			RageFileObjGzip gzip(&f);
+			gzip.Start();
+			if (!XmlFileUtil::SaveToFile(xml.get(), gzip, "", false))
+				return false;
+
+			if (gzip.Finish() == -1)
+				return false;
+		}
+		else
+		{
+			if (!XmlFileUtil::SaveToFile(xml.get(), f, "", false))
+				return false;
+		}
+	}
+
+	return true;
+}
 
 void Profile::LoadTypeFromDir(const RString &dir)
 {
@@ -1092,7 +1243,7 @@ void Profile::CalculateStatsFromScores() {
 		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W4);
 		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W5);
 		m_iTotalMines += hs->GetTapNoteScore(TNS_HitMine);
-		hs->GetHoldNoteScore(HNS_Held);
+		m_iTotalTapsAndHolds += hs->GetHoldNoteScore(HNS_Held);
 	}
 
 	m_iNumTotalSongsPlayed = all.size();
@@ -1116,7 +1267,6 @@ bool Profile::SaveAllToDir( const RString &sDir, bool bSignData ) const
 	
 	// Empty directories if none exist.
 	FILEMAN->CreateDir( sDir + SCREENSHOTS_SUBDIR );
-	FILEMAN->CreateDir( sDir + REPLAY_SUBDIR);
 	
 	return bSaved;
 }
@@ -2136,6 +2286,8 @@ XNode* Profile::SaveEttScoresCreateNode() const {
 
 	const Profile* pProfile = this;
 	ASSERT(pProfile != NULL);
+
+	//SCOREMAN->SetAllTopScores(); if this isn't already settled before you save the xml what the fuck are you doing -lurker
 	XNode* pNode = SCOREMAN->CreateNode();
 	return pNode;
 }

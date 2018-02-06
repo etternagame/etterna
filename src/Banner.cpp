@@ -1,6 +1,6 @@
 #include "global.h"
 #include "Banner.h"
-#include "BannerCache.h"
+#include "ImageCache.h"
 #include "SongManager.h"
 #include "RageUtil.h"
 #include "Song.h"
@@ -55,7 +55,7 @@ void Banner::LoadFromCachedBanner( const RString &sPath )
 	}
 
 	RageTextureID ID;
-	bool bLowRes = (PREFSMAN->m_BannerCache != BNCACHE_FULL);
+	bool bLowRes = (PREFSMAN->m_ImageCache != IMGCACHE_FULL);
 	if( !bLowRes )
 	{
 		ID = Sprite::SongBannerTexture( sPath );
@@ -63,7 +63,7 @@ void Banner::LoadFromCachedBanner( const RString &sPath )
 	else
 	{
 		// Try to load the low quality version.
-		ID = BANNERCACHE->LoadCachedBanner( sPath );
+		ID = IMAGECACHE->LoadCachedImage( "Banner", sPath );
 	}
 
 	if( TEXTUREMAN->IsTextureRegistered(ID) )

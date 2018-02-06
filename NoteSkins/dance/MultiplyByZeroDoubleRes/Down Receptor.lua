@@ -9,7 +9,9 @@ local t = Def.ActorFrame {
 		Delay0000=0.2;
 		Frame0001=1;
 		Delay0001=0.8;
-		InitCommand=cmd(effectclock,"beat");
+		InitCommand=function(self)
+			self:effectclock("beat")
+		end;
 		NoneCommand=NOTESKIN:GetMetricA("ReceptorArrow", "NoneCommand");
 		PressCommand=NOTESKIN:GetMetricA("ReceptorArrow", "PressCommand");
 		LiftCommand=NOTESKIN:GetMetricA("ReceptorArrow", "LiftCommand");

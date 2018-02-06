@@ -38,7 +38,9 @@ Def.ActorScroller{
 			Name="ScrollItem1",
 			Font="Common Normal",
 			Text="Scroll Item 1",
-			InitCommand=cmd(diffuse,color("#FF0000")),
+			InitCommand=function(self)
+				self:diffuse(color("#FF0000"))
+			end,
 		},
 	},
 	Def.ActorFrame{
@@ -46,17 +48,25 @@ Def.ActorScroller{
 			Name="ScrollItem2",
 			Font="Common Normal",
 			Text="Scroll Item 2",
-			InitCommand=cmd(glow,color("#00FF0088")),
+			InitCommand=function(self)
+				self:glow(color("#00FF0088"))
+			end,
 		},
 	},
 	Def.BitmapText{
 		Name="ScrollItem3",
 		Font="Common Normal",
 		Text="Scroll Item 3",
-		InitCommand=cmd(bob;effectmagnitude,8,0,4),
+		InitCommand=function(self)
+			self:bob():effectmagnitude(8,0,4)
+		end,
 	},
 
 	-- Scroller commands
-	InitCommand=cmd(Center),
-	OnCommand=cmd(scrollwithpadding,8,8),
+	InitCommand=function(self)
+		self:Center()
+	end,
+	OnCommand=function(self)
+		self:scrollwithpadding(8,8)
+	end,
 }

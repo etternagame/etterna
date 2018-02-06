@@ -38,7 +38,7 @@ enum KeyboardRowSpecialKey
 class ScreenTextEntry : public ScreenWithMenuElements
 {
 public:
-	static void SetTextEntrySettings( 
+	void SetTextEntrySettings( 
 		RString sQuestion, 
 		RString sInitialAnswer, 
 		int iMaxInputLength, 
@@ -49,6 +49,22 @@ public:
 		bool (*ValidateAppend)(const RString &sAnswerBeforeChar, const RString &sAppend) = NULL,
 		RString (*FormatAnswerForDisplay)(const RString &sAnswer) = NULL
 		);
+	void SetTextEntrySettings(
+		RString sQuestion,
+		RString sInitialAnswer,
+		int iMaxInputLength,
+		LuaReference,
+		LuaReference,
+		LuaReference,
+		LuaReference,
+		LuaReference,
+		bool(*Validate)(const RString &sAnswer, RString &sErrorOut) = NULL,
+		void(*OnOK)(const RString &sAnswer) = NULL,
+		void(*OnCancel)() = NULL,
+		bool bPassword = false,
+		bool(*ValidateAppend)(const RString &sAnswerBeforeChar, const RString &sAppend) = NULL,
+		RString(*FormatAnswerForDisplay)(const RString &sAnswer) = NULL
+	);
 	static void TextEntry( 
 		ScreenMessage smSendOnPop, 
 		RString sQuestion, 
@@ -97,6 +113,24 @@ public:
 
 	static bool FloatValidate( const RString &sAnswer, RString &sErrorOut );
 	static bool IntValidate( const RString &sAnswer, RString &sErrorOut );
+
+
+	RString sQuestion{""};
+	RString sInitialAnswer{""};
+	int iMaxInputLength{0};
+	bool(*pValidate)(const RString &sAnswer, RString &sErrorOut) { NULL };
+	void(*pOnOK)(const RString &sAnswer) { NULL };
+	void(*pOnCancel)() { NULL };
+	bool bPassword{false};
+	bool(*pValidateAppend)(const RString &sAnswerBeforeChar, const RString &sAppend) { NULL };
+	RString(*pFormatAnswerForDisplay)(const RString &sAnswer) {NULL};
+
+	// Lua bridge
+	LuaReference ValidateFunc;
+	LuaReference OnOKFunc;
+	LuaReference OnCancelFunc;
+	LuaReference ValidateAppendFunc;
+	LuaReference FormatAnswerForDisplayFunc;
 
 	void Init() override;
 	void BeginScreen() override;

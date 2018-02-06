@@ -252,7 +252,7 @@ void InputFilter::CheckButtonChange( ButtonState &bs, DeviceInput di, const std:
 	 * If the input was coin, possibly apply distinct coin debounce in the else below. */
 	std::chrono::duration<float> timeDelta = now - bs.m_LastReportTime;
 	float delta = timeDelta.count();
-	if (! INPUTMAPPER->DeviceToGame(di, gi) || gi.button != GAME_BUTTON_COIN )
+	if (! INPUTMAPPER->DeviceToGame(di, gi) && di.button != MOUSE_WHEELDOWN && di.button != MOUSE_WHEELUP)
 	{
 		/* If the last IET_FIRST_PRESS or IET_RELEASE event was sent too recently,
 		 * wait a while before sending it. */
@@ -498,12 +498,21 @@ public:
 		lua_pushnumber( L, fZ );
 		return 1;
 	}
-
+	static int IsBeingPressed(T* p, lua_State *L) {
+		if (lua_isnil(L, 1)) {
+			return luaL_error(L, "IsBeingPressed(button, inputDevice=keyboard) expects at least one parameter");
+		}
+		DeviceButton button = StringToDeviceButton(SArg(1));
+		InputDevice device = (lua_isnil(L, 2) ? StringToInputDevice(SArg(2)) : DEVICE_KEYBOARD);
+		lua_pushboolean(L, INPUTFILTER->IsBeingPressed(DeviceInput(device, button)));
+		return 1;
+	}
 	LunaInputFilter()
 	{
-		ADD_METHOD( GetMouseX );
-		ADD_METHOD( GetMouseY );
-		ADD_METHOD( GetMouseWheel );
+		ADD_METHOD(GetMouseX);
+		ADD_METHOD(GetMouseY);
+		ADD_METHOD(GetMouseWheel);
+		ADD_METHOD(IsBeingPressed);
 	}
 };
 

@@ -1,5 +1,4 @@
 local searchstring = ""
-local englishes = {"a", "b", "c", "d", "e","f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",";"}
 local frameX = 10
 local frameY = 180+capWideScale(get43size(120),120)
 local active = false
@@ -25,12 +24,14 @@ local function searchInput(event)
 		elseif event.DeviceInput.button == "DeviceButton_delete"  then
 			searchstring = ""
 		elseif event.DeviceInput.button == "DeviceButton_="  then
-			searchstring = searchstring.."="
+			searchstring = searchstring.."="	
+		elseif event.DeviceInput.button == "DeviceButton_v" and CtrlPressed then
+			searchstring = searchstring..HOOKS:GetClipboard()
 		else
-			for i=1,#englishes do														-- add standard characters to string
-				if event.DeviceInput.button == "DeviceButton_"..englishes[i] then
-					searchstring = searchstring..englishes[i]
-				end
+			--if not nil and (not a number or (ctrl pressed and not online))
+			local CtrlPressed = INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl")
+			if event.char and (tonumber(event.char) == nil or CtrlPressed == (not IsNetSMOnline())) then
+				searchstring = searchstring..event.char
 			end
 		end
 		if lastsearchstring ~= searchstring then
@@ -64,10 +65,14 @@ local t = Def.ActorFrame{
 			SCREENMAN:set_input_redirected(PLAYER_1, false)
 		end
 	end,
-	TabChangedMessageCommand=cmd(queuecommand,"Set"),
+	TabChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
 	
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+250-capWideScale(get43size(120),30),frameY-90;zoom,0.7;halign,0.5;maxwidth,470),
+		InitCommand=function(self)
+			self:xy(frameX+250-capWideScale(get43size(120),30),frameY-90):zoom(0.7):halign(0.5):maxwidth(470)
+		end,
 		SetCommand=function(self) 
 			if active then
 				self:settext("Search Active:")
@@ -77,42 +82,64 @@ local t = Def.ActorFrame{
 				self:diffuse(byJudgment("TapNoteScore_Miss"))
 			end
 		end,
-		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+		UpdateStringMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+250-capWideScale(get43size(120),30),frameY-50;zoom,0.7;halign,0.5;maxwidth,470),
+		InitCommand=function(self)
+			self:xy(frameX+250-capWideScale(get43size(120),30),frameY-50):zoom(0.7):halign(0.5):maxwidth(470)
+		end,
 		SetCommand=function(self) 
 			self:settext(searchstring)
 		end,
-	UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+	UpdateStringMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+20,frameY-200;zoom,0.4;halign,0),
+		InitCommand=function(self)
+			self:xy(frameX+20,frameY-200):zoom(0.4):halign(0)
+		end,
 		SetCommand=function(self) 
 			self:settext("Start to lock search results.")
 		end,
-		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+		UpdateStringMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+20,frameY-175;zoom,0.4;halign,0),
+		InitCommand=function(self)
+			self:xy(frameX+20,frameY-175):zoom(0.4):halign(0)
+		end,
 		SetCommand=function(self) 
 			self:settext("Back to cancel search.")
 		end,
-		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+		UpdateStringMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,frameX+20,frameY-150;zoom,0.4;halign,0),
+		InitCommand=function(self)
+			self:xy(frameX+20,frameY-150):zoom(0.4):halign(0)
+		end,
 		SetCommand=function(self) 
 			self:settext("Delete resets search query.")
 		end,
-		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+		UpdateStringMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	LoadFont("Common Normal")..{
-		InitCommand=cmd(xy,frameX+20,frameY+70;zoom,0.5;halign,0),
+		InitCommand=function(self)
+			self:xy(frameX+20,frameY+70):zoom(0.5):halign(0)
+		end,
 		SetCommand=function(self) 
 			self:settext("Currently supports standard english alphabet only.")
 		end,
-		UpdateStringMessageCommand=cmd(queuecommand,"Set"),
+		UpdateStringMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 }
 

@@ -1,4 +1,4 @@
-#include "global.h"
+﻿#include "global.h"
 #include "EnumHelper.h"
 #include "LuaManager.h"
 #include "RageUtil.h"
@@ -56,7 +56,8 @@ int CheckEnum( lua_State *L, LuaReference &table, int iPos, int iInvalid, const 
 		else
 		{
 			/* We didn't get a string.  Show the type. */
-			luaL_pushtype( L, iPos );
+			if (!luaL_callmeta(L, iPos, "__type"))
+					lua_pushstring(L, luaL_typename(L, iPos));
 			LuaHelpers::Pop( L, sGot );
 		}
 		LuaHelpers::Push( L, ssprintf("Expected %s; got %s", szType, sGot.c_str() ) );

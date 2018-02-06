@@ -11,8 +11,8 @@ public:
 
 	PlayerState* m_pPlayerState[NUM_PLAYERS];
 
-	float SSFilterLowerBounds[NUM_Skillset];
-	float SSFilterUpperBounds[NUM_Skillset];
+	float SSFilterLowerBounds[NUM_Skillset+1];
+	float SSFilterUpperBounds[NUM_Skillset+1];
 	float MaxFilterRate = 1.f;
 	bool ExclusiveFilter = false;	// if true the filter system will only match songs that meet all criteria rather than all that meet any - mina
 	float GetSSFilter(Skillset ss, int bound);
