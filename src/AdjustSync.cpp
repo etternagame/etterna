@@ -106,6 +106,11 @@ void AdjustSync::SaveSyncChanges()
 		}
 		else
 		{
+			//Hack: Otherwise it doesnt work (files created are called /.sm and /.ssc)
+			auto tmp = GAMESTATE->m_pCurSong->m_SongTiming;
+			GAMESTATE->m_pCurSong->ReloadFromSongDir();
+			GAMESTATE->m_pCurSong->m_SongTiming = tmp;
+
 			GAMESTATE->m_pCurSong->Save();
 			GAMESTATE->m_pCurSong->ReloadFromSongDir();
 		}
