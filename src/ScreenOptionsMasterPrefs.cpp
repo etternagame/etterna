@@ -676,7 +676,6 @@ static void InitializeConfOptions()
 	g_ConfOptions.back().m_iEffects = OPT_APPLY_SONG;
 
 	ADD( ConfOption( "FastLoad",			MovePref<bool>,		"Off","On" ) );
-	ADD( ConfOption( "FastLoadAdditionalSongs",			MovePref<bool>,		"Off","On" ) );
 	{
 		ConfOption c("EditRecordModeLeadIn", EditRecordModeLeadIn);
 		for(int i= 0; i < 32; ++i)
