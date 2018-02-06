@@ -232,6 +232,7 @@ void ScreenSelectMusic::BeginScreen()
 
 	SONGMAN->MakeSongGroupsFromPlaylists();
 	SONGMAN->SetFavoritedStatus(PROFILEMAN->GetProfile(PLAYER_1)->FavoritedCharts);
+	SONGMAN->SetHasGoal(PROFILEMAN->GetProfile(PLAYER_1)->goalmap);
 	if (CommonMetrics::AUTO_SET_STYLE)
 	{
 		GAMESTATE->SetCompatibleStylesForPlayers();

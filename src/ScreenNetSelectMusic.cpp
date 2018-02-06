@@ -687,6 +687,11 @@ void ScreenNetSelectMusic::UpdateDifficulties( PlayerNumber pn )
 		m_StepsDisplays[pn].SetFromStepsTypeAndMeterAndDifficultyAndCourseType( StepsType_Invalid, 0, Difficulty_Beginner );
 }
 
+void ScreenNetSelectMusic::BeginScreen()
+{
+	ScreenNetSelectBase::BeginScreen();
+	SONGMAN->SetFlagsForProfile(PROFILEMAN->GetProfile(PLAYER_1));
+}
 void ScreenNetSelectMusic::MusicChanged()
 {
 	if( GAMESTATE->m_pCurSong == NULL )

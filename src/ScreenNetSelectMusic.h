@@ -17,6 +17,7 @@ class ScreenNetSelectMusic : public ScreenNetSelectBase
 {
 public:
 	void Init() override;
+	void BeginScreen() override;
 
 	bool Input( const InputEventPlus &input ) override;
 	void HandleScreenMessage( const ScreenMessage SM ) override;

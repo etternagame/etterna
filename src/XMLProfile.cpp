@@ -487,7 +487,6 @@ void XMLProfile::LoadScoreGoalsFromNode(const XNode *pNode) {
 		ck = SONGMAN->ReconcileBustedKeys(ck);
 		loadingProfile->goalmap[ck].LoadFromNode(chgoals);
 	}
-	SONGMAN->SetHasGoal(loadingProfile->goalmap);
 }
 
 void XMLProfile::LoadPlaylistsFromNode(const XNode *pNode) {

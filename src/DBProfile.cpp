@@ -400,8 +400,6 @@ void DBProfile::LoadScoreGoals(SQLite::Database* db)
 		//Add it to the GoalsForAChart goalmap[chart]
 		loadingProfile->goalmap[ck].Add(sg);
 	}
-	
-	SONGMAN->SetHasGoal(loadingProfile->goalmap);
 }
 
 ProfileLoadResult DBProfile::SaveDBToDir(string dir, const Profile* profile, DBProfileMode mode) const
