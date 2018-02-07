@@ -879,31 +879,42 @@ public:
 			lua_pushboolean(L, DLMAN->UploadProfile(prof->profiledir + "Etterna.xml", prof->m_sDisplayName.c_str()));
 		return 1;
 	}
+	static int CreateLocalProfile(T* p, lua_State *L)
+	{
+		string ProfileName = SArg(1);
+		RString id;
+		if (PROFILEMAN->CreateLocalProfile(ProfileName, id))
+			lua_pushstring(L, id.c_str());
+		else
+			lua_pushnil(L);
+		return 1;
+	}
 	LunaProfileManager()
 	{
 		ADD_METHOD(GetStatsPrefix);
 		ADD_METHOD(SetStatsPrefix);
-		ADD_METHOD( IsPersistentProfile );
-		ADD_METHOD( GetProfile );
+		ADD_METHOD(IsPersistentProfile);
+		ADD_METHOD(GetProfile);
 		ADD_METHOD(GetMachineProfile);
-		ADD_METHOD( GetLocalProfile );
-		ADD_METHOD( GetLocalProfileFromIndex );
-		ADD_METHOD( GetLocalProfileIDFromIndex );
-		ADD_METHOD( GetLocalProfileIndexFromID );
-		ADD_METHOD( GetNumLocalProfiles );
-		ADD_METHOD( GetProfileDir );
-		ADD_METHOD( IsSongNew );
-		ADD_METHOD( LastLoadWasTamperedOrCorrupt );
-		ADD_METHOD( GetPlayerName );
+		ADD_METHOD(GetLocalProfile);
+		ADD_METHOD(GetLocalProfileFromIndex);
+		ADD_METHOD(GetLocalProfileIDFromIndex);
+		ADD_METHOD(GetLocalProfileIndexFromID);
+		ADD_METHOD(GetNumLocalProfiles);
+		ADD_METHOD(GetProfileDir);
+		ADD_METHOD(IsSongNew);
+		ADD_METHOD(LastLoadWasTamperedOrCorrupt);
+		ADD_METHOD(GetPlayerName);
 		//
-		ADD_METHOD( SaveProfile );
-		ADD_METHOD( ConvertProfile );
-		ADD_METHOD( UploadProfile );
-		ADD_METHOD( SaveLocalProfile );
-		ADD_METHOD( GetSongNumTimesPlayed );
-		ADD_METHOD( GetLocalProfileIDs );
-		ADD_METHOD( GetLocalProfileDisplayNames );
-		ADD_METHOD( LocalProfileIDToDir );
+		ADD_METHOD(SaveProfile);
+		ADD_METHOD(ConvertProfile);
+		ADD_METHOD(UploadProfile);
+		ADD_METHOD(SaveLocalProfile);
+		ADD_METHOD(GetSongNumTimesPlayed);
+		ADD_METHOD(GetLocalProfileIDs);
+		ADD_METHOD(GetLocalProfileDisplayNames);
+		ADD_METHOD(LocalProfileIDToDir);
+		ADD_METHOD(CreateLocalProfile);
 	}
 };
 

@@ -197,6 +197,9 @@ bool Screen::Input( const InputEventPlus &input )
 		MESSAGEMAN->Broadcast( (MessageID)(Message_RightClick) );
 	if( input.DeviceI == DeviceInput( DEVICE_MOUSE, MOUSE_MIDDLE ) )
 		MESSAGEMAN->Broadcast( (MessageID)(Message_MiddleClick) );
+	if (input.DeviceI == DeviceInput(DEVICE_MOUSE, MOUSE_X_RIGHT) || input.DeviceI == DeviceInput(DEVICE_MOUSE, MOUSE_X_LEFT) ||
+		input.DeviceI == DeviceInput(DEVICE_MOUSE, MOUSE_Y_DOWN) || input.DeviceI == DeviceInput(DEVICE_MOUSE, MOUSE_Y_UP))
+		MESSAGEMAN->Broadcast((MessageID)(Message_MouseMove));
 	// Can't do MouseWheelUp and MouseWheelDown at the same time. -aj
 	if( input.DeviceI == DeviceInput( DEVICE_MOUSE, MOUSE_WHEELUP ) )
 		MESSAGEMAN->Broadcast( (MessageID)(Message_MouseWheelUp) );

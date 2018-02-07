@@ -85,6 +85,7 @@ static const char *MessageIDNames[] = {
 	"MiddleClick",
 	"MouseWheelUp",
 	"MouseWheelDown",
+	"MouseMove",
 };
 XToString( MessageID );
 
