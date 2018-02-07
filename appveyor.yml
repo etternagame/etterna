@@ -3,14 +3,15 @@ pull_requests:
   do_not_increment_build_number: true
 image: Visual Studio 2015
 configuration: Release
-shallow_clone: true
-clone_folder: C:\etterna
 
+artifacts:
+- path: C:\etterna\Etterna*.exe
+  
 install:
 - cmd: choco install nsis
-- cmd: git submodule update --init --recursive
 
 before_build:
+- cmd: git submodule update --init --recursive
 - cmd: >-
     
     mkdir build && cd build
@@ -25,6 +26,7 @@ build:
 
 after_build:
 - cmd: msbuild "C:\etterna\build\PACKAGE.vcxproj" /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+- cmd: msbuild makensis.exe stepmania.nsi
 
 notifications:
 - provider: Email
