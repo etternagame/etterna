@@ -98,11 +98,11 @@ void ScoreManager::PurgeProfileScores(const string& profileID) {
 	TopSSRs.shrink_to_fit();
 	for (auto& score : AllProfileScores[profileID]) {
 		{
-			auto& it = find(AllScores.begin(), AllScores.end(), score);
+			auto it = find(AllScores.begin(), AllScores.end(), score);
 			if (it != AllScores.end())
 				AllScores.erase(it);
 		}
-		auto& it = ScoresByKey.find(score->GetChartKey());
+		auto it = ScoresByKey.find(score->GetChartKey());
 		if (it != ScoresByKey.end())
 			ScoresByKey.erase(it);
 	}

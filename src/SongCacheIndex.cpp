@@ -75,7 +75,7 @@ SongCacheIndex::SongCacheIndex()
 	DBEmpty = !OpenDB();
 }
 
-__int64 SongCacheIndex::InsertStepsTimingData(TimingData timing)
+int64_t SongCacheIndex::InsertStepsTimingData(TimingData timing)
 {
 	SQLite::Statement insertTimingData(*db, "INSERT INTO timingdatas VALUES (NULL, "
 		"?, ?, ?, "
@@ -232,7 +232,7 @@ __int64 SongCacheIndex::InsertStepsTimingData(TimingData timing)
 	return sqlite3_last_insert_rowid(db->getHandle());
 }
 
-__int64 SongCacheIndex::InsertSteps(const Steps* pSteps, __int64 songID)
+int64_t SongCacheIndex::InsertSteps(const Steps* pSteps, int64_t songID)
 {
 	SQLite::Statement insertSteps(*db, "INSERT INTO steps VALUES (NULL, "
 		"?, ?, ?, ?, ?, "
@@ -295,7 +295,7 @@ __int64 SongCacheIndex::InsertSteps(const Steps* pSteps, __int64 songID)
 		break;
 	}
 	insertSteps.bind(stepsIndex++, pSteps->GetFilename().c_str());
-	insertSteps.bind(stepsIndex++, songID);
+	insertSteps.bind(stepsIndex++, static_cast<long long int>(songID));
 	insertSteps.exec();
 	return sqlite3_last_insert_rowid(db->getHandle());
 }
@@ -840,18 +840,19 @@ inline pair<RString, int> SongCacheIndex::SongFromStatement(Song* song, SQLite::
 		song->m_fSpecifiedBPMMin = BPMmin;
 		song->m_fSpecifiedBPMMax = BPMmax;
 	}
-
-	loader.ProcessBPMs(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)), song->GetMainTitle());
-	loader.ProcessStops(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)), song->GetMainTitle());
+	
+	auto title = song->GetMainTitle();
+	loader.ProcessBPMs(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)), title);
+	loader.ProcessStops(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)), title);
 	loader.ProcessDelays(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)));
-	loader.ProcessWarps(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)), song->m_fVersion, song->GetMainTitle());
+	loader.ProcessWarps(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)), song->m_fVersion, title);
 	loader.ProcessTimeSignatures(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)));
 	loader.ProcessTickcounts(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)));
 	loader.ProcessCombos(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)));
 	loader.ProcessSpeeds(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)));
-	loader.ProcessScrolls(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)), song->GetMainTitle());
+	loader.ProcessScrolls(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)), title);
 	loader.ProcessFakes(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)));
-	loader.ProcessLabels(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)), song->GetMainTitle());
+	loader.ProcessLabels(song->m_SongTiming, static_cast<const char *>(query.getColumn(index++)), title);
 
 	song->SetSpecifiedLastSecond(static_cast<double>(query.getColumn(index++)));
 

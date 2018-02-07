@@ -44,8 +44,8 @@ public:
 	unsigned GetCacheHash( const RString &path ) const;
 	bool delay_save_cache;
 	
-	__int64 InsertStepsTimingData(TimingData timing);
-	__int64 InsertSteps(const Steps* pSteps, __int64 songID);
+	int64_t InsertStepsTimingData(TimingData timing);
+	int64_t InsertSteps(const Steps* pSteps, int64_t songID);
 	bool LoadSongFromCache(Song* song, string dir);
 	bool CacheSong(Song& song, string dir);
 	void StartTransaction();

@@ -67,7 +67,7 @@ string ComputerIdentity() {
 	char username[1024];
 	gethostname(hostname, 1024);
 	getlogin_r(username, 1024);
-	computerName - hostname;
+	computerName = hostname;
 	userName = username;
 #endif
 	return computerName + ":_:" + userName;

@@ -677,7 +677,7 @@ void SMLoader::ProcessDelays(TimingData &out, const RString &line, const int row
 {
 	ProcessDelays(out, line, this->GetSongTitle(), rowsPerBeat);
 }
-void SMLoader::ProcessDelays( TimingData &out, const RString &line, string &songname, const int rowsPerBeat )
+void SMLoader::ProcessDelays( TimingData &out, const RString &line, const string &songname, const int rowsPerBeat )
 {
 	vector<RString> arrayDelayExpressions;
 	split( line, ",", arrayDelayExpressions );
@@ -713,7 +713,7 @@ void SMLoader::ProcessTimeSignatures(TimingData &out, const RString &line, const
 {
 	ProcessTimeSignatures(out, line, this->GetSongTitle(), rowsPerBeat);
 }
-void SMLoader::ProcessTimeSignatures( TimingData &out, const RString &line, string &songname, const int rowsPerBeat )
+void SMLoader::ProcessTimeSignatures( TimingData &out, const RString &line, const string &songname, const int rowsPerBeat )
 {
 	vector<RString> vs1;
 	split( line, ",", vs1 );
@@ -771,7 +771,7 @@ void SMLoader::ProcessTickcounts(TimingData &out, const RString &line, const int
 {
 	ProcessTickcounts(out, line, this->GetSongTitle(), rowsPerBeat);
 }
-void SMLoader::ProcessTickcounts( TimingData &out, const RString &line, string &songname, const int rowsPerBeat )
+void SMLoader::ProcessTickcounts( TimingData &out, const RString &line, const string &songname, const int rowsPerBeat )
 {
 	vector<RString> arrayTickcountExpressions;
 	split( line, ",", arrayTickcountExpressions );
@@ -800,7 +800,7 @@ void SMLoader::ProcessSpeeds(TimingData &out, const RString &line, const int row
 {
 	ProcessSpeeds(out, line, this->GetSongTitle(), rowsPerBeat);
 }
-void SMLoader::ProcessSpeeds( TimingData &out, const RString &line, string &songname, const int rowsPerBeat )
+void SMLoader::ProcessSpeeds( TimingData &out, const RString &line, const string &songname, const int rowsPerBeat )
 {
 	vector<RString> vs1;
 	split( line, ",", vs1 );
@@ -864,7 +864,7 @@ void SMLoader::ProcessFakes(TimingData &out, const RString &line, const int rows
 {
 	ProcessFakes(out, line, this->GetSongTitle(), rowsPerBeat);
 }
-void SMLoader::ProcessFakes( TimingData &out, const RString &line, string &songname,  const int rowsPerBeat )
+void SMLoader::ProcessFakes( TimingData &out, const RString &line, const string &songname,  const int rowsPerBeat )
 {
 	vector<RString> arrayFakeExpressions;
 	split( line, ",", arrayFakeExpressions );

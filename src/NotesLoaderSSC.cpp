@@ -206,7 +206,8 @@ void SetSongWarps(SSC::SongTagInfo& info)
 }
 void SetSongLabels(SSC::SongTagInfo& info)
 {
-	info.loader->ProcessLabels( info.song->m_SongTiming, (*info.params)[1], info.loader->GetSongTitle());
+	auto name = info.loader->GetSongTitle();
+	info.loader->ProcessLabels( info.song->m_SongTiming, (*info.params)[1], name);
 }
 void SetSongTimeSignatures(SSC::SongTagInfo& info)
 {
@@ -226,7 +227,8 @@ void SetSongSpeeds(SSC::SongTagInfo& info)
 }
 void SetSongScrolls(SSC::SongTagInfo& info)
 {
-	info.loader->ProcessScrolls(info.song->m_SongTiming, (*info.params)[1], info.loader->GetSongTitle());
+	auto name = info.loader->GetSongTitle();
+	info.loader->ProcessScrolls(info.song->m_SongTiming, (*info.params)[1], name);
 }
 void SetSongFakes(SSC::SongTagInfo& info)
 {
@@ -599,7 +601,7 @@ ssc_parser_helper_t parser_helper;
 // End parser_helper related functions. -Kyz
 /****************************************************************/
 
-void SSCLoader::ProcessBPMs( TimingData &out, const RString &sParam, string &songName)
+void SSCLoader::ProcessBPMs( TimingData &out, const RString &sParam, const string &songName)
 {
 	vector<RString> arrayBPMExpressions;
 	split( sParam, ",", arrayBPMExpressions );
@@ -633,7 +635,7 @@ void SSCLoader::ProcessBPMs( TimingData &out, const RString &sParam, string &son
 	}
 }
 
-void SSCLoader::ProcessStops( TimingData &out, const RString &sParam, string &songName)
+void SSCLoader::ProcessStops( TimingData &out, const RString &sParam, const string &songName)
 {
 	vector<RString> arrayStopExpressions;
 	split( sParam, ",", arrayStopExpressions );
@@ -665,7 +667,7 @@ void SSCLoader::ProcessStops( TimingData &out, const RString &sParam, string &so
 	}
 }
 
-void SSCLoader::ProcessWarps( TimingData &out, const RString &sParam, const float fVersion, string &songName)
+void SSCLoader::ProcessWarps( TimingData &out, const RString &sParam, const float fVersion, const string &songName)
 {
 	vector<RString> arrayWarpExpressions;
 	split( sParam, ",", arrayWarpExpressions );
@@ -702,7 +704,7 @@ void SSCLoader::ProcessWarps( TimingData &out, const RString &sParam, const floa
 	}
 }
 
-void SSCLoader::ProcessLabels( TimingData &out, const RString &sParam , string &songName)
+void SSCLoader::ProcessLabels( TimingData &out, const RString &sParam , const string &songName)
 {
 	vector<RString> arrayLabelExpressions;
 	split( sParam, ",", arrayLabelExpressions );
@@ -737,9 +739,10 @@ void SSCLoader::ProcessLabels( TimingData &out, const RString &sParam , string &
 }
 void SSCLoader::ProcessCombos(TimingData &out, const RString &line, const int rowsPerBeat)
 {
-	ProcessCombos(out, line, this->GetSongTitle(), rowsPerBeat);
+	auto name = this->GetSongTitle();
+	ProcessCombos(out, line, name, rowsPerBeat);
 }
-void SSCLoader::ProcessCombos( TimingData &out, const RString &line, string &songName, const int rowsPerBeat)
+void SSCLoader::ProcessCombos( TimingData &out, const RString &line, const string &songName, const int rowsPerBeat)
 {
 	vector<RString> arrayComboExpressions;
 	split( line, ",", arrayComboExpressions );
@@ -764,7 +767,7 @@ void SSCLoader::ProcessCombos( TimingData &out, const RString &line, string &son
 	}
 }
 
-void SSCLoader::ProcessScrolls( TimingData &out, const RString sParam, string &songName)
+void SSCLoader::ProcessScrolls( TimingData &out, const RString sParam, const string &songName)
 {
 	vector<RString> vs1;
 	split( sParam, ",", vs1 );

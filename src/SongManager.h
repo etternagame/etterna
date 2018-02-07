@@ -187,6 +187,7 @@ public:
 	string playlistcourse = "";
 	string ReconcileBustedKeys(const string& ck);
 	map<string, string> keyconversionmap;
+	void SetFlagsForProfile(Profile* prof);
 	void MakeSongGroupsFromPlaylists(map<string, Playlist>& playlists = GetPlaylists());
 	void DeletePlaylist(const string& ck, map<string, Playlist>& playlists = GetPlaylists());
 	void MakePlaylistFromFavorites(set<string>& favs, map<string, Playlist>& playlists = GetPlaylists());

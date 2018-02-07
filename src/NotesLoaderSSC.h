@@ -125,13 +125,13 @@ struct SSCLoader : public SMLoader
 	 * @return true if successful, false otherwise. */
 	bool LoadNoteDataFromSimfile( const RString &cachePath, Steps &out ) override;
 	
-	static void ProcessBPMs( TimingData &, const RString &sParam, string &songName);
-	static void ProcessStops( TimingData &, const RString &sParam, string &songName);
-	static void ProcessWarps( TimingData &, const RString &sParam, const float, string &songName);
-	static void ProcessLabels(TimingData &out, const RString &sParam, string &songName);
-	static void ProcessCombos( TimingData &, const RString &line, string &songName, const int = -1);
+	static void ProcessBPMs( TimingData &, const RString &sParam, const string &songName);
+	static void ProcessStops( TimingData &, const RString &sParam, const string &songName);
+	static void ProcessWarps( TimingData &, const RString &sParam, const float, const string &songName);
+	static void ProcessLabels(TimingData &out, const RString &sParam, const string &songName);
+	static void ProcessCombos( TimingData &, const RString &line, const string &songName, const int = -1);
 	void ProcessCombos(TimingData &, const RString &line, const int = -1) override;
-	static void ProcessScrolls( TimingData &, const RString sParam, string &songName);
+	static void ProcessScrolls( TimingData &, const RString sParam, const string &songName);
 
 };
 

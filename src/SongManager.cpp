@@ -234,7 +234,7 @@ void SongManager::InitSongsFromDisk( LoadingWindow *ld )
 		if(ld)
 			ld->SetProgress(cacheIndex);
 		auto& pNewSong = pair.second;
-		RString& dir = pNewSong->GetSongDir();
+		const RString& dir = pNewSong->GetSongDir();
 		if (!FILEMAN->IsADirectory(dir.substr(0, dir.length() - 1)) || (!PREFSMAN->m_bBlindlyTrustCache.Get() && pair.first.second != GetHashForDirectory(dir))) {
 			if (PREFSMAN->m_bShrinkSongCache) 
 				SONGINDEX->DeleteSongFromDB(pair.second);
@@ -363,6 +363,12 @@ void Playlist::LoadFromNode(const XNode* node) {
 			}
 		}
 	}
+}
+
+void SongManager::SetFlagsForProfile(Profile* prof) {
+	SONGMAN->MakeSongGroupsFromPlaylists();
+	SONGMAN->SetFavoritedStatus(prof->FavoritedCharts);
+	SONGMAN->SetHasGoal(prof->goalmap);
 }
 
 void SongManager::MakeSongGroupsFromPlaylists(map<string, Playlist>& playlists) {
