@@ -321,7 +321,6 @@ endif()
 set_property(TARGET "${SM_EXE_NAME}" PROPERTY FOLDER "Internal Libraries")
 
 list(APPEND SMDATA_LINK_LIB
-  "lua-5.1"
   "tomcrypt"
   "tommath"
   "zlib"
