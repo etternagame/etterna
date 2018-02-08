@@ -1,5 +1,6 @@
 [How to Install Songs]
 Songs are laid out based on the group that they are in.
+#To download song packs use https://etternaonline.net/packs
 
 Songs\							: root folder
 	StepMania 5\				: group folder
