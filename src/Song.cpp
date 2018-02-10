@@ -381,13 +381,6 @@ void Song::FinalizeLoading()
 			IMAGECACHE->LoadImage( Image, GetCacheFile( Image ) );
 		}
 	}
-
-	if( !m_bHasMusic )
-	{
-		LOG->UserLog( "Song", sDir, "has no music; ignored." );
-		return false;	// don't load this song
-	}
-	return true;	// do load this song
 }
 /* This function feels EXTREMELY hacky - copying things on top of pointers so
  * they don't break elsewhere.  Maybe it could be rewritten to politely ask the
