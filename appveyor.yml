@@ -7,7 +7,7 @@ clone_folder: C:\etterna
 
 
 artifacts:
-- path: C:\etterna\Etterna*.exe
+- path: Etterna *.exe
   
 install:
 - cmd: choco install nsis
@@ -28,7 +28,9 @@ build:
 
 after_build:
 - cmd: msbuild "C:\etterna\build\PACKAGE.vcxproj" /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-- cmd: msbuild makensis.exe stepmania.nsi
+- cmd: >-
+    
+    "C:\Program Files (x86)\NSIS\makensis.exe" "C:\etterna\stepmania.nsi"
 
 notifications:
 - provider: Email
