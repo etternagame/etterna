@@ -3,6 +3,8 @@ pull_requests:
   do_not_increment_build_number: true
 image: Visual Studio 2015
 configuration: Release
+clone_folder: C:\etterna
+
 
 artifacts:
 - path: C:\etterna\Etterna*.exe
