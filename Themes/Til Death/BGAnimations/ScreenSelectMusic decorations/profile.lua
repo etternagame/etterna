@@ -259,9 +259,6 @@ local function rankingLabel(i)
 					else
 						self:settext("")
 					end
-				elseif onlineScore then
-					self:settextf("%5.2f%%", onlineScore.wife*100)
-					self:diffuse(getGradeColor("Grade_Tier03"))
 				end
 			end
 		},

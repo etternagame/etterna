@@ -1,16 +1,17 @@
-set(SM_FFMPEG_VERSION "3.3.3")
-set(SM_FFMPEG_SRC_LIST "${SM_EXTERN_DIR}/ffmpeg-linux-${SM_FFMPEG_VERSION}")
+set(SM_FFMPEG_VERSION "2.1.3")
+set(SM_FFMPEG_SRC_LIST "${SM_EXTERN_DIR}" "/ffmpeg-linux-" "${SM_FFMPEG_VERSION}")
 sm_join("${SM_FFMPEG_SRC_LIST}" "" SM_FFMPEG_SRC_DIR)
 set(SM_FFMPEG_CONFIGURE_EXE "${SM_FFMPEG_SRC_DIR}/configure")
 list(APPEND FFMPEG_CONFIGURE
   "${SM_FFMPEG_CONFIGURE_EXE}"
-  "--disable-muxers"
-  "--disable-encoders"
   "--disable-programs"
   "--disable-doc"
   "--disable-avdevice"
+  "--disable-swresample"
+  "--disable-postproc"
   "--disable-avfilter"
-  "--disable-lzma"
+  "--disable-shared"
+  "--enable-static"
 )
 
 if(CMAKE_POSITION_INDEPENDENT_CODE)
@@ -28,6 +29,12 @@ if(MACOSX)
   list(APPEND FFMPEG_CONFIGURE
     "--arch=i386"
     "--cc=clang -m32"
+  )
+endif()
+
+if(WITH_GPL_LIBS)
+  list(APPEND FFMPEG_CONFIGURE
+    "--enable-gpl"
   )
 endif()
 
@@ -55,7 +62,7 @@ if (IS_DIRECTORY "${SM_FFMPEG_SRC_DIR}")
   )
 else()
   externalproject_add("ffmpeg"
-    DOWNLOAD_COMMAND git clone "--depth" "1" "git://github.com/etternagame/FFmpeg.git" "${SM_FFMPEG_SRC_DIR}"
+    DOWNLOAD_COMMAND git clone "--branch" "n${SM_FFMPEG_VERSION}" "--depth" "1" "git://github.com/stepmania/ffmpeg.git" "${SM_FFMPEG_SRC_DIR}"
     CONFIGURE_COMMAND "${FFMPEG_CONFIGURE}"
     BUILD_COMMAND "${SM_FFMPEG_MAKE}"
     UPDATE_COMMAND ""

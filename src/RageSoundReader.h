@@ -2,7 +2,6 @@
 
 #ifndef RAGE_SOUND_READER_H
 #define RAGE_SOUND_READER_H
-#include "global.h"
 
 class RageSoundReader
 {

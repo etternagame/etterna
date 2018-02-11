@@ -1,6 +1,7 @@
 include(CMakeProject-glew.cmake)
 include(CMakeProject-json.cmake)
 if (APPLE OR MSVC)
+  include(CMakeProject-mad.cmake)
   include(CMakeProject-zlib.cmake)
   include(CMakeProject-jpeg.cmake)
 endif()
