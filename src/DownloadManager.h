@@ -168,12 +168,9 @@ public:
 	void UpdateDLSpeed();
 	void UpdateDLSpeed(bool gameplay);
 
-	
 	string GetError() { return error; }
 	bool Error() { return error == ""; }
 	bool EncodeSpaces(string& str);
-
-	bool UploadProfile(string file, string profileName);
 
 	void UploadScoreWithReplayData(HighScore* hs);
 	void UploadScore(HighScore* hs);

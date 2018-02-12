@@ -532,35 +532,6 @@ bool DownloadManager::LoggedIn()
 	return !session.empty();
 }
 
-bool DownloadManager::UploadProfile(string file, string profileName)
-{
-	if (!LoggedIn())
-		return false;
-	string url = serverURL.Get() + "/upload_xml";
-	CURL *curlHandle = initCURLHandle();
-	curl_httppost *form = nullptr;
-	curl_httppost *lastPtr = nullptr;
-	curl_slist *headerlist = nullptr;
-	RString contents;
-	if (!addFileToForm(form, lastPtr, "xml", "etterna.xml", file, contents))
-		return false;
-	ComputerIdentity();
-	SetCURLFormPostField(curlHandle, form, lastPtr, "origin", ComputerIdentity()+":_:"+profileName);
-	SetCURLPostToURL(curlHandle, url);
-	AddSessionCookieToCURL(curlHandle);
-	string result;
-	SetCURLResultsString(curlHandle, result);
-	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
-	CURLcode ret = curl_easy_perform(curlHandle);
-	curl_easy_cleanup(curlHandle);
-	curl_formfree(form);
-	if (result != "\"Success\"") {
-		LOG->Trace(result.c_str());
-		return false;
-	}
-	return ret == 0;
-}
-
 bool DownloadManager::ShouldUploadScores()
 {
 	return LoggedIn() && automaticSync;
@@ -642,15 +613,16 @@ void DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	SetCURLPostToURL(curlHandle, url);
 	AddSessionCookieToCURL(curlHandle);
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form); 
-	function<void(HTTPRequest&)> done = [hs](HTTPRequest& req) {
+	function<void(HTTPRequest&)> done = [this,hs](HTTPRequest& req) {
 		Json::Value json;
 		RString error;
 		hs->AddUploadedServer(serverURL.Get());
 		if (JsonUtil::LoadFromString(json, req.result, error) && json.isMember("success") && !json.isMember("error")) {
 			auto ratings = json.get("success", "");
 			FOREACH_ENUM(Skillset, ss)
-				(DLMAN->sessionRatings)[ss] = atof(ratings.get(SkillsetToString(ss), "0.0").asCString());
-			(DLMAN->sessionRatings)[Skill_Overall] = atof(ratings.get("player_rating", "0.0").asCString());
+				if(ss!=Skill_Overall)
+					(DLMAN->sessionRatings)[ss] = ratings.get(SkillsetToString(ss), "0.0").asDouble();
+			(DLMAN->sessionRatings)[Skill_Overall] = ratings.get("player_rating", "0.0").asDouble();
 		}
 	};
 	HTTPRequest* req = new HTTPRequest(curlHandle, done);
@@ -676,6 +648,7 @@ void DownloadManager::EndSession()
 	session = sessionUser = sessionPass = sessionCookie = "";
 	topScores.clear();
 	sessionRatings.clear();
+	MESSAGEMAN->Broadcast("LogOut");
 }
 
 std::vector<std::string> split(const std::string& s, char delimiter)
@@ -780,9 +753,6 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 			return;
 		vector<OnlineScore> & vec = DLMAN->chartLeaderboards[chartkey];
 		vec.clear();
-		LOG->Trace(req.result.c_str());
-		LOG->Trace(json.toStyledString().c_str());
-		LOG->Flush();
 		for (auto it = json.begin(); it != json.end(); ++it) {
 			OnlineScore tmp;
 			tmp.wife = atof((*it).get("wifescore", "0.0").asCString());
@@ -843,8 +813,6 @@ void DownloadManager::RefreshTop25(Skillset ss)
 	function<void(HTTPRequest&)> done = [ss](HTTPRequest& req) {
 		Json::Value json;
 		RString error;
-		LOG->Trace(req.result.c_str());
-		LOG->Flush();
 		if (!JsonUtil::LoadFromString(json, req.result, error) || (json.isObject() && json.isMember("error")))
 			return;
 		vector<OnlineTopScore> & vec = DLMAN->topScores[ss];
@@ -882,11 +850,8 @@ void DownloadManager::RefreshUserData()
 	function<void(HTTPRequest&)> done = [](HTTPRequest& req) {
 		Json::Value json;
 		RString error;
-		if (!JsonUtil::LoadFromString(json, req.result, error)) {
-			FOREACH_ENUM(Skillset, ss)
-				(DLMAN->sessionRatings)[ss] = 0.0f;
-			return;
-		}
+		JsonUtil::LoadFromString(json, req.result, error);
+
 		FOREACH_ENUM(Skillset, ss)
 			(DLMAN->sessionRatings)[ss] = atof(json.get(SkillsetToString(ss), "0.0").asCString());
 		MESSAGEMAN->Broadcast("OnlineUpdate");
