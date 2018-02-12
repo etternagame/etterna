@@ -33,7 +33,7 @@ shared_ptr<DownloadManager> DLMAN = nullptr;
 
 static Preference<unsigned int> maxDLPerSecond("maximumBytesDownloadedPerSecond", 0);
 static Preference<unsigned int> maxDLPerSecondGameplay("maximumBytesDownloadedPerSecondDuringGameplay", 300000);
-static Preference<RString> packListURL("packListURL", "https://etternaonline.com/api/pack_list");
+static Preference<RString> packListURL("packListURL", "https://api.etternaonline.com/v1/pack_list");
 static Preference<RString> serverURL("UploadServerURL", "https://api.etternaonline.com/v1/");
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 static const string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
@@ -756,9 +756,6 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 			return;
 		vector<OnlineScore> & vec = DLMAN->chartLeaderboards[chartkey];
 		vec.clear();
-		LOG->Trace(req.result.c_str());
-		LOG->Trace(json.toStyledString().c_str());
-		LOG->Flush();
 		for (auto it = json.begin(); it != json.end(); ++it) {
 			OnlineScore tmp;
 			tmp.wife = atof((*it).get("wifescore", "0.0").asCString());
@@ -819,8 +816,6 @@ void DownloadManager::RefreshTop25(Skillset ss)
 	function<void(HTTPRequest&)> done = [ss](HTTPRequest& req) {
 		Json::Value json;
 		RString error;
-		LOG->Trace(req.result.c_str());
-		LOG->Flush();
 		if (!JsonUtil::LoadFromString(json, req.result, error) || (json.isObject() && json.isMember("error")))
 			return;
 		vector<OnlineTopScore> & vec = DLMAN->topScores[ss];
