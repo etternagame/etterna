@@ -614,6 +614,8 @@ void DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	AddSessionCookieToCURL(curlHandle);
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form); 
 	function<void(HTTPRequest&)> done = [this,hs](HTTPRequest& req) {
+		long response_code;
+		curl_easy_getinfo(req.handle, CURLINFO_RESPONSE_CODE, &response_code);
 		Json::Value json;
 		RString error;
 		hs->AddUploadedServer(serverURL.Get());
@@ -624,6 +626,7 @@ void DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 					(DLMAN->sessionRatings)[ss] = ratings.get(SkillsetToString(ss), "0.0").asDouble();
 			(DLMAN->sessionRatings)[Skill_Overall] = ratings.get("player_rating", "0.0").asDouble();
 		}
+		HTTPRunning = response_code;
 	};
 	HTTPRequest* req = new HTTPRequest(curlHandle, done);
 	SetCURLResultsString(curlHandle, req->result);
@@ -753,6 +756,9 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 			return;
 		vector<OnlineScore> & vec = DLMAN->chartLeaderboards[chartkey];
 		vec.clear();
+		LOG->Trace(req.result.c_str());
+		LOG->Trace(json.toStyledString().c_str());
+		LOG->Flush();
 		for (auto it = json.begin(); it != json.end(); ++it) {
 			OnlineScore tmp;
 			tmp.wife = atof((*it).get("wifescore", "0.0").asCString());
@@ -813,6 +819,8 @@ void DownloadManager::RefreshTop25(Skillset ss)
 	function<void(HTTPRequest&)> done = [ss](HTTPRequest& req) {
 		Json::Value json;
 		RString error;
+		LOG->Trace(req.result.c_str());
+		LOG->Flush();
 		if (!JsonUtil::LoadFromString(json, req.result, error) || (json.isObject() && json.isMember("error")))
 			return;
 		vector<OnlineTopScore> & vec = DLMAN->topScores[ss];
