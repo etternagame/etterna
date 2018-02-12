@@ -88,7 +88,7 @@ public:
 	function<void(HTTPRequest&)> Done;
 	function<void(HTTPRequest&)> Failed;
 };
-class OnlineScore {
+class OnlineTopScore {
 public:
 	float wifeScore{ 0.0f };
 	string songName;
@@ -100,6 +100,29 @@ public:
 	Difficulty difficulty;
 	string steps;
 };
+class OnlineScore {
+public:
+	map<Skillset, float> SSRs;
+	float rate{ 0.0f };
+	float wife{ 0.0f };
+	int maxcombo{ 0 };
+	int miss{ 0 };
+	int bad{ 0 };
+	int good{ 0 };
+	int great{ 0 };
+	int perfect{ 0 };
+	int marvelous{ 0 };
+	int minehits{ 0 };
+	int held{ 0 };
+	int letgo{ 0 };
+	bool valid{ false };
+	bool nocc{ false };
+	string username;
+	float playerRating{ 0.0f };
+	string modifiers;
+	DateTime datetime;
+	vector<pair<float, float>> replayData;
+};
 class DownloadManager
 {
 public:
@@ -108,15 +131,15 @@ public:
 	map<string, Download*> downloads;
 	vector<HTTPRequest*> HTTPRequests;
 	map<string, Download*> finishedDownloads;
-	CURLM* mPackHandle{nullptr};
+	CURLM* mPackHandle{ nullptr };
 	CURLM* mHTTPHandle{ nullptr };
 	CURLMcode ret;
-	int downloadingPacks{0};
-	int HTTPRunning{ 0 }; 
+	int downloadingPacks{ 0 };
+	int HTTPRunning{ 0 };
 	bool loggingIn{ false };
-	bool gameplay{false};
-	string error{""};
-	int lastid{0};
+	bool gameplay{ false };
+	string error{ "" };
+	int lastid{ 0 };
 	string sessionCookie{ "" };
 	vector<DownloadablePack> downloadablePacks;
 	bool reloadPending{ false };
@@ -124,6 +147,8 @@ public:
 	string session{ "" };
 	string sessionUser{ "" };
 	string sessionPass{ "" };
+	string lastVersion{""};
+	map<string, vector<OnlineScore>> chartLeaderboards;
 	double sessionRating{ 0.0 };
 	map<Skillset, int> sessionRanks;
 	bool LoggedIn();
@@ -160,12 +185,15 @@ public:
 	inline void SetCURLPostToURL(CURL *curlHandle, string url);
 	inline void SetCURLURL(CURL *curlHandle, string url);
 
+	void SendRequest(string requestName, vector<pair<string, string>> params, function<void(HTTPRequest&)> done, bool requireLogin = true, bool post = false, bool async = true);
+	void RefreshLastVersion(); 
+	void RequestChartLeaderBoard(string chartkey);
 	void RefreshUserData();
 	void RefreshUserRank();
 	void RefreshTop25(Skillset ss);
 	map<Skillset, double> sessionRatings;
-	map<Skillset, vector<OnlineScore>> scores;
-	OnlineScore GetTopSkillsetScore(unsigned int rank, Skillset ss, bool &result);
+	map<Skillset, vector<OnlineTopScore>> topScores;
+	OnlineTopScore GetTopSkillsetScore(unsigned int rank, Skillset ss, bool &result);
 	float GetSkillsetRating(Skillset ss);
 	int GetSkillsetRank(Skillset ss);
 

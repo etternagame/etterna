@@ -8,6 +8,7 @@
 #include "RageLog.h"
 #include "RageFile.h"
 #include "DownloadManager.h"
+#include "GameState.h"
 #include "ScoreManager.h"
 #include "RageFileManager.h"
 #include "ProfileManager.h"
@@ -260,6 +261,7 @@ DownloadManager::DownloadManager() {
 		LUA->Release(L);
 	}
 	CachePackList(packListURL);
+	RefreshLastVersion();
 }
 
 DownloadManager::~DownloadManager()
@@ -669,7 +671,7 @@ void DownloadManager::EndSession()
 	CURLcode ret = curl_easy_perform(curlHandle);
 	curl_easy_cleanup(curlHandle);
 	session = sessionUser = sessionPass = sessionCookie = "";
-	scores.clear();
+	topScores.clear();
 	sessionRatings.clear();
 }
 
@@ -713,17 +715,106 @@ void DownloadManager::RefreshUserRank()
 	HTTPRequests.push_back(req);
 	return;
 }
-OnlineScore DownloadManager::GetTopSkillsetScore(unsigned int rank, Skillset ss, bool &result)
+OnlineTopScore DownloadManager::GetTopSkillsetScore(unsigned int rank, Skillset ss, bool &result)
 {
 	unsigned int index = rank - 1;
-	if (index < scores[ss].size()) {
+	if (index < topScores[ss].size()) {
 		result = true;
-		return scores[ss][index];
+		return topScores[ss][index];
 	}
 	result=false;
-	return OnlineScore();
+	return OnlineTopScore();
 }
 
+void DownloadManager::SendRequest(string requestName, vector<pair<string,string>> params, function<void(HTTPRequest&)> done , bool requireLogin, bool post, bool async)
+{
+	if (requireLogin && !LoggedIn())
+		return;
+	string url = serverURL.Get()+ "/" + requestName;
+	if (!post && !params.empty()) {
+		url += "?";
+		for (auto& param : params)
+			url += param.first + "=" + param.second + "&";
+		url = url.substr(0, url.length() - 1);
+	}
+	CURL *curlHandle = initCURLHandle();
+	SetCURLURL(curlHandle, url);
+	HTTPRequest* req;
+	if (post) {
+		curl_httppost *form = nullptr;
+		curl_httppost *lastPtr = nullptr;
+		for (auto& param : params)
+			CURLFormPostField(curlHandle, form, lastPtr, param.first.c_str(), param.second.c_str());
+		curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
+		req = new HTTPRequest(curlHandle, done, form);
+	}
+	else {
+		req = new HTTPRequest(curlHandle, done);
+		curl_easy_setopt(curlHandle, CURLOPT_HTTPGET, 1L);
+	}
+	if (requireLogin)
+		AddSessionCookieToCURL(curlHandle);
+	SetCURLResultsString(curlHandle, req->result);
+	if (async) {
+		if (mHTTPHandle == nullptr)
+			mHTTPHandle = curl_multi_init();
+		curl_multi_add_handle(mHTTPHandle, req->handle);
+		HTTPRequests.push_back(req);
+	}
+	else {
+		CURLcode res = curl_easy_perform(req->handle);
+		curl_easy_cleanup(req->handle);
+		done(*req);
+	}
+	return;
+}
+void DownloadManager::RequestChartLeaderBoard(string chartkey)
+{
+	function<void(HTTPRequest&)> done = [chartkey](HTTPRequest& req) {
+		Json::Value json;
+		RString error;
+		if (!JsonUtil::LoadFromString(json, req.result, error) || (json.isObject() && json.isMember("error")))
+			return;
+		vector<OnlineScore> & vec = DLMAN->chartLeaderboards[chartkey];
+		vec.clear();
+		for (auto it = json.begin(); it != json.end(); ++it) {
+			OnlineScore tmp;
+			tmp.wife = atof((*it).get("wifescore", "0.0").asCString());
+			tmp.modifiers = (*it).get("modifiers", "").asString();
+			tmp.username = (*it).get("username", "").asString();
+			tmp.maxcombo = atoi((*it).get("maxcombo", "0").asCString());
+			tmp.marvelous = atoi((*it).get("marv", "0").asCString());
+			tmp.perfect = atoi((*it).get("perfect", "0").asCString());
+			tmp.good = atoi((*it).get("good", "0").asCString());
+			tmp.bad = atoi((*it).get("bad", "0").asCString());
+			tmp.miss = atoi((*it).get("miss", "0").asCString());
+			tmp.minehits = atoi((*it).get("minehits", "0").asCString());
+			tmp.held = atoi((*it).get("held", "0").asCString());
+			tmp.letgo = atoi((*it).get("letgo", "0").asCString());
+			tmp.datetime.FromString((*it).get("datetime", "0").asCString());
+			tmp.rate = atof((*it).get("user_chart_rate_rate", "0.0").asCString());
+			tmp.nocc = (*it).get("nocc", "0").asBool();
+			tmp.valid = (*it).get("valid", "0").asBool();
+			FOREACH_ENUM(Skillset, ss)
+				tmp.SSRs[ss] = atof((*it).get(SkillsetToString(ss).c_str(), "0.0").asCString());
+			//todo:replaydata from "replay" field
+			vec.push_back(tmp);
+		}
+		MESSAGEMAN->Broadcast("ChartLeaderboardUpdate");
+	};
+	SendRequest("chart_leaderboard", {make_pair("chartkey", chartkey)}, done, true);
+}
+void DownloadManager::RefreshLastVersion()
+{
+	function<void(HTTPRequest&)> done = [this](HTTPRequest& req) {
+		Json::Value json;
+		RString error;
+		if (!JsonUtil::LoadFromString(json, req.result, error) || (json.isObject() && json.isMember("error")))
+			return;
+		this->lastVersion = json.get("version", GAMESTATE->GetEtternaVersion()).asCString();
+	};
+	SendRequest("client_version", vector<pair<string, string>>(), done, false, false, false);
+}
 void DownloadManager::RefreshTop25(Skillset ss)
 {
 	if (!LoggedIn())
@@ -741,9 +832,9 @@ void DownloadManager::RefreshTop25(Skillset ss)
 		LOG->Flush();
 		if (!JsonUtil::LoadFromString(json, req.result, error) || (json.isObject() && json.isMember("error")))
 			return;
-		vector<OnlineScore> & vec = DLMAN->scores[ss];
+		vector<OnlineTopScore> & vec = DLMAN->topScores[ss];
 		for (auto it = json.begin(); it != json.end(); ++it) {
-			OnlineScore tmp;
+			OnlineTopScore tmp;
 			tmp.songName = (*it).get("songname", "").asString();
 			tmp.wifeScore = atof((*it).get("wifescore", "0.0").asCString());
 			tmp.ssr = atof((*it).get(SkillsetToString(ss), "0.0").asCString());
@@ -835,7 +926,9 @@ void DownloadManager::StartSession(string user, string pass)
 
 	function<void(HTTPRequest&)> done = [user, pass](HTTPRequest& req) {
 		vector<string> v_cookies;
-		if (req.result == "\"Success\"") {
+		Json::Value json;
+		RString error;
+		if (JsonUtil::LoadFromString(json, req.result, error) && json.get("success", "").asString() == "Valid" && ! json.isMember("error")) {
 			struct curl_slist *cookies;
 			struct curl_slist *cookieIterator;
 			curl_easy_getinfo(req.handle, CURLINFO_COOKIELIST, &cookies);
@@ -1117,7 +1210,7 @@ public:
 		int rank = IArg(1);
 		auto ss = Enum::Check<Skillset>(L, 2);
 		bool result;
-		OnlineScore onlineScore = DLMAN->GetTopSkillsetScore(rank, ss, result);
+		auto onlineScore = DLMAN->GetTopSkillsetScore(rank, ss, result);
 		if (!result) {
 			lua_pushnil(L);
 			return 1;
@@ -1135,6 +1228,67 @@ public:
 		lua_setfield(L, -2, "chartkey");
 		LuaHelpers::Push(L, onlineScore.difficulty);
 		lua_setfield(L, -2, "difficulty");
+		return 1;
+	}
+	static int GetTopChartScoreCount(T* p, lua_State* L)
+	{
+		lua_pushnumber(L, DLMAN->chartLeaderboards[SArg(1)].size());
+		return 1;
+	}
+	static int GetTopChartScore(T* p, lua_State* L)
+	{
+		string chartkey = SArg(1);
+		unsigned int rank = IArg(2);
+		bool result;
+		unsigned int index = rank - 1;
+		if (!DLMAN->chartLeaderboards.count(chartkey) || index >= DLMAN->chartLeaderboards[chartkey].size()) {
+			lua_pushnil(L);
+			return 1;
+		}
+		auto& score = DLMAN->chartLeaderboards[chartkey][index];
+		if (!result) {
+			lua_pushnil(L);
+			return 1;
+		}
+		lua_createtable(L, 0, 17 + NUM_Skillset);
+		FOREACH_ENUM(Skillset, ss) {
+			lua_pushnumber(L, score.SSRs[ss]);
+			lua_setfield(L, -2, SkillsetToString(ss).c_str());
+		}
+		lua_pushboolean(L, score.valid);
+		lua_setfield(L, -2, "valid");
+		lua_pushnumber(L, score.rate);
+		lua_setfield(L, -2, "rate");
+		lua_pushnumber(L, score.wife);
+		lua_setfield(L, -2, "wife");
+		lua_pushnumber(L, score.miss);
+		lua_setfield(L, -2, "miss");
+		lua_pushnumber(L, score.marvelous);
+		lua_setfield(L, -2, "marvelous");
+		lua_pushnumber(L, score.perfect);
+		lua_setfield(L, -2, "perfect");
+		lua_pushnumber(L, score.bad);
+		lua_setfield(L, -2, "bad");
+		lua_pushnumber(L, score.good);
+		lua_setfield(L, -2, "good");
+		lua_pushnumber(L, score.great);
+		lua_setfield(L, -2, "great");
+		lua_pushnumber(L, score.maxcombo);
+		lua_setfield(L, -2, "maxcombo");
+		lua_pushnumber(L, score.held);
+		lua_setfield(L, -2, "held");
+		lua_pushnumber(L, score.letgo);
+		lua_setfield(L, -2, "letgo");
+		lua_pushnumber(L, score.minehits);
+		lua_setfield(L, -2, "minehits");
+		lua_pushboolean(L, score.nocc);
+		lua_setfield(L, -2, "nocc");
+		lua_pushstring(L, score.modifiers.c_str());
+		lua_setfield(L, -2, "modifiers");
+		lua_pushstring(L, score.username.c_str());
+		lua_setfield(L, -2, "username");
+		lua_pushstring(L, score.datetime.GetString().c_str());
+		lua_setfield(L, -2, "datetime");
 		return 1;
 	}
 	static int GetFilteredAndSearchedPackList(T* p, lua_State* L)
@@ -1176,6 +1330,8 @@ public:
 		ADD_METHOD(GetSkillsetRank);
 		ADD_METHOD(GetSkillsetRating);
 		ADD_METHOD(GetTopSkillsetScore);
+		ADD_METHOD(GetTopChartScore);
+		ADD_METHOD(GetTopChartScoreCount);
 		ADD_METHOD(Logout);
 	}
 };

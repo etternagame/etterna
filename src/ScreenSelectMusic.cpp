@@ -33,6 +33,7 @@
 #include "RageFileManager.h"
 #include "ScreenTextEntry.h"
 #include "ProfileManager.h"
+#include "DownloadManager.h"
 
 static const char *SelectionStateNames[] = {
 	"SelectingSong",
@@ -1451,6 +1452,7 @@ void ScreenSelectMusic::AfterStepsOrTrailChange(const vector<PlayerNumber> &vpns
 			}
 
 			m_textHighScore[pn].SetText(ssprintf("%*i", NUM_SCORE_DIGITS, iScore));
+			DLMAN->RequestChartLeaderBoard(pSteps->GetChartKey());
 		}
 		else
 		{

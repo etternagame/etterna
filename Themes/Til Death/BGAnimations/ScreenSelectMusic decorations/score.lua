@@ -6,6 +6,25 @@ local rateIndex = 1
 local scoreIndex = 1
 local score
 local pn = GAMESTATE:GetEnabledPlayers()[1]
+local nestedTab = 1
+local nestedTabs = {"Local", "Online"}
+
+local frameX = 10
+local frameY = 45
+local frameWidth = capWideScale(320,400)
+local frameHeight = 350
+local fontScale = 0.4
+local offsetX = 10
+local offsetY = 30
+local netScoresPerPage = 5
+local netScoresCurrentPage = 1
+local netScores = {}
+local nestedTabButtonWidth = 50
+local nestedTabButtonHeight = offsetY*2/3
+local netPageButtonWidth = 40
+local netPageButtonHeight = 20
+
+local judges = {'TapNoteScore_W1','TapNoteScore_W2','TapNoteScore_W3','TapNoteScore_W4','TapNoteScore_W5','TapNoteScore_Miss','HoldNoteScore_Held','HoldNoteScore_LetGo'}
 
 local defaultRateText = ""
 if themeConfig:get_data().global.RateSort then
@@ -14,7 +33,7 @@ else
 	defaultRateText = "All"
 end
 
-local t = Def.ActorFrame{
+local ret = Def.ActorFrame{
 	BeginCommand=function(self)
 		self:queuecommand("Set"):visible(false)
 	end,
@@ -31,16 +50,18 @@ local t = Def.ActorFrame{
 			self:visible(true)
 			update = true
 			self:playcommand("InitScore")
+			MESSAGEMAN:Broadcast("ScoreUpdate")
 		else 
 			self:queuecommand("Off")
 			update = false
+			MESSAGEMAN:Broadcast("ScoreUpdate")
 		end
 	end,
 	TabChangedMessageCommand=function(self)
 		self:queuecommand("Set")
 	end,
 	CodeMessageCommand=function(self,params)
-		if update then
+		if update and nestedTab == 1 then
 			if params.Name == "NextRate" then
 				rateIndex = ((rateIndex)%(#rates))+1
 				scoreIndex = 1
@@ -105,30 +126,21 @@ local t = Def.ActorFrame{
 	end
 }
 
-local frameX = 10
-local frameY = 45
-local frameWidth = capWideScale(320,400)
-local frameHeight = 350
-local fontScale = 0.4
-local offsetX = 10
-local offsetY = 20
-
-local judges = {'TapNoteScore_W1','TapNoteScore_W2','TapNoteScore_W3','TapNoteScore_W4','TapNoteScore_W5','TapNoteScore_Miss','HoldNoteScore_Held','HoldNoteScore_LetGo'}
-
-t[#t+1] = Def.Quad{InitCommand=function(self)
+ret[#ret+1] = Def.Quad{InitCommand=function(self)
 	self:xy(frameX,frameY):zoomto(frameWidth,frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
 end}
-t[#t+1] = Def.Quad{InitCommand=function(self)
-	self:xy(frameX,frameY):zoomto(frameWidth,offsetY):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(0.5)
-end}
 
-t[#t+1] = LoadFont("Common Normal")..{
-	InitCommand=function(self)
-		self:xy(frameX+5,frameY+offsetY-9):zoom(0.6):halign(0):diffuse(getMainColor('positive'))
+
+local t = Def.ActorFrame {
+	SetCommand=function(self)
+		self:visible(nestedTab == 1)
 	end,
-	BeginCommand=function(self)
-		self:settext("Score Info")
-	end	
+	NestedTabChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	ScoreUpdateMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
 }
 
 t[#t+1] = LoadFont("Common Large")..{
@@ -489,13 +501,358 @@ t[#t+1] = Def.Quad{
 		self:xy(frameX+offsetX,frameY+offsetY+288):zoomto(120,30):halign(0):diffusealpha(0)
 	end,
 	MouseLeftClickMessageCommand=function(self)
-		if update then
+		if update and nestedTab == 1 then
 			if getTabIndex() == 2 and getScoreForPlot() and getScoreForPlot():HasReplayData() and isOver(self) then
 				SCREENMAN:AddNewScreenToTop("ScreenScoreTabOffsetPlot")
 			end
 		end
 	end
 }
-		
 
-return t
+
+local function ButtonActive(self)
+	return isOver(self) and update
+end
+
+ret[#ret+1] = t
+local netscoreframeWidth = capWideScale(get43size(300),300)
+local netscorespacing = 34
+local netscoreframex = capWideScale(get43size(70),70)
+local netscoreframey = offsetY+netscorespacing/2+capWideScale(get43size(70),70)
+local netTab = Def.ActorFrame {
+	SetCommand = function(self)
+		netScores = {}
+		local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+		if steps and GAMESTATE:GetCurrentSong() then
+			local ck = GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey()
+			for i=1,DLMAN:GetTopChartScoreCount(ck) do
+				netScores[i] = DLMAN:GetTopChartScore(ck, i)
+			end
+		end
+		if not (netScoresCurrentPage < math.ceil(#netScores/netScoresPerPage)) then
+			netScoresCurrentPage = 1
+		end
+		MESSAGEMAN:Broadcast("NetScoreUpdate")
+	end,
+	ChartLeaderboardUpdateCommand = function(self)
+		self:queuecommand("Set")
+	end,
+	ChartLeaderboardUpdateMessageCommand = function(self)
+		self:queuecommand("Set")
+	end,
+	PlayerJoinedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	CurrentSongChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	CurrentStepsP1ChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	CurrentStepsP2ChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	VisibilityCommand=function(self)
+		self:visible(nestedTab == 2)
+	end,
+	NestedTabChangedMessageCommand=function(self)
+		self:queuecommand("Visibility")
+	end,
+	ScoreUpdateMessageCommand=function(self)
+		self:queuecommand("Visibility")
+	end,
+	Def.ActorFrame {
+		InitCommand=function(self)
+			self:xy(offsetX+frameWidth/2-netPageButtonWidth*1.5, frameY+frameHeight-netPageButtonHeight*1.5)
+		end,
+		--prev
+		Def.ActorFrame{
+			Def.Quad{
+				InitCommand=function(self)
+					self:zoomto(netPageButtonWidth, netPageButtonHeight):diffusealpha(0.35):diffuse(getMainColor('frames'))
+				end,
+				MouseLeftClickMessageCommand=function(self)
+					if ButtonActive(self) and update and nestedTab == 2 then
+						if netScoresCurrentPage > 1  then
+							netScoresCurrentPage = netScoresCurrentPage - 1
+						else
+							netScoresCurrentPage = math.ceil(#netScores/netScoresPerPage)
+						end
+						MESSAGEMAN:Broadcast("NetScoreUpdate")
+					end
+				end
+			},
+			LoadFont("Common Large") .. {
+				InitCommand=function(self)
+					self:diffuse(getMainColor('positive')):maxwidth(netPageButtonWidth):maxheight(25):zoom(0.85)
+				end,
+				BeginCommand=function(self)
+					self:settext("Prev")
+				end
+			}
+		},
+		--next
+		Def.ActorFrame{
+			InitCommand=function(self)
+				self:x(netPageButtonWidth*3)
+			end,
+			Def.Quad{
+				InitCommand=function(self)
+					self:zoomto(netPageButtonWidth, netPageButtonHeight):diffusealpha(0.35):diffuse(getMainColor('frames'))
+				end,
+				MouseLeftClickMessageCommand=function(self)
+					if ButtonActive(self) and update and nestedTab == 2 then
+						if netScoresCurrentPage < math.ceil(#netScores/netScoresPerPage) then
+							netScoresCurrentPage = netScoresCurrentPage + 1
+						else
+							netScoresCurrentPage = 1
+						end
+						MESSAGEMAN:Broadcast("NetScoreUpdate")
+					end
+				end
+			},
+			LoadFont("Common Large") .. {
+				InitCommand=function(self)
+					self:diffuse(getMainColor('positive')):maxwidth(netPageButtonWidth):maxheight(25):zoom(0.85)
+				end,
+				BeginCommand=function(self)
+					self:settext("Next")
+				end
+			}
+		}
+	}
+}
+local function netscoreitem(drawindex)
+	local t = Def.ActorFrame {
+		Name="scoreItem"..tostring(i),
+		SetCommand=function(self)
+			self:visible(nestedTab == 2 and netScores ~= nil and netScores[drawindex + (netScoresCurrentPage-1)*netScoresPerPage] ~= nil)
+		end,
+		NetScoreUpdateMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		NestedTabChangedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		--The main quad
+		Def.Quad{
+			InitCommand=function(self)
+				self:xy(netscoreframex,netscoreframey+(drawindex*netscorespacing)):zoomto(netscoreframeWidth,30):halign(0):valign(0):diffuse(color("#444444")):diffusealpha(1)
+			end,
+		},
+		--rank
+		LoadFont("Common normal")..{
+			InitCommand=function(self)
+				self:xy(netscoreframex-8,netscoreframey+netscorespacing/2+(drawindex*netscorespacing)-2):zoom(0.35)
+			end,
+			SetCommand=function(self)
+				local index = drawindex + (netScoresCurrentPage-1)*netScoresPerPage
+				if netScores[index] then
+					self:settext(index)
+				else
+					self:settext("")
+				end
+			end,
+			NetScoreUpdateMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+			BeginCommand=function(self)
+				self:queuecommand("Set")
+			end,
+		},
+		--mods
+		LoadFont("Common normal")..{
+			Name="option",
+			InitCommand=function(self)
+				self:xy(netscoreframex+10,netscoreframey+10+(drawindex*netscorespacing)+4):zoom(0.35):halign(0):maxwidth((netscoreframeWidth-15)/0.35)
+			end,
+			SetCommand=function(self)
+				local index = drawindex + (netScoresCurrentPage-1)*netScoresPerPage
+				if netScores[index] then
+					self:settext(netScores[index].modifiers)
+				else
+					self:settext("")
+				end
+			end,
+			NetScoreUpdateMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+			BeginCommand=function(self)
+				self:queuecommand("Set")
+			end,
+		},
+	
+		--grade text
+		LoadFont("Common normal")..{
+			InitCommand=function(self)
+				self:xy(netscoreframex+130+capWideScale(get43size(0),50),netscoreframey+2+(drawindex*netscorespacing)):zoom(0.35):halign(0.5):maxwidth((netscoreframeWidth-15)/0.35)
+			end,
+			SetCommand=function(self)
+				local index = drawindex + (netScoresCurrentPage-1)*netScoresPerPage
+				if netScores[index] then
+					--self:settext(calcGradeFromWife(netScores[index].wife))
+				else
+					self:settext("")
+				end
+			end,
+			NetScoreUpdateMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+			BeginCommand=function(self)
+				self:queuecommand("Set")
+			end,
+		},
+		--judgment
+		LoadFont("Common normal")..{
+			Name="judge";
+			InitCommand=function(self)
+				self:xy(netscoreframex+10,netscoreframey+(drawindex*netscorespacing)+4):zoom(0.35):halign(0):maxwidth((netscoreframeWidth-15)/0.35)
+			end,
+			SetCommand=function(self)
+				local index = drawindex + (netScoresCurrentPage-1)*netScoresPerPage
+				if netScores[index] then
+					self:settextf("%05.5f%% (Wife)      %d / %d / %d / %d / %d / %d           x%d",
+						netScores[index].wife*10000/100,
+						netScores[index].marvelous,
+						netScores[index].perfect,
+						netScores[index].great,
+						netScores[index].good,
+						netScores[index].bad,
+						netScores[index].miss,
+						netScores[index].maxcombo)
+				else
+					self:settext("")
+				end
+			end,
+			NetScoreUpdateMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+			BeginCommand=function(self)
+				self:queuecommand("Set")
+			end,
+		},
+
+		--date and user
+		LoadFont("Common normal")..{
+			Name="date";
+			InitCommand=function(self)
+				self:xy(netscoreframex+10,netscoreframey+20+(drawindex*netscorespacing)+4):zoom(0.35):halign(0)
+			end,
+			SetCommand=function(self)
+				local index = drawindex + (netScoresCurrentPage-1)*netScoresPerPage
+				if netScores[index] then
+					self:settext(netScores[index].datetime.."     "..netScores[index].username)
+				else
+					self:settext("")
+				end
+			end,
+			NetScoreUpdateMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+			BeginCommand=function(self)
+				self:queuecommand("Set")
+			end,
+		},
+
+	}
+	return t
+end
+--format example
+netTab[#netTab+1] = Def.ActorFrame {
+		Name="scoreItem"..tostring(i),
+		SetCommand=function(self)
+			self:visible(true):y(-10)
+		end,
+		--The main quad
+		Def.Quad{
+			InitCommand=function(self)
+				self:xy(netscoreframex,netscoreframey):zoomto(netscoreframeWidth,30):halign(0):valign(0):diffuse(color("#444444")):diffusealpha(1)
+			end,
+		},
+		--rank
+		LoadFont("Common normal")..{
+			InitCommand=function(self)
+				self:xy(netscoreframex-8,netscoreframey+12):zoom(0.35)
+			end,
+			SetCommand=function(self)
+				self:settext("Nth")
+			end,
+		},
+		--mods
+		LoadFont("Common normal")..{
+			Name="option",
+			InitCommand=function(self)
+				self:xy(netscoreframex+10,netscoreframey+14):zoom(0.35):halign(0):maxwidth((netscoreframeWidth-15)/0.35)
+			end,
+			SetCommand=function(self)
+				self:settext("Options")
+			end,
+		},
+		--judgment
+		LoadFont("Common normal")..{
+			Name="judge";
+			InitCommand=function(self)
+				self:xy(netscoreframex+10,netscoreframey+4):zoom(0.35):halign(0):maxwidth((netscoreframeWidth-15)/0.35)
+			end,
+			SetCommand=function(self)
+				self:settextf("0.0 (Wife)      marvelous / perfect / great / good / bad / miss           maxcombo")
+			end,
+		},
+
+		--date and user
+		LoadFont("Common normal")..{
+			Name="date";
+			InitCommand=function(self)
+				self:xy(netscoreframex+10,netscoreframey+24):zoom(0.35):halign(0)
+			end,
+			SetCommand=function(self)
+				self:settext("Date     User")
+			end,
+		},
+
+	}
+for i=1,netScoresPerPage do
+	netTab[#netTab+1] = netscoreitem(i)
+end
+ret[#ret+1] = netTab
+function nestedTabButton(i)
+	return 
+	Def.ActorFrame{
+		InitCommand=function(self)
+			self:xy(frameX+offsetX+i*(frameWidth*6/8)/#nestedTabs-nestedTabButtonWidth/2, frameY+offsetY/2)
+		end,
+		Def.Quad{
+			InitCommand=function(self)
+				self:zoomto(nestedTabButtonWidth,nestedTabButtonHeight):diffusealpha(0.35):diffuse(getMainColor('frames'))
+			end,
+			SetCommand=function(self)
+				if nestedTab == i then
+					self:diffusealpha(1)
+				else
+					self:diffusealpha(0.35)
+				end
+			end,
+			MouseLeftClickMessageCommand=function(self)
+				if ButtonActive(self) then
+					nestedTab = i
+					MESSAGEMAN:Broadcast("NestedTabChanged")
+				end
+			end,
+			NestedTabChangedMessageCommand=function(self)
+				self:queuecommand("Set")
+			end
+		},
+		LoadFont("Common Large") .. {
+			InitCommand=function(self)
+				self:diffuse(getMainColor('positive')):maxwidth(nestedTabButtonWidth):maxheight(25):zoom(0.85)
+			end,
+			BeginCommand=function(self)
+				self:settext(nestedTabs[i])
+			end
+		}
+	}
+end
+for i=1,#nestedTabs do 
+	ret[#ret+1] = nestedTabButton(i)
+end
+return ret
