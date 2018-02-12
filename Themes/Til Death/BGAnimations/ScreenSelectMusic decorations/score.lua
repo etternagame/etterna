@@ -18,7 +18,6 @@ local offsetX = 10
 local offsetY = 30
 local netScoresPerPage = 5
 local netScoresCurrentPage = 1
-local netScores = {}
 local nestedTabButtonWidth = 50
 local nestedTabButtonHeight = offsetY*2/3
 local netPageButtonWidth = 40
@@ -519,38 +518,18 @@ local netscoreframeWidth = capWideScale(get43size(300),300)
 local netscorespacing = 34
 local netscoreframex = capWideScale(get43size(70),70)
 local netscoreframey = offsetY+netscorespacing/2+capWideScale(get43size(70),70)
+function updateNetScores(self)
+	if not (netScoresCurrentPage < math.ceil(DLMAN:GetTopChartScoreCount(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())/netScoresPerPage)) then
+		netScoresCurrentPage = 1
+	end
+	MESSAGEMAN:Broadcast("NetScoreUpdate")
+end
 local netTab = Def.ActorFrame {
-	SetCommand = function(self)
-		netScores = {}
-		local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
-		if steps and GAMESTATE:GetCurrentSong() then
-			local ck = GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey()
-			for i=1,DLMAN:GetTopChartScoreCount(ck) do
-				netScores[i] = DLMAN:GetTopChartScore(ck, i)
-			end
-		end
-		if not (netScoresCurrentPage < math.ceil(#netScores/netScoresPerPage)) then
-			netScoresCurrentPage = 1
-		end
-		MESSAGEMAN:Broadcast("NetScoreUpdate")
-	end,
-	ChartLeaderboardUpdateCommand = function(self)
-		self:queuecommand("Set")
-	end,
 	ChartLeaderboardUpdateMessageCommand = function(self)
-		self:queuecommand("Set")
+		updateNetScores(self)
 	end,
-	PlayerJoinedMessageCommand=function(self)
-		self:queuecommand("Set")
-	end,
-	CurrentSongChangedMessageCommand=function(self)
-		self:queuecommand("Set")
-	end,
-	CurrentStepsP1ChangedMessageCommand=function(self)
-		self:queuecommand("Set")
-	end,
-	CurrentStepsP2ChangedMessageCommand=function(self)
-		self:queuecommand("Set")
+	CurrentStepsP1ChangedMessageCommand=function(self)	
+		updateNetScores(self)
 	end,
 	VisibilityCommand=function(self)
 		self:visible(nestedTab == 2)
@@ -576,7 +555,7 @@ local netTab = Def.ActorFrame {
 						if netScoresCurrentPage > 1  then
 							netScoresCurrentPage = netScoresCurrentPage - 1
 						else
-							netScoresCurrentPage = math.ceil(#netScores/netScoresPerPage)
+							netScoresCurrentPage = math.ceil(DLMAN:GetTopChartScoreCount(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())/netScoresPerPage)
 						end
 						MESSAGEMAN:Broadcast("NetScoreUpdate")
 					end
@@ -602,7 +581,7 @@ local netTab = Def.ActorFrame {
 				end,
 				MouseLeftClickMessageCommand=function(self)
 					if ButtonActive(self) and update and nestedTab == 2 then
-						if netScoresCurrentPage < math.ceil(#netScores/netScoresPerPage) then
+						if netScoresCurrentPage < math.ceil(DLMAN:GetTopChartScoreCount(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())/netScoresPerPage) then
 							netScoresCurrentPage = netScoresCurrentPage + 1
 						else
 							netScoresCurrentPage = 1
@@ -623,22 +602,32 @@ local netTab = Def.ActorFrame {
 	}
 }
 local function netscoreitem(drawindex)
+	local tmpScore
+	local index = drawindex
 	local t = Def.ActorFrame {
 		Name="scoreItem"..tostring(i),
-		SetCommand=function(self)
-			self:visible(nestedTab == 2 and netScores ~= nil and netScores[drawindex + (netScoresCurrentPage-1)*netScoresPerPage] ~= nil)
-		end,
 		NetScoreUpdateMessageCommand=function(self)
-			self:queuecommand("Set")
+			index = drawindex + (netScoresCurrentPage-1)*netScoresPerPage
+			tmpScore = DLMAN:GetTopChartScore(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(), index)
+			self:visible(nestedTab == 2 and tmpScore ~= nil)
 		end,
 		NestedTabChangedMessageCommand=function(self)
-			self:queuecommand("Set")
+			self:visible(nestedTab == 2 and tmpScore ~= nil)
 		end,
 		--The main quad
 		Def.Quad{
 			InitCommand=function(self)
 				self:xy(netscoreframex,netscoreframey+(drawindex*netscorespacing)):zoomto(netscoreframeWidth,30):halign(0):valign(0):diffuse(color("#444444")):diffusealpha(1)
 			end,
+			NetScoreUpdateMessageCommand=function(self)
+				self:diffuse(tmpScore and tmpScore.replaydata and color("#666666") or color("#444444"))
+			end,
+			MouseLeftClickMessageCommand=function(self)
+				if ButtonActive(self) and update and nestedTab == 2 and tmpScore and tmpScore.replaydata then
+					setOnlineScoreForPlot(tmpScore)
+					SCREENMAN:AddNewScreenToTop("ScreenOnlineScoreTabOffsetPlot")
+				end
+			end
 		},
 		--rank
 		LoadFont("Common normal")..{
@@ -646,8 +635,7 @@ local function netscoreitem(drawindex)
 				self:xy(netscoreframex-8,netscoreframey+netscorespacing/2+(drawindex*netscorespacing)-2):zoom(0.35)
 			end,
 			SetCommand=function(self)
-				local index = drawindex + (netScoresCurrentPage-1)*netScoresPerPage
-				if netScores[index] then
+				if tmpScore then
 					self:settext(index)
 				else
 					self:settext("")
@@ -667,9 +655,8 @@ local function netscoreitem(drawindex)
 				self:xy(netscoreframex+10,netscoreframey+10+(drawindex*netscorespacing)+4):zoom(0.35):halign(0):maxwidth((netscoreframeWidth-15)/0.35)
 			end,
 			SetCommand=function(self)
-				local index = drawindex + (netScoresCurrentPage-1)*netScoresPerPage
-				if netScores[index] then
-					self:settext(netScores[index].modifiers)
+				if tmpScore then
+					self:settext(tmpScore.modifiers)
 				else
 					self:settext("")
 				end
@@ -688,8 +675,7 @@ local function netscoreitem(drawindex)
 				self:xy(netscoreframex+130+capWideScale(get43size(0),50),netscoreframey+2+(drawindex*netscorespacing)):zoom(0.35):halign(0.5):maxwidth((netscoreframeWidth-15)/0.35)
 			end,
 			SetCommand=function(self)
-				local index = drawindex + (netScoresCurrentPage-1)*netScoresPerPage
-				if netScores[index] then
+				if tmpScore then
 					--self:settext(calcGradeFromWife(netScores[index].wife))
 				else
 					self:settext("")
@@ -709,17 +695,16 @@ local function netscoreitem(drawindex)
 				self:xy(netscoreframex+10,netscoreframey+(drawindex*netscorespacing)+4):zoom(0.35):halign(0):maxwidth((netscoreframeWidth-15)/0.35)
 			end,
 			SetCommand=function(self)
-				local index = drawindex + (netScoresCurrentPage-1)*netScoresPerPage
-				if netScores[index] then
+				if tmpScore then
 					self:settextf("%05.5f%% (Wife)      %d / %d / %d / %d / %d / %d           x%d",
-						netScores[index].wife*10000/100,
-						netScores[index].marvelous,
-						netScores[index].perfect,
-						netScores[index].great,
-						netScores[index].good,
-						netScores[index].bad,
-						netScores[index].miss,
-						netScores[index].maxcombo)
+						tmpScore.wife*10000/100,
+						tmpScore.marvelous,
+						tmpScore.perfect,
+						tmpScore.great,
+						tmpScore.good,
+						tmpScore.bad,
+						tmpScore.miss,
+						tmpScore.maxcombo)
 				else
 					self:settext("")
 				end
@@ -739,9 +724,8 @@ local function netscoreitem(drawindex)
 				self:xy(netscoreframex+10,netscoreframey+20+(drawindex*netscorespacing)+4):zoom(0.35):halign(0)
 			end,
 			SetCommand=function(self)
-				local index = drawindex + (netScoresCurrentPage-1)*netScoresPerPage
-				if netScores[index] then
-					self:settext(netScores[index].datetime.."     "..netScores[index].username)
+				if tmpScore then
+					self:settext(tmpScore.datetime.."     "..tmpScore.username)
 				else
 					self:settext("")
 				end

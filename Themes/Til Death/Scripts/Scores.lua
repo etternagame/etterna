@@ -76,6 +76,10 @@ local migsWeight =  { -- Score Weights for MIGS score
 local ScoreForPlot = nil
 function setScoreForPlot(hs) ScoreForPlot = hs end
 function getScoreForPlot() return ScoreForPlot end
+--Same as above for online scores
+local NetScoreForPlot = nil
+function setOnlineScoreForPlot(hs) NetScoreForPlot = hs end
+function getOnlineScoreForPlot() return NetScoreForPlot end
 
 
 

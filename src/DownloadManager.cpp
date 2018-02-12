@@ -568,8 +568,6 @@ bool DownloadManager::ShouldUploadScores()
 inline void SetCURLPOSTScore(CURL*& curlHandle, curl_httppost*& form, curl_httppost*& lastPtr, HighScore*& hs)
 {
 	SetCURLFormPostField(curlHandle, form, lastPtr, "scorekey", hs->GetScoreKey());
-	FOREACH_ENUM(Skillset, ss)
-		SetCURLFormPostField(curlHandle, form, lastPtr, SkillsetToString(ss), hs->GetSkillsetSSR(ss));
 	SetCURLFormPostField(curlHandle, form, lastPtr, "ssr_norm", hs->GetSSRNormPercent());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "max_combo", hs->GetMaxCombo());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "valid", static_cast<int>(hs->GetEtternaValid()));
@@ -588,8 +586,7 @@ inline void SetCURLPOSTScore(CURL*& curlHandle, curl_httppost*& form, curl_httpp
 	SetCURLFormPostField(curlHandle, form, lastPtr, "chartkey", hs->GetChartKey());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "rate", hs->GetMusicRate());
 	auto chart = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
-	SetCURLFormPostField(curlHandle, form, lastPtr, "has_negative_BPM", chart->GetTimingData()->HasWarps());
-	SetCURLFormPostField(curlHandle, form, lastPtr, "is_dance_single", chart->m_StepsType == StepsType_dance_single);
+	SetCURLFormPostField(curlHandle, form, lastPtr, "negsolo", chart->GetTimingData()->HasWarps() && chart->m_StepsType == StepsType_dance_single);
 	SetCURLFormPostField(curlHandle, form, lastPtr, "cc", static_cast<int>(!hs->GetChordCohesion()));
 	SetCURLFormPostField(curlHandle, form, lastPtr, "calc_version", hs->GetSSRCalcVersion());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "topscore", hs->GetTopScore());
@@ -644,10 +641,16 @@ void DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	SetCURLFormPostField(curlHandle, form, lastPtr, "replay_data", replayString);
 	SetCURLPostToURL(curlHandle, url);
 	AddSessionCookieToCURL(curlHandle);
-	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
+	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form); 
 	function<void(HTTPRequest&)> done = [hs](HTTPRequest& req) {
-		if (req.result == "\"Success\"") {
-			hs->AddUploadedServer(serverURL.Get());
+		Json::Value json;
+		RString error;
+		hs->AddUploadedServer(serverURL.Get());
+		if (JsonUtil::LoadFromString(json, req.result, error) && json.isMember("success") && !json.isMember("error")) {
+			auto ratings = json.get("success", "");
+			FOREACH_ENUM(Skillset, ss)
+				(DLMAN->sessionRatings)[ss] = atof(ratings.get(SkillsetToString(ss), "0.0").asCString());
+			(DLMAN->sessionRatings)[Skill_Overall] = atof(ratings.get("player_rating", "0.0").asCString());
 		}
 	};
 	HTTPRequest* req = new HTTPRequest(curlHandle, done);
@@ -777,6 +780,9 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 			return;
 		vector<OnlineScore> & vec = DLMAN->chartLeaderboards[chartkey];
 		vec.clear();
+		LOG->Trace(req.result.c_str());
+		LOG->Trace(json.toStyledString().c_str());
+		LOG->Flush();
 		for (auto it = json.begin(); it != json.end(); ++it) {
 			OnlineScore tmp;
 			tmp.wife = atof((*it).get("wifescore", "0.0").asCString());
@@ -796,9 +802,18 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 			tmp.nocc = (*it).get("nocc", "0").asBool();
 			tmp.valid = (*it).get("valid", "0").asBool();
 			FOREACH_ENUM(Skillset, ss)
-				tmp.SSRs[ss] = atof((*it).get(SkillsetToString(ss).c_str(), "0.0").asCString());
-			//todo:replaydata from "replay" field
-			vec.push_back(tmp);
+				tmp.SSRs[ss] = ((*it).isMember(SkillsetToString(ss).c_str()) && (*it).isNull()) ? 0.0f : atof((*it).get(SkillsetToString(ss).c_str(), "0.0").asCString());
+			//todo:replays
+			auto rd = (*it)["replay"];
+			auto s = rd.toStyledString();
+			if(s.length()>2)
+				s = s.substr(1, s.length() - 2);
+			Json::Value rdj;
+
+			if (JsonUtil::LoadFromString(rdj, s, error))
+				for (auto itt = rdj.begin(); itt != rdj.end(); itt++)
+					tmp.replayData.emplace_back(make_pair((*itt)[0u].asDouble(), (*itt)[1 ].asDouble()));
+			vec.emplace_back(tmp);
 		}
 		MESSAGEMAN->Broadcast("ChartLeaderboardUpdate");
 	};
@@ -957,6 +972,8 @@ void DownloadManager::StartSession(string user, string pass)
 			FOREACH_ENUM(Skillset, ss)
 				DLMAN->RefreshTop25(ss);
 			DLMAN->UploadScores();
+			if (GAMESTATE->m_pCurSteps[PLAYER_1] != nullptr)
+				DLMAN->RequestChartLeaderBoard(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
 			MESSAGEMAN->Broadcast("Login");
 		}
 		else {
@@ -1232,25 +1249,24 @@ public:
 	}
 	static int GetTopChartScoreCount(T* p, lua_State* L)
 	{
-		lua_pushnumber(L, DLMAN->chartLeaderboards[SArg(1)].size());
+		string ck = SArg(1);
+		if (DLMAN->chartLeaderboards.count(ck))
+			lua_pushnumber(L, DLMAN->chartLeaderboards[ck].size());
+		else
+			lua_pushnumber(L, 0); 
 		return 1;
 	}
 	static int GetTopChartScore(T* p, lua_State* L)
 	{
 		string chartkey = SArg(1);
-		unsigned int rank = IArg(2);
-		bool result;
-		unsigned int index = rank - 1;
+		int rank = IArg(2);
+		int index = rank - 1;
 		if (!DLMAN->chartLeaderboards.count(chartkey) || index >= DLMAN->chartLeaderboards[chartkey].size()) {
 			lua_pushnil(L);
 			return 1;
 		}
 		auto& score = DLMAN->chartLeaderboards[chartkey][index];
-		if (!result) {
-			lua_pushnil(L);
-			return 1;
-		}
-		lua_createtable(L, 0, 17 + NUM_Skillset);
+		lua_createtable(L, 0, 17 + NUM_Skillset + (score.replayData.empty() ? 0 : 1));
 		FOREACH_ENUM(Skillset, ss) {
 			lua_pushnumber(L, score.SSRs[ss]);
 			lua_setfield(L, -2, SkillsetToString(ss).c_str());
@@ -1289,6 +1305,19 @@ public:
 		lua_setfield(L, -2, "username");
 		lua_pushstring(L, score.datetime.GetString().c_str());
 		lua_setfield(L, -2, "datetime");
+		if (!score.replayData.empty()) {
+			lua_createtable(L, 0, score.replayData.size());
+			int i = 1;
+			for (auto& pair : score.replayData) {
+				lua_createtable(L, 0, 2);
+				lua_pushnumber(L, pair.first);
+				lua_rawseti(L, -2, 1);
+				lua_pushnumber(L, pair.second);
+				lua_rawseti(L, -2, 2);
+				lua_rawseti(L, -2, i++);
+			}
+			lua_setfield(L, -2, "replaydata");
+		}
 		return 1;
 	}
 	static int GetFilteredAndSearchedPackList(T* p, lua_State* L)

@@ -1145,7 +1145,7 @@ XNode *XMLProfile::SaveEttXmlCreateNode(const Profile* profile) const
 	if (!profile->PermaMirrorCharts.empty())
 		xml->AppendChild(SavePermaMirrorCreateNode(profile));
 
-	if (!loadingProfile->allplaylists.empty())
+	if (!profile->allplaylists.empty())
 		xml->AppendChild(SavePlaylistsCreateNode(profile));
 
 	if (!profile->goalmap.empty())
