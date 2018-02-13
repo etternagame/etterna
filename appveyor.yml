@@ -10,7 +10,7 @@ artifacts:
 - path: Etterna *.exe
   
 install:
-- cmd: choco install nsis
+- cmd: choco install nsis --ignore-checksums
 
 before_build:
 - cmd: git submodule update --init --recursive
