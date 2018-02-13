@@ -558,7 +558,7 @@ inline void SetCURLPOSTScore(CURL*& curlHandle, curl_httppost*& form, curl_httpp
 	SetCURLFormPostField(curlHandle, form, lastPtr, "rate", hs->GetMusicRate());
 	auto chart = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "negsolo", chart->GetTimingData()->HasWarps() && chart->m_StepsType == StepsType_dance_single);
-	SetCURLFormPostField(curlHandle, form, lastPtr, "cc", static_cast<int>(!hs->GetChordCohesion()));
+	SetCURLFormPostField(curlHandle, form, lastPtr, "nocc", static_cast<int>(hs->GetChordCohesion()));
 	SetCURLFormPostField(curlHandle, form, lastPtr, "calc_version", hs->GetSSRCalcVersion());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "topscore", hs->GetTopScore());
 }
