@@ -147,7 +147,8 @@ public:
 	string sessionCookie{ "" }; // Entire session cookie string
 	string sessionUser{ "" }; // Currently logged in username
 	string sessionPass{ "" }; // Currently logged in password
-	string lastVersion{""}; // Last version according to server (Or current if non was obtained)
+	string lastVersion{ "" }; // Last version according to server (Or current if non was obtained)
+	string registerPage{ "" }; // Register page from server (Or empty if non was obtained)
 	map<string, vector<OnlineScore>> chartLeaderboards;
 	map<Skillset, int> sessionRanks; // Leaderboard ranks for logged in user by skillset
 	map<Skillset, double> sessionRatings;
@@ -184,6 +185,7 @@ public:
 
 	void SendRequest(string requestName, vector<pair<string, string>> params, function<void(HTTPRequest&)> done, bool requireLogin = true, bool post = false, bool async = true);
 	void RefreshLastVersion(); 
+	void RefreshRegisterPage();
 	void RequestChartLeaderBoard(string chartkey);
 	void RefreshUserData();
 	void RefreshUserRank();

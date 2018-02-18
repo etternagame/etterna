@@ -262,6 +262,7 @@ DownloadManager::DownloadManager() {
 	}
 	CachePackList(packListURL);
 	RefreshLastVersion();
+	RefreshRegisterPage();
 }
 
 DownloadManager::~DownloadManager()
@@ -803,6 +804,17 @@ void DownloadManager::RefreshLastVersion()
 	};
 	SendRequest("client_version", vector<pair<string, string>>(), done, false, false, false);
 }
+void DownloadManager::RefreshRegisterPage()
+{
+	function<void(HTTPRequest&)> done = [this](HTTPRequest& req) {
+		Json::Value json;
+		RString error;
+		if (!JsonUtil::LoadFromString(json, req.result, error) || (json.isObject() && json.isMember("error")))
+			return;
+		this->registerPage = json.get("link", "").asCString();
+	};
+	SendRequest("register_link", vector<pair<string, string>>(), done, false, false, false);
+}
 void DownloadManager::RefreshTop25(Skillset ss)
 {
 	if (!LoggedIn())
@@ -1175,6 +1187,11 @@ public:
 		lua_pushstring(L, DLMAN->lastVersion.c_str());
 		return 1;
 	}
+	static int GetRegisterPage(T* p, lua_State* L)
+	{
+		lua_pushstring(L, DLMAN->registerPage.c_str());
+		return 1;
+	}
 	static int GetTopSkillsetScore(T* p, lua_State* L)
 	{
 		int rank = IArg(1);
@@ -1315,6 +1332,7 @@ public:
 		ADD_METHOD(GetTopChartScore);
 		ADD_METHOD(GetTopChartScoreCount);
 		ADD_METHOD(GetLastVersion);
+		ADD_METHOD(GetRegisterPage);
 		ADD_METHOD(Logout);
 	}
 };
