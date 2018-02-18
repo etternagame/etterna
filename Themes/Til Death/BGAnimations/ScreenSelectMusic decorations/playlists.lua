@@ -523,7 +523,7 @@ local function PlaylistTitleDisplayButton(i)
 			end,
 			MouseLeftClickMessageCommand=function(self)
 				if ButtonActive(self,fontScale) and allplaylistsactive then
-					SONGMAN:SetActivePlaylist(allplaylists[i]:GetName())
+					SONGMAN:SetActivePlaylist(allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)]:GetName())
 					pl = allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)]
 					MESSAGEMAN:Broadcast("DisplaySinglePlaylist")
 				end
