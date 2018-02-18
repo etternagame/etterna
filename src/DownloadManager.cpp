@@ -939,7 +939,8 @@ void DownloadManager::StartSession(string user, string pass)
 			DLMAN->RefreshUserData();
 			FOREACH_ENUM(Skillset, ss)
 				DLMAN->RefreshTop25(ss);
-			DLMAN->UploadScores();
+			if(DLMAN->ShouldUploadScores())
+				DLMAN->UploadScores();
 			if (GAMESTATE->m_pCurSteps[PLAYER_1] != nullptr)
 				DLMAN->RequestChartLeaderBoard(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
 			MESSAGEMAN->Broadcast("Login");
