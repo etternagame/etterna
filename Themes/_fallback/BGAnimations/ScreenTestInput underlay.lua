@@ -1,8 +1,8 @@
 return Def.ActorFrame {
 	--Def.ControllerStateDisplay {
 	--	InitCommand=function(self)
-		self:LoadGameController()
-	end,
+	--	self:LoadGameController()
+	--end,
 	--};
 	Def.DeviceList {
 		Font="Common Normal",
