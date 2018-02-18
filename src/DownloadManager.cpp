@@ -1191,6 +1191,11 @@ public:
 		DLMAN->EndSessionIfExists();
 		return 1;
 	}
+	static int GetLastVersion(T* p, lua_State* L)
+	{
+		lua_pushstring(L, DLMAN->lastVersion.c_str());
+		return 1;
+	}
 	static int GetTopSkillsetScore(T* p, lua_State* L)
 	{
 		int rank = IArg(1);
@@ -1330,6 +1335,7 @@ public:
 		ADD_METHOD(GetTopSkillsetScore);
 		ADD_METHOD(GetTopChartScore);
 		ADD_METHOD(GetTopChartScoreCount);
+		ADD_METHOD(GetLastVersion);
 		ADD_METHOD(Logout);
 	}
 };
