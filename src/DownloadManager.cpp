@@ -867,28 +867,7 @@ void DownloadManager::RefreshUserData()
 	HTTPRequests.push_back(req);
 	return;
 }
-DateTime DownloadManager::GetLastUploadDate(string profileName)
-{
-	string url = serverURL.Get() + "/last_upload";
-	DateTime t;
-	if (!LoggedIn())
-		return DateTime::GetNowDateTime();
-	CURL *curlHandle = initCURLHandle();
-	curl_httppost *form = nullptr;
-	curl_httppost *lastPtr = nullptr;
-	curl_slist *headerlist = nullptr;
-	SetCURLFormPostField(curlHandle, form, lastPtr, "origin", ComputerIdentity() + ":_:" + profileName);
-	SetCURLPostToURL(curlHandle, url);
-	AddSessionCookieToCURL(curlHandle);
-	string result;
-	SetCURLResultsString(curlHandle, result);
-	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
-	CURLcode ret = curl_easy_perform(curlHandle);
-	curl_easy_cleanup(curlHandle);
-	curl_formfree(form);
-	t.FromString(result.c_str());
-	return t;
-}
+
 void DownloadManager::StartSession(string user, string pass)
 {
 	string url = serverURL.Get() + "/login";
