@@ -65,6 +65,7 @@ matrix:
         branch_pattern: coverity_scan
 
 before_script:
+  - if [ "${CXX_COMPILER}" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
   - sudo ln -s /usr/include/x86_64-linux-gnu/zconf.h /usr/include
   - git submodule update --init
   - mkdir ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
