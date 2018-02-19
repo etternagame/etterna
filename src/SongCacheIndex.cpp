@@ -491,7 +491,7 @@ bool SongCacheIndex::CacheSong(Song& song, string dir)
 	}
 	catch (std::exception& e)
 	{
-		LOG->Trace("Error saving song %s to cache db: %s", dir, e.what());
+		LOG->Trace("Error saving song %s to cache db: %s", dir.c_str(), e.what());
 		return false;
 	}
 }
