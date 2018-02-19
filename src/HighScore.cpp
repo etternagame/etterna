@@ -651,7 +651,6 @@ bool HighScore::LoadReplayData() {
 	string line;
 	string buffer;
 	vector<string> tokens;
-	stringstream ss;
 	int noteRow;
 	float offset;
 
@@ -664,7 +663,7 @@ bool HighScore::LoadReplayData() {
 	//loop until eof
 	while (getline(fileStream, line))
 	{
-		ss = stringstream(line);
+		stringstream ss(line);
 		//split line into tokens
 		while (ss >> buffer)
 			tokens.emplace_back(buffer);
