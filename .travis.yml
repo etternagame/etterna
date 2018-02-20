@@ -32,10 +32,7 @@ matrix:
       WITH_FFMPEG_JOBS=1
     compiler: clang
     addons: *1
-  -  os: linux
-     env: 
-        - CXX_COMPILER=g++-5 CC_COMPILER=gcc-5 BUILD_TYPE=Release WITH_FFMPEG=OFF WITH_FFMPEG_JOBS=1
-        - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
+  - env: CXX_COMPILER=g++-5 CC_COMPILER=gcc-5 BUILD_TYPE=Release WITH_FFMPEG=OFF WITH_FFMPEG_JOBS=1 MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
     compiler: gcc
     addons:
       apt:
