@@ -72,10 +72,11 @@ local function saveAvatar(pn)
 	local avatar = getSelectedAvatar(pn)
 	local profile = PROFILEMAN:GetProfile(pn)
 	local GUID = profile:GetGUID()
+	local profileName = profile:GetDisplayName()
 	avatarConfig:get_data().avatar[GUID] = avatar
 	avatarConfig:set_dirty()
 	avatarConfig:save()
-	SCREENMAN:SystemMessage(string.format("%s Avatar set to: '%s'",pn,avatar))
+	SCREENMAN:SystemMessage(string.format("%s's avatar set to: '%s'",profileName,avatar))
 end
 
 -- The main function that contains errything
@@ -222,12 +223,13 @@ local function avatarSwitch(pn)
 			self:queuecommand("Set")
 		end;
 		SetCommand=function(self,params)
+			local profileName = profile:GetDisplayName()
 			--self:settextf("Player 1 avatar: ci%d ai%d",cursorIndex,avatarIndex)
 			if pn == PLAYER_1 then
-				self:settextf("Player 1 Avatar: %s",avatars[data[pn]["avatarIndex"]])
+				self:settextf("%s's avatar: %s",profileName,avatars[data[pn]["avatarIndex"]])
 			end;
 			if pn == PLAYER_2 then
-				self:settextf("Player 2 Avatar: %s",avatars[data[pn]["avatarIndex"]])
+				self:settextf("%s's avatar: %s",profileName,avatars[data[pn]["avatarIndex"]])
 			end;
 		end;
 		CodeMessageCommand=function(self)
