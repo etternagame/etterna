@@ -1,12 +1,33 @@
-local t = Def.ActorFrame{}
+local function input(event)
+	local top = SCREENMAN:GetTopScreen()
+	if event.DeviceInput.button == 'DeviceButton_left mouse button' then
+		if event.type == "InputEventType_Release" then
+			if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
+				if isOver(top:GetChild("Overlay"):GetChild("PlayerAvatar"):GetChild("Avatar"..PLAYER_1):GetChild("Image")) then
+					SCREENMAN:AddNewScreenToTop("ScreenAvatarSwitch");
+				end;
+			end;
+			if GAMESTATE:IsPlayerEnabled(PLAYER_2) then
+				if isOver(top:GetChild("Overlay"):GetChild("PlayerAvatar"):GetChild("Avatar"..PLAYER_2):GetChild("Image")) then
+					SCREENMAN:AddNewScreenToTop("ScreenAvatarSwitch");
+				end;
+			end;
+		end;
+	end
+return false;
+end
+
+local t = Def.ActorFrame{
+	OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) SCREENMAN:GetTopScreen():UsersVisible(false) end;
+}
 
 t[#t+1] = Def.Actor{
 	CodeMessageCommand=function(self,params)
 		if params.Name == "AvatarShow" and getTabIndex() == 0 then
-			SCREENMAN:AddNewScreenToTop("ScreenAvatarSwitch")
-		end
-	end
-}
+			SCREENMAN:AddNewScreenToTop("ScreenAvatarSwitch");
+		end;
+	end;
+};
 
 t[#t+1] = LoadActor("../_frame")
 t[#t+1] = LoadActor("../_PlayerInfo")
@@ -21,5 +42,7 @@ t[#t+1] = LoadActor("../_mousewheelscroll")
 t[#t+1] = LoadActor("../_mouseselect")
 t[#t+1] = LoadActor("../_halppls")
 t[#t+1] = LoadActor("currenttime")
+
+GAMESTATE:UpdateDiscordMenu(GetPlayerOrMachineProfile(PLAYER_1):GetDisplayName() .. ": " .. string.format("%5.2f", GetPlayerOrMachineProfile(PLAYER_1):GetPlayerRating()))
 
 return t
