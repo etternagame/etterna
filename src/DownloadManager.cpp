@@ -1346,10 +1346,11 @@ public:
 	{
 		if (p->downloading)
 			return 1;
-		p->downloading = true;
 		Download * dl = DLMAN->DownloadAndInstallPack(p);
-		if (dl)
+		if (dl) {
 			dl->PushSelf(L);
+			p->downloading = true;
+		}
 		else
 			lua_pushnil(L);
 		return 1;
