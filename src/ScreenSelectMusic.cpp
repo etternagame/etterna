@@ -1160,6 +1160,9 @@ void ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 	}
 	else if (SM == SM_GainFocus)
 	{
+#if !defined(WITHOUT_NETWORKING)
+		DLMAN->UpdateDLSpeed(false);
+#endif
 		CodeDetector::RefreshCacheItems(CODES);
 	}
 	else if (SM == SM_LoseFocus)
@@ -1329,6 +1332,9 @@ bool ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 
 	if (m_SelectionState == SelectionState_Finalized)
 	{
+#if !defined(WITHOUT_NETWORKING)
+		DLMAN->UpdateDLSpeed(true);
+#endif
 		m_MenuTimer->Stop();
 
 		FOREACH_HumanPlayer(p)

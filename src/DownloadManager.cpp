@@ -435,13 +435,19 @@ bool DownloadManager::UpdateHTTPAndIsFinished(float fDeltaSeconds)
 }
 bool DownloadManager::UpdatePacksAndIsFinished(float fDeltaSeconds)
 {
-	if (reloadPending && !gameplay) {
+	if (pendingInstallDownloads.size() > 0 && !gameplay) {
+		//Install all pending packs
+		for (auto i = pendingInstallDownloads.begin(); i != pendingInstallDownloads.end(); i++) {
+			i->second->Install();
+			finishedDownloads[i->second->m_Url] = i->second;
+			pendingInstallDownloads.erase(i);
+		}
+		//Reload
 		auto screen = SCREENMAN->GetScreen(0);
 		if (screen && screen->GetName() == "ScreenSelectMusic")
 			static_cast<ScreenSelectMusic*>(screen)->DifferentialReload();
 		else
 			SONGMAN->DifferentialReload();
-		reloadPending = false;
 	}
 	if (!downloadingPacks)
 		return true;
@@ -483,43 +489,48 @@ bool DownloadManager::UpdatePacksAndIsFinished(float fDeltaSeconds)
 	//Check for finished downloads
 	CURLMsg *msg;
 	int msgs_left;
-	bool addedPacks = false;	
+	bool installedPacks = false;
+	bool finishedADownload = false;
 	while (msg = curl_multi_info_read(mPackHandle, &msgs_left)) {
 		/* Find out which handle this message is about */
 		for (auto i = downloads.begin(); i != downloads.end(); i++) {
 			if (msg->easy_handle == i->second->handle) {
+				finishedADownload = true;
 				if (i->second->p_RFWrapper.file.IsOpen())
 					i->second->p_RFWrapper.file.Close();
 				if (msg->msg == CURLMSG_DONE) {
-					addedPacks = true;
-					i->second->Install();
+					if (!gameplay) {
+						installedPacks = true;
+						i->second->Install();
+						finishedDownloads[i->second->m_Url] = i->second;
+					}
+					else {
+						pendingInstallDownloads[i->second->m_Url] = i->second;
+					}
 				}
 				else {
 					i->second->Failed();
+					finishedDownloads[i->second->m_Url] = i->second;
 				}
 				if (i->second->handle != nullptr)
 					curl_easy_cleanup(i->second->handle);
 				i->second->handle = nullptr;
 				if (i->second->p_Pack != nullptr)
 					i->second->p_Pack->downloading = false;
-				finishedDownloads[i->second->m_Url] = i->second;
 				downloads.erase(i);
 				break;
 			}
 		}
 	}
-	if (addedPacks) {
-		curl_off_t maxDLSpeed = 0;
+	if(finishedADownload)
+		UpdateDLSpeed();
+	if (installedPacks) {
 		auto screen = SCREENMAN->GetScreen(0);
 		if (screen && screen->GetName() == "ScreenSelectMusic")
 			static_cast<ScreenSelectMusic*>(screen)->DifferentialReload();
-		else if (!gameplay)
-			SONGMAN->DifferentialReload();
 		else
-			reloadPending = true;
-		UpdateDLSpeed();
+			SONGMAN->DifferentialReload();
 	}
-
 	return false;
 
 }

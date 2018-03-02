@@ -131,6 +131,7 @@ public:
 	map<string, Download*> downloads; // Active downloads
 	vector<HTTPRequest*> HTTPRequests; // Active HTTP requests (async, curlMulti)
 	map<string, Download*> finishedDownloads;
+	map<string, Download*> pendingInstallDownloads;
 	CURLM* mPackHandle{ nullptr }; // Curl multi handle for packs downloads
 	CURLM* mHTTPHandle{ nullptr }; // Curl multi handle for httpRequests
 	CURLMcode ret;
@@ -141,7 +142,6 @@ public:
 	string error{ "" };
 	int lastid{ 0 };
 	vector<DownloadablePack> downloadablePacks;
-	bool reloadPending{ false }; // Song reload pending
 	bool CachePackList(string url); // Fill downloadablePacks with GetPackList
 	string session{ "" }; // Session cookie content
 	string sessionCookie{ "" }; // Entire session cookie string
