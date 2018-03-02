@@ -1332,18 +1332,23 @@ int SongManager::GetSongRank(Song* pSong)
 #include "LuaBinding.h"
 
 /** @brief Allow Lua to have access to the SongManager. */ 
-class LunaSongManager: public Luna<SongManager>
+class LunaSongManager : public Luna<SongManager>
 {
 public:
-	static int SetPreferredSongs( T* p, lua_State *L )
+	static int SetPreferredSongs(T* p, lua_State *L)
 	{
-		p->UpdatePreferredSort( SArg(1), "PreferredCourses.txt" );
+		p->UpdatePreferredSort(SArg(1), "PreferredCourses.txt");
 		COMMON_RETURN_SELF;
 	}
-	static int GetAllSongs( T* p, lua_State *L )
+	static int GetAllSongs(T* p, lua_State *L)
 	{
 		const vector<Song*> &v = p->GetAllSongs();
-		LuaHelpers::CreateTableFromArray<Song*>( v, L );
+		LuaHelpers::CreateTableFromArray<Song*>(v, L);
+		return 1;
+	}
+	static int DifferentialReload(T* p, lua_State *L)
+	{
+		lua_pushnumber(L, p->DifferentialReload());
 		return 1;
 	}
 	static int GetPreferredSortSongs( T* p, lua_State *L )
@@ -1508,29 +1513,30 @@ public:
 
 	LunaSongManager()
 	{
-		ADD_METHOD( GetAllSongs );
-		ADD_METHOD( FindSong );
-		ADD_METHOD( GetRandomSong );
-		ADD_METHOD( GetNumSongs );
-		ADD_METHOD( GetNumAdditionalSongs );
-		ADD_METHOD( GetNumSongGroups );
-		ADD_METHOD( GetSongFromSteps );
-		ADD_METHOD( GetExtraStageInfo );
-		ADD_METHOD( GetSongColor );
-		ADD_METHOD( GetSongGroupColor );
-		ADD_METHOD( GetSongRank );
-		ADD_METHOD( GetSongGroupNames );
-		ADD_METHOD( GetSongsInGroup );
-		ADD_METHOD( ShortenGroupName );
-		ADD_METHOD( SetPreferredSongs );
-		ADD_METHOD( GetPreferredSortSongs );
-		ADD_METHOD( GetSongGroupBannerPath );
-		ADD_METHOD( DoesSongGroupExist );
-		ADD_METHOD( GetPopularSongs );
-		ADD_METHOD( SongToPreferredSortSectionName );
-		ADD_METHOD( WasLoadedFromAdditionalSongs );
-		ADD_METHOD( GetSongByChartKey );
-		ADD_METHOD( GetStepsByChartKey );
+		ADD_METHOD(GetAllSongs);
+		ADD_METHOD(DifferentialReload);
+		ADD_METHOD(FindSong);
+		ADD_METHOD(GetRandomSong);
+		ADD_METHOD(GetNumSongs);
+		ADD_METHOD(GetNumAdditionalSongs);
+		ADD_METHOD(GetNumSongGroups);
+		ADD_METHOD(GetSongFromSteps);
+		ADD_METHOD(GetExtraStageInfo);
+		ADD_METHOD(GetSongColor);
+		ADD_METHOD(GetSongGroupColor);
+		ADD_METHOD(GetSongRank);
+		ADD_METHOD(GetSongGroupNames);
+		ADD_METHOD(GetSongsInGroup);
+		ADD_METHOD(ShortenGroupName);
+		ADD_METHOD(SetPreferredSongs);
+		ADD_METHOD(GetPreferredSortSongs);
+		ADD_METHOD(GetSongGroupBannerPath);
+		ADD_METHOD(DoesSongGroupExist);
+		ADD_METHOD(GetPopularSongs);
+		ADD_METHOD(SongToPreferredSortSectionName);
+		ADD_METHOD(WasLoadedFromAdditionalSongs);
+		ADD_METHOD(GetSongByChartKey);
+		ADD_METHOD(GetStepsByChartKey);
 		ADD_METHOD(GetNumCourses);
 		ADD_METHOD(GetActivePlaylist);
 		ADD_METHOD(SetActivePlaylist);

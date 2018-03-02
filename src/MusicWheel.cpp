@@ -1525,6 +1525,10 @@ public:
 		p->ReloadSongList(true, SArg(1));
 		return 1;
 	}
+	static int ReloadSongList(T* p, lua_State *L) {
+		p->ReloadSongList(false, "");
+		return 1;
+	}
 	static int Move(T* p, lua_State *L)
 	{
 		if (lua_isnil(L, 1)) { p->Move(0); }
@@ -1546,13 +1550,14 @@ public:
 
 	LunaMusicWheel()
 	{
-		ADD_METHOD( ChangeSort );
-		ADD_METHOD( GetSelectedSection );
-		ADD_METHOD( IsRouletting );
-		ADD_METHOD( SelectSong );
-		ADD_METHOD( SongSearch );
-		ADD_METHOD( Move );
-		ADD_METHOD( MoveAndCheckType );
+		ADD_METHOD(ChangeSort);
+		ADD_METHOD(GetSelectedSection);
+		ADD_METHOD(IsRouletting);
+		ADD_METHOD(SelectSong);
+		ADD_METHOD(SongSearch);
+		ADD_METHOD(ReloadSongList);
+		ADD_METHOD(Move);
+		ADD_METHOD(MoveAndCheckType);
 	}
 };
 
