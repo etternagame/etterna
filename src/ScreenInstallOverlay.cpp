@@ -130,7 +130,6 @@ void ScreenInstallOverlay::Update(float fDeltaTime)
 		DoInstalls(args);
 	}
 #if !defined(WITHOUT_NETWORKING)
-	DLMAN->UpdateAndIsFinished(fDeltaTime);
 	vector<RString> vsMessages;
 	for(auto &dl : DLMAN->downloads)
 	{

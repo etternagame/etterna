@@ -11,6 +11,7 @@
 #include "GameSoundManager.h"
 #include "ThemeManager.h"
 #include "SongManager.h"
+#include "DownloadManager.h"
 #include "GameState.h"
 #include "ScreenManager.h"
 #include "InputFilter.h"
@@ -276,7 +277,7 @@ void GameLoop::RunGameLoop()
 		if( g_fConstantUpdateDeltaSeconds > 0 )
 			fDeltaTime = g_fConstantUpdateDeltaSeconds;
 		
-		CheckGameLoopTimerSkips( fDeltaTime );
+		CheckGameLoopTimerSkips(fDeltaTime);
 
 		fDeltaTime *= g_fUpdateRate;
 
@@ -288,15 +289,16 @@ void GameLoop::RunGameLoop()
 		/* Update song beat information -before- calling update on all the classes that
 		 * depend on it. If you don't do this first, the classes are all acting on old 
 		 * information and will lag. (but no longer fatally, due to timestamping -glenn) */
-		SOUND->Update( fDeltaTime );
-		TEXTUREMAN->Update( fDeltaTime );
-		GAMESTATE->Update( fDeltaTime );
-		SCREENMAN->Update( fDeltaTime );
-		NSMAN->Update( fDeltaTime );
+		SOUND->Update(fDeltaTime);
+		TEXTUREMAN->Update(fDeltaTime);
+		GAMESTATE->Update(fDeltaTime);
+		SCREENMAN->Update(fDeltaTime);
+		NSMAN->Update(fDeltaTime);
+		DLMAN->UpdateAndIsFinished(fDeltaTime);
 
 		/* Important: Process input AFTER updating game logic, or input will be
 		 * acting on song beat from last frame */
-		HandleInputEvents( fDeltaTime );
+		HandleInputEvents(fDeltaTime);
 
 		static float deviceCheckWait = 0.f;
 		deviceCheckWait += fDeltaTime;
