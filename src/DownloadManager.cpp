@@ -22,12 +22,6 @@
 #include "Foreach.h"
 #include "Song.h"
 
-#ifdef _WIN32 
-#include <windows.h>
-#else
-#include <unistd.h>
-#include <limits.h>
-#endif
 
 shared_ptr<DownloadManager> DLMAN = nullptr;
 
@@ -57,6 +51,14 @@ string ComputerIdentity() {
 	string computerName = "";
 	string userName = "";
 #ifdef _WIN32 
+
+	int cpuinfo[4] = { 0, 0, 0, 0 };
+	__cpuid(cpuinfo, 0);
+	uint16_t cpuHash = 0;
+	uint16_t* ptr = (uint16_t*)(&cpuinfo[0]);
+	for (uint32_t i = 0; i < 8; i++)
+		cpuHash += ptr[i];
+
 	TCHAR  infoBuf[1024];
 	DWORD  bufCharCount = 1024;
 	if (GetComputerName(infoBuf, &bufCharCount))
@@ -573,6 +575,8 @@ inline void SetCURLPOSTScore(CURL*& curlHandle, curl_httppost*& form, curl_httpp
 	SetCURLFormPostField(curlHandle, form, lastPtr, "nocc", static_cast<int>(!hs->GetChordCohesion()));
 	SetCURLFormPostField(curlHandle, form, lastPtr, "calc_version", hs->GetSSRCalcVersion());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "topscore", hs->GetTopScore());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "uuid", hs->GetMachineGuid());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "hash", hs->GetValidationKey(ValidationKey_Brittle));
 }
 void DownloadManager::UploadScore(HighScore* hs)
 {

@@ -342,6 +342,7 @@ void PlayerStageStats::GenerateValidationKeys(HighScore& hs) const {
 	key.append(hs.GetScoreKey());
 	key.append(hs.GetChartKey());
 	key.append(hs.GetModifiers());
+	key.append(hs.GetMachineGuid());
 	key.append(to_string(static_cast<int>(hs.GetWifeScore() * 1000.f)));
 	key.append(to_string(static_cast<int>(hs.GetSSRNormPercent() * 1000.f)));
 	key.append(to_string(static_cast<int>(hs.GetMusicRate() * 1000.f)));

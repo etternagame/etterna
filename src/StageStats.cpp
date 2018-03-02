@@ -17,6 +17,281 @@
 #include "DownloadManager.h"
 #include "MinaCalc.h"
 
+#ifdef _WIN32 
+#include <intrin.h>
+#include <iphlpapi.h>
+#include <windows.h>
+#include <winsock2.h>
+#pragma comment(lib, "IPHLPAPI.lib")
+
+// we just need this for purposes of unique machine id. 
+// So any one or two mac's is fine.
+uint16_t hashMacAddress(PIP_ADAPTER_INFO info)
+{
+	uint16_t hash = 0;
+	for (uint32_t i = 0; i < info->AddressLength; i++)
+	{
+		hash += (info->Address[i] << ((i & 1) * 8));
+	}
+	return hash;
+}
+
+void getMacHash(uint16_t& mac1, uint16_t& mac2)
+{
+	IP_ADAPTER_INFO AdapterInfo[32];
+	DWORD dwBufLen = sizeof(AdapterInfo);
+
+	DWORD dwStatus = GetAdaptersInfo(AdapterInfo, &dwBufLen);
+	if (dwStatus != ERROR_SUCCESS)
+		return; // no adapters.
+
+	PIP_ADAPTER_INFO pAdapterInfo = AdapterInfo;
+	mac1 = hashMacAddress(pAdapterInfo);
+	if (pAdapterInfo->Next)
+		mac2 = hashMacAddress(pAdapterInfo->Next);
+
+	// sort the mac addresses. We don't want to invalidate
+	// both macs if they just change order.
+	if (mac1 > mac2)
+	{
+		uint16_t tmp = mac2;
+		mac2 = mac1;
+		mac1 = tmp;
+	}
+}
+
+uint16_t getCpuHash()
+{
+	int cpuinfo[4] = { 0, 0, 0, 0 };
+	__cpuid(cpuinfo, 0);
+	uint16_t hash = 0;
+	uint16_t* ptr = (uint16_t*)(&cpuinfo[0]);
+	for (uint32_t i = 0; i < 8; i++)
+		hash += ptr[i];
+
+	return hash;
+}
+
+string getMachineName()
+{
+	static char computerName[128];
+	DWORD size = 128;
+	GetComputerName(computerName, &size);
+	return string(computerName);
+}
+
+#else
+#include <unistd.h>
+#include <limits.h>
+
+#include "machine_id.h"
+
+#include <unistd.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <netinet/in_systm.h>
+#include <netinet/ip.h>
+#include <netinet/ip_icmp.h>
+
+#include <sys/types.h>
+#include <sys/ioctl.h>
+
+#ifdef DARWIN
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <net/if_dl.h>
+#include <ifaddrs.h>
+#include <net/if_types.h>
+#else //!DARWIN
+#include <linux/if.h>
+#include <linux/sockios.h>
+#endif //!DARWIN
+
+#include <sys/resource.h>
+#include <sys/utsname.h>
+
+//---------------------------------get MAC addresses ---------------------------------
+// we just need this for purposes of unique machine id. So any one or two 
+// mac's is fine.
+uint16_t hashMacAddress(u8* mac)
+{
+	uint16_t hash = 0;
+
+	for (uint32_t i = 0; i < 6; i++)
+	{
+		hash += (mac[i] << ((i & 1) * 8));
+	}
+	return hash;
+}
+
+void getMacHash(uint16_t& mac1, uint16_t& mac2)
+{
+	mac1 = 0;
+	mac2 = 0;
+
+#ifdef DARWIN
+
+	struct ifaddrs* ifaphead;
+	if (getifaddrs(&ifaphead) != 0)
+		return;
+
+	// iterate over the net interfaces
+	bool foundMac1 = false;
+	struct ifaddrs* ifap;
+	for (ifap = ifaphead; ifap; ifap = ifap->ifa_next)
+	{
+		struct sockaddr_dl* sdl = (struct sockaddr_dl*)ifap->ifa_addr;
+		if (sdl && (sdl->sdl_family == AF_LINK) && (sdl->sdl_type == IFT_ETHER))
+		{
+			if (!foundMac1)
+			{
+				foundMac1 = true;
+				mac1 = hashMacAddress((u8*)(LLADDR(sdl))); //sdl->sdl_data) + 
+				sdl->sdl_nlen) );
+			}
+			else {
+				mac2 = hashMacAddress((u8*)(LLADDR(sdl))); //sdl->sdl_data) + 
+				sdl->sdl_nlen) );
+				break;
+			}
+		}
+	}
+
+	freeifaddrs(ifaphead);
+
+#else // !DARWIN
+
+	int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+	if (sock < 0) return;
+
+	// enumerate all IP addresses of the system
+	struct ifconf conf;
+	char ifconfbuf[128 * sizeof(struct ifreq)];
+	memset(ifconfbuf, 0, sizeof(ifconfbuf));
+	conf.ifc_buf = ifconfbuf;
+	conf.ifc_len = sizeof(ifconfbuf);
+	if (ioctl(sock, SIOCGIFCONF, &conf))
+	{
+		assert(0);
+		return;
+	}
+
+	// get MAC address
+	bool foundMac1 = false;
+	struct ifreq* ifr;
+	for (ifr = conf.ifc_req; (s8*)ifr < (s8*)conf.ifc_req + conf.ifc_len; ifr++)
+	{
+		if (ifr->ifr_addr.sa_data == (ifr + 1)->ifr_addr.sa_data)
+			continue;  // duplicate, skip it
+
+		if (ioctl(sock, SIOCGIFFLAGS, ifr))
+			continue;  // failed to get flags, skip it
+		if (ioctl(sock, SIOCGIFHWADDR, ifr) == 0)
+		{
+			if (!foundMac1)
+			{
+				foundMac1 = true;
+				mac1 = hashMacAddress((u8*)&(ifr->ifr_addr.sa_data));
+			}
+			else {
+				mac2 = hashMacAddress((u8*)&(ifr->ifr_addr.sa_data));
+				break;
+			}
+		}
+	}
+
+	close(sock);
+
+#endif // !DARWIN
+
+	// sort the mac addresses. We don't want to invalidate
+	// both macs if they just change order.
+	if (mac1 > mac2)
+	{
+		uint16_t tmp = mac2;
+		mac2 = mac1;
+		mac1 = tmp;
+	}
+}
+
+
+#ifdef DARWIN   
+#include <mach-o/arch.h>
+uint16_t getCpuHash()
+{
+	const NXArchInfo* info = NXGetLocalArchInfo();
+	uint16_t val = 0;
+	val += (uint16_t)info->cputype;
+	val += (uint16_t)info->cpusubtype;
+	return val;
+}
+
+#else // !DARWIN
+
+static void getCpuid(uint32_t* p, uint32_t ax)
+{
+	__asm __volatile
+	("movl %%ebx, %%esi\n\t"
+		"cpuid\n\t"
+		"xchgl %%ebx, %%esi"
+		: "=a" (p[0]), "=S" (p[1]),
+		"=c" (p[2]), "=d" (p[3])
+		: "0" (ax)
+	);
+}
+
+uint16_t getCpuHash()
+{
+	uint32_t cpuinfo[4] = { 0, 0, 0, 0 };
+	getCpuid(cpuinfo, 0);
+	uint16_t hash = 0;
+	uint32_t* ptr = (&cpuinfo[0]);
+	for (uint32_t i = 0; i < 4; i++)
+		hash += (ptr[i] & 0xFFFF) + (ptr[i] >> 16);
+
+	return hash;
+}
+#endif // !DARWIN
+
+string getMachineName()
+{
+	static struct utsname u;
+
+	if (uname(&u) < 0)
+	{
+		assert(0);
+		return "unknown";
+	}
+
+	return string(u.nodename);
+}
+#endif
+
+static uint16_t* computeSystemUniqueId()
+{
+	static uint16_t id[3];
+	static bool computed = false;
+	if (computed) return id;
+
+	// produce a number that uniquely identifies this system.
+	id[0] = getCpuHash();
+	getMacHash(id[1], id[2]);
+	computed = true;
+	return id;
+}
+string getSystemUniqueId()
+{
+	// get the name of the computer
+	string str = getMachineName();
+
+	uint16_t* id = computeSystemUniqueId();
+	for (uint32_t i = 0; i < 3; i++)
+		str = str+ "." + to_string(id[i]);
+	return str;
+}
 /* Arcade:	for the current stage (one song).  
  * Nonstop/Oni/Endless:	 for current course (which usually contains multiple songs)
  */
@@ -208,6 +483,7 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 	auto chartKey = GAMESTATE->m_pCurSteps[ps.m_PlayerNumber]->GetChartKey();
 	hs.SetChartKey(chartKey);
 	hs.SetGrade( pss.GetGrade() );
+	hs.SetMachineGuid(getSystemUniqueId());
 	hs.SetScore( pss.m_iScore );
 	hs.SetPercentDP( pss.GetPercentDancePoints() );
 	hs.SetWifeScore( pss.GetWifeScore());

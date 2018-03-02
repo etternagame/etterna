@@ -341,6 +341,7 @@ XNode *HighScoreImpl::CreateEttNode() const {
 	pNode->AppendChild("SurviveSeconds", fSurviveSeconds);
 	pNode->AppendChild("MaxCombo", iMaxCombo);
 	pNode->AppendChild("Modifiers", sModifiers);
+	pNode->AppendChild("MachineGuid", sMachineGuid);
 	pNode->AppendChild("DateTime", dateTime.GetString());
 	pNode->AppendChild("TopScore", TopScore);
 	if (!uploaded.empty()) {
@@ -379,8 +380,8 @@ void HighScoreImpl::LoadFromEttNode(const XNode *pNode) {
 
 	RString s;	
 	pNode->GetChildValue("SSRCalcVersion", SSRCalcVersion);
-	pNode->GetChildValue("Grade", s);
-	grade = StringToGrade(s);
+	if (pNode->GetChildValue("Grade", s))
+		grade = StringToGrade(s);
 	pNode->GetChildValue("WifeScore", fWifeScore);
 	pNode->GetChildValue("WifePoints", fWifePoints);
 	pNode->GetChildValue("SSRNormPercent", fSSRNormPercent);
@@ -399,9 +400,10 @@ void HighScoreImpl::LoadFromEttNode(const XNode *pNode) {
 	}
 	pNode->GetChildValue("SurviveSeconds", fSurviveSeconds);
 	pNode->GetChildValue("MaxCombo", iMaxCombo);
-	pNode->GetChildValue("Modifiers", s); sModifiers = s;
-	pNode->GetChildValue("DateTime", s); dateTime.FromString(s);
-	pNode->GetChildValue("ScoreKey", s); ScoreKey = s;
+	if (pNode->GetChildValue("Modifiers", s)) sModifiers = s;
+	if (pNode->GetChildValue("DateTime", s)) dateTime.FromString(s);
+	if (pNode->GetChildValue("ScoreKey", s)) ScoreKey = s;
+	if (pNode->GetChildValue("MachineGuid", s)) sMachineGuid = s;
 
 	const XNode* pTapNoteScores = pNode->GetChild("TapNoteScores");
 	if (pTapNoteScores)
@@ -423,8 +425,8 @@ void HighScoreImpl::LoadFromEttNode(const XNode *pNode) {
 	if (fWifeScore > 0.f) {
 		const XNode* pValidationKeys = pNode->GetChild("ValidationKeys");
 		if (pValidationKeys) {
-			pValidationKeys->GetChildValue(ValidationKeyToString(ValidationKey_Brittle), s); ValidationKeys[ValidationKey_Brittle] = s;
-			pValidationKeys->GetChildValue(ValidationKeyToString(ValidationKey_Weak), s); ValidationKeys[ValidationKey_Weak] = s;
+			if (pValidationKeys->GetChildValue(ValidationKeyToString(ValidationKey_Brittle), s)) ValidationKeys[ValidationKey_Brittle] = s;
+			if (pValidationKeys->GetChildValue(ValidationKeyToString(ValidationKey_Weak), s)) ValidationKeys[ValidationKey_Weak] = s;
 		}
 	}
 
