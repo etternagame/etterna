@@ -178,7 +178,7 @@ void getMacHash(uint16_t& mac1, uint16_t& mac2)
 	// get MAC address
 	bool foundMac1 = false;
 	struct ifreq* ifr;
-	for (ifr = conf.ifc_req; (s8*)ifr < (s8*)conf.ifc_req + conf.ifc_len; ifr++)
+	for (ifr = conf.ifc_req; (signed char*)ifr < (signed char*)conf.ifc_req + conf.ifc_len; ifr++)
 	{
 		if (ifr->ifr_addr.sa_data == (ifr + 1)->ifr_addr.sa_data)
 			continue;  // duplicate, skip it
