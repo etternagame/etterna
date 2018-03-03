@@ -5,12 +5,15 @@ image: Visual Studio 2015
 configuration: Release
 clone_folder: C:\etterna
 
+cache:
+  - C:\ProgramData\chocolatey\bin -> appveyor.yml
+  - C:\ProgramData\chocolatey\lib -> appveyor.yml
 
 artifacts:
 - path: Etterna *.exe
   
 install:
-- cmd: choco install nsis --ignore-checksums --version 3.02.0.20160720
+- cmd: choco install nsis.portable
 
 before_build:
 - cmd: git submodule update --init --recursive
