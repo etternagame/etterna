@@ -81,11 +81,7 @@ string getMachineName()
 }
 
 #else
-#include <unistd.h>
 #include <limits.h>
-
-#include "machine_id.h"
-
 #include <unistd.h>
 #include <errno.h>
 #include <sys/types.h>
