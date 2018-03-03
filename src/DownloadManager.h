@@ -139,10 +139,10 @@ public:
 	int HTTPRunning{ 0 };
 	bool loggingIn{ false }; // Currently logging in (Since it's async, to not try twice)
 	bool gameplay{ false }; // Currently in gameplay
+	bool initialized{ false };
 	string error{ "" };
 	int lastid{ 0 };
 	vector<DownloadablePack> downloadablePacks;
-	bool CachePackList(string url); // Fill downloadablePacks with GetPackList
 	string session{ "" }; // Session cookie content
 	string sessionCookie{ "" }; // Entire session cookie string
 	string sessionUser{ "" }; // Currently logged in username
@@ -158,13 +158,14 @@ public:
 	void EndSession(); //Sends session destroy request
 	void StartSession(string user, string pass); //Sends login request if not already logging in
 	bool UploadScores(); //Uploads all scores not yet uploaded to current server (Async, 1 request per score)
-	vector<DownloadablePack>* GetPackList(string url, bool &result); // Blocking (Not asyn/curlMulti)
+	void RefreshPackList(string url); 
 
+	void init();
 	Download* DownloadAndInstallPack(const string &url);
 	Download*  DownloadAndInstallPack(DownloadablePack* pack);
-	bool UpdateAndIsFinished(float fDeltaSeconds);
-	bool UpdatePacksAndIsFinished(float fDeltaSeconds);
-	bool UpdateHTTPAndIsFinished(float fDeltaSeconds);
+	void Update(float fDeltaSeconds);
+	void UpdatePacks(float fDeltaSeconds);
+	void UpdateHTTP(float fDeltaSeconds);
 	bool InstallSmzip(const string &sZipFile);
 
 	void UpdateDLSpeed();
@@ -184,6 +185,7 @@ public:
 	inline void SetCURLURL(CURL *curlHandle, string url);
 
 	void SendRequest(string requestName, vector<pair<string, string>> params, function<void(HTTPRequest&)> done, bool requireLogin = true, bool post = false, bool async = true);
+	void SendRequestToURL(string url, vector<pair<string, string>> params, function<void(HTTPRequest&)> done, bool requireLogin, bool post, bool async);
 	void RefreshLastVersion(); 
 	void RefreshRegisterPage();
 	void RequestChartLeaderBoard(string chartkey);

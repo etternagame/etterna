@@ -262,9 +262,6 @@ DownloadManager::DownloadManager() {
 		lua_settable(L, LUA_GLOBALSINDEX);
 		LUA->Release(L);
 	}
-	CachePackList(packListURL);
-	RefreshLastVersion();
-	RefreshRegisterPage();
 }
 
 DownloadManager::~DownloadManager()
@@ -364,17 +361,25 @@ Download* DownloadManager::DownloadAndInstallPack(DownloadablePack* pack)
 	dl->p_Pack = pack;
 	return dl;
 }
-
-bool DownloadManager::UpdateAndIsFinished(float fDeltaSeconds)
+void DownloadManager::init()
 {
-	bool packs = UpdatePacksAndIsFinished(fDeltaSeconds);
-	bool http = UpdateHTTPAndIsFinished(fDeltaSeconds);
-	return packs && http;
+	RefreshPackList(packListURL);
+	RefreshLastVersion();
+	RefreshRegisterPage();
+	initialized = true;
 }
-bool DownloadManager::UpdateHTTPAndIsFinished(float fDeltaSeconds)
+void DownloadManager::Update(float fDeltaSeconds)
+{
+	if (!initialized)
+		init();
+	UpdatePacks(fDeltaSeconds);
+	UpdateHTTP(fDeltaSeconds);
+	return;
+}
+void DownloadManager::UpdateHTTP(float fDeltaSeconds)
 {
 	if (!HTTPRunning && HTTPRequests.size() == 0)
-		return true;
+		return;
 	timeval timeout;
 	int rc, maxfd = -1;
 	CURLMcode mc;
@@ -390,7 +395,7 @@ bool DownloadManager::UpdateHTTPAndIsFinished(float fDeltaSeconds)
 	mc = curl_multi_fdset(mHTTPHandle, &fdread, &fdwrite, &fdexcep, &maxfd);
 	if (mc != CURLM_OK) {
 		error = "curl_multi_fdset() failed, code " + mc;
-		return false;
+		return;
 	}
 	if (maxfd == -1) {
 		rc = 0;
@@ -433,9 +438,9 @@ bool DownloadManager::UpdateHTTPAndIsFinished(float fDeltaSeconds)
 			}
 		}
 	}
-	return false;
+	return;
 }
-bool DownloadManager::UpdatePacksAndIsFinished(float fDeltaSeconds)
+void DownloadManager::UpdatePacks(float fDeltaSeconds)
 {
 	if (pendingInstallDownloads.size() > 0 && !gameplay) {
 		//Install all pending packs
@@ -452,7 +457,7 @@ bool DownloadManager::UpdatePacksAndIsFinished(float fDeltaSeconds)
 			SONGMAN->DifferentialReload();
 	}
 	if (!downloadingPacks)
-		return true;
+		return;
 	timeval timeout;
 	int rc, maxfd = -1;
 	CURLMcode mc;
@@ -468,7 +473,7 @@ bool DownloadManager::UpdatePacksAndIsFinished(float fDeltaSeconds)
 	mc = curl_multi_fdset(mPackHandle, &fdread, &fdwrite, &fdexcep, &maxfd);
 	if (mc != CURLM_OK) {
 		error = "curl_multi_fdset() failed, code " + mc;
-		return false;
+		return;
 	}
 	if (maxfd == -1) {
 		rc = 0;
@@ -533,8 +538,7 @@ bool DownloadManager::UpdatePacksAndIsFinished(float fDeltaSeconds)
 		else
 			SONGMAN->DifferentialReload();
 	}
-	return false;
-
+	return;
 }
 
 string Download::MakeTempFileName(string s)
@@ -721,11 +725,14 @@ OnlineTopScore DownloadManager::GetTopSkillsetScore(unsigned int rank, Skillset 
 	return OnlineTopScore();
 }
 
-void DownloadManager::SendRequest(string requestName, vector<pair<string,string>> params, function<void(HTTPRequest&)> done , bool requireLogin, bool post, bool async)
+void DownloadManager::SendRequest(string requestName, vector<pair<string, string>> params, function<void(HTTPRequest&)> done, bool requireLogin, bool post, bool async)
+{
+	SendRequestToURL(serverURL.Get() + "/" + requestName, params, done, requireLogin, post, async);
+}
+void DownloadManager::SendRequestToURL(string url, vector<pair<string, string>> params, function<void(HTTPRequest&)> done, bool requireLogin, bool post, bool async)
 {
 	if (requireLogin && !LoggedIn())
 		return;
-	string url = serverURL.Get()+ "/" + requestName;
 	if (!post && !params.empty()) {
 		url += "?";
 		for (auto& param : params)
@@ -760,6 +767,7 @@ void DownloadManager::SendRequest(string requestName, vector<pair<string,string>
 		CURLcode res = curl_easy_perform(req->handle);
 		curl_easy_cleanup(req->handle);
 		done(*req);
+		delete req;
 	}
 	return;
 }
@@ -817,7 +825,7 @@ void DownloadManager::RefreshLastVersion()
 			return;
 		this->lastVersion = json.get("version", GAMESTATE->GetEtternaVersion()).asCString();
 	};
-	SendRequest("client_version", vector<pair<string, string>>(), done, false, false, false);
+	SendRequest("client_version", vector<pair<string, string>>(), done, false, false, true);
 }
 void DownloadManager::RefreshRegisterPage()
 {
@@ -828,7 +836,7 @@ void DownloadManager::RefreshRegisterPage()
 			return;
 		this->registerPage = json.get("link", "").asCString();
 	};
-	SendRequest("register_link", vector<pair<string, string>>(), done, false, false, false);
+	SendRequest("register_link", vector<pair<string, string>>(), done, false, false, true);
 }
 void DownloadManager::RefreshTop25(Skillset ss)
 {
@@ -981,16 +989,6 @@ bool DownloadManager::UploadScores()
 	return true;
 }
 
-bool DownloadManager::CachePackList(string url)
-{
-	bool result;
-	auto ptr = GetPackList(url, result);
-	if (!result)
-		return false;
-	downloadablePacks = *ptr;
-	return result;
-}
-
 int DownloadManager::GetSkillsetRank(Skillset ss)
 {
 	if (!LoggedIn())
@@ -1004,68 +1002,50 @@ float DownloadManager::GetSkillsetRating(Skillset ss)
 		return 0.0f;
 	return sessionRatings[ss];
 }
-vector<DownloadablePack>* DownloadManager::GetPackList(string url, bool &result)
+void DownloadManager::RefreshPackList(string url)
 {
-	if (url == "") {
-		result = false;
-		return nullptr;
-	}
-
-	CURL *curl = initCURLHandle();
-
-	SetCURLPostToURL(curl, url);
-
-	string response;
-	SetCURLResultsString(curl, response);
-
-	CURLcode res = curl_easy_perform(curl);
-	
-	curl_easy_cleanup(curl);
-	if (res != CURLE_OK) {
-		result = false;
-	}
-	Json::Value packs;
-	RString error;
-	auto packlist = new vector<DownloadablePack>;
-	bool parsed = JsonUtil::LoadFromString(packs, response, error);
-	if (!parsed) {
-		result = false;
-		return packlist;
-	}
-	string baseUrl = "http://simfiles.stepmania-online.com/";
-
-	for (int index = 0; index < packs.size(); ++index) {
-		DownloadablePack tmp;
-
-		if (packs[index].isMember("pack"))
-			tmp.name = packs[index].get("pack", "").asString();
-		else if (packs[index].isMember("packname"))
-			tmp.name = packs[index].get("packname", "").asString();
-		else if (packs[index].isMember("name"))
-			tmp.name = packs[index].get("name", "").asString();
-		else
-			continue;
-
-		if (packs[index].isMember("url"))
-			tmp.url = packs[index].get("url", baseUrl + tmp.name + ".zip").asString();
-		else
-			tmp.url = baseUrl + tmp.name + ".zip";
-
-		if (packs[index].isMember("average"))
-			tmp.avgDifficulty = static_cast<float>(packs[index].get("average", 0).asDouble());
-		else
-			tmp.avgDifficulty = 0.0;
-
-		if (packs[index].isMember("size"))
-			tmp.size = packs[index].get("size", 0).asInt();
-		else
-			tmp.size = 0;
-
-		tmp.id = ++lastid;
-		packlist->push_back(tmp); 
-	}
-	result = true;
-	return packlist;
+	if (url == "") 
+		return;
+	function<void(HTTPRequest&)> done = [](HTTPRequest& req) {
+		Json::Value packs;
+		RString error;
+		auto& packlist = DLMAN->downloadablePacks;
+		bool parsed = JsonUtil::LoadFromString(packs, req.result, error);
+		if (!parsed) 
+			return;
+		DLMAN->downloadablePacks.clear();
+		for (int index = 0; index < packs.size(); ++index) {
+			DownloadablePack tmp;
+			if (packs[index].isMember("pack"))
+				tmp.name = packs[index].get("pack", "").asString();
+			else if (packs[index].isMember("packname"))
+				tmp.name = packs[index].get("packname", "").asString();
+			else if (packs[index].isMember("name"))
+				tmp.name = packs[index].get("name", "").asString();
+			else
+				continue;
+			if (packs[index].isMember("download"))
+				tmp.url = packs[index].get("download", "").asString();
+			else if (packs[index].isMember("url"))
+				tmp.url = packs[index].get("url", "").asString();
+			else
+				continue;
+			if (tmp.url.empty())
+				continue;
+			if (packs[index].isMember("average"))
+				tmp.avgDifficulty = static_cast<float>(packs[index].get("average", 0).asDouble());
+			else
+				tmp.avgDifficulty = 0.0;
+			if (packs[index].isMember("size"))
+				tmp.size = packs[index].get("size", 0).asInt();
+			else
+				tmp.size = 0;
+			tmp.id = ++(DLMAN->lastid);
+			packlist.push_back(tmp);
+		}
+	};
+	SendRequestToURL(url, {}, done, false, false, true);
+	return;
 }
 
 Download::Download(string url)
