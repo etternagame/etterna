@@ -112,7 +112,7 @@ string getMachineName()
 //---------------------------------get MAC addresses ---------------------------------
 // we just need this for purposes of unique machine id. So any one or two 
 // mac's is fine.
-uint16_t hashMacAddress(u8* mac)
+uint16_t hashMacAddress(uint8_t* mac)
 {
 	uint16_t hash = 0;
 
@@ -145,11 +145,11 @@ void getMacHash(uint16_t& mac1, uint16_t& mac2)
 			if (!foundMac1)
 			{
 				foundMac1 = true;
-				mac1 = hashMacAddress((u8*)(LLADDR(sdl))); //sdl->sdl_data) + 
+				mac1 = hashMacAddress((uint8_t*)(LLADDR(sdl))); //sdl->sdl_data) + 
 				sdl->sdl_nlen) );
 			}
 			else {
-				mac2 = hashMacAddress((u8*)(LLADDR(sdl))); //sdl->sdl_data) + 
+				mac2 = hashMacAddress((uint8_t*)(LLADDR(sdl))); //sdl->sdl_data) + 
 				sdl->sdl_nlen) );
 				break;
 			}
@@ -190,10 +190,10 @@ void getMacHash(uint16_t& mac1, uint16_t& mac2)
 			if (!foundMac1)
 			{
 				foundMac1 = true;
-				mac1 = hashMacAddress((u8*)&(ifr->ifr_addr.sa_data));
+				mac1 = hashMacAddress((uint8_t*)&(ifr->ifr_addr.sa_data));
 			}
 			else {
-				mac2 = hashMacAddress((u8*)&(ifr->ifr_addr.sa_data));
+				mac2 = hashMacAddress((uint8_t*)&(ifr->ifr_addr.sa_data));
 				break;
 			}
 		}
