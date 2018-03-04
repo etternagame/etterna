@@ -1612,7 +1612,7 @@ public:
 	{
 		ADD_METHOD(AddChart);
 		ADD_METHOD(GetChartkeys);
-		ADD_METHOD(GetCharts);
+		ADD_METHOD(GetAllSteps);
 		ADD_METHOD(GetNumCharts);
 		ADD_METHOD(GetName);
 		ADD_METHOD(GetSonglist);
