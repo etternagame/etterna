@@ -114,7 +114,7 @@ local r = Def.ActorFrame{
 				allplaylistsactive = false
 				
 				keylist = pl:GetChartkeys()
-				chartlist = pl:GetCharts()
+				chartlist = pl:GetAllSteps()
 				for j=1,#keylist do
 					songlist[j] = SONGMAN:GetSongByChartKey(keylist[j])
 					stepslist[j] = SONGMAN:GetStepsByChartKey(keylist[j])
