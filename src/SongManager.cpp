@@ -1552,14 +1552,14 @@ LUA_REGISTER_CLASS( SongManager )
 class LunaPlaylist : public Luna<Playlist>
 {
 public:
-	static int GetChartlist(T* p, lua_State *L) 
+	static int GetChartkeys(T* p, lua_State *L) 
 	{
 		vector<string> keys = p->GetKeys();
 		LuaHelpers::CreateTableFromArray(keys, L);
 		return 1;
 	}
 
-	static int GetChartlistActual(T* p, lua_State *L)
+	static int GetCharts(T* p, lua_State *L)
 	{
 		lua_newtable(L);
 		for (size_t i = 0; i < p->chartlist.size(); ++i)
@@ -1611,8 +1611,8 @@ public:
 	LunaPlaylist()
 	{
 		ADD_METHOD(AddChart);
-		ADD_METHOD(GetChartlist);
-		ADD_METHOD(GetChartlistActual);
+		ADD_METHOD(GetChartkeys);
+		ADD_METHOD(GetCharts);
 		ADD_METHOD(GetNumCharts);
 		ADD_METHOD(GetName);
 		ADD_METHOD(GetSonglist);
