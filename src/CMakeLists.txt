@@ -157,6 +157,7 @@ list(APPEND SM_WINDOWS_PROGRAM_DLLS
   "${SM_PROGRAM_DIR}/avutil-52.dll"
   "${SM_PROGRAM_DIR}/parallel_lights_io.dll"
   "${SM_PROGRAM_DIR}/swscale-2.dll"
+  "${SM_PROGRAM_DIR}/uWS.dll"
 )
 
 if(WIN32)
@@ -355,6 +356,10 @@ if (WIN32)
     "${LIB_AVUTIL}"
     "${LIB_CURL}"
     "${LIB_WLDAP32}"
+	"${LIB_UWS}"
+	"${LIB_EAY}"
+	"${LIB_SSL}"
+	"${LIB_UV}"
   )
   
   if (WITH_OGG)
@@ -524,6 +529,9 @@ list(APPEND SM_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
   "${SM_SRC_DIR}/generated"
 )
+list(APPEND SM_INCLUDE_DIRS
+"${SM_EXTERN_DIR}/uWebSocket/include"
+)
 if(NOT APPLE)
   list(APPEND SM_INCLUDE_DIRS
     "${SM_EXTERN_DIR}/glew-1.5.8/include"
@@ -635,6 +643,7 @@ if(NOT APPLE)
     install(FILES "${SM_PROGRAM_DIR}/parallel_lights_io.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
     install(FILES "${SM_PROGRAM_DIR}/Etterna.vdi" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
     install(FILES "${SM_PROGRAM_DIR}/swscale-2.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    install(FILES "${SM_PROGRAM_DIR}/uWS.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
 
     # foreach(SM_WINDOW_DLL "${SM_WINDOWS_PROGRAM_DLLS}")
     #   install(FILES "${SM_WINDOW_DLL}" DESTINATION "${SM_INSTALL_DESTINATION}")

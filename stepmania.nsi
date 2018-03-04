@@ -487,6 +487,8 @@ Section "Main Section" SecMain
 	File "Program\avformat-55.dll"
 	File "Program\avutil-52.dll"
 	File "Program\swscale-2.dll"
+	;uwebsocket
+	File "Program\uWS.dll"
 	; parallel lights
 	File "Program\parallel_lights_io.dll"
 	; others
@@ -919,6 +921,7 @@ Section "Uninstall"
 	Delete "$INSTDIR\Program\avutil-50.dll"
 	Delete "$INSTDIR\Program\swscale-2.dll"
 	Delete "$INSTDIR\Program\swscale-0.dll"
+	Delete "$INSTDIR\Program\uWS.dll"
 	; others
 	Delete "$INSTDIR\Program\dbghelp.dll"
 	Delete "$INSTDIR\Program\jpeg.dll"
