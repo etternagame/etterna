@@ -1559,7 +1559,7 @@ public:
 		return 1;
 	}
 
-	static int GetCharts(T* p, lua_State *L)
+	static int GetAllSteps(T* p, lua_State *L)
 	{
 		lua_newtable(L);
 		for (size_t i = 0; i < p->chartlist.size(); ++i)
