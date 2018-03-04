@@ -421,6 +421,7 @@ elseif(APPLE)
     "${ICONV_LIBRARIES}"
     "pcre"
     "${CURL_LIBRARIES}"
+    "uWS"
   )
 
   if(HAS_FFMPEG)
@@ -472,6 +473,7 @@ else() # Unix / Linux
   list(APPEND SMDATA_LINK_LIB
     "${OPENGL_LIBRARY}"
     "${CURL_LIBRARIES}"
+    "uWS"
   )
 
   if(GTK2_FOUND)
