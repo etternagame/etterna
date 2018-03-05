@@ -1068,6 +1068,12 @@ void NetworkSyncManager::EnterRoom(RString name, RString password)
 		curProtocol->EnterRoom(name, password);
 }
 
+void NetworkSyncManager::CreateNewRoom(RString name, RString desc, RString password)
+{
+	if (curProtocol != nullptr)
+		curProtocol->CreateNewRoom(name, desc, password);
+}
+
 void NetworkSyncManager::RequestRoomInfo(RString name)
 {
 	if (curProtocol != nullptr)
