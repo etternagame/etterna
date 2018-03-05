@@ -8,6 +8,7 @@
 #include "ScreenSMOnlineLogin.h"
 #include "PlayerState.h"
 #include "Song.h"
+#include "global.h"
 #include <queue>
 #include "uWS.h"
 #include "JsonUtil.h"
@@ -145,7 +146,7 @@ public:
 	virtual void ReportSongOver(NetworkSyncManager* n) {}
 	virtual void ReportStyle(NetworkSyncManager* n) {}
 	virtual void StartRequest(NetworkSyncManager* n, short position) {}
-	virtual	void Login(string user, string pass) {}
+	virtual	void Login(RString user, RString pass) {}
 	virtual void DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetRoom* s) {}
 	virtual void DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetSelectMusic* s) {}
 	virtual int DealWithSMOnlinePack(NetworkSyncManager* n, ScreenSMOnlineLogin* s, RString& response) { return 0;}
@@ -179,7 +180,7 @@ public:
 	void ReportStyle(NetworkSyncManager* n) override;
 	void StartRequest(NetworkSyncManager* n, short position) override; 
 	void ProcessInput(NetworkSyncManager* n);
-	void Login(string user, string pass) override;
+	void Login(RString user, RString pass) override;
 	void DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetRoom* s) override;
 	void DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetSelectMusic* s) override;
 	int DealWithSMOnlinePack(NetworkSyncManager* n, ScreenSMOnlineLogin* s, RString& response) override;
@@ -205,7 +206,7 @@ public:
 	void ReportSongOver(NetworkSyncManager* n) override;
 	void ReportStyle(NetworkSyncManager* n) override;
 	void StartRequest(NetworkSyncManager* n, short position) override;
-	void Login(string user, string pass) override;
+	void Login(RString user, RString pass) override;
 	void DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetRoom* s) override;
 	void DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetSelectMusic* s) override;
 	int DealWithSMOnlinePack(NetworkSyncManager* n, ScreenSMOnlineLogin* s, RString& response) override;
@@ -300,7 +301,7 @@ public:
 
 	int m_startupStatus;	// Used to see if attempt was successful or not.
 
-	void Login(string user, string pass);
+	void Login(RString user, RString pass);
 	void DealWithSMOnlinePack(ScreenNetRoom* s);
 	void DealWithSMOnlinePack(ScreenNetSelectMusic* s);
 	int DealWithSMOnlinePack(ScreenSMOnlineLogin* s, RString& response);

@@ -1,7 +1,7 @@
 /* RageSoundReader - Data source for a RageSound. */
-
 #ifndef RAGE_SOUND_READER_H
 #define RAGE_SOUND_READER_H
+
 
 class RageSoundReader
 {
@@ -17,10 +17,10 @@ public:
 	virtual bool SetProperty( const RString & /* sProperty */, float /* fValue */ ) { return false; }
 	virtual RageSoundReader *GetSource() { return NULL; }
 
-	/* Return values for Read(). */
+	
 	enum {
-		/* An error occurred; GetError() will return a description of the error. */
-		ERROR = -1,
+		
+		RSRERROR = -1,
 		END_OF_FILE = -2,
 
 		/* A nonblocking buffer in the filter chain has underrun, and no data is

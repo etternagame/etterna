@@ -203,7 +203,7 @@ int RageSoundReader_Vorbisfile::Read( float *buf, int iFrames )
 			if( ret == OV_EBADLINK )
 			{
 				SetError( ssprintf("Read: OV_EBADLINK") );
-				return ERROR;
+				return RageSoundReader::RSRERROR;
 			}
 
 			if( ret == 0 )

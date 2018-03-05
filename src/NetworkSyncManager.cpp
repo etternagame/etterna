@@ -170,6 +170,9 @@ void NetworkSyncManager::PostStartUp(const RString& ServerIP)
 			curProtocol = &ETTP;
 	if (curProtocol == nullptr)
 		return;
+	isSMOLoggedIn = false;
+	useSMserver = true;
+	m_startupStatus = 1;	// Connection attempt successful
 	LOG->Info("Server Version: %d %s", curProtocol->serverVersion, curProtocol->serverName.c_str());
 }
 
@@ -178,11 +181,30 @@ bool ETTProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString a
 	connected = false;
 	uWSh.onDisconnection([this](uWS::WebSocket<uWS::CLIENT> *ws, int code, char *message, size_t length) {
 		this->connected = false;
+		LOG->Trace("Error while processing ettprotocol json: ");
 	});
-	uWSh.onConnection([this](uWS::WebSocket<uWS::CLIENT> *ws, uWS::HttpRequest req) {
+	uWSh.onConnection([this, address](uWS::WebSocket<uWS::CLIENT> *ws, uWS::HttpRequest req) {
 		this->connected = true;
+		LOG->Trace("Error while processing ettprotocol json: %s", address.c_str());
 	});
 	uWSh.onMessage([this](uWS::WebSocket<uWS::CLIENT> *ws, char *message, size_t length, uWS::OpCode opCode) {
+		Json::Value json;
+		RString error;
+		string msg(message, length);
+		if (JsonUtil::LoadFromString(json, msg, error))
+			this->newMessages.emplace_back(json);
+		else
+			LOG->Trace("Error while processing ettprotocol json: %s", error.c_str());
+	});
+	uWSh.onDisconnection([this](uWS::WebSocket<uWS::SERVER> *ws, int code, char *message, size_t length) {
+		this->connected = false;
+		LOG->Trace("Error while processing ettprotocol json: ");
+	});
+	uWSh.onConnection([this](uWS::WebSocket<uWS::SERVER> *ws, uWS::HttpRequest req) {
+		this->connected = true;
+		LOG->Trace("Error while processing ettprotocol json: ");
+	});
+	uWSh.onMessage([this](uWS::WebSocket<uWS::SERVER> *ws, char *message, size_t length, uWS::OpCode opCode) {
 		Json::Value json;
 		RString error;
 		if (JsonUtil::LoadFromString(json, string(message, length), error))
@@ -190,12 +212,20 @@ bool ETTProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString a
 		else
 			LOG->Trace("Error while processing ettprotocol json: %s", error.c_str());
 	});
-	uWSh.connect(("wss:"+address+":"+to_string(port)).c_str(), nullptr);
+	uWSh.connect(("wss://"+address+":"+to_string(port)).c_str(), nullptr);
 	uWSh.poll();
+	for (int i = 0; i < 50; i++) {
+		usleep(10000);
+		uWSh.poll();
+	}
 	if (connected)
 		return true;
-	uWSh.connect(("ws:" + address + ":" + to_string(port)).c_str(), nullptr);
+	uWSh.connect(("ws://" + address + ":" + to_string(port)).c_str(), nullptr);
 	uWSh.poll();
+	for (int i = 0; i < 50; i++) {
+		usleep(10000);
+		uWSh.poll();
+	}
 	return connected;
 }
 void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
@@ -222,10 +252,6 @@ bool SMOProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString a
 		LOG->Warn( "SMOProtocol failed to connect" );
 		return false;
 	}
-
-	n->isSMOLoggedIn = false;
-	n->useSMserver = true;
-	n->m_startupStatus = 1;	// Connection attepmpt successful
 
 	// If network play is desired and the connection works,
 	// halt until we know what server version we're dealing with
@@ -332,15 +358,8 @@ int SMOProtocol::DealWithSMOnlinePack(NetworkSyncManager* n, ScreenSMOnlineLogin
 		if (Status == 0)
 		{
 			n->isSMOLoggedIn = true;
-			if (GAMESTATE->IsPlayerEnabled(PLAYER_1))
-			{
-				return 1;
-			}
-			else
-			{
-				SCREENMAN->SetNewScreen(THEME->GetMetric("ScreenSMOnlineLogin", "NextScreen"));
-				return 2;
-			}
+			SCREENMAN->SetNewScreen(THEME->GetMetric("ScreenSMOnlineLogin", "NextScreen"));
+			return 2;
 		}
 		else
 		{
@@ -421,12 +440,12 @@ void SMOProtocol::DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetRoom* s)
 	}
 }
 
-void NetworkSyncManager::Login(string user, string pass)
+void NetworkSyncManager::Login(RString user, RString pass)
 {
 	if (curProtocol != nullptr)
 		curProtocol->Login(user, pass);
 }
-void SMOProtocol::Login(string user, string pass)
+void SMOProtocol::Login(RString user, RString pass)
 {
 	RString HashedName = NSMAN->MD5Hex(pass);
 	int authMethod = 0;
@@ -437,9 +456,9 @@ void SMOProtocol::Login(string user, string pass)
 	}
 	SMOnlinePacket.ClearPacket();
 	SMOnlinePacket.Write1((uint8_t)0);		//Login command
-	SMOnlinePacket.Write1((uint8_t)PLAYER_1);	//Player
+	SMOnlinePacket.Write1((uint8_t)0);	//Player
 	SMOnlinePacket.Write1((uint8_t)authMethod);	//MD5 hash style
-	SMOnlinePacket.WriteNT(RString(user));
+	SMOnlinePacket.WriteNT(user);
 	SMOnlinePacket.WriteNT(HashedName);
 	SendSMOnline();
 }
