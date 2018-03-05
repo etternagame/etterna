@@ -1,7 +1,0 @@
-#define PBBUILD
-
-// Only do this for c++ files.
-#ifdef __cplusplus
-#include "global.h"
-#include <map>
-#endif
