@@ -534,9 +534,7 @@ list(APPEND SM_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
   "${SM_SRC_DIR}/generated"
 )
-list(APPEND SM_INCLUDE_DIRS
-"${SM_EXTERN_DIR}/uWebSocket/include"
-)
+
 if(NOT APPLE)
   list(APPEND SM_INCLUDE_DIRS
     "${SM_EXTERN_DIR}/glew-1.5.8/include"

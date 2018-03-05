@@ -254,18 +254,11 @@ if(WIN32)
   link_libraries(${SM_EXTERN_DIR}/LuaJIT/lua51.lib)
   include_directories(${SM_EXTERN_DIR}/LuaJIT/include)
   
-  find_library(LIB_UWS NAMES "uWS"
-    PATHS "${SM_EXTERN_DIR}/uWebSocket" NO_DEFAULT_PATH
-  )
-  find_library(LIB_EAY NAMES "libeay32"
-    PATHS "${SM_EXTERN_DIR}/uWebSocket" NO_DEFAULT_PATH
-  )
-  find_library(LIB_SSL NAMES "ssleay32"
-    PATHS "${SM_EXTERN_DIR}/uWebSocket" NO_DEFAULT_PATH
-  )
-  find_library(LIB_UV NAMES "libuv"
-    PATHS "${SM_EXTERN_DIR}/uWebSocket" NO_DEFAULT_PATH
-  )
+  include_directories(${SM_EXTERN_DIR}/uWebSocket/include)
+  link_libraries(${SM_EXTERN_DIR}/uWebSocket/uWS.lib)
+  link_libraries(${SM_EXTERN_DIR}/uWebSocket/libeay32.lib)
+  link_libraries(${SM_EXTERN_DIR}/uWebSocket/ssleay32.lib)
+  link_libraries(${SM_EXTERN_DIR}/uWebSocket/libuv.lib)
   if (MINGW AND WITH_FFMPEG)
     include("${SM_CMAKE_DIR}/SetupFfmpeg.cmake")
     set(HAS_FFMPEG TRUE)
