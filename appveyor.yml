@@ -30,7 +30,6 @@ build:
   verbosity: normal
 
 after_build:
-- cmd: msbuild "C:\etterna\build\PACKAGE.vcxproj" /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 - cmd: >-
     
     "C:\Program Files (x86)\NSIS\makensis.exe" "C:\etterna\stepmania.nsi"
