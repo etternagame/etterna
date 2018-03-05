@@ -255,6 +255,7 @@ if(WIN32)
   include_directories(${SM_EXTERN_DIR}/LuaJIT/include)
   
   include_directories(${SM_EXTERN_DIR}/uWebSocket/include)
+  include_directories(${SM_EXTERN_DIR}/uWebSocket/includelibs)
   link_libraries(${SM_EXTERN_DIR}/uWebSocket/uWS.lib)
   link_libraries(${SM_EXTERN_DIR}/uWebSocket/libeay32.lib)
   link_libraries(${SM_EXTERN_DIR}/uWebSocket/ssleay32.lib)
