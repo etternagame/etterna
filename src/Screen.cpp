@@ -349,8 +349,11 @@ bool Screen::PassInputToLua(const InputEventPlus& input)
 	Enum::Push(L, input.type);
 	lua_setfield(L, -2, "type");
 	char s[5];
-	wctomb(s, INPUTMAN->DeviceInputToChar(input.DeviceI, true));
-	LuaHelpers::Push(L, string(s));
+	int chR = wctomb(s, INPUTMAN->DeviceInputToChar(input.DeviceI, true));
+	if (chR != -1)
+		LuaHelpers::Push(L, string(1, s[0]));
+	else
+		LuaHelpers::Push(L, string(""));
 	lua_setfield(L, -2, "char");
 	LuaHelpers::Push(L, GameButtonToString(INPUTMAPPER->GetInputScheme(), input.MenuI));
 	lua_setfield(L, -2, "GameButton");
