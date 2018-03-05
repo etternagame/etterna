@@ -81,6 +81,16 @@ enum NSScoreBoardColumn
 	NUM_NSScoreBoardColumn,
 	NSScoreBoardColumn_Invalid
 };
+
+// Value-Defintions of the different String values
+static enum ETTMessageTypes {
+	ettp_hello=0,
+	ettp_login,
+	ettp_roomlist,
+	ettp_recievechat,
+	ettp_sendchat,
+	ettp_end
+};
 /** @brief A special foreach loop going through each NSScoreBoardColumn. */
 #define FOREACH_NSScoreBoardColumn( sc ) FOREACH_ENUM( NSScoreBoardColumn, sc )
 
@@ -120,25 +130,25 @@ class NetProtocol {
 public:
 	RString serverName;
 	int serverVersion{0}; // ServerVersion
-	virtual bool Connect(NetworkSyncManager * n, unsigned short port, RString address);
-	virtual void close();
-	virtual void Update(NetworkSyncManager* n, float fDeltaTime);
-	virtual void CreateNewRoom(RString name, RString desc, RString password);
-	virtual void SelectUserSong(NetworkSyncManager* n, Song* song);
-	virtual void EnterRoom(RString name, RString password);
-	virtual void RequestRoomInfo(RString name);
-	virtual void ReportPlayerOptions(NetworkSyncManager * n, ModsGroup<PlayerOptions>& opts);
-	virtual void SendChat(const RString& message);
-	virtual void ReportNSSOnOff(int i);
-	virtual void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset, int numNotes);
-	virtual void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset);
-	virtual void ReportSongOver(NetworkSyncManager* n);
-	virtual void ReportStyle(NetworkSyncManager* n);
-	virtual void StartRequest(NetworkSyncManager* n, short position);
-	virtual	void Login(string user, string pass); 
-	virtual void DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetRoom* s);
-	virtual void DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetSelectMusic* s);
-	virtual int DealWithSMOnlinePack(NetworkSyncManager* n, ScreenSMOnlineLogin* s, RString& response);
+	virtual bool Connect(NetworkSyncManager * n, unsigned short port, RString address) {return false;}
+	virtual void close() {}
+	virtual void Update(NetworkSyncManager* n, float fDeltaTime) {}
+	virtual void CreateNewRoom(RString name, RString desc, RString password) {}
+	virtual void SelectUserSong(NetworkSyncManager* n, Song* song) {}
+	virtual void EnterRoom(RString name, RString password) {}
+	virtual void RequestRoomInfo(RString name) {}
+	virtual void ReportPlayerOptions(NetworkSyncManager * n, ModsGroup<PlayerOptions>& opts) {}
+	virtual void SendChat(const RString& message) {}
+	virtual void ReportNSSOnOff(int i) {}
+	virtual void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset, int numNotes) {}
+	virtual void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset) {}
+	virtual void ReportSongOver(NetworkSyncManager* n) {}
+	virtual void ReportStyle(NetworkSyncManager* n) {}
+	virtual void StartRequest(NetworkSyncManager* n, short position) {}
+	virtual	void Login(string user, string pass) {}
+	virtual void DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetRoom* s) {}
+	virtual void DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetSelectMusic* s) {}
+	virtual int DealWithSMOnlinePack(NetworkSyncManager* n, ScreenSMOnlineLogin* s, RString& response) { return 0;}
 };
 class SMOProtocol : public NetProtocol { // Built on raw tcp
 	EzSockets *NetPlayerClient;
@@ -182,6 +192,7 @@ public:
 	bool Connect(NetworkSyncManager * n, unsigned short port, RString address) override; // Connect and say hello
 	void close() override;
 	void Update(NetworkSyncManager* n, float fDeltaTime) override;
+	/*
 	void SelectUserSong(NetworkSyncManager * n, Song* song) override;
 	void CreateNewRoom(RString name, RString desc, RString password) override;
 	void EnterRoom(RString name, RString password) override;
@@ -198,25 +209,8 @@ public:
 	void DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetRoom* s) override;
 	void DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetSelectMusic* s) override;
 	int DealWithSMOnlinePack(NetworkSyncManager* n, ScreenSMOnlineLogin* s, RString& response) override;
+	*/
 };
-// Value-Defintions of the different String values
-static enum ETTMessageTypes {
-	ettp_hello,
-	ettp_login,
-	ettp_roomlist,
-	ettp_recievechat,
-	ettp_sendchat,
-	ettp_end
-};
-// Map to associate the strings with the enum values
-std::map<std::string, ETTMessageTypes> ettMessageMap = {
-	{ "hello", ettp_hello },
-	{ "login", ettp_login },
-	{ "roomlist", ettp_roomlist },
-	{ "recievechat", ettp_recievechat },
-	{ "sendchat", ettp_sendchat }
-};
-
 /** @brief Uses ezsockets for primitive song syncing and score reporting. */
 class NetworkSyncManager 
 {

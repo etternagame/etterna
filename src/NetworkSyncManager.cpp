@@ -15,6 +15,15 @@ NetworkSyncManager *NSMAN;
 
 #include "ver.h"
 
+// Map to associate the strings with the enum values
+std::map<std::string, ETTMessageTypes> ettMessageMap = {
+	{ "hello", ettp_hello },
+	{ "login", ettp_login },
+	{ "roomlist", ettp_roomlist },
+	{ "recievechat", ettp_recievechat },
+	{ "sendchat", ettp_sendchat }
+};
+
 #if defined(WITHOUT_NETWORKING)
 NetworkSyncManager::NetworkSyncManager( LoadingWindow *ld ) { useSMserver=false; isSMOnline = false; }
 NetworkSyncManager::~NetworkSyncManager () { }
