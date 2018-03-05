@@ -77,78 +77,12 @@ void ScreenNetRoom::HandleScreenMessage( const ScreenMessage SM )
 	{
 		if ( !ScreenTextEntry::s_bCancelledLast )
 		{
-			NSMAN->m_SMOnlinePacket.ClearPacket();
-			NSMAN->m_SMOnlinePacket.Write1( 1 );
-			NSMAN->m_SMOnlinePacket.Write1( 1 ); //Type (enter a room)
-			NSMAN->m_SMOnlinePacket.WriteNT( m_sLastPickedRoom );
-			NSMAN->m_SMOnlinePacket.WriteNT( ScreenTextEntry::s_sLastAnswer );
-			NSMAN->SendSMOnline( );
+			NSMAN->EnterRoom(m_sLastPickedRoom, ScreenTextEntry::s_sLastAnswer);
 		}
 	}
 	else if( SM == SM_SMOnlinePack )
 	{
-		switch( NSMAN->m_SMOnlinePacket.Read1() )
-		{
-		case 1:
-			switch ( NSMAN->m_SMOnlinePacket.Read1() )
-			{
-				case 0: //Room title Change
-				{
-					RString title, subtitle;
-					title = NSMAN->m_SMOnlinePacket.ReadNT();
-					subtitle = NSMAN->m_SMOnlinePacket.ReadNT();
-
-					Message msg( MessageIDToString(Message_UpdateScreenHeader) );
-					msg.SetParam( "Header", title );
-					msg.SetParam( "Subheader", subtitle );
-					MESSAGEMAN->Broadcast( msg );
-
-					if ( NSMAN->m_SMOnlinePacket.Read1() != 0 )
-					{
-						RString SMOnlineSelectScreen = THEME->GetMetric( m_sName, "MusicSelectScreen" );
-						SCREENMAN->SetNewScreen( SMOnlineSelectScreen );
-					}
-				}
-				case 1: //Rooms list change
-				{
-					int numRooms = NSMAN->m_SMOnlinePacket.Read1();
-					m_Rooms.clear();
-					for( int i=0; i<numRooms; ++i )
-					{
-						RoomData tmpRoomData;
-						tmpRoomData.SetName( NSMAN->m_SMOnlinePacket.ReadNT() );
-						tmpRoomData.SetDescription( NSMAN->m_SMOnlinePacket.ReadNT() );
-						m_Rooms.push_back( tmpRoomData );
-					}
-					//Abide by protocol and read room status
-					for( int i=0; i<numRooms; ++i )
-						m_Rooms[i].SetState( NSMAN->m_SMOnlinePacket.Read1() );
-
-					for( int i=0; i<numRooms; ++i )
-						m_Rooms[i].SetFlags( NSMAN->m_SMOnlinePacket.Read1() );
-
-					if( m_iRoomPlace<0 )
-						m_iRoomPlace=0;
-					if( m_iRoomPlace >= (int) m_Rooms.size() )
-						m_iRoomPlace=m_Rooms.size()-1;
-					UpdateRoomsList();
-				}
-			}
-			break;
-		case 3:
-			RoomInfo info;
-			info.songTitle = NSMAN->m_SMOnlinePacket.ReadNT();
-			info.songSubTitle = NSMAN->m_SMOnlinePacket.ReadNT();
-			info.songArtist = NSMAN->m_SMOnlinePacket.ReadNT();
-			info.numPlayers = NSMAN->m_SMOnlinePacket.Read1();
-			info.maxPlayers = NSMAN->m_SMOnlinePacket.Read1();
-			info.players.resize( info.numPlayers );
-			for( int i = 0; i < info.numPlayers; ++i )
-				info.players[i] = NSMAN->m_SMOnlinePacket.ReadNT();
-
-			m_roomInfo.SetRoomInfo( info );
-			break;
-		}
+		NSMAN->DealWithSMOnlinePack(this);
 	}
 	else if ( SM == SM_BackFromRoomName )
 	{
@@ -215,11 +149,7 @@ void ScreenNetRoom::SelectCurrent()
 		}
 		else
 		{
-			NSMAN->m_SMOnlinePacket.ClearPacket();
-			NSMAN->m_SMOnlinePacket.Write1(1);
-			NSMAN->m_SMOnlinePacket.Write1(1); //Type (enter a room)
-			NSMAN->m_SMOnlinePacket.WriteNT(rwd->m_sText);
-			NSMAN->SendSMOnline();
+			NSMAN->EnterRoom(rwd->m_sText);
 		}
 	}
 	return;
@@ -266,14 +196,7 @@ void ScreenNetRoom::UpdateRoomsList()
 
 void ScreenNetRoom::CreateNewRoom( const RString& rName,  const RString& rDesc, const RString& rPass )
 {
-	NSMAN->m_SMOnlinePacket.ClearPacket();
-	NSMAN->m_SMOnlinePacket.Write1( (uint8_t)2 ); // Create room command
-	NSMAN->m_SMOnlinePacket.Write1( 1 );  // Type game room
-	NSMAN->m_SMOnlinePacket.WriteNT( rName );
-	NSMAN->m_SMOnlinePacket.WriteNT( rDesc );
-	if ( !rPass.empty() )
-		NSMAN->m_SMOnlinePacket.WriteNT( rPass );
-	NSMAN->SendSMOnline( );
+	NSMAN->CreateNewRoom(rName, rDesc, rPass);
 }
 
 

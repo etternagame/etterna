@@ -1668,12 +1668,12 @@ void ScreenGameplay::Update( float fDeltaTime )
 	{
 		FOREACH_EnabledPlayerNumberInfo( m_vPlayerInfo, pi )
 			if( pi->m_pLifeMeter )
-				NSMAN->m_playerLife[pi->m_pn] = int(pi->m_pLifeMeter->GetLife()*10000);
+				NSMAN->m_playerLife= int(pi->m_pLifeMeter->GetLife()*10000);
 
 		if( m_bShowScoreboard )
 			FOREACH_NSScoreBoardColumn(cn)
 				if( m_bShowScoreboard && NSMAN->ChangedScoreboard(cn) && GAMESTATE->GetFirstDisabledPlayer() != PLAYER_INVALID )
-					m_Scoreboard[cn].SetText( NSMAN->m_Scoreboard[cn] );
+					m_Scoreboard[cn].SetText(NSMAN->m_Scoreboard[cn]);
 	}
 	// ArrowEffects::Update call moved because having it happen once per
 	// NoteField (which means twice in two player) seemed wasteful. -Kyz

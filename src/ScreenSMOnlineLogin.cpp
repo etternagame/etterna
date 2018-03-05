@@ -121,34 +121,25 @@ void ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 			LuaHelpers::ReportScriptErrorFmt("Invalid player number: %i", m_iPlayer);
 			return;
 		}
-
 		// This can cause problems in certain situations -aj
 		sLoginQuestion = YOU_ARE_LOGGING_ON_AS.GetValue() + "\n"
-			+ GAMESTATE->GetPlayerDisplayName((PlayerNumber) m_iPlayer) + "\n" +
+			+ GAMESTATE->GetPlayerDisplayName((PlayerNumber)m_iPlayer) + "\n" +
 			ENTER_YOUR_PASSWORD.GetValue();
-		int ResponseCode = NSMAN->m_SMOnlinePacket.Read1();
-		if (ResponseCode == 0)
-		{
-			int Status = NSMAN->m_SMOnlinePacket.Read1();
-			if(Status == 0)
-			{
-				NSMAN->isSMOLoggedIn[m_iPlayer] = true;
-				m_iPlayer++;
-				if( GAMESTATE->IsPlayerEnabled((PlayerNumber) m_iPlayer) && m_iPlayer < NUM_PLAYERS )
-				{
-					ScreenTextEntry::Password(SM_PasswordDone, sLoginQuestion, NULL );
-				}
-				else
-				{
-					SCREENMAN->SetNewScreen( THEME->GetMetric (m_sName,"NextScreen") );
-					m_iPlayer = 0;
-				}
-			}
-			else
-			{
-				RString Response = NSMAN->m_SMOnlinePacket.ReadNT();
-				ScreenTextEntry::Password( SM_PasswordDone, Response + "\n\n" + sLoginQuestion, NULL );
-			}
+		RString Response;
+		switch(NSMAN->DealWithSMOnlinePack(this, Response)) {
+			case 0:
+				SCREENMAN->SetNewScreen(THEME->GetMetric(m_sName, "NextScreen"));
+				m_iPlayer = 0;
+				break;
+			case 1:
+				ScreenTextEntry::Password(SM_PasswordDone, sLoginQuestion, NULL);
+			break;
+			case 2:
+				m_iPlayer = 0;
+			break;
+			case 3:
+				ScreenTextEntry::Password(SM_PasswordDone, Response + "\n\n" + sLoginQuestion, NULL);
+			break;
 		}
 	}
 	else if( SM == SM_GoToNextScreen )
@@ -204,24 +195,7 @@ RString ScreenSMOnlineLogin::GetSelectedProfileID()
 
 void ScreenSMOnlineLogin::SendLogin( RString sPassword )
 {
-	RString PlayerName = GAMESTATE->GetPlayerDisplayName( (PlayerNumber) m_iPlayer );
-
-	RString HashedName = NSMAN->MD5Hex( sPassword );
-
-	int authMethod = 0;
-	if ( NSMAN->GetSMOnlineSalt() != 0 )
-	{
-		authMethod = 1;
-		HashedName = NSMAN->MD5Hex( HashedName + ssprintf("%d", NSMAN->GetSMOnlineSalt()) );
-	}
-
-	NSMAN->m_SMOnlinePacket.ClearPacket();
-	NSMAN->m_SMOnlinePacket.Write1( (uint8_t)0 );		//Login command
-	NSMAN->m_SMOnlinePacket.Write1( (uint8_t)m_iPlayer );	//Player
-	NSMAN->m_SMOnlinePacket.Write1( (uint8_t)authMethod );	//MD5 hash style
-	NSMAN->m_SMOnlinePacket.WriteNT( PlayerName );
-	NSMAN->m_SMOnlinePacket.WriteNT( HashedName );
-	NSMAN->SendSMOnline();
+	NSMAN->Login(GAMESTATE->GetPlayerDisplayName((PlayerNumber)m_iPlayer), sPassword);
 }
 
 #endif

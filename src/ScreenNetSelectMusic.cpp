@@ -416,23 +416,7 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 	}
 	else if( SM == SM_SMOnlinePack )
 	{
-		if( NSMAN->m_SMOnlinePacket.Read1() == 1 )
-		{
-			switch ( NSMAN->m_SMOnlinePacket.Read1() )
-			{
-			case 0: // Room title Change
-				{
-					RString titleSub;
-					titleSub = NSMAN->m_SMOnlinePacket.ReadNT() + "\n";
-					titleSub += NSMAN->m_SMOnlinePacket.ReadNT();
-					if( NSMAN->m_SMOnlinePacket.Read1() != 1 )
-					{
-						RString SMOnlineSelectScreen = THEME->GetMetric( m_sName, "RoomSelectScreen" );
-						SCREENMAN->SetNewScreen( SMOnlineSelectScreen );
-					}
-				}
-			}
-		}
+		NSMAN->DealWithSMOnlinePack(this);
 	}
 	else if (SM == SM_ConfirmDeleteSong)
 		 {

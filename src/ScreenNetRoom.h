@@ -19,6 +19,12 @@ public:
 	void SelectCurrent();
 	void InfoSetVisible(bool visibility);
 
+	void UpdateRoomsList();
+	vector < BitmapText > m_RoomList;
+	vector < RoomData > m_Rooms;
+	int m_iRoomPlace;
+	RoomInfoDisplay m_roomInfo;
+
 	// Lua
 	void PushSelf(lua_State *L) override;
 
@@ -29,23 +35,18 @@ protected:
 	void TweenOffScreen( ) override;
 
 private:
-	void UpdateRoomsList();
 	bool MenuLeft( const InputEventPlus &input ) override;
 	bool MenuRight( const InputEventPlus &input ) override;
 	void CreateNewRoom( const RString& rName,  const RString& rDesc, const RString& rPass );
 
 	RageSound m_soundChangeSel;
 
-	vector < BitmapText > m_RoomList;
-	vector < RoomData > m_Rooms;
-	int m_iRoomPlace;
 
 	string m_sLastPickedRoom;
 
 	RString m_newRoomName, m_newRoomDesc, m_newRoomPass;
 
 	RoomWheel m_RoomWheel;
-	RoomInfoDisplay m_roomInfo;
 };
 #endif
 

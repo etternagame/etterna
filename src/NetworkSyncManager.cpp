@@ -1,7 +1,11 @@
 #include "global.h"
 #include "NetworkSyncManager.h"
+#include "uWS.h"
 #include "LuaManager.h"
+#include "ScreenNetRoom.h"
+#include "ScreenNetSelectMusic.h"
 #include "LocalizedString.h"
+#include "JsonUtil.h"
 #include <cerrno>
 
 NetworkSyncManager *NSMAN;
@@ -56,76 +60,88 @@ AutoScreenMessage( SM_UsersUpdate );
 AutoScreenMessage( SM_FriendsUpdate );
 AutoScreenMessage( SM_SMOnlinePack );
 
-int NetworkSyncManager::GetSMOnlineSalt()
-{
-	return m_iSalt;
-}
 
+
+SMOProtocol::SMOProtocol() {
+	NetPlayerClient = new EzSockets;
+	NetPlayerClient->blocking = false;
+	BroadcastReception = new EzSockets;
+	BroadcastReception->create(IPPROTO_UDP);
+	BroadcastReception->bind(8765);
+	BroadcastReception->blocking = false;
+}
 static LocalizedString INITIALIZING_CLIENT_NETWORK	( "NetworkSyncManager", "Initializing Client Network..." );
 NetworkSyncManager::NetworkSyncManager( LoadingWindow *ld )
 {
 	LANserver = NULL;	//So we know if it has been created yet
-	BroadcastReception = NULL;
-
-	NetPlayerClient = new EzSockets;
-	NetPlayerClient->blocking = false;
-	m_ServerVersion = 0;
-   
 	useSMserver = false;
 	isSMOnline = false;
-	FOREACH_PlayerNumber( pn )
-		isSMOLoggedIn[pn] = false;
-
+	isSMOLoggedIn = false;
 	m_startupStatus = 0;	//By default, connection not tried.
-
 	m_ActivePlayers = 0;
-
 	StartUp();
 }
 
-NetworkSyncManager::~NetworkSyncManager ()
+SMOProtocol::~SMOProtocol() 
 {
-	//Close Connection to server nicely.
-	if( useSMserver )
+	if (NetPlayerClient) {
 		NetPlayerClient->close();
-	SAFE_DELETE( NetPlayerClient );
-
-	if ( BroadcastReception ) 
+		SAFE_DELETE(NetPlayerClient);
+	}
+	if (BroadcastReception)
 	{
 		BroadcastReception->close();
-		SAFE_DELETE( BroadcastReception );
+		SAFE_DELETE(BroadcastReception);
 	}
+}
+NetworkSyncManager::~NetworkSyncManager ()
+{
+
+}
+
+void SMOProtocol::close()
+{
+	serverVersion = 0;
+	NetPlayerClient->close();
+}
+
+void ETTProtocol::close()
+{
+	serverVersion = 0;
+	uWSh.getDefaultGroup<uWS::SERVER>().close();
+	uWSh.getDefaultGroup<uWS::CLIENT>().close();
+	uWSh.poll();
 }
 
 void NetworkSyncManager::CloseConnection()
 {
 	if( !useSMserver )
 		return;
-	m_ServerVersion = 0;
    	useSMserver = false;
 	isSMOnline = false;
-	FOREACH_PlayerNumber( pn )
-		isSMOLoggedIn[pn] = false;
+	isSMOLoggedIn = false;
 	m_startupStatus = 0;
-	NetPlayerClient->close();
+	SMOP.close();
+	ETTP.close();
+	curProtocol = nullptr;
 }
 
-void NetworkSyncManager::PostStartUp( const RString& ServerIP )
+void NetworkSyncManager::PostStartUp(const RString& ServerIP)
 {
 	RString sAddress;
 	unsigned short iPort;
 
-	size_t cLoc = ServerIP.find( ':' );
-	if( ServerIP.find( ':' ) != RString::npos )
+	size_t cLoc = ServerIP.find(':');
+	if (ServerIP.find(':') != RString::npos)
 	{
-		sAddress = ServerIP.substr( 0, cLoc );
+		sAddress = ServerIP.substr(0, cLoc);
 		char* cEnd;
 		errno = 0;
-		iPort = (unsigned short)strtol( ServerIP.substr( cLoc + 1 ).c_str(), &cEnd, 10 );
-		if( *cEnd != 0 || errno != 0 )
+		iPort = (unsigned short)strtol(ServerIP.substr(cLoc + 1).c_str(), &cEnd, 10);
+		if (*cEnd != 0 || errno != 0)
 		{
 			m_startupStatus = 2;
-			LOG->Warn( "Invalid port" );
+			LOG->Warn("Invalid port");
 			return;
 		}
 	}
@@ -135,48 +151,92 @@ void NetworkSyncManager::PostStartUp( const RString& ServerIP )
 		sAddress = ServerIP;
 	}
 
-	LOG->Info( "Attempting to connect to: %s, Port: %i", sAddress.c_str(), iPort );
-
+	LOG->Info("Attempting to connect to: %s, Port: %i", sAddress.c_str(), iPort);
+	curProtocol = nullptr;
 	CloseConnection();
-	if( !Connect(sAddress.c_str(), iPort) )
-	{
-		m_startupStatus = 2;
-		LOG->Warn( "Network Sync Manager failed to connect" );
+	if (SMOP.Connect(this, iPort, sAddress))
+		curProtocol = &SMOP;
+	else
+		if (ETTP.Connect(this, iPort, sAddress))
+			curProtocol = &ETTP;
+	if (curProtocol == nullptr)
 		return;
+	LOG->Info("Server Version: %d %s", curProtocol->serverVersion, curProtocol->serverName.c_str());
+}
+
+bool ETTProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString address)
+{
+	connected = false;
+	uWSh.onDisconnection([this](uWS::WebSocket<uWS::CLIENT> *ws, int code, char *message, size_t length) {
+		this->connected = false;
+	});
+	uWSh.onConnection([this](uWS::WebSocket<uWS::CLIENT> *ws, uWS::HttpRequest req) {
+		this->connected = true;
+	});
+	uWSh.onMessage([this](uWS::WebSocket<uWS::CLIENT> *ws, char *message, size_t length, uWS::OpCode opCode) {
+		Json::Value json;
+		RString error;
+		if (JsonUtil::LoadFromString(json, string(message, length), error))
+			this->newMessages.emplace_back(json);
+		else
+			LOG->Trace("Error while processing ettprotocol json: %s", error.c_str());
+	});
+	uWSh.connect(("wss:"+address+":"+to_string(port)).c_str(), nullptr);
+	uWSh.poll();
+	if (connected)
+		return true;
+	uWSh.connect(("ws:" + address + ":" + to_string(port)).c_str(), nullptr);
+	uWSh.poll();
+	return connected;
+}
+void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
+{
+	uWSh.poll();
+	for (auto& jsonMsg : newMessages) {
+		switch (ettMessageMap[jsonMsg["type"].asCString()]) {
+
+		}
+	}
+}
+
+bool SMOProtocol::TryConnect(unsigned short port, RString address)
+{
+	NetPlayerClient->create(); // Initialize Socket
+	return NetPlayerClient->connect(address, port);
+}
+
+bool SMOProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString address)
+{
+	if(!TryConnect(port, address))
+	{
+		n->m_startupStatus = 2;
+		LOG->Warn( "SMOProtocol failed to connect" );
+		return false;
 	}
 
-	FOREACH_PlayerNumber( pn )
-		isSMOLoggedIn[pn] = false;
-
-	useSMserver = true;
-
-	m_startupStatus = 1;	// Connection attepmpt successful
+	n->isSMOLoggedIn = false;
+	n->useSMserver = true;
+	n->m_startupStatus = 1;	// Connection attepmpt successful
 
 	// If network play is desired and the connection works,
 	// halt until we know what server version we're dealing with
 
 	m_packet.ClearPacket();
 	m_packet.Write1( NSCHello );	//Hello Packet
-
 	m_packet.Write1( NETPROTOCOLVERSION );
-
 	m_packet.WriteNT( RString( string(PRODUCT_FAMILY) + product_version ) );
 
 	/* Block until response is received.
 	 * Move mode to blocking in order to give CPU back to the system,
 	 * and not wait.
 	 */
-
 	bool dontExit = true;
-
 	NetPlayerClient->blocking = true;
 
 	// The following packet must get through, so we block for it.
 	// If we are serving, we do not block for this.
 	NetPlayerClient->SendPack( (char*)m_packet.Data, m_packet.Position );
-
 	m_packet.ClearPacket();
-
 	while( dontExit )
 	{
 		m_packet.ClearPacket();
@@ -189,16 +249,13 @@ void NetworkSyncManager::PostStartUp( const RString& ServerIP )
 	}
 
 	NetPlayerClient->blocking = false;
-
-	m_ServerVersion = m_packet.Read1();
-	if( m_ServerVersion >= 128 )
-		isSMOnline = true;
-
-	m_ServerName = m_packet.ReadNT();
+	serverVersion = m_packet.Read1();
+	if( serverVersion >= 128 )
+		n->isSMOnline = true;
+	serverName = m_packet.ReadNT();
 	m_iSalt = m_packet.Read4();
-	LOG->Info( "Server Version: %d %s", m_ServerVersion, m_ServerName.c_str() );
+	return true;
 }
-
 
 void NetworkSyncManager::StartUp()
 {
@@ -206,26 +263,14 @@ void NetworkSyncManager::StartUp()
 
 	if( GetCommandlineArgument( "netip", &ServerIP ) )
 		PostStartUp( ServerIP );
-
-	BroadcastReception = new EzSockets;
-	BroadcastReception->create( IPPROTO_UDP );
-	BroadcastReception->bind( 8765 );
-	BroadcastReception->blocking = false;
 }
 
-
-bool NetworkSyncManager::Connect( const RString& addy, unsigned short port )
+void NetworkSyncManager::ReportNSSOnOff(int i)
 {
-	LOG->Info( "Beginning to connect" );
-
-	NetPlayerClient->create(); // Initialize Socket
-	LOG->Info( "Calling EzSockets:connect()" );
-	useSMserver = NetPlayerClient->connect( addy, port );
-	LOG->Info( "Back from ezsockets..." );
-	return useSMserver;
+	if (curProtocol != nullptr)
+		curProtocol->ReportNSSOnOff(i);
 }
-
-void NetworkSyncManager::ReportNSSOnOff(int i) 
+void SMOProtocol::ReportNSSOnOff(int i)
 {
 	m_packet.ClearPacket();
 	m_packet.Write1( NSCSMS );
@@ -235,20 +280,176 @@ void NetworkSyncManager::ReportNSSOnOff(int i)
 
 RString NetworkSyncManager::GetServerName() 
 { 
-	return m_ServerName;
+	return curProtocol != nullptr ? curProtocol->serverName : "";
 }
 
+void NetworkSyncManager::DealWithSMOnlinePack(ScreenNetSelectMusic* s)
+{
+	if (curProtocol != nullptr)
+		curProtocol->DealWithSMOnlinePack(this, s);
+}
+void SMOProtocol::DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetSelectMusic* s)
+{
+	if (SMOnlinePacket.Read1() == 1)
+	{
+		switch (SMOnlinePacket.Read1())
+		{
+		case 0: // Room title Change
+		{
+			RString titleSub;
+			titleSub = SMOnlinePacket.ReadNT() + "\n";
+			titleSub += SMOnlinePacket.ReadNT();
+			if (SMOnlinePacket.Read1() != 1)
+			{
+				RString SMOnlineSelectScreen = THEME->GetMetric("ScreenNetSelectMusic", "RoomSelectScreen");
+				SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
+			}
+		}
+		}
+	}
+}
+int NetworkSyncManager::DealWithSMOnlinePack(ScreenSMOnlineLogin* s, RString& response)
+{
+	if (curProtocol != nullptr)
+		return curProtocol->DealWithSMOnlinePack(this, s, response);
+	return 0;
+}
+int SMOProtocol::DealWithSMOnlinePack(NetworkSyncManager* n, ScreenSMOnlineLogin* s, RString& response)
+{
+	int ResponseCode = SMOnlinePacket.Read1();
+	if (ResponseCode == 0)
+	{
+		int Status = SMOnlinePacket.Read1();
+		if (Status == 0)
+		{
+			n->isSMOLoggedIn = true;
+			if (GAMESTATE->IsPlayerEnabled(PLAYER_1))
+			{
+				return 1;
+			}
+			else
+			{
+				SCREENMAN->SetNewScreen(THEME->GetMetric("ScreenSMOnlineLogin", "NextScreen"));
+				return 2;
+			}
+		}
+		else
+		{
+			response = SMOnlinePacket.ReadNT();
+			return 3;
+		}
+	}
+	return 4;
+}
+void NetworkSyncManager::DealWithSMOnlinePack(ScreenNetRoom* s)
+{
+	if (curProtocol != nullptr)
+		curProtocol->DealWithSMOnlinePack(this, s);
+}
+void SMOProtocol::DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetRoom* s)
+{
+	switch (SMOnlinePacket.Read1())
+	{
+	case 1:
+		switch (SMOnlinePacket.Read1())
+		{
+		case 0: //Room title Change
+		{
+			RString title, subtitle;
+			title = SMOnlinePacket.ReadNT();
+			subtitle = SMOnlinePacket.ReadNT();
+
+			Message msg(MessageIDToString(Message_UpdateScreenHeader));
+			msg.SetParam("Header", title);
+			msg.SetParam("Subheader", subtitle);
+			MESSAGEMAN->Broadcast(msg);
+
+			if (SMOnlinePacket.Read1() != 0)
+			{
+				RString SMOnlineSelectScreen = THEME->GetMetric("ScreenNetRoom", "MusicSelectScreen");
+				SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
+			}
+		}
+		case 1: //Rooms list change
+		{
+			int numRooms = SMOnlinePacket.Read1();
+			s->m_Rooms.clear();
+			for (int i = 0; i<numRooms; ++i)
+			{
+				RoomData tmpRoomData;
+				tmpRoomData.SetName(SMOnlinePacket.ReadNT());
+				tmpRoomData.SetDescription(SMOnlinePacket.ReadNT());
+				s->m_Rooms.push_back(tmpRoomData);
+			}
+			//Abide by protocol and read room status
+			for (int i = 0; i<numRooms; ++i)
+				s->m_Rooms[i].SetState(SMOnlinePacket.Read1());
+
+			for (int i = 0; i<numRooms; ++i)
+				s->m_Rooms[i].SetFlags(SMOnlinePacket.Read1());
+
+			if (s->m_iRoomPlace<0)
+				s->m_iRoomPlace = 0;
+			if (s->m_iRoomPlace >= (int)s->m_Rooms.size())
+				s->m_iRoomPlace = s->m_Rooms.size() - 1;
+			s->UpdateRoomsList();
+		}
+		}
+		break;
+	case 3:
+		RoomInfo info;
+		info.songTitle = SMOnlinePacket.ReadNT();
+		info.songSubTitle = SMOnlinePacket.ReadNT();
+		info.songArtist = SMOnlinePacket.ReadNT();
+		info.numPlayers = SMOnlinePacket.Read1();
+		info.maxPlayers = SMOnlinePacket.Read1();
+		info.players.resize(info.numPlayers);
+		for (int i = 0; i < info.numPlayers; ++i)
+			info.players[i] = SMOnlinePacket.ReadNT();
+
+		s->m_roomInfo.SetRoomInfo(info);
+		break;
+	}
+}
+
+void NetworkSyncManager::Login(string user, string pass)
+{
+	if (curProtocol != nullptr)
+		curProtocol->Login(user, pass);
+}
+void SMOProtocol::Login(string user, string pass)
+{
+	RString HashedName = NSMAN->MD5Hex(pass);
+	int authMethod = 0;
+	if (m_iSalt != 0)
+	{
+		authMethod = 1;
+		HashedName = NSMAN->MD5Hex(HashedName + ssprintf("%d", m_iSalt));
+	}
+	SMOnlinePacket.ClearPacket();
+	SMOnlinePacket.Write1((uint8_t)0);		//Login command
+	SMOnlinePacket.Write1((uint8_t)PLAYER_1);	//Player
+	SMOnlinePacket.Write1((uint8_t)authMethod);	//MD5 hash style
+	SMOnlinePacket.WriteNT(RString(user));
+	SMOnlinePacket.WriteNT(HashedName);
+	SendSMOnline();
+}
 
 void NetworkSyncManager::ReportScore(int playerID, int step, int score, int combo, float offset, int numNotes)
 {
-	if (!useSMserver) //Make sure that we are using the network
+	if (curProtocol != nullptr)
+		curProtocol->ReportScore(this, playerID, step, score, combo, offset, numNotes);
+}
+void SMOProtocol::ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset, int numNotes)
+{
+	if (!n->useSMserver) //Make sure that we are using the network
 		return;
 
 	LOG->Trace("Player ID %i combo = %i", playerID, combo);
 	m_packet.ClearPacket();
 
 	m_packet.Write1(NSCGSU);
-	step = TranslateStepType(step);
+	step = n->TranslateStepType(step);
 	uint8_t ctr = (uint8_t)(playerID * 16 + step - (SMOST_HITMINE - 1));
 	m_packet.Write1(ctr);
 
@@ -260,7 +461,7 @@ void NetworkSyncManager::ReportScore(int playerID, int step, int score, int comb
 	m_packet.Write1(ctr);
 	m_packet.Write4(score);
 	m_packet.Write2((uint16_t)combo);
-	m_packet.Write2((uint16_t)m_playerLife[playerID]);
+	m_packet.Write2((uint16_t)n->m_playerLife);
 
 	// Offset Info
 	// Note: if a 0 is sent, then disregard data.
@@ -268,7 +469,6 @@ void NetworkSyncManager::ReportScore(int playerID, int step, int score, int comb
 	// ASSUMED: No step will be more than 16 seconds off center.
 	// If this assumption is false, read 16 seconds in either direction.
 	auto iOffset = int((offset + 16.384)*2000.0f);
-
 	if (iOffset>65535)
 		iOffset = 65535;
 	if (iOffset<1)
@@ -277,41 +477,43 @@ void NetworkSyncManager::ReportScore(int playerID, int step, int score, int comb
 	// Report 0 if hold, or miss (don't forget mines should report)
 	if (step == SMOST_HITMINE || step > SMOST_W1)
 		iOffset = 0;
-
 	m_packet.Write2((uint16_t)iOffset);
-
 	NetPlayerClient->SendPack((char*)m_packet.Data, m_packet.Position);
-
 }
 void NetworkSyncManager::ReportScore(int playerID, int step, int score, int combo, float offset)
 {
-	if( !useSMserver ) //Make sure that we are using the network
+	if (curProtocol != nullptr)
+		curProtocol->ReportScore(this, playerID, step, score, combo, offset);
+}
+void SMOProtocol::ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset)
+{
+	if( !n->useSMserver ) //Make sure that we are using the network
 		return;
 
-	LOG->Trace( "Player ID %i combo = %i", playerID, combo );
+	LOG->Trace("Player ID %i combo = %i", playerID, combo);
 	m_packet.ClearPacket();
 
 	m_packet.Write1( NSCGSU );
-	step = TranslateStepType(step);
-	uint8_t ctr = (uint8_t) (playerID * 16 + step - ( SMOST_HITMINE - 1 ) );
-	m_packet.Write1( ctr );
+	step = n->TranslateStepType(step);
+	uint8_t ctr = (uint8_t) (playerID * 16 + step - (SMOST_HITMINE - 1));
+	m_packet.Write1(ctr);
 
-	ctr = uint8_t( STATSMAN->m_CurStageStats.m_player[playerID].GetGrade()*16 );
+	ctr = uint8_t(STATSMAN->m_CurStageStats.m_player[playerID].GetGrade()*16);
 
 	if ( STATSMAN->m_CurStageStats.m_player[playerID].m_bFailed )
-		ctr = uint8_t( 112 );	//Code for failed (failed constant seems not to work)
+		ctr = uint8_t(112);	//Code for failed (failed constant seems not to work)
 
-	m_packet.Write1( ctr );
-	m_packet.Write4( score );
-	m_packet.Write2( (uint16_t)combo );
-	m_packet.Write2( (uint16_t)m_playerLife[playerID] );
+	m_packet.Write1(ctr);
+	m_packet.Write4(score);
+	m_packet.Write2((uint16_t)combo);
+	m_packet.Write2((uint16_t)n->m_playerLife);
 
 	// Offset Info
 	// Note: if a 0 is sent, then disregard data.
 
 	// ASSUMED: No step will be more than 16 seconds off center.
 	// If this assumption is false, read 16 seconds in either direction.
-	auto iOffset = int( (offset+16.384)*2000.0f );
+	auto iOffset = int((offset+16.384)*2000.0f);
 
 	if( iOffset>65535 )
 		iOffset=65535;
@@ -322,71 +524,73 @@ void NetworkSyncManager::ReportScore(int playerID, int step, int score, int comb
 	if( step == SMOST_HITMINE || step > SMOST_W1 )
 		iOffset = 0;
 
-	m_packet.Write2( (uint16_t)iOffset );
+	m_packet.Write2((uint16_t)iOffset);
 
-	NetPlayerClient->SendPack( (char*)m_packet.Data, m_packet.Position ); 
+	NetPlayerClient->SendPack((char*)m_packet.Data, m_packet.Position); 
 
 }
 
-void NetworkSyncManager::ReportSongOver() 
+void NetworkSyncManager::ReportSongOver()
 {
-	if ( !useSMserver )	//Make sure that we are using the network
+	if(curProtocol != nullptr)
+		curProtocol->ReportSongOver(this);
+}
+void SMOProtocol::ReportSongOver(NetworkSyncManager* n)
+{
+	if ( !n->useSMserver )	//Make sure that we are using the network
 		return;
-
 	m_packet.ClearPacket();
-
-	m_packet.Write1( NSCGON );
-
-	NetPlayerClient->SendPack( (char*)&m_packet.Data, m_packet.Position ); 
+	m_packet.Write1(NSCGON);
+	NetPlayerClient->SendPack((char*)&m_packet.Data, m_packet.Position); 
 	return;
 }
 
-void NetworkSyncManager::ReportStyle() 
+void NetworkSyncManager::ReportStyle()
 {
-	LOG->Trace( R"(Sending "Style" to server)" );
+	if (curProtocol != nullptr)
+		curProtocol->ReportStyle(this);
+}
+void SMOProtocol::ReportStyle(NetworkSyncManager* n)
+{
+	LOG->Trace( R"(Sending "Style" to server)");
 
-	if( !useSMserver )
+	if( !n->useSMserver )
 		return;
 	m_packet.ClearPacket();
-	m_packet.Write1( NSCSU );
-	m_packet.Write1( (int8_t)GAMESTATE->GetNumPlayersEnabled() );
-
-	FOREACH_EnabledPlayer( pn ) 
-	{
-		m_packet.Write1( (uint8_t)pn );
-		m_packet.WriteNT( GAMESTATE->GetPlayerDisplayName(pn) );
-	}
-
-	NetPlayerClient->SendPack( (char*)&m_packet.Data, m_packet.Position );
+	m_packet.Write1(NSCSU);
+	m_packet.Write1((int8_t)GAMESTATE->GetNumPlayersEnabled());
+	m_packet.Write1((uint8_t)PLAYER_1);
+	m_packet.WriteNT(GAMESTATE->GetPlayerDisplayName(PLAYER_1));
+	NetPlayerClient->SendPack((char*)&m_packet.Data, m_packet.Position);
 }
 
-void NetworkSyncManager::StartRequest( short position ) 
+void NetworkSyncManager::StartRequest(short position)
 {
-	if( !useSMserver )
+	if (curProtocol != nullptr)
+		curProtocol->StartRequest(this, position);
+}
+void SMOProtocol::StartRequest(NetworkSyncManager* n, short position)
+{
+	if( !n->useSMserver )
 		return;
-
 	if( GAMESTATE->m_bDemonstrationOrJukebox )
 		return;
-
-	LOG->Trace( "Requesting Start from Server." );
+	LOG->Trace("Requesting Start from Server.");
 
 	m_packet.ClearPacket();
-
-	m_packet.Write1( NSCGSR );
-
+	m_packet.Write1(NSCGSR);
 	unsigned char ctr=0;
 
 	Steps * tSteps;
 	tSteps = GAMESTATE->m_pCurSteps[PLAYER_1];
-	if( tSteps!=NULL && GAMESTATE->IsPlayerEnabled(PLAYER_1) )
+	if(tSteps!=NULL && GAMESTATE->IsPlayerEnabled(PLAYER_1))
 		ctr = uint8_t(ctr+tSteps->GetMeter()*16);
 
 	tSteps = GAMESTATE->m_pCurSteps[PLAYER_2];
 	if( tSteps!=NULL && GAMESTATE->IsPlayerEnabled(PLAYER_2) )
-		ctr = uint8_t( ctr+tSteps->GetMeter() );
+		ctr = uint8_t(ctr+tSteps->GetMeter());
 
-	m_packet.Write1( ctr );
-
+	m_packet.Write1(ctr);
 	ctr=0;
 
 	tSteps = GAMESTATE->m_pCurSteps[PLAYER_1];
@@ -395,43 +599,42 @@ void NetworkSyncManager::StartRequest( short position )
 
 	tSteps = GAMESTATE->m_pCurSteps[PLAYER_2];
 	if( tSteps!=NULL && GAMESTATE->IsPlayerEnabled(PLAYER_2) )
-		ctr = uint8_t( ctr + (int)tSteps->GetDifficulty() );
+		ctr = uint8_t(ctr + (int)tSteps->GetDifficulty());
 
-	m_packet.Write1( ctr );
-
+	m_packet.Write1(ctr);
 	//Notify server if this is for sync or not.
 	ctr = char( position*16 );
-	m_packet.Write1( ctr );
+	m_packet.Write1(ctr);
 
 	if( GAMESTATE->m_pCurSong != NULL )
 	{
-		m_packet.WriteNT( GAMESTATE->m_pCurSong->m_sMainTitle );
-		m_packet.WriteNT( GAMESTATE->m_pCurSong->m_sSubTitle );
+		m_packet.WriteNT(GAMESTATE->m_pCurSong->m_sMainTitle);
+		m_packet.WriteNT(GAMESTATE->m_pCurSong->m_sSubTitle);
 		m_packet.WriteNT(GAMESTATE->m_pCurSong->m_sArtist);
 	}
 	else
 	{
-		m_packet.WriteNT( "" );
-		m_packet.WriteNT( "" );
-		m_packet.WriteNT( "" );
+		m_packet.WriteNT("");
+		m_packet.WriteNT("");
+		m_packet.WriteNT("");
 	}
 
-	m_packet.WriteNT( RString() );
+	m_packet.WriteNT(RString());
 
 	//Send Player (and song) Options
-	m_packet.WriteNT( GAMESTATE->m_SongOptions.GetCurrent().GetString() );
+	m_packet.WriteNT(GAMESTATE->m_SongOptions.GetCurrent().GetString());
 
 	int players=0;
-	FOREACH_PlayerNumber( p )
+	FOREACH_PlayerNumber(p)
 	{
 		++players;
-		m_packet.WriteNT( GAMESTATE->m_pPlayerState[p]->m_PlayerOptions.GetCurrent().GetString() );
+		m_packet.WriteNT(GAMESTATE->m_pPlayerState[p]->m_PlayerOptions.GetCurrent().GetString());
 	}
 	for (int i=0; i<2-players; ++i)
 		m_packet.WriteNT("");	//Write a NULL if no player
 
 	//Send chartkey
-	if (m_ServerVersion >= 129) {
+	if (serverVersion >= 129) {
 		tSteps = GAMESTATE->m_pCurSteps[PLAYER_1];
 		if (tSteps != NULL && GAMESTATE->IsPlayerEnabled(PLAYER_1)) {
 			m_packet.WriteNT(tSteps->GetChartKey());
@@ -452,7 +655,7 @@ void NetworkSyncManager::StartRequest( short position )
 	}
 	
 	//This needs to be reset before ScreenEvaluation could possibly be called
-	m_EvalPlayerData.clear();
+	n->m_EvalPlayerData.clear();
 
 	//Block until go is recieved.
 	//Switch to blocking mode (this is the only
@@ -500,24 +703,30 @@ void NetworkSyncManager::DisplayStartupStatus()
 		//Networking wasn't attepmpted
 		return;
 	case 1:
-		sMessage = ssprintf( CONNECTION_SUCCESSFUL.GetValue(), m_ServerName.c_str() );
-		break;
+		if(curProtocol != nullptr)
+			sMessage = ssprintf(CONNECTION_SUCCESSFUL.GetValue(), curProtocol->serverName.c_str());
+		else
+			sMessage = CONNECTION_FAILED.GetValue();
 	case 2:
 		sMessage = CONNECTION_FAILED.GetValue();
 		break;
 	}
-	SCREENMAN->SystemMessage( sMessage );
+	SCREENMAN->SystemMessage(sMessage);
 }
 
 void NetworkSyncManager::Update(float fDeltaTime)
 {
+	ETTP.Update(this, fDeltaTime);
 	if (useSMserver)
-		ProcessInput();
+		SMOP.ProcessInput(this);
 	else
 		return;
-
+	SMOP.Update(this, fDeltaTime);
+}
+void SMOProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
+{
 	PacketFunctions BroadIn;
-	if ( BroadcastReception->ReadPack( (char*)&BroadIn.Data, 1020 ) )
+	if ( BroadcastReception->ReadPack((char*)&BroadIn.Data, 1020) )
 	{
 		NetServerInfo ThisServer;
 		BroadIn.Position = 0;
@@ -528,7 +737,7 @@ void NetworkSyncManager::Update(float fDeltaTime)
 			BroadIn.Read2();	//Num players connected.
 			uint32_t addy = EzSockets::LongFromAddrIn(BroadcastReception->fromAddr);
 			ThisServer.Address = ssprintf( "%u.%u.%u.%u:%d",
-				(addy<<0)>>24, (addy<<8)>>24, (addy<<16)>>24, (addy<<24)>>24, port );
+				(addy<<0)>>24, (addy<<8)>>24, (addy<<16)>>24, (addy<<24)>>24, port);
 
 			//It's fairly safe to assume that users will not be on networks with more than
 			//30 or 40 servers.  Until this point, maps would be slower than vectors. 
@@ -538,32 +747,31 @@ void NetworkSyncManager::Update(float fDeltaTime)
 			//contains the corresponding server.
 
 			unsigned int i;
-			for ( i = 0; i < m_vAllLANServers.size(); i++ )
+			for ( i = 0; i < n->m_vAllLANServers.size(); i++ )
 			{
-				if ( m_vAllLANServers[i].Address == ThisServer.Address )
+				if ( n->m_vAllLANServers[i].Address == ThisServer.Address )
 				{
-					m_vAllLANServers[i].Name = ThisServer.Name;
+					n->m_vAllLANServers[i].Name = ThisServer.Name;
 					break;
 				}
 			}
-			if ( i >= m_vAllLANServers.size() )
-				m_vAllLANServers.push_back( ThisServer );
+			if ( i >= n->m_vAllLANServers.size() )
+				n->m_vAllLANServers.push_back(ThisServer);
 		}
 	}
 }
 
 static LocalizedString CONNECTION_DROPPED( "NetworkSyncManager", "Connection to server dropped." );
-void NetworkSyncManager::ProcessInput()
+void SMOProtocol::ProcessInput(NetworkSyncManager* n)
 {
 	//If we're disconnected, just exit
 	if ((NetPlayerClient->state!=NetPlayerClient->skCONNECTED) || 
 			NetPlayerClient->IsError())
 	{
-		SCREENMAN->SystemMessageNoAnimate( CONNECTION_DROPPED );
-		useSMserver=false;
-		isSMOnline = false;
-		FOREACH_PlayerNumber(pn)
-			isSMOLoggedIn[pn] = false;
+		SCREENMAN->SystemMessageNoAnimate(CONNECTION_DROPPED);
+		n->useSMserver=false;
+		n->isSMOnline = false;
+		n->isSMOLoggedIn = false;
 		NetPlayerClient->close();
 		return;
 	}
@@ -590,7 +798,7 @@ void NetworkSyncManager::ProcessInput()
 		{
 		case NSCPing: // Ping packet responce
 			m_packet.ClearPacket();
-			m_packet.Write1( NSCPingR );
+			m_packet.Write1(NSCPingR);
 			NetPlayerClient->SendPack((char*)m_packet.Data,m_packet.Position);
 			break;
 		case NSCPingR: // These are in response to when/if we send packet 0's
@@ -600,21 +808,21 @@ void NetworkSyncManager::ProcessInput()
 		case NSCGON: 
 			{
 				int PlayersInPack = m_packet.Read1();
-				m_EvalPlayerData.resize(PlayersInPack);
+				n->m_EvalPlayerData.resize(PlayersInPack);
 				for (int i=0; i<PlayersInPack; ++i)
-					m_EvalPlayerData[i].name = m_packet.Read1();
+					n->m_EvalPlayerData[i].name = m_packet.Read1();
 				for (int i=0; i<PlayersInPack; ++i)
-					m_EvalPlayerData[i].score = m_packet.Read4();
+					n->m_EvalPlayerData[i].score = m_packet.Read4();
 				for (int i=0; i<PlayersInPack; ++i)
-					m_EvalPlayerData[i].grade = m_packet.Read1();
+					n->m_EvalPlayerData[i].grade = m_packet.Read1();
 				for (int i=0; i<PlayersInPack; ++i)
-					m_EvalPlayerData[i].difficulty = (Difficulty) m_packet.Read1();
+					n->m_EvalPlayerData[i].difficulty = (Difficulty) m_packet.Read1();
 				for (int j=0; j<NETNUMTAPSCORES; ++j) 
 					for (int i=0; i<PlayersInPack; ++i)
-						m_EvalPlayerData[i].tapScores[j] = m_packet.Read2();
+						n->m_EvalPlayerData[i].tapScores[j] = m_packet.Read2();
 				for (int i=0; i<PlayersInPack; ++i)
-					m_EvalPlayerData[i].playerOptions = m_packet.ReadNT();
-				SCREENMAN->SendMessageToTopScreen( SM_GotEval );
+					n->m_EvalPlayerData[i].playerOptions = m_packet.ReadNT();
+				SCREENMAN->SendMessageToTopScreen(SM_GotEval);
 			}
 			break;
 		case NSCGSU: // Scoreboard Update
@@ -628,7 +836,7 @@ void NetworkSyncManager::ProcessInput()
 				case NSSB_NAMES:
 					ColumnData = "Names\n";
 					for (int i=0; i<NumberPlayers; ++i)
-						ColumnData += m_PlayerNames[m_packet.Read1()] + "\n";
+						ColumnData += n->m_PlayerNames[m_packet.Read1()] + "\n";
 					break;
 				case NSSB_COMBO:
 					ColumnData = "Combo\n";
@@ -638,11 +846,11 @@ void NetworkSyncManager::ProcessInput()
 				case NSSB_GRADE:
 					ColumnData = "Grade\n";
 					for (int i=0;i<NumberPlayers;i++)
-						ColumnData += GradeToLocalizedString( Grade(m_packet.Read1()) ) + "\n";
+						ColumnData += GradeToLocalizedString(Grade(m_packet.Read1())) + "\n";
 					break;
 				}
-				m_Scoreboard[ColumnNumber] = ColumnData;
-				m_scoreboardchange[ColumnNumber]=true;
+				n->m_Scoreboard[ColumnNumber] = ColumnData;
+				n->m_scoreboardchange[ColumnNumber]=true;
 				/*
 				Message msg("ScoreboardUpdate");
 				msg.SetParam( "NumPlayers", NumberPlayers );
@@ -653,51 +861,51 @@ void NetworkSyncManager::ProcessInput()
 		case NSCSU: //System message from server
 			{
 				RString SysMSG = m_packet.ReadNT();
-				SCREENMAN->SystemMessage( SysMSG );
+				SCREENMAN->SystemMessage(SysMSG);
 			}
 			break;
 		case NSCCM: //Chat message from server
 			{
-				m_sChatText += m_packet.ReadNT() + " \n ";
+				n->m_sChatText += m_packet.ReadNT() + " \n ";
 				//10000 chars backlog should be more than enough
-				m_sChatText = m_sChatText.Right(10000);
-				SCREENMAN->SendMessageToTopScreen( SM_AddToChat );
+				n->m_sChatText = n->m_sChatText.Right(10000);
+				SCREENMAN->SendMessageToTopScreen(SM_AddToChat);
 			}
 			break;
 		case NSCRSG: //Select Song/Play song
 			{
-				m_iSelectMode = m_packet.Read1();
-				m_sMainTitle = m_packet.ReadNT();
-				m_sArtist = m_packet.ReadNT();
-				m_sSubTitle = m_packet.ReadNT();
+				n->m_iSelectMode = m_packet.Read1();
+				n->m_sMainTitle = m_packet.ReadNT();
+				n->m_sArtist = m_packet.ReadNT();
+				n->m_sSubTitle = m_packet.ReadNT();
 				//Read songhash
-				if (m_ServerVersion >= 129) {
-					m_sFileHash = m_packet.ReadNT();
+				if (serverVersion >= 129) {
+					n->m_sFileHash = m_packet.ReadNT();
 				}
-				SCREENMAN->SendMessageToTopScreen( SM_ChangeSong );
-				SCREENMAN->SendMessageToTopScreen( SM_ChangeSong );
+				SCREENMAN->SendMessageToTopScreen(SM_ChangeSong);
+				SCREENMAN->SendMessageToTopScreen(SM_ChangeSong);
 			}
 			break;
 		case NSCUUL:
 			{
 				/*int ServerMaxPlayers=*/m_packet.Read1();
 				int PlayersInThisPacket=m_packet.Read1();
-				m_ActivePlayer.clear();
-				m_PlayerStatus.clear();
-				m_PlayerNames.clear();
-				m_ActivePlayers = 0;
+				n->m_ActivePlayer.clear();
+				n->m_PlayerStatus.clear();
+				n->m_PlayerNames.clear();
+				n->m_ActivePlayers = 0;
 				for (int i=0; i<PlayersInThisPacket; ++i)
 				{
 					int PStatus = m_packet.Read1();
 					if ( PStatus > 0 )
 					{
-						m_ActivePlayers++;
-						m_ActivePlayer.push_back( i );
+						n->m_ActivePlayers++;
+						n->m_ActivePlayer.push_back(i);
 					}
-					m_PlayerStatus.push_back( PStatus );
-					m_PlayerNames.push_back( m_packet.ReadNT() );
+					n->m_PlayerStatus.push_back(PStatus);
+					n->m_PlayerNames.push_back(m_packet.ReadNT());
 				}
-				SCREENMAN->SendMessageToTopScreen( SM_UsersUpdate );
+				SCREENMAN->SendMessageToTopScreen(SM_UsersUpdate);
 			}
 			break;
 		case NSCSMS:
@@ -706,19 +914,19 @@ void NetworkSyncManager::ProcessInput()
 				GameName = m_packet.ReadNT();
 				StyleName = m_packet.ReadNT();
 
-				GAMESTATE->SetCurGame( GAMEMAN->StringToGame(GameName) );
-				GAMESTATE->SetCurrentStyle( GAMEMAN->GameAndStringToStyle(GAMESTATE->m_pCurGame,StyleName), PLAYER_INVALID );
+				GAMESTATE->SetCurGame(GAMEMAN->StringToGame(GameName));
+				GAMESTATE->SetCurrentStyle(GAMEMAN->GameAndStringToStyle(GAMESTATE->m_pCurGame,StyleName), PLAYER_INVALID);
 
-				SCREENMAN->SetNewScreen( "ScreenNetSelectMusic" ); //Should this be metric'd out?
+				SCREENMAN->SetNewScreen("ScreenNetSelectMusic"); //Should this be metric'd out?
 			}
 			break;
 		case NSCSMOnline:
 			{
-				m_SMOnlinePacket.size = packetSize - 1;
-				m_SMOnlinePacket.Position = 0;
-				memcpy( m_SMOnlinePacket.Data, (m_packet.Data + 1), packetSize-1 );
-				LOG->Trace( "Received SMOnline Command: %d, size:%d", command, packetSize - 1 );
-				SCREENMAN->SendMessageToTopScreen( SM_SMOnlinePack );
+				SMOnlinePacket.size = packetSize - 1;
+				SMOnlinePacket.Position = 0;
+				memcpy(SMOnlinePacket.Data, (m_packet.Data + 1), packetSize-1);
+				LOG->Trace("Received SMOnline Command: %d, size:%d", command, packetSize - 1);
+				SCREENMAN->SendMessageToTopScreen(SM_SMOnlinePack);
 			}
 			break;
 		case NSCAttack:
@@ -734,13 +942,13 @@ void NetworkSyncManager::ProcessInput()
 		case FLU:
 			{
 				int PlayersInThisPacket = m_packet.Read1();
-				fl_PlayerNames.clear();
-				fl_PlayerStates.clear();
+				n->fl_PlayerNames.clear();
+				n->fl_PlayerStates.clear();
 				for (int i = 0; i<PlayersInThisPacket; ++i)
 				{
 					int PStatus = m_packet.Read1();
-					fl_PlayerStates.push_back(PStatus);
-					fl_PlayerNames.push_back(m_packet.ReadNT());
+					n->fl_PlayerStates.push_back(PStatus);
+					n->fl_PlayerNames.push_back(m_packet.ReadNT());
 				}
 				SCREENMAN->SendMessageToTopScreen(SM_FriendsUpdate);
 			}
@@ -758,48 +966,103 @@ bool NetworkSyncManager::ChangedScoreboard(int Column)
 	return true;
 }
 
-void NetworkSyncManager::SendChat(const RString& message) 
+void NetworkSyncManager::SendChat(const RString& message)
+{
+	if (curProtocol != nullptr)
+		curProtocol->SendChat(message);
+}
+void SMOProtocol::SendChat(const RString& message)
 {
 	m_packet.ClearPacket();
-	m_packet.Write1( NSCCM );
-	m_packet.WriteNT( message );
-	NetPlayerClient->SendPack((char*)&m_packet.Data, m_packet.Position); 
+	m_packet.Write1(NSCCM);
+	m_packet.WriteNT(message);
+	NetPlayerClient->SendPack((char*)&m_packet.Data, m_packet.Position);
 }
 
 void NetworkSyncManager::ReportPlayerOptions()
 {
+	if (curProtocol != nullptr)
+		curProtocol->ReportPlayerOptions(this, GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions);
+}
+void SMOProtocol::ReportPlayerOptions(NetworkSyncManager * n, ModsGroup<PlayerOptions>& opts)
+{
 	m_packet.ClearPacket();
 	m_packet.Write1( NSCUPOpts );
-	FOREACH_PlayerNumber (pn)
-		m_packet.WriteNT( GAMESTATE->m_pPlayerState[pn]->m_PlayerOptions.GetCurrent().GetString() );
+	m_packet.WriteNT( opts.GetCurrent().GetString() );
 	NetPlayerClient->SendPack((char*)&m_packet.Data, m_packet.Position); 
 }
 
 int NetworkSyncManager::GetServerVersion()
 {
-	return m_ServerVersion;
+	return curProtocol != nullptr ? curProtocol->serverVersion : -1;
 }
 void NetworkSyncManager::SelectUserSong()
 {
+	if (curProtocol != nullptr)
+		curProtocol->SelectUserSong(this, GAMESTATE->m_pCurSong);
+}
+
+void SMOProtocol::SelectUserSong(NetworkSyncManager * n, Song* song)
+{
 	m_packet.ClearPacket();
 	m_packet.Write1( NSCRSG );
-	m_packet.Write1( (uint8_t) m_iSelectMode );
-	m_packet.WriteNT( m_sMainTitle );
-	m_packet.WriteNT( m_sArtist );
-	m_packet.WriteNT( m_sSubTitle );
+	m_packet.Write1( (uint8_t)n->m_iSelectMode );
+	m_packet.WriteNT( n->m_sMainTitle );
+	m_packet.WriteNT(n->m_sArtist );
+	m_packet.WriteNT(n->m_sSubTitle );
 	//Send songhash
-	if (m_ServerVersion >= 129) {
+	if (serverVersion >= 129) {
 		m_packet.WriteNT(GAMESTATE->m_pCurSong->GetFileHash());
 	}
 	NetPlayerClient->SendPack( (char*)&m_packet.Data, m_packet.Position );
 }
 
-void NetworkSyncManager::SendSMOnline( )
+void SMOProtocol::SendSMOnline( )
 {
-	m_packet.Position = m_SMOnlinePacket.Position + 1;
-	memcpy( (m_packet.Data + 1), m_SMOnlinePacket.Data, m_SMOnlinePacket.Position );
+	m_packet.Position = SMOnlinePacket.Position + 1;
+	memcpy( (m_packet.Data + 1), SMOnlinePacket.Data, SMOnlinePacket.Position );
 	m_packet.Data[0] = NSCSMOnline;
 	NetPlayerClient->SendPack( (char*)&m_packet.Data , m_packet.Position );
+}
+void SMOProtocol::CreateNewRoom(RString name, RString desc, RString password)
+{
+	SMOnlinePacket.ClearPacket();
+	SMOnlinePacket.Write1((uint8_t)2); // Create room command
+	SMOnlinePacket.Write1(1);  // Type game room
+	SMOnlinePacket.WriteNT(name);
+	SMOnlinePacket.WriteNT(desc);
+	if (!password.empty())
+		SMOnlinePacket.WriteNT(password);
+	SendSMOnline();
+}
+void SMOProtocol::EnterRoom(RString name, RString password)
+{
+	SMOnlinePacket.ClearPacket();
+	SMOnlinePacket.Write1(1);
+	SMOnlinePacket.Write1(1); //Type (enter a room)
+	SMOnlinePacket.WriteNT(name);
+	if (!password.empty())
+		SMOnlinePacket.WriteNT(password);
+	SendSMOnline();
+}
+void SMOProtocol::RequestRoomInfo(RString name)
+{
+	SMOnlinePacket.ClearPacket();
+	SMOnlinePacket.Write1((uint8_t)3); //Request Room Info
+	SMOnlinePacket.WriteNT(name);
+	SendSMOnline();
+}
+
+void NetworkSyncManager::EnterRoom(RString name, RString password)
+{
+	if (curProtocol != nullptr)
+		curProtocol->EnterRoom(name, password);
+}
+
+void NetworkSyncManager::RequestRoomInfo(RString name)
+{
+	if (curProtocol != nullptr)
+		curProtocol->RequestRoomInfo(name);
 }
 
 SMOStepType NetworkSyncManager::TranslateStepType(int score)
@@ -1066,7 +1329,7 @@ LuaFunction( ConnectToServer, 		ConnectToServer( ( RString(SArg(1)).length()==0 
 static bool ReportStyle() { NSMAN->ReportStyle(); return true; }
 static bool CloseNetworkConnection() { NSMAN->CloseConnection(); return true; }
 
-LuaFunction( IsSMOnlineLoggedIn,	NSMAN->isSMOLoggedIn[Enum::Check<PlayerNumber>(L, 1)] )
+LuaFunction( IsSMOnlineLoggedIn,	NSMAN->isSMOLoggedIn )
 LuaFunction( IsNetConnected,		NSMAN->useSMserver )
 LuaFunction( IsNetSMOnline,			NSMAN->isSMOnline )
 LuaFunction( ReportStyle,			ReportStyle() )
