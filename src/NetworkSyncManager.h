@@ -83,7 +83,7 @@ enum NSScoreBoardColumn
 };
 
 // Value-Defintions of the different String values
-static enum ETTMessageTypes {
+enum ETTMessageTypes {
 	ettp_hello=0,
 	ettp_login,
 	ettp_roomlist,
