@@ -333,6 +333,7 @@ list(APPEND SMDATA_LINK_LIB
   "jpeg"
   "sqlite3"
   "SQLiteCpp"
+  "nlohmann_json"
 )
 include(../extern/CMakeProject-mmmagic.cmake)
 
@@ -538,6 +539,7 @@ list(APPEND SM_INCLUDE_DIRS
 if(NOT APPLE)
   list(APPEND SM_INCLUDE_DIRS
     "${SM_EXTERN_DIR}/glew-1.5.8/include"
+    "${SM_EXTERN_DIR}/json/include"
     "${SM_EXTERN_DIR}/jsoncpp/include"
     "${SM_EXTERN_DIR}/zlib"
   )
