@@ -32,7 +32,7 @@ void ScreenNetRoom::Init()
 	m_soundChangeSel.Load( THEME->GetPathS("ScreenNetRoom","change sel") );
 
 	m_iRoomPlace = 0;
-
+	m_Rooms = &(NSMAN->m_Rooms);
 	m_RoomWheel.SetName( "RoomWheel" );
 	m_RoomWheel.Load( "RoomWheel" );
 	m_RoomWheel.BeginScreen();
@@ -191,7 +191,11 @@ bool ScreenNetRoom::MenuRight( const InputEventPlus &input )
 
 void ScreenNetRoom::UpdateRoomsList()
 {
-	m_RoomWheel.UpdateRoomsList(&m_Rooms);
+	if (m_iRoomPlace<0)
+		m_iRoomPlace = 0;
+	if (m_iRoomPlace >= (int)m_Rooms->size())
+		m_iRoomPlace = m_Rooms->size() - 1;
+	m_RoomWheel.UpdateRoomsList(m_Rooms);
 }
 
 void ScreenNetRoom::CreateNewRoom( const RString& rName,  const RString& rDesc, const RString& rPass )

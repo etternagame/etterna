@@ -21,6 +21,9 @@ AutoScreenMessage( SM_SMOnlinePack );
 AutoScreenMessage( SM_PasswordDone );
 AutoScreenMessage( SM_NoProfilesDefined );
 
+AutoScreenMessage(SM_ETTPDisconnect);
+AutoScreenMessage(SM_ETTPLoginResponse);
+
 static LocalizedString DEFINE_A_PROFILE( "ScreenSMOnlineLogin", "You must define a Profile." );
 void ScreenSMOnlineLogin::Init()
 {
@@ -112,6 +115,21 @@ void ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 	{
 		SCREENMAN->SystemMessage(DEFINE_A_PROFILE);
 		SCREENMAN->SetNewScreen("ScreenOptionsManageProfiles");
+	}
+	else if (SM == SM_ETTPDisconnect) {
+
+	}
+	else if (SM == SM_ETTPLoginResponse) {
+		if (NSMAN->loggedIn) {
+			SCREENMAN->SetNewScreen(THEME->GetMetric("ScreenSMOnlineLogin", "NextScreen"));
+			m_iPlayer = 0;
+		}
+		else {
+			sLoginQuestion = YOU_ARE_LOGGING_ON_AS.GetValue() + "\n"
+				+ GAMESTATE->GetPlayerDisplayName((PlayerNumber)m_iPlayer) + "\n" +
+				ENTER_YOUR_PASSWORD.GetValue();
+			ScreenTextEntry::Password(SM_PasswordDone, NSMAN->loginResponse + "\n\n" + sLoginQuestion, NULL);
+		}
 	}
 	else if( SM == SM_SMOnlinePack )
 	{

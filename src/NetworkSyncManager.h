@@ -4,6 +4,7 @@
 #include "PlayerNumber.h"
 #include "Difficulty.h"
 #include "ScreenNetRoom.h"
+#include "RoomWheel.h"
 #include "ScreenNetSelectMusic.h"
 #include "ScreenSMOnlineLogin.h"
 #include "PlayerState.h"
@@ -12,6 +13,8 @@
 #include <queue>
 #include "uWS.h"
 #include "JsonUtil.h"
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
 
 class LoadingWindow;
 
@@ -83,14 +86,29 @@ enum NSScoreBoardColumn
 	NSScoreBoardColumn_Invalid
 };
 
-// Value-Defintions of the different String values
-enum ETTMessageTypes {
-	ettp_hello=0,
-	ettp_login,
-	ettp_roomlist,
-	ettp_recievechat,
-	ettp_sendchat,
-	ettp_end
+enum ETTServerMessageTypes {
+	ettps_hello=0,
+	ettps_ping,
+	ettps_recievechat,
+	ettps_loginresponse,
+	ettps_roomlist,
+	ettps_recievescore,
+	ettps_gameplayleaderboard,
+	ettps_createroomresponse,
+	ettps_enterroomresponse,
+	ettps_startselection,
+	ettps_end
+};
+enum ETTClientMessageTypes {
+	ettpc_login=0,
+	ettpc_ping,
+	ettpc_sendchat,
+	ettpc_sendscore,
+	ettpc_gameplayupdate,
+	ettpc_createroom,
+	ettpc_enterroom,
+	ettpc_selectchart,
+	ettpc_end
 };
 /** @brief A special foreach loop going through each NSScoreBoardColumn. */
 #define FOREACH_NSScoreBoardColumn( sc ) FOREACH_ENUM( NSScoreBoardColumn, sc )
@@ -127,6 +145,7 @@ public:
 };
 
 class NetworkSyncManager;
+class ScreenNetRoom;
 class NetProtocol {
 public:
 	RString serverName;
@@ -139,7 +158,7 @@ public:
 	virtual void EnterRoom(RString name, RString password) {}
 	virtual void RequestRoomInfo(RString name) {}
 	virtual void ReportPlayerOptions(NetworkSyncManager * n, ModsGroup<PlayerOptions>& opts) {}
-	virtual void SendChat(const RString& message) {}
+	virtual void SendChat(const RString& message, string tab, int type) {}
 	virtual void ReportNSSOnOff(int i) {}
 	virtual void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset, int numNotes) {}
 	virtual void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset) {}
@@ -172,7 +191,7 @@ public:
 	void EnterRoom(RString name, RString password) override;
 	void RequestRoomInfo(RString name) override;
 	void ReportPlayerOptions(NetworkSyncManager * n, ModsGroup<PlayerOptions>& opts) override;
-	void SendChat(const RString& message) override;
+	void SendChat(const RString& message, string tab, int type) override;
 	void ReportNSSOnOff(int i) override;
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset, int numNotes) override;
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset) override;
@@ -187,30 +206,39 @@ public:
 };
 class ETTProtocol : public NetProtocol { // Websockets using uwebsockets sending json
 	uWS::Hub uWSh;
-	vector<Json::Value> newMessages;
+	vector<json> newMessages;
 	bool connected{ false };
+	uWS::WebSocket<uWS::CLIENT>* ws;
 public:
 	bool Connect(NetworkSyncManager * n, unsigned short port, RString address) override; // Connect and say hello
 	void close() override;
 	void Update(NetworkSyncManager* n, float fDeltaTime) override;
-	/*
-	void SelectUserSong(NetworkSyncManager * n, Song* song) override;
+	void Login(RString user, RString pass) override;
+	void SendChat(const RString& message, string tab, int type) override;
 	void CreateNewRoom(RString name, RString desc, RString password) override;
 	void EnterRoom(RString name, RString password) override;
-	void RequestRoomInfo(RString name) override;
+	/*
+	void SelectUserSong(NetworkSyncManager * n, Song* song) override;
 	void ReportPlayerOptions(NetworkSyncManager * n, ModsGroup<PlayerOptions>& opts) override;
-	void SendChat(const RString& message) override;
 	void ReportNSSOnOff(int i) override;
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset, int numNotes) override;
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset) override;
 	void ReportSongOver(NetworkSyncManager* n) override;
 	void ReportStyle(NetworkSyncManager* n) override;
 	void StartRequest(NetworkSyncManager* n, short position) override;
-	void Login(RString user, RString pass) override;
-	void DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetRoom* s) override;
-	void DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetSelectMusic* s) override;
-	int DealWithSMOnlinePack(NetworkSyncManager* n, ScreenSMOnlineLogin* s, RString& response) override;
 	*/
+};
+//Regular pair map except [anyString, 0] is the same key
+class Chat  {
+public:
+	map<pair<string, int>, vector<string>> map;
+
+	vector<string>& operator[](const pair<string, int>& p) {
+		if (p.second == 0)
+			return map.operator[](make_pair(string(""), 0));
+		else
+			return map.operator[](p);
+	}
 };
 /** @brief Uses ezsockets for primitive song syncing and score reporting. */
 class NetworkSyncManager 
@@ -243,11 +271,15 @@ public:
 
 	int m_playerLife;	// Life (used for sending to server)
 
-	void Update( float fDeltaTime );
+	void Update(float fDeltaTime);
 
 	bool useSMserver;
 	bool isSMOnline;
-	bool isSMOLoggedIn;
+	bool loggedIn;
+	string loginResponse; // Failure reason
+	string roomResponse; // Failure reason
+
+	Chat chat; //[{Tabname, int}] = vector<line>
 
 	vector<int> m_PlayerStatus;
 	int m_ActivePlayers;
@@ -266,7 +298,7 @@ public:
 	RString m_Scoreboard[NUM_NSScoreBoardColumn];
 
 	// Used for chatting
-	void SendChat(const RString& message);
+	void SendChat(const RString& message, string tab = "", int type = 0); // 0=lobby (ettp only)
 	RString m_WaitingChat;
 
 	// Used for options
@@ -305,6 +337,7 @@ public:
 	void DealWithSMOnlinePack(ScreenNetRoom* s);
 	void DealWithSMOnlinePack(ScreenNetSelectMusic* s);
 	int DealWithSMOnlinePack(ScreenSMOnlineLogin* s, RString& response);
+	vector<RoomData> m_Rooms;
 
 #if !defined(WITHOUT_NETWORKING)
 	SMOStepType TranslateStepType(int score);

@@ -7,6 +7,9 @@
 #include "LocalizedString.h"
 #include "JsonUtil.h"
 #include <cerrno>
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
+
 
 NetworkSyncManager *NSMAN;
 
@@ -15,13 +18,28 @@ NetworkSyncManager *NSMAN;
 
 #include "ver.h"
 
-// Map to associate the strings with the enum values
-std::map<std::string, ETTMessageTypes> ettMessageMap = {
-	{ "hello", ettp_hello },
-	{ "login", ettp_login },
-	{ "roomlist", ettp_roomlist },
-	{ "recievechat", ettp_recievechat },
-	{ "sendchat", ettp_sendchat }
+// Maps to associate the strings with the enum values
+std::map<ETTClientMessageTypes, std::string> ettClientMessageMap = {
+	{ ettpc_login, "login" },
+	{ ettpc_ping, "ping" },
+	{ ettpc_sendchat, "chat" },
+	{ ettpc_sendscore, "score" },
+	{ ettpc_gameplayupdate, "gameplayupdate" },
+	{ ettpc_createroom, "createroom" },
+	{ ettpc_enterroom, "enterroom" },
+	{ ettpc_selectchart, "selectchart" },
+};
+std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
+	{ "hello", ettps_hello },
+	{ "roomlist", ettps_roomlist },
+	{ "ping", ettps_ping },
+	{ "chat", ettps_recievechat },
+	{ "login", ettps_loginresponse },
+	{ "score", ettps_recievescore },
+	{ "leaderboard", ettps_gameplayleaderboard },
+	{ "createroom", ettps_createroomresponse },
+	{ "enterroom", ettps_enterroomresponse },
+	{ "startselection", ettps_startselection },
 };
 
 #if defined(WITHOUT_NETWORKING)
@@ -62,12 +80,16 @@ unsigned long NetworkSyncManager::GetCurrentSMBuild( LoadingWindow* ld ) { retur
 #include "PlayerState.h"
 #include "CryptManager.h"
 
-AutoScreenMessage( SM_AddToChat );
-AutoScreenMessage( SM_ChangeSong );
-AutoScreenMessage( SM_GotEval );
-AutoScreenMessage( SM_UsersUpdate );
-AutoScreenMessage( SM_FriendsUpdate );
-AutoScreenMessage( SM_SMOnlinePack );
+AutoScreenMessage(SM_AddToChat);
+AutoScreenMessage(SM_ChangeSong);
+AutoScreenMessage(SM_GotEval);
+AutoScreenMessage(SM_UsersUpdate);
+AutoScreenMessage(SM_FriendsUpdate);
+AutoScreenMessage(SM_SMOnlinePack);
+
+AutoScreenMessage(SM_ETTPDisconnect);
+AutoScreenMessage(SM_ETTPLoginResponse);
+AutoScreenMessage(SM_ETTPIncomingChat);
 
 
 
@@ -85,7 +107,7 @@ NetworkSyncManager::NetworkSyncManager( LoadingWindow *ld )
 	LANserver = NULL;	//So we know if it has been created yet
 	useSMserver = false;
 	isSMOnline = false;
-	isSMOLoggedIn = false;
+	loggedIn = false;
 	m_startupStatus = 0;	//By default, connection not tried.
 	m_ActivePlayers = 0;
 	StartUp();
@@ -111,12 +133,14 @@ NetworkSyncManager::~NetworkSyncManager ()
 void SMOProtocol::close()
 {
 	serverVersion = 0;
+	serverName = "";
 	NetPlayerClient->close();
 }
 
 void ETTProtocol::close()
 {
 	serverVersion = 0;
+	serverName = "";
 	uWSh.getDefaultGroup<uWS::SERVER>().close();
 	uWSh.getDefaultGroup<uWS::CLIENT>().close();
 	uWSh.poll();
@@ -125,10 +149,13 @@ void ETTProtocol::close()
 void NetworkSyncManager::CloseConnection()
 {
 	if( !useSMserver )
-		return;
+		return; 
+	m_sChatText = "";
    	useSMserver = false;
 	isSMOnline = false;
-	isSMOLoggedIn = false;
+	loggedIn = false;
+	loginResponse = "";
+	roomResponse = "";
 	m_startupStatus = 0;
 	SMOP.close();
 	ETTP.close();
@@ -163,14 +190,14 @@ void NetworkSyncManager::PostStartUp(const RString& ServerIP)
 	LOG->Info("Attempting to connect to: %s, Port: %i", sAddress.c_str(), iPort);
 	curProtocol = nullptr;
 	CloseConnection();
-	if (SMOP.Connect(this, iPort, sAddress))
-		curProtocol = &SMOP;
+	if (ETTP.Connect(this, iPort, sAddress))
+		curProtocol = &ETTP;
 	else
-		if (ETTP.Connect(this, iPort, sAddress))
-			curProtocol = &ETTP;
+		if (SMOP.Connect(this, iPort, sAddress))
+			curProtocol = &SMOP;
 	if (curProtocol == nullptr)
 		return;
-	isSMOLoggedIn = false;
+	loggedIn = false;
 	useSMserver = true;
 	m_startupStatus = 1;	// Connection attempt successful
 	LOG->Info("Server Version: %d %s", curProtocol->serverVersion, curProtocol->serverName.c_str());
@@ -179,42 +206,30 @@ void NetworkSyncManager::PostStartUp(const RString& ServerIP)
 bool ETTProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString address)
 {
 	connected = false;
-	uWSh.onDisconnection([this](uWS::WebSocket<uWS::CLIENT> *ws, int code, char *message, size_t length) {
+	uWSh.onDisconnection([this, n](uWS::WebSocket<uWS::CLIENT> *ws, int code, char *message, size_t length) {
+		LOG->Trace("Dissconnected from ett server %s", serverName.c_str());
 		this->connected = false;
-		LOG->Trace("Error while processing ettprotocol json: ");
+		this->ws = nullptr;
+		n->CloseConnection();
 	});
 	uWSh.onConnection([this, address](uWS::WebSocket<uWS::CLIENT> *ws, uWS::HttpRequest req) {
 		this->connected = true;
-		LOG->Trace("Error while processing ettprotocol json: %s", address.c_str());
+		this->ws = ws;
+		LOG->Trace("Connected to ett server: %s", address.c_str());
 	});
 	uWSh.onMessage([this](uWS::WebSocket<uWS::CLIENT> *ws, char *message, size_t length, uWS::OpCode opCode) {
-		Json::Value json;
-		RString error;
 		string msg(message, length);
-		if (JsonUtil::LoadFromString(json, msg, error))
+		try {
+			json json = json::parse(msg);
 			this->newMessages.emplace_back(json);
-		else
-			LOG->Trace("Error while processing ettprotocol json: %s", error.c_str());
-	});
-	uWSh.onDisconnection([this](uWS::WebSocket<uWS::SERVER> *ws, int code, char *message, size_t length) {
-		this->connected = false;
-		LOG->Trace("Error while processing ettprotocol json: ");
-	});
-	uWSh.onConnection([this](uWS::WebSocket<uWS::SERVER> *ws, uWS::HttpRequest req) {
-		this->connected = true;
-		LOG->Trace("Error while processing ettprotocol json: ");
-	});
-	uWSh.onMessage([this](uWS::WebSocket<uWS::SERVER> *ws, char *message, size_t length, uWS::OpCode opCode) {
-		Json::Value json;
-		RString error;
-		if (JsonUtil::LoadFromString(json, string(message, length), error))
-			this->newMessages.emplace_back(json);
-		else
-			LOG->Trace("Error while processing ettprotocol json: %s", error.c_str());
+		}
+		catch (exception e) {
+			LOG->Trace("Error while processing ettprotocol json: %s", e.what());
+		}
 	});
 	uWSh.connect(("wss://"+address+":"+to_string(port)).c_str(), nullptr);
 	uWSh.poll();
-	for (int i = 0; i < 50; i++) {
+	for (int i = 0; i < 100; i++) {
 		usleep(10000);
 		uWSh.poll();
 	}
@@ -222,7 +237,7 @@ bool ETTProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString a
 		return true;
 	uWSh.connect(("ws://" + address + ":" + to_string(port)).c_str(), nullptr);
 	uWSh.poll();
-	for (int i = 0; i < 50; i++) {
+	for (int i = 0; i < 100; i++) {
 		usleep(10000);
 		uWSh.poll();
 	}
@@ -231,11 +246,113 @@ bool ETTProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString a
 void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 {
 	uWSh.poll();
-	for (auto& jsonMsg : newMessages) {
-		switch (ettMessageMap[jsonMsg["type"].asCString()]) {
+	for (auto& it = newMessages.begin(); it!=newMessages.end(); it++) {
+		try {
+			auto& jType = (*it).find("type");
+			if (jType != it->end())
+				switch (ettServerMessageMap[jType->get<string>()]) {
+				case ettps_loginresponse:
+					if (!(n->loggedIn = (*it)["logged"]))
+						n->loginResponse = (*it)["msg"].get<string>();
+					else
+						n->loginResponse = "";
+					SCREENMAN->SendMessageToTopScreen(SM_ETTPLoginResponse);
+					break;
+				case ettps_hello:
+					serverName = (*it)["name"].get<string>();
+					serverVersion = (*it)["version"];
+					LOG->Trace("Ettp server identified: %s (Version:%d)", serverName.c_str(), serverVersion);
+					break;
+				case ettps_ping:
+					if (ws != nullptr) {
+						json chatMsg;
+						chatMsg["type"] = ettClientMessageMap[ettpc_ping];
+						ws->send(chatMsg.dump().c_str());
+					}
+					break;
+				case ettps_recievechat:
+					{
+						//chat[tabname, tabtype] = msg
+						n->chat[{(*it)["tab"].get<string>(), (*it)["msgtype"].get<int>()}].emplace_back((*it)["msg"].get<string>());
+						SCREENMAN->SendMessageToTopScreen(SM_ETTPIncomingChat);
 
+						auto& strings = n->chat[{"a", 0}];
+						const char* const delim = "\n";
+						std::ostringstream imploded;
+						std::copy(strings.begin(), strings.end(),
+							std::ostream_iterator<std::string>(imploded, delim));
+						n->m_sChatText = imploded.str();
+						n->m_sChatText = n->m_sChatText.substr(0, n->m_sChatText.length()-1);
+						SCREENMAN->SendMessageToTopScreen(SM_AddToChat);
+					}
+					break;
+				case ettps_recievescore:
+
+					break;
+				case ettps_roomlist:
+					{
+						RoomData tmp;
+						n->m_Rooms.clear();
+						auto& j1 = it->at("rooms");
+						if (j1.is_array())
+							for (auto&& room : j1) {
+								string a = room["title"];
+								tmp.SetName(room["title"]);
+								tmp.SetDescription(room["desc"]);
+								n->m_Rooms.emplace_back(tmp);
+							}
+					}
+					break;
+				case ettps_gameplayleaderboard:
+
+					break;
+				case ettps_createroomresponse:
+					{
+						bool created = (*it)["created"];
+						if (!created) {
+							n->roomResponse = (*it)["msg"].get<string>();
+						}
+						else {
+							RString name = (*it)["name"].get<string>().c_str();
+							RString desc = (*it)["desc"].get<string>().c_str();
+							Message msg(MessageIDToString(Message_UpdateScreenHeader));
+							msg.SetParam("Header", name);
+							msg.SetParam("Subheader", desc);
+							MESSAGEMAN->Broadcast(msg);
+							RString SMOnlineSelectScreen = THEME->GetMetric("ScreenNetRoom", "MusicSelectScreen");
+							SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
+							n->roomResponse = "";
+						}
+					}
+					break;
+				case ettps_enterroomresponse:
+					{
+						bool entered = (*it)["enter"];
+						if (!entered)
+							n->roomResponse = (*it)["msg"].get<string>();
+						else {
+							n->roomResponse = "";
+							RString name = (*it)["name"].get<string>().c_str();
+							RString desc = (*it)["desc"].get<string>().c_str();
+							Message msg(MessageIDToString(Message_UpdateScreenHeader));
+							msg.SetParam("Header", name);
+							msg.SetParam("Subheader", desc);
+							MESSAGEMAN->Broadcast(msg);
+							RString SMOnlineSelectScreen = THEME->GetMetric("ScreenNetRoom", "MusicSelectScreen");
+							SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
+						}
+					}
+					break;
+				case ettps_startselection:
+
+					break;
+					}
+		}
+		catch (exception e) {
+			LOG->Trace("Error while parsing ettp json messafe: %s", e.what());
 		}
 	}
+	newMessages.clear();
 }
 
 bool SMOProtocol::TryConnect(unsigned short port, RString address)
@@ -357,7 +474,7 @@ int SMOProtocol::DealWithSMOnlinePack(NetworkSyncManager* n, ScreenSMOnlineLogin
 		int Status = SMOnlinePacket.Read1();
 		if (Status == 0)
 		{
-			n->isSMOLoggedIn = true;
+			n->loggedIn = true;
 			SCREENMAN->SetNewScreen(THEME->GetMetric("ScreenSMOnlineLogin", "NextScreen"));
 			return 2;
 		}
@@ -401,25 +518,21 @@ void SMOProtocol::DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetRoom* s)
 		case 1: //Rooms list change
 		{
 			int numRooms = SMOnlinePacket.Read1();
-			s->m_Rooms.clear();
+			(n->m_Rooms).clear();
 			for (int i = 0; i<numRooms; ++i)
 			{
 				RoomData tmpRoomData;
 				tmpRoomData.SetName(SMOnlinePacket.ReadNT());
 				tmpRoomData.SetDescription(SMOnlinePacket.ReadNT());
-				s->m_Rooms.push_back(tmpRoomData);
+				(n->m_Rooms).push_back(tmpRoomData);
 			}
 			//Abide by protocol and read room status
 			for (int i = 0; i<numRooms; ++i)
-				s->m_Rooms[i].SetState(SMOnlinePacket.Read1());
+				(n->m_Rooms)[i].SetState(SMOnlinePacket.Read1());
 
 			for (int i = 0; i<numRooms; ++i)
-				s->m_Rooms[i].SetFlags(SMOnlinePacket.Read1());
+				(n->m_Rooms)[i].SetFlags(SMOnlinePacket.Read1());
 
-			if (s->m_iRoomPlace<0)
-				s->m_iRoomPlace = 0;
-			if (s->m_iRoomPlace >= (int)s->m_Rooms.size())
-				s->m_iRoomPlace = s->m_Rooms.size() - 1;
 			s->UpdateRoomsList();
 		}
 		}
@@ -444,6 +557,48 @@ void NetworkSyncManager::Login(RString user, RString pass)
 {
 	if (curProtocol != nullptr)
 		curProtocol->Login(user, pass);
+}
+void ETTProtocol::SendChat(const RString& message, string tab, int type)
+{
+	if (ws == nullptr)
+		return;
+	json chatMsg;
+	chatMsg["type"] = ettClientMessageMap[ettpc_sendchat];
+	chatMsg["msg"] = message.c_str();
+	chatMsg["tab"] = tab.c_str();
+	chatMsg["msgtype"] = type;
+	ws->send(chatMsg.dump().c_str());
+}
+void ETTProtocol::CreateNewRoom(RString name, RString desc, RString password) 
+{
+	if (ws == nullptr)
+		return;
+	json createRoom;
+	createRoom["type"] = ettClientMessageMap[ettpc_createroom];
+	createRoom["name"] = name.c_str();
+	createRoom["pass"] = password.c_str();
+	createRoom["desc"] = desc.c_str();
+	ws->send(createRoom.dump().c_str());
+}
+void ETTProtocol::EnterRoom(RString name, RString password) 
+{
+	if (ws == nullptr)
+		return;
+	json enterRoom;
+	enterRoom["type"] = ettClientMessageMap[ettpc_enterroom];
+	enterRoom["name"] = name.c_str();
+	enterRoom["pass"] = password.c_str();
+	ws->send(enterRoom.dump().c_str());
+}
+void ETTProtocol::Login(RString user, RString pass)
+{
+	if (ws == nullptr)
+		return;
+	json login;
+	login["type"] = ettClientMessageMap[ettpc_login];
+	login["user"] = user.c_str();
+	login["pass"] = pass.c_str();
+	ws->send(login.dump().c_str());
 }
 void SMOProtocol::Login(RString user, RString pass)
 {
@@ -744,15 +899,15 @@ void NetworkSyncManager::DisplayStartupStatus()
 
 void NetworkSyncManager::Update(float fDeltaTime)
 {
-	ETTP.Update(this, fDeltaTime);
-	if (useSMserver)
-		SMOP.ProcessInput(this);
-	else
-		return;
-	SMOP.Update(this, fDeltaTime);
+	if(curProtocol != nullptr)
+		curProtocol->Update(this, fDeltaTime);
 }
 void SMOProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 {
+	if (n->useSMserver)
+		ProcessInput(n);
+	else
+		return;
 	PacketFunctions BroadIn;
 	if ( BroadcastReception->ReadPack((char*)&BroadIn.Data, 1020) )
 	{
@@ -799,7 +954,7 @@ void SMOProtocol::ProcessInput(NetworkSyncManager* n)
 		SCREENMAN->SystemMessageNoAnimate(CONNECTION_DROPPED);
 		n->useSMserver=false;
 		n->isSMOnline = false;
-		n->isSMOLoggedIn = false;
+		n->loggedIn = false;
 		NetPlayerClient->close();
 		return;
 	}
@@ -994,12 +1149,12 @@ bool NetworkSyncManager::ChangedScoreboard(int Column)
 	return true;
 }
 
-void NetworkSyncManager::SendChat(const RString& message)
+void NetworkSyncManager::SendChat(const RString& message, string tab, int type)
 {
 	if (curProtocol != nullptr)
-		curProtocol->SendChat(message);
+		curProtocol->SendChat(message, tab, type);
 }
-void SMOProtocol::SendChat(const RString& message)
+void SMOProtocol::SendChat(const RString& message, string tab, int type)
 {
 	m_packet.ClearPacket();
 	m_packet.Write1(NSCCM);
@@ -1363,7 +1518,7 @@ LuaFunction( ConnectToServer, 		ConnectToServer( ( RString(SArg(1)).length()==0 
 static bool ReportStyle() { NSMAN->ReportStyle(); return true; }
 static bool CloseNetworkConnection() { NSMAN->CloseConnection(); return true; }
 
-LuaFunction( IsSMOnlineLoggedIn,	NSMAN->isSMOLoggedIn )
+LuaFunction( IsSMOnlineLoggedIn,	NSMAN->loggedIn )
 LuaFunction( IsNetConnected,		NSMAN->useSMserver )
 LuaFunction( IsNetSMOnline,			NSMAN->isSMOnline )
 LuaFunction( ReportStyle,			ReportStyle() )

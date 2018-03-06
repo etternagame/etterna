@@ -5,6 +5,7 @@
 
 #include "ScreenWithMenuElements.h"
 #include "ScreenNetSelectBase.h"
+#include "NetworkSyncManager.h"
 #include <vector>
 #include "RoomWheel.h"
 #include "RoomInfoDisplay.h"
@@ -20,8 +21,8 @@ public:
 	void InfoSetVisible(bool visibility);
 
 	void UpdateRoomsList();
-	vector < BitmapText > m_RoomList;
-	vector < RoomData > m_Rooms;
+	vector<BitmapText> m_RoomList;
+	vector<RoomData>* m_Rooms;
 	int m_iRoomPlace;
 	RoomInfoDisplay m_roomInfo;
 
