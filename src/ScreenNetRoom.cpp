@@ -11,13 +11,15 @@
 #include "InputEventPlus.h"
 #include "LocalizedString.h"
 
-AutoScreenMessage( SM_SMOnlinePack );
-AutoScreenMessage( SM_BackFromRoomName );
-AutoScreenMessage( SM_BackFromRoomDesc );
-AutoScreenMessage( SM_BackFromRoomPass );
-AutoScreenMessage( SM_BackFromReqPass );
-AutoScreenMessage( SM_RoomInfoRetract );
-AutoScreenMessage( SM_RoomInfoDeploy );
+AutoScreenMessage(SM_SMOnlinePack);
+AutoScreenMessage(SM_BackFromRoomName);
+AutoScreenMessage(SM_BackFromRoomDesc);
+AutoScreenMessage(SM_BackFromRoomPass);
+AutoScreenMessage(SM_BackFromReqPass);
+AutoScreenMessage(SM_RoomInfoRetract);
+AutoScreenMessage(SM_RoomInfoDeploy);
+
+AutoScreenMessage(ETTP_RoomsChange);
 
 static LocalizedString ENTER_ROOM_DESCRIPTION ("ScreenNetRoom","Enter a description for the room:");
 static LocalizedString ENTER_ROOM_PASSWORD ("ScreenNetRoom","Enter a password for the room (blank, no password):");
@@ -47,6 +49,7 @@ void ScreenNetRoom::Init()
 	this->AddChild( &m_roomInfo );
 
 	this->SortByDrawOrder();
+	UpdateRoomsList();
 	NSMAN->ReportNSSOnOff( 7 );
 }
 
@@ -83,6 +86,9 @@ void ScreenNetRoom::HandleScreenMessage( const ScreenMessage SM )
 	else if( SM == SM_SMOnlinePack )
 	{
 		NSMAN->DealWithSMOnlinePack(this);
+	}
+	else if (SM == ETTP_RoomsChange) {
+		UpdateRoomsList();
 	}
 	else if ( SM == SM_BackFromRoomName )
 	{

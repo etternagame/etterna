@@ -627,6 +627,7 @@ void ScreenNetSelectMusic::TweenOffScreen()
 	OFF_COMMAND( m_MusicWheel );
 
 	NSMAN->ReportNSSOnOff(0);
+	NSMAN->LeaveRoom();
 }
 
 void ScreenNetSelectMusic::StartSelectedSong()

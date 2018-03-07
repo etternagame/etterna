@@ -21,8 +21,8 @@ AutoScreenMessage( SM_SMOnlinePack );
 AutoScreenMessage( SM_PasswordDone );
 AutoScreenMessage( SM_NoProfilesDefined );
 
-AutoScreenMessage(SM_ETTPDisconnect);
-AutoScreenMessage(SM_ETTPLoginResponse);
+AutoScreenMessage(ETTP_Disconnect);
+AutoScreenMessage(ETTP_LoginResponse);
 
 static LocalizedString DEFINE_A_PROFILE( "ScreenSMOnlineLogin", "You must define a Profile." );
 void ScreenSMOnlineLogin::Init()
@@ -116,10 +116,10 @@ void ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 		SCREENMAN->SystemMessage(DEFINE_A_PROFILE);
 		SCREENMAN->SetNewScreen("ScreenOptionsManageProfiles");
 	}
-	else if (SM == SM_ETTPDisconnect) {
+	else if (SM == ETTP_Disconnect) {
 
 	}
-	else if (SM == SM_ETTPLoginResponse) {
+	else if (SM == ETTP_LoginResponse) {
 		if (NSMAN->loggedIn) {
 			SCREENMAN->SetNewScreen(THEME->GetMetric("ScreenSMOnlineLogin", "NextScreen"));
 			m_iPlayer = 0;

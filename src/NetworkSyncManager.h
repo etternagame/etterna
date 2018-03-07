@@ -107,6 +107,7 @@ enum ETTClientMessageTypes {
 	ettpc_gameplayupdate,
 	ettpc_createroom,
 	ettpc_enterroom,
+	ettpc_leaveroom,
 	ettpc_selectchart,
 	ettpc_end
 };
@@ -150,14 +151,15 @@ class NetProtocol {
 public:
 	RString serverName;
 	int serverVersion{0}; // ServerVersion
-	virtual bool Connect(NetworkSyncManager * n, unsigned short port, RString address) {return false;}
+	virtual bool Connect(NetworkSyncManager* n, unsigned short port, RString address) {return false;}
 	virtual void close() {}
 	virtual void Update(NetworkSyncManager* n, float fDeltaTime) {}
 	virtual void CreateNewRoom(RString name, RString desc, RString password) {}
 	virtual void SelectUserSong(NetworkSyncManager* n, Song* song) {}
 	virtual void EnterRoom(RString name, RString password) {}
+	virtual void LeaveRoom(NetworkSyncManager* n) {}
 	virtual void RequestRoomInfo(RString name) {}
-	virtual void ReportPlayerOptions(NetworkSyncManager * n, ModsGroup<PlayerOptions>& opts) {}
+	virtual void ReportPlayerOptions(NetworkSyncManager* n, ModsGroup<PlayerOptions>& opts) {}
 	virtual void SendChat(const RString& message, string tab, int type) {}
 	virtual void ReportNSSOnOff(int i) {}
 	virtual void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset, int numNotes) {}
@@ -183,14 +185,14 @@ class SMOProtocol : public NetProtocol { // Built on raw tcp
 public:
 	SMOProtocol();
 	~SMOProtocol();
-	bool Connect(NetworkSyncManager * n, unsigned short port, RString address) override; // Connect and say hello
+	bool Connect(NetworkSyncManager* n, unsigned short port, RString address) override; // Connect and say hello
 	void close() override;
 	void Update(NetworkSyncManager* n, float fDeltaTime) override;
-	void SelectUserSong(NetworkSyncManager * n, Song* song) override;
+	void SelectUserSong(NetworkSyncManager* n, Song* song) override;
 	void CreateNewRoom(RString name, RString desc, RString password) override;
 	void EnterRoom(RString name, RString password) override;
 	void RequestRoomInfo(RString name) override;
-	void ReportPlayerOptions(NetworkSyncManager * n, ModsGroup<PlayerOptions>& opts) override;
+	void ReportPlayerOptions(NetworkSyncManager* n, ModsGroup<PlayerOptions>& opts) override;
 	void SendChat(const RString& message, string tab, int type) override;
 	void ReportNSSOnOff(int i) override;
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset, int numNotes) override;
@@ -209,17 +211,20 @@ class ETTProtocol : public NetProtocol { // Websockets using uwebsockets sending
 	vector<json> newMessages;
 	bool connected{ false };
 	uWS::WebSocket<uWS::CLIENT>* ws;
+	string roomName;
+	string roomDesc;
 public:
-	bool Connect(NetworkSyncManager * n, unsigned short port, RString address) override; // Connect and say hello
+	bool Connect(NetworkSyncManager* n, unsigned short port, RString address) override; // Connect and say hello
 	void close() override;
 	void Update(NetworkSyncManager* n, float fDeltaTime) override;
 	void Login(RString user, RString pass) override;
 	void SendChat(const RString& message, string tab, int type) override;
 	void CreateNewRoom(RString name, RString desc, RString password) override;
 	void EnterRoom(RString name, RString password) override;
+	void LeaveRoom(NetworkSyncManager* n) override;
 	/*
-	void SelectUserSong(NetworkSyncManager * n, Song* song) override;
-	void ReportPlayerOptions(NetworkSyncManager * n, ModsGroup<PlayerOptions>& opts) override;
+	void SelectUserSong(NetworkSyncManager* n, Song* song) override;
+	void ReportPlayerOptions(NetworkSyncManager* n, ModsGroup<PlayerOptions>& opts) override;
 	void ReportNSSOnOff(int i) override;
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset, int numNotes) override;
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset) override;
@@ -231,7 +236,7 @@ public:
 //Regular pair map except [anyString, 0] is the same key
 class Chat  {
 public:
-	map<pair<string, int>, vector<string>> map;
+	map<pair<string, int>, vector<string>> rawMap;
 
 	vector<string>& operator[](const pair<string, int>& p) {
 		if (p.second == 0)
@@ -260,6 +265,7 @@ public:
 
 	void CreateNewRoom(RString name, RString desc="", RString password="");
 	void EnterRoom(RString name, RString password="");
+	void LeaveRoom();
 	void RequestRoomInfo(RString name);
 
 

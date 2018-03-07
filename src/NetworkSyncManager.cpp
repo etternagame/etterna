@@ -7,6 +7,7 @@
 #include "LocalizedString.h"
 #include "JsonUtil.h"
 #include <cerrno>
+#include <chrono>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
@@ -28,6 +29,7 @@ std::map<ETTClientMessageTypes, std::string> ettClientMessageMap = {
 	{ ettpc_createroom, "createroom" },
 	{ ettpc_enterroom, "enterroom" },
 	{ ettpc_selectchart, "selectchart" },
+	{ ettpc_leaveroom, "leaveroom" }, 
 };
 std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
 	{ "hello", ettps_hello },
@@ -87,9 +89,10 @@ AutoScreenMessage(SM_UsersUpdate);
 AutoScreenMessage(SM_FriendsUpdate);
 AutoScreenMessage(SM_SMOnlinePack);
 
-AutoScreenMessage(SM_ETTPDisconnect);
-AutoScreenMessage(SM_ETTPLoginResponse);
-AutoScreenMessage(SM_ETTPIncomingChat);
+AutoScreenMessage(ETTP_Disconnect);
+AutoScreenMessage(ETTP_LoginResponse);
+AutoScreenMessage(ETTP_IncomingChat);
+AutoScreenMessage(ETTP_RoomsChange);
 
 
 
@@ -187,6 +190,7 @@ void NetworkSyncManager::PostStartUp(const RString& ServerIP)
 		sAddress = ServerIP;
 	}
 
+	chat.rawMap.clear();
 	LOG->Info("Attempting to connect to: %s, Port: %i", sAddress.c_str(), iPort);
 	curProtocol = nullptr;
 	CloseConnection();
@@ -249,19 +253,19 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 	for (auto& it = newMessages.begin(); it!=newMessages.end(); it++) {
 		try {
 			auto& jType = (*it).find("type");
-			if (jType != it->end())
+			if (jType != it->end()) {
 				switch (ettServerMessageMap[jType->get<string>()]) {
 				case ettps_loginresponse:
 					if (!(n->loggedIn = (*it)["logged"]))
 						n->loginResponse = (*it)["msg"].get<string>();
 					else
 						n->loginResponse = "";
-					SCREENMAN->SendMessageToTopScreen(SM_ETTPLoginResponse);
+					SCREENMAN->SendMessageToTopScreen(ETTP_LoginResponse);
 					break;
 				case ettps_hello:
 					serverName = (*it)["name"].get<string>();
 					serverVersion = (*it)["version"];
-					LOG->Trace("Ettp server identified: %s (Version:%d)", serverName.c_str(), serverVersion);
+ 					LOG->Trace("Ettp server identified: %s (Version:%d)", serverName.c_str(), serverVersion);
 					break;
 				case ettps_ping:
 					if (ws != nullptr) {
@@ -274,7 +278,7 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					{
 						//chat[tabname, tabtype] = msg
 						n->chat[{(*it)["tab"].get<string>(), (*it)["msgtype"].get<int>()}].emplace_back((*it)["msg"].get<string>());
-						SCREENMAN->SendMessageToTopScreen(SM_ETTPIncomingChat);
+						SCREENMAN->SendMessageToTopScreen(ETTP_IncomingChat);
 
 						auto& strings = n->chat[{"a", 0}];
 						const char* const delim = "\n";
@@ -288,20 +292,6 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					break;
 				case ettps_recievescore:
 
-					break;
-				case ettps_roomlist:
-					{
-						RoomData tmp;
-						n->m_Rooms.clear();
-						auto& j1 = it->at("rooms");
-						if (j1.is_array())
-							for (auto&& room : j1) {
-								string a = room["title"];
-								tmp.SetName(room["title"]);
-								tmp.SetDescription(room["desc"]);
-								n->m_Rooms.emplace_back(tmp);
-							}
-					}
 					break;
 				case ettps_gameplayleaderboard:
 
@@ -331,25 +321,52 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						if (!entered)
 							n->roomResponse = (*it)["msg"].get<string>();
 						else {
-							n->roomResponse = "";
-							RString name = (*it)["name"].get<string>().c_str();
-							RString desc = (*it)["desc"].get<string>().c_str();
-							Message msg(MessageIDToString(Message_UpdateScreenHeader));
-							msg.SetParam("Header", name);
-							msg.SetParam("Subheader", desc);
-							MESSAGEMAN->Broadcast(msg);
-							RString SMOnlineSelectScreen = THEME->GetMetric("ScreenNetRoom", "MusicSelectScreen");
-							SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
+							try {
+								n->roomResponse = "";
+								RString name = (*it)["name"].get<string>().c_str();
+								RString desc = (*it)["desc"].get<string>().c_str();
+								Message msg(MessageIDToString(Message_UpdateScreenHeader));
+								msg.SetParam("Header", name);
+								msg.SetParam("Subheader", desc);
+								MESSAGEMAN->Broadcast(msg);
+								RString SMOnlineSelectScreen = THEME->GetMetric("ScreenNetRoom", "MusicSelectScreen");
+								SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
+							}
+							catch (exception e) {
+								LOG->Trace("Error while parsing ettp json enter room response: %s", e.what());
+							}
 						}
 					}
 					break;
 				case ettps_startselection:
 
 					break;
+				case ettps_roomlist:
+					{
+						RoomData tmp;
+						n->m_Rooms.clear();
+						auto& j1 = it->at("rooms");
+						if (j1.is_array())
+							for (auto&& room : j1) {
+								try {
+									string s = room["name"].get<string>();
+									tmp.SetName(s);
+									s = room["desc"].get<string>();
+									tmp.SetDescription(s);
+									n->m_Rooms.emplace_back(tmp);
+								}
+								catch (exception e) {
+									LOG->Trace("Error while parsing ettp json roomlist room: %s", e.what());
+								}
+							}
+						SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
 					}
+					break;
+				}
+			}
 		}
 		catch (exception e) {
-			LOG->Trace("Error while parsing ettp json messafe: %s", e.what());
+			LOG->Trace("Error while parsing ettp json message: %s", e.what());
 		}
 	}
 	newMessages.clear();
@@ -389,7 +406,7 @@ bool SMOProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString a
 	// If we are serving, we do not block for this.
 	NetPlayerClient->SendPack( (char*)m_packet.Data, m_packet.Position );
 	m_packet.ClearPacket();
-	while( dontExit )
+	while(dontExit)
 	{
 		m_packet.ClearPacket();
 		if( NetPlayerClient->ReadPack((char *)&m_packet, NETMAXBUFFERSIZE)<1 )
@@ -579,6 +596,15 @@ void ETTProtocol::CreateNewRoom(RString name, RString desc, RString password)
 	createRoom["pass"] = password.c_str();
 	createRoom["desc"] = desc.c_str();
 	ws->send(createRoom.dump().c_str());
+}
+void ETTProtocol::LeaveRoom(NetworkSyncManager* n)
+{
+	if (ws == nullptr)
+		return;
+	json leaveRoom;
+	leaveRoom["type"] = ettClientMessageMap[ettpc_leaveroom];
+	leaveRoom["name"] = roomName.c_str();
+	ws->send(leaveRoom.dump().c_str());
 }
 void ETTProtocol::EnterRoom(RString name, RString password) 
 {
@@ -883,13 +909,14 @@ void NetworkSyncManager::DisplayStartupStatus()
 	switch (m_startupStatus)
 	{
 	case 0:
-		//Networking wasn't attepmpted
+		//Networking wasn't attempted
 		return;
 	case 1:
 		if(curProtocol != nullptr)
 			sMessage = ssprintf(CONNECTION_SUCCESSFUL.GetValue(), curProtocol->serverName.c_str());
 		else
 			sMessage = CONNECTION_FAILED.GetValue();
+		break;
 	case 2:
 		sMessage = CONNECTION_FAILED.GetValue();
 		break;
@@ -1242,6 +1269,12 @@ void NetworkSyncManager::EnterRoom(RString name, RString password)
 		curProtocol->EnterRoom(name, password);
 }
 
+void NetworkSyncManager::LeaveRoom()
+{
+	if (curProtocol != nullptr)
+		curProtocol->LeaveRoom(this);
+}
+
 void NetworkSyncManager::CreateNewRoom(RString name, RString desc, RString password)
 {
 	if (curProtocol != nullptr)
@@ -1332,6 +1365,8 @@ void PacketFunctions::Write1(uint8_t data)
 {
 	if (Position>=NETMAXBUFFERSIZE)
 		return;
+	if (data != 1)
+		LOG->Trace("testing");
 	memcpy( &Data[Position], &data, 1 );
 	++Position;
 }
