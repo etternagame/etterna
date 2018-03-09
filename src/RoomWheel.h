@@ -18,6 +18,7 @@ public:
 	inline unsigned int State() { return m_state; }
 	inline unsigned int GetFlags() { return m_iFlags; }
 	RoomData() { m_name=""; m_description=""; m_state=0; m_iFlags=0; }
+	vector<string> players;
 private:
 	std::string m_name;
 	std::string m_description;
