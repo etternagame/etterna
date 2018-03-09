@@ -21,7 +21,7 @@
 #include "JsonUtil.h"
 #include "Foreach.h"
 #include "Song.h"
-
+#include <intrin.h>
 
 shared_ptr<DownloadManager> DLMAN = nullptr;
 
