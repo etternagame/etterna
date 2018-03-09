@@ -97,6 +97,9 @@ enum ETTServerMessageTypes {
 	ettps_createroomresponse,
 	ettps_enterroomresponse,
 	ettps_startselection,
+	ettps_deleteroom,
+	ettps_newroom,
+	ettps_updateroom,
 	ettps_end
 };
 enum ETTClientMessageTypes {
@@ -240,9 +243,9 @@ public:
 
 	vector<string>& operator[](const pair<string, int>& p) {
 		if (p.second == 0)
-			return map.operator[](make_pair(string(""), 0));
+			return rawMap.operator[](make_pair(string(""), 0));
 		else
-			return map.operator[](p);
+			return rawMap.operator[](p);
 	}
 };
 /** @brief Uses ezsockets for primitive song syncing and score reporting. */

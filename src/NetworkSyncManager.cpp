@@ -42,6 +42,9 @@ std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
 	{ "createroom", ettps_createroomresponse },
 	{ "enterroom", ettps_enterroomresponse },
 	{ "startselection", ettps_startselection },
+	{ "deleteroom", ettps_deleteroom },
+	{ "newroom", ettps_newroom },
+	{ "updateroom", ettps_updateroom },
 };
 
 #if defined(WITHOUT_NETWORKING)
@@ -247,10 +250,34 @@ bool ETTProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString a
 	}
 	return connected;
 }
+RoomData jsonToRoom(json& room)
+{
+	RoomData tmp;
+	string s = room["name"].get<string>();
+	tmp.SetName(s);
+	s = room["desc"].get<string>();
+	tmp.SetDescription(s);
+	try {
+		unsigned int state = room["state"].get<unsigned int>();
+		tmp.SetState(state);
+	}
+	catch(exception e) {
+		LOG->Trace("Error while parsing ettp json room state: %s", e.what());
+	}
+	try {
+		for (auto&& player : room.at("players")) {
+			tmp.players.emplace_back(player.get<string>());
+		}
+	}
+	catch(exception e) {
+		LOG->Trace("Error while parsing ettp json room playerlist: %s", e.what());
+	}
+	return tmp;
+}
 void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 {
 	uWSh.poll();
-	for (auto& it = newMessages.begin(); it!=newMessages.end(); it++) {
+	for (auto it = newMessages.begin(); it!=newMessages.end(); it++) {
 		try {
 			auto& jType = (*it).find("type");
 			if (jType != it->end()) {
@@ -341,6 +368,49 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 				case ettps_startselection:
 
 					break;
+				case ettps_newroom:
+					try {
+						RoomData tmp = jsonToRoom((*it)["room"]);
+						n->m_Rooms.emplace_back(tmp);
+						SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
+					}
+					catch (exception e) {
+						LOG->Trace("Error while parsing ettp json newroom room: %s", e.what());
+					}
+					break;
+				case ettps_deleteroom:
+					try {
+						string name = (*it)["room"]["name"];
+						n->m_Rooms.erase(
+							std::remove_if(n->m_Rooms.begin(), n->m_Rooms.end(), [&](RoomData const & room) {
+							    return room.Name() == name;
+							}),
+						n->m_Rooms.end());
+						SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
+					}
+					catch (exception e) {
+						LOG->Trace("Error while parsing ettp json deleteroom room: %s", e.what());
+					}
+					break;
+				case ettps_updateroom:
+					try {
+						auto updated = jsonToRoom((*it)["room"]);
+						auto roomIt = find_if(n->m_Rooms.begin(), n->m_Rooms.end(), 
+							[&](RoomData const & room) {
+						    		return room.Name() == updated.Name
+							}
+						);
+						if(roomIt != n->m_Rooms.end()) {
+							roomIt->SetDesc(updated.Desc());
+							roomIt->SetState(updated.State());
+							roomIt->players = updated.players;
+							SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
+						}
+					}
+					catch (exception e) {
+						LOG->Trace("Error while parsing ettp json roomlist room: %s", e.what());
+					}
+					break;
 				case ettps_roomlist:
 					{
 						RoomData tmp;
@@ -349,11 +419,7 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						if (j1.is_array())
 							for (auto&& room : j1) {
 								try {
-									string s = room["name"].get<string>();
-									tmp.SetName(s);
-									s = room["desc"].get<string>();
-									tmp.SetDescription(s);
-									n->m_Rooms.emplace_back(tmp);
+									n->m_Rooms.emplace_back(jsonToRoom(room));
 								}
 								catch (exception e) {
 									LOG->Trace("Error while parsing ettp json roomlist room: %s", e.what());
