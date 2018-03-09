@@ -489,6 +489,9 @@ Section "Main Section" SecMain
 	File "Program\swscale-2.dll"
 	;uwebsocket
 	File "Program\uWS.dll"
+	File "Program\SSLEAY32.dll"
+	File "Program\LIBEAY32.dll"
+	File "Program\libuv.dll"
 	; parallel lights
 	File "Program\parallel_lights_io.dll"
 	; others
