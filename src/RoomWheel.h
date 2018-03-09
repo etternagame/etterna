@@ -13,10 +13,10 @@ public:
 	void SetDescription(const std::string& desc) { m_description = desc; }
 	void SetState(unsigned int state) { m_state = state; }
 	void SetFlags(unsigned int iFlags) { m_iFlags = iFlags; }
-	inline std::string Name() { return m_name; }
-	inline std::string Description() { return m_description; }
-	inline unsigned int State() { return m_state; }
-	inline unsigned int GetFlags() { return m_iFlags; }
+	inline std::string Name() const { return m_name; }
+	inline std::string Description() const { return m_description; }
+	inline unsigned int State() const { return m_state; }
+	inline unsigned int GetFlags() const { return m_iFlags; }
 	RoomData() { m_name=""; m_description=""; m_state=0; m_iFlags=0; }
 	vector<string> players;
 private:

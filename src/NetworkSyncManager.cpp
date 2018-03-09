@@ -368,9 +368,6 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						}
 					}
 					break;
-				case ettps_startselection:
-
-					break;
 				case ettps_newroom:
 					try {
 						RoomData tmp = jsonToRoom((*it)["room"]);
@@ -400,11 +397,11 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						auto updated = jsonToRoom((*it)["room"]);
 						auto roomIt = find_if(n->m_Rooms.begin(), n->m_Rooms.end(), 
 							[&](RoomData const & room) {
-						    		return room.Name() == updated.Name
+						    		return room.Name() == updated.Name();
 							}
 						);
 						if(roomIt != n->m_Rooms.end()) {
-							roomIt->SetDesc(updated.Desc());
+							roomIt->SetDescription(updated.Description());
 							roomIt->SetState(updated.State());
 							roomIt->players = updated.players;
 							SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
