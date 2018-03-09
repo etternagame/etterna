@@ -96,7 +96,8 @@ enum ETTServerMessageTypes {
 	ettps_gameplayleaderboard,
 	ettps_createroomresponse,
 	ettps_enterroomresponse,
-	ettps_startselection,
+	ettps_selectchart,
+	ettps_startchart,
 	ettps_deleteroom,
 	ettps_newroom,
 	ettps_updateroom,
@@ -112,6 +113,8 @@ enum ETTClientMessageTypes {
 	ettpc_enterroom,
 	ettpc_leaveroom,
 	ettpc_selectchart,
+	ettpc_startchart,
+	ettpc_gameover,
 	ettpc_end
 };
 /** @brief A special foreach loop going through each NSScoreBoardColumn. */
@@ -225,15 +228,15 @@ public:
 	void CreateNewRoom(RString name, RString desc, RString password) override;
 	void EnterRoom(RString name, RString password) override;
 	void LeaveRoom(NetworkSyncManager* n) override;
-	/*
+	void ReportSongOver(NetworkSyncManager* n) override;
 	void SelectUserSong(NetworkSyncManager* n, Song* song) override;
+	void StartRequest(NetworkSyncManager* n, short position) override;
+	/*
 	void ReportPlayerOptions(NetworkSyncManager* n, ModsGroup<PlayerOptions>& opts) override;
 	void ReportNSSOnOff(int i) override;
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset, int numNotes) override;
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset) override;
-	void ReportSongOver(NetworkSyncManager* n) override;
 	void ReportStyle(NetworkSyncManager* n) override;
-	void StartRequest(NetworkSyncManager* n, short position) override;
 	*/
 };
 //Regular pair map except [anyString, 0] is the same key

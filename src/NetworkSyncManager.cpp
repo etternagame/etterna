@@ -29,7 +29,9 @@ std::map<ETTClientMessageTypes, std::string> ettClientMessageMap = {
 	{ ettpc_createroom, "createroom" },
 	{ ettpc_enterroom, "enterroom" },
 	{ ettpc_selectchart, "selectchart" },
+	{ ettpc_startchart, "startchart" },
 	{ ettpc_leaveroom, "leaveroom" }, 
+	{ ettpc_gameover, "gameover" }, 
 };
 std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
 	{ "hello", ettps_hello },
@@ -41,7 +43,8 @@ std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
 	{ "leaderboard", ettps_gameplayleaderboard },
 	{ "createroom", ettps_createroomresponse },
 	{ "enterroom", ettps_enterroomresponse },
-	{ "startselection", ettps_startselection },
+	{ "selectchart", ettps_selectchart },
+	{ "startchart", ettps_startchart },
 	{ "deleteroom", ettps_deleteroom },
 	{ "newroom", ettps_newroom },
 	{ "updateroom", ettps_updateroom },
@@ -279,7 +282,7 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 	uWSh.poll();
 	for (auto it = newMessages.begin(); it!=newMessages.end(); it++) {
 		try {
-			auto& jType = (*it).find("type");
+			auto jType = (*it).find("type");
 			if (jType != it->end()) {
 				switch (ettServerMessageMap[jType->get<string>()]) {
 				case ettps_loginresponse:
@@ -415,7 +418,7 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					{
 						RoomData tmp;
 						n->m_Rooms.clear();
-						auto& j1 = it->at("rooms");
+						auto j1 = it->at("rooms");
 						if (j1.is_array())
 							for (auto&& room : j1) {
 								try {
@@ -810,6 +813,14 @@ void NetworkSyncManager::ReportSongOver()
 	if(curProtocol != nullptr)
 		curProtocol->ReportSongOver(this);
 }
+void ETTProtocol::ReportSongOver(NetworkSyncManager* n)
+{
+	if (ws == nullptr)
+		return;
+	json gameOver;
+	gameOver["type"] = ettClientMessageMap[ettpc_gameover];
+	ws->send(gameOver.dump().c_str());
+}
 void SMOProtocol::ReportSongOver(NetworkSyncManager* n)
 {
 	if ( !n->useSMserver )	//Make sure that we are using the network
@@ -843,6 +854,21 @@ void NetworkSyncManager::StartRequest(short position)
 {
 	if (curProtocol != nullptr)
 		curProtocol->StartRequest(this, position);
+}
+void ETTProtocol::StartRequest(NetworkSyncManager* n, short position)
+{
+	if (ws == nullptr)
+		return;
+	json startChart;
+	startChart["type"] = ettClientMessageMap[ettpc_startchart];
+	startChart["title"] = GAMESTATE->m_pCurSong->m_sMainTitle;
+	startChart["subtitle"] = GAMESTATE->m_pCurSong->m_sSubTitle;
+	startChart["artist"] = GAMESTATE->m_pCurSong->m_sArtist;
+	startChart["filehash"] = GAMESTATE->m_pCurSong->GetFileHash();
+	startChart["chartkey"] = GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey();
+	startChart["options"] = GAMESTATE->m_SongOptions.GetCurrent().GetString();
+	startChart["rate"] = static_cast<int>((GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 100));
+	ws->send(startChart.dump().c_str());
 }
 void SMOProtocol::StartRequest(NetworkSyncManager* n, short position)
 {
@@ -1277,7 +1303,21 @@ void NetworkSyncManager::SelectUserSong()
 	if (curProtocol != nullptr)
 		curProtocol->SelectUserSong(this, GAMESTATE->m_pCurSong);
 }
-
+void ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
+{
+	if (ws == nullptr)
+		return;
+	json selectChart;
+	selectChart["type"] = ettClientMessageMap[ettpc_selectchart];
+	selectChart["title"] = n->m_sMainTitle;
+	selectChart["subtitle"] = n->m_sSubTitle;
+	selectChart["artist"] = n->m_sArtist;
+	selectChart["filehash"] = song->GetFileHash();
+	selectChart["chartkey"] = GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey();
+	selectChart["options"] = GAMESTATE->m_SongOptions.GetCurrent().GetString();
+	selectChart["rate"] = static_cast<int>((GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 100));
+	ws->send(selectChart.dump().c_str());
+}
 void SMOProtocol::SelectUserSong(NetworkSyncManager * n, Song* song)
 {
 	m_packet.ClearPacket();
