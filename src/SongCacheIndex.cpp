@@ -990,7 +990,6 @@ inline pair<RString, int> SongCacheIndex::SongFromStatement(Song* song, SQLite::
 	}
 
 	song->m_SongTiming.m_sFile = dir; // songs still have their fallback timing.
-	song->m_sSongFileName = dir;
 	song->m_fVersion = STEPFILE_VERSION_NUMBER;
 	SMLoader::TidyUpData(*song, true);
 
