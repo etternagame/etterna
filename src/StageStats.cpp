@@ -95,7 +95,7 @@ string getMachineName()
 #include <sys/types.h>
 #include <sys/ioctl.h>
 
-#ifdef DARWIN
+#ifdef __APPLE__
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <net/if_dl.h>
@@ -128,7 +128,7 @@ void getMacHash(uint16_t& mac1, uint16_t& mac2)
 	mac1 = 0;
 	mac2 = 0;
 
-#ifdef DARWIN
+#ifdef __APPLE__
 
 	struct ifaddrs* ifaphead;
 	if (getifaddrs(&ifaphead) != 0)
@@ -145,12 +145,10 @@ void getMacHash(uint16_t& mac1, uint16_t& mac2)
 			if (!foundMac1)
 			{
 				foundMac1 = true;
-				mac1 = hashMacAddress((uint8_t*)(LLADDR(sdl))); //sdl->sdl_data) + 
-				sdl->sdl_nlen) );
+				mac1 = hashMacAddress((uint8_t*)(LLADDR(sdl)));
 			}
 			else {
-				mac2 = hashMacAddress((uint8_t*)(LLADDR(sdl))); //sdl->sdl_data) + 
-				sdl->sdl_nlen) );
+				mac2 = hashMacAddress((uint8_t*)(LLADDR(sdl))); 
 				break;
 			}
 		}
