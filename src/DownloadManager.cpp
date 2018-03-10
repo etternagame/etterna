@@ -21,8 +21,9 @@
 #include "JsonUtil.h"
 #include "Foreach.h"
 #include "Song.h"
+#ifdef _WIN32 
 #include <intrin.h>
-
+#endif
 shared_ptr<DownloadManager> DLMAN = nullptr;
 
 static Preference<unsigned int> maxDLPerSecond("maximumBytesDownloadedPerSecond", 0);
