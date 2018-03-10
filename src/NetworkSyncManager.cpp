@@ -289,8 +289,10 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 				case ettps_loginresponse:
 					if (!(n->loggedIn = (*it)["logged"]))
 						n->loginResponse = (*it)["msg"].get<string>();
-					else
+					else {
 						n->loginResponse = "";
+						n->loggedIn = true;
+					}
 					SCREENMAN->SendMessageToTopScreen(ETTP_LoginResponse);
 					break;
 				case ettps_hello:
@@ -307,13 +309,11 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					break;
 				case ettps_selectchart:
 					{
-						chartkey = (*it).value("chartkey", "");
-						rate = (*it).value("rate", 0);
-						song = SONGMAN->GetSongByChartkey(chartkey);
+						n->chartkey = (*it).value("chartkey", "");
+						n->rate = (*it).value("rate", 0);
+						n->song = SONGMAN->GetSongByChartkey(n->chartkey);
 						json j;
-						if (song != nullptr)
-							SCREENMAN->SendMessageToTopScreen(ETTP_SelectChart);
-						if (song != nullptr) {
+						if (n->song != nullptr) {
 							SCREENMAN->SendMessageToTopScreen(ETTP_SelectChart);
 							j["type"] = ettClientMessageMap[ettpc_haschart];
 						}
@@ -325,11 +325,11 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 				break;
 				case ettps_startchart:
 					{
-						chartkey = (*it).value("chartkey", "");
-						rate = (*it).value("rate", 0);
-						song = SONGMAN->GetSongByChartkey(chartkey);
+						n->chartkey = (*it).value("chartkey", "");
+						n->rate = (*it).value("rate", 0);
+						n->song = SONGMAN->GetSongByChartkey(n->chartkey);
 						json j;
-						if (song != nullptr) {
+						if (n->song != nullptr) {
 							SCREENMAN->SendMessageToTopScreen(ETTP_StartChart);
 							j["type"] = ettClientMessageMap[ettpc_haschart];
 						}
@@ -375,7 +375,7 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						}
 						else {
 							RString name = (*it)["name"].get<string>().c_str();
-							RString desc = (*it)["desc"].value("desc", "").c_str();
+							RString desc = (*it).value("desc", "");
 							Message msg(MessageIDToString(Message_UpdateScreenHeader));
 							msg.SetParam("Header", name);
 							msg.SetParam("Subheader", desc);

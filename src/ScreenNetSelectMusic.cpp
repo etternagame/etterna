@@ -418,34 +418,36 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 	}
 	else if (SM == ETTP_StartChart)
 	{
-		auto p = static_cast<ETTProtocol*>(NSMAN->curProtocol);
-		if (!m_MusicWheel.SelectSong(p->song))
-		{
-			m_MusicWheel.ChangeSort(SORT_GROUP);
-			m_MusicWheel.FinishTweening();
-			SCREENMAN->PostMessageToTopScreen(SM_SetWheelSong, 0.710f);
-			m_MusicWheel.SelectSong(p->song);
+		if (NSMAN->song != nullptr) {
+			if (!m_MusicWheel.SelectSong(NSMAN->song))
+			{
+				m_MusicWheel.ChangeSort(SORT_GROUP);
+				m_MusicWheel.FinishTweening();
+				SCREENMAN->PostMessageToTopScreen(SM_SetWheelSong, 0.710f);
+				m_MusicWheel.SelectSong(NSMAN->song);
+			}
+			m_MusicWheel.Select();
+			m_MusicWheel.Move(-1);
+			m_MusicWheel.Move(1);
+			StartSelectedSong();
+			m_MusicWheel.Select();
 		}
-		m_MusicWheel.Select();
-		m_MusicWheel.Move(-1);
-		m_MusicWheel.Move(1);
-		StartSelectedSong();
-		m_MusicWheel.Select();
 	}
 	else if (SM == ETTP_SelectChart)
 	{
-		auto p = static_cast<ETTProtocol*>(NSMAN->curProtocol);
-		if (!m_MusicWheel.SelectSong(p->song))
-		{
-			m_MusicWheel.ChangeSort(SORT_GROUP);
-			m_MusicWheel.FinishTweening();
-			SCREENMAN->PostMessageToTopScreen(SM_SetWheelSong, 0.710f);
-			m_MusicWheel.SelectSong(p->song);
+		if (NSMAN->song != nullptr) {
+			if (!m_MusicWheel.SelectSong(NSMAN->song))
+			{
+				m_MusicWheel.ChangeSort(SORT_GROUP);
+				m_MusicWheel.FinishTweening();
+				SCREENMAN->PostMessageToTopScreen(SM_SetWheelSong, 0.710f);
+				m_MusicWheel.SelectSong(NSMAN->song);
+			}
+			m_MusicWheel.Select();
+			m_MusicWheel.Move(-1);
+			m_MusicWheel.Move(1);
+			m_MusicWheel.Select();
 		}
-		m_MusicWheel.Select();
-		m_MusicWheel.Move(-1);
-		m_MusicWheel.Move(1);
-		m_MusicWheel.Select();
 	}
 	else if( SM == SM_SMOnlinePack )
 	{

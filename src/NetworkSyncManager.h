@@ -223,9 +223,6 @@ class ETTProtocol : public NetProtocol { // Websockets using uwebsockets sending
 public:
 	string roomName;
 	string roomDesc;
-	string chartkey;
-	int rate;
-	Song* song;
 	bool Connect(NetworkSyncManager* n, unsigned short port, RString address) override; // Connect and say hello
 	void close() override;
 	void Update(NetworkSyncManager* n, float fDeltaTime) override;
@@ -327,6 +324,10 @@ public:
 	RString m_sArtist;
 	RString m_sSubTitle;
 	RString m_sFileHash;
+	string chartkey;
+	Song* song{nullptr};
+	int rate;
+
 	int m_sHash;
 	int m_iSelectMode;
 	void SelectUserSong();
