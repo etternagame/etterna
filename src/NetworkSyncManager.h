@@ -115,6 +115,8 @@ enum ETTClientMessageTypes {
 	ettpc_selectchart,
 	ettpc_startchart,
 	ettpc_gameover,
+	ettpc_haschart,
+	ettpc_missingchart,
 	ettpc_end
 };
 /** @brief A special foreach loop going through each NSScoreBoardColumn. */
@@ -216,10 +218,14 @@ class ETTProtocol : public NetProtocol { // Websockets using uwebsockets sending
 	uWS::Hub uWSh;
 	vector<json> newMessages;
 	bool connected{ false };
+	bool error{ false };
 	uWS::WebSocket<uWS::CLIENT>* ws;
+public:
 	string roomName;
 	string roomDesc;
-public:
+	string chartkey;
+	int rate;
+	Song* song;
 	bool Connect(NetworkSyncManager* n, unsigned short port, RString address) override; // Connect and say hello
 	void close() override;
 	void Update(NetworkSyncManager* n, float fDeltaTime) override;

@@ -30,15 +30,17 @@
 #include "RageFileManager.h"
 #include "ScreenPrompt.h"
 
-AutoScreenMessage( SM_NoSongs );
-AutoScreenMessage( SM_ChangeSong );
-AutoScreenMessage( SM_SMOnlinePack );
-AutoScreenMessage( SM_SetWheelSong );
-AutoScreenMessage( SM_RefreshWheelLocation );
-AutoScreenMessage( SM_SongChanged );
-AutoScreenMessage( SM_UsersUpdate );
-AutoScreenMessage( SM_BackFromPlayerOptions );
+AutoScreenMessage(SM_NoSongs);
+AutoScreenMessage(SM_ChangeSong);
+AutoScreenMessage(SM_SMOnlinePack);
+AutoScreenMessage(SM_SetWheelSong);
+AutoScreenMessage(SM_RefreshWheelLocation);
+AutoScreenMessage(SM_SongChanged);
+AutoScreenMessage(SM_UsersUpdate);
+AutoScreenMessage(SM_BackFromPlayerOptions);
 AutoScreenMessage(SM_ConfirmDeleteSong);
+AutoScreenMessage(ETTP_SelectChart);
+AutoScreenMessage(ETTP_StartChart);
 
 REGISTER_SCREEN_CLASS( ScreenNetSelectMusic );
 
@@ -413,6 +415,37 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 	{
 		GAMESTATE->m_pCurSong.Set( m_MusicWheel.GetSelectedSong() );
 		MusicChanged();
+	}
+	else if (SM == ETTP_StartChart)
+	{
+		auto p = static_cast<ETTProtocol*>(NSMAN->curProtocol);
+		if (!m_MusicWheel.SelectSong(p->song))
+		{
+			m_MusicWheel.ChangeSort(SORT_GROUP);
+			m_MusicWheel.FinishTweening();
+			SCREENMAN->PostMessageToTopScreen(SM_SetWheelSong, 0.710f);
+			m_MusicWheel.SelectSong(p->song);
+		}
+		m_MusicWheel.Select();
+		m_MusicWheel.Move(-1);
+		m_MusicWheel.Move(1);
+		StartSelectedSong();
+		m_MusicWheel.Select();
+	}
+	else if (SM == ETTP_SelectChart)
+	{
+		auto p = static_cast<ETTProtocol*>(NSMAN->curProtocol);
+		if (!m_MusicWheel.SelectSong(p->song))
+		{
+			m_MusicWheel.ChangeSort(SORT_GROUP);
+			m_MusicWheel.FinishTweening();
+			SCREENMAN->PostMessageToTopScreen(SM_SetWheelSong, 0.710f);
+			m_MusicWheel.SelectSong(p->song);
+		}
+		m_MusicWheel.Select();
+		m_MusicWheel.Move(-1);
+		m_MusicWheel.Move(1);
+		m_MusicWheel.Select();
 	}
 	else if( SM == SM_SMOnlinePack )
 	{

@@ -31,7 +31,9 @@ std::map<ETTClientMessageTypes, std::string> ettClientMessageMap = {
 	{ ettpc_selectchart, "selectchart" },
 	{ ettpc_startchart, "startchart" },
 	{ ettpc_leaveroom, "leaveroom" }, 
-	{ ettpc_gameover, "gameover" }, 
+	{ ettpc_gameover, "gameover" },
+	{ ettpc_haschart, "haschart" },
+	{ ettpc_missingchart, "missingchart" },
 };
 std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
 	{ "hello", ettps_hello },
@@ -99,7 +101,8 @@ AutoScreenMessage(ETTP_Disconnect);
 AutoScreenMessage(ETTP_LoginResponse);
 AutoScreenMessage(ETTP_IncomingChat);
 AutoScreenMessage(ETTP_RoomsChange);
-
+AutoScreenMessage(ETTP_SelectChart);
+AutoScreenMessage(ETTP_StartChart);
 
 
 SMOProtocol::SMOProtocol() {
@@ -175,6 +178,7 @@ void NetworkSyncManager::PostStartUp(const RString& ServerIP)
 {
 	RString sAddress;
 	unsigned short iPort;
+	m_startupStatus = 2;
 
 	size_t cLoc = ServerIP.find(':');
 	if (ServerIP.find(':') != RString::npos)
@@ -185,7 +189,6 @@ void NetworkSyncManager::PostStartUp(const RString& ServerIP)
 		iPort = (unsigned short)strtol(ServerIP.substr(cLoc + 1).c_str(), &cEnd, 10);
 		if (*cEnd != 0 || errno != 0)
 		{
-			m_startupStatus = 2;
 			LOG->Warn("Invalid port");
 			return;
 		}
@@ -216,6 +219,7 @@ void NetworkSyncManager::PostStartUp(const RString& ServerIP)
 bool ETTProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString address)
 {
 	connected = false;
+	error = false;
 	uWSh.onDisconnection([this, n](uWS::WebSocket<uWS::CLIENT> *ws, int code, char *message, size_t length) {
 		LOG->Trace("Dissconnected from ett server %s", serverName.c_str());
 		this->connected = false;
@@ -226,6 +230,9 @@ bool ETTProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString a
 		this->connected = true;
 		this->ws = ws;
 		LOG->Trace("Connected to ett server: %s", address.c_str());
+	});
+	uWSh.onError([this](void* ptr) {
+		this->error = true;
 	});
 	uWSh.onMessage([this](uWS::WebSocket<uWS::CLIENT> *ws, char *message, size_t length, uWS::OpCode opCode) {
 		string msg(message, length);
@@ -239,17 +246,22 @@ bool ETTProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString a
 	});
 	uWSh.connect(("wss://"+address+":"+to_string(port)).c_str(), nullptr);
 	uWSh.poll();
-	for (int i = 0; i < 100; i++) {
-		usleep(10000);
+	time_t start = time(0);
+	while (!connected && !error) {
 		uWSh.poll();
+		if (difftime(time(0), start)> 2)
+			break;
 	}
 	if (connected)
 		return true;
+	error = false;
 	uWSh.connect(("ws://" + address + ":" + to_string(port)).c_str(), nullptr);
 	uWSh.poll();
-	for (int i = 0; i < 100; i++) {
-		usleep(10000);
+	start = time(0);
+	while(!connected && !error) {
 		uWSh.poll();
+		if (difftime(time(0), start) > 2)
+			break;
 	}
 	return connected;
 }
@@ -258,23 +270,12 @@ RoomData jsonToRoom(json& room)
 	RoomData tmp;
 	string s = room["name"].get<string>();
 	tmp.SetName(s);
-	s = room["desc"].get<string>();
+	s = room.value("desc", "");
 	tmp.SetDescription(s);
-	try {
-		unsigned int state = room["state"].get<unsigned int>();
-		tmp.SetState(state);
-	}
-	catch(exception e) {
-		LOG->Trace("Error while parsing ettp json room state: %s", e.what());
-	}
-	try {
-		for (auto&& player : room.at("players")) {
-			tmp.players.emplace_back(player.get<string>());
-		}
-	}
-	catch(exception e) {
-		LOG->Trace("Error while parsing ettp json room playerlist: %s", e.what());
-	}
+	unsigned int state = room.value("state", 0);
+	tmp.SetState(state);
+	for (auto&& player : room.at("players")) 
+		tmp.players.emplace_back(player.get<string>());
 	return tmp;
 }
 void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
@@ -293,23 +294,63 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					SCREENMAN->SendMessageToTopScreen(ETTP_LoginResponse);
 					break;
 				case ettps_hello:
-					serverName = (*it)["name"].get<string>();
-					serverVersion = (*it)["version"];
- 					LOG->Trace("Ettp server identified: %s (Version:%d)", serverName.c_str(), serverVersion);
+					serverName = (*it).value("name", "");
+					serverVersion = (*it).value("version", 1);
+					LOG->Trace("Ettp server identified: %s (Version:%d)", serverName.c_str(), serverVersion);
 					break;
 				case ettps_ping:
 					if (ws != nullptr) {
-						json chatMsg;
-						chatMsg["type"] = ettClientMessageMap[ettpc_ping];
-						ws->send(chatMsg.dump().c_str());
+						json ping;
+						ping["type"] = ettClientMessageMap[ettpc_ping];
+						ws->send(ping.dump().c_str());
 					}
 					break;
+				case ettps_selectchart:
+					{
+						chartkey = (*it).value("chartkey", "");
+						rate = (*it).value("rate", 0);
+						song = SONGMAN->GetSongByChartkey(chartkey);
+						json j;
+						if (song != nullptr)
+							SCREENMAN->SendMessageToTopScreen(ETTP_SelectChart);
+						if (song != nullptr) {
+							SCREENMAN->SendMessageToTopScreen(ETTP_SelectChart);
+							j["type"] = ettClientMessageMap[ettpc_haschart];
+						}
+						else {
+							j["type"] = ettClientMessageMap[ettpc_missingchart];
+						}
+						ws->send(j.dump().c_str());
+					}
+				break;
+				case ettps_startchart:
+					{
+						chartkey = (*it).value("chartkey", "");
+						rate = (*it).value("rate", 0);
+						song = SONGMAN->GetSongByChartkey(chartkey);
+						json j;
+						if (song != nullptr) {
+							SCREENMAN->SendMessageToTopScreen(ETTP_StartChart);
+							j["type"] = ettClientMessageMap[ettpc_haschart];
+						}
+						else {
+							j["type"] = ettClientMessageMap[ettpc_missingchart];
+						}
+						ws->send(j.dump().c_str());
+					}
+				break;
 				case ettps_recievechat:
 					{
 						//chat[tabname, tabtype] = msg
-						n->chat[{(*it)["tab"].get<string>(), (*it)["msgtype"].get<int>()}].emplace_back((*it)["msg"].get<string>());
+						int type = (*it)["msgtype"].get<int>();
+						string tab = (*it)["tab"].get<string>();
+						n->chat[{tab, type}].emplace_back((*it)["msg"].get<string>());
 						SCREENMAN->SendMessageToTopScreen(ETTP_IncomingChat);
-
+						Message msg("NewChat");
+						msg.SetParam("tab", RString(tab.c_str()));
+						msg.SetParam("type", type);
+						MESSAGEMAN->Broadcast(msg);
+						//Should end here
 						auto& strings = n->chat[{"a", 0}];
 						const char* const delim = "\n";
 						std::ostringstream imploded;
@@ -319,13 +360,13 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						n->m_sChatText = n->m_sChatText.substr(0, n->m_sChatText.length()-1);
 						SCREENMAN->SendMessageToTopScreen(SM_AddToChat);
 					}
-					break;
+				break;
 				case ettps_recievescore:
 
-					break;
+				break;
 				case ettps_gameplayleaderboard:
 
-					break;
+				break;
 				case ettps_createroomresponse:
 					{
 						bool created = (*it)["created"];
@@ -334,7 +375,7 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						}
 						else {
 							RString name = (*it)["name"].get<string>().c_str();
-							RString desc = (*it)["desc"].get<string>().c_str();
+							RString desc = (*it)["desc"].value("desc", "").c_str();
 							Message msg(MessageIDToString(Message_UpdateScreenHeader));
 							msg.SetParam("Header", name);
 							msg.SetParam("Subheader", desc);
@@ -344,7 +385,7 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							n->roomResponse = "";
 						}
 					}
-					break;
+				break;
 				case ettps_enterroomresponse:
 					{
 						bool entered = (*it)["enter"];
@@ -354,7 +395,7 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							try {
 								n->roomResponse = "";
 								RString name = (*it)["name"].get<string>().c_str();
-								RString desc = (*it)["desc"].get<string>().c_str();
+								RString desc = (*it).value("desc", "").c_str();
 								Message msg(MessageIDToString(Message_UpdateScreenHeader));
 								msg.SetParam("Header", name);
 								msg.SetParam("Subheader", desc);
@@ -367,7 +408,7 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							}
 						}
 					}
-					break;
+				break;
 				case ettps_newroom:
 					try {
 						RoomData tmp = jsonToRoom((*it)["room"]);
@@ -377,7 +418,7 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					catch (exception e) {
 						LOG->Trace("Error while parsing ettp json newroom room: %s", e.what());
 					}
-					break;
+				break;
 				case ettps_deleteroom:
 					try {
 						string name = (*it)["room"]["name"];
@@ -391,7 +432,7 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					catch (exception e) {
 						LOG->Trace("Error while parsing ettp json deleteroom room: %s", e.what());
 					}
-					break;
+				break;
 				case ettps_updateroom:
 					try {
 						auto updated = jsonToRoom((*it)["room"]);
@@ -410,7 +451,7 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					catch (exception e) {
 						LOG->Trace("Error while parsing ettp json roomlist room: %s", e.what());
 					}
-					break;
+				break;
 				case ettps_roomlist:
 					{
 						RoomData tmp;
@@ -427,7 +468,7 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							}
 						SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
 					}
-					break;
+				break;
 				}
 			}
 		}
