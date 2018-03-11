@@ -1,4 +1,4 @@
-function LoadNSkinPreview(Noteskin, Button, Element, Player, size)
+function LoadNSkinPreview(Noteskin, Button, Element, Player)
 	if Noteskin == "Get" then
 		local t = Def.ActorFrame{
 			OnCommand=function(self)
@@ -11,9 +11,7 @@ function LoadNSkinPreview(Noteskin, Button, Element, Player, size)
 				InitCommand=function(self) 
 					if n ~= GAMESTATE:GetPlayerState(Player):GetPlayerOptions("ModsLevel_Preferred"):NoteSkin() then
 						self:visible(false)
-						if size then self:zoom(size) end
 					end
-					if size then self:zoom(size) end
 					if Element == "Tap Note" then
 						local TexY = NOTESKIN:GetMetricFForNoteSkin("NoteDisplay","TapNoteNoteColorTextureCoordSpacingY",n)
 						local TexX = NOTESKIN:GetMetricFForNoteSkin("NoteDisplay","TapNoteAdditionTextureCoordOffsetX",n)
@@ -39,12 +37,7 @@ function LoadNSkinPreview(Noteskin, Button, Element, Player, size)
 		end
 		return t;
 	else
-		return Def.ActorFrame{ 
-			InitCommand=function(self) 
-				if size then self:zoom(size) end
-			end;
-			NOTESKIN:LoadActorForNoteSkin(Button, Element, NOTESKIN:DoesNoteSkinExist(Noteskin) and Noteskin or "default");	
-		}
+		return NOTESKIN:LoadActorForNoteSkin(Button, Element, NOTESKIN:DoesNoteSkinExist(Noteskin) and Noteskin or "default");	
 	end
 end
 
