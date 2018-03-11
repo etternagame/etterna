@@ -492,6 +492,7 @@ Section "Main Section" SecMain
 	File "Program\SSLEAY32.dll"
 	File "Program\LIBEAY32.dll"
 	File "Program\libuv.dll"
+	File "Program\zlib1.dll"
 	; parallel lights
 	File "Program\parallel_lights_io.dll"
 	; others
