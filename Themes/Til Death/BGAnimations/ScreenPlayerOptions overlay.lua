@@ -190,4 +190,24 @@ t[#t+1] = LoadFont("Common Large")..{
 	end;
 }
 
+local NSPreviewSize = 0.5
+local NSPreviewX = 30
+local NSPreviewY = SCREEN_TOP+120
+local NSPreviewXSpan = 35
+t[#t+1] = Def.ActorFrame{
+	InitCommand=function(self) self:xy(NSPreviewX,NSPreviewY, NSPreviewSize) end;
+	LoadNSkinPreview("Get", "Down", "Tap Note", NSPreviewSize);
+}
+t[#t+1] = Def.ActorFrame{
+	InitCommand=function(self) self:xy(NSPreviewX+NSPreviewXSpan*1,NSPreviewY, NSPreviewSize) end;
+	LoadNSkinPreview("Get", "Left", "Tap Note", NSPreviewSize);
+}
+t[#t+1] = Def.ActorFrame{
+	InitCommand=function(self) self:xy(NSPreviewX+NSPreviewXSpan*2,NSPreviewY, NSPreviewSize) end;
+	LoadNSkinPreview("Get", "Up", "Tap Note", NSPreviewSize);
+}
+t[#t+1] = Def.ActorFrame{
+	InitCommand=function(self) self:xy(NSPreviewX+NSPreviewXSpan*3,NSPreviewY, NSPreviewSize) end;
+	LoadNSkinPreview("Get", "Right", "Tap Note", NSPreviewSize);
+}
 return t
