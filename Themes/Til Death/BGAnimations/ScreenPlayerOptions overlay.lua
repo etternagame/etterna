@@ -236,7 +236,7 @@ t[#t+1] = Def.ActorFrame{
 		NSkinPreviewWrapper("Down", "Receptor");
 	};
 };
-if IsUsingWideScreen() and GetScreenAspectRatio( ) > 1.7 then
+if GetScreenAspectRatio( ) > 1.7 then
 	t[#t][#(t[#t])+1] = 
 	Def.ActorFrame{
 		Def.ActorFrame{
