@@ -41,6 +41,7 @@ AutoScreenMessage(SM_BackFromPlayerOptions);
 AutoScreenMessage(SM_ConfirmDeleteSong);
 AutoScreenMessage(ETTP_SelectChart);
 AutoScreenMessage(ETTP_StartChart);
+AutoScreenMessage(ETTP_Disconnect);
 
 REGISTER_SCREEN_CLASS( ScreenNetSelectMusic );
 
@@ -251,11 +252,23 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 	if( SM == SM_GoToPrevScreen )
 	{
 		SCREENMAN->SetNewScreen( THEME->GetMetric (m_sName, "PrevScreen") );
+		NSMAN->LeaveRoom();
 	}
 	else if( SM == SM_GoToNextScreen )
 	{
 		SOUND->StopMusic();
 		SCREENMAN->SetNewScreen( THEME->GetMetric (m_sName, "NextScreen") );
+	}
+	else if (SM == SM_GoToDisconnectScreen)
+	{
+		SOUND->StopMusic();
+		SCREENMAN->SetNewScreen(THEME->GetMetric(m_sName, "DisconnectScreen"));
+	}
+	else if (SM == ETTP_Disconnect)
+	{
+		SOUND->StopMusic();
+		TweenOffScreen();
+		Cancel(SM_GoToDisconnectScreen);
 	}
 	else if( SM == SM_UsersUpdate )
 	{
@@ -426,6 +439,10 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 				SCREENMAN->PostMessageToTopScreen(SM_SetWheelSong, 0.710f);
 				m_MusicWheel.SelectSong(NSMAN->song);
 			}
+			if (NSMAN->steps != nullptr)
+				m_DC[PLAYER_1] = NSMAN->steps->GetDifficulty();
+			if (NSMAN->rate > 0)
+				GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = NSMAN->rate/1000.0;
 			m_MusicWheel.Select();
 			m_MusicWheel.Move(-1);
 			m_MusicWheel.Move(1);
@@ -443,6 +460,10 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 				SCREENMAN->PostMessageToTopScreen(SM_SetWheelSong, 0.710f);
 				m_MusicWheel.SelectSong(NSMAN->song);
 			}
+			if(NSMAN->steps != nullptr)
+				m_DC[PLAYER_1] = NSMAN->steps->GetDifficulty();
+			if (NSMAN->rate > 0)
+				GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = NSMAN->rate / 1000.0;
 			m_MusicWheel.Select();
 			m_MusicWheel.Move(-1);
 			m_MusicWheel.Move(1);
@@ -662,7 +683,6 @@ void ScreenNetSelectMusic::TweenOffScreen()
 	OFF_COMMAND( m_MusicWheel );
 
 	NSMAN->ReportNSSOnOff(0);
-	NSMAN->LeaveRoom();
 }
 
 void ScreenNetSelectMusic::StartSelectedSong()

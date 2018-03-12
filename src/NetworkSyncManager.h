@@ -325,7 +325,10 @@ public:
 	RString m_sSubTitle;
 	RString m_sFileHash;
 	string chartkey;
-	Song* song{nullptr};
+	Song* song{ nullptr };
+	Steps* steps{ nullptr };
+	Difficulty difficulty;
+	int meter;
 	int rate;
 
 	int m_sHash;

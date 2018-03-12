@@ -6,6 +6,8 @@
 #include "ScreenNetSelectMusic.h"
 #include "LocalizedString.h"
 #include "JsonUtil.h"
+#include "GameState.h"
+#include "Style.h"
 #include <cerrno>
 #include <chrono>
 #include <nlohmann/json.hpp>
@@ -225,6 +227,7 @@ bool ETTProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString a
 		this->connected = false;
 		this->ws = nullptr;
 		n->CloseConnection();
+		SCREENMAN->SendMessageToTopScreen(ETTP_Disconnect);
 	});
 	uWSh.onConnection([this, address](uWS::WebSocket<uWS::CLIENT> *ws, uWS::HttpRequest req) {
 		this->connected = true;
@@ -263,6 +266,8 @@ bool ETTProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString a
 		if (difftime(time(0), start) > 2)
 			break;
 	}
+	if(connected)
+		n->isSMOnline = true;
 	return connected;
 }
 RoomData jsonToRoom(json& room)
@@ -309,9 +314,63 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					break;
 				case ettps_selectchart:
 					{
-						n->chartkey = (*it).value("chartkey", "");
-						n->rate = (*it).value("rate", 0);
-						n->song = SONGMAN->GetSongByChartkey(n->chartkey);
+						n->song = nullptr;
+						n->steps = nullptr;
+						auto ch = (*it).at("chart");
+						n->rate = ch.value("rate", 0);
+						n->chartkey = ch.value("chartkey", "");
+						n->m_sFileHash = ch.value("filehash", "");
+						n->m_sMainTitle = ch.value("title", "");
+						n->m_sSubTitle = ch.value("subtitle", "");
+						n->m_sArtist = ch.value("artist", "");
+						n->difficulty = StringToDifficulty(ch.value("difficulty", "Invalid"));
+						n->meter = ch.value("meter", -1);
+						StepsType st = GAMESTATE->GetCurrentStyle(PLAYER_1)->m_StepsType;
+						if (!n->chartkey.empty()) {
+							auto song = SONGMAN->GetSongByChartkey(n->chartkey);
+							if ((n->m_sArtist.empty() || n->m_sArtist == song->GetTranslitArtist()) &&
+								(n->m_sMainTitle.empty() || n->m_sMainTitle == song->GetTranslitMainTitle()) &&
+								(n->m_sSubTitle.empty() || n->m_sSubTitle == song->GetTranslitSubTitle()) &&
+								(n->m_sFileHash.empty() || n->m_sFileHash == song->GetFileHash()))
+							{
+								for (auto& steps : song->GetStepsByStepsType(st)) {
+									if ((n->meter == -1 || n->meter == steps->GetMeter()) &&
+										(n->difficulty == Difficulty_Invalid || n->difficulty == steps->GetDifficulty()) &&
+										(n->chartkey == steps->GetChartKey())) {
+										n->song = song;
+										n->steps = steps;
+										break;
+									}
+									if (n->song != nullptr)
+										break;
+								}
+							}
+						}
+						else {
+							vector <Song *> AllSongs = SONGMAN->GetAllSongs();
+							for (int i = 0; i < AllSongs.size(); i++)
+							{
+								auto& m_cSong = AllSongs[i];
+								if ((n->m_sArtist.empty() || n->m_sArtist == m_cSong->GetTranslitArtist()) &&
+									(n->m_sMainTitle.empty() || n->m_sMainTitle == m_cSong->GetTranslitMainTitle()) &&
+									(n->m_sSubTitle.empty() || n->m_sSubTitle == m_cSong->GetTranslitSubTitle()) &&
+									(n->m_sFileHash.empty() || n->m_sFileHash == m_cSong->GetFileHash()))
+								{
+									for (auto& steps : m_cSong->GetStepsByStepsType(st)) {
+										if ((n->meter == -1 || n->meter == steps->GetMeter()) &&
+											(n->difficulty == Difficulty_Invalid || n->difficulty == steps->GetDifficulty())) {
+											n->song = m_cSong;
+											n->steps = steps;
+											break;
+										}
+									}
+									if (n->song != nullptr)
+										break;
+									n->song = m_cSong;
+									break;
+								}
+							}
+						}
 						json j;
 						if (n->song != nullptr) {
 							SCREENMAN->SendMessageToTopScreen(ETTP_SelectChart);
@@ -325,9 +384,63 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 				break;
 				case ettps_startchart:
 					{
-						n->chartkey = (*it).value("chartkey", "");
-						n->rate = (*it).value("rate", 0);
-						n->song = SONGMAN->GetSongByChartkey(n->chartkey);
+						n->song = nullptr;
+						n->steps = nullptr;
+						auto ch = (*it).at("chart");
+						n->rate = ch.value("rate", 0);
+						n->chartkey = ch.value("chartkey", "");
+						n->m_sFileHash = ch.value("filehash", "");
+						n->m_sMainTitle = ch.value("title", "");
+						n->m_sSubTitle = ch.value("subtitle", "");
+						n->m_sArtist = ch.value("artist", "");
+						n->difficulty = StringToDifficulty(ch.value("difficulty", "Invalid"));
+						n->meter = ch.value("meter", -1);
+						StepsType st = GAMESTATE->GetCurrentStyle(PLAYER_1)->m_StepsType;
+						if (!n->chartkey.empty()) {
+							auto song = SONGMAN->GetSongByChartkey(n->chartkey);
+							if ((n->m_sArtist.empty() || n->m_sArtist == song->GetTranslitArtist()) &&
+								(n->m_sMainTitle.empty() || n->m_sMainTitle == song->GetTranslitMainTitle()) &&
+								(n->m_sSubTitle.empty() || n->m_sSubTitle == song->GetTranslitSubTitle()) &&
+								(n->m_sFileHash.empty() || n->m_sFileHash == song->GetFileHash()))
+							{
+								for (auto& steps : song->GetStepsByStepsType(st)) {
+									if ((n->meter == -1 || n->meter == steps->GetMeter()) &&
+										(n->difficulty == Difficulty_Invalid || n->difficulty == steps->GetDifficulty()) &&
+										(n->chartkey == steps->GetChartKey())) {
+										n->song = song;
+										n->steps = steps;
+										break;
+									}
+									if (n->song != nullptr)
+										break;
+								}
+							}
+						}
+						else {
+							vector <Song *> AllSongs = SONGMAN->GetAllSongs();
+							for (int i = 0; i < AllSongs.size(); i++)
+							{
+								auto& m_cSong = AllSongs[i];
+								if ((n->m_sArtist.empty() || n->m_sArtist == m_cSong->GetTranslitArtist()) &&
+									(n->m_sMainTitle.empty() || n->m_sMainTitle == m_cSong->GetTranslitMainTitle()) &&
+									(n->m_sSubTitle.empty() || n->m_sSubTitle == m_cSong->GetTranslitSubTitle()) &&
+									(n->m_sFileHash.empty() || n->m_sFileHash == m_cSong->GetFileHash()))
+								{
+									for (auto& steps : m_cSong->GetStepsByStepsType(st)) {
+										if ((n->meter == -1 || n->meter == steps->GetMeter()) &&
+											(n->difficulty == Difficulty_Invalid || n->difficulty == steps->GetDifficulty())) {
+											n->song = m_cSong;
+											n->steps = steps;
+											break;
+										}
+									}
+									if (n->song != nullptr)
+										break;
+									n->song = m_cSong;
+									break;
+								}
+							}
+						}
 						json j;
 						if (n->song != nullptr) {
 							SCREENMAN->SendMessageToTopScreen(ETTP_StartChart);
@@ -351,13 +464,7 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						msg.SetParam("type", type);
 						MESSAGEMAN->Broadcast(msg);
 						//Should end here
-						auto& strings = n->chat[{"a", 0}];
-						const char* const delim = "\n";
-						std::ostringstream imploded;
-						std::copy(strings.begin(), strings.end(),
-							std::ostream_iterator<std::string>(imploded, delim));
-						n->m_sChatText = imploded.str();
-						n->m_sChatText = n->m_sChatText.substr(0, n->m_sChatText.length()-1);
+						n->m_sChatText = (n->m_sChatText + "\n" + (*it)["msg"].get<string>()).c_str();
 						SCREENMAN->SendMessageToTopScreen(SM_AddToChat);
 					}
 				break;
@@ -895,7 +1002,7 @@ void NetworkSyncManager::StartRequest(short position)
 }
 void ETTProtocol::StartRequest(NetworkSyncManager* n, short position)
 {
-	if (ws == nullptr)
+	if (ws == nullptr || position == 0)
 		return;
 	json startChart;
 	startChart["type"] = ettClientMessageMap[ettpc_startchart];
@@ -904,8 +1011,8 @@ void ETTProtocol::StartRequest(NetworkSyncManager* n, short position)
 	startChart["artist"] = GAMESTATE->m_pCurSong->m_sArtist;
 	startChart["filehash"] = GAMESTATE->m_pCurSong->GetFileHash();
 	startChart["chartkey"] = GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey();
-	startChart["options"] = GAMESTATE->m_SongOptions.GetCurrent().GetString();
-	startChart["rate"] = static_cast<int>((GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 100));
+	startChart["options"] = GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().GetString();
+	startChart["rate"] = static_cast<int>((GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
 	ws->send(startChart.dump().c_str());
 }
 void SMOProtocol::StartRequest(NetworkSyncManager* n, short position)
@@ -1345,16 +1452,23 @@ void ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 {
 	if (ws == nullptr)
 		return;
-	json selectChart;
-	selectChart["type"] = ettClientMessageMap[ettpc_selectchart];
-	selectChart["title"] = n->m_sMainTitle;
-	selectChart["subtitle"] = n->m_sSubTitle;
-	selectChart["artist"] = n->m_sArtist;
-	selectChart["filehash"] = song->GetFileHash();
-	selectChart["chartkey"] = GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey();
-	selectChart["options"] = GAMESTATE->m_SongOptions.GetCurrent().GetString();
-	selectChart["rate"] = static_cast<int>((GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 100));
-	ws->send(selectChart.dump().c_str());
+	if (song == n->song) {
+		this->StartRequest(n, 1);
+	}
+	else {
+		json selectChart;
+		selectChart["type"] = ettClientMessageMap[ettpc_selectchart];
+		selectChart["title"] = n->m_sMainTitle.c_str();
+		selectChart["subtitle"] = n->m_sSubTitle.c_str();
+		selectChart["artist"] = n->m_sArtist.c_str();
+		selectChart["filehash"] = song->GetFileHash().c_str();
+		selectChart["chartkey"] = GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey().c_str();
+		selectChart["difficulty"] = DifficultyToString(GAMESTATE->m_pCurSteps[PLAYER_1]->GetDifficulty());
+		selectChart["meter"] = GAMESTATE->m_pCurSteps[PLAYER_1]->GetMeter();
+		selectChart["options"] = GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().GetString();
+		selectChart["rate"] = static_cast<int>((GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
+		ws->send(selectChart.dump().c_str());
+	}
 }
 void SMOProtocol::SelectUserSong(NetworkSyncManager * n, Song* song)
 {

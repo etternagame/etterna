@@ -16,6 +16,7 @@ AutoScreenMessage(SM_LoseFocus);
 AutoScreenMessage(SM_Pause);
 AutoScreenMessage(SM_Success);
 AutoScreenMessage(SM_Failure);
+AutoScreenMessage(SM_GoToDisconnectScreen);
 
 static map<RString, ScreenMessage> *m_pScreenMessages;
 
