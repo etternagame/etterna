@@ -1327,7 +1327,18 @@ int SongManager::GetSongRank(Song* pSong)
 	const int index = FindIndex( m_pPopularSongs.begin(), m_pPopularSongs.end(), pSong );
 	return index; // -1 means we didn't find it
 }
-
+void makePlaylist(const RString& answer)
+{
+	Playlist pl;
+	pl.name = answer;
+	if (pl.name != "") {
+		SONGMAN->GetPlaylists().emplace(pl.name, pl);
+		SONGMAN->activeplaylist = pl.name;
+		Message msg("DisplayAll");
+		MESSAGEMAN->Broadcast(msg);
+		PROFILEMAN->SaveProfile(PLAYER_1);
+	}
+}
 // lua start
 #include "LuaBinding.h"
 
@@ -1487,7 +1498,7 @@ public:
 
 	static int NewPlaylist(T* p, lua_State *L)
 	{
-		ScreenTextEntry::TextEntry(SM_BackFromNamePlaylist, "Name Playlist", "", 128);
+		ScreenTextEntry::TextEntry(SM_None, "Name Playlist", "", 128, nullptr, makePlaylist);
 		return 1;
 	}
 
@@ -1507,6 +1518,7 @@ public:
 	static int DeletePlaylist(T* p, lua_State *L)
 	{
 		p->DeletePlaylist(SArg(1));
+		PROFILEMAN->SaveProfile(PLAYER_1);
 		return 1;
 	}
 
@@ -1595,12 +1607,14 @@ public:
 	static int AddChart(T* p, lua_State *L)
 	{
 		p->AddChart(SArg(1));
+		PROFILEMAN->SaveProfile(PLAYER_1);
 		return 1;
 	}
 
 	static int DeleteChart(T* p, lua_State *L)
 	{
 		p->DeleteChart(IArg(1) - 1);
+		PROFILEMAN->SaveProfile(PLAYER_1);
 		return 1;
 	}
 
@@ -1638,6 +1652,7 @@ public:
 	{
 		p->rate += FArg(1);
 		CLAMP(p->rate, 0.7f, 3.f);
+		PROFILEMAN->SaveProfile(PLAYER_1);
 		return 1;
 	}
 
