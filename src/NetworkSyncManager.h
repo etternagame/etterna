@@ -367,6 +367,10 @@ public:
 	SMOStepType TranslateStepType(int score);
 	vector<NetServerInfo> m_vAllLANServers;
 	bool m_scoreboardchange[NUM_NSScoreBoardColumn];
+
+	//Lua
+	void PushSelf(lua_State *L);
+
 private:
 
 	void ProcessInput();

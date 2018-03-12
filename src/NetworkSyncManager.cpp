@@ -126,6 +126,15 @@ NetworkSyncManager::NetworkSyncManager( LoadingWindow *ld )
 	m_startupStatus = 0;	//By default, connection not tried.
 	m_ActivePlayers = 0;
 	StartUp();
+
+	// Register with Lua.
+	{
+		Lua *L = LUA->Get();
+		lua_pushstring(L, "NSMAN");
+		this->PushSelf(L);
+		lua_settable(L, LUA_GLOBALSINDEX);
+		LUA->Release(L);
+	}
 }
 
 SMOProtocol::~SMOProtocol() 
@@ -426,8 +435,9 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						string tab = (*it)["tab"].get<string>();
 						n->chat[{tab, type}].emplace_back((*it)["msg"].get<string>());
 						SCREENMAN->SendMessageToTopScreen(ETTP_IncomingChat);
-						Message msg("NewChat");
+						Message msg("Chat");
 						msg.SetParam("tab", RString(tab.c_str()));
+						msg.SetParam("msg", RString((*it)["msg"].get<string>().c_str()));
 						msg.SetParam("type", type);
 						MESSAGEMAN->Broadcast(msg);
 						//Should end here
@@ -1795,6 +1805,26 @@ LuaFunction( ReportStyle,			ReportStyle() )
 LuaFunction( GetServerName,			NSMAN->GetServerName() )
 LuaFunction( CloseConnection,		CloseNetworkConnection() )
 
+// lua start
+#include "LuaBinding.h"
+
+class LunaNetworkSyncManager : public Luna<NetworkSyncManager>
+{
+public:
+	static int GetChatMsg(T* p, lua_State *L) {
+		unsigned int l = IArg(1);
+		int tabType = IArg(2);
+		string tabName = SArg(3);
+		lua_pushstring(L,p->chat[{tabName, tabType}][l].c_str());
+		return 1;
+	}
+	LunaNetworkSyncManager() {
+		ADD_METHOD(GetChatMsg);
+	}
+};
+
+LUA_REGISTER_CLASS(NetworkSyncManager)
+// lua end
 /*
  * (c) 2003-2004 Charles Lohr, Joshua Allen
  * All rights reserved.
