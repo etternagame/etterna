@@ -33,6 +33,8 @@ after_build:
 - cmd: >-
     
     "C:\Program Files (x86)\NSIS\makensis.exe" "C:\etterna\stepmania.nsi"
+- cmd: >-
+    
     "C:\Program Files (x86)\NSIS\makensis.exe" /DSongless "C:\etterna\stepmania.nsi"
 
 notifications:
