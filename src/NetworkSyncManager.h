@@ -117,6 +117,7 @@ enum ETTClientMessageTypes {
 	ettpc_gameover,
 	ettpc_haschart,
 	ettpc_missingchart,
+	ettpc_startingchart,
 	ettpc_end
 };
 /** @brief A special foreach loop going through each NSScoreBoardColumn. */
@@ -220,6 +221,7 @@ class ETTProtocol : public NetProtocol { // Websockets using uwebsockets sending
 	bool connected{ false };
 	bool error{ false };
 	uWS::WebSocket<uWS::CLIENT>* ws;
+	void FindJsonChart(NetworkSyncManager* n, json& ch);
 public:
 	string roomName;
 	string roomDesc;
