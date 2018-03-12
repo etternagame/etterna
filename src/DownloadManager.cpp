@@ -31,6 +31,7 @@ static Preference<unsigned int> maxDLPerSecondGameplay("maximumBytesDownloadedPe
 static Preference<RString> packListURL("packListURL", "https://api.etternaonline.com/v1/pack_list");
 static Preference<RString> serverURL("UploadServerURL", "https://api.etternaonline.com/v1/");
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
+static Preference<unsigned int> downloadPacksToAdditionalSongs("downloadPacksToAdditionalSongs", 0);
 static const string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
 static const string DL_DIR = SpecialFiles::CACHE_DIR + "Downloads/";
 
@@ -117,6 +118,7 @@ bool DownloadManager::InstallSmzip(const string &sZipFile)
 		sort(vsPrettyFiles.begin(), vsPrettyFiles.end());
 	}
 	string sResult = "Success installing " + sZipFile;
+	string extractTo = downloadPacksToAdditionalSongs ? "AdditionalSongs/" : "Songs/";
 	FOREACH_CONST(string, vsFiles, sSrcFile)
 	{
 		string sDestFile = *sSrcFile;
