@@ -118,7 +118,11 @@ enum ETTClientMessageTypes {
 	ettpc_haschart,
 	ettpc_missingchart,
 	ettpc_startingchart,
-	ettpc_notstartingchart,
+	ettpc_notstartingchart, 
+	ettpc_openoptions, 
+	ettpc_closeoptions, 
+	ettpc_openeval, 
+	ettpc_closeeval, 
 	ettpc_end
 };
 /** @brief A special foreach loop going through each NSScoreBoardColumn. */
@@ -249,6 +253,10 @@ public:
 	void ReportSongOver(NetworkSyncManager* n) override;
 	void SelectUserSong(NetworkSyncManager* n, Song* song) override;
 	void StartRequest(NetworkSyncManager* n, short position) override;
+	void OnOptions() override;
+	void OffOptions() override;
+	void OnEval() override;
+	void OffEval() override;
 	/*
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset, int numNotes) override;
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset) override;

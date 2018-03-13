@@ -38,6 +38,10 @@ std::map<ETTClientMessageTypes, std::string> ettClientMessageMap = {
 	{ ettpc_missingchart, "missingchart" },
 	{ ettpc_startingchart, "startingchart" },
 	{ ettpc_notstartingchart, "notstartingchart" },
+	{ ettpc_openoptions, "openoptions" },
+	{ ettpc_closeoptions, "closeoptions" },
+	{ ettpc_openeval, "openeval" },
+	{ ettpc_closeeval, "closeeval" },
 };
 std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
 	{ "hello", ettps_hello },
@@ -69,36 +73,12 @@ void NetworkSyncManager::OnMusicSelect()
 {
 }
 void NetworkSyncManager::OffMusicSelect() { }
-void NetworkSyncManager::OnRoomSelect()
-{
-	if (curProtocol != nullptr)
-		curProtocol->OnRoomSelect();
-}
-void NetworkSyncManager::OffRoomSelect()
-{
-	if (curProtocol != nullptr)
-		curProtocol->OffRoomSelect();
-}
-void NetworkSyncManager::OnOptions()
-{
-	if (curProtocol != nullptr)
-		curProtocol->OnOptions();
-}
-void NetworkSyncManager::OffOptions()
-{
-	if (curProtocol != nullptr)
-		curProtocol->OffOptions();
-}
-void NetworkSyncManager::OnEval()
-{
-	if (curProtocol != nullptr)
-		curProtocol->OnEval();
-}
-void NetworkSyncManager::OffEval()
-{
-	if (curProtocol != nullptr)
-		curProtocol->OffEval();
-}
+void NetworkSyncManager::OnRoomSelect() { }
+void NetworkSyncManager::OffRoomSelect() { }
+void NetworkSyncManager::OnOptions() { }
+void NetworkSyncManager::OffOptions() { }
+void NetworkSyncManager::OnEval() { }
+void NetworkSyncManager::OffEval() { }
 void NetworkSyncManager::ReportScore( int playerID, int step, int score, int combo, float offset ) { }
 void NetworkSyncManager::ReportSongOver() { }
 void NetworkSyncManager::ReportStyle() {}
@@ -264,6 +244,44 @@ void SMOProtocol::OffOptions()
 {
 	ReportNSSOnOff(1);
 	ReportPlayerOptions();
+}
+
+
+void ETTProtocol::OffEval()
+{
+	if (ws == nullptr)
+		return;
+	json j;
+	j["type"] = ettClientMessageMap[ettpc_closeeval];
+	j["id"] = msgId++;
+	ws->send(j.dump().c_str());
+}
+void ETTProtocol::OnEval()
+{
+	if (ws == nullptr)
+		return;
+	json j;
+	j["type"] = ettClientMessageMap[ettpc_openeval];
+	j["id"] = msgId++;
+	ws->send(j.dump().c_str());
+}
+void ETTProtocol::OnOptions()
+{
+	if (ws == nullptr)
+		return;
+	json j;
+	j["type"] = ettClientMessageMap[ettpc_openoptions];
+	j["id"] = msgId++;
+	ws->send(j.dump().c_str());
+}
+void ETTProtocol::OffOptions()
+{
+	if (ws == nullptr)
+		return;
+	json j;
+	j["type"] = ettClientMessageMap[ettpc_closeoptions];
+	j["id"] = msgId++;
+	ws->send(j.dump().c_str());
 }
 
 void SMOProtocol::close()
