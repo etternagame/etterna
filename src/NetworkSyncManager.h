@@ -219,6 +219,7 @@ class ETTProtocol : public NetProtocol { // Websockets using uwebsockets sending
 	uWS::Hub uWSh;
 	vector<json> newMessages;
 	bool connected{ false };
+	unsigned int msgId{0};
 	bool error{ false };
 	uWS::WebSocket<uWS::CLIENT>* ws;
 	void FindJsonChart(NetworkSyncManager* n, json& ch);
@@ -294,7 +295,6 @@ public:
 	bool isSMOnline;
 	bool loggedIn;
 	string loginResponse; // Failure reason
-	string roomResponse; // Failure reason
 
 	Chat chat; //[{Tabname, int}] = vector<line>
 
