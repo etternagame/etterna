@@ -91,7 +91,6 @@ void ScreenNetSelectMusic::Init()
 	m_sRandomMusicPath =	THEME->GetPathS(m_sName,"random music");
 
 	NSMAN->OnMusicSelect();
-	NSMAN->ReportPlayerOptions();
 
 	m_bInitialSelect = false;
 	m_bAllowInput = false;

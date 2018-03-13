@@ -42,6 +42,7 @@ std::map<ETTClientMessageTypes, std::string> ettClientMessageMap = {
 	{ ettpc_closeoptions, "closeoptions" },
 	{ ettpc_openeval, "openeval" },
 	{ ettpc_closeeval, "closeeval" },
+	{ ettpc_logout, "logout" },
 };
 std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
 	{ "hello", ettps_hello },
@@ -123,6 +124,8 @@ AutoScreenMessage(ETTP_RoomsChange);
 AutoScreenMessage(ETTP_SelectChart);
 AutoScreenMessage(ETTP_StartChart);
 
+extern Preference<RString> g_sLastServer;
+Preference<unsigned int> autoConnectMultiplayer("AutoConnectMultiplayer", 1);
 
 SMOProtocol::SMOProtocol() {
 	NetPlayerClient = new EzSockets;
@@ -142,7 +145,6 @@ NetworkSyncManager::NetworkSyncManager( LoadingWindow *ld )
 	m_startupStatus = 0;	//By default, connection not tried.
 	m_ActivePlayers = 0;
 	StartUp();
-
 	// Register with Lua.
 	{
 		Lua *L = LUA->Get();
@@ -223,6 +225,7 @@ void SMOProtocol::OnEval()
 void SMOProtocol::OnMusicSelect()
 {
 	ReportNSSOnOff(1);
+	ReportPlayerOptions();
 }
 void SMOProtocol::OffMusicSelect()
 {
@@ -327,7 +330,10 @@ void NetworkSyncManager::CloseConnection()
 	ETTP.close();
 	curProtocol = nullptr;
 }
-
+bool startsWith(const string& haystack, const string& needle) {
+	return needle.length() <= haystack.length()
+		&& equal(needle.begin(), needle.end(), haystack.begin());
+}
 void NetworkSyncManager::PostStartUp(const RString& ServerIP)
 {
 	RString sAddress;
@@ -364,6 +370,7 @@ void NetworkSyncManager::PostStartUp(const RString& ServerIP)
 			curProtocol = &SMOP;
 	if (curProtocol == nullptr)
 		return;
+	g_sLastServer.Set(ServerIP);
 	loggedIn = false;
 	useSMserver = true;
 	m_startupStatus = 1;	// Connection attempt successful
@@ -382,18 +389,18 @@ void NetworkSyncManager::PostStartUp(const RString& ServerIP)
 
 bool ETTProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString address)
 {
-	connected = false;
+	n->isSMOnline = false;
 	msgId = 0;
 	error = false;
 	uWSh.onDisconnection([this, n](uWS::WebSocket<uWS::CLIENT> *ws, int code, char *message, size_t length) {
 		LOG->Trace("Dissconnected from ett server %s", serverName.c_str());
-		this->connected = false;
+		n->isSMOnline = false;
 		this->ws = nullptr;
 		n->CloseConnection();
 		SCREENMAN->SendMessageToTopScreen(ETTP_Disconnect);
 	});
-	uWSh.onConnection([this, address](uWS::WebSocket<uWS::CLIENT> *ws, uWS::HttpRequest req) {
-		this->connected = true;
+	uWSh.onConnection([n, this, address](uWS::WebSocket<uWS::CLIENT> *ws, uWS::HttpRequest req) {
+		n->isSMOnline = true;
 		this->ws = ws;
 		LOG->Trace("Connected to ett server: %s", address.c_str());
 	});
@@ -410,28 +417,40 @@ bool ETTProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString a
 			LOG->Trace("Error while processing ettprotocol json: %s", e.what());
 		}
 	});
-	uWSh.connect(("wss://"+address+":"+to_string(port)).c_str(), nullptr);
-	uWSh.poll();
-	time_t start = time(0);
-	while (!connected && !error) {
-		uWSh.poll();
-		if (difftime(time(0), start)> 2)
-			break;
+	bool ws = true;
+	bool wss = true;
+	bool prepend = true;
+	if (startsWith(address, "ws://")) {
+		wss = false;
+		prepend = false;
 	}
-	if (connected)
-		return true;
-	error = false;
-	uWSh.connect(("ws://" + address + ":" + to_string(port)).c_str(), nullptr);
-	uWSh.poll();
-	start = time(0);
-	while(!connected && !error) {
-		uWSh.poll();
-		if (difftime(time(0), start) > 2)
-			break;
+	else if (startsWith(address, "wss://")) {
+		ws = false;
+		prepend = false;
 	}
-	if(connected)
-		n->isSMOnline = true;
-	return connected;
+	time_t start;
+	if (wss) {
+		uWSh.connect(((prepend ? "wss://" + address : address)+ ":" + to_string(port)).c_str(), nullptr);
+		uWSh.poll();
+		start = time(0);
+		while (!n->isSMOnline && !error) {
+			uWSh.poll();
+			if (difftime(time(0), start) > 2)
+				break;
+		}
+	}
+	if (ws && !n->isSMOnline) {
+		error = false;
+		uWSh.connect(((prepend ? "ws://" + address : address) + ":" + to_string(port)).c_str(), nullptr);
+		uWSh.poll();
+		start = time(0);
+		while (!n->isSMOnline && !error) {
+			uWSh.poll();
+			if (difftime(time(0), start) > 2)
+				break;
+		}
+	}
+	return n->isSMOnline;
 }
 RoomData jsonToRoom(json& room)
 {
@@ -514,7 +533,12 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 		try {
 			auto jType = (*iterator).find("type");
 			auto payload = (*iterator).find("payload");
+			auto error = (*iterator).find("error");
 			if (jType != iterator->end()) {
+				if (error != iterator->end()) {
+					LOG->Trace(("Error on ETTP message " + jType->get<string>() + ":" + error->get<string>()).c_str());
+					break;
+				}
 				switch (ettServerMessageMap[jType->get<string>()]) {
 				case ettps_loginresponse:
 					if (!(n->loggedIn = (*payload)["logged"]))
@@ -529,6 +553,7 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					serverName = (*payload).value("name", "");
 					serverVersion = (*payload).value("version", 1);
 					LOG->Trace("Ettp server identified: %s (Version:%d)", serverName.c_str(), serverVersion);
+					n->DisplayStartupStatus();
 					break;
 				case ettps_ping:
 					if (ws != nullptr) {
@@ -744,6 +769,7 @@ bool SMOProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString a
 		n->isSMOnline = true;
 	serverName = m_packet.ReadNT();
 	m_iSalt = m_packet.Read4();
+	NSMAN->DisplayStartupStatus();
 	return true;
 }
 
@@ -753,6 +779,8 @@ void NetworkSyncManager::StartUp()
 
 	if( GetCommandlineArgument( "netip", &ServerIP ) )
 		PostStartUp( ServerIP );
+	else if (autoConnectMultiplayer)
+		PostStartUp(RString(g_sLastServer));
 }
 
 void NetworkSyncManager::ReportNSSOnOff(int i)
@@ -877,6 +905,19 @@ void SMOProtocol::DealWithSMOnlinePack(PacketFunctions &SMOnlinePacket, ScreenNe
 	}
 }
 
+void NetworkSyncManager::Logout()
+{
+	if (curProtocol != nullptr)
+		curProtocol->Logout();
+}
+void ETTProtocol::Logout()
+{
+	if (ws == nullptr)
+		return;
+	json logout;
+	logout["type"] = ettClientMessageMap[ettpc_logout];
+	ws->send(logout.dump().c_str());
+}
 void NetworkSyncManager::Login(RString user, RString pass)
 {
 	if (curProtocol != nullptr)
@@ -1916,12 +1957,10 @@ unsigned long NetworkSyncManager::GetCurrentSMBuild( LoadingWindow* ld )
 
 static bool ConnectToServer( const RString &t ) 
 { 
-	NSMAN->PostStartUp( t );
-	NSMAN->DisplayStartupStatus(); 
+	NSMAN->PostStartUp( t ); 
 	return true;
 }
 
-extern Preference<RString> g_sLastServer;
 
 LuaFunction( ConnectToServer, 		ConnectToServer( ( RString(SArg(1)).length()==0 ) ? RString(g_sLastServer) : RString(SArg(1) ) ) )
 
@@ -1957,9 +1996,21 @@ public:
 		p->SendChat(msg, tabName, tabType);
 		return 1;
 	}
+	static int Logout(T* p, lua_State *L) {
+		p->Logout();
+		return 1;
+	}
+	static int Login(T* p, lua_State *L) {
+		RString user = SArg(1);
+		RString pass = SArg(2);
+		p->Login(user, pass);
+		return 1;
+	}
 	LunaNetworkSyncManager() {
 		ADD_METHOD(GetChatMsg);
 		ADD_METHOD(SendChatMsg);
+		ADD_METHOD(Login);
+		ADD_METHOD(Logout);
 	}
 };
 

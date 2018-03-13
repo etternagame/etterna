@@ -98,9 +98,7 @@ void ScreenNetworkOptions::HandleScreenMessage( const ScreenMessage SM )
 		{
 			RString sNewName = ScreenTextEntry::s_sLastAnswer;
 			NSMAN->PostStartUp(sNewName);
-			NSMAN->DisplayStartupStatus();
 			UpdateConnectStatus( );
-			g_sLastServer.Set( ScreenTextEntry::s_sLastAnswer );
 		}
 	}
 

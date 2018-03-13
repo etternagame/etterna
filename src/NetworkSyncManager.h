@@ -123,6 +123,7 @@ enum ETTClientMessageTypes {
 	ettpc_closeoptions, 
 	ettpc_openeval, 
 	ettpc_closeeval, 
+	ettpc_logout, 
 	ettpc_end
 };
 /** @brief A special foreach loop going through each NSScoreBoardColumn. */
@@ -181,6 +182,7 @@ public:
 	virtual void ReportStyle(NetworkSyncManager* n) {}
 	virtual void StartRequest(NetworkSyncManager* n, short position) {}
 	virtual	void Login(RString user, RString pass) {}
+	virtual	void Logout() {}
 	virtual void OnMusicSelect() {};
 	virtual void OffMusicSelect() {};
 	virtual void OnRoomSelect() {};
@@ -234,7 +236,6 @@ public:
 class ETTProtocol : public NetProtocol { // Websockets using uwebsockets sending json
 	uWS::Hub uWSh;
 	vector<json> newMessages;
-	bool connected{ false };
 	unsigned int msgId{0};
 	bool error{ false };
 	uWS::WebSocket<uWS::CLIENT>* ws;
@@ -246,6 +247,7 @@ public:
 	void close() override;
 	void Update(NetworkSyncManager* n, float fDeltaTime) override;
 	void Login(RString user, RString pass) override;
+	void Logout() override;
 	void SendChat(const RString& message, string tab, int type) override;
 	void CreateNewRoom(RString name, RString desc, RString password) override;
 	void EnterRoom(RString name, RString password) override;
@@ -384,6 +386,7 @@ public:
 	int m_startupStatus;	// Used to see if attempt was successful or not.
 
 	void Login(RString user, RString pass);
+	void Logout();
 	vector<RoomData> m_Rooms;
 
 #if !defined(WITHOUT_NETWORKING)
