@@ -50,7 +50,7 @@ void ScreenNetRoom::Init()
 
 	this->SortByDrawOrder();
 	UpdateRoomsList();
-	NSMAN->ReportNSSOnOff( 7 );
+	NSMAN->OnRoomSelect();
 }
 
 bool ScreenNetRoom::Input( const InputEventPlus &input )
@@ -85,7 +85,7 @@ void ScreenNetRoom::HandleScreenMessage( const ScreenMessage SM )
 	}
 	else if( SM == SM_SMOnlinePack )
 	{
-		NSMAN->DealWithSMOnlinePack(this);
+		SMOProtocol::DealWithSMOnlinePack(static_cast<SMOProtocol*>(NSMAN->curProtocol)->SMOnlinePacket, this);
 	}
 	else if (SM == ETTP_RoomsChange) {
 		UpdateRoomsList();
@@ -131,7 +131,7 @@ void ScreenNetRoom::HandleScreenMessage( const ScreenMessage SM )
 
 void ScreenNetRoom::TweenOffScreen()
 {
-	NSMAN->ReportNSSOnOff( 6 );
+	NSMAN->OffRoomSelect();
 }
 
 bool ScreenNetRoom::MenuStart( const InputEventPlus &input )

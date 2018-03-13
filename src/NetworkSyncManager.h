@@ -118,6 +118,7 @@ enum ETTClientMessageTypes {
 	ettpc_haschart,
 	ettpc_missingchart,
 	ettpc_startingchart,
+	ettpc_notstartingchart,
 	ettpc_end
 };
 /** @brief A special foreach loop going through each NSScoreBoardColumn. */
@@ -168,7 +169,6 @@ public:
 	virtual void EnterRoom(RString name, RString password) {}
 	virtual void LeaveRoom(NetworkSyncManager* n) {}
 	virtual void RequestRoomInfo(RString name) {}
-	virtual void ReportPlayerOptions(NetworkSyncManager* n, ModsGroup<PlayerOptions>& opts) {}
 	virtual void SendChat(const RString& message, string tab, int type) {}
 	virtual void ReportNSSOnOff(int i) {}
 	virtual void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset, int numNotes) {}
@@ -177,9 +177,14 @@ public:
 	virtual void ReportStyle(NetworkSyncManager* n) {}
 	virtual void StartRequest(NetworkSyncManager* n, short position) {}
 	virtual	void Login(RString user, RString pass) {}
-	virtual void DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetRoom* s) {}
-	virtual void DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetSelectMusic* s) {}
-	virtual int DealWithSMOnlinePack(NetworkSyncManager* n, ScreenSMOnlineLogin* s, RString& response) { return 0;}
+	virtual void OnMusicSelect() {};
+	virtual void OffMusicSelect() {};
+	virtual void OnRoomSelect() {};
+	virtual void OffRoomSelect() {};
+	virtual void OnOptions() {};
+	virtual void OffOptions() {};
+	virtual void OnEval() {};
+	virtual void OffEval() {};
 };
 class SMOProtocol : public NetProtocol { // Built on raw tcp
 	EzSockets *NetPlayerClient;
@@ -188,10 +193,8 @@ class SMOProtocol : public NetProtocol { // Built on raw tcp
 	int m_iSalt;
 	bool TryConnect(unsigned short port, RString address);
 	void SendSMOnline();
-	// FIXME: This should NOT be public. PERIOD. It probably shouldn't be a member at all.
-	// Made private (Should it exist?)
-	PacketFunctions	SMOnlinePacket;
 public:
+	PacketFunctions	SMOnlinePacket;
 	SMOProtocol();
 	~SMOProtocol();
 	bool Connect(NetworkSyncManager* n, unsigned short port, RString address) override; // Connect and say hello
@@ -201,7 +204,7 @@ public:
 	void CreateNewRoom(RString name, RString desc, RString password) override;
 	void EnterRoom(RString name, RString password) override;
 	void RequestRoomInfo(RString name) override;
-	void ReportPlayerOptions(NetworkSyncManager* n, ModsGroup<PlayerOptions>& opts) override;
+	void ReportPlayerOptions();
 	void SendChat(const RString& message, string tab, int type) override;
 	void ReportNSSOnOff(int i) override;
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset, int numNotes) override;
@@ -211,9 +214,18 @@ public:
 	void StartRequest(NetworkSyncManager* n, short position) override; 
 	void ProcessInput(NetworkSyncManager* n);
 	void Login(RString user, RString pass) override;
-	void DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetRoom* s) override;
-	void DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetSelectMusic* s) override;
-	int DealWithSMOnlinePack(NetworkSyncManager* n, ScreenSMOnlineLogin* s, RString& response) override;
+	void OnMusicSelect() override;
+	void OffMusicSelect() override;
+	void OnRoomSelect() override;
+	void OffRoomSelect() override;
+	void OnOptions() override;
+	void OffOptions() override;
+	void OnEval() override;
+	void OffEval() override;
+
+	static void DealWithSMOnlinePack(PacketFunctions &SMOnlinePacket, ScreenNetSelectMusic* s);
+	static void DealWithSMOnlinePack(PacketFunctions &SMOnlinePacket, ScreenNetRoom* s);
+	static int DealWithSMOnlinePack(PacketFunctions &SMOnlinePacket, ScreenSMOnlineLogin* s, RString& response);
 };
 class ETTProtocol : public NetProtocol { // Websockets using uwebsockets sending json
 	uWS::Hub uWSh;
@@ -238,8 +250,6 @@ public:
 	void SelectUserSong(NetworkSyncManager* n, Song* song) override;
 	void StartRequest(NetworkSyncManager* n, short position) override;
 	/*
-	void ReportPlayerOptions(NetworkSyncManager* n, ModsGroup<PlayerOptions>& opts) override;
-	void ReportNSSOnOff(int i) override;
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset, int numNotes) override;
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset) override;
 	void ReportStyle(NetworkSyncManager* n) override;
@@ -272,6 +282,16 @@ public:
 	void ReportSongOver();
 	void ReportStyle(); // Report style, players, and names
 	void ReportNSSOnOff( int i );	// Report song selection screen on/off
+
+	void OnMusicSelect();
+	void OffMusicSelect();
+	void OnRoomSelect();
+	void OffRoomSelect();
+	void OnOptions();
+	void OffOptions();
+	void OnEval();
+	void OffEval();
+
 	void StartRequest( short position );	// Request a start; Block until granted.
 	RString GetServerName();
 
@@ -318,8 +338,6 @@ public:
 	void SendChat(const RString& message, string tab = "", int type = 0); // 0=lobby (ettp only)
 	RString m_WaitingChat;
 
-	// Used for options
-	void ReportPlayerOptions();
 
 	// Used for song checking/changing
 	RString m_sMainTitle;
@@ -358,9 +376,6 @@ public:
 	int m_startupStatus;	// Used to see if attempt was successful or not.
 
 	void Login(RString user, RString pass);
-	void DealWithSMOnlinePack(ScreenNetRoom* s);
-	void DealWithSMOnlinePack(ScreenNetSelectMusic* s);
-	int DealWithSMOnlinePack(ScreenSMOnlineLogin* s, RString& response);
 	vector<RoomData> m_Rooms;
 
 #if !defined(WITHOUT_NETWORKING)

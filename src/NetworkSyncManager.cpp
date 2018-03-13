@@ -37,6 +37,7 @@ std::map<ETTClientMessageTypes, std::string> ettClientMessageMap = {
 	{ ettpc_haschart, "haschart" },
 	{ ettpc_missingchart, "missingchart" },
 	{ ettpc_startingchart, "startingchart" },
+	{ ettpc_notstartingchart, "notstartingchart" },
 };
 std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
 	{ "hello", ettps_hello },
@@ -55,6 +56,7 @@ std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
 	{ "updateroom", ettps_updateroom },
 };
 
+
 #if defined(WITHOUT_NETWORKING)
 NetworkSyncManager::NetworkSyncManager( LoadingWindow *ld ) { useSMserver=false; isSMOnline = false; }
 NetworkSyncManager::~NetworkSyncManager () { }
@@ -63,6 +65,40 @@ void NetworkSyncManager::PostStartUp( const RString& ServerIP ) { }
 bool NetworkSyncManager::Connect( const RString& addy, unsigned short port ) { return false; }
 RString NetworkSyncManager::GetServerName() { return RString(); }
 void NetworkSyncManager::ReportNSSOnOff( int i ) { }
+void NetworkSyncManager::OnMusicSelect()
+{
+}
+void NetworkSyncManager::OffMusicSelect() { }
+void NetworkSyncManager::OnRoomSelect()
+{
+	if (curProtocol != nullptr)
+		curProtocol->OnRoomSelect();
+}
+void NetworkSyncManager::OffRoomSelect()
+{
+	if (curProtocol != nullptr)
+		curProtocol->OffRoomSelect();
+}
+void NetworkSyncManager::OnOptions()
+{
+	if (curProtocol != nullptr)
+		curProtocol->OnOptions();
+}
+void NetworkSyncManager::OffOptions()
+{
+	if (curProtocol != nullptr)
+		curProtocol->OffOptions();
+}
+void NetworkSyncManager::OnEval()
+{
+	if (curProtocol != nullptr)
+		curProtocol->OnEval();
+}
+void NetworkSyncManager::OffEval()
+{
+	if (curProtocol != nullptr)
+		curProtocol->OffEval();
+}
 void NetworkSyncManager::ReportScore( int playerID, int step, int score, int combo, float offset ) { }
 void NetworkSyncManager::ReportSongOver() { }
 void NetworkSyncManager::ReportStyle() {}
@@ -152,6 +188,82 @@ SMOProtocol::~SMOProtocol()
 NetworkSyncManager::~NetworkSyncManager ()
 {
 
+}
+
+
+void NetworkSyncManager::OnMusicSelect()
+{
+	if (curProtocol != nullptr)
+		curProtocol->OnMusicSelect();
+}
+void NetworkSyncManager::OffMusicSelect()
+{
+	if (curProtocol != nullptr)
+		curProtocol->OffMusicSelect();
+}
+void NetworkSyncManager::OnRoomSelect()
+{
+	if (curProtocol != nullptr)
+		curProtocol->OnRoomSelect();
+}
+void NetworkSyncManager::OffRoomSelect()
+{
+	if (curProtocol != nullptr)
+		curProtocol->OffRoomSelect();
+}
+void NetworkSyncManager::OnOptions()
+{
+	if (curProtocol != nullptr)
+		curProtocol->OnOptions();
+}
+void NetworkSyncManager::OffOptions()
+{
+	if (curProtocol != nullptr)
+		curProtocol->OffOptions();
+}
+void NetworkSyncManager::OnEval()
+{
+	if (curProtocol != nullptr)
+		curProtocol->OnEval();
+}
+void NetworkSyncManager::OffEval()
+{
+	if (curProtocol != nullptr)
+		curProtocol->OffEval();
+}
+
+void SMOProtocol::OffEval()
+{
+	ReportNSSOnOff(4);
+}
+void SMOProtocol::OnEval()
+{
+	ReportNSSOnOff(5);
+}
+void SMOProtocol::OnMusicSelect()
+{
+	ReportNSSOnOff(1);
+}
+void SMOProtocol::OffMusicSelect()
+{
+	ReportNSSOnOff(0);
+}
+void SMOProtocol::OffRoomSelect()
+{
+	ReportNSSOnOff(6);
+}
+void SMOProtocol::OnRoomSelect()
+{
+	ReportNSSOnOff(7);
+}
+void SMOProtocol::OnOptions()
+{
+	ReportNSSOnOff(3);
+}
+void SMOProtocol::OffOptions()
+{
+	ReportNSSOnOff(1);
+	ReportPlayerOptions();
 }
 
 void SMOProtocol::close()
@@ -433,6 +545,8 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							SCREENMAN->SendMessageToTopScreen(ETTP_StartChart);
 							j["type"] = ettClientMessageMap[ettpc_startingchart];
 						}
+						else
+							j["type"] = ettClientMessageMap[ettpc_notstartingchart];
 						j["id"] = msgId++;
 						ws->send(j.dump().c_str());
 					}
@@ -641,12 +755,7 @@ RString NetworkSyncManager::GetServerName()
 	return curProtocol != nullptr ? curProtocol->serverName : "";
 }
 
-void NetworkSyncManager::DealWithSMOnlinePack(ScreenNetSelectMusic* s)
-{
-	if (curProtocol != nullptr)
-		curProtocol->DealWithSMOnlinePack(this, s);
-}
-void SMOProtocol::DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetSelectMusic* s)
+void SMOProtocol::DealWithSMOnlinePack(PacketFunctions &SMOnlinePacket, ScreenNetSelectMusic* s)
 {
 	if (SMOnlinePacket.Read1() == 1)
 	{
@@ -666,13 +775,8 @@ void SMOProtocol::DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetSelectMus
 		}
 	}
 }
-int NetworkSyncManager::DealWithSMOnlinePack(ScreenSMOnlineLogin* s, RString& response)
-{
-	if (curProtocol != nullptr)
-		return curProtocol->DealWithSMOnlinePack(this, s, response);
-	return 0;
-}
-int SMOProtocol::DealWithSMOnlinePack(NetworkSyncManager* n, ScreenSMOnlineLogin* s, RString& response)
+
+int SMOProtocol::DealWithSMOnlinePack(PacketFunctions &SMOnlinePacket, ScreenSMOnlineLogin* s, RString& response)
 {
 	int ResponseCode = SMOnlinePacket.Read1();
 	if (ResponseCode == 0)
@@ -680,7 +784,7 @@ int SMOProtocol::DealWithSMOnlinePack(NetworkSyncManager* n, ScreenSMOnlineLogin
 		int Status = SMOnlinePacket.Read1();
 		if (Status == 0)
 		{
-			n->loggedIn = true;
+			NSMAN->loggedIn = true;
 			SCREENMAN->SetNewScreen(THEME->GetMetric("ScreenSMOnlineLogin", "NextScreen"));
 			return 2;
 		}
@@ -692,12 +796,8 @@ int SMOProtocol::DealWithSMOnlinePack(NetworkSyncManager* n, ScreenSMOnlineLogin
 	}
 	return 4;
 }
-void NetworkSyncManager::DealWithSMOnlinePack(ScreenNetRoom* s)
-{
-	if (curProtocol != nullptr)
-		curProtocol->DealWithSMOnlinePack(this, s);
-}
-void SMOProtocol::DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetRoom* s)
+
+void SMOProtocol::DealWithSMOnlinePack(PacketFunctions &SMOnlinePacket, ScreenNetRoom* s)
 {
 	switch (SMOnlinePacket.Read1())
 	{
@@ -724,20 +824,20 @@ void SMOProtocol::DealWithSMOnlinePack(NetworkSyncManager* n, ScreenNetRoom* s)
 		case 1: //Rooms list change
 		{
 			int numRooms = SMOnlinePacket.Read1();
-			(n->m_Rooms).clear();
+			(NSMAN->m_Rooms).clear();
 			for (int i = 0; i<numRooms; ++i)
 			{
 				RoomData tmpRoomData;
 				tmpRoomData.SetName(SMOnlinePacket.ReadNT());
 				tmpRoomData.SetDescription(SMOnlinePacket.ReadNT());
-				(n->m_Rooms).push_back(tmpRoomData);
+				(NSMAN->m_Rooms).push_back(tmpRoomData);
 			}
 			//Abide by protocol and read room status
 			for (int i = 0; i<numRooms; ++i)
-				(n->m_Rooms)[i].SetState(SMOnlinePacket.Read1());
+				(NSMAN->m_Rooms)[i].SetState(SMOnlinePacket.Read1());
 
 			for (int i = 0; i<numRooms; ++i)
-				(n->m_Rooms)[i].SetFlags(SMOnlinePacket.Read1());
+				(NSMAN->m_Rooms)[i].SetFlags(SMOnlinePacket.Read1());
 
 			s->UpdateRoomsList();
 		}
@@ -1429,13 +1529,9 @@ void SMOProtocol::SendChat(const RString& message, string tab, int type)
 	NetPlayerClient->SendPack((char*)&m_packet.Data, m_packet.Position);
 }
 
-void NetworkSyncManager::ReportPlayerOptions()
+void SMOProtocol::ReportPlayerOptions()
 {
-	if (curProtocol != nullptr)
-		curProtocol->ReportPlayerOptions(this, GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions);
-}
-void SMOProtocol::ReportPlayerOptions(NetworkSyncManager * n, ModsGroup<PlayerOptions>& opts)
-{
+	ModsGroup<PlayerOptions>& opts = GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions;
 	m_packet.ClearPacket();
 	m_packet.Write1( NSCUPOpts );
 	m_packet.WriteNT( opts.GetCurrent().GetString() );

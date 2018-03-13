@@ -90,7 +90,7 @@ void ScreenNetSelectMusic::Init()
 	m_sRouletteMusicPath =	THEME->GetPathS(m_sName,"roulette music");
 	m_sRandomMusicPath =	THEME->GetPathS(m_sName,"random music");
 
-	NSMAN->ReportNSSOnOff(1);
+	NSMAN->OnMusicSelect();
 	NSMAN->ReportPlayerOptions();
 
 	m_bInitialSelect = false;
@@ -415,10 +415,9 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 	}
 	else if( SM == SM_BackFromPlayerOptions )
 	{
-		// XXX HACK: This will cause ScreenSelectOptions to go back here.
-		NSMAN->ReportNSSOnOff(1);
 		GAMESTATE->m_EditMode = EditMode_Invalid;
-		NSMAN->ReportPlayerOptions();
+		// XXX HACK: This will cause ScreenSelectOptions to go back here.
+		NSMAN->OffOptions();
 
 		// Update changes
 		FOREACH_EnabledPlayer(p)
@@ -472,7 +471,7 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 	}
 	else if( SM == SM_SMOnlinePack )
 	{
-		NSMAN->DealWithSMOnlinePack(this);
+		SMOProtocol::DealWithSMOnlinePack(static_cast<SMOProtocol*>(NSMAN->curProtocol)->SMOnlinePacket, this);
 	}
 	else if (SM == SM_ConfirmDeleteSong)
 		 {
@@ -547,7 +546,7 @@ bool ScreenNetSelectMusic::MenuRight( const InputEventPlus &input )
 
 bool ScreenNetSelectMusic::MenuUp( const InputEventPlus &input )
 {
-	NSMAN->ReportNSSOnOff(3);
+	NSMAN->OnOptions();
 	GAMESTATE->m_EditMode = EditMode_Full;
 	SCREENMAN->AddNewScreenToTop( PLAYER_OPTIONS_SCREEN, SM_BackFromPlayerOptions );
 	return true;
@@ -682,7 +681,7 @@ void ScreenNetSelectMusic::TweenOffScreen()
 
 	OFF_COMMAND( m_MusicWheel );
 
-	NSMAN->ReportNSSOnOff(0);
+	NSMAN->OffMusicSelect();
 }
 
 void ScreenNetSelectMusic::StartSelectedSong()

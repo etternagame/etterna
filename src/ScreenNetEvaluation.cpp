@@ -53,7 +53,7 @@ void ScreenNetEvaluation::Init()
 
 	RedoUserTexts();
 
-	NSMAN->ReportNSSOnOff( 5 );
+	NSMAN->OnEval();
 }
 
 void ScreenNetEvaluation::RedoUserTexts()
@@ -165,7 +165,7 @@ void ScreenNetEvaluation::HandleScreenMessage( const ScreenMessage SM )
 	}
 	else if( SM == SM_GoToNextScreen )
 	{
-		NSMAN->ReportNSSOnOff( 4 );
+		NSMAN->OffEval();
 	}
 	ScreenEvaluation::HandleScreenMessage( SM );
 }

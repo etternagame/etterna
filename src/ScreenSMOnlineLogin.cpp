@@ -144,7 +144,7 @@ void ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 			+ GAMESTATE->GetPlayerDisplayName((PlayerNumber)m_iPlayer) + "\n" +
 			ENTER_YOUR_PASSWORD.GetValue();
 		RString Response;
-		switch(NSMAN->DealWithSMOnlinePack(this, Response)) {
+		switch(SMOProtocol::DealWithSMOnlinePack(static_cast<SMOProtocol*>(NSMAN->curProtocol)->SMOnlinePacket, this, Response)) {
 			case 0:
 				SCREENMAN->SetNewScreen(THEME->GetMetric(m_sName, "NextScreen"));
 				m_iPlayer = 0;
