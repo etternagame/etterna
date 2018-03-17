@@ -1,0 +1,4 @@
+MACOSX_DEPLOYMENT_TARGET = 10.12
+CLANG_CXX_LANGUAGE_STANDARD = gnu++14
+CLANG_CXX_LIBRARY = libc++
+LIBRARY_SEARCH_PATHS=/Users/travis/build/Nickito12/etterna/Xcode/Libraries;
