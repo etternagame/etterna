@@ -203,17 +203,28 @@ end
 
 
 function scoreBoard(pn,position)
+	local judge = GetTimingDifficulty()
+	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
+	local score = SCOREMAN:GetMostRecentScore()
+	local smallest,largest
+	local devianceTable
 	local t = Def.ActorFrame{
 		BeginCommand=function(self)
 			if position == 1 then
 				self:x(SCREEN_WIDTH-(frameX*2)-frameWidth)
 			end
-		end
+		end,
+		UpdateNetEvalStatsMessageCommand = function(self)
+			local s = SCREENMAN:GetTopScreen():GetHighScore()
+			if s then
+				score = s
+				devianceTable = score:GetOffsetVector()
+				smallest,largest = wifeRange(devianceTable)
+				MESSAGEMAN:Broadcast("ScoreChanged")
+			end
+		end,
 	}
 	
-	local judge = GetTimingDifficulty()
-	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
-	local score = SCOREMAN:GetMostRecentScore()
 	
 	t[#t+1] = Def.Quad{
 		InitCommand=function(self)
@@ -257,6 +268,7 @@ function scoreBoard(pn,position)
 		BeginCommand=function(self)
 			self:queuecommand("Set")
 		end,
+		ScoreChangedMessageCommand = function(self) self:queuecommand("Set"); end,
 		SetCommand=function(self)
 			local meter = score:GetSkillsetSSR("Overall")
 			self:settextf("%5.2f", meter)
@@ -425,11 +437,6 @@ function scoreBoard(pn,position)
 				InitCommand=function(self)
 					self:Load("StepsDisplayEvaluation",pn):SetFromGameState(pn)
 				end;
-				UpdateNetEvalStatsMessageCommand=function(self,param)
-					if GAMESTATE:IsPlayerEnabled(pn) then
-						self:SetFromSteps(param.Steps) 
-					end;
-				end;
 			}
 			t[#t+1] = StandardDecorationFromTable( "StepsDisplay" .. ToEnumShortString(pn), t2 )
 		end
@@ -443,9 +450,10 @@ function scoreBoard(pn,position)
 		BeginCommand=function(self)
 			self:queuecommand("Set")
 		end,
+		ScoreChangedMessageCommand = function(self) self:queuecommand("Set"); end,
 		SetCommand=function(self) 
-			self:diffuse(getGradeColor(pss:GetWifeGrade()))
-			self:settextf("%05.2f%% (%s)",notShit.floor(pss:GetWifeScore()*10000)/100, "Wife")
+			self:diffuse(getGradeColor(score:GetWifeGrade()))
+			self:settextf("%05.2f%% (%s)",notShit.floor(score:GetWifeScore()*10000)/100, "Wife")
 		end,
 		CodeMessageCommand=function(self,params)
 			if params.Name == "PrevJudge" and judge > 1 then
@@ -473,7 +481,10 @@ function scoreBoard(pn,position)
 		end,
 		SetCommand=function(self) 
 			self:settext(GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptionsString('ModsLevel_Current'))
-		end
+		end,
+		ScoreChangedMessageCommand=function(self) 
+			self:settext(SCREENMAN:GetTopScreen():GetOptions() or "")
+		end,
 	}
 
 	for k,v in ipairs(judges) do
@@ -488,6 +499,10 @@ function scoreBoard(pn,position)
 			end,
 			BeginCommand=function(self)
 				self:glowshift():effectcolor1(color("1,1,1,"..tostring(pss:GetPercentageOfTaps(v)*0.4))):effectcolor2(color("1,1,1,0")):sleep(0.5):decelerate(2):zoomx(frameWidth*pss:GetPercentageOfTaps(v))
+			end,
+			ScoreChangedMessageCommand = function(self) 
+				local rescoreJudges = score:RescoreJudges(judge)
+				self:zoomx(frameWidth*rescoreJudges[k]/(#(score:GetOffsetVector())))
 			end,
 			CodeMessageCommand=function(self,params)
 				if params.Name == "PrevJudge" or params.Name == "NextJudge" then
@@ -517,6 +532,9 @@ function scoreBoard(pn,position)
 			SetCommand=function(self) 
 				self:settext(pss:GetTapNoteScores(v))
 			end,
+			ScoreChangedMessageCommand = function(self) 
+				self:settext(score:GetTapNoteScore(v))
+			end,
 			CodeMessageCommand=function(self,params)
 				if params.Name == "PrevJudge" or params.Name == "NextJudge" then
 					local rescoreJudges = score:RescoreJudges(judge)
@@ -530,6 +548,9 @@ function scoreBoard(pn,position)
 			end,
 			BeginCommand=function(self)
 				self:queuecommand("Set")
+			end,
+			ScoreChangedMessageCommand = function(self) 
+				self:settextf("(%03.2f%%)",score:GetTapNoteScore(v)/(#(score:GetOffsetVector()))*100)
 			end,
 			SetCommand=function(self) 
 				self:settextf("(%03.2f%%)",pss:GetPercentageOfTaps(v)*100)
@@ -575,14 +596,14 @@ function scoreBoard(pn,position)
 			self:xy(frameWidth+25,frameY+230):zoomto(frameWidth/2+10,60):halign(1):valign(0):diffuse(color("#333333CC"))
 		end;
 	}
-	local smallest,largest = wifeRange(devianceTable)
+	smallest,largest = wifeRange(devianceTable)
 	local doot = {"Mean", "Mean(Abs)", "Sd", "Smallest", "Largest"}
 	local mcscoot = {
-		wifeMean(devianceTable), 
-		ms.tableSum(devianceTable, 1,true)/#devianceTable,
-		wifeSd(devianceTable),
-		smallest, 
-		largest
+		function() return wifeMean(devianceTable) end, 
+		function() return ms.tableSum(devianceTable, 1,true)/#devianceTable end,
+		function() return wifeSd(devianceTable) end,
+		function() smallest end, 
+		function() largest end
 	}
 
 	for i=1,#doot do
@@ -593,7 +614,7 @@ function scoreBoard(pn,position)
 		}
 		t[#t+1] = LoadFont("Common Normal")..{
 			InitCommand=function(self)
-				self:xy(frameWidth+20,frameY+230+10*i):zoom(0.4):halign(1):settextf("%5.2fms",mcscoot[i])
+				self:xy(frameWidth+20,frameY+230+10*i):zoom(0.4):halign(1):settextf("%5.2fms",mcscoot[i]())
 			end
 		}
 	end

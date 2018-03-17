@@ -208,6 +208,10 @@ Grade PlayerStageStats::GetWifeGrade() {
 	return Grade_Tier07;
 }
 
+Grade PlayerStageStats::GetGrade(float p)
+{
+	return GetGradeFromPercent(p);
+}
 Grade PlayerStageStats::GetGrade() const
 {
 	if( m_bFailed )

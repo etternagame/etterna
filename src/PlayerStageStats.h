@@ -27,6 +27,7 @@ public:
 	 * @param other the other stats to add to this one. */
 	void AddStats( const PlayerStageStats& other );		// accumulate
 
+	static Grade GetGrade(float p);
 	Grade GetGrade() const;
 	static float MakePercentScore( int iActual, int iPossible );
 	static RString FormatPercentScore( float fPercentScore );

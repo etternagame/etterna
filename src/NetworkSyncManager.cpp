@@ -3,6 +3,7 @@
 #include "uWS.h"
 #include "LuaManager.h"
 #include "ScreenNetRoom.h"
+#include "PlayerStageStats.h"
 #include "ScreenNetSelectMusic.h"
 #include "LocalizedString.h"
 #include "JsonUtil.h"
@@ -43,6 +44,7 @@ std::map<ETTClientMessageTypes, std::string> ettClientMessageMap = {
 	{ ettpc_openeval, "openeval" },
 	{ ettpc_closeeval, "closeeval" },
 	{ ettpc_logout, "logout" },
+	{ ettpc_hello, "hello" },
 };
 std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
 	{ "hello", ettps_hello },
@@ -59,6 +61,7 @@ std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
 	{ "deleteroom", ettps_deleteroom },
 	{ "newroom", ettps_newroom },
 	{ "updateroom", ettps_updateroom },
+	{ "userlist", ettps_roomuserlist },
 };
 
 
@@ -109,6 +112,7 @@ unsigned long NetworkSyncManager::GetCurrentSMBuild( LoadingWindow* ld ) { retur
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "PlayerState.h"
 #include "CryptManager.h"
+#include "HighScore.h"
 
 AutoScreenMessage(SM_AddToChat);
 AutoScreenMessage(SM_ChangeSong);
@@ -123,6 +127,7 @@ AutoScreenMessage(ETTP_IncomingChat);
 AutoScreenMessage(ETTP_RoomsChange);
 AutoScreenMessage(ETTP_SelectChart);
 AutoScreenMessage(ETTP_StartChart);
+AutoScreenMessage(ETTP_NewScore);
 
 extern Preference<RString> g_sLastServer;
 Preference<unsigned int> autoConnectMultiplayer("AutoConnectMultiplayer", 1);
@@ -257,7 +262,8 @@ void ETTProtocol::OffEval()
 	json j;
 	j["type"] = ettClientMessageMap[ettpc_closeeval];
 	j["id"] = msgId++;
-	ws->send(j.dump().c_str());
+	Send(j.dump().c_str());
+	state = 0;
 }
 void ETTProtocol::OnEval()
 {
@@ -266,7 +272,8 @@ void ETTProtocol::OnEval()
 	json j;
 	j["type"] = ettClientMessageMap[ettpc_openeval];
 	j["id"] = msgId++;
-	ws->send(j.dump().c_str());
+	Send(j.dump().c_str());
+	state = 2;
 }
 void ETTProtocol::OnOptions()
 {
@@ -275,7 +282,8 @@ void ETTProtocol::OnOptions()
 	json j;
 	j["type"] = ettClientMessageMap[ettpc_openoptions];
 	j["id"] = msgId++;
-	ws->send(j.dump().c_str());
+	Send(j.dump().c_str());
+	state = 3;
 }
 void ETTProtocol::OffOptions()
 {
@@ -284,7 +292,8 @@ void ETTProtocol::OffOptions()
 	json j;
 	j["type"] = ettClientMessageMap[ettpc_closeoptions];
 	j["id"] = msgId++;
-	ws->send(j.dump().c_str());
+	Send(j.dump().c_str());
+	state = 0;
 }
 
 void SMOProtocol::close()
@@ -477,7 +486,8 @@ void ETTProtocol::FindJsonChart(NetworkSyncManager* n, json& ch)
 	n->m_sArtist = ch.value("artist", "");
 	n->difficulty = StringToDifficulty(ch.value("difficulty", "Invalid"));
 	n->meter = ch.value("meter", -1);
-	StepsType st = GAMESTATE->GetCurrentStyle(PLAYER_1)->m_StepsType;
+	StringToStyleType(ch.value("stepstype", "Invalid"));
+
 	if (!n->chartkey.empty()) {
 		auto song = SONGMAN->GetSongByChartkey(n->chartkey);
 		if (song == nullptr)
@@ -487,7 +497,7 @@ void ETTProtocol::FindJsonChart(NetworkSyncManager* n, json& ch)
 			(n->m_sSubTitle.empty() || n->m_sSubTitle == song->GetTranslitSubTitle()) &&
 			(n->m_sFileHash.empty() || n->m_sFileHash == song->GetFileHash()))
 		{
-			for (auto& steps : song->GetStepsByStepsType(st)) {
+			for (auto& steps : song->GetAllSteps()) {
 				if ((n->meter == -1 || n->meter == steps->GetMeter()) &&
 					(n->difficulty == Difficulty_Invalid || n->difficulty == steps->GetDifficulty()) &&
 					(n->chartkey == steps->GetChartKey())) {
@@ -510,7 +520,7 @@ void ETTProtocol::FindJsonChart(NetworkSyncManager* n, json& ch)
 				(n->m_sSubTitle.empty() || n->m_sSubTitle == m_cSong->GetTranslitSubTitle()) &&
 				(n->m_sFileHash.empty() || n->m_sFileHash == m_cSong->GetFileHash()))
 			{
-				for (auto& steps : m_cSong->GetStepsByStepsType(st)) {
+				for (auto& steps : m_cSong->GetAllSteps()) {
 					if ((n->meter == -1 || n->meter == steps->GetMeter()) &&
 						(n->difficulty == Difficulty_Invalid || n->difficulty == steps->GetDifficulty())) {
 						n->song = m_cSong;
@@ -534,93 +544,173 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 			auto jType = (*iterator).find("type");
 			auto payload = (*iterator).find("payload");
 			auto error = (*iterator).find("error");
-			if (jType != iterator->end()) {
-				if (error != iterator->end()) {
-					LOG->Trace(("Error on ETTP message " + jType->get<string>() + ":" + error->get<string>()).c_str());
-					break;
+			if (jType == iterator->end())
+			break;
+			if (error != iterator->end()) {
+				LOG->Trace(("Error on ETTP message " + jType->get<string>() + ":" + error->get<string>()).c_str());
+				break;
+			}
+			switch (ettServerMessageMap[jType->get<string>()]) {
+			case ettps_loginresponse:
+				if (!(n->loggedIn = (*payload)["logged"]))
+					n->loginResponse = (*payload)["msg"].get<string>();
+				else {
+					n->loginResponse = "";
+					n->loggedIn = true;
 				}
-				switch (ettServerMessageMap[jType->get<string>()]) {
-				case ettps_loginresponse:
-					if (!(n->loggedIn = (*payload)["logged"]))
-						n->loginResponse = (*payload)["msg"].get<string>();
+				SCREENMAN->SendMessageToTopScreen(ETTP_LoginResponse);
+				break;
+			case ettps_hello:
+				serverName = (*payload).value("name", "");
+				serverVersion = (*payload).value("version", 1);
+				LOG->Trace("Ettp server identified: %s (Version:%d)", serverName.c_str(), serverVersion);
+				n->DisplayStartupStatus();
+				if (ws != nullptr) {
+					json hello;
+					hello["type"] = ettClientMessageMap[ettpc_hello];
+					hello["payload"]["version"] = ETTPCVERSION;
+					Send(hello.dump().c_str());
+				}
+				break;
+			case ettps_recievescore:
+			{
+				json& score = (*payload)["score"];
+				HighScore hs;
+				EndOfGame_PlayerData result;
+				hs.SetScoreKey(score.value("scorekey", ""));
+				hs.SetSSRNormPercent(score.value("ssr_norm", 0));
+				hs.SetEtternaValid(score.value("valid", 0));
+				hs.SetModifiers(score.value("mods", ""));
+
+				result.tapScores[0] = score.value("marv", 0);
+				hs.SetTapNoteScore(TNS_W1, score.value("marv", 0));
+				result.tapScores[1] = score.value("perfect", 0);
+				hs.SetTapNoteScore(TNS_W2, score.value("perfect", 0));
+				result.tapScores[2] = score.value("great", 0);
+				hs.SetTapNoteScore(TNS_W3, score.value("great", 0));
+				result.tapScores[3] = score.value("good", 0);
+				hs.SetTapNoteScore(TNS_W4, score.value("good", 0));
+				result.tapScores[4] = score.value("bad", 0);
+				hs.SetTapNoteScore(TNS_W5, score.value("bad", 0));
+				result.tapScores[5] = score.value("miss", 0);
+				hs.SetTapNoteScore(TNS_Miss, score.value("miss", 0));
+				result.tapScores[6] = 0;
+				result.tapScores[7] = score.value("max_combo", 0);
+				hs.SetMaxCombo(score.value("max_combo", 0));
+				hs.SetGrade(PlayerStageStats::GetGrade(hs.GetSSRNormPercent()));
+				hs.SetDateTime(DateTime());
+				hs.SetTapNoteScore(TNS_HitMine, score.value("hitmine", 0));
+				hs.SetHoldNoteScore(HNS_Held, score.value("held", 0));
+				hs.SetChartKey(score.value("chartkey", ""));
+				hs.SetHoldNoteScore(HNS_LetGo, score.value("letgo", 0));
+				hs.SetHoldNoteScore(HNS_Missed, score.value("ng", 0));
+				try {
+					hs.SetChordCohesion(!score["nocc"].get<bool>());
+				}
+				catch (exception e) {
+					hs.SetChordCohesion(true);
+				}
+				hs.SetMusicRate(score.value("rate", 0.1));
+				try {
+					json& replay = score["replay"];
+					json& jOffsets = replay["offsets"];
+					json& jNoterows = replay["noterows"];
+					vector<float> offsets;
+					vector<int> noterows;
+					for (json::iterator offsetIt = jOffsets.begin(); offsetIt != jOffsets.end(); ++offsetIt)
+						offsets.emplace_back(static_cast<float>(*offsetIt));
+					for (json::iterator noterowIt = jNoterows.begin(); noterowIt != jNoterows.end(); ++noterowIt)
+						noterows.emplace_back(noterowIt->get<int>());
+					hs.SetOffsetVector(offsets);
+					hs.SetNoteRowVector(noterows);
+				}
+				catch(exception e) { } //No replay data for this score, its still valid
+				result.nameStr = (*payload)["name"].get<string>();
+				result.hs = hs;
+				result.playerOptions = payload->value("options", "");
+				n->m_EvalPlayerData.emplace_back(result);
+				n->m_ActivePlayers = n->m_EvalPlayerData.size();
+				SCREENMAN->SendMessageToTopScreen(ETTP_NewScore);
+				break;
+			}
+			case ettps_ping:
+				if (ws != nullptr) {
+					json ping;
+					ping["type"] = ettClientMessageMap[ettpc_ping];
+					ping["id"] = msgId++;
+					Send(ping.dump().c_str());
+				}
+				break;
+			case ettps_selectchart:
+				{
+					auto ch = (*payload).at("chart"); 
+					FindJsonChart(n, ch);
+					json j;
+					if (n->song != nullptr) {
+						SCREENMAN->SendMessageToTopScreen(ETTP_SelectChart);
+						j["type"] = ettClientMessageMap[ettpc_haschart];
+					}
 					else {
-						n->loginResponse = "";
-						n->loggedIn = true;
+						j["type"] = ettClientMessageMap[ettpc_missingchart];
 					}
-					SCREENMAN->SendMessageToTopScreen(ETTP_LoginResponse);
-					break;
-				case ettps_hello:
-					serverName = (*payload).value("name", "");
-					serverVersion = (*payload).value("version", 1);
-					LOG->Trace("Ettp server identified: %s (Version:%d)", serverName.c_str(), serverVersion);
-					n->DisplayStartupStatus();
-					break;
-				case ettps_ping:
-					if (ws != nullptr) {
-						json ping;
-						ping["type"] = ettClientMessageMap[ettpc_ping];
-						ping["id"] = msgId++;
-						ws->send(ping.dump().c_str());
+					j["id"] = msgId++;
+					Send(j.dump().c_str());
+				}
+			break;
+			case ettps_startchart:
+				{
+					n->m_EvalPlayerData.clear();
+					auto ch = (*payload).at("chart");
+					FindJsonChart(n, ch);
+					json j;
+					if (n->song != nullptr && state == 0) {
+						SCREENMAN->SendMessageToTopScreen(ETTP_StartChart);
+						j["type"] = ettClientMessageMap[ettpc_startingchart];
 					}
-					break;
-				case ettps_selectchart:
-					{
-						auto ch = (*payload).at("chart"); 
-						FindJsonChart(n, ch);
-						json j;
-						if (n->song != nullptr) {
-							SCREENMAN->SendMessageToTopScreen(ETTP_SelectChart);
-							j["type"] = ettClientMessageMap[ettpc_haschart];
-						}
-						else {
-							j["type"] = ettClientMessageMap[ettpc_missingchart];
-						}
-						j["id"] = msgId++;
-						ws->send(j.dump().c_str());
-					}
-				break;
-				case ettps_startchart:
-					{
-						auto ch = (*payload).at("chart");
-						FindJsonChart(n, ch);
-						json j;
-						if (n->song != nullptr) {
-							SCREENMAN->SendMessageToTopScreen(ETTP_StartChart);
-							j["type"] = ettClientMessageMap[ettpc_startingchart];
-						}
-						else
-							j["type"] = ettClientMessageMap[ettpc_notstartingchart];
-						j["id"] = msgId++;
-						ws->send(j.dump().c_str());
-					}
-				break;
-				case ettps_recievechat:
-					{
-						//chat[tabname, tabtype] = msg
-						int type = (*payload)["msgtype"].get<int>();
-						string tab = (*payload)["tab"].get<string>();
-						n->chat[{tab, type}].emplace_back((*payload)["msg"].get<string>());
-						SCREENMAN->SendMessageToTopScreen(ETTP_IncomingChat);
-						Message msg("Chat");
-						msg.SetParam("tab", RString(tab.c_str()));
-						msg.SetParam("msg", RString((*payload)["msg"].get<string>().c_str()));
-						msg.SetParam("type", type);
+					else
+						j["type"] = ettClientMessageMap[ettpc_notstartingchart];
+					j["id"] = msgId++;
+					Send(j.dump().c_str());
+				}
+			break;
+			case ettps_recievechat:
+				{
+					//chat[tabname, tabtype] = msg
+					int type = (*payload)["msgtype"].get<int>();
+					string tab = (*payload)["tab"].get<string>();
+					n->chat[{tab, type}].emplace_back((*payload)["msg"].get<string>());
+					SCREENMAN->SendMessageToTopScreen(ETTP_IncomingChat);
+					Message msg("Chat");
+					msg.SetParam("tab", RString(tab.c_str()));
+					msg.SetParam("msg", RString((*payload)["msg"].get<string>().c_str()));
+					msg.SetParam("type", type);
+					MESSAGEMAN->Broadcast(msg);
+					//Should end here
+					n->m_sChatText = (n->m_sChatText + "\n" + (*payload)["msg"].get<string>()).c_str();
+					SCREENMAN->SendMessageToTopScreen(SM_AddToChat);
+				}
+			break;
+			case ettps_gameplayleaderboard:
+
+			break;
+			case ettps_createroomresponse:
+				{
+					bool created = (*payload)["created"];
+					if (created) {
+						Message msg(MessageIDToString(Message_UpdateScreenHeader));
+						msg.SetParam("Header", roomName);
+						msg.SetParam("Subheader", roomDesc);
 						MESSAGEMAN->Broadcast(msg);
-						//Should end here
-						n->m_sChatText = (n->m_sChatText + "\n" + (*payload)["msg"].get<string>()).c_str();
-						SCREENMAN->SendMessageToTopScreen(SM_AddToChat);
+						RString SMOnlineSelectScreen = THEME->GetMetric("ScreenNetRoom", "MusicSelectScreen");
+						SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
 					}
-				break;
-				case ettps_recievescore:
-
-				break;
-				case ettps_gameplayleaderboard:
-
-				break;
-				case ettps_createroomresponse:
-					{
-						bool created = (*payload)["created"];
-						if (created) {
+				}
+			break;
+			case ettps_enterroomresponse:
+				{
+					bool entered = (*payload)["entered"];
+					if (entered) {
+						try {
 							Message msg(MessageIDToString(Message_UpdateScreenHeader));
 							msg.SetParam("Header", roomName);
 							msg.SetParam("Subheader", roomDesc);
@@ -628,87 +718,103 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							RString SMOnlineSelectScreen = THEME->GetMetric("ScreenNetRoom", "MusicSelectScreen");
 							SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
 						}
+						catch (exception e) {
+							LOG->Trace("Error while parsing ettp json enter room response: %s", e.what());
+						}
 					}
-				break;
-				case ettps_enterroomresponse:
-					{
-						bool entered = (*payload)["entered"];
-						if (entered) {
+					else {
+						roomDesc = "";
+						roomName = "";
+					}
+				}
+			break;
+			case ettps_newroom:
+				try {
+					RoomData tmp = jsonToRoom((*payload)["room"]);
+					n->m_Rooms.emplace_back(tmp);
+					SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
+				}
+				catch (exception e) {
+					LOG->Trace("Error while parsing ettp json newroom room: %s", e.what());
+				}
+			break;
+			case ettps_deleteroom:
+				try {
+					string name = (*payload)["room"]["name"];
+					n->m_Rooms.erase(
+						std::remove_if(n->m_Rooms.begin(), n->m_Rooms.end(), [&](RoomData const & room) {
+							return room.Name() == name;
+						}),
+					n->m_Rooms.end());
+					SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
+				}
+				catch (exception e) {
+					LOG->Trace("Error while parsing ettp json deleteroom room: %s", e.what());
+				}
+			break;
+			case ettps_updateroom:
+				try {
+					auto updated = jsonToRoom((*payload)["room"]);
+					auto roomIt = find_if(n->m_Rooms.begin(), n->m_Rooms.end(), 
+						[&](RoomData const & room) {
+								return room.Name() == updated.Name();
+						}
+					);
+					if(roomIt != n->m_Rooms.end()) {
+						roomIt->SetDescription(updated.Description());
+						roomIt->SetState(updated.State());
+						roomIt->players = updated.players;
+						SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
+					}
+				}
+				catch (exception e) {
+					LOG->Trace("Error while parsing ettp json roomlist room: %s", e.what());
+				}
+			break;
+			case ettps_roomlist:
+				{
+					RoomData tmp;
+					n->m_Rooms.clear();
+					auto j1 = payload->at("rooms");
+					if (j1.is_array())
+						for (auto&& room : j1) {
 							try {
-								Message msg(MessageIDToString(Message_UpdateScreenHeader));
-								msg.SetParam("Header", roomName);
-								msg.SetParam("Subheader", roomDesc);
-								MESSAGEMAN->Broadcast(msg);
-								RString SMOnlineSelectScreen = THEME->GetMetric("ScreenNetRoom", "MusicSelectScreen");
-								SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
+								n->m_Rooms.emplace_back(jsonToRoom(room));
 							}
 							catch (exception e) {
-								LOG->Trace("Error while parsing ettp json enter room response: %s", e.what());
+								LOG->Trace("Error while parsing ettp json roomlist room: %s", e.what());
 							}
 						}
-					}
-				break;
-				case ettps_newroom:
-					try {
-						RoomData tmp = jsonToRoom((*payload)["room"]);
-						n->m_Rooms.emplace_back(tmp);
-						SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
-					}
-					catch (exception e) {
-						LOG->Trace("Error while parsing ettp json newroom room: %s", e.what());
-					}
-				break;
-				case ettps_deleteroom:
-					try {
-						string name = (*payload)["room"]["name"];
-						n->m_Rooms.erase(
-							std::remove_if(n->m_Rooms.begin(), n->m_Rooms.end(), [&](RoomData const & room) {
-							    return room.Name() == name;
-							}),
-						n->m_Rooms.end());
-						SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
-					}
-					catch (exception e) {
-						LOG->Trace("Error while parsing ettp json deleteroom room: %s", e.what());
-					}
-				break;
-				case ettps_updateroom:
-					try {
-						auto updated = jsonToRoom((*payload)["room"]);
-						auto roomIt = find_if(n->m_Rooms.begin(), n->m_Rooms.end(), 
-							[&](RoomData const & room) {
-						    		return room.Name() == updated.Name();
-							}
-						);
-						if(roomIt != n->m_Rooms.end()) {
-							roomIt->SetDescription(updated.Description());
-							roomIt->SetState(updated.State());
-							roomIt->players = updated.players;
-							SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
-						}
-					}
-					catch (exception e) {
-						LOG->Trace("Error while parsing ettp json roomlist room: %s", e.what());
-					}
-				break;
-				case ettps_roomlist:
-					{
-						RoomData tmp;
-						n->m_Rooms.clear();
-						auto j1 = payload->at("rooms");
-						if (j1.is_array())
-							for (auto&& room : j1) {
-								try {
-									n->m_Rooms.emplace_back(jsonToRoom(room));
-								}
-								catch (exception e) {
-									LOG->Trace("Error while parsing ettp json roomlist room: %s", e.what());
-								}
-							}
-						SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
-					}
-				break;
+					SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
 				}
+			break;
+			case ettps_roomuserlist:
+			{
+				n->m_ActivePlayer.clear();
+				n->m_PlayerNames.clear();
+				n->m_PlayerStatus.clear();
+				auto j1 = payload->at("players");
+				if (j1.is_array())
+					for (auto&& player : j1) {
+						int stored = 0;
+						try {
+							n->m_PlayerNames.emplace_back(player["name"]);
+							stored++;
+							n->m_PlayerStatus.emplace_back(player["status"]);
+							stored++;
+							n->m_ActivePlayer.emplace_back(0);
+						}
+						catch (exception e) {
+							if (stored > 0)
+								n->m_PlayerNames.pop_back();
+							if (stored > 1)
+								n->m_PlayerStatus.pop_back();
+							LOG->Trace("Error while parsing ettp json room player list: %s", e.what());
+						}
+					}
+				SCREENMAN->SendMessageToTopScreen(SM_UsersUpdate);
+			}
+			break;
 			}
 		}
 		catch (exception e) {
@@ -916,7 +1022,7 @@ void ETTProtocol::Logout()
 		return;
 	json logout;
 	logout["type"] = ettClientMessageMap[ettpc_logout];
-	ws->send(logout.dump().c_str());
+	Send(logout.dump().c_str());
 }
 void NetworkSyncManager::Login(RString user, RString pass)
 {
@@ -934,7 +1040,7 @@ void ETTProtocol::SendChat(const RString& message, string tab, int type)
 	payload["tab"] = tab.c_str();
 	payload["msgtype"] = type;
 	chatMsg["id"] = msgId++;
-	ws->send(chatMsg.dump().c_str());
+	Send(chatMsg.dump().c_str());
 }
 void ETTProtocol::CreateNewRoom(RString name, RString desc, RString password) 
 {
@@ -949,7 +1055,7 @@ void ETTProtocol::CreateNewRoom(RString name, RString desc, RString password)
 	payload["pass"] = password.c_str();
 	payload["desc"] = desc.c_str();
 	createRoom["id"] = msgId++;
-	ws->send(createRoom.dump().c_str());
+	Send(createRoom.dump().c_str());
 }
 void ETTProtocol::LeaveRoom(NetworkSyncManager* n)
 {
@@ -968,7 +1074,7 @@ void ETTProtocol::LeaveRoom(NetworkSyncManager* n)
 	json leaveRoom;
 	leaveRoom["type"] = ettClientMessageMap[ettpc_leaveroom];
 	leaveRoom["id"] = msgId++;
-	ws->send(leaveRoom.dump().c_str());
+	Send(leaveRoom.dump().c_str());
 }
 void ETTProtocol::EnterRoom(RString name, RString password) 
 {
@@ -985,7 +1091,7 @@ void ETTProtocol::EnterRoom(RString name, RString password)
 	payload["name"] = name.c_str();
 	payload["pass"] = password.c_str();
 	enterRoom["id"] = msgId++;
-	ws->send(enterRoom.dump().c_str());
+	Send(enterRoom.dump().c_str());
 }
 void ETTProtocol::Login(RString user, RString pass)
 {
@@ -997,7 +1103,7 @@ void ETTProtocol::Login(RString user, RString pass)
 	payload["user"] = user.c_str();
 	payload["pass"] = pass.c_str();
 	login["id"] = msgId++;
-	ws->send(login.dump().c_str());
+	Send(login.dump().c_str());
 }
 void SMOProtocol::Login(RString user, RString pass)
 {
@@ -1062,6 +1168,64 @@ void SMOProtocol::ReportScore(NetworkSyncManager* n, int playerID, int step, int
 	m_packet.Write2((uint16_t)iOffset);
 	NetPlayerClient->SendPack((char*)m_packet.Data, m_packet.Position);
 }
+void NetworkSyncManager::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
+{
+	if (curProtocol != nullptr)
+		curProtocol->ReportHighScore(hs, pss);
+}
+
+void ETTProtocol::Send(const char* msg)
+{
+	if (ws != nullptr)
+		ws->send(msg);
+}
+void ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
+{
+	if (ws == nullptr)
+		return;
+	json j;
+	j["type"] = ettClientMessageMap[ettpc_sendscore];
+	auto& payload = j["payload"];
+	payload["scorekey"] = hs->GetScoreKey();
+	payload["ssr_norm"] = hs->GetSSRNormPercent();
+	payload["max_combo"] = hs->GetMaxCombo();
+	payload["valid"] = static_cast<int>(hs->GetEtternaValid());
+	payload["mods"] = hs->GetModifiers();
+	payload["miss"] = hs->GetTapNoteScore(TNS_Miss);
+	payload["bad"] = hs->GetTapNoteScore(TNS_W5);
+	payload["good"] = hs->GetTapNoteScore(TNS_W4);
+	payload["great"] = hs->GetTapNoteScore(TNS_W3);
+	payload["perfect"] = hs->GetTapNoteScore(TNS_W2);
+	payload["marv"] = hs->GetTapNoteScore(TNS_W1);
+	payload["datetime"] = string(hs->GetDateTime().GetString().c_str());
+	payload["hitmine"] = hs->GetTapNoteScore(TNS_HitMine);
+	payload["held"] = hs->GetHoldNoteScore(HNS_Held);
+	payload["letgo"] = hs->GetHoldNoteScore(HNS_LetGo);
+	payload["ng"] = hs->GetHoldNoteScore(HNS_Missed);
+	payload["chartkey"] = hs->GetChartKey();
+	payload["rate"] = hs->GetMusicRate();
+	if(GAMESTATE->m_pPlayerState[PLAYER_1]!=nullptr)
+		payload["options"] = GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().GetString();
+	auto chart = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
+	payload["negsolo"] = chart->GetTimingData()->HasWarps() || chart->m_StepsType != StepsType_dance_single;
+	payload["nocc"] = static_cast<int>(!hs->GetChordCohesion());
+	payload["calc_version"] = hs->GetSSRCalcVersion();
+	payload["topscore"] = hs->GetTopScore();
+	payload["uuid"] = hs->GetMachineGuid();
+	payload["hash"] = hs->GetValidationKey(ValidationKey_Brittle);
+	auto& offsets = pss.GetOffsetVector();
+	auto& noterows = pss.GetNoteRowVector();
+	if (offsets.size() > 0) {
+		payload["replay"] = json::object();
+		payload["replay"]["noterows"] = json::array();
+		payload["replay"]["offsets"] = json::array();
+		for (int i = 0; i < noterows.size(); i++)
+			payload["replay"]["noterows"].push_back(noterows[i]);
+		for (int i = 0; i < offsets.size(); i++) 
+			payload["replay"]["offsets"].push_back(offsets[i]);
+	}
+	Send(j.dump().c_str());
+}
 void NetworkSyncManager::ReportScore(int playerID, int step, int score, int combo, float offset)
 {
 	if (curProtocol != nullptr)
@@ -1124,7 +1288,7 @@ void ETTProtocol::ReportSongOver(NetworkSyncManager* n)
 	json gameOver;
 	gameOver["type"] = ettClientMessageMap[ettpc_gameover];
 	gameOver["id"] = msgId++;
-	ws->send(gameOver.dump().c_str());
+	Send(gameOver.dump().c_str());
 }
 void SMOProtocol::ReportSongOver(NetworkSyncManager* n)
 {
@@ -1157,25 +1321,10 @@ void SMOProtocol::ReportStyle(NetworkSyncManager* n)
 
 void NetworkSyncManager::StartRequest(short position)
 {
+	//This needs to be reset before ScreenEvaluation could possibly be called
+	m_EvalPlayerData.clear();
 	if (curProtocol != nullptr)
 		curProtocol->StartRequest(this, position);
-}
-void ETTProtocol::StartRequest(NetworkSyncManager* n, short position)
-{
-	if (ws == nullptr || position == 0)
-		return;
-	json startChart;
-	startChart["type"] = ettClientMessageMap[ettpc_startchart];
-	auto& payload = startChart["payload"];
-	payload["title"] = GAMESTATE->m_pCurSong->m_sMainTitle;
-	payload["subtitle"] = GAMESTATE->m_pCurSong->m_sSubTitle;
-	payload["artist"] = GAMESTATE->m_pCurSong->m_sArtist;
-	payload["filehash"] = GAMESTATE->m_pCurSong->GetFileHash();
-	payload["chartkey"] = GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey();
-	payload["options"] = GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().GetString();
-	payload["rate"] = static_cast<int>((GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
-	startChart["id"] = msgId++;
-	ws->send(startChart.dump().c_str());
 }
 void SMOProtocol::StartRequest(NetworkSyncManager* n, short position)
 {
@@ -1262,8 +1411,6 @@ void SMOProtocol::StartRequest(NetworkSyncManager* n, short position)
 		m_packet.WriteNT(GAMESTATE->m_pCurSong->GetFileHash());
 	}
 	
-	//This needs to be reset before ScreenEvaluation could possibly be called
-	n->m_EvalPlayerData.clear();
 
 	//Block until go is recieved.
 	//Switch to blocking mode (this is the only
@@ -1483,6 +1630,7 @@ void SMOProtocol::ProcessInput(NetworkSyncManager* n)
 			break;
 		case NSCRSG: //Select Song/Play song
 			{
+				n->m_EvalPlayerData.clear();
 				n->m_iSelectMode = m_packet.Read1();
 				n->m_sMainTitle = m_packet.ReadNT();
 				n->m_sArtist = m_packet.ReadNT();
@@ -1603,17 +1751,34 @@ int NetworkSyncManager::GetServerVersion()
 }
 void NetworkSyncManager::SelectUserSong()
 {
+	m_EvalPlayerData.clear();
 	if (curProtocol != nullptr)
 		curProtocol->SelectUserSong(this, GAMESTATE->m_pCurSong);
 }
 void ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 {
-	if (ws == nullptr)
+	if (ws == nullptr || song == nullptr)
 		return;
 	if (song == n->song) {
-		this->StartRequest(n, 1);
+		if (GAMESTATE->m_pCurSong == nullptr ||
+			GAMESTATE->m_pCurSteps[PLAYER_1] == nullptr || GAMESTATE->m_pPlayerState[PLAYER_1] == nullptr)
+			return;
+		json startChart;
+		startChart["type"] = ettClientMessageMap[ettpc_startchart];
+		auto& payload = startChart["payload"];
+		payload["title"] = GAMESTATE->m_pCurSong->m_sMainTitle;
+		payload["subtitle"] = GAMESTATE->m_pCurSong->m_sSubTitle;
+		payload["artist"] = GAMESTATE->m_pCurSong->m_sArtist;
+		payload["filehash"] = GAMESTATE->m_pCurSong->GetFileHash();
+		payload["chartkey"] = GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey();
+		payload["options"] = GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().GetString();
+		payload["rate"] = static_cast<int>((GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
+		startChart["id"] = msgId++;
+		Send(startChart.dump().c_str());
 	}
 	else {
+		if (GAMESTATE->m_pCurSteps[PLAYER_1] == nullptr)
+			return;
 		json selectChart;
 		selectChart["type"] = ettClientMessageMap[ettpc_selectchart];
 		auto& payload = selectChart["payload"];
@@ -1627,7 +1792,7 @@ void ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 		payload["options"] = GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().GetString();
 		payload["rate"] = static_cast<int>((GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
 		selectChart["id"] = msgId++;
-		ws->send(selectChart.dump().c_str());
+		Send(selectChart.dump().c_str());
 	}
 }
 void SMOProtocol::SelectUserSong(NetworkSyncManager * n, Song* song)

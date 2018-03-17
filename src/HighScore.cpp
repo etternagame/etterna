@@ -1254,12 +1254,14 @@ public:
 
 	// Convert to MS so lua doesn't have to
 	static int GetOffsetVector(T* p, lua_State *L) {
-		if (p->LoadReplayData()) {
-			vector<float> doot = p->GetOffsetVector();
-			for (size_t i = 0; i < doot.size(); ++i)
-				doot[i] = doot[i] * 1000;
-			LuaHelpers::CreateTableFromArray(doot, L);
-			p->UnloadReplayData();
+		auto v = p->GetOffsetVector();
+		bool loaded = v.size() > 0;
+		if (loaded || p->LoadReplayData()) {
+			for (size_t i = 0; i < v.size(); ++i)
+				v[i] = v[i] * 1000;
+			LuaHelpers::CreateTableFromArray(v, L);
+			if (!loaded)
+				p->UnloadReplayData();
 		}
 		else
 			lua_pushnil(L);
@@ -1267,9 +1269,12 @@ public:
 	}
 
 	static int GetNoteRowVector(T* p, lua_State *L) {
-		if (p->LoadReplayData()) {
-			LuaHelpers::CreateTableFromArray(p->GetNoteRowVector(), L);
-			p->UnloadReplayData();
+		auto& v = p->GetNoteRowVector();
+		bool loaded = v.size() > 0;
+		if (loaded || p->LoadReplayData()) {
+			LuaHelpers::CreateTableFromArray(v, L);
+			if(!loaded)
+				p->UnloadReplayData();
 		}
 		else
 			lua_pushnil(L);

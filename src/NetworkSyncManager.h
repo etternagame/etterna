@@ -8,7 +8,9 @@
 #include "ScreenNetSelectMusic.h"
 #include "ScreenSMOnlineLogin.h"
 #include "PlayerState.h"
+#include "PlayerStageStats.h"
 #include "Song.h"
+#include "HighScore.h"
 #include "global.h"
 #include <queue>
 #include "uWS.h"
@@ -19,6 +21,7 @@ using json = nlohmann::json;
 class LoadingWindow;
 
 const int NETPROTOCOLVERSION=4;
+const int ETTPCVERSION = 1;
 const int NETMAXBUFFERSIZE=1020; //1024 - 4 bytes for EzSockets
 const int NETNUMTAPSCORES=8;
 
@@ -67,13 +70,16 @@ enum SMOStepType
 const NSCommand NSServerOffset = (NSCommand)128;
 
 // TODO: Provide a Lua binding that gives access to this data. -aj
-struct EndOfGame_PlayerData
+class EndOfGame_PlayerData
 {
+public:
 	int name;
-	int score;
+	string nameStr;
 	int grade;
+	int score;
 	Difficulty difficulty;
 	int tapScores[NETNUMTAPSCORES];	//This will be a const soon enough
+	HighScore hs;
 	RString playerOptions;
 };
 
@@ -101,6 +107,7 @@ enum ETTServerMessageTypes {
 	ettps_deleteroom,
 	ettps_newroom,
 	ettps_updateroom,
+	ettps_roomuserlist,
 	ettps_end
 };
 enum ETTClientMessageTypes {
@@ -124,6 +131,7 @@ enum ETTClientMessageTypes {
 	ettpc_openeval, 
 	ettpc_closeeval, 
 	ettpc_logout, 
+	ettpc_hello,
 	ettpc_end
 };
 /** @brief A special foreach loop going through each NSScoreBoardColumn. */
@@ -178,6 +186,7 @@ public:
 	virtual void ReportNSSOnOff(int i) {}
 	virtual void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset, int numNotes) {}
 	virtual void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset) {}
+	virtual void ReportHighScore(HighScore* hs, PlayerStageStats& pss) {}
 	virtual void ReportSongOver(NetworkSyncManager* n) {}
 	virtual void ReportStyle(NetworkSyncManager* n) {}
 	virtual void StartRequest(NetworkSyncManager* n, short position) {}
@@ -233,6 +242,7 @@ public:
 	static void DealWithSMOnlinePack(PacketFunctions &SMOnlinePacket, ScreenNetRoom* s);
 	static int DealWithSMOnlinePack(PacketFunctions &SMOnlinePacket, ScreenSMOnlineLogin* s, RString& response);
 };
+
 class ETTProtocol : public NetProtocol { // Websockets using uwebsockets sending json
 	uWS::Hub uWSh;
 	vector<json> newMessages;
@@ -240,6 +250,7 @@ class ETTProtocol : public NetProtocol { // Websockets using uwebsockets sending
 	bool error{ false };
 	uWS::WebSocket<uWS::CLIENT>* ws;
 	void FindJsonChart(NetworkSyncManager* n, json& ch);
+	int state = 0; // 0 = ready, 1 = playing, 2 = evalScreen, 3 = options, 4 = notReady(unkown reason)
 public:
 	string roomName;
 	string roomDesc;
@@ -254,11 +265,12 @@ public:
 	void LeaveRoom(NetworkSyncManager* n) override;
 	void ReportSongOver(NetworkSyncManager* n) override;
 	void SelectUserSong(NetworkSyncManager* n, Song* song) override;
-	void StartRequest(NetworkSyncManager* n, short position) override;
 	void OnOptions() override;
 	void OffOptions() override;
 	void OnEval() override;
 	void OffEval() override;
+	void ReportHighScore(HighScore* hs, PlayerStageStats& pss) override;
+	void ETTProtocol::Send(const char* msg);
 	/*
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset, int numNotes) override;
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset) override;
@@ -289,6 +301,7 @@ public:
     // If "useSMserver" then send score to server
 	void ReportScore( int playerID, int step, int score, int combo, float offset );	
 	void ReportScore(int playerID, int step, int score, int combo, float offset, int numNotes);
+	void ReportHighScore(HighScore* hs, PlayerStageStats& pss);
 	void ReportSongOver();
 	void ReportStyle(); // Report style, players, and names
 	void ReportNSSOnOff( int i );	// Report song selection screen on/off

@@ -10,6 +10,7 @@
 #include "Style.h"
 #include "Profile.h"
 #include "ProfileManager.h"
+#include "NetworkSyncManager.h"
 #include <fstream>
 #include <sstream>
 #include "CryptManager.h"
@@ -603,6 +604,8 @@ void StageStats::FinalizeScores(bool bSummary)
 		hs.timeStamps.clear();
 		hs.timeStamps.shrink_to_fit();
 	}
+	if(NSMAN->isSMOnline)
+		NSMAN->ReportHighScore(&hs, m_player[PLAYER_1]);
 	if (m_player[PLAYER_1].m_fWifeScore > 0.f) {
 		bool writesuccess = hs.WriteReplayData();
 		if (writesuccess)
