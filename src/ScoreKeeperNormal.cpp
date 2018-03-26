@@ -369,11 +369,11 @@ void ScoreKeeperNormal::HandleTapScore( const TapNote &tn )
 void ScoreKeeperNormal::HandleHoldCheckpointScore( const NoteData &nd, int iRow, int iNumHoldsHeldThisRow, int iNumHoldsMissedThisRow )
 {
 	HandleTapNoteScoreInternal( nd, iNumHoldsMissedThisRow == 0 ? TNS_CheckpointHit:TNS_CheckpointMiss,
-							   TNS_CheckpointHit, iRow);
+							   TNS_CheckpointHit, iRow, GAMESTATE->CountNotesSeparately());
 	HandleComboInternal( iNumHoldsHeldThisRow, 0, iNumHoldsMissedThisRow, iRow );
 }
 
-void ScoreKeeperNormal::HandleTapNoteScoreInternal( const NoteData &nd, TapNoteScore tns, TapNoteScore maximum, int row )
+void ScoreKeeperNormal::HandleTapNoteScoreInternal( const NoteData &nd, TapNoteScore tns, TapNoteScore maximum, int row, bool separately)
 {
 	int notes = 0;
 
@@ -389,7 +389,7 @@ void ScoreKeeperNormal::HandleTapNoteScoreInternal( const NoteData &nd, TapNoteS
 	// Update dance points.
 	if ( !m_pPlayerStageStats->m_bFailed )
 	{
-		if ( GAMESTATE->CountNotesSeparately() )
+		if (separately)
 		{
 			m_pPlayerStageStats->m_iActualDancePoints += (TapNoteScoreToDancePoints(tns)*nd.GetNumTracksLCD()) / notes;
 		}
@@ -400,7 +400,7 @@ void ScoreKeeperNormal::HandleTapNoteScoreInternal( const NoteData &nd, TapNoteS
 	}
 
 	// increment the current total possible dance score
-	if ( GAMESTATE->CountNotesSeparately() )
+	if (separately)
 	{
 		m_pPlayerStageStats->m_iCurPossibleDancePoints += (TapNoteScoreToDancePoints(maximum)*nd.GetNumTracksLCD()) / notes;
 	}
@@ -503,16 +503,17 @@ void ScoreKeeperNormal::GetRowCounts( const NoteData &nd, int iRow,
 void ScoreKeeperNormal::HandleTapRowScore( const NoteData &nd, int iRow )
 {
 	int iNumHitContinueCombo, iNumHitMaintainCombo, iNumBreakCombo;
-	GetRowCounts( nd, iRow, iNumHitContinueCombo, iNumHitMaintainCombo, iNumBreakCombo );
+	GetRowCounts(nd, iRow, iNumHitContinueCombo, iNumHitMaintainCombo, iNumBreakCombo);
 
 	int iNumTapsInRow = iNumHitContinueCombo + iNumHitMaintainCombo + iNumBreakCombo;
 	if( iNumTapsInRow <= 0 )
 		return;
 
-	TapNoteScore scoreOfLastTap = NoteDataWithScoring::LastTapNoteWithResult( nd, iRow ).result.tns;
-	HandleTapNoteScoreInternal( nd, scoreOfLastTap, TNS_W1, iRow );
+	TapNote lastTap = NoteDataWithScoring::LastTapNoteWithResult(nd, iRow);
+	TapNoteScore scoreOfLastTap = lastTap.result.tns;
+	HandleTapNoteScoreInternal(nd, scoreOfLastTap, TNS_W1, iRow, GAMESTATE->CountNotesSeparately() && lastTap.type != TapNoteType_Lift);
 	
-	if ( GAMESTATE->CountNotesSeparately() )
+	if ( GAMESTATE->CountNotesSeparately())
 	{
 		// HandleTapRowScore gets called on every judgment,
 		// so we only want increment up by one each time.
