@@ -270,7 +270,7 @@ public:
 	void OnEval() override;
 	void OffEval() override;
 	void ReportHighScore(HighScore* hs, PlayerStageStats& pss) override;
-	void ETTProtocol::Send(const char* msg);
+	void Send(const char* msg);
 	/*
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset, int numNotes) override;
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset) override;

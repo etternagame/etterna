@@ -1081,7 +1081,7 @@ void ETTProtocol::EnterRoom(RString name, RString password)
 {
 	if (ws == nullptr)
 		return;
-	auto& it = find_if(NSMAN->m_Rooms.begin(), NSMAN->m_Rooms.end(), [&name](const RoomData& r) { return r.Name() == name; });
+	auto it = find_if(NSMAN->m_Rooms.begin(), NSMAN->m_Rooms.end(), [&name](const RoomData& r) { return r.Name() == name; });
 	if (it == NSMAN->m_Rooms.end())
 		return; //Unknown room
 	roomName = name.c_str();
@@ -1214,8 +1214,8 @@ void ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 	payload["topscore"] = hs->GetTopScore();
 	payload["uuid"] = hs->GetMachineGuid();
 	payload["hash"] = hs->GetValidationKey(ValidationKey_Brittle);
-	auto& offsets = pss.GetOffsetVector();
-	auto& noterows = pss.GetNoteRowVector();
+	auto offsets = pss.GetOffsetVector();
+	auto noterows = pss.GetNoteRowVector();
 	if (offsets.size() > 0) {
 		payload["replay"] = json::object();
 		payload["replay"]["noterows"] = json::array();
