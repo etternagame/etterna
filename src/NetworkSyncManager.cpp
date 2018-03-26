@@ -470,6 +470,7 @@ RoomData jsonToRoom(json& room)
 	tmp.SetDescription(s);
 	unsigned int state = room.value("state", 0);
 	tmp.SetState(state);
+	tmp.SetHasPassword(room.value("pass", false));
 	for (auto&& player : room.at("players")) 
 		tmp.players.emplace_back(player.get<string>());
 	return tmp;

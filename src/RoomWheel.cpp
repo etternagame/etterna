@@ -296,7 +296,7 @@ void RoomWheel::BuildFromRoomDatas()
 		itemData->m_sText = roomsInWheel[i].Name();
 		itemData->m_sDesc = roomsInWheel[i].Description();
 		itemData->m_iFlags = roomsInWheel[i].GetFlags();
-
+		itemData->hasPassword = roomsInWheel[i].HasPassword();
 		std::string color;
 		switch (roomsInWheel[i].State())
 		{
@@ -309,7 +309,7 @@ void RoomWheel::BuildFromRoomDatas()
 		}
 		itemData->m_color = THEME->GetMetricC(m_sName, color);
 
-		if (roomsInWheel[i].GetFlags() % 2)
+		if (roomsInWheel[i].GetFlags() % 2 || roomsInWheel[i].HasPassword())
 			itemData->m_color = THEME->GetMetricC(m_sName, "PasswdRoomColor");
 	}
 

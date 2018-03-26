@@ -148,7 +148,7 @@ void ScreenNetRoom::SelectCurrent()
 	RoomWheelItemData* rwd = dynamic_cast<RoomWheelItemData*>(m_RoomWheel.LastSelected());
 	if (rwd)
 	{
-		if (rwd->m_iFlags % 2)
+		if (rwd->m_iFlags % 2 || rwd->hasPassword)
 		{
 			m_sLastPickedRoom = rwd->m_sText;
 			ScreenTextEntry::TextEntry(SM_BackFromReqPass, ENTER_ROOM_REQPASSWORD, "", 255);

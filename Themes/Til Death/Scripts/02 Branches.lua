@@ -8,6 +8,9 @@ If the line is a function, you'll have to use Branch.keyname() instead.
 
 -- used for various SMOnline-enabled screens:
 function SMOnlineScreen()
+	if not IsNetSMOnline() then
+		return "ScreenSelectMusic"
+	end
 	for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
 		if not IsSMOnlineLoggedIn(pn) then
 			return "ScreenSMOnlineLogin"
@@ -31,7 +34,6 @@ function GameOverOrContinue()
 		return "ScreenGameOver"
 	end
 end
-
 Branch = {
 	Init = function() return Branch.TitleMenu() end,
 	AfterInit = function()
@@ -68,6 +70,7 @@ Branch = {
 		end
 	end,
 	StartGame = function()
+		multiplayer = false
 		-- Check to see if there are 0 songs installed. Also make sure to check
 		-- that the additional song count is also 0, because there is
 		-- a possibility someone will use their existing StepMania simfile
@@ -81,11 +84,7 @@ Branch = {
 			if IsNetConnected() then
 				return "ScreenSelectStyle"
 			else
-				if THEME:GetMetric("Common","AutoSetStyle") == false then
-					return "ScreenSelectStyle"
-				else
-					return "ScreenProfileLoad"
-				end
+				return "ScreenProfileLoad"
 			end
 		end
 	end,
@@ -101,24 +100,15 @@ Branch = {
 			ReportStyle()
 			GAMESTATE:ApplyGameCommand("playmode,regular")
 		end
-		if IsNetSMOnline() then
-			return SMOnlineScreen()
-		end
-		if IsNetConnected() then
-			return "ScreenNetRoom"
-		end
 		return "ScreenProfileLoad"
 
 		--return CHARMAN:GetAllCharacters() ~= nil and "ScreenSelectCharacter" or "ScreenGameInformation"
 	end,
 	AfterSelectProfile = function()
-		if ( THEME:GetMetric("Common","AutoSetStyle") == true ) then
-			-- use SelectStyle in online... 
-			-- OR DONT LOL!!! - mina
-			return IsNetConnected() and "ScreenSMOnlineLogin" or "ScreenSelectMusic"--"ScreenSelectPlayMode"
-		else
-			return "ScreenSelectMusic"--"ScreenSelectStyle"
-		end
+			return "ScreenSelectMusic"
+	end,
+	AfterNetSelectProfile = function()
+			return SMOnlineScreen()
 	end,
 	AfterProfileLoad = function()
 		return "ScreenSelectMusic"--"ScreenSelectPlayMode"
@@ -137,7 +127,18 @@ Branch = {
 		bTrue = PREFSMAN:GetPreference("ShowInstructions")
 		return (bTrue and GoToMusic() or "ScreenGameInformation")
 	end,
-	AfterSMOLogin = SMOnlineScreen(),
+	AfterSMOLogin = SMOnlineScreen,
+	MultiScreen = function()
+		if IsNetSMOnline() then
+			if not IsSMOnlineLoggedIn(PLAYER_1) then
+				return "ScreenNetSelectProfile"
+			else
+				return "ScreenNetRoom"
+			end
+		else
+			return "ScreenNetworkOptions"
+		end
+	end,
 	BackOutOfPlayerOptions = function()
 		return SelectMusicOrCourse()
 	end,
@@ -229,7 +230,10 @@ Branch = {
 		return "ScreenProfileSaveSummary"
 	end,
 	Network = function()
-		return IsNetConnected() and "ScreenTitleMenu" or "ScreenTitleMenu"
+		return IsNetConnected() and Branch.MultiScreen() or "ScreenTitleMenu"
+	end,
+	BackOutOfNetwork = function()
+		return "ScreenTitleMenu"
 	end,
  	AfterSaveSummary = function()
 		return GameOverOrContinue()

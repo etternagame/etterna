@@ -13,9 +13,11 @@ public:
 	void SetDescription(const std::string& desc) { m_description = desc; }
 	void SetState(unsigned int state) { m_state = state; }
 	void SetFlags(unsigned int iFlags) { m_iFlags = iFlags; }
+	void SetHasPassword(bool pass) { hasPassword = pass; }
 	inline std::string Name() const { return m_name; }
 	inline std::string Description() const { return m_description; }
 	inline unsigned int State() const { return m_state; }
+	inline bool HasPassword() const { return hasPassword; }
 	inline unsigned int GetFlags() const { return m_iFlags; }
 	RoomData() { m_name=""; m_description=""; m_state=0; m_iFlags=0; }
 	vector<string> players;
@@ -24,16 +26,18 @@ private:
 	std::string m_description;
 	unsigned int m_state;
 	unsigned int m_iFlags;
+	bool hasPassword{false};
 };
 
 struct RoomWheelItemData : public WheelItemBaseData
 {
 	RoomWheelItemData() = default;
-	RoomWheelItemData( WheelItemDataType type, const std::string& sTitle, const std::string& sDesc, const RageColor &color ):
-		WheelItemBaseData( type, sTitle, color ), m_sDesc(sDesc), m_iFlags(0) { };
+	RoomWheelItemData( WheelItemDataType type, const std::string& sTitle, const std::string& sDesc, const RageColor &color, const bool hasPass=false):
+		WheelItemBaseData( type, sTitle, color ), m_sDesc(sDesc), m_iFlags(0), hasPassword(hasPass) { };
 
 	std::string		m_sDesc;
 	unsigned int	m_iFlags{0};
+	bool hasPassword{ false };
 };
 
 class RoomWheelItem : public WheelItemBase
