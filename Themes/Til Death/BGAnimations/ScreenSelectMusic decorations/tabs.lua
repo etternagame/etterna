@@ -10,7 +10,7 @@ local function input(event)
 	if event.type ~= "InputEventType_Release" and active then
 		if numericinputactive == false then
 			for i=1,#tabNames do
-				if not (INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl") or IsNetSMOnline()) and event.char and tonumber(event.char) and  tonumber(event.char)==i then
+				if not (INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl") or (SCREENMAN:GetTopScreen():GetName() ~= "ScreenSelectMusic")) and event.char and tonumber(event.char) and  tonumber(event.char)==i then
 					setTabIndex(i-1)
 					MESSAGEMAN:Broadcast("TabChanged")
 				end
