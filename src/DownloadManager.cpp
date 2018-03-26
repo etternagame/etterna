@@ -181,6 +181,7 @@ inline CURL* initCURLHandle() {
 	curl_easy_setopt(curlHandle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
 	curl_easy_setopt(curlHandle, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(curlHandle, CURLOPT_SSL_VERIFYHOST, 0L);
+	curl_easy_setopt(curlHandle, CURLOPT_FOLLOWLOCATION, 1L);
 	return curlHandle;
 }
 inline bool addFileToForm(curl_httppost *&form, curl_httppost *&lastPtr, string field, string fileName, string filePath, RString &contents)
