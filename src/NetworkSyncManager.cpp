@@ -799,7 +799,7 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					for (auto&& player : j1) {
 						int stored = 0;
 						try {
-							n->m_PlayerNames.emplace_back(player["name"]);
+							n->m_PlayerNames.emplace_back(player["name"].get<string>().c_str());
 							stored++;
 							n->m_PlayerStatus.emplace_back(player["status"]);
 							stored++;
