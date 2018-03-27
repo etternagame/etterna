@@ -108,12 +108,12 @@ void MouseDevice::GetButtonPresses( vector<DeviceInput>& vPresses, IOHIDElementC
 
 	if( m.x_axis == cookie )
 	{
-		//INPUTFILTER->UpdateCursorLocation(value,m.y_axis);
+		INPUTFILTER->UpdateCursorLocation(value,INPUTFILTER->GetCursorY());
 		LOG->Trace("Mouse X: Value = %i",value);
 	}
 	else if( m.y_axis == cookie )
 	{
-		//INPUTFILTER->UpdateCursorLocation(m.x_axis,value);
+		INPUTFILTER->UpdateCursorLocation(INPUTFILTER->GetCursorX(),value);
 		LOG->Trace("Mouse Y: Value = %i",value);
 	}
 	else if( m.z_axis == cookie )

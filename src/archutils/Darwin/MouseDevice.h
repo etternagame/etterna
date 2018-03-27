@@ -6,6 +6,8 @@
 
 struct Mouse
 {
+    float x{0};
+    float y{0};
 	InputDevice id;
 	IOHIDElementCookie x_axis, y_axis, z_axis;
 	int x_min, x_max;
