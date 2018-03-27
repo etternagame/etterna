@@ -138,6 +138,7 @@ namespace SongUtil
 	void SortSongPointerArrayByDisplayArtist( vector<Song*> &vpSongsInOut );
 	void SortSongPointerArrayByGenre( vector<Song*> &vpSongsInOut );
 	void SortSongPointerArrayByGroupAndTitle( vector<Song*> &vpSongsInOut );
+	void SortSongPointerArrayByGroupAndMSD(vector<Song*> &vpSongsInOut, Skillset ss);
 	void SortSongPointerArrayByNumPlays( vector<Song*> &vpSongsInOut, ProfileSlot slot, bool bDescending );
 	void SortSongPointerArrayByNumPlays( vector<Song*> &vpSongsInOut, const Profile* pProfile, bool bDescending );
 	void SortSongPointerArrayByStepsTypeAndMeter( vector<Song*> &vpSongsInOut, StepsType st, Difficulty dc );
@@ -214,6 +215,7 @@ public:
 
 	XNode* CreateNode() const;
 	void LoadFromNode( const XNode* pNode );
+	void LoadFromString(const char * dir);
 	void FromString( RString _sDir ) { sDir = _sDir; }
 	RString ToString() const;
 	bool IsValid() const;

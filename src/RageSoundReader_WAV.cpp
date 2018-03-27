@@ -364,7 +364,7 @@ public:
 			if( m_iBufferUsed == m_iBufferAvail )
 			{
 				if( !DecodeADPCMBlock() )
-					return RageSoundReader::ERROR;
+					return RageSoundReader::RSRERROR;
 			}
 			if( m_iBufferAvail == 0 )
 			{
@@ -564,7 +564,7 @@ RageSoundReader_FileReader::OpenResult RageSoundReader_WAV::Open( RageFileBasic 
 		m_pImpl = new WavReaderADPCM( *m_pFile, m_WavData );
 		break;
 	case 85: // MP3
-		/* Return unknown, so other decoders will be tried. */
+		/* Return unknown, so other decoders will be tried.  MAD can read MP3s embedded in WAVs. */
 		return OPEN_UNKNOWN_FILE_FORMAT;
 	default:
 		FATAL_ERROR( ssprintf( "Unsupported data format %i", m_WavData.m_iFormatTag) );

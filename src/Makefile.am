@@ -131,7 +131,7 @@ DataStructures = \
 Attack.cpp Attack.h AutoKeysounds.cpp AutoKeysounds.h \
 AdjustSync.cpp AdjustSync.h \
 BackgroundUtil.cpp BackgroundUtil.h \
-BannerCache.cpp BannerCache.h \
+ImageCache.cpp ImageCache.h \
 Character.cpp Character.h \
 CodeDetector.cpp CodeDetector.h \
 CodeSet.cpp CodeSet.h \
@@ -147,7 +147,7 @@ DateTime.cpp DateTime.h \
 Difficulty.cpp Difficulty.h \
 DisplayResolutions.h \
 EnumHelper.cpp EnumHelper.h \
-FileDownload.cpp FileDownload.h \
+DownloadManager.cpp DownloadManager.h \
 Font.cpp Font.h \
 FontCharAliases.cpp FontCharAliases.h \
 FontCharmaps.cpp FontCharmaps.h Game.cpp Game.h GameCommand.cpp GameCommand.h \

@@ -54,6 +54,7 @@
 #include "Song.h"
 #include "XmlFileUtil.h"
 #include "Profile.h" // for replay data stuff
+#include "DownloadManager.h"
 
 // Defines
 #define SHOW_LIFE_METER_FOR_DISABLED_PLAYERS	THEME->GetMetricB(m_sName,"ShowLifeMeterForDisabledPlayers")
@@ -280,6 +281,9 @@ ScreenGameplay::ScreenGameplay()
 	m_bForceNoNetwork = false;
 	m_delaying_ready_announce= false;
 	GAMESTATE->m_AdjustTokensBySongCostForFinalStageCheck= false;
+#if !defined(WITHOUT_NETWORKING)
+	DLMAN->UpdateDLSpeed(true);
+#endif
 }
 
 void ScreenGameplay::Init()
@@ -786,7 +790,7 @@ void ScreenGameplay::InitSongQueues()
 		FOREACH_EnabledPlayerInfo(m_vPlayerInfo, pi)
 			pi->m_vpStepsQueue.clear();
 
-		Playlist& pl = SONGMAN->allplaylists[SONGMAN->playlistcourse];
+		Playlist& pl = SONGMAN->GetPlaylists()[SONGMAN->playlistcourse];
 		FOREACH(Chart, pl.chartlist, ch) {
 			m_apSongsQueue.emplace_back(ch->songptr);
 			FOREACH_EnabledPlayerInfo(m_vPlayerInfo, pi)
@@ -851,6 +855,9 @@ ScreenGameplay::~ScreenGameplay()
 
 	if( !m_bForceNoNetwork )
 		NSMAN->ReportSongOver();
+#if !defined(WITHOUT_NETWORKING)
+	DLMAN->UpdateDLSpeed(false);
+#endif
 }
 
 void ScreenGameplay::SetupSong( int iSongIndex )
@@ -1661,12 +1668,12 @@ void ScreenGameplay::Update( float fDeltaTime )
 	{
 		FOREACH_EnabledPlayerNumberInfo( m_vPlayerInfo, pi )
 			if( pi->m_pLifeMeter )
-				NSMAN->m_playerLife[pi->m_pn] = int(pi->m_pLifeMeter->GetLife()*10000);
+				NSMAN->m_playerLife= int(pi->m_pLifeMeter->GetLife()*10000);
 
 		if( m_bShowScoreboard )
 			FOREACH_NSScoreBoardColumn(cn)
 				if( m_bShowScoreboard && NSMAN->ChangedScoreboard(cn) && GAMESTATE->GetFirstDisabledPlayer() != PLAYER_INVALID )
-					m_Scoreboard[cn].SetText( NSMAN->m_Scoreboard[cn] );
+					m_Scoreboard[cn].SetText(NSMAN->m_Scoreboard[cn]);
 	}
 	// ArrowEffects::Update call moved because having it happen once per
 	// NoteField (which means twice in two player) seemed wasteful. -Kyz
@@ -1814,12 +1821,6 @@ void ScreenGameplay::BeginBackingOutFromGameplay()
 
 	m_pSoundMusic->StopPlaying();
 	m_GameplayAssist.StopPlaying(); // Stop any queued assist ticks.
-
-	if (GAMESTATE->IsPlaylistCourse()) {
-		GAMESTATE->isplaylistcourse = false;
-		SONGMAN->playlistcourse = "";
-	}
-
 	this->ClearMessageQueue();
 
 	m_Cancel.StartTransitioning( SM_DoPrevScreen );
@@ -2259,9 +2260,7 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 		MESSAGEMAN->Broadcast(msg);
 		
 		if (GAMESTATE->IsPlaylistCourse()) {
-			SONGMAN->allplaylists[SONGMAN->playlistcourse].courseruns.emplace_back(playlistscorekeys);
-			GAMESTATE->isplaylistcourse = false;
-			SONGMAN->playlistcourse = "";
+			SONGMAN->GetPlaylists()[SONGMAN->playlistcourse].courseruns.emplace_back(playlistscorekeys);
 		}
 
 		TweenOffScreen();
@@ -2361,6 +2360,11 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 			ScreenSaveSync::PromptSaveSync( SM_GoToNextScreen );
 		else
 			HandleScreenMessage( SM_GoToNextScreen );
+
+		if (GAMESTATE->IsPlaylistCourse()) {
+			GAMESTATE->isplaylistcourse = false;
+			SONGMAN->playlistcourse = "";
+		}
 	}
 	else if( SM == SM_GainFocus )
 	{

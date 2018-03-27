@@ -20,7 +20,7 @@ class MusicWheel : public WheelBase
 
 public:
 	~MusicWheel() override;
-	void Load( const RString &sType ) override;
+	void Load( const string&sType ) override;
 	void BeginScreen();
 
 	bool ChangeSort( SortOrder new_so, bool allowSameSort = false );	// return true if change successful

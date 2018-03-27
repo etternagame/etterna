@@ -1,6 +1,9 @@
 local t = Def.ActorFrame{}
 
+local enabledCustomWindows = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomEvaluationWindowTimings
 PROFILEMAN:SaveProfile(PLAYER_1)
+
+local customWindows = timingWindowConfig:get_data().customWindows
 
 local scoreType = themeConfig:get_data().global.DefaultScoreType
 
@@ -87,18 +90,29 @@ local frameY = 140
 local frameWidth = SCREEN_CENTER_X-120
 
 function scoreBoard(pn,position)
+	
+	local customWindow
+	local judge = enabledCustomWindows and 0 or GetTimingDifficulty()
+	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
+	local score = SCOREMAN:GetMostRecentScore()
+	local dvt = pss:GetOffsetVector()
+	local totalTaps = pss:GetTotalTaps()
+	
 	local t = Def.ActorFrame{
 		BeginCommand=function(self)
 			if position == 1 then
 				self:x(SCREEN_WIDTH-(frameX*2)-frameWidth)
 			end
-		end
+		end,
+		UpdateNetEvalStatsMessageCommand = function(self)
+			local s = SCREENMAN:GetTopScreen():GetHighScore()
+			if s then
+				score = s
+			end
+			dvt = score:GetOffsetVector()
+			MESSAGEMAN:Broadcast("ScoreChanged")
+		end,
 	}
-	
-	local judge = GetTimingDifficulty()
-	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
-	local score = SCOREMAN:GetMostRecentScore()
-	
 	t[#t+1] = Def.Quad{
 		InitCommand=function(self)
 			self:xy(frameX-5,frameY):zoomto(frameWidth+10,220):halign(0):valign(0):diffuse(color("#333333CC"))
@@ -135,6 +149,7 @@ function scoreBoard(pn,position)
 		BeginCommand=function(self)
 			self:queuecommand("Set")
 		end,
+		ScoreChangedMessageCommand = function(self) self:queuecommand("Set"); end,
 		SetCommand=function(self)
 			local meter = score:GetSkillsetSSR("Overall")
 			self:settextf("%5.2f", meter)
@@ -165,21 +180,38 @@ function scoreBoard(pn,position)
 			self:queuecommand("Set")
 		end,
 		SetCommand=function(self) 
-			self:diffuse(getGradeColor(pss:GetWifeGrade()))
-			self:settextf("%05.2f%% (%s)",notShit.floor(pss:GetWifeScore()*10000)/100, "Wife")
+			self:diffuse(getGradeColor(score:GetWifeGrade()))
+			self:settextf("%05.2f%% (%s)",notShit.floor(score:GetWifeScore()*10000)/100, "Wife")
 		end,
+		ScoreChangedMessageCommand = function(self) self:queuecommand("Set"); end,
 		CodeMessageCommand=function(self,params)
-			if params.Name == "PrevJudge" and judge > 1 then
+			local totalHolds = pss:GetRadarPossible():GetValue("RadarCategory_Holds") + pss:GetRadarPossible():GetValue("RadarCategory_Rolls")
+			local holdsHit = score:GetRadarValues():GetValue("RadarCategory_Holds") + score:GetRadarValues():GetValue("RadarCategory_Rolls")
+			local minesHit = pss:GetRadarPossible():GetValue("RadarCategory_Mines") -  score:GetRadarValues():GetValue("RadarCategory_Mines")
+			if enabledCustomWindows then
+				if params.Name == "PrevJudge" then
+					judge = judge < 2 and #customWindows or judge - 1
+					customWindow = timingWindowConfig:get_data()[customWindows[judge]]
+					self:settextf("%05.2f%% (%s)", getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps), customWindow.name)
+				elseif params.Name == "NextJudge" then
+					judge = judge == #customWindows and 1 or judge + 1
+					customWindow = timingWindowConfig:get_data()[customWindows[judge]]
+					self:settextf("%05.2f%% (%s)", getRescoredCustomPercentage(dvt, customWindow, totalHolds, holdsHit, minesHit, totalTaps), customWindow.name)
+				end
+			elseif params.Name == "PrevJudge" and judge > 1 then
 				judge = judge - 1
-				self:settextf("%05.2f%% (%s)", notShit.floor(score:RescoreToWifeJudge(judge)*10000)/100, "Wife J"..judge)
+				self:settextf("%05.2f%% (%s)", getRescoredWifeJudge(dvt, judge, totalHolds - holdsHit, minesHit, totalTaps), "Wife J"..judge)
 			elseif params.Name == "NextJudge" and judge < 9 then
 				judge = judge + 1
 				if judge == 9 then
-					self:settextf("%05.2f%% (%s)", notShit.floor(score:RescoreToWifeJudge(judge)*10000)/100, "Wife Justice")
+					self:settextf("%05.2f%% (%s)", getRescoredWifeJudge(dvt, judge, (totalHolds - holdsHit), minesHit, totalTaps), "Wife Justice")
 				else
-					self:settextf("%05.2f%% (%s)", notShit.floor(score:RescoreToWifeJudge(judge)*10000)/100, "Wife J"..judge)	
+					self:settextf("%05.2f%% (%s)", getRescoredWifeJudge(dvt, judge, (totalHolds - holdsHit), minesHit, totalTaps), "Wife J"..judge)
 				end
-				
+			end
+			if params.Name == "ResetJudge" then
+				judge = enabledCustomWindows and 0 or GetTimingDifficulty()
+				self:playcommand("Set")
 			end
 		end,
 	};
@@ -211,8 +243,15 @@ function scoreBoard(pn,position)
 			end,
 			CodeMessageCommand=function(self,params)
 				if params.Name == "PrevJudge" or params.Name == "NextJudge" then
-					local rescoreJudges = score:RescoreJudges(judge)
-					self:zoomx(frameWidth*rescoreJudges[k]/pss:GetTotalTaps())
+					if enabledCustomWindows then
+						self:finishtweening():decelerate(2):zoomx(frameWidth*getRescoredCustomJudge(dvt, customWindow.judgeWindows, k)/totalTaps)
+					else
+						local rescoreJudges = getRescoredJudge(dvt, judge, k)
+						self:finishtweening():decelerate(2):zoomx(frameWidth*rescoreJudges/totalTaps)
+					end
+				end
+				if params.Name == "ResetJudge" then
+					self:finishtweening():decelerate(2):zoomx(frameWidth*pss:GetPercentageOfTaps(v))
 				end
 			end,
 		};
@@ -225,7 +264,15 @@ function scoreBoard(pn,position)
 			end,
 			SetCommand=function(self) 
 				self:settext(getJudgeStrings(v))
-			end
+			end,
+			CodeMessageCommand=function(self,params)
+				if enabledCustomWindows and (params.Name == "PrevJudge" or params.Name == "NextJudge") then
+					self:settext(getCustomJudgeString(customWindow.judgeNames, k))
+				end
+				if params.Name == "ResetJudge" then
+					self:playcommand("Set")
+				end
+			end,
 		};
 		t[#t+1] = LoadFont("Common Large")..{
 			InitCommand=function(self)
@@ -235,12 +282,19 @@ function scoreBoard(pn,position)
 				self:queuecommand("Set")
 			end,
 			SetCommand=function(self) 
-				self:settext(pss:GetTapNoteScores(v))
+				self:settext(score:GetTapNoteScore(v))
 			end,
+			ScoreChangedMessageCommand = function(self) self:queuecommand("Set"); end,
 			CodeMessageCommand=function(self,params)
 				if params.Name == "PrevJudge" or params.Name == "NextJudge" then
-					local rescoreJudges = score:RescoreJudges(judge)
-					self:settext(rescoreJudges[k])
+					if enabledCustomWindows then
+						self:settext(getRescoredCustomJudge(dvt, customWindow.judgeWindows, k))
+					else
+						self:settext(getRescoredJudge(dvt, judge, k))
+					end
+				end
+				if params.Name == "ResetJudge" then
+					self:playcommand("Set")
 				end
 			end,
 		};
@@ -256,8 +310,16 @@ function scoreBoard(pn,position)
 			end,
 			CodeMessageCommand=function(self,params)
 				if params.Name == "PrevJudge" or params.Name == "NextJudge" then
-					local rescoreJudges = score:RescoreJudges(judge)
-					self:settextf("(%03.2f%%)",rescoreJudges[k]/pss:GetTotalTaps()*100)
+					local rescoredJudge
+					if enabledCustomWindows then
+						rescoredJudge = getRescoredCustomJudge(dvt, customWindow.judgeWindows, k)
+					else
+						rescoredJudge = getRescoredJudge(dvt, judge, k)
+					end
+					self:settextf("(%03.2f%%)", rescoredJudge/totalTaps * 100)
+				end
+				if params.Name == "ResetJudge" then
+					self:playcommand("Set")
 				end
 			end,
 		};
@@ -270,7 +332,8 @@ function scoreBoard(pn,position)
 			BeginCommand=function(self)
 				self:queuecommand("Set")
 			end,
-			Se2tCommand=function(self) 
+			ScoreChangedMessageCommand = function(self) self:queuecommand("Set"); end,
+			SetCommand=function(self) 
 				if score:GetChordCohesion() == true then
 					self:settext("Chord Cohesion: Yes")
 				else
@@ -299,8 +362,9 @@ function scoreBoard(pn,position)
 				self:queuecommand("Set")
 			end,
 			SetCommand=function(self) 
-				self:settextf("%03d/%03d",pss:GetRadarActual():GetValue("RadarCategory_"..fart[i]),pss:GetRadarPossible():GetValue("RadarCategory_"..fart[i]))
-			end
+				self:settextf("%03d/%03d",score:GetRadarValues():GetValue("RadarCategory_"..fart[i]),pss:GetRadarPossible():GetValue("RadarCategory_"..fart[i]))
+			end,
+			ScoreChangedMessageCommand = function(self) self:queuecommand("Set"); end,
 		};
 	end
 	
@@ -315,7 +379,7 @@ function scoreBoard(pn,position)
 	local doot = {"Mean", "Mean(Abs)", "Sd", "Smallest", "Largest"}
 	local mcscoot = {
 		wifeMean(devianceTable), 
-		ms.tableSum(devianceTable, 1,true)/#devianceTable,
+		wifeAbsMean(devianceTable),
 		wifeSd(devianceTable),
 		smallest, 
 		largest
@@ -350,5 +414,15 @@ end
 
 
 t[#t+1] = LoadActor("../offsetplot")
+
+-- Discord thingies
+local largeImageTooltip = GetPlayerOrMachineProfile(PLAYER_1):GetDisplayName() .. ": " .. string.format("%5.2f", GetPlayerOrMachineProfile(PLAYER_1):GetPlayerRating())
+local detail = GAMESTATE:GetCurrentSong():GetDisplayMainTitle() .. " " .. string.gsub(getCurRateDisplayString(), "Music", "") .. " [" .. GAMESTATE:GetCurrentSong():GetGroupName() .. "]"
+-- truncated to 128 characters(discord hard limit)
+detail = #detail < 128 and detail or string.sub(detail, 1, 124) .. "..."
+local state = "MSD: " .. string.format("%05.2f", GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(),1)) .. 
+	" - " .. string.format("%05.2f%%",notShit.floor(pssP1:GetWifeScore()*10000)/100) .. 
+	" " .. THEME:GetString("Grade",ToEnumShortString(SCOREMAN:GetMostRecentScore():GetWifeGrade()))
+GAMESTATE:UpdateDiscordPresence(largeImageTooltip, detail, state, 0)
 
 return t

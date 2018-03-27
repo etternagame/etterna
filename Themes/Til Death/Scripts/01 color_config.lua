@@ -154,6 +154,23 @@ function offsetToJudgeColor(offset,scale)
 	end
 end
 
+function customOffsetToJudgeColor(offset, windows)
+	local offset = math.abs(offset)
+	if offset <= windows.marv then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W1"])
+	elseif offset <= windows.perf then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W2"])
+	elseif offset <= windows.great then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W3"])
+	elseif offset <= windows.good then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W4"])
+	elseif offset <= windows.boo then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W5"])
+	else
+		return color(colorConfig:get_data().judgment["TapNoteScore_Miss"])
+	end
+end
+
 function byJudgment(judge)
 	return color(colorConfig:get_data().judgment[judge])
 end

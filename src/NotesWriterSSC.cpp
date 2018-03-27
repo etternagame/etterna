@@ -33,20 +33,25 @@ static RString JoinLineList( vector<RString> &lines )
 	return join( "\r\n", lines.begin()+j, lines.end() );
 }
 
-RString MSDToString(MinaSD x) {
+RString NotesWriterSSC::MSDToString(MinaSD x) {
 	RString o = "";
 	for (size_t i = 0; i < x.size(); i++) {
-		for (size_t ii = 0; ii < x[i].size(); ii++) {
-			o.append(to_string(x[i][ii]).substr(0,5));
-			if (ii != x[i].size() - 1)
-				o.append(",");
-		}
+		o.append(NotesWriterSSC::MSDsAtRateToString(x[i]));
 		if (i != x.size() - 1)
 			o.append(":");
 	}
 	return o;
 }
 
+RString NotesWriterSSC::MSDsAtRateToString(SDiffs x) {
+	RString o = "";
+	for (size_t ii = 0; ii < x.size(); ii++) {
+		o.append(to_string(x[ii]).substr(0, 5));
+		if (ii != x.size() - 1)
+			o.append(",");
+	}
+	return o;
+}
 // A utility class to write timing tags more easily!
 struct TimingTagWriter {
 
@@ -361,7 +366,7 @@ static RString GetSSCNoteData( const Song &song, const Steps &in, bool bSavingCa
 	emplace_back_tag(lines, "#CHARTSTYLE:%s;", in.GetChartStyle());
 	emplace_back_tag(lines, "#DIFFICULTY:%s;", DifficultyToString(in.GetDifficulty()));
 	lines.emplace_back(ssprintf("#METER:%d;", in.GetMeter()));
-	lines.emplace_back(ssprintf("#MSDVALUES:%s;", MSDToString(in.GetAllMSD()).c_str()));
+	lines.emplace_back(ssprintf("#MSDVALUES:%s;", NotesWriterSSC::MSDToString(in.GetAllMSD()).c_str()));
 	lines.emplace_back(ssprintf("#CHARTKEY:%s;", SmEscape(in.GetChartKey()).c_str()));
 
 	emplace_back_tag(lines, "#MUSIC:%s;", in.GetMusicFile());

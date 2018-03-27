@@ -5,26 +5,10 @@
 
 #include "ScreenWithMenuElements.h"
 #include "ScreenNetSelectBase.h"
+#include "NetworkSyncManager.h"
 #include <vector>
 #include "RoomWheel.h"
 #include "RoomInfoDisplay.h"
-
-class RoomData {
-public:
-	void SetName( const RString& name ) { m_name = name; }
-	void SetDescription( const RString& desc ) { m_description = desc; }
-	void SetState(unsigned int state) { m_state = state; }
-	void SetFlags( unsigned int iFlags ) { m_iFlags = iFlags; }
-	inline RString Name() { return m_name; }
-	inline RString Description() { return m_description; }
-	inline unsigned int State() { return m_state; }
-	inline unsigned int GetFlags() { return m_iFlags; }
-private:
-	RString m_name;
-	RString m_description;
-	unsigned int m_state;
-	unsigned int m_iFlags;
-};
 
 class ScreenNetRoom : public ScreenNetSelectBase
 {
@@ -34,6 +18,13 @@ public:
 	void HandleScreenMessage( const ScreenMessage SM ) override;
 	RoomWheel* GetRoomWheel();
 	void SelectCurrent();
+	void InfoSetVisible(bool visibility);
+
+	void UpdateRoomsList();
+	vector<BitmapText> m_RoomList;
+	vector<RoomData>* m_Rooms;
+	int m_iRoomPlace;
+	RoomInfoDisplay m_roomInfo;
 
 	// Lua
 	void PushSelf(lua_State *L) override;
@@ -45,23 +36,18 @@ protected:
 	void TweenOffScreen( ) override;
 
 private:
-	void UpdateRoomsList();
 	bool MenuLeft( const InputEventPlus &input ) override;
 	bool MenuRight( const InputEventPlus &input ) override;
 	void CreateNewRoom( const RString& rName,  const RString& rDesc, const RString& rPass );
 
 	RageSound m_soundChangeSel;
 
-	vector < BitmapText > m_RoomList;
-	vector < RoomData > m_Rooms;
-	int m_iRoomPlace;
 
 	string m_sLastPickedRoom;
 
 	RString m_newRoomName, m_newRoomDesc, m_newRoomPass;
 
 	RoomWheel m_RoomWheel;
-	RoomInfoDisplay m_roomInfo;
 };
 #endif
 

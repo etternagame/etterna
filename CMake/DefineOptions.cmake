@@ -25,6 +25,9 @@ option(WITH_PORTABLE_TOMCRYPT "Build with assembly/free tomcrypt, making it port
 # If WITH_PORTABLE_TOMCRYPT is ON, this will automatically have no effect.
 option(WITH_NO_ROLC_TOMCRYPT "Build without the ROLC assembly instructions for tomcrypt. (Ignored by Apple builds)" OFF)
 
+# Turn this option off to not use the GPL exclusive components.
+option(WITH_GPL_LIBS "Build with GPL libraries." ON)
+
 # Turn this option off to disable using WAV files with the game.
 # Note that it is recommended to keep this on.
 option(WITH_WAV "Build with WAV Support." ON)
@@ -47,7 +50,7 @@ else()
   # Turn this option on to enable using the Texture Font Generator.
   option(WITH_TEXTURE_GENERATOR "Build with the Texture Font Generator. Ensure the MFC library is installed." OFF)
   # Turn this option off to use dynamic linking instead of static linking.
-  option(WITH_STATIC_LINKING "Build StepMania with static linking." ON)
+  option(WITH_STATIC_LINKING "Build Etterna with static linking." ON)
 endif()
 
 if(WIN32)

@@ -49,7 +49,7 @@ local buttondiffuse = 0
 local buttonheight = 10
 local goalYspacing = 30
 local goalrow2Y = 12
-local currentgoalpage = 1
+local currentgoalpage = {1, 1, 1}
 local numgoalpages = 1
 
 if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
@@ -152,16 +152,20 @@ local function makescoregoal(i)
 				end,
 				SetCommand=function(self)
 					if update then 
-						sg = playergoals[displayindex[i+( (currentgoalpage - 1) *goalsperpage)]]
+						sg = playergoals[displayindex[i+( (currentgoalpage[goalFilter] - 1) *goalsperpage)]]
 						if sg then
 							-- should do this initialization better -mina
 							ck = sg:GetChartKey()
 							goalsong = SONGMAN:GetSongByChartKey(ck)
 							goalsteps = SONGMAN:GetStepsByChartKey(ck)
-							
-							local diff = goalsteps:GetDifficulty()
-							self:settext(getShortDifficulty(diff))
-							self:diffuse(byDifficulty(diff))
+							if goalsteps and goalsong then
+								local diff = goalsteps:GetDifficulty()
+								self:settext(getShortDifficulty(diff))
+								self:diffuse(byDifficulty(diff))
+							else
+								self:settext("??")
+								self:diffuse(getMainColor('negative'))
+							end
 							self:visible(true)
 						else
 							self:visible(false)
@@ -179,7 +183,13 @@ local function makescoregoal(i)
 				SetCommand=function(self)
 					if update then
 						if sg then 
-							self:settextf(goalsong:GetDisplayMainTitle())
+							if goalsong then
+								self:settextf(goalsong:GetDisplayMainTitle())
+								self:diffuse(getMainColor('positive'))
+							else
+								self:settext("Song not found")
+								self:diffuse(getMainColor('negative'))
+							end
 							self:visible(true)
 						else
 							self:visible(false)
@@ -315,7 +325,7 @@ local function makescoregoal(i)
 				end,
 				SetCommand=function(self)
 					if update then 
-						if sg then
+						if sg and goalsteps then
 							local msd = goalsteps:GetMSD(sg:GetRate(), 1)
 							self:settextf("%5.1f", msd)
 							self:diffuse(ByMSD(msd))
@@ -471,8 +481,8 @@ r[#r+1] = Def.ActorFrame{
 			self:xy(300,-8):zoomto(40,20):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(buttondiffuse)
 		end,
 		MouseLeftClickMessageCommand=function(self)
-			if isOver(self) and currentgoalpage < numgoalpages then
-				currentgoalpage = currentgoalpage + 1
+			if isOver(self) and currentgoalpage[goalFilter] < numgoalpages then
+				currentgoalpage[goalFilter] = currentgoalpage[goalFilter] + 1
 				MESSAGEMAN:Broadcast("UpdateGoals")
 			end
 		end
@@ -487,8 +497,8 @@ r[#r+1] = Def.ActorFrame{
 			self:y(-8):zoomto(65,20):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(buttondiffuse)
 		end,
 		MouseLeftClickMessageCommand=function(self)
-			if isOver(self) and currentgoalpage > 1 then
-				currentgoalpage = currentgoalpage - 1
+			if isOver(self) and currentgoalpage[goalFilter] > 1 then
+				currentgoalpage[goalFilter] = currentgoalpage[goalFilter] - 1
 				MESSAGEMAN:Broadcast("UpdateGoals")
 			end
 		end
@@ -503,7 +513,7 @@ r[#r+1] = Def.ActorFrame{
 			self:x(175):halign(0.5):zoom(0.3):diffuse(getMainColor('positive'))
 		end,
 		SetCommand=function(self)
-			self:settextf("Showing %i-%i of %i", math.min(((currentgoalpage-1)*goalsperpage)+1, #displayindex), math.min(currentgoalpage*goalsperpage, #displayindex), #displayindex)
+			self:settextf("Showing %i-%i of %i", math.min(((currentgoalpage[goalFilter]-1)*goalsperpage)+1, #displayindex), math.min(currentgoalpage[goalFilter]*goalsperpage, #displayindex), #displayindex)
 		end,
 		UpdateGoalsMessageCommand=function(self)
 			self:queuecommand("Set")

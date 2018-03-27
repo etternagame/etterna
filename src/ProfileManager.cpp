@@ -21,6 +21,7 @@
 #include "HighScore.h"
 #include "Character.h"
 #include "CharacterManager.h"
+#include "DownloadManager.h"
 
 ProfileManager*	PROFILEMAN = NULL;	// global and accessible from anywhere in our program
 
@@ -65,7 +66,8 @@ static ThemeMetric<int>		NUM_FIXED_PROFILES	( "ProfileManager", "NumFixedProfile
 
 ProfileManager::ProfileManager()
 	:m_stats_prefix("")
-{
+{
+
 	// Register with Lua.
 	{
 		Lua *L = LUA->Get();
@@ -329,6 +331,7 @@ void ProfileManager::RefreshLocalProfilesFromDisk(LoadingWindow* ld)
 	{
 		DirAndProfile derp;
 		derp.sDir= *id + "/";
+		derp.profile.m_sProfileID = derp.sDir;
 		derp.profile.LoadTypeFromDir(derp.sDir);
 		map<ProfileType, vector<DirAndProfile> >::iterator category=
 			categorized_profiles.find(derp.profile.m_Type);
@@ -357,6 +360,10 @@ void ProfileManager::RefreshLocalProfilesFromDisk(LoadingWindow* ld)
 	add_category_to_global_list(categorized_profiles[ProfileType_Guest]);
 	add_category_to_global_list(categorized_profiles[ProfileType_Normal]);
 	add_category_to_global_list(categorized_profiles[ProfileType_Test]);
+	FOREACH(DirAndProfile, g_vLocalProfile, curr)
+	{
+		//curr->profile.EoBatchRecalc(curr->sDir, ld);
+	}
 	FOREACH(DirAndProfile, g_vLocalProfile, curr)
 	{
 		curr->profile.LoadAllFromDir(curr->sDir, PREFSMAN->m_bSignProfileData, ld);
@@ -425,6 +432,7 @@ bool ProfileManager::CreateLocalProfile( const RString &sName, RString &sProfile
 	Profile *pProfile = new Profile;
 	pProfile->m_sDisplayName = sName;
 	pProfile->m_sCharacterID = CHARMAN->GetRandomCharacter()->m_sCharacterID;
+	pProfile->m_sProfileID = profile_id;
 
 	// Save it to disk.
 	RString sProfileDir = LocalProfileIDToDir(profile_id);

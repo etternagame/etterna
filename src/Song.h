@@ -86,6 +86,7 @@ public:
 	 *
 	 * This assumes that there is no song present right now.
 	 * @param sDir the song directory from which to load. */
+	void FinalizeLoading();
 	bool LoadFromSongDir( RString sDir, bool load_autosave= false );
 	// This one takes the effort to reuse Steps pointers as best as it can
 	bool ReloadFromSongDir( const RString &sDir );
@@ -195,6 +196,9 @@ public:
 	{ 
 		return m_sMainTitleTranslit.size()? m_sMainTitleTranslit: m_sMainTitle; 
 	}
+
+	vector<Steps*> GetStepsToSave(bool bSavingCache=true, string path="");
+
 	/**
 	 * @brief Retrieve the transliterated subtitle, or the main subtitle if there is no translit.
 	 * @return the proper subtitle. */
@@ -248,6 +252,8 @@ public:
 	RString m_sCDTitleFile;
 	RString m_sPreviewVidFile;
 
+	vector<RString> ImageDir;
+	
 	static RString GetSongAssetPath( RString sPath, const RString &sSongPath );
 	RString GetMusicPath() const;
 	RString GetInstrumentTrackPath( InstrumentTrack it ) const;
@@ -261,11 +267,12 @@ public:
 	RString GetPreviewVidPath() const;
 	RString GetPreviewMusicPath() const;
 	float GetPreviewStartSeconds() const;
+	std::string GetCacheFile( std::string sPath );
 
 	// how have i not jammed anything here yet - mina 
 
 	// Get the highest value for a specific skillset across all the steps objects for the song at a given rate
-	float GetHighestOfSkillsetAllSteps(int x, float rate);
+	float GetHighestOfSkillsetAllSteps(int x, float rate) const;
 	bool IsSkillsetHighestOfAnySteps(Skillset ss, float rate);
 
 	// For loading only:

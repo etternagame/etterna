@@ -8,6 +8,9 @@ If the line is a function, you'll have to use Branch.keyname() instead.
 
 -- used for various SMOnline-enabled screens:
 function SMOnlineScreen()
+	if not IsNetSMOnline() then
+		return "ScreenSelectMusic"
+	end
 	for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
 		if not IsSMOnlineLoggedIn(pn) then
 			return "ScreenSMOnlineLogin"
@@ -89,6 +92,17 @@ Branch = {
 			end
 		end
 	end,
+	MultiScreen = function()
+		if IsNetSMOnline() then
+			if not IsSMOnlineLoggedIn(PLAYER_1) then
+				return "ScreenNetSelectProfile"
+			else
+				return "ScreenNetRoom"
+			end
+		else
+			return "ScreenNetworkOptions"
+		end
+	end,
 	OptionsEdit = function()
 		-- Similar to above, don't let anyone in here with 0 songs.
 		if SONGMAN:GetNumSongs() == 0 and SONGMAN:GetNumAdditionalSongs() == 0 then
@@ -101,23 +115,19 @@ Branch = {
 			ReportStyle()
 			GAMESTATE:ApplyGameCommand("playmode,regular")
 		end
-		if IsNetSMOnline() then
-			return SMOnlineScreen()
-		end
-		if IsNetConnected() then
-			return "ScreenNetRoom"
-		end
 		return "ScreenProfileLoad"
 
 		--return CHARMAN:GetAllCharacters() ~= nil and "ScreenSelectCharacter" or "ScreenGameInformation"
 	end,
 	AfterSelectProfile = function()
 		if ( THEME:GetMetric("Common","AutoSetStyle") == true ) then
-			-- use SelectStyle in online...
-			return IsNetConnected() and "ScreenSelectStyle" or "ScreenSelectPlayMode"
+			return "ScreenSelectMusic"
 		else
 			return "ScreenSelectStyle"
 		end
+	end,
+	AfterNetSelectProfile = function()
+			return SMOnlineScreen()
 	end,
 	AfterProfileLoad = function()
 		return "ScreenSelectPlayMode"
@@ -136,7 +146,7 @@ Branch = {
 		bTrue = PREFSMAN:GetPreference("ShowInstructions")
 		return (bTrue and GoToMusic() or "ScreenGameInformation")
 	end,
-	AfterSMOLogin = SMOnlineScreen(),
+	AfterSMOLogin = SMOnlineScreen,
 	BackOutOfPlayerOptions = function()
 		return SelectMusicOrCourse()
 	end,
@@ -211,7 +221,10 @@ Branch = {
 		return "ScreenProfileSaveSummary"
 	end,
 	Network = function()
-		return IsNetConnected() and "ScreenTitleMenu" or "ScreenTitleMenu"
+		return IsNetConnected() and Branch.MultiScreen() or "ScreenTitleMenu"
+	end,
+	BackOutOfNetwork = function()
+		return "ScreenTitleMenu"
 	end,
  	AfterSaveSummary = function()
 		return GameOverOrContinue()

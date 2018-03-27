@@ -12,8 +12,7 @@
 #include "Style.h"
 #include "FontCharAliases.h"
 #include "TitleSubstitution.h"
-#include "BannerCache.h"
-//#include "BackgroundCache.h"
+#include "ImageCache.h"
 #include "Sprite.h"
 #include "RageFileManager.h"
 #include "RageSurface.h"
@@ -35,6 +34,7 @@
 #include "NotesWriterETT.h"
 #include "LyricsLoader.h"
 #include "ActorUtil.h"
+#include "CommonMetrics.h"
 
 #include "GameState.h"
 #include <ctime>
@@ -89,6 +89,8 @@ Song::Song()
 	m_bHasBanner = false;
 	m_bHasBackground = false;
 	m_loaded_from_autosave= false;
+	ImageDir.clear();
+	split( CommonMetrics::IMAGES_TO_CACHE, ",", ImageDir );
 }
 
 Song::~Song()
@@ -308,65 +310,22 @@ bool Song::LoadFromSongDir( RString sDir, bool load_autosave )
 	// save song dir
 	m_sSongDir = sDir;
 
-	// save group name
-	vector<RString> sDirectoryParts;
-	split( m_sSongDir, "/", sDirectoryParts, false );
-	ASSERT( sDirectoryParts.size() >= 4 ); /* e.g. "/Songs/Slow/Taps/" */
-	m_sGroupName = sDirectoryParts[sDirectoryParts.size()-3];	// second from last item
-	ASSERT( m_sGroupName != "" );
 
-	// First, look in the cache for this song (without loading NoteData)
-	bool bUseCache = true;
-	RString sCacheFilePath = GetCacheFilePath();
-
-	if( !DoesFileExist(sCacheFilePath) )
-	{ bUseCache = false; }
-	else if(!PREFSMAN->m_bFastLoad && GetHashForDirectory(m_sSongDir) != SONGINDEX->GetCacheHash(m_sSongDir))
-	{ bUseCache = false; } // this cache is out of date
-	else if(load_autosave)
-	{ bUseCache= false; }
-
-	if( bUseCache )
-	{
-		/*
-		LOG->Trace("Loading '%s' from cache file '%s'.",
-				   m_sSongDir.c_str(),
-				   GetCacheFilePath().c_str());
-		*/
-		SSCLoader loaderSSC;
-		bool bLoadedFromSSC = loaderSSC.LoadFromSimfile( sCacheFilePath, *this, true );
-		if( !bLoadedFromSSC )
-		{
-			// load from .sm
-			SMLoader loaderSM;
-			loaderSM.LoadFromSimfile( sCacheFilePath, *this, true );
-			loaderSM.TidyUpData( *this, true );
-		}
-		if(m_sMainTitle == "" || (m_sMusicFile == "" && m_vsKeysoundFile.empty()))
-		{
-			LOG->Warn("Main title or music file for '%s' came up blank, forced to fall back on TidyUpData to fix title and paths.  Do not use # or ; in a song title.", m_sSongDir.c_str());
-			// Tell TidyUpData that it's not loaded from the cache because it needs
-			// to hit the song folder to find the files that weren't found. -Kyz
-			TidyUpData(false, false);
-		}
-	}
-	else
-	{
+	//if (!SONGINDEX->LoadSongFromCache(this, sDir)) {
 		// There was no entry in the cache for this song, or it was out of date.
 		// Let's load it from a file, then write a cache entry.
-
-		if(!NotesLoader::LoadFromDir(sDir, *this, BlacklistedImages, load_autosave))
+		if (!NotesLoader::LoadFromDir(sDir, *this, BlacklistedImages, load_autosave))
 		{
-			LOG->UserLog( "Song", sDir, "has no SSC, SM, SMA, DWI, BMS, or KSF files." );
+			LOG->UserLog("Song", sDir, "has no SSC, SM, SMA, DWI, BMS, or KSF files.");
 
 			vector<RString> vs;
 			FILEMAN->GetDirListingWithMultipleExtensions(sDir, ActorUtil::GetTypeExtensionList(FT_Sound), vs, false, false);
 
 			bool bHasMusic = !vs.empty();
 
-			if( !bHasMusic )
+			if (!bHasMusic)
 			{
-				LOG->UserLog( "Song", sDir, "has no music file either. Ignoring this song directory." );
+				LOG->UserLog("Song", sDir, "has no music file either. Ignoring this song directory.");
 				return false;
 			}
 			// Make sure we have a future filename figured out.
@@ -381,29 +340,14 @@ bool Song::LoadFromSongDir( RString sDir, bool load_autosave )
 
 		// Don't save a cache file if the autosave is being loaded, because the
 		// cache file would contain the autosave filename. -Kyz
-		if(!load_autosave)
+		if (!load_autosave)
 		{
 			// save a cache file so we don't have to parse it all over again next time
-			if(!SaveToCacheFile())
-			{ sCacheFilePath = RString(); }
+			SaveToCacheFile();
 		}
-	}
+	//}
 
-	FOREACH( Steps*, m_vpSteps, s )
-	{
-		/* Compress all Steps. During initial caching, this will remove cached
-		 * NoteData; during cached loads, this will just remove cached SMData. */
-		(*s)->Compress();
-	}
-
-	// Load the cached banners, if it's not loaded already.
-	if( PREFSMAN->m_BannerCache == BNCACHE_LOW_RES_PRELOAD && m_bHasBanner )
-		BANNERCACHE->LoadBanner( GetBannerPath() );
-	// Load the cached background, if it's not loaded already.
-	/*
-	if( PREFSMAN->m_BackgroundCache == BGCACHE_LOW_RES_PRELOAD && m_bHasBackground )
-		BACKGROUNDCACHE->LoadBackground( GetBackgroundPath() );
-	*/
+	FinalizeLoading();
 
 	if( !m_bHasMusic )
 	{
@@ -413,6 +357,31 @@ bool Song::LoadFromSongDir( RString sDir, bool load_autosave )
 	return true;	// do load this song
 }
 
+void Song::FinalizeLoading()
+{
+	// save group name
+	vector<RString> sDirectoryParts;
+	split(m_sSongDir, "/", sDirectoryParts, false);
+	ASSERT(sDirectoryParts.size() >= 4); /* e.g. "/Songs/Slow/Taps/" */
+	m_sGroupName = sDirectoryParts[sDirectoryParts.size() - 3];	// second from last item
+	ASSERT(m_sGroupName != "");
+
+	FOREACH(Steps*, m_vpSteps, s)
+	{
+		/* Compress all Steps. During initial caching, this will remove cached
+		* NoteData; during cached loads, this will just remove cached SMData. */
+		(*s)->Compress();
+	}
+
+	// Load the cached Images, if it's not loaded already.
+	if( PREFSMAN->m_ImageCache == IMGCACHE_LOW_RES_PRELOAD )
+	{
+		for( std::string Image : ImageDir )
+		{
+			IMAGECACHE->LoadImage( Image, GetCacheFile( Image ) );
+		}
+	}
+}
 /* This function feels EXTREMELY hacky - copying things on top of pointers so
  * they don't break elsewhere.  Maybe it could be rewritten to politely ask the
  * Song/Steps objects to reload themselves. -- djpohly */
@@ -618,13 +587,10 @@ void Song::TidyUpData( bool from_cache, bool /* duringCache */ )
 		m_bHasMusic = HasMusic();
 		m_bHasBanner = HasBanner();
 		m_bHasBackground = HasBackground();
-
-		if(m_bHasBanner)
-		{ BANNERCACHE->CacheBanner(GetBannerPath()); }
-		/*
-			if(m_bHasBackground)
-			{ BANNERCACHE->CacheBackground(GetBackgroundPath()); }
-		*/
+		for( std::string Image : ImageDir)
+		{
+			IMAGECACHE->LoadImage( Image, GetCacheFile( Image ) );
+		}
 
 		// There are several things that need to find a file from the dir with a
 		// particular extension or type of extension.  So fetch a list of all
@@ -1163,26 +1129,34 @@ bool Song::SaveToSMFile()
 	if( IsAFile(sPath) )
 		FileCopy( sPath, sPath + ".old" );
 
+	vector<Steps*> vpStepsToSave = GetStepsToSave();
+
+
+	return NotesWriterSM::Write( sPath, *this, vpStepsToSave );
+
+}
+vector<Steps*> Song::GetStepsToSave(bool bSavingCache, string path)
+{
+
 	vector<Steps*> vpStepsToSave;
-	FOREACH_CONST( Steps*, m_vpSteps, s )
+	FOREACH_CONST(Steps*, m_vpSteps, s)
 	{
 		Steps *pSteps = *s;
 
 		// Only save steps that weren't loaded from a profile.
-		if( pSteps->WasLoadedFromProfile() )
+		if (pSteps->WasLoadedFromProfile())
 			continue;
 
-		vpStepsToSave.push_back( pSteps );
+		if (!bSavingCache)
+			pSteps->SetFilename(path);
+		vpStepsToSave.push_back(pSteps);
 	}
 	FOREACH_CONST(Steps*, m_UnknownStyleSteps, s)
 	{
 		vpStepsToSave.push_back(*s);
 	}
-
-	return NotesWriterSM::Write( sPath, *this, vpStepsToSave );
-
+	return vpStepsToSave;
 }
-
 bool Song::SaveToSSCFile( const RString &sPath, bool bSavingCache, bool autosave )
 {
 	RString path = sPath;
@@ -1199,27 +1173,12 @@ bool Song::SaveToSSCFile( const RString &sPath, bool bSavingCache, bool autosave
 	if(!bSavingCache && !autosave && IsAFile(path))
 		FileCopy( path, path + ".old" );
 
-	vector<Steps*> vpStepsToSave;
-	FOREACH_CONST( Steps*, m_vpSteps, s )
-	{
-		Steps *pSteps = *s;
+	vector<Steps*> vpStepsToSave= GetStepsToSave(bSavingCache, path);
 
-		// Only save steps that weren't loaded from a profile.
-		if( pSteps->WasLoadedFromProfile() )
-			continue;
-
-		if (!bSavingCache)
-			pSteps->SetFilename(path);
-		vpStepsToSave.push_back( pSteps );
-	}
-	FOREACH_CONST(Steps*, m_UnknownStyleSteps, s)
-	{
-		vpStepsToSave.push_back(*s);
-	}
 
 	if(bSavingCache || autosave)
 	{
-		return NotesWriterSSC::Write(path, *this, vpStepsToSave, bSavingCache);
+		return SONGINDEX->CacheSong(*this, path);
 	}
 
 	if( !NotesWriterSSC::Write(path, *this, vpStepsToSave, bSavingCache) )
@@ -1272,23 +1231,7 @@ bool Song::SaveToETTFile(const RString &sPath, bool bSavingCache, bool autosave)
 	if (!bSavingCache && !autosave && IsAFile(path))
 		FileCopy(path, path + ".old");
 
-	vector<Steps*> vpStepsToSave;
-	FOREACH_CONST(Steps*, m_vpSteps, s)
-	{
-		Steps *pSteps = *s;
-
-		// Only save steps that weren't loaded from a profile.
-		if (pSteps->WasLoadedFromProfile())
-			continue;
-
-		if (!bSavingCache)
-			pSteps->SetFilename(path);
-		vpStepsToSave.push_back(pSteps);
-	}
-	FOREACH_CONST(Steps*, m_UnknownStyleSteps, s)
-	{
-		vpStepsToSave.push_back(*s);
-	}
+	vector<Steps*> vpStepsToSave = GetStepsToSave(bSavingCache, sPath);
 
 	if (bSavingCache || autosave)
 	{
@@ -1340,9 +1283,7 @@ bool Song::SaveToCacheFile()
 	{
 		return true;
 	}
-	SONGINDEX->AddCacheIndex(m_sSongDir, GetHashForDirectory(m_sSongDir));
-	const RString sPath = GetCacheFilePath();
-	return SaveToSSCFile(sPath, true);
+	return SONGINDEX->CacheSong(*this, m_sSongDir);
 }
 
 bool Song::SaveToDWIFile()
@@ -1368,6 +1309,73 @@ void Song::RemoveAutosave()
 		FILEMAN->Remove(autosave_path);
 		m_loaded_from_autosave= false;
 	}
+}
+
+// We want to return a filename, We use this function for that.
+std::string Song::GetCacheFile(std::string sType)
+{
+	// We put the Predefined images into a map.
+	map< std::string, std::string > PreDefs;
+	PreDefs["Banner"] = GetBannerPath();
+	PreDefs["Background"] = GetBackgroundPath();
+	PreDefs["CDTitle"] = GetCDTitlePath();
+	PreDefs["Jacket"] = GetJacketPath();
+	PreDefs["CDImage"] = GetCDImagePath();
+	PreDefs["Disc"] = GetDiscPath();
+	
+	// Check if Predefined images exist, And return function if they do.
+	if(PreDefs[sType.c_str()].c_str())
+		return PreDefs[sType.c_str()].c_str();	
+	
+	// Get all image files and put them into a vector.
+	vector<RString> song_dir_listing;
+	FILEMAN->GetDirListing(m_sSongDir + "*", song_dir_listing, false, false);
+	vector<RString> image_list;
+	vector<RString> fill_exts = ActorUtil::GetTypeExtensionList(FT_Bitmap);
+	for( std::string Image : song_dir_listing )
+	{
+		std::string FileExt = GetExtension(Image);	
+		transform(FileExt.begin(), FileExt.end(), FileExt.begin(),::tolower);
+		for ( std::string FindExt : fill_exts )
+		{
+			if(FileExt == FindExt)
+				image_list.push_back(Image);
+		}
+	}
+	
+	// Create a map that contains all the filenames to search for.
+	map<std::string, map< int, std::string > > PreSets;
+	PreSets["Banner"][1] = "bn";
+	PreSets["Banner"][2] = "banner";
+	PreSets["Background"][1] = "bg";
+	PreSets["Background"][2] = "background";
+	PreSets["CDTitle"][1] = "cdtitle";
+	PreSets["Jacket"][1] = "jk_";	
+	PreSets["Jacket"][2] = "jacket";
+	PreSets["Jacket"][3] = "albumart";
+	PreSets["CDImage"][1] = "-cd";
+	PreSets["Disc"][1] = " disc";
+	PreSets["Disc"][2] = " title";	
+	
+	for( std::string Image : image_list)
+	{
+		// We want to make it lower case.
+		transform(Image.begin(), Image.end(), Image.begin(),::tolower);
+		for( std::pair< const int, std::string> PreSet : PreSets[sType.c_str()] )
+		{
+			// Search for image using PreSets.
+			size_t Found = Image.find(PreSet.second.c_str());
+			if(Found!=std::string::npos)
+				return GetSongAssetPath( Image, m_sSongDir );
+		}
+		// Search for the image directly if it doesnt exist in PreSets, 
+		// Or incase we define our own stuff.
+		size_t Found = Image.find(sType.c_str());
+		if(Found!=std::string::npos)
+			return GetSongAssetPath( Image, m_sSongDir );
+	}
+	// Return empty if nothing found.
+	return "";
 }
 
 RString Song::GetFileHash()
@@ -1663,7 +1671,7 @@ float Song::GetPreviewStartSeconds() const
 	return 0.0f;
 }
 
-float Song::GetHighestOfSkillsetAllSteps(int x, float rate) {
+float Song::GetHighestOfSkillsetAllSteps(int x, float rate) const {
 	CLAMP(rate, 0.7f, 2.f);
 	float o = 0.f;
 	vector<Steps*> vsteps = GetAllSteps();

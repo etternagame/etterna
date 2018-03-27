@@ -1,0 +1,11 @@
+if(NOT MSVC)
+	find_package(OpenSSL REQUIRED)
+	find_package(LibUV REQUIRED)
+	find_package(ZLIB REQUIRED)
+
+	file(GLOB SOURCES "${SM_EXTERN_DIR}/uWebSocket/src/*.cpp")
+	add_library("uWS" STATIC ${SOURCES})
+	set_property(TARGET "uWS" PROPERTY FOLDER "External Libraries")
+	target_include_directories("uWS" PUBLIC ${OPENSSL_INCLUDE_DIR} ${ZLIB_INCLUDE_DIRS} "${SM_EXTERN_DIR}/uWebSocket/include")
+	target_link_libraries("uWS" PUBLIC ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARIES} ${LIBUV_LIBRARY})
+endif()

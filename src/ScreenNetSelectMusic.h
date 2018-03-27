@@ -17,6 +17,7 @@ class ScreenNetSelectMusic : public ScreenNetSelectBase
 {
 public:
 	void Init() override;
+	void BeginScreen() override;
 
 	bool Input( const InputEventPlus &input ) override;
 	void HandleScreenMessage( const ScreenMessage SM ) override;
@@ -38,6 +39,9 @@ protected:
 	bool LeftAndRightPressed( const PlayerNumber pn );
 
 	void Update( float fDeltaTime ) override;
+
+	Song* m_pSongAwaitingDeletionConfirmation;
+	void OnConfirmSongDeletion();
 
 	void MusicChanged();
 

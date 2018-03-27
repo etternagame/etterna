@@ -4,10 +4,10 @@ sudo: required
 
 matrix:
   include:
-  - env: CXX_COMPILER=clang++-3.6 CC_COMPILER=clang-3.6 BUILD_TYPE=Release WITH_FFMPEG=ON
+  - env: CXX_COMPILER=clang++-3.6 CC_COMPILER=clang-3.6 BUILD_TYPE=Release WITH_FFMPEG=OFF
       WITH_FFMPEG_JOBS=1
     compiler: clang
-    addons:
+    addons: &1
       apt:
         sources:
         - ubuntu-toolchain-r-test
@@ -16,6 +16,7 @@ matrix:
         - nasm
         - libudev-dev
         - clang-3.6
+        - libmad0-dev
         - libgtk2.0-dev
         - binutils-dev
         - libasound-dev
@@ -27,7 +28,11 @@ matrix:
         - libxtst-dev
         - libxrandr-dev
         - libglew-dev
-  - env: CXX_COMPILER=g++-5 CC_COMPILER=gcc-5 BUILD_TYPE=Release WITH_FFMPEG=ON WITH_FFMPEG_JOBS=1
+  - env: CXX_COMPILER=clang++-3.6 CC_COMPILER=clang-3.6 BUILD_TYPE=Release WITH_FFMPEG=ON
+      WITH_FFMPEG_JOBS=1
+    compiler: clang
+    addons: *1
+  - env: CXX_COMPILER=g++-5 CC_COMPILER=gcc-5 BUILD_TYPE=Release WITH_FFMPEG=OFF WITH_FFMPEG_JOBS=1 MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
     compiler: gcc
     addons:
       apt:
@@ -38,6 +43,7 @@ matrix:
         - libudev-dev
         - gcc-5
         - g++-5
+        - libmad0-dev
         - libgtk2.0-dev
         - binutils-dev
         - libasound-dev
@@ -59,7 +65,9 @@ matrix:
         branch_pattern: coverity_scan
 
 before_script:
+  - if [ "${CXX_COMPILER}" = "g++-5" ]; then export CXX="g++-5" CC="gcc-5"; fi
   - sudo ln -s /usr/include/x86_64-linux-gnu/zconf.h /usr/include
+  - git submodule update --init
   - mkdir ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
   - cmake .. -DCMAKE_CXX_COMPILER=${CXX_COMPILER} -DCMAKE_C_COMPILER=${CC_COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DWITH_FFMPEG=${WITH_FFMPEG} -DWITH_FFMPEG_JOBS=${WITH_FFMPEG_JOBS}
 

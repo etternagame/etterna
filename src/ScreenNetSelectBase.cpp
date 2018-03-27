@@ -17,6 +17,7 @@
 #include "Font.h"
 #include "RageDisplay.h"
 #include "PlayerState.h"
+#include "arch/ArchHooks/ArchHooks.h"
 
 #define CHAT_TEXT_OUTPUT_WIDTH		THEME->GetMetricF(m_sName,"ChatTextOutputWidth")
 #define CHAT_TEXT_INPUT_WIDTH		THEME->GetMetricF(m_sName,"ChatTextInputWidth")
@@ -32,37 +33,37 @@ AutoScreenMessage( SM_UsersUpdate );
 AutoScreenMessage( SM_FriendsUpdate );
 AutoScreenMessage( SM_SMOnlinePack );
 
-REGISTER_SCREEN_CLASS( ScreenNetSelectBase );
+REGISTER_SCREEN_CLASS(ScreenNetSelectBase);
 
 void ScreenNetSelectBase::Init()
 {
 	ScreenWithMenuElements::Init();
 
 	// Chat boxes
-	m_sprChatInputBox.Load( THEME->GetPathG( m_sName, "ChatInputBox" ) );
-	m_sprChatInputBox->SetName( "ChatInputBox" );
-	LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND( m_sprChatInputBox );
+	m_sprChatInputBox.Load(THEME->GetPathG(m_sName, "ChatInputBox"));
+	m_sprChatInputBox->SetName("ChatInputBox");
+	LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND(m_sprChatInputBox);
 	this->AddChild( m_sprChatInputBox );
 
-	m_sprChatOutputBox.Load( THEME->GetPathG( m_sName, "ChatOutputBox" ) );
-	m_sprChatOutputBox->SetName( "ChatOutputBox" );
-	LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND( m_sprChatOutputBox );
-	this->AddChild( m_sprChatOutputBox );
+	m_sprChatOutputBox.Load( THEME->GetPathG(m_sName, "ChatOutputBox"));
+	m_sprChatOutputBox->SetName("ChatOutputBox");
+	LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND(m_sprChatOutputBox);
+	this->AddChild(m_sprChatOutputBox);
 
-	m_textChatInput.LoadFromFont( THEME->GetPathF(m_sName,"chat") );
-	m_textChatInput.SetName( "ChatInput" );
-	m_textChatInput.SetWrapWidthPixels( (int)(CHAT_TEXT_INPUT_WIDTH) );
-	LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND( m_textChatInput );
-	this->AddChild( &m_textChatInput );
+	m_textChatInput.LoadFromFont(THEME->GetPathF(m_sName,"chat"));
+	m_textChatInput.SetName("ChatInput");
+	m_textChatInput.SetWrapWidthPixels(static_cast<int>(CHAT_TEXT_INPUT_WIDTH) );
+	LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND(m_textChatInput);
+	this->AddChild(&m_textChatInput);
 
-	m_textChatOutput.LoadFromFont( THEME->GetPathF(m_sName,"chat") );
-	m_textChatOutput.SetName( "ChatOutput" );
-	m_textChatOutput.SetWrapWidthPixels( (int)(CHAT_TEXT_OUTPUT_WIDTH) );
-	LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND( m_textChatOutput );
-	this->AddChild( &m_textChatOutput );
+	m_textChatOutput.LoadFromFont(THEME->GetPathF(m_sName,"chat"));
+	m_textChatOutput.SetName("ChatOutput");
+	m_textChatOutput.SetWrapWidthPixels(static_cast<int>(CHAT_TEXT_OUTPUT_WIDTH));
+	LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND(m_textChatOutput);
+	this->AddChild(&m_textChatOutput);
 
-	m_textChatOutput.SetText( NSMAN->m_sChatText );
-	m_textChatOutput.SetMaxLines( SHOW_CHAT_LINES, 1 );
+	m_textChatOutput.SetText(NSMAN->m_sChatText);
+	m_textChatOutput.SetMaxLines(SHOW_CHAT_LINES, 1);
 	
 	scroll = 0;
 
@@ -72,12 +73,12 @@ void ScreenNetSelectBase::Init()
 	return;
 }
 
-bool ScreenNetSelectBase::Input( const InputEventPlus &input )
+bool ScreenNetSelectBase::Input(const InputEventPlus &input)
 {
-	if( m_In.IsTransitioning() || m_Out.IsTransitioning() )
+	if(m_In.IsTransitioning() || m_Out.IsTransitioning())
 		return false;
 
-	if( input.type != IET_FIRST_PRESS && input.type != IET_REPEAT )
+	if(input.type != IET_FIRST_PRESS && input.type != IET_REPEAT)
 		return false;
 
 	bool bHoldingCtrl = 
@@ -85,82 +86,83 @@ bool ScreenNetSelectBase::Input( const InputEventPlus &input )
 		INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RCTRL)) ||
 		(!NSMAN->useSMserver);	// If we are disconnected, assume no chatting.
 
-	switch( input.DeviceI.button )
+	bool holding_shift =
+		INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_LSHIFT)) ||
+		INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RSHIFT));
+	
+	//If holding control skip chatbox input
+	//This allows lua input bindings to work on regular keys+control
+	if(bHoldingCtrl) {
+    wchar_t ch = INPUTMAN->DeviceInputToChar(input.DeviceI, false);
+		MakeUpper(&ch, 1);
+		if (ch == 'V')
+		{
+			PasteClipboard();
+		}
+		return ScreenWithMenuElements::Input(input);
+  }
+	
+	switch(input.DeviceI.button)
 	{
 	case KEY_PGUP:
-		if (!bHoldingCtrl) {
+		if (!holding_shift) 
 			ShowPreviousMsg();
-			break;
-		}
 		else {
 			Scroll(1);
 			Scroll(1);
-			break;
-		}
-	case KEY_PGDN:
-		if (!bHoldingCtrl) {
-			ShowNextMsg();
-			break;
-		}
-		else {
-			Scroll(-1);
-			Scroll(-1);
-			break;
-		}
-	case KEY_ENTER:
-	case KEY_KP_ENTER:
-		if (!bHoldingCtrl)
-		{
-			if (m_sTextInput != "") {
-				NSMAN->SendChat(m_sTextInput);
-				m_sTextLastestInputs.push_back(m_sTextInput);
-				m_sTextLastestInputsIndex = 0;
-				if (m_sTextLastestInputs.size() > 10)
-					m_sTextLastestInputs.erase(m_sTextLastestInputs.begin());
-			}
-			m_sTextInput="";
-			UpdateTextInput();
-			return true;
 		}
 		break;
+	case KEY_PGDN:
+		if (!holding_shift) 
+			ShowNextMsg();
+		else {
+			Scroll(-1);
+			Scroll(-1);
+		}
+		break;
+	case KEY_ENTER:
+	case KEY_KP_ENTER:
+		if (m_sTextInput != "") {
+			NSMAN->SendChat(m_sTextInput);
+			m_sTextLastestInputs.push_back(m_sTextInput);
+			m_sTextLastestInputsIndex = 0;
+			if (m_sTextLastestInputs.size() > 10)
+				m_sTextLastestInputs.erase(m_sTextLastestInputs.begin());
+		}
+		m_sTextInput="";
+		UpdateTextInput();
+		return true;
 	case KEY_BACK:
 		if(!m_sTextInput.empty())
-			m_sTextInput = m_sTextInput.erase( m_sTextInput.size()-1 );
+			m_sTextInput = m_sTextInput.erase(m_sTextInput.size()-1);
 		UpdateTextInput();
 		break;
 	default:
+
 		wchar_t c;
 		c = INPUTMAN->DeviceInputToChar(input.DeviceI, true);
 
-		if( (c >= L' ') && (!bHoldingCtrl) )
+		if((c >= L' '))
 		{
 			if (!enableChatboxInput)
-				return true;
+				return ScreenWithMenuElements::Input(input);
 			m_sTextInput += WStringToRString(wstring()+c);
 			UpdateTextInput();
-		}
-
-		// Tricky: If both players are playing, allow the 2 button through to
-		// the keymapper. (who? -aj)
-		// What purpose does this serve? -aj
-		if( c == '2' && GAMESTATE->IsPlayerEnabled( PLAYER_2 ) && GAMESTATE->IsPlayerEnabled( PLAYER_1 ) )
-			break;
-
-		if( c >= ' ' )
 			return true;
+		}
 		break;
 	}
-	return Screen::Input( input );
+	return ScreenWithMenuElements::Input(input);
 }
 
-void ScreenNetSelectBase::HandleScreenMessage( const ScreenMessage SM )
+void ScreenNetSelectBase::HandleScreenMessage(const ScreenMessage SM)
 {
-	if( SM == SM_GoToNextScreen )
+	if(SM == SM_GoToNextScreen)
 		SOUND->StopMusic();
-	else if( SM == SM_AddToChat )
+	else if(SM == SM_AddToChat)
 	{
-		m_textChatOutput.SetText( NSMAN->m_sChatText );
-		m_textChatOutput.SetMaxLines( SHOW_CHAT_LINES, 1 );
+		m_textChatOutput.SetText(NSMAN->m_sChatText);
+		m_textChatOutput.SetMaxLines(SHOW_CHAT_LINES, 1);
 	}
 	else if (SM == SM_UsersUpdate)
 	{
@@ -171,7 +173,7 @@ void ScreenNetSelectBase::HandleScreenMessage( const ScreenMessage SM )
 		MESSAGEMAN->Broadcast("FriendsUpdate");
 	}
 
-	ScreenWithMenuElements::HandleScreenMessage( SM );
+	ScreenWithMenuElements::HandleScreenMessage(SM);
 }
 
 void ScreenNetSelectBase::TweenOffScreen()
@@ -187,7 +189,13 @@ void ScreenNetSelectBase::TweenOffScreen()
 
 void ScreenNetSelectBase::UpdateTextInput()
 {
-	m_textChatInput.SetText( m_sTextInput );  
+	m_textChatInput.SetText(m_sTextInput);
+}
+
+void ScreenNetSelectBase::PasteClipboard()
+{
+	m_sTextInput.append(HOOKS->GetClipboard() );
+	UpdateTextInput();
 }
 
 void ScreenNetSelectBase::UpdateUsers()
@@ -529,7 +537,7 @@ void ColorBitmapText::ResetText()
 void ColorBitmapText::SetMaxLines(int iNumLines, int iDirection, unsigned int &scroll)
 {
 	iNumLines = max(0, iNumLines);
-	iNumLines = min((int)m_wTextLines.size(), iNumLines);
+	iNumLines = min(static_cast<int>(m_wTextLines.size()), iNumLines);
 	if (iDirection == 0)
 	{
 		// Crop all bottom lines
@@ -621,7 +629,7 @@ void ColorBitmapText::DrawPrimitives( )
 		for( unsigned i=0; i<m_aVertices.size(); i+=4 )
 		{
 			loc++;
-			if( cur < (int)m_vColors.size() )
+			if( cur < static_cast<int>(m_vColors.size()) )
 			{
 				if ( loc > m_vColors[cur].l )
 				{
@@ -647,51 +655,51 @@ void ColorBitmapText::DrawPrimitives( )
 	}
 }
 
-void ColorBitmapText::SetMaxLines( int iNumLines, int iDirection )
+void ColorBitmapText::SetMaxLines(int iNumLines, int iDirection)
 {
-	iNumLines = max( 0, iNumLines );
-	iNumLines = min( (int)m_wTextLines.size(), iNumLines );
-	if( iDirection == 0 ) 
+	iNumLines = max(0, iNumLines);
+	iNumLines = min(static_cast<int>(m_wTextLines.size()), iNumLines);
+	if(iDirection == 0) 
 	{
 		// Crop all bottom lines
-		m_wTextLines.resize( iNumLines );
-		m_iLineWidths.resize( iNumLines );
+		m_wTextLines.resize(iNumLines);
+		m_iLineWidths.resize(iNumLines);
 	}
 	else
 	{
 		// Because colors are relative to the beginning, we have to crop them back
 		unsigned shift = 0;
 
-		for( unsigned i = 0; i < m_wTextLines.size() - iNumLines; i++ )
+		for(unsigned i = 0; i < m_wTextLines.size() - iNumLines; i++)
 			shift += m_wTextLines[i].length();
 
 		// When we're cutting out text, we need to maintain the last
 		// color, so our text at the top doesn't become colorless.
 		RageColor LastColor;
 
-		for( unsigned i = 0; i < m_vColors.size(); i++ )
+		for(unsigned i = 0; i < m_vColors.size(); i++)
 		{
 			m_vColors[i].l -= shift;
-			if( m_vColors[i].l < 0 )
+			if(m_vColors[i].l < 0)
 			{
 				LastColor = m_vColors[i].c;
-				m_vColors.erase( m_vColors.begin() + i );
+				m_vColors.erase(m_vColors.begin() + i);
 				i--;
 			}
 		}
 
 		// If we already have a color set for the first char
 		// do not override it.
-		if( m_vColors.size() > 0 && m_vColors[0].l > 0 )
+		if(m_vColors.size() > 0 && m_vColors[0].l > 0)
 		{
 			ColorChange tmp;
 			tmp.c = LastColor;
 			tmp.l = 0;
-			m_vColors.insert( m_vColors.begin(), tmp );
+			m_vColors.insert(m_vColors.begin(), tmp);
 		}
 
-		m_wTextLines.erase( m_wTextLines.begin(), m_wTextLines.end() - iNumLines );
-		m_iLineWidths.erase( m_iLineWidths.begin(), m_iLineWidths.end() - iNumLines );
+		m_wTextLines.erase(m_wTextLines.begin(), m_wTextLines.end() - iNumLines);
+		m_iLineWidths.erase(m_iLineWidths.begin(), m_iLineWidths.end() - iNumLines);
 	}
 	BuildChars();
 }
@@ -820,6 +828,11 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 		lua_pushnumber(L, p->GetLines());
 		return 1;
 	}
+	static int PasteClipboard(T* p, lua_State *L)
+	{
+		p->PasteClipboard();
+		return 1;
+	}
 public:
 	LunaScreenNetSelectBase()
 	{
@@ -838,6 +851,7 @@ public:
 		ADD_METHOD(ShowPreviousMsg);
 		ADD_METHOD(GetChatScroll);
 		ADD_METHOD(GetChatLines);
+		ADD_METHOD(PasteClipboard);
 	}
 };
 

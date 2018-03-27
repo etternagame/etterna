@@ -39,18 +39,24 @@ struct HighScore
 	 * @brief Determine if any judgments were tallied during this run.
 	 * @return true if no judgments were recorded, false otherwise. */
 	bool IsEmpty() const;
-	Grade GetWifeGrade();
+	Grade GetWifeGrade() const;
 	float ConvertDpToWife();
 	float GetPercentDP() const;
 	float GetWifeScore() const;
+	float GetWifePoints() const;
 	float GetSSRNormPercent() const;
 	float GetMusicRate() const;
 	float GetJudgeScale() const;
 	bool GetChordCohesion() const;
 	bool GetEtternaValid() const;
-	vector<float> GetOffsetVector() const;
-	vector<int> GetNoteRowVector() const;
+	bool IsUploadedToServer(string s) const;
+	vector<float> timeStamps;
+	const vector<float>& GetOffsetVector() const;
+	const vector<int>& GetNoteRowVector() const;
+	vector<float> GetCopyOfOffsetVector() const;
+	vector<int> GetCopyOfNoteRowVector() const;
 	string GetScoreKey() const;
+	int GetTopScore() const;
 	/**
 	 * @brief Determine how many seconds the player had left in Survival mode.
 	 * @return the number of seconds left. */
@@ -86,11 +92,14 @@ struct HighScore
 	void SetScore( unsigned int iScore );
 	void SetPercentDP( float f );
 	void SetWifeScore(float f);
+	void SetWifePoints(float f);
 	void SetSSRNormPercent(float f);
 	void SetMusicRate(float f);
+	void SetSurviveSeconds(float f);
 	void SetJudgeScale(float f);
 	void SetChordCohesion(bool b);
 	void SetEtternaValid(bool b);
+	void AddUploadedServer(string s);
 	void SetOffsetVector(const vector<float>& v);
 	void SetNoteRowVector(const vector<int>& v);
 	void SetScoreKey(const string& ck);
@@ -145,6 +154,8 @@ struct HighScore
 	float GetSkillsetSSR(Skillset ss) const;
 	void SetSkillsetSSR(Skillset ss, float ssr);
 	void SetValidationKey(ValidationKey vk, string k);
+	void SetTopScore(int i);
+	string GetValidationKey(ValidationKey vk) const; 
 	vector<int> GetRescoreJudgeVector(int x);
 	// Lua
 	void PushSelf( lua_State *L );

@@ -13,6 +13,7 @@
 #include <sstream>
 #include "CryptManager.h"
 #include "ProfileManager.h"
+#include "RageFileManager.h"
 
 ThemeMetric<string> EMPTY_NAME("HighScore","EmptyName");
 
@@ -32,12 +33,14 @@ struct HighScoreImpl
 	unsigned int iScore;
 	float fPercentDP;
 	float fWifeScore;
+	float fWifePoints;
 	float fSSRNormPercent;
 	float fSurviveSeconds;
 	float fMusicRate;
 	float fJudgeScale;
 	bool bNoChordCohesion;
 	bool bEtternaValid;
+	vector<string> uploaded;
 	vector<float> vOffsetVector;
 	vector<int> vNoteRowVector;
 	vector<int> vRescoreJudgeVector;
@@ -57,6 +60,7 @@ struct HighScoreImpl
 	float fLifeRemainingSeconds;
 	bool bDisqualified;
 	string ValidationKey;
+	int TopScore;
 
 	HighScoreImpl();
 	XNode *CreateNode() const;
@@ -227,6 +231,7 @@ HighScoreImpl::HighScoreImpl()
 	iScore = 0;
 	fPercentDP = 0.f;
 	fWifeScore = 0.f;
+	fWifePoints = 0.f;
 	fSSRNormPercent = 0.f;
 	fMusicRate = 0.f;
 	fJudgeScale = 0.f;
@@ -249,27 +254,33 @@ HighScoreImpl::HighScoreImpl()
 	radarValues.MakeUnknown();
 	fLifeRemainingSeconds = 0;
 	string ValidationKey = "";
+	TopScore = 0;
 }
 
 XNode *HighScoreImpl::CreateNode() const
 {
-	XNode *pNode = new XNode( "HighScore" );
+	XNode *pNode = new XNode("HighScore");
 
 	// TRICKY:  Don't write "name to fill in" markers.
-	pNode->AppendChild( "Name",				IsRankingToFillIn(sName) ? RString("") : sName );
-	pNode->AppendChild( "HistoricChartKey", ChartKey);
-	pNode->AppendChild( "ScoreKey",			ScoreKey);
-	pNode->AppendChild( "SSRCalcVersion",	SSRCalcVersion);
-	pNode->AppendChild( "Grade",			GradeToString(grade) );
-	pNode->AppendChild( "Score",			iScore );
-	pNode->AppendChild( "PercentDP",		fPercentDP );
-	pNode->AppendChild( "WifeScore",		fWifeScore);
-	pNode->AppendChild( "SSRNormPercent",	fSSRNormPercent);
-	pNode->AppendChild( "Rate",				fMusicRate);
-	pNode->AppendChild( "JudgeScale",		fJudgeScale);
-	pNode->AppendChild( "NoChordCohesion",	bNoChordCohesion);
-	pNode->AppendChild( "EtternaValid",		bEtternaValid);
-
+	pNode->AppendChild("Name", IsRankingToFillIn(sName) ? RString("") : sName);
+	pNode->AppendChild("HistoricChartKey", ChartKey);
+	pNode->AppendChild("ScoreKey", ScoreKey);
+	pNode->AppendChild("SSRCalcVersion", SSRCalcVersion);
+	pNode->AppendChild("Grade", GradeToString(grade));
+	pNode->AppendChild("Score", iScore);
+	pNode->AppendChild("PercentDP", fPercentDP);
+	pNode->AppendChild("WifeScore", fWifeScore);
+	pNode->AppendChild("SSRNormPercent", fSSRNormPercent);
+	pNode->AppendChild("Rate", fMusicRate);
+	pNode->AppendChild("JudgeScale", fJudgeScale);
+	pNode->AppendChild("NoChordCohesion", bNoChordCohesion);
+	pNode->AppendChild("EtternaValid", bEtternaValid);
+	if (!uploaded.empty()) {
+		XNode *pServerNode = new XNode("Servers");
+		for (auto server : uploaded)
+			pServerNode->AppendChild("server", server);
+		pNode->AppendChild(pServerNode);
+	}
 	if (vOffsetVector.size() > 1) {
 		pNode->AppendChild("Offsets", OffsetsToString(vOffsetVector));
 		pNode->AppendChild("NoteRows", NoteRowsToString(vNoteRowVector));
@@ -319,6 +330,10 @@ XNode *HighScoreImpl::CreateEttNode() const {
 	pNode->AppendChild("SSRCalcVersion", SSRCalcVersion);
 	pNode->AppendChild("Grade", GradeToString(GetWifeGrade()));
 	pNode->AppendChild("WifeScore", fWifeScore);
+	
+	if (fWifePoints > 0.f)
+		pNode->AppendChild("WifePoints", fWifePoints);
+	
 	pNode->AppendChild("SSRNormPercent", fSSRNormPercent);
 	pNode->AppendChild("JudgeScale", fJudgeScale);
 	pNode->AppendChild("NoChordCohesion", bNoChordCohesion);
@@ -326,7 +341,15 @@ XNode *HighScoreImpl::CreateEttNode() const {
 	pNode->AppendChild("SurviveSeconds", fSurviveSeconds);
 	pNode->AppendChild("MaxCombo", iMaxCombo);
 	pNode->AppendChild("Modifiers", sModifiers);
+	pNode->AppendChild("MachineGuid", sMachineGuid);
 	pNode->AppendChild("DateTime", dateTime.GetString());
+	pNode->AppendChild("TopScore", TopScore);
+	if (!uploaded.empty()) {
+		XNode *pServerNode = new XNode("Servers");
+		for (auto server : uploaded)
+			pServerNode->AppendChild("server", server);
+		pNode->AppendChild(pServerNode);
+	}
 
 	XNode* pTapNoteScores = pNode->AppendChild("TapNoteScores");
 	FOREACH_ENUM(TapNoteScore, tns)
@@ -357,19 +380,30 @@ void HighScoreImpl::LoadFromEttNode(const XNode *pNode) {
 
 	RString s;	
 	pNode->GetChildValue("SSRCalcVersion", SSRCalcVersion);
-	pNode->GetChildValue("Grade", s);
-	grade = StringToGrade(s);
+	if (pNode->GetChildValue("Grade", s))
+		grade = StringToGrade(s);
 	pNode->GetChildValue("WifeScore", fWifeScore);
+	pNode->GetChildValue("WifePoints", fWifePoints);
 	pNode->GetChildValue("SSRNormPercent", fSSRNormPercent);
 	pNode->GetChildValue("Rate", fMusicRate);
 	pNode->GetChildValue("JudgeScale", fJudgeScale);
 	pNode->GetChildValue("NoChordCohesion", bNoChordCohesion);
 	pNode->GetChildValue("EtternaValid", bEtternaValid);
+	const XNode* pUploadedServers = pNode->GetChild("Servers");
+	if (pUploadedServers != nullptr) {
+		FOREACH_CONST_Child(pUploadedServers, p)
+		{
+			RString server;
+			p->GetTextValue(server);
+			uploaded.emplace_back(server.c_str());
+		}
+	}
 	pNode->GetChildValue("SurviveSeconds", fSurviveSeconds);
 	pNode->GetChildValue("MaxCombo", iMaxCombo);
-	pNode->GetChildValue("Modifiers", s); sModifiers = s;
-	pNode->GetChildValue("DateTime", s); dateTime.FromString(s);
-	pNode->GetChildValue("ScoreKey", s); ScoreKey = s;
+	if (pNode->GetChildValue("Modifiers", s)) sModifiers = s;
+	if (pNode->GetChildValue("DateTime", s)) dateTime.FromString(s);
+	if (pNode->GetChildValue("ScoreKey", s)) ScoreKey = s;
+	if (pNode->GetChildValue("MachineGuid", s)) sMachineGuid = s;
 
 	const XNode* pTapNoteScores = pNode->GetChild("TapNoteScores");
 	if (pTapNoteScores)
@@ -391,8 +425,8 @@ void HighScoreImpl::LoadFromEttNode(const XNode *pNode) {
 	if (fWifeScore > 0.f) {
 		const XNode* pValidationKeys = pNode->GetChild("ValidationKeys");
 		if (pValidationKeys) {
-			pValidationKeys->GetChildValue(ValidationKeyToString(ValidationKey_Brittle), s); ValidationKeys[ValidationKey_Brittle] = s;
-			pValidationKeys->GetChildValue(ValidationKeyToString(ValidationKey_Weak), s); ValidationKeys[ValidationKey_Weak] = s;
+			if (pValidationKeys->GetChildValue(ValidationKeyToString(ValidationKey_Brittle), s)) ValidationKeys[ValidationKey_Brittle] = s;
+			if (pValidationKeys->GetChildValue(ValidationKeyToString(ValidationKey_Weak), s)) ValidationKeys[ValidationKey_Weak] = s;
 		}
 	}
 
@@ -549,7 +583,9 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 bool HighScoreImpl::WriteReplayData() {
 	string append;
 	string profiledir;
-
+	//These two lines should probably be somewhere else
+	if (!FILEMAN->IsADirectory(REPLAY_DIR))
+		FILEMAN->CreateDir(REPLAY_DIR);
 	string path = REPLAY_DIR + ScoreKey;
 	ofstream fileStream(path, ios::binary);
 	//check file
@@ -608,9 +644,6 @@ bool HighScore::LoadReplayData() {
 	if (m_Impl->vNoteRowVector.size() > 4 && m_Impl->vOffsetVector.size() > 4)
 		return true;
 
-	// disable until presumed race condition crash is resolved -mina
-	return false;
-
 	string profiledir;
 	vector<int> vNoteRowVector;
 	vector<float> vOffsetVector;
@@ -620,7 +653,6 @@ bool HighScore::LoadReplayData() {
 	string line;
 	string buffer;
 	vector<string> tokens;
-	stringstream ss;
 	int noteRow;
 	float offset;
 
@@ -633,7 +665,7 @@ bool HighScore::LoadReplayData() {
 	//loop until eof
 	while (getline(fileStream, line))
 	{
-		ss.str(line);
+		stringstream ss(line);
 		//split line into tokens
 		while (ss >> buffer)
 			tokens.emplace_back(buffer);
@@ -659,8 +691,7 @@ bool HighScore::LoadReplayData() {
 }
 
 bool HighScore::HasReplayData() {
-	string profiledir = PROFILEMAN->GetProfileDir(ProfileSlot_Player1).substr(1);
-	string path = profiledir + "ReplayData/" + m_Impl->ScoreKey;
+	string path = REPLAY_DIR + m_Impl->ScoreKey;
 	return DoesFileExist(path);
 }
 
@@ -701,14 +732,19 @@ StageAward HighScore::GetStageAward() const { return m_Impl->stageAward; }
 PeakComboAward HighScore::GetPeakComboAward() const { return m_Impl->peakComboAward; }
 float HighScore::GetPercentDP() const { return m_Impl->fPercentDP; }
 float HighScore::GetWifeScore() const { return m_Impl->fWifeScore; }
+float HighScore::GetWifePoints() const { return m_Impl->fWifePoints; }
 float HighScore::GetSSRNormPercent() const { return m_Impl->fSSRNormPercent; }
 float HighScore::GetMusicRate() const { return m_Impl->fMusicRate; }
 float HighScore::GetJudgeScale() const { return m_Impl->fJudgeScale; }
-bool HighScore::GetChordCohesion() const {
-	return !m_Impl->bNoChordCohesion;  }
+bool HighScore::GetChordCohesion() const {	return !m_Impl->bNoChordCohesion;  }
 bool HighScore::GetEtternaValid() const { return m_Impl->bEtternaValid; }
-vector<float> HighScore::GetOffsetVector() const { return m_Impl->vOffsetVector; }
-vector<int> HighScore::GetNoteRowVector() const { return m_Impl->vNoteRowVector; }
+bool HighScore::IsUploadedToServer(string s) const { 
+	return find(m_Impl->uploaded.begin(), m_Impl->uploaded.end(), s) != m_Impl->uploaded.end(); 
+}
+vector<float> HighScore::GetCopyOfOffsetVector() const { return m_Impl->vOffsetVector; }
+vector<int> HighScore::GetCopyOfNoteRowVector() const { return m_Impl->vNoteRowVector; }
+const vector<float>& HighScore::GetOffsetVector() const { return m_Impl->vOffsetVector; }
+const vector<int>& HighScore::GetNoteRowVector() const { return m_Impl->vNoteRowVector; }
 string HighScore::GetScoreKey() const { return m_Impl->ScoreKey; }
 float HighScore::GetSurviveSeconds() const { return m_Impl->fSurviveSeconds; }
 float HighScore::GetSurvivalSeconds() const { return GetSurviveSeconds() + GetLifeRemainingSeconds(); }
@@ -723,6 +759,7 @@ float HighScore::GetSkillsetSSR(Skillset ss) const { return m_Impl->fSkillsetSSR
 const RadarValues &HighScore::GetRadarValues() const { return m_Impl->radarValues; }
 float HighScore::GetLifeRemainingSeconds() const { return m_Impl->fLifeRemainingSeconds; }
 bool HighScore::GetDisqualified() const { return m_Impl->bDisqualified; }
+int HighScore::GetTopScore() const { return m_Impl->TopScore; }
 
 void HighScore::SetName( const string &sName ) { m_Impl->sName = sName; }
 void HighScore::SetChartKey( const string &ck) { m_Impl->ChartKey = ck; }
@@ -734,11 +771,17 @@ void HighScore::SetStageAward( StageAward a ) { m_Impl->stageAward = a; }
 void HighScore::SetPeakComboAward( PeakComboAward a ) { m_Impl->peakComboAward = a; }
 void HighScore::SetPercentDP( float f ) { m_Impl->fPercentDP = f; }
 void HighScore::SetWifeScore(float f) {m_Impl->fWifeScore = f;}
+void HighScore::SetWifePoints(float f) { m_Impl->fWifePoints= f; }
 void HighScore::SetSSRNormPercent(float f) { m_Impl->fSSRNormPercent = f; }
 void HighScore::SetMusicRate(float f) { m_Impl->fMusicRate = f; }
+void HighScore::SetSurviveSeconds(float f) { m_Impl->fSurviveSeconds = f; }
 void HighScore::SetJudgeScale(float f) { m_Impl->fJudgeScale = f; }
 void HighScore::SetChordCohesion(bool b) { m_Impl->bNoChordCohesion = b; }
 void HighScore::SetEtternaValid(bool b) { m_Impl->bEtternaValid = b; }
+void HighScore::AddUploadedServer(string s) { 
+	if (find(m_Impl->uploaded.begin(), m_Impl->uploaded.end(), s) == m_Impl->uploaded.end())
+		m_Impl->uploaded.emplace_back(s); 
+}
 void HighScore::SetOffsetVector(const vector<float>& v) { m_Impl->vOffsetVector = v; }
 void HighScore::SetNoteRowVector(const vector<int>& v) { m_Impl->vNoteRowVector = v; }
 void HighScore::SetScoreKey(const string& sk) { m_Impl->ScoreKey = sk; }
@@ -753,6 +796,8 @@ void HighScore::SetTapNoteScore( TapNoteScore tns, int i ) { m_Impl->iTapNoteSco
 void HighScore::SetHoldNoteScore( HoldNoteScore hns, int i ) { m_Impl->iHoldNoteScores[hns] = i; }
 void HighScore::SetSkillsetSSR(Skillset ss, float ssr) { m_Impl->fSkillsetSSRs[ss] = ssr; }
 void HighScore::SetValidationKey(ValidationKey vk, string k) { m_Impl->ValidationKeys[vk] = k; }
+void HighScore::SetTopScore(int i) { m_Impl->TopScore = i; }
+string HighScore::GetValidationKey(ValidationKey vk) const { return m_Impl->ValidationKeys[vk]; }
 void HighScore::SetRadarValues( const RadarValues &rv ) { m_Impl->radarValues = rv; }
 void HighScore::SetLifeRemainingSeconds( float f ) { m_Impl->fLifeRemainingSeconds = f; }
 void HighScore::SetDisqualified( bool b ) { m_Impl->bDisqualified = b; }
@@ -825,7 +870,8 @@ void HighScore::LoadFromNode( const XNode* pNode )
 		m_Impl->bEtternaValid = false;
 	}
 
-	if (m_Impl->fSSRNormPercent > 1000.f) {
+	// If imported scores have no normpercent check for replays to calculate it or fallback to wifescore (assume j4) -mina
+	if (m_Impl->fSSRNormPercent == 0.f) {
 		if (m_Impl->grade != Grade_Failed)
 			m_Impl->fSSRNormPercent = RescoreToWifeJudgeDuringLoad(4);
 		else
@@ -1116,11 +1162,12 @@ vector<int> HighScore::GetRescoreJudgeVector(int x) {
 	return m_Impl->vRescoreJudgeVector;
 }
 
-Grade HighScore::GetWifeGrade() {
+Grade HighScore::GetWifeGrade() const {
 	return m_Impl->GetWifeGrade();
 }
 
 bool HighScore::WriteReplayData() {
+	//return DBProfile::WriteReplayData(this);
 	return m_Impl->WriteReplayData();
 }
 
@@ -1159,6 +1206,7 @@ public:
 	static int GetScore( T* p, lua_State *L )			{ lua_pushnumber(L, p->GetScore() ); return 1; }
 	static int GetPercentDP( T* p, lua_State *L )		{ lua_pushnumber(L, p->GetPercentDP() ); return 1; }
 	static int GetWifeScore(T* p, lua_State *L)			{ lua_pushnumber(L, p->GetWifeScore()); return 1; }
+	static int GetWifePoints(T* p, lua_State *L)		{ lua_pushnumber(L, p->GetWifePoints()); return 1; }
 	static int GetMusicRate(T* p, lua_State *L)			{ lua_pushnumber(L, p->GetMusicRate()); return 1; }
 	static int GetJudgeScale(T* p, lua_State *L)		{ lua_pushnumber(L, p->GetJudgeScale()); return 1; }
 	static int GetDate( T* p, lua_State *L )			{ lua_pushstring(L, p->GetDateTime().GetString() ); return 1; }
@@ -1206,12 +1254,14 @@ public:
 
 	// Convert to MS so lua doesn't have to
 	static int GetOffsetVector(T* p, lua_State *L) {
-		if (p->LoadReplayData()) {
-			vector<float> doot = p->GetOffsetVector();
-			for (size_t i = 0; i < doot.size(); ++i)
-				doot[i] = doot[i] * 1000;
-			LuaHelpers::CreateTableFromArray(doot, L);
-			p->UnloadReplayData();
+		auto v = p->GetOffsetVector();
+		bool loaded = v.size() > 0;
+		if (loaded || p->LoadReplayData()) {
+			for (size_t i = 0; i < v.size(); ++i)
+				v[i] = v[i] * 1000;
+			LuaHelpers::CreateTableFromArray(v, L);
+			if (!loaded)
+				p->UnloadReplayData();
 		}
 		else
 			lua_pushnil(L);
@@ -1219,9 +1269,12 @@ public:
 	}
 
 	static int GetNoteRowVector(T* p, lua_State *L) {
-		if (p->LoadReplayData()) {
-			LuaHelpers::CreateTableFromArray(p->GetNoteRowVector(), L);
-			p->UnloadReplayData();
+		auto& v = p->GetNoteRowVector();
+		bool loaded = v.size() > 0;
+		if (loaded || p->LoadReplayData()) {
+			LuaHelpers::CreateTableFromArray(v, L);
+			if(!loaded)
+				p->UnloadReplayData();
 		}
 		else
 			lua_pushnil(L);
@@ -1244,8 +1297,9 @@ public:
 		ADD_METHOD( GetPercentDP );
 		ADD_METHOD( ConvertDpToWife );
 		ADD_METHOD( GetWifeScore );
-		ADD_METHOD( RescoreToWifeJudge );
-		ADD_METHOD( RescoreToDPJudge );
+		ADD_METHOD( GetWifePoints );
+		//ADD_METHOD( RescoreToWifeJudge );
+		//ADD_METHOD( RescoreToDPJudge );
 		ADD_METHOD( RescoreJudges );
 		ADD_METHOD( GetSkillsetSSR );
 		ADD_METHOD( GetMusicRate );

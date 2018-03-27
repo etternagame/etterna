@@ -7,6 +7,7 @@
 #include "CharacterManager.h"
 #include "CommonMetrics.h"
 #include "CryptManager.h"
+#include "discord-rpc.h"
 #include "Foreach.h"
 #include "Game.h"
 #include "GameCommand.h"
@@ -581,14 +582,20 @@ int GameState::GetNumStagesMultiplierForSong( const Song* pSong )
 	return iNumStages;
 }
 
-int GameState::GetNumStagesForCurrentSongAndStepsOrCourse() const{	int iNumStagesOfThisSong = 1;	if (m_pCurSong)	{
+int GameState::GetNumStagesForCurrentSongAndStepsOrCourse() const
+{
+	int iNumStagesOfThisSong = 1;
+	if (m_pCurSong)
+	{
 		iNumStagesOfThisSong = GameState::GetNumStagesMultiplierForSong(m_pCurSong);
 	}
 	else
 		return -1;
 	iNumStagesOfThisSong = max(iNumStagesOfThisSong, 1);
-	return iNumStagesOfThisSong;
-}
+	return iNumStagesOfThisSong;
+
+}
+
 
 // Called by ScreenGameplay. Set the length of the current song.
 void GameState::BeginStage()
@@ -883,6 +890,8 @@ void GameState::SetCurGame( const Game *pGame )
 	m_pCurGame.Set( pGame );
 	RString sGame = pGame ? RString(pGame->m_szName) : RString();
 	PREFSMAN->SetCurrentGame( sGame );
+	discordInit();
+	updateDiscordPresenceMenu("");
 }
 
 const float GameState::MUSIC_SECONDS_INVALID = -5000.0f;
@@ -1004,8 +1013,10 @@ int GameState::GetCourseSongIndex() const
 	if( GAMESTATE->m_bMultiplayer )
 	{
 		FOREACH_EnabledMultiPlayer(mp)
-			return STATSMAN->m_CurStageStats.m_multiPlayer[mp].m_iSongsPlayed - 1;
-		FAIL_M("At least one MultiPlayer must be joined.");
+			return STATSMAN->m_CurStageStats.m_multiPlayer[mp].m_iSongsPlayed - 1;
+
+		FAIL_M("At least one MultiPlayer must be joined.");
+
 	}
 	else
 	{
@@ -1826,6 +1837,37 @@ MultiPlayer GetNextEnabledMultiPlayer( MultiPlayer mp )
 	return MultiPlayer_Invalid;
 }
 
+void GameState::discordInit()
+{
+		DiscordEventHandlers handlers;
+		memset(&handlers, 0, sizeof(handlers));
+		Discord_Initialize("378543094531883009", &handlers, 1, NULL);
+}
+
+void GameState::updateDiscordPresence(const RString &largeImageText, const RString &details, const RString &state, const int64_t endTime)
+{
+		DiscordRichPresence discordPresence;
+		memset(&discordPresence, 0, sizeof(discordPresence));
+		discordPresence.details = details;
+		discordPresence.state = state;
+		discordPresence.endTimestamp = endTime;
+		discordPresence.largeImageKey = "default";
+		discordPresence.largeImageText = largeImageText;
+		Discord_RunCallbacks();
+		Discord_UpdatePresence(&discordPresence);
+}
+
+void GameState::updateDiscordPresenceMenu( const RString &largeImageText )
+{
+		DiscordRichPresence discordPresence;
+		memset(&discordPresence, 0, sizeof(discordPresence));
+		discordPresence.details = "In Menus";
+		discordPresence.largeImageKey = "default";
+		discordPresence.largeImageText = largeImageText;
+		Discord_RunCallbacks();
+		Discord_UpdatePresence(&discordPresence);
+}
+
 // lua start
 #include "LuaBinding.h"
 #include "Game.h"
@@ -2266,6 +2308,17 @@ public:
 		lua_pushstring(L, "CoinMode_Home");
 		return 1;
 	}
+
+	static int UpdateDiscordMenu(T* p, lua_State* L) {
+		p->updateDiscordPresenceMenu(SArg(1));
+		return 1;
+	}
+
+	static int UpdateDiscordPresence(T* p, lua_State* L) {
+		p->updateDiscordPresence(SArg(1), SArg(2), SArg(3), IArg(4));
+		return 1;
+	}
+
 	DEFINE_METHOD(GetEtternaVersion, GetEtternaVersion())
 	LunaGameState()
 	{
@@ -2364,6 +2417,8 @@ public:
 		ADD_METHOD( GetEtternaVersion );
 		ADD_METHOD( CountNotesSeparately );
 		ADD_METHOD(GetCoinMode);
+		ADD_METHOD( UpdateDiscordMenu );
+		ADD_METHOD( UpdateDiscordPresence );
 	}
 };
 

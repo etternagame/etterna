@@ -1,5 +1,4 @@
 local searchstring = ""
-local englishes = {"a", "b", "c", "d", "e","f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",";"}
 local frameX = 10
 local frameY = 180+capWideScale(get43size(120),120)
 local active = false
@@ -25,12 +24,14 @@ local function searchInput(event)
 		elseif event.DeviceInput.button == "DeviceButton_delete"  then
 			searchstring = ""
 		elseif event.DeviceInput.button == "DeviceButton_="  then
-			searchstring = searchstring.."="
+			searchstring = searchstring.."="	
+		elseif event.DeviceInput.button == "DeviceButton_v" and CtrlPressed then
+			searchstring = searchstring..HOOKS:GetClipboard()
 		else
-			for i=1,#englishes do														-- add standard characters to string
-				if event.DeviceInput.button == "DeviceButton_"..englishes[i] then
-					searchstring = searchstring..englishes[i]
-				end
+			--if not nil and (not a number or (ctrl pressed and not online))
+			local CtrlPressed = INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl")
+			if event.char and event.char:match("[%%%+%-%!%@%#%$%^%&%*%(%)%=%_%.%,%:%;%'%\"%>%<%?%/%~%|%w]") and (not tonumber(event.char) or CtrlPressed == (SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic")) then
+				searchstring = searchstring..event.char
 			end
 		end
 		if lastsearchstring ~= searchstring then

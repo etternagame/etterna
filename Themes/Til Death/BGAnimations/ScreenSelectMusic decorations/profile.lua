@@ -1,4 +1,12 @@
 local update = false
+local showOnline = false
+local function BroadcastIfActive(msg)
+	if update then
+		MESSAGEMAN:Broadcast(msg)
+	end
+end
+
+
 local t = Def.ActorFrame{
 	BeginCommand=function(self)
 		self:queuecommand("Set"):visible(false)
@@ -19,6 +27,19 @@ local t = Def.ActorFrame{
 			self:queuecommand("Off")
 			update = false
 		end
+	end,
+	LogOutMessageCommand=function(self)
+		showOnline = false
+		BroadcastIfActive("UpdateRanking")
+	end,
+	LoginMessageCommand=function(self)
+		BroadcastIfActive("UpdateRanking")
+	end,
+	LoginFailedMessageCommand=function(self)
+		BroadcastIfActive("UpdateRanking")
+	end,
+	OnlineUpdateMessageCommand=function(self)
+		BroadcastIfActive("UpdateRanking")
 	end,
 	TabChangedMessageCommand=function(self)
 		self:queuecommand("Set")
@@ -56,14 +77,7 @@ end
 t[#t+1] = Def.Quad{InitCommand=function(self)
 	self:xy(frameX,frameY):zoomto(frameWidth,frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
 end}
-t[#t+1] = Def.Quad{InitCommand=function(self)
-	self:xy(frameX,frameY):zoomto(frameWidth,offsetY):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(0.5)
-end}
-t[#t+1] = LoadFont("Common Normal")..{
-	InitCommand=function(self)
-		self:xy(frameX+5,frameY+offsetY-9):zoom(0.6):halign(0):diffuse(getMainColor('positive')):settext("Profile Info (WIP)")
-	end	
-}
+
 
 
 local function byValidity(valid)
@@ -73,11 +87,6 @@ local function byValidity(valid)
 	return byJudgment("TapNoteScore_Miss")
 end
 
-local function BroadcastIfActive(msg)
-	if update then
-		MESSAGEMAN:Broadcast(msg)
-	end
-end
 
 local function ButtonActive(self)
 	return isOver(self) and update
@@ -99,6 +108,7 @@ local function rankingLabel(i)
 	local thssteps
 	local thssong
 	local xoffset
+	local onlineScore
 	
 	local t = Def.ActorFrame{
 		InitCommand=function(self)
@@ -108,19 +118,28 @@ local function rankingLabel(i)
 		end,
 		UpdateRankingMessageCommand=function(self)
 			if rankingSkillset > 1 and update then
-				ths = SCOREMAN:GetTopSSRHighScore(i+(scoresperpage*(rankingPage-1)), ms.SkillSets[rankingSkillset])
-				if ths then
-					self:visible(true)
-					ck = ths:GetChartKey()
-					thssong = SONGMAN:GetSongByChartKey(ck)
-					thssteps = SONGMAN:GetStepsByChartKey(ck)
-					if not self and self.GetChildren then
-						for child in self:GetChildren() do
-							child:queuecommand("Display")
-						end
+				if not showOnline then
+					ths = SCOREMAN:GetTopSSRHighScore(i+(scoresperpage*(rankingPage-1)), ms.SkillSets[rankingSkillset])
+					if ths then
+						self:visible(true)
+						ck = ths:GetChartKey()
+						thssong = SONGMAN:GetSongByChartKey(ck)
+						thssteps = SONGMAN:GetStepsByChartKey(ck)
+						MESSAGEMAN:Broadcast("DisplayProfileRankingLabels")
+					else
+						self:visible(false)
+					end
+				else
+					onlineScore = DLMAN:GetTopSkillsetScore(i, ms.SkillSets[rankingSkillset])
+					MESSAGEMAN:Broadcast("DisplayProfileRankingLabels")
+					if not onlineScore then
+						self:visible(false)
+					else
+						self:visible(true)
 					end
 				end
 			else
+				onlinesScore = nil
 				self:visible(false)
 			end
 		end,
@@ -129,10 +148,18 @@ local function rankingLabel(i)
 				self:halign(0):zoom(fontScale)
 				self:maxwidth(100)
 			end,
-			DisplayCommand=function(self)
-				self:halign(0.5)
-				self:settext(((rankingPage-1)*25)+i..".")
-				self:diffuse(byValidity(ths:GetEtternaValid()))
+			DisplayProfileRankingLabelsMessageCommand=function(self)
+				if not showOnline then
+					if ths then
+						self:halign(0.5)
+						self:settext(((rankingPage-1)*25)+i..".")
+						self:diffuse(byValidity(ths:GetEtternaValid()))
+					end
+				else
+					self:halign(0.5)
+					self:settext(i..".")
+					self:diffuse(getMainColor('positive'))
+				end
 			end
 		},
 		LoadFont("Common Large") .. {
@@ -140,9 +167,22 @@ local function rankingLabel(i)
 				self:halign(0):zoom(fontScale)
 				self:x(15):maxwidth(160)
 			end,
-			DisplayCommand=function(self)
-				self:settextf("%5.2f", ths:GetSkillsetSSR(ms.SkillSets[rankingSkillset]))
-				self:diffuse(byValidity(ths:GetEtternaValid()))
+			DisplayProfileRankingLabelsMessageCommand=function(self)
+				if not showOnline then
+					if ths then
+						self:settextf("%5.2f", ths:GetSkillsetSSR(ms.SkillSets[rankingSkillset]))
+						self:diffuse(byValidity(ths:GetEtternaValid()))
+					else
+						self:settext("")
+					end
+				else
+					if onlineScore then
+						self:settextf("%5.2f", onlineScore.ssr)
+						self:diffuse(getMainColor('positive'))
+					else
+						self:settext("")
+					end
+				end
 			end
 		},
 		LoadFont("Common Large") .. {
@@ -150,9 +190,22 @@ local function rankingLabel(i)
 				self:halign(0):zoom(fontScale)
 				self:x(55):maxwidth(580)
 			end,
-			DisplayCommand=function(self)
-				self:settext(thssong:GetDisplayMainTitle())
-				self:diffuse(byValidity(ths:GetEtternaValid()))
+			DisplayProfileRankingLabelsMessageCommand=function(self)
+				if not showOnline then
+					if thssong then
+						self:settext(thssong:GetDisplayMainTitle())
+						self:diffuse(byValidity(ths:GetEtternaValid()))
+					else
+						self:settext("")
+					end
+				else
+					if onlineScore then
+					self:settext(onlineScore.songName)
+					self:diffuse(getMainColor('positive'))
+					else
+						self:settext("")
+					end
+				end
 			end
 		},
 		LoadFont("Common Large") .. {
@@ -160,11 +213,26 @@ local function rankingLabel(i)
 				self:halign(0):zoom(fontScale)
 				self:x(220)
 			end,
-			DisplayCommand=function(self)
-				self:halign(0.5)
-				local ratestring = string.format("%.2f", ths:GetMusicRate()):gsub("%.?0+$", "").."x"
-				self:settext(ratestring)
-				self:diffuse(byValidity(ths:GetEtternaValid()))
+			DisplayProfileRankingLabelsMessageCommand=function(self)
+				if not showOnline then
+					if ths then
+						self:halign(0.5)
+						local ratestring = string.format("%.2f", ths:GetMusicRate()):gsub("%.?0+$", "").."x"
+						self:settext(ratestring)
+						self:diffuse(byValidity(ths:GetEtternaValid()))
+					else
+						self:settext("")
+					end
+				else
+					if onlineScore then
+						local ratestring = string.format("%.2f", onlineScore.rate):gsub("%.?0+$", "").."x"
+						self:halign(0.5)
+						self:settext(ratestring)
+						self:diffuse(getMainColor('positive'))
+					else
+						self:settext("")
+					end
+				end
 			end
 		},
 		LoadFont("Common Large") .. {
@@ -172,12 +240,25 @@ local function rankingLabel(i)
 				self:halign(0):zoom(fontScale)
 				self:x(240):maxwidth(160)
 			end,
-			DisplayCommand=function(self)
-				self:settextf("%5.2f%%", ths:GetWifeScore()*100)
-				if not ths:GetEtternaValid() then
-					self:diffuse(byJudgment("TapNoteScore_Miss"))
+			DisplayProfileRankingLabelsMessageCommand=function(self)
+				if not showOnline then
+					if ths then
+						self:settextf("%5.2f%%", ths:GetWifeScore()*100)
+						if not ths:GetEtternaValid() then
+							self:diffuse(byJudgment("TapNoteScore_Miss"))
+						else
+							self:diffuse(getGradeColor(ths:GetWifeGrade()))
+						end
+					else
+						self:settext("")
+					end
 				else
-					self:diffuse(getGradeColor(ths:GetWifeGrade()))
+					if onlineScore then
+						self:settextf("%5.2f%%", onlineScore.wife*100)
+						self:diffuse(getGradeColor("Grade_Tier03"))
+					else
+						self:settext("")
+					end
 				end
 			end
 		},
@@ -186,11 +267,25 @@ local function rankingLabel(i)
 				self:halign(0):zoom(fontScale)
 				self:x(300)
 			end,
-			DisplayCommand=function(self)
-				local diff = thssteps:GetDifficulty()
+			DisplayProfileRankingLabelsMessageCommand=function(self)
 				self:halign(0.5)
-				self:diffuse(byDifficulty(diff))
-				self:settext(getShortDifficulty(diff))
+				if not showOnline then
+					if thssteps then
+						local diff = thssteps:GetDifficulty()
+						self:diffuse(byDifficulty(diff))
+						self:settext(getShortDifficulty(diff))
+					else
+						self:settext("")
+					end
+				else
+					if onlineScore then
+						local diff = onlineScore.difficulty
+						self:diffuse(byDifficulty(diff))
+						self:settext(getShortDifficulty(diff))
+					else
+						self:settext("")
+					end
+				end
 			end
 		},
 		Def.Quad{
@@ -198,12 +293,12 @@ local function rankingLabel(i)
 				self:halign(0):zoom(fontScale)
 				self:diffusealpha(buttondiffuse)
 			end,
-			DisplayCommand=function(self)	-- hacky
+			DisplayProfileRankingLabelsMessageCommand=function(self)	-- hacky
 				self:visible(true)
 				self:zoomto(300,scoreYspacing)
 			end,
 			MouseRightClickMessageCommand=function(self)	
-				if ths and ButtonActive(self) then
+				if not showOnline and ths and ButtonActive(self) then
 					ths:ToggleEtternaValidation()
 					BroadcastIfActive("UpdateRanking")
 					if ths:GetEtternaValid() then 
@@ -214,8 +309,17 @@ local function rankingLabel(i)
 				end
 			end,
 			MouseLeftClickMessageCommand=function(self)
-				if ths and ButtonActive(self) then
-					whee:SelectSong(thssong)
+				if rankingSkillset>1 and ButtonActive(self) then
+					if not showOnline then
+						if ths then
+							whee:SelectSong(thssong)
+						end
+					elseif onlineScore and onlineScore.chartkey then
+						local song = SONGMAN:GetSongByChartKey(onlineScore.chartkey)
+						if song then
+							whee:SelectSong(song)
+						end
+					end
 				end
 			end
 		}
@@ -267,13 +371,115 @@ local function rankingButton(i)
 	return t
 end
 
+t[#t+1]= Def.ActorFrame {
+	InitCommand=function(self)
+		if DLMAN:IsLoggedIn() then
+			self:visible(true)
+		else
+			self:visible(false)
+		end
+	end,
+	SetCommand=function(self)
+		if DLMAN:IsLoggedIn() then
+			self:visible(true)
+		else
+			self:visible(false)
+		end
+	end,
+	UpdateRankingMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	Def.ActorFrame {
+		InitCommand=function(self)
+			self:xy(rankingX + frameWidth/4-rankingTitleSpacing, rankingY+offsetY*0.9)
+		end,
+		Def.Quad{
+			InitCommand=function(self)
+				self:zoomto(rankingTitleSpacing,offsetY):diffusealpha(0.35)
+				if DLMAN:IsLoggedIn() then
+					self:diffuse(getMainColor('frames'))
+					if showOnline then
+						self:diffusealpha(1)
+					else
+						self:diffusealpha(0.35)
+					end
+				else
+					self:diffuse(getMainColor('disabled')):diffusealpha(0.1)
+				end
+			end,
+			SetCommand=function(self)
+				if DLMAN:IsLoggedIn() then
+					self:diffuse(getMainColor('frames'))
+					if showOnline then
+						self:diffusealpha(1)
+					else
+						self:diffusealpha(0.35)
+					end
+				else
+					self:diffuse(getMainColor('disabled')):diffusealpha(0.1)
+				end
+			end,
+			MouseLeftClickMessageCommand=function(self)
+				if ButtonActive(self) and DLMAN:IsLoggedIn() then
+					showOnline = true
+					BroadcastIfActive("UpdateRanking")
+				end
+			end,
+			UpdateRankingMessageCommand=function(self)
+				self:queuecommand("Set")
+			end	
+		},
+		LoadFont("Common Large") .. {
+			InitCommand=function(self)
+				self:diffuse(getMainColor('positive')):maxwidth(rankingTitleSpacing):maxheight(25):zoom(0.85)
+			end,
+			BeginCommand=function(self)
+				self:settext("Online")
+			end,
+		}
+	}, 
+	Def.ActorFrame{
+		InitCommand=function(self)
+			self:xy(rankingX + frameWidth*3/4-rankingTitleSpacing, rankingY+offsetY*0.9)
+		end,
+		Def.Quad{
+			InitCommand=function(self)
+				self:zoomto(rankingTitleSpacing,offsetY):diffusealpha(0.35):diffuse(getMainColor('frames'))
+			end,
+			SetCommand=function(self)
+				if not showOnline then
+					self:diffusealpha(1)
+				else
+					self:diffusealpha(0.35)
+				end
+			end,
+			MouseLeftClickMessageCommand=function(self)
+				if ButtonActive(self) then
+					showOnline = false
+					BroadcastIfActive("UpdateRanking")
+				end
+			end,
+			UpdateRankingMessageCommand=function(self)
+				self:queuecommand("Set")
+			end	
+		},
+		LoadFont("Common Large") .. {
+			InitCommand=function(self)
+				self:diffuse(getMainColor('positive')):maxwidth(rankingTitleSpacing):maxheight(25):zoom(0.85)
+			end,
+			BeginCommand=function(self)
+				self:settext("Local")
+			end
+		}
+	}
+}
 -- prev/next page
 r[#r+1] = Def.ActorFrame{
 	InitCommand=function(self)
 		self:xy( 10, frameHeight - offsetY):visible(false)
 	end,
 	UpdateRankingMessageCommand=function(self)
-		if rankingSkillset > 1 then 
+		if rankingSkillset > 1 and not showOnline then 
 			self:visible(true)
 			if not self and self.GetChildren then
 				for child in self:GetChildren() do
@@ -358,7 +564,7 @@ local function littlebits(i)
 		end,
 		LoadFont("Common Large") .. {
 			InitCommand=function(self)
-				self:y(22*i):halign(0):zoom(0.5):diffuse(getMainColor('positive'))
+				self:y(22*i):maxwidth(170*2):halign(0):zoom(0.5):diffuse(getMainColor('positive'))
 			end,
 			SetCommand=function(self)
 				self:settext(ms.SkillSets[i]..":")
@@ -366,13 +572,22 @@ local function littlebits(i)
 		},
 		LoadFont("Common Large") .. {
 			InitCommand=function(self)
-				self:xy(240,22*i):halign(1):zoom(0.5)
+				self:xy(170,22*i):halign(0):zoom(0.5)
 			end,
 			SetCommand=function(self)
-				local rating = profile:GetPlayerSkillsetRating(ms.SkillSets[i])
-				self:settextf("%5.2f",rating)
+				local rating = 0
+				if not showOnline then
+					rating = profile:GetPlayerSkillsetRating(ms.SkillSets[i])
+					self:settextf("%5.2f",rating)
+				else
+					rating = DLMAN:GetSkillsetRating(ms.SkillSets[i])
+					self:settextf("%5.2f(#%i)",rating, DLMAN:GetSkillsetRank(ms.SkillSets[i]))
+				end
 				self:diffuse(ByMSD(rating))
-			end
+			end,
+			UpdateRankingMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
 		}
 	}
 	return t
@@ -383,10 +598,43 @@ for i=2,#ms.SkillSets do
 end
 
 
+function easyInputStringWithParams(question, maxLength, isPassword, f, params)
+	SCREENMAN:AddNewScreenToTop("ScreenTextEntry");
+	local settings = {
+		Question = question,
+		MaxInputLength = maxLength,
+		Password = isPassword,
+		OnOK = function(answer)
+			f(answer, params)
+		end
+	};
+	SCREENMAN:GetTopScreen():Load(settings);
+end
 
+function easyInputStringWithFunction(question, maxLength, isPassword, f)
+	easyInputStringWithParams(question, maxLength, isPassword, function(answer, params) f(answer) end, {})
+end
+
+--Tables are passed by reference right? So the value is tablewithvalue to pass it by ref
+function easyInputString(question, maxLength, isPassword, tablewithvalue)
+	easyInputStringWithParams(question, maxLength, isPassword, function(answer, params) tablewithvalue.inputString=answer end, {})
+end
+
+local user
+local pass
 local profilebuttons = Def.ActorFrame{
 	InitCommand=function(self)
-		self:xy(frameX+60,frameHeight + 20)
+		self:xy(frameX+45,frameHeight + 20)
+		user = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName
+		pass = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).Password
+		if pass ~= "" and answer ~= "" then
+			if not DLMAN:IsLoggedIn() then
+				DLMAN:Login(user, pass)
+			end
+		else
+			pass = ""
+			user = ""
+		end
 	end,
 	UpdateRankingMessageCommand=function(self)
 		if rankingSkillset == 1 and update then
@@ -448,6 +696,58 @@ local profilebuttons = Def.ActorFrame{
 			end
 		end
 	},
+	LoadFont("Common Large") .. {
+		LogOutMessageCommand=function(self)
+			self:settext("Login")
+		end,
+		LoginMessageCommand=function(self)
+			self:settext("Logout")
+		end,
+		InitCommand=function(self)
+			if DLMAN:IsLoggedIn() then
+				self:settext("Logout")
+			else
+				self:settext("Login")
+			end
+			self:x(300):diffuse(getMainColor('positive')):zoom(0.3)
+		end,
+	},
+	Def.Quad{
+		InitCommand=function(self)
+			self:x(300):zoomto(110,20):diffusealpha(buttondiffuse)
+		end,
+		LoginFailedMessageCommand=function(self)
+			ms.ok("Login failed!")
+		end,
+		LoginMessageCommand=function(self)
+			ms.ok("Succesfully logged in")
+		end,
+		MouseLeftClickMessageCommand=function(self)
+			if ButtonActive(self) and rankingSkillset == 1 then 
+				if not DLMAN:IsLoggedIn() then
+					username = function(answer) 
+							user=answer
+						end
+					password = function(answer) 
+							pass=answer
+							DLMAN:Login(user, pass) 
+							playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = user
+							playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).Password = pass
+							playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+							playerConfig:save(pn_to_profile_slot(PLAYER_1))
+						end
+					easyInputStringWithFunction("Password:", 50, true, password)
+					easyInputStringWithFunction("Username:",50, false, username)
+				else
+					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = ""
+					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).Password = ""
+					playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+					playerConfig:save(pn_to_profile_slot(PLAYER_1))
+					DLMAN:Logout()
+				end
+			end
+		end
+	}
 	
 }
 

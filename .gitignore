@@ -21,6 +21,7 @@ Contents/
 Xcode/Info.StepMania.plist
 Xcode/plistHelper.hpp
 src/generated
+extern/mad-0.15.1b/config.h
 extern/libjpeg/jconfig.h
 extern/newogg/include/ogg/config_types.h
 
@@ -93,6 +94,9 @@ crashinfo.txt
 !extern/MinaCalc/MinaCalc.a
 !extern/MinaCalc/libMinaCalc.a
 
+# calc
+src/MinaCalc
+
 # Unknown File Types
 tests/*.err
 *.ncb
@@ -100,3 +104,6 @@ tests/*.err
 *.user
 *.vdi
 *.pch
+
+nsis_strings_temp\.inc
+BatchRecalc/*

@@ -1,3 +1,4 @@
+local judges = { "marv", "perf", "great", "good", "boo", "miss" }
 
 local gradeTiers = {
 	Grade_Tier01 = 0,
@@ -75,6 +76,10 @@ local migsWeight =  { -- Score Weights for MIGS score
 local ScoreForPlot = nil
 function setScoreForPlot(hs) ScoreForPlot = hs end
 function getScoreForPlot() return ScoreForPlot end
+--Same as above for online scores
+local NetScoreForPlot = nil
+function setOnlineScoreForPlot(hs) NetScoreForPlot = hs end
+function getOnlineScoreForPlot() return NetScoreForPlot end
 
 
 
@@ -373,4 +378,88 @@ function getScoreList(pn)
 		end
 	end
 	return nil
+end
+
+function wife2(maxms, ts)
+	local avedeviation = 95 * ts
+	local y = 1 - (2 ^ (-1 * maxms*maxms / (avedeviation*avedeviation)))
+	y = y ^ 2
+	return (2 - -8)*(1 - y) + -8
+end
+
+function getRescoredJudge(offsetVector, judgeScale, judge)
+	local tso = { 1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20 }
+	local ts = tso[judgeScale]
+	local windows = { 22.5, 45.0, 90.0, 135.0, 180.0, 500.0 }
+	windows[5] = math.max(windows[5], 180.0)
+	local lowerBound = judge > 1 and windows[judge - 1] * ts or -1.0
+	local upperBound = windows[judge] * ts
+	local judgeCount = 0
+
+	if judge > 5 then
+		for i = 1, #offsetVector do
+			x = math.abs(offsetVector[i])
+			if (x > lowerBound) then
+				judgeCount = judgeCount + 1
+			end
+		end
+	else
+		for i = 1, #offsetVector do
+			x = math.abs(offsetVector[i])
+			if (x > lowerBound and x <= upperBound) then
+				judgeCount = judgeCount + 1
+			end
+		end
+	end
+	return judgeCount
+end
+
+function getRescoredCustomJudge(offsetVector, windows, judge)
+	local lowerBound = judge > 1 and windows[judges[judge - 1]] or -1.0
+	local upperBound = windows[judges[judge]]
+	local judgeCount = 0
+
+	if judge > 5 then
+		for i = 1, #offsetVector do
+			x = math.abs(offsetVector[i])
+			if (x > lowerBound) then
+				judgeCount = judgeCount + 1
+			end
+		end
+	else
+		for i = 1, #offsetVector do
+			x = math.abs(offsetVector[i])
+			if (x > lowerBound and x <= upperBound) then
+				judgeCount = judgeCount + 1
+			end
+		end
+	end
+	return judgeCount
+end
+
+function getRescoredWifeJudge(offsetVector, judgeScale, holdsMissed, minesHit, totalNotes)
+	local tso = { 1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20 }
+	local ts = tso[judgeScale]
+	local p = 0.0
+	for i = 1, #offsetVector do
+		p = p + wife2(offsetVector[i], ts)
+	end
+	p = p + (holdsMissed * -6)
+	p = p + (minesHit * -8)
+	return (p/(totalNotes*2)) * 100.0
+end
+
+function getRescoredCustomPercentage(offsetVector, customWindows, totalHolds, holdsHit, minesHit, totalNotes)
+	local p = 0.0
+	local weights = customWindows.judgeWeights
+	local windows = customWindows.judgeWindows
+	local holdsMissed = totalHolds - holdsHit
+	for i = 1, 6 do
+		p = p + (getRescoredCustomJudge(offsetVector, windows, i) * weights[judges[i]])
+	end
+	p = p + (holdsHit * weights.holdHit)
+	p = p + (holdsMissed * weights.holdMiss)
+	p = p + (minesHit * weights.mineHit)
+	p = p / ((totalNotes * weights.marv) + (totalHolds * weights.holdHit))
+	return p * 100.0
 end

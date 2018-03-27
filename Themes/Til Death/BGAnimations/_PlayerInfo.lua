@@ -10,7 +10,6 @@ local playCount = 0
 local playTime = 0
 local noteCount = 0
 local numfaves = 0
-local profileXP = 0
 local AvatarX = 0
 local AvatarY = SCREEN_HEIGHT-50
 local playerRating = 0
@@ -25,7 +24,6 @@ t[#t+1] = Def.Actor{
 		playCount = profile:GetTotalNumSongsPlayed()
 		playTime = profile:GetTotalSessionSeconds()
 		noteCount = profile:GetTotalTapsAndHolds()
-		profileXP = math.floor(profile:GetTotalDancePoints() / 10 + profile:GetTotalNumSongsPlayed() * 50)
 		playerRating = profile:GetPlayerRating()
 	end,
 	PlayerJoinedMessageCommand=function(self)
@@ -75,30 +73,44 @@ t[#t+1] = Def.ActorFrame{
 			self:zoomto(50,50)
 		end,
 	},
-	--Revamped. SMO stuff for now. -Misterkister
 	LoadFont("Common Normal") .. {
 		InitCommand=function(self)
-			self:xy(AvatarX+53,AvatarY+7):halign(0):zoom(0.6):diffuse(getMainColor('positive'))
+			self:xy(AvatarX+53,AvatarY+7):maxwidth(200):halign(0):zoom(0.6):diffuse(getMainColor('positive'))
 		end,
 		BeginCommand=function(self)
 			self:queuecommand("Set")
 		end,
 		SetCommand=function(self)
-			local tiers = {[0] = "1: Novice", [7] = "2: Basic", [13] = "3: Intermediate", [17] = "4: Advanced", [21] = "5: Expert", [25] = "6: Master", [29] = "7: Veteran", [35] = "8: Legendary", [40] = "9: Vibro Legend"}
-			local index = math.floor(playerRating)
-				while tiers[index] == nil do
-				index = index - 1
-				end
-			if IsNetSMOnline() then
-			self:settextf("%s: %5.2f (Tier %s)",profileName,playerRating,tiers[index])
-			else
 			self:settextf("%s: %5.2f",profileName,playerRating)
-			end
 		end,
 		PlayerJoinedMessageCommand=function(self)
 			self:queuecommand("Set")
 		end,
 		PlayerUnjoinedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+	},
+	LoadFont("Common Normal") .. {
+		InitCommand=function(self)
+			self:xy(SCREEN_CENTER_X+100,AvatarY+40):halign(0):zoom(0.35):diffuse(getMainColor('positive'))
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		SetCommand=function(self)
+			if DLMAN:IsLoggedIn() then
+				self:queuecommand("Login")
+			else
+				self:queuecommand("LogOut")
+			end
+		end,
+		LogOutMessageCommand=function(self)
+			self:settext("Not logged in")
+		end,
+		LoginMessageCommand=function(self)
+			self:settextf("Logged in as %s (%5.2f: #%i)",DLMAN:GetUsername(),DLMAN:GetSkillsetRating("Overall"),DLMAN:GetSkillsetRank(ms.SkillSets[1]))
+		end,
+		OnlineUpdateMessageCommand=function(self)
 			self:queuecommand("Set")
 		end,
 	},
@@ -163,32 +175,6 @@ t[#t+1] = Def.ActorFrame{
 		end,
 		SetCommand=function(self)
 			self:settext("Judge: "..GetTimingDifficulty())
-		end,
-		PlayerJoinedMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
-		PlayerUnjoinedMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
-	},
-	--Level system revamped. -Misterkister
-	LoadFont("Common Normal") .. {
-		InitCommand=function(self)
-			self:xy(SCREEN_CENTER_X,AvatarY+25):halign(0.5):zoom(0.35):diffuse(getMainColor('positive'))
-		end,
-		BeginCommand=function(self)
-			self:queuecommand("Set")
-		end,
-		SetCommand=function(self)
-		local level = 1
-			if profileXP > 0 then
-				level = math.floor(math.log(profileXP) / math.log(2))
-			end
-			if(IsNetSMOnline()) then
-				self:settext("Overall Level: " .. level .. "\nEXP Earned: " .. profileXP .. "/" .. 2^(level+1))
-			else
-				self:settext("")
-			end
 		end,
 		PlayerJoinedMessageCommand=function(self)
 			self:queuecommand("Set")

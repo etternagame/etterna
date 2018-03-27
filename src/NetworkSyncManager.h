@@ -3,11 +3,25 @@
 
 #include "PlayerNumber.h"
 #include "Difficulty.h"
+#include "ScreenNetRoom.h"
+#include "RoomWheel.h"
+#include "ScreenNetSelectMusic.h"
+#include "ScreenSMOnlineLogin.h"
+#include "PlayerState.h"
+#include "PlayerStageStats.h"
+#include "Song.h"
+#include "HighScore.h"
+#include "global.h"
 #include <queue>
+#include "uWS.h"
+#include "JsonUtil.h"
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
 
 class LoadingWindow;
 
 const int NETPROTOCOLVERSION=4;
+const int ETTPCVERSION = 1;
 const int NETMAXBUFFERSIZE=1020; //1024 - 4 bytes for EzSockets
 const int NETNUMTAPSCORES=8;
 
@@ -56,13 +70,16 @@ enum SMOStepType
 const NSCommand NSServerOffset = (NSCommand)128;
 
 // TODO: Provide a Lua binding that gives access to this data. -aj
-struct EndOfGame_PlayerData
+class EndOfGame_PlayerData
 {
+public:
 	int name;
-	int score;
+	string nameStr;
 	int grade;
+	int score;
 	Difficulty difficulty;
 	int tapScores[NETNUMTAPSCORES];	//This will be a const soon enough
+	HighScore hs;
 	RString playerOptions;
 };
 
@@ -73,6 +90,49 @@ enum NSScoreBoardColumn
 	NSSB_GRADE,
 	NUM_NSScoreBoardColumn,
 	NSScoreBoardColumn_Invalid
+};
+
+enum ETTServerMessageTypes {
+	ettps_hello=0,
+	ettps_ping,
+	ettps_recievechat,
+	ettps_loginresponse,
+	ettps_roomlist,
+	ettps_recievescore,
+	ettps_gameplayleaderboard,
+	ettps_createroomresponse,
+	ettps_enterroomresponse,
+	ettps_selectchart,
+	ettps_startchart,
+	ettps_deleteroom,
+	ettps_newroom,
+	ettps_updateroom,
+	ettps_roomuserlist,
+	ettps_end
+};
+enum ETTClientMessageTypes {
+	ettpc_login=0,
+	ettpc_ping,
+	ettpc_sendchat,
+	ettpc_sendscore,
+	ettpc_gameplayupdate,
+	ettpc_createroom,
+	ettpc_enterroom,
+	ettpc_leaveroom,
+	ettpc_selectchart,
+	ettpc_startchart,
+	ettpc_gameover,
+	ettpc_haschart,
+	ettpc_missingchart,
+	ettpc_startingchart,
+	ettpc_notstartingchart, 
+	ettpc_openoptions, 
+	ettpc_closeoptions, 
+	ettpc_openeval, 
+	ettpc_closeeval, 
+	ettpc_logout, 
+	ettpc_hello,
+	ettpc_end
 };
 /** @brief A special foreach loop going through each NSScoreBoardColumn. */
 #define FOREACH_NSScoreBoardColumn( sc ) FOREACH_ENUM( NSScoreBoardColumn, sc )
@@ -107,27 +167,162 @@ public:
 
 	void ClearPacket();
 };
+
+class NetworkSyncManager;
+class ScreenNetRoom;
+class NetProtocol {
+public:
+	RString serverName;
+	int serverVersion{0}; // ServerVersion
+	virtual bool Connect(NetworkSyncManager* n, unsigned short port, RString address) {return false;}
+	virtual void close() {}
+	virtual void Update(NetworkSyncManager* n, float fDeltaTime) {}
+	virtual void CreateNewRoom(RString name, RString desc, RString password) {}
+	virtual void SelectUserSong(NetworkSyncManager* n, Song* song) {}
+	virtual void EnterRoom(RString name, RString password) {}
+	virtual void LeaveRoom(NetworkSyncManager* n) {}
+	virtual void RequestRoomInfo(RString name) {}
+	virtual void SendChat(const RString& message, string tab, int type) {}
+	virtual void ReportNSSOnOff(int i) {}
+	virtual void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset, int numNotes) {}
+	virtual void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset) {}
+	virtual void ReportHighScore(HighScore* hs, PlayerStageStats& pss) {}
+	virtual void ReportSongOver(NetworkSyncManager* n) {}
+	virtual void ReportStyle(NetworkSyncManager* n) {}
+	virtual void StartRequest(NetworkSyncManager* n, short position) {}
+	virtual	void Login(RString user, RString pass) {}
+	virtual	void Logout() {}
+	virtual void OnMusicSelect() {};
+	virtual void OffMusicSelect() {};
+	virtual void OnRoomSelect() {};
+	virtual void OffRoomSelect() {};
+	virtual void OnOptions() {};
+	virtual void OffOptions() {};
+	virtual void OnEval() {};
+	virtual void OffEval() {};
+};
+class SMOProtocol : public NetProtocol { // Built on raw tcp
+	EzSockets *NetPlayerClient;
+	EzSockets *BroadcastReception;
+	PacketFunctions m_packet;
+	int m_iSalt;
+	bool TryConnect(unsigned short port, RString address);
+	void SendSMOnline();
+public:
+	PacketFunctions	SMOnlinePacket;
+	SMOProtocol();
+	~SMOProtocol();
+	bool Connect(NetworkSyncManager* n, unsigned short port, RString address) override; // Connect and say hello
+	void close() override;
+	void Update(NetworkSyncManager* n, float fDeltaTime) override;
+	void SelectUserSong(NetworkSyncManager* n, Song* song) override;
+	void CreateNewRoom(RString name, RString desc, RString password) override;
+	void EnterRoom(RString name, RString password) override;
+	void RequestRoomInfo(RString name) override;
+	void ReportPlayerOptions();
+	void SendChat(const RString& message, string tab, int type) override;
+	void ReportNSSOnOff(int i) override;
+	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset, int numNotes) override;
+	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset) override;
+	void ReportSongOver(NetworkSyncManager* n) override;
+	void ReportStyle(NetworkSyncManager* n) override;
+	void StartRequest(NetworkSyncManager* n, short position) override; 
+	void ProcessInput(NetworkSyncManager* n);
+	void Login(RString user, RString pass) override;
+	void OnMusicSelect() override;
+	void OffMusicSelect() override;
+	void OnRoomSelect() override;
+	void OffRoomSelect() override;
+	void OnOptions() override;
+	void OffOptions() override;
+	void OnEval() override;
+	void OffEval() override;
+
+	static void DealWithSMOnlinePack(PacketFunctions &SMOnlinePacket, ScreenNetSelectMusic* s);
+	static void DealWithSMOnlinePack(PacketFunctions &SMOnlinePacket, ScreenNetRoom* s);
+	static int DealWithSMOnlinePack(PacketFunctions &SMOnlinePacket, ScreenSMOnlineLogin* s, RString& response);
+};
+
+class ETTProtocol : public NetProtocol { // Websockets using uwebsockets sending json
+	uWS::Hub uWSh;
+	vector<json> newMessages;
+	unsigned int msgId{0};
+	bool error{ false };
+	uWS::WebSocket<uWS::CLIENT>* ws;
+	void FindJsonChart(NetworkSyncManager* n, json& ch);
+	int state = 0; // 0 = ready, 1 = playing, 2 = evalScreen, 3 = options, 4 = notReady(unkown reason)
+public:
+	string roomName;
+	string roomDesc;
+	bool Connect(NetworkSyncManager* n, unsigned short port, RString address) override; // Connect and say hello
+	void close() override;
+	void Update(NetworkSyncManager* n, float fDeltaTime) override;
+	void Login(RString user, RString pass) override;
+	void Logout() override;
+	void SendChat(const RString& message, string tab, int type) override;
+	void CreateNewRoom(RString name, RString desc, RString password) override;
+	void EnterRoom(RString name, RString password) override;
+	void LeaveRoom(NetworkSyncManager* n) override;
+	void ReportSongOver(NetworkSyncManager* n) override;
+	void SelectUserSong(NetworkSyncManager* n, Song* song) override;
+	void OnOptions() override;
+	void OffOptions() override;
+	void OnEval() override;
+	void OffEval() override;
+	void ReportHighScore(HighScore* hs, PlayerStageStats& pss) override;
+	void Send(const char* msg);
+	/*
+	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset, int numNotes) override;
+	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset) override;
+	void ReportStyle(NetworkSyncManager* n) override;
+	*/
+};
+//Regular pair map except [anyString, 0] is the same key
+class Chat  {
+public:
+	map<pair<string, int>, vector<string>> rawMap;
+
+	vector<string>& operator[](const pair<string, int>& p) {
+		if (p.second == 0)
+			return rawMap.operator[](make_pair(string(""), 0));
+		else
+			return rawMap.operator[](p);
+	}
+};
 /** @brief Uses ezsockets for primitive song syncing and score reporting. */
 class NetworkSyncManager 
 {
 public:
 	NetworkSyncManager( LoadingWindow *ld = NULL );
 	~NetworkSyncManager();
-
+	SMOProtocol SMOP;
+	ETTProtocol ETTP;
+	NetProtocol* curProtocol{ nullptr };
     // If "useSMserver" then send score to server
 	void ReportScore( int playerID, int step, int score, int combo, float offset );	
 	void ReportScore(int playerID, int step, int score, int combo, float offset, int numNotes);
+	void ReportHighScore(HighScore* hs, PlayerStageStats& pss);
 	void ReportSongOver();
 	void ReportStyle(); // Report style, players, and names
 	void ReportNSSOnOff( int i );	// Report song selection screen on/off
+
+	void OnMusicSelect();
+	void OffMusicSelect();
+	void OnRoomSelect();
+	void OffRoomSelect();
+	void OnOptions();
+	void OffOptions();
+	void OnEval();
+	void OffEval();
+
 	void StartRequest( short position );	// Request a start; Block until granted.
 	RString GetServerName();
 
-	// SMOnline stuff
-	// FIXME: This should NOT be public. PERIOD.
-	void SendSMOnline( );
+	void CreateNewRoom(RString name, RString desc="", RString password="");
+	void EnterRoom(RString name, RString password="");
+	void LeaveRoom();
+	void RequestRoomInfo(RString name);
 
-	bool Connect( const RString& addy, unsigned short port );
 
 	void PostStartUp( const RString& ServerIP );
 
@@ -135,13 +330,16 @@ public:
 
 	void DisplayStartupStatus();	// Notify user if connect attempt was successful or not.
 
-	int m_playerLife[NUM_PLAYERS];	// Life (used for sending to server)
+	int m_playerLife;	// Life (used for sending to server)
 
-	void Update( float fDeltaTime );
+	void Update(float fDeltaTime);
 
 	bool useSMserver;
 	bool isSMOnline;
-	bool isSMOLoggedIn[NUM_PLAYERS];
+	bool loggedIn;
+	string loginResponse; // Failure reason
+
+	Chat chat; //[{Tabname, int}] = vector<line>
 
 	vector<int> m_PlayerStatus;
 	int m_ActivePlayers;
@@ -160,17 +358,22 @@ public:
 	RString m_Scoreboard[NUM_NSScoreBoardColumn];
 
 	// Used for chatting
-	void SendChat(const RString& message);
+	void SendChat(const RString& message, string tab = "", int type = 0); // 0=lobby (ettp only)
 	RString m_WaitingChat;
 
-	// Used for options
-	void ReportPlayerOptions();
 
 	// Used for song checking/changing
 	RString m_sMainTitle;
 	RString m_sArtist;
 	RString m_sSubTitle;
 	RString m_sFileHash;
+	string chartkey;
+	Song* song{ nullptr };
+	Steps* steps{ nullptr };
+	Difficulty difficulty;
+	int meter;
+	int rate;
+
 	int m_sHash;
 	int m_iSelectMode;
 	void SelectUserSong();
@@ -179,12 +382,9 @@ public:
 
 	RString m_sChatText;
 
-	// FIXME: This should NOT be public. PERIOD. It probably shouldn't be a member at all.
-	PacketFunctions	m_SMOnlinePacket;
 
 	StepManiaLanServer *LANserver;
 
-	int GetSMOnlineSalt();
 
 	RString MD5Hex( const RString &sInput );
 
@@ -194,33 +394,31 @@ public:
 	// I preferred to misplace code rather than cause unneeded headaches to non-windows users, although it would be nice to have in the wiki which files to
 	// update when adding new files.
 	static unsigned long GetCurrentSMBuild( LoadingWindow* ld );
-private:
+
+
+	int m_startupStatus;	// Used to see if attempt was successful or not.
+
+	void Login(RString user, RString pass);
+	void Logout();
+	vector<RoomData> m_Rooms;
+
 #if !defined(WITHOUT_NETWORKING)
+	SMOStepType TranslateStepType(int score);
+	vector<NetServerInfo> m_vAllLANServers;
+	bool m_scoreboardchange[NUM_NSScoreBoardColumn];
+
+	//Lua
+	void PushSelf(lua_State *L);
+
+private:
 
 	void ProcessInput();
-	SMOStepType TranslateStepType(int score);
 	void StartUp();
 
 	int m_playerID;  // Currently unused, but need to stay
 	int m_step;
 	int m_score;
 	int m_combo;
-    
-	int m_startupStatus;	// Used to see if attempt was successful or not.
-	int m_iSalt;
-
-	bool m_scoreboardchange[NUM_NSScoreBoardColumn];
-
-	RString m_ServerName;
- 
-	EzSockets *NetPlayerClient;
-	EzSockets *BroadcastReception;
-
-	vector<NetServerInfo> m_vAllLANServers;
-
-	int m_ServerVersion; // ServerVersion
-
-	PacketFunctions m_packet;
 #endif
 };
 

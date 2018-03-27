@@ -27,6 +27,7 @@ public:
 	 * @param other the other stats to add to this one. */
 	void AddStats( const PlayerStageStats& other );		// accumulate
 
+	static Grade GetGrade(float p);
 	Grade GetGrade() const;
 	static float MakePercentScore( int iActual, int iPossible );
 	static RString FormatPercentScore( float fPercentScore );
@@ -36,6 +37,8 @@ public:
 	void GenerateValidationKeys(HighScore& hs) const;
 	float GetPercentDancePoints() const;
 	float GetWifeScore() const;
+	float GetCurWifeScore() const;
+	float GetMaxWifeScore() const;
 	float GetTimingScale() const;
 	vector<float> GetOffsetVector() const;
 	vector<int> GetNoteRowVector() const;
@@ -74,6 +77,8 @@ public:
 	int		m_iActualDancePoints;
 	int		m_iPossibleGradePoints;
 	float   m_fWifeScore;
+	float	CurWifeScore;
+	float	MaxWifeScore;
 	float	m_fTimingScale;
 	vector<float> m_vOffsetVector;
 	vector<int> m_vNoteRowVector;
@@ -112,6 +117,11 @@ public:
 
 	// workout
 	float		m_iNumControllerSteps;
+
+	bool everusedautoplay;
+	bool luascriptwasloaded;
+	bool filehadnegbpms; // the call after gameplay is over is apparently unreliable -mina
+	bool filegotmines; // this needs to be set before any notedata transforms
 
 	map<float,float> m_fLifeRecord;
 	void	SetLifeRecordAt( float fLife, float fStepsSecond );

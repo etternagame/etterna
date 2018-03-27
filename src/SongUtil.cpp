@@ -381,6 +381,19 @@ static bool CompareSongPointersByTitle( const Song *pSong1, const Song *pSong2 )
 	return pSong1->GetSongFilePath().CompareNoCase(pSong2->GetSongFilePath()) < 0;
 }
 
+static bool CompareSongPointersByMSD(const Song *pSong1, const Song *pSong2, Skillset ss)
+{
+	// Prefer transliterations to full titles
+	float msd1 = pSong1->GetHighestOfSkillsetAllSteps(static_cast<int>(ss), GAMESTATE->m_SongOptions.Get(ModsLevel_Current).m_fMusicRate);
+	float msd2 = pSong2->GetHighestOfSkillsetAllSteps(static_cast<int>(ss), GAMESTATE->m_SongOptions.Get(ModsLevel_Current).m_fMusicRate);
+
+	if (msd1 < msd2) return true;
+	if (msd1 > msd2) return false;
+
+	/* The titles are the same.  Ensure we get a consistent ordering
+	* by comparing the unique SongFilePaths. */
+	return pSong1->GetSongFilePath().CompareNoCase(pSong2->GetSongFilePath()) < 0;
+}
 void SongUtil::SortSongPointerArrayByTitle( vector<Song*> &vpSongsInOut )
 {
 	sort( vpSongsInOut.begin(), vpSongsInOut.end(), CompareSongPointersByTitle );
@@ -507,21 +520,41 @@ int SongUtil::CompareSongPointersByGroup(const Song *pSong1, const Song *pSong2)
 
 static int CompareSongPointersByGroupAndTitle( const Song *pSong1, const Song *pSong2 )
 {
+	int g = SongUtil::CompareSongPointersByGroup(pSong1, pSong2);
+	if (g == 0)
+		/* Same group; compare by name. */
+		return CompareSongPointersByTitle( pSong1, pSong2 );
+	return g < 0;
+}
+
+static int CompareSongPointersByGroup(const Song *pSong1, const Song *pSong2)
+{
 	const RString &sGroup1 = pSong1->m_sGroupName;
 	const RString &sGroup2 = pSong2->m_sGroupName;
 
-	if( sGroup1 < sGroup2 )
-		return true;
-	if( sGroup1 > sGroup2 )
-		return false;
-
-	/* Same group; compare by name. */
-	return CompareSongPointersByTitle( pSong1, pSong2 );
+	if (sGroup1 < sGroup2)
+		return -1;
+	if (sGroup1 > sGroup2)
+		return 1;
+	return 0;
 }
-
+std::function<int(const Song *pSong1, const Song *pSong2)> CompareSongPointersByGroupAndMSD(Skillset ss)
+{
+	return [&ss](const Song *pSong1, const Song *pSong2) {
+		int g = CompareSongPointersByGroup(pSong1, pSong2);
+		if (g == 0)
+			/* Same group; compare by MSD. */
+			return static_cast<int>(CompareSongPointersByMSD(pSong1, pSong2, ss));
+		return static_cast<int>(g < 0);
+	};
+}
 void SongUtil::SortSongPointerArrayByGroupAndTitle( vector<Song*> &vpSongsInOut )
 {
 	sort( vpSongsInOut.begin(), vpSongsInOut.end(), CompareSongPointersByGroupAndTitle );
+}
+void SongUtil::SortSongPointerArrayByGroupAndMSD(vector<Song*> &vpSongsInOut, Skillset ss)
+{
+	sort(vpSongsInOut.begin(), vpSongsInOut.end(), CompareSongPointersByGroupAndMSD(ss));
 }
 
 void SongUtil::SortSongPointerArrayByNumPlays( vector<Song*> &vpSongsInOut, ProfileSlot slot, bool bDescending )
@@ -552,6 +585,14 @@ RString SongUtil::GetSectionNameFromSongAndSort( const Song* pSong, SortOrder so
 	case SORT_PREFERRED:
 		return SONGMAN->SongToPreferredSortSectionName( pSong );
 	case SORT_GROUP:
+	case SORT_Overall:
+	case SORT_Stream:
+	case SORT_Jumpstream:
+	case SORT_Handstream:
+	case SORT_Stamina:
+	case SORT_JackSpeed:
+	case SORT_Chordjack:
+	case SORT_Technical:
 		// guaranteed not empty	
 		return pSong->m_sGroupName;
 	case SORT_TITLE:
@@ -1036,9 +1077,15 @@ void SongID::LoadFromNode( const XNode* pNode )
 	m_Cache.Unset();
 }
 
+void SongID::LoadFromString(const char * dir)
+{
+	sDir = dir;
+	m_Cache.Unset();
+}
+
 RString SongID::ToString() const
 {
-	return sDir;
+	return (sDir.empty() ? RString() : sDir);
 }
 
 bool SongID::IsValid() const

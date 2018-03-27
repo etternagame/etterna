@@ -18,6 +18,9 @@ local t = Def.ActorFrame{
 	end,
 	OnCommand=function(self)
 		self:bouncebegin(0.2):xy(0,0):diffusealpha(1)
+		SCREENMAN:GetTopScreen():GetMusicWheel():Move(1)
+		SCREENMAN:GetTopScreen():GetMusicWheel():Move(-1)
+		SCREENMAN:GetTopScreen():GetMusicWheel():Move(0)
 	end,
 	SetCommand=function(self)
 		self:finishtweening()
@@ -66,7 +69,6 @@ t[#t+1] = Def.Actor{
 	CurrentStepsP1ChangedMessageCommand=function(self)	
 		song = GAMESTATE:GetCurrentSong()			
 		MESSAGEMAN:Broadcast("UpdateChart")
-		alreadybroadcasted = true
 	end,
 	CurrentSongChangedMessageCommand=function(self)
 		-- This will disable mirror when switching songs if OneShotMirror is enabled or if permamirror is flagged on the chart (it is enabled if so in screengameplayunderlay/default)
@@ -89,11 +91,12 @@ local function GetBestScoreByFilter(perc,CurRate)
 	if CurRate then
 		local tmp = getCurRateString()
 		if tmp == "1x" then tmp = "1.0x" end
+		if tmp == "2x" then tmp = "2.0x" end
 		rates = {tmp}
 		if not rtTable[rates[1]] then return nil end
 	end
 	
-	table.sort(rates)
+	table.sort(rates,function(a,b) a=a:gsub("x","") b=b:gsub("x","") return a<b end)
 	for i=#rates,1,-1 do
 		scores = rtTable[rates[i]]
 		local bestscore = 0

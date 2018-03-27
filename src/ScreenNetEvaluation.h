@@ -17,6 +17,7 @@ public:
 	// Lua
 	void PushSelf( lua_State *L ) override;
 
+	int	 m_iCurrentPlayer;
 protected:
 	bool MenuLeft( const InputEventPlus &input ) override;
 	bool MenuUp( const InputEventPlus &input ) override;
@@ -35,7 +36,6 @@ private:
 	//StepsDisplay m_StepsDisplays[NUM_PLAYERS];
 
 	vector<BitmapText>	m_textUsers;
-	int	 m_iCurrentPlayer;
 	int	 m_iActivePlayers;
 
 	PlayerNumber m_pActivePlayer;
