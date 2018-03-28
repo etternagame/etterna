@@ -162,6 +162,7 @@ o[#o+1] = Def.ActorMultiVertex{
 			verts[#verts+1] = {{x-dotWidth,y-dotWidth,0}, color}
 		end
 		self:SetVertices(verts)
+		self:SetDrawState{Mode="DrawMode_Quads", First = 1, Num=#verts}
 	end
 }
 
