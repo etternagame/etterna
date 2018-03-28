@@ -26,7 +26,7 @@ before_build:
     del "C:\Program Files (x86)\MSBuild\14.0\Microsoft.Common.targets\ImportAfter\Xamarin.Common.targets"
 
 build:
-  project: C:\etterna\build\StepMania.sln
+  project: C:\etterna\build\Etterna.sln
   verbosity: normal
 
 after_build:
