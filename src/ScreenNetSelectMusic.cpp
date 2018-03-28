@@ -68,6 +68,9 @@ void ScreenNetSelectMusic::Init()
 	m_MusicWheel.SetName( "MusicWheel" );
 	m_MusicWheel.Load( MUSIC_WHEEL_TYPE );
 	LOAD_ALL_COMMANDS_AND_SET_XY( m_MusicWheel );
+	SONGMAN->MakeSongGroupsFromPlaylists();
+	SONGMAN->SetFavoritedStatus(PROFILEMAN->GetProfile(PLAYER_1)->FavoritedCharts);
+	SONGMAN->SetHasGoal(PROFILEMAN->GetProfile(PLAYER_1)->goalmap);
 	m_MusicWheel.BeginScreen();
 	ON_COMMAND( m_MusicWheel );
 	this->AddChild( &m_MusicWheel );
@@ -439,8 +442,10 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 			}
 			if (NSMAN->steps != nullptr)
 				m_DC[PLAYER_1] = NSMAN->steps->GetDifficulty();
-			if (NSMAN->rate > 0)
+			if (NSMAN->rate > 0) {
 				GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = NSMAN->rate/1000.0;
+				MESSAGEMAN->Broadcast("CurrentRateChanged");
+			}
 			m_MusicWheel.Select();
 			m_MusicWheel.Move(-1);
 			m_MusicWheel.Move(1);
@@ -460,8 +465,10 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 			}
 			if(NSMAN->steps != nullptr)
 				m_DC[PLAYER_1] = NSMAN->steps->GetDifficulty();
-			if (NSMAN->rate > 0)
+			if (NSMAN->rate > 0) {
 				GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = NSMAN->rate / 1000.0;
+				MESSAGEMAN->Broadcast("CurrentRateChanged");
+			}
 			m_MusicWheel.Select();
 			m_MusicWheel.Move(-1);
 			m_MusicWheel.Move(1);

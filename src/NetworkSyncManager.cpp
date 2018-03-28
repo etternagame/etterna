@@ -582,7 +582,10 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 				hs.SetSSRNormPercent(score.value("ssr_norm", 0));
 				hs.SetEtternaValid(score.value("valid", 0));
 				hs.SetModifiers(score.value("mods", ""));
-
+				FOREACH_ENUM(Skillset, ss)
+					hs.SetSkillsetSSR(ss, score.value(SkillsetToString(ss).c_str() , 0));
+				hs.SetSSRNormPercent(score.value("score", 0.0f));
+				hs.SetWifeScore(score.value("score", 0.0f));
 				result.tapScores[0] = score.value("marv", 0);
 				hs.SetTapNoteScore(TNS_W1, score.value("marv", 0));
 				result.tapScores[1] = score.value("perfect", 0);
@@ -1198,6 +1201,9 @@ void ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 	payload["great"] = hs->GetTapNoteScore(TNS_W3);
 	payload["perfect"] = hs->GetTapNoteScore(TNS_W2);
 	payload["marv"] = hs->GetTapNoteScore(TNS_W1);
+	payload["score"] = hs->GetSSRNormPercent();
+	FOREACH_ENUM(Skillset, ss)
+		payload[SkillsetToString(ss).c_str()] = hs->GetSkillsetSSR(ss);
 	payload["datetime"] = string(hs->GetDateTime().GetString().c_str());
 	payload["hitmine"] = hs->GetTapNoteScore(TNS_HitMine);
 	payload["held"] = hs->GetHoldNoteScore(HNS_Held);
