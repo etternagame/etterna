@@ -444,7 +444,7 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 				m_DC[PLAYER_1] = NSMAN->steps->GetDifficulty();
 			if (NSMAN->rate > 0) {
 				GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = NSMAN->rate/1000.0;
-				MESSAGEMAN->Broadcast("CurrentRateChanged");
+				MESSAGEMAN->Broadcast("RateChanged");
 			}
 			m_MusicWheel.Select();
 			m_MusicWheel.Move(-1);
@@ -467,7 +467,7 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 				m_DC[PLAYER_1] = NSMAN->steps->GetDifficulty();
 			if (NSMAN->rate > 0) {
 				GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = NSMAN->rate / 1000.0;
-				MESSAGEMAN->Broadcast("CurrentRateChanged");
+				MESSAGEMAN->Broadcast("RateChanged");
 			}
 			m_MusicWheel.Select();
 			m_MusicWheel.Move(-1);

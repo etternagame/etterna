@@ -156,7 +156,7 @@ bool SongOptions::FromOneModString( const RString &sOneMod, RString &sErrorOut )
 	if( mult.Compare(sBit, matches) )
 	{
 		m_fMusicRate = StringToFloat( matches[0] );
-		MESSAGEMAN->Broadcast("CurrentRateChanged");
+		MESSAGEMAN->Broadcast("RateChanged");
 		return true;
 	}
 
@@ -235,15 +235,16 @@ public:
 			if(!(v > 0.0f && v <= 3.0f))
 			{ 
 				luaL_error(L, "Invalid value %f", v); 
-			} 
-			p->m_fMusicRate = v;
+			}
+			else {
+			 	p->m_fMusicRate = v;
+				MESSAGEMAN->Broadcast("RateChanged");
+			}
 		} 
 		if(original_top >= 2 && lua_isnumber(L, 2)) 
 		{ 
 			p->m_SpeedfMusicRate = FArgGTEZero(L, 2);
 		}
-		if (lua_isnumber(L, 1))
-			MESSAGEMAN->Broadcast("CurrentRateChanged");
 		OPTIONAL_RETURN_SELF(original_top); 
 		return 2; 
 	}
