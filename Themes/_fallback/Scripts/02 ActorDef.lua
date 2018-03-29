@@ -178,6 +178,20 @@ function LoadFont(a, b)
 	}
 end
 
+function LoadColorFont(a, b)
+	local sSection = b and a or ""
+	local sFile = b or a
+	if sFile == "" or not sFile then
+		sSection = "Common"
+		sFile = "normal"
+	end
+	local sPath = THEME:GetPathF(sSection, sFile)
+	return Def.ColorBitmapText {
+		_Level = 2,
+		File = sPath
+	}
+end
+
 function WrapInActorFrame( t )
 	return Def.ActorFrame { children = t }
 end

@@ -1854,6 +1854,7 @@ public:
 		GAMESTATE->isplaylistcourse = true;
 		p->GetMusicWheel()->SelectSong(pl.chartlist[0].songptr);
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = pl.chartlist[0].rate;
+		MESSAGEMAN->Broadcast("RateChanged");
 		p->SelectCurrent(PLAYER_1);
 		return 1;
 	}

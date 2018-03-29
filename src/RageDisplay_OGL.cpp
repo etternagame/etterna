@@ -801,17 +801,7 @@ void RageDisplay_Legacy::EndFrame()
 	FrameLimitBeforeVsync();
 	auto beforePresent = std::chrono::steady_clock::now();
 	g_pWind->SwapBuffers();
-
-	// Some would advise against glFinish(), ever. Those people don't realize
-	// the degree of freedom GL hosts are permitted in queueing commands.
-	// If left to its own devices, the host could lag behind several frames' worth
-	// of commands.
-	// glFlush() only forces the host to not wait to execute all commands
-	// sent so far; it does NOT block on those commands until they finish.
-	// glFinish() blocks. We WANT to block. Why? This puts the engine state
-	// reflected by the next frame as close as possible to the on-screen
-	// appearance of that frame.
-	glFinish();
+	glFlush();
 
 	g_pWind->Update();
 
@@ -2217,11 +2207,13 @@ unsigned RageDisplay_Legacy::CreateTexture(
 
 	if (bGenerateMipMaps)
 	{
-		GLenum error = gluBuild2DMipmaps(
-			GL_TEXTURE_2D, glTexFormat, 
-			pImg->w, pImg->h,
-			glImageFormat, glImageType, pImg->pixels );
-		ASSERT_M( error == 0, (char *) gluErrorString(error) );
+		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+		glTexImage2D(GL_TEXTURE_2D, 0, glTexFormat, pImg->w, pImg->h, 0, glImageFormat, glImageType, pImg->pixels);
+		GLenum err;
+		while ((err = glGetError()) != GL_NO_ERROR)
+		{
+			ASSERT_M(err == 0, (char *)gluErrorString(err));
+		}
 	}
 	else
 	{

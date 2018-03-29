@@ -114,13 +114,21 @@ Branch = {
 		return "ScreenSelectMusic"--"ScreenSelectPlayMode"
 	end,
 	AfterProfileSave = function()
-		-- Might be a little too broken? -- Midiman
 		if GAMESTATE:IsEventMode() then
-			return SelectMusicOrCourse()
+			return "ScreenSelectMusic"
 		elseif STATSMAN:GetCurStageStats():AllFailed() then
 			return GameOverOrContinue()
 		else
-			return SelectMusicOrCourse()
+			return "ScreenSelectMusic"
+		end
+	end,
+	AfterNetProfileSave = function()
+		if GAMESTATE:IsEventMode() then
+			return "ScreenNetSelectMusic"
+		elseif STATSMAN:GetCurStageStats():AllFailed() then
+			return GameOverOrContinue()
+		else
+			return "ScreenNetSelectMusic"
 		end
 	end,
 	GetGameInformationScreen = function()
@@ -140,10 +148,16 @@ Branch = {
 		end
 	end,
 	BackOutOfPlayerOptions = function()
-		return SelectMusicOrCourse()
+		return "ScreenSelectMusic"
+	end,
+	BackOutOfNetPlayerOptions = function()
+		return "ScreenNetSelectMusic"
 	end,
 	BackOutOfStageInformation = function()
-		return SelectMusicOrCourse()
+		return "ScreenSelectMusic"
+	end,
+	BackOutOfNetStageInformation = function()
+		return "ScreenNetSelectMusic"
 	end,
 	AfterSelectMusic = function()
 		if SCREENMAN:GetTopScreen():GetGoToOptions() then
@@ -179,14 +193,6 @@ Branch = {
 	GameplayScreen = function()
 		return IsRoutine() and "ScreenGameplayShared" or "ScreenGameplay"
 	end,
-	EvaluationScreen= function()
-		if IsNetSMOnline() then
-			return "ScreenNetEvaluation"
-		else
-			-- todo: account for courses etc?
-			return "ScreenEvaluationNormal"
-		end
-	end,
 	AfterGameplay = function()
 		-- pick an evaluation screen based on settings.
 		if THEME:GetMetric("ScreenHeartEntry", "HeartEntryEnabled") then
@@ -200,9 +206,27 @@ Branch = {
 			if go_to_heart then
 				return "ScreenHeartEntry"
 			end
-			return Branch.EvaluationScreen()
+			return "ScreenEvaluationNormal"
 		else
-			return Branch.EvaluationScreen()
+			return "ScreenEvaluationNormal"
+		end
+	end,
+	AfterNetGameplay = function()
+		-- pick an evaluation screen based on settings.
+		if THEME:GetMetric("ScreenHeartEntry", "HeartEntryEnabled") then
+			local go_to_heart= false
+			for i, pn in ipairs(GAMESTATE:GetEnabledPlayers()) do
+				local profile= PROFILEMAN:GetProfile(pn)
+				if profile and profile:GetIgnoreStepCountCalories() then
+					go_to_heart= true
+				end
+			end
+			if go_to_heart then
+				return "ScreenHeartEntry"
+			end
+			return "ScreenNetEvaluation"
+		else
+			return "ScreenNetEvaluation"
 		end
 	end,
 	AfterHeartEntry= function()
@@ -224,6 +248,24 @@ Branch = {
 				return "ScreenProfileSaveSummary"
 			else
 				return "ScreenProfileSave"
+			end
+	end,
+	AfterNetEvaluation = function()
+			local allFailed = STATSMAN:GetCurStageStats():AllFailed()
+			local song = GAMESTATE:GetCurrentSong()
+
+			if GAMESTATE:IsEventMode() or stagesLeft >= 1 then
+				return "ScreenNetProfileSave"
+			elseif song:IsLong() and maxStages <= 2 and stagesLeft < 1 and allFailed then
+				return "ScreenProfileSaveSummary"
+			elseif song:IsMarathon() and maxStages <= 3 and stagesLeft < 1 and allFailed then
+				return "ScreenProfileSaveSummary"
+			elseif maxStages >= 2 and stagesLeft < 1 and allFailed then
+				return "ScreenProfileSaveSummary"
+			elseif allFailed then
+				return "ScreenProfileSaveSummary"
+			else
+				return "ScreenNetProfileSave"
 			end
 	end,
 	AfterSummary = function()

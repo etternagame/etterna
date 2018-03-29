@@ -168,7 +168,10 @@ t[#t+1] = LoadFont("Common Large") .. {
 		ChangeMusicRate(rate,params)
 		self:settext(getCurRateDisplayString())
 	end,
-	CurrentRateChangedCommand=function(self)
+	RateChangedMessageCommand=function(self,params)
+		self:settext(getCurRateDisplayString())
+	end,
+	CurrentRateChangedMessageCommand=function(self)
 		self:queuecommand("set")
 	end	
 }
