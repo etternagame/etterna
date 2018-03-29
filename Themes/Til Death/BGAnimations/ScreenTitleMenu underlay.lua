@@ -26,7 +26,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 
 t[#t+1] = LoadActor(THEME:GetPathG("","_ring")) .. {
 	InitCommand=function(self)
-		self:xy(capWideScale(get43size(SCREEN_WIDTH-10),SCREEN_WIDTH-530),frameY-130):diffuse(getDifficultyColor("Difficulty_Couple")):diffusealpha(1):baserotationx(420)
+		self:xy(capWideScale(get43size(SCREEN_WIDTH-10),SCREEN_WIDTH-530),frameY-130):diffuse(getDifficultyColor("Difficulty_Couple")):diffusealpha(1):baserotationx(0)
 	end	
 }
 return t
