@@ -31,6 +31,7 @@ matrix:
         - libxtst-dev
         - libxrandr-dev
         - libglew-dev
+        - libuv-dev
   - env: CXX_COMPILER=clang++-3.6 CC_COMPILER=clang-3.6 BUILD_TYPE=Release WITH_FFMPEG=ON
       WITH_FFMPEG_JOBS=1
     compiler: clang
@@ -58,6 +59,7 @@ matrix:
         - libxtst-dev
         - libxrandr-dev
         - libglew-dev
+        - libuv-dev
       coverity_scan:
         project:
           name: etternagame/etterna
