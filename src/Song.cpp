@@ -1686,7 +1686,7 @@ bool Song::IsSkillsetHighestOfAnySteps(Skillset ss, float rate) {
 	vector<Steps*> vsteps = GetAllSteps();
 	FOREACH(Steps*, vsteps, steps) {
 		auto sortedstuffs = (*steps)->SortSkillsetsAtRate(rate, true);
-		Skillset why;
+		Skillset why = Skillset_Invalid;
 		int iA = 1;
 		FOREACHM(float, Skillset, sortedstuffs, poodle) {
 			if (iA == NUM_Skillset)
