@@ -87,9 +87,9 @@ chat.InitCommand = function(self)
 	)
 end
 chat.MultiplayerDisconnectionMessageCommand = function(self)
-	SCREENMAN:set_input_redirected("PlayerNumber_P1", false)
 	online = false
 	self:visible(false)
+	typing = false
 	MESSAGEMAN:Broadcast("UpdateChatOverlay")
 	chats = {}
 	chats[0] = {}
@@ -98,6 +98,7 @@ chat.MultiplayerDisconnectionMessageCommand = function(self)
 	chats[0][""] = {}
 	tabs = {{0, ""}}
 	changeTab("", 0)
+	SCREENMAN:set_input_redirected("PlayerNumber_P1", false)
 end
 
 chat[#chat+1] = Def.Quad{
@@ -182,7 +183,7 @@ chatWindow[#chatWindow+1] = LoadColorFont("Common Normal")..{
 		self:halign(0):valign(1)
 		self:vertspacing(0)
 		self:zoom(scale)
-		self:SetMaxLines(lineNumber, 0)
+		self:SetMaxLines(lineNumber, 1)
 		self:wrapwidthpixels((width-8)/scale)
 	end,
 	UpdateChatOverlayMsgsMessageCommand = function(self)
@@ -193,6 +194,7 @@ chatWindow[#chatWindow+1] = LoadColorFont("Common Normal")..{
 			end
 		end
 		self:settext(t)
+		self:SetMaxLines(lineNumber, 1)
 		self:xy(x+4, y+height*(lineNumber+tabHeight)-4)
 	end
 }
