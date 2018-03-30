@@ -326,6 +326,8 @@ public:
 
 	void PostStartUp( const RString& ServerIP );
 
+	bool IsETTP();
+
 	void CloseConnection();
 
 	void DisplayStartupStatus();	// Notify user if connect attempt was successful or not.

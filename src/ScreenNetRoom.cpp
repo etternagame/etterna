@@ -19,6 +19,7 @@ AutoScreenMessage(SM_BackFromReqPass);
 AutoScreenMessage(SM_RoomInfoRetract);
 AutoScreenMessage(SM_RoomInfoDeploy);
 
+AutoScreenMessage(ETTP_Disconnect);
 AutoScreenMessage(ETTP_RoomsChange);
 
 static LocalizedString ENTER_ROOM_DESCRIPTION ("ScreenNetRoom","Enter a description for the room:");
@@ -75,6 +76,11 @@ void ScreenNetRoom::HandleScreenMessage( const ScreenMessage SM )
 	else if( SM == SM_GoToNextScreen )
 	{
 		SCREENMAN->SetNewScreen( THEME->GetMetric (m_sName, "NextScreen") );
+	}
+	else if (SM == ETTP_Disconnect)
+	{
+		TweenOffScreen();
+		Cancel(SM_GoToPrevScreen);
 	}
 	else if( SM == SM_BackFromReqPass )
 	{

@@ -338,6 +338,7 @@ void NetworkSyncManager::CloseConnection()
 	SMOP.close();
 	ETTP.close();
 	curProtocol = nullptr;
+	MESSAGEMAN->Broadcast("MultiplayerDisconnection");
 }
 bool startsWith(const string& haystack, const string& needle) {
 	return needle.length() <= haystack.length()
@@ -394,6 +395,7 @@ void NetworkSyncManager::PostStartUp(const RString& ServerIP)
 	difficulty = Difficulty_Invalid;
 	meter = -1;
 	LOG->Info("Server Version: %d %s", curProtocol->serverVersion, curProtocol->serverName.c_str());
+	MESSAGEMAN->Broadcast("MultiplayerConnection");
 }
 
 bool ETTProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString address)
@@ -536,6 +538,9 @@ void ETTProtocol::FindJsonChart(NetworkSyncManager* n, json& ch)
 			}
 		}
 	}
+}
+bool NetworkSyncManager::IsETTP() {
+	return curProtocol == &ETTP;
 }
 void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 {
@@ -689,9 +694,6 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					msg.SetParam("msg", RString((*payload)["msg"].get<string>().c_str()));
 					msg.SetParam("type", type);
 					MESSAGEMAN->Broadcast(msg);
-					//Should end here
-					n->m_sChatText = (n->m_sChatText + "\n" + (*payload)["msg"].get<string>()).c_str();
-					SCREENMAN->SendMessageToTopScreen(SM_AddToChat);
 				}
 			break;
 			case ettps_gameplayleaderboard:
@@ -798,7 +800,8 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 				n->m_PlayerNames.clear();
 				n->m_PlayerStatus.clear();
 				auto j1 = payload->at("players");
-				if (j1.is_array())
+				if (j1.is_array()) {
+					int i = 0;
 					for (auto&& player : j1) {
 						int stored = 0;
 						try {
@@ -806,7 +809,7 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							stored++;
 							n->m_PlayerStatus.emplace_back(player["status"]);
 							stored++;
-							n->m_ActivePlayer.emplace_back(0);
+							n->m_ActivePlayer.emplace_back(i++);
 						}
 						catch (exception e) {
 							if (stored > 0)
@@ -816,6 +819,7 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							LOG->Trace("Error while parsing ettp json room player list: %s", e.what());
 						}
 					}
+				}
 				SCREENMAN->SendMessageToTopScreen(SM_UsersUpdate);
 			}
 			break;
@@ -1536,6 +1540,7 @@ void SMOProtocol::ProcessInput(NetworkSyncManager* n)
 		n->isSMOnline = false;
 		n->loggedIn = false;
 		NetPlayerClient->close();
+		MESSAGEMAN->Broadcast("MultiplayerDisconnection");
 		return;
 	}
 
@@ -1777,6 +1782,8 @@ void ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 		payload["subtitle"] = GAMESTATE->m_pCurSong->m_sSubTitle;
 		payload["artist"] = GAMESTATE->m_pCurSong->m_sArtist;
 		payload["filehash"] = GAMESTATE->m_pCurSong->GetFileHash();
+		payload["difficulty"] = DifficultyToString(GAMESTATE->m_pCurSteps[PLAYER_1]->GetDifficulty());
+		payload["meter"] = GAMESTATE->m_pCurSteps[PLAYER_1]->GetMeter();
 		payload["chartkey"] = GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey();
 		payload["options"] = GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().GetString();
 		payload["rate"] = static_cast<int>((GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
@@ -2154,6 +2161,10 @@ LuaFunction( CloseConnection,		CloseNetworkConnection() )
 class LunaNetworkSyncManager : public Luna<NetworkSyncManager>
 {
 public:
+	static int IsETTP(T* p, lua_State *L) {
+		lua_pushboolean(L, p->IsETTP());
+		return 1;
+	}
 	static int GetChatMsg(T* p, lua_State *L) {
 		unsigned int l = IArg(1);
 		int tabType = IArg(2);
@@ -2183,6 +2194,7 @@ public:
 		ADD_METHOD(SendChatMsg);
 		ADD_METHOD(Login);
 		ADD_METHOD(Logout);
+		ADD_METHOD(IsETTP);
 	}
 };
 

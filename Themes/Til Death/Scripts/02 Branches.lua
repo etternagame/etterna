@@ -81,11 +81,7 @@ Branch = {
 		if PROFILEMAN:GetNumLocalProfiles() >= 2 then
 			return "ScreenSelectProfile"
 		else
-			if IsNetConnected() then
-				return "ScreenSelectStyle"
-			else
-				return "ScreenProfileLoad"
-			end
+			return "ScreenProfileLoad"
 		end
 	end,
 	OptionsEdit = function()
