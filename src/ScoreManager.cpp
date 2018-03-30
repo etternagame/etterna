@@ -518,6 +518,8 @@ XNode * ScoresForChart::CreateNode(const string& ck) const {
 		auto node = i->second.CreateNode(i->first);
 		if (!node->ChildrenEmpty())
 			o->AppendChild(node);
+		else
+			delete node;
 	}
 	return o;
 }
