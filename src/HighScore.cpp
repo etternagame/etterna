@@ -672,13 +672,13 @@ bool HighScore::LoadReplayData() {
 
 		noteRow = std::stoi(tokens[0]);
 		if (!(typeid(noteRow) == typeid(int))) {
-			throw std::runtime_error("NoteRow value is not of type: int");
+			LOG->Warn("Failed to load replay data at %s (\"NoteRow value is not of type: int\")", path.c_str());
 		}
 		vNoteRowVector.emplace_back(noteRow);
 
 		offset = std::stof(tokens[1]);
 		if (!(typeid(offset) == typeid(float))) {
-			throw std::runtime_error("Offset value is not of type: float");
+			LOG->Warn("Failed to load replay data at %s (\"Offset value is not of type: float\")", path.c_str());
 		}
 		vOffsetVector.emplace_back(offset);
 		tokens.clear();
