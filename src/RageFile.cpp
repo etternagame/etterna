@@ -80,9 +80,9 @@ void RageFile::Close()
 {
 	if( m_File == NULL )
 		return;
-	delete m_File;
 	if( m_Mode & WRITE )
 		FILEMAN->CacheFile( m_File, m_Path );
+	delete m_File;
 	m_File = NULL;
 }
 
