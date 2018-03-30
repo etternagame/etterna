@@ -60,7 +60,7 @@ namespace SSC {
 	{
 		SSCLoader* loader;
 		Song* song;
-		MsdFile::value_t* params{nullptr};
+		const MsdFile::value_t* params{nullptr};
 		const RString& path;
 		bool from_cache;
 		SongTagInfo(SSCLoader* l, Song* s, const RString& p, bool fc)
