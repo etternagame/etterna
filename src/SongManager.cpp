@@ -334,9 +334,12 @@ XNode* Playlist::CreateNode() const {
 
 	if (!cl->ChildrenEmpty())
 		pl->AppendChild(cl);
-
+	else
+		delete cl;
 	if (!cr->ChildrenEmpty())
 		pl->AppendChild(cr);
+	else
+		delete cr;
 	
 	return pl;
 }
