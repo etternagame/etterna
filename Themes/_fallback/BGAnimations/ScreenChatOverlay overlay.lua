@@ -17,7 +17,8 @@ local curmsgh = 0
 local closeTabSize = 10
 local Colors = {
 	background = color("#7777FF"),
-	input = color("#777777"),
+	input = color("#888888"),
+	activeInput = color("#BBBBFF"),
 	output = color("#888888"),
 	bar = color("#666666"),
 	tab = color("#555555"),
@@ -260,6 +261,7 @@ chatWindow[#chatWindow+1] = Def.Quad{
 	end,
 	UpdateChatOverlayMessageCommand = function(self)
 		self:stretchto(x, height*(lineNumber+1)+y+4, width+x, height*(lineNumber+1+inputLineNumber)+y)
+		self:diffuse(typing and Colors.activeInput or Colors.input):diffusealpha(transparency)
 	end,
 }
 chatWindow[#chatWindow+1] = LoadFont("Common Normal")..{
@@ -350,7 +352,6 @@ function input(event)
 				NSMAN:SendChatMsg(typingText, currentTabType, currentTabName)
 				typingText = ''
 			end
-			typing = false
 			update = true
 		elseif event.button == "Back" then
 			typingText = ''
