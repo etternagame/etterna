@@ -190,6 +190,11 @@ bool CodeDetector::DetectAndAdjustMusicOptions( GameController controller )
 {
 	PlayerNumber pn = INPUTMAPPER->ControllerToPlayerNumber( controller );
 
+	if (pn < NUM_PlayerNumber) {
+		LOG->Warn("Invalid controller player number");
+		return false;
+	}
+
 	for( int c=CODE_MIRROR; c<=CODE_CANCEL_ALL; c++ )
 	{
 		auto code = (Code)c;
