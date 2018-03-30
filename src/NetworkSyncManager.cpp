@@ -1990,7 +1990,7 @@ void PacketFunctions::Write4(uint32_t data)
 void PacketFunctions::WriteNT(const RString& data)
 {
 	size_t index=0;
-	while( Position<NETMAXBUFFERSIZE && index<data.size() )
+	while( Position<NETMAXBUFFERSIZE-1 && index<data.size() )
 		Data[Position++] = (unsigned char)(data.c_str()[index++]);
 	Data[Position++] = 0;
 }
