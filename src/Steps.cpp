@@ -762,7 +762,7 @@ public:
 		auto sortedskillsets = p->SortSkillsetsAtRate(rate, false);
 		int rank = IArg(2);
 		int i = NUM_Skillset - 1; // exclude Overall from this... need to handle overall better - mina
-		Skillset o;
+		Skillset o = Skillset_Invalid;
 		float rval = 0.f;
 		float highval = 0.f;
 		FOREACHM(float, Skillset, sortedskillsets, thingy) {				
