@@ -28,13 +28,19 @@ RageSoundReader_FileReader *RageSoundReader_FileReader::TryOpenFile( RageFileBas
 #endif
 
 #if defined(HAS_MP3)
-	if( !format.CompareNoCase("mp3") )
+	if (!format.CompareNoCase("mp3")) {
+		if (Sample != nullptr)
+			delete Sample;
 		Sample = new RageSoundReader_MP3;
+	}
 #endif
 
 #if defined(HAS_OGG)
-	if( !format.CompareNoCase("oga") || !format.CompareNoCase("ogg") )
+	if (!format.CompareNoCase("oga") || !format.CompareNoCase("ogg")) {
+		if (Sample != nullptr)
+			delete Sample;
 		Sample = new RageSoundReader_Vorbisfile;
+	}
 #endif
 
 	if( !Sample )
