@@ -79,6 +79,8 @@ before_script:
     brew install --HEAD libuv --universal;
     brew install yasm;
     brew install nasm;
+    brew uninstall libuv;
+    brew install libuv;
     brew install --HEAD zlib --universal;
     mv ../src/archutils/Darwin/Etterna.pch ../src/archutils/Darwin/StepMania.pch;
     cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G "Xcode" ..;
