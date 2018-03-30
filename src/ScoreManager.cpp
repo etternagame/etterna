@@ -528,6 +528,8 @@ XNode * ScoreManager::CreateNode(const string& profileID) const {
 		auto node = ch->second.CreateNode(ch->first);
 		if (!node->ChildrenEmpty())
 			o->AppendChild(node);
+		else
+			delete node;
 	}
 
 	return o;
