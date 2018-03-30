@@ -1051,6 +1051,7 @@ void Profile::ImportScoresToEtterna() {
 				imean->SetSongDir(sdir2);
 				id = SongID();
 				id.FromSong(imean);
+				delete imean;
 			}
 
 			if (id.IsValid() && sid.IsValid()) {
