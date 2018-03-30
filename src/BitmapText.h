@@ -161,6 +161,7 @@ public:
 	void SetMaxLines(int iLines, bool bCutBottom = true);	//if bCutBottom = false then, it will crop the top
 	void SimpleAddLine(const RString &sAddition, int iWidthPixels);
 	void SetMaxLines(int iNumLines, int iDirection);
+	void PushSelf(lua_State *L) override;
 protected:
 	struct ColorChange
 	{

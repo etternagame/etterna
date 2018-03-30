@@ -1083,6 +1083,8 @@ void ETTProtocol::LeaveRoom(NetworkSyncManager* n)
 	leaveRoom["type"] = ettClientMessageMap[ettpc_leaveroom];
 	leaveRoom["id"] = msgId++;
 	Send(leaveRoom.dump().c_str());
+	roomName = "";
+	roomDesc = "";
 }
 void ETTProtocol::EnterRoom(RString name, RString password) 
 {
@@ -2172,6 +2174,10 @@ public:
 		lua_pushstring(L,p->chat[{tabName, tabType}][l].c_str());
 		return 1;
 	}
+	static int GetCurrentRoomName(T* p, lua_State *L) {
+		lua_pushstring(L, p->IsETTP() ? p->ETTP.roomName.c_str() : "");
+		return 1;
+	}
 	static int SendChatMsg(T* p, lua_State *L) {
 		string msg = SArg(1);
 		int tabType = IArg(2);
@@ -2195,6 +2201,7 @@ public:
 		ADD_METHOD(Login);
 		ADD_METHOD(Logout);
 		ADD_METHOD(IsETTP);
+		ADD_METHOD(GetCurrentRoomName);
 	}
 };
 

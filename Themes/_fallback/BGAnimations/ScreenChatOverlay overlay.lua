@@ -14,6 +14,7 @@ local typing = false
 local typingText = ''
 local transparency = 0.5
 local curmsgh = 0
+local closeTabSize = 10
 local Colors = {
 	background = color("#7777FF"),
 	input = color("#777777"),
@@ -38,8 +39,12 @@ function changeTab(tabName, tabType)
 	currentTabName = tabName
 	currentTabType = tabType
 	if not chats[tabType][tabName] then
+		local i = 1
+		local done = false
+		while not done do
+			if not tabs[i] then tabs[i] = {tabType, tabName}; done = true; end
+		end
 		chats[tabType][tabName] = {}
-		tabs[#tabs+1] = {tabType, tabName}
 	end
 	messages = chats[tabType][tabName]
 end
@@ -169,26 +174,28 @@ chatWindow[#chatWindow+1] = Def.Quad{
 		MESSAGEMAN:Broadcast("UpdateChatOverlayMsgs")
 	end
 }
-for i = 0, lineNumber-1 do
-	chatWindow[#chatWindow+1] = LoadColorFont("Common Normal")..{
-		Name = "ChatText"..i,
-		InitCommand = function(self)
-			self:settext('')
-			self:halign(0):valign(1)
-			self:vertspacing(0)
-			self:zoom(scale)
-			self:diffuse(color("#000000"))
-		end,
-		UpdateChatOverlayMsgsMessageCommand = function(self)
-			self:settext((i < #messages and messages[#messages-i] ~= nil) and messages[#messages-i] or '')
-			self:wrapwidthpixels((width-8)/scale)
-			
-			self:xy(x+4, y+height*(lineNumber+tabHeight)-4 - i*29/2)
-			self:croptop((height+y - (self:GetY()-self:GetHeight())) / self:GetHeight())
-			curmsgh = curmsgh + (self:GetHeight()+8)/29
+chatWindow[#chatWindow+1] = LoadColorFont("Common Normal")..{
+	Name = "ChatText",
+	InitCommand = function(self)
+		self:settext('')
+		self:halign(0):valign(1)
+		self:vertspacing(0)
+		self:zoom(scale)
+		self:SetMaxLines(lineNumber, 0)
+		self:wrapwidthpixels((width-8)/scale)
+	end,
+	UpdateChatOverlayMsgsMessageCommand = function(self)
+		local t = ""
+		for i = lineNumber-1,0,-1  do
+			if messages[#messages-i] then
+				t = t..messages[#messages-i].."\n"
+			end
 		end
-	}
-end
+		self:settext(t)
+		self:xy(x+4, y+height*(lineNumber+tabHeight)-4)
+	end
+}
+
 local tabWidth = width/maxTabs
 for i = 0, maxTabs-1 do
 	chatWindow[#chatWindow+1] = Def.ActorFrame{ 
@@ -226,6 +233,18 @@ for i = 0, maxTabs-1 do
 				end
 			end
 		},
+		LoadFont("Common Normal")..{
+			InitCommand = function(self)
+				self:halign(0):valign(0)
+				self:maxwidth(tabWidth)
+				self:zoom(scale)
+				self:diffuse(color("#000000"))
+				self:xy(x+tabWidth*(i+1)-closeTabSize, y+height*(1+(tabHeight/4)))
+			end,
+			UpdateChatOverlayMessageCommand = function(self)
+				self:settext((tabs[i+1] and tabs[i+1][2]) and "X" or "")
+			end
+		},
 	}
 end
 
@@ -246,7 +265,7 @@ chatWindow[#chatWindow+1] = LoadFont("Common Normal")..{
 		self:halign(0):valign(0)
 		self:zoom(scale)
 		self:wrapwidthpixels((width-8)/scale)
-		self:diffuse(color("#000000"))
+		self:diffuse(color("#FFFFFF"))
 	end,
 	UpdateChatOverlayMessageCommand = function(self)
 		self:settext(typingText)
@@ -264,11 +283,11 @@ function overTab(mx, my)
 	for i = 0, maxTabs-1 do
 		if tabs[i+1] then
 			if mx >= x+tabWidth*i and my>= y+height and mx <= x+tabWidth*(i+1) and my<= y+height*(1+tabHeight) then
-				return i+1
+				return i+1, mx >= x+tabWidth*(i+1)-closeTabSize
 			end
 		end
 	end
-	return nil
+	return nil, nil
 end
 function input(event)
 	if(not show or not online) then
@@ -291,14 +310,31 @@ function input(event)
 				lastx, lasty = x, y
 				update = true
 			else
-				local tabButton = overTab(mx, my)
+				local tabButton, closeTab = overTab(mx, my)
 				if not tabButton then
 					mousex, mousey = -1, -1
 					if typing then
 						update = true
 					end
 				else
-					changeTab(tabs[tabButton][2], tabs[tabButton][1])
+					if not closeTab then
+						changeTab(tabs[tabButton][2], tabs[tabButton][1])
+					else
+						local tabT = tabs[tabButton][1]
+						local tabN = tabs[tabButton][2]
+						if (tabT == 0 and tabN == "") or (tabT == 1 and tabN == NSMAN:GetCurrentRoomName()) then
+							return false
+						end
+						tabs[tabButton] = nil
+						if chats[tabT][tabN] == messages then
+							for i = #tabs,1,-1 do
+								if tabs[i] then
+									changeTab(tabs[i][2], tabs[i][1])
+								end
+							end
+						end
+						chats[tabT][tabN] = {}
+					end
 					update = true
 				end
 			end
@@ -316,6 +352,10 @@ function input(event)
 			end
 			typing = false
 			update = true
+		elseif event.button == "Back" then
+			typingText = ''
+			typing = false
+			update = true
 		elseif event.DeviceInput.button == "DeviceButton_space" then
 			typingText = typingText .. ' '
 			update = true
@@ -325,10 +365,7 @@ function input(event)
 		elseif event.DeviceInput.button == "DeviceButton_backspace" then
 			typingText = typingText:sub(1, -2)
 			update = true
-		elseif event.DeviceInput.button == "DeviceButton_=" then
-			typingText = typingText .. '='
-			update = true
-		elseif event.DeviceInput.button:gsub("DeviceButton_", ''):len() == 1 then
+		elseif event.char then
 			typingText = typingText .. event.char
 			update = true
 		end
@@ -338,7 +375,7 @@ function input(event)
 	end
 	
 	
-	return update
+	return update or typing
 end
 
 

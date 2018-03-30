@@ -958,98 +958,6 @@ void BitmapText::Attribute::FromStack( lua_State *L, int iPos )
 	lua_settop( L, iTab - 1 );
 }
 
-// lua start
-#include "FontCharAliases.h"
-
-/** @brief Allow Lua to have access to the BitmapText. */ 
-class LunaBitmapText: public Luna<BitmapText>
-{
-public:
-	static int wrapwidthpixels( T* p, lua_State *L )	{ p->SetWrapWidthPixels( IArg(1) ); COMMON_RETURN_SELF; }
-#define MAX_DIMENSION(maxdimension, SetMaxDimension) \
-	static int maxdimension( T* p, lua_State *L ) \
-	{ p->SetMaxDimension(FArg(1)); COMMON_RETURN_SELF; }
-	MAX_DIMENSION(maxwidth, SetMaxWidth);
-	MAX_DIMENSION(maxheight, SetMaxHeight);
-#undef MAX_DIMENSION
-	static int max_dimension_use_zoom(T* p, lua_State* L)
-	{
-		p->SetMaxDimUseZoom(lua_toboolean(L, 1));
-		COMMON_RETURN_SELF;
-	}
-	static int vertspacing( T* p, lua_State *L )		{ p->SetVertSpacing( IArg(1) ); COMMON_RETURN_SELF; }
-	static int settext( T* p, lua_State *L )
-	{
-		RString s = SArg(1);
-		RString sAlt;
-		/* XXX: Lua strings should simply use "\n" natively. However, some
-		 * settext calls may be made from GetMetric() calls to other strings, and
-		 * it's confusing for :: to work in some strings and not others.
-		 * Eventually, all strings should be Lua expressions, but until then,
-		 * continue to support this. */
-		s.Replace("::","\n");
-		FontCharAliases::ReplaceMarkers( s );
-
-		if( lua_gettop(L) > 1 )
-		{
-			sAlt = SArg(2);
-			sAlt.Replace("::","\n");
-			FontCharAliases::ReplaceMarkers( sAlt );
-		}
-
-		p->SetText( s, sAlt );
-		COMMON_RETURN_SELF;
-	}
-	static int rainbowscroll( T* p, lua_State *L )		{ p->SetRainbowScroll( BArg(1) ); COMMON_RETURN_SELF; }
-	static int jitter( T* p, lua_State *L )			{ p->SetJitter( BArg(1) ); COMMON_RETURN_SELF; }
-	static int distort( T* p, lua_State *L) { p->SetDistortion( FArg(1) ); COMMON_RETURN_SELF; }
-	static int undistort( T* p, lua_State *L) { p->UnSetDistortion(); COMMON_RETURN_SELF; }
-	GETTER_SETTER_BOOL_METHOD(mult_attrs_with_diffuse);
-	static int GetText( T* p, lua_State *L )		{ lua_pushstring( L, p->GetText() ); return 1; }
-	static int AddAttribute( T* p, lua_State *L )
-	{
-		size_t iPos = IArg(1);
-		BitmapText::Attribute attr = p->GetDefaultAttribute();
-
-		attr.FromStack( L, 2 );
-		p->AddAttribute( iPos, attr );
-		COMMON_RETURN_SELF;
-	}
-	static int ClearAttributes( T* p, lua_State *L )	{ p->ClearAttributes(); COMMON_RETURN_SELF; }
-	static int strokecolor( T* p, lua_State *L )		{ RageColor c; c.FromStackCompat( L, 1 ); p->SetStrokeColor( c ); COMMON_RETURN_SELF; }
-	DEFINE_METHOD(getstrokecolor, GetStrokeColor());
-	static int uppercase( T* p, lua_State *L )		{ p->SetUppercase( BArg(1) ); COMMON_RETURN_SELF; }
-	static int textglowmode( T* p, lua_State *L )	{ p->SetTextGlowMode( Enum::Check<TextGlowMode>(L, 1) ); COMMON_RETURN_SELF; }
-
-	LunaBitmapText()
-	{
-		ADD_METHOD( wrapwidthpixels );
-		ADD_METHOD( maxwidth );
-		ADD_METHOD( maxheight );
-		ADD_METHOD( max_dimension_use_zoom );
-		ADD_METHOD( vertspacing );
-		ADD_METHOD( settext );
-		ADD_METHOD( rainbowscroll );
-		ADD_METHOD( jitter );
-		ADD_METHOD( distort );
-		ADD_METHOD( undistort );
-		ADD_GET_SET_METHODS(mult_attrs_with_diffuse);
-		ADD_METHOD( GetText );
-		ADD_METHOD( AddAttribute );
-		ADD_METHOD( ClearAttributes );
-		ADD_METHOD( strokecolor );
-		ADD_METHOD( getstrokecolor );
-		ADD_METHOD( uppercase );
-		ADD_METHOD( textglowmode );
-		//ADD_METHOD( LoadFromFont );
-		//ADD_METHOD( LoadFromTextureAndChars );
-	}
-};
-
-LUA_REGISTER_DERIVED_CLASS( BitmapText, Actor )
-
-// lua end
-
 
 /** ColorBitmapText ***********************************************************/
 void ColorBitmapText::SetText(const RString& _sText, const RString& _sAlternateText, int iWrapWidthPixels)
@@ -1472,6 +1380,112 @@ void ColorBitmapText::SetMaxLines(int iNumLines, int iDirection)
 	BuildChars();
 }
 
+
+// lua start
+#include "FontCharAliases.h"
+
+/** @brief Allow Lua to have access to the BitmapText. */
+class LunaBitmapText : public Luna<BitmapText>
+{
+public:
+	static int wrapwidthpixels(T* p, lua_State *L) { p->SetWrapWidthPixels(IArg(1)); COMMON_RETURN_SELF; }
+#define MAX_DIMENSION(maxdimension, SetMaxDimension) \
+	static int maxdimension( T* p, lua_State *L ) \
+	{ p->SetMaxDimension(FArg(1)); COMMON_RETURN_SELF; }
+	MAX_DIMENSION(maxwidth, SetMaxWidth);
+	MAX_DIMENSION(maxheight, SetMaxHeight);
+#undef MAX_DIMENSION
+	static int max_dimension_use_zoom(T* p, lua_State* L)
+	{
+		p->SetMaxDimUseZoom(lua_toboolean(L, 1));
+		COMMON_RETURN_SELF;
+	}
+	static int vertspacing(T* p, lua_State *L) { p->SetVertSpacing(IArg(1)); COMMON_RETURN_SELF; }
+	static int settext(T* p, lua_State *L)
+	{
+		RString s = SArg(1);
+		RString sAlt;
+		/* XXX: Lua strings should simply use "\n" natively. However, some
+		* settext calls may be made from GetMetric() calls to other strings, and
+		* it's confusing for :: to work in some strings and not others.
+		* Eventually, all strings should be Lua expressions, but until then,
+		* continue to support this. */
+		s.Replace("::", "\n");
+		FontCharAliases::ReplaceMarkers(s);
+
+		if (lua_gettop(L) > 1)
+		{
+			sAlt = SArg(2);
+			sAlt.Replace("::", "\n");
+			FontCharAliases::ReplaceMarkers(sAlt);
+		}
+
+		p->SetText(s, sAlt);
+		COMMON_RETURN_SELF;
+	}
+	static int rainbowscroll(T* p, lua_State *L) { p->SetRainbowScroll(BArg(1)); COMMON_RETURN_SELF; }
+	static int jitter(T* p, lua_State *L) { p->SetJitter(BArg(1)); COMMON_RETURN_SELF; }
+	static int distort(T* p, lua_State *L) { p->SetDistortion(FArg(1)); COMMON_RETURN_SELF; }
+	static int undistort(T* p, lua_State *L) { p->UnSetDistortion(); COMMON_RETURN_SELF; }
+	GETTER_SETTER_BOOL_METHOD(mult_attrs_with_diffuse);
+	static int GetText(T* p, lua_State *L) { lua_pushstring(L, p->GetText()); return 1; }
+	static int AddAttribute(T* p, lua_State *L)
+	{
+		size_t iPos = IArg(1);
+		BitmapText::Attribute attr = p->GetDefaultAttribute();
+
+		attr.FromStack(L, 2);
+		p->AddAttribute(iPos, attr);
+		COMMON_RETURN_SELF;
+	}
+	static int ClearAttributes(T* p, lua_State *L) { p->ClearAttributes(); COMMON_RETURN_SELF; }
+	static int strokecolor(T* p, lua_State *L) { RageColor c; c.FromStackCompat(L, 1); p->SetStrokeColor(c); COMMON_RETURN_SELF; }
+	DEFINE_METHOD(getstrokecolor, GetStrokeColor());
+	static int uppercase(T* p, lua_State *L) { p->SetUppercase(BArg(1)); COMMON_RETURN_SELF; }
+	static int textglowmode(T* p, lua_State *L) { p->SetTextGlowMode(Enum::Check<TextGlowMode>(L, 1)); COMMON_RETURN_SELF; }
+
+	LunaBitmapText()
+	{
+		ADD_METHOD(wrapwidthpixels);
+		ADD_METHOD(maxwidth);
+		ADD_METHOD(maxheight);
+		ADD_METHOD(max_dimension_use_zoom);
+		ADD_METHOD(vertspacing);
+		ADD_METHOD(settext);
+		ADD_METHOD(rainbowscroll);
+		ADD_METHOD(jitter);
+		ADD_METHOD(distort);
+		ADD_METHOD(undistort);
+		ADD_GET_SET_METHODS(mult_attrs_with_diffuse);
+		ADD_METHOD(GetText);
+		ADD_METHOD(AddAttribute);
+		ADD_METHOD(ClearAttributes);
+		ADD_METHOD(strokecolor);
+		ADD_METHOD(getstrokecolor);
+		ADD_METHOD(uppercase);
+		ADD_METHOD(textglowmode);
+		//ADD_METHOD( LoadFromFont );
+		//ADD_METHOD( LoadFromTextureAndChars );
+	}
+};
+
+LUA_REGISTER_DERIVED_CLASS(BitmapText, Actor)
+
+
+class LunaColorBitmapText : public Luna<ColorBitmapText>
+{
+public:
+	static int SetMaxLines(T* p, lua_State *L) {
+		p->SetMaxLines(IArg(1), lua_isnil(L, 2) ? 0 : IArg(2));
+		return 1;
+	}
+	LunaColorBitmapText()
+	{
+		ADD_METHOD(SetMaxLines);
+	}
+};
+LUA_REGISTER_DERIVED_CLASS(ColorBitmapText, BitmapText)
+// lua end
 
 /*
  * (c) 2003-2007 Chris Danford, Charles Lohr, Steve Checkoway

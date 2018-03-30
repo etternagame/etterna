@@ -18,7 +18,13 @@ return false;
 end
 
 local t = Def.ActorFrame{
-	OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) SCREENMAN:GetTopScreen():UsersVisible(false) end;
+	OnCommand=function(self) 
+		local s = SCREENMAN:GetTopScreen()
+		s:AddInputCallback(input) 
+		if s:GetName() == "ScreenNetSelectMusic" then
+			s:UsersVisible(false) 
+		end
+	end
 }
 
 t[#t+1] = Def.Actor{

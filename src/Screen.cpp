@@ -189,19 +189,20 @@ bool Screen::Input( const InputEventPlus &input )
 	default:
 		return false; // don't care
 	}
-
-	// Always broadcast mouse input so themers can grab it. -aj
-	if( input.DeviceI == DeviceInput( DEVICE_MOUSE, MOUSE_LEFT ) )
-		MESSAGEMAN->Broadcast( (MessageID)(Message_LeftClick) );
-	if( input.DeviceI == DeviceInput( DEVICE_MOUSE, MOUSE_RIGHT ) )
-		MESSAGEMAN->Broadcast( (MessageID)(Message_RightClick) );
-	if( input.DeviceI == DeviceInput( DEVICE_MOUSE, MOUSE_MIDDLE ) )
-		MESSAGEMAN->Broadcast( (MessageID)(Message_MiddleClick) );
-	// Can't do MouseWheelUp and MouseWheelDown at the same time. -aj
-	if( input.DeviceI == DeviceInput( DEVICE_MOUSE, MOUSE_WHEELUP ) )
-		MESSAGEMAN->Broadcast( (MessageID)(Message_MouseWheelUp) );
-	else if( input.DeviceI == DeviceInput( DEVICE_MOUSE, MOUSE_WHEELDOWN ) )
-		MESSAGEMAN->Broadcast( (MessageID)(Message_MouseWheelDown) );
+	if (input.type == IET_FIRST_PRESS) {
+		// Always broadcast mouse input so themers can grab it. -aj
+		if (input.DeviceI == DeviceInput(DEVICE_MOUSE, MOUSE_LEFT))
+			MESSAGEMAN->Broadcast((MessageID)(Message_LeftClick));
+		if (input.DeviceI == DeviceInput(DEVICE_MOUSE, MOUSE_RIGHT))
+			MESSAGEMAN->Broadcast((MessageID)(Message_RightClick));
+		if (input.DeviceI == DeviceInput(DEVICE_MOUSE, MOUSE_MIDDLE))
+			MESSAGEMAN->Broadcast((MessageID)(Message_MiddleClick));
+		// Can't do MouseWheelUp and MouseWheelDown at the same time. -aj
+		if (input.DeviceI == DeviceInput(DEVICE_MOUSE, MOUSE_WHEELUP))
+			MESSAGEMAN->Broadcast((MessageID)(Message_MouseWheelUp));
+		else if (input.DeviceI == DeviceInput(DEVICE_MOUSE, MOUSE_WHEELDOWN))
+			MESSAGEMAN->Broadcast((MessageID)(Message_MouseWheelDown));
+	}
 
 	// default input handler used by most menus
 	switch( input.MenuI )

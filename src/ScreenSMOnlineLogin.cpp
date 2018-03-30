@@ -17,9 +17,10 @@
 
 REGISTER_SCREEN_CLASS(ScreenSMOnlineLogin);
 
-AutoScreenMessage( SM_SMOnlinePack );
-AutoScreenMessage( SM_PasswordDone );
-AutoScreenMessage( SM_NoProfilesDefined );
+AutoScreenMessage(SM_SMOnlinePack);
+AutoScreenMessage(SM_PasswordDone);
+AutoScreenMessage(SM_UsernameDone);
+AutoScreenMessage(SM_NoProfilesDefined);
 
 AutoScreenMessage(ETTP_Disconnect);
 AutoScreenMessage(ETTP_LoginResponse);
@@ -43,7 +44,7 @@ void ScreenSMOnlineLogin::Init()
 		pHand->m_Def.m_vEnabledForPlayers.insert( pn );
 
 	PROFILEMAN->GetLocalProfileDisplayNames( pHand->m_Def.m_vsChoices );
-
+	pHand->m_Def.m_vsChoices.emplace_back("Type Username");
 	if( pHand->m_Def.m_vsChoices.empty() )
 	{
 		// Give myself a message so that I can bail out later
@@ -88,8 +89,15 @@ void ScreenSMOnlineLogin::ExportOptions( int iRow, const vector<PlayerNumber> &v
 			vector<RString> vsProfiles;
 			PROFILEMAN->GetLocalProfileIDs( vsProfiles );
 
-			FOREACH_EnabledPlayer( pn )
-				ProfileManager::m_sDefaultLocalProfileID[pn].Set( vsProfiles[m_pRows[0]->GetOneSelection(pn)] );
+			FOREACH_EnabledPlayer(pn) {
+				auto selection = m_pRows[0]->GetOneSelection(pn);
+				if (selection < m_pRows[0]->GetHandler()->m_Def.m_vsChoices.size() - 1) {
+					ProfileManager::m_sDefaultLocalProfileID[pn].Set(vsProfiles[selection]);
+					typeUsername = false;
+				}
+				else
+					typeUsername = true;
+			}
 		}
 		break;
 	}
@@ -107,9 +115,20 @@ void ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 	if( SM == SM_PasswordDone )
 	{
 		if(!ScreenTextEntry::s_bCancelledLast)
-			SendLogin(ScreenTextEntry::s_sLastAnswer);
+			if(typeUsername)
+				SendLogin(ScreenTextEntry::s_sLastAnswer, username);
+			else
+				SendLogin(ScreenTextEntry::s_sLastAnswer);
 		else
 			SCREENMAN->PostMessageToTopScreen( SM_GoToPrevScreen, 0 );
+	}
+	else if (SM == SM_UsernameDone)
+	{
+		username = ScreenTextEntry::s_sLastAnswer.c_str();
+		sLoginQuestion = YOU_ARE_LOGGING_ON_AS.GetValue() + "\n"
+			+ GAMESTATE->GetPlayerDisplayName((PlayerNumber)m_iPlayer) + "\n" +
+			ENTER_YOUR_PASSWORD.GetValue();
+		ScreenTextEntry::Password(SM_PasswordDone, NSMAN->loginResponse + "\n\n" + sLoginQuestion, NULL);
 	}
 	else if( SM == SM_NoProfilesDefined )
 	{
@@ -117,7 +136,7 @@ void ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 		SCREENMAN->SetNewScreen("ScreenOptionsManageProfiles");
 	}
 	else if (SM == ETTP_Disconnect) {
-
+		Cancel(SM_GoToPrevScreen);
 	}
 	else if (SM == ETTP_LoginResponse) {
 		if (NSMAN->loggedIn) {
@@ -125,10 +144,16 @@ void ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 			m_iPlayer = 0;
 		}
 		else {
-			sLoginQuestion = YOU_ARE_LOGGING_ON_AS.GetValue() + "\n"
-				+ GAMESTATE->GetPlayerDisplayName((PlayerNumber)m_iPlayer) + "\n" +
-				ENTER_YOUR_PASSWORD.GetValue();
-			ScreenTextEntry::Password(SM_PasswordDone, NSMAN->loginResponse + "\n\n" + sLoginQuestion, NULL);
+			if (!typeUsername) {
+				sLoginQuestion = YOU_ARE_LOGGING_ON_AS.GetValue() + "\n"
+					+ GAMESTATE->GetPlayerDisplayName((PlayerNumber)m_iPlayer) + "\n" +
+					ENTER_YOUR_PASSWORD.GetValue();
+				ScreenTextEntry::Password(SM_PasswordDone, NSMAN->loginResponse + "\n\n" + sLoginQuestion, NULL);
+			}
+			else {
+				sLoginQuestion = "Enter username";
+				ScreenTextEntry::Password(SM_UsernameDone, NSMAN->loginResponse + "\n\n" + sLoginQuestion, NULL);
+			}
 		}
 	}
 	else if( SM == SM_SMOnlinePack )
@@ -182,11 +207,17 @@ void ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 		}
 		else
 		{
-			m_iPlayer=0;
-			while(!GAMESTATE->IsPlayerEnabled((PlayerNumber) m_iPlayer))
-				++m_iPlayer;
-			sLoginQuestion = YOU_ARE_LOGGING_ON_AS.GetValue() + "\n" + GAMESTATE->GetPlayerDisplayName((PlayerNumber) m_iPlayer) + "\n" + ENTER_YOUR_PASSWORD.GetValue();
-			ScreenTextEntry::Password(SM_PasswordDone, sLoginQuestion, NULL );
+			if (!typeUsername) {
+				m_iPlayer = 0;
+				while (!GAMESTATE->IsPlayerEnabled((PlayerNumber)m_iPlayer))
+					++m_iPlayer;
+				sLoginQuestion = YOU_ARE_LOGGING_ON_AS.GetValue() + "\n" + GAMESTATE->GetPlayerDisplayName((PlayerNumber)m_iPlayer) + "\n" + ENTER_YOUR_PASSWORD.GetValue();
+				ScreenTextEntry::Password(SM_PasswordDone, sLoginQuestion, NULL);
+			}
+			else {
+				sLoginQuestion = "Enter username";
+				ScreenTextEntry::Password(SM_UsernameDone, NSMAN->loginResponse + "\n\n" + sLoginQuestion, NULL);
+			}
 		}
 		return;
 	}
@@ -211,9 +242,13 @@ RString ScreenSMOnlineLogin::GetSelectedProfileID()
 	return vsProfiles[ Selection-1 ];
 }
 
-void ScreenSMOnlineLogin::SendLogin( RString sPassword )
+void ScreenSMOnlineLogin::SendLogin(RString sPassword)
 {
-	NSMAN->Login(GAMESTATE->GetPlayerDisplayName((PlayerNumber)m_iPlayer), sPassword);
+	SendLogin(sPassword, GAMESTATE->GetPlayerDisplayName((PlayerNumber)this->m_iPlayer));
+}
+void ScreenSMOnlineLogin::SendLogin( RString sPassword, RString user)
+{
+	NSMAN->Login(user, sPassword);
 }
 
 #endif
