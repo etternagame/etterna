@@ -592,7 +592,18 @@ bool SongCacheIndex::OpenDB()
 }
 
 SongCacheIndex::~SongCacheIndex()
-= default;
+{
+	if (db != nullptr) {
+		delete db;
+		db = nullptr;
+	}
+	if (curTransaction != nullptr) {
+		curTransaction->commit();
+		delete curTransaction;
+		curTransaction = nullptr;
+	}
+}
+
 void SongCacheIndex::LoadHyperCache(LoadingWindow * ld, map<RString, Song*>& hyperCache) 
 {
 	int count = db->execAndGet("SELECT COUNT(*) FROM songs");
