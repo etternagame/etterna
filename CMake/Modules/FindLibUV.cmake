@@ -19,8 +19,26 @@
 #  LIBUV_LIBRARIES
 #  LIBUV_INCLUDE_DIR, where to find uv.h
 
-FIND_PATH(LIBUV_INCLUDE_DIR NAMES uv.h)
-FIND_LIBRARY(LIBUV_LIBRARIES NAMES uv libuv)
+find_path(
+    LIBUV_INCLUDE_DIR
+    NAMES uv.h
+    PATHS "${XMRIG_DEPS}" ENV "XMRIG_DEPS"
+    PATH_SUFFIXES "include"
+    NO_DEFAULT_PATH
+)
+
+find_path(LIBUV_INCLUDE_DIR NAMES uv.h)
+
+find_library(
+    LIBUV_LIBRARIES
+    NAMES libuv.a uv libuv
+    PATHS "${XMRIG_DEPS}" ENV "XMRIG_DEPS"
+    PATH_SUFFIXES "lib"
+    NO_DEFAULT_PATH
+)
+
+find_library(LIBUV_LIBRARIES NAMES libuv.a uv libuv)
+
 
 if(WIN32)
   list(APPEND LIBUV_LIBRARIES iphlpapi)
