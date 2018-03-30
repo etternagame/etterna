@@ -171,6 +171,7 @@ void getMacHash(uint16_t& mac1, uint16_t& mac2)
 	if (ioctl(sock, SIOCGIFCONF, &conf))
 	{
 		assert(0);
+		close(sock);
 		return;
 	}
 
