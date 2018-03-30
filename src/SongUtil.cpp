@@ -640,7 +640,12 @@ RString SongUtil::GetSectionNameFromSongAndSort( const Song* pSong, SortOrder so
 		return RString();
 	case SORT_TOP_GRADES:
 		{
+			auto p = PROFILEMAN->GetProfile(PLAYER_1);
+			auto s = GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber());
+			if(p == nullptr || s == nullptr)
+				return GradeToLocalizedString(Grade_NoData);
 			int iCounts[NUM_Grade];
+			PROFILEMAN->GetProfile(PLAYER_1)->GetGrades(pSong, s->m_StepsType, iCounts);
 			for( int i=Grade_Tier01; i<NUM_Grade; ++i )
 			{
 				Grade g = (Grade)i;
