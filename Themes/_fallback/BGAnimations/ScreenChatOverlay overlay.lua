@@ -301,6 +301,9 @@ function input(event)
 	end
 	local update = false
 	if event.DeviceInput.button == "DeviceButton_left mouse button" then
+			if typing then
+				update = true
+			end
 			typing = false
 			local mx, my = INPUTFILTER:GetMouseX(), INPUTFILTER:GetMouseY()
 			if mx >= x and mx <= x+width and my >= moveY+y and my <= moveY+y+height then
