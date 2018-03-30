@@ -1149,7 +1149,6 @@ int sm_main(int argc, char* argv[])
 	StepMania::InitializeCurrentGame( GAMESTATE->GetCurrentGame() );
 
 	INPUTQUEUE	= new InputQueue;
-	SONGINDEX	= new SongCacheIndex;
 	IMAGECACHE	= new ImageCache;
 
 	// depends on SONGINDEX:
