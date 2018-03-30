@@ -1946,6 +1946,8 @@ void NoteDataUtil::Backwards( NoteData &inout )
 void NoteDataUtil::SwapSides( NoteData &inout )
 {
 	int iOriginalTrackToTakeFrom[MAX_NOTE_TRACKS];
+	for (int i = 0; i < MAX_NOTE_TRACKS; ++i)
+		iOriginalTrackToTakeFrom[i] = i;
 	for( int t = 0; t < inout.GetNumTracks()/2; ++t )
 	{
 		int iTrackEarlier = t;
