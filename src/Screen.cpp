@@ -361,7 +361,7 @@ bool Screen::PassInputToLua(const InputEventPlus& input)
 	lua_setfield(L, -2, "PlayerNumber");
 	Enum::Push(L, input.mp);
 	lua_setfield(L, -2, "MultiPlayer");
-	for(map<callback_key_t, LuaReference>::iterator callback= m_InputCallbacks.begin();
+	for(auto callback= m_InputCallbacks.begin();
 			callback != m_InputCallbacks.end() && !handled; ++callback)
 	{
 		callback->second.PushSelf(L);

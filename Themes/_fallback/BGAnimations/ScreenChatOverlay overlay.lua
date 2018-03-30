@@ -242,7 +242,11 @@ for i = 0, maxTabs-1 do
 				self:xy(x+tabWidth*(i+1)-closeTabSize, y+height*(1+(tabHeight/4)))
 			end,
 			UpdateChatOverlayMessageCommand = function(self)
-				self:settext((tabs[i+1] and tabs[i+1][2]) and "X" or "")
+				if tabs[i+1] and ((tabs[i+1][1] == 0 and tabs[i+1][2] == "") or (tabs[i+1][1] == 1 and tabs[i+1][2] ~= nil and tabs[i+1][2] == NSMAN:GetCurrentRoomName())) then
+					self:settext("")
+				else
+					self:settext("X")
+				end
 			end
 		},
 	}
@@ -295,7 +299,6 @@ function input(event)
 	end
 	local update = false
 	if event.DeviceInput.button == "DeviceButton_left mouse button" then
-		if event.type == "InputEventType_FirstPress" then
 			typing = false
 			local mx, my = INPUTFILTER:GetMouseX(), INPUTFILTER:GetMouseY()
 			if mx >= x and mx <= x+width and my >= moveY+y and my <= moveY+y+height then
@@ -322,7 +325,7 @@ function input(event)
 					else
 						local tabT = tabs[tabButton][1]
 						local tabN = tabs[tabButton][2]
-						if (tabT == 0 and tabN == "") or (tabT == 1 and tabN == NSMAN:GetCurrentRoomName()) then
+						if (tabT == 0 and tabN == "") or (tabT == 1 and tabN ~= nil and tabN == NSMAN:GetCurrentRoomName()) then
 							return false
 						end
 						tabs[tabButton] = nil
@@ -333,14 +336,11 @@ function input(event)
 								end
 							end
 						end
-						chats[tabT][tabN] = {}
+						chats[tabT][tabN] = nil
 					end
 					update = true
 				end
 			end
-		elseif event.type == "InputEventType_Release" then
-			mousex, mousey = -1, -1
-		end
 	end
 	
 	

@@ -254,6 +254,7 @@ class ETTProtocol : public NetProtocol { // Websockets using uwebsockets sending
 public:
 	string roomName;
 	string roomDesc;
+	bool inRoom{ false };
 	bool Connect(NetworkSyncManager* n, unsigned short port, RString address) override; // Connect and say hello
 	void close() override;
 	void Update(NetworkSyncManager* n, float fDeltaTime) override;

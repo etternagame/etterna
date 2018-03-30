@@ -310,6 +310,7 @@ void ETTProtocol::close()
 	serverName = "";
 	roomName = "";
 	roomDesc = "";
+	inRoom = false;
 	uWSh.getDefaultGroup<uWS::SERVER>().close();
 	uWSh.getDefaultGroup<uWS::CLIENT>().close();
 	uWSh.poll();
@@ -702,6 +703,7 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 			case ettps_createroomresponse:
 				{
 					bool created = (*payload)["created"];
+					inRoom = created;
 					if (created) {
 						Message msg(MessageIDToString(Message_UpdateScreenHeader));
 						msg.SetParam("Header", roomName);
@@ -715,12 +717,14 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 			case ettps_enterroomresponse:
 				{
 					bool entered = (*payload)["entered"];
+					inRoom = false;
 					if (entered) {
 						try {
 							Message msg(MessageIDToString(Message_UpdateScreenHeader));
 							msg.SetParam("Header", roomName);
 							msg.SetParam("Subheader", roomDesc);
 							MESSAGEMAN->Broadcast(msg);
+							inRoom = true;
 							RString SMOnlineSelectScreen = THEME->GetMetric("ScreenNetRoom", "MusicSelectScreen");
 							SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
 						}
@@ -1085,6 +1089,7 @@ void ETTProtocol::LeaveRoom(NetworkSyncManager* n)
 	Send(leaveRoom.dump().c_str());
 	roomName = "";
 	roomDesc = "";
+	inRoom = false;
 }
 void ETTProtocol::EnterRoom(RString name, RString password) 
 {
@@ -2175,7 +2180,13 @@ public:
 		return 1;
 	}
 	static int GetCurrentRoomName(T* p, lua_State *L) {
-		lua_pushstring(L, p->IsETTP() ? p->ETTP.roomName.c_str() : "");
+		if (!p->IsETTP())
+			lua_pushnil(L);
+		else
+			if (!p->ETTP.inRoom)
+				lua_pushnil(L);
+			else
+				lua_pushstring(L, p->ETTP.roomName.c_str());
 		return 1;
 	}
 	static int SendChatMsg(T* p, lua_State *L) {

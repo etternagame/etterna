@@ -253,8 +253,8 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 {
 	if( SM == SM_GoToPrevScreen )
 	{
-		SCREENMAN->SetNewScreen( THEME->GetMetric (m_sName, "PrevScreen") );
 		NSMAN->LeaveRoom();
+		SCREENMAN->SetNewScreen( THEME->GetMetric (m_sName, "PrevScreen") );
 	}
 	else if( SM == SM_GoToNextScreen )
 	{
