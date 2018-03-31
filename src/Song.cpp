@@ -1701,6 +1701,15 @@ bool Song::IsSkillsetHighestOfAnySteps(Skillset ss, float rate) {
 	return false;
 }
 
+bool Song::HasChartByHash(const string &hash) {
+	vector<Steps*> vsteps = GetAllSteps();
+	FOREACH(Steps*, vsteps, steps) {
+		if ((*steps)->GetChartKey() == hash)
+			return true;
+	}
+	return false;
+}
+
 RString Song::GetDisplayMainTitle() const
 {
 	if(!PREFSMAN->m_bShowNativeLanguage) return GetTranslitMainTitle();
