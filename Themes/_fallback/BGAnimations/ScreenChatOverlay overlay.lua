@@ -285,7 +285,7 @@ end
 function overTab(mx, my)
 	for i = 0, maxTabs-1 do
 		if tabs[i+1] then
-			if mx >= x+tabWidth*i and my>= y+height and mx <= x+tabWidth*(i+1) and my<= y+height*(1+tabHeight) then
+			if mx >= x+tabWidth*i and my>= y+height+moveY and mx <= x+tabWidth*(i+1) and my<= y+height*(1+tabHeight)+moveY then
 				return i+1, mx >= x+tabWidth*(i+1)-closeTabSize
 			end
 		end
