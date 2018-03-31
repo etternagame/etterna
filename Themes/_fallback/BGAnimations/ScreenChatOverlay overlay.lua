@@ -314,7 +314,7 @@ function input(event)
 				mousex, mousey = mx, my
 				lastx, lasty = x, y
 				update = true
-			else
+			elseif not minimised then
 				local tabButton, closeTab = overTab(mx, my)
 				if not tabButton then
 					mousex, mousey = -1, -1
