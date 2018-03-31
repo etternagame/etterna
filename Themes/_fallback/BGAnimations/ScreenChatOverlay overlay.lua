@@ -59,32 +59,27 @@ chat.MinimiseMessageCommand = function(self)
 	moveY=minimised and height*(lineNumber+inputLineNumber+tabHeight-1) or 0
 	self:y(moveY)
 end
+local i =0
 chat.InitCommand = function(self)
 	online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
-	self:SetUpdateFunction(
-		function(self)
-			local s = SCREENMAN:GetTopScreen()
-			if not s then
-				return
-			end
-			local sN = s:GetName()
-			if currentScreen ~= sN then
-				currentScreen= sN
-				online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
-				if(sN == "ScreenGameplay" or sN == "ScreenNetGameplay") then
-					self:visible(false)
-					show = false
-					typing = false
-				else
-					self:visible(online)
-					show = true
-					s:AddInputCallback(input)
-					MESSAGEMAN:Broadcast("ScreenChanged")
-				end
-				MESSAGEMAN:Broadcast("UpdateChatOverlay")
-			end
-		end
-	)
+end
+chat.ScreenChangedMessageCommand = function(self)
+	local s = SCREENMAN:GetTopScreen()
+	if not s then
+		return
+	end
+	currentScreen = s:GetName()
+	online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
+	if(currentScreen == "ScreenGameplay" or currentScreen  == "ScreenNetGameplay") then
+		self:visible(false)
+		show = false
+		typing = false
+	else
+		self:visible(online)
+		show = true
+		s:AddInputCallback(input)
+		MESSAGEMAN:Broadcast("ScreenaaaChanged")
+	end
 end
 chat.MultiplayerDisconnectionMessageCommand = function(self)
 	online = false
