@@ -1,8 +1,8 @@
 #ifndef SCREEN_EXIT_H
 #define SCREEN_EXIT_H
 
-#include "Screen.h"
 #include "RageTimer.h"
+#include "Screen.h"
 
 class ScreenExit: public Screen
 {

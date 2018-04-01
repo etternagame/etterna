@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Preemptively load textures before use, by loading it and keeping
  * a reference to it.  By putting a RageTexturePreloader inside the
  * object doing the preloading, the preload will exist for the lifetime
@@ -6,8 +6,8 @@
  */
 
 #include "global.h"
-#include "RageTexturePreloader.h"
 #include "RageTextureManager.h"
+#include "RageTexturePreloader.h"
 
 RageTexturePreloader &RageTexturePreloader::operator=( const RageTexturePreloader &rhs )
 {

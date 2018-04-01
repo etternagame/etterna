@@ -1,14 +1,13 @@
-#include "global.h"
+﻿#include "global.h"
+#include "ActorUtil.h"
+#include "BannerCache.h"
 #include "FadingBanner.h"
+#include "PrefsManager.h"
 #include "RageTextureManager.h"
 #include "ImageCache.h"
 #include "Song.h"
-#include "RageLog.h"
-#include "PrefsManager.h"
-#include "ThemeManager.h"
 #include "SongManager.h"
-#include "ThemeMetric.h"
-#include "ActorUtil.h"
+#include "ThemeManager.h"
 
 REGISTER_ACTOR_CLASS( FadingBanner );
 
@@ -77,7 +76,7 @@ void FadingBanner::Load( const RageTextureID &ID, bool bLowResToHighRes )
 	 * wild. If we wanted to support them, then perhaps we should use an
 	 * all-black texture for the low quality texture. */
 	RageTexture *pTexture = m_Banner[m_iIndexLatest].GetTexture();
-	if( !pTexture || !pTexture->IsAMovie() )
+	if( (pTexture == nullptr) || !pTexture->IsAMovie() )
 		return;
 	m_Banner[m_iIndexLatest].SetSecondsIntoAnimation( 0.f );
 	for( int i = 1; i < NUM_BANNERS; ++i )

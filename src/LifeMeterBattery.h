@@ -1,13 +1,12 @@
-#ifndef LIFEMETERBATTERY_H
+﻿#ifndef LIFEMETERBATTERY_H
 #define LIFEMETERBATTERY_H
 
-#include "LifeMeter.h"
-#include "Sprite.h"
-#include "BitmapText.h"
-#include "RageSound.h"
-#include "PercentageDisplay.h"
-#include "ThemeMetric.h"
 #include "AutoActor.h"
+#include "BitmapText.h"
+#include "LifeMeter.h"
+#include "PercentageDisplay.h"
+#include "RageSound.h"
+#include "ThemeMetric.h"
 
 /** @brief Battery life meter used in Oni mode. */
 class LifeMeterBattery : public LifeMeter

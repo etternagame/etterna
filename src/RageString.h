@@ -1,4 +1,4 @@
-#ifndef RAGE_STRING_HPP_
+﻿#ifndef RAGE_STRING_HPP_
 #define RAGE_STRING_HPP_
 
 #include <string>

@@ -1,18 +1,18 @@
 #include "global.h"
-#include "StepsDisplay.h"
-#include "RageUtil.h"
-#include "GameConstantsAndTypes.h"
-#include "GameState.h"
-#include "ThemeManager.h"
-#include "Steps.h"
-#include "SongManager.h"
 #include "ActorUtil.h"
-#include "Style.h"
-#include "XmlFile.h"
-#include "LuaBinding.h"
+#include "GameConstantsAndTypes.h"
 #include "GameManager.h"
+#include "GameState.h"
+#include "LuaBinding.h"
 #include "PlayerState.h"
 #include "RageLog.h"
+#include "RageUtil.h"
+#include "SongManager.h"
+#include "Steps.h"
+#include "StepsDisplay.h"
+#include "Style.h"
+#include "ThemeManager.h"
+#include "XmlFile.h"
 
 REGISTER_ACTOR_CLASS( StepsDisplay );
 
@@ -119,7 +119,7 @@ void StepsDisplay::Load( const RString &sMetricsGroup, const PlayerState *pPlaye
 void StepsDisplay::SetFromGameState( PlayerNumber pn )
 {
 		const Steps* pSteps = GAMESTATE->m_pCurSteps[pn];
-		if( pSteps )
+		if( pSteps != nullptr )
 			SetFromSteps( pSteps );
 		else
 			SetFromStepsTypeAndMeterAndDifficultyAndCourseType( StepsType_Invalid, 0, GAMESTATE->m_PreferredDifficulty[pn] );

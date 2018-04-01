@@ -1,21 +1,21 @@
-#include "global.h"
+﻿#include "global.h"
+#include "DisplayResolutions.h"
+#include "LocalizedString.h"
+#include "Preference.h"
+#include "PrefsManager.h"
 #include "RageDisplay.h"
-#include "RageTimer.h"
+#include "RageFile.h"
 #include "RageLog.h"
 #include "RageMath.h"
-#include "RageUtil.h"
-#include "RageFile.h"
+#include "RageSurface.h"
+#include "RageSurfaceUtils_Zoom.h"
 #include "RageSurface_Save_BMP.h"
 #include "RageSurface_Save_JPEG.h"
 #include "RageSurface_Save_PNG.h"
-#include "RageSurfaceUtils_Zoom.h"
-#include "RageSurface.h"
-#include "Preference.h"
-#include "PrefsManager.h"
+#include "RageTimer.h"
+#include "RageUtil.h"
 #include "Screen.h"
 #include "ScreenManager.h"
-#include "LocalizedString.h"
-#include "DisplayResolutions.h"
 #include "arch/ArchHooks/ArchHooks.h"
 #include <chrono>
 #include <thread>
@@ -41,7 +41,7 @@ static std::chrono::nanoseconds g_LastFramePresentTime;
 
 struct Centering
 {
-	Centering( int iTranslateX = 0, int iTranslateY = 0, int iAddWidth = 0, int iAddHeight = 0 ):
+	explicit Centering( int iTranslateX = 0, int iTranslateY = 0, int iAddWidth = 0, int iAddHeight = 0 ):
 		m_iTranslateX( iTranslateX ),
 		m_iTranslateY( iTranslateY ),
 		m_iAddWidth( iAddWidth ),
@@ -130,14 +130,14 @@ void RageDisplay::ProcessStatsOnFlip()
 		g_iFramesRenderedSinceLastReset++;
 
 		std::chrono::duration<double> timeDelta = std::chrono::steady_clock::now() - g_LastCheckTimer;
-		float checkTime = timeDelta.count();
-		if (checkTime >= 1.0f)	// update stats every 1 sec.
+		double checkTime = timeDelta.count();
+		if (checkTime >= 1.0)	// update stats every 1 sec.
 		{
 			g_LastCheckTimer = std::chrono::steady_clock::now();
 			g_iNumChecksSinceLastReset++;
-			g_iFPS = static_cast<int>(g_iFramesRenderedSinceLastCheck / checkTime + 0.5f);
+			g_iFPS = static_cast<int>(g_iFramesRenderedSinceLastCheck / checkTime + 0.5);
 			g_iCFPS = g_iFramesRenderedSinceLastReset / g_iNumChecksSinceLastReset;
-			g_iCFPS = static_cast<int>(g_iCFPS / checkTime + 0.5f);
+			g_iCFPS = static_cast<int>(g_iCFPS / checkTime + 0.5);
 			g_iVPF = g_iVertsRenderedSinceLastCheck / g_iFramesRenderedSinceLastCheck;
 			g_iFramesRenderedSinceLastCheck = g_iVertsRenderedSinceLastCheck = 0;
 			if (LOG_FPS)
@@ -883,7 +883,7 @@ void RageDisplay::DrawQuads( const RageSpriteVertex v[], int iNumVerts )
 {
 	ASSERT( (iNumVerts%4) == 0 );
 
-	if(!iNumVerts)
+	if(iNumVerts == 0)
 		return;
 
 	this->DrawQuadsInternal(v,iNumVerts);
@@ -989,7 +989,7 @@ void RageDisplay::FrameLimitBeforeVsync()
 		(g_fFrameLimit.Get() != 0 || g_fFrameLimitGameplay.Get() != 0))
 	{
 		double expectedDelta = 0.0;
-		if (SCREENMAN && SCREENMAN->GetTopScreen())
+		if ((SCREENMAN != nullptr) && (SCREENMAN->GetTopScreen() != nullptr))
 		{
 			if (SCREENMAN->GetTopScreen()->GetScreenType() == gameplay && g_fFrameLimitGameplay.Get() > 0)
 				expectedDelta = 1.0 / g_fFrameLimitGameplay.Get();
@@ -1023,14 +1023,14 @@ void RageDisplay::FrameLimitAfterVsync( int iFPS )
 		g_LastFrameEndedAtRage.Touch();
 		return;
 	}
-	else if ( !PREFSMAN->m_bVsync.Get() && g_fFrameLimit.Get() == 0 && g_fFrameLimitGameplay.Get() == 0 )
+	if ( !PREFSMAN->m_bVsync.Get() && g_fFrameLimit.Get() == 0 && g_fFrameLimitGameplay.Get() == 0 )
 		return;
 	
 	g_LastFrameEndedAt = std::chrono::steady_clock::now();
 	
 	// Get the target frame time 
 	double waitTime = 0.0;
-	if (SCREENMAN && SCREENMAN->GetTopScreen())
+	if ((SCREENMAN != nullptr) && (SCREENMAN->GetTopScreen() != nullptr))
 	{
 		if (SCREENMAN->GetTopScreen()->GetScreenType() == gameplay && g_fFrameLimitGameplay.Get() > 0)
 			waitTime = 1.0 / g_fFrameLimitGameplay.Get();

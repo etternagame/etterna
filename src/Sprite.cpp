@@ -2,16 +2,9 @@
 #include <cassert>
 #include <cfloat>
 
-#include "Sprite.h"
-#include "RageTextureManager.h"
-#include "XmlFile.h"
-#include "RageLog.h"
-#include "RageDisplay.h"
-#include "RageTexture.h"
-#include "RageTimer.h"
-#include "RageUtil.h"
 #include "ActorUtil.h"
 #include "Foreach.h"
+#include "InputFilter.h"
 #include "LuaBinding.h"
 #include "LuaManager.h"
 #include "InputFilter.h"
@@ -332,7 +325,7 @@ void Sprite::LoadFromTexture( const RageTextureID &ID )
 	// LOG->Trace( "Sprite::LoadFromTexture( %s )", ID.filename.c_str() );
 
 	RageTexture *pTexture = NULL;
-	if( m_pTexture && m_pTexture->GetID() == ID )
+	if( (m_pTexture != nullptr) && m_pTexture->GetID() == ID )
 		pTexture = m_pTexture;
 	else
 		pTexture = TEXTUREMAN->LoadTexture( ID );
@@ -434,7 +427,7 @@ void Sprite::Update( float fDelta )
 	if( !m_bIsAnimating )
 		return;
 
-	if( !m_pTexture ) // no texture, nothing to animate
+	if( m_pTexture == nullptr ) // no texture, nothing to animate
 		return;
 
 	float fTimePassed = GetEffectDeltaTime();
@@ -550,14 +543,14 @@ void Sprite::DrawTexture( const TweenState *state )
 		}
 	}
 
-	DISPLAY->SetTexture( TextureUnit_1, m_pTexture? m_pTexture->GetTexHandle():0 );
+	DISPLAY->SetTexture( TextureUnit_1, m_pTexture != nullptr? m_pTexture->GetTexHandle():0 );
 
 	// Must call this after setting the texture or else texture 
 	// parameters have no effect.
 	Actor::SetTextureRenderStates(); // set Actor-specified render states
 	DISPLAY->SetEffectMode( m_EffectMode );
 
-	if( m_pTexture )
+	if( m_pTexture != nullptr )
 	{
 		float f[8];
 		GetActiveTextureCoords( f );
@@ -828,7 +821,7 @@ void Sprite::RecalcAnimationLengthSeconds()
 void Sprite::SetSecondsIntoAnimation( float fSeconds )
 {
 	SetState( 0 );	// rewind to the first state
-	if( m_pTexture )
+	if( m_pTexture != nullptr )
 		m_pTexture->SetPosition( fSeconds );
 	m_fSecsIntoState = fSeconds;
 	UpdateAnimationState();
@@ -873,8 +866,8 @@ void Sprite::SetCustomImageCoords( float fImageCoords[8] )	// order: top left, b
 	// convert image coords to texture coords in place
 	for( int i=0; i<8; i+=2 )
 	{
-		fImageCoords[i+0] *= m_pTexture->GetImageWidth()	/ (float)m_pTexture->GetTextureWidth(); 
-		fImageCoords[i+1] *= m_pTexture->GetImageHeight()	/ (float)m_pTexture->GetTextureHeight(); 
+		fImageCoords[i+0] *= m_pTexture->GetImageWidth()	/ static_cast<float>(m_pTexture->GetTextureWidth()); 
+		fImageCoords[i+1] *= m_pTexture->GetImageHeight()	/ static_cast<float>(m_pTexture->GetTextureHeight()); 
 	}
 
 	SetCustomTextureCoords( fImageCoords );
@@ -941,7 +934,7 @@ void Sprite::ScaleToClipped( float fWidth, float fHeight )
 	m_fRememberedClipWidth = fWidth;
 	m_fRememberedClipHeight = fHeight;
 
-	if( !m_pTexture )
+	if( m_pTexture == nullptr )
 		return;
 
 	float fScaleFudgePercent = 0.15f;	// scale up to this amount in one dimension to avoid clipping.
@@ -1004,7 +997,7 @@ void Sprite::CropTo( float fWidth, float fHeight )
 	m_fRememberedClipWidth = fWidth;
 	m_fRememberedClipHeight = fHeight;
 
-	if( !m_pTexture )
+	if( m_pTexture == nullptr )
 		return;
 
 	// save the original X&Y.  We're going to restore them later.
@@ -1077,8 +1070,8 @@ void Sprite::AddImageCoords( float fX, float fY )
 
 	for( int j=0; j<8; j+=2 )
 	{
-		fTexCoords[j  ] += fX / (float)m_pTexture->GetTextureWidth();
-		fTexCoords[j+1] += fY / (float)m_pTexture->GetTextureHeight();
+		fTexCoords[j  ] += fX / static_cast<float>(m_pTexture->GetTextureWidth());
+		fTexCoords[j+1] += fY / static_cast<float>(m_pTexture->GetTextureHeight());
 	}
 
 	SetCustomTextureCoords( fTexCoords );
@@ -1183,7 +1176,7 @@ public:
 			lua_rawgeti(L, 1, s+1);
 			lua_getfield(L, -1, "Frame");
 			int frame_index= 0;
-			if(lua_isnumber(L, -1))
+			if(lua_isnumber(L, -1) != 0)
 			{
 				frame_index= IArg(-1);
 				if(frame_index < 0 || frame_index >= p->GetTexture()->GetNumFrames())
@@ -1195,7 +1188,7 @@ public:
 			new_state.rect= *p->GetTexture()->GetTextureCoordRect(frame_index);
 			lua_pop(L, 1);
 			lua_getfield(L, -1, "Delay");
-			if(lua_isnumber(L, -1))
+			if(lua_isnumber(L, -1) != 0)
 			{
 				new_state.fDelay= FArg(-1);
 			}

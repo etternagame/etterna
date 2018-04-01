@@ -1,4 +1,4 @@
-/* RageTimer - Timer services. */
+﻿/* RageTimer - Timer services. */
 
 #ifndef RAGE_TIMER_H
 #define RAGE_TIMER_H
@@ -12,8 +12,8 @@ public:
 	/* Time ago this RageTimer represents. */
 	float Ago() const;
 	void Touch();
-	inline bool IsZero() const { return m_secs == 0 && m_us == 0; }
-	inline void SetZero() { m_secs = m_us = 0; }
+	bool IsZero() const { return m_secs == 0 && m_us == 0; }
+	void SetZero() { m_secs = m_us = 0; }
 
 	/* Time between last call to GetDeltaTime() (Ago() + Touch()): */
 	float GetDeltaTime();

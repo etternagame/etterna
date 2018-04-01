@@ -1,9 +1,9 @@
 #include "global.h"
-#include "ScreenGameplayShared.h"
 #include "GameState.h"
-#include "Player.h"
 #include "NoteDataUtil.h"
 #include "NoteDataWithScoring.h"
+#include "Player.h"
+#include "ScreenGameplayShared.h"
 #include "Song.h"
 #include "StatsManager.h"
 

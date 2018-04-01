@@ -1,13 +1,13 @@
 #include "global.h"
-#include "XmlFileUtil.h"
-#include "XmlFile.h"
-#include "RageFile.h"
-#include "RageFileDriverMemory.h"
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "arch/Dialog/Dialog.h"
 #include "Foreach.h"
 #include "LuaManager.h"
+#include "RageFile.h"
+#include "RageFileDriverMemory.h"
+#include "RageLog.h"
+#include "RageUtil.h"
+#include "XmlFile.h"
+#include "XmlFileUtil.h"
+#include "arch/Dialog/Dialog.h"
 
 bool XmlFileUtil::LoadFromFileShowErrors( XNode &xml, RageFileBasic &f )
 {
@@ -471,7 +471,7 @@ bool GetXMLInternal( const XNode *pNode, RageFileBasic &f, bool bWriteTabs, int 
 	return true;
 #undef WRITE
 }
-}
+} // namespace
 
 void XmlFileUtil::Load( XNode *pNode, const RString &sXml, RString &sErrorOut )
 {
@@ -595,7 +595,7 @@ namespace
 		pRet->SetValueFromStack( L );
 		return pRet;
 	}
-}
+} // namespace
 
 void XmlFileUtil::AnnotateXNodeTree( XNode *pNode, const RString &sFile )
 {
@@ -680,7 +680,7 @@ namespace
 			// If this entry is a table, add it recursively.
 			if( lua_istable(L, -2) )
 			{
-				if( lua_isnumber(L, -1) )
+				if( lua_isnumber(L, -1) != 0 )
 				{
 					/* If this number is an integer, and between [1,iLen], then
 					 * we added this one already above. */
@@ -748,7 +748,7 @@ namespace
 		return pNode;
 	}
 
-}
+} // namespace
 
 /* Pop a table off of the stack, and return an XNode tree referring recursively
  * to entries in the table.

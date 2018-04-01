@@ -1,13 +1,13 @@
 #include "global.h"
-#include "ScoreDisplayOni.h"
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "GameState.h"
-#include "ThemeManager.h"
-#include "StatsManager.h"
-#include "PlayerState.h"
-#include "CommonMetrics.h"
 #include "ActorUtil.h"
+#include "CommonMetrics.h"
+#include "GameState.h"
+#include "PlayerState.h"
+#include "RageLog.h"
+#include "RageUtil.h"
+#include "ScoreDisplayOni.h"
+#include "StatsManager.h"
+#include "ThemeManager.h"
 
 ScoreDisplayOni::ScoreDisplayOni()
 {

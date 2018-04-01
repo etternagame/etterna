@@ -1,4 +1,4 @@
-#ifndef LUA_MANAGER_H
+﻿#ifndef LUA_MANAGER_H
 #define LUA_MANAGER_H
 
 struct lua_State;
@@ -17,8 +17,8 @@ extern "C"
 }
 
 // For Dialog::Result
-#include "arch/Dialog/Dialog.h"
 #include "RageUtil.h"
+#include "arch/Dialog/Dialog.h"
 
 class LuaManager
 {

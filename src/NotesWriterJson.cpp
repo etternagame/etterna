@@ -1,13 +1,13 @@
-#include "global.h"
+﻿#include "global.h"
+#include "BackgroundUtil.h"
+#include "GameManager.h"
+#include "JsonUtil.h"
+#include "NoteData.h"
 #include "NotesWriterJson.h"
+#include "Song.h"
+#include "Steps.h"
 #include "TimingData.h"
 #include "json/value.h"
-#include "JsonUtil.h"
-#include "Song.h"
-#include "BackgroundUtil.h"
-#include "Steps.h"
-#include "NoteData.h"
-#include "GameManager.h"
 
 static void Serialize(const TimingSegment &seg, Json::Value &root)
 {

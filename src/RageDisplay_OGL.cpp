@@ -1,27 +1,24 @@
-#include "global.h"
+﻿#include "global.h"
 
 #include "RageDisplay_OGL.h"
 #include "RageDisplay_OGL_Helpers.h"
-using namespace RageDisplay_Legacy_Helpers;
 
-#include "RageFile.h"
-#include "RageSurface.h"
-#include "RageSurfaceUtils.h"
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "RageTextureManager.h"
-#include "RageMath.h"
-#include "RageTypes.h"
-#include "RageUtil.h"
 #include "EnumHelper.h"
 #include "Foreach.h"
-#include "DisplayResolutions.h"
 #include "LocalizedString.h"
+#include "RageFile.h"
+#include "RageLog.h"
+#include "RageMath.h"
+#include "RageSurface.h"
+#include "RageSurfaceUtils.h"
+#include "RageTextureManager.h"
+#include "RageTypes.h"
+#include "RageUtil.h"
 
 #include "arch/LowLevelWindow/LowLevelWindow.h"
 
-#include <set>
 #include <chrono>
+#include <set>
 
 #if defined(WINDOWS)
 #include <GL/wglew.h>
@@ -35,6 +32,8 @@ using namespace RageDisplay_Legacy_Helpers;
 #ifdef NO_GL_FLUSH
 #define glFlush()
 #endif
+
+using namespace RageDisplay_Legacy_Helpers;
 
 //
 // Globals
@@ -744,7 +743,7 @@ RString RageDisplay_Legacy::TryVideoMode( const VideoModeParams &p, bool &bNewDe
 	{
 		/* We have a new OpenGL context, so we have to tell our textures that
 		 * their OpenGL texture number is invalid. */
-		if (TEXTUREMAN)
+		if (TEXTUREMAN != nullptr)
 			TEXTUREMAN->InvalidateTextures();
 
 		/* Delete all render targets.  They may have associated resources other than
@@ -1280,7 +1279,7 @@ void RageCompiledGeometryHWOGL::Draw( int iMeshIndex ) const
 	DebugFlushGLErrors();
 
 	const MeshInfo& meshInfo = m_vMeshInfo[iMeshIndex];
-	if (!meshInfo.iVertexCount || !meshInfo.iTriangleCount)
+	if ((meshInfo.iVertexCount == 0) || (meshInfo.iTriangleCount == 0))
 		return;
 
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -1521,8 +1520,8 @@ void RageDisplay_Legacy::DrawLineStripInternal( const RageSpriteVertex v[], int 
 		const RageMatrix* pMat = GetProjectionTop();
 		float fW = 2 / pMat->m[0][0];
 		float fH = -2 / pMat->m[1][1];
-		float fWidthVal = (float)(*g_pWind->GetActualVideoModeParams()).width / fW;
-		float fHeightVal = (float)(*g_pWind->GetActualVideoModeParams()).height / fH;
+		float fWidthVal = static_cast<float>((*g_pWind->GetActualVideoModeParams()).width) / fW;
+		float fHeightVal = static_cast<float>((*g_pWind->GetActualVideoModeParams()).height) / fH;
 		fLineWidth *= (fWidthVal + fHeightVal) / 2;
 	}
 
@@ -1575,7 +1574,7 @@ static bool SetTextureUnit( TextureUnit tu )
 	if (!GLEW_ARB_multitexture && tu != TextureUnit_1)
 		return false;
 
-	if ((int) tu > g_iMaxTextureUnits)
+	if (static_cast<int>( tu) > g_iMaxTextureUnits)
 		return false;
 	glActiveTextureARB( enum_add2(GL_TEXTURE0_ARB, tu) );
 	return true;
@@ -1596,7 +1595,7 @@ int RageDisplay_Legacy::GetNumTextureUnits()
 {
 	if (GLEW_ARB_multitexture)
 		return 1;
-	else
+	
 		return g_iMaxTextureUnits;
 }
 
@@ -1605,7 +1604,7 @@ void RageDisplay_Legacy::SetTexture( TextureUnit tu, unsigned iTexture )
 	if (!SetTextureUnit( tu ))
 		return;
 
-	if (iTexture)
+	if (iTexture != 0u)
 	{
 		glEnable( GL_TEXTURE_2D );
 		glBindTexture( GL_TEXTURE_2D, iTexture );
@@ -2535,7 +2534,7 @@ void RageDisplay_Legacy::SetRenderTarget( unsigned iTexture, bool bPreserveTextu
 		int fHeight = (*g_pWind->GetActualVideoModeParams()).height;
 		glViewport( 0, 0, fWidth, fHeight );
 
-		if (g_pCurrentRenderTarget)
+		if (g_pCurrentRenderTarget != nullptr)
 			g_pCurrentRenderTarget->FinishRenderingTo();
 		g_pCurrentRenderTarget = NULL;
 		return;

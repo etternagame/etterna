@@ -12,7 +12,7 @@ public:
 
 	void BeginScreen() override;
 	bool Input( const InputEventPlus &input ) override;
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 	void HandleMessage( const Message &msg ) override;
 	bool AllowLateJoin() const override { return true; }
 

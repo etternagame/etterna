@@ -1,9 +1,9 @@
-#ifndef INPUT_MAPPER_H
+﻿#ifndef INPUT_MAPPER_H
 #define INPUT_MAPPER_H
 
-#include "RageInputDevice.h"
 #include "GameInput.h"
 #include "PlayerNumber.h"
+#include "RageInputDevice.h"
 struct Game;
 
 const int NUM_GAME_TO_DEVICE_SLOTS	= 5;	// five device inputs may map to one game input

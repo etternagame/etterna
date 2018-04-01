@@ -1,4 +1,4 @@
-/* RageFileBasic - simple file interface. */
+﻿/* RageFileBasic - simple file interface. */
 
 #ifndef RAGE_FILE_BASIC_H
 #define RAGE_FILE_BASIC_H

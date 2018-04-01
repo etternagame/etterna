@@ -1,4 +1,4 @@
-/* RageSoundReader_PostBuffering - Apply low-latency effects. */
+﻿/* RageSoundReader_PostBuffering - Apply low-latency effects. */
 
 #ifndef RAGE_SOUND_READER_POST_BUFFERING_H
 #define RAGE_SOUND_READER_POST_BUFFERING_H

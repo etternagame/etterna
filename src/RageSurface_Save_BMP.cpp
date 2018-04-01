@@ -1,9 +1,9 @@
-#include "global.h"
-#include "RageSurface_Save_BMP.h"
+﻿#include "global.h"
+#include "RageFile.h"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
+#include "RageSurface_Save_BMP.h"
 #include "RageUtil.h"
-#include "RageFile.h"
 
 static void WriteBytes( RageFile &f, RString &sError, const void *buf, int size )
 {
@@ -30,28 +30,27 @@ static void write_le32( RageFile &f, RString &sError, uint32_t val )
 bool RageSurfaceUtils::SaveBMP( RageSurface *surface, RageFile &f )
 {
 	/* Convert the surface to 24bpp. */
-	RageSurface *converted_surface;
-	converted_surface = CreateSurface( surface->w, surface->h, 24,
+	RageSurface *converted_surface = CreateSurface( surface->w, surface->h, 24,
 		Swap24LE( 0xFF0000 ), Swap24LE( 0x00FF00 ), Swap24LE( 0x0000FF ), 0 );
-	RageSurfaceUtils::CopySurface( surface, converted_surface );
+	CopySurface( surface, converted_surface );
 
 	RString sError;
 
 	int iFilePitch = converted_surface->pitch;
-	iFilePitch = (iFilePitch+3) & ~3; // round up a multiple of 4
+	iFilePitch = (iFilePitch + 3) & ~3; // round up a multiple of 4
 
-	int iDataSize = converted_surface->h * iFilePitch;
+	const int iDataSize = converted_surface->h * iFilePitch;
 	const int iHeaderSize = 0x36;
 
 	WriteBytes( f, sError, "BM", 2 );
-	write_le32( f, sError, iHeaderSize+iDataSize ); // size (offset 0x2)
+	write_le32( f, sError, iHeaderSize + iDataSize ); // size (offset 0x2)
 	write_le32( f, sError, 0 ); // reserved (offset 0x6)
 	write_le32( f, sError, iHeaderSize ); // bitmap offset (offset 0xA)
 	write_le32( f, sError, 0x28 ); // header size (offset 0xE)
 	write_le32( f, sError, surface->w ); // width (offset 0x14)
 	write_le32( f, sError, surface->h ); // height (offset 0x18)
 	write_le16( f, sError, 1 ); // planes (offset 0x1A)
-	write_le16( f, sError, (uint16_t) converted_surface->fmt.BytesPerPixel*8 ); // bpp (offset 0x1C)
+	write_le16( f, sError, static_cast<uint16_t>(converted_surface->fmt.BytesPerPixel * 8) ); // bpp (offset 0x1C)
 	write_le32( f, sError, 0 ); // compression (offset 0x1E)
 	write_le32( f, sError, iDataSize ); // bitmap size (offset 0x22)
 	write_le32( f, sError, 0 ); // horiz resolution (offset 0x26)

@@ -3,9 +3,9 @@
 #ifndef MUSIC_WHEEL_H
 #define MUSIC_WHEEL_H
 
-#include "RageSound.h"
 #include "GameConstantsAndTypes.h"
 #include "MusicWheelItem.h"
+#include "RageSound.h"
 #include "ThemeMetric.h"
 #include "WheelBase.h"
 

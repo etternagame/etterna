@@ -1,13 +1,13 @@
 #include "global.h"
-#include "ScreenSetTime.h"
-#include "ScreenManager.h"
-#include "RageLog.h"
-#include "InputMapper.h"
-#include "ThemeManager.h"
 #include "DateTime.h"
 #include "EnumHelper.h"
-#include "arch/ArchHooks/ArchHooks.h"
 #include "InputEventPlus.h"
+#include "InputMapper.h"
+#include "RageLog.h"
+#include "ScreenManager.h"
+#include "ScreenSetTime.h"
+#include "ThemeManager.h"
+#include "arch/ArchHooks/ArchHooks.h"
 
 static const char *SetTimeSelectionNames[] = {
 	"Year", 
@@ -73,7 +73,7 @@ void ScreenSetTime::Init()
 	m_soundChangeValue.Load( THEME->GetPathS("ScreenSetTime","ChangeValue") );
 
 	m_TimeOffset = 0;
-	m_Selection = (SetTimeSelection)0;
+	m_Selection = static_cast<SetTimeSelection>(0);
 	ChangeSelection( 0 );
 }
 

@@ -1,10 +1,9 @@
-#include "global.h"
-#include "InputQueue.h"
-#include "RageTimer.h"
-#include "RageLog.h"
-#include "InputEventPlus.h"
+﻿#include "global.h"
 #include "Foreach.h"
+#include "InputEventPlus.h"
 #include "InputMapper.h"
+#include "InputQueue.h"
+#include "RageLog.h"
 
 InputQueue*	INPUTQUEUE = NULL;	// global and accessible from anywhere in our program
 

@@ -1,11 +1,11 @@
-/* RageSoundReader_ThreadedBuffer - Buffer sounds into memory. */
+﻿/* RageSoundReader_ThreadedBuffer - Buffer sounds into memory. */
 
 #ifndef RAGE_SOUND_READER_THREADED_BUFFER
 #define RAGE_SOUND_READER_THREADED_BUFFER
 
 #include "RageSoundReader_Filter.h"
-#include "RageUtil_CircularBuffer.h"
 #include "RageThreads.h"
+#include "RageUtil_CircularBuffer.h"
 #include <list>
 
 class RageThread;
@@ -70,7 +70,7 @@ private:
 
 	RageThread m_Thread;
 	bool m_bShutdownThread;
-	static int StartBufferingThread( void *p ) { ((RageSoundReader_ThreadedBuffer *) p)->BufferingThread(); return 0; }
+	static int StartBufferingThread( void *p ) { (reinterpret_cast<RageSoundReader_ThreadedBuffer *>(p))->BufferingThread(); return 0; }
 	void BufferingThread();
 };
 

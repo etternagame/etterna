@@ -1,15 +1,14 @@
-#include "global.h"
-#include "LifeMeterTime.h"
-#include "ThemeManager.h"
-#include "Song.h"
-#include "Steps.h"
-#include "ActorUtil.h"
-#include "Preference.h"
-#include "StreamDisplay.h"
+﻿#include "global.h"
 #include "GameState.h"
-#include "StatsManager.h"
-#include "PlayerState.h"
+#include "LifeMeterTime.h"
 #include "MessageManager.h"
+#include "PlayerState.h"
+#include "Preference.h"
+#include "Song.h"
+#include "StatsManager.h"
+#include "Steps.h"
+#include "StreamDisplay.h"
+#include "ThemeManager.h"
 
 const float FULL_LIFE_SECONDS = 1.5f*60;
 
@@ -103,7 +102,7 @@ void LifeMeterTime::OnLoadSong()
 	Steps* steps = GAMESTATE->m_pCurSteps[m_pPlayerState->m_PlayerNumber];
 	ASSERT(steps != NULL);
 	RadarValues radars = steps->GetRadarValues();
-	float scorable_things = radars[RadarCategory_TapsAndHolds] +
+	int scorable_things = radars[RadarCategory_TapsAndHolds] +
 		radars[RadarCategory_Lifts];
 	if (g_fTimeMeterSecondsChange[SE_Held] > 0.0f)
 	{

@@ -1,23 +1,23 @@
 #include "global.h"
-#include "ScreenHowToPlay.h"
-#include "ThemeManager.h"
-#include "GameState.h"
-#include "Steps.h"
+#include "Character.h"
+#include "CharacterManager.h"
 #include "GameManager.h"
+#include "GameSoundManager.h"
+#include "GameState.h"
+#include "LifeMeterBar.h"
+#include "Model.h"
 #include "NotesLoaderSM.h"
 #include "NotesLoaderSSC.h"
-#include "GameSoundManager.h"
-#include "Model.h"
-#include "ThemeMetric.h"
 #include "PlayerState.h"
-#include "Style.h"
 #include "PrefsManager.h"
-#include "CharacterManager.h"
-#include "StatsManager.h"
 #include "RageDisplay.h"
+#include "ScreenHowToPlay.h"
 #include "SongUtil.h"
-#include "Character.h"
-#include "LifeMeterBar.h"
+#include "StatsManager.h"
+#include "Steps.h"
+#include "Style.h"
+#include "ThemeManager.h"
+#include "ThemeMetric.h"
 
 static const ThemeMetric<int>		NUM_W2S		("ScreenHowToPlay","NumW2s");
 static const ThemeMetric<int>		NUM_MISSES	("ScreenHowToPlay","NumMisses");
@@ -254,7 +254,7 @@ void ScreenHowToPlay::Update( float fDelta )
 
 		if( iCurNoteRow != iLastNoteRowCounted &&m_NoteData.IsThereATapAtRow(iCurNoteRow) )
 		{
-			if( m_pLifeMeterBar && !m_Player )
+			if( (m_pLifeMeterBar != nullptr) && (m_Player == nullptr) )
 			{
 				if ( m_iW2s < m_iNumW2s )
 					m_pLifeMeterBar->ChangeLife( TNS_W2 );
@@ -274,7 +274,7 @@ void ScreenHowToPlay::Update( float fDelta )
 		// Per the above code, we don't always want the character stepping.
 		// If they try to make all of the steps in the miss part, they look
 		// silly. Have then stand still instead. - freem
-		if ( m_pmCharacter )
+		if ( m_pmCharacter != nullptr )
 		{
 			if( m_iW2s <= m_iNumW2s )
 				Step();

@@ -1,31 +1,31 @@
 #include "global.h"
-#include "ScreenEvaluation.h"
-#include "SongManager.h"
-#include "ScreenManager.h"
-#include "GameManager.h"
-#include "RageUtil.h"
-#include "GameConstantsAndTypes.h"
-#include "Steps.h"
-#include "PrefsManager.h"
-#include "RageLog.h"
-#include "AnnouncerManager.h"
-#include "GameState.h"
-#include "ThemeManager.h"
-#include "GameSoundManager.h"
 #include "ActorUtil.h"
-#include "ProfileManager.h"
-#include "Profile.h"
-#include "Song.h"
-#include "StatsManager.h"
-#include "Grade.h"
+#include "AnnouncerManager.h"
 #include "CodeDetector.h"
-#include "RageDisplay.h"
-#include "StepMania.h"
-#include "CryptManager.h"
-#include "PlayerState.h"
 #include "CommonMetrics.h"
-#include "ScoreKeeperNormal.h"
+#include "CryptManager.h"
+#include "GameConstantsAndTypes.h"
+#include "GameManager.h"
+#include "GameSoundManager.h"
+#include "GameState.h"
+#include "Grade.h"
 #include "InputEventPlus.h"
+#include "PlayerState.h"
+#include "PrefsManager.h"
+#include "Profile.h"
+#include "ProfileManager.h"
+#include "RageDisplay.h"
+#include "RageLog.h"
+#include "RageUtil.h"
+#include "ScoreKeeperNormal.h"
+#include "ScreenEvaluation.h"
+#include "ScreenManager.h"
+#include "Song.h"
+#include "SongManager.h"
+#include "StatsManager.h"
+#include "StepMania.h"
+#include "Steps.h"
+#include "ThemeManager.h"
 
 // metrics that are common to all ScreenEvaluation classes
 #define BANNER_WIDTH			THEME->GetMetricF(m_sName,"BannerWidth")
@@ -288,7 +288,7 @@ void ScreenEvaluation::Init()
 				vector<RString> v;
 				PlayerOptions po = GAMESTATE->m_pPlayerState[p]->m_PlayerOptions.GetPreferred();
 				if( PLAYER_OPTIONS_HIDE_FAIL_TYPE )
-					po.m_FailType = (FailType)0;	// blank out the fail type so that it won't show in the mods list
+					po.m_FailType = static_cast<FailType>(0);	// blank out the fail type so that it won't show in the mods list
 				po.GetLocalizedMods( v );
 				RString sPO = join( PLAYER_OPTIONS_SEPARATOR, v );
 				m_textPlayerOptions[p].SetText( sPO );

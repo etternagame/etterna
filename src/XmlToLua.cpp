@@ -2,18 +2,18 @@
 #include "ActorUtil.h"
 #include "Foreach.h"
 #include "IniFile.h"
+#include "LuaBinding.h"
+#include "LuaManager.h"
 #include "RageFile.h"
 #include "RageFileManager.h"
 #include "RageLog.h"
 #include "RageTypes.h"
-#include "LuaManager.h"
-#include "LuaBinding.h"
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
 
-#include <vector>
 #include <map>
 #include <set>
+#include <vector>
 
 #define TWEEN_QUEUE_MAX 50
 

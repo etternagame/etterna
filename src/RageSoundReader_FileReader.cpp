@@ -1,9 +1,9 @@
-#include "global.h"
-#include "RageSoundReader_FileReader.h"
+﻿#include "global.h"
+#include "ActorUtil.h"
 #include "RageFile.h"
 #include "RageLog.h"
+#include "RageSoundReader_FileReader.h"
 #include "RageUtil.h"
-#include "ActorUtil.h"
 
 #include <set>
 #if defined(HAS_WAV)

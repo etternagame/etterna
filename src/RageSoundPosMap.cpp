@@ -1,9 +1,9 @@
-#include "global.h"
-#include "RageSoundPosMap.h"
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "RageTimer.h"
+﻿#include "global.h"
 #include "Foreach.h"
+#include "RageLog.h"
+#include "RageSoundPosMap.h"
+#include "RageTimer.h"
+#include "RageUtil.h"
 
 #include <climits>
 #include <list>

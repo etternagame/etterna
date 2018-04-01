@@ -1,16 +1,14 @@
-#include "global.h"
-#include "LocalizedString.h"
-#include "InputFilter.h"
-#include "RageLog.h"
-#include "RageInput.h"
-#include "RageUtil.h"
-#include "RageThreads.h"
-#include "Preference.h"
+﻿#include "global.h"
 #include "Foreach.h"
 #include "GameInput.h"
+#include "InputFilter.h"
 #include "InputMapper.h"
-// for mouse stuff: -aj
-#include "PrefsManager.h"
+#include "LocalizedString.h"
+#include "Preference.h"
+#include "RageInput.h"
+#include "RageLog.h"
+#include "RageThreads.h"
+#include "RageUtil.h"
 #include "ScreenDimensions.h"
 #include "arch/ArchHooks/ArchHooks.h"
 #include <set>
@@ -94,7 +92,7 @@ namespace
 
 	DeviceInputList g_CurrentState;
 	set<DeviceInput> g_DisableRepeat;
-}
+} // namespace
 
 /* Some input devices require debouncing. Do this on both press and release.
  * After reporting a change in state, don't report another for the debounce

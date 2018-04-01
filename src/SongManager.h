@@ -9,16 +9,16 @@ class PlayerOptions;
 struct lua_State;
 struct GoalsForChart;
 
-#include "RageTypes.h"
-#include "GameConstantsAndTypes.h"
-#include "SongOptions.h"
-#include "PlayerOptions.h"
-#include "PlayerNumber.h"
 #include "Difficulty.h"
-#include "ThemeMetric.h"
-#include "RageTexturePreloader.h"
-#include "RageUtil.h"
+#include "GameConstantsAndTypes.h"
+#include "PlayerNumber.h"
+#include "PlayerOptions.h"
 #include "Profile.h"
+#include "RageTexturePreloader.h"
+#include "RageTypes.h"
+#include "RageUtil.h"
+#include "SongOptions.h"
+#include "ThemeMetric.h"
 
 #include <unordered_map>
 using std::string;

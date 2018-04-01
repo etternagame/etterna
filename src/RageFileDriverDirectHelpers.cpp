@@ -1,11 +1,9 @@
-#include "global.h"
+﻿#include "global.h"
+#include "Foreach.h"
 #include "RageFileDriverDirectHelpers.h"
 #include "RageUtil.h"
-#include "RageLog.h"
-#include "Foreach.h"
 
 #include <cerrno>
-#include <sys/types.h>
 #include <sys/stat.h>
 
 #if !defined(WIN32)
@@ -16,7 +14,6 @@
 
 #else
 #include <windows.h>
-#include <io.h>
 #endif
 
 RString DoPathReplace(const RString &sPath)
@@ -279,12 +276,12 @@ void DirectFilenameDB::PopulateFileSet( FileSet &fs, const RString &path )
 					pEnt->d_name, sPath.c_str(), strerror(iError)) );
 			continue;
 		}
-		else
-		{
+		
+		
 			f.dir = (st.st_mode & S_IFDIR);
 			f.size = (int)st.st_size;
 			f.hash = st.st_mtime;
-		}
+		
 
 		fs.files.insert(f);
 	}

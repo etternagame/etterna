@@ -1,18 +1,16 @@
-#include "global.h"
+﻿#include "global.h"
 #include "ArrowEffects.h"
-#include "Steps.h"
 #include "GameConstantsAndTypes.h"
-#include "GameManager.h"
-#include "RageTimer.h"
-#include "NoteDisplay.h"
-#include "Song.h"
-#include "RageMath.h"
-#include "ScreenDimensions.h"
-#include "PlayerState.h"
 #include "GameState.h"
+#include "NoteDisplay.h"
+#include "PlayerState.h"
+#include "RageMath.h"
+#include "RageTimer.h"
+#include "ScreenDimensions.h"
+#include "Song.h"
+#include "Steps.h"
 #include "Style.h"
 #include "ThemeMetric.h"
-#include <cfloat>
 
 static ThemeMetric<float>	ARROW_SPACING( "ArrowEffects", "ArrowSpacing" );
 static ThemeMetric<bool>	QUANTIZE_ARROW_Y( "ArrowEffects", "QuantizeArrowYPosition");
@@ -82,7 +80,7 @@ namespace
 		float m_fExpandSeconds;
 	};
 	PerPlayerData g_EffectData[NUM_PLAYERS];
-};
+} // namespace;
 
 void ArrowEffects::Update()
 {
@@ -475,7 +473,7 @@ float ArrowEffects::GetYOffsetFromYPos(int iCol, float YPos, float fYReverseOffs
 	ArrowGetReverseShiftAndScale(iCol, fYReverseOffsetPixels, fShift, fScale);
 
 	f -= fShift;
-	if( fScale )
+	if( fScale != 0.0f )
 		f /= fScale;
 
 	return f;
@@ -891,7 +889,7 @@ namespace
 
 		lua_pushnumber( L, ArrowEffects::GetYOffset( ps, IArg(2)-1, FArg(3), fPeakYOffset, bIsPastPeak ) );
 		lua_pushnumber( L, fPeakYOffset );
-		lua_pushboolean( L, bIsPastPeak );
+		lua_pushboolean( L, static_cast<int>(bIsPastPeak) );
 		return 3;
 	}
 
@@ -1042,7 +1040,7 @@ namespace
 	{
 		PlayerState *ps = Luna<PlayerState>::check( L, 1 );
 		ArrowEffects::SetCurrentOptions(&ps->m_PlayerOptions.GetCurrent());
-		lua_pushboolean(L, ArrowEffects::NeedZBuffer());
+		lua_pushboolean(L, static_cast<int>(ArrowEffects::NeedZBuffer()));
 		return 1;
 	}
 	
@@ -1091,7 +1089,7 @@ namespace
 		LIST_METHOD( GetFrameWidthScale ),
 		{ nullptr, nullptr }
 	};
-}
+} // namespace
 
 LUA_REGISTER_NAMESPACE( ArrowEffects )
 

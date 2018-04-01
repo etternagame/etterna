@@ -38,8 +38,8 @@ public:
 	{
 		if(BMT_Tweens.empty())
 		{ return BMT_current; }
-		else
-		{ return BMT_Tweens.back(); }
+		
+		return BMT_Tweens.back(); 
 	}
 	BMT_TweenState const& BMT_DestTweenState() const { return const_cast<BitmapText*>(this)->BMT_DestTweenState(); }
 

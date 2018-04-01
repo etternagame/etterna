@@ -1,15 +1,14 @@
-#include "global.h"
-#include "RageSurface_Load_JPEG.h"
-#include "RageUtil.h"
-#include "RageLog.h"
+﻿#include "global.h"
 #include "RageFile.h"
 #include "RageSurface.h"
+#include "RageSurface_Load_JPEG.h"
+#include "RageUtil.h"
 
 #include <csetjmp>
 
 extern "C" {
-#include "jpeglib.h"
 #include "jerror.h"
+#include "jpeglib.h"
 }
 
 #if defined(WIN32) && !defined(__MINGW32__)
@@ -60,7 +59,7 @@ void RageFile_JPEG_init_source( j_decompress_ptr cinfo )
 {
 	RageFile_source_mgr *src = (RageFile_source_mgr *) cinfo->src;
 	src->start_of_file = true;
-	src->pub.next_input_byte = NULL;
+	src->pub.next_input_byte = nullptr;
 	src->pub.bytes_in_buffer = 0;
 }
 
@@ -98,13 +97,11 @@ void RageFile_JPEG_skip_input_data( j_decompress_ptr cinfo, long num_bytes )
 	src->pub.bytes_in_buffer -= in_buffer;
 	num_bytes -= in_buffer;
 
-	if( num_bytes )
+	if( num_bytes != 0 )
 		src->file->Seek( src->file->Tell() + num_bytes );
 }
 
-void RageFile_JPEG_term_source( j_decompress_ptr cinfo )
-{
-}
+void RageFile_JPEG_term_source( j_decompress_ptr cinfo ) {}
 
 static RageSurface *RageSurface_Load_JPEG( RageFile *f, const char *fn, char errorbuf[JMSG_LENGTH_MAX] )
 {
@@ -115,7 +112,7 @@ static RageSurface *RageSurface_Load_JPEG( RageFile *f, const char *fn, char err
 	jerr.pub.error_exit = my_error_exit;
 	jerr.pub.output_message = my_output_message;
 	
-	RageSurface *volatile img = NULL; /* volatile to prevent possible problems with setjmp */
+	RageSurface *volatile img = nullptr; /* volatile to prevent possible problems with setjmp */
 
 	if( setjmp(jerr.setjmp_buffer) )
 	{
@@ -124,7 +121,7 @@ static RageSurface *RageSurface_Load_JPEG( RageFile *f, const char *fn, char err
 		
 		jpeg_destroy_decompress( &cinfo );
 		delete img;
-		return NULL;
+		return nullptr;
 	}
 
 	/* Now we can initialize the JPEG decompression object. */
@@ -153,7 +150,7 @@ static RageSurface *RageSurface_Load_JPEG( RageFile *f, const char *fn, char err
 	case JCS_CMYK:
 		sprintf( errorbuf, "Color format \"%s\" not supported", cinfo.jpeg_color_space == JCS_YCCK? "YCCK":"CMYK" );
 		jpeg_destroy_decompress( &cinfo );
-		return NULL;
+		return nullptr;
 
 	default:
 		cinfo.out_color_space = JCS_RGB;
@@ -206,7 +203,7 @@ RageSurfaceUtils::OpenResult RageSurface_Load_JPEG( const RString &sPath, RageSu
 
 	char errorbuf[1024];
 	ret = RageSurface_Load_JPEG( &f, sPath, errorbuf );
-	if( ret == NULL )
+	if( ret == nullptr )
 	{
 		error = errorbuf;
 		return RageSurfaceUtils::OPEN_UNKNOWN_FILE_FORMAT; // XXX

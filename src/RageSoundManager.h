@@ -1,11 +1,9 @@
-/* RageSoundManager - A global singleton to interface RageSound and RageSoundDriver. */
+﻿/* RageSoundManager - A global singleton to interface RageSound and RageSoundDriver. */
 
 #ifndef RAGE_SOUND_MANAGER_H
 #define RAGE_SOUND_MANAGER_H
 
-#include <set>
 #include <map>
-#include "RageUtil_CircularBuffer.h"
 
 class RageSound;
 class RageSoundBase;

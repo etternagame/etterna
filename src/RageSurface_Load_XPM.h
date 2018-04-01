@@ -1,4 +1,4 @@
-/* RageSurface_Load_XPM - XPM file loader */
+﻿/* RageSurface_Load_XPM - XPM file loader */
 
 #ifndef RAGE_SURFACE_LOAD_XPM_H
 #define RAGE_SURFACE_LOAD_XPM_H

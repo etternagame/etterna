@@ -66,7 +66,7 @@ struct CubicSplineN
 	bool empty() const;
 	float get_max_t() const {
 		if(m_loop) { return static_cast<float>(size()); }
-		else { return static_cast<float>(size()-1); }
+		return static_cast<float>(size()-1); 
 	}
 	typedef vector<CubicSpline> spline_cont_t;
 	void set_loop(bool l);

@@ -1,17 +1,17 @@
 #include "global.h"
-#include "RageLog.h"
-#include "HighScore.h"
-#include "arch/LoadingWindow/LoadingWindow.h"
-#include "GameConstantsAndTypes.h"
 #include "Foreach.h"
+#include "GameConstantsAndTypes.h"
+#include "HighScore.h"
+#include "MinaCalc.h"
+#include "NoteData.h"
+#include "NoteDataStructures.h"
+#include "RageLog.h"
+#include "RageTimer.h"
 #include "ScoreManager.h"
+#include "Song.h"
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
-#include "Song.h"
-#include "MinaCalc.h"
-#include "NoteDataStructures.h"
-#include "NoteData.h"
-#include "RageTimer.h"
+#include "arch/LoadingWindow/LoadingWindow.h"
 
 ScoreManager* SCOREMAN = NULL;
 
@@ -313,7 +313,7 @@ static const float ld_update = 0.02f;
 void ScoreManager::RecalculateSSRs(LoadingWindow *ld, const string& profileID) {
 	RageTimer ld_timer;
 	auto& scores = AllProfileScores[profileID];
-	if (ld) {
+	if (ld != nullptr) {
 		ld_timer.Touch();
 		ld->SetIndeterminate(false);
 		ld->SetTotalWork(scores.size());
@@ -664,7 +664,7 @@ public:
 		const string& ck = SArg(1);
 		ScoresForChart* scores = p->GetScoresForChart(ck);
 
-		if (scores) {
+		if (scores != nullptr) {
 			lua_newtable(L);
 			vector<int> ratekeys = scores->GetPlayedRateKeys();
 			vector<string> ratedisplay = scores->GetPlayedRateDisplayStrings();
@@ -693,7 +693,7 @@ public:
 
 	static int GetTopSSRHighScore(T* p, lua_State *L) {
 		HighScore* ths = p->GetTopSSRHighScore(IArg(1) - 1, Enum::Check<Skillset>(L, 2));
-		if (ths)
+		if (ths != nullptr)
 			ths->PushSelf(L);
 		else
 			lua_pushnil(L);

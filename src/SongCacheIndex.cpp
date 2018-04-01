@@ -1,6 +1,6 @@
 #include "global.h"
 
-#include "SongCacheIndex.h"
+#include "RageFileManager.h"
 #include "RageLog.h"
 #include "RageUtil.h"
 #include "RageFileManager.h"

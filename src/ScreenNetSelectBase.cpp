@@ -1,27 +1,19 @@
 #include "global.h"
 
 #if !defined(WITHOUT_NETWORKING)
-#include "ScreenNetSelectBase.h"
-#include "ScreenManager.h"
-#include "ThemeManager.h"
-#include "RageTimer.h"
-#include "ActorUtil.h"
 #include "Actor.h"
+#include "ActorUtil.h"
+#include "Font.h"
 #include "GameSoundManager.h"
-#include "MenuTimer.h"
-#include "NetworkSyncManager.h"
-#include "RageUtil.h"
 #include "GameState.h"
 #include "InputEventPlus.h"
-#include "RageInput.h"
-#include "Font.h"
-#include "RageDisplay.h"
+#include "MenuTimer.h"
+#include "NetworkSyncManager.h"
 #include "PlayerState.h"
 #include "arch/ArchHooks/ArchHooks.h"
 
 #define CHAT_TEXT_OUTPUT_WIDTH		THEME->GetMetricF(m_sName,"ChatTextOutputWidth")
 #define CHAT_TEXT_INPUT_WIDTH		THEME->GetMetricF(m_sName,"ChatTextInputWidth")
-#define SHOW_CHAT_LINES				THEME->GetMetricI(m_sName,"ChatOutputLines")
 
 #define USERS_X						THEME->GetMetricF(m_sName,"UsersX")
 #define USERS_Y						THEME->GetMetricF(m_sName,"UsersY")
@@ -240,14 +232,15 @@ void ScreenNetSelectBase::UpdateUsers()
 	MESSAGEMAN->Broadcast("UsersUpdate");
 }
 
-void ScreenNetSelectBase::Scroll(int movescroll)
+void ScreenNetSelectBase::Scroll(unsigned int movescroll)
 {
 	if (NSMAN->IsETTP())
 		return;
 	if (scroll+movescroll >= 0 && scroll+movescroll <= m_textChatOutput.lines - SHOW_CHAT_LINES)
+	if (scroll+movescroll >= 0 && scroll+movescroll <= static_cast<unsigned int>(m_textChatOutput.lines - SHOW_CHAT_LINES))
 		scroll += movescroll;
 	m_textChatOutput.ResetText();
-	m_textChatOutput.SetMaxLines(SHOW_CHAT_LINES, 1, scroll);
+	m_textChatOutput.SetMaxLines(chatLines, 1, scroll);
 	return;
 }
 
@@ -337,7 +330,7 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 	{
 		if (lua_isnil(L, 1))
 			return 0;
-		if (IArg(1) <= p->ToUsers()->size() && IArg(1) >= 1)
+		if (static_cast<size_t>(IArg(1)) <= p->ToUsers()->size() && IArg(1) >= 1)
 			lua_pushstring(L, (*(p->ToUsers()))[IArg(1) - 1].GetText());
 		else
 			lua_pushstring(L, "");
@@ -347,7 +340,7 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 	{
 		if (lua_isnil(L, 1))
 			return 0;
-		if (IArg(1) <= p->ToUsers()->size() && IArg(1) >= 1)
+		if (static_cast<size_t>(IArg(1)) <= p->ToUsers()->size() && IArg(1) >= 1)
 			lua_pushnumber(L, NSMAN->m_PlayerStatus[NSMAN->m_ActivePlayer[IArg(1) - 1]]);
 		else
 			lua_pushnumber(L, 0);
@@ -362,7 +355,7 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 	{
 		if (lua_isnil(L, 1))
 			return 0;
-		if (IArg(1) <= NSMAN->fl_PlayerNames.size() && IArg(1) >= 1)
+		if (static_cast<size_t>(IArg(1)) <= NSMAN->fl_PlayerNames.size() && IArg(1) >= 1)
 			lua_pushstring(L, (NSMAN->fl_PlayerNames[IArg(1) - 1]).c_str());
 		else
 			lua_pushstring(L, "");
@@ -372,7 +365,7 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 	{
 		if (lua_isnil(L, 1))
 			return 0;
-		if (IArg(1) <= NSMAN->fl_PlayerStates.size() && IArg(1) >= 1)
+		if (static_cast<size_t>(IArg(1)) <= NSMAN->fl_PlayerStates.size() && IArg(1) >= 1)
 			lua_pushnumber(L, NSMAN->fl_PlayerStates[IArg(1) - 1]);
 		else
 			lua_pushnumber(L, 0);

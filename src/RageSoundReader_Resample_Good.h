@@ -1,4 +1,4 @@
-/* RageSoundReader_Resample_Good - fast audio resampling. */
+﻿/* RageSoundReader_Resample_Good - fast audio resampling. */
 
 #ifndef RAGE_SOUND_READER_RESAMPLE_GOOD_H
 #define RAGE_SOUND_READER_RESAMPLE_GOOD_H

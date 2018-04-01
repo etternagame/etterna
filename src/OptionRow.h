@@ -1,14 +1,14 @@
-/* OptionRow - One line in ScreenOptions. */
+﻿/* OptionRow - One line in ScreenOptions. */
 
 #ifndef OptionRow_H
 #define OptionRow_H
 
 #include "ActorFrame.h"
-#include "BitmapText.h"
-#include "OptionsCursor.h"
-#include "ModIcon.h"
-#include "ThemeMetric.h"
 #include "AutoActor.h"
+#include "BitmapText.h"
+#include "ModIcon.h"
+#include "OptionsCursor.h"
+#include "ThemeMetric.h"
 
 class OptionRowHandler;
 class GameCommand;

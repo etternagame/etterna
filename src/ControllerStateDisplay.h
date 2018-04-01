@@ -1,14 +1,13 @@
-/* ControllerStateDisplay - Show the button state of a controller. */
+﻿/* ControllerStateDisplay - Show the button state of a controller. */
 
 #ifndef ControllerStateDisplay_H
 #define ControllerStateDisplay_H
 
 #include "ActorFrame.h"
-#include "ActorUtil.h"
-#include "PlayerNumber.h"
 #include "AutoActor.h"
-#include "RageInput.h"
 #include "GameInput.h"
+#include "PlayerNumber.h"
+#include "RageInput.h"
 
 enum ControllerStateButton
 {

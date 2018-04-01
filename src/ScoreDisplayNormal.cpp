@@ -1,13 +1,13 @@
 #include "global.h"
-#include "ScoreDisplayNormal.h"
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "GameState.h"
-#include "ThemeManager.h"
-#include "PlayerState.h"
-#include "StatsManager.h"
-#include "CommonMetrics.h"
 #include "ActorUtil.h"
+#include "CommonMetrics.h"
+#include "GameState.h"
+#include "PlayerState.h"
+#include "RageLog.h"
+#include "RageUtil.h"
+#include "ScoreDisplayNormal.h"
+#include "StatsManager.h"
+#include "ThemeManager.h"
 
 ScoreDisplayNormal::ScoreDisplayNormal()
 {
@@ -44,7 +44,7 @@ void ScoreDisplayNormal::Init( const PlayerState* pPlayerState, const PlayerStag
 
 void ScoreDisplayNormal::SetScore( int iNewScore ) 
 {
-	auto fScore = (float)iNewScore;
+	auto fScore = static_cast<float>(iNewScore);
 
 	m_text.SetTargetNumber( fScore );
 }

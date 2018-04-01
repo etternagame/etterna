@@ -12,7 +12,7 @@ public:
 	void Init() override;
 	void BeginScreen() override;
 
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 	bool MenuBack( const InputEventPlus &input ) override;
 	bool MenuStart( const InputEventPlus &input ) override;
 

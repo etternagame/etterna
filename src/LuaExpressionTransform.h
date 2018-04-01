@@ -1,4 +1,4 @@
-/* LuaExpressionTransform -  */
+﻿/* LuaExpressionTransform -  */
 
 #ifndef LuaExpressionTransform_H
 #define LuaExpressionTransform_H

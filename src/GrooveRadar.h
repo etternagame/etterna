@@ -1,11 +1,11 @@
-#ifndef GROOVE_RADAR_H
+﻿#ifndef GROOVE_RADAR_H
 #define GROOVE_RADAR_H
 
 #include "ActorFrame.h"
-#include "Sprite.h"
 #include "AutoActor.h"
-#include "PlayerNumber.h"
 #include "GameConstantsAndTypes.h"
+#include "PlayerNumber.h"
+#include "Sprite.h"
 class Steps;
 struct RadarValues;
 /** @brief The song's GrooveRadar displayed in SelectMusic. */

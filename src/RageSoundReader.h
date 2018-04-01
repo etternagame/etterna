@@ -1,4 +1,6 @@
 /* RageSoundReader - Data source for a RageSound. */
+
+
 #ifndef RAGE_SOUND_READER_H
 #define RAGE_SOUND_READER_H
 

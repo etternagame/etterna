@@ -1,4 +1,4 @@
-/* RageSurface - holds a simple 2d graphic surface */
+﻿/* RageSurface - holds a simple 2d graphic surface */
 
 #ifndef RAGE_SURFACE_H
 #define RAGE_SURFACE_H

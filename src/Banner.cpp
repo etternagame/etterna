@@ -1,4 +1,5 @@
 #include "global.h"
+#include "ActorUtil.h"
 #include "Banner.h"
 #include "ImageCache.h"
 #include "SongManager.h"
@@ -6,10 +7,13 @@
 #include "Song.h"
 #include "RageTextureManager.h"
 #include "Character.h"
-#include "ThemeMetric.h"
 #include "CharacterManager.h"
-#include "ActorUtil.h"
 #include "PrefsManager.h"
+#include "RageTextureManager.h"
+#include "RageUtil.h"
+#include "Song.h"
+#include "SongManager.h"
+#include "ThemeMetric.h"
 
 REGISTER_ACTOR_CLASS( Banner );
 

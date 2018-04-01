@@ -1,4 +1,4 @@
-/* ModelTypes - Types defined in msLib.h.  C arrays converted to use std::vector */
+﻿/* ModelTypes - Types defined in msLib.h.  C arrays converted to use std::vector */
 
 #ifndef MODEL_TYPES_H
 #define MODEL_TYPES_H

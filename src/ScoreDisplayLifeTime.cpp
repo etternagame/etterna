@@ -1,13 +1,13 @@
 #include "global.h"
-#include "ScoreDisplayLifeTime.h"
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "PrefsManager.h"
-#include "ThemeManager.h"
-#include "PlayerState.h"
-#include "PlayerStageStats.h"
-#include "CommonMetrics.h"
 #include "ActorUtil.h"
+#include "CommonMetrics.h"
+#include "PlayerStageStats.h"
+#include "PlayerState.h"
+#include "PrefsManager.h"
+#include "RageLog.h"
+#include "RageUtil.h"
+#include "ScoreDisplayLifeTime.h"
+#include "ThemeManager.h"
 
 ScoreDisplayLifeTime::ScoreDisplayLifeTime()
 {

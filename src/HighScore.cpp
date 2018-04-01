@@ -1,13 +1,13 @@
-#include "global.h"
-#include "RageLog.h"
-#include "HighScore.h"
-#include "PrefsManager.h"
-#include "GameConstantsAndTypes.h"
-#include "PlayerNumber.h"
-#include "ThemeManager.h"
-#include "XmlFile.h"
+﻿#include "global.h"
+#include "CryptManager.h"
 #include "Foreach.h"
+#include "GameConstantsAndTypes.h"
+#include "HighScore.h"
+#include "PlayerNumber.h"
+#include "ProfileManager.h"
 #include "RadarValues.h"
+#include "RageLog.h"
+#include "XmlFile.h"
 #include <algorithm>
 #include <fstream>
 #include <sstream>
@@ -88,7 +88,7 @@ struct HighScoreImpl
 
 bool HighScoreImpl::operator==( const HighScoreImpl& other ) const 
 {
-#define COMPARE(x)	if( x!=other.x )	return false;
+#define COMPARE(x)	if( (x)!=other.x )	return false;
 	COMPARE( sName );
 	COMPARE( grade );
 	COMPARE( iScore );
@@ -424,7 +424,7 @@ void HighScoreImpl::LoadFromEttNode(const XNode *pNode) {
 
 	if (fWifeScore > 0.f) {
 		const XNode* pValidationKeys = pNode->GetChild("ValidationKeys");
-		if (pValidationKeys) {
+		if (pValidationKeys != nullptr) {
 			if (pValidationKeys->GetChildValue(ValidationKeyToString(ValidationKey_Brittle), s)) ValidationKeys[ValidationKey_Brittle] = s;
 			if (pValidationKeys->GetChildValue(ValidationKeyToString(ValidationKey_Weak), s)) ValidationKeys[ValidationKey_Weak] = s;
 		}
@@ -504,7 +504,7 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 	}
 	
 	const XNode* pRadarValues = pNode->GetChild( "RadarValues" );
-	if( pRadarValues )
+	if( pRadarValues != nullptr )
 		radarValues.LoadFromNode( pRadarValues );
 	pNode->GetChildValue( "LifeRemainingSeconds",	fLifeRemainingSeconds );
 	pNode->GetChildValue( "Disqualified",		bDisqualified);
@@ -522,7 +522,7 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 	// Validate input.
 
 	// 3.9 conversion stuff (wtf is this code??) -mina
-	if (pTapNoteScores)
+	if (pTapNoteScores != nullptr)
 		FOREACH_ENUM(TapNoteScore, tns) {
 		pTapNoteScores->GetChildValue(TapNoteScoreToString(tns), iTapNoteScores[tns]);
 		if (tns == TNS_W1 && iTapNoteScores[tns] == 0) {
@@ -543,7 +543,7 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 			pTapNoteScores->GetChildValue("Boo", iTapNoteScores[tns]);
 	}
 
-	if (pHoldNoteScores)
+	if (pHoldNoteScores != nullptr)
 		FOREACH_ENUM(HoldNoteScore, hns) {
 		pHoldNoteScores->GetChildValue(HoldNoteScoreToString(hns), iHoldNoteScores[hns]);
 		if (hns == HNS_Held && iHoldNoteScores[hns] == 0)
@@ -1216,7 +1216,7 @@ public:
 		bool bIsFillInMarker = false;
 		FOREACH_PlayerNumber( pn )
 			bIsFillInMarker |= p->GetName() == RANKING_TO_FILL_IN_MARKER[pn];
-		lua_pushboolean( L, bIsFillInMarker );
+		lua_pushboolean( L, static_cast<int>(bIsFillInMarker) );
 		return 1;
 	}
 	static int GetMaxCombo( T* p, lua_State *L )			{ lua_pushnumber(L, p->GetMaxCombo() ); return 1; }

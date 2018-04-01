@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This manager has several distinct purposes:
  *
  * Load the sound driver, and handle most communication between it and RageSound.
@@ -9,15 +9,15 @@
  */
 
 #include "global.h"
-#include "RageSoundManager.h"
-#include "RageUtil.h"
-#include "RageSound.h"
-#include "RageLog.h"
-#include "RageTimer.h"
-#include "RageSoundReader_Preload.h"
 #include "Foreach.h"
 #include "LocalizedString.h"
 #include "Preference.h"
+#include "RageLog.h"
+#include "RageSound.h"
+#include "RageSoundManager.h"
+#include "RageSoundReader_Preload.h"
+#include "RageTimer.h"
+#include "RageUtil.h"
 
 #include "arch/Sound/RageSoundDriver.h"
 
@@ -88,7 +88,7 @@ bool RageSoundManager::Pause( RageSoundBase *pSound, bool bPause )
 {
 	if( m_pDriver == NULL )
 		return false;
-	else
+	
 		return m_pDriver->PauseMixing( pSound, bPause );
 }
 

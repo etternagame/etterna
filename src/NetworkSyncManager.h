@@ -1,7 +1,6 @@
-#ifndef NetworkSyncManager_H
+﻿#ifndef NetworkSyncManager_H
 #define NetworkSyncManager_H
 
-#include "PlayerNumber.h"
 #include "Difficulty.h"
 #include "ScreenNetRoom.h"
 #include "RoomWheel.h"
@@ -12,6 +11,7 @@
 #include "Song.h"
 #include "HighScore.h"
 #include "global.h"
+#include "PlayerNumber.h"
 #include <queue>
 #include "uWS.h"
 #include "JsonUtil.h"
@@ -67,7 +67,7 @@ enum SMOStepType
 	 */
 };
 
-const NSCommand NSServerOffset = (NSCommand)128;
+const NSCommand NSServerOffset = static_cast<NSCommand>(128);
 
 // TODO: Provide a Lua binding that gives access to this data. -aj
 class EndOfGame_PlayerData

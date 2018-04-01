@@ -1,4 +1,4 @@
-/* RageFileDriverReadAhead - Read-ahead hinting for seamless rewinding. */
+﻿/* RageFileDriverReadAhead - Read-ahead hinting for seamless rewinding. */
 
 #ifndef RAGE_FILE_DRIVER_READ_AHEAD_H
 #define RAGE_FILE_DRIVER_READ_AHEAD_H

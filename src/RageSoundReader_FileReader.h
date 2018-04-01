@@ -1,10 +1,11 @@
-/* SoundReader_FileReader - base class for SoundReaders that read from files. */
+﻿/* SoundReader_FileReader - base class for SoundReaders that read from files. */
 
 #ifndef RAGE_SOUND_READER_FILE_READER_H
 #define RAGE_SOUND_READER_FILE_READER_H
 
 #include "RageSoundReader.h"
 #include "RageUtil_AutoPtr.h"
+
 class RageFileBasic;
 
 #define SoundReader_FileReader RageSoundReader_FileReader

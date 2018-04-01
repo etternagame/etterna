@@ -1,4 +1,4 @@
-#ifndef __glext_h_
+﻿#ifndef __glext_h_
 #define __glext_h_
 
 #ifdef __cplusplus

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * The original MSD format is simply:
  * 
  * #PARAM0:PARAM1:PARAM2:PARAM3;
@@ -15,7 +15,6 @@
 #include "global.h"
 #include "MsdFile.h"
 #include "RageFile.h"
-#include "RageLog.h"
 #include "RageUtil.h"
 
 void MsdFile::AddParam( const char *buf, int len )
