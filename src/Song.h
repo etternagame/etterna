@@ -9,6 +9,7 @@
 #include "RageTypes.h"
 #include "Steps.h"
 #include <set>
+using std::string;
 
 class Style;
 class StepsID;
@@ -274,6 +275,8 @@ public:
 	// Get the highest value for a specific skillset across all the steps objects for the song at a given rate
 	float GetHighestOfSkillsetAllSteps(int x, float rate) const;
 	bool IsSkillsetHighestOfAnySteps(Skillset ss, float rate);
+
+	bool HasChartByHash(const string &hash);
 
 	// For loading only:
 	bool m_bHasMusic, m_bHasBanner, m_bHasBackground;
