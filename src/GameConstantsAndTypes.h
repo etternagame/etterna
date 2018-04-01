@@ -4,6 +4,7 @@
 #define GAME_CONSTANTS_AND_TYPES_H
 
 #include "EnumHelper.h"
+#include <cfloat> // need the max for default.
 
 // Note definitions
 /** @brief Define the mininum difficulty value allowed. */
