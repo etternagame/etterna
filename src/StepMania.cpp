@@ -12,7 +12,6 @@
 #include "RageSoundManager.h"
 #include "RageTextureManager.h"
 #include "MemoryCardManager.h"
-#include "NoteskinManager.h"
 #include "RageThreads.h"
 #include "RageTimer.h"
 
@@ -43,6 +42,7 @@
 #include "FilterManager.h"
 #include "FontManager.h"
 #include "GameManager.h"
+#include "NoteSkinManager.h"
 #include "GameState.h"
 #include "InputFilter.h"
 #include "InputMapper.h"
