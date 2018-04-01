@@ -666,7 +666,7 @@ local t = Def.ActorFrame{
 		local endTime = os.time() + GetPlayableTime()
 		GAMESTATE:UpdateDiscordPresence(largeImageTooltip, detail, state, endTime)
 
-		if not IsNetSMOnline() then
+		if SCREENMAN:GetTopScreen():GetName() == "ScreenGameplay" then
 			SCREENMAN:GetTopScreen():AddInputCallback(froot)
 		end
 		if(playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay) then
