@@ -23,6 +23,7 @@
 #include "ThemeManager.h"
 
 #define NUM_WHEEL_ITEMS		(static_cast<int>(ceil(NUM_WHEEL_ITEMS_TO_DRAW+2)))
+#define WHEEL_TEXT(s)		THEME->GetString( "MusicWheel", ssprintf("%sText",s.c_str()) );
 #define CUSTOM_ITEM_WHEEL_TEXT(s)		THEME->GetString( "MusicWheel", ssprintf("CustomItem%sText",(s).c_str()) );
 
 static RString SECTION_COLORS_NAME( size_t i )	{ return ssprintf("SectionColor%d", static_cast<int>(i+1)); }

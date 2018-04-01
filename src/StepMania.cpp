@@ -11,6 +11,8 @@
 #include "RageMath.h"
 #include "RageSoundManager.h"
 #include "RageTextureManager.h"
+#include "MemoryCardManager.h"
+#include "NoteskinManager.h"
 #include "RageThreads.h"
 #include "RageTimer.h"
 
@@ -37,7 +39,6 @@
 
 // StepMania global classes
 #include "AnnouncerManager.h"
-#include "BannerCache.h"
 #include "CharacterManager.h"
 #include "FilterManager.h"
 #include "FontManager.h"

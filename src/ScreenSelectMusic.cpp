@@ -1,6 +1,5 @@
 #include "global.h"
 #include "ActorUtil.h"
-#include "BannerCache.h"
 #include "CodeDetector.h"
 #include "CommonMetrics.h"
 #include "Foreach.h"

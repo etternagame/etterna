@@ -7,6 +7,8 @@
 #include "PrefsManager.h"
 #include "Profile.h"
 #include "ProfileManager.h"
+#include "StageStats.h"
+#include "Style.h"
 #include "NetworkSyncManager.h"
 #include <fstream>
 #include <sstream>

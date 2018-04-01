@@ -8,6 +8,7 @@
 #include "PrefsManager.h"
 #include "Profile.h"
 #include "ProfileManager.h"
+#include "GameState.h"
 #include "RageLog.h"
 #include "ScreenManager.h"
 #include "ScreenPrompt.h"
@@ -209,9 +210,9 @@ void ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 		{
 			if (!typeUsername) {
 				m_iPlayer = 0;
-				while (!GAMESTATE->IsPlayerEnabled(static_cast<PlayerNumber>(m_iPlayer))
+				while (!GAMESTATE->IsPlayerEnabled(static_cast<PlayerNumber>(m_iPlayer)))
 					++m_iPlayer;
-				sLoginQuestion = YOU_ARE_LOGGING_ON_AS.GetValue() + "\n" + GAMESTATE->GetPlayerDisplayName(static_cast<PlayerNumber>(PlayerNumber)m_iPlayer) + "\n" + ENTER_YOUR_PASSWORD.GetValue();
+				sLoginQuestion = YOU_ARE_LOGGING_ON_AS.GetValue() + "\n" + GAMESTATE->GetPlayerDisplayName(static_cast<PlayerNumber>(m_iPlayer)) + "\n" + ENTER_YOUR_PASSWORD.GetValue();
 				ScreenTextEntry::Password(SM_PasswordDone, sLoginQuestion, NULL);
 			}
 			else {

@@ -584,7 +584,6 @@ void ScreenTextEntry::End( bool bCancelled )
 			}
 		}
 
-<<<<<<< HEAD
 
 		RString ret = WStringToRString(m_sAnswer);
 		FontCharAliases::ReplaceMarkers(ret);

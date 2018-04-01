@@ -6,6 +6,7 @@
 #include "RageFileManager.h"
 #include "GameManager.h"
 #include "Song.h"
+#include "SongCacheIndex.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "SpecialFiles.h"
 #include "CommonMetrics.h"

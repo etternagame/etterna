@@ -1,5 +1,4 @@
 #include "global.h"
-#include "BannerCache.h"
 #include "FontCharAliases.h"
 #include "GameManager.h"
 #include "NoteData.h"

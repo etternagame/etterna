@@ -1,6 +1,5 @@
 ﻿#include "global.h"
 #include "ActorUtil.h"
-#include "BannerCache.h"
 #include "FadingBanner.h"
 #include "PrefsManager.h"
 #include "RageTextureManager.h"

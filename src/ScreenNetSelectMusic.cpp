@@ -3,6 +3,7 @@
 #if !defined(WITHOUT_NETWORKING)
 #include "ActorUtil.h"
 #include "AnnouncerManager.h"
+#include "LocalizedString.h"
 #include "CodeDetector.h"
 #include "FilterManager.h"
 #include "GameConstantsAndTypes.h"
@@ -16,6 +17,7 @@
 #include "ProfileManager.h"
 #include "RageInput.h"
 #include "RageLog.h"
+#include "Style.h"
 #include "RageTimer.h"
 #include "RageUtil.h"
 #include "ScreenManager.h"
@@ -581,7 +583,7 @@ bool ScreenNetSelectMusic::MenuDown( const InputEventPlus &input )
 		}
 	}
 
-	if( GAMESTATE->m_pCurSong == NULL )
+	if(GAMESTATE->m_pCurSong == nullptr)
 		return false;
 	StepsType st = GAMESTATE->GetCurrentStyle(pn)->m_StepsType;
 	vector <Steps *> MultiSteps;

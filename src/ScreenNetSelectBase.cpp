@@ -5,6 +5,7 @@
 #include "ActorUtil.h"
 #include "Font.h"
 #include "GameSoundManager.h"
+#include "RageInput.h"
 #include "GameState.h"
 #include "InputEventPlus.h"
 #include "MenuTimer.h"
@@ -14,6 +15,7 @@
 
 #define CHAT_TEXT_OUTPUT_WIDTH		THEME->GetMetricF(m_sName,"ChatTextOutputWidth")
 #define CHAT_TEXT_INPUT_WIDTH		THEME->GetMetricF(m_sName,"ChatTextInputWidth")
+#define SHOW_CHAT_LINES				THEME->GetMetricI(m_sName,"ChatOutputLines")
 
 #define USERS_X						THEME->GetMetricF(m_sName,"UsersX")
 #define USERS_Y						THEME->GetMetricF(m_sName,"UsersY")
@@ -240,7 +242,7 @@ void ScreenNetSelectBase::Scroll(unsigned int movescroll)
 	if (scroll+movescroll >= 0 && scroll+movescroll <= static_cast<unsigned int>(m_textChatOutput.lines - SHOW_CHAT_LINES))
 		scroll += movescroll;
 	m_textChatOutput.ResetText();
-	m_textChatOutput.SetMaxLines(chatLines, 1, scroll);
+	m_textChatOutput.SetMaxLines(SHOW_CHAT_LINES, 1, scroll);
 	return;
 }
 

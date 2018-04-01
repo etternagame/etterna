@@ -23,7 +23,10 @@
 
 extern "C"
 {
-#include "../extern/lua-5.1/src/lualib.h"
+#include "lua.h"
+#include "luajit.h"
+#include "lualib.h"
+#include "lauxlib.h"
 }
 
 using std::vector;

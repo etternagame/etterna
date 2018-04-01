@@ -7,9 +7,12 @@
 #include "InputFilter.h"
 #include "LuaBinding.h"
 #include "LuaManager.h"
+#include "RageTextureManager.h"
+#include "RageDisplay.h"
 #include "InputFilter.h"
 #include "ImageCache.h"
 #include "ThemeMetric.h"
+#include "Sprite.h"
 
 REGISTER_ACTOR_CLASS( Sprite );
 
