@@ -199,7 +199,7 @@ void MusicWheel::ReloadSongList(bool searching, RString findme)
 	SCREENMAN->PostMessageToTopScreen(SM_SongChanged, 0);
 
 	// when searching, automatically land on the first search result available -mina & dadbearcop
-	if (findme != "") 
+	if (findme != "" || !hashList.empty())
 	{
 		if (groupnamesearchmatch != "") {
 			SelectSection(groupnamesearchmatch);
@@ -394,7 +394,7 @@ void MusicWheel::GetSongList( vector<Song*> &arraySongs, SortOrder so )
 		}
 	}
 }
-bool contains(std::string container, std::string findme) {
+bool contains(string container, string findme) {
 	std::transform(begin(container), end(container), begin(container), ::tolower);
 	return container.find(findme) != string::npos;
 }
@@ -407,9 +407,9 @@ void MusicWheel::FilterBySearch(vector<Song*>& inv, RString findme) {
 	size_t artist = findme.find("artist=");
 	size_t author = findme.find("author=");
 	size_t title = findme.find("title=");
-	std::string findartist = "";
-	std::string findauthor = "";
-	std::string findtitle = "";
+	string findartist = "";
+	string findauthor = "";
+	string findtitle = "";
 
 	if (artist != findme.npos || author != findme.npos || title != findme.npos) {
 		super_search = true;
@@ -490,6 +490,27 @@ void MusicWheel::FilterBySearch(vector<Song*>& inv, RString findme) {
 		if (SearchGroupNames(findme))
 			return;
 		FilterBySearch(inv, lastvalidsearch);
+	}
+}
+
+void MusicWheel::SetHashList(const vector<string> &newHashList) { hashList = newHashList; }
+
+void MusicWheel::FilterByStepKeys(vector<Song*>& inv) {
+	vector<Song*> tmp;
+	std::function<bool(Song*)> check;
+	check = [this](Song* x) {
+		FOREACH(string, hashList, hash)
+			if (x->HasChartByHash(*hash)) {
+				return true;
+		}
+		return false;
+	};
+	for (Song* x : inv) {
+		if (check(x))
+			tmp.emplace_back(x);
+	}
+	if (tmp.size() > 0) {
+		inv.swap(tmp);
 	}
 }
 
@@ -599,7 +620,7 @@ void MusicWheel::FilterBySkillsets(vector<Song*>& inv) {
 	inv.swap(tmp);
 }
 
-void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelItemDatas, SortOrder so, bool searching, RString findme )
+void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelItemDatas, SortOrder so, bool searching, RString findme)
 {
 	
 	map<RString,Commands> commanDZ;
@@ -633,6 +654,9 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 
 		if (searching)
 			FilterBySearch(arraySongs, findme);
+
+		if (!hashList.empty())
+			FilterByStepKeys(arraySongs);
 
 		if (FILTERMAN->AnyActiveFilter())
 			FilterBySkillsets(arraySongs);
@@ -1548,6 +1572,18 @@ public:
 		return 1;
 	}
 
+	static int FilterByStepKeys(T* p, lua_State *L)
+	{
+		luaL_checktype(L, 1, LUA_TTABLE);
+		lua_pushvalue(L, 1);
+		vector<string> newHashList;
+		LuaHelpers::ReadArrayFromTable(newHashList, L);
+		lua_pop(L, 1);
+		p->SetHashList(newHashList);
+		p->ReloadSongList(false, "");
+		return 1;
+	}
+
 	LunaMusicWheel()
 	{
 		ADD_METHOD(ChangeSort);
@@ -1558,6 +1594,7 @@ public:
 		ADD_METHOD(ReloadSongList);
 		ADD_METHOD(Move);
 		ADD_METHOD(MoveAndCheckType);
+		ADD_METHOD(FilterByStepKeys);
 	}
 };
 
