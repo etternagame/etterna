@@ -987,6 +987,7 @@ void SMOProtocol::DealWithSMOnlinePack(PacketFunctions &SMOnlinePacket, ScreenNe
 				SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
 			}
 		}
+		break;
 		case 1: //Rooms list change
 		{
 			int numRooms = SMOnlinePacket.Read1();
@@ -1007,8 +1008,9 @@ void SMOProtocol::DealWithSMOnlinePack(PacketFunctions &SMOnlinePacket, ScreenNe
 
 			s->UpdateRoomsList();
 		}
-		}
 		break;
+		}
+	break;
 	case 3:
 		RoomInfo info;
 		info.songTitle = SMOnlinePacket.ReadNT();
