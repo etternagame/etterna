@@ -367,16 +367,8 @@ bool SongCacheIndex::CacheSong(Song& song, string dir)
 				insertSong.bind(index++);
 				break;
 			case DISPLAY_BPM_SPECIFIED:
-				if (song.m_fSpecifiedBPMMin == song.m_fSpecifiedBPMMax)
-				{
-					insertSong.bind(index++, song.m_fSpecifiedBPMMin);
-					insertSong.bind(index++, song.m_fSpecifiedBPMMin);
-				}
-				else
-				{
 					insertSong.bind(index++, song.m_fSpecifiedBPMMin);
 					insertSong.bind(index++, song.m_fSpecifiedBPMMax);
-				}
 				break;
 			case DISPLAY_BPM_RANDOM:
 				//Write only one as null
