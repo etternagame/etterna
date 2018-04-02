@@ -77,7 +77,11 @@ RageSurface *RageSurface_Load_XPM( char * const *xpm, RString &error )
 
 	for( int y = 0; y < height; ++y )
 	{
-		CheckLine();
+		if (xpm[line] == NULL) {
+				error = "short file"; 
+				delete img;
+				return NULL; 
+		}
 		const RString row = xpm[line++];
 		if( (int) row.size() != width*color_length )
 		{
