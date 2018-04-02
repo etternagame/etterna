@@ -77,9 +77,9 @@ bool DBProfile::LoadGeneralData(SQLite::Database* db)
 	loadingProfile->m_LastDifficulty = static_cast<Difficulty>(static_cast<int>(gDataQuery.getColumn(6)));
 	loadingProfile->m_LastStepsType = GAMEMAN->StringToStepsType(static_cast<const char*>(gDataQuery.getColumn(7)));
 
-	const char* song = gDataQuery.getColumn(8);
-	if(song != nullptr && song!="")
-		loadingProfile->m_lastSong.LoadFromString(song);
+	string song = static_cast<const char*>(gDataQuery.getColumn(8));
+	if(song!="")
+		loadingProfile->m_lastSong.LoadFromString(song.c_str());
 	loadingProfile->m_iCurrentCombo = gDataQuery.getColumn(9);
 	loadingProfile->m_iTotalSessions = gDataQuery.getColumn(10);
 	loadingProfile->m_iTotalSessionSeconds = gDataQuery.getColumn(11);
