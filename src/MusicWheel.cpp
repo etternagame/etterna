@@ -829,7 +829,7 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 				auto& gname = n.second;
 				auto& gsongs = groups[n.second];
 
-				RageColor colorSection = (so == SORT_GROUP) ? SONGMAN->GetSongGroupColor(gname) : SECTION_COLORS.GetValue(iSectionColorIndex);
+				RageColor colorSection = SONGMAN->GetSongGroupColor(gname);
 				iSectionColorIndex = (iSectionColorIndex + 1) % NUM_SECTION_COLORS;
 				arrayWheelItemDatas.emplace_back(new MusicWheelItemData(WheelItemDataType_Section, NULL, gname, colorSection, gsongs.size()));
 
