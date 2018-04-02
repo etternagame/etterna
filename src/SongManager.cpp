@@ -601,7 +601,8 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 		SortRStringArray(arraySongDirs);
 		arrayGroupSongDirs.emplace_back(arraySongDirs);
 		songCount += arraySongDirs.size();
-		ld->SetProgress(++groupsChecked);
+		if(ld != nullptr)
+			ld->SetProgress(++groupsChecked);
 	}
 
 	if( ld != nullptr )
