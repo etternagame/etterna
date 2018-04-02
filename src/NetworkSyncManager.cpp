@@ -493,7 +493,6 @@ void ETTProtocol::FindJsonChart(NetworkSyncManager* n, json& ch)
 	n->m_sArtist = ch.value("artist", "");
 	n->difficulty = StringToDifficulty(ch.value("difficulty", "Invalid"));
 	n->meter = ch.value("meter", -1);
-	StringToStyleType(ch.value("stepstype", "Invalid"));
 
 	if (!n->chartkey.empty()) {
 		auto song = SONGMAN->GetSongByChartkey(n->chartkey);
