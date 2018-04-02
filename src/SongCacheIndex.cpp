@@ -599,7 +599,13 @@ SongCacheIndex::~SongCacheIndex()
 		db = nullptr;
 	}
 	if (curTransaction != nullptr) {
-		curTransaction->commit();
+		try {
+			curTransaction->commit();
+		}
+		catch {
+			//DB transaction commit failed, we're destructing so we dont care.
+			//There really shouldnt be a transaction left anyways
+		}
 		delete curTransaction;
 		curTransaction = nullptr;
 	}
