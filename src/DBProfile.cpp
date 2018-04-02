@@ -304,47 +304,48 @@ void DBProfile::LoadPlayerScores(SQLite::Database* db)
 
 		//Per Score
 		string ScoreKey = query.getColumn(5);
-		scores[key].ScoresByRate[rate].scores[ScoreKey].SetSSRCalcVersion(query.getColumn(6));
-		scores[key].ScoresByRate[rate].scores[ScoreKey].SetGrade(static_cast<Grade>(static_cast<int>(query.getColumn(7))));
-		scores[key].ScoresByRate[rate].scores[ScoreKey].SetWifeScore(static_cast<double>(query.getColumn(8)));
-		scores[key].ScoresByRate[rate].scores[ScoreKey].SetSSRNormPercent(static_cast<double>(query.getColumn(9)));
-		scores[key].ScoresByRate[rate].scores[ScoreKey].SetMusicRate(scores[key].KeyToRate(rate));
-		scores[key].ScoresByRate[rate].scores[ScoreKey].SetJudgeScale(static_cast<double>(query.getColumn(10)));
-		scores[key].ScoresByRate[rate].scores[ScoreKey].SetChordCohesion(static_cast<int>(query.getColumn(11))!=0);
-		scores[key].ScoresByRate[rate].scores[ScoreKey].SetEtternaValid(static_cast<int>(query.getColumn(12))!=0);
-		scores[key].ScoresByRate[rate].scores[ScoreKey].SetChartKey(key);
-		scores[key].ScoresByRate[rate].scores[ScoreKey].SetScoreKey(ScoreKey);
-		scores[key].ScoresByRate[rate].scores[ScoreKey].SetSurviveSeconds(static_cast<double>(query.getColumn(13)));
-		scores[key].ScoresByRate[rate].scores[ScoreKey].SetMaxCombo(query.getColumn(14));
-		scores[key].ScoresByRate[rate].scores[ScoreKey].SetModifiers(query.getColumn(15));
+		HighScore& hs = scores[key].ScoresByRate[rate].scores[ScoreKey];
+		hs.SetSSRCalcVersion(query.getColumn(6));
+		hs.SetGrade(static_cast<Grade>(static_cast<int>(query.getColumn(7))));
+		hs.SetWifeScore(static_cast<double>(query.getColumn(8)));
+		hs.SetSSRNormPercent(static_cast<double>(query.getColumn(9)));
+		hs.SetMusicRate(scores[key].KeyToRate(rate));
+		hs.SetJudgeScale(static_cast<double>(query.getColumn(10)));
+		hs.SetChordCohesion(static_cast<int>(query.getColumn(11))!=0);
+		hs.SetEtternaValid(static_cast<int>(query.getColumn(12))!=0);
+		hs.SetChartKey(key);
+		hs.SetScoreKey(ScoreKey);
+		hs.SetSurviveSeconds(static_cast<double>(query.getColumn(13)));
+		hs.SetMaxCombo(query.getColumn(14));
+		hs.SetModifiers(query.getColumn(15));
 		DateTime d;
 		d.FromString(static_cast<const char*>(query.getColumn(16)));
-		scores[key].ScoresByRate[rate].scores[ScoreKey].SetDateTime(d);
+		hs.SetDateTime(d);
 		
 		
 		int index = 17;
 
 		FOREACH_ENUM(TapNoteScore, tns)
 			if (tns != TNS_None && tns != TNS_CheckpointMiss && tns != TNS_CheckpointHit)
-				scores[key].ScoresByRate[rate].scores[ScoreKey].SetTapNoteScore(tns, query.getColumn(index++));
+				hs.SetTapNoteScore(tns, query.getColumn(index++));
 
 		FOREACH_ENUM(HoldNoteScore, hns)
 			if (hns != HNS_None)
-				scores[key].ScoresByRate[rate].scores[ScoreKey].SetHoldNoteScore(hns, query.getColumn(index++));
+				hs.SetHoldNoteScore(hns, query.getColumn(index++));
 		
-		if (scores[key].ScoresByRate[rate].scores[ScoreKey].GetWifeScore() > 0.f) {
+		if (hs.GetWifeScore() > 0.f) {
 			FOREACH_ENUM(Skillset, ss)
-				scores[key].ScoresByRate[rate].scores[ScoreKey].SetSkillsetSSR(ss, static_cast<double>(query.getColumn(index++)));
+				hs.SetSkillsetSSR(ss, static_cast<double>(query.getColumn(index++)));
 		}
-		scores[key].ScoresByRate[rate].scores[ScoreKey].SetValidationKey(ValidationKey_Brittle, static_cast<const char*>(query.getColumn(index++)));
-		scores[key].ScoresByRate[rate].scores[ScoreKey].SetValidationKey(ValidationKey_Weak, static_cast<const char*>(query.getColumn(index++)));
+		hs.SetValidationKey(ValidationKey_Brittle, static_cast<const char*>(query.getColumn(index++)));
+		hs.SetValidationKey(ValidationKey_Weak, static_cast<const char*>(query.getColumn(index++)));
 
 
-		if (scores[key].ScoresByRate[rate].scores[ScoreKey].GetScoreKey() == "")
-			scores[key].ScoresByRate[rate].scores[ScoreKey].SetScoreKey("S" + BinaryToHex(CryptManager::GetSHA1ForString(scores[key].ScoresByRate[rate].scores[ScoreKey].GetDateTime().GetString())));
+		if (hs.GetScoreKey() == "")
+			hs.SetScoreKey("S" + BinaryToHex(CryptManager::GetSHA1ForString(hs.GetDateTime().GetString())));
 
 		// Validate input.
-		scores[key].ScoresByRate[rate].scores[ScoreKey].SetGrade(clamp(scores[key].ScoresByRate[rate].scores[ScoreKey].GetGrade(), Grade_Tier01, Grade_Failed));
+		hs.SetGrade(clamp(hs.GetGrade(), Grade_Tier01, Grade_Failed));
 
 
 		// Set any pb
@@ -352,15 +353,15 @@ void DBProfile::LoadPlayerScores(SQLite::Database* db)
 			scores[key].ScoresByRate[rate].PBptr = &scores[key].ScoresByRate[rate].scores.find(ScoreKey)->second;
 		else {
 			// update pb if a better score is found
-			if (scores[key].ScoresByRate[rate].PBptr->GetWifeScore() < scores[key].ScoresByRate[rate].scores[ScoreKey].GetWifeScore())
+			if (scores[key].ScoresByRate[rate].PBptr->GetWifeScore() < hs.GetWifeScore())
 				scores[key].ScoresByRate[rate].PBptr = &scores[key].ScoresByRate[rate].scores.find(ScoreKey)->second;
 		};
 
-		scores[key].ScoresByRate[rate].bestGrade = min(scores[key].ScoresByRate[rate].scores[ScoreKey].GetWifeGrade(), scores[key].ScoresByRate[rate].bestGrade);
+		scores[key].ScoresByRate[rate].bestGrade = min(hs.GetWifeGrade(), scores[key].ScoresByRate[rate].bestGrade);
 
 		// Very awkward, need to figure this out better so there isn't unnecessary redundancy between loading and adding
-		SCOREMAN->RegisterScore(&scores[key].ScoresByRate[rate].scores.find(ScoreKey)->second);
-		SCOREMAN->AddToKeyedIndex(&scores[key].ScoresByRate[rate].scores.find(ScoreKey)->second);
+		SCOREMAN->RegisterScore(&hs);
+		SCOREMAN->AddToKeyedIndex(&hs);
 
 		scores[key].bestGrade = min(scores[key].ScoresByRate[rate].bestGrade, scores[key].bestGrade);
 	}
