@@ -843,19 +843,21 @@ void DBProfile::SavePlayerScores(SQLite::Database* db, const Profile* profile, D
 							int scoreID = sqlite3_last_insert_rowid(db->getHandle());
 							try {
 								//Save Replay Data
-								hs->LoadReplayData();
-								auto &offsets = hs->GetOffsetVector();
-								auto &rows = hs->GetNoteRowVector();
-								unsigned int idx = rows.size() >= 1 ? rows.size() - 1 : 0U;
-								//loop for writing both vectors side by side
-								for (unsigned int offsetIndex = 0; offsetIndex < idx; offsetIndex++) {
-									SQLite::Statement insertOffset(*db, "INSERT INTO offsets VALUES (NULL, ?, ?, ?)");
-									insertOffset.bind(1, rows[offsetIndex]);
-									insertOffset.bind(2, offsets[offsetIndex]);
-									insertOffset.bind(3, scorekeyID);
-									insertOffset.exec();
+								if (hs->LoadReplayData()) {
+									auto &offsets = hs->GetOffsetVector();
+									auto &rows = hs->GetNoteRowVector();
+									unsigned int idx = rows.size() >= 1 ? rows.size() - 1 : 0U;
+									//loop for writing both vectors side by side
+									for (unsigned int offsetIndex = 0; offsetIndex < idx; offsetIndex++) {
+										SQLite::Statement insertOffset(*db, "INSERT INTO offsets VALUES (NULL, ?, ?, ?)");
+										insertOffset.bind(1, rows[offsetIndex]);
+										insertOffset.bind(2, offsets[offsetIndex]);
+										insertOffset.bind(3, scorekeyID);
+										insertOffset.exec();
+									}
 								}
-							} catch (std::exception& e) { }
+							} catch (std::exception& e) { //No replay data for this score }
+							hs->UnloadReplayData();
 						}
 					}
 				}
