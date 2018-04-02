@@ -391,7 +391,7 @@ void ScoreKeeperNormal::HandleTapNoteScoreInternal( const NoteData &nd, TapNoteS
 	{
 		if (separately)
 		{
-			m_pPlayerStageStats->m_iActualDancePoints += (TapNoteScoreToDancePoints(tns)*nd.GetNumTracksLCD()) / notes;
+			m_pPlayerStageStats->m_iActualDancePoints += notes != 0 ? (TapNoteScoreToDancePoints(tns)*nd.GetNumTracksLCD()) / notes : 0;
 		}
 		else
 		{
@@ -402,7 +402,7 @@ void ScoreKeeperNormal::HandleTapNoteScoreInternal( const NoteData &nd, TapNoteS
 	// increment the current total possible dance score
 	if (separately)
 	{
-		m_pPlayerStageStats->m_iCurPossibleDancePoints += (TapNoteScoreToDancePoints(maximum)*nd.GetNumTracksLCD()) / notes;
+		m_pPlayerStageStats->m_iCurPossibleDancePoints += notes != 0 ? (TapNoteScoreToDancePoints(maximum)*nd.GetNumTracksLCD()) / notes : 0;
 	}
 	else
 	{
