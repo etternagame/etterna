@@ -7,6 +7,7 @@
 #include "global.h"
 #include "RageMath.h"
 #include "RageTypes.h"
+#include <cfloat>
 
 #if defined (_WINDOWS)
 #include <d3dx9math.h>
