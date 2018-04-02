@@ -53,7 +53,7 @@ namespace SSC {
 		bool for_load_edit;
 		StepsTagInfo(SSCLoader* l, Song* s, const RString& p, bool fc)
 			:loader(l), song(s), path(p), has_own_timing(false), ssc_format(false),
-			from_cache(fc), for_load_edit(false)
+			from_cache(fc), for_load_edit(false), steps(nullptr), timing(nullptr)
 		{}
 	};
 	struct SongTagInfo
