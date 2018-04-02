@@ -1,8 +1,9 @@
-#ifndef NOTES_WRITER_SM_H
+﻿#ifndef NOTES_WRITER_SM_H
 #define NOTES_WRITER_SM_H
 
 class Song;
 class Steps;
+
 /** @brief Writes a Song to an .SM file. */
 namespace NotesWriterSM
 {

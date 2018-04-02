@@ -1,14 +1,14 @@
 #include "global.h"
-#include "ScreenTestInput.h"
-#include "ScreenManager.h"
-#include "RageLog.h"
+#include "InputEventPlus.h"
 #include "InputMapper.h"
-#include "ThemeManager.h"
-#include "ScreenDimensions.h"
+#include "LocalizedString.h"
 #include "PrefsManager.h"
 #include "RageInput.h"
-#include "InputEventPlus.h"
-#include "LocalizedString.h"
+#include "RageLog.h"
+#include "ScreenDimensions.h"
+#include "ScreenManager.h"
+#include "ScreenTestInput.h"
+#include "ThemeManager.h"
 
 class DeviceList: public BitmapText
 {

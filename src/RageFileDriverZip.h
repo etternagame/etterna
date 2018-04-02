@@ -1,14 +1,15 @@
-#ifndef RAGE_FILE_DRIVER_ZIP_H
+﻿#ifndef RAGE_FILE_DRIVER_ZIP_H
 #define RAGE_FILE_DRIVER_ZIP_H
 
 #include "RageFileDriver.h"
 #include "RageThreads.h"
+
 /** @brief A read-only file driver for ZIPs. */
 class RageFileDriverZip: public RageFileDriver
 {
 public:
 	RageFileDriverZip();
-	RageFileDriverZip( const RString &sPath );
+	explicit RageFileDriverZip( const RString &sPath );
 	bool Load( const RString &sPath );
 	bool Load( RageFileBasic *pFile );
 

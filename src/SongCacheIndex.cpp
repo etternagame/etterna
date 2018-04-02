@@ -1,11 +1,12 @@
 #include "global.h"
 
-#include "SongCacheIndex.h"
+#include "RageFileManager.h"
 #include "RageLog.h"
 #include "RageUtil.h"
 #include "RageFileManager.h"
 #include "GameManager.h"
 #include "Song.h"
+#include "SongCacheIndex.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "SpecialFiles.h"
 #include "CommonMetrics.h"

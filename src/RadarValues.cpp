@@ -1,9 +1,8 @@
-#include "global.h"
+﻿#include "global.h"
 #include "RadarValues.h"
-#include "ThemeManager.h"
 #include "RageUtil.h"
-#include "XmlFile.h"
 #include "ThemeManager.h"
+#include "XmlFile.h"
 
 RadarValues::RadarValues() { MakeUnknown(); }
 

@@ -1,12 +1,12 @@
-/** @brief RageUtil - Miscellaneous helper macros and functions. */
+﻿/** @brief RageUtil - Miscellaneous helper macros and functions. */
 
 #ifndef RAGE_UTIL_H
 #define RAGE_UTIL_H
 
 #include <map>
 #include <random>
-#include <vector>
 #include <sstream>
+#include <vector>
 class RageFileDriver;
 
 /** @brief Safely delete pointers. */
@@ -46,13 +46,13 @@ inline unsigned long max( unsigned long a, unsigned int b ) { return a > b? a:b;
 #define SCALE(x, l1, h1, l2, h2)	(((x) - (l1)) * ((h2) - (l2)) / ((h1) - (l1)) + (l2))
 
 template<typename T, typename U>
-inline U lerp( T x, U l, U h )
+U lerp( T x, U l, U h )
 {
 	return static_cast<U>(x * (h - l) + l);
 }
 
 template<typename T, typename U, typename V>
-inline bool CLAMP(T& x, U l, V h)
+bool CLAMP(T& x, U l, V h)
 {
 	if(x > static_cast<T>(h)) { x= static_cast<T>(h); return true; }
 	else if(x < static_cast<T>(l)) { x= static_cast<T>(l); return true; }
@@ -60,7 +60,7 @@ inline bool CLAMP(T& x, U l, V h)
 }
 
 template<class T>
-inline bool ENUM_CLAMP( T &x, T l, T h )
+bool ENUM_CLAMP( T &x, T l, T h )
 {
 	if (x > h)	{ x = h; return true; }
 	else if (x < l) { x = l; return true; }
@@ -123,12 +123,12 @@ static Ret *CreateClass() { return new Type; }
  * returns false, wrap the predicate with not1().
  */
 template<typename Container, typename Predicate>
-inline void RemoveIf( Container& c, Predicate p )
+void RemoveIf( Container& c, Predicate p )
 {
 	c.erase( remove_if(c.begin(), c.end(), p), c.end() );
 }
 template<typename Container, typename Value>
-inline void RemoveIfEqual( Container &c, const Value &v )
+void RemoveIfEqual( Container &c, const Value &v )
 {
 	c.erase( remove(c.begin(), c.end(), v), c.end() );
 }
@@ -180,19 +180,19 @@ ConvertValueHelper<TO, FROM> ConvertValue( FROM *pValue )
  * value is invalid.)
  */
 template<typename T>
-static inline void enum_add( T &val, int iAmt )
+static void enum_add( T &val, int iAmt )
 {
 	val = static_cast<T>( val + iAmt );
 }
 
 template<typename T>
-static inline T enum_add2( T val, int iAmt )
+static T enum_add2( T val, int iAmt )
 {
 	return static_cast<T>( val + iAmt );
 }
 
 template<typename T>
-static inline T enum_cycle( T val, int iMax, int iAmt = 1 )
+static T enum_cycle( T val, int iMax, int iAmt = 1 )
 {
 	int iVal = val + iAmt;
 	iVal %= iMax;
@@ -376,7 +376,6 @@ RString Commify( int iNum );
 RString Commify(const RString& num, const RString& sep= ",", const RString& dot= ".");
 RString FormatNumberAndSuffix( int i );
 
-
 struct tm GetLocalTime();
 
 RString ssprintf( const char *fmt, ...) PRINTF(1,2);
@@ -428,7 +427,7 @@ RString FloatToString( const float &num );
 bool StringToFloat( const RString &sString, float &fOut );
 // Better than IntToString because you can check for success.
 template<class T>
-inline bool operator>>(const RString& lhs, T& rhs)
+bool operator>>(const RString& lhs, T& rhs)
 {
 	return !!(istringstream(lhs) >> rhs);
 }
@@ -451,12 +450,12 @@ void split( const RString &sSource, const RString &sDelimitor, vector<RString>& 
 void split( const wstring &sSource, const wstring &sDelimitor, vector<wstring> &asAddIt, const bool bIgnoreEmpty = true );
 
 /* In-place split. */
-void split( const RString &sSource, const RString &sDelimitor, int &iBegin, int &iSize, const bool bIgnoreEmpty = true );
-void split( const wstring &sSource, const wstring &sDelimitor, int &iBegin, int &iSize, const bool bIgnoreEmpty = true );
+void split( const RString &sSource, const RString &sDelimitor, int &iBegin, int &iSize, bool bIgnoreEmpty = true );
+void split( const wstring &sSource, const wstring &sDelimitor, int &iBegin, int &iSize, bool bIgnoreEmpty = true );
 
 /* In-place split of partial string. */
-void split( const RString &sSource, const RString &sDelimitor, int &iBegin, int &iSize, int iLen, const bool bIgnoreEmpty ); /* no default to avoid ambiguity */
-void split( const wstring &sSource, const wstring &sDelimitor, int &iBegin, int &iSize, int iLen, const bool bIgnoreEmpty );
+void split( const RString &sSource, const RString &sDelimitor, int &iBegin, int &iSize, int iLen, bool bIgnoreEmpty ); /* no default to avoid ambiguity */
+void split( const wstring &sSource, const wstring &sDelimitor, int &iBegin, int &iSize, int iLen, bool bIgnoreEmpty );
 
 // Joins a vector<RString> to create a RString according the Deliminator.
 RString join( const RString &sDelimitor, const vector<RString>& sSource );
@@ -527,9 +526,9 @@ int FindIndex( T1 begin, T1 end, const T2 *p )
 
 /* Useful for objects with no operator-, eg. map::iterator (more convenient than advance). */
 template<class T>
-inline T Increment( T a ) { ++a; return a; }
+T Increment( T a ) { ++a; return a; }
 template<class T>
-inline T Decrement( T a ) { --a; return a; }
+T Decrement( T a ) { --a; return a; }
 
 void TrimLeft( RString &sStr, const char *szTrim = "\r\n\t " );
 void TrimRight( RString &sStr, const char *szTrim = "\r\n\t " );
@@ -590,14 +589,14 @@ extern unsigned char g_LowerCase[256];
 /* ASCII-only case insensitivity. */
 struct char_traits_char_nocase: public char_traits<char>
 {
-	static inline bool eq( char c1, char c2 )
-	{ return g_UpperCase[(unsigned char)c1] == g_UpperCase[(unsigned char)c2]; }
+	static bool eq( char c1, char c2 )
+	{ return g_UpperCase[static_cast<unsigned char>(c1)] == g_UpperCase[static_cast<unsigned char>(c2)]; }
 
-	static inline bool ne( char c1, char c2 )
-	{ return g_UpperCase[(unsigned char)c1] != g_UpperCase[(unsigned char)c2]; }
+	static bool ne( char c1, char c2 )
+	{ return g_UpperCase[static_cast<unsigned char>(c1)] != g_UpperCase[static_cast<unsigned char>(c2)]; }
 
-	static inline bool lt( char c1, char c2 )
-	{ return g_UpperCase[(unsigned char)c1] < g_UpperCase[(unsigned char)c2]; }
+	static bool lt( char c1, char c2 )
+	{ return g_UpperCase[static_cast<unsigned char>(c1)] < g_UpperCase[static_cast<unsigned char>(c2)]; }
 
 	static int compare( const char* s1, const char* s2, size_t n )
 	{
@@ -611,9 +610,9 @@ struct char_traits_char_nocase: public char_traits<char>
 		return ret;
 	}
 
-	static inline char fasttoupper(char a)
+	static char fasttoupper(char a)
 	{
-		return g_UpperCase[(unsigned char)a];
+		return g_UpperCase[static_cast<unsigned char>(a)];
 	}
 	
 	static const char *find( const char* s, int n, char a )

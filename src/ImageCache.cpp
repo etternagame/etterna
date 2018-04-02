@@ -1,23 +1,22 @@
-#include "global.h"
+﻿#include "global.h"
 
 #include "ImageCache.h"
 #include "Foreach.h"
-#include "RageDisplay.h"
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "RageSurface_Load.h"
-#include "SongCacheIndex.h"
-#include "Sprite.h"
 #include "PrefsManager.h"
 #include "RageDisplay.h"
-#include "RageTexture.h"
-#include "RageTextureManager.h"
+#include "RageLog.h"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
-#include "RageSurfaceUtils_Palettize.h"
 #include "RageSurfaceUtils_Dither.h"
+#include "RageSurfaceUtils_Palettize.h"
 #include "RageSurfaceUtils_Zoom.h"
+#include "RageSurface_Load.h"
+#include "RageTexture.h"
+#include "RageTextureManager.h"
+#include "RageUtil.h"
+#include "SongCacheIndex.h"
 #include "SpecialFiles.h"
+#include "Sprite.h"
 
 //#include "Banner.h"
 
@@ -137,10 +136,8 @@ void ImageCache::LoadImage( const std::string &sImageDir, const std::string &sIm
 				continue;
 			}
 			else
-			{
-				//LOG->Trace( "Cached image load of '%s' ('%s') failed", sImagePath.c_str(), sCachePath.c_str() );
 				return;
-			}
+			
 		}
 
 		g_ImagePathToImage[sImagePath] = pImage;
@@ -247,7 +244,7 @@ struct ImageTexture: public RageTexture
 
 	void Destroy()
 	{
-		if( m_uTexHandle )
+		if( m_uTexHandle != 0u )
 			DISPLAY->DeleteTexture( m_uTexHandle );
 		m_uTexHandle = 0;
 	}

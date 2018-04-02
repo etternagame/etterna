@@ -1,13 +1,13 @@
 #include "global.h"
-#include "StepsUtil.h"
-#include "Steps.h"
-#include "ProfileManager.h"
+#include "GameManager.h"
 #include "Profile.h"
+#include "ProfileManager.h"
 #include "Song.h"
 #include "SongManager.h"
-#include "GameManager.h"
-#include "XmlFile.h"
 #include "SongUtil.h"
+#include "Steps.h"
+#include "StepsUtil.h"
+#include "XmlFile.h"
 
 bool StepsCriteria::Matches( const Song *pSong, const Steps *pSteps ) const
 {
@@ -51,15 +51,15 @@ void StepsUtil::GetAllMatchingEndless( Song *pSong, const StepsCriteria &stc, ve
 	const vector<Steps*> &vSteps = ( stc.m_st == StepsType_Invalid ? pSong->GetAllSteps() :
 		pSong->GetStepsByStepsType( stc.m_st ) );
 	int previousSize = out.size();
-	int successful = false;
+	int successful = 0;
 
 	GetAllMatching( pSong, stc, out );
 	if( out.size() != previousSize )
 	{
-		successful = true;
+		successful = 1;
 	}
 
-	if( !successful )
+	if( successful == 0 )
 	{
 		Difficulty difficulty = ( *( vSteps.begin() ) )->GetDifficulty();
 		Difficulty previousDifficulty = difficulty;
@@ -345,7 +345,7 @@ bool StepsID::IsValid() const
 
 bool StepsID::operator<( const StepsID &rhs ) const
 {
-#define COMP(a) if(a<rhs.a) return true; if(a>rhs.a) return false;
+#define COMP(a) if((a)<rhs.a) return true; if((a)>rhs.a) return false;
 	COMP(st);
 	COMP(dc);
 	COMP(sDescription);
@@ -360,7 +360,7 @@ bool StepsID::operator<( const StepsID &rhs ) const
 
 bool StepsID::operator==(const StepsID &rhs) const
 {
-#define COMP(a) if(a != rhs.a) return false;
+#define COMP(a) if((a) != rhs.a) return false;
 	COMP(st);
 	COMP(dc);
 	COMP(sDescription);

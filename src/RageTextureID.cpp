@@ -1,4 +1,4 @@
-#include "global.h"
+﻿#include "global.h"
 #include "RageTextureID.h"
 #include "RageTextureManager.h"
 #include "RageUtil.h"

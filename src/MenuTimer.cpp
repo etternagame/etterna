@@ -1,13 +1,12 @@
-#include "global.h"
+﻿#include "global.h"
+#include "ActorUtil.h"
+#include "Font.h"
+#include "GameSoundManager.h"
 #include "MenuTimer.h"
-#include "RageLog.h"
 #include "RageUtil.h"
 #include "ScreenManager.h"
 #include "ThemeManager.h"
-#include "Font.h"
-#include "GameSoundManager.h"
 #include "ThemeMetric.h"
-#include "ActorUtil.h"
 
 RString WARNING_COMMAND_NAME( size_t i ) { return ssprintf("Warning%dCommand", static_cast<int>(i)); }
 

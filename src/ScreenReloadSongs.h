@@ -1,8 +1,8 @@
 #ifndef SCREEN_RELOAD_SONGS_H
 #define SCREEN_RELOAD_SONGS_H
 
-#include "Screen.h"
 #include "BitmapText.h"
+#include "Screen.h"
 
 class LoadingWindow;
 

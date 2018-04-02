@@ -1,4 +1,4 @@
-#ifndef LYRIC_DISPLAY_H
+﻿#ifndef LYRIC_DISPLAY_H
 #define LYRIC_DISPLAY_H
 
 #include "ActorFrame.h"

@@ -1,20 +1,19 @@
-#include "global.h"
-#include "PlayerStageStats.h"
-#include "RageLog.h"
-#include "ThemeManager.h"
-#include "Foreach.h"
-#include "LuaManager.h"
-#include <cfloat>
-#include "GameState.h"
-#include "Steps.h"
-#include "NoteData.h"
-#include "ScoreKeeperNormal.h"
-#include "PrefsManager.h"
+﻿#include "global.h"
 #include "CommonMetrics.h"
-#include "MinaCalc.h"
 #include "CryptManager.h"
+#include "Foreach.h"
+#include "GameState.h"
+#include "LuaManager.h"
+#include "MinaCalc.h"
+#include "NoteData.h"
+#include "PlayerStageStats.h"
+#include "PrefsManager.h"
+#include "RageLog.h"
+#include "ScoreKeeperNormal.h"
+#include "Steps.h"
+#include "ThemeManager.h"
 
-#define GRADE_PERCENT_TIER(i)	THEME->GetMetricF("PlayerStageStats",ssprintf("GradePercent%s",GradeToString((Grade)i).c_str()))
+#define GRADE_PERCENT_TIER(i)	THEME->GetMetricF("PlayerStageStats",ssprintf("GradePercent%s",GradeToString((Grade)(i)).c_str()))
 // deprecated, but no solution to replace them exists yet:
 #define GRADE_TIER02_IS_ALL_W2S	THEME->GetMetricB("PlayerStageStats","GradeTier02IsAllW2s")
 #define GRADE_TIER01_IS_ALL_W2S THEME->GetMetricB("PlayerStageStats","GradeTier01IsAllW2s")
@@ -29,12 +28,11 @@ Grade GetGradeFromPercent( float fPercent );
 
 void PlayerStageStats::InternalInit()
 {
-	m_pStyle= NULL;
-	m_for_multiplayer= false;
-	m_player_number= PLAYER_1;
-	m_multiplayer_number= MultiPlayer_P1;
-
-  m_bPlayerCanAchieveFullCombo = true;
+	m_pStyle = nullptr;
+	m_for_multiplayer = false;
+	m_player_number = PLAYER_1;
+	m_multiplayer_number = MultiPlayer_P1;
+	m_bPlayerCanAchieveFullCombo = true;
 	m_bJoined = false;
 	m_vpPossibleSteps.clear();
 	m_iStepsPlayed = 0;
@@ -106,7 +104,7 @@ void PlayerStageStats::AddStats( const PlayerStageStats& other )
 		m_vpPossibleSteps.push_back( *s );
 	m_iStepsPlayed += other.m_iStepsPlayed;
 	m_fAliveSeconds += other.m_fAliveSeconds;
-	m_bFailed |= other.m_bFailed;
+	m_bFailed |= static_cast<int>(other.m_bFailed);
 	m_iPossibleDancePoints += other.m_iPossibleDancePoints;
 	m_iActualDancePoints += other.m_iActualDancePoints;
 	m_iCurPossibleDancePoints += other.m_iCurPossibleDancePoints;
@@ -128,7 +126,7 @@ void PlayerStageStats::AddStats( const PlayerStageStats& other )
 	m_iSongsPlayed += other.m_iSongsPlayed;
 	m_iNumControllerSteps += other.m_iNumControllerSteps;
 	m_fLifeRemainingSeconds = other.m_fLifeRemainingSeconds;	// don't accumulate
-	m_bDisqualified |= other.m_bDisqualified;
+	m_bDisqualified |= static_cast<int>(other.m_bDisqualified);
 
 	// FirstSecond is always 0, and last second is the time of the last step,
 	// so add 1 second between the stages so that the last element of this
@@ -287,7 +285,7 @@ float PlayerStageStats::MakePercentScore( int iActual, int iPossible )
 	// This can happen in battle, with transform attacks.
 	//ASSERT_M( iActual <= iPossible, ssprintf("%i/%i", iActual, iPossible) );
 
-	float fPercent =  iActual / (float)iPossible;
+	float fPercent =  iActual / static_cast<float>(iPossible);
 
 	// don't allow negative
 	fPercent = max( 0, fPercent );
@@ -649,7 +647,7 @@ void PlayerStageStats::UpdateComboList( float fSecond, bool bRollover )
 	}
 
 	int cnt = m_iCurCombo;
-	if( !cnt )
+	if( cnt == 0 )
 		return; // no combo
 
 	if( m_ComboList.size() == 0 || m_ComboList.back().m_cnt >= cnt )
@@ -704,7 +702,7 @@ int PlayerStageStats::GetComboAtStartOfStage() const
 {
 	if( m_ComboList.empty() )
 		return 0;
-	else
+	
 		return m_ComboList[0].m_rollover;
 }
 
@@ -787,7 +785,7 @@ float PlayerStageStats::GetPercentageOfTaps( TapNoteScore tns ) const
 	{
 		iTotalTaps += m_iTapNoteScores[i];
 	}
-	return m_iTapNoteScores[tns] / (float)iTotalTaps;
+	return m_iTapNoteScores[tns] / static_cast<float>(iTotalTaps);
 }
 
 void PlayerStageStats::CalcAwards( PlayerNumber p, bool bGaveUp, bool bUsedAutoplay )

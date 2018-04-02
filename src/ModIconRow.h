@@ -1,4 +1,4 @@
-/* ModIconRow - Shows a row of ModIcons. */
+﻿/* ModIconRow - Shows a row of ModIcons. */
 
 #ifndef ModIconRow_H
 #define ModIconRow_H

@@ -1,4 +1,4 @@
-/* RageSoundReader_Pan - Pan a sound left and right. */
+﻿/* RageSoundReader_Pan - Pan a sound left and right. */
 
 #ifndef RAGE_SOUND_READER_PAN_H
 #define RAGE_SOUND_READER_PAN_H

@@ -1,7 +1,8 @@
-#ifndef RAGE_SURFACE_LOAD_H
+﻿#ifndef RAGE_SURFACE_LOAD_H
 #define RAGE_SURFACE_LOAD_H
 
 struct RageSurface;
+
 /** @brief Utility functions for the RageSurfaces. */
 namespace RageSurfaceUtils
 {

@@ -3,19 +3,19 @@
 #ifndef SCREEN_NET_ROOM_H
 #define SCREEN_NET_ROOM_H
 
-#include "ScreenWithMenuElements.h"
+#include "RoomInfoDisplay.h"
+#include "RoomWheel.h"
 #include "ScreenNetSelectBase.h"
 #include "NetworkSyncManager.h"
+#include "ScreenWithMenuElements.h"
 #include <vector>
-#include "RoomWheel.h"
-#include "RoomInfoDisplay.h"
 
 class ScreenNetRoom : public ScreenNetSelectBase
 {
 public:
 	void Init() override;
 	bool Input( const InputEventPlus &input ) override;
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 	RoomWheel* GetRoomWheel();
 	void SelectCurrent();
 	void InfoSetVisible(bool visibility);

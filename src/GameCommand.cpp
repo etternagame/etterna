@@ -1,26 +1,22 @@
-#include "global.h"
-#include "GameCommand.h"
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "GameManager.h"
-#include "GameState.h"
+﻿#include "global.h"
 #include "AnnouncerManager.h"
-#include "PlayerOptions.h"
-#include "ProfileManager.h"
-#include "Profile.h"
-#include "StepMania.h"
-#include "ScreenManager.h"
-#include "PrefsManager.h"
-#include "Game.h"
-#include "Style.h"
 #include "Foreach.h"
+#include "GameCommand.h"
+#include "GameManager.h"
 #include "GameSoundManager.h"
-#include "PlayerState.h"
-#include "SongManager.h"
-#include "Song.h"
+#include "GameState.h"
 #include "LocalizedString.h"
-#include "arch/ArchHooks/ArchHooks.h"
+#include "PlayerOptions.h"
+#include "PlayerState.h"
+#include "Profile.h"
+#include "ProfileManager.h"
+#include "RageUtil.h"
+#include "ScreenManager.h"
 #include "ScreenPrompt.h"
+#include "Song.h"
+#include "SongManager.h"
+#include "Style.h"
+#include "arch/ArchHooks/ArchHooks.h"
 
 static LocalizedString COULD_NOT_LAUNCH_BROWSER( "GameCommand", "Could not launch web browser." );
 
@@ -74,7 +70,7 @@ bool GameCommand::DescribesCurrentMode( PlayerNumber pn ) const
 {
 	if( m_pm != PlayMode_Invalid && GAMESTATE->m_PlayMode != m_pm )
 		return false;
-	if( m_pStyle && GAMESTATE->GetCurrentStyle(pn) != m_pStyle )
+	if( (m_pStyle != nullptr) && GAMESTATE->GetCurrentStyle(pn) != m_pStyle )
 		return false;
 	// HACK: don't compare m_dc if m_pSteps is set.  This causes problems 
 	// in ScreenSelectOptionsMaster::ImportOptions if m_PreferredDifficulty 
@@ -119,7 +115,7 @@ bool GameCommand::DescribesCurrentMode( PlayerNumber pn ) const
 		return false;
 	if( m_pSteps && GAMESTATE->m_pCurSteps[pn].Get() != m_pSteps )
 		return false;
-	if( m_pCharacter && GAMESTATE->m_pCurCharacters[pn] != m_pCharacter )
+	if( (m_pCharacter != nullptr) && GAMESTATE->m_pCurCharacters[pn] != m_pCharacter )
 		return false;
 	if( !m_sSongGroup.empty() && GAMESTATE->m_sPreferredSongGroup != m_sSongGroup )
 		return false;
@@ -167,11 +163,11 @@ void GameCommand::LoadOne( const Command& cmd )
 	} \
 	else \
 	{ \
-		member= value; \
+		(member)= value; \
 	}
 
 #define CHECK_INVALID_VALUE(member, value, invalid_value, value_name) \
-	CHECK_INVALID_COND(member, value, (value == invalid_value), ssprintf("Invalid "#value_name" \"%s\".", sValue.c_str()));
+	CHECK_INVALID_COND(member, value, ((value) == (invalid_value)), ssprintf("Invalid "#value_name" \"%s\".", sValue.c_str()));
 
 	if( sName == "style" )
 	{
@@ -269,7 +265,7 @@ void GameCommand::LoadOne( const Command& cmd )
 		if( !m_bInvalid )
 		{
 			Song *pSong = (m_pSong != NULL)? m_pSong:GAMESTATE->m_pCurSong;
-			const Style *pStyle = m_pStyle ? m_pStyle : GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber());
+			const Style *pStyle = m_pStyle != nullptr ? m_pStyle : GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber());
 			if( pSong == NULL || pStyle == NULL )
 			{
 				MAKE_INVALID("Must set Song and Style to set Steps.");
@@ -537,7 +533,7 @@ void GameCommand::ApplySelf( const vector<PlayerNumber> &vpns ) const
 	}
 	if( m_sScreen != "" && m_bApplyCommitsScreens )
 		SCREENMAN->SetNewScreen( m_sScreen );
-	if( m_pSong )
+	if( m_pSong != nullptr )
 	{
 		GAMESTATE->m_pCurSong.Set( m_pSong );
 		GAMESTATE->m_pPreferredSong = m_pSong;
@@ -633,10 +629,10 @@ bool GameCommand::IsZero() const
 }
 
 // lua start
-#include "LuaBinding.h"
-#include "Game.h"
-#include "Steps.h"
 #include "Character.h"
+#include "Game.h"
+#include "LuaBinding.h"
+#include "Steps.h"
 
 /** @brief Allow Lua to have access to the GameCommand. */ 
 class LunaGameCommand: public Luna<GameCommand>

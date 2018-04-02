@@ -1,5 +1,7 @@
-#ifndef RAGE_DISPLAY_GLES2_H
+﻿#ifndef RAGE_DISPLAY_GLES2_H
 #define RAGE_DISPLAY_GLES2_H
+
+#include "RageDisplay.h"
 
 class RageDisplay_GLES2: public RageDisplay
 {

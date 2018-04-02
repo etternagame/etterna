@@ -1,15 +1,14 @@
 #include "global.h"
-#include "StageStats.h"
-#include "GameState.h"
+#include "CryptManager.h"
 #include "Foreach.h"
-#include "Steps.h"
-#include "Song.h"
-#include "RageLog.h"
-#include "PrefsManager.h"
+#include "GameState.h"
+#include "MinaCalc.h"
 #include "PlayerState.h"
-#include "Style.h"
+#include "PrefsManager.h"
 #include "Profile.h"
 #include "ProfileManager.h"
+#include "StageStats.h"
+#include "Style.h"
 #include "NetworkSyncManager.h"
 #include <fstream>
 #include <sstream>
@@ -374,8 +373,8 @@ void StageStats::AddStats( const StageStats& other )
 	m_Stage = Stage_Invalid; // meaningless
 	m_iStageIndex = -1; // meaningless
 
-	m_bGaveUp |= other.m_bGaveUp;
-	m_bUsedAutoplay |= other.m_bUsedAutoplay;
+	m_bGaveUp |= static_cast<int>(other.m_bGaveUp);
+	m_bUsedAutoplay |= static_cast<int>(other.m_bUsedAutoplay);
 
 	m_fGameplaySeconds += other.m_fGameplaySeconds;
 	m_fStepsSeconds += other.m_fStepsSeconds;

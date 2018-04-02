@@ -1,16 +1,16 @@
-#include "global.h"
-#include "NotesLoaderDWI.h"
-#include "RageLog.h"
+﻿#include "global.h"
+#include "Difficulty.h"
+#include "GameInput.h"
 #include "MsdFile.h"
+#include "NoteData.h"
+#include "NotesLoader.h"
+#include "NotesLoaderDWI.h"
+#include "PrefsManager.h"
+#include "RageLog.h"
 #include "RageUtil.h"
 #include "RageUtil_CharConversions.h"
-#include "NoteData.h"
 #include "Song.h"
 #include "Steps.h"
-#include "GameInput.h"
-#include "NotesLoader.h"
-#include "PrefsManager.h"
-#include "Difficulty.h"
 
 #include <map>
 
@@ -150,8 +150,8 @@ Difficulty DwiCompatibleStringToDifficulty( const RString& sDC )
 	RString s2 = sDC;
 	s2.MakeLower();
 	if( s2 == "beginner" )			return Difficulty_Beginner;
-	else if( s2 == "easy" )		return Difficulty_Easy;
-	else if( s2 == "basic" )		return Difficulty_Easy;
+	if( s2 == "easy" )		return Difficulty_Easy;
+	if( s2 == "basic" )		return Difficulty_Easy;
 	else if( s2 == "light" )		return Difficulty_Easy;
 	else if( s2 == "medium" )		return Difficulty_Medium;
 	else if( s2 == "another" )		return Difficulty_Medium;
@@ -174,9 +174,9 @@ static StepsType GetTypeFromMode(const RString &mode)
 {
 	if( mode == "SINGLE" )
 		return StepsType_dance_single;
-	else if( mode == "DOUBLE" )
+	if( mode == "DOUBLE" )
 		return StepsType_dance_double;
-	else if( mode == "COUPLE" )
+	if( mode == "COUPLE" )
 		return StepsType_dance_couple;
 	else if( mode == "SOLO" )
 		return StepsType_dance_solo;
@@ -463,7 +463,7 @@ static float ParseBrokenDWITimestamp( const RString &arg1, const RString &arg2, 
 		/* If the value contains a period, treat it as seconds; otherwise ms. */
 		if( arg1.find_first_of(".") != arg1.npos )
 			return StringToFloat( arg1 );
-		else
+		
 			return StringToFloat( arg1 ) / 1000.f;
 	}
 
@@ -610,13 +610,13 @@ bool DWILoader::LoadFromDir( const RString &sPath_, Song &out, set<RString> &Bla
 		    if( sscanf( sParams[1], "%i..%i", &iMin, &iMax ) == 2 )
 			{
 				out.m_DisplayBPMType = DISPLAY_BPM_SPECIFIED;
-				out.m_fSpecifiedBPMMin = (float) iMin;
-				out.m_fSpecifiedBPMMax = (float) iMax;
+				out.m_fSpecifiedBPMMin = static_cast<float>( iMin);
+				out.m_fSpecifiedBPMMax = static_cast<float>( iMax);
 			}
 			else if( sscanf( sParams[1], "%i", &iMin ) == 1 )
 			{
 				out.m_DisplayBPMType = DISPLAY_BPM_SPECIFIED;
-				out.m_fSpecifiedBPMMin = out.m_fSpecifiedBPMMax = (float) iMin;
+				out.m_fSpecifiedBPMMin = out.m_fSpecifiedBPMMax = static_cast<float>( iMin);
 			}
 			else
 			{

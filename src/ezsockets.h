@@ -1,4 +1,4 @@
-/*******************************************************************\
+﻿/*******************************************************************\
 | ezsockets.h: EzSockets Class Header                               |
 |   Designed by Josh Allen, Charles Lohr and Adam Lowman.           |
 |   Socket programming methods based on Charles Lohr's EZW progam.  |
@@ -13,13 +13,7 @@
 #error do not include ezsockets.h when WITHOUT_NETWORKING
 #endif
 
-#include <sstream>
 #include <string>
-#include <vector>
-#if defined(HAVE_FCNTL_H)
-#include <fcntl.h>
-#endif
-#include <cctype>
 
 #if defined(_WINDOWS)
 #include <winsock2.h>

@@ -1,19 +1,18 @@
-#include "global.h"
-#include "ProfileManager.h"
-#include "Profile.h"
-#include "RageUtil.h"
-#include "PrefsManager.h"
-#include "RageLog.h"
-#include "RageFile.h"
-#include "RageFileManager.h"
+﻿#include "global.h"
+#include "Character.h"
+#include "CharacterManager.h"
 #include "GameConstantsAndTypes.h"
-#include "SongManager.h"
 #include "GameState.h"
-#include "Song.h"
-#include "Steps.h"
-#include "GameManager.h"
-#include "ProductInfo.h"
+#include "HighScore.h"
+#include "PrefsManager.h"
+#include "Profile.h"
+#include "ProfileManager.h"
+#include "RageFileManager.h"
+#include "RageLog.h"
 #include "RageUtil.h"
+#include "Song.h"
+#include "SongManager.h"
+#include "Steps.h"
 #include "ThemeManager.h"
 #include "XmlFile.h"
 #include "StepsUtil.h"
@@ -61,7 +60,7 @@ static vector<DirAndProfile> g_vLocalProfile;
 
 static ThemeMetric<bool>	FIXED_PROFILES		( "ProfileManager", "FixedProfiles" );
 static ThemeMetric<int>		NUM_FIXED_PROFILES	( "ProfileManager", "NumFixedProfiles" );
-#define FIXED_PROFILE_CHARACTER_ID( i ) THEME->GetMetric( "ProfileManager", ssprintf("FixedProfileCharacterID%d",int(i+1)) )
+#define FIXED_PROFILE_CHARACTER_ID( i ) THEME->GetMetric( "ProfileManager", ssprintf("FixedProfileCharacterID%d",int((i)+1)) )
 
 
 ProfileManager::ProfileManager()
@@ -279,7 +278,7 @@ void ProfileManager::UnloadProfile( PlayerNumber pn )
 	m_bLastLoadWasTamperedOrCorrupt[pn] = false;
 	m_bLastLoadWasFromLastGood[pn] = false;
 	m_bNeedToBackUpLastLoad[pn] = false;
-	SONGMAN->FreeAllLoadedFromProfile( (ProfileSlot) pn );
+	SONGMAN->FreeAllLoadedFromProfile( static_cast<ProfileSlot>( pn) );
 }
 
 const Profile* ProfileManager::GetProfile(PlayerNumber pn) const
@@ -795,7 +794,7 @@ public:
 	static int GetLocalProfile( T* p, lua_State *L )
 	{
 		Profile *pProfile = p->GetLocalProfile(SArg(1));
-		if( pProfile ) 
+		if( pProfile != nullptr ) 
 			pProfile->PushSelf(L);
 		else
 			lua_pushnil(L);

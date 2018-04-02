@@ -1,24 +1,24 @@
 #include "global.h"
 
-#include "ScreenOptionsMaster.h"
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "ThemeManager.h"
+#include "CommonMetrics.h"
+#include "Foreach.h"
+#include "GameLoop.h"
 #include "GameManager.h"
 #include "GameState.h"
-#include "ScreenManager.h"
-#include "SongManager.h"
-#include "PrefsManager.h"
-#include "StepMania.h"
-#include "RageSoundManager.h"
-#include "Foreach.h"
 #include "OptionRowHandler.h"
+#include "PrefsManager.h"
+#include "RageLog.h"
+#include "RageSoundManager.h"
+#include "RageUtil.h"
+#include "ScreenManager.h"
+#include "ScreenOptionsMaster.h"
 #include "ScreenOptionsMasterPrefs.h"
-#include "CommonMetrics.h"
-#include "GameLoop.h"
+#include "SongManager.h"
+#include "StepMania.h"
+#include "ThemeManager.h"
 
 #define LINE_NAMES			THEME->GetMetric (m_sName,"LineNames")
-#define LINE(sLineName)		THEME->GetMetric (m_sName,ssprintf("Line%s",sLineName.c_str()))
+#define LINE(sLineName)		THEME->GetMetric (m_sName,ssprintf("Line%s",(sLineName).c_str()))
 #define FORCE_ALL_PLAYERS	THEME->GetMetricB(m_sName,"ForceAllPlayers")
 #define INPUT_MODE			THEME->GetMetric (m_sName,"InputMode")
 #define NAVIGATION_MODE		THEME->GetMetric (m_sName,"NavigationMode")
@@ -110,7 +110,7 @@ void ScreenOptionsMaster::HandleScreenMessage( const ScreenMessage SM )
 		for( unsigned r=0; r<m_pRows.size(); r++ ) // foreach row
 			ExportOptions( r, vpns );
 
-		if( m_iChangeMask & OPT_APPLY_ASPECT_RATIO )
+		if( (m_iChangeMask & OPT_APPLY_ASPECT_RATIO) != 0 )
 		{
 			THEME->UpdateLuaGlobals();		// This needs to be done before resetting the projection matrix below
 			THEME->ReloadSubscribers();	// SCREEN_* has changed, so re-read all subscribing ThemeMetrics
@@ -120,9 +120,9 @@ void ScreenOptionsMaster::HandleScreenMessage( const ScreenMessage SM )
 		/* If the theme changes, we need to reset RageDisplay to apply the new window
 		 * title and icon. If the aspect ratio changes, we need to reset RageDisplay
 		 * so that the projection matrix is re-created using the new screen dimensions. */
-		if( (m_iChangeMask & OPT_APPLY_THEME) || 
-			(m_iChangeMask & OPT_APPLY_GRAPHICS) ||
-			(m_iChangeMask & OPT_APPLY_ASPECT_RATIO) )
+		if( ((m_iChangeMask & OPT_APPLY_THEME) != 0) || 
+			((m_iChangeMask & OPT_APPLY_GRAPHICS) != 0) ||
+			((m_iChangeMask & OPT_APPLY_ASPECT_RATIO) != 0) )
 		{
 			/* If the resolution or aspect ratio changes, always reload the theme.
 			 * Otherwise, only reload it if it changed. */
@@ -130,31 +130,31 @@ void ScreenOptionsMaster::HandleScreenMessage( const ScreenMessage SM )
 			GameLoop::ChangeTheme(sNewTheme);
 		}
 
-		if( m_iChangeMask & OPT_SAVE_PREFERENCES )
+		if( (m_iChangeMask & OPT_SAVE_PREFERENCES) != 0 )
 		{
 			// Save preferences.
 			LOG->Trace("ROW_CONFIG used; saving ...");
 			PREFSMAN->SavePrefsToDisk();
 		}
 
-		if( m_iChangeMask & OPT_CHANGE_GAME )
+		if( (m_iChangeMask & OPT_CHANGE_GAME) != 0 )
 		{
 			GameLoop::ChangeGame(PREFSMAN->GetCurrentGame());
 		}
 
-		if( m_iChangeMask & OPT_APPLY_SOUND )
+		if( (m_iChangeMask & OPT_APPLY_SOUND) != 0 )
 		{
 			SOUNDMAN->SetMixVolume();
 		}
 		
-		if( m_iChangeMask & OPT_APPLY_SONG )
+		if( (m_iChangeMask & OPT_APPLY_SONG) != 0 )
 			SONGMAN->SetPreferences();
 
 		CHECKPOINT_M("Transferring to the next screen now.");
 		this->HandleScreenMessage( SM_GoToNextScreen );
 		return;
 	}
-	else
+	
 		ScreenOptions::HandleScreenMessage( SM );
 }
 

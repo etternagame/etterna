@@ -1,11 +1,11 @@
 #ifndef ACTOR_H
 #define ACTOR_H
 
+#include "EnumHelper.h"
+#include "LuaReference.h"
 #include "PlayerNumber.h"
 #include "RageTypes.h"
 #include "RageUtil_AutoPtr.h"
-#include "LuaReference.h"
-#include "EnumHelper.h"
 #include <map>
 class XNode;
 struct lua_State;
@@ -16,19 +16,19 @@ class LuaClass;
 using apActorCommands = AutoPtrCopyOnWrite<LuaReference>;
 
 /** @brief The background layer. */
-#define DRAW_ORDER_BEFORE_EVERYTHING		-200
+#define DRAW_ORDER_BEFORE_EVERYTHING		(-200)
 /** @brief The underlay layer. */
-#define DRAW_ORDER_UNDERLAY			-100
+#define DRAW_ORDER_UNDERLAY			(-100)
 /** @brief The decorations layer. */
 #define DRAW_ORDER_DECORATIONS			   0
 /** @brief The overlay layer.
  *
  * Normal screen elements go here. */
-#define DRAW_ORDER_OVERLAY			+100
+#define DRAW_ORDER_OVERLAY			(+100)
 /** @brief The transitions layer. */
-#define DRAW_ORDER_TRANSITIONS			+200
+#define DRAW_ORDER_TRANSITIONS			(+200)
 /** @brief The over everything layer. */
-#define DRAW_ORDER_AFTER_EVERYTHING		+300
+#define DRAW_ORDER_AFTER_EVERYTHING		(+300)
 
 /** @brief The different horizontal alignments. */
 enum HorizAlign

@@ -1,13 +1,12 @@
-#include "global.h"
-#include "RoomWheel.h"
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "ScreenTextEntry.h"
-#include "LocalizedString.h"
-#include "NetworkSyncManager.h"
-#include "ScreenManager.h"
+﻿#include "global.h"
 #include "ActorUtil.h"
 #include "LocalizedString.h"
+#include "NetworkSyncManager.h"
+#include "RageLog.h"
+#include "RageUtil.h"
+#include "RoomWheel.h"
+#include "ScreenManager.h"
+#include "ScreenTextEntry.h"
 
 static LocalizedString EMPTY_STRING	( "RoomWheel", "Empty" );
 

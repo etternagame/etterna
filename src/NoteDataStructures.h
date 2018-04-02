@@ -1,4 +1,4 @@
-// Only NoteData structures independent of the rest of Stepmania live here
+﻿// Only NoteData structures independent of the rest of Stepmania live here
 
 #ifndef __NDSTRUCTS__
 #define __NDSTRUCTS__

@@ -1,8 +1,14 @@
-#include "global.h"
+﻿#include "global.h"
 #include "CommandLineActions.h"
+#include "DateTime.h"
+#include "FileDownload.h"
+#include "Foreach.h"
+#include "IniFile.h"
+#include "LuaManager.h"
+#include "ProductInfo.h"
 #include "RageFile.h"
 #include "RageUtil.h"
-#include "IniFile.h"
+#include "ScreenInstallOverlay.h"
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
 #include "LuaManager.h"
@@ -12,11 +18,7 @@
 #include "arch/Dialog/Dialog.h"
 #include "RageFileManager.h"
 #include "SpecialFiles.h"
-
 #include "arch/LoadingWindow/LoadingWindow.h"
-#include "Preference.h"
-#include "JsonUtil.h"
-#include "ScreenInstallOverlay.h"
 #include "ver.h"
 
 // only used for Version()

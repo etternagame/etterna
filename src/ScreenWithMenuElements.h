@@ -1,10 +1,10 @@
 #ifndef ScreenWithMenuElements_H
 #define ScreenWithMenuElements_H
 
-#include "Screen.h"
-#include "Transition.h"
 #include "ActorUtil.h"
+#include "Screen.h"
 #include "ThemeMetric.h"
+#include "Transition.h"
 
 class MenuTimer;
 
@@ -16,7 +16,7 @@ public:
 	void BeginScreen() override;
 	~ScreenWithMenuElements() override;
 
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 	void Update( float fDeltaTime ) override;
 	void StartTransitioningScreen( ScreenMessage smSendWhenDone );
 	virtual void Cancel( ScreenMessage smSendWhenDone );

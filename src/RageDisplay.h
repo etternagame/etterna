@@ -1,12 +1,12 @@
-/* RageDisplay - Renderer base class. */
+﻿/* RageDisplay - Renderer base class. */
 
 #ifndef RAGEDISPLAY_H
 #define RAGEDISPLAY_H
 
-#include "RageTypes.h"
 #include "ModelTypes.h"
-#include <set>
+#include "RageTypes.h"
 #include <chrono>
+#include <set>
 
 class DisplayResolution;
 typedef set<DisplayResolution> DisplayResolutions;

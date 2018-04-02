@@ -1,15 +1,15 @@
 #ifndef ScoreManager_H
 #define ScoreManager_H
 
-#include "Grade.h"
 #include "GameConstantsAndTypes.h"
+#include "Grade.h"
 #include "PrefsManager.h"
 #include "SongManager.h"
 #include "ProfileManager.h"
 
 #include <map>
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
 
 using std::string;
 

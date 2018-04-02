@@ -1,23 +1,23 @@
 #include "global.h"
-#include "ScreenOptionsMasterPrefs.h"
-#include "PrefsManager.h"
-#include "ThemeManager.h"
 #include "AnnouncerManager.h"
-#include "NoteSkinManager.h"
-#include "PlayerOptions.h"
-#include "SongOptions.h"
-#include "RageDisplay.h"
-#include "RageUtil.h"
+#include "DisplayResolutions.h"
+#include "Foreach.h"
+#include "Game.h"
+#include "GameConstantsAndTypes.h"
 #include "GameManager.h"
 #include "GameState.h"
-#include "StepMania.h"
-#include "Game.h"
-#include "Foreach.h"
-#include "GameConstantsAndTypes.h"
-#include "DisplayResolutions.h"
 #include "LocalizedString.h"
-#include "SpecialFiles.h"
+#include "NoteSkinManager.h"
+#include "PlayerOptions.h"
+#include "PrefsManager.h"
+#include "RageDisplay.h"
 #include "RageLog.h"
+#include "RageUtil.h"
+#include "ScreenOptionsMasterPrefs.h"
+#include "SongOptions.h"
+#include "SpecialFiles.h"
+#include "StepMania.h"
+#include "ThemeManager.h"
 
 using namespace StringConversion;
 
@@ -477,7 +477,7 @@ struct res_t
 	}
 
 	// Ugly: allow convert to a float for FindClosestEntry.
-	operator float() const { return w * 5000.0f + h; }
+	explicit operator float() const { return w * 5000.0f + h; }
 };
 
 inline bool operator<(res_t const &lhs, res_t const &rhs)
@@ -556,7 +556,7 @@ static void MovieColorDepth( int &sel, bool ToSel, const ConfOption *pConfOption
 
 static void RefreshRate( int &sel, bool ToSel, const ConfOption *pConfOption )
 {
-	const int mapping[] = { (int) REFRESH_DEFAULT,60,70,72,75,80,85,90,100,120,150 };
+	const int mapping[] = { static_cast<int>( REFRESH_DEFAULT),60,70,72,75,80,85,90,100,120,150 };
 	MoveMap( sel, pConfOption, ToSel, mapping, ARRAYLEN(mapping) );
 }
 

@@ -1,9 +1,8 @@
-/* ComboGraph - A bar displaying the player's combo on Evaluation. */
+﻿/* ComboGraph - A bar displaying the player's combo on Evaluation. */
 #ifndef COMBO_GRAPH_H
 #define COMBO_GRAPH_H
 
 #include "ActorFrame.h"
-#include "PlayerNumber.h"
 #include "ThemeMetric.h"
 
 class StageStats;

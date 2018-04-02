@@ -97,22 +97,24 @@ int NetworkSyncManager::GetSMOnlineSalt() { return 0; }
 void NetworkSyncManager::GetListOfLANServers( vector<NetServerInfo>& AllServers ) { }
 unsigned long NetworkSyncManager::GetCurrentSMBuild( LoadingWindow* ld ) { return 0; }
 #else
-#include "ezsockets.h"
+#include "CryptManager.h"
+#include "GameManager.h"
+#include "GameState.h"
+#include "MessageManager.h"
+#include "PlayerState.h"
+#include "ProductInfo.h"
 #include "ProfileManager.h"
 #include "RageLog.h"
 #include "ScreenManager.h"
+#include "ScreenMessage.h"
 #include "Song.h"
-#include "GameState.h"
 #include "StatsManager.h"
 #include "Steps.h"
-#include "ProductInfo.h"
-#include "ScreenMessage.h"
-#include "GameManager.h"
-#include "MessageManager.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "PlayerState.h"
 #include "CryptManager.h"
 #include "HighScore.h"
+#include "ezsockets.h"
 
 AutoScreenMessage(SM_AddToChat);
 AutoScreenMessage(SM_ChangeSong);
@@ -166,7 +168,8 @@ SMOProtocol::~SMOProtocol()
 		NetPlayerClient->close();
 		SAFE_DELETE(NetPlayerClient);
 	}
-	if (BroadcastReception)
+
+	if ( BroadcastReception != nullptr ) 
 	{
 		BroadcastReception->close();
 		SAFE_DELETE(BroadcastReception);
@@ -868,12 +871,12 @@ bool SMOProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString a
 
 	// The following packet must get through, so we block for it.
 	// If we are serving, we do not block for this.
-	NetPlayerClient->SendPack( (char*)m_packet.Data, m_packet.Position );
+	NetPlayerClient->SendPack( reinterpret_cast<char*>(m_packet.Data), m_packet.Position );
 	m_packet.ClearPacket();
 	while(dontExit)
 	{
 		m_packet.ClearPacket();
-		if( NetPlayerClient->ReadPack((char *)&m_packet, NETMAXBUFFERSIZE)<1 )
+		if( NetPlayerClient->ReadPack(reinterpret_cast<char *>(&m_packet), NETMAXBUFFERSIZE)<1 )
 			dontExit=false; // Also allow exit if there is a problem on the socket
 		if( m_packet.Read1() == NSServerOffset + NSCHello )
 			dontExit=false;
@@ -911,7 +914,7 @@ void SMOProtocol::ReportNSSOnOff(int i)
 	m_packet.ClearPacket();
 	m_packet.Write1( NSCSMS );
 	m_packet.Write1( (uint8_t) i );
-	NetPlayerClient->SendPack( (char*)m_packet.Data, m_packet.Position );
+	NetPlayerClient->SendPack( reinterpret_cast<char*>(m_packet.Data), m_packet.Position );
 }
 
 RString NetworkSyncManager::GetServerName() 
@@ -1181,7 +1184,7 @@ void SMOProtocol::ReportScore(NetworkSyncManager* n, int playerID, int step, int
 	if (step == SMOST_HITMINE || step > SMOST_W1)
 		iOffset = 0;
 	m_packet.Write2((uint16_t)iOffset);
-	NetPlayerClient->SendPack((char*)m_packet.Data, m_packet.Position);
+	NetPlayerClient->SendPack(reinterpret_cast<char*>(m_packet.Data), m_packet.Position);
 }
 void NetworkSyncManager::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 {
@@ -1290,7 +1293,7 @@ void SMOProtocol::ReportScore(NetworkSyncManager* n, int playerID, int step, int
 
 	m_packet.Write2((uint16_t)iOffset);
 
-	NetPlayerClient->SendPack((char*)m_packet.Data, m_packet.Position); 
+	NetPlayerClient->SendPack( reinterpret_cast<char*>(m_packet.Data), m_packet.Position ); 
 
 }
 
@@ -1313,8 +1316,10 @@ void SMOProtocol::ReportSongOver(NetworkSyncManager* n)
 	if ( !n->useSMserver )	//Make sure that we are using the network
 		return;
 	m_packet.ClearPacket();
-	m_packet.Write1(NSCGON);
-	NetPlayerClient->SendPack((char*)&m_packet.Data, m_packet.Position); 
+
+	m_packet.Write1( NSCGON );
+
+	NetPlayerClient->SendPack( reinterpret_cast<char*>(&m_packet.Data), m_packet.Position ); 
 	return;
 }
 
@@ -1334,7 +1339,7 @@ void SMOProtocol::ReportStyle(NetworkSyncManager* n)
 	m_packet.Write1((int8_t)GAMESTATE->GetNumPlayersEnabled());
 	m_packet.Write1((uint8_t)PLAYER_1);
 	m_packet.WriteNT(GAMESTATE->GetPlayerDisplayName(PLAYER_1));
-	NetPlayerClient->SendPack((char*)&m_packet.Data, m_packet.Position);
+	NetPlayerClient->SendPack( reinterpret_cast<char*>(&m_packet.Data), m_packet.Position );
 }
 
 void NetworkSyncManager::StartRequest(short position)
@@ -1440,7 +1445,7 @@ void SMOProtocol::StartRequest(NetworkSyncManager* n, short position)
 
 	//The following packet HAS to get through, so we turn blocking on for it as well
 	//Don't block if we are serving
-	NetPlayerClient->SendPack((char*)&m_packet.Data, m_packet.Position); 
+	NetPlayerClient->SendPack(reinterpret_cast<char*>(&m_packet.Data), m_packet.Position); 
 	
 	LOG->Trace("Waiting for RECV");
 
@@ -1449,7 +1454,7 @@ void SMOProtocol::StartRequest(NetworkSyncManager* n, short position)
 	while (dontExit)
 	{
 		m_packet.ClearPacket();
-		if (NetPlayerClient->ReadPack((char *)&m_packet, NETMAXBUFFERSIZE)<1)
+		if (NetPlayerClient->ReadPack(reinterpret_cast<char *>(&m_packet), NETMAXBUFFERSIZE)<1)
 				dontExit=false; // Also allow exit if there is a problem on the socket
 								// Only do if we are not the server, otherwise the sync
 								// gets hosed up due to non blocking mode.
@@ -1500,7 +1505,7 @@ void SMOProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 	else
 		return;
 	PacketFunctions BroadIn;
-	if ( BroadcastReception->ReadPack((char*)&BroadIn.Data, 1020) )
+	if ( BroadcastReception->ReadPack( reinterpret_cast<char*>(&BroadIn.Data), 1020 ) != 0 )
 	{
 		NetServerInfo ThisServer;
 		BroadIn.Position = 0;
@@ -1556,7 +1561,7 @@ void SMOProtocol::ProcessInput(NetworkSyncManager* n)
 	m_packet.ClearPacket();
 
 	int packetSize;
-	while ( (packetSize = NetPlayerClient->ReadPack((char *)&m_packet, NETMAXBUFFERSIZE) ) > 0 )
+	while ( (packetSize = NetPlayerClient->ReadPack(reinterpret_cast<char *>(&m_packet), NETMAXBUFFERSIZE) ) > 0 )
 	{
 		m_packet.size = packetSize;
 		int command = m_packet.Read1();
@@ -1573,8 +1578,8 @@ void SMOProtocol::ProcessInput(NetworkSyncManager* n)
 		{
 		case NSCPing: // Ping packet responce
 			m_packet.ClearPacket();
-			m_packet.Write1(NSCPingR);
-			NetPlayerClient->SendPack((char*)m_packet.Data,m_packet.Position);
+			m_packet.Write1( NSCPingR );
+			NetPlayerClient->SendPack(reinterpret_cast<char*>(m_packet.Data),m_packet.Position);
 			break;
 		case NSCPingR: // These are in response to when/if we send packet 0's
 		case NSCHello: // This is already taken care of by the blocking code earlier
@@ -1752,7 +1757,7 @@ void SMOProtocol::SendChat(const RString& message, string tab, int type)
 	m_packet.ClearPacket();
 	m_packet.Write1(NSCCM);
 	m_packet.WriteNT(message);
-	NetPlayerClient->SendPack((char*)&m_packet.Data, m_packet.Position);
+	NetPlayerClient->SendPack(reinterpret_cast<char*>(&m_packet.Data), m_packet.Position); 
 }
 
 void SMOProtocol::ReportPlayerOptions()
@@ -1761,7 +1766,7 @@ void SMOProtocol::ReportPlayerOptions()
 	m_packet.ClearPacket();
 	m_packet.Write1( NSCUPOpts );
 	m_packet.WriteNT( opts.GetCurrent().GetString() );
-	NetPlayerClient->SendPack((char*)&m_packet.Data, m_packet.Position); 
+	NetPlayerClient->SendPack(reinterpret_cast<char*>(&m_packet.Data), m_packet.Position); 
 }
 
 int NetworkSyncManager::GetServerVersion()
@@ -1828,7 +1833,7 @@ void SMOProtocol::SelectUserSong(NetworkSyncManager * n, Song* song)
 	if (serverVersion >= 129) {
 		m_packet.WriteNT(GAMESTATE->m_pCurSong->GetFileHash());
 	}
-	NetPlayerClient->SendPack( (char*)&m_packet.Data, m_packet.Position );
+	NetPlayerClient->SendPack( reinterpret_cast<char*>(&m_packet.Data), m_packet.Position );
 }
 
 void SMOProtocol::SendSMOnline( )
@@ -1836,7 +1841,7 @@ void SMOProtocol::SendSMOnline( )
 	m_packet.Position = SMOnlinePacket.Position + 1;
 	memcpy( (m_packet.Data + 1), SMOnlinePacket.Data, SMOnlinePacket.Position );
 	m_packet.Data[0] = NSCSMOnline;
-	NetPlayerClient->SendPack( (char*)&m_packet.Data , m_packet.Position );
+	NetPlayerClient->SendPack( reinterpret_cast<char*>(&m_packet.Data) , m_packet.Position );
 }
 void SMOProtocol::CreateNewRoom(RString name, RString desc, RString password)
 {

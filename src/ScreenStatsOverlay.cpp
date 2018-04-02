@@ -1,10 +1,10 @@
 #include "global.h"
-#include "ScreenStatsOverlay.h"
 #include "ActorUtil.h"
 #include "PrefsManager.h"
 #include "RageDisplay.h"
 #include "RageLog.h"
 #include "ScreenDimensions.h"
+#include "ScreenStatsOverlay.h"
 
 REGISTER_SCREEN_CLASS( ScreenStatsOverlay );
 
@@ -121,7 +121,7 @@ void ScreenStatsOverlay::UpdateSkips()
 	 * during this time. Do clear the timer, though, so we don't report
 	 * a big "skip" after this period passes. 
 	 * Also disregard differences bellow 1ms as runtime will be inconsistent */
-	if( !DISPLAY->GetFPS() || UpdateTime <= 0.001f )
+	if( (DISPLAY->GetFPS() == 0) || UpdateTime <= 0.001f )
 		return;
 
 	/* We want to display skips.  We expect to get updates of about 1.0/FPS ms. */
@@ -147,7 +147,7 @@ void ScreenStatsOverlay::UpdateSkips()
 	}
 
 	
-	if( skip )
+	if( skip != 0 )
 	{
 		float skipTime = 1000 * (UpdateTime - ExpectedUpdate);
 		if (skipTime >= PREFSMAN->m_bAllowedLag.Get() * 1000 )

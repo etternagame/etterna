@@ -1,13 +1,11 @@
-#ifndef SCREEN_OPTIONS_LIST_H
+﻿#ifndef SCREEN_OPTIONS_LIST_H
 #define SCREEN_OPTIONS_LIST_H
 
-#include "ScreenWithMenuElements.h"
-#include "RageSound.h"
-#include "Steps.h"
-#include "OptionRowHandler.h"
 #include "BitmapText.h"
-#include "OptionsCursor.h"
 #include "CodeSet.h"
+#include "OptionRowHandler.h"
+#include "OptionsCursor.h"
+#include "ScreenWithMenuElements.h"
 #include "ThemeMetric.h"
 
 class OptionsList;

@@ -1,13 +1,13 @@
 #ifndef ScreenPackages_H
 #define ScreenPackages_H
 
-#include "ScreenWithMenuElements.h"
 #include "BitmapText.h"
-#include "ezsockets.h"
-#include "RageFileManager.h"
 #include "RageFile.h"
+#include "RageFileManager.h"
+#include "ScreenWithMenuElements.h"
 #include "Sprite.h"
 #include "ThemeMetric.h"
+#include "ezsockets.h"
 
 #if !defined(WITHOUT_NETWORKING)
 
@@ -16,7 +16,7 @@ class ScreenPackages : public ScreenWithMenuElements
 public:
 	void Init() override;
 
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 
 	bool MenuStart( const InputEventPlus &input ) override;
 	bool MenuUp( const InputEventPlus &input ) override;

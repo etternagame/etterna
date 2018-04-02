@@ -6,13 +6,13 @@
 // by Cho, Kyung Min: bro@shinbiro.com 2002-10-30
 
 #include "global.h"
-#include "XmlFile.h"
-#include "RageFile.h"
-#include "RageLog.h"
-#include "RageUtil.h"
 #include "DateTime.h"
 #include "Foreach.h"
 #include "LuaManager.h"
+#include "RageFile.h"
+#include "RageLog.h"
+#include "RageUtil.h"
+#include "XmlFile.h"
 
 const RString XNode::TEXT_ATTRIBUTE = "__TEXT__";
 

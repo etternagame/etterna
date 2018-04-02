@@ -1,11 +1,11 @@
 #include "global.h"
-#include "ScreenTestSound.h"
-#include "RageDisplay.h"
-#include "ScreenManager.h"
-#include "RageSoundManager.h"
-#include "ThemeManager.h"
-#include "RageUtil.h"
 #include "InputEventPlus.h"
+#include "RageDisplay.h"
+#include "RageSoundManager.h"
+#include "RageUtil.h"
+#include "ScreenManager.h"
+#include "ScreenTestSound.h"
+#include "ThemeManager.h"
 
 REGISTER_SCREEN_CLASS( ScreenTestSound );
 

@@ -1,15 +1,14 @@
-#ifndef MUSIC_WHEEL_ITEM_H
+﻿#ifndef MUSIC_WHEEL_ITEM_H
 #define MUSIC_WHEEL_ITEM_H
 
 #include "ActorFrame.h"
-#include "BitmapText.h"
-#include "WheelNotifyIcon.h"
-#include "TextBanner.h"
-#include "GameConstantsAndTypes.h"
-#include "GameCommand.h"
-#include "WheelItemBase.h"
 #include "AutoActor.h"
+#include "BitmapText.h"
+#include "GameCommand.h"
+#include "TextBanner.h"
 #include "ThemeMetric.h"
+#include "WheelItemBase.h"
+#include "WheelNotifyIcon.h"
 
 class Song;
 

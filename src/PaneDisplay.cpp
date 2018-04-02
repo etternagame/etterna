@@ -1,21 +1,19 @@
-#include "global.h"
-#include "PaneDisplay.h"
-#include "ThemeManager.h"
-#include "GameState.h"
-#include "Song.h"
-#include "Steps.h"
-#include "RageLog.h"
-#include "ProfileManager.h"
-#include "Profile.h"
-#include "Style.h"
+﻿#include "global.h"
 #include "ActorUtil.h"
 #include "Foreach.h"
+#include "GameState.h"
 #include "LuaManager.h"
-#include "XmlFile.h"
+#include "PaneDisplay.h"
 #include "PlayerStageStats.h"
+#include "Profile.h"
+#include "ProfileManager.h"
+#include "Song.h"
+#include "Steps.h"
+#include "ThemeManager.h"
+#include "XmlFile.h"
 
-#define SHIFT_X(pc)	THEME->GetMetricF(sMetricsGroup, ssprintf("ShiftP%iX", pc+1))
-#define SHIFT_Y(pc)	THEME->GetMetricF(sMetricsGroup, ssprintf("ShiftP%iY", pc+1))
+#define SHIFT_X(pc)	THEME->GetMetricF(sMetricsGroup, ssprintf("ShiftP%iX", (pc)+1))
+#define SHIFT_Y(pc)	THEME->GetMetricF(sMetricsGroup, ssprintf("ShiftP%iY", (pc)+1))
 
 static const char *PaneCategoryNames[] = {
 	"NumSteps",
@@ -129,7 +127,7 @@ void PaneDisplay::GetPaneTextAndLevel( PaneCategory c, RString & sTextOut, int &
 	const Song *pSong = GAMESTATE->m_pCurSong;
 	const Steps *pSteps = GAMESTATE->m_pCurSteps[m_PlayerNumber];
 	const Profile *pProfile = PROFILEMAN->IsPersistentProfile(m_PlayerNumber) ? PROFILEMAN->GetProfile(m_PlayerNumber) : NULL;
-	bool bIsPlayerEdit = pSteps && pSteps->IsAPlayerEdit();
+	bool bIsPlayerEdit = (pSteps != nullptr) && pSteps->IsAPlayerEdit();
 
 	// Defaults, will be filled in later
 	sTextOut = NULL_COUNT_STRING;
@@ -151,11 +149,11 @@ void PaneDisplay::GetPaneTextAndLevel( PaneCategory c, RString & sTextOut, int &
 		switch( c )
 		{
 			case PaneCategory_ProfileHighScore:
-				slot = (ProfileSlot) m_PlayerNumber;
+				slot = static_cast<ProfileSlot>( m_PlayerNumber);
 			default: break;
 		}
 
-		if( pSteps )
+		if( pSteps != nullptr )
 		{
 			rv = pSteps->GetRadarValues();
 			pHSL = &PROFILEMAN->GetProfile(slot)->GetStepsHighScoreList(pSong, pSteps);
@@ -208,7 +206,7 @@ void PaneDisplay::GetPaneTextAndLevel( PaneCategory c, RString & sTextOut, int &
 			case PaneCategory_MachineHighScore:
 			{
 				CHECKPOINT_M("Getting data from a high score instead of a radar value.");
-				fLevelOut = pHSL->GetTopScore().GetPercentDP();
+				fLevelOut = static_cast<int>(pHSL->GetTopScore().GetPercentDP());
 				break;
 			}
 			default: break;
@@ -236,7 +234,7 @@ void PaneDisplay::GetPaneTextAndLevel( PaneCategory c, RString & sTextOut, int &
 					if( bIsPlayerEdit )
 						sTextOut = NOT_AVAILABLE;
 					else
-						sTextOut = PlayerStageStats::FormatPercentScore( fLevelOut );
+						sTextOut = PlayerStageStats::FormatPercentScore( static_cast<float>(fLevelOut) );
 					break;
 				case PaneCategory_NumSteps:
 				case PaneCategory_Jumps:

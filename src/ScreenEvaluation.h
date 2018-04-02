@@ -1,16 +1,16 @@
 #ifndef SCREEN_EVALUATION_H
 #define SCREEN_EVALUATION_H
 
-#include "ScreenWithMenuElements.h"
-#include "Sprite.h"
+#include "ActorUtil.h"
+#include "Banner.h"
 #include "BitmapText.h"
 #include "GradeDisplay.h"
-#include "Banner.h"
 #include "PercentageDisplay.h"
-#include "ActorUtil.h"
 #include "RageSound.h"
-#include "ThemeMetric.h"
 #include "RollingNumbers.h"
+#include "ScreenWithMenuElements.h"
+#include "Sprite.h"
+#include "ThemeMetric.h"
 
 /**
  * @brief How many songs are shown at the end?
@@ -53,7 +53,7 @@ public:
 	~ScreenEvaluation() override;
 	void Init() override;
 	bool Input( const InputEventPlus &input ) override;
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 
 	bool MenuBack( const InputEventPlus &input ) override;
 	bool MenuStart( const InputEventPlus &input ) override;

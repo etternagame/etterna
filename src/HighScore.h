@@ -1,9 +1,9 @@
-#ifndef HIGH_SCORE_H
+﻿#ifndef HIGH_SCORE_H
 #define HIGH_SCORE_H
 
-#include "Grade.h"
-#include "GameConstantsAndTypes.h"
 #include "DateTime.h"
+#include "GameConstantsAndTypes.h"
+#include "Grade.h"
 #include "RageUtil_AutoPtr.h"
 
 class XNode;

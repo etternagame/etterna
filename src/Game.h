@@ -1,8 +1,8 @@
 #ifndef GAMEDEF_H
 #define GAMEDEF_H
 
-#include "InputMapper.h"
 #include "GameConstantsAndTypes.h"
+#include "InputMapper.h"
 
 struct lua_State;
 class Style;

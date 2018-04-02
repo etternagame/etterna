@@ -3,9 +3,9 @@
 #ifndef BANNER_H
 #define BANNER_H
 
-#include "Sprite.h"
-#include "RageTextureID.h"
 #include "GameConstantsAndTypes.h"
+#include "RageTextureID.h"
+#include "Sprite.h"
 class Song;
 class Character;
 

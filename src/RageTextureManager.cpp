@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Texture garbage collection policies:
  *
  * Default: When DelayedDelete is off, delete unused textures immediately.
@@ -19,16 +19,16 @@
  */
 	
 #include "global.h"
-#include "RageTextureManager.h"
-#include "RageBitmapTexture.h"
-#include "arch/MovieTexture/MovieTexture.h"
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "RageDisplay.h"
-#include "Foreach.h"
 #include "ActorUtil.h"
+#include "Foreach.h"
+#include "RageBitmapTexture.h"
+#include "RageDisplay.h"
+#include "RageLog.h"
+#include "RageTextureManager.h"
+#include "RageUtil.h"
 #include "Screen.h"
 #include "ScreenManager.h"
+#include "arch/MovieTexture/MovieTexture.h"
 
 #include <map>
 
@@ -39,7 +39,7 @@ namespace
 	map<RageTextureID, RageTexture*> m_mapPathToTexture;
 	map<RageTextureID, RageTexture*> m_textures_to_update;
 	map<RageTexture*, RageTextureID> m_texture_ids_by_pointer;
-};
+} // namespace;
 
 RageTextureManager::RageTextureManager()
 	{}
@@ -62,7 +62,7 @@ void RageTextureManager::Update( float fDeltaTime )
 	static RageTimer garbageCollector;
 	if (garbageCollector.PeekDeltaTime() >= 30.0f)
 	{
-		if (SCREENMAN && SCREENMAN->GetTopScreen() &&
+		if ((SCREENMAN != nullptr) && (SCREENMAN->GetTopScreen() != nullptr) &&
 			SCREENMAN->GetTopScreen()->GetScreenType() != gameplay)
 		{
 			DoDelayedDelete();
@@ -195,7 +195,7 @@ RageTexture* RageTextureManager::LoadTextureInternal( RageTextureID ID )
 RageTexture* RageTextureManager::LoadTexture( const RageTextureID &ID )
 {
 	RageTexture* pTexture = LoadTextureInternal( ID );
-	if ( pTexture )
+	if ( pTexture != nullptr )
 	{
 		pTexture->m_lastRefTime.Touch();
 		pTexture->m_bWasUsed = true;
@@ -225,7 +225,7 @@ void RageTextureManager::UnloadTexture( RageTexture *t )
 	t->m_iRefCount--;
 	ASSERT_M( t->m_iRefCount >= 0, ssprintf("%i, %s", t->m_iRefCount, t->GetID().filename.c_str()) );
 
-	if( t->m_iRefCount )
+	if( t->m_iRefCount != 0 )
 		return; /* Can't unload textures that are still referenced. */
 
 	bool bDeleteThis = false;
@@ -271,8 +271,8 @@ void RageTextureManager::DeleteTexture( RageTexture *t )
 		m_texture_ids_by_pointer.erase(id_entry);
 		return;
 	}
-	else
-	{
+	
+	
 		FAIL_M("Tried to delete a texture that wasn't in the ids by pointer list.");
 		FOREACHM( RageTextureID, RageTexture*, m_mapPathToTexture, i )
 		{
@@ -289,7 +289,7 @@ void RageTextureManager::DeleteTexture( RageTexture *t )
 				return;
 			}
 		}
-	}
+	
 
 	FAIL_M("Tried to delete a texture that wasn't loaded");
 }

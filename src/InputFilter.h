@@ -1,4 +1,4 @@
-/* InputFilter - Checks RageInput and generates a list of InputEvents, representing button presses, releases, and repeats. */
+﻿/* InputFilter - Checks RageInput and generates a list of InputEvents, representing button presses, releases, and repeats. */
 
 #ifndef INPUT_FILTER_H
 #define INPUT_FILTER_H

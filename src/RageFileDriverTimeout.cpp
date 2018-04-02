@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This is a filesystem wrapper driver.  To use it, mount it on top of another filesystem at a
  * different mountpoint.  For example, mount the local path "d:/" as a normal directory to
  * /cdrom-native:
@@ -41,12 +41,12 @@
  */
 
 #include "global.h"
-#include "RageFileDriverTimeout.h"
 #include "RageFile.h"
+#include "RageFileDriverTimeout.h"
+#include "RageLog.h"
 #include "RageUtil.h"
 #include "RageUtil_FileDB.h"
 #include "RageUtil_WorkerThread.h"
-#include "RageLog.h"
 #include <cerrno>
 
 enum ThreadRequest
@@ -70,7 +70,7 @@ enum ThreadRequest
 class ThreadedFileWorker: public RageWorkerThread
 {
 public:
-	ThreadedFileWorker( RString sPath );
+	explicit ThreadedFileWorker( RString sPath );
 	~ThreadedFileWorker() override;
 
 	/* Threaded operations.  If a file operation times out, the caller loses all access
@@ -884,7 +884,7 @@ RageFileBasic *RageFileDriverTimeout::Open( const RString &sPath, int iMode, int
 	/* RageBasicFile::GetFileSize isn't allowed to fail, but we are; grab the file
 	 * size now and store it. */
 	int iSize = 0;
-	if( iMode & RageFile::READ )
+	if( (iMode & RageFile::READ) != 0 )
 	{
 		iSize = m_pWorker->GetFileSize( pChildFile );
 		if( iSize == -1 )
