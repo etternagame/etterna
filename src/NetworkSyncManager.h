@@ -248,7 +248,7 @@ class ETTProtocol : public NetProtocol { // Websockets using uwebsockets sending
 	vector<json> newMessages;
 	unsigned int msgId{0};
 	bool error{ false };
-	uWS::WebSocket<uWS::CLIENT>* ws;
+	uWS::WebSocket<uWS::CLIENT>* ws{nullptr};
 	void FindJsonChart(NetworkSyncManager* n, json& ch);
 	int state = 0; // 0 = ready, 1 = playing, 2 = evalScreen, 3 = options, 4 = notReady(unkown reason)
 public:
