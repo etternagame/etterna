@@ -43,7 +43,6 @@ void ModIcon::Load( const RString &sMetricsGroup )
 
 	// stop words
 	STOP_WORDS.Load( sMetricsGroup, "StopWords" );
-	m_vStopWords.empty();
 	split(STOP_WORDS, ",", m_vStopWords);
 
 	Set("");
