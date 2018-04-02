@@ -188,7 +188,7 @@ bool CodeDetector::DetectAndAdjustMusicOptions( GameController controller )
 {
 	PlayerNumber pn = INPUTMAPPER->ControllerToPlayerNumber( controller );
 
-	if (pn < NUM_PlayerNumber) {
+	if (pn >= NUM_PlayerNumber) {
 		LOG->Warn("Invalid controller player number");
 		return false;
 	}
