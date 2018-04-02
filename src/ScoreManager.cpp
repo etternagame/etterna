@@ -453,9 +453,6 @@ void ScoreManager::SortTopSSRPtrs(Skillset ss, const string& profileID) {
 }
 
 HighScore* ScoreManager::GetTopSSRHighScore(unsigned int rank, int ss) {
-	if (rank < 0)
-		rank = 0;
-
 	if (ss >= 0 && ss < NUM_Skillset && rank < TopSSRs.size())
 		return TopSSRs[rank];
 

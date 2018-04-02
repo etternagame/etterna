@@ -1098,7 +1098,7 @@ public:
 	static size_t QuadStateIndex(T* p, lua_State *L, int pos)
 	{
 		size_t index = IArg(pos)-1;
-		if(index < 0 || index >= p->GetNumQuadStates())
+		if(index >= p->GetNumQuadStates())
 		{
 			luaL_error(L, "Invalid state index %d.", index+1);
 		}
