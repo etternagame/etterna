@@ -765,7 +765,7 @@ void DBProfile::SavePlayerScores(SQLite::Database* db, const Profile* profile, D
 		//Add scores per rate
 		FOREACHM(int, ScoresAtRate, chartPair->second.ScoresByRate, ratePair) {
 			//first is rate int and second is ScoresAtRate
-			int rate = ratePair->first; 
+			int rate = ratePair->first;
 			int scoresAtRateID;
 			if (mode != WriteOnlyWebExport) {
 				SQLite::Statement insertScoresAtRate(*db, "INSERT INTO scoresatrates VALUES (NULL, ?, ?, ?, ?)");
@@ -856,8 +856,10 @@ void DBProfile::SavePlayerScores(SQLite::Database* db, const Profile* profile, D
 										insertOffset.exec();
 									}
 								}
-							} catch (std::exception& e) { //No replay data for this score }
-							hs->UnloadReplayData();
+							}
+							catch (std::exception& e) { //No replay data for this score }
+								hs->UnloadReplayData();
+							}
 						}
 					}
 				}

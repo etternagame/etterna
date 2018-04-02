@@ -76,7 +76,7 @@ SongCacheIndex::SongCacheIndex()
 	DBEmpty = !OpenDB();
 }
 
-int64_t SongCacheIndex::InsertStepsTimingData(TimingData& timing)
+int64_t SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 {
 	SQLite::Statement insertTimingData(*db, "INSERT INTO timingdatas VALUES (NULL, "
 		"?, ?, ?, "
