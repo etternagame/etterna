@@ -322,10 +322,6 @@ void MusicWheelItem::RefreshGrades()
 
 		m_pGradeDisplay[p]->SetVisible( true );
 
-
-		Profile *pProfile = PROFILEMAN->GetProfile(ps);
-
-		HighScoreList *pHSL = NULL;
 		HighScoreList *BestpHSL = NULL;
 		Grade gradeBest = Grade_Invalid;
 		Difficulty dcBest = Difficulty_Invalid;
@@ -380,7 +376,6 @@ void MusicWheelItem::RefreshGrades()
 
 void MusicWheelItem::HandleMessage( const Message &msg )
 {
-	static const bool iskyzagoodprogrammer = false;
 	WheelItemBase::HandleMessage( msg );
 }
 

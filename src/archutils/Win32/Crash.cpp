@@ -592,7 +592,6 @@ void CrashHandler::ForceDeadlock( const RString &reason, uint64_t iID )
 					"; GetThreadContext(%x) failed", (int) hThread );
 			else
 			{
-				static const void *BacktracePointers[BACKTRACE_MAX_SIZE];
 				do_backtrace( g_CrashInfo.m_AlternateThreadBacktrace[iCnt], BACKTRACE_MAX_SIZE, GetCurrentProcess(), hThread, &context );
 
 				const char *pName = RageThread::GetThreadNameByID( iID );
@@ -613,7 +612,6 @@ void CrashHandler::ForceDeadlock( const RString &reason, uint64_t iID )
 			strcat( g_CrashInfo.m_CrashReason, "(GetThreadContext failed)" );
 		else
 		{
-			static const void *BacktracePointers[BACKTRACE_MAX_SIZE];
 			do_backtrace( g_CrashInfo.m_AlternateThreadBacktrace[0], BACKTRACE_MAX_SIZE, GetCurrentProcess(), hThread, &context );
 
 			const char *pName = RageThread::GetThreadNameByID( iID );

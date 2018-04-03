@@ -586,9 +586,7 @@ void StageStats::FinalizeScores(bool bSummary)
 	}
 
 	HighScore &hs = m_player[PLAYER_1].m_HighScore;
-	StepsType st = GAMESTATE->GetCurrentStyle(PLAYER_1)->m_StepsType;
 
-	const Song* pSong = GAMESTATE->m_pCurSong;
 	const Steps* pSteps = GAMESTATE->m_pCurSteps[PLAYER_1];
 
 	ASSERT(pSteps != NULL);

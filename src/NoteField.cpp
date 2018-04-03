@@ -788,7 +788,6 @@ void NoteField::DrawPrimitives()
 	{
 		ASSERT(GAMESTATE->m_pCurSong != NULL);
 
-		const TimingData &timing = *pTiming;
 		const RageColor text_glow= RageColor(1,1,1,RageFastCos(RageTimer::GetTimeSinceStartFast()*2)/2+0.5f);
 
 		float horiz_align= align_right;

@@ -452,7 +452,6 @@ static void MakeCrashReport( const CompleteCrashData &Data, RString &sOut )
 	sOut += ssprintf( "\n" );
 
 	// Dump thread stacks
-	static char buf[1024*32];
 	sOut += ssprintf( "%s\n", join("\n", Data.m_asCheckpoints).c_str() );
 
 	sOut += ReportCallStack( Data.m_CrashInfo.m_BacktracePointers );

@@ -775,7 +775,6 @@ void ScreenGameplay::InitSongQueues()
 	{
 		Steps *pSteps = GAMESTATE->m_pCurSteps[pi->GetStepsAndTrailIndex()];
 		pi->m_vpStepsQueue.push_back(pSteps);
-		const PlayerOptions &p = pi->GetPlayerState()->m_PlayerOptions.GetCurrent();
 	}
 
 	if (GAMESTATE->IsPlaylistCourse()) {

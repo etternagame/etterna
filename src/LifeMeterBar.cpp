@@ -82,7 +82,6 @@ void LifeMeterBar::Load( const PlayerState *pPlayerState, PlayerStageStats *pPla
 {
 	LifeMeter::Load( pPlayerState, pPlayerStageStats );
 
-	PlayerNumber pn = pPlayerState->m_PlayerNumber;
 
 	DrainType dtype = pPlayerState->m_PlayerOptions.GetStage().m_DrainType;
 	switch( dtype )

@@ -802,12 +802,12 @@ void RageDisplay_D3D::SendCurrentMatrices()
 class RageCompiledGeometrySWD3D : public RageCompiledGeometry
 {
 public:
-	void Allocate( const vector<msMesh> &vMeshes )
+	void Allocate( const vector<msMesh> &vMeshes ) override
 	{
 		m_vVertex.resize( max(1u, GetTotalVertices()) );
 		m_vTriangles.resize( max(1u, GetTotalTriangles()) );
 	}
-	void Change( const vector<msMesh> &vMeshes )
+	void Change( const vector<msMesh> &vMeshes ) override
 	{
 		for( unsigned i=0; i<vMeshes.size(); i++ )
 		{

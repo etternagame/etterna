@@ -480,7 +480,6 @@ void GameCommand::Apply( const vector<PlayerNumber> &vpns ) const
 
 void GameCommand::ApplySelf( const vector<PlayerNumber> &vpns ) const
 {
-	const PlayMode OldPlayMode = GAMESTATE->m_PlayMode;
 
 	if( m_pm != PlayMode_Invalid )
 		GAMESTATE->m_PlayMode.Set( m_pm );

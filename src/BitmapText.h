@@ -152,7 +152,7 @@ private:
 class ColorBitmapText : public BitmapText
 {
 public:
-	ColorBitmapText * Copy() const;
+	ColorBitmapText * Copy() const override;
 	void SetText(const RString &sText, const RString &sAlternateText = "", int iWrapWidthPixels = -1) override;
 	void ResetText();
 	void DrawPrimitives() override;

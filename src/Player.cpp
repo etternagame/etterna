@@ -623,7 +623,6 @@ void Player::Load()
 	if (!m_Timing->ValidSequentialAssumption)
 		m_pPlayerStageStats->luascriptwasloaded = true;
 
-	Profile *pProfile = PROFILEMAN->GetProfile(pn);
 	const HighScore* pb = SCOREMAN->GetChartPBAt(GAMESTATE->m_pCurSteps[pn]->GetChartKey(), GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 	if (pb != nullptr)
 		wifescorepersonalbest = pb->GetWifeScore();
@@ -652,7 +651,6 @@ void Player::Load()
 		m_pNoteField->Load( &m_NoteData, iDrawDistanceAfterTargetsPixels, iDrawDistanceBeforeTargetsPixels );
 	}
 
-	bool bPlayerUsingBothSides = GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)->GetUsesCenteredArrows();
 
 	// set this in Update 
 	//m_pJudgment->SetX( JUDGMENT_X.GetValue(pn,bPlayerUsingBothSides) );
@@ -1507,7 +1505,6 @@ void Player::DrawHoldJudgments()
 
 void Player::ChangeLife( TapNoteScore tns )
 {
-	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 	if( m_pLifeMeter != nullptr )
 		m_pLifeMeter->ChangeLife( tns );
 
@@ -1516,7 +1513,6 @@ void Player::ChangeLife( TapNoteScore tns )
 
 void Player::ChangeLife( HoldNoteScore hns, TapNoteScore tns )
 {
-	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 	if( m_pLifeMeter != nullptr )
 		m_pLifeMeter->ChangeLife( hns, tns );
 
@@ -1530,7 +1526,6 @@ void Player::ChangeLife(float delta)
 	// change) to the time of this change, instead of the sharp change that
 	// actually occurred. -Kyz
 	ChangeLifeRecord();
-	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 	if(m_pLifeMeter != nullptr)
 	{
 		m_pLifeMeter->ChangeLife(delta);
@@ -1545,7 +1540,6 @@ void Player::SetLife(float value)
 	// change) to the time of this change, instead of the sharp change that
 	// actually occurred. -Kyz
 	ChangeLifeRecord();
-	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 	if(m_pLifeMeter != nullptr)
 	{
 		m_pLifeMeter->SetLife(value);
@@ -1555,7 +1549,6 @@ void Player::SetLife(float value)
 
 void Player::ChangeLifeRecord()
 {
-	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 	float fLife = -1;
 	if( m_pLifeMeter != nullptr )
 	{
@@ -1620,8 +1613,6 @@ int Player::GetClosestNote( int col, int iNoteRow, int iMaxRowsAhead, int iMaxRo
 	if( iPrevIndex == -1 )
 		return iNextIndex;
 
-	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
-
 	// Get the current time, previous time, and next time.
 	float fNoteTime = m_pPlayerState->m_Position.m_fMusicSeconds;
 	float fNextTime = m_Timing->WhereUAtBro(iNextIndex);
@@ -1676,8 +1667,6 @@ int Player::GetClosestNonEmptyRowDirectional( int iStartRow, int iEndRow, bool /
 // Find the closest note to fBeat.
 int Player::GetClosestNonEmptyRow( int iNoteRow, int iMaxRowsAhead, int iMaxRowsBehind, bool bAllowGraded ) const
 {
-	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
-
 	// Start at iIndexStartLookingAt and search outward.
 	int iNextRow = GetClosestNonEmptyRowDirectional( iNoteRow, iNoteRow+iMaxRowsAhead, bAllowGraded, true );
 	int iPrevRow = GetClosestNonEmptyRowDirectional( iNoteRow-iMaxRowsBehind, iNoteRow, bAllowGraded, false );
@@ -1726,8 +1715,6 @@ void Player::DoTapScoreNone()
 
 	if( m_pLifeMeter != nullptr )
 		m_pLifeMeter->HandleTapScoreNone();
-	// TODO: Remove use of PlayerNumber
-	PlayerNumber pn = PLAYER_INVALID;
 
 	if( PENALIZE_TAP_SCORE_NONE )
 	{
@@ -1802,9 +1789,6 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 {
 	if( IsOniDead() )
 		return;
-
-	// TODO: remove use of PlayerNumber
-	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 
 	// Do everything that depends on a timer here;
 	// set your breakpoints somewhere after this block.
@@ -1980,7 +1964,6 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 
 		const float fSecondsFromExact = fabsf( fNoteOffset );
 
-		TapNote tnDummy = TAP_ORIGINAL_TAP;
 		TapNote *pTN = NULL;
 		NoteData::iterator iter = m_NoteData.FindTapNote( col, iRowOfOverlappingNoteOrRow );
 		DEBUG_ASSERT( iter!= m_NoteData.end(col) );

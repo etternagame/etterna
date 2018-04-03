@@ -1,5 +1,3 @@
-#pragma once
-
 #include "global.h"
 #if !defined(WITHOUT_NETWORKING)
 #include "RageFileManager.h"
@@ -399,7 +397,7 @@ void DownloadManager::UpdateHTTP(float fDeltaSeconds)
 
 	mc = curl_multi_fdset(mHTTPHandle, &fdread, &fdwrite, &fdexcep, &maxfd);
 	if (mc != CURLM_OK) {
-		error = "curl_multi_fdset() failed, code " + mc;
+		error = "curl_multi_fdset() failed, code " + to_string(mc);
 		return;
 	}
 	if (maxfd == -1) {
@@ -410,7 +408,7 @@ void DownloadManager::UpdateHTTP(float fDeltaSeconds)
 	}
 	switch (rc) {
 	case -1:
-		error = "select error" + mc;
+		error = "select error" + to_string(mc);
 		break;
 	case 0: /* timeout */
 	default: /* action */
@@ -421,7 +419,7 @@ void DownloadManager::UpdateHTTP(float fDeltaSeconds)
 	//Check for finished downloads
 	CURLMsg *msg;
 	int msgs_left;
-	while (msg = curl_multi_info_read(mHTTPHandle, &msgs_left)) {
+	while ((msg = curl_multi_info_read(mHTTPHandle, &msgs_left))) {
 		/* Find out which handle this message is about */
 		for (int i = 0; i < HTTPRequests.size();++i) {
 			if (msg->easy_handle == HTTPRequests[i]->handle) {
@@ -477,7 +475,7 @@ void DownloadManager::UpdatePacks(float fDeltaSeconds)
 
 	mc = curl_multi_fdset(mPackHandle, &fdread, &fdwrite, &fdexcep, &maxfd);
 	if (mc != CURLM_OK) {
-		error = "curl_multi_fdset() failed, code " + mc;
+		error = "curl_multi_fdset() failed, code " + to_string(mc);
 		return;
 	}
 	if (maxfd == -1) {
@@ -488,7 +486,7 @@ void DownloadManager::UpdatePacks(float fDeltaSeconds)
 	}
 	switch (rc) {
 	case -1:
-		error = "select error" + mc;
+		error = "select error" + to_string(mc);
 		break;
 	case 0: /* timeout */
 	default: /* action */
@@ -503,7 +501,7 @@ void DownloadManager::UpdatePacks(float fDeltaSeconds)
 	int msgs_left;
 	bool installedPacks = false;
 	bool finishedADownload = false;
-	while (msg = curl_multi_info_read(mPackHandle, &msgs_left)) {
+	while ((msg = curl_multi_info_read(mPackHandle, &msgs_left))) {
 		/* Find out which handle this message is about */
 		for (auto i = downloads.begin(); i != downloads.end(); i++) {
 			if (msg->easy_handle == i->second->handle) {
@@ -619,7 +617,6 @@ void DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	string url = serverURL.Get() + "/upload_score";
 	curl_httppost *form = nullptr;
 	curl_httppost *lastPtr = nullptr;
-	curl_slist *headerlist = nullptr;
 	SetCURLPOSTScore(curlHandle, form, lastPtr, hs);
 	string replayString;
 	vector<float> offsets = hs->GetOffsetVector();

@@ -32,7 +32,6 @@ void PlayerState::Update( float fDelta )
 	// TRICKY: GAMESTATE->Update is run before any of the Screen update's,
 	// so we'll clear these flags here and let them get turned on later
 
-	bool bRebuildPlayerOptions = false;
 
 	// Update after enabling attacks, so we approach the new state.
 	m_PlayerOptions.Update( fDelta );

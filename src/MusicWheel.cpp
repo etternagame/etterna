@@ -438,16 +438,16 @@ void MusicWheel::FilterBySearch(vector<Song*>& inv, RString findme) {
 		else {
 			if (findauthor == "") {
 				if (findtitle == "")
-					check = [&findauthor, &findartist, &findtitle](Song* x) {
+					check = [&findartist](Song* x) {
 						return contains(x->GetDisplayArtist(), findartist);
 					};
 				else {
 					if (findartist == "")
-						check = [&findauthor, &findartist, &findtitle](Song* x) {
+						check = [&findtitle](Song* x) {
 							return  contains(x->GetDisplayMainTitle(), findtitle);
 						};
 					else
-						check = [&findauthor, &findartist, &findtitle](Song* x) {
+						check = [&findartist, &findtitle](Song* x) {
 							return contains(x->GetDisplayArtist(), findartist) ||
 								contains(x->GetDisplayMainTitle(), findtitle);
 						};
@@ -456,17 +456,17 @@ void MusicWheel::FilterBySearch(vector<Song*>& inv, RString findme) {
 			else {
 				if (findtitle == "") {
 					if (findartist == "")
-						check = [&findauthor, &findartist, &findtitle](Song* x) {
+						check = [&findauthor](Song* x) {
 							return  contains(x->GetOrTryAtLeastToGetSimfileAuthor(), findauthor);
 						};
 					else
-						check = [&findauthor, &findartist, &findtitle](Song* x) {
+						check = [&findauthor, &findartist](Song* x) {
 							return  contains(x->GetDisplayArtist(), findartist) ||
 								contains(x->GetOrTryAtLeastToGetSimfileAuthor(), findauthor);
 						};
 				}
 				else {
-					check = [&findauthor, &findartist, &findtitle](Song* x) {
+					check = [&findauthor, &findtitle](Song* x) {
 						return  contains(x->GetDisplayMainTitle(), findtitle) ||
 							contains(x->GetOrTryAtLeastToGetSimfileAuthor(), findauthor);
 					};

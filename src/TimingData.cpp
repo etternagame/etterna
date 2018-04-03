@@ -110,7 +110,6 @@ void TimingData::PrepareLookup()
 
 		GetBeatStarts time_start;
 		time_start.last_time= -m_fBeat0OffsetInSeconds;
-		float time= GetElapsedTimeInternal(time_start, FLT_MAX, curr_segment);
 		m_time_start_lookup.push_back(lookup_item_t(NoteRowToBeat(time_start.last_row), time_start));
 	}
 	// If there are less than two entries, then FindEntryInLookup in lookup
@@ -1442,7 +1441,6 @@ const vector<float>& TimingData::BuildAndGetEtaner(const vector<int>& nerv) {
 
 	// handle simple single bpm case if applicable -mina
 	if (bpms.size() == 1) {
-		float last_time = 0.f;
 		float bps = GetBPMAtRow(0) / 60.f;
 		for (auto& n : nerv) {
 			ElapsedTimesAtNonEmptyRows.emplace_back(NoteRowToBeat(n) / bps - m_fBeat0OffsetInSeconds);
@@ -1505,7 +1503,6 @@ const vector<float>& TimingData::BuildAndGetEtar(int lastrow) {
 
 	// handle single bpm case if applicable -mina
 	if (bpms.size() == 1) {
-		float last_time = 0.f;
 		float bps = GetBPMAtRow(0) / 60.0f;
 		for (int i = 0; i < lastrow; ++i) {
 			ElapsedTimesAtAllRows.emplace_back(NoteRowToBeat(i) / bps - m_fBeat0OffsetInSeconds);
