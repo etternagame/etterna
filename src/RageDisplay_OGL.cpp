@@ -2202,9 +2202,9 @@ unsigned RageDisplay_Legacy::CreateTexture(
 
 	DebugFlushGLErrors();
 
-	if (bGenerateMipMaps)
+	if (pImg->pixels)
 	{
-		if (pImg->pixels)
+		if (bGenerateMipMaps)
 		{
 			glTexImage2D(
 				GL_TEXTURE_2D, 0, glTexFormat,
@@ -2215,10 +2215,7 @@ unsigned RageDisplay_Legacy::CreateTexture(
 
 			DebugAssertNoGLError();
 		}
-	}
-	else
-	{
-		if (pImg->pixels)
+		else
 		{
 			glTexImage2D(
 				GL_TEXTURE_2D, 0, glTexFormat,
