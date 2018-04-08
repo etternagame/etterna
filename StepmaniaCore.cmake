@@ -248,18 +248,47 @@ if(WIN32)
   set(SYSTEM_PCRE_FOUND FALSE)
   find_package(DirectX REQUIRED)
   
-  link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc.lib)
-  include_directories(${SM_EXTERN_DIR}/discord-rpc-2.0.1/include)
-  link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/discord-rpc.lib)
-  link_libraries(${SM_EXTERN_DIR}/LuaJIT/lua51.lib)
-  include_directories(${SM_EXTERN_DIR}/LuaJIT/include)
-  
+  if("${CMAKE_SIZEOF_VOID_P}" STREQUAL "4")
+    link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc.lib)
+    link_libraries(${SM_EXTERN_DIR}/LuaJIT/win32/lua51.lib)
+    find_library(LIB_CURL NAMES "libcurl"
+	  PATHS "${SM_EXTERN_DIR}/libcurl" NO_DEFAULT_PATH
+	  )
+    get_filename_component(LIB_CURL ${LIB_CURL} NAME)
+      
+    find_library(LIB_WLDAP32 NAMES "wldap32"
+	  PATHS "${SM_EXTERN_DIR}/libcurl" NO_DEFAULT_PATH
+	  )
+    get_filename_component(LIB_WLDAP32 ${LIB_WLDAP32} NAME)
+    link_libraries(${SM_EXTERN_DIR}/uWebSocket/lib/32bit/uWS.lib)
+    link_libraries(${SM_EXTERN_DIR}/uWebSocket/lib/32bit/libeay32.lib)
+    link_libraries(${SM_EXTERN_DIR}/uWebSocket/lib/32bit/ssleay32.lib)
+    link_libraries(${SM_EXTERN_DIR}/uWebSocket/lib/32bit/libuv.lib)
+    link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/discord-rpc.lib)
+  else()
+    link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc_x86.lib)
+	link_libraries(${SM_EXTERN_DIR}/LuaJIT/win_x86/lua51.lib)
+    find_library(LIB_CURL NAMES "libcurl_x86"
+	  PATHS "${SM_EXTERN_DIR}/libcurl" NO_DEFAULT_PATH
+	  )
+    get_filename_component(LIB_CURL ${LIB_CURL} NAME)
+    link_libraries(${SM_EXTERN_DIR}/uWebSocket/lib/x86/uWS.lib)
+    link_libraries(${SM_EXTERN_DIR}/uWebSocket/lib/x86/libeay32.lib)
+    link_libraries(${SM_EXTERN_DIR}/uWebSocket/lib/x86/ssleay32.lib)
+    link_libraries(${SM_EXTERN_DIR}/uWebSocket/lib/x86/libuv.lib)
+    link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/discord-rpc_x86.lib)
+  endif()
   include_directories(${SM_EXTERN_DIR}/uWebSocket/include)
   include_directories(${SM_EXTERN_DIR}/uWebSocket/includelibs)
-  link_libraries(${SM_EXTERN_DIR}/uWebSocket/uWS.lib)
-  link_libraries(${SM_EXTERN_DIR}/uWebSocket/libeay32.lib)
-  link_libraries(${SM_EXTERN_DIR}/uWebSocket/ssleay32.lib)
-  link_libraries(${SM_EXTERN_DIR}/uWebSocket/libuv.lib)
+  include_directories(${SM_EXTERN_DIR}/discord-rpc-2.0.1/include)
+  include_directories(${SM_EXTERN_DIR}/LuaJIT/include)
+  
+  #include_directories(${SM_EXTERN_DIR}/uWebSocket/include)
+  #include_directories(${SM_EXTERN_DIR}/uWebSocket/includelibs)
+  #link_libraries(${SM_EXTERN_DIR}/uWebSocket/uWS.lib)
+  #link_libraries(${SM_EXTERN_DIR}/uWebSocket/libeay32.lib)
+  #link_libraries(${SM_EXTERN_DIR}/uWebSocket/ssleay32.lib)
+  #link_libraries(${SM_EXTERN_DIR}/uWebSocket/libuv.lib)
   if (MINGW AND WITH_FFMPEG)
     include("${SM_CMAKE_DIR}/SetupFfmpeg.cmake")
     set(HAS_FFMPEG TRUE)
@@ -286,15 +315,6 @@ if(WIN32)
     get_filename_component(LIB_AVUTIL ${LIB_AVUTIL} NAME)
   endif()
   
-  find_library(LIB_CURL NAMES "libcurl"
-	PATHS "${SM_EXTERN_DIR}/libcurl" NO_DEFAULT_PATH
-	)
-  get_filename_component(LIB_CURL ${LIB_CURL} NAME)
-  
-  find_library(LIB_WLDAP32 NAMES "wldap32"
-	PATHS "${SM_EXTERN_DIR}/libcurl" NO_DEFAULT_PATH
-	)
-  get_filename_component(LIB_WLDAP32 ${LIB_WLDAP32} NAME)
   
 elseif(MACOSX)
 

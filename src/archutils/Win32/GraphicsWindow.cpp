@@ -320,13 +320,21 @@ void GraphicsWindow::CreateGraphicsWindow( const VideoModeParams &p, bool bForce
 	// Update the window icon.
 	if( g_hIcon != NULL )
 	{
-		SetClassLong( g_hWndMain, GCL_HICON, (LONG) LoadIcon(NULL,IDI_APPLICATION) );
+#if _WIN64
+		SetClassLongPtr(g_hWndMain, GCLP_HICON, (LONG)LoadIcon(NULL, IDI_APPLICATION));
+#else
+		SetClassLong(g_hWndMain, GCL_HICON, (LONG)LoadIcon(NULL, IDI_APPLICATION));
+#endif
 		DestroyIcon( g_hIcon );
 		g_hIcon = NULL;
 	}
 	g_hIcon = IconFromFile( p.sIconFile );
 	if( g_hIcon != NULL )
-		SetClassLong( g_hWndMain, GCL_HICON, (LONG) g_hIcon );
+#if _WIN64
+		SetClassLongPtr(g_hWndMain, GCLP_HICON, (LONG)g_hIcon);
+#else
+		SetClassLong(g_hWndMain, GCL_HICON, (LONG)g_hIcon);
+#endif
 
 	/* The window style may change as a result of switching to or from fullscreen;
 	 * apply it. Don't change the WS_VISIBLE bit. */

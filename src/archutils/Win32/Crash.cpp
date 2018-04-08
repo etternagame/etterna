@@ -291,7 +291,11 @@ static long MainExceptionHandler( EXCEPTION_POINTERS *pExc )
 	case EXCEPTION_FLT_OVERFLOW:
 	case EXCEPTION_FLT_UNDERFLOW:
 	case EXCEPTION_FLT_INEXACT_RESULT:
+#if _WIN64
+		pExc->ContextRecord->FltSave.ControlWord |= 0x3F;
+#else
 		pExc->ContextRecord->FloatSave.ControlWord |= 0x3F;
+#endif
 		return EXCEPTION_CONTINUE_EXECUTION;
 	}
 
@@ -364,9 +368,13 @@ long __stdcall CrashHandler::ExceptionHandler( EXCEPTION_POINTERS *pExc )
 	int iSize = 1024*32;
 	char *pStack = (char *) VirtualAlloc( NULL, iSize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE );
 	pStack += iSize;
-	// FIXME: This will probably explode on x86-64
 #if defined(_MSC_VER)
+#if _WIN64
+	// TODO
+#else
+	// FIXME: This will probably explode on x86-64
 	_asm mov esp, pStack;
+#endif
 #elif defined(__GNUC__)
 	asm volatile ("movl %%esp, %0\n\t"
 	:
@@ -473,12 +481,20 @@ void CrashHandler::do_backtrace( const void **buf, size_t size,
 	 * due to stack corruption, we might not be able to get any frames from the
 	 * stack. Pull it out of pContext->Eip, which is always valid, and then
 	 * discard the first stack frame if it's the same. */
-	if( buf+1 != pLast && pContext->Eip != NULL )
+#if _WIN64
+	if (buf + 1 != pLast && pContext->Rip != NULL)
 	{
-		*buf = (void *) pContext->Eip;
+		*buf = (void *)pContext->Rip;
 		++buf;
 	}
 
+#else
+	if (buf + 1 != pLast && pContext->Eip != NULL)
+	{
+		*buf = (void *)pContext->Eip;
+		++buf;
+}
+#endif
 	// Retrieve stack pointers.
 	const char *pStackBase;
 	{
@@ -495,9 +511,13 @@ void CrashHandler::do_backtrace( const void **buf, size_t size,
 	}
 
 	// Walk up the stack.
+#if _WIN64
+	const char *lpAddr = (const char *)pContext->Rip;
+	const void *data = (void *)pContext->Rip;
+#else
 	const char *lpAddr = (const char *)pContext->Esp;
-
-	const void *data = (void *) pContext->Eip;
+	const void *data = (void *)pContext->Eip;
+#endif
 	do {
 		if( buf == pLast )
 			break;
@@ -506,7 +526,11 @@ void CrashHandler::do_backtrace( const void **buf, size_t size,
 
 		/* The first entry is usually EIP.  We already logged it; skip it, so we don't always
 		 * show the first frame twice. */
-		if( bFirst && data == (void *) pContext->Eip )
+#if _WIN64
+		if (bFirst && data == (void *)pContext->Rip)
+#else
+		if (bFirst && data == (void *)pContext->Eip)
+#endif
 			fValid = false;
 		bFirst = false;
 
@@ -518,7 +542,11 @@ void CrashHandler::do_backtrace( const void **buf, size_t size,
 			if (!IsExecutableProtection(meminfo.Protect) || meminfo.State!=MEM_COMMIT)
 				fValid = false;
 
-			if ( data != (void *) pContext->Eip && !PointsToValidCall((unsigned long)data) )
+#if _WIN64
+			if ( data != (void *) pContext->Rip && !PointsToValidCall((unsigned long)data) )
+#else
+			if (data != (void *)pContext->Eip && !PointsToValidCall((unsigned long)data))
+#endif
 				fValid = false;
 		}
 
