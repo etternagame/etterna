@@ -206,24 +206,28 @@ local function firstHalfInput(event)
 			if event.DeviceInput.button == "DeviceButton_up" then
 				errorBarY = errorBarY - 5
 				eb.Center:y(errorBarY)
+				eb.WeightedBar:y(errorBarY)
 				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ErrorBarY = errorBarY
 				changed = true
 			end
 			if event.DeviceInput.button == "DeviceButton_down" then
 				errorBarY = errorBarY + 5
 				eb.Center:y(errorBarY)
+				eb.WeightedBar:y(errorBarY)
 				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ErrorBarY = errorBarY
 				changed = true
 			end
 			if event.DeviceInput.button == "DeviceButton_left" then
 				errorBarX = errorBarX - 5
 				eb.Center:x(errorBarX)
+				eb.WeightedBar:x(errorBarX)
 				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ErrorBarX = errorBarX
 				changed = true
 			end
 			if event.DeviceInput.button == "DeviceButton_right" then
 				errorBarX = errorBarX + 5
 				eb.Center:x(errorBarX)
+				eb.WeightedBar:x(errorBarX)
 				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ErrorBarX = errorBarX
 				changed = true
 			end
@@ -238,12 +242,14 @@ local function firstHalfInput(event)
 			if event.DeviceInput.button == "DeviceButton_up" then
 				errorBarHeight = errorBarHeight + 1
 				eb.Center:zoomtoheight(errorBarHeight)
+				eb.WeightedBar:zoomtoheight(errorBarHeight)
 				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.ErrorBarHeight = errorBarHeight
 				changed = true
 			end
 			if event.DeviceInput.button == "DeviceButton_down" then
 				errorBarHeight = errorBarHeight - 1
 				eb.Center:zoomtoheight(errorBarHeight)
+				eb.WeightedBar:zoomtoheight(errorBarHeight)
 				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.ErrorBarHeight = errorBarHeight
 				changed = true
 			end
@@ -900,6 +906,9 @@ local barDuration = 0.75 								-- Time duration in seconds before the ticks fa
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
 local currentbar = 1 									-- so we know which error bar we need to update
 local ingots = {}										-- references to the error bars
+local alpha = 0.07;										-- ewma alpha
+local avg;
+local lastAvg;
 
 -- Makes the error bars. They position themselves relative to the center of the screen based on your dv and diffuse to your judgement value before disappating or refreshing
 -- Should eventually be handled by the game itself to optimize performance
@@ -922,22 +931,45 @@ function smeltErrorBar(index)
 	}
 end
 
-local e = Def.ActorFrame{										
+local e = Def.ActorFrame{
 	InitCommand = function(self)
 		eb = self:GetChildren()
-		for i=1,barcount do											-- basically the equivalent of using GetChildren() if it returned unnamed children numerically indexed
-			ingots[#ingots+1] = self:GetChild(i)
+		if enabledErrorBar == 1 then
+			for i=1,barcount do											-- basically the equivalent of using GetChildren() if it returned unnamed children numerically indexed
+				ingots[#ingots+1] = self:GetChild(i)
+			end
+		else
+			avg = 0;
+			lastAvg = 0;
 		end
 	end,
-	SpottedOffsetMessageCommand=function(self)				
-		currentbar = ((currentbar)%barcount) + 1
-		playcommand(ingots[currentbar],"UpdateErrorBar")			-- Update the next bar in the queue
+	SpottedOffsetMessageCommand=function(self)
+		if enabledErrorBar == 1 then
+			currentbar = ((currentbar)%barcount) + 1
+			playcommand(ingots[currentbar],"UpdateErrorBar")			-- Update the next bar in the queue
+		end
 	end,
 	DootCommand=function(self)
 		self:RemoveChild("DestroyMe")
 		self:RemoveChild("DestroyMe2")
 	end,
-
+	Def.Quad{
+		Name = "WeightedBar",
+		InitCommand=function(self)
+			if enabledErrorBar == 2 then
+				self:xy(errorBarX,errorBarY):zoomto(barWidth,errorBarHeight):diffusealpha(1):diffuse(getMainColor('enabled'))
+			else
+				self:visible(false)
+			end
+		end,
+		SpottedOffsetMessageCommand=function(self)
+			if enabledErrorBar == 2 then
+				avg = alpha * dvCur + (1 - alpha) * lastAvg
+				lastAvg = avg
+				self:x(errorBarX+avg*wscale)
+			end
+		end
+	},
 	Def.Quad {
 		Name = "Center",
 		InitCommand=function(self)
@@ -968,9 +1000,12 @@ local e = Def.ActorFrame{
 	}
 }
 
+
 -- Initialize bars
-for i=1,barcount do
-	e[#e+1] = smeltErrorBar(i)
+if enabledErrorBar == 1 then
+	for i=1,barcount do
+		e[#e+1] = smeltErrorBar(i)
+	end
 end
 
 -- Add the completed errorbar frame to the primary actor frame t if enabled
