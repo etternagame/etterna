@@ -335,11 +335,22 @@ vector<float> PlayerStageStats::CalcSSR(float ssrpercent ) const {
 void PlayerStageStats::GenerateValidationKeys(HighScore& hs) const {
 	string key = "";
 
-	// just designed to catch shameless stats xml tampering by people who aren't experienced enough to look this up -mina
-	FOREACH_ENUM(TapNoteScore, tns)
+	FOREACH_ENUM(TapNoteScore, tns) {
+
+		if(tns == TNS_AvoidMine || tns == TNS_CheckpointHit || tns == TNS_CheckpointMiss || tns == TNS_None) {
+			continue;
+		}
+
 		key.append(to_string(hs.GetTapNoteScore(tns)));
-	FOREACH_ENUM(HoldNoteScore, hns)
+	}	
+	
+	FOREACH_ENUM(HoldNoteScore, hns) {
+		if (hns == HNS_None) {
+			continue;
+		}
+
 		key.append(to_string(hs.GetHoldNoteScore(hns)));
+	}
 
 	key.append(hs.GetScoreKey());
 	key.append(hs.GetChartKey());
