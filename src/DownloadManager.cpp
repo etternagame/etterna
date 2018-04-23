@@ -649,7 +649,7 @@ void DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 			parsed = false;
 		}
 		hs->AddUploadedServer(serverURL.Get());
-		if (parsed && j.find("error") != j.end()) {
+		if (parsed && j.find("error") == j.end()) {
 			FOREACH_ENUM(Skillset, ss)
 				if(ss!=Skill_Overall)
 					(DLMAN->sessionRatings)[ss] = ratings.value(SkillsetToString(ss), 0.0);
