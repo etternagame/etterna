@@ -692,6 +692,9 @@ void ScreenTextEntry::LoadFromTextEntrySettings( const TextEntrySettings &settin
 	g_OnCancelFunc = settings.OnCancel;
 	g_ValidateAppendFunc = settings.ValidateAppend;
 	g_FormatAnswerForDisplayFunc = settings.FormatAnswerForDisplay;
+	g_sInitialAnswer = settings.sInitialAnswer;
+	g_bPassword = settings.bPassword;
+	g_iMaxInputLength = settings.iMaxInputLength;
 
 	// set functions
 	SetTextEntrySettings(
