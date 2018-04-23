@@ -1257,6 +1257,8 @@ public:
 		auto v = p->GetOffsetVector();
 		bool loaded = v.size() > 0;
 		if (loaded || p->LoadReplayData()) {
+			if (!loaded)
+				v = p->GetOffsetVector();
 			for (size_t i = 0; i < v.size(); ++i)
 				v[i] = v[i] * 1000;
 			LuaHelpers::CreateTableFromArray(v, L);
@@ -1269,10 +1271,12 @@ public:
 	}
 
 	static int GetNoteRowVector(T* p, lua_State *L) {
-		auto& v = p->GetNoteRowVector();
-		bool loaded = v.size() > 0;
+		auto* v = &(p->GetNoteRowVector());
+		bool loaded = v->size() > 0;
 		if (loaded || p->LoadReplayData()) {
-			LuaHelpers::CreateTableFromArray(v, L);
+			if (!loaded)
+				v = &(p->GetNoteRowVector());
+			LuaHelpers::CreateTableFromArray((*v), L);
 			if(!loaded)
 				p->UnloadReplayData();
 		}
