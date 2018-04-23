@@ -2,11 +2,24 @@
 #include "Profile.h"
 #include "RageUtil.h"
 #include "PrefsManager.h"
-#include "XmlFile.h"
 #include "IniFile.h"
 #include "GameManager.h"
 #include "GameState.h"
+#include "IniFile.h"
+#include "LuaManager.h"
+#include "MinaCalc.h"
+#include "NoteData.h"
+#include "NoteDataWithScoring.h"
+#include "PrefsManager.h"
+#include "Profile.h"
+#include "ProfileManager.h"
+#include "RageFile.h"
+#include "RageFileDriverDeflate.h"
+#include "RageFileManager.h"
 #include "RageLog.h"
+#include "RageUtil.h"
+#include "ScoreManager.h"
+#include "ScreenManager.h"
 #include "Song.h"
 #include "SongManager.h"
 #include "Steps.h"
@@ -17,8 +30,6 @@
 #include "RageFileDriverDeflate.h"
 #include "RageFileManager.h"
 #include "LuaManager.h"
-#include "XmlFile.h"
-#include "XmlFileUtil.h"
 #include "Foreach.h"
 #include "Game.h"
 #include "CharacterManager.h"
@@ -28,33 +39,28 @@
 #include "ScoreManager.h"
 #include <algorithm>
 #include "ScreenManager.h"
+#include "XMLProfile.h"
 
-const RString STATS_XML            = "Stats.xml";
-const RString STATS_XML_GZ         = "Stats.xml.gz";
-const RString ETT_XML			   = "Etterna.xml";
-const RString ETT_XML_GZ		   = "Etterna.xml.gz";
 /** @brief The filename for where one can edit their personal profile information. */
 const RString EDITABLE_INI         = "Editable.ini";
 /** @brief A tiny file containing the type and list priority. */
 const RString TYPE_INI             = "Type.ini";
 /** @brief The filename containing the signature for STATS_XML's signature. */
-const RString DONT_SHARE_SIG       = "DontShare.sig";
 const RString PUBLIC_KEY_FILE      = "public.key";
 const RString SCREENSHOTS_SUBDIR   = "Screenshots/";
 const RString EDIT_STEPS_SUBDIR    = "Edits/";
 //const RString UPLOAD_SUBDIR         = "Upload/";
 const RString RIVAL_SUBDIR         = "Rivals/";
 
-ThemeMetric<bool> SHOW_COIN_DATA( "Profile", "ShowCoinData" );
-static Preference<bool> g_bProfileDataCompress( "ProfileDataCompress", false );
+ThemeMetric<bool> SHOW_COIN_DATA( "Profile", "ShowCoinData" );;
 #define GUID_SIZE_BYTES 8
 
-#define MAX_EDITABLE_INI_SIZE_BYTES			2*1024		// 2KB
+#define MAX_EDITABLE_INI_SIZE_BYTES			(2*1024)		// 2KB
 #define MAX_PLAYER_STATS_XML_SIZE_BYTES	\
-	400 /* Songs */						\
+	(400 /* Songs */						\
 	* 5 /* Steps per Song */			\
 	* 5 /* HighScores per Steps */		\
-	* 1024 /* size in bytes of a HighScores XNode */
+	* 1024) /* size in bytes of a HighScores XNode */
 
 const int DEFAULT_WEIGHT_POUNDS	= 120;
 const float DEFAULT_BIRTH_YEAR= 1995;
@@ -100,7 +106,7 @@ void Profile::ClearStats()
 
 RString Profile::MakeGuid()
 {
-	RString s;
+	string s;
 	s.reserve( GUID_SIZE_BYTES*2 );
 	unsigned char buf[GUID_SIZE_BYTES];
 	CryptManager::GetRandomBytes( buf, GUID_SIZE_BYTES );
@@ -392,7 +398,7 @@ void Profile::AddStepsHighScore( const Song* pSong, const Steps* pSteps, HighSco
 
 const HighScoreList& Profile::GetStepsHighScoreList( const Song* pSong, const Steps* pSteps ) const
 {
-	return ((Profile*)this)->GetStepsHighScoreList(pSong,pSteps);
+	return (const_cast<Profile*>(this))->GetStepsHighScoreList(pSong,pSteps);
 }
 
 HighScoreList& Profile::GetStepsHighScoreList( const Song* pSong, const Steps* pSteps )
@@ -496,7 +502,7 @@ void Profile::GetAllUsedHighScoreNames(std::set<RString>& names)
 {
 #define GET_NAMES_FROM_MAP(main_member, main_key_type, main_value_type, sub_member, sub_key_type, sub_value_type) \
 	for(std::map<main_key_type, main_value_type>::iterator main_entry= \
-				main_member.begin(); main_entry != main_member.end(); ++main_entry) \
+				(main_member).begin(); main_entry != (main_member).end(); ++main_entry) \
 	{ \
 		for(std::map<sub_key_type, sub_value_type>::iterator sub_entry= \
 					main_entry->second.sub_member.begin(); \
@@ -573,10 +579,10 @@ void Profile::MergeScoresFromOtherProfile(Profile* other, bool skip_totals,
 			++main_entry) \
 	{ \
 		std::map<main_key_type, main_value_type>::iterator this_entry= \
-			main_member.find(main_entry->first); \
-		if(this_entry == main_member.end()) \
+			(main_member).find(main_entry->first); \
+		if(this_entry == (main_member).end()) \
 		{ \
-			main_member[main_entry->first]= main_entry->second; \
+			(main_member)[main_entry->first]= main_entry->second; \
 		} \
 		else \
 		{ \
@@ -641,8 +647,8 @@ void Profile::swap(Profile& other)
 #define SWAP_STR_MEMBER(member_name) member_name.swap(other.member_name)
 #define SWAP_GENERAL(member_name) std::swap(member_name, other.member_name)
 #define SWAP_ARRAY(member_name, size) \
-	for(int i= 0; i < size; ++i) { \
-		std::swap(member_name[i], other.member_name[i]); } \
+	for(int i= 0; i < (size); ++i) { \
+		std::swap((member_name)[i], other.member_name[i]); } \
 	SWAP_GENERAL(m_ListPriority);
 	SWAP_STR_MEMBER(m_sDisplayName);
 	SWAP_STR_MEMBER(m_sCharacterID);
@@ -715,20 +721,6 @@ void Profile::IncrementCategoryPlayCount( StepsType st, RankingCategory rc )
 	m_CategoryHighScores[st][rc].IncrementPlayCount( now );
 }
 
-
-// Loading and saving
-#define WARN_PARSER	ShowWarningOrTrace( __FILE__, __LINE__, "Error parsing file.", true )
-#define WARN_AND_RETURN { WARN_PARSER; return; }
-#define WARN_AND_CONTINUE { WARN_PARSER; continue; }
-#define WARN_AND_BREAK { WARN_PARSER; break; }
-#define WARN_M(m)	ShowWarningOrTrace( __FILE__, __LINE__, RString("Error parsing file: ")+(m), true )
-#define WARN_AND_RETURN_M(m) { WARN_M(m); return; }
-#define WARN_AND_CONTINUE_M(m) { WARN_M(m); continue; }
-#define WARN_AND_BREAK_M(m) { WARN_M(m); break; }
-#define LOAD_NODE(X)	{ \
-	const XNode* X = xml->GetChild(#X); \
-	if( X==NULL ) LOG->Warn("Failed to read section " #X); \
-	else Load##X##FromNode(X); }
 
 void Profile::LoadCustomFunction( const RString &sDir )
 {
@@ -814,10 +806,11 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 	LoadTypeFromDir(sDir);
 	// Not critical if this fails
 	LoadEditableDataFromDir( sDir );
-
-	ProfileLoadResult ret= LoadEttFromDir(sDir);
+	DBProf.SetLoadingProfile(this);
+	XMLProf.SetLoadingProfile(this);
+	ProfileLoadResult ret = XMLProf.LoadEttFromDir(sDir);
 	if (ret != ProfileLoadResult_Success) {
-		ret = LoadStatsFromDir(sDir, bRequireSignature);
+		ret = XMLProf.LoadStatsFromDir(sDir, bRequireSignature);
 
 		if (ret != ProfileLoadResult_Success)
 			return ret;
@@ -860,241 +853,7 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 
 ProfileLoadResult Profile::LoadStatsFromDir(RString dir, bool require_signature)
 {
-	dir += PROFILEMAN->GetStatsPrefix();
-	profiledir = dir;
-	// Check for the existance of stats.xml
-	RString fn = dir + STATS_XML;
-	bool compressed = false;
-	if(!IsAFile(fn))
-	{
-		// Check for the existance of stats.xml.gz
-		fn = dir + STATS_XML_GZ;
-		compressed = true;
-		if(!IsAFile(fn))
-		{
-			return ProfileLoadResult_FailedNoProfile;
-		}
-	}
-
-	int iError;
-	unique_ptr<RageFileBasic> pFile( FILEMAN->Open(fn, RageFile::READ, iError) );
-	if(pFile.get() == NULL)
-	{
-		LOG->Trace("Error opening %s: %s", fn.c_str(), strerror(iError));
-		return ProfileLoadResult_FailedTampered;
-	}
-
-	if(compressed)
-	{
-		RString sError;
-		uint32_t iCRC32;
-		RageFileObjInflate *pInflate = GunzipFile(pFile.release(), sError, &iCRC32);
-		if(pInflate == NULL)
-		{
-			LOG->Trace("Error opening %s: %s", fn.c_str(), sError.c_str());
-			return ProfileLoadResult_FailedTampered;
-		}
-
-		pFile.reset(pInflate);
-	}
-
-	if(require_signature)
-	{ 
-		RString sStatsXmlSigFile = fn+SIGNATURE_APPEND;
-		RString sDontShareFile = dir + DONT_SHARE_SIG;
-
-		LOG->Trace("Verifying don't share signature \"%s\" against \"%s\"", sDontShareFile.c_str(), sStatsXmlSigFile.c_str());
-		// verify the stats.xml signature with the "don't share" file
-		if(!CryptManager::VerifyFileWithFile(sStatsXmlSigFile, sDontShareFile))
-		{
-			LuaHelpers::ReportScriptErrorFmt("The don't share check for '%s' failed.  Data will be ignored.", sStatsXmlSigFile.c_str());
-			return ProfileLoadResult_FailedTampered;
-		}
-		LOG->Trace("Done.");
-
-		// verify stats.xml
-		LOG->Trace("Verifying stats.xml signature");
-		if(!CryptManager::VerifyFileWithFile(fn, sStatsXmlSigFile))
-		{
-			LuaHelpers::ReportScriptErrorFmt("The signature check for '%s' failed.  Data will be ignored.", fn.c_str());
-			return ProfileLoadResult_FailedTampered;
-		}
-		LOG->Trace("Done.");
-	}
-
-	LOG->Trace("Loading %s", fn.c_str());
-	XNode xml;
-	if(!XmlFileUtil::LoadFromFileShowErrors(xml, *pFile.get()))
-		return ProfileLoadResult_FailedTampered;
-	LOG->Trace("Done.");
-
-	return LoadStatsXmlFromNode(&xml);
-}
-
-
-ProfileLoadResult Profile::LoadEttFromDir(RString dir) {
-	dir += PROFILEMAN->GetStatsPrefix();
-	profiledir = dir;
-	IsEtternaProfile = true;
-	RString fn = dir + ETT_XML;
-	bool compressed = false;
-	if (!IsAFile(fn)) {
-		fn = dir + STATS_XML_GZ;
-		compressed = true;
-		if (!IsAFile(fn))
-			return ProfileLoadResult_FailedNoProfile;
-	}
-
-	int iError;
-	unique_ptr<RageFileBasic> pFile(FILEMAN->Open(fn, RageFile::READ, iError));
-	if (pFile.get() == NULL) {
-		LOG->Trace("Error opening %s: %s", fn.c_str(), strerror(iError));
-		return ProfileLoadResult_FailedTampered;
-	}
-
-	if (compressed) {
-		RString sError;
-		uint32_t iCRC32;
-		RageFileObjInflate *pInflate = GunzipFile(pFile.release(), sError, &iCRC32);
-		if (pInflate == NULL) {
-			LOG->Trace("Error opening %s: %s", fn.c_str(), sError.c_str());
-			return ProfileLoadResult_FailedTampered;
-		}
-		pFile.reset(pInflate);
-	}
-
-	LOG->Trace("Loading %s", fn.c_str());
-	XNode xml;
-	if (!XmlFileUtil::LoadFromFileShowErrors(xml, *pFile.get()))
-		return ProfileLoadResult_FailedTampered;
-	LOG->Trace("Done.");
-
-	return LoadEttXmlFromNode(&xml);
-}
-
-ProfileLoadResult Profile::EoBatchRecalc(const RString &sDir, LoadingWindow* ld) {
-	LOG->Trace("Profile::LoadAllFromDir( %s )", sDir.c_str());
-	ASSERT(sDir.Right(1) == "/");
-
-	InitAll();
-	LoadTypeFromDir(sDir);
-	// Not critical if this fails
-	LoadEditableDataFromDir(sDir);
-
-	RString batchdir = sDir;
-	vector<RString> profs;
-	GetDirListing(sDir, profs, false, true);
-
-	for (auto p : profs) {
-		if (p.Right(3) != "xml")
-			continue;
-
-		if (p.Right(11).MakeLower() == "etterna.xml" || p.Right(9).MakeLower() == "stats.xml")
-			continue;
-
-		RString profid = p.substr(p.find_last_of('/'));
-		RString newpath = "/BatchRecalc/" + profid;
-
-		// skip recalc unless batchfolder doesnt have an updated file
-		if (FILEMAN->IsAFile(newpath))
-			continue;
-
-		int iError;
-		unique_ptr<RageFileBasic> pFile(FILEMAN->Open(p, RageFile::READ, iError));
-		if (pFile.get() == NULL) {
-			LOG->Trace("Error opening %s: %s", p.c_str(), strerror(iError));
-			continue;
-		}
-
-		LOG->Trace("Loading %s", p.c_str());
-
-		XNode xml;
-		if (!XmlFileUtil::LoadFromFileShowErrors(xml, *pFile.get()))
-			continue;
-		LOG->Trace("Done.");
-
-		LoadEttXmlFromNodeForBatchRecalc(&xml, p);
-		CalculateStatsFromScores(ld);
-
-		SaveEttXmlToDirForBatchRecalc(newpath);
-		InitAll();
-		SCOREMAN->PurgeScores();
-	}
-
-	return ProfileLoadResult_Success;
-}
-
-ProfileLoadResult Profile::LoadEttXmlFromNodeForBatchRecalc(const XNode *xml, RString p) {
-	/* The placeholder stats.xml file has an <html> tag. Don't load it,
-	* but don't warn about it. */
-	if (xml->GetName() == "html")
-		return ProfileLoadResult_FailedNoProfile;
-
-	if (xml->GetName() != "Stats")
-	{
-		WARN_M(xml->GetName());
-		return ProfileLoadResult_FailedTampered;
-	}
-
-	const XNode* gen = xml->GetChild("GeneralData");
-	if (gen)
-		LoadEttGeneralDataFromNode(gen);
-
-	const XNode* favs = xml->GetChild("Favorites");
-	if (favs)
-		LoadFavoritesFromNode(favs);
-
-	const XNode* pmir = xml->GetChild("PermaMirror");
-	if (pmir)
-		LoadPermaMirrorFromNode(pmir);
-
-	const XNode* goals = xml->GetChild("ScoreGoals");
-	if (goals)
-		LoadScoreGoalsFromNode(goals);
-
-	const XNode* play = xml->GetChild("Playlists");
-	if (play)
-		LoadPlaylistsFromNode(play);
-
-	const XNode* scores = xml->GetChild("PlayerScores");
-	if (scores)
-		LoadEttScoresFromNode(scores);
-
-	return ProfileLoadResult_Success;
-}
-
-bool Profile::SaveEttXmlToDirForBatchRecalc(RString p) const {
-	LOG->Trace("Saving Etterna Profile to: %s", p.c_str());
-	unique_ptr<XNode> xml(SaveEttXmlCreateNode());
-	// Save Etterna.xml
-	RString fn = p;
-	{
-		RString sError;
-		RageFile f;
-		if (!f.Open(fn, RageFile::WRITE))
-		{
-			LuaHelpers::ReportScriptErrorFmt("Couldn't open %s for writing: %s", fn.c_str(), f.GetError().c_str());
-			return false;
-		}
-
-		if (g_bProfileDataCompress)
-		{
-			RageFileObjGzip gzip(&f);
-			gzip.Start();
-			if (!XmlFileUtil::SaveToFile(xml.get(), gzip, "", false))
-				return false;
-
-			if (gzip.Finish() == -1)
-				return false;
-		}
-		else
-		{
-			if (!XmlFileUtil::SaveToFile(xml.get(), f, "", false))
-				return false;
-		}
-	}
-
-	return true;
+	return XMLProf.LoadStatsFromDir(dir, require_signature);
 }
 
 void Profile::LoadTypeFromDir(const RString &dir)
@@ -1125,81 +884,9 @@ void Profile::LoadTypeFromDir(const RString &dir)
 	}
 }
 
-ProfileLoadResult Profile::LoadStatsXmlFromNode( const XNode *xml, bool bIgnoreEditable )
-{
-	/* The placeholder stats.xml file has an <html> tag. Don't load it,
-	 * but don't warn about it. */
-	if( xml->GetName() == "html" )
-		return ProfileLoadResult_FailedNoProfile;
-
-	if( xml->GetName() != "Stats" )
-	{
-		WARN_M( xml->GetName() );
-		return ProfileLoadResult_FailedTampered;
-	}
-
-	// These are loaded from Editable, so we usually want to ignore them here.
-	RString sName = m_sDisplayName;
-	RString sCharacterID = m_sCharacterID;
-	RString sLastUsedHighScoreName = m_sLastUsedHighScoreName;
-
-	LOAD_NODE( GeneralData );
-	LOAD_NODE( SongScores );
-	LOAD_NODE( CategoryScores );
-	LOAD_NODE( ScreenshotData );
-
-	if( bIgnoreEditable )
-	{
-		m_sDisplayName = sName;
-		m_sCharacterID = sCharacterID;
-		m_sLastUsedHighScoreName = sLastUsedHighScoreName;
-	}
-
-	return ProfileLoadResult_Success;
-}
-
-ProfileLoadResult Profile::LoadEttXmlFromNode(const XNode *xml) {
-	/* The placeholder stats.xml file has an <html> tag. Don't load it,
-	* but don't warn about it. */
-	if (xml->GetName() == "html")
-		return ProfileLoadResult_FailedNoProfile;
-
-	if (xml->GetName() != "Stats")
-	{
-		WARN_M(xml->GetName());
-		return ProfileLoadResult_FailedTampered;
-	}
-
-	const XNode* gen = xml->GetChild("GeneralData");
-	if(gen)
-		LoadEttGeneralDataFromNode(gen);
-
-	const XNode* favs = xml->GetChild("Favorites");
-	if(favs)
-		LoadFavoritesFromNode(favs);
-
-	const XNode* pmir = xml->GetChild("PermaMirror");
-	if (pmir)
-		LoadPermaMirrorFromNode(pmir);
-
-	const XNode* goals = xml->GetChild("ScoreGoals");
-	if(goals)
-		LoadScoreGoalsFromNode(goals);
-	
-	const XNode* play = xml->GetChild("Playlists");
-	if (play)
-		LoadPlaylistsFromNode(play);
-	
-	const XNode* scores = xml->GetChild("PlayerScores");
-	if (scores)
-		LoadEttScoresFromNode(scores);
-
-	return ProfileLoadResult_Success;
-}
-
 void Profile::CalculateStatsFromScores(LoadingWindow* ld) {
 	LOG->Trace("Calculating stats from scores");
-	vector<HighScore*> all = SCOREMAN->GetAllScores();
+	const vector<HighScore*>& all = SCOREMAN->GetAllProfileScores(m_sProfileID);
 	float TotalGameplaySeconds = 0.f;
 	m_iTotalTapsAndHolds = 0;
 	m_iTotalHolds = 0;
@@ -1214,21 +901,20 @@ void Profile::CalculateStatsFromScores(LoadingWindow* ld) {
 		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W4);
 		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W5);
 		m_iTotalMines += hs->GetTapNoteScore(TNS_HitMine);
-		hs->GetHoldNoteScore(HNS_Held);
 	}
 
 	m_iNumTotalSongsPlayed = all.size();
 	m_iTotalDancePoints = m_iTotalTapsAndHolds * 2;
 	m_iTotalGameplaySeconds = static_cast<int>(TotalGameplaySeconds);
 
-	SCOREMAN->RecalculateSSRs(ld);
-	SCOREMAN->CalcPlayerRating(m_fPlayerRating, m_fPlayerSkillsets);
+	SCOREMAN->RecalculateSSRs(ld, m_sProfileID);
+	SCOREMAN->CalcPlayerRating(m_fPlayerRating, m_fPlayerSkillsets, m_sProfileID);
 	//SCOREMAN->RatingOverTime();
 }
 
 void Profile::CalculateStatsFromScores() {
 	LOG->Trace("Calculating stats from scores");
-	vector<HighScore*> all = SCOREMAN->GetAllScores();
+	const vector<HighScore*> all = SCOREMAN->GetAllProfileScores(m_sProfileID);
 	float TotalGameplaySeconds = 0.f;
 	m_iTotalTapsAndHolds = 0;
 	m_iTotalHolds = 0;
@@ -1250,8 +936,8 @@ void Profile::CalculateStatsFromScores() {
 	m_iTotalDancePoints = m_iTotalTapsAndHolds * 2;
 	m_iTotalGameplaySeconds = static_cast<int>(TotalGameplaySeconds);
 
-	SCOREMAN->RecalculateSSRs(NULL);
-	SCOREMAN->CalcPlayerRating(m_fPlayerRating, m_fPlayerSkillsets);
+	SCOREMAN->RecalculateSSRs(NULL, m_sProfileID);
+	SCOREMAN->CalcPlayerRating(m_fPlayerRating, m_fPlayerSkillsets, m_sProfileID);
 }
 
 bool Profile::SaveAllToDir( const RString &sDir, bool bSignData ) const
@@ -1261,146 +947,16 @@ bool Profile::SaveAllToDir( const RString &sDir, bool bSignData ) const
 	SaveTypeToDir(sDir);
 	// Save editable.ini
 	SaveEditableDataToDir( sDir );
-	
-	bool bSaved = SaveEttXmlToDir(sDir);
+
+	GAMESTATE->SaveCurrentSettingsToProfile(PLAYER_1);
+
+	bool bSaved = XMLProf.SaveEttXmlToDir(sDir, this);
 	SaveStatsWebPageToDir( sDir );
 	
 	// Empty directories if none exist.
 	FILEMAN->CreateDir( sDir + SCREENSHOTS_SUBDIR );
 	
 	return bSaved;
-}
-
-XNode *Profile::SaveStatsXmlCreateNode() const
-{
-	XNode *xml = new XNode( "Stats" );
-
-	xml->AppendChild( SaveGeneralDataCreateNode() );
-	xml->AppendChild( SaveSongScoresCreateNode() );
-	xml->AppendChild( SaveCategoryScoresCreateNode() );
-	xml->AppendChild( SaveScreenshotDataCreateNode() );
-
-	return xml;
-}
-
-XNode *Profile::SaveEttXmlCreateNode() const
-{
-	XNode *xml = new XNode("Stats");
-	xml->AppendChild(SaveEttGeneralDataCreateNode());
-
-	if(!FavoritedCharts.empty())
-		xml->AppendChild(SaveFavoritesCreateNode());
-
-	if (!PermaMirrorCharts.empty())
-		xml->AppendChild(SavePermaMirrorCreateNode());
-	
-	if (!SONGMAN->allplaylists.empty())
-		xml->AppendChild(SavePlaylistsCreateNode());
-	
-	if(!goalmap.empty())
-		xml->AppendChild(SaveScoreGoalsCreateNode());
-	
-	xml->AppendChild(SaveEttScoresCreateNode());
-	return xml;
-}
-
-bool Profile::SaveStatsXmlToDir( RString sDir, bool bSignData ) const
-{
-	LOG->Trace( "SaveStatsXmlToDir: %s", sDir.c_str() );
-	unique_ptr<XNode> xml( SaveStatsXmlCreateNode() );
-
-	sDir += PROFILEMAN->GetStatsPrefix();
-	// Save stats.xml
-	RString fn = sDir + (g_bProfileDataCompress? STATS_XML_GZ:STATS_XML);
-
-	{
-		RString sError;
-		RageFile f;
-		if( !f.Open(fn, RageFile::WRITE) )
-		{
-			LuaHelpers::ReportScriptErrorFmt( "Couldn't open %s for writing: %s", fn.c_str(), f.GetError().c_str() );
-			return false;
-		}
-
-		if( g_bProfileDataCompress )
-		{
-			RageFileObjGzip gzip( &f );
-			gzip.Start();
-			if( !XmlFileUtil::SaveToFile( xml.get(), gzip, "", false ) )
-				return false;
-
-			if( gzip.Finish() == -1 )
-				return false;
-
-			/* After successfully saving STATS_XML_GZ, remove any stray STATS_XML. */
-			if( FILEMAN->IsAFile(sDir + STATS_XML) )
-				FILEMAN->Remove( sDir + STATS_XML );
-		}
-		else
-		{
-			if( !XmlFileUtil::SaveToFile( xml.get(), f, "", false ) )
-				return false;
-
-			/* After successfully saving STATS_XML, remove any stray STATS_XML_GZ. */
-			if( FILEMAN->IsAFile(sDir + STATS_XML_GZ) )
-				FILEMAN->Remove( sDir + STATS_XML_GZ );
-		}
-	}
-
-	if( bSignData )
-	{
-		RString sStatsXmlSigFile = fn+SIGNATURE_APPEND;
-		CryptManager::SignFileToFile(fn, sStatsXmlSigFile);
-
-		// Save the "don't share" file
-		RString sDontShareFile = sDir + DONT_SHARE_SIG;
-		CryptManager::SignFileToFile(sStatsXmlSigFile, sDontShareFile);
-	}
-
-	return true;
-}
-
-bool Profile::SaveEttXmlToDir(RString sDir) const {
-	LOG->Trace("Saving Etterna Profile to: %s", sDir.c_str());
-	unique_ptr<XNode> xml(SaveEttXmlCreateNode());
-	sDir += PROFILEMAN->GetStatsPrefix();
-	// Save Etterna.xml
-	RString fn = sDir + ETT_XML;
-	{
-		RString sError;
-		RageFile f;
-		if (!f.Open(fn, RageFile::WRITE))
-		{
-			LuaHelpers::ReportScriptErrorFmt("Couldn't open %s for writing: %s", fn.c_str(), f.GetError().c_str());
-			return false;
-		}
-
-		if (g_bProfileDataCompress)
-		{
-			RageFileObjGzip gzip(&f);
-			gzip.Start();
-			if (!XmlFileUtil::SaveToFile(xml.get(), gzip, "", false))
-				return false;
-
-			if (gzip.Finish() == -1)
-				return false;
-
-			/* After successfully saving STATS_XML_GZ, remove any stray STATS_XML. */
-			if (FILEMAN->IsAFile(sDir + STATS_XML))
-				FILEMAN->Remove(sDir + STATS_XML);
-		}
-		else
-		{
-			if (!XmlFileUtil::SaveToFile(xml.get(), f, "", false))
-				return false;
-
-			/* After successfully saving STATS_XML, remove any stray STATS_XML_GZ. */
-			if (FILEMAN->IsAFile(sDir + STATS_XML_GZ))
-				FILEMAN->Remove(sDir + STATS_XML_GZ);
-		}
-	}
-
-	return true;
 }
 
 void Profile::SaveTypeToDir(const RString &dir) const
@@ -1420,330 +976,6 @@ void Profile::SaveEditableDataToDir( const RString &sDir ) const
 	ini.SetValue( "Editable", "LastUsedHighScoreName",		m_sLastUsedHighScoreName );
 
 	ini.WriteFile( sDir + EDITABLE_INI );
-}
-
-XNode* Profile::SaveGeneralDataCreateNode() const
-{
-	XNode* pGeneralDataNode = new XNode( "GeneralData" );
-
-	// TRICKY: These are write-only elements that are normally never read again.
-	// This data is required by other apps (like internet ranking), but is 
-	// redundant to the game app.
-	pGeneralDataNode->AppendChild( "DisplayName",			GetDisplayNameOrHighScoreName() );
-	pGeneralDataNode->AppendChild( "CharacterID",			m_sCharacterID );
-	pGeneralDataNode->AppendChild( "LastUsedHighScoreName",		m_sLastUsedHighScoreName );
-	pGeneralDataNode->AppendChild( "Guid",				m_sGuid );
-	pGeneralDataNode->AppendChild( "SortOrder",			SortOrderToString(m_SortOrder) );
-	pGeneralDataNode->AppendChild( "LastDifficulty",		DifficultyToString(m_LastDifficulty) );
-	if( m_LastStepsType != StepsType_Invalid )
-		pGeneralDataNode->AppendChild( "LastStepsType",			GAMEMAN->GetStepsTypeInfo(m_LastStepsType).szName );
-	pGeneralDataNode->AppendChild( m_lastSong.CreateNode() );
-	pGeneralDataNode->AppendChild( "CurrentCombo", m_iCurrentCombo );
-	pGeneralDataNode->AppendChild( "TotalSessions",			m_iTotalSessions );
-	pGeneralDataNode->AppendChild( "TotalSessionSeconds",		m_iTotalSessionSeconds );
-	pGeneralDataNode->AppendChild( "TotalGameplaySeconds",		m_iTotalGameplaySeconds );
-	pGeneralDataNode->AppendChild( "LastPlayedMachineGuid",		m_sLastPlayedMachineGuid );
-	pGeneralDataNode->AppendChild( "LastPlayedDate",		m_LastPlayedDate.GetString() );
-	pGeneralDataNode->AppendChild( "TotalDancePoints",		m_iTotalDancePoints );
-	pGeneralDataNode->AppendChild( "NumExtraStagesPassed",		m_iNumExtraStagesPassed );
-	pGeneralDataNode->AppendChild( "NumExtraStagesFailed",		m_iNumExtraStagesFailed );
-	pGeneralDataNode->AppendChild( "NumToasties",			m_iNumToasties );
-	pGeneralDataNode->AppendChild( "TotalTapsAndHolds",		m_iTotalTapsAndHolds );
-	pGeneralDataNode->AppendChild( "TotalJumps",			m_iTotalJumps );
-	pGeneralDataNode->AppendChild( "TotalHolds",			m_iTotalHolds );
-	pGeneralDataNode->AppendChild( "TotalRolls",			m_iTotalRolls );
-	pGeneralDataNode->AppendChild( "TotalMines",			m_iTotalMines );
-	pGeneralDataNode->AppendChild( "TotalHands",			m_iTotalHands );
-	pGeneralDataNode->AppendChild( "TotalLifts",			m_iTotalLifts );
-	pGeneralDataNode->AppendChild( "PlayerRating",			m_fPlayerRating);
-
-	// Keep declared variables in a very local scope so they aren't 
-	// accidentally used where they're not intended.  There's a lot of
-	// copying and pasting in this code.
-
-	{
-		XNode* pDefaultModifiers = pGeneralDataNode->AppendChild("DefaultModifiers");
-		FOREACHM_CONST( RString, RString, m_sDefaultModifiers, it )
-			pDefaultModifiers->AppendChild( it->first, it->second );
-	}
-
-	{
-		XNode* pFavorites = pGeneralDataNode->AppendChild("Favorites");
-		FOREACHS_CONST(string, FavoritedCharts, it)
-			pFavorites->AppendChild(*it);
-	}
-
-	{
-		XNode* pPlayerSkillsets = pGeneralDataNode->AppendChild("PlayerSkillsets");
-		FOREACH_ENUM(Skillset, ss)
-			pPlayerSkillsets->AppendChild(SkillsetToString(ss), m_fPlayerSkillsets[ss]);
-	}
-
-	{
-		XNode* pNumSongsPlayedByPlayMode = pGeneralDataNode->AppendChild("NumSongsPlayedByPlayMode");
-		FOREACH_ENUM( PlayMode, pm )
-		{
-			// Don't save unplayed PlayModes.
-			if( !m_iNumSongsPlayedByPlayMode[pm] )
-				continue;
-			pNumSongsPlayedByPlayMode->AppendChild( PlayModeToString(pm), m_iNumSongsPlayedByPlayMode[pm] );
-		}
-	}
-
-	{
-		XNode* pNumSongsPlayedByStyle = pGeneralDataNode->AppendChild("NumSongsPlayedByStyle");
-		FOREACHM_CONST( StyleID, int, m_iNumSongsPlayedByStyle, iter )
-		{
-			const StyleID &s = iter->first;
-			int iNumPlays = iter->second;
-
-			XNode *pStyleNode = s.CreateNode();
-			pStyleNode->AppendAttr(XNode::TEXT_ATTRIBUTE, iNumPlays );
-
-			pNumSongsPlayedByStyle->AppendChild( pStyleNode );
-		}
-	}
-
-	{
-		XNode* pNumSongsPlayedByDifficulty = pGeneralDataNode->AppendChild("NumSongsPlayedByDifficulty");
-		FOREACH_ENUM( Difficulty, dc )
-		{
-			if( !m_iNumSongsPlayedByDifficulty[dc] )
-				continue;
-			pNumSongsPlayedByDifficulty->AppendChild( DifficultyToString(dc), m_iNumSongsPlayedByDifficulty[dc] );
-		}
-	}
-
-	{
-		XNode* pNumSongsPlayedByMeter = pGeneralDataNode->AppendChild("NumSongsPlayedByMeter");
-		for( int i=0; i<MAX_METER+1; i++ )
-		{
-			if( !m_iNumSongsPlayedByMeter[i] )
-				continue;
-			pNumSongsPlayedByMeter->AppendChild( ssprintf("Meter%d",i), m_iNumSongsPlayedByMeter[i] );
-		}
-	}
-
-	pGeneralDataNode->AppendChild( "NumTotalSongsPlayed", m_iNumTotalSongsPlayed );
-
-	{
-		XNode* pNumStagesPassedByPlayMode = pGeneralDataNode->AppendChild("NumStagesPassedByPlayMode");
-		FOREACH_ENUM( PlayMode, pm )
-		{
-			// Don't save unplayed PlayModes.
-			if( !m_iNumStagesPassedByPlayMode[pm] )
-				continue;
-			pNumStagesPassedByPlayMode->AppendChild( PlayModeToString(pm), m_iNumStagesPassedByPlayMode[pm] );
-		}
-	}
-
-	{
-		XNode* pNumStagesPassedByGrade = pGeneralDataNode->AppendChild("NumStagesPassedByGrade");
-		FOREACH_ENUM( Grade, g )
-		{
-			if( !m_iNumStagesPassedByGrade[g] )
-				continue;
-			pNumStagesPassedByGrade->AppendChild( GradeToString(g), m_iNumStagesPassedByGrade[g] );
-		}
-	}
-
-	// Load Lua UserTable from profile
-	if( m_UserTable.IsSet() )
-	{
-		Lua *L = LUA->Get();
-		m_UserTable.PushSelf( L );
-		XNode* pUserTable = XmlFileUtil::XNodeFromTable( L );
-		LUA->Release( L );
-
-		// XXX: XNodeFromTable returns a root node with the name "Layer".
-		pUserTable->m_sName = "UserTable";
-		pGeneralDataNode->AppendChild( pUserTable );
-	}
-
-	return pGeneralDataNode;
-}
-
-XNode* Profile::SaveFavoritesCreateNode() const {
-	CHECKPOINT_M("Saving the favorites node.");
-
-	XNode* favs = new XNode("Favorites");
-	FOREACHS_CONST(string, FavoritedCharts, it)
-		favs->AppendChild(*it);
-	return favs;
-}
-
-XNode* Profile::SavePermaMirrorCreateNode() const {
-	CHECKPOINT_M("Saving the permamirror node.");
-
-	XNode* pmir = new XNode("PermaMirror");
-	FOREACHS_CONST(string, PermaMirrorCharts, it)
-		pmir->AppendChild(*it);
-	return pmir;
-}
-
-XNode* GoalsForChart::CreateNode() const {
-	XNode* cg = new XNode("GoalsForChart");
-
-	if (!goals.empty()) {
-		cg->AppendAttr("Key", goals[0].chartkey);
-		FOREACH_CONST(ScoreGoal, goals, sg)
-			cg->AppendChild(sg->CreateNode());
-	}
-	return cg;
-}
-
-XNode* Profile::SaveScoreGoalsCreateNode() const {
-	CHECKPOINT_M("Saving the scoregoals node.");
-
-	XNode* goals = new XNode("ScoreGoals");
-	FOREACHUM_CONST(string, GoalsForChart, goalmap, i) {
-		const GoalsForChart& cg = i->second;
-		goals->AppendChild(cg.CreateNode());
-	}
-	return goals;
-}
-
-XNode* Profile::SavePlaylistsCreateNode() const {
-	CHECKPOINT_M("Saving the playlists node.");
-
-	XNode* playlists = new XNode("Playlists");
-	auto& pls = SONGMAN->allplaylists;
-	FOREACHM(string, Playlist, pls, i)
-		if(i->first != "" && i->first != "Favorites")
-			playlists->AppendChild(i->second.CreateNode());
-	return playlists;
-}
-
-void Profile::LoadFavoritesFromNode(const XNode *pNode) {
-	CHECKPOINT_M("Loading the favorites node.");
-
-	FOREACH_CONST_Child(pNode, ck)
-		FavoritedCharts.emplace(SONGMAN->ReconcileBustedKeys(ck->GetName()));
-
-	SONGMAN->SetFavoritedStatus(FavoritedCharts);
-	SONGMAN->MakePlaylistFromFavorites(FavoritedCharts);
-}
-
-void Profile::LoadPermaMirrorFromNode(const XNode *pNode) {
-	CHECKPOINT_M("Loading the permamirror node.");
-
-	FOREACH_CONST_Child(pNode, ck)
-		PermaMirrorCharts.emplace(SONGMAN->ReconcileBustedKeys(ck->GetName()));
-
-	SONGMAN->SetPermaMirroredStatus(PermaMirrorCharts);
-}
-
-void GoalsForChart::LoadFromNode(const XNode *pNode) {
-	FOREACH_CONST_Child(pNode, sg) {
-		ScoreGoal doot;
-		doot.LoadFromNode(sg);
-		Add(doot);
-	}
-}
-
-void Profile::LoadScoreGoalsFromNode(const XNode *pNode) {
-	CHECKPOINT_M("Loading the scoregoals node.");
-
-	RString ck;
-	FOREACH_CONST_Child(pNode, chgoals) {
-		chgoals->GetAttrValue("Key", ck);
-		ck = SONGMAN->ReconcileBustedKeys(ck);
-		goalmap[ck].LoadFromNode(chgoals);
-	}
-	SONGMAN->SetHasGoal(goalmap);
-}
-
-void Profile::LoadPlaylistsFromNode(const XNode *pNode) {
-	CHECKPOINT_M("Loading the playlists node.");
-
-	auto& pls = SONGMAN->allplaylists;
-	FOREACH_CONST_Child(pNode, pl) {
-		Playlist tmp;
-		tmp.LoadFromNode(pl);
-		pls.emplace(tmp.name, tmp);
-		SONGMAN->activeplaylist = tmp.name;
-	}	
-}
-
-
-XNode* Profile::SaveEttGeneralDataCreateNode() const {
-	CHECKPOINT_M("Saving the general node.");
-
-	XNode* pGeneralDataNode = new XNode("GeneralData");
-
-	// TRICKY: These are write-only elements that are normally never read again.
-	// This data is required by other apps (like internet ranking), but is 
-	// redundant to the game app.
-	pGeneralDataNode->AppendChild("DisplayName", GetDisplayNameOrHighScoreName());
-	pGeneralDataNode->AppendChild("CharacterID", m_sCharacterID);
-	pGeneralDataNode->AppendChild("Guid", m_sGuid);
-	pGeneralDataNode->AppendChild("SortOrder", SortOrderToString(m_SortOrder));
-	pGeneralDataNode->AppendChild("LastDifficulty", DifficultyToString(Difficulty_Invalid));
-	if (m_LastStepsType != StepsType_Invalid)
-		pGeneralDataNode->AppendChild("LastStepsType", GAMEMAN->GetStepsTypeInfo(m_LastStepsType).szName);
-	pGeneralDataNode->AppendChild(m_lastSong.CreateNode());
-	pGeneralDataNode->AppendChild("TotalSessions", m_iTotalSessions);
-	pGeneralDataNode->AppendChild("TotalSessionSeconds", m_iTotalSessionSeconds);
-	pGeneralDataNode->AppendChild("TotalGameplaySeconds", m_iTotalGameplaySeconds);
-	pGeneralDataNode->AppendChild("LastPlayedMachineGuid", m_sLastPlayedMachineGuid);
-	pGeneralDataNode->AppendChild("LastPlayedDate", m_LastPlayedDate.GetString());
-	pGeneralDataNode->AppendChild("TotalDancePoints", m_iTotalDancePoints);
-	pGeneralDataNode->AppendChild("NumToasties", m_iNumToasties);
-	pGeneralDataNode->AppendChild("TotalTapsAndHolds", m_iTotalTapsAndHolds);
-	pGeneralDataNode->AppendChild("TotalJumps", m_iTotalJumps);
-	pGeneralDataNode->AppendChild("TotalHolds", m_iTotalHolds);
-	pGeneralDataNode->AppendChild("TotalRolls", m_iTotalRolls);
-	pGeneralDataNode->AppendChild("TotalMines", m_iTotalMines);
-	pGeneralDataNode->AppendChild("TotalHands", m_iTotalHands);
-	pGeneralDataNode->AppendChild("TotalLifts", m_iTotalLifts);
-	pGeneralDataNode->AppendChild("PlayerRating", m_fPlayerRating);
-
-	// apparently this got ripped out in the course of streamlining things -mina
-	GAMESTATE->SaveCurrentSettingsToProfile(PLAYER_1);
-
-	// Keep declared variables in a very local scope so they aren't 
-	// accidentally used where they're not intended.  There's a lot of
-	// copying and pasting in this code.
-
-	{
-		XNode* pDefaultModifiers = pGeneralDataNode->AppendChild("DefaultModifiers");
-		FOREACHM_CONST(RString, RString, m_sDefaultModifiers, it)
-			pDefaultModifiers->AppendChild(it->first, it->second);
-	}
-
-	{
-		XNode* pPlayerSkillsets = pGeneralDataNode->AppendChild("PlayerSkillsets");
-		FOREACH_ENUM(Skillset, ss)
-			pPlayerSkillsets->AppendChild(SkillsetToString(ss), m_fPlayerSkillsets[ss]);
-	}
-
-	pGeneralDataNode->AppendChild("NumTotalSongsPlayed", m_iNumTotalSongsPlayed);
-
-	{
-		XNode* pNumStagesPassedByPlayMode = pGeneralDataNode->AppendChild("NumStagesPassedByPlayMode");
-		FOREACH_ENUM(PlayMode, pm)
-		{
-			// Don't save unplayed PlayModes.
-			if (!m_iNumStagesPassedByPlayMode[pm])
-				continue;
-			pNumStagesPassedByPlayMode->AppendChild(PlayModeToString(pm), m_iNumStagesPassedByPlayMode[pm]);
-		}
-	}
-
-	// Load Lua UserTable from profile
-	if (m_UserTable.IsSet())
-	{
-		Lua *L = LUA->Get();
-		m_UserTable.PushSelf(L);
-		XNode* pUserTable = XmlFileUtil::XNodeFromTable(L);
-		LUA->Release(L);
-
-		// XXX: XNodeFromTable returns a root node with the name "Layer".
-		pUserTable->m_sName = "UserTable";
-		pGeneralDataNode->AppendChild(pUserTable);
-	}
-
-	return pGeneralDataNode;
 }
 
 ProfileLoadResult Profile::LoadEditableDataFromDir( const RString &sDir )
@@ -1778,214 +1010,6 @@ ProfileLoadResult Profile::LoadEditableDataFromDir( const RString &sDir )
 	return ProfileLoadResult_Success;
 }
 
-void Profile::LoadGeneralDataFromNode( const XNode* pNode )
-{
-	ASSERT( pNode->GetName() == "GeneralData" );
-
-	RString s;
-	const XNode* pTemp;
-
-	pNode->GetChildValue( "DisplayName",				m_sDisplayName );
-	pNode->GetChildValue( "CharacterID",				m_sCharacterID );
-	pNode->GetChildValue( "LastUsedHighScoreName",			m_sLastUsedHighScoreName );
-	pNode->GetChildValue( "Guid",					m_sGuid );
-	pNode->GetChildValue( "SortOrder",				s );	m_SortOrder = StringToSortOrder( s );
-	pNode->GetChildValue( "LastDifficulty",				s );	m_LastDifficulty = StringToDifficulty( s );
-	pNode->GetChildValue( "LastStepsType",				s );	m_LastStepsType = GAMEMAN->StringToStepsType( s );
-	pTemp = pNode->GetChild( "Song" );				if( pTemp ) m_lastSong.LoadFromNode( pTemp );
-	pNode->GetChildValue( "CurrentCombo", m_iCurrentCombo );
-	pNode->GetChildValue( "TotalSessions",				m_iTotalSessions );
-	pNode->GetChildValue( "TotalSessionSeconds",			m_iTotalSessionSeconds );
-	pNode->GetChildValue( "TotalGameplaySeconds",			m_iTotalGameplaySeconds );
-	pNode->GetChildValue( "LastPlayedMachineGuid",			m_sLastPlayedMachineGuid );
-	pNode->GetChildValue( "LastPlayedDate",				s ); m_LastPlayedDate.FromString( s );
-	pNode->GetChildValue( "TotalDancePoints",			m_iTotalDancePoints );
-	pNode->GetChildValue( "NumExtraStagesPassed",			m_iNumExtraStagesPassed );
-	pNode->GetChildValue( "NumExtraStagesFailed",			m_iNumExtraStagesFailed );
-	pNode->GetChildValue( "NumToasties",				m_iNumToasties );
-	pNode->GetChildValue( "TotalTapsAndHolds",			m_iTotalTapsAndHolds );
-	pNode->GetChildValue( "TotalJumps",				m_iTotalJumps );
-	pNode->GetChildValue( "TotalHolds",				m_iTotalHolds );
-	pNode->GetChildValue( "TotalRolls",				m_iTotalRolls );
-	pNode->GetChildValue( "TotalMines",				m_iTotalMines );
-	pNode->GetChildValue( "TotalHands",				m_iTotalHands );
-	pNode->GetChildValue( "TotalLifts",				m_iTotalLifts );
-	pNode->GetChildValue( "PlayerRating",			m_fPlayerRating);
-
-	{
-		const XNode* pDefaultModifiers = pNode->GetChild("DefaultModifiers");
-		if( pDefaultModifiers )
-		{
-			FOREACH_CONST_Child( pDefaultModifiers, game_type )
-			{
-				game_type->GetTextValue( m_sDefaultModifiers[game_type->GetName()] );
-			}
-		}
-	}
-
-	{
-		const XNode* pFavorites = pNode->GetChild("Favorites");
-		if (pFavorites) {
-			FOREACH_CONST_Child(pFavorites, ck) {
-				RString tmp = ck->GetName();				// handle duplicated entries caused by an oversight - mina
-				bool duplicated = false;
-				FOREACHS(string, FavoritedCharts, chartkey)
-					if (*chartkey == tmp)
-						duplicated = true;
-				if (!duplicated)
-					FavoritedCharts.emplace(tmp);
-			}
-			SONGMAN->SetFavoritedStatus(FavoritedCharts);
-		}
-	}
-
-	{
-		const XNode* pPlayerSkillsets = pNode->GetChild("PlayerSkillsets");
-		if (pPlayerSkillsets) {
-			FOREACH_ENUM(Skillset, ss)
-				pPlayerSkillsets->GetChildValue(SkillsetToString(ss), m_fPlayerSkillsets[ss]);
-		}
-	}
-
-	{
-		const XNode* pNumSongsPlayedByPlayMode = pNode->GetChild("NumSongsPlayedByPlayMode");
-		if( pNumSongsPlayedByPlayMode )
-			FOREACH_ENUM( PlayMode, pm )
-				pNumSongsPlayedByPlayMode->GetChildValue( PlayModeToString(pm), m_iNumSongsPlayedByPlayMode[pm] );
-	}
-
-	{
-		const XNode* pNumSongsPlayedByStyle = pNode->GetChild("NumSongsPlayedByStyle");
-		if( pNumSongsPlayedByStyle )
-		{
-			FOREACH_CONST_Child( pNumSongsPlayedByStyle, style )
-			{
-				if( style->GetName() != "Style" )
-					continue;
-
-				StyleID sID;
-				sID.LoadFromNode( style );
-
-				if( !sID.IsValid() )
-					WARN_AND_CONTINUE;
-
-				style->GetTextValue( m_iNumSongsPlayedByStyle[sID] );
-			}
-		}
-	}
-
-	{
-		const XNode* pNumSongsPlayedByDifficulty = pNode->GetChild("NumSongsPlayedByDifficulty");
-		if( pNumSongsPlayedByDifficulty )
-			FOREACH_ENUM( Difficulty, dc )
-				pNumSongsPlayedByDifficulty->GetChildValue( DifficultyToString(dc), m_iNumSongsPlayedByDifficulty[dc] );
-	}
-
-	{
-		const XNode* pNumSongsPlayedByMeter = pNode->GetChild("NumSongsPlayedByMeter");
-		if( pNumSongsPlayedByMeter )
-			for( int i=0; i<MAX_METER+1; i++ )
-				pNumSongsPlayedByMeter->GetChildValue( ssprintf("Meter%d",i), m_iNumSongsPlayedByMeter[i] );
-	}
-
-	pNode->GetChildValue("NumTotalSongsPlayed", m_iNumTotalSongsPlayed );
-
-	{
-		const XNode* pNumStagesPassedByGrade = pNode->GetChild("NumStagesPassedByGrade");
-		if( pNumStagesPassedByGrade )
-			FOREACH_ENUM( Grade, g )
-				pNumStagesPassedByGrade->GetChildValue( GradeToString(g), m_iNumStagesPassedByGrade[g] );
-	}
-
-	{
-		const XNode* pNumStagesPassedByPlayMode = pNode->GetChild("NumStagesPassedByPlayMode");
-		if( pNumStagesPassedByPlayMode )
-			FOREACH_ENUM( PlayMode, pm )
-				pNumStagesPassedByPlayMode->GetChildValue( PlayModeToString(pm), m_iNumStagesPassedByPlayMode[pm] );
-
-	}
-
-	const XNode *pUserTable = pNode->GetChild("UserTable");
-
-	Lua *L = LUA->Get();
-
-	// If we have custom data, load it. Otherwise, make a blank table.
-	if (pUserTable)
-		LuaHelpers::CreateTableFromXNode(L, pUserTable);
-	else
-		lua_newtable(L);
-
-	m_UserTable.SetFromStack(L);
-	LUA->Release(L);
-
-}
-
-
-void Profile::LoadEttGeneralDataFromNode(const XNode* pNode) {
-	CHECKPOINT_M("Loading the general node.");
-	ASSERT(pNode->GetName() == "GeneralData");
-
-	RString s;
-	const XNode* pTemp;
-
-	pNode->GetChildValue("DisplayName", m_sDisplayName);
-	pNode->GetChildValue("CharacterID", m_sCharacterID);
-	pNode->GetChildValue("LastUsedHighScoreName", m_sLastUsedHighScoreName);
-	pNode->GetChildValue("Guid", m_sGuid);
-	pNode->GetChildValue("SortOrder", s);	m_SortOrder = StringToSortOrder(s);
-	pNode->GetChildValue("LastDifficulty", s);	m_LastDifficulty = StringToDifficulty(s);
-	pNode->GetChildValue("LastStepsType", s);	m_LastStepsType = GAMEMAN->StringToStepsType(s);
-	pTemp = pNode->GetChild("Song");				if (pTemp) m_lastSong.LoadFromNode(pTemp);
-	pNode->GetChildValue("CurrentCombo", m_iCurrentCombo);
-	pNode->GetChildValue("TotalSessions", m_iTotalSessions);
-	pNode->GetChildValue("TotalSessionSeconds", m_iTotalSessionSeconds);
-	pNode->GetChildValue("TotalGameplaySeconds", m_iTotalGameplaySeconds);
-	pNode->GetChildValue("LastPlayedDate", s); m_LastPlayedDate.FromString(s);
-	pNode->GetChildValue("TotalDancePoints", m_iTotalDancePoints);
-	pNode->GetChildValue("NumToasties", m_iNumToasties);
-	pNode->GetChildValue("TotalTapsAndHolds", m_iTotalTapsAndHolds);
-	pNode->GetChildValue("TotalJumps", m_iTotalJumps);
-	pNode->GetChildValue("TotalHolds", m_iTotalHolds);
-	pNode->GetChildValue("TotalRolls", m_iTotalRolls);
-	pNode->GetChildValue("TotalMines", m_iTotalMines);
-	pNode->GetChildValue("TotalHands", m_iTotalHands);
-	pNode->GetChildValue("TotalLifts", m_iTotalLifts);
-	pNode->GetChildValue("PlayerRating", m_fPlayerRating);
-
-	{
-		const XNode* pDefaultModifiers = pNode->GetChild("DefaultModifiers");
-		if (pDefaultModifiers)
-		{
-			FOREACH_CONST_Child(pDefaultModifiers, game_type)
-			{
-				game_type->GetTextValue(m_sDefaultModifiers[game_type->GetName()]);
-			}
-		}
-	}
-
-	{
-		const XNode* pPlayerSkillsets = pNode->GetChild("PlayerSkillsets");
-		if (pPlayerSkillsets) {
-			FOREACH_ENUM(Skillset, ss)
-				pPlayerSkillsets->GetChildValue(SkillsetToString(ss), m_fPlayerSkillsets[ss]);
-		}
-	}
-
-	const XNode *pUserTable = pNode->GetChild("UserTable");
-
-	Lua *L = LUA->Get();
-
-	// If we have custom data, load it. Otherwise, make a blank table.
-	if (pUserTable)
-		LuaHelpers::CreateTableFromXNode(L, pUserTable);
-	else
-		lua_newtable(L);
-
-	m_UserTable.SetFromStack(L);
-	LUA->Release(L);
-
-}
-
 void Profile::AddStepTotals( int iTotalTapsAndHolds, int iTotalJumps, int iTotalHolds, int iTotalRolls, int iTotalMines, int iTotalHands, int iTotalLifts)
 {
 	m_iTotalTapsAndHolds += iTotalTapsAndHolds;
@@ -1998,49 +1022,6 @@ void Profile::AddStepTotals( int iTotalTapsAndHolds, int iTotalJumps, int iTotal
 }
 
 
-XNode* Profile::SaveSongScoresCreateNode() const
-{
-	CHECKPOINT_M("Getting the node to save song scores.");
-
-	const Profile* pProfile = this;
-	ASSERT(pProfile != NULL);
-
-	XNode* pNode = new XNode("SongScores");
-
-	FOREACHM_CONST(SongID, HighScoresForASong, m_SongHighScores, i)
-	{
-		const SongID &songID = i->first;
-		const HighScoresForASong &hsSong = i->second;
-
-		// skip songs that have never been played
-		if (pProfile->GetSongNumTimesPlayed(songID) == 0)
-			continue;
-
-		XNode* pSongNode = pNode->AppendChild(songID.CreateNode());
-
-		int jCheck2 = hsSong.m_StepsHighScores.size();
-		int jCheck1 = 0;
-		FOREACHM_CONST(StepsID, HighScoresForASteps, hsSong.m_StepsHighScores, j)
-		{
-			jCheck1++;
-			ASSERT(jCheck1 <= jCheck2);
-			const StepsID &stepsID = j->first;
-			const HighScoresForASteps &hsSteps = j->second;
-
-			const HighScoreList &hsl = hsSteps.hsl;
-
-			// skip steps that have never been played
-			if (hsl.GetNumTimesPlayed() == 0)
-				continue;
-
-			XNode* pStepsNode = pSongNode->AppendChild(stepsID.CreateNode());
-
-			pStepsNode->AppendChild(hsl.CreateNode());
-		}
-	}
-
-	return pNode;
-}
 
 void Profile::RemoveFromFavorites(const string& ck) {
 	FavoritedCharts.erase(ck);
@@ -2050,83 +1031,10 @@ void Profile::RemoveFromPermaMirror(const string& ck) {
 	PermaMirrorCharts.erase(ck);
 }
 
-void Profile::LoadSongScoresFromNode(const XNode* pSongScores)
-{
-	CHECKPOINT_M("Loading the node that contains song scores.");
-
-	ASSERT(pSongScores->GetName() == "SongScores");
-
-	FOREACH_CONST_Child(pSongScores, pSong)
-	{
-		if (pSong->GetName() != "Song")
-			continue;
-
-		SongID songID;
-		songID.LoadFromNode(pSong);
-		// Allow invalid songs so that scores aren't deleted for people that use
-		// AdditionalSongsFolders and change it frequently. -Kyz
-		//if( !songID.IsValid() )
-		//	continue;
-
-		FOREACH_CONST_Child(pSong, pSteps)
-		{
-			if (pSteps->GetName() != "Steps")
-				continue;
-
-			StepsID stepsID;
-			stepsID.LoadFromNode(pSteps);
-			if (!stepsID.IsValid())
-				WARN_AND_CONTINUE;
-
-			const XNode *pHighScoreListNode = pSteps->GetChild("HighScoreList");
-			if (pHighScoreListNode == NULL)
-				WARN_AND_CONTINUE;
-
-			HighScoreList &hsl = m_SongHighScores[songID].m_StepsHighScores[stepsID].hsl;
-			hsl.LoadFromNode(pHighScoreListNode);
-		}
-	}
-}
-
-void Profile::LoadStatsXmlForConversion() {
-	string dir = profiledir;
-	RString fn = dir + STATS_XML;
-	bool compressed = false;
-	if (!IsAFile(fn)) {
-		fn = dir + STATS_XML_GZ;
-		compressed = true;
-		if (!IsAFile(fn)) {
-			return ;
-		}
-	}
-
-	int iError;
-	unique_ptr<RageFileBasic> pFile(FILEMAN->Open(fn, RageFile::READ, iError));
-	if (pFile.get() == NULL)
-		return;
-
-	if (compressed) {
-		RString sError;
-		uint32_t iCRC32;
-		RageFileObjInflate *pInflate = GunzipFile(pFile.release(), sError, &iCRC32);
-		if (pInflate == NULL)
-			return;
-
-		pFile.reset(pInflate);
-	}
-
-	XNode xml;
-	if (!XmlFileUtil::LoadFromFileShowErrors(xml, *pFile.get()))
-		return;
-
-	XNode* scores = xml.GetChild("SongScores");
-	LoadSongScoresFromNode(scores);
-}
-
 void Profile::ImportScoresToEtterna() {
 	// load stats.xml
 	if(IsEtternaProfile)
-		LoadStatsXmlForConversion();
+		XMLProf.LoadStatsXmlForConversion();
 
 	int loaded = 0;
 	int notloaded = 0;
@@ -2157,6 +1065,7 @@ void Profile::ImportScoresToEtterna() {
 				imean->SetSongDir(sdir2);
 				id = SongID();
 				id.FromSong(imean);
+				delete imean;
 			}
 
 			if (id.IsValid() && sid.IsValid()) {
@@ -2182,7 +1091,7 @@ void Profile::ImportScoresToEtterna() {
 					HighScore hs = hsv[i];
 					// ignore historic key and just load from here since the hashing function was changed anyway
 					hs.SetChartKey(ck);
-					SCOREMAN->ImportScore(hs);
+					SCOREMAN->ImportScore(hs, m_sProfileID);
 					++loaded;
 				}
 				continue;
@@ -2256,7 +1165,7 @@ void Profile::ImportScoresToEtterna() {
 								if (matched) {
 									ck = steps->GetChartKey();
 									loaded++;
-									SCOREMAN->ImportScore(tmp);
+									SCOREMAN->ImportScore(tmp, m_sProfileID);
 								}
 							}
 						}
@@ -2281,21 +1190,7 @@ void Profile::ImportScoresToEtterna() {
 	PROFILEMAN->SaveProfile(PLAYER_1);
 }
 
-XNode* Profile::SaveEttScoresCreateNode() const {
-	CHECKPOINT_M("Saving the player scores node.");
 
-	const Profile* pProfile = this;
-	ASSERT(pProfile != NULL);
-
-	//SCOREMAN->SetAllTopScores(); if this isn't already settled before you save the xml what the fuck are you doing -lurker
-	XNode* pNode = SCOREMAN->CreateNode();
-	return pNode;
-}
-
-void Profile::LoadEttScoresFromNode(const XNode* pSongScores) {
-	CHECKPOINT_M("Loading the player scores node.");
-	SCOREMAN->LoadFromNode(pSongScores);
-}
 
 // more future goalman stuff
 void Profile::CreateGoal(const string& ck) {
@@ -2398,81 +1293,6 @@ void Profile::DeleteGoal(const string& ck, DateTime assigned) {
 	}
 }
 
-XNode* Profile::SaveCategoryScoresCreateNode() const
-{
-	CHECKPOINT_M("Getting the node that saves category scores.");
-
-	const Profile* pProfile = this;
-	ASSERT( pProfile != NULL );
-
-	XNode* pNode = new XNode( "CategoryScores" );
-
-	FOREACH_ENUM( StepsType,st )
-	{
-		// skip steps types that have never been played
-		if( pProfile->GetCategoryNumTimesPlayed( st ) == 0 )
-			continue;
-
-		XNode* pStepsTypeNode = pNode->AppendChild( "StepsType" );
-		pStepsTypeNode->AppendAttr( "Type", GAMEMAN->GetStepsTypeInfo(st).szName );
-
-		FOREACH_ENUM( RankingCategory,rc )
-		{
-			// skip steps types/categories that have never been played
-			if( pProfile->GetCategoryHighScoreList(st,rc).GetNumTimesPlayed() == 0 )
-				continue;
-
-			XNode* pRankingCategoryNode = pStepsTypeNode->AppendChild( "RankingCategory" );
-			pRankingCategoryNode->AppendAttr( "Type", RankingCategoryToString(rc) );
-
-			const HighScoreList &hsl = pProfile->GetCategoryHighScoreList( (StepsType)st, (RankingCategory)rc );
-
-			pRankingCategoryNode->AppendChild( hsl.CreateNode() );
-		}
-	}
-
-	return pNode;
-}
-
-void Profile::LoadCategoryScoresFromNode( const XNode* pCategoryScores )
-{
-	CHECKPOINT_M("Loading the node that contains category scores.");
-
-	ASSERT( pCategoryScores->GetName() == "CategoryScores" );
-
-	FOREACH_CONST_Child( pCategoryScores, pStepsType )
-	{
-		if( pStepsType->GetName() != "StepsType" )
-			continue;
-
-		RString str;
-		if( !pStepsType->GetAttrValue( "Type", str ) )
-			WARN_AND_CONTINUE;
-		StepsType st = GAMEMAN->StringToStepsType( str );
-		if( st == StepsType_Invalid )
-			WARN_AND_CONTINUE_M( str );
-
-		FOREACH_CONST_Child( pStepsType, pRadarCategory )
-		{
-			if( pRadarCategory->GetName() != "RankingCategory" )
-				continue;
-
-			if( !pRadarCategory->GetAttrValue( "Type", str ) )
-				WARN_AND_CONTINUE;
-			RankingCategory rc = StringToRankingCategory( str );
-			if( rc == RankingCategory_Invalid )
-				WARN_AND_CONTINUE_M( str );
-
-			const XNode *pHighScoreListNode = pRadarCategory->GetChild("HighScoreList");
-			if( pHighScoreListNode == NULL )
-				WARN_AND_CONTINUE;
-			
-			HighScoreList &hsl = this->GetCategoryHighScoreList( st, rc );
-			hsl.LoadFromNode( pHighScoreListNode );
-		}
-	}
-}
-
 void Profile::SaveStatsWebPageToDir( const RString &sDir) const
 {
 	ASSERT( PROFILEMAN != NULL );
@@ -2489,40 +1309,6 @@ void Profile::AddScreenshot( const Screenshot &screenshot )
 	m_vScreenshots.push_back( screenshot );
 }
 
-void Profile::LoadScreenshotDataFromNode( const XNode* pScreenshotData )
-{
-	CHECKPOINT_M("Loading the node containing screenshot data.");
-
-	ASSERT( pScreenshotData->GetName() == "ScreenshotData" );
-	FOREACH_CONST_Child( pScreenshotData, pScreenshot )
-	{
-		if( pScreenshot->GetName() != "Screenshot" )
-			WARN_AND_CONTINUE_M( pScreenshot->GetName() );
-
-		Screenshot ss;
-		ss.LoadFromNode( pScreenshot );
-
-		m_vScreenshots.push_back( ss );
-	}
-}
-
-XNode* Profile::SaveScreenshotDataCreateNode() const
-{
-	CHECKPOINT_M("Getting the node containing screenshot data.");
-
-	const Profile* pProfile = this;
-	ASSERT( pProfile != NULL );
-
-	XNode* pNode = new XNode( "ScreenshotData" );
-
-	FOREACH_CONST( Screenshot, m_vScreenshots, ss )
-	{
-		pNode->AppendChild( ss->CreateNode() );
-	}
-
-	return pNode;
-}
-
 const Profile::HighScoresForASong *Profile::GetHighScoresForASong( const SongID& songID ) const
 {
 	map<SongID,HighScoresForASong>::const_iterator it;
@@ -2534,18 +1320,7 @@ const Profile::HighScoresForASong *Profile::GetHighScoresForASong( const SongID&
 
 void Profile::MoveBackupToDir( const RString &sFromDir, const RString &sToDir )
 {
-	if( FILEMAN->IsAFile(sFromDir + STATS_XML) &&
-		FILEMAN->IsAFile(sFromDir+STATS_XML+SIGNATURE_APPEND) )
-	{
-		FILEMAN->Move( sFromDir+STATS_XML,					sToDir+STATS_XML );
-		FILEMAN->Move( sFromDir+STATS_XML+SIGNATURE_APPEND,	sToDir+STATS_XML+SIGNATURE_APPEND );
-	}
-	else if( FILEMAN->IsAFile(sFromDir + STATS_XML_GZ) &&
-		FILEMAN->IsAFile(sFromDir+STATS_XML_GZ+SIGNATURE_APPEND) )
-	{
-		FILEMAN->Move( sFromDir+STATS_XML_GZ,					sToDir+STATS_XML );
-		FILEMAN->Move( sFromDir+STATS_XML_GZ+SIGNATURE_APPEND,	sToDir+STATS_XML+SIGNATURE_APPEND );
-	}
+	XMLProfile::MoveBackupToDir(sFromDir, sToDir);
 
 	if( FILEMAN->IsAFile(sFromDir + EDITABLE_INI) )
 		FILEMAN->Move( sFromDir+EDITABLE_INI,				sToDir+EDITABLE_INI );
@@ -2706,7 +1481,7 @@ public:
 	static int GetMostPopularSong(T* p, lua_State *L)
 	{
 		Song *p2 = p->GetMostPopularSong();
-		if (p2)
+		if (p2 != nullptr)
 			p2->PushSelf(L);
 		else
 			lua_pushnil(L);
@@ -2740,7 +1515,7 @@ public:
 	static int GetLastPlayedSong(T* p, lua_State *L)
 	{
 		Song *pS = p->m_lastSong.ToSong();
-		if (pS)
+		if (pS != nullptr)
 			pS->PushSelf(L);
 		else
 			lua_pushnil(L);
@@ -2771,7 +1546,7 @@ public:
 	}
 
 	static int GetIgnoreStepCountCalories(T* p, lua_State *L) {
-		lua_pushboolean(L, false);
+		lua_pushboolean(L, 0);
 		return 1;
 	}
 	static int CalculateCaloriesFromHeartRate(T* p, lua_State *L) {
@@ -2789,7 +1564,7 @@ public:
 				o = true;
 		}
 
-		lua_pushboolean(L, o);
+		lua_pushboolean(L, static_cast<int>(o));
 		return 1;
 	}
 
@@ -2926,7 +1701,7 @@ public:
 
 	static int GetPBUpTo(T* p, lua_State *L) {
 		HighScore* pb = p->GetPBUpTo();
-		if (!pb)
+		if (pb == nullptr)
 			lua_pushnil(L);
 		else
 			pb->PushSelf(L);
@@ -2935,7 +1710,7 @@ public:
 
 	static int IsVacuous(T* p, lua_State *L) {
 		if (p->achieved)
-			lua_pushboolean(L, false);
+			lua_pushboolean(L, 0);
 		
 		p->CheckVacuity();	// might be redundant
 		lua_pushboolean(L, p->vacuous);

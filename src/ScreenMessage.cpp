@@ -1,7 +1,7 @@
 #include "global.h"
-#include "ScreenMessage.h"
-#include "RageLog.h"
 #include "Foreach.h"
+#include "RageLog.h"
+#include "ScreenMessage.h"
 #include <map>
 
 const ScreenMessage SM_Invalid = "";
@@ -16,6 +16,7 @@ AutoScreenMessage(SM_LoseFocus);
 AutoScreenMessage(SM_Pause);
 AutoScreenMessage(SM_Success);
 AutoScreenMessage(SM_Failure);
+AutoScreenMessage(SM_GoToDisconnectScreen);
 
 static map<RString, ScreenMessage> *m_pScreenMessages;
 

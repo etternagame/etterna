@@ -23,7 +23,12 @@
 	!system "utils\upx Program\*.exe" ignore
 
 	Name "${PRODUCT_DISPLAY}"
+	
+	!ifndef Songless
 	OutFile "${PRODUCT_DISPLAY}.exe"
+	!else
+	OutFile "${PRODUCT_DISPLAY}Songless.exe"
+	!endif
 
 	Caption "${PRODUCT_DISPLAY} | install"
 	UninstallCaption "${PRODUCT_DISPLAY} | uninstall"
@@ -406,8 +411,9 @@ Section "Main Section" SecMain
 	CreateDirectory "$INSTDIR\Songs"
 	SetOutPath "$INSTDIR\Songs"
 	;File "Songs\Instructions.txt"
+	!ifndef Songless
 	File /r /x CVS /x .svn "Songs\Etterna*"
-
+	!endif
 	; remove and install themes
 	RMDir /r "$INSTDIR\Themes\_fallback"
 	RMDir /r "$INSTDIR\Themes\_portKit-sm4"
@@ -482,12 +488,17 @@ Section "Main Section" SecMain
 	continue:
 	
 	; FFmpeg and related
-	File "Program\avcodec-57.dll"
+	File "Program\avcodec-55.dll"
 	;File "Program\avdevice-52.dll"
-	File "Program\avformat-57.dll"
-	File "Program\avutil-55.dll"
-	File "Program\swresample-2.dll"
-	File "Program\swscale-4.dll"
+	File "Program\avformat-55.dll"
+	File "Program\avutil-52.dll"
+	File "Program\swscale-2.dll"
+	;uwebsocket
+	File "Program\uWS.dll"
+	File "Program\SSLEAY32.dll"
+	File "Program\LIBEAY32.dll"
+	File "Program\libuv.dll"
+	File "Program\zlib1.dll"
 	; parallel lights
 	File "Program\parallel_lights_io.dll"
 	; others
@@ -908,23 +919,19 @@ Section "Uninstall"
 	Delete "$INSTDIR\Program\msvcr90.dll"
 	Delete "$INSTDIR\Program\msvcp90.dll"
 	; FFmpeg and related
-	Delete "$INSTDIR\Program\avcodec-57.dll"
 	Delete "$INSTDIR\Program\avcodec-55.dll"
 	Delete "$INSTDIR\Program\avcodec-53.dll"
 	Delete "$INSTDIR\Program\avcodec-52.dll"
 	Delete "$INSTDIR\Program\avdevice-52.dll"
-	Delete "$INSTDIR\Program\avformat-57.dll"
 	Delete "$INSTDIR\Program\avformat-55.dll"
 	Delete "$INSTDIR\Program\avformat-53.dll"
 	Delete "$INSTDIR\Program\avformat-52.dll"
-	Delete "$INSTDIR\Program\avutil-55.dll"
 	Delete "$INSTDIR\Program\avutil-52.dll"
 	Delete "$INSTDIR\Program\avutil-51.dll"
 	Delete "$INSTDIR\Program\avutil-50.dll"
-	Delete "$INSTDIR\Program\swresample-2.dll"
-	Delete "$INSTDIR\Program\swscale-4.dll"
 	Delete "$INSTDIR\Program\swscale-2.dll"
 	Delete "$INSTDIR\Program\swscale-0.dll"
+	Delete "$INSTDIR\Program\uWS.dll"
 	; others
 	Delete "$INSTDIR\Program\dbghelp.dll"
 	Delete "$INSTDIR\Program\jpeg.dll"

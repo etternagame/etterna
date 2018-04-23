@@ -95,6 +95,20 @@ local stringList = {
 	{"<EffectDown>","While the Score tab is selected, select the next saved score."},
 	{"<EffectUp> while Holding <Select>","While the Score tab is selected, select the previous available rate."},
 	{"<EffectDown> while Holding <Select>","While the Score tab is selected, select the next available rate."},
+	{"Q while Holding Ctrl","Triggers a differential reload for new packs and/or files."},
+	{"F while Holding Ctrl","When pressed on a file, adds it to your Favorites."},
+	{"G while Holding Ctrl","When pressed on a file, adds it to your Goals."},
+	{"M while Holding Ctrl","When pressed on a file, permanently mirrors it."},
+	{"P while Holding Ctrl","Creates a new playlist."},
+	{"A while Holding Ctrl","While on a file, adds it to your selected playlist."},
+	{"<EffectUp> or <EffectDown>","While on a file, increases or decreases rate."},
+	{"<MenuUp> <MenuDown> <MenuUp> <MenuDown>","Enables Sort: Mode Menu."},
+	{"F2","Reloads metrics and textures."},
+	{"~","While playing a file, restarts it."},
+	{"Tab","Speeds up animations."},
+	{"ScrollLock","Brings you to the Main Menu Options."},
+	{"Holding F3","Shows the Debug Menu."},
+	
 }
 
 local function makeText(index)

@@ -1,4 +1,4 @@
-#include "global.h"
+﻿#include "global.h"
 #include "RageFileDriver.h"
 #include "RageUtil.h"
 #include "RageUtil_FileDB.h"
@@ -84,7 +84,7 @@ FileDriverEntry::~FileDriverEntry()
 
 RageFileDriver *MakeFileDriver( const RString &sType, const RString &sRoot )
 {
-	for( const FileDriverEntry *p = g_pFileDriverList; p; p = p->m_pLink )
+	for( const FileDriverEntry *p = g_pFileDriverList; p != nullptr; p = p->m_pLink )
 		if( !p->m_sType.CompareNoCase(sType) )
 			return p->Create( sRoot );
 	return NULL;

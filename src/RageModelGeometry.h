@@ -1,10 +1,10 @@
-/* RageModelGeometry - Stores mesh data. */
+﻿/* RageModelGeometry - Stores mesh data. */
 
 #ifndef RAGE_MODEL_GEOMETRY_H
 #define RAGE_MODEL_GEOMETRY_H
 
-#include "RageTypes.h"
 #include "ModelTypes.h"
+#include "RageTypes.h"
 #include <vector>
 
 class RageCompiledGeometry;
@@ -27,8 +27,6 @@ public:
 
 	RageVector3 m_vMins, m_vMaxs;
 };
-
-
 
 #endif
 

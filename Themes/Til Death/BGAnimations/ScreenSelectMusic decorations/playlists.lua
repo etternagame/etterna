@@ -113,8 +113,8 @@ local r = Def.ActorFrame{
 				singleplaylistactive = true
 				allplaylistsactive = false
 				
-				keylist = pl:GetChartlist()
-				chartlist = pl:GetChartlistActual()
+				keylist = pl:GetChartkeys()
+				chartlist = pl:GetAllSteps()
 				for j=1,#keylist do
 					songlist[j] = SONGMAN:GetSongByChartKey(keylist[j])
 					stepslist[j] = SONGMAN:GetStepsByChartKey(keylist[j])
@@ -523,7 +523,7 @@ local function PlaylistTitleDisplayButton(i)
 			end,
 			MouseLeftClickMessageCommand=function(self)
 				if ButtonActive(self,fontScale) and allplaylistsactive then
-					SONGMAN:SetActivePlaylist(allplaylists[i]:GetName())
+					SONGMAN:SetActivePlaylist(allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)]:GetName())
 					pl = allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)]
 					MESSAGEMAN:Broadcast("DisplaySinglePlaylist")
 				end

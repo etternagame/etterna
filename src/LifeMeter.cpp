@@ -1,4 +1,4 @@
-#include "global.h"
+﻿#include "global.h"
 #include "LifeMeter.h"
 #include "LifeMeterBar.h"
 #include "LifeMeterBattery.h"

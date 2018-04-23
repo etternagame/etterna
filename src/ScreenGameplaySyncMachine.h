@@ -14,7 +14,7 @@ public:
 
 	ScreenType GetScreenType() const override { return system_menu; }
 
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 	void ResetAndRestartCurrentSong();
 protected:
 	bool UseSongBackgroundAndForeground() const override { return false; }

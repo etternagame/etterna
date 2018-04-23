@@ -1,4 +1,4 @@
-#ifndef RAGE_UNICODE_HPP_
+﻿#ifndef RAGE_UNICODE_HPP_
 #define RAGE_UNICODE_HPP_
 
 #include <string>

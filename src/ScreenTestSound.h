@@ -1,9 +1,9 @@
 #ifndef SCREEN_TEST_SOUND_H
 #define SCREEN_TEST_SOUND_H
 
-#include "Screen.h"
 #include "BitmapText.h"
 #include "RageSound.h"
+#include "Screen.h"
 
 /** @brief The number of sounds allowed for testing. */
 const int nsounds = 5;

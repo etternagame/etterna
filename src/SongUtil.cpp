@@ -1,22 +1,22 @@
 #include "global.h"
-#include "SongUtil.h"
-#include "Song.h"
-#include "Steps.h"
-#include "GameState.h"
-#include "Style.h"
-#include "ProfileManager.h"
-#include "Profile.h"
-#include "PrefsManager.h"
-#include "SongManager.h"
-#include "XmlFile.h"
-#include "Foreach.h"
-#include "ThemeMetric.h"
-#include "LocalizedString.h"
-#include "RageLog.h"
-#include "GameManager.h"
 #include "CommonMetrics.h"
-#include "LuaBinding.h"
 #include "EnumHelper.h"
+#include "Foreach.h"
+#include "GameManager.h"
+#include "GameState.h"
+#include "LocalizedString.h"
+#include "LuaBinding.h"
+#include "PrefsManager.h"
+#include "Profile.h"
+#include "ProfileManager.h"
+#include "RageLog.h"
+#include "Song.h"
+#include "SongManager.h"
+#include "SongUtil.h"
+#include "Steps.h"
+#include "Style.h"
+#include "ThemeMetric.h"
+#include "XmlFile.h"
 
 ThemeMetric<int> SORT_BPM_DIVISION ( "MusicWheel", "SortBPMDivision" );
 ThemeMetric<bool> SHOW_SECTIONS_IN_BPM_SORT ( "MusicWheel", "ShowSectionsInBPMSort" );
@@ -246,7 +246,6 @@ void SongUtil::AdjustDuplicateSteps( Song *pSong )
 			 * bug in an earlier version. */
 			DeleteDuplicateSteps( pSong, vSteps );
 
-			char const *songTitle = pSong->GetDisplayFullTitle().c_str();
 			RString checkpointMessage = pSong->GetDisplayFullTitle() + " had duplicate steps removed.";
 			CHECKPOINT_M(checkpointMessage);
 			StepsUtil::SortNotesArrayByDifficulty( vSteps );
@@ -640,7 +639,12 @@ RString SongUtil::GetSectionNameFromSongAndSort( const Song* pSong, SortOrder so
 		return RString();
 	case SORT_TOP_GRADES:
 		{
+			auto p = PROFILEMAN->GetProfile(PLAYER_1);
+			auto s = GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber());
+			if(p == nullptr || s == nullptr)
+				return GradeToLocalizedString(Grade_NoData);
 			int iCounts[NUM_Grade];
+			PROFILEMAN->GetProfile(PLAYER_1)->GetGrades(pSong, s->m_StepsType, iCounts);
 			for( int i=Grade_Tier01; i<NUM_Grade; ++i )
 			{
 				Grade g = (Grade)i;
@@ -1077,9 +1081,15 @@ void SongID::LoadFromNode( const XNode* pNode )
 	m_Cache.Unset();
 }
 
+void SongID::LoadFromString(const char * dir)
+{
+	sDir = dir;
+	m_Cache.Unset();
+}
+
 RString SongID::ToString() const
 {
-	return sDir;
+	return (sDir.empty() ? RString() : sDir);
 }
 
 bool SongID::IsValid() const

@@ -1,12 +1,12 @@
 #include "global.h"
 #include "TitleSubstitution.h"
 
-#include "RageUtil.h"
-#include "RageLog.h"
 #include "FontCharAliases.h"
-#include "RageFile.h"
 #include "Foreach.h"
 #include "LuaManager.h"
+#include "RageFile.h"
+#include "RageLog.h"
+#include "RageUtil.h"
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
 

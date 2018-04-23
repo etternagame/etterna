@@ -1,4 +1,4 @@
-/* RageSoundReader_Vorbisfile - Read from a Vorbisfile interface. */
+﻿/* RageSoundReader_Vorbisfile - Read from a Vorbisfile interface. */
 
 #ifndef RAGE_SOUND_READER_VORBISFILE_H
 #define RAGE_SOUND_READER_VORBISFILE_H

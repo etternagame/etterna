@@ -1,10 +1,11 @@
-#ifndef NOTES_WRITER_ETT_H
+﻿#ifndef NOTES_WRITER_ETT_H
 #define NOTES_WRITER_ETT_H
 
 #include "global.h"
 
 class Song;
 class Steps;
+
 /** @brief Writes a Song to a .ETT file. */
 namespace NotesWriterETT
 {

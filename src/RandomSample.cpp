@@ -1,8 +1,8 @@
-#include "global.h"
-#include "RandomSample.h"
+﻿#include "global.h"
+#include "RageLog.h"
 #include "RageSound.h"
 #include "RageUtil.h"
-#include "RageLog.h"
+#include "RandomSample.h"
 
 
 RandomSample::RandomSample()
@@ -36,19 +36,9 @@ bool RandomSample::LoadSoundDir( RString sDir, int iMaxToLoad )
 	if( sDir == "" )
 		return true;
 
-#if 0
-	/* (don't want to do this just yet) */
-	/* If this is actually a directory, add a backslash to the filename,
-	 * so we'll look for eg. themes\Default\sounds\sDir\*.mp3.  Otherwise,
-	 * don't, so we'll look for all of the files starting with sDir,
-	 * eg. themes\Default\sounds\sDir*.mp3. */
-	if(IsADirectory(sDir) && sDir[sDir.size()-1] != "/" )
-		sDir += "/";
-#else
 	// make sure there's a slash at the end of this path
 	if( sDir.Right(1) != "/" )
 		sDir += "/";
-#endif
 
 	vector<RString> arraySoundFiles;
 	GetDirListing( sDir + "*.mp3", arraySoundFiles );

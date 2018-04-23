@@ -84,7 +84,7 @@ local function DlInput(event)
 					changed = true
 				end
 			else
-				if event.char and event.char ~= "" then
+				if event.char and event.char:match("[%%%+%-%!%@%#%$%^%&%*%(%)%=%_%.%,%:%;%'%\"%>%<%?%/%~%|%w]") and event.char ~= "" then
 					curInput = curInput..event.char
 					changed = true
 				end

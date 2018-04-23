@@ -1,10 +1,9 @@
-#include "global.h"
+﻿#include "global.h"
+#include "ActorUtil.h"
+#include "BitmapText.h"
 #include "ComboGraph.h"
 #include "RageLog.h"
 #include "StageStats.h"
-#include "ActorUtil.h"
-#include "BitmapText.h"
-#include "XmlFile.h"
 
 const int MinComboSizeToShow = 5;
 

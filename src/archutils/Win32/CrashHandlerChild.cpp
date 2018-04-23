@@ -234,7 +234,7 @@ bool ReadFromParent( int fd, void *p, int size )
 	int got = 0;
 	while( got < size )
 	{
-		int ret = read( fd, buf+got, size-got );
+		int ret = _read( fd, buf+got, size-got );
 		if( ret == -1 )
 		{
 			if( errno == EINTR )
@@ -322,9 +322,9 @@ namespace SymbolLookup
 
 	RString CrashChildGetModuleBaseName( HMODULE hMod )
 	{
-		write( _fileno(stdout), &hMod,  sizeof(hMod) );
+		_write( _fileno(stdout), &hMod,  sizeof(hMod) );
 
-		int iFD = fileno(stdin);
+		int iFD = _fileno(stdin);
 		int iSize;
 		if (!ReadFromParent(iFD, &iSize, sizeof(iSize)))
 		{
@@ -452,7 +452,6 @@ static void MakeCrashReport( const CompleteCrashData &Data, RString &sOut )
 	sOut += ssprintf( "\n" );
 
 	// Dump thread stacks
-	static char buf[1024*32];
 	sOut += ssprintf( "%s\n", join("\n", Data.m_asCheckpoints).c_str() );
 
 	sOut += ReportCallStack( Data.m_CrashInfo.m_BacktracePointers );
@@ -861,7 +860,7 @@ void ChildProcess()
 {
 	// Read the crash data from the crashed parent.
 	CompleteCrashData Data;
-	ReadCrashDataFromParent( fileno(stdin), Data );
+	ReadCrashDataFromParent( _fileno(stdin), Data );
 
 	RString sCrashReport;
 	VDDebugInfo::VDDebugInfoInitFromFile( &g_debugInfo );

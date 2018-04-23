@@ -1,4 +1,4 @@
-/* RageFileDriverTimeOut - manipulate files with a forced timeout. */
+﻿/* RageFileDriverTimeOut - manipulate files with a forced timeout. */
 
 #ifndef RAGE_FILE_DRIVER_TIMEOUT_H
 #define RAGE_FILE_DRIVER_TIMEOUT_H
@@ -10,7 +10,7 @@ class ThreadedFileWorker;
 class RageFileDriverTimeout: public RageFileDriver
 {
 public:
-	RageFileDriverTimeout( const RString &path );
+	explicit RageFileDriverTimeout( const RString &path );
 	~RageFileDriverTimeout() override;
 
 	RageFileBasic *Open( const RString &path, int mode, int &err ) override;
@@ -22,7 +22,6 @@ public:
 	static void ResetTimeout() { SetTimeout( -1 ); }
 
 private:
-	RageFileDriver *m_pChild;
 	ThreadedFileWorker *m_pWorker;
 };
 

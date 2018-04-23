@@ -1,8 +1,8 @@
-#ifndef NOTE_DATA_WITH_SCORING_H
+﻿#ifndef NOTE_DATA_WITH_SCORING_H
 #define NOTE_DATA_WITH_SCORING_H
 
-#include "PlayerNumber.h"
 #include "GameConstantsAndTypes.h"
+#include "PlayerNumber.h"
 
 struct RadarValues;
 class NoteData;

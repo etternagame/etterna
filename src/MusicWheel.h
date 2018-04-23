@@ -3,9 +3,9 @@
 #ifndef MUSIC_WHEEL_H
 #define MUSIC_WHEEL_H
 
-#include "RageSound.h"
 #include "GameConstantsAndTypes.h"
 #include "MusicWheelItem.h"
+#include "RageSound.h"
 #include "ThemeMetric.h"
 #include "WheelBase.h"
 
@@ -47,6 +47,7 @@ public:
 	const MusicWheelItemData *GetCurWheelItemData( int i ) { return (const MusicWheelItemData *) m_CurWheelItemData[i]; }
 
 	virtual void ReloadSongList(bool searching, RString findme);
+	void SetHashList( const vector<string> &newHashList );
 
 	// Lua
 	void PushSelf( lua_State *L ) override;
@@ -54,10 +55,12 @@ public:
 protected:
 	MusicWheelItem *MakeItem() override;
 
+	vector<string> hashList;
 	void GetSongList( vector<Song*> &arraySongs, SortOrder so );
 	bool SelectSongOrCourse();
 	bool SelectModeMenuItem();
 
+	void FilterByStepKeys(vector<Song*>& inv);
 	void FilterBySearch(vector<Song*>& inv, RString findme);
 	bool SearchGroupNames(RString & findme);
 	void FilterBySkillsets(vector<Song*>& inv);
@@ -111,7 +114,7 @@ private:
 	vector<MusicWheelItemData *> m__WheelItemDatas[NUM_SortOrder];
 	vector<MusicWheelItemData *> m__UnFilteredWheelItemDatas[NUM_SortOrder];
 
-	void BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelItems, SortOrder so, bool searching, RString findme );
+	void BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelItems, SortOrder so, bool searching, RString findme);
 	void FilterWheelItemDatas(vector<MusicWheelItemData*>& aUnFilteredDatas, vector<MusicWheelItemData*>& aFilteredData, SortOrder so);
 	void SelectSongAfterSearch();
 	RString prevSongTitle;

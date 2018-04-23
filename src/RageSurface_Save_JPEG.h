@@ -1,10 +1,11 @@
-/* RageSurface_Save_JPEG - Save a RageSurface to a JPEG. */
+﻿/* RageSurface_Save_JPEG - Save a RageSurface to a JPEG. */
 
 #ifndef RAGE_SURFACE_SAVE_JPEG_H
 #define RAGE_SURFACE_SAVE_JPEG_H
 
 struct RageSurface;
 class RageFile;
+
 /** @brief Utility functions for the RageSurfaces. */
 namespace RageSurfaceUtils
 {

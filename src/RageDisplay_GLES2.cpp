@@ -1,15 +1,15 @@
-#include "global.h"
+﻿#include "global.h"
 
 #include "RageDisplay.h"
 #include "RageDisplay_GLES2.h"
-#include "RageUtil.h"
 #include "RageLog.h"
-#include "RageTimer.h"
 #include "RageMath.h"
-#include "RageTypes.h"
-#include "RageUtil.h"
 #include "RageSurface.h"
 #include "RageTextureManager.h"
+#include "RageTimer.h"
+#include "RageTypes.h"
+#include "RageUtil.h"
+#include "RageUtil.h"
 
 #include "DisplayResolutions.h"
 
@@ -203,14 +203,14 @@ namespace
 	{
 		int iMaxTextureUnits = 1;
 		int iMaxTextureSize = 256;
-	}
+	} // namespace Caps
 	namespace State
 	{
 		bool bZTestEnabled = false;
 		bool bZWriteEnabled = false;
 		bool bAlphaTestEnabled = false;
-	}
-}
+	} // namespace State
+} // namespace
 
 RageDisplay_GLES2::RageDisplay_GLES2()
 {
@@ -383,7 +383,7 @@ RString RageDisplay_GLES2::TryVideoMode( const VideoModeParams &p, bool &bNewDev
 
 		/* We have a new OpenGL context, so we have to tell our textures that
 		 * their OpenGL texture number is invalid. */
-		if (TEXTUREMAN)
+		if (TEXTUREMAN != nullptr)
 			TEXTUREMAN->InvalidateTextures();
 
 		/* Delete all render targets.  They may have associated resources other than
@@ -606,7 +606,7 @@ RageDisplay_GLES2::GetNumTextureUnits()
 static bool
 SetTextureUnit( TextureUnit tu )
 {
-	if ((int) tu > Caps::iMaxTextureUnits)
+	if (static_cast<int>( tu) > Caps::iMaxTextureUnits)
 		return false;
 	glActiveTexture( enum_add2(GL_TEXTURE0, tu) );
 	return true;
@@ -618,7 +618,7 @@ RageDisplay_GLES2::SetTexture( TextureUnit tu, unsigned iTexture )
 	if (!SetTextureUnit( tu ))
 		return;
 
-	if (iTexture)
+	if (iTexture != 0u)
 	{
 		glEnable( GL_TEXTURE_2D );
 		glBindTexture( GL_TEXTURE_2D, iTexture );

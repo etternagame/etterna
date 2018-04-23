@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This implements audio resampling, using the method described at:
  *  http://www.dspguru.com/info/faqs/mrfaq.htm
  *
@@ -6,11 +6,10 @@
  * shared, so the memory overhead per stream is negligible.
  */
 #include "global.h"
-#include "RageSoundReader_Resample_Good.h"
-#include "RageLog.h"
-#include "RageUtil.h"
 #include "RageMath.h"
+#include "RageSoundReader_Resample_Good.h"
 #include "RageThreads.h"
+#include "RageUtil.h"
 
 #include <numeric>
 
@@ -38,14 +37,14 @@ namespace
 			float fRet = 1.0f+y*(+3.5156229f+y*(+3.0899424f+y*(+1.2067492f+y*(+0.2659732f+y*(+0.0360768f+y*+0.0045813f)))));
 			return fRet;
 		}
-		else
-		{
+		
+		
 			float y = 3.75f/fAbsX;
 			float fRet = (exp(fAbsX)/sqrt(fAbsX)) *
 				  (+0.39894228f+y*(+0.01328592f+y*(+0.00225319f+y*(-0.00157565f+y*(0.00916281f+
 				y*(-0.02057706f+y*(+0.02635537f+y*(-0.01647633f+y*+0.00392377f))))))));
 			return fRet;
-		}
+		
 	}
 
 	/* 
@@ -123,7 +122,7 @@ namespace
 
 		return i1;
 	}
-}
+} // namespace
 
 #if 0
 void RunFIRFilter( float *pIn, float *pOut, int iInputValues, float *pFIR, int iWinSize )
@@ -148,7 +147,7 @@ template<typename T>
 class AlignedBuffer
 {
 public:
-	AlignedBuffer( int iSize )
+	explicit AlignedBuffer( int iSize )
 	{
 		m_iSize = iSize;
 		m_pBuf = new T[m_iSize];
@@ -177,7 +176,7 @@ struct PolyphaseFilter
 {
 	struct State
 	{
-		State( int iUpFactor ):
+		explicit State( int iUpFactor ):
 			m_fBuf( L * 2 )
 		{
 			m_iPolyIndex = iUpFactor-1;
@@ -196,7 +195,7 @@ struct PolyphaseFilter
 	};
 	friend struct State;
 
-	PolyphaseFilter( int iUpFactor ):
+	explicit PolyphaseFilter( int iUpFactor ):
 		m_pPolyphase( L*iUpFactor )
 	{
 		m_iUpFactor = iUpFactor;
@@ -423,7 +422,7 @@ namespace PolyphaseFilterCache
 		GenerateSincLowPassFilter( pFIR, iWinSize, fCutoffFrequency );
 		ApplyKaiserWindow( pFIR, iWinSize, 8 );
 		NormalizeVector( pFIR, iWinSize );
-		MultiplyVector( &pFIR[0], &pFIR[iWinSize], (float) iUpFactor );
+		MultiplyVector( &pFIR[0], &pFIR[iWinSize], static_cast<float>( iUpFactor) );
 
 		auto *pPolyphase = new PolyphaseFilter( iUpFactor );
 		pPolyphase->Generate( pFIR );
@@ -449,7 +448,7 @@ namespace PolyphaseFilterCache
 		PolyphaseFiltersLock.Unlock();
 		return pPolyphase;
 	}
-}
+} // namespace PolyphaseFilterCache
 
 /*
  * Interface to PolyphaseFilter, providing a simple resampling interface.  This handles

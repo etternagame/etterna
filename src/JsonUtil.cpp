@@ -1,7 +1,6 @@
-#include "global.h"
+﻿#include "global.h"
 #include "JsonUtil.h"
 #include "RageFile.h"
-#include "RageUtil.h"
 #include "RageLog.h"
 #include "arch/Dialog/Dialog.h"
 #include "json/reader.h"

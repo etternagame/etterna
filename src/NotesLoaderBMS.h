@@ -1,4 +1,4 @@
-#ifndef NOTES_LOADER_BMS_H
+﻿#ifndef NOTES_LOADER_BMS_H
 #define NOTES_LOADER_BMS_H
 
 class Song;

@@ -1,12 +1,12 @@
 #include "global.h"
 
 #if !defined(WITHOUT_NETWORKING)
-#include "ScreenNetEvaluation.h"
-#include "ThemeManager.h"
 #include "GameState.h"
 #include "RageLog.h"
-#include "Style.h"
+#include "ScreenNetEvaluation.h"
 #include "SongUtil.h"
+#include "Style.h"
+#include "ThemeManager.h"
 
 static const int NUM_SCORE_DIGITS = 9;
 
@@ -20,6 +20,7 @@ static const int NUM_SCORE_DIGITS = 9;
 #define MAX_COMBO_NUM_DIGITS	THEME->GetMetricI("ScreenEvaluation","MaxComboNumDigits")
 
 static AutoScreenMessage( SM_GotEval );
+AutoScreenMessage(ETTP_NewScore);
 
 REGISTER_SCREEN_CLASS( ScreenNetEvaluation );
 
@@ -53,7 +54,7 @@ void ScreenNetEvaluation::Init()
 
 	RedoUserTexts();
 
-	NSMAN->ReportNSSOnOff( 5 );
+	NSMAN->OnEval();
 }
 
 void ScreenNetEvaluation::RedoUserTexts()
@@ -124,7 +125,7 @@ bool ScreenNetEvaluation::MenuDown( const InputEventPlus &input )
 
 void ScreenNetEvaluation::HandleScreenMessage( const ScreenMessage SM )
 {
-	if( SM == SM_GotEval)
+	if( SM == SM_GotEval || SM == ETTP_NewScore)
 	{
 		m_bHasStats = true;
 
@@ -141,21 +142,24 @@ void ScreenNetEvaluation::HandleScreenMessage( const ScreenMessage SM )
 			if ( size_t(i) >= NSMAN->m_EvalPlayerData.size() )
 				break;
 
-			if ( size_t(NSMAN->m_EvalPlayerData[i].name) >= NSMAN->m_PlayerNames.size() )
+			if ( NSMAN->m_EvalPlayerData[i].nameStr.empty() && 
+				size_t(NSMAN->m_EvalPlayerData[i].name) >= NSMAN->m_PlayerNames.size() )
 				break;
 
-			if ( NSMAN->m_EvalPlayerData[i].name < 0 )
+			if ( NSMAN->m_EvalPlayerData[i].nameStr.empty() && 
+				NSMAN->m_EvalPlayerData[i].name < 0 )
 				break;
 
 			if ( size_t(i) >= m_textUsers.size() )
 				break;
 
-			m_textUsers[i].SetText( NSMAN->m_PlayerNames[NSMAN->m_EvalPlayerData[i].name] );
+			m_textUsers[i].SetText(NSMAN->m_EvalPlayerData[i].nameStr.empty() ? 
+				NSMAN->m_PlayerNames[NSMAN->m_EvalPlayerData[i].name] : NSMAN->m_EvalPlayerData[i].nameStr);
 
 			// Yes, hardcoded (I'd like to leave it that way) -CNLohr (in reference to Grade_Tier03)
 			// Themes can read this differently. The correct solution depends...
 			// TODO: make this a server-side variable. -aj
-			if( NSMAN->m_EvalPlayerData[i].grade < Grade_Tier03 )
+			if(NSMAN->m_EvalPlayerData[m_iCurrentPlayer].hs.GetGrade() != Grade_NoData ? NSMAN->m_EvalPlayerData[m_iCurrentPlayer].hs.GetGrade() : NSMAN->m_EvalPlayerData[m_iCurrentPlayer].grade < Grade_Tier03 )
 				m_textUsers[i].PlayCommand("Tier02OrBetter");
 
 			ON_COMMAND( m_textUsers[i] );
@@ -163,9 +167,9 @@ void ScreenNetEvaluation::HandleScreenMessage( const ScreenMessage SM )
 		}
 		return; // No need to let ScreenEvaluation get a hold of this.
 	}
-	else if( SM == SM_GoToNextScreen )
+	if( SM == SM_GoToNextScreen )
 	{
-		NSMAN->ReportNSSOnOff( 4 );
+		NSMAN->OffEval();
 	}
 	ScreenEvaluation::HandleScreenMessage( SM );
 }
@@ -180,30 +184,30 @@ void ScreenNetEvaluation::TweenOffScreen( )
 
 void ScreenNetEvaluation::UpdateStats()
 {
-	if( m_iCurrentPlayer >= (int) NSMAN->m_EvalPlayerData.size() )
+	if(m_iCurrentPlayer >= (int) NSMAN->m_EvalPlayerData.size())
 		return;
 
 	// Only run these commands if the theme has these things shown; not every
 	// theme has them, so don't assume. -aj
-	if( THEME->GetMetricB(m_sName,"ShowGradeArea") )
-		m_Grades[m_pActivePlayer].SetGrade( (Grade)NSMAN->m_EvalPlayerData[m_iCurrentPlayer].grade );
-	if( THEME->GetMetricB(m_sName,"ShowScoreArea") )
-		m_textScore[m_pActivePlayer].SetTargetNumber( NSMAN->m_EvalPlayerData[m_iCurrentPlayer].score );
+	if(THEME->GetMetricB(m_sName,"ShowGradeArea"))
+		m_Grades[m_pActivePlayer].SetGrade(static_cast<Grade>(NSMAN->m_EvalPlayerData[m_iCurrentPlayer].hs.GetGrade() != Grade_NoData ? NSMAN->m_EvalPlayerData[m_iCurrentPlayer].hs.GetGrade() : NSMAN->m_EvalPlayerData[m_iCurrentPlayer].grade));
+	if(THEME->GetMetricB(m_sName,"ShowScoreArea"))
+		m_textScore[m_pActivePlayer].SetTargetNumber(static_cast<float>(NSMAN->m_EvalPlayerData[m_iCurrentPlayer].score) );
 
 	//Values greater than 6 will cause a crash
-	if( NSMAN->m_EvalPlayerData[m_iCurrentPlayer].difficulty < 6 )
+	if(NSMAN->m_EvalPlayerData[m_iCurrentPlayer].difficulty < 6)
 	{
-		m_DifficultyIcon[m_pActivePlayer].SetPlayer( m_pActivePlayer );
-		m_DifficultyIcon[m_pActivePlayer].SetFromDifficulty( NSMAN->m_EvalPlayerData[m_iCurrentPlayer].difficulty );
+		m_DifficultyIcon[m_pActivePlayer].SetPlayer(m_pActivePlayer);
+		m_DifficultyIcon[m_pActivePlayer].SetFromDifficulty(NSMAN->m_EvalPlayerData[m_iCurrentPlayer].difficulty);
 	}
 
-	for( int j=0; j<NETNUMTAPSCORES; ++j )
+	for(int j=0; j<NETNUMTAPSCORES; ++j)
 	{
 		// The name will be blank if ScreenEvaluation determined the line
 		// should not be shown.
 		if( !m_textJudgmentLineNumber[j][m_pActivePlayer].GetName().empty() )
 		{
-			m_textJudgmentLineNumber[j][m_pActivePlayer].SetTargetNumber( NSMAN->m_EvalPlayerData[m_iCurrentPlayer].tapScores[j] );
+			m_textJudgmentLineNumber[j][m_pActivePlayer].SetTargetNumber( static_cast<float>(NSMAN->m_EvalPlayerData[m_iCurrentPlayer].tapScores[j]) );
 		}
 	}
 
@@ -215,11 +219,11 @@ void ScreenNetEvaluation::UpdateStats()
 
 	// broadcast a message so themes know that the active player has changed. -aj
 	Message msg("UpdateNetEvalStats");
-	msg.SetParam( "ActivePlayerIndex", m_pActivePlayer );
-	msg.SetParam( "Difficulty", NSMAN->m_EvalPlayerData[m_iCurrentPlayer].difficulty );
-	msg.SetParam( "Score", NSMAN->m_EvalPlayerData[m_iCurrentPlayer].score );
-	msg.SetParam( "Grade", NSMAN->m_EvalPlayerData[m_iCurrentPlayer].grade );
-	msg.SetParam( "PlayerOptions", NSMAN->m_EvalPlayerData[m_iCurrentPlayer].playerOptions );
+	msg.SetParam("ActivePlayerIndex", m_pActivePlayer);
+	msg.SetParam("Difficulty", NSMAN->m_EvalPlayerData[m_iCurrentPlayer].difficulty);
+	msg.SetParam("Score", NSMAN->m_EvalPlayerData[m_iCurrentPlayer].score);
+	msg.SetParam("Grade", NSMAN->m_EvalPlayerData[m_iCurrentPlayer].hs.GetGrade() != Grade_NoData ? NSMAN->m_EvalPlayerData[m_iCurrentPlayer].hs.GetGrade() : NSMAN->m_EvalPlayerData[m_iCurrentPlayer].grade);
+	msg.SetParam("PlayerOptions", NSMAN->m_EvalPlayerData[m_iCurrentPlayer].playerOptions);
 	if( pSteps )
 		msg.SetParam( "Steps", pSteps );
 	MESSAGEMAN->Broadcast(msg);
@@ -233,10 +237,25 @@ class LunaScreenNetEvaluation: public Luna<ScreenNetEvaluation>
 {
 public:
 	static int GetNumActivePlayers( T* p, lua_State *L ) { lua_pushnumber( L, p->GetNumActivePlayers() ); return 1; }
-
+	static int GetHighScore(T* p, lua_State *L) { 
+		if (NSMAN->m_EvalPlayerData.size() - 1 >= p->m_iCurrentPlayer)
+			NSMAN->m_EvalPlayerData[p->m_iCurrentPlayer].hs.PushSelf(L);
+		else
+			lua_pushnil(L);
+		return 1;
+	}
+	static int GetOptions(T* p, lua_State *L) {
+		if (NSMAN->m_EvalPlayerData.size() - 1 >= p->m_iCurrentPlayer)
+			lua_pushstring(L, NSMAN->m_EvalPlayerData[p->m_iCurrentPlayer].playerOptions);
+		else
+			lua_pushnil(L);
+		return 1;
+	}
 	LunaScreenNetEvaluation()
 	{
-  		ADD_METHOD( GetNumActivePlayers );
+  		ADD_METHOD(GetNumActivePlayers);
+		ADD_METHOD(GetHighScore);
+		ADD_METHOD(GetOptions);
 	}
 };
 

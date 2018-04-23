@@ -1,8 +1,8 @@
 #include "global.h"
-#include "SongOptions.h"
-#include "RageUtil.h"
-#include "GameState.h"
 #include "CommonMetrics.h"
+#include "GameState.h"
+#include "RageUtil.h"
+#include "SongOptions.h"
 
 static const char *AutosyncTypeNames[] = {
 	"Off",
@@ -156,6 +156,7 @@ bool SongOptions::FromOneModString( const RString &sOneMod, RString &sErrorOut )
 	if( mult.Compare(sBit, matches) )
 	{
 		m_fMusicRate = StringToFloat( matches[0] );
+		MESSAGEMAN->Broadcast("RateChanged");
 		return true;
 	}
 
@@ -191,7 +192,7 @@ bool SongOptions::FromOneModString( const RString &sOneMod, RString &sErrorOut )
 
 bool SongOptions::operator==( const SongOptions &other ) const
 {
-#define COMPARE(x) { if( x != other.x ) return false; }
+#define COMPARE(x) { if( (x) != other.x ) return false; }
 	COMPARE( m_fMusicRate );
 	COMPARE( m_bAssistClap );
 	COMPARE( m_bAssistMetronome );
@@ -223,8 +224,30 @@ public:
 	BOOL_INTERFACE(RandomBGOnly, RandomBGOnly);
 	BOOL_INTERFACE(SaveScore, SaveScore);
 	BOOL_INTERFACE(SaveReplay, SaveReplay);
-	FLOAT_INTERFACE(MusicRate, MusicRate, (v > 0.0f && v <= 3.0f)); // Greater than 3 seems to crash frequently, haven't investigated why. -Kyz
-
+	static int MusicRate(T* p, lua_State* L)
+	{ 
+		int original_top = lua_gettop(L); 
+		lua_pushnumber(L, p->m_fMusicRate);
+		lua_pushnumber(L, p->m_SpeedfMusicRate);
+		if(lua_isnumber(L, 1) && original_top >= 1) 
+		{ 
+			float v= FArg(1); 
+			if(!(v > 0.0f && v <= 3.0f))
+			{ 
+				luaL_error(L, "Invalid value %f", v); 
+			}
+			else {
+			 	p->m_fMusicRate = v;
+				MESSAGEMAN->Broadcast("RateChanged");
+			}
+		} 
+		if(original_top >= 2 && lua_isnumber(L, 2)) 
+		{ 
+			p->m_SpeedfMusicRate = FArgGTEZero(L, 2);
+		}
+		OPTIONAL_RETURN_SELF(original_top); 
+		return 2; 
+	}
 	LunaSongOptions()
 	{
 		ADD_METHOD(AutosyncSetting);

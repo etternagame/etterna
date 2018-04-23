@@ -1,9 +1,8 @@
-#ifndef RECEPTOR_ARROW_H
+﻿#ifndef RECEPTOR_ARROW_H
 #define RECEPTOR_ARROW_H
 
 #include "ActorFrame.h"
 #include "AutoActor.h"
-#include "PlayerNumber.h"
 #include "GameConstantsAndTypes.h"
 
 class PlayerState;

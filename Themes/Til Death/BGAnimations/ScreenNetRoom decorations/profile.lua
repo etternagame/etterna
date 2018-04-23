@@ -11,7 +11,7 @@ local t = Def.ActorFrame{
 	end,
 	SetCommand=function(self)
 		self:finishtweening()
-		if getTabIndex() == 2 then
+		if getTabIndex() == (NSMAN:IsETTP() and 1 or 2) then
 			self:queuecommand("On")
 			self:visible(true)
 			update = true

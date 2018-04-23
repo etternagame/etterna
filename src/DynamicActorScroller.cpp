@@ -1,11 +1,10 @@
-#include "global.h"
-#include "DynamicActorScroller.h"
-#include "XmlFile.h"
-#include "LuaManager.h"
+﻿#include "global.h"
 #include "ActorUtil.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "DynamicActorScroller.h"
 #include "LuaBinding.h"
+#include "LuaManager.h"
+#include "RageUtil.h"
+#include "XmlFile.h"
 
 DynamicActorScroller *DynamicActorScroller::Copy() const { return new DynamicActorScroller(*this); }
 
@@ -28,7 +27,7 @@ void DynamicActorScroller::LoadFromNode( const XNode *pNode )
 		m_SubActors.resize(1);
 	}
 
-	auto iNumCopies = (int) m_fNumItemsToDraw;
+	auto iNumCopies = static_cast<int>( m_fNumItemsToDraw);
 	if( m_quadMask.GetVisible() )
 		iNumCopies += 1;
 	for( int i = 1; i < iNumCopies; ++i )
@@ -55,7 +54,7 @@ void DynamicActorScroller::LoadFromNode( const XNode *pNode )
 		RString Error= "Error running LoadFunction: ";
 		LuaHelpers::RunScriptOnStack(L, Error, 2, 1, true); // 2 args, 1 result
 
-		m_iNumItems = (int) luaL_checknumber( L, -1 );
+		m_iNumItems = static_cast<int>( luaL_checknumber( L, -1 ));
 		lua_pop( L, 1 );
 		LUA->Release(L);
 	}

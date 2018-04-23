@@ -1,11 +1,10 @@
-/** @brief Font - stores a font, used by BitmapText. */
+﻿/** @brief Font - stores a font, used by BitmapText. */
 
 #ifndef FONT_H
 #define FONT_H
 
-#include "RageTextureID.h"
-#include "RageUtil.h"
 #include "RageTypes.h"
+#include "RageUtil.h"
 #include <map>
 
 class FontPage;

@@ -1,4 +1,4 @@
-#include "global.h"
+﻿#include "global.h"
 #include "LuaBinding.h"
 #include "LuaReference.h"
 #include "RageUtil.h"
@@ -56,7 +56,7 @@ namespace
 			mapToRegister.erase( pBinding->GetClassName() );
 		}
 	}
-};
+} // namespace;
 REGISTER_WITH_LUA_FUNCTION( RegisterTypes );
 
 LuaBinding::LuaBinding()
@@ -165,7 +165,7 @@ void LuaBinding::CreateMethodsTable( lua_State *L, const std::string &sName )
 
 int LuaBinding::PushEqual( lua_State *L )
 {
-	lua_pushboolean( L, Equal(L) );
+	lua_pushboolean( L, static_cast<int>(Equal(L)) );
 	return 1;
 }
 
@@ -185,21 +185,21 @@ bool LuaBinding::Equal( lua_State *L )
 	 * kept around after the actual object has been destroyed, the
 	 * table is still valid, and the pointer no longer exists. */
 	if( iType == LUA_TTABLE )
-		return !!lua_rawequal( L, iArg1, iArg2 );
+		return !(lua_rawequal( L, iArg1, iArg2 ) == 0);
 
 	// This checks that they're the same type.  it does not check
 	// that it's actually a LuaBinding type.  If iArg1 is a non-LuaBinding
 	// type, this function should not be called and the return value is
 	// undefined, but the lua_objlen check below will prevent us from crashing.
-	if( !lua_getmetatable(L, iArg1) )
+	if( lua_getmetatable(L, iArg1) == 0 )
 		return false;
-	if( !lua_getmetatable(L, iArg2) )
+	if( lua_getmetatable(L, iArg2) == 0 )
 	{
 		lua_pop( L, 1 );
 		return false;
 	}
 
-	bool bSameType = !!lua_rawequal( L, -1, -2 );
+	bool bSameType = !(lua_rawequal( L, -1, -2 ) == 0);
 	lua_pop( L, 2 );
 	if( !bSameType )
 		return false;
@@ -209,8 +209,8 @@ bool LuaBinding::Equal( lua_State *L )
 	if( lua_objlen(L, iArg2) != sizeof(void *) )
 		return false;
 
-	auto **pData1 = (void **) lua_touserdata( L, iArg1 );
-	auto **pData2 = (void **) lua_touserdata( L, iArg2 );
+	auto **pData1 = reinterpret_cast<void **>( lua_touserdata( L, iArg1 ));
+	auto **pData2 = reinterpret_cast<void **>( lua_touserdata( L, iArg2 ));
 	return *pData1 == *pData2;
 }
 
@@ -226,7 +226,7 @@ bool LuaBinding::CheckLuaObjectType( lua_State *L, int iArg, std::string const &
 	luaL_checkany( L, iArg );
 
 	/* Check that szType is in metatable.heirarchy. */
-	if( !luaL_getmetafield(L, iArg, "heirarchy") )
+	if( luaL_getmetafield(L, iArg, "heirarchy") == 0 )
 		return false;
 	if( !lua_istable(L, -1) )
 	{

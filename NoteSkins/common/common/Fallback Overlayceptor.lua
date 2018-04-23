@@ -8,6 +8,24 @@ local Buttons = {
 		"Up",
 		"Right",
 	},
+	["Dance_Double"] = {
+		"Left",
+		"Down",
+		"Up",
+		"Right",
+		"Left",
+		"Down",
+		"Up",
+		"Right",
+	},
+	["Dance_Solo"] = {
+		"Left",
+		"UpLeft",
+		"Down",
+		"Up",
+		"UpRight",
+		"Right",
+	},
 }
 
 local getstyle = ToEnumShortString(GAMESTATE:GetCurrentStyle():GetStepsType())

@@ -1,12 +1,10 @@
-#include "global.h"
+﻿#include "global.h"
 #include "CommonMetrics.h"
-#include "RageUtil.h"
 #include "Foreach.h"
 #include "GameManager.h"
-#include "RageLog.h"
 #include "GameState.h"
-#include "ProductInfo.h"
 #include "LuaManager.h"
+#include "RageUtil.h"
 
 ThemeMetric<RString>		CommonMetrics::OPERATOR_MENU_SCREEN		("Common","OperatorMenuScreen");
 ThemeMetric<RString>		CommonMetrics::FIRST_ATTRACT_SCREEN		("Common","FirstAttractScreen");

@@ -1,19 +1,19 @@
 #include "global.h"
-#include "ScreenOptions.h"
-#include "RageUtil.h"
-#include "ScreenManager.h"
-#include "PrefsManager.h"
-#include "GameConstantsAndTypes.h"
-#include "RageLog.h"
-#include "GameState.h"
-#include "ThemeManager.h"
-#include "InputMapper.h"
 #include "ActorUtil.h"
-#include "ScreenDimensions.h"
 #include "GameCommand.h"
-#include "OptionRowHandler.h"
-#include "LuaBinding.h"
+#include "GameConstantsAndTypes.h"
+#include "GameState.h"
 #include "InputEventPlus.h"
+#include "InputMapper.h"
+#include "LuaBinding.h"
+#include "OptionRowHandler.h"
+#include "PrefsManager.h"
+#include "RageLog.h"
+#include "RageUtil.h"
+#include "ScreenDimensions.h"
+#include "ScreenManager.h"
+#include "ScreenOptions.h"
+#include "ThemeManager.h"
 
 
 /*
@@ -403,7 +403,7 @@ void ScreenOptions::RefreshIcons( int iRow, PlayerNumber pn )
 	else if( iFirstSelection != -1 )
 	{
 		const OptionRowHandler *pHand = row.GetHandler();
-		if( pHand )
+		if( pHand != nullptr )
 		{
 			int iSelection = iFirstSelection+(m_OptionsNavigation==NAV_TOGGLE_THREE_KEY?-1:0);
 			pHand->GetIconTextAndGameCommand( iSelection, sIcon, gc );
@@ -485,7 +485,7 @@ void ScreenOptions::TweenCursor( PlayerNumber pn )
 		if( row.GetRowType() == OptionRow::RowType_Exit )
 			COMMAND( m_sprLineHighlight[pn], "ChangeToExit" );
 
-		m_sprLineHighlight[pn]->SetY( (float)iY );
+		m_sprLineHighlight[pn]->SetY( static_cast<float>(iY) );
 	}
 }
 
@@ -692,7 +692,7 @@ void ScreenOptions::PositionRows( bool bTween )
 		row.SetDestination( tsDestination, bTween );
 	}
 
-	if( pSeparateExitRow )
+	if( pSeparateExitRow != nullptr )
 	{
 		Actor::TweenState tsDestination;
 		tsDestination.Init();
@@ -1270,7 +1270,7 @@ bool ScreenOptions::MenuLeft( const InputEventPlus &input )
 		ChangeValueInRowRelative(m_iCurrentRow[input.pn],input.pn,-1, input.type != IET_FIRST_PRESS);
 
 	PlayerNumber pn = input.pn;
-	MESSAGEMAN->Broadcast( (MessageID)(Message_MenuLeftP1+pn) );
+	MESSAGEMAN->Broadcast( static_cast<MessageID>(Message_MenuLeftP1+pn) );
 	return true;
 }
 
@@ -1282,7 +1282,7 @@ bool ScreenOptions::MenuRight( const InputEventPlus &input )
 		ChangeValueInRowRelative(m_iCurrentRow[input.pn], input.pn,+1, input.type != IET_FIRST_PRESS);
 
 	PlayerNumber pn = input.pn;
-	MESSAGEMAN->Broadcast( (MessageID)(Message_MenuRightP1+pn) );
+	MESSAGEMAN->Broadcast( static_cast<MessageID>(Message_MenuRightP1+pn) );
 	return true;
 }
 
@@ -1290,7 +1290,7 @@ bool ScreenOptions::MenuUp( const InputEventPlus &input )
 {
 	MenuUpDown( input, -1 );
 	PlayerNumber pn = input.pn;
-	MESSAGEMAN->Broadcast( (MessageID)(Message_MenuUpP1+pn) );
+	MESSAGEMAN->Broadcast( static_cast<MessageID>(Message_MenuUpP1+pn) );
 	return true;
 }
 
@@ -1298,7 +1298,7 @@ bool ScreenOptions::MenuDown( const InputEventPlus &input )
 {
 	MenuUpDown( input, +1 );
 	PlayerNumber pn = input.pn;
-	MESSAGEMAN->Broadcast( (MessageID)(Message_MenuDownP1+pn) );
+	MESSAGEMAN->Broadcast( static_cast<MessageID>(Message_MenuDownP1+pn) );
 	return true;
 }
 
@@ -1372,7 +1372,7 @@ public:
 			luaL_error(L, "Row index %d is invalid.", row_index);
 		}
 		OptionRow* pOptRow = p->GetRow(row_index);
-		if( pOptRow )
+		if( pOptRow != nullptr )
 			pOptRow->PushSelf(L);
 		else
 			lua_pushnil( L );

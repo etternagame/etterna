@@ -1,10 +1,10 @@
-/* RageTextureManager - Interface for loading textures. */
+﻿/* RageTextureManager - Interface for loading textures. */
 
 #ifndef RAGE_TEXTURE_MANAGER_H
 #define RAGE_TEXTURE_MANAGER_H
 
-#include "RageTexture.h"
 #include "RageSurface.h"
+#include "RageTexture.h"
 
 struct RageTextureManagerPrefs
 {

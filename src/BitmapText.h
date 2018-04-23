@@ -38,8 +38,8 @@ public:
 	{
 		if(BMT_Tweens.empty())
 		{ return BMT_current; }
-		else
-		{ return BMT_Tweens.back(); }
+		
+		return BMT_Tweens.back(); 
 	}
 	BMT_TweenState const& BMT_DestTweenState() const { return const_cast<BitmapText*>(this)->BMT_DestTweenState(); }
 
@@ -144,6 +144,31 @@ private:
 	vector<BMT_TweenState> BMT_Tweens;
 	BMT_TweenState BMT_current;
 	BMT_TweenState BMT_start;
+};
+
+
+// With the addition of Attributes to BitmapText, this class may very well be
+// redundant. (Leave it in for now, though.) -aj
+class ColorBitmapText : public BitmapText
+{
+public:
+	ColorBitmapText * Copy() const override;
+	void SetText(const RString &sText, const RString &sAlternateText = "", int iWrapWidthPixels = -1) override;
+	void ResetText();
+	void DrawPrimitives() override;
+	int lines = 0;
+	void SetMaxLines(int iNumLines, int iDirection, unsigned int &scroll);
+	void SetMaxLines(int iLines, bool bCutBottom = true);	//if bCutBottom = false then, it will crop the top
+	void SimpleAddLine(const RString &sAddition, int iWidthPixels);
+	void SetMaxLines(int iNumLines, int iDirection);
+	void PushSelf(lua_State *L) override;
+protected:
+	struct ColorChange
+	{
+		RageColor c;	// Color to change to
+		int l;			// Change Location
+	};
+	vector<ColorChange> m_vColors;
 };
 
 #endif

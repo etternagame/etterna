@@ -1,10 +1,10 @@
-#include "global.h"
+﻿#include "global.h"
+#include "EnumHelper.h"
 #include "Grade.h"
+#include "LuaManager.h"
+#include "RageLog.h"
 #include "RageUtil.h"
 #include "ThemeManager.h"
-#include "RageLog.h"
-#include "EnumHelper.h"
-#include "LuaManager.h"
 
 LuaXType( Grade );
 
@@ -14,7 +14,7 @@ ThemeMetric<int> NUM_GRADE_TIERS_USED("PlayerStageStats","NumGradeTiersUsed");
 Grade GetNextPossibleGrade( Grade g )
 {
 	if( g < NUM_GRADE_TIERS_USED - 1 )
-		return (Grade)(g+1);
+		return static_cast<Grade>(g+1);
 	else if( g == NUM_GRADE_TIERS_USED - 1 )
 		return Grade_Failed;
 	else
@@ -56,7 +56,7 @@ Grade StringToGrade( const RString &sGrade )
 	// new style
 	int iTier;
 	if( sscanf(sGrade.c_str(),"Tier%02d",&iTier) == 1 && iTier >= 0 && iTier < NUM_Grade)
-		return (Grade)(iTier-1);
+		return static_cast<Grade>(iTier-1);
 	else if( s == "FAILED" )
 		return Grade_Failed;
 	else if( s == "NODATA" )

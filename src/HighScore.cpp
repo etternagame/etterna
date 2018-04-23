@@ -1,13 +1,13 @@
-#include "global.h"
-#include "RageLog.h"
-#include "HighScore.h"
-#include "PrefsManager.h"
-#include "GameConstantsAndTypes.h"
-#include "PlayerNumber.h"
-#include "ThemeManager.h"
-#include "XmlFile.h"
+﻿#include "global.h"
+#include "CryptManager.h"
 #include "Foreach.h"
+#include "GameConstantsAndTypes.h"
+#include "HighScore.h"
+#include "PlayerNumber.h"
+#include "ProfileManager.h"
 #include "RadarValues.h"
+#include "RageLog.h"
+#include "XmlFile.h"
 #include <algorithm>
 #include <fstream>
 #include <sstream>
@@ -88,7 +88,7 @@ struct HighScoreImpl
 
 bool HighScoreImpl::operator==( const HighScoreImpl& other ) const 
 {
-#define COMPARE(x)	if( x!=other.x )	return false;
+#define COMPARE(x)	if( (x)!=other.x )	return false;
 	COMPARE( sName );
 	COMPARE( grade );
 	COMPARE( iScore );
@@ -341,6 +341,7 @@ XNode *HighScoreImpl::CreateEttNode() const {
 	pNode->AppendChild("SurviveSeconds", fSurviveSeconds);
 	pNode->AppendChild("MaxCombo", iMaxCombo);
 	pNode->AppendChild("Modifiers", sModifiers);
+	pNode->AppendChild("MachineGuid", sMachineGuid);
 	pNode->AppendChild("DateTime", dateTime.GetString());
 	pNode->AppendChild("TopScore", TopScore);
 	if (!uploaded.empty()) {
@@ -379,8 +380,8 @@ void HighScoreImpl::LoadFromEttNode(const XNode *pNode) {
 
 	RString s;	
 	pNode->GetChildValue("SSRCalcVersion", SSRCalcVersion);
-	pNode->GetChildValue("Grade", s);
-	grade = StringToGrade(s);
+	if (pNode->GetChildValue("Grade", s))
+		grade = StringToGrade(s);
 	pNode->GetChildValue("WifeScore", fWifeScore);
 	pNode->GetChildValue("WifePoints", fWifePoints);
 	pNode->GetChildValue("SSRNormPercent", fSSRNormPercent);
@@ -399,9 +400,10 @@ void HighScoreImpl::LoadFromEttNode(const XNode *pNode) {
 	}
 	pNode->GetChildValue("SurviveSeconds", fSurviveSeconds);
 	pNode->GetChildValue("MaxCombo", iMaxCombo);
-	pNode->GetChildValue("Modifiers", s); sModifiers = s;
-	pNode->GetChildValue("DateTime", s); dateTime.FromString(s);
-	pNode->GetChildValue("ScoreKey", s); ScoreKey = s;
+	if (pNode->GetChildValue("Modifiers", s)) sModifiers = s;
+	if (pNode->GetChildValue("DateTime", s)) dateTime.FromString(s);
+	if (pNode->GetChildValue("ScoreKey", s)) ScoreKey = s;
+	if (pNode->GetChildValue("MachineGuid", s)) sMachineGuid = s;
 
 	const XNode* pTapNoteScores = pNode->GetChild("TapNoteScores");
 	if (pTapNoteScores)
@@ -422,9 +424,9 @@ void HighScoreImpl::LoadFromEttNode(const XNode *pNode) {
 
 	if (fWifeScore > 0.f) {
 		const XNode* pValidationKeys = pNode->GetChild("ValidationKeys");
-		if (pValidationKeys) {
-			pValidationKeys->GetChildValue(ValidationKeyToString(ValidationKey_Brittle), s); ValidationKeys[ValidationKey_Brittle] = s;
-			pValidationKeys->GetChildValue(ValidationKeyToString(ValidationKey_Weak), s); ValidationKeys[ValidationKey_Weak] = s;
+		if (pValidationKeys != nullptr) {
+			if (pValidationKeys->GetChildValue(ValidationKeyToString(ValidationKey_Brittle), s)) ValidationKeys[ValidationKey_Brittle] = s;
+			if (pValidationKeys->GetChildValue(ValidationKeyToString(ValidationKey_Weak), s)) ValidationKeys[ValidationKey_Weak] = s;
 		}
 	}
 
@@ -502,7 +504,7 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 	}
 	
 	const XNode* pRadarValues = pNode->GetChild( "RadarValues" );
-	if( pRadarValues )
+	if( pRadarValues != nullptr )
 		radarValues.LoadFromNode( pRadarValues );
 	pNode->GetChildValue( "LifeRemainingSeconds",	fLifeRemainingSeconds );
 	pNode->GetChildValue( "Disqualified",		bDisqualified);
@@ -520,7 +522,7 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 	// Validate input.
 
 	// 3.9 conversion stuff (wtf is this code??) -mina
-	if (pTapNoteScores)
+	if (pTapNoteScores != nullptr)
 		FOREACH_ENUM(TapNoteScore, tns) {
 		pTapNoteScores->GetChildValue(TapNoteScoreToString(tns), iTapNoteScores[tns]);
 		if (tns == TNS_W1 && iTapNoteScores[tns] == 0) {
@@ -541,7 +543,7 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 			pTapNoteScores->GetChildValue("Boo", iTapNoteScores[tns]);
 	}
 
-	if (pHoldNoteScores)
+	if (pHoldNoteScores != nullptr)
 		FOREACH_ENUM(HoldNoteScore, hns) {
 		pHoldNoteScores->GetChildValue(HoldNoteScoreToString(hns), iHoldNoteScores[hns]);
 		if (hns == HNS_Held && iHoldNoteScores[hns] == 0)
@@ -651,7 +653,6 @@ bool HighScore::LoadReplayData() {
 	string line;
 	string buffer;
 	vector<string> tokens;
-	stringstream ss;
 	int noteRow;
 	float offset;
 
@@ -664,20 +665,20 @@ bool HighScore::LoadReplayData() {
 	//loop until eof
 	while (getline(fileStream, line))
 	{
-		ss = stringstream(line);
+		stringstream ss(line);
 		//split line into tokens
 		while (ss >> buffer)
 			tokens.emplace_back(buffer);
 
 		noteRow = std::stoi(tokens[0]);
 		if (!(typeid(noteRow) == typeid(int))) {
-			throw std::runtime_error("NoteRow value is not of type: int");
+			LOG->Warn("Failed to load replay data at %s (\"NoteRow value is not of type: int\")", path.c_str());
 		}
 		vNoteRowVector.emplace_back(noteRow);
 
 		offset = std::stof(tokens[1]);
 		if (!(typeid(offset) == typeid(float))) {
-			throw std::runtime_error("Offset value is not of type: float");
+			LOG->Warn("Failed to load replay data at %s (\"Offset value is not of type: float\")", path.c_str());
 		}
 		vOffsetVector.emplace_back(offset);
 		tokens.clear();
@@ -740,8 +741,10 @@ bool HighScore::GetEtternaValid() const { return m_Impl->bEtternaValid; }
 bool HighScore::IsUploadedToServer(string s) const { 
 	return find(m_Impl->uploaded.begin(), m_Impl->uploaded.end(), s) != m_Impl->uploaded.end(); 
 }
-vector<float> HighScore::GetOffsetVector() const { return m_Impl->vOffsetVector; }
-vector<int> HighScore::GetNoteRowVector() const { return m_Impl->vNoteRowVector; }
+vector<float> HighScore::GetCopyOfOffsetVector() const { return m_Impl->vOffsetVector; }
+vector<int> HighScore::GetCopyOfNoteRowVector() const { return m_Impl->vNoteRowVector; }
+const vector<float>& HighScore::GetOffsetVector() const { return m_Impl->vOffsetVector; }
+const vector<int>& HighScore::GetNoteRowVector() const { return m_Impl->vNoteRowVector; }
 string HighScore::GetScoreKey() const { return m_Impl->ScoreKey; }
 float HighScore::GetSurviveSeconds() const { return m_Impl->fSurviveSeconds; }
 float HighScore::GetSurvivalSeconds() const { return GetSurviveSeconds() + GetLifeRemainingSeconds(); }
@@ -771,6 +774,7 @@ void HighScore::SetWifeScore(float f) {m_Impl->fWifeScore = f;}
 void HighScore::SetWifePoints(float f) { m_Impl->fWifePoints= f; }
 void HighScore::SetSSRNormPercent(float f) { m_Impl->fSSRNormPercent = f; }
 void HighScore::SetMusicRate(float f) { m_Impl->fMusicRate = f; }
+void HighScore::SetSurviveSeconds(float f) { m_Impl->fSurviveSeconds = f; }
 void HighScore::SetJudgeScale(float f) { m_Impl->fJudgeScale = f; }
 void HighScore::SetChordCohesion(bool b) { m_Impl->bNoChordCohesion = b; }
 void HighScore::SetEtternaValid(bool b) { m_Impl->bEtternaValid = b; }
@@ -793,6 +797,7 @@ void HighScore::SetHoldNoteScore( HoldNoteScore hns, int i ) { m_Impl->iHoldNote
 void HighScore::SetSkillsetSSR(Skillset ss, float ssr) { m_Impl->fSkillsetSSRs[ss] = ssr; }
 void HighScore::SetValidationKey(ValidationKey vk, string k) { m_Impl->ValidationKeys[vk] = k; }
 void HighScore::SetTopScore(int i) { m_Impl->TopScore = i; }
+string HighScore::GetValidationKey(ValidationKey vk) const { return m_Impl->ValidationKeys[vk]; }
 void HighScore::SetRadarValues( const RadarValues &rv ) { m_Impl->radarValues = rv; }
 void HighScore::SetLifeRemainingSeconds( float f ) { m_Impl->fLifeRemainingSeconds = f; }
 void HighScore::SetDisqualified( bool b ) { m_Impl->bDisqualified = b; }
@@ -1157,11 +1162,12 @@ vector<int> HighScore::GetRescoreJudgeVector(int x) {
 	return m_Impl->vRescoreJudgeVector;
 }
 
-Grade HighScore::GetWifeGrade() {
+Grade HighScore::GetWifeGrade() const {
 	return m_Impl->GetWifeGrade();
 }
 
 bool HighScore::WriteReplayData() {
+	//return DBProfile::WriteReplayData(this);
 	return m_Impl->WriteReplayData();
 }
 
@@ -1210,7 +1216,7 @@ public:
 		bool bIsFillInMarker = false;
 		FOREACH_PlayerNumber( pn )
 			bIsFillInMarker |= p->GetName() == RANKING_TO_FILL_IN_MARKER[pn];
-		lua_pushboolean( L, bIsFillInMarker );
+		lua_pushboolean( L, static_cast<int>(bIsFillInMarker) );
 		return 1;
 	}
 	static int GetMaxCombo( T* p, lua_State *L )			{ lua_pushnumber(L, p->GetMaxCombo() ); return 1; }
@@ -1248,12 +1254,16 @@ public:
 
 	// Convert to MS so lua doesn't have to
 	static int GetOffsetVector(T* p, lua_State *L) {
-		if (p->LoadReplayData()) {
-			vector<float> doot = p->GetOffsetVector();
-			for (size_t i = 0; i < doot.size(); ++i)
-				doot[i] = doot[i] * 1000;
-			LuaHelpers::CreateTableFromArray(doot, L);
-			p->UnloadReplayData();
+		auto v = p->GetOffsetVector();
+		bool loaded = v.size() > 0;
+		if (loaded || p->LoadReplayData()) {
+			if (!loaded)
+				v = p->GetOffsetVector();
+			for (size_t i = 0; i < v.size(); ++i)
+				v[i] = v[i] * 1000;
+			LuaHelpers::CreateTableFromArray(v, L);
+			if (!loaded)
+				p->UnloadReplayData();
 		}
 		else
 			lua_pushnil(L);
@@ -1261,9 +1271,14 @@ public:
 	}
 
 	static int GetNoteRowVector(T* p, lua_State *L) {
-		if (p->LoadReplayData()) {
-			LuaHelpers::CreateTableFromArray(p->GetNoteRowVector(), L);
-			p->UnloadReplayData();
+		auto* v = &(p->GetNoteRowVector());
+		bool loaded = v->size() > 0;
+		if (loaded || p->LoadReplayData()) {
+			if (!loaded)
+				v = &(p->GetNoteRowVector());
+			LuaHelpers::CreateTableFromArray((*v), L);
+			if(!loaded)
+				p->UnloadReplayData();
 		}
 		else
 			lua_pushnil(L);

@@ -1,19 +1,19 @@
-#include "global.h"
-#include "BitmapText.h"
-#include "XmlFile.h"
-#include "FontManager.h"
-#include "RageLog.h"
-#include "RageTimer.h"
-#include "RageDisplay.h"
-#include "ThemeManager.h"
-#include "Font.h"
+﻿#include "global.h"
 #include "ActorUtil.h"
-#include "LuaBinding.h"
+#include "BitmapText.h"
+#include "Font.h"
+#include "FontManager.h"
 #include "Foreach.h"
+#include "LuaBinding.h"
 #include "PrefsManager.h"
+#include "RageDisplay.h"
+#include "RageTexture.h"
+#include "RageTimer.h"
+#include "ThemeManager.h"
+#include "XmlFile.h"
 
-REGISTER_ACTOR_CLASS( BitmapText );
-
+REGISTER_ACTOR_CLASS(BitmapText);
+REGISTER_ACTOR_CLASS(ColorBitmapText);
 /* XXX:
  * We need some kind of font modifier string for metrics.  For example,
  * "valign=top;spacing = x+5,y+2"
@@ -26,7 +26,7 @@ REGISTER_ACTOR_CLASS( BitmapText );
  * fading are annoying to optimize, but rarely used. Iterating over every
  * character in Draw() is dumb. */
 #define NUM_RAINBOW_COLORS	THEME->GetMetricI("BitmapText","NumRainbowColors")
-#define RAINBOW_COLOR(n)	THEME->GetMetricC("BitmapText",ssprintf("RainbowColor%i", n+1))
+#define RAINBOW_COLOR(n)	THEME->GetMetricC("BitmapText",ssprintf("RainbowColor%i", (n)+1))
 
 static vector<RageColor> RAINBOW_COLORS;
 
@@ -68,7 +68,7 @@ BitmapText::BitmapText()
 
 BitmapText::~BitmapText()
 {
-	if( m_pFont )
+	if( m_pFont != nullptr )
 		FONT->UnloadFont( m_pFont );
 }
 
@@ -100,7 +100,7 @@ BitmapText & BitmapText::operator=(const BitmapText &cpy)
 	CPY( BMT_start );
 #undef CPY
 
-	if( m_pFont )
+	if( m_pFont != nullptr )
 		FONT->UnloadFont( m_pFont );
 
 	if( cpy.m_pFont != nullptr )
@@ -210,7 +210,7 @@ bool BitmapText::LoadFromFont( const RString& sFontFilePath )
 {
 	CHECKPOINT_M( ssprintf("BitmapText::LoadFromFont(%s)", sFontFilePath.c_str()) );
 
-	if( m_pFont )
+	if( m_pFont != nullptr )
 	{
 		FONT->UnloadFont( m_pFont );
 		m_pFont = nullptr;
@@ -229,7 +229,7 @@ bool BitmapText::LoadFromTextureAndChars( const RString& sTexturePath, const RSt
 {
 	CHECKPOINT_M( ssprintf("BitmapText::LoadFromTextureAndChars(\"%s\",\"%s\")", sTexturePath.c_str(), sChars.c_str()) );
 
-	if( m_pFont )
+	if( m_pFont != nullptr )
 	{
 		FONT->UnloadFont( m_pFont );
 		m_pFont = nullptr;
@@ -426,8 +426,8 @@ void BitmapText::DrawChars( bool bUseStrokeTexture )
 
 	for ( int start = iStartGlyph; start < iEndGlyph; )
 	{
-		int end = start;
-		while (end < iEndGlyph  &&  m_vpFontPageTextures[end] == m_vpFontPageTextures[start])
+		size_t end = start;
+		while (end < static_cast<size_t>(iEndGlyph)  &&  m_vpFontPageTextures[end] == m_vpFontPageTextures[start])
 			end++;
 
 		bool bHaveATexture = !bUseStrokeTexture || (bUseStrokeTexture && m_vpFontPageTextures[start]->m_pTextureStroke);
@@ -459,7 +459,7 @@ void BitmapText::DrawChars( bool bUseStrokeTexture )
 			renderNow = true;
 		}
 
-		if ( haveTextures && (renderNow || end >= iEndGlyph) )
+		if ( haveTextures && (renderNow || end >= static_cast<size_t>(iEndGlyph)) )
 		{
 			DISPLAY->DrawQuads(&m_aVertices[startingPoint * 4], (end - startingPoint) * 4);
 
@@ -620,7 +620,7 @@ void BitmapText::UpdateBaseZoom()
 	// Factor in the non-base zoom so that maxwidth will be in terms of theme
 	// pixels when zoom is used.
 #define APPLY_DIMENSION_ZOOM(dimension_max, dimension_get, dimension_zoom_get, base_zoom_set) \
-	if(dimension_max == 0) \
+	if((dimension_max) == 0) \
 	{ \
 		base_zoom_set(1); \
 	} \
@@ -633,7 +633,7 @@ void BitmapText::UpdateBaseZoom()
 		} \
 		if(dimension != 0) \
 		{ \
-			const float zoom= min(1, dimension_max / dimension); \
+			const float zoom= min(1, (dimension_max) / dimension); \
 			base_zoom_set(zoom); \
 		} \
 	}
@@ -668,7 +668,7 @@ void BitmapText::CropLineToWidth(size_t l, int width)
 	{
 		int used_width= width;
 		wstring& line= m_wTextLines[l];
-		int fit= m_pFont->GetGlyphsThatFit(line, &used_width);
+		size_t fit= m_pFont->GetGlyphsThatFit(line, &used_width);
 		if(fit < line.size())
 		{
 			line.erase(line.begin()+fit, line.end());
@@ -792,7 +792,7 @@ void BitmapText::DrawPrimitives()
 
 			for( unsigned i=0; i<m_aVertices.size(); i+=4 )
 			{
-				RageVector3 jitter( rnd()%2, rnd()%3, 0 );
+				RageVector3 jitter( static_cast<float>(rnd()%2), static_cast<float>(rnd()%3), 0.f );
 				vGlyphJitter.push_back( jitter );
 
 				m_aVertices[i+0].p += jitter;	// top left
@@ -958,14 +958,437 @@ void BitmapText::Attribute::FromStack( lua_State *L, int iPos )
 	lua_settop( L, iTab - 1 );
 }
 
+
+/** ColorBitmapText ***********************************************************/
+void ColorBitmapText::SetText(const RString& _sText, const RString& _sAlternateText, int iWrapWidthPixels)
+{
+	ASSERT(m_pFont != NULL);
+
+	RString sNewText = StringWillUseAlternate(_sText, _sAlternateText) ? _sAlternateText : _sText;
+
+	if (iWrapWidthPixels == -1)	// wrap not specified
+		iWrapWidthPixels = m_iWrapWidthPixels;
+
+	if (m_sText == sNewText && iWrapWidthPixels == m_iWrapWidthPixels)
+		return;
+	m_sText = sNewText;
+	m_iWrapWidthPixels = iWrapWidthPixels;
+
+	// Set up the first color.
+	m_vColors.clear();
+	ColorChange change;
+	change.c = RageColor(1, 1, 1, 1);
+	change.l = 0;
+	m_vColors.push_back(change);
+
+	m_wTextLines.clear();
+
+	RString sCurrentLine = "";
+	int		iLineWidth = 0;
+
+	RString sCurrentWord = "";
+	int		iWordWidth = 0;
+	int		iGlyphsSoFar = 0;
+
+	for (unsigned i = 0; i < m_sText.length(); i++)
+	{
+		int iCharsLeft = m_sText.length() - i - 1;
+
+		// First: Check for the special (color) case.
+
+		if (m_sText.length() > 8 && i < m_sText.length() - 9)
+		{
+			RString FirstThree = m_sText.substr(i, 3);
+			if (FirstThree.CompareNoCase("|c0") == 0 && iCharsLeft > 8)
+			{
+				ColorChange cChange;
+				unsigned int r, g, b;
+				sscanf(m_sText.substr(i, 9).c_str(), "|%*c0%2x%2x%2x", &r, &g, &b);
+				cChange.c = RageColor(r / 255.f, g / 255.f, b / 255.f, 1.f);
+				cChange.l = iGlyphsSoFar;
+				if (iGlyphsSoFar == 0)
+					m_vColors[0] = cChange;
+				else
+					m_vColors.push_back(cChange);
+				i += 8;
+				continue;
+			}
+		}
+
+		int iCharLength = min(utf8_get_char_len(m_sText[i]), iCharsLeft + 1);
+		RString curCharStr = m_sText.substr(i, iCharLength);
+		wchar_t curChar = utf8_get_char(curCharStr);
+		i += iCharLength - 1;
+		int iCharWidth = m_pFont->GetLineWidthInSourcePixels(wstring() + curChar);
+
+		switch (curChar)
+		{
+		case L' ':
+			if ( /* iLineWidth == 0 &&*/ iWordWidth == 0)
+				break;
+			sCurrentLine += sCurrentWord + " ";
+			iLineWidth += iWordWidth + iCharWidth;
+			sCurrentWord = "";
+			iWordWidth = 0;
+			iGlyphsSoFar++;
+			break;
+		case L'\n':
+			if (iLineWidth + iWordWidth > iWrapWidthPixels)
+			{
+				SimpleAddLine(sCurrentLine, iLineWidth);
+				if (iWordWidth > 0)
+					iLineWidth = iWordWidth +	//Add the width of a space
+					m_pFont->GetLineWidthInSourcePixels(L" ");
+				sCurrentLine = sCurrentWord + " ";
+				iWordWidth = 0;
+				sCurrentWord = "";
+				iGlyphsSoFar++;
+			}
+			else
+			{
+				SimpleAddLine(sCurrentLine + sCurrentWord, iLineWidth + iWordWidth);
+				sCurrentLine = "";	iLineWidth = 0;
+				sCurrentWord = "";	iWordWidth = 0;
+			}
+			break;
+		default:
+			if (iWordWidth + iCharWidth > iWrapWidthPixels && iLineWidth == 0)
+			{
+				SimpleAddLine(sCurrentWord, iWordWidth);
+				sCurrentWord = curCharStr;  iWordWidth = iCharWidth;
+			}
+			else if (iWordWidth + iLineWidth + iCharWidth > iWrapWidthPixels)
+			{
+				SimpleAddLine(sCurrentLine, iLineWidth);
+				sCurrentLine = "";
+				iLineWidth = 0;
+				sCurrentWord += curCharStr;
+				iWordWidth += iCharWidth;
+			}
+			else
+			{
+				sCurrentWord += curCharStr;
+				iWordWidth += iCharWidth;
+			}
+			iGlyphsSoFar++;
+			break;
+		}
+	}
+
+	if (iWordWidth > 0)
+	{
+		sCurrentLine += sCurrentWord;
+		iLineWidth += iWordWidth;
+	}
+
+	if (iLineWidth > 0)
+		SimpleAddLine(sCurrentLine, iLineWidth);
+
+	lines = m_wTextLines.size();
+
+	BuildChars();
+	UpdateBaseZoom();
+}
+
+void ColorBitmapText::ResetText()
+{
+	ASSERT(m_pFont != NULL);
+
+	int iWrapWidthPixels = m_iWrapWidthPixels;
+
+	// Set up the first color.
+	m_vColors.clear();
+	ColorChange change;
+	change.c = RageColor(1, 1, 1, 1);
+	change.l = 0;
+	m_vColors.push_back(change);
+
+	m_wTextLines.clear();
+
+	RString sCurrentLine = "";
+	int		iLineWidth = 0;
+
+	RString sCurrentWord = "";
+	int		iWordWidth = 0;
+	int		iGlyphsSoFar = 0;
+
+	for (unsigned i = 0; i < m_sText.length(); i++)
+	{
+		int iCharsLeft = m_sText.length() - i - 1;
+
+		// First: Check for the special (color) case.
+
+		if (m_sText.length() > 8 && i < m_sText.length() - 9)
+		{
+			RString FirstThree = m_sText.substr(i, 3);
+			if (FirstThree.CompareNoCase("|c0") == 0 && iCharsLeft > 8)
+			{
+				ColorChange cChange;
+				unsigned int r, g, b;
+				sscanf(m_sText.substr(i, 9).c_str(), "|%*c0%2x%2x%2x", &r, &g, &b);
+				cChange.c = RageColor(r / 255.f, g / 255.f, b / 255.f, 1.f);
+				cChange.l = iGlyphsSoFar;
+				if (iGlyphsSoFar == 0)
+					m_vColors[0] = cChange;
+				else
+					m_vColors.push_back(cChange);
+				i += 8;
+				continue;
+			}
+		}
+
+		int iCharLength = min(utf8_get_char_len(m_sText[i]), iCharsLeft + 1);
+		RString curCharStr = m_sText.substr(i, iCharLength);
+		wchar_t curChar = utf8_get_char(curCharStr);
+		i += iCharLength - 1;
+		int iCharWidth = m_pFont->GetLineWidthInSourcePixels(wstring() + curChar);
+
+		switch (curChar)
+		{
+		case L' ':
+			if ( /* iLineWidth == 0 &&*/ iWordWidth == 0)
+				break;
+			sCurrentLine += sCurrentWord + " ";
+			iLineWidth += iWordWidth + iCharWidth;
+			sCurrentWord = "";
+			iWordWidth = 0;
+			iGlyphsSoFar++;
+			break;
+		case L'\n':
+			if (iLineWidth + iWordWidth > iWrapWidthPixels)
+			{
+				SimpleAddLine(sCurrentLine, iLineWidth);
+				if (iWordWidth > 0)
+					iLineWidth = iWordWidth +	//Add the width of a space
+					m_pFont->GetLineWidthInSourcePixels(L" ");
+				sCurrentLine = sCurrentWord + " ";
+				iWordWidth = 0;
+				sCurrentWord = "";
+				iGlyphsSoFar++;
+			}
+			else
+			{
+				SimpleAddLine(sCurrentLine + sCurrentWord, iLineWidth + iWordWidth);
+				sCurrentLine = "";	iLineWidth = 0;
+				sCurrentWord = "";	iWordWidth = 0;
+			}
+			break;
+		default:
+			if (iWordWidth + iCharWidth > iWrapWidthPixels && iLineWidth == 0)
+			{
+				SimpleAddLine(sCurrentWord, iWordWidth);
+				sCurrentWord = curCharStr;  iWordWidth = iCharWidth;
+			}
+			else if (iWordWidth + iLineWidth + iCharWidth > iWrapWidthPixels)
+			{
+				SimpleAddLine(sCurrentLine, iLineWidth);
+				sCurrentLine = "";
+				iLineWidth = 0;
+				sCurrentWord += curCharStr;
+				iWordWidth += iCharWidth;
+			}
+			else
+			{
+				sCurrentWord += curCharStr;
+				iWordWidth += iCharWidth;
+			}
+			iGlyphsSoFar++;
+			break;
+		}
+	}
+
+	if (iWordWidth > 0)
+	{
+		sCurrentLine += sCurrentWord;
+		iLineWidth += iWordWidth;
+	}
+
+	if (iLineWidth > 0)
+		SimpleAddLine(sCurrentLine, iLineWidth);
+	lines = m_wTextLines.size();
+	BuildChars();
+	UpdateBaseZoom();
+}
+
+void ColorBitmapText::SetMaxLines(int iNumLines, int iDirection, unsigned int &scroll)
+{
+	iNumLines = max(0, iNumLines);
+	iNumLines = min(static_cast<int>(m_wTextLines.size()), iNumLines);
+	if (iDirection == 0)
+	{
+		// Crop all bottom lines
+		m_wTextLines.resize(iNumLines);
+		m_iLineWidths.resize(iNumLines);
+	}
+	else
+	{
+		// Because colors are relative to the beginning, we have to crop them back
+		unsigned shift = 0;
+		if (scroll >  m_iLineWidths.size() - iNumLines)
+			scroll = m_iLineWidths.size() - iNumLines;
+
+		for (unsigned i = 0; i < m_wTextLines.size() - iNumLines - scroll; i++)
+			shift += m_wTextLines[i].length();
+
+		// When we're cutting out text, we need to maintain the last
+		// color, so our text at the top doesn't become colorless.
+		RageColor LastColor;
+
+		for (unsigned i = 0; i < m_vColors.size(); i++)
+		{
+			m_vColors[i].l -= shift;
+			if (m_vColors[i].l < 0)
+			{
+				LastColor = m_vColors[i].c;
+				m_vColors.erase(m_vColors.begin() + i);
+				i--;
+			}
+		}
+
+		// If we already have a color set for the first char
+		// do not override it.
+		if (m_vColors.size() > 0 && m_vColors[0].l > 0)
+		{
+			ColorChange tmp;
+			tmp.c = LastColor;
+			tmp.l = 0;
+			m_vColors.insert(m_vColors.begin(), tmp);
+		}
+
+		if (scroll == 0 || m_iLineWidths.size() <= iNumLines || scroll > m_iLineWidths.size() - iNumLines) {
+			m_wTextLines.erase(m_wTextLines.begin(), m_wTextLines.end() - iNumLines);
+			m_iLineWidths.erase(m_iLineWidths.begin(), m_iLineWidths.end() - iNumLines);
+		}
+		else {
+			m_wTextLines.erase(m_wTextLines.begin(), m_wTextLines.end() - iNumLines - scroll);
+			m_iLineWidths.erase(m_iLineWidths.begin(), m_iLineWidths.end() - iNumLines - scroll);
+
+			m_wTextLines.erase(m_wTextLines.end() - scroll, m_wTextLines.end());
+			m_iLineWidths.erase(m_iLineWidths.begin(), m_iLineWidths.end());
+		}
+	}
+	BuildChars();
+}
+
+void ColorBitmapText::SimpleAddLine(const RString &sAddition, const int iWidthPixels)
+{
+	m_wTextLines.push_back(RStringToWstring(sAddition));
+	m_iLineWidths.push_back(iWidthPixels);
+}
+
+void ColorBitmapText::DrawPrimitives()
+{
+	Actor::SetGlobalRenderStates();	// set Actor-specified render states
+	DISPLAY->SetTextureMode(TextureUnit_1, TextureMode_Modulate);
+
+	/* Draw if we're not fully transparent or the zbuffer is enabled */
+	if (m_pTempState->diffuse[0].a != 0)
+	{
+		// render the shadow
+		if (m_fShadowLengthX != 0 || m_fShadowLengthY != 0)
+		{
+			DISPLAY->PushMatrix();
+			DISPLAY->TranslateWorld(m_fShadowLengthX, m_fShadowLengthY, 0);	// shift by 5 units
+			RageColor c = m_ShadowColor;
+			c.a *= m_pTempState->diffuse[0].a;
+			for (unsigned i = 0; i<m_aVertices.size(); i++)
+				m_aVertices[i].c = c;
+			DrawChars(true);
+
+			DISPLAY->PopMatrix();
+		}
+
+		// render the diffuse pass
+		int loc = 0, cur = 0;
+		RageColor c = m_pTempState->diffuse[0];
+
+		for (unsigned i = 0; i<m_aVertices.size(); i += 4)
+		{
+			loc++;
+			if (cur < static_cast<int>(m_vColors.size()))
+			{
+				if (loc > m_vColors[cur].l)
+				{
+					c = m_vColors[cur].c;
+					cur++;
+				}
+			}
+			for (unsigned j = 0; j<4; j++)
+				m_aVertices[i + j].c = c;
+		}
+
+		DrawChars(false);
+	}
+
+	// render the glow pass
+	if (m_pTempState->glow.a > 0.0001f)
+	{
+		DISPLAY->SetTextureMode(TextureUnit_1, TextureMode_Glow);
+
+		for (unsigned i = 0; i<m_aVertices.size(); i++)
+			m_aVertices[i].c = m_pTempState->glow;
+		DrawChars(false);
+	}
+}
+
+void ColorBitmapText::SetMaxLines(int iNumLines, int iDirection)
+{
+	iNumLines = max(0, iNumLines);
+	iNumLines = min(static_cast<int>(m_wTextLines.size()), iNumLines);
+	if (iDirection == 0)
+	{
+		// Crop all bottom lines
+		m_wTextLines.resize(iNumLines);
+		m_iLineWidths.resize(iNumLines);
+	}
+	else
+	{
+		// Because colors are relative to the beginning, we have to crop them back
+		unsigned shift = 0;
+
+		for (unsigned i = 0; i < m_wTextLines.size() - iNumLines; i++)
+			shift += m_wTextLines[i].length();
+
+		// When we're cutting out text, we need to maintain the last
+		// color, so our text at the top doesn't become colorless.
+		RageColor LastColor;
+
+		for (unsigned i = 0; i < m_vColors.size(); i++)
+		{
+			m_vColors[i].l -= shift;
+			if (m_vColors[i].l < 0)
+			{
+				LastColor = m_vColors[i].c;
+				m_vColors.erase(m_vColors.begin() + i);
+				i--;
+			}
+		}
+
+		// If we already have a color set for the first char
+		// do not override it.
+		if (m_vColors.size() > 0 && m_vColors[0].l > 0)
+		{
+			ColorChange tmp;
+			tmp.c = LastColor;
+			tmp.l = 0;
+			m_vColors.insert(m_vColors.begin(), tmp);
+		}
+
+		m_wTextLines.erase(m_wTextLines.begin(), m_wTextLines.end() - iNumLines);
+		m_iLineWidths.erase(m_iLineWidths.begin(), m_iLineWidths.end() - iNumLines);
+	}
+	BuildChars();
+}
+
+
 // lua start
 #include "FontCharAliases.h"
 
-/** @brief Allow Lua to have access to the BitmapText. */ 
-class LunaBitmapText: public Luna<BitmapText>
+/** @brief Allow Lua to have access to the BitmapText. */
+class LunaBitmapText : public Luna<BitmapText>
 {
 public:
-	static int wrapwidthpixels( T* p, lua_State *L )	{ p->SetWrapWidthPixels( IArg(1) ); COMMON_RETURN_SELF; }
+	static int wrapwidthpixels(T* p, lua_State *L) { p->SetWrapWidthPixels(IArg(1)); COMMON_RETURN_SELF; }
 #define MAX_DIMENSION(maxdimension, SetMaxDimension) \
 	static int maxdimension( T* p, lua_State *L ) \
 	{ p->SetMaxDimension(FArg(1)); COMMON_RETURN_SELF; }
@@ -974,80 +1397,94 @@ public:
 #undef MAX_DIMENSION
 	static int max_dimension_use_zoom(T* p, lua_State* L)
 	{
-		p->SetMaxDimUseZoom(lua_toboolean(L, 1));
+		p->SetMaxDimUseZoom(lua_toboolean(L, 1) != 0);
 		COMMON_RETURN_SELF;
 	}
-	static int vertspacing( T* p, lua_State *L )		{ p->SetVertSpacing( IArg(1) ); COMMON_RETURN_SELF; }
-	static int settext( T* p, lua_State *L )
+	static int vertspacing(T* p, lua_State *L) { p->SetVertSpacing(IArg(1)); COMMON_RETURN_SELF; }
+	static int settext(T* p, lua_State *L)
 	{
 		RString s = SArg(1);
 		RString sAlt;
 		/* XXX: Lua strings should simply use "\n" natively. However, some
-		 * settext calls may be made from GetMetric() calls to other strings, and
-		 * it's confusing for :: to work in some strings and not others.
-		 * Eventually, all strings should be Lua expressions, but until then,
-		 * continue to support this. */
-		s.Replace("::","\n");
-		FontCharAliases::ReplaceMarkers( s );
+		* settext calls may be made from GetMetric() calls to other strings, and
+		* it's confusing for :: to work in some strings and not others.
+		* Eventually, all strings should be Lua expressions, but until then,
+		* continue to support this. */
+		s.Replace("::", "\n");
+		FontCharAliases::ReplaceMarkers(s);
 
-		if( lua_gettop(L) > 1 )
+		if (lua_gettop(L) > 1)
 		{
 			sAlt = SArg(2);
-			sAlt.Replace("::","\n");
-			FontCharAliases::ReplaceMarkers( sAlt );
+			sAlt.Replace("::", "\n");
+			FontCharAliases::ReplaceMarkers(sAlt);
 		}
 
-		p->SetText( s, sAlt );
+		p->SetText(s, sAlt);
 		COMMON_RETURN_SELF;
 	}
-	static int rainbowscroll( T* p, lua_State *L )		{ p->SetRainbowScroll( BArg(1) ); COMMON_RETURN_SELF; }
-	static int jitter( T* p, lua_State *L )			{ p->SetJitter( BArg(1) ); COMMON_RETURN_SELF; }
-	static int distort( T* p, lua_State *L) { p->SetDistortion( FArg(1) ); COMMON_RETURN_SELF; }
-	static int undistort( T* p, lua_State *L) { p->UnSetDistortion(); COMMON_RETURN_SELF; }
+	static int rainbowscroll(T* p, lua_State *L) { p->SetRainbowScroll(BArg(1)); COMMON_RETURN_SELF; }
+	static int jitter(T* p, lua_State *L) { p->SetJitter(BArg(1)); COMMON_RETURN_SELF; }
+	static int distort(T* p, lua_State *L) { p->SetDistortion(FArg(1)); COMMON_RETURN_SELF; }
+	static int undistort(T* p, lua_State *L) { p->UnSetDistortion(); COMMON_RETURN_SELF; }
 	GETTER_SETTER_BOOL_METHOD(mult_attrs_with_diffuse);
-	static int GetText( T* p, lua_State *L )		{ lua_pushstring( L, p->GetText() ); return 1; }
-	static int AddAttribute( T* p, lua_State *L )
+	static int GetText(T* p, lua_State *L) { lua_pushstring(L, p->GetText()); return 1; }
+	static int AddAttribute(T* p, lua_State *L)
 	{
 		size_t iPos = IArg(1);
 		BitmapText::Attribute attr = p->GetDefaultAttribute();
 
-		attr.FromStack( L, 2 );
-		p->AddAttribute( iPos, attr );
+		attr.FromStack(L, 2);
+		p->AddAttribute(iPos, attr);
 		COMMON_RETURN_SELF;
 	}
-	static int ClearAttributes( T* p, lua_State *L )	{ p->ClearAttributes(); COMMON_RETURN_SELF; }
-	static int strokecolor( T* p, lua_State *L )		{ RageColor c; c.FromStackCompat( L, 1 ); p->SetStrokeColor( c ); COMMON_RETURN_SELF; }
+	static int ClearAttributes(T* p, lua_State *L) { p->ClearAttributes(); COMMON_RETURN_SELF; }
+	static int strokecolor(T* p, lua_State *L) { RageColor c; c.FromStackCompat(L, 1); p->SetStrokeColor(c); COMMON_RETURN_SELF; }
 	DEFINE_METHOD(getstrokecolor, GetStrokeColor());
-	static int uppercase( T* p, lua_State *L )		{ p->SetUppercase( BArg(1) ); COMMON_RETURN_SELF; }
-	static int textglowmode( T* p, lua_State *L )	{ p->SetTextGlowMode( Enum::Check<TextGlowMode>(L, 1) ); COMMON_RETURN_SELF; }
+	static int uppercase(T* p, lua_State *L) { p->SetUppercase(BArg(1)); COMMON_RETURN_SELF; }
+	static int textglowmode(T* p, lua_State *L) { p->SetTextGlowMode(Enum::Check<TextGlowMode>(L, 1)); COMMON_RETURN_SELF; }
 
 	LunaBitmapText()
 	{
-		ADD_METHOD( wrapwidthpixels );
-		ADD_METHOD( maxwidth );
-		ADD_METHOD( maxheight );
-		ADD_METHOD( max_dimension_use_zoom );
-		ADD_METHOD( vertspacing );
-		ADD_METHOD( settext );
-		ADD_METHOD( rainbowscroll );
-		ADD_METHOD( jitter );
-		ADD_METHOD( distort );
-		ADD_METHOD( undistort );
+		ADD_METHOD(wrapwidthpixels);
+		ADD_METHOD(maxwidth);
+		ADD_METHOD(maxheight);
+		ADD_METHOD(max_dimension_use_zoom);
+		ADD_METHOD(vertspacing);
+		ADD_METHOD(settext);
+		ADD_METHOD(rainbowscroll);
+		ADD_METHOD(jitter);
+		ADD_METHOD(distort);
+		ADD_METHOD(undistort);
 		ADD_GET_SET_METHODS(mult_attrs_with_diffuse);
-		ADD_METHOD( GetText );
-		ADD_METHOD( AddAttribute );
-		ADD_METHOD( ClearAttributes );
-		ADD_METHOD( strokecolor );
-		ADD_METHOD( getstrokecolor );
-		ADD_METHOD( uppercase );
-		ADD_METHOD( textglowmode );
+		ADD_METHOD(GetText);
+		ADD_METHOD(AddAttribute);
+		ADD_METHOD(ClearAttributes);
+		ADD_METHOD(strokecolor);
+		ADD_METHOD(getstrokecolor);
+		ADD_METHOD(uppercase);
+		ADD_METHOD(textglowmode);
 		//ADD_METHOD( LoadFromFont );
 		//ADD_METHOD( LoadFromTextureAndChars );
 	}
 };
 
-LUA_REGISTER_DERIVED_CLASS( BitmapText, Actor )
+LUA_REGISTER_DERIVED_CLASS(BitmapText, Actor)
 
+
+class LunaColorBitmapText : public Luna<ColorBitmapText>
+{
+public:
+	static int SetMaxLines(T* p, lua_State *L) {
+		p->SetMaxLines(IArg(1), lua_isnil(L, 2) ? 0 : IArg(2));
+		return 1;
+	}
+	LunaColorBitmapText()
+	{
+		ADD_METHOD(SetMaxLines);
+	}
+};
+LUA_REGISTER_DERIVED_CLASS(ColorBitmapText, BitmapText)
 // lua end
 
 /*

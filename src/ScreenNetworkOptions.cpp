@@ -1,17 +1,17 @@
 #include "global.h"
 
 #if !defined(WITHOUT_NETWORKING)
-#include "NetworkSyncManager.h"
-#include "ScreenNetworkOptions.h"
-#include "RageLog.h"
 #include "GameSoundManager.h"
-#include "ThemeManager.h"
-#include "PrefsManager.h"
-#include "ScreenManager.h"
-#include "ScreenTextEntry.h"
-#include "ScreenPrompt.h"
 #include "LocalizedString.h"
+#include "NetworkSyncManager.h"
 #include "OptionRowHandler.h"
+#include "PrefsManager.h"
+#include "RageLog.h"
+#include "ScreenManager.h"
+#include "ScreenNetworkOptions.h"
+#include "ScreenPrompt.h"
+#include "ScreenTextEntry.h"
+#include "ThemeManager.h"
 
 static LocalizedString CLIENT_CONNECT		( "ScreenNetworkOptions", "Connect" );
 static LocalizedString CLIENT_DISCONNECT	( "ScreenNetworkOptions", "Disconnect" );
@@ -98,9 +98,7 @@ void ScreenNetworkOptions::HandleScreenMessage( const ScreenMessage SM )
 		{
 			RString sNewName = ScreenTextEntry::s_sLastAnswer;
 			NSMAN->PostStartUp(sNewName);
-			NSMAN->DisplayStartupStatus();
 			UpdateConnectStatus( );
-			g_sLastServer.Set( ScreenTextEntry::s_sLastAnswer );
 		}
 	}
 

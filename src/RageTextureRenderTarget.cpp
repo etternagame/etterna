@@ -1,6 +1,6 @@
-#include "global.h"
-#include "RageTextureRenderTarget.h"
+﻿#include "global.h"
 #include "RageDisplay.h"
+#include "RageTextureRenderTarget.h"
 
 RageTextureRenderTarget::RageTextureRenderTarget( const RageTextureID &name, const RenderTargetParam &param ):
 	RageTexture( name ),
@@ -57,7 +57,7 @@ void RageTextureRenderTarget::BeginRenderingTo( bool bPreserveTexture )
 
 	// Reset the perspective to fit the new target.
 	DISPLAY->CameraPushMatrix();
-	DISPLAY->LoadMenuPerspective( 0, (float) m_iImageWidth, (float) m_iImageHeight, (float) m_iImageWidth/2, (float) m_iImageHeight/2 ); // 0 FOV = ortho
+	DISPLAY->LoadMenuPerspective( 0, static_cast<float>( m_iImageWidth), static_cast<float>( m_iImageHeight), static_cast<float>( m_iImageWidth)/2, static_cast<float>( m_iImageHeight)/2 ); // 0 FOV = ortho
 
 	DISPLAY->PushMatrix();
 	DISPLAY->LoadIdentity();

@@ -1,9 +1,8 @@
-#include "global.h"
+﻿#include "global.h"
+#include "ActorUtil.h"
 #include "HelpDisplay.h"
 #include "RageUtil.h"
-#include "RageLog.h"
 #include "ThemeManager.h"
-#include "ActorUtil.h"
 
 REGISTER_ACTOR_CLASS( HelpDisplay );
 
@@ -60,8 +59,8 @@ void HelpDisplay::Update( float fDeltaTime )
 }
 
 
-#include "LuaBinding.h"
 #include "FontCharAliases.h"
+#include "LuaBinding.h"
 
 /** @brief Allow Lua to have access to the HelpDisplay. */ 
 class LunaHelpDisplay: public Luna<HelpDisplay>

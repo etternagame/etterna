@@ -88,82 +88,111 @@ public:
 	function<void(HTTPRequest&)> Done;
 	function<void(HTTPRequest&)> Failed;
 };
-class OnlineScore {
+class OnlineTopScore {
 public:
 	float wifeScore{ 0.0f };
 	string songName;
 	float rate{ 0.0f };
 	float ssr{ 0.0f };
+	float overall{ 0.0f };
 	string chartkey;
 	string scorekey;
 	Difficulty difficulty;
+	string steps;
+};
+class OnlineScore {
+public:
+	map<Skillset, float> SSRs;
+	float rate{ 0.0f };
+	float wife{ 0.0f };
+	int maxcombo{ 0 };
+	int miss{ 0 };
+	int bad{ 0 };
+	int good{ 0 };
+	int great{ 0 };
+	int perfect{ 0 };
+	int marvelous{ 0 };
+	int minehits{ 0 };
+	int held{ 0 };
+	int letgo{ 0 };
+	bool valid{ false };
+	bool nocc{ false };
+	string username;
+	float playerRating{ 0.0f };
+	string modifiers;
+	DateTime datetime;
+	vector<pair<float, float>> replayData;
 };
 class DownloadManager
 {
 public:
 	DownloadManager();
 	~DownloadManager();
-	map<string, Download*> downloads;
-	vector<HTTPRequest*> HTTPRequests;
+	map<string, Download*> downloads; // Active downloads
+	vector<HTTPRequest*> HTTPRequests; // Active HTTP requests (async, curlMulti)
 	map<string, Download*> finishedDownloads;
-	CURLM* mPackHandle{nullptr};
-	CURLM* mHTTPHandle{ nullptr };
+	map<string, Download*> pendingInstallDownloads;
+	CURLM* mPackHandle{ nullptr }; // Curl multi handle for packs downloads
+	CURLM* mHTTPHandle{ nullptr }; // Curl multi handle for httpRequests
 	CURLMcode ret;
-	int downloadingPacks{0};
-	int HTTPRunning{ 0 }; 
-	bool loggingIn{ false };
-	bool gameplay{false};
-	string error{""};
-	int lastid{0};
-	string sessionCookie{ "" };
+	int downloadingPacks{ 0 };
+	int HTTPRunning{ 0 };
+	bool loggingIn{ false }; // Currently logging in (Since it's async, to not try twice)
+	bool gameplay{ false }; // Currently in gameplay
+	bool initialized{ false };
+	string error{ "" };
+	int lastid{ 0 };
 	vector<DownloadablePack> downloadablePacks;
-	bool reloadPending{ false };
-	bool CachePackList(string url);
-	string session{ "" };
-	string sessionUser{ "" };
-	string sessionPass{ "" };
-	double sessionRating{ 0.0 };
-	map<Skillset, int> sessionRanks;
+	string session{ "" }; // Session cookie content
+	string sessionCookie{ "" }; // Entire session cookie string
+	string sessionUser{ "" }; // Currently logged in username
+	string sessionPass{ "" }; // Currently logged in password
+	string lastVersion{ "" }; // Last version according to server (Or current if non was obtained)
+	string registerPage{ "" }; // Register page from server (Or empty if non was obtained)
+	map<string, vector<OnlineScore>> chartLeaderboards;
+	map<Skillset, int> sessionRanks; // Leaderboard ranks for logged in user by skillset
+	map<Skillset, double> sessionRatings;
+	map<Skillset, vector<OnlineTopScore>> topScores;
 	bool LoggedIn();
-	void EndSessionIfExists();
-	void EndSession();
-	void StartSession(string user, string pass);
-	bool UploadScores();
-	vector<DownloadablePack>* GetPackList(string url, bool &result);
+	void EndSessionIfExists(); //Calls EndSession if logged in
+	void EndSession(); //Sends session destroy request
+	void StartSession(string user, string pass); //Sends login request if not already logging in
+	bool UploadScores(); //Uploads all scores not yet uploaded to current server (Async, 1 request per score)
+	void RefreshPackList(string url); 
 
+	void init();
 	Download* DownloadAndInstallPack(const string &url);
 	Download*  DownloadAndInstallPack(DownloadablePack* pack);
-	bool UpdateAndIsFinished(float fDeltaSeconds);
-	bool UpdatePacksAndIsFinished(float fDeltaSeconds);
-	bool UpdateHTTPAndIsFinished(float fDeltaSeconds);
+	void Update(float fDeltaSeconds);
+	void UpdatePacks(float fDeltaSeconds);
+	void UpdateHTTP(float fDeltaSeconds);
 	bool InstallSmzip(const string &sZipFile);
 
 	void UpdateDLSpeed();
 	void UpdateDLSpeed(bool gameplay);
 
-	
 	string GetError() { return error; }
 	bool Error() { return error == ""; }
 	bool EncodeSpaces(string& str);
 
-	bool UploadProfile(string file, string profileName);
-
 	void UploadScoreWithReplayData(HighScore* hs);
 	void UploadScore(HighScore* hs);
 
-	DateTime GetLastUploadDate(string profileName);
 	bool ShouldUploadScores();
 
 	inline void AddSessionCookieToCURL(CURL *curlHandle);
 	inline void SetCURLPostToURL(CURL *curlHandle, string url);
 	inline void SetCURLURL(CURL *curlHandle, string url);
 
+	void SendRequest(string requestName, vector<pair<string, string>> params, function<void(HTTPRequest&)> done, bool requireLogin = true, bool post = false, bool async = true);
+	void SendRequestToURL(string url, vector<pair<string, string>> params, function<void(HTTPRequest&)> done, bool requireLogin, bool post, bool async);
+	void RefreshLastVersion(); 
+	void RefreshRegisterPage();
+	void RequestChartLeaderBoard(string chartkey);
 	void RefreshUserData();
 	void RefreshUserRank();
 	void RefreshTop25(Skillset ss);
-	map<Skillset, double> sessionRatings;
-	map<Skillset, vector<OnlineScore>> scores;
-	OnlineScore GetTopSkillsetScore(unsigned int rank, Skillset ss, bool &result);
+	OnlineTopScore GetTopSkillsetScore(unsigned int rank, Skillset ss, bool &result);
 	float GetSkillsetRating(Skillset ss);
 	int GetSkillsetRank(Skillset ss);
 

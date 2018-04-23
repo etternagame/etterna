@@ -1,8 +1,8 @@
-#ifndef GRADE_H
+﻿#ifndef GRADE_H
 #define GRADE_H
 
-#include "RageUtil.h"
 #include "EnumHelper.h"
+#include "RageUtil.h"
 #include "ThemeMetric.h"
 
 /** @brief The list of grading tiers available.

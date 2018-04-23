@@ -1,14 +1,14 @@
-#include "global.h"
-#include "RageFileManager.h"
-#include "RageFileDriver.h"
+﻿#include "global.h"
+#include "Foreach.h"
+#include "LuaManager.h"
 #include "RageFile.h"
-#include "RageUtil.h"
-#include "RageUtil_FileDB.h"
+#include "RageFileDriver.h"
+#include "RageFileManager.h"
 #include "RageLog.h"
 #include "RageThreads.h"
-#include "Foreach.h"
+#include "RageUtil.h"
+#include "RageUtil_FileDB.h"
 #include "arch/ArchHooks/ArchHooks.h"
-#include "LuaManager.h"
 
 #include <cerrno>
 

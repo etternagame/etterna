@@ -1,21 +1,15 @@
 #include "global.h"
 
 #if !defined(WITHOUT_NETWORKING)
-#include "ScreenNetSelectBase.h"
-#include "ScreenManager.h"
-#include "ThemeManager.h"
-#include "RageTimer.h"
-#include "ActorUtil.h"
 #include "Actor.h"
+#include "ActorUtil.h"
+#include "Font.h"
 #include "GameSoundManager.h"
-#include "MenuTimer.h"
-#include "NetworkSyncManager.h"
-#include "RageUtil.h"
+#include "RageInput.h"
 #include "GameState.h"
 #include "InputEventPlus.h"
-#include "RageInput.h"
-#include "Font.h"
-#include "RageDisplay.h"
+#include "MenuTimer.h"
+#include "NetworkSyncManager.h"
 #include "PlayerState.h"
 #include "arch/ArchHooks/ArchHooks.h"
 
@@ -38,33 +32,33 @@ REGISTER_SCREEN_CLASS(ScreenNetSelectBase);
 void ScreenNetSelectBase::Init()
 {
 	ScreenWithMenuElements::Init();
+	if (!NSMAN->IsETTP()) {
+		// Chat boxes
+		m_sprChatInputBox.Load(THEME->GetPathG(m_sName, "ChatInputBox"));
+		m_sprChatInputBox->SetName("ChatInputBox");
+		LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND(m_sprChatInputBox);
+		this->AddChild(m_sprChatInputBox);
 
-	// Chat boxes
-	m_sprChatInputBox.Load(THEME->GetPathG(m_sName, "ChatInputBox"));
-	m_sprChatInputBox->SetName("ChatInputBox");
-	LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND(m_sprChatInputBox);
-	this->AddChild( m_sprChatInputBox );
+		m_sprChatOutputBox.Load(THEME->GetPathG(m_sName, "ChatOutputBox"));
+		m_sprChatOutputBox->SetName("ChatOutputBox");
+		LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND(m_sprChatOutputBox);
+		this->AddChild(m_sprChatOutputBox);
 
-	m_sprChatOutputBox.Load( THEME->GetPathG(m_sName, "ChatOutputBox"));
-	m_sprChatOutputBox->SetName("ChatOutputBox");
-	LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND(m_sprChatOutputBox);
-	this->AddChild(m_sprChatOutputBox);
+		m_textChatInput.LoadFromFont(THEME->GetPathF(m_sName, "chat"));
+		m_textChatInput.SetName("ChatInput");
+		m_textChatInput.SetWrapWidthPixels(static_cast<int>(CHAT_TEXT_INPUT_WIDTH));
+		LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND(m_textChatInput);
+		this->AddChild(&m_textChatInput);
 
-	m_textChatInput.LoadFromFont(THEME->GetPathF(m_sName,"chat"));
-	m_textChatInput.SetName("ChatInput");
-	m_textChatInput.SetWrapWidthPixels(static_cast<int>(CHAT_TEXT_INPUT_WIDTH) );
-	LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND(m_textChatInput);
-	this->AddChild(&m_textChatInput);
+		m_textChatOutput.LoadFromFont(THEME->GetPathF(m_sName, "chat"));
+		m_textChatOutput.SetName("ChatOutput");
+		m_textChatOutput.SetWrapWidthPixels(static_cast<int>(CHAT_TEXT_OUTPUT_WIDTH));
+		LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND(m_textChatOutput);
+		this->AddChild(&m_textChatOutput);
 
-	m_textChatOutput.LoadFromFont(THEME->GetPathF(m_sName,"chat"));
-	m_textChatOutput.SetName("ChatOutput");
-	m_textChatOutput.SetWrapWidthPixels(static_cast<int>(CHAT_TEXT_OUTPUT_WIDTH));
-	LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND(m_textChatOutput);
-	this->AddChild(&m_textChatOutput);
-
-	m_textChatOutput.SetText(NSMAN->m_sChatText);
-	m_textChatOutput.SetMaxLines(SHOW_CHAT_LINES, 1);
-	
+		m_textChatOutput.SetText(NSMAN->m_sChatText);
+		m_textChatOutput.SetMaxLines(SHOW_CHAT_LINES, 1);
+	}
 	scroll = 0;
 
 	//Display users list
@@ -75,13 +69,13 @@ void ScreenNetSelectBase::Init()
 
 bool ScreenNetSelectBase::Input(const InputEventPlus &input)
 {
-	if(m_In.IsTransitioning() || m_Out.IsTransitioning())
+	if (m_In.IsTransitioning() || m_Out.IsTransitioning())
 		return false;
 
-	if(input.type != IET_FIRST_PRESS && input.type != IET_REPEAT)
+	if (input.type != IET_FIRST_PRESS && input.type != IET_REPEAT)
 		return false;
 
-	bool bHoldingCtrl = 
+	bool bHoldingCtrl =
 		INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_LCTRL)) ||
 		INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RCTRL)) ||
 		(!NSMAN->useSMserver);	// If we are disconnected, assume no chatting.
@@ -89,68 +83,66 @@ bool ScreenNetSelectBase::Input(const InputEventPlus &input)
 	bool holding_shift =
 		INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_LSHIFT)) ||
 		INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RSHIFT));
-	
+
 	//If holding control skip chatbox input
 	//This allows lua input bindings to work on regular keys+control
-	if(bHoldingCtrl) {
-    wchar_t ch = INPUTMAN->DeviceInputToChar(input.DeviceI, false);
+	if (!NSMAN->IsETTP() && bHoldingCtrl) {
+		wchar_t ch = INPUTMAN->DeviceInputToChar(input.DeviceI, false);
 		MakeUpper(&ch, 1);
 		if (ch == 'V')
 		{
 			PasteClipboard();
 		}
 		return ScreenWithMenuElements::Input(input);
-  }
-	
-	switch(input.DeviceI.button)
-	{
-	case KEY_PGUP:
-		if (!holding_shift) 
-			ShowPreviousMsg();
-		else {
-			Scroll(1);
-			Scroll(1);
-		}
-		break;
-	case KEY_PGDN:
-		if (!holding_shift) 
-			ShowNextMsg();
-		else {
-			Scroll(-1);
-			Scroll(-1);
-		}
-		break;
-	case KEY_ENTER:
-	case KEY_KP_ENTER:
-		if (m_sTextInput != "") {
-			NSMAN->SendChat(m_sTextInput);
-			m_sTextLastestInputs.push_back(m_sTextInput);
-			m_sTextLastestInputsIndex = 0;
-			if (m_sTextLastestInputs.size() > 10)
-				m_sTextLastestInputs.erase(m_sTextLastestInputs.begin());
-		}
-		m_sTextInput="";
-		UpdateTextInput();
-		return true;
-	case KEY_BACK:
-		if(!m_sTextInput.empty())
-			m_sTextInput = m_sTextInput.erase(m_sTextInput.size()-1);
-		UpdateTextInput();
-		break;
-	default:
+	}
 
-		wchar_t c;
-		c = INPUTMAN->DeviceInputToChar(input.DeviceI, true);
-
-		if((c >= L' '))
+	if (!NSMAN->IsETTP()) {
+		switch (input.DeviceI.button)
 		{
-			if (!enableChatboxInput)
-				return ScreenWithMenuElements::Input(input);
-			m_sTextInput += WStringToRString(wstring()+c);
+		case KEY_PGUP:
+			if (!holding_shift)
+				ShowPreviousMsg();
+			else {
+				Scroll(1);
+				Scroll(1);
+			}
+			break;
+		case KEY_PGDN:
+			if (!holding_shift)
+				ShowNextMsg();
+			else {
+				Scroll(-1);
+				Scroll(-1);
+			}
+			break;
+		case KEY_ENTER:
+		case KEY_KP_ENTER:
+			if (m_sTextInput != "") {
+				NSMAN->SendChat(m_sTextInput);
+				m_sTextLastestInputs.push_back(m_sTextInput);
+				m_sTextLastestInputsIndex = 0;
+				if (m_sTextLastestInputs.size() > 10)
+					m_sTextLastestInputs.erase(m_sTextLastestInputs.begin());
+			}
+			m_sTextInput = "";
 			UpdateTextInput();
 			return true;
+		case KEY_BACK:
+			if (!m_sTextInput.empty())
+				m_sTextInput = m_sTextInput.erase(m_sTextInput.size() - 1);
+			UpdateTextInput();
+			break;
+		default:
+			wchar_t c;
+			c = INPUTMAN->DeviceInputToChar(input.DeviceI, true);
+			if (c >= L' ' && enableChatboxInput)
+			{
+				m_sTextInput += WStringToRString(wstring() + c);
+				UpdateTextInput();
+				return true;
+			}
+			break;
 		}
-		break;
 	}
 	return ScreenWithMenuElements::Input(input);
 }
@@ -159,7 +151,7 @@ void ScreenNetSelectBase::HandleScreenMessage(const ScreenMessage SM)
 {
 	if(SM == SM_GoToNextScreen)
 		SOUND->StopMusic();
-	else if(SM == SM_AddToChat)
+	else if(SM == SM_AddToChat && !NSMAN->IsETTP())
 	{
 		m_textChatOutput.SetText(NSMAN->m_sChatText);
 		m_textChatOutput.SetMaxLines(SHOW_CHAT_LINES, 1);
@@ -178,11 +170,12 @@ void ScreenNetSelectBase::HandleScreenMessage(const ScreenMessage SM)
 
 void ScreenNetSelectBase::TweenOffScreen()
 {
-	OFF_COMMAND( m_sprChatInputBox );
-	OFF_COMMAND( m_sprChatOutputBox );
-	OFF_COMMAND( m_textChatInput );
-	OFF_COMMAND( m_textChatOutput );
-
+	if (!NSMAN->IsETTP()) {
+		OFF_COMMAND(m_sprChatInputBox);
+		OFF_COMMAND(m_sprChatOutputBox);
+		OFF_COMMAND(m_textChatInput);
+		OFF_COMMAND(m_textChatOutput);
+	}
 	for( unsigned i=0; i<m_textUsers.size(); i++ )
 		OFF_COMMAND( m_textUsers[i] );
 }
@@ -241,9 +234,11 @@ void ScreenNetSelectBase::UpdateUsers()
 	MESSAGEMAN->Broadcast("UsersUpdate");
 }
 
-void ScreenNetSelectBase::Scroll(int movescroll)
+void ScreenNetSelectBase::Scroll(unsigned int movescroll)
 {
-	if (scroll+movescroll >= 0 && scroll+movescroll <= m_textChatOutput.lines - SHOW_CHAT_LINES)
+	if (NSMAN->IsETTP())
+		return;
+	if (scroll+movescroll <= m_textChatOutput.lines - SHOW_CHAT_LINES)
 		scroll += movescroll;
 	m_textChatOutput.ResetText();
 	m_textChatOutput.SetMaxLines(SHOW_CHAT_LINES, 1, scroll);
@@ -283,427 +278,6 @@ void ScreenNetSelectBase::SetInputText(RString text)
 	UpdateTextInput();
 	return;
 }
-/** ColorBitmapText ***********************************************************/
-void ColorBitmapText::SetText( const RString& _sText, const RString& _sAlternateText, int iWrapWidthPixels )
-{
-	ASSERT( m_pFont != NULL );
-
-	RString sNewText = StringWillUseAlternate(_sText,_sAlternateText) ? _sAlternateText : _sText;
-
-	if( iWrapWidthPixels == -1 )	// wrap not specified
-		iWrapWidthPixels = m_iWrapWidthPixels;
-
-	if( m_sText == sNewText && iWrapWidthPixels==m_iWrapWidthPixels )
-		return;
-	m_sText = sNewText;
-	m_iWrapWidthPixels = iWrapWidthPixels;
-
-	// Set up the first color.
-	m_vColors.clear();
-	ColorChange change;
-	change.c = RageColor (1, 1, 1, 1);
-	change.l = 0;
-	m_vColors.push_back( change );
-
-	m_wTextLines.clear();
-
-	RString sCurrentLine = "";
-	int		iLineWidth = 0;
-
-	RString sCurrentWord = "";
-	int		iWordWidth = 0;
-	int		iGlyphsSoFar = 0;
-
-	for( unsigned i = 0; i < m_sText.length(); i++ )
-	{
-		int iCharsLeft = m_sText.length() - i - 1;
-
-		// First: Check for the special (color) case.
-
-		if( m_sText.length() > 8 && i < m_sText.length() - 9 )
-		{
-			RString FirstThree = m_sText.substr( i, 3 );
-			if( FirstThree.CompareNoCase("|c0") == 0 && iCharsLeft > 8 )
-			{
-				ColorChange cChange;
-				unsigned int r, g, b;
-				sscanf( m_sText.substr( i, 9 ).c_str(), "|%*c0%2x%2x%2x", &r, &g, &b );
-				cChange.c = RageColor( r/255.f, g/255.f, b/255.f, 1.f );
-				cChange.l = iGlyphsSoFar;
-				if( iGlyphsSoFar == 0 )
-					m_vColors[0] = cChange;
-				else
-					m_vColors.push_back( cChange );
-				i+=8;
-				continue;
-			}
-		}
-
-		int iCharLength = min( utf8_get_char_len(m_sText[i]), iCharsLeft + 1 );
-		RString curCharStr = m_sText.substr( i, iCharLength );
-		wchar_t curChar = utf8_get_char( curCharStr );
-		i += iCharLength - 1;
-		int iCharWidth = m_pFont->GetLineWidthInSourcePixels( wstring() + curChar );
-
-		switch( curChar )
-		{
-		case L' ':
-			if( /* iLineWidth == 0 &&*/ iWordWidth == 0 )
-				break;
-			sCurrentLine += sCurrentWord + " ";
-			iLineWidth += iWordWidth + iCharWidth;
-			sCurrentWord = "";
-			iWordWidth = 0;
-			iGlyphsSoFar++;
-			break;
-		case L'\n':
-			if( iLineWidth + iWordWidth > iWrapWidthPixels )
-			{
-				SimpleAddLine( sCurrentLine, iLineWidth );
-				if( iWordWidth > 0 )
-					iLineWidth = iWordWidth +	//Add the width of a space
-						m_pFont->GetLineWidthInSourcePixels( L" " );
-				sCurrentLine = sCurrentWord + " ";
-				iWordWidth = 0;
-				sCurrentWord = "";
-				iGlyphsSoFar++;
-			} 
-			else
-			{
-				SimpleAddLine( sCurrentLine + sCurrentWord, iLineWidth + iWordWidth );
-				sCurrentLine = "";	iLineWidth = 0;
-				sCurrentWord = "";	iWordWidth = 0;
-			}
-			break;
-		default:
-			if( iWordWidth + iCharWidth > iWrapWidthPixels && iLineWidth == 0 )
-			{
-				SimpleAddLine( sCurrentWord, iWordWidth );
-				sCurrentWord = curCharStr;  iWordWidth = iCharWidth;
-			}
-			else if( iWordWidth + iLineWidth + iCharWidth > iWrapWidthPixels )
-			{
-				SimpleAddLine( sCurrentLine, iLineWidth );
-				sCurrentLine = ""; 
-				iLineWidth = 0;
-				sCurrentWord += curCharStr;
-				iWordWidth += iCharWidth;
-			}
-			else
-			{
-				sCurrentWord += curCharStr;
-				iWordWidth += iCharWidth;
-			}
-			iGlyphsSoFar++;
-			break;
-		}
-	}
-
-	if( iWordWidth > 0 )
-	{
-		sCurrentLine += sCurrentWord;
-		iLineWidth += iWordWidth;
-	}
-
-	if( iLineWidth > 0 )
-		SimpleAddLine( sCurrentLine, iLineWidth );
-
-	lines = m_wTextLines.size();
-	
-	BuildChars();
-	UpdateBaseZoom();
-}
-
-void ColorBitmapText::ResetText()
-{
-	ASSERT(m_pFont != NULL);
-
-	int iWrapWidthPixels = m_iWrapWidthPixels;
-
-	// Set up the first color.
-	m_vColors.clear();
-	ColorChange change;
-	change.c = RageColor(1, 1, 1, 1);
-	change.l = 0;
-	m_vColors.push_back(change);
-
-	m_wTextLines.clear();
-
-	RString sCurrentLine = "";
-	int		iLineWidth = 0;
-
-	RString sCurrentWord = "";
-	int		iWordWidth = 0;
-	int		iGlyphsSoFar = 0;
-
-	for (unsigned i = 0; i < m_sText.length(); i++)
-	{
-		int iCharsLeft = m_sText.length() - i - 1;
-
-		// First: Check for the special (color) case.
-
-		if (m_sText.length() > 8 && i < m_sText.length() - 9)
-		{
-			RString FirstThree = m_sText.substr(i, 3);
-			if (FirstThree.CompareNoCase("|c0") == 0 && iCharsLeft > 8)
-			{
-				ColorChange cChange;
-				unsigned int r, g, b;
-				sscanf(m_sText.substr(i, 9).c_str(), "|%*c0%2x%2x%2x", &r, &g, &b);
-				cChange.c = RageColor(r / 255.f, g / 255.f, b / 255.f, 1.f);
-				cChange.l = iGlyphsSoFar;
-				if (iGlyphsSoFar == 0)
-					m_vColors[0] = cChange;
-				else
-					m_vColors.push_back(cChange);
-				i += 8;
-				continue;
-			}
-		}
-
-		int iCharLength = min(utf8_get_char_len(m_sText[i]), iCharsLeft + 1);
-		RString curCharStr = m_sText.substr(i, iCharLength);
-		wchar_t curChar = utf8_get_char(curCharStr);
-		i += iCharLength - 1;
-		int iCharWidth = m_pFont->GetLineWidthInSourcePixels(wstring() + curChar);
-
-		switch (curChar)
-		{
-		case L' ':
-			if ( /* iLineWidth == 0 &&*/ iWordWidth == 0)
-				break;
-			sCurrentLine += sCurrentWord + " ";
-			iLineWidth += iWordWidth + iCharWidth;
-			sCurrentWord = "";
-			iWordWidth = 0;
-			iGlyphsSoFar++;
-			break;
-		case L'\n':
-			if (iLineWidth + iWordWidth > iWrapWidthPixels)
-			{
-				SimpleAddLine(sCurrentLine, iLineWidth);
-				if (iWordWidth > 0)
-					iLineWidth = iWordWidth +	//Add the width of a space
-					m_pFont->GetLineWidthInSourcePixels(L" ");
-				sCurrentLine = sCurrentWord + " ";
-				iWordWidth = 0;
-				sCurrentWord = "";
-				iGlyphsSoFar++;
-			}
-			else
-			{
-				SimpleAddLine(sCurrentLine + sCurrentWord, iLineWidth + iWordWidth);
-				sCurrentLine = "";	iLineWidth = 0;
-				sCurrentWord = "";	iWordWidth = 0;
-			}
-			break;
-		default:
-			if (iWordWidth + iCharWidth > iWrapWidthPixels && iLineWidth == 0)
-			{
-				SimpleAddLine(sCurrentWord, iWordWidth);
-				sCurrentWord = curCharStr;  iWordWidth = iCharWidth;
-			}
-			else if (iWordWidth + iLineWidth + iCharWidth > iWrapWidthPixels)
-			{
-				SimpleAddLine(sCurrentLine, iLineWidth);
-				sCurrentLine = "";
-				iLineWidth = 0;
-				sCurrentWord += curCharStr;
-				iWordWidth += iCharWidth;
-			}
-			else
-			{
-				sCurrentWord += curCharStr;
-				iWordWidth += iCharWidth;
-			}
-			iGlyphsSoFar++;
-			break;
-		}
-	}
-
-	if (iWordWidth > 0)
-	{
-		sCurrentLine += sCurrentWord;
-		iLineWidth += iWordWidth;
-	}
-
-	if (iLineWidth > 0)
-		SimpleAddLine(sCurrentLine, iLineWidth);
-	lines = m_wTextLines.size();
-	BuildChars();
-	UpdateBaseZoom();
-}
-
-void ColorBitmapText::SetMaxLines(int iNumLines, int iDirection, unsigned int &scroll)
-{
-	iNumLines = max(0, iNumLines);
-	iNumLines = min(static_cast<int>(m_wTextLines.size()), iNumLines);
-	if (iDirection == 0)
-	{
-		// Crop all bottom lines
-		m_wTextLines.resize(iNumLines);
-		m_iLineWidths.resize(iNumLines);
-	}
-	else
-	{
-		// Because colors are relative to the beginning, we have to crop them back
-		unsigned shift = 0;
-		if (scroll >  m_iLineWidths.size() - iNumLines)
-			scroll = m_iLineWidths.size() - iNumLines;
-
-		for (unsigned i = 0; i < m_wTextLines.size() - iNumLines - scroll; i++)
-			shift += m_wTextLines[i].length();
-
-		// When we're cutting out text, we need to maintain the last
-		// color, so our text at the top doesn't become colorless.
-		RageColor LastColor;
-
-		for (unsigned i = 0; i < m_vColors.size(); i++)
-		{
-			m_vColors[i].l -= shift;
-			if (m_vColors[i].l < 0)
-			{
-				LastColor = m_vColors[i].c;
-				m_vColors.erase(m_vColors.begin() + i);
-				i--;
-			}
-		}
-
-		// If we already have a color set for the first char
-		// do not override it.
-		if (m_vColors.size() > 0 && m_vColors[0].l > 0)
-		{
-			ColorChange tmp;
-			tmp.c = LastColor;
-			tmp.l = 0;
-			m_vColors.insert(m_vColors.begin(), tmp);
-		}
-
-		if (scroll == 0 || m_iLineWidths.size() <= iNumLines || scroll > m_iLineWidths.size() - iNumLines) {
-			m_wTextLines.erase(m_wTextLines.begin(), m_wTextLines.end() - iNumLines);
-			m_iLineWidths.erase(m_iLineWidths.begin(), m_iLineWidths.end() - iNumLines);
-		}
-		else {
-			m_wTextLines.erase(m_wTextLines.begin(), m_wTextLines.end() - iNumLines - scroll);
-			m_iLineWidths.erase(m_iLineWidths.begin(), m_iLineWidths.end() - iNumLines - scroll);
-
-			m_wTextLines.erase(m_wTextLines.end() - scroll, m_wTextLines.end());
-			m_iLineWidths.erase(m_iLineWidths.begin(), m_iLineWidths.end());
-		}
-	}
-	BuildChars();
-}
-
-void ColorBitmapText::SimpleAddLine( const RString &sAddition, const int iWidthPixels) 
-{
-	m_wTextLines.push_back( RStringToWstring( sAddition ) );
-	m_iLineWidths.push_back( iWidthPixels );
-}
-
-void ColorBitmapText::DrawPrimitives( )
-{
-	Actor::SetGlobalRenderStates();	// set Actor-specified render states
-	DISPLAY->SetTextureMode( TextureUnit_1, TextureMode_Modulate );
-
-	/* Draw if we're not fully transparent or the zbuffer is enabled */
-	if( m_pTempState->diffuse[0].a != 0 )
-	{
-		// render the shadow
-		if( m_fShadowLengthX != 0  ||  m_fShadowLengthY != 0 )
-		{
-			DISPLAY->PushMatrix();
-			DISPLAY->TranslateWorld( m_fShadowLengthX, m_fShadowLengthY, 0 );	// shift by 5 units
-			RageColor c = m_ShadowColor;
-			c.a *= m_pTempState->diffuse[0].a;
-			for( unsigned i=0; i<m_aVertices.size(); i++ )
-				m_aVertices[i].c = c;
-			DrawChars( true );
-
-			DISPLAY->PopMatrix();
-		}
-
-		// render the diffuse pass
-		int loc = 0, cur = 0;
-		RageColor c = m_pTempState->diffuse[0];
-
-		for( unsigned i=0; i<m_aVertices.size(); i+=4 )
-		{
-			loc++;
-			if( cur < static_cast<int>(m_vColors.size()) )
-			{
-				if ( loc > m_vColors[cur].l )
-				{
-					c = m_vColors[cur].c;
-					cur++;
-				}
-			}
-			for( unsigned j=0; j<4; j++ )
-				m_aVertices[i+j].c = c;
-		}
-
-		DrawChars( false );
-	}
-
-	// render the glow pass
-	if( m_pTempState->glow.a > 0.0001f )
-	{
-		DISPLAY->SetTextureMode( TextureUnit_1, TextureMode_Glow );
-
-		for( unsigned i=0; i<m_aVertices.size(); i++ )
-			m_aVertices[i].c = m_pTempState->glow;
-		DrawChars( false );
-	}
-}
-
-void ColorBitmapText::SetMaxLines(int iNumLines, int iDirection)
-{
-	iNumLines = max(0, iNumLines);
-	iNumLines = min(static_cast<int>(m_wTextLines.size()), iNumLines);
-	if(iDirection == 0) 
-	{
-		// Crop all bottom lines
-		m_wTextLines.resize(iNumLines);
-		m_iLineWidths.resize(iNumLines);
-	}
-	else
-	{
-		// Because colors are relative to the beginning, we have to crop them back
-		unsigned shift = 0;
-
-		for(unsigned i = 0; i < m_wTextLines.size() - iNumLines; i++)
-			shift += m_wTextLines[i].length();
-
-		// When we're cutting out text, we need to maintain the last
-		// color, so our text at the top doesn't become colorless.
-		RageColor LastColor;
-
-		for(unsigned i = 0; i < m_vColors.size(); i++)
-		{
-			m_vColors[i].l -= shift;
-			if(m_vColors[i].l < 0)
-			{
-				LastColor = m_vColors[i].c;
-				m_vColors.erase(m_vColors.begin() + i);
-				i--;
-			}
-		}
-
-		// If we already have a color set for the first char
-		// do not override it.
-		if(m_vColors.size() > 0 && m_vColors[0].l > 0)
-		{
-			ColorChange tmp;
-			tmp.c = LastColor;
-			tmp.l = 0;
-			m_vColors.insert(m_vColors.begin(), tmp);
-		}
-
-		m_wTextLines.erase(m_wTextLines.begin(), m_wTextLines.end() - iNumLines);
-		m_iLineWidths.erase(m_iLineWidths.begin(), m_iLineWidths.end() - iNumLines);
-	}
-	BuildChars();
-}
-
 
 void ScreenNetSelectBase::SetChatboxVisible(bool visibility)
 {
@@ -757,7 +331,7 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 	{
 		if (lua_isnil(L, 1))
 			return 0;
-		if (IArg(1) <= p->ToUsers()->size() && IArg(1) >= 1)
+		if (static_cast<size_t>(IArg(1)) <= p->ToUsers()->size() && IArg(1) >= 1)
 			lua_pushstring(L, (*(p->ToUsers()))[IArg(1) - 1].GetText());
 		else
 			lua_pushstring(L, "");
@@ -767,7 +341,7 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 	{
 		if (lua_isnil(L, 1))
 			return 0;
-		if (IArg(1) <= p->ToUsers()->size() && IArg(1) >= 1)
+		if (static_cast<size_t>(IArg(1)) <= p->ToUsers()->size() && IArg(1) >= 1)
 			lua_pushnumber(L, NSMAN->m_PlayerStatus[NSMAN->m_ActivePlayer[IArg(1) - 1]]);
 		else
 			lua_pushnumber(L, 0);
@@ -782,7 +356,7 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 	{
 		if (lua_isnil(L, 1))
 			return 0;
-		if (IArg(1) <= NSMAN->fl_PlayerNames.size() && IArg(1) >= 1)
+		if (static_cast<size_t>(IArg(1)) <= NSMAN->fl_PlayerNames.size() && IArg(1) >= 1)
 			lua_pushstring(L, (NSMAN->fl_PlayerNames[IArg(1) - 1]).c_str());
 		else
 			lua_pushstring(L, "");
@@ -792,7 +366,7 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 	{
 		if (lua_isnil(L, 1))
 			return 0;
-		if (IArg(1) <= NSMAN->fl_PlayerStates.size() && IArg(1) >= 1)
+		if (static_cast<size_t>(IArg(1)) <= NSMAN->fl_PlayerStates.size() && IArg(1) >= 1)
 			lua_pushnumber(L, NSMAN->fl_PlayerStates[IArg(1) - 1]);
 		else
 			lua_pushnumber(L, 0);

@@ -185,24 +185,27 @@ endif()
 # Dependencies go here.
 include(ExternalProject)
 
+if(NOT WITH_GPL_LIBS)
+  message("Disabling GPL exclusive libraries: no MP3 support.")
+  set(WITH_MP3 OFF)
+endif()
+
 if(WITH_WAV)
   # TODO: Identify which headers to check for ensuring this will always work.
   set(HAS_WAV TRUE)
 endif()
 
 if(WITH_MP3)
-  if(MSVC)
+  if(WIN32 OR MACOSX)
     set(HAS_MP3 TRUE)
   else()
-    if(NOT WITH_FFMPEG)
-      message("FFmpeg is required for mp3 support. WITH_MP3 is set to off.")
-	  set(WITH_MP3 FALSE)
+    find_package(Mad)
+    if(NOT LIBMAD_FOUND)
+      message(FATAL_ERROR "Libmad library not found. If you wish to skip mp3 support, set WITH_MP3 to OFF when configuring.")
     else()
       set(HAS_MP3 TRUE)
     endif()
   endif()
-else()
-  set(HAS_MP3 FALSE)
 endif()
 
 if(WITH_OGG)
@@ -248,7 +251,15 @@ if(WIN32)
   link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc.lib)
   include_directories(${SM_EXTERN_DIR}/discord-rpc-2.0.1/include)
   link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/discord-rpc.lib)
+  link_libraries(${SM_EXTERN_DIR}/LuaJIT/lua51.lib)
+  include_directories(${SM_EXTERN_DIR}/LuaJIT/include)
   
+  include_directories(${SM_EXTERN_DIR}/uWebSocket/include)
+  include_directories(${SM_EXTERN_DIR}/uWebSocket/includelibs)
+  link_libraries(${SM_EXTERN_DIR}/uWebSocket/uWS.lib)
+  link_libraries(${SM_EXTERN_DIR}/uWebSocket/libeay32.lib)
+  link_libraries(${SM_EXTERN_DIR}/uWebSocket/ssleay32.lib)
+  link_libraries(${SM_EXTERN_DIR}/uWebSocket/libuv.lib)
   if (MINGW AND WITH_FFMPEG)
     include("${SM_CMAKE_DIR}/SetupFfmpeg.cmake")
     set(HAS_FFMPEG TRUE)
@@ -259,11 +270,6 @@ if(WIN32)
     )
     get_filename_component(LIB_SWSCALE ${LIB_SWSCALE} NAME)
 
-	find_library(LIB_SWRESAMPLE NAMES "swresample"
-      PATHS "${SM_EXTERN_DIR}/ffmpeg/lib" NO_DEFAULT_PATH
-    )
-    get_filename_component(LIB_SWRESAMPLE ${LIB_SWRESAMPLE} NAME)
-	
     find_library(LIB_AVCODEC NAMES "avcodec"
       PATHS "${SM_EXTERN_DIR}/ffmpeg/lib" NO_DEFAULT_PATH
     )
@@ -305,6 +311,10 @@ elseif(MACOSX)
 
   
   link_libraries(${SM_EXTERN_DIR}/MinaCalc/libMinaCalc.a)
+  link_libraries(${SM_EXTERN_DIR}/LuaJIT/lua51Mac.a)
+  include_directories(${SM_EXTERN_DIR}/LuaJIT/include)
+  link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/libdiscord-rpcMac.a)
+  include_directories(${SM_EXTERN_DIR}/discord-rpc-2.0.1/include)
 
   set(SYSTEM_PCRE_FOUND FALSE)
   set(WITH_CRASH_HANDLER TRUE)
@@ -357,6 +367,10 @@ elseif(LINUX)
   endif()
 
   link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc.a)
+  link_libraries(${SM_EXTERN_DIR}/LuaJIT/lua51.a)
+  include_directories(${SM_EXTERN_DIR}/LuaJIT/include)
+  link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/libdiscord-rpc.a)
+  include_directories(${SM_EXTERN_DIR}/discord-rpc-2.0.1/include)
   
   find_package(X11)
   if(${X11_FOUND})
@@ -422,9 +436,8 @@ elseif(LINUX)
   endif()
 
   if (WITH_FFMPEG AND NOT YASM_FOUND AND NOT NASM_FOUND)
-    message("Neither NASM nor YASM were found. Please install at least one of them if you wish for ffmpeg and mp3 support.")
+    message("Neither NASM nor YASM were found. Please install at least one of them if you wish for ffmpeg support.")
     set(WITH_FFMPEG OFF)
-	set(WITH_MP3 OFF)
   endif()
 
   find_package("Va")
@@ -445,7 +458,6 @@ elseif(LINUX)
     endif()
   else()
     set(HAS_FFMPEG FALSE)
-	set(HAS_MP3 FALSE)
   endif()
 
   set(CURL_LIBRARY "-lcurl") 

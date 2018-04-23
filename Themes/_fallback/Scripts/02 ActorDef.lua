@@ -65,13 +65,13 @@ setmetatable( Def, {
 			local info = debug.getinfo(level,"Sl");
 
 			-- Source file of caller:
-			local Source = info.source
+			local Source = info and info.source or ""
 			t._Source = Source
 
 			t._Dir = DebugPathToRealPath( Source )
 
 			-- Line number of caller:
-			t._Line = info.currentline
+			t._Line = info and info.currentline or 0
 
 			setmetatable( t, DefMetatable )
 			return t
@@ -173,6 +173,20 @@ function LoadFont(a, b)
 	end
 	local sPath = THEME:GetPathF(sSection, sFile)
 	return Def.BitmapText {
+		_Level = 2,
+		File = sPath
+	}
+end
+
+function LoadColorFont(a, b)
+	local sSection = b and a or ""
+	local sFile = b or a
+	if sFile == "" or not sFile then
+		sSection = "Common"
+		sFile = "normal"
+	end
+	local sPath = THEME:GetPathF(sSection, sFile)
+	return Def.ColorBitmapText {
 		_Level = 2,
 		File = sPath
 	}

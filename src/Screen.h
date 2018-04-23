@@ -2,13 +2,13 @@
 #define SCREEN_H
 
 #include "ActorFrame.h"
-#include "ScreenMessage.h"
-#include "InputFilter.h"
-#include "ThemeMetric.h"
-#include "PlayerNumber.h"
-#include "InputQueue.h"
 #include "CodeSet.h"
 #include "EnumHelper.h"
+#include "InputFilter.h"
+#include "InputQueue.h"
+#include "PlayerNumber.h"
+#include "ScreenMessage.h"
+#include "ThemeMetric.h"
 
 class InputEventPlus;
 class Screen;
@@ -59,20 +59,20 @@ public:
 
 	void Update( float fDeltaTime ) override;
 	virtual bool Input( const InputEventPlus &input );
-	virtual void HandleScreenMessage( const ScreenMessage SM );
+	virtual void HandleScreenMessage( ScreenMessage SM );
 	void SetLockInputSecs( float f ) { m_fLockInputSecs = f; }
 
 	/**
 	 * @brief Put the specified message onto the screen for a specified time.
 	 * @param SM the message to put on the screen.
 	 * @param fDelay The length of time it stays up. */
-	void PostScreenMessage( const ScreenMessage SM, float fDelay );
+	void PostScreenMessage( ScreenMessage SM, float fDelay );
 	/** @brief Clear the entire message queue. */
 	void ClearMessageQueue();
 	/**
 	 * @brief Clear the message queue of a specific ScreenMessage.
 	 * @param SM the specific ScreenMessage to get out of the Queue. */
-	void ClearMessageQueue( const ScreenMessage SM );
+	void ClearMessageQueue( ScreenMessage SM );
 
 	virtual ScreenType GetScreenType() const { return ALLOW_OPERATOR_MENU_BUTTON ? game_menu : system_menu; }
 	bool AllowOperatorMenuButton() const { return ALLOW_OPERATOR_MENU_BUTTON; }

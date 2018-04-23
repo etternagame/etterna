@@ -1,10 +1,10 @@
-#include "global.h"
-#include "ReceptorArrowRow.h"
-#include "RageUtil.h"
-#include "GameConstantsAndTypes.h"
+﻿#include "global.h"
 #include "ArrowEffects.h"
+#include "GameConstantsAndTypes.h"
 #include "GameState.h"
 #include "PlayerState.h"
+#include "RageUtil.h"
+#include "ReceptorArrowRow.h"
 #include "Style.h"
 
 ReceptorArrowRow::ReceptorArrowRow()

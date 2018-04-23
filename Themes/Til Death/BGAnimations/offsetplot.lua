@@ -18,6 +18,7 @@ local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(PLAYER_1)
 local dvt = pss:GetOffsetVector()
 local nrt = pss:GetNoteRowVector()
 local td = GAMESTATE:GetCurrentSteps(PLAYER_1):GetTimingData()
+local wuab = {}
 local finalSecond = GAMESTATE:GetCurrentSong(PLAYER_1):GetLastSecond()
 
 local function fitX(x)	-- Scale time values to fit within plot width.
@@ -73,6 +74,18 @@ local o = Def.ActorFrame{
 		maxOffset = (enabledCustomWindows and judge ~= 0) and customWindow.judgeWindows.boo or math.max(180, 180*tso)
 		MESSAGEMAN:Broadcast("JudgeDisplayChanged")
 	end,
+	UpdateNetEvalStatsMessageCommand = function(self)
+		local s = SCREENMAN:GetTopScreen():GetHighScore()
+		if s then
+			score = s
+			dvt = score:GetOffsetVector()
+			nrt = score:GetNoteRowVector()
+			for i=1,#nrt do
+				wuab[i] = td:GetElapsedTimeFromNoteRow(nrt[i])
+			end
+		end
+		MESSAGEMAN:Broadcast("JudgeDisplayChanged")
+	end,
 }
 -- Center Bar
 o[#o+1] = Def.Quad{
@@ -107,7 +120,6 @@ o[#o+1] = Def.Quad{InitCommand=function(self)
 	self:zoomto(plotWidth+plotMargin,plotHeight+plotMargin):diffuse(color("0.05,0.05,0.05,0.05")):diffusealpha(0.8)
 end}
 -- Convert noterows to timestamps and plot dots
-local wuab = {}
 for i=1,#nrt do
 	wuab[i] = td:GetElapsedTimeFromNoteRow(nrt[i])
 end
@@ -136,7 +148,7 @@ o[#o+1] = Def.ActorMultiVertex{
 	end,
 	JudgeDisplayChangedMessageCommand=function(self)
 		local verts = {};
-		for i=1,#nrt do
+		for i=1,#dvt do
 			local x = fitX(wuab[i]);
 			local y = fitY(dvt[i]);
 			local fit = (enabledCustomWindows and judge ~= 0) and customWindow.judgeWindows.boo + 3 or math.max(183, 183*tso)
@@ -150,6 +162,7 @@ o[#o+1] = Def.ActorMultiVertex{
 			verts[#verts+1] = {{x-dotWidth,y-dotWidth,0}, color}
 		end
 		self:SetVertices(verts)
+		self:SetDrawState{Mode="DrawMode_Quads", First = 1, Num=#verts}
 	end
 }
 

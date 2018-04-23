@@ -90,13 +90,6 @@ local frameY = 140
 local frameWidth = SCREEN_CENTER_X-120
 
 function scoreBoard(pn,position)
-	local t = Def.ActorFrame{
-		BeginCommand=function(self)
-			if position == 1 then
-				self:x(SCREEN_WIDTH-(frameX*2)-frameWidth)
-			end
-		end
-	}
 	
 	local customWindow
 	local judge = enabledCustomWindows and 0 or GetTimingDifficulty()
@@ -105,6 +98,21 @@ function scoreBoard(pn,position)
 	local dvt = pss:GetOffsetVector()
 	local totalTaps = pss:GetTotalTaps()
 	
+	local t = Def.ActorFrame{
+		BeginCommand=function(self)
+			if position == 1 then
+				self:x(SCREEN_WIDTH-(frameX*2)-frameWidth)
+			end
+		end,
+		UpdateNetEvalStatsMessageCommand = function(self)
+			local s = SCREENMAN:GetTopScreen():GetHighScore()
+			if s then
+				score = s
+			end
+			dvt = score:GetOffsetVector()
+			MESSAGEMAN:Broadcast("ScoreChanged")
+		end,
+	}
 	t[#t+1] = Def.Quad{
 		InitCommand=function(self)
 			self:xy(frameX-5,frameY):zoomto(frameWidth+10,220):halign(0):valign(0):diffuse(color("#333333CC"))
@@ -141,6 +149,7 @@ function scoreBoard(pn,position)
 		BeginCommand=function(self)
 			self:queuecommand("Set")
 		end,
+		ScoreChangedMessageCommand = function(self) self:queuecommand("Set"); end,
 		SetCommand=function(self)
 			local meter = score:GetSkillsetSSR("Overall")
 			self:settextf("%5.2f", meter)
@@ -171,13 +180,14 @@ function scoreBoard(pn,position)
 			self:queuecommand("Set")
 		end,
 		SetCommand=function(self) 
-			self:diffuse(getGradeColor(pss:GetWifeGrade()))
-			self:settextf("%05.2f%% (%s)",notShit.floor(pss:GetWifeScore()*10000)/100, "Wife")
+			self:diffuse(getGradeColor(score:GetWifeGrade()))
+			self:settextf("%05.2f%% (%s)",notShit.floor(score:GetWifeScore()*10000)/100, "Wife")
 		end,
+		ScoreChangedMessageCommand = function(self) self:queuecommand("Set"); end,
 		CodeMessageCommand=function(self,params)
 			local totalHolds = pss:GetRadarPossible():GetValue("RadarCategory_Holds") + pss:GetRadarPossible():GetValue("RadarCategory_Rolls")
-			local holdsHit = pss:GetRadarActual():GetValue("RadarCategory_Holds") + pss:GetRadarActual():GetValue("RadarCategory_Rolls")
-			local minesHit = pss:GetRadarPossible():GetValue("RadarCategory_Mines") -  pss:GetRadarActual():GetValue("RadarCategory_Mines")
+			local holdsHit = score:GetRadarValues():GetValue("RadarCategory_Holds") + score:GetRadarValues():GetValue("RadarCategory_Rolls")
+			local minesHit = pss:GetRadarPossible():GetValue("RadarCategory_Mines") -  score:GetRadarValues():GetValue("RadarCategory_Mines")
 			if enabledCustomWindows then
 				if params.Name == "PrevJudge" then
 					judge = judge < 2 and #customWindows or judge - 1
@@ -272,8 +282,9 @@ function scoreBoard(pn,position)
 				self:queuecommand("Set")
 			end,
 			SetCommand=function(self) 
-				self:settext(pss:GetTapNoteScores(v))
+				self:settext(score:GetTapNoteScore(v))
 			end,
+			ScoreChangedMessageCommand = function(self) self:queuecommand("Set"); end,
 			CodeMessageCommand=function(self,params)
 				if params.Name == "PrevJudge" or params.Name == "NextJudge" then
 					if enabledCustomWindows then
@@ -321,7 +332,8 @@ function scoreBoard(pn,position)
 			BeginCommand=function(self)
 				self:queuecommand("Set")
 			end,
-			Se2tCommand=function(self) 
+			ScoreChangedMessageCommand = function(self) self:queuecommand("Set"); end,
+			SetCommand=function(self) 
 				if score:GetChordCohesion() == true then
 					self:settext("Chord Cohesion: Yes")
 				else
@@ -350,8 +362,9 @@ function scoreBoard(pn,position)
 				self:queuecommand("Set")
 			end,
 			SetCommand=function(self) 
-				self:settextf("%03d/%03d",pss:GetRadarActual():GetValue("RadarCategory_"..fart[i]),pss:GetRadarPossible():GetValue("RadarCategory_"..fart[i]))
-			end
+				self:settextf("%03d/%03d",score:GetRadarValues():GetValue("RadarCategory_"..fart[i]),pss:GetRadarPossible():GetValue("RadarCategory_"..fart[i]))
+			end,
+			ScoreChangedMessageCommand = function(self) self:queuecommand("Set"); end,
 		};
 	end
 	

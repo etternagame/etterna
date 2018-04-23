@@ -1,11 +1,11 @@
-#ifndef NOTE_DISPLAY_H
+﻿#ifndef NOTE_DISPLAY_H
 #define NOTE_DISPLAY_H
 
-#include "ActorFrame.h"
+#include "Actor.h"
 #include "CubicSpline.h"
+#include "GameInput.h"
 #include "NoteData.h"
 #include "PlayerNumber.h"
-#include "GameInput.h"
 
 class Sprite;
 class Model;

@@ -1,15 +1,17 @@
-#ifndef PlayerStageStats_H
+﻿#ifndef PlayerStageStats_H
 #define PlayerStageStats_H
 
 #include "Grade.h"
-#include "RadarValues.h"
 #include "HighScore.h"
-#include "PlayerNumber.h"
-#include <map>
 #include "NoteDataStructures.h"
+#include "PlayerNumber.h"
+#include "RadarValues.h"
+#include <map>
+
 class Steps;
 class Style;
 struct lua_State;
+
 /** @brief Contains statistics for one stage of play - either one song, or a whole course. */
 class PlayerStageStats
 {
@@ -27,6 +29,7 @@ public:
 	 * @param other the other stats to add to this one. */
 	void AddStats( const PlayerStageStats& other );		// accumulate
 
+	static Grade GetGrade(float p);
 	Grade GetGrade() const;
 	static float MakePercentScore( int iActual, int iPossible );
 	static RString FormatPercentScore( float fPercentScore );

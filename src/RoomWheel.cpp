@@ -1,13 +1,12 @@
-#include "global.h"
-#include "RoomWheel.h"
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "ScreenTextEntry.h"
-#include "LocalizedString.h"
-#include "NetworkSyncManager.h"
-#include "ScreenManager.h"
+﻿#include "global.h"
 #include "ActorUtil.h"
 #include "LocalizedString.h"
+#include "NetworkSyncManager.h"
+#include "RageLog.h"
+#include "RageUtil.h"
+#include "RoomWheel.h"
+#include "ScreenManager.h"
+#include "ScreenTextEntry.h"
 
 static LocalizedString EMPTY_STRING	( "RoomWheel", "Empty" );
 
@@ -296,7 +295,7 @@ void RoomWheel::BuildFromRoomDatas()
 		itemData->m_sText = roomsInWheel[i].Name();
 		itemData->m_sDesc = roomsInWheel[i].Description();
 		itemData->m_iFlags = roomsInWheel[i].GetFlags();
-
+		itemData->hasPassword = roomsInWheel[i].HasPassword();
 		std::string color;
 		switch (roomsInWheel[i].State())
 		{
@@ -309,7 +308,7 @@ void RoomWheel::BuildFromRoomDatas()
 		}
 		itemData->m_color = THEME->GetMetricC(m_sName, color);
 
-		if (roomsInWheel[i].GetFlags() % 2)
+		if (roomsInWheel[i].GetFlags() % 2 || roomsInWheel[i].HasPassword())
 			itemData->m_color = THEME->GetMetricC(m_sName, "PasswdRoomColor");
 	}
 

@@ -2,8 +2,8 @@
 #define SONGPOSITION_H
 
 #include "GameConstantsAndTypes.h"
-#include "RageTimer.h"
 #include "MessageManager.h"
+#include "RageTimer.h"
 #include "TimingData.h"
 //XXX: where does this come from? might need another include
 struct lua_State;

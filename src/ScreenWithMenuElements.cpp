@@ -1,13 +1,13 @@
 #include "global.h"
-#include "ScreenWithMenuElements.h"
-#include "MenuTimer.h"
-#include "RageLog.h"
-#include "ThemeManager.h"
-#include "GameState.h"
-#include "PrefsManager.h"
-#include "ScreenManager.h"
 #include "GameSoundManager.h"
+#include "GameState.h"
 #include "InputEventPlus.h"
+#include "MenuTimer.h"
+#include "PrefsManager.h"
+#include "RageLog.h"
+#include "ScreenManager.h"
+#include "ScreenWithMenuElements.h"
+#include "ThemeManager.h"
 
 #define TIMER_STEALTH				THEME->GetMetricB(m_sName,"TimerStealth")
 #define SHOW_STAGE_DISPLAY			THEME->GetMetricB(m_sName,"ShowStageDisplay")
@@ -66,7 +66,7 @@ void ScreenWithMenuElements::Init()
 		decorations->SetName("Decorations");
 		decorations->SetDrawOrder( DRAW_ORDER_DECORATIONS );
 		auto *pFrame = dynamic_cast<ActorFrame*>(static_cast<Actor*>(decorations));
-		if( pFrame )
+		if( pFrame != nullptr )
 		{
 			m_vDecorations = pFrame->GetChildren();
 			FOREACH( Actor*, m_vDecorations, child )
@@ -260,7 +260,7 @@ void ScreenWithMenuElements::TweenOnScreen()
 
 void ScreenWithMenuElements::TweenOffScreen()
 {
-	if( m_MenuTimer )
+	if( m_MenuTimer != nullptr )
 	{
 		m_MenuTimer->SetSeconds( 0 );
 		m_MenuTimer->Stop();
@@ -293,7 +293,7 @@ void ScreenWithMenuElements::Cancel( ScreenMessage smSendWhenDone )
 	if( STOP_MUSIC_ON_BACK )
 		SOUND->StopMusic();
 
-	if( m_MenuTimer )
+	if( m_MenuTimer != nullptr )
 		m_MenuTimer->Stop();
 	m_Cancel.StartTransitioning( smSendWhenDone );
 	COMMAND( m_Cancel, "Cancel" );
@@ -306,7 +306,7 @@ bool ScreenWithMenuElements::IsTransitioning()
 
 void ScreenWithMenuElements::StopTimer()
 {
-	if( m_MenuTimer )
+	if( m_MenuTimer != nullptr )
 		m_MenuTimer->Stop();
 }
 

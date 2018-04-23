@@ -3,9 +3,9 @@
 #define StreamDisplay_H
 
 #include "ActorFrame.h"
-#include "Sprite.h"
-#include "Quad.h"
 #include "LuaExpressionTransform.h"
+#include "Quad.h"
+#include "Sprite.h"
 #include "ThemeMetric.h"
 
 enum StreamType

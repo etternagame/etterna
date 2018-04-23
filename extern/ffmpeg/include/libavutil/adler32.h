@@ -18,12 +18,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/**
- * @file
- * @ingroup lavu_adler32
- * Public header for Adler-32 hash function implementation.
- */
-
 #ifndef AVUTIL_ADLER32_H
 #define AVUTIL_ADLER32_H
 
@@ -31,10 +25,8 @@
 #include "attributes.h"
 
 /**
- * @defgroup lavu_adler32 Adler-32
- * @ingroup lavu_hash
- * Adler-32 hash function implementation.
- *
+ * @defgroup lavu_adler32 Adler32
+ * @ingroup lavu_crypto
  * @{
  */
 

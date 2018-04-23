@@ -1,11 +1,10 @@
-/* FadingBanner - Fades between two banners. */
+﻿/* FadingBanner - Fades between two banners. */
 
 #ifndef FADING_BANNER_H
 #define FADING_BANNER_H
 
-#include "Banner.h"
 #include "ActorFrame.h"
-#include "RageTimer.h"
+#include "Banner.h"
 
 class FadingBanner : public ActorFrame
 {

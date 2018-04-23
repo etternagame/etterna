@@ -1,4 +1,4 @@
-#ifndef NotesLoaderETT_H
+﻿#ifndef NotesLoaderETT_H
 #define NotesLoaderETT_H
 
 

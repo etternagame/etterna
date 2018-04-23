@@ -1,12 +1,12 @@
-#ifndef NOTE_DATA_H
+﻿#ifndef NOTE_DATA_H
 #define NOTE_DATA_H
 
-#include "NoteTypes.h"
 #include "NoteDataStructures.h"
+#include "NoteTypes.h"
+#include "TimingData.h"
+#include <iterator>
 #include <map>
 #include <set>
-#include <iterator>
-#include "TimingData.h"
 
 /** @brief Act on each non empty row in the specific track. */
 #define FOREACH_NONEMPTY_ROW_IN_TRACK( nd, track, row ) \
@@ -118,35 +118,35 @@ private:
 	 * @param track the track/column the note is in.
 	 * @param tn the note in question. Required for routine mode.
 	 * @return true if it's for player 1, false for player 2. */
-	bool IsPlayer1(const int track, const TapNote &tn) const;
+	bool IsPlayer1(int track, const TapNote &tn) const;
 	
 	/**
 	 * @brief Determine if the note in question should be counted as a tap.
 	 * @param tn the note in question.
 	 * @param row the row it lives in.
 	 * @return true if it's a tap, false otherwise. */
-	bool IsTap(const TapNote &tn, const int row) const;
+	bool IsTap(const TapNote &tn, int row) const;
 	
 	/**
 	 * @brief Determine if the note in question should be counted as a mine.
 	 * @param tn the note in question.
 	 * @param row the row it lives in.
 	 * @return true if it's a mine, false otherwise. */
-	bool IsMine(const TapNote &tn, const int row) const;
+	bool IsMine(const TapNote &tn, int row) const;
 	
 	/**
 	 * @brief Determine if the note in question should be counted as a lift.
 	 * @param tn the note in question.
 	 * @param row the row it lives in.
 	 * @return true if it's a lift, false otherwise. */
-	bool IsLift(const TapNote &tn, const int row) const;
+	bool IsLift(const TapNote &tn, int row) const;
 	
 	/**
 	 * @brief Determine if the note in question should be counted as a fake.
 	 * @param tn the note in question.
 	 * @param row the row it lives in.
 	 * @return true if it's a fake, false otherwise. */
-	bool IsFake(const TapNote &tn, const int row) const;
+	bool IsFake(const TapNote &tn, int row) const;
 
 	pair<int, int> GetNumRowsWithSimultaneousTapsTwoPlayer(int minTaps = 2,
 														   int startRow = 0,

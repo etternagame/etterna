@@ -1,9 +1,9 @@
-#include "global.h"
+﻿#include "global.h"
 #if !defined(WITHOUT_NETWORKING)
-#include "RoomInfoDisplay.h"
 #include "ActorUtil.h"
-#include "NetworkSyncManager.h"
 #include "LocalizedString.h"
+#include "NetworkSyncManager.h"
+#include "RoomInfoDisplay.h"
 
 AutoScreenMessage( SM_RoomInfoRetract );
 AutoScreenMessage( SM_RoomInfoDeploy );
@@ -16,11 +16,7 @@ static LocalizedString SONG_SUB_TITLE( "RoomInfoDisplay", "Song Subtitle:" );
 static LocalizedString SONG_ARTIST( "RoomInfoDisplay", "Song Artist:" );
 static LocalizedString PLAYERS( "RoomInfoDisplay", "Players" );
 
-RoomInfoDisplay::RoomInfoDisplay() 
-	
-{
-	//No code
-}
+RoomInfoDisplay::RoomInfoDisplay() {}
 
 RoomInfoDisplay::~RoomInfoDisplay()
 {
@@ -146,10 +142,7 @@ void RoomInfoDisplay::Update( float fDeltaTime )
 
 void RoomInfoDisplay::RequestRoomInfo(const RString& name)
 {
-	NSMAN->m_SMOnlinePacket.ClearPacket();
-	NSMAN->m_SMOnlinePacket.Write1((uint8_t)3); //Request Room Info
-	NSMAN->m_SMOnlinePacket.WriteNT(name);
-	NSMAN->SendSMOnline( );
+	NSMAN->RequestRoomInfo(name);
 }
 
 void RoomInfoDisplay::SetRoomInfo( const RoomInfo& info)

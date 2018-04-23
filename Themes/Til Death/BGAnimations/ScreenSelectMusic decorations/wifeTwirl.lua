@@ -132,9 +132,17 @@ end
 
 t[#t+1] = Def.Actor{
 	SetCommand=function(self)		
-		if song then 
+		if song then
+			ptags = tags:get_data().playerTags
 			steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+			chartKey = steps:GetChartKey()
 			score = GetDisplayScore()
+			ctags = {}
+			for k, v in pairs(ptags) do
+				if ptags[k][chartKey] then
+					ctags[#ctags+1] = k
+				end
+			end
 			MESSAGEMAN:Broadcast("RefreshChartInfo")
 		end
 	end,
@@ -676,6 +684,73 @@ t[#t+1] = LoadFont("Common Large") .. {
 	SetCommand=function(self)
 		if song then
 			self:settext(steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), 3))
+		else
+			self:settext("")
+		end
+	end,
+	CurrentRateChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	RefreshChartInfoMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+}
+
+-- tags?
+t[#t+1] = LoadFont("Common Large") .. {
+	InitCommand=function(self)
+		self:xy(frameX+300,frameY-60):halign(0):zoom(0.4):maxwidth(450)
+	end,
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	SetCommand=function(self)
+		if song and ctags[1] then
+			self:settext(ctags[1])
+		else
+			self:settext("")
+		end
+	end,
+	CurrentRateChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	RefreshChartInfoMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+}
+
+t[#t+1] = LoadFont("Common Large") .. {
+	InitCommand=function(self)
+		self:xy(frameX+300,frameY-30):halign(0):zoom(0.4):maxwidth(450)
+	end,
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	SetCommand=function(self)
+		if song and ctags[2] then
+			self:settext(ctags[2])
+		else
+			self:settext("")
+		end
+	end,
+	CurrentRateChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	RefreshChartInfoMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+}
+
+t[#t+1] = LoadFont("Common Large") .. {
+	InitCommand=function(self)
+		self:xy(frameX+300,frameY):halign(0):zoom(0.4):maxwidth(450)
+	end,
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	SetCommand=function(self)
+		if song and ctags[3] then
+			self:settext(ctags[3])
 		else
 			self:settext("")
 		end

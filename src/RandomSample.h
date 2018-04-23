@@ -1,4 +1,4 @@
-/* RandomSample - Holds multiple sounds samples and can play a random sound easily. */
+﻿/* RandomSample - Holds multiple sounds samples and can play a random sound easily. */
 
 #ifndef RANDOM_SAMPLE_H
 #define RANDOM_SAMPLE_H

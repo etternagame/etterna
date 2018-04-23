@@ -3,21 +3,28 @@
 #ifndef SCREEN_NET_ROOM_H
 #define SCREEN_NET_ROOM_H
 
-#include "ScreenWithMenuElements.h"
-#include "ScreenNetSelectBase.h"
-#include <vector>
-#include "RoomWheel.h"
 #include "RoomInfoDisplay.h"
+#include "RoomWheel.h"
+#include "ScreenNetSelectBase.h"
+#include "NetworkSyncManager.h"
+#include "ScreenWithMenuElements.h"
+#include <vector>
 
 class ScreenNetRoom : public ScreenNetSelectBase
 {
 public:
 	void Init() override;
 	bool Input( const InputEventPlus &input ) override;
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 	RoomWheel* GetRoomWheel();
 	void SelectCurrent();
 	void InfoSetVisible(bool visibility);
+
+	void UpdateRoomsList();
+	vector<BitmapText> m_RoomList;
+	vector<RoomData>* m_Rooms;
+	int m_iRoomPlace;
+	RoomInfoDisplay m_roomInfo;
 
 	// Lua
 	void PushSelf(lua_State *L) override;
@@ -29,23 +36,18 @@ protected:
 	void TweenOffScreen( ) override;
 
 private:
-	void UpdateRoomsList();
 	bool MenuLeft( const InputEventPlus &input ) override;
 	bool MenuRight( const InputEventPlus &input ) override;
 	void CreateNewRoom( const RString& rName,  const RString& rDesc, const RString& rPass );
 
 	RageSound m_soundChangeSel;
 
-	vector < BitmapText > m_RoomList;
-	vector < RoomData > m_Rooms;
-	int m_iRoomPlace;
 
 	string m_sLastPickedRoom;
 
 	RString m_newRoomName, m_newRoomDesc, m_newRoomPass;
 
 	RoomWheel m_RoomWheel;
-	RoomInfoDisplay m_roomInfo;
 };
 #endif
 

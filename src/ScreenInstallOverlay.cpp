@@ -6,7 +6,13 @@
 #include "RageLog.h"
 #include "json/value.h"
 #include "JsonUtil.h"
+#include "Preference.h"
+#include "RageFileManager.h"
+#include "RageLog.h"
+#include "ScreenInstallOverlay.h"
+#include "ScreenManager.h"
 #include "SpecialFiles.h"
+#include "json/value.h"
 class Song;
 #include "SongManager.h"
 #include "GameState.h"
@@ -15,9 +21,13 @@ class Song;
 #include "CommonMetrics.h"
 #include "SongManager.h"
 #include "CommandLineActions.h"
+#include "CommonMetrics.h"
+#include "GameManager.h"
+#include "GameState.h"
 #include "ScreenDimensions.h"
+#include "SongManager.h"
+#include "SongManager.h"
 #include "StepMania.h"
-#include "ActorUtil.h"
 
 #if !defined(WITHOUT_NETWORKING)
 #include "DownloadManager.h"
@@ -130,7 +140,6 @@ void ScreenInstallOverlay::Update(float fDeltaTime)
 		DoInstalls(args);
 	}
 #if !defined(WITHOUT_NETWORKING)
-	DLMAN->UpdateAndIsFinished(fDeltaTime);
 	vector<RString> vsMessages;
 	for(auto &dl : DLMAN->downloads)
 	{

@@ -1,28 +1,28 @@
 #include "global.h"
 
 #if !defined(WITHOUT_NETWORKING)
-#include "ScreenNetSelectMusic.h"
-#include "ScreenManager.h"
-#include "GameSoundManager.h"
-#include "GameConstantsAndTypes.h"
-#include "ThemeManager.h"
-#include "GameState.h"
-#include "Style.h"
-#include "Steps.h"
-#include "RageTimer.h"
 #include "ActorUtil.h"
 #include "AnnouncerManager.h"
-#include "MenuTimer.h"
-#include "NetworkSyncManager.h"
-#include "StepsUtil.h"
-#include "RageUtil.h"
-#include "MusicWheel.h"
-#include "InputMapper.h"
-#include "RageLog.h"
-#include "Song.h"
+#include "LocalizedString.h"
+#include "CodeDetector.h"
+#include "FilterManager.h"
+#include "GameConstantsAndTypes.h"
+#include "GameSoundManager.h"
+#include "GameState.h"
 #include "InputEventPlus.h"
-#include "SongUtil.h"
+#include "InputMapper.h"
+#include "MenuTimer.h"
+#include "MusicWheel.h"
+#include "NetworkSyncManager.h"
+#include "ProfileManager.h"
 #include "RageInput.h"
+#include "RageLog.h"
+#include "Style.h"
+#include "RageTimer.h"
+#include "RageUtil.h"
+#include "ScreenManager.h"
+#include "ScreenNetSelectMusic.h"
+#include "Song.h"
 #include "SongManager.h"
 #include "CodeDetector.h"
 #include "ProfileManager.h"
@@ -30,15 +30,18 @@
 #include "RageFileManager.h"
 #include "ScreenPrompt.h"
 
-AutoScreenMessage( SM_NoSongs );
-AutoScreenMessage( SM_ChangeSong );
-AutoScreenMessage( SM_SMOnlinePack );
-AutoScreenMessage( SM_SetWheelSong );
-AutoScreenMessage( SM_RefreshWheelLocation );
-AutoScreenMessage( SM_SongChanged );
-AutoScreenMessage( SM_UsersUpdate );
-AutoScreenMessage( SM_BackFromPlayerOptions );
+AutoScreenMessage(SM_NoSongs);
+AutoScreenMessage(SM_ChangeSong);
+AutoScreenMessage(SM_SMOnlinePack);
+AutoScreenMessage(SM_SetWheelSong);
+AutoScreenMessage(SM_RefreshWheelLocation);
+AutoScreenMessage(SM_SongChanged);
+AutoScreenMessage(SM_UsersUpdate);
+AutoScreenMessage(SM_BackFromPlayerOptions);
 AutoScreenMessage(SM_ConfirmDeleteSong);
+AutoScreenMessage(ETTP_SelectChart);
+AutoScreenMessage(ETTP_StartChart);
+AutoScreenMessage(ETTP_Disconnect);
 
 REGISTER_SCREEN_CLASS( ScreenNetSelectMusic );
 
@@ -65,6 +68,9 @@ void ScreenNetSelectMusic::Init()
 	m_MusicWheel.SetName( "MusicWheel" );
 	m_MusicWheel.Load( MUSIC_WHEEL_TYPE );
 	LOAD_ALL_COMMANDS_AND_SET_XY( m_MusicWheel );
+	SONGMAN->MakeSongGroupsFromPlaylists();
+	SONGMAN->SetFavoritedStatus(PROFILEMAN->GetProfile(PLAYER_1)->FavoritedCharts);
+	SONGMAN->SetHasGoal(PROFILEMAN->GetProfile(PLAYER_1)->goalmap);
 	m_MusicWheel.BeginScreen();
 	ON_COMMAND( m_MusicWheel );
 	this->AddChild( &m_MusicWheel );
@@ -87,8 +93,7 @@ void ScreenNetSelectMusic::Init()
 	m_sRouletteMusicPath =	THEME->GetPathS(m_sName,"roulette music");
 	m_sRandomMusicPath =	THEME->GetPathS(m_sName,"random music");
 
-	NSMAN->ReportNSSOnOff(1);
-	NSMAN->ReportPlayerOptions();
+	NSMAN->OnMusicSelect();
 
 	m_bInitialSelect = false;
 	m_bAllowInput = false;
@@ -154,7 +159,7 @@ bool ScreenNetSelectMusic::Input(const InputEventPlus &input)
 		{
 			// Reload the currently selected song. -Kyz
 			Song* to_reload = m_MusicWheel.GetSelectedSong();
-			if (to_reload)
+			if (to_reload != nullptr)
 			{
 				to_reload->ReloadFromSongDir();
 				MusicChanged();
@@ -248,12 +253,24 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 {
 	if( SM == SM_GoToPrevScreen )
 	{
+		NSMAN->LeaveRoom();
 		SCREENMAN->SetNewScreen( THEME->GetMetric (m_sName, "PrevScreen") );
 	}
 	else if( SM == SM_GoToNextScreen )
 	{
 		SOUND->StopMusic();
 		SCREENMAN->SetNewScreen( THEME->GetMetric (m_sName, "NextScreen") );
+	}
+	else if (SM == SM_GoToDisconnectScreen)
+	{
+		SOUND->StopMusic();
+		SCREENMAN->SetNewScreen(THEME->GetMetric(m_sName, "DisconnectScreen"));
+	}
+	else if (SM == ETTP_Disconnect)
+	{
+		SOUND->StopMusic();
+		TweenOffScreen();
+		Cancel(SM_GoToDisconnectScreen);
 	}
 	else if( SM == SM_UsersUpdate )
 	{
@@ -400,10 +417,9 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 	}
 	else if( SM == SM_BackFromPlayerOptions )
 	{
-		// XXX HACK: This will cause ScreenSelectOptions to go back here.
-		NSMAN->ReportNSSOnOff(1);
 		GAMESTATE->m_EditMode = EditMode_Invalid;
-		NSMAN->ReportPlayerOptions();
+		// XXX HACK: This will cause ScreenSelectOptions to go back here.
+		NSMAN->OffOptions();
 
 		// Update changes
 		FOREACH_EnabledPlayer(p)
@@ -414,25 +430,54 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 		GAMESTATE->m_pCurSong.Set( m_MusicWheel.GetSelectedSong() );
 		MusicChanged();
 	}
+	else if (SM == ETTP_StartChart)
+	{
+		if (NSMAN->song != nullptr) {
+			if (!m_MusicWheel.SelectSong(NSMAN->song))
+			{
+				m_MusicWheel.ChangeSort(SORT_GROUP);
+				m_MusicWheel.FinishTweening();
+				SCREENMAN->PostMessageToTopScreen(SM_SetWheelSong, 0.710f);
+				m_MusicWheel.SelectSong(NSMAN->song);
+			}
+			if (NSMAN->steps != nullptr)
+				m_DC[PLAYER_1] = NSMAN->steps->GetDifficulty();
+			if (NSMAN->rate > 0) {
+				GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = NSMAN->rate/1000.0;
+				MESSAGEMAN->Broadcast("RateChanged");
+			}
+			m_MusicWheel.Select();
+			m_MusicWheel.Move(-1);
+			m_MusicWheel.Move(1);
+			StartSelectedSong();
+			m_MusicWheel.Select();
+		}
+	}
+	else if (SM == ETTP_SelectChart)
+	{
+		if (NSMAN->song != nullptr) {
+			if (!m_MusicWheel.SelectSong(NSMAN->song))
+			{
+				m_MusicWheel.ChangeSort(SORT_GROUP);
+				m_MusicWheel.FinishTweening();
+				SCREENMAN->PostMessageToTopScreen(SM_SetWheelSong, 0.710f);
+				m_MusicWheel.SelectSong(NSMAN->song);
+			}
+			if(NSMAN->steps != nullptr)
+				m_DC[PLAYER_1] = NSMAN->steps->GetDifficulty();
+			if (NSMAN->rate > 0) {
+				GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = NSMAN->rate / 1000.0;
+				MESSAGEMAN->Broadcast("RateChanged");
+			}
+			m_MusicWheel.Select();
+			m_MusicWheel.Move(-1);
+			m_MusicWheel.Move(1);
+			m_MusicWheel.Select();
+		}
+	}
 	else if( SM == SM_SMOnlinePack )
 	{
-		if( NSMAN->m_SMOnlinePacket.Read1() == 1 )
-		{
-			switch ( NSMAN->m_SMOnlinePacket.Read1() )
-			{
-			case 0: // Room title Change
-				{
-					RString titleSub;
-					titleSub = NSMAN->m_SMOnlinePacket.ReadNT() + "\n";
-					titleSub += NSMAN->m_SMOnlinePacket.ReadNT();
-					if( NSMAN->m_SMOnlinePacket.Read1() != 1 )
-					{
-						RString SMOnlineSelectScreen = THEME->GetMetric( m_sName, "RoomSelectScreen" );
-						SCREENMAN->SetNewScreen( SMOnlineSelectScreen );
-					}
-				}
-			}
-		}
+		SMOProtocol::DealWithSMOnlinePack(static_cast<SMOProtocol*>(NSMAN->curProtocol)->SMOnlinePacket, this);
 	}
 	else if (SM == SM_ConfirmDeleteSong)
 		 {
@@ -507,7 +552,7 @@ bool ScreenNetSelectMusic::MenuRight( const InputEventPlus &input )
 
 bool ScreenNetSelectMusic::MenuUp( const InputEventPlus &input )
 {
-	NSMAN->ReportNSSOnOff(3);
+	NSMAN->OnOptions();
 	GAMESTATE->m_EditMode = EditMode_Full;
 	SCREENMAN->AddNewScreenToTop( PLAYER_OPTIONS_SCREEN, SM_BackFromPlayerOptions );
 	return true;
@@ -538,7 +583,7 @@ bool ScreenNetSelectMusic::MenuDown( const InputEventPlus &input )
 		}
 	}
 
-	if( GAMESTATE->m_pCurSong == NULL )
+	if(GAMESTATE->m_pCurSong == nullptr)
 		return false;
 	StepsType st = GAMESTATE->GetCurrentStyle(pn)->m_StepsType;
 	vector <Steps *> MultiSteps;
@@ -561,7 +606,7 @@ bool ScreenNetSelectMusic::MenuDown( const InputEventPlus &input )
 		{
 			if( (dcs[i]) && (i > m_DC[pn]) )
 			{
-				m_DC[pn] = (Difficulty)i;
+				m_DC[pn] = static_cast<Difficulty>(i);
 				break;
 			}
 		}
@@ -572,7 +617,7 @@ bool ScreenNetSelectMusic::MenuDown( const InputEventPlus &input )
 			{
 				if(dcs[i])
 				{
-					m_DC[pn] = (Difficulty)i;
+					m_DC[pn] = static_cast<Difficulty>(i);
 					break;
 				}
 			}
@@ -642,7 +687,7 @@ void ScreenNetSelectMusic::TweenOffScreen()
 
 	OFF_COMMAND( m_MusicWheel );
 
-	NSMAN->ReportNSSOnOff(0);
+	NSMAN->OffMusicSelect();
 }
 
 void ScreenNetSelectMusic::StartSelectedSong()
@@ -687,6 +732,11 @@ void ScreenNetSelectMusic::UpdateDifficulties( PlayerNumber pn )
 		m_StepsDisplays[pn].SetFromStepsTypeAndMeterAndDifficultyAndCourseType( StepsType_Invalid, 0, Difficulty_Beginner );
 }
 
+void ScreenNetSelectMusic::BeginScreen()
+{
+	ScreenNetSelectBase::BeginScreen();
+	SONGMAN->SetFlagsForProfile(PROFILEMAN->GetProfile(PLAYER_1));
+}
 void ScreenNetSelectMusic::MusicChanged()
 {
 	if( GAMESTATE->m_pCurSong == NULL )
@@ -724,10 +774,10 @@ void ScreenNetSelectMusic::MusicChanged()
 			for( i=0; i<NUM_Difficulty; ++i )
 				if( dcs[i] )
 				{
-					Target = (Difficulty)i;
+					Target = static_cast<Difficulty>(i);
 					if( i >= m_DC[pn] )
 					{
-						m_DC[pn] = (Difficulty)i;
+						m_DC[pn] = static_cast<Difficulty>(i);
 						break;
 					}
 				}

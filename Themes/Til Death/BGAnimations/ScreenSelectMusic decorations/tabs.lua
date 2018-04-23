@@ -2,17 +2,22 @@ local active = true
 local numericinputactive = false
 local whee
 
-local tabNames = {"General","MSD","Score","Search","Profile","Filters", "Goals", "Playlists", "Packs"} -- this probably should be in tabmanager.
+local tabNames = {"General","MSD","Score","Search","Profile","Filters", "Goals", "Playlists", "Packs", "Tags"} -- this probably should be in tabmanager.
 --[[
 
 ]]
 local function input(event)
 	if event.type ~= "InputEventType_Release" and active then
 		if numericinputactive == false then
-			for i=1,#tabNames do
-				if not (INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl") or IsNetSMOnline()) and event.char and tonumber(event.char) and  tonumber(event.char)==i then
-					setTabIndex(i-1)
-					MESSAGEMAN:Broadcast("TabChanged")
+			if event.DeviceInput.button == "DeviceButton_0" then
+				setTabIndex(9)
+				MESSAGEMAN:Broadcast("TabChanged")
+			else
+				for i=1,#tabNames do
+					if not (INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl") or (SCREENMAN:GetTopScreen():GetName() ~= "ScreenSelectMusic")) and event.char and tonumber(event.char) and  tonumber(event.char)==i then
+						setTabIndex(i-1)
+						MESSAGEMAN:Broadcast("TabChanged")
+					end
 				end
 			end
 		end

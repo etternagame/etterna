@@ -1,10 +1,10 @@
 #include "global.h"
-#include "SnapDisplay.h"
-#include "GameState.h"
-#include "ThemeManager.h"
-#include "Style.h"
-#include "ScreenDimensions.h"
 #include "EnumHelper.h"
+#include "GameState.h"
+#include "ScreenDimensions.h"
+#include "SnapDisplay.h"
+#include "Style.h"
+#include "ThemeManager.h"
 
 SnapDisplay::SnapDisplay()
 {

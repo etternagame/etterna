@@ -1,4 +1,4 @@
-/* RageFileDriverDirectHelpers - Internal helpers for RageFileDriverDirect. */
+﻿/* RageFileDriverDirectHelpers - Internal helpers for RageFileDriverDirect. */
 
 #ifndef RAGE_FILE_DRIVER_DIRECT_HELPERS_H
 #define RAGE_FILE_DRIVER_DIRECT_HELPERS_H
@@ -7,13 +7,11 @@
 #include <fcntl.h>
 #endif
 
-#define DoOpen open
 #define DoStat stat
 #define DoMkdir mkdir
 #define DoFindFirstFile FindFirstFile
 #define DoRename rename
 #define DoRemove remove
-#define DoRmdir rmdir
 RString DoPathReplace( const RString &sPath );
 
 #if defined(WIN32)
