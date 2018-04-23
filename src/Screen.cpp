@@ -473,6 +473,8 @@ public:
 LUA_REGISTER_DERIVED_CLASS( Screen, ActorFrame )
 // lua end
 
+REGISTER_SCREEN_CLASS(Screen);
+
 /*
  * (c) 2001-2004 Chris Danford, Glenn Maynard
  * All rights reserved.
