@@ -858,7 +858,7 @@ static const Game g_Game_Pump =
 	"pump",						// m_szName
 	g_apGame_Pump_Styles,				// m_apStyles
 	false,						// m_bCountNotesSeparately
-	false, // m_bTickHolds
+	true, // m_bTickHolds
 	false, // m_PlayersHaveSeparateStyles
 	{						// m_InputScheme
 		"pump",					// m_szName
