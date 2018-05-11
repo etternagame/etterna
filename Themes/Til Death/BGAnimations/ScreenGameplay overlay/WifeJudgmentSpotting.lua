@@ -1009,7 +1009,7 @@ if enabledErrorBar == 1 then
 end
 
 -- Add the completed errorbar frame to the primary actor frame t if enabled
-if enabledErrorBar then
+if enabledErrorBar ~= 0 then
 	t[#t+1] = e
 end
 
