@@ -9,6 +9,7 @@
 #include "global.h"
 
 #include "ezsockets.h"
+#include <iostream>
 
 #if defined(_MSC_VER) // We need the WinSock32 Library on Windows
 #pragma comment(lib,"wsock32.lib")
