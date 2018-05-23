@@ -346,6 +346,7 @@ public:
 	static int destroy( T* p, lua_State *L )
 	{
 		SAFE_DELETE(p);
+		lua_pushboolean( L, true);
 		return 1;
 	}
 
@@ -358,6 +359,7 @@ public:
 	static int Close( T* p, lua_State *L )
 	{
 		p->Close();
+		lua_pushboolean( L, true);
 		return 1;
 	}
 

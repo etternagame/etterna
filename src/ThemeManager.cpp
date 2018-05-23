@@ -881,7 +881,8 @@ try_element_again:
 RString ThemeManager::GetPath( ElementCategory category, const RString &sMetricsGroup, const RString &sElement, bool bOptional )
 {
 	PathInfo pi;
-	GetPathInfo( pi, category, sMetricsGroup, sElement, bOptional );
+	if(!GetPathInfo( pi, category, sMetricsGroup, sElement, bOptional ))
+		return "";
 	if(!bOptional && pi.sResolvedPath.empty())
 	{
 		LuaHelpers::ReportScriptErrorFmt("Theme element not found and not "
