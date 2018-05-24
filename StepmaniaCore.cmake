@@ -35,6 +35,13 @@ else()
   set(BSD FALSE)
 endif()
 
+macro(set_WIN10_FLAG)
+    if (WIN32 AND (CMAKE_SYSTEM_VERSION GREATER 10.0 OR CMAKE_SYSTEM_VERSION  EQUAL 10.0))
+        add_definitions(-DWIN10)
+    endif()
+endmacro()
+set_WIN10_FLAG()
+
 # Allow for finding our libraries in a standard location.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}" "${SM_CMAKE_DIR}/Modules/")
 
