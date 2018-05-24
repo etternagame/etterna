@@ -3,9 +3,19 @@ Etterna
 
 Etterna is an advanced cross-platform rhythm game focused on keyboard play.
 
-[![Travis CI Build Status](https://travis-ci.org/etternagame/etterna.svg?branch=develop)](https://travis-ci.org/etternagame/etterna)
-[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/lgdsvx101i45d71k?svg=true)](https://ci.appveyor.com/project/martensm/etterna)
-[![Coverity Scan Build Status](https://img.shields.io/coverity/scan/12978.svg)](https://scan.coverity.com/projects/etternagame-etterna)
+|       Mac         |       Linux-clang |       Linux-gcc   | Windows 7         | Windows 10        | Coverity          |
+|-------------------|-------------------|-------------------|-------------------|-------------------|-------------------|
+| [![build1-trav][]][build-link-travis] | [![build2-trav][]][build-link-travis] | [![build3-trav][]][build-link-travis] | [![build1-app][]][build-link-app] | [![build2-app][]][build-link-app] | [![build1-cov][]][build-link-cover] |
+
+[build1-trav]: https://travis-matrix-badges.herokuapp.com/repos/etternagame/etterna/branches/develop/1
+[build2-trav]: https://travis-matrix-badges.herokuapp.com/repos/etternagame/etterna/branches/develop/2
+[build3-trav]: https://travis-matrix-badges.herokuapp.com/repos/etternagame/etterna/branches/develop/4
+[build1-app]: https://appveyor-matrix-badges.herokuapp.com/repos/Nickito12/etterna/branch/develop/1
+[build2-app]: https://appveyor-matrix-badges.herokuapp.com/repos/Nickito12/etterna/branch/develop/2
+[build1-cov]: https://img.shields.io/coverity/scan/12978.svg
+[build-link-travis]: https://travis-ci.org/etternagame/etterna
+[build-link-app]: https://ci.appveyor.com/project/Nickito12/etterna
+[build-link-cover]: https://scan.coverity.com/projects/etternagame-etterna
 
 ## Installation
 ### From Packages
@@ -22,7 +32,7 @@ https://etternagame.github.io/wiki/Building-Etterna.html
 
 ## Resources
 
-* Website: TBA
+* Website: https://etternaonline.com/
 * Discord: discord.gg/ZqpUjsJ
 * Lua for SM5: https://dguzek.github.io/Lua-For-SM5/
 * Lua API Documentation can be found in the Docs folder.
