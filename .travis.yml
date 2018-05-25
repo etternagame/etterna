@@ -94,6 +94,7 @@ before_script:
 script:
   - if [ "$TRAVIS_OS_NAME" != "osx" ]; then make -j 4; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target Etterna -destination 'platform=OS X,arch=x86_64' -xcconfig ../Xcode/conf.cnf -configuration RelWithDebInfo;
+    mv ../*.app ../Etterna.app;
     xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target dmg -configuration RelWithDebInfo; fi
 
 before_install:
