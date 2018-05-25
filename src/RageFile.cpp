@@ -373,7 +373,7 @@ public:
 	static int Flush(T* p, lua_State* L)
 	{
 		p->Flush();
-		COMMON_RETURN_SELF;
+		return 0;
 	}
 
 	static int Read( T* p, lua_State *L )
@@ -435,7 +435,7 @@ public:
 	static int ClearError( T* p, lua_State *L )
 	{
 		p->ClearError();
-		return 1;
+		return 0;
 	}
 	
 	static int AtEOF( T* p, lua_State *L )
