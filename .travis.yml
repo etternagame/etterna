@@ -93,8 +93,17 @@ before_script:
 
 script:
   - if [ "$TRAVIS_OS_NAME" != "osx" ]; then make -j 4; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target Etterna -destination 'platform=OS X,arch=x86_64' -xcconfig ../Xcode/conf.cnf; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target Etterna -destination 'platform=OS X,arch=x86_64' -xcconfig ../Xcode/conf.cnf -configuration RelWithDebInfo;
+    xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target dmg; fi
 
+before_install:
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then rvm install 2.2.6;
+    gem install dropbox-deployment; fi
+
+after_success:
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then cd ${TRAVIS_BUILD_DIR};
+    ruby uploadDmg.rb; fi
+    
 env:
   global:
     secure: gXXVXUQdzic8X/WhHgPih7zEPOMvzz1o4XudnEgiIGrk5gwVajXLVc0TEVT9uogeuHZxhT0sM7idYmtSXTe6zUBfoV/WXnyfeZVQhI59iy35bWUKdbpPpO9bAafdmMB2d9b3v5QT8iubOPAudVNGENBZiXiGovAJBmqxnjpjdU1aQBsy5rhFssSOcizIV7GrOcsCGoilTceonPtLp8xX2mt/WQJhPHrAUmZks5uPNNYDXv9a8BoLeTYKzbFoz7GNvoxEUfmFV2W2jr/szfpnbmvRMqKgErsJDlc2b/oaD0EKUJOdu8eNNuOpLKZSPiMQstmDZtQ65boOuXVudAx3T1zFaDhhP3PZwG6KLwnrf0ttLRSdIW5Mm+SzEHuJXp2qwBPyAQJIKJLqqu/OUeNorWfz0jFvYyVlNZlTX5ZaxjEj05qj3DAEfokCuueNY+KFccdouMQX0ks3of4/WKLYH1BL743Binc5SYgK38xA7bzwcjFyyEBQFoc9FayrLkk0Yi/ed2mV1XdBvr7vmFxYDlZQkg425KLtCX7GN/++5FVF01IH1cZa3siJ7XT5EJBu6vxisByHRwPSWWagn2WgvkxHjgAnBcvgYBIcoKsxFBytsyyh3g5fVSWovSnTerr5glwv7cXdyhMAXp1gGL900tjij0BiEWRzKfbiroDjVn0=
