@@ -239,7 +239,6 @@ elseif(APPLE)
       cd ${SM_NAME_VERSION}\;
       mkdir ${SM_NAME_VERSION}\;
       cd ${SM_NAME_VERSION}\;
-      cp -r "${SM_ROOT_DIR}/portable.ini" .\;
       cp -r "${SM_ROOT_DIR}/Announcers" .\;
       cp -r "${SM_ROOT_DIR}/BackgroundEffects" .\;
       cp -r "${SM_ROOT_DIR}/BackgroundTransitions" .\;
