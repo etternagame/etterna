@@ -39,8 +39,7 @@ after_build:
     
     "C:\Program Files (x86)\NSIS\makensis.exe" /DSongless "C:\etterna\stepmania.nsi"
 - cmd: >-
-    cd "C:\etterna\"
-    rename "Etterna *.exe" "Etterna *-%appveyor_build_version%.exe"
+    rename "C:\etterna\Etterna *.exe" "Etterna *-%appveyor_build_version%.exe"
 
 notifications:
 - provider: Email
