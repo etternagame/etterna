@@ -246,6 +246,8 @@ InputHandler_MacOSX_HID::InputHandler_MacOSX_HID() : m_Sem( "Input thread starte
 	LOG->Trace( "Finding keyboards" );
 	AddDevices( kHIDPage_GenericDesktop, kHIDUsage_GD_Keyboard, id );
 	
+    id = DEVICE_MOUSE;
+    
 	LOG->Trace( "Finding mice" );
 	AddDevices( kHIDPage_GenericDesktop, kHIDUsage_GD_Mouse, id );
 	

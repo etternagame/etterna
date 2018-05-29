@@ -349,11 +349,9 @@ bool Screen::PassInputToLua(const InputEventPlus& input)
 	lua_setfield(L, -2, "button");
 	Enum::Push(L, input.type);
 	lua_setfield(L, -2, "type");
-	wchar_t c = INPUTMAN->DeviceInputToChar(input.DeviceI, true);
-	if (c >= L' ')
-		lua_pushstring(L, WStringToRString(wstring() + c).c_str());
-	else
-		lua_pushstring(L, "");
+	char s[5];
+	wctomb(s, INPUTMAN->DeviceInputToChar(input.DeviceI, true));
+	LuaHelpers::Push(L, string(1, s[0]));
 	lua_setfield(L, -2, "char");
 	LuaHelpers::Push(L, GameButtonToString(INPUTMAPPER->GetInputScheme(), input.MenuI));
 	lua_setfield(L, -2, "GameButton");
@@ -368,7 +366,7 @@ bool Screen::PassInputToLua(const InputEventPlus& input)
 		lua_pushvalue(L, -2);
 		RString error= "Error running input callback: ";
 		LuaHelpers::RunScriptOnStack(L, error, 1, 1, true);
-		handled= lua_toboolean(L, -1) != 0;
+		//handled= lua_toboolean(L, -1);
 		lua_pop(L, 1);
 	}
 	lua_pop(L, 1);

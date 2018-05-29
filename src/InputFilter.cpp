@@ -464,6 +464,7 @@ void InputFilter::GetPressedButtons( vector<DeviceInput> &array ) const
 void InputFilter::UpdateCursorLocation(float _fX, float _fY)
 {
 	m_MouseCoords.fX = _fX;
+    
 	m_MouseCoords.fY = _fY;
 }
 

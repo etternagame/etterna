@@ -1,5 +1,7 @@
 #include "global.h"
 #include "KeyboardDevice.h"
+#include "InputFilter.h"
+
 
 using namespace __gnu_cxx;
 
@@ -177,6 +179,7 @@ void KeyboardDevice::GetButtonPresses( vector<DeviceInput>& vPresses, IOHIDEleme
 	{
 		//LOG->Trace( "Pushed %s", DeviceButtonToString(iter->second).c_str() );
 		vPresses.push_back( DeviceInput(DEVICE_KEYBOARD, iter->second, value, now));
+        INPUTFILTER->ButtonPressed(DeviceInput(DEVICE_KEYBOARD, iter->second, value, now));
 	}
 }
 
