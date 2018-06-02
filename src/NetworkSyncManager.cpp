@@ -314,9 +314,12 @@ void ETTProtocol::close()
 	roomName = "";
 	roomDesc = "";
 	inRoom = false;
-	uWSh.getDefaultGroup<uWS::SERVER>().close();
-	uWSh.getDefaultGroup<uWS::CLIENT>().close();
-	uWSh.poll();
+	((uWS::Group<uWS::SERVER>*)uWSh)->close();
+	((uWS::Group<uWS::CLIENT>*)uWSh)->close();
+	((uWS::Group<uWS::SERVER>*)uWSh)->terminate();
+	((uWS::Group<uWS::CLIENT>*)uWSh)->terminate();
+	delete uWSh;
+	uWSh = new uWS::Hub();
 }
 
 void NetworkSyncManager::CloseConnection()
@@ -407,22 +410,29 @@ bool ETTProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString a
 	n->isSMOnline = false;
 	msgId = 0;
 	error = false;
-	uWSh.onDisconnection([this, n](uWS::WebSocket<uWS::CLIENT> *ws, int code, char *message, size_t length) {
-		LOG->Trace("Dissconnected from ett server %s", serverName.c_str());
-		n->isSMOnline = false;
+	uWSh->onDisconnection([this, n](uWS::WebSocket<uWS::CLIENT> *ws, int code, char *message, size_t length) {
 		this->ws = nullptr;
-		n->CloseConnection();
-		SCREENMAN->SendMessageToTopScreen(ETTP_Disconnect);
 	});
-	uWSh.onConnection([n, this, address](uWS::WebSocket<uWS::CLIENT> *ws, uWS::HttpRequest req) {
+	uWSh->onConnection([n, this, address](uWS::WebSocket<uWS::CLIENT> *ws, uWS::HttpRequest req) {
 		n->isSMOnline = true;
 		this->ws = ws;
 		LOG->Trace("Connected to ett server: %s", address.c_str());
 	});
-	uWSh.onError([this](void* ptr) {
+	uWSh->onError([this](void* ptr) {
 		this->error = true;
 	});
-	uWSh.onMessage([this](uWS::WebSocket<uWS::CLIENT> *ws, char *message, size_t length, uWS::OpCode opCode) {
+	uWSh->onHttpDisconnection([this](uWS::HttpSocket<true>* ptr) {
+		this->error = true;
+	});
+	uWSh->onDisconnection([this](uWS::WebSocket<false> *, int code, char *message, size_t length) {
+		this->error = true;
+		this->errorMsg = string(message, length);
+	});
+	uWSh->onDisconnection([this](uWS::WebSocket<true> *, int code, char *message, size_t length) {
+		this->error = true;
+		this->errorMsg = string(message, length);
+	});
+	uWSh->onMessage([this](uWS::WebSocket<uWS::CLIENT> *ws, char *message, size_t length, uWS::OpCode opCode) {
 		string msg(message, length);
 		try {
 			json json = json::parse(msg);
@@ -445,23 +455,23 @@ bool ETTProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString a
 	}
 	time_t start;
 	if (wss) {
-		uWSh.connect(((prepend ? "wss://" + address : address)+ ":" + to_string(port)).c_str(), nullptr);
-		uWSh.poll();
+		uWSh->connect(((prepend ? "wss://" + address : address)+ ":" + to_string(port)).c_str(), nullptr);
+		uWSh->poll();
 		start = time(0);
 		while (!n->isSMOnline && !error) {
-			uWSh.poll();
-			if (difftime(time(0), start) > 2)
+			uWSh->poll();
+			if (difftime(time(0), start) > 1.5)
 				break;
 		}
 	}
 	if (ws && !n->isSMOnline) {
 		error = false;
-		uWSh.connect(((prepend ? "ws://" + address : address) + ":" + to_string(port)).c_str(), nullptr);
-		uWSh.poll();
+		uWSh->connect(((prepend ? "ws://" + address : address) + ":" + to_string(port)).c_str(), nullptr);
+		uWSh->poll();
 		start = time(0);
 		while (!n->isSMOnline && !error) {
-			uWSh.poll();
-			if (difftime(time(0), start) > 2)
+			uWSh->poll();
+			if (difftime(time(0), start) > 1.5)
 				break;
 		}
 	}
@@ -547,7 +557,13 @@ bool NetworkSyncManager::IsETTP() {
 }
 void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 {
-	uWSh.poll();
+	uWSh->poll();
+	if (this->ws == nullptr) {
+		LOG->Trace("Dissconnected from ett server %s", serverName.c_str());
+		n->isSMOnline = false;
+		n->CloseConnection();
+		SCREENMAN->SendMessageToTopScreen(ETTP_Disconnect);
+	}
 	for (auto iterator = newMessages.begin(); iterator !=newMessages.end(); iterator++) {
 		try {
 			auto jType = (*iterator).find("type");
