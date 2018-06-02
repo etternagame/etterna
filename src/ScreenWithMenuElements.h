@@ -74,6 +74,8 @@ public:
 protected:
 };
 
+class ScreenWithMenuElementsBasic : public ScreenWithMenuElements {};
+
 #endif
 
 /*
