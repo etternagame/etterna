@@ -349,7 +349,6 @@ function input(event)
 	if typing  then
 		if event.type == "InputEventType_Release" then
 			if event.DeviceInput.button == "DeviceButton_enter" then
-			SCREENMAN:SystemMessage(tostring(typingText:len()))
 				if typingText:len() > 0 then
 					NSMAN:SendChatMsg(typingText, currentTabType, currentTabName)
 					typingText = ""
