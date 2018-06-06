@@ -87,9 +87,7 @@ before_script:
     brew install openssl --universal;
     brew uninstall zlib;
     brew install zlib --universal;
-    mv ../src/archutils/Darwin/Etterna.pch ../src/archutils/Darwin/StepMania.pch;
-    cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G "Xcode" ..;
-    mv ../src/archutils/Darwin/StepMania.pch ../src/archutils/Darwin/Etterna.pch; fi
+    cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G "Xcode" ..; fi
 
 script:
   - if [ "$TRAVIS_OS_NAME" != "osx" ]; then make -j 4; fi

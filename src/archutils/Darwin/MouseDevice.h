@@ -16,13 +16,14 @@ struct Mouse
 
 	Mouse();
 };
+float MACMouseX();
+float MACMouseY();
 
 class MouseDevice : public HIDDevice
 {
 private:
 	__gnu_cxx::hash_map<IOHIDElementCookie, DeviceButton> m_Mapping;
 	Mouse m_Mouse;
-
 protected:
 	bool AddLogicalDevice( int usagePage, int usage );
 	void AddElement( int usagePage, int usage, IOHIDElementCookie cookie, const CFDictionaryRef properties );

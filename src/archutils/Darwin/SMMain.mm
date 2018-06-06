@@ -7,6 +7,18 @@
 #import <Cocoa/Cocoa.h>
 #include "ProductInfo.h"
 #include "arch/ArchHooks/ArchHooks.h"
+#import "MouseDevice.h"
+
+float MACMouseX()
+{
+    NSPoint mouseLoc = [NSEvent mouseLocation];
+    return mouseLoc.x;
+}
+float MACMouseY()
+{
+    NSPoint mouseLoc = [NSEvent mouseLocation];
+    return mouseLoc.y;
+}
 
 @interface NSApplication (PrivateShutUpWarning)
 - (void) setAppleMenu:(NSMenu *)menu;
@@ -119,6 +131,7 @@
 		[self setForInstall:files];
 	[app replyToOpenOrPrint:NSApplicationDelegateReplySuccess];
 }
+
 
 - (void) setForInstall:(NSArray *)files
 {

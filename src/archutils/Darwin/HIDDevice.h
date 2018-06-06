@@ -66,7 +66,7 @@ namespace __gnu_cxx
 class HIDDevice
 {
 private:
-	IOHIDDeviceInterface **m_Interface;
+	IOHIDDeviceInterface **	m_Interface;
 	IOHIDQueueInterface **m_Queue;
 	bool m_bRunning;
 	RString m_sDescription;
