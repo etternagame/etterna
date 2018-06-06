@@ -21,7 +21,7 @@ if(APPLE)
     "archutils/Darwin/MouseDevice.h"
     "archutils/Darwin/PumpDevice.h"
     "archutils/Darwin/SpecialDirs.h"
-    "archutils/Darwin/StepMania.pch" # precompiled header.
+    "archutils/Darwin/Etterna.pch" # precompiled header. :)
     "archutils/Darwin/VectorHelper.h"
   )
   
