@@ -19,6 +19,16 @@
     {
         return MACWindowHeight();
     }
+#else
+    int ArchHooks::GetWindowWidth()
+    {
+        return (PREFSMAN->m_iDisplayHeight * PREFSMAN->m_fDisplayAspectRatio);
+    }
+
+    int ArchHooks::GetWindowHeight() 
+    {
+        return PREFSMAN->m_iDisplayHeight;
+    }
 #endif
 
 bool ArchHooks::g_bQuitting = false;
