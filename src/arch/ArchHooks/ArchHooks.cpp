@@ -8,6 +8,17 @@
 
 #ifdef __APPLE__
     #include "../../archutils/Darwin/MouseDevice.h"
+
+    int ArchHooks::GetWindowWidth()
+    {
+        return MACWindowWidth();
+    }
+
+
+    int ArchHooks::GetWindowHeight() 
+    {
+        return MACWindowHeight();
+    }
 #endif
 
 bool ArchHooks::g_bQuitting = false;
@@ -64,17 +75,6 @@ bool ArchHooks::GoToURL( const RString &sUrl )
 ArchHooks *ArchHooks::Create()
 {
 	return new ARCH_HOOKS;
-}
-
-int ArchHooks::GetWindowWidth()
-{
-    return MACWindowWidth();
-}
-
-
-int ArchHooks::GetWindowHeight() 
-{
-    return MACWindowHeight();
 }
 
 RString ArchHooks::GetClipboard()
