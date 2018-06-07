@@ -5,7 +5,10 @@
 #include "RageThreads.h"
 #include "arch/arch_default.h"
 #include "PrefsManager.h"
-#include "../../archutils/Darwin/MouseDevice.h"
+
+#ifdef __APPLE__
+    #include "../../archutils/Darwin/MouseDevice.h"
+#endif
 
 bool ArchHooks::g_bQuitting = false;
 bool ArchHooks::g_bToggleWindowed = false;
