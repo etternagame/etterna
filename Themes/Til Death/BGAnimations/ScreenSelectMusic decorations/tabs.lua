@@ -22,25 +22,17 @@ local function input(event)
 			end
 		end
 		if event.DeviceInput.button == "DeviceButton_left mouse button" then
-			SCREENMAN:SystemMessage(" button:" .. event.DeviceInput.button.."x,y:"..INPUTFILTER:GetMouseX() ..","..INPUTFILTER:GetMouseY())
 			MESSAGEMAN:Broadcast("MouseLeftClick")
 		elseif event.DeviceInput.button == "DeviceButton_right mouse button" then
-			SCREENMAN:SystemMessage(" button:" .. event.DeviceInput.button.."x,y:"..INPUTFILTER:GetMouseX() ..","..INPUTFILTER:GetMouseY())
 			MESSAGEMAN:Broadcast("MouseRightClick")
 		end
 	end
 	return false
 end
-function logF(self)
-	self:SetUpdateFunction(logF)
-	SCREENMAN:SystemMessage("x,y:"..INPUTFILTER:GetMouseX() ..","..INPUTFILTER:GetMouseY())
-end
 local t = Def.ActorFrame{
-	InitCommand = function(s) s:SetUpdateFunction(logF) end, 
 	OnCommand=function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
 		whee = SCREENMAN:GetTopScreen():GetMusicWheel()
-		SCREENMAN:SystemMessage("x,y:"..INPUTFILTER:GetMouseX() ..","..INPUTFILTER:GetMouseY())
 	end,
 	BeginCommand=function(self) resetTabIndex() end,
 	PlayerJoinedMessageCommand=function(self) resetTabIndex() end,
