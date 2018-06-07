@@ -5,6 +5,7 @@
 #include "RageThreads.h"
 #include "arch/arch_default.h"
 #include "PrefsManager.h"
+#include "../../archutils/Darwin/MouseDevice.h"
 
 bool ArchHooks::g_bQuitting = false;
 bool ArchHooks::g_bToggleWindowed = false;
@@ -64,13 +65,13 @@ ArchHooks *ArchHooks::Create()
 
 int ArchHooks::GetWindowWidth()
 {
-	return static_cast<int>(PREFSMAN->m_iDisplayHeight * PREFSMAN->m_fDisplayAspectRatio);
+    return MACWindowWidth();
 }
 
 
 int ArchHooks::GetWindowHeight() 
 {
-	return PREFSMAN->m_iDisplayHeight;
+    return MACWindowHeight();
 }
 
 RString ArchHooks::GetClipboard()

@@ -18,6 +18,8 @@ struct Mouse
 };
 float MACMouseX();
 float MACMouseY();
+float MACWindowHeight();
+float MACWindowWidth();
 
 class MouseDevice : public HIDDevice
 {

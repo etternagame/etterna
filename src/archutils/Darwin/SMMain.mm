@@ -11,13 +11,28 @@
 
 float MACMouseX()
 {
+    NSRect frame = [[[NSApplication sharedApplication] mainWindow] frame];
+    //NSPoint mouseLoc = [[[NSApplication sharedApplication] mainWindow] mouseLocationOutsideOfEventStream];
     NSPoint mouseLoc = [NSEvent mouseLocation];
-    return mouseLoc.x;
+    return mouseLoc.x - frame.origin.x - 2; //Needed for padding the release animation
 }
 float MACMouseY()
 {
+    NSRect frame = [[[NSApplication sharedApplication] mainWindow] frame];
+    //NSPoint mouseLoc = [[[NSApplication sharedApplication] mainWindow] mouseLocationOutsideOfEventStream];
     NSPoint mouseLoc = [NSEvent mouseLocation];
-    return mouseLoc.y;
+    return frame.size.height - (mouseLoc.y - frame.origin.y) - 15; //Appears to compensate for titlebar
+    // This padding should be replaced in the future to use Cocoa calls to content
+}
+float MACWindowHeight()
+{
+    NSRect frame = [[[NSApplication sharedApplication] mainWindow] frame];
+    return frame.size.height;
+}
+float MACWindowWidth()
+{
+    NSRect frame = [[[NSApplication sharedApplication] mainWindow] frame];
+    return frame.size.width;
 }
 
 @interface NSApplication (PrivateShutUpWarning)
