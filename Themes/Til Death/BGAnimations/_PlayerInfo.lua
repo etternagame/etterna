@@ -109,6 +109,7 @@ t[#t+1] = Def.ActorFrame{
 		end,
 		LoginMessageCommand=function(self)
 			self:settextf("Logged in as %s (%5.2f: #%i)",DLMAN:GetUsername(),DLMAN:GetSkillsetRating("Overall"),DLMAN:GetSkillsetRank(ms.SkillSets[1]))
+			self:xy(SCREEN_CENTER_X-75,AvatarY+25)
 		end,
 		OnlineUpdateMessageCommand=function(self)
 			self:queuecommand("Set")
