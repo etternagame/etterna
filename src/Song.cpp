@@ -393,7 +393,7 @@ bool Song::ReloadFromSongDir( const RString &sDir )
 	// Remove the cache file to force the song to reload from its dir instead
 	// of loading from the cache. -Kyz
 	FILEMAN->Remove(GetCacheFilePath());
-	SONGINDEX.DeleteSongFromDBByDir(sDir.c_str());
+	SONGINDEX->DeleteSongFromDBByDir(sDir.c_str());
 
 	vector<Steps*> vOldSteps = m_vpSteps;
 
