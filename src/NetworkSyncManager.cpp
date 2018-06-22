@@ -905,7 +905,8 @@ bool SMOProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString a
 		n->isSMOnline = true;
 	serverName = m_packet.ReadNT();
 	m_iSalt = m_packet.Read4();
-	n->DisplayStartupStatus();
+	RString sMessage = ssprintf(CONNECTION_SUCCESSFUL.GetValue(), serverName.c_str());
+	SCREENMAN->SystemMessage(sMessage);
 	return true;
 }
 
