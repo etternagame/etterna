@@ -62,7 +62,7 @@ EzSockets::EzSockets()
 	blocking = true;
 	scks = new fd_set;
 	times = new timeval;
-	times->tv_sec = timeoutSeconds;
+	times->tv_sec = 0;
 	times->tv_usec = 0;
 	state = skDISCONNECTED;
 }
