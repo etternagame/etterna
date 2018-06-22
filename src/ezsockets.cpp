@@ -9,6 +9,7 @@
 #include "global.h"
 
 #include "ezsockets.h"
+#include "Preference.h"
 #include <iostream>
 
 #if defined(_MSC_VER) // We need the WinSock32 Library on Windows
@@ -35,6 +36,8 @@
 #if !defined(INVALID_SOCKET)
 #define INVALID_SOCKET (-1)
 #endif
+
+static Preference<unsigned int> timeoutSeconds("ConnectionSecondsTimeout", 5);
 
 // Returns a timeval set to the given number of milliseconds.
 inline timeval timevalFromMs(unsigned int ms)
@@ -100,7 +103,9 @@ bool EzSockets::create(int Protocol, int Type)
 	state = skDISCONNECTED;
 	sock = socket(AF_INET, Type, Protocol);
 	if (sock > SOCKET_NONE) {
-		struct timeval tv = { 2, 0 };
+		struct timeval tv;    
+    		tv.tv_sec = timeoutSeconds;
+    		tv.tv_usec = 0;
 		setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof(struct timeval));
 	}
 	lastCode = sock;
