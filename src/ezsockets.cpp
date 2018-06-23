@@ -103,10 +103,14 @@ bool EzSockets::create(int Protocol, int Type)
 	state = skDISCONNECTED;
 	sock = socket(AF_INET, Type, Protocol);
 	if (sock > SOCKET_NONE) {
+#if defined(WIN32)
+		int tv = timeoutSeconds*1000;
+#else
 		struct timeval tv;    
     		tv.tv_sec = timeoutSeconds;
     		tv.tv_usec = 0;
-		setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof(struct timeval));
+#endif
+		setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof(tv));
 	}
 	lastCode = sock;
 	return sock > SOCKET_NONE;	// Socket must be Greater than 0
