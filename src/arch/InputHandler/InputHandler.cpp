@@ -41,13 +41,9 @@ void InputHandler::ButtonPressed( DeviceInput di )
 
 wchar_t InputHandler::ApplyKeyModifiers(wchar_t c)
 {
-    bool bHoldingShift =
-    INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_LSHIFT)) ||
-    INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RSHIFT));
+    bool bHoldingShift = INPUTFILTER->IsShiftPressed();
     
-    bool bHoldingCtrl =
-    INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_LCTRL)) ||
-    INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RCTRL));
+    bool bHoldingCtrl = INPUTFILTER->IsControlPressed();
     
     // todo: handle Caps Lock -freem
     if( bHoldingShift && !bHoldingCtrl )
