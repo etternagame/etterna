@@ -258,6 +258,7 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 	}
 	else if( SM == SM_GoToNextScreen )
 	{
+		GAMESTATE->m_bInNetGameplay = true;
 		SOUND->StopMusic();
 		SCREENMAN->SetNewScreen( THEME->GetMetric (m_sName, "NextScreen") );
 	}

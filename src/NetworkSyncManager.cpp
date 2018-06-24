@@ -133,6 +133,8 @@ AutoScreenMessage(ETTP_NewScore);
 
 extern Preference<RString> g_sLastServer;
 Preference<unsigned int> autoConnectMultiplayer("AutoConnectMultiplayer", 1);
+static LocalizedString CONNECTION_SUCCESSFUL( "NetworkSyncManager", "Connection to '%s' successful." );
+static LocalizedString CONNECTION_FAILED	( "NetworkSyncManager", "Connection failed." );
 
 SMOProtocol::SMOProtocol() {
 	NetPlayerClient = new EzSockets;
@@ -905,7 +907,8 @@ bool SMOProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString a
 		n->isSMOnline = true;
 	serverName = m_packet.ReadNT();
 	m_iSalt = m_packet.Read4();
-	n->DisplayStartupStatus();
+	RString sMessage = ssprintf(CONNECTION_SUCCESSFUL.GetValue(), serverName.c_str());
+	SCREENMAN->SystemMessage(sMessage);
 	return true;
 }
 
@@ -1486,8 +1489,6 @@ void SMOProtocol::StartRequest(NetworkSyncManager* n, short position)
 
 }
 
-static LocalizedString CONNECTION_SUCCESSFUL( "NetworkSyncManager", "Connection to '%s' successful." );
-static LocalizedString CONNECTION_FAILED	( "NetworkSyncManager", "Connection failed." );
 void NetworkSyncManager::DisplayStartupStatus()
 {
 	RString sMessage("");
