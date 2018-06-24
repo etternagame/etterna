@@ -173,10 +173,8 @@ static HIDDevice *MakeDevice( InputDevice id )
 {
     if( id == DEVICE_KEYBOARD )
         return new KeyboardDevice;
-    /*
      if( id == DEVICE_MOUSE )
      return new MouseDevice;
-     */
     if( IsJoystick(id) )
         return new JoystickDevice;
     if( IsPump(id) )
@@ -247,6 +245,8 @@ InputHandler_MacOSX_HID::InputHandler_MacOSX_HID() : m_Sem( "Input thread starte
     // Add devices.
     LOG->Trace( "Finding keyboards" );
     AddDevices( kHIDPage_GenericDesktop, kHIDUsage_GD_Keyboard, id );
+    
+    id = DEVICE_MOUSE;
     
     LOG->Trace( "Finding mice" );
     AddDevices( kHIDPage_GenericDesktop, kHIDUsage_GD_Mouse, id );
@@ -430,6 +430,14 @@ wchar_t InputHandler_MacOSX_HID::DeviceButtonToChar( DeviceButton button, bool b
         case KEY_DOWN:
         case KEY_LEFT:
         case KEY_RIGHT:
+        case MOUSE_LEFT:
+        case MOUSE_RIGHT:
+        case MOUSE_WHEELDOWN:
+        case MOUSE_WHEELUP:
+        case MOUSE_Y_UP:
+        case MOUSE_Y_DOWN:
+        case MOUSE_X_LEFT:
+        case MOUSE_X_RIGHT:
         case KEY_ESC:
         case KEY_TAB:
         case KEY_ENTER:
