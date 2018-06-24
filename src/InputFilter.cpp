@@ -473,6 +473,21 @@ void InputFilter::UpdateMouseWheel(float _fZ)
 	m_MouseCoords.fZ = _fZ;
 }
 
+bool InputFilter::IsKBKeyPressed(DeviceButton k) const
+{
+	return INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, k));
+}
+
+bool InputFilter::IsControlPressed() const
+{
+	return IsKBKeyPressed(KEY_LCTRL) || IsKBKeyPressed(KEY_RCTRL);
+}
+
+bool InputFilter::IsShiftPressed() const
+{
+	return IsKBKeyPressed(KEY_LSHIFT) || IsKBKeyPressed(KEY_RSHIFT);
+}
+
 // lua start
 #include "LuaBinding.h"
 
@@ -506,12 +521,16 @@ public:
 		lua_pushboolean(L, INPUTFILTER->IsBeingPressed(DeviceInput(device, button)));
 		return 1;
 	}
+	DEFINE_METHOD(IsShiftPressed, IsShiftPressed());
+	DEFINE_METHOD(IsControlPressed, IsControlPressed());
 	LunaInputFilter()
 	{
 		ADD_METHOD(GetMouseX);
 		ADD_METHOD(GetMouseY);
 		ADD_METHOD(GetMouseWheel);
 		ADD_METHOD(IsBeingPressed);
+		ADD_METHOD(IsShiftPressed);
+		ADD_METHOD(IsControlPressed);
 	}
 };
 

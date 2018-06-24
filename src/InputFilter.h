@@ -66,6 +66,9 @@ public:
 
 	// If aButtonState is NULL, use the last reported state.
 	bool IsBeingPressed( const DeviceInput &di, const DeviceInputList *pButtonState = nullptr ) const;
+	bool IsKBKeyPressed(DeviceButton k) const;
+	bool IsControlPressed() const;
+	bool IsShiftPressed() const;
 	float GetSecsHeld( const DeviceInput &di, const DeviceInputList *pButtonState = nullptr ) const;
 	float GetLevel( const DeviceInput &di, const DeviceInputList *pButtonState = nullptr ) const;
 	RString GetButtonComment( const DeviceInput &di ) const;

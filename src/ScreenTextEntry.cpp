@@ -13,6 +13,7 @@
 #include "ScreenPrompt.h"
 #include "ScreenTextEntry.h"
 #include "ThemeManager.h"
+#include "InputFilter.h"
 #include "arch/ArchHooks/ArchHooks.h" // HOOKS->GetClipboard()
 
 static const char* g_szKeys[NUM_KeyboardRow][KEYS_PER_ROW] =
@@ -413,41 +414,8 @@ void ScreenTextEntry::Update( float fDelta )
 
 bool ScreenTextEntry::Input( const InputEventPlus &input )
 {
-	static bool bLCtrl = false, bRCtrl = false;
 	if( IsTransitioning() )
 		return false;
-
-	// bLCtrl and bRCtl are whether their respective Ctrl keys are held
-	// We update them here.
-	if( input.DeviceI == DeviceInput(DEVICE_KEYBOARD, KEY_LCTRL) )
-	{
-		switch( input.type )
-		{
-			case IET_FIRST_PRESS:
-				bLCtrl = true;
-				break;
-			case IET_RELEASE:
-				bLCtrl = false;
-				break;
-			default:
-				break;
-		}
-	}
-	
-	if( input.DeviceI == DeviceInput(DEVICE_KEYBOARD, KEY_RCTRL) )
-	{
-		switch( input.type )
-		{
-			case IET_FIRST_PRESS:
-				bRCtrl = true;
-					break;
-			case IET_RELEASE:
-				bRCtrl = false;
-				break;
-			default:
-				break;
-		}
-	}
 	
 	bool bHandled = false;
 	if( input.DeviceI == DeviceInput(DEVICE_KEYBOARD, KEY_BACK) )
@@ -466,7 +434,9 @@ bool ScreenTextEntry::Input( const InputEventPlus &input )
 	{
 		wchar_t c = INPUTMAN->DeviceInputToChar(input.DeviceI,true);
 		// Detect Ctrl+V
-		if( ( c == L'v' || c == L'V' ) && ( bLCtrl || bRCtrl ) )
+		auto ctrlPressed = INPUTFILTER->IsControlPressed();
+		auto vPressed = input.DeviceI.button == KEY_CV || input.DeviceI.button == KEY_Cv;
+		if(vPressed &&  ctrlPressed)
 		{
 			TryAppendToAnswer( HOOKS->GetClipboard() );
 			
@@ -476,7 +446,8 @@ bool ScreenTextEntry::Input( const InputEventPlus &input )
 		else if( c >= L' ' ) 
 		{
 			// todo: handle caps lock -aj
-			TryAppendToAnswer( WStringToRString(wstring()+c) );
+			auto str = WStringToRString(wstring() + c);
+			TryAppendToAnswer( str );
 
 			TextEnteredDirectly();
 			bHandled = true;
