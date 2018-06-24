@@ -272,7 +272,7 @@ ScreenGameplay::ScreenGameplay()
 {
 	m_pSongBackground = NULL;
 	m_pSongForeground = NULL;
-	m_bForceNoNetwork = false;
+	m_bForceNoNetwork = !GAMESTATE->m_bInNetGameplay;
 	m_delaying_ready_announce= false;
 	GAMESTATE->m_AdjustTokensBySongCostForFinalStageCheck= false;
 #if !defined(WITHOUT_NETWORKING)
