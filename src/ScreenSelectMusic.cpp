@@ -1145,7 +1145,7 @@ void ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 		m_bAllowOptionsMenu = false;
 		if (OPTIONS_MENU_AVAILABLE && !m_bGoToOptions)
 			this->PlayCommand("HidePressStartForOptions");
-
+		GAMESTATE->m_bInNetGameplay = false;
 		this->PostScreenMessage(SM_GoToNextScreen, this->GetTweenTimeLeft());
 	}
 	else if (SM == SM_GoToNextScreen)

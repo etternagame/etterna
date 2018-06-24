@@ -183,6 +183,8 @@ public:
 	bool		m_bDemonstrationOrJukebox;
 	bool		m_bJukeboxUsesModifiers;
 	int			m_iNumStagesOfThisSong;
+	//Used by GameplayScreen to know if it needs to call NSMAN
+	bool		m_bInNetGameplay = false;
 	/**
 	 * @brief Increase this every stage while not resetting on a continue.
 	 *
