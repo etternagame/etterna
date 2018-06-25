@@ -1079,14 +1079,45 @@ bool Song::HasStepsTypeAndDifficulty( StepsType st, Difficulty dc ) const
 
 void Song::Save(bool autosave)
 {
+	SONGINDEX->DeleteSongFromDBByDir(GetSongDir());
 	LOG->Trace( "Song::SaveToSongFile()" );
 
 	ReCalculateRadarValuesAndLastSecond();
 	TranslateTitles();
 
+	vector<RString> backedDotOldFileNames;
+	vector<RString> backedOrigFileNames;
+	if (!autosave)
+	{
+		vector<RString> arrayOldFileNames;
+		GetDirListing(m_sSongDir + "*.bms", arrayOldFileNames);
+		GetDirListing(m_sSongDir + "*.pms", arrayOldFileNames);
+		GetDirListing(m_sSongDir + "*.ksf", arrayOldFileNames);
+		GetDirListing(m_sSongDir + "*.sm", arrayOldFileNames);
+		GetDirListing(m_sSongDir + "*.dwi", arrayOldFileNames);
+		for (unsigned i = 0; i < arrayOldFileNames.size(); i++)
+		{
+			const RString sOldPath = m_sSongDir + arrayOldFileNames[i];
+			const RString sNewPath = sOldPath + ".old";
+
+			if (!FileCopy(sOldPath, sNewPath))
+			{
+				LOG->UserLog("Song file", sOldPath, "couldn't be backed up.");
+			}
+			else {
+				backedDotOldFileNames.emplace_back(sNewPath);
+				backedOrigFileNames.emplace_back(sOldPath);
+			}
+		}
+	}
 	// Save the new files. These calls make backups on their own.
-	if( !SaveToSSCFile(GetSongFilePath(), false, autosave) )
+	if (!SaveToSSCFile(GetSongFilePath(), false, autosave)) {
+		for (auto fileName : backedDotOldFileNames)
+			FILEMAN->Remove(fileName);
 		return;
+	}
+	for (auto fileName : backedOrigFileNames)
+		FILEMAN->Remove(fileName);
 	// Skip saving the cache, sm, and .old files if we are autosaving.  The
 	// cache file should not contain the autosave filename. -Kyz
 	if(autosave)
@@ -1094,34 +1125,7 @@ void Song::Save(bool autosave)
 		return;
 	}
 	SaveToCacheFile();
-	// If one of the charts uses split timing, then it cannot be accurately
-	// saved in the .sm format.  So saving the .sm is disabled.
-	if(!AnyChartUsesSplitTiming())
-	{
-		SaveToSMFile();
-	}
 	//SaveToDWIFile();
-
-	/* We've safely written our files and created backups. Rename non-SM and
-	 * non-DWI files to avoid confusion. */
-	vector<RString> arrayOldFileNames;
-	GetDirListing( m_sSongDir + "*.bms", arrayOldFileNames );
-	GetDirListing( m_sSongDir + "*.pms", arrayOldFileNames );
-	GetDirListing( m_sSongDir + "*.ksf", arrayOldFileNames );
-
-	for( unsigned i=0; i<arrayOldFileNames.size(); i++ )
-	{
-		const RString sOldPath = m_sSongDir + arrayOldFileNames[i];
-		const RString sNewPath = sOldPath + ".old";
-
-		if( !FileCopy( sOldPath, sNewPath ) )
-		{
-			LOG->UserLog( "Song file", sOldPath, "couldn't be backed up." );
-			// Don't remove.
-		}
-		else
-			FILEMAN->Remove( sOldPath );
-	}
 }
 
 bool Song::SaveToSMFile()
