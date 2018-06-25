@@ -2345,12 +2345,13 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 	{
 		SongFinished();
 		this->StageFinished( false );
+		auto syncing = !GAMESTATE->IsPlaylistCourse() && AdjustSync::IsSyncDataChanged();
 		// only save replays if the player chose to
-		if( GAMESTATE->m_SongOptions.GetCurrent().m_bSaveReplay )
+		if( GAMESTATE->m_SongOptions.GetCurrent().m_bSaveReplay  && !syncing)
 			SaveReplay();
 
-		if(!GAMESTATE->IsPlaylistCourse() && AdjustSync::IsSyncDataChanged())
-			ScreenSaveSync::PromptSaveSync( SM_GoToNextScreen );
+		if(syncing)
+			ScreenSaveSync::PromptSaveSync(SM_GoToPrevScreen);
 		else
 			HandleScreenMessage( SM_GoToNextScreen );
 

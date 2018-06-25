@@ -10,6 +10,7 @@
 #include "StageStats.h"
 #include "Style.h"
 #include "NetworkSyncManager.h"
+#include "AdjustSync.h"
 #include <fstream>
 #include <sstream>
 #include "CryptManager.h"
@@ -593,7 +594,7 @@ void StageStats::FinalizeScores(bool bSummary)
 	// new score structure -mina
 	Profile* zzz = PROFILEMAN->GetProfile(PLAYER_1);
 	int istop2 = SCOREMAN->AddScore(hs);
-	if (DLMAN->ShouldUploadScores()) {
+	if (DLMAN->ShouldUploadScores() && !AdjustSync::IsSyncDataChanged()) {
 		hs.SetTopScore(istop2);	// ayy i did it --lurker
 		auto steps = SONGMAN->GetStepsByChartkey(hs.GetChartKey());
 		auto td = steps->GetTimingData();
