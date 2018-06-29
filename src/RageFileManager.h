@@ -24,6 +24,7 @@ public:
 	void MountInitialFilesystems();
 	void MountUserFilesystems();
 
+	static RString DirOfExecutable();
 	void GetDirListing( const RString &sPath, vector<RString> &AddTo, bool bOnlyDirs, bool bReturnPathToo );
 	void GetDirListingWithMultipleExtensions(const RString &sPath,
 		vector<RString> const& ExtensionList, vector<RString> &AddTo,

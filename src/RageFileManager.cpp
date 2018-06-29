@@ -210,7 +210,6 @@ static RString ReadlinkRecursive( RString sPath )
 
 	return sPath;
 }
-
 static RString GetDirOfExecutable( RString argv0 )
 {
 	// argv[0] can be wrong in most OS's; try to avoid using it.
@@ -273,6 +272,9 @@ static RString GetDirOfExecutable( RString argv0 )
 #endif
 	}
 	return sPath;
+}
+RString RageFileManager::DirOfExecutable() { 
+	return GetDirOfExecutable(RString(""));
 }
 
 static void ChangeToDirOfExecutable( const RString &argv0 )
