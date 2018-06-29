@@ -44,6 +44,9 @@ public:
 	//Accept incoming socket
 	bool accept(EzSockets &socket);
 
+	static bool CanConnect(const std::string& host, unsigned short port);
+
+	bool setAddr(const std::string& host, unsigned short port);
 	//Connect
 	bool connect(const string& host, unsigned short port);
 
