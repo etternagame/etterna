@@ -54,7 +54,7 @@ bool SetSocketBlocking(int fd, bool blocking)
 #endif
 }
 
-static Preference<unsigned int> timeoutSeconds("ConnectionSecondsTimeout", 5);
+static Preference<unsigned int> timeoutMiliseconds("ConnectionMilisecondsTimeout", 7000);
 
 // Returns a timeval set to the given number of milliseconds.
 inline timeval timevalFromMs(unsigned int ms)
@@ -81,6 +81,7 @@ EzSockets::EzSockets()
 	times = new timeval;
 	times->tv_sec = 0;
 	times->tv_usec = 0;
+	timeout = timevalFromMs(timeoutMiliseconds/4); // We try 4 different types so max timeout is 4*this
 	state = skDISCONNECTED;
 }
 
@@ -121,9 +122,9 @@ bool EzSockets::create(int Protocol, int Type)
 	sock = socket(AF_INET, Type, Protocol);
 	if (sock > SOCKET_NONE) {
 #if defined(WIN32)
-		int tv = timeoutSeconds * 1000;
+		int tv = timeoutMiliseconds; 
 #else
-		struct timeval tv;
+		struct timeval tv = timevalFromMs(timeoutMiliseconds);
 		tv.tv_sec = timeoutSeconds;
 		tv.tv_usec = 0;
 #endif
@@ -220,13 +221,10 @@ bool EzSockets::CanConnect(const std::string& host, unsigned short port)
 	FD_ZERO(&readfds);
 	FD_SET(sock.sock, &readfds);
 	SetSocketBlocking(sock.sock, true);
-	timeval times;
-	times.tv_sec = 1;
-	times.tv_usec = 0;
-	auto write = select(sock.sock + 1, &readfds, nullptr, nullptr, &times);
+	auto write = select(sock.sock + 1, &readfds, nullptr, nullptr, &(sock.timeout));
 	FD_ZERO(&readfds);
 	FD_SET(sock.sock, &readfds);
-	auto read = select(sock.sock + 1, nullptr, &readfds, nullptr, &times);
+	auto read = select(sock.sock + 1, nullptr, &readfds, nullptr, &(sock.timeout));
 	bool select = read > -1 && write > -1;
 	if (!select) {
 		sock.close();
@@ -264,12 +262,7 @@ bool EzSockets::connect(const std::string& host, unsigned short port)
 	FD_ZERO(&readfds);
 	FD_SET(sock, &readfds);
 
-	timeval times;
-
-	times.tv_sec = 5;
-	times.tv_usec = 5000;
-
-	auto ret = select(sock + 1, nullptr, &readfds, nullptr, &times);
+	auto ret = select(sock + 1, nullptr, &readfds, nullptr, &timeout);
 
 	SetSocketBlocking(sock, true);
 
