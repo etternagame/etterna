@@ -139,6 +139,7 @@ private:
 	// Used for Select() command
 	fd_set  *scks;
 	timeval *times;
+	timeval timeout; // Used for setsockopt and connect() select
 
 	// Buffers
 };
