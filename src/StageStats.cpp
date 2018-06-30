@@ -528,6 +528,9 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 	if (pss.m_fWifeScore > 0.f) {
 		hs.SetOffsetVector(pss.GetOffsetVector());
 		hs.SetNoteRowVector(pss.GetNoteRowVector());
+		hs.SetTrackVector(pss.GetTrackVector());
+		hs.SetTapNoteTypeVector(pss.GetTapNoteTypeVector());
+		hs.SetTapNoteSubTypeVector(pss.GetTapNoteSubTypeVector());
 
 		if (pss.GetGrade() == Grade_Failed)
 			hs.SetSSRNormPercent(0.f);

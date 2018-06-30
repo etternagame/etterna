@@ -4,6 +4,7 @@
 #include "DateTime.h"
 #include "GameConstantsAndTypes.h"
 #include "Grade.h"
+#include "NoteTypes.h"
 #include "RageUtil_AutoPtr.h"
 
 class XNode;
@@ -53,8 +54,14 @@ struct HighScore
 	vector<float> timeStamps;
 	const vector<float>& GetOffsetVector() const;
 	const vector<int>& GetNoteRowVector() const;
+	const vector<int>& GetTrackVector() const;
+	const vector<TapNoteType>& GetTapNoteTypeVector() const;
+	const vector<TapNoteSubType>&  GetTapNoteSubTypeVector() const;
 	vector<float> GetCopyOfOffsetVector() const;
 	vector<int> GetCopyOfNoteRowVector() const;
+	vector<int> GetCopyOfTrackVector() const;
+	vector<TapNoteType> GetCopyOfTapNoteTypeVector() const;
+	vector<TapNoteSubType>  GetCopyOfTapNoteSubTypeVector() const;
 	string GetScoreKey() const;
 	int GetTopScore() const;
 	/**
@@ -102,6 +109,9 @@ struct HighScore
 	void AddUploadedServer(string s);
 	void SetOffsetVector(const vector<float>& v);
 	void SetNoteRowVector(const vector<int>& v);
+	void SetTrackVector(const vector<int>& v);
+	void SetTapNoteTypeVector(const vector<TapNoteType>& v);
+	void SetTapNoteSubTypeVector(const vector<TapNoteSubType>& v);
 	void SetScoreKey(const string& ck);
 	void SetRescoreJudgeVector(const vector<int>& v);
 	void SetAliveSeconds( float f );

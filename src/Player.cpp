@@ -2143,6 +2143,14 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 		m_LastTapNoteScore = score;
 		if( GAMESTATE->CountNotesSeparately() )
 		{
+			if (pTN->result.tns != TNS_None)
+			{
+				m_pPlayerStageStats->m_vOffsetVector.emplace_back(pTN->result.fTapNoteOffset);
+				m_pPlayerStageStats->m_vTrackVector.emplace_back(col);
+				m_pPlayerStageStats->m_vNoteRowVector.emplace_back(iRowOfOverlappingNoteOrRow);
+				m_pPlayerStageStats->m_vTapNoteTypeVector.emplace_back(pTN->type);
+				m_pPlayerStageStats->m_vTapNoteSubTypeVector.emplace_back(pTN->subType);
+			}
 			if( pTN->type != TapNoteType_Mine )
 			{
 				const bool bBlind = (m_pPlayerState->m_PlayerOptions.GetCurrent().m_fBlind != 0);
@@ -2930,8 +2938,6 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 				m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
 				m_pPlayerStageStats->CurWifeScore = curwifescore;
 				m_pPlayerStageStats->MaxWifeScore = maxwifescore;
-				m_pPlayerStageStats->m_vOffsetVector.emplace_back(tn.result.fTapNoteOffset);
-				m_pPlayerStageStats->m_vNoteRowVector.emplace_back(iRow);
 			}
 			else {
 				curwifescore -= 666.f;	// hail satan

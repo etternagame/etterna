@@ -6,6 +6,7 @@
 #include "NoteDataStructures.h"
 #include "PlayerNumber.h"
 #include "RadarValues.h"
+#include "NoteTypes.h"
 #include <map>
 
 class Steps;
@@ -44,6 +45,9 @@ public:
 	float GetTimingScale() const;
 	vector<float> GetOffsetVector() const;
 	vector<int> GetNoteRowVector() const;
+	vector<int> GetTrackVector() const;
+	vector<TapNoteType> GetTapNoteTypeVector() const;
+	vector<TapNoteSubType> GetTapNoteSubTypeVector() const;
 	float GetCurMaxPercentDancePoints() const;
 
 	int GetLessonScoreActual() const;
@@ -84,6 +88,9 @@ public:
 	float	m_fTimingScale;
 	vector<float> m_vOffsetVector;
 	vector<int> m_vNoteRowVector;
+	vector<TapNoteType> m_vTapNoteTypeVector;
+	vector<TapNoteSubType> m_vTapNoteSubTypeVector;
+	vector<int> m_vTrackVector;
 	vector<float> InputData;
 	int		m_iTapNoteScores[NUM_TapNoteScore];
 	int		m_iHoldNoteScores[NUM_HoldNoteScore];

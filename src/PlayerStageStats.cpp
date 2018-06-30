@@ -47,6 +47,7 @@ void PlayerStageStats::InternalInit()
 	m_fTimingScale = 0.f;
 	m_vOffsetVector.clear();
 	m_vNoteRowVector.clear();
+	m_vTrackVector.clear();
 	InputData.clear();
 	m_iPossibleGradePoints = 0;
 	m_iCurCombo = 0;
@@ -377,6 +378,15 @@ vector<float> PlayerStageStats::GetOffsetVector() const {
 }
 vector<int> PlayerStageStats::GetNoteRowVector() const {
 	return m_vNoteRowVector;
+}
+vector<int> PlayerStageStats::GetTrackVector() const {
+	return m_vTrackVector;
+}
+vector<TapNoteType> PlayerStageStats::GetTapNoteTypeVector() const {
+	return m_vTapNoteTypeVector;
+}
+vector<TapNoteSubType> PlayerStageStats::GetTapNoteSubTypeVector() const {
+	return m_vTapNoteSubTypeVector;
 }
 
 float PlayerStageStats::GetCurMaxPercentDancePoints() const
@@ -971,6 +981,21 @@ public:
 		return 1;
 	}
 
+	static int GetTrackVector(T* p, lua_State *L) {
+		LuaHelpers::CreateTableFromArray(p->m_vTrackVector, L);
+		return 1;
+	}
+
+	static int GetTapNoteTypeVector(T* p, lua_State *L) {
+		LuaHelpers::CreateTableFromArray(p->m_vTapNoteTypeVector, L);
+		return 1;
+	}
+
+	static int GetTapNoteSubTypeVector(T* p, lua_State *L) {
+		LuaHelpers::CreateTableFromArray(p->m_vTapNoteSubTypeVector, L);
+		return 1;
+	}
+
 	static int WifeScoreOffset(T* p, lua_State *L) {
 		lua_pushnumber(L, wife2(FArg(1), p->GetTimingScale()));
 		return 1;
@@ -1091,6 +1116,9 @@ public:
 		ADD_METHOD( GetCurrentScoreMultiplier );
 		ADD_METHOD( GetScore );
 		ADD_METHOD( GetOffsetVector );
+		ADD_METHOD(GetTrackVector);
+		ADD_METHOD(GetTapNoteSubTypeVector);
+		ADD_METHOD(GetTapNoteTypeVector);
 		ADD_METHOD( WifeScoreOffset );
 		ADD_METHOD( GetNoteRowVector );
 		ADD_METHOD( GetWifeScore );

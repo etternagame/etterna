@@ -8,6 +8,7 @@
 #include "RadarValues.h"
 #include "RageLog.h"
 #include "XmlFile.h"
+#include "NoteTypes.h"
 #include <algorithm>
 #include <fstream>
 #include <sstream>
@@ -17,7 +18,7 @@
 
 ThemeMetric<string> EMPTY_NAME("HighScore","EmptyName");
 
-const string REPLAY_DIR = "Save/Replays/";
+const string REPLAY_DIR = "Save/ReplaysV2/";
 
 struct HighScoreImpl
 {
@@ -43,6 +44,9 @@ struct HighScoreImpl
 	vector<string> uploaded;
 	vector<float> vOffsetVector;
 	vector<int> vNoteRowVector;
+	vector<int> vTrackVector;
+	vector<TapNoteType> vTapNoteTypeVector;
+	vector<TapNoteSubType> vTapNoteSubTypeVector;
 	vector<int> vRescoreJudgeVector;
 	unsigned int iMaxCombo;			// maximum combo obtained [SM5 alpha 1a+]
 	StageAward stageAward;	// stage award [SM5 alpha 1a+]
@@ -599,12 +603,18 @@ bool HighScoreImpl::WriteReplayData() {
 	
 	unsigned int idx = vNoteRowVector.size() - 1;
 	//loop for writing both vectors side by side
-	for (unsigned int i = 0; i < idx; i++) {
-		append = to_string(vNoteRowVector[i]) + " " + to_string(vOffsetVector[i]) + "\n";
+	for (unsigned int i = 0; i <= idx; i++) {
+		append = to_string(vNoteRowVector[i]) + " " + to_string(vOffsetVector[i])
+			+ " " + to_string(vTrackVector[i]) + 
+			(vTapNoteTypeVector[i] != TapNoteType_Tap ? 
+				" " + to_string(vTapNoteTypeVector[i])
+				+ (vTapNoteSubTypeVector[i] != TapNoteSubType_Invalid ?
+					" " + to_string(vTapNoteSubTypeVector[i]) 
+				: "")
+			: "") 
+			+ "\n";
 		fileStream.write(append.c_str(), append.size());
 	}
-	append = to_string(vNoteRowVector[idx]) + " " + to_string(vOffsetVector[idx]);
-	fileStream.write(append.c_str(), append.size());
 	fileStream.close();
 	LOG->Trace("Created replay file at %s", path.c_str());
 	return true;
@@ -627,12 +637,10 @@ bool HighScore::WriteInputData(const vector<float>& oop) {
 
 	unsigned int idx = oop.size() - 1;
 	//loop for writing both vectors side by side
-	for (unsigned int i = 0; i < idx; i++) {
+	for (unsigned int i = 0; i <= idx; i++) {
 		append = to_string(oop[i]) + "\n";
 		fileStream.write(append.c_str(), append.size());
 	}
-	append = to_string(oop[idx]);
-	fileStream.write(append.c_str(), append.size());
 	fileStream.close();
 	LOG->Trace("Created replay file at %s", path.c_str());
 	return true;
@@ -647,6 +655,9 @@ bool HighScore::LoadReplayData() {
 	string profiledir;
 	vector<int> vNoteRowVector;
 	vector<float> vOffsetVector;
+	vector<int> vTrackVector;
+	vector<TapNoteType> vTapNoteTypeVector;
+	vector<TapNoteSubType> vTapNoteSubTypeVector;
 	string path = REPLAY_DIR + m_Impl->ScoreKey;
 
 	std::ifstream fileStream(path, ios::binary);
@@ -655,6 +666,10 @@ bool HighScore::LoadReplayData() {
 	vector<string> tokens;
 	int noteRow;
 	float offset;
+	int track;
+	TapNoteType tnt;
+	TapNoteSubType tnst;
+	int tmp;
 
 	//check file
 	if (!fileStream) {
@@ -681,11 +696,35 @@ bool HighScore::LoadReplayData() {
 			LOG->Warn("Failed to load replay data at %s (\"Offset value is not of type: float\")", path.c_str());
 		}
 		vOffsetVector.emplace_back(offset);
+
+		track = std::stoi(tokens[2]);
+		if (!(typeid(track) == typeid(int))) {
+			LOG->Warn("Failed to load replay data at %s (\"Track/Column value is not of type: int\")", path.c_str());
+		}
+		vTrackVector.emplace_back(track);
+
+		tmp = tokens.size() >= 4 ? ::stoi(tokens[3]) : TapNoteType_Tap;
+		if (tmp < 0 || tmp >= TapNoteType_Invalid || !(typeid(tmp) == typeid(int))) {
+			LOG->Warn("Failed to load replay data at %s (\"Tapnotetype value is not of type TapNoteType\")", path.c_str());
+		}
+		tnt = static_cast<TapNoteType>(tmp);
+		vTapNoteTypeVector.emplace_back(tnt);
+
+		tmp = tokens.size() >= 5 ? std::stoi(tokens[4]) : TapNoteSubType_Invalid;
+		if (tmp < 0 || tmp >= TapNoteSubType_Invalid || !(typeid(tmp) == typeid(int))) {
+			LOG->Warn("Failed to load replay data at %s (\"Tapnotesubtype value is not of type TapNoteSubType\")", path.c_str());
+		}
+		tnst = static_cast<TapNoteSubType>(tmp);
+		vTapNoteSubTypeVector.emplace_back(tnst);
+
 		tokens.clear();
 	}
 	fileStream.close();
 	SetNoteRowVector(vNoteRowVector);
 	SetOffsetVector(vOffsetVector);
+	SetTrackVector(vTrackVector);
+	SetTapNoteTypeVector(vTapNoteTypeVector);
+	SetTapNoteSubTypeVector(vTapNoteSubTypeVector);
 	LOG->Trace("Loaded replay data at %s", path.c_str());
 	return true;
 }
@@ -743,8 +782,14 @@ bool HighScore::IsUploadedToServer(string s) const {
 }
 vector<float> HighScore::GetCopyOfOffsetVector() const { return m_Impl->vOffsetVector; }
 vector<int> HighScore::GetCopyOfNoteRowVector() const { return m_Impl->vNoteRowVector; }
+vector<int> HighScore::GetCopyOfTrackVector() const { return m_Impl->vTrackVector; }
+vector<TapNoteType> HighScore::GetCopyOfTapNoteTypeVector() const { return m_Impl->vTapNoteTypeVector; }
+vector<TapNoteSubType>  HighScore::GetCopyOfTapNoteSubTypeVector() const { return m_Impl->vTapNoteSubTypeVector; }
 const vector<float>& HighScore::GetOffsetVector() const { return m_Impl->vOffsetVector; }
 const vector<int>& HighScore::GetNoteRowVector() const { return m_Impl->vNoteRowVector; }
+const vector<int>& HighScore::GetTrackVector() const { return m_Impl->vTrackVector; }
+const vector<TapNoteType>& HighScore::GetTapNoteTypeVector() const { return m_Impl->vTapNoteTypeVector; }
+const vector<TapNoteSubType>&  HighScore::GetTapNoteSubTypeVector() const { return m_Impl->vTapNoteSubTypeVector; }
 string HighScore::GetScoreKey() const { return m_Impl->ScoreKey; }
 float HighScore::GetSurviveSeconds() const { return m_Impl->fSurviveSeconds; }
 float HighScore::GetSurvivalSeconds() const { return GetSurviveSeconds() + GetLifeRemainingSeconds(); }
@@ -784,6 +829,9 @@ void HighScore::AddUploadedServer(string s) {
 }
 void HighScore::SetOffsetVector(const vector<float>& v) { m_Impl->vOffsetVector = v; }
 void HighScore::SetNoteRowVector(const vector<int>& v) { m_Impl->vNoteRowVector = v; }
+void HighScore::SetTrackVector(const vector<int>& v) { m_Impl->vTrackVector = v; }
+void HighScore::SetTapNoteTypeVector(const vector<TapNoteType>& v) { m_Impl->vTapNoteTypeVector = v; }
+void HighScore::SetTapNoteSubTypeVector(const vector<TapNoteSubType>& v) { m_Impl->vTapNoteSubTypeVector = v; }
 void HighScore::SetScoreKey(const string& sk) { m_Impl->ScoreKey = sk; }
 void HighScore::SetRescoreJudgeVector(const vector<int>& v) { m_Impl->vRescoreJudgeVector = v; }
 void HighScore::SetAliveSeconds( float f ) { m_Impl->fSurviveSeconds = f; }
