@@ -253,6 +253,10 @@ class ETTProtocol : public NetProtocol { // Websockets using uwebsockets sending
 	void FindJsonChart(NetworkSyncManager* n, json& ch);
 	int state = 0; // 0 = ready, 1 = playing, 2 = evalScreen, 3 = options, 4 = notReady(unkown reason)
 public:
+	bool waitingForTimeout{ false };
+	clock_t timeoutStart;
+	double timeout;
+	function<void(void)> onTimeout;
 	string roomName;
 	string roomDesc;
 	bool inRoom{ false };
@@ -273,6 +277,7 @@ public:
 	void OffEval() override;
 	void ReportHighScore(HighScore* hs, PlayerStageStats& pss) override;
 	void Send(const char* msg);
+	void Send(json msg);
 	/*
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset, int numNotes) override;
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset) override;

@@ -133,6 +133,7 @@ AutoScreenMessage(ETTP_NewScore);
 
 extern Preference<RString> g_sLastServer;
 Preference<unsigned int> autoConnectMultiplayer("AutoConnectMultiplayer", 1);
+Preference<unsigned int> logPackets("LogMultiPackets", 0);
 static LocalizedString CONNECTION_SUCCESSFUL("NetworkSyncManager", "Connection to '%s' successful.");
 static LocalizedString CONNECTION_FAILED("NetworkSyncManager", "Connection failed.");
 
@@ -267,7 +268,7 @@ void ETTProtocol::OffEval()
 	json j;
 	j["type"] = ettClientMessageMap[ettpc_closeeval];
 	j["id"] = msgId++;
-	Send(j.dump().c_str());
+	Send(j);
 	state = 0;
 }
 void ETTProtocol::OnEval()
@@ -277,7 +278,7 @@ void ETTProtocol::OnEval()
 	json j;
 	j["type"] = ettClientMessageMap[ettpc_openeval];
 	j["id"] = msgId++;
-	Send(j.dump().c_str());
+	Send(j);
 	state = 2;
 }
 void ETTProtocol::OnOptions()
@@ -287,7 +288,7 @@ void ETTProtocol::OnOptions()
 	json j;
 	j["type"] = ettClientMessageMap[ettpc_openoptions];
 	j["id"] = msgId++;
-	Send(j.dump().c_str());
+	Send(j);
 	state = 3;
 }
 void ETTProtocol::OffOptions()
@@ -297,7 +298,7 @@ void ETTProtocol::OffOptions()
 	json j;
 	j["type"] = ettClientMessageMap[ettpc_closeoptions];
 	j["id"] = msgId++;
-	Send(j.dump().c_str());
+	Send(j);
 	state = 0;
 }
 
@@ -446,9 +447,13 @@ bool ETTProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString a
 		try {
 			json json = json::parse(msg);
 			this->newMessages.emplace_back(json);
+			if (logPackets) {
+				LOG->Trace("Incoming ETTP:");
+				LOG->Trace(json.dump(4).c_str());
+			}
 		}
 		catch (exception e) {
-			LOG->Trace("Error while processing ettprotocol json: %s", e.what());
+			LOG->Trace("Error while processing ettprotocol json: %s (message: %s)", e.what(), message);
 		}
 	});
 	bool ws = true;
@@ -573,6 +578,14 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 		n->CloseConnection();
 		SCREENMAN->SendMessageToTopScreen(ETTP_Disconnect);
 	}
+	if (waitingForTimeout) {
+		clock_t now = clock();
+		double elapsed_secs = double(now - timeoutStart) / CLOCKS_PER_SEC;
+		if (elapsed_secs > timeout) {
+			onTimeout();
+			waitingForTimeout = false;
+		}
+	}
 	for (auto iterator = newMessages.begin(); iterator != newMessages.end(); iterator++) {
 		try {
 			auto jType = (*iterator).find("type");
@@ -603,7 +616,7 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					json hello;
 					hello["type"] = ettClientMessageMap[ettpc_hello];
 					hello["payload"]["version"] = ETTPCVERSION;
-					Send(hello.dump().c_str());
+					Send(hello);
 				}
 				break;
 			case ettps_recievescore:
@@ -675,7 +688,7 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					json ping;
 					ping["type"] = ettClientMessageMap[ettpc_ping];
 					ping["id"] = msgId++;
-					Send(ping.dump().c_str());
+					Send(ping);
 				}
 				break;
 			case ettps_selectchart:
@@ -691,7 +704,7 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					j["type"] = ettClientMessageMap[ettpc_missingchart];
 				}
 				j["id"] = msgId++;
-				Send(j.dump().c_str());
+				Send(j);
 			}
 			break;
 			case ettps_startchart:
@@ -707,7 +720,7 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 				else
 					j["type"] = ettClientMessageMap[ettpc_notstartingchart];
 				j["id"] = msgId++;
-				Send(j.dump().c_str());
+				Send(j);
 			}
 			break;
 			case ettps_recievechat:
@@ -1064,7 +1077,7 @@ void ETTProtocol::Logout()
 		return;
 	json logout;
 	logout["type"] = ettClientMessageMap[ettpc_logout];
-	Send(logout.dump().c_str());
+	Send(logout);
 }
 void NetworkSyncManager::Login(RString user, RString pass)
 {
@@ -1082,7 +1095,7 @@ void ETTProtocol::SendChat(const RString& message, string tab, int type)
 	payload["tab"] = tab.c_str();
 	payload["msgtype"] = type;
 	chatMsg["id"] = msgId++;
-	Send(chatMsg.dump().c_str());
+	Send(chatMsg);
 }
 void ETTProtocol::CreateNewRoom(RString name, RString desc, RString password)
 {
@@ -1097,7 +1110,7 @@ void ETTProtocol::CreateNewRoom(RString name, RString desc, RString password)
 	payload["pass"] = password.c_str();
 	payload["desc"] = desc.c_str();
 	createRoom["id"] = msgId++;
-	Send(createRoom.dump().c_str());
+	Send(createRoom);
 }
 void ETTProtocol::LeaveRoom(NetworkSyncManager* n)
 {
@@ -1116,7 +1129,7 @@ void ETTProtocol::LeaveRoom(NetworkSyncManager* n)
 	json leaveRoom;
 	leaveRoom["type"] = ettClientMessageMap[ettpc_leaveroom];
 	leaveRoom["id"] = msgId++;
-	Send(leaveRoom.dump().c_str());
+	Send(leaveRoom);
 	roomName = "";
 	roomDesc = "";
 	inRoom = false;
@@ -1136,7 +1149,7 @@ void ETTProtocol::EnterRoom(RString name, RString password)
 	payload["name"] = name.c_str();
 	payload["pass"] = password.c_str();
 	enterRoom["id"] = msgId++;
-	Send(enterRoom.dump().c_str());
+	Send(enterRoom);
 }
 void ETTProtocol::Login(RString user, RString pass)
 {
@@ -1148,7 +1161,15 @@ void ETTProtocol::Login(RString user, RString pass)
 	payload["user"] = user.c_str();
 	payload["pass"] = pass.c_str();
 	login["id"] = msgId++;
-	Send(login.dump().c_str());
+	Send(login); 
+	timeoutStart = clock();
+	waitingForTimeout = true;
+	timeout = 5.0;
+	onTimeout = [](void) {
+		NSMAN->loginResponse = "Login timed out";
+		NSMAN->loggedIn = false;
+		SCREENMAN->SendMessageToTopScreen(ETTP_LoginResponse);
+	};
 }
 void SMOProtocol::Login(RString user, RString pass)
 {
@@ -1219,10 +1240,24 @@ void NetworkSyncManager::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 		curProtocol->ReportHighScore(hs, pss);
 }
 
+void ETTProtocol::Send(json msg)
+{
+	Send(msg.dump().c_str());
+}
 void ETTProtocol::Send(const char* msg)
 {
 	if (ws != nullptr)
 		ws->send(msg);
+	if (logPackets) {
+		LOG->Trace("Outgoing ETTP:");
+		try {
+			auto j = nlohmann::json::parse(msg);
+			LOG->Trace(j.dump(4).c_str());
+		}
+		catch (exception e) {
+			LOG->Trace(msg);
+		}
+	}
 }
 void ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 {
@@ -1272,7 +1307,7 @@ void ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 		for (int i = 0; i < offsets.size(); i++)
 			payload["replay"]["offsets"].push_back(offsets[i]);
 	}
-	Send(j.dump().c_str());
+	Send(j);
 }
 void NetworkSyncManager::ReportScore(int playerID, int step, int score, int combo, float offset)
 {
@@ -1336,7 +1371,7 @@ void ETTProtocol::ReportSongOver(NetworkSyncManager* n)
 	json gameOver;
 	gameOver["type"] = ettClientMessageMap[ettpc_gameover];
 	gameOver["id"] = msgId++;
-	Send(gameOver.dump().c_str());
+	Send(gameOver);
 }
 void SMOProtocol::ReportSongOver(NetworkSyncManager* n)
 {
@@ -1827,7 +1862,7 @@ void ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 		payload["options"] = GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().GetString();
 		payload["rate"] = static_cast<int>((GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
 		startChart["id"] = msgId++;
-		Send(startChart.dump().c_str());
+		Send(startChart);
 	}
 	else {
 		if (GAMESTATE->m_pCurSteps[PLAYER_1] == nullptr)
@@ -1845,7 +1880,7 @@ void ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 		payload["options"] = GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().GetString();
 		payload["rate"] = static_cast<int>((GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
 		selectChart["id"] = msgId++;
-		Send(selectChart.dump().c_str());
+		Send(selectChart);
 	}
 }
 void SMOProtocol::SelectUserSong(NetworkSyncManager * n, Song* song)
