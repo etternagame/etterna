@@ -284,6 +284,10 @@ Section "Main Section" SecMain
 	;CreateDirectory "$INSTDIR\CDTitles"
 	;SetOutPath "$INSTDIR\CDTitles"
 	;File "CDTitles\Instructions.txt"
+	
+	; install lualibs
+	SetOutPath "$INSTDIR"
+	File /r /x CVS /x .svn "lualibs"
 
 	RMDir /r "$INSTDIR\Characters\default"
 	CreateDirectory "$INSTDIR\Characters\default"
@@ -499,6 +503,8 @@ Section "Main Section" SecMain
 	File "Program\LIBEAY32.dll"
 	File "Program\libuv.dll"
 	File "Program\zlib1.dll"
+	;libcurl
+	File "Program\libcurl.dll"
 	; parallel lights
 	File "Program\parallel_lights_io.dll"
 	; others
@@ -935,6 +941,7 @@ Section "Uninstall"
 	; others
 	Delete "$INSTDIR\Program\dbghelp.dll"
 	Delete "$INSTDIR\Program\jpeg.dll"
+	Delete "$INSTDIR\Program\libcurl.dll"
 	Delete "$INSTDIR\Program\parallel_lights_io.dll"
 	Delete "$INSTDIR\Program\zlib1.dll"
 	RMDir "$INSTDIR\Program"

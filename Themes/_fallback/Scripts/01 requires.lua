@@ -1,3 +1,5 @@
+local current_dir=io.popen"cd":read'*l'
+package.path = package.path .. ";"..current_dir.."\\lualibs\\?.lua;"..current_dir.."\\lualibs\\?\\init.lua"
 require 'pl'
 class = require 'middleclass/middleclass'
 Req = {}
