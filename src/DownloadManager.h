@@ -79,14 +79,15 @@ public:
 
 class HTTPRequest {
 public:
-	HTTPRequest(CURL * h, function<void(HTTPRequest&)> done = [](HTTPRequest& req) {return; },
-		curl_httppost* postform = nullptr, function<void(HTTPRequest&)> fail = [](HTTPRequest& req) {return; }):
+	HTTPRequest(CURL * h, function<void(HTTPRequest&, CURLMsg *)> done = [](HTTPRequest& req, CURLMsg *) {return; },
+		curl_httppost* postform = nullptr, 
+		function<void(HTTPRequest&, CURLMsg *)> fail = [](HTTPRequest& req, CURLMsg *) {return; }):
 		handle(h), form(postform), Done(done), Failed(fail) {};
 	CURL * handle{ nullptr };
 	curl_httppost* form{ nullptr };
 	string result;
-	function<void(HTTPRequest&)> Done;
-	function<void(HTTPRequest&)> Failed;
+	function<void(HTTPRequest&, CURLMsg *)> Done;
+	function<void(HTTPRequest&, CURLMsg *)> Failed;
 };
 class OnlineTopScore {
 public:
@@ -143,8 +144,7 @@ public:
 	string error{ "" };
 	int lastid{ 0 };
 	vector<DownloadablePack> downloadablePacks;
-	string session{ "" }; // Session cookie content
-	string sessionCookie{ "" }; // Entire session cookie string
+	string authToken{ "" }; // Session cookie content
 	string sessionUser{ "" }; // Currently logged in username
 	string sessionPass{ "" }; // Currently logged in password
 	string lastVersion{ "" }; // Last version according to server (Or current if non was obtained)
@@ -184,8 +184,8 @@ public:
 	inline void SetCURLPostToURL(CURL *curlHandle, string url);
 	inline void SetCURLURL(CURL *curlHandle, string url);
 
-	void SendRequest(string requestName, vector<pair<string, string>> params, function<void(HTTPRequest&)> done, bool requireLogin = true, bool post = false, bool async = true);
-	void SendRequestToURL(string url, vector<pair<string, string>> params, function<void(HTTPRequest&)> done, bool requireLogin, bool post, bool async);
+	void SendRequest(string requestName, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> done, bool requireLogin = true, bool post = false, bool async = true);
+	void SendRequestToURL(string url, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> done, bool requireLogin, bool post, bool async);
 	void RefreshLastVersion(); 
 	void RefreshRegisterPage();
 	void RequestChartLeaderBoard(string chartkey);
