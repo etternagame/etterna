@@ -225,14 +225,13 @@ bool EzSockets::CanConnect(const std::string& host, unsigned short port)
 	FD_ZERO(&readfds);
 	FD_SET(sock.sock, &readfds);
 	auto read = select(sock.sock + 1, nullptr, &readfds, nullptr, &(sock.timeout));
-	bool select = read > -1 && write > -1;
-	if (!select) {
-		sock.close();
-		return false;
-	}
-	bool err = sock.IsError() || !sock.CanRead() || !sock.CanWrite();
+	FD_ZERO(&readfds);
+	FD_SET(sock.sock, &readfds);
+	auto exc = select(sock.sock + 1, nullptr, nullptr, &readfds, &(sock.timeout));
+	bool select = read > -1 && write > -1 && exc > -1;
+	auto err = sock.IsError() || !sock.CanWrite();
 	sock.close();
-	return !err;
+	return select && !err;
 }
 
 bool EzSockets::setAddr(const std::string& host, unsigned short port)
