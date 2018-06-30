@@ -125,8 +125,6 @@ bool EzSockets::create(int Protocol, int Type)
 		int tv = timeoutMiliseconds; 
 #else
 		struct timeval tv = timevalFromMs(timeoutMiliseconds);
-		tv.tv_sec = timeoutSeconds;
-		tv.tv_usec = 0;
 #endif
 		setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof(tv));
 	}
