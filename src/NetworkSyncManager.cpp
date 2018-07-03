@@ -1167,7 +1167,6 @@ void ETTProtocol::Login(RString user, RString pass)
 	timeout = 5.0;
 	onTimeout = [](void) {
 		NSMAN->loginResponse = "Login timed out";
-		NSMAN->loggedIn = false;
 		SCREENMAN->SendMessageToTopScreen(ETTP_LoginResponse);
 	};
 }

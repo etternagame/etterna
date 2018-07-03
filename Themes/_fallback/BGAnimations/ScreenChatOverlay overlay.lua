@@ -78,8 +78,8 @@ chat.ScreenChangedMessageCommand = function(self)
 		self:visible(online)
 		show = true
 		s:AddInputCallback(input)
-		MESSAGEMAN:Broadcast("ScreenaaaChanged")
 	end
+	MESSAGEMAN:Broadcast("UpdateChatOverlay")
 end
 chat.MultiplayerDisconnectionMessageCommand = function(self)
 	online = false
