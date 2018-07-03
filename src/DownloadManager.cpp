@@ -282,9 +282,9 @@ DownloadManager::~DownloadManager()
 		}
 		delete dl.second;
 	}
-	curl_global_cleanup();
 	if (LoggedIn())
 		EndSession();
+	curl_global_cleanup();
 }
 
 Download* DownloadManager::DownloadAndInstallPack(const string &url)
@@ -670,11 +670,6 @@ void DownloadManager::EndSessionIfExists()
 }
 void DownloadManager::EndSession()
 {
-	string url = serverURL.Get() + "/destroy";
-	CURL *curlHandle = initCURLHandle();
-	SetCURLPostToURL(curlHandle, url);
-	CURLcode ret = curl_easy_perform(curlHandle);
-	curl_easy_cleanup(curlHandle);
 	sessionUser = sessionPass = authToken = "";
 	topScores.clear();
 	sessionRatings.clear();
