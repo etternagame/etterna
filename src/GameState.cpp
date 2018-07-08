@@ -1406,29 +1406,6 @@ FailType GameState::GetPlayerFailType( const PlayerState *pPlayerState ) const
 {
 	PlayerNumber pn = pPlayerState->m_PlayerNumber;
 	FailType ft = pPlayerState->m_PlayerOptions.GetCurrent().m_FailType;
-
-	// If the player changed the fail mode explicitly, leave it alone.
-	if( m_bFailTypeWasExplicitlySet )
-		return ft;
-
-
-
-		Difficulty dc = Difficulty_Invalid;
-		if( m_pCurSteps[pn] )
-			dc = m_pCurSteps[pn]->GetDifficulty();
-
-		bool bFirstStage = false;
-
-		// Easy and beginner are never harder than FAIL_IMMEDIATE_CONTINUE.
-		if( dc <= Difficulty_Easy )
-			setmax( ft, FailType_ImmediateContinue );
-
-
-		/* If beginner's steps were chosen, and this is the first stage,
-		 * turn off failure completely. */
-		if( dc == Difficulty_Beginner && bFirstStage )
-			setmax( ft, FailType_Off );
-
 	return ft;
 }
 
