@@ -472,6 +472,39 @@ void Profile::IncrementStepsPlayCount( const Song* pSong, const Steps* pSteps )
 	GetStepsHighScoreList(pSong,pSteps).IncrementPlayCount( now );
 }
 
+Grade Profile::GetBestGrade(const Song* pSong, StepsType st) const
+{
+	Grade gradeBest = Grade_Invalid;
+	if (pSong != nullptr) {
+		bool hasCurrentStyleSteps = false;
+		FOREACH_ENUM_N(Difficulty, 6, i) {
+			Steps* pSteps = SongUtil::GetStepsByDifficulty(pSong, st, i);
+			if (pSteps != NULL) {
+				hasCurrentStyleSteps = true;
+				Grade dcg = SCOREMAN->GetBestGradeFor(pSteps->GetChartKey());
+				if (gradeBest >= dcg) {
+					gradeBest = dcg;
+				}
+			}
+		}
+		//If no grade was found for the current style/stepstype
+		if (!hasCurrentStyleSteps) {
+			//Get the best grade among all steps
+			auto& allSteps = pSong->GetAllSteps();
+			for (auto& stepsPtr : allSteps) {
+				if (stepsPtr->m_StepsType == st) //Skip already checked steps of type st
+					continue;
+				Grade dcg = SCOREMAN->GetBestGradeFor(stepsPtr->GetChartKey());
+				if (gradeBest >= dcg) {
+					gradeBest = dcg;
+				}
+			}
+		}
+	}
+
+	return gradeBest;
+}
+
 void Profile::GetGrades( const Song* pSong, StepsType st, int iCounts[NUM_Grade] ) const
 {
 	SongID songID;

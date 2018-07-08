@@ -298,6 +298,7 @@ public:
 	HighScoreList& GetStepsHighScoreList( const Song* pSong, const Steps* pSteps );
 	int GetStepsNumTimesPlayed( const Song* pSong, const Steps* pSteps ) const;
 	void IncrementStepsPlayCount( const Song* pSong, const Steps* pSteps );
+	Grade GetBestGrade(const Song * pSong, StepsType st) const;
 	void GetGrades( const Song* pSong, StepsType st, int iCounts[NUM_Grade] ) const;
 	int GetSongNumTimesPlayed( const Song* pSong ) const;
 	int GetSongNumTimesPlayed( const SongID& songID ) const;
