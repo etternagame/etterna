@@ -1225,11 +1225,17 @@ void Profile::ImportScoresToEtterna() {
 
 
 
-// more future goalman stuff
+// more future goalman stuff (perhaps this should be standardized to "add" in order to match scoreman nomenclature) -mina
 void Profile::CreateGoal(const string& ck) {
 	ScoreGoal goal;
 	goal.timeassigned = DateTime::GetNowDateTime();
 	goal.rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+
+	// duplication avoidance should be simpler than this? -mina
+	for (auto& n : goalmap[ck].goals)
+		if (n.rate == goal.rate && n.percent == goal.percent)
+			return;
+
 	goalmap[ck].Add(goal);
 }
 
