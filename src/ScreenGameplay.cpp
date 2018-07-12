@@ -1191,8 +1191,9 @@ void ScreenGameplay::set_paused_internal(bool p)
 	GAMESTATE->SetPaused(p);
 }
 
-void ScreenGameplay::PauseGame( bool bPause, GameController gc )
-{
+void ScreenGameplay::PauseGame( bool bPause, GameController gc ) {
+	return;	// completely disable the functionality of this rather than various avenues to it (pending full removal) -mina
+
 	if( m_bPaused == bPause )
 	{
 		LOG->Trace( "ScreenGameplay::PauseGame(%i) received, but already in that state; ignored", bPause );
