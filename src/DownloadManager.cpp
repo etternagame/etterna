@@ -188,6 +188,7 @@ inline CURL* initCURLHandle() {
 	struct curl_slist *list = NULL;
 	list = curl_slist_append(list, ("Authorization: Bearer " + DLMAN->authToken).c_str());
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPHEADER, list);
+	curl_easy_setopt(curlHandle, CURLOPT_TIMEOUT, 60);//Seconds
 	return curlHandle;
 }
 inline bool addFileToForm(curl_httppost *&form, curl_httppost *&lastPtr, string field, string fileName, string filePath, RString &contents)
@@ -939,11 +940,12 @@ void DownloadManager::RefreshUserData()
 			auto attr = j.find("data")->find("attributes");
 			auto skillsets = attr->find("skillsets");
 			FOREACH_ENUM(Skillset, ss)
-				(DLMAN->sessionRanks)[ss] = skillsets->value(SkillsetToString(ss).c_str(), 0);
+				(DLMAN->sessionRatings)[ss] = skillsets->value(SkillsetToString(ss).c_str(), 0.0f);
+			DLMAN->sessionRatings[Skill_Overall] = attr->value("playerRating", DLMAN->sessionRatings[Skill_Overall]);
 		}
 		catch (exception e) {
 			FOREACH_ENUM(Skillset, ss)
-				(DLMAN->sessionRanks)[ss] = 0.0f;
+				(DLMAN->sessionRatings)[ss] = 0.0f;
 		}
 		MESSAGEMAN->Broadcast("OnlineUpdate");
 	};
@@ -1007,6 +1009,11 @@ void DownloadManager::StartSession(string user, string pass)
 		DLMAN->loggingIn = false;
 	};
 	HTTPRequest* req = new HTTPRequest(curlHandle, done, form);
+	req->Failed = [](HTTPRequest& req, CURLMsg *) {
+		DLMAN->authToken = DLMAN->sessionUser = DLMAN->sessionPass = "";
+		MESSAGEMAN->Broadcast("LoginFailed");
+		DLMAN->loggingIn = false;
+	};
 	SetCURLResultsString(curlHandle, &(req->result));
 	if (mHTTPHandle == nullptr)
 		mHTTPHandle = curl_multi_init();
