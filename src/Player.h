@@ -100,6 +100,7 @@ public:
 
 	void ScoreAllActiveHoldsLetGo();
 	void DoTapScoreNone();
+	void AddNoteToReplayData(int col, const TapNote* pTN, int RowOfOverlappingNoteOrRow);
 	
 	void Step( int col, int row, const std::chrono::steady_clock::time_point &tm, bool bHeld, bool bRelease, float padStickSeconds = 0.0f );
 

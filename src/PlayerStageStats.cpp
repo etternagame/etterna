@@ -48,6 +48,8 @@ void PlayerStageStats::InternalInit()
 	m_vOffsetVector.clear();
 	m_vNoteRowVector.clear();
 	m_vTrackVector.clear();
+	m_vTapNoteTypeVector.clear();
+	m_vTapNoteSubTypeVector.clear();
 	InputData.clear();
 	m_iPossibleGradePoints = 0;
 	m_iCurCombo = 0;

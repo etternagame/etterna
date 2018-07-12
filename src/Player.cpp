@@ -1785,6 +1785,15 @@ void Player::PlayKeysound( const TapNote &tn, TapNoteScore score )
 	}
 }
 
+void Player::AddNoteToReplayData(int col, const TapNote* pTN, int RowOfOverlappingNoteOrRow)
+{
+	m_pPlayerStageStats->m_vOffsetVector.emplace_back(pTN->result.fTapNoteOffset);
+	m_pPlayerStageStats->m_vTrackVector.emplace_back(col);
+	m_pPlayerStageStats->m_vNoteRowVector.emplace_back(RowOfOverlappingNoteOrRow);
+	m_pPlayerStageStats->m_vTapNoteTypeVector.emplace_back(pTN->type);
+	m_pPlayerStageStats->m_vTapNoteSubTypeVector.emplace_back(pTN->subType);
+}
+
 void Player::Step( int col, int row, const std::chrono::steady_clock::time_point &tm, bool bHeld, bool bRelease, float padStickSeconds )
 {
 	if( IsOniDead() )
@@ -2144,13 +2153,7 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 		if( GAMESTATE->CountNotesSeparately() )
 		{
 			if (pTN->result.tns != TNS_None)
-			{
-				m_pPlayerStageStats->m_vOffsetVector.emplace_back(pTN->result.fTapNoteOffset);
-				m_pPlayerStageStats->m_vTrackVector.emplace_back(col);
-				m_pPlayerStageStats->m_vNoteRowVector.emplace_back(iRowOfOverlappingNoteOrRow);
-				m_pPlayerStageStats->m_vTapNoteTypeVector.emplace_back(pTN->type);
-				m_pPlayerStageStats->m_vTapNoteSubTypeVector.emplace_back(pTN->subType);
-			}
+				AddNoteToReplayData(col, pTN, iRowOfOverlappingNoteOrRow);
 			if( pTN->type != TapNoteType_Mine )
 			{
 				const bool bBlind = (m_pPlayerState->m_PlayerOptions.GetCurrent().m_fBlind != 0);
@@ -2894,6 +2897,8 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 
 void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore tns, float fTapNoteOffset )
 {
+	if(tns == TNS_Miss)
+		AddNoteToReplayData(iTrack, &tn, iRow);
 	if( m_bSendJudgmentAndComboMessages )
 	{
 		Message msg("Judgment");
