@@ -11,7 +11,6 @@ end
 
 local function MergeTables( left, right )
 	local ret = { }
-	setmetatable( ret, getmetatable(left) )
 	for key, val in pairs(left) do
 		ret[key] = val
 	end
@@ -34,19 +33,13 @@ local function MergeTables( left, right )
 
 		ret[key] = val
 	end
+	setmetatable( ret, getmetatable(left) )
 	return ret
 end
 
 DefMetatable = {
 	__concat = function(left, right)
 		return MergeTables( left, right )
-	end,
-	__newindex = function(t, key, value)
-		if type(value) == 'table' and type(key) == 'string' and stringx.endswith(key, 'Command') then 
-			rawset(t,key,func.I(value))
-		else
-			rawset(t,key,value)
-		end
 	end
 }
 
@@ -62,11 +55,7 @@ setmetatable( Def, {
 			if not ActorUtil.IsRegisteredClass(Class) then
 				error( Class .. " is not a registered actor class", 2 )
 			end
-			for key,value in pairs(t) do
-				if type(value) == 'table' and value.op and type(key) == 'string' and stringx.endswith(key, 'Command') then 
-					rawset(t,key,func.I(value))
-				end
-			end
+
 			t.Class = Class
 
 			local level = 2
