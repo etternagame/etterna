@@ -1191,8 +1191,9 @@ void ScreenGameplay::set_paused_internal(bool p)
 	GAMESTATE->SetPaused(p);
 }
 
-void ScreenGameplay::PauseGame( bool bPause, GameController gc )
-{
+void ScreenGameplay::PauseGame( bool bPause, GameController gc ) {
+	return;	// completely disable the functionality of this rather than various avenues to it (pending full removal) -mina
+
 	if( m_bPaused == bPause )
 	{
 		LOG->Trace( "ScreenGameplay::PauseGame(%i) received, but already in that state; ignored", bPause );
@@ -1619,6 +1620,7 @@ void ScreenGameplay::Update( float fDeltaTime )
 				{
 					pi->GetPlayerStageStats()->m_bFailed |= bAllHumanHaveBigMissCombo;
 					pi->GetPlayerStageStats()->m_bDisqualified |= bGiveUpTimerFired;    // Don't disqualify if failing for miss combo.  The player should still be eligable for a high score on courses.
+					pi->GetPlayerStageStats()->gaveuplikeadumbass |= m_gave_up;
 				}
 				ResetGiveUpTimers(false);
 				if(GIVING_UP_GOES_TO_PREV_SCREEN && !m_skipped_song)
@@ -2241,7 +2243,7 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 
 		bool bAllReallyFailed = STATSMAN->m_CurStageStats.AllFailed();
 
-		if( bAllReallyFailed )
+		if( bAllReallyFailed)
 		{
 			this->PostScreenMessage( SM_BeginFailed, 0 );
 			return;
