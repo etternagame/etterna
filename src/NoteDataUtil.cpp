@@ -1836,12 +1836,20 @@ static void SuperShuffleTaps( NoteData &inout, int iStartIndex, int iEndIndex )
 	 *
 	 * This is only called by NoteDataUtil::Turn.
 	 */
-	FOREACH_NONEMPTY_ROW_ALL_TRACKS_RANGE( inout, r, iStartIndex, iEndIndex )
+	vector<int> daa;
+	daa.push_back(0);
+	daa.push_back(0);
+	daa.push_back(0);
+	daa.push_back(0);
+	FOREACH_NONEMPTY_ROW_ALL_TRACKS_RANGE(inout, r, iStartIndex, iEndIndex)
 	{
-		for( int t1=0; t1<inout.GetNumTracks(); t1++ )
+		vector<int> doot = { 0,1,2,3 };	// this will break super shuffle use on non 4k files and should be rectified as soon as the method is tested -mina
+		random_shuffle(doot.begin(), doot.end());
+		for (int tdoot = 0; tdoot<inout.GetNumTracks(); tdoot++)
 		{
-			const TapNote &tn1 = inout.GetTapNote( t1, r );
-			switch( tn1.type )
+			int t1 = doot[tdoot];
+			const TapNote &tn1 = inout.GetTapNote(t1, r);
+			switch (tn1.type)
 			{
 			case TapNoteType_Empty:
 			case TapNoteType_HoldHead:
@@ -1896,6 +1904,7 @@ static void SuperShuffleTaps( NoteData &inout, int iStartIndex, int iEndIndex )
 				inout.SetTapNote( t1, r, tn2 );
 				inout.SetTapNote( t2, r, tnTemp );
 				
+				daa[t2]++;
 				break;	// done swapping
 			}
 		}
