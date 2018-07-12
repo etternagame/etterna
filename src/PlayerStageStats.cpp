@@ -67,6 +67,7 @@ void PlayerStageStats::InternalInit()
 	luascriptwasloaded = false;
 	filehadnegbpms = false;
 	filegotmines = false;
+	gaveuplikeadumbass = false;
 
 	ZERO( m_iTapNoteScores );
 	ZERO( m_iHoldNoteScores );

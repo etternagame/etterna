@@ -1619,6 +1619,7 @@ void ScreenGameplay::Update( float fDeltaTime )
 				{
 					pi->GetPlayerStageStats()->m_bFailed |= bAllHumanHaveBigMissCombo;
 					pi->GetPlayerStageStats()->m_bDisqualified |= bGiveUpTimerFired;    // Don't disqualify if failing for miss combo.  The player should still be eligable for a high score on courses.
+					pi->GetPlayerStageStats()->gaveuplikeadumbass |= m_gave_up;
 				}
 				ResetGiveUpTimers(false);
 				if(GIVING_UP_GOES_TO_PREV_SCREEN && !m_skipped_song)
@@ -2241,7 +2242,7 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 
 		bool bAllReallyFailed = STATSMAN->m_CurStageStats.AllFailed();
 
-		if( bAllReallyFailed )
+		if( bAllReallyFailed)
 		{
 			this->PostScreenMessage( SM_BeginFailed, 0 );
 			return;

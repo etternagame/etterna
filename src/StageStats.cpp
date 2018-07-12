@@ -515,6 +515,10 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 
 	// Etterna validity check, used for ssr/eo eligibility -mina
 	hs.SetEtternaValid(DetermineScoreEligibility(pss, ps));
+	
+	// force fail grade if player 'gave up', autoplay was used, or lua scripts were loaded (this is sorta redundant with the above but ehh) -mina
+	if(pss.gaveuplikeadumbass || pss.luascriptwasloaded || pss.everusedautoplay)
+	hs.SetGrade(Grade_Failed);
 
 	// should maybe just make the setscorekey function do this internally rather than recalling the datetime object -mina
 	RString ScoreKey = "S" + BinaryToHex(CryptManager::GetSHA1ForString(hs.GetDateTime().GetString()));
