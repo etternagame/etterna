@@ -174,14 +174,17 @@ inline void checkProtocol(string& url)
 	if (!(starts_with(url, "https://") || starts_with(url, "http://")))
 		url = string("http://").append(url);
 }
-//Utility inline functions to deal with CURL
-inline CURL* initCURLHandle() {
+inline CURL* initBasicCURLHandle() {
 	CURL *curlHandle = curl_easy_init();
 	curl_easy_setopt(curlHandle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
 	curl_easy_setopt(curlHandle, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(curlHandle, CURLOPT_SSL_VERIFYHOST, 0L);
 	curl_easy_setopt(curlHandle, CURLOPT_FOLLOWLOCATION, 1L);
-	curl_easy_setopt(curlHandle, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+	return curlHandle;
+}
+//Utility inline functions to deal with CURL
+inline CURL* initCURLHandle() {
+	CURL *curlHandle = initBasicCURLHandle();
 	struct curl_slist *list = NULL;
 	list = curl_slist_append(list, ("Authorization: Bearer " + DLMAN->authToken).c_str());
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPHEADER, list);
@@ -1110,7 +1113,7 @@ void DownloadManager::RefreshPackList(string url)
 Download::Download(string url)
 {
 	m_Url = url;
-	handle = initCURLHandle();
+	handle = initBasicCURLHandle();
 	m_TempFileName = MakeTempFileName(url);
 	p_RFWrapper.file.Open(m_TempFileName, 2);
 	DLMAN->EncodeSpaces(m_Url);
