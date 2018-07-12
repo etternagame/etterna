@@ -12,6 +12,7 @@ local minanyms = {
 	"Luridescence",
 	"Frothy Loin",
 	"Ministry of Silly Steps",
+	"\na haiku for man\ntried to prove that we're special\nturns out that we're not",
 	
 	-- the profile names of yore
 	"mystic memer",
@@ -93,6 +94,8 @@ local minanyms = {
 	"desires a pink anime avatar",
 	"theamishwillneverseethis.jpg",
 	"Restore missing legacy Stepmania Team credits #1588",
+	"gratuitous double negative usage",
+	"MinaTallerThanBrandon",
 }
 
 math.random()
