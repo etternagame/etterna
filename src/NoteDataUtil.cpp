@@ -11,6 +11,7 @@
 #include "Style.h"
 #include "TimingData.h"
 #include <utility>
+#include <numeric>
 
 // TODO: Remove these constants that aren't time signature-aware
 static const int BEATS_PER_MEASURE = 4;
@@ -1836,14 +1837,11 @@ static void SuperShuffleTaps( NoteData &inout, int iStartIndex, int iEndIndex )
 	 *
 	 * This is only called by NoteDataUtil::Turn.
 	 */
-	vector<int> daa;
-	daa.push_back(0);
-	daa.push_back(0);
-	daa.push_back(0);
-	daa.push_back(0);
-	FOREACH_NONEMPTY_ROW_ALL_TRACKS_RANGE(inout, r, iStartIndex, iEndIndex)
-	{
-		vector<int> doot = { 0,1,2,3 };	// this will break super shuffle use on non 4k files and should be rectified as soon as the method is tested -mina
+
+	FOREACH_NONEMPTY_ROW_ALL_TRACKS_RANGE(inout, r, iStartIndex, iEndIndex) {
+		vector<int> doot(inout.GetNumTracks());
+		iota(std::begin(doot), std::end(doot), 0);
+
 		random_shuffle(doot.begin(), doot.end());
 		for (int tdoot = 0; tdoot<inout.GetNumTracks(); tdoot++)
 		{
@@ -1904,7 +1902,6 @@ static void SuperShuffleTaps( NoteData &inout, int iStartIndex, int iEndIndex )
 				inout.SetTapNote( t1, r, tn2 );
 				inout.SetTapNote( t2, r, tnTemp );
 				
-				daa[t2]++;
 				break;	// done swapping
 			}
 		}
