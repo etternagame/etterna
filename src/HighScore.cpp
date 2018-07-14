@@ -1187,13 +1187,24 @@ float HighScore::RescoreToWifeJudge(int x) {
 	const float tso[] = { 1.50f,1.33f,1.16f,1.00f,0.84f,0.66f,0.50f,0.33f,0.20f };
 	float ts = tso[x-1];
 	float p = 0;
-	FOREACH_CONST(float, m_Impl->vOffsetVector, f)
-		p += wife2(*f, ts);
+	for (auto &n : m_Impl->vOffsetVector)
+		p += wife2(n, ts);
 
 	p += (m_Impl->iHoldNoteScores[HNS_LetGo] + m_Impl->iHoldNoteScores[HNS_Missed]) * -6.f;
 	p += m_Impl->iTapNoteScores[TNS_HitMine] * -8.f;
 
-	return p / static_cast<float>(m_Impl->vOffsetVector.size() * 2);
+	float pmax = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
+
+	/* we don't want to have to access notedata when loading or rescording scores so we use the vector length of offset replay data to determine
+	point denominators however full replays store mine and hold drop offsets, meaning we have to screen them out when calculating the max points -mina*/
+	if (m_Impl->ReplayType == 2) {
+		pmax += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
+
+		// we screened out extra offsets due to mines in the replay from the denominator but we've still increased the numerator with 0.00f offsets (2pts)
+		p += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
+	}
+
+	return p / pmax;
 }
 
 float HighScore::RescoreToWifeJudgeDuringLoad(int x) {
@@ -1203,14 +1214,26 @@ float HighScore::RescoreToWifeJudgeDuringLoad(int x) {
 	const float tso[] = { 1.50f,1.33f,1.16f,1.00f,0.84f,0.66f,0.50f,0.33f,0.20f };
 	float ts = tso[x - 1];
 	float p = 0;
-	FOREACH_CONST(float, m_Impl->vOffsetVector, f)
-		p += wife2(*f, ts);
+	for(auto &n : m_Impl->vOffsetVector)
+		p += wife2(n, ts);
 
 	p += (m_Impl->iHoldNoteScores[HNS_LetGo] + m_Impl->iHoldNoteScores[HNS_Missed]) * -6.f;
 	p += m_Impl->iTapNoteScores[TNS_HitMine] * -8.f;
 
+	float pmax = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
+
+	/* we don't want to have to access notedata when loading or rescording scores so we use the vector length of offset replay data to determine
+	point denominators however full replays store mine and hold drop offsets, meaning we have to screen them out when calculating the max points -mina*/
+	if (m_Impl->ReplayType == 2) {
+		pmax += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
+
+		// we screened out extra offsets due to mines in the replay from the denominator but we've still increased the numerator with 0.00f offsets (2pts)
+		p += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
+	}
+
+	float o = p / pmax;
 	UnloadReplayData();
-	return p / static_cast<float>(m_Impl->vOffsetVector.size() * 2);
+	return o;
 }
 
 // do not use for now- mina
@@ -1373,7 +1396,7 @@ public:
 	// Convert to MS so lua doesn't have to
 	// these seem really really inefficient now -mina
 	static int GetOffsetVector(T* p, lua_State *L) {
-				p->UnloadReplayData();
+		p->UnloadReplayData();
 		p->LoadReplayData();
 
 		auto v = p->GetOffsetVector();
@@ -1385,7 +1408,7 @@ public:
 			if (tnv.size() > 0) {
 				if (tnv[i] != TapNoteType_Mine)
 					o.emplace_back(v[i] * 1000);
-		}
+			}
 			else {
 				o.emplace_back(v[i] * 1000);
 			}
@@ -1397,7 +1420,7 @@ public:
 	}
 
 	static int GetNoteRowVector(T* p, lua_State *L) {
-				p->UnloadReplayData();
+		p->UnloadReplayData();
 		p->LoadReplayData();
 
 		auto v = p->GetNoteRowVector();
@@ -1409,7 +1432,7 @@ public:
 			if (tnv.size() > 0) {
 				if (tnv[i] != TapNoteType_Mine)
 					o.emplace_back(v[i]);
-		}
+			}
 			else {
 				o.emplace_back(v[i]);
 			}
