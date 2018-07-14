@@ -123,10 +123,18 @@ bool HighScoreImpl::operator==( const HighScoreImpl& other ) const
 }
 
 void HighScoreImpl::UnloadReplayData() {
-	vector<int> tmpi;
-	vector<float> tmpf;
-	vNoteRowVector.swap(tmpi);
-	vOffsetVector.swap(tmpf);
+	vNoteRowVector.clear();
+	vOffsetVector.clear();
+	vTrackVector.clear();
+	vTapNoteTypeVector.clear();
+	vTapNoteSubTypeVector.clear();
+
+	vNoteRowVector.shrink_to_fit();
+	vOffsetVector.shrink_to_fit();
+	vTrackVector.shrink_to_fit();
+	vTapNoteTypeVector.shrink_to_fit();
+	vTapNoteSubTypeVector.shrink_to_fit();
+
 	ReplayType = 0;
 }
 
