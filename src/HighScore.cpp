@@ -776,7 +776,7 @@ bool HighScore::LoadReplayDataFull() {
 
 		tmp = tokens.size() >= 5 ? std::stoi(tokens[4]) : TapNoteSubType_Invalid;
 		if (tmp < 0 || tmp >= TapNoteSubType_Invalid || !(typeid(tmp) == typeid(int))) {
-			LOG->Warn("Failed to load replay data at %s (\"Tapnotesubtype value is not of type TapNoteSubType\")", path.c_str());
+			//LOG->Warn("Failed to load replay data at %s (\"Tapnotesubtype value is not of type TapNoteSubType\")", path.c_str()); too common to throw a warn-mina
 		}
 		tnst = static_cast<TapNoteSubType>(tmp);
 		vTapNoteSubTypeVector.emplace_back(tnst);
