@@ -18,7 +18,8 @@
 
 ThemeMetric<string> EMPTY_NAME("HighScore","EmptyName");
 
-const string REPLAY_DIR = "Save/ReplaysV2/";
+const string BASIC_REPLAY_DIR = "Save/Replays/";	// contains only tap offset data for rescoring/plots -mina
+const string FULL_REPLAY_DIR = "Save/ReplaysV2/";	// contains freeze drops and mine hits as well as tap offsets; fully "rewatchable" -mina
 
 struct HighScoreImpl
 {
@@ -76,6 +77,7 @@ struct HighScoreImpl
 	void ResetSkillsets();
 
 	bool WriteReplayData();
+	int ReplayType;	// 0 = no loaded replay, 1 = basic, 2 = full; currently unused but here for when we need it (not to be confused with hasreplay()) -mina
 
 	float RescoreToWifeTS(float ts);
 
@@ -125,6 +127,7 @@ void HighScoreImpl::UnloadReplayData() {
 	vector<float> tmpf;
 	vNoteRowVector.swap(tmpi);
 	vOffsetVector.swap(tmpf);
+	ReplayType = 0;
 }
 
 Grade HighScoreImpl::GetWifeGrade() const {
@@ -259,6 +262,7 @@ HighScoreImpl::HighScoreImpl()
 	fLifeRemainingSeconds = 0;
 	string ValidationKey = "";
 	TopScore = 0;
+	ReplayType = 0;
 }
 
 XNode *HighScoreImpl::CreateNode() const
@@ -588,9 +592,9 @@ bool HighScoreImpl::WriteReplayData() {
 	string append;
 	string profiledir;
 	//These two lines should probably be somewhere else
-	if (!FILEMAN->IsADirectory(REPLAY_DIR))
-		FILEMAN->CreateDir(REPLAY_DIR);
-	string path = REPLAY_DIR + ScoreKey;
+	if (!FILEMAN->IsADirectory(FULL_REPLAY_DIR))
+		FILEMAN->CreateDir(FULL_REPLAY_DIR);
+	string path = FULL_REPLAY_DIR + ScoreKey;
 	ofstream fileStream(path, ios::binary);
 	//check file
 
@@ -624,7 +628,7 @@ bool HighScore::WriteInputData(const vector<float>& oop) {
 	string append;
 	string profiledir;
 
-	string path = REPLAY_DIR + m_Impl->ScoreKey;
+	string path = FULL_REPLAY_DIR + m_Impl->ScoreKey;
 	ofstream fileStream(path, ios::binary);
 	//check file
 
@@ -647,7 +651,67 @@ bool HighScore::WriteInputData(const vector<float>& oop) {
 }
 
 // should just get rid of impl -mina
-bool HighScore::LoadReplayData() {
+bool HighScore::LoadReplayData() {	// see dir definition comments at the top -mina
+	if (LoadReplayDataFull())
+		return true;
+	return LoadReplayDataBasic();
+}
+
+bool HighScore::LoadReplayDataBasic() {
+	// already exists
+	if (m_Impl->vNoteRowVector.size() > 4 && m_Impl->vOffsetVector.size() > 4)
+		return true;
+
+	string profiledir;
+	vector<int> vNoteRowVector;
+	vector<float> vOffsetVector;
+	string path = BASIC_REPLAY_DIR + m_Impl->ScoreKey;
+
+	std::ifstream fileStream(path, ios::binary);
+	string line;
+	string buffer;
+	vector<string> tokens;
+	stringstream ss;
+	int noteRow;
+	float offset;
+
+	//check file
+	if (!fileStream) {
+		LOG->Warn("Failed to load replay data at %s", path.c_str());
+		return false;
+	}
+
+	//loop until eof
+	while (getline(fileStream, line))
+	{
+		stringstream ss(line);
+		//split line into tokens
+		while (ss >> buffer)
+			tokens.emplace_back(buffer);
+
+		noteRow = std::stoi(tokens[0]);
+		if (!(typeid(noteRow) == typeid(int))) {
+			throw std::runtime_error("NoteRow value is not of type: int");
+		}
+		vNoteRowVector.emplace_back(noteRow);
+
+		offset = std::stof(tokens[1]);
+		if (!(typeid(offset) == typeid(float))) {
+			throw std::runtime_error("Offset value is not of type: float");
+		}
+		vOffsetVector.emplace_back(offset);
+		tokens.clear();
+	}
+	fileStream.close();
+	SetNoteRowVector(vNoteRowVector);
+	SetOffsetVector(vOffsetVector);
+
+	m_Impl->ReplayType = 1;
+	LOG->Trace("Loaded replay data at %s", path.c_str());
+	return true;
+}
+
+bool HighScore::LoadReplayDataFull() {
 	// already exists
 	if (m_Impl->vNoteRowVector.size() > 4 && m_Impl->vOffsetVector.size() > 4)
 		return true;
@@ -658,7 +722,7 @@ bool HighScore::LoadReplayData() {
 	vector<int> vTrackVector;
 	vector<TapNoteType> vTapNoteTypeVector;
 	vector<TapNoteSubType> vTapNoteSubTypeVector;
-	string path = REPLAY_DIR + m_Impl->ScoreKey;
+	string path = FULL_REPLAY_DIR + m_Impl->ScoreKey;
 
 	std::ifstream fileStream(path, ios::binary);
 	string line;
@@ -673,7 +737,7 @@ bool HighScore::LoadReplayData() {
 
 	//check file
 	if (!fileStream) {
-		LOG->Warn("Failed to load replay data at %s", path.c_str());
+		LOG->Trace("Failed to load replay data at %s, checking for older replay version", path.c_str());
 		return false;
 	}
 
@@ -725,13 +789,18 @@ bool HighScore::LoadReplayData() {
 	SetTrackVector(vTrackVector);
 	SetTapNoteTypeVector(vTapNoteTypeVector);
 	SetTapNoteSubTypeVector(vTapNoteSubTypeVector);
+
+	m_Impl->ReplayType = 2;
 	LOG->Trace("Loaded replay data at %s", path.c_str());
 	return true;
 }
 
 bool HighScore::HasReplayData() {
-	string path = REPLAY_DIR + m_Impl->ScoreKey;
-	return DoesFileExist(path);
+	string fullpath = FULL_REPLAY_DIR + m_Impl->ScoreKey;
+	string basicpath = BASIC_REPLAY_DIR + m_Impl->ScoreKey;
+	if(DoesFileExist(fullpath))		// check for full replays first then default to basic replays -mina
+		return true;
+	return DoesFileExist(basicpath);
 }
 
 REGISTER_CLASS_TRAITS( HighScoreImpl, new HighScoreImpl(*pCopy) )
