@@ -975,14 +975,30 @@ public:
 	// Convert to MS so lua doesn't have to
 	static int GetOffsetVector(T* p, lua_State *L) {
 		vector<float> doot = p->m_vOffsetVector;
+		auto tnv = p->m_vTapNoteTypeVector;
+		vector<float> o;
+
+		// don't send mine hit offset entries out -mina
 		for (size_t i = 0; i < doot.size(); ++i)
-			doot[i] = doot[i] * 1000;
-		LuaHelpers::CreateTableFromArray(doot, L);
+			if (tnv[i] != TapNoteType_Mine)
+				o.emplace_back(doot[i] * 1000);
+
+
+		LuaHelpers::CreateTableFromArray(o, L);
 		return 1;
 	}
 
 	static int GetNoteRowVector(T* p, lua_State *L) {
-		LuaHelpers::CreateTableFromArray(p->m_vNoteRowVector, L);
+		auto v = p->m_vNoteRowVector;
+		auto tnv = p->m_vTapNoteTypeVector;
+		vector<int> o;
+
+		// don't send mine hit offset entries out -mina
+		for (size_t i = 0; i < v.size(); ++i)
+			if (tnv[i] != TapNoteType_Mine)
+				o.emplace_back(v[i]);
+
+		LuaHelpers::CreateTableFromArray(o, L);
 		return 1;
 	}
 
