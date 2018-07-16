@@ -2,7 +2,7 @@ local active = true
 local numericinputactive = false
 local whee
 
-local tabNames = {"General","MSD","Score","Search","Profile","Filters", "Goals", "Playlists", "Packs", "Tags"} -- this probably should be in tabmanager.
+local tabNames = {"General","MSD","Scores","Search","Profile","Filters", "Goals", "Playlists", "Packs", "Tags"} -- this probably should be in tabmanager.
 --[[
 
 ]]
@@ -61,8 +61,8 @@ t[#t+1] = LoadFont("Common Normal") .. {
 --]]
 --======================================================================================
 
-local frameWidth = (SCREEN_WIDTH*(403/854))/(#tabNames-1)
-local frameX = frameWidth/2
+local frameWidth = capWideScale(get43size(450),450)/(#tabNames-1)
+local frameX = frameWidth/2 + 2
 local frameY = SCREEN_HEIGHT-70
 
 function tabs(index)
@@ -109,7 +109,7 @@ function tabs(index)
 		
 	t[#t+1] = LoadFont("Common Normal") .. {
 		InitCommand=function(self)
-			self:y(5):valign(0):zoom(0.45):diffuse(getMainColor('positive'))
+			self:y(5):valign(0):zoom(0.4):diffuse(getMainColor('positive')):maxwidth(frameWidth*2)
 		end,
 		BeginCommand=function(self)
 			self:queuecommand("Set")
