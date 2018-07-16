@@ -8,6 +8,7 @@
 #include "DownloadManager.h"
 #include "GameState.h"
 #include "ScoreManager.h"
+#include "ScreenNetSelectMusic.h"
 #include "RageFileManager.h"
 #include "ProfileManager.h"
 #include "SongManager.h"
@@ -464,7 +465,10 @@ void DownloadManager::UpdatePacks(float fDeltaSeconds)
 		if (screen && screen->GetName() == "ScreenSelectMusic")
 			static_cast<ScreenSelectMusic*>(screen)->DifferentialReload();
 		else
-			SONGMAN->DifferentialReload();
+			if (screen && screen->GetName() == "ScreenNetSelectMusic")
+				static_cast<ScreenNetSelectMusic*>(screen)->DifferentialReload();
+			else
+				SONGMAN->DifferentialReload();
 	}
 	if (!downloadingPacks)
 		return;
@@ -546,7 +550,10 @@ void DownloadManager::UpdatePacks(float fDeltaSeconds)
 		if (screen && screen->GetName() == "ScreenSelectMusic")
 			static_cast<ScreenSelectMusic*>(screen)->DifferentialReload();
 		else
-			SONGMAN->DifferentialReload();
+			if (screen && screen->GetName() == "ScreenNetSelectMusic")
+				static_cast<ScreenNetSelectMusic*>(screen)->DifferentialReload();
+			else
+				SONGMAN->DifferentialReload();
 	}
 	return;
 }

@@ -104,6 +104,15 @@ void ScreenNetSelectMusic::Init()
 	ALIGN_MUSIC_BEATS.Load(m_sName, "AlignMusicBeat");
 }
 
+
+void ScreenNetSelectMusic::DifferentialReload()
+{
+	int newsongs = SONGMAN->DifferentialReload();
+	SCREENMAN->SystemMessage(ssprintf("Differential reload of %i songs", newsongs));
+	m_MusicWheel.ReloadSongList(false, "");
+}
+
+
 bool ScreenNetSelectMusic::Input(const InputEventPlus &input)
 {
 	if(!m_bAllowInput || IsTransitioning())
@@ -223,9 +232,7 @@ bool ScreenNetSelectMusic::Input(const InputEventPlus &input)
 		}
 		else if (c == 'Q')
 		{
-			int newsongs = SONGMAN->DifferentialReload();
-			m_MusicWheel.ReloadSongList(false, "");
-			SCREENMAN->SystemMessage(ssprintf("Differential reload of %i songs", newsongs));
+			DifferentialReload();
 			return true;
 		}
 		else if (c == 'S')
