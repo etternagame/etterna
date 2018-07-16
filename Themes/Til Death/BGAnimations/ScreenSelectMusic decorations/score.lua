@@ -520,9 +520,13 @@ function updateNetScores(self)
 	MESSAGEMAN:Broadcast("NetScoreUpdate")
 end
 local eosongid
+local sordidbeltbuckle
+local ferengilovetower
 local netTab = Def.ActorFrame {
 	ChartLeaderboardUpdateMessageCommand = function(self,params)
 		eosongid = params.songid
+		sordidbeltbuckle = params.mmm
+		ferengilovetower = params.ixmixblixb
 		updateNetScores(self)
 	end,
 	UpdateChartMessageCommand=function(self)
@@ -794,6 +798,26 @@ local function netscoreitem(drawindex)
 				if tmpScore then
 					self:settextf("%05.2f%%", tmpScore.wife*10000/100)
 					self:diffuse(byGrade(GetGradeFromPercent(tmpScore.wife)))
+				else
+					self:settext("")
+				end
+			end,
+			NetScoreUpdateMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+			BeginCommand=function(self)
+				self:queuecommand("Set")
+			end,
+		},
+		
+		-- weo
+		LoadFont("Common normal")..{ 
+			InitCommand=function(self)
+				self:xy(netscoreframeWidth-18,netscoreframey+(drawindex*netscorespacing)+17):zoom(0.65):halign(1):maxwidth(100):valign(1)
+			end,
+			SetCommand=function(self)
+				if tmpScore then
+					self:settextf("%05.2f | %.2f", sordidbeltbuckle, ferengilovetower)
 				else
 					self:settext("")
 				end

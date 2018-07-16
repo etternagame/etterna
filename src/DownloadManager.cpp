@@ -800,6 +800,71 @@ void DownloadManager::SendRequestToURL(string url, vector<pair<string, string>> 
 	}
 	return;
 }
+
+float mythicalmathymaths(string chartkey) {
+	auto &scoobydoop = DLMAN->chartLeaderboards[chartkey];
+
+	float dsum = 0.f;
+	int num = 4;
+	for (auto &s : scoobydoop) {
+		float goobles = s.playerRating - 1.f;
+		if (s.playerRating > 1.f && s.SSRs[Skill_Overall] > 1.f && abs(s.playerRating - s.SSRs[Skill_Overall]) < 7.5f) {
+			if (s.playerRating > s.SSRs[Skill_Overall]) {
+				float mcsproot = goobles - s.SSRs[Skill_Overall];
+				dsum += mcsproot;
+			}
+			else {
+				float mcdoot = s.SSRs[Skill_Overall] + 1.f - s.playerRating;
+				dsum -= mcdoot * mcdoot;
+			}
+			++num;
+		}	
+	}
+	return dsum/num;
+}
+
+float ixmixblixb(string chartkey) {
+	auto &scoobydoop = DLMAN->chartLeaderboards[chartkey];
+	vector<float> valuesbaby;
+	float offset = 5.f;
+	float dsum = 0.f;
+	int num = 0;
+	float mcdoot = 1.f;
+	
+	for (auto &s : scoobydoop) {
+		if (s.playerRating > 1.f && s.SSRs[Skill_Overall] > 1.f) {
+			float adjrating = s.playerRating * 1.026f;
+			float value = (2.0 / erfc(0.1 * (s.SSRs[Skill_Overall] - adjrating)));
+			if (s.SSRs[Skill_Overall] - s.playerRating > 40)
+				value = 100.f;
+			if (value < 0)
+				value = 0.f;
+			valuesbaby.emplace_back(value);
+			dsum += value;
+			++num;
+		}
+	}
+	
+	float zeeaverage = dsum / num;
+
+	float overratedness = (dsum - offset) / num;
+	
+	overratedness /= zeeaverage;
+	overratedness -= .5f;
+	
+	LOG->Warn("%f", overratedness);
+
+	float multiplier = 1.f - (overratedness / 10.f);
+	LOG->Warn("%f", multiplier);
+	if (multiplier - mcdoot < -0.2f)
+		multiplier = mcdoot - 0.2f;
+
+	float nerfE = (4.f*mcdoot + multiplier) / 5.f;
+	LOG->Warn("%f", nerfE);
+	nerfE = min(1.f, nerfE);
+	return nerfE;
+}
+
 void DownloadManager::RequestChartLeaderBoard(string chartkey)
 {
 	auto done = [chartkey](HTTPRequest& req, CURLMsg *) {
@@ -826,7 +891,7 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 					continue;
 
 				userswithscores.emplace(tmp.username);
-
+				
 				tmp.playerRating = static_cast<float>(user.value("playerRating", 0.0));
 				tmp.wife = static_cast<float>(score.value("wife", 0.0)/100.0);
 				tmp.modifiers = score.value("modifiers", "").c_str();
@@ -845,7 +910,7 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 				}
 				tmp.datetime.FromString(score.value("datetime", "0"));
 				tmp.scoreid = scoreJ.value("id", "").c_str();
-
+				
 				// filter scores not on the current rate out if enabled... dunno if we need this precision -mina
 				tmp.rate = static_cast<float>(score.value("rate", 0.0));
 				if (FILTERMAN->currentrateonlyforonlineleaderboardrankings)
@@ -878,6 +943,11 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 		catch (exception e) {
 			//json failed
 		}
+		
+		float zoop = mythicalmathymaths(chartkey);
+		float coop = ixmixblixb(chartkey);
+		msg.SetParam("mmm", zoop);
+		msg.SetParam("ixmixblixb", coop);
 		userswithscores.clear();	// should be ok to free the mem in this way? -mina
 		MESSAGEMAN->Broadcast(msg);	// see start of function
 	};
