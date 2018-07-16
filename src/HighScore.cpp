@@ -1401,6 +1401,7 @@ public:
 	}
 
 	// Convert to MS so lua doesn't have to
+	// not exactly sure why i'm doing this fancy load garbage or if it works... -mina
 	static int GetOffsetVector(T* p, lua_State *L) {
 		auto v = p->GetOffsetVector();
 		bool loaded = v.size() > 0;
@@ -1426,6 +1427,51 @@ public:
 				v = &(p->GetNoteRowVector());
 			LuaHelpers::CreateTableFromArray((*v), L);
 			if(!loaded)
+				p->UnloadReplayData();
+		}
+		else
+			lua_pushnil(L);
+		return 1;
+	}
+
+	static int GetTrackVector(T* p, lua_State *L) {
+		auto* v = &(p->GetTrackVector());
+		bool loaded = v->size() > 0;
+		if (loaded || p->LoadReplayData()) {
+			if (!loaded)
+				v = &(p->GetTrackVector());
+			LuaHelpers::CreateTableFromArray((*v), L);
+			if (!loaded)
+				p->UnloadReplayData();
+		}
+		else
+			lua_pushnil(L);
+		return 1;
+	}
+
+	static int GetTapNoteTypeVector(T* p, lua_State *L) {
+		auto* v = &(p->GetTapNoteTypeVector());
+		bool loaded = v->size() > 0;
+		if (loaded || p->LoadReplayData()) {
+			if (!loaded)
+				v = &(p->GetTapNoteTypeVector());
+			LuaHelpers::CreateTableFromArray((*v), L);
+			if (!loaded)
+				p->UnloadReplayData();
+		}
+		else
+			lua_pushnil(L);
+		return 1;
+	}
+
+	static int GetTapNoteSubTypeVector(T* p, lua_State *L) {
+		auto* v = &(p->GetTapNoteSubTypeVector());
+		bool loaded = v->size() > 0;
+		if (loaded || p->LoadReplayData()) {
+			if (!loaded)
+				v = &(p->GetTapNoteSubTypeVector());
+			LuaHelpers::CreateTableFromArray((*v), L);
+			if (!loaded)
 				p->UnloadReplayData();
 		}
 		else
@@ -1474,6 +1520,9 @@ public:
 		ADD_METHOD( HasReplayData );
 		ADD_METHOD( GetOffsetVector );
 		ADD_METHOD( GetNoteRowVector );
+		ADD_METHOD( GetTrackVector );
+		ADD_METHOD( GetTapNoteTypeVector );
+		ADD_METHOD( GetTapNoteSubTypeVector );
 		ADD_METHOD( GetChartKey );
 	}
 };
