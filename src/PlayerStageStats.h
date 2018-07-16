@@ -205,6 +205,8 @@ public:
 	bool	m_bDisqualified;
 	bool	IsDisqualified() const;
 
+	void UnloadReplayData();	// i don't really trust the deconstructors here, also prefer flexibility in this -mina
+
 	RankingCategory	m_rc;
 	HighScore	m_HighScore;
 

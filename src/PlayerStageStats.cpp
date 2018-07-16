@@ -896,6 +896,20 @@ bool PlayerStageStats::IsDisqualified() const
 	return m_bDisqualified;
 }
 
+void PlayerStageStats::UnloadReplayData() {
+	m_vNoteRowVector.clear();
+	m_vOffsetVector.clear();
+	m_vTrackVector.clear();
+	m_vTapNoteTypeVector.clear();
+	m_vTapNoteSubTypeVector.clear();
+
+	m_vNoteRowVector.shrink_to_fit();
+	m_vOffsetVector.shrink_to_fit();
+	m_vTrackVector.shrink_to_fit();
+	m_vTapNoteTypeVector.shrink_to_fit();
+	m_vTapNoteSubTypeVector.shrink_to_fit();
+}
+
 LuaFunction( GetGradeFromPercent,	GetGradeFromPercent( FArg(1) ) )
 LuaFunction( FormatPercentScore,	PlayerStageStats::FormatPercentScore( FArg(1) ) )
 
@@ -1003,6 +1017,12 @@ public:
 
 	static int WifeScoreOffset(T* p, lua_State *L) {
 		lua_pushnumber(L, wife2(FArg(1), p->GetTimingScale()));
+		return 1;
+	}
+
+	// not entirely sure this should be exposed to lua... -mina
+	static int UnloadReplayData(T* p, lua_State *L) {
+		p->UnloadReplayData();
 		return 1;
 	}
 
@@ -1168,6 +1188,7 @@ public:
 		ADD_METHOD( FailPlayer );
 		ADD_METHOD( GetSongsPassed );
 		ADD_METHOD( GetSongsPlayed );
+		ADD_METHOD( UnloadReplayData );
 	}
 };
 
