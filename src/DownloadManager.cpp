@@ -796,7 +796,8 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 				OnlineScore tmp;
 				tmp.wife = score.value("wife", 0.0)/100;
 				tmp.modifiers = score.value("modifiers", "").c_str();
-				tmp.username = score.value("username", "").c_str();
+				auto user = *(score.find("user"));
+				tmp.username = user.value("userName", "").c_str();
 				tmp.maxcombo = score.value("maxCombo", 0);
 				{
 					auto judgements = *(score.find("judgements"));
