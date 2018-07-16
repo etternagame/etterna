@@ -519,8 +519,10 @@ function updateNetScores(self)
 	end
 	MESSAGEMAN:Broadcast("NetScoreUpdate")
 end
+local eosongid
 local netTab = Def.ActorFrame {
-	ChartLeaderboardUpdateMessageCommand = function(self)
+	ChartLeaderboardUpdateMessageCommand = function(self,params)
+		eosongid = params.songid
 		updateNetScores(self)
 	end,
 	UpdateChartMessageCommand=function(self)
@@ -813,7 +815,58 @@ local function netscoreitem(drawindex)
 				self:queuecommand("Set")
 			end,
 		},
+
+		-- completely gratuitous eo player profile link button (this is the only one that works atm)
+		Def.Quad{
+			InitCommand=function(self)
+				self:xy(netscoreframex+28,netscoreframey+18+(drawindex*netscorespacing)):zoomto((netscoreframeWidth-15)/1.75,20):halign(0):diffuse(getMainColor('positive')):valign(1):diffusealpha(0)
+			end,
+			MouseLeftClickMessageCommand=function(self)
+				if isOver(self) and nestedTab == 2 then
+					local urlstringyo = "https://etternaonline.com/user/"..tmpScore.username
+					GAMESTATE:ApplyGameCommand("urlnoexit,"..urlstringyo)
+				end
+			end
+		},
 		
+		-- completely gratuitous eo song id link button
+		Def.Quad{
+			InitCommand=function(self)
+				self:xy(netscoreframex-25,netscoreframey+netscorespacing/2+(drawindex*netscorespacing)-2):zoomto(20,20):valign(0.5):diffuse(getMainColor('positive')):diffusealpha(0)
+			end,
+			MouseLeftClickMessageCommand=function(self)
+				if isOver(self) and nestedTab == 2 then
+					local urlstringyo = "https://etternaonline.com/song/view/"..eosongid
+					GAMESTATE:ApplyGameCommand("urlnoexit,"..urlstringyo)
+				end
+			end
+		},
+		
+		-- completely gratuitous eo player score link button
+		Def.Quad{
+			InitCommand=function(self)
+				self:xy(netscoreframex+28,netscoreframey+23+(drawindex*netscorespacing)):zoomto((netscoreframeWidth-15)/1.75,14):halign(0):diffusealpha(0)
+			end,
+			MouseLeftClickMessageCommand=function(self)
+				if isOver(self) and nestedTab == 2 then
+					local urlstringyo = "https://etternaonline.com/score/view/"..tmpScore.scoreid
+					GAMESTATE:ApplyGameCommand("urlnoexit,"..urlstringyo)
+				end
+			end
+		},
+		
+		-- gratuity g-another
+		Def.Quad{
+			InitCommand=function(self)
+				self:xy(netscoreframex+28,netscoreframey+23+(drawindex*netscorespacing)):zoomto(0,0):halign(0):diffusealpha(0)
+			end,
+			MouseLeftClickMessageCommand=function(self)
+				if isOver(self) and nestedTab == 2 then
+					local urlstringyo = "https://etternaonline.com/avatars/"..tmpScore.avatar
+					GAMESTATE:ApplyGameCommand("urlnoexit,"..urlstringyo)
+				end
+			end
+		},
 		--mods (maybe make this be a mouseover later) -mina
 		-- LoadFont("Common normal")..{
 			-- InitCommand=function(self)

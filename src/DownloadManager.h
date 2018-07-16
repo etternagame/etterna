@@ -121,6 +121,8 @@ public:
 	string username;
 	float playerRating{ 0.0f };
 	string modifiers;
+	string scoreid;
+	string avatar;
 	DateTime datetime;
 	vector<pair<float, float>> replayData;
 };

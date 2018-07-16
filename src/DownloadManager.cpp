@@ -807,10 +807,12 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 		vec.clear();
 		unordered_set<string> userswithscores;
 		float currentrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+		Message msg("ChartLeaderboardUpdate");
 		try {
 			auto j = json::parse(req.result);
 			if (j.find("errors") != j.end())
 				throw exception();
+			//msg.SetParam("songid", RString(j.value("songid", "").c_str()));	// want songid here or something -mina
 			auto scores = j.find("data");
 			for (auto scoreJ : (*scores)) {
 				auto score = *(scoreJ.find("attributes"));
@@ -841,6 +843,8 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 					tmp.letgo = judgements.value("letGoHold", 0);
 				}
 				tmp.datetime.FromString(score.value("datetime", "0"));
+				tmp.scoreid = score.value("id", "").c_str();		// i assume this is supposed to be the score id... doesn't work? -mina
+				tmp.avatar = score.value("avatar", "").c_str();		// also busted or i'm really bad one of the two
 
 				// filter scores not on the current rate out if enabled... dunno if we need this precision -mina
 				tmp.rate = score.value("rate", 0.0);
@@ -875,7 +879,7 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 			//json failed
 		}
 		userswithscores.clear();	// should be ok to free the mem in this way? -mina
-		MESSAGEMAN->Broadcast("ChartLeaderboardUpdate");
+		MESSAGEMAN->Broadcast(msg);	// see start of function
 	};
 	SendRequest("/charts/"+chartkey+"/leaderboards", vector<pair<string, string>>(), done, true);
 }
@@ -1387,6 +1391,10 @@ public:
 		lua_setfield(L, -2, "playerRating");
 		lua_pushstring(L, score.datetime.GetString().c_str());
 		lua_setfield(L, -2, "datetime");
+		lua_pushstring(L, score.scoreid.c_str());
+		lua_setfield(L, -2, "scoreid");
+		lua_pushstring(L, score.avatar.c_str());
+		lua_setfield(L, -2, "avatar");
 		if (!score.replayData.empty()) {
 			lua_createtable(L, 0, score.replayData.size());
 			int i = 1;
