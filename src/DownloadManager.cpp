@@ -811,12 +811,14 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 					tmp.held = judgements.value("heldHold", 0);
 					tmp.letgo = judgements.value("letGoHold", 0);
 				}
-				//tmp.datetime.FromString(score.value("datetime", "0"));
+				tmp.datetime.FromString(score.value("datetime", "0"));
 				tmp.rate = score.value("rate", 0.0);
 				tmp.nocc = score.value("noCC", 0);
 				tmp.valid = score.value("valid", 0);
+
+				auto ssrs = *(score.find("skillsets"));
 				FOREACH_ENUM(Skillset, ss)
-					tmp.SSRs[ss] = score.value(SkillsetToString(ss).c_str(), 0.0);
+					tmp.SSRs[ss] = ssrs.value(SkillsetToString(ss).c_str(), 0.0);
 				try {
 					auto replay = score["replay"];
 					if (replay.size() > 1)
