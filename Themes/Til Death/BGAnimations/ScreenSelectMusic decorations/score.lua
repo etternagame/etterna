@@ -655,7 +655,7 @@ local function netscoreitem(drawindex)
 		-- ssr
 		LoadFont("Common normal")..{
 			InitCommand=function(self)
-				self:xy(netscoreframex-16,netscoreframey+17+(drawindex*netscorespacing)):zoom(0.75):halign(0):maxwidth(50):valign(1)
+				self:xy(netscoreframex-14,netscoreframey+17+(drawindex*netscorespacing)):zoom(0.65):halign(0):maxwidth(50):valign(1)
 			end,
 			SetCommand=function(self)
 				if tmpScore then
@@ -676,7 +676,7 @@ local function netscoreitem(drawindex)
 		-- rate
 		LoadFont("Common normal")..{
 			InitCommand=function(self)
-				self:xy(netscoreframex+4,netscoreframey+23+(drawindex*netscorespacing)):zoom(0.55):halign(0.5):maxwidth((netscoreframeWidth-15)/0.9)
+				self:xy(netscoreframex+2,netscoreframey+23+(drawindex*netscorespacing)):zoom(0.5):halign(0.5):maxwidth((netscoreframeWidth-15)/0.9)
 			end,
 			SetCommand=function(self)
 				if tmpScore then
