@@ -1400,54 +1400,36 @@ public:
 		return 1;
 	}
 
-
 	// Convert to MS so lua doesn't have to
-	// these seem really really inefficient now -mina
 	static int GetOffsetVector(T* p, lua_State *L) {
-		p->UnloadReplayData();
-		p->LoadReplayData();
-
 		auto v = p->GetOffsetVector();
-		auto tnv = p->GetTapNoteTypeVector();
-		vector<float> o;
-
-		// throw out mines if we have full replaydata -mina
-		for (size_t i = 0; i < v.size(); ++i) {
-			if (tnv.size() > 0) {
-				if (tnv[i] != TapNoteType_Mine)
-					o.emplace_back(v[i] * 1000);
-			}
-			else {
-				o.emplace_back(v[i] * 1000);
-			}
+		bool loaded = v.size() > 0;
+		if (loaded || p->LoadReplayData()) {
+			if (!loaded)
+				v = p->GetOffsetVector();
+			for (size_t i = 0; i < v.size(); ++i)
+				v[i] = v[i] * 1000;
+			LuaHelpers::CreateTableFromArray(v, L);
+			if (!loaded)
+				p->UnloadReplayData();
 		}
-
-		LuaHelpers::CreateTableFromArray(o, L);
-		p->UnloadReplayData();
+		else
+			lua_pushnil(L);
 		return 1;
 	}
 
 	static int GetNoteRowVector(T* p, lua_State *L) {
-		p->UnloadReplayData();
-		p->LoadReplayData();
-
-		auto v = p->GetNoteRowVector();
-		auto tnv = p->GetTapNoteTypeVector();
-		vector<int> o;
-
-		// throw out mines if we have full replaydata -mina
-		for (size_t i = 0; i < v.size(); ++i) {
-			if (tnv.size() > 0) {
-				if (tnv[i] != TapNoteType_Mine)
-					o.emplace_back(v[i]);
-			}
-			else {
-				o.emplace_back(v[i]);
-			}
+		auto* v = &(p->GetNoteRowVector());
+		bool loaded = v->size() > 0;
+		if (loaded || p->LoadReplayData()) {
+			if (!loaded)
+				v = &(p->GetNoteRowVector());
+			LuaHelpers::CreateTableFromArray((*v), L);
+			if(!loaded)
+				p->UnloadReplayData();
 		}
-
-		LuaHelpers::CreateTableFromArray(o, L);
-		p->UnloadReplayData();
+		else
+			lua_pushnil(L);
 		return 1;
 	}
 
