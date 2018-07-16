@@ -537,7 +537,7 @@ local netTab = Def.ActorFrame {
 	end,
 	Def.ActorFrame {
 		InitCommand=function(self)
-			self:xy(offsetX+frameWidth/2-netPageButtonWidth*1.5, frameY+frameHeight+10-netPageButtonHeight*0.45)
+			self:xy(netscoreframex, frameY+frameHeight+10-netPageButtonHeight*0.45)
 		end,
 		--prev
 		Def.ActorFrame{
@@ -568,7 +568,7 @@ local netTab = Def.ActorFrame {
 		--next
 		Def.ActorFrame{
 			InitCommand=function(self)
-				self:x(netPageButtonWidth*3)
+				self:x(netscoreframeWidth/1.25)
 			end,
 			Def.Quad{
 				InitCommand=function(self)
@@ -592,6 +592,38 @@ local netTab = Def.ActorFrame {
 				BeginCommand=function(self)
 					self:settext("Next")
 				end
+			}
+		},
+		--currentrateonly toggle ps. HURRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR -mina
+		Def.ActorFrame{
+			InitCommand=function(self)
+				self:x(netscoreframeWidth/2.25):halign(0.5)
+			end,
+			Def.Quad{
+				InitCommand=function(self)
+					self:zoomto(netPageButtonWidth*2, netPageButtonHeight):diffusealpha(0)
+				end,
+				MouseLeftClickMessageCommand=function(self)
+					if ButtonActive(self) and update and nestedTab == 2 then
+						FILTERMAN:ToggleCurrentRateOnlyForOnlineLeaderBoard()
+						whee = SCREENMAN:GetTopScreen():GetMusicWheel()
+						whee:Move(1)
+						whee:Move(-1)
+						whee:Move(0)
+					end
+				end
+			},
+			LoadFont("Common Large") .. {
+				InitCommand=function(self)
+					self:diffuse(getMainColor('positive')):maxwidth(netPageButtonWidth*3):maxheight(20):zoom(1)
+				end,
+				SetCommand=function(self)
+					if FILTERMAN:IsCurrentRateOnlyForOnlineLeaderBoard() == 0 then
+						self:settext("Displaying All Rates")
+					else
+						self:settext("Current Rate Only")
+					end
+				end,
 			}
 		}
 	}
