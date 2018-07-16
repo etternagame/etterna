@@ -595,7 +595,7 @@ void DownloadManager::UploadScore(HighScore* hs)
 	if (!LoggedIn())
 		return;
 	CURL *curlHandle = initCURLHandle();
-	string url = serverURL.Get() + "/upload_score";
+	string url = serverURL.Get() + "/score";
 	curl_httppost *form = nullptr;
 	curl_httppost *lastPtr = nullptr;
 	SetCURLPOSTScore(curlHandle, form, lastPtr, hs);
@@ -603,9 +603,16 @@ void DownloadManager::UploadScore(HighScore* hs)
 	SetCURLPostToURL(curlHandle, url);
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
 	auto done = [hs](HTTPRequest& req, CURLMsg *) {
-		if (req.result == "\"Success\"") {
-			hs->AddUploadedServer(serverURL.Get());
+		json j;
+		bool parsed = true;
+		json ratings;
+		try {
+			j = json::parse(req.result);
+			if (j["data"]["type"] == "ssrResults") {
+				hs->AddUploadedServer(serverURL.Get());
+			}
 		}
+		catch (exception e) { }
 	};
 	HTTPRequest* req = new HTTPRequest(curlHandle, done);
 	SetCURLResultsString(curlHandle, &(req->result));
@@ -618,17 +625,24 @@ void DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	if (!LoggedIn())
 		return;
 	CURL *curlHandle = initCURLHandle();
-	string url = serverURL.Get() + "/upload_score";
+	string url = serverURL.Get() + "/score";
 	curl_httppost *form = nullptr;
 	curl_httppost *lastPtr = nullptr;
 	SetCURLPOSTScore(curlHandle, form, lastPtr, hs);
 	string replayString;
 	vector<float> offsets = hs->GetOffsetVector();
+	vector<int> columns = hs->GetTrackVector();
+	vector<TapNoteType> types = hs->GetTapNoteTypeVector();
 	if (offsets.size() > 0) {
 		replayString = "[";
-		vector<float> timestamps = hs->timeStamps;
+		vector<float>& timestamps = hs->timeStamps;
 		for (int i = 0; i < offsets.size(); i++) {
-			replayString += "[" + to_string(timestamps[i]) + "," + to_string(1000.f * offsets[i]) + "],";
+			replayString += "[";
+			replayString += to_string(timestamps[i]) + ",";
+			replayString += to_string(1000.f * offsets[i]) + ",";
+			replayString += to_string(columns[i]) + ",";
+			replayString += to_string(types[i]);
+			replayString += "],";
 		}
 		replayString = replayString.substr(0, replayString.size() - 1); //remove ","
 		replayString += "]";
@@ -647,18 +661,21 @@ void DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 		try {
 			j = json::parse(req.result);
 			ratings = j["success"];
+			if (j["data"]["type"] == "ssrResults") {
+				FOREACH_ENUM(Skillset, ss)
+					if (ss != Skill_Overall)
+						(DLMAN->sessionRatings)[ss] += ratings["diff"].value(SkillsetToString(ss), 0.0);
+				(DLMAN->sessionRatings)[Skill_Overall] = 0.0f;
+				for(auto it : DLMAN->sessionRatings)
+					if(it.second > (DLMAN->sessionRatings)[Skill_Overall])
+						(DLMAN->sessionRatings)[Skill_Overall] = it.second;
+			}
+			hs->AddUploadedServer(serverURL.Get()); 
+			HTTPRunning = response_code;
 		}
 		catch (exception e) {
 			parsed = false;
 		}
-		hs->AddUploadedServer(serverURL.Get());
-		if (parsed && j.find("error") == j.end()) {
-			FOREACH_ENUM(Skillset, ss)
-				if(ss!=Skill_Overall)
-					(DLMAN->sessionRatings)[ss] = ratings.value(SkillsetToString(ss), 0.0);
-			(DLMAN->sessionRatings)[Skill_Overall] = ratings.value("player_rating", 0.0);
-		}
-		HTTPRunning = response_code;
 	};
 	HTTPRequest* req = new HTTPRequest(curlHandle, done);
 	SetCURLResultsString(curlHandle, &(req->result));
@@ -895,9 +912,12 @@ void DownloadManager::RefreshTop25(Skillset ss)
 					auto score = *(scoreJ.find("attributes"));
 					OnlineTopScore tmp;
 					tmp.songName = score.value("songName", "");
-					tmp.wifeScore = score.value("wife", 0.0);
-					tmp.ssr = score.value(SkillsetToString(ss), 0.0);
+					tmp.wifeScore = score.value("wife", 0.0)/100;
 					tmp.overall = score.value("Overall", 0.0);
+					if(ss!=Skill_Overall)
+						tmp.ssr = score["skillsets"].value(SkillsetToString(ss), 0.0);
+					else
+						tmp.ssr = tmp.overall;
 					tmp.chartkey = score.value("chartKey", "");
 					tmp.scorekey = scoreJ.value("id", "");
 					tmp.rate = score.value("rate", 0.0);
