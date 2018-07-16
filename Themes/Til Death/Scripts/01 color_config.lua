@@ -186,7 +186,7 @@ function byGrade(grade)
 end
 
 -- Colorized stuff
-function ByMSD(x)
+function byMSD(x)
 	if x then
 		return HSV(math.max(95 - (x/40)*150, -50), 0.9, 0.9)
 	end
