@@ -176,38 +176,29 @@ void PlayerStageStats::AddStats( const PlayerStageStats& other )
 	}
 }
 
-Grade GetGradeFromPercent( float fPercent )
-{
-	Grade grade = Grade_Failed;
 
-	FOREACH_ENUM( Grade,g)
-	{
-		if( fPercent >= GRADE_PERCENT_TIER(g) )
-		{
-			grade = g;
-			break;
-		}
-	}
-	return grade;
+// get appropriated (for when we have scores but no highscore object to get wifegrades) -mina
+Grade GetGradeFromPercent( float fPercent ) {
+	if (fPercent >= 0.9997f)
+		return Grade_Tier01;
+	if (fPercent >= 0.9975f)
+		return Grade_Tier02;
+	if (fPercent >= 0.93f)
+		return Grade_Tier03;
+	if (fPercent >= 0.8f)
+		return Grade_Tier04;
+	if (fPercent >= 0.7f)
+		return Grade_Tier05;
+	if (fPercent >= 0.6f)
+		return Grade_Tier06;
+	return Grade_Tier07;
 }
 
 Grade PlayerStageStats::GetWifeGrade() {
 	if (GetGrade() == Grade_Failed)
 		return Grade_Failed;
 
-	if (m_fWifeScore >= 0.9998)
-		return Grade_Tier01;
-	if (m_fWifeScore >= 0.9975)
-		return Grade_Tier02;
-	if (m_fWifeScore >= 0.93)
-		return Grade_Tier03;
-	if (m_fWifeScore >= 0.8)
-		return Grade_Tier04;
-	if (m_fWifeScore >= 0.7)
-		return Grade_Tier05;
-	if (m_fWifeScore >= 0.6)
-		return Grade_Tier06;
-	return Grade_Tier07;
+	return GetGradeFromPercent(m_fWifeScore);
 }
 
 Grade PlayerStageStats::GetGrade(float p)

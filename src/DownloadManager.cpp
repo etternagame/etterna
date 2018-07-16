@@ -19,6 +19,8 @@
 #include "Foreach.h"
 #include "Song.h"
 #include <nlohmann/json.hpp>
+#include <unordered_set>
+#include <FilterManager.h>
 using json = nlohmann::json;
 #ifdef _WIN32 
 #include <intrin.h>
@@ -803,6 +805,8 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 	auto done = [chartkey](HTTPRequest& req, CURLMsg *) {
 		vector<OnlineScore> & vec = DLMAN->chartLeaderboards[chartkey];
 		vec.clear();
+		unordered_set<string> userswithscores;
+		float currentrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 		try {
 			auto j = json::parse(req.result);
 			if (j.find("errors") != j.end())
@@ -811,9 +815,18 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 			for (auto scoreJ : (*scores)) {
 				auto score = *(scoreJ.find("attributes"));
 				OnlineScore tmp;
+				auto user = *(score.find("user"));
+				tmp.username = user.value("userName", "").c_str();
+				
+				// it seems prudent to maintain the eo functionality in this way and screen out multiple scores from the same user -mina
+				if (userswithscores.count(tmp.username) == 1)
+					continue;
+
+				userswithscores.emplace(tmp.username);
+
+				tmp.playerRating = user.value("playerRating", 0.0);
 				tmp.wife = score.value("wife", 0.0)/100;
 				tmp.modifiers = score.value("modifiers", "").c_str();
-				tmp.username = score.value("username", "").c_str();
 				tmp.maxcombo = score.value("maxCombo", 0);
 				{
 					auto judgements = *(score.find("judgements"));
@@ -827,12 +840,19 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 					tmp.held = judgements.value("heldHold", 0);
 					tmp.letgo = judgements.value("letGoHold", 0);
 				}
-				//tmp.datetime.FromString(score.value("datetime", "0"));
+				tmp.datetime.FromString(score.value("datetime", "0"));
+
+				// filter scores not on the current rate out if enabled... dunno if we need this precision -mina
 				tmp.rate = score.value("rate", 0.0);
+				if (FILTERMAN->currentrateonlyforonlineleaderboardrankings)
+					if(lround(tmp.rate * 10000.f) != lround(currentrate * 10000.f))
+						continue;
 				tmp.nocc = score.value("noCC", 0);
 				tmp.valid = score.value("valid", 0);
+
+				auto ssrs = *(score.find("skillsets"));
 				FOREACH_ENUM(Skillset, ss)
-					tmp.SSRs[ss] = score.value(SkillsetToString(ss).c_str(), 0.0);
+					tmp.SSRs[ss] = ssrs.value(SkillsetToString(ss).c_str(), 0.0);
 				try {
 					auto replay = score["replay"];
 					if (replay.size() > 1)
@@ -843,12 +863,18 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 				catch (exception e) {
 					//replaydata failed
 				}
+
+				// eo still has some old profiles with various edge issues that unfortunately need to be handled here
+				// screen out old 11111 flags (my greatest mistake) and it's probably a safe bet to throw out below 25% scores -mina
+				if (tmp.wife > 1.f || tmp.wife < 0.25f)
+					continue;
 				vec.emplace_back(tmp);
 			}
 		}
 		catch (exception e) {
 			//json failed
 		}
+		userswithscores.clear();	// should be ok to free the mem in this way? -mina
 		MESSAGEMAN->Broadcast("ChartLeaderboardUpdate");
 	};
 	SendRequest("/charts/"+chartkey+"/leaderboards", vector<pair<string, string>>(), done, true);
@@ -1357,6 +1383,8 @@ public:
 		lua_setfield(L, -2, "modifiers");
 		lua_pushstring(L, score.username.c_str());
 		lua_setfield(L, -2, "username");
+		lua_pushnumber(L, score.playerRating);
+		lua_setfield(L, -2, "playerRating");
 		lua_pushstring(L, score.datetime.GetString().c_str());
 		lua_setfield(L, -2, "datetime");
 		if (!score.replayData.empty()) {

@@ -127,6 +127,14 @@ public:
 		lua_pushboolean(L, p->HighestSkillsetsOnly);
 		return 1;
 	}
+	static int ToggleCurrentRateOnlyForOnlineLeaderBoard(T* p, lua_State* L) {
+		p->currentrateonlyforonlineleaderboardrankings = !p->currentrateonlyforonlineleaderboardrankings;
+		return 1;
+	}
+	static int IsCurrentRateOnlyForOnlineLeaderBoard(T* p, lua_State* L) {
+		lua_pushnumber(L, static_cast<int>(p->currentrateonlyforonlineleaderboardrankings));
+		return 1;
+	}
 	LunaFilterManager() {
 		ADD_METHOD(SetSSFilter);
 		ADD_METHOD(GetSSFilter);
@@ -140,6 +148,8 @@ public:
 		ADD_METHOD(GetFilterMode);
 		ADD_METHOD(ToggleHighestSkillsetsOnly);
 		ADD_METHOD(GetHighestSkillsetsOnly);
+		ADD_METHOD(ToggleCurrentRateOnlyForOnlineLeaderBoard);
+		ADD_METHOD(IsCurrentRateOnlyForOnlineLeaderBoard);
 	}
 };
 
