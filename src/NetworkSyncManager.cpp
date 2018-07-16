@@ -420,9 +420,6 @@ bool ETTProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString a
 	n->isSMOnline = false;
 	msgId = 0;
 	error = false;
-	uWSh->onDisconnection([this, n](uWS::WebSocket<uWS::CLIENT> *ws, int code, char *message, size_t length) {
-		this->ws = nullptr;
-	});
 	uWSh->onConnection([n, this, address](uWS::WebSocket<uWS::CLIENT> *ws, uWS::HttpRequest req) {
 		n->isSMOnline = true;
 		this->ws = ws;
@@ -430,17 +427,21 @@ bool ETTProtocol::Connect(NetworkSyncManager * n, unsigned short port, RString a
 	});
 	uWSh->onError([this](void* ptr) {
 		this->error = true;
+		this->ws = nullptr;
 	});
 	uWSh->onHttpDisconnection([this](uWS::HttpSocket<true>* ptr) {
 		this->error = true;
+		this->ws = nullptr;
 	});
-	uWSh->onDisconnection([this](uWS::WebSocket<false> *, int code, char *message, size_t length) {
+	uWSh->onDisconnection([this](uWS::WebSocket<uWS::CLIENT> *, int code, char *message, size_t length) {
 		this->error = true;
 		this->errorMsg = string(message, length);
+		this->ws = nullptr;
 	});
-	uWSh->onDisconnection([this](uWS::WebSocket<true> *, int code, char *message, size_t length) {
+	uWSh->onDisconnection([this](uWS::WebSocket<uWS::SERVER> *, int code, char *message, size_t length) {
 		this->error = true;
 		this->errorMsg = string(message, length);
+		this->ws = nullptr;
 	});
 	uWSh->onMessage([this](uWS::WebSocket<uWS::CLIENT> *ws, char *message, size_t length, uWS::OpCode opCode) {
 		string msg(message, length);
