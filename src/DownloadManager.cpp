@@ -20,6 +20,7 @@
 #include "Song.h"
 #include <nlohmann/json.hpp>
 #include <unordered_set>
+#include <FilterManager.h>
 using json = nlohmann::json;
 #ifdef _WIN32 
 #include <intrin.h>
@@ -788,6 +789,7 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 		vector<OnlineScore> & vec = DLMAN->chartLeaderboards[chartkey];
 		vec.clear();
 		unordered_set<string> userswithscores;
+		float currentrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 		try {
 			auto j = json::parse(req.result);
 			if (j.find("errors") != j.end())
@@ -822,7 +824,12 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 					tmp.letgo = judgements.value("letGoHold", 0);
 				}
 				tmp.datetime.FromString(score.value("datetime", "0"));
+
+				// filter scores not on the current rate out if enabled... dunno if we need this precision -mina
 				tmp.rate = score.value("rate", 0.0);
+				if (FILTERMAN->currentrateonlyforonlineleaderboardrankings)
+					if(lround(tmp.rate * 10000.f) != lround(currentrate * 10000.f))
+						continue;
 				tmp.nocc = score.value("noCC", 0);
 				tmp.valid = score.value("valid", 0);
 
