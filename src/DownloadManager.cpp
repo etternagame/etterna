@@ -127,7 +127,7 @@ bool DownloadManager::InstallSmzip(const string &sZipFile)
 		splitpath(sDestFile, sDir, sThrowAway, sThrowAway);
 
 
-		if (!FileCopy(*sSrcFile, "Songs/" + sDestFile))
+		if (!FileCopy(*sSrcFile, extractTo + sDestFile))
 		{
 			sResult = "Error extracting " + sDestFile;
 			break;
