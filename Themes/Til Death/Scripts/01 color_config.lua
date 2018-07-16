@@ -180,6 +180,11 @@ function byDifficulty(diff)
 	return color(colorConfig:get_data().difficulty[diff])
 end
 
+-- i guess if i'm going to use this naming convention it might as well be complete and standardized which means redundancy -mina
+function byGrade(grade)
+	return color(colorConfig:get_data().grade[grade]) or color(colorConfig:get_data().grade['Grade_None'])
+end
+
 -- Colorized stuff
 function ByMSD(x)
 	if x then
