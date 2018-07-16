@@ -19,6 +19,7 @@
 #include "Foreach.h"
 #include "Song.h"
 #include <nlohmann/json.hpp>
+#include <unordered_set>
 using json = nlohmann::json;
 #ifdef _WIN32 
 #include <intrin.h>
@@ -786,6 +787,7 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 	auto done = [chartkey](HTTPRequest& req, CURLMsg *) {
 		vector<OnlineScore> & vec = DLMAN->chartLeaderboards[chartkey];
 		vec.clear();
+		unordered_set<string> userswithscores;
 		try {
 			auto j = json::parse(req.result);
 			if (j.find("errors") != j.end())
@@ -794,11 +796,18 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 			for (auto scoreJ : (*scores)) {
 				auto score = *(scoreJ.find("attributes"));
 				OnlineScore tmp;
-				tmp.wife = score.value("wife", 0.0)/100;
-				tmp.modifiers = score.value("modifiers", "").c_str();
 				auto user = *(score.find("user"));
 				tmp.username = user.value("userName", "").c_str();
+				
+				// it seems prudent to maintain the eo functionality in this way and screen out multiple scores from the same user -mina
+				if (userswithscores.count(tmp.username) == 1)
+					continue;
+
+				userswithscores.emplace(tmp.username);
+
 				tmp.playerRating = user.value("playerRating", 0.0);
+				tmp.wife = score.value("wife", 0.0)/100;
+				tmp.modifiers = score.value("modifiers", "").c_str();
 				tmp.maxcombo = score.value("maxCombo", 0);
 				{
 					auto judgements = *(score.find("judgements"));
@@ -841,6 +850,7 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 		catch (exception e) {
 			//json failed
 		}
+		userswithscores.clear();	// should be ok to free the mem in this way? -mina
 		MESSAGEMAN->Broadcast("ChartLeaderboardUpdate");
 	};
 	SendRequest("/charts/"+chartkey+"/leaderboards", vector<pair<string, string>>(), done, true);
