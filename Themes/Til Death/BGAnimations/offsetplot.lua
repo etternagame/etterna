@@ -124,10 +124,12 @@ o[#o+1] = Def.ActorMultiVertex{
 			if math.abs(y) > plotHeight/2 then
 				y = fitY(fit)
 			end
-			verts[#verts+1] = {{x-dotWidth,y+dotWidth,0}, color}
-			verts[#verts+1] = {{x+dotWidth,y+dotWidth,0}, color}
-			verts[#verts+1] = {{x+dotWidth,y-dotWidth,0}, color}
-			verts[#verts+1] = {{x-dotWidth,y-dotWidth,0}, color}
+			if ntt[i] ~= "TapNoteType_Mine" then						-- screen out mines for now, we can maybe use a separate graphic or display later -mina
+				verts[#verts+1] = {{x-dotWidth,y+dotWidth,0}, color}
+				verts[#verts+1] = {{x+dotWidth,y+dotWidth,0}, color}
+				verts[#verts+1] = {{x+dotWidth,y-dotWidth,0}, color}
+				verts[#verts+1] = {{x-dotWidth,y-dotWidth,0}, color}
+			end
 		end
 		self:SetVertices(verts)
 		self:SetDrawState{Mode="DrawMode_Quads", First = 1, Num=#verts}
