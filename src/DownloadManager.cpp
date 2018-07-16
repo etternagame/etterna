@@ -819,6 +819,7 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 				OnlineScore tmp;
 				auto user = *(score.find("user"));
 				tmp.username = user.value("userName", "").c_str();
+				tmp.avatar = user.value("avatar", "").c_str();
 				
 				// it seems prudent to maintain the eo functionality in this way and screen out multiple scores from the same user -mina
 				if (userswithscores.count(tmp.username) == 1)
@@ -843,8 +844,7 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 					tmp.letgo = judgements.value("letGoHold", 0);
 				}
 				tmp.datetime.FromString(score.value("datetime", "0"));
-				tmp.scoreid = score.value("id", "").c_str();		// i assume this is supposed to be the score id... doesn't work? -mina
-				tmp.avatar = score.value("avatar", "").c_str();		// also busted or i'm really bad one of the two
+				tmp.scoreid = scoreJ.value("id", "").c_str();
 
 				// filter scores not on the current rate out if enabled... dunno if we need this precision -mina
 				tmp.rate = static_cast<float>(score.value("rate", 0.0));

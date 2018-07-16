@@ -868,7 +868,7 @@ local function netscoreitem(drawindex)
 		-- gratuity g-another
 		Def.Quad{
 			InitCommand=function(self)
-				self:xy(netscoreframex+28,netscoreframey+23+(drawindex*netscorespacing)):zoomto(0,0):halign(0):diffusealpha(0)
+				self:xy(netscoreframex-10,netscoreframey+23+(drawindex*netscorespacing)):zoomto(2,2):halign(0):diffusealpha(0)
 			end,
 			MouseLeftClickMessageCommand=function(self)
 				if isOver(self) and nestedTab == 2 then
