@@ -426,7 +426,7 @@ void DownloadManager::UpdateHTTP(float fDeltaSeconds)
 	int msgs_left;
 	while ((msg = curl_multi_info_read(mHTTPHandle, &msgs_left))) {
 		/* Find out which handle this message is about */
-		for (int i = 0; i < HTTPRequests.size();++i) {
+		for (size_t i = 0; i < HTTPRequests.size();++i) {
 			if (msg->easy_handle == HTTPRequests[i]->handle) {
 				if (msg->msg == CURLMSG_DONE) {
 					HTTPRequests[i]->Done(*(HTTPRequests[i]), msg);
@@ -638,7 +638,7 @@ void DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	if (offsets.size() > 0) {
 		replayString = "[";
 		vector<float>& timestamps = hs->timeStamps;
-		for (int i = 0; i < offsets.size(); i++) {
+		for (size_t i = 0; i < offsets.size(); i++) {
 			replayString += "[";
 			replayString += to_string(timestamps[i]) + ",";
 			replayString += to_string(1000.f * offsets[i]) + ",";
@@ -734,7 +734,7 @@ void DownloadManager::RefreshUserRank()
 		}
 		catch (exception e) {
 			FOREACH_ENUM(Skillset, ss)
-				(DLMAN->sessionRanks)[ss] = 0.0f;
+				(DLMAN->sessionRanks)[ss] = 0;
 		}
 		MESSAGEMAN->Broadcast("OnlineUpdate");
 	};
@@ -826,8 +826,8 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 
 				userswithscores.emplace(tmp.username);
 
-				tmp.playerRating = user.value("playerRating", 0.0);
-				tmp.wife = score.value("wife", 0.0)/100;
+				tmp.playerRating = static_cast<float>(user.value("playerRating", 0.0));
+				tmp.wife = static_cast<float>(score.value("wife", 0.0)/100.0);
 				tmp.modifiers = score.value("modifiers", "").c_str();
 				tmp.maxcombo = score.value("maxCombo", 0);
 				{
@@ -847,16 +847,16 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 				tmp.avatar = score.value("avatar", "").c_str();		// also busted or i'm really bad one of the two
 
 				// filter scores not on the current rate out if enabled... dunno if we need this precision -mina
-				tmp.rate = score.value("rate", 0.0);
+				tmp.rate = static_cast<float>(score.value("rate", 0.0));
 				if (FILTERMAN->currentrateonlyforonlineleaderboardrankings)
 					if(lround(tmp.rate * 10000.f) != lround(currentrate * 10000.f))
 						continue;
-				tmp.nocc = score.value("noCC", 0);
-				tmp.valid = score.value("valid", 0);
+				tmp.nocc = score.value("noCC", 0) == 1;
+				tmp.valid = score.value("valid", 0) == 1;
 
 				auto ssrs = *(score.find("skillsets"));
 				FOREACH_ENUM(Skillset, ss)
-					tmp.SSRs[ss] = ssrs.value(SkillsetToString(ss).c_str(), 0.0);
+					tmp.SSRs[ss] = static_cast<float>(ssrs.value(SkillsetToString(ss).c_str(), 0.0));
 				try {
 					auto replay = score["replay"];
 					if (replay.size() > 1)
@@ -942,15 +942,15 @@ void DownloadManager::RefreshTop25(Skillset ss)
 					auto score = *(scoreJ.find("attributes"));
 					OnlineTopScore tmp;
 					tmp.songName = score.value("songName", "");
-					tmp.wifeScore = score.value("wife", 0.0)/100;
-					tmp.overall = score.value("Overall", 0.0);
+					tmp.wifeScore = static_cast<float>(score.value("wife", 0.0)/100.0);
+					tmp.overall = static_cast<float>(score.value("Overall", 0.0));
 					if(ss!=Skill_Overall)
-						tmp.ssr = score["skillsets"].value(SkillsetToString(ss), 0.0);
+						tmp.ssr = static_cast<float>(score["skillsets"].value(SkillsetToString(ss), 0.0));
 					else
 						tmp.ssr = tmp.overall;
 					tmp.chartkey = score.value("chartKey", "");
 					tmp.scorekey = scoreJ.value("id", "");
-					tmp.rate = score.value("rate", 0.0);
+					tmp.rate = static_cast<float>(score.value("rate", 0.0));
 					tmp.difficulty = StringToDifficulty(score.value("difficulty", "Invalid").c_str());
 					vec.push_back(tmp);
 				}
@@ -1098,7 +1098,7 @@ float DownloadManager::GetSkillsetRating(Skillset ss)
 {
 	if (!LoggedIn())
 		return 0.0f;
-	return sessionRatings[ss];
+	return static_cast<float>(sessionRatings[ss]);
 }
 void DownloadManager::RefreshPackList(string url)
 {
@@ -1150,9 +1150,9 @@ void DownloadManager::RefreshPackList(string url)
 					if (tmp.url.empty())
 						continue;
 					if (pack.find("average") != pack.end())
-						tmp.avgDifficulty = pack.value("average", 0);
+						tmp.avgDifficulty = static_cast<float>(pack.value("average", 0.0));
 					else
-						tmp.avgDifficulty = 0.0;
+						tmp.avgDifficulty = 0.f;
 					if (pack.find("size") != pack.end())
 						tmp.size = pack.value("size", 0);
 					else
@@ -1345,7 +1345,7 @@ public:
 		string chartkey = SArg(1);
 		int rank = IArg(2);
 		int index = rank - 1;
-		if (!DLMAN->chartLeaderboards.count(chartkey) || index >= DLMAN->chartLeaderboards[chartkey].size()) {
+		if (!DLMAN->chartLeaderboards.count(chartkey) || index >= static_cast<int>(DLMAN->chartLeaderboards[chartkey].size())) {
 			lua_pushnil(L);
 			return 1;
 		}
@@ -1416,10 +1416,10 @@ public:
 			return luaL_error(L, "GetFilteredAndSearchedPackList expects exactly 5 arguments(packname, lower diff, upper diff, lower size, upper size)");
 		}
 		string name = SArg(1);
-		double avgLower = max(luaL_checknumber(L, 2), 0);
-		double avgUpper = max(luaL_checknumber(L, 3),0);
-		size_t sizeLower = luaL_checknumber(L, 4);
-		size_t sizeUpper = luaL_checknumber(L, 5);
+		double avgLower = max(luaL_checknumber(L, 2), 0.0);
+		double avgUpper = max(luaL_checknumber(L, 3), 0.0);
+		size_t sizeLower = static_cast<size_t>(luaL_checknumber(L, 4));
+		size_t sizeUpper = static_cast<size_t>(luaL_checknumber(L, 5));
 		vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
 		vector<DownloadablePack*> retPacklist;
 		for (unsigned i = 0; i < packs.size(); ++i) {
