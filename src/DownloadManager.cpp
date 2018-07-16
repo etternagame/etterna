@@ -798,6 +798,7 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 				tmp.modifiers = score.value("modifiers", "").c_str();
 				auto user = *(score.find("user"));
 				tmp.username = user.value("userName", "").c_str();
+				tmp.playerRating = user.value("playerRating", 0.0);
 				tmp.maxcombo = score.value("maxCombo", 0);
 				{
 					auto judgements = *(score.find("judgements"));
@@ -1340,6 +1341,8 @@ public:
 		lua_setfield(L, -2, "modifiers");
 		lua_pushstring(L, score.username.c_str());
 		lua_setfield(L, -2, "username");
+		lua_pushnumber(L, score.playerRating);
+		lua_setfield(L, -2, "playerRating");
 		lua_pushstring(L, score.datetime.GetString().c_str());
 		lua_setfield(L, -2, "datetime");
 		if (!score.replayData.empty()) {

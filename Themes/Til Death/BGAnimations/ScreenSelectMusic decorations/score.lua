@@ -509,7 +509,7 @@ local function ButtonActive(self)
 end
 
 ret[#ret+1] = t
-local netscoreframeWidth = capWideScale(get43size(440),440)
+local netscoreframeWidth = capWideScale(get43size(460),440)
 local netscorespacing = 34
 local netscoreframex = capWideScale(get43size(70),60)
 local netscoreframey = offsetY+netscorespacing/2+5
@@ -655,7 +655,7 @@ local function netscoreitem(drawindex)
 		-- ssr
 		LoadFont("Common normal")..{
 			InitCommand=function(self)
-				self:xy(netscoreframex-18,netscoreframey+17+(drawindex*netscorespacing)):zoom(0.75):halign(0):maxwidth(50):valign(1)
+				self:xy(netscoreframex-16,netscoreframey+17+(drawindex*netscorespacing)):zoom(0.75):halign(0):maxwidth(50):valign(1)
 			end,
 			SetCommand=function(self)
 				if tmpScore then
@@ -676,7 +676,7 @@ local function netscoreitem(drawindex)
 		-- rate
 		LoadFont("Common normal")..{
 			InitCommand=function(self)
-				self:xy(netscoreframex+2,netscoreframey+23+(drawindex*netscorespacing)):zoom(0.55):halign(0.5):maxwidth((netscoreframeWidth-15)/0.35)
+				self:xy(netscoreframex+4,netscoreframey+23+(drawindex*netscorespacing)):zoom(0.55):halign(0.5):maxwidth((netscoreframeWidth-15)/0.9)
 			end,
 			SetCommand=function(self)
 				if tmpScore then
@@ -693,14 +693,14 @@ local function netscoreitem(drawindex)
 			end,
 		},
 		
-		--user
+		--user + user rating (this is kind of cluttery so maybe it should be a mouseover or hold-to-display type deal?) -mina
 		LoadFont("Common normal")..{
 			InitCommand=function(self)
-				self:xy(netscoreframex+28,netscoreframey+14+(drawindex*netscorespacing)):zoom(0.65):halign(0):diffuse(getMainColor('positive')):valign(1)
+				self:xy(netscoreframex+28,netscoreframey+14+(drawindex*netscorespacing)):zoom(0.65):halign(0):diffuse(getMainColor('positive')):valign(1):maxwidth((netscoreframeWidth-15)/0.9)
 			end,
 			SetCommand=function(self)
 				if tmpScore then
-					self:settext(tmpScore.username)
+					self:settextf("%s: %.2f",tmpScore.username, tmpScore.playerRating)
 				else
 					self:settext("")
 				end
