@@ -335,7 +335,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 		if song then
 			local meter = steps:GetMSD(getCurRateValue(), 1)
 			self:settextf("%05.2f",meter)
-			self:diffuse(ByMSD(meter))
+			self:diffuse(byMSD(meter))
 		else
 			self:settext("")
 		end

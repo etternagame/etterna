@@ -583,7 +583,7 @@ local function littlebits(i)
 					rating = DLMAN:GetSkillsetRating(ms.SkillSets[i])
 					self:settextf("%5.2f(#%i)",rating, DLMAN:GetSkillsetRank(ms.SkillSets[i]))
 				end
-				self:diffuse(ByMSD(rating))
+				self:diffuse(byMSD(rating))
 			end,
 			UpdateRankingMessageCommand=function(self)
 				self:queuecommand("Set")

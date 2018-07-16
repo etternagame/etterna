@@ -530,7 +530,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 				self:settext("")
 			else
 				self:settextf("%05.2f",meter)
-				self:diffuse(ByMSD(meter))
+				self:diffuse(byMSD(meter))
 			end
 		else
 			self:settext("")

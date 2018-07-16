@@ -692,7 +692,7 @@ local function netscoreitem(drawindex)
 			SetCommand=function(self)
 				if tmpScore then
 					self:settextf("%.2f",tmpScore.Overall)
-					self:diffuse(ByMSD(tmpScore.Overall))
+					self:diffuse(byMSD(tmpScore.Overall))
 				else
 					self:settext("")
 				end

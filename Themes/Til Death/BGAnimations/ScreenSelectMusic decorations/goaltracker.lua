@@ -328,7 +328,7 @@ local function makescoregoal(i)
 						if sg and goalsteps then
 							local msd = goalsteps:GetMSD(sg:GetRate(), 1)
 							self:settextf("%5.1f", msd)
-							self:diffuse(ByMSD(msd))
+							self:diffuse(byMSD(msd))
 							self:visible(true)
 						else
 							self:visible(false)

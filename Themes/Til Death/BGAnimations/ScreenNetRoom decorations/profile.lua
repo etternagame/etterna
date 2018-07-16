@@ -355,7 +355,7 @@ local function littlebits(i)
 			SetCommand=function(self)
 				local rating = profile:GetPlayerSkillsetRating(ms.SkillSets[i])
 				self:settextf("%5.2f",rating)
-				self:diffuse(ByMSD(rating))
+				self:diffuse(byMSD(rating))
 			end
 		}
 	}

@@ -253,7 +253,7 @@ local function PackLabel(i)
 			PacksPageMessageCommand=function(self)
 				local rating = packlist[i + ((currentpage - 1) * perpage)] and packlist[i + ((currentpage - 1) * perpage)]:GetAvgDifficulty() or 0
 				self:settextf("%.2f", rating)
-				self:diffuse(ByMSD(rating))
+				self:diffuse(byMSD(rating))
 			end,
 			UpdatePacksMessageCommand=function(self) self:queuecommand("PacksPage") end,
 			DlInputEndedMessageCommand=function(self) self:queuecommand("PacksPage") end,
