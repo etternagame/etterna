@@ -1,3 +1,6 @@
+-- Note this file is different from the scoretaboffsetplot because it takes values from pss and not a highscore object
+-- this diffrentiation should probably be handled in a single file to reduce code redundancy -mina
+
 local judges = { "marv", "perf", "great", "good", "boo", "miss" }
 local tst = { 1.50,1.33,1.16,1.00,0.84,0.66,0.50,0.33,0.20 }
 local judge = GetTimingDifficulty()
@@ -29,27 +32,10 @@ local function fitY(y)	-- Scale offset values to fit within plot height
 	return -1*y/maxOffset*plotHeight/2
 end
 
---local function plotOffset(nr,dv)
---	if dv == 1000 then 	-- 1000 denotes a miss for which we use a different marker
---		return Def.Quad{InitCommand=cmd(xy,fitX(nr),fitY(tst[judge]*184);zoomto,dotDims,dotDims;diffuse,offsetToJudgeColor(dv/1000);valign,0)}
---	end
---	return Def.Quad{
---		InitCommand=cmd(xy,fitX(nr),fitY(dv);zoomto,dotDims,dotDims;diffuse,offsetToJudgeColor(dv/1000)),
---		JudgeDisplayChangedMessageCommand=function(self)
---			local pos = fitY(dv)
---			if math.abs(pos) > plotHeight/2 then
---				self:y(fitY(tst[judge]*184))
---			else
---				self:y(pos)
---			end
---			self:diffuse(offsetToJudgeColor(dv/1000, tst[judge]))
---		end
---	}
---end
-
 local o = Def.ActorFrame{
 	InitCommand=function(self)
 		self:xy(plotX,plotY)
+		MESSAGEMAN:Broadcast("JudgeDisplayChanged")		-- prim really handled all this much more elegantly
 	end,
 	CodeMessageCommand=function(self,params)
 		if enabledCustomWindows then
@@ -124,37 +110,17 @@ for i=1,#nrt do
 	wuab[i] = td:GetElapsedTimeFromNoteRow(nrt[i])
 end
 
-local dotWidth = dotDims / 2;
+local dotWidth = dotDims / 2
 o[#o+1] = Def.ActorMultiVertex{
-	Name= "AMV_Quads",
-	InitCommand=function(self)
-		self:visible(true)
-		self:xy(0, 0)
-		local verts = {};
-		for i=1,#nrt do
-			local color = offsetToJudgeColor(dvt[i]/1000);
-			local x = fitX(wuab[i]);
-			local y = fitY(dvt[i]);
-			if math.abs(y) > plotHeight/2 then
-				y = fitY(math.max(183, 183*tso));
-			end
-			verts[#verts+1] = {{x-dotWidth,y+dotWidth,0}, color}
-			verts[#verts+1] = {{x+dotWidth,y+dotWidth,0}, color}
-			verts[#verts+1] = {{x+dotWidth,y-dotWidth,0}, color}
-			verts[#verts+1] = {{x-dotWidth,y-dotWidth,0}, color}
-		end
-		self:SetVertices(verts)
-		self:SetDrawState{Mode="DrawMode_Quads", First = 1, Num=#verts}
-	end,
 	JudgeDisplayChangedMessageCommand=function(self)
-		local verts = {};
+		local verts = {}
 		for i=1,#dvt do
-			local x = fitX(wuab[i]);
-			local y = fitY(dvt[i]);
+			local x = fitX(wuab[i])
+			local y = fitY(dvt[i])
 			local fit = (enabledCustomWindows and judge ~= 0) and customWindow.judgeWindows.boo + 3 or math.max(183, 183*tso)
-			local color = (enabledCustomWindows and judge ~= 0) and customOffsetToJudgeColor(dvt[i], customWindow.judgeWindows) or offsetToJudgeColor(dvt[i]/1000, tst[judge]);
+			local color = (enabledCustomWindows and judge ~= 0) and customOffsetToJudgeColor(dvt[i], customWindow.judgeWindows) or offsetToJudgeColor(dvt[i]/1000, tst[judge])
 			if math.abs(y) > plotHeight/2 then
-				y = fitY(fit);
+				y = fitY(fit)
 			end
 			verts[#verts+1] = {{x-dotWidth,y+dotWidth,0}, color}
 			verts[#verts+1] = {{x+dotWidth,y+dotWidth,0}, color}
