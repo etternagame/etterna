@@ -134,8 +134,9 @@ function getVividDifficultyColor(diff)
 	return color(colorConfig:get_data().difficultyVivid[diff]) or color("#ffffff")
 end
 
+-- expecting ms input (153, 13.321, etc) so convert to seconds to compare to judgment windows -mina
 function offsetToJudgeColor(offset,scale)
-	local offset = math.abs(offset)
+	local offset = math.abs(offset/1000)
 	if not scale then
 		scale = PREFSMAN:GetPreference("TimingWindowScale")
 	end
