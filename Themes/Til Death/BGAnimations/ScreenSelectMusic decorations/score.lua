@@ -730,10 +730,15 @@ local function netscoreitem(drawindex)
 		--user + user rating (this is kind of cluttery so maybe it should be a mouseover or hold-to-display type deal?) -mina
 		LoadFont("Common normal")..{
 			InitCommand=function(self)
-				self:xy(netscoreframex+28,netscoreframey+14+(drawindex*netscorespacing)):zoom(0.65):halign(0):diffuse(getMainColor('positive')):valign(1):maxwidth((netscoreframeWidth-15)/0.9)
+				self:xy(netscoreframex+28,netscoreframey+14+(drawindex*netscorespacing)):zoom(0.65):halign(0):valign(1):maxwidth((netscoreframeWidth-15)/0.9)
 			end,
 			SetCommand=function(self)
 				if tmpScore then
+						if tmpScore.nocc then
+							self:diffuse(getMainColor('positive'))
+						else
+							self:diffuse(color("#F0EEA6"))
+						end
 					self:settextf("%s: %.2f",tmpScore.username, tmpScore.playerRating)
 				else
 					self:settext("")
@@ -754,6 +759,11 @@ local function netscoreitem(drawindex)
 			end,
 			SetCommand=function(self)
 				if tmpScore then
+					if tmpScore.nocc then
+						self:diffuse(color("#FFFFFF"))
+					else
+						self:diffuse(color("#F0EEA6"))
+					end
 				-- The "I"s are simply used for spacing
 					self:settextf("%d I %d I %d I %d I %d I %d  x%d",
 						tmpScore.marvelous,
