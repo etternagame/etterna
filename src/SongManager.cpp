@@ -48,6 +48,7 @@ static const ThemeMetric<bool>		USE_PREFERRED_SORT_COLOR	( "SongManager", "UsePr
 static const ThemeMetric<int>		EXTRA_STAGE2_DIFFICULTY_MAX	( "SongManager", "ExtraStage2DifficultyMax" );
 
 static Preference<RString> g_sDisabledSongs( "DisabledSongs", "" );
+static Preference<bool> PlaylistsAreSongGroups("PlaylistsAreSongGroups", true);
 
 RString SONG_GROUP_COLOR_NAME( size_t i )   { return ssprintf( "SongGroupColor%i", (int) i+1 ); }
 
@@ -375,6 +376,9 @@ void SongManager::SetFlagsForProfile(Profile* prof) {
 }
 
 void SongManager::MakeSongGroupsFromPlaylists(map<string, Playlist>& playlists) {
+	if (!PlaylistsAreSongGroups)
+		return;
+
 	for(auto& plName : playlistGroups)
 		groupderps.erase(plName);
 	playlistGroups.clear();
