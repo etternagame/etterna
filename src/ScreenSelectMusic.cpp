@@ -1223,7 +1223,10 @@ bool ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 
 	switch (m_SelectionState)
 	{
-		DEFAULT_FAIL(m_SelectionState);
+	case SelectionState_Finalized: {
+		LOG->Warn("song selection made while selectionstate_finalized");
+		return false;
+	}
 	case SelectionState_SelectingSong:
 		// If false, we don't have a selection just yet.
 		if (!m_MusicWheel.Select())
