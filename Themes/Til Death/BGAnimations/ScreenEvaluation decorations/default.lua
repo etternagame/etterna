@@ -14,16 +14,28 @@ end
 
 t[#t+1] = LoadFont("Common Normal")..{
 	InitCommand=function(self)
-		self:xy(SCREEN_CENTER_X,capWideScale(135,150)):zoom(0.4):maxwidth(400/0.4)
+		self:xy(SCREEN_CENTER_X,capWideScale(135,150)):zoom(0.4):maxwidth(capWideScale(250/0.4,180/0.4))
+	end,
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	SetCommand=function(self) 
+		self:settext(GAMESTATE:GetCurrentSong():GetDisplayMainTitle())
+	end
+}
+
+t[#t+1] = LoadFont("Common Normal")..{
+	InitCommand=function(self)
+		self:xy(SCREEN_CENTER_X,capWideScale(145,160)):zoom(0.4):maxwidth(180/0.4)
 	end,
 	BeginCommand=function(self)
 		self:queuecommand("Set")
 	end,
 	SetCommand=function(self) 
 		if GAMESTATE:IsCourseMode() then
-			self:settext(GAMESTATE:GetCurrentCourse():GetDisplayFullTitle().." // "..GAMESTATE:GetCurrentCourse():GetScripter())
+			self:settext(GAMESTATE:GetCurrentCourse():GetScripter())
 		else
-			self:settext(GAMESTATE:GetCurrentSong():GetDisplayMainTitle().." // "..GAMESTATE:GetCurrentSong():GetDisplayArtist()) 
+			self:settext(GAMESTATE:GetCurrentSong():GetDisplayArtist())
 		end
 	end
 }
@@ -31,7 +43,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 -- Rate String
 t[#t+1] = LoadFont("Common normal")..{
 	InitCommand=function(self)
-		self:xy(SCREEN_CENTER_X,capWideScale(145,160)):zoom(0.5):halign(0.5)
+		self:xy(SCREEN_CENTER_X,capWideScale(155,170)):zoom(0.5):halign(0.5)
 	end,
 	BeginCommand=function(self)
 		if getCurRateString() == "1x" then
@@ -115,7 +127,7 @@ function scoreBoard(pn,position)
 	}
 	t[#t+1] = Def.Quad{
 		InitCommand=function(self)
-			self:xy(frameX-5,frameY):zoomto(frameWidth+10,220):halign(0):valign(0):diffuse(color("#333333CC"))
+			self:xy(frameX-5,capWideScale(frameY,frameY+4)):zoomto(frameWidth+10,220):halign(0):valign(0):diffuse(color("#333333CC"))
 		end,
 	};
 	t[#t+1] = Def.Quad{
