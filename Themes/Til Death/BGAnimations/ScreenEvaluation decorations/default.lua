@@ -381,20 +381,37 @@ function scoreBoard(pn,position)
 	end
 	
 	-- stats stuff
+	local tracks = pss:GetTrackVector()
 	local devianceTable = pss:GetOffsetVector()
+	local cbl = 0
+	local cbr = 0
+	
+	-- basic per-hand stats to be expanded on later
+	local tst = { 1.50,1.33,1.16,1.00,0.84,0.66,0.50,0.33,0.20 }	-- ok this is getting dumb i need to do this better -mina
+	local tso = tst[judge]
+	for i=1,#devianceTable do
+		if devianceTable[i] > tso * 135 then
+			if tracks[i] == 0 or tracks[i] == 1 then
+				cbl = cbl + 1
+			else
+				cbr = cbr + 1
+			end
+		end
+	end
+	
 	t[#t+1] = Def.Quad{
 		InitCommand=function(self)
 			self:xy(frameWidth+25,frameY+230):zoomto(frameWidth/2+10,60):halign(1):valign(0):diffuse(color("#333333CC"))
 		end,
 	};
 	local smallest,largest = wifeRange(devianceTable)
-	local doot = {"Mean", "Mean(Abs)", "Sd", "Smallest", "Largest"}
+	local doot = {"Mean", "Mean(Abs)", "Sd", "Left cbs", "Right cbs"}
 	local mcscoot = {
 		wifeMean(devianceTable), 
 		wifeAbsMean(devianceTable),
 		wifeSd(devianceTable),
-		smallest, 
-		largest
+		cbl, 
+		cbr
 	}
 
 	for i=1,#doot do
@@ -408,7 +425,7 @@ function scoreBoard(pn,position)
 				self:xy(frameWidth+20,frameY+230+10*i):zoom(0.4):halign(1):settextf("%5.2fms",mcscoot[i])
 			end,
 		};
-	end
+	end	
 	
 	return t
 end;
