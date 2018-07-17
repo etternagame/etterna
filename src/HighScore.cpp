@@ -597,6 +597,7 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 }
 
 bool HighScoreImpl::WriteReplayData() {
+	CHECKPOINT_M("Writing out replay data to disk.");
 	string append;
 	string profiledir;
 	//These two lines should probably be somewhere else

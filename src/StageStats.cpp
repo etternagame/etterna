@@ -602,6 +602,7 @@ void StageStats::FinalizeScores(bool bSummary)
 	Profile* zzz = PROFILEMAN->GetProfile(PLAYER_1);
 	int istop2 = SCOREMAN->AddScore(hs);
 	if (DLMAN->ShouldUploadScores() && !AdjustSync::IsSyncDataChanged()) {
+		CHECKPOINT_M("Uploading score with replaydata.");
 		hs.SetTopScore(istop2);	// ayy i did it --lurker
 		auto steps = SONGMAN->GetStepsByChartkey(hs.GetChartKey());
 		auto td = steps->GetTimingData();
