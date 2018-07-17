@@ -938,7 +938,7 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 
 				// eo still has some old profiles with various edge issues that unfortunately need to be handled here
 				// screen out old 11111 flags (my greatest mistake) and it's probably a safe bet to throw out below 25% scores -mina
-				if (tmp.wife > 1.f || tmp.wife < 0.25f)
+				if (tmp.wife > 1.f || tmp.wife < 0.25f || !tmp.valid)
 					continue;
 				vec.emplace_back(tmp);
 			}
