@@ -131,6 +131,7 @@ public:
 	bool luascriptwasloaded;
 	bool filehadnegbpms; // the call after gameplay is over is apparently unreliable -mina
 	bool filegotmines; // this needs to be set before any notedata transforms
+	bool filegotholds;
 	bool gaveuplikeadumbass; // flag 'giving up' status so i can flag it as failing so i dont have to remove the feature entirely -mina
 
 	map<float,float> m_fLifeRecord;

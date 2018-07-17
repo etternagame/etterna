@@ -619,6 +619,9 @@ void Player::Load()
 	if(GAMESTATE->m_pCurSteps[pn]->GetRadarValues()[RadarCategory_Mines] > 0)
 		m_pPlayerStageStats->filegotmines = true;
 
+	if (GAMESTATE->m_pCurSteps[pn]->GetRadarValues()[RadarCategory_Holds] > 0 || GAMESTATE->m_pCurSteps[pn]->GetRadarValues()[RadarCategory_Rolls] > 0)
+		m_pPlayerStageStats->filegotholds = true;
+
 	// check for lua script load (technically this is redundant a little with negbpm but whatever) -mina
 	if (!m_Timing->ValidSequentialAssumption)
 		m_pPlayerStageStats->luascriptwasloaded = true;

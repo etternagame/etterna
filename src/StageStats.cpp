@@ -459,6 +459,10 @@ bool DetermineScoreEligibility(const PlayerStageStats &pss, const PlayerState &p
 	if (mods.find("NoMines") != mods.npos && pss.filegotmines)
 		return false;
 
+	// this would be difficult to accomplish but for parity's sake we should
+	if (mods.find("NoHolds") != mods.npos && pss.filegotholds)
+		return false;
+
 	if (mods.find("Left") != mods.npos)
 		return false;
 
