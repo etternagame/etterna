@@ -1516,6 +1516,13 @@ public:
 		}
 		return 1;
 	}
+	static int DownloadCoreBundle(T* p, lua_State* L)
+	{
+		// pass "novice", "expert" etc, should start a queue and download packs in sequence rather than concurrently to minimize time before can begin -mina
+		p->DownloadCoreBundle(SArg(1));
+		return 1;
+	}
+	
 	LunaDownloadManager()
 	{
 		ADD_METHOD(GetPackList);
@@ -1533,6 +1540,7 @@ public:
 		ADD_METHOD(GetLastVersion);
 		ADD_METHOD(GetRegisterPage);
 		ADD_METHOD(Logout);
+		ADD_METHOD(DownloadCoreBundle)
 	}
 };
 LUA_REGISTER_CLASS(DownloadManager) 

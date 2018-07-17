@@ -201,6 +201,7 @@ public:
 
 	// most recent single score upload result -mina
 	RString mostrecentresult = "";
+	void DownloadCoreBundle(string whichoneyo) { bool imnotdoneyet = true; };	// handle this how u want
 
 	// Lua
 	void PushSelf(lua_State *L);
