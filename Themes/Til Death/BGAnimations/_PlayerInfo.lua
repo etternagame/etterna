@@ -92,7 +92,7 @@ t[#t+1] = Def.ActorFrame{
 	},
 	LoadFont("Common Normal") .. {
 		InitCommand=function(self)
-			self:xy(SCREEN_CENTER_X+100,AvatarY+40):halign(0):zoom(0.35):diffuse(getMainColor('positive'))
+			self:xy(SCREEN_CENTER_X,AvatarY+20):halign(0.5):zoom(0.5):diffuse(getMainColor('positive'))
 		end,
 		BeginCommand=function(self)
 			self:queuecommand("Set")
@@ -105,15 +105,54 @@ t[#t+1] = Def.ActorFrame{
 			end
 		end,
 		LogOutMessageCommand=function(self)
-			self:settext("Not logged in")
+			self:settext("Click to login")
 		end,
-		LoginMessageCommand=function(self)
-			self:settextf("Logged in as %s (%5.2f: #%i)",DLMAN:GetUsername(),DLMAN:GetSkillsetRating("Overall"),DLMAN:GetSkillsetRank(ms.SkillSets[1]))
-			self:xy(SCREEN_CENTER_X-75,AvatarY+25)
+		LoginMessageCommand=function(self)	--this seems a little clunky -mina
+			if SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then	
+				self:settextf("Logged in as %s (%5.2f: #%i) \n%s",DLMAN:GetUsername(),DLMAN:GetSkillsetRating("Overall"),DLMAN:GetSkillsetRank(ms.SkillSets[1]),"Click to Logout")
+			else
+				self:settextf("Logged in as %s (%5.2f: #%i)",DLMAN:GetUsername(),DLMAN:GetSkillsetRating("Overall"),DLMAN:GetSkillsetRank(ms.SkillSets[1]))
+			end
 		end,
 		OnlineUpdateMessageCommand=function(self)
 			self:queuecommand("Set")
 		end,
+	},
+	Def.Quad{
+		InitCommand=function(self)
+			self:xy(SCREEN_CENTER_X,AvatarY+20):halign(0.5):zoomto(100,30):diffusealpha(0)
+		end,
+		LoginFailedMessageCommand=function(self)
+			ms.ok("Login failed!")
+		end,
+		LoginMessageCommand=function(self)
+			ms.ok("Succesfully logged in")
+		end,
+		MouseLeftClickMessageCommand=function(self)
+			if isOver(self) then 
+				if not DLMAN:IsLoggedIn() then
+					username = function(answer) 
+							user=answer
+						end
+					password = function(answer) 
+							pass=answer
+							DLMAN:Login(user, pass) 
+							playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = user
+							playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).Password = pass
+							playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+							playerConfig:save(pn_to_profile_slot(PLAYER_1))
+						end
+					easyInputStringWithFunction("Password:", 50, true, password)
+					easyInputStringWithFunction("Username:",50, false, username)
+				else
+					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = ""
+					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).Password = ""
+					playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+					playerConfig:save(pn_to_profile_slot(PLAYER_1))
+					DLMAN:Logout()
+				end
+			end
+		end
 	},
 	LoadFont("Common Normal") .. {
 		InitCommand=function(self)
