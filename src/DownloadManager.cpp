@@ -857,19 +857,15 @@ float ixmixblixb(string chartkey) {
 	float overratedness = (dsum - offset) / num;
 	
 	overratedness /= zeeaverage;
-	overratedness -= .5f;
-	
-	LOG->Warn("%f", overratedness);
+	overratedness -= 1.5f;
 
-	float multiplier = 1.f - (overratedness / 10.f);
-	LOG->Warn("%f", multiplier);
+	float multiplier = 1.f - overratedness;
 	if (multiplier - mcdoot < -0.2f)
 		multiplier = mcdoot - 0.2f;
 
 	float nerfE = (4.f*mcdoot + multiplier) / 5.f;
-	LOG->Warn("%f", nerfE);
 	nerfE = min(1.f, nerfE);
-	return nerfE;
+	return overratedness;
 }
 
 void DownloadManager::RequestChartLeaderBoard(string chartkey)
@@ -951,10 +947,10 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 			//json failed
 		}
 		
-		float zoop = mythicalmathymaths(chartkey);
-		float coop = ixmixblixb(chartkey);
-		msg.SetParam("mmm", zoop);
-		msg.SetParam("ixmixblixb", coop);
+		//float zoop = mythicalmathymaths(chartkey);
+		//float coop = ixmixblixb(chartkey);
+		msg.SetParam("mmm", 1);
+		msg.SetParam("ixmixblixb", 2);
 		userswithscores.clear();	// should be ok to free the mem in this way? -mina
 		MESSAGEMAN->Broadcast(msg);	// see start of function
 	};

@@ -813,7 +813,7 @@ local function netscoreitem(drawindex)
 		-- weo
 		LoadFont("Common normal")..{ 
 			InitCommand=function(self)
-				self:xy(netscoreframeWidth-18,netscoreframey+(drawindex*netscorespacing)+17):zoom(0.65):halign(1):maxwidth(100):valign(1)
+				self:xy(netscoreframeWidth-18,netscoreframey+(drawindex*netscorespacing)+17):zoom(0.65):halign(1):maxwidth(100):valign(1):diffusealpha(0)
 			end,
 			SetCommand=function(self)
 				if tmpScore then
