@@ -24,9 +24,9 @@ local o = Def.ActorFrame{
 			self:queuecommand("SelectionChanged")
 		end
 		if params.Name == 'Select' then
-		SCREENMAN:SystemMessage(minidoots[ind]:lower())
+			SCREENMAN:SystemMessage(minidoots[ind]:lower())
 			DLMAN:DownloadCoreBundle(minidoots[ind]:lower())
-			-- then move to screenselectmusic some way
+			SCREENMAN:GetTopScreen():StartTransitioningScreen("SM_GoToNextScreen") 
 		end
 	end,
 	Def.Quad{
