@@ -960,6 +960,28 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 	};
 	SendRequest("/charts/"+chartkey+"/leaderboards", vector<pair<string, string>>(), done, true);
 }
+
+void DownloadManager::DownloadCoreBundle(string whichoneyo) {
+	auto done = [this](HTTPRequest& req, CURLMsg *) {
+		json j;
+		bool parsed = true;
+		try {
+			j = json::parse(req.result);
+			auto packs = j.find("data");
+			if (packs == j.end()) 
+				return;
+			for (auto pack : (*packs)) {
+				auto url = pack["attributes"].value("download", "");
+				DownloadAndInstallPack(url);
+			}
+		}
+		catch (exception e) {
+			parsed = false;
+		}
+	};
+	SendRequest("packs/collection/" + whichoneyo, vector<pair<string, string>>(), done, false, false, true);
+}
+
 void DownloadManager::RefreshLastVersion()
 {
 	auto done = [this](HTTPRequest& req, CURLMsg *) {
@@ -1519,12 +1541,13 @@ public:
 	static int DownloadCoreBundle(T* p, lua_State* L)
 	{
 		// pass "novice", "expert" etc, should start a queue and download packs in sequence rather than concurrently to minimize time before can begin -mina
-		p->DownloadCoreBundle(SArg(1));
+		DLMAN->DownloadCoreBundle(SArg(1));
 		return 1;
 	}
 	
 	LunaDownloadManager()
 	{
+		ADD_METHOD(DownloadCoreBundle);
 		ADD_METHOD(GetPackList);
 		ADD_METHOD(GetDownloadingPacks);
 		ADD_METHOD(GetDownloads);
@@ -1540,7 +1563,6 @@ public:
 		ADD_METHOD(GetLastVersion);
 		ADD_METHOD(GetRegisterPage);
 		ADD_METHOD(Logout);
-		ADD_METHOD(DownloadCoreBundle)
 	}
 };
 LUA_REGISTER_CLASS(DownloadManager) 

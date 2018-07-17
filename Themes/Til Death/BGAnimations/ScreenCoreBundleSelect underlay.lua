@@ -24,7 +24,8 @@ local o = Def.ActorFrame{
 			self:queuecommand("SelectionChanged")
 		end
 		if params.Name == 'Select' then
-			DLMAN:DownloadCoreBundle(minidoots[i])
+		SCREENMAN:SystemMessage(minidoots[ind]:lower())
+			DLMAN:DownloadCoreBundle(minidoots[ind]:lower())
 			-- then move to screenselectmusic some way
 		end
 	end,
