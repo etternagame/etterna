@@ -727,7 +727,7 @@ local function netscoreitem(drawindex)
 			end,
 		},
 		
-		--user + user rating (this is kind of cluttery so maybe it should be a mouseover or hold-to-display type deal?) -mina
+		--user
 		LoadFont("Common normal")..{
 			InitCommand=function(self)
 				self:xy(netscoreframex+28,netscoreframey+14+(drawindex*netscorespacing)):zoom(0.65):halign(0):valign(1):maxwidth((netscoreframeWidth-15)/0.9)
@@ -739,7 +739,7 @@ local function netscoreitem(drawindex)
 						else
 							self:diffuse(color("#F0EEA6"))
 						end
-					self:settextf("%s: %.2f",tmpScore.username, tmpScore.playerRating)
+					self:settext(tmpScore.username) -- self:settextf("%s: %.2f",tmpScore.username, tmpScore.playerRating)
 				else
 					self:settext("")
 				end
