@@ -123,6 +123,7 @@ public:
 	string modifiers;
 	string scoreid;
 	string avatar;
+	int userid;
 	DateTime datetime;
 	vector<pair<float, float>> replayData;
 };

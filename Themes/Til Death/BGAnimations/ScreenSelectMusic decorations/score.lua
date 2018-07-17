@@ -599,7 +599,7 @@ local netTab = Def.ActorFrame {
 		--currentrateonly toggle ps. HURRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR -mina
 		Def.ActorFrame{
 			InitCommand=function(self)
-				self:x(netscoreframeWidth/2.25):halign(0.5)
+				self:x(netscoreframeWidth/2.25-capWideScale(12,20)):halign(0.5)
 			end,
 			Def.Quad{
 				InitCommand=function(self)
@@ -859,7 +859,7 @@ local function netscoreitem(drawindex)
 			end,
 			MouseLeftClickMessageCommand=function(self)
 				if isOver(self) and nestedTab == 2 then
-					local urlstringyo = "https://etternaonline.com/score/view/"..tmpScore.scoreid
+					local urlstringyo = "https://etternaonline.com/score/view/"..tmpScore.scoreid..tmpScore.userid
 					GAMESTATE:ApplyGameCommand("urlnoexit,"..urlstringyo)
 				end
 			end

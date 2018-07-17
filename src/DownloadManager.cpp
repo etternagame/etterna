@@ -891,6 +891,7 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 				auto user = *(score.find("user"));
 				tmp.username = user.value("userName", "").c_str();
 				tmp.avatar = user.value("avatar", "").c_str();
+				tmp.userid = user.value("userId", 0);
 				
 				// it seems prudent to maintain the eo functionality in this way and screen out multiple scores from the same user -mina
 				if (userswithscores.count(tmp.username) == 1)
@@ -1469,6 +1470,8 @@ public:
 		lua_setfield(L, -2, "datetime");
 		lua_pushstring(L, score.scoreid.c_str());
 		lua_setfield(L, -2, "scoreid");
+		lua_pushnumber(L, score.userid);
+		lua_setfield(L, -2, "userid");
 		lua_pushstring(L, score.avatar.c_str());
 		lua_setfield(L, -2, "avatar");
 		if (!score.replayData.empty()) {
