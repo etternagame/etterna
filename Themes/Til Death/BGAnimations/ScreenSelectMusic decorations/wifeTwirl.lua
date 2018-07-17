@@ -502,7 +502,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 		self:queuecommand("Set")
 	end,
 	SetCommand=function(self)
-		if steps:GetTimingData():HasWarps() then
+		if song and steps:GetTimingData():HasWarps() then
 			self:settext("NegBpms!")
 		else
 			self:settext("")
@@ -581,18 +581,22 @@ t[#t+1] = Def.Quad{
 		self:xy(frameX+135,frameY+45):zoomto(50,40):diffusealpha(0)
 	end,
 	MouseLeftClickMessageCommand=function(self)
+		if song and steps then
 		local sg = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
 		if sg and isOver(self) and update then
 			sg:SetPercent(sg:GetPercent()+0.01)
 			MESSAGEMAN:Broadcast("RefreshChartInfo")
 		end
+		end
 	end,
 	MouseRightClickMessageCommand=function(self)
+		if song and steps then
 		local sg = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
 		if sg and isOver(self) and update then
 			sg:SetPercent(sg:GetPercent()-0.01)
 			MESSAGEMAN:Broadcast("RefreshChartInfo")
 		end
+	end
 	end
 }
 
