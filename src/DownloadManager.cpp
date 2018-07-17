@@ -841,7 +841,7 @@ float ixmixblixb(string chartkey) {
 	for (auto &s : scoobydoop) {
 		if (s.playerRating > 1.f && s.SSRs[Skill_Overall] > 1.f) {
 			float adjrating = s.playerRating * 1.026f;
-			float value = (2.0 / erfc(0.1 * (s.SSRs[Skill_Overall] - adjrating)));
+			float value = static_cast<float>((2.0 / erfc(0.1 * (s.SSRs[Skill_Overall] - adjrating))));
 			if (s.SSRs[Skill_Overall] - s.playerRating > 40)
 				value = 100.f;
 			if (value < 0)
