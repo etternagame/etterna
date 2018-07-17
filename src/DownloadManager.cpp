@@ -880,10 +880,13 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 			auto j = json::parse(req.result);
 			if (j.find("errors") != j.end())
 				throw exception();
-			//msg.SetParam("songid", RString(j.value("songid", "").c_str()));	// want songid here or something -mina
 			auto scores = j.find("data");
 			for (auto scoreJ : (*scores)) {
 				auto score = *(scoreJ.find("attributes"));
+				
+				// i don't really want to do this very iteration but oh well -mina
+				msg.SetParam("songid", RString(score.value("songId", "").c_str()));
+
 				OnlineScore tmp;
 				auto user = *(score.find("user"));
 				tmp.username = user.value("userName", "").c_str();
