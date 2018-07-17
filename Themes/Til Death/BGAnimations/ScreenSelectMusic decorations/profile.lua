@@ -709,7 +709,7 @@ local profilebuttons = Def.ActorFrame{
 			else
 				self:settext("Login")
 			end
-			self:x(300):diffuse(getMainColor('positive')):zoom(0.3)
+			self:x(capWideScale(280,300)):diffuse(getMainColor('positive')):zoom(0.3)
 		end,
 	},
 	Def.Quad{
