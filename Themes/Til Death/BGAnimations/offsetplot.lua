@@ -26,6 +26,9 @@ local wuab = {}
 local finalSecond = GAMESTATE:GetCurrentSong(PLAYER_1):GetLastSecond()
 local td = GAMESTATE:GetCurrentSteps(PLAYER_1):GetTimingData()
 
+local handspecific = false
+local left = false
+
 local function fitX(x)	-- Scale time values to fit within plot width.
 	return x/finalSecond*plotWidth - plotWidth/2
 end
@@ -82,6 +85,16 @@ local o = Def.ActorFrame{
 		elseif params.Name == "NextJudge" and judge < 9 then
 			judge = judge + 1
 			tso = tst[judge]
+		elseif params.Name == "ToggleHands" and #ctt > 0 then --super ghetto toggle -mina
+			if not handspecific then
+				handspecific = true
+				left = true
+			elseif handspecific and left then
+				left = false
+			elseif handspecific and not left then
+				handspecific = false
+			end
+			MESSAGEMAN:Broadcast("JudgeDisplayChanged")
 		end
 		if params.Name == "ResetJudge" then
 			judge = enabledCustomWindows and 0 or GetTimingDifficulty()
@@ -140,18 +153,43 @@ o[#o+1] = Def.ActorMultiVertex{
 			local x = fitX(wuab[i])
 			local y = fitY(dvt[i])
 			local fit = (enabledCustomWindows and judge ~= 0) and customWindow.judgeWindows.boo + 3 or math.max(183, 183*tso)
-			local color = (enabledCustomWindows and judge ~= 0) and customOffsetToJudgeColor(dvt[i], customWindow.judgeWindows) or offsetToJudgeColor(dvt[i], tst[judge])
+			local cullur = (enabledCustomWindows and judge ~= 0) and customOffsetToJudgecullur(dvt[i], customWindow.judgeWindows) or offsetToJudgeColor(dvt[i], tst[judge])
 			if math.abs(y) > plotHeight/2 then
 				y = fitY(fit)
 			end
 			
-			-- screen out mines for now, we can maybe use a separate graphic or display later -mina
-			-- i would have thought this would vomit errors for files without taptype data but i guess not?
+			-- remember that time i removed redundancy in this code 2 days ago and then did this -mina
 			if ntt[i] ~= "TapNoteType_Mine" then						
-				verts[#verts+1] = {{x-dotWidth,y+dotWidth,0}, color}
-				verts[#verts+1] = {{x+dotWidth,y+dotWidth,0}, color}
-				verts[#verts+1] = {{x+dotWidth,y-dotWidth,0}, color}
-				verts[#verts+1] = {{x-dotWidth,y-dotWidth,0}, color}
+				if handspecific and left then
+					if ctt[i] == 0 or ctt[i] == 1 then
+						verts[#verts+1] = {{x-dotWidth,y+dotWidth,0}, cullur}
+						verts[#verts+1] = {{x+dotWidth,y+dotWidth,0}, cullur}
+						verts[#verts+1] = {{x+dotWidth,y-dotWidth,0}, cullur}
+						verts[#verts+1] = {{x-dotWidth,y-dotWidth,0}, cullur}
+					else
+						verts[#verts+1] = {{x-dotWidth,y+dotWidth,0}, offsetToJudgeColorAlpha(dvt[i], tst[judge])}
+						verts[#verts+1] = {{x+dotWidth,y+dotWidth,0}, offsetToJudgeColorAlpha(dvt[i], tst[judge])}
+						verts[#verts+1] = {{x+dotWidth,y-dotWidth,0}, offsetToJudgeColorAlpha(dvt[i], tst[judge])}
+						verts[#verts+1] = {{x-dotWidth,y-dotWidth,0}, offsetToJudgeColorAlpha(dvt[i], tst[judge])}
+					end
+				elseif handspecific then
+					if ctt[i] == 2 or ctt[i] == 3 then
+						verts[#verts+1] = {{x-dotWidth,y+dotWidth,0}, cullur}
+						verts[#verts+1] = {{x+dotWidth,y+dotWidth,0}, cullur}
+						verts[#verts+1] = {{x+dotWidth,y-dotWidth,0}, cullur}
+						verts[#verts+1] = {{x-dotWidth,y-dotWidth,0}, cullur}
+					else
+						verts[#verts+1] = {{x-dotWidth,y+dotWidth,0}, offsetToJudgeColorAlpha(dvt[i], tst[judge])}
+						verts[#verts+1] = {{x+dotWidth,y+dotWidth,0}, offsetToJudgeColorAlpha(dvt[i], tst[judge])}
+						verts[#verts+1] = {{x+dotWidth,y-dotWidth,0}, offsetToJudgeColorAlpha(dvt[i], tst[judge])}
+						verts[#verts+1] = {{x-dotWidth,y-dotWidth,0}, offsetToJudgeColorAlpha(dvt[i], tst[judge])}
+					end
+				else
+					verts[#verts+1] = {{x-dotWidth,y+dotWidth,0}, cullur}
+					verts[#verts+1] = {{x+dotWidth,y+dotWidth,0}, cullur}
+					verts[#verts+1] = {{x+dotWidth,y-dotWidth,0}, cullur}
+					verts[#verts+1] = {{x-dotWidth,y-dotWidth,0}, cullur}
+				end
 			end
 		end
 		self:SetVertices(verts)
