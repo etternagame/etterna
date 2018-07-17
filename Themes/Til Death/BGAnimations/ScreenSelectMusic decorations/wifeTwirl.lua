@@ -348,6 +348,35 @@ t[#t+1] = LoadFont("Common Large") .. {
 	end,
 }
 
+-- -- test adjustment index
+-- t[#t+1] = LoadFont("Common normal")..{ 
+	-- InitCommand=function(self)
+		-- self:xy(frameX+92,frameY-70):halign(0):zoom(0.4)
+	-- end,
+	-- ChartLeaderboardUpdateMessageCommand = function(self,params)
+		-- local val = params.mmm
+		-- if val then
+			-- if val > 0 then
+				-- self:settextf("%+5.1f", val)
+			-- else
+				-- self:settextf("%5.1f", val)
+			-- end
+		-- else
+			-- self:settext("")
+		-- end
+	-- end,
+	-- LogOutMessageCommand=function(self)
+		-- self:settext("")
+	-- end,
+	-- RefreshChartInfoMessageCommand=function(self)
+		-- if song then
+			-- self:visible(true)
+		-- else
+			-- self:visible(false)
+		-- end
+	-- end,
+-- }
+
 -- Song duration
 t[#t+1] = LoadFont("Common Large") .. {
 	InitCommand=function(self)

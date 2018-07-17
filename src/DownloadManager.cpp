@@ -950,9 +950,9 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 			//json failed
 		}
 		
-		//float zoop = mythicalmathymaths(chartkey);
+		float zoop = mythicalmathymaths(chartkey);
 		//float coop = ixmixblixb(chartkey);
-		msg.SetParam("mmm", 1);
+		msg.SetParam("mmm", zoop);
 		msg.SetParam("ixmixblixb", 2);
 		userswithscores.clear();	// should be ok to free the mem in this way? -mina
 		MESSAGEMAN->Broadcast(msg);	// see start of function
