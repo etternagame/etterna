@@ -155,6 +155,27 @@ function offsetToJudgeColor(offset,scale)
 	end
 end
 
+function offsetToJudgeColorAlpha(offset,scale)
+	local offset = math.abs(offset/1000)
+	if not scale then
+		scale = PREFSMAN:GetPreference("TimingWindowScale")
+	end
+	if offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW1") then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W1"].."80")
+	elseif offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW2") then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W2"].."80")
+	elseif offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW3") then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W3"].."80")
+	elseif offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW4") then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W4"].."80")
+	elseif offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW5") then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W5"].."80")
+	else
+		return color(colorConfig:get_data().judgment["TapNoteScore_Miss"].."80")
+	end
+end
+
+-- 50% hardcoded, should var but lazy atm -mina
 function customOffsetToJudgeColor(offset, windows)
 	local offset = math.abs(offset)
 	if offset <= windows.marv then
