@@ -891,14 +891,7 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 				auto user = *(score.find("user"));
 				tmp.username = user.value("userName", "").c_str();
 				tmp.avatar = user.value("avatar", "").c_str();
-				tmp.userid = user.value("userId", 0);
-				
-				// it seems prudent to maintain the eo functionality in this way and screen out multiple scores from the same user -mina
-				if (userswithscores.count(tmp.username) == 1)
-					continue;
-
-				userswithscores.emplace(tmp.username);
-				
+				tmp.userid = user.value("userId", 0);				
 				tmp.playerRating = static_cast<float>(user.value("playerRating", 0.0));
 				tmp.wife = static_cast<float>(score.value("wife", 0.0)/100.0);
 				tmp.modifiers = score.value("modifiers", "").c_str();
@@ -944,6 +937,14 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 				// screen out old 11111 flags (my greatest mistake) and it's probably a safe bet to throw out below 25% scores -mina
 				if (tmp.wife > 1.f || tmp.wife < 0.25f || !tmp.valid)
 					continue;
+
+				// it seems prudent to maintain the eo functionality in this way and screen out multiple scores from the same user 
+				// even more prudent would be to put this last where it belongs, we don't want to screen out scores for players who wouldn't
+				// have had them registered in the first place -mina
+				if (userswithscores.count(tmp.username) == 1)
+					continue;
+
+				userswithscores.emplace(tmp.username);
 				vec.emplace_back(tmp);
 			}
 		}
