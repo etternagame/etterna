@@ -69,7 +69,7 @@ local function makedoots(i)
 		
 		Def.Quad{
 			InitCommand=function(self)
-				self:y(-12):zoomto(400,48):valign(0):diffuse(getMainColor('positive')):diffuse(color(diffcolors[i]))
+				self:y(-12):zoomto(400,48):valign(0):diffuse(color(diffcolors[i]))
 			end,
 			OnCommand=function(self)
 				self:queuecommand("SelectionChanged")
