@@ -105,7 +105,11 @@ t[#t+1] = Def.ActorFrame{
 			end
 		end,
 		LogOutMessageCommand=function(self)
-			self:settext("Click to login")
+			if SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then	
+				self:settext("Click to login")
+			else
+				self:settextf("Not logged in")
+			end
 		end,
 		LoginMessageCommand=function(self)	--this seems a little clunky -mina
 			if SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then	
