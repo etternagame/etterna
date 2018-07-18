@@ -16,6 +16,7 @@
 #include "RageFileManager.h"
 #include "curl/curl.h"
 #include "Difficulty.h"
+#include <deque>
 
 class DownloadablePack;
 
@@ -157,7 +158,7 @@ public:
 	bool LoggedIn();
 	void EndSessionIfExists(); //Calls EndSession if logged in
 	void EndSession(); //Sends session destroy request
-	void StartSession(string user, string pass); //Sends login request if not already logging in
+	void StartSession(string user, string pass, function<void(bool loggedIn)> done); //Sends login request if not already logging in
 	bool UploadScores(); //Uploads all scores not yet uploaded to current server (Async, 1 request per score)
 	void RefreshPackList(string url); 
 
@@ -199,6 +200,10 @@ public:
 
 	// most recent single score upload result -mina
 	RString mostrecentresult = "";
+	std::deque<DownloadablePack*> DownloadQueue;
+	const int maxPacksToDownloadAtOnce = 1;
+	const long DownloadCooldownTime = 5;
+	long timeSinceLastDownload = 0;
 	void DownloadCoreBundle(string whichoneyo);
 	vector<DownloadablePack*> GetCoreBundle(string whichoneyo);
 

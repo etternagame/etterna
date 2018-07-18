@@ -358,8 +358,7 @@ void PlayerStageStats::GenerateValidationKeys(HighScore& hs) const {
 	key.append(to_string(static_cast<int>(hs.GetWifePoints() * 1000.f)));
 	key.append(to_string(static_cast<int>(!hs.GetChordCohesion())));
 	key.append(to_string(static_cast<int>(hs.GetEtternaValid())));
-	key.append(to_string(static_cast<int>(hs.GetGrade())));
-	key.append(to_string(static_cast<int>(hs.GetWifeGrade())));
+	key.append(GradeToString(hs.GetWifeGrade()));
 
 	hs.SetValidationKey(ValidationKey_Brittle, BinaryToHex(CryptManager::GetSHA1ForString(key)));
 
