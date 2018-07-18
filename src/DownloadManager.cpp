@@ -1649,6 +1649,7 @@ public:
 		}
 		else
 			lua_pushnil(L);
+		IsQueued(p, L);
 		return 1;
 	}
 	static int GetName(T* p, lua_State* L)
@@ -1664,6 +1665,12 @@ public:
 	static int GetAvgDifficulty(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, p->avgDifficulty);
+		return 1;
+	}
+	static int IsQueued(T* p, lua_State* L)
+	{
+		auto it = std::find(DLMAN->DownloadQueue.begin(), DLMAN->DownloadQueue.end(), p);
+		lua_pushboolean(L, it != DLMAN->DownloadQueue.end());
 		return 1;
 	}
 	static int IsDownloading(T* p, lua_State* L)
@@ -1683,6 +1690,7 @@ public:
 	{
 		ADD_METHOD(DownloadAndInstall);
 		ADD_METHOD(IsDownloading);
+		ADD_METHOD(IsQueued);
 		ADD_METHOD(GetAvgDifficulty);
 		ADD_METHOD(GetName);
 		ADD_METHOD(GetSize);
