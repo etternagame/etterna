@@ -48,7 +48,7 @@ static const ThemeMetric<bool>		USE_PREFERRED_SORT_COLOR	( "SongManager", "UsePr
 static const ThemeMetric<int>		EXTRA_STAGE2_DIFFICULTY_MAX	( "SongManager", "ExtraStage2DifficultyMax" );
 
 static Preference<RString> g_sDisabledSongs( "DisabledSongs", "" );
-static Preference<bool> PlaylistsAreSongGroups("PlaylistsAreSongGroups", true);
+static Preference<bool> PlaylistsAreSongGroups("PlaylistsAreSongGroups", false);
 
 RString SONG_GROUP_COLOR_NAME( size_t i )   { return ssprintf( "SongGroupColor%i", (int) i+1 ); }
 
