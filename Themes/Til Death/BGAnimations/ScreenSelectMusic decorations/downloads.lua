@@ -716,6 +716,8 @@ local bundleinfo
 local bundlename
 local bundleindex
 
+local bundlerating
+local bundlesize
 
 local function makedoots(i)
 	local packinfo
@@ -732,7 +734,21 @@ local function makedoots(i)
 					selectedbundle = true
 					bundlename = minidoots[i]
 					bundleindex = i
+					
+					packlist = DLMAN:GetCoreBundle(bundlename:lower())
+					
+					local sumrating = 0
+					local sumsize = 0
+					for i=1,#packlist do
+						sumsize = sumsize + packlist[i]:GetSize()
+						sumrating = sumrating + packlist[i]:GetAvgDifficulty()
+					end
+					
+					bundlerating = sumrating/#packlist
+					bundlesize = sumsize/1024/1024
+					
 					MESSAGEMAN:Broadcast("bundletime")
+					MESSAGEMAN:Broadcast("UpdatePacks")
 				end
 			end,
 			bundletimeMessageCommand=function(self)
@@ -812,7 +828,7 @@ t[#t+1] = LoadFont("Common normal") .. {
 		self:settext("Core Bundles (Expanded):")
 	end,
 	bundletimeMessageCommand=function(self)
-		self:settext("Total Size:")
+		self:settextf("Total Size: %d(MB)", bundlesize)
 	end,
 	MouseRightClickMessageCommand=function(self)
 		if update then
@@ -826,7 +842,8 @@ t[#t+1] = LoadFont("Common normal") .. {
 		self:xy(250+noiamspartacus,bundlegumbley - 36):zoom(0.5):halign(0):valign(0):visible(false)
 	end,
 	bundletimeMessageCommand=function(self)
-		self:settext("Avg: ")
+		self:settextf("Avg: %5.2f", bundlerating)
+		self:diffuse(byMSD(bundlerating))
 		self:visible(true)
 	end,
 	MouseRightClickMessageCommand=function(self)
@@ -855,11 +872,12 @@ t[#t+1] = Def.Quad{
 	InitCommand=function(self)
 		self:xy(290+noiamspartacus,bundlegumbley - 20):zoomto(80,20):valign(0):diffusealpha(0)
 	end,
-	bundletimeMessageCommand=function(self)
-	end,
 	MouseLeftClickMessageCommand=function(self)
 		if update and selectedbundle and isOver(self) then
 			DLMAN:DownloadCoreBundle(bundlename:lower())
+			MESSAGEMAN:Broadcast("MouseRightClick")
+			packlist = DLMAN:GetPackList()
+			MESSAGEMAN:Broadcast("UpdatePacks")
 		end
 	end,
 	MouseRightClickMessageCommand=function(self)
