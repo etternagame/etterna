@@ -517,9 +517,11 @@ void DownloadManager::UpdatePacks(float fDeltaSeconds)
 		for (auto i = downloads.begin(); i != downloads.end(); i++) {
 			if (msg->easy_handle == i->second->handle) {
 				finishedADownload = true;
+				i->second->p_RFWrapper.file.Flush();
 				if (i->second->p_RFWrapper.file.IsOpen())
 					i->second->p_RFWrapper.file.Close();
 				if (msg->msg == CURLMSG_DONE) {
+					i->second->Done(i->second);
 					if (!gameplay) {
 						installedPacks = true;
 						i->second->Install();
@@ -767,7 +769,7 @@ void DownloadManager::SendRequest(string requestName, vector<pair<string, string
 {
 	SendRequestToURL(serverURL.Get() + "/" + requestName, params, done, requireLogin, post, async);
 }
-void DownloadManager::SendRequestToURL(string url, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> done, bool requireLogin, bool post, bool async)
+void DownloadManager::SendRequestToURL(string url, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> afterDone, bool requireLogin, bool post, bool async)
 {
 	if (requireLogin && !LoggedIn())
 		return;
@@ -777,6 +779,18 @@ void DownloadManager::SendRequestToURL(string url, vector<pair<string, string>> 
 			url += param.first + "=" + param.second + "&";
 		url = url.substr(0, url.length() - 1);
 	}
+	function<void(HTTPRequest&, CURLMsg *)> done = [afterDone](HTTPRequest& req, CURLMsg * msg) {
+		try {
+			json tmp = json::parse(req.result);
+			auto errors = tmp["errors"];
+			for (auto error : errors) {
+				if (error["status"] == 22)
+					DLMAN->StartSession(DLMAN->sessionPass, DLMAN->sessionPass);
+			}
+		}
+		catch (exception e) { }
+		afterDone(req, msg);
+	};
 	CURL *curlHandle = initCURLHandle();
 	SetCURLURL(curlHandle, url);
 	HTTPRequest* req;
@@ -962,25 +976,57 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 	SendRequest("/charts/"+chartkey+"/leaderboards", vector<pair<string, string>>(), done, true);
 }
 
-void DownloadManager::DownloadCoreBundle(string whichoneyo) {
-	auto done = [this](HTTPRequest& req, CURLMsg *) {
-		json j;
-		bool parsed = true;
+vector<DownloadablePack> DownloadManager::GetCoreBundle(string whichoneyo) {
+	vector<DownloadablePack> bundle;
+	auto done = [this, &bundle](HTTPRequest& req, CURLMsg *) {
 		try {
-			j = json::parse(req.result);
+			json j= json::parse(req.result);
 			auto packs = j.find("data");
-			if (packs == j.end()) 
+			if (packs == j.end())
 				return;
+			auto& dlPacks = DLMAN->downloadablePacks;
 			for (auto pack : (*packs)) {
-				auto url = pack["attributes"].value("download", "");
-				DownloadAndInstallPack(url);
+				auto name = pack["attributes"].value("packName", "");
+				auto dlPack = find_if(dlPacks.begin(), dlPacks.end(),
+					[&name](DownloadablePack x) { return x.name == name; });
+				if(dlPack != dlPacks.end())
+						bundle.emplace_back(*dlPack);
 			}
 		}
-		catch (exception e) {
-			parsed = false;
+		catch (exception e) { }
+	};
+	SendRequest("packs/collection/" + whichoneyo, vector<pair<string, string>>(), done, false, false, false);
+	return bundle;
+}
+
+void DownloadManager::DownloadCoreBundle(string whichoneyo) {
+	auto bundle = GetCoreBundle(whichoneyo);
+	sort(bundle.begin(), bundle.end(), [](DownloadablePack x1, DownloadablePack x2) {return x1.size < x2.size; });
+	std::deque<DownloadablePack>* list =  new std::deque<DownloadablePack>();
+	std::move(
+		begin(bundle),
+		end(bundle),
+		back_inserter(*list)
+	);
+	auto it = list->begin();
+	if (it == list->end())
+		return;
+	auto pack = *it;
+	list->pop_front();
+	function<void(Download*)> down = [list](Download* dl) {
+		auto it = list->begin();
+		if (it != list->end()) {
+			auto pack = *it;
+			list->pop_front();
+			auto newDl = DLMAN->DownloadAndInstallPack(pack.url);
+			newDl->Done = dl->Done;
+		}
+		else {
+			delete list;
 		}
 	};
-	SendRequest("packs/collection/" + whichoneyo, vector<pair<string, string>>(), done, false, false, true);
+	auto dl = DLMAN->DownloadAndInstallPack(pack.url);
+	dl->Done = down;
 }
 
 void DownloadManager::RefreshLastVersion()
@@ -1128,10 +1174,8 @@ void DownloadManager::StartSession(string user, string pass)
 	auto done = [user, pass](HTTPRequest& req, CURLMsg *) {
 		json j;
 		bool parsed = true;
-		json success;
 		try {
 			j = json::parse(req.result);
-			success = j["success"];
 		}
 		catch (exception e) {
 			parsed = false;
@@ -1267,8 +1311,9 @@ void DownloadManager::RefreshPackList(string url)
 	return;
 }
 
-Download::Download(string url)
+Download::Download(string url, function<void(Download*)> done)
 {
+	Done = done;
 	m_Url = url;
 	handle = initBasicCURLHandle();
 	m_TempFileName = MakeTempFileName(url);
@@ -1539,6 +1584,16 @@ public:
 		}
 		return 1;
 	}
+	static int GetCoreBundle(T* p, lua_State* L)
+	{
+		auto bundle = DLMAN->GetCoreBundle(SArg(1));
+		lua_createtable(L, bundle.size(), 0);
+		for (int i = 0; i < bundle.size(); ++i) {
+			bundle[i].PushSelf(L);
+			lua_rawseti(L, -2, i + 1);
+		}
+		return 1;
+	}
 	static int DownloadCoreBundle(T* p, lua_State* L)
 	{
 		// pass "novice", "expert" etc, should start a queue and download packs in sequence rather than concurrently to minimize time before can begin -mina
@@ -1549,6 +1604,7 @@ public:
 	LunaDownloadManager()
 	{
 		ADD_METHOD(DownloadCoreBundle);
+		ADD_METHOD(GetCoreBundle);
 		ADD_METHOD(GetPackList);
 		ADD_METHOD(GetDownloadingPacks);
 		ADD_METHOD(GetDownloads);

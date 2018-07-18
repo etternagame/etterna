@@ -17,10 +17,6 @@
 #include "curl/curl.h"
 #include "Difficulty.h"
 
-
-
-
-
 class DownloadablePack;
 
 class ProgressData {
@@ -39,7 +35,8 @@ public:
 
 class Download {
 public:
-	Download(string url);
+	function<void(Download*)> Done;
+	Download(string url, function<void(Download*)> done = [](Download*) {return; });
 	~Download();
 	void Install();
 	void Update(float fDeltaSeconds);
@@ -134,6 +131,7 @@ public:
 	~DownloadManager();
 	map<string, Download*> downloads; // Active downloads
 	vector<HTTPRequest*> HTTPRequests; // Active HTTP requests (async, curlMulti)
+
 	map<string, Download*> finishedDownloads;
 	map<string, Download*> pendingInstallDownloads;
 	CURLM* mPackHandle{ nullptr }; // Curl multi handle for packs downloads
@@ -201,7 +199,8 @@ public:
 
 	// most recent single score upload result -mina
 	RString mostrecentresult = "";
-	void DownloadCoreBundle(string whichoneyo);	// handle this how u want
+	void DownloadCoreBundle(string whichoneyo);
+	vector<DownloadablePack> GetCoreBundle(string whichoneyo);
 
 	// Lua
 	void PushSelf(lua_State *L);
