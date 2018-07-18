@@ -16,6 +16,7 @@
 #include "RageFileManager.h"
 #include "curl/curl.h"
 #include "Difficulty.h"
+#include <deque>
 
 class DownloadablePack;
 
@@ -199,6 +200,10 @@ public:
 
 	// most recent single score upload result -mina
 	RString mostrecentresult = "";
+	std::deque<DownloadablePack*> DownloadQueue;
+	const int maxPacksToDownloadAtOnce = 1;
+	const long DownloadCooldownTime = 5;
+	long timeSinceLastDownload = 0;
 	void DownloadCoreBundle(string whichoneyo);
 	vector<DownloadablePack*> GetCoreBundle(string whichoneyo);
 

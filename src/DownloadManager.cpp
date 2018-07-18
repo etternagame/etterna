@@ -191,7 +191,7 @@ inline CURL* initCURLHandle() {
 	struct curl_slist *list = NULL;
 	list = curl_slist_append(list, ("Authorization: Bearer " + DLMAN->authToken).c_str());
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPHEADER, list);
-	curl_easy_setopt(curlHandle, CURLOPT_TIMEOUT, 60);//Seconds
+	curl_easy_setopt(curlHandle, CURLOPT_TIMEOUT, 120);//Seconds
 	return curlHandle;
 }
 inline bool addFileToForm(curl_httppost *&form, curl_httppost *&lastPtr, string field, string fileName, string filePath, RString &contents)
@@ -366,6 +366,10 @@ Download* DownloadManager::DownloadAndInstallPack(DownloadablePack* pack)
 			return nullptr;
 		}
 	}
+	if (downloadingPacks >= maxPacksToDownloadAtOnce) {
+		DLMAN->DownloadQueue.emplace_back(pack);
+		return nullptr;
+	}
 	Download* dl = DownloadAndInstallPack(pack->url);
 	dl->p_Pack = pack;
 	return dl;
@@ -453,6 +457,7 @@ void DownloadManager::UpdateHTTP(float fDeltaSeconds)
 }
 void DownloadManager::UpdatePacks(float fDeltaSeconds)
 {
+	timeSinceLastDownload += fDeltaSeconds;
 	if (pendingInstallDownloads.size() > 0 && !gameplay) {
 		//Install all pending packs
 		for (auto i = pendingInstallDownloads.begin(); i != pendingInstallDownloads.end(); i++) {
@@ -469,6 +474,12 @@ void DownloadManager::UpdatePacks(float fDeltaSeconds)
 				static_cast<ScreenNetSelectMusic*>(screen)->DifferentialReload();
 			else
 				SONGMAN->DifferentialReload();
+	}
+	if (downloadingPacks < maxPacksToDownloadAtOnce && !DownloadQueue.empty() && timeSinceLastDownload > DownloadCooldownTime) {
+		auto it = DownloadQueue.begin();
+		DownloadQueue.pop_front();
+		auto pack = *it;
+		auto dl = DLMAN->DownloadAndInstallPack(pack);
 	}
 	if (!downloadingPacks)
 		return;
@@ -521,6 +532,7 @@ void DownloadManager::UpdatePacks(float fDeltaSeconds)
 				if (i->second->p_RFWrapper.file.IsOpen())
 					i->second->p_RFWrapper.file.Close();
 				if (msg->msg == CURLMSG_DONE) {
+					timeSinceLastDownload = 0;
 					i->second->Done(i->second);
 					if (!gameplay) {
 						installedPacks = true;
@@ -1034,31 +1046,8 @@ vector<DownloadablePack*> DownloadManager::GetCoreBundle(string whichoneyo) {
 void DownloadManager::DownloadCoreBundle(string whichoneyo) {
 	auto bundle = GetCoreBundle(whichoneyo);
 	sort(bundle.begin(), bundle.end(), [](DownloadablePack* x1, DownloadablePack* x2) {return x1->size < x2->size; });
-	std::deque<DownloadablePack*>* list =  new std::deque<DownloadablePack*>();
-	std::move(
-		begin(bundle),
-		end(bundle),
-		back_inserter(*list)
-	);
-	auto it = list->begin();
-	if (it == list->end())
-		return;
-	auto pack = *it;
-	list->pop_front();
-	function<void(Download*)> down = [list](Download* dl) {
-		auto it = list->begin();
-		if (it != list->end()) {
-			auto pack = *it;
-			list->pop_front();
-			auto newDl = DLMAN->DownloadAndInstallPack(pack->url);
-			newDl->Done = dl->Done;
-		}
-		else {
-			delete list;
-		}
-	};
-	auto dl = DLMAN->DownloadAndInstallPack(pack->url);
-	dl->Done = down;
+	for (auto pack : bundle)
+		DLMAN->DownloadQueue.emplace_back(pack);
 }
 
 void DownloadManager::RefreshLastVersion()
