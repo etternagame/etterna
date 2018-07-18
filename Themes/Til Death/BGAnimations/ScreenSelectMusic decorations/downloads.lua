@@ -610,6 +610,12 @@ filters[#filters+1] = Def.ActorFrame{
 			DlInputActiveMessageCommand=function(self)
 				self:queuecommand("Set")
 			end,
+			bundletimeMessageCommand=function(self)
+				self:visible(false)
+			end,
+			MouseRightClickMessageCommand=function(self)
+				self:visible(true)
+			end
 		},
 		LoadFont("Common Large")..{
 			InitCommand=function(self)
@@ -617,7 +623,13 @@ filters[#filters+1] = Def.ActorFrame{
 			end,
 			SetCommand=function(self)
 				self:settext( "Name:")
-			end	
+			end,
+			bundletimeMessageCommand=function(self)
+				self:settext( "Right click to cancel selection")
+			end,
+			MouseRightClickMessageCommand=function(self)
+				self:settext( "Name:")
+			end
 		},
 		LoadFont("Common Large")..{
 			InitCommand=function(self)
@@ -639,6 +651,12 @@ filters[#filters+1] = Def.ActorFrame{
 			DlInputActiveMessageCommand=function(self)
 				self:queuecommand("Set")
 			end,
+			bundletimeMessageCommand=function(self)
+				self:visible(false)
+			end,
+			MouseRightClickMessageCommand=function(self)
+				self:visible(true)
+			end
 		},
 	}
 t[#t+1] = filters
@@ -716,8 +734,8 @@ local bundleinfo
 local bundlename
 local bundleindex
 
-local bundlerating
-local bundlesize
+local bundlerating = 0
+local bundlesize = 0
 
 local function makedoots(i)
 	local packinfo
@@ -735,17 +753,21 @@ local function makedoots(i)
 					bundlename = minidoots[i]
 					bundleindex = i
 					
+					currentpage = 1
 					packlist = DLMAN:GetCoreBundle(bundlename:lower())
 					
+					-- these should prolly be shifted into the internal bundle object -mina
 					local sumrating = 0
 					local sumsize = 0
-					for i=1,#packlist do
-						sumsize = sumsize + packlist[i]:GetSize()
-						sumrating = sumrating + packlist[i]:GetAvgDifficulty()
+					if #packlist > 0 then
+						for i=1,#packlist do
+							sumsize = sumsize + packlist[i]:GetSize()
+							sumrating = sumrating + packlist[i]:GetAvgDifficulty()
+						end
+						
+						bundlerating = sumrating/#packlist
+						bundlesize = sumsize/1024/1024
 					end
-					
-					bundlerating = sumrating/#packlist
-					bundlesize = sumsize/1024/1024
 					
 					MESSAGEMAN:Broadcast("bundletime")
 					MESSAGEMAN:Broadcast("UpdatePacks")
@@ -755,7 +777,7 @@ local function makedoots(i)
 				self:visible(false)
 			end,
 			MouseRightClickMessageCommand=function(self)
-				if update and selectedbundle then
+				if update then
 					self:visible(true)
 				end
 			end
@@ -779,14 +801,30 @@ local function makesuperdoots(i)
 					selectedbundle = true
 					bundlename = minidoots[i].."-Expanded"
 					bundleindex = i
+					
+					currentpage = 1
+					packlist = DLMAN:GetCoreBundle(bundlename:lower())
+					
+					local sumrating = 0
+					local sumsize = 0
+					if #packlist > 0 then
+						for i=1,#packlist do
+							sumsize = sumsize + packlist[i]:GetSize()
+							sumrating = sumrating + packlist[i]:GetAvgDifficulty()
+						end
+						bundlerating = sumrating/#packlist
+						bundlesize = sumsize/1024/1024
+					end
+					
 					MESSAGEMAN:Broadcast("bundletime")
+					MESSAGEMAN:Broadcast("UpdatePacks")
 				end
 			end,
 			bundletimeMessageCommand=function(self)
 				self:visible(false)
 			end,
 			MouseRightClickMessageCommand=function(self)
-				if update and selectedbundle then
+				if update then
 					self:visible(true)
 				end
 			end
@@ -870,7 +908,10 @@ t[#t+1] = LoadFont("Common normal") .. {
 
 t[#t+1] = Def.Quad{
 	InitCommand=function(self)
-		self:xy(290+noiamspartacus,bundlegumbley - 20):zoomto(80,20):valign(0):diffusealpha(0)
+		self:xy(0,0):zoomto(80,20):valign(0):diffusealpha(0)
+	end,
+	bundletimeMessageCommand=function(self)
+		self:linear(1):xy(290+noiamspartacus,bundlegumbley - 20)
 	end,
 	MouseLeftClickMessageCommand=function(self)
 		if update and selectedbundle and isOver(self) then
@@ -881,8 +922,11 @@ t[#t+1] = Def.Quad{
 		end
 	end,
 	MouseRightClickMessageCommand=function(self)
-		if update then
+		if update and selectedbundle then
 			selectedbundle = false
+			packlist = DLMAN:GetPackList()
+			MESSAGEMAN:Broadcast("UpdatePacks")
+			self:xy(0,0)
 		end
 	end,
 }
