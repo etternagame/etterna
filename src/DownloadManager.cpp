@@ -976,8 +976,8 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 	SendRequest("/charts/"+chartkey+"/leaderboards", vector<pair<string, string>>(), done, true);
 }
 
-vector<DownloadablePack> DownloadManager::GetCoreBundle(string whichoneyo) {
-	vector<DownloadablePack> bundle;
+vector<DownloadablePack*> DownloadManager::GetCoreBundle(string whichoneyo) {
+	vector<DownloadablePack*> bundle;
 	auto done = [this, &bundle](HTTPRequest& req, CURLMsg *) {
 		try {
 			json j= json::parse(req.result);
@@ -990,7 +990,7 @@ vector<DownloadablePack> DownloadManager::GetCoreBundle(string whichoneyo) {
 				auto dlPack = find_if(dlPacks.begin(), dlPacks.end(),
 					[&name](DownloadablePack x) { return x.name == name; });
 				if(dlPack != dlPacks.end())
-						bundle.emplace_back(*dlPack);
+						bundle.emplace_back(dlPack);
 			}
 		}
 		catch (exception e) { }
@@ -1001,8 +1001,8 @@ vector<DownloadablePack> DownloadManager::GetCoreBundle(string whichoneyo) {
 
 void DownloadManager::DownloadCoreBundle(string whichoneyo) {
 	auto bundle = GetCoreBundle(whichoneyo);
-	sort(bundle.begin(), bundle.end(), [](DownloadablePack x1, DownloadablePack x2) {return x1.size < x2.size; });
-	std::deque<DownloadablePack>* list =  new std::deque<DownloadablePack>();
+	sort(bundle.begin(), bundle.end(), [](DownloadablePack* x1, DownloadablePack* x2) {return x1->size < x2->size; });
+	std::deque<DownloadablePack*>* list =  new std::deque<DownloadablePack*>();
 	std::move(
 		begin(bundle),
 		end(bundle),
@@ -1018,14 +1018,14 @@ void DownloadManager::DownloadCoreBundle(string whichoneyo) {
 		if (it != list->end()) {
 			auto pack = *it;
 			list->pop_front();
-			auto newDl = DLMAN->DownloadAndInstallPack(pack.url);
+			auto newDl = DLMAN->DownloadAndInstallPack(pack->url);
 			newDl->Done = dl->Done;
 		}
 		else {
 			delete list;
 		}
 	};
-	auto dl = DLMAN->DownloadAndInstallPack(pack.url);
+	auto dl = DLMAN->DownloadAndInstallPack(pack->url);
 	dl->Done = down;
 }
 
@@ -1589,7 +1589,7 @@ public:
 		auto bundle = DLMAN->GetCoreBundle(SArg(1));
 		lua_createtable(L, bundle.size(), 0);
 		for (int i = 0; i < bundle.size(); ++i) {
-			bundle[i].PushSelf(L);
+			bundle[i]->PushSelf(L);
 			lua_rawseti(L, -2, i + 1);
 		}
 		return 1;

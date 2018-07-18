@@ -200,7 +200,7 @@ public:
 	// most recent single score upload result -mina
 	RString mostrecentresult = "";
 	void DownloadCoreBundle(string whichoneyo);
-	vector<DownloadablePack> GetCoreBundle(string whichoneyo);
+	vector<DownloadablePack*> GetCoreBundle(string whichoneyo);
 
 	// Lua
 	void PushSelf(lua_State *L);
