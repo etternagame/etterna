@@ -48,7 +48,9 @@ local gameneedsupdating = false
 t[#t+1] = Def.Quad{
 	InitCommand=function(self)
 		self:xy(22,134):zoomto(126,36):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(0)
-		if tonumber((DLMAN:GetLastVersion():gsub("[.]","",1))) > tonumber((GAMESTATE:GetEtternaVersion():gsub("[.]","",1))) then
+		local latest = tonumber((DLMAN:GetLastVersion():gsub("[.]","",1)))
+		local current = tonumber((GAMESTATE:GetEtternaVersion():gsub("[.]","",1)))
+		if latest and latest > current then
 			gameneedsupdating = true
 		end
 	end,
