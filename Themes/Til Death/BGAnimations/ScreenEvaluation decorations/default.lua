@@ -389,8 +389,12 @@ function scoreBoard(pn,position)
 	-- basic per-hand stats to be expanded on later
 	local tst = { 1.50,1.33,1.16,1.00,0.84,0.66,0.50,0.33,0.20 }	-- ok this is getting dumb i need to do this better -mina
 	local tso = tst[judge]
+	if enabledCustomWindows then
+		tso = 1
+	end
+	
 	for i=1,#devianceTable do
-		if devianceTable[i] > tso * 135 then
+		if math.abs(devianceTable[i]) > tso * 90 then
 			if tracks[i] == 0 or tracks[i] == 1 then
 				cbl = cbl + 1
 			else
