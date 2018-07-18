@@ -2,7 +2,7 @@ local minidoots = {"Novice", "Beginner", "Intermediate", "Advanced", "Expert"}
 local diffcolors = {"#66ccff","#099948","#ddaa00","#ff6666","#c97bff"}
 local packsy
 local packspacing = 54
-local ind = 1
+local ind = 7
 
 local o = Def.ActorFrame{
 	InitCommand=function(self)
@@ -11,7 +11,7 @@ local o = Def.ActorFrame{
 	CodeMessageCommand = function(self, params)
 		if params.Name == 'Up' then
 			ind = ind - 1
-			if ind < 1 then
+			if ind < 1 or ind > 5 then
 				ind = 5
 			end
 			self:queuecommand("SelectionChanged")
@@ -24,9 +24,11 @@ local o = Def.ActorFrame{
 			self:queuecommand("SelectionChanged")
 		end
 		if params.Name == 'Select' then
-			SCREENMAN:SystemMessage(minidoots[ind]:lower())
-			DLMAN:DownloadCoreBundle(minidoots[ind]:lower())
-			SCREENMAN:GetTopScreen():StartTransitioningScreen("SM_GoToNextScreen") 
+			if ind < 6 and ind > 0 then
+				SCREENMAN:SystemMessage(minidoots[ind]:lower())
+				DLMAN:DownloadCoreBundle(minidoots[ind]:lower())
+				SCREENMAN:GetTopScreen():StartTransitioningScreen("SM_GoToNextScreen") 
+			end
 		end
 	end,
 	Def.Quad{
@@ -95,8 +97,14 @@ local function makedoots(i)
 				self:y(24):zoom(0.5)
 			end,
 			OnCommand=function(self)
-			self:settextf("(%dmb)", 29)
-		end
+				local bundle = DLMAN:GetCoreBundle(minidoots[i]:lower())
+				local sumsize = 0
+				for i=1,#bundle do
+					sumsize = sumsize + bundle[i]:GetSize()
+				end
+				self:settextf("(%dmb)", sumsize/1024/1024)
+				
+			end
 		}
 	}
 	return t
