@@ -990,7 +990,7 @@ vector<DownloadablePack*> DownloadManager::GetCoreBundle(string whichoneyo) {
 				auto dlPack = find_if(dlPacks.begin(), dlPacks.end(),
 					[&name](DownloadablePack x) { return x.name == name; });
 				if(dlPack != dlPacks.end())
-						bundle.emplace_back(dlPack);
+						bundle.emplace_back(&(*dlPack));
 			}
 		}
 		catch (exception e) { }
