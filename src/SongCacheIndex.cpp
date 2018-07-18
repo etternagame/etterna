@@ -722,14 +722,17 @@ void SongCacheIndex::ReadCacheIndex()
 		return; // OK
 
 	LOG->Trace( "Cache format is out of date.  Deleting all cache files." );
-	EmptyDir(SpecialFiles::CACHE_DIR + "Banners/");
 	EmptyDir( SpecialFiles::CACHE_DIR+"Songs/" );
 	EmptyDir( SpecialFiles::CACHE_DIR+"Courses/" );
 	
+
+	// comment out until we stop being really bad at dealing with cache versions (revisit asap) - mina
+	/*
 	vector<RString> ImageDir;
 	split( CommonMetrics::IMAGES_TO_CACHE, ",", ImageDir );
 	for( std::string Image : ImageDir )
 		EmptyDir( SpecialFiles::CACHE_DIR+Image+"/" );
+	*/ 
 
 	CacheIndex.Clear();
 	/* This is right now in place because our song file paths are apparently being
