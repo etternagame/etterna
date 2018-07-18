@@ -1490,7 +1490,7 @@ public:
 		string chartkey = SArg(1);
 		int rank = IArg(2);
 		int index = rank - 1;
-		if (!DLMAN->chartLeaderboards.count(chartkey) || index >= static_cast<int>(DLMAN->chartLeaderboards[chartkey].size())) {
+		if (index < 0 || !DLMAN->chartLeaderboards.count(chartkey) || index >= static_cast<int>(DLMAN->chartLeaderboards[chartkey].size())) {
 			lua_pushnil(L);
 			return 1;
 		}
@@ -1588,7 +1588,7 @@ public:
 	{
 		auto bundle = DLMAN->GetCoreBundle(SArg(1));
 		lua_createtable(L, bundle.size(), 0);
-		for (int i = 0; i < bundle.size(); ++i) {
+		for (size_t i = 0; i < bundle.size(); ++i) {
 			bundle[i]->PushSelf(L);
 			lua_rawseti(L, -2, i + 1);
 		}
