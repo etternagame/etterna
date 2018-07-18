@@ -588,7 +588,7 @@ bool DownloadManager::ShouldUploadScores()
 inline void SetCURLPOSTScore(CURL*& curlHandle, curl_httppost*& form, curl_httppost*& lastPtr, HighScore*& hs)
 {
 	SetCURLFormPostField(curlHandle, form, lastPtr, "scorekey", hs->GetScoreKey());
-	SetCURLFormPostField(curlHandle, form, lastPtr, "ssr_norm", hs->GetSSRNormPercent());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "ssr_norm", to_string(static_cast<int>(hs->GetSSRNormPercent() * 1000.f)));
 	SetCURLFormPostField(curlHandle, form, lastPtr, "max_combo", hs->GetMaxCombo());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "valid", static_cast<int>(hs->GetEtternaValid()));
 	SetCURLFormPostField(curlHandle, form, lastPtr, "mods", hs->GetModifiers());
@@ -604,16 +604,16 @@ inline void SetCURLPOSTScore(CURL*& curlHandle, curl_httppost*& form, curl_httpp
 	SetCURLFormPostField(curlHandle, form, lastPtr, "letgo", hs->GetHoldNoteScore(HNS_LetGo));
 	SetCURLFormPostField(curlHandle, form, lastPtr, "ng", hs->GetHoldNoteScore(HNS_Missed));
 	SetCURLFormPostField(curlHandle, form, lastPtr, "chartkey", hs->GetChartKey());
-	SetCURLFormPostField(curlHandle, form, lastPtr, "rate", hs->GetMusicRate());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "rate", to_string(static_cast<int>(hs->GetMusicRate() * 1000.f)));
 	auto chart = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "negsolo", chart->GetTimingData()->HasWarps() || chart->m_StepsType != StepsType_dance_single);
 	SetCURLFormPostField(curlHandle, form, lastPtr, "nocc", static_cast<int>(!hs->GetChordCohesion()));
 	SetCURLFormPostField(curlHandle, form, lastPtr, "calc_version", hs->GetSSRCalcVersion());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "topscore", hs->GetTopScore());
-	SetCURLFormPostField(curlHandle, form, lastPtr, "uuid", hs->GetMachineGuid());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "hash", hs->GetValidationKey(ValidationKey_Brittle));
-	SetCURLFormPostField(curlHandle, form, lastPtr, "wifePoints", hs->GetWifePoints());
-	SetCURLFormPostField(curlHandle, form, lastPtr, "judgeScale", hs->GetJudgeScale());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "wife", to_string(static_cast<int>(hs->GetWifeScore() * 1000.f)));
+	SetCURLFormPostField(curlHandle, form, lastPtr, "wifePoints", to_string(static_cast<int>(hs->GetWifePoints() * 1000.f)));
+	SetCURLFormPostField(curlHandle, form, lastPtr, "judgeScale", to_string(static_cast<int>(hs->GetJudgeScale() * 1000.f)));
 	SetCURLFormPostField(curlHandle, form, lastPtr, "machineGuid", hs->GetMachineGuid());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "grade", hs->GetGrade());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "wifeGrade", string(GradeToString(hs->GetWifeGrade()).c_str()));
