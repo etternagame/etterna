@@ -270,7 +270,7 @@ HighScoreImpl::HighScoreImpl()
 	fLifeRemainingSeconds = 0;
 	string ValidationKey = "";
 	TopScore = 0;
-	ReplayType = 0;
+	ReplayType = 2;
 }
 
 XNode *HighScoreImpl::CreateNode() const
@@ -721,9 +721,10 @@ bool HighScore::LoadReplayDataBasic() {
 }
 
 bool HighScore::LoadReplayDataFull() {
-	// already exists
-	if (m_Impl->vNoteRowVector.size() > 4 && m_Impl->vOffsetVector.size() > 4)
+	if (m_Impl->vNoteRowVector.size() > 4 && m_Impl->vOffsetVector.size() > 4) {
+		m_Impl->ReplayType = 2;
 		return true;
+	}
 
 	string profiledir;
 	vector<int> vNoteRowVector;
@@ -927,6 +928,7 @@ string HighScore::GetValidationKey(ValidationKey vk) const { return m_Impl->Vali
 void HighScore::SetRadarValues( const RadarValues &rv ) { m_Impl->radarValues = rv; }
 void HighScore::SetLifeRemainingSeconds( float f ) { m_Impl->fLifeRemainingSeconds = f; }
 void HighScore::SetDisqualified( bool b ) { m_Impl->bDisqualified = b; }
+void HighScore::SetReplayType(int i) { m_Impl->ReplayType = i; }
 
 void HighScore::UnloadReplayData() {
 	m_Impl->UnloadReplayData();

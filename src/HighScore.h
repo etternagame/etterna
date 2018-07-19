@@ -128,6 +128,7 @@ struct HighScore
 	void SetRadarValues( const RadarValues &rv );
 	void SetLifeRemainingSeconds( float f );
 	void SetDisqualified( bool b );
+	void SetReplayType( int i );
 
 	string *GetNameMutable();
 	const string *GetNameMutable() const { return const_cast<string *> (const_cast<HighScore *>(this)->GetNameMutable()); }
