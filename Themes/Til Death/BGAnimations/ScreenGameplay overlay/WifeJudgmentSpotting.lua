@@ -1176,7 +1176,7 @@ t[#t+1] = Def.ActorFrame{
 			self:SetUpdateFunction(UpdateBPM)
 			self:SetUpdateRate(0.5)
 		else
-			settext(BPM,Round(GetBPS(a) * r,2))
+			BPM:settextf("%5.2f",GetBPS(a) * r) -- i wasn't thinking when i did this, we don't need to avoid formatting for performance because we only call this once -mina
 		end
 	end,
 	LoadFont("Common Normal")..{
