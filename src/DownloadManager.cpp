@@ -992,9 +992,8 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 				}
 
 				// eo still has some old profiles with various edge issues that unfortunately need to be handled here
-				// screen out old 11111 flags (my greatest mistake) and it's probably a safe bet to throw out below 25% scores
-				// pruning 0.0 ssr dead scores will also stop mod file scores from showing up.. acceptable for now -mina
-				if (tmp.wife > 1.f || tmp.wife < 0.25f || !tmp.valid || tmp.SSRs[Skill_Overall]);
+				// screen out old 11111 flags (my greatest mistake) and it's probably a safe bet to throw out below 25% scores -mina
+				if (tmp.wife > 1.f || tmp.wife < 0.25f || !tmp.valid)
 					continue;
 
 				// it seems prudent to maintain the eo functionality in this way and screen out multiple scores from the same user 
