@@ -2,13 +2,8 @@ local function input(event)
 	local top = SCREENMAN:GetTopScreen()
 	if event.DeviceInput.button == 'DeviceButton_left mouse button' then
 		if event.type == "InputEventType_Release" then
-			if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
+			if GAMESTATE:IsPlayerEnabled(PLAYER_1) and not SCREENMAN:get_input_redirected(PLAYER_1) then
 				if isOver(top:GetChild("Overlay"):GetChild("PlayerAvatar"):GetChild("Avatar"..PLAYER_1):GetChild("Image")) then
-					SCREENMAN:AddNewScreenToTop("ScreenAvatarSwitch");
-				end;
-			end;
-			if GAMESTATE:IsPlayerEnabled(PLAYER_2) then
-				if isOver(top:GetChild("Overlay"):GetChild("PlayerAvatar"):GetChild("Avatar"..PLAYER_2):GetChild("Image")) then
 					SCREENMAN:AddNewScreenToTop("ScreenAvatarSwitch");
 				end;
 			end;
@@ -29,7 +24,7 @@ local t = Def.ActorFrame{
 
 t[#t+1] = Def.Actor{
 	CodeMessageCommand=function(self,params)
-		if params.Name == "AvatarShow" and getTabIndex() == 0 then
+		if params.Name == "AvatarShow" and getTabIndex() == 0 and not SCREENMAN:get_input_redirected(PLAYER_1) then
 			SCREENMAN:AddNewScreenToTop("ScreenAvatarSwitch");
 		end;
 	end;

@@ -90,7 +90,7 @@ t[#t+1] = Def.ActorFrame{
 			end
 		end,
 		MouseLeftClickMessageCommand=function(self)
-			if isOver(self) then
+			if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
 				easyInputStringWithFunction("Choose new profile display name:", 64, false, setnewdisplayname)
 			end
 		end,
@@ -141,7 +141,7 @@ t[#t+1] = Def.ActorFrame{
 			ms.ok("Succesfully logged in")
 		end,
 		MouseLeftClickMessageCommand=function(self)
-			if isOver(self) then 
+			if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then 
 				if not DLMAN:IsLoggedIn() then
 					username = function(answer) 
 							user=answer

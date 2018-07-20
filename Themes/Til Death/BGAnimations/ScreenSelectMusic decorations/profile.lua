@@ -724,7 +724,7 @@ local profilebuttons = Def.ActorFrame{
 			ms.ok("Succesfully logged in")
 		end,
 		MouseLeftClickMessageCommand=function(self)
-			if ButtonActive(self) and rankingSkillset == 1 then 
+			if ButtonActive(self) and rankingSkillset == 1 and not SCREENMAN:get_input_redirected(PLAYER_1) then 
 				if not DLMAN:IsLoggedIn() then
 					username = function(answer) 
 							user=answer
