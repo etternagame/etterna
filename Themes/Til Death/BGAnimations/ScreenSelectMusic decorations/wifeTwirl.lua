@@ -330,11 +330,11 @@ t[#t+1] = LoadFont("Common Large") .. {
 	end,
 	SetCommand=function(self)
 		if song then
-			if GAMESTATE:GetCurrentStyle():ColumnsPerPlayer() == 4 then
-			local meter = steps:GetMSD(getCurRateValue(), 1)
-			self:settextf("%05.2f",meter)
-			self:diffuse(byMSD(meter))
-		else
+			if steps:GetStepsType() == "StepsType_Dance_Single" then
+				local meter = steps:GetMSD(getCurRateValue(), 1)
+				self:settextf("%05.2f",meter)
+				self:diffuse(byMSD(meter))
+			else
 				self:settextf("%5.2f",steps:GetMeter())
 				self:diffuse(byDifficulty(steps:GetDifficulty()))
 			end
