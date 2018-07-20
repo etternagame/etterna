@@ -1,8 +1,9 @@
-﻿#include "global.h"
+#include "global.h"
 
 #include "ImageCache.h"
 #include "Foreach.h"
 #include "PrefsManager.h"
+#include "RageFileManager.h"
 #include "RageDisplay.h"
 #include "RageLog.h"
 #include "RageSurface.h"
@@ -14,6 +15,7 @@
 #include "RageTexture.h"
 #include "RageTextureManager.h"
 #include "RageUtil.h"
+#include "CommonMetrics.h"
 #include "SongCacheIndex.h"
 #include "SpecialFiles.h"
 #include "Sprite.h"
@@ -26,6 +28,8 @@ static Preference<bool> g_bPalettedImageCache( "PalettedImageCache", false );
  * the order of initialization of nonlocal objects is unspecified. */
 //const std::string IMAGE_CACHE_INDEX = SpecialFiles::CACHE_DIR + "images.cache";
 #define IMAGE_CACHE_INDEX (SpecialFiles::CACHE_DIR + "images.cache")
+
+#define IMAGE_CACHE_VERSION 1
 
 /* Call CacheImage to cache a image by path.  If the image is already
  * cached, it'll be recreated.  This is efficient if the image hasn't changed,
@@ -174,9 +178,36 @@ ImageCache::~ImageCache()
 	UnloadAllImages();
 }
 
+static void EmptyDir(RString dir)
+{
+	ASSERT(dir[dir.size() - 1] == '/');
+
+	vector<RString> asCacheFileNames;
+	GetDirListing(dir, asCacheFileNames);
+	for (unsigned i = 0; i<asCacheFileNames.size(); i++)
+	{
+		if (!IsADirectory(dir + asCacheFileNames[i]))
+			FILEMAN->Remove(dir + asCacheFileNames[i]);
+	}
+}
+
 void ImageCache::ReadFromDisk()
 {
 	ImageData.ReadFile( IMAGE_CACHE_INDEX );	// don't care if this fails
+	
+	int iCacheVersion = -1;
+	ImageData.GetValue("Cache", "CacheVersion", iCacheVersion);
+	if (iCacheVersion == IMAGE_CACHE_VERSION)
+		return;
+
+	LOG->Trace( "Cache format is out of date.  Deleting all cache files." );	
+	vector<RString> ImageDir;
+	split( CommonMetrics::IMAGES_TO_CACHE, ",", ImageDir );
+	for( std::string Image : ImageDir )
+		EmptyDir( SpecialFiles::CACHE_DIR+Image+"/" );
+	
+	ImageData.SetValue( "Cache", "CacheVersion", IMAGE_CACHE_VERSION);
+	ImageData.WriteFile( IMAGE_CACHE_INDEX );
 }
 
 struct ImageTexture: public RageTexture

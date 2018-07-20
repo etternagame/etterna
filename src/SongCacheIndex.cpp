@@ -36,7 +36,7 @@
  * path; we don't have to actually look in the directory (to find out the directory hash)
  * in order to find the cache file.
  */
-const string CACHE_INDEX = SpecialFiles::CACHE_DIR + "index.cache";
+const string CACHE_INDEX = SpecialFiles::CACHE_DIR + "images.cache";
 const string CACHE_DB = SpecialFiles::CACHE_DIR + "cache.db";
 const unsigned int CACHE_DB_VERSION = 236;
 
@@ -714,7 +714,8 @@ static void EmptyDir(RString dir)
 
 void SongCacheIndex::ReadCacheIndex()
 {
-	CacheIndex.ReadFile(CACHE_INDEX);	// don't care if this fails
+	return;
+	/*CacheIndex.ReadFile(CACHE_INDEX);	// don't care if this fails
 
 	int iCacheVersion = -1;
 	CacheIndex.GetValue("Cache", "CacheVersion", iCacheVersion);
@@ -722,25 +723,22 @@ void SongCacheIndex::ReadCacheIndex()
 		return; // OK
 
 	LOG->Trace( "Cache format is out of date.  Deleting all cache files." );
+	EmptyDir(SpecialFiles::CACHE_DIR + "Banners/");
 	EmptyDir( SpecialFiles::CACHE_DIR+"Songs/" );
 	EmptyDir( SpecialFiles::CACHE_DIR+"Courses/" );
 	
-
-	// comment out until we stop being really bad at dealing with cache versions (revisit asap) - mina
-	/*
 	vector<RString> ImageDir;
 	split( CommonMetrics::IMAGES_TO_CACHE, ",", ImageDir );
 	for( std::string Image : ImageDir )
-		EmptyDir( SpecialFiles::CACHE_DIR+Image+"/" );
-	*/ 
+		EmptyDir( SpecialFiles::CACHE_DIR+Image+"/" );*/
 
-	CacheIndex.Clear();
+	//CacheIndex.Clear();
 	/* This is right now in place because our song file paths are apparently being
 	* cached in two distinct areas, and songs were loading from paths in FILEMAN.
 	* This is admittedly a hack for now, but this does bring up a good question on
 	* whether we really need a dedicated cache for future versions of StepMania.
 	*/
-	FILEMAN->FlushDirCache();
+	//FILEMAN->FlushDirCache();
 }
 
 void SongCacheIndex::SaveCacheIndex()
