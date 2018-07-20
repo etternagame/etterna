@@ -327,44 +327,6 @@ vector<float> PlayerStageStats::CalcSSR(float ssrpercent ) const {
 	return MinaSDCalc(serializednd, steps->GetNoteData().GetNumTracks(), musicrate, ssrpercent, 1.f, steps->GetTimingData()->HasWarps());
 }
 
-void PlayerStageStats::GenerateValidationKeys(HighScore& hs) const {
-	string key = "";
-
-	FOREACH_ENUM(TapNoteScore, tns) {
-
-		if(tns == TNS_AvoidMine || tns == TNS_CheckpointHit || tns == TNS_CheckpointMiss || tns == TNS_None) {
-			continue;
-		}
-
-		key.append(to_string(hs.GetTapNoteScore(tns)));
-	}	
-	
-	FOREACH_ENUM(HoldNoteScore, hns) {
-		if (hns == HNS_None) {
-			continue;
-		}
-
-		key.append(to_string(hs.GetHoldNoteScore(hns)));
-	}
-
-	key.append(hs.GetScoreKey());
-	key.append(hs.GetChartKey());
-	key.append(hs.GetModifiers());
-	key.append(hs.GetMachineGuid());
-	key.append(to_string(static_cast<int>(hs.GetWifeScore() * 1000.f)));
-	key.append(to_string(static_cast<int>(hs.GetSSRNormPercent() * 1000.f)));
-	key.append(to_string(static_cast<int>(hs.GetMusicRate() * 1000.f)));
-	key.append(to_string(static_cast<int>(hs.GetJudgeScale() * 1000.f)));
-	key.append(to_string(static_cast<int>(hs.GetWifePoints() * 1000.f)));
-	key.append(to_string(static_cast<int>(!hs.GetChordCohesion())));
-	key.append(to_string(static_cast<int>(hs.GetEtternaValid())));
-	key.append(GradeToString(hs.GetWifeGrade()));
-
-	hs.SetValidationKey(ValidationKey_Brittle, BinaryToHex(CryptManager::GetSHA1ForString(key)));
-
-	// just testing stuff
-	//hs.SetValidationKey(ValidationKey_Weak, GenerateWeakValidationKey(m_iTapNoteScores, m_iHoldNoteScores));
-}
 float PlayerStageStats::GetTimingScale() const {
 	return m_fTimingScale;
 }

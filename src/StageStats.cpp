@@ -559,7 +559,7 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 		}
 	}
 
-	pss.GenerateValidationKeys(hs);
+	hs.GenerateValidationKeys();
 
 	if (!pss.InputData.empty())
 		hs.WriteInputData(pss.InputData);

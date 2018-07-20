@@ -838,6 +838,45 @@ bool HighScore::IsEmpty() const
 	return true;
 }
 
+void HighScore::GenerateValidationKeys() {
+	string key = "";
+
+	FOREACH_ENUM(TapNoteScore, tns) {
+
+		if (tns == TNS_AvoidMine || tns == TNS_CheckpointHit || tns == TNS_CheckpointMiss || tns == TNS_None) {
+			continue;
+		}
+
+		key.append(to_string(GetTapNoteScore(tns)));
+	}
+
+	FOREACH_ENUM(HoldNoteScore, hns) {
+		if (hns == HNS_None) {
+			continue;
+		}
+
+		key.append(to_string(GetHoldNoteScore(hns)));
+	}
+
+	key.append(GetScoreKey());
+	key.append(GetChartKey());
+	key.append(GetModifiers());
+	key.append(GetMachineGuid());
+	key.append(to_string(static_cast<int>(GetWifeScore() * 1000.f)));
+	key.append(to_string(static_cast<int>(GetSSRNormPercent() * 1000.f)));
+	key.append(to_string(static_cast<int>(GetMusicRate() * 1000.f)));
+	key.append(to_string(static_cast<int>(GetJudgeScale() * 1000.f)));
+	key.append(to_string(static_cast<int>(GetWifePoints() * 1000.f)));
+	key.append(to_string(static_cast<int>(!GetChordCohesion())));
+	key.append(to_string(static_cast<int>(GetEtternaValid())));
+	key.append(GradeToString(GetWifeGrade()));
+
+	SetValidationKey(ValidationKey_Brittle, BinaryToHex(CryptManager::GetSHA1ForString(key)));
+
+	// just testing stuff
+	//hs.SetValidationKey(ValidationKey_Weak, GenerateWeakValidationKey(m_iTapNoteScores, m_iHoldNoteScores));
+}
+
 bool HighScore::Is39import() const { return m_Impl->is39import; }
 
 string	HighScore::GetName() const { return m_Impl->sName; }

@@ -942,7 +942,6 @@ void Profile::CalculateStatsFromScores(LoadingWindow* ld) {
 
 	SCOREMAN->RecalculateSSRs(ld, m_sProfileID);
 	SCOREMAN->CalcPlayerRating(m_fPlayerRating, m_fPlayerSkillsets, m_sProfileID);
-	//SCOREMAN->RatingOverTime();
 }
 
 void Profile::CalculateStatsFromScores() {

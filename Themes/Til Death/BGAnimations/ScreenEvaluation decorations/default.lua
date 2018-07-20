@@ -1,7 +1,6 @@
 local t = Def.ActorFrame{}
 
 local enabledCustomWindows = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomEvaluationWindowTimings
-PROFILEMAN:SaveProfile(PLAYER_1)
 
 local customWindows = timingWindowConfig:get_data().customWindows
 

@@ -168,6 +168,7 @@ struct HighScore
 	void SetSkillsetSSR(Skillset ss, float ssr);
 	void SetValidationKey(ValidationKey vk, string k);
 	void SetTopScore(int i);
+	void GenerateValidationKeys();
 	string GetValidationKey(ValidationKey vk) const; 
 	vector<int> GetRescoreJudgeVector(int x);
 	// Lua
