@@ -146,9 +146,6 @@ local t = Def.ActorFrame{
 	TabChangedMessageCommand=function(self)
 		self:queuecommand("Set")
 	end,
-	PlayerJoinedMessageCommand=function(self)
-		self:queuecommand("Set")
-	end,
 }
 
 t[#t+1] = Def.Quad{InitCommand=function(self)

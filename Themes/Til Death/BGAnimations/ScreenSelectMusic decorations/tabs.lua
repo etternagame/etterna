@@ -3,9 +3,7 @@ local numericinputactive = false
 local whee
 
 local tabNames = {"General","MSD","Scores","Search","Profile","Filters", "Goals", "Playlists", "Packs", "Tags"} -- this probably should be in tabmanager.
---[[
 
-]]
 local function input(event)
 	if event.type ~= "InputEventType_Release" and active then
 		if numericinputactive == false then
@@ -35,31 +33,11 @@ local t = Def.ActorFrame{
 		whee = SCREENMAN:GetTopScreen():GetMusicWheel()
 	end,
 	BeginCommand=function(self) resetTabIndex() end,
-	PlayerJoinedMessageCommand=function(self) resetTabIndex() end,
 	BeginningSearchMessageCommand=function(self) active = true end,	-- this is for disabling numeric input in the text search and is unused atm
 	EndingSearchMessageCommand=function(self) active = true end,
 	NumericInputActiveMessageCommand=function(self) numericinputactive = true end,
 	NumericInputEndedMessageCommand=function(self) numericinputactive = false end,
 }
-
--- Just for debug
---[[
-t[#t+1] = LoadFont("Common Normal") .. {
-	InitCommand=function(self)
-		self:xy(300,300):halign(0):zoom(2):diffuse(getMainColor(2))
-	end;
-	BeginCommand=function(self)
-		self:queuecommand("Set")
-	end;
-	SetCommand=function(self)
-		self:settext(getTabIndex())
-	end;
-	CodeMessageCommand=function(self)
-		self:queuecommand("Set")
-	end;
-};
---]]
---======================================================================================
 
 local frameWidth = capWideScale(get43size(450),450)/(#tabNames-1)
 local frameX = frameWidth/2 + 2
@@ -67,13 +45,13 @@ local frameY = SCREEN_HEIGHT-70
 
 function tabs(index)
 	local t = Def.ActorFrame{
-		Name="Tab"..index;
+		Name="Tab"..index,
 		InitCommand=function(self)
 			self:xy(frameX+((index-1)*frameWidth),frameY)
-		end;
+		end,
 		BeginCommand=function(self)
 			self:queuecommand("Set")
-		end;
+		end,
 		SetCommand=function(self)
 			self:finishtweening()
 			self:linear(0.1)
@@ -84,27 +62,24 @@ function tabs(index)
 			else -- otherwise "Hide" them
 				self:y(frameY)
 				self:diffusealpha(0.65)
-			end;
-		end;
+			end
+		end,
 		TabChangedMessageCommand=function(self)
 			self:queuecommand("Set")
-		end;
-		PlayerJoinedMessageCommand=function(self)
-			self:queuecommand("Set")
-		end;
+		end
 	};
 
 	t[#t+1] = Def.Quad{
-		Name="TabBG";
+		Name="TabBG",
 		InitCommand=function(self)
 			self:y(2):valign(0):zoomto(frameWidth,20):diffusecolor(getMainColor('frames')):diffusealpha(0.85)
-		end;
+		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
 				setTabIndex(index-1)
 				MESSAGEMAN:Broadcast("TabChanged")
-			end;
-		end;
+			end
+		end
 	};
 		
 	t[#t+1] = LoadFont("Common Normal") .. {
@@ -126,19 +101,13 @@ function tabs(index)
 				self:diffuse(color("#666666"))
 			end
 		end,
-		PlayerJoinedMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
-		UpdateFilterMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
-	};
+	}
 	return t
-end;
+end
 
 --Make tabs
 for i=1,#tabNames do
 	t[#t+1] =tabs(i)
-end;
+end
 
 return t
