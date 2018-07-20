@@ -729,6 +729,9 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 			case SORT_Technical:
 				SongUtil::SortSongPointerArrayByGroupAndMSD(arraySongs, Skill_Technical);
 				break;
+			case SORT_LENGTH:
+				SongUtil::SortSongPointerArrayByLength(arraySongs);
+				break;
 			default:
 				FAIL_M("Unhandled sort order! Aborting...");
 		}

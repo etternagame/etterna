@@ -98,11 +98,7 @@ local function makedoots(i)
 			end,
 			OnCommand=function(self)
 				local bundle = DLMAN:GetCoreBundle(minidoots[i]:lower())
-				local sumsize = 0
-				for i=1,#bundle do
-					sumsize = sumsize + bundle[i]:GetSize()
-				end
-				self:settextf("(%dmb)", sumsize/1024/1024)
+				self:settextf("(%dmb)", bundle["TotalSize")
 				
 			end
 		}

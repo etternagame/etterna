@@ -923,6 +923,7 @@ const RadarValues &HighScore::GetRadarValues() const { return m_Impl->radarValue
 float HighScore::GetLifeRemainingSeconds() const { return m_Impl->fLifeRemainingSeconds; }
 bool HighScore::GetDisqualified() const { return m_Impl->bDisqualified; }
 int HighScore::GetTopScore() const { return m_Impl->TopScore; }
+int HighScore::GetReplayType() const { return m_Impl->ReplayType; }
 
 void HighScore::SetName( const string &sName ) { m_Impl->sName = sName; }
 void HighScore::SetChartKey( const string &ck) { m_Impl->ChartKey = ck; }
@@ -1530,6 +1531,7 @@ public:
 	DEFINE_METHOD( GetEtternaValid , GetEtternaValid() )
 	DEFINE_METHOD( HasReplayData, HasReplayData() )
 	DEFINE_METHOD( GetChartKey, GetChartKey())
+	DEFINE_METHOD(GetReplayType, GetReplayType())
 	LunaHighScore()
 	{
 		ADD_METHOD( GetName );
@@ -1566,6 +1568,7 @@ public:
 		ADD_METHOD( GetTapNoteTypeVector );
 		ADD_METHOD( GetTapNoteSubTypeVector );
 		ADD_METHOD( GetChartKey );
+		ADD_METHOD( GetReplayType );
 	}
 };
 
