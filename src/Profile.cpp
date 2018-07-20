@@ -837,8 +837,6 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 	InitAll();
 
 	LoadTypeFromDir(sDir);
-	// Not critical if this fails
-	LoadEditableDataFromDir( sDir );
 	DBProf.SetLoadingProfile(this);
 	XMLProf.SetLoadingProfile(this);
 	ProfileLoadResult ret = XMLProf.LoadEttFromDir(sDir);
@@ -851,6 +849,8 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 		IsEtternaProfile = true;
 		ImportScoresToEtterna();
 	}
+	// Not critical if this fails
+	LoadEditableDataFromDir(sDir);
 
 	// move old profile specific replays to the new aggregate folder
 	RString oldreplaydir = sDir + "ReplayData/";
