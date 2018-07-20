@@ -1162,7 +1162,7 @@ int sm_main(int argc, char* argv[])
 
 	SONGMAN->UpdatePopular();
 	SONGMAN->UpdatePreferredSort();
-	NSMAN 		= new NetworkSyncManager( NULL );
+	NSMAN 		= new NetworkSyncManager( pLoadingWindow );
 	STATSMAN	= new StatsManager;
 
 	FILTERMAN = new FilterManager;

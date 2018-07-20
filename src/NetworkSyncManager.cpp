@@ -154,6 +154,7 @@ NetworkSyncManager::NetworkSyncManager(LoadingWindow *ld)
 	loggedIn = false;
 	m_startupStatus = 0;	//By default, connection not tried.
 	m_ActivePlayers = 0;
+	ld->SetText("Connecting to multiplayer server");
 	StartUp();
 	// Register with Lua.
 	{
