@@ -425,7 +425,11 @@ function scoreBoard(pn,position)
 		};
 		t[#t+1] = LoadFont("Common Normal")..{
 			InitCommand=function(self)
-				self:xy(frameWidth+20,frameY+230+10*i):zoom(0.4):halign(1):settextf("%5.2fms",mcscoot[i])
+				if i < 4 then
+					self:xy(frameWidth+20,frameY+230+10*i):zoom(0.4):halign(1):settextf("%5.2fms",mcscoot[i])
+				else
+					self:xy(frameWidth+20,frameY+230+10*i):zoom(0.4):halign(1):settext(mcscoot[i])
+				end
 			end,
 		};
 	end	
