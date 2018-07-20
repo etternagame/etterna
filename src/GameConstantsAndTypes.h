@@ -180,6 +180,7 @@ enum SortOrder
 	SORT_JackSpeed,
 	SORT_Chordjack,
 	SORT_Technical,
+	SORT_LENGTH,
 	NUM_SortOrder,
 	SortOrder_Invalid
 };
