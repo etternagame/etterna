@@ -15,7 +15,9 @@ local plotWidth, plotHeight = 400,120
 local plotX, plotY = SCREEN_WIDTH - 9 - plotWidth/2, SCREEN_HEIGHT - 56 - plotHeight/2
 local dotDims, plotMargin = 2, 4
 local maxOffset = math.max(180, 180*tso)
+local baralpha = 0.2
 local bgalpha = 0.8
+local textzoom = 0.35
 
 -- initialize tables we need for replay data here, we don't know where we'll be loading from yet
 local dvt = {}
@@ -54,6 +56,7 @@ local o = Def.ActorFrame{
 		if SCREENMAN:GetTopScreen():GetName() == "ScreenScoreTabOffsetPlot" then	-- loaded from scoretab not eval so we need to read from disk and adjust plot display
 			plotWidth, plotHeight = SCREEN_WIDTH,SCREEN_WIDTH*0.3
 			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+			textzoom = 0.5
 			bgalpha = 1
 			
 			-- the internals here are really inefficient this should be handled better (internally) -mina
@@ -116,10 +119,14 @@ local o = Def.ActorFrame{
 		MESSAGEMAN:Broadcast("JudgeDisplayChanged")
 	end,
 }
+-- Background
+o[#o+1] = Def.Quad{JudgeDisplayChangedMessageCommand=function(self)
+	self:zoomto(plotWidth+plotMargin,plotHeight+plotMargin):diffuse(color("0.05,0.05,0.05,0.05")):diffusealpha(bgalpha)
+end}
 -- Center Bar
 o[#o+1] = Def.Quad{
 	JudgeDisplayChangedMessageCommand=function(self)
-		self:zoomto(plotWidth+plotMargin,1):diffuse(byJudgment("TapNoteScore_W1"))
+		self:zoomto(plotWidth+plotMargin,1):diffuse(byJudgment("TapNoteScore_W1")):diffusealpha(baralpha)
 	end
 }
 local fantabars = {22.5, 45, 90, 135}
@@ -127,23 +134,19 @@ local bantafars = {"TapNoteScore_W2", "TapNoteScore_W3", "TapNoteScore_W4", "Tap
 for i=1, #fantabars do 
 	o[#o+1] = Def.Quad{
 		JudgeDisplayChangedMessageCommand=function(self)
-			self:zoomto(plotWidth+plotMargin,1):diffuse(byJudgment(bantafars[i]))
+			self:zoomto(plotWidth+plotMargin,1):diffuse(byJudgment(bantafars[i])):diffusealpha(baralpha)
 			local fit = (enabledCustomWindows and judge ~= 0) and customWindow.judgeWindows[judges[i]] or tso*fantabars[i]
 			self:y( fitY(fit))
 		end
 	}
 	o[#o+1] = Def.Quad{
 		JudgeDisplayChangedMessageCommand=function(self)
-			self:zoomto(plotWidth+plotMargin,1):diffuse(byJudgment(bantafars[i]))
+			self:zoomto(plotWidth+plotMargin,1):diffuse(byJudgment(bantafars[i])):diffusealpha(baralpha)
 			local fit = (enabledCustomWindows and judge ~= 0) and customWindow.judgeWindows[judges[i]] or tso*fantabars[i]
 			self:y( fitY(-fit))
 		end
 	}
 end
--- Background
-o[#o+1] = Def.Quad{JudgeDisplayChangedMessageCommand=function(self)
-	self:zoomto(plotWidth+plotMargin,plotHeight+plotMargin):diffuse(color("0.05,0.05,0.05,0.05")):diffusealpha(bgalpha)
-end}
 
 local dotWidth = dotDims / 2
 o[#o+1] = Def.ActorMultiVertex{
@@ -197,17 +200,35 @@ o[#o+1] = Def.ActorMultiVertex{
 	end
 }
 
+-- filter 
+o[#o+1] = LoadFont("Common Normal")..{
+	JudgeDisplayChangedMessageCommand=function(self)
+		self:xy(0,plotHeight/2-2):zoom(textzoom):halign(0.5):valign(1)
+		if #ntt > 0 then		
+			if handspecific then
+				if left then
+					self:settext("Highlighting left hand taps")
+				else
+					self:settext("Highlighting right hand taps")
+				end
+			else
+				self:settext("Down toggles highlights")
+			end
+		else
+			self:settext("")
+		end
+	end
+}
+
 -- Early/Late markers
 o[#o+1] = LoadFont("Common Normal")..{
 	JudgeDisplayChangedMessageCommand=function(self)
-		self:xy(-plotWidth/2,-plotHeight/2+2):settextf("Late (+%ims)", maxOffset):zoom(0.35):halign(0):valign(0)
-		self:settextf("Late (+%ims)", maxOffset)
+		self:xy(-plotWidth/2,-plotHeight/2+2):zoom(textzoom):halign(0):valign(0):settextf("Late (+%ims)", maxOffset)
 	end
 }
 o[#o+1] = LoadFont("Common Normal")..{
 	JudgeDisplayChangedMessageCommand=function(self)
-		self:xy(-plotWidth/2,plotHeight/2-2):settextf("Early (-%ims)", maxOffset):zoom(0.35):halign(0):valign(1)
-		self:settextf("Early (-%ims)", maxOffset)
+		self:xy(-plotWidth/2,plotHeight/2-2):zoom(textzoom):halign(0):valign(1):settextf("Early (-%ims)", maxOffset)
 	end
 }
 
