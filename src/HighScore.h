@@ -64,6 +64,7 @@ struct HighScore
 	vector<TapNoteSubType>  GetCopyOfTapNoteSubTypeVector() const;
 	string GetScoreKey() const;
 	int GetTopScore() const;
+	int GetReplayType() const;
 	/**
 	 * @brief Determine how many seconds the player had left in Survival mode.
 	 * @return the number of seconds left. */
