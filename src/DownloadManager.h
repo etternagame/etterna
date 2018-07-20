@@ -156,6 +156,12 @@ public:
 	map<Skillset, double> sessionRatings;
 	map<Skillset, vector<OnlineTopScore>> topScores;
 	bool LoggedIn();
+
+	void AddFavorite(string chartkey);
+	void RemoveFavorite(string chartkey);
+	void RefreshFavourites();
+	vector<string> favorites;
+
 	void EndSessionIfExists(); //Calls EndSession if logged in
 	void EndSession(); //Sends session destroy request
 	void StartSession(string user, string pass, function<void(bool loggedIn)> done); //Sends login request if not already logging in

@@ -581,6 +581,48 @@ bool DownloadManager::LoggedIn()
 	return !authToken.empty();
 }
 
+void DownloadManager::AddFavorite(string chartkey)
+{
+	string req = "users/" + DLMAN->sessionUser + "/favorites";
+	DLMAN->favorites.emplace_back(chartkey);
+	auto done = [](HTTPRequest& req, CURLMsg *) {
+
+	};
+	SendRequest(req, {make_pair("chartkey", chartkey)}, done);
+}
+
+void DownloadManager::RemoveFavorite(string chartkey)
+{
+	auto it = std::find(DLMAN->favorites.begin(), DLMAN->favorites.end(), chartkey);
+	if (it != DLMAN->favorites.end())
+		DLMAN->favorites.erase(it);
+	string req = "users/" + DLMAN->sessionUser + "/favorites/"+chartkey;
+	auto done = [](HTTPRequest& req, CURLMsg *) {
+
+	};
+	SendRequest(req, {}, done);
+}
+
+void DownloadManager::RefreshFavourites()
+{
+	string req = "users/" + DLMAN->sessionUser + "/favorites";
+	auto done = [](HTTPRequest& req, CURLMsg *) {
+		json j;
+		bool parsed = true;
+		try {
+			j = json::parse(req.result);
+			auto favs = j.find("data");
+			for (auto fav : *favs)
+				DLMAN->favorites.emplace_back(fav["attributes"].value("chartkey", ""));
+		}
+		catch (exception e) {
+			DLMAN->favorites.clear();
+		}
+		MESSAGEMAN->Broadcast("FavouritesUpdate");
+	};
+	SendRequest(req, {}, done);
+}
+
 bool DownloadManager::ShouldUploadScores()
 {
 	return LoggedIn() && automaticSync;
