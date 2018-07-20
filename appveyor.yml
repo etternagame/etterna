@@ -35,9 +35,7 @@ after_build:
 - cmd: >-
     
     "C:\Program Files (x86)\NSIS\makensis.exe" "C:\etterna\stepmania.nsi"
-- cmd: >-
-    
-    "C:\Program Files (x86)\NSIS\makensis.exe" /DSongless "C:\etterna\stepmania.nsi"
+
 - cmd: >-
     rename "C:\etterna\Etterna *.exe" "Etterna *-%appveyor_build_version%.exe"
 
