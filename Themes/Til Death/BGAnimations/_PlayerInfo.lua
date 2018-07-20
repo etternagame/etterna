@@ -214,6 +214,9 @@ t[#t+1] = Def.ActorFrame{
 		SetCommand=function(self)
 			self:settextf("Songs Loaded: %i", SONGMAN:GetNumSongs())
 		end,
+		DifferentialReloadMessageCommand=function(self)
+			self:queuecommand("Set")
+		end
 	},
 	LoadFont("Common Normal") .. {
 		InitCommand=function(self)
