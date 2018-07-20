@@ -94,7 +94,7 @@ void DoInstalls(CommandLineActions::CommandLineArgs args)
 		}
 		else
 		{
-			SONGMAN->DifferentialReload();
+			SCREENMAN->SetNewScreen("ScreenReloadSongs");
 		}
 	}
 	return;

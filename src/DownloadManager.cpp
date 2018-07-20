@@ -473,7 +473,7 @@ void DownloadManager::UpdatePacks(float fDeltaSeconds)
 			if (screen && screen->GetName() == "ScreenNetSelectMusic")
 				static_cast<ScreenNetSelectMusic*>(screen)->DifferentialReload();
 			else
-				SONGMAN->DifferentialReload();
+				SCREENMAN->SetNewScreen("ScreenReloadSongs");
 	}
 	if (downloadingPacks < maxPacksToDownloadAtOnce && !DownloadQueue.empty() && timeSinceLastDownload > DownloadCooldownTime) {
 		auto it = DownloadQueue.begin();
@@ -567,7 +567,7 @@ void DownloadManager::UpdatePacks(float fDeltaSeconds)
 			if (screen && screen->GetName() == "ScreenNetSelectMusic")
 				static_cast<ScreenNetSelectMusic*>(screen)->DifferentialReload();
 			else
-				SONGMAN->DifferentialReload();
+				SCREENMAN->SetNewScreen("ScreenReloadSongs");
 	}
 	return;
 }

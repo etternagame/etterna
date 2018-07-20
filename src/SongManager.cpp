@@ -185,7 +185,7 @@ int SongManager::DifferentialReloadDir(string dir, LoadingWindow *ld) {
 			index_entry.emplace_back(pNewSong);
 			
 			if(ld)
-				ld->SetText("Loading\n" + hur);
+				ld->SetText("Loading:\n" + sGroupDirName + "\n" + pNewSong->GetMainTitle());
 
 			loaded++;
 			songIndex++;
