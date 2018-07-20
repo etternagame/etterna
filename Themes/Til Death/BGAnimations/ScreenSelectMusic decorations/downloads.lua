@@ -131,7 +131,9 @@ local t = Def.ActorFrame{
 	end,
 	SetCommand=function(self)
 		self:finishtweening()
-		if getTabIndex() == 8 then
+		if getTabIndex() == 8 and update then
+			MESSAGEMAN:Broadcast("MouseRightClick")
+		elseif getTabIndex() == 8 then
 			self:queuecommand("On")
 			self:visible(true)
 			update = true
