@@ -1629,6 +1629,12 @@ public:
 		return 1;
 	}
 
+	static int RenameProfile(T* p, lua_State *L) {
+		p->m_sDisplayName = SArg(1);
+		p->SaveEditableDataToDir(p->m_sProfileID);
+		return 1;
+	}
+
 	LunaProfile()
 	{
 		ADD_METHOD( AddScreenshot );
@@ -1676,6 +1682,7 @@ public:
 		ADD_METHOD(CalculateCaloriesFromHeartRate);
 		ADD_METHOD(IsCurrentChartPermamirror);
 		ADD_METHOD(GetEasiestGoalForChartAndRate);
+		ADD_METHOD(RenameProfile);
 	}
 };
 
