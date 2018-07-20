@@ -386,7 +386,7 @@ function scoreBoard(pn,position)
 	local cbr = 0
 	
 	-- basic per-hand stats to be expanded on later
-	local tst = { 1.50,1.33,1.16,1.00,0.84,0.66,0.50,0.33,0.20 }	-- ok this is getting dumb i need to do this better -mina
+	local tst = ms.JudgeScalers
 	local tso = tst[judge]
 	if enabledCustomWindows then
 		tso = 1
