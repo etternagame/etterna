@@ -838,7 +838,7 @@ bool HighScore::IsEmpty() const
 	return true;
 }
 
-void HighScore::GenerateValidationKeys() {
+string HighScore::GenerateValidationKeys() {
 	string key = "";
 
 	FOREACH_ENUM(TapNoteScore, tns) {
@@ -875,6 +875,7 @@ void HighScore::GenerateValidationKeys() {
 
 	// just testing stuff
 	//hs.SetValidationKey(ValidationKey_Weak, GenerateWeakValidationKey(m_iTapNoteScores, m_iHoldNoteScores));
+	return key;
 }
 
 bool HighScore::Is39import() const { return m_Impl->is39import; }

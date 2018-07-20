@@ -659,6 +659,7 @@ inline void SetCURLPOSTScore(CURL*& curlHandle, curl_httppost*& form, curl_httpp
 	SetCURLFormPostField(curlHandle, form, lastPtr, "machineGuid", hs->GetMachineGuid());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "grade", hs->GetGrade());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "wifeGrade", string(GradeToString(hs->GetWifeGrade()).c_str()));
+	SetCURLFormPostField(curlHandle, form, lastPtr, "ValidString", hs->GenerateValidationKeys());
 	
 }
 void DownloadManager::UploadScore(HighScore* hs)
