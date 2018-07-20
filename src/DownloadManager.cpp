@@ -640,7 +640,7 @@ void DownloadManager::UploadScore(HighScore* hs)
 			for (auto error : errors) {
 				if (error["status"] == 22) {
 					delay = true;
-					DLMAN->StartSession(DLMAN->sessionPass, DLMAN->sessionPass, [hs](bool logged) {
+					DLMAN->StartSession(DLMAN->sessionUser, DLMAN->sessionPass, [hs](bool logged) {
 						if (logged) {
 							DLMAN->UploadScore(hs);
 						}
@@ -703,7 +703,7 @@ void DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 				for (auto error : errors) {
 					if (error["status"] == 22) {
 						delay = true;
-						DLMAN->StartSession(DLMAN->sessionPass, DLMAN->sessionPass, [hs](bool logged) {
+						DLMAN->StartSession(DLMAN->sessionUser, DLMAN->sessionPass, [hs](bool logged) {
 							if (logged) {
 								DLMAN->UploadScoreWithReplayData(hs);
 							}
