@@ -414,7 +414,7 @@ void ImageCache::CacheImageInternal( const std::string &sImageDir, const std::st
 	// int iWidth = min(pImage->w, 256), iHeight = min(pImage->h, 64);
 	
 	// I rather have it Cache everything -Jousway
-	int iWidth = pImage->w / 2.5, iHeight = pImage->h / 2.5;
+	int iWidth = static_cast<int>(pImage->w / 2.5), iHeight = static_cast<int>(pImage->h / 2.5);
 	
 	/* Round to the nearest power of two.  This simplifies the actual texture load. */
 	iWidth = closest( iWidth, power_of_two(iWidth), power_of_two(iWidth) / 2 );
