@@ -598,6 +598,7 @@ for i=2,#ms.SkillSets do
 end
 
 
+-- these maybe should be generalized and placed into scripts -mina
 function easyInputStringWithParams(question, maxLength, isPassword, f, params)
 	SCREENMAN:AddNewScreenToTop("ScreenTextEntry");
 	local settings = {

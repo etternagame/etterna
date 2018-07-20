@@ -14,6 +14,12 @@ local AvatarX = 0
 local AvatarY = SCREEN_HEIGHT-50
 local playerRating = 0
 
+local setnewdisplayname = function(answer)
+	profile:RenameProfile(answer)
+	profileName = answer
+	MESSAGEMAN:Broadcast("ProfileRenamed", {doot = answer})
+end
+
 t[#t+1] = Def.Actor{
 	BeginCommand=function(self)
 		self:queuecommand("Set")
@@ -75,19 +81,21 @@ t[#t+1] = Def.ActorFrame{
 	},
 	LoadFont("Common Normal") .. {
 		InitCommand=function(self)
-			self:xy(AvatarX+53,AvatarY+7):maxwidth(200):halign(0):zoom(0.6):diffuse(getMainColor('positive'))
-		end,
-		BeginCommand=function(self)
-			self:queuecommand("Set")
+			self:xy(AvatarX+53,AvatarY+7):maxwidth(400):halign(0):zoom(0.6):diffuse(getMainColor('positive'))
 		end,
 		SetCommand=function(self)
 			self:settextf("%s: %5.2f",profileName,playerRating)
+			if profileName == "Default Profile" then
+				easyInputStringWithFunction("Choose a profile display name\nClicking your name will allow you to change it:", 64, false, setnewdisplayname)
+			end
 		end,
-		PlayerJoinedMessageCommand=function(self)
-			self:queuecommand("Set")
+		MouseLeftClickMessageCommand=function(self)
+			if isOver(self) then
+				easyInputStringWithFunction("Choose new profile display name:", 64, false, setnewdisplayname)
+			end
 		end,
-		PlayerUnjoinedMessageCommand=function(self)
-			self:queuecommand("Set")
+		ProfileRenamedMessageCommand=function(self, params)
+			self:settextf("%s: %5.2f",params.doot,playerRating)
 		end,
 	},
 	LoadFont("Common Normal") .. {
