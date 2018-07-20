@@ -1596,17 +1596,36 @@ public:
 	}
 	static int GetCoreBundle(T* p, lua_State* L)
 	{
+		// this should probably return nil but only if we make it its own lua thing first -mina
 		auto bundle = DLMAN->GetCoreBundle(SArg(1));
 		lua_createtable(L, bundle.size(), 0);
 		for (size_t i = 0; i < bundle.size(); ++i) {
 			bundle[i]->PushSelf(L);
 			lua_rawseti(L, -2, i + 1);
 		}
+
+		size_t totalsize = 0;
+		float avgpackdiff = 0.f;
+
+		for (auto p : bundle) {
+			totalsize += p->size;
+			avgpackdiff += p->avgDifficulty;
+		}
+
+		if(!bundle.empty())
+			avgpackdiff /= bundle.size();
+		totalsize = totalsize / 1024 / 1024;
+		
+		// this may be kind of unintuitive but lets roll with it for now -mina
+		lua_pushnumber(L, totalsize);
+		lua_setfield(L, -2, "TotalSize");
+		lua_pushnumber(L, avgpackdiff);
+		lua_setfield(L, -2, "AveragePackDifficulty");
+
 		return 1;
 	}
 	static int DownloadCoreBundle(T* p, lua_State* L)
 	{
-		// pass "novice", "expert" etc, should start a queue and download packs in sequence rather than concurrently to minimize time before can begin -mina
 		DLMAN->DownloadCoreBundle(SArg(1));
 		return 1;
 	}
