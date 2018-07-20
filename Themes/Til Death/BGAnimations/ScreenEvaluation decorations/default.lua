@@ -386,7 +386,7 @@ function scoreBoard(pn,position)
 	local cbr = 0
 	
 	-- basic per-hand stats to be expanded on later
-	local tst = { 1.50,1.33,1.16,1.00,0.84,0.66,0.50,0.33,0.20 }	-- ok this is getting dumb i need to do this better -mina
+	local tst = ms.JudgeScalers
 	local tso = tst[judge]
 	if enabledCustomWindows then
 		tso = 1
@@ -425,7 +425,11 @@ function scoreBoard(pn,position)
 		};
 		t[#t+1] = LoadFont("Common Normal")..{
 			InitCommand=function(self)
-				self:xy(frameWidth+20,frameY+230+10*i):zoom(0.4):halign(1):settextf("%5.2fms",mcscoot[i])
+				if i < 4 then
+					self:xy(frameWidth+20,frameY+230+10*i):zoom(0.4):halign(1):settextf("%5.2fms",mcscoot[i])
+				else
+					self:xy(frameWidth+20,frameY+230+10*i):zoom(0.4):halign(1):settext(mcscoot[i])
+				end
 			end,
 		};
 	end	

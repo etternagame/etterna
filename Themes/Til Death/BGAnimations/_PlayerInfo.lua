@@ -32,12 +32,6 @@ t[#t+1] = Def.Actor{
 		noteCount = profile:GetTotalTapsAndHolds()
 		playerRating = profile:GetPlayerRating()
 	end,
-	PlayerJoinedMessageCommand=function(self)
-		self:queuecommand("Set")
-	end,
-	PlayerUnjoinedMessageCommand=function(self)
-		self:queuecommand("Set")
-	end	
 }
 
 t[#t+1] = Def.ActorFrame{
@@ -52,25 +46,13 @@ t[#t+1] = Def.ActorFrame{
 			self:visible(true)
 		end
 	end,
-	PlayerJoinedMessageCommand=function(self)
-		self:queuecommand("Set")
-	end,
-	PlayerUnjoinedMessageCommand=function(self)
-		self:queuecommand("Set")
-	end,
-
+	
 	Def.Sprite {
 		Name="Image",
 		InitCommand=function(self)
 			self:visible(true):halign(0):valign(0):xy(AvatarX,AvatarY)
 		end,
 		BeginCommand=function(self)
-			self:queuecommand("ModifyAvatar")
-		end,
-		PlayerJoinedMessageCommand=function(self)
-			self:queuecommand("ModifyAvatar")
-		end,
-		PlayerUnjoinedMessageCommand=function(self)
 			self:queuecommand("ModifyAvatar")
 		end,
 		ModifyAvatarCommand=function(self)
@@ -90,7 +72,7 @@ t[#t+1] = Def.ActorFrame{
 			end
 		end,
 		MouseLeftClickMessageCommand=function(self)
-			if isOver(self) then
+			if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
 				easyInputStringWithFunction("Choose new profile display name:", 64, false, setnewdisplayname)
 			end
 		end,
@@ -141,7 +123,7 @@ t[#t+1] = Def.ActorFrame{
 			ms.ok("Succesfully logged in")
 		end,
 		MouseLeftClickMessageCommand=function(self)
-			if isOver(self) then 
+			if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then 
 				if not DLMAN:IsLoggedIn() then
 					username = function(answer) 
 							user=answer
@@ -176,12 +158,6 @@ t[#t+1] = Def.ActorFrame{
 		SetCommand=function(self)
 			self:settext(playCount.." Plays")
 		end,
-		PlayerJoinedMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
-		PlayerUnjoinedMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
 	},
 	LoadFont("Common Normal") .. {
 		InitCommand=function(self)
@@ -192,12 +168,6 @@ t[#t+1] = Def.ActorFrame{
 		end,
 		SetCommand=function(self)
 			self:settext(noteCount.." Arrows Smashed")
-		end,
-		PlayerJoinedMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
-		PlayerUnjoinedMessageCommand=function(self)
-			self:queuecommand("Set")
 		end,
 	},
 	LoadFont("Common Normal") .. {
@@ -211,12 +181,6 @@ t[#t+1] = Def.ActorFrame{
 			local time = SecondsToHHMMSS(playTime)
 			self:settextf(time.." PlayTime")
 		end,
-		PlayerJoinedMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
-		PlayerUnjoinedMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
 	},
 	LoadFont("Common Normal") .. {
 		InitCommand=function(self)
@@ -227,12 +191,6 @@ t[#t+1] = Def.ActorFrame{
 		end,
 		SetCommand=function(self)
 			self:settext("Judge: "..GetTimingDifficulty())
-		end,
-		PlayerJoinedMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
-		PlayerUnjoinedMessageCommand=function(self)
-			self:queuecommand("Set")
 		end,
 	},
 	LoadFont("Common Normal") .. {
@@ -245,12 +203,6 @@ t[#t+1] = Def.ActorFrame{
 		SetCommand=function(self)
 			self:settext(GAMESTATE:GetEtternaVersion())
 		end,
-		PlayerJoinedMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
-		PlayerUnjoinedMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
 	},
 	LoadFont("Common Normal") .. {
 		InitCommand=function(self)
@@ -262,12 +214,6 @@ t[#t+1] = Def.ActorFrame{
 		SetCommand=function(self)
 			self:settextf("Songs Loaded: %i", SONGMAN:GetNumSongs())
 		end,
-		PlayerJoinedMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
-		PlayerUnjoinedMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
 	},
 	LoadFont("Common Normal") .. {
 		InitCommand=function(self)
@@ -278,12 +224,6 @@ t[#t+1] = Def.ActorFrame{
 		end,
 		SetCommand=function(self)
 			self:settextf("Songs Favorited: %i",  profile:GetNumFaves())
-		end,
-		PlayerJoinedMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
-		PlayerUnjoinedMessageCommand=function(self)
-			self:queuecommand("Set")
 		end,
 		FavoritesUpdatedMessageCommand=function(self)
 			self:queuecommand("Set")

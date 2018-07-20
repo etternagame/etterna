@@ -4,10 +4,20 @@ local packsy
 local packspacing = 54
 local ind = 7
 
+local function input(event)
+	if event.DeviceInput.button == 'DeviceButton_left mouse button' then
+		if event.type == "InputEventType_Release" then
+			MESSAGEMAN:Broadcast("ScMouseLeftClick")
+		end
+	end
+	return false
+end
+
 local o = Def.ActorFrame{
 	InitCommand=function(self)
 		self:xy(SCREEN_WIDTH/2, 50):halign(0.5)
 	end,
+	OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) end,
 	CodeMessageCommand = function(self, params)
 		if params.Name == 'Up' then
 			ind = ind - 1
@@ -25,7 +35,6 @@ local o = Def.ActorFrame{
 		end
 		if params.Name == 'Select' then
 			if ind < 6 and ind > 0 then
-				SCREENMAN:SystemMessage(minidoots[ind]:lower())
 				DLMAN:DownloadCoreBundle(minidoots[ind]:lower())
 				SCREENMAN:GetTopScreen():StartTransitioningScreen("SM_GoToNextScreen") 
 			end
@@ -62,14 +71,20 @@ local o = Def.ActorFrame{
 	}
 }
 
+local function UpdateHighlight(self)
+	self:GetChild("Doot"):playcommand("Doot")
+end
+
 local function makedoots(i)
 	local packinfo
 	local t = Def.ActorFrame{
 		InitCommand=function(self)
 			self:y(packspacing*i)
+			self:SetUpdateFunction(UpdateHighlight)
 		end,
 		
 		Def.Quad{
+			Name="Doot",
 			InitCommand=function(self)
 				self:y(-12):zoomto(400,48):valign(0):diffuse(color(diffcolors[i]))
 			end,
@@ -82,7 +97,25 @@ local function makedoots(i)
 				else
 					self:diffusealpha(0.5)
 				end
-			end
+			end,
+			ScMouseLeftClickMessageCommand=function(self)
+				if isOver(self) and ind == i then
+					DLMAN:DownloadCoreBundle(minidoots[i]:lower())
+					SCREENMAN:GetTopScreen():StartTransitioningScreen("SM_GoToNextScreen") 
+				elseif isOver(self) then
+					ind = i
+					self:diffusealpha(1)
+				end
+			end,
+			DootCommand=function(self)
+				if isOver(self) and ind ~= i then
+					self:diffusealpha(0.75)
+				elseif ind == i then
+					self:diffusealpha(1)
+				else
+					self:diffusealpha(0.5)
+				end
+			end,
 		},
 		LoadFont("Common Large") .. {
 			InitCommand=function(self)
@@ -99,7 +132,6 @@ local function makedoots(i)
 			OnCommand=function(self)
 				local bundle = DLMAN:GetCoreBundle(minidoots[i]:lower())
 				self:settextf("(%dmb)", bundle["TotalSize"])
-				
 			end
 		}
 	}

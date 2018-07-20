@@ -44,9 +44,6 @@ local t = Def.ActorFrame{
 	TabChangedMessageCommand=function(self)
 		self:queuecommand("Set")
 	end,
-	PlayerJoinedMessageCommand=function(self)
-		self:queuecommand("Set")
-	end,
 }
 
 local frameX = 10
@@ -68,6 +65,7 @@ local rankingY = capWideScale(40,40)
 local rankingTitleSpacing = (rankingWidth/(#ms.SkillSets))
 local buttondiffuse = 0
 local whee
+local profile
 
 if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
 	profile = GetPlayerOrMachineProfile(PLAYER_1)
@@ -724,7 +722,7 @@ local profilebuttons = Def.ActorFrame{
 			ms.ok("Succesfully logged in")
 		end,
 		MouseLeftClickMessageCommand=function(self)
-			if ButtonActive(self) and rankingSkillset == 1 then 
+			if ButtonActive(self) and rankingSkillset == 1 and not SCREENMAN:get_input_redirected(PLAYER_1) then 
 				if not DLMAN:IsLoggedIn() then
 					username = function(answer) 
 							user=answer
@@ -737,8 +735,8 @@ local profilebuttons = Def.ActorFrame{
 							playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
 							playerConfig:save(pn_to_profile_slot(PLAYER_1))
 						end
-					easyInputStringWithFunction("Password:", 50, true, password)
-					easyInputStringWithFunction("Username:",50, false, username)
+						easyInputStringWithFunction("Password:", 50, true, password)
+						easyInputStringWithFunction("Username:",50, false, username)
 				else
 					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = ""
 					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).Password = ""
