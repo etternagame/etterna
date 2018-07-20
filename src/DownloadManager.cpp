@@ -717,10 +717,7 @@ void DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 				FOREACH_ENUM(Skillset, ss)
 					if (ss != Skill_Overall)
 						(DLMAN->sessionRatings)[ss] += diffs.value(SkillsetToString(ss), 0.0);
-				(DLMAN->sessionRatings)[Skill_Overall] = 0.0f;
-				for(auto it : DLMAN->sessionRatings)
-					if(it.second > (DLMAN->sessionRatings)[Skill_Overall])
-						(DLMAN->sessionRatings)[Skill_Overall] = it.second;
+				(DLMAN->sessionRatings)[Skill_Overall] += diffs.value("Rating", 0.0);
 				hs->AddUploadedServer(serverURL.Get());
 				HTTPRunning = response_code;
 			}
