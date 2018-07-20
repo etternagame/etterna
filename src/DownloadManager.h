@@ -208,8 +208,8 @@ public:
 	RString mostrecentresult = "";
 	std::deque<DownloadablePack*> DownloadQueue;
 	const int maxPacksToDownloadAtOnce = 1;
-	const long DownloadCooldownTime = 5;
-	long timeSinceLastDownload = 0;
+	const float DownloadCooldownTime = 5.f;
+	float timeSinceLastDownload = 0.f;
 	void DownloadCoreBundle(string whichoneyo);
 	vector<DownloadablePack*> GetCoreBundle(string whichoneyo);
 
