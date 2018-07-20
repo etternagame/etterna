@@ -47,6 +47,7 @@ local rankingY = capWideScale(40,40)
 local rankingTitleSpacing = (rankingWidth/(#ms.SkillSets))
 local buttondiffuse = 0
 local whee
+local profile
 
 if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
 	profile = GetPlayerOrMachineProfile(PLAYER_1)

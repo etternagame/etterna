@@ -68,6 +68,7 @@ local rankingY = capWideScale(40,40)
 local rankingTitleSpacing = (rankingWidth/(#ms.SkillSets))
 local buttondiffuse = 0
 local whee
+local profile
 
 if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
 	profile = GetPlayerOrMachineProfile(PLAYER_1)
@@ -737,8 +738,8 @@ local profilebuttons = Def.ActorFrame{
 							playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
 							playerConfig:save(pn_to_profile_slot(PLAYER_1))
 						end
-					easyInputStringWithFunction("Password:", 50, true, password)
-					easyInputStringWithFunction("Username:",50, false, username)
+						easyInputStringWithFunction("Password:", 50, true, password)
+						easyInputStringWithFunction("Username:",50, false, username)
 				else
 					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = ""
 					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).Password = ""
