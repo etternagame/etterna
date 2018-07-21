@@ -149,6 +149,12 @@ for i=1, #fantabars do
 end
 
 local dotWidth = dotDims / 2
+local function setOffsetVerts(vt, x, y, c)
+	vt[#vt+1] = {{x-dotWidth,y+dotWidth,0}, c}
+	vt[#vt+1] = {{x+dotWidth,y+dotWidth,0}, c}
+	vt[#vt+1] = {{x+dotWidth,y-dotWidth,0}, c}
+	vt[#vt+1] = {{x-dotWidth,y-dotWidth,0}, c}
+end
 o[#o+1] = Def.ActorMultiVertex{
 	JudgeDisplayChangedMessageCommand=function(self)
 		local verts = {}
@@ -160,38 +166,23 @@ o[#o+1] = Def.ActorMultiVertex{
 			if math.abs(y) > plotHeight/2 then
 				y = fitY(fit)
 			end
-			
+
 			-- remember that time i removed redundancy in this code 2 days ago and then did this -mina
 			if ntt[i] ~= "TapNoteType_Mine" then						
 				if handspecific and left then
 					if ctt[i] == 0 or ctt[i] == 1 then
-						verts[#verts+1] = {{x-dotWidth,y+dotWidth,0}, cullur}
-						verts[#verts+1] = {{x+dotWidth,y+dotWidth,0}, cullur}
-						verts[#verts+1] = {{x+dotWidth,y-dotWidth,0}, cullur}
-						verts[#verts+1] = {{x-dotWidth,y-dotWidth,0}, cullur}
+						setOffsetVerts(verts, x, y, cullur)
 					else
-						verts[#verts+1] = {{x-dotWidth,y+dotWidth,0}, offsetToJudgeColorAlpha(dvt[i], tst[judge])}
-						verts[#verts+1] = {{x+dotWidth,y+dotWidth,0}, offsetToJudgeColorAlpha(dvt[i], tst[judge])}
-						verts[#verts+1] = {{x+dotWidth,y-dotWidth,0}, offsetToJudgeColorAlpha(dvt[i], tst[judge])}
-						verts[#verts+1] = {{x-dotWidth,y-dotWidth,0}, offsetToJudgeColorAlpha(dvt[i], tst[judge])}
+						setOffsetVerts(verts, x, y, offsetToJudgeColorAlpha(dvt[i], tst[judge]))		-- highlight left
 					end
 				elseif handspecific then
 					if ctt[i] == 2 or ctt[i] == 3 then
-						verts[#verts+1] = {{x-dotWidth,y+dotWidth,0}, cullur}
-						verts[#verts+1] = {{x+dotWidth,y+dotWidth,0}, cullur}
-						verts[#verts+1] = {{x+dotWidth,y-dotWidth,0}, cullur}
-						verts[#verts+1] = {{x-dotWidth,y-dotWidth,0}, cullur}
+						setOffsetVerts(verts, x, y, cullur)
 					else
-						verts[#verts+1] = {{x-dotWidth,y+dotWidth,0}, offsetToJudgeColorAlpha(dvt[i], tst[judge])}
-						verts[#verts+1] = {{x+dotWidth,y+dotWidth,0}, offsetToJudgeColorAlpha(dvt[i], tst[judge])}
-						verts[#verts+1] = {{x+dotWidth,y-dotWidth,0}, offsetToJudgeColorAlpha(dvt[i], tst[judge])}
-						verts[#verts+1] = {{x-dotWidth,y-dotWidth,0}, offsetToJudgeColorAlpha(dvt[i], tst[judge])}
+						setOffsetVerts(verts, x, y, offsetToJudgeColorAlpha(dvt[i], tst[judge]))		-- highlight right
 					end
 				else
-					verts[#verts+1] = {{x-dotWidth,y+dotWidth,0}, cullur}
-					verts[#verts+1] = {{x+dotWidth,y+dotWidth,0}, cullur}
-					verts[#verts+1] = {{x+dotWidth,y-dotWidth,0}, cullur}
-					verts[#verts+1] = {{x-dotWidth,y-dotWidth,0}, cullur}
+					setOffsetVerts(verts, x, y, cullur)
 				end
 			end
 		end
