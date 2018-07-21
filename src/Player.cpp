@@ -36,6 +36,7 @@
 #include "Steps.h"
 #include "Style.h"
 #include "ThemeManager.h"
+#include "NoteSkinManager.h" 
 #include "ThemeMetric.h"
 
 RString ATTACK_DISPLAY_X_NAME( size_t p, size_t both_sides );
@@ -1973,6 +1974,8 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 				fStepSeconds, fMusicSeconds, fNoteOffset );
 			*/
 		}
+		
+		NOTESKIN->SetLastSeenColor(NoteTypeToString(GetNoteType(iRowOfOverlappingNoteOrRow))); 
 
 		const float fSecondsFromExact = fabsf( fNoteOffset );
 

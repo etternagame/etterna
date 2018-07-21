@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "ArrowEffects.h"
 #include "BackgroundUtil.h"
 #include "CommonMetrics.h"
@@ -89,12 +89,12 @@ void NoteField::Unload()
 	memset( m_pDisplays, 0, sizeof(m_pDisplays) );
 }
 
-void NoteField::CacheNoteSkin( const RString &sNoteSkin_ )
+void NoteField::CacheNoteSkin( const RString &sNoteSkin_, PlayerNumber pn ) 
 {
 	if( m_NoteDisplays.find(sNoteSkin_) != m_NoteDisplays.end() )
 		return;
 
-	LockNoteSkin l( sNoteSkin_ );
+	LockNoteSkin l(sNoteSkin_, pn);
 
 	LOG->Trace("NoteField::CacheNoteSkin: cache %s", sNoteSkin_.c_str() );
 	auto *nd = new NoteDisplayCols( GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber)->m_iColsPerPlayer );
@@ -135,8 +135,10 @@ void NoteField::CacheAllUsedNoteSkins()
 		s->MakeLower();
 	}
 
-	for( unsigned i=0; i < asSkinsLower.size(); ++i )
-		CacheNoteSkin( asSkinsLower[i] );
+	for (unsigned i = 0; i < asSkinsLower.size(); ++i) 
+	{ 
+		CacheNoteSkin(asSkinsLower[i], m_pPlayerState->m_PlayerNumber); 
+	} 
 
 	/* If we're changing note skins in the editor, we can have old note skins lying
 	 * around.  Remove them so they don't accumulate. */

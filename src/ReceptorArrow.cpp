@@ -68,6 +68,10 @@ void ReceptorArrow::Step( TapNoteScore score )
 
 	RString sJudge = TapNoteScoreToString( score );
 	m_pReceptor->PlayCommand( Capitalize(sJudge) );
+	Message msg("ReceptorJudgment"); 
+	msg.SetParam("TapNoteScore", score); 
+	msg.SetParam("Color", NOTESKIN->GetLastSeenColor()); 
+	m_pReceptor->HandleMessage(msg); 
 }
 
 void ReceptorArrow::SetNoteUpcoming( bool b )

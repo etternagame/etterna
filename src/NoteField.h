@@ -63,7 +63,7 @@ public:
 	vector<NoteColumnRenderer> m_ColumnRenderers;
 
 protected:
-	void CacheNoteSkin( const RString &sNoteSkin );
+	void CacheNoteSkin( const RString &sNoteSkin, PlayerNumber pn );
 	void UncacheNoteSkin( const RString &sNoteSkin );
 
 	void DrawBoard( int iDrawDistanceAfterTargetsPixels, int iDrawDistanceBeforeTargetsPixels );
