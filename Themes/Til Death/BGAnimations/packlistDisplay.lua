@@ -44,6 +44,7 @@ local o = Def.ActorFrame{
 	end,
 	PackTableRefreshCommand=function(self)
 		packtable = packlist:GetPackTable()
+		ind = 0
 		self:queuecommand("Update")
 	end,
 	UpdateCommand=function(self)

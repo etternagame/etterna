@@ -1,10 +1,15 @@
-
 local filters = {"", "0", "0", "0", "0", "0", "0"}--1=name 2=lowerdiff 3=upperdiff 4=lowersize 5=uppersize
 
 local curInput = ""
 local inputting = 0 --1=name 2=lowerdiff 3=upperdiff 4=lowersize 5=uppersize 0=none
+local packlist
+
 local function getFilter(index)
 	return filters[index]
+end
+
+local function sendFilterAndSearchQuery()
+	packlist:FilterAndSearch(tostring(filters[1]), tonumber(filters[2]), tonumber(filters[3]), tonumber(filters[4]*1024*1024), tonumber(filters[5]*1024*1024))
 end
 
 local pressingtab = false
@@ -48,8 +53,8 @@ local function DlInput(event)
 		if event.button == "Start" then
 			curInput = ""
 			inputting = 0
-			MESSAGEMAN:Broadcast("DlInputEnded")
-			MESSAGEMAN:Broadcast("NumericInputEnded")
+			MESSAGEMAN:Broadcast("UpdateFilterDisplays")
+			SCREENMAN:set_input_redirected(PLAYER_1, false)
 			return true
 		elseif event.button == "Back" then
 			SCREENMAN:set_input_redirected(PLAYER_1, false)
@@ -80,7 +85,9 @@ local function DlInput(event)
 				end
 			end
 			filters[inputting] = curInput
+			sendFilterAndSearchQuery()
 			MESSAGEMAN:Broadcast("UpdateFilterDisplays")
+			MESSAGEMAN:Broadcast("FilterChanged")
 			return true
 		end
 	end
@@ -90,7 +97,15 @@ local function highlight(self)
 	self:queuecommand("Highlight")
 end
 
-local function diffuseIfActive(self, cond)
+local function diffuseIfActiveButton(self, cond)
+	if cond then
+		self:diffuse(color("#666666"))
+	else
+		self:diffuse(color("#000000"))
+	end
+end
+
+local function diffuseIfActiveText(self, cond)
 	if cond then
 		self:diffuse(color("#FFFFFF"))
 	else
@@ -117,11 +132,12 @@ local packgap = 4
 local packspacing = packh + packgap
 local offx = 10
 local offy = 40
-local packlist
-local ind = 0
 
-
-
+local fx = SCREEN_WIDTH/4
+local f0y = 160
+local f1y = f0y + 40
+local f2y = f1y + 40
+local fdot = 24
 
 local o = Def.ActorFrame{
 	InitCommand=function(self)
@@ -141,36 +157,48 @@ local o = Def.ActorFrame{
 	UpdateFilterDisplaysMessageCommand=function(self)
 		self:queuecommand("Set")
 	end,
-	DlInputEndedMessageCommand=function(self) self:queuecommand("Set") end,
-	DlInputActiveMessageCommand=function(self)
-		self:queuecommand("Set")
+	FilterChangedMessageCommand=function(self)
+		self:queuecommand("PackTableRefresh")
 	end,
 	
-	
+	LoadFont("Common Large")..{
+		InitCommand=function(self)
+			self:xy(fx,f0y):zoom(fontScale):halign(0.5):valign(0):settext( "Filter by:")
+		end,
+	},
+	LoadFont("Common Large")..{
+		InitCommand=function(self)
+			self:xy(fx,f1y):zoom(fontScale):halign(1):valign(0):settext( "Average Difficulty:")
+		end,
+	},
+	LoadFont("Common Large")..{
+		InitCommand=function(self)
+			self:xy(fx,f2y):zoom(fontScale):halign(1):valign(0):settext( "Size (MB):")
+		end,
+	},
+	-- maybe we'll have more one day
 }
 
 local function numFilter(i,x,y)
 	return Def.ActorFrame{
+		InitCommand=function(self)
+			self:xy(fx+10,f0y):addx(x):addy(y)
+		end,
 		Def.Quad{
 			InitCommand=function(self)
-				self:addx(x):addy(y):zoomto(18,18):halign(1)
+				self:zoomto(fdot,fdot):halign(0):valign(0)
 			end,
 			MouseLeftClickMessageCommand=function(self)
-				if isOver(self) and update then
+				if isOver(self) then
 					inputting = i
 					curInput = ""
-					MESSAGEMAN:Broadcast("DlInputActive")
-					MESSAGEMAN:Broadcast("NumericInputActive")
-					self:diffusealpha(0.1)
+					self:GetParent():GetParent():queuecommand("Set")
+					self:diffusealpha(activealpha)
 					SCREENMAN:set_input_redirected(PLAYER_1, true)
 				end
 			end,
 			SetCommand=function(self)
-				if inputting == i then
-					self:diffuse(color("#666666"))
-				else
-					self:diffuse(color("#000000"))
-				end
+				diffuseIfActiveButton(self, inputting == i)
 			end,
 			HighlightCommand=function(self)
 				highlightIfOver(self)
@@ -178,74 +206,69 @@ local function numFilter(i,x,y)
 		},
 		LoadFont("Common Large")..{
 			InitCommand=function(self)
-				self:addx(x):addy(y):halign(1):maxwidth(40):zoom(fontScale)
+				self:addx(fdot):halign(1):valign(0):maxwidth(fdot/fontScale):zoom(fontScale)
 			end,
 			SetCommand=function(self)
 				local fval= getFilter(i)
 				self:settext(fval)
-				if tonumber(fval) > 0 or inputting == i then
-					self:diffuse(color("#FFFFFF"))
-				else
-					self:diffuse(color("#666666"))
-				end
+				diffuseIfActiveText(self, tonumber(fval) > 0 or inputting == i)
 			end,
 		}
 	}
 end
 for i=2,3 do 
-	o[#o+1] = numFilter(i, 40*i, 20 *i)
+	o[#o+1] = numFilter(i, 40 * (i-2), f1y - f0y)
 end
 
+for i=4,5 do 
+	o[#o+1] = numFilter(i, 40 * (i-4), f2y - f0y)
+end
 
-
-local nwidth = SCREEN_WIDTH/3
+local nwidth = SCREEN_WIDTH/2
 local namex = nwidth
 local namey = 40
 local nhite = 22
-
+local nameoffx = 20
 -- name string search
 o[#o+1] = Def.ActorFrame{
 	InitCommand=function(self)
 		self:xy(namex,namey):halign(0):valign(0)
-	end,
-	
+	end,	
 	Def.Quad{
-			InitCommand=function(self)
-				self:zoomto(nwidth,nhite):halign(0):valign(0):diffuse(color("#666666"))
-			end,
-			MouseLeftClickMessageCommand=function(self)
-				if isOver(self) then
-					inputting=1
-					curInput = ""
-					self:diffusealpha(activealpha)
-					MESSAGEMAN:Broadcast("DlInputActive")
-					MESSAGEMAN:Broadcast("NumericInputActive")
-					SCREENMAN:set_input_redirected(PLAYER_1, true)
-				end
-			end,
-			SetCommand=function(self)
-				diffuseIfActive(self, inputting == 1)
-			end,
-			HighlightCommand=function(self)
-				highlightIfOver(self)
-			end,
-		},
-		LoadFont("Common Large")..{
-			InitCommand=function(self)
-				self:zoom(fontScale):halign(1):valign(0):settext( "Search by name:")
-			end,
-		},
-		LoadFont("Common Large")..{
-			InitCommand=function(self)
-				self:x(20):halign(0):valign(0):maxwidth(nwidth/fontScale - 40):zoom(fontScale)
-			end,
-			SetCommand=function(self)
-				local fval= getFilter(1)
-				self:settext(fval)
-				diffuseIfActive(self, fval ~= "" or inputting == 1)
-			end,
-		},
-		
+		InitCommand=function(self)
+			self:zoomto(nwidth,nhite):halign(0):valign(0):diffuse(color("#666666"))
+		end,
+		MouseLeftClickMessageCommand=function(self)
+			if isOver(self) then
+				inputting = 1
+				curInput = ""
+				self:GetParent():GetParent():queuecommand("Set")
+				self:diffusealpha(activealpha)
+				SCREENMAN:set_input_redirected(PLAYER_1, true)
+			end
+		end,
+		SetCommand=function(self)
+			diffuseIfActiveButton(self, inputting == 1)
+		end,
+		HighlightCommand=function(self)
+			highlightIfOver(self)
+		end,
+	},
+	LoadFont("Common Large")..{
+		InitCommand=function(self)
+			self:x(nameoffx):halign(0):valign(0):maxwidth(nwidth/fontScale - nameoffx * 2):zoom(fontScale)
+		end,
+		SetCommand=function(self)
+			local fval= getFilter(1)
+			self:settext(fval)
+			diffuseIfActiveText(self, fval ~= "" or inputting == 1)
+		end,
+	},
+	LoadFont("Common Large")..{
+		InitCommand=function(self)
+			self:zoom(fontScale):halign(1):valign(0):settext( "Search by name:")
+		end,
+	},
 }
 o[#o+1] = LoadActor("packlistDisplay")
 return o
