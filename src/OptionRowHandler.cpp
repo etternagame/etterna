@@ -1,27 +1,25 @@
-#include "global.h"
-#include "OptionRowHandler.h"
-#include "LuaManager.h"
-#include "ScreenOptionsMasterPrefs.h"
-#include "NoteSkinManager.h"
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "GameState.h"
-#include "Steps.h"
-#include "Style.h"
-#include "Song.h"
-#include "SongManager.h"
+﻿#include "global.h"
 #include "Character.h"
-#include "PrefsManager.h"
-#include "SongUtil.h"
-#include "StepsUtil.h"
-#include "GameManager.h"
-#include "Foreach.h"
-#include "GameSoundManager.h"
-#include "CommonMetrics.h"
 #include "CharacterManager.h"
+#include "CommonMetrics.h"
+#include "FontCharAliases.h"
+#include "Foreach.h"
+#include "GameManager.h"
+#include "GameState.h"
+#include "LuaManager.h"
+#include "NoteSkinManager.h"
+#include "OptionRowHandler.h"
+#include "RageLog.h"
+#include "RageUtil.h"
 #include "ScreenManager.h"
 #include "ScreenMiniMenu.h"	// for MenuRowDef
-#include "FontCharAliases.h"
+#include "ScreenOptionsMasterPrefs.h"
+#include "Song.h"
+#include "SongManager.h"
+#include "SongUtil.h"
+#include "Steps.h"
+#include "StepsUtil.h"
+#include "Style.h"
 
 #define ENTRY(s)		THEME->GetMetric ("ScreenOptionsMaster",s)
 #define ENTRY_MODE(s,i)		THEME->GetMetric ("ScreenOptionsMaster",ssprintf("%s,%i",(s).c_str(),(i+1)))
@@ -1005,15 +1003,15 @@ public:
 		lua_pop( L, 1 );
 
 		lua_getfield(L, -1, "GoToFirstOnStart");
-		m_GoToFirstOnStart= lua_toboolean(L, -1);
+		m_GoToFirstOnStart= (lua_toboolean(L, -1) != 0);
 		lua_pop(L, 1);
 
 		lua_getfield(L, -1, "OneChoiceForAllPlayers"); 
-		m_Def.m_bOneChoiceForAllPlayers = lua_toboolean( L, -1 );
+		m_Def.m_bOneChoiceForAllPlayers = lua_toboolean( L, -1 ) != 0;
 		lua_pop( L, 1 );
 
 		lua_getfield(L, -1, "ExportOnChange");
-		m_Def.m_bExportOnChange = lua_toboolean( L, -1 );
+		m_Def.m_bExportOnChange = lua_toboolean( L, -1 ) != 0;
 		lua_pop( L, 1 );
 
 		// TODO:  Change these to use the proper enum strings like everything
@@ -1209,7 +1207,7 @@ public:
 			lua_pushinteger(L, choice+1);
 			RString error= "NotifyOfSelection: ";
 			LuaHelpers::RunScriptOnStack(L, error, 3, 1, true);
-			if(lua_toboolean(L, -1))
+			if(lua_toboolean(L, -1) != 0)
 			{
 				lua_pop(L, 1);
 				changed= true;
@@ -1534,7 +1532,7 @@ OptionRowHandler* OptionRowHandlerUtil::MakeSimple( const MenuRowDef &mr )
 	FontCharAliases::ReplaceMarkers( pHand->m_Def.m_sName );	// Allow special characters
 
 	pHand->m_Def.m_vEnabledForPlayers.clear();
-	if( mr.pfnEnabled? mr.pfnEnabled():mr.bEnabled )
+	if( mr.pfnEnabled != nullptr? mr.pfnEnabled():mr.bEnabled )
 	{
 		FOREACH_EnabledPlayer( pn )
 			pHand->m_Def.m_vEnabledForPlayers.insert( pn );

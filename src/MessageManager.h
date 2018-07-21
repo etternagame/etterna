@@ -1,4 +1,4 @@
-#ifndef MessageManager_H
+﻿#ifndef MessageManager_H
 #define MessageManager_H
 
 #include "LuaManager.h"
@@ -88,7 +88,7 @@ const RString& MessageIDToString( MessageID m );
 struct Message
 {
 	explicit Message( const RString &s );
-	explicit Message(const MessageID id);
+	explicit Message(MessageID id);
 	Message( const RString &s, const LuaReference &params );
 	~Message();
 

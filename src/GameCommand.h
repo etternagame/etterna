@@ -3,11 +3,11 @@
 #ifndef GameCommand_H
 #define GameCommand_H
 
-#include "GameConstantsAndTypes.h"
-#include "PlayerNumber.h"
-#include "Difficulty.h"
-#include "LuaReference.h"
 #include "Command.h"
+#include "Difficulty.h"
+#include "GameConstantsAndTypes.h"
+#include "LuaReference.h"
+#include "PlayerNumber.h"
 #include <map>
 
 class Song;

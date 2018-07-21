@@ -1,8 +1,8 @@
 #ifndef ScreenSyncOverlay_H
 #define ScreenSyncOverlay_H
 
-#include "Screen.h"
 #include "AutoActor.h"
+#include "Screen.h"
 /** @brief Credits and statistics drawn on top of everything else. */
 class ScreenSyncOverlay : public Screen
 {

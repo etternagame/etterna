@@ -195,7 +195,7 @@ struct GameInput
 	{
 		if( controller < other.controller )
 			return true;
-		else if( controller > other.controller )
+		if( controller > other.controller )
 			return false;
 		return button < other.button;
 	}

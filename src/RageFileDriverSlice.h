@@ -1,4 +1,4 @@
-/* RageFileDriverSlice - Treat a portion of a file as a file. */
+﻿/* RageFileDriverSlice - Treat a portion of a file as a file. */
 
 #ifndef RAGE_FILE_DRIVER_SLICE_H
 #define RAGE_FILE_DRIVER_SLICE_H

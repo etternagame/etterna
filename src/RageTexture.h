@@ -1,11 +1,11 @@
-/* RageTexture - Abstract class for a texture and metadata.  */
+﻿/* RageTexture - Abstract class for a texture and metadata.  */
 
 #ifndef RAGE_TEXTURE_H
 #define RAGE_TEXTURE_H
 
-#include "RageTypes.h"
 #include "RageTextureID.h"
 #include "RageTimer.h"
+#include "RageTypes.h"
 
 struct lua_State;
 class RageTexture

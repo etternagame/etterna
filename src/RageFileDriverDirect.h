@@ -1,4 +1,4 @@
-#ifndef RAGE_FILE_DRIVER_DIRECT_H
+﻿#ifndef RAGE_FILE_DRIVER_DIRECT_H
 #define RAGE_FILE_DRIVER_DIRECT_H
 
 #include "RageFile.h"
@@ -8,7 +8,7 @@
 class RageFileDriverDirect: public RageFileDriver
 {
 public:
-	RageFileDriverDirect( const RString &sRoot );
+	explicit RageFileDriverDirect( const RString &sRoot );
 
 	RageFileBasic *Open( const RString &sPath, int iMode, int &iError ) override;
 	bool Move( const RString &sOldPath, const RString &sNewPath ) override;
@@ -22,7 +22,7 @@ private:
 class RageFileDriverDirectReadOnly: public RageFileDriverDirect
 {
 public:
-	RageFileDriverDirectReadOnly( const RString &sRoot );
+	explicit RageFileDriverDirectReadOnly( const RString &sRoot );
 	RageFileBasic *Open( const RString &sPath, int iMode, int &iError ) override;
 	bool Move( const RString &sOldPath, const RString &sNewPath ) override;
 	bool Remove( const RString &sPath ) override;
@@ -57,7 +57,7 @@ private:
 	 * disk, allow recovering from errors.
 	 */
 	bool m_bWriteFailed;
-	bool WriteFailed() const { return !(m_iMode & RageFile::STREAMED) && m_bWriteFailed; }
+	bool WriteFailed() const { return ((m_iMode & RageFile::STREAMED) == 0) && m_bWriteFailed; }
 	
 	// unused
 	RageFileObjDirect& operator=(const RageFileObjDirect& rhs) = delete;

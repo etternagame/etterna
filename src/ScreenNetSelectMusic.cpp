@@ -1,28 +1,28 @@
 #include "global.h"
 
 #if !defined(WITHOUT_NETWORKING)
-#include "ScreenNetSelectMusic.h"
-#include "ScreenManager.h"
-#include "GameSoundManager.h"
-#include "GameConstantsAndTypes.h"
-#include "ThemeManager.h"
-#include "GameState.h"
-#include "Style.h"
-#include "Steps.h"
-#include "RageTimer.h"
 #include "ActorUtil.h"
 #include "AnnouncerManager.h"
-#include "MenuTimer.h"
-#include "NetworkSyncManager.h"
-#include "StepsUtil.h"
-#include "RageUtil.h"
-#include "MusicWheel.h"
-#include "InputMapper.h"
-#include "RageLog.h"
-#include "Song.h"
+#include "LocalizedString.h"
+#include "CodeDetector.h"
+#include "FilterManager.h"
+#include "GameConstantsAndTypes.h"
+#include "GameSoundManager.h"
+#include "GameState.h"
 #include "InputEventPlus.h"
-#include "SongUtil.h"
+#include "InputMapper.h"
+#include "MenuTimer.h"
+#include "MusicWheel.h"
+#include "NetworkSyncManager.h"
+#include "ProfileManager.h"
 #include "RageInput.h"
+#include "RageLog.h"
+#include "Style.h"
+#include "RageTimer.h"
+#include "RageUtil.h"
+#include "ScreenManager.h"
+#include "ScreenNetSelectMusic.h"
+#include "Song.h"
 #include "SongManager.h"
 #include "CodeDetector.h"
 #include "ProfileManager.h"
@@ -104,6 +104,13 @@ void ScreenNetSelectMusic::Init()
 	ALIGN_MUSIC_BEATS.Load(m_sName, "AlignMusicBeat");
 }
 
+
+void ScreenNetSelectMusic::DifferentialReload()
+{
+	SCREENMAN->SetNewScreen("ScreenReloadSongs");
+}
+
+
 bool ScreenNetSelectMusic::Input(const InputEventPlus &input)
 {
 	if(!m_bAllowInput || IsTransitioning())
@@ -159,7 +166,7 @@ bool ScreenNetSelectMusic::Input(const InputEventPlus &input)
 		{
 			// Reload the currently selected song. -Kyz
 			Song* to_reload = m_MusicWheel.GetSelectedSong();
-			if (to_reload)
+			if (to_reload != nullptr)
 			{
 				to_reload->ReloadFromSongDir();
 				MusicChanged();
@@ -223,9 +230,7 @@ bool ScreenNetSelectMusic::Input(const InputEventPlus &input)
 		}
 		else if (c == 'Q')
 		{
-			int newsongs = SONGMAN->DifferentialReload();
-			m_MusicWheel.ReloadSongList(false, "");
-			SCREENMAN->SystemMessage(ssprintf("Differential reload of %i songs", newsongs));
+			DifferentialReload();
 			return true;
 		}
 		else if (c == 'S')
@@ -253,11 +258,12 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 {
 	if( SM == SM_GoToPrevScreen )
 	{
-		SCREENMAN->SetNewScreen( THEME->GetMetric (m_sName, "PrevScreen") );
 		NSMAN->LeaveRoom();
+		SCREENMAN->SetNewScreen( THEME->GetMetric (m_sName, "PrevScreen") );
 	}
 	else if( SM == SM_GoToNextScreen )
 	{
+		GAMESTATE->m_bInNetGameplay = true;
 		SOUND->StopMusic();
 		SCREENMAN->SetNewScreen( THEME->GetMetric (m_sName, "NextScreen") );
 	}
@@ -583,7 +589,7 @@ bool ScreenNetSelectMusic::MenuDown( const InputEventPlus &input )
 		}
 	}
 
-	if( GAMESTATE->m_pCurSong == NULL )
+	if(GAMESTATE->m_pCurSong == nullptr)
 		return false;
 	StepsType st = GAMESTATE->GetCurrentStyle(pn)->m_StepsType;
 	vector <Steps *> MultiSteps;
@@ -606,7 +612,7 @@ bool ScreenNetSelectMusic::MenuDown( const InputEventPlus &input )
 		{
 			if( (dcs[i]) && (i > m_DC[pn]) )
 			{
-				m_DC[pn] = (Difficulty)i;
+				m_DC[pn] = static_cast<Difficulty>(i);
 				break;
 			}
 		}
@@ -617,7 +623,7 @@ bool ScreenNetSelectMusic::MenuDown( const InputEventPlus &input )
 			{
 				if(dcs[i])
 				{
-					m_DC[pn] = (Difficulty)i;
+					m_DC[pn] = static_cast<Difficulty>(i);
 					break;
 				}
 			}
@@ -774,10 +780,10 @@ void ScreenNetSelectMusic::MusicChanged()
 			for( i=0; i<NUM_Difficulty; ++i )
 				if( dcs[i] )
 				{
-					Target = (Difficulty)i;
+					Target = static_cast<Difficulty>(i);
 					if( i >= m_DC[pn] )
 					{
-						m_DC[pn] = (Difficulty)i;
+						m_DC[pn] = static_cast<Difficulty>(i);
 						break;
 					}
 				}

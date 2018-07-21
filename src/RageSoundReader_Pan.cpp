@@ -1,4 +1,4 @@
-#include "global.h"
+﻿#include "global.h"
 #include "RageSoundReader_Pan.h"
 #include "RageSoundUtil.h"
 

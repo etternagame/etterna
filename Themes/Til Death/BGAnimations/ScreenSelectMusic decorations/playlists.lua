@@ -24,9 +24,6 @@ local t = Def.ActorFrame{
 	TabChangedMessageCommand=function(self)
 		self:queuecommand("Set")
 	end,
-	PlayerJoinedMessageCommand=function(self)
-		self:queuecommand("Set")
-	end,
 }
 
 local frameX = 10
@@ -329,7 +326,7 @@ local function rankingLabel(i)
 				if chartloaded then
 					local rating = stepslist[i + ((currentchartpage - 1) * chartsperplaylist)]:GetMSD(chart:GetRate(),1)
 					self:settextf("%.2f", rating)
-					self:diffuse(ByMSD(rating))
+					self:diffuse(byMSD(rating))
 				else
 					local rating = 0
 					self:settextf("%.2f", rating)
@@ -630,7 +627,7 @@ local function PlaylistSelectLabel(i)
 				if allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)] then
 					local rating = allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)]:GetAverageRating()
 					self:settextf("%.2f", rating)
-					self:diffuse(ByMSD(rating))
+					self:diffuse(byMSD(rating))
 				end
 			end
 		},

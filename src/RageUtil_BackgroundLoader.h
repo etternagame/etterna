@@ -1,4 +1,4 @@
-/* BackgroundLoader - Loads files in a thread. */
+﻿/* BackgroundLoader - Loads files in a thread. */
 
 #ifndef RAGE_UTIL_BACKGROUND_LOADER_H
 #define RAGE_UTIL_BACKGROUND_LOADER_H
@@ -34,7 +34,7 @@ private:
 	RageThread m_LoadThread;
 	bool m_bShutdownThread;
 	void LoadThread();
-	static int LoadThread_Start( void *p ) { ((BackgroundLoader *) p)->LoadThread(); return 0; }
+	static int LoadThread_Start( void *p ) { (reinterpret_cast<BackgroundLoader *>(p))->LoadThread(); return 0; }
 
 	RString GetRequest();
 
@@ -54,8 +54,6 @@ private:
 
 	bool m_sThreadIsActive;
 	bool m_sThreadShouldAbort;
-
-	RageFileDriverCached *m_pDriver;
 };
 
 #endif

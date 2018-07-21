@@ -1,16 +1,16 @@
-#include "global.h"
-#include "NotesLoaderSM.h"
+﻿#include "global.h"
 #include "BackgroundUtil.h"
 #include "GameManager.h"
 #include "MsdFile.h"
 #include "NoteTypes.h"
+#include "NotesLoaderSM.h"
+#include "PrefsManager.h"
 #include "RageFileManager.h"
 #include "RageLog.h"
 #include "RageUtil.h"
 #include "Song.h"
 #include "SongManager.h"
 #include "Steps.h"
-#include "PrefsManager.h"
 
 // Everything from this line to the creation of sm_parser_helper exists to
 // speed up parsing by allowing the use of std::map.  All these functions
@@ -443,7 +443,7 @@ namespace {
 	bool compare_first(pair<float, float> a, pair<float, float> b) {
 		return a.first < b.first;
 	}
-}
+} // namespace
 
 // Precondition: no BPM change or stop has 0 for its value (change.second).
 //     (The ParseBPMs and ParseStops functions make sure of this.)

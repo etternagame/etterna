@@ -1,10 +1,10 @@
-#ifndef RECEPTOR_ARROW_ROW_H
+﻿#ifndef RECEPTOR_ARROW_ROW_H
 #define RECEPTOR_ARROW_ROW_H
 
-#include "ReceptorArrow.h"
 #include "ActorFrame.h"
 #include "GameConstantsAndTypes.h"
 #include "NoteDisplay.h"
+#include "ReceptorArrow.h"
 
 class PlayerState;
 /** @brief A row of ReceptorArrow objects. */

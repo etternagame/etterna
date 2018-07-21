@@ -1,9 +1,10 @@
-/* RageSoundReader_PitchChange - change the pitch and speed of an audio stream independently. */
+﻿/* RageSoundReader_PitchChange - change the pitch and speed of an audio stream independently. */
 
 #ifndef RAGE_SOUND_READER_PITCH_CHANGE_H
 #define RAGE_SOUND_READER_PITCH_CHANGE_H
 
 #include "RageSoundReader_Filter.h"
+
 class RageSoundReader_SpeedChange;
 class RageSoundReader_Resample_Good;
 

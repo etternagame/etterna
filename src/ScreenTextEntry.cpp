@@ -1,18 +1,19 @@
 #include "global.h"
-#include "ScreenTextEntry.h"
-#include "RageUtil.h"
-#include "Preference.h"
-#include "ScreenManager.h"
-#include "ThemeManager.h"
-#include "FontCharAliases.h"
-#include "ScreenDimensions.h"
-#include "ScreenPrompt.h"
 #include "ActorUtil.h"
+#include "FontCharAliases.h"
 #include "InputEventPlus.h"
-#include "RageInput.h"
 #include "LocalizedString.h"
-#include "RageLog.h"
 #include "LuaBinding.h"
+#include "Preference.h"
+#include "RageInput.h"
+#include "RageLog.h"
+#include "RageUtil.h"
+#include "ScreenDimensions.h"
+#include "ScreenManager.h"
+#include "ScreenPrompt.h"
+#include "ScreenTextEntry.h"
+#include "ThemeManager.h"
+#include "InputFilter.h"
 #include "arch/ArchHooks/ArchHooks.h" // HOOKS->GetClipboard()
 
 static const char* g_szKeys[NUM_KeyboardRow][KEYS_PER_ROW] =
@@ -413,41 +414,8 @@ void ScreenTextEntry::Update( float fDelta )
 
 bool ScreenTextEntry::Input( const InputEventPlus &input )
 {
-	static bool bLCtrl = false, bRCtrl = false;
 	if( IsTransitioning() )
 		return false;
-
-	// bLCtrl and bRCtl are whether their respective Ctrl keys are held
-	// We update them here.
-	if( input.DeviceI == DeviceInput(DEVICE_KEYBOARD, KEY_LCTRL) )
-	{
-		switch( input.type )
-		{
-			case IET_FIRST_PRESS:
-				bLCtrl = true;
-				break;
-			case IET_RELEASE:
-				bLCtrl = false;
-				break;
-			default:
-				break;
-		}
-	}
-	
-	if( input.DeviceI == DeviceInput(DEVICE_KEYBOARD, KEY_RCTRL) )
-	{
-		switch( input.type )
-		{
-			case IET_FIRST_PRESS:
-				bRCtrl = true;
-					break;
-			case IET_RELEASE:
-				bRCtrl = false;
-				break;
-			default:
-				break;
-		}
-	}
 	
 	bool bHandled = false;
 	if( input.DeviceI == DeviceInput(DEVICE_KEYBOARD, KEY_BACK) )
@@ -466,7 +434,9 @@ bool ScreenTextEntry::Input( const InputEventPlus &input )
 	{
 		wchar_t c = INPUTMAN->DeviceInputToChar(input.DeviceI,true);
 		// Detect Ctrl+V
-		if( ( c == L'v' || c == L'V' ) && ( bLCtrl || bRCtrl ) )
+		auto ctrlPressed = INPUTFILTER->IsControlPressed();
+		auto vPressed = input.DeviceI.button == KEY_CV || input.DeviceI.button == KEY_Cv;
+		if(vPressed &&  ctrlPressed)
 		{
 			TryAppendToAnswer( HOOKS->GetClipboard() );
 			
@@ -476,7 +446,8 @@ bool ScreenTextEntry::Input( const InputEventPlus &input )
 		else if( c >= L' ' ) 
 		{
 			// todo: handle caps lock -aj
-			TryAppendToAnswer( WStringToRString(wstring()+c) );
+			auto str = WStringToRString(wstring() + c);
+			TryAppendToAnswer( str );
 
 			TextEnteredDirectly();
 			bHandled = true;
@@ -551,7 +522,7 @@ void ScreenTextEntry::End( bool bCancelled )
 		}
 		else if (pOnCancel != nullptr)
 			pOnCancel();
-		else if( g_pOnCancel ) 
+		if( g_pOnCancel != nullptr ) 
 			g_pOnCancel();
 
 		Cancel( SM_GoToNextScreen );
@@ -594,7 +565,7 @@ void ScreenTextEntry::End( bool bCancelled )
 		{
 			pOnOK(ret);
 		}
-		else if( g_pOnOK )
+		else if( g_pOnOK != nullptr )
 		{
 			g_pOnOK( ret );
 		}
@@ -661,14 +632,14 @@ void ScreenTextEntry::TextEntrySettings::FromStack( lua_State *L )
 
 	// Get Password
 	lua_getfield( L, iTab, "Password" );
-	bPassword = !!lua_toboolean( L, -1 );
+	bPassword = !(lua_toboolean( L, -1 ) == 0);
 	lua_settop( L, iTab );
 
 #define SET_FUNCTION_MEMBER(memname) \
 	lua_getfield(L, iTab, #memname); \
 	if(lua_isfunction(L, -1)) \
 	{ \
-		memname.SetFromStack(L); \
+		(memname).SetFromStack(L); \
 	} \
 	else if(!lua_isnil(L, -1)) \
 	{ \
@@ -684,6 +655,7 @@ void ScreenTextEntry::TextEntrySettings::FromStack( lua_State *L )
 #undef SET_FUNCTION_MEMBER
 }
 
+
 void ScreenTextEntry::LoadFromTextEntrySettings( const TextEntrySettings &settings )
 {
 	g_ValidateFunc = settings.Validate;
@@ -691,6 +663,9 @@ void ScreenTextEntry::LoadFromTextEntrySettings( const TextEntrySettings &settin
 	g_OnCancelFunc = settings.OnCancel;
 	g_ValidateAppendFunc = settings.ValidateAppend;
 	g_FormatAnswerForDisplayFunc = settings.FormatAnswerForDisplay;
+	g_sInitialAnswer = settings.sInitialAnswer;
+	g_bPassword = settings.bPassword;
+	g_iMaxInputLength = settings.iMaxInputLength;
 
 	// set functions
 	SetTextEntrySettings(
@@ -788,7 +763,7 @@ void ScreenTextEntryVisual::BeginScreen()
 	ScreenTextEntry::BeginScreen();
 
 	m_iFocusX = 0;
-	m_iFocusY = (KeyboardRow)0;
+	m_iFocusY = static_cast<KeyboardRow>(0);
 
 	FOREACH_KeyboardRow( r )
 	{

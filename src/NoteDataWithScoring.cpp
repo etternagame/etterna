@@ -1,12 +1,11 @@
-#include "global.h"
-#include "NoteDataWithScoring.h"
-#include "NoteData.h"
-#include "PlayerStageStats.h"
+﻿#include "global.h"
 #include "Game.h"
 #include "GameConstantsAndTypes.h"
 #include "GameState.h"
+#include "NoteData.h"
+#include "NoteDataWithScoring.h"
+#include "PlayerStageStats.h"
 #include "ThemeMetric.h"
-#include "RageLog.h"
 #include "TimingData.h"
 
 namespace
@@ -95,7 +94,7 @@ int MinTapNoteScoreTrack( const NoteData &in, unsigned iRow, PlayerNumber pn )
 }
 #endif
 
-}
+} // namespace
 
 const TapNote &NoteDataWithScoring::LastTapNoteWithResult( const NoteData &in, unsigned iRow, PlayerNumber plnum )
 {
@@ -206,12 +205,12 @@ static void DoRowEndRadarActualCalc(garv_state& state, RadarValues& out)
 	{
 		if(state.num_notes_on_curr_row >= 1)
 		{
-			state.taps_hit+= (state.last_tns_on_row >= state.taps_tns);
+			state.taps_hit+= static_cast<int>(state.last_tns_on_row >= state.taps_tns);
 		}
 		if(state.num_notes_on_curr_row >= 2)
 		{
-			state.jumps_hit_for_air+= (state.last_tns_on_row >= state.air_tns);
-			state.jumps_hit+= (state.last_tns_on_row >= state.jumps_tns);
+			state.jumps_hit_for_air+= static_cast<int>(state.last_tns_on_row >= state.air_tns);
+			state.jumps_hit+= static_cast<int>(state.last_tns_on_row >= state.jumps_tns);
 		}
 		if(state.num_notes_on_curr_row + (state.hold_ends.size() -
 				state.num_holds_on_curr_row) >= 3)
@@ -351,11 +350,6 @@ void NoteDataWithScoring::GetActualRadarValues(const NoteData &in,
 
 	// ScreenGameplay passes in the RadarValues that were calculated by
 	// NoteDataUtil::CalculateRadarValues, so those are reused here. -Kyz
-	int note_count= out[RadarCategory_Notes];
-	int jump_count= out[RadarCategory_Jumps];
-	int hold_count= out[RadarCategory_Holds];
-	int tap_count= out[RadarCategory_TapsAndHolds];
-	float hittable_steps_length= max(0, timing->WhereUAtBro(last_hittable_row) - timing->WhereUAtBro(first_hittable_row));
 	// The for loop and the assert are used to ensure that all fields of 
 	// RadarValue get set in here.
 	FOREACH_ENUM(RadarCategory, rc)

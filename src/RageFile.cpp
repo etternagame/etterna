@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This provides an interface to open files in RageFileManager's namespace
  * This is just a simple RageFileBasic wrapper on top of another RageFileBasic;
  * when a file is open, is acts like the underlying RageFileBasic, except that
@@ -6,10 +6,10 @@
  */
 
 #include "global.h"
-#include "RageFileBasic.h"
 #include "RageFile.h"
-#include "RageUtil.h"
+#include "RageFileBasic.h"
 #include "RageFileDriver.h"
+#include "RageUtil.h"
 
 RageFile::RageFile()
 {
@@ -52,13 +52,13 @@ bool RageFile::Open( const RString& path, int mode )
 
 	m_Mode = mode;
 
-	if( (m_Mode&READ) && (m_Mode&WRITE) )
+	if( ((m_Mode&READ) != 0) && ((m_Mode&WRITE) != 0) )
 	{
 		SetError( "Reading and writing are mutually exclusive" );
 		return false;
 	}
 
-	if( !(m_Mode&READ) && !(m_Mode&WRITE) )
+	if( ((m_Mode&READ) == 0) && ((m_Mode&WRITE) == 0) )
 	{
 		SetError( "Neither reading nor writing specified" );
 		return false;
@@ -80,9 +80,9 @@ void RageFile::Close()
 {
 	if( m_File == NULL )
 		return;
-	delete m_File;
 	if( m_Mode & WRITE )
 		FILEMAN->CacheFile( m_File, m_Path );
+	delete m_File;
 	m_File = NULL;
 }
 
@@ -193,7 +193,7 @@ int RageFile::Write( const void *buffer, size_t bytes, int nmemb )
 
 int RageFile::Flush()
 {
-	if( !m_File )
+	if( m_File == nullptr )
 	{
 		SetError( "Not open" );
 		return -1;
@@ -346,6 +346,7 @@ public:
 	static int destroy( T* p, lua_State *L )
 	{
 		SAFE_DELETE(p);
+		lua_pushboolean( L, true);
 		return 1;
 	}
 
@@ -358,6 +359,7 @@ public:
 	static int Close( T* p, lua_State *L )
 	{
 		p->Close();
+		lua_pushboolean( L, true);
 		return 1;
 	}
 
@@ -371,7 +373,7 @@ public:
 	static int Flush(T* p, lua_State* L)
 	{
 		p->Flush();
-		COMMON_RETURN_SELF;
+		return 0;
 	}
 
 	static int Read( T* p, lua_State *L )
@@ -433,7 +435,7 @@ public:
 	static int ClearError( T* p, lua_State *L )
 	{
 		p->ClearError();
-		return 1;
+		return 0;
 	}
 	
 	static int AtEOF( T* p, lua_State *L )

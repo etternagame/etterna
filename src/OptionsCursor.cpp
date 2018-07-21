@@ -1,8 +1,8 @@
-#include "global.h"
+﻿#include "global.h"
+#include "ActorUtil.h"
 #include "OptionsCursor.h"
 #include "RageUtil.h"
 #include "ThemeManager.h"
-#include "ActorUtil.h"
 
 OptionsCursor::OptionsCursor()
 {
@@ -39,7 +39,7 @@ void OptionsCursor::Load( const RString &sMetricsGroup, bool bLoadCanGos )
 {
 #define LOAD_SPR( spr, name ) \
 	spr.Load( THEME->GetPathG(sMetricsGroup,name) ); \
-	spr->SetName( name ); \
+	(spr)->SetName( name ); \
 	ActorUtil::LoadAllCommandsAndSetXYAndOnCommand( spr, sMetricsGroup ); \
 	this->AddChild( spr );
 
@@ -66,7 +66,7 @@ void OptionsCursor::Load( const RString &sMetricsGroup, bool bLoadCanGos )
 
 void OptionsCursor::SetCanGo( bool bCanGoLeft, bool bCanGoRight )
 {
-	if( m_sprCanGoLeft )
+	if( m_sprCanGoLeft != nullptr )
 	{
 		m_sprCanGoLeft->EnableAnimation( bCanGoLeft );
 		m_sprCanGoRight->EnableAnimation( bCanGoRight );
@@ -84,7 +84,7 @@ void OptionsCursor::StopTweening()
 	m_sprLeft->StopTweening();
 	m_sprRight->StopTweening();
 
-	if( m_sprCanGoLeft )
+	if( m_sprCanGoLeft != nullptr )
 	{
 		m_sprCanGoLeft->StopTweening();
 		m_sprCanGoRight->StopTweening();
@@ -99,7 +99,7 @@ void OptionsCursor::BeginTweening( float fSecs )
 	m_sprLeft->BeginTweening( fSecs );
 	m_sprRight->BeginTweening( fSecs );
 
-	if( m_sprCanGoLeft )
+	if( m_sprCanGoLeft != nullptr )
 	{
 		m_sprCanGoLeft->BeginTweening( fSecs );
 		m_sprCanGoRight->BeginTweening( fSecs );
@@ -114,7 +114,7 @@ void OptionsCursor::SetBarWidth( int iWidth )
 
 	m_sprLeft->SetX( m_iOriginalLeftX - fWidth/2 );
 	m_sprRight->SetX( m_iOriginalRightX + fWidth/2 );
-	if( m_sprCanGoLeft )
+	if( m_sprCanGoLeft != nullptr )
 	{
 		m_sprCanGoLeft->SetX( m_iOriginalCanGoLeftX - fWidth/2 );
 		m_sprCanGoRight->SetX( m_iOriginalCanGoRightX + fWidth/2 );
@@ -124,7 +124,7 @@ void OptionsCursor::SetBarWidth( int iWidth )
 int OptionsCursor::GetBarWidth() const
 {
 	float fWidth = m_sprMiddle->GetZoomX() * m_sprMiddle->GetUnzoomedWidth();
-	return (int)fWidth;
+	return static_cast<int>(fWidth);
 }
 
 /*

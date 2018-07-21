@@ -2,22 +2,23 @@
 
 #include "ImageCache.h"
 #include "Foreach.h"
-#include "RageDisplay.h"
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "RageSurface_Load.h"
-#include "SongCacheIndex.h"
-#include "Sprite.h"
 #include "PrefsManager.h"
+#include "RageFileManager.h"
 #include "RageDisplay.h"
-#include "RageTexture.h"
-#include "RageTextureManager.h"
+#include "RageLog.h"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
-#include "RageSurfaceUtils_Palettize.h"
 #include "RageSurfaceUtils_Dither.h"
+#include "RageSurfaceUtils_Palettize.h"
 #include "RageSurfaceUtils_Zoom.h"
+#include "RageSurface_Load.h"
+#include "RageTexture.h"
+#include "RageTextureManager.h"
+#include "RageUtil.h"
+#include "CommonMetrics.h"
+#include "SongCacheIndex.h"
 #include "SpecialFiles.h"
+#include "Sprite.h"
 
 //#include "Banner.h"
 
@@ -27,6 +28,8 @@ static Preference<bool> g_bPalettedImageCache( "PalettedImageCache", false );
  * the order of initialization of nonlocal objects is unspecified. */
 //const std::string IMAGE_CACHE_INDEX = SpecialFiles::CACHE_DIR + "images.cache";
 #define IMAGE_CACHE_INDEX (SpecialFiles::CACHE_DIR + "images.cache")
+
+#define IMAGE_CACHE_VERSION 1
 
 /* Call CacheImage to cache a image by path.  If the image is already
  * cached, it'll be recreated.  This is efficient if the image hasn't changed,
@@ -137,10 +140,8 @@ void ImageCache::LoadImage( const std::string &sImageDir, const std::string &sIm
 				continue;
 			}
 			else
-			{
-				//LOG->Trace( "Cached image load of '%s' ('%s') failed", sImagePath.c_str(), sCachePath.c_str() );
 				return;
-			}
+			
 		}
 
 		g_ImagePathToImage[sImagePath] = pImage;
@@ -177,9 +178,36 @@ ImageCache::~ImageCache()
 	UnloadAllImages();
 }
 
+static void EmptyDir(RString dir)
+{
+	ASSERT(dir[dir.size() - 1] == '/');
+
+	vector<RString> asCacheFileNames;
+	GetDirListing(dir, asCacheFileNames);
+	for (unsigned i = 0; i<asCacheFileNames.size(); i++)
+	{
+		if (!IsADirectory(dir + asCacheFileNames[i]))
+			FILEMAN->Remove(dir + asCacheFileNames[i]);
+	}
+}
+
 void ImageCache::ReadFromDisk()
 {
 	ImageData.ReadFile( IMAGE_CACHE_INDEX );	// don't care if this fails
+	
+	int iCacheVersion = -1;
+	ImageData.GetValue("Cache", "CacheVersion", iCacheVersion);
+	if (iCacheVersion == IMAGE_CACHE_VERSION)
+		return;
+
+	LOG->Trace( "Cache format is out of date.  Deleting all cache files." );	
+	vector<RString> ImageDir;
+	split( CommonMetrics::IMAGES_TO_CACHE, ",", ImageDir );
+	for( std::string Image : ImageDir )
+		EmptyDir( SpecialFiles::CACHE_DIR+Image+"/" );
+	
+	ImageData.SetValue( "Cache", "CacheVersion", IMAGE_CACHE_VERSION);
+	ImageData.WriteFile( IMAGE_CACHE_INDEX );
 }
 
 struct ImageTexture: public RageTexture
@@ -247,7 +275,7 @@ struct ImageTexture: public RageTexture
 
 	void Destroy()
 	{
-		if( m_uTexHandle )
+		if( m_uTexHandle != 0u )
 			DISPLAY->DeleteTexture( m_uTexHandle );
 		m_uTexHandle = 0;
 	}
@@ -386,7 +414,7 @@ void ImageCache::CacheImageInternal( const std::string &sImageDir, const std::st
 	// int iWidth = min(pImage->w, 256), iHeight = min(pImage->h, 64);
 	
 	// I rather have it Cache everything -Jousway
-	int iWidth = pImage->w / 2.5, iHeight = pImage->h / 2.5;
+	int iWidth = static_cast<int>(pImage->w / 2.5), iHeight = static_cast<int>(pImage->h / 2.5);
 	
 	/* Round to the nearest power of two.  This simplifies the actual texture load. */
 	iWidth = closest( iWidth, power_of_two(iWidth), power_of_two(iWidth) / 2 );

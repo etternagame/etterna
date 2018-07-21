@@ -5,7 +5,21 @@
 #include "IniFile.h"
 #include "GameManager.h"
 #include "GameState.h"
+#include "IniFile.h"
+#include "LuaManager.h"
+#include "MinaCalc.h"
+#include "NoteData.h"
+#include "NoteDataWithScoring.h"
+#include "PrefsManager.h"
+#include "Profile.h"
+#include "ProfileManager.h"
+#include "RageFile.h"
+#include "RageFileDriverDeflate.h"
+#include "RageFileManager.h"
 #include "RageLog.h"
+#include "RageUtil.h"
+#include "ScoreManager.h"
+#include "ScreenManager.h"
 #include "Song.h"
 #include "SongManager.h"
 #include "Steps.h"
@@ -41,12 +55,12 @@ const RString RIVAL_SUBDIR         = "Rivals/";
 ThemeMetric<bool> SHOW_COIN_DATA( "Profile", "ShowCoinData" );;
 #define GUID_SIZE_BYTES 8
 
-#define MAX_EDITABLE_INI_SIZE_BYTES			2*1024		// 2KB
+#define MAX_EDITABLE_INI_SIZE_BYTES			(2*1024)		// 2KB
 #define MAX_PLAYER_STATS_XML_SIZE_BYTES	\
-	400 /* Songs */						\
+	(400 /* Songs */						\
 	* 5 /* Steps per Song */			\
 	* 5 /* HighScores per Steps */		\
-	* 1024 /* size in bytes of a HighScores XNode */
+	* 1024) /* size in bytes of a HighScores XNode */
 
 const int DEFAULT_WEIGHT_POUNDS	= 120;
 const float DEFAULT_BIRTH_YEAR= 1995;
@@ -384,7 +398,7 @@ void Profile::AddStepsHighScore( const Song* pSong, const Steps* pSteps, HighSco
 
 const HighScoreList& Profile::GetStepsHighScoreList( const Song* pSong, const Steps* pSteps ) const
 {
-	return ((Profile*)this)->GetStepsHighScoreList(pSong,pSteps);
+	return (const_cast<Profile*>(this))->GetStepsHighScoreList(pSong,pSteps);
 }
 
 HighScoreList& Profile::GetStepsHighScoreList( const Song* pSong, const Steps* pSteps )
@@ -458,6 +472,39 @@ void Profile::IncrementStepsPlayCount( const Song* pSong, const Steps* pSteps )
 	GetStepsHighScoreList(pSong,pSteps).IncrementPlayCount( now );
 }
 
+Grade Profile::GetBestGrade(const Song* pSong, StepsType st) const
+{
+	Grade gradeBest = Grade_Invalid;
+	if (pSong != nullptr) {
+		bool hasCurrentStyleSteps = false;
+		FOREACH_ENUM_N(Difficulty, 6, i) {
+			Steps* pSteps = SongUtil::GetStepsByDifficulty(pSong, st, i);
+			if (pSteps != NULL) {
+				hasCurrentStyleSteps = true;
+				Grade dcg = SCOREMAN->GetBestGradeFor(pSteps->GetChartKey());
+				if (gradeBest >= dcg) {
+					gradeBest = dcg;
+				}
+			}
+		}
+		//If no grade was found for the current style/stepstype
+		if (!hasCurrentStyleSteps) {
+			//Get the best grade among all steps
+			auto& allSteps = pSong->GetAllSteps();
+			for (auto& stepsPtr : allSteps) {
+				if (stepsPtr->m_StepsType == st) //Skip already checked steps of type st
+					continue;
+				Grade dcg = SCOREMAN->GetBestGradeFor(stepsPtr->GetChartKey());
+				if (gradeBest >= dcg) {
+					gradeBest = dcg;
+				}
+			}
+		}
+	}
+
+	return gradeBest;
+}
+
 void Profile::GetGrades( const Song* pSong, StepsType st, int iCounts[NUM_Grade] ) const
 {
 	SongID songID;
@@ -488,7 +535,7 @@ void Profile::GetAllUsedHighScoreNames(std::set<RString>& names)
 {
 #define GET_NAMES_FROM_MAP(main_member, main_key_type, main_value_type, sub_member, sub_key_type, sub_value_type) \
 	for(std::map<main_key_type, main_value_type>::iterator main_entry= \
-				main_member.begin(); main_entry != main_member.end(); ++main_entry) \
+				(main_member).begin(); main_entry != (main_member).end(); ++main_entry) \
 	{ \
 		for(std::map<sub_key_type, sub_value_type>::iterator sub_entry= \
 					main_entry->second.sub_member.begin(); \
@@ -565,10 +612,10 @@ void Profile::MergeScoresFromOtherProfile(Profile* other, bool skip_totals,
 			++main_entry) \
 	{ \
 		std::map<main_key_type, main_value_type>::iterator this_entry= \
-			main_member.find(main_entry->first); \
-		if(this_entry == main_member.end()) \
+			(main_member).find(main_entry->first); \
+		if(this_entry == (main_member).end()) \
 		{ \
-			main_member[main_entry->first]= main_entry->second; \
+			(main_member)[main_entry->first]= main_entry->second; \
 		} \
 		else \
 		{ \
@@ -633,8 +680,8 @@ void Profile::swap(Profile& other)
 #define SWAP_STR_MEMBER(member_name) member_name.swap(other.member_name)
 #define SWAP_GENERAL(member_name) std::swap(member_name, other.member_name)
 #define SWAP_ARRAY(member_name, size) \
-	for(int i= 0; i < size; ++i) { \
-		std::swap(member_name[i], other.member_name[i]); } \
+	for(int i= 0; i < (size); ++i) { \
+		std::swap((member_name)[i], other.member_name[i]); } \
 	SWAP_GENERAL(m_ListPriority);
 	SWAP_STR_MEMBER(m_sDisplayName);
 	SWAP_STR_MEMBER(m_sCharacterID);
@@ -706,6 +753,7 @@ void Profile::IncrementCategoryPlayCount( StepsType st, RankingCategory rc )
 	DateTime now = DateTime::GetNowDate();
 	m_CategoryHighScores[st][rc].IncrementPlayCount( now );
 }
+
 
 void Profile::LoadCustomFunction( const RString &sDir )
 {
@@ -789,8 +837,6 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 	InitAll();
 
 	LoadTypeFromDir(sDir);
-	// Not critical if this fails
-	LoadEditableDataFromDir( sDir );
 	DBProf.SetLoadingProfile(this);
 	XMLProf.SetLoadingProfile(this);
 	ProfileLoadResult ret = XMLProf.LoadEttFromDir(sDir);
@@ -803,6 +849,8 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 		IsEtternaProfile = true;
 		ImportScoresToEtterna();
 	}
+	// Not critical if this fails
+	LoadEditableDataFromDir(sDir);
 
 	// move old profile specific replays to the new aggregate folder
 	RString oldreplaydir = sDir + "ReplayData/";
@@ -886,7 +934,6 @@ void Profile::CalculateStatsFromScores(LoadingWindow* ld) {
 		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W4);
 		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W5);
 		m_iTotalMines += hs->GetTapNoteScore(TNS_HitMine);
-		hs->GetHoldNoteScore(HNS_Held);
 	}
 
 	m_iNumTotalSongsPlayed = all.size();
@@ -895,7 +942,6 @@ void Profile::CalculateStatsFromScores(LoadingWindow* ld) {
 
 	SCOREMAN->RecalculateSSRs(ld, m_sProfileID);
 	SCOREMAN->CalcPlayerRating(m_fPlayerRating, m_fPlayerSkillsets, m_sProfileID);
-	//SCOREMAN->RatingOverTime();
 }
 
 void Profile::CalculateStatsFromScores() {
@@ -1051,6 +1097,7 @@ void Profile::ImportScoresToEtterna() {
 				imean->SetSongDir(sdir2);
 				id = SongID();
 				id.FromSong(imean);
+				delete imean;
 			}
 
 			if (id.IsValid() && sid.IsValid()) {
@@ -1177,11 +1224,17 @@ void Profile::ImportScoresToEtterna() {
 
 
 
-// more future goalman stuff
+// more future goalman stuff (perhaps this should be standardized to "add" in order to match scoreman nomenclature) -mina
 void Profile::CreateGoal(const string& ck) {
 	ScoreGoal goal;
 	goal.timeassigned = DateTime::GetNowDateTime();
 	goal.rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+
+	// duplication avoidance should be simpler than this? -mina
+	for (auto& n : goalmap[ck].goals)
+		if (n.rate == goal.rate && n.percent == goal.percent)
+			return;
+
 	goalmap[ck].Add(goal);
 }
 
@@ -1466,7 +1519,7 @@ public:
 	static int GetMostPopularSong(T* p, lua_State *L)
 	{
 		Song *p2 = p->GetMostPopularSong();
-		if (p2)
+		if (p2 != nullptr)
 			p2->PushSelf(L);
 		else
 			lua_pushnil(L);
@@ -1500,7 +1553,7 @@ public:
 	static int GetLastPlayedSong(T* p, lua_State *L)
 	{
 		Song *pS = p->m_lastSong.ToSong();
-		if (pS)
+		if (pS != nullptr)
 			pS->PushSelf(L);
 		else
 			lua_pushnil(L);
@@ -1531,7 +1584,7 @@ public:
 	}
 
 	static int GetIgnoreStepCountCalories(T* p, lua_State *L) {
-		lua_pushboolean(L, false);
+		lua_pushboolean(L, 0);
 		return 1;
 	}
 	static int CalculateCaloriesFromHeartRate(T* p, lua_State *L) {
@@ -1549,7 +1602,7 @@ public:
 				o = true;
 		}
 
-		lua_pushboolean(L, o);
+		lua_pushboolean(L, static_cast<int>(o));
 		return 1;
 	}
 
@@ -1573,6 +1626,12 @@ public:
 			ez.PushSelf(L);
 		else
 			lua_pushnil(L);
+		return 1;
+	}
+
+	static int RenameProfile(T* p, lua_State *L) {
+		p->m_sDisplayName = SArg(1);
+		p->SaveEditableDataToDir(p->m_sProfileID);
 		return 1;
 	}
 
@@ -1623,6 +1682,7 @@ public:
 		ADD_METHOD(CalculateCaloriesFromHeartRate);
 		ADD_METHOD(IsCurrentChartPermamirror);
 		ADD_METHOD(GetEasiestGoalForChartAndRate);
+		ADD_METHOD(RenameProfile);
 	}
 };
 
@@ -1686,7 +1746,7 @@ public:
 
 	static int GetPBUpTo(T* p, lua_State *L) {
 		HighScore* pb = p->GetPBUpTo();
-		if (!pb)
+		if (pb == nullptr)
 			lua_pushnil(L);
 		else
 			pb->PushSelf(L);
@@ -1695,7 +1755,7 @@ public:
 
 	static int IsVacuous(T* p, lua_State *L) {
 		if (p->achieved)
-			lua_pushboolean(L, false);
+			lua_pushboolean(L, 0);
 		
 		p->CheckVacuity();	// might be redundant
 		lua_pushboolean(L, p->vacuous);

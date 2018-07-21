@@ -1,4 +1,4 @@
-/* pos_map_queue - A container that maps one set of frame numbers to another. */
+﻿/* pos_map_queue - A container that maps one set of frame numbers to another. */
 
 #ifndef RAGE_SOUND_POS_MAP_H
 #define RAGE_SOUND_POS_MAP_H

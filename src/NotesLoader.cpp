@@ -1,11 +1,11 @@
-#include "global.h"
+﻿#include "global.h"
 #include "NotesLoader.h"
+#include "NotesLoaderBMS.h"
+#include "NotesLoaderDWI.h"
+#include "NotesLoaderKSF.h"
 #include "NotesLoaderSM.h"
 #include "NotesLoaderSMA.h"
 #include "NotesLoaderSSC.h"
-#include "NotesLoaderDWI.h"
-#include "NotesLoaderBMS.h"
-#include "NotesLoaderKSF.h"
 #include "RageUtil.h"
 
 void NotesLoader::GetMainAndSubTitlesFromFullTitle( const RString &sFullTitle, RString &sMainTitleOut, RString &sSubTitleOut )

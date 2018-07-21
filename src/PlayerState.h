@@ -1,14 +1,14 @@
-/** @brief PlayerState - Holds per-player game state. */
+﻿/** @brief PlayerState - Holds per-player game state. */
 
 #ifndef PlayerState_H
 #define PlayerState_H
 
-#include "SongPosition.h"
 #include "ModsGroup.h"
 #include "PlayerNumber.h"
 #include "PlayerOptions.h"
-#include "RageTimer.h"
 #include "SampleHistory.h"
+#include "SongPosition.h"
+
 struct lua_State;
 
 struct CacheDisplayedBeat {

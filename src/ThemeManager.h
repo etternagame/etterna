@@ -1,9 +1,9 @@
 #ifndef THEMEMANAGER_H
 #define THEMEMANAGER_H
 
+#include "LuaReference.h"
 #include "RageTypes.h"
 #include <set>
-#include "LuaReference.h"
 
 class IThemeMetric;
 class IniFile;

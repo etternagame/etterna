@@ -1,8 +1,8 @@
 #include "global.h"
-#include "ScreenSplash.h"
-#include "ThemeManager.h"
 #include "RageUtil.h"
 #include "ScreenManager.h"
+#include "ScreenSplash.h"
+#include "ThemeManager.h"
 
 REGISTER_SCREEN_CLASS( ScreenSplash );
 

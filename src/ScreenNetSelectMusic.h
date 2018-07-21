@@ -3,15 +3,15 @@
 #ifndef SCREEN_NET_SELECT_MUSIC_H
 #define SCREEN_NET_SELECT_MUSIC_H
 
+#include "BPMDisplay.h"
+#include "Difficulty.h"
+#include "DifficultyIcon.h"
+#include "ModIconRow.h"
+#include "MusicWheel.h"
 #include "ScreenNetSelectBase.h"
 #include "ScreenWithMenuElements.h"
 #include "Sprite.h"
-#include "DifficultyIcon.h"
-#include "Difficulty.h"
 #include "StepsDisplay.h"
-#include "MusicWheel.h"
-#include "ModIconRow.h"
-#include "BPMDisplay.h"
 
 class ScreenNetSelectMusic : public ScreenNetSelectBase
 {
@@ -19,8 +19,10 @@ public:
 	void Init() override;
 	void BeginScreen() override;
 
+	void DifferentialReload();
+
 	bool Input( const InputEventPlus &input ) override;
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 
 	void StartSelectedSong();
 	bool SelectCurrent();
@@ -36,7 +38,7 @@ protected:
 	bool MenuRight( const InputEventPlus &input ) override;
 	bool MenuUp( const InputEventPlus &input ) override;
 	bool MenuDown( const InputEventPlus &input ) override;
-	bool LeftAndRightPressed( const PlayerNumber pn );
+	bool LeftAndRightPressed( PlayerNumber pn );
 
 	void Update( float fDeltaTime ) override;
 

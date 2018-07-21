@@ -1,21 +1,19 @@
-#include "global.h"
-#include "RageSoundManager.h"
+﻿#include "global.h"
+#include "AnnouncerManager.h"
 #include "GameSoundManager.h"
-#include "RageSound.h"
-#include "RageLog.h"
-#include "RageUtil.h"
 #include "GameState.h"
-#include "TimingData.h"
-#include "NotesLoaderSSC.h"
+#include "LuaManager.h"
+#include "NoteData.h"
 #include "NotesLoaderSM.h"
+#include "NotesLoaderSSC.h"
 #include "PrefsManager.h"
 #include "RageDisplay.h"
-#include "AnnouncerManager.h"
-#include "NoteData.h"
+#include "RageLog.h"
+#include "RageSound.h"
+#include "RageSoundManager.h"
+#include "RageUtil.h"
 #include "Song.h"
-#include "Steps.h"
-#include "SongUtil.h"
-#include "LuaManager.h"
+#include "TimingData.h"
 
 #include "arch/Sound/RageSoundDriver.h"
 
@@ -58,7 +56,7 @@ struct MusicPlaying
 	 * song that's starting. We'll copy it to m_Timing once sound is heard. */
 	TimingData m_NewTiming;
 	RageSound *m_Music;
-	MusicPlaying( RageSound *Music )
+	explicit MusicPlaying( RageSound *Music )
 	{
 		m_Timing.AddSegment( BPMSegment(0,120) );
 		m_NewTiming.AddSegment( BPMSegment(0,120) );
@@ -657,7 +655,7 @@ void GameSoundManager::PlayMusic( PlayMusicParams params, PlayMusicParams Fallba
 	MusicToPlay ToPlay;
 
 	ToPlay.m_sFile = params.sFile;
-	if( params.pTiming )
+	if( params.pTiming != nullptr )
 	{
 		ToPlay.HasTiming = true;
 		ToPlay.m_TimingData = *params.pTiming;
@@ -736,7 +734,7 @@ float GameSoundManager::GetPlayerBalance( PlayerNumber pn )
 	/* If two players are active, play sounds on each players' side. */
 	if( GAMESTATE->GetNumPlayersEnabled() == 2 )
 		return (pn == PLAYER_1)? -1.0f:1.0f;
-	else
+	
 		return 0;
 }
 
@@ -812,7 +810,7 @@ public:
 	}
 
 	static int StopMusic( T* p, lua_State *L )			{ p->StopMusic(); COMMON_RETURN_SELF; }
-	static int IsTimingDelayed( T* p, lua_State *L )	{ lua_pushboolean( L, g_Playing->m_bTimingDelayed ); return 1; }
+	static int IsTimingDelayed( T* p, lua_State *L )	{ lua_pushboolean( L, static_cast<int>(g_Playing->m_bTimingDelayed) ); return 1; }
 	
 	LunaGameSoundManager()
 	{

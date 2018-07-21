@@ -1,7 +1,6 @@
-#ifndef NetworkSyncManager_H
+﻿#ifndef NetworkSyncManager_H
 #define NetworkSyncManager_H
 
-#include "PlayerNumber.h"
 #include "Difficulty.h"
 #include "ScreenNetRoom.h"
 #include "RoomWheel.h"
@@ -12,6 +11,7 @@
 #include "Song.h"
 #include "HighScore.h"
 #include "global.h"
+#include "PlayerNumber.h"
 #include <queue>
 #include "uWS.h"
 #include "JsonUtil.h"
@@ -67,7 +67,7 @@ enum SMOStepType
 	 */
 };
 
-const NSCommand NSServerOffset = (NSCommand)128;
+const NSCommand NSServerOffset = static_cast<NSCommand>(128);
 
 // TODO: Provide a Lua binding that gives access to this data. -aj
 class EndOfGame_PlayerData
@@ -244,16 +244,22 @@ public:
 };
 
 class ETTProtocol : public NetProtocol { // Websockets using uwebsockets sending json
-	uWS::Hub uWSh;
+	uWS::Hub* uWSh = new uWS::Hub(); 
 	vector<json> newMessages;
 	unsigned int msgId{0};
 	bool error{ false };
-	uWS::WebSocket<uWS::CLIENT>* ws;
+	string errorMsg;
+	uWS::WebSocket<uWS::CLIENT>* ws{nullptr};
 	void FindJsonChart(NetworkSyncManager* n, json& ch);
 	int state = 0; // 0 = ready, 1 = playing, 2 = evalScreen, 3 = options, 4 = notReady(unkown reason)
 public:
+	bool waitingForTimeout{ false };
+	clock_t timeoutStart;
+	double timeout;
+	function<void(void)> onTimeout;
 	string roomName;
 	string roomDesc;
+	bool inRoom{ false };
 	bool Connect(NetworkSyncManager* n, unsigned short port, RString address) override; // Connect and say hello
 	void close() override;
 	void Update(NetworkSyncManager* n, float fDeltaTime) override;
@@ -271,6 +277,7 @@ public:
 	void OffEval() override;
 	void ReportHighScore(HighScore* hs, PlayerStageStats& pss) override;
 	void Send(const char* msg);
+	void Send(json msg);
 	/*
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset, int numNotes) override;
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset) override;
@@ -325,6 +332,8 @@ public:
 
 
 	void PostStartUp( const RString& ServerIP );
+
+	bool IsETTP();
 
 	void CloseConnection();
 

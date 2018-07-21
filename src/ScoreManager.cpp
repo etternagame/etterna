@@ -1,17 +1,17 @@
 #include "global.h"
-#include "RageLog.h"
-#include "HighScore.h"
-#include "arch/LoadingWindow/LoadingWindow.h"
-#include "GameConstantsAndTypes.h"
 #include "Foreach.h"
+#include "GameConstantsAndTypes.h"
+#include "HighScore.h"
+#include "MinaCalc.h"
+#include "NoteData.h"
+#include "NoteDataStructures.h"
+#include "RageLog.h"
+#include "RageTimer.h"
 #include "ScoreManager.h"
+#include "Song.h"
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
-#include "Song.h"
-#include "MinaCalc.h"
-#include "NoteDataStructures.h"
-#include "NoteData.h"
-#include "RageTimer.h"
+#include "arch/LoadingWindow/LoadingWindow.h"
 
 ScoreManager* SCOREMAN = NULL;
 
@@ -113,48 +113,10 @@ void ScoreManager::PurgeProfileScores(const string& profileID) {
 	pscores[profileID].clear();
 }
 
-void ScoreManager::RatingOverTime(const string& profileID) {
-	auto compdate = [](HighScore* a, HighScore* b) { return (a->GetDateTime() < b->GetDateTime()); };
-
-	auto& scores = AllProfileScores[profileID];
-
-	vector<bool> wasvalid;
-	sort(scores.begin(), scores.end(), compdate);
-
-	for (auto& n : scores) {
-		wasvalid.push_back(n->GetEtternaValid());
-		n->SetEtternaValid(false);
-	}
-
-	float doot = 10.f;
-	float doot2[8];
-	LOG->Warn("wer");
-	if (scores.empty())
-		return;
-
-	DateTime lastvalidday = AllProfileScores[profileID].front()->GetDateTime();
-	lastvalidday.StripTime();
-
-	CalcPlayerRating(doot, doot2, profileID);
-	LOG->Warn(lastvalidday.GetString());
-
-	DateTime finalvalidday = scores.back()->GetDateTime();
-	finalvalidday.StripTime();
-	while (lastvalidday != finalvalidday) {
-		for (auto& n : scores) {
-			DateTime date = n->GetDateTime();
-			date.StripTime();
-
-			if (lastvalidday < date) {
-				lastvalidday = date;
-				break;
-			}
-
-			n->SetEtternaValid(true);
-		}
-		CalcPlayerRating(doot, doot2, profileID);
-		LOG->Trace("%f", doot);
-	}
+void ScoreManager::RatingOverTime() {
+	if (false)
+		for (auto *s : AllScores)
+			s->GenerateValidationKeys();
 }
 
 ScoresForChart::ScoresForChart() {
@@ -313,7 +275,7 @@ static const float ld_update = 0.02f;
 void ScoreManager::RecalculateSSRs(LoadingWindow *ld, const string& profileID) {
 	RageTimer ld_timer;
 	auto& scores = AllProfileScores[profileID];
-	if (ld) {
+	if (ld != nullptr) {
 		ld_timer.Touch();
 		ld->SetIndeterminate(false);
 		ld->SetTotalWork(scores.size());
@@ -453,9 +415,6 @@ void ScoreManager::SortTopSSRPtrs(Skillset ss, const string& profileID) {
 }
 
 HighScore* ScoreManager::GetTopSSRHighScore(unsigned int rank, int ss) {
-	if (rank < 0)
-		rank = 0;
-
 	if (ss >= 0 && ss < NUM_Skillset && rank < TopSSRs.size())
 		return TopSSRs[rank];
 
@@ -518,6 +477,8 @@ XNode * ScoresForChart::CreateNode(const string& ck) const {
 		auto node = i->second.CreateNode(i->first);
 		if (!node->ChildrenEmpty())
 			o->AppendChild(node);
+		else
+			delete node;
 	}
 	return o;
 }
@@ -528,6 +489,8 @@ XNode * ScoreManager::CreateNode(const string& profileID) const {
 		auto node = ch->second.CreateNode(ch->first);
 		if (!node->ChildrenEmpty())
 			o->AppendChild(node);
+		else
+			delete node;
 	}
 
 	return o;
@@ -660,7 +623,7 @@ public:
 		const string& ck = SArg(1);
 		ScoresForChart* scores = p->GetScoresForChart(ck);
 
-		if (scores) {
+		if (scores != nullptr) {
 			lua_newtable(L);
 			vector<int> ratekeys = scores->GetPlayedRateKeys();
 			vector<string> ratedisplay = scores->GetPlayedRateDisplayStrings();
@@ -689,7 +652,7 @@ public:
 
 	static int GetTopSSRHighScore(T* p, lua_State *L) {
 		HighScore* ths = p->GetTopSSRHighScore(IArg(1) - 1, Enum::Check<Skillset>(L, 2));
-		if (ths)
+		if (ths != nullptr)
 			ths->PushSelf(L);
 		else
 			lua_pushnil(L);

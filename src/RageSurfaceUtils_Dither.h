@@ -1,7 +1,8 @@
-#ifndef RAGE_SURFACE_UTILS_DITHER_H
+﻿#ifndef RAGE_SURFACE_UTILS_DITHER_H
 #define RAGE_SURFACE_UTILS_DITHER_H
 
 struct RageSurface;
+
 /** @brief Utility functions for the RageSurfaces. */
 namespace RageSurfaceUtils
 {

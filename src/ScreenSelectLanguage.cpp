@@ -1,8 +1,8 @@
 #include "global.h"
-#include "ScreenSelectLanguage.h"
-#include "PrefsManager.h"
-#include "arch/ArchHooks/ArchHooks.h"
 #include "InputEventPlus.h"
+#include "PrefsManager.h"
+#include "ScreenSelectLanguage.h"
+#include "arch/ArchHooks/ArchHooks.h"
 
 REGISTER_SCREEN_CLASS( ScreenSelectLanguage );
 

@@ -1,8 +1,8 @@
-#include "global.h"
+﻿#include "global.h"
 #include "RageException.h"
-#include "RageUtil.h"
 #include "RageLog.h"
 #include "RageThreads.h"
+#include "RageUtil.h"
 
 #include <cstdarg>
 
@@ -37,7 +37,7 @@ void RageException::Throw( const char *sFmt, ... )
 		"Exception: %s\n"
 		"//////////////////////////////////////////////////////\n",
 		error.c_str() );
-	if( LOG )
+	if( LOG != nullptr )
 	{
 		LOG->Trace( "%s", msg.c_str() );
 		LOG->Flush();

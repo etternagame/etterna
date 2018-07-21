@@ -1,9 +1,9 @@
-/* from http://www.libpng.org/pub/png/apps/pngquant.html */
+﻿/* from http://www.libpng.org/pub/png/apps/pngquant.html */
 
 #include "global.h"
-#include "RageSurfaceUtils_Palettize.h"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
+#include "RageSurfaceUtils_Palettize.h"
 #include "RageUtil.h"
 
 typedef uint8_t pixval;

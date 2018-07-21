@@ -1,15 +1,15 @@
 #include "global.h"
 
 #if !defined(WITHOUT_NETWORKING)
-#include "ScreenNetRoom.h"
-#include "ScreenManager.h"
-#include "NetworkSyncManager.h"
 #include "GameState.h"
-#include "ThemeManager.h"
-#include "ScreenTextEntry.h"
-#include "WheelItemBase.h"
 #include "InputEventPlus.h"
 #include "LocalizedString.h"
+#include "NetworkSyncManager.h"
+#include "ScreenManager.h"
+#include "ScreenNetRoom.h"
+#include "ScreenTextEntry.h"
+#include "ThemeManager.h"
+#include "WheelItemBase.h"
 
 AutoScreenMessage(SM_SMOnlinePack);
 AutoScreenMessage(SM_BackFromRoomName);
@@ -19,6 +19,7 @@ AutoScreenMessage(SM_BackFromReqPass);
 AutoScreenMessage(SM_RoomInfoRetract);
 AutoScreenMessage(SM_RoomInfoDeploy);
 
+AutoScreenMessage(ETTP_Disconnect);
 AutoScreenMessage(ETTP_RoomsChange);
 
 static LocalizedString ENTER_ROOM_DESCRIPTION ("ScreenNetRoom","Enter a description for the room:");
@@ -75,6 +76,11 @@ void ScreenNetRoom::HandleScreenMessage( const ScreenMessage SM )
 	else if( SM == SM_GoToNextScreen )
 	{
 		SCREENMAN->SetNewScreen( THEME->GetMetric (m_sName, "NextScreen") );
+	}
+	else if (SM == ETTP_Disconnect)
+	{
+		TweenOffScreen();
+		Cancel(SM_GoToPrevScreen);
 	}
 	else if( SM == SM_BackFromReqPass )
 	{
@@ -146,9 +152,9 @@ void ScreenNetRoom::SelectCurrent()
 
 	m_RoomWheel.Select();
 	RoomWheelItemData* rwd = dynamic_cast<RoomWheelItemData*>(m_RoomWheel.LastSelected());
-	if (rwd)
+	if (rwd != nullptr)
 	{
-		if (rwd->m_iFlags % 2 || rwd->hasPassword)
+		if (rwd->m_iFlags % 2 != 0u || rwd->hasPassword)
 		{
 			m_sLastPickedRoom = rwd->m_sText;
 			ScreenTextEntry::TextEntry(SM_BackFromReqPass, ENTER_ROOM_REQPASSWORD, "", 255);

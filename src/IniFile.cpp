@@ -1,4 +1,4 @@
-/* 
+﻿/* 
 http://en.wikipedia.org/wiki/INI_file
  - names and values are trimmed on both sides
  - semicolons start a comment line
@@ -6,10 +6,9 @@ http://en.wikipedia.org/wiki/INI_file
 */
 #include "global.h"
 #include "IniFile.h"
-#include "RageUtil.h"
-#include "RageLog.h"
 #include "RageFile.h"
-#include "Foreach.h"
+#include "RageLog.h"
+#include "RageUtil.h"
 
 IniFile::IniFile(): XNode("IniFile")
 {
@@ -121,7 +120,7 @@ bool IniFile::WriteFile( const RString &sPath ) const
 
 	bool bSuccess = IniFile::WriteFile( f );
 	int iFlush = f.Flush();
-	bSuccess &= (iFlush != -1);
+	bSuccess &= static_cast<int>(iFlush != -1);
 	return bSuccess;
 }
 

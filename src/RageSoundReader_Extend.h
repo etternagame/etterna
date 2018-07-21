@@ -1,4 +1,4 @@
-/* RageSoundReader_Extend - Add looping, delay and truncation and fading. */
+﻿/* RageSoundReader_Extend - Add looping, delay and truncation and fading. */
 
 #ifndef RAGE_SOUND_READER_EXTEND
 #define RAGE_SOUND_READER_EXTEND

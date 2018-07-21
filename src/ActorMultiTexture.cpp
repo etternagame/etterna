@@ -2,16 +2,16 @@
 #include <cassert>
 
 #include "ActorMultiTexture.h"
-#include "RageTextureManager.h"
-#include "XmlFile.h"
-#include "RageLog.h"
-#include "RageDisplay.h"
-#include "RageTexture.h"
-#include "RageUtil.h"
 #include "ActorUtil.h"
 #include "Foreach.h"
 #include "LuaBinding.h"
 #include "LuaManager.h"
+#include "RageDisplay.h"
+#include "RageLog.h"
+#include "RageTexture.h"
+#include "RageTextureManager.h"
+#include "RageUtil.h"
+#include "XmlFile.h"
 
 REGISTER_ACTOR_CLASS( ActorMultiTexture );
 
@@ -52,8 +52,8 @@ void ActorMultiTexture::LoadFromNode( const XNode* pNode )
 
 void ActorMultiTexture::SetSizeFromTexture( RageTexture *pTexture )
 {
-	ActorMultiTexture::m_size.x = pTexture->GetSourceWidth();
-	ActorMultiTexture::m_size.y = pTexture->GetSourceHeight();
+	ActorMultiTexture::m_size.x = static_cast<float>(pTexture->GetSourceWidth());
+	ActorMultiTexture::m_size.y = static_cast<float>(pTexture->GetSourceHeight());
 }
 
 void ActorMultiTexture::ClearTextures()

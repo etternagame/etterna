@@ -3,10 +3,10 @@
 #ifndef SCREEN_NET_SELECT_BASE_H
 #define SCREEN_NET_SELECT_BASE_H
 
+#include "BitmapText.h"
+#include "Quad.h"
 #include "ScreenWithMenuElements.h"
 #include "Sprite.h"
-#include "Quad.h"
-#include "BitmapText.h"
 
 
 class ScreenNetSelectBase : public ScreenWithMenuElements
@@ -15,7 +15,7 @@ public:
 	void Init() override;
 
 	bool Input( const InputEventPlus &input ) override;
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 	void TweenOffScreen() override;
 
 	void UpdateUsers();
@@ -26,7 +26,7 @@ public:
 	void SetChatboxVisible(bool visibility);
 	void SetUsersVisible(bool visibility);
 	vector<BitmapText>* ToUsers();
-	void Scroll(int movescroll);
+	void Scroll(unsigned int movescroll);
 	RString GetPreviousMsg();
 	RString GetNextMsg();
 	void SetInputText(RString text);

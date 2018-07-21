@@ -1,9 +1,8 @@
-#include "global.h"
-#include "RageSurface_Load_GIF.h"
+﻿#include "global.h"
 #include "RageFile.h"
-#include "RageUtil.h"
-#include "RageLog.h"
 #include "RageSurface.h"
+#include "RageSurface_Load_GIF.h"
+#include "RageUtil.h"
 
 #define	MAXCOLORMAPSIZE		256
 
@@ -13,7 +12,7 @@
 #define LOCALCOLORMAP	0x80
 #define BitSet(byte, bit)	(((byte) & (bit)) == (bit))
 
-#define	ReadOK(file,buffer,len)	(file.Read( buffer, len, 1) != 0)
+#define	ReadOK(file,buffer,len)	((file).Read( buffer, len, 1) != 0)
 
 #define LM_to_uint(a,b)			(((b)<<8)|(a))
 
@@ -188,9 +187,9 @@ RageSurfaceUtils::OpenResult RageSurface_Load_GIF( const RString &sPath, RageSur
 
 			ret = ReadImage( f, LM_to_uint(buf[4], buf[5]), LM_to_uint(buf[6], buf[7]),
 					LocalColorMap, BitSet(buf[8], INTERLACE),
-					imageCount != imageNumber );
+					static_cast<int>(imageCount != imageNumber) );
 
-			if( !ret )
+			if( ret == nullptr )
 				continue;
 
 			if( transparency != -1 )
@@ -252,7 +251,7 @@ int LWZState::Code::Get( RageFile &f, int code_size )
 		buf[0] = buf[last_byte - 2];
 		buf[1] = buf[last_byte - 1];
 
-		auto count = (unsigned char) GetDataBlock( f, &buf[2] );
+		auto count = static_cast<unsigned char>( GetDataBlock( f, &buf[2] ));
 		if( count == 0 )
 			done = true;
 
@@ -263,7 +262,7 @@ int LWZState::Code::Get( RageFile &f, int code_size )
 	int ret = 0;
 	int i, j;
 	for (i = curbit, j = 0; j < code_size; ++i, ++j)
-		ret |= ((buf[i / 8] & (1 << (i % 8))) != 0) << j;
+		ret |= static_cast<int>((buf[i / 8] & (1 << (i % 8))) != 0) << j;
 
 	curbit += code_size;
 
@@ -332,7 +331,7 @@ int LWZState::ReadByte( RageFile &f )
 			firstcode = oldcode = m_Code.Get( f, code_size );
 			return firstcode;
 		}
-		else if( code == end_code )
+		if( code == end_code )
 		{
 			int count;
 			unsigned char buf[260];
@@ -398,15 +397,14 @@ static RageSurface *ReadImage( RageFile &f, int len, int height,
 	LWZState state;
 	if( !state.Init(f) )
 	{
-//		RWSetMsg("error reading image");
-		return NULL;
+		return nullptr;
 	}
 	/* If this is an "uninteresting picture" ignore it. */
-	if( ignore )
+	if( ignore != 0 )
 	{
 		while( state.ReadByte(f) >= 0 )
 			;
-		return NULL;
+		return nullptr;
 	}
 
 	RageSurface *image = CreateSurface( len, height, 8, 0, 0, 0, 0 );
@@ -422,7 +420,7 @@ static RageSurface *ReadImage( RageFile &f, int len, int height,
 		if( xpos == len )
 		{
 			xpos = 0;
-			if( interlace )
+			if( interlace != 0 )
 			{
 				int step[] = { 8, 8, 4, 2 };
 				ypos += step[pass];

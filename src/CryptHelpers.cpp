@@ -18,7 +18,7 @@ PRNGWrapper::~PRNGWrapper()
 
 void PRNGWrapper::AddEntropy( const void *pData, int iSize )
 {
-	int iRet = prng_descriptor[m_iPRNG].add_entropy( (const unsigned char *) pData, iSize, &m_PRNG );
+	int iRet = prng_descriptor[m_iPRNG].add_entropy( reinterpret_cast<const unsigned char *>( pData), iSize, &m_PRNG );
 	ASSERT_M( iRet == CRYPT_OK, error_to_string(iRet) );
 
 	iRet = prng_descriptor[m_iPRNG].ready( &m_PRNG );

@@ -1,4 +1,4 @@
-/** @brief SSCLoader - Reads a Song and its Steps from a .SSC file. */
+﻿/** @brief SSCLoader - Reads a Song and its Steps from a .SSC file. */
 #ifndef NotesLoaderSSC_H
 #define NotesLoaderSSC_H
 
@@ -53,14 +53,14 @@ namespace SSC {
 		bool for_load_edit;
 		StepsTagInfo(SSCLoader* l, Song* s, const RString& p, bool fc)
 			:loader(l), song(s), path(p), has_own_timing(false), ssc_format(false),
-			from_cache(fc), for_load_edit(false)
+			from_cache(fc), for_load_edit(false), steps(nullptr), timing(nullptr)
 		{}
 	};
 	struct SongTagInfo
 	{
 		SSCLoader* loader;
 		Song* song;
-		const MsdFile::value_t* params;
+		const MsdFile::value_t* params{nullptr};
 		const RString& path;
 		bool from_cache;
 		SongTagInfo(SSCLoader* l, Song* s, const RString& p, bool fc)
@@ -125,14 +125,13 @@ struct SSCLoader : public SMLoader
 	 * @return true if successful, false otherwise. */
 	bool LoadNoteDataFromSimfile( const RString &cachePath, Steps &out ) override;
 	
-	static void ProcessBPMs( TimingData &, const RString &sParam, const string &songName);
-	static void ProcessStops( TimingData &, const RString &sParam, const string &songName);
-	static void ProcessWarps( TimingData &, const RString &sParam, const float, const string &songName);
+	static void ProcessBPMs(TimingData &, const RString &sParam, const string &songName);
+	static void ProcessStops(TimingData &, const RString &sParam, const string &songName);
+	static void ProcessWarps(TimingData &, const RString &sParam, const float, const string &songName);
 	static void ProcessLabels(TimingData &out, const RString &sParam, const string &songName);
-	static void ProcessCombos( TimingData &, const RString &line, const string &songName, const int = -1);
+	static void ProcessCombos(TimingData &, const RString &line, const string &songName, const int = -1);
 	void ProcessCombos(TimingData &, const RString &line, const int = -1) override;
-	static void ProcessScrolls( TimingData &, const RString sParam, const string &songName);
-
+	static void ProcessScrolls(TimingData &, const RString sParam, const string &songName);
 };
 
 #endif

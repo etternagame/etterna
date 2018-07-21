@@ -1,8 +1,8 @@
 #ifndef GRAPHICS_WINDOW_H
 #define GRAPHICS_WINDOW_H
 
-#include <windows.h>
 #include "DisplayResolutions.h"
+#include <windows.h>
 class VideoModeParams;
 class DisplayResolution;
 

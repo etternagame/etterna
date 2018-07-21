@@ -75,23 +75,19 @@ Branch = {
 		-- that the additional song count is also 0, because there is
 		-- a possibility someone will use their existing StepMania simfile
 		-- collection with sm-ssc via AdditionalFolders/AdditionalSongFolders.
-		if SONGMAN:GetNumSongs() == 0 and SONGMAN:GetNumAdditionalSongs() == 0 then
-			return "ScreenHowToInstallSongs"
+		if SONGMAN:GetNumSongs() == 0 and SONGMAN:GetNumAdditionalSongs() == 0 and #DLMAN:GetDownloads() == 0 then
+			return "ScreenCoreBundleSelect"
 		end
 		if PROFILEMAN:GetNumLocalProfiles() >= 2 then
 			return "ScreenSelectProfile"
 		else
-			if IsNetConnected() then
-				return "ScreenSelectStyle"
-			else
-				return "ScreenProfileLoad"
-			end
+			return "ScreenProfileLoad"
 		end
 	end,
 	OptionsEdit = function()
 		-- Similar to above, don't let anyone in here with 0 songs.
 		if SONGMAN:GetNumSongs() == 0 and SONGMAN:GetNumAdditionalSongs() == 0 then
-			return "ScreenHowToInstallSongs"
+			return "ScreenCoreBundleSelect"
 		end
 		return "ScreenOptionsEdit"
 	end,

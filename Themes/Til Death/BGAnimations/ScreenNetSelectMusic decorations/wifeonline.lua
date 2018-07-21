@@ -530,7 +530,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 				self:settext("")
 			else
 				self:settextf("%05.2f",meter)
-				self:diffuse(ByMSD(meter))
+				self:diffuse(byMSD(meter))
 			end
 		else
 			self:settext("")
@@ -657,7 +657,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 		if song then
 			local playabletime = GetPlayableTime()
 			self:settext(SecondsToMMSS(playabletime))
-			self:diffuse(ByMusicLength(playabletime))
+			self:diffuse(byMusicLength(playabletime))
 		else
 			self:settext("")
 		end

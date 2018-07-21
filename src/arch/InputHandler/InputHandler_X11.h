@@ -4,23 +4,14 @@
 #define INPUT_HANDLER_X11_H
 
 #include "InputHandler.h"
-#include "RageThreads.h"
 
 class InputHandler_X11: public InputHandler
 {
 public:
 	InputHandler_X11();
 	~InputHandler_X11();
-	void GetDevicesAndDescriptions( vector<InputDeviceInfo>& vDevicesOut );
-
-private:
-	void StartThread();
-	void StopThread();
-	static int InputThread_Start( void *p );
-	void InputThread();
-
-	RageThread m_InputThread;
-	bool m_bShutdown;
+	void Update();
+	void GetDevicesAndDescriptions( std::vector<InputDeviceInfo>& vDevicesOut );
 };
 
 #endif
@@ -49,3 +40,4 @@ private:
  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
+

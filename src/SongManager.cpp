@@ -1,6 +1,4 @@
 #include "global.h"
-#include "SongManager.h"
-#include "arch/LoadingWindow/LoadingWindow.h"
 #include "ActorUtil.h"
 #include "AnnouncerManager.h"
 #include "BackgroundUtil.h"
@@ -13,17 +11,20 @@
 #include "MsdFile.h"
 #include "NoteSkinManager.h"
 #include "NotesLoaderDWI.h"
-#include "NotesLoaderSSC.h"
 #include "NotesLoaderSM.h"
+#include "NotesLoaderSSC.h"
 #include "PrefsManager.h"
 #include "Profile.h"
 #include "ProfileManager.h"
 #include "RageFile.h"
 #include "RageFileManager.h"
 #include "RageLog.h"
+#include "ScreenTextEntry.h"
 #include "Song.h"
 #include "SongCacheIndex.h"
+#include "SongManager.h"
 #include "SongUtil.h"
+#include "SpecialFiles.h"
 #include "Sprite.h"
 #include "StatsManager.h"
 #include "Steps.h"
@@ -31,8 +32,7 @@
 #include "Style.h"
 #include "ThemeManager.h"
 #include "TitleSubstitution.h"
-#include "SpecialFiles.h"
-#include "ScreenTextEntry.h"
+#include "arch/LoadingWindow/LoadingWindow.h"
 
 SongManager*	SONGMAN = NULL;	// global and accessible from anywhere in our program
 
@@ -48,6 +48,7 @@ static const ThemeMetric<bool>		USE_PREFERRED_SORT_COLOR	( "SongManager", "UsePr
 static const ThemeMetric<int>		EXTRA_STAGE2_DIFFICULTY_MAX	( "SongManager", "ExtraStage2DifficultyMax" );
 
 static Preference<RString> g_sDisabledSongs( "DisabledSongs", "" );
+static Preference<bool> PlaylistsAreSongGroups("PlaylistsAreSongGroups", false);
 
 RString SONG_GROUP_COLOR_NAME( size_t i )   { return ssprintf( "SongGroupColor%i", (int) i+1 ); }
 
@@ -96,49 +97,31 @@ static LocalizedString RELOADING ( "SongManager", "Reloading..." );
 static LocalizedString UNLOADING_SONGS ( "SongManager", "Unloading songs..." );
 static LocalizedString SANITY_CHECKING_GROUPS("SongManager", "Sanity checking groups...");
 
-void SongManager::Reload( bool bAllowFastLoad, LoadingWindow *ld )
-{
-	FILEMAN->FlushDirCache( SpecialFiles::SONGS_DIR );
-	FILEMAN->FlushDirCache( ADDITIONAL_SONGS_DIR );
-	FILEMAN->FlushDirCache( EDIT_SUBDIR );
-
-	if( ld )
-		ld->SetText( RELOADING );
-
-	// save scores before unloading songs, or the scores will be lost
-
-	if( ld )
-		ld->SetText( UNLOADING_SONGS );
-
-	FreeSongs();
-	cache.clear();
-
-	const bool OldVal = PREFSMAN->m_bFastLoad;
-	if( !bAllowFastLoad )
-		PREFSMAN->m_bFastLoad.Set( false );
-
-	InitAll( ld );
-
-	if( !bAllowFastLoad )
-		PREFSMAN->m_bFastLoad.Set( OldVal );
-
-	UpdatePreferredSort();
-}
-
 // See InitSongsFromDisk for any comment clarification -mina
 int SongManager::DifferentialReload() {
 	FILEMAN->FlushDirCache(SpecialFiles::SONGS_DIR);
 	FILEMAN->FlushDirCache(ADDITIONAL_SONGS_DIR);
 	FILEMAN->FlushDirCache(EDIT_SUBDIR);
 	int newsongs = 0;
-	newsongs += DifferentialReloadDir(SpecialFiles::SONGS_DIR);
-	newsongs += DifferentialReloadDir(ADDITIONAL_SONGS_DIR);
+	newsongs += DifferentialReloadDir(SpecialFiles::SONGS_DIR, NULL);
+	newsongs += DifferentialReloadDir(ADDITIONAL_SONGS_DIR, NULL);
+	LoadEnabledSongsFromPref();
+	return newsongs;
+}
+
+int SongManager::DifferentialReload(LoadingWindow *ld) {
+	FILEMAN->FlushDirCache(SpecialFiles::SONGS_DIR);
+	FILEMAN->FlushDirCache(ADDITIONAL_SONGS_DIR);
+	FILEMAN->FlushDirCache(EDIT_SUBDIR);
+	int newsongs = 0;
+	newsongs += DifferentialReloadDir(SpecialFiles::SONGS_DIR, ld);
+	newsongs += DifferentialReloadDir(ADDITIONAL_SONGS_DIR, ld);
 	LoadEnabledSongsFromPref();
 	return newsongs;
 }
 
 // See LoadStepManiaSongDir for any comment clarification -mina
-int SongManager::DifferentialReloadDir(string dir) {
+int SongManager::DifferentialReloadDir(string dir, LoadingWindow *ld) {
 	if (dir.substr(dir.size()) != "/")
 		dir += "/";
 
@@ -200,6 +183,9 @@ int SongManager::DifferentialReloadDir(string dir) {
 			AddKeyedPointers(pNewSong);
 
 			index_entry.emplace_back(pNewSong);
+			
+			if(ld)
+				ld->SetText("Loading:\n" + sGroupDirName + "\n" + pNewSong->GetMainTitle());
 
 			loaded++;
 			songIndex++;
@@ -260,7 +246,7 @@ void Chart::FromKey(const string& ck) {
 	Song* song = SONGMAN->GetSongByChartkey(ck);
 	key = ck;
 
-	if (song) {
+	if (song != nullptr) {
 		Steps* steps = SONGMAN->GetStepsByChartkey(ck);
 		lastpack = song->m_sGroupName;
 		lastsong = song->GetDisplayMainTitle();
@@ -334,9 +320,12 @@ XNode* Playlist::CreateNode() const {
 
 	if (!cl->ChildrenEmpty())
 		pl->AppendChild(cl);
-
+	else
+		delete cl;
 	if (!cr->ChildrenEmpty())
 		pl->AppendChild(cr);
+	else
+		delete cr;
 	
 	return pl;
 }
@@ -372,6 +361,9 @@ void SongManager::SetFlagsForProfile(Profile* prof) {
 }
 
 void SongManager::MakeSongGroupsFromPlaylists(map<string, Playlist>& playlists) {
+	if (!PlaylistsAreSongGroups)
+		return;
+
 	for(auto& plName : playlistGroups)
 		groupderps.erase(plName);
 	playlistGroups.clear();
@@ -434,6 +426,15 @@ void SongManager::MakePlaylistFromFavorites(set<string>& favs, map<string, Playl
 			pl.DeleteChart(i);
 
 	playlists.emplace("Favorites", pl);
+}
+
+void SongManager::ReconcileChartKeysForReloadedSong(const Song* reloadedSong, vector<string> oldChartkeys)
+{
+	for (auto ck : oldChartkeys)
+		SONGMAN->StepsByKey.erase(ck);
+	auto stepses = reloadedSong->GetAllSteps();
+	for (auto steps : stepses)
+		SONGMAN->StepsByKey[steps->GetChartKey()] = steps;
 }
 
 string SongManager::ReconcileBustedKeys(const string& ck) {
@@ -581,7 +582,7 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 	SortRStringArray(arrayGroupDirs);
 	vector< vector<RString> > arrayGroupSongDirs;
 	int songCount = 0;
-	if (ld)
+	if(ld != nullptr)
 	{
 		ld->SetIndeterminate(false);
 		ld->SetTotalWork(arrayGroupDirs.size());
@@ -598,10 +599,11 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 		SortRStringArray(arraySongDirs);
 		arrayGroupSongDirs.emplace_back(arraySongDirs);
 		songCount += arraySongDirs.size();
-		ld->SetProgress(++groupsChecked);
+		if(ld != nullptr)
+			ld->SetProgress(++groupsChecked);
 	}
 
-	if (ld)
+	if( ld != nullptr )
 	{
 		ld->SetIndeterminate(false);
 		ld->SetTotalWork(songCount);
@@ -640,14 +642,14 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 		AddGroup(sDir, sGroupDirName);
 		IMAGECACHE->CacheImage("Banner", GetSongGroupBannerPath(sGroupDirName));
 	}
-	if( ld ) {
-		ld->SetIndeterminate( true );
+	if(ld != nullptr) {
+		ld->SetIndeterminate(true);
 	}
 }
 
 void SongManager::PreloadSongImages()
 {
-	if( PREFSMAN->m_ImageCache != IMGCACHE_FULL )
+	if(PREFSMAN->m_ImageCache != IMGCACHE_FULL)
 		return;
 
 	/* Load textures before unloading old ones, so we don't reload textures
@@ -1370,8 +1372,8 @@ public:
 		return 1;
 	}
 
-	static int FindSong( T* p, lua_State *L )		{ Song *pS = p->FindSong(SArg(1)); if(pS) pS->PushSelf(L); else lua_pushnil(L); return 1; }
-	static int GetRandomSong( T* p, lua_State *L )		{ Song *pS = p->GetRandomSong(); if(pS) pS->PushSelf(L); else lua_pushnil(L); return 1; }
+	static int FindSong( T* p, lua_State *L )		{ Song *pS = p->FindSong(SArg(1)); if(pS != nullptr) pS->PushSelf(L); else lua_pushnil(L); return 1; }
+	static int GetRandomSong( T* p, lua_State *L )		{ Song *pS = p->GetRandomSong(); if(pS != nullptr) pS->PushSelf(L); else lua_pushnil(L); return 1; }
 	static int GetNumSongs( T* p, lua_State *L )		{ lua_pushnumber( L, p->GetNumSongs() ); return 1; }
 	static int GetNumAdditionalSongs( T* p, lua_State *L )  { lua_pushnumber( L, p->GetNumAdditionalSongs() ); return 1; }
 	static int GetNumSongGroups( T* p, lua_State *L )	{ lua_pushnumber( L, p->GetNumSongGroups() ); return 1; }
@@ -1381,7 +1383,7 @@ public:
 		Song *pSong = NULL;
 		if( lua_isnil(L,1) ) { pSong = NULL; }
 		else { Steps *pSteps = Luna<Steps>::check(L,1); pSong = pSteps->m_pSong; }
-		if(pSong) pSong->PushSelf(L);
+		if(pSong != nullptr) pSong->PushSelf(L);
 		else lua_pushnil(L);
 		return 1;
 	}
@@ -1461,7 +1463,7 @@ public:
 	{
 		RString ck = SArg(1);
 		Song* pSong = p->GetSongByChartkey(ck);
-		if (pSong)
+		if (pSong != nullptr)
 			pSong->PushSelf(L);
 		else
 			lua_pushnil(L);
@@ -1471,7 +1473,7 @@ public:
 	{
 		RString ck = SArg(1);
 		Steps* pSteps = p->GetStepsByChartkey(ck);
-		if (pSteps)
+		if (pSteps != nullptr)
 			pSteps->PushSelf(L);
 		else
 			lua_pushnil(L);

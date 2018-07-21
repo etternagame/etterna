@@ -1,9 +1,9 @@
-#include "global.h"
-#include "RageSurfaceUtils.h"
-#include "RageSurface.h"
-#include "RageUtil.h"
-#include "RageLog.h"
+﻿#include "global.h"
 #include "RageFile.h"
+#include "RageLog.h"
+#include "RageSurface.h"
+#include "RageSurfaceUtils.h"
+#include "RageUtil.h"
 #include <thread>
 
 uint32_t RageSurfaceUtils::decodepixel( const uint8_t *p, int bpp )
@@ -495,7 +495,7 @@ static bool blit_same_type( const RageSurface *src_surf, const RageSurface *dst_
 	}
 
 	// The rows don't line up, so memcpy row by row.
-	while( height-- )
+	while( (height--) != 0 )
 	{
 		memcpy( dst, src, width*src_surf->fmt.BytesPerPixel );
 		src += src_surf->pitch;
@@ -582,7 +582,7 @@ static bool blit_rgba_to_rgba( const RageSurface *src_surf, const RageSurface *d
 	std::vector<std::thread> threads;
 	threads.reserve(numThreads);
 
-	for (int curThread = 0; curThread < numThreads; ++curThread)
+	for (unsigned int curThread = 0; curThread < numThreads; ++curThread)
 	{
 		threads.push_back(std::thread([&, curThread] {
 			int startingPoint = segmentSize*curThread;
@@ -651,7 +651,7 @@ static bool blit_generic( const RageSurface *src_surf, const RageSurface *dst_su
 	const int srcskip = src_surf->pitch - width*src_surf->fmt.BytesPerPixel;
 	const int dstskip = dst_surf->pitch - width*dst_surf->fmt.BytesPerPixel;
 
-	while( height-- )
+	while( (height--) != 0 )
 	{
 		int x = 0;
 		while( x++ < width )

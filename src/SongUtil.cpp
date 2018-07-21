@@ -1,22 +1,22 @@
 #include "global.h"
-#include "SongUtil.h"
-#include "Song.h"
-#include "Steps.h"
-#include "GameState.h"
-#include "Style.h"
-#include "ProfileManager.h"
-#include "Profile.h"
-#include "PrefsManager.h"
-#include "SongManager.h"
-#include "XmlFile.h"
-#include "Foreach.h"
-#include "ThemeMetric.h"
-#include "LocalizedString.h"
-#include "RageLog.h"
-#include "GameManager.h"
 #include "CommonMetrics.h"
-#include "LuaBinding.h"
 #include "EnumHelper.h"
+#include "Foreach.h"
+#include "GameManager.h"
+#include "GameState.h"
+#include "LocalizedString.h"
+#include "LuaBinding.h"
+#include "PrefsManager.h"
+#include "Profile.h"
+#include "ProfileManager.h"
+#include "RageLog.h"
+#include "Song.h"
+#include "SongManager.h"
+#include "SongUtil.h"
+#include "Steps.h"
+#include "Style.h"
+#include "ThemeMetric.h"
+#include "XmlFile.h"
 
 ThemeMetric<int> SORT_BPM_DIVISION ( "MusicWheel", "SortBPMDivision" );
 ThemeMetric<bool> SHOW_SECTIONS_IN_BPM_SORT ( "MusicWheel", "ShowSectionsInBPMSort" );
@@ -149,7 +149,7 @@ Steps* SongUtil::GetOneSteps(
 
 Steps* SongUtil::GetStepsByDifficulty( const Song *pSong, StepsType st, Difficulty dc, bool bIncludeAutoGen )
 {
-	const vector<Steps*>& vpSteps = (st == StepsType_Invalid)? pSong->GetAllSteps() : pSong->GetStepsByStepsType(st);
+	const vector<Steps*>& vpSteps = (st >= StepsType_Invalid)? pSong->GetAllSteps() : pSong->GetStepsByStepsType(st);
 	for( unsigned i=0; i<vpSteps.size(); i++ )	// for each of the Song's Steps
 	{
 		Steps* pSteps = vpSteps[i];
@@ -246,7 +246,6 @@ void SongUtil::AdjustDuplicateSteps( Song *pSong )
 			 * bug in an earlier version. */
 			DeleteDuplicateSteps( pSong, vSteps );
 
-			char const *songTitle = pSong->GetDisplayFullTitle().c_str();
 			RString checkpointMessage = pSong->GetDisplayFullTitle() + " had duplicate steps removed.";
 			CHECKPOINT_M(checkpointMessage);
 			StepsUtil::SortNotesArrayByDifficulty( vSteps );
@@ -447,45 +446,35 @@ void AppendOctal( int n, int digits, RString &out )
 	}
 }
 
-static bool CompDescending( const pair<Song *, RString> &a, const pair<Song *, RString> &b )
-{
-	return a.second > b.second;
-}
-static bool CompAscending( const pair<Song *, RString> &a, const pair<Song *, RString> &b )
-{
+static bool CompDescending( const pair<Song *, int> &a, const pair<Song *, int> &b ) {
 	return a.second < b.second;
 }
-
-void SongUtil::SortSongPointerArrayByGrades( vector<Song*> &vpSongsInOut, bool bDescending )
-{
-	/* Optimize by pre-writing a string to compare, since doing
-	 * GetNumNotesWithGrade inside the sort is too slow. */
-	typedef pair< Song *, RString > val;
-	vector<val> vals;
-	vals.reserve( vpSongsInOut.size() );
-
-	for( unsigned i = 0; i < vpSongsInOut.size(); ++i )
-	{
-		Song *pSong = vpSongsInOut[i];
-
-		int iCounts[NUM_Grade];
-		const Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
-		ASSERT( pProfile != NULL );
-		pProfile->GetGrades( pSong, GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())->m_StepsType, iCounts );
-
-		RString foo;
-		foo.reserve(256);
-		for( int g=Grade_Tier01; g<NUM_Grade; ++g )
-			AppendOctal( iCounts[g], 3, foo );
-		vals.push_back( val(pSong, foo) );
-	}
-
-	sort( vals.begin(), vals.end(), bDescending ? CompDescending : CompAscending );
-
-	for( unsigned i = 0; i < vpSongsInOut.size(); ++i )
-		vpSongsInOut[i] = vals[i].first;
+static bool CompAscending( const pair<Song *, int> &a, const pair<Song *, int> &b ) {
+	return a.second > b.second;
 }
 
+void SongUtil::SortSongPointerArrayByGrades(vector<Song*> &vpSongsInOut, bool bDescending)
+{
+	/* Optimize by pre-writing a string to compare, since doing
+	* GetNumNotesWithGrade inside the sort is too slow. */
+	typedef pair< Song *, int > val;
+	vector<val> vals;
+	vals.reserve(vpSongsInOut.size());
+	const Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
+
+	for (unsigned i = 0; i < vpSongsInOut.size(); ++i)
+	{
+		Song *pSong = vpSongsInOut[i];
+		ASSERT(pProfile != NULL);
+		int g = static_cast<int>(pProfile->GetBestGrade(pSong, GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())->m_StepsType));
+		vals.push_back(val(pSong, g));
+	}
+
+	sort(vals.begin(), vals.end(), bDescending ? CompDescending : CompAscending);
+
+	for (unsigned i = 0; i < vpSongsInOut.size(); ++i)
+		vpSongsInOut[i] = vals[i].first;
+}
 
 void SongUtil::SortSongPointerArrayByArtist( vector<Song*> &vpSongsInOut )
 {
@@ -540,7 +529,7 @@ static int CompareSongPointersByGroup(const Song *pSong1, const Song *pSong2)
 }
 std::function<int(const Song *pSong1, const Song *pSong2)> CompareSongPointersByGroupAndMSD(Skillset ss)
 {
-	return [&ss](const Song *pSong1, const Song *pSong2) {
+	return [ss](const Song *pSong1, const Song *pSong2) {
 		int g = CompareSongPointersByGroup(pSong1, pSong2);
 		if (g == 0)
 			/* Same group; compare by MSD. */
@@ -638,9 +627,22 @@ RString SongUtil::GetSectionNameFromSongAndSort( const Song* pSong, SortOrder so
 	case SORT_POPULARITY:
 	case SORT_RECENT:
 		return RString();
+	case SORT_LENGTH:
+		{
+			const int iSortLengthSize = 60;
+			int iMaxLength = static_cast<int>(pSong->m_fMusicLengthSeconds);
+			iMaxLength += (iSortLengthSize - (iMaxLength%iSortLengthSize) - 1);
+			int iMinLength = iMaxLength - (iSortLengthSize - 1);
+			return ssprintf("%s-%s", SecondsToMMSS(static_cast<float>(iMinLength)).c_str(), SecondsToMMSS(static_cast<float>(iMaxLength)).c_str());
+		}
 	case SORT_TOP_GRADES:
 		{
+			auto p = PROFILEMAN->GetProfile(PLAYER_1);
+			auto s = GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber());
+			if(p == nullptr || s == nullptr)
+				return GradeToLocalizedString(Grade_NoData);
 			int iCounts[NUM_Grade];
+			PROFILEMAN->GetProfile(PLAYER_1)->GetGrades(pSong, s->m_StepsType, iCounts);
 			for( int i=Grade_Tier01; i<NUM_Grade; ++i )
 			{
 				Grade g = (Grade)i;

@@ -105,14 +105,25 @@ local function ButtonActive(self)
 end
 
 local t = Def.ActorFrame{
-	OnCommand=function(self)
+	BeginCommand=function(self)
 		whee = SCREENMAN:GetTopScreen():GetMusicWheel()
 		SCREENMAN:GetTopScreen():AddInputCallback(searchInput)
-		self:visible(false)
+		self:finishtweening()
+		if NSMAN:IsETTP() then
+			ms.ok("Song search activated")
+			self:visible(true)
+			active = true
+			whee:Move(0)
+			MESSAGEMAN:Broadcast("BeginningSearch")
+			MESSAGEMAN:Broadcast("RefreshSearchResults")
+		else
+			self:visible(false)
+		end
+		self:queuecommand("Set")
 	end,
 	SetCommand=function(self)
 		self:finishtweening()
-		if getTabIndex() == 1 then
+		if getTabIndex() == (NSMAN:IsETTP() and 0 or 1) then
 			ms.ok("Song search activated")
 			MESSAGEMAN:Broadcast("BeginningSearch")
 			self:visible(true)

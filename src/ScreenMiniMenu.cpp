@@ -1,14 +1,14 @@
 #include "global.h"
-#include "ScreenMiniMenu.h"
-#include "ScreenManager.h"
-#include "GameConstantsAndTypes.h"
-#include "ThemeManager.h"
-#include "Foreach.h"
-#include "ScreenDimensions.h"
-#include "GameState.h"
 #include "FontCharAliases.h"
+#include "Foreach.h"
+#include "GameConstantsAndTypes.h"
+#include "GameState.h"
 #include "OptionRowHandler.h"
 #include "PrefsManager.h"
+#include "ScreenDimensions.h"
+#include "ScreenManager.h"
+#include "ScreenMiniMenu.h"
+#include "ThemeManager.h"
 
 void PrepareToLoadScreen( const RString &sScreenName );
 void FinishedLoadingScreen();
@@ -30,7 +30,7 @@ namespace
 	const MenuDef* g_pMenuDef = NULL;
 	ScreenMessage g_SendOnOK;
 	ScreenMessage g_SendOnCancel;
-};
+} // namespace;
 
 void ScreenMiniMenu::MiniMenu( const MenuDef* pDef, ScreenMessage SM_SendOnOK, ScreenMessage SM_SendOnCancel, float fX, float fY )
 {
@@ -140,7 +140,7 @@ void ScreenMiniMenu::HandleScreenMessage( const ScreenMessage SM )
 		SCREENMAN->PopTopScreen( m_SMSendOnOK );
 		return;
 	}
-	else if( SM == SM_GoToPrevScreen )
+	if( SM == SM_GoToPrevScreen )
 	{
 		s_bCancelled = true;
 		SCREENMAN->PopTopScreen( m_SMSendOnCancel );

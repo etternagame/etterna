@@ -254,6 +254,8 @@ namespace
 			pthread_condattr_destroy( &condattr );
 
 			/* Everything seems to work. */
+			if( pLib != NULL )
+				dlclose( pLib );
 			return;
 		} while(0);
 

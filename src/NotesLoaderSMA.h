@@ -1,9 +1,8 @@
-#ifndef NOTES_LOADER_SMA_H
+﻿#ifndef NOTES_LOADER_SMA_H
 #define NOTES_LOADER_SMA_H
 
-#include "GameConstantsAndTypes.h"
-#include "NotesLoaderSM.h"
 #include "BackgroundUtil.h"
+#include "NotesLoaderSM.h"
 
 class MsdFile;
 class Song;
@@ -19,13 +18,13 @@ struct SMALoader : public SMLoader
 
 	
 	void ProcessBeatsPerMeasure( TimingData &out, const RString &sParam );
-	void ProcessMultipliers( TimingData &out, const int iRowsPerBeat, const RString &sParam );
+	void ProcessMultipliers( TimingData &out, int iRowsPerBeat, const RString &sParam );
 	/**
 	 * @brief Process the Speed Segments from the string.
 	 * @param out the TimingData being modified.
 	 * @param line the string in question.
 	 * @param rowsPerBeat the number of rows per beat for this purpose. */
-	void ProcessSpeeds( TimingData &out, const RString &line, const int rowsPerBeat ) override;
+	void ProcessSpeeds( TimingData &out, const RString &line, int rowsPerBeat ) override;
 };
 
 #endif

@@ -1,21 +1,21 @@
 #include "global.h"
-#include "ScreenSyncOverlay.h"
-#include "ScreenDimensions.h"
-#include "ScreenManager.h"
-#include "GameState.h"
-#include "Song.h"
-#include "PrefsManager.h"
+#include "ActorUtil.h"
+#include "AdjustSync.h"
 #include "GamePreferences.h"
+#include "GameState.h"
 #include "InputEventPlus.h"
 #include "LocalizedString.h"
-#include "AdjustSync.h"
-#include "ActorUtil.h"
+#include "PrefsManager.h"
+#include "ScreenDimensions.h"
+#include "ScreenManager.h"
+#include "ScreenSyncOverlay.h"
+#include "Song.h"
 
 static bool previousGameplayState;
 
 static bool IsGameplay()
 {
-	return SCREENMAN && SCREENMAN->GetTopScreen() && SCREENMAN->GetTopScreen()->GetScreenType() == gameplay;
+	return (SCREENMAN != nullptr) && (SCREENMAN->GetTopScreen() != nullptr) && SCREENMAN->GetTopScreen()->GetScreenType() == gameplay;
 }
 
 REGISTER_SCREEN_CLASS( ScreenSyncOverlay );

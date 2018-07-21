@@ -1,6 +1,6 @@
-#include "global.h"
-#include "RageTypes.h"
+﻿#include "global.h"
 #include "LuaManager.h"
+#include "RageTypes.h"
 
 void RageColor::PushTable( lua_State *L ) const
 {
@@ -26,13 +26,13 @@ void RageColor::FromStack( lua_State *L, int iPos )
 	int iFrom = lua_gettop( L );
 
 	lua_rawgeti( L, iFrom, 1 );
-	r = (float)lua_tonumber( L, -1 );
+	r = static_cast<float>(lua_tonumber( L, -1 ));
 	lua_rawgeti( L, iFrom, 2 );
-	g = (float)lua_tonumber( L, -1 );
+	g = static_cast<float>(lua_tonumber( L, -1 ));
 	lua_rawgeti( L, iFrom, 3 );
-	b = (float)lua_tonumber( L, -1 );
+	b = static_cast<float>(lua_tonumber( L, -1 ));
 	lua_rawgeti( L, iFrom, 4 );
-	a = (float)lua_tonumber( L, -1 );
+	a = static_cast<float>(lua_tonumber( L, -1 ));
 	lua_pop( L, 5 );
 }
 

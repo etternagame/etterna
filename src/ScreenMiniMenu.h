@@ -3,8 +3,8 @@
 #ifndef SCREEN_MINI_MENU_H
 #define SCREEN_MINI_MENU_H
 
-#include "ScreenOptions.h"
 #include "GameConstantsAndTypes.h"
+#include "ScreenOptions.h"
 
 using MenuRowUpdateEnabled = bool (*)();
 
@@ -164,7 +164,7 @@ public:
 
 	void Init() override;
 	void BeginScreen() override;
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 
 protected:
 	void AfterChangeValueOrRow( PlayerNumber pn ) override;

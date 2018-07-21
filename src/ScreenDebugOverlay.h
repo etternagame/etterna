@@ -3,9 +3,9 @@
 #ifndef ScreenDebugOverlay_H
 #define ScreenDebugOverlay_H
 
-#include "Screen.h"
 #include "BitmapText.h"
 #include "Quad.h"
+#include "Screen.h"
 
 void ChangeVolume( float fDelta );
 void ChangeVisualDelay( float fDelta );

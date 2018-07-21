@@ -1,9 +1,8 @@
-#include "global.h"
+﻿#include "global.h"
 #include "ActorFrameTexture.h"
-#include "RageTextureRenderTarget.h"
-#include "RageTextureManager.h"
-#include "RageLog.h"
 #include "ActorUtil.h"
+#include "RageTextureManager.h"
+#include "RageTextureRenderTarget.h"
 
 REGISTER_ACTOR_CLASS_WITH_NAME( ActorFrameTextureAutoDeleteChildren, ActorFrameTexture );
 ActorFrameTexture *ActorFrameTexture::Copy() const { return new ActorFrameTexture(*this); }

@@ -1,31 +1,31 @@
 #include "global.h"
-#include "ThemeManager.h"
+#include "FontCharAliases.h"
+#include "IniFile.h"
+#include "RageFile.h"
 #include "RageFileManager.h"
 #include "RageLog.h"
 #include "RageTimer.h"
-#include "RageUtil.h"
-#include "IniFile.h"
 #include "RageTimer.h"
-#include "FontCharAliases.h"
+#include "RageUtil.h"
+#include "ThemeManager.h"
 #include "arch/ArchHooks/ArchHooks.h"
 #include "arch/Dialog/Dialog.h"
-#include "RageFile.h"
 #if !defined(SMPACKAGE)
-#include "ScreenManager.h"
-#include "ProfileManager.h"
-#include "Profile.h"
 #include "ActorUtil.h"
+#include "Profile.h"
+#include "ProfileManager.h"
+#include "ScreenManager.h"
 #endif
+#include "EnumHelper.h"
 #include "Foreach.h"
 #include "GameLoop.h" // For ChangeTheme
-#include "ThemeMetric.h"
-#include "SubscriptionManager.h"
-#include "LuaManager.h"
-#include "ScreenDimensions.h"
 #include "LocalizedString.h"
-#include "SpecialFiles.h"
-#include "EnumHelper.h"
+#include "LuaManager.h"
 #include "PrefsManager.h"
+#include "ScreenDimensions.h"
+#include "SpecialFiles.h"
+#include "SubscriptionManager.h"
+#include "ThemeMetric.h"
 #include "XmlFileUtil.h"
 #include <deque>
 
@@ -881,7 +881,8 @@ try_element_again:
 RString ThemeManager::GetPath( ElementCategory category, const RString &sMetricsGroup, const RString &sElement, bool bOptional )
 {
 	PathInfo pi;
-	GetPathInfo( pi, category, sMetricsGroup, sElement, bOptional );
+	if(!GetPathInfo( pi, category, sMetricsGroup, sElement, bOptional ))
+		return "";
 	if(!bOptional && pi.sResolvedPath.empty())
 	{
 		LuaHelpers::ReportScriptErrorFmt("Theme element not found and not "
@@ -1361,7 +1362,7 @@ public:
 	static int get_path_name(T* p, lua_State* L) \
 	{ \
 		lua_pushstring(L, p->get_path_name( \
-				SArg(1), SArg(2), lua_toboolean(L, 3))); \
+				SArg(1), SArg(2), lua_toboolean(L, 3) != 0)); \
 		return 1; \
 	}
 	GENERAL_GET_PATH(GetPathF);

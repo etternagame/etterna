@@ -16,6 +16,7 @@ local rankingWidth = frameWidth-capWideScale(15,50)
 local rankingX = capWideScale(30,50)
 local rankingY = capWideScale(40,40)
 local rankingTitleSpacing = (rankingWidth/(#ms.SkillSets))
+local sizeoffet = capWideScale(20,0)
 local buttondiffuse = 0
 local whee
 local listYOffset=100
@@ -130,7 +131,9 @@ local t = Def.ActorFrame{
 	end,
 	SetCommand=function(self)
 		self:finishtweening()
-		if getTabIndex() == 8 then
+		if getTabIndex() == 8 and update then
+			MESSAGEMAN:Broadcast("MouseRightClick")
+		elseif getTabIndex() == 8 then
 			self:queuecommand("On")
 			self:visible(true)
 			update = true
@@ -141,9 +144,6 @@ local t = Def.ActorFrame{
 		MESSAGEMAN:Broadcast("DisplayAll")
 	end,
 	TabChangedMessageCommand=function(self)
-		self:queuecommand("Set")
-	end,
-	PlayerJoinedMessageCommand=function(self)
 		self:queuecommand("Set")
 	end,
 }
@@ -216,10 +216,11 @@ local function PackLabel(i)
 		DisplayAllMessageCommand = function(self) self:queuecommand("PacksPage") end,
 		LoadFont("Common Large") .. {
 			InitCommand=function(self)
-				self:halign(0):zoom(fontScale)
+				self:zoom(fontScale)
 				self:maxwidth(100)
-				self:halign(0.5)
+				self:halign(1)
 				self:y(row2Yoffset)
+				self:x(sizeoffet)
 				self:queuecommand("PacksPageMessage")
 			end,
 			PacksPageMessageCommand=function(self)
@@ -232,8 +233,8 @@ local function PackLabel(i)
 		},
 		LoadFont("Common Large") .. {
 			InitCommand=function(self)
-				self:halign(0):zoom(fontScale):maxwidth(230/fontScale)
-				self:xy(15,row2Yoffset)
+				self:halign(0):zoom(fontScale):maxwidth(capWideScale(210,230)/fontScale)
+				self:xy(sizeoffet+10,row2Yoffset)
 				self:queuecommand("PacksPageMessage")
 			end,
 			PacksPageMessageCommand=function(self)
@@ -253,7 +254,7 @@ local function PackLabel(i)
 			PacksPageMessageCommand=function(self)
 				local rating = packlist[i + ((currentpage - 1) * perpage)] and packlist[i + ((currentpage - 1) * perpage)]:GetAvgDifficulty() or 0
 				self:settextf("%.2f", rating)
-				self:diffuse(ByMSD(rating))
+				self:diffuse(byMSD(rating))
 			end,
 			UpdatePacksMessageCommand=function(self) self:queuecommand("PacksPage") end,
 			DlInputEndedMessageCommand=function(self) self:queuecommand("PacksPage") end,
@@ -279,15 +280,15 @@ end
 
 packs[#packs+1] = LoadFont("Common Large") .. {
 	InitCommand=function(self)
-		self:xy(rankingX + offsetX+290, rankingY + 8+offsetY)
+		self:xy(rankingX + offsetX+320, rankingY + 8+offsetY)
 		self:halign(0):zoom(fontScale)
-		self:settextf("Avg Rating")
+		self:settextf("Avg")
 		self:diffuse(getMainColor("positive"))
 	end
 }
 packs[#packs+1] = LoadFont("Common Large") .. {
 	InitCommand=function(self)
-		self:xy(rankingX + offsetX-10, rankingY + 8+offsetY)
+		self:xy(rankingX + offsetX + sizeoffet - 20, rankingY + 8+offsetY)
 		self:halign(0):zoom(fontScale)
 		self:settextf("Size(MB)")
 		self:diffuse(getMainColor("positive"))
@@ -608,6 +609,12 @@ filters[#filters+1] = Def.ActorFrame{
 			DlInputActiveMessageCommand=function(self)
 				self:queuecommand("Set")
 			end,
+			bundletimeMessageCommand=function(self)
+				self:visible(false)
+			end,
+			MouseRightClickMessageCommand=function(self)
+				self:visible(true)
+			end
 		},
 		LoadFont("Common Large")..{
 			InitCommand=function(self)
@@ -615,7 +622,13 @@ filters[#filters+1] = Def.ActorFrame{
 			end,
 			SetCommand=function(self)
 				self:settext( "Name:")
-			end	
+			end,
+			bundletimeMessageCommand=function(self)
+				self:settext( "Right click to cancel selection")
+			end,
+			MouseRightClickMessageCommand=function(self)
+				self:settext( "Name:")
+			end
 		},
 		LoadFont("Common Large")..{
 			InitCommand=function(self)
@@ -637,6 +650,12 @@ filters[#filters+1] = Def.ActorFrame{
 			DlInputActiveMessageCommand=function(self)
 				self:queuecommand("Set")
 			end,
+			bundletimeMessageCommand=function(self)
+				self:visible(false)
+			end,
+			MouseRightClickMessageCommand=function(self)
+				self:visible(true)
+			end
 		},
 	}
 t[#t+1] = filters
@@ -702,7 +721,182 @@ pageButtons = Def.ActorFrame{
 	}
 }
 
+local minidoots = {"Novice", "Beginner", "Intermediate", "Advanced", "Expert"}
+local diffcolors = {"#66ccff","#099948","#ddaa00","#ff6666","#c97bff"}
+local packspacing = 30
+local bundlegumbley = 155
+local iamspartacus = capWideScale(0,20)
+local noiamspartacus = capWideScale(20,40)
+local selectedbundle = false
 
+local bundlename
+local bundleindex
+
+local function makedoots(i)
+	local packinfo
+	local t = Def.ActorFrame{
+		InitCommand=function(self)
+			self:xy(iamspartacus+165+packspacing*i,bundlegumbley)
+		end,
+		Def.Quad{
+			InitCommand=function(self)
+				self:y(-36):zoomto(24,12):valign(0):diffuse(color(diffcolors[i]))
+			end,
+			MouseLeftClickMessageCommand=function(self)
+				if update and isOver(self) and not selectedbundle then
+					selectedbundle = true
+					bundlename = minidoots[i]
+					bundleindex = i
+					currentpage = 1
+					packlist = DLMAN:GetCoreBundle(bundlename:lower())
+					MESSAGEMAN:Broadcast("bundletime")
+					MESSAGEMAN:Broadcast("UpdatePacks")
+				end
+			end,
+			bundletimeMessageCommand=function(self)
+				self:visible(false)
+			end,
+			MouseRightClickMessageCommand=function(self)
+				if update then
+					self:visible(true)
+				end
+			end
+		}
+	}
+	return t
+end
+
+local function makesuperdoots(i)
+	local packinfo
+	local t = Def.ActorFrame{
+		InitCommand=function(self)
+			self:xy(iamspartacus+165+packspacing*i,bundlegumbley)
+		end,
+		Def.Quad{
+			InitCommand=function(self)
+				self:y(-16):zoomto(24,12):valign(0):diffuse(color(diffcolors[i]))
+			end,
+			MouseLeftClickMessageCommand=function(self)
+				if update and isOver(self) and not selectedbundle then
+					selectedbundle = true
+					bundlename = minidoots[i].."-Expanded"
+					bundleindex = i
+					currentpage = 1
+					packlist = DLMAN:GetCoreBundle(bundlename:lower())
+					MESSAGEMAN:Broadcast("bundletime")
+					MESSAGEMAN:Broadcast("UpdatePacks")
+				end
+			end,
+			bundletimeMessageCommand=function(self)
+				self:visible(false)
+			end,
+			MouseRightClickMessageCommand=function(self)
+				if update then
+					self:visible(true)
+				end
+			end
+		},
+	}
+	return t
+end
+
+for i=1,#minidoots do
+	t[#t+1] = makedoots(i)
+end
+
+for i=1,#minidoots do
+	t[#t+1] = makesuperdoots(i)
+end
+
+t[#t+1] = LoadFont("Common normal") .. {
+	InitCommand=function(self)
+		self:xy(noiamspartacus,bundlegumbley-36):zoom(0.5):halign(0):valign(0)
+	end,
+	SetCommand=function(self)
+		self:settext("Core Bundles (Basic):")
+	end,
+	bundletimeMessageCommand=function(self)
+		self:settext("Selected Bundle: "..bundlename):diffuse(color(diffcolors[bundleindex]))
+	end,
+	MouseRightClickMessageCommand=function(self)
+		if update then
+			self:settext("Core Bundles (Basic):"):diffuse(color("#ffffff"))
+		end
+	end
+}
+
+t[#t+1] = LoadFont("Common normal") .. {
+	InitCommand=function(self)
+		self:xy(noiamspartacus,bundlegumbley - 16):zoom(0.5):halign(0):valign(0)
+	end,
+	SetCommand=function(self)
+		self:settext("Core Bundles (Expanded):")
+	end,
+	bundletimeMessageCommand=function(self)
+		self:settextf("Total Size: %d(MB)", packlist["TotalSize"])
+	end,
+	MouseRightClickMessageCommand=function(self)
+		if update then
+			self:settext("Core Bundles (Expanded):")
+		end
+	end
+}
+
+t[#t+1] = LoadFont("Common normal") .. {
+	InitCommand=function(self)
+		self:xy(250+noiamspartacus,bundlegumbley - 36):zoom(0.5):halign(0):valign(0):visible(false)
+	end,
+	bundletimeMessageCommand=function(self)
+		self:settextf("Avg: %5.2f", packlist["AveragePackDifficulty"])
+		self:diffuse(byMSD(packlist["AveragePackDifficulty"]))
+		self:visible(true)
+	end,
+	MouseRightClickMessageCommand=function(self)
+		if update then
+			self:visible(false)
+		end
+	end
+}
+
+t[#t+1] = LoadFont("Common normal") .. {
+	InitCommand=function(self)
+		self:xy(250+noiamspartacus,bundlegumbley - 16):zoom(0.5):halign(0):valign(0):visible(false)
+	end,
+	bundletimeMessageCommand=function(self)
+		self:settext("Download All")
+		self:visible(true)
+	end,
+	MouseRightClickMessageCommand=function(self)
+		if update then
+			self:visible(false)
+		end
+	end
+}
+
+t[#t+1] = Def.Quad{
+	InitCommand=function(self)
+		self:xy(0,0):zoomto(80,20):valign(0):diffusealpha(0)
+	end,
+	bundletimeMessageCommand=function(self)
+		self:linear(1):xy(290+noiamspartacus,bundlegumbley - 20)
+	end,
+	MouseLeftClickMessageCommand=function(self)
+		if update and selectedbundle and isOver(self) then
+			DLMAN:DownloadCoreBundle(bundlename:lower())
+			MESSAGEMAN:Broadcast("MouseRightClick")
+			packlist = DLMAN:GetPackList()
+			MESSAGEMAN:Broadcast("UpdatePacks")
+		end
+	end,
+	MouseRightClickMessageCommand=function(self)
+		if update and selectedbundle then
+			selectedbundle = false
+			packlist = DLMAN:GetPackList()
+			MESSAGEMAN:Broadcast("UpdatePacks")
+			self:xy(0,0)
+		end
+	end,
+}
 
 t[#t+1] = packs
 t[#t+1] = pageButtons

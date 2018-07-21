@@ -1,21 +1,15 @@
 #include "global.h"
 
 #if !defined(WITHOUT_NETWORKING)
-#include "ScreenNetSelectBase.h"
-#include "ScreenManager.h"
-#include "ThemeManager.h"
-#include "RageTimer.h"
-#include "ActorUtil.h"
 #include "Actor.h"
+#include "ActorUtil.h"
+#include "Font.h"
 #include "GameSoundManager.h"
-#include "MenuTimer.h"
-#include "NetworkSyncManager.h"
-#include "RageUtil.h"
+#include "RageInput.h"
 #include "GameState.h"
 #include "InputEventPlus.h"
-#include "RageInput.h"
-#include "Font.h"
-#include "RageDisplay.h"
+#include "MenuTimer.h"
+#include "NetworkSyncManager.h"
 #include "PlayerState.h"
 #include "arch/ArchHooks/ArchHooks.h"
 
@@ -38,33 +32,33 @@ REGISTER_SCREEN_CLASS(ScreenNetSelectBase);
 void ScreenNetSelectBase::Init()
 {
 	ScreenWithMenuElements::Init();
+	if (!NSMAN->IsETTP()) {
+		// Chat boxes
+		m_sprChatInputBox.Load(THEME->GetPathG(m_sName, "ChatInputBox"));
+		m_sprChatInputBox->SetName("ChatInputBox");
+		LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND(m_sprChatInputBox);
+		this->AddChild(m_sprChatInputBox);
 
-	// Chat boxes
-	m_sprChatInputBox.Load(THEME->GetPathG(m_sName, "ChatInputBox"));
-	m_sprChatInputBox->SetName("ChatInputBox");
-	LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND(m_sprChatInputBox);
-	this->AddChild( m_sprChatInputBox );
+		m_sprChatOutputBox.Load(THEME->GetPathG(m_sName, "ChatOutputBox"));
+		m_sprChatOutputBox->SetName("ChatOutputBox");
+		LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND(m_sprChatOutputBox);
+		this->AddChild(m_sprChatOutputBox);
 
-	m_sprChatOutputBox.Load( THEME->GetPathG(m_sName, "ChatOutputBox"));
-	m_sprChatOutputBox->SetName("ChatOutputBox");
-	LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND(m_sprChatOutputBox);
-	this->AddChild(m_sprChatOutputBox);
+		m_textChatInput.LoadFromFont(THEME->GetPathF(m_sName, "chat"));
+		m_textChatInput.SetName("ChatInput");
+		m_textChatInput.SetWrapWidthPixels(static_cast<int>(CHAT_TEXT_INPUT_WIDTH));
+		LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND(m_textChatInput);
+		this->AddChild(&m_textChatInput);
 
-	m_textChatInput.LoadFromFont(THEME->GetPathF(m_sName,"chat"));
-	m_textChatInput.SetName("ChatInput");
-	m_textChatInput.SetWrapWidthPixels(static_cast<int>(CHAT_TEXT_INPUT_WIDTH) );
-	LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND(m_textChatInput);
-	this->AddChild(&m_textChatInput);
+		m_textChatOutput.LoadFromFont(THEME->GetPathF(m_sName, "chat"));
+		m_textChatOutput.SetName("ChatOutput");
+		m_textChatOutput.SetWrapWidthPixels(static_cast<int>(CHAT_TEXT_OUTPUT_WIDTH));
+		LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND(m_textChatOutput);
+		this->AddChild(&m_textChatOutput);
 
-	m_textChatOutput.LoadFromFont(THEME->GetPathF(m_sName,"chat"));
-	m_textChatOutput.SetName("ChatOutput");
-	m_textChatOutput.SetWrapWidthPixels(static_cast<int>(CHAT_TEXT_OUTPUT_WIDTH));
-	LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND(m_textChatOutput);
-	this->AddChild(&m_textChatOutput);
-
-	m_textChatOutput.SetText(NSMAN->m_sChatText);
-	m_textChatOutput.SetMaxLines(SHOW_CHAT_LINES, 1);
-	
+		m_textChatOutput.SetText(NSMAN->m_sChatText);
+		m_textChatOutput.SetMaxLines(SHOW_CHAT_LINES, 1);
+	}
 	scroll = 0;
 
 	//Display users list
@@ -75,13 +69,13 @@ void ScreenNetSelectBase::Init()
 
 bool ScreenNetSelectBase::Input(const InputEventPlus &input)
 {
-	if(m_In.IsTransitioning() || m_Out.IsTransitioning())
+	if (m_In.IsTransitioning() || m_Out.IsTransitioning())
 		return false;
 
-	if(input.type != IET_FIRST_PRESS && input.type != IET_REPEAT)
+	if (input.type != IET_FIRST_PRESS && input.type != IET_REPEAT)
 		return false;
 
-	bool bHoldingCtrl = 
+	bool bHoldingCtrl =
 		INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_LCTRL)) ||
 		INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RCTRL)) ||
 		(!NSMAN->useSMserver);	// If we are disconnected, assume no chatting.
@@ -89,68 +83,66 @@ bool ScreenNetSelectBase::Input(const InputEventPlus &input)
 	bool holding_shift =
 		INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_LSHIFT)) ||
 		INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RSHIFT));
-	
+
 	//If holding control skip chatbox input
 	//This allows lua input bindings to work on regular keys+control
-	if(bHoldingCtrl) {
-    wchar_t ch = INPUTMAN->DeviceInputToChar(input.DeviceI, false);
+	if (!NSMAN->IsETTP() && bHoldingCtrl) {
+		wchar_t ch = INPUTMAN->DeviceInputToChar(input.DeviceI, false);
 		MakeUpper(&ch, 1);
 		if (ch == 'V')
 		{
 			PasteClipboard();
 		}
 		return ScreenWithMenuElements::Input(input);
-  }
-	
-	switch(input.DeviceI.button)
-	{
-	case KEY_PGUP:
-		if (!holding_shift) 
-			ShowPreviousMsg();
-		else {
-			Scroll(1);
-			Scroll(1);
-		}
-		break;
-	case KEY_PGDN:
-		if (!holding_shift) 
-			ShowNextMsg();
-		else {
-			Scroll(-1);
-			Scroll(-1);
-		}
-		break;
-	case KEY_ENTER:
-	case KEY_KP_ENTER:
-		if (m_sTextInput != "") {
-			NSMAN->SendChat(m_sTextInput);
-			m_sTextLastestInputs.push_back(m_sTextInput);
-			m_sTextLastestInputsIndex = 0;
-			if (m_sTextLastestInputs.size() > 10)
-				m_sTextLastestInputs.erase(m_sTextLastestInputs.begin());
-		}
-		m_sTextInput="";
-		UpdateTextInput();
-		return true;
-	case KEY_BACK:
-		if(!m_sTextInput.empty())
-			m_sTextInput = m_sTextInput.erase(m_sTextInput.size()-1);
-		UpdateTextInput();
-		break;
-	default:
+	}
 
-		wchar_t c;
-		c = INPUTMAN->DeviceInputToChar(input.DeviceI, true);
-
-		if((c >= L' '))
+	if (!NSMAN->IsETTP()) {
+		switch (input.DeviceI.button)
 		{
-			if (!enableChatboxInput)
-				return ScreenWithMenuElements::Input(input);
-			m_sTextInput += WStringToRString(wstring()+c);
+		case KEY_PGUP:
+			if (!holding_shift)
+				ShowPreviousMsg();
+			else {
+				Scroll(1);
+				Scroll(1);
+			}
+			break;
+		case KEY_PGDN:
+			if (!holding_shift)
+				ShowNextMsg();
+			else {
+				Scroll(-1);
+				Scroll(-1);
+			}
+			break;
+		case KEY_ENTER:
+		case KEY_KP_ENTER:
+			if (m_sTextInput != "") {
+				NSMAN->SendChat(m_sTextInput);
+				m_sTextLastestInputs.push_back(m_sTextInput);
+				m_sTextLastestInputsIndex = 0;
+				if (m_sTextLastestInputs.size() > 10)
+					m_sTextLastestInputs.erase(m_sTextLastestInputs.begin());
+			}
+			m_sTextInput = "";
 			UpdateTextInput();
 			return true;
+		case KEY_BACK:
+			if (!m_sTextInput.empty())
+				m_sTextInput = m_sTextInput.erase(m_sTextInput.size() - 1);
+			UpdateTextInput();
+			break;
+		default:
+			wchar_t c;
+			c = INPUTMAN->DeviceInputToChar(input.DeviceI, true);
+			if (c >= L' ' && enableChatboxInput)
+			{
+				m_sTextInput += WStringToRString(wstring() + c);
+				UpdateTextInput();
+				return true;
+			}
+			break;
 		}
-		break;
 	}
 	return ScreenWithMenuElements::Input(input);
 }
@@ -159,7 +151,7 @@ void ScreenNetSelectBase::HandleScreenMessage(const ScreenMessage SM)
 {
 	if(SM == SM_GoToNextScreen)
 		SOUND->StopMusic();
-	else if(SM == SM_AddToChat)
+	else if(SM == SM_AddToChat && !NSMAN->IsETTP())
 	{
 		m_textChatOutput.SetText(NSMAN->m_sChatText);
 		m_textChatOutput.SetMaxLines(SHOW_CHAT_LINES, 1);
@@ -178,11 +170,12 @@ void ScreenNetSelectBase::HandleScreenMessage(const ScreenMessage SM)
 
 void ScreenNetSelectBase::TweenOffScreen()
 {
-	OFF_COMMAND( m_sprChatInputBox );
-	OFF_COMMAND( m_sprChatOutputBox );
-	OFF_COMMAND( m_textChatInput );
-	OFF_COMMAND( m_textChatOutput );
-
+	if (!NSMAN->IsETTP()) {
+		OFF_COMMAND(m_sprChatInputBox);
+		OFF_COMMAND(m_sprChatOutputBox);
+		OFF_COMMAND(m_textChatInput);
+		OFF_COMMAND(m_textChatOutput);
+	}
 	for( unsigned i=0; i<m_textUsers.size(); i++ )
 		OFF_COMMAND( m_textUsers[i] );
 }
@@ -241,9 +234,11 @@ void ScreenNetSelectBase::UpdateUsers()
 	MESSAGEMAN->Broadcast("UsersUpdate");
 }
 
-void ScreenNetSelectBase::Scroll(int movescroll)
+void ScreenNetSelectBase::Scroll(unsigned int movescroll)
 {
-	if (scroll+movescroll >= 0 && scroll+movescroll <= m_textChatOutput.lines - SHOW_CHAT_LINES)
+	if (NSMAN->IsETTP())
+		return;
+	if (scroll+movescroll <= m_textChatOutput.lines - SHOW_CHAT_LINES)
 		scroll += movescroll;
 	m_textChatOutput.ResetText();
 	m_textChatOutput.SetMaxLines(SHOW_CHAT_LINES, 1, scroll);
@@ -336,7 +331,7 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 	{
 		if (lua_isnil(L, 1))
 			return 0;
-		if (IArg(1) <= p->ToUsers()->size() && IArg(1) >= 1)
+		if (static_cast<size_t>(IArg(1)) <= p->ToUsers()->size() && IArg(1) >= 1)
 			lua_pushstring(L, (*(p->ToUsers()))[IArg(1) - 1].GetText());
 		else
 			lua_pushstring(L, "");
@@ -346,7 +341,7 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 	{
 		if (lua_isnil(L, 1))
 			return 0;
-		if (IArg(1) <= p->ToUsers()->size() && IArg(1) >= 1)
+		if (static_cast<size_t>(IArg(1)) <= p->ToUsers()->size() && IArg(1) >= 1)
 			lua_pushnumber(L, NSMAN->m_PlayerStatus[NSMAN->m_ActivePlayer[IArg(1) - 1]]);
 		else
 			lua_pushnumber(L, 0);
@@ -361,7 +356,7 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 	{
 		if (lua_isnil(L, 1))
 			return 0;
-		if (IArg(1) <= NSMAN->fl_PlayerNames.size() && IArg(1) >= 1)
+		if (static_cast<size_t>(IArg(1)) <= NSMAN->fl_PlayerNames.size() && IArg(1) >= 1)
 			lua_pushstring(L, (NSMAN->fl_PlayerNames[IArg(1) - 1]).c_str());
 		else
 			lua_pushstring(L, "");
@@ -371,7 +366,7 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 	{
 		if (lua_isnil(L, 1))
 			return 0;
-		if (IArg(1) <= NSMAN->fl_PlayerStates.size() && IArg(1) >= 1)
+		if (static_cast<size_t>(IArg(1)) <= NSMAN->fl_PlayerStates.size() && IArg(1) >= 1)
 			lua_pushnumber(L, NSMAN->fl_PlayerStates[IArg(1) - 1]);
 		else
 			lua_pushnumber(L, 0);

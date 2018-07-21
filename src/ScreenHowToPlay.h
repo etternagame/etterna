@@ -1,8 +1,8 @@
 #ifndef SCREEN_HOW_TO_PLAY_H
 #define SCREEN_HOW_TO_PLAY_H
 
-#include "ScreenAttract.h"
 #include "Player.h"
+#include "ScreenAttract.h"
 #include "Song.h"
 
 class LifeMeterBar;
@@ -16,7 +16,7 @@ public:
 	~ScreenHowToPlay() override;
 
 	void Update( float fDelta ) override;
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 
 	// Lua
 	void PushSelf( lua_State *L ) override;

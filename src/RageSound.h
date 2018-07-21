@@ -3,9 +3,9 @@
 #ifndef RAGE_SOUND_H
 #define RAGE_SOUND_H
 
+#include "RageSoundPosMap.h"
 #include "RageThreads.h"
 #include "RageTimer.h"
-#include "RageSoundPosMap.h"
 
 class RageSoundReader;
 struct lua_State;

@@ -2,10 +2,10 @@
 #define WHEEL_ITEM_BASE_H
 
 #include "ActorFrame.h"
-#include "BitmapText.h"
-#include "ThemeMetric.h"
-#include "GameConstantsAndTypes.h"
 #include "AutoActor.h"
+#include "BitmapText.h"
+#include "GameConstantsAndTypes.h"
+#include "ThemeMetric.h"
 
 struct WheelItemBaseData;
 /** @brief The different types of Wheel Items. */

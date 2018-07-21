@@ -20,7 +20,7 @@ public:
 	bool operator<( const DisplayResolution &other ) const
 	{
 /** @brief A quick way to compare the two DisplayResolutions. */
-#define COMPARE(x) if( x != other.x ) return x < other.x;
+#define COMPARE(x) if( (x) != other.x ) return (x) < other.x;
 		COMPARE( iWidth );
 		COMPARE( iHeight );
 		COMPARE( bStretched );

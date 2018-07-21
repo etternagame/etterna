@@ -35,6 +35,13 @@ else()
   set(BSD FALSE)
 endif()
 
+macro(set_WIN10_FLAG)
+    if (WIN32 AND (CMAKE_SYSTEM_VERSION GREATER 10.0 OR CMAKE_SYSTEM_VERSION  EQUAL 10.0))
+        add_definitions(-DWIN10)
+    endif()
+endmacro()
+set_WIN10_FLAG()
+
 # Allow for finding our libraries in a standard location.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}" "${SM_CMAKE_DIR}/Modules/")
 
@@ -318,11 +325,9 @@ elseif(MACOSX)
 
   set(SYSTEM_PCRE_FOUND FALSE)
   set(WITH_CRASH_HANDLER TRUE)
-  # Apple Archs needs to be 32-bit for now.
-  # When SDL2 is introduced, this may change.
-  set(CMAKE_OSX_ARCHITECTURES "i386")
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.6")
-  set(CMAKE_OSX_DEPLOYMENT_TARGET_FULL "10.6.8")
+
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
+  set(CMAKE_OSX_DEPLOYMENT_TARGET_FULL "10.9.0")
 
   find_library(MAC_FRAME_ACCELERATE Accelerate ${CMAKE_SYSTEM_FRAMEWORK_PATH})
   find_library(MAC_FRAME_APPKIT AppKit ${CMAKE_SYSTEM_FRAMEWORK_PATH})

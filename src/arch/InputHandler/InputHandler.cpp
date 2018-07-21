@@ -38,6 +38,47 @@ void InputHandler::ButtonPressed( DeviceInput di )
 	}
 }
 
+
+wchar_t InputHandler::ApplyKeyModifiers(wchar_t c)
+{
+    bool bHoldingShift = INPUTFILTER->IsShiftPressed();
+    
+    bool bHoldingCtrl = INPUTFILTER->IsControlPressed();
+    
+    // todo: handle Caps Lock -freem
+    if( bHoldingShift && !bHoldingCtrl )
+    {
+        MakeUpper( &c, 1 );
+        
+        switch( c )
+        {
+            case L'`':    c = L'~';    break;
+            case L'1':    c = L'!';    break;
+            case L'2':    c = L'@';    break;
+            case L'§':    c = L'±';    break;
+            case L'3':    c = L'#';    break;
+            case L'4':    c = L'$';    break;
+            case L'5':    c = L'%';    break;
+            case L'6':    c = L'^';    break;
+            case L'7':    c = L'&';    break;
+            case L'8':    c = L'*';    break;
+            case L'9':    c = L'(';    break;
+            case L'0':    c = L')';    break;
+            case L'-':    c = L'_';    break;
+            case L'=':    c = L'+';    break;
+            case L'[':    c = L'{';    break;
+            case L']':    c = L'}';    break;
+            case L'\'':    c = L'"';    break;
+            case L'\\':    c = L'|';    break;
+            case L';':    c = L':';    break;
+            case L',':    c = L'<';    break;
+            case L'.':    c = L'>';    break;
+            case L'/':    c = L'?';    break;
+        }
+    }
+    
+    return c;
+}
 wchar_t InputHandler::DeviceButtonToChar( DeviceButton button, bool bUseCurrentKeyModifiers )
 {
 	wchar_t c = L'\0';
@@ -61,46 +102,7 @@ wchar_t InputHandler::DeviceButtonToChar( DeviceButton button, bool bUseCurrentK
 	// don't implement DeviceButtonToChar.
 	if( bUseCurrentKeyModifiers )
 	{
-		bool bHoldingShift = 
-			INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_LSHIFT)) ||
-			INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RSHIFT));
-
-		bool bHoldingCtrl = 
-			INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_LCTRL)) ||
-			INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RCTRL));
-
-		// todo: handle Caps Lock -freem
-
-		if( bHoldingShift && !bHoldingCtrl )
-		{
-			MakeUpper( &c, 1 );
-
-			switch( c )
-			{
-			case L'`':	c = L'~';	break;
-			case L'1':	c = L'!';	break;
-			case L'2':	c = L'@';	break;
-			case L'3':	c = L'#';	break;
-			case L'4':	c = L'$';	break;
-			case L'5':	c = L'%';	break;
-			case L'6':	c = L'^';	break;
-			case L'7':	c = L'&';	break;
-			case L'8':	c = L'*';	break;
-			case L'9':	c = L'(';	break;
-			case L'0':	c = L')';	break;
-			case L'-':	c = L'_';	break;
-			case L'=':	c = L'+';	break;
-			case L'[':	c = L'{';	break;
-			case L']':	c = L'}';	break;
-			case L'\'':	c = L'"';	break;
-			case L'\\':	c = L'|';	break;
-			case L';':	c = L':';	break;
-			case L',':	c = L'<';	break;
-			case L'.':	c = L'>';	break;
-			case L'/':	c = L'?';	break;
-			}
-		}
-
+        c = ApplyKeyModifiers(c);
 	}
 	
 	return c;

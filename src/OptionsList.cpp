@@ -1,16 +1,12 @@
-#include "global.h"
-#include "OptionsList.h"
+﻿#include "global.h"
 #include "GameState.h"
-#include "RageLog.h"
-#include "SongUtil.h"
-#include "StepsUtil.h"
-#include "Style.h"
 #include "InputEventPlus.h"
-#include "CodeDetector.h"
 #include "InputMapper.h"
+#include "OptionsList.h"
 #include "PlayerState.h"
+#include "SongUtil.h"
 
-#define LINE(sLineName)				THEME->GetMetric (m_sName,ssprintf("Line%s",sLineName.c_str()))
+#define LINE(sLineName)				THEME->GetMetric (m_sName,ssprintf("Line%s",(sLineName).c_str()))
 #define MAX_ITEMS_BEFORE_SPLIT			THEME->GetMetricI(m_sName,"MaxItemsBeforeSplit")
 #define ITEMS_SPLIT_WIDTH			THEME->GetMetricF(m_sName,"ItemsSplitWidth")
 #define DIRECT_LINES				THEME->GetMetric (m_sName,"DirectLines")
@@ -435,7 +431,7 @@ bool OptionsList::Input( const InputEventPlus &input )
 		MESSAGEMAN->Broadcast( lMsg );
 		return true;
 	}
-	else if( input.MenuI == GAME_BUTTON_RIGHT )
+	if( input.MenuI == GAME_BUTTON_RIGHT )
 	{
 		if( input.type == IET_RELEASE )
 			return false;
@@ -457,7 +453,7 @@ bool OptionsList::Input( const InputEventPlus &input )
 		MESSAGEMAN->Broadcast( lMsg );
 		return true;
 	}
-	else if( input.MenuI == GAME_BUTTON_START )
+	if( input.MenuI == GAME_BUTTON_START )
 	{
 		if( input.type == IET_FIRST_PRESS )
 		{
@@ -490,7 +486,7 @@ bool OptionsList::Input( const InputEventPlus &input )
 
 void OptionsList::SwitchToCurrentRow()
 {
-	m_iCurrentRow = !m_iCurrentRow;
+	m_iCurrentRow = static_cast<int>(m_iCurrentRow) == 0;
 
 	/* Set up the new row. */
 	m_Row[m_iCurrentRow].SetFromHandler( GetCurrentHandler() );

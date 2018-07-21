@@ -1,9 +1,9 @@
 #ifndef SCORE_DISPLAY_PERCENTAGE_H
 #define SCORE_DISPLAY_PERCENTAGE_H
 
-#include "ScoreDisplay.h"
-#include "PercentageDisplay.h"
 #include "AutoActor.h"
+#include "PercentageDisplay.h"
+#include "ScoreDisplay.h"
 
 /** @brief ScoreDisplay implementation for a percentage display. */
 class ScoreDisplayPercentage: public ScoreDisplay

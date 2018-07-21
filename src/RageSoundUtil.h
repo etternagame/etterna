@@ -1,5 +1,6 @@
-#ifndef RAGE_SOUND_UTIL_H
+﻿#ifndef RAGE_SOUND_UTIL_H
 #define RAGE_SOUND_UTIL_H
+
 /** @brief Simple utilities that operate on sound buffers. */
 namespace RageSoundUtil
 {

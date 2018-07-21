@@ -1,7 +1,7 @@
 #ifndef FilterManager_H
 #define FilterManager_H
-#include "PlayerNumber.h"
 #include "GameConstantsAndTypes.h"
+#include "PlayerNumber.h"
 
 class PlayerState;
 class FilterManager {
@@ -20,6 +20,7 @@ public:
 	void ResetSSFilters(); // reset button for filters
 	bool HighestSkillsetsOnly = false;
 	bool AnyActiveFilter();
+	bool currentrateonlyforonlineleaderboardrankings = false;
 
 	//Lua
 	void PushSelf(lua_State *L);

@@ -1,4 +1,4 @@
-/** @brief ProductInfo - Branding strings. Don't forget to also change ProductInfo.inc! */
+﻿/** @brief ProductInfo - Branding strings. Don't forget to also change ProductInfo.inc! */
 
 #ifndef PRODUCT_INFO_H
 #define PRODUCT_INFO_H

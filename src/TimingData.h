@@ -2,8 +2,8 @@
 #define TIMING_DATA_H
 
 #include "NoteTypes.h"
-#include "TimingSegments.h"
 #include "PrefsManager.h"
+#include "TimingSegments.h"
 #include <cfloat> // max float
 struct lua_State;
 

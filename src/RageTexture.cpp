@@ -1,10 +1,7 @@
-#include "global.h"
+﻿#include "global.h"
 
 #include "RageTexture.h"
 #include "RageUtil.h"
-#include "RageTextureManager.h"
-#include <cstring>
-
 
 RageTexture::RageTexture( const RageTextureID &name ):
 	m_iRefCount(1), m_bWasUsed(false), m_ID(name),
@@ -14,8 +11,7 @@ RageTexture::RageTexture( const RageTextureID &name ):
 	m_iFramesWide(1), m_iFramesHigh(1) {}
 
 
-RageTexture::~RageTexture()
-= default;
+RageTexture::~RageTexture() = default;
 
 
 void RageTexture::CreateFrameRects()

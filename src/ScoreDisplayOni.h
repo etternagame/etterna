@@ -1,8 +1,8 @@
 #ifndef SCORE_DISPLAY_ONI_H
 #define SCORE_DISPLAY_ONI_H
 
-#include "ScoreDisplay.h"
 #include "BitmapText.h"
+#include "ScoreDisplay.h"
 #include "Sprite.h"
 
 /** @brief Shows time into course. */

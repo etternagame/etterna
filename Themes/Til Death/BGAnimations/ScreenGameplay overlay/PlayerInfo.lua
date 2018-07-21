@@ -33,7 +33,7 @@ local t = Def.ActorFrame{
 		SetCommand=function(self)
 			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(),1)
 			self:settextf("%05.2f",meter)
-			self:diffuse(ByMSD(meter))
+			self:diffuse(byMSD(meter))
 		end,
 		DoneLoadingNextSongMessageCommand=function(self)
 			self:queuecommand("Set")

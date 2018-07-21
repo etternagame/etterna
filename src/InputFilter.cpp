@@ -1,16 +1,14 @@
-#include "global.h"
-#include "LocalizedString.h"
-#include "InputFilter.h"
-#include "RageLog.h"
-#include "RageInput.h"
-#include "RageUtil.h"
-#include "RageThreads.h"
-#include "Preference.h"
+﻿#include "global.h"
 #include "Foreach.h"
 #include "GameInput.h"
+#include "InputFilter.h"
 #include "InputMapper.h"
-// for mouse stuff: -aj
-#include "PrefsManager.h"
+#include "LocalizedString.h"
+#include "Preference.h"
+#include "RageInput.h"
+#include "RageLog.h"
+#include "RageThreads.h"
+#include "RageUtil.h"
 #include "ScreenDimensions.h"
 #include "arch/ArchHooks/ArchHooks.h"
 #include <set>
@@ -94,7 +92,7 @@ namespace
 
 	DeviceInputList g_CurrentState;
 	set<DeviceInput> g_DisableRepeat;
-}
+} // namespace
 
 /* Some input devices require debouncing. Do this on both press and release.
  * After reporting a change in state, don't report another for the debounce
@@ -466,12 +464,28 @@ void InputFilter::GetPressedButtons( vector<DeviceInput> &array ) const
 void InputFilter::UpdateCursorLocation(float _fX, float _fY)
 {
 	m_MouseCoords.fX = _fX;
+    
 	m_MouseCoords.fY = _fY;
 }
 
 void InputFilter::UpdateMouseWheel(float _fZ)
 {
 	m_MouseCoords.fZ = _fZ;
+}
+
+bool InputFilter::IsKBKeyPressed(DeviceButton k) const
+{
+	return INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, k));
+}
+
+bool InputFilter::IsControlPressed() const
+{
+	return IsKBKeyPressed(KEY_LCTRL) || IsKBKeyPressed(KEY_RCTRL);
+}
+
+bool InputFilter::IsShiftPressed() const
+{
+	return IsKBKeyPressed(KEY_LSHIFT) || IsKBKeyPressed(KEY_RSHIFT);
 }
 
 // lua start
@@ -507,12 +521,16 @@ public:
 		lua_pushboolean(L, INPUTFILTER->IsBeingPressed(DeviceInput(device, button)));
 		return 1;
 	}
+	DEFINE_METHOD(IsShiftPressed, IsShiftPressed());
+	DEFINE_METHOD(IsControlPressed, IsControlPressed());
 	LunaInputFilter()
 	{
 		ADD_METHOD(GetMouseX);
 		ADD_METHOD(GetMouseY);
 		ADD_METHOD(GetMouseWheel);
 		ADD_METHOD(IsBeingPressed);
+		ADD_METHOD(IsShiftPressed);
+		ADD_METHOD(IsControlPressed);
 	}
 };
 
