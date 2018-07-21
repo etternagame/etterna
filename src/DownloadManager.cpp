@@ -35,6 +35,7 @@ static Preference<RString> serverURL("UploadServerAPIURL", "https://api.etternao
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 static Preference<unsigned int> downloadPacksToAdditionalSongs("downloadPacksToAdditionalSongs", 0);
 static const string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
+static const string CLIENT_DATA_KEY = "FC767D3D08D04DA04E2649B8A487DDFE2280B9B9F78DAF7984DE76744B3D84A8";
 static const string DL_DIR = SpecialFiles::CACHE_DIR + "Downloads/";
 
 size_t write_memory_buffer(void *contents, size_t size, size_t nmemb, void *userp)
@@ -1220,6 +1221,7 @@ void DownloadManager::StartSession(string user, string pass, function<void(bool 
 	curl_httppost *lastPtr = nullptr;
 	CURLFormPostField(curlHandle, form, lastPtr, "username", user.c_str());
 	CURLFormPostField(curlHandle, form, lastPtr, "password", pass.c_str());
+	CURLFormPostField(curlHandle, form, lastPtr, "clientData", CLIENT_DATA_KEY.c_str());
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
 
 	auto done = [user, pass, callback](HTTPRequest& req, CURLMsg *) {
