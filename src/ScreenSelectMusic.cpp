@@ -244,17 +244,18 @@ void ScreenSelectMusic::BeginScreen()
 
 	if (GAMESTATE->GetCurrentStyle(PLAYER_INVALID) == NULL)
 	{
-		LuaHelpers::ReportScriptError("The Style has not been set.  A theme must set the Style before loading ScreenSelectMusic.");
+		LOG->Trace("The Style has not been set.  A theme must set the Style before loading ScreenSelectMusic.");
 		// Instead of crashing, set the first compatible style.
 		vector<StepsType> vst;
 		GAMEMAN->GetStepsTypesForGame(GAMESTATE->m_pCurGame, vst);
 		const Style *pStyle = GAMEMAN->GetFirstCompatibleStyle(GAMESTATE->m_pCurGame, GAMESTATE->GetNumSidesJoined(), vst[0]);
 		if (pStyle == NULL)
 		{
-			FAIL_M(ssprintf("No compatible styles for %s with %d player%s.",
+			LOG->Warn(ssprintf("No compatible styles for %s with %d player%s.",
 				GAMESTATE->m_pCurGame->m_szName,
 				GAMESTATE->GetNumSidesJoined(),
-				GAMESTATE->GetNumSidesJoined() == 1 ? "" : "s"));
+				GAMESTATE->GetNumSidesJoined() == 1 ? "" : "s") + "Returning to title menu.");
+			SCREENMAN->SetNewScreen("ScreenTitleMenu");
 		}
 		GAMESTATE->SetCurrentStyle(pStyle, PLAYER_INVALID);
 	}
