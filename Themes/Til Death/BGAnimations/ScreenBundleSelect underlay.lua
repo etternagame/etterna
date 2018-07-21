@@ -51,7 +51,7 @@ end
 
 local width = SCREEN_WIDTH/3
 local tzoom = 0.5
-local packh = 42
+local packh = 36
 local packgap = 4
 local packspacing = packh + packgap
 local offx = 10
@@ -62,7 +62,7 @@ local ind = 0
 local o = Def.ActorFrame{
 	InitCommand=function(self)
 		self:xy(offx + width/2, 0):halign(0.5):valign(0)
-		self:GetChild("PacklistDisplay"):xy(offx + width/2, offy * 2 + 20)
+		self:GetChild("PacklistDisplay"):xy(offx + width/2, offy * 2 + 14)
 		packlist = DLMAN:GetThePackList()
 		self:SetUpdateFunction(highlight)
 	end,
@@ -85,15 +85,19 @@ local o = Def.ActorFrame{
 			self:xy(width/2 + offx,20):zoom(tzoom):halign(0)
 		end,
 		OnCommand=function(self)
-			self:settext("Core bundles are diverse selections of packs that span a skill range.\nExpanded sets contain more files and are larger downloads.")
+			self:settext("Core bundles are diverse selections of packs that span a skill range.\nExpanded sets contain more files and are larger downloads.\nPacks you already have will be skipped")
 		end
 	},
-	LoadFont("Common normal") .. {  --selected bundle
+	LoadFont("Common Large") .. {  --selected bundle
 		InitCommand=function(self)
-			self:xy(width/2 + offx,offy * 2 - 20):zoom(tzoom+0.2):halign(0)
+			self:xy(width/2 + offx,offy * 2 - 20):zoom(0.4):halign(0):settext("Selected Bundle: Browsing")
 		end,
 		PackTableRefreshCommand=function(self)
-			self:settextf("Selected Bundle: %s", minidoots[ind]:gsub("-Expanded", " (expanded)")):diffuse(color(diffcolors[math.ceil(ind/2)]))
+			if ind ~= 0 then
+				self:settextf("Selected Bundle: %s", minidoots[ind]:gsub("-Expanded", " (expanded)")):diffuse(color(diffcolors[math.ceil(ind/2)]))
+			else
+				self:settext("Selected Bundle: Browsing"):diffuse(color("#ffffff"))
+			end
 		end
 	},
 	LoadFont("Common normal") .. {  --avg diff
@@ -101,7 +105,8 @@ local o = Def.ActorFrame{
 			self:xy(width/2 + offx,offy * 2):zoom(tzoom+0.1):halign(0):maxwidth(width/2/tzoom)
 		end,
 		PackTableRefreshCommand=function(self)
-			self:settextf("Total Average Difficulty: %0.2f", packlist:GetAvgDiff()):diffuse(byMSD(packlist:GetAvgDiff()))
+			if ind == 0 then self:visible(false) else self:visible(true) end
+			self:settextf("Average Difficulty: %0.2f", packlist:GetAvgDiff()):diffuse(byMSD(packlist:GetAvgDiff()))
 		end
 	},
 	LoadFont("Common normal") .. {  --total size
@@ -109,14 +114,16 @@ local o = Def.ActorFrame{
 			self:xy(width*2 + width/2 - 150,offy * 2):zoom(tzoom+0.1):halign(1):maxwidth(width/2/tzoom)
 		end,
 		PackTableRefreshCommand=function(self)
+			if ind == 0 then self:visible(false) else self:visible(true) end
 			self:settextf("Total Size: %i(MB)", packlist:GetTotalSize()):diffuse(byFileSize(packlist:GetTotalSize()))
 		end
 	},
-	LoadFont("Common normal") .. {  --total size
+	LoadFont("Common normal") .. {  --download all
 		InitCommand=function(self)
 			self:xy(width*2 + width/2 - 40,offy * 2):zoom(tzoom+0.1):halign(1):maxwidth(width/2/tzoom)
 		end,
 		PackTableRefreshCommand=function(self)
+			if ind == 0 then self:visible(false) else self:visible(true) end
 			self:settext("Download All")
 		end,
 		MouseLeftClickMessageCommand=function(self)
@@ -126,6 +133,32 @@ local o = Def.ActorFrame{
 		end,
 		HighlightCommand=function(self)
 			highlightIfOver(self)
+		end,
+	},
+	
+	--reset button
+	Def.Quad{
+		InitCommand=function(self)
+			self:y(offy):zoomto(width,packh-2):valign(0):diffuse(color("#ffffff")):diffusealpha(0.4)
+		end,
+		MouseLeftClickMessageCommand=function(self)
+			if isOver(self) then
+				packlist = DLMAN:GetThePackList()
+				self:GetParent():queuecommand("PackTableRefresh")
+				ind = 0
+			end
+		end,
+		HighlightCommand=function(self)
+			if isOver(self) then
+				self:diffusealpha(0.8)
+			else
+				self:diffusealpha(0.4)
+			end
+		end,
+	},
+	LoadFont("Common normal") .. {
+		InitCommand=function(self)
+			self:y(offy+16):zoom(tzoom+0.1):halign(0.5):maxwidth(width/2/tzoom):settext("Browse All Packs")
 		end,
 	}
 }
@@ -138,7 +171,7 @@ local function makedoots(i)
 	local packinfo
 	local t = Def.ActorFrame{
 		InitCommand=function(self)
-			self:y(packspacing*i + offy)
+			self:y(packspacing*i + offy + 10)
 			self:SetUpdateFunction(UpdateHighlight)
 		end,
 		

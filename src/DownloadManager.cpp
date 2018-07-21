@@ -1434,6 +1434,7 @@ public:
 	}
 	static int GetThePackList(T* p, lua_State* L)
 	{
+		DLMAN->pl.packs.clear();
 		for (auto n : DLMAN->downloadablePacks)
 			DLMAN->pl.packs.emplace_back(n);
 
@@ -1644,7 +1645,7 @@ public:
 	}
 	static int GetCoreBundle(T* p, lua_State* L)
 	{
-		// this should probably return nil but only if we make it its own lua thing first -mina
+		// don't remove this yet or at all idk yet -mina
 		auto bundle = DLMAN->GetCoreBundle(SArg(1));
 		lua_createtable(L, bundle.size(), 0);
 		for (size_t i = 0; i < bundle.size(); ++i) {
