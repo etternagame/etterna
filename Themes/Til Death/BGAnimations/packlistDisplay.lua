@@ -61,15 +61,7 @@ local o = Def.ActorFrame{
 		ind = ind - numpacks
 		self:queuecommand("Update")
 	end,
-	NextPackCommand=function(self)
-		ind = ind + numpacks
-		self:queuecommand("Update")
-	end,
-	PrevPackCommand=function(self)
-		ind = ind - numpacks
-		self:queuecommand("Update")
-	end,
-	
+
 	Def.Quad{InitCommand=function(self) self:zoomto(width,height-headeroff):halign(0):valign(0):diffuse(color("#ffffff")):diffusealpha(0.4) end},
 	
 	-- headers
@@ -83,6 +75,7 @@ local o = Def.ActorFrame{
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
 				packlist:SortByName()
+				ind = 0
 				self:GetParent():queuecommand("PackTableRefresh")
 			end
 		end,
@@ -97,6 +90,7 @@ local o = Def.ActorFrame{
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
 				packlist:SortByDiff()
+				ind = 0
 				self:GetParent():queuecommand("PackTableRefresh")
 			end
 		end,
@@ -111,6 +105,7 @@ local o = Def.ActorFrame{
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
 				packlist:SortBySize()
+				ind = 0
 				self:GetParent():queuecommand("PackTableRefresh")
 			end
 		end,
@@ -149,7 +144,16 @@ local function makePackDisplay(i)
 			end,
 			DisplayCommand=function(self)
 				self:settext(packinfo:GetName()):diffuse(bySkillRange(packinfo:GetAvgDifficulty()))
-			end
+			end,
+			HighlightCommand=function(self)
+				highlightIfOver(self)
+			end,
+			MouseLeftClickMessageCommand=function(self)
+				if isOver(self) then
+					local urlstringyo = "https://etternaonline.com/pack/"..packinfo:GetID()	-- not correct value for site id
+					GAMESTATE:ApplyGameCommand("urlnoexit,"..urlstringyo)
+				end
+			end,
 		},
 		LoadFont("Common normal") .. {	--avg diff
 			InitCommand=function(self)

@@ -82,7 +82,7 @@ local o = Def.ActorFrame{
 	},
 	LoadFont("Common normal") .. {
 		InitCommand=function(self)
-			self:xy(width/2 + offx,20):zoom(tzoom):halign(0)
+			self:xy(width/2 + offx,24):zoom(tzoom):halign(0)
 		end,
 		OnCommand=function(self)
 			self:settext("Core bundles are diverse selections of packs that span a skill range.\nExpanded sets contain more files and are larger downloads.\nPacks you already have will be skipped")

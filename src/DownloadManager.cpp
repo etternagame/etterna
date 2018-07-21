@@ -1437,7 +1437,7 @@ public:
 		DLMAN->pl.packs.clear();
 		for (auto n : DLMAN->downloadablePacks)
 			DLMAN->pl.packs.emplace_back(n);
-
+		DLMAN->pl.packs.clear();
 		DLMAN->pl.PushSelf(L);
 		return 1;
 	}
@@ -1856,6 +1856,10 @@ public:
 			lua_pushnil(L);
 		return 1;
 	}
+	static int GetID(T* p, lua_State* L) {
+		lua_pushnumber(L, p->id);
+		return 1;
+	}
 	LunaDownloadablePack()
 	{
 		ADD_METHOD(DownloadAndInstall);
@@ -1865,6 +1869,7 @@ public:
 		ADD_METHOD(GetName);
 		ADD_METHOD(GetSize);
 		ADD_METHOD(GetDownload);
+		ADD_METHOD(GetID);
 	}
 };
 
