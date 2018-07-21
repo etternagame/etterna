@@ -75,6 +75,17 @@ public:
 	void PushSelf(lua_State *L);
 };
 
+class Packlist {
+public:
+	int sortmode = 1;	// 1=name 2=diff 3=size, init to name because that's the default- mina
+	int asc = true;		// default sort
+
+
+	vector<DownloadablePack> packs;	// should be a vector of pointers that we can shuffle like scoreman does but im bad and dont remember how to do that
+	// Lua
+	void PushSelf(lua_State *L);
+};
+
 class HTTPRequest {
 public:
 	HTTPRequest(CURL * h, function<void(HTTPRequest&, CURLMsg *)> done = [](HTTPRequest& req, CURLMsg *) {return; },
@@ -212,6 +223,7 @@ public:
 	float timeSinceLastDownload = 0.f;
 	void DownloadCoreBundle(string whichoneyo);
 	vector<DownloadablePack*> GetCoreBundle(string whichoneyo);
+	Packlist pl;
 
 	// Lua
 	void PushSelf(lua_State *L);

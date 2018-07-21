@@ -1430,7 +1430,14 @@ public:
 			packs[i].PushSelf(L);
 			lua_rawseti(L, -2, i + 1);
 		}
+		return 1;
+	}
+	static int GetThePackList(T* p, lua_State* L)
+	{
+		for (auto n : DLMAN->downloadablePacks)
+			DLMAN->pl.packs.emplace_back(n);
 
+		DLMAN->pl.PushSelf(L);
 		return 1;
 	}
 	static int GetDownloadingPacks(T* p, lua_State* L)
@@ -1670,55 +1677,6 @@ public:
 		DLMAN->DownloadCoreBundle(SArg(1));
 		return 1;
 	}
-
-	//packlist should prolly be a class and stuff like this member functions? -mina
-	static int SortByName(T* p, lua_State* L) {
-		vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
-		auto diffcomp = [](DownloadablePack a, DownloadablePack b) { return Rage::make_lower(a.name) < Rage::make_lower(b.name); };
-		sort(packs.begin(), packs.end(), diffcomp);
-
-		lua_createtable(L, packs.size(), 0);
-		for (unsigned i = 0; i < packs.size(); ++i) {
-			packs[i].PushSelf(L);
-			lua_rawseti(L, -2, i + 1);
-		}
-		return 1;
-	}
-	static int SortByDiff(T* p, lua_State* L) {
-		vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
-		string hurr = packs[0].name;
-		
-		auto diffcompasc = [](DownloadablePack a, DownloadablePack b) { return (a.avgDifficulty > b.avgDifficulty); };
-		auto diffcompdesc = [](DownloadablePack a, DownloadablePack b) { return (a.avgDifficulty < b.avgDifficulty); };
-
-		sort(packs.begin(), packs.end(), diffcompasc);
-
-		if(hurr != packs[0].name)
-			sort(packs.begin(), packs.end(), diffcompasc);
-		else {
-			sort(packs.begin(), packs.end(), diffcompdesc);
-		}		
-
-		lua_createtable(L, packs.size(), 0);
-		for (unsigned i = 0; i < packs.size(); ++i) {
-			packs[i].PushSelf(L);
-			lua_rawseti(L, -2, i + 1);
-		}
-		return 1;
-	}
-	static int SortBySize(T* p, lua_State* L) {
-		vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
-		auto diffcomp = [](DownloadablePack a, DownloadablePack b) { return (a.size > b.size); };
-		sort(packs.begin(), packs.end(), diffcomp);
-
-		lua_createtable(L, packs.size(), 0);
-		for (unsigned i = 0; i < packs.size(); ++i) {
-			packs[i].PushSelf(L);
-			lua_rawseti(L, -2, i + 1);
-		}
-		return 1;
-	}
-
 	LunaDownloadManager()
 	{
 		ADD_METHOD(DownloadCoreBundle);
@@ -1738,12 +1696,115 @@ public:
 		ADD_METHOD(GetLastVersion);
 		ADD_METHOD(GetRegisterPage);
 		ADD_METHOD(Logout);
-		ADD_METHOD(SortByDiff);
-		ADD_METHOD(SortBySize);
-		ADD_METHOD(SortByName);
+		ADD_METHOD(GetThePackList);
 	}
 };
 LUA_REGISTER_CLASS(DownloadManager) 
+
+class LunaPacklist: public Luna<Packlist>
+{
+public:
+	static int GetPackTable(T* p, lua_State* L) {
+		lua_createtable(L, p->packs.size(), 0);
+		for (unsigned i = 0; i < p->packs.size(); ++i) {
+			p->packs[i].PushSelf(L);
+			lua_rawseti(L, -2, i + 1);
+		}
+		return 1;
+	}
+	static int SetFromCoreBundle(T* p, lua_State* L) {
+		p->packs.clear();
+
+		auto bundle = DLMAN->GetCoreBundle(SArg(1));
+		auto fk = DLMAN->downloadablePacks;
+		for (auto pp : bundle) {
+			for (auto gg : fk) {
+				if (pp->name == gg.name) {
+					p->packs.emplace_back(gg);
+					break;
+				}
+			}
+		}
+			
+		return 1;
+	}
+	static int GetTotalSize(T* p, lua_State* L) {
+		auto bundle = DLMAN->GetCoreBundle(SArg(1));
+		size_t totalsize = 0;
+		for (auto p : bundle)
+			totalsize += p->size;
+		lua_pushnumber(L, totalsize / 1024 / 1024);
+		return 1;
+	}
+	static int GetAvgDiff(T* p, lua_State* L) {
+		auto bundle = DLMAN->GetCoreBundle(SArg(1));
+		float avgpackdiff = 0.f;
+
+		for (auto p : bundle)
+			avgpackdiff += p->avgDifficulty;
+		if (!bundle.empty())
+			avgpackdiff /= bundle.size();
+		lua_pushnumber(L, avgpackdiff);
+		return 1;
+	}
+	// i guess these should be internal functions and lua just calls them huh -mina
+	static int SortByName(T* p, lua_State* L) {
+		if(p->sortmode == 1)
+			if (p->asc) {
+				auto comp = [](DownloadablePack a, DownloadablePack b) { return Rage::make_lower(a.name) > Rage::make_lower(b.name); };	// custom operators?
+				sort(p->packs.begin(), p->packs.end(), comp);
+				p->asc = false;
+				return 1;
+			}
+		auto comp = [](DownloadablePack a, DownloadablePack b) { return Rage::make_lower(a.name) < Rage::make_lower(b.name); };
+		sort(p->packs.begin(), p->packs.end(), comp);
+		p->sortmode = 1;
+		p->asc = true;
+		return 1;
+	}
+	static int SortByDiff(T* p, lua_State* L) {
+		auto& packs = p->packs;
+		if (p->sortmode == 2)
+			if (p->asc) {
+				auto comp = [](DownloadablePack a, DownloadablePack b) { return (a.avgDifficulty < b.avgDifficulty); };
+				sort(packs.begin(), packs.end(), comp);
+				p->asc = false;
+				return 1;
+			}
+		auto comp = [](DownloadablePack a, DownloadablePack b) { return (a.avgDifficulty > b.avgDifficulty); };
+		sort(packs.begin(), packs.end(), comp);
+		p->sortmode = 2;
+		p->asc = true;
+		return 1;
+	}
+	static int SortBySize(T* p, lua_State* L) {
+		auto& packs = p->packs;
+		if (p->sortmode == 3)
+			if (p->asc) {
+				auto comp = [](DownloadablePack a, DownloadablePack b) { return (a.size < b.size); };
+				sort(packs.begin(), packs.end(), comp);
+				p->asc = false;
+				return 1;
+			}
+		auto comp = [](DownloadablePack a, DownloadablePack b) { return (a.size > b.size); };
+		sort(packs.begin(), packs.end(), comp);
+		p->sortmode = 3;
+		p->asc = true;
+		return 1;
+	}
+	LunaPacklist()
+	{
+		ADD_METHOD(GetPackTable);
+		ADD_METHOD(GetTotalSize);
+		ADD_METHOD(GetAvgDiff);
+		ADD_METHOD(SetFromCoreBundle);
+		ADD_METHOD(SortByName);
+		ADD_METHOD(SortByDiff);
+		ADD_METHOD(SortBySize);
+	}
+};
+
+LUA_REGISTER_CLASS(Packlist)
 
 
 class LunaDownloadablePack : public Luna<DownloadablePack>

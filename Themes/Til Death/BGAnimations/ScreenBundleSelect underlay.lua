@@ -51,6 +51,14 @@ local o = Def.ActorFrame{
 		self:GetChild("PacklistDisplay"):xy(offx + width/2, offy)
 	end,
 	OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) end,
+	
+	WheelUpSlowMessageCommand=function(self)
+		self:GetChild("PacklistDisplay"):queuecommand("PrevPage")
+	end,
+	WheelDownSlowMessageCommand=function(self)
+		self:GetChild("PacklistDisplay"):queuecommand("NextPage")
+	end,
+	
 	Def.Quad{
 		InitCommand=function(self)
 			self:y(0):zoomto(width,500):diffuse(getMainColor('frames')):diffusealpha(1)
@@ -111,7 +119,7 @@ local function makedoots(i)
 			OnCommand=function(self)
 				local bundle = DLMAN:GetCoreBundle(minidoots[i]:lower())
 				self:settextf("(%dmb)", bundle["TotalSize"])
-			end
+			end,
 		}
 	}
 	return t
