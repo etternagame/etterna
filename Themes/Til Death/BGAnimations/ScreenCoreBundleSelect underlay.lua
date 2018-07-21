@@ -142,4 +142,67 @@ for i=1,#minidoots do
 	o[#o+1] = makedoots(i)
 end
 
-return o
+
+local dzoom = 0.5
+local pdh = 42 * dzoom
+local ygap = 2
+local packspaceY = pdh + ygap
+
+local numpacks = 10
+local width = SCREEN_WIDTH
+
+
+local packlist 
+local t = Def.ActorFrame{
+	InitCommand=function(self)
+		self:xy(10,100)
+		packlist = DLMAN:GetPackList()
+	end
+}
+
+local function makePackDisplay(i)
+	local packinfo
+	
+	local o = Def.ActorFrame{
+		Name="PackDisplay",
+		InitCommand=function(self)
+			self:y(packspaceY*(i-1))
+		end,
+		PacklistUpdatedCommand=function(self)
+			packinfo = packlist[i]
+		end,
+		
+		
+		Def.Quad{InitCommand=function(self) self:zoomto(width,pdh):halign(0):diffuse(color("#ff6666")) end},
+		
+		
+		LoadFont("Common normal") .. {
+			InitCommand=function(self)
+				self:zoom(dzoom)
+			end,
+			OnCommand=function(self)
+				self:settext("lul")
+			end
+		}
+	}
+	return o
+end
+
+for i=1,numpacks do
+	t[#t+1] = makePackDisplay(i)
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+return t
