@@ -19,6 +19,7 @@
 #include "curl/curl.h"
 #include "Foreach.h"
 #include "Song.h"
+#include "RageString.h"
 #include <nlohmann/json.hpp>
 #include <unordered_set>
 #include <FilterManager.h>
@@ -1669,7 +1670,55 @@ public:
 		DLMAN->DownloadCoreBundle(SArg(1));
 		return 1;
 	}
-	
+
+	//packlist should prolly be a class and stuff like this member functions? -mina
+	static int SortByName(T* p, lua_State* L) {
+		vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
+		auto diffcomp = [](DownloadablePack a, DownloadablePack b) { return Rage::make_lower(a.name) < Rage::make_lower(b.name); };
+		sort(packs.begin(), packs.end(), diffcomp);
+
+		lua_createtable(L, packs.size(), 0);
+		for (unsigned i = 0; i < packs.size(); ++i) {
+			packs[i].PushSelf(L);
+			lua_rawseti(L, -2, i + 1);
+		}
+		return 1;
+	}
+	static int SortByDiff(T* p, lua_State* L) {
+		vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
+		string hurr = packs[0].name;
+		
+		auto diffcompasc = [](DownloadablePack a, DownloadablePack b) { return (a.avgDifficulty > b.avgDifficulty); };
+		auto diffcompdesc = [](DownloadablePack a, DownloadablePack b) { return (a.avgDifficulty < b.avgDifficulty); };
+
+		sort(packs.begin(), packs.end(), diffcompasc);
+
+		if(hurr != packs[0].name)
+			sort(packs.begin(), packs.end(), diffcompasc);
+		else {
+			sort(packs.begin(), packs.end(), diffcompdesc);
+		}		
+
+		lua_createtable(L, packs.size(), 0);
+		for (unsigned i = 0; i < packs.size(); ++i) {
+			packs[i].PushSelf(L);
+			lua_rawseti(L, -2, i + 1);
+		}
+		return 1;
+	}
+	static int SortBySize(T* p, lua_State* L) {
+		vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
+		auto diffcomp = [](DownloadablePack a, DownloadablePack b) { return (a.size > b.size); };
+		sort(packs.begin(), packs.end(), diffcomp);
+
+		lua_createtable(L, packs.size(), 0);
+		for (unsigned i = 0; i < packs.size(); ++i) {
+			packs[i].PushSelf(L);
+			lua_rawseti(L, -2, i + 1);
+		}
+		return 1;
+	}
+
 	LunaDownloadManager()
 	{
 		ADD_METHOD(DownloadCoreBundle);
@@ -1689,6 +1738,9 @@ public:
 		ADD_METHOD(GetLastVersion);
 		ADD_METHOD(GetRegisterPage);
 		ADD_METHOD(Logout);
+		ADD_METHOD(SortByDiff);
+		ADD_METHOD(SortBySize);
+		ADD_METHOD(SortByName);
 	}
 };
 LUA_REGISTER_CLASS(DownloadManager) 

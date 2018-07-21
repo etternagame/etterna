@@ -153,6 +153,10 @@ local function input2(event)
 		if event.type == "InputEventType_Release" then
 			MESSAGEMAN:Broadcast("ScMouseLeftClick")
 		end
+	elseif event.DeviceInput.button == 'DeviceButton_right mouse button' then
+		if event.type == "InputEventType_Release" then
+			MESSAGEMAN:Broadcast("ScMouseRightClick")
+		end
 	end
 	return false
 end
@@ -165,28 +169,49 @@ local packspaceY = pdh + ygap
 
 local numpacks = 10
 local ind = 0
+local offx = 5
 local width = SCREEN_WIDTH * 0.6
-local height = (numpacks+1) * packspaceY
-local c1x = 34
-local c2x = c1x + 14
-local c4x = width - 10		-- right aligned
-local c3x = c4x - 14 - (dzoom*8*14)
+local dwidth = width - offx * 2
+local height = (numpacks+2) * packspaceY
+
+local adjx = 14
+local c1x = 10 
+local c2x = c1x + (dzoom*4*adjx)
+local c5x = dwidth							-- right aligned cols
+local c4x = c5x - adjx - (dzoom*8*adjx) 	-- right aligned cols
+local c3x = c4x - adjx - (dzoom*6*adjx) 	-- right aligned cols
+local headeroff = packspaceY/2
 
 local function highlight(self)
 	self:queuecommand("Highlight")
 end
+
+local function highlightIfOver(self)
+	if isOver(self) then
+		self:diffusealpha(0.4)
+	else
+		self:diffusealpha(1)
+	end
+end
+
 local packlist 
 local t = Def.ActorFrame{
+	Name = "PacklistDisplay",
 	OnCommand=function(self)
-		self:SetUpdateFunction(high)
+		self:SetUpdateFunction(highlight)
 		SCREENMAN:GetTopScreen():AddInputCallback(input2)
 		self:xy(20,100)
+		self:queuecommand("UpdatePacklist")
+	end,
+	UpdatePacklistCommand=function(self)
+		packlist = DLMAN:GetPackList()	-- might be run too often?
 		self:queuecommand("Update")
 	end,
-	UpdateCommand=function(self)
-		packlist = DLMAN:GetPackList()
-	end,
 	ScMouseLeftClickMessageCommand=function(self)
+		--ind = ind + 10
+		self:queuecommand("Update")
+	end,
+	ScMouseRightClickMessageCommand=function(self)
 		ind = ind + 10
 		self:queuecommand("Update")
 	end,
@@ -194,21 +219,46 @@ local t = Def.ActorFrame{
 	Def.Quad{InitCommand=function(self) self:zoomto(width,height):halign(0):valign(0):diffuse(color("#ffffff")):diffusealpha(0.4) end},
 	
 	-- headers
-	LoadFont("Common normal") .. {	--size
-		InitCommand=function(self)
-			self:x(c1x):zoom(dzoom):halign(1):settext("Size")
-		end,
-		HighlightCommand=function(self)
-			if isOver(self) then
-				self:diffusealpha(0.4)
-			else
-				self:diffusealpha(1)
-			end
-		end
-	},
 	LoadFont("Common normal") .. {	--name
 		InitCommand=function(self)
-			self:x(c2x):zoom(dzoom):halign(0):settext("Name")
+			self:xy(c2x, headeroff):zoom(dzoom):halign(0):settext("Name")
+		end,
+		HighlightCommand=function(self)
+			highlightIfOver(self)
+		end,
+		ScMouseLeftClickMessageCommand=function(self)
+			--ind = ind + 10
+			if isOver(self) then
+				packlist = DLMAN:SortByName()
+			end
+		end,
+	},
+	LoadFont("Common normal") .. {	--avg
+		InitCommand=function(self)
+			self:xy(c3x- 5, headeroff):zoom(dzoom):halign(1):settext("Avg")
+		end,
+		HighlightCommand=function(self)
+			highlightIfOver(self)
+		end,
+		ScMouseLeftClickMessageCommand=function(self)
+			--ind = ind + 10
+			if isOver(self) then
+				packlist = DLMAN:SortByDiff()
+			end
+		end,
+	},
+	LoadFont("Common normal") .. {	--size
+		InitCommand=function(self)
+			self:xy(c4x, headeroff):zoom(dzoom):halign(1):settext("Size")
+		end,
+		HighlightCommand=function(self)
+			highlightIfOver(self)
+		end,
+		ScMouseLeftClickMessageCommand=function(self)
+			--ind = ind + 10
+			if isOver(self) then
+				packlist = DLMAN:SortBySize()
+			end
 		end,
 	},
 }
@@ -218,24 +268,23 @@ local function makePackDisplay(i)
 	
 	local o = Def.ActorFrame{
 		InitCommand=function(self)
-			self:y(packspaceY*i)
+			self:y(packspaceY*i + headeroff)
 		end,
 		UpdateCommand=function(self)
 			packinfo = packlist[i + ind]
 		end,
 		
-		Def.Quad{InitCommand=function(self) self:zoomto(width,pdh):halign(0):diffuse(color("#000000")):diffusealpha(0.3) end},
+		Def.Quad{InitCommand=function(self) self:x(offx):zoomto(dwidth,pdh):halign(0):diffuse(color("#000000")):diffusealpha(0.3) end},
 		
-		
-		LoadFont("Common normal") .. {	--size
+		LoadFont("Common normal") .. {	--index
 			InitCommand=function(self)
-				self:x(c1x):zoom(dzoom):halign(1)
+				self:x(c1x):zoom(dzoom):halign(0)
 			end,
 			UpdateCommand=function(self)
-				local psize = packinfo:GetSize()/1024/1024
-				self:settextf("%i", psize):diffuse(byFileSize(psize))
+				self:settextf("%i.", i + ind)
 			end
 		},
+		
 		LoadFont("Common normal") .. {	--name
 			InitCommand=function(self)
 				self:x(c2x):zoom(dzoom):maxwidth(width/2/dzoom):halign(0)
@@ -255,8 +304,25 @@ local function makePackDisplay(i)
 		},
 		LoadFont("Common normal") .. {	--dl button
 			InitCommand=function(self)
-				self:x(c4x):zoom(dzoom):halign(1):settext("Download")
+				self:x(c5x):zoom(dzoom):halign(1):settext("Download")
 			end,
+			HighlightCommand=function(self)
+				highlightIfOver(self)
+			end,
+			MouseLeftClickCommand=function(self)
+				if isOver(self) then
+					packinfo:DownloadAndInstall()
+				end
+			end
+		},
+		LoadFont("Common normal") .. {	--size
+			InitCommand=function(self)
+				self:x(c4x):zoom(dzoom):halign(1)
+			end,
+			UpdateCommand=function(self)
+				local psize = packinfo:GetSize()/1024/1024
+				self:settextf("%iMB", psize):diffuse(byFileSize(psize))
+			end
 		},
 	}
 	return o
