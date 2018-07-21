@@ -2163,10 +2163,10 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 		}
 
 		m_LastTapNoteScore = score;
+		if (pTN->result.tns != TNS_None)
+			AddNoteToReplayData(GAMESTATE->CountNotesSeparately() ? col : -1, pTN, iRowOfOverlappingNoteOrRow);
 		if( GAMESTATE->CountNotesSeparately() )
 		{
-			if (pTN->result.tns != TNS_None)
-				AddNoteToReplayData(col, pTN, iRowOfOverlappingNoteOrRow);
 			if( pTN->type != TapNoteType_Mine )
 			{
 				const bool bBlind = (m_pPlayerState->m_PlayerOptions.GetCurrent().m_fBlind != 0);
@@ -2185,9 +2185,9 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 				}
 			}
 		}
-		else if( NoteDataWithScoring::IsRowCompletelyJudged(m_NoteData, iRowOfOverlappingNoteOrRow) )
+		else if (NoteDataWithScoring::IsRowCompletelyJudged(m_NoteData, iRowOfOverlappingNoteOrRow))
 		{
-			FlashGhostRow( iRowOfOverlappingNoteOrRow );
+			FlashGhostRow(iRowOfOverlappingNoteOrRow);
 		}
 	}
 
@@ -2911,7 +2911,7 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore tns, float fTapNoteOffset )
 {
 	if(tns == TNS_Miss)
-		AddNoteToReplayData(iTrack, &tn, iRow);
+		AddNoteToReplayData(GAMESTATE->CountNotesSeparately() ? iTrack : -1, &tn, iRow);
 	if( m_bSendJudgmentAndComboMessages )
 	{
 		Message msg("Judgment");
