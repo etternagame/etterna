@@ -37,6 +37,18 @@ local function input(event)
 	return false
 end
 
+local function highlight(self)
+	self:queuecommand("Highlight")
+end
+
+local function highlightIfOver(self)
+	if isOver(self) then
+		self:diffusealpha(0.6)
+	else
+		self:diffusealpha(1)
+	end
+end
+
 local width = SCREEN_WIDTH/3
 local tzoom = 0.5
 local packh = 42
@@ -44,19 +56,23 @@ local packgap = 4
 local packspacing = packh + packgap
 local offx = 10
 local offy = 40
+local packlist
+local ind = 0
 
 local o = Def.ActorFrame{
 	InitCommand=function(self)
 		self:xy(offx + width/2, 0):halign(0.5):valign(0)
-		self:GetChild("PacklistDisplay"):xy(offx + width/2, offy)
+		self:GetChild("PacklistDisplay"):xy(offx + width/2, offy * 2 + 20)
+		packlist = DLMAN:GetThePackList()
+		self:SetUpdateFunction(highlight)
 	end,
 	OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) end,
 	
 	WheelUpSlowMessageCommand=function(self)
-		self:GetChild("PacklistDisplay"):queuecommand("PrevPage")
+		self:queuecommand("PrevPage")
 	end,
 	WheelDownSlowMessageCommand=function(self)
-		self:GetChild("PacklistDisplay"):queuecommand("NextPage")
+		self:queuecommand("NextPage")
 	end,
 	
 	Def.Quad{
@@ -66,11 +82,51 @@ local o = Def.ActorFrame{
 	},
 	LoadFont("Common normal") .. {
 		InitCommand=function(self)
-			self:xy(-width/2,20):zoom(tzoom):halign(0)
+			self:xy(width/2 + offx,20):zoom(tzoom):halign(0)
 		end,
 		OnCommand=function(self)
-			self:settext("Core bundles are diverse selections of packs that span a skill range.\nExpanded sets contain more files and are heftier downloads.")
+			self:settext("Core bundles are diverse selections of packs that span a skill range.\nExpanded sets contain more files and are larger downloads.")
 		end
+	},
+	LoadFont("Common normal") .. {  --selected bundle
+		InitCommand=function(self)
+			self:xy(width/2 + offx,offy * 2 - 20):zoom(tzoom+0.2):halign(0)
+		end,
+		PackTableRefreshCommand=function(self)
+			self:settextf("Selected Bundle: %s", minidoots[ind]:gsub("-Expanded", " (expanded)")):diffuse(color(diffcolors[math.ceil(ind/2)]))
+		end
+	},
+	LoadFont("Common normal") .. {  --avg diff
+		InitCommand=function(self)
+			self:xy(width/2 + offx,offy * 2):zoom(tzoom+0.1):halign(0):maxwidth(width/2/tzoom)
+		end,
+		PackTableRefreshCommand=function(self)
+			self:settextf("Total Average Difficulty: %0.2f", packlist:GetAvgDiff()):diffuse(byMSD(packlist:GetAvgDiff()))
+		end
+	},
+	LoadFont("Common normal") .. {  --total size
+		InitCommand=function(self)
+			self:xy(width*2 + width/2 - 150,offy * 2):zoom(tzoom+0.1):halign(1):maxwidth(width/2/tzoom)
+		end,
+		PackTableRefreshCommand=function(self)
+			self:settextf("Total Size: %i(MB)", packlist:GetTotalSize()):diffuse(byFileSize(packlist:GetTotalSize()))
+		end
+	},
+	LoadFont("Common normal") .. {  --total size
+		InitCommand=function(self)
+			self:xy(width*2 + width/2 - 40,offy * 2):zoom(tzoom+0.1):halign(1):maxwidth(width/2/tzoom)
+		end,
+		PackTableRefreshCommand=function(self)
+			self:settext("Download All")
+		end,
+		MouseLeftClickMessageCommand=function(self)
+			if isOver(self) then
+				DLMAN:DownloadCoreBundle(minidoots[ind]:lower())
+			end
+		end,
+		HighlightCommand=function(self)
+			highlightIfOver(self)
+		end,
 	}
 }
 
@@ -91,18 +147,22 @@ local function makedoots(i)
 			InitCommand=function(self)
 				self:y(-12):zoomto(width,packh):valign(0):diffuse(color(diffcolors[math.ceil(i/2)]))
 			end,
-			OnCommand=function(self)
-				self:queuecommand("SelectionChanged")
-			end,
 			DootCommand=function(self)
-				if isOver(self) and ind ~= i then
-					self:diffusealpha(0.75)
+				if isOver(self) and ind ~= i then 
+					self:diffusealpha(0.75) 
 				elseif ind == i then
 					self:diffusealpha(1)
 				else
 					self:diffusealpha(0.5)
 				end
 			end,
+			MouseLeftClickMessageCommand=function(self)
+				if isOver(self) then
+					packlist:SetFromCoreBundle(minidoots[i]:lower())
+					self:GetParent():GetParent():queuecommand("PackTableRefresh")		-- perhaps it would be best if the packlist broadcast instead - mina
+					ind = i
+				end
+			end
 		},
 		LoadFont("Common normal") .. {
 			InitCommand=function(self)

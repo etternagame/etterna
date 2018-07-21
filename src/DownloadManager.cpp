@@ -1729,21 +1729,18 @@ public:
 		return 1;
 	}
 	static int GetTotalSize(T* p, lua_State* L) {
-		auto bundle = DLMAN->GetCoreBundle(SArg(1));
 		size_t totalsize = 0;
-		for (auto p : bundle)
-			totalsize += p->size;
+		for (auto n : p->packs)
+			totalsize += n.size;
 		lua_pushnumber(L, totalsize / 1024 / 1024);
 		return 1;
 	}
 	static int GetAvgDiff(T* p, lua_State* L) {
-		auto bundle = DLMAN->GetCoreBundle(SArg(1));
 		float avgpackdiff = 0.f;
-
-		for (auto p : bundle)
-			avgpackdiff += p->avgDifficulty;
-		if (!bundle.empty())
-			avgpackdiff /= bundle.size();
+		for (auto n : p->packs)
+			avgpackdiff += n.avgDifficulty;
+		if (!p->packs.empty())
+			avgpackdiff /= p->packs.size();
 		lua_pushnumber(L, avgpackdiff);
 		return 1;
 	}

@@ -3,7 +3,7 @@ local pdh = 42 * tzoom
 local ygap = 2
 local packspaceY = pdh + ygap
 
-local numpacks = 20
+local numpacks = 15
 local ind = 0
 local offx = 5
 local width = SCREEN_WIDTH * 0.6
@@ -31,7 +31,7 @@ local function highlightIfOver(self)
 end
 
 local packlist
-local bunchapacks
+local packtable
 local o = Def.ActorFrame{
 	Name = "PacklistDisplay",
 	InitCommand=function(self)
@@ -39,19 +39,18 @@ local o = Def.ActorFrame{
 	end,
 	OnCommand=function(self)
 		self:SetUpdateFunction(highlight)
-		bunchapacks = DLMAN:GetThePackList()
+		packlist = DLMAN:GetThePackList()
 		self:queuecommand("PackTableRefresh")
 	end,
 	PackTableRefreshCommand=function(self)
-		--bunchapacks:SetFromCoreBundle("novice")
-		packlist = bunchapacks:GetPackTable()
+		packtable = packlist:GetPackTable()
 		self:queuecommand("Update")
 	end,
 	UpdateCommand=function(self)
 		if ind < 0 then
 			ind = 0
-		elseif ind > #packlist - (#packlist % numpacks) then
-			ind = #packlist - (#packlist % numpacks)
+		elseif ind > #packtable - (#packtable % numpacks) then
+			ind = #packtable - (#packtable % numpacks)
 		end
 	end,
 	NextPageCommand=function(self)
@@ -71,7 +70,7 @@ local o = Def.ActorFrame{
 		self:queuecommand("Update")
 	end,
 	
-	Def.Quad{InitCommand=function(self) self:zoomto(width,height):halign(0):valign(0):diffuse(color("#ffffff")):diffusealpha(0.4) end},
+	Def.Quad{InitCommand=function(self) self:zoomto(width,height-headeroff):halign(0):valign(0):diffuse(color("#ffffff")):diffusealpha(0.4) end},
 	
 	-- headers
 	LoadFont("Common normal") .. {	--name
@@ -83,7 +82,7 @@ local o = Def.ActorFrame{
 		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
-				bunchapacks:SortByName()
+				packlist:SortByName()
 				self:GetParent():queuecommand("PackTableRefresh")
 			end
 		end,
@@ -97,7 +96,7 @@ local o = Def.ActorFrame{
 		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
-				bunchapacks:SortByDiff()
+				packlist:SortByDiff()
 				self:GetParent():queuecommand("PackTableRefresh")
 			end
 		end,
@@ -111,7 +110,7 @@ local o = Def.ActorFrame{
 		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
-				bunchapacks:SortBySize()
+				packlist:SortBySize()
 				self:GetParent():queuecommand("PackTableRefresh")
 			end
 		end,
@@ -125,7 +124,7 @@ local function makePackDisplay(i)
 			self:y(packspaceY*i + headeroff)
 		end,
 		UpdateCommand=function(self)
-			packinfo = packlist[(i + ind)]
+			packinfo = packtable[(i + ind)]
 			if packinfo then
 				self:queuecommand("Display")
 				self:visible(true)
@@ -146,7 +145,7 @@ local function makePackDisplay(i)
 		},
 		LoadFont("Common normal") .. {	--name
 			InitCommand=function(self)
-				self:x(c2x):zoom(tzoom):maxwidth(width/2/tzoom):halign(0)
+				self:x(c2x):zoom(tzoom):maxwidth(width/2.5/tzoom):halign(0)
 			end,
 			DisplayCommand=function(self)
 				self:settext(packinfo:GetName()):diffuse(bySkillRange(packinfo:GetAvgDifficulty()))
@@ -168,7 +167,7 @@ local function makePackDisplay(i)
 			HighlightCommand=function(self)
 				highlightIfOver(self)
 			end,
-			MouseLeftClickCommand=function(self)
+			MouseLeftClickMessageCommand=function(self)
 				if isOver(self) then
 					packinfo:DownloadAndInstall()
 				end
