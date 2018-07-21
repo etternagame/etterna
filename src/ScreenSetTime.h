@@ -35,7 +35,7 @@ public:
 
 private:
 	SetTimeSelection m_Selection;
-	time_t m_TimeOffset;
+	time_t m_TimeOffset = 0;
 	void ChangeSelection( int iDirection );
 	void ChangeValue( int iDirection );
 

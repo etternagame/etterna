@@ -34,6 +34,8 @@ local diffuse = Actor.diffuse
 local finishtweening = Actor.finishtweening
 local linear = Actor.linear
 local x = Actor.x
+local y = Actor.y
+local Zoomtoheight = Actor.zoomtoheight
 local queuecommand = Actor.queuecommand
 local playcommand = Actor.queuecommand
 local settext = BitmapText.settext
@@ -705,9 +707,10 @@ local t = Def.ActorFrame{
 	Old scwh lanecover back for now. Equivalent to "screencutting" on ffr; essentially hides notes for a fixed distance before they appear
 on screen so you can adjust the time arrows display on screen without modifying their spacing from each other. 
 ]]	
-	
-t[#t+1] = LoadActor("lanecover")
 
+if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover then
+	t[#t+1] = LoadActor("lanecover")
+end
 	
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  					    	**Player Target Differential: Ghost target rewrite, average score gone for now**
@@ -923,8 +926,8 @@ function smeltErrorBar(index)
 			diffusealpha(self,1)
 			diffuse(self,jcT[jdgCur])
 			x(self,errorBarX+dvCur*wscale)
-			self:y(errorBarY)  -- i dont know why man it doenst work the other way ( y(self,errorBarY) )
-			self:zoomtoheight(errorBarHeight)
+			y(self,errorBarY)
+			Zoomtoheight(self, errorBarHeight)
 			linear(self,barDuration)
 			diffusealpha(self,0)
 		end
@@ -1078,12 +1081,12 @@ local p = Def.ActorFrame{
 		BeginCommand=function(self)
 			local ttime = GetPlayableTime()
 			settext(self,SecondsToMMSS(ttime))
-			diffuse(self, ByMusicLength(ttime))
+			diffuse(self, byMusicLength(ttime))
 		end,
 		DoneLoadingNextSongMessageCommand=function(self)
 			local ttime = GetPlayableTime()
 			settext(self,SecondsToMMSS(ttime))
-			diffuse(self, ByMusicLength(ttime))
+			diffuse(self, byMusicLength(ttime))
 		end
 	}
 }

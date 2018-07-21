@@ -538,7 +538,7 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 		hs.SetNoteRowVector(pss.GetNoteRowVector());
 		hs.SetTrackVector(pss.GetTrackVector());
 		hs.SetTapNoteTypeVector(pss.GetTapNoteTypeVector());
-		hs.SetTapNoteSubTypeVector(pss.GetTapNoteSubTypeVector());
+		hs.SetHoldReplayDataVector(pss.GetHoldReplayDataVector());
 		hs.SetReplayType(2);	// flag this before rescore so it knows we're LEGGIT
 
 		if (pss.GetGrade() == Grade_Failed)
@@ -559,7 +559,7 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 		}
 	}
 
-	pss.GenerateValidationKeys(hs);
+	hs.GenerateValidationKeys();
 
 	if (!pss.InputData.empty())
 		hs.WriteInputData(pss.InputData);

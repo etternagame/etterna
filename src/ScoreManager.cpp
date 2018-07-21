@@ -113,48 +113,10 @@ void ScoreManager::PurgeProfileScores(const string& profileID) {
 	pscores[profileID].clear();
 }
 
-void ScoreManager::RatingOverTime(const string& profileID) {
-	auto compdate = [](HighScore* a, HighScore* b) { return (a->GetDateTime() < b->GetDateTime()); };
-
-	auto& scores = AllProfileScores[profileID];
-
-	vector<bool> wasvalid;
-	sort(scores.begin(), scores.end(), compdate);
-
-	for (auto& n : scores) {
-		wasvalid.push_back(n->GetEtternaValid());
-		n->SetEtternaValid(false);
-	}
-
-	float doot = 10.f;
-	float doot2[8];
-	LOG->Warn("wer");
-	if (scores.empty())
-		return;
-
-	DateTime lastvalidday = AllProfileScores[profileID].front()->GetDateTime();
-	lastvalidday.StripTime();
-
-	CalcPlayerRating(doot, doot2, profileID);
-	LOG->Warn(lastvalidday.GetString());
-
-	DateTime finalvalidday = scores.back()->GetDateTime();
-	finalvalidday.StripTime();
-	while (lastvalidday != finalvalidday) {
-		for (auto& n : scores) {
-			DateTime date = n->GetDateTime();
-			date.StripTime();
-
-			if (lastvalidday < date) {
-				lastvalidday = date;
-				break;
-			}
-
-			n->SetEtternaValid(true);
-		}
-		CalcPlayerRating(doot, doot2, profileID);
-		LOG->Trace("%f", doot);
-	}
+void ScoreManager::RatingOverTime() {
+	if (false)
+		for (auto *s : AllScores)
+			s->GenerateValidationKeys();
 }
 
 ScoresForChart::ScoresForChart() {

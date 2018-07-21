@@ -49,7 +49,7 @@ void PlayerStageStats::InternalInit()
 	m_vNoteRowVector.clear();
 	m_vTrackVector.clear();
 	m_vTapNoteTypeVector.clear();
-	m_vTapNoteSubTypeVector.clear();
+	m_vHoldReplayData.clear();
 	InputData.clear();
 	m_iPossibleGradePoints = 0;
 	m_iCurCombo = 0;
@@ -327,44 +327,6 @@ vector<float> PlayerStageStats::CalcSSR(float ssrpercent ) const {
 	return MinaSDCalc(serializednd, steps->GetNoteData().GetNumTracks(), musicrate, ssrpercent, 1.f, steps->GetTimingData()->HasWarps());
 }
 
-void PlayerStageStats::GenerateValidationKeys(HighScore& hs) const {
-	string key = "";
-
-	FOREACH_ENUM(TapNoteScore, tns) {
-
-		if(tns == TNS_AvoidMine || tns == TNS_CheckpointHit || tns == TNS_CheckpointMiss || tns == TNS_None) {
-			continue;
-		}
-
-		key.append(to_string(hs.GetTapNoteScore(tns)));
-	}	
-	
-	FOREACH_ENUM(HoldNoteScore, hns) {
-		if (hns == HNS_None) {
-			continue;
-		}
-
-		key.append(to_string(hs.GetHoldNoteScore(hns)));
-	}
-
-	key.append(hs.GetScoreKey());
-	key.append(hs.GetChartKey());
-	key.append(hs.GetModifiers());
-	key.append(hs.GetMachineGuid());
-	key.append(to_string(static_cast<int>(hs.GetWifeScore() * 1000.f)));
-	key.append(to_string(static_cast<int>(hs.GetSSRNormPercent() * 1000.f)));
-	key.append(to_string(static_cast<int>(hs.GetMusicRate() * 1000.f)));
-	key.append(to_string(static_cast<int>(hs.GetJudgeScale() * 1000.f)));
-	key.append(to_string(static_cast<int>(hs.GetWifePoints() * 1000.f)));
-	key.append(to_string(static_cast<int>(!hs.GetChordCohesion())));
-	key.append(to_string(static_cast<int>(hs.GetEtternaValid())));
-	key.append(GradeToString(hs.GetWifeGrade()));
-
-	hs.SetValidationKey(ValidationKey_Brittle, BinaryToHex(CryptManager::GetSHA1ForString(key)));
-
-	// just testing stuff
-	//hs.SetValidationKey(ValidationKey_Weak, GenerateWeakValidationKey(m_iTapNoteScores, m_iHoldNoteScores));
-}
 float PlayerStageStats::GetTimingScale() const {
 	return m_fTimingScale;
 }
@@ -380,8 +342,8 @@ vector<int> PlayerStageStats::GetTrackVector() const {
 vector<TapNoteType> PlayerStageStats::GetTapNoteTypeVector() const {
 	return m_vTapNoteTypeVector;
 }
-vector<TapNoteSubType> PlayerStageStats::GetTapNoteSubTypeVector() const {
-	return m_vTapNoteSubTypeVector;
+vector<HoldReplayResult> PlayerStageStats::GetHoldReplayDataVector() const {
+	return m_vHoldReplayData;
 }
 
 float PlayerStageStats::GetCurMaxPercentDancePoints() const
@@ -891,13 +853,13 @@ void PlayerStageStats::UnloadReplayData() {
 	m_vOffsetVector.clear();
 	m_vTrackVector.clear();
 	m_vTapNoteTypeVector.clear();
-	m_vTapNoteSubTypeVector.clear();
+	m_vHoldReplayData.clear();
 
 	m_vNoteRowVector.shrink_to_fit();
 	m_vOffsetVector.shrink_to_fit();
 	m_vTrackVector.shrink_to_fit();
 	m_vTapNoteTypeVector.shrink_to_fit();
-	m_vTapNoteSubTypeVector.shrink_to_fit();
+	m_vHoldReplayData.shrink_to_fit();
 }
 
 LuaFunction( GetGradeFromPercent,	GetGradeFromPercent( FArg(1) ) )
@@ -997,11 +959,6 @@ public:
 
 	static int GetTapNoteTypeVector(T* p, lua_State *L) {
 		LuaHelpers::CreateTableFromArray(p->m_vTapNoteTypeVector, L);
-		return 1;
-	}
-
-	static int GetTapNoteSubTypeVector(T* p, lua_State *L) {
-		LuaHelpers::CreateTableFromArray(p->m_vTapNoteSubTypeVector, L);
 		return 1;
 	}
 
@@ -1132,7 +1089,6 @@ public:
 		ADD_METHOD( GetScore );
 		ADD_METHOD( GetOffsetVector );
 		ADD_METHOD(GetTrackVector);
-		ADD_METHOD(GetTapNoteSubTypeVector);
 		ADD_METHOD(GetTapNoteTypeVector);
 		ADD_METHOD( WifeScoreOffset );
 		ADD_METHOD( GetNoteRowVector );

@@ -837,8 +837,6 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 	InitAll();
 
 	LoadTypeFromDir(sDir);
-	// Not critical if this fails
-	LoadEditableDataFromDir( sDir );
 	DBProf.SetLoadingProfile(this);
 	XMLProf.SetLoadingProfile(this);
 	ProfileLoadResult ret = XMLProf.LoadEttFromDir(sDir);
@@ -851,6 +849,8 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 		IsEtternaProfile = true;
 		ImportScoresToEtterna();
 	}
+	// Not critical if this fails
+	LoadEditableDataFromDir(sDir);
 
 	// move old profile specific replays to the new aggregate folder
 	RString oldreplaydir = sDir + "ReplayData/";
@@ -942,7 +942,6 @@ void Profile::CalculateStatsFromScores(LoadingWindow* ld) {
 
 	SCOREMAN->RecalculateSSRs(ld, m_sProfileID);
 	SCOREMAN->CalcPlayerRating(m_fPlayerRating, m_fPlayerSkillsets, m_sProfileID);
-	//SCOREMAN->RatingOverTime();
 }
 
 void Profile::CalculateStatsFromScores() {
@@ -1630,6 +1629,12 @@ public:
 		return 1;
 	}
 
+	static int RenameProfile(T* p, lua_State *L) {
+		p->m_sDisplayName = SArg(1);
+		p->SaveEditableDataToDir(p->m_sProfileID);
+		return 1;
+	}
+
 	LunaProfile()
 	{
 		ADD_METHOD( AddScreenshot );
@@ -1677,6 +1682,7 @@ public:
 		ADD_METHOD(CalculateCaloriesFromHeartRate);
 		ADD_METHOD(IsCurrentChartPermamirror);
 		ADD_METHOD(GetEasiestGoalForChartAndRate);
+		ADD_METHOD(RenameProfile);
 	}
 };
 

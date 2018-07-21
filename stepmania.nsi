@@ -24,12 +24,7 @@
 
 	Name "${PRODUCT_DISPLAY}"
 	
-	!ifndef Songless
 	OutFile "${PRODUCT_DISPLAY}.exe"
-	!else
-	OutFile "${PRODUCT_DISPLAY}Songless.exe"
-	!endif
-
 	Caption "${PRODUCT_DISPLAY} | install"
 	UninstallCaption "${PRODUCT_DISPLAY} | uninstall"
 
@@ -415,9 +410,6 @@ Section "Main Section" SecMain
 	CreateDirectory "$INSTDIR\Songs"
 	SetOutPath "$INSTDIR\Songs"
 	;File "Songs\Instructions.txt"
-	!ifndef Songless
-	File /r /x CVS /x .svn "Songs\Etterna*"
-	!endif
 	; remove and install themes
 	RMDir /r "$INSTDIR\Themes\_fallback"
 	RMDir /r "$INSTDIR\Themes\_portKit-sm4"

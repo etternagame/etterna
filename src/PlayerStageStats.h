@@ -47,7 +47,7 @@ public:
 	vector<int> GetNoteRowVector() const;
 	vector<int> GetTrackVector() const;
 	vector<TapNoteType> GetTapNoteTypeVector() const;
-	vector<TapNoteSubType> GetTapNoteSubTypeVector() const;
+	vector<HoldReplayResult> GetHoldReplayDataVector() const;
 	float GetCurMaxPercentDancePoints() const;
 
 	int GetLessonScoreActual() const;
@@ -86,10 +86,10 @@ public:
 	float	CurWifeScore;
 	float	MaxWifeScore;
 	float	m_fTimingScale;
+	vector<HoldReplayResult> m_vHoldReplayData;
 	vector<float> m_vOffsetVector;
 	vector<int> m_vNoteRowVector;
 	vector<TapNoteType> m_vTapNoteTypeVector;
-	vector<TapNoteSubType> m_vTapNoteSubTypeVector;
 	vector<int> m_vTrackVector;
 	vector<float> InputData;
 	int		m_iTapNoteScores[NUM_TapNoteScore];

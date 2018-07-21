@@ -115,9 +115,7 @@ protected:
 		{
 		case SelectionState_SelectingSong:
 			return TWO_PART_SELECTION ? SelectionState_SelectingSteps : SelectionState_Finalized;
-		case SelectionState_SelectingSteps:
-			return SelectionState_Finalized;
-		case SelectionState_Finalized:
+		default:
 			return SelectionState_Finalized;
 		}
 	}

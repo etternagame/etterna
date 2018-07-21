@@ -56,14 +56,15 @@ struct HighScore
 	const vector<int>& GetNoteRowVector() const;
 	const vector<int>& GetTrackVector() const;
 	const vector<TapNoteType>& GetTapNoteTypeVector() const;
-	const vector<TapNoteSubType>&  GetTapNoteSubTypeVector() const;
+	const vector<HoldReplayResult>&  GetHoldReplayDataVector() const;
 	vector<float> GetCopyOfOffsetVector() const;
 	vector<int> GetCopyOfNoteRowVector() const;
 	vector<int> GetCopyOfTrackVector() const;
 	vector<TapNoteType> GetCopyOfTapNoteTypeVector() const;
-	vector<TapNoteSubType>  GetCopyOfTapNoteSubTypeVector() const;
+	vector<HoldReplayResult>  GetCopyOfHoldReplayDataVector() const;
 	string GetScoreKey() const;
 	int GetTopScore() const;
+	int GetReplayType() const;
 	/**
 	 * @brief Determine how many seconds the player had left in Survival mode.
 	 * @return the number of seconds left. */
@@ -111,7 +112,7 @@ struct HighScore
 	void SetNoteRowVector(const vector<int>& v);
 	void SetTrackVector(const vector<int>& v);
 	void SetTapNoteTypeVector(const vector<TapNoteType>& v);
-	void SetTapNoteSubTypeVector(const vector<TapNoteSubType>& v);
+	void SetHoldReplayDataVector(const vector<HoldReplayResult>& v);
 	void SetScoreKey(const string& ck);
 	void SetRescoreJudgeVector(const vector<int>& v);
 	void SetAliveSeconds( float f );
@@ -168,6 +169,7 @@ struct HighScore
 	void SetSkillsetSSR(Skillset ss, float ssr);
 	void SetValidationKey(ValidationKey vk, string k);
 	void SetTopScore(int i);
+	string GenerateValidationKeys();
 	string GetValidationKey(ValidationKey vk) const; 
 	vector<int> GetRescoreJudgeVector(int x);
 	// Lua

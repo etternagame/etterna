@@ -142,7 +142,8 @@ static const char *SortOrderNames[] = {
 	"Stamina",
 	"JackSpeed",
 	"Chordjack",
-	"Technical"
+	"Technical",
+	"Length"
 };
 XToString( SortOrder );
 StringToX( SortOrder );

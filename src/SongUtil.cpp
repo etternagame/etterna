@@ -529,7 +529,7 @@ static int CompareSongPointersByGroup(const Song *pSong1, const Song *pSong2)
 }
 std::function<int(const Song *pSong1, const Song *pSong2)> CompareSongPointersByGroupAndMSD(Skillset ss)
 {
-	return [&ss](const Song *pSong1, const Song *pSong2) {
+	return [ss](const Song *pSong1, const Song *pSong2) {
 		int g = CompareSongPointersByGroup(pSong1, pSong2);
 		if (g == 0)
 			/* Same group; compare by MSD. */
@@ -627,6 +627,14 @@ RString SongUtil::GetSectionNameFromSongAndSort( const Song* pSong, SortOrder so
 	case SORT_POPULARITY:
 	case SORT_RECENT:
 		return RString();
+	case SORT_LENGTH:
+		{
+			const int iSortLengthSize = 60;
+			int iMaxLength = static_cast<int>(pSong->m_fMusicLengthSeconds);
+			iMaxLength += (iSortLengthSize - (iMaxLength%iSortLengthSize) - 1);
+			int iMinLength = iMaxLength - (iSortLengthSize - 1);
+			return ssprintf("%s-%s", SecondsToMMSS(static_cast<float>(iMinLength)).c_str(), SecondsToMMSS(static_cast<float>(iMaxLength)).c_str());
+		}
 	case SORT_TOP_GRADES:
 		{
 			auto p = PROFILEMAN->GetProfile(PLAYER_1);

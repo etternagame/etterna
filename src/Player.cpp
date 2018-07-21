@@ -1361,7 +1361,7 @@ void Player::UpdateHoldNotes( int iSongRow, float fDeltaTime, vector<TrackRowTap
 	{
 		//LOG->Trace("tap note scoring time.");
 		TapNote &tn = *vTN[0].pTN;
-		SetHoldJudgment( tn, iFirstTrackWithMaxEndRow );
+		SetHoldJudgment(tn, iFirstTrackWithMaxEndRow, iSongRow);
 		HandleHoldScore( tn );
 		//LOG->Trace("hold result = %s",StringConversion::ToString(tn.HoldResult.hns).c_str());
 	}
@@ -1749,7 +1749,7 @@ void Player::ScoreAllActiveHoldsLetGo()
 					tn.HoldResult.hns = HNS_LetGo;
 					tn.HoldResult.fLife = 0;
 
-					SetHoldJudgment( tn, iTrack );
+					SetHoldJudgment( tn, iTrack, iSongRow);
 					HandleHoldScore( tn );
 				}
 			}
@@ -1794,7 +1794,17 @@ void Player::AddNoteToReplayData(int col, const TapNote* pTN, int RowOfOverlappi
 	m_pPlayerStageStats->m_vTrackVector.emplace_back(col);
 	m_pPlayerStageStats->m_vNoteRowVector.emplace_back(RowOfOverlappingNoteOrRow);
 	m_pPlayerStageStats->m_vTapNoteTypeVector.emplace_back(pTN->type);
-	m_pPlayerStageStats->m_vTapNoteSubTypeVector.emplace_back(pTN->subType);
+}
+
+void Player::AddHoldToReplayData(int col, const TapNote* pTN, int RowOfOverlappingNoteOrRow)
+{
+	if(pTN->HoldResult.hns == HNS_Held)
+		return;
+	HoldReplayResult hrr;
+	hrr.row = RowOfOverlappingNoteOrRow;
+	hrr.track = col;
+	hrr.subType = pTN->subType;
+	m_pPlayerStageStats->m_vHoldReplayData.emplace_back(hrr);
 }
 
 void Player::Step( int col, int row, const std::chrono::steady_clock::time_point &tm, bool bHeld, bool bRelease, float padStickSeconds )
@@ -2153,10 +2163,10 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 		}
 
 		m_LastTapNoteScore = score;
+		if (pTN->result.tns != TNS_None)
+			AddNoteToReplayData(GAMESTATE->CountNotesSeparately() ? col : -1, pTN, iRowOfOverlappingNoteOrRow);
 		if( GAMESTATE->CountNotesSeparately() )
 		{
-			if (pTN->result.tns != TNS_None)
-				AddNoteToReplayData(col, pTN, iRowOfOverlappingNoteOrRow);
 			if( pTN->type != TapNoteType_Mine )
 			{
 				const bool bBlind = (m_pPlayerState->m_PlayerOptions.GetCurrent().m_fBlind != 0);
@@ -2175,9 +2185,9 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 				}
 			}
 		}
-		else if( NoteDataWithScoring::IsRowCompletelyJudged(m_NoteData, iRowOfOverlappingNoteOrRow) )
+		else if (NoteDataWithScoring::IsRowCompletelyJudged(m_NoteData, iRowOfOverlappingNoteOrRow))
 		{
-			FlashGhostRow( iRowOfOverlappingNoteOrRow );
+			FlashGhostRow(iRowOfOverlappingNoteOrRow);
 		}
 	}
 
@@ -2901,7 +2911,7 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore tns, float fTapNoteOffset )
 {
 	if(tns == TNS_Miss)
-		AddNoteToReplayData(iTrack, &tn, iRow);
+		AddNoteToReplayData(GAMESTATE->CountNotesSeparately() ? iTrack : -1, &tn, iRow);
 	if( m_bSendJudgmentAndComboMessages )
 	{
 		Message msg("Judgment");
@@ -3007,11 +3017,13 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 	}
 }
 
-void Player::SetHoldJudgment( TapNote &tn, int iTrack )
+void Player::SetHoldJudgment( TapNote &tn, int iTrack, int iRow)
 {
 	ASSERT( iTrack < static_cast<int>(m_vpHoldJudgment.size()) );
 	if( m_vpHoldJudgment[iTrack] )
 		m_vpHoldJudgment[iTrack]->SetHoldJudgment( tn.HoldResult.hns );
+
+	AddHoldToReplayData(iTrack, &tn, iRow);
 
 	if (m_bSendJudgmentAndComboMessages)
 	{

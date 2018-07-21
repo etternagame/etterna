@@ -107,9 +107,7 @@ void ScreenNetSelectMusic::Init()
 
 void ScreenNetSelectMusic::DifferentialReload()
 {
-	int newsongs = SONGMAN->DifferentialReload();
-	SCREENMAN->SystemMessage(ssprintf("Differential reload of %i songs", newsongs));
-	m_MusicWheel.ReloadSongList(false, "");
+	SCREENMAN->SetNewScreen("ScreenReloadSongs");
 }
 
 

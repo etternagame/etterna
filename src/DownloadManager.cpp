@@ -35,6 +35,7 @@ static Preference<RString> serverURL("UploadServerAPIURL", "https://api.etternao
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 static Preference<unsigned int> downloadPacksToAdditionalSongs("downloadPacksToAdditionalSongs", 0);
 static const string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
+static const string CLIENT_DATA_KEY = "FC767D3D08D04DA04E2649B8A487DDFE2280B9B9F78DAF7984DE76744B3D84A8";
 static const string DL_DIR = SpecialFiles::CACHE_DIR + "Downloads/";
 
 size_t write_memory_buffer(void *contents, size_t size, size_t nmemb, void *userp)
@@ -433,14 +434,15 @@ void DownloadManager::UpdateHTTP(float fDeltaSeconds)
 		/* Find out which handle this message is about */
 		for (size_t i = 0; i < HTTPRequests.size();++i) {
 			if (msg->easy_handle == HTTPRequests[i]->handle) {
-				if (msg->msg == CURLMSG_DONE) {
+				if (msg->data.result == CURLE_UNSUPPORTED_PROTOCOL) {
+					HTTPRequests[i]->Failed(*(HTTPRequests[i]), msg);
+					LOG->Trace("CURL UNSUPPORTED PROTOCOL (Probably https)");
+				}
+				else if (msg->msg == CURLMSG_DONE) {
 					HTTPRequests[i]->Done(*(HTTPRequests[i]), msg);
 				}
-				else {
+				else
 					HTTPRequests[i]->Failed(*(HTTPRequests[i]), msg);
-					if (msg->msg == CURLE_UNSUPPORTED_PROTOCOL)
-						LOG->Trace("CURL UNSUPPORTED PROTOCOL (Probably https)");
-				}
 				if (HTTPRequests[i]->handle != nullptr)
 					curl_easy_cleanup(HTTPRequests[i]->handle);
 				HTTPRequests[i]->handle = nullptr;
@@ -473,7 +475,7 @@ void DownloadManager::UpdatePacks(float fDeltaSeconds)
 			if (screen && screen->GetName() == "ScreenNetSelectMusic")
 				static_cast<ScreenNetSelectMusic*>(screen)->DifferentialReload();
 			else
-				SONGMAN->DifferentialReload();
+				SCREENMAN->SetNewScreen("ScreenReloadSongs");
 	}
 	if (downloadingPacks < maxPacksToDownloadAtOnce && !DownloadQueue.empty() && timeSinceLastDownload > DownloadCooldownTime) {
 		auto it = DownloadQueue.begin();
@@ -567,7 +569,7 @@ void DownloadManager::UpdatePacks(float fDeltaSeconds)
 			if (screen && screen->GetName() == "ScreenNetSelectMusic")
 				static_cast<ScreenNetSelectMusic*>(screen)->DifferentialReload();
 			else
-				SONGMAN->DifferentialReload();
+				SCREENMAN->SetNewScreen("ScreenReloadSongs");
 	}
 	return;
 }
@@ -630,7 +632,7 @@ bool DownloadManager::ShouldUploadScores()
 inline void SetCURLPOSTScore(CURL*& curlHandle, curl_httppost*& form, curl_httppost*& lastPtr, HighScore*& hs)
 {
 	SetCURLFormPostField(curlHandle, form, lastPtr, "scorekey", hs->GetScoreKey());
-	SetCURLFormPostField(curlHandle, form, lastPtr, "ssr_norm", to_string(static_cast<int>(hs->GetSSRNormPercent() * 1000.f)));
+	SetCURLFormPostField(curlHandle, form, lastPtr, "ssr_norm", hs->GetSSRNormPercent());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "max_combo", hs->GetMaxCombo());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "valid", static_cast<int>(hs->GetEtternaValid()));
 	SetCURLFormPostField(curlHandle, form, lastPtr, "mods", hs->GetModifiers());
@@ -646,19 +648,20 @@ inline void SetCURLPOSTScore(CURL*& curlHandle, curl_httppost*& form, curl_httpp
 	SetCURLFormPostField(curlHandle, form, lastPtr, "letgo", hs->GetHoldNoteScore(HNS_LetGo));
 	SetCURLFormPostField(curlHandle, form, lastPtr, "ng", hs->GetHoldNoteScore(HNS_Missed));
 	SetCURLFormPostField(curlHandle, form, lastPtr, "chartkey", hs->GetChartKey());
-	SetCURLFormPostField(curlHandle, form, lastPtr, "rate", to_string(static_cast<int>(hs->GetMusicRate() * 1000.f)));
+	SetCURLFormPostField(curlHandle, form, lastPtr, "rate", hs->GetMusicRate());
 	auto chart = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "negsolo", chart->GetTimingData()->HasWarps() || chart->m_StepsType != StepsType_dance_single);
 	SetCURLFormPostField(curlHandle, form, lastPtr, "nocc", static_cast<int>(!hs->GetChordCohesion()));
 	SetCURLFormPostField(curlHandle, form, lastPtr, "calc_version", hs->GetSSRCalcVersion());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "topscore", hs->GetTopScore());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "hash", hs->GetValidationKey(ValidationKey_Brittle));
-	SetCURLFormPostField(curlHandle, form, lastPtr, "wife", to_string(static_cast<int>(hs->GetWifeScore() * 1000.f)));
-	SetCURLFormPostField(curlHandle, form, lastPtr, "wifePoints", to_string(static_cast<int>(hs->GetWifePoints() * 1000.f)));
-	SetCURLFormPostField(curlHandle, form, lastPtr, "judgeScale", to_string(static_cast<int>(hs->GetJudgeScale() * 1000.f)));
+	SetCURLFormPostField(curlHandle, form, lastPtr, "wife", hs->GetWifeScore());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "wifePoints", hs->GetWifePoints());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "judgeScale", hs->GetJudgeScale());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "machineGuid", hs->GetMachineGuid());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "grade", hs->GetGrade());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "wifeGrade", string(GradeToString(hs->GetWifeGrade()).c_str()));
+	SetCURLFormPostField(curlHandle, form, lastPtr, "ValidString", hs->GenerateValidationKeys());
 	
 }
 void DownloadManager::UploadScore(HighScore* hs)
@@ -682,7 +685,7 @@ void DownloadManager::UploadScore(HighScore* hs)
 			for (auto error : errors) {
 				if (error["status"] == 22) {
 					delay = true;
-					DLMAN->StartSession(DLMAN->sessionPass, DLMAN->sessionPass, [hs](bool logged) {
+					DLMAN->StartSession(DLMAN->sessionUser, DLMAN->sessionPass, [hs](bool logged) {
 						if (logged) {
 							DLMAN->UploadScore(hs);
 						}
@@ -745,7 +748,7 @@ void DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 				for (auto error : errors) {
 					if (error["status"] == 22) {
 						delay = true;
-						DLMAN->StartSession(DLMAN->sessionPass, DLMAN->sessionPass, [hs](bool logged) {
+						DLMAN->StartSession(DLMAN->sessionUser, DLMAN->sessionPass, [hs](bool logged) {
 							if (logged) {
 								DLMAN->UploadScoreWithReplayData(hs);
 							}
@@ -759,10 +762,7 @@ void DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 				FOREACH_ENUM(Skillset, ss)
 					if (ss != Skill_Overall)
 						(DLMAN->sessionRatings)[ss] += diffs.value(SkillsetToString(ss), 0.0);
-				(DLMAN->sessionRatings)[Skill_Overall] = 0.0f;
-				for(auto it : DLMAN->sessionRatings)
-					if(it.second > (DLMAN->sessionRatings)[Skill_Overall])
-						(DLMAN->sessionRatings)[Skill_Overall] = it.second;
+				(DLMAN->sessionRatings)[Skill_Overall] += diffs.value("Rating", 0.0);
 				hs->AddUploadedServer(serverURL.Get());
 				HTTPRunning = response_code;
 			}
@@ -908,17 +908,17 @@ void DownloadManager::SendRequestToURL(string url, vector<pair<string, string>> 
 	return;
 }
 
-float mythicalmathymaths(string chartkey) {
-	auto &scoobydoop = DLMAN->chartLeaderboards[chartkey];
+float mythicalmathymathsProbablyUnderratedness(string chartkey) {
+	auto &onlineScores = DLMAN->chartLeaderboards[chartkey];
 
 	float dsum = 0.f;
 	int num = 4;
-	for (auto &s : scoobydoop) {
-		float goobles = s.playerRating - 1.f;
+	for (auto &s : onlineScores) {
+		float adjRating = s.playerRating - 1.f;
 		if (s.playerRating > 1.f && s.SSRs[Skill_Overall] > 1.f && abs(s.playerRating - s.SSRs[Skill_Overall]) < 7.5f) {
 			if (s.playerRating > s.SSRs[Skill_Overall]) {
-				float mcsproot = goobles - s.SSRs[Skill_Overall];
-				dsum += mcsproot;
+				float diff = adjRating - s.SSRs[Skill_Overall];
+				dsum += diff;
 			}
 			else {
 				float mcdoot = s.SSRs[Skill_Overall] + 1.f - s.playerRating;
@@ -930,15 +930,16 @@ float mythicalmathymaths(string chartkey) {
 	return dsum/num;
 }
 
-float ixmixblixb(string chartkey) {
-	auto &scoobydoop = DLMAN->chartLeaderboards[chartkey];
-	vector<float> valuesbaby;
+float overratedness(string chartkey) {
+	auto &onlineScores = DLMAN->chartLeaderboards[chartkey];
+	vector<float> values;
 	float offset = 5.f;
 	float dsum = 0.f;
-	int num = 0;
-	float mcdoot = 1.f;
+	int num = onlineScores.size();
+	if (num == 0)
+		return 0.0f;
 	
-	for (auto &s : scoobydoop) {
+	for (auto &s : onlineScores) {
 		if (s.playerRating > 1.f && s.SSRs[Skill_Overall] > 1.f) {
 			float adjrating = s.playerRating * 1.026f;
 			float value = static_cast<float>((2.0 / erfc(0.1 * (s.SSRs[Skill_Overall] - adjrating))));
@@ -946,9 +947,8 @@ float ixmixblixb(string chartkey) {
 				value = 100.f;
 			if (value < 0)
 				value = 0.f;
-			valuesbaby.emplace_back(value);
+			values.emplace_back(value);
 			dsum += value;
-			++num;
 		}
 	}
 	
@@ -960,10 +960,11 @@ float ixmixblixb(string chartkey) {
 	overratedness -= 1.5f;
 
 	float multiplier = 1.f - overratedness;
-	if (multiplier - mcdoot < -0.2f)
-		multiplier = mcdoot - 0.2f;
+	float mcdootMin = 1.f;
+	if (multiplier  < mcdootMin-0.2f)
+		multiplier = mcdootMin - 0.2f;
 
-	float nerfE = (4.f*mcdoot + multiplier) / 5.f;
+	float nerfE = (4.f*mcdootMin + multiplier) / 5.f;
 	nerfE = min(1.f, nerfE);
 	return overratedness;
 }
@@ -1052,11 +1053,11 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 			//json failed
 		}
 		
-		float zoop = mythicalmathymaths(chartkey);
-		//float coop = ixmixblixb(chartkey);
-		msg.SetParam("mmm", zoop);
+		float ProbablyUnderratedness = mythicalmathymathsProbablyUnderratedness(chartkey);
+		//float coop = overratedness(chartkey);
+		// Renaming these 2 requires renaming them in lua wherever theyre used
+		msg.SetParam("mmm", ProbablyUnderratedness);
 		msg.SetParam("ixmixblixb", 2);
-		userswithscores.clear();	// should be ok to free the mem in this way? -mina
 		MESSAGEMAN->Broadcast(msg);	// see start of function
 	};
 	SendRequest("/charts/"+chartkey+"/leaderboards", vector<pair<string, string>>(), done, true);
@@ -1220,6 +1221,7 @@ void DownloadManager::StartSession(string user, string pass, function<void(bool 
 	curl_httppost *lastPtr = nullptr;
 	CURLFormPostField(curlHandle, form, lastPtr, "username", user.c_str());
 	CURLFormPostField(curlHandle, form, lastPtr, "password", pass.c_str());
+	CURLFormPostField(curlHandle, form, lastPtr, "clientData", CLIENT_DATA_KEY.c_str());
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
 
 	auto done = [user, pass, callback](HTTPRequest& req, CURLMsg *) {
@@ -1369,7 +1371,8 @@ Download::Download(string url, function<void(Download*)> done)
 	m_Url = url;
 	handle = initBasicCURLHandle();
 	m_TempFileName = MakeTempFileName(url);
-	p_RFWrapper.file.Open(m_TempFileName, 2);
+	auto opened = p_RFWrapper.file.Open(m_TempFileName, 2);
+	ASSERT(opened);
 	DLMAN->EncodeSpaces(m_Url);
 
 	curl_easy_setopt(handle, CURLOPT_WRITEDATA, &p_RFWrapper);
@@ -1638,17 +1641,36 @@ public:
 	}
 	static int GetCoreBundle(T* p, lua_State* L)
 	{
+		// this should probably return nil but only if we make it its own lua thing first -mina
 		auto bundle = DLMAN->GetCoreBundle(SArg(1));
 		lua_createtable(L, bundle.size(), 0);
 		for (size_t i = 0; i < bundle.size(); ++i) {
 			bundle[i]->PushSelf(L);
 			lua_rawseti(L, -2, i + 1);
 		}
+
+		size_t totalsize = 0;
+		float avgpackdiff = 0.f;
+
+		for (auto p : bundle) {
+			totalsize += p->size;
+			avgpackdiff += p->avgDifficulty;
+		}
+
+		if(!bundle.empty())
+			avgpackdiff /= bundle.size();
+		totalsize = totalsize / 1024 / 1024;
+		
+		// this may be kind of unintuitive but lets roll with it for now -mina
+		lua_pushnumber(L, totalsize);
+		lua_setfield(L, -2, "TotalSize");
+		lua_pushnumber(L, avgpackdiff);
+		lua_setfield(L, -2, "AveragePackDifficulty");
+
 		return 1;
 	}
 	static int DownloadCoreBundle(T* p, lua_State* L)
 	{
-		// pass "novice", "expert" etc, should start a queue and download packs in sequence rather than concurrently to minimize time before can begin -mina
 		DLMAN->DownloadCoreBundle(SArg(1));
 		return 1;
 	}

@@ -131,7 +131,9 @@ local t = Def.ActorFrame{
 	end,
 	SetCommand=function(self)
 		self:finishtweening()
-		if getTabIndex() == 8 then
+		if getTabIndex() == 8 and update then
+			MESSAGEMAN:Broadcast("MouseRightClick")
+		elseif getTabIndex() == 8 then
 			self:queuecommand("On")
 			self:visible(true)
 			update = true
@@ -142,9 +144,6 @@ local t = Def.ActorFrame{
 		MESSAGEMAN:Broadcast("DisplayAll")
 	end,
 	TabChangedMessageCommand=function(self)
-		self:queuecommand("Set")
-	end,
-	PlayerJoinedMessageCommand=function(self)
 		self:queuecommand("Set")
 	end,
 }
@@ -730,12 +729,8 @@ local iamspartacus = capWideScale(0,20)
 local noiamspartacus = capWideScale(20,40)
 local selectedbundle = false
 
-local bundleinfo
 local bundlename
 local bundleindex
-
-local bundlerating = 0
-local bundlesize = 0
 
 local function makedoots(i)
 	local packinfo
@@ -752,23 +747,8 @@ local function makedoots(i)
 					selectedbundle = true
 					bundlename = minidoots[i]
 					bundleindex = i
-					
 					currentpage = 1
 					packlist = DLMAN:GetCoreBundle(bundlename:lower())
-					
-					-- these should prolly be shifted into the internal bundle object -mina
-					local sumrating = 0
-					local sumsize = 0
-					if #packlist > 0 then
-						for i=1,#packlist do
-							sumsize = sumsize + packlist[i]:GetSize()
-							sumrating = sumrating + packlist[i]:GetAvgDifficulty()
-						end
-						
-						bundlerating = sumrating/#packlist
-						bundlesize = sumsize/1024/1024
-					end
-					
 					MESSAGEMAN:Broadcast("bundletime")
 					MESSAGEMAN:Broadcast("UpdatePacks")
 				end
@@ -801,21 +781,8 @@ local function makesuperdoots(i)
 					selectedbundle = true
 					bundlename = minidoots[i].."-Expanded"
 					bundleindex = i
-					
 					currentpage = 1
 					packlist = DLMAN:GetCoreBundle(bundlename:lower())
-					
-					local sumrating = 0
-					local sumsize = 0
-					if #packlist > 0 then
-						for i=1,#packlist do
-							sumsize = sumsize + packlist[i]:GetSize()
-							sumrating = sumrating + packlist[i]:GetAvgDifficulty()
-						end
-						bundlerating = sumrating/#packlist
-						bundlesize = sumsize/1024/1024
-					end
-					
 					MESSAGEMAN:Broadcast("bundletime")
 					MESSAGEMAN:Broadcast("UpdatePacks")
 				end
@@ -866,7 +833,7 @@ t[#t+1] = LoadFont("Common normal") .. {
 		self:settext("Core Bundles (Expanded):")
 	end,
 	bundletimeMessageCommand=function(self)
-		self:settextf("Total Size: %d(MB)", bundlesize)
+		self:settextf("Total Size: %d(MB)", packlist["TotalSize"])
 	end,
 	MouseRightClickMessageCommand=function(self)
 		if update then
@@ -880,8 +847,8 @@ t[#t+1] = LoadFont("Common normal") .. {
 		self:xy(250+noiamspartacus,bundlegumbley - 36):zoom(0.5):halign(0):valign(0):visible(false)
 	end,
 	bundletimeMessageCommand=function(self)
-		self:settextf("Avg: %5.2f", bundlerating)
-		self:diffuse(byMSD(bundlerating))
+		self:settextf("Avg: %5.2f", packlist["AveragePackDifficulty"])
+		self:diffuse(byMSD(packlist["AveragePackDifficulty"]))
 		self:visible(true)
 	end,
 	MouseRightClickMessageCommand=function(self)

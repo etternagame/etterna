@@ -97,49 +97,31 @@ static LocalizedString RELOADING ( "SongManager", "Reloading..." );
 static LocalizedString UNLOADING_SONGS ( "SongManager", "Unloading songs..." );
 static LocalizedString SANITY_CHECKING_GROUPS("SongManager", "Sanity checking groups...");
 
-void SongManager::Reload( bool bAllowFastLoad, LoadingWindow *ld )
-{
-	FILEMAN->FlushDirCache( SpecialFiles::SONGS_DIR );
-	FILEMAN->FlushDirCache( ADDITIONAL_SONGS_DIR );
-	FILEMAN->FlushDirCache( EDIT_SUBDIR );
-
-	if( ld )
-		ld->SetText( RELOADING );
-
-	// save scores before unloading songs, or the scores will be lost
-
-	if( ld )
-		ld->SetText( UNLOADING_SONGS );
-
-	FreeSongs();
-	cache.clear();
-
-	const bool OldVal = PREFSMAN->m_bFastLoad;
-	if( !bAllowFastLoad )
-		PREFSMAN->m_bFastLoad.Set( false );
-
-	InitAll( ld );
-
-	if( !bAllowFastLoad )
-		PREFSMAN->m_bFastLoad.Set( OldVal );
-
-	UpdatePreferredSort();
-}
-
 // See InitSongsFromDisk for any comment clarification -mina
 int SongManager::DifferentialReload() {
 	FILEMAN->FlushDirCache(SpecialFiles::SONGS_DIR);
 	FILEMAN->FlushDirCache(ADDITIONAL_SONGS_DIR);
 	FILEMAN->FlushDirCache(EDIT_SUBDIR);
 	int newsongs = 0;
-	newsongs += DifferentialReloadDir(SpecialFiles::SONGS_DIR);
-	newsongs += DifferentialReloadDir(ADDITIONAL_SONGS_DIR);
+	newsongs += DifferentialReloadDir(SpecialFiles::SONGS_DIR, NULL);
+	newsongs += DifferentialReloadDir(ADDITIONAL_SONGS_DIR, NULL);
+	LoadEnabledSongsFromPref();
+	return newsongs;
+}
+
+int SongManager::DifferentialReload(LoadingWindow *ld) {
+	FILEMAN->FlushDirCache(SpecialFiles::SONGS_DIR);
+	FILEMAN->FlushDirCache(ADDITIONAL_SONGS_DIR);
+	FILEMAN->FlushDirCache(EDIT_SUBDIR);
+	int newsongs = 0;
+	newsongs += DifferentialReloadDir(SpecialFiles::SONGS_DIR, ld);
+	newsongs += DifferentialReloadDir(ADDITIONAL_SONGS_DIR, ld);
 	LoadEnabledSongsFromPref();
 	return newsongs;
 }
 
 // See LoadStepManiaSongDir for any comment clarification -mina
-int SongManager::DifferentialReloadDir(string dir) {
+int SongManager::DifferentialReloadDir(string dir, LoadingWindow *ld) {
 	if (dir.substr(dir.size()) != "/")
 		dir += "/";
 
@@ -201,6 +183,9 @@ int SongManager::DifferentialReloadDir(string dir) {
 			AddKeyedPointers(pNewSong);
 
 			index_entry.emplace_back(pNewSong);
+			
+			if(ld)
+				ld->SetText("Loading:\n" + sGroupDirName + "\n" + pNewSong->GetMainTitle());
 
 			loaded++;
 			songIndex++;
@@ -351,10 +336,12 @@ void Playlist::LoadFromNode(const XNode* node) {
 	node->GetAttrValue("Name", name);
 	if (!node->ChildrenEmpty()) {
 		const XNode* cl = node->GetChild("Chartlist");
-		FOREACH_CONST_Child(cl, chart) {
-			Chart ch;
-			ch.LoadFromNode(chart);
-			chartlist.emplace_back(ch);
+		if (cl) {
+			FOREACH_CONST_Child(cl, chart) {
+				Chart ch;
+				ch.LoadFromNode(chart);
+				chartlist.emplace_back(ch);
+			}
 		}
 
 		const XNode* cr = node->GetChild("CourseRuns");
@@ -441,6 +428,15 @@ void SongManager::MakePlaylistFromFavorites(set<string>& favs, map<string, Playl
 			pl.DeleteChart(i);
 
 	playlists.emplace("Favorites", pl);
+}
+
+void SongManager::ReconcileChartKeysForReloadedSong(const Song* reloadedSong, vector<string> oldChartkeys)
+{
+	for (auto ck : oldChartkeys)
+		SONGMAN->StepsByKey.erase(ck);
+	auto stepses = reloadedSong->GetAllSteps();
+	for (auto steps : stepses)
+		SONGMAN->StepsByKey[steps->GetChartKey()] = steps;
 }
 
 string SongManager::ReconcileBustedKeys(const string& ck) {

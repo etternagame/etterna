@@ -94,7 +94,7 @@ void DoInstalls(CommandLineActions::CommandLineArgs args)
 		}
 		else
 		{
-			SONGMAN->DifferentialReload();
+			SCREENMAN->SetNewScreen("ScreenReloadSongs");
 		}
 	}
 	return;
@@ -141,6 +141,9 @@ void ScreenInstallOverlay::Update(float fDeltaTime)
 	}
 #if !defined(WITHOUT_NETWORKING)
 	vector<RString> vsMessages;
+	if (!DLMAN->DownloadQueue.empty()) {
+		vsMessages.push_back(RString(to_string(DLMAN->DownloadQueue.size())) + " items left in download queue.\nCurrently downloading:");
+	}
 	for(auto &dl : DLMAN->downloads)
 	{
 		vsMessages.push_back(dl.second->Status());

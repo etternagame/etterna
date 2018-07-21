@@ -18,9 +18,6 @@ local t = Def.ActorFrame{
 	end,
 	OnCommand=function(self)
 		self:bouncebegin(0.2):xy(0,0):diffusealpha(1)
-		SCREENMAN:GetTopScreen():GetMusicWheel():Move(1)
-		SCREENMAN:GetTopScreen():GetMusicWheel():Move(-1)
-		SCREENMAN:GetTopScreen():GetMusicWheel():Move(0)
 	end,
 	SetCommand=function(self)
 		self:finishtweening()
@@ -333,11 +330,11 @@ t[#t+1] = LoadFont("Common Large") .. {
 	end,
 	SetCommand=function(self)
 		if song then
-			if GAMESTATE:GetCurrentStyle():ColumnsPerPlayer() == 4 then
-			local meter = steps:GetMSD(getCurRateValue(), 1)
-			self:settextf("%05.2f",meter)
-			self:diffuse(byMSD(meter))
-		else
+			if steps:GetStepsType() == "StepsType_Dance_Single" then
+				local meter = steps:GetMSD(getCurRateValue(), 1)
+				self:settextf("%05.2f",meter)
+				self:diffuse(byMSD(meter))
+			else
 				self:settextf("%5.2f",steps:GetMeter())
 				self:diffuse(byDifficulty(steps:GetDifficulty()))
 			end
@@ -394,7 +391,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 		if song then
 			local playabletime = GetPlayableTime()
 			self:settext(SecondsToMMSS(playabletime))
-			self:diffuse(ByMusicLength(playabletime))
+			self:diffuse(byMusicLength(playabletime))
 		else
 			self:settext("")
 		end

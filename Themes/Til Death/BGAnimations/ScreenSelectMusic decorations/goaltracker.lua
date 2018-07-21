@@ -25,9 +25,6 @@ local t = Def.ActorFrame{
 	TabChangedMessageCommand=function(self)
 		self:queuecommand("Set")
 	end,
-	PlayerJoinedMessageCommand=function(self)
-		self:queuecommand("Set")
-	end,
 }
 
 local frameX = 10
@@ -51,12 +48,13 @@ local goalYspacing = 30
 local goalrow2Y = 12
 local currentgoalpage = {1, 1, 1}
 local numgoalpages = 1
+local profile
 
 if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
 	profile = GetPlayerOrMachineProfile(PLAYER_1)
 end
 
-local playergoals = profile:GetAllGoals()
+local playergoals
 local displayindex = {}
 
 t[#t+1] = Def.Quad{InitCommand=function(self)

@@ -22,9 +22,6 @@ local t = Def.ActorFrame{
 	TabChangedMessageCommand=function(self)
 		self:queuecommand("Set")
 	end,
-	PlayerJoinedMessageCommand=function(self)
-		self:queuecommand("Set")
-	end	
 }
 
 

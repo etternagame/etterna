@@ -244,17 +244,18 @@ void ScreenSelectMusic::BeginScreen()
 
 	if (GAMESTATE->GetCurrentStyle(PLAYER_INVALID) == NULL)
 	{
-		LuaHelpers::ReportScriptError("The Style has not been set.  A theme must set the Style before loading ScreenSelectMusic.");
+		LOG->Trace("The Style has not been set.  A theme must set the Style before loading ScreenSelectMusic.");
 		// Instead of crashing, set the first compatible style.
 		vector<StepsType> vst;
 		GAMEMAN->GetStepsTypesForGame(GAMESTATE->m_pCurGame, vst);
 		const Style *pStyle = GAMEMAN->GetFirstCompatibleStyle(GAMESTATE->m_pCurGame, GAMESTATE->GetNumSidesJoined(), vst[0]);
 		if (pStyle == NULL)
 		{
-			FAIL_M(ssprintf("No compatible styles for %s with %d player%s.",
+			LOG->Warn(ssprintf("No compatible styles for %s with %d player%s.",
 				GAMESTATE->m_pCurGame->m_szName,
 				GAMESTATE->GetNumSidesJoined(),
-				GAMESTATE->GetNumSidesJoined() == 1 ? "" : "s"));
+				GAMESTATE->GetNumSidesJoined() == 1 ? "" : "s") + "Returning to title menu.");
+			SCREENMAN->SetNewScreen("ScreenTitleMenu");
 		}
 		GAMESTATE->SetCurrentStyle(pStyle, PLAYER_INVALID);
 	}
@@ -416,9 +417,7 @@ void ScreenSelectMusic::Update(float fDeltaTime)
 
 void ScreenSelectMusic::DifferentialReload()
 {
-	int newsongs = SONGMAN->DifferentialReload();
-	SCREENMAN->SystemMessage(ssprintf("Differential reload of %i songs", newsongs));
-	m_MusicWheel.ReloadSongList(false, "");
+	SCREENMAN->SetNewScreen("ScreenReloadSongs");
 }
 
 bool ScreenSelectMusic::Input(const InputEventPlus &input)
@@ -470,7 +469,14 @@ bool ScreenSelectMusic::Input(const InputEventPlus &input)
 			Song* to_reload = m_MusicWheel.GetSelectedSong();
 			if (to_reload != nullptr)
 			{
+				auto stepses = to_reload->GetAllSteps();
+				vector<string> oldChartkeys;
+				for (auto steps : stepses)
+					oldChartkeys.emplace_back(steps->GetChartKey());
+
 				to_reload->ReloadFromSongDir();
+				SONGMAN->ReconcileChartKeysForReloadedSong(to_reload, oldChartkeys);
+
 				AfterMusicChange();
 				return true;
 			}
@@ -524,6 +530,8 @@ bool ScreenSelectMusic::Input(const InputEventPlus &input)
 			Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
 			pProfile->CreateGoal(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
 			Song* asonglol = m_MusicWheel.GetSelectedSong();
+			if (!asonglol)
+				return true;
 			asonglol->SetHasGoal(true);
 			Message msg("FavoritesUpdated");
 			MESSAGEMAN->Broadcast(msg);

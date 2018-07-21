@@ -93,9 +93,9 @@ public:
 	void FreeAllLoadedFromProfile( ProfileSlot slot = ProfileSlot_Invalid );
 
 	void InitAll( LoadingWindow *ld );	// songs, groups - everything.
-	void Reload( bool bAllowFastLoad, LoadingWindow *ld=nullptr );	// songs, groups - everything.
 	int DifferentialReload();
-	int DifferentialReloadDir(string dir);
+	int DifferentialReload(LoadingWindow * ld);
+	int DifferentialReloadDir(string dir, LoadingWindow *ld);
 	void PreloadSongImages();
 
 	bool IsGroupNeverCached(const RString& group) const;
@@ -186,6 +186,7 @@ public:
 	string activeplaylist = "";
 	string playlistcourse = "";
 	string ReconcileBustedKeys(const string& ck);
+	void ReconcileChartKeysForReloadedSong(const Song* reloadedSong, vector<string> oldChartkeys);
 	map<string, string> keyconversionmap;
 	void SetFlagsForProfile(Profile* prof);
 	void MakeSongGroupsFromPlaylists(map<string, Playlist>& playlists = GetPlaylists());
