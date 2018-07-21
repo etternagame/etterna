@@ -1,17 +1,16 @@
-#include "global.h"
+﻿#include "global.h"
 #include "RageString.h"
 #include "RageUnicode.h"
-#include <cstdlib>
-#include <cstring>
-#include <sstream>
 #include <algorithm>
+#include <cstdlib>
+#include <sstream>
 
 void make_upper(char *p, size_t len);
 void make_lower(char *p, size_t len);
 
 std::string Rage::head(std::string const &source, int32_t const length)
 {
-	if (std::abs(length) >= source.size())
+	if (static_cast<size_t>(std::abs(length)) >= source.size())
 	{
 		return source;
 	}
@@ -24,7 +23,7 @@ std::string Rage::head(std::string const &source, int32_t const length)
 
 std::string Rage::tail(std::string const &source, int32_t const length)
 {
-	if (std::abs(length) >= source.size())
+	if (static_cast<size_t>(std::abs(length)) >= source.size())
 	{
 		return source;
 	}
@@ -293,7 +292,7 @@ std::string Rage::trim_left(std::string const &source)
 
 std::string Rage::trim_left(std::string const &source, std::string const &delimiters)
 {
-	auto n = 0;
+	size_t n = 0;
 	auto end = source.size();
 	auto const *d_str = delimiters.c_str();
 	while (n < end && std::strchr(d_str, source[n]))

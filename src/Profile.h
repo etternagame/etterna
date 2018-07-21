@@ -1,13 +1,11 @@
-#ifndef Profile_H
+﻿#ifndef Profile_H
 #define Profile_H
 
+#include "DateTime.h"
 #include "GameConstantsAndTypes.h"
 #include "Grade.h"
-#include <map>
-#include <set>
-#include <deque>
 #include "HighScore.h"
-#include "DateTime.h"
+#include "LuaReference.h"
 #include "SongUtil.h"	// for SongID
 #include "StepsUtil.h"	// for StepsID
 #include "StyleUtil.h"	// for StyleID
@@ -16,6 +14,8 @@
 #include "DBProfile.h"
 #include "SongManager.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
+#include <map>
+#include <set>
 
 #include <unordered_map>
 
@@ -298,6 +298,7 @@ public:
 	HighScoreList& GetStepsHighScoreList( const Song* pSong, const Steps* pSteps );
 	int GetStepsNumTimesPlayed( const Song* pSong, const Steps* pSteps ) const;
 	void IncrementStepsPlayCount( const Song* pSong, const Steps* pSteps );
+	Grade GetBestGrade(const Song * pSong, StepsType st) const;
 	void GetGrades( const Song* pSong, StepsType st, int iCounts[NUM_Grade] ) const;
 	int GetSongNumTimesPlayed( const Song* pSong ) const;
 	int GetSongNumTimesPlayed( const SongID& songID ) const;

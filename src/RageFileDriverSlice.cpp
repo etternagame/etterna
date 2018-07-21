@@ -1,4 +1,4 @@
-#include "global.h"
+﻿#include "global.h"
 #include "RageFileDriverSlice.h"
 
 RageFileDriverSlice::RageFileDriverSlice( RageFileBasic *pFile, int iOffset, int iFileSize )

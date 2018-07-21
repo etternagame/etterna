@@ -1,15 +1,18 @@
-#ifndef PlayerStageStats_H
+﻿#ifndef PlayerStageStats_H
 #define PlayerStageStats_H
 
 #include "Grade.h"
-#include "RadarValues.h"
 #include "HighScore.h"
-#include "PlayerNumber.h"
-#include <map>
 #include "NoteDataStructures.h"
+#include "PlayerNumber.h"
+#include "RadarValues.h"
+#include "NoteTypes.h"
+#include <map>
+
 class Steps;
 class Style;
 struct lua_State;
+
 /** @brief Contains statistics for one stage of play - either one song, or a whole course. */
 class PlayerStageStats
 {
@@ -42,6 +45,9 @@ public:
 	float GetTimingScale() const;
 	vector<float> GetOffsetVector() const;
 	vector<int> GetNoteRowVector() const;
+	vector<int> GetTrackVector() const;
+	vector<TapNoteType> GetTapNoteTypeVector() const;
+	vector<HoldReplayResult> GetHoldReplayDataVector() const;
 	float GetCurMaxPercentDancePoints() const;
 
 	int GetLessonScoreActual() const;
@@ -80,8 +86,11 @@ public:
 	float	CurWifeScore;
 	float	MaxWifeScore;
 	float	m_fTimingScale;
+	vector<HoldReplayResult> m_vHoldReplayData;
 	vector<float> m_vOffsetVector;
 	vector<int> m_vNoteRowVector;
+	vector<TapNoteType> m_vTapNoteTypeVector;
+	vector<int> m_vTrackVector;
 	vector<float> InputData;
 	int		m_iTapNoteScores[NUM_TapNoteScore];
 	int		m_iHoldNoteScores[NUM_HoldNoteScore];
@@ -122,6 +131,8 @@ public:
 	bool luascriptwasloaded;
 	bool filehadnegbpms; // the call after gameplay is over is apparently unreliable -mina
 	bool filegotmines; // this needs to be set before any notedata transforms
+	bool filegotholds;
+	bool gaveuplikeadumbass; // flag 'giving up' status so i can flag it as failing so i dont have to remove the feature entirely -mina
 
 	map<float,float> m_fLifeRecord;
 	void	SetLifeRecordAt( float fLife, float fStepsSecond );
@@ -194,6 +205,8 @@ public:
 	int		m_iMachineHighScoreIndex;
 	bool	m_bDisqualified;
 	bool	IsDisqualified() const;
+
+	void UnloadReplayData();	// i don't really trust the deconstructors here, also prefer flexibility in this -mina
 
 	RankingCategory	m_rc;
 	HighScore	m_HighScore;

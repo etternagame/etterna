@@ -1,4 +1,4 @@
-#ifndef NOTES_LOADER_KSF_H
+﻿#ifndef NOTES_LOADER_KSF_H
 #define NOTES_LOADER_KSF_H
 
 class Song;

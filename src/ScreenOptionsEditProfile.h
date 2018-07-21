@@ -1,8 +1,8 @@
 #ifndef ScreenOptionsEditProfile_H
 #define ScreenOptionsEditProfile_H
 
-#include "ScreenOptions.h"
 #include "Profile.h"
+#include "ScreenOptions.h"
 
 class ScreenOptionsEditProfile : public ScreenOptions
 {
@@ -20,7 +20,7 @@ private:
 	virtual void GoToNextScreen();
 	virtual void GoToPrevScreen();
 	
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 	void AfterChangeValueInRow( int iRow, PlayerNumber pn ) override;
 	void ProcessMenuStart( const InputEventPlus &input ) override;
 

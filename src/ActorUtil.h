@@ -1,8 +1,7 @@
-#ifndef ActorUtil_H
+﻿#ifndef ActorUtil_H
 #define ActorUtil_H
 
 #include "Actor.h"
-#include "RageTexture.h"
 
 class XNode;
 

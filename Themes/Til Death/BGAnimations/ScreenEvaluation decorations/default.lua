@@ -1,7 +1,6 @@
 local t = Def.ActorFrame{}
 
 local enabledCustomWindows = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomEvaluationWindowTimings
-PROFILEMAN:SaveProfile(PLAYER_1)
 
 local customWindows = timingWindowConfig:get_data().customWindows
 
@@ -14,16 +13,28 @@ end
 
 t[#t+1] = LoadFont("Common Normal")..{
 	InitCommand=function(self)
-		self:xy(SCREEN_CENTER_X,capWideScale(135,150)):zoom(0.4):maxwidth(400/0.4)
+		self:xy(SCREEN_CENTER_X,capWideScale(135,150)):zoom(0.4):maxwidth(capWideScale(250/0.4,180/0.4))
+	end,
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	SetCommand=function(self) 
+		self:settext(GAMESTATE:GetCurrentSong():GetDisplayMainTitle())
+	end
+}
+
+t[#t+1] = LoadFont("Common Normal")..{
+	InitCommand=function(self)
+		self:xy(SCREEN_CENTER_X,capWideScale(145,160)):zoom(0.4):maxwidth(180/0.4)
 	end,
 	BeginCommand=function(self)
 		self:queuecommand("Set")
 	end,
 	SetCommand=function(self) 
 		if GAMESTATE:IsCourseMode() then
-			self:settext(GAMESTATE:GetCurrentCourse():GetDisplayFullTitle().." // "..GAMESTATE:GetCurrentCourse():GetScripter())
+			self:settext(GAMESTATE:GetCurrentCourse():GetScripter())
 		else
-			self:settext(GAMESTATE:GetCurrentSong():GetDisplayMainTitle().." // "..GAMESTATE:GetCurrentSong():GetDisplayArtist()) 
+			self:settext(GAMESTATE:GetCurrentSong():GetDisplayArtist())
 		end
 	end
 }
@@ -31,7 +42,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 -- Rate String
 t[#t+1] = LoadFont("Common normal")..{
 	InitCommand=function(self)
-		self:xy(SCREEN_CENTER_X,capWideScale(145,160)):zoom(0.5):halign(0.5)
+		self:xy(SCREEN_CENTER_X,capWideScale(155,170)):zoom(0.5):halign(0.5)
 	end,
 	BeginCommand=function(self)
 		if getCurRateString() == "1x" then
@@ -115,7 +126,7 @@ function scoreBoard(pn,position)
 	}
 	t[#t+1] = Def.Quad{
 		InitCommand=function(self)
-			self:xy(frameX-5,frameY):zoomto(frameWidth+10,220):halign(0):valign(0):diffuse(color("#333333CC"))
+			self:xy(frameX-5,capWideScale(frameY,frameY+4)):zoomto(frameWidth+10,220):halign(0):valign(0):diffuse(color("#333333CC"))
 		end,
 	};
 	t[#t+1] = Def.Quad{
@@ -139,7 +150,7 @@ function scoreBoard(pn,position)
 		SetCommand=function(self)
 			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1)
 			self:settextf("%5.2f", meter)
-			self:diffuse(ByMSD(meter))
+			self:diffuse(byMSD(meter))
 		end,
 	};
 	t[#t+1] = LoadFont("Common Large")..{
@@ -153,7 +164,7 @@ function scoreBoard(pn,position)
 		SetCommand=function(self)
 			local meter = score:GetSkillsetSSR("Overall")
 			self:settextf("%5.2f", meter)
-			self:diffuse(ByMSD(meter))
+			self:diffuse(byMSD(meter))
 		end,
 	};
 	t[#t+1] = LoadFont("Common Large") .. {
@@ -369,20 +380,41 @@ function scoreBoard(pn,position)
 	end
 	
 	-- stats stuff
+	local tracks = pss:GetTrackVector()
 	local devianceTable = pss:GetOffsetVector()
+	local cbl = 0
+	local cbr = 0
+	
+	-- basic per-hand stats to be expanded on later
+	local tst = ms.JudgeScalers
+	local tso = tst[judge]
+	if enabledCustomWindows then
+		tso = 1
+	end
+	
+	for i=1,#devianceTable do
+		if math.abs(devianceTable[i]) > tso * 90 then
+			if tracks[i] == 0 or tracks[i] == 1 then
+				cbl = cbl + 1
+			else
+				cbr = cbr + 1
+			end
+		end
+	end
+	
 	t[#t+1] = Def.Quad{
 		InitCommand=function(self)
 			self:xy(frameWidth+25,frameY+230):zoomto(frameWidth/2+10,60):halign(1):valign(0):diffuse(color("#333333CC"))
 		end,
 	};
 	local smallest,largest = wifeRange(devianceTable)
-	local doot = {"Mean", "Mean(Abs)", "Sd", "Smallest", "Largest"}
+	local doot = {"Mean", "Mean(Abs)", "Sd", "Left cbs", "Right cbs"}
 	local mcscoot = {
 		wifeMean(devianceTable), 
 		wifeAbsMean(devianceTable),
 		wifeSd(devianceTable),
-		smallest, 
-		largest
+		cbl, 
+		cbr
 	}
 
 	for i=1,#doot do
@@ -393,10 +425,14 @@ function scoreBoard(pn,position)
 		};
 		t[#t+1] = LoadFont("Common Normal")..{
 			InitCommand=function(self)
-				self:xy(frameWidth+20,frameY+230+10*i):zoom(0.4):halign(1):settextf("%5.2fms",mcscoot[i])
+				if i < 4 then
+					self:xy(frameWidth+20,frameY+230+10*i):zoom(0.4):halign(1):settextf("%5.2fms",mcscoot[i])
+				else
+					self:xy(frameWidth+20,frameY+230+10*i):zoom(0.4):halign(1):settext(mcscoot[i])
+				end
 			end,
 		};
-	end
+	end	
 	
 	return t
 end;

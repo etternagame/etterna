@@ -1,10 +1,10 @@
-#include "global.h"
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "RageTimer.h"
-#include "RageFile.h"
-#include "RageThreads.h"
+﻿#include "global.h"
 #include "Foreach.h"
+#include "RageFile.h"
+#include "RageLog.h"
+#include "RageThreads.h"
+#include "RageTimer.h"
+#include "RageUtil.h"
 
 #include <ctime>
 #if defined(_WINDOWS)
@@ -431,12 +431,12 @@ void ShowWarningOrTrace( const char *file, int line, const char *message, bool b
 {
 	/* Ignore everything up to and including the first "src/". */
 	const char *temp = strstr( file, "src/" );
-	if( temp )
+	if( temp != nullptr )
 		file = temp + 4;
 
 	void (RageLog::*method)(const char *fmt, ...) = bWarning ? &RageLog::Warn : &RageLog::Trace;
 
-	if( LOG )
+	if( LOG != nullptr )
 		(LOG->*method)( "%s:%i: %s", file, line, message );
 	else
 		fprintf( stderr, "%s:%i: %s\n", file, line, message );

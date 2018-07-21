@@ -1,8 +1,9 @@
-#ifndef RAGE_THREADS_H
+﻿#ifndef RAGE_THREADS_H
 #define RAGE_THREADS_H
 
 struct ThreadSlot;
 class RageTimer;
+
 /** @brief Thread, mutex, semaphore, and event classes. */
 class RageThread
 {

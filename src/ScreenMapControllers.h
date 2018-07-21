@@ -3,11 +3,11 @@
 #ifndef SCREEN_MAP_CONTROLLERS_H
 #define SCREEN_MAP_CONTROLLERS_H
 
-#include "ScreenWithMenuElements.h"
+#include "ActorScroller.h"
 #include "BitmapText.h"
 #include "InputMapper.h"
-#include "ActorScroller.h"
 #include "RageSound.h"
+#include "ScreenWithMenuElements.h"
 
 class ScreenMapControllers : public ScreenWithMenuElements
 {
@@ -20,7 +20,7 @@ public:
 	void Update( float fDeltaTime ) override;
 	bool Input( const InputEventPlus &input ) override;
 	void HandleMessage( const Message &msg ) override;
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 
 private:
 

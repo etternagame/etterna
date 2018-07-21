@@ -1,4 +1,4 @@
-#include "global.h"
+﻿#include "global.h"
 #include "LuaReference.h"
 
 REGISTER_CLASS_TRAITS( LuaReference, new LuaReference(*pCopy) )
@@ -175,7 +175,7 @@ namespace LuaHelpers
 		Object = apActorCommands( pRef );
 		return true;
 	}
-}
+} // namespace LuaHelpers
 
 LuaTable::LuaTable()
 {
@@ -208,7 +208,7 @@ namespace LuaHelpers
 	{
 		Object.PushSelf( L );
 	}
-}
+} // namespace LuaHelpers
 
 /*
  * (c) 2005 Glenn Maynard, Chris Danford

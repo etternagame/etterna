@@ -16,10 +16,7 @@
 #include "RageFileManager.h"
 #include "curl/curl.h"
 #include "Difficulty.h"
-
-
-
-
+#include <deque>
 
 class DownloadablePack;
 
@@ -39,7 +36,8 @@ public:
 
 class Download {
 public:
-	Download(string url);
+	function<void(Download*)> Done;
+	Download(string url, function<void(Download*)> done = [](Download*) {return; });
 	~Download();
 	void Install();
 	void Update(float fDeltaSeconds);
@@ -79,14 +77,15 @@ public:
 
 class HTTPRequest {
 public:
-	HTTPRequest(CURL * h, function<void(HTTPRequest&)> done = [](HTTPRequest& req) {return; },
-		curl_httppost* postform = nullptr, function<void(HTTPRequest&)> fail = [](HTTPRequest& req) {return; }):
+	HTTPRequest(CURL * h, function<void(HTTPRequest&, CURLMsg *)> done = [](HTTPRequest& req, CURLMsg *) {return; },
+		curl_httppost* postform = nullptr, 
+		function<void(HTTPRequest&, CURLMsg *)> fail = [](HTTPRequest& req, CURLMsg *) {return; }):
 		handle(h), form(postform), Done(done), Failed(fail) {};
 	CURL * handle{ nullptr };
 	curl_httppost* form{ nullptr };
 	string result;
-	function<void(HTTPRequest&)> Done;
-	function<void(HTTPRequest&)> Failed;
+	function<void(HTTPRequest&, CURLMsg *)> Done;
+	function<void(HTTPRequest&, CURLMsg *)> Failed;
 };
 class OnlineTopScore {
 public:
@@ -120,6 +119,9 @@ public:
 	string username;
 	float playerRating{ 0.0f };
 	string modifiers;
+	string scoreid;
+	string avatar;
+	int userid;
 	DateTime datetime;
 	vector<pair<float, float>> replayData;
 };
@@ -130,6 +132,7 @@ public:
 	~DownloadManager();
 	map<string, Download*> downloads; // Active downloads
 	vector<HTTPRequest*> HTTPRequests; // Active HTTP requests (async, curlMulti)
+
 	map<string, Download*> finishedDownloads;
 	map<string, Download*> pendingInstallDownloads;
 	CURLM* mPackHandle{ nullptr }; // Curl multi handle for packs downloads
@@ -143,8 +146,7 @@ public:
 	string error{ "" };
 	int lastid{ 0 };
 	vector<DownloadablePack> downloadablePacks;
-	string session{ "" }; // Session cookie content
-	string sessionCookie{ "" }; // Entire session cookie string
+	string authToken{ "" }; // Session cookie content
 	string sessionUser{ "" }; // Currently logged in username
 	string sessionPass{ "" }; // Currently logged in password
 	string lastVersion{ "" }; // Last version according to server (Or current if non was obtained)
@@ -154,9 +156,15 @@ public:
 	map<Skillset, double> sessionRatings;
 	map<Skillset, vector<OnlineTopScore>> topScores;
 	bool LoggedIn();
+
+	void AddFavorite(string chartkey);
+	void RemoveFavorite(string chartkey);
+	void RefreshFavourites();
+	vector<string> favorites;
+
 	void EndSessionIfExists(); //Calls EndSession if logged in
 	void EndSession(); //Sends session destroy request
-	void StartSession(string user, string pass); //Sends login request if not already logging in
+	void StartSession(string user, string pass, function<void(bool loggedIn)> done); //Sends login request if not already logging in
 	bool UploadScores(); //Uploads all scores not yet uploaded to current server (Async, 1 request per score)
 	void RefreshPackList(string url); 
 
@@ -184,8 +192,8 @@ public:
 	inline void SetCURLPostToURL(CURL *curlHandle, string url);
 	inline void SetCURLURL(CURL *curlHandle, string url);
 
-	void SendRequest(string requestName, vector<pair<string, string>> params, function<void(HTTPRequest&)> done, bool requireLogin = true, bool post = false, bool async = true);
-	void SendRequestToURL(string url, vector<pair<string, string>> params, function<void(HTTPRequest&)> done, bool requireLogin, bool post, bool async);
+	void SendRequest(string requestName, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> done, bool requireLogin = true, bool post = false, bool async = true);
+	void SendRequestToURL(string url, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> done, bool requireLogin, bool post, bool async);
 	void RefreshLastVersion(); 
 	void RefreshRegisterPage();
 	void RequestChartLeaderBoard(string chartkey);
@@ -198,6 +206,12 @@ public:
 
 	// most recent single score upload result -mina
 	RString mostrecentresult = "";
+	std::deque<DownloadablePack*> DownloadQueue;
+	const int maxPacksToDownloadAtOnce = 1;
+	const float DownloadCooldownTime = 5.f;
+	float timeSinceLastDownload = 0.f;
+	void DownloadCoreBundle(string whichoneyo);
+	vector<DownloadablePack*> GetCoreBundle(string whichoneyo);
 
 	// Lua
 	void PushSelf(lua_State *L);

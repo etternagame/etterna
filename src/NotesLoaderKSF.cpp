@@ -1,11 +1,11 @@
-#include "global.h"
-#include "NotesLoaderKSF.h"
-#include "RageUtil_CharConversions.h"
+﻿#include "global.h"
 #include "MsdFile.h"
-#include "RageLog.h"
-#include "RageUtil.h"
 #include "NoteData.h"
 #include "NoteTypes.h"
+#include "NotesLoaderKSF.h"
+#include "RageLog.h"
+#include "RageUtil.h"
+#include "RageUtil_CharConversions.h"
 #include "Song.h"
 #include "Steps.h"
 
@@ -192,7 +192,7 @@ static bool LoadFromKSFFile( const RString &sPath, Steps &out, Song &song, bool 
 		if( sFName.find("another") != string::npos )
 		{
 			out.SetDifficulty( Difficulty_Edit );
-			if( !out.GetMeter() ) out.SetMeter( 25 );
+			if( out.GetMeter() == 0 ) out.SetMeter( 25 );
 		}
 		else if(sFName.find("wild") != string::npos || 
 			sFName.find("wd") != string::npos || 
@@ -201,7 +201,7 @@ static bool LoadFromKSFFile( const RString &sPath, Steps &out, Song &song, bool 
 			sFName.find("hardcore") != string::npos )
 		{
 			out.SetDifficulty( Difficulty_Challenge );
-			if( !out.GetMeter() ) out.SetMeter( 20 );
+			if( out.GetMeter() == 0 ) out.SetMeter( 20 );
 		}
 		else if(sFName.find("crazy") != string::npos || 
 			sFName.find("cz") != string::npos || 
@@ -210,7 +210,7 @@ static bool LoadFromKSFFile( const RString &sPath, Steps &out, Song &song, bool 
 			sFName.find("crazydouble") != string::npos )
 		{
 			out.SetDifficulty( Difficulty_Hard );
-			if( !out.GetMeter() ) out.SetMeter( 14 ); // Set the meters to the Pump scale, not DDR.
+			if( out.GetMeter() == 0 ) out.SetMeter( 14 ); // Set the meters to the Pump scale, not DDR.
 		}
 		else if(sFName.find("hard") != string::npos || 
 			sFName.find("hd") != string::npos || 
@@ -219,7 +219,7 @@ static bool LoadFromKSFFile( const RString &sPath, Steps &out, Song &song, bool 
 			sFName.find("double") != string::npos )
 		{
 			out.SetDifficulty( Difficulty_Medium );
-			if( !out.GetMeter() ) out.SetMeter( 8 );
+			if( out.GetMeter() == 0 ) out.SetMeter( 8 );
 		}
 		else if(sFName.find("easy") != string::npos || 
 			sFName.find("ez") != string::npos || 
@@ -227,18 +227,18 @@ static bool LoadFromKSFFile( const RString &sPath, Steps &out, Song &song, bool 
 		{
 			// I wonder if I should leave easy fall into the Beginner difficulty... -DaisuMaster
 			out.SetDifficulty( Difficulty_Easy );
-			if( !out.GetMeter() ) out.SetMeter( 4 );
+			if( out.GetMeter() == 0 ) out.SetMeter( 4 );
 		}
 		else if(sFName.find("beginner") != string::npos || 
 			sFName.find("practice") != string::npos || sFName.find("pr") != string::npos  )
 		{
 			out.SetDifficulty( Difficulty_Beginner );
-			if( !out.GetMeter() ) out.SetMeter( 4 );
+			if( out.GetMeter() == 0 ) out.SetMeter( 4 );
 		}
 		else
 		{
 			out.SetDifficulty( Difficulty_Hard );
-			if( !out.GetMeter() ) out.SetMeter( 10 );
+			if( out.GetMeter() == 0 ) out.SetMeter( 10 );
 		}
 
 		out.m_StepsType = StepsType_pump_single;

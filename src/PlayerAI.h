@@ -1,4 +1,4 @@
-/* PlayerAI - Chooses which notes the AI steps on. */
+﻿/* PlayerAI - Chooses which notes the AI steps on. */
 
 #ifndef PlayerAI_H
 #define PlayerAI_H

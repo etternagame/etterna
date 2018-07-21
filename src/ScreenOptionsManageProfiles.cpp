@@ -1,17 +1,17 @@
 #include "global.h"
-#include "ScreenDimensions.h"
-#include "ScreenOptionsManageProfiles.h"
-#include "ScreenManager.h"
-#include "RageLog.h"
-#include "GameState.h"
 #include "CommonMetrics.h"
-#include "ScreenTextEntry.h"
-#include "ScreenPrompt.h"
-#include "ScreenMiniMenu.h"
-#include "ProfileManager.h"
-#include "Profile.h"
-#include "OptionRowHandler.h"
+#include "GameState.h"
 #include "LocalizedString.h"
+#include "OptionRowHandler.h"
+#include "Profile.h"
+#include "ProfileManager.h"
+#include "RageLog.h"
+#include "ScreenDimensions.h"
+#include "ScreenManager.h"
+#include "ScreenMiniMenu.h"
+#include "ScreenOptionsManageProfiles.h"
+#include "ScreenPrompt.h"
+#include "ScreenTextEntry.h"
 
 static LocalizedString NEW_PROFILE_DEFAULT_NAME( "ScreenOptionsManageProfiles", "NewProfileDefaultName" );
 
@@ -290,7 +290,7 @@ void ScreenOptionsManageProfiles::HandleScreenMessage( const ScreenMessage SM )
 						if( ProfileManager::m_sDefaultLocalProfileID[p].Get() == GetLocalProfileIDWithFocus() )
 							ProfileManager::m_sDefaultLocalProfileID[p].Set("");
 
-					auto pn = (PlayerNumber)(ScreenMiniMenu::s_iLastRowCode - ProfileAction_SetDefaultP1);
+					auto pn = static_cast<PlayerNumber>(ScreenMiniMenu::s_iLastRowCode - ProfileAction_SetDefaultP1);
 					ProfileManager::m_sDefaultLocalProfileID[pn].Set( GetLocalProfileIDWithFocus() );
 		
 					SCREENMAN->SetNewScreen( this->m_sName ); // reload
@@ -471,7 +471,7 @@ int ScreenOptionsManageProfiles::GetLocalProfileIndexWithFocus() const
 
 	if( SHOW_CREATE_NEW && iCurRow == 0 )	// "create new"
 		return -1;
-	else if( row.GetRowType() == OptionRow::RowType_Exit )
+	if( row.GetRowType() == OptionRow::RowType_Exit )
 		return -1;
 
 	// a profile

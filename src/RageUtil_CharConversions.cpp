@@ -1,7 +1,7 @@
-#include "global.h"
-#include "RageUtil_CharConversions.h"
-#include "RageUtil.h"
+﻿#include "global.h"
 #include "RageLog.h"
+#include "RageUtil.h"
+#include "RageUtil_CharConversions.h"
 
 #if defined(_WINDOWS)
 

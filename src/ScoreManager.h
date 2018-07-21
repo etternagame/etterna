@@ -1,15 +1,15 @@
 #ifndef ScoreManager_H
 #define ScoreManager_H
 
-#include "Grade.h"
 #include "GameConstantsAndTypes.h"
+#include "Grade.h"
 #include "PrefsManager.h"
 #include "SongManager.h"
 #include "ProfileManager.h"
 
 #include <map>
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
 
 using std::string;
 
@@ -123,7 +123,7 @@ public:
 	
 	bool KeyHasScores(const string& ck, const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID) { return pscores[profileID].count(ck) == 1; }
 	bool HasAnyScores() { return !AllScores.empty(); }
-	void RatingOverTime(const string& profileID);
+	void RatingOverTime();
 
 	XNode *CreateNode(const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID) const;
 	void LoadFromNode(const XNode* node, const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);

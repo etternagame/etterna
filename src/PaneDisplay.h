@@ -1,12 +1,10 @@
-#ifndef PANE_DISPLAY_H
+﻿#ifndef PANE_DISPLAY_H
 #define PANE_DISPLAY_H
 
 #include "ActorFrame.h"
-#include "ActorUtil.h"
-#include "PlayerNumber.h"
-#include "BitmapText.h"
 #include "AutoActor.h"
-#include "GameConstantsAndTypes.h"
+#include "BitmapText.h"
+#include "PlayerNumber.h"
 #include "ThemeMetric.h"
 class XNode;
 #include "LocalizedString.h"

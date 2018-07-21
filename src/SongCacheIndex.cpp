@@ -1,11 +1,12 @@
 #include "global.h"
 
-#include "SongCacheIndex.h"
+#include "RageFileManager.h"
 #include "RageLog.h"
 #include "RageUtil.h"
 #include "RageFileManager.h"
 #include "GameManager.h"
 #include "Song.h"
+#include "SongCacheIndex.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "SpecialFiles.h"
 #include "CommonMetrics.h"
@@ -35,7 +36,6 @@
  * path; we don't have to actually look in the directory (to find out the directory hash)
  * in order to find the cache file.
  */
-const string CACHE_INDEX = SpecialFiles::CACHE_DIR + "index.cache";
 const string CACHE_DB = SpecialFiles::CACHE_DIR + "cache.db";
 const unsigned int CACHE_DB_VERSION = 236;
 
@@ -71,11 +71,10 @@ SongCacheIndex::SongCacheIndex()
 	//Should prevent crashes when /Cache/ doesnt exist
 	if (!FILEMAN->IsADirectory(SpecialFiles::CACHE_DIR)) 
 		 FILEMAN->CreateDir(SpecialFiles::CACHE_DIR); 
-	ReadCacheIndex();
 	DBEmpty = !OpenDB();
 }
 
-int64_t SongCacheIndex::InsertStepsTimingData(TimingData timing)
+int64_t SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 {
 	SQLite::Statement insertTimingData(*db, "INSERT INTO timingdatas VALUES (NULL, "
 		"?, ?, ?, "
@@ -366,16 +365,8 @@ bool SongCacheIndex::CacheSong(Song& song, string dir)
 				insertSong.bind(index++);
 				break;
 			case DISPLAY_BPM_SPECIFIED:
-				if (song.m_fSpecifiedBPMMin == song.m_fSpecifiedBPMMax)
-				{
-					insertSong.bind(index++, song.m_fSpecifiedBPMMin);
-					insertSong.bind(index++, song.m_fSpecifiedBPMMin);
-				}
-				else
-				{
 					insertSong.bind(index++, song.m_fSpecifiedBPMMin);
 					insertSong.bind(index++, song.m_fSpecifiedBPMMax);
-				}
 				break;
 			case DISPLAY_BPM_RANDOM:
 				//Write only one as null
@@ -592,7 +583,24 @@ bool SongCacheIndex::OpenDB()
 }
 
 SongCacheIndex::~SongCacheIndex()
-= default;
+{
+	if (db != nullptr) {
+		delete db;
+		db = nullptr;
+	}
+	if (curTransaction != nullptr) {
+		try {
+			curTransaction->commit();
+		}
+		catch (exception e) {
+			//DB transaction commit failed, we're destructing so we dont care.
+			//There really shouldnt be a transaction left anyways
+		}
+		delete curTransaction;
+		curTransaction = nullptr;
+	}
+}
+
 void SongCacheIndex::LoadHyperCache(LoadingWindow * ld, map<RString, Song*>& hyperCache) 
 {
 	int count = db->execAndGet("SELECT COUNT(*) FROM songs");
@@ -683,68 +691,6 @@ void SongCacheIndex::DeleteSongFromDBByDirHash(unsigned int hash)
 {
 	string cond = "hash=\"" + to_string(hash)+"\"";
 	DeleteSongFromDBByCondition(cond);
-}
-void SongCacheIndex::ReadFromDisk()
-{
-	ReadCacheIndex();
-}
-
-static void EmptyDir(RString dir)
-{
-	ASSERT(dir[dir.size() - 1] == '/');
-
-	vector<RString> asCacheFileNames;
-	GetDirListing(dir, asCacheFileNames);
-	for (unsigned i = 0; i<asCacheFileNames.size(); i++)
-	{
-		if (!IsADirectory(dir + asCacheFileNames[i]))
-			FILEMAN->Remove(dir + asCacheFileNames[i]);
-	}
-}
-
-void SongCacheIndex::ReadCacheIndex()
-{
-	CacheIndex.ReadFile(CACHE_INDEX);	// don't care if this fails
-
-	int iCacheVersion = -1;
-	CacheIndex.GetValue("Cache", "CacheVersion", iCacheVersion);
-	if (iCacheVersion == FILE_CACHE_VERSION)
-		return; // OK
-
-	LOG->Trace( "Cache format is out of date.  Deleting all cache files." );
-	EmptyDir(SpecialFiles::CACHE_DIR + "Banners/");
-	EmptyDir( SpecialFiles::CACHE_DIR+"Songs/" );
-	EmptyDir( SpecialFiles::CACHE_DIR+"Courses/" );
-	
-	vector<RString> ImageDir;
-	split( CommonMetrics::IMAGES_TO_CACHE, ",", ImageDir );
-	for( std::string Image : ImageDir )
-		EmptyDir( SpecialFiles::CACHE_DIR+Image+"/" );
-
-	CacheIndex.Clear();
-	/* This is right now in place because our song file paths are apparently being
-	* cached in two distinct areas, and songs were loading from paths in FILEMAN.
-	* This is admittedly a hack for now, but this does bring up a good question on
-	* whether we really need a dedicated cache for future versions of StepMania.
-	*/
-	FILEMAN->FlushDirCache();
-}
-
-void SongCacheIndex::SaveCacheIndex()
-{
-	CacheIndex.WriteFile(CACHE_INDEX);
-}
-
-void SongCacheIndex::AddCacheIndex(const RString &path, unsigned hash)
-{
-	if (hash == 0)
-		++hash; /* no 0 hash values */
-	CacheIndex.SetValue("Cache", "CacheVersion", FILE_CACHE_VERSION);
-	CacheIndex.SetValue("Cache", MangleName(path), hash);
-	if (!delay_save_cache)
-	{
-		CacheIndex.WriteFile(CACHE_INDEX);
-	}
 }
 
 unsigned SongCacheIndex::GetCacheHash(const RString &path) const

@@ -139,7 +139,7 @@ local function littlebits(i)
 			SetCommand=function(self)
 				if song and steps then
 					self:settextf("%05.2f",meter[i+1])
-					self:diffuse(ByMSD(meter[i+1]))
+					self:diffuse(byMSD(meter[i+1]))
 				else
 					self:settext("")
 				end

@@ -1,9 +1,11 @@
-/** @brief ActorMultiVertex - An actor with mutiple vertices. Can be used to create shapes that quads can't. */
+﻿/** @brief ActorMultiVertex - An actor with mutiple vertices. Can be used to create shapes that quads can't. */
+
+#ifndef ACTOR_MULTI_VERTEX_H
+#define ACTOR_MULTI_VERTEX_H
 
 #include "Actor.h"
 #include "CubicSpline.h"
 #include "RageDisplay.h"
-#include "RageMath.h"
 #include "RageTextureID.h"
 
 enum DrawMode
@@ -62,8 +64,8 @@ public:
 	{
 		if(AMV_Tweens.empty())
 		{ return AMV_current; }
-		else
-		{ return AMV_Tweens.back(); }
+		
+		return AMV_Tweens.back(); 
 	}
 	const AMV_TweenState& AMV_DestTweenState() const { return const_cast<ActorMultiVertex*>(this)->AMV_DestTweenState(); }
 
@@ -172,6 +174,8 @@ private:
 	size_t _cur_state;
 	vector<State> _states;
 };
+
+#endif // ACTOR_MULTI_VERTEX_H
 
 /**
  * @file

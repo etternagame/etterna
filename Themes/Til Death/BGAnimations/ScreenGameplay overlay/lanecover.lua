@@ -1,10 +1,6 @@
 local moveUpP1 = false
 local moveDownP1 = false
-local moveUpP2 = false
-local moveDownP2 = false
-
 local lockSpeedP1 = false
-local lockSpeedP2 = false
 
 local laneColor = color("#333333")
 
@@ -22,22 +18,13 @@ if prefsP1 == 2 then -- it's a Hidden LaneCover
 	isReverseP1 = not isReverseP1
 end;
 
-local prefsP2 = playerConfig:get_data(pn_to_profile_slot(PLAYER_2)).LaneCover
-local enabledP2 = prefsP2 ~= 0 and GAMESTATE:IsPlayerEnabled(PLAYER_2)
-local isReverseP2 = GAMESTATE:GetPlayerState(PLAYER_2):GetCurrentPlayerOptions():UsingReverse()
-if prefsP2 == 2 then -- it's a Hidden LaneCover
-	isReverseP2 = not isReverseP2
-end;
-
-
 local heightP1 = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCoverHeight
-local heightP2 = playerConfig:get_data(pn_to_profile_slot(PLAYER_2)).LaneCoverHeight
+
 
 local P1X = SCREEN_CENTER_X
-local P2X = SCREEN_CENTER_X
+
 if not isCentered then
 	P1X = THEME:GetMetric("ScreenGameplay",string.format("PlayerP1%sX",styleType))
-	P2X = THEME:GetMetric("ScreenGameplay",string.format("PlayerP2%sX",styleType))
 end;
 
 local function getPlayerBPM(pn)
@@ -75,12 +62,16 @@ local function getSpeed(pn)
 	end;
 end;
 
+
+local yoffsetreverse = THEME:GetMetric("Player","ReceptorArrowsYReverse")
+local yoffsetstandard = THEME:GetMetric("Player","ReceptorArrowsYStandard")
+
 local function getNoteFieldHeight(pn)
-	local reverse = GAMESTATE:GetPlayerState(pn):GetCurrentPlayerOptions():UsingReverse()
-	if reverse then
-		return SCREEN_CENTER_Y + THEME:GetMetric("Player","ReceptorArrowsYReverse")
+local usingreverse = GAMESTATE:GetPlayerState(pn):GetCurrentPlayerOptions():UsingReverse()
+	if usingreverse then
+		return SCREEN_CENTER_Y + yoffsetreverse
 	else
-		return SCREEN_CENTER_Y - THEME:GetMetric("Player","ReceptorArrowsYStandard")
+		return SCREEN_CENTER_Y - yoffsetstandard
 	end;
 end;
 
@@ -106,8 +97,7 @@ local t = Def.ActorFrame{
 	CodeMessageCommand = function(self, params)
 		moveDownP1 = false
 		moveUpP1 = false
-		moveDownP2 = false
-		moveUpP2 = false
+		local doot = heightP1
 		if params.PlayerNumber == PLAYER_1 then
 			if params.Name == "LaneUp" then
 				moveUpP1 = true
@@ -117,29 +107,14 @@ local t = Def.ActorFrame{
 				moveDownP1 = false
 				moveUpP1 = false
 			end
+			self:playcommand("SavePrefs")
 		end;
-		if params.PlayerNumber == PLAYER_2 then
-			if params.Name == "LaneUp" then
-				moveUpP2 = true
-			elseif params.Name == "LaneDown" then
-				moveDownP2 = true
-			else
-				moveDownP2 = false
-				moveUpP2 = false
-			end
-		end;
-		self:playcommand("SavePrefs")
 	end;
 	SavePrefsCommand=function(self)
 		if enabledP1 then
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCoverHeight = heightP1
 			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
 			playerConfig:save(pn_to_profile_slot(PLAYER_1))
-		end;
-		if enabledP2 then
-			playerConfig:get_data(pn_to_profile_slot(PLAYER_2)).LaneCoverHeight = heightP2
-			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_2))
-			playerConfig:save(pn_to_profile_slot(PLAYER_2))
 		end;
 	end;
 }
@@ -205,73 +180,11 @@ if enabledP1 then
 	};
 end;
 
-if enabledP2 then
-	t[#t+1] = Def.Quad{
-		Name="CoverP2";
-		InitCommand=function(self)
-			self:xy(P2X,SCREEN_TOP):zoomto((width+padding)*getNoteFieldScale(PLAYER_2),heightP2):valign(0):diffuse(laneColor)
-		end;
-		BeginCommand=function(self)
-			if isReverseP2 then
-				self:y(SCREEN_TOP)
-				self:valign(0)
-			else
-				self:y(SCREEN_BOTTOM)
-				self:valign(1)
-			end;
-		end;
-	};
-
-	t[#t+1] = LoadFont("Common Normal")..{
-		Name="CoverTextP2White";
-		InitCommand=function(self)
-			self:x(P2X-(width*getNoteFieldScale(PLAYER_2)/8)):settext(0):valign(1):zoom(0.5)
-		end;
-		BeginCommand=function(self)
-			self:settext(0)
-			if isReverseP2 then
-				self:y(heightP2-5)
-				self:valign(1)
-			else
-				self:y(SCREEN_BOTTOM-heightP2+5)
-				self:valign(0)
-			end;
-			self:finishtweening()
-			self:diffusealpha(1)
-			self:sleep(0.25)
-			self:smooth(0.75)
-			self:diffusealpha(0)
-		end;
-	};
-
-	t[#t+1] = LoadFont("Common Normal")..{
-		Name="CoverTextP2Green";
-		InitCommand=function(self)
-			self:x(P2X+(width*getNoteFieldScale(PLAYER_2)/8)):settext(0):valign(1):zoom(0.5):diffuse(color("#4CBB17"))
-		end;
-		BeginCommand=function(self)
-			self:settext(math.floor(getSpeed(PLAYER_1)))
-			if isReverseP2 then
-				self:y(heightP2-5)
-				self:valign(1)
-			else
-				self:y(SCREEN_BOTTOM-heightP2+5)
-				self:valign(0)
-			end;
-			self:finishtweening()
-			self:diffusealpha(1)
-			self:sleep(0.25)
-			self:smooth(0.75)
-			self:diffusealpha(0)
-		end;
-	};
-end;
-
 local function Update(self)
 	t.InitCommand=function(self)
 		self:SetUpdateFunction(Update)
 	end;
-	self:SetUpdateRate(0.5)
+	self:SetUpdateRate(5)
 	if enabledP1 then
 		if moveDownP1 then
 			if isReverseP1 then
@@ -314,49 +227,6 @@ local function Update(self)
 			self:GetChild("CoverTextP1Green"):diffusealpha(0)
 		end;
 
-	end;
-
-	if enabledP2 then
-		if moveDownP2 then
-			if isReverseP2 then
-				heightP2 = math.min(SCREEN_BOTTOM,math.max(0,heightP2+1))
-			else
-				heightP2 = math.min(SCREEN_BOTTOM,math.max(0,heightP2-1))
-			end;
-		end;
-		if moveUpP2 then
-			if isReverseP2 then
-				heightP2 = math.min(SCREEN_BOTTOM,math.max(0,heightP2-1))
-			else
-				heightP2 = math.min(SCREEN_BOTTOM,math.max(0,heightP2+1))
-			end;
-		end;
-		self:GetChild("CoverP2"):zoomy(heightP2)
-		self:GetChild("CoverTextP2White"):settext(math.floor(heightP2))
-		if prefsP2 == 1 then
-			self:GetChild("CoverTextP2Green"):settext(math.floor(getScrollSpeed(PLAYER_2,heightP2)))
-		end;
-		if isReverseP2 then
-			self:GetChild("CoverTextP2White"):y(heightP2-5)
-			self:GetChild("CoverTextP2Green"):y(heightP2-5)
-		else
-			self:GetChild("CoverTextP2White"):y(SCREEN_BOTTOM-heightP2+5)
-			self:GetChild("CoverTextP2Green"):y(SCREEN_BOTTOM-heightP2+5)
-		end;
-
-		if moveDownP2 or moveUpP2 then
-			self:GetChild("CoverTextP2White"):finishtweening()
-			self:GetChild("CoverTextP2White"):diffusealpha(1)
-			self:GetChild("CoverTextP2White"):sleep(0.25)
-			self:GetChild("CoverTextP2White"):smooth(0.75)
-			self:GetChild("CoverTextP2White"):diffusealpha(0)
-
-			self:GetChild("CoverTextP2Green"):finishtweening()
-			self:GetChild("CoverTextP2Green"):diffusealpha(1)
-			self:GetChild("CoverTextP2Green"):sleep(0.25)
-			self:GetChild("CoverTextP2Green"):smooth(0.75)
-			self:GetChild("CoverTextP2Green"):diffusealpha(0)
-		end;
 	end;
 end; 
 t.InitCommand=function(self)

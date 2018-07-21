@@ -1,21 +1,21 @@
-#include "global.h"
-#include "NoteDisplay.h"
+﻿#include "global.h"
+#include "ActorUtil.h"
+#include "ArrowEffects.h"
+#include "Foreach.h"
 #include "GameState.h"
 #include "GhostArrowRow.h"
-#include "NoteData.h"
-#include "NoteSkinManager.h"
-#include "ArrowEffects.h"
-#include "RageLog.h"
-#include "RageDisplay.h"
-#include "ReceptorArrowRow.h"
-#include "ActorUtil.h"
-#include "Style.h"
-#include "PlayerState.h"
-#include "Sprite.h"
-#include "NoteTypes.h"
 #include "LuaBinding.h"
-#include "Foreach.h"
+#include "NoteData.h"
+#include "NoteDisplay.h"
+#include "NoteSkinManager.h"
+#include "NoteTypes.h"
+#include "PlayerState.h"
+#include "RageDisplay.h"
 #include "RageMath.h"
+#include "RageTexture.h"
+#include "ReceptorArrowRow.h"
+#include "Sprite.h"
+#include "Style.h"
 
 static const double PI_180= PI / 180.0;
 static const double PI_180R= 180.0 / PI;
@@ -137,19 +137,19 @@ struct NoteSkinAndPath
 		{
 			return true;
 		}
-		else if( cmp == 0 )
+		if( cmp == 0 )
 		{
 			if( sPath < other.sPath )
 			{
 				return true;
 			}
-			else if( sPath == other.sPath )
+			if( sPath == other.sPath )
 			{
 				if ( pn < other.pn )
 					return true;
-				else if ( pn == other.pn )
+				if ( pn == other.pn )
 					return gc < other.gc;
-				else
+				
 					return false;
 			}
 			else
@@ -166,7 +166,7 @@ struct NoteSkinAndPath
 
 struct NoteResource
 {
-	NoteResource( const NoteSkinAndPath &nsap ): m_nsap(nsap)
+	explicit NoteResource( const NoteSkinAndPath &nsap ): m_nsap(nsap)
 	{
 		m_iRefCount = 0;
 		m_pActor = NULL;
@@ -215,7 +215,7 @@ static void DeleteNoteResource( NoteResource *pRes )
 
 	ASSERT_M( pRes->m_iRefCount > 0, ssprintf("RefCount %i > 0", pRes->m_iRefCount) );
 	--pRes->m_iRefCount;
-	if( pRes->m_iRefCount )
+	if( pRes->m_iRefCount != 0 )
 		return;
 
 	g_NoteResource.erase( pRes->m_nsap );
@@ -231,7 +231,7 @@ NoteColorActor::NoteColorActor()
 
 NoteColorActor::~NoteColorActor()
 {
-	if( m_p )
+	if( m_p != nullptr )
 		DeleteNoteResource( m_p );
 }
 
@@ -255,7 +255,7 @@ NoteColorSprite::NoteColorSprite()
 
 NoteColorSprite::~NoteColorSprite()
 {
-	if( m_p )
+	if( m_p != nullptr )
 		DeleteNoteResource( m_p );
 }
 
@@ -324,8 +324,8 @@ void NCSplineHandler::MakeWeightedAverage(NCSplineHandler& out,
 		const NCSplineHandler& from, const NCSplineHandler& to, float between)
 {
 #define BOOLS_FROM_CLOSEST(closest) \
-	out.m_spline_mode= closest.m_spline_mode; \
-	out.m_subtract_song_beat_from_curr= closest.m_subtract_song_beat_from_curr;
+	out.m_spline_mode= (closest).m_spline_mode; \
+	out.m_subtract_song_beat_from_curr= (closest).m_subtract_song_beat_from_curr;
 	if(between >= 0.5f)
 	{
 		BOOLS_FROM_CLOSEST(to);
@@ -386,9 +386,9 @@ void NoteColumnRenderArgs::SetPRZForActor(Actor* actor,
 	actor->SetX(sp_pos.x + ae_pos.x);
 	actor->SetY(sp_pos.y + ae_pos.y);
 	actor->SetZ(sp_pos.z + ae_pos.z);
-	actor->SetRotationX(sp_rot.x * PI_180R + ae_rot.x);
-	actor->SetRotationY(sp_rot.y * PI_180R + ae_rot.y);
-	actor->SetRotationZ(sp_rot.z * PI_180R + ae_rot.z);
+	actor->SetRotationX(sp_rot.x * static_cast<float>(PI_180R) + ae_rot.x);
+	actor->SetRotationY(sp_rot.y * static_cast<float>(PI_180R) + ae_rot.y);
+	actor->SetRotationZ(sp_rot.z * static_cast<float>(PI_180R) + ae_rot.z);
 	actor->SetZoomX(sp_zoom.x + ae_zoom.x);
 	actor->SetZoomY(sp_zoom.y + ae_zoom.y);
 	actor->SetZoomZ(sp_zoom.z + ae_zoom.z);
@@ -675,7 +675,7 @@ static float ArrowGetAlphaOrGlow( bool bGlow, const PlayerState* pPlayerState, i
 {
 	if( bGlow )
 		return ArrowEffects::GetGlow(iCol, fYOffset, fPercentFadeToFail, fYReverseOffsetPixels, fDrawDistanceBeforeTargetsPixels, fFadeInPercentOfDrawFar);
-	else
+	
 		return ArrowEffects::GetAlpha(iCol, fYOffset, fPercentFadeToFail, fYReverseOffsetPixels, fDrawDistanceBeforeTargetsPixels, fFadeInPercentOfDrawFar);
 }
 
@@ -906,10 +906,10 @@ void NoteDisplay::DrawHoldPart(vector<Sprite*> &vpSpr,
 		{
 			case NCSM_Disabled:
 				// XXX: Actor rotations use degrees, Math uses radians. Convert here.
-				ae_rot.y= ArrowEffects::GetRotationY(fYOffset) * PI_180;
+				ae_rot.y= ArrowEffects::GetRotationY(fYOffset) * static_cast<float>(PI_180R);
 				break;
 			case NCSM_Offset:
-				ae_rot.y= ArrowEffects::GetRotationY(fYOffset) * PI_180;
+				ae_rot.y= ArrowEffects::GetRotationY(fYOffset) * static_cast<float>(PI_180R);
 				column_args.rot_handler->EvalForBeat(column_args.song_beat, cur_beat, sp_rot);
 				break;
 			case NCSM_Position:
@@ -1520,9 +1520,9 @@ void NoteColumnRenderer::DrawPrimitives()
 		}
 	}
 #define DTS_INNER(pn, tap_set, draw_func, disp) \
-	if(!tap_set[pn].empty()) \
+	if(!(tap_set)[pn].empty()) \
 	{ \
-		any_upcoming|= disp->draw_func(*m_field_render_args, m_column_render_args, tap_set[pn]); \
+		any_upcoming|= (disp)->draw_func(*m_field_render_args, m_column_render_args, (tap_set)[pn]); \
 	}
 #define DRAW_TAP_SET(tap_set, draw_func) \
 	FOREACH_PlayerNumber(pn) \

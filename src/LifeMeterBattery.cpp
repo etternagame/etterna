@@ -1,10 +1,10 @@
-#include "global.h"
-#include "LifeMeterBattery.h"
-#include "GameState.h"
-#include "ThemeManager.h"
-#include "Steps.h"
-#include "PlayerState.h"
+﻿#include "global.h"
 #include "ActorUtil.h"
+#include "GameState.h"
+#include "LifeMeterBattery.h"
+#include "PlayerState.h"
+#include "Steps.h"
+#include "ThemeManager.h"
 
 LifeMeterBattery::LifeMeterBattery()
 {
@@ -93,7 +93,7 @@ void LifeMeterBattery::OnSongEnded()
 		LuaHelpers::Push(L, pn);
 		RString error = "Error running CourseSongRewardLives callback: ";
 		LuaHelpers::RunScriptOnStack(L, error, 2, 1, true);
-		m_iLivesLeft += luaL_optnumber(L, -1, 0);
+		m_iLivesLeft += static_cast<int>(luaL_optnumber(L, -1, 0));
 		lua_settop(L, 0);
 		LUA->Release(L);
 		m_iLivesLeft = min(m_iLivesLeft, m_pPlayerState->m_PlayerOptions.GetSong().m_BatteryLives);

@@ -1,13 +1,12 @@
-#include "global.h"
+﻿#include "global.h"
+#include "CryptHelpers.h"
 #include "CryptManager.h"
-#include "RageUtil.h"
-#include "RageLog.h"
+#include "LuaBinding.h"
+#include "LuaManager.h"
 #include "RageFile.h"
 #include "RageFileManager.h"
-#include "CryptHelpers.h"
-#include "LuaBinding.h"
-#include "LuaReference.h"
-#include "LuaManager.h"
+#include "RageLog.h"
+#include "RageUtil.h"
 
 #include "libtomcrypt/src/headers/tomcrypt.h"
 
@@ -343,7 +342,7 @@ bool CryptManager::Verify( RageFileBasic &file, const RString &sSignature, const
 		return false;
 	}
 
-	if( !iMatch )
+	if( iMatch == 0 )
 	{
 		LOG->Warn( "Verify(%s) failed: signature mismatch", file.GetDisplayPath().c_str() );
 		return false;
@@ -354,7 +353,7 @@ bool CryptManager::Verify( RageFileBasic &file, const RString &sSignature, const
 
 void CryptManager::GetRandomBytes( void *pData, int iBytes )
 {
-	int iRet = prng_descriptor[g_pPRNG->m_iPRNG].read( (unsigned char *) pData, iBytes, &g_pPRNG->m_PRNG );
+	int iRet = prng_descriptor[g_pPRNG->m_iPRNG].read( reinterpret_cast<unsigned char *>( pData), iBytes, &g_pPRNG->m_PRNG );
 	ASSERT( iRet == iBytes );
 }
 #endif

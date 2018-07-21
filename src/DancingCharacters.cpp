@@ -1,20 +1,20 @@
 #include "global.h"
+#include "Character.h"
 #include "DancingCharacters.h"
 #include "GameConstantsAndTypes.h"
-#include "RageDisplay.h"
-#include "RageUtil.h"
-#include "RageMath.h"
 #include "GameState.h"
-#include "Song.h"
-#include "Character.h"
-#include "StatsManager.h"
-#include "PrefsManager.h"
 #include "Model.h"
+#include "PrefsManager.h"
+#include "RageDisplay.h"
+#include "RageMath.h"
+#include "RageUtil.h"
+#include "Song.h"
+#include "StatsManager.h"
 
 int Neg1OrPos1();
 
-#define DC_X( choice )	THEME->GetMetricF("DancingCharacters",ssprintf("2DCharacterXP%d",choice+1))
-#define DC_Y( choice )	THEME->GetMetricF("DancingCharacters",ssprintf("2DCharacterYP%d",choice+1))
+#define DC_X( choice )	THEME->GetMetricF("DancingCharacters",ssprintf("2DCharacterXP%d",(choice)+1))
+#define DC_Y( choice )	THEME->GetMetricF("DancingCharacters",ssprintf("2DCharacterYP%d",(choice)+1))
 
 /*
  * TODO:
@@ -56,7 +56,7 @@ DancingCharacters::DancingCharacters()
 			continue;
 
 		Character* pChar = GAMESTATE->m_pCurCharacters[p];
-		if( !pChar )
+		if( pChar == nullptr )
 			continue;
 
 		// load in any potential 2D stuff
@@ -162,7 +162,7 @@ void DancingCharacters::LoadNextSong()
 			m_pCharacter[p]->PlayAnimation( "rest" );
 }
 
-int Neg1OrPos1() { return RandomInt( 2 ) ? -1 : +1; }
+int Neg1OrPos1() { return RandomInt( 2 ) != 0 ? -1 : +1; }
 
 void DancingCharacters::Update( float fDelta )
 {
@@ -239,10 +239,10 @@ void DancingCharacters::Update( float fDelta )
 			m_fLookAtHeight = CAMERA_STILL_LOOK_AT_HEIGHT;
 		}
 
-		auto iCurBeat = (int)GAMESTATE->m_Position.m_fSongBeat;
+		auto iCurBeat = static_cast<int>(GAMESTATE->m_Position.m_fSongBeat);
 		iCurBeat -= iCurBeat%8;
 
-		m_fThisCameraStartBeat = (float) iCurBeat;
+		m_fThisCameraStartBeat = static_cast<float>( iCurBeat);
 		m_fThisCameraEndBeat = float(iCurBeat + 8);
 	}
 	/*

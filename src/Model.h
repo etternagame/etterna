@@ -1,13 +1,12 @@
-/* Model - A 3D model. */
+﻿/* Model - A 3D model. */
 
 #ifndef MODEL_H
 #define MODEL_H
 
 #include "Actor.h"
-#include "RageTypes.h"
 #include "ModelTypes.h"
-#include <vector>
 #include <map>
+#include <vector>
 
 class RageModelGeometry;
 class RageCompiledGeometry;

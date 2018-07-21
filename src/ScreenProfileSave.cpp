@@ -1,7 +1,7 @@
 #include "global.h"
-#include "ScreenProfileSave.h"
 #include "GameState.h"
 #include "ScreenManager.h"
+#include "ScreenProfileSave.h"
 
 REGISTER_SCREEN_CLASS( ScreenProfileSave );
 

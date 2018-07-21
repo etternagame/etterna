@@ -1,8 +1,8 @@
-#ifndef NotesLoaderSM_H
+﻿#ifndef NotesLoaderSM_H
 #define NotesLoaderSM_H
 
-#include "GameConstantsAndTypes.h"
 #include "BackgroundUtil.h"
+#include "GameConstantsAndTypes.h"
 
 #include "MsdFile.h" // we require the struct from here.
 
@@ -152,7 +152,7 @@ struct SMLoader
 	
 	virtual void ProcessCombos(TimingData & /* out */,
 				   const RString &line,
-				   const int /* rowsPerBeat */ = -1) {}
+				   int /* rowsPerBeat */ = -1) {}
 	
 	/**
 	 * @brief Process the Fake Segments from the string.

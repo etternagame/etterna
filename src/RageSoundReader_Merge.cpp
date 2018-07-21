@@ -1,12 +1,11 @@
-#include "global.h"
-#include "RageSoundReader_Merge.h"
-#include "RageSoundReader_Resample_Good.h"
-#include "RageSoundReader_Pan.h"
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "RageSoundMixBuffer.h"
-#include "RageSoundUtil.h"
+﻿#include "global.h"
 #include "Foreach.h"
+#include "RageLog.h"
+#include "RageSoundMixBuffer.h"
+#include "RageSoundReader_Merge.h"
+#include "RageSoundReader_Pan.h"
+#include "RageSoundReader_Resample_Good.h"
+#include "RageUtil.h"
 
 RageSoundReader_Merge::RageSoundReader_Merge()
 {

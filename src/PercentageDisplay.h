@@ -1,11 +1,9 @@
-#ifndef PERCENTAGE_DISPLAY_H
+﻿#ifndef PERCENTAGE_DISPLAY_H
 #define PERCENTAGE_DISPLAY_H
 
 #include "ActorFrame.h"
-#include "PlayerNumber.h"
 #include "BitmapText.h"
 #include "StageStats.h"
-#include "ThemeMetric.h"
 
 class PlayerState;
 

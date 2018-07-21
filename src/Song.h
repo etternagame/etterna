@@ -1,14 +1,15 @@
 #ifndef SONG_H
 #define SONG_H
 
-#include "TimingData.h"
 #include "Difficulty.h"
 #include "EnumHelper.h"
+#include "RageTypes.h"
 #include "RageUtil_AutoPtr.h"
 #include "RageUtil_CachedObject.h"
-#include "RageTypes.h"
 #include "Steps.h"
+#include "TimingData.h"
 #include <set>
+using std::string;
 
 class Style;
 class StepsID;
@@ -275,6 +276,8 @@ public:
 	float GetHighestOfSkillsetAllSteps(int x, float rate) const;
 	bool IsSkillsetHighestOfAnySteps(Skillset ss, float rate);
 
+	bool HasChartByHash(const string &hash);
+
 	// For loading only:
 	bool m_bHasMusic, m_bHasBanner, m_bHasBackground;
 
@@ -310,9 +313,9 @@ public:
 	float GetSpecifiedLastBeat() const;
 	float GetSpecifiedLastSecond() const;
 
-	void SetFirstSecond(const float f);
-	void SetLastSecond(const float f);
-	void SetSpecifiedLastSecond(const float f);
+	void SetFirstSecond(float f);
+	void SetLastSecond(float f);
+	void SetSpecifiedLastSecond(float f);
 
 	typedef vector<BackgroundChange> 	VBackgroundChange;
 private:

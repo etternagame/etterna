@@ -1,4 +1,4 @@
-/* RageSoundReader_Chain - Chain sounds together */
+﻿/* RageSoundReader_Chain - Chain sounds together */
 
 #ifndef RAGE_SOUND_READER_CHAIN
 #define RAGE_SOUND_READER_CHAIN

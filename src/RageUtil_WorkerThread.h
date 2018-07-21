@@ -1,4 +1,4 @@
-/* RageWorkerThread - a worker thread for operations that are allowed to time out. */
+﻿/* RageWorkerThread - a worker thread for operations that are allowed to time out. */
 
 #ifndef RAGE_UTIL_WORKER_THREAD_H
 #define RAGE_UTIL_WORKER_THREAD_H
@@ -49,7 +49,7 @@ protected:
 	virtual void DoHeartbeat() { }
 
 private:
-	static int StartWorkerMain( void *pThis ) { ((RageWorkerThread *) (pThis))->WorkerMain(); return 0; }
+	static int StartWorkerMain( void *pThis ) { (reinterpret_cast<RageWorkerThread *>(pThis))->WorkerMain(); return 0; }
 	void WorkerMain();
 
 	enum { REQ_SHUTDOWN = -1, REQ_NONE = -2 };

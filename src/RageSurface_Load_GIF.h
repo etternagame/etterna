@@ -1,9 +1,10 @@
-/* RageSurface_Load_GIF - (non-animated) GIF file loader */
+﻿/* RageSurface_Load_GIF - (non-animated) GIF file loader */
 
 #ifndef RAGE_SURFACE_LOAD_GIF_H
 #define RAGE_SURFACE_LOAD_GIF_H
 
 #include "RageSurface_Load.h"
+
 RageSurfaceUtils::OpenResult RageSurface_Load_GIF( const RString &sPath, RageSurface *&ret, bool bHeaderOnly, RString &error );
 
 #endif

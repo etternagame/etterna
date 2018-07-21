@@ -1,11 +1,11 @@
 #include "global.h"
-#include "ScreenPrompt.h"
-#include "ScreenManager.h"
-#include "GameSoundManager.h"
-#include "ThemeManager.h"
-#include "ScreenDimensions.h"
 #include "ActorUtil.h"
+#include "GameSoundManager.h"
 #include "InputEventPlus.h"
+#include "ScreenDimensions.h"
+#include "ScreenManager.h"
+#include "ScreenPrompt.h"
+#include "ThemeManager.h"
 
 PromptAnswer ScreenPrompt::s_LastAnswer = ANSWER_YES;
 bool ScreenPrompt::s_bCancelledLast = false;
@@ -155,7 +155,7 @@ bool ScreenPrompt::CanGoRight()
 void ScreenPrompt::Change( int dir )
 {
 	m_textAnswer[m_Answer].StopEffect();
-	m_Answer = (PromptAnswer)(m_Answer+dir);
+	m_Answer = static_cast<PromptAnswer>(m_Answer+dir);
 	ASSERT( m_Answer >= 0  &&  m_Answer < NUM_PromptAnswer );  
 
 	PositionCursor();
@@ -236,11 +236,11 @@ void ScreenPrompt::End( bool bCancelled )
 	switch( m_Answer )
 	{
 		case ANSWER_YES:
-			if( g_pOnYes )
+			if( g_pOnYes != nullptr )
 				g_pOnYes(g_pCallbackData);
 			break;
 		case ANSWER_NO:
-			if( g_pOnNo )
+			if( g_pOnNo != nullptr )
 				g_pOnNo(g_pCallbackData);
 			break;
 		default: break;

@@ -1,13 +1,13 @@
-/* MenuTimer - A timer on the menu that ticks down. */
+﻿/* MenuTimer - A timer on the menu that ticks down. */
 
 #ifndef MENU_TIMER_H
 #define MENU_TIMER_H
 
 #include "ActorFrame.h"
+#include "AutoActor.h"
 #include "BitmapText.h"
 #include "RageSound.h"
 #include "ThemeMetric.h"
-#include "AutoActor.h"
 
 RString WARNING_COMMAND_NAME( size_t i );
 

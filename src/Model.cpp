@@ -1,18 +1,17 @@
-#include "global.h"
-#include "Model.h"
-#include "ModelTypes.h"
-#include "RageMath.h"
-#include "RageDisplay.h"
-#include "RageUtil.h"
-#include "RageTextureManager.h"
-#include "XmlFile.h"
-#include "RageFile.h"
-#include "RageLog.h"
+﻿#include "global.h"
 #include "ActorUtil.h"
-#include "ModelManager.h"
 #include "Foreach.h"
 #include "LuaBinding.h"
+#include "Model.h"
+#include "ModelManager.h"
+#include "ModelTypes.h"
 #include "PrefsManager.h"
+#include "RageDisplay.h"
+#include "RageFile.h"
+#include "RageMath.h"
+#include "RageTextureManager.h"
+#include "RageUtil.h"
+#include "XmlFile.h"
 
 REGISTER_ACTOR_CLASS( Model );
 
@@ -40,7 +39,7 @@ Model::~Model()
 
 void Model::Clear()
 {
-	if( m_pGeometry )
+	if( m_pGeometry != nullptr )
 	{
 		MODELMAN->UnloadModel( m_pGeometry );
 		m_pGeometry = NULL;
@@ -51,7 +50,7 @@ void Model::Clear()
 	m_pCurAnimation = NULL;
 	RecalcAnimationLengthSeconds();
 
-	if( m_pTempGeometry )
+	if( m_pTempGeometry != nullptr )
 		DISPLAY->DeleteCompiledGeometry( m_pTempGeometry );
 }
 
@@ -471,7 +470,7 @@ void Model::DrawMesh( int i ) const
 	}
 
 	// Draw it
-	const RageCompiledGeometry* TempGeometry = m_pTempGeometry ? m_pTempGeometry : m_pGeometry->m_pCompiledGeometry;
+	const RageCompiledGeometry* TempGeometry = m_pTempGeometry != nullptr ? m_pTempGeometry : m_pGeometry->m_pCompiledGeometry;
 	DISPLAY->DrawCompiledGeometry( TempGeometry, i, m_pGeometry->m_Meshes );
 
 	if( pMesh->m_iBoneIndex != -1 )
@@ -584,7 +583,7 @@ void Model::AdvanceFrame( float fDeltaTime )
 			 * m_fCurFrame-m_pCurAnimation->nTotalFrames, so it doesn't skip */
 		}
 		else if( m_bLoop )
-			wrap( m_fCurFrame, (float) m_pCurAnimation->nTotalFrames );
+			wrap( m_fCurFrame, static_cast<float>( m_pCurAnimation->nTotalFrames) );
 		else
 			m_fCurFrame = clamp( m_fCurFrame, 0, (float) m_pCurAnimation->nTotalFrames );
 	}

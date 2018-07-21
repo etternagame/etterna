@@ -1,4 +1,4 @@
-/** @brief NoteTypes - Types for holding tap notes and scores. */
+﻿/** @brief NoteTypes - Types for holding tap notes and scores. */
 
 #ifndef NOTE_TYPES_H
 #define NOTE_TYPES_H
@@ -201,6 +201,12 @@ struct TapNote
 	 * @param other the other TapNote we're checking.
 	 * @return true if the two TapNotes are not equal, or false otherwise. */
 	bool operator!=( const TapNote &other ) const { return !operator==( other ); }
+};
+
+struct HoldReplayResult {
+	int row;
+	int track; //column
+	TapNoteSubType subType;
 };
 
 extern TapNote TAP_EMPTY;			// '0'

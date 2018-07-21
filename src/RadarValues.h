@@ -1,4 +1,4 @@
-#ifndef RARAR_VALUES_H
+﻿#ifndef RARAR_VALUES_H
 #define RARAR_VALUES_H
 
 #include "GameConstantsAndTypes.h"

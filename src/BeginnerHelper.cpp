@@ -1,20 +1,19 @@
-#include "global.h"
+﻿#include "global.h"
 
 #include "ActorUtil.h"
 #include "BeginnerHelper.h"
+#include "Character.h"
 #include "GameState.h"
+#include "Model.h"
 #include "PrefsManager.h"
-#include "RageLog.h"
 #include "RageDisplay.h"
 #include "Steps.h"
 #include "Style.h"
-#include "Model.h"
-#include "ScreenDimensions.h"
 #include "ThemeManager.h"
 
 // "PLAYER_X" offsets are relative to the pad.
 // ex: Setting this to 10, and the HELPER to 300, will put the dancer at 310.
-#define PLAYER_X( px )		THEME->GetMetricF("BeginnerHelper",ssprintf("Player%dX",px+1))
+#define PLAYER_X( px )		THEME->GetMetricF("BeginnerHelper",ssprintf("Player%dX",(px)+1))
 
 // "HELPER" offsets effect the pad/dancer as a whole.
 // Their relative Y cooridinates are hard-coded for each other.

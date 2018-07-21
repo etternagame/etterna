@@ -1,4 +1,4 @@
-#ifndef MSDFILE_H
+﻿#ifndef MSDFILE_H
 #define MSDFILE_H
 
 /** @brief The class that reads the various .SSC, .SM, .SMA, .DWI, and .MSD files. */

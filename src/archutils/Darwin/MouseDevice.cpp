@@ -1,6 +1,7 @@
 #include "global.h"
 #include "MouseDevice.h"
 
+
 using __gnu_cxx::hash_map;
 
 Mouse::Mouse() : id( InputDevice_Invalid ),
@@ -100,21 +101,23 @@ void MouseDevice::Open()
 
 void MouseDevice::GetButtonPresses( vector<DeviceInput>& vPresses, IOHIDElementCookie cookie, int value, const std::chrono::time_point<std::chrono::steady_clock> &now) const
 {
+    
 	// todo: add mouse axis stuff -aj
 	const Mouse& m = m_Mouse;
 	HRESULT result;
 	IOHIDEventStruct hidEvent;
 	// result = (*m_Interface)->getElementValue(hidDeviceInterface,cookie,&hidEvent);
-
+    
+    LOG->Trace("X, Y: %f, %f", INPUTFILTER->GetCursorX(), INPUTFILTER->GetCursorY());
+    float x=MACMouseX(),y=MACMouseY();
+    
 	if( m.x_axis == cookie )
 	{
-		//INPUTFILTER->UpdateCursorLocation(value,m.y_axis);
 		LOG->Trace("Mouse X: Value = %i",value);
 	}
 	else if( m.y_axis == cookie )
 	{
-		//INPUTFILTER->UpdateCursorLocation(m.x_axis,value);
-		LOG->Trace("Mouse Y: Value = %i",value);
+        LOG->Trace("Mouse Y: Value = %i",value);
 	}
 	else if( m.z_axis == cookie )
 	{
@@ -128,6 +131,7 @@ void MouseDevice::GetButtonPresses( vector<DeviceInput>& vPresses, IOHIDElementC
 		if( iter != m_Mapping.end() )
 			vPresses.push_back( DeviceInput(DEVICE_MOUSE, iter->second, value, now));
 	}
+    INPUTFILTER->UpdateCursorLocation(x,y);
 }
 
 void MouseDevice::GetDevicesAndDescriptions( vector<InputDeviceInfo>& vDevices ) const

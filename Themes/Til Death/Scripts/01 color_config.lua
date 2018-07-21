@@ -134,8 +134,9 @@ function getVividDifficultyColor(diff)
 	return color(colorConfig:get_data().difficultyVivid[diff]) or color("#ffffff")
 end
 
+-- expecting ms input (153, 13.321, etc) so convert to seconds to compare to judgment windows -mina
 function offsetToJudgeColor(offset,scale)
-	local offset = math.abs(offset)
+	local offset = math.abs(offset/1000)
 	if not scale then
 		scale = PREFSMAN:GetPreference("TimingWindowScale")
 	end
@@ -154,20 +155,42 @@ function offsetToJudgeColor(offset,scale)
 	end
 end
 
+-- 30% hardcoded, should var but lazy atm -mina
+function offsetToJudgeColorAlpha(offset,scale)
+	local offset = math.abs(offset/1000)
+	if not scale then
+		scale = PREFSMAN:GetPreference("TimingWindowScale")
+	end
+	if offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW1") then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W1"].."48")
+	elseif offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW2") then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W2"].."48")
+	elseif offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW3") then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W3"].."48")
+	elseif offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW4") then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W4"].."48")
+	elseif offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW5") then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W5"].."48")
+	else
+		return color(colorConfig:get_data().judgment["TapNoteScore_Miss"].."48")
+	end
+end
+
+-- 30% hardcoded, should var but lazy atm -mina
 function customOffsetToJudgeColor(offset, windows)
 	local offset = math.abs(offset)
 	if offset <= windows.marv then
-		return color(colorConfig:get_data().judgment["TapNoteScore_W1"])
+		return color(colorConfig:get_data().judgment["TapNoteScore_W1"].."48")
 	elseif offset <= windows.perf then
-		return color(colorConfig:get_data().judgment["TapNoteScore_W2"])
+		return color(colorConfig:get_data().judgment["TapNoteScore_W2"].."48")
 	elseif offset <= windows.great then
-		return color(colorConfig:get_data().judgment["TapNoteScore_W3"])
+		return color(colorConfig:get_data().judgment["TapNoteScore_W3"].."48")
 	elseif offset <= windows.good then
-		return color(colorConfig:get_data().judgment["TapNoteScore_W4"])
+		return color(colorConfig:get_data().judgment["TapNoteScore_W4"].."48")
 	elseif offset <= windows.boo then
-		return color(colorConfig:get_data().judgment["TapNoteScore_W5"])
+		return color(colorConfig:get_data().judgment["TapNoteScore_W5"].."48")
 	else
-		return color(colorConfig:get_data().judgment["TapNoteScore_Miss"])
+		return color(colorConfig:get_data().judgment["TapNoteScore_Miss"].."48")
 	end
 end
 
@@ -179,15 +202,20 @@ function byDifficulty(diff)
 	return color(colorConfig:get_data().difficulty[diff])
 end
 
+-- i guess if i'm going to use this naming convention it might as well be complete and standardized which means redundancy -mina
+function byGrade(grade)
+	return color(colorConfig:get_data().grade[grade]) or color(colorConfig:get_data().grade['Grade_None'])
+end
+
 -- Colorized stuff
-function ByMSD(x)
+function byMSD(x)
 	if x then
 		return HSV(math.max(95 - (x/40)*150, -50), 0.9, 0.9)
 	end
 	return HSV(0, 0.9, 0.9)
 end
 
-function ByMusicLength(x)
+function byMusicLength(x)
 	if x then
 		x = math.min(x,600)
 		return HSV(math.max(95 - (x/900)*150, -50), 0.9, 0.9)

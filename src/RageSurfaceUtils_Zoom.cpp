@@ -1,10 +1,10 @@
-#include "global.h"
-#include "RageSurfaceUtils_Zoom.h"
+﻿#include "global.h"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
+#include "RageSurfaceUtils_Zoom.h"
 #include "RageUtil.h"
-
 #include <vector>
+
 using namespace std;
 
 /* Coordinate 0x0 represents the exact top-left corner of a bitmap.  .5x.5

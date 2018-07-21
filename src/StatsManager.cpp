@@ -1,19 +1,19 @@
 #include "global.h"
-#include "StatsManager.h"
-#include "RageFileManager.h"
-#include "GameState.h"
+#include "CryptManager.h"
 #include "Foreach.h"
-#include "ProfileManager.h"
-#include "Profile.h"
+#include "GameState.h"
+#include "LuaManager.h"
 #include "PrefsManager.h"
+#include "Profile.h"
+#include "Profile.h"
+#include "ProfileManager.h"
+#include "RageFileManager.h"
+#include "ScoreManager.h"
+#include "StatsManager.h"
 #include "Steps.h"
 #include "StyleUtil.h"
-#include "LuaManager.h"
-#include "Profile.h"
 #include "XmlFile.h"
-#include "CryptManager.h"
 #include "XmlFileUtil.h"
-#include "ScoreManager.h"
 
 StatsManager*	STATSMAN = NULL;	// global object accessible from anywhere in the program
 
@@ -134,13 +134,13 @@ void StatsManager::CommitStatsToProfiles( const StageStats *pSS )
 		FOREACH_HumanPlayer( pn )
 		{
 			Profile* pPlayerProfile = PROFILEMAN->GetProfile( pn );
-			if( pPlayerProfile )
+			if( pPlayerProfile != nullptr )
 			{
 				pPlayerProfile->m_iTotalGameplaySeconds += iGameplaySeconds;
 				pPlayerProfile->m_iNumTotalSongsPlayed += pSS->m_vpPlayedSongs.size();
 			}
 
-			if( pPlayerProfile )
+			if( pPlayerProfile != nullptr )
 			{
 				LOG->Trace("Adding stats to player profile...");
 				AddPlayerStatsToProfile( pPlayerProfile, *pSS, pn );

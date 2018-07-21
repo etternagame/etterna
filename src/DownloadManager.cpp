@@ -1,5 +1,3 @@
-#pragma once
-
 #include "global.h"
 #if !defined(WITHOUT_NETWORKING)
 #include "RageFileManager.h"
@@ -10,6 +8,7 @@
 #include "DownloadManager.h"
 #include "GameState.h"
 #include "ScoreManager.h"
+#include "ScreenNetSelectMusic.h"
 #include "RageFileManager.h"
 #include "ProfileManager.h"
 #include "SongManager.h"
@@ -18,9 +17,12 @@
 #include "ScreenSelectMusic.h"
 #include "SpecialFiles.h"
 #include "curl/curl.h"
-#include "JsonUtil.h"
 #include "Foreach.h"
 #include "Song.h"
+#include <nlohmann/json.hpp>
+#include <unordered_set>
+#include <FilterManager.h>
+using json = nlohmann::json;
 #ifdef _WIN32 
 #include <intrin.h>
 #endif
@@ -28,8 +30,8 @@ shared_ptr<DownloadManager> DLMAN = nullptr;
 
 static Preference<unsigned int> maxDLPerSecond("maximumBytesDownloadedPerSecond", 0);
 static Preference<unsigned int> maxDLPerSecondGameplay("maximumBytesDownloadedPerSecondDuringGameplay", 300000);
-static Preference<RString> packListURL("packListURL", "https://api.etternaonline.com/v1/pack_list");
-static Preference<RString> serverURL("UploadServerURL", "https://api.etternaonline.com/v1/");
+static Preference<RString> packListURL("getPackListURL", "https://api.etternaonline.com/v2/packs");
+static Preference<RString> serverURL("UploadServerAPIURL", "https://api.etternaonline.com/v2");
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 static Preference<unsigned int> downloadPacksToAdditionalSongs("downloadPacksToAdditionalSongs", 0);
 static const string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
@@ -128,7 +130,7 @@ bool DownloadManager::InstallSmzip(const string &sZipFile)
 		splitpath(sDestFile, sDir, sThrowAway, sThrowAway);
 
 
-		if (!FileCopy(*sSrcFile, "Songs/" + sDestFile))
+		if (!FileCopy(*sSrcFile, extractTo + sDestFile))
 		{
 			sResult = "Error extracting " + sDestFile;
 			break;
@@ -175,13 +177,21 @@ inline void checkProtocol(string& url)
 	if (!(starts_with(url, "https://") || starts_with(url, "http://")))
 		url = string("http://").append(url);
 }
-//Utility inline functions to deal with CURL
-inline CURL* initCURLHandle() {
+inline CURL* initBasicCURLHandle() {
 	CURL *curlHandle = curl_easy_init();
 	curl_easy_setopt(curlHandle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
 	curl_easy_setopt(curlHandle, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(curlHandle, CURLOPT_SSL_VERIFYHOST, 0L);
 	curl_easy_setopt(curlHandle, CURLOPT_FOLLOWLOCATION, 1L);
+	return curlHandle;
+}
+//Utility inline functions to deal with CURL
+inline CURL* initCURLHandle() {
+	CURL *curlHandle = initBasicCURLHandle();
+	struct curl_slist *list = NULL;
+	list = curl_slist_append(list, ("Authorization: Bearer " + DLMAN->authToken).c_str());
+	curl_easy_setopt(curlHandle, CURLOPT_HTTPHEADER, list);
+	curl_easy_setopt(curlHandle, CURLOPT_TIMEOUT, 120);//Seconds
 	return curlHandle;
 }
 inline bool addFileToForm(curl_httppost *&form, curl_httppost *&lastPtr, string field, string fileName, string filePath, RString &contents)
@@ -200,14 +210,9 @@ inline bool addFileToForm(curl_httppost *&form, curl_httppost *&lastPtr, string 
 		CURLFORM_END);
 	return true;
 }
-inline void DownloadManager::AddSessionCookieToCURL(CURL *curlHandle)
+inline void SetCURLResultsString(CURL *curlHandle, string* str)
 {
-	curl_easy_setopt(curlHandle, CURLOPT_COOKIEFILE, ""); /* start cookie engine */
-	curl_easy_setopt(curlHandle, CURLOPT_COOKIE, ("ci_session=" + session + ";").c_str());
-}
-inline void SetCURLResultsString(CURL *curlHandle, string& str)
-{
-	curl_easy_setopt(curlHandle, CURLOPT_WRITEDATA, &str);
+	curl_easy_setopt(curlHandle, CURLOPT_WRITEDATA, str);
 	curl_easy_setopt(curlHandle, CURLOPT_WRITEFUNCTION, write_memory_buffer);
 }
 inline void DownloadManager::SetCURLURL(CURL *curlHandle, string url)
@@ -284,9 +289,9 @@ DownloadManager::~DownloadManager()
 		}
 		delete dl.second;
 	}
-	curl_global_cleanup();
 	if (LoggedIn())
 		EndSession();
+	curl_global_cleanup();
 }
 
 Download* DownloadManager::DownloadAndInstallPack(const string &url)
@@ -361,6 +366,10 @@ Download* DownloadManager::DownloadAndInstallPack(DownloadablePack* pack)
 			return nullptr;
 		}
 	}
+	if (downloadingPacks >= maxPacksToDownloadAtOnce) {
+		DLMAN->DownloadQueue.emplace_back(pack);
+		return nullptr;
+	}
 	Download* dl = DownloadAndInstallPack(pack->url);
 	dl->p_Pack = pack;
 	return dl;
@@ -398,7 +407,7 @@ void DownloadManager::UpdateHTTP(float fDeltaSeconds)
 
 	mc = curl_multi_fdset(mHTTPHandle, &fdread, &fdwrite, &fdexcep, &maxfd);
 	if (mc != CURLM_OK) {
-		error = "curl_multi_fdset() failed, code " + mc;
+		error = "curl_multi_fdset() failed, code " + to_string(mc);
 		return;
 	}
 	if (maxfd == -1) {
@@ -409,7 +418,7 @@ void DownloadManager::UpdateHTTP(float fDeltaSeconds)
 	}
 	switch (rc) {
 	case -1:
-		error = "select error" + mc;
+		error = "select error" + to_string(mc);
 		break;
 	case 0: /* timeout */
 	default: /* action */
@@ -420,15 +429,17 @@ void DownloadManager::UpdateHTTP(float fDeltaSeconds)
 	//Check for finished downloads
 	CURLMsg *msg;
 	int msgs_left;
-	while (msg = curl_multi_info_read(mHTTPHandle, &msgs_left)) {
+	while ((msg = curl_multi_info_read(mHTTPHandle, &msgs_left))) {
 		/* Find out which handle this message is about */
-		for (int i = 0; i < HTTPRequests.size();++i) {
+		for (size_t i = 0; i < HTTPRequests.size();++i) {
 			if (msg->easy_handle == HTTPRequests[i]->handle) {
 				if (msg->msg == CURLMSG_DONE) {
-					HTTPRequests[i]->Done(*(HTTPRequests[i]));
+					HTTPRequests[i]->Done(*(HTTPRequests[i]), msg);
 				}
 				else {
-					HTTPRequests[i]->Failed(*(HTTPRequests[i]));
+					HTTPRequests[i]->Failed(*(HTTPRequests[i]), msg);
+					if (msg->msg == CURLE_UNSUPPORTED_PROTOCOL)
+						LOG->Trace("CURL UNSUPPORTED PROTOCOL (Probably https)");
 				}
 				if (HTTPRequests[i]->handle != nullptr)
 					curl_easy_cleanup(HTTPRequests[i]->handle);
@@ -446,6 +457,7 @@ void DownloadManager::UpdateHTTP(float fDeltaSeconds)
 }
 void DownloadManager::UpdatePacks(float fDeltaSeconds)
 {
+	timeSinceLastDownload += fDeltaSeconds;
 	if (pendingInstallDownloads.size() > 0 && !gameplay) {
 		//Install all pending packs
 		for (auto i = pendingInstallDownloads.begin(); i != pendingInstallDownloads.end(); i++) {
@@ -458,7 +470,16 @@ void DownloadManager::UpdatePacks(float fDeltaSeconds)
 		if (screen && screen->GetName() == "ScreenSelectMusic")
 			static_cast<ScreenSelectMusic*>(screen)->DifferentialReload();
 		else
-			SONGMAN->DifferentialReload();
+			if (screen && screen->GetName() == "ScreenNetSelectMusic")
+				static_cast<ScreenNetSelectMusic*>(screen)->DifferentialReload();
+			else
+				SCREENMAN->SetNewScreen("ScreenReloadSongs");
+	}
+	if (downloadingPacks < maxPacksToDownloadAtOnce && !DownloadQueue.empty() && timeSinceLastDownload > DownloadCooldownTime) {
+		auto it = DownloadQueue.begin();
+		DownloadQueue.pop_front();
+		auto pack = *it;
+		auto dl = DLMAN->DownloadAndInstallPack(pack);
 	}
 	if (!downloadingPacks)
 		return;
@@ -476,7 +497,7 @@ void DownloadManager::UpdatePacks(float fDeltaSeconds)
 
 	mc = curl_multi_fdset(mPackHandle, &fdread, &fdwrite, &fdexcep, &maxfd);
 	if (mc != CURLM_OK) {
-		error = "curl_multi_fdset() failed, code " + mc;
+		error = "curl_multi_fdset() failed, code " + to_string(mc);
 		return;
 	}
 	if (maxfd == -1) {
@@ -487,7 +508,7 @@ void DownloadManager::UpdatePacks(float fDeltaSeconds)
 	}
 	switch (rc) {
 	case -1:
-		error = "select error" + mc;
+		error = "select error" + to_string(mc);
 		break;
 	case 0: /* timeout */
 	default: /* action */
@@ -502,14 +523,17 @@ void DownloadManager::UpdatePacks(float fDeltaSeconds)
 	int msgs_left;
 	bool installedPacks = false;
 	bool finishedADownload = false;
-	while (msg = curl_multi_info_read(mPackHandle, &msgs_left)) {
+	while ((msg = curl_multi_info_read(mPackHandle, &msgs_left))) {
 		/* Find out which handle this message is about */
 		for (auto i = downloads.begin(); i != downloads.end(); i++) {
-			if (msg->easy_handle == i->second->handle) {
+			if (msg->easy_handle == i->second->handle && msg->msg == CURLMSG_DONE) {
 				finishedADownload = true;
+				i->second->p_RFWrapper.file.Flush();
 				if (i->second->p_RFWrapper.file.IsOpen())
 					i->second->p_RFWrapper.file.Close();
 				if (msg->msg == CURLMSG_DONE) {
+					timeSinceLastDownload = 0;
+					i->second->Done(i->second);
 					if (!gameplay) {
 						installedPacks = true;
 						i->second->Install();
@@ -540,7 +564,10 @@ void DownloadManager::UpdatePacks(float fDeltaSeconds)
 		if (screen && screen->GetName() == "ScreenSelectMusic")
 			static_cast<ScreenSelectMusic*>(screen)->DifferentialReload();
 		else
-			SONGMAN->DifferentialReload();
+			if (screen && screen->GetName() == "ScreenNetSelectMusic")
+				static_cast<ScreenNetSelectMusic*>(screen)->DifferentialReload();
+			else
+				SCREENMAN->SetNewScreen("ScreenReloadSongs");
 	}
 	return;
 }
@@ -551,7 +578,49 @@ string Download::MakeTempFileName(string s)
 }
 bool DownloadManager::LoggedIn()
 {
-	return !session.empty();
+	return !authToken.empty();
+}
+
+void DownloadManager::AddFavorite(string chartkey)
+{
+	string req = "users/" + DLMAN->sessionUser + "/favorites";
+	DLMAN->favorites.emplace_back(chartkey);
+	auto done = [](HTTPRequest& req, CURLMsg *) {
+
+	};
+	SendRequest(req, {make_pair("chartkey", chartkey)}, done);
+}
+
+void DownloadManager::RemoveFavorite(string chartkey)
+{
+	auto it = std::find(DLMAN->favorites.begin(), DLMAN->favorites.end(), chartkey);
+	if (it != DLMAN->favorites.end())
+		DLMAN->favorites.erase(it);
+	string req = "users/" + DLMAN->sessionUser + "/favorites/"+chartkey;
+	auto done = [](HTTPRequest& req, CURLMsg *) {
+
+	};
+	SendRequest(req, {}, done);
+}
+
+void DownloadManager::RefreshFavourites()
+{
+	string req = "users/" + DLMAN->sessionUser + "/favorites";
+	auto done = [](HTTPRequest& req, CURLMsg *) {
+		json j;
+		bool parsed = true;
+		try {
+			j = json::parse(req.result);
+			auto favs = j.find("data");
+			for (auto fav : *favs)
+				DLMAN->favorites.emplace_back(fav["attributes"].value("chartkey", ""));
+		}
+		catch (exception e) {
+			DLMAN->favorites.clear();
+		}
+		MESSAGEMAN->Broadcast("FavouritesUpdate");
+	};
+	SendRequest(req, {}, done);
 }
 
 bool DownloadManager::ShouldUploadScores()
@@ -583,29 +652,52 @@ inline void SetCURLPOSTScore(CURL*& curlHandle, curl_httppost*& form, curl_httpp
 	SetCURLFormPostField(curlHandle, form, lastPtr, "nocc", static_cast<int>(!hs->GetChordCohesion()));
 	SetCURLFormPostField(curlHandle, form, lastPtr, "calc_version", hs->GetSSRCalcVersion());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "topscore", hs->GetTopScore());
-	SetCURLFormPostField(curlHandle, form, lastPtr, "uuid", hs->GetMachineGuid());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "hash", hs->GetValidationKey(ValidationKey_Brittle));
+	SetCURLFormPostField(curlHandle, form, lastPtr, "wife", hs->GetWifeScore());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "wifePoints", hs->GetWifePoints());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "judgeScale", hs->GetJudgeScale());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "machineGuid", hs->GetMachineGuid());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "grade", hs->GetGrade());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "wifeGrade", string(GradeToString(hs->GetWifeGrade()).c_str()));
+	SetCURLFormPostField(curlHandle, form, lastPtr, "ValidString", hs->GenerateValidationKeys());
+	
 }
 void DownloadManager::UploadScore(HighScore* hs)
 {
 	if (!LoggedIn())
 		return;
 	CURL *curlHandle = initCURLHandle();
-	string url = serverURL.Get() + "/upload_score";
+	string url = serverURL.Get() + "/score";
 	curl_httppost *form = nullptr;
 	curl_httppost *lastPtr = nullptr;
 	SetCURLPOSTScore(curlHandle, form, lastPtr, hs);
 	CURLFormPostField(curlHandle, form, lastPtr, "replay_data", "[]");
 	SetCURLPostToURL(curlHandle, url);
-	AddSessionCookieToCURL(curlHandle);
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
-	function<void(HTTPRequest&)> done = [hs](HTTPRequest& req) {
-		if (req.result == "\"Success\"") {
-			hs->AddUploadedServer(serverURL.Get());
+	auto done = [hs](HTTPRequest& req, CURLMsg *) {
+		json j;
+		try {
+			j = json::parse(req.result);
+			auto errors = j["errors"];
+			bool delay = false;
+			for (auto error : errors) {
+				if (error["status"] == 22) {
+					delay = true;
+					DLMAN->StartSession(DLMAN->sessionUser, DLMAN->sessionPass, [hs](bool logged) {
+						if (logged) {
+							DLMAN->UploadScore(hs);
+						}
+					});
+				}
+			}
+			if (!delay && j["data"]["type"] == "ssrResults") {
+				hs->AddUploadedServer(serverURL.Get());
+			}
 		}
+		catch (exception e) { }
 	};
 	HTTPRequest* req = new HTTPRequest(curlHandle, done);
-	SetCURLResultsString(curlHandle, req->result);
+	SetCURLResultsString(curlHandle, &(req->result));
 	curl_multi_add_handle(mHTTPHandle, req->handle);
 	HTTPRequests.push_back(req);
 	return;
@@ -615,18 +707,24 @@ void DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	if (!LoggedIn())
 		return;
 	CURL *curlHandle = initCURLHandle();
-	string url = serverURL.Get() + "/upload_score";
+	string url = serverURL.Get() + "/score";
 	curl_httppost *form = nullptr;
 	curl_httppost *lastPtr = nullptr;
-	curl_slist *headerlist = nullptr;
 	SetCURLPOSTScore(curlHandle, form, lastPtr, hs);
 	string replayString;
 	vector<float> offsets = hs->GetOffsetVector();
+	vector<int> columns = hs->GetTrackVector();
+	vector<TapNoteType> types = hs->GetTapNoteTypeVector();
 	if (offsets.size() > 0) {
 		replayString = "[";
-		vector<float> timestamps = hs->timeStamps;
-		for (int i = 0; i < offsets.size(); i++) {
-			replayString += "[" + to_string(timestamps[i]) + "," + to_string(1000.f * offsets[i]) + "],";
+		vector<float>& timestamps = hs->timeStamps;
+		for (size_t i = 0; i < offsets.size(); i++) {
+			replayString += "[";
+			replayString += to_string(timestamps[i]) + ",";
+			replayString += to_string(1000.f * offsets[i]) + ",";
+			replayString += to_string(columns[i]) + ",";
+			replayString += to_string(types[i]);
+			replayString += "],";
 		}
 		replayString = replayString.substr(0, replayString.size() - 1); //remove ","
 		replayString += "]";
@@ -635,25 +733,43 @@ void DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 		replayString = "";
 	SetCURLFormPostField(curlHandle, form, lastPtr, "replay_data", replayString);
 	SetCURLPostToURL(curlHandle, url);
-	AddSessionCookieToCURL(curlHandle);
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form); 
-	function<void(HTTPRequest&)> done = [this,hs](HTTPRequest& req) {
+	auto done = [this,hs](HTTPRequest& req, CURLMsg *) {
 		long response_code;
 		curl_easy_getinfo(req.handle, CURLINFO_RESPONSE_CODE, &response_code);
-		Json::Value json;
-		RString error;
-		hs->AddUploadedServer(serverURL.Get());
-		if (JsonUtil::LoadFromString(json, req.result, error) && json.isMember("success") && !json.isMember("error")) {
-			auto ratings = json.get("success", "");
-			FOREACH_ENUM(Skillset, ss)
-				if(ss!=Skill_Overall)
-					(DLMAN->sessionRatings)[ss] = ratings.get(SkillsetToString(ss), "0.0").asDouble();
-			(DLMAN->sessionRatings)[Skill_Overall] = ratings.get("player_rating", "0.0").asDouble();
+		json j;
+		try {
+			j = json::parse(req.result);
+			bool delay = false;
+			try {
+				auto errors = j["errors"];
+				for (auto error : errors) {
+					if (error["status"] == 22) {
+						delay = true;
+						DLMAN->StartSession(DLMAN->sessionUser, DLMAN->sessionPass, [hs](bool logged) {
+							if (logged) {
+								DLMAN->UploadScoreWithReplayData(hs);
+							}
+						});
+					}
+				}
+			}
+			catch (exception e) {}
+			if (!delay && j["data"]["type"] == "ssrResults") {
+				auto diffs = j["data"]["attributes"]["diff"];
+				FOREACH_ENUM(Skillset, ss)
+					if (ss != Skill_Overall)
+						(DLMAN->sessionRatings)[ss] += diffs.value(SkillsetToString(ss), 0.0);
+				(DLMAN->sessionRatings)[Skill_Overall] += diffs.value("Rating", 0.0);
+				hs->AddUploadedServer(serverURL.Get());
+				HTTPRunning = response_code;
+			}
 		}
-		HTTPRunning = response_code;
+		catch (exception e) {
+		}
 	};
 	HTTPRequest* req = new HTTPRequest(curlHandle, done);
-	SetCURLResultsString(curlHandle, req->result);
+	SetCURLResultsString(curlHandle, &(req->result));
 	curl_multi_add_handle(mHTTPHandle, req->handle);
 	HTTPRequests.push_back(req);
 	return;
@@ -666,13 +782,7 @@ void DownloadManager::EndSessionIfExists()
 }
 void DownloadManager::EndSession()
 {
-	string url = serverURL.Get() + "/destroy";
-	CURL *curlHandle = initCURLHandle();
-	SetCURLPostToURL(curlHandle, url);
-	AddSessionCookieToCURL(curlHandle);
-	CURLcode ret = curl_easy_perform(curlHandle);
-	curl_easy_cleanup(curlHandle);
-	session = sessionUser = sessionPass = sessionCookie = "";
+	sessionUser = sessionPass = authToken = "";
 	topScores.clear();
 	sessionRatings.clear();
 	MESSAGEMAN->Broadcast("LogOut");
@@ -694,28 +804,27 @@ void DownloadManager::RefreshUserRank()
 {
 	if (!LoggedIn())
 		return;
-	string url = serverURL.Get() + "/user_rank";
-	CURL *curlHandle = initCURLHandle();
-	url += "?username=" + sessionUser;
-	SetCURLURL(curlHandle, url);
-	function<void(HTTPRequest&)> done = [](HTTPRequest& req) {
-		Json::Value json;
-		RString error;
-		if (!JsonUtil::LoadFromString(json, req.result, error)) {
-			FOREACH_ENUM(Skillset, ss)
-				(DLMAN->sessionRanks)[ss] = 0.0f;
-			return;
+	auto done = [](HTTPRequest& req, CURLMsg *) {
+		json j;
+		bool parsed = true;
+		try {
+			j = json::parse(req.result);
 		}
-		FOREACH_ENUM(Skillset, ss)
-			(DLMAN->sessionRanks)[ss] = atoi(json.get(SkillsetToString(ss), "0").asCString());
+		catch (exception e) {
+			parsed = false;
+		}
+		try {
+			auto skillsets = j.find("data")->find("attributes");
+			FOREACH_ENUM(Skillset, ss)
+				(DLMAN->sessionRanks)[ss] = skillsets->value(SkillsetToString(ss).c_str(), 0);
+		}
+		catch (exception e) {
+			FOREACH_ENUM(Skillset, ss)
+				(DLMAN->sessionRanks)[ss] = 0;
+		}
 		MESSAGEMAN->Broadcast("OnlineUpdate");
 	};
-	HTTPRequest* req = new HTTPRequest(curlHandle, done);
-	SetCURLResultsString(curlHandle, req->result);
-	AddSessionCookieToCURL(curlHandle);
-	curl_easy_setopt(curlHandle, CURLOPT_HTTPGET, 1L);
-	curl_multi_add_handle(mHTTPHandle, req->handle);
-	HTTPRequests.push_back(req);
+	SendRequest("user/" + sessionUser + "/ranks", {}, done, true, false, true);
 	return;
 }
 OnlineTopScore DownloadManager::GetTopSkillsetScore(unsigned int rank, Skillset ss, bool &result)
@@ -729,11 +838,11 @@ OnlineTopScore DownloadManager::GetTopSkillsetScore(unsigned int rank, Skillset 
 	return OnlineTopScore();
 }
 
-void DownloadManager::SendRequest(string requestName, vector<pair<string, string>> params, function<void(HTTPRequest&)> done, bool requireLogin, bool post, bool async)
+void DownloadManager::SendRequest(string requestName, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> done, bool requireLogin, bool post, bool async)
 {
 	SendRequestToURL(serverURL.Get() + "/" + requestName, params, done, requireLogin, post, async);
 }
-void DownloadManager::SendRequestToURL(string url, vector<pair<string, string>> params, function<void(HTTPRequest&)> done, bool requireLogin, bool post, bool async)
+void DownloadManager::SendRequestToURL(string url, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> afterDone, bool requireLogin, bool post, bool async)
 {
 	if (requireLogin && !LoggedIn())
 		return;
@@ -743,6 +852,29 @@ void DownloadManager::SendRequestToURL(string url, vector<pair<string, string>> 
 			url += param.first + "=" + param.second + "&";
 		url = url.substr(0, url.length() - 1);
 	}
+	function<void(HTTPRequest&, CURLMsg *)> done = [afterDone](HTTPRequest& req, CURLMsg * msg) {
+		try {
+			json tmp = json::parse(req.result);
+			auto errors = tmp["errors"];
+			bool delay = false;
+			for (auto error : errors) { 
+				if (error["status"] == 22) {
+					delay = true;
+					DLMAN->StartSession(DLMAN->sessionUser, DLMAN->sessionPass, [req, msg, afterDone](bool logged) {
+						if (logged) {
+							auto r = req;
+							afterDone(r, msg);
+						}
+					});
+				}
+			}
+			if(!delay)
+				afterDone(req, msg);
+		}
+		catch (exception e) {
+			afterDone(req, msg);
+		}
+	};
 	CURL *curlHandle = initCURLHandle();
 	SetCURLURL(curlHandle, url);
 	HTTPRequest* req;
@@ -758,9 +890,7 @@ void DownloadManager::SendRequestToURL(string url, vector<pair<string, string>> 
 		req = new HTTPRequest(curlHandle, done);
 		curl_easy_setopt(curlHandle, CURLOPT_HTTPGET, 1L);
 	}
-	if (requireLogin)
-		AddSessionCookieToCURL(curlHandle);
-	SetCURLResultsString(curlHandle, req->result);
+	SetCURLResultsString(curlHandle, &(req->result));
 	if (async) {
 		if (mHTTPHandle == nullptr)
 			mHTTPHandle = curl_multi_init();
@@ -770,114 +900,275 @@ void DownloadManager::SendRequestToURL(string url, vector<pair<string, string>> 
 	else {
 		CURLcode res = curl_easy_perform(req->handle);
 		curl_easy_cleanup(req->handle);
-		done(*req);
+		done(*req, nullptr);
 		delete req;
 	}
 	return;
 }
+
+float mythicalmathymaths(string chartkey) {
+	auto &scoobydoop = DLMAN->chartLeaderboards[chartkey];
+
+	float dsum = 0.f;
+	int num = 4;
+	for (auto &s : scoobydoop) {
+		float goobles = s.playerRating - 1.f;
+		if (s.playerRating > 1.f && s.SSRs[Skill_Overall] > 1.f && abs(s.playerRating - s.SSRs[Skill_Overall]) < 7.5f) {
+			if (s.playerRating > s.SSRs[Skill_Overall]) {
+				float mcsproot = goobles - s.SSRs[Skill_Overall];
+				dsum += mcsproot;
+			}
+			else {
+				float mcdoot = s.SSRs[Skill_Overall] + 1.f - s.playerRating;
+				dsum -= mcdoot * mcdoot;
+			}
+			++num;
+		}	
+	}
+	return dsum/num;
+}
+
+float ixmixblixb(string chartkey) {
+	auto &scoobydoop = DLMAN->chartLeaderboards[chartkey];
+	vector<float> valuesbaby;
+	float offset = 5.f;
+	float dsum = 0.f;
+	int num = 0;
+	float mcdoot = 1.f;
+	
+	for (auto &s : scoobydoop) {
+		if (s.playerRating > 1.f && s.SSRs[Skill_Overall] > 1.f) {
+			float adjrating = s.playerRating * 1.026f;
+			float value = static_cast<float>((2.0 / erfc(0.1 * (s.SSRs[Skill_Overall] - adjrating))));
+			if (s.SSRs[Skill_Overall] - s.playerRating > 40)
+				value = 100.f;
+			if (value < 0)
+				value = 0.f;
+			valuesbaby.emplace_back(value);
+			dsum += value;
+			++num;
+		}
+	}
+	
+	float zeeaverage = dsum / num;
+
+	float overratedness = (dsum - offset) / num;
+	
+	overratedness /= zeeaverage;
+	overratedness -= 1.5f;
+
+	float multiplier = 1.f - overratedness;
+	if (multiplier - mcdoot < -0.2f)
+		multiplier = mcdoot - 0.2f;
+
+	float nerfE = (4.f*mcdoot + multiplier) / 5.f;
+	nerfE = min(1.f, nerfE);
+	return overratedness;
+}
+
 void DownloadManager::RequestChartLeaderBoard(string chartkey)
 {
-	function<void(HTTPRequest&)> done = [chartkey](HTTPRequest& req) {
-		Json::Value json;
-		RString error;
-		if (!JsonUtil::LoadFromString(json, req.result, error) || (json.isObject() && json.isMember("error")))
-			return;
+	auto done = [chartkey](HTTPRequest& req, CURLMsg *) {
 		vector<OnlineScore> & vec = DLMAN->chartLeaderboards[chartkey];
 		vec.clear();
-		for (auto it = json.begin(); it != json.end(); ++it) {
-			OnlineScore tmp;
-			tmp.wife = atof((*it).get("wifescore", "0.0").asCString());
-			tmp.modifiers = (*it).get("modifiers", "").asString();
-			tmp.username = (*it).get("username", "").asString();
-			tmp.maxcombo = atoi((*it).get("maxcombo", "0").asCString());
-			tmp.marvelous = atoi((*it).get("marv", "0").asCString());
-			tmp.perfect = atoi((*it).get("perfect", "0").asCString());
-			tmp.good = atoi((*it).get("good", "0").asCString());
-			tmp.bad = atoi((*it).get("bad", "0").asCString());
-			tmp.miss = atoi((*it).get("miss", "0").asCString());
-			tmp.minehits = atoi((*it).get("minehits", "0").asCString());
-			tmp.held = atoi((*it).get("held", "0").asCString());
-			tmp.letgo = atoi((*it).get("letgo", "0").asCString());
-			tmp.datetime.FromString((*it).get("datetime", "0").asCString());
-			tmp.rate = atof((*it).get("user_chart_rate_rate", "0.0").asCString());
-			tmp.nocc = (*it).get("nocc", "0").asBool();
-			tmp.valid = (*it).get("valid", "0").asBool();
-			FOREACH_ENUM(Skillset, ss)
-				tmp.SSRs[ss] = ((*it).isMember(SkillsetToString(ss).c_str()) && (*it).isNull()) ? 0.0f : atof((*it).get(SkillsetToString(ss).c_str(), "0.0").asCString());
-			//todo:replays
-			auto rd = (*it)["replay"];
-			auto s = rd.toStyledString();
-			if(s.length()>2)
-				s = s.substr(1, s.length() - 2);
-			Json::Value rdj;
+		unordered_set<string> userswithscores;
+		float currentrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+		Message msg("ChartLeaderboardUpdate");
+		try {
+			auto j = json::parse(req.result);
+			if (j.find("errors") != j.end())
+				throw exception();
+			auto scores = j.find("data");
+			for (auto scoreJ : (*scores)) {
+				auto score = *(scoreJ.find("attributes"));
+				
+				// i don't really want to do this very iteration but oh well -mina
+				msg.SetParam("songid", RString(score.value("songId", "").c_str()));
 
-			if (JsonUtil::LoadFromString(rdj, s, error))
-				for (auto itt = rdj.begin(); itt != rdj.end(); itt++)
-					tmp.replayData.emplace_back(make_pair((*itt)[0u].asDouble(), (*itt)[1 ].asDouble()));
-			vec.emplace_back(tmp);
+				OnlineScore tmp;
+				auto user = *(score.find("user"));
+				tmp.username = user.value("userName", "").c_str();
+				tmp.avatar = user.value("avatar", "").c_str();
+				tmp.userid = user.value("userId", 0);				
+				tmp.playerRating = static_cast<float>(user.value("playerRating", 0.0));
+				tmp.wife = static_cast<float>(score.value("wife", 0.0)/100.0);
+				tmp.modifiers = score.value("modifiers", "").c_str();
+				tmp.maxcombo = score.value("maxCombo", 0);
+				{
+					auto judgements = *(score.find("judgements"));
+					tmp.marvelous = judgements.value("marvelous", 0);
+					tmp.perfect = judgements.value("perfect", 0);
+					tmp.great = judgements.value("great", 0);
+					tmp.good = judgements.value("good", 0);
+					tmp.bad = judgements.value("bad", 0);
+					tmp.miss = judgements.value("miss", 0);
+					tmp.minehits = judgements.value("hitMines", 0);
+					tmp.held = judgements.value("heldHold", 0);
+					tmp.letgo = judgements.value("letGoHold", 0);
+				}
+				tmp.datetime.FromString(score.value("datetime", "0"));
+				tmp.scoreid = scoreJ.value("id", "").c_str();
+				
+				// filter scores not on the current rate out if enabled... dunno if we need this precision -mina
+				tmp.rate = static_cast<float>(score.value("rate", 0.0));
+				if (FILTERMAN->currentrateonlyforonlineleaderboardrankings)
+					if(lround(tmp.rate * 10000.f) != lround(currentrate * 10000.f))
+						continue;
+				tmp.nocc = score.value("noCC", 0) == 1;
+				tmp.valid = score.value("valid", 0) == 1;
+
+				auto ssrs = *(score.find("skillsets"));
+				FOREACH_ENUM(Skillset, ss)
+					tmp.SSRs[ss] = static_cast<float>(ssrs.value(SkillsetToString(ss).c_str(), 0.0));
+				try {
+					auto replay = score["replay"];
+					if (replay.size() > 1)
+						LOG->Trace(tmp.modifiers.c_str());
+					for (auto pair : replay)
+						tmp.replayData.emplace_back(make_pair(pair[0].get<float>(), pair[1].get<float>()));
+				}
+				catch (exception e) {
+					//replaydata failed
+				}
+
+				// eo still has some old profiles with various edge issues that unfortunately need to be handled here
+				// screen out old 11111 flags (my greatest mistake) and it's probably a safe bet to throw out below 25% scores -mina
+				if (tmp.wife > 1.f || tmp.wife < 0.25f || !tmp.valid)
+					continue;
+
+				// it seems prudent to maintain the eo functionality in this way and screen out multiple scores from the same user 
+				// even more prudent would be to put this last where it belongs, we don't want to screen out scores for players who wouldn't
+				// have had them registered in the first place -mina
+				if (userswithscores.count(tmp.username) == 1)
+					continue;
+
+				userswithscores.emplace(tmp.username);
+				vec.emplace_back(tmp);
+			}
 		}
-		MESSAGEMAN->Broadcast("ChartLeaderboardUpdate");
+		catch (exception e) {
+			//json failed
+		}
+		
+		float zoop = mythicalmathymaths(chartkey);
+		//float coop = ixmixblixb(chartkey);
+		msg.SetParam("mmm", zoop);
+		msg.SetParam("ixmixblixb", 2);
+		userswithscores.clear();	// should be ok to free the mem in this way? -mina
+		MESSAGEMAN->Broadcast(msg);	// see start of function
 	};
-	SendRequest("chart_leaderboard", {make_pair("chartkey", chartkey)}, done, true);
+	SendRequest("/charts/"+chartkey+"/leaderboards", vector<pair<string, string>>(), done, true);
 }
+
+vector<DownloadablePack*> DownloadManager::GetCoreBundle(string whichoneyo) {
+	vector<DownloadablePack*> bundle;
+	auto done = [this, &bundle](HTTPRequest& req, CURLMsg *) {
+		try {
+			json j= json::parse(req.result);
+			auto packs = j.find("data");
+			if (packs == j.end())
+				return;
+			auto& dlPacks = DLMAN->downloadablePacks;
+			for (auto pack : (*packs)) {
+				auto name = pack["attributes"].value("packName", "");
+				auto dlPack = find_if(dlPacks.begin(), dlPacks.end(),
+					[&name](DownloadablePack x) { return x.name == name; });
+				if(dlPack != dlPacks.end())
+						bundle.emplace_back(&(*dlPack));
+			}
+		}
+		catch (exception e) { }
+	};
+	SendRequest("packs/collection/" + whichoneyo, vector<pair<string, string>>(), done, false, false, false);
+	return bundle;
+}
+
+void DownloadManager::DownloadCoreBundle(string whichoneyo) {
+	auto bundle = GetCoreBundle(whichoneyo);
+	sort(bundle.begin(), bundle.end(), [](DownloadablePack* x1, DownloadablePack* x2) {return x1->size < x2->size; });
+	for (auto pack : bundle)
+		DLMAN->DownloadQueue.emplace_back(pack);
+}
+
 void DownloadManager::RefreshLastVersion()
 {
-	function<void(HTTPRequest&)> done = [this](HTTPRequest& req) {
-		Json::Value json;
-		RString error;
-		if (!JsonUtil::LoadFromString(json, req.result, error) || (json.isObject() && json.isMember("error")))
+	auto done = [this](HTTPRequest& req, CURLMsg *) {
+		json j;
+		bool parsed = true;
+		try {
+			j = json::parse(req.result);
+		}
+		catch (exception e) {
+			parsed = false;
+		}
+		if (!parsed)
 			return;
-		this->lastVersion = json.get("version", GAMESTATE->GetEtternaVersion()).asCString();
+		try {
+			this->lastVersion = j["data"]["attributes"].value("version", GAMESTATE->GetEtternaVersion().c_str());
+		}
+		catch (exception e) {}
 	};
-	SendRequest("client_version", vector<pair<string, string>>(), done, false, false, true);
+	SendRequest("client/version", vector<pair<string, string>>(), done, false, false, true);
 }
 void DownloadManager::RefreshRegisterPage()
 {
-	function<void(HTTPRequest&)> done = [this](HTTPRequest& req) {
-		Json::Value json;
-		RString error;
-		if (!JsonUtil::LoadFromString(json, req.result, error) || (json.isObject() && json.isMember("error")))
+	auto done = [this](HTTPRequest& req, CURLMsg *) {
+		json j;
+		bool parsed = true;
+		try {
+			j = json::parse(req.result);
+		}
+		catch (exception e) {
+			parsed = false;
+		}
+		if (!parsed)
 			return;
-		this->registerPage = json.get("link", "").asCString();
+		try {
+			this->registerPage = j["data"]["attributes"].value("url", "");
+		} catch(exception e) { }
 	};
-	SendRequest("register_link", vector<pair<string, string>>(), done, false, false, true);
+	SendRequest("client/registration", vector<pair<string, string>>(), done, false, false, true);
 }
 void DownloadManager::RefreshTop25(Skillset ss)
 {
+	DLMAN->topScores[ss].clear();
 	if (!LoggedIn())
 		return;
-	string url = serverURL.Get() + "/user_top_scores?num=25";
+	string req = "user/"+DLMAN->sessionUser+"/top/";
 	CURL *curlHandle = initCURLHandle();
-	url += "&username=" + sessionUser;
 	if(ss!= Skill_Overall)
-		url += "&ss="+SkillsetToString(ss);
-	SetCURLURL(curlHandle, url);
-	function<void(HTTPRequest&)> done = [ss](HTTPRequest& req) {
-		Json::Value json;
-		RString error;
-		if (!JsonUtil::LoadFromString(json, req.result, error) || (json.isObject() && json.isMember("error")))
-			return;
-		vector<OnlineTopScore> & vec = DLMAN->topScores[ss];
-		for (auto it = json.begin(); it != json.end(); ++it) {
-			OnlineTopScore tmp;
-			tmp.songName = (*it).get("songname", "").asString();
-			tmp.wifeScore = atof((*it).get("wifescore", "0.0").asCString());
-			tmp.ssr = atof((*it).get(SkillsetToString(ss), "0.0").asCString());
-			tmp.overall = atof((*it).get("Overall", "0.0").asCString());
-			tmp.chartkey = (*it).get("chartkey", "").asString(); 
-			tmp.scorekey = (*it).get("scorekey", "").asString();
-			tmp.rate = atof((*it).get("user_chart_rate_rate", "0.0").asCString());
-			tmp.difficulty = StringToDifficulty((*it).get("difficulty", "Invalid").asCString());
-			vec.push_back(tmp);
+		req += SkillsetToString(ss)+"/";
+	auto done = [ss](HTTPRequest& req, CURLMsg *) {
+		try {
+			auto j = json::parse(req.result);
+			auto scores = j.find("data");
+			vector<OnlineTopScore> & vec = DLMAN->topScores[ss];
+			for (auto scoreJ : (*scores)) {
+				try {
+					auto score = *(scoreJ.find("attributes"));
+					OnlineTopScore tmp;
+					tmp.songName = score.value("songName", "");
+					tmp.wifeScore = static_cast<float>(score.value("wife", 0.0)/100.0);
+					tmp.overall = static_cast<float>(score.value("Overall", 0.0));
+					if(ss!=Skill_Overall)
+						tmp.ssr = static_cast<float>(score["skillsets"].value(SkillsetToString(ss), 0.0));
+					else
+						tmp.ssr = tmp.overall;
+					tmp.chartkey = score.value("chartKey", "");
+					tmp.scorekey = scoreJ.value("id", "");
+					tmp.rate = static_cast<float>(score.value("rate", 0.0));
+					tmp.difficulty = StringToDifficulty(score.value("difficulty", "Invalid").c_str());
+					vec.push_back(tmp);
+				}
+				catch (exception e) {
+					//score failed
+				}
+			}
+			MESSAGEMAN->Broadcast("OnlineUpdate");
 		}
-		MESSAGEMAN->Broadcast("OnlineUpdate");
+		catch (exception e) { /* We already cleared the vector */}
 	};
-	HTTPRequest* req= new HTTPRequest(curlHandle, done);
-	SetCURLResultsString(curlHandle, req->result);
-	AddSessionCookieToCURL(curlHandle);
-	curl_easy_setopt(curlHandle, CURLOPT_HTTPGET, 1L);
-	curl_multi_add_handle(mHTTPHandle, req->handle);
-	HTTPRequests.push_back(req);
+	SendRequest(req, {}, done);
 	return;
 }
 // Skillset ratings (we dont care about mod lvl, username, about, etc)
@@ -885,32 +1176,36 @@ void DownloadManager::RefreshUserData()
 {
 	if (!LoggedIn())
 		return;
-	string url = serverURL.Get() + "/user_data";
-	CURL *curlHandle = initCURLHandle();
-	url += "?username=" + sessionUser;
-	SetCURLURL(curlHandle, url);
-	function<void(HTTPRequest&)> done = [](HTTPRequest& req) {
-		Json::Value json;
-		RString error;
-		JsonUtil::LoadFromString(json, req.result, error);
-
-		FOREACH_ENUM(Skillset, ss)
-			(DLMAN->sessionRatings)[ss] = atof(json.get(SkillsetToString(ss), "0.0").asCString());
+	auto done = [](HTTPRequest& req, CURLMsg *) {
+		json j;
+		bool parsed = true;
+		try {
+			j = json::parse(req.result);
+		}
+		catch (exception e) {
+			parsed = false;
+		}
+		try {
+			auto attr = j.find("data")->find("attributes");
+			auto skillsets = attr->find("skillsets");
+			FOREACH_ENUM(Skillset, ss)
+				(DLMAN->sessionRatings)[ss] = skillsets->value(SkillsetToString(ss).c_str(), 0.0f);
+			DLMAN->sessionRatings[Skill_Overall] = attr->value("playerRating", DLMAN->sessionRatings[Skill_Overall]);
+		}
+		catch (exception e) {
+			FOREACH_ENUM(Skillset, ss)
+				(DLMAN->sessionRatings)[ss] = 0.0f;
+		}
 		MESSAGEMAN->Broadcast("OnlineUpdate");
 	};
-	HTTPRequest* req = new HTTPRequest(curlHandle, done);
-	SetCURLResultsString(curlHandle, req->result);
-	AddSessionCookieToCURL(curlHandle);
-	curl_easy_setopt(curlHandle, CURLOPT_HTTPGET, 1L);
-	curl_multi_add_handle(mHTTPHandle, req->handle);
-	HTTPRequests.push_back(req);
+	SendRequest("user/" + sessionUser, {}, done);
 	return;
 }
 
-void DownloadManager::StartSession(string user, string pass)
+void DownloadManager::StartSession(string user, string pass, function<void(bool loggedIn)> callback = [](bool) {return; })
 {
 	string url = serverURL.Get() + "/login";
-	if (loggingIn || (user == sessionUser && pass == sessionPass)) {
+	if (loggingIn) {
 		return;
 	}
 	DLMAN->loggingIn = true;
@@ -925,52 +1220,45 @@ void DownloadManager::StartSession(string user, string pass)
 	CURLFormPostField(curlHandle, form, lastPtr, "password", pass.c_str());
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
 
-	function<void(HTTPRequest&)> done = [user, pass](HTTPRequest& req) {
-		vector<string> v_cookies;
-		Json::Value json;
-		RString error;
-		if (JsonUtil::LoadFromString(json, req.result, error) && json.get("success", "").asString() == "Valid" && ! json.isMember("error")) {
-			struct curl_slist *cookies;
-			struct curl_slist *cookieIterator;
-			curl_easy_getinfo(req.handle, CURLINFO_COOKIELIST, &cookies);
-			cookieIterator = cookies;
-			while (cookieIterator) {
-				v_cookies.push_back(cookieIterator->data);
-				cookieIterator = cookieIterator->next;
-			}
-			curl_slist_free_all(cookies);
-			for (auto& cook : v_cookies) {
-				vector<string> parts = split(cook, '\t');
-				for (auto x = parts.begin(); x != parts.end(); x++) {
-					if (*x == "ci_session") {
-						DLMAN->session = *(x + 1);
-						DLMAN->sessionCookie = cook;
-						break;
-					}
-				}
-				if (!DLMAN->session.empty())
-					break;
-			}
-			DLMAN->sessionUser = user;
-			DLMAN->sessionPass = pass;
-			DLMAN->RefreshUserRank();
-			DLMAN->RefreshUserData();
-			FOREACH_ENUM(Skillset, ss)
-				DLMAN->RefreshTop25(ss);
-			if(DLMAN->ShouldUploadScores())
-				DLMAN->UploadScores();
-			if (GAMESTATE->m_pCurSteps[PLAYER_1] != nullptr)
-				DLMAN->RequestChartLeaderBoard(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
-			MESSAGEMAN->Broadcast("Login");
+	auto done = [user, pass, callback](HTTPRequest& req, CURLMsg *) {
+		json j;
+		bool parsed = true;
+		try {
+			j = json::parse(req.result);
 		}
-		else {
-			DLMAN->session = DLMAN->sessionUser = DLMAN->sessionPass = DLMAN->sessionCookie = "";
+		catch (exception e) {
+			parsed = false;
+		}
+		try {
+			DLMAN->authToken = j["data"]["attributes"].value("accessToken", "");
+		}
+		catch (exception e) {
+			DLMAN->authToken = DLMAN->sessionUser = DLMAN->sessionPass = "";
 			MESSAGEMAN->Broadcast("LoginFailed");
+			DLMAN->loggingIn = false;
+			return;
 		}
+		DLMAN->sessionUser = user;
+		DLMAN->sessionPass = pass;
+		DLMAN->RefreshUserRank();
+		DLMAN->RefreshUserData();
+		FOREACH_ENUM(Skillset, ss)
+			DLMAN->RefreshTop25(ss);
+		if(DLMAN->ShouldUploadScores())
+			DLMAN->UploadScores();
+		if (GAMESTATE->m_pCurSteps[PLAYER_1] != nullptr)
+			DLMAN->RequestChartLeaderBoard(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+		MESSAGEMAN->Broadcast("Login");
 		DLMAN->loggingIn = false;
+		callback(DLMAN->LoggedIn());
 	};
 	HTTPRequest* req = new HTTPRequest(curlHandle, done, form);
-	SetCURLResultsString(curlHandle, req->result);
+	req->Failed = [](HTTPRequest& req, CURLMsg *) {
+		DLMAN->authToken = DLMAN->sessionUser = DLMAN->sessionPass = "";
+		MESSAGEMAN->Broadcast("LoginFailed");
+		DLMAN->loggingIn = false;
+	};
+	SetCURLResultsString(curlHandle, &(req->result));
 	if (mHTTPHandle == nullptr)
 		mHTTPHandle = curl_multi_init();
 	curl_multi_add_handle(mHTTPHandle, req->handle);
@@ -1004,58 +1292,80 @@ float DownloadManager::GetSkillsetRating(Skillset ss)
 {
 	if (!LoggedIn())
 		return 0.0f;
-	return sessionRatings[ss];
+	return static_cast<float>(sessionRatings[ss]);
 }
 void DownloadManager::RefreshPackList(string url)
 {
 	if (url == "") 
 		return;
-	function<void(HTTPRequest&)> done = [](HTTPRequest& req) {
-		Json::Value packs;
-		RString error;
-		auto& packlist = DLMAN->downloadablePacks;
-		bool parsed = JsonUtil::LoadFromString(packs, req.result, error);
-		if (!parsed) 
-			return;
-		DLMAN->downloadablePacks.clear();
-		for (int index = 0; index < packs.size(); ++index) {
-			DownloadablePack tmp;
-			if (packs[index].isMember("pack"))
-				tmp.name = packs[index].get("pack", "").asString();
-			else if (packs[index].isMember("packname"))
-				tmp.name = packs[index].get("packname", "").asString();
-			else if (packs[index].isMember("name"))
-				tmp.name = packs[index].get("name", "").asString();
-			else
-				continue;
-			if (packs[index].isMember("download"))
-				tmp.url = packs[index].get("download", "").asString();
-			else if (packs[index].isMember("url"))
-				tmp.url = packs[index].get("url", "").asString();
-			else
-				continue;
-			if (tmp.url.empty())
-				continue;
-			if (packs[index].isMember("average"))
-				tmp.avgDifficulty = static_cast<float>(packs[index].get("average", 0).asDouble());
-			else
-				tmp.avgDifficulty = 0.0;
-			if (packs[index].isMember("size"))
-				tmp.size = packs[index].get("size", 0).asInt();
-			else
-				tmp.size = 0;
-			tmp.id = ++(DLMAN->lastid);
-			packlist.push_back(tmp);
+	auto done = [](HTTPRequest& req, CURLMsg *) {
+		json j;
+		bool parsed = true;
+		try {
+			j = json::parse(req.result);
 		}
+		catch (exception e) {
+			parsed = false;
+		}
+		if (!parsed)
+			return;
+		auto& packlist = DLMAN->downloadablePacks;
+		DLMAN->downloadablePacks.clear();
+		try {
+			nlohmann::basic_json<> packs;
+			if (j.is_array())
+				packs = j;
+			else
+				packs = *(j.find("data"));
+			for (auto packJ : packs) {
+				try {
+					auto attr = packJ.find("attributes");
+					auto pack = attr != packJ.end() ? *attr : packJ;
+					DownloadablePack tmp;
+					if (pack.find("pack") != pack.end())
+						tmp.name = pack.value("pack", "");
+					else if (pack.find("packname") != pack.end())
+						tmp.name = pack.value("packname", "");
+					else if (pack.find("name") != pack.end())
+						tmp.name = pack.value("name", "");
+					else
+						continue;
+					try {
+						if (pack.find("download") != pack.end())
+							tmp.url = pack.value("download", "");
+						else if (pack.find("url") != pack.end())
+							tmp.url = pack.value("url", "");
+						else
+							continue;
+					}
+					catch (exception e) {
+						continue;
+					}
+					if (tmp.url.empty())
+						continue;
+					if (pack.find("average") != pack.end())
+						tmp.avgDifficulty = static_cast<float>(pack.value("average", 0.0));
+					else
+						tmp.avgDifficulty = 0.f;
+					if (pack.find("size") != pack.end())
+						tmp.size = pack.value("size", 0);
+					else
+						tmp.size = 0;
+					tmp.id = ++(DLMAN->lastid);
+					packlist.push_back(tmp);
+				} catch (exception e) {}
+			}
+		} catch (exception e) { }
 	};
 	SendRequestToURL(url, {}, done, false, false, true);
 	return;
 }
 
-Download::Download(string url)
+Download::Download(string url, function<void(Download*)> done)
 {
+	Done = done;
 	m_Url = url;
-	handle = initCURLHandle();
+	handle = initBasicCURLHandle();
 	m_TempFileName = MakeTempFileName(url);
 	p_RFWrapper.file.Open(m_TempFileName, 2);
 	DLMAN->EncodeSpaces(m_Url);
@@ -1230,7 +1540,7 @@ public:
 		string chartkey = SArg(1);
 		int rank = IArg(2);
 		int index = rank - 1;
-		if (!DLMAN->chartLeaderboards.count(chartkey) || index >= DLMAN->chartLeaderboards[chartkey].size()) {
+		if (index < 0 || !DLMAN->chartLeaderboards.count(chartkey) || index >= static_cast<int>(DLMAN->chartLeaderboards[chartkey].size())) {
 			lua_pushnil(L);
 			return 1;
 		}
@@ -1272,8 +1582,16 @@ public:
 		lua_setfield(L, -2, "modifiers");
 		lua_pushstring(L, score.username.c_str());
 		lua_setfield(L, -2, "username");
+		lua_pushnumber(L, score.playerRating);
+		lua_setfield(L, -2, "playerRating");
 		lua_pushstring(L, score.datetime.GetString().c_str());
 		lua_setfield(L, -2, "datetime");
+		lua_pushstring(L, score.scoreid.c_str());
+		lua_setfield(L, -2, "scoreid");
+		lua_pushnumber(L, score.userid);
+		lua_setfield(L, -2, "userid");
+		lua_pushstring(L, score.avatar.c_str());
+		lua_setfield(L, -2, "avatar");
 		if (!score.replayData.empty()) {
 			lua_createtable(L, 0, score.replayData.size());
 			int i = 1;
@@ -1295,10 +1613,10 @@ public:
 			return luaL_error(L, "GetFilteredAndSearchedPackList expects exactly 5 arguments(packname, lower diff, upper diff, lower size, upper size)");
 		}
 		string name = SArg(1);
-		double avgLower = max(luaL_checknumber(L, 2), 0);
-		double avgUpper = max(luaL_checknumber(L, 3),0);
-		size_t sizeLower = luaL_checknumber(L, 4);
-		size_t sizeUpper = luaL_checknumber(L, 5);
+		double avgLower = max(luaL_checknumber(L, 2), 0.0);
+		double avgUpper = max(luaL_checknumber(L, 3), 0.0);
+		size_t sizeLower = static_cast<size_t>(luaL_checknumber(L, 4));
+		size_t sizeUpper = static_cast<size_t>(luaL_checknumber(L, 5));
 		vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
 		vector<DownloadablePack*> retPacklist;
 		for (unsigned i = 0; i < packs.size(); ++i) {
@@ -1316,8 +1634,46 @@ public:
 		}
 		return 1;
 	}
+	static int GetCoreBundle(T* p, lua_State* L)
+	{
+		// this should probably return nil but only if we make it its own lua thing first -mina
+		auto bundle = DLMAN->GetCoreBundle(SArg(1));
+		lua_createtable(L, bundle.size(), 0);
+		for (size_t i = 0; i < bundle.size(); ++i) {
+			bundle[i]->PushSelf(L);
+			lua_rawseti(L, -2, i + 1);
+		}
+
+		size_t totalsize = 0;
+		float avgpackdiff = 0.f;
+
+		for (auto p : bundle) {
+			totalsize += p->size;
+			avgpackdiff += p->avgDifficulty;
+		}
+
+		if(!bundle.empty())
+			avgpackdiff /= bundle.size();
+		totalsize = totalsize / 1024 / 1024;
+		
+		// this may be kind of unintuitive but lets roll with it for now -mina
+		lua_pushnumber(L, totalsize);
+		lua_setfield(L, -2, "TotalSize");
+		lua_pushnumber(L, avgpackdiff);
+		lua_setfield(L, -2, "AveragePackDifficulty");
+
+		return 1;
+	}
+	static int DownloadCoreBundle(T* p, lua_State* L)
+	{
+		DLMAN->DownloadCoreBundle(SArg(1));
+		return 1;
+	}
+	
 	LunaDownloadManager()
 	{
+		ADD_METHOD(DownloadCoreBundle);
+		ADD_METHOD(GetCoreBundle);
 		ADD_METHOD(GetPackList);
 		ADD_METHOD(GetDownloadingPacks);
 		ADD_METHOD(GetDownloads);
@@ -1352,6 +1708,7 @@ public:
 		}
 		else
 			lua_pushnil(L);
+		IsQueued(p, L);
 		return 1;
 	}
 	static int GetName(T* p, lua_State* L)
@@ -1367,6 +1724,12 @@ public:
 	static int GetAvgDifficulty(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, p->avgDifficulty);
+		return 1;
+	}
+	static int IsQueued(T* p, lua_State* L)
+	{
+		auto it = std::find(DLMAN->DownloadQueue.begin(), DLMAN->DownloadQueue.end(), p);
+		lua_pushboolean(L, it != DLMAN->DownloadQueue.end());
 		return 1;
 	}
 	static int IsDownloading(T* p, lua_State* L)
@@ -1386,6 +1749,7 @@ public:
 	{
 		ADD_METHOD(DownloadAndInstall);
 		ADD_METHOD(IsDownloading);
+		ADD_METHOD(IsQueued);
 		ADD_METHOD(GetAvgDifficulty);
 		ADD_METHOD(GetName);
 		ADD_METHOD(GetSize);

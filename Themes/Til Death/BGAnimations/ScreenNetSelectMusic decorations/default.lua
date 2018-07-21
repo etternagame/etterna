@@ -1,5 +1,8 @@
 local t = Def.ActorFrame{}
-
+if NSMAN:IsETTP() then
+	t[#t+1] = LoadActor("../ScreenSelectMusic decorations/default")
+	return t
+end
 t[#t+1] = LoadActor("../_chatbox")
 t[#t+1] = LoadActor("../ScreenSelectMusic decorations/profile")
 t[#t+1] = LoadActor("../ScreenSelectMusic decorations/msd")

@@ -1,14 +1,14 @@
 #ifndef SCREENOPTIONS_H
 #define SCREENOPTIONS_H
 
-#include "ScreenWithMenuElements.h"
 #include "DualScrollBar.h"
-#include "ThemeMetric.h"
+#include "InputEventPlus.h"
+#include "LuaExpressionTransform.h"
 #include "OptionRow.h"
 #include "OptionsCursor.h"
-#include "LuaExpressionTransform.h"
-#include "InputEventPlus.h"
 #include "RageSound.h"
+#include "ScreenWithMenuElements.h"
+#include "ThemeMetric.h"
 
 class OptionRowHandler;
 
@@ -41,7 +41,7 @@ public:
 	~ScreenOptions() override;
 	void Update( float fDeltaTime ) override;
 	bool Input( const InputEventPlus &input ) override;
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 
 	void TweenOnScreen() override;
 	void TweenOffScreen() override;

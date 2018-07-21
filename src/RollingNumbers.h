@@ -1,4 +1,4 @@
-#ifndef RollingNumbers_H
+﻿#ifndef RollingNumbers_H
 #define RollingNumbers_H
 
 #include "BitmapText.h"

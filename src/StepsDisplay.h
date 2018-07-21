@@ -1,15 +1,15 @@
 #ifndef StepsDisplay_H
 #define StepsDisplay_H
 
-#include "BitmapText.h"
-#include "PlayerNumber.h"
-#include "AutoActor.h"
-#include "GameConstantsAndTypes.h"
-#include "ActorUtil.h"
-#include "Difficulty.h"
 #include "ActorFrame.h"
-#include "ThemeMetric.h"
+#include "ActorUtil.h"
+#include "AutoActor.h"
+#include "BitmapText.h"
+#include "Difficulty.h"
+#include "GameConstantsAndTypes.h"
+#include "PlayerNumber.h"
 #include "Sprite.h"
+#include "ThemeMetric.h"
 
 class Steps;
 class PlayerState;

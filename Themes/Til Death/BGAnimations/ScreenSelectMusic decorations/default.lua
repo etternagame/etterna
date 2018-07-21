@@ -11,6 +11,7 @@ t[#t+1] = LoadActor("filter")
 t[#t+1] = LoadActor("goaltracker")
 t[#t+1] = LoadActor("playlists")
 t[#t+1] = LoadActor("downloads")
+t[#t+1] = LoadActor("tags")
 
 t[#t+1] = Def.ActorFrame {
 	InitCommand=function(self)
@@ -46,18 +47,6 @@ t[#t+1] = Def.ActorFrame {
 			InitCommand=function(self)
 				self:x(55):player(PLAYER_1)
 			end,
-			PlayerJoinedMessageCommand=function(self, params)
-				if params.Player == PLAYER_1 then
-					self:visible(true);
-					self:zoom(0):bounceend(1):zoom(1)
-				end
-			end,
-			PlayerUnjoinedMessageCommand=function(self, params)
-				if params.Player == PLAYER_1 then
-					self:visible(true);
-					self:bouncebegin(1):zoom(0)
-				end
-			end,
 			Def.Quad{
 				InitCommand=function(self)
 					self:zoomto(6,22):halign(1):valign(0.5)
@@ -74,12 +63,6 @@ t[#t+1] = Def.ActorFrame {
 						self:valign(0.5)
 					end
 				end,
-				PlayerJoinedMessageCommand=function(self)
-					self:playcommand("Set")
-				end,
-				PlayerUnjoinedMessageCommand=function(self)
-					self:playcommand("Set")
-				end	
 			},
 			LoadFont("Common Normal") .. {
 				InitCommand=function(self)
@@ -96,29 +79,11 @@ t[#t+1] = Def.ActorFrame {
 						self:y(0)
 					end
 				end,
-				PlayerJoinedMessageCommand=function(self)
-					self:playcommand("Set")
-				end,
-				PlayerUnjoinedMessageCommand=function(self)
-					self:playcommand("Set")
-				end	
 			}
 		},
 		CursorP2 = Def.ActorFrame {
 			InitCommand=function(self)
 				self:x(55):player(PLAYER_2)
-			end,
-			PlayerJoinedMessageCommand=function(self, params)
-				if params.Player == PLAYER_2 then
-					self:visible(true);
-					self:zoom(0):bounceend(1):zoom(1)
-				end
-			end,
-			PlayerUnjoinedMessageCommand=function(self, params)
-				if params.Player == PLAYER_2 then
-					self:visible(true);
-					self:bouncebegin(1):zoom(0)
-				end
 			end,
 			Def.Quad{
 				InitCommand=function(self)
@@ -136,12 +101,6 @@ t[#t+1] = Def.ActorFrame {
 						self:valign(0.5)
 					end
 				end,
-				PlayerJoinedMessageCommand=function(self)
-					self:playcommand("Set")
-				end,
-				PlayerUnjoinedMessageCommand=function(self)
-					self:playcommand("Set")
-				end	
 			},
 			LoadFont("Common Normal") .. {
 				InitCommand=function(self)
@@ -158,12 +117,6 @@ t[#t+1] = Def.ActorFrame {
 						self:y(0)
 					end
 				end,
-				PlayerJoinedMessageCommand=function(self)
-					self:playcommand("Set")
-				end,
-				PlayerUnjoinedMessageCommand=function(self)
-					self:playcommand("Set")
-				end	
 			}
 		},
 		CursorP1Frame = Def.Actor{

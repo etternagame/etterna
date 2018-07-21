@@ -24,12 +24,7 @@
 
 	Name "${PRODUCT_DISPLAY}"
 	
-	!ifndef Songless
 	OutFile "${PRODUCT_DISPLAY}.exe"
-	!else
-	OutFile "${PRODUCT_DISPLAY}Songless.exe"
-	!endif
-
 	Caption "${PRODUCT_DISPLAY} | install"
 	UninstallCaption "${PRODUCT_DISPLAY} | uninstall"
 
@@ -48,7 +43,7 @@
 
 	; don't forget to change this before releasing a new version.
 	; wish this could be automated, but it requires "X.Y.Z.a" format. -aj
-	VIProductVersion "0.58.0.0"
+	VIProductVersion "0.60.0.0"
 	VIAddVersionKey "ProductName" "${PRODUCT_ID}"
 	VIAddVersionKey "FileVersion" "${PRODUCT_VER}"
 	VIAddVersionKey "FileDescription" "${PRODUCT_ID} Installer"
@@ -284,6 +279,10 @@ Section "Main Section" SecMain
 	;CreateDirectory "$INSTDIR\CDTitles"
 	;SetOutPath "$INSTDIR\CDTitles"
 	;File "CDTitles\Instructions.txt"
+	
+	; install lualibs
+	SetOutPath "$INSTDIR"
+	File /r /x CVS /x .svn "lualibs"
 
 	RMDir /r "$INSTDIR\Characters\default"
 	CreateDirectory "$INSTDIR\Characters\default"
@@ -411,9 +410,6 @@ Section "Main Section" SecMain
 	CreateDirectory "$INSTDIR\Songs"
 	SetOutPath "$INSTDIR\Songs"
 	;File "Songs\Instructions.txt"
-	!ifndef Songless
-	File /r /x CVS /x .svn "Songs\Etterna*"
-	!endif
 	; remove and install themes
 	RMDir /r "$INSTDIR\Themes\_fallback"
 	RMDir /r "$INSTDIR\Themes\_portKit-sm4"
@@ -499,6 +495,8 @@ Section "Main Section" SecMain
 	File "Program\LIBEAY32.dll"
 	File "Program\libuv.dll"
 	File "Program\zlib1.dll"
+	;libcurl
+	File "Program\libcurl.dll"
 	; parallel lights
 	File "Program\parallel_lights_io.dll"
 	; others
@@ -935,6 +933,7 @@ Section "Uninstall"
 	; others
 	Delete "$INSTDIR\Program\dbghelp.dll"
 	Delete "$INSTDIR\Program\jpeg.dll"
+	Delete "$INSTDIR\Program\libcurl.dll"
 	Delete "$INSTDIR\Program\parallel_lights_io.dll"
 	Delete "$INSTDIR\Program\zlib1.dll"
 	RMDir "$INSTDIR\Program"

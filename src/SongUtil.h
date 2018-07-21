@@ -3,8 +3,8 @@
 #ifndef SONG_UTIL_H
 #define SONG_UTIL_H
 
-#include "GameConstantsAndTypes.h"
 #include "Difficulty.h"
+#include "GameConstantsAndTypes.h"
 #include "RageUtil_CachedObject.h"
 #include <set>
 

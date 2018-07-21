@@ -1,19 +1,19 @@
 #include "global.h"
+#include "ActorUtil.h"
+#include "Background.h"
 #include "BackgroundUtil.h"
-#include "RageUtil.h"
-#include "Song.h"
 #include "Foreach.h"
 #include "IniFile.h"
-#include "RageLog.h"
-#include <set>
-#include "Background.h"
 #include "RageFileManager.h"
-#include "ActorUtil.h"
+#include "RageLog.h"
+#include "RageUtil.h"
+#include "Song.h"
+#include <set>
 
 
 bool BackgroundDef::operator<( const BackgroundDef &other ) const
 {
-#define COMPARE(x) if( x < other.x ) return true; else if( x > other.x ) return false;
+#define COMPARE(x) if( (x) < other.x ) return true; else if( (x) > other.x ) return false;
 	COMPARE( m_sEffect );
 	COMPARE( m_sFile1 );
 	COMPARE( m_sFile2 );

@@ -1,7 +1,7 @@
 #include "global.h"
-#include "ScreenMessage.h"
-#include "RageLog.h"
 #include "Foreach.h"
+#include "RageLog.h"
+#include "ScreenMessage.h"
 #include <map>
 
 const ScreenMessage SM_Invalid = "";

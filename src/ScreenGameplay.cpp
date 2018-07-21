@@ -1,57 +1,51 @@
-#include "global.h"
-#include "ScreenGameplay.h"
-#include "SongManager.h"
-#include "ScreenManager.h"
+﻿#include "global.h"
+#include "ActorUtil.h"
+#include "AdjustSync.h"
+#include "ArrowEffects.h"
+#include "Background.h"
+#include "CommonMetrics.h"
+#include "DancingCharacters.h"
+#include "Foreach.h"
+#include "Foreground.h"
+#include "Game.h"
 #include "GameConstantsAndTypes.h"
-#include "PrefsManager.h"
 #include "GamePreferences.h"
-#include "GameManager.h"
-#include "RageFileManager.h"
-#include "Steps.h"
-#include "RageLog.h"
+#include "GameSoundManager.h"
+#include "GameState.h"
 #include "LifeMeter.h"
 #include "LifeMeterBar.h"
-#include "GameState.h"
-#include "ScoreDisplayNormal.h"
-#include "ScoreDisplayPercentage.h"
-#include "ScoreDisplayLifeTime.h"
-#include "ScoreDisplayOni.h"
-
-#include "ThemeManager.h"
-#include "RageTimer.h"
-#include "ScoreKeeperNormal.h"
-
-#include "LyricsLoader.h"
-#include "ActorUtil.h"
-#include "ArrowEffects.h"
-#include "RageSoundManager.h"
-#include "RageSoundReader.h"
-#include "RageTextureManager.h"
-#include "GameSoundManager.h"
-#include "NoteDataUtil.h"
-#include "ProfileManager.h"
-#include "StatsManager.h"
-#include "PlayerAI.h" // for NUM_SKILL_LEVELS
-#include "NetworkSyncManager.h"
-#include "Foreach.h"
-#include "DancingCharacters.h"
-#include "ScreenDimensions.h"
-#include "ThemeMetric.h"
-#include "PlayerState.h"
-#include "Style.h"
+#include "LuaBinding.h"
 #include "LuaManager.h"
-#include "CommonMetrics.h"
-#include "InputMapper.h"
-#include "Game.h"
+#include "LyricsLoader.h"
+#include "NetworkSyncManager.h"
+#include "NoteDataUtil.h"
+#include "NoteDataWithScoring.h"
 #include "Player.h"
-#include "StepsDisplay.h"
-#include "XmlFile.h"
-#include "Background.h"
-#include "Foreground.h"
+#include "PlayerAI.h" // for NUM_SKILL_LEVELS
+#include "PlayerState.h"
+#include "PrefsManager.h"
+#include "Profile.h" // for replay data stuff
+#include "ProfileManager.h"
+#include "RageLog.h"
+#include "RageSoundReader.h"
+#include "RageTimer.h"
+#include "ScoreDisplayOni.h"
+#include "ScoreDisplayPercentage.h"
+#include "ScoreKeeperNormal.h"
+#include "ScreenDimensions.h"
+#include "ScreenGameplay.h"
+#include "ScreenManager.h"
 #include "ScreenSaveSync.h"
-#include "AdjustSync.h"
-#include "SongUtil.h"
 #include "Song.h"
+#include "SongManager.h"
+#include "SongUtil.h"
+#include "StatsManager.h"
+#include "Steps.h"
+#include "StepsDisplay.h"
+#include "Style.h"
+#include "ThemeManager.h"
+#include "ThemeMetric.h"
+#include "XmlFile.h"
 #include "XmlFileUtil.h"
 #include "Profile.h" // for replay data stuff
 #include "DownloadManager.h"
@@ -125,10 +119,10 @@ void PlayerInfo::Load( PlayerNumber pn, MultiPlayer mp, bool bShowNoteField, int
 	PlayerState *const pPlayerState = GetPlayerState();
 	PlayerStageStats *const pPlayerStageStats = GetPlayerStageStats();
 
-	if( m_pPrimaryScoreDisplay )
+	if( m_pPrimaryScoreDisplay != nullptr )
 		m_pPrimaryScoreDisplay->Init( pPlayerState, pPlayerStageStats );
 
-	if( m_pSecondaryScoreDisplay )
+	if( m_pSecondaryScoreDisplay != nullptr )
 		m_pSecondaryScoreDisplay->Init( pPlayerState, pPlayerStageStats );
 
 	m_pPrimaryScoreKeeper = ScoreKeeper::MakeScoreKeeper( SCORE_KEEPER_CLASS, pPlayerState, pPlayerStageStats );
@@ -199,7 +193,7 @@ bool PlayerInfo::IsEnabled()
 		return GAMESTATE->IsPlayerEnabled( m_pn );
 	if( m_mp != MultiPlayer_Invalid )
 		return GAMESTATE->IsMultiPlayerEnabled( m_mp );
-	else if( m_bIsDummy )
+	if( m_bIsDummy )
 		return true;
 	FAIL_M("Invalid non-dummy player.");
 }
@@ -278,7 +272,7 @@ ScreenGameplay::ScreenGameplay()
 {
 	m_pSongBackground = NULL;
 	m_pSongForeground = NULL;
-	m_bForceNoNetwork = false;
+	m_bForceNoNetwork = !GAMESTATE->m_bInNetGameplay;
 	m_delaying_ready_announce= false;
 	GAMESTATE->m_AdjustTokensBySongCostForFinalStageCheck= false;
 #if !defined(WITHOUT_NETWORKING)
@@ -406,7 +400,7 @@ void ScreenGameplay::Init()
 	m_bZeroDeltaOnNextUpdate = false;
 
 
-	if( m_pSongBackground )
+	if( m_pSongBackground != nullptr )
 	{
 		m_pSongBackground->SetName( "SongBackground" );
 		m_pSongBackground->SetDrawOrder( DRAW_ORDER_BEFORE_EVERYTHING );
@@ -414,7 +408,7 @@ void ScreenGameplay::Init()
 		this->AddChild( m_pSongBackground );
 	}
 
-	if( m_pSongForeground )
+	if( m_pSongForeground != nullptr )
 	{
 		m_pSongForeground->SetName( "SongForeground" );
 		m_pSongForeground->SetDrawOrder( DRAW_ORDER_OVERLAY+1 );	// on top of the overlay, but under transitions
@@ -710,7 +704,7 @@ void ScreenGameplay::Init()
 		m_GameplayAssist.Init();
 	}
 
-	if( m_pSongBackground )
+	if( m_pSongBackground != nullptr )
 		m_pSongBackground->Init();
 
 	FOREACH_EnabledPlayerInfo( m_vPlayerInfo, pi )
@@ -781,7 +775,6 @@ void ScreenGameplay::InitSongQueues()
 	{
 		Steps *pSteps = GAMESTATE->m_pCurSteps[pi->GetStepsAndTrailIndex()];
 		pi->m_vpStepsQueue.push_back(pSteps);
-		const PlayerOptions &p = pi->GetPlayerState()->m_PlayerOptions.GetCurrent();
 	}
 
 	if (GAMESTATE->IsPlaylistCourse()) {
@@ -848,7 +841,7 @@ ScreenGameplay::~ScreenGameplay()
 	SAFE_DELETE( m_pSongBackground );
 	SAFE_DELETE( m_pSongForeground );
 
-	if( m_pSoundMusic )
+	if( m_pSoundMusic != nullptr )
 		m_pSoundMusic->StopPlaying();
 
 	m_GameplayAssist.StopPlaying();
@@ -1069,10 +1062,10 @@ void ScreenGameplay::LoadNextSong()
 		}
 	}
 
-	if( m_pSongBackground )
+	if( m_pSongBackground != nullptr )
 		m_pSongBackground->Unload();
 
-	if( m_pSongForeground )
+	if( m_pSongForeground != nullptr )
 		m_pSongForeground->Unload();
 
 	if( !PREFSMAN->m_bShowBeginnerHelper || !m_BeginnerHelper.Init(2) )
@@ -1091,7 +1084,7 @@ void ScreenGameplay::LoadNextSong()
 			 * song BG and we're coming from it (like Pump). This used to be done
 			 * in SM_PlayReady, but that means it's impossible to snap to the
 			 * new brightness immediately. */
-			if( m_pSongBackground )
+			if( m_pSongBackground != nullptr )
 			{
 				m_pSongBackground->SetBrightness( INITIAL_BACKGROUND_BRIGHTNESS );
 				m_pSongBackground->FadeToActualBrightness();
@@ -1198,8 +1191,9 @@ void ScreenGameplay::set_paused_internal(bool p)
 	GAMESTATE->SetPaused(p);
 }
 
-void ScreenGameplay::PauseGame( bool bPause, GameController gc )
-{
+void ScreenGameplay::PauseGame( bool bPause, GameController gc ) {
+	return;	// completely disable the functionality of this rather than various avenues to it (pending full removal) -mina
+
 	if( m_bPaused == bPause )
 	{
 		LOG->Trace( "ScreenGameplay::PauseGame(%i) received, but already in that state; ignored", bPause );
@@ -1626,6 +1620,7 @@ void ScreenGameplay::Update( float fDeltaTime )
 				{
 					pi->GetPlayerStageStats()->m_bFailed |= bAllHumanHaveBigMissCombo;
 					pi->GetPlayerStageStats()->m_bDisqualified |= bGiveUpTimerFired;    // Don't disqualify if failing for miss combo.  The player should still be eligable for a high score on courses.
+					pi->GetPlayerStageStats()->gaveuplikeadumbass |= m_gave_up;
 				}
 				ResetGiveUpTimers(false);
 				if(GIVING_UP_GOES_TO_PREV_SCREEN && !m_skipped_song)
@@ -1692,7 +1687,7 @@ void ScreenGameplay::DrawPrimitives()
 	// This also solves the problem of the ComboUnderField metric putting the
 	// combo underneath the opaque notefield board.
 	// -Kyz
-	if(m_pSongBackground)
+	if(m_pSongBackground != nullptr)
 	{
 		m_pSongBackground->m_disable_draw= false;
 		m_pSongBackground->Draw();
@@ -1801,7 +1796,7 @@ void ScreenGameplay::SendCrossedMessages()
 				}
 
 				if( iNumTracksWithTapOrHoldHead > 0 )
-					MESSAGEMAN->Broadcast( (MessageID)(Message_NoteCrossed + i) );
+					MESSAGEMAN->Broadcast( static_cast<MessageID>(Message_NoteCrossed + i) );
 				if( i == 0  &&  iNumTracksWithTapOrHoldHead >= 2 )
 				{
 					RString sMessageName = "NoteCrossedJump";
@@ -2224,9 +2219,9 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 		GAMESTATE->m_DanceDuration= GAMESTATE->m_DanceStartTime.Ago();
 		// update dancing characters for win / lose
 		DancingCharacters *pDancers = NULL;
-		if( m_pSongBackground )
+		if( m_pSongBackground != nullptr )
 			pDancers = m_pSongBackground->GetDancingCharacters();
-		if( pDancers )
+		if( pDancers != nullptr )
 		{
 			FOREACH_EnabledPlayerNumberInfo( m_vPlayerInfo, pi )
 			{
@@ -2248,7 +2243,7 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 
 		bool bAllReallyFailed = STATSMAN->m_CurStageStats.AllFailed();
 
-		if( bAllReallyFailed )
+		if( bAllReallyFailed)
 		{
 			this->PostScreenMessage( SM_BeginFailed, 0 );
 			return;
@@ -2352,12 +2347,13 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 	{
 		SongFinished();
 		this->StageFinished( false );
+		auto syncing = !GAMESTATE->IsPlaylistCourse() && AdjustSync::IsSyncDataChanged();
 		// only save replays if the player chose to
-		if( GAMESTATE->m_SongOptions.GetCurrent().m_bSaveReplay )
+		if( GAMESTATE->m_SongOptions.GetCurrent().m_bSaveReplay  && !syncing)
 			SaveReplay();
 
-		if(!GAMESTATE->IsPlaylistCourse() && AdjustSync::IsSyncDataChanged())
-			ScreenSaveSync::PromptSaveSync( SM_GoToNextScreen );
+		if(syncing)
+			ScreenSaveSync::PromptSaveSync(SM_GoToPrevScreen);
 		else
 			HandleScreenMessage( SM_GoToNextScreen );
 
@@ -2545,8 +2541,6 @@ bool ScreenGameplay::LoadReplay()
 */
 
 // lua start
-#include "LuaBinding.h"
-#include "OptionsBinding.h"
 
 /** @brief Allow Lua to have access to the ScreenGameplay. */ 
 class LunaScreenGameplay: public Luna<ScreenGameplay>

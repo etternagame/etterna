@@ -1,11 +1,11 @@
-/* RageTextureRenderTarget - RageTexture interface for creating render targets. */
+﻿/* RageTextureRenderTarget - RageTexture interface for creating render targets. */
 
 #ifndef RAGE_TEXTURE_RENDER_TARGET_H
 #define RAGE_TEXTURE_RENDER_TARGET_H
 
+#include "RageDisplay.h" // for RenderTargetParam
 #include "RageTexture.h"
 #include "RageTextureID.h"
-#include "RageDisplay.h" // for RenderTargetParam
 
 class RageTextureRenderTarget: public RageTexture
 {

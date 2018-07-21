@@ -15,7 +15,7 @@ namespace JsonUtil
 	bool WriteFile(const Json::Value &root, const RString &sFile, bool bMinified);
 
 	template<class T>
-	static void SerializeVectorObjects(const vector<T> &v, void fn(const T &, Json::Value &), Json::Value &root)
+	static void SerializeVectorObjects(const vector <T> &v, void fn(const T &, Json::Value &), Json::Value &root)
 	{
 		root = Json::Value(Json::arrayValue);
 		root.resize(v.size());
@@ -24,7 +24,7 @@ namespace JsonUtil
 	}
 
 	template<class T>
-	static void SerializeVectorPointers(const vector<const T*> &v, void fn(const T &, Json::Value &), Json::Value &root)
+	static void SerializeVectorPointers(const vector <const T*> &v, void fn(const T &, Json::Value &), Json::Value &root)
 	{
 		root = Json::Value(Json::arrayValue);
 		root.resize(v.size());
@@ -33,7 +33,7 @@ namespace JsonUtil
 	}
 	
 	template<class T>
-	static void SerializeVectorPointers(const vector<T*> &v, void fn(const T &, Json::Value &), Json::Value &root)
+	static void SerializeVectorPointers(const vector <T*> &v, void fn(const T &, Json::Value &), Json::Value &root)
 	{
 		root = Json::Value(Json::arrayValue);
 		root.resize(v.size());
@@ -42,7 +42,7 @@ namespace JsonUtil
 	}
 	
 	template<class T>
-	static void SerializeVectorPointers(const vector<const T*> &v, void fn(const T *, Json::Value &), Json::Value &root)
+	static void SerializeVectorPointers(const vector <const T*> &v, void fn(const T *, Json::Value &), Json::Value &root)
 	{
 		root = Json::Value(Json::arrayValue);
 		root.resize(v.size());
@@ -51,7 +51,7 @@ namespace JsonUtil
 	}
 
 	template<typename V, typename T>
-	static void SerializeArray(const V &v, void fn(const T &, Json::Value &), Json::Value &root)
+	static void SerializeArray(const V & v, void fn(const T *, Json::Value &), Json::Value & root)
 	{
 		root = Json::Value(Json::arrayValue);
 		root.resize( v.size() );
@@ -61,7 +61,7 @@ namespace JsonUtil
 	}
 
 	template <typename V>
-	static void SerializeArrayValues(const V &v, Json::Value &root)
+	static void SerializeArrayValues(const V & v, Json::Value & root)
 	{
 		root = Json::Value(Json::arrayValue);
 		root.resize( v.size() );
@@ -71,7 +71,7 @@ namespace JsonUtil
 	}
 
 	template <typename V>
-	static void SerializeArrayObjects(const V &v, Json::Value &root)
+	static void SerializeArrayObjects(const V & v, Json::Value & root)
 	{
 		root = Json::Value(Json::arrayValue);
 		root.resize( v.size() );
@@ -81,21 +81,21 @@ namespace JsonUtil
 	}
 
 	template <typename M, typename E, typename F>
-	static void SerializeStringToObjectMap(const M &m, F fnEnumToString(E e), Json::Value &root)
+	static void SerializeStringToObjectMap(const M & m, F  fnEnumToString, Json::Value & root)
 	{
 		for( typename M::const_iterator iter=m.begin(); iter!=m.end(); iter++ )
 			iter->second.Serialize( root[ fnEnumToString(iter->first) ] );
 	}
 
 	template <typename M, typename E, typename F>
-	static void SerializeStringToValueMap(const M &m, F fnToString(E e), Json::Value &root)
+	static void SerializeStringToValueMap(const M & m, F  fnToString, Json::Value & root)
 	{
 		for( typename M::const_iterator iter=m.begin(); iter!=m.end(); iter++ )
 			root[ fnToString(iter->first) ] = iter->second;
 	}
 
 	template <typename M>
-	static void SerializeValueToValueMap(const M &m, Json::Value &root)
+	static void SerializeValueToValueMap(const M & m, Json::Value & root)
 	{
 		for( typename M::const_iterator iter=m.begin(); iter!=m.end(); iter++ )
 			root[ (iter->first) ] = iter->second;
@@ -103,7 +103,7 @@ namespace JsonUtil
 
 	// Serialize a map that has a non-string key type
 	template <typename V>
-	static void SerializeObjectToObjectMapAsArray(const V &v, const RString &sKeyName, const RString &sValueName, Json::Value &root)
+	static void SerializeObjectToObjectMapAsArray(const V & v, const RString & sKeyName, const RString & sValueName, Json::Value & root)
 	{
 		root = Json::Value(Json::arrayValue);
 		root.resize( v.size() );
@@ -117,7 +117,7 @@ namespace JsonUtil
 	}
 
 	template <typename V>
-	static void SerializeObjectToValueMapAsArray(const V &v, const RString &sKeyName, const RString &sValueName, Json::Value &root)
+	static void SerializeObjectToValueMapAsArray(const V & v, const RString & sKeyName, const RString & sValueName, Json::Value & root)
 	{
 		root = Json::Value(Json::arrayValue);
 		root.resize( v.size() );
@@ -148,7 +148,7 @@ namespace JsonUtil
 	}
 
 	template <typename V>
-	static void DeserializeArrayObjects( V &v, const Json::Value &root)
+	static void DeserializeArrayObjects( V & v, const Json::Value & root)
 	{
 		v.resize( root.size() );
 		for( unsigned i=0; i<v.size(); i++ )
@@ -209,7 +209,7 @@ namespace JsonUtil
 
 	// don't pull in the set header here
 	template<typename S, typename T>
-	static void DeserializeArrayValuesIntoSet(S &s, const Json::Value &root)
+	static void DeserializeArrayValuesIntoSet(S & s, const Json::Value & root)
 	{
 		s.clear();
 		for( unsigned i=0; i<root.size(); i++ )
@@ -233,21 +233,21 @@ namespace JsonUtil
 	}
 
 	template <typename M>
-	static void DeserializeValueToValueMap(M &m, const Json::Value &root)
+	static void DeserializeValueToValueMap(M & m, const Json::Value & root)
 	{
 		for( Json::Value::const_iterator iter = root.begin(); iter != root.end(); iter++ )
 			(*iter).TryGet( m[ iter.memberName() ] );
 	}
 
 	template <typename M, typename E, typename F>
-	static void DeserializeStringToValueMap(M &m, F fnToValue(E e), const Json::Value &root)
+	static void DeserializeStringToValueMap(M & m, F  fnToValue, const Json::Value & root)
 	{
 		for( Json::Value::const_iterator iter = root.begin(); iter != root.end(); iter++ )
 			(*iter).TryGet( m[ fnToValue(iter.memberName()) ] );
 	}
 
 	template <typename M, typename E, typename F>
-	static void DeserializeStringToObjectMap(M &m, F fnToValue(E e), const Json::Value &root)
+	static void DeserializeStringToObjectMap(M & m, F  fnToValue, const Json::Value & root)
 	{
 		for( Json::Value::const_iterator iter = root.begin(); iter != root.end(); iter++ )
 			m[ fnToValue(iter.memberName()) ].Deserialize( *iter );

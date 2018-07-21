@@ -38,8 +38,8 @@ public:
 	{
 		if(BMT_Tweens.empty())
 		{ return BMT_current; }
-		else
-		{ return BMT_Tweens.back(); }
+		
+		return BMT_Tweens.back(); 
 	}
 	BMT_TweenState const& BMT_DestTweenState() const { return const_cast<BitmapText*>(this)->BMT_DestTweenState(); }
 
@@ -152,7 +152,7 @@ private:
 class ColorBitmapText : public BitmapText
 {
 public:
-	ColorBitmapText * Copy() const;
+	ColorBitmapText * Copy() const override;
 	void SetText(const RString &sText, const RString &sAlternateText = "", int iWrapWidthPixels = -1) override;
 	void ResetText();
 	void DrawPrimitives() override;
@@ -161,6 +161,7 @@ public:
 	void SetMaxLines(int iLines, bool bCutBottom = true);	//if bCutBottom = false then, it will crop the top
 	void SimpleAddLine(const RString &sAddition, int iWidthPixels);
 	void SetMaxLines(int iNumLines, int iDirection);
+	void PushSelf(lua_State *L) override;
 protected:
 	struct ColorChange
 	{

@@ -613,7 +613,8 @@ void XMLProfile::LoadStatsXmlForConversion() {
 		return;
 
 	XNode* scores = xml.GetChild("SongScores");
-	LoadSongScoresFromNode(scores);
+	if (scores != nullptr) 
+		LoadSongScoresFromNode(scores);
 }
 
 
