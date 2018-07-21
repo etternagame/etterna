@@ -222,3 +222,26 @@ function byMusicLength(x)
 	end
 	return HSV(0, 0.9, 0.9)
 end
+
+function byFileSize(x)
+	if x then
+		x = math.min(x,600)
+		return HSV(math.max(95 - (x/1025)*150, -50), 0.9, 0.9)
+	end
+	return HSV(0, 0.9, 0.9)
+end
+
+-- yes i know i shouldnt hardcode this -mina
+function bySkillRange(x)
+	if x <= 10 then
+		return color("#66ccff")
+	elseif x <= 15 then
+		return color("#099948")
+	elseif x <= 21 then
+		return color("#ddaa00")
+	elseif x <= 25 then
+		return color("#ff6666")
+	else
+		return color("#c97bff")
+	end
+end
