@@ -41,8 +41,7 @@ local inputting = 0 --1=name 2=lowerdiff 3=upperdiff 4=lowersize 5=uppersize 0=n
 local function getFilter(index)
 	return filters[index]
 end
-local numbershers = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "0"}
-local englishes = {"a", "b", "c", "d", "e","f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",";"}
+
 local function DlInput(event)
 	if event.type ~= "InputEventType_Release" and update and inputting ~= 0 then
 		local changed = false
@@ -134,7 +133,7 @@ local t = Def.ActorFrame{
 		if getTabIndex() == 8 and update then
 			MESSAGEMAN:Broadcast("MouseRightClick")
 		elseif getTabIndex() == 8 then
-			SCREENMAN:SetNewScreen("ScreenBundleSelect")
+			SCREENMAN:SetNewScreen("ScreenPackDownloader")
 			self:queuecommand("On")
 			self:visible(true)
 			update = true
@@ -720,183 +719,6 @@ pageButtons = Def.ActorFrame{
 		DlInputEndedMessageCommand=function(self) self:queuecommand("Set") end,
 		UpdatePacksMessageCommand=function(self) self:queuecommand("Set") end
 	}
-}
-
-local minidoots = {"Novice", "Beginner", "Intermediate", "Advanced", "Expert"}
-local diffcolors = {"#66ccff","#099948","#ddaa00","#ff6666","#c97bff"}
-local packspacing = 30
-local bundlegumbley = 155
-local iamspartacus = capWideScale(0,20)
-local noiamspartacus = capWideScale(20,40)
-local selectedbundle = false
-
-local bundlename
-local bundleindex
-
-local function makedoots(i)
-	local packinfo
-	local t = Def.ActorFrame{
-		InitCommand=function(self)
-			self:xy(iamspartacus+165+packspacing*i,bundlegumbley)
-		end,
-		Def.Quad{
-			InitCommand=function(self)
-				self:y(-36):zoomto(24,12):valign(0):diffuse(color(diffcolors[i]))
-			end,
-			MouseLeftClickMessageCommand=function(self)
-				if update and isOver(self) and not selectedbundle then
-					selectedbundle = true
-					bundlename = minidoots[i]
-					bundleindex = i
-					currentpage = 1
-					packlist = DLMAN:GetCoreBundle(bundlename:lower())
-					MESSAGEMAN:Broadcast("bundletime")
-					MESSAGEMAN:Broadcast("UpdatePacks")
-				end
-			end,
-			bundletimeMessageCommand=function(self)
-				self:visible(false)
-			end,
-			MouseRightClickMessageCommand=function(self)
-				if update then
-					self:visible(true)
-				end
-			end
-		}
-	}
-	return t
-end
-
-local function makesuperdoots(i)
-	local packinfo
-	local t = Def.ActorFrame{
-		InitCommand=function(self)
-			self:xy(iamspartacus+165+packspacing*i,bundlegumbley)
-		end,
-		Def.Quad{
-			InitCommand=function(self)
-				self:y(-16):zoomto(24,12):valign(0):diffuse(color(diffcolors[i]))
-			end,
-			MouseLeftClickMessageCommand=function(self)
-				if update and isOver(self) and not selectedbundle then
-					selectedbundle = true
-					bundlename = minidoots[i].."-Expanded"
-					bundleindex = i
-					currentpage = 1
-					packlist = DLMAN:GetCoreBundle(bundlename:lower())
-					MESSAGEMAN:Broadcast("bundletime")
-					MESSAGEMAN:Broadcast("UpdatePacks")
-				end
-			end,
-			bundletimeMessageCommand=function(self)
-				self:visible(false)
-			end,
-			MouseRightClickMessageCommand=function(self)
-				if update then
-					self:visible(true)
-				end
-			end
-		},
-	}
-	return t
-end
-
-for i=1,#minidoots do
-	t[#t+1] = makedoots(i)
-end
-
-for i=1,#minidoots do
-	t[#t+1] = makesuperdoots(i)
-end
-
-t[#t+1] = LoadFont("Common normal") .. {
-	InitCommand=function(self)
-		self:xy(noiamspartacus,bundlegumbley-36):zoom(0.5):halign(0):valign(0)
-	end,
-	SetCommand=function(self)
-		self:settext("Core Bundles (Basic):")
-	end,
-	bundletimeMessageCommand=function(self)
-		self:settext("Selected Bundle: "..bundlename):diffuse(color(diffcolors[bundleindex]))
-	end,
-	MouseRightClickMessageCommand=function(self)
-		if update then
-			self:settext("Core Bundles (Basic):"):diffuse(color("#ffffff"))
-		end
-	end
-}
-
-t[#t+1] = LoadFont("Common normal") .. {
-	InitCommand=function(self)
-		self:xy(noiamspartacus,bundlegumbley - 16):zoom(0.5):halign(0):valign(0)
-	end,
-	SetCommand=function(self)
-		self:settext("Core Bundles (Expanded):")
-	end,
-	bundletimeMessageCommand=function(self)
-		self:settextf("Total Size: %d(MB)", packlist["TotalSize"])
-	end,
-	MouseRightClickMessageCommand=function(self)
-		if update then
-			self:settext("Core Bundles (Expanded):")
-		end
-	end
-}
-
-t[#t+1] = LoadFont("Common normal") .. {
-	InitCommand=function(self)
-		self:xy(250+noiamspartacus,bundlegumbley - 36):zoom(0.5):halign(0):valign(0):visible(false)
-	end,
-	bundletimeMessageCommand=function(self)
-		self:settextf("Avg: %5.2f", packlist["AveragePackDifficulty"])
-		self:diffuse(byMSD(packlist["AveragePackDifficulty"]))
-		self:visible(true)
-	end,
-	MouseRightClickMessageCommand=function(self)
-		if update then
-			self:visible(false)
-		end
-	end
-}
-
-t[#t+1] = LoadFont("Common normal") .. {
-	InitCommand=function(self)
-		self:xy(250+noiamspartacus,bundlegumbley - 16):zoom(0.5):halign(0):valign(0):visible(false)
-	end,
-	bundletimeMessageCommand=function(self)
-		self:settext("Download All")
-		self:visible(true)
-	end,
-	MouseRightClickMessageCommand=function(self)
-		if update then
-			self:visible(false)
-		end
-	end
-}
-
-t[#t+1] = Def.Quad{
-	InitCommand=function(self)
-		self:xy(0,0):zoomto(80,20):valign(0):diffusealpha(0)
-	end,
-	bundletimeMessageCommand=function(self)
-		self:linear(1):xy(290+noiamspartacus,bundlegumbley - 20)
-	end,
-	MouseLeftClickMessageCommand=function(self)
-		if update and selectedbundle and isOver(self) then
-			DLMAN:DownloadCoreBundle(bundlename:lower())
-			MESSAGEMAN:Broadcast("MouseRightClick")
-			packlist = DLMAN:GetPackList()
-			MESSAGEMAN:Broadcast("UpdatePacks")
-		end
-	end,
-	MouseRightClickMessageCommand=function(self)
-		if update and selectedbundle then
-			selectedbundle = false
-			packlist = DLMAN:GetPackList()
-			MESSAGEMAN:Broadcast("UpdatePacks")
-			self:xy(0,0)
-		end
-	end,
 }
 
 t[#t+1] = packs

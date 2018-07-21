@@ -1,6 +1,7 @@
 local minidoots = {"Novice", "Novice-Expanded", "Beginner", "Beginner-Expanded", "Intermediate", "Intermediate-Expanded", "Advanced", "Advanced-Expanded", "Expert", "Expert-Expanded"}
 local diffcolors = {"#66ccff","#099948","#ddaa00","#ff6666","#c97bff"}
 local pressingtab
+local moving
 
 local function input(event)
 	if event.DeviceInput.button == "DeviceButton_tab" then
