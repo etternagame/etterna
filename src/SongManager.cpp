@@ -336,10 +336,12 @@ void Playlist::LoadFromNode(const XNode* node) {
 	node->GetAttrValue("Name", name);
 	if (!node->ChildrenEmpty()) {
 		const XNode* cl = node->GetChild("Chartlist");
-		FOREACH_CONST_Child(cl, chart) {
-			Chart ch;
-			ch.LoadFromNode(chart);
-			chartlist.emplace_back(ch);
+		if (cl) {
+			FOREACH_CONST_Child(cl, chart) {
+				Chart ch;
+				ch.LoadFromNode(chart);
+				chartlist.emplace_back(ch);
+			}
 		}
 
 		const XNode* cr = node->GetChild("CourseRuns");

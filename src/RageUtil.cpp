@@ -2524,8 +2524,10 @@ int LuaFunc_get_music_file_length(lua_State* L)
 	if(sample == NULL)
 	{
 		luaL_error(L, "The music file '%s' does not exist.", path.c_str());
+		lua_pushnil(L);
 	}
-	lua_pushnumber(L, sample->GetLength() / 1000.0f);
+	else
+		lua_pushnumber(L, sample->GetLength() / 1000.0f);
 	return 1;
 }
 LUAFUNC_REGISTER_COMMON(get_music_file_length);

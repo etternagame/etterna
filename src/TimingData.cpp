@@ -556,6 +556,8 @@ const TimingSegment* TimingData::GetSegmentAtRow( int iNoteRow, TimingSegmentTyp
 		return DummySegments[tst];
 
 	int index = GetSegmentIndexAtRow( tst, iNoteRow );
+	if(index < 0 )
+		return DummySegments[tst];
 	const TimingSegment *seg = vSegments[index];
 
 	switch( seg->GetEffectType() )
@@ -1167,6 +1169,14 @@ float TimingData::GetDisplayedSpeedPercent( float fSongBeat, float fMusicSeconds
 	}
 
 	const int index = GetSegmentIndexAtBeat( SEGMENT_SPEED, fSongBeat );
+
+	if (index < 0)
+	{
+#ifdef DEBUG
+		LOG->Trace("Speed segment negative index: using default value");
+#endif
+		return 1.0f;
+	}
 
 	const SpeedSegment *seg = ToSpeed(speeds[index]);
 	float fStartBeat = seg->GetBeat();
