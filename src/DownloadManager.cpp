@@ -1437,8 +1437,8 @@ public:
 		DLMAN->pl.packs.clear();
 		for (auto n : DLMAN->downloadablePacks)
 			DLMAN->pl.packs.emplace_back(n);
-		DLMAN->pl.packs.clear();
 		DLMAN->pl.PushSelf(L);
+		MESSAGEMAN->Broadcast("RefreshPacklist");
 		return 1;
 	}
 	static int GetDownloadingPacks(T* p, lua_State* L)
@@ -1726,7 +1726,30 @@ public:
 				}
 			}
 		}
-			
+		MESSAGEMAN->Broadcast("RefreshPacklist");
+		return 1;
+	}
+	static int FilterAndSearch(T* p, lua_State* L) {
+		if (lua_gettop(L) < 5) {
+			return luaL_error(L, "GetFilteredAndSearchedPackList expects exactly 5 arguments(packname, lower diff, upper diff, lower size, upper size)");
+		}
+		string name = SArg(1);
+		double avgLower = max(luaL_checknumber(L, 2), 0.0);
+		double avgUpper = max(luaL_checknumber(L, 3), 0.0);
+		size_t sizeLower = static_cast<size_t>(luaL_checknumber(L, 4));
+		size_t sizeUpper = static_cast<size_t>(luaL_checknumber(L, 5));
+		
+		p->packs.clear();
+		auto packs = DLMAN->downloadablePacks;
+		for (unsigned i = 0; i < packs.size(); ++i) {
+			if (packs[i].avgDifficulty >= avgLower &&
+				findStringIC(packs[i].name, name) &&
+				(avgUpper <= 0 || packs[i].avgDifficulty < avgUpper) &&
+				packs[i].size >= sizeLower &&
+				(sizeUpper <= 0 || packs[i].size < sizeUpper))
+				p->packs.push_back(packs[i]);
+		}
+		MESSAGEMAN->Broadcast("RefreshPacklist");
 		return 1;
 	}
 	static int GetTotalSize(T* p, lua_State* L) {
@@ -1758,6 +1781,7 @@ public:
 		sort(p->packs.begin(), p->packs.end(), comp);
 		p->sortmode = 1;
 		p->asc = true;
+		MESSAGEMAN->Broadcast("RefreshPacklist");
 		return 1;
 	}
 	static int SortByDiff(T* p, lua_State* L) {
@@ -1773,6 +1797,7 @@ public:
 		sort(packs.begin(), packs.end(), comp);
 		p->sortmode = 2;
 		p->asc = true;
+		MESSAGEMAN->Broadcast("RefreshPacklist");
 		return 1;
 	}
 	static int SortBySize(T* p, lua_State* L) {
@@ -1788,6 +1813,7 @@ public:
 		sort(packs.begin(), packs.end(), comp);
 		p->sortmode = 3;
 		p->asc = true;
+		MESSAGEMAN->Broadcast("RefreshPacklist");
 		return 1;
 	}
 	LunaPacklist()
@@ -1799,6 +1825,7 @@ public:
 		ADD_METHOD(SortByName);
 		ADD_METHOD(SortByDiff);
 		ADD_METHOD(SortBySize);
+		ADD_METHOD(FilterAndSearch);
 	}
 };
 

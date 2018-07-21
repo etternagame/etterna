@@ -12,7 +12,7 @@ local height = (numpacks+2) * packspaceY
 
 local adjx = 14
 local c1x = 10 
-local c2x = c1x + (tzoom*5*adjx)
+local c2x = c1x + (tzoom*5*adjx)			-- guesswork adjustment for epxected text length
 local c5x = dwidth							-- right aligned cols
 local c4x = c5x - adjx - (tzoom*8*adjx) 	-- right aligned cols
 local c3x = c4x - adjx - (tzoom*6*adjx) 	-- right aligned cols
@@ -65,6 +65,14 @@ local o = Def.ActorFrame{
 	Def.Quad{InitCommand=function(self) self:zoomto(width,height-headeroff):halign(0):valign(0):diffuse(color("#ffffff")):diffusealpha(0.4) end},
 	
 	-- headers
+	LoadFont("Common normal") .. {	--total
+		InitCommand=function(self)
+			self:xy(c1x, headeroff):zoom(tzoom):halign(0)
+		end,
+		UpdateCommand=function(self)
+			self:settext(#packtable)
+		end,
+	},
 	LoadFont("Common normal") .. {	--name
 		InitCommand=function(self)
 			self:xy(c2x, headeroff):zoom(tzoom):halign(0):settext("Name")
