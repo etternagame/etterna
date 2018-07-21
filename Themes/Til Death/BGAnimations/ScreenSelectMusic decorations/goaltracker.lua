@@ -54,7 +54,7 @@ if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
 	profile = GetPlayerOrMachineProfile(PLAYER_1)
 end
 
-local playergoals = profile:GetAllGoals()
+local playergoals
 local displayindex = {}
 
 t[#t+1] = Def.Quad{InitCommand=function(self)
