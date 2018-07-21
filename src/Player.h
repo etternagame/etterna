@@ -100,6 +100,7 @@ public:
 
 	void ScoreAllActiveHoldsLetGo();
 	void DoTapScoreNone();
+	void AddHoldToReplayData(int col, const TapNote* pTN, int RowOfOverlappingNoteOrRow);
 	void AddNoteToReplayData(int col, const TapNote* pTN, int RowOfOverlappingNoteOrRow);
 	
 	void Step( int col, int row, const std::chrono::steady_clock::time_point &tm, bool bHeld, bool bRelease, float padStickSeconds = 0.0f );
@@ -150,7 +151,7 @@ protected:
 	void SetMineJudgment( TapNoteScore tns , int iTrack );
 	void SetJudgment( int iRow, int iFirstTrack, const TapNote &tn ) { SetJudgment( iRow, iFirstTrack, tn, tn.result.tns, tn.result.fTapNoteOffset ); }	
 	void SetJudgment( int iRow, int iFirstTrack, const TapNote &tn, TapNoteScore tns, float fTapNoteOffset );	// -1 if no track as in TNS_Miss
-	void SetHoldJudgment( TapNote &tn, int iTrack );
+	void SetHoldJudgment(TapNote &tn, int iTrack, int iRow);
 	void SetCombo( unsigned int iCombo, unsigned int iMisses );
 	void IncrementComboOrMissCombo( bool bComboOrMissCombo );
 	void IncrementCombo() { IncrementComboOrMissCombo(true); };

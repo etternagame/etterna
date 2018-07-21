@@ -428,6 +428,15 @@ void SongManager::MakePlaylistFromFavorites(set<string>& favs, map<string, Playl
 	playlists.emplace("Favorites", pl);
 }
 
+void SongManager::ReconcileChartKeysForReloadedSong(const Song* reloadedSong, vector<string> oldChartkeys)
+{
+	for (auto ck : oldChartkeys)
+		SONGMAN->StepsByKey.erase(ck);
+	auto stepses = reloadedSong->GetAllSteps();
+	for (auto steps : stepses)
+		SONGMAN->StepsByKey[steps->GetChartKey()] = steps;
+}
+
 string SongManager::ReconcileBustedKeys(const string& ck) {
 	if (StepsByKey.count(ck))
 		return ck;

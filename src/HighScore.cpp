@@ -47,7 +47,7 @@ struct HighScoreImpl
 	vector<int> vNoteRowVector;
 	vector<int> vTrackVector;
 	vector<TapNoteType> vTapNoteTypeVector;
-	vector<TapNoteSubType> vTapNoteSubTypeVector;
+	vector<HoldReplayResult> vHoldReplayDataVector;
 	vector<int> vRescoreJudgeVector;
 	unsigned int iMaxCombo;			// maximum combo obtained [SM5 alpha 1a+]
 	StageAward stageAward;	// stage award [SM5 alpha 1a+]
@@ -127,13 +127,11 @@ void HighScoreImpl::UnloadReplayData() {
 	vOffsetVector.clear();
 	vTrackVector.clear();
 	vTapNoteTypeVector.clear();
-	vTapNoteSubTypeVector.clear();
 
 	vNoteRowVector.shrink_to_fit();
 	vOffsetVector.shrink_to_fit();
 	vTrackVector.shrink_to_fit();
 	vTapNoteTypeVector.shrink_to_fit();
-	vTapNoteSubTypeVector.shrink_to_fit();
 
 	ReplayType = 0;
 }
@@ -621,10 +619,16 @@ bool HighScoreImpl::WriteReplayData() {
 			+ " " + to_string(vTrackVector[i]) + 
 			(vTapNoteTypeVector[i] != TapNoteType_Tap ? 
 				" " + to_string(vTapNoteTypeVector[i])
-				+ (vTapNoteSubTypeVector[i] != TapNoteSubType_Invalid ?
-					" " + to_string(vTapNoteSubTypeVector[i]) 
 				: "")
-			: "") 
+			+ "\n";
+		fileStream.write(append.c_str(), append.size());
+	}
+	for (auto& hold : vHoldReplayDataVector) {
+		append = "H " + to_string(hold.row) + 
+			" " + to_string(hold.track) +
+			(hold.subType != TapNoteSubType_Hold ?
+				" " + to_string(hold.subType)
+			: "")
 			+ "\n";
 		fileStream.write(append.c_str(), append.size());
 	}
@@ -731,7 +735,7 @@ bool HighScore::LoadReplayDataFull() {
 	vector<float> vOffsetVector;
 	vector<int> vTrackVector;
 	vector<TapNoteType> vTapNoteTypeVector;
-	vector<TapNoteSubType> vTapNoteSubTypeVector;
+	vector<HoldReplayResult> vHoldReplayDataVector;
 	string path = FULL_REPLAY_DIR + m_Impl->ScoreKey;
 
 	std::ifstream fileStream(path, ios::binary);
@@ -742,7 +746,6 @@ bool HighScore::LoadReplayDataFull() {
 	float offset;
 	int track;
 	TapNoteType tnt;
-	TapNoteSubType tnst;
 	int tmp;
 
 	//check file
@@ -759,6 +762,18 @@ bool HighScore::LoadReplayDataFull() {
 		while (ss >> buffer)
 			tokens.emplace_back(buffer);
 
+		if (tokens[0] == "H") {
+			HoldReplayResult hrr;
+			hrr.row = std::stoi(tokens[0]);
+			hrr.track = std::stoi(tokens[1]);
+			tmp = ::stoi(tokens[2]);
+			if (tmp < 0 || tmp >= NUM_TapNoteSubType || !(typeid(tmp) == typeid(int))) {
+				LOG->Warn("Failed to load replay data at %s (\"Tapnotesubtype value is not of type TapNoteSubType\")", path.c_str());
+			}
+			hrr.subType = static_cast<TapNoteSubType>(tmp);
+			vHoldReplayDataVector.emplace_back(hrr);
+			continue;
+		}
 		noteRow = std::stoi(tokens[0]);
 		if (!(typeid(noteRow) == typeid(int))) {
 			LOG->Warn("Failed to load replay data at %s (\"NoteRow value is not of type: int\")", path.c_str());
@@ -784,13 +799,6 @@ bool HighScore::LoadReplayDataFull() {
 		tnt = static_cast<TapNoteType>(tmp);
 		vTapNoteTypeVector.emplace_back(tnt);
 
-		tmp = tokens.size() >= 5 ? std::stoi(tokens[4]) : TapNoteSubType_Invalid;
-		if (tmp < 0 || tmp >= TapNoteSubType_Invalid || !(typeid(tmp) == typeid(int))) {
-			//LOG->Warn("Failed to load replay data at %s (\"Tapnotesubtype value is not of type TapNoteSubType\")", path.c_str()); too common to throw a warn-mina
-		}
-		tnst = static_cast<TapNoteSubType>(tmp);
-		vTapNoteSubTypeVector.emplace_back(tnst);
-
 		tokens.clear();
 	}
 	fileStream.close();
@@ -798,7 +806,6 @@ bool HighScore::LoadReplayDataFull() {
 	SetOffsetVector(vOffsetVector);
 	SetTrackVector(vTrackVector);
 	SetTapNoteTypeVector(vTapNoteTypeVector);
-	SetTapNoteSubTypeVector(vTapNoteSubTypeVector);
 
 	m_Impl->ReplayType = 2;
 	LOG->Trace("Loaded replay data at %s", path.c_str());
@@ -903,12 +910,12 @@ vector<float> HighScore::GetCopyOfOffsetVector() const { return m_Impl->vOffsetV
 vector<int> HighScore::GetCopyOfNoteRowVector() const { return m_Impl->vNoteRowVector; }
 vector<int> HighScore::GetCopyOfTrackVector() const { return m_Impl->vTrackVector; }
 vector<TapNoteType> HighScore::GetCopyOfTapNoteTypeVector() const { return m_Impl->vTapNoteTypeVector; }
-vector<TapNoteSubType>  HighScore::GetCopyOfTapNoteSubTypeVector() const { return m_Impl->vTapNoteSubTypeVector; }
+vector<HoldReplayResult> HighScore::GetCopyOfHoldReplayDataVector() const { return m_Impl->vHoldReplayDataVector; }
 const vector<float>& HighScore::GetOffsetVector() const { return m_Impl->vOffsetVector; }
 const vector<int>& HighScore::GetNoteRowVector() const { return m_Impl->vNoteRowVector; }
 const vector<int>& HighScore::GetTrackVector() const { return m_Impl->vTrackVector; }
 const vector<TapNoteType>& HighScore::GetTapNoteTypeVector() const { return m_Impl->vTapNoteTypeVector; }
-const vector<TapNoteSubType>&  HighScore::GetTapNoteSubTypeVector() const { return m_Impl->vTapNoteSubTypeVector; }
+const vector<HoldReplayResult>& HighScore::GetHoldReplayDataVector() const { return m_Impl->vHoldReplayDataVector; }
 string HighScore::GetScoreKey() const { return m_Impl->ScoreKey; }
 float HighScore::GetSurviveSeconds() const { return m_Impl->fSurviveSeconds; }
 float HighScore::GetSurvivalSeconds() const { return GetSurviveSeconds() + GetLifeRemainingSeconds(); }
@@ -951,7 +958,7 @@ void HighScore::SetOffsetVector(const vector<float>& v) { m_Impl->vOffsetVector 
 void HighScore::SetNoteRowVector(const vector<int>& v) { m_Impl->vNoteRowVector = v; }
 void HighScore::SetTrackVector(const vector<int>& v) { m_Impl->vTrackVector = v; }
 void HighScore::SetTapNoteTypeVector(const vector<TapNoteType>& v) { m_Impl->vTapNoteTypeVector = v; }
-void HighScore::SetTapNoteSubTypeVector(const vector<TapNoteSubType>& v) { m_Impl->vTapNoteSubTypeVector = v; }
+void HighScore::SetHoldReplayDataVector(const vector<HoldReplayResult>& v) { m_Impl->vHoldReplayDataVector = v; }
 void HighScore::SetScoreKey(const string& sk) { m_Impl->ScoreKey = sk; }
 void HighScore::SetRescoreJudgeVector(const vector<int>& v) { m_Impl->vRescoreJudgeVector = v; }
 void HighScore::SetAliveSeconds( float f ) { m_Impl->fSurviveSeconds = f; }
@@ -1508,21 +1515,6 @@ public:
 		return 1;
 	}
 
-	static int GetTapNoteSubTypeVector(T* p, lua_State *L) {
-		auto* v = &(p->GetTapNoteSubTypeVector());
-		bool loaded = v->size() > 0;
-		if (loaded || p->LoadReplayData()) {
-			if (!loaded)
-				v = &(p->GetTapNoteSubTypeVector());
-			LuaHelpers::CreateTableFromArray((*v), L);
-			if (!loaded)
-				p->UnloadReplayData();
-		}
-		else
-			lua_pushnil(L);
-		return 1;
-	}
-
 	DEFINE_METHOD( GetGrade, GetGrade() )
 	DEFINE_METHOD( GetWifeGrade, GetWifeGrade() )
 	DEFINE_METHOD( ConvertDpToWife, ConvertDpToWife() )
@@ -1567,7 +1559,6 @@ public:
 		ADD_METHOD( GetNoteRowVector );
 		ADD_METHOD( GetTrackVector );
 		ADD_METHOD( GetTapNoteTypeVector );
-		ADD_METHOD( GetTapNoteSubTypeVector );
 		ADD_METHOD( GetChartKey );
 		ADD_METHOD( GetReplayType );
 	}

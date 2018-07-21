@@ -49,7 +49,7 @@ void PlayerStageStats::InternalInit()
 	m_vNoteRowVector.clear();
 	m_vTrackVector.clear();
 	m_vTapNoteTypeVector.clear();
-	m_vTapNoteSubTypeVector.clear();
+	m_vHoldReplayData.clear();
 	InputData.clear();
 	m_iPossibleGradePoints = 0;
 	m_iCurCombo = 0;
@@ -342,8 +342,8 @@ vector<int> PlayerStageStats::GetTrackVector() const {
 vector<TapNoteType> PlayerStageStats::GetTapNoteTypeVector() const {
 	return m_vTapNoteTypeVector;
 }
-vector<TapNoteSubType> PlayerStageStats::GetTapNoteSubTypeVector() const {
-	return m_vTapNoteSubTypeVector;
+vector<HoldReplayResult> PlayerStageStats::GetHoldReplayDataVector() const {
+	return m_vHoldReplayData;
 }
 
 float PlayerStageStats::GetCurMaxPercentDancePoints() const
@@ -853,13 +853,13 @@ void PlayerStageStats::UnloadReplayData() {
 	m_vOffsetVector.clear();
 	m_vTrackVector.clear();
 	m_vTapNoteTypeVector.clear();
-	m_vTapNoteSubTypeVector.clear();
+	m_vHoldReplayData.clear();
 
 	m_vNoteRowVector.shrink_to_fit();
 	m_vOffsetVector.shrink_to_fit();
 	m_vTrackVector.shrink_to_fit();
 	m_vTapNoteTypeVector.shrink_to_fit();
-	m_vTapNoteSubTypeVector.shrink_to_fit();
+	m_vHoldReplayData.shrink_to_fit();
 }
 
 LuaFunction( GetGradeFromPercent,	GetGradeFromPercent( FArg(1) ) )
@@ -959,11 +959,6 @@ public:
 
 	static int GetTapNoteTypeVector(T* p, lua_State *L) {
 		LuaHelpers::CreateTableFromArray(p->m_vTapNoteTypeVector, L);
-		return 1;
-	}
-
-	static int GetTapNoteSubTypeVector(T* p, lua_State *L) {
-		LuaHelpers::CreateTableFromArray(p->m_vTapNoteSubTypeVector, L);
 		return 1;
 	}
 
@@ -1094,7 +1089,6 @@ public:
 		ADD_METHOD( GetScore );
 		ADD_METHOD( GetOffsetVector );
 		ADD_METHOD(GetTrackVector);
-		ADD_METHOD(GetTapNoteSubTypeVector);
 		ADD_METHOD(GetTapNoteTypeVector);
 		ADD_METHOD( WifeScoreOffset );
 		ADD_METHOD( GetNoteRowVector );

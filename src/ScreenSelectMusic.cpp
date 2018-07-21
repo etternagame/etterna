@@ -468,7 +468,14 @@ bool ScreenSelectMusic::Input(const InputEventPlus &input)
 			Song* to_reload = m_MusicWheel.GetSelectedSong();
 			if (to_reload != nullptr)
 			{
+				auto stepses = to_reload->GetAllSteps();
+				vector<string> oldChartkeys;
+				for (auto steps : stepses)
+					oldChartkeys.emplace_back(steps->GetChartKey());
+
 				to_reload->ReloadFromSongDir();
+				SONGMAN->ReconcileChartKeysForReloadedSong(to_reload, oldChartkeys);
+
 				AfterMusicChange();
 				return true;
 			}

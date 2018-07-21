@@ -203,6 +203,12 @@ struct TapNote
 	bool operator!=( const TapNote &other ) const { return !operator==( other ); }
 };
 
+struct HoldReplayResult {
+	int row;
+	int track; //column
+	TapNoteSubType subType;
+};
+
 extern TapNote TAP_EMPTY;			// '0'
 extern TapNote TAP_ORIGINAL_TAP;		// '1'
 extern TapNote TAP_ORIGINAL_HOLD_HEAD;		// '2'

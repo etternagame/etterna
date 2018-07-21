@@ -186,6 +186,7 @@ public:
 	string activeplaylist = "";
 	string playlistcourse = "";
 	string ReconcileBustedKeys(const string& ck);
+	void ReconcileChartKeysForReloadedSong(const Song* reloadedSong, vector<string> oldChartkeys);
 	map<string, string> keyconversionmap;
 	void SetFlagsForProfile(Profile* prof);
 	void MakeSongGroupsFromPlaylists(map<string, Playlist>& playlists = GetPlaylists());
