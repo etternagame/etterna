@@ -214,7 +214,7 @@ function byMSD(x)
 	return HSV(0, 0.9, 0.9)
 end
 
-function ByMusicLength(x)
+function byMusicLength(x)
 	if x then
 		x = math.min(x,600)
 		return HSV(math.max(95 - (x/900)*150, -50), 0.9, 0.9)

@@ -1081,12 +1081,12 @@ local p = Def.ActorFrame{
 		BeginCommand=function(self)
 			local ttime = GetPlayableTime()
 			settext(self,SecondsToMMSS(ttime))
-			diffuse(self, ByMusicLength(ttime))
+			diffuse(self, byMusicLength(ttime))
 		end,
 		DoneLoadingNextSongMessageCommand=function(self)
 			local ttime = GetPlayableTime()
 			settext(self,SecondsToMMSS(ttime))
-			diffuse(self, ByMusicLength(ttime))
+			diffuse(self, byMusicLength(ttime))
 		end
 	}
 }
