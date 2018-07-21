@@ -766,7 +766,7 @@ bool HighScore::LoadReplayDataFull() {
 			HoldReplayResult hrr;
 			hrr.row = std::stoi(tokens[0]);
 			hrr.track = std::stoi(tokens[1]);
-			tmp = ::stoi(tokens[2]);
+			tmp = tokens.size() > 2 ? ::stoi(tokens[2]) : TapNoteSubType_Hold;
 			if (tmp < 0 || tmp >= NUM_TapNoteSubType || !(typeid(tmp) == typeid(int))) {
 				LOG->Warn("Failed to load replay data at %s (\"Tapnotesubtype value is not of type TapNoteSubType\")", path.c_str());
 			}
