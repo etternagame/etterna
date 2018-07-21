@@ -134,6 +134,7 @@ local t = Def.ActorFrame{
 		if getTabIndex() == 8 and update then
 			MESSAGEMAN:Broadcast("MouseRightClick")
 		elseif getTabIndex() == 8 then
+			SCREENMAN:SetNewScreen("ScreenBundleSelect")
 			self:queuecommand("On")
 			self:visible(true)
 			update = true
