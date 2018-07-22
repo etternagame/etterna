@@ -36,7 +36,7 @@ static Preference<RString> serverURL("UploadServerAPIURL", "https://api.etternao
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 static Preference<unsigned int> downloadPacksToAdditionalSongs("downloadPacksToAdditionalSongs", 0);
 static const string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
-static const string CLIENT_DATA_KEY = "FC767D3D08D04DA04E2649B8A487DDFE2280B9B9F78DAF7984DE76744B3D84A8";
+static const string CLIENT_DATA_KEY = "1C563ADA30BEDBFAABF885AF47E58BE012B21D421B421F3469A9898D0C6D6906";
 static const string DL_DIR = SpecialFiles::CACHE_DIR + "Downloads/";
 
 size_t write_memory_buffer(void *contents, size_t size, size_t nmemb, void *userp)
