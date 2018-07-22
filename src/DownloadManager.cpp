@@ -1320,9 +1320,12 @@ void DownloadManager::RefreshPackList(string url)
 				packs = *(j.find("data"));
 			for (auto packJ : packs) {
 				try {
+					DownloadablePack tmp;
+					if (packJ.find("id") != packJ.end())
+						tmp.id = stoi(packJ.value("id", ""));
 					auto attr = packJ.find("attributes");
 					auto pack = attr != packJ.end() ? *attr : packJ;
-					DownloadablePack tmp;
+					
 					if (pack.find("pack") != pack.end())
 						tmp.name = pack.value("pack", "");
 					else if (pack.find("packname") != pack.end())
@@ -1352,7 +1355,6 @@ void DownloadManager::RefreshPackList(string url)
 						tmp.size = pack.value("size", 0);
 					else
 						tmp.size = 0;
-					tmp.id = ++(DLMAN->lastid);
 					packlist.push_back(tmp);
 				} catch (exception e) {}
 			}

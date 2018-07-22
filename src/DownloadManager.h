@@ -154,7 +154,6 @@ public:
 	bool gameplay{ false }; // Currently in gameplay
 	bool initialized{ false };
 	string error{ "" };
-	int lastid{ 0 };
 	vector<DownloadablePack> downloadablePacks;
 	string authToken{ "" }; // Session cookie content
 	string sessionUser{ "" }; // Currently logged in username
