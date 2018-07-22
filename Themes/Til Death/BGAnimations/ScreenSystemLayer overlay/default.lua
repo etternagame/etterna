@@ -38,6 +38,8 @@ t[#t+1] = Def.ActorFrame {
 	end
 }
 
+local www = SCREEN_WIDTH * 0.8
+local hhh = SCREEN_HEIGHT * 0.8
 t[#t+1] = Def.ActorFrame {
 	DFRStartedMessageCommand=function(self)
 		self:visible(true)
@@ -47,16 +49,17 @@ t[#t+1] = Def.ActorFrame {
 	end,
 	BeginCommand=function(self)
 		self:visible(false)
+		self:x(www/8 + 10):y(SCREEN_BOTTOM - hhh/8 - 70)
 	end,
 	Def.Quad {
 		InitCommand=function(self)
-			self:x(SCREEN_WIDTH/2):y(SCREEN_HEIGHT/2):zoomto(SCREEN_WIDTH/2, SCREEN_HEIGHT/2):diffuse(color("0.3,0.3,0.3,1"))
+			self:zoomto(www/4, hhh/4):diffuse(color("0.1,0.1,0.1,0.8"))
 		end,
 	},
 	Def.BitmapText{
 		Font="Common Normal",
 		InitCommand=function(self)
-			self:x(SCREEN_WIDTH/2):y(SCREEN_HEIGHT/2):diffusealpha(1):settext(""):maxwidth(SCREEN_WIDTH/2)
+			self:diffusealpha(0.9):settext(""):maxwidth(www/4-40)
 		end,
 		DFRUpdateMessageCommand=function(self,params)
 			self:settext(params.txt)
