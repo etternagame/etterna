@@ -138,7 +138,18 @@ local function makePackDisplay(i)
 			end
 		end,
 		
-		Def.Quad{InitCommand=function(self) self:x(offx):zoomto(dwidth,pdh):halign(0):diffuse(color("#000000")):diffusealpha(0.3) end},
+		Def.Quad{
+			InitCommand=function(self)
+				self:x(offx):zoomto(dwidth,pdh):halign(0)
+			end,
+			DisplayCommand=function(self)
+				if SONGMAN:DoesSongGroupExist(packinfo:GetName()) then
+					self:diffuse(color("#00ff00")):diffusealpha(0.3) 
+				else
+					self:diffuse(color("#000000")):diffusealpha(0.3) 
+				end
+			end
+		},
 		
 		LoadFont("Common normal") .. {	--index
 			InitCommand=function(self)
