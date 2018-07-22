@@ -3,6 +3,7 @@
 #include "Foreach.h"
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
+#include "picosha2.h"
 #include "PlayerNumber.h"
 #include "ProfileManager.h"
 #include "RadarValues.h"
@@ -846,7 +847,7 @@ bool HighScore::IsEmpty() const
 }
 
 string HighScore::GenerateValidationKeys() {
-	string key = "";
+	std::string key = "";
 
 	FOREACH_ENUM(TapNoteScore, tns) {
 
@@ -878,7 +879,11 @@ string HighScore::GenerateValidationKeys() {
 	key.append(to_string(static_cast<int>(GetEtternaValid())));
 	key.append(GradeToString(GetWifeGrade()));
 
-	SetValidationKey(ValidationKey_Brittle, BinaryToHex(CryptManager::GetSHA1ForString(key)));
+	std::string hash_hex_str;
+
+	picosha2::hash256_hex_string(key, hash_hex_str);
+
+	SetValidationKey(ValidationKey_Brittle, hash_hex_str);
 
 	// just testing stuff
 	//hs.SetValidationKey(ValidationKey_Weak, GenerateWeakValidationKey(m_iTapNoteScores, m_iHoldNoteScores));
