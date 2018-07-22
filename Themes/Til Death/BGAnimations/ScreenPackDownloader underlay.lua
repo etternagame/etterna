@@ -14,7 +14,6 @@ end
 
 local pressingtab = false
 local moving = false
-local update = true
 
 local function DlInput(event)
 	if event.DeviceInput.button == "DeviceButton_tab" then
@@ -48,7 +47,7 @@ local function DlInput(event)
 	elseif moving == true then
 		moving = false
 	end
-	if event.type ~= "InputEventType_Release" and update and inputting ~= 0 then
+	if event.type ~= "InputEventType_Release" and inputting ~= 0 then
 		local changed = false
 		if event.button == "Start" then
 			curInput = ""
@@ -91,6 +90,15 @@ local function DlInput(event)
 			return true
 		end
 	end
+	if event.type ~= "InputEventType_Release" and inputting == 0 and curInput == "" and event.type == "InputEventType_FirstPress"then	-- quickstart the string search with enter if there is no query atm
+		if event.button == "Start" then
+			curInput = ""
+			inputting = 1
+			MESSAGEMAN:Broadcast("UpdateFilterDisplays")
+			SCREENMAN:set_input_redirected(PLAYER_1, true)
+			return true
+		end
+	end
 end
 
 local function highlight(self)
@@ -101,7 +109,7 @@ local function diffuseIfActiveButton(self, cond)
 	if cond then
 		self:diffuse(color("#666666"))
 	else
-		self:diffuse(color("#000000"))
+		self:diffuse(color("#ffffff"))
 	end
 end
 
@@ -133,7 +141,7 @@ local packspacing = packh + packgap
 local offx = 10
 local offy = 40
 
-local fx = SCREEN_WIDTH/4
+local fx = SCREEN_WIDTH/4.5		-- this isnt very smart alignment
 local f0y = 160
 local f1y = f0y + 40
 local f2y = f1y + 40
@@ -161,14 +169,19 @@ local o = Def.ActorFrame{
 		self:queuecommand("PackTableRefresh")
 	end,
 	
-	LoadFont("Common Large")..{
+	Def.Quad{
 		InitCommand=function(self)
-			self:xy(fx,f0y):zoom(fontScale):halign(0.5):valign(0):settext( "Filter by:")
+			self:xy(10,f0y-30):halign(0):valign(0):zoomto(SCREEN_WIDTH/3,f2y+20):diffuse(color("#666666")):diffusealpha(0.4)
 		end,
 	},
 	LoadFont("Common Large")..{
 		InitCommand=function(self)
-			self:xy(fx,f1y):zoom(fontScale):halign(1):valign(0):settext( "Average Difficulty:")
+			self:xy(fx*0.9,f0y):zoom(fontScale):halign(0.5):valign(0):settext( "Filters:")
+		end,
+	},
+	LoadFont("Common Large")..{
+		InitCommand=function(self)
+			self:xy(fx,f1y):zoom(fontScale):halign(1):valign(0):settext( "Avg Diff:")
 		end,
 	},
 	LoadFont("Common Large")..{
@@ -177,6 +190,30 @@ local o = Def.ActorFrame{
 		end,
 	},
 	-- maybe we'll have more one day
+	
+	-- goes to bundles (funkied the xys to match bundle screen)
+	Def.Quad{
+		InitCommand=function(self)
+			self:xy(SCREEN_WIDTH/6 + 10,40):zoomto(SCREEN_WIDTH/3,packh-2):valign(0):diffuse(color("#ffffff")):diffusealpha(0.4)
+		end,
+		MouseLeftClickMessageCommand=function(self)
+			if isOver(self) then
+				SCREENMAN:SetNewScreen("ScreenBundleSelect")
+			end
+		end,
+		HighlightCommand=function(self)
+			if isOver(self) then
+				self:diffusealpha(0.8)
+			else
+				self:diffusealpha(0.4)
+			end
+		end,
+	},
+	LoadFont("Common Large") .. {
+		InitCommand=function(self)
+			self:xy(SCREEN_WIDTH/6 + 10,56):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH/2):settext("Go to Bundle Select")
+		end,
+	}
 }
 
 local function numFilter(i,x,y)
@@ -219,7 +256,6 @@ end
 for i=2,3 do 
 	o[#o+1] = numFilter(i, 40 * (i-2), f1y - f0y)
 end
-
 for i=4,5 do 
 	o[#o+1] = numFilter(i, 40 * (i-4), f2y - f0y)
 end
@@ -236,7 +272,7 @@ o[#o+1] = Def.ActorFrame{
 	end,	
 	Def.Quad{
 		InitCommand=function(self)
-			self:zoomto(nwidth,nhite):halign(0):valign(0):diffuse(color("#666666"))
+			self:zoomto(nwidth,nhite):halign(0):valign(0)
 		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
@@ -266,7 +302,7 @@ o[#o+1] = Def.ActorFrame{
 	},
 	LoadFont("Common Large")..{
 		InitCommand=function(self)
-			self:zoom(fontScale):halign(1):valign(0):settext( "Search by name:")
+			self:zoom(fontScale):halign(1):valign(0):settext( "Name:")	-- this being so far down is kinda awkward
 		end,
 	},
 }

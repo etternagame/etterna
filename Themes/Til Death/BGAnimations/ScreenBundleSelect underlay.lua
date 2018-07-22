@@ -63,7 +63,7 @@ local ind = 0
 local o = Def.ActorFrame{
 	InitCommand=function(self)
 		self:xy(offx + width/2, 0):halign(0.5):valign(0)
-		self:GetChild("PacklistDisplay"):xy(offx + width/2, offy * 2 + 14)
+		self:GetChild("PacklistDisplay"):xy(SCREEN_WIDTH/2.5 - offx - (offx + width/2), offy * 2 + 14)		--- uuuu messy... basically cancel out the x coord of the parent
 		packlist = DLMAN:GetThePackList()
 		self:SetUpdateFunction(highlight)
 	end,
@@ -91,14 +91,10 @@ local o = Def.ActorFrame{
 	},
 	LoadFont("Common Large") .. {  --selected bundle
 		InitCommand=function(self)
-			self:xy(width/2 + offx,offy * 2 - 20):zoom(0.4):halign(0):settext("Selected Bundle: Browsing")
+			self:xy(width/2 + offx,offy * 2 - 20):zoom(0.4):halign(0)
 		end,
 		PackTableRefreshCommand=function(self)
-			if ind ~= 0 then
-				self:settextf("Selected Bundle: %s", minidoots[ind]:gsub("-Expanded", " (expanded)")):diffuse(color(diffcolors[math.ceil(ind/2)]))
-			else
-				self:settext("Selected Bundle: Browsing"):diffuse(color("#ffffff"))
-			end
+			self:settextf("Selected Bundle: %s", minidoots[ind]:gsub("-Expanded", " (expanded)")):diffuse(color(diffcolors[math.ceil(ind/2)]))
 		end
 	},
 	LoadFont("Common normal") .. {  --avg diff
@@ -106,7 +102,6 @@ local o = Def.ActorFrame{
 			self:xy(width/2 + offx,offy * 2):zoom(tzoom+0.1):halign(0):maxwidth(width/2/tzoom)
 		end,
 		PackTableRefreshCommand=function(self)
-			if ind == 0 then self:visible(false) else self:visible(true) end
 			self:settextf("Average Difficulty: %0.2f", packlist:GetAvgDiff()):diffuse(byMSD(packlist:GetAvgDiff()))
 		end
 	},
@@ -115,7 +110,6 @@ local o = Def.ActorFrame{
 			self:xy(width*2 + width/2 - 150,offy * 2):zoom(tzoom+0.1):halign(1):maxwidth(width/2/tzoom)
 		end,
 		PackTableRefreshCommand=function(self)
-			if ind == 0 then self:visible(false) else self:visible(true) end
 			self:settextf("Total Size: %i(MB)", packlist:GetTotalSize()):diffuse(byFileSize(packlist:GetTotalSize()))
 		end
 	},
@@ -124,7 +118,6 @@ local o = Def.ActorFrame{
 			self:xy(width*2 + width/2 - 40,offy * 2):zoom(tzoom+0.1):halign(1):maxwidth(width/2/tzoom)
 		end,
 		PackTableRefreshCommand=function(self)
-			if ind == 0 then self:visible(false) else self:visible(true) end
 			self:settext("Download All")
 		end,
 		MouseLeftClickMessageCommand=function(self)
@@ -137,16 +130,14 @@ local o = Def.ActorFrame{
 		end,
 	},
 	
-	--reset button
+	--return to normal search
 	Def.Quad{
 		InitCommand=function(self)
 			self:y(offy):zoomto(width,packh-2):valign(0):diffuse(color("#ffffff")):diffusealpha(0.4)
 		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
-				packlist = DLMAN:GetThePackList()
-				self:GetParent():queuecommand("PackTableRefresh")
-				ind = 0
+				SCREENMAN:SetNewScreen("ScreenPackDownloader")
 			end
 		end,
 		HighlightCommand=function(self)
@@ -159,7 +150,7 @@ local o = Def.ActorFrame{
 	},
 	LoadFont("Common normal") .. {
 		InitCommand=function(self)
-			self:y(offy+16):zoom(tzoom+0.1):halign(0.5):maxwidth(width/2/tzoom):settext("Browse All Packs")
+			self:y(offy+16):zoom(tzoom+0.1):halign(0.5):maxwidth(width/2/tzoom):settext("Return to search")
 		end,
 	}
 }
