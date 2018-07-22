@@ -64,7 +64,7 @@ local o = Def.ActorFrame{
 	InitCommand=function(self)
 		self:xy(offx + width/2, 0):halign(0.5):valign(0)
 		self:GetChild("PacklistDisplay"):xy(SCREEN_WIDTH/2.5 - offx - (offx + width/2), offy * 2 + 14)		--- uuuu messy... basically cancel out the x coord of the parent
-		packlist = DLMAN:GetThePackList()
+		packlist = DLMAN:GetPacklist()
 		self:SetUpdateFunction(highlight)
 	end,
 	OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) end,

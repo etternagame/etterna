@@ -151,7 +151,7 @@ local o = Def.ActorFrame{
 	InitCommand=function(self)
 		self:xy(0, 0):halign(0.5):valign(0)
 		self:GetChild("PacklistDisplay"):xy(SCREEN_WIDTH/2.5 - offx, offy * 2 + 14)
-		packlist = DLMAN:GetThePackList()
+		packlist = DLMAN:GetPacklist()
 		self:SetUpdateFunction(highlight)
 	end,
 	OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(DlInput) end,

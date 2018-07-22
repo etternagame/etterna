@@ -39,7 +39,8 @@ local o = Def.ActorFrame{
 	end,
 	OnCommand=function(self)
 		self:SetUpdateFunction(highlight)
-		packlist = DLMAN:GetThePackList()
+		packlist = DLMAN:GetPacklist()
+		packlist:SetFromAll()
 		self:queuecommand("PackTableRefresh")
 	end,
 	PackTableRefreshCommand=function(self)
