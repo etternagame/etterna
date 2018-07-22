@@ -63,7 +63,7 @@ local ind = 0
 local o = Def.ActorFrame{
 	InitCommand=function(self)
 		self:xy(offx + width/2, 0):halign(0.5):valign(0)
-		self:GetChild("PacklistDisplay"):xy(SCREEN_WIDTH/2.5 - offx - (offx + width/2), offy * 2 + 14)		--- uuuu messy... basically cancel out the x coord of the parent
+		self:GetChild("PacklistDisplay"):xy(SCREEN_WIDTH/2.5 - offx - (offx + width/2), offy * 2 + 14):visible(false)		--- uuuu messy... basically cancel out the x coord of the parent
 		packlist = DLMAN:GetPacklist()
 		self:SetUpdateFunction(highlight)
 	end,
@@ -185,6 +185,7 @@ local function makedoots(i)
 				if isOver(self) then
 					packlist:SetFromCoreBundle(minidoots[i]:lower())
 					self:GetParent():GetParent():queuecommand("PackTableRefresh")		-- perhaps it would be best if the packlist broadcast instead - mina
+					self:GetParent():GetParent():visible(true):GetChild("PacklistDisplay"):visible(true)
 					ind = i
 				end
 			end
