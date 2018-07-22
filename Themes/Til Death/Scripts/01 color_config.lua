@@ -148,7 +148,7 @@ function offsetToJudgeColor(offset,scale)
 		return color(colorConfig:get_data().judgment["TapNoteScore_W3"])
 	elseif offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW4") then
 		return color(colorConfig:get_data().judgment["TapNoteScore_W4"])
-	elseif offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW5") then
+	elseif offset <= math.max(scale*PREFSMAN:GetPreference("TimingWindowSecondsW5"), 0.180) then
 		return color(colorConfig:get_data().judgment["TapNoteScore_W5"])
 	else
 		return color(colorConfig:get_data().judgment["TapNoteScore_Miss"])
@@ -169,7 +169,7 @@ function offsetToJudgeColorAlpha(offset,scale)
 		return color(colorConfig:get_data().judgment["TapNoteScore_W3"].."48")
 	elseif offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW4") then
 		return color(colorConfig:get_data().judgment["TapNoteScore_W4"].."48")
-	elseif offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW5") then
+	elseif offset <= math.max(scale*PREFSMAN:GetPreference("TimingWindowSecondsW5"), 0.180) then
 		return color(colorConfig:get_data().judgment["TapNoteScore_W5"].."48")
 	else
 		return color(colorConfig:get_data().judgment["TapNoteScore_Miss"].."48")
@@ -187,7 +187,7 @@ function customOffsetToJudgeColor(offset, windows)
 		return color(colorConfig:get_data().judgment["TapNoteScore_W3"].."48")
 	elseif offset <= windows.good then
 		return color(colorConfig:get_data().judgment["TapNoteScore_W4"].."48")
-	elseif offset <= windows.boo then
+	elseif offset <= math.max(windows.boo, 0.180) then
 		return color(colorConfig:get_data().judgment["TapNoteScore_W5"].."48")
 	else
 		return color(colorConfig:get_data().judgment["TapNoteScore_Miss"].."48")
