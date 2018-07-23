@@ -30,7 +30,7 @@ local function input(event)
 		end
 	elseif event.DeviceInput.button == 'DeviceButton_right mouse button' then
 		if event.type == "InputEventType_Release" then
-			MESSAGEMAN:Broadcast("MouseLeftClick")
+			MESSAGEMAN:Broadcast("MouseRightClick")
 		end
 	elseif moving == true then
 		moving = false

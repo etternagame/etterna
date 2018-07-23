@@ -16,7 +16,7 @@ local c2x = c1x + (tzoom*5*adjx)			-- guesswork adjustment for epxected text len
 local c5x = dwidth							-- right aligned cols
 local c4x = c5x - adjx - (tzoom*8*adjx) 	-- right aligned cols
 local c3x = c4x - adjx - (tzoom*6*adjx) 	-- right aligned cols
-local headeroff = packspaceY/2
+local headeroff = packspaceY/1.5
 
 local function highlight(self)
 	self:queuecommand("Highlight")
@@ -55,6 +55,9 @@ local o = Def.ActorFrame{
 			ind = #packtable - (#packtable % numpacks)
 		end
 	end,
+	DFRFinishedMessageCommand=function(self)
+		self:queuecommand("PackTableRefresh")
+	end,
 	NextPageCommand=function(self)
 		ind = ind + numpacks
 		self:queuecommand("Update")
@@ -64,9 +67,14 @@ local o = Def.ActorFrame{
 		self:queuecommand("Update")
 	end,
 
-	Def.Quad{InitCommand=function(self) self:zoomto(width,height-headeroff):halign(0):valign(0):diffuse(color("#ffffff")):diffusealpha(0.4) end},
+	Def.Quad{InitCommand=function(self) self:zoomto(width,height-headeroff):halign(0):valign(0):diffuse(color("#888888")) end},
 	
 	-- headers
+	Def.Quad{
+		InitCommand=function(self)
+			self:xy(offx, headeroff):zoomto(dwidth,pdh):halign(0):diffuse(color("#333333"))
+		end,
+	},
 	LoadFont("Common normal") .. {	--total
 		InitCommand=function(self)
 			self:xy(c1x, headeroff):zoom(tzoom):halign(0)
@@ -124,6 +132,7 @@ local o = Def.ActorFrame{
 
 local function makePackDisplay(i)
 	local packinfo
+	local installed
 	local o = Def.ActorFrame{
 		InitCommand=function(self)
 			self:y(packspaceY*i + headeroff)
@@ -131,6 +140,7 @@ local function makePackDisplay(i)
 		UpdateCommand=function(self)
 			packinfo = packtable[(i + ind)]
 			if packinfo then
+				installed = SONGMAN:DoesSongGroupExist(packinfo:GetName())
 				self:queuecommand("Display")
 				self:visible(true)
 			else
@@ -143,10 +153,10 @@ local function makePackDisplay(i)
 				self:x(offx):zoomto(dwidth,pdh):halign(0)
 			end,
 			DisplayCommand=function(self)
-				if SONGMAN:DoesSongGroupExist(packinfo:GetName()) then
-					self:diffuse(color("#00ff00")):diffusealpha(0.3) 
+				if installed then
+					self:diffuse(color("#444444CC"))
 				else
-					self:diffuse(color("#000000")):diffusealpha(0.3) 
+					self:diffuse(color("#111111CC"))
 				end
 			end
 		},
@@ -161,7 +171,7 @@ local function makePackDisplay(i)
 		},
 		LoadFont("Common normal") .. {	--name
 			InitCommand=function(self)
-				self:x(c2x):zoom(tzoom):maxwidth(width/2.5/tzoom):halign(0)
+				self:x(c2x):zoom(tzoom):maxwidth((c3x-c2x - (tzoom*6*adjx))/tzoom):halign(0) -- x of left aligned col 2 minus x of right aligned col 3 minus roughly how wide column 3 is plus margin
 			end,
 			DisplayCommand=function(self)
 				self:settext(packinfo:GetName()):diffuse(bySkillRange(packinfo:GetAvgDifficulty()))
@@ -170,7 +180,7 @@ local function makePackDisplay(i)
 				highlightIfOver(self)
 			end,
 			MouseLeftClickMessageCommand=function(self)
-				if isOver(self) then
+				if isOver(self) and self:GetParent():GetParent():GetVisible() then			-- probably should have the isOver function do a recursive parent check?
 					local urlstringyo = "https://etternaonline.com/pack/"..packinfo:GetID()	-- not correct value for site id
 					GAMESTATE:ApplyGameCommand("urlnoexit,"..urlstringyo)
 				end
@@ -187,7 +197,14 @@ local function makePackDisplay(i)
 		},
 		LoadFont("Common normal") .. {	--dl button
 			InitCommand=function(self)
-				self:x(c5x):zoom(tzoom):halign(1):settext("Download")
+				self:x(c5x):zoom(tzoom):halign(1)
+			end,
+			DisplayCommand=function(self)
+				if installed then
+					self:settext("Installed")
+				else
+					self:settext("Download")
+				end
 			end,
 			HighlightCommand=function(self)
 				highlightIfOver(self)

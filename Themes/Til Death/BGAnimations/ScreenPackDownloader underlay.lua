@@ -211,7 +211,7 @@ local o = Def.ActorFrame{
 	},
 	LoadFont("Common Large") .. {
 		InitCommand=function(self)
-			self:xy(SCREEN_WIDTH/6 + 10,56):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH/2):settext("Go to Bundle Select")
+			self:xy(SCREEN_WIDTH/6 + 10,56):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH/2):settext("Bundle Select")
 		end,
 	}
 }
