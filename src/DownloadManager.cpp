@@ -359,7 +359,6 @@ void Download::Update(float fDeltaSeconds)
 }
 Download* DownloadManager::DownloadAndInstallPack(DownloadablePack* pack)
 {
-	auto songs = SONGMAN->GetAllSongs();
 	vector<RString> packs;
 	SONGMAN->GetSongGroupNames(packs);
 	for (auto packName : packs) {
