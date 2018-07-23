@@ -756,7 +756,7 @@ void DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 						delay = true;
 						DLMAN->StartSession(DLMAN->sessionUser, DLMAN->sessionPass, [hs](bool logged) {
 							if (logged) {
-								DLMAN->UploadScore(hs);
+								DLMAN->UploadScoreWithReplayData(hs);
 							}
 						});
 					}
