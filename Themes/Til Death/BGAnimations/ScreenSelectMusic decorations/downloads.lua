@@ -11,7 +11,7 @@ local t = Def.ActorFrame{
 	TabChangedMessageCommand=function(self)
 		if getTabIndex() == 8 and SONGMAN:GetNumSongs() < 300 then
 			SCREENMAN:SetNewScreen("ScreenBundleSelect")
-		else
+		elseif getTabIndex() == 8 then
 			SCREENMAN:SetNewScreen("ScreenPackDownloader")
 		end
 	end,
