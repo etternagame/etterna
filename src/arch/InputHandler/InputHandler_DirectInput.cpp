@@ -399,6 +399,13 @@ void InputHandler_DInput::UpdatePolled( DIDevice &device, const std::chrono::ste
 			{
 				case input_t::BUTTON:
 				{
+					// force mouse xy positions to update before click inputs are sent -mina
+					POINT cursorPos;
+					GetCursorPos(&cursorPos);
+					ScreenToClient(GraphicsWindow::GetHwnd(), &cursorPos);
+					INPUTFILTER->UpdateCursorLocation(static_cast<float>(cursorPos.x), static_cast<float>(cursorPos.y));
+					INPUTFILTER->UpdateCursorLocation(static_cast<float>(cursorPos.x), static_cast<float>(cursorPos.y));
+
 					DeviceInput di( dev, enum_add2(MOUSE_LEFT, in.num), !!state.rgbButtons[in.ofs - DIMOFS_BUTTON0], tm );
 					ButtonPressed( di );
 					break;
@@ -498,6 +505,13 @@ void InputHandler_DInput::UpdateBuffered( DIDevice &device, const std::chrono::s
 				case input_t::BUTTON:
 					if(dev == DEVICE_MOUSE)
 					{
+						// force mouse xy positions to update before click inputs are sent -mina
+						POINT cursorPos;
+						GetCursorPos(&cursorPos);
+						ScreenToClient(GraphicsWindow::GetHwnd(), &cursorPos);
+						INPUTFILTER->UpdateCursorLocation(static_cast<float>(cursorPos.x), static_cast<float>(cursorPos.y));
+						INPUTFILTER->UpdateCursorLocation(static_cast<float>(cursorPos.x), static_cast<float>(cursorPos.y));
+						
 						DeviceButton mouseInput = DeviceButton_Invalid;
 
 						if( in.ofs == DIMOFS_BUTTON0 ) mouseInput = MOUSE_LEFT;
