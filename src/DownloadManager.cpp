@@ -684,13 +684,17 @@ void DownloadManager::UploadScore(HighScore* hs)
 			auto errors = j["errors"];
 			bool delay = false;
 			for (auto error : errors) {
-				if (error["status"] == 22) {
+				int status = error["status"];
+				if (status == 22) {
 					delay = true;
 					DLMAN->StartSession(DLMAN->sessionUser, DLMAN->sessionPass, [hs](bool logged) {
 						if (logged) {
 							DLMAN->UploadScore(hs);
 						}
 					});
+				}
+				else if (status == 404 || status == 405 || status == 406) {
+					hs->AddUploadedServer(serverURL.Get());
 				}
 			}
 			if (!delay && j["data"]["type"] == "ssrResults") {
@@ -747,13 +751,17 @@ void DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 			try {
 				auto errors = j["errors"];
 				for (auto error : errors) {
-					if (error["status"] == 22) {
+					int status = error["status"];
+					if (status == 22) {
 						delay = true;
 						DLMAN->StartSession(DLMAN->sessionUser, DLMAN->sessionPass, [hs](bool logged) {
 							if (logged) {
-								DLMAN->UploadScoreWithReplayData(hs);
+								DLMAN->UploadScore(hs);
 							}
 						});
+					}
+					else if (status == 404 || status == 405 || status == 406) {
+						hs->AddUploadedServer(serverURL.Get());
 					}
 				}
 			}
