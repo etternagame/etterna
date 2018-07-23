@@ -531,7 +531,7 @@ void InputHandler_DInput::UpdateBuffered( DIDevice &device, const std::chrono::s
 					DeviceButton up = DeviceButton_Invalid, down = DeviceButton_Invalid;
 					if(dev == DEVICE_MOUSE)
 					{
-						float l = static_cast<int>(evtbuf[i].dwData);
+						float l = static_cast<float>(static_cast<int>(evtbuf[i].dwData));
 						POINT cursorPos;
 						GetCursorPos(&cursorPos);
 						// convert screen coordinates to client
