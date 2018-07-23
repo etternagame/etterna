@@ -291,10 +291,9 @@ XNode *HighScoreImpl::CreateNode() const
 	pNode->AppendChild("NoChordCohesion", bNoChordCohesion);
 	pNode->AppendChild("EtternaValid", bEtternaValid);
 	if (!uploaded.empty()) {
-		XNode *pServerNode = new XNode("Servers");
+		XNode *pServerNode = pNode->AppendChild("Servers");
 		for (auto server : uploaded)
 			pServerNode->AppendChild("server", server);
-		pNode->AppendChild(pServerNode);
 	}
 	if (vOffsetVector.size() > 1) {
 		pNode->AppendChild("Offsets", OffsetsToString(vOffsetVector));
@@ -360,10 +359,9 @@ XNode *HighScoreImpl::CreateEttNode() const {
 	pNode->AppendChild("DateTime", dateTime.GetString());
 	pNode->AppendChild("TopScore", TopScore);
 	if (!uploaded.empty()) {
-		XNode *pServerNode = new XNode("Servers");
+		XNode *pServerNode = pNode->AppendChild("Servers");
 		for (auto server : uploaded)
 			pServerNode->AppendChild("server", server);
-		pNode->AppendChild(pServerNode);
 	}
 
 	XNode* pTapNoteScores = pNode->AppendChild("TapNoteScores");
