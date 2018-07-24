@@ -15,6 +15,7 @@ public:
 	~ReceptorArrowRow() override;
 	void Update( float fDeltaTime ) override;
 	void DrawPrimitives() override;
+	void DrawOverlay();
 
 	void Load( const PlayerState* pPlayerState, float fYReverseOffset );
 	void SetColumnRenderers(vector<NoteColumnRenderer>& renderers);
@@ -32,6 +33,7 @@ protected:
 
 	vector<NoteColumnRenderer> const* m_renderers;
 	vector<ReceptorArrow *> 	m_ReceptorArrow;
+	vector<ReceptorArrow *> 	m_OverlayReceptorArrow;
 };
 
 #endif
