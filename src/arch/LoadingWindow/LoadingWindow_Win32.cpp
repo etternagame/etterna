@@ -201,8 +201,9 @@ LoadingWindow_Win32::~LoadingWindow_Win32()
 		DeleteObject(f);
 }
 
-void LoadingWindow_Win32::Paint()
+void LoadingWindow_Win32::InternalPaint()
 {
+
 	//Do graphical paint
 	InvalidateRect(hwnd, NULL, TRUE);
 	UpdateWindow(hwnd);
@@ -224,7 +225,10 @@ void LoadingWindow_Win32::Paint()
 	SetBkMode(wdc, oldMode);
 	SelectObject(wdc, oldF);
 	ReleaseDC(hwnd, wdc);
+}
 
+void LoadingWindow_Win32::Paint()
+{
 	/* Process all queued messages since the last paint.  This allows the window to
 	 * come back if it loses focus during load. */
 	MSG msg;
@@ -233,6 +237,7 @@ void LoadingWindow_Win32::Paint()
 		GetMessage(&msg, hwnd, 0, 0 );
 		DispatchMessage( &msg );
 	}
+	InternalPaint();
 }
 
 void LoadingWindow_Win32::SetText(const RString &sText)

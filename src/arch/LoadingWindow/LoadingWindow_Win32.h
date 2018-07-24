@@ -14,6 +14,7 @@ public:
 	~LoadingWindow_Win32();
 
 	void Paint();
+	void InternalPaint();
 	void SetText( const RString &sText );
 	void SetTextInternal();
 	void SetIcon( const RageSurface *pIcon );

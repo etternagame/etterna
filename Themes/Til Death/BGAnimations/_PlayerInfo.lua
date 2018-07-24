@@ -120,7 +120,7 @@ t[#t+1] = Def.ActorFrame{
 			ms.ok("Login failed!")
 		end,
 		LoginMessageCommand=function(self)
-			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = user
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = DLMAN:GetUsername()
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = DLMAN:GetToken()
 			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
 			playerConfig:save(pn_to_profile_slot(PLAYER_1))

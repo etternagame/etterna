@@ -816,14 +816,12 @@ void DownloadManager::RefreshUserRank()
 		return;
 	auto done = [](HTTPRequest& req, CURLMsg *) {
 		json j;
-		bool parsed = true;
 		try {
 			j = json::parse(req.result);
-		}
-		catch (exception e) {
-			parsed = false;
-		}
-		try {
+			try { 
+				if (j["errors"]["status"] == 404) 
+					return; 
+			} catch (exception e) {}
 			auto skillsets = j.find("data")->find("attributes");
 			FOREACH_ENUM(Skillset, ss)
 				(DLMAN->sessionRanks)[ss] = skillsets->value(SkillsetToString(ss).c_str(), 0);
@@ -1160,6 +1158,11 @@ void DownloadManager::RefreshTop25(Skillset ss)
 	auto done = [ss](HTTPRequest& req, CURLMsg *) {
 		try {
 			auto j = json::parse(req.result);
+			try {
+				if (j["errors"]["status"] == 404)
+					return;
+			}
+			catch (exception e) { }
 			auto scores = j.find("data");
 			vector<OnlineTopScore> & vec = DLMAN->topScores[ss];
 			for (auto scoreJ : (*scores)) {
@@ -1265,6 +1268,8 @@ void DownloadManager::StartSession(string user, string pass, function<void(bool 
 		}
 		try {
 			DLMAN->authToken = j["data"]["attributes"].value("accessToken", "");
+			DLMAN->sessionUser = user;
+			DLMAN->sessionPass = pass;
 		}
 		catch (exception e) {
 			DLMAN->authToken = DLMAN->sessionUser = DLMAN->sessionPass = "";
@@ -1510,10 +1515,10 @@ public:
 	{
 		string user = SArg(1);
 		string token = SArg(2);
+		DLMAN->EndSessionIfExists();
 		DLMAN->authToken = token;
 		DLMAN->sessionUser = user;
 		DLMAN->sessionPass = "";
-		DLMAN->EndSessionIfExists();
 		DLMAN->OnLogin();
 		return 0;
 	}

@@ -694,58 +694,6 @@ local profilebuttons = Def.ActorFrame{
 				SCOREMAN:ValidateAllScores()
 			end
 		end
-	},
-	LoadFont("Common Large") .. {
-		LogOutMessageCommand=function(self)
-			self:settext("Login")
-		end,
-		LoginMessageCommand=function(self)
-			self:settext("Logout")
-		end,
-		InitCommand=function(self)
-			if DLMAN:IsLoggedIn() then
-				self:settext("Logout")
-			else
-				self:settext("Login")
-			end
-			self:x(capWideScale(280,300)):diffuse(getMainColor('positive')):zoom(0.3)
-		end,
-	},
-	Def.Quad{
-		InitCommand=function(self)
-			self:x(300):zoomto(110,20):diffusealpha(buttondiffuse)
-		end,
-		LoginFailedMessageCommand=function(self)
-			ms.ok("Login failed!")
-		end,
-		LoginMessageCommand=function(self)
-			ms.ok("Succesfully logged in")
-			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = user
-			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = DLMAN:GetToken()
-			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-			playerConfig:save(pn_to_profile_slot(PLAYER_1))
-		end,
-		MouseLeftClickMessageCommand=function(self)
-			if ButtonActive(self) and rankingSkillset == 1 and not SCREENMAN:get_input_redirected(PLAYER_1) then 
-				if not DLMAN:IsLoggedIn() then
-					username = function(answer) 
-							user=answer
-						end
-					password = function(answer) 
-							pass=answer
-							DLMAN:Login(user, pass) 
-						end
-						easyInputStringWithFunction("Password:", 50, true, password)
-						easyInputStringWithFunction("Username:",50, false, username)
-				else
-					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = ""
-					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = ""
-					playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-					playerConfig:save(pn_to_profile_slot(PLAYER_1))
-					DLMAN:Logout()
-				end
-			end
-		end
 	}
 	
 }
