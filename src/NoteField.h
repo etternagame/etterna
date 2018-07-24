@@ -1,4 +1,4 @@
-﻿#ifndef NOTE_FIELD_H
+#ifndef NOTE_FIELD_H
 #define NOTE_FIELD_H
 
 #include "ActorFrame.h"

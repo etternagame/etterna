@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "GameState.h"
 #include "NoteSkinManager.h"
 #include "PlayerState.h"
@@ -13,7 +13,7 @@ ReceptorArrow::ReceptorArrow()
 	m_bWasReverse = false;
 }
 
-void ReceptorArrow::Load( const PlayerState* pPlayerState, int iColNo )
+void ReceptorArrow::Load( const PlayerState* pPlayerState, int iColNo, RString Type )
 {
 	m_pPlayerState = pPlayerState;
 	m_iColNo = iColNo;
@@ -29,7 +29,7 @@ void ReceptorArrow::Load( const PlayerState* pPlayerState, int iColNo )
 	NOTESKIN->SetGameController( GameI[0].controller );
 
 	RString sButton = GAMESTATE->GetCurrentStyle(pn)->ColToButtonName( iColNo );
-	m_pReceptor.Load( NOTESKIN->LoadActor(sButton, "Receptor") );
+	m_pReceptor.Load( NOTESKIN->LoadActor(sButton,Type) );
 	this->AddChild( m_pReceptor );
 
 	bool bReverse = m_pPlayerState->m_PlayerOptions.GetCurrent().GetReversePercentForColumn(m_iColNo) > 0.5f;

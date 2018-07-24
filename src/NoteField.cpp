@@ -950,6 +950,7 @@ void NoteField::DrawPrimitives()
 	}
 
 	cur->m_GhostArrowRow.Draw();
+	cur->m_ReceptorArrowRow.DrawOverlay();
 }
 
 void NoteField::DrawBoardPrimitive()
