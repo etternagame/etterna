@@ -92,7 +92,7 @@ size_t ReadThisReadCallback(void *dest, size_t size, size_t nmemb, void *userp)
 
 int ReadThisSeekCallback(void *arg, curl_off_t offset, int origin)
 {
-	return static_cast<int>(static_cast<ReadThis*>(arg)->file.Seek(offset, origin));
+	return static_cast<ReadThis*>(arg)->file.Seek(static_cast<int>(offset), origin);
 }
 
 bool DownloadManager::InstallSmzip(const string &sZipFile)
