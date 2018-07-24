@@ -599,9 +599,9 @@ FunctionEnd
   
   ; Modify the settings for MUI_PAGE_FINISH here.
   !define MUI_FINISHPAGE_NOAUTOCLOSE
-  !define MUI_FINISHPAGE_RUN "$INSTDIR\Program\StepMania.exe"
+  !define MUI_FINISHPAGE_RUN "$INSTDIR\Program\Etterna.exe"
   !define MUI_FINISHPAGE_RUN_NOTCHECKED
-  !define MUI_FINISHPAGE_RUN_TEXT "Launch StepMania"
+  !define MUI_FINISHPAGE_RUN_TEXT "Launch Etterna"
   
   !insertmacro MUI_PAGE_FINISH
 
@@ -696,7 +696,7 @@ Section "-Core installation"
   Push "@CPACK_PACKAGE_VERSION@"
   Call ConditionalAddToRegisty
   Push "Comments"
-  Push "StepMania @CPACK_PACKAGE_VERSION_MAJOR@ is a rhythm game simulator."
+  Push "Etterna @CPACK_PACKAGE_VERSION_MAJOR@ is a rhythm game."
   Call ConditionalAddToRegisty
   Push "Publisher"
   Push "@CPACK_PACKAGE_VENDOR@"

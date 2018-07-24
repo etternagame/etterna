@@ -1,10 +1,10 @@
-StepMania 5 Command Line Arguments
+Etterna Command Line Arguments
 ================================================================================
 Pass all arguments with --. For example, version would be entered as --version.
-stepmania --version
+etterna --version
 
-Passing package files to StepMania on the command line will install them:
-stepmania moonlight.smzip
+Passing package files to Etterna on the command line will install them:
+etterna moonlight.smzip
 ================================================================================
 [GameState]
 * player
@@ -26,7 +26,7 @@ Connects to a server for online play.
 usage: --Type=arcade
 Reads preferences from [Preferences-{Type}], usually from the metrics.
 --------------------------------------------------------------------------------
-[StepMania]
+[Etterna]
 * ExportNsisStrings
 usage: --ExportNsisStrings
 Exports strings for the installer.

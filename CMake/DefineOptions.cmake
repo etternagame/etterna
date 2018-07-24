@@ -1,10 +1,10 @@
 # Prep options that are needed for each platform.
 
-# This option allows for networking support with StepMania.
+# This option allows for networking support with Etterna.
 option(WITH_NETWORKING "Build with networking support." ON)
 
 # This option quiets warnings that are a part of external projects.
-option(WITH_EXTERNAL_WARNINGS "Build with warnings for all components, not just StepMania." OFF)
+option(WITH_EXTERNAL_WARNINGS "Build with warnings for all components, not just Etterna." OFF)
 
 # This option is not yet working, but will likely default to ON in the future.
 option(WITH_LTO "Build with Link Time Optimization (LTO)/Whole Program Optimization." OFF)
