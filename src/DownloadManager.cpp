@@ -1510,10 +1510,10 @@ public:
 	{
 		string user = SArg(1);
 		string token = SArg(2);
+		DLMAN->EndSessionIfExists();
 		DLMAN->authToken = token;
 		DLMAN->sessionUser = user;
 		DLMAN->sessionPass = "";
-		DLMAN->EndSessionIfExists();
 		DLMAN->OnLogin();
 		return 0;
 	}
