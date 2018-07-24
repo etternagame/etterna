@@ -111,9 +111,6 @@ void ScreenInstallOverlay::Init()
 	m_textStatus.LoadFromFont(THEME->GetPathF("ScreenInstallOverlay", "status"));
 	m_textStatus.SetName("Status");
 	LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND(m_textStatus);
-
-
-	ActorUtil::LoadAllCommandsAndSetXY(m_textStatus, "ScreenInstallOverlay");
 	this->AddChild(&m_textStatus);
 }
 

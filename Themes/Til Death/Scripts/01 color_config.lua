@@ -148,7 +148,7 @@ function offsetToJudgeColor(offset,scale)
 		return color(colorConfig:get_data().judgment["TapNoteScore_W3"])
 	elseif offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW4") then
 		return color(colorConfig:get_data().judgment["TapNoteScore_W4"])
-	elseif offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW5") then
+	elseif offset <= math.max(scale*PREFSMAN:GetPreference("TimingWindowSecondsW5"), 0.180) then
 		return color(colorConfig:get_data().judgment["TapNoteScore_W5"])
 	else
 		return color(colorConfig:get_data().judgment["TapNoteScore_Miss"])
@@ -169,7 +169,7 @@ function offsetToJudgeColorAlpha(offset,scale)
 		return color(colorConfig:get_data().judgment["TapNoteScore_W3"].."48")
 	elseif offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW4") then
 		return color(colorConfig:get_data().judgment["TapNoteScore_W4"].."48")
-	elseif offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW5") then
+	elseif offset <= math.max(scale*PREFSMAN:GetPreference("TimingWindowSecondsW5"), 0.180) then
 		return color(colorConfig:get_data().judgment["TapNoteScore_W5"].."48")
 	else
 		return color(colorConfig:get_data().judgment["TapNoteScore_Miss"].."48")
@@ -187,7 +187,7 @@ function customOffsetToJudgeColor(offset, windows)
 		return color(colorConfig:get_data().judgment["TapNoteScore_W3"].."48")
 	elseif offset <= windows.good then
 		return color(colorConfig:get_data().judgment["TapNoteScore_W4"].."48")
-	elseif offset <= windows.boo then
+	elseif offset <= math.max(windows.boo, 0.180) then
 		return color(colorConfig:get_data().judgment["TapNoteScore_W5"].."48")
 	else
 		return color(colorConfig:get_data().judgment["TapNoteScore_Miss"].."48")
@@ -221,4 +221,27 @@ function byMusicLength(x)
 		return HSV(math.max(95 - (x/900)*150, -50), 0.9, 0.9)
 	end
 	return HSV(0, 0.9, 0.9)
+end
+
+function byFileSize(x)
+	if x then
+		x = math.min(x,600)
+		return HSV(math.max(95 - (x/1025)*150, -50), 0.9, 0.9)
+	end
+	return HSV(0, 0.9, 0.9)
+end
+
+-- yes i know i shouldnt hardcode this -mina
+function bySkillRange(x)
+	if x <= 10 then
+		return color("#66ccff")
+	elseif x <= 15 then
+		return color("#099948")
+	elseif x <= 21 then
+		return color("#ddaa00")
+	elseif x <= 25 then
+		return color("#ff6666")
+	else
+		return color("#c97bff")
+	end
 end

@@ -85,7 +85,7 @@ core
 # StepMania Specific
 Cache/
 Save/**
-!Save/LocalProfiles/00000000
+Songs/
 Logs/
 src/*.so
 crashinfo.txt

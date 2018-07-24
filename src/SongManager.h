@@ -94,8 +94,7 @@ public:
 
 	void InitAll( LoadingWindow *ld );	// songs, groups - everything.
 	int DifferentialReload();
-	int DifferentialReload(LoadingWindow * ld);
-	int DifferentialReloadDir(string dir, LoadingWindow *ld);
+	int DifferentialReloadDir(string dir);
 	void PreloadSongImages();
 
 	bool IsGroupNeverCached(const RString& group) const;

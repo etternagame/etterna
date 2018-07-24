@@ -26,7 +26,7 @@ private:
 	Quad m_quadSkipBackground;
 	BitmapText m_textSkips[NUM_SKIPS_TO_SHOW];
 	std::chrono::steady_clock::time_point g_AccurateSkipTimer = std::chrono::steady_clock::now();
-	int m_LastSkip;
+	int m_LastSkip = 0;
 
 	ThemeMetric<bool>  SHOW_SKIPS;
 	ThemeMetric<float> SKIP_X;

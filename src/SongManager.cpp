@@ -33,6 +33,7 @@
 #include "ThemeManager.h"
 #include "TitleSubstitution.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
+#include "ScreenManager.h"
 
 SongManager*	SONGMAN = NULL;	// global and accessible from anywhere in our program
 
@@ -99,29 +100,23 @@ static LocalizedString SANITY_CHECKING_GROUPS("SongManager", "Sanity checking gr
 
 // See InitSongsFromDisk for any comment clarification -mina
 int SongManager::DifferentialReload() {
+	MESSAGEMAN->Broadcast("DFRStarted");
 	FILEMAN->FlushDirCache(SpecialFiles::SONGS_DIR);
 	FILEMAN->FlushDirCache(ADDITIONAL_SONGS_DIR);
 	FILEMAN->FlushDirCache(EDIT_SUBDIR);
 	int newsongs = 0;
-	newsongs += DifferentialReloadDir(SpecialFiles::SONGS_DIR, NULL);
-	newsongs += DifferentialReloadDir(ADDITIONAL_SONGS_DIR, NULL);
+	newsongs += DifferentialReloadDir(SpecialFiles::SONGS_DIR);
+	newsongs += DifferentialReloadDir(ADDITIONAL_SONGS_DIR);
 	LoadEnabledSongsFromPref();
-	return newsongs;
-}
 
-int SongManager::DifferentialReload(LoadingWindow *ld) {
-	FILEMAN->FlushDirCache(SpecialFiles::SONGS_DIR);
-	FILEMAN->FlushDirCache(ADDITIONAL_SONGS_DIR);
-	FILEMAN->FlushDirCache(EDIT_SUBDIR);
-	int newsongs = 0;
-	newsongs += DifferentialReloadDir(SpecialFiles::SONGS_DIR, ld);
-	newsongs += DifferentialReloadDir(ADDITIONAL_SONGS_DIR, ld);
-	LoadEnabledSongsFromPref();
+	Message msg("DFRFinished");
+	msg.SetParam("newsongs", newsongs);
+	MESSAGEMAN->Broadcast(msg);
 	return newsongs;
 }
 
 // See LoadStepManiaSongDir for any comment clarification -mina
-int SongManager::DifferentialReloadDir(string dir, LoadingWindow *ld) {
+int SongManager::DifferentialReloadDir(string dir) {
 	if (dir.substr(dir.size()) != "/")
 		dir += "/";
 
@@ -184,8 +179,10 @@ int SongManager::DifferentialReloadDir(string dir, LoadingWindow *ld) {
 
 			index_entry.emplace_back(pNewSong);
 			
-			if(ld)
-				ld->SetText("Loading:\n" + sGroupDirName + "\n" + pNewSong->GetMainTitle());
+			Message msg("DFRUpdate");
+			msg.SetParam("txt","Loading:\n" + sGroupDirName + "\n" + pNewSong->GetMainTitle());
+			MESSAGEMAN->Broadcast(msg);
+			SCREENMAN->Draw();	// not sure if this needs to be handled better (more safely?) or if its fine-mina
 
 			loaded++;
 			songIndex++;
@@ -336,10 +333,12 @@ void Playlist::LoadFromNode(const XNode* node) {
 	node->GetAttrValue("Name", name);
 	if (!node->ChildrenEmpty()) {
 		const XNode* cl = node->GetChild("Chartlist");
-		FOREACH_CONST_Child(cl, chart) {
-			Chart ch;
-			ch.LoadFromNode(chart);
-			chartlist.emplace_back(ch);
+		if (cl) {
+			FOREACH_CONST_Child(cl, chart) {
+				Chart ch;
+				ch.LoadFromNode(chart);
+				chartlist.emplace_back(ch);
+			}
 		}
 
 		const XNode* cr = node->GetChild("CourseRuns");

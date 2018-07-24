@@ -3,6 +3,7 @@
 #include "Foreach.h"
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
+#include "picosha2.h"
 #include "PlayerNumber.h"
 #include "ProfileManager.h"
 #include "RadarValues.h"
@@ -290,10 +291,9 @@ XNode *HighScoreImpl::CreateNode() const
 	pNode->AppendChild("NoChordCohesion", bNoChordCohesion);
 	pNode->AppendChild("EtternaValid", bEtternaValid);
 	if (!uploaded.empty()) {
-		XNode *pServerNode = new XNode("Servers");
+		XNode *pServerNode = pNode->AppendChild("Servers");
 		for (auto server : uploaded)
 			pServerNode->AppendChild("server", server);
-		pNode->AppendChild(pServerNode);
 	}
 	if (vOffsetVector.size() > 1) {
 		pNode->AppendChild("Offsets", OffsetsToString(vOffsetVector));
@@ -359,10 +359,9 @@ XNode *HighScoreImpl::CreateEttNode() const {
 	pNode->AppendChild("DateTime", dateTime.GetString());
 	pNode->AppendChild("TopScore", TopScore);
 	if (!uploaded.empty()) {
-		XNode *pServerNode = new XNode("Servers");
+		XNode *pServerNode = pNode->AppendChild("Servers");
 		for (auto server : uploaded)
 			pServerNode->AppendChild("server", server);
-		pNode->AppendChild(pServerNode);
 	}
 
 	XNode* pTapNoteScores = pNode->AppendChild("TapNoteScores");
@@ -846,7 +845,7 @@ bool HighScore::IsEmpty() const
 }
 
 string HighScore::GenerateValidationKeys() {
-	string key = "";
+	std::string key = "";
 
 	FOREACH_ENUM(TapNoteScore, tns) {
 
@@ -878,7 +877,11 @@ string HighScore::GenerateValidationKeys() {
 	key.append(to_string(static_cast<int>(GetEtternaValid())));
 	key.append(GradeToString(GetWifeGrade()));
 
-	SetValidationKey(ValidationKey_Brittle, BinaryToHex(CryptManager::GetSHA1ForString(key)));
+	std::string hash_hex_str;
+
+	picosha2::hash256_hex_string(key, hash_hex_str);
+
+	SetValidationKey(ValidationKey_Brittle, hash_hex_str);
 
 	// just testing stuff
 	//hs.SetValidationKey(ValidationKey_Weak, GenerateWeakValidationKey(m_iTapNoteScores, m_iHoldNoteScores));

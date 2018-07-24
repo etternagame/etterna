@@ -77,11 +77,7 @@ void ScreenReloadSongs::Update( float fDeltaTime )
 		return;
 
 	ASSERT( !IsFirstUpdate() );
-
-	int newsongs = SONGMAN->DifferentialReload(m_pLoadingWindow);
-	SCREENMAN->SystemMessage(ssprintf("Differential reload of %i songs", newsongs));
-	MESSAGEMAN->Broadcast("DifferentialReload");
-	SCREENMAN->PostMessageToTopScreen( SM_GoToPrevScreen, 0 );
+	SCREENMAN->PostMessageToTopScreen(SM_GoToNextScreen, 0);
 }
 
 /*

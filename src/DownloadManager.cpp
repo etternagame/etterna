@@ -19,6 +19,7 @@
 #include "curl/curl.h"
 #include "Foreach.h"
 #include "Song.h"
+#include "RageString.h"
 #include <nlohmann/json.hpp>
 #include <unordered_set>
 #include <FilterManager.h>
@@ -35,6 +36,7 @@ static Preference<RString> serverURL("UploadServerAPIURL", "https://api.etternao
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 static Preference<unsigned int> downloadPacksToAdditionalSongs("downloadPacksToAdditionalSongs", 0);
 static const string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
+static const string CLIENT_DATA_KEY = "6EE45A0D6997622C67A6064AFAE8D93A8CAEE575D17D5E16DA3EDBFC8D7D2477";
 static const string DL_DIR = SpecialFiles::CACHE_DIR + "Downloads/";
 
 size_t write_memory_buffer(void *contents, size_t size, size_t nmemb, void *userp)
@@ -357,7 +359,6 @@ void Download::Update(float fDeltaSeconds)
 }
 Download* DownloadManager::DownloadAndInstallPack(DownloadablePack* pack)
 {
-	auto songs = SONGMAN->GetAllSongs();
 	vector<RString> packs;
 	SONGMAN->GetSongGroupNames(packs);
 	for (auto packName : packs) {
@@ -433,14 +434,15 @@ void DownloadManager::UpdateHTTP(float fDeltaSeconds)
 		/* Find out which handle this message is about */
 		for (size_t i = 0; i < HTTPRequests.size();++i) {
 			if (msg->easy_handle == HTTPRequests[i]->handle) {
-				if (msg->msg == CURLMSG_DONE) {
+				if (msg->data.result == CURLE_UNSUPPORTED_PROTOCOL) {
+					HTTPRequests[i]->Failed(*(HTTPRequests[i]), msg);
+					LOG->Trace("CURL UNSUPPORTED PROTOCOL (Probably https)");
+				}
+				else if (msg->msg == CURLMSG_DONE) {
 					HTTPRequests[i]->Done(*(HTTPRequests[i]), msg);
 				}
-				else {
+				else
 					HTTPRequests[i]->Failed(*(HTTPRequests[i]), msg);
-					if (msg->msg == CURLE_UNSUPPORTED_PROTOCOL)
-						LOG->Trace("CURL UNSUPPORTED PROTOCOL (Probably https)");
-				}
 				if (HTTPRequests[i]->handle != nullptr)
 					curl_easy_cleanup(HTTPRequests[i]->handle);
 				HTTPRequests[i]->handle = nullptr;
@@ -473,7 +475,7 @@ void DownloadManager::UpdatePacks(float fDeltaSeconds)
 			if (screen && screen->GetName() == "ScreenNetSelectMusic")
 				static_cast<ScreenNetSelectMusic*>(screen)->DifferentialReload();
 			else
-				SCREENMAN->SetNewScreen("ScreenReloadSongs");
+				SONGMAN->DifferentialReload();
 	}
 	if (downloadingPacks < maxPacksToDownloadAtOnce && !DownloadQueue.empty() && timeSinceLastDownload > DownloadCooldownTime) {
 		auto it = DownloadQueue.begin();
@@ -567,7 +569,7 @@ void DownloadManager::UpdatePacks(float fDeltaSeconds)
 			if (screen && screen->GetName() == "ScreenNetSelectMusic")
 				static_cast<ScreenNetSelectMusic*>(screen)->DifferentialReload();
 			else
-				SCREENMAN->SetNewScreen("ScreenReloadSongs");
+				SONGMAN->DifferentialReload();
 	}
 	return;
 }
@@ -681,13 +683,17 @@ void DownloadManager::UploadScore(HighScore* hs)
 			auto errors = j["errors"];
 			bool delay = false;
 			for (auto error : errors) {
-				if (error["status"] == 22) {
+				int status = error["status"];
+				if (status == 22) {
 					delay = true;
 					DLMAN->StartSession(DLMAN->sessionUser, DLMAN->sessionPass, [hs](bool logged) {
 						if (logged) {
 							DLMAN->UploadScore(hs);
 						}
 					});
+				}
+				else if (status == 404 || status == 405 || status == 406) {
+					hs->AddUploadedServer(serverURL.Get());
 				}
 			}
 			if (!delay && j["data"]["type"] == "ssrResults") {
@@ -744,13 +750,17 @@ void DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 			try {
 				auto errors = j["errors"];
 				for (auto error : errors) {
-					if (error["status"] == 22) {
+					int status = error["status"];
+					if (status == 22) {
 						delay = true;
 						DLMAN->StartSession(DLMAN->sessionUser, DLMAN->sessionPass, [hs](bool logged) {
 							if (logged) {
 								DLMAN->UploadScoreWithReplayData(hs);
 							}
 						});
+					}
+					else if (status == 404 || status == 405 || status == 406) {
+						hs->AddUploadedServer(serverURL.Get());
 					}
 				}
 			}
@@ -906,17 +916,17 @@ void DownloadManager::SendRequestToURL(string url, vector<pair<string, string>> 
 	return;
 }
 
-float mythicalmathymaths(string chartkey) {
-	auto &scoobydoop = DLMAN->chartLeaderboards[chartkey];
+float mythicalmathymathsProbablyUnderratedness(string chartkey) {
+	auto &onlineScores = DLMAN->chartLeaderboards[chartkey];
 
 	float dsum = 0.f;
 	int num = 4;
-	for (auto &s : scoobydoop) {
-		float goobles = s.playerRating - 1.f;
+	for (auto &s : onlineScores) {
+		float adjRating = s.playerRating - 1.f;
 		if (s.playerRating > 1.f && s.SSRs[Skill_Overall] > 1.f && abs(s.playerRating - s.SSRs[Skill_Overall]) < 7.5f) {
 			if (s.playerRating > s.SSRs[Skill_Overall]) {
-				float mcsproot = goobles - s.SSRs[Skill_Overall];
-				dsum += mcsproot;
+				float diff = adjRating - s.SSRs[Skill_Overall];
+				dsum += diff;
 			}
 			else {
 				float mcdoot = s.SSRs[Skill_Overall] + 1.f - s.playerRating;
@@ -928,15 +938,16 @@ float mythicalmathymaths(string chartkey) {
 	return dsum/num;
 }
 
-float ixmixblixb(string chartkey) {
-	auto &scoobydoop = DLMAN->chartLeaderboards[chartkey];
-	vector<float> valuesbaby;
+float overratedness(string chartkey) {
+	auto &onlineScores = DLMAN->chartLeaderboards[chartkey];
+	vector<float> values;
 	float offset = 5.f;
 	float dsum = 0.f;
-	int num = 0;
-	float mcdoot = 1.f;
+	int num = onlineScores.size();
+	if (num == 0)
+		return 0.0f;
 	
-	for (auto &s : scoobydoop) {
+	for (auto &s : onlineScores) {
 		if (s.playerRating > 1.f && s.SSRs[Skill_Overall] > 1.f) {
 			float adjrating = s.playerRating * 1.026f;
 			float value = static_cast<float>((2.0 / erfc(0.1 * (s.SSRs[Skill_Overall] - adjrating))));
@@ -944,9 +955,8 @@ float ixmixblixb(string chartkey) {
 				value = 100.f;
 			if (value < 0)
 				value = 0.f;
-			valuesbaby.emplace_back(value);
+			values.emplace_back(value);
 			dsum += value;
-			++num;
 		}
 	}
 	
@@ -958,10 +968,11 @@ float ixmixblixb(string chartkey) {
 	overratedness -= 1.5f;
 
 	float multiplier = 1.f - overratedness;
-	if (multiplier - mcdoot < -0.2f)
-		multiplier = mcdoot - 0.2f;
+	float mcdootMin = 1.f;
+	if (multiplier  < mcdootMin-0.2f)
+		multiplier = mcdootMin - 0.2f;
 
-	float nerfE = (4.f*mcdoot + multiplier) / 5.f;
+	float nerfE = (4.f*mcdootMin + multiplier) / 5.f;
 	nerfE = min(1.f, nerfE);
 	return overratedness;
 }
@@ -1050,11 +1061,11 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 			//json failed
 		}
 		
-		float zoop = mythicalmathymaths(chartkey);
-		//float coop = ixmixblixb(chartkey);
-		msg.SetParam("mmm", zoop);
+		float ProbablyUnderratedness = mythicalmathymathsProbablyUnderratedness(chartkey);
+		//float coop = overratedness(chartkey);
+		// Renaming these 2 requires renaming them in lua wherever theyre used
+		msg.SetParam("mmm", ProbablyUnderratedness);
 		msg.SetParam("ixmixblixb", 2);
-		userswithscores.clear();	// should be ok to free the mem in this way? -mina
 		MESSAGEMAN->Broadcast(msg);	// see start of function
 	};
 	SendRequest("/charts/"+chartkey+"/leaderboards", vector<pair<string, string>>(), done, true);
@@ -1218,6 +1229,7 @@ void DownloadManager::StartSession(string user, string pass, function<void(bool 
 	curl_httppost *lastPtr = nullptr;
 	CURLFormPostField(curlHandle, form, lastPtr, "username", user.c_str());
 	CURLFormPostField(curlHandle, form, lastPtr, "password", pass.c_str());
+	CURLFormPostField(curlHandle, form, lastPtr, "clientData", CLIENT_DATA_KEY.c_str());
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
 
 	auto done = [user, pass, callback](HTTPRequest& req, CURLMsg *) {
@@ -1319,9 +1331,12 @@ void DownloadManager::RefreshPackList(string url)
 				packs = *(j.find("data"));
 			for (auto packJ : packs) {
 				try {
+					DownloadablePack tmp;
+					if (packJ.find("id") != packJ.end())
+						tmp.id = stoi(packJ.value("id", ""));
 					auto attr = packJ.find("attributes");
 					auto pack = attr != packJ.end() ? *attr : packJ;
-					DownloadablePack tmp;
+					
 					if (pack.find("pack") != pack.end())
 						tmp.name = pack.value("pack", "");
 					else if (pack.find("packname") != pack.end())
@@ -1351,7 +1366,6 @@ void DownloadManager::RefreshPackList(string url)
 						tmp.size = pack.value("size", 0);
 					else
 						tmp.size = 0;
-					tmp.id = ++(DLMAN->lastid);
 					packlist.push_back(tmp);
 				} catch (exception e) {}
 			}
@@ -1367,7 +1381,8 @@ Download::Download(string url, function<void(Download*)> done)
 	m_Url = url;
 	handle = initBasicCURLHandle();
 	m_TempFileName = MakeTempFileName(url);
-	p_RFWrapper.file.Open(m_TempFileName, 2);
+	auto opened = p_RFWrapper.file.Open(m_TempFileName, 2);
+	ASSERT(opened);
 	DLMAN->EncodeSpaces(m_Url);
 
 	curl_easy_setopt(handle, CURLOPT_WRITEDATA, &p_RFWrapper);
@@ -1421,15 +1436,8 @@ bool findStringIC(const std::string & strHaystack, const std::string & strNeedle
 class LunaDownloadManager : public Luna<DownloadManager>
 {
 public:
-	static int GetPackList(T* p, lua_State* L)
-	{
-		vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
-		lua_createtable(L, packs.size(), 0);
-		for (unsigned i = 0; i < packs.size(); ++i) {
-			packs[i].PushSelf(L);
-			lua_rawseti(L, -2, i + 1);
-		}
-
+	static int GetPacklist(T* p, lua_State* L) {
+		DLMAN->pl.PushSelf(L);
 		return 1;
 	}
 	static int GetDownloadingPacks(T* p, lua_State* L)
@@ -1607,36 +1615,9 @@ public:
 		}
 		return 1;
 	}
-	static int GetFilteredAndSearchedPackList(T* p, lua_State* L)
-	{
-		if (lua_gettop(L) < 5) {
-			return luaL_error(L, "GetFilteredAndSearchedPackList expects exactly 5 arguments(packname, lower diff, upper diff, lower size, upper size)");
-		}
-		string name = SArg(1);
-		double avgLower = max(luaL_checknumber(L, 2), 0.0);
-		double avgUpper = max(luaL_checknumber(L, 3), 0.0);
-		size_t sizeLower = static_cast<size_t>(luaL_checknumber(L, 4));
-		size_t sizeUpper = static_cast<size_t>(luaL_checknumber(L, 5));
-		vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
-		vector<DownloadablePack*> retPacklist;
-		for (unsigned i = 0; i < packs.size(); ++i) {
-			if(packs[i].avgDifficulty >= avgLower &&
-				findStringIC(packs[i].name, name) &&
-				(avgUpper <= 0 || packs[i].avgDifficulty < avgUpper) &&
-				packs[i].size >= sizeLower &&
-				(sizeUpper <= 0 || packs[i].size < sizeUpper))
-				retPacklist.push_back(&(packs[i]));
-		}
-		lua_createtable(L, retPacklist.size(), 0);
-		for (unsigned i = 0; i < retPacklist.size(); ++i) {
-			retPacklist[i]->PushSelf(L);
-			lua_rawseti(L, -2, i + 1);
-		}
-		return 1;
-	}
 	static int GetCoreBundle(T* p, lua_State* L)
 	{
-		// this should probably return nil but only if we make it its own lua thing first -mina
+		// don't remove this yet or at all idk yet -mina
 		auto bundle = DLMAN->GetCoreBundle(SArg(1));
 		lua_createtable(L, bundle.size(), 0);
 		for (size_t i = 0; i < bundle.size(); ++i) {
@@ -1669,15 +1650,13 @@ public:
 		DLMAN->DownloadCoreBundle(SArg(1));
 		return 1;
 	}
-	
 	LunaDownloadManager()
 	{
 		ADD_METHOD(DownloadCoreBundle);
 		ADD_METHOD(GetCoreBundle);
-		ADD_METHOD(GetPackList);
+		ADD_METHOD(GetPacklist);
 		ADD_METHOD(GetDownloadingPacks);
 		ADD_METHOD(GetDownloads);
-		ADD_METHOD(GetFilteredAndSearchedPackList);
 		ADD_METHOD(IsLoggedIn);
 		ADD_METHOD(Login);
 		ADD_METHOD(GetUsername);
@@ -1692,6 +1671,130 @@ public:
 	}
 };
 LUA_REGISTER_CLASS(DownloadManager) 
+
+class LunaPacklist: public Luna<Packlist>
+{
+public:
+	static int GetPackTable(T* p, lua_State* L) {
+		LuaHelpers::CreateTableFromArray(p->packs, L);
+		return 1;
+	}
+	static int SetFromCoreBundle(T* p, lua_State* L) {
+		p->packs.clear();
+		p->packs = DLMAN->GetCoreBundle(SArg(1));
+		MESSAGEMAN->Broadcast("RefreshPacklist");
+		return 1;
+	}
+	static int FilterAndSearch(T* p, lua_State* L) {
+		if (lua_gettop(L) < 5) {
+			return luaL_error(L, "GetFilteredAndSearchedPackList expects exactly 5 arguments(packname, lower diff, upper diff, lower size, upper size)");
+		}
+		string name = SArg(1);
+		double avgLower = max(luaL_checknumber(L, 2), 0.0);
+		double avgUpper = max(luaL_checknumber(L, 3), 0.0);
+		size_t sizeLower = static_cast<size_t>(luaL_checknumber(L, 4));
+		size_t sizeUpper = static_cast<size_t>(luaL_checknumber(L, 5));
+		
+		p->packs.clear();
+		auto &packs = DLMAN->downloadablePacks;
+		for (unsigned i = 0; i < packs.size(); ++i) {
+			if (packs[i].avgDifficulty >= avgLower &&
+				findStringIC(packs[i].name, name) &&
+				(avgUpper <= 0 || packs[i].avgDifficulty < avgUpper) &&
+				packs[i].size >= sizeLower &&
+				(sizeUpper <= 0 || packs[i].size < sizeUpper))
+				p->packs.push_back(&packs[i]);
+		}
+		MESSAGEMAN->Broadcast("RefreshPacklist");
+		return 1;
+	}
+	static int GetTotalSize(T* p, lua_State* L) {
+		size_t totalsize = 0;
+		for (auto n : p->packs)
+			totalsize += n->size;
+		lua_pushnumber(L, totalsize / 1024 / 1024);
+		return 1;
+	}
+	static int GetAvgDiff(T* p, lua_State* L) {
+		float avgpackdiff = 0.f;
+		for (auto n : p->packs)
+			avgpackdiff += n->avgDifficulty;
+		if (!p->packs.empty())
+			avgpackdiff /= p->packs.size();
+		lua_pushnumber(L, avgpackdiff);
+		return 1;
+	}
+	// i guess these should be internal functions and lua just calls them huh -mina
+	static int SortByName(T* p, lua_State* L) {
+		if(p->sortmode == 1)
+			if (p->asc) {
+				auto comp = [](DownloadablePack* a, DownloadablePack* b) { return Rage::make_lower(a->name) > Rage::make_lower(b->name); };	// custom operators?
+				sort(p->packs.begin(), p->packs.end(), comp);
+				p->asc = false;
+				return 1;
+			}
+		auto comp = [](DownloadablePack* a, DownloadablePack* b) { return Rage::make_lower(a->name) < Rage::make_lower(b->name); };
+		sort(p->packs.begin(), p->packs.end(), comp);
+		p->sortmode = 1;
+		p->asc = true;
+		MESSAGEMAN->Broadcast("RefreshPacklist");
+		return 1;
+	}
+	static int SortByDiff(T* p, lua_State* L) {
+		auto& packs = p->packs;
+		if (p->sortmode == 2)
+			if (p->asc) {
+				auto comp = [](DownloadablePack* a, DownloadablePack* b) { return (a->avgDifficulty < b->avgDifficulty); };
+				sort(packs.begin(), packs.end(), comp);
+				p->asc = false;
+				return 1;
+			}
+		auto comp = [](DownloadablePack* a, DownloadablePack* b) { return (a->avgDifficulty > b->avgDifficulty); };
+		sort(packs.begin(), packs.end(), comp);
+		p->sortmode = 2;
+		p->asc = true;
+		MESSAGEMAN->Broadcast("RefreshPacklist");
+		return 1;
+	}
+	static int SortBySize(T* p, lua_State* L) {
+		auto& packs = p->packs;
+		if (p->sortmode == 3)
+			if (p->asc) {
+				auto comp = [](DownloadablePack* a, DownloadablePack* b) { return (a->size < b->size); };
+				sort(packs.begin(), packs.end(), comp);
+				p->asc = false;
+				return 1;
+			}
+		auto comp = [](DownloadablePack* a, DownloadablePack* b) { return (a->size > b->size); };
+		sort(packs.begin(), packs.end(), comp);
+		p->sortmode = 3;
+		p->asc = true;
+		MESSAGEMAN->Broadcast("RefreshPacklist");
+		return 1;
+	}
+	static int SetFromAll(T* p, lua_State* L) {
+		auto& packs = DLMAN->downloadablePacks;
+		p->packs.clear();
+		for (auto& n : packs)
+			p->packs.emplace_back(&n);
+		MESSAGEMAN->Broadcast("RefreshPacklist");
+		return 1;
+	}
+	LunaPacklist()
+	{
+		ADD_METHOD(GetPackTable);
+		ADD_METHOD(GetTotalSize);
+		ADD_METHOD(GetAvgDiff);
+		ADD_METHOD(SetFromCoreBundle);
+		ADD_METHOD(SortByName);
+		ADD_METHOD(SortByDiff);
+		ADD_METHOD(SortBySize);
+		ADD_METHOD(FilterAndSearch);
+		ADD_METHOD(SetFromAll);
+	}
+};
+
+LUA_REGISTER_CLASS(Packlist)
 
 
 class LunaDownloadablePack : public Luna<DownloadablePack>
@@ -1745,6 +1848,10 @@ public:
 			lua_pushnil(L);
 		return 1;
 	}
+	static int GetID(T* p, lua_State* L) {
+		lua_pushnumber(L, p->id);
+		return 1;
+	}
 	LunaDownloadablePack()
 	{
 		ADD_METHOD(DownloadAndInstall);
@@ -1754,6 +1861,7 @@ public:
 		ADD_METHOD(GetName);
 		ADD_METHOD(GetSize);
 		ADD_METHOD(GetDownload);
+		ADD_METHOD(GetID);
 	}
 };
 

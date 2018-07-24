@@ -417,7 +417,8 @@ void ScreenSelectMusic::Update(float fDeltaTime)
 
 void ScreenSelectMusic::DifferentialReload()
 {
-	SCREENMAN->SetNewScreen("ScreenReloadSongs");
+	SONGMAN->DifferentialReload();
+	m_MusicWheel.ReloadSongList(false, "");
 }
 
 bool ScreenSelectMusic::Input(const InputEventPlus &input)

@@ -72,6 +72,7 @@ SongCacheIndex::SongCacheIndex()
 	if (!FILEMAN->IsADirectory(SpecialFiles::CACHE_DIR)) 
 		 FILEMAN->CreateDir(SpecialFiles::CACHE_DIR); 
 	DBEmpty = !OpenDB();
+	delay_save_cache = false;
 }
 
 int64_t SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
