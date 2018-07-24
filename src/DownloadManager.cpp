@@ -1079,9 +1079,9 @@ void DownloadManager::RefreshCoreBundles() {
 			if (bundles == j.end())
 				return;
 			auto& dlPacks = DLMAN->downloadablePacks;
-			for (auto bundle : (*bundles)) {
-				auto bundleName = bundle.value("id", "");
-				auto packs = bundle["attributes"]["packs"];
+			for (auto bundleData : (*bundles)) {
+				auto bundleName = bundleData.value("id", "");
+				auto packs = bundleData["attributes"]["packs"];
 				(DLMAN->bundles)[bundleName] = {};
 				auto& bundle = (DLMAN->bundles)[bundleName];
 				for (auto pack : packs) {
