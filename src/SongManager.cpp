@@ -214,7 +214,7 @@ void SongManager::InitSongsFromDisk( LoadingWindow *ld )
 	int cacheIndex = 0;
 	for (auto& pair : cache) {
 		cacheIndex++;
-		if(ld)
+		if(ld && cacheIndex%4 ==0)
 			ld->SetProgress(cacheIndex);
 		auto& pNewSong = pair.second;
 		const RString& dir = pNewSong->GetSongDir();
@@ -605,23 +605,23 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 	if( ld != nullptr )
 	{
 		ld->SetIndeterminate(false);
-		ld->SetTotalWork(songCount);
+		ld->SetTotalWork(arrayGroupDirs.size());
 	}
 	int groupIndex = 0;
 	int songIndex = 0;
 	FOREACH_CONST(RString, arrayGroupDirs, s) {
 		RString sGroupDirName = *s;
 		vector<RString> &arraySongDirs = arrayGroupSongDirs[groupIndex++];
+		if (ld) {
+			ld->SetProgress(groupIndex);
+			ld->SetText("Loading Songs From Disk\n" + sGroupDirName);
+		}
 		int loaded = 0;
 		SongPointerVector& index_entry = m_mapSongGroupIndex[sGroupDirName];
 		RString group_base_name = Basename(sGroupDirName);
 		for (size_t j = 0; j < arraySongDirs.size(); ++j) {
 			songIndex++;
 			RString sSongDirName = arraySongDirs[j];
-			if (ld) {
-				ld->SetProgress(songIndex);
-				ld->SetText("Loading Songs From Disk\n" + sSongDirName);
-			}
 			RString hur = sSongDirName + "/";
 			hur.MakeLower();
 			if (m_SongsByDir.count(hur))

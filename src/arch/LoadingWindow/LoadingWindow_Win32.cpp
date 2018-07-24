@@ -10,6 +10,7 @@
 #include <windows.h>
 #include <Commdlg.h>
 #include <tchar.h>
+#include "Dwmapi.h"
 #include "CommCtrl.h"
 #include "RageSurface_Load.h"
 #include "RageSurface.h"
@@ -20,6 +21,8 @@
 #include "LocalizedString.h"
 
 #include "RageSurfaceUtils_Zoom.h"
+#pragma comment(lib,"Dwmapi.lib") 
+
 static HBITMAP g_hBitmap = NULL;
 
 RString text[3];
@@ -37,9 +40,15 @@ static HBITMAP LoadWin32Surface( const RageSurface *pSplash, HWND hWnd )
 	RageSurface *s = CreateSurface( pSplash->w, pSplash->h, 32,
 		0xFF000000, 0x00FF0000, 0x0000FF00, 0 );
 	RageSurfaceUtils::Blit( pSplash, s , -1, -1 );
+	RECT wrect;
+	DwmGetWindowAttribute(hWnd, DWMWA_EXTENDED_FRAME_BOUNDS, &wrect, sizeof(wrect));
 	RECT rOld;
 	GetClientRect(hWnd, &rOld);
-	SetWindowPos(hWnd, 0, rOld.left, rOld.top, s->w, s->h, SWP_NOMOVE);
+	rOld.left = (rOld.right / 2) - (pSplash->w / 2);
+	rOld.top = (rOld.bottom / 2) - (pSplash->h / 2);
+	wrect.left += ((wrect.right - wrect.left) - s->w) / 2;
+	wrect.top += ((wrect.bottom - wrect.top) - s->h) / 2;
+	SetWindowPos(hWnd, 0, wrect.left, wrect.top, s->w, s->h, 0);
 
 	/* Resize the splash image to fit the dialog.  Stretch to fit horizontally,
 	 * maintaining aspect ratio. */
@@ -244,7 +253,6 @@ void LoadingWindow_Win32::SetText(const RString &sText)
 {
 	lastText = sText;
 	SetTextInternal();
-	Paint();
 }
 
 void LoadingWindow_Win32::SetTextInternal()
@@ -274,6 +282,7 @@ void LoadingWindow_Win32::SetTextInternal()
 			text[i] += progress;
 			break;
 		}
+	Paint();
 }
 
 void LoadingWindow_Win32::SetProgress(const int progress)
@@ -282,7 +291,6 @@ void LoadingWindow_Win32::SetProgress(const int progress)
 	//HWND hwndItem = ::GetDlgItem( hwnd, IDC_PROGRESS );
 	//::SendMessage(hwndItem,PBM_SETPOS,progress,0);
 	SetTextInternal();
-	Paint();
 }
 
 void LoadingWindow_Win32::SetTotalWork(const int totalWork)
@@ -291,7 +299,6 @@ void LoadingWindow_Win32::SetTotalWork(const int totalWork)
 	//HWND hwndItem = ::GetDlgItem( hwnd, IDC_PROGRESS );
 	//SendMessage(hwndItem,PBM_SETRANGE32,0,totalWork);
 	SetTextInternal();
-	Paint();
 }
 
 void LoadingWindow_Win32::SetIndeterminate(bool indeterminate)
@@ -310,7 +317,6 @@ void LoadingWindow_Win32::SetIndeterminate(bool indeterminate)
 		SetWindowLong(hwndItem,GWL_STYLE, (~PBS_MARQUEE) & GetWindowLong(hwndItem,GWL_STYLE));
 	}
 	*/
-	Paint();
 }
 
 /*

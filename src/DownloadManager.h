@@ -202,8 +202,8 @@ public:
 	inline void SetCURLPostToURL(CURL *curlHandle, string url);
 	inline void SetCURLURL(CURL *curlHandle, string url);
 
-	void SendRequest(string requestName, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> done, bool requireLogin = true, bool post = false, bool async = true);
-	void SendRequestToURL(string url, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> done, bool requireLogin, bool post, bool async);
+	HTTPRequest* SendRequest(string requestName, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> done, bool requireLogin = true, bool post = false, bool async = true);
+	HTTPRequest* SendRequestToURL(string url, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> done, bool requireLogin, bool post, bool async);
 	void RefreshLastVersion(); 
 	void RefreshRegisterPage();
 	void RequestChartLeaderBoard(string chartkey);

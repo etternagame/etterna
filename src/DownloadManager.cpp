@@ -585,12 +585,12 @@ bool DownloadManager::LoggedIn()
 
 void DownloadManager::AddFavorite(string chartkey)
 {
-	string req = "users/" + DLMAN->sessionUser + "/favorites";
+	string req = "user/" + DLMAN->sessionUser + "/favorites";
 	DLMAN->favorites.emplace_back(chartkey);
-	auto done = [](HTTPRequest& req, CURLMsg *) {
-
+	auto done = [req](HTTPRequest& requ, CURLMsg *) {
+		LOG->Warn((requ.result+req+DLMAN->sessionUser).c_str());
 	};
-	SendRequest(req, {make_pair("chartkey", chartkey)}, done);
+	SendRequest(req, {make_pair("chartkey", chartkey)}, done, true, true);
 }
 
 void DownloadManager::RemoveFavorite(string chartkey)
@@ -598,16 +598,18 @@ void DownloadManager::RemoveFavorite(string chartkey)
 	auto it = std::find(DLMAN->favorites.begin(), DLMAN->favorites.end(), chartkey);
 	if (it != DLMAN->favorites.end())
 		DLMAN->favorites.erase(it);
-	string req = "users/" + DLMAN->sessionUser + "/favorites/"+chartkey;
+	string req = "user/" + DLMAN->sessionUser + "/favorites/"+chartkey;
 	auto done = [](HTTPRequest& req, CURLMsg *) {
 
 	};
-	SendRequest(req, {}, done);
+	auto r = SendRequest(req, {}, done);
+	if(r)
+		curl_easy_setopt(r->handle, CURLOPT_CUSTOMREQUEST, "DELETE");
 }
 
 void DownloadManager::RefreshFavourites()
 {
-	string req = "users/" + DLMAN->sessionUser + "/favorites";
+	string req = "user/" + DLMAN->sessionUser + "/favorites";
 	auto done = [](HTTPRequest& req, CURLMsg *) {
 		json j;
 		bool parsed = true;
@@ -846,14 +848,15 @@ OnlineTopScore DownloadManager::GetTopSkillsetScore(unsigned int rank, Skillset 
 	return OnlineTopScore();
 }
 
-void DownloadManager::SendRequest(string requestName, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> done, bool requireLogin, bool post, bool async)
+HTTPRequest* DownloadManager::SendRequest(string requestName, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> done, bool requireLogin, bool post, bool async)
 {
-	SendRequestToURL(serverURL.Get() + "/" + requestName, params, done, requireLogin, post, async);
+	return SendRequestToURL(serverURL.Get() + "/" + requestName, params, done, requireLogin, post, async);
 }
-void DownloadManager::SendRequestToURL(string url, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> afterDone, bool requireLogin, bool post, bool async)
+
+HTTPRequest* DownloadManager::SendRequestToURL(string url, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> afterDone, bool requireLogin, bool post, bool async)
 {
 	if (requireLogin && !LoggedIn())
-		return;
+		return nullptr;
 	if (!post && !params.empty()) {
 		url += "?";
 		for (auto& param : params)
@@ -911,7 +914,7 @@ void DownloadManager::SendRequestToURL(string url, vector<pair<string, string>> 
 		done(*req, nullptr);
 		delete req;
 	}
-	return;
+	return req;
 }
 
 float mythicalmathymathsProbablyUnderratedness(string chartkey) {
