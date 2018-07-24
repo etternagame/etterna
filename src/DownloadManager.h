@@ -171,6 +171,9 @@ public:
 	void RefreshFavourites();
 	vector<string> favorites;
 
+	void AddGoal(string chartkey, float wife, float rate, DateTime timeAssigned);
+	void RemoveGoal(string chartkey, float wife, float rate);
+
 	void EndSessionIfExists(); //Calls EndSession if logged in
 	void EndSession(); //Sends session destroy request
 	void StartSession(string user, string pass, function<void(bool loggedIn)> done); //Sends login request if not already logging in

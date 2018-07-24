@@ -607,6 +607,30 @@ void DownloadManager::RemoveFavorite(string chartkey)
 		curl_easy_setopt(r->handle, CURLOPT_CUSTOMREQUEST, "DELETE");
 }
 
+void DownloadManager::RemoveGoal(string chartkey, float wife, float rate)
+{
+	string req = "user/" + DLMAN->sessionUser + "/goals/" + chartkey+"/"+to_string(wife)+"/"+to_string(rate);
+	auto done = [](HTTPRequest& req, CURLMsg *) {
+
+	};
+	auto r = SendRequest(req, {}, done);
+	if (r)
+		curl_easy_setopt(r->handle, CURLOPT_CUSTOMREQUEST, "DELETE");
+}
+
+void DownloadManager::AddGoal(string chartkey, float wife, float rate, DateTime timeAssigned)
+{
+	string req = "user/" + DLMAN->sessionUser + "/goals";
+	auto done = [](HTTPRequest& req, CURLMsg *) {
+
+	};
+	vector<pair<string, string>> postParams = { make_pair("chartkey", chartkey),
+		make_pair("rate", to_string(rate)), 
+		make_pair("wife", to_string(wife)),
+		make_pair("timeAssigned", timeAssigned.GetString()) };
+	SendRequest(req, postParams, done, true, true);
+}
+
 void DownloadManager::RefreshFavourites()
 {
 	string req = "user/" + DLMAN->sessionUser + "/favorites";
