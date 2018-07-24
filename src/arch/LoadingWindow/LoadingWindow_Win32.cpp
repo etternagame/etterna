@@ -97,55 +97,30 @@ static HBITMAP LoadWin32Surface( RString sFile, HWND hWnd )
 
 BOOL CALLBACK LoadingWindow_Win32::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	switch( msg )
+	switch (msg)
 	{
 	case WM_INITDIALOG:
-		{
-			vector<RString> vs;
-			GetDirListing( "Data/splash*.png", vs, false, true );
-			if( !vs.empty() )
-				g_hBitmap = LoadWin32Surface( vs[0], hWnd );
-		}
-		if( g_hBitmap == NULL )
-			g_hBitmap = LoadWin32Surface( "Data/splash.bmp", hWnd );
-		SendMessage( 
-			GetDlgItem(hWnd,IDC_SPLASH), 
-			STM_SETIMAGE, 
-			(WPARAM) IMAGE_BITMAP, 
-			(LPARAM) (HANDLE) g_hBitmap );
-		SetWindowTextA( hWnd, PRODUCT_ID );
-		break;
+	{
+		vector<RString> vs;
+		GetDirListing("Data/splash*.png", vs, false, true);
+		if (!vs.empty())
+			g_hBitmap = LoadWin32Surface(vs[0], hWnd);
+	}
+	if (g_hBitmap == NULL)
+		g_hBitmap = LoadWin32Surface("Data/splash.bmp", hWnd);
+	SendMessage(
+		GetDlgItem(hWnd, IDC_SPLASH),
+		STM_SETIMAGE,
+		(WPARAM)IMAGE_BITMAP,
+		(LPARAM)(HANDLE)g_hBitmap);
+	SetWindowTextA(hWnd, PRODUCT_ID);
+	break;
 
 	case WM_DESTROY:
-		DeleteObject( g_hBitmap );
+		DeleteObject(g_hBitmap);
 		g_hBitmap = NULL;
 		break;
-    case WM_PAINT:
-		for (unsigned i = 0; i < 3; ++i)
-		{
-			//Do graphical paint
-			RECT rect;
-			HDC wdc = GetWindowDC(hWnd);
-			GetClientRect(hWnd, &rect);
-			SetTextColor(wdc, FONT_COLOR);
-			SetBkMode(wdc, TRANSPARENT);
-			rect.left = FONT_X;
-			rect.top = static_cast<long>(FONT_Y + (FONT_HEIGHT+3) * i);
-
-			LOGFONT lf;
-			memset(&lf, 0, sizeof(lf));
-			lf.lfHeight = -MulDiv(static_cast<int>(FONT_HEIGHT), GetDeviceCaps(wdc, LOGPIXELSY), 72);
-			_tcscpy(lf.lfFaceName, FONT_NAME.c_str()); //we must include tchar.h
-			auto f = CreateFontIndirect(&lf);
-			SendMessage(hWnd, WM_SETFONT, (WPARAM)f, MAKELPARAM(FALSE, 0));
-			SelectObject(wdc, f);
-
-			DrawText(wdc, text[i].c_str(), -1, &rect, DT_SINGLELINE | DT_NOCLIP);
-			DeleteDC(wdc);
-			//::SetWindowText( hwndItem, ConvertUTF8ToACP(asMessageLines[i]).c_str() );
-		}
 	}
-
 	return FALSE;
 }
 
@@ -183,7 +158,6 @@ void LoadingWindow_Win32::SetSplash( const RageSurface *pSplash )
 LoadingWindow_Win32::LoadingWindow_Win32()
 {
 	string szFontFile = RageFileManagerUtil::sDirOfExecutable.substr(0, RageFileManagerUtil::sDirOfExecutable.length()-7) + FONT_FILE;
-
 	int nResults = AddFontResourceEx(
 		szFontFile.c_str(), 		// font file name
 		FR_PRIVATE,    	// font characteristics
@@ -194,7 +168,19 @@ LoadingWindow_Win32::LoadingWindow_Win32()
 	ASSERT( hwnd != NULL );
 	for( unsigned i = 0; i < 3; ++i )
 		text[i] = "ABC"; /* always set on first call */
+	HDC wdc = GetWindowDC(hwnd);
+	SetTextColor(wdc, FONT_COLOR);
+	SetBkMode(wdc, TRANSPARENT);
+	LOGFONT lf;
+	memset(&lf, 0, sizeof(lf));
+	lf.lfHeight = -MulDiv(static_cast<int>(FONT_HEIGHT), GetDeviceCaps(wdc, LOGPIXELSY), 72);
+	_tcscpy(lf.lfFaceName, FONT_NAME.c_str()); //we must include tchar.h
+	f = CreateFontIndirect(&lf);
+	SendMessage(hwnd, WM_SETFONT, (WPARAM)f, MAKELPARAM(FALSE, 0));
+	SelectObject(wdc, f);
+	DeleteDC(wdc);
 	SetText( "" );
+	//Do graphical paint
 	Paint();
 }
 
@@ -204,14 +190,29 @@ LoadingWindow_Win32::~LoadingWindow_Win32()
 		DestroyWindow( hwnd );
 	if( m_hIcon != NULL )
 		DestroyIcon( m_hIcon );
+	if(f)
+		DeleteObject(f);
 }
 
 void LoadingWindow_Win32::Paint()
 {
 	InvalidateRect(hwnd, NULL, TRUE);
-	return;
 	UpdateWindow(hwnd);
-	SendMessage(hwnd, WM_PAINT, 0, 0);
+	//Do graphical paint
+	RECT rect;
+	HDC wdc = GetWindowDC(hwnd);
+	GetClientRect(hwnd, &rect);
+	rect.left = FONT_X;
+	SetTextColor(wdc, FONT_COLOR);
+	SetBkMode(wdc, TRANSPARENT);
+	SelectObject(wdc, f);
+	for (unsigned i = 0; i < 3; ++i)
+	{
+		rect.top = static_cast<long>(FONT_Y + (FONT_HEIGHT + 3) * i);
+		DrawText(wdc, text[i].c_str(), -1, &rect, DT_SINGLELINE | DT_NOCLIP);
+		//::SetWindowText( hwndItem, ConvertUTF8ToACP(asMessageLines[i]).c_str() );
+	}
+	DeleteDC(wdc);
 
 	/* Process all queued messages since the last paint.  This allows the window to
 	 * come back if it loses focus during load. */

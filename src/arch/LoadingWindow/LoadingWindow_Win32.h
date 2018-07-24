@@ -26,6 +26,7 @@ private:
 	AppInstance handle;
 	HWND hwnd;
 	HICON m_hIcon;
+	HFONT f;
 	string progress;
 	RString lastText;
 
