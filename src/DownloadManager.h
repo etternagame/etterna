@@ -174,6 +174,7 @@ public:
 	void EndSessionIfExists(); //Calls EndSession if logged in
 	void EndSession(); //Sends session destroy request
 	void StartSession(string user, string pass, function<void(bool loggedIn)> done); //Sends login request if not already logging in
+	void OnLogin();
 	bool UploadScores(); //Uploads all scores not yet uploaded to current server (Async, 1 request per score)
 	void RefreshPackList(string url); 
 

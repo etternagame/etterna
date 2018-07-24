@@ -120,6 +120,10 @@ t[#t+1] = Def.ActorFrame{
 			ms.ok("Login failed!")
 		end,
 		LoginMessageCommand=function(self)
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = user
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = DLMAN:GetToken()
+			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+			playerConfig:save(pn_to_profile_slot(PLAYER_1))
 			ms.ok("Succesfully logged in")
 		end,
 		MouseLeftClickMessageCommand=function(self)
@@ -131,16 +135,12 @@ t[#t+1] = Def.ActorFrame{
 					password = function(answer) 
 							pass=answer
 							DLMAN:Login(user, pass) 
-							playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = user
-							playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).Password = pass
-							playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-							playerConfig:save(pn_to_profile_slot(PLAYER_1))
 						end
 					easyInputStringWithFunction("Password:", 50, true, password)
 					easyInputStringWithFunction("Username:",50, false, username)
 				else
 					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = ""
-					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).Password = ""
+					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = ""
 					playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
 					playerConfig:save(pn_to_profile_slot(PLAYER_1))
 					DLMAN:Logout()

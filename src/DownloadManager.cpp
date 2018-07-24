@@ -1221,6 +1221,20 @@ void DownloadManager::RefreshUserData()
 	return;
 }
 
+void DownloadManager::OnLogin()
+{
+	DLMAN->RefreshUserRank();
+	DLMAN->RefreshUserData();
+	FOREACH_ENUM(Skillset, ss)
+		DLMAN->RefreshTop25(ss);
+	if (DLMAN->ShouldUploadScores())
+		DLMAN->UploadScores();
+	if (GAMESTATE->m_pCurSteps[PLAYER_1] != nullptr)
+		DLMAN->RequestChartLeaderBoard(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+	MESSAGEMAN->Broadcast("Login");
+	DLMAN->loggingIn = false;
+}
+
 void DownloadManager::StartSession(string user, string pass, function<void(bool loggedIn)> callback = [](bool) {return; })
 {
 	string url = serverURL.Get() + "/login";
@@ -1258,18 +1272,7 @@ void DownloadManager::StartSession(string user, string pass, function<void(bool 
 			DLMAN->loggingIn = false;
 			return;
 		}
-		DLMAN->sessionUser = user;
-		DLMAN->sessionPass = pass;
-		DLMAN->RefreshUserRank();
-		DLMAN->RefreshUserData();
-		FOREACH_ENUM(Skillset, ss)
-			DLMAN->RefreshTop25(ss);
-		if(DLMAN->ShouldUploadScores())
-			DLMAN->UploadScores();
-		if (GAMESTATE->m_pCurSteps[PLAYER_1] != nullptr)
-			DLMAN->RequestChartLeaderBoard(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
-		MESSAGEMAN->Broadcast("Login");
-		DLMAN->loggingIn = false;
+		DLMAN->OnLogin();
 		callback(DLMAN->LoggedIn());
 	};
 	HTTPRequest* req = new HTTPRequest(curlHandle, done, form);
@@ -1501,12 +1504,23 @@ public:
 		string user = SArg(1);
 		string pass = SArg(2);
 		DLMAN->StartSession(user, pass); 
-		return 1;
+		return 0;
+	}
+	static int LoginWithToken(T* p, lua_State* L)
+	{
+		string user = SArg(1);
+		string token = SArg(2);
+		DLMAN->authToken = token;
+		DLMAN->sessionUser = user;
+		DLMAN->sessionPass = "";
+		DLMAN->EndSessionIfExists();
+		DLMAN->OnLogin();
+		return 0;
 	}
 	static int Logout(T* p, lua_State* L)
 	{
 		DLMAN->EndSessionIfExists();
-		return 1;
+		return 0;
 	}
 	static int GetLastVersion(T* p, lua_State* L)
 	{
@@ -1657,6 +1671,11 @@ public:
 	static int DownloadCoreBundle(T* p, lua_State* L)
 	{
 		DLMAN->DownloadCoreBundle(SArg(1));
+		return 0;
+	}
+	static int GetToken(T* p, lua_State* L)
+	{
+		lua_pushstring(L, DLMAN->authToken.c_str());
 		return 1;
 	}
 	LunaDownloadManager()
@@ -1666,8 +1685,10 @@ public:
 		ADD_METHOD(GetPacklist);
 		ADD_METHOD(GetDownloadingPacks);
 		ADD_METHOD(GetDownloads);
+		ADD_METHOD(GetToken);
 		ADD_METHOD(IsLoggedIn);
 		ADD_METHOD(Login);
+		ADD_METHOD(LoginWithToken);
 		ADD_METHOD(GetUsername);
 		ADD_METHOD(GetSkillsetRank);
 		ADD_METHOD(GetSkillsetRating);

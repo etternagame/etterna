@@ -625,13 +625,13 @@ local profilebuttons = Def.ActorFrame{
 	InitCommand=function(self)
 		self:xy(frameX+45,frameHeight + 20)
 		user = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName
-		pass = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).Password
-		if pass ~= "" and answer ~= "" then
+		local passToken = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken
+		if passToken ~= "" and answer ~= "" then
 			if not DLMAN:IsLoggedIn() then
-				DLMAN:Login(user, pass)
+				DLMAN:LoginWithToken(user, passToken)
 			end
 		else
-			pass = ""
+			passToken = ""
 			user = ""
 		end
 	end,
@@ -720,6 +720,10 @@ local profilebuttons = Def.ActorFrame{
 		end,
 		LoginMessageCommand=function(self)
 			ms.ok("Succesfully logged in")
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = user
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = DLMAN:GetToken()
+			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+			playerConfig:save(pn_to_profile_slot(PLAYER_1))
 		end,
 		MouseLeftClickMessageCommand=function(self)
 			if ButtonActive(self) and rankingSkillset == 1 and not SCREENMAN:get_input_redirected(PLAYER_1) then 
@@ -730,16 +734,12 @@ local profilebuttons = Def.ActorFrame{
 					password = function(answer) 
 							pass=answer
 							DLMAN:Login(user, pass) 
-							playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = user
-							playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).Password = pass
-							playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-							playerConfig:save(pn_to_profile_slot(PLAYER_1))
 						end
 						easyInputStringWithFunction("Password:", 50, true, password)
 						easyInputStringWithFunction("Username:",50, false, username)
 				else
 					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = ""
-					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).Password = ""
+					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = ""
 					playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
 					playerConfig:save(pn_to_profile_slot(PLAYER_1))
 					DLMAN:Logout()
