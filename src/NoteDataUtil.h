@@ -24,12 +24,10 @@ namespace NoteDataUtil
 {
 	NoteType GetSmallestNoteTypeForMeasure( const NoteData &nd, int iMeasureIndex );
 	NoteType GetSmallestNoteTypeInRange( const NoteData &nd, int iStartIndex, int iEndIndex );
-	void LoadFromSMNoteDataString( NoteData &out, const RString &sSMNoteData, bool bComposite );
+	void LoadFromSMNoteDataString( NoteData &out, const RString &sSMNoteData);
 	void LoadFromETTNoteDataString(NoteData& out, const RString &sSMNoteData);
 	void GetSMNoteDataString( const NoteData &in, RString &notes_out );
 	void GetETTNoteDataString(const NoteData &in, RString &notes_out);
-	void SplitCompositeNoteData( const NoteData &in, vector<NoteData> &out );
-	void CombineCompositeNoteData( NoteData &out, const vector<NoteData> &in );
 	/**
 	 * @brief Autogenerate notes from one type to another.
 	 *

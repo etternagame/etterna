@@ -30,17 +30,6 @@ void NoteData::SetNumTracks( int iNewNumTracks )
 	CalcNumTracksLCD();
 }
 
-bool NoteData::IsComposite() const
-{
-	return false;
-	for( int track = 0; track < GetNumTracks(); ++track )
-	{
-		FOREACHM_CONST( int, TapNote, m_TapNotes[track], tn )
-			if( tn->second.pn != PLAYER_INVALID )
-				return true;
-	}
-}
-
 // Clear (rowBegin,rowEnd).
 void NoteData::ClearRangeForTrack( int rowBegin, int rowEnd, int iTrack )
 {
@@ -790,10 +779,6 @@ int NoteData::GetNumFakes( int iStartIndex, int iEndIndex ) const
 
 bool NoteData::IsPlayer1(const int track, const TapNote &tn) const
 {
-	if (this->IsComposite())
-	{
-		return tn.pn == PLAYER_1;
-	}
 	return track < (this->GetNumTracks() / 2);
 }
 
