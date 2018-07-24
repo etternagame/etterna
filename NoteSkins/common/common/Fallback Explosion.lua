@@ -1,5 +1,4 @@
 local t = Def.ActorFrame {
-	LoadActor(NOTESKIN:GetPath("Fallback", "Overlayceptor" ));
 	NOTESKIN:LoadActor( Var "Button", "Hold Explosion" ) .. {
 		HoldingOnCommand=NOTESKIN:GetMetricA("HoldGhostArrow", "HoldingOnCommand");
 		HoldingOffCommand=NOTESKIN:GetMetricA("HoldGhostArrow", "HoldingOffCommand");
