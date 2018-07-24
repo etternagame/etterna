@@ -29,6 +29,7 @@ const string FONT_NAME = "Roboto Light";
 const auto FONT_COLOR = RGB(240, 240, 240);
 const int FONT_Y = 98;
 const int FONT_X = 20;
+LoadingWindow_Win32* w;
 
 /* Load a RageSurface into a GDI surface. */
 static HBITMAP LoadWin32Surface( const RageSurface *pSplash, HWND hWnd )
@@ -120,6 +121,11 @@ BOOL CALLBACK LoadingWindow_Win32::WndProc(HWND hWnd, UINT msg, WPARAM wParam, L
 		DeleteObject(g_hBitmap);
 		g_hBitmap = NULL;
 		break;
+	case WM_PAINT:
+		auto hwnd = w->hwnd;
+		InvalidateRect(hwnd, NULL, TRUE);
+		UpdateWindow(hwnd);
+		break;
 	}
 	return FALSE;
 }
@@ -157,16 +163,17 @@ void LoadingWindow_Win32::SetSplash( const RageSurface *pSplash )
 
 LoadingWindow_Win32::LoadingWindow_Win32()
 {
-	string szFontFile = RageFileManagerUtil::sDirOfExecutable.substr(0, RageFileManagerUtil::sDirOfExecutable.length()-7) + FONT_FILE;
+	w = this;
+	string szFontFile = RageFileManagerUtil::sDirOfExecutable.substr(0, RageFileManagerUtil::sDirOfExecutable.length() - 7) + FONT_FILE;
 	int nResults = AddFontResourceEx(
 		szFontFile.c_str(), 		// font file name
 		FR_PRIVATE,    	// font characteristics
 		NULL);
 
 	m_hIcon = NULL;
-	hwnd = CreateDialog( handle.Get(), MAKEINTRESOURCE(IDD_LOADING_DIALOG), NULL, WndProc );
-	ASSERT( hwnd != NULL );
-	for( unsigned i = 0; i < 3; ++i )
+	hwnd = CreateDialog(handle.Get(), MAKEINTRESOURCE(IDD_LOADING_DIALOG), NULL, WndProc);
+	ASSERT(hwnd != NULL);
+	for (unsigned i = 0; i < 3; ++i)
 		text[i] = "ABC"; /* always set on first call */
 	HDC wdc = GetWindowDC(hwnd);
 	SetTextColor(wdc, FONT_COLOR);
@@ -179,7 +186,7 @@ LoadingWindow_Win32::LoadingWindow_Win32()
 	SendMessage(hwnd, WM_SETFONT, (WPARAM)f, MAKELPARAM(FALSE, 0));
 	SelectObject(wdc, f);
 	DeleteDC(wdc);
-	SetText( "" );
+	SetText("");
 	//Do graphical paint
 	Paint();
 }
@@ -196,23 +203,27 @@ LoadingWindow_Win32::~LoadingWindow_Win32()
 
 void LoadingWindow_Win32::Paint()
 {
+	//Do graphical paint
 	InvalidateRect(hwnd, NULL, TRUE);
 	UpdateWindow(hwnd);
 	//Do graphical paint
 	RECT rect;
-	HDC wdc = GetWindowDC(hwnd);
+	HDC wdc = GetDC(hwnd);
 	GetClientRect(hwnd, &rect);
 	rect.left = FONT_X;
-	SetTextColor(wdc, FONT_COLOR);
-	SetBkMode(wdc, TRANSPARENT);
-	SelectObject(wdc, f);
+	auto oldColor = SetTextColor(wdc, FONT_COLOR);
+	auto oldMode = SetBkMode(wdc, TRANSPARENT);
+	auto oldF = SelectObject(wdc, w->f);
 	for (unsigned i = 0; i < 3; ++i)
 	{
 		rect.top = static_cast<long>(FONT_Y + (FONT_HEIGHT + 3) * i);
 		DrawText(wdc, text[i].c_str(), -1, &rect, DT_SINGLELINE | DT_NOCLIP);
 		//::SetWindowText( hwndItem, ConvertUTF8ToACP(asMessageLines[i]).c_str() );
 	}
-	DeleteDC(wdc);
+	SetTextColor(wdc, oldColor);
+	SetBkMode(wdc, oldMode);
+	SelectObject(wdc, oldF);
+	ReleaseDC(hwnd, wdc);
 
 	/* Process all queued messages since the last paint.  This allows the window to
 	 * come back if it loses focus during load. */
