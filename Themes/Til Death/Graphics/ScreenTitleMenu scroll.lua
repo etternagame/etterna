@@ -4,13 +4,13 @@ return Def.ActorFrame {
 	LoadFont("Common Normal") .. {
 		Text=THEME:GetString("ScreenTitleMenu",gc:GetText()),
 		OnCommand=function(self)
-			self:halign(0)
+			self:xy(280,-78):halign(0):valign(0)
 		end,
 		GainFocusCommand=function(self)
-			self:zoom(0.6):diffusealpha(1):diffuse(getMainColor('positive'))
+			self:zoom(0.57):diffuse(color("#59307f"))
 		end,
 		LoseFocusCommand=function(self)
-			self:diffuse(getMainColor('positive')):diffusealpha(0.7):zoom(0.5)
+			self:zoom(0.55):diffuse(color("#b87cf0"))
 		end,
  	}
 }
