@@ -15,7 +15,7 @@ local playCountP1 = 0
 local playTimeP1 = 0
 local noteCountP1 = 0
 
-local AvatarXP1 = 10
+local AvatarXP1 = 5
 local AvatarYP1 = 50
 
 local bpms = {}
@@ -26,6 +26,12 @@ if GAMESTATE:GetCurrentSong() then
 end
 
 -- P1 Avatar
+t[#t+1] = Def.Quad{
+	InitCommand=function(self)
+		self:xy(AvatarXP1-15,AvatarYP1-5):halign(0):valign(0):zoomto(250,40):diffuse(color("#000000")):diffusealpha(.8)
+	end;
+};
+
 t[#t+1] = Def.Actor{
 	BeginCommand=function(self)
 		self:queuecommand("Set")
@@ -82,7 +88,7 @@ t[#t+1] = Def.ActorFrame{
 	},
 	LoadFont("Common Normal") .. {
 		InitCommand=function(self)
-			self:xy(AvatarXP1+33,AvatarYP1+6):halign(0):zoom(0.45)
+			self:xy(AvatarXP1+33,AvatarYP1+9):halign(0):zoom(0.45)
 		end,
 		BeginCommand=function(self)
 			self:queuecommand("Set")
@@ -93,7 +99,7 @@ t[#t+1] = Def.ActorFrame{
 	},
 	LoadFont("Common Normal") .. {
 		InitCommand=function(self)
-			self:xy(AvatarXP1+33,AvatarYP1+19):halign(0):zoom(0.40)
+			self:xy(AvatarXP1+33,AvatarYP1+20):halign(0):zoom(0.40)
 		end,
 		BeginCommand=function(self)
 			local speed, mode= GetSpeedModeAndValueFromPoptions(PLAYER_1)
@@ -147,7 +153,7 @@ t[#t+1] = LoadFont("Common Large")..{
 }
 
 local NSPreviewSize = 0.5
-local NSPreviewX = 35
+local NSPreviewX = 20
 local NSPreviewY = 125
 local NSPreviewXSpan = 35
 local NSPreviewReceptorY = -30
@@ -185,11 +191,11 @@ t[#t+1] = Def.ActorFrame{
 			)
 	end,
 	Def.ActorFrame{
-		NSkinPreviewWrapper("Down", "Tap Note")
+		NSkinPreviewWrapper("Left", "Tap Note")
 	},
 	Def.ActorFrame{
 		InitCommand=function(self) self:y(NSPreviewReceptorY) end,
-		NSkinPreviewWrapper("Down", "Receptor")
+		NSkinPreviewWrapper("Left", "Receptor")
 	}
 }
 if GetScreenAspectRatio( ) > 1.7 then
@@ -197,11 +203,11 @@ if GetScreenAspectRatio( ) > 1.7 then
 	Def.ActorFrame{
 		Def.ActorFrame{
 			InitCommand=function(self) self:x(NSPreviewXSpan*1) end,
-			NSkinPreviewWrapper("Left", "Tap Note")
+			NSkinPreviewWrapper("Down", "Tap Note")
 		},
 		Def.ActorFrame{
 			InitCommand=function(self) self:x(NSPreviewXSpan*1):y(NSPreviewReceptorY) end,
-			NSkinPreviewWrapper("Left", "Receptor")
+			NSkinPreviewWrapper("Down", "Receptor")
 		},
 		Def.ActorFrame{
 			InitCommand=function(self) self:x(NSPreviewXSpan*2) end,
