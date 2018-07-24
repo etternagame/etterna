@@ -1025,8 +1025,8 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 				if (FILTERMAN->currentrateonlyforonlineleaderboardrankings)
 					if(lround(tmp.rate * 10000.f) != lround(currentrate * 10000.f))
 						continue;
-				tmp.nocc = score.value("noCC", 0) == 1;
-				tmp.valid = score.value("valid", 0) == 1;
+				tmp.nocc = score.value("noCC", 0) != 0;
+				tmp.valid = score.value("valid", 0) != 0;
 
 				auto ssrs = *(score.find("skillsets"));
 				FOREACH_ENUM(Skillset, ss)

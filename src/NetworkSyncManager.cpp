@@ -545,7 +545,7 @@ void ETTProtocol::FindJsonChart(NetworkSyncManager* n, json& ch)
 	}
 	else {
 		vector <Song *> AllSongs = SONGMAN->GetAllSongs();
-		for (int i = 0; i < AllSongs.size(); i++)
+		for (size_t i = 0; i < AllSongs.size(); i++)
 		{
 			auto& m_cSong = AllSongs[i];
 			if ((n->m_sArtist.empty() || n->m_sArtist == m_cSong->GetTranslitArtist()) &&
@@ -629,7 +629,7 @@ void ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 				EndOfGame_PlayerData result;
 				hs.SetScoreKey(score.value("scorekey", ""));
 				hs.SetSSRNormPercent(score.value("ssr_norm", 0));
-				hs.SetEtternaValid(score.value("valid", 0));
+				hs.SetEtternaValid(score.value("valid", 0) !=0);
 				hs.SetModifiers(score.value("mods", ""));
 				FOREACH_ENUM(Skillset, ss)
 					hs.SetSkillsetSSR(ss, score.value(SkillsetToString(ss).c_str(), 0));
@@ -1304,9 +1304,9 @@ void ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 		payload["replay"] = json::object();
 		payload["replay"]["noterows"] = json::array();
 		payload["replay"]["offsets"] = json::array();
-		for (int i = 0; i < noterows.size(); i++)
+		for (size_t i = 0; i < noterows.size(); i++)
 			payload["replay"]["noterows"].push_back(noterows[i]);
-		for (int i = 0; i < offsets.size(); i++)
+		for (size_t i = 0; i < offsets.size(); i++)
 			payload["replay"]["offsets"].push_back(offsets[i]);
 	}
 	Send(j);
