@@ -3,9 +3,23 @@ t = Def.ActorFrame {};
 local frameX = THEME:GetMetric("ScreenTitleMenu","ScrollerX")-10
 local frameY = THEME:GetMetric("ScreenTitleMenu","ScrollerY")
 
+
 t[#t+1] = LoadActor(THEME:GetPathG("","_OptionsScreen")) .. {
-	InitCommand=function(self)
-		self:xy(capWideScale(get43size(SCREEN_WIDTH-185),SCREEN_WIDTH-425),frameY-70):zoom(0.8):diffusealpha(1):baserotationx(0)
-	end	
+		OnCommand=function(self)
+			self:zoomto(SCREEN_WIDTH,SCREEN_HEIGHT):Center():zoom(1):diffusealpha(1)
+		end	
 }
+
+local x = 75
+local y = 500
+if GetScreenAspectRatio( ) > 1.7 then
+    x = 310
+    y = 500
+end
+t[#t+2] = LoadActor(THEME:GetPathG("","_OptionsActor")) .. {
+        OnCommand=function(self)
+            self:zoomto(x,y):y(SCREEN_CENTER_Y):Left():diffusealpha(1)
+    end    
+}
+
 return t
