@@ -209,6 +209,7 @@ LoadingWindow_Win32::~LoadingWindow_Win32()
 void LoadingWindow_Win32::Paint()
 {
 	InvalidateRect(hwnd, NULL, TRUE);
+	return;
 	UpdateWindow(hwnd);
 	SendMessage(hwnd, WM_PAINT, 0, 0);
 
