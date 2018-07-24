@@ -1,5 +1,5 @@
 -- If you are a common themer, DO NOT INCLUDE THIS FILE IN YOUR THEME.
--- This layer is purely for error reporting, so that you can see errors on screen easily while running stepmania.
+-- This layer is purely for error reporting, so that you can see errors on screen easily while running Etterna.
 -- If you include this file in your theme, you will not benefit from any improvements in error reporting.
 -- If you want to adjust how long errors stay on screen for, call the "SetErrorMessageTime" function. (see usage notes in comments above that function)
 
