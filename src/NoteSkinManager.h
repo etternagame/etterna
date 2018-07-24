@@ -27,12 +27,17 @@ public:
 
 	void SetCurrentNoteSkin( const RString &sNoteSkin ) { m_sCurrentNoteSkin = sNoteSkin; }
 	const RString &GetCurrentNoteSkin() { return m_sCurrentNoteSkin; }
+	
+	void SetLastSeenColor(RString Color) { LastColor = Color; } 
+	RString GetLastSeenColor() { return LastColor; } 
+	
+  
 	void SetPlayerNumber( PlayerNumber pn ) { m_PlayerNumber = pn; }
 	void SetGameController( GameController gc ) { m_GameController = gc; }
 	RString GetPath( const RString &sButtonName, const RString &sElement );
-	bool PushActorTemplate( Lua *L, const RString &sButton, const RString &sElement, bool bSpriteOnly );
-	Actor *LoadActor( const RString &sButton, const RString &sElement, Actor *pParent = NULL, bool bSpriteOnly = false );
-
+	bool PushActorTemplate( Lua *L, const RString &sButton, const RString &sElement, bool bSpriteOnly, RString Color ); 
+	Actor *LoadActor( const RString &sButton, const RString &sElement, Actor *pParent = NULL, bool bSpriteOnly = false, RString Color = "4th"); 
+ 
 	RString		GetMetric( const RString &sButtonName, const RString &sValue );
 	int		GetMetricI( const RString &sButtonName, const RString &sValueName );
 	float		GetMetricF( const RString &sButtonName, const RString &sValueName );
@@ -50,6 +55,7 @@ protected:
 	bool LoadNoteSkinDataRecursive( const RString &sNoteSkinName, NoteSkinData& data_out );
 	RString m_sCurrentNoteSkin;
 	const Game* m_pCurGame;
+	RString LastColor; 
 
 	// xxx: is this the best way to implement this? -freem
 	PlayerNumber m_PlayerNumber;
@@ -61,8 +67,8 @@ extern NoteSkinManager*	NOTESKIN;	// global and accessible from anywhere in our 
 class LockNoteSkin
 {
 public:
-	LockNoteSkin( const RString &sNoteSkin ) { ASSERT( NOTESKIN->GetCurrentNoteSkin().empty() ); NOTESKIN->SetCurrentNoteSkin( sNoteSkin ); }
-	~LockNoteSkin() { NOTESKIN->SetCurrentNoteSkin( RString() ); }
+	LockNoteSkin(RString sNoteSkin, PlayerNumber pn) { ASSERT(NOTESKIN->GetCurrentNoteSkin().empty());  NOTESKIN->SetCurrentNoteSkin(sNoteSkin); } 
+	~LockNoteSkin() { NOTESKIN->SetCurrentNoteSkin( "" ); } 
 };
 
 
