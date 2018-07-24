@@ -38,7 +38,7 @@ t[#t+1] = Def.ActorFrame {
 	end
 }
 
-local www = SCREEN_WIDTH * 0.8
+local www = 1366 * 0.8
 local hhh = SCREEN_HEIGHT * 0.8
 t[#t+1] = Def.ActorFrame {
 	DFRStartedMessageCommand=function(self)
