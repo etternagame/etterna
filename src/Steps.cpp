@@ -325,14 +325,10 @@ void Steps::Decompress() {
 		/* there is no data, do nothing */
 		return;
 	}
-	
-	
 		// load from compressed
-		bool bComposite = false;
 		m_bNoteDataIsFilled = true;
 		m_pNoteData->SetNumTracks(GAMEMAN->GetStepsTypeInfo(m_StepsType).iNumTracks);
-		NoteDataUtil::LoadFromSMNoteDataString(*m_pNoteData, m_sNoteDataCompressed, bComposite);
-	
+		NoteDataUtil::LoadFromSMNoteDataString(*m_pNoteData, m_sNoteDataCompressed);
 }
 
 bool Steps::IsRecalcValid() {

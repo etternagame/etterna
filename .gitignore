@@ -107,3 +107,5 @@ tests/*.err
 
 nsis_strings_temp\.inc
 BatchRecalc/*
+
+Xcode/Info\.Etterna\.plist
