@@ -18,7 +18,7 @@ if GetScreenAspectRatio( ) > 1.7 then
 end
 t[#t+2] = LoadActor(THEME:GetPathG("","_OptionsActor")) .. {
         OnCommand=function(self)
-            self:zoomto(x,y):y(SCREEN_CENTER_Y):Left():diffusealpha(1)
+            self:zoomto(x,y):y(SCREEN_CENTER_Y):diffusealpha(1)
     end    
 }
 
