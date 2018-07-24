@@ -413,11 +413,11 @@ void MusicWheel::FilterBySearch(vector<Song*>& inv, RString findme) {
 	if (artist != findme.npos || author != findme.npos || title != findme.npos) {
 		super_search = true;
 		if (artist != findme.npos)
-			findartist = findme.substr(artist + 7, findme.find(artist, ';') - artist);
+			findartist = findme.substr(artist + 7, findme.find(static_cast<char>(artist), ';') - artist);
 		if (author != findme.npos)
-			findauthor = findme.substr(author + 7, findme.find(author, ';') - author);
+			findauthor = findme.substr(author + 7, findme.find(static_cast<char>(author), ';') - author);
 		if (title != findme.npos)
-			findtitle = findme.substr(title + 6, findme.find(title, ';') - title);
+			findtitle = findme.substr(title + 6, findme.find(static_cast<char>(title), ';') - title);
 	}
 
 	vector<Song*> tmp;

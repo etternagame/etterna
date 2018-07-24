@@ -492,13 +492,16 @@ bool ScreenSelectMusic::Input(const InputEventPlus &input)
 				if (!fav_me_biatch->IsFavorited()) {
 					fav_me_biatch->SetFavorited(true);
 					pProfile->AddToFavorites(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+					DLMAN->AddFavorite(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
 					pProfile->allplaylists.erase("Favorites");
 					SONGMAN->MakePlaylistFromFavorites(pProfile->FavoritedCharts, pProfile->allplaylists);
 				}
 				else {
 					fav_me_biatch->SetFavorited(false);
 					pProfile->RemoveFromFavorites(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+					DLMAN->RemoveFavorite(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
 				}
+				DLMAN->RefreshFavourites();
 				Message msg("FavoritesUpdated");
 				MESSAGEMAN->Broadcast(msg);
 				m_MusicWheel.ChangeMusic(0);

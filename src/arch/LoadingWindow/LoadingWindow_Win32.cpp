@@ -130,11 +130,11 @@ BOOL CALLBACK LoadingWindow_Win32::WndProc(HWND hWnd, UINT msg, WPARAM wParam, L
 			SetTextColor(wdc, FONT_COLOR);
 			SetBkMode(wdc, TRANSPARENT);
 			rect.left = FONT_X;
-			rect.top = FONT_Y + (FONT_HEIGHT+3) * i;
+			rect.top = static_cast<long>(FONT_Y + (FONT_HEIGHT+3) * i);
 
 			LOGFONT lf;
 			memset(&lf, 0, sizeof(lf));
-			lf.lfHeight = -MulDiv(FONT_HEIGHT, GetDeviceCaps(wdc, LOGPIXELSY), 72);
+			lf.lfHeight = -MulDiv(static_cast<int>(FONT_HEIGHT), GetDeviceCaps(wdc, LOGPIXELSY), 72);
 			_tcscpy(lf.lfFaceName, FONT_NAME.c_str()); //we must include tchar.h
 			auto f = CreateFontIndirect(&lf);
 			SendMessage(hWnd, WM_SETFONT, (WPARAM)f, MAKELPARAM(FALSE, 0));
@@ -209,6 +209,7 @@ LoadingWindow_Win32::~LoadingWindow_Win32()
 void LoadingWindow_Win32::Paint()
 {
 	InvalidateRect(hwnd, NULL, TRUE);
+	return;
 	UpdateWindow(hwnd);
 	SendMessage(hwnd, WM_PAINT, 0, 0);
 
@@ -234,7 +235,7 @@ void LoadingWindow_Win32::SetTextInternal()
 	if (m_indeterminate)
 		progress = "";
 	else {
-		int percent = m_totalWork != 0 ? ((float)m_progress) / ((float)m_totalWork) * 100 : m_progress;
+		int percent = m_totalWork != 0 ? 100 * m_progress / m_totalWork : m_progress;
 		progress = " ("+to_string(percent) + "%)";
 	}
 	RString& sText = lastText;

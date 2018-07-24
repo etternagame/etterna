@@ -1,12 +1,12 @@
 
 [Desktop Entry]
 Encoding=UTF-8
-Name=StepMania
+Name=Etterna
 GenericName=Rhythm and dance game
-TryExec=stepmania
-Exec=stepmania
+TryExec=Etterna
+Exec=Etterna
 Terminal=false
-Icon=stepmania-ssc
+Icon=Etterna
 Type=Application
 Categories=Application;Game;ArcadeGame
 Comment=A cross-platform rhythm video game.

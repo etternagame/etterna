@@ -1326,7 +1326,7 @@ bool BMSChartReader::ReadNoteData()
 			int bpm;
 			if( sscanf(obj.value, "%x", &bpm) == 1 )
 			{
-				if( bpm > 0 ) td.SetBPMAtRow( row, measureAdjust * (currentBPM = bpm) );
+				if( bpm > 0 ) td.SetBPMAtRow( row, measureAdjust * (currentBPM = static_cast<float>(bpm)) );
 			}
 		}
 		else if( channel == 4 ) // bga change

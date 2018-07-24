@@ -329,6 +329,7 @@ void GameState::Reset()
 
 void GameState::JoinPlayer( PlayerNumber pn )
 {
+	pn = PLAYER_1;
 	// Make sure the join will be successful before doing it. -Kyz
 	{
 		int players_joined= 0;

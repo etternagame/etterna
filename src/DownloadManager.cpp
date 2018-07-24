@@ -92,7 +92,7 @@ size_t ReadThisReadCallback(void *dest, size_t size, size_t nmemb, void *userp)
 
 int ReadThisSeekCallback(void *arg, curl_off_t offset, int origin)
 {
-	return static_cast<ReadThis*>(arg)->file.Seek(offset, origin);
+	return static_cast<ReadThis*>(arg)->file.Seek(static_cast<int>(offset), origin);
 }
 
 bool DownloadManager::InstallSmzip(const string &sZipFile)
@@ -1025,8 +1025,8 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 				if (FILTERMAN->currentrateonlyforonlineleaderboardrankings)
 					if(lround(tmp.rate * 10000.f) != lround(currentrate * 10000.f))
 						continue;
-				tmp.nocc = score.value("noCC", 0) == 1;
-				tmp.valid = score.value("valid", 0) == 1;
+				tmp.nocc = score.value("noCC", 0) != 0;
+				tmp.valid = score.value("valid", 0) != 0;
 
 				auto ssrs = *(score.find("skillsets"));
 				FOREACH_ENUM(Skillset, ss)
@@ -1079,9 +1079,9 @@ void DownloadManager::RefreshCoreBundles() {
 			if (bundles == j.end())
 				return;
 			auto& dlPacks = DLMAN->downloadablePacks;
-			for (auto bundle : (*bundles)) {
-				auto bundleName = bundle.value("id", "");
-				auto packs = bundle["attributes"]["packs"];
+			for (auto bundleData : (*bundles)) {
+				auto bundleName = bundleData.value("id", "");
+				auto packs = bundleData["attributes"]["packs"];
 				(DLMAN->bundles)[bundleName] = {};
 				auto& bundle = (DLMAN->bundles)[bundleName];
 				for (auto pack : packs) {
@@ -1903,7 +1903,7 @@ class LunaDownload : public Luna<Download>
 public:
 	static int GetKBDownloaded(T* p, lua_State* L)
 	{
-		lua_pushnumber(L, p->progress.downloaded);
+		lua_pushnumber(L, static_cast<int>(p->progress.downloaded));
 		return 1;
 	}
 	static int GetKBPerSecond(T* p, lua_State* L)
@@ -1913,7 +1913,7 @@ public:
 	}
 	static int GetTotalKB(T* p, lua_State* L)
 	{
-		lua_pushnumber(L, p->progress.total);
+		lua_pushnumber(L, static_cast<int>(p->progress.total));
 		return 1;
 	}
 	static int Stop(T* p, lua_State* L)

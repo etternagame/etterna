@@ -22,7 +22,7 @@
 #else
     int ArchHooks::GetWindowWidth()
     {
-        return (PREFSMAN->m_iDisplayHeight * PREFSMAN->m_fDisplayAspectRatio);
+        return (static_cast<int>(PREFSMAN->m_iDisplayHeight * PREFSMAN->m_fDisplayAspectRatio));
     }
 
     int ArchHooks::GetWindowHeight() 

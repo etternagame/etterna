@@ -1,4 +1,3 @@
--- StepMania 5 Default Theme Preferences Handler
 local function OptionNameString(str)
 	return THEME:GetString('OptionNames',str)
 end

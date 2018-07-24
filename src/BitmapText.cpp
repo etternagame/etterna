@@ -417,7 +417,7 @@ void BitmapText::DrawChars( bool bUseStrokeTexture )
 			}
 
 			for( int j = 0; j < 4; ++j )
-				m_aVertices[i+j].c.a *= fAlpha;
+				m_aVertices[i+j].c.a *= static_cast<uint8_t>(fAlpha);
 		}
 	}
 
@@ -1255,7 +1255,7 @@ void ColorBitmapText::SetMaxLines(int iNumLines, int iDirection, unsigned int &s
 			m_vColors.insert(m_vColors.begin(), tmp);
 		}
 
-		if (scroll == 0 || m_iLineWidths.size() <= iNumLines || scroll > m_iLineWidths.size() - iNumLines) {
+		if (scroll == 0 || m_iLineWidths.size() <= static_cast<unsigned int>(iNumLines) || scroll > m_iLineWidths.size() - static_cast<unsigned int>(iNumLines)) {
 			m_wTextLines.erase(m_wTextLines.begin(), m_wTextLines.end() - iNumLines);
 			m_iLineWidths.erase(m_iLineWidths.begin(), m_iLineWidths.end() - iNumLines);
 		}
