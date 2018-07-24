@@ -15,6 +15,7 @@ public:
 
 	void Paint();
 	void SetText( const RString &sText );
+	void SetTextInternal();
 	void SetIcon( const RageSurface *pIcon );
 	void SetSplash( const RageSurface *pSplash );
 	void SetProgress( const int progress );
@@ -24,8 +25,9 @@ public:
 private:
 	AppInstance handle;
 	HWND hwnd;
-	RString text[3];
 	HICON m_hIcon;
+	string progress;
+	RString lastText;
 
 	static BOOL CALLBACK WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam );
 };
