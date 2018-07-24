@@ -92,7 +92,7 @@ size_t ReadThisReadCallback(void *dest, size_t size, size_t nmemb, void *userp)
 
 int ReadThisSeekCallback(void *arg, curl_off_t offset, int origin)
 {
-	return static_cast<ReadThis*>(arg)->file.Seek(offset, origin);
+	return static_cast<int>(static_cast<ReadThis*>(arg)->file.Seek(offset, origin));
 }
 
 bool DownloadManager::InstallSmzip(const string &sZipFile)
@@ -1882,7 +1882,7 @@ class LunaDownload : public Luna<Download>
 public:
 	static int GetKBDownloaded(T* p, lua_State* L)
 	{
-		lua_pushnumber(L, p->progress.downloaded);
+		lua_pushnumber(L, static_cast<int>(p->progress.downloaded));
 		return 1;
 	}
 	static int GetKBPerSecond(T* p, lua_State* L)
@@ -1892,7 +1892,7 @@ public:
 	}
 	static int GetTotalKB(T* p, lua_State* L)
 	{
-		lua_pushnumber(L, p->progress.total);
+		lua_pushnumber(L, static_cast<int>(p->progress.total));
 		return 1;
 	}
 	static int Stop(T* p, lua_State* L)

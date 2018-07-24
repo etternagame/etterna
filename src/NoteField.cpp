@@ -720,7 +720,7 @@ void NoteField::DrawPrimitives()
 	NoteDisplayCols *cur = m_pCurDisplay;
 
 	FindDisplayedBeats(m_pPlayerState, m_FieldRenderArgs.first_beat, m_FieldRenderArgs.last_beat,
-		m_FieldRenderArgs.draw_pixels_after_targets, static_cast<int>(m_FieldRenderArgs.draw_pixels_before_targets));
+		static_cast<int>(m_FieldRenderArgs.draw_pixels_after_targets), static_cast<int>(m_FieldRenderArgs.draw_pixels_before_targets));
 
 	m_FieldRenderArgs.first_row  = BeatToNoteRow(m_FieldRenderArgs.first_beat);
 	m_FieldRenderArgs.last_row   = BeatToNoteRow(m_FieldRenderArgs.last_beat);
