@@ -8,16 +8,27 @@
 #include "archutils/win32/ErrorStrings.h"
 #include "arch/ArchHooks/ArchHooks.h"
 #include <windows.h>
+#include <Commdlg.h>
+#include <tchar.h>
 #include "CommCtrl.h"
 #include "RageSurface_Load.h"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
 #include "RageLog.h"
+#include <wchar.h>
 #include "ProductInfo.h"
 #include "LocalizedString.h"
 
 #include "RageSurfaceUtils_Zoom.h"
 static HBITMAP g_hBitmap = NULL;
+
+RString text[3];
+const float FONT_HEIGHT = 12;
+const string FONT_FILE = "Data/Roboto-Light.ttf";
+const string FONT_NAME = "Roboto Light";
+const auto FONT_COLOR = RGB(240, 240, 240);
+const int FONT_Y = 98;
+const int FONT_X = 20;
 
 /* Load a RageSurface into a GDI surface. */
 static HBITMAP LoadWin32Surface( const RageSurface *pSplash, HWND hWnd )
@@ -25,6 +36,9 @@ static HBITMAP LoadWin32Surface( const RageSurface *pSplash, HWND hWnd )
 	RageSurface *s = CreateSurface( pSplash->w, pSplash->h, 32,
 		0xFF000000, 0x00FF0000, 0x0000FF00, 0 );
 	RageSurfaceUtils::Blit( pSplash, s , -1, -1 );
+	RECT rOld;
+	GetClientRect(hWnd, &rOld);
+	SetWindowPos(hWnd, 0, rOld.left, rOld.top, s->w, s->h, SWP_NOMOVE);
 
 	/* Resize the splash image to fit the dialog.  Stretch to fit horizontally,
 	 * maintaining aspect ratio. */
@@ -81,7 +95,7 @@ static HBITMAP LoadWin32Surface( RString sFile, HWND hWnd )
         return ret;
 }
 
-BOOL CALLBACK LoadingWindow_Win32::WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
+BOOL CALLBACK LoadingWindow_Win32::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch( msg )
 	{
@@ -106,6 +120,30 @@ BOOL CALLBACK LoadingWindow_Win32::WndProc( HWND hWnd, UINT msg, WPARAM wParam, 
 		DeleteObject( g_hBitmap );
 		g_hBitmap = NULL;
 		break;
+    case WM_PAINT:
+		for (unsigned i = 0; i < 3; ++i)
+		{
+			//Do graphical paint
+			RECT rect;
+			HDC wdc = GetWindowDC(hWnd);
+			GetClientRect(hWnd, &rect);
+			SetTextColor(wdc, FONT_COLOR);
+			SetBkMode(wdc, TRANSPARENT);
+			rect.left = FONT_X;
+			rect.top = FONT_Y + (FONT_HEIGHT+3) * i;
+
+			LOGFONT lf;
+			memset(&lf, 0, sizeof(lf));
+			lf.lfHeight = -MulDiv(FONT_HEIGHT, GetDeviceCaps(wdc, LOGPIXELSY), 72);
+			_tcscpy(lf.lfFaceName, FONT_NAME.c_str()); //we must include tchar.h
+			auto f = CreateFontIndirect(&lf);
+			SendMessage(hWnd, WM_SETFONT, (WPARAM)f, MAKELPARAM(FALSE, 0));
+			SelectObject(wdc, f);
+
+			DrawText(wdc, text[i].c_str(), -1, &rect, DT_SINGLELINE | DT_NOCLIP);
+			DeleteDC(wdc);
+			//::SetWindowText( hwndItem, ConvertUTF8ToACP(asMessageLines[i]).c_str() );
+		}
 	}
 
 	return FALSE;
@@ -144,6 +182,13 @@ void LoadingWindow_Win32::SetSplash( const RageSurface *pSplash )
 
 LoadingWindow_Win32::LoadingWindow_Win32()
 {
+	string szFontFile = RageFileManagerUtil::sDirOfExecutable.substr(0, RageFileManagerUtil::sDirOfExecutable.length()-7) + FONT_FILE;
+
+	int nResults = AddFontResourceEx(
+		szFontFile.c_str(), 		// font file name
+		FR_PRIVATE,    	// font characteristics
+		NULL);
+
 	m_hIcon = NULL;
 	hwnd = CreateDialog( handle.Get(), MAKEINTRESOURCE(IDD_LOADING_DIALOG), NULL, WndProc );
 	ASSERT( hwnd != NULL );
@@ -163,7 +208,9 @@ LoadingWindow_Win32::~LoadingWindow_Win32()
 
 void LoadingWindow_Win32::Paint()
 {
-	SendMessage( hwnd, WM_PAINT, 0, 0 );
+	InvalidateRect(hwnd, NULL, TRUE);
+	UpdateWindow(hwnd);
+	SendMessage(hwnd, WM_PAINT, 0, 0);
 
 	/* Process all queued messages since the last paint.  This allows the window to
 	 * come back if it loses focus during load. */
@@ -175,8 +222,23 @@ void LoadingWindow_Win32::Paint()
 	}
 }
 
-void LoadingWindow_Win32::SetText( const RString &sText )
+void LoadingWindow_Win32::SetText(const RString &sText)
 {
+	lastText = sText;
+	SetTextInternal();
+	Paint();
+}
+
+void LoadingWindow_Win32::SetTextInternal()
+{
+	if (m_indeterminate)
+		progress = "";
+	else {
+		int percent = m_totalWork != 0 ? ((float)m_progress) / ((float)m_totalWork) * 100 : m_progress;
+		progress = " ("+to_string(percent) + "%)";
+	}
+	RString& sText = lastText;
+
 	vector<RString> asMessageLines;
 	split( sText, "\n", asMessageLines, false );
 	while( asMessageLines.size() < 3 )
@@ -188,31 +250,38 @@ void LoadingWindow_Win32::SetText( const RString &sText )
 		if( text[i] == asMessageLines[i] )
 			continue;
 		text[i] = asMessageLines[i];
-
-		HWND hwndItem = ::GetDlgItem( hwnd, msgid[i] );
-		::SetWindowText( hwndItem, ConvertUTF8ToACP(asMessageLines[i]).c_str() );
 	}
+	for (unsigned i = 0; i < 3; ++i)
+		if (text[i] != "") {
+			text[i] += progress;
+			break;
+		}
 }
 
 void LoadingWindow_Win32::SetProgress(const int progress)
 {
 	m_progress=progress;
-	HWND hwndItem = ::GetDlgItem( hwnd, IDC_PROGRESS );
-	::SendMessage(hwndItem,PBM_SETPOS,progress,0);
+	//HWND hwndItem = ::GetDlgItem( hwnd, IDC_PROGRESS );
+	//::SendMessage(hwndItem,PBM_SETPOS,progress,0);
+	SetTextInternal();
 	Paint();
 }
 
 void LoadingWindow_Win32::SetTotalWork(const int totalWork)
 {
 	m_totalWork=totalWork;
-	HWND hwndItem = ::GetDlgItem( hwnd, IDC_PROGRESS );
-	SendMessage(hwndItem,PBM_SETRANGE32,0,totalWork);
+	//HWND hwndItem = ::GetDlgItem( hwnd, IDC_PROGRESS );
+	//SendMessage(hwndItem,PBM_SETRANGE32,0,totalWork);
+	SetTextInternal();
+	Paint();
 }
 
 void LoadingWindow_Win32::SetIndeterminate(bool indeterminate)
 {
 	m_indeterminate=indeterminate;
+	SetTextInternal();
 
+	/*
 	HWND hwndItem = ::GetDlgItem( hwnd, IDC_PROGRESS );
 
 	if(indeterminate) {
@@ -222,6 +291,8 @@ void LoadingWindow_Win32::SetIndeterminate(bool indeterminate)
 		SendMessage(hwndItem,PBM_SETMARQUEE,0,0);
 		SetWindowLong(hwndItem,GWL_STYLE, (~PBS_MARQUEE) & GetWindowLong(hwndItem,GWL_STYLE));
 	}
+	*/
+	Paint();
 }
 
 /*

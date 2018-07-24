@@ -276,17 +276,18 @@ void ScoreManager::RecalculateSSRs(LoadingWindow *ld, const string& profileID) {
 	RageTimer ld_timer;
 	auto& scores = AllProfileScores[profileID];
 	if (ld != nullptr) {
+		ld->SetProgress(0);
 		ld_timer.Touch();
 		ld->SetIndeterminate(false);
 		ld->SetTotalWork(scores.size());
-		ld->SetText("Updating SSR Calculations for Scores...");
+		ld->SetText("\nUpdating Ratings");
 	}
 
 	int scoreindex = 0;
 	for(size_t i = 0; i < scores.size(); ++i) {
 		if (ld && ld_timer.Ago() > ld_update) {
 			ld_timer.Touch();
-			ld->SetProgress(scoreindex);
+			ld->SetProgress(i);
 		}
 		++scoreindex;
 

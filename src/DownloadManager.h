@@ -209,6 +209,10 @@ public:
 	void RefreshUserData();
 	void RefreshUserRank();
 	void RefreshTop25(Skillset ss);
+	void DownloadCoreBundle(string whichoneyo);
+	map<string, vector<DownloadablePack*>> bundles;
+	void RefreshCoreBundles();
+	vector<DownloadablePack*> GetCoreBundle(string whichoneyo);
 	OnlineTopScore GetTopSkillsetScore(unsigned int rank, Skillset ss, bool &result);
 	float GetSkillsetRating(Skillset ss);
 	int GetSkillsetRank(Skillset ss);
@@ -219,8 +223,6 @@ public:
 	const int maxPacksToDownloadAtOnce = 1;
 	const float DownloadCooldownTime = 5.f;
 	float timeSinceLastDownload = 0.f;
-	void DownloadCoreBundle(string whichoneyo);
-	vector<DownloadablePack*> GetCoreBundle(string whichoneyo);
 	Packlist pl;
 
 	// Lua

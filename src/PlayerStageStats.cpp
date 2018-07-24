@@ -70,6 +70,7 @@ void PlayerStageStats::InternalInit()
 	filehadnegbpms = false;
 	filegotmines = false;
 	gaveuplikeadumbass = false;
+	filegotholds = false;
 
 	ZERO( m_iTapNoteScores );
 	ZERO( m_iHoldNoteScores );

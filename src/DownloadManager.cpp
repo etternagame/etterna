@@ -1071,27 +1071,35 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 	SendRequest("/charts/"+chartkey+"/leaderboards", vector<pair<string, string>>(), done, true);
 }
 
-vector<DownloadablePack*> DownloadManager::GetCoreBundle(string whichoneyo) {
-	vector<DownloadablePack*> bundle;
-	auto done = [this, &bundle](HTTPRequest& req, CURLMsg *) {
+void DownloadManager::RefreshCoreBundles() {
+	auto done = [](HTTPRequest& req, CURLMsg *) {
 		try {
-			json j= json::parse(req.result);
-			auto packs = j.find("data");
-			if (packs == j.end())
+			json j = json::parse(req.result);
+			auto bundles = j.find("data");
+			if (bundles == j.end())
 				return;
 			auto& dlPacks = DLMAN->downloadablePacks;
-			for (auto pack : (*packs)) {
-				auto name = pack["attributes"].value("packName", "");
-				auto dlPack = find_if(dlPacks.begin(), dlPacks.end(),
-					[&name](DownloadablePack x) { return x.name == name; });
-				if(dlPack != dlPacks.end())
+			for (auto bundleData : (*bundles)) {
+				auto bundleName = bundleData.value("id", "");
+				auto packs = bundleData["attributes"]["packs"];
+				(DLMAN->bundles)[bundleName] = {};
+				auto& bundle = (DLMAN->bundles)[bundleName];
+				for (auto pack : packs) {
+					auto name = pack.value("packname", "");
+					auto dlPack = find_if(dlPacks.begin(), dlPacks.end(),
+						[&name](DownloadablePack x) { return x.name == name; });
+					if (dlPack != dlPacks.end())
 						bundle.emplace_back(&(*dlPack));
+				}
 			}
 		}
-		catch (exception e) { }
+		catch (exception e) {}
 	};
-	SendRequest("packs/collection/" + whichoneyo, vector<pair<string, string>>(), done, false, false, false);
-	return bundle;
+	SendRequest("packs/collections/", {}, done, false);
+}
+
+vector<DownloadablePack*> DownloadManager::GetCoreBundle(string whichoneyo) {
+	return bundles.count(whichoneyo) ? bundles[whichoneyo] : vector<DownloadablePack*>();
 }
 
 void DownloadManager::DownloadCoreBundle(string whichoneyo) {
@@ -1370,6 +1378,7 @@ void DownloadManager::RefreshPackList(string url)
 				} catch (exception e) {}
 			}
 		} catch (exception e) { }
+		DLMAN->RefreshCoreBundles();
 	};
 	SendRequestToURL(url, {}, done, false, false, true);
 	return;
