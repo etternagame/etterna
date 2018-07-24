@@ -1181,7 +1181,7 @@ void DownloadManager::RefreshTop25(Skillset ss)
 	string req = "user/"+DLMAN->sessionUser+"/top/";
 	CURL *curlHandle = initCURLHandle();
 	if(ss!= Skill_Overall)
-		req += SkillsetToString(ss)+"/";
+		req += SkillsetToString(ss)+"/25";
 	auto done = [ss](HTTPRequest& req, CURLMsg *) {
 		try {
 			auto j = json::parse(req.result);
