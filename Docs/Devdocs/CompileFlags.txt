@@ -1,11 +1,11 @@
-StepMania has a few compile flags that are helpful to know, as well as one
+Etterna has a few compile flags that are helpful to know, as well as one
 inherited from sm-ssc that should be nuked.
 
 ================================================================================
-stepmania:
+Etterna:
 ================================================================================
 WITHOUT_NETWORKING
-Disables all networking stuff (e.g. StepMania Online).
+Disables all networking stuff (e.g. Etterna Online).
 --------------------------------------------------------------------------------
 
 ================================================================================

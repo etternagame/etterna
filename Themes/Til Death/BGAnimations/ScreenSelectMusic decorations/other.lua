@@ -39,7 +39,7 @@ local offsetX2 = 10
 local offsetY = 20
 
 local stringList = {
-	{"StepMania Version:",		ProductFamily().." "..ProductVersion()},
+	{"Etterna Version:",		ProductFamily().." "..ProductVersion()},
 	{"Build Date:",				VersionDate().." "..VersionTime()},
 	{"Theme Version:",			getThemeName().." "..getThemeVersion()},
 	{"Total Songs:",			SONGMAN:GetNumSongs().." Songs in "..SONGMAN:GetNumSongGroups().." Groups"},
