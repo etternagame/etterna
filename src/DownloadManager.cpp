@@ -1086,11 +1086,11 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 			//json failed
 		}
 		
-		float ProbablyUnderratedness = mythicalmathymathsProbablyUnderratedness(chartkey);
+		//float ProbablyUnderratedness = mythicalmathymathsProbablyUnderratedness(chartkey);
 		//float coop = overratedness(chartkey);
 		// Renaming these 2 requires renaming them in lua wherever theyre used
-		msg.SetParam("mmm", ProbablyUnderratedness);
-		msg.SetParam("ixmixblixb", 2);
+		//msg.SetParam("mmm", ProbablyUnderratedness);
+		//msg.SetParam("ixmixblixb", 2);
 		MESSAGEMAN->Broadcast(msg);	// see start of function
 	};
 	SendRequest("/charts/"+chartkey+"/leaderboards", vector<pair<string, string>>(), done, true);
