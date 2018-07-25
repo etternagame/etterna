@@ -15,8 +15,8 @@ local c0x = 10
 local c1x = 10 + c0x
 local c2x = c1x + (tzoom*7*adjx)			-- guesswork adjustment for epxected text length
 local c5x = dwidth							-- right aligned cols
-local c4x = c5x - adjx - (tzoom*4*adjx) 	-- right aligned cols
-local c3x = c4x - adjx - (tzoom*3*adjx) 	-- right aligned cols
+local c4x = c5x - adjx - (tzoom*3*adjx) 	-- right aligned cols
+local c3x = c4x - adjx - (tzoom*10*adjx) 	-- right aligned cols
 local headeroff = packspaceY/1.5
 
 local function highlight(self)
@@ -42,7 +42,7 @@ end
 local packlist
 local goaltable
 local o = Def.ActorFrame{
-	Name = "PacklistDisplay",
+	Name = "GoalDisplay",
 	InitCommand=function(self)
 		self:xy(0,0)
 	end,
@@ -84,14 +84,39 @@ local o = Def.ActorFrame{
 			self:xy(offx, headeroff):zoomto(dwidth,pdh):halign(0):diffuse(color("#333333"))
 		end,
 	},
-	LoadFont("Common normal") .. {	--total
+	
+	LoadFont("Common normal") .. {	--priority
 		InitCommand=function(self)
-			self:xy(c1x, headeroff):zoom(tzoom):halign(0)
+			self:xy(c0x + 10, headeroff):zoom(tzoom):halign(0.5)
 		end,
 		UpdateCommand=function(self)
-			self:settext(#goaltable)
+			self:settext("P")
+		end,
+		HighlightCommand=function(self)
+			if isOver(self) then
+				self:settext("Priority"):diffusealpha(0.6)
+			else
+				self:settext("P"):diffusealpha(1)
+			end
 		end,
 	},
+	
+	LoadFont("Common normal") .. {	--rate
+		InitCommand=function(self)
+			self:xy(c1x + 25, headeroff):zoom(tzoom):halign(0.5)
+		end,
+		UpdateCommand=function(self)
+			self:settext("R")
+		end,
+		HighlightCommand=function(self)
+			if isOver(self) then
+				self:settext("Rate"):diffusealpha(0.6)
+			else
+				self:settext("R"):diffusealpha(1)
+			end
+		end,
+	},
+	
 	LoadFont("Common normal") .. {	--name
 		InitCommand=function(self)
 			self:xy(c2x, headeroff):zoom(tzoom):halign(0):settext("Song")
@@ -107,9 +132,10 @@ local o = Def.ActorFrame{
 			end
 		end,
 	},
-	LoadFont("Common normal") .. {	--date
+	
+	LoadFont("Common normal") .. {	--completed toggle
 		InitCommand=function(self)
-			self:xy(c3x- 5, headeroff):zoom(tzoom):halign(1):settext("Date")
+			self:xy(c3x- 40, headeroff):zoom(tzoom):halign(0):settext("All Goals")
 		end,
 		HighlightCommand=function(self)
 			highlightIfOver(self)
@@ -122,9 +148,26 @@ local o = Def.ActorFrame{
 			end
 		end,
 	},
-	LoadFont("Common normal") .. {	--size
+	
+	LoadFont("Common normal") .. {	--date
 		InitCommand=function(self)
-			self:xy(c4x, headeroff):zoom(tzoom):halign(1):settext("Size")
+			self:xy(c4x- 5, headeroff):zoom(tzoom):halign(1):settext("Date")
+		end,
+		HighlightCommand=function(self)
+			highlightIfOver(self)
+		end,
+		MouseLeftClickMessageCommand=function(self)
+			if isOver(self) then
+				packlist:SortByDiff()
+				ind = 0
+				self:GetParent():queuecommand("PackTableRefresh")
+			end
+		end,
+	},
+	
+	LoadFont("Common normal") .. {	--diff
+		InitCommand=function(self)
+			self:xy(c5x, headeroff):zoom(tzoom):halign(1):settext("Diff")
 		end,
 		HighlightCommand=function(self)
 			highlightIfOver(self)
@@ -250,7 +293,7 @@ local function makeGoalDisplay(i)
 				else
 					self:settextf("%.2f%%", perc)
 				end
-				self:diffuse(byAchieved(sg)):x(c1x + (2*adjx) - self:GetZoomedWidth())
+				self:diffuse(byAchieved(sg)):x(c1x + (2*adjx) - self:GetZoomedWidth())	-- def doing this alignment wrong
 			end,
 			HighlightCommand=function(self)
 				highlightIfOver(self)
@@ -270,7 +313,7 @@ local function makeGoalDisplay(i)
 		},
 		LoadFont("Common normal") .. {	--name
 			InitCommand=function(self)
-				self:x(c2x):zoom(tzoom):maxwidth((c3x-c2x - (tzoom*10*adjx))/tzoom):halign(0):valign(1) -- x of left aligned col 2 minus x of right aligned col 3 minus roughly how wide column 3 is plus margin
+				self:x(c2x):zoom(tzoom):maxwidth((c3x-c2x - (tzoom*7*adjx))/tzoom):halign(0):valign(1) -- x of left aligned col 2 minus x of right aligned col 3 minus roughly how wide column 3 is plus margin
 			end,
 			DisplayCommand=function(self)
 				if goalsong then
@@ -282,6 +325,17 @@ local function makeGoalDisplay(i)
 			HighlightCommand=function(self)
 				highlightIfOver(self)
 			end,
+			MouseLeftClickMessageCommand=function(self)
+				if update and sg then 
+					if isOver(self) and sg and goalsong and goalsteps then
+						SCREENMAN:GetTopScreen():GetMusicWheel():SelectSong(goalsong)
+						GAMESTATE:GetSongOptionsObject('ModsLevel_Preferred'):MusicRate(sg:GetRate())
+						GAMESTATE:GetSongOptionsObject('ModsLevel_Song'):MusicRate(sg:GetRate())
+						GAMESTATE:GetSongOptionsObject('ModsLevel_Current'):MusicRate(sg:GetRate())
+						MESSAGEMAN:Broadcast("GoalSelected")
+					end
+				end
+			end
 		},
 		LoadFont("Common normal") .. {	--pb
 			InitCommand=function(self)
@@ -303,14 +357,11 @@ local function makeGoalDisplay(i)
 					self:diffuse(byAchieved(sg))
 				end
 			end,
-			HighlightCommand=function(self)
-				highlightIfOver(self)
-			end,
 		},
 		
 		LoadFont("Common normal") .. {	--assigned
 			InitCommand=function(self)
-				self:x(c3x):zoom(tzoom):halign(1):valign(0):maxwidth((c3x-c2x - (tzoom*20*adjx))/tzoom)
+				self:x(c4x):zoom(tzoom):halign(1):valign(0):maxwidth((c3x-c2x - (tzoom*10*adjx))/tzoom)
 			end,
 			DisplayCommand=function(self)
 				self:settext("Assigned: "..sg:WhenAssigned()):diffuse(byAchieved(sg))
@@ -319,7 +370,7 @@ local function makeGoalDisplay(i)
 		
 		LoadFont("Common normal") .. {	--achieved
 			InitCommand=function(self)
-				self:x(c3x):zoom(tzoom):halign(1):valign(1):maxwidth((c3x-c2x - (tzoom*20*adjx))/tzoom)
+				self:x(c4x):zoom(tzoom):halign(1):valign(1):maxwidth((c3x-c2x - (tzoom*10*adjx))/tzoom)
 			end,
 			DisplayCommand=function(self)
 				if sg:IsAchieved() then
@@ -333,7 +384,7 @@ local function makeGoalDisplay(i)
 			end
 		},
 		
-		LoadFont("Common normal") .. {	--dl button
+		LoadFont("Common normal") .. {	--diff
 			InitCommand=function(self)
 				self:x(c5x):zoom(tzoom):halign(1):valign(1)
 			end,
@@ -346,9 +397,10 @@ local function makeGoalDisplay(i)
 				end
 			end,
 		},
-		Def.Quad{
+		
+		Def.Quad{	-- delete button
 			InitCommand=function(self)
-				self:x(c5x):zoom(tzoom):halign(1):valign(-1):zoomto(24,4):diffuse(byJudgment('TapNoteScore_Miss'))
+				self:x(c5x):zoom(tzoom):halign(1):valign(-1):zoomto(4,4):diffuse(byJudgment('TapNoteScore_Miss'))
 			end,
 			MouseLeftClickMessageCommand=function(self)
 				if sg and isOver(self) and update and sg then
