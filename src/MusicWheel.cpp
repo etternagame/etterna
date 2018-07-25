@@ -181,8 +181,26 @@ MusicWheel::~MusicWheel()
 	}
 }
 
+// this is a trainwreck and i made it worse -mina
 void MusicWheel::ReloadSongList(bool searching, RString findme)
 {
+	// if we fallthrough to pack name matching don't keep reloading if we found a match -mina
+	if (findme.size() > lastvalidsearch.size() && groupnamesearchmatch != "")
+		return;
+
+	// when cancelling a search stay in the pack of your match... this should be more intuitive and relevant behavior -mina
+	if (findme == "" && lastvalidsearch != "") {
+		m_WheelItemDatasStatus[GAMESTATE->m_SortOrder] = INVALID;
+		readyWheelItemsData(GAMESTATE->m_SortOrder, false, findme);
+		SetOpenSection(m_sExpandedSectionName);
+		RebuildWheelItems();
+		SelectSection(m_sExpandedSectionName);
+		SetOpenSection(m_sExpandedSectionName);
+		ChangeMusic(1);
+		SCREENMAN->PostMessageToTopScreen(SM_SongChanged, 0.35f);
+		return;
+	}
+
 	int songIdxToPreserve = m_iSelection;
 	// Remove the song from any sorting caches:
 	FOREACH_ENUM(SortOrder, so)
@@ -204,6 +222,7 @@ void MusicWheel::ReloadSongList(bool searching, RString findme)
 			SelectSection(groupnamesearchmatch);
 			SetOpenSection(groupnamesearchmatch);
 			ChangeMusic(1);
+			SCREENMAN->PostMessageToTopScreen(SM_SongChanged, 0.35f);
 			return;
 		}
 		Song *pSong = GAMESTATE->m_pCurSong;
@@ -831,18 +850,18 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 			for (auto& n : shitterstrats) {
 				auto& gname = n.second;
 				auto& gsongs = groups[n.second];
-
+				
 				RageColor colorSection = SONGMAN->GetSongGroupColor(gname);
 				iSectionColorIndex = (iSectionColorIndex + 1) % NUM_SECTION_COLORS;
 				arrayWheelItemDatas.emplace_back(new MusicWheelItemData(WheelItemDataType_Section, NULL, gname, colorSection, gsongs.size()));
-
+				
 				// need to interact with the filter/search system so check if the song is in the arraysongs set defined above -mina
-				for (auto& s : gsongs)
-					if (hurp.count(s))
-						arrayWheelItemDatas.emplace_back(new MusicWheelItemData(WheelItemDataType_Song, s, gname, SONGMAN->GetSongColor(s), 0));
+					for (auto& s : gsongs)
+						if (hurp.count(s))
+							arrayWheelItemDatas.emplace_back(new MusicWheelItemData(WheelItemDataType_Song, s, gname, SONGMAN->GetSongColor(s), 0));
+				}
 			}
 		}
-	}
 
 	// init music status icons
 	for( unsigned i=0; i<arrayWheelItemDatas.size(); i++ )
@@ -1266,8 +1285,8 @@ void MusicWheel::SetOpenSection( const RString &group )
 			// currently open.
 			if ( HIDE_ACTIVE_SECTION_TITLE || d.m_sText != group )
 				continue;
-		}
-
+			}
+				
 		// Only show tutorial songs in arcade
 		if( GAMESTATE->m_PlayMode!=PLAY_MODE_REGULAR && 
 			d.m_pSong &&
