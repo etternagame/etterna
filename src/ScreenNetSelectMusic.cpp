@@ -223,7 +223,6 @@ bool ScreenNetSelectMusic::Input(const InputEventPlus &input)
 			Song* asonglol = m_MusicWheel.GetSelectedSong();
 			asonglol->SetHasGoal(true);
 			MESSAGEMAN->Broadcast("FavoritesUpdated");
-			MESSAGEMAN->Broadcast("UpdateGoals");
 			m_MusicWheel.ChangeMusic(0);
 			return true;
 		}

@@ -422,6 +422,7 @@ XNode* GoalsForChart::CreateNode() const {
 	XNode* cg = new XNode("GoalsForChart");
 
 	if (!goals.empty()) {
+		ASSERT(goals[0].chartkey != "" && goals[0].chartkey != " ");
 		cg->AppendAttr("Key", goals[0].chartkey);
 		FOREACH_CONST(ScoreGoal, goals, sg)
 			cg->AppendChild(sg->CreateNode());

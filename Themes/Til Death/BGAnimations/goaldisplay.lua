@@ -3,10 +3,10 @@ local pdh = 48 * tzoom
 local ygap = 2
 local packspaceY = pdh + ygap
 
-local numgoals = 10
+local numgoals = 12
 local ind = 0
 local offx = 5
-local width = SCREEN_WIDTH * 0.6
+local width = SCREEN_WIDTH * 0.56
 local dwidth = width - offx * 2
 local height = (numgoals+2) * packspaceY
 
@@ -50,9 +50,9 @@ local o = Def.ActorFrame{
 		self:SetUpdateFunction(highlight)
 		packlist = DLMAN:GetPacklist()
 		packlist:SetFromAll()
-		self:queuecommand("PackTableRefresh")
+		self:queuecommand("GoalTableRefresh")
 	end,
-	PackTableRefreshCommand=function(self)
+	GoalTableRefreshMessageCommand=function(self)
 		goaltable = GetPlayerOrMachineProfile(PLAYER_1):GetAllGoals()
 		ind = 0
 		self:queuecommand("Update")
@@ -65,7 +65,7 @@ local o = Def.ActorFrame{
 		end
 	end,
 	DFRFinishedMessageCommand=function(self)
-		self:queuecommand("PackTableRefresh")
+		self:queuecommand("GoalTableRefresh")
 	end,
 	NextPageCommand=function(self)
 		ind = ind + numgoals
@@ -76,12 +76,12 @@ local o = Def.ActorFrame{
 		self:queuecommand("Update")
 	end,
 
-	Def.Quad{InitCommand=function(self) self:zoomto(width,height-headeroff):halign(0):valign(0):diffuse(color("#888888")) end},
+	Def.Quad{InitCommand=function(self) self:zoomto(width,height-headeroff):halign(0):valign(0):diffuse(color("#333333")) end},
 	
 	-- headers
 	Def.Quad{
 		InitCommand=function(self)
-			self:xy(offx, headeroff):zoomto(dwidth,pdh):halign(0):diffuse(color("#333333"))
+			self:xy(offx, headeroff):zoomto(dwidth,pdh):halign(0):diffuse(color("#111111"))
 		end,
 	},
 	
@@ -128,7 +128,7 @@ local o = Def.ActorFrame{
 			if isOver(self) then
 				packlist:SortByName()
 				ind = 0
-				self:GetParent():queuecommand("PackTableRefresh")
+				self:GetParent():queuecommand("GoalTableRefresh")
 			end
 		end,
 	},
@@ -144,7 +144,7 @@ local o = Def.ActorFrame{
 			if isOver(self) then
 				packlist:SortByDiff()
 				ind = 0
-				self:GetParent():queuecommand("PackTableRefresh")
+				self:GetParent():queuecommand("GoalTableRefresh")
 			end
 		end,
 	},
@@ -160,7 +160,7 @@ local o = Def.ActorFrame{
 			if isOver(self) then
 				packlist:SortByDiff()
 				ind = 0
-				self:GetParent():queuecommand("PackTableRefresh")
+				self:GetParent():queuecommand("GoalTableRefresh")
 			end
 		end,
 	},
@@ -176,7 +176,7 @@ local o = Def.ActorFrame{
 			if isOver(self) then
 				packlist:SortBySize()
 				ind = 0
-				self:GetParent():queuecommand("PackTableRefresh")
+				self:GetParent():queuecommand("GoalTableRefresh")
 			end
 		end,
 	},
@@ -313,7 +313,7 @@ local function makeGoalDisplay(i)
 		},
 		LoadFont("Common normal") .. {	--name
 			InitCommand=function(self)
-				self:x(c2x):zoom(tzoom):maxwidth((c3x-c2x - (tzoom*7*adjx))/tzoom):halign(0):valign(1) -- x of left aligned col 2 minus x of right aligned col 3 minus roughly how wide column 3 is plus margin
+				self:x(c2x):zoom(tzoom):maxwidth((c3x-c2x - (tzoom*4*adjx))/tzoom):halign(0):valign(1) -- x of left aligned col 2 minus x of right aligned col 3 minus roughly how wide column 3 is plus margin
 			end,
 			DisplayCommand=function(self)
 				if goalsong then
@@ -326,7 +326,7 @@ local function makeGoalDisplay(i)
 				highlightIfOver(self)
 			end,
 			MouseLeftClickMessageCommand=function(self)
-				if update and sg then 
+				if sg then
 					if isOver(self) and sg and goalsong and goalsteps then
 						SCREENMAN:GetTopScreen():GetMusicWheel():SelectSong(goalsong)
 						GAMESTATE:GetSongOptionsObject('ModsLevel_Preferred'):MusicRate(sg:GetRate())
@@ -339,7 +339,7 @@ local function makeGoalDisplay(i)
 		},
 		LoadFont("Common normal") .. {	--pb
 			InitCommand=function(self)
-				self:x(c2x):zoom(tzoom):maxwidth((c3x-c2x - (tzoom*6*adjx))/tzoom):halign(0):valign(0)
+				self:x(c2x):zoom(tzoom):maxwidth((c3x-c2x - (tzoom*4*adjx))/tzoom):halign(0):valign(0)
 			end,
 			DisplayCommand=function(self)
 				local pb = sg:GetPBUpTo()
@@ -361,7 +361,7 @@ local function makeGoalDisplay(i)
 		
 		LoadFont("Common normal") .. {	--assigned
 			InitCommand=function(self)
-				self:x(c4x):zoom(tzoom):halign(1):valign(0):maxwidth((c3x-c2x - (tzoom*10*adjx))/tzoom)
+				self:x(c4x):zoom(tzoom):halign(1):valign(0):maxwidth((c4x - c3x)/tzoom)
 			end,
 			DisplayCommand=function(self)
 				self:settext("Assigned: "..sg:WhenAssigned()):diffuse(byAchieved(sg))
@@ -370,7 +370,7 @@ local function makeGoalDisplay(i)
 		
 		LoadFont("Common normal") .. {	--achieved
 			InitCommand=function(self)
-				self:x(c4x):zoom(tzoom):halign(1):valign(1):maxwidth((c3x-c2x - (tzoom*10*adjx))/tzoom)
+				self:x(c4x):zoom(tzoom):halign(1):valign(1):maxwidth((c4x - c3x)/tzoom)
 			end,
 			DisplayCommand=function(self)
 				if sg:IsAchieved() then
@@ -414,6 +414,7 @@ local function makeGoalDisplay(i)
 			MouseLeftClickMessageCommand=function(self)
 				if isOver(self) then
 					sg:Delete()
+					self:GetParent():GetParent():queuecommand("GoalTableRefresh")
 				end
 			end
 		},

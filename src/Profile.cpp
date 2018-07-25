@@ -1240,6 +1240,7 @@ void Profile::AddGoal(const string& ck) {
 	
 	goal.CheckVacuity();
 	goalmap[ck].Add(goal);
+	MESSAGEMAN->Broadcast("GoalTableRefresh");
 }
 
 XNode* ScoreGoal::CreateNode() const {
@@ -1727,7 +1728,7 @@ public:
 			p->CheckVacuity();
 			p->UploadIfNotVacuous();
 		}
-		
+		MESSAGEMAN->Broadcast("GoalParamsUpdated");
 		return 1; 
 	}
 
@@ -1735,6 +1736,12 @@ public:
 		if (!p->achieved) {
 			float newpercent = FArg(1);
 			CLAMP(newpercent, .8f, 1.f);
+			
+			if (p->percent < 0.995f && newpercent > 0.995f)
+				newpercent = 0.9975f;
+			if (p->percent < 0.9990f && newpercent > 0.9997f)
+				newpercent = 0.9997f;
+
 			p->percent = newpercent;
 			p->CheckVacuity();
 			p->UploadIfNotVacuous();
