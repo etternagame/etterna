@@ -288,6 +288,11 @@ void Playlist::AddChart(const string & ck) {
 	Chart ch;
 	ch.FromKey(ck);
 	ch.rate = rate;
+	
+	if (!chartlist.empty())
+		if (chartlist[0].stepsptr->m_StepsType != ch.stepsptr->m_StepsType)
+			return;
+
 	chartlist.emplace_back(ch);
 }
 
