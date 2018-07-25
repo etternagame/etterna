@@ -634,7 +634,11 @@ void DownloadManager::AddGoal(string chartkey, float wife, float rate, DateTime 
 
 void DownloadManager::UpdateGoal(string chartkey, float wife, float rate, bool achieved, DateTime timeAssigned, DateTime timeAchieved)
 {
-	string req = "user/" + DLMAN->sessionUser + "/goals";
+	string doot = "0000:00:00 00:00:00";
+	if (achieved)
+		doot = timeAchieved.GetString();
+
+	string req = "user/" + DLMAN->sessionUser + "/goals/update";
 	auto done = [](HTTPRequest& req, CURLMsg *) {
 
 	};
@@ -643,7 +647,7 @@ void DownloadManager::UpdateGoal(string chartkey, float wife, float rate, bool a
 		make_pair("wife", to_string(wife)),
 		make_pair("achieved", to_string(achieved)),
 		make_pair("timeAssigned", timeAssigned.GetString()),
-		make_pair("timeAchieved", timeAchieved.GetString()) };
+		make_pair("timeAchieved", doot) };
 	SendRequest(req, postParams, done, true, true);
 }
 

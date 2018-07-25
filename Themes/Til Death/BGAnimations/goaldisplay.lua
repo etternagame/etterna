@@ -37,35 +37,32 @@ local function byAchieved(scoregoal)
 	end
 	return color("#aaaaaa")
 end
+local filts = {"All Goals", "Completed", "Incomplete"}
 
-
-local packlist
 local goaltable
 local o = Def.ActorFrame{
 	Name = "GoalDisplay",
 	InitCommand=function(self)
 		self:xy(0,0)
+		self:SetUpdateFunction(highlight)
 	end,
 	OnCommand=function(self)
-		self:SetUpdateFunction(highlight)
-		packlist = DLMAN:GetPacklist()
-		packlist:SetFromAll()
+		GetPlayerOrMachineProfile(PLAYER_1):SetFromAll()
 		self:queuecommand("GoalTableRefresh")
 	end,
 	GoalTableRefreshMessageCommand=function(self)
-		goaltable = GetPlayerOrMachineProfile(PLAYER_1):GetAllGoals()
+		goaltable = GetPlayerOrMachineProfile(PLAYER_1):GetGoalTable()
 		ind = 0
 		self:queuecommand("Update")
 	end,
 	UpdateCommand=function(self)
 		if ind < 0 then
 			ind = 0
+		elseif ind == #goaltable then
+			ind = ind - numgoals
 		elseif ind > #goaltable - (#goaltable % numgoals) then
 			ind = #goaltable - (#goaltable % numgoals)
 		end
-	end,
-	DFRFinishedMessageCommand=function(self)
-		self:queuecommand("GoalTableRefresh")
 	end,
 	NextPageCommand=function(self)
 		ind = ind + numgoals
@@ -84,6 +81,27 @@ local o = Def.ActorFrame{
 			self:xy(offx, headeroff):zoomto(dwidth,pdh):halign(0):diffuse(color("#111111"))
 		end,
 	},
+	LoadFont("Common normal") .. {	--index
+		InitCommand=function(self)
+			self:xy(width/2, headeroff):zoom(tzoom):halign(0.5)
+		end,
+		UpdateCommand=function(self)
+			self:settextf("%i-%i", ind+1, ind+numgoals)
+		end,
+		HighlightCommand=function(self)
+			highlightIfOver(self)
+		end,
+		MouseLeftClickMessageCommand=function(self)
+			if isOver(self) then
+				self:GetParent():queuecommand("NextPage")
+			end
+		end,
+		MouseRightClickMessageCommand=function(self)
+			if isOver(self) then
+				self:GetParent():queuecommand("PrevPage")
+			end
+		end,
+	},
 	
 	LoadFont("Common normal") .. {	--priority
 		InitCommand=function(self)
@@ -97,6 +115,13 @@ local o = Def.ActorFrame{
 				self:settext("Priority"):diffusealpha(0.6)
 			else
 				self:settext("P"):diffusealpha(1)
+			end
+		end,
+		MouseLeftClickMessageCommand=function(self)
+			if isOver(self) then
+				GetPlayerOrMachineProfile(PLAYER_1):SortByPriority()
+				ind = 0
+				self:GetParent():queuecommand("GoalTableRefresh")
 			end
 		end,
 	},
@@ -115,6 +140,13 @@ local o = Def.ActorFrame{
 				self:settext("R"):diffusealpha(1)
 			end
 		end,
+		MouseLeftClickMessageCommand=function(self)
+			if isOver(self) then
+				GetPlayerOrMachineProfile(PLAYER_1):SortByRate()
+				ind = 0
+				self:GetParent():queuecommand("GoalTableRefresh")
+			end
+		end,
 	},
 	
 	LoadFont("Common normal") .. {	--name
@@ -126,24 +158,25 @@ local o = Def.ActorFrame{
 		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
-				packlist:SortByName()
+				GetPlayerOrMachineProfile(PLAYER_1):SortByName()
 				ind = 0
 				self:GetParent():queuecommand("GoalTableRefresh")
 			end
 		end,
 	},
 	
-	LoadFont("Common normal") .. {	--completed toggle
+	LoadFont("Common normal") .. {	--completed toggle // filters
 		InitCommand=function(self)
-			self:xy(c3x- 40, headeroff):zoom(tzoom):halign(0):settext("All Goals")
+			self:xy(c3x- 40, headeroff):zoom(tzoom):halign(0):settext(filts[1])
 		end,
 		HighlightCommand=function(self)
 			highlightIfOver(self)
 		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
-				packlist:SortByDiff()
+				GetPlayerOrMachineProfile(PLAYER_1):ToggleFilter()
 				ind = 0
+				self:settext(filts[GetPlayerOrMachineProfile(PLAYER_1):GetFilterMode()])
 				self:GetParent():queuecommand("GoalTableRefresh")
 			end
 		end,
@@ -158,7 +191,7 @@ local o = Def.ActorFrame{
 		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
-				packlist:SortByDiff()
+				GetPlayerOrMachineProfile(PLAYER_1):SortByDate()
 				ind = 0
 				self:GetParent():queuecommand("GoalTableRefresh")
 			end
@@ -174,7 +207,7 @@ local o = Def.ActorFrame{
 		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
-				packlist:SortBySize()
+				GetPlayerOrMachineProfile(PLAYER_1):SortByDiff()
 				ind = 0
 				self:GetParent():queuecommand("GoalTableRefresh")
 			end
@@ -252,9 +285,6 @@ local function makeGoalDisplay(i)
 					self:diffuse(getMainColor('negative'))
 				end
 			end,
-			HighlightCommand=function(self)
-				highlightIfOver(self)
-			end,
 		},
 		
 		LoadFont("Common normal") .. {	--rate
@@ -313,13 +343,13 @@ local function makeGoalDisplay(i)
 		},
 		LoadFont("Common normal") .. {	--name
 			InitCommand=function(self)
-				self:x(c2x):zoom(tzoom):maxwidth((c3x-c2x - (tzoom*4*adjx))/tzoom):halign(0):valign(1) -- x of left aligned col 2 minus x of right aligned col 3 minus roughly how wide column 3 is plus margin
+				self:x(c2x):zoom(tzoom):maxwidth((c3x-c2x - capWideScale(10,40))/tzoom):halign(0):valign(1)
 			end,
 			DisplayCommand=function(self)
 				if goalsong then
 					self:settext(goalsong:GetDisplayMainTitle()):diffuse(getMainColor('positive'))
 				else
-					self:settext("Song not found"):diffuse(getMainColor('negative'))
+					self:settext(sg:GetChartKey()):diffuse(getMainColor('negative'))
 				end
 			end,
 			HighlightCommand=function(self)
@@ -339,7 +369,7 @@ local function makeGoalDisplay(i)
 		},
 		LoadFont("Common normal") .. {	--pb
 			InitCommand=function(self)
-				self:x(c2x):zoom(tzoom):maxwidth((c3x-c2x - (tzoom*4*adjx))/tzoom):halign(0):valign(0)
+				self:x(c2x):zoom(tzoom):halign(0):valign(0)
 			end,
 			DisplayCommand=function(self)
 				local pb = sg:GetPBUpTo()
@@ -361,7 +391,7 @@ local function makeGoalDisplay(i)
 		
 		LoadFont("Common normal") .. {	--assigned
 			InitCommand=function(self)
-				self:x(c4x):zoom(tzoom):halign(1):valign(0):maxwidth((c4x - c3x)/tzoom)
+				self:x(c4x):zoom(tzoom):halign(1):valign(0):maxwidth(width/4/tzoom)
 			end,
 			DisplayCommand=function(self)
 				self:settext("Assigned: "..sg:WhenAssigned()):diffuse(byAchieved(sg))
@@ -370,7 +400,7 @@ local function makeGoalDisplay(i)
 		
 		LoadFont("Common normal") .. {	--achieved
 			InitCommand=function(self)
-				self:x(c4x):zoom(tzoom):halign(1):valign(1):maxwidth((c4x - c3x)/tzoom)
+				self:x(c4x):zoom(tzoom):halign(1):valign(1):maxwidth(width/4/tzoom)
 			end,
 			DisplayCommand=function(self)
 				if sg:IsAchieved() then
@@ -414,6 +444,7 @@ local function makeGoalDisplay(i)
 			MouseLeftClickMessageCommand=function(self)
 				if isOver(self) then
 					sg:Delete()
+					GetPlayerOrMachineProfile(PLAYER_1):SetFromAll()
 					self:GetParent():GetParent():queuecommand("GoalTableRefresh")
 				end
 			end

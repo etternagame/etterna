@@ -41,6 +41,7 @@
 #include "ScreenManager.h"
 #include "XMLProfile.h"
 #include "DownloadManager.h"
+#include "RageString.h"
 
 /** @brief The filename for where one can edit their personal profile information. */
 const RString EDITABLE_INI         = "Editable.ini";
@@ -1230,7 +1231,7 @@ void Profile::AddGoal(const string& ck) {
 	ScoreGoal goal;
 	goal.timeassigned = DateTime::GetNowDateTime();
 	goal.rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-
+	goal.chartkey = ck;
 	// duplication avoidance should be simpler than this? -mina
 	if (goalmap.count(ck))
 	for (auto& n : goalmap[ck].goals)
@@ -1240,7 +1241,19 @@ void Profile::AddGoal(const string& ck) {
 	
 	goal.CheckVacuity();
 	goalmap[ck].Add(goal);
+	DLMAN->AddGoal(ck, goal.percent, goal.rate, goal.timeassigned);
+	FillGoalTable();
 	MESSAGEMAN->Broadcast("GoalTableRefresh");
+}
+
+void Profile::FillGoalTable() {
+	goaltable.clear();
+	for (auto& sgv : goalmap)
+		for (auto& sg : sgv.second.goals)
+			goaltable.emplace_back(&sg);
+
+	auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->timeassigned > b->timeassigned; };
+	sort(goaltable.begin(), goaltable.end(), comp);
 }
 
 XNode* ScoreGoal::CreateNode() const {
@@ -1329,6 +1342,7 @@ void Profile::SetAnyAchievedGoals(const string& ck, float& rate, const HighScore
 			tmp.achieved = true;
 			tmp.timeachieved = pscore.GetDateTime();
 			tmp.scorekey = pscore.GetScoreKey();
+			DLMAN->UpdateGoal(tmp.chartkey, tmp.percent, tmp.rate, tmp.achieved, tmp.timeassigned, tmp.timeachieved);
 		}
 	}
 }
@@ -1578,24 +1592,127 @@ public:
 	}
 
 	DEFINE_METHOD(GetGUID, m_sGuid);
-	static int GetAllGoals(T* p, lua_State *L) {
-		lua_newtable(L);
-		int idx = 0;
-		FOREACHUM(string, GoalsForChart, p->goalmap, i) {
-			const string &ck = i->first;
-			auto &sgv = i->second.Get();
-			FOREACH(ScoreGoal, sgv, sg) {
-				ScoreGoal &tsg = *sg;
-				if(ck != "")	// not sure how this can happen or if it is happening here... but it shouldn't be able to -mina
-					tsg.chartkey = ck;
-				tsg.PushSelf(L);
-				lua_rawseti(L, -2, idx + 1);
-				idx++;
+	
+	static int GetGoalTable(T* p, lua_State *L) {
+		LuaHelpers::CreateTableFromArray(p->goaltable, L);
+		return 1;
+	}
+	static int SetFromAll(T* p, lua_State *L) {
+		p->FillGoalTable();
+		p->filtermode = 1;
+		return 1;
+	}
+	
+	static int SortByDate(T* p, lua_State* L) {
+		if (p->sortmode == 1)
+			if (p->asc) {
+				auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->timeassigned > b->timeassigned; };	// custom operators?
+				sort(p->goaltable.begin(), p->goaltable.end(), comp);
+				p->asc = false;
+				return 1;
 			}
-		}
+		auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->timeassigned < b->timeassigned; };
+		sort(p->goaltable.begin(), p->goaltable.end(), comp);
+		p->sortmode = 1;
+		p->asc = true;
 		return 1;
 	}
 
+	static int SortByRate(T* p, lua_State* L) {
+		if (p->sortmode == 2)
+			if (p->asc) {
+				auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->rate > b->rate; };	// custom operators?
+				sort(p->goaltable.begin(), p->goaltable.end(), comp);
+				p->asc = false;
+				return 1;
+			}
+		auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->rate < b->rate; };
+		sort(p->goaltable.begin(), p->goaltable.end(), comp);
+		p->sortmode = 2;
+		p->asc = true;
+		return 1;
+	}
+
+	static int SortByName(T* p, lua_State* L) {
+		if (p->sortmode == 3)
+			if (p->asc) {
+				auto comp = [](ScoreGoal* a, ScoreGoal* b) { return Rage::make_lower(SONGMAN->GetSongByChartkey(a->chartkey)->GetDisplayMainTitle()) >
+					Rage::make_lower(SONGMAN->GetSongByChartkey(b->chartkey)->GetDisplayMainTitle()); };	// custom operators?
+				sort(p->goaltable.begin(), p->goaltable.end(), comp);
+				p->asc = false;
+				return 3;
+			}
+		auto comp = [](ScoreGoal* a, ScoreGoal* b) { return Rage::make_lower(SONGMAN->GetSongByChartkey(a->chartkey)->GetDisplayMainTitle()) < 
+			Rage::make_lower(SONGMAN->GetSongByChartkey(b->chartkey)->GetDisplayMainTitle()); };
+		sort(p->goaltable.begin(), p->goaltable.end(), comp);
+		p->sortmode = 3;
+		p->asc = true;
+		return 1;
+	}
+
+	static int SortByPriority(T* p, lua_State* L) {
+		if (p->sortmode == 4)
+			if (p->asc) {
+				auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->priority > b->priority; };	// custom operators?
+				sort(p->goaltable.begin(), p->goaltable.end(), comp);
+				p->asc = false;
+				return 3;
+			}
+		auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->priority < b->priority; };
+		sort(p->goaltable.begin(), p->goaltable.end(), comp);
+		p->sortmode = 4;
+		p->asc = true;
+		return 1;
+	}
+
+	static int SortByDiff(T* p, lua_State* L) {
+		if (p->sortmode == 5)
+			if (p->asc) {
+				auto comp = [](ScoreGoal* a, ScoreGoal* b) { return SONGMAN->GetStepsByChartkey(a->chartkey)->GetMSD(a->rate, 0) >
+					SONGMAN->GetStepsByChartkey(b->chartkey)->GetMSD(b->rate, 0); };
+				sort(p->goaltable.begin(), p->goaltable.end(), comp);
+				p->asc = false;
+				return 3;
+			}
+		auto comp = [](ScoreGoal* a, ScoreGoal* b) { return SONGMAN->GetStepsByChartkey(a->chartkey)->GetMSD(a->rate, 0) <
+			SONGMAN->GetStepsByChartkey(b->chartkey)->GetMSD(b->rate, 0); };
+		sort(p->goaltable.begin(), p->goaltable.end(), comp);
+		p->sortmode = 5;
+		p->asc = true;
+		return 1;
+	}
+
+	static int ToggleFilter(T* p, lua_State* L) {
+		p->FillGoalTable();
+		
+		if (p->filtermode == 3) {
+			p->filtermode = 1;
+			return 1;
+		}
+
+		vector<ScoreGoal*> doot;
+		if (p->filtermode == 1) {
+			for (auto& sg : p->goaltable)
+				if(sg->achieved)
+					doot.emplace_back(sg);
+			p->goaltable = doot;
+			p->filtermode = 2;
+			return 1;
+		}
+		if (p->filtermode == 2) {
+			for (auto& sg : p->goaltable)
+				if (!sg->achieved)
+					doot.emplace_back(sg);
+			p->goaltable = doot;
+			p->filtermode = 3;
+			return 1;
+		}
+		return 1;
+	}
+	static int GetFilterMode(T* p, lua_State *L) {
+		lua_pushnumber(L, p->filtermode);
+		return 1;
+	}
 	static int GetIgnoreStepCountCalories(T* p, lua_State *L) {
 		lua_pushboolean(L, 0);
 		return 1;
@@ -1690,12 +1807,20 @@ public:
 		ADD_METHOD( GetPlayerRating );
 		ADD_METHOD( GetPlayerSkillsetRating );
 		ADD_METHOD( GetNumFaves );
-		ADD_METHOD( GetAllGoals );
+		ADD_METHOD(GetGoalTable);
 		ADD_METHOD(GetIgnoreStepCountCalories);
 		ADD_METHOD(CalculateCaloriesFromHeartRate);
 		ADD_METHOD(IsCurrentChartPermamirror);
 		ADD_METHOD(GetEasiestGoalForChartAndRate);
 		ADD_METHOD(RenameProfile);
+		ADD_METHOD(SetFromAll);
+		ADD_METHOD(SortByDate);
+		ADD_METHOD(SortByRate);
+		ADD_METHOD(SortByPriority);
+		ADD_METHOD(SortByName);
+		ADD_METHOD(SortByDiff);
+		ADD_METHOD(ToggleFilter);
+		ADD_METHOD(GetFilterMode);
 	}
 };
 
@@ -1728,7 +1853,6 @@ public:
 			p->CheckVacuity();
 			p->UploadIfNotVacuous();
 		}
-		MESSAGEMAN->Broadcast("GoalParamsUpdated");
 		return 1; 
 	}
 
