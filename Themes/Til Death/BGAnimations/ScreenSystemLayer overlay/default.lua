@@ -38,8 +38,11 @@ t[#t+1] = Def.ActorFrame {
 	end
 }
 
+-- song reload
 local www = 1366 * 0.8
 local hhh = SCREEN_HEIGHT * 0.8
+local rtzoom = 1
+
 t[#t+1] = Def.ActorFrame {
 	DFRStartedMessageCommand=function(self)
 		self:visible(true)
@@ -59,7 +62,7 @@ t[#t+1] = Def.ActorFrame {
 	Def.BitmapText{
 		Font="Common Normal",
 		InitCommand=function(self)
-			self:diffusealpha(0.9):settext(""):maxwidth(www/4-40)
+			self:diffusealpha(0.9):settext(""):maxwidth(www/4-40/rtzoom):zoom(rtzoom)
 		end,
 		DFRUpdateMessageCommand=function(self,params)
 			self:settext(params.txt)
@@ -67,5 +70,34 @@ t[#t+1] = Def.ActorFrame {
 	}
 }
 
-
+local dltzoom = 0.5
+-- download queue/progress
+t[#t+1] = Def.ActorFrame {
+	AllDownloadsCompletedMessageCommand=function(self)
+		self:visible(false)
+	end,
+	DLProgressAndQueueUpdateMessageCommand=function(self)
+		self:visible(true)
+	end,
+	BeginCommand=function(self)
+		self:visible(false)
+		self:x(www/8 + 10):y(SCREEN_TOP + hhh/8 +10)
+	end,
+	Def.Quad {
+		Name = "BGQframe",
+		InitCommand=function(self)
+			self:zoomto(www/4, hhh/4):diffuse(color("0.1,0.1,0.1,0.8"))
+		end,
+	},
+	Def.BitmapText{
+		Font="Common Normal",
+		InitCommand=function(self)
+			self:xy(-www/8 + 10, -hhh/8):diffusealpha(0.9):settext("5 items in queue:\ndoot\nmcscoot"):maxwidth((www/4-40)/dltzoom):halign(0):valign(0):zoom(dltzoom)
+		end,
+		DLProgressAndQueueUpdateMessageCommand=function(self,params)
+			self:settext(params.dlsize.. " items currently downloading\n".. params.dlprogress.."\n\n"..params.queuesize.." items in download queue:\n"..params.queuedpacks)
+			self:GetParent():GetChild("BGQframe"):zoomy(self:GetHeight() - hhh/4)
+		end,
+	},
+}
 return t

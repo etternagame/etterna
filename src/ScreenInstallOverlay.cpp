@@ -137,16 +137,29 @@ void ScreenInstallOverlay::Update(float fDeltaTime)
 		DoInstalls(args);
 	}
 #if !defined(WITHOUT_NETWORKING)
-	vector<RString> vsMessages;
-	if (!DLMAN->DownloadQueue.empty()) {
-		vsMessages.push_back(RString(to_string(DLMAN->DownloadQueue.size())) + " items left in download queue.\nCurrently downloading:");
-	}
-	for(auto &dl : DLMAN->downloads)
-	{
-		vsMessages.push_back(dl.second->Status());
-	}
-	m_textStatus.SetText(join("\n", vsMessages));
-
+	if (!DLMAN->downloads.empty()) {
+		Message msg("DLProgressAndQueueUpdate");
+		
+		vector<RString> dls;
+		for (auto &dl : DLMAN->downloads) {
+			dls.push_back(dl.second->Status());
+		}
+		msg.SetParam("dlsize", DLMAN->downloads.size());
+		msg.SetParam("dlprogress", join("\n", dls));
+		
+		if (!DLMAN->DownloadQueue.empty()) {
+			vector<RString> cue;
+			for (auto &q : DLMAN->DownloadQueue) {
+				cue.push_back(q->name);
+			}
+			msg.SetParam("queuesize", DLMAN->DownloadQueue.size());
+			msg.SetParam("queuedpacks", join("\n", cue));
+		}
+		msg.SetParam("queuesize", 0);
+		msg.SetParam("queuedpacks", RString(""));
+		MESSAGEMAN->Broadcast(msg);
+	} else
+		MESSAGEMAN->Broadcast("AllDownloadsCompleted");		// silly to handle this through updates but im not sure where is better atm -mina
 #endif
 }
 
