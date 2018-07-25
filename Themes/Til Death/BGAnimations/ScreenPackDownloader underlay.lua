@@ -168,6 +168,9 @@ local o = Def.ActorFrame{
 	FilterChangedMessageCommand=function(self)
 		self:queuecommand("PackTableRefresh")
 	end,
+	MouseRightClickMessageCommand=function(self)
+		SCREENMAN:GetTopScreen():Cancel()
+	end,
 	
 	Def.Quad{
 		InitCommand=function(self)

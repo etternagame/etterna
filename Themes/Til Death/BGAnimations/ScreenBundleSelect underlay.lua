@@ -75,6 +75,9 @@ local o = Def.ActorFrame{
 	WheelDownSlowMessageCommand=function(self)
 		self:queuecommand("NextPage")
 	end,
+	MouseRightClickMessageCommand=function(self)
+		SCREENMAN:GetTopScreen():Cancel()
+	end,
 	
 	Def.Quad{
 		InitCommand=function(self)
