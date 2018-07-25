@@ -325,7 +325,7 @@ void MusicWheelItem::RefreshGrades()
 		HighScoreList *BestpHSL = NULL;
 		Grade gradeBest = Grade_Invalid;
 		Difficulty dcBest = Difficulty_Invalid;
-		if (PROFILEMAN->IsPersistentProfile(ps) && dc != Difficulty_Invalid) {
+		if (PROFILEMAN->IsPersistentProfile(ps)) {
 			if (pWID->m_pSong != nullptr) {
 				bool hasCurrentStyleSteps = false;
 				FOREACH_ENUM_N(Difficulty, 6, i) {
