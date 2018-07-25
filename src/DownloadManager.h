@@ -172,6 +172,7 @@ public:
 	vector<string> favorites;
 
 	void AddGoal(string chartkey, float wife, float rate, DateTime timeAssigned);
+	void UpdateGoal(string chartkey, float wife, float rate, bool achieved, DateTime timeAssigned, DateTime timeAchieved);
 	void RemoveGoal(string chartkey, float wife, float rate);
 
 	void EndSessionIfExists(); //Calls EndSession if logged in

@@ -219,13 +219,11 @@ bool ScreenNetSelectMusic::Input(const InputEventPlus &input)
 		else if (c == 'G')
 		{
 			Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
-			pProfile->CreateGoal(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+			pProfile->AddGoal(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
 			Song* asonglol = m_MusicWheel.GetSelectedSong();
 			asonglol->SetHasGoal(true);
-			Message msg("FavoritesUpdated");
-			MESSAGEMAN->Broadcast(msg);
-			Message msg2("UpdateGoals");
-			MESSAGEMAN->Broadcast(msg2);
+			MESSAGEMAN->Broadcast("FavoritesUpdated");
+			MESSAGEMAN->Broadcast("UpdateGoals");
 			m_MusicWheel.ChangeMusic(0);
 			return true;
 		}

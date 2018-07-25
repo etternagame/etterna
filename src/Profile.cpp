@@ -40,6 +40,7 @@
 #include <algorithm>
 #include "ScreenManager.h"
 #include "XMLProfile.h"
+#include "DownloadManager.h"
 
 /** @brief The filename for where one can edit their personal profile information. */
 const RString EDITABLE_INI         = "Editable.ini";
@@ -1225,16 +1226,19 @@ void Profile::ImportScoresToEtterna() {
 
 
 // more future goalman stuff (perhaps this should be standardized to "add" in order to match scoreman nomenclature) -mina
-void Profile::CreateGoal(const string& ck) {
+void Profile::AddGoal(const string& ck) {
 	ScoreGoal goal;
 	goal.timeassigned = DateTime::GetNowDateTime();
 	goal.rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 
 	// duplication avoidance should be simpler than this? -mina
+	if (goalmap.count(ck))
 	for (auto& n : goalmap[ck].goals)
 		if (n.rate == goal.rate && n.percent == goal.percent)
 			return;
-
+	
+	
+	goal.CheckVacuity();
 	goalmap[ck].Add(goal);
 }
 
@@ -1289,6 +1293,11 @@ void ScoreGoal::CheckVacuity() {
 		vacuous = false;
 }
 
+void ScoreGoal::UploadIfNotVacuous() {
+	if (!vacuous || timeachieved.GetString() != "")
+		DLMAN->UpdateGoal(chartkey, percent, rate, achieved, timeassigned, timeachieved);
+}
+
 // aaa too lazy to write comparators rn -mina
 ScoreGoal& Profile::GetLowestGoalForRate(const string& ck, float rate) {
 	auto& sgv = goalmap[ck].Get();
@@ -1323,11 +1332,13 @@ void Profile::SetAnyAchievedGoals(const string& ck, float& rate, const HighScore
 	}
 }
 
-void Profile::DeleteGoal(const string& ck, DateTime assigned) {
+void Profile::RemoveGoal(const string& ck, DateTime assigned) {
 	auto& sgv = goalmap.at(ck).Get();
 	for (size_t i = 0; i < sgv.size(); ++i) {
-		if (sgv[i].timeassigned == assigned)
+		if (sgv[i].timeassigned == assigned) {
+			DLMAN->RemoveGoal(ck, sgv[i].percent, sgv[i].rate);
 			sgv.erase(sgv.begin() + i);
+		}
 	}
 }
 
@@ -1574,7 +1585,8 @@ public:
 			auto &sgv = i->second.Get();
 			FOREACH(ScoreGoal, sgv, sg) {
 				ScoreGoal &tsg = *sg;
-				tsg.chartkey = ck;
+				if(ck != "")	// not sure how this can happen or if it is happening here... but it shouldn't be able to -mina
+					tsg.chartkey = ck;
 				tsg.PushSelf(L);
 				lua_rawseti(L, -2, idx + 1);
 				idx++;
@@ -1713,6 +1725,7 @@ public:
 			CLAMP(newrate, 0.7f, 3.0f);
 			p->rate = newrate;
 			p->CheckVacuity();
+			p->UploadIfNotVacuous();
 		}
 		
 		return 1; 
@@ -1724,6 +1737,7 @@ public:
 			CLAMP(newpercent, .8f, 1.f);
 			p->percent = newpercent;
 			p->CheckVacuity();
+			p->UploadIfNotVacuous();
 		}
 		return 1;
 	}
@@ -1733,6 +1747,7 @@ public:
 			int newpriority = IArg(1);
 			CLAMP(newpriority, 0, 100);
 			p->priority = newpriority;
+			p->UploadIfNotVacuous();
 		}
 		return 1;
 	}
@@ -1740,7 +1755,7 @@ public:
 	static int SetComment(T* p, lua_State *L) { p->comment = SArg(1); return 1; }
 
 	static int Delete(T* p, lua_State *L) {
-		PROFILEMAN->GetProfile(PLAYER_1)->DeleteGoal(p->chartkey, p->timeassigned);
+		PROFILEMAN->GetProfile(PLAYER_1)->RemoveGoal(p->chartkey, p->timeassigned);
 		return 1;
 	}
 
