@@ -1288,7 +1288,7 @@ void DownloadManager::OnLogin()
 void DownloadManager::StartSession(string user, string pass, function<void(bool loggedIn)> callback = [](bool) {return; })
 {
 	string url = serverURL.Get() + "/login";
-	if (loggingIn) {
+	if (loggingIn || user == "") {
 		return;
 	}
 	DLMAN->loggingIn = true;
