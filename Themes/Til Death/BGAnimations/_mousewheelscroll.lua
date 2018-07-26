@@ -35,6 +35,7 @@ local function scrollInput(event)
 		whee:Move(0)
 		moving = false
 	end
+return false
 end
 
 local t = Def.ActorFrame{

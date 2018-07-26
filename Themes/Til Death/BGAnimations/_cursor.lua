@@ -11,17 +11,17 @@ local function input(event)
 		if event.type == "InputEventType_Release" then
 			curIndex = (curIndex+1)%20
 			MESSAGEMAN:Broadcast("Click")
-		end;
-	end;
-return false;
-end;
+		end
+	end
+return false
+end
 
 function cursorClick(index)
 	return LoadActor(THEME:GetPathG("","_circle")) .. {
-		Name="CursorClick";
+		Name="CursorClick",
 		InitCommand=function(self)
 			self:diffusealpha(0)
-		end;
+		end,
 		ClickMessageCommand=function(self)
 			if index == curIndex then
 				self:finishtweening()
@@ -37,8 +37,8 @@ function cursorClick(index)
 end
 
 local t = Def.ActorFrame{
-	Name="Cursor";
-	OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) end;
+	Name="Cursor",
+	OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) end
 }
 
 for i=0,maxChild do
@@ -46,11 +46,11 @@ for i=0,maxChild do
 end
 
 t[#t+1] = Def.Quad{
-	Name="Cursor";
+	Name="Cursor",
 	InitCommand=function(self)
 		self:xy(0,0):zoomto(4,4):rotationz(45)
-	end;
-};
+	end
+}
 
 local function Update(self)
 	t.InitCommand=function(self)
@@ -62,11 +62,11 @@ local function Update(self)
    		self:GetChild("Cursor"):visible(true)
    	else
    		self:GetChild("Cursor"):visible(false)
-   	end;
+   	end
     --self:GetChild("FullScreen"):settextf("FullScreen: %s",tostring(not PREFSMAN:GetPreference("Windowed")))
-end; 
+end 
 t.InitCommand=function(self)
 	self:SetUpdateFunction(Update)
-end;
+end
 
 return t

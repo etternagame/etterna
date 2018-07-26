@@ -19,6 +19,27 @@ local c4x = c5x - adjx - (tzoom*3*adjx) 	-- right aligned cols
 local c3x = c4x - adjx - (tzoom*10*adjx) 	-- right aligned cols
 local headeroff = packspaceY/1.5
 
+local moving
+local cheese
+
+-- will eat any mousewheel inputs to scroll pages while mouse is over the background frame
+local function input(event)
+	if isOver(cheese:GetChild("FrameDisplay")) then
+		if event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" then
+			moving = true
+			cheese:queuecommand("PrevPage")
+			return true
+		elseif event.DeviceInput.button == "DeviceButton_mousewheel down" and event.type == "InputEventType_FirstPress" then
+			cheese:queuecommand("NextPage")
+			return true
+		elseif moving == true then
+			moving = false
+		end
+		return true
+	end
+	return false
+end
+
 local function highlight(self)
 	self:queuecommand("Highlight")
 end
@@ -47,6 +68,8 @@ local o = Def.ActorFrame{
 		self:SetUpdateFunction(highlight)
 	end,
 	OnCommand=function(self)
+		cheese = self
+		SCREENMAN:GetTopScreen():AddInputCallback(input)
 		GetPlayerOrMachineProfile(PLAYER_1):SetFromAll()
 		self:queuecommand("GoalTableRefresh")
 	end,
@@ -66,6 +89,7 @@ local o = Def.ActorFrame{
 		end
 	end,
 	DFRFinishedMessageCommand=function(self)
+		GetPlayerOrMachineProfile(PLAYER_1):SetFromAll()
 		self:queuecommand("GoalTableRefresh")
 	end,
 	NextPageCommand=function(self)
@@ -76,8 +100,16 @@ local o = Def.ActorFrame{
 		ind = ind - numgoals
 		self:queuecommand("Update")
 	end,
+	WheeDoooMessageCommand=function(self)
+		self:queuecommand("NextPage")
+	end,
 
-	Def.Quad{InitCommand=function(self) self:zoomto(width,height-headeroff):halign(0):valign(0):diffuse(color("#333333")) end},
+	Def.Quad{
+	Name = "FrameDisplay",
+	InitCommand=function(self)
+		self:zoomto(width,height-headeroff):halign(0):valign(0):diffuse(color("#333333")) 
+	end
+	},
 	
 	-- headers
 	Def.Quad{

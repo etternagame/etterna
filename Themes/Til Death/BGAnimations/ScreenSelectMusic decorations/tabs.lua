@@ -1,6 +1,5 @@
 local active = true
 local numericinputactive = false
-local whee
 
 local tabNames = {"General","MSD","Scores","Search","Profile","Filters", "Goals", "Playlists", "Packs", "Tags"} -- this probably should be in tabmanager.
 
@@ -19,18 +18,12 @@ local function input(event)
 				end
 			end
 		end
-		if event.DeviceInput.button == "DeviceButton_left mouse button" then
-			MESSAGEMAN:Broadcast("MouseLeftClick")
-		elseif event.DeviceInput.button == "DeviceButton_right mouse button" then
-			MESSAGEMAN:Broadcast("MouseRightClick")
-		end
 	end
 	return false
 end
 local t = Def.ActorFrame{
 	OnCommand=function(self)
-		SCREENMAN:GetTopScreen():AddInputCallback(input)
-		whee = SCREENMAN:GetTopScreen():GetMusicWheel()
+		--SCREENMAN:GetTopScreen():AddInputCallback(input)
 	end,
 	BeginCommand=function(self) resetTabIndex() end,
 	BeginningSearchMessageCommand=function(self) active = true end,	-- this is for disabling numeric input in the text search and is unused atm

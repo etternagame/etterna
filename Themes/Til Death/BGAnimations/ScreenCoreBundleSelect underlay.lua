@@ -7,7 +7,7 @@ local ind = 7
 local function input(event)
 	if event.DeviceInput.button == 'DeviceButton_left mouse button' then
 		if event.type == "InputEventType_Release" then
-			MESSAGEMAN:Broadcast("ScMouseLeftClick")
+			--MESSAGEMAN:Broadcast("ScMouseLeftClick")
 		end
 	end
 	return false

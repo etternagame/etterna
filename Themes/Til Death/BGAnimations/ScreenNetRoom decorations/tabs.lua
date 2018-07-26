@@ -33,7 +33,7 @@ local function input(event)
 end
 
 local t = Def.ActorFrame{
-	OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) end,
+	--OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) end,
 	BeginCommand=function(self) resetTabIndex() end,
 	PlayerJoinedMessageCommand=function(self) resetTabIndex() end,
 	BeginningSearchMessageCommand=function(self) active = true end,
