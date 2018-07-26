@@ -1022,6 +1022,42 @@ float overratedness(string chartkey) {
 	return overratedness;
 }
 
+// fill dummy highscores so we can use the same lua displays -mina
+void DownloadManager::MakeAThing(string chartkey) {
+	athing.clear();
+	HighScore hs;
+
+	for (auto& ohs : DLMAN->chartLeaderboards[chartkey]) {
+		hs.SetDateTime(ohs.datetime);
+		hs.SetMaxCombo(ohs.maxcombo);
+		hs.SetName(ohs.username);
+		hs.SetModifiers(ohs.modifiers);
+		hs.SetChordCohesion(ohs.nocc);
+		hs.SetWifeScore(ohs.wife);
+		hs.SetMusicRate(ohs.rate);
+
+		hs.SetTapNoteScore(TNS_W1, ohs.marvelous);
+		hs.SetTapNoteScore(TNS_W2, ohs.perfect);
+		hs.SetTapNoteScore(TNS_W3, ohs.great);
+		hs.SetTapNoteScore(TNS_W4, ohs.good);
+		hs.SetTapNoteScore(TNS_W5, ohs.bad);
+		hs.SetTapNoteScore(TNS_Miss, ohs.miss);
+		hs.SetTapNoteScore(TNS_HitMine, ohs.minehits);
+
+		hs.SetHoldNoteScore(HNS_Held, ohs.held);
+		hs.SetHoldNoteScore(HNS_LetGo, ohs.letgo);
+
+		FOREACH_ENUM(Skillset, ss)
+			hs.SetSkillsetSSR(ss, ohs.SSRs[ss]);
+
+		hs.userid = ohs.userid;
+		hs.scoreid = ohs.scoreid;
+		hs.avatar = ohs.avatar;
+		athing.push_back(hs);
+	}
+	
+}
+
 void DownloadManager::RequestChartLeaderBoard(string chartkey)
 {
 	auto done = [chartkey](HTTPRequest& req, CURLMsg *) {
@@ -1733,6 +1769,12 @@ public:
 	static int RequestChartLeaderBoard(T* p, lua_State* L)
 	{
 		p->RequestChartLeaderBoard(SArg(1));
+		p->MakeAThing(SArg(1));
+		vector<HighScore*> wot;
+		for (auto& zoop : p->athing)
+			wot.push_back(&zoop);
+		LuaHelpers::CreateTableFromArray(wot, L);
+
 		return 1;
 	}
 	LunaDownloadManager()

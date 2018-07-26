@@ -1516,6 +1516,26 @@ public:
 		else
 			lua_pushnil(L);
 		return 1;
+	
+	}
+	static int GetJudgmentString(T* p, lua_State *L) {
+		RString doot = ssprintf("%d I %d I %d I %d I %d I %d  x%d", p->GetTapNoteScore(TNS_W1), p->GetTapNoteScore(TNS_W2), p->GetTapNoteScore(TNS_W3),
+			p->GetTapNoteScore(TNS_W4), p->GetTapNoteScore(TNS_W5), p->GetTapNoteScore(TNS_Miss), p->GetMaxCombo());
+		lua_pushstring(L, doot);
+		return 1;
+	}
+
+	static int GetUserid(T* p, lua_State *L) {
+		lua_pushnumber(L, p->userid);
+		return 1;
+	}
+	static int GetScoreid(T* p, lua_State *L) {
+		lua_pushstring(L, RString(p->scoreid));
+		return 1;
+	}
+	static int GetAvatar(T* p, lua_State *L) {
+		lua_pushstring(L, p->avatar);
+		return 1;
 	}
 
 	DEFINE_METHOD( GetGrade, GetGrade() )
@@ -1528,6 +1548,7 @@ public:
 	DEFINE_METHOD( HasReplayData, HasReplayData() )
 	DEFINE_METHOD( GetChartKey, GetChartKey())
 	DEFINE_METHOD(GetReplayType, GetReplayType())
+	DEFINE_METHOD(GetDisplayName, GetDisplayName())
 	LunaHighScore()
 	{
 		ADD_METHOD( GetName );
@@ -1564,6 +1585,11 @@ public:
 		ADD_METHOD( GetTapNoteTypeVector );
 		ADD_METHOD( GetChartKey );
 		ADD_METHOD( GetReplayType );
+		ADD_METHOD(GetJudgmentString);
+		ADD_METHOD(GetDisplayName);
+		ADD_METHOD(GetUserid);
+		ADD_METHOD(GetScoreid);
+		ADD_METHOD(GetAvatar);
 	}
 };
 

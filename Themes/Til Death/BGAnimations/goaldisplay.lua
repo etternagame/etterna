@@ -125,19 +125,6 @@ local o = Def.ActorFrame{
 		UpdateCommand=function(self)
 			self:settextf("%i-%i", ind+1, ind+numgoals)
 		end,
-		HighlightCommand=function(self)
-			highlightIfOver(self)
-		end,
-		MouseLeftClickMessageCommand=function(self)
-			if isOver(self) then
-				self:GetParent():queuecommand("NextPage")
-			end
-		end,
-		MouseRightClickMessageCommand=function(self)
-			if isOver(self) then
-				self:GetParent():queuecommand("PrevPage")
-			end
-		end,
 	},
 	
 	LoadFont("Common normal") .. {	--priority

@@ -24,6 +24,6 @@ local t = Def.ActorFrame{
 }
 
 
-t[#t+1] = LoadActor("../goaldisplay")
+t[#t+1] = LoadActor("../superscoreboard")
 
 return t
