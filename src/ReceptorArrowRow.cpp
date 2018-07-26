@@ -7,8 +7,11 @@
 #include "ReceptorArrowRow.h"
 #include "Style.h"
 
+map<int, map<int, bool>> NoteUpcoming;
+
 ReceptorArrowRow::ReceptorArrowRow()
 {
+	NoteUpcoming.clear();
 	m_pPlayerState = NULL;
 	m_fYReverseOffsetPixels = 0;
 	m_fFadeToFailPercent = 0;
@@ -124,10 +127,15 @@ void ReceptorArrowRow::SetPressed( int iCol )
 	m_ReceptorArrow[iCol]->SetPressed();
 }
 
-void ReceptorArrowRow::SetNoteUpcoming( int iCol, bool b )
+map<int,int> MapValueToClear;
+
+void ReceptorArrowRow::SetNoteUpcoming( int iCol, bool b, int iRow )
 {
-	ASSERT( iCol >= 0  &&  iCol < (int) m_ReceptorArrow.size() );
-	m_ReceptorArrow[iCol]->SetNoteUpcoming(b);
+	if (NoteUpcoming[iCol][iRow] == NULL) {
+		ASSERT(iCol >= 0 && iCol < (int)m_ReceptorArrow.size());
+		m_ReceptorArrow[iCol]->SetNoteUpcoming(iCol, iRow, b);
+		NoteUpcoming[iCol][iRow] = true;
+	}
 }
 
 

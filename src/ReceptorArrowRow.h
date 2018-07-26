@@ -22,7 +22,7 @@ public:
 
 	void Step( int iCol, TapNoteScore score );
 	void SetPressed( int iCol );
-	void SetNoteUpcoming( int iCol, bool b );
+	void SetNoteUpcoming( int iCol, bool b, int iRow );
 	
 	void SetFadeToFailPercent( float fFadeToFailPercent ) { m_fFadeToFailPercent = fFadeToFailPercent; }
 

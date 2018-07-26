@@ -74,9 +74,13 @@ void ReceptorArrow::Step( TapNoteScore score )
 	m_pReceptor->HandleMessage(msg); 
 }
 
-void ReceptorArrow::SetNoteUpcoming( bool b )
+void ReceptorArrow::SetNoteUpcoming( int iCol, int iRow, bool b )
 {
 	m_pReceptor->PlayCommand( b ? "ShowNoteUpcoming" : "HideNoteUpcoming" );
+	Message msg("ReceptorUpcoming");
+	msg.SetParam("Column", iCol);
+	msg.SetParam("Row", iRow);
+	m_pReceptor->HandleMessage(msg);
 }
 
 /*
