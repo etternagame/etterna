@@ -17,7 +17,7 @@ public:
 	void Update( float fDeltaTime ) override;
 	void Step( TapNoteScore score );
 	void SetPressed() { m_bIsPressed = true; };
-	void SetNoteUpcoming( bool b );
+	void SetNoteUpcoming( int iCol, int iRow, bool b );
 private:
 
 	const PlayerState* m_pPlayerState;
