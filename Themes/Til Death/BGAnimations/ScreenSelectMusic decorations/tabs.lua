@@ -11,7 +11,7 @@ local function input(event)
 				MESSAGEMAN:Broadcast("TabChanged")
 			else
 				for i=1,#tabNames do
-					if not (INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl") or (SCREENMAN:GetTopScreen():GetName() ~= "ScreenSelectMusic")) and event.char and tonumber(event.char) and  tonumber(event.char)==i then
+					if not (INPUTFILTER:IsBeingPressed("left ctrl", nil) or INPUTFILTER:IsBeingPressed("right ctrl", nil) or (SCREENMAN:GetTopScreen():GetName() ~= "ScreenSelectMusic")) and event.char and tonumber(event.char) and  tonumber(event.char)==i then
 						setTabIndex(i-1)
 						MESSAGEMAN:Broadcast("TabChanged")
 					end

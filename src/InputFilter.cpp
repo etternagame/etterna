@@ -517,7 +517,7 @@ public:
 			return luaL_error(L, "IsBeingPressed(button, inputDevice=keyboard) expects at least one parameter");
 		}
 		DeviceButton button = StringToDeviceButton(SArg(1));
-		InputDevice device = (lua_isnil(L, 2) ? StringToInputDevice(SArg(2)) : DEVICE_KEYBOARD);
+		InputDevice device = lua_isnil(L, 2) ? DEVICE_KEYBOARD : StringToInputDevice(SArg(2));
 		lua_pushboolean(L, INPUTFILTER->IsBeingPressed(DeviceInput(device, button)));
 		return 1;
 	}

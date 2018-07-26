@@ -38,6 +38,6 @@ local t = Def.ActorFrame{
 		MESSAGEMAN:Broadcast("TabChanged")
 	end
 }
-t[#t+1] = LoadActor("../superscoreboard")
+t[#t+1] = LoadActor("../GoalDisplay")
 
 return t

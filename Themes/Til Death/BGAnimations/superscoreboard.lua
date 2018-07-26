@@ -42,6 +42,7 @@ end
 
 local function highlight(self)
 	self:queuecommand("Highlight")
+	self:queuecommand("WHAZZZAAAA")
 end
 
 local function highlightIfOver(self)
@@ -64,7 +65,7 @@ local currentrateonly = false
 
 local scoretable
 local o = Def.ActorFrame{
-	Name = "GoalDisplay",
+	Name = "ScoreDisplay",
 	InitCommand=function(self)
 		cheese = self
 		self:SetUpdateFunction(highlight)
@@ -177,6 +178,26 @@ local o = Def.ActorFrame{
 	Def.Quad{
 		InitCommand=function(self)
 			self:xy(offx, headeroff):zoomto(dwidth,pdh):halign(0):diffuse(color("#111111"))
+		end,
+	},
+	
+	-- grabby thing
+	Def.Quad{
+		InitCommand=function(self)
+			self:xy(dwidth/4, headeroff):zoomto(dwidth,pdh):halign(0):diffusealpha(1):diffuse(color("#111111"))
+		end,
+		WHAZZZAAAACommand=function(self)
+			if isOver(self) and collapsed then
+				self:diffusealpha(0.6):diffuse(color("#fafafa"))
+				if INPUTFILTER:IsBeingPressed("Mouse 0", "Mouse") then
+					self:diffusealpha(0):zoomto(200,200)
+					self:GetParent():xy(INPUTFILTER:GetMouseX()-width/2, INPUTFILTER:GetMouseY())
+				else
+					self:zoomto(dwidth/2,pdh/2)
+				end
+			else
+				self:diffusealpha(0):diffuse(color("#111111"))
+			end
 		end,
 	},
 	
