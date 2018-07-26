@@ -127,8 +127,6 @@ void ReceptorArrowRow::SetPressed( int iCol )
 	m_ReceptorArrow[iCol]->SetPressed();
 }
 
-map<int,int> MapValueToClear;
-
 void ReceptorArrowRow::SetNoteUpcoming( int iCol, bool b, int iRow )
 {
 	if (NoteUpcoming[iCol][iRow] == NULL) {
