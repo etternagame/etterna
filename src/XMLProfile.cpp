@@ -422,6 +422,7 @@ XNode* GoalsForChart::CreateNode() const {
 	XNode* cg = new XNode("GoalsForChart");
 
 	if (!goals.empty()) {
+		ASSERT(goals[0].chartkey != "" && goals[0].chartkey != " ");
 		cg->AppendAttr("Key", goals[0].chartkey);
 		FOREACH_CONST(ScoreGoal, goals, sg)
 			cg->AppendChild(sg->CreateNode());
@@ -486,6 +487,10 @@ void XMLProfile::LoadScoreGoalsFromNode(const XNode *pNode) {
 		chgoals->GetAttrValue("Key", ck);
 		ck = SONGMAN->ReconcileBustedKeys(ck);
 		loadingProfile->goalmap[ck].LoadFromNode(chgoals);
+		
+		// this should load using the chart system but ensure keys are set properly here for now -mina
+		for (auto& sg : loadingProfile->goalmap[ck].goals)
+			sg.chartkey = ck;
 	}
 }
 
