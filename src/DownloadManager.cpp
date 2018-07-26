@@ -1704,13 +1704,12 @@ public:
 		float avgpackdiff = 0.f;
 
 		for (auto p : bundle) {
-			totalsize += p->size;
+			totalsize += p->size / 1024 / 1024;
 			avgpackdiff += p->avgDifficulty;
 		}
 
 		if(!bundle.empty())
 			avgpackdiff /= bundle.size();
-		totalsize = totalsize / 1024 / 1024;
 		
 		// this may be kind of unintuitive but lets roll with it for now -mina
 		lua_pushnumber(L, totalsize);

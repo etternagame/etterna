@@ -207,7 +207,7 @@ local function makedoots(i)
 			end,
 			OnCommand=function(self)
 				local bundle = DLMAN:GetCoreBundle(minidoots[i]:lower())
-				self:settextf("(%dmb)", bundle["TotalSize"])
+				self:settextf("(%dMB)", bundle["TotalSize"])
 			end,
 		}
 	}
