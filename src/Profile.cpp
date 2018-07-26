@@ -870,9 +870,10 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 				ld->SetText("Migrating replay data to new folder...");
 			}
 			int replayindex = 0;
+			int onePercent = std::max(replays.size(), 1u);
 			
 			for (auto r : replays) {
-				if (ld && ld_timer.Ago() > ld_update) {
+				if (ld && replayindex%onePercent==0 && ld_timer.Ago() > ld_update) {
 					ld_timer.Touch();
 					ld->SetProgress(replayindex);
 					++replayindex;
