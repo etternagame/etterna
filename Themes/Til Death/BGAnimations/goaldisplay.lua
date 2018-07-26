@@ -35,7 +35,6 @@ local function input(event)
 		elseif moving == true then
 			moving = false
 		end
-		return true
 	end
 	return false
 end
@@ -64,12 +63,14 @@ local goaltable
 local o = Def.ActorFrame{
 	Name = "GoalDisplay",
 	InitCommand=function(self)
+		cheese = self
 		self:xy(0,0)
 		self:SetUpdateFunction(highlight)
 	end,
-	OnCommand=function(self)
-		cheese = self
+	BeginCommand=function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
+	end,
+	OnCommand=function(self)
 		GetPlayerOrMachineProfile(PLAYER_1):SetFromAll()
 		self:queuecommand("GoalTableRefresh")
 	end,

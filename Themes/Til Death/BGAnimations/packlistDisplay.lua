@@ -37,7 +37,7 @@ local o = Def.ActorFrame{
 	InitCommand=function(self)
 		self:xy(0,0)
 	end,
-	OnCommand=function(self)
+	BeginCommand=function(self)
 		self:SetUpdateFunction(highlight)
 		packlist = DLMAN:GetPacklist()
 		packlist:SetFromAll()

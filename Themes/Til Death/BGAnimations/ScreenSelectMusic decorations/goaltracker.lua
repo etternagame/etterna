@@ -1,4 +1,3 @@
-local update = false
 local t = Def.ActorFrame{
 	BeginCommand=function(self)
 		self:queuecommand("Set"):visible(false)
@@ -15,10 +14,8 @@ local t = Def.ActorFrame{
 		if getTabIndex() == 6 then
 			self:queuecommand("On")
 			self:visible(true)
-			update = true
 		else 
 			self:queuecommand("Off")
-			update = false
 		end
 	end,
 	TabChangedMessageCommand=function(self)

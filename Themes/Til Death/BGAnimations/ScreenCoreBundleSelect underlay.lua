@@ -7,7 +7,7 @@ local ind = 7
 local function input(event)
 	if event.DeviceInput.button == 'DeviceButton_left mouse button' then
 		if event.type == "InputEventType_Release" then
-			--MESSAGEMAN:Broadcast("ScMouseLeftClick")
+			MESSAGEMAN:Broadcast("ScMouseLeftClick")
 		end
 	end
 	return false
@@ -17,7 +17,7 @@ local o = Def.ActorFrame{
 	InitCommand=function(self)
 		self:xy(SCREEN_WIDTH/2, 50):halign(0.5)
 	end,
-	OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) end,
+	BeginCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) end,
 	CodeMessageCommand = function(self, params)
 		if params.Name == 'Up' then
 			ind = ind - 1

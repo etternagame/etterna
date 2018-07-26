@@ -2,16 +2,16 @@ local function input(event)
 	local top = SCREENMAN:GetTopScreen()
 	if event.DeviceInput.button == 'DeviceButton_left mouse button' then
 		if event.type == "InputEventType_Release" then
-			if GAMESTATE:IsPlayerEnabled(PLAYER_1) and not SCREENMAN:get_input_redirected(PLAYER_1) then
+			if not SCREENMAN:get_input_redirected(PLAYER_1) then
 				if isOver(top:GetChild("Overlay"):GetChild("PlayerAvatar"):GetChild("Avatar"..PLAYER_1):GetChild("Image")) then
 					SCREENMAN:AddNewScreenToTop("ScreenAvatarSwitch")
 				end
 			end
 		end
 	end
-	if event.DeviceInput.button == "DeviceButton_left mouse button" then
+	if event.DeviceInput.button == "DeviceButton_left mouse button" and event.type == "InputEventType_Release" then
 		MESSAGEMAN:Broadcast("MouseLeftClick")
-	elseif event.DeviceInput.button == "DeviceButton_right mouse button" then
+	elseif event.DeviceInput.button == "DeviceButton_right mouse button" and event.type == "InputEventType_Release" then
 		MESSAGEMAN:Broadcast("MouseRightClick")
 	end
 return false

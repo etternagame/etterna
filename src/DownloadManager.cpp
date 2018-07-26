@@ -1273,7 +1273,6 @@ void DownloadManager::RefreshUserData()
 
 void DownloadManager::OnLogin()
 {
-		return;
 	DLMAN->RefreshUserRank();
 	DLMAN->RefreshUserData();
 	FOREACH_ENUM(Skillset, ss)

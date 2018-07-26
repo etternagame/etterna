@@ -24,7 +24,7 @@ local function searchInput(event)
 	if event.type ~= "InputEventType_Release" and active then
 		if event.DeviceInput.button == "DeviceButton_left mouse button" then
 			inputting = 0
-			--MESSAGEMAN:Broadcast("MouseLeftClicks")
+			MESSAGEMAN:Broadcast("MouseLeftClicks")
 			MESSAGEMAN:Broadcast("UpdateString")
 		elseif event.DeviceInput.button == "DeviceButton_right mouse button" then
 			inputting = 0
@@ -107,7 +107,7 @@ end
 local t = Def.ActorFrame{
 	BeginCommand=function(self)
 		whee = SCREENMAN:GetTopScreen():GetMusicWheel()
-		--SCREENMAN:GetTopScreen():AddInputCallback(searchInput)
+		SCREENMAN:GetTopScreen():AddInputCallback(searchInput)
 		self:finishtweening()
 		if NSMAN:IsETTP() then
 			ms.ok("Song search activated")

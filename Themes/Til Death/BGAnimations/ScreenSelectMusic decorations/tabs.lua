@@ -22,12 +22,10 @@ local function input(event)
 	return false
 end
 local t = Def.ActorFrame{
-	OnCommand=function(self)
-		--SCREENMAN:GetTopScreen():AddInputCallback(input)
+	BeginCommand=function(self)
+		SCREENMAN:GetTopScreen():AddInputCallback(input)
+		resetTabIndex()
 	end,
-	BeginCommand=function(self) resetTabIndex() end,
-	BeginningSearchMessageCommand=function(self) active = true end,	-- this is for disabling numeric input in the text search and is unused atm
-	EndingSearchMessageCommand=function(self) active = true end,
 	NumericInputActiveMessageCommand=function(self) numericinputactive = true end,
 	NumericInputEndedMessageCommand=function(self) numericinputactive = false end,
 }
