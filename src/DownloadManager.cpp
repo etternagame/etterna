@@ -1729,6 +1729,12 @@ public:
 		lua_pushstring(L, DLMAN->authToken.c_str());
 		return 1;
 	}
+
+	static int RequestChartLeaderBoard(T* p, lua_State* L)
+	{
+		p->RequestChartLeaderBoard(SArg(1));
+		return 1;
+	}
 	LunaDownloadManager()
 	{
 		ADD_METHOD(DownloadCoreBundle);
@@ -1748,6 +1754,7 @@ public:
 		ADD_METHOD(GetTopChartScoreCount);
 		ADD_METHOD(GetLastVersion);
 		ADD_METHOD(GetRegisterPage);
+		ADD_METHOD(RequestChartLeaderBoard);
 		ADD_METHOD(Logout);
 	}
 };
