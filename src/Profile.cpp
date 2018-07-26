@@ -1250,7 +1250,8 @@ void Profile::FillGoalTable() {
 	goaltable.clear();
 	for (auto& sgv : goalmap)
 		for (auto& sg : sgv.second.goals)
-			goaltable.emplace_back(&sg);
+			if(SONGMAN->GetStepsByChartkey(sg.chartkey))
+				goaltable.emplace_back(&sg);
 
 	auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->timeassigned > b->timeassigned; };
 	sort(goaltable.begin(), goaltable.end(), comp);
