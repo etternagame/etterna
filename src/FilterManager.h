@@ -20,7 +20,6 @@ public:
 	void ResetSSFilters(); // reset button for filters
 	bool HighestSkillsetsOnly = false;
 	bool AnyActiveFilter();
-	bool currentrateonlyforonlineleaderboardrankings = false;
 
 	//Lua
 	void PushSelf(lua_State *L);

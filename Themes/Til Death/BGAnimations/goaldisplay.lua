@@ -101,15 +101,12 @@ local o = Def.ActorFrame{
 		ind = ind - numgoals
 		self:queuecommand("Update")
 	end,
-	WheeDoooMessageCommand=function(self)
-		self:queuecommand("NextPage")
-	end,
-
+	
 	Def.Quad{
-	Name = "FrameDisplay",
-	InitCommand=function(self)
-		self:zoomto(width,height-headeroff):halign(0):valign(0):diffuse(color("#333333")) 
-	end
+		Name = "FrameDisplay",
+		InitCommand=function(self)
+			self:zoomto(width,height-headeroff):halign(0):valign(0):diffuse(color("#333333")) 
+		end
 	},
 	
 	-- headers

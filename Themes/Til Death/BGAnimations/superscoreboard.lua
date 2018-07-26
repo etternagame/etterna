@@ -3,12 +3,12 @@ local pdh = 48 * tzoom
 local ygap = 2
 local packspaceY = pdh + ygap
 
-local numgoals = 12
+local numscores = 12
 local ind = 0
 local offx = 5
 local width = SCREEN_WIDTH * 0.56
 local dwidth = width - offx * 2
-local height = (numgoals+2) * packspaceY
+local height = (numscores+2) * packspaceY
 
 local adjx = 14
 local c0x = 10
@@ -21,6 +21,7 @@ local headeroff = packspaceY/1.5
 local row2yoff = 1
 local moving
 local cheese
+local collapsed = false
 
 -- will eat any mousewheel inputs to scroll pages while mouse is over the background frame
 local function input(event)
@@ -66,7 +67,6 @@ local o = Def.ActorFrame{
 	Name = "GoalDisplay",
 	InitCommand=function(self)
 		cheese = self
-		self:xy(0,0)
 		self:SetUpdateFunction(highlight)
 	end,
 	BeginCommand=function(self)
@@ -83,49 +83,100 @@ local o = Def.ActorFrame{
 	end,
 	UpdateCommand=function(self)
 		if ind == #scoretable then
-			ind = ind - numgoals
-		elseif ind > #scoretable - (#scoretable % numgoals) then
-			ind = #scoretable - (#scoretable % numgoals)
+			ind = ind - numscores
+		elseif ind > #scoretable - (#scoretable % numscores) then
+			ind = #scoretable - (#scoretable % numscores)
 		end
 		if ind < 0 then
 			ind = 0
 		end
 	end,
-	DFRFinishedMessageCommand=function(self)
-		GetPlayerOrMachineProfile(PLAYER_1):SetFromAll()
-		self:queuecommand("GoalTableRefresh")
-	end,
 	NextPageCommand=function(self)
-		ind = ind + numgoals
+		ind = ind + numscores
 		self:queuecommand("Update")
 	end,
 	PrevPageCommand=function(self)
-		ind = ind - numgoals
+		ind = ind - numscores
 		self:queuecommand("Update")
 	end,
-	WheeDoooMessageCommand=function(self)
-		self:queuecommand("NextPage")
+	CollapseCommand=function(self)
+		tzoom = 0.5 * 0.75
+		pdh = 38 * tzoom
+		ygap = 2
+		packspaceY = pdh + ygap
+		
+		numscores = 10
+		ind = 0
+		offx = 5
+		width = math.max(SCREEN_WIDTH * 0.25,240)
+		dwidth = width - offx * 2
+		height = (numscores+2) * packspaceY
+		
+		adjx = 14
+		c0x = 10
+		c1x = 10 + c0x
+		c2x = c1x + (tzoom*7*adjx)
+		c5x = dwidth
+		c4x = c5x - adjx - (tzoom*3*adjx)
+		c3x = c4x - adjx - (tzoom*10*adjx)
+		headeroff = packspaceY/1.5
+		row2yoff = 1
+		collapsed = true
+		self:diffusealpha(0.8)
+		self:queuecommand("Init")
+	end,
+	ExpandCommand=function(self)
+		tzoom = 0.5
+		pdh = 48 * tzoom
+		ygap = 2
+		packspaceY = pdh + ygap
+		
+		numscores = 12
+		ind = 0
+		offx = 5
+		width = SCREEN_WIDTH * 0.56
+		dwidth = width - offx * 2
+		height = (numscores+2) * packspaceY
+		
+		adjx = 14
+		c0x = 10
+		c1x = 20 + c0x
+		c2x = c1x + (tzoom*7*adjx)			-- guesswork adjustment for epxected text length
+		c5x = dwidth							-- right aligned cols
+		c4x = c5x - adjx - (tzoom*3*adjx) 	-- right aligned cols
+		c3x = c4x - adjx - (tzoom*10*adjx) 	-- right aligned cols
+		headeroff = packspaceY/1.5
+		row2yoff = 1
+		collapsed = false
+		self:diffusealpha(1)
+		self:queuecommand("Init")
 	end,
 
 	Def.Quad{
-	Name = "FrameDisplay",
-	InitCommand=function(self)
-		self:zoomto(width,height-headeroff):halign(0):valign(0):diffuse(color("#333333")) 
-	end
+		Name = "FrameDisplay",
+		InitCommand=function(self)
+			self:zoomto(width,height-headeroff):halign(0):valign(0):diffuse(color("#333333")) 
+		end,
+		HighlightCommand=function(self)
+			if isOver(self) and collapsed then
+				self:diffusealpha(1)
+			else
+				self:diffusealpha(0.8)
+			end
+		end,
+		MouseRightClickMessageCommand=function(self)
+			if isOver(self) and not collapsed then
+				self:GetParent():GetParent():queuecommand("Collapse")
+			elseif isOver(self) then
+				self:GetParent():GetParent():queuecommand("Expand")
+			end
+		end,
 	},
 	
 	-- headers
 	Def.Quad{
 		InitCommand=function(self)
 			self:xy(offx, headeroff):zoomto(dwidth,pdh):halign(0):diffuse(color("#111111"))
-		end,
-	},
-	LoadFont("Common normal") .. {	--index
-		InitCommand=function(self)
-			self:xy(width/2, headeroff):zoom(tzoom):halign(0.5)
-		end,
-		UpdateCommand=function(self)
-			self:settextf("%i-%i", ind+1, ind+numgoals)
 		end,
 	},
 	
@@ -158,10 +209,13 @@ local function makeGoalDisplay(i)
 	local o = Def.ActorFrame{
 		InitCommand=function(self)
 			self:y(packspaceY*i + headeroff)
+			if i > numscores then
+				self:visible(false)
+			end
 		end,
 		UpdateCommand=function(self)
 			hs = scoretable[(i + ind)]
-			if hs then
+			if hs and i <= numscores then
 				self:queuecommand("Display")
 				self:visible(true)
 			else
@@ -175,12 +229,22 @@ local function makeGoalDisplay(i)
 			end,
 			DisplayCommand=function(self)
 				self:diffuse(color("#111111CC"))
-			end
+			end,
+			HighlightCommand=function(self)
+				if isOver(self) and collapsed then
+					self:diffusealpha(1)
+				else
+					self:diffusealpha(0.6)
+				end
+			end,
 		},
 		
 		LoadFont("Common normal") .. {	--rank
 			InitCommand=function(self)
 				self:x(c0x):zoom(tzoom):halign(0):valign(0)
+				if collapsed then
+					self:x(c0x):zoom(tzoom):halign(0):valign(0.5)
+				end
 			end,
 			DisplayCommand=function(self)
 				self:settextf("%i.", i + ind)
@@ -190,6 +254,9 @@ local function makeGoalDisplay(i)
 		LoadFont("Common normal") .. {	--ssr
 			InitCommand=function(self)
 				self:x(c2x - c1x + offx):zoom(tzoom+0.05):halign(0.5):valign(1)
+				if collapsed then
+					self:x(46):zoom(tzoom+0.15):halign(0.5):valign(0.5):maxwidth(20/tzoom)
+				end
 			end,
 			DisplayCommand=function(self)
 				local ssr = hs:GetSkillsetSSR("Overall")
@@ -197,20 +264,28 @@ local function makeGoalDisplay(i)
 			end,
 		},
 		
-		
 		LoadFont("Common normal") .. {	--rate
 			InitCommand=function(self)
 				self:x(c2x - c1x + offx):zoom(tzoom-0.05):halign(0.5):valign(0):addy(row2yoff)
+				if collapsed then
+					self:x(c4x - 14):zoom(tzoom):halign(1):valign(0.5):addy(-row2yoff):maxwidth(30/tzoom)
+				end
 			end,
 			DisplayCommand=function(self)
 				local ratestring = string.format("%.2f", hs:GetMusicRate()):gsub("%.?0$", "").."x"
 				self:settext(ratestring)
+			end,
+			ExpandCommand=function(self)
+				self:addy(-row2yoff)
 			end,
 		},
 
 		LoadFont("Common normal") .. {	--name
 			InitCommand=function(self)
 				self:x(c2x):zoom(tzoom+0.1):maxwidth((c3x-c2x - capWideScale(10,40))/tzoom):halign(0):valign(1)
+				if collapsed then
+					self:x(c2x + 10):maxwidth(60/tzoom):zoom(tzoom+0.2):valign(0.5)
+				end
 			end,
 			DisplayCommand=function(self)
 				self:settext(hs:GetDisplayName())
@@ -228,12 +303,14 @@ local function makeGoalDisplay(i)
 					local urlstringyo = "https://etternaonline.com/user/"..hs:GetUserid()
 					GAMESTATE:ApplyGameCommand("urlnoexit,"..urlstringyo)
 				end
-			end
+			end,
 		},
 		
 		LoadFont("Common normal") .. {	--judgments
 			InitCommand=function(self)
-				self:x(c2x):zoom(tzoom-0.05):halign(0):valign(0):maxwidth(width/2/tzoom):addy(row2yoff)
+				if not collapsed then
+					self:x(c2x):zoom(tzoom-0.05):halign(0):valign(0):maxwidth(width/2/tzoom):addy(row2yoff)
+				end
 			end,
 			DisplayCommand=function(self)
 				self:settext(hs:GetJudgmentString())
@@ -251,12 +328,21 @@ local function makeGoalDisplay(i)
 					local urlstringyo = "https://etternaonline.com/score/view/"..hs:GetScoreid()..hs:GetUserid()
 					GAMESTATE:ApplyGameCommand("urlnoexit,"..urlstringyo)
 				end
-			end
+			end,
+			CollapseCommand=function(self)
+				self:visible(false)
+			end,
+			ExpandCommand=function(self)
+				self:visible(true):addy(-row2yoff)
+			end,
 		},
 		
 		LoadFont("Common normal") .. {	--percent
 			InitCommand=function(self)
 				self:x(c5x):zoom(tzoom+0.15):halign(1):valign(1)
+				if collapsed then
+					self:x(c5x):zoom(tzoom+0.15):halign(1):valign(0.5):maxwidth(30/tzoom)
+				end
 			end,
 			DisplayCommand=function(self)
 				self:settextf("%05.2f%%", hs:GetWifeScore()*10000/100):diffuse(byGrade(hs:GetWifeGrade()))
@@ -265,17 +351,25 @@ local function makeGoalDisplay(i)
 		
 		LoadFont("Common normal") .. {	--date
 			InitCommand=function(self)
-				self:x(c5x):zoom(tzoom-0.05):halign(1):valign(0):maxwidth(width/4/tzoom):addy(row2yoff)
+				if not collapsed then
+					self:x(c5x):zoom(tzoom-0.05):halign(1):valign(0):maxwidth(width/4/tzoom):addy(row2yoff)
+				end
 			end,
 			DisplayCommand=function(self)
 				self:settext(hs:GetDate())
+			end,
+			CollapseCommand=function(self)
+				self:visible(false)
+			end,
+			ExpandCommand=function(self)
+				self:visible(true):addy(-row2yoff)
 			end,
 		},
 	}
 	return o
 end
 
-for i=1,numgoals do
+for i=1,numscores do
 	o[#o+1] = makeGoalDisplay(i)
 end
 

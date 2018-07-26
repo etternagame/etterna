@@ -1064,7 +1064,6 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 		vector<OnlineScore> & vec = DLMAN->chartLeaderboards[chartkey];
 		vec.clear();
 		unordered_set<string> userswithscores;
-		float currentrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 		Message msg("ChartLeaderboardUpdate");
 		try {
 			auto j = json::parse(req.result);
@@ -1103,9 +1102,6 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 				
 				// filter scores not on the current rate out if enabled... dunno if we need this precision -mina
 				tmp.rate = static_cast<float>(score.value("rate", 0.0));
-				if (FILTERMAN->currentrateonlyforonlineleaderboardrankings)
-					if(lround(tmp.rate * 10000.f) != lround(currentrate * 10000.f))
-						continue;
 				tmp.nocc = score.value("noCC", 0) != 0;
 				tmp.valid = score.value("valid", 0) != 0;
 
