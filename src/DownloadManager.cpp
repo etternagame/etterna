@@ -1766,17 +1766,29 @@ public:
 		return 1;
 	}
 
-	static int RequestChartLeaderBoard(T* p, lua_State* L)
-	{
+	static int RequestChartLeaderBoard(T* p, lua_State* L) {
 		p->RequestChartLeaderBoard(SArg(1));
 		p->MakeAThing(SArg(1));
 		vector<HighScore*> wot;
 		for (auto& zoop : p->athing)
 			wot.push_back(&zoop);
 		LuaHelpers::CreateTableFromArray(wot, L);
-
 		return 1;
 	}
+
+	static int ToggleRateFilter(T* p, lua_State* L) {
+		p->currentrateonly = !p->currentrateonly;
+		vector<HighScore*> wot;
+		float currentrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+		for (auto& zoop : p->athing) {
+			if (lround(zoop.GetMusicRate() * 10000.f) != lround(currentrate * 10000.f) && p->currentrateonly)
+				continue;
+			wot.push_back(&zoop);
+		}
+		LuaHelpers::CreateTableFromArray(wot, L);
+		return 1;
+	}
+
 	LunaDownloadManager()
 	{
 		ADD_METHOD(DownloadCoreBundle);
@@ -1797,6 +1809,7 @@ public:
 		ADD_METHOD(GetLastVersion);
 		ADD_METHOD(GetRegisterPage);
 		ADD_METHOD(RequestChartLeaderBoard);
+		ADD_METHOD(ToggleRateFilter);
 		ADD_METHOD(Logout);
 	}
 };

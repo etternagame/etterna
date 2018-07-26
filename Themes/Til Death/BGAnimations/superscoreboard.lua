@@ -18,7 +18,7 @@ local c5x = dwidth							-- right aligned cols
 local c4x = c5x - adjx - (tzoom*3*adjx) 	-- right aligned cols
 local c3x = c4x - adjx - (tzoom*10*adjx) 	-- right aligned cols
 local headeroff = packspaceY/1.5
-
+local row2yoff = 1
 local moving
 local cheese
 
@@ -57,9 +57,11 @@ local function byAchieved(scoregoal)
 	end
 	return color("#aaaaaa")
 end
-local filts = {"All Rates", "Current Rate"}
 
-local goaltable
+local filts = {"All Rates", "Current Rate"}
+local currentrateonly = false
+
+local scoretable
 local o = Def.ActorFrame{
 	Name = "GoalDisplay",
 	InitCommand=function(self)
@@ -75,15 +77,15 @@ local o = Def.ActorFrame{
 		self:queuecommand("GoalTableRefresh")
 	end,
 	GoalTableRefreshMessageCommand=function(self)
-		goaltable = DLMAN:RequestChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())
+		scoretable = DLMAN:RequestChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())
 		ind = 0
 		self:queuecommand("Update")
 	end,
 	UpdateCommand=function(self)
-		if ind == #goaltable then
+		if ind == #scoretable then
 			ind = ind - numgoals
-		elseif ind > #goaltable - (#goaltable % numgoals) then
-			ind = #goaltable - (#goaltable % numgoals)
+		elseif ind > #scoretable - (#scoretable % numgoals) then
+			ind = #scoretable - (#scoretable % numgoals)
 		end
 		if ind < 0 then
 			ind = 0
@@ -127,74 +129,24 @@ local o = Def.ActorFrame{
 		end,
 	},
 	
-	LoadFont("Common normal") .. {	--rate
+	LoadFont("Common normal") .. {	--current rate toggle
 		InitCommand=function(self)
-			self:xy(c1x + 25, headeroff):zoom(tzoom):halign(0.5)
-		end,
-		UpdateCommand=function(self)
-			self:settext("R")
-		end,
-		HighlightCommand=function(self)
-			if isOver(self) then
-				self:settext("Rate"):diffusealpha(0.6)
-			else
-				self:settext("R"):diffusealpha(1)
-			end
-		end,
-		MouseLeftClickMessageCommand=function(self)
-			if isOver(self) then
-				GetPlayerOrMachineProfile(PLAYER_1):SortByRate()
-				ind = 0
-				self:GetParent():queuecommand("GoalTableRefresh")
-			end
-		end,
-	},
-	
-	LoadFont("Common normal") .. {	--name
-		InitCommand=function(self)
-			self:xy(c2x, headeroff):zoom(tzoom):halign(0):settext("Song")
+			self:xy(c5x - 10, headeroff):zoom(tzoom):halign(1):settext(filts[1])
 		end,
 		HighlightCommand=function(self)
 			highlightIfOver(self)
 		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
-				GetPlayerOrMachineProfile(PLAYER_1):SortByName()
+				scoretable = DLMAN:ToggleRateFilter()
 				ind = 0
-				self:GetParent():queuecommand("GoalTableRefresh")
-			end
-		end,
-	},
-	
-	LoadFont("Common normal") .. {	--completed toggle // filters
-		InitCommand=function(self)
-			self:xy(c3x- capWideScale(15,40), headeroff):zoom(tzoom):halign(0):settext(filts[1])
-		end,
-		HighlightCommand=function(self)
-			highlightIfOver(self)
-		end,
-		MouseLeftClickMessageCommand=function(self)
-			if isOver(self) then
-				GetPlayerOrMachineProfile(PLAYER_1):ToggleFilter()
-				ind = 0
-				self:settext(filts[GetPlayerOrMachineProfile(PLAYER_1):GetFilterMode()])
-				self:GetParent():queuecommand("GoalTableRefresh")
-			end
-		end,
-	},
-	
-	LoadFont("Common normal") .. {	--date
-		InitCommand=function(self)
-			self:xy(c4x- 5, headeroff):zoom(tzoom):halign(1):settext("Date")
-		end,
-		HighlightCommand=function(self)
-			highlightIfOver(self)
-		end,
-		MouseLeftClickMessageCommand=function(self)
-			if isOver(self) then
-				GetPlayerOrMachineProfile(PLAYER_1):SortByDate()
-				ind = 0
-				self:GetParent():queuecommand("GoalTableRefresh")
+				currentrateonly = not currentrateonly
+				if currentrateonly then 
+					self:settext(filts[2])
+				else
+					self:settext(filts[1])
+				end
+				self:GetParent():queuecommand("Update")
 			end
 		end,
 	},
@@ -208,7 +160,7 @@ local function makeGoalDisplay(i)
 			self:y(packspaceY*i + headeroff)
 		end,
 		UpdateCommand=function(self)
-			hs = goaltable[(i + ind)]
+			hs = scoretable[(i + ind)]
 			if hs then
 				self:queuecommand("Display")
 				self:visible(true)
@@ -235,16 +187,6 @@ local function makeGoalDisplay(i)
 			end
 		},
 		
-		LoadFont("Common normal") .. {	--rate
-			InitCommand=function(self)
-				self:x(c2x - c1x + offx):zoom(tzoom-0.05):halign(0.5):valign(0)
-			end,
-			DisplayCommand=function(self)
-				local ratestring = string.format("%.2f", hs:GetMusicRate()):gsub("%.?0$", "").."x"
-				self:settext(ratestring)
-			end,
-		},
-		
 		LoadFont("Common normal") .. {	--ssr
 			InitCommand=function(self)
 				self:x(c2x - c1x + offx):zoom(tzoom+0.05):halign(0.5):valign(1)
@@ -255,6 +197,16 @@ local function makeGoalDisplay(i)
 			end,
 		},
 		
+		
+		LoadFont("Common normal") .. {	--rate
+			InitCommand=function(self)
+				self:x(c2x - c1x + offx):zoom(tzoom-0.05):halign(0.5):valign(0):addy(row2yoff)
+			end,
+			DisplayCommand=function(self)
+				local ratestring = string.format("%.2f", hs:GetMusicRate()):gsub("%.?0$", "").."x"
+				self:settext(ratestring)
+			end,
+		},
 
 		LoadFont("Common normal") .. {	--name
 			InitCommand=function(self)
@@ -272,13 +224,16 @@ local function makeGoalDisplay(i)
 				highlightIfOver(self)
 			end,
 			MouseLeftClickMessageCommand=function(self)
-				self:addx(0)
+				if isOver(self) then
+					local urlstringyo = "https://etternaonline.com/user/"..hs:GetUserid()
+					GAMESTATE:ApplyGameCommand("urlnoexit,"..urlstringyo)
+				end
 			end
 		},
 		
 		LoadFont("Common normal") .. {	--judgments
 			InitCommand=function(self)
-				self:x(c2x):zoom(tzoom-0.05):halign(0):valign(0):maxwidth(width/2/tzoom)
+				self:x(c2x):zoom(tzoom-0.05):halign(0):valign(0):maxwidth(width/2/tzoom):addy(row2yoff)
 			end,
 			DisplayCommand=function(self)
 				self:settext(hs:GetJudgmentString())
@@ -291,6 +246,12 @@ local function makeGoalDisplay(i)
 			HighlightCommand=function(self)
 				highlightIfOver(self)
 			end,
+			MouseLeftClickMessageCommand=function(self)
+				if isOver(self) then
+					local urlstringyo = "https://etternaonline.com/score/view/"..hs:GetScoreid()..hs:GetUserid()
+					GAMESTATE:ApplyGameCommand("urlnoexit,"..urlstringyo)
+				end
+			end
 		},
 		
 		LoadFont("Common normal") .. {	--percent
@@ -304,7 +265,7 @@ local function makeGoalDisplay(i)
 		
 		LoadFont("Common normal") .. {	--date
 			InitCommand=function(self)
-				self:x(c5x):zoom(tzoom-0.05):halign(1):valign(0):maxwidth(width/4/tzoom)
+				self:x(c5x):zoom(tzoom-0.05):halign(1):valign(0):maxwidth(width/4/tzoom):addy(row2yoff)
 			end,
 			DisplayCommand=function(self)
 				self:settext(hs:GetDate())

@@ -212,6 +212,7 @@ public:
 	void RefreshRegisterPage();
 	void MakeAThing(string chartkey);
 	vector<HighScore> athing;
+	bool currentrateonly = 0;
 	void RequestChartLeaderBoard(string chartkey);
 	void RefreshUserData();
 	void RefreshUserRank();

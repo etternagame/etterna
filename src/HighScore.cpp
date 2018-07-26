@@ -1534,7 +1534,7 @@ public:
 		return 1;
 	}
 	static int GetAvatar(T* p, lua_State *L) {
-		lua_pushstring(L, p->avatar);
+		lua_pushstring(L, RString(p->avatar));
 		return 1;
 	}
 
