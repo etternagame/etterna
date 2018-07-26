@@ -56,13 +56,17 @@ local o = Def.ActorFrame{
 		self:queuecommand("Update")
 	end,
 	UpdateCommand=function(self)
-		if ind < 0 then
-			ind = 0
-		elseif ind == #goaltable then
+		if ind == #goaltable then
 			ind = ind - numgoals
 		elseif ind > #goaltable - (#goaltable % numgoals) then
 			ind = #goaltable - (#goaltable % numgoals)
 		end
+		if ind < 0 then
+			ind = 0
+		end
+	end,
+	DFRFinishedMessageCommand=function(self)
+		self:queuecommand("GoalTableRefresh")
 	end,
 	NextPageCommand=function(self)
 		ind = ind + numgoals
@@ -167,7 +171,7 @@ local o = Def.ActorFrame{
 	
 	LoadFont("Common normal") .. {	--completed toggle // filters
 		InitCommand=function(self)
-			self:xy(c3x- 40, headeroff):zoom(tzoom):halign(0):settext(filts[1])
+			self:xy(c3x- capWideScale(15,40), headeroff):zoom(tzoom):halign(0):settext(filts[1])
 		end,
 		HighlightCommand=function(self)
 			highlightIfOver(self)

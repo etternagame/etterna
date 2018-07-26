@@ -49,12 +49,13 @@ local o = Def.ActorFrame{
 		self:queuecommand("Update")
 	end,
 	UpdateCommand=function(self)
-		if ind < 0 then
-			ind = 0
-		elseif ind == #packtable then
+		if ind == #packtable then
 			ind = ind - numpacks
 		elseif ind > #packtable - (#packtable % numpacks) then
 			ind = #packtable - (#packtable % numpacks)
+		end
+		if ind < 0 then
+			ind = 0
 		end
 	end,
 	DFRFinishedMessageCommand=function(self)
