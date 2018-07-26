@@ -277,7 +277,7 @@ public:
 	vector<ScoreGoal*> goaltable;
 	int sortmode = 1;	// 1=date 2=rate 3=name 4=priority 5=diff, init to name because that's the default- mina
 	int filtermode = 1; // 1=all, 2=completed, 3=uncompleted
-	int asc = false;
+	bool asc = false;
 
 	bool HasGoal(const string& ck) { return goalmap.count(ck) == 1; }
 	ScoreGoal& GetLowestGoalForRate(const string& ck, float rate);

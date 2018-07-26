@@ -78,7 +78,7 @@ public:
 class Packlist {
 public:
 	int sortmode = 1;	// 1=name 2=diff 3=size, init to name because that's the default- mina
-	int asc = true;		// default sort
+	bool asc = true;		// default sort
 
 	vector<DownloadablePack*> packs;
 	// Lua
