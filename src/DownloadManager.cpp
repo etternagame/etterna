@@ -1763,7 +1763,7 @@ public:
 	}
 
 	static int RequestChartLeaderBoard(T* p, lua_State* L) {
-		p->RequestChartLeaderBoard(SArg(1));
+		//p->RequestChartLeaderBoard(SArg(1));
 		p->MakeAThing(SArg(1));
 		vector<HighScore*> wot;
 		for (auto& zoop : p->athing)

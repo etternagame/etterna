@@ -36,6 +36,30 @@ else
 	defaultRateText = "All"
 end
 
+local function isOver(element)
+	if element:GetParent():GetParent():GetVisible() == false then
+		return false end
+	if element:GetParent():GetVisible() == false then
+		return false end
+	if element:GetVisible() == false then
+		return false end
+	local x = getTrueX(element)
+	local y = getTrueY(element)
+	local hAlign = element:GetHAlign()
+	local vAlign = element:GetVAlign()
+	local w = element:GetZoomedWidth()
+	local h = element:GetZoomedHeight()
+
+	local mouseX = INPUTFILTER:GetMouseX()
+	local mouseY = INPUTFILTER:GetMouseY()
+
+	local withinX = (mouseX >= (x-(hAlign*w))) and (mouseX <= ((x+w)-(hAlign*w)))
+	local withinY = (mouseY >= (y-(vAlign*h))) and (mouseY <= ((y+h)-(vAlign*h)))
+
+	return (withinX and withinY)
+end
+
+
 local ret = Def.ActorFrame{
 	BeginCommand=function(self)
 		self:queuecommand("Set"):visible(false)
@@ -48,13 +72,17 @@ local ret = Def.ActorFrame{
 		self:bouncebegin(0.2):xy(0,0):diffusealpha(1)
 	end,
 	SetCommand=function(self)
-		self:hurrytweening(1)
+		self:hurrytweening(2)
 		if getTabIndex() == 2 then
-			self:queuecommand("On")
-			self:visible(true)
-			update = true
-			self:playcommand("InitScore")
-			MESSAGEMAN:Broadcast("ScoreUpdate")
+			if collapsed then
+				self:queuecommand("Expand")
+			else
+				self:queuecommand("On")
+				self:visible(true)
+				update = true
+				self:playcommand("InitScore")
+				MESSAGEMAN:Broadcast("ScoreUpdate")
+			end
 		elseif collapsed and getTabIndex() == 0 then
 			self:queuecommand("On")
 			self:visible(true)
@@ -131,8 +159,11 @@ local ret = Def.ActorFrame{
 		MESSAGEMAN:Broadcast("TabChanged")
 	end,
 	ExpandCommand=function(self)
-		collapsed = true
-		setTabIndex(2)
+		collapsed = false
+		if getTabIndex() ~= 2 then
+			setTabIndex(2)
+		end
+		self:GetChild("ScoreDisplay"):xy(10,60)
 		MESSAGEMAN:Broadcast("TabChanged")
 	end
 }
@@ -169,7 +200,7 @@ t[#t+1] = LoadFont("Common Large")..{
 		self:xy(frameX+offsetX,frameY+offsetY+20):zoom(0.6):halign(0):maxwidth(50/0.6)
 	end,
 	SetCommand=function(self)
-		if score and update then
+		if score and update and nestedTab == 0 then
 			self:settext(THEME:GetString("Grade",ToEnumShortString(score:GetWifeGrade())))
 			self:diffuse(getGradeColor(score:GetWifeGrade()))
 		else
@@ -188,7 +219,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 		self:xy(frameX+offsetX+55,frameY+offsetY+15):zoom(0.5):halign(0)
 	end,
 	SetCommand=function(self)
-		if score and update then
+		if score and update and nestedTab == 0 then
 			if score:GetWifeScore() == 0 then 
 				self:settextf("NA (%s)", "Wife")
 			else
@@ -209,7 +240,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 		self:xy(frameX+offsetX+55,frameY+offsetY+33):zoom(0.5):halign(0)
 	end,
 	SetCommand=function(self)
-		if score and update then
+		if score and update and nestedTab == 0 then
 			if score:GetWifeScore() == 0 then 
 				self:settext("")
 			else
@@ -230,7 +261,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 		self:xy(frameX+offsetX,frameY+offsetY+41):zoom(0.5):halign(0)
 	end;
 	SetCommand=function(self)
-		if score and update then
+		if score and update and nestedTab == 0 then
 			self:settext(getClearTypeFromScore(pn,score,0))
 			self:diffuse(getClearTypeFromScore(pn,score,2))
 		end
@@ -246,7 +277,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 		self:xy(frameX+offsetX,frameY+offsetY+58):zoom(0.4):halign(0)
 	end;
 	SetCommand=function(self)
-		if score and update then
+		if score and update and nestedTab == 0 then
 			local maxCombo = getScoreMaxCombo(score)
 			self:settextf("Max Combo: %d",maxCombo)
 		else
@@ -286,7 +317,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 		self:xy(frameX+offsetX,frameY+offsetY+88):zoom(0.4):halign(0)
 	end;
 	SetCommand=function(self)
-		if score and update then
+		if score and update and nestedTab == 0 then
 			self:settext("Date Achieved: "..getScoreDate(score))
 		else
 			self:settext("Date Achieved: ")
@@ -303,7 +334,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 		self:xy(frameX+offsetX,frameY+offsetY+103):zoom(0.4):halign(0)
 	end;
 	SetCommand=function(self)
-		if score and update then
+		if score and update and nestedTab == 0 then
 			self:settext("Mods: " ..score:GetModifiers())
 		else
 			self:settext("Mods:")
@@ -321,7 +352,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 	end,
 	SetCommand=function(self)
 		local steps = GAMESTATE:GetCurrentSteps(pn)
-		if score and update then
+		if score and update and nestedTab == 0 then
 			local diff = getDifficulty(steps:GetDifficulty())
 			local stype = ToEnumShortString(steps:GetStepsType()):gsub("%_"," ")
 			local meter = steps:GetMeter()
@@ -341,7 +372,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 		self:xy(frameX+frameWidth-offsetX,frameY+frameHeight-10):zoom(0.4):halign(1)
 	end,
 	SetCommand=function(self)
-		if rates ~= nil and rtTable[rates[rateIndex]] ~= nil and update then
+		if rates ~= nil and rtTable[rates[rateIndex]] ~= nil and update and nestedTab == 0 then
 			self:settextf("Rate %s - Showing %d/%d",rates[rateIndex],scoreIndex,#rtTable[rates[rateIndex]])
 		else
 			self:settext("No Scores Saved")
@@ -358,7 +389,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 		self:xy(frameX+frameWidth/40,frameY+frameHeight-10):zoom(0.4):halign(0)
 	end,
 	SetCommand=function(self)
-		if score and update then
+		if score and update and nestedTab == 0 then
 			if score:GetChordCohesion() == true then
 				self:settext("Chord Cohesion: Yes")
 			else
@@ -583,9 +614,11 @@ function nestedTabButton(i)
     } 
   } 
 end 
+
+ret[#ret+1] = LoadActor("../superscoreboard")
 for i=1,#nestedTabs do  
   ret[#ret+1] = nestedTabButton(i) 
 end 
 
-ret[#ret+1] = LoadActor("../superscoreboard")
+
 return ret

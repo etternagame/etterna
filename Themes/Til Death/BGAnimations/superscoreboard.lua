@@ -25,7 +25,7 @@ local collapsed = false
 
 -- will eat any mousewheel inputs to scroll pages while mouse is over the background frame
 local function input(event)
-	if isOver(cheese:GetChild("FrameDisplay")) then
+	if cheese:GetVisible() and isOver(cheese:GetChild("FrameDisplay")) then
 		if event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" then
 			moving = true
 			cheese:queuecommand("PrevPage")
@@ -38,6 +38,29 @@ local function input(event)
 		end
 	end
 	return false
+end
+
+local function isOver(element)
+	if element:GetParent():GetParent():GetVisible() == false then
+		return false end
+	if element:GetParent():GetVisible() == false then
+		return false end
+	if element:GetVisible() == false then
+		return false end
+	local x = getTrueX(element)
+	local y = getTrueY(element)
+	local hAlign = element:GetHAlign()
+	local vAlign = element:GetVAlign()
+	local w = element:GetZoomedWidth()
+	local h = element:GetZoomedHeight()
+
+	local mouseX = INPUTFILTER:GetMouseX()
+	local mouseY = INPUTFILTER:GetMouseY()
+
+	local withinX = (mouseX >= (x-(hAlign*w))) and (mouseX <= ((x+w)-(hAlign*w)))
+	local withinY = (mouseY >= (y-(vAlign*h))) and (mouseY <= ((y+h)-(vAlign*h)))
+
+	return (withinX and withinY)
 end
 
 local function highlight(self)
@@ -75,12 +98,12 @@ local o = Def.ActorFrame{
 	end,
 	OnCommand=function(self)
 		GetPlayerOrMachineProfile(PLAYER_1):SetFromAll()
-		self:queuecommand("GoalTableRefresh")
+		self:queuecommand("ScoreTableRefresh")
 	end,
-	GoalTableRefreshMessageCommand=function(self)
-		scoretable = DLMAN:RequestChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())
-		ind = 0
-		self:queuecommand("Update")
+	ChartLeaderboardUpdateMessageCommand=function(self)
+			scoretable = DLMAN:RequestChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())
+			ind = 0
+			self:playcommand("Update")
 	end,
 	UpdateCommand=function(self)
 		if ind == #scoretable then
@@ -167,9 +190,9 @@ local o = Def.ActorFrame{
 		end,
 		MouseRightClickMessageCommand=function(self)
 			if isOver(self) and not collapsed then
-				self:GetParent():GetParent():queuecommand("Collapse")
+				self:GetParent():GetParent():playcommand("Collapse")
 			elseif isOver(self) then
-				self:GetParent():GetParent():queuecommand("Expand")
+				self:GetParent():GetParent():playcommand("Expand")
 			end
 		end,
 	},
@@ -184,14 +207,14 @@ local o = Def.ActorFrame{
 	-- grabby thing
 	Def.Quad{
 		InitCommand=function(self)
-			self:xy(dwidth/4, headeroff):zoomto(dwidth,pdh):halign(0):diffusealpha(1):diffuse(color("#111111"))
+			self:xy(dwidth/4, headeroff):zoomto(dwidth - dwidth/4,pdh):halign(0):diffusealpha(1):diffuse(color("#111111"))
 		end,
 		WHAZZZAAAACommand=function(self)
 			if isOver(self) and collapsed then
 				self:diffusealpha(0.6):diffuse(color("#fafafa"))
 				if INPUTFILTER:IsBeingPressed("Mouse 0", "Mouse") then
-					self:diffusealpha(0):zoomto(200,200)
-					self:GetParent():xy(INPUTFILTER:GetMouseX()-width/2, INPUTFILTER:GetMouseY())
+					self:diffusealpha(0):zoomto(400,400)
+					self:GetParent():xy(INPUTFILTER:GetMouseX()-width/2, INPUTFILTER:GetMouseY() - self:GetY())
 				else
 					self:zoomto(dwidth/2,pdh/2)
 				end
@@ -224,7 +247,7 @@ local o = Def.ActorFrame{
 	},
 }
 
-local function makeGoalDisplay(i)
+local function makeScoreDisplay(i)
 	local hs
 	
 	local o = Def.ActorFrame{
@@ -391,7 +414,7 @@ local function makeGoalDisplay(i)
 end
 
 for i=1,numscores do
-	o[#o+1] = makeGoalDisplay(i)
+	o[#o+1] = makeScoreDisplay(i)
 end
 
 return o
