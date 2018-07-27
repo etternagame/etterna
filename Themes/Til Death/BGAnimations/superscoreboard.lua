@@ -98,12 +98,12 @@ local o = Def.ActorFrame{
 	end,
 	OnCommand=function(self)
 		GetPlayerOrMachineProfile(PLAYER_1):SetFromAll()
-		self:queuecommand("ScoreTableRefresh")
+		self:queuecommand("ChartLeaderboardUpdate")
 	end,
 	ChartLeaderboardUpdateMessageCommand=function(self)
-			scoretable = DLMAN:RequestChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())
-			ind = 0
-			self:playcommand("Update")
+		scoretable = DLMAN:RequestChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())
+		ind = 0
+		self:playcommand("Update")
 	end,
 	UpdateCommand=function(self)
 		if ind == #scoretable then
@@ -147,7 +147,7 @@ local o = Def.ActorFrame{
 		row2yoff = 1
 		collapsed = true
 		self:diffusealpha(0.8)
-		self:queuecommand("Init")
+		self:playcommand("Init")
 	end,
 	ExpandCommand=function(self)
 		tzoom = 0.5
@@ -173,7 +173,7 @@ local o = Def.ActorFrame{
 		row2yoff = 1
 		collapsed = false
 		self:diffusealpha(1)
-		self:queuecommand("Init")
+		self:playcommand("Init")
 	end,
 
 	Def.Quad{
@@ -199,6 +199,7 @@ local o = Def.ActorFrame{
 	
 	-- headers
 	Def.Quad{
+		Name="HeaderBar",
 		InitCommand=function(self)
 			self:xy(offx, headeroff):zoomto(dwidth,pdh):halign(0):diffuse(color("#111111"))
 		end,
