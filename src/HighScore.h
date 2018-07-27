@@ -177,6 +177,9 @@ struct HighScore
 	int userid;
 	string avatar;
 	
+	int norms = 0;
+	int musics = 0;
+	int judges = 0;
 	// Lua
 	void PushSelf( lua_State *L );
 private:
