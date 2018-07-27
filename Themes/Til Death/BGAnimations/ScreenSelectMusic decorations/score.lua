@@ -83,6 +83,9 @@ local ret = Def.ActorFrame{
 	end,
 	OnCommand=function(self)
 		self:bouncebegin(0.2):xy(0,0):diffusealpha(1)
+		if nestedTab == 1 then
+			self:GetChild("LocalScores"):visible(true)
+		end
 	end,
 	SetCommand=function(self)
 		self:finishtweening(1)
@@ -118,95 +121,107 @@ local ret = Def.ActorFrame{
 		if getTabIndex() ~= 2 then
 			setTabIndex(2)
 		end
-		self:GetChild("ScoreDisplay"):xy(10,60)
+		self:GetChild("ScoreDisplay"):xy(frameX,frameY)
 		MESSAGEMAN:Broadcast("TabChanged")
 	end
 }
 
-ret[#ret+1] = Def.Quad{
-	InitCommand=function(self)
-		self:xy(frameX,frameY):zoomto(frameWidth,frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
-	end,
-	CollapseCommand=function(self)
-		self:visible(false)
-	end,
-	ExpandCommand=function(self)
-		self:visible(true)
-	end,
-}
+
+local cheese
+-- will eat any mousewheel inputs to scroll pages while mouse is over the background frame
+local function input(event)
+	if cheese:GetVisible() and isOver(cheese:GetChild("FrameDisplay")) then
+		if event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" then
+			moving = true
+			if nestedTab == 1 and rtTable and rtTable[rates[rateIndex]] ~= nil then
+				cheese:queuecommand("PrevScore")
+			end
+			return true
+		elseif event.DeviceInput.button == "DeviceButton_mousewheel down" and event.type == "InputEventType_FirstPress" then
+			if nestedTab == 1 and rtTable ~= nil and rtTable[rates[rateIndex]] ~= nil then
+				cheese:queuecommand("NextScore")
+			end
+			return true
+		elseif moving == true then
+			moving = false
+		end
+	end
+	return false
+end
 
 local t = Def.ActorFrame {
 	Name="LocalScores",
 	InitCommand=function(self)
 		self:xy(frameX+offsetX,frameY+offsetY + headeroffY)
+		cheese = self
+	end,
+	BeginCommand=function(self)
+		SCREENMAN:GetTopScreen():AddInputCallback(input)
 	end,
 	SetCommand=function(self)
-		if nestedTab == 1 then
-			self:visible(true)
-		end
-		if self:GetVisible() then
-			self:playcommand("InitScore")
-		end
-		if score then
-			self:queuecommand("Display")
-		else
-			self:queuecommand("Init")
+		if nestedTab == 1 and self:GetVisible() then
+			if GAMESTATE:GetCurrentSong() ~= nil then
+				rtTable = getRateTable()
+				if rtTable ~= nil then
+					rates,rateIndex = getUsedRates(rtTable)
+					scoreIndex = 1
+					score = rtTable[rates[rateIndex]][scoreIndex]
+					setScoreForPlot(score)
+					self:queuecommand("Display")
+				else
+					self:queuecommand("Init")
+				end
+			end
 		end
 	end,
 	NestedTabChangedMessageCommand=function(self)
 		self:visible(nestedTab == 1)
 		self:queuecommand("Set")
 	end,
-	InitScoreCommand=function(self)
-		if GAMESTATE:GetCurrentSong() ~= nil then
-			rtTable = getRateTable()
-			if rtTable ~= nil then
-				rates,rateIndex = getUsedRates(rtTable)
-				scoreIndex = 1
-				if rtTable[rates[rateIndex]] then
-					score = rtTable[rates[rateIndex]][scoreIndex]
-					setScoreForPlot(score)
-				end
-			else
-				rtTable = {}
-				rates,rateIndex = {defaultRateText},1
-				scoreIndex = 1
-				score = nil
-				setScoreForPlot(score)
-			end
-		else
-			rtTable = {}
-			rates,rateIndex = {defaultRateText},1
-			scoreIndex = 1
-			score = nil
-			setScoreForPlot(score)
-		end
-	end,
 	CodeMessageCommand=function(self,params)
-		if nestedTab == 1 then
+		if nestedTab == 1 and rtTable ~= nil and rtTable[rates[rateIndex]] ~= nil then
 			if params.Name == "NextRate" then
-				rateIndex = ((rateIndex)%(#rates))+1
-				scoreIndex = 1
+				self:queuecommand("NextRate")
 			elseif params.Name == "PrevRate" then
-				rateIndex = ((rateIndex-2)%(#rates))+1
-				scoreIndex = 1
+				self:queuecommand("PrevRate")
 			elseif params.Name == "NextScore" then
-				if rtTable[rates[rateIndex]] ~= nil then
-					scoreIndex = ((scoreIndex)%(#rtTable[rates[rateIndex]]))+1
-				end
+				self:queuecommand("NextScore")
 			elseif params.Name == "PrevScore" then
-				if rtTable[rates[rateIndex]] ~= nil then
-					scoreIndex = ((scoreIndex-2)%(#rtTable[rates[rateIndex]]))+1
-				end
+				self:queuecommand("PrevScore")
 			end
-			if rtTable[rates[rateIndex]] ~= nil then
-				score = rtTable[rates[rateIndex]][scoreIndex]
-				setScoreForPlot(score)
-				
-			end
-			self:queuecommand("Display")
 		end
 	end,
+	NextRateCommand=function(self)
+		rateIndex = ((rateIndex)%(#rates))+1
+		scoreIndex = 1
+		self:queuecommand("Display")
+	end,
+	PrevRateCommand=function(self)
+		rateIndex = ((rateIndex-2)%(#rates))+1
+		scoreIndex = 1
+		self:queuecommand("Display")
+	end,
+	NextScoreCommand=function(self)
+		scoreIndex = ((scoreIndex)%(#rtTable[rates[rateIndex]]))+1
+		self:queuecommand("Display")
+	end,
+	PrevScoreCommand=function(self)
+		scoreIndex = ((scoreIndex-2)%(#rtTable[rates[rateIndex]]))+1
+		self:queuecommand("Display")
+	end,
+
+	Def.Quad{
+		Name="FrameDisplay",
+		InitCommand=function(self)
+			self:xy(-frameX,-headeroffY - offsetY):zoomto(frameWidth,frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
+		end,
+		CollapseCommand=function(self)
+			self:visible(false)
+		end,
+		ExpandCommand=function(self)
+			self:visible(true)
+		end,
+	}
 }
 
 t[#t+1] = LoadFont("Common Large")..{
@@ -347,7 +362,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 t[#t+1] = Def.Quad{
 	Name="ScrollBar",
 	InitCommand=function(self)
-		self:x(frameWidth-frameX):zoomto(4,0):halign(1):valign(1):diffuse(getMainColor('highlight')):diffusealpha(0.5)
+		self:x(frameWidth-frameX):zoomto(4,0):halign(1):valign(1):diffuse(getMainColor('highlight')):diffusealpha(0.75)
 	end,
 	ScoreUpdateMessageCommand=function(self)
 		self:queuecommand("Set")
