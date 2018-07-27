@@ -128,20 +128,20 @@ local ret = Def.ActorFrame{
 
 
 local cheese
--- will eat any mousewheel inputs to scroll pages while mouse is over the background frame
+-- eats only inputs that would scroll to a new score
 local function input(event)
 	if cheese:GetVisible() and isOver(cheese:GetChild("FrameDisplay")) then
 		if event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" then
 			moving = true
 			if nestedTab == 1 and rtTable and rtTable[rates[rateIndex]] ~= nil then
 				cheese:queuecommand("PrevScore")
+				return true
 			end
-			return true
 		elseif event.DeviceInput.button == "DeviceButton_mousewheel down" and event.type == "InputEventType_FirstPress" then
 			if nestedTab == 1 and rtTable ~= nil and rtTable[rates[rateIndex]] ~= nil then
 				cheese:queuecommand("NextScore")
+				return true
 			end
-			return true
 		elseif moving == true then
 			moving = false
 		end
@@ -152,7 +152,9 @@ end
 local t = Def.ActorFrame {
 	Name="LocalScores",
 	InitCommand=function(self)
+		rtTable = nil
 		self:xy(frameX+offsetX,frameY+offsetY + headeroffY)
+		self:SetUpdateFunction(highlight)
 		cheese = self
 	end,
 	BeginCommand=function(self)
@@ -165,12 +167,12 @@ local t = Def.ActorFrame {
 				if rtTable ~= nil then
 					rates,rateIndex = getUsedRates(rtTable)
 					scoreIndex = 1
-					score = rtTable[rates[rateIndex]][scoreIndex]
-					setScoreForPlot(score)
 					self:queuecommand("Display")
 				else
 					self:queuecommand("Init")
 				end
+			else
+				self:queuecommand("Init")
 			end
 		end
 	end,
@@ -208,6 +210,10 @@ local t = Def.ActorFrame {
 	PrevScoreCommand=function(self)
 		scoreIndex = ((scoreIndex-2)%(#rtTable[rates[rateIndex]]))+1
 		self:queuecommand("Display")
+	end,
+	DisplayCommand=function(self)
+		score = rtTable[rates[rateIndex]][scoreIndex]
+		setScoreForPlot(score)
 	end,
 
 	Def.Quad{
@@ -378,7 +384,7 @@ t[#t+1] = Def.Quad{
 local function makeText(index)
 	return LoadFont("Common Normal")..{
 		InitCommand=function(self)
-			self:xy(frameWidth-offsetX- frameX,offsetY+15+(index*15)):zoom(fontScale):halign(1):settext("")
+			self:xy(frameWidth-offsetX- frameX,offsetY+15+(index*15)):zoom(fontScale+0.05):halign(1):settext("")
 		end,
 		DisplayCommand=function(self)
 			local count = 0
@@ -394,6 +400,16 @@ local function makeText(index)
 				end
 			else
 				self:settext("")
+			end
+		end,
+		HighlightCommand=function(self)
+			highlightIfOver(self)
+		end,
+		MouseLeftClickMessageCommand=function(self)
+			if nestedTab == 1 and isOver(self) then
+				rateIndex = index
+				scoreIndex = 1
+				self:GetParent():queuecommand("Display")
 			end
 		end
 	}
