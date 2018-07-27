@@ -12,6 +12,7 @@
 #include "CommonMetrics.h"
 #include "Steps.h"
 #include "NotesLoaderSSC.h"
+#include <algorithm>
 #include "NotesWriterSSC.h"
 
 #include <SQLiteCpp/SQLiteCpp.h>
@@ -607,10 +608,12 @@ void SongCacheIndex::LoadHyperCache(LoadingWindow * ld, map<RString, Song*>& hyp
 	int count = db->execAndGet("SELECT COUNT(*) FROM songs");
 	if (ld && count > 0) {
 		ld->SetIndeterminate(false);
+		ld->SetProgress(0);
 		ld->SetTotalWork(count);
 	}
 	RString lastDir;
 	int progress = 0;
+	int onePercent = std::max(count / 100, 1);
 	try {
 		SQLite::Statement query(*db, "SELECT * FROM songs");
 
@@ -620,11 +623,11 @@ void SongCacheIndex::LoadHyperCache(LoadingWindow * ld, map<RString, Song*>& hyp
 			hyperCache[songID.first] = s;
 			lastDir = songID.first;
 			// this is a song directory. Load a new song.
-			if (ld)
+			progress++;
+			if (ld && progress%onePercent==0)
 			{
 				ld->SetProgress(progress);
 				ld->SetText(("Loading Cache\n (" + lastDir + ")").c_str());
-				progress++;
 			}
 		}
 
@@ -642,10 +645,12 @@ void SongCacheIndex::LoadCache(LoadingWindow * ld, map<pair<RString, unsigned in
 	int count = db->execAndGet("SELECT COUNT(*) FROM songs");
 	if (ld && count > 0) {
 		ld->SetIndeterminate(false);
+		ld->SetProgress(0);
 		ld->SetTotalWork(count);
 	}
 	RString lastDir;
 	int progress = 0;
+	int onePercent = std::max(count / 100, 1);
 	try {
 		SQLite::Statement query(*db, "SELECT * FROM songs");
 
@@ -655,11 +660,11 @@ void SongCacheIndex::LoadCache(LoadingWindow * ld, map<pair<RString, unsigned in
 			cache[songID] = s;
 			lastDir = songID.first;
 			// this is a song directory. Load a new song.
-			if (ld)
+			progress++;
+			if (ld && progress % onePercent == 0)
 			{
 				ld->SetProgress(progress);
 				ld->SetText(("Loading Cache\n(" + lastDir + ")").c_str());
-				progress++;
 			}
 		}
 

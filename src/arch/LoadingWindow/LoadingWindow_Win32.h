@@ -28,8 +28,12 @@ private:
 	HWND hwnd;
 	HICON m_hIcon;
 	HFONT f;
+	LOGFONT lf;
 	string progress;
 	RString lastText;
+
+	HGDIOBJ bitMapBG;
+	HDC hdcBG;
 
 	static BOOL CALLBACK WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam );
 };

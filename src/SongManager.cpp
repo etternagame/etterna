@@ -10,6 +10,7 @@
 #include "LocalizedString.h"
 #include "MsdFile.h"
 #include "NoteSkinManager.h"
+#include <algorithm>
 #include "NotesLoaderDWI.h"
 #include "NotesLoaderSM.h"
 #include "NotesLoaderSSC.h"
@@ -211,10 +212,11 @@ void SongManager::InitSongsFromDisk( LoadingWindow *ld )
 		ld->SetTotalWork( cache.size() );
 		ld->SetText("Loading songs from cache");
 	}
+	int onePercent = std::max(cache.size() / 100, 1u);
 	int cacheIndex = 0;
 	for (auto& pair : cache) {
 		cacheIndex++;
-		if(ld && cacheIndex%4 ==0)
+		if(ld && cacheIndex%onePercent ==0)
 			ld->SetProgress(cacheIndex);
 		auto& pNewSong = pair.second;
 		const RString& dir = pNewSong->GetSongDir();
@@ -288,11 +290,6 @@ void Playlist::AddChart(const string & ck) {
 	Chart ch;
 	ch.FromKey(ck);
 	ch.rate = rate;
-	
-	if (!chartlist.empty())
-		if (chartlist[0].stepsptr->m_StepsType != ch.stepsptr->m_StepsType)
-			return;
-
 	chartlist.emplace_back(ch);
 }
 
@@ -593,6 +590,7 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 		ld->SetText("Sanity checking groups");
 	}
 	int groupsChecked = 0;
+	int onePercent = std::max(arrayGroupDirs.size()/ 100, 1u);
 	FOREACH_CONST(RString, arrayGroupDirs, s) {
 		RString sGroupDirName = *s;
 		SanityCheckGroupDir(sDir + sGroupDirName);
@@ -603,7 +601,7 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 		SortRStringArray(arraySongDirs);
 		arrayGroupSongDirs.emplace_back(arraySongDirs);
 		songCount += arraySongDirs.size();
-		if(ld != nullptr)
+		if(ld != nullptr && groupsChecked%onePercent ==0)
 			ld->SetProgress(++groupsChecked);
 	}
 
@@ -613,11 +611,11 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 		ld->SetTotalWork(arrayGroupDirs.size());
 	}
 	int groupIndex = 0;
-	int songIndex = 0;
+	onePercent = std::max(arrayGroupDirs.size() / 100, 1u);
 	FOREACH_CONST(RString, arrayGroupDirs, s) {
 		RString sGroupDirName = *s;
 		vector<RString> &arraySongDirs = arrayGroupSongDirs[groupIndex++];
-		if (ld) {
+		if (ld && groupIndex&onePercent==0) {
 			ld->SetProgress(groupIndex);
 			ld->SetText("Loading Songs From Disk\n" + sGroupDirName);
 		}
@@ -625,7 +623,6 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 		SongPointerVector& index_entry = m_mapSongGroupIndex[sGroupDirName];
 		RString group_base_name = Basename(sGroupDirName);
 		for (size_t j = 0; j < arraySongDirs.size(); ++j) {
-			songIndex++;
 			RString sSongDirName = arraySongDirs[j];
 			RString hur = sSongDirName + "/";
 			hur.MakeLower();
