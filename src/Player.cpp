@@ -370,7 +370,7 @@ void Player::Init(
 	{
 		float fLife = m_pLifeMeter->GetLife();
 		m_pPlayerStageStats->SetLifeRecordAt( fLife, STATSMAN->m_CurStageStats.m_fStepsSeconds );
-		m_pPlayerStageStats->SetWifeRecordAt( 1.f, STATSMAN->m_CurStageStats.m_fStepsSeconds);
+		//m_pPlayerStageStats->SetWifeRecordAt( 1.f, STATSMAN->m_CurStageStats.m_fStepsSeconds);
 	}
 
 	// TODO: Remove use of PlayerNumber.
