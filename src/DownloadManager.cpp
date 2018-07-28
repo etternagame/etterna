@@ -101,12 +101,22 @@ bool DownloadManager::InstallSmzip(const string &sZipFile)
 		FAIL_M(static_cast<string>("Failed to mount " + sZipFile).c_str());
 	vector<RString> v_packs;
 	GetDirListing(TEMP_ZIP_MOUNT_POINT + "*", v_packs, true, true);
-	if (v_packs.size() > 1) 
-		return false;
+
+	string doot = TEMP_ZIP_MOUNT_POINT;
+	if (v_packs.size() > 1) {
+		doot += sZipFile.substr(sZipFile.find_last_of("/") + 1);// attempt to whitelist pack name, this should be pretty simple/safe solution for a lot of pad packs -mina
+		doot = doot.substr(0, doot.length() - 4) + "/";
+	}
+	
 	vector<string> vsFiles;
 	{
 		vector<RString> vsRawFiles;
-		GetDirListingRecursive(TEMP_ZIP_MOUNT_POINT, "*", vsRawFiles);
+		GetDirListingRecursive(doot, "*", vsRawFiles);
+
+		if (vsRawFiles.empty()) {
+			FILEMAN->Unmount("zip", sZipFile, TEMP_ZIP_MOUNT_POINT);
+			return false;
+		}
 
 		vector<string> vsPrettyFiles;
 		FOREACH_CONST(RString, vsRawFiles, s)
