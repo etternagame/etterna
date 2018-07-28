@@ -11,7 +11,7 @@ local nestedTabs = {"Local", "Online"}
 
 local frameX = 10
 local frameY = 45
-local frameWidth = capWideScale(360,460)
+local frameWidth = SCREEN_WIDTH * 0.56
 local frameHeight = 350
 local fontScale = 0.4
 local offsetX = 10
@@ -499,7 +499,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 -- matches the built-in online score header
 t[#t+1] = Def.Quad{
 	InitCommand=function(self)
-		self:xy(-frameX/2, -offsetY):zoomto(SCREEN_WIDTH * 0.56 - 10,24):halign(0):diffuse(color("#111111"))
+		self:xy(-frameX/2, -offsetY):zoomto(frameWidth - 10,24):halign(0):diffuse(color("#111111"))
 	end,
 }
 
