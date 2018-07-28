@@ -283,7 +283,7 @@ void ScoreManager::RecalculateSSRs(LoadingWindow *ld, const string& profileID) {
 		ld->SetText("\nUpdating Ratings");
 	}
 
-	int onePercent = std::max(scores.size()/100, 1u);
+	int onePercent = std::max(static_cast<int>(scores.size() / 100), 1);
 	int scoreindex = 0;
 	for(size_t i = 0; i < scores.size(); ++i) {
 		if (ld && scoreindex%onePercent==0 && ld_timer.Ago() > ld_update) {

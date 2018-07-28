@@ -212,7 +212,7 @@ void SongManager::InitSongsFromDisk( LoadingWindow *ld )
 		ld->SetTotalWork( cache.size() );
 		ld->SetText("Loading songs from cache");
 	}
-	int onePercent = std::max(cache.size() / 100, 1u);
+	int onePercent = std::max(static_cast<int>(cache.size() / 100), 1);
 	int cacheIndex = 0;
 	for (auto& pair : cache) {
 		cacheIndex++;
@@ -590,7 +590,7 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 		ld->SetText("Sanity checking groups");
 	}
 	int groupsChecked = 0;
-	int onePercent = std::max(arrayGroupDirs.size()/ 100, 1u);
+	int onePercent = std::max(static_cast<int>(arrayGroupDirs.size() / 100), 1);
 	FOREACH_CONST(RString, arrayGroupDirs, s) {
 		RString sGroupDirName = *s;
 		SanityCheckGroupDir(sDir + sGroupDirName);
@@ -611,11 +611,11 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 		ld->SetTotalWork(arrayGroupDirs.size());
 	}
 	int groupIndex = 0;
-	onePercent = std::max(arrayGroupDirs.size() / 100, 1u);
+	onePercent = std::max(static_cast<int>(arrayGroupDirs.size() / 100), 1);
 	FOREACH_CONST(RString, arrayGroupDirs, s) {
 		RString sGroupDirName = *s;
 		vector<RString> &arraySongDirs = arrayGroupSongDirs[groupIndex++];
-		if (ld && groupIndex&onePercent==0) {
+		if (ld && groupIndex % onePercent==0) {
 			ld->SetProgress(groupIndex);
 			ld->SetText("Loading Songs From Disk\n" + sGroupDirName);
 		}
