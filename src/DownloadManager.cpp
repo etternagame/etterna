@@ -36,7 +36,7 @@ static Preference<RString> serverURL("UploadServerAPIURL", "https://api.etternao
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 static Preference<unsigned int> downloadPacksToAdditionalSongs("downloadPacksToAdditionalSongs", 0);
 static const string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
-static const string CLIENT_DATA_KEY = "6EE45A0D6997622C67A6064AFAE8D93A8CAEE575D17D5E16DA3EDBFC8D7D2477";
+static const string CLIENT_DATA_KEY = "2EEF1FCF01B97335548DE7CB9CF4DD749882AF6D5DC080316CC71A3A0BB3BB83";
 static const string DL_DIR = SpecialFiles::CACHE_DIR + "Downloads/";
 
 size_t write_memory_buffer(void *contents, size_t size, size_t nmemb, void *userp)
@@ -678,7 +678,8 @@ bool DownloadManager::ShouldUploadScores()
 inline void SetCURLPOSTScore(CURL*& curlHandle, curl_httppost*& form, curl_httppost*& lastPtr, HighScore*& hs)
 {
 	SetCURLFormPostField(curlHandle, form, lastPtr, "scorekey", hs->GetScoreKey());
-	SetCURLFormPostField(curlHandle, form, lastPtr, "ssr_norm", hs->GetSSRNormPercent());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "ValidString", hs->GenerateValidationKeys());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "ssr_norm", hs->norms);
 	SetCURLFormPostField(curlHandle, form, lastPtr, "max_combo", hs->GetMaxCombo());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "valid", static_cast<int>(hs->GetEtternaValid()));
 	SetCURLFormPostField(curlHandle, form, lastPtr, "mods", hs->GetModifiers());
@@ -694,7 +695,7 @@ inline void SetCURLPOSTScore(CURL*& curlHandle, curl_httppost*& form, curl_httpp
 	SetCURLFormPostField(curlHandle, form, lastPtr, "letgo", hs->GetHoldNoteScore(HNS_LetGo));
 	SetCURLFormPostField(curlHandle, form, lastPtr, "ng", hs->GetHoldNoteScore(HNS_Missed));
 	SetCURLFormPostField(curlHandle, form, lastPtr, "chartkey", hs->GetChartKey());
-	SetCURLFormPostField(curlHandle, form, lastPtr, "rate", hs->GetMusicRate());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "rate", hs->musics);
 	auto chart = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "negsolo", chart->GetTimingData()->HasWarps() || chart->m_StepsType != StepsType_dance_single);
 	SetCURLFormPostField(curlHandle, form, lastPtr, "nocc", static_cast<int>(!hs->GetChordCohesion()));
@@ -703,12 +704,10 @@ inline void SetCURLPOSTScore(CURL*& curlHandle, curl_httppost*& form, curl_httpp
 	SetCURLFormPostField(curlHandle, form, lastPtr, "hash", hs->GetValidationKey(ValidationKey_Brittle));
 	SetCURLFormPostField(curlHandle, form, lastPtr, "wife", hs->GetWifeScore());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "wifePoints", hs->GetWifePoints());
-	SetCURLFormPostField(curlHandle, form, lastPtr, "judgeScale", hs->GetJudgeScale());
+	SetCURLFormPostField(curlHandle, form, lastPtr, "judgeScale", hs->judges);
 	SetCURLFormPostField(curlHandle, form, lastPtr, "machineGuid", hs->GetMachineGuid());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "grade", hs->GetGrade());
-	SetCURLFormPostField(curlHandle, form, lastPtr, "wifeGrade", string(GradeToString(hs->GetWifeGrade()).c_str()));
-	SetCURLFormPostField(curlHandle, form, lastPtr, "ValidString", hs->GenerateValidationKeys());
-	
+	SetCURLFormPostField(curlHandle, form, lastPtr, "wifeGrade", string(GradeToString(hs->GetWifeGrade()).c_str()));	
 }
 void DownloadManager::UploadScore(HighScore* hs)
 {

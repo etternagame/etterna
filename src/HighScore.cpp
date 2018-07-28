@@ -864,15 +864,17 @@ string HighScore::GenerateValidationKeys() {
 		key.append(to_string(GetHoldNoteScore(hns)));
 	}
 
+	norms = lround(GetSSRNormPercent() * 1000000.f);
+	musics = lround(GetMusicRate() * 100.f);
+	judges = lround(GetJudgeScale() * 100.f);
+
 	key.append(GetScoreKey());
 	key.append(GetChartKey());
 	key.append(GetModifiers());
 	key.append(GetMachineGuid());
-	key.append(to_string(static_cast<int>(GetWifeScore())));
-	key.append(to_string(static_cast<int>(GetSSRNormPercent())));
-	key.append(to_string(static_cast<int>(GetMusicRate())));
-	key.append(to_string(static_cast<int>(GetJudgeScale())));
-	key.append(to_string(static_cast<int>(GetWifePoints())));
+	key.append(to_string(norms));
+	key.append(to_string(musics));
+	key.append(to_string(judges));
 	key.append(to_string(static_cast<int>(!GetChordCohesion())));
 	key.append(to_string(static_cast<int>(GetEtternaValid())));
 	key.append(GradeToString(GetWifeGrade()));

@@ -172,6 +172,14 @@ struct HighScore
 	string GenerateValidationKeys();
 	string GetValidationKey(ValidationKey vk) const; 
 	vector<int> GetRescoreJudgeVector(int x);
+	// laazy
+	string scoreid;
+	int userid;
+	string avatar;
+	
+	int norms = 0;
+	int musics = 0;
+	int judges = 0;
 	// Lua
 	void PushSelf( lua_State *L );
 private:
