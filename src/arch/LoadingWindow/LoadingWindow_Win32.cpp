@@ -41,6 +41,7 @@ static HBITMAP LoadWin32Surface(const RageSurface *pSplash, HWND hWnd)
 		0xFF000000, 0x00FF0000, 0x0000FF00, 0);
 	RageSurfaceUtils::Blit(pSplash, s, -1, -1);
 	RECT wrect;
+	GetWindowRect(hWnd, &wrect);
 	DwmGetWindowAttribute(hWnd, DWMWA_EXTENDED_FRAME_BOUNDS, &wrect, sizeof(wrect));
 	RECT rOld;
 	GetClientRect(hWnd, &rOld);
