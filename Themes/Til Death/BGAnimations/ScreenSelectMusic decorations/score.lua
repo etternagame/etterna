@@ -340,12 +340,14 @@ t[#t+1] = LoadFont("Common Normal")..{
 		self:xy(frameWidth - offsetX - frameX,10):zoom(0.5):halign(1):queuecommand("Display")
 	end,
 	DisplayCommand=function(self)
-		local steps = GAMESTATE:GetCurrentSteps(pn)
-		local diff = getDifficulty(steps:GetDifficulty())
-		local stype = ToEnumShortString(steps:GetStepsType()):gsub("%_"," ")
-		local meter = steps:GetMeter()
-		self:settext(stype.." "..diff.." "..meter)
-		self:diffuse(getDifficultyColor(GetCustomDifficulty(steps:GetStepsType(),steps:GetDifficulty())))
+		if GAMESTATE:GetCurrentSong() then
+			local steps = GAMESTATE:GetCurrentSteps(pn)
+			local diff = getDifficulty(steps:GetDifficulty())
+			local stype = ToEnumShortString(steps:GetStepsType()):gsub("%_"," ")
+			local meter = steps:GetMeter()
+			self:settext(stype.." "..diff.." "..meter)
+			self:diffuse(getDifficultyColor(GetCustomDifficulty(steps:GetStepsType(),steps:GetDifficulty())))
+		end
 	end,
 }
 
