@@ -358,7 +358,7 @@ local function makeScoreDisplay(i)
 			end,
 			MouseLeftClickMessageCommand=function(self)
 				if isOver(self) then
-					local urlstringyo = "https://etternaonline.com/user/"..hs:GetUserid()
+					local urlstringyo = "https://etternaonline.com/user/"..hs:GetDisplayName()
 					GAMESTATE:ApplyGameCommand("urlnoexit,"..urlstringyo)
 				end
 			end,
