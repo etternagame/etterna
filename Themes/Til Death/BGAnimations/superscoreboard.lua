@@ -84,7 +84,6 @@ local function byAchieved(scoregoal)
 end
 
 local filts = {"All Rates", "Current Rate"}
-local currentrateonly = false
 
 local scoretable
 local o = Def.ActorFrame{
@@ -227,22 +226,23 @@ local o = Def.ActorFrame{
 	
 	LoadFont("Common normal") .. {	--current rate toggle
 		InitCommand=function(self)
-			self:xy(c5x - 10, headeroff):zoom(tzoom):halign(1):settext(filts[1])
+			self:xy(c5x - 10, headeroff):zoom(tzoom):halign(1)
 		end,
 		HighlightCommand=function(self)
 			highlightIfOver(self)
 		end,
+		UpdateCommand=function(self)
+			if DLMAN:GetCurrentRateFilter() then 
+				self:settext(filts[2])
+			else
+				self:settext(filts[1])
+			end
+		end,
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
-				scoretable = DLMAN:ToggleRateFilter()
+				DLMAN:ToggleRateFilter()
 				ind = 0
-				currentrateonly = not currentrateonly
-				if currentrateonly then 
-					self:settext(filts[2])
-				else
-					self:settext(filts[1])
-				end
-				self:GetParent():queuecommand("Update")
+				self:GetParent():queuecommand("ChartLeaderboardUpdate")
 			end
 		end,
 	},
