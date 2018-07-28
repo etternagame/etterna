@@ -87,4 +87,45 @@ t[#t+1] = LoadFont("Common Large") .. {
 	end
 }
 
+function mysplit(inputstr, sep)
+        if sep == nil then
+                sep = "%s"
+        end
+        local t={} ; i=1
+        for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+                t[i] = str
+                i = i + 1
+        end
+        return t
+end
+
+local transformF = THEME:GetMetric("ScreenTitleMenu", "ScrollerTransform")
+local scrollerX = THEME:GetMetric("ScreenTitleMenu", "ScrollerX")
+local scrollerY = THEME:GetMetric("ScreenTitleMenu", "ScrollerY")
+local scrollerChoices = THEME:GetMetric("ScreenTitleMenu", "ChoiceNames")
+local _, count = string.gsub(scrollerChoices, "%,", "")
+local choices = mysplit(scrollerChoices, ",")
+local choiceCount = count+1
+local i
+for i=1,choiceCount do
+	t[#t+1] = Def.Quad {
+		OnCommand=function(self)
+			self:xy(scrollerX,scrollerY):zoomto(260,16)
+			transformF(self, 0, i, choiceCount)
+			self:addx(SCREEN_CENTER_X-20)
+			self:addy(SCREEN_CENTER_Y-20)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if(isOver(self)) then
+				SCREENMAN:GetTopScreen():playcommand("MadeChoicePlayer_1")
+				SCREENMAN:GetTopScreen():playcommand("Choose")
+				if not choices[i] == "Multi" then -- for some reason multi gets stuck :/
+					GAMESTATE:ApplyGameCommand(THEME:GetMetric("ScreenTitleMenu", "Choice"..choices[i]))
+				end
+			end
+		end,
+	}
+end
+
+
 return t
