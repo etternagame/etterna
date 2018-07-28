@@ -29,7 +29,7 @@ local function searchInput(event)
 			searchstring = searchstring..HOOKS:GetClipboard()
 		else
 			--if not nil and (not a number or (ctrl pressed and not online))
-			local CtrlPressed = INPUTFILTER:IsBeingPressed("left ctrl", nil) or INPUTFILTER:IsBeingPressed("right ctrl", nil)
+			local CtrlPressed = INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl")
 			if event.char and event.char:match("[%%%+%-%!%@%#%$%^%&%*%(%)%=%_%.%,%:%;%'%\"%>%<%?%/%~%|%w]") and (not tonumber(event.char) or CtrlPressed == (SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic")) then
 				searchstring = searchstring..event.char
 			end
