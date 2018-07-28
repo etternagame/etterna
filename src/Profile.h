@@ -12,7 +12,6 @@
 #include "LuaReference.h"
 #include "XMLProfile.h"
 #include "DBProfile.h"
-#include "SongManager.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include <map>
 #include <set>

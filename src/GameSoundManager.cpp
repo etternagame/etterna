@@ -14,6 +14,8 @@
 #include "RageUtil.h"
 #include "Song.h"
 #include "TimingData.h"
+#include "GameState.h"
+class SongOptions;
 
 #include "arch/Sound/RageSoundDriver.h"
 

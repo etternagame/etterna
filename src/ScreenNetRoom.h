@@ -6,7 +6,6 @@
 #include "RoomInfoDisplay.h"
 #include "RoomWheel.h"
 #include "ScreenNetSelectBase.h"
-#include "NetworkSyncManager.h"
 #include "ScreenWithMenuElements.h"
 #include <vector>
 

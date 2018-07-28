@@ -6,12 +6,7 @@
 #include "Grade.h"
 #include "MessageManager.h"
 #include "ModsGroup.h"
-#include "PlayerOptions.h"
-#include "Preference.h"
-#include "RageTimer.h"
-#include "SongOptions.h"
 #include "SongPosition.h"
-#include "Preference.h"
 #include "discord-rpc.h"
 
 #include <deque>
@@ -28,6 +23,7 @@ class Steps;
 class StageStats;
 class Style;
 class TimingData;
+class SongOptions;
 
 SortOrder GetDefaultSort();
 

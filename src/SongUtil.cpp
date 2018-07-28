@@ -12,11 +12,11 @@
 #include "RageLog.h"
 #include "Song.h"
 #include "SongManager.h"
-#include "SongUtil.h"
 #include "Steps.h"
 #include "Style.h"
 #include "ThemeMetric.h"
 #include "XmlFile.h"
+#include "StepsUtil.h"
 
 ThemeMetric<int> SORT_BPM_DIVISION ( "MusicWheel", "SortBPMDivision" );
 ThemeMetric<bool> SHOW_SECTIONS_IN_BPM_SORT ( "MusicWheel", "ShowSectionsInBPMSort" );

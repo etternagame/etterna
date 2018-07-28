@@ -17,6 +17,7 @@
 #include "ScoreManager.h"
 #include "DownloadManager.h"
 #include "MinaCalc.h"
+#include "Song.h"
 
 #ifdef _WIN32 
 #include <intrin.h>

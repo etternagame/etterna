@@ -3,7 +3,6 @@
 #include "GameState.h"
 #include "LocalizedString.h"
 #include "OptionRowHandler.h"
-#include "Profile.h"
 #include "ProfileManager.h"
 #include "RageLog.h"
 #include "ScreenDimensions.h"

@@ -3,8 +3,6 @@
 #include "LocalizedString.h"
 #include "NotesLoaderSSC.h"
 #include "PlayerState.h"
-#include "PrefsManager.h"
-#include "Profile.h"
 #include "ProfileManager.h"
 #include "RageFileManager.h"
 #include "RageLog.h"

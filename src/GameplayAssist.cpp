@@ -7,6 +7,7 @@
 #include "RageSoundManager.h"
 #include "Song.h"
 #include "ThemeManager.h"
+#include "GameState.h"
 
 void GameplayAssist::Init()
 {

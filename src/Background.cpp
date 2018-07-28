@@ -22,6 +22,7 @@
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
 #include <cfloat>
+#include "GameState.h"
 
 static ThemeMetric<float> LEFT_EDGE				("Background","LeftEdge");
 static ThemeMetric<float> TOP_EDGE				("Background","TopEdge");

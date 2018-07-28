@@ -10,6 +10,7 @@
 #include "ScreenDimensions.h"
 #include "ScreenGameplaySyncMachine.h"
 #include "SongUtil.h"
+#include "NetworkSyncManager.h"
 
 REGISTER_SCREEN_CLASS( ScreenGameplaySyncMachine );
 

@@ -4,7 +4,6 @@
 #include "ActorFrame.h"
 #include "GameConstantsAndTypes.h"
 #include "NoteDisplay.h"
-#include "NoteTypes.h"
 
 class PlayerState;
 /** @brief Row of GhostArrow Actors. */

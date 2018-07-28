@@ -7,6 +7,7 @@
 #include "SongUtil.h"
 #include "Style.h"
 #include "ThemeManager.h"
+#include "NetworkSyncManager.h"
 
 static const int NUM_SCORE_DIGITS = 9;
 

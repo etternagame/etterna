@@ -14,7 +14,6 @@
 #include <fstream>
 #include <sstream>
 #include "CryptManager.h"
-#include "ProfileManager.h"
 #include "RageFileManager.h"
 
 ThemeMetric<string> EMPTY_NAME("HighScore","EmptyName");

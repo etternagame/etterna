@@ -6,7 +6,6 @@
 #include "NetworkSyncManager.h"
 #include "OptionRowHandler.h"
 #include "PrefsManager.h"
-#include "Profile.h"
 #include "ProfileManager.h"
 #include "GameState.h"
 #include "RageLog.h"

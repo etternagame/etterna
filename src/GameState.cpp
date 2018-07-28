@@ -1,9 +1,6 @@
 ﻿#include "global.h"
-#include "Actor.h"
 #include "AdjustSync.h"
-#include "AnnouncerManager.h"
 #include "Character.h"
-#include "CharacterManager.h"
 #include "CommonMetrics.h"
 #include "CryptManager.h"
 #include "discord-rpc.h"
@@ -14,27 +11,22 @@
 #include "GameManager.h"
 #include "GamePreferences.h"
 #include "GameState.h"
-#include "HighScore.h"
 #include "LuaReference.h"
 #include "MessageManager.h"
 #include "NoteData.h"
 #include "NoteSkinManager.h"
 #include "PlayerState.h"
-#include "PrefsManager.h"
-#include "Profile.h"
 #include "ProfileManager.h"
-#include "RageFile.h"
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "Screen.h"
 #include "ScreenManager.h"
 #include "Song.h"
-#include "SongManager.h"
 #include "SongUtil.h"
 #include "StatsManager.h"
 #include "Steps.h"
 #include "Style.h"
 #include "ThemeManager.h"
+#include "SongManager.h"
+#include "StepsUtil.h"
+#include "Profile.h"
 
 GameState*	GAMESTATE = NULL;	// global and accessible from anywhere in our program
 
@@ -311,16 +303,6 @@ void GameState::Reset()
 	SONGMAN->UpdateShuffled();
 
 	STATSMAN->Reset();
-
-	FOREACH_PlayerNumber(p)
-	{
-		if( PREFSMAN->m_ShowDancingCharacters == SDC_Random )
-			m_pCurCharacters[p] = CHARMAN->GetRandomCharacter();
-		else
-			m_pCurCharacters[p] = CHARMAN->GetDefaultCharacter();
-		//ASSERT( m_pCurCharacters[p] != NULL );
-	}
-
 	m_bTemporaryEventMode = false;
 	sExpandedSectionName = "";
 
@@ -1051,44 +1033,7 @@ RString GameState::GetPlayerDisplayName( PlayerNumber pn ) const
 
 bool GameState::PlayersCanJoin() const
 {
-	if(GetNumSidesJoined() == 0)
-	{
-		return true;
-	}
-	// If we check the style and it comes up NULL, either the style has not been
-	// chosen, or we're on ScreenSelectMusic with AutoSetStyle.
-	// If the style does not come up NULL, we might be on a screen in a custom
-	// theme that wants to allow joining after the style is set anyway.
-	// Either way, we can't use the existence of a style to decide.
-	// -Kyz
-	if( ALLOW_LATE_JOIN.IsLoaded()  &&  ALLOW_LATE_JOIN )
-	{
-		Screen *pScreen = SCREENMAN->GetTopScreen();
-		if(pScreen)
-		{
-			if(!pScreen->AllowLateJoin())
-			{
-				return false;
-			}
-		}
-		// We can't use FOREACH_EnabledPlayer because that uses PlayersCanJoin
-		// in part of its logic chain. -Kyz
-		FOREACH_PlayerNumber(pn)
-		{
-			const Style* style= GetCurrentStyle(pn);
-			if(style)
-			{
-				const Style* compat_style= GAMEMAN->GetFirstCompatibleStyle(
-					m_pCurGame, 2, style->m_StepsType);
-				if(compat_style == NULL)
-				{
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-	return false;
+	return true;
 }
 
 const Game* GameState::GetCurrentGame() const
@@ -1556,49 +1501,6 @@ bool GameState::AnyPlayerHasRankingFeats() const
 			return true;
 	}
 	return false;
-}
-
-void GameState::StoreRankingName( PlayerNumber pn, RString sName )
-{
-	// The theme can upper it if desired. -Kyz
-	// sName.MakeUpper();
-
-	if( USE_NAME_BLACKLIST )
-	{
-		RageFile file;
-		if( file.Open(NAME_BLACKLIST_FILE) )
-		{
-			RString sLine;
-
-			while( !file.AtEOF() )
-			{
-				if( file.GetLine(sLine) == -1 )
-				{
-					LuaHelpers::ReportScriptErrorFmt( "Error reading \"%s\": %s", NAME_BLACKLIST_FILE, file.GetError().c_str() );
-					break;
-				}
-
-				sLine.MakeUpper();
-				if( !sLine.empty() && sName.find(sLine) != string::npos )	// name contains a bad word
-				{
-					LOG->Trace( "entered '%s' matches blacklisted item '%s'", sName.c_str(), sLine.c_str() );
-					sName = "";
-					break;
-				}
-			}
-		}
-	}
-
-	vector<RankingFeat> aFeats;
-	GetRankingFeats( pn, aFeats );
-
-	for( unsigned i=0; i<aFeats.size(); i++ )
-	{
-		*aFeats[i].pStringToFill = sName;
-
-		// save name pointers as we fill them
-		m_vpsNamesThatWereFilled.push_back( aFeats[i].pStringToFill );
-	}
 }
 
 bool GameState::AllAreInDangerOrWorse() const
@@ -2149,9 +2051,6 @@ public:
 
 	static int GetCharacter( T* p, lua_State *L )				{ p->m_pCurCharacters[Enum::Check<PlayerNumber>(L, 1)]->PushSelf(L); return 1; }
 	static int SetCharacter( T* p, lua_State *L ){
-		Character* c = CHARMAN->GetCharacterFromID(SArg(2));
-		if (c)
-			p->m_pCurCharacters[Enum::Check<PlayerNumber>(L, 1)] = c;
 		COMMON_RETURN_SELF;
 	}
 	static int GetExpandedSectionName( T* p, lua_State *L )				{ lua_pushstring(L, p->sExpandedSectionName); return 1; }
@@ -2211,7 +2110,6 @@ public:
 
 	static int StoreRankingName( T* p, lua_State *L )
 	{
-		p->StoreRankingName(Enum::Check<PlayerNumber>(L, 1), SArg(2));
 		COMMON_RETURN_SELF;
 	}
 

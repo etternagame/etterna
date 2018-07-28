@@ -2,16 +2,7 @@
 #define NetworkSyncManager_H
 
 #include "Difficulty.h"
-#include "ScreenNetRoom.h"
-#include "RoomWheel.h"
-#include "ScreenNetSelectMusic.h"
-#include "ScreenSMOnlineLogin.h"
-#include "PlayerState.h"
-#include "PlayerStageStats.h"
-#include "Song.h"
 #include "HighScore.h"
-#include "global.h"
-#include "PlayerNumber.h"
 #include <queue>
 #include "uWS.h"
 #include "JsonUtil.h"
@@ -20,11 +11,16 @@ using json = nlohmann::json;
 
 class LoadingWindow;
 
+class RoomData;
+class ScreenNetSelectMusic;
+class ScreenSMOnlineLogin;
+class Song;
 const int NETPROTOCOLVERSION=4;
 const int ETTPCVERSION = 1;
 const int NETMAXBUFFERSIZE=1020; //1024 - 4 bytes for EzSockets
 const int NETNUMTAPSCORES=8;
 
+class PlayerStageStats;
 // [SMLClientCommands name]
 enum NSCommand
 {
@@ -83,14 +79,7 @@ public:
 	RString playerOptions;
 };
 
-enum NSScoreBoardColumn
-{
-	NSSB_NAMES=0,
-	NSSB_COMBO,
-	NSSB_GRADE,
-	NUM_NSScoreBoardColumn,
-	NSScoreBoardColumn_Invalid
-};
+
 
 enum ETTServerMessageTypes {
 	ettps_hello=0,

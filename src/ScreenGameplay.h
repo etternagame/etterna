@@ -8,7 +8,6 @@
 #include "InputEventPlus.h"
 #include "LocalizedString.h"
 #include "LyricDisplay.h"
-#include "NetworkSyncManager.h"
 #include "PlayerStageStats.h"
 #include "PlayerState.h"
 #include "RageSound.h"

@@ -2,12 +2,10 @@
 #define PLAYER_H
 
 #include "ActorFrame.h"
-#include "HoldJudgment.h"
-#include "NoteData.h"
-#include "RageSound.h"
+#include "AutoActor.h"
 #include "ScreenMessage.h"
-#include "ThemeMetric.h"
-#include "TimingData.h"
+#include "RageSound.h"
+#include "NoteData.h"
 #include <chrono>
 
 class ScoreDisplay;
@@ -18,6 +16,7 @@ class NoteField;
 class PlayerStageStats;
 class JudgedRows;
 class PlayerState;
+class HoldJudgment;
 
 // todo: replace these with a Message and MESSAGEMAN? -aj
 AutoScreenMessage( SM_100Combo );

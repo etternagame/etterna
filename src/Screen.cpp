@@ -4,7 +4,6 @@
 #include "InputMapper.h"
 #include "PrefsManager.h"
 #include "RageLog.h"
-#include "RageSound.h"
 #include "Screen.h"
 #include "ScreenManager.h"
 #include "RageInput.h"

@@ -4,7 +4,6 @@
 #include "LocalizedString.h"
 #include "PlayerState.h"
 #include "PrefsManager.h"
-#include "Profile.h"
 #include "ProfileManager.h"
 #include "RageLog.h"
 #include "ScreenDimensions.h"
