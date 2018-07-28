@@ -77,6 +77,13 @@ local ret = Def.ActorFrame{
 		self:queuecommand("Set"):visible(false)
 		self:GetChild("LocalScores"):visible(false)
 		self:GetChild("ScoreDisplay"):xy(frameX,frameY):visible(false)
+		
+		if FILTERMAN:oopsimlazylol() then	-- set saved position and auto collapse
+			nestedTab = 2
+			self:GetChild("LocalScores"):visible(false)
+			self:GetChild("ScoreDisplay"):xy(FILTERMAN:grabposx("Doot"),FILTERMAN:grabposy("Doot")):visible(true)
+			self:playcommand("Collapse")
+		end
 	end,
 	OffCommand=function(self)
 		self:bouncebegin(0.2):xy(-500,0):diffusealpha(0) -- visible(false)

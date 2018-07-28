@@ -146,6 +146,14 @@ local o = Def.ActorFrame{
 		row2yoff = 1
 		collapsed = true
 		self:diffusealpha(0.8)
+		
+		if FILTERMAN:grabposx("Doot") <= 10 or FILTERMAN:grabposy("Doot") <= 45 or FILTERMAN:grabposx("Doot") >= SCREEN_WIDTH - 60 or FILTERMAN:grabposy("Doot") >= SCREEN_HEIGHT - 45 then
+			self:xy(10, 45)
+		else
+			self:xy(FILTERMAN:grabposx("Doot"),FILTERMAN:grabposy("Doot"))
+		end
+		
+		FILTERMAN:HelpImTrappedInAChineseFortuneCodingFactory(true)
 		self:playcommand("Init")
 	end,
 	ExpandCommand=function(self)
@@ -172,6 +180,7 @@ local o = Def.ActorFrame{
 		row2yoff = 1
 		collapsed = false
 		self:diffusealpha(1)
+		FILTERMAN:HelpImTrappedInAChineseFortuneCodingFactory(false)
 		self:playcommand("Init")
 	end,
 
@@ -189,6 +198,7 @@ local o = Def.ActorFrame{
 		end,
 		MouseRightClickMessageCommand=function(self)
 			if isOver(self) and not collapsed then
+				FILTERMAN:HelpImTrappedInAChineseFortuneCodingFactory(true)
 				self:GetParent():GetParent():playcommand("Collapse")
 			elseif isOver(self) then
 				self:GetParent():GetParent():playcommand("Expand")
@@ -214,7 +224,10 @@ local o = Def.ActorFrame{
 				self:diffusealpha(0.6):diffuse(color("#fafafa"))
 				if INPUTFILTER:IsBeingPressed("Mouse 0", "Mouse") then
 					self:diffusealpha(0):zoomto(400,400)
-					self:GetParent():xy(INPUTFILTER:GetMouseX()-width/2, INPUTFILTER:GetMouseY() - self:GetY())
+					local nx = INPUTFILTER:GetMouseX() - width/2
+					local ny = INPUTFILTER:GetMouseY() - self:GetY()
+					self:GetParent():xy(nx,ny)
+					FILTERMAN:savepos("Doot", nx, ny)
 				else
 					self:zoomto(dwidth/2,pdh/2)
 				end
