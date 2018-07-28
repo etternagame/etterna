@@ -538,12 +538,12 @@ void DownloadManager::UpdatePacks(float fDeltaSeconds)
 	while ((msg = curl_multi_info_read(mPackHandle, &msgs_left))) {
 		/* Find out which handle this message is about */
 		for (auto i = downloads.begin(); i != downloads.end(); i++) {
-			if (msg->easy_handle == i->second->handle && msg->msg == CURLMSG_DONE) {
+			if (msg->easy_handle == i->second->handle && msg->msg == CURLMSG_DONE && msg->data.result != CURLE_PARTIAL_FILE) {
 				finishedADownload = true;
 				i->second->p_RFWrapper.file.Flush();
 				if (i->second->p_RFWrapper.file.IsOpen())
 					i->second->p_RFWrapper.file.Close();
-				if (msg->msg == CURLMSG_DONE) {
+				if (msg->msg == CURLMSG_DONE && i->second->progress.total == i->second->progress.downloaded) {
 					timeSinceLastDownload = 0;
 					i->second->Done(i->second);
 					if (!gameplay) {
