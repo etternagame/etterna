@@ -971,7 +971,7 @@ public:
 	// not entirely sure this should be exposed to lua... -mina
 	static int UnloadReplayData(T* p, lua_State *L) {
 		p->UnloadReplayData();
-		return 1;
+		return 0;
 	}
 
 	static int GetComboList( T* p, lua_State *L )
@@ -1059,7 +1059,7 @@ public:
 		if( IArg(1) >= 0 )
 		{ 
 			p->m_iScore = IArg(1); 
-			return 1; 
+			return 0; 
 		} 
 		COMMON_RETURN_SELF;
 	}
@@ -1068,7 +1068,7 @@ public:
 		if( IArg(1) >= 0 )
 		{
 			p->m_iCurMaxScore = IArg(1);
-			return 1;
+			return 0;
 		}
 		COMMON_RETURN_SELF;
 	}

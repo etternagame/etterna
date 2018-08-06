@@ -1453,7 +1453,7 @@ public:
 	}
 	static int ToggleEtternaValidation(T* p, lua_State *L) {
 		p->SetEtternaValid(!p->GetEtternaValid());
-		return 1;
+		return 0;
 	}
 
 	// Convert to MS so lua doesn't have to
