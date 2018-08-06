@@ -31,8 +31,8 @@ shared_ptr<DownloadManager> DLMAN = nullptr;
 
 static Preference<unsigned int> maxDLPerSecond("maximumBytesDownloadedPerSecond", 0);
 static Preference<unsigned int> maxDLPerSecondGameplay("maximumBytesDownloadedPerSecondDuringGameplay", 300000);
-static Preference<RString> packListURL("getPackListURL", "https://api.etternaonline.com/v2/packs");
-static Preference<RString> serverURL("UploadServerAPIURL", "https://api.etternaonline.com/v2");
+static Preference<RString> packListURL("PackListURL", "https://api.etternaonline.com/v2/packs");
+static Preference<RString> serverURL("BaseAPIURL", "https://api.etternaonline.com/v2");
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 static Preference<unsigned int> downloadPacksToAdditionalSongs("downloadPacksToAdditionalSongs", 0);
 static const string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
@@ -678,7 +678,7 @@ bool DownloadManager::ShouldUploadScores()
 inline void SetCURLPOSTScore(CURL*& curlHandle, curl_httppost*& form, curl_httppost*& lastPtr, HighScore*& hs)
 {
 	SetCURLFormPostField(curlHandle, form, lastPtr, "scorekey", hs->GetScoreKey());
-	SetCURLFormPostField(curlHandle, form, lastPtr, "ValidString", hs->GenerateValidationKeys());
+	hs->GenerateValidationKeys();
 	SetCURLFormPostField(curlHandle, form, lastPtr, "ssr_norm", hs->norms);
 	SetCURLFormPostField(curlHandle, form, lastPtr, "max_combo", hs->GetMaxCombo());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "valid", static_cast<int>(hs->GetEtternaValid()));
