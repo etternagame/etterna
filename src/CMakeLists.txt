@@ -331,6 +331,7 @@ list(APPEND SMDATA_LINK_LIB
   "jsoncpp"
   "png"
   "glew"
+  "luajit"
   "jpeg"
   "sqlite3"
   "SQLiteCpp"
@@ -535,6 +536,8 @@ list(APPEND SM_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
   "${SM_SRC_DIR}/generated"
 )
+
+list(APPEND SM_INCLUDE_DIRS "${SM_EXTERN_DIR}/LuaJIT-2.1.0-beta3/src")
 
 if(NOT APPLE)
   list(APPEND SM_INCLUDE_DIRS
