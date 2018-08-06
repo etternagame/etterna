@@ -1211,6 +1211,11 @@ void DownloadManager::RefreshTop25(Skillset ss)
 			catch (exception e) { }
 			auto scores = j.find("data");
 			vector<OnlineTopScore> & vec = DLMAN->topScores[ss];
+			
+			if(scores == j.end()) {
+			  return;
+			}
+			
 			for (auto scoreJ : (*scores)) {
 				try {
 					auto score = *(scoreJ.find("attributes"));
@@ -1764,7 +1769,7 @@ public:
 		p->packs.clear();
 		p->packs = DLMAN->GetCoreBundle(SArg(1));
 		MESSAGEMAN->Broadcast("RefreshPacklist");
-		return 1;
+		return 0;
 	}
 	static int FilterAndSearch(T* p, lua_State* L) {
 		if (lua_gettop(L) < 5) {
@@ -1787,7 +1792,7 @@ public:
 				p->packs.push_back(&packs[i]);
 		}
 		MESSAGEMAN->Broadcast("RefreshPacklist");
-		return 1;
+		return 0;
 	}
 	static int GetTotalSize(T* p, lua_State* L) {
 		size_t totalsize = 0;
@@ -1812,14 +1817,14 @@ public:
 				auto comp = [](DownloadablePack* a, DownloadablePack* b) { return Rage::make_lower(a->name) > Rage::make_lower(b->name); };	// custom operators?
 				sort(p->packs.begin(), p->packs.end(), comp);
 				p->asc = false;
-				return 1;
+				return 0;
 			}
 		auto comp = [](DownloadablePack* a, DownloadablePack* b) { return Rage::make_lower(a->name) < Rage::make_lower(b->name); };
 		sort(p->packs.begin(), p->packs.end(), comp);
 		p->sortmode = 1;
 		p->asc = true;
 		MESSAGEMAN->Broadcast("RefreshPacklist");
-		return 1;
+		return 0;
 	}
 	static int SortByDiff(T* p, lua_State* L) {
 		auto& packs = p->packs;
@@ -1828,14 +1833,14 @@ public:
 				auto comp = [](DownloadablePack* a, DownloadablePack* b) { return (a->avgDifficulty < b->avgDifficulty); };
 				sort(packs.begin(), packs.end(), comp);
 				p->asc = false;
-				return 1;
+				return 0;
 			}
 		auto comp = [](DownloadablePack* a, DownloadablePack* b) { return (a->avgDifficulty > b->avgDifficulty); };
 		sort(packs.begin(), packs.end(), comp);
 		p->sortmode = 2;
 		p->asc = true;
 		MESSAGEMAN->Broadcast("RefreshPacklist");
-		return 1;
+		return 0;
 	}
 	static int SortBySize(T* p, lua_State* L) {
 		auto& packs = p->packs;
@@ -1844,14 +1849,14 @@ public:
 				auto comp = [](DownloadablePack* a, DownloadablePack* b) { return (a->size < b->size); };
 				sort(packs.begin(), packs.end(), comp);
 				p->asc = false;
-				return 1;
+				return 0;
 			}
 		auto comp = [](DownloadablePack* a, DownloadablePack* b) { return (a->size > b->size); };
 		sort(packs.begin(), packs.end(), comp);
 		p->sortmode = 3;
 		p->asc = true;
 		MESSAGEMAN->Broadcast("RefreshPacklist");
-		return 1;
+		return 0;
 	}
 	static int SetFromAll(T* p, lua_State* L) {
 		auto& packs = DLMAN->downloadablePacks;
@@ -1859,7 +1864,7 @@ public:
 		for (auto& n : packs)
 			p->packs.emplace_back(&n);
 		MESSAGEMAN->Broadcast("RefreshPacklist");
-		return 1;
+		return 0;
 	}
 	LunaPacklist()
 	{

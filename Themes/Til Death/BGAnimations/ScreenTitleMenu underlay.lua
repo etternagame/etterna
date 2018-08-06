@@ -114,12 +114,13 @@ for i=1,choiceCount do
 			transformF(self, 0, i, choiceCount)
 			self:addx(SCREEN_CENTER_X-20)
 			self:addy(SCREEN_CENTER_Y-20)
+			self:diffusealpha(0)
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if(isOver(self)) then
 				SCREENMAN:GetTopScreen():playcommand("MadeChoicePlayer_1")
 				SCREENMAN:GetTopScreen():playcommand("Choose")
-				if not choices[i] == "Multi" then -- for some reason multi gets stuck :/
+				if choices[i] ~= "Multi" then -- for some reason multi gets stuck :/
 					GAMESTATE:ApplyGameCommand(THEME:GetMetric("ScreenTitleMenu", "Choice"..choices[i]))
 				end
 			end

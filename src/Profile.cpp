@@ -1601,7 +1601,7 @@ public:
 	static int SetFromAll(T* p, lua_State *L) {
 		p->FillGoalTable();
 		p->filtermode = 1;
-		return 1;
+		return 0;
 	}
 	
 	static int SortByDate(T* p, lua_State* L) {
@@ -1610,13 +1610,13 @@ public:
 				auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->timeassigned > b->timeassigned; };	// custom operators?
 				sort(p->goaltable.begin(), p->goaltable.end(), comp);
 				p->asc = false;
-				return 1;
+				return 0;
 			}
 		auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->timeassigned < b->timeassigned; };
 		sort(p->goaltable.begin(), p->goaltable.end(), comp);
 		p->sortmode = 1;
 		p->asc = true;
-		return 1;
+		return 0;
 	}
 
 	static int SortByRate(T* p, lua_State* L) {
@@ -1625,13 +1625,13 @@ public:
 				auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->rate > b->rate; };	// custom operators?
 				sort(p->goaltable.begin(), p->goaltable.end(), comp);
 				p->asc = false;
-				return 1;
+				return 0;
 			}
 		auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->rate < b->rate; };
 		sort(p->goaltable.begin(), p->goaltable.end(), comp);
 		p->sortmode = 2;
 		p->asc = true;
-		return 1;
+		return 0;
 	}
 
 	static int SortByName(T* p, lua_State* L) {
@@ -1641,14 +1641,14 @@ public:
 					Rage::make_lower(SONGMAN->GetSongByChartkey(b->chartkey)->GetDisplayMainTitle()); };	// custom operators?
 				sort(p->goaltable.begin(), p->goaltable.end(), comp);
 				p->asc = false;
-				return 3;
+				return 0;
 			}
 		auto comp = [](ScoreGoal* a, ScoreGoal* b) { return Rage::make_lower(SONGMAN->GetSongByChartkey(a->chartkey)->GetDisplayMainTitle()) < 
 			Rage::make_lower(SONGMAN->GetSongByChartkey(b->chartkey)->GetDisplayMainTitle()); };
 		sort(p->goaltable.begin(), p->goaltable.end(), comp);
 		p->sortmode = 3;
 		p->asc = true;
-		return 1;
+		return 0;
 	}
 
 	static int SortByPriority(T* p, lua_State* L) {
@@ -1657,13 +1657,13 @@ public:
 				auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->priority > b->priority; };	// custom operators?
 				sort(p->goaltable.begin(), p->goaltable.end(), comp);
 				p->asc = false;
-				return 3;
+				return 0;
 			}
 		auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->priority < b->priority; };
 		sort(p->goaltable.begin(), p->goaltable.end(), comp);
 		p->sortmode = 4;
 		p->asc = true;
-		return 1;
+		return 0;
 	}
 
 	static int SortByDiff(T* p, lua_State* L) {
@@ -1673,14 +1673,14 @@ public:
 					SONGMAN->GetStepsByChartkey(b->chartkey)->GetMSD(b->rate, 0); };
 				sort(p->goaltable.begin(), p->goaltable.end(), comp);
 				p->asc = false;
-				return 3;
+				return 0;
 			}
 		auto comp = [](ScoreGoal* a, ScoreGoal* b) { return SONGMAN->GetStepsByChartkey(a->chartkey)->GetMSD(a->rate, 0) <
 			SONGMAN->GetStepsByChartkey(b->chartkey)->GetMSD(b->rate, 0); };
 		sort(p->goaltable.begin(), p->goaltable.end(), comp);
 		p->sortmode = 5;
 		p->asc = true;
-		return 1;
+		return 0;
 	}
 
 	static int ToggleFilter(T* p, lua_State* L) {
@@ -1688,7 +1688,7 @@ public:
 		
 		if (p->filtermode == 3) {
 			p->filtermode = 1;
-			return 1;
+			return 0;
 		}
 
 		vector<ScoreGoal*> doot;
@@ -1698,7 +1698,7 @@ public:
 					doot.emplace_back(sg);
 			p->goaltable = doot;
 			p->filtermode = 2;
-			return 1;
+			return 0;
 		}
 		if (p->filtermode == 2) {
 			for (auto& sg : p->goaltable)
@@ -1706,9 +1706,9 @@ public:
 					doot.emplace_back(sg);
 			p->goaltable = doot;
 			p->filtermode = 3;
-			return 1;
+			return 0;
 		}
-		return 1;
+		return 0;
 	}
 	static int GetFilterMode(T* p, lua_State *L) {
 		lua_pushnumber(L, p->filtermode);
