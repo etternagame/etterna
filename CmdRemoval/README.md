@@ -1,13 +1,13 @@
 # CmdRemovalTool
 
-In order for all of your shit to work on Etterna 0.56 and onwards, you will need to replace every cmd call in your lua files(most likely your noteskins files), and this tool makes this process easier - so you probably should use it
+In order for all of your stuff to work on Etterna 0.56 and onwards, you will need to replace every cmd call in your lua files(most likely your noteskins files), and this tool makes this process easier.
 
-## reqs
+## Requirements
 
 Python 3.5 or superior, available at: https://www.python.org/downloads/release/python-363/
 The actual script, available at: https://raw.githubusercontent.com/caiohsr14/etterna/master/CmdRemoval/sure.py (right click - save as sure.py)
 
-## usage guide
+## Usage Guide
 
 First you move the downloaded script to the root folder of your game, or whatever folder you want to replace the cmds, in this example I'm using my noteskins folder:
 ![image](img/image1.png?raw=true)
@@ -24,8 +24,8 @@ python sure.py
 And then it will list all the files that were(or should be) changed:
 ![image](img/image3.png?raw=true)
 
-And it's done, congrats
+And it's done, congrats.
 
-## troubleshooting
+## Troubleshooting
 
-If you have any questions or if anything broke you can find me(Frustration#2297) on the Etterna Dev Group discord
+If you have any questions or if anything broke you can find me (Frustration#2297) on the Etterna Dev Group discord
