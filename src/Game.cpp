@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "Game.h"
 
 TapNoteScore Game::MapTapNoteScore( TapNoteScore tns ) const
@@ -27,6 +27,7 @@ static const Game::PerButtonInfo g_CommonButtonInfo[] =
 	{ GameButtonType_Menu }, // GAME_BUTTON_OPERATOR
 	{ GameButtonType_Menu }, // GAME_BUTTON_EFFECT_UP
 	{ GameButtonType_Menu }, // GAME_BUTTON_EFFECT_DOWN
+	{ GameButtonType_Menu }, // GAME_BUTTON_RESTART
 };
 
 const Game::PerButtonInfo *Game::GetPerButtonInfo( GameButton gb ) const

@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "AdjustSync.h"
 #include "ArrowEffects.h"
@@ -1887,6 +1887,21 @@ bool ScreenGameplay::Input( const InputEventPlus &input )
 
 			return true;
 		}
+
+		/* Restart gameplay button moved from theme to allow for rebinding for people who
+		 *  dont want to edit lua files :)
+		 */
+		bool bHoldingRestart = false;
+		if (GAMESTATE->GetCurrentStyle(input.pn)->GameInputToColumn(input.GameI) == Column_Invalid)
+		{
+			bHoldingRestart |= input.MenuI == GAME_BUTTON_RESTART;
+		}
+		if (bHoldingRestart)
+		{
+			SCREENMAN->GetTopScreen()->SetPrevScreenName("ScreenStageInformation");
+			BeginBackingOutFromGameplay();
+		}
+
 	}
 
 	bool bRelease = input.type == IET_RELEASE;

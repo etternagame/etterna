@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "Foreach.h"
 #include "Game.h"
 #include "GameConstantsAndTypes.h"
@@ -106,6 +106,7 @@ static const AutoMappings g_AutoKeyMappings_Dance = AutoMappings (
 	AutoMappingEntry( 0, KEY_Cx,		DANCE_BUTTON_DOWN,		false ),
 	AutoMappingEntry( 0, KEY_EQUAL,			GAME_BUTTON_EFFECT_UP, false),
 	AutoMappingEntry( 0, KEY_HYPHEN,		GAME_BUTTON_EFFECT_DOWN, false),
+	AutoMappingEntry( 0, KEY_ACCENT,		GAME_BUTTON_RESTART, false),
 	AutoMappingEntry( 0, KEY_KP_SLASH,		GAME_BUTTON_MENULEFT,		true ),
 	AutoMappingEntry( 0, KEY_KP_ASTERISK,	GAME_BUTTON_MENURIGHT,		true ),
 	AutoMappingEntry( 0, KEY_KP_HYPHEN,		GAME_BUTTON_MENUUP,		true ),

@@ -323,8 +323,8 @@ end
 
 -- supported aspect ratios
 AspectRatios = {
-	ThreeFour   = 0.75,		-- (576x760 at 1024x768; meant for rotated monitors?)
-	OneOne      = 1.0,		-- 480x480  (uses Y value of specified resolution)
+	--ThreeFour   = 0.75,		-- (576x760 at 1024x768; meant for rotated monitors?)
+	--OneOne      = 1.0,		-- 480x480  (uses Y value of specified resolution)
 	FiveFour    = 1.25,		-- 600x480 (1280x1024 is a real use case)
 	FourThree   = 1.33333,	-- 640x480 (common)
 	SixteenTen  = 1.6,		-- 720x480 (common)
