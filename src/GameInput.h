@@ -30,6 +30,7 @@ enum GameButton
 	GAME_BUTTON_OPERATOR, /**< Access the operator menu. */
 	GAME_BUTTON_EFFECT_UP,
 	GAME_BUTTON_EFFECT_DOWN,
+	GAME_BUTTON_RESTART,
 	GAME_BUTTON_CUSTOM_01,
 	GAME_BUTTON_CUSTOM_02,
 	GAME_BUTTON_CUSTOM_03,
@@ -180,6 +181,7 @@ GameButton StringToGameButton( const InputScheme* pInputs, const RString& s );
 #define GAME_BUTTON_DOWN GAME_BUTTON_MENUDOWN
 #define GAME_BUTTON_START GAME_BUTTON_START
 #define GAME_BUTTON_BACK GAME_BUTTON_BACK
+#define GAME_BUTTON_RESTART GAME_BUTTON_RESTART
 /** @brief An input event specific to an InputScheme defined by a logical controller and button. */
 struct GameInput
 {

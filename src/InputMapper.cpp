@@ -66,7 +66,8 @@ static const AutoMappings g_DefaultKeyMappings = AutoMappings(
 	AutoMappingEntry( 0, KEY_KP_C0,	GAME_BUTTON_SELECT,	true ),
 	AutoMappingEntry( 0, KEY_HYPHEN,	GAME_BUTTON_BACK,	true ), // laptop keyboards.
 	AutoMappingEntry( 0, KEY_F1,	GAME_BUTTON_COIN,	false ),
-	AutoMappingEntry( 0, KEY_SCRLLOCK,	GAME_BUTTON_OPERATOR,	false )
+	AutoMappingEntry( 0, KEY_SCRLLOCK,	GAME_BUTTON_OPERATOR,	false ),
+	AutoMappingEntry( 0, KEY_ACCENT, GAME_BUTTON_RESTART, false)
 );
 
 void InputMapper::AddDefaultMappingsForCurrentGameIfUnmapped()
@@ -1151,6 +1152,7 @@ static const InputScheme::GameButtonInfo g_CommonGameButtonInfo[] =
 	{ "Operator",	GAME_BUTTON_OPERATOR },
 	{ "EffectUp",	GAME_BUTTON_EFFECT_UP },
 	{ "EffectDown",	GAME_BUTTON_EFFECT_DOWN },
+	{ "RestartGameplay", GAME_BUTTON_RESTART },
 };
 
 const InputScheme::GameButtonInfo *InputScheme::GetGameButtonInfo( GameButton gb ) const
