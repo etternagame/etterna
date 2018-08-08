@@ -1292,10 +1292,15 @@ bool HandleGlobalInputs( const InputEventPlus &input )
 			 * (to prevent quitting without storing changes). */
 			if( SCREENMAN->AllowOperatorMenuButton() )
 			{
-				SCREENMAN->SystemMessage( SERVICE_SWITCH_PRESSED );
-				SCREENMAN->PopAllScreens();
-				GAMESTATE->Reset();
-				SCREENMAN->SetNewScreen( CommonMetrics::OPERATOR_MENU_SCREEN );
+				bool bIsCtrlHeld = INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_LCTRL), &input.InputList) ||
+					INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RCTRL), &input.InputList);
+				if (bIsCtrlHeld) // Operator is rebound to OPERATOR + Ctrl
+				{
+					SCREENMAN->SystemMessage(SERVICE_SWITCH_PRESSED);
+					SCREENMAN->PopAllScreens();
+					GAMESTATE->Reset();
+					SCREENMAN->SetNewScreen(CommonMetrics::OPERATOR_MENU_SCREEN);
+				}
 			}
 			return true;
 			return false; // Attract needs to know because it goes to TitleMenu on > 1 credit
