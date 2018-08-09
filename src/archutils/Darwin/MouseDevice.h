@@ -9,15 +9,18 @@ struct Mouse
     float x{0};
     float y{0};
 	InputDevice id;
-	IOHIDElementCookie x_axis, y_axis, z_axis;
+	IOHIDElementCookie x_axis, y_axis;
 	int x_min, x_max;
 	int y_min, y_max;
-	int z_min, z_max;
+    vector <int> z_min, z_max;
+    
+    vector <IOHIDElementCookie> z_axis;
 
 	Mouse();
 };
 float MACMouseX();
 float MACMouseY();
+float MACMouseScroll();
 float MACWindowHeight();
 float MACWindowWidth();
 
