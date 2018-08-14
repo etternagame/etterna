@@ -2,18 +2,11 @@
 #include "ActorUtil.h"
 #include "GameConstantsAndTypes.h"
 #include "GameState.h"
-#include "HighScore.h"
 #include "MusicWheelItem.h"
-#include "Profile.h"
-#include "ProfileManager.h"
 #include "RageUtil.h"
 #include "ScoreManager.h"
-#include "ScreenSelectMusic.h"
 #include "Song.h"
-#include "SongManager.h"
-#include "Steps.h"
 #include "Style.h"
-#include "ThemeManager.h"
 #include "ThemeMetric.h"
 
 static const char *MusicWheelItemTypeNames[] = {

@@ -19,6 +19,26 @@ local c4x = c5x - adjx - (tzoom*3*adjx) 	-- right aligned cols
 local c3x = c4x - adjx - (tzoom*10*adjx) 	-- right aligned cols
 local headeroff = packspaceY/1.5
 
+local moving
+local cheese
+
+-- will eat any mousewheel inputs to scroll pages while mouse is over the background frame
+local function input(event)
+	if cheese:GetVisible() and isOver(cheese:GetChild("FrameDisplay")) then
+		if event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" then
+			moving = true
+			cheese:queuecommand("PrevPage")
+			return true
+		elseif event.DeviceInput.button == "DeviceButton_mousewheel down" and event.type == "InputEventType_FirstPress" then
+			cheese:queuecommand("NextPage")
+			return true
+		elseif moving == true then
+			moving = false
+		end
+	end
+	return false
+end
+
 local function highlight(self)
 	self:queuecommand("Highlight")
 end
@@ -43,8 +63,12 @@ local goaltable
 local o = Def.ActorFrame{
 	Name = "GoalDisplay",
 	InitCommand=function(self)
+		cheese = self
 		self:xy(0,0)
 		self:SetUpdateFunction(highlight)
+	end,
+	BeginCommand=function(self)
+		SCREENMAN:GetTopScreen():AddInputCallback(input)
 	end,
 	OnCommand=function(self)
 		GetPlayerOrMachineProfile(PLAYER_1):SetFromAll()
@@ -56,13 +80,18 @@ local o = Def.ActorFrame{
 		self:queuecommand("Update")
 	end,
 	UpdateCommand=function(self)
-		if ind < 0 then
-			ind = 0
-		elseif ind == #goaltable then
+		if ind == #goaltable then
 			ind = ind - numgoals
 		elseif ind > #goaltable - (#goaltable % numgoals) then
 			ind = #goaltable - (#goaltable % numgoals)
 		end
+		if ind < 0 then
+			ind = 0
+		end
+	end,
+	DFRFinishedMessageCommand=function(self)
+		GetPlayerOrMachineProfile(PLAYER_1):SetFromAll()
+		self:queuecommand("GoalTableRefresh")
 	end,
 	NextPageCommand=function(self)
 		ind = ind + numgoals
@@ -72,8 +101,13 @@ local o = Def.ActorFrame{
 		ind = ind - numgoals
 		self:queuecommand("Update")
 	end,
-
-	Def.Quad{InitCommand=function(self) self:zoomto(width,height-headeroff):halign(0):valign(0):diffuse(color("#333333")) end},
+	
+	Def.Quad{
+		Name = "FrameDisplay",
+		InitCommand=function(self)
+			self:zoomto(width,height-headeroff):halign(0):valign(0):diffuse(color("#333333")) 
+		end
+	},
 	
 	-- headers
 	Def.Quad{
@@ -87,19 +121,6 @@ local o = Def.ActorFrame{
 		end,
 		UpdateCommand=function(self)
 			self:settextf("%i-%i", ind+1, ind+numgoals)
-		end,
-		HighlightCommand=function(self)
-			highlightIfOver(self)
-		end,
-		MouseLeftClickMessageCommand=function(self)
-			if isOver(self) then
-				self:GetParent():queuecommand("NextPage")
-			end
-		end,
-		MouseRightClickMessageCommand=function(self)
-			if isOver(self) then
-				self:GetParent():queuecommand("PrevPage")
-			end
 		end,
 	},
 	
@@ -167,7 +188,7 @@ local o = Def.ActorFrame{
 	
 	LoadFont("Common normal") .. {	--completed toggle // filters
 		InitCommand=function(self)
-			self:xy(c3x- 40, headeroff):zoom(tzoom):halign(0):settext(filts[1])
+			self:xy(c3x- capWideScale(15,40), headeroff):zoom(tzoom):halign(0):settext(filts[1])
 		end,
 		HighlightCommand=function(self)
 			highlightIfOver(self)

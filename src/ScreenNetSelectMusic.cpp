@@ -739,7 +739,10 @@ void ScreenNetSelectMusic::UpdateDifficulties( PlayerNumber pn )
 void ScreenNetSelectMusic::BeginScreen()
 {
 	ScreenNetSelectBase::BeginScreen();
-	SONGMAN->SetFlagsForProfile(PROFILEMAN->GetProfile(PLAYER_1));
+	Profile* prof = PROFILEMAN->GetProfile(PLAYER_1);
+	SONGMAN->MakeSongGroupsFromPlaylists();
+	SONGMAN->SetFavoritedStatus(prof->FavoritedCharts);
+	SONGMAN->SetHasGoal(prof->goalmap);
 }
 void ScreenNetSelectMusic::MusicChanged()
 {

@@ -2,7 +2,6 @@
 #include "GameLoop.h"
 #include "PrefsManager.h"
 #include "RageDisplay.h"
-#include "RageLog.h"
 #include "RageSoundManager.h"
 #include "RageTextureManager.h"
 

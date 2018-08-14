@@ -1,7 +1,6 @@
 #include "global.h"
 #include "GameManager.h"
 #include "GameState.h"
-#include "Profile.h"
 #include "ProfileManager.h"
 #include "ScreenManager.h"
 #include "ScreenRanking.h"

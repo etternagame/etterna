@@ -1,12 +1,8 @@
 ﻿#include "global.h"
 #include "BackgroundUtil.h"
-#include "MsdFile.h"
 #include "NoteTypes.h"
 #include "NotesLoaderSM.h" // may need this.
 #include "NotesLoaderSMA.h"
-#include "PrefsManager.h"
-#include "RageLog.h"
-#include "RageUtil.h"
 #include "Song.h"
 #include "SongManager.h"
 #include "Steps.h"

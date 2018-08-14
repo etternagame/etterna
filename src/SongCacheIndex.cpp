@@ -622,12 +622,14 @@ void SongCacheIndex::LoadHyperCache(LoadingWindow * ld, map<RString, Song*>& hyp
 			auto songID = SongFromStatement(s, query);
 			hyperCache[songID.first] = s;
 			lastDir = songID.first;
+			lastDir = lastDir.substr(0, lastDir.find_last_of("/"));
+			lastDir = lastDir.substr(0, lastDir.find_last_of("/"));
 			// this is a song directory. Load a new song.
 			progress++;
 			if (ld && progress%onePercent==0)
 			{
 				ld->SetProgress(progress);
-				ld->SetText(("Loading Cache\n (" + lastDir + ")").c_str());
+				ld->SetText(("Loading Cache\n" + lastDir).c_str());
 			}
 		}
 
@@ -659,12 +661,14 @@ void SongCacheIndex::LoadCache(LoadingWindow * ld, map<pair<RString, unsigned in
 			auto songID = SongFromStatement(s, query);
 			cache[songID] = s;
 			lastDir = songID.first;
+			lastDir = lastDir.substr(0, lastDir.find_last_of("/"));
+			lastDir = lastDir.substr(0, lastDir.find_last_of("/"));
 			// this is a song directory. Load a new song.
 			progress++;
 			if (ld && progress % onePercent == 0)
 			{
 				ld->SetProgress(progress);
-				ld->SetText(("Loading Cache\n(" + lastDir + ")").c_str());
+				ld->SetText(("Loading Cache\n" + lastDir).c_str());
 			}
 		}
 

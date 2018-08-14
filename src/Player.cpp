@@ -38,6 +38,7 @@
 #include "ThemeManager.h"
 #include "NoteSkinManager.h" 
 #include "ThemeMetric.h"
+#include "HoldJudgment.h"
 
 RString ATTACK_DISPLAY_X_NAME( size_t p, size_t both_sides );
 void TimingWindowSecondsInit( size_t /*TimingWindow*/ i, RString &sNameOut, float &defaultValueOut );
@@ -370,7 +371,7 @@ void Player::Init(
 	{
 		float fLife = m_pLifeMeter->GetLife();
 		m_pPlayerStageStats->SetLifeRecordAt( fLife, STATSMAN->m_CurStageStats.m_fStepsSeconds );
-		m_pPlayerStageStats->SetWifeRecordAt( 1.f, STATSMAN->m_CurStageStats.m_fStepsSeconds);
+		//m_pPlayerStageStats->SetWifeRecordAt( 1.f, STATSMAN->m_CurStageStats.m_fStepsSeconds);
 	}
 
 	// TODO: Remove use of PlayerNumber.

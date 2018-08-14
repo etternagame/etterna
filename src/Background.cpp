@@ -22,6 +22,7 @@
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
 #include <cfloat>
+#include "GameState.h"
 
 static ThemeMetric<float> LEFT_EDGE				("Background","LeftEdge");
 static ThemeMetric<float> TOP_EDGE				("Background","TopEdge");
@@ -213,8 +214,8 @@ void BackgroundImpl::Init()
 			bShowingBeginnerHelper = true;
 	}
 
-	if( bOneOrMoreChars && !bShowingBeginnerHelper && SHOW_DANCING_CHARACTERS )
-		m_pDancingCharacters = new DancingCharacters;
+	//if( bOneOrMoreChars && !bShowingBeginnerHelper && SHOW_DANCING_CHARACTERS )
+		//m_pDancingCharacters = new DancingCharacters;
 
 	RageColor c = GetBrightnessColor(0);
 

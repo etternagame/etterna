@@ -3,7 +3,7 @@
 
 #include "EnumHelper.h"
 #include "RageTimer.h"
-
+#include "SongOptions.h"
 enum ModsLevel
 {
 	ModsLevel_Preferred,	// user-chosen player options.  Does not include any forced mods.

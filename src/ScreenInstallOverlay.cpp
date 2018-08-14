@@ -155,8 +155,10 @@ void ScreenInstallOverlay::Update(float fDeltaTime)
 			msg.SetParam("queuesize", DLMAN->DownloadQueue.size());
 			msg.SetParam("queuedpacks", join("\n", cue));
 		}
-		msg.SetParam("queuesize", 0);
-		msg.SetParam("queuedpacks", RString(""));
+		else {
+			msg.SetParam("queuesize", 0);
+			msg.SetParam("queuedpacks", RString(""));
+		}
 		MESSAGEMAN->Broadcast(msg);
 	} else
 		MESSAGEMAN->Broadcast("AllDownloadsCompleted");		// silly to handle this through updates but im not sure where is better atm -mina

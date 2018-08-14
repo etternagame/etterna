@@ -12,7 +12,6 @@
 #include "MenuTimer.h"
 #include "PlayerState.h"
 #include "PrefsManager.h"
-#include "Profile.h"
 #include "ProfileManager.h"
 #include "RageLog.h"
 #include "RageTextureManager.h"
@@ -397,6 +396,7 @@ void ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 		FallbackMusic.bAlignBeat = ALIGN_MUSIC_BEATS;
 
 		SOUND->PlayMusic(PlayParams, FallbackMusic);
+		DLMAN->RequestChartLeaderBoard(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
 	}
 }
 
@@ -1473,7 +1473,6 @@ void ScreenSelectMusic::AfterStepsOrTrailChange(const vector<PlayerNumber> &vpns
 			}
 
 			m_textHighScore[pn].SetText(ssprintf("%*i", NUM_SCORE_DIGITS, iScore));
-			DLMAN->RequestChartLeaderBoard(pSteps->GetChartKey());
 		}
 		else
 		{

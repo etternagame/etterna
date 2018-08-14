@@ -1,6 +1,5 @@
 #include "global.h"
 #include "GameManager.h"
-#include "Profile.h"
 #include "ProfileManager.h"
 #include "Song.h"
 #include "SongManager.h"

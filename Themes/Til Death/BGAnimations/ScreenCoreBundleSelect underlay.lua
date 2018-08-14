@@ -17,7 +17,7 @@ local o = Def.ActorFrame{
 	InitCommand=function(self)
 		self:xy(SCREEN_WIDTH/2, 50):halign(0.5)
 	end,
-	OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) end,
+	BeginCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) end,
 	CodeMessageCommand = function(self, params)
 		if params.Name == 'Up' then
 			ind = ind - 1
@@ -131,7 +131,7 @@ local function makedoots(i)
 			end,
 			OnCommand=function(self)
 				local bundle = DLMAN:GetCoreBundle(minidoots[i]:lower())
-				self:settextf("(%dmb)", bundle["TotalSize"])
+				self:settextf("(%dMB)", bundle["TotalSize"])
 			end
 		}
 	}

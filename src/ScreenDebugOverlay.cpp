@@ -11,7 +11,6 @@
 #include "NoteSkinManager.h"
 #include "PlayerState.h"
 #include "PrefsManager.h"
-#include "Profile.h"
 #include "ProfileManager.h"
 #include "RageDisplay.h"
 #include "RageInput.h"

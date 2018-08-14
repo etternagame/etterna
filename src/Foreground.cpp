@@ -8,6 +8,7 @@
 #include "RageTextureManager.h"
 #include "RageUtil.h"
 #include "Song.h"
+#include "GameState.h"
 
 Foreground::~Foreground()
 {

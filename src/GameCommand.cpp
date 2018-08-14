@@ -8,15 +8,15 @@
 #include "LocalizedString.h"
 #include "PlayerOptions.h"
 #include "PlayerState.h"
-#include "Profile.h"
 #include "ProfileManager.h"
 #include "RageUtil.h"
 #include "ScreenManager.h"
 #include "ScreenPrompt.h"
 #include "Song.h"
-#include "SongManager.h"
 #include "Style.h"
 #include "arch/ArchHooks/ArchHooks.h"
+#include "SongManager.h"
+#include "SongUtil.h"
 
 static LocalizedString COULD_NOT_LAUNCH_BROWSER( "GameCommand", "Could not launch web browser." );
 

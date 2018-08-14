@@ -5,7 +5,6 @@
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
 #include "XmlFile.h"
-#include "Profile.h"
 #include "XmlFileUtil.h"
 
 

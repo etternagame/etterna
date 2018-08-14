@@ -101,12 +101,22 @@ bool DownloadManager::InstallSmzip(const string &sZipFile)
 		FAIL_M(static_cast<string>("Failed to mount " + sZipFile).c_str());
 	vector<RString> v_packs;
 	GetDirListing(TEMP_ZIP_MOUNT_POINT + "*", v_packs, true, true);
-	if (v_packs.size() > 1) 
-		return false;
+
+	string doot = TEMP_ZIP_MOUNT_POINT;
+	if (v_packs.size() > 1) {
+		doot += sZipFile.substr(sZipFile.find_last_of("/") + 1);// attempt to whitelist pack name, this should be pretty simple/safe solution for a lot of pad packs -mina
+		doot = doot.substr(0, doot.length() - 4) + "/";
+	}
+	
 	vector<string> vsFiles;
 	{
 		vector<RString> vsRawFiles;
-		GetDirListingRecursive(TEMP_ZIP_MOUNT_POINT, "*", vsRawFiles);
+		GetDirListingRecursive(doot, "*", vsRawFiles);
+
+		if (vsRawFiles.empty()) {
+			FILEMAN->Unmount("zip", sZipFile, TEMP_ZIP_MOUNT_POINT);
+			return false;
+		}
 
 		vector<string> vsPrettyFiles;
 		FOREACH_CONST(RString, vsRawFiles, s)
@@ -528,12 +538,12 @@ void DownloadManager::UpdatePacks(float fDeltaSeconds)
 	while ((msg = curl_multi_info_read(mPackHandle, &msgs_left))) {
 		/* Find out which handle this message is about */
 		for (auto i = downloads.begin(); i != downloads.end(); i++) {
-			if (msg->easy_handle == i->second->handle && msg->msg == CURLMSG_DONE) {
+			if (msg->easy_handle == i->second->handle && msg->msg == CURLMSG_DONE && msg->data.result != CURLE_PARTIAL_FILE) {
 				finishedADownload = true;
 				i->second->p_RFWrapper.file.Flush();
 				if (i->second->p_RFWrapper.file.IsOpen())
 					i->second->p_RFWrapper.file.Close();
-				if (msg->msg == CURLMSG_DONE) {
+				if (msg->msg == CURLMSG_DONE && i->second->progress.total == i->second->progress.downloaded) {
 					timeSinceLastDownload = 0;
 					i->second->Done(i->second);
 					if (!gameplay) {
@@ -1021,13 +1031,48 @@ float overratedness(string chartkey) {
 	return overratedness;
 }
 
+// fill dummy highscores so we can use the same lua displays -mina
+void DownloadManager::MakeAThing(string chartkey) {
+	athing.clear();
+	HighScore hs;
+
+	for (auto& ohs : DLMAN->chartLeaderboards[chartkey]) {
+		hs.SetDateTime(ohs.datetime);
+		hs.SetMaxCombo(ohs.maxcombo);
+		hs.SetName(ohs.username);
+		hs.SetModifiers(ohs.modifiers);
+		hs.SetChordCohesion(ohs.nocc);
+		hs.SetWifeScore(ohs.wife);
+		hs.SetMusicRate(ohs.rate);
+
+		hs.SetTapNoteScore(TNS_W1, ohs.marvelous);
+		hs.SetTapNoteScore(TNS_W2, ohs.perfect);
+		hs.SetTapNoteScore(TNS_W3, ohs.great);
+		hs.SetTapNoteScore(TNS_W4, ohs.good);
+		hs.SetTapNoteScore(TNS_W5, ohs.bad);
+		hs.SetTapNoteScore(TNS_Miss, ohs.miss);
+		hs.SetTapNoteScore(TNS_HitMine, ohs.minehits);
+
+		hs.SetHoldNoteScore(HNS_Held, ohs.held);
+		hs.SetHoldNoteScore(HNS_LetGo, ohs.letgo);
+
+		FOREACH_ENUM(Skillset, ss)
+			hs.SetSkillsetSSR(ss, ohs.SSRs[ss]);
+
+		hs.userid = ohs.userid;
+		hs.scoreid = ohs.scoreid;
+		hs.avatar = ohs.avatar;
+		athing.push_back(hs);
+	}
+	
+}
+
 void DownloadManager::RequestChartLeaderBoard(string chartkey)
 {
 	auto done = [chartkey](HTTPRequest& req, CURLMsg *) {
 		vector<OnlineScore> & vec = DLMAN->chartLeaderboards[chartkey];
 		vec.clear();
 		unordered_set<string> userswithscores;
-		float currentrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 		Message msg("ChartLeaderboardUpdate");
 		try {
 			auto j = json::parse(req.result);
@@ -1066,9 +1111,6 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 				
 				// filter scores not on the current rate out if enabled... dunno if we need this precision -mina
 				tmp.rate = static_cast<float>(score.value("rate", 0.0));
-				if (FILTERMAN->currentrateonlyforonlineleaderboardrankings)
-					if(lround(tmp.rate * 10000.f) != lround(currentrate * 10000.f))
-						continue;
 				tmp.nocc = score.value("noCC", 0) != 0;
 				tmp.valid = score.value("valid", 0) != 0;
 
@@ -1292,7 +1334,7 @@ void DownloadManager::OnLogin()
 void DownloadManager::StartSession(string user, string pass, function<void(bool loggedIn)> callback = [](bool) {return; })
 {
 	string url = serverURL.Get() + "/login";
-	if (loggingIn) {
+	if (loggingIn || user == "") {
 		return;
 	}
 	DLMAN->loggingIn = true;
@@ -1708,13 +1750,12 @@ public:
 		float avgpackdiff = 0.f;
 
 		for (auto p : bundle) {
-			totalsize += p->size;
+			totalsize += p->size / 1024 / 1024;
 			avgpackdiff += p->avgDifficulty;
 		}
 
 		if(!bundle.empty())
 			avgpackdiff /= bundle.size();
-		totalsize = totalsize / 1024 / 1024;
 		
 		// this may be kind of unintuitive but lets roll with it for now -mina
 		lua_pushnumber(L, totalsize);
@@ -1734,6 +1775,30 @@ public:
 		lua_pushstring(L, DLMAN->authToken.c_str());
 		return 1;
 	}
+
+	static int RequestChartLeaderBoard(T* p, lua_State* L) {
+		//p->RequestChartLeaderBoard(SArg(1));
+		p->MakeAThing(SArg(1));
+		vector<HighScore*> wot;
+		float currentrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+		for (auto& zoop : p->athing) {
+			if (lround(zoop.GetMusicRate() * 10000.f) != lround(currentrate * 10000.f) && p->currentrateonly)
+				continue;
+			wot.push_back(&zoop);
+		}
+		LuaHelpers::CreateTableFromArray(wot, L);
+		return 1;
+	}
+
+	static int ToggleRateFilter(T* p, lua_State* L) {
+		p->currentrateonly = !p->currentrateonly;
+		return 1;
+	}
+	static int GetCurrentRateFilter(T* p, lua_State* L) {
+		lua_pushboolean(L, p->currentrateonly);
+		return 1;
+	}
+
 	LunaDownloadManager()
 	{
 		ADD_METHOD(DownloadCoreBundle);
@@ -1753,6 +1818,9 @@ public:
 		ADD_METHOD(GetTopChartScoreCount);
 		ADD_METHOD(GetLastVersion);
 		ADD_METHOD(GetRegisterPage);
+		ADD_METHOD(RequestChartLeaderBoard);
+		ADD_METHOD(ToggleRateFilter);
+		ADD_METHOD(GetCurrentRateFilter);
 		ADD_METHOD(Logout);
 	}
 };

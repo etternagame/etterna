@@ -28,8 +28,6 @@
 #include "RageUtil.h"
 #include "Song.h"
 #include "SongManager.h"
-#include "Steps.h"
-#include "StepsUtil.h"
 #include <algorithm>
 #include <thread>
 

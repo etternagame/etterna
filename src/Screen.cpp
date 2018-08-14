@@ -4,7 +4,6 @@
 #include "InputMapper.h"
 #include "PrefsManager.h"
 #include "RageLog.h"
-#include "RageSound.h"
 #include "Screen.h"
 #include "ScreenManager.h"
 #include "RageInput.h"
@@ -359,10 +358,10 @@ bool Screen::PassInputToLua(const InputEventPlus& input)
 	lua_setfield(L, -2, "PlayerNumber");
 	Enum::Push(L, input.mp);
 	lua_setfield(L, -2, "MultiPlayer");
-	for(auto callback= m_InputCallbacks.begin();
-			callback != m_InputCallbacks.end() && !handled; ++callback)
-	{
-		callback->second.PushSelf(L);
+	for(auto k : orderedcallbacks) {
+		if(handled)
+			break;
+		m_InputCallbacks[k].PushSelf(L);
 		lua_pushvalue(L, -2);
 		RString error= "Error running input callback: ";
 		LuaHelpers::RunScriptOnStack(L, error, 1, 1, true);
@@ -387,6 +386,7 @@ void Screen::AddInputCallbackFromStack(lua_State* L)
 {
 	callback_key_t key= lua_topointer(L, 1);
 	m_InputCallbacks[key]= LuaReference(L);
+	orderedcallbacks.push_back(key);
 }
 
 void Screen::RemoveInputCallback(lua_State* L)

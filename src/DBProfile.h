@@ -4,7 +4,6 @@
 #include "global.h"
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
-#include "Profile.h"
 #include "sqlite3.h"
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <SQLiteCpp/VariadicBind.h>

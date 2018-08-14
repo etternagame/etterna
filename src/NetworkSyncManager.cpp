@@ -1,17 +1,21 @@
 #include "global.h"
 #include "NetworkSyncManager.h"
+#include "Song.h"
+#include "HighScore.h"
 #include "uWS.h"
 #include "LuaManager.h"
-#include "ScreenNetRoom.h"
-#include "PlayerStageStats.h"
-#include "ScreenNetSelectMusic.h"
 #include "LocalizedString.h"
 #include "JsonUtil.h"
-#include "GameState.h"
 #include "Style.h"
 #include <cerrno>
 #include <chrono>
 #include <nlohmann/json.hpp>
+#include "ScreenNetSelectMusic.h"
+#include "ScreenSMOnlineLogin.h"
+#include "ScreenNetRoom.h"
+#include "RoomInfoDisplay.h"
+#include "Song.h"
+#include "SongManager.h"
 using json = nlohmann::json;
 
 

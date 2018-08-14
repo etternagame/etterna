@@ -355,12 +355,6 @@ void Playlist::LoadFromNode(const XNode* node) {
 	}
 }
 
-void SongManager::SetFlagsForProfile(Profile* prof) {
-	SONGMAN->MakeSongGroupsFromPlaylists();
-	SONGMAN->SetFavoritedStatus(prof->FavoritedCharts);
-	SONGMAN->SetHasGoal(prof->goalmap);
-}
-
 void SongManager::MakeSongGroupsFromPlaylists(map<string, Playlist>& playlists) {
 	if (!PlaylistsAreSongGroups)
 		return;
@@ -474,14 +468,6 @@ Song* SongManager::GetSongByChartkey(RString ck) {
 	if (SongsByKey.count(ck))
 		return SongsByKey[ck];
 	return NULL;
-}
-
-Steps* SongManager::GetStepsByChartkey(const StepsID& sid) {
-	return GetStepsByChartkey(sid.GetKey());
-}
-
-Song* SongManager::GetSongByChartkey(const StepsID& sid) {
-	return GetSongByChartkey(sid.GetKey());
 }
 
 static LocalizedString FOLDER_CONTAINS_MUSIC_FILES( "SongManager", "The folder \"%s\" appears to be a song folder.  All song folders must reside in a group folder.  For example, \"Songs/Originals/My Song\"." );

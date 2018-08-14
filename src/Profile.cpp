@@ -1251,7 +1251,8 @@ void Profile::FillGoalTable() {
 	goaltable.clear();
 	for (auto& sgv : goalmap)
 		for (auto& sg : sgv.second.goals)
-			goaltable.emplace_back(&sg);
+			if(SONGMAN->GetStepsByChartkey(sg.chartkey))
+				goaltable.emplace_back(&sg);
 
 	auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->timeassigned > b->timeassigned; };
 	sort(goaltable.begin(), goaltable.end(), comp);
@@ -1601,18 +1602,19 @@ public:
 	static int SetFromAll(T* p, lua_State *L) {
 		p->FillGoalTable();
 		p->filtermode = 1;
+		p->asc = true;
 		return 0;
 	}
 	
 	static int SortByDate(T* p, lua_State* L) {
 		if (p->sortmode == 1)
 			if (p->asc) {
-				auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->timeassigned > b->timeassigned; };	// custom operators?
+				auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->timeassigned < b->timeassigned; };	// custom operators?
 				sort(p->goaltable.begin(), p->goaltable.end(), comp);
 				p->asc = false;
 				return 0;
 			}
-		auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->timeassigned < b->timeassigned; };
+		auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->timeassigned > b->timeassigned; };
 		sort(p->goaltable.begin(), p->goaltable.end(), comp);
 		p->sortmode = 1;
 		p->asc = true;
@@ -1622,12 +1624,12 @@ public:
 	static int SortByRate(T* p, lua_State* L) {
 		if (p->sortmode == 2)
 			if (p->asc) {
-				auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->rate > b->rate; };	// custom operators?
+				auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->rate < b->rate; };	// custom operators?
 				sort(p->goaltable.begin(), p->goaltable.end(), comp);
 				p->asc = false;
 				return 0;
 			}
-		auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->rate < b->rate; };
+		auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->rate > b->rate; };
 		sort(p->goaltable.begin(), p->goaltable.end(), comp);
 		p->sortmode = 2;
 		p->asc = true;
@@ -1669,13 +1671,13 @@ public:
 	static int SortByDiff(T* p, lua_State* L) {
 		if (p->sortmode == 5)
 			if (p->asc) {
-				auto comp = [](ScoreGoal* a, ScoreGoal* b) { return SONGMAN->GetStepsByChartkey(a->chartkey)->GetMSD(a->rate, 0) >
+				auto comp = [](ScoreGoal* a, ScoreGoal* b) { return SONGMAN->GetStepsByChartkey(a->chartkey)->GetMSD(a->rate, 0) <
 					SONGMAN->GetStepsByChartkey(b->chartkey)->GetMSD(b->rate, 0); };
 				sort(p->goaltable.begin(), p->goaltable.end(), comp);
 				p->asc = false;
 				return 0;
 			}
-		auto comp = [](ScoreGoal* a, ScoreGoal* b) { return SONGMAN->GetStepsByChartkey(a->chartkey)->GetMSD(a->rate, 0) <
+		auto comp = [](ScoreGoal* a, ScoreGoal* b) { return SONGMAN->GetStepsByChartkey(a->chartkey)->GetMSD(a->rate, 0) >
 			SONGMAN->GetStepsByChartkey(b->chartkey)->GetMSD(b->rate, 0); };
 		sort(p->goaltable.begin(), p->goaltable.end(), comp);
 		p->sortmode = 5;

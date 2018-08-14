@@ -62,13 +62,13 @@ end
 
 local t = Def.ActorFrame{
 	BeginCommand=function(self)
+		SCREENMAN:GetTopScreen():AddInputCallback(newTagInput)
 		self:queuecommand("Set"):visible(false)
 	end,
 	OffCommand=function(self)
 		self:bouncebegin(0.2):xy(-500,0):diffusealpha(0)
 	end,
 	OnCommand=function(self)
-		SCREENMAN:GetTopScreen():AddInputCallback(newTagInput)
 		self:bouncebegin(0.2):xy(0,0):diffusealpha(1)
 	end,
 	MouseRightClickMessageCommand=function(self)

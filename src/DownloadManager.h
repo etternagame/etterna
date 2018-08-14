@@ -78,7 +78,7 @@ public:
 class Packlist {
 public:
 	int sortmode = 1;	// 1=name 2=diff 3=size, init to name because that's the default- mina
-	int asc = true;		// default sort
+	bool asc = true;		// default sort
 
 	vector<DownloadablePack*> packs;
 	// Lua
@@ -210,6 +210,9 @@ public:
 	HTTPRequest* SendRequestToURL(string url, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> done, bool requireLogin, bool post, bool async);
 	void RefreshLastVersion(); 
 	void RefreshRegisterPage();
+	void MakeAThing(string chartkey);
+	vector<HighScore> athing;
+	bool currentrateonly = false;
 	void RequestChartLeaderBoard(string chartkey);
 	void RefreshUserData();
 	void RefreshUserRank();

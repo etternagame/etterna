@@ -154,7 +154,7 @@ local o = Def.ActorFrame{
 		packlist = DLMAN:GetPacklist()
 		self:SetUpdateFunction(highlight)
 	end,
-	OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(DlInput) end,
+	BeginCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(DlInput) end,
 	
 	WheelUpSlowMessageCommand=function(self)
 		self:queuecommand("PrevPage")

@@ -14,6 +14,7 @@
 #include "MemoryCardManager.h"
 #include "RageThreads.h"
 #include "RageTimer.h"
+#include "ActorUtil.h"
 
 #include "arch/ArchHooks/ArchHooks.h"
 #include "arch/Dialog/Dialog.h"
@@ -61,7 +62,6 @@
 #include "MessageManager.h"
 #include "ModelManager.h"
 #include "NetworkSyncManager.h"
-#include "Profile.h"
 #include "RageFileManager.h"
 #include "SpecialFiles.h"
 #include "StatsManager.h"

@@ -132,4 +132,5 @@ t[#t+1] = Def.ActorFrame {
 	}
 }
 
+t[#t+1] = LoadActor("../_mousewheelscroll")
 return t

@@ -67,7 +67,7 @@ local o = Def.ActorFrame{
 		packlist = DLMAN:GetPacklist()
 		self:SetUpdateFunction(highlight)
 	end,
-	OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) end,
+	BeginCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) end,
 	
 	WheelUpSlowMessageCommand=function(self)
 		self:queuecommand("PrevPage")
@@ -207,7 +207,7 @@ local function makedoots(i)
 			end,
 			OnCommand=function(self)
 				local bundle = DLMAN:GetCoreBundle(minidoots[i]:lower())
-				self:settextf("(%dmb)", bundle["TotalSize"])
+				self:settextf("(%dMB)", bundle["TotalSize"])
 			end,
 		}
 	}
