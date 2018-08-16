@@ -1792,7 +1792,7 @@ public:
 
 	static int ToggleRateFilter(T* p, lua_State* L) {
 		p->currentrateonly = !p->currentrateonly;
-		return 1;
+		return 0;
 	}
 	static int GetCurrentRateFilter(T* p, lua_State* L) {
 		lua_pushboolean(L, p->currentrateonly);
