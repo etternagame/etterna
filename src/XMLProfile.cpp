@@ -476,6 +476,11 @@ void GoalsForChart::LoadFromNode(const XNode *pNode) {
 		doot.LoadFromNode(sg);
 		Add(doot);
 	}
+	RString chartkey;
+	pNode->GetAttrValue("Key", chartkey);
+	for (auto& goal : goals)
+		goal.chartkey = chartkey;
+
 }
 
 void XMLProfile::LoadScoreGoalsFromNode(const XNode *pNode) {
