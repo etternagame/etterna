@@ -1887,20 +1887,6 @@ bool ScreenGameplay::Input( const InputEventPlus &input )
 
 			return true;
 		}
-		
-		/* Restart gameplay button moved from theme to allow for rebinding for people who
-		 *  dont want to edit lua files :)
-		 */
-		bool bHoldingRestart = false;
-		if (GAMESTATE->GetCurrentStyle(input.pn)->GameInputToColumn(input.GameI) == Column_Invalid)
-		{
-			bHoldingRestart |= input.MenuI == GAME_BUTTON_RESTART;
-		}
-		if (bHoldingRestart)
-		{
-			SCREENMAN->GetTopScreen()->SetPrevScreenName("ScreenStageInformation");
-			BeginBackingOutFromGameplay();
-		}
 	}
 
 	bool bRelease = input.type == IET_RELEASE;
@@ -1919,6 +1905,26 @@ bool ScreenGameplay::Input( const InputEventPlus &input )
 		return false;
 	}
 
+	// RestartGameplay may only be pressed when in Singleplayer.
+	// Clever theming or something can probably break this, but we should at least try.
+	if (SCREENMAN->GetTopScreen()->GetPrevScreen() == "ScreenSelectMusic")
+	{
+		/* Restart gameplay button moved from theme to allow for rebinding for people who
+		*  dont want to edit lua files :)
+		*/
+		bool bHoldingRestart = false;
+		if (GAMESTATE->GetCurrentStyle(input.pn)->GameInputToColumn(input.GameI) == Column_Invalid)
+		{
+			bHoldingRestart |= input.MenuI == GAME_BUTTON_RESTART;
+		}
+		if (bHoldingRestart)
+		{
+			SCREENMAN->GetTopScreen()->SetPrevScreenName("ScreenStageInformation");
+			BeginBackingOutFromGameplay();
+		}
+	}
+	
+	
 	if( GAMESTATE->m_bMultiplayer )
 	{
 		if( input.mp != MultiPlayer_Invalid  &&  GAMESTATE->IsMultiPlayerEnabled(input.mp)  &&  iCol != -1 )
