@@ -421,10 +421,25 @@ Section "Main Section" SecMain
 	; no more portkit sm4
 	;File /r /x CVS /x .svn "Themes\_portKit-sm4"
 	File /r /x CVS /x .svn "Themes\Til Death"
-	Delete "$INSTDIR\Data\Roboto-Light.ttf"
 	CreateDirectory "$INSTDIR\Data"
+	
+	CreateDirectory "$INSTDIR\Data\AutoMappings"
+	SetOutPath "$INSTDIR\Data\AutoMappings"
+	File /r /x CVS /x svn "Data\AutoMappings\*"
+	
+	CreateDirectory "$INSTDIR\Data\Shaders"
+	SetOutPath "$INSTDIR\Data\Shaders"
+	File /r /x CVS /x svn "Data\Shaders\*	
+	
 	SetOutPath "$INSTDIR\Data"
-	File /r /x CVS /x .svn "Data\*"
+	File /r /x CVS /x .svn "Data\*.txt"
+	File /r /x CVS /x .svn "Data\*.ini"
+	File /r /x CVS /x .svn "Data\*.xml"
+	File /r /x CVS /x .svn "Data\*.png"
+	
+  SetOverwrite off
+	File /r /x CVS /x .svn "Data\*.tt"
+	SetOverwrite on
 !endif
 
 !ifdef INSTALL_INTERNAL_PCKS
@@ -793,7 +808,6 @@ Section "Uninstall"
 	RMDir /r "$INSTDIR\Data\AutoMappings"
 	RMDir /r "$INSTDIR\Data\Shaders"
 	Delete "$INSTDIR\Data\AI.ini"
-	Delete "$INSTDIR\Data\Roboto-Light.ttf"
 	Delete "$INSTDIR\Data\NamesBlacklist.txt"
 	Delete "$INSTDIR\Data\RandomAttacks.txt"
 	Delete "$INSTDIR\Data\splash.png"
