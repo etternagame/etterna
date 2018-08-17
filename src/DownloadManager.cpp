@@ -1656,7 +1656,7 @@ public:
 		LuaHelpers::Push(L, onlineScore.difficulty);
 		lua_setfield(L, -2, "difficulty");
 		lua_pushstring(L, GradeToString(PlayerStageStats::GetGrade(onlineScore.wifeScore)));
-		lua_setfield(L, -2, "wife");
+		lua_setfield(L, -2, "grade");
 		return 1;
 	}
 	static int GetTopChartScoreCount(T* p, lua_State* L)
