@@ -122,7 +122,7 @@ for i=1,choiceCount do
 			if(isOver(self)) then
 				SCREENMAN:GetTopScreen():playcommand("MadeChoicePlayer_1")
 				SCREENMAN:GetTopScreen():playcommand("Choose")
-				if choices[i] ~= "Multi" then -- for some reason multi gets stuck :/
+				if choices[i] ~= "Multi" and choices[i] ~= "GameStart" then -- for some reason multi gets stuck :/
 					GAMESTATE:ApplyGameCommand(THEME:GetMetric("ScreenTitleMenu", "Choice"..choices[i]))
 				end
 			end
