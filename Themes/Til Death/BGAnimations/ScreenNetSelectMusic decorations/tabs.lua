@@ -7,7 +7,6 @@ local function input(event)
 			if event.DeviceInput.button == "DeviceButton_"..i and CtrlPressed == true then
 				setTabIndex(i-1)
 				MESSAGEMAN:Broadcast("TabChanged")
-				SCREENMAN:SystemMessage("type:" .. event.type "    button:" .. event.DeviceInput.button)
 			end
 		end
 		if event.DeviceInput.button == "DeviceButton_left mouse button" then
