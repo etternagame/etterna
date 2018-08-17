@@ -437,8 +437,8 @@ Section "Main Section" SecMain
 	File /r /x CVS /x .svn "Data\*.xml"
 	File /r /x CVS /x .svn "Data\*.png"
 	
-  SetOverwrite off
-	File /r /x CVS /x .svn "Data\*.tt"
+	SetOverwrite off
+		File /r /x CVS /x .svn "Data\*.ttf"
 	SetOverwrite on
 !endif
 
