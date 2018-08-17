@@ -1571,7 +1571,7 @@ t[#t+1] = Def.ActorFrame{
 		Name= "Instructions", Font= "Common Normal",
 		InitCommand= function(self)
 			self:horizalign(left):vertalign(top)
-				:xy(SCREEN_WIDTH - 240, 110):zoom(.5):visible(true)
+				:xy(SCREEN_WIDTH - 240, 100):zoom(.5):visible(true)
 		end,
 		OnCommand=function(self)
 			local text= {
@@ -1599,6 +1599,9 @@ t[#t+1] = Def.ActorFrame{
 				"o: NPS Graph Size",
 				"p: Judge Counter Position",
 			}
+			if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover ~= 0 then
+				table.insert(text, "/: Lane Cover Height")
+			end
 			self:settext(table.concat(text, "\n"))
 		end
 	},
