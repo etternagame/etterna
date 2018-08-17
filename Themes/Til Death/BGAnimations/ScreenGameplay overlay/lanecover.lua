@@ -2,12 +2,14 @@ local moveUpP1 = false
 local moveDownP1 = false
 local lockSpeedP1 = false
 
+local cover
+
 local laneColor = color("#333333")
 
 local cols = GAMESTATE:GetCurrentStyle():ColumnsPerPlayer()
 
 local isCentered = ((cols >= 6) or PREFSMAN:GetPreference("Center1Player")) and GAMESTATE:GetNumPlayersEnabled() == 1-- load from prefs later
-local width = 64*cols
+local width = 64*cols*playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.NotefieldWidth
 local padding = 8
 local styleType = ToEnumShortString(GAMESTATE:GetCurrentStyle():GetStyleType())
 
@@ -21,7 +23,7 @@ end;
 local heightP1 = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCoverHeight
 
 
-local P1X = SCREEN_CENTER_X
+local P1X = SCREEN_CENTER_X + playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NotefieldX
 
 if not isCentered then
 	P1X = THEME:GetMetric("ScreenGameplay",string.format("PlayerP1%sX",styleType))
@@ -89,9 +91,41 @@ end;
 --inaccurate since the highspeed x1 speed definition is different between the games.
 --iidx x1 is defined as the whole measure showing up on the notefield
 --SM x1 is defined as 4th notes being next to each other with no gaps or overlaps.
+--Also note that the number given by this function does not take into account the fact
+-- the notefield may have been moved up or down. It also does not work for the Hidden mode.
 local function getIIDXGreenNumber(pn,LaneCoverHeight)
 	return (174*((getNoteFieldHeight(pn)-LaneCoverHeight)*(1000/getNoteFieldHeight(pn))))/((getSpeed(pn)/getPlayerBPM(pn))*getPlayerBPM(pn))
 end;
+
+local function input(event)
+	if getAutoplay() ~= 0 and playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover ~= 0 then
+		if event.DeviceInput.button == "DeviceButton_r" then
+			rPressed = not (event.type == "InputEventType_Release")
+		end
+		if event.DeviceInput.button == "DeviceButton_t" then
+			tPressed = not (event.type == "InputEventType_Release")
+		end
+		if rPressed and event.type ~= "InputEventType_Release" then
+			if event.DeviceInput.button == "DeviceButton_left" then
+				cover:addx(-3)
+			end
+			if event.DeviceInput.button == "DeviceButton_right" then
+				cover:addx(3)
+			end
+		end
+		if tPressed and event.type ~= "InputEventType_Release" then
+			if event.DeviceInput.button == "DeviceButton_left" then
+				width = 64*cols*playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.NotefieldWidth - 0.01
+				cover:playcommand("Update")
+			end
+			if event.DeviceInput.button == "DeviceButton_right" then
+				width = 64*cols*playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.NotefieldWidth + 0.01
+				cover:playcommand("Update")
+			end
+		end
+	end
+	return false
+end
 
 local t = Def.ActorFrame{
 	CodeMessageCommand = function(self, params)
@@ -117,6 +151,11 @@ local t = Def.ActorFrame{
 			playerConfig:save(pn_to_profile_slot(PLAYER_1))
 		end;
 	end;
+	OnCommand=function()
+		if(playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay) then
+			SCREENMAN:GetTopScreen():AddInputCallback(input)
+		end
+	end
 }
 
 if enabledP1 then
@@ -124,6 +163,7 @@ if enabledP1 then
 		Name="CoverP1";
 		InitCommand=function(self)
 			self:xy(P1X,SCREEN_TOP):zoomto((width+padding)*getNoteFieldScale(PLAYER_1),heightP1):valign(0):diffuse(laneColor)
+			cover = self
 		end;
 		BeginCommand=function(self)
 			if isReverseP1 then
@@ -133,6 +173,19 @@ if enabledP1 then
 				self:y(SCREEN_BOTTOM)
 				self:valign(1)
 			end;
+		end;
+		UpdateCommand=function(self)
+			P1X = SCREEN_CENTER_X + playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NotefieldX
+			if isReverseP1 then
+				self:xy(P1X,SCREEN_TOP):zoomto((width+padding)*getNoteFieldScale(PLAYER_1),heightP1):valign(0):diffuse(laneColor)
+				self:y(SCREEN_TOP)
+				self:valign(0)
+			else
+				self:xy(P1X,SCREEN_TOP):zoomto((width+padding)*getNoteFieldScale(PLAYER_1),heightP1):valign(0):diffuse(laneColor)
+				self:y(SCREEN_BOTTOM)
+				self:valign(1)
+			end;
+			cover = self
 		end;
 	};
 
@@ -186,6 +239,8 @@ local function Update(self)
 	end;
 	self:SetUpdateRate(5)
 	if enabledP1 then
+		P1X = SCREEN_CENTER_X + playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NotefieldX
+		
 		if moveDownP1 then
 			if isReverseP1 then
 				heightP1 = math.min(SCREEN_BOTTOM,math.max(0,heightP1+0.1))
@@ -225,6 +280,8 @@ local function Update(self)
 			self:GetChild("CoverTextP1Green"):sleep(0.25)
 			self:GetChild("CoverTextP1Green"):smooth(0.75)
 			self:GetChild("CoverTextP1Green"):diffusealpha(0)
+			self:GetChild("CoverTextP1White"):x(P1X-(width*getNoteFieldScale(PLAYER_1)/8))
+			self:GetChild("CoverTextP1Green"):x(P1X+(width*getNoteFieldScale(PLAYER_1)/8))
 		end;
 
 	end;
