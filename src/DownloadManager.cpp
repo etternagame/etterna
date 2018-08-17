@@ -23,6 +23,8 @@
 #include <nlohmann/json.hpp>
 #include <unordered_set>
 #include <FilterManager.h>
+#include "PlayerStageStats.h">
+#include "Grade.h"
 using json = nlohmann::json;
 #ifdef _WIN32 
 #include <intrin.h>
@@ -1640,7 +1642,7 @@ public:
 			lua_pushnil(L);
 			return 1;
 		}
-		lua_createtable(L, 0, 6);
+		lua_createtable(L, 0, 7);
 		lua_pushstring(L, onlineScore.songName.c_str());
 		lua_setfield(L, -2, "songName");
 		lua_pushnumber(L, onlineScore.rate);
@@ -1653,6 +1655,8 @@ public:
 		lua_setfield(L, -2, "chartkey");
 		LuaHelpers::Push(L, onlineScore.difficulty);
 		lua_setfield(L, -2, "difficulty");
+		lua_pushstring(L, GradeToString(PlayerStageStats::GetGrade(onlineScore.wifeScore)));
+		lua_setfield(L, -2, "grade");
 		return 1;
 	}
 	static int GetTopChartScoreCount(T* p, lua_State* L)
