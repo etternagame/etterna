@@ -30,13 +30,10 @@ local function input(event)
 	return false
 end
 local t = Def.ActorFrame{
-	OnCommand=function(self)
+	BeginCommand=function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
-		whee = SCREENMAN:GetTopScreen():GetMusicWheel()
+		resetTabIndex()
 	end,
-	BeginCommand=function(self) resetTabIndex() end,
-	BeginningSearchMessageCommand=function(self) active = true end,	-- this is for disabling numeric input in the text search and is unused atm
-	EndingSearchMessageCommand=function(self) active = true end,
 	NumericInputActiveMessageCommand=function(self) numericinputactive = true end,
 	NumericInputEndedMessageCommand=function(self) numericinputactive = false end,
 }
@@ -55,10 +52,15 @@ function tabs(index)
 			self:queuecommand("Set")
 		end,
 		SetCommand=function(self)
+			self:finishtweening()
+			self:linear(0.1)
+			--show tab if it's the currently selected one
 			if getTabIndex() == index-1 then
-				self:diffuse(getMainColor('highlight'))
-			else
-				self:diffuse(getMainColor('frames'))
+				self:y(frameY)
+				self:diffusealpha(1)
+			else -- otherwise "Hide" them
+				self:y(frameY)
+				self:diffusealpha(0.65)
 			end
 		end,
 		TabChangedMessageCommand=function(self)
