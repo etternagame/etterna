@@ -32,7 +32,7 @@ using json = nlohmann::json;
 shared_ptr<DownloadManager> DLMAN = nullptr;
 
 static Preference<unsigned int> maxDLPerSecond("maximumBytesDownloadedPerSecond", 0);
-static Preference<unsigned int> maxDLPerSecondGameplay("maximumBytesDownloadedPerSecondDuringGameplay", 300000);
+static Preference<unsigned int> maxDLPerSecondGameplay("maximumBytesDownloadedPerSecondDuringGameplay", 1000000);
 static Preference<RString> packListURL("PackListURL", "https://api.etternaonline.com/v2/packs");
 static Preference<RString> serverURL("BaseAPIURL", "https://api.etternaonline.com/v2");
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
