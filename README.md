@@ -34,8 +34,8 @@ https://etternagame.github.io/wiki/Building-Etterna.html
 
 * Website: https://etternaonline.com/
 * Discord: https://discord.gg/ZqpUjsJ
-* Lua for SM5: https://dguzek.github.io/Lua-For-SM5/
-* Lua API Documentation can be found in the Docs folder.
+* Lua for Etterna: https://etternagame.github.io/Lua-For-Etterna/
+* Lua API Reference: https://etternagame.github.io/Lua-For-Etterna/API/Lua.xml
 * ETTP docs: https://github.com/Nickito12/NodeMultiEtt/blob/master/README.md
 
 ## Licensing Terms
@@ -52,3 +52,7 @@ For specific information/legalese:
 * The [MAD library](http://www.underbit.com/products/mad/) and [FFmpeg codecs](https://www.ffmpeg.org/) when built with our code use the [GPL license](http://www.gnu.org).
 
 Etterna began as a fork of https://github.com/stepmania/stepmania
+
+## [Collaborating](https://github.com/etternagame/etterna/blob/master/Contributing.md)
+
+## [Bug Reporting](https://github.com/etternagame/etterna/blob/master/BugReporting.md)
