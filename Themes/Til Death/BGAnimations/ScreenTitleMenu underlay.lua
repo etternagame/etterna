@@ -55,8 +55,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 
 -- lazy game update button -mina
 local gameneedsupdating = false
-local buttonsWidth = 126
-local buttons = {x=22,y=40,width=140,height=36,fontScale=0.3,color=getMainColor('frames'),spacing=50}
+local buttons = {x=22,y=40,width=140,height=36,fontScale=0.3,color=getMainColor('frames')}
 t[#t+1] = Def.Quad{
 	InitCommand=function(self)
 		self:xy(buttons.x,buttons.y):zoomto(buttons.width,buttons.height):halign(1):valign(0):diffuse(buttons.color):diffusealpha(0)
@@ -89,24 +88,6 @@ t[#t+1] = LoadFont("Common Large") .. {
 	end
 }
 
--- lazy bug reporting button --nick12
-t[#t+1] = Def.Quad{
-	InitCommand=function(self)
-		self:xy(SCREEN_WIDTH-buttons.x,buttons.y+buttons.spacing):zoomto(buttons.width,buttons.height):halign(1):valign(0):diffuse(buttons.color):diffusealpha(1)
-	end,
-	MouseLeftClickMessageCommand=function(self)
-		if isOver(self) then
-			GAMESTATE:ApplyGameCommand("urlnoexit, https://github.com/etternagame/etterna/blob/master/BugReporting.md;text,GitHub")
-		end
-	end
-}
-
-t[#t+1] = LoadFont("Common Large") .. {
-	OnCommand=function(self)
-		self:xy(SCREEN_WIDTH-(buttons.x+3),buttons.y+14+buttons.spacing):halign(1):zoom(buttons.fontScale):diffuse(getMainColor('positive'))
-		self:settext("Report a bug/error")
-	end
-}
 
 function mysplit(inputstr, sep)
         if sep == nil then
