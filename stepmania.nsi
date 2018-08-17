@@ -429,7 +429,7 @@ Section "Main Section" SecMain
 	
 	CreateDirectory "$INSTDIR\Data\Shaders"
 	SetOutPath "$INSTDIR\Data\Shaders"
-	File /r /x CVS /x svn "Data\Shaders\*	
+	File /r /x CVS /x svn "Data\Shaders\*"	
 	
 	SetOutPath "$INSTDIR\Data"
 	File /r /x CVS /x .svn "Data\*.txt"
