@@ -421,7 +421,7 @@ Section "Main Section" SecMain
 	; no more portkit sm4
 	;File /r /x CVS /x .svn "Themes\_portKit-sm4"
 	File /r /x CVS /x .svn "Themes\Til Death"
-
+	Delete "$INSTDIR\Data\Roboto-Light.ttf"
 	CreateDirectory "$INSTDIR\Data"
 	SetOutPath "$INSTDIR\Data"
 	File /r /x CVS /x .svn "Data\*"
