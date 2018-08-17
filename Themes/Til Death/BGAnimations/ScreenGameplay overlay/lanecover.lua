@@ -98,7 +98,7 @@ local function getIIDXGreenNumber(pn,LaneCoverHeight)
 end;
 
 local function input(event)
-	if getAutoplay() ~= 0 then
+	if getAutoplay() ~= 0 and playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover ~= 0 then
 		if event.DeviceInput.button == "DeviceButton_r" then
 			rPressed = not (event.type == "InputEventType_Release")
 		end
