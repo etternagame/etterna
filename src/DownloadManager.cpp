@@ -23,6 +23,8 @@
 #include <nlohmann/json.hpp>
 #include <unordered_set>
 #include <FilterManager.h>
+#include "PlayerStageStats.h">
+#include "Grade.h"
 using json = nlohmann::json;
 #ifdef _WIN32 
 #include <intrin.h>
@@ -36,7 +38,7 @@ static Preference<RString> serverURL("BaseAPIURL", "https://api.etternaonline.co
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 static Preference<unsigned int> downloadPacksToAdditionalSongs("downloadPacksToAdditionalSongs", 0);
 static const string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
-static const string CLIENT_DATA_KEY = "2EEF1FCF01B97335548DE7CB9CF4DD749882AF6D5DC080316CC71A3A0BB3BB83";
+static const string CLIENT_DATA_KEY = "4406B28A97B326DA5346A9885B0C9DEE8D66F89B562CF5E337AC04C17EB95C40";
 static const string DL_DIR = SpecialFiles::CACHE_DIR + "Downloads/";
 
 size_t write_memory_buffer(void *contents, size_t size, size_t nmemb, void *userp)
@@ -1640,7 +1642,7 @@ public:
 			lua_pushnil(L);
 			return 1;
 		}
-		lua_createtable(L, 0, 6);
+		lua_createtable(L, 0, 7);
 		lua_pushstring(L, onlineScore.songName.c_str());
 		lua_setfield(L, -2, "songName");
 		lua_pushnumber(L, onlineScore.rate);
@@ -1653,6 +1655,8 @@ public:
 		lua_setfield(L, -2, "chartkey");
 		LuaHelpers::Push(L, onlineScore.difficulty);
 		lua_setfield(L, -2, "difficulty");
+		lua_pushstring(L, GradeToString(PlayerStageStats::GetGrade(onlineScore.wifeScore)));
+		lua_setfield(L, -2, "grade");
 		return 1;
 	}
 	static int GetTopChartScoreCount(T* p, lua_State* L)

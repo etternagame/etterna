@@ -55,9 +55,11 @@ t[#t+1] = LoadFont("Common Large") .. {
 
 -- lazy game update button -mina
 local gameneedsupdating = false
+local buttonsWidth = 126
+local buttons = {x=22,y=40,width=140,height=36,fontScale=0.3,color=getMainColor('frames'),spacing=50}
 t[#t+1] = Def.Quad{
 	InitCommand=function(self)
-		self:xy(22,134):zoomto(126,36):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(0)
+		self:xy(buttons.x,buttons.y):zoomto(buttons.width,buttons.height):halign(1):valign(0):diffuse(buttons.color):diffusealpha(0)
 		local latest = tonumber((DLMAN:GetLastVersion():gsub("[.]","",1)))
 		local current = tonumber((GAMESTATE:GetEtternaVersion():gsub("[.]","",1)))
 		if latest and latest > current then
@@ -78,12 +80,31 @@ t[#t+1] = Def.Quad{
 
 t[#t+1] = LoadFont("Common Large") .. {
 	OnCommand=function(self)
-		self:xy(25,148):halign(0):zoom(0.3):diffuse(getMainColor('positive'))
+		self:xy(buttons.x+3,buttons.y+14):halign(1):zoom(buttons.fontScale):diffuse(getMainColor('positive'))
 		if gameneedsupdating then
 			self:settext("Update Available\nClick to Update")
 		else
 			self:settext("")
 		end
+	end
+}
+
+-- lazy bug reporting button --nick12
+t[#t+1] = Def.Quad{
+	InitCommand=function(self)
+		self:xy(SCREEN_WIDTH-buttons.x,buttons.y+buttons.spacing):zoomto(buttons.width,buttons.height):halign(1):valign(0):diffuse(buttons.color):diffusealpha(1)
+	end,
+	MouseLeftClickMessageCommand=function(self)
+		if isOver(self) then
+			GAMESTATE:ApplyGameCommand("urlnoexit, https://github.com/etternagame/etterna/blob/master/BugReporting.md;text,GitHub")
+		end
+	end
+}
+
+t[#t+1] = LoadFont("Common Large") .. {
+	OnCommand=function(self)
+		self:xy(SCREEN_WIDTH-(buttons.x+3),buttons.y+14+buttons.spacing):halign(1):zoom(buttons.fontScale):diffuse(getMainColor('positive'))
+		self:settext("Report a bug/error")
 	end
 }
 

@@ -1,31 +1,42 @@
 local active = true
 local numericinputactive = false
+local whee
 
 local tabNames = {"General","MSD","Scores","Search","Profile","Filters", "Goals", "Playlists", "Packs", "Tags"} -- this probably should be in tabmanager.
 
 local function input(event)
 	if event.type ~= "InputEventType_Release" and active then
 		if numericinputactive == false then
-			if event.DeviceInput.button == "DeviceButton_0" then
-				setTabIndex(9)
-				MESSAGEMAN:Broadcast("TabChanged")
-			else
-				for i=1,#tabNames do
-					if not (INPUTFILTER:IsBeingPressed("left ctrl", nil) or INPUTFILTER:IsBeingPressed("right ctrl", nil) or (SCREENMAN:GetTopScreen():GetName() ~= "ScreenSelectMusic")) and event.char and tonumber(event.char) and  tonumber(event.char)==i then
-						setTabIndex(i-1)
-						MESSAGEMAN:Broadcast("TabChanged")
+			if not (INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl") or (SCREENMAN:GetTopScreen():GetName() ~= "ScreenSelectMusic")) then
+				if event.DeviceInput.button == "DeviceButton_0" then
+					setTabIndex(9)
+					MESSAGEMAN:Broadcast("TabChanged")
+				else
+					for i=1,#tabNames do
+						if event.char and tonumber(event.char) and  tonumber(event.char)==i then
+							setTabIndex(i-1)
+							MESSAGEMAN:Broadcast("TabChanged")
+						end
 					end
 				end
 			end
+		end
+		if event.DeviceInput.button == "DeviceButton_left mouse button" then
+			MESSAGEMAN:Broadcast("MouseLeftClick")
+		elseif event.DeviceInput.button == "DeviceButton_right mouse button" then
+			MESSAGEMAN:Broadcast("MouseRightClick")
 		end
 	end
 	return false
 end
 local t = Def.ActorFrame{
-	BeginCommand=function(self)
+	OnCommand=function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
-		resetTabIndex()
+		whee = SCREENMAN:GetTopScreen():GetMusicWheel()
 	end,
+	BeginCommand=function(self) resetTabIndex() end,
+	BeginningSearchMessageCommand=function(self) active = true end,	-- this is for disabling numeric input in the text search and is unused atm
+	EndingSearchMessageCommand=function(self) active = true end,
 	NumericInputActiveMessageCommand=function(self) numericinputactive = true end,
 	NumericInputEndedMessageCommand=function(self) numericinputactive = false end,
 }
@@ -44,15 +55,10 @@ function tabs(index)
 			self:queuecommand("Set")
 		end,
 		SetCommand=function(self)
-			self:finishtweening()
-			self:linear(0.1)
-			--show tab if it's the currently selected one
 			if getTabIndex() == index-1 then
-				self:y(frameY)
-				self:diffusealpha(1)
-			else -- otherwise "Hide" them
-				self:y(frameY)
-				self:diffusealpha(0.65)
+				self:diffuse(getMainColor('highlight'))
+			else
+				self:diffuse(getMainColor('frames'))
 			end
 		end,
 		TabChangedMessageCommand=function(self)

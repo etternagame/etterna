@@ -389,9 +389,11 @@ void NetworkSyncManager::PostStartUp(const RString& ServerIP)
 	LOG->Info("Attempting to connect to: %s, Port: %i", sAddress.c_str(), iPort);
 	curProtocol = nullptr;
 	CloseConnection();
+	/*
 	if (ETTP.Connect(this, iPort, sAddress))
 		curProtocol = &ETTP;
 	else
+	*/
 		if (SMOP.Connect(this, iPort, sAddress))
 			curProtocol = &SMOP;
 	if (curProtocol == nullptr)
