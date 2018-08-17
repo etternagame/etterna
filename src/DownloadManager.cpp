@@ -38,7 +38,7 @@ static Preference<RString> serverURL("BaseAPIURL", "https://api.etternaonline.co
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 static Preference<unsigned int> downloadPacksToAdditionalSongs("downloadPacksToAdditionalSongs", 0);
 static const string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
-static const string CLIENT_DATA_KEY = "2EEF1FCF01B97335548DE7CB9CF4DD749882AF6D5DC080316CC71A3A0BB3BB83";
+static const string CLIENT_DATA_KEY = "4406B28A97B326DA5346A9885B0C9DEE8D66F89B562CF5E337AC04C17EB95C40";
 static const string DL_DIR = SpecialFiles::CACHE_DIR + "Downloads/";
 
 size_t write_memory_buffer(void *contents, size_t size, size_t nmemb, void *userp)
