@@ -1,8 +1,8 @@
-#include "global.h"
+﻿#include "global.h"
 
-#include "RageUtil_FileDB.h"
-#include "RageUtil.h"
 #include "RageLog.h"
+#include "RageUtil.h"
+#include "RageUtil_FileDB.h"
 
 /* Search for "beginning*containing*ending". */
 void FileSet::GetFilesMatching( const RString &sBeginning_, const RString &sContaining_, const RString &sEnding_, vector<RString> &asOut, bool bOnlyDirs ) const

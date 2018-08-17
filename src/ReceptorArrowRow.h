@@ -1,10 +1,10 @@
-#ifndef RECEPTOR_ARROW_ROW_H
+﻿#ifndef RECEPTOR_ARROW_ROW_H
 #define RECEPTOR_ARROW_ROW_H
 
-#include "ReceptorArrow.h"
 #include "ActorFrame.h"
 #include "GameConstantsAndTypes.h"
 #include "NoteDisplay.h"
+#include "ReceptorArrow.h"
 
 class PlayerState;
 /** @brief A row of ReceptorArrow objects. */
@@ -15,13 +15,14 @@ public:
 	~ReceptorArrowRow() override;
 	void Update( float fDeltaTime ) override;
 	void DrawPrimitives() override;
+	void DrawOverlay();
 
 	void Load( const PlayerState* pPlayerState, float fYReverseOffset );
 	void SetColumnRenderers(vector<NoteColumnRenderer>& renderers);
 
 	void Step( int iCol, TapNoteScore score );
 	void SetPressed( int iCol );
-	void SetNoteUpcoming( int iCol, bool b );
+	void SetNoteUpcoming( int iCol, bool b, int iRow );
 	
 	void SetFadeToFailPercent( float fFadeToFailPercent ) { m_fFadeToFailPercent = fFadeToFailPercent; }
 
@@ -32,6 +33,7 @@ protected:
 
 	vector<NoteColumnRenderer> const* m_renderers;
 	vector<ReceptorArrow *> 	m_ReceptorArrow;
+	vector<ReceptorArrow *> 	m_OverlayReceptorArrow;
 };
 
 #endif

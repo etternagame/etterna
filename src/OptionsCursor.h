@@ -1,10 +1,9 @@
-#ifndef OPTIONS_CURSOR_H
+﻿#ifndef OPTIONS_CURSOR_H
 #define OPTIONS_CURSOR_H
 
-#include "Sprite.h"
 #include "ActorFrame.h"
-#include "PlayerNumber.h"
 #include "AutoActor.h"
+
 /** @brief A cursor for ScreenOptions. */
 class OptionsCursor : public ActorFrame
 {

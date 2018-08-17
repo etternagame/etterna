@@ -1,14 +1,12 @@
-#include "global.h"
-#include "PrefsManager.h"
+﻿#include "global.h"
 #include "Foreach.h"
 #include "IniFile.h"
 #include "LuaManager.h"
 #include "Preference.h"
-#include "ProductInfo.h"
+#include "PrefsManager.h"
 #include "RageDisplay.h"
-#include "RageFile.h"
-#include "RageUtil.h"
 #include "RageLog.h"
+#include "RageUtil.h"
 #include "SpecialFiles.h"
 
 #if !defined(WITHOUT_NETWORKING)
@@ -77,26 +75,16 @@ XToString( ShowDancingCharacters );
 StringToX( ShowDancingCharacters );
 LuaXType( ShowDancingCharacters );
 
-static const char *BannerCacheModeNames[] = {
+static const char *ImageCacheModeNames[] = {
 	"Off",
 	"LowResPreload",
 	"LowResLoadOnDemand",
 	"Full"
 };
-XToString( BannerCacheMode );
-StringToX( BannerCacheMode );
-LuaXType( BannerCacheMode );
-/*
-static const char *BackgroundCacheModeNames[] = {
-	"Off",
-	"LowResPreload",
-	"LowResLoadOnDemand",
-	"Full"
-};
-XToString( BackgroundCacheMode );
-StringToX( BackgroundCacheMode );
-LuaXType( BackgroundCacheMode );
-*/
+XToString( ImageCacheMode );
+StringToX( ImageCacheMode );
+LuaXType( ImageCacheMode );
+
 static const char *HighResolutionTexturesNames[] = {
 	"Auto",
 	"ForceOff",
@@ -173,10 +161,10 @@ PrefsManager::PrefsManager() :
 	m_bPAL				( "PAL",			false ),
 	m_bDelayedTextureDelete		( "DelayedTextureDelete",	false ),
 	m_bDelayedModelDelete		( "DelayedModelDelete",		false ),
-	m_BannerCache			( "BannerCache",		BNCACHE_LOW_RES_PRELOAD ),
-	//m_BackgroundCache		( "BackgroundCache",		BGCACHE_LOW_RES_PRELOAD ),
+	m_ImageCache			( "ImageCache", IMGCACHE_OFF),
 	m_bFastLoad			( "FastLoad",			true ),
-	m_bFastLoadAdditionalSongs      ( "FastLoadAdditionalSongs",    true ),
+	m_bBlindlyTrustCache ("BlindlyTrustCache", true),
+	m_bShrinkSongCache("RemoveCacheEntriesForDeletedSongs", false),
 	m_NeverCacheList		( "NeverCacheList", ""),
 
 	m_bOnlyDedicatedMenuButtons	( "OnlyDedicatedMenuButtons",	false ),
@@ -398,7 +386,7 @@ void PrefsManager::ReadPrefsFromIni( const IniFile &ini, const RString &sSection
 	*/
 
 	const XNode *pChild = ini.GetChild(sSection);
-	if( pChild )
+	if( pChild != nullptr )
 		IPreference::ReadAllPrefsFromNode( pChild, bIsStatic );
 }
 
@@ -545,10 +533,10 @@ public:
 		IPreference *pPref = IPreference::GetPreferenceByName( sName );
 		if( pPref == NULL )
 		{
-			lua_pushboolean( L, false );
+			lua_pushboolean( L, 0 );
 			return 1;
 		}
-		lua_pushboolean( L, true );
+		lua_pushboolean( L, 1 );
 		return 1;
 	}
 	

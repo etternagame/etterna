@@ -1,8 +1,8 @@
 #ifndef SCORE_KEEPER_SHARED_H
 #define SCORE_KEEPER_SHARED_H
 
-#include "ScoreKeeperNormal.h"
 #include "PlayerNumber.h"
+#include "ScoreKeeperNormal.h"
 
 /** @brief ScoreKeeper for Routine mode. */
 class ScoreKeeperShared : public ScoreKeeperNormal

@@ -24,8 +24,12 @@ local t = Def.ActorFrame{
 			update = false
 		end
 	end,
-	OffCommand=cmd(bouncebegin,0.2;xy,-500,0;diffusealpha,0),
-	OnCommand=cmd(bouncebegin,0.2;xy,0,0;diffusealpha,1),
+	OffCommand=function(self)
+		self:bouncebegin(0.2):xy(-500,0):diffusealpha(0)
+	end,
+	OnCommand=function(self)
+		self:bouncebegin(0.2):xy(0,0):diffusealpha(1)
+	end,
 	SetCommand=function(self)
 		self:finishtweening()
 		if getTabIndex() == 0 then
@@ -36,7 +40,9 @@ local t = Def.ActorFrame{
 			update = false
 		end
 	end,
-	TabChangedMessageCommand=cmd(queuecommand,"Set"),
+	TabChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
 }
 
 
@@ -122,7 +128,9 @@ t[#t+1] = Def.Actor{
 			MESSAGEMAN:Broadcast("RefreshChartInfo")
 		end
 	end,
-	UpdateChartMessageCommand=cmd(queuecommand,"Set"),
+	UpdateChartMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
 	CurrentRateChangedMessageCommand=function()
 		score = GetDisplayScore()
 	end,
@@ -288,18 +296,26 @@ rateY = SCREEN_CENTER_Y-100
 end
 
 t[#t+1] = Def.Quad{
-	InitCommand=cmd(xy,infoboxx,infoboxy;zoomto,infoboxwidth,infoboxheight;halign,0;valign,0;diffuse,color("#333333CC");diffusealpha,0.66)
+	InitCommand=function(self)
+		self:xy(infoboxx,infoboxy):zoomto(infoboxwidth,infoboxheight):halign(0):valign(0):diffuse(color("#333333CC")):diffusealpha(0.66)
+	end	
 }
 t[#t+1] = Def.Quad{
-	InitCommand=cmd(xy,infoboxx,infoboxy;zoomto,infoboxbar,infoboxheight;halign,0;valign,0;diffuse,getMainColor('highlight');diffusealpha,0.5)
+	InitCommand=function(self)
+		self:xy(infoboxx,infoboxy):zoomto(infoboxbar,infoboxheight):halign(0):valign(0):diffuse(getMainColor('highlight')):diffusealpha(0.5)
+	end	
 }	
 
 t[#t+1] = Def.ActorFrame{
 	-- **score related stuff** These need to be updated with rate changed commands
 	-- Primary percent score
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,wifeX,wifeY;zoom,0.3;halign,0.5;maxwidth,175;valign,1),
-		BeginCommand=cmd(queuecommand,"Set"),
+		InitCommand=function(self)
+			self:xy(wifeX,wifeY):zoom(0.3):halign(0.5):maxwidth(175):valign(1)
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			if song and score then
 				if score:GetWifeScore() == 0 then 
@@ -313,17 +329,31 @@ t[#t+1] = Def.ActorFrame{
 				self:settext("")
 			end
 		end,
-		RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
-		CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
-		CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
-		CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set");
-		CurrentStepsP2ChangedMessageCommand=cmd(queuecommand,"Set");
+		RefreshChartInfoMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		CurrentRateChangedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		CurrentSongChangedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end;
+		CurrentStepsP1ChangedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end;
+		CurrentStepsP2ChangedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end;
 	},
 	
 	-- Primary ScoreType
 	LoadFont("Common Large")..{
-		InitCommand=cmd(xy,wifescoretypeX,wifescoretypeY;zoom,0.3;halign,1;valign,1),
-		BeginCommand=cmd(queuecommand,"Set"),
+		InitCommand=function(self)
+			self:xy(wifescoretypeX,wifescoretypeY):zoom(0.3):halign(1):valign(1)
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			if song and score then
 				if score:GetWifeScore() == 0 then 
@@ -335,17 +365,31 @@ t[#t+1] = Def.ActorFrame{
 				self:settext("")
 			end
 		end,
-		CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
-		RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
-		CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
-		CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set");
-		CurrentStepsP2ChangedMessageCommand=cmd(queuecommand,"Set");
+		CurrentRateChangedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		RefreshChartInfoMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		CurrentSongChangedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end;
+		CurrentStepsP1ChangedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end;
+		CurrentStepsP2ChangedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end;
 	},
 	
 	-- Secondary percent score
 	LoadFont("Common Normal")..{
-		InitCommand=cmd(xy,secondarytypeX,secondarytypeY;zoom,0.6;halign,0.5;maxwidth,125;valign,1),
-		BeginCommand=cmd(queuecommand,"Set"),
+		InitCommand=function(self)
+			self:xy(secondarytypeX,secondarytypeY):zoom(0.6):halign(0.5):maxwidth(125):valign(1)
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			if song and score then
 				if score:GetWifeScore() == 0 then 
@@ -359,14 +403,22 @@ t[#t+1] = Def.ActorFrame{
 				self:settext("")
 			end
 		end,
-		RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
-		CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
+		RefreshChartInfoMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		CurrentRateChangedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	
 	-- Secondary ScoreType
 	LoadFont("Common Normal")..{
-		InitCommand=cmd(xy,secondaryscoretypeX,secondaryscoretypeY;zoom,0.4;halign,1;valign,1),
-		BeginCommand=cmd(queuecommand,"Set"),
+		InitCommand=function(self)
+			self:xy(secondaryscoretypeX,secondaryscoretypeY):zoom(0.4):halign(1):valign(1)
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			if song and score then
 				if score:GetWifeScore() == 0 then 
@@ -378,14 +430,22 @@ t[#t+1] = Def.ActorFrame{
 				self:settext("")
 			end
 		end,
-		CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
-		RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
+		CurrentRateChangedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		RefreshChartInfoMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	
 	-- Rate for the displayed score
 	LoadFont("Common Normal")..{
-		InitCommand=cmd(xy,rateX,rateY;zoom,0.5;halign,0.5),
-		BeginCommand=cmd(queuecommand,"Set"),
+		InitCommand=function(self)
+			self:xy(rateX,rateY):zoom(0.5):halign(0.5)
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			if song and score then 
 			local rate = getRate(score)
@@ -398,14 +458,22 @@ t[#t+1] = Def.ActorFrame{
 				self:settext("")
 			end
 		end,
-		CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
-		RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
+		CurrentRateChangedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		RefreshChartInfoMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	
 	-- Date score achieved on
 	LoadFont("Common Normal")..{
-		InitCommand=cmd(xy,datescoreX,datescoreY;zoom,0.4;halign,0),
-		BeginCommand=cmd(queuecommand,"Set"),
+		InitCommand=function(self)
+			self:xy(datescoreX,datescoreY):zoom(0.4):halign(0)
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			if song and score then
 					self:settext(score:GetDate())
@@ -413,14 +481,22 @@ t[#t+1] = Def.ActorFrame{
 					self:settext("")
 				end
 		end,
-		CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
-		RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
+		CurrentRateChangedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		RefreshChartInfoMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 
 	-- MaxCombo
 	LoadFont("Common Normal")..{
-		InitCommand=cmd(xy,maxcomboX,maxcomboY;zoom,0.4;halign,0),
-		BeginCommand=cmd(queuecommand,"Set"),
+		InitCommand=function(self)
+			self:xy(maxcomboX,maxcomboY):zoom(0.4):halign(0)
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			if song and score then
 				self:settextf("Max Combo: %d", score:GetMaxCombo())
@@ -428,16 +504,24 @@ t[#t+1] = Def.ActorFrame{
 				self:settext("")
 			end
 		end,
-		CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
-		RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
+		CurrentRateChangedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		RefreshChartInfoMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 	-- **End score related stuff**
 }
 
 -- Difficulty value ("meter"), need to change this later
 t[#t+1] = LoadFont("Common Large") .. {
-	InitCommand=cmd(xy,difficultyX,difficultyY;halign,0.5;zoom,0.4;maxwidth,110/0.6),
-	BeginCommand=cmd(queuecommand,"Set"),
+	InitCommand=function(self)
+		self:xy(difficultyX,difficultyY):halign(0.5):zoom(0.4):maxwidth(110/0.6)
+	end,
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end,
 	SetCommand=function(self)
 		if song then
 			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1)
@@ -446,7 +530,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 				self:settext("")
 			else
 				self:settextf("%05.2f",meter)
-				self:diffuse(ByMSD(meter))
+				self:diffuse(byMSD(meter))
 			end
 		else
 			self:settext("")
@@ -455,45 +539,27 @@ t[#t+1] = LoadFont("Common Large") .. {
 			self:settext("")
 		end
 	end,
-	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
-	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
-	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
-	CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set");
-	CurrentStepsP2ChangedMessageCommand=cmd(queuecommand,"Set");
+	RefreshChartInfoMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	CurrentRateChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	CurrentSongChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
+	CurrentStepsP1ChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
+	CurrentStepsP2ChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
 }
 
---Tier Label revamped. -Misterkister
-t[#t+1] = LoadFont("Common Normal") .. {
-	InitCommand=cmd(xy,frameX+415,frameY-294;halign,0.5;zoom,0.8;maxwidth,110/0.6);
-	BeginCommand=cmd(queuecommand,"Set");
-	SetCommand=function(self)
-	local tiers = {[0] = "Tier 1", [7] = "Tier 2", [13] = "Tier 3", [17] = "Tier 4", [21] = "Tier 5", [25] = "Tier 6", [29] = "Tier 7", [35] = "Tier 8", [40] = "Tier 9"}
-	local meter = 0
-	if song and steps then
-	meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1)
-	end
-	local index = math.floor(meter)
-		while tiers[index] == nil do
-        index = index - 1
-        end
-		if IsNetSMOnline() then
-			if steps and song then
-				self:settextf("%s",tiers[index])
-				self:diffuse(ByMSD(meter))
-			else
-				self:settextf("")
-			end
-			if steps and steps:GetTimingData():HasWarps() then
-				self:settextf("")
-			end
-		end
-	end,
-	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
-	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
-}
-		
 t[#t+1] = Def.Sprite {
-	InitCommand=cmd(xy,cdtitleX,cdtitleY;halign,0.5;valign,1),
+	InitCommand=function(self)
+		self:xy(cdtitleX,cdtitleY):halign(0.5):valign(1)
+	end,
 	SetCommand=function(self)
 		self:finishtweening()
 		if GAMESTATE:GetCurrentSong() then
@@ -528,13 +594,21 @@ t[#t+1] = Def.Sprite {
 		self:visible(false)
 		end
 	end,
-	BeginCommand=cmd(queuecommand,"Set"),
-	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	RefreshChartInfoMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
 }
 
 t[#t+1] = LoadFont("Common Large") .. {
-	InitCommand=cmd(xy,negativebpmX,negativebpmY;halign,0;zoom,0.25);
-	BeginCommand=cmd(queuecommand,"Set");
+	InitCommand=function(self)
+		self:xy(negativebpmX,negativebpmY):halign(0):zoom(0.25)
+	end;
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end;
 	SetCommand=function(self)
 		if song and steps:GetTimingData():HasWarps() then
 			self:settext("Negative BPMs Detected")
@@ -543,36 +617,56 @@ t[#t+1] = LoadFont("Common Large") .. {
 			self:settext("")
 		end
 	end,
-	CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set"),
-	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
+	CurrentStepsP1ChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	RefreshChartInfoMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
 }
 
 --test actor
 t[#t+1] = LoadFont("Common Large") .. {
-	InitCommand=cmd(xy,frameX,frameY-120;halign,0;zoom,0.4,maxwidth,125),
-	BeginCommand=cmd(queuecommand,"Set"),
+	InitCommand=function(self)
+		self:xy(frameX,frameY-120):halign(0):zoom(0.4,maxwidth,125)
+	end,
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end,
 	SetCommand=function(self)
 		self:settext("")
 	end,
-	CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set"),
-	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
+	CurrentStepsP1ChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	RefreshChartInfoMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
 }
 
 
 -- Song duration
 t[#t+1] = LoadFont("Common Large") .. {
-	InitCommand=cmd(xy,lengthx,lengthy;visible,true;halign,1;zoom,capWideScale(get43size(0.4),0.4);maxwidth,capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45)),
-	BeginCommand=cmd(queuecommand,"Set"),
+	InitCommand=function(self)
+		self:xy(lengthx,lengthy):visible(true):halign(1):zoom(capWideScale(get43size(0.4),0.4)):maxwidth(capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45))
+	end,
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end,
 	SetCommand=function(self)
 		if song then
 			local playabletime = GetPlayableTime()
 			self:settext(SecondsToMMSS(playabletime))
-			self:diffuse(ByMusicLength(playabletime))
+			self:diffuse(byMusicLength(playabletime))
 		else
 			self:settext("")
 		end
 	end,
-	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
-	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
+	CurrentRateChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	RefreshChartInfoMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
 }
 return t

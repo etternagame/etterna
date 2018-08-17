@@ -1,11 +1,9 @@
-/* This is a partial XPM reader; we only use it for reading compiled-in icons
+﻿/* This is a partial XPM reader; we only use it for reading compiled-in icons
  * and loading splashes. */
 #include "global.h"
-#include "RageSurface_Load_XPM.h"
-#include "RageFile.h"
-#include "RageUtil.h"
-#include "RageLog.h"
 #include "RageSurface.h"
+#include "RageSurface_Load_XPM.h"
+#include "RageUtil.h"
 #include <map>
 
 #define CheckLine() \
@@ -79,7 +77,11 @@ RageSurface *RageSurface_Load_XPM( char * const *xpm, RString &error )
 
 	for( int y = 0; y < height; ++y )
 	{
-		CheckLine();
+		if (xpm[line] == NULL) {
+				error = "short file"; 
+				delete img;
+				return NULL; 
+		}
 		const RString row = xpm[line++];
 		if( (int) row.size() != width*color_length )
 		{

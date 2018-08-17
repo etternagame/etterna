@@ -1,8 +1,8 @@
 #ifndef SCREEN_SELECT_H
 #define SCREEN_SELECT_H
 
-#include "ScreenWithMenuElements.h"
 #include "GameCommand.h"
+#include "ScreenWithMenuElements.h"
 #include "ThemeMetric.h"
 /** @brief Base class for Style, Difficulty, and Mode selection screens. */
 class ScreenSelect : public ScreenWithMenuElements
@@ -14,7 +14,7 @@ public:
 
 	void Update( float fDelta ) override;
 	bool Input( const InputEventPlus &input ) override;
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 	void HandleMessage( const Message &msg ) override;
 
 	bool MenuBack( const InputEventPlus &input ) override;

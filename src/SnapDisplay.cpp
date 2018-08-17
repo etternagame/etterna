@@ -1,10 +1,10 @@
 #include "global.h"
-#include "SnapDisplay.h"
-#include "GameState.h"
-#include "ThemeManager.h"
-#include "Style.h"
-#include "ScreenDimensions.h"
 #include "EnumHelper.h"
+#include "GameState.h"
+#include "ScreenDimensions.h"
+#include "SnapDisplay.h"
+#include "Style.h"
+#include "ThemeManager.h"
 
 SnapDisplay::SnapDisplay()
 {
@@ -24,8 +24,8 @@ void SnapDisplay::Load()
 {
 	m_iNumCols = GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())->m_iColsPerPlayer;
 
-	m_sprIndicators[0].SetX( -ARROW_SIZE * (m_iNumCols/2 + 0.5f) );
-	m_sprIndicators[1].SetX(  ARROW_SIZE * (m_iNumCols/2 + 0.5f) );
+	m_sprIndicators[0].SetX( -ARROW_SIZE * (static_cast<float>(m_iNumCols) /2 + 0.5f) );
+	m_sprIndicators[1].SetX(  ARROW_SIZE * (static_cast<float>(m_iNumCols)/2 + 0.5f) );
 }
 
 bool SnapDisplay::PrevSnapMode()

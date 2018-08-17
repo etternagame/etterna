@@ -3,7 +3,6 @@
 
 #include "ActorFrame.h"
 #include "AutoActor.h"
-#include "PlayerNumber.h"
 #include "GameConstantsAndTypes.h"
 
 class PlayerState;
@@ -12,13 +11,13 @@ class ReceptorArrow : public ActorFrame
 {
 public:
 	ReceptorArrow();
-	void Load( const PlayerState* pPlayerState, int iColNo );
+	void Load( const PlayerState* pPlayerState, int iColNo, RString Type );
 
 	void DrawPrimitives() override;
 	void Update( float fDeltaTime ) override;
 	void Step( TapNoteScore score );
 	void SetPressed() { m_bIsPressed = true; };
-	void SetNoteUpcoming( bool b );
+	void SetNoteUpcoming( int iCol, int iRow, bool b );
 private:
 
 	const PlayerState* m_pPlayerState;

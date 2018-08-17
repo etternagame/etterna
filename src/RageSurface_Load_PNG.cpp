@@ -1,9 +1,9 @@
-#include "global.h"
+﻿#include "global.h"
+#include "RageFile.h"
+#include "RageLog.h"
+#include "RageSurface.h"
 #include "RageSurface_Load_PNG.h"
 #include "RageUtil.h"
-#include "RageLog.h"
-#include "RageFile.h"
-#include "RageSurface.h"
 
 #if defined(_MSC_VER)
 #include "../extern/libpng/include/png.h"
@@ -20,7 +20,7 @@ namespace
 void RageFile_png_read( png_struct *png, png_byte *p, png_size_t size )
 {
 	CHECKPOINT_M("Reading the png file.");
-	RageFile *f = (RageFile *) png_get_io_ptr(png);
+	RageFile *f = reinterpret_cast<RageFile *>( png_get_io_ptr(png));
 
 	int got = f->Read( p, size );
 	if( got == -1 )
@@ -33,7 +33,7 @@ void RageFile_png_read( png_struct *png, png_byte *p, png_size_t size )
 		error[sizeof(error)-1] = 0;
 		png_error( png, error );
 	}
-	else if( got != (int) size )
+	if( got != static_cast<int>( size) )
 		png_error( png, "Unexpected EOF" );
 }
 
@@ -46,7 +46,7 @@ struct error_info
 void PNG_Error( png_struct *png, const char *error )
 {
 	CHECKPOINT_M(ssprintf("PNG error during processing: %s", error));
-	error_info *info = (error_info *)png_get_error_ptr(png);
+	error_info *info = reinterpret_cast<error_info *>(png_get_error_ptr(png));
 	LOG->Trace( "PNG_Error on (%s): %s", info->file_name, error );
 	longjmp( png_jmpbuf(png), 1 );
 }
@@ -55,13 +55,13 @@ void PNG_Warning( png_struct *png, const char *warning )
 {
 	// FIXME: Mismatched libpng headers vs. library causes a segfault here on MinGW
 	CHECKPOINT_M(ssprintf("PNG warning during processing: %s", warning));
-	error_info *info = (error_info *)png_get_error_ptr(png);
+	error_info *info = reinterpret_cast<error_info *>(png_get_error_ptr(png));
 	LOG->Trace( "PNG_Warn on (%s): %s", info->file_name, warning );
 }
 
 /* Since libpng forces us to use longjmp (gross!), this function shouldn't create any C++
  * objects, and needs to watch out for memleaks. */
-static RageSurface *RageSurface_Load_PNG( RageFile *f, const char *fn, char errorbuf[1024], bool bHeaderOnly )
+RageSurface *RageSurface_Load_PNG( RageFile *f, const char *fn, char errorbuf[1024], bool bHeaderOnly )
 {
 	error_info error;
 	error.err = errorbuf;
@@ -69,37 +69,34 @@ static RageSurface *RageSurface_Load_PNG( RageFile *f, const char *fn, char erro
 
 	png_struct *png = png_create_read_struct( PNG_LIBPNG_VER_STRING, &error, PNG_Error, PNG_Warning );
 
-	if( png == NULL )
+	if( png == nullptr )
 	{
 		sprintf( errorbuf, "creating png_create_read_struct failed");
-		return NULL;
+		return nullptr;
 	}
 
 	png_info *info_ptr = png_create_info_struct(png);
-	if( info_ptr == NULL )
+	if( info_ptr == nullptr )
 	{
-		png_destroy_read_struct( &png, NULL, NULL );
+		png_destroy_read_struct( &png, nullptr, nullptr );
 		sprintf( errorbuf, "creating png_create_info_struct failed");
-		return NULL;
+		return nullptr;
 	}
 
-	RageSurface *volatile img = NULL;
+	RageSurface *volatile img = nullptr;
 	CHECKPOINT_M("Potential issue with png jump about to be analyzed.");
 
-	png_byte** row_pointers= NULL;
+	png_byte** row_pointers = nullptr;
 
 	// Throwing an exception in the error callback would make the exception
 	// pass through C code, which is undefined behavior.  Works fine on Linux,
 	// and on OS X with C++11, but does not work on OS X without C++11. -Kyz
 	if(setjmp(png_jmpbuf(png)))
 	{
-		png_destroy_read_struct(&png, &info_ptr, NULL);
+		png_destroy_read_struct(&png, &info_ptr, nullptr);
 		delete img;
-		if(row_pointers != NULL)
-		{
-			delete[] row_pointers;
-		}
-		return NULL;
+		delete[] row_pointers;
+		return nullptr;
 	}
 
 	png_set_read_fn( png, f, RageFile_png_read );
@@ -108,21 +105,21 @@ static RageSurface *RageSurface_Load_PNG( RageFile *f, const char *fn, char erro
 
 	png_uint_32 width, height;
 	int bit_depth, color_type;
-	png_get_IHDR( png, info_ptr, &width, &height, &bit_depth, &color_type, NULL, NULL, NULL );
+	png_get_IHDR( png, info_ptr, &width, &height, &bit_depth, &color_type, nullptr, nullptr, nullptr);
 
 	/* If bHeaderOnly is true, don't allocate the pixel storage space or decompress
 	 * the image.  Just return an empty surface with only the width and height set. */
 	if( bHeaderOnly )
 	{
 		CHECKPOINT_M("Header only png about to be processed.");
-		img = CreateSurfaceFrom( width, height, 32, 0, 0, 0, 0, NULL, width*4 );
-		png_destroy_read_struct( &png, &info_ptr, NULL );
+		img = CreateSurfaceFrom(width, height, 32, 0, 0, 0, 0, nullptr, width * 4);
+		png_destroy_read_struct(&png, &info_ptr, nullptr);
 
 		return img;
 	}
 
 	png_set_strip_16(png); /* 16bit->8bit */
-	png_set_packing( png ); /* 1,2,4 bit->8 bit */
+	png_set_packing(png); /* 1,2,4 bit->8 bit */
 
 	/* Expand grayscale images to the full 8 bits from 1, 2, or 4 bits/pixel */
 	if( color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8 )
@@ -151,7 +148,7 @@ static RageSurface *RageSurface_Load_PNG( RageFile *f, const char *fn, char erro
 
 	case PNG_COLOR_TYPE_GRAY_ALPHA: 
 		type = RGBA;
-		png_set_gray_to_rgb( png );
+		png_set_gray_to_rgb(png);
 		break;
 	case PNG_COLOR_TYPE_PALETTE:
 		type = PALETTE;
@@ -170,7 +167,7 @@ static RageSurface *RageSurface_Load_PNG( RageFile *f, const char *fn, char erro
 	if( color_type == PNG_COLOR_TYPE_GRAY )
 	{
 		png_color_16 *trans;
-		if( png_get_tRNS( png, info_ptr, NULL, NULL, &trans ) == PNG_INFO_tRNS )
+		if( png_get_tRNS(png, info_ptr, nullptr, nullptr, &trans) == PNG_INFO_tRNS )
 			iColorKey = trans->gray;
 	}
 	else if( color_type == PNG_COLOR_TYPE_PALETTE )
@@ -180,9 +177,9 @@ static RageSurface *RageSurface_Load_PNG( RageFile *f, const char *fn, char erro
 		int ret = png_get_PLTE( png, info_ptr, &palette, &num_palette );
 		ASSERT( ret == PNG_INFO_PLTE );
 
-		png_byte *trans = NULL;
+		png_byte *trans = nullptr;
 		int num_trans = 0;
-		png_get_tRNS( png, info_ptr, &trans, &num_trans, NULL );
+		png_get_tRNS( png, info_ptr, &trans, &num_trans, nullptr );
 
 		for( int i = 0; i < num_palette; ++i )
 		{
@@ -197,7 +194,7 @@ static RageSurface *RageSurface_Load_PNG( RageFile *f, const char *fn, char erro
 	else
 	{
 		/* If we have RGB image and tRNS, it's a color key.  Just convert it to RGBA. */
-		if( png_get_valid(png, info_ptr, PNG_INFO_tRNS) )
+		if( png_get_valid(png, info_ptr, PNG_INFO_tRNS) != 0u )
 		{
 			/* We don't care about RGB color keys; just convert them to alpha. */
 			png_set_tRNS_to_alpha( png );
@@ -247,7 +244,7 @@ static RageSurface *RageSurface_Load_PNG( RageFile *f, const char *fn, char erro
 	png_read_image( png, row_pointers );
 
 	png_read_end( png, info_ptr );
-	png_destroy_read_struct( &png, &info_ptr, NULL );
+	png_destroy_read_struct( &png, &info_ptr, nullptr );
 
 	return img;
 }
@@ -265,7 +262,7 @@ RageSurfaceUtils::OpenResult RageSurface_Load_PNG( const RString &sPath, RageSur
 
 	char errorbuf[1024];
 	ret = RageSurface_Load_PNG( &f, sPath, errorbuf, bHeaderOnly );
-	if( ret == NULL )
+	if( ret == nullptr )
 	{
 		error = errorbuf;
 		return RageSurfaceUtils::OPEN_UNKNOWN_FILE_FORMAT; // XXX

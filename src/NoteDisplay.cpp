@@ -1,21 +1,21 @@
 #include "global.h"
-#include "NoteDisplay.h"
+#include "ActorUtil.h"
+#include "ArrowEffects.h"
+#include "Foreach.h"
 #include "GameState.h"
 #include "GhostArrowRow.h"
-#include "NoteData.h"
-#include "NoteSkinManager.h"
-#include "ArrowEffects.h"
-#include "RageLog.h"
-#include "RageDisplay.h"
-#include "ReceptorArrowRow.h"
-#include "ActorUtil.h"
-#include "Style.h"
-#include "PlayerState.h"
-#include "Sprite.h"
-#include "NoteTypes.h"
 #include "LuaBinding.h"
-#include "Foreach.h"
+#include "NoteData.h"
+#include "NoteDisplay.h"
+#include "NoteSkinManager.h"
+#include "NoteTypes.h"
+#include "PlayerState.h"
+#include "RageDisplay.h"
 #include "RageMath.h"
+#include "RageTexture.h"
+#include "ReceptorArrowRow.h"
+#include "Sprite.h"
+#include "Style.h"
 
 static const double PI_180= PI / 180.0;
 static const double PI_180R= 180.0 / PI;
@@ -81,6 +81,8 @@ struct NoteMetricCache_t
 	int m_iStartDrawingHoldBodyOffsetFromHead;
 	int m_iStopDrawingHoldBodyOffsetFromTail;
 	float m_fHoldLetGoGrayPercent;
+	bool m_UseStretchHolds;
+	bool m_UseShrinkHolds;
 	bool m_bFlipHeadAndTailWhenReverse;
 	bool m_bFlipHoldBodyWhenReverse;
 	bool m_bTopHoldAnchorWhenReverse;
@@ -110,6 +112,8 @@ void NoteMetricCache_t::Load( const RString &sButton )
 	}
 	//I was here -DaisuMaster
 	m_bAnimationBasedOnBeats = NOTESKIN->GetMetricB(sButton,"AnimationIsBeatBased");
+	m_UseStretchHolds = NOTESKIN->GetMetricB(sButton, "UseStretchHolds");
+	m_UseShrinkHolds = NOTESKIN->GetMetricB(sButton, "UseShrinkHolds");
 	m_bHoldHeadIsAboveWavyParts =		NOTESKIN->GetMetricB(sButton,"HoldHeadIsAboveWavyParts");
 	m_bHoldTailIsAboveWavyParts =		NOTESKIN->GetMetricB(sButton,"HoldTailIsAboveWavyParts");
 	m_iStartDrawingHoldBodyOffsetFromHead =	NOTESKIN->GetMetricI(sButton,"StartDrawingHoldBodyOffsetFromHead");
@@ -137,19 +141,19 @@ struct NoteSkinAndPath
 		{
 			return true;
 		}
-		else if( cmp == 0 )
+		if( cmp == 0 )
 		{
 			if( sPath < other.sPath )
 			{
 				return true;
 			}
-			else if( sPath == other.sPath )
+			if( sPath == other.sPath )
 			{
 				if ( pn < other.pn )
 					return true;
-				else if ( pn == other.pn )
+				if ( pn == other.pn )
 					return gc < other.gc;
-				else
+				
 					return false;
 			}
 			else
@@ -166,7 +170,7 @@ struct NoteSkinAndPath
 
 struct NoteResource
 {
-	NoteResource( const NoteSkinAndPath &nsap ): m_nsap(nsap)
+	explicit NoteResource( const NoteSkinAndPath &nsap ): m_nsap(nsap)
 	{
 		m_iRefCount = 0;
 		m_pActor = NULL;
@@ -182,26 +186,26 @@ struct NoteResource
 	Actor *m_pActor; // todo: AutoActor me? -aj
 };
 
-static map<NoteSkinAndPath, NoteResource *> g_NoteResource;
+static map<RString, map<NoteSkinAndPath, NoteResource *>> g_NoteResource; 
 
-static NoteResource *MakeNoteResource( const RString &sButton, const RString &sElement, PlayerNumber pn, GameController gc, bool bSpriteOnly )
+static NoteResource *MakeNoteResource( const RString &sButton, const RString &sElement, PlayerNumber pn, GameController gc, bool bSpriteOnly, RString Color) 
 {
 	RString sElementAndType = ssprintf( "%s, %s", sButton.c_str(), sElement.c_str() );
 	NoteSkinAndPath nsap( NOTESKIN->GetCurrentNoteSkin(), sElementAndType, pn, gc );
 
-	map<NoteSkinAndPath, NoteResource *>::iterator it = g_NoteResource.find( nsap );
-	if( it == g_NoteResource.end() )
+	map<NoteSkinAndPath, NoteResource *>::iterator it = g_NoteResource[Color].find( nsap ); 
+  if( it == g_NoteResource[Color].end() ) 
 	{
 		auto *pRes = new NoteResource( nsap );
 
 		NOTESKIN->SetPlayerNumber( pn );
 		NOTESKIN->SetGameController( gc );
 
-		pRes->m_pActor = NOTESKIN->LoadActor( sButton, sElement, NULL, bSpriteOnly );
+		pRes->m_pActor = NOTESKIN->LoadActor( sButton, sElement, NULL, bSpriteOnly, Color); 
 		ASSERT( pRes->m_pActor != NULL );
 
-		g_NoteResource[nsap] = pRes;
-		it = g_NoteResource.find( nsap );
+		g_NoteResource[Color][nsap] = pRes; 
+		it = g_NoteResource[Color].find( nsap ); 
 	}
 
 	NoteResource *pRet = it->second;
@@ -215,10 +219,12 @@ static void DeleteNoteResource( NoteResource *pRes )
 
 	ASSERT_M( pRes->m_iRefCount > 0, ssprintf("RefCount %i > 0", pRes->m_iRefCount) );
 	--pRes->m_iRefCount;
-	if( pRes->m_iRefCount )
+	if( pRes->m_iRefCount != 0 )
 		return;
 
-	g_NoteResource.erase( pRes->m_nsap );
+	map<RString, map<NoteSkinAndPath, NoteResource *>>::iterator it; 
+	for (it = g_NoteResource.begin(); it != g_NoteResource.end(); it++) 
+		it->second.erase(pRes->m_nsap); 
 	delete pRes;
 }
 
@@ -226,47 +232,53 @@ static void DeleteNoteResource( NoteResource *pRes )
 
 NoteColorActor::NoteColorActor()
 {
-	m_p = NULL;
+	g_p.clear(); 
 }
 
 NoteColorActor::~NoteColorActor()
 {
-	if( m_p )
-		DeleteNoteResource( m_p );
+	map<RString, NoteResource*>::iterator it; 
+	for (it = g_p.begin(); it != g_p.end(); it++) 
+	if (it->second) 
+		DeleteNoteResource(it->second); 
+	g_p.clear(); 
 }
 
-void NoteColorActor::Load( const RString &sButton, const RString &sElement, PlayerNumber pn, GameController gc )
+void NoteColorActor::Load( const RString &sButton, const RString &sElement, PlayerNumber pn, GameController gc ,RString Color) 
 {
-	m_p = MakeNoteResource( sButton, sElement, pn, gc, false );
+	g_p[Color] = MakeNoteResource( sButton, sElement, pn, gc, false, Color); 
 }
 
 
-Actor *NoteColorActor::Get()
+Actor *NoteColorActor::Get(RString Color) 
 {
-	return m_p->m_pActor;
+	return g_p[Color]->m_pActor; 
 }
 
 /* NoteColorSprite */
 
 NoteColorSprite::NoteColorSprite()
 {
-	m_p = NULL;
+	g_p.clear(); 
 }
 
 NoteColorSprite::~NoteColorSprite()
 {
-	if( m_p )
-		DeleteNoteResource( m_p );
+	map<RString, NoteResource*>::iterator it; 
+	for (it = g_p.begin(); it != g_p.end(); it++) 
+	if (it->second) 
+		DeleteNoteResource(it->second); 
+	g_p.clear(); 
 }
 
-void NoteColorSprite::Load( const RString &sButton, const RString &sElement, PlayerNumber pn, GameController gc )
+void NoteColorSprite::Load( const RString &sButton, const RString &sElement, PlayerNumber pn, GameController gc, RString Color) 
 {
-	m_p = MakeNoteResource( sButton, sElement, pn, gc, true );
+	g_p[Color] = MakeNoteResource(sButton, sElement, pn, gc, true, Color); 
 }
 
-Sprite *NoteColorSprite::Get()
+Sprite *NoteColorSprite::Get(RString Color) 
 {
-	return dynamic_cast<Sprite *>( m_p->m_pActor );
+	return dynamic_cast<Sprite *>( g_p[Color]->m_pActor ); 
 }
 
 static const char *HoldTypeNames[] = {
@@ -324,8 +336,8 @@ void NCSplineHandler::MakeWeightedAverage(NCSplineHandler& out,
 		const NCSplineHandler& from, const NCSplineHandler& to, float between)
 {
 #define BOOLS_FROM_CLOSEST(closest) \
-	out.m_spline_mode= closest.m_spline_mode; \
-	out.m_subtract_song_beat_from_curr= closest.m_subtract_song_beat_from_curr;
+	out.m_spline_mode= (closest).m_spline_mode; \
+	out.m_subtract_song_beat_from_curr= (closest).m_subtract_song_beat_from_curr;
 	if(between >= 0.5f)
 	{
 		BOOLS_FROM_CLOSEST(to);
@@ -386,9 +398,9 @@ void NoteColumnRenderArgs::SetPRZForActor(Actor* actor,
 	actor->SetX(sp_pos.x + ae_pos.x);
 	actor->SetY(sp_pos.y + ae_pos.y);
 	actor->SetZ(sp_pos.z + ae_pos.z);
-	actor->SetRotationX(sp_rot.x * PI_180R + ae_rot.x);
-	actor->SetRotationY(sp_rot.y * PI_180R + ae_rot.y);
-	actor->SetRotationZ(sp_rot.z * PI_180R + ae_rot.z);
+	actor->SetRotationX(sp_rot.x * static_cast<float>(PI_180R) + ae_rot.x);
+	actor->SetRotationY(sp_rot.y * static_cast<float>(PI_180R) + ae_rot.y);
+	actor->SetRotationZ(sp_rot.z * static_cast<float>(PI_180R) + ae_rot.z);
 	actor->SetZoomX(sp_zoom.x + ae_zoom.x);
 	actor->SetZoomY(sp_zoom.y + ae_zoom.y);
 	actor->SetZoomZ(sp_zoom.z + ae_zoom.z);
@@ -418,23 +430,28 @@ void NoteDisplay::Load( int iColNum, const PlayerState* pPlayerState, float fYRe
 
 	cache->Load( sButton );
 
-	// "normal" note types
-	m_TapNote.Load(		sButton, "Tap Note", pn, GameI[0].controller );
-	//m_TapAdd.Load(		sButton, "Tap Addition", pn, GameI.controller );
-	m_TapMine.Load(		sButton, "Tap Mine", pn, GameI[0].controller );
-	m_TapLift.Load(		sButton, "Tap Lift", pn, GameI[0].controller );
-	m_TapFake.Load(		sButton, "Tap Fake", pn, GameI[0].controller );
+	vector<RString> Colors = {"4th","8th", "12th", "16th", "24th", "32nd", "48th", "64th", "192nd" }; 
 
-	// hold types
-	FOREACH_HoldType( ht )
+	vector<RString>::iterator Color; 
+	for( Color = Colors.begin() ; Color != Colors.end() ; Color++ ) 
 	{
-		FOREACH_ActiveType( at )
+		// "normal" note types 
+		m_TapNote.Load( sButton, "Tap Note", pn, GameI[0].controller, *Color); 
+		m_TapMine.Load( sButton, "Tap Mine", pn, GameI[0].controller, *Color); 
+		m_TapLift.Load( sButton, "Tap Lift", pn, GameI[0].controller, *Color); 
+		m_TapFake.Load( sButton, "Tap Fake", pn, GameI[0].controller, *Color); 
+ 
+		// hold types 
+		FOREACH_HoldType( ht ) 
 		{
-			m_HoldHead[ht][at].Load(	sButton, HoldTypeToString(ht)+" Head "+ActiveTypeToString(at), pn, GameI[0].controller );
-			m_HoldTopCap[ht][at].Load(	sButton, HoldTypeToString(ht)+" Topcap "+ActiveTypeToString(at), pn, GameI[0].controller );
-			m_HoldBody[ht][at].Load(	sButton, HoldTypeToString(ht)+" Body "+ActiveTypeToString(at), pn, GameI[0].controller );
-			m_HoldBottomCap[ht][at].Load(	sButton, HoldTypeToString(ht)+" Bottomcap "+ActiveTypeToString(at), pn, GameI[0].controller );
-			m_HoldTail[ht][at].Load(	sButton, HoldTypeToString(ht)+" Tail "+ActiveTypeToString(at), pn, GameI[0].controller );
+			FOREACH_ActiveType( at ) 
+			{ 
+				m_HoldHead[ht][at].Load( sButton, HoldTypeToString(ht)+" Head "+ActiveTypeToString(at), pn, GameI[0].controller, *Color); 
+				m_HoldTopCap[ht][at].Load( sButton, HoldTypeToString(ht)+" Topcap "+ActiveTypeToString(at), pn, GameI[0].controller, *Color); 
+				m_HoldBody[ht][at].Load( sButton, HoldTypeToString(ht)+" Body "+ActiveTypeToString(at), pn, GameI[0].controller, *Color); 
+				m_HoldBottomCap[ht][at].Load( sButton, HoldTypeToString(ht)+" Bottomcap "+ActiveTypeToString(at), pn, GameI[0].controller, *Color); 
+				m_HoldTail[ht][at].Load( sButton, HoldTypeToString(ht)+" Tail "+ActiveTypeToString(at), pn, GameI[0].controller, *Color); 
+			} 
 		}
 	}
 }
@@ -609,11 +626,15 @@ void NoteDisplay::Update( float fDeltaTime )
 {
 	/* This function is static: it's called once per game loop, not once per
 	 * NoteDisplay.  Update each cached item exactly once. */
+	map<RString, map<NoteSkinAndPath, NoteResource *>>::iterator it2;
 	map<NoteSkinAndPath, NoteResource *>::iterator it;
-	for( it = g_NoteResource.begin(); it != g_NoteResource.end(); ++it )
+	for (it2 = g_NoteResource.begin() ; it2 != g_NoteResource.end() ; it2++) 
 	{
-		NoteResource *pRes = it->second;
-		pRes->m_pActor->Update( fDeltaTime );
+		for(it = it2->second.begin(); it != it2->second.end(); it++) 
+		{ 
+			NoteResource *pRes = it->second; 
+			pRes->m_pActor->Update(fDeltaTime); 
+		} 
 	}
 }
 
@@ -652,7 +673,8 @@ void NoteDisplay::SetActiveFrame( float fNoteBeat, Actor &actorToSet, float fAni
 
 Actor *NoteDisplay::GetTapActor( NoteColorActor &nca, NotePart part, float fNoteBeat )
 {
-	Actor *pActorOut = nca.Get();
+	RString Color = NoteTypeToString(BeatToNoteType(fNoteBeat));
+	Actor *pActorOut = nca.Get(Color);
 
 	SetActiveFrame( fNoteBeat, *pActorOut, cache->m_fAnimationLength[part], cache->m_bAnimationIsVivid[part] );
 	return pActorOut;
@@ -665,8 +687,9 @@ Actor *NoteDisplay::GetHoldActor( NoteColorActor nca[NUM_HoldType][NUM_ActiveTyp
 
 Sprite *NoteDisplay::GetHoldSprite( NoteColorSprite ncs[NUM_HoldType][NUM_ActiveType], NotePart part, float fNoteBeat, bool bIsRoll, bool bIsBeingHeld )
 {
-	Sprite *pSpriteOut = ncs[bIsRoll ? roll:hold][bIsBeingHeld ? active:inactive].Get();
-
+	RString Color = NoteTypeToString(BeatToNoteType(fNoteBeat)); 
+	Sprite *pSpriteOut = ncs[bIsRoll ? roll:hold][bIsBeingHeld ? active:inactive].Get(Color); 
+	
 	SetActiveFrame( fNoteBeat, *pSpriteOut, cache->m_fAnimationLength[part], cache->m_bAnimationIsVivid[part] );
 	return pSpriteOut;
 }
@@ -675,7 +698,7 @@ static float ArrowGetAlphaOrGlow( bool bGlow, const PlayerState* pPlayerState, i
 {
 	if( bGlow )
 		return ArrowEffects::GetGlow(iCol, fYOffset, fPercentFadeToFail, fYReverseOffsetPixels, fDrawDistanceBeforeTargetsPixels, fFadeInPercentOfDrawFar);
-	else
+	
 		return ArrowEffects::GetAlpha(iCol, fYOffset, fPercentFadeToFail, fYReverseOffsetPixels, fDrawDistanceBeforeTargetsPixels, fFadeInPercentOfDrawFar);
 }
 
@@ -728,7 +751,9 @@ void NoteDisplay::DrawHoldPart(vector<Sprite*> &vpSpr,
 	if(part_args.flip_texture_vertically)
 		swap(rect.top, rect.bottom);
 	const float fFrameWidth		= pSprite->GetUnzoomedWidth();
-	const float unzoomed_frame_height= pSprite->GetUnzoomedHeight();
+	float unzoomed_frame_height = pSprite->GetUnzoomedHeight();
+	if (part_type == hpt_body && cache->m_UseStretchHolds)
+		unzoomed_frame_height = part_args.y_length;
 
 	/* Only draw the section that's within the range specified.  If a hold note is
 	 * very long, don't process or draw the part outside of the range.  Don't change
@@ -906,10 +931,10 @@ void NoteDisplay::DrawHoldPart(vector<Sprite*> &vpSpr,
 		{
 			case NCSM_Disabled:
 				// XXX: Actor rotations use degrees, Math uses radians. Convert here.
-				ae_rot.y= ArrowEffects::GetRotationY(fYOffset) * PI_180;
+				ae_rot.y= ArrowEffects::GetRotationY(fYOffset) * static_cast<float>(PI_180R);
 				break;
 			case NCSM_Offset:
-				ae_rot.y= ArrowEffects::GetRotationY(fYOffset) * PI_180;
+				ae_rot.y= ArrowEffects::GetRotationY(fYOffset) * static_cast<float>(PI_180R);
 				column_args.rot_handler->EvalForBeat(column_args.song_beat, cur_beat, sp_rot);
 				break;
 			case NCSM_Position:
@@ -1000,7 +1025,7 @@ void NoteDisplay::DrawHoldBodyInternal(vector<Sprite*>& sprite_top,
 	const NoteColumnRenderArgs& column_args,
 	draw_hold_part_args& part_args,
 	const float head_minus_top, const float tail_plus_bottom,
-	const float y_head, const float y_tail, const float top_beat,
+	const float y_head, const float y_tail, const float y_length, const float top_beat,
 	const float bottom_beat, bool glow)
 {	
 	if (y_head < y_tail)
@@ -1016,6 +1041,7 @@ void NoteDisplay::DrawHoldBodyInternal(vector<Sprite*>& sprite_top,
 		// Draw the body if the start is not lower than the start of the tail
 		part_args.y_top = y_head;
 		part_args.y_bottom = y_tail;
+		part_args.y_length = y_length;
 		part_args.top_beat = top_beat;
 		part_args.bottom_beat = bottom_beat;
 		part_args.wrapping = true;
@@ -1034,7 +1060,7 @@ void NoteDisplay::DrawHoldBodyInternal(vector<Sprite*>& sprite_top,
 void NoteDisplay::DrawHoldBody(const TapNote& tn,
 	const NoteFieldRenderArgs& field_args,
 	const NoteColumnRenderArgs& column_args, float beat,
-	bool being_held, float y_head, float y_tail, float percent_fade_to_fail,
+	bool being_held, float y_head, float y_tail, float y_length, float percent_fade_to_fail, 
 	float color_scale, float top_beat, float bottom_beat)
 {
 	draw_hold_part_args part_args;
@@ -1111,7 +1137,7 @@ void NoteDisplay::DrawHoldBody(const TapNote& tn,
 	DISPLAY->SetTextureMode(TextureUnit_1, TextureMode_Modulate);
 	DrawHoldBodyInternal(vpSprTop, vpSprBody, vpSprBottom, field_args,
 		column_args, part_args, head_minus_top,
-		tail_plus_bottom, y_head, y_tail, top_beat, bottom_beat,
+		tail_plus_bottom, y_head, y_tail, y_length, top_beat, bottom_beat,
 		false);
 
 	if((*field_args.selection_begin_marker != -1 && *field_args.selection_end_marker != -1)
@@ -1121,10 +1147,12 @@ void NoteDisplay::DrawHoldBody(const TapNote& tn,
 		DISPLAY->SetTextureMode(TextureUnit_1, TextureMode_Glow);
 		DrawHoldBodyInternal(vpSprTop, vpSprBody, vpSprBottom, field_args,
 			column_args, part_args, head_minus_top,
-			tail_plus_bottom, y_head, y_tail, top_beat, bottom_beat,
+			tail_plus_bottom, y_head, y_tail, y_length, top_beat, bottom_beat,
 			true);
 	}
 }
+
+static map<int, map<int, map<int, float>>> HoldSize;
 
 void NoteDisplay::DrawHold(const TapNote& tn,
 	const NoteFieldRenderArgs& field_args,
@@ -1156,6 +1184,12 @@ void NoteDisplay::DrawHold(const TapNote& tn,
 	float fEndPeakYOffset	= 0;
 	bool bEndIsPastPeak = false;
 	float fEndYOffset	= ArrowEffects::GetYOffset( m_pPlayerState, column_args.column, NoteRowToBeat(iEndRow), fEndPeakYOffset, bEndIsPastPeak );
+	float length;
+	if (!tn.HoldResult.bActive)
+		HoldSize[m_pPlayerState->m_PlayerNumber][iRow][column_args.column] = fEndYOffset - fStartYOffset;
+	length = HoldSize[m_pPlayerState->m_PlayerNumber][iRow][column_args.column];
+	if (cache->m_UseShrinkHolds)
+		length = fEndYOffset - fStartYOffset;
 
 	// In boomerang, the arrows reverse direction at Y offset value fPeakAtYOffset.  
 	// If fPeakAtYOffset lies inside of the hold we're drawing, then the we 
@@ -1194,7 +1228,7 @@ void NoteDisplay::DrawHold(const TapNote& tn,
 	}
 	*/
 
-	DrawHoldBody(tn, field_args, column_args, fBeat, bIsBeingHeld, fYHead, fYTail, fPercentFadeToFail, fColorScale, top_beat, bottom_beat);
+	DrawHoldBody(tn, field_args, column_args, fBeat, bIsBeingHeld, fYHead, fYTail, length, fPercentFadeToFail, fColorScale, top_beat, bottom_beat);
 
 	/* These set the texture mode themselves. */
 	// this part was modified in pumpmania, where it flips the draw order
@@ -1520,9 +1554,9 @@ void NoteColumnRenderer::DrawPrimitives()
 		}
 	}
 #define DTS_INNER(pn, tap_set, draw_func, disp) \
-	if(!tap_set[pn].empty()) \
+	if(!(tap_set)[pn].empty()) \
 	{ \
-		any_upcoming|= disp->draw_func(*m_field_render_args, m_column_render_args, tap_set[pn]); \
+		any_upcoming|= (disp)->draw_func(*m_field_render_args, m_column_render_args, (tap_set)[pn]); \
 	}
 #define DRAW_TAP_SET(tap_set, draw_func) \
 	FOREACH_PlayerNumber(pn) \
@@ -1535,7 +1569,7 @@ void NoteColumnRenderer::DrawPrimitives()
 	DTS_INNER(PLAYER_INVALID, taps, DrawTapsInRange, m_displays[PLAYER_INVALID]);
 #undef DTS_INNER
 #undef DRAW_TAP_SET
-	m_field_render_args->receptor_row->SetNoteUpcoming(m_column, any_upcoming);
+	m_field_render_args->receptor_row->SetNoteUpcoming(m_column, any_upcoming, begin->first);
 }
 
 void NoteColumnRenderer::SetCurrentTweenStart()

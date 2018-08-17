@@ -1,12 +1,10 @@
-#include "global.h"
+﻿#include "global.h"
 #include "Difficulty.h"
-#include "GameState.h"
-#include "ThemeMetric.h"
-#include "LuaManager.h"
-#include "LocalizedString.h"
 #include "GameConstantsAndTypes.h"
-#include "GameManager.h"
+#include "GameState.h"
+#include "LuaManager.h"
 #include "Steps.h"
+#include "ThemeMetric.h"
 
 static const char *DifficultyNames[] = {
 	"Beginner",

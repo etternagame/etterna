@@ -1,24 +1,27 @@
-#ifndef Profile_H
+﻿#ifndef Profile_H
 #define Profile_H
 
+#include "DateTime.h"
 #include "GameConstantsAndTypes.h"
 #include "Grade.h"
-#include <map>
-#include <set>
-#include <deque>
 #include "HighScore.h"
-#include "DateTime.h"
+#include "LuaReference.h"
 #include "SongUtil.h"	// for SongID
 #include "StepsUtil.h"	// for StepsID
 #include "StyleUtil.h"	// for StyleID
 #include "LuaReference.h"
+#include "XMLProfile.h"
+#include "DBProfile.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
+#include <map>
+#include <set>
 
 #include <unordered_map>
 
 class XNode;
 struct lua_State;
 class Character;
+struct Playlist;
 
 // Current file versions
 extern const RString STATS_XML;
@@ -96,6 +99,8 @@ public:
 
 	// If the scoregoal has already been completed prior to being assigned, flag it as a vacuous goal
 	void CheckVacuity();
+
+	void UploadIfNotVacuous();
 
 	// Vacuous goals will remain in memory for the session but not be written during save -mina
 	bool vacuous = false;
@@ -184,10 +189,14 @@ public:
 	ProfileType m_Type{ProfileType_Normal};
 	// Profiles of the same type and priority are sorted by dir name.
 	int m_ListPriority{0};
+	// Profile Playlists
+	map<string, Playlist> allplaylists;
 
 	// Editable data
 	RString m_sDisplayName;
 	RString m_sCharacterID;
+	//Dont edit this. Should be unique (Is it?)
+	RString m_sProfileID;
 	/**
 	 * @brief The last used name for high scoring purposes.
 	 *
@@ -197,7 +206,7 @@ public:
 
 	// General data
 	static RString MakeGuid();
-
+	RString* GetGuid() { return &m_sGuid; }
 	RString m_sGuid;
 	map<RString,RString> m_sDefaultModifiers;
 	SortOrder m_SortOrder{SortOrder_Invalid};
@@ -258,19 +267,16 @@ public:
 	set<string> FavoritedCharts;
 	set<string> PermaMirrorCharts;
 
-	XNode* SaveFavoritesCreateNode() const;
-	XNode* SavePermaMirrorCreateNode() const;
-	XNode* SaveScoreGoalsCreateNode() const;
-	XNode* SavePlaylistsCreateNode() const;
-	void LoadFavoritesFromNode(const XNode *pNode);
-	void LoadPermaMirrorFromNode(const XNode *pNode);
-	void LoadScoreGoalsFromNode(const XNode *pNode);
-	void LoadPlaylistsFromNode(const XNode *pNode);
 
 	// more future goalman stuff -mina
-	void CreateGoal(const string& ck);
-	void DeleteGoal(const string& ck, DateTime assigned);
+	void AddGoal(const string& ck);
+	void RemoveGoal(const string& ck, DateTime assigned);
 	unordered_map<string, GoalsForChart> goalmap;
+	void FillGoalTable();
+	vector<ScoreGoal*> goaltable;
+	int sortmode = 1;	// 1=date 2=rate 3=name 4=priority 5=diff, init to name because that's the default- mina
+	int filtermode = 1; // 1=all, 2=completed, 3=uncompleted
+	bool asc = false;
 
 	bool HasGoal(const string& ck) { return goalmap.count(ck) == 1; }
 	ScoreGoal& GetLowestGoalForRate(const string& ck, float rate);
@@ -298,6 +304,7 @@ public:
 	HighScoreList& GetStepsHighScoreList( const Song* pSong, const Steps* pSteps );
 	int GetStepsNumTimesPlayed( const Song* pSong, const Steps* pSteps ) const;
 	void IncrementStepsPlayCount( const Song* pSong, const Steps* pSteps );
+	Grade GetBestGrade(const Song * pSong, StepsType st) const;
 	void GetGrades( const Song* pSong, StepsType st, int iCounts[NUM_Grade] ) const;
 	int GetSongNumTimesPlayed( const Song* pSong ) const;
 	int GetSongNumTimesPlayed( const SongID& songID ) const;
@@ -351,44 +358,17 @@ public:
 	bool SaveAllToDir( const RString &sDir, bool bSignData ) const;
 
 	ProfileLoadResult LoadEditableDataFromDir( const RString &sDir );
-	ProfileLoadResult LoadStatsXmlFromNode( const XNode* pNode, bool bIgnoreEditable = true );
 
-	void LoadGeneralDataFromNode( const XNode* pNode );
-	void LoadSongScoresFromNode( const XNode* pNode );
-	void LoadCategoryScoresFromNode( const XNode* pNode );
-	void LoadScreenshotDataFromNode( const XNode* pNode );
+
+	void ImportScoresToEtterna();
 
 	void SaveTypeToDir(const RString &dir) const;
 	void SaveEditableDataToDir( const RString &sDir ) const;
-	bool SaveStatsXmlToDir( RString sDir, bool bSignData ) const;
-	
-	XNode* SaveStatsXmlCreateNode() const;
-	
-	XNode* SaveGeneralDataCreateNode() const;
-	XNode* SaveSongScoresCreateNode() const;
 
-	XNode* SaveCategoryScoresCreateNode() const;
-	XNode* SaveScreenshotDataCreateNode() const;
-
-	XNode* SaveCoinDataCreateNode() const;
-
-	// Etterna profile
-	ProfileLoadResult LoadEttFromDir(RString dir);
-	ProfileLoadResult LoadEttXmlFromNode(const XNode* pNode);
-	void LoadEttGeneralDataFromNode(const XNode* pNode);
-	void LoadEttScoresFromNode(const XNode* pNode);
-
-	bool SaveEttXmlToDir(RString sDir) const;
-	XNode* SaveEttGeneralDataCreateNode() const;
-	XNode* SaveEttScoresCreateNode() const;
-	XNode* SaveEttXmlCreateNode() const;
 
 	void CalculateStatsFromScores(LoadingWindow* ld);
 	void CalculateStatsFromScores();
 
-	// For converting to etterna from stats.xml
-	void LoadStatsXmlForConversion();
-	void ImportScoresToEtterna();
 	
 	void SaveStatsWebPageToDir( const RString &sDir ) const;
 	void SaveMachinePublicKeyToDir( const RString &sDir ) const;
@@ -397,11 +377,14 @@ public:
 	static RString MakeUniqueFileNameNoExtension( const RString &sDir, const RString &sFileNameBeginning );
 	static RString MakeFileNameNoExtension( const RString &sFileNameBeginning, int iIndex );
 
+
 	// Lua
 	void PushSelf( lua_State *L );
 
 private:
 	const HighScoresForASong *GetHighScoresForASong( const SongID& songID ) const;
+	XMLProfile XMLProf;
+	DBProfile DBProf;
 };
 
 

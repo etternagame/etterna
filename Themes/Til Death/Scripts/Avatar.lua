@@ -88,12 +88,16 @@ function getAvatar(pn)
 	if FILEMAN:DoesFileExist("Themes/"..THEME:GetCurThemeName().."/Graphics/Player avatar/"..fileName) then
 		t = LoadActor("../Graphics/Player avatar/"..fileName)..{
 			Name="Avatar";
-			InitCommand=cmd(visible,true;zoomto,50,50;halign,0;valign,0;);
+			InitCommand=function(self)
+				self:visible(true):zoomto(50,50):halign(0):valign(0)
+			end;
 		};
 	else
 		t = LoadActor("../Graphics/Player avatar/generic")..{
 			Name="Avatar";
-			InitCommand=cmd(visible,true;zoomto,50,50;halign,0;valign,0;);
+			InitCommand=function(self)
+				self:visible(true):zoomto(50,50):halign(0):valign(0)
+			end;
 		};
 	end
 
@@ -186,12 +190,16 @@ function getAvatar(pn)
 	if FILEMAN:DoesFileExist("Themes/"..THEME:GetCurThemeName().."/Graphics/Player avatar/"..fileName) then
 		t = LoadActor("../Graphics/Player avatar/"..fileName)..{
 			Name="Avatar";
-			InitCommand=cmd(visible,true;zoomto,50,50;halign,0;valign,0;);
+			InitCommand=function(self)
+				self:visible(true):zoomto(50,50):halign(0):valign(0)
+			end;
 		};
 	else
 		t = LoadActor("../Graphics/Player avatar/generic")..{
 			Name="Avatar";
-			InitCommand=cmd(visible,true;zoomto,50,50;halign,0;valign,0;);
+			InitCommand=function(self)
+				self:visible(true):zoomto(50,50):halign(0):valign(0)
+			end;
 		};
 	end
 

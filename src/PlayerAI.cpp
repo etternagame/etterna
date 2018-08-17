@@ -1,9 +1,9 @@
-#include "global.h"
-#include "PlayerAI.h"
-#include "RageUtil.h"
-#include "IniFile.h"
+﻿#include "global.h"
 #include "GameState.h"
+#include "IniFile.h"
+#include "PlayerAI.h"
 #include "PlayerState.h"
+#include "RageUtil.h"
 
 #define AI_PATH "Data/AI.ini"
 
@@ -13,14 +13,14 @@ struct TapScoreDistribution
 
 	void ChangeWeightsToPercents()
 	{
-		float sum= 0;
-		for(float i : fPercent)
+		float sum = 0;
+		for (float i : fPercent)
 		{
-			sum+= i;
+			sum += i;
 		}
-		for(float & i : fPercent)
+		for (float& i : fPercent)
 		{
-			i/= sum;
+			i /= sum;
 		}
 	}
 	void SetDefaultWeights()
@@ -38,15 +38,14 @@ struct TapScoreDistribution
 	{
 		float fRand = randomf(0,1);
 		float fCumulativePercent = 0;
-		for( int i=0; i<=TNS_W1; i++ )
+		for (int i = 0; i <= TNS_W1; i++)
 		{
 			fCumulativePercent += fPercent[i];
-			if( fRand <= fCumulativePercent+1e-4 ) // rounding error
-				return (TapNoteScore)i;
+			if (fRand <= fCumulativePercent + 1e-4) // rounding error
+				return static_cast<TapNoteScore>(i);
 		}
 		// the fCumulativePercents must sum to 1.0, so we should never get here!
-		ASSERT_M( 0, ssprintf("%f,%f",fRand,fCumulativePercent) );
-		return TNS_W1;
+		ASSERT_M(0, ssprintf("%f,%f", fRand, fCumulativePercent));
 	}
 };
 
@@ -56,10 +55,10 @@ void PlayerAI::InitFromDisk()
 {
 	IniFile ini;
 	bool bSuccess = ini.ReadFile( AI_PATH );
-	if(!bSuccess)
+	if (!bSuccess)
 	{
 		LuaHelpers::ReportScriptErrorFmt("Error trying to read \"%s\" to load AI player skill settings.", AI_PATH);
-		for(auto & g_Distribution : g_Distributions)
+		for(auto& g_Distribution : g_Distributions)
 		{
 			g_Distribution.SetDefaultWeights();
 			g_Distribution.ChangeWeightsToPercents();
@@ -67,12 +66,12 @@ void PlayerAI::InitFromDisk()
 	}
 	else
 	{
-		for( int i=0; i<NUM_SKILL_LEVELS; i++ )
+		for (int i = 0; i < NUM_SKILL_LEVELS; i++)
 		{
 			RString sKey = ssprintf("Skill%d", i);
 			XNode* pNode = ini.GetChild(sKey);
 			TapScoreDistribution& dist = g_Distributions[i];
-			if( pNode == NULL )
+			if (pNode == nullptr)
 			{
 				LuaHelpers::ReportScriptErrorFmt("AI.ini: \"%s\" section doesn't exist.", sKey.c_str());
 				dist.SetDefaultWeights();
@@ -80,7 +79,7 @@ void PlayerAI::InitFromDisk()
 			else
 			{
 			#define SET_MALF_IF(condition, tns) \
-				if(condition) \
+				if (condition) \
 				{ \
 					LuaHelpers::ReportScriptErrorFmt("AI weight for " #tns " in \"%s\" section not set.", sKey.c_str()); \
 					dist.fPercent[tns]= 0; \
@@ -107,18 +106,10 @@ void PlayerAI::InitFromDisk()
 
 TapNoteScore PlayerAI::GetTapNoteScore( const PlayerState* pPlayerState )
 {
-	if( pPlayerState->m_PlayerController == PC_AUTOPLAY )
+	if (pPlayerState->m_PlayerController == PC_AUTOPLAY)
 		return TNS_W1;
 
-	/*
-	// handle replay data playback -aj
-	if( pPlayerState->m_PlayerController == PC_REPLAY )
-	{
-		// ghost house
-	}
-	*/
-
-	int iCpuSkill = pPlayerState->m_iCpuSkill;
+	const int iCpuSkill = pPlayerState->m_iCpuSkill;
 
 	TapScoreDistribution& distribution = g_Distributions[iCpuSkill];
 

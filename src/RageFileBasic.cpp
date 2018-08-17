@@ -1,4 +1,4 @@
-#include "global.h"
+﻿#include "global.h"
 #include "RageFileBasic.h"
 #include "RageUtil.h"
 #include "RageUtil_AutoPtr.h"
@@ -96,7 +96,7 @@ int RageFileObj::Seek( int offset, int whence )
 	case SEEK_END:
 		offset += GetFileSize();
 	}
-	return Seek( (int) offset );
+	return Seek( offset );
 }
 
 int RageFileObj::Read( void *pBuffer, size_t iBytes )
@@ -119,7 +119,7 @@ int RageFileObj::Read( void *pBuffer, size_t iBytes )
 			m_iReadBufAvail -= iFromBuffer;
 			m_pReadBuf += iFromBuffer;
 
-			pBuffer = (char *) pBuffer + iFromBuffer;
+			pBuffer = reinterpret_cast<char *>( pBuffer) + iFromBuffer;
 		}
 
 		if( !iBytes )
@@ -234,14 +234,14 @@ int RageFileObj::Write( const void *pBuffer, size_t iBytes )
 	{
 		/* If the file position has moved away from the write buffer, or the
 		 * incoming data won't fit in the buffer, flush. */
-		if( m_iWriteBufferPos+m_iWriteBufferUsed != m_iFilePos || m_iWriteBufferUsed + (int)iBytes > m_iWriteBufferSize )
+		if( m_iWriteBufferPos+m_iWriteBufferUsed != m_iFilePos || m_iWriteBufferUsed + static_cast<int>(iBytes) > m_iWriteBufferSize )
 		{
 			int iRet = EmptyWriteBuf();
 			if( iRet == -1 )
 				return iRet;
 		}
 
-		if( m_iWriteBufferUsed + (int)iBytes <= m_iWriteBufferSize )
+		if( m_iWriteBufferUsed + static_cast<int>(iBytes) <= m_iWriteBufferSize )
 		{
 			memcpy( m_pWriteBuffer+m_iWriteBufferUsed, pBuffer, iBytes );
 			m_iWriteBufferUsed += iBytes;

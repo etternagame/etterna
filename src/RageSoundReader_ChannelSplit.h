@@ -1,4 +1,4 @@
-/* RageSoundReader_ChannelSplit - Split a sound channels into separate sounds. */
+﻿/* RageSoundReader_ChannelSplit - Split a sound channels into separate sounds. */
 
 #ifndef RAGE_SOUND_READER_CHANNEL_SPLIT
 #define RAGE_SOUND_READER_CHANNEL_SPLIT

@@ -18,9 +18,15 @@ meter[1] = 0.00
 
 --Actor Frame
 local t = Def.ActorFrame{
-	BeginCommand=cmd(queuecommand,"Set";visible,false),
-	OffCommand=cmd(bouncebegin,0.2;xy,-500,0;diffusealpha,0),
-	OnCommand=cmd(bouncebegin,0.2;xy,0,0;diffusealpha,1),
+	BeginCommand=function(self)
+		self:queuecommand("Set"):visible(false)
+	end,
+	OffCommand=function(self)
+		self:bouncebegin(0.2):xy(-500,0):diffusealpha(0)
+	end,
+	OnCommand=function(self)
+		self:bouncebegin(0.2):xy(0,0):diffusealpha(1)
+	end,
 	SetCommand=function(self)
 		self:finishtweening()
 		if getTabIndex() == 1 then
@@ -48,21 +54,32 @@ local t = Def.ActorFrame{
 			update = false
 		end
 	end,
-	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
-	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
-	TabChangedMessageCommand=cmd(queuecommand,"Set"),
-	PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
+	CurrentRateChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	RefreshChartInfoMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	TabChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
 }
 
 --BG quad
-t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,frameHeight;halign,0;valign,0;diffuse,color("#333333CC"))}
+t[#t+1] = Def.Quad{InitCommand=function(self)
+	self:xy(frameX,frameY):zoomto(frameWidth,frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
+end}
 
 --Skillset label function
 local function littlebits(i)
 	local t = Def.ActorFrame{
 		LoadFont("Common Large") .. {
-		InitCommand=cmd(xy,frameX+35,frameY+120 + 22*i;halign,0;valign,0;zoom,0.5;maxwidth,110/0.6),
-		BeginCommand=cmd(queuecommand,"Set"),
+		InitCommand=function(self)
+			self:xy(frameX+35,frameY+120 + 22*i):halign(0):valign(0):zoom(0.5):maxwidth(110/0.6)
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			--skillset name
 			if song and steps then
@@ -81,15 +98,21 @@ local function littlebits(i)
 				self:settext("");
 			end
 		end,
-		UpdateMSDInfoCommand=cmd(queuecommand,"Set"),
+		UpdateMSDInfoCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		},
 		LoadFont("Common Large") .. {
-		InitCommand=cmd(xy,frameX+225,frameY+120 + 22*i;halign,1;valign,0;zoom,0.5;maxwidth,110/0.6),
-		BeginCommand=cmd(queuecommand,"Set"),
+		InitCommand=function(self)
+			self:xy(frameX+225,frameY+120 + 22*i):halign(1):valign(0):zoom(0.5):maxwidth(110/0.6)
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			if song and steps then
 				self:settextf("%05.2f",meter[i+1])
-				self:diffuse(ByMSD(meter[i+1]))
+				self:diffuse(byMSD(meter[i+1]))
 			else
 				self:settext("")
 			end
@@ -98,18 +121,28 @@ local function littlebits(i)
 				self:settext("");
 			end
 		end,
-		CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
-		UpdateMSDInfoCommand=cmd(queuecommand,"Set"),
+		CurrentRateChangedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		UpdateMSDInfoCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		}
 	}
 	return t
 end
 
 --Song Title
-t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,offsetY;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,0.5)}
-t[#t+1] = LoadFont("Common Normal")..{InitCommand=cmd(xy,frameX+5,frameY+offsetY-9;zoom,0.6;halign,0;diffuse,getMainColor('positive');settext,"MSD Breakdown (Wip)")}
+t[#t+1] = Def.Quad{InitCommand=function(self)
+	self:xy(frameX,frameY):zoomto(frameWidth,offsetY):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(0.5)
+end}
+t[#t+1] = LoadFont("Common Normal")..{InitCommand=function(self)
+	self:xy(frameX+5,frameY+offsetY-9):zoom(0.6):halign(0):diffuse(getMainColor('positive')):settext("MSD Breakdown (Wip)")
+end}
 t[#t+1] = LoadFont("Common Large")..{
-	InitCommand=cmd(xy,frameX+5,frameY+35;zoom,0.6;halign,0;diffuse,getMainColor('positive');maxwidth,SCREEN_CENTER_X/0.7),
+	InitCommand=function(self)
+		self:xy(frameX+5,frameY+35):zoom(0.6):halign(0):diffuse(getMainColor('positive')):maxwidth(SCREEN_CENTER_X/0.7)
+	end,
 	SetCommand=function(self)
 		if song then
 			self:settext(song:GetDisplayMainTitle())
@@ -117,23 +150,31 @@ t[#t+1] = LoadFont("Common Large")..{
 			self:settext("")
 		end
 	end,
-	UpdateMSDInfoCommand=cmd(queuecommand,"Set"),
+	UpdateMSDInfoCommand=function(self)
+		self:queuecommand("Set")
+	end,
 }
 
 
 -- Music Rate Display
 t[#t+1] = LoadFont("Common Large") .. {
-	InitCommand=cmd(xy,frameX+frameWidth-100,frameY+offsetY+65;visible,true;halign,0;zoom,0.4;maxwidth,capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45)),
+	InitCommand=function(self)
+		self:xy(frameX+frameWidth-100,frameY+offsetY+65):visible(true):halign(0):zoom(0.4):maxwidth(capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45))
+	end,
 	SetCommand=function(self)
 		self:settext(getCurRateDisplayString())
 	end,
-	CurrentRateChangedCommand=cmd(queuecommand,"set")
+	CurrentRateChangedCommand=function(self)
+		self:queuecommand("set")
+	end	
 }
 
 --Difficulty
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="StepsAndMeter",
-	InitCommand=cmd(xy,frameX+frameWidth-offsetX,frameY+offsetY+50;zoom,0.5;halign,1),
+	InitCommand=function(self)
+		self:xy(frameX+frameWidth-offsetX,frameY+offsetY+50):zoom(0.5):halign(1)
+	end,
 	SetCommand=function(self)
 		steps = GAMESTATE:GetCurrentSteps(pn)
 		if steps ~= nil then
@@ -146,14 +187,18 @@ t[#t+1] = LoadFont("Common Normal")..{
 			end
 		end
 	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+	ScoreUpdateMessageCommand=function(self)
+		self:queuecommand("Set")
+	end	
 }
 
 
 --NPS
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="NPS";
-	InitCommand=cmd(xy,frameX+frameWidth-15,frameY+60;zoom,0.4;halign,1;);
+	InitCommand=function(self)
+		self:xy(frameX+frameWidth-15,frameY+60):zoom(0.4):halign(1)
+	end;
 	SetCommand=function(self)
 		steps = GAMESTATE:GetCurrentSteps(pn)
 		--local song = GAMESTATE:GetCurrentSong()
@@ -168,14 +213,22 @@ t[#t+1] = LoadFont("Common Normal")..{
 			self:settext("0.00 Average NPS")
 		end
 	end;
-	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set");
-	CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set");
-	CurrentStepsP2ChangedMessageCommand=cmd(queuecommand,"Set");
+	CurrentSongChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
+	CurrentStepsP1ChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
+	CurrentStepsP2ChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
 };
 
 --Negative BPMs label
 t[#t+1] = LoadFont("Common Normal")..{
-	InitCommand=cmd(xy,frameX+45,frameY+135;zoom,0.8;halign,0;diffuse,getMainColor('negative');settext,"Negative Bpms";),
+	InitCommand=function(self)
+		self:xy(frameX+45,frameY+135):zoom(0.8):halign(0):diffuse(getMainColor('negative')):settext("Negative Bpms")
+	end,
 	SetCommand=function(self)
 		if steps and steps:GetTimingData():HasWarps() then
 			self:settext("Negative Bpms");
@@ -183,7 +236,9 @@ t[#t+1] = LoadFont("Common Normal")..{
 			self:settext("");
 		end
 	end,
-	UpdateMSDInfoCommand=cmd(queuecommand,"Set"),
+	UpdateMSDInfoCommand=function(self)
+		self:queuecommand("Set")
+	end,
 }
 
 --Skillset labels

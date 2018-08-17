@@ -1,4 +1,4 @@
-/* RageSoundMixBuffer - Simple audio mixing. */
+﻿/* RageSoundMixBuffer - Simple audio mixing. */
 
 #ifndef RAGE_SOUND_MIX_BUFFER_H
 #define RAGE_SOUND_MIX_BUFFER_H

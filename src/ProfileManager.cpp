@@ -1,19 +1,18 @@
-#include "global.h"
-#include "ProfileManager.h"
-#include "Profile.h"
-#include "RageUtil.h"
-#include "PrefsManager.h"
-#include "RageLog.h"
-#include "RageFile.h"
-#include "RageFileManager.h"
+﻿#include "global.h"
+#include "Character.h"
+#include "CharacterManager.h"
 #include "GameConstantsAndTypes.h"
-#include "SongManager.h"
 #include "GameState.h"
-#include "Song.h"
-#include "Steps.h"
-#include "GameManager.h"
-#include "ProductInfo.h"
+#include "HighScore.h"
+#include "PrefsManager.h"
+#include "Profile.h"
+#include "ProfileManager.h"
+#include "RageFileManager.h"
+#include "RageLog.h"
 #include "RageUtil.h"
+#include "Song.h"
+#include "SongManager.h"
+#include "Steps.h"
 #include "ThemeManager.h"
 #include "XmlFile.h"
 #include "StepsUtil.h"
@@ -21,6 +20,7 @@
 #include "HighScore.h"
 #include "Character.h"
 #include "CharacterManager.h"
+#include "DownloadManager.h"
 
 ProfileManager*	PROFILEMAN = NULL;	// global and accessible from anywhere in our program
 
@@ -60,12 +60,13 @@ static vector<DirAndProfile> g_vLocalProfile;
 
 static ThemeMetric<bool>	FIXED_PROFILES		( "ProfileManager", "FixedProfiles" );
 static ThemeMetric<int>		NUM_FIXED_PROFILES	( "ProfileManager", "NumFixedProfiles" );
-#define FIXED_PROFILE_CHARACTER_ID( i ) THEME->GetMetric( "ProfileManager", ssprintf("FixedProfileCharacterID%d",int(i+1)) )
+#define FIXED_PROFILE_CHARACTER_ID( i ) THEME->GetMetric( "ProfileManager", ssprintf("FixedProfileCharacterID%d",int((i)+1)) )
 
 
 ProfileManager::ProfileManager()
 	:m_stats_prefix("")
-{
+{
+
 	// Register with Lua.
 	{
 		Lua *L = LUA->Get();
@@ -277,7 +278,7 @@ void ProfileManager::UnloadProfile( PlayerNumber pn )
 	m_bLastLoadWasTamperedOrCorrupt[pn] = false;
 	m_bLastLoadWasFromLastGood[pn] = false;
 	m_bNeedToBackUpLastLoad[pn] = false;
-	SONGMAN->FreeAllLoadedFromProfile( (ProfileSlot) pn );
+	SONGMAN->FreeAllLoadedFromProfile( static_cast<ProfileSlot>( pn) );
 }
 
 const Profile* ProfileManager::GetProfile(PlayerNumber pn) const
@@ -329,6 +330,7 @@ void ProfileManager::RefreshLocalProfilesFromDisk(LoadingWindow* ld)
 	{
 		DirAndProfile derp;
 		derp.sDir= *id + "/";
+		derp.profile.m_sProfileID = derp.sDir;
 		derp.profile.LoadTypeFromDir(derp.sDir);
 		map<ProfileType, vector<DirAndProfile> >::iterator category=
 			categorized_profiles.find(derp.profile.m_Type);
@@ -357,6 +359,10 @@ void ProfileManager::RefreshLocalProfilesFromDisk(LoadingWindow* ld)
 	add_category_to_global_list(categorized_profiles[ProfileType_Guest]);
 	add_category_to_global_list(categorized_profiles[ProfileType_Normal]);
 	add_category_to_global_list(categorized_profiles[ProfileType_Test]);
+	FOREACH(DirAndProfile, g_vLocalProfile, curr)
+	{
+		//curr->profile.EoBatchRecalc(curr->sDir, ld);
+	}
 	FOREACH(DirAndProfile, g_vLocalProfile, curr)
 	{
 		curr->profile.LoadAllFromDir(curr->sDir, PREFSMAN->m_bSignProfileData, ld);
@@ -425,6 +431,7 @@ bool ProfileManager::CreateLocalProfile( const RString &sName, RString &sProfile
 	Profile *pProfile = new Profile;
 	pProfile->m_sDisplayName = sName;
 	pProfile->m_sCharacterID = CHARMAN->GetRandomCharacter()->m_sCharacterID;
+	pProfile->m_sProfileID = profile_id;
 
 	// Save it to disk.
 	RString sProfileDir = LocalProfileIDToDir(profile_id);
@@ -787,7 +794,7 @@ public:
 	static int GetLocalProfile( T* p, lua_State *L )
 	{
 		Profile *pProfile = p->GetLocalProfile(SArg(1));
-		if( pProfile ) 
+		if( pProfile != nullptr ) 
 			pProfile->PushSelf(L);
 		else
 			lua_pushnil(L);

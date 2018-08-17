@@ -1,8 +1,14 @@
 local update = false
 local t = Def.ActorFrame{
-	BeginCommand=cmd(queuecommand,"Set";visible,false);
-	OffCommand=cmd(bouncebegin,0.2;xy,-500,0;diffusealpha,0;); -- visible(false) doesn't seem to work with sleep
-	OnCommand=cmd(bouncebegin,0.2;xy,0,0;diffusealpha,1;);
+	BeginCommand=function(self)
+		self:queuecommand("Set"):visible(false)
+	end;
+	OffCommand=function(self)
+		self:bouncebegin(0.2):xy(-500,0):diffusealpha(0):)(): -- visible(false()
+	end,
+	OnCommand=function(self)
+		self:bouncebegin(0.2):xy(0,0):diffusealpha(1)
+	end;
 	SetCommand=function(self)
 		self:finishtweening()
 		if getTabIndex() == 5 then
@@ -14,8 +20,12 @@ local t = Def.ActorFrame{
 			update = false
 		end;
 	end;
-	TabChangedMessageCommand=cmd(queuecommand,"Set");
-	PlayerJoinedMessageCommand=cmd(queuecommand,"Set");
+	TabChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
+	PlayerJoinedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
 };
 
 local frameX = 10
@@ -29,7 +39,7 @@ local offsetX2 = 10
 local offsetY = 20
 
 local stringList = {
-	{"StepMania Version:",		ProductFamily().." "..ProductVersion()},
+	{"Etterna Version:",		ProductFamily().." "..ProductVersion()},
 	{"Build Date:",				VersionDate().." "..VersionTime()},
 	{"Theme Version:",			getThemeName().." "..getThemeVersion()},
 	{"Total Songs:",			SONGMAN:GetNumSongs().." Songs in "..SONGMAN:GetNumSongGroups().." Groups"},
@@ -42,45 +52,73 @@ local stringList = {
 }
 
 t[#t+1] = Def.Quad{
-	InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,frameHeight;halign,0;valign,0;diffuse,color("#333333CC"));
-	BeginCommand=cmd(queuecommand,"Set");
+	InitCommand=function(self)
+		self:xy(frameX,frameY):zoomto(frameWidth,frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
+	end;
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end;
 	SetCommand=function(self)
 	end;
-	CodeMessageCommand=cmd(queuecommand,"Set");
+	CodeMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
 };
 
 t[#t+1] = Def.Quad{
-	InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,offsetY;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,0.5);
-	BeginCommand=cmd(queuecommand,"Set");
+	InitCommand=function(self)
+		self:xy(frameX,frameY):zoomto(frameWidth,offsetY):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(0.5)
+	end;
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end;
 	SetCommand=function(self)
 	end;
-	CodeMessageCommand=cmd(queuecommand,"Set");
+	CodeMessageCommand=function(self)
+		self:queuecommand("Set")
+	end;
 };
 
 t[#t+1] = LoadFont("Common Normal")..{
-	InitCommand=cmd(xy,frameX+5,frameY+offsetY-9;zoom,0.6;halign,0;diffuse,getMainColor('positive'));
-	BeginCommand=cmd(settext,"Other Info")
+	InitCommand=function(self)
+		self:xy(frameX+5,frameY+offsetY-9):zoom(0.6):halign(0):diffuse(getMainColor('positive'))
+	end;
+	BeginCommand=function(self)
+		self:settext("Other Info")
+	end	
 };
 
 local function makeText1(index)
 	return LoadFont("Common Normal")..{
-		InitCommand=cmd(xy,frameX+offsetX2,frameY+offsetY+(index*distY);zoom,fontScale;halign,0;maxwidth,offsetX1/fontScale);
-		BeginCommand=cmd(queuecommand,"Set");
+		InitCommand=function(self)
+			self:xy(frameX+offsetX2,frameY+offsetY+(index*distY)):zoom(fontScale):halign(0):maxwidth(offsetX1/fontScale)
+		end;
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end;
 		SetCommand=function(self)
 			self:settext(stringList[index][1])
 		end;
-		CodeMessageCommand=cmd(queuecommand,"Set");
+		CodeMessageCommand=function(self)
+			self:queuecommand("Set")
+		end;
 	};
 end;
 
 local function makeText2(index)
 	return LoadFont("Common Normal")..{
-		InitCommand=cmd(xy,frameX+offsetX1+offsetX2*2,frameY+offsetY+(index*distY);zoom,fontScale;halign,0;maxwidth,(frameWidth-offsetX1)/fontScale);
-		BeginCommand=cmd(queuecommand,"Set");
+		InitCommand=function(self)
+			self:xy(frameX+offsetX1+offsetX2*2,frameY+offsetY+(index*distY)):zoom(fontScale):halign(0):maxwidth((frameWidth-offsetX1)/fontScale)
+		end;
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end;
 		SetCommand=function(self)
 			self:settext(stringList[index][2])
 		end;
-		CodeMessageCommand=cmd(queuecommand,"Set");
+		CodeMessageCommand=function(self)
+			self:queuecommand("Set")
+		end;
 	};
 end;
 

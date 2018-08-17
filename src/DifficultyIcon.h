@@ -1,12 +1,11 @@
-/* DifficultyIcon - Graphical representation of the difficulty class. */
+﻿/* DifficultyIcon - Graphical representation of the difficulty class. */
 
 #ifndef DIFFICULTY_ICON_H
 #define DIFFICULTY_ICON_H
 
-#include "Sprite.h"
-#include "PlayerNumber.h"
-#include "GameConstantsAndTypes.h"
 #include "Difficulty.h"
+#include "PlayerNumber.h"
+#include "Sprite.h"
 class Steps;
 
 

@@ -1,9 +1,9 @@
 #ifndef ScreenInstallOverlay_H
 #define ScreenInstallOverlay_H
 
-#include "Screen.h"
 #include "BitmapText.h"
 #include "InputEventPlus.h"
+#include "Screen.h"
 
 /** @brief Package installation processing and messaging. */
 class ScreenInstallOverlay : public Screen
@@ -20,7 +20,6 @@ private:
 
 	BitmapText m_textStatus;
 };
-
 #endif
 
 /*

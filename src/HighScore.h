@@ -1,9 +1,10 @@
-#ifndef HIGH_SCORE_H
+﻿#ifndef HIGH_SCORE_H
 #define HIGH_SCORE_H
 
-#include "Grade.h"
-#include "GameConstantsAndTypes.h"
 #include "DateTime.h"
+#include "GameConstantsAndTypes.h"
+#include "Grade.h"
+#include "NoteTypes.h"
 #include "RageUtil_AutoPtr.h"
 
 class XNode;
@@ -39,18 +40,31 @@ struct HighScore
 	 * @brief Determine if any judgments were tallied during this run.
 	 * @return true if no judgments were recorded, false otherwise. */
 	bool IsEmpty() const;
-	Grade GetWifeGrade();
+	Grade GetWifeGrade() const;
 	float ConvertDpToWife();
 	float GetPercentDP() const;
 	float GetWifeScore() const;
+	float GetWifePoints() const;
 	float GetSSRNormPercent() const;
 	float GetMusicRate() const;
 	float GetJudgeScale() const;
 	bool GetChordCohesion() const;
 	bool GetEtternaValid() const;
-	vector<float> GetOffsetVector() const;
-	vector<int> GetNoteRowVector() const;
+	bool IsUploadedToServer(string s) const;
+	vector<float> timeStamps;
+	const vector<float>& GetOffsetVector() const;
+	const vector<int>& GetNoteRowVector() const;
+	const vector<int>& GetTrackVector() const;
+	const vector<TapNoteType>& GetTapNoteTypeVector() const;
+	const vector<HoldReplayResult>&  GetHoldReplayDataVector() const;
+	vector<float> GetCopyOfOffsetVector() const;
+	vector<int> GetCopyOfNoteRowVector() const;
+	vector<int> GetCopyOfTrackVector() const;
+	vector<TapNoteType> GetCopyOfTapNoteTypeVector() const;
+	vector<HoldReplayResult>  GetCopyOfHoldReplayDataVector() const;
 	string GetScoreKey() const;
+	int GetTopScore() const;
+	int GetReplayType() const;
 	/**
 	 * @brief Determine how many seconds the player had left in Survival mode.
 	 * @return the number of seconds left. */
@@ -86,13 +100,19 @@ struct HighScore
 	void SetScore( unsigned int iScore );
 	void SetPercentDP( float f );
 	void SetWifeScore(float f);
+	void SetWifePoints(float f);
 	void SetSSRNormPercent(float f);
 	void SetMusicRate(float f);
+	void SetSurviveSeconds(float f);
 	void SetJudgeScale(float f);
 	void SetChordCohesion(bool b);
 	void SetEtternaValid(bool b);
+	void AddUploadedServer(string s);
 	void SetOffsetVector(const vector<float>& v);
 	void SetNoteRowVector(const vector<int>& v);
+	void SetTrackVector(const vector<int>& v);
+	void SetTapNoteTypeVector(const vector<TapNoteType>& v);
+	void SetHoldReplayDataVector(const vector<HoldReplayResult>& v);
 	void SetScoreKey(const string& ck);
 	void SetRescoreJudgeVector(const vector<int>& v);
 	void SetAliveSeconds( float f );
@@ -109,6 +129,7 @@ struct HighScore
 	void SetRadarValues( const RadarValues &rv );
 	void SetLifeRemainingSeconds( float f );
 	void SetDisqualified( bool b );
+	void SetReplayType( int i );
 
 	string *GetNameMutable();
 	const string *GetNameMutable() const { return const_cast<string *> (const_cast<HighScore *>(this)->GetNameMutable()); }
@@ -130,6 +151,8 @@ struct HighScore
 	bool WriteReplayData();
 	bool WriteInputData(const vector<float>& oop);
 	bool LoadReplayData();
+	bool LoadReplayDataBasic();
+	bool LoadReplayDataFull();
 	bool HasReplayData();
 	void UnloadReplayData();
 	void ResetSkillsets();
@@ -145,7 +168,18 @@ struct HighScore
 	float GetSkillsetSSR(Skillset ss) const;
 	void SetSkillsetSSR(Skillset ss, float ssr);
 	void SetValidationKey(ValidationKey vk, string k);
+	void SetTopScore(int i);
+	string GenerateValidationKeys();
+	string GetValidationKey(ValidationKey vk) const; 
 	vector<int> GetRescoreJudgeVector(int x);
+	// laazy
+	string scoreid;
+	int userid;
+	string avatar;
+	
+	int norms = 0;
+	int musics = 0;
+	int judges = 0;
 	// Lua
 	void PushSelf( lua_State *L );
 private:

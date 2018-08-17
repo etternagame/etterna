@@ -21,20 +21,37 @@ LoadingWindow *LoadingWindow::Create()
 	RString Driver;
 	LoadingWindow *ret = NULL;
 
-	for( unsigned i = 0; ret == NULL && i < DriversToTry.size(); ++i )
+	for (unsigned i = 0; ret == NULL && i < DriversToTry.size(); ++i)
 	{
 		Driver = DriversToTry[i];
 
 #ifdef USE_LOADING_WINDOW_MACOSX
-		if( !DriversToTry[i].CompareNoCase("MacOSX") )	ret = new LoadingWindow_MacOSX;
+		if (!DriversToTry[i].CompareNoCase("MacOSX")) {
+			if (ret != nullptr)
+				delete ret;
+			ret = new LoadingWindow_MacOSX;
+		}
 #endif
 #ifdef USE_LOADING_WINDOW_GTK
-		if( !DriversToTry[i].CompareNoCase("Gtk") )	ret = new LoadingWindow_Gtk;
+		if (!DriversToTry[i].CompareNoCase("Gtk")) {
+			if (ret != nullptr)
+				delete ret;
+			ret = new LoadingWindow_Gtk;
+		}
 #endif
 #ifdef USE_LOADING_WINDOW_WIN32
-		if( !DriversToTry[i].CompareNoCase("Win32") )	ret = new LoadingWindow_Win32;
+		if (!DriversToTry[i].CompareNoCase("Win32")) {
+			if (ret != nullptr)
+				delete ret;
+			ret = new LoadingWindow_Win32;
+		}
+
 #endif
-		if( !DriversToTry[i].CompareNoCase("Null") )	ret = new LoadingWindow_Null;
+		if( !DriversToTry[i].CompareNoCase("Null") ) {
+			if (ret != nullptr)
+				delete ret;
+			ret = new LoadingWindow_Null;
+		}
 
 		if( ret == NULL )
 			continue;

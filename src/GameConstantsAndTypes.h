@@ -1,4 +1,4 @@
-/* GameConstantsAndTypes - Things used in many places that don't change often. */
+﻿/* GameConstantsAndTypes - Things used in many places that don't change often. */
 
 #ifndef GAME_CONSTANTS_AND_TYPES_H
 #define GAME_CONSTANTS_AND_TYPES_H
@@ -19,7 +19,8 @@ const int MAX_METER = 35;
 
 /** @brief The maximum number of credits for coin mode. */
 const int MAX_NUM_CREDITS = 20;
-
+class Song;
+class Steps;
 
 enum Skillset {
 	Skill_Overall,
@@ -28,13 +29,24 @@ enum Skillset {
 	Skill_Handstream,
 	Skill_Stamina,
 	Skill_JackSpeed,
-	Skill_JackStamina,
+	Skill_Chordjack,
 	Skill_Technical,
 	NUM_Skillset,
 	Skillset_Invalid,
 };
 
 const RString& SkillsetToString(Skillset ss);
+
+
+
+enum NSScoreBoardColumn
+{
+	NSSB_NAMES = 0,
+	NSSB_COMBO,
+	NSSB_GRADE,
+	NUM_NSScoreBoardColumn,
+	NSScoreBoardColumn_Invalid
+};
 
 enum ValidationKey {
 	ValidationKey_Brittle,
@@ -172,11 +184,20 @@ enum SortOrder
 	SORT_MODE_MENU, /**< Have access to the menu for choosing the sort. */
 	SORT_RECENT,
 	SORT_FAVORITES,
+	SORT_Overall,
+	SORT_Stream,
+	SORT_Jumpstream,
+	SORT_Handstream,
+	SORT_Stamina,
+	SORT_JackSpeed,
+	SORT_Chordjack,
+	SORT_Technical,
+	SORT_LENGTH,
 	NUM_SortOrder,
 	SortOrder_Invalid
 };
 /** @brief Only allow certain sort modes to be selectable. */
-const SortOrder MAX_SELECTABLE_SORT = (SortOrder)(SORT_RECENT-1);
+const SortOrder MAX_SELECTABLE_SORT = static_cast<SortOrder>(SORT_RECENT-1);
 /**
  * @brief Turn the sort order into a proper string.
  * @param so the sort order.
@@ -591,7 +612,6 @@ enum FailType
 const RString& FailTypeToString( FailType cat );
 const RString& FailTypeToLocalizedString( FailType cat );
 LuaDeclareType( FailType );
-
 
 #endif
 

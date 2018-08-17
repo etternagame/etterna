@@ -1,16 +1,16 @@
-#include "global.h"
-#include "NotesLoaderSM.h"
+﻿#include "global.h"
 #include "BackgroundUtil.h"
 #include "GameManager.h"
 #include "MsdFile.h"
 #include "NoteTypes.h"
+#include "NotesLoaderSM.h"
+#include "PrefsManager.h"
 #include "RageFileManager.h"
 #include "RageLog.h"
 #include "RageUtil.h"
 #include "Song.h"
 #include "SongManager.h"
 #include "Steps.h"
-#include "PrefsManager.h"
 
 // Everything from this line to the creation of sm_parser_helper exists to
 // speed up parsing by allowing the use of std::map.  All these functions
@@ -443,7 +443,7 @@ namespace {
 	bool compare_first(pair<float, float> a, pair<float, float> b) {
 		return a.first < b.first;
 	}
-}
+} // namespace
 
 // Precondition: no BPM change or stop has 0 for its value (change.second).
 //     (The ParseBPMs and ParseStops functions make sure of this.)
@@ -673,8 +673,11 @@ void SMLoader::ProcessBPMsAndStops(TimingData &out,
 		}
 	}
 }
-
-void SMLoader::ProcessDelays( TimingData &out, const RString &line, const int rowsPerBeat )
+void SMLoader::ProcessDelays(TimingData &out, const RString &line, const int rowsPerBeat)
+{
+	ProcessDelays(out, line, this->GetSongTitle(), rowsPerBeat);
+}
+void SMLoader::ProcessDelays( TimingData &out, const RString &line, const string &songname, const int rowsPerBeat )
 {
 	vector<RString> arrayDelayExpressions;
 	split( line, ",", arrayDelayExpressions );
@@ -686,7 +689,7 @@ void SMLoader::ProcessDelays( TimingData &out, const RString &line, const int ro
 		if( arrayDelayValues.size() != 2 )
 		{
 			LOG->UserLog("Song file",
-				     this->GetSongTitle(),
+				songname,
 				     "has an invalid #DELAYS value \"%s\" (must have exactly one '='), ignored.",
 				     arrayDelayExpressions[f].c_str() );
 			continue;
@@ -700,13 +703,17 @@ void SMLoader::ProcessDelays( TimingData &out, const RString &line, const int ro
 		else
 			LOG->UserLog(
 				     "Song file",
-				     this->GetSongTitle(),
+				songname,
 				     "has an invalid delay at beat %f, length %f.",
 				     fFreezeBeat, fFreezeSeconds );
 	}
 }
 
-void SMLoader::ProcessTimeSignatures( TimingData &out, const RString &line, const int rowsPerBeat )
+void SMLoader::ProcessTimeSignatures(TimingData &out, const RString &line, const int rowsPerBeat)
+{
+	ProcessTimeSignatures(out, line, this->GetSongTitle(), rowsPerBeat);
+}
+void SMLoader::ProcessTimeSignatures( TimingData &out, const RString &line, const string &songname, const int rowsPerBeat )
 {
 	vector<RString> vs1;
 	split( line, ",", vs1 );
@@ -719,7 +726,7 @@ void SMLoader::ProcessTimeSignatures( TimingData &out, const RString &line, cons
 		if( vs2.size() < 3 )
 		{
 			LOG->UserLog("Song file",
-				GetSongTitle(),
+				songname,
 				"has an invalid time signature change with %i values.",
 				static_cast<int>(vs2.size()) );
 			continue;
@@ -732,7 +739,7 @@ void SMLoader::ProcessTimeSignatures( TimingData &out, const RString &line, cons
 		if( fBeat < 0 )
 		{
 			LOG->UserLog("Song file",
-				     this->GetSongTitle(),
+				songname,
 				     "has an invalid time signature change with beat %f.",
 				     fBeat );
 			continue;
@@ -741,7 +748,7 @@ void SMLoader::ProcessTimeSignatures( TimingData &out, const RString &line, cons
 		if( iNumerator < 1 )
 		{
 			LOG->UserLog("Song file",
-				     this->GetSongTitle(),
+				songname,
 				     "has an invalid time signature change with beat %f, iNumerator %i.",
 				     fBeat, iNumerator );
 			continue;
@@ -750,7 +757,7 @@ void SMLoader::ProcessTimeSignatures( TimingData &out, const RString &line, cons
 		if( iDenominator < 1 )
 		{
 			LOG->UserLog("Song file",
-				     this->GetSongTitle(),
+				songname,
 				     "has an invalid time signature change with beat %f, iDenominator %i.",
 				     fBeat, iDenominator );
 			continue;
@@ -760,7 +767,11 @@ void SMLoader::ProcessTimeSignatures( TimingData &out, const RString &line, cons
 	}
 }
 
-void SMLoader::ProcessTickcounts( TimingData &out, const RString &line, const int rowsPerBeat )
+void SMLoader::ProcessTickcounts(TimingData &out, const RString &line, const int rowsPerBeat)
+{
+	ProcessTickcounts(out, line, this->GetSongTitle(), rowsPerBeat);
+}
+void SMLoader::ProcessTickcounts( TimingData &out, const RString &line, const string &songname, const int rowsPerBeat )
 {
 	vector<RString> arrayTickcountExpressions;
 	split( line, ",", arrayTickcountExpressions );
@@ -772,7 +783,7 @@ void SMLoader::ProcessTickcounts( TimingData &out, const RString &line, const in
 		if( arrayTickcountValues.size() != 2 )
 		{
 			LOG->UserLog("Song file",
-				     this->GetSongTitle(),
+				songname,
 				     "has an invalid #TICKCOUNTS value \"%s\" (must have exactly one '='), ignored.",
 				     arrayTickcountExpressions[f].c_str() );
 			continue;
@@ -785,7 +796,11 @@ void SMLoader::ProcessTickcounts( TimingData &out, const RString &line, const in
 	}
 }
 
-void SMLoader::ProcessSpeeds( TimingData &out, const RString &line, const int rowsPerBeat )
+void SMLoader::ProcessSpeeds(TimingData &out, const RString &line, const int rowsPerBeat)
+{
+	ProcessSpeeds(out, line, this->GetSongTitle(), rowsPerBeat);
+}
+void SMLoader::ProcessSpeeds( TimingData &out, const RString &line, const string &songname, const int rowsPerBeat )
 {
 	vector<RString> vs1;
 	split( line, ",", vs1 );
@@ -808,7 +823,7 @@ void SMLoader::ProcessSpeeds( TimingData &out, const RString &line, const int ro
 		if( vs2.size() < 4 )
 		{
 			LOG->UserLog("Song file",
-				     this->GetSongTitle(),
+				songname,
 				     "has an speed change with %i values.",
 				     static_cast<int>(vs2.size()) );
 			continue;
@@ -826,7 +841,7 @@ void SMLoader::ProcessSpeeds( TimingData &out, const RString &line, const int ro
 		if( fBeat < 0 )
 		{
 			LOG->UserLog("Song file",
-				     this->GetSongTitle(),
+				songname,
 				     "has an speed change with beat %f.",
 				     fBeat );
 			continue;
@@ -835,7 +850,7 @@ void SMLoader::ProcessSpeeds( TimingData &out, const RString &line, const int ro
 		if( fDelay < 0 )
 		{
 			LOG->UserLog("Song file",
-				     this->GetSongTitle(),
+				songname,
 				     "has an speed change with beat %f, length %f.",
 				     fBeat, fDelay );
 			continue;
@@ -845,7 +860,11 @@ void SMLoader::ProcessSpeeds( TimingData &out, const RString &line, const int ro
 	}
 }
 
-void SMLoader::ProcessFakes( TimingData &out, const RString &line, const int rowsPerBeat )
+void SMLoader::ProcessFakes(TimingData &out, const RString &line, const int rowsPerBeat)
+{
+	ProcessFakes(out, line, this->GetSongTitle(), rowsPerBeat);
+}
+void SMLoader::ProcessFakes( TimingData &out, const RString &line, const string &songname,  const int rowsPerBeat )
 {
 	vector<RString> arrayFakeExpressions;
 	split( line, ",", arrayFakeExpressions );
@@ -857,7 +876,7 @@ void SMLoader::ProcessFakes( TimingData &out, const RString &line, const int row
 		if( arrayFakeValues.size() != 2 )
 		{
 			LOG->UserLog("Song file",
-				     this->GetSongTitle(),
+				songname,
 				     "has an invalid #FAKES value \"%s\" (must have exactly one '='), ignored.",
 				     arrayFakeExpressions[b].c_str() );
 			continue;
@@ -871,7 +890,7 @@ void SMLoader::ProcessFakes( TimingData &out, const RString &line, const int row
 		else
 		{
 			LOG->UserLog("Song file",
-				     this->GetSongTitle(),
+				songname,
 				     "has an invalid Fake at beat %f, beats to skip %f.",
 				     fBeat, fSkippedBeats );
 		}

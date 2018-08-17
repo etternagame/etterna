@@ -52,9 +52,15 @@ end
 
 --Actor Frame
 local t = Def.ActorFrame{
-	BeginCommand=cmd(queuecommand,"Set";visible,false),
-	OffCommand=cmd(bouncebegin,0.2;xy,-500,0;diffusealpha,0),
-	OnCommand=cmd(bouncebegin,0.2;xy,0,0;diffusealpha,1),
+	BeginCommand=function(self)
+		self:queuecommand("Set"):visible(false)
+	end,
+	OffCommand=function(self)
+		self:bouncebegin(0.2):xy(-500,0):diffusealpha(0)
+	end,
+	OnCommand=function(self)
+		self:bouncebegin(0.2):xy(0,0):diffusealpha(1)
+	end,
 	SetCommand=function(self)
 		self:finishtweening()
 		if getTabIndex() == 0 then
@@ -81,18 +87,30 @@ local t = Def.ActorFrame{
 			update = false
 		end
 	end,
-	CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
-	RefreshChartInfoMessageCommand=cmd(queuecommand,"Set"),
-	TabChangedMessageCommand=cmd(queuecommand,"Set"),
-	PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
+	CurrentRateChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	RefreshChartInfoMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	TabChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	PlayerJoinedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
 }
 
 --Skillset label function
 local function littlebits(i)
 	local t = Def.ActorFrame{
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,frameX+35,frameY+120 + 22*i;halign,0;valign,0;zoom,0.5;maxwidth,110/0.6),
-			BeginCommand=cmd(queuecommand,"Set"),
+			InitCommand=function(self)
+				self:xy(frameX+35,frameY+120 + 22*i):halign(0):valign(0):zoom(0.5):maxwidth(110/0.6)
+			end,
+			BeginCommand=function(self)
+				self:queuecommand("Set")
+			end,
 			SetCommand=function(self)
 				--skillset name
 				if song and steps then
@@ -107,21 +125,31 @@ local function littlebits(i)
 					self:diffuse(getMainColor('negative'))
 				end
 			end,
-			UpdateMSDInfoCommand=cmd(queuecommand,"Set"),
+			UpdateMSDInfoCommand=function(self)
+				self:queuecommand("Set")
+			end,
 		},
 		LoadFont("Common Large") .. {
-			InitCommand=cmd(xy,frameX+225,frameY+120 + 22*i;halign,1;valign,0;zoom,0.5;maxwidth,110/0.6),
-			BeginCommand=cmd(queuecommand,"Set"),
+			InitCommand=function(self)
+				self:xy(frameX+225,frameY+120 + 22*i):halign(1):valign(0):zoom(0.5):maxwidth(110/0.6)
+			end,
+			BeginCommand=function(self)
+				self:queuecommand("Set")
+			end,
 			SetCommand=function(self)
 				if song and steps then
 					self:settextf("%05.2f",meter[i+1])
-					self:diffuse(ByMSD(meter[i+1]))
+					self:diffuse(byMSD(meter[i+1]))
 				else
 					self:settext("")
 				end
 			end,
-			CurrentRateChangedMessageCommand=cmd(queuecommand,"Set"),
-			UpdateMSDInfoCommand=cmd(queuecommand,"Set"),
+			CurrentRateChangedMessageCommand=function(self)
+				self:queuecommand("Set")
+			end,
+			UpdateMSDInfoCommand=function(self)
+				self:queuecommand("Set")
+			end,
 		}
 	}
 	return t
@@ -129,11 +157,23 @@ end
 
 -- Music Rate Display
 t[#t+1] = LoadFont("Common Large") .. {
-	InitCommand=cmd(xy,curateX,curateY;visible,true;halign,0;zoom,0.35;maxwidth,capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45)),
+	InitCommand=function(self)
+		self:xy(curateX,curateY):visible(true):halign(0):zoom(0.35):maxwidth(capWideScale(get43size(360),360)/capWideScale(get43size(0.45),0.45))
+	end,
 	SetCommand=function(self)
 		self:settext(getCurRateDisplayString())
 	end,
-	CurrentRateChangedCommand=cmd(queuecommand,"set")
+	CodeMessageCommand=function(self,params)
+		local rate = getCurRateValue()
+		ChangeMusicRate(rate,params)
+		self:settext(getCurRateDisplayString())
+	end,
+	RateChangedMessageCommand=function(self,params)
+		self:settext(getCurRateDisplayString())
+	end,
+	CurrentRateChangedMessageCommand=function(self)
+		self:queuecommand("set")
+	end	
 }
 
 return t

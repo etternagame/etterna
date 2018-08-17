@@ -11,7 +11,7 @@ public:
 	RString Init( const VideoModeParams &p, bool bAllowUnacceleratedRenderer ) override;
 
 	RString GetApiDescription() const override { return "D3D"; }
-	virtual void GetDisplayResolutions( DisplayResolutions &out ) const;
+	virtual void GetDisplayResolutions( DisplayResolutions &out ) const override;
 	void ResolutionChanged() override;
 	const RagePixelFormatDesc *GetPixelFormatDesc(RagePixelFormat pf) const override;
 

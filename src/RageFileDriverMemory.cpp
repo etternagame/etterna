@@ -1,6 +1,6 @@
-#include "global.h"
-#include "RageFileDriverMemory.h"
+﻿#include "global.h"
 #include "RageFile.h"
+#include "RageFileDriverMemory.h"
 #include "RageUtil.h"
 #include "RageUtil_FileDB.h"
 #include <errno.h>
@@ -146,7 +146,7 @@ RageFileBasic *RageFileDriverMem::Open( const RString &sPath, int mode, int &err
 		return new RageFileObjMem( pFile );
 	}
 
-	RageFileObjMemFile *pFile = (RageFileObjMemFile *) FDB->GetFilePriv( sPath );
+	RageFileObjMemFile *pFile = reinterpret_cast<RageFileObjMemFile *>( FDB->GetFilePriv( sPath ));
 	if( pFile == NULL )
 	{
 		err = ENOENT;
@@ -160,7 +160,7 @@ bool RageFileDriverMem::Remove( const RString &sPath )
 {
 	LockMut(m_Mutex);
 
-	RageFileObjMemFile *pFile = (RageFileObjMemFile *) FDB->GetFilePriv( sPath );
+	RageFileObjMemFile *pFile = reinterpret_cast<RageFileObjMemFile *>( FDB->GetFilePriv( sPath ));
 	if( pFile == NULL )
 		return false;
 

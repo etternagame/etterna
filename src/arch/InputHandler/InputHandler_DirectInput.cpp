@@ -1,19 +1,18 @@
-#include "global.h"
-#include "InputHandler_DirectInput.h"
-
-#include "RageUtil.h"
-#include "RageLog.h"
+﻿#include "global.h"
 #include "archutils/Win32/AppInstance.h"
 #include "archutils/Win32/DirectXHelpers.h"
 #include "archutils/Win32/ErrorStrings.h"
 #include "archutils/Win32/GraphicsWindow.h"
 #include "archutils/Win32/RegistryAccess.h"
-#include "InputFilter.h"
-#include "PrefsManager.h"
-#include "GamePreferences.h" //needed for Axis Fix
 #include "Foreach.h"
-
+#include "GamePreferences.h" //needed for Axis Fix
+#include "InputFilter.h"
+#include "InputHandler_DirectInput.h"
 #include "InputHandler_DirectInputHelper.h"
+#include "PrefsManager.h"
+#include "RageLog.h"
+#include "RageTimer.h"
+#include "RageUtil.h"
 
 REGISTER_INPUT_HANDLER_CLASS2( DirectInput, DInput );
 
@@ -400,6 +399,13 @@ void InputHandler_DInput::UpdatePolled( DIDevice &device, const std::chrono::ste
 			{
 				case input_t::BUTTON:
 				{
+					// force mouse xy positions to update before click inputs are sent -mina
+					POINT cursorPos;
+					GetCursorPos(&cursorPos);
+					ScreenToClient(GraphicsWindow::GetHwnd(), &cursorPos);
+					INPUTFILTER->UpdateCursorLocation(static_cast<float>(cursorPos.x), static_cast<float>(cursorPos.y));
+					INPUTFILTER->UpdateCursorLocation(static_cast<float>(cursorPos.x), static_cast<float>(cursorPos.y));
+
 					DeviceInput di( dev, enum_add2(MOUSE_LEFT, in.num), !!state.rgbButtons[in.ofs - DIMOFS_BUTTON0], tm );
 					ButtonPressed( di );
 					break;
@@ -417,20 +423,20 @@ void InputHandler_DInput::UpdatePolled( DIDevice &device, const std::chrono::ste
 						neg = MOUSE_WHEELDOWN; pos = MOUSE_WHEELUP;
 						val = state.lZ;
 						//LOG->Trace("MouseWheel polled: %i",val);
-						INPUTFILTER->UpdateMouseWheel(val);
+						INPUTFILTER->UpdateMouseWheel(static_cast<float>(val));
 						if( val == 0 )
 						{
 							// release all
 							ButtonPressed( DeviceInput(dev, pos, 0, tm) );
 							ButtonPressed( DeviceInput(dev, neg, 0, tm) );
 						}
-						else if( static_cast<int>(val) > 0 )
+						else if( val > 0 )
 						{
 							// positive values: WheelUp
 							ButtonPressed( DeviceInput(dev, pos, 1, tm) );
 							ButtonPressed( DeviceInput(dev, neg, 0, tm) );
 						}
-						else if( static_cast<int>(val) < 0 )
+						else if( val < 0 )
 						{
 							// negative values: WheelDown
 							ButtonPressed( DeviceInput(dev, neg, 1, tm) );
@@ -499,6 +505,13 @@ void InputHandler_DInput::UpdateBuffered( DIDevice &device, const std::chrono::s
 				case input_t::BUTTON:
 					if(dev == DEVICE_MOUSE)
 					{
+						// force mouse xy positions to update before click inputs are sent -mina
+						POINT cursorPos;
+						GetCursorPos(&cursorPos);
+						ScreenToClient(GraphicsWindow::GetHwnd(), &cursorPos);
+						INPUTFILTER->UpdateCursorLocation(static_cast<float>(cursorPos.x), static_cast<float>(cursorPos.y));
+						INPUTFILTER->UpdateCursorLocation(static_cast<float>(cursorPos.x), static_cast<float>(cursorPos.y));
+						
 						DeviceButton mouseInput = DeviceButton_Invalid;
 
 						if( in.ofs == DIMOFS_BUTTON0 ) mouseInput = MOUSE_LEFT;
@@ -518,7 +531,7 @@ void InputHandler_DInput::UpdateBuffered( DIDevice &device, const std::chrono::s
 					DeviceButton up = DeviceButton_Invalid, down = DeviceButton_Invalid;
 					if(dev == DEVICE_MOUSE)
 					{
-						float l = static_cast<int>(evtbuf[i].dwData);
+						float l = static_cast<float>(static_cast<int>(evtbuf[i].dwData));
 						POINT cursorPos;
 						GetCursorPos(&cursorPos);
 						// convert screen coordinates to client

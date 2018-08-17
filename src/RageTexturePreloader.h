@@ -1,4 +1,4 @@
-#ifndef RAGE_TEXTURE_PRELOADER_H
+﻿#ifndef RAGE_TEXTURE_PRELOADER_H
 #define RAGE_TEXTURE_PRELOADER_H
 
 class RageTexture;

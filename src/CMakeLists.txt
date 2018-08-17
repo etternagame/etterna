@@ -56,19 +56,19 @@ if(NOT APPLE)
 endif()
 
 if(MSVC OR APPLE)
-  set(SM_NAME_RELEASE "StepMania")
-  set(SM_NAME_DEBUG "StepMania-debug")
-  set(SM_NAME_MINSIZEREL "StepMania-min-size")
-  set(SM_NAME_RELWITHDEBINFO "StepMania-release-symbols")
+  set(SM_NAME_RELEASE "Etterna")
+  set(SM_NAME_DEBUG "Etterna-debug")
+  set(SM_NAME_MINSIZEREL "Etterna-min-size")
+  set(SM_NAME_RELWITHDEBINFO "Etterna-release-symbols")
 else()
-  set(SM_NAME_RELEASE "stepmania")
-  set(SM_NAME_DEBUG "stepmania-debug")
-  set(SM_NAME_MINSIZEREL "stepmania-min-size")
-  set(SM_NAME_RELWITHDEBINFO "stepmania-release-symbols")
+  set(SM_NAME_RELEASE "etterna")
+  set(SM_NAME_DEBUG "etterna-debug")
+  set(SM_NAME_MINSIZEREL "etterna-min-size")
+  set(SM_NAME_RELWITHDEBINFO "etterna-release-symbols")
 endif()
 
 # Configure generated files here.
-configure_file("${SM_XCODE_DIR}/Info.plist.in.xml" "${SM_XCODE_DIR}/Info.StepMania.plist")
+configure_file("${SM_XCODE_DIR}/Info.plist.in.xml" "${SM_XCODE_DIR}/Info.Etterna.plist")
 configure_file("${SM_XCODE_DIR}/plistHelper.in.hpp" "${SM_XCODE_DIR}/plistHelper.hpp")
 
 # TODO: Make this actually be data and not an executable.
@@ -105,7 +105,7 @@ if (WITH_PORTABLE_TOMCRYPT)
 elseif (WITH_NO_ROLC_TOMCRYPT OR APPLE)
   sm_add_compile_definition("${SM_EXE_NAME}" LTC_NO_ROLC)
 endif()
-
+sm_add_compile_definition("${SM_EXE_NAME}" CURL_STATICLIB)
 sm_add_compile_definition("${SM_EXE_NAME}" CMAKE_POWERED)
 
 if (NOT WITH_NETWORKING)
@@ -152,12 +152,16 @@ set_target_properties("${SM_EXE_NAME}" PROPERTIES
 )
 
 list(APPEND SM_WINDOWS_PROGRAM_DLLS
-  "${SM_PROGRAM_DIR}/avcodec-57.dll"
-  "${SM_PROGRAM_DIR}/avformat-57.dll"
-  "${SM_PROGRAM_DIR}/avutil-55.dll"
+  "${SM_PROGRAM_DIR}/avcodec-55.dll"
+  "${SM_PROGRAM_DIR}/avformat-55.dll"
+  "${SM_PROGRAM_DIR}/avutil-52.dll"
   "${SM_PROGRAM_DIR}/parallel_lights_io.dll"
-  "${SM_PROGRAM_DIR}/swresample-2.dll"
-  "${SM_PROGRAM_DIR}/swscale-4.dll"
+  "${SM_PROGRAM_DIR}/swscale-2.dll"
+  "${SM_PROGRAM_DIR}/uWS.dll"
+  "${SM_PROGRAM_DIR}/libuv.dll"
+  "${SM_PROGRAM_DIR}/SSLEAY32.dll"
+  "${SM_PROGRAM_DIR}/LIBEAY32.dll"
+  "${SM_PROGRAM_DIR}/zlib1.dll"
 )
 
 if(WIN32)
@@ -190,15 +194,15 @@ elseif(APPLE)
     RUNTIME_OUTPUT_DIRECTORY_DEBUG "${SM_ROOT_DIR}"
     RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${SM_ROOT_DIR}"
     RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${SM_ROOT_DIR}"
-    MACOSX_BUNDLE_INFO_PLIST "${SM_XCODE_DIR}/Info.StepMania.plist"
-    XCODE_ATTRIBUTE_INFOPLIST_FILE "${SM_XCODE_DIR}/Info.StepMania.plist"
+    MACOSX_BUNDLE_INFO_PLIST "${SM_XCODE_DIR}/Info.Etterna.plist"
+    XCODE_ATTRIBUTE_INFOPLIST_FILE "${SM_XCODE_DIR}/Info.Etterna.plist"
     XCODE_ATTRIBUTE_INFOPLIST_PREPROCESS "YES"
     XCODE_ATTRIBUTE_INFOPLIST_PREPROCESSOR_DEFINITIONS[variant=Release] "RELEASE"
     XCODE_ATTRIBUTE_INFOPLIST_PREPROCESSOR_DEFINITIONS[variant=Debug] "DEBUG"
     XCODE_ATTRIBUTE_INFOPLIST_PREPROCESSOR_DEFINITIONS[variant=MinSizeRel] "MINSIZEREL"
     XCODE_ATTRIBUTE_INFOPLIST_PREPROCESSOR_DEFINITIONS[variant=RelWithDebInfo] "RELWITHDEBINFO"
     XCODE_ATTRIBUTE_INFOPLIST_PREFIX_HEADER "${SM_XCODE_DIR}/plistHelper.hpp"
-    XCODE_ATTRIBUTE_GCC_PREFIX_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/archutils/Darwin/StepMania.pch"
+    XCODE_ATTRIBUTE_GCC_PREFIX_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/archutils/Darwin/Etterna.pch"
     XCODE_ATTRIBUTE_LIBRARY_SEARCH_PATHS "${SM_XCODE_DIR}/Libraries"
   )
 
@@ -250,7 +254,7 @@ elseif(APPLE)
       cp -r "${SM_ROOT_DIR}/${SM_APP_RELEASE_NAME}.app" .\;
       cd ${SM_ROOT_DIR}\;
       hdiutil create "${SM_DMG_RELEASE_NAME}"
-        -volname "StepMania ${SM_DMG_VERSION}"
+        -volname "Etterna ${SM_DMG_VERSION}"
         -srcfolder "dmgtmpdir/${SM_NAME_VERSION}/"
         -ov\;
       rm -rf dmgtmpdir\;
@@ -260,9 +264,9 @@ elseif(APPLE)
   # Add the ability to copy the resource file.
   add_custom_command(TARGET "${SM_EXE_NAME}"
     POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:StepMania>/../Resources"
-    COMMAND ${CMAKE_COMMAND} -E copy "${SM_XCODE_DIR}/smicon.icns" "$<TARGET_FILE_DIR:StepMania>/../Resources/"
-    COMMAND ${CMAKE_COMMAND} -E copy "${SM_XCODE_DIR}/Hardware.plist" "$<TARGET_FILE_DIR:StepMania>/../Resources/"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:Etterna>/../Resources"
+    COMMAND ${CMAKE_COMMAND} -E copy "${SM_XCODE_DIR}/smicon.icns" "$<TARGET_FILE_DIR:Etterna>/../Resources/"
+    COMMAND ${CMAKE_COMMAND} -E copy "${SM_XCODE_DIR}/Hardware.plist" "$<TARGET_FILE_DIR:Etterna>/../Resources/"
   )
 else() # Linux
   set_target_properties("${SM_EXE_NAME}" PROPERTIES
@@ -321,7 +325,6 @@ endif()
 set_property(TARGET "${SM_EXE_NAME}" PROPERTY FOLDER "Internal Libraries")
 
 list(APPEND SMDATA_LINK_LIB
-  "lua-5.1"
   "tomcrypt"
   "tommath"
   "zlib"
@@ -329,8 +332,20 @@ list(APPEND SMDATA_LINK_LIB
   "png"
   "glew"
   "jpeg"
+  "sqlite3"
+  "SQLiteCpp"
+  "nlohmann_json"
 )
 include(../extern/CMakeProject-mmmagic.cmake)
+
+if (HAS_MP3)
+  list(FIND SMDATA_LINK_LIB "jsoncpp" JSON_INDEX)
+  if (WIN32 OR MACOSX)
+    list(INSERT SMDATA_LINK_LIB ${JSON_INDEX} "mad")
+  else()
+    list(INSERT SMDATA_LINK_LIB ${JSON_INDEX} ${LIBMAD_LIBRARY})
+  endif()
+endif()
 
 if (NOT SYSTEM_PCRE_FOUND)
   list(APPEND SMDATA_LINK_LIB "pcre")
@@ -340,11 +355,16 @@ if (WIN32)
   
   list(APPEND SMDATA_LINK_LIB
     # The misc libraries are here.
-	"${LIB_SWRESAMPLE}"
     "${LIB_SWSCALE}"
     "${LIB_AVCODEC}"
     "${LIB_AVFORMAT}"
     "${LIB_AVUTIL}"
+    "${LIB_CURL}"
+    "${LIB_WLDAP32}"
+	"${LIB_UWS}"
+	"${LIB_EAY}"
+	"${LIB_SSL}"
+	"${LIB_UV}"
   )
   
   if (WITH_OGG)
@@ -365,6 +385,7 @@ if (WIN32)
   
   sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${DIRECTX_LIBRARY_DIR}\"")
   sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_EXTERN_DIR}/ffmpeg/lib\"")
+  sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_EXTERN_DIR}/libcurl\"")
   sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_SRC_DIR}/archutils/Win32/ddk\"")
   sm_add_link_flag("${SM_EXE_NAME}" "/ERRORREPORT:SEND")
   sm_add_link_flag("${SM_EXE_NAME}" "/MAPINFO:EXPORTS")
@@ -389,7 +410,6 @@ elseif(APPLE)
     ${MAC_FRAME_CARBON}
     ${MAC_FRAME_COCOA}
     ${MAC_FRAME_IOKIT}
-    ${MAC_FRAME_QUICKTIME}
     ${MAC_FRAME_OPENGL}
     ${MAC_FRAME_COREFOUNDATION}
     ${MAC_FRAME_AUDIOTOOLBOX}
@@ -397,20 +417,21 @@ elseif(APPLE)
     ${MAC_FRAME_COREAUDIO}
     ${MAC_FRAME_CORESERVICES}
     "ogg"
-    "theora"
     "vorbis"
+    "vorbisfile"
   )
   list(APPEND SMDATA_LINK_LIB
     "${BZIP2_LIBRARY_RELEASE}"
     "${ICONV_LIBRARIES}"
     "pcre"
+    "${CURL_LIBRARIES}"
+    "uWS"
   )
 
   if(HAS_FFMPEG)
     list(APPEND SMDATA_LINK_LIB
       "${SM_FFMPEG_ROOT}/libavformat/libavformat.a"
       "${SM_FFMPEG_ROOT}/libavcodec/libavcodec.a"
-	  "${SM_FFMPEG_ROOT}/libswresample/libswresample.a"
       "${SM_FFMPEG_ROOT}/libswscale/libswscale.a"
       "${SM_FFMPEG_ROOT}/libavutil/libavutil.a"
     )
@@ -424,7 +445,6 @@ else() # Unix / Linux
       list(APPEND SMDATA_LINK_LIB
         "${FFMPEG_avformat_LIBRARY}"
         "${FFMPEG_avcodec_LIBRARY}"
-		"${FFMPEG_swresample_LIBRARY}"
         "${FFMPEG_swscale_LIBRARY}"
         "${FFMPEG_avutil_LIBRARY}"
       )
@@ -433,7 +453,6 @@ else() # Unix / Linux
         "${SM_FFMPEG_ROOT}/libavformat/libavformat.a"
         "${SM_FFMPEG_ROOT}/libavcodec/libavcodec.a"
         "${SM_FFMPEG_ROOT}/libswscale/libswscale.a"
-		"${SM_FFMPEG_ROOT}/libswresample/libswresample.a"
         "${SM_FFMPEG_ROOT}/libavutil/libavutil.a"
       )
     endif()
@@ -457,6 +476,8 @@ else() # Unix / Linux
 
   list(APPEND SMDATA_LINK_LIB
     "${OPENGL_LIBRARY}"
+    "${CURL_LIBRARIES}"
+    "uWS"
   )
 
   if(GTK2_FOUND)
@@ -488,7 +509,7 @@ else() # Unix / Linux
     list(APPEND SMDATA_LINK_LIB ${PULSEAUDIO_LIBRARY})
     # PACKAGE_NAME and PACKAGE_VERSION are only used in this scenario. Why is not clear.
     # TODO: Remove this silliness.
-    sm_add_compile_definition("${SM_EXE_NAME}" PACKAGE_NAME="StepMania")
+    sm_add_compile_definition("${SM_EXE_NAME}" PACKAGE_NAME="Etterna")
     set(PACKAGE_VERSION "${SM_VERSION_MAJOR}.${SM_VERSION_MINOR}")
     sm_add_compile_definition("${SM_EXE_NAME}" PACKAGE_VERSION="${PACKAGE_VERSION}")
   endif()
@@ -514,9 +535,11 @@ list(APPEND SM_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
   "${SM_SRC_DIR}/generated"
 )
+
 if(NOT APPLE)
   list(APPEND SM_INCLUDE_DIRS
     "${SM_EXTERN_DIR}/glew-1.5.8/include"
+    "${SM_EXTERN_DIR}/json/include"
     "${SM_EXTERN_DIR}/jsoncpp/include"
     "${SM_EXTERN_DIR}/zlib"
   )
@@ -530,6 +553,9 @@ if(NOT APPLE)
     endif()
     list(APPEND SM_INCLUDE_DIRS
       "${SM_EXTERN_DIR}/ffmpeg/include"
+    )
+    list(APPEND SM_INCLUDE_DIRS
+      "${SM_EXTERN_DIR}/libcurl/include"
     )
   else()
     if(WITH_OGG)
@@ -551,6 +577,9 @@ if(NOT APPLE)
         )
       endif()
     endif()
+    list(APPEND SM_INCLUDE_DIRS
+	  "${CURL_INCLUDE_DIR}"
+    )
     if (HAS_GTK2)
       list(APPEND SM_INCLUDE_DIRS "${GTK2_INCLUDE_DIRS}")
     endif()
@@ -565,6 +594,9 @@ if(NOT APPLE)
     endif()
   endif()
 else()
+  list(APPEND SM_INCLUDE_DIRS
+	"${CURL_INCLUDE_DIR}"
+  )
   if(WITH_OGG)
     list(APPEND SM_INCLUDE_DIRS
       "${SM_EXTERN_DIR}/newogg/include"
@@ -598,7 +630,7 @@ target_include_directories("${SM_EXE_NAME}" PUBLIC ${SM_INCLUDE_DIRS})
 if(WIN32)
   set(SM_INSTALL_DESTINATION ".")
 else()
-  set(SM_INSTALL_DESTINATION "stepmania-5.0")
+  set(SM_INSTALL_DESTINATION "Etterna")
 endif()
 
 if(NOT APPLE)
@@ -610,13 +642,17 @@ if(NOT APPLE)
     if (WITH_FULL_RELEASE OR WITH_TEXTURE_GENERATOR)
       install(FILES "${SM_PROGRAM_DIR}/Texture Font Generator.exe" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
     endif()
-    install(FILES "${SM_PROGRAM_DIR}/avcodec-57.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
-    install(FILES "${SM_PROGRAM_DIR}/avformat-57.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
-    install(FILES "${SM_PROGRAM_DIR}/avutil-55.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    install(FILES "${SM_PROGRAM_DIR}/avcodec-55.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    install(FILES "${SM_PROGRAM_DIR}/avformat-55.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    install(FILES "${SM_PROGRAM_DIR}/avutil-52.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
     install(FILES "${SM_PROGRAM_DIR}/parallel_lights_io.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
-	install(FILES "${SM_PROGRAM_DIR}/swresample-2.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
-    install(FILES "${SM_PROGRAM_DIR}/swscale-4.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
-    install(FILES "${SM_PROGRAM_DIR}/StepMania.vdi" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    install(FILES "${SM_PROGRAM_DIR}/Etterna.vdi" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    install(FILES "${SM_PROGRAM_DIR}/swscale-2.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    install(FILES "${SM_PROGRAM_DIR}/uWS.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    install(FILES "${SM_PROGRAM_DIR}/LIBEAY32.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    install(FILES "${SM_PROGRAM_DIR}/libuv.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    install(FILES "${SM_PROGRAM_DIR}/SSLEAY32.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    install(FILES "${SM_PROGRAM_DIR}/zlib1.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
 
     # foreach(SM_WINDOW_DLL "${SM_WINDOWS_PROGRAM_DLLS}")
     #   install(FILES "${SM_WINDOW_DLL}" DESTINATION "${SM_INSTALL_DESTINATION}")
@@ -638,10 +674,10 @@ if(NOT APPLE)
   install(DIRECTORY "${SM_ROOT_DIR}/Docs" DESTINATION "${SM_INSTALL_DESTINATION}")
   install(DIRECTORY "${SM_ROOT_DIR}/NoteSkins" DESTINATION "${SM_INSTALL_DESTINATION}")
   if (NOT SM_INSTALL_DESTINATION)
-    install(DIRECTORY "${SM_ROOT_DIR}/Songs/Etterna" DESTINATION "Songs")
+    install(DIRECTORY "${SM_ROOT_DIR}/Songs" DESTINATION "Songs")
     install(FILES "${SM_ROOT_DIR}/Songs/instructions.txt" DESTINATION "Songs")
   else()
-    install(DIRECTORY "${SM_ROOT_DIR}/Songs/Etterna" DESTINATION "${SM_INSTALL_DESTINATION}/Songs")
+    install(DIRECTORY "${SM_ROOT_DIR}/Songs/" DESTINATION "${SM_INSTALL_DESTINATION}/Songs")
     install(FILES "${SM_ROOT_DIR}/Songs/instructions.txt" DESTINATION "${SM_INSTALL_DESTINATION}/Songs")
   endif()
 endif()

@@ -1,20 +1,19 @@
-#include "global.h"
+﻿#include "global.h"
+#include "CommonMetrics.h"
 #include "DifficultyList.h"
+#include "Foreach.h"
 #include "GameState.h"
 #include "Song.h"
-#include "Steps.h"
-#include "Style.h"
-#include "StepsDisplay.h"
-#include "StepsUtil.h"
-#include "CommonMetrics.h"
-#include "Foreach.h"
 #include "SongUtil.h"
+#include "Steps.h"
+#include "StepsDisplay.h"
+#include "Style.h"
 #include "XmlFile.h"
 
 /** @brief Specifies the max number of charts available for a song.
  *
  * This includes autogenned charts. */
-#define MAX_METERS (NUM_Difficulty * NUM_StepsType) + MAX_EDITS_PER_SONG
+#define MAX_METERS ((NUM_Difficulty * NUM_StepsType) + MAX_EDITS_PER_SONG)
 
 REGISTER_ACTOR_CLASS( StepsDisplayList );
 

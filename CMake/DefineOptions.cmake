@@ -1,10 +1,10 @@
 # Prep options that are needed for each platform.
 
-# This option allows for networking support with StepMania.
+# This option allows for networking support with Etterna.
 option(WITH_NETWORKING "Build with networking support." ON)
 
 # This option quiets warnings that are a part of external projects.
-option(WITH_EXTERNAL_WARNINGS "Build with warnings for all components, not just StepMania." OFF)
+option(WITH_EXTERNAL_WARNINGS "Build with warnings for all components, not just Etterna." OFF)
 
 # This option is not yet working, but will likely default to ON in the future.
 option(WITH_LTO "Build with Link Time Optimization (LTO)/Whole Program Optimization." OFF)
@@ -24,6 +24,9 @@ option(WITH_PORTABLE_TOMCRYPT "Build with assembly/free tomcrypt, making it port
 # Turn this on to not use the ROLC assembly featurs of tomcrypt.
 # If WITH_PORTABLE_TOMCRYPT is ON, this will automatically have no effect.
 option(WITH_NO_ROLC_TOMCRYPT "Build without the ROLC assembly instructions for tomcrypt. (Ignored by Apple builds)" OFF)
+
+# Turn this option off to not use the GPL exclusive components.
+option(WITH_GPL_LIBS "Build with GPL libraries." ON)
 
 # Turn this option off to disable using WAV files with the game.
 # Note that it is recommended to keep this on.
@@ -47,7 +50,7 @@ else()
   # Turn this option on to enable using the Texture Font Generator.
   option(WITH_TEXTURE_GENERATOR "Build with the Texture Font Generator. Ensure the MFC library is installed." OFF)
   # Turn this option off to use dynamic linking instead of static linking.
-  option(WITH_STATIC_LINKING "Build StepMania with static linking." ON)
+  option(WITH_STATIC_LINKING "Build Etterna with static linking." ON)
 endif()
 
 if(WIN32)

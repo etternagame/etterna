@@ -9,6 +9,7 @@ extern const ScreenMessage SM_MenuTimer;
 extern const ScreenMessage SM_DoneFadingIn;
 extern const ScreenMessage SM_BeginFadingOut;
 extern const ScreenMessage SM_GoToNextScreen;
+extern const ScreenMessage SM_GoToDisconnectScreen;
 extern const ScreenMessage SM_GoToPrevScreen;
 extern const ScreenMessage SM_GainFocus;
 extern const ScreenMessage SM_LoseFocus;

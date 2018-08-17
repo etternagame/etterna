@@ -58,21 +58,21 @@
  */
 
 #include "global.h"
-#include "ScreenManager.h"
-#include "Preference.h"
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "GameSoundManager.h"
-#include "RageDisplay.h"
-#include "SongManager.h"
-#include "RageTextureManager.h"
-#include "ThemeManager.h"
+#include "ActorUtil.h"
 #include "FontManager.h"
+#include "Foreach.h"
+#include "GameSoundManager.h"
+#include "InputEventPlus.h"
+#include "Preference.h"
+#include "RageDisplay.h"
+#include "RageLog.h"
+#include "RageTextureManager.h"
+#include "RageUtil.h"
 #include "Screen.h"
 #include "ScreenDimensions.h"
-#include "Foreach.h"
-#include "ActorUtil.h"
-#include "InputEventPlus.h"
+#include "ScreenManager.h"
+#include "SongManager.h"
+#include "ThemeManager.h"
 
 ScreenManager*	SCREENMAN = NULL;	// global and accessible from anywhere in our program
 
@@ -215,7 +215,7 @@ namespace ScreenManagerUtil
 			SAFE_DELETE( *a );
 		AfterDeleteScreen();
 	}
-};
+} // namespace ScreenManagerUtil;
 using namespace ScreenManagerUtil;
 
 RegisterScreenClass::RegisterScreenClass( const RString& sClassName, CreateScreenFn pfn )
@@ -369,7 +369,7 @@ bool ScreenManager::IsStackedScreen( const Screen *pScreen ) const
 
 bool ScreenManager::get_input_redirected(PlayerNumber pn)
 {
-	if(pn >= m_input_redirected.size())
+	if(static_cast<size_t>(pn) >= m_input_redirected.size())
 	{
 		return false;
 	}
@@ -378,7 +378,7 @@ bool ScreenManager::get_input_redirected(PlayerNumber pn)
 
 void ScreenManager::set_input_redirected(PlayerNumber pn, bool redir)
 {
-	while(pn >= m_input_redirected.size())
+	while(static_cast<size_t>(pn) >= m_input_redirected.size())
 	{
 		m_input_redirected.push_back(false);
 	}
@@ -459,7 +459,7 @@ void ScreenManager::Update( float fDeltaTime )
 	/* Loading a new screen can take seconds and cause a big jump on the new 
 	 * Screen's first update.  Clamp the first update delta so that the 
 	 * animations don't jump. */
-	if( pScreen && m_bZeroNextUpdate )
+	if( (pScreen != nullptr) && m_bZeroNextUpdate )
 	{
 		LOG->Trace( "Zeroing this update.  Was %f", fDeltaTime );
 		fDeltaTime = 0;
@@ -887,7 +887,7 @@ void ScreenManager::ZeroNextUpdate()
 { \
 	RageSoundParams p; \
 	p.m_bIsCriticalSound = true; \
-	snd.Play(false, &p); \
+	(snd).Play(false, &p); \
 }
 
 /* Always play these sounds, even if we're in a silent attract loop. */

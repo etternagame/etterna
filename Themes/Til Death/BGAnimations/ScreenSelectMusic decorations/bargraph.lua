@@ -22,7 +22,9 @@ local topScoreP2
 
 
 t[#t+1] = Def.Actor{
-	BeginCommand=cmd(playcommand,"Set");
+	BeginCommand=function(self)
+		self:playcommand("Set")
+	end;
 	SetCommand=function(self)
 		song = GAMESTATE:GetCurrentSong()
 		if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
@@ -38,12 +40,18 @@ t[#t+1] = Def.Actor{
 			end;
 		end;
 	end;
-	CurrentSongChangedMessageCommand=cmd(playcommand,"Set");
-	CurrentStepsP1ChangedMessageCommand=cmd(playcommand,"Set");
+	CurrentSongChangedMessageCommand=function(self)
+		self:playcommand("Set")
+	end;
+	CurrentStepsP1ChangedMessageCommand=function(self)
+		self:playcommand("Set")
+	end;
 }
 
 t[#t+1] = Def.ActorFrame{
-	InitCommand=cmd(xy,barXP1,barYP1;);
+	InitCommand=function(self)
+		self:xy(barXP1,barYP1)
+	end;
 	BeginCommand=function(self)
 		if GAMESTATE:IsHumanPlayer(PLAYER_1) then
 			self:visible(true)
@@ -62,17 +70,27 @@ t[#t+1] = Def.ActorFrame{
 		end;
 	end;
 	LoadFont("Common Normal")..{
-		InitCommand=cmd(x,-2;zoom,0.30;halign,1);
-		BeginCommand=cmd(settext,"Judge:");
+		InitCommand=function(self)
+			self:x(-2):zoom(0.30):halign(1)
+		end;
+		BeginCommand=function(self)
+			self:settext("Judge:")
+		end;
 	};
 
 	Def.Quad{
-		InitCommand=cmd(zoomto,barWidth,barHeight;halign,0;diffuse,color("#000000"););
+		InitCommand=function(self)
+			self:zoomto(barWidth,barHeight):halign(0):diffuse(color("#000000"))
+		end;
 	};
 
 	Def.Quad{
-		InitCommand=cmd(zoomto,barWidth,barHeight;halign,0);
-		BeginCommand=cmd(queuecommand,"Set");
+		InitCommand=function(self)
+			self:zoomto(barWidth,barHeight):halign(0)
+		end;
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end;
 		SetCommand=function(self)
 			local notes = getMaxNotes(PLAYER_1)
 			local judge = getScoreTapNoteScore(topScoreP1,"TapNoteScore_W1")+
@@ -101,8 +119,12 @@ t[#t+1] = Def.ActorFrame{
 	};
 
 	Def.Quad{
-		InitCommand=cmd(zoomto,barWidth,barHeight;halign,0);
-		BeginCommand=cmd(queuecommand,"Set");
+		InitCommand=function(self)
+			self:zoomto(barWidth,barHeight):halign(0)
+		end;
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end;
 		SetCommand=function(self)
 			local notes = getMaxNotes(PLAYER_1)
 			local judge = getScoreTapNoteScore(topScoreP1,"TapNoteScore_W1")+
@@ -130,8 +152,12 @@ t[#t+1] = Def.ActorFrame{
 	};
 
 	Def.Quad{
-		InitCommand=cmd(zoomto,barWidth,barHeight;halign,0);
-		BeginCommand=cmd(queuecommand,"Set");
+		InitCommand=function(self)
+			self:zoomto(barWidth,barHeight):halign(0)
+		end;
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end;
 		SetCommand=function(self)
 			local notes = getMaxNotes(PLAYER_1)
 			local judge = getScoreTapNoteScore(topScoreP1,"TapNoteScore_W1")+
@@ -157,8 +183,12 @@ t[#t+1] = Def.ActorFrame{
 		end;
 	};
 	Def.Quad{
-		InitCommand=cmd(zoomto,barWidth,barHeight;halign,0);
-		BeginCommand=cmd(queuecommand,"Set");
+		InitCommand=function(self)
+			self:zoomto(barWidth,barHeight):halign(0)
+		end;
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end;
 		SetCommand=function(self)
 			local notes = getMaxNotes(PLAYER_1)
 			local judge = getScoreTapNoteScore(topScoreP1,"TapNoteScore_W1")+
@@ -184,8 +214,12 @@ t[#t+1] = Def.ActorFrame{
 	};
 
 	Def.Quad{
-		InitCommand=cmd(zoomto,barWidth,barHeight;halign,0);
-		BeginCommand=cmd(queuecommand,"Set");
+		InitCommand=function(self)
+			self:zoomto(barWidth,barHeight):halign(0)
+		end;
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end;
 		SetCommand=function(self)
 			local notes = getMaxNotes(PLAYER_1)
 			local judge = getScoreTapNoteScore(topScoreP1,"TapNoteScore_W1")+
@@ -210,7 +244,9 @@ t[#t+1] = Def.ActorFrame{
 	};
 
 	Def.Quad{
-		InitCommand=cmd(zoomto,barWidth,barHeight;halign,0);
+		InitCommand=function(self)
+			self:zoomto(barWidth,barHeight):halign(0)
+		end;
 		SetCommand=function(self)
 			local notes = getMaxNotes(PLAYER_1)
 			local judge = getScoreTapNoteScore(topScoreP1,"TapNoteScore_W1")
@@ -235,7 +271,9 @@ t[#t+1] = Def.ActorFrame{
 };
 
 t[#t+1] = Def.ActorFrame{
-	InitCommand=cmd(xy,barXP2,barYP2;);
+	InitCommand=function(self)
+		self:xy(barXP2,barYP2)
+	end;
 	BeginCommand=function(self)
 		if GAMESTATE:IsHumanPlayer(PLAYER_2) then
 			self:visible(true)
@@ -254,17 +292,27 @@ t[#t+1] = Def.ActorFrame{
 		end;
 	end;
 	LoadFont("Common Normal")..{
-		InitCommand=cmd(x,-2;zoom,0.30;halign,1);
-		BeginCommand=cmd(settext,"Judge:");
+		InitCommand=function(self)
+			self:x(-2):zoom(0.30):halign(1)
+		end;
+		BeginCommand=function(self)
+			self:settext("Judge:")
+		end;
 	};
 
 	Def.Quad{
-		InitCommand=cmd(zoomto,barWidth,barHeight;halign,0;diffuse,color("#000000"););
+		InitCommand=function(self)
+			self:zoomto(barWidth,barHeight):halign(0):diffuse(color("#000000"))
+		end;
 	};
 
 	Def.Quad{
-		InitCommand=cmd(zoomto,barWidth,barHeight;halign,0);
-		BeginCommand=cmd(queuecommand,"Set");
+		InitCommand=function(self)
+			self:zoomto(barWidth,barHeight):halign(0)
+		end;
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end;
 		SetCommand=function(self)
 			local notes = getMaxNotes(PLAYER_2)
 			local judge = getScoreTapNoteScore(topScoreP2,"TapNoteScore_W1")+
@@ -293,8 +341,12 @@ t[#t+1] = Def.ActorFrame{
 	};
 
 	Def.Quad{
-		InitCommand=cmd(zoomto,barWidth,barHeight;halign,0);
-		BeginCommand=cmd(queuecommand,"Set");
+		InitCommand=function(self)
+			self:zoomto(barWidth,barHeight):halign(0)
+		end;
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end;
 		SetCommand=function(self)
 			local notes = getMaxNotes(PLAYER_2)
 			local judge = getScoreTapNoteScore(topScoreP2,"TapNoteScore_W1")+
@@ -322,8 +374,12 @@ t[#t+1] = Def.ActorFrame{
 	};
 
 	Def.Quad{
-		InitCommand=cmd(zoomto,barWidth,barHeight;halign,0);
-		BeginCommand=cmd(queuecommand,"Set");
+		InitCommand=function(self)
+			self:zoomto(barWidth,barHeight):halign(0)
+		end;
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end;
 		SetCommand=function(self)
 			local notes = getMaxNotes(PLAYER_2)
 			local judge = getScoreTapNoteScore(topScoreP2,"TapNoteScore_W1")+
@@ -349,8 +405,12 @@ t[#t+1] = Def.ActorFrame{
 		end;
 	};
 	Def.Quad{
-		InitCommand=cmd(zoomto,barWidth,barHeight;halign,0);
-		BeginCommand=cmd(queuecommand,"Set");
+		InitCommand=function(self)
+			self:zoomto(barWidth,barHeight):halign(0)
+		end;
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end;
 		SetCommand=function(self)
 			local notes = getMaxNotes(PLAYER_2)
 			local judge = getScoreTapNoteScore(topScoreP2,"TapNoteScore_W1")+
@@ -376,8 +436,12 @@ t[#t+1] = Def.ActorFrame{
 	};
 
 	Def.Quad{
-		InitCommand=cmd(zoomto,barWidth,barHeight;halign,0);
-		BeginCommand=cmd(queuecommand,"Set");
+		InitCommand=function(self)
+			self:zoomto(barWidth,barHeight):halign(0)
+		end;
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end;
 		SetCommand=function(self)
 			local notes = getMaxNotes(PLAYER_2)
 			local judge = getScoreTapNoteScore(topScoreP2,"TapNoteScore_W1")+
@@ -402,8 +466,12 @@ t[#t+1] = Def.ActorFrame{
 	};
 
 	Def.Quad{
-		InitCommand=cmd(zoomto,barWidth,barHeight;halign,0);
-		BeginCommand=cmd(glowshift;effectcolor1,color("1,1,1,0.2");effectcolor2,color("1,1,1,0.5");queuecommand,"Set");
+		InitCommand=function(self)
+			self:zoomto(barWidth,barHeight):halign(0)
+		end;
+		BeginCommand=function(self)
+			self:glowshift():effectcolor1(color("1,1,1,0.2")):effectcolor2(color("1,1,1,0.5")):queuecommand("Set")
+		end;
 		SetCommand=function(self)
 			local notes = getMaxNotes(PLAYER_2)
 			local judge = getScoreTapNoteScore(topScoreP2,"TapNoteScore_W1")

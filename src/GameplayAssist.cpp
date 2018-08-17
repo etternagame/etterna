@@ -1,11 +1,13 @@
-#include "global.h"
+﻿#include "global.h"
+#include "CommonMetrics.h"
+#include "GameState.h"
 #include "GameplayAssist.h"
+#include "NoteData.h"
+#include "PlayerState.h"
+#include "RageSoundManager.h"
+#include "Song.h"
 #include "ThemeManager.h"
 #include "GameState.h"
-#include "RageSoundManager.h"
-#include "CommonMetrics.h"
-#include "Song.h"
-#include "NoteData.h"
 
 void GameplayAssist::Init()
 {

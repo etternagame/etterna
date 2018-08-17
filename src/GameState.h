@@ -1,4 +1,4 @@
-#ifndef GAMESTATE_H
+﻿#ifndef GAMESTATE_H
 #define GAMESTATE_H
 
 #include "Difficulty.h"
@@ -6,15 +6,10 @@
 #include "Grade.h"
 #include "MessageManager.h"
 #include "ModsGroup.h"
-#include "RageTimer.h"
-#include "PlayerOptions.h"
-#include "SongOptions.h"
 #include "SongPosition.h"
-#include "Preference.h"
+#include "discord-rpc.h"
 
-#include <map>
 #include <deque>
-#include <set>
 
 class Character;
 struct Game;
@@ -28,6 +23,7 @@ class Steps;
 class StageStats;
 class Style;
 class TimingData;
+class SongOptions;
 
 SortOrder GetDefaultSort();
 
@@ -183,6 +179,8 @@ public:
 	bool		m_bDemonstrationOrJukebox;
 	bool		m_bJukeboxUsesModifiers;
 	int			m_iNumStagesOfThisSong;
+	//Used by GameplayScreen to know if it needs to call NSMAN
+	bool		m_bInNetGameplay = false;
 	/**
 	 * @brief Increase this every stage while not resetting on a continue.
 	 *
@@ -201,7 +199,7 @@ public:
 
 	static int GetNumStagesMultiplierForSong( const Song* pSong );
 	static int GetNumStagesForSongAndStyleType( const Song* pSong, StyleType st );
-	int GetNumStagesForCurrentSongAndStepsOrCourse() const;
+	int GetNumStagesForCurrentSongAndStepsOrCourse() const;
 
 	void		BeginStage();
 	void		CancelStage();
@@ -211,9 +209,9 @@ public:
 	RString		GetPlayerDisplayName( PlayerNumber pn ) const;
 
 	bool		m_bLoadingNextSong;
-	int		GetLoadingCourseSongIndex() const;
+	int		GetLoadingCourseSongIndex() const;
 
-	RString GetEtternaVersion() { return "0.55.3"; }
+	RString GetEtternaVersion() { return "0.60.0"; }
 	bool isplaylistcourse = false;
 	bool IsPlaylistCourse() { return isplaylistcourse; }
 	bool CountNotesSeparately();
@@ -345,6 +343,11 @@ public:
 
 	bool m_bDopefish;
 
+	// Discord Rich Presence
+	void discordInit();
+	void updateDiscordPresence( const RString &largeImageText, const RString &details, const RString &state, const int64_t endTime );
+	void updateDiscordPresenceMenu( const RString &largeImageText );
+
 	// Lua
 	void PushSelf( lua_State *L );
 
@@ -367,15 +370,15 @@ PlayerNumber GetNextPotentialCpuPlayer( PlayerNumber pn );
 MultiPlayer GetNextEnabledMultiPlayer( MultiPlayer mp );
 
 /** @brief A foreach loop to act on each human Player. */
-#define FOREACH_HumanPlayer( pn ) for( PlayerNumber pn=GetNextHumanPlayer((PlayerNumber)-1); pn!=PLAYER_INVALID; pn=GetNextHumanPlayer(pn) )
+#define FOREACH_HumanPlayer( pn ) for( PlayerNumber pn=GetNextHumanPlayer((PlayerNumber)-1); (pn)!=PLAYER_INVALID; (pn)=GetNextHumanPlayer(pn) )
 /** @brief A foreach loop to act on each enabled Player. */
-#define FOREACH_EnabledPlayer( pn ) for( PlayerNumber pn=GetNextEnabledPlayer((PlayerNumber)-1); pn!=PLAYER_INVALID; pn=GetNextEnabledPlayer(pn) )
+#define FOREACH_EnabledPlayer( pn ) for( PlayerNumber pn=GetNextEnabledPlayer((PlayerNumber)-1); (pn)!=PLAYER_INVALID; (pn)=GetNextEnabledPlayer(pn) )
 /** @brief A foreach loop to act on each CPU Player. */
-#define FOREACH_CpuPlayer( pn ) for( PlayerNumber pn=GetNextCpuPlayer((PlayerNumber)-1); pn!=PLAYER_INVALID; pn=GetNextCpuPlayer(pn) )
+#define FOREACH_CpuPlayer( pn ) for( PlayerNumber pn=GetNextCpuPlayer((PlayerNumber)-1); (pn)!=PLAYER_INVALID; (pn)=GetNextCpuPlayer(pn) )
 /** @brief A foreach loop to act on each potential CPU Player. */
-#define FOREACH_PotentialCpuPlayer( pn ) for( PlayerNumber pn=GetNextPotentialCpuPlayer((PlayerNumber)-1); pn!=PLAYER_INVALID; pn=GetNextPotentialCpuPlayer(pn) )
+#define FOREACH_PotentialCpuPlayer( pn ) for( PlayerNumber pn=GetNextPotentialCpuPlayer((PlayerNumber)-1); (pn)!=PLAYER_INVALID; (pn)=GetNextPotentialCpuPlayer(pn) )
 /** @brief A foreach loop to act on each Player in MultiPlayer. */
-#define FOREACH_EnabledMultiPlayer( mp ) for( MultiPlayer mp=GetNextEnabledMultiPlayer((MultiPlayer)-1); mp!=MultiPlayer_Invalid; mp=GetNextEnabledMultiPlayer(mp) )
+#define FOREACH_EnabledMultiPlayer( mp ) for( MultiPlayer mp=GetNextEnabledMultiPlayer((MultiPlayer)-1); (mp)!=MultiPlayer_Invalid; (mp)=GetNextEnabledMultiPlayer(mp) )
 
 
 

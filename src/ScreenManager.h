@@ -1,9 +1,9 @@
 #ifndef SCREEN_MANAGER_H
 #define SCREEN_MANAGER_H
 
-#include "ScreenMessage.h"
-#include "RageSound.h"
 #include "PlayerNumber.h"
+#include "RageSound.h"
+#include "ScreenMessage.h"
 
 class Actor;
 class Screen;
@@ -74,8 +74,6 @@ public:
 	void	PlaySharedBackgroundOffCommand();
 	void    ZeroNextUpdate();
 private:
-	Screen		*m_pInputFocus; // NULL = top of m_ScreenStack
-
 	// Screen loads, removals, and concurrent prepares are delayed until the next update.
 	RString		m_sDelayedScreen;
 	RString		m_sDelayedConcurrentPrepare;

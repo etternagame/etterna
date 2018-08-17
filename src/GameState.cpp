@@ -1,43 +1,32 @@
-#include "global.h"
-#include "GameState.h"
-#include "Actor.h"
+﻿#include "global.h"
 #include "AdjustSync.h"
-#include "AnnouncerManager.h"
 #include "Character.h"
-#include "CharacterManager.h"
 #include "CommonMetrics.h"
 #include "CryptManager.h"
+#include "discord-rpc.h"
 #include "Foreach.h"
 #include "Game.h"
 #include "GameCommand.h"
 #include "GameConstantsAndTypes.h"
 #include "GameManager.h"
 #include "GamePreferences.h"
-#include "HighScore.h"
+#include "GameState.h"
 #include "LuaReference.h"
 #include "MessageManager.h"
 #include "NoteData.h"
 #include "NoteSkinManager.h"
 #include "PlayerState.h"
-#include "PrefsManager.h"
-#include "Profile.h"
 #include "ProfileManager.h"
-#include "RageFile.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "ScreenManager.h"
 #include "Song.h"
-#include "SongManager.h"
 #include "SongUtil.h"
 #include "StatsManager.h"
-#include "StepMania.h"
 #include "Steps.h"
 #include "Style.h"
 #include "ThemeManager.h"
-#include "ScreenManager.h"
-#include "Screen.h"
-
-#include <ctime>
-#include <set>
+#include "SongManager.h"
+#include "StepsUtil.h"
+#include "Profile.h"
 
 GameState*	GAMESTATE = NULL;	// global and accessible from anywhere in our program
 
@@ -314,16 +303,6 @@ void GameState::Reset()
 	SONGMAN->UpdateShuffled();
 
 	STATSMAN->Reset();
-
-	FOREACH_PlayerNumber(p)
-	{
-		if( PREFSMAN->m_ShowDancingCharacters == SDC_Random )
-			m_pCurCharacters[p] = CHARMAN->GetRandomCharacter();
-		else
-			m_pCurCharacters[p] = CHARMAN->GetDefaultCharacter();
-		//ASSERT( m_pCurCharacters[p] != NULL );
-	}
-
 	m_bTemporaryEventMode = false;
 	sExpandedSectionName = "";
 
@@ -332,6 +311,7 @@ void GameState::Reset()
 
 void GameState::JoinPlayer( PlayerNumber pn )
 {
+	pn = PLAYER_1;
 	// Make sure the join will be successful before doing it. -Kyz
 	{
 		int players_joined= 0;
@@ -581,14 +561,20 @@ int GameState::GetNumStagesMultiplierForSong( const Song* pSong )
 	return iNumStages;
 }
 
-int GameState::GetNumStagesForCurrentSongAndStepsOrCourse() const{	int iNumStagesOfThisSong = 1;	if (m_pCurSong)	{
+int GameState::GetNumStagesForCurrentSongAndStepsOrCourse() const
+{
+	int iNumStagesOfThisSong = 1;
+	if (m_pCurSong)
+	{
 		iNumStagesOfThisSong = GameState::GetNumStagesMultiplierForSong(m_pCurSong);
 	}
 	else
 		return -1;
 	iNumStagesOfThisSong = max(iNumStagesOfThisSong, 1);
-	return iNumStagesOfThisSong;
-}
+	return iNumStagesOfThisSong;
+
+}
+
 
 // Called by ScreenGameplay. Set the length of the current song.
 void GameState::BeginStage()
@@ -668,7 +654,6 @@ void GameState::CommitStageStats()
 void GameState::FinishStage()
 {
 	// Increment the stage counter.
-	const int iOldStageIndex = m_iCurrentStageIndex;
 	++m_iCurrentStageIndex;
 
 	m_iNumStagesOfThisSong = 0;
@@ -883,6 +868,8 @@ void GameState::SetCurGame( const Game *pGame )
 	m_pCurGame.Set( pGame );
 	RString sGame = pGame ? RString(pGame->m_szName) : RString();
 	PREFSMAN->SetCurrentGame( sGame );
+	discordInit();
+	updateDiscordPresenceMenu("");
 }
 
 const float GameState::MUSIC_SECONDS_INVALID = -5000.0f;
@@ -1004,8 +991,10 @@ int GameState::GetCourseSongIndex() const
 	if( GAMESTATE->m_bMultiplayer )
 	{
 		FOREACH_EnabledMultiPlayer(mp)
-			return STATSMAN->m_CurStageStats.m_multiPlayer[mp].m_iSongsPlayed - 1;
-		FAIL_M("At least one MultiPlayer must be joined.");
+			return STATSMAN->m_CurStageStats.m_multiPlayer[mp].m_iSongsPlayed - 1;
+
+		FAIL_M("At least one MultiPlayer must be joined.");
+
 	}
 	else
 	{
@@ -1044,44 +1033,7 @@ RString GameState::GetPlayerDisplayName( PlayerNumber pn ) const
 
 bool GameState::PlayersCanJoin() const
 {
-	if(GetNumSidesJoined() == 0)
-	{
-		return true;
-	}
-	// If we check the style and it comes up NULL, either the style has not been
-	// chosen, or we're on ScreenSelectMusic with AutoSetStyle.
-	// If the style does not come up NULL, we might be on a screen in a custom
-	// theme that wants to allow joining after the style is set anyway.
-	// Either way, we can't use the existence of a style to decide.
-	// -Kyz
-	if( ALLOW_LATE_JOIN.IsLoaded()  &&  ALLOW_LATE_JOIN )
-	{
-		Screen *pScreen = SCREENMAN->GetTopScreen();
-		if(pScreen)
-		{
-			if(!pScreen->AllowLateJoin())
-			{
-				return false;
-			}
-		}
-		// We can't use FOREACH_EnabledPlayer because that uses PlayersCanJoin
-		// in part of its logic chain. -Kyz
-		FOREACH_PlayerNumber(pn)
-		{
-			const Style* style= GetCurrentStyle(pn);
-			if(style)
-			{
-				const Style* compat_style= GAMEMAN->GetFirstCompatibleStyle(
-					m_pCurGame, 2, style->m_StepsType);
-				if(compat_style == NULL)
-				{
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-	return false;
+	return true;
 }
 
 const Game* GameState::GetCurrentGame() const
@@ -1400,29 +1352,6 @@ FailType GameState::GetPlayerFailType( const PlayerState *pPlayerState ) const
 {
 	PlayerNumber pn = pPlayerState->m_PlayerNumber;
 	FailType ft = pPlayerState->m_PlayerOptions.GetCurrent().m_FailType;
-
-	// If the player changed the fail mode explicitly, leave it alone.
-	if( m_bFailTypeWasExplicitlySet )
-		return ft;
-
-
-
-		Difficulty dc = Difficulty_Invalid;
-		if( m_pCurSteps[pn] )
-			dc = m_pCurSteps[pn]->GetDifficulty();
-
-		bool bFirstStage = false;
-
-		// Easy and beginner are never harder than FAIL_IMMEDIATE_CONTINUE.
-		if( dc <= Difficulty_Easy )
-			setmax( ft, FailType_ImmediateContinue );
-
-
-		/* If beginner's steps were chosen, and this is the first stage,
-		 * turn off failure completely. */
-		if( dc == Difficulty_Beginner && bFirstStage )
-			setmax( ft, FailType_Off );
-
 	return ft;
 }
 
@@ -1574,49 +1503,6 @@ bool GameState::AnyPlayerHasRankingFeats() const
 	return false;
 }
 
-void GameState::StoreRankingName( PlayerNumber pn, RString sName )
-{
-	// The theme can upper it if desired. -Kyz
-	// sName.MakeUpper();
-
-	if( USE_NAME_BLACKLIST )
-	{
-		RageFile file;
-		if( file.Open(NAME_BLACKLIST_FILE) )
-		{
-			RString sLine;
-
-			while( !file.AtEOF() )
-			{
-				if( file.GetLine(sLine) == -1 )
-				{
-					LuaHelpers::ReportScriptErrorFmt( "Error reading \"%s\": %s", NAME_BLACKLIST_FILE, file.GetError().c_str() );
-					break;
-				}
-
-				sLine.MakeUpper();
-				if( !sLine.empty() && sName.find(sLine) != string::npos )	// name contains a bad word
-				{
-					LOG->Trace( "entered '%s' matches blacklisted item '%s'", sName.c_str(), sLine.c_str() );
-					sName = "";
-					break;
-				}
-			}
-		}
-	}
-
-	vector<RankingFeat> aFeats;
-	GetRankingFeats( pn, aFeats );
-
-	for( unsigned i=0; i<aFeats.size(); i++ )
-	{
-		*aFeats[i].pStringToFill = sName;
-
-		// save name pointers as we fill them
-		m_vpsNamesThatWereFilled.push_back( aFeats[i].pStringToFill );
-	}
-}
-
 bool GameState::AllAreInDangerOrWorse() const
 {
 	FOREACH_EnabledPlayer( p )
@@ -1713,7 +1599,7 @@ Difficulty GameState::GetClosestShownDifficulty( PlayerNumber pn ) const
 {
 	const vector<Difficulty> &v = CommonMetrics::DIFFICULTIES_TO_SHOW.GetValue();
 
-	auto iClosest = (Difficulty) 0;
+	auto iClosest = static_cast<Difficulty>( 0);
 	int iClosestDist = -1;
 	FOREACH_CONST( Difficulty, v, dc )
 	{
@@ -1826,9 +1712,40 @@ MultiPlayer GetNextEnabledMultiPlayer( MultiPlayer mp )
 	return MultiPlayer_Invalid;
 }
 
+void GameState::discordInit()
+{
+		DiscordEventHandlers handlers;
+		memset(&handlers, 0, sizeof(handlers));
+		Discord_Initialize("378543094531883009", &handlers, 1, NULL);
+}
+
+void GameState::updateDiscordPresence(const RString &largeImageText, const RString &details, const RString &state, const int64_t endTime)
+{
+		DiscordRichPresence discordPresence;
+		memset(&discordPresence, 0, sizeof(discordPresence));
+		discordPresence.details = details;
+		discordPresence.state = state;
+		discordPresence.endTimestamp = endTime;
+		discordPresence.largeImageKey = "default";
+		discordPresence.largeImageText = largeImageText;
+		Discord_RunCallbacks();
+		Discord_UpdatePresence(&discordPresence);
+}
+
+void GameState::updateDiscordPresenceMenu( const RString &largeImageText )
+{
+		DiscordRichPresence discordPresence;
+		memset(&discordPresence, 0, sizeof(discordPresence));
+		discordPresence.details = "In Menus";
+		discordPresence.largeImageKey = "default";
+		discordPresence.largeImageText = largeImageText;
+		Discord_RunCallbacks();
+		Discord_UpdatePresence(&discordPresence);
+}
+
 // lua start
-#include "LuaBinding.h"
 #include "Game.h"
+#include "LuaBinding.h"
 
 /** @brief Allow Lua to have access to the GameState. */
 class LunaGameState: public Luna<GameState>
@@ -2134,9 +2051,6 @@ public:
 
 	static int GetCharacter( T* p, lua_State *L )				{ p->m_pCurCharacters[Enum::Check<PlayerNumber>(L, 1)]->PushSelf(L); return 1; }
 	static int SetCharacter( T* p, lua_State *L ){
-		Character* c = CHARMAN->GetCharacterFromID(SArg(2));
-		if (c)
-			p->m_pCurCharacters[Enum::Check<PlayerNumber>(L, 1)] = c;
 		COMMON_RETURN_SELF;
 	}
 	static int GetExpandedSectionName( T* p, lua_State *L )				{ lua_pushstring(L, p->sExpandedSectionName); return 1; }
@@ -2196,7 +2110,6 @@ public:
 
 	static int StoreRankingName( T* p, lua_State *L )
 	{
-		p->StoreRankingName(Enum::Check<PlayerNumber>(L, 1), SArg(2));
 		COMMON_RETURN_SELF;
 	}
 
@@ -2266,6 +2179,17 @@ public:
 		lua_pushstring(L, "CoinMode_Home");
 		return 1;
 	}
+
+	static int UpdateDiscordMenu(T* p, lua_State* L) {
+		p->updateDiscordPresenceMenu(SArg(1));
+		return 1;
+	}
+
+	static int UpdateDiscordPresence(T* p, lua_State* L) {
+		p->updateDiscordPresence(SArg(1), SArg(2), SArg(3), IArg(4));
+		return 1;
+	}
+
 	DEFINE_METHOD(GetEtternaVersion, GetEtternaVersion())
 	LunaGameState()
 	{
@@ -2364,6 +2288,8 @@ public:
 		ADD_METHOD( GetEtternaVersion );
 		ADD_METHOD( CountNotesSeparately );
 		ADD_METHOD(GetCoinMode);
+		ADD_METHOD( UpdateDiscordMenu );
+		ADD_METHOD( UpdateDiscordPresence );
 	}
 };
 

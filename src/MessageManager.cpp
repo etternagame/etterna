@@ -1,14 +1,14 @@
-#include "global.h"
-#include "MessageManager.h"
-#include "Foreach.h"
-#include "RageUtil.h"
-#include "RageThreads.h"
+﻿#include "global.h"
 #include "EnumHelper.h"
+#include "Foreach.h"
 #include "LuaManager.h"
+#include "MessageManager.h"
 #include "RageLog.h"
+#include "RageThreads.h"
+#include "RageUtil.h"
 
-#include <set>
 #include <map>
+#include <set>
 
 MessageManager*	MESSAGEMAN = NULL;	// global and accessible from anywhere in our program
 
@@ -309,7 +309,7 @@ public:
 	}
 	static int SetLogging(T* p, lua_State *L)
 	{
-		p->SetLogging(lua_toboolean(L, -1));
+		p->SetLogging(lua_toboolean(L, -1) != 0);
 		COMMON_RETURN_SELF;
 	}
 

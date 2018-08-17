@@ -3,9 +3,9 @@
 #ifndef ScreenStatsOverlay_H
 #define ScreenStatsOverlay_H
 
-#include "Screen.h"
 #include "BitmapText.h"
 #include "Quad.h"
+#include "Screen.h"
 #include <chrono>
 
 const int NUM_SKIPS_TO_SHOW = 5;
@@ -22,10 +22,11 @@ private:
 	void UpdateSkips();
 
 	BitmapText m_textStats;
+	Quad m_quadStatBackground;
 	Quad m_quadSkipBackground;
 	BitmapText m_textSkips[NUM_SKIPS_TO_SHOW];
 	std::chrono::steady_clock::time_point g_AccurateSkipTimer = std::chrono::steady_clock::now();
-	int m_LastSkip;
+	int m_LastSkip = 0;
 
 	ThemeMetric<bool>  SHOW_SKIPS;
 	ThemeMetric<float> SKIP_X;

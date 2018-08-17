@@ -1,6 +1,8 @@
 local t = Def.ActorFrame {
 	Def.ActorFrame {
-		InitCommand=cmd(Center);
+		InitCommand=function(self)
+			self:Center()
+		end;
 	--[[ 	ToggleConsoleDisplayMessageCommand=function(self)
 			bVisible = 1 - bVisible;
 			bShow = (bVisible >= 1) and true or false;
@@ -8,7 +10,9 @@ local t = Def.ActorFrame {
 		end; --]]
 		Def.Quad {
 			InitCommand(zoomto,64,64;spin;);
-			ToggleConsoleDisplayMessageCommand=cmd(zoomto,345,345;visible,true);
+			ToggleConsoleDisplayMessageCommand=function(self)
+				self:zoomto(345,345):visible(true)
+			end;
 		};
 	};
 };

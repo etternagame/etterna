@@ -1,13 +1,13 @@
-#ifndef LIFE_METER_H
+﻿#ifndef LIFE_METER_H
 #define LIFE_METER_H
 
-#include "PlayerNumber.h"
-#include "GameConstantsAndTypes.h"
 #include "ActorFrame.h"
+#include "GameConstantsAndTypes.h"
 #include "PlayerOptions.h"
 
 class PlayerState;
 class PlayerStageStats;
+
 /** @brief The player's life. */
 class LifeMeter : public ActorFrame
 {

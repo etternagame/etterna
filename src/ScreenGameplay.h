@@ -1,22 +1,21 @@
 #ifndef SCREEN_GAMEPLAY_H
 #define SCREEN_GAMEPLAY_H
 
-#include "ScreenWithMenuElements.h"
-#include "Sprite.h"
-#include "Transition.h"
-#include "BitmapText.h"
-#include "RageSound.h"
-#include "LocalizedString.h"
-#include "BeginnerHelper.h"
-#include "LyricDisplay.h"
-#include "NetworkSyncManager.h"
 #include "AutoKeysounds.h"
-#include "ThemeMetric.h"
+#include "BeginnerHelper.h"
+#include "BitmapText.h"
+#include "GameplayAssist.h"
+#include "InputEventPlus.h"
+#include "LocalizedString.h"
+#include "LyricDisplay.h"
 #include "PlayerStageStats.h"
 #include "PlayerState.h"
-#include "InputEventPlus.h"
+#include "RageSound.h"
+#include "ScreenWithMenuElements.h"
 #include "SoundEffectControl.h"
-#include "GameplayAssist.h"
+#include "Sprite.h"
+#include "ThemeMetric.h"
+#include "Transition.h"
 
 class LyricsLoader;
 class Player;
@@ -46,7 +45,7 @@ public:
 	 * @brief Retrieve the player's state and stage stats index.
 	 * @return the player's state and stage stats index.
 	 */
-	MultiPlayer GetPlayerStateAndStageStatsIndex()	{ return m_pn == PLAYER_INVALID ? m_mp : (MultiPlayer)m_pn; }
+	MultiPlayer GetPlayerStateAndStageStatsIndex()	{ return m_pn == PLAYER_INVALID ? m_mp : static_cast<MultiPlayer>(m_pn); }
 	PlayerState *GetPlayerState();
 	PlayerStageStats *GetPlayerStageStats();
 	PlayerNumber GetStepsAndTrailIndex()		{ return m_pn == PLAYER_INVALID ? PLAYER_1 : m_pn; }
@@ -130,7 +129,7 @@ public:
 
 	void Update( float fDeltaTime ) override;
 	bool Input( const InputEventPlus &input ) override;
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 	void HandleMessage( const Message &msg ) override;
 	void Cancel( ScreenMessage smSendWhenDone ) override;
 
@@ -151,8 +150,6 @@ public:
 	LifeMeter *GetLifeMeter( PlayerNumber pn );
 	PlayerInfo *GetPlayerInfo( PlayerNumber pn );
 	PlayerInfo *GetDummyPlayerInfo( int iDummyIndex );
-	void Pause(bool bPause) { PauseGame(bPause); }
-	bool IsPaused() const { return m_bPaused; }
 
 	void FailFadeRemovePlayer(PlayerInfo* pi);
 	void FailFadeRemovePlayer(PlayerNumber pn);
@@ -192,7 +189,6 @@ protected:
 	virtual void LoadNextSong();
 	void StartPlayingSong( float fMinTimeToNotes, float fMinTimeToMusic );
 	void GetMusicEndTiming( float &fSecondsToStartFadingOutMusic, float &fSecondsToStartTransitioningOut );
-	void PauseGame( bool bPause, GameController gc = GameController_Invalid );
 	void PlayAnnouncer( const RString &type, float fSeconds, float *fDeltaSeconds );
 	void PlayAnnouncer( const RString &type, float fSeconds ) { PlayAnnouncer(type, fSeconds, &m_fTimeSinceLastDancingComment); }
 	void SendCrossedMessages();
@@ -218,13 +214,7 @@ protected:
 	}
 	/** @brief The specific point within ScreenGameplay. */ m_DancingState;
 	private:
-	bool			m_bPaused;
-	// set_paused_internal exists because GameState's pause variable needs to
-	// be kept in sync with ScreenGameplay's.
-	void set_paused_internal(bool p);
 	protected:
-
-	GameController		m_PauseController;
 	/**
 	 * @brief The songs left to play.
 	 *

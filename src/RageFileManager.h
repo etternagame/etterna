@@ -1,5 +1,6 @@
-#ifndef RAGE_FILE_MANAGER_H
+﻿#ifndef RAGE_FILE_MANAGER_H
 #define RAGE_FILE_MANAGER_H
+
 /** @brief Constants for working with the RageFileManager. */
 namespace RageFileManagerUtil
 {

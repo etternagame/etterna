@@ -1,9 +1,9 @@
 #include "global.h"
-#include "StyleUtil.h"
-#include "GameManager.h"
-#include "XmlFile.h"
 #include "Game.h"
+#include "GameManager.h"
 #include "Style.h"
+#include "StyleUtil.h"
+#include "XmlFile.h"
 
 
 void StyleID::FromStyle( const Style *p )
@@ -58,7 +58,7 @@ bool StyleID::IsValid() const
 
 bool StyleID::operator<( const StyleID &rhs ) const
 {
-#define COMP(a) if(a<rhs.a) return true; if(a>rhs.a) return false;
+#define COMP(a) if((a)<rhs.a) return true; if((a)>rhs.a) return false;
 	COMP(sGame);
 	COMP(sStyle);
 #undef COMP

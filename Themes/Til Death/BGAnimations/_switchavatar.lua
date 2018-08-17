@@ -1,4 +1,12 @@
 
+local function input(event)
+	if event.DeviceInput.button == 'DeviceButton_left mouse button' then
+		if event.type == "InputEventType_Release" then
+			MESSAGEMAN:Broadcast("AvMouseLeftClick")
+		end
+	end
+	return false
+end
 
 --Parameters.
 local imgTypes = {".jpg",".png",".gif",".jpeg"}
@@ -22,8 +30,8 @@ local function getInitAvatarIndex(pn)
 	for i=1,#avatars do
 		if avatar == avatars[i] then
 			return i
-		end;
-	end;
+		end
+	end
 
 	return 1
 end
@@ -45,14 +53,11 @@ local data ={
 		cursorIndex = getInitCursorIndex(PLAYER_1),
 		avatarIndex = getInitAvatarIndex(PLAYER_1),
 	},
-	PlayerNumber_P2 = {
-		cursorIndex = getInitCursorIndex(PLAYER_2),
-		avatarIndex = getInitAvatarIndex(PLAYER_2),
-	},
 }
 
 local t = Def.ActorFrame{
-	Name="AvatarSwitch";
+	Name="AvatarSwitch",
+	OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(input) end,
 }
 
 --Shifts an actor by "1 index"
@@ -72,42 +77,29 @@ local function saveAvatar(pn)
 	local avatar = getSelectedAvatar(pn)
 	local profile = PROFILEMAN:GetProfile(pn)
 	local GUID = profile:GetGUID()
+	local profileName = profile:GetDisplayName()
 	avatarConfig:get_data().avatar[GUID] = avatar
 	avatarConfig:set_dirty()
 	avatarConfig:save()
-	SCREENMAN:SystemMessage(string.format("%s Avatar set to: '%s'",pn,avatar))
+	SCREENMAN:SystemMessage(string.format("%s's avatar set to: '%s'",profileName,avatar))
 end
 
 -- The main function that contains errything
 local function avatarSwitch(pn)
 	local t = Def.ActorFrame{
-		Name="AvatarSwitch"..pn;
+		Name="AvatarSwitch"..pn,
 		BeginCommand=function(self)
-			if pn == PLAYER_1 then
-				self:x(-width);
-				self:sleep(0.3)
-				self:smooth(0.2)
-				self:x(0)
-			end;
-			if pn == PLAYER_2 then
-				self:x(SCREEN_WIDTH)
-				self:sleep(0.3)
-				self:smooth(0.2)
-				self:x(SCREEN_WIDTH-width)
-			end;
-		end;
+			self:x(-width)
+			self:sleep(0.3)
+			self:smooth(0.2)
+			self:x(0)
+		end,
 		CodeMessageCommand=function(self,params)
 			if params.Name == "AvatarCancel" or params.Name == "AvatarExit" then
-				if pn == PLAYER_1 then
-					self:smooth(0.2)
-					self:x(-width)
-				end
-				if pn == PLAYER_2 then
-					self:smooth(0.2)
-					self:x(SCREEN_WIDTH)
-				end
-			end;
-		end;
+				self:smooth(0.2)
+				self:x(-width)
+			end
+		end
 	}
 
 	t[#t+1] = Def.ActorFrame{
@@ -124,8 +116,8 @@ local function avatarSwitch(pn)
 				elseif data[pn]["avatarIndex"] > 1 and data[pn]["cursorIndex"] == 1 then
 					shift(table,1)
 					data[pn]["avatarIndex"] = data[pn]["avatarIndex"] - 1
-				end;
-			end;
+				end
+			end
 			if params.Name == "AvatarRight" then
 				if data[pn]["avatarIndex"] < #avatars and data[pn]["cursorIndex"] < maxItems then
 					shift(cursor,1)
@@ -134,98 +126,102 @@ local function avatarSwitch(pn)
 				elseif data[pn]["avatarIndex"] < #avatars and data[pn]["cursorIndex"] == maxItems then
 					shift(table,-1)
 					data[pn]["avatarIndex"] = data[pn]["avatarIndex"] + 1
-				end;
-			end;
-		end;
+				end
+			end
+		end
 		--rq out of the screen if just canceling.
 		if params.Name == "AvatarCancel" then
 			SCREENMAN:GetTopScreen():Cancel()
-		end;
-		--save and exit if exiting. forcefully save both players when 2p as only the changes for the person who pressed exit will be applied.
+		end
+		
 		if params.Name == "AvatarExit" then
-			if GAMESTATE:GetNumPlayersEnabled() == 1 then
-				saveAvatar(params.PlayerNumber)
-				setAvatarUpdateStatus(pn,true)
-			else
-				saveAvatar(PLAYER_1)
-				setAvatarUpdateStatus(PLAYER_1,true)
-				saveAvatar(PLAYER_2)
-				setAvatarUpdateStatus(PLAYER_2,true)
-			end;
+			saveAvatar(params.PlayerNumber)
+			setAvatarUpdateStatus(pn,true)
 			SCREENMAN:GetTopScreen():Cancel()
-		end;
-	end;
+		end
+	end
 	}
 
 	--Background Quad
 	t[#t+1] = Def.Quad{
-		InitCommand=cmd(xy,frameX,frameY;zoomto,width,height;halign,0;valign,1;diffuse,color("#00000066"));
+		InitCommand=function(self)
+			self:xy(frameX,frameY):zoomto(width,height):halign(0):valign(1):diffuse(color("#00000066"))
+		end
 	}
 
 	--MASKING SCKS
 	t[#t+1] = Def.Quad{
-		InitCommand=cmd(xy,width,0;zoomto,SCREEN_WIDTH-width,SCREEN_HEIGHT;halign,0;valign,0;zwrite,true;clearzbuffer,true;blend,'BlendMode_NoEffect';);
-		BeginCommand=function(self)
-			if pn == PLAYER_2 then
-				self:x(0)
-				self:halign(1)
-			end;
-		end;
+		InitCommand=function(self)
+			self:xy(width,0):zoomto(SCREEN_WIDTH-width,SCREEN_HEIGHT):halign(0):valign(0):zwrite(true):clearzbuffer(true):blend('BlendMode_NoEffect')
+		end,
 	}
 
 	--Cursor
 	t[#t+1] = Def.Quad{
-		Name="AvatarCursor";
-		InitCommand=cmd(xy,frameX-2+border,frameY+2-border;zoomto,itemHeight+4,itemWidth+4;halign,0;valign,1;diffuse,color("#FFFFFF"));
+		Name="AvatarCursor",
+		InitCommand=function(self)
+			self:xy(frameX-2+border,frameY+2-border):zoomto(itemHeight+4,itemWidth+4):halign(0):valign(1):diffuse(color("#FFFFFF"))
+		end,
 		BeginCommand=function(self)
 			shift(self,(data[pn]["cursorIndex"]-1))
-		end;
+		end
 	}
 
 	--List of avatars
 	local avatarTable = Def.ActorFrame{
-		Name="AvatarTable";
+		Name="AvatarTable",
 		BeginCommand=function(self)
 			shift(self,-(data[pn]["avatarIndex"]-1))
 			shift(self,(data[pn]["cursorIndex"]-1))
-		end;
+		end
 	}
 	t[#t+1] = avatarTable
 	for k,v in pairs(avatars) do
 		avatarTable[#avatarTable+1] = Def.Sprite {
-			InitCommand=cmd(visible,true;halign,0;valign,1;xy,frameX+border+((border+itemWidth)*(k-1)),frameY-border;ztest,true;);
-			BeginCommand=cmd(queuecommand,"ModifyAvatar");
+			Name = #avatarTable,
+			InitCommand=function(self)
+				self:visible(true):halign(0):valign(1):xy(frameX+border+((border+itemWidth)*(k-1)),frameY-border):ztest(true)
+			end,
+			BeginCommand=function(self)
+				self:queuecommand("ModifyAvatar")
+			end,
 			ModifyAvatarCommand=function(self)
-				self:finishtweening();
-				self:LoadBackground(THEME:GetPathG("","Player avatar/"..v));
+				self:finishtweening()
+				self:LoadBackground(THEME:GetPathG("","Player avatar/"..v))
 				self:zoomto(itemWidth,itemHeight)
-			end;
-		};
-	end;
+			end,
+			AvMouseLeftClickMessageCommand=function(self) -- theoretically this should move the scroller unless to the target, unless the target is already selected in which case this should executre, but, that's work -mina
+				if isOver(self) then
+					data[pn]["avatarIndex"] = tonumber(self:GetName()) + 1
+					saveAvatar(pn)
+					setAvatarUpdateStatus(pn,true)
+					SCREENMAN:GetTopScreen():Cancel()
+				end
+			end,
+		}
+	end
 
 	--Text
 	t[#t+1] = LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,frameX,frameY-height;halign,0;valign,1;zoom,0.35;);
-		BeginCommand=cmd(queuecommand,"Set");
+		InitCommand=function(self)
+			self:xy(frameX,frameY-height):halign(0):valign(1):zoom(0.35)
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self,params)
-			--self:settextf("Player 1 avatar: ci%d ai%d",cursorIndex,avatarIndex)
-			if pn == PLAYER_1 then
-				self:settextf("Player 1 Avatar: %s",avatars[data[pn]["avatarIndex"]])
-			end;
-			if pn == PLAYER_2 then
-				self:settextf("Player 2 Avatar: %s",avatars[data[pn]["avatarIndex"]])
-			end;
-		end;
-		CodeMessageCommand=cmd(queuecommand,"Set");
-	};
+			local profileName = GetPlayerOrMachineProfile(PLAYER_1):GetDisplayName()
+			self:settextf("%s's avatar: %s",profileName,avatars[data[pn]["avatarIndex"]])
+		end,
+		CodeMessageCommand=function(self)
+			self:queuecommand("Set")
+		end
+	}
 	return t
 end
 
 if GAMESTATE:IsHumanPlayer(PLAYER_1) then
 	t[#t+1] = avatarSwitch(PLAYER_1)
-end
-if GAMESTATE:IsHumanPlayer(PLAYER_2) then
-	t[#t+1] = avatarSwitch(PLAYER_2)
 end
 
 return t

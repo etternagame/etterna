@@ -1,8 +1,8 @@
 #include "global.h"
-#include "ScreenDimensions.h"
-#include "PrefsManager.h"
-#include "Preference.h"
 #include "LuaManager.h"
+#include "Preference.h"
+#include "PrefsManager.h"
+#include "ScreenDimensions.h"
 #include "ThemeMetric.h"
 
 static ThemeMetric<float> THEME_SCREEN_WIDTH("Common","ScreenWidth");
@@ -39,7 +39,7 @@ float ScreenDimensions::GetScreenWidth()
 	// 576 * 1.7778 = 1024.0128, which is rounded to 1025. -Kyz
 	int width= (int)ceilf(THEME_SCREEN_WIDTH * fScale);
 	width-= width % 2;
-	return (float)width;
+	return static_cast<float>(width);
 }
 
 float ScreenDimensions::GetScreenHeight()

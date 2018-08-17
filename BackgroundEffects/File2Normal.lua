@@ -11,8 +11,12 @@ self:x(SCREEN_CENTER_X):y(SCREEN_CENTER_Y):scale_or_crop_background():diffuse(Co
 			self:GetTexture():rate(self:GetParent():GetUpdateRate())
 		end
 	end,
-	GainFocusCommand=cmd(play);
-	LoseFocusCommand=cmd(pause);
+	GainFocusCommand=function(self)
+		self:play()
+	end;
+	LoseFocusCommand=function(self)
+		self:pause()
+	end;
 };
 
 if Var("File2") ~= nil then
@@ -24,8 +28,12 @@ if Var("File2") ~= nil then
 				self:GetTexture():rate(self:GetParent():GetUpdateRate())
 			end
 		end,
-		GainFocusCommand=cmd(play);
-		LoseFocusCommand=cmd(pause);
+		GainFocusCommand=function(self)
+			self:play()
+		end;
+		LoseFocusCommand=function(self)
+			self:pause()
+		end;
 	};
 end;
 

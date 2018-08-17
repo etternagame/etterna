@@ -90,18 +90,18 @@ typedef const char*		PCSTR;
 typedef char*			PSTR;
 
 // Standard headers needed
-#include <string>			// basic_string
 #include <algorithm>		// for_each, etc.
 #include <functional>		// for StdStringLessNoCase, et al
+#include <string>			// basic_string
 
 #if defined(WIN32)
 #include <malloc.h>			// _alloca
 #endif
 
-#include <cstdio>
 #include <cctype>
-#include <cstdlib>
 #include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
 
 // a very shorthand way of applying the fix for KB problem Q172398
@@ -344,7 +344,6 @@ class CStdStr;
  * @return the longer string.
  */
 template<typename CT>
-inline
 CStdStr<CT> operator+(const  CStdStr<CT>& str1, const  CStdStr<CT>& str2)
 {
 	CStdStr<CT> strRet(str1);
@@ -357,8 +356,7 @@ CStdStr<CT> operator+(const  CStdStr<CT>& str1, const  CStdStr<CT>& str2)
  * @param t the string to be added.
  * @return the longer string.
  */	
-template<typename CT>	
-inline
+template<typename CT>
 CStdStr<CT> operator+(const  CStdStr<CT>& str, CT t)
 {
 	// this particular overload is needed for disabling reference counting
@@ -375,7 +373,6 @@ CStdStr<CT> operator+(const  CStdStr<CT>& str, CT t)
  * @return the longer string.
  */
 template<typename CT>
-inline
 CStdStr<CT> operator+(const  CStdStr<CT>& str, PCSTR pA)
 {
 	return CStdStr<CT>(str) + CStdStr<CT>(pA);
@@ -387,7 +384,6 @@ CStdStr<CT> operator+(const  CStdStr<CT>& str, PCSTR pA)
  * @return the longer string.
  */	
 template<typename CT>
-inline
 CStdStr<CT> operator+(PCSTR pA, const  CStdStr<CT>& str)
 {
 	CStdStr<CT> strRet(pA);

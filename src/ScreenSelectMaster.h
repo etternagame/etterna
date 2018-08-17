@@ -1,11 +1,11 @@
 #ifndef ScreenSelectMaster_H
 #define ScreenSelectMaster_H
 
-#include "ScreenSelect.h"
+#include "ActorScroller.h"
+#include "ActorUtil.h"
 #include "RageSound.h"
 #include "RandomSample.h"
-#include "ActorUtil.h"
-#include "ActorScroller.h"
+#include "ScreenSelect.h"
 
 enum MenuDir
 {
@@ -38,7 +38,7 @@ public:
 	void TweenOnScreen() override;
 	void TweenOffScreen() override;
 
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 	void HandleMessage( const Message &msg ) override;
 	bool AllowLateJoin() const override { return true; }
 

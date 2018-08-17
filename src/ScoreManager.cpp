@@ -1,17 +1,17 @@
 #include "global.h"
-#include "RageLog.h"
-#include "HighScore.h"
-#include "arch/LoadingWindow/LoadingWindow.h"
-#include "GameConstantsAndTypes.h"
 #include "Foreach.h"
+#include "GameConstantsAndTypes.h"
+#include "HighScore.h"
+#include "MinaCalc.h"
+#include "NoteData.h"
+#include "NoteDataStructures.h"
+#include "RageLog.h"
+#include "RageTimer.h"
 #include "ScoreManager.h"
+#include "Song.h"
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
-#include "Song.h"
-#include "MinaCalc.h"
-#include "NoteDataStructures.h"
-#include "NoteData.h"
-#include "RageTimer.h"
+#include "arch/LoadingWindow/LoadingWindow.h"
 
 ScoreManager* SCOREMAN = NULL;
 
@@ -41,7 +41,7 @@ ScoresAtRate::ScoresAtRate() {
 	noccPBptr = nullptr;
 }
 
-void ScoresAtRate::AddScore(HighScore& hs) {
+HighScore* ScoresAtRate::AddScore(HighScore& hs) {
 	const string& key = hs.GetScoreKey();
 	bestGrade = min(hs.GetWifeGrade(), bestGrade);
 	scores.emplace(key, hs);
@@ -56,6 +56,7 @@ void ScoresAtRate::AddScore(HighScore& hs) {
 
 	SCOREMAN->RegisterScore(&scores.find(key)->second);
 	SCOREMAN->AddToKeyedIndex(&scores.find(key)->second);
+	return &(scores.find(key)->second);
 }
 
 vector<string> ScoresAtRate::GetSortedKeys() {
@@ -80,47 +81,42 @@ const vector<HighScore*> ScoresAtRate::GetScores() const {
 }
 */
 
-void ScoreManager::RatingOverTime() {
-	auto compdate = [](HighScore* a, HighScore* b) { return (a->GetDateTime() < b->GetDateTime()); };
+void ScoreManager::PurgeScores() {
+	TopSSRs.clear();
+	TopSSRs.shrink_to_fit();
 
+	AllScores.clear();
+	AllScores.shrink_to_fit();
 
-	vector<bool> wasvalid;
-	sort(AllScores.begin(), AllScores.end(), compdate);
+	ScoresByKey.clear();
 
-	for (auto& n : AllScores) {
-		wasvalid.push_back(n->GetEtternaValid());
-		n->SetEtternaValid(false);
-	}
+	pscores.clear();
+}
 
-	float doot = 10.f;
-	float doot2[8];
-	LOG->Warn("wer");
-	if (AllScores.empty())
-		return;
-
-	DateTime lastvalidday = AllScores.front()->GetDateTime();
-	lastvalidday.StripTime();
-
-	CalcPlayerRating(doot, doot2);
-	LOG->Warn(lastvalidday.GetString());
-
-	DateTime finalvalidday = AllScores.back()->GetDateTime();
-	finalvalidday.StripTime();
-	while (lastvalidday != finalvalidday) {
-		for (auto& n : AllScores) {
-			DateTime date = n->GetDateTime();
-			date.StripTime();
-
-			if (lastvalidday < date) {
-				lastvalidday = date;
-				break;
-			}
-
-			n->SetEtternaValid(true);
+void ScoreManager::PurgeProfileScores(const string& profileID) {
+	TopSSRs.clear();
+	TopSSRs.shrink_to_fit();
+	for (auto& score : AllProfileScores[profileID]) {
+		{
+			auto it = find(AllScores.begin(), AllScores.end(), score);
+			if (it != AllScores.end())
+				AllScores.erase(it);
 		}
-		CalcPlayerRating(doot, doot2);
-		LOG->Trace("%f", doot);
+		auto it = ScoresByKey.find(score->GetChartKey());
+		if (it != ScoresByKey.end())
+			ScoresByKey.erase(it);
 	}
+	AllScores.shrink_to_fit();
+	AllProfileScores[profileID].clear();
+	AllProfileScores[profileID].shrink_to_fit();
+
+	pscores[profileID].clear();
+}
+
+void ScoreManager::RatingOverTime() {
+	if (false)
+		for (auto *s : AllScores)
+			s->GenerateValidationKeys();
 }
 
 ScoresForChart::ScoresForChart() {
@@ -144,12 +140,16 @@ HighScore* ScoresForChart::GetPBUpTo(float& rate) {
 	return NULL;
 }
 
-void ScoresForChart::AddScore(HighScore& hs) {
+HighScore* ScoresForChart::AddScore(HighScore& hs) {
 	bestGrade = min(hs.GetWifeGrade(), bestGrade);
 
 	float rate = hs.GetMusicRate();
 	int key = RateToKey(rate);
-	ScoresByRate[key].AddScore(hs);
+	auto hsPtr = ScoresByRate[key].AddScore(hs);
+	// ok let's try this --lurker
+	SetTopScores();
+	hs.SetTopScore(hsPtr->GetTopScore());
+	return hsPtr;
 }
 
 vector<float> ScoresForChart::GetPlayedRates() {
@@ -184,6 +184,34 @@ string ScoresForChart::RateKeyToDisplayString(float rate) {
 	return rs;
 }
 
+// seems like this could be handled more elegantly by splitting operations up -mina
+void ScoresForChart::SetTopScores() {
+	vector<HighScore*> eligiblescores;
+	FOREACHM(int, ScoresAtRate, ScoresByRate, i) {
+		auto& hs = i->second.noccPBptr;
+			if (hs && hs->GetSSRCalcVersion() == GetCalcVersion() && hs->GetEtternaValid() && hs->GetChordCohesion() == 0 && hs->GetGrade() != Grade_Failed)
+				eligiblescores.emplace_back(hs);
+	}
+
+	if (eligiblescores.empty())
+		return;
+
+	if (eligiblescores.size() == 1) {
+		eligiblescores[0]->SetTopScore(1);
+		return;
+	}	
+
+	else{
+		auto ssrcomp = [](HighScore* a, HighScore* b) { return (a->GetSkillsetSSR(Skill_Overall) > b->GetSkillsetSSR(Skill_Overall)); };
+		sort(eligiblescores.begin(), eligiblescores.end(), ssrcomp);
+
+		for (auto hs : eligiblescores)
+			hs->SetTopScore(0);
+
+		eligiblescores[0]->SetTopScore(1);
+		eligiblescores[1]->SetTopScore(2);
+	}
+}
 
 vector<HighScore*> ScoresForChart::GetAllPBPtrs() {
 	vector<HighScore*> o;
@@ -192,39 +220,79 @@ vector<HighScore*> ScoresForChart::GetAllPBPtrs() {
 	return o;
 }
 
-HighScore* ScoreManager::GetChartPBAt(const string& ck, float& rate) {
-	if (pscores.count(ck))
-		return pscores.at(ck).GetPBAt(rate);
+vector<vector<HighScore*>> ScoreManager::GetAllPBPtrs(const string& profileID ) {
+	vector<vector<HighScore*>> vec;
+	FOREACHUM(string, ScoresForChart, pscores[profileID], i) {
+		if (!SONGMAN->IsChartLoaded(i->first))
+			continue;
+		vec.emplace_back(i->second.GetAllPBPtrs());
+	}
+	return vec;
+}
+
+
+HighScore* ScoreManager::GetChartPBAt(const string& ck, float& rate, const string& profileID) {
+	if (KeyHasScores(ck, profileID))
+		return pscores[profileID].at(ck).GetPBAt(rate);
 	return NULL;
 }
 
-HighScore* ScoreManager::GetChartPBUpTo(const string& ck, float& rate) {
-	if (pscores.count(ck))
-		return pscores.at(ck).GetPBUpTo(rate);
+HighScore* ScoreManager::GetChartPBUpTo(const string& ck, float& rate, const string& profileID) {
+	if (KeyHasScores(ck, profileID))
+		return pscores[profileID].at(ck).GetPBUpTo(rate);
 	return NULL;
 }
 
 
+void ScoreManager::SetAllTopScores(const string& profileID) {
+	FOREACHUM(string, ScoresForChart, pscores[profileID], i) {
+		if (!SONGMAN->IsChartLoaded(i->first))
+			continue;
+		i->second.SetTopScores();
+	}
+}
 
+bool ScoresAtRate::HandleNoCCPB(HighScore& hs) {
+	// lurker says:
+	// don't even TRY to fuck with nocc pb unless the score is nocc
+	if (hs.GetChordCohesion() == 0) {
+		// Set any nocc pb
+		if (noccPBptr == nullptr) {
+			noccPBptr = &hs;
+			return true;
+		}
+		else {
+			// update nocc pb if a better score is found
+			if (noccPBptr->GetSSRNormPercent() < hs.GetSSRNormPercent()) {
+				noccPBptr = &hs;
+				return true;
+			}
+		}
+	}
+	return false;
+}
 static const float ld_update = 0.02f;
-void ScoreManager::RecalculateSSRs(LoadingWindow *ld) {
+void ScoreManager::RecalculateSSRs(LoadingWindow *ld, const string& profileID) {
 	RageTimer ld_timer;
-	if (ld) {
+	auto& scores = AllProfileScores[profileID];
+	if (ld != nullptr) {
+		ld->SetProgress(0);
 		ld_timer.Touch();
 		ld->SetIndeterminate(false);
-		ld->SetTotalWork(AllScores.size());
-		ld->SetText("Updating SSR Calculations for Scores...");
+		ld->SetTotalWork(scores.size());
+		ld->SetText("\nUpdating Ratings");
 	}
 
+	int onePercent = std::max(static_cast<int>(scores.size() / 100), 1);
 	int scoreindex = 0;
-	for(size_t i = 0; i < AllScores.size(); ++i) {
-		if (ld && ld_timer.Ago() > ld_update) {
+	for(size_t i = 0; i < scores.size(); ++i) {
+		if (ld && scoreindex%onePercent==0 && ld_timer.Ago() > ld_update) {
 			ld_timer.Touch();
-			ld->SetProgress(scoreindex);
+			ld->SetProgress(i);
 		}
 		++scoreindex;
 
-		HighScore* hs = AllScores[i];
+		HighScore* hs = scores[i];
 		if (hs->GetSSRCalcVersion() == GetCalcVersion())
 			continue;
 
@@ -293,33 +361,28 @@ void ScoreManager::EnableAllScores() {
 	return;
 }
 
-void ScoreManager::CalcPlayerRating(float& prating, float* pskillsets) {
+void ScoreManager::CalcPlayerRating(float& prating, float* pskillsets, const string& profileID) {
+	SetAllTopScores(profileID);
+
 	vector<float> skillz;
 	FOREACH_ENUM(Skillset, ss) {
 		// actually skip overall, and jack stamina for now
-		if (ss == Skill_Overall || ss == Skill_JackStamina)
+		if (ss == Skill_Overall)
 			continue;
 
-		SortTopSSRPtrs(ss);
-		pskillsets[ss] = AggregateSSRs(ss, 0.f, 10.24f, 1)*0.975f;
+		SortTopSSRPtrs(ss, profileID);
+		pskillsets[ss] = AggregateSSRs(ss, 0.f, 10.24f, 1) * 1.04f;
 		CLAMP(pskillsets[ss], 0.f, 100.f);
 		skillz.push_back (pskillsets[ss]);
 	}
 
 	sort(skillz.begin(), skillz.end());
 
-	skillz[0] *= 0.1f;
-	skillz[1] *= 0.1f;
-	skillz[2] *= 0.1f;
-	skillz[3] *= 0.1f;
-	skillz[4] *= 0.25f;
-	skillz[5] *= 0.35f;
-
 	float skillsetsum = 0.f;
-	for (auto& n : skillz)
-		skillsetsum += n;
+	for (size_t i = 1; i < skillz.size(); ++i)	// drop the lowest skillset
+		skillsetsum += skillz[i];
 
-	prating = skillsetsum;
+	prating = skillsetsum / 6.f;
 }
 
 // perhaps we will need a generalized version again someday, but not today
@@ -329,8 +392,8 @@ float ScoreManager::AggregateSSRs(Skillset ss, float rating, float res, int iter
 		rating += res;
 		sum = 0.0;
 		for (int i = 0; i < static_cast<int>(TopSSRs.size()); i++) {
-			if(TopSSRs[i]->GetSSRCalcVersion() == GetCalcVersion() && TopSSRs[i]->GetEtternaValid())
-				sum += max(0.0, 2.f / erfc(0.1*(TopSSRs[i]->GetSkillsetSSR(ss) - rating)) - 1.5);
+			if(TopSSRs[i]->GetSSRCalcVersion() == GetCalcVersion() && TopSSRs[i]->GetEtternaValid() && TopSSRs[i]->GetChordCohesion() == 0 && TopSSRs[i]->GetTopScore() != 0)
+				sum += max(0.0, 2.f / erfc(0.1*(TopSSRs[i]->GetSkillsetSSR(ss) - rating)) - 2);
 		}
 	} while (pow(2, rating * 0.1) < sum);
 	if (iter == 11)
@@ -338,9 +401,9 @@ float ScoreManager::AggregateSSRs(Skillset ss, float rating, float res, int iter
 	return AggregateSSRs(ss, rating - res, res / 2.f, iter + 1);
 }
 
-void ScoreManager::SortTopSSRPtrs(Skillset ss) {
+void ScoreManager::SortTopSSRPtrs(Skillset ss, const string& profileID) {
 	TopSSRs.clear();
-	FOREACHUM(string, ScoresForChart, pscores, i) {
+	FOREACHUM(string, ScoresForChart, pscores[profileID], i) {
 		if (!SONGMAN->IsChartLoaded(i->first))
 			continue;
 		vector<HighScore*> pbs = i->second.GetAllPBPtrs();
@@ -354,16 +417,13 @@ void ScoreManager::SortTopSSRPtrs(Skillset ss) {
 }
 
 HighScore* ScoreManager::GetTopSSRHighScore(unsigned int rank, int ss) {
-	if (rank < 0)
-		rank = 0;
-
 	if (ss >= 0 && ss < NUM_Skillset && rank < TopSSRs.size())
 		return TopSSRs[rank];
 
 	return NULL;
 }
 
-void ScoreManager::ImportScore(const HighScore& hs_) {
+void ScoreManager::ImportScore(const HighScore& hs_, const string& profileID) {
 	HighScore hs = hs_;
 
 	// don't import duplicated scores
@@ -371,10 +431,12 @@ void ScoreManager::ImportScore(const HighScore& hs_) {
 	// actually i'll just disable this for the time being and give myself time to test it later
 	//if(!ScoresByKey.count(hs.GetScoreKey()))
 
-	pscores[hs.GetChartKey()].AddScore(hs);
+	RegisterScoreInProfile(pscores[profileID][hs.GetChartKey()].AddScore(hs), profileID);
 }
 
-
+void ScoreManager::RegisterScoreInProfile(HighScore* hs_, const string& profileID) {
+	AllProfileScores[profileID].emplace_back(hs_);
+}
 
 
 
@@ -417,16 +479,20 @@ XNode * ScoresForChart::CreateNode(const string& ck) const {
 		auto node = i->second.CreateNode(i->first);
 		if (!node->ChildrenEmpty())
 			o->AppendChild(node);
+		else
+			delete node;
 	}
 	return o;
 }
 
-XNode * ScoreManager::CreateNode() const {
+XNode * ScoreManager::CreateNode(const string& profileID) const {
 	XNode* o = new XNode("PlayerScores");
-	FOREACHUM_CONST(string, ScoresForChart, pscores, ch) {
+	FOREACHUM_CONST(string, ScoresForChart, pscores.find(profileID)->second, ch) {
 		auto node = ch->second.CreateNode(ch->first);
 		if (!node->ChildrenEmpty())
 			o->AppendChild(node);
+		else
+			delete node;
 	}
 
 	return o;
@@ -434,7 +500,7 @@ XNode * ScoreManager::CreateNode() const {
 
 
 // Read scores from xml
-void ScoresAtRate::LoadFromNode(const XNode* node, const string& ck, const float& rate) {
+void ScoresAtRate::LoadFromNode(const XNode* node, const string& ck, const float& rate, const string& profileID) {
 	RString sk;
 	FOREACH_CONST_Child(node, p) {
 		p->GetAttrValue("Key", sk);
@@ -449,18 +515,7 @@ void ScoresAtRate::LoadFromNode(const XNode* node, const string& ck, const float
 				PBptr = &scores.find(sk)->second;
 		}
 
-		// lurker says:
-		// don't even TRY to fuck with nocc pb unless the score is nocc
-		if (scores[sk].GetChordCohesion() == 0) {
-			// Set any nocc pb
-			if (noccPBptr == nullptr)
-				noccPBptr = &scores.find(sk)->second;
-			else {
-				// update nocc pb if a better score is found
-				if (noccPBptr->GetSSRNormPercent() < scores[sk].GetSSRNormPercent())
-					noccPBptr = &scores.find(sk)->second;
-			}
-		}
+		HandleNoCCPB(scores[sk]);
 
 		// Fill in stuff for the highscores
 		scores[sk].SetChartKey(ck);
@@ -472,10 +527,11 @@ void ScoresAtRate::LoadFromNode(const XNode* node, const string& ck, const float
 		// Very awkward, need to figure this out better so there isn't unnecessary redundancy between loading and adding
 		SCOREMAN->RegisterScore(&scores.find(sk)->second);
 		SCOREMAN->AddToKeyedIndex(&scores.find(sk)->second);
+		SCOREMAN->RegisterScoreInProfile(&scores.find(sk)->second, profileID);
 	}
 }
 
-void ScoresForChart::LoadFromNode(const XNode* node, const string& ck) {
+void ScoresForChart::LoadFromNode(const XNode* node, const string& ck, const string& profileID) {
 	RString rs = "";
 	int rate;
 
@@ -493,19 +549,19 @@ void ScoresForChart::LoadFromNode(const XNode* node, const string& ck) {
 		ASSERT(p->GetName() == "ScoresAt");
 		p->GetAttrValue("Rate", rs);
 		rate = 10 * StringToInt(rs.substr(0, 1) + rs.substr(2, 4));
-		ScoresByRate[rate].LoadFromNode(p, ck, KeyToRate(rate));
+		ScoresByRate[rate].LoadFromNode(p, ck, KeyToRate(rate), profileID);
 		bestGrade = min(ScoresByRate[rate].bestGrade, bestGrade);
 	}
 }
 
-void ScoreManager::LoadFromNode(const XNode * node) {
+void ScoreManager::LoadFromNode(const XNode * node, const string& profileID) {
 	FOREACH_CONST_Child(node, p) {
 		//ASSERT(p->GetName() == "Chart");
 		RString tmp;
 		p->GetAttrValue("Key", tmp);
 		string doot = SONGMAN->ReconcileBustedKeys(tmp);
 		const string ck = doot;
-		pscores[ck].LoadFromNode(p, ck);
+		pscores[profileID][ck].LoadFromNode(p, ck, profileID);
 	}
 }
 
@@ -518,9 +574,9 @@ ScoresAtRate* ScoresForChart::GetScoresAtRate(const int& rate) {
 	return NULL;
 }
 
-ScoresForChart* ScoreManager::GetScoresForChart(const string& ck) {
-	auto it = pscores.find(ck);
-	if (it != pscores.end())
+ScoresForChart* ScoreManager::GetScoresForChart(const string& ck, const string& profileID) {
+	auto it = (pscores[profileID]).find(ck);
+	if (it != (pscores[profileID]).end())
 		return &it->second;
 	return NULL;
 }
@@ -569,7 +625,7 @@ public:
 		const string& ck = SArg(1);
 		ScoresForChart* scores = p->GetScoresForChart(ck);
 
-		if (scores) {
+		if (scores != nullptr) {
 			lua_newtable(L);
 			vector<int> ratekeys = scores->GetPlayedRateKeys();
 			vector<string> ratedisplay = scores->GetPlayedRateDisplayStrings();
@@ -598,7 +654,7 @@ public:
 
 	static int GetTopSSRHighScore(T* p, lua_State *L) {
 		HighScore* ths = p->GetTopSSRHighScore(IArg(1) - 1, Enum::Check<Skillset>(L, 2));
-		if (ths)
+		if (ths != nullptr)
 			ths->PushSelf(L);
 		else
 			lua_pushnil(L);

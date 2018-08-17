@@ -1,13 +1,12 @@
-#include "global.h"
-#include "RoomWheel.h"
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "ScreenTextEntry.h"
-#include "LocalizedString.h"
-#include "NetworkSyncManager.h"
-#include "ScreenManager.h"
+﻿#include "global.h"
 #include "ActorUtil.h"
 #include "LocalizedString.h"
+#include "NetworkSyncManager.h"
+#include "RageLog.h"
+#include "RageUtil.h"
+#include "RoomWheel.h"
+#include "ScreenManager.h"
+#include "ScreenTextEntry.h"
 
 static LocalizedString EMPTY_STRING	( "RoomWheel", "Empty" );
 
@@ -22,12 +21,19 @@ RoomWheel::~RoomWheel()
 	m_CurWheelItemData.clear();
 }
 
-void RoomWheel::Load( const RString &sType ) 
+void RoomWheel::Load( const std::string &sType ) 
 {
 	WheelBase::Load( sType );
 
 	m_offset = 0;
 	LOG->Trace( "RoomWheel::Load('%s')", sType.c_str() );
+
+	searching = false;
+	currentSearch.title = "";
+	currentSearch.desc = "";
+	currentSearch.ingame = true;
+	currentSearch.open = true;
+	currentSearch.password = true;
 
 	AddPermanentItem( new RoomWheelItemData(WheelItemDataType_Generic, "Create Room", "Create a new game room", THEME->GetMetricC( m_sName, "CreateRoomColor")) );
 
@@ -40,7 +46,7 @@ WheelItemBase *RoomWheel::MakeItem()
 	return new RoomWheelItem;
 }
 
-RoomWheelItem::RoomWheelItem( const RString &sType ):
+RoomWheelItem::RoomWheelItem( const std::string &sType ):
 	WheelItemBase( sType )
 {
 	Load( sType );
@@ -64,7 +70,7 @@ RoomWheelItem::RoomWheelItem( const RoomWheelItem &cpy ):
 	}
 }
 
-void RoomWheelItem::Load( const RString &sType )
+void RoomWheelItem::Load( const std::string &sType )
 {
 	// colorpart gets added first in MusicWheelItem, so follow that here.
 	m_sprColorPart.Load( THEME->GetPathG(sType,"ColorPart") );
@@ -195,6 +201,140 @@ unsigned int RoomWheel::GetNumItems() const
 }
 
 
+bool findme(std::string str, std::string findme)
+{
+	std::transform(begin(str), end(str), begin(str), ::tolower);
+	return str.find(findme) != string::npos;
+}
+
+void RoomWheel::FilterBySearch()
+{
+	std::function<bool (RoomData)> check;
+
+	//Function that checks if we should remove the room based on it's state
+	std::function<bool(RoomData)> checkState = [this](RoomData x) {
+		return (x.State() == 2 && !currentSearch.ingame) ||
+			(x.State() != 2 && !currentSearch.open) ||
+			(x.GetFlags() % 2 && !currentSearch.password);
+	};
+	//Assign check function
+	if (!(currentSearch.ingame && currentSearch.open && currentSearch.password)) {
+		if (currentSearch.title == "" && currentSearch.desc == "")
+			check = checkState;
+		else {
+			if (currentSearch.title == "")
+				check = [this, checkState](RoomData x) {
+				return checkState(x) ||
+					!findme(x.Description(), currentSearch.desc);
+			};
+			else {
+				if (currentSearch.desc == "")
+					check = [this, checkState](RoomData x) {
+					return checkState(x) ||
+						!findme(x.Name(), currentSearch.title);
+				};
+				else
+					check = [this, checkState](RoomData x) {
+					return checkState(x) ||
+						!(findme(x.Name(), currentSearch.title) && findme(x.Description(), currentSearch.desc));
+				};
+			}
+		}
+	}
+	else {
+		if (currentSearch.title == "")
+			check = [this](RoomData x) { return !findme(x.Description(), currentSearch.desc); };
+		else {
+			if (currentSearch.desc == "")
+				check = [this](RoomData x) { return !findme(x.Name(), currentSearch.title); };
+			else
+				check = [this](RoomData x) { return !(findme(x.Name(), currentSearch.title) && 
+					findme(x.Description(), currentSearch.desc)); };
+		}
+	}
+	roomsInWheel.clear();
+	for (RoomData x : *allRooms)
+		if (!check(x))
+			roomsInWheel.emplace_back(x);
+}
+void RoomWheel::BuildFromRoomDatas()
+{
+	if (allRooms == NULL)
+		return;
+	if (searching)
+		FilterBySearch();
+	else
+		roomsInWheel = (*allRooms);
+	int difference = 0;
+	RoomWheelItemData* itemData = NULL;
+
+	difference = GetNumItems() - roomsInWheel.size();
+
+	if (!IsEmpty())
+	{
+		if (difference > 0)
+			for (int x = 0; x < difference; ++x)
+				RemoveItem(GetNumItems() - 1);
+		else
+		{
+			difference = abs(difference);
+			for (int x = 0; x < difference; ++x)
+				AddItem(new RoomWheelItemData(WheelItemDataType_Generic, "", "", RageColor(1, 1, 1, 1)));
+		}
+	}
+	else
+	{
+		for (unsigned int x = 0; x < roomsInWheel.size(); ++x)
+			AddItem(new RoomWheelItemData(WheelItemDataType_Generic, "", "", RageColor(1, 1, 1, 1)));
+	}
+
+	for (unsigned int i = 0; i < roomsInWheel.size(); ++i)
+	{
+		itemData = GetItem(i);
+
+		itemData->m_sText = roomsInWheel[i].Name();
+		itemData->m_sDesc = roomsInWheel[i].Description();
+		itemData->m_iFlags = roomsInWheel[i].GetFlags();
+		itemData->hasPassword = roomsInWheel[i].HasPassword();
+		std::string color;
+		switch (roomsInWheel[i].State())
+		{
+		case 2:
+			color = "InGameRoomColor";
+			break;
+		default:
+			color = "OpenRoomColor";
+			break;
+		}
+		itemData->m_color = THEME->GetMetricC(m_sName, color);
+
+		if (roomsInWheel[i].GetFlags() % 2 || roomsInWheel[i].HasPassword())
+			itemData->m_color = THEME->GetMetricC(m_sName, "PasswdRoomColor");
+	}
+
+	RebuildWheelItems();
+}
+void RoomWheel::UpdateRoomsList(vector<RoomData> * roomsptr)
+{
+	allRooms = roomsptr;
+	BuildFromRoomDatas();
+}
+void RoomWheel::Search(RoomSearch findme)
+{
+	searching = true;
+	currentSearch = findme;
+	BuildFromRoomDatas();
+}
+void RoomWheel::StopSearch()
+{
+	searching = false;
+	currentSearch.title = "";
+	currentSearch.desc = "";
+	currentSearch.ingame = true;
+	currentSearch.open = true;
+	currentSearch.password = true;
+	BuildFromRoomDatas();
+}
 // lua start
 #include "LuaBinding.h"
 
@@ -210,10 +350,45 @@ public:
 		}
 		return 1;
 	}
+	static int StopSearch(T* p, lua_State *L)
+	{
+		p->StopSearch();
+		return 1;
+	}
+	static int Search(T* p, lua_State *L)
+	{
+		if (lua_isnil(L, 5))
+		{
+			p->StopSearch();
+		}
+		else
+		{
+			RoomSearch findme;
+			findme.title = SArg(1);
+			findme.desc = SArg(2);
+			findme.ingame = BArg(3);
+			findme.password = BArg(4);
+			findme.open = BArg(5);
+			p->Search(findme);
+		}
+		return 1;
+	}
 
+	static int MoveAndCheckType(T* p, lua_State *L)
+	{
+		int n = IArg(1);
+		p->Move(n);
+		auto tt = p->GetSelectedType();
+		LuaHelpers::Push(L, tt);
+
+		return 1;
+	}
 	LunaRoomWheel()
 	{
 		ADD_METHOD(Move);
+		ADD_METHOD(MoveAndCheckType);
+		ADD_METHOD(StopSearch);
+		ADD_METHOD(Search);
 	}
 };
 

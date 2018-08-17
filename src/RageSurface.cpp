@@ -1,4 +1,4 @@
-#include "global.h"
+﻿#include "global.h"
 #include "RageSurface.h"
 #include "RageUtil.h"
 
@@ -49,7 +49,7 @@ RageSurfaceFormat::RageSurfaceFormat( const RageSurfaceFormat &cpy ):
 	Rshift(Shift[0]), Gshift(Shift[1]), Bshift(Shift[2]), Ashift(Shift[3])
 {
 	memcpy( this, &cpy, sizeof(RageSurfaceFormat) );
-	if( palette )
+	if( palette != nullptr )
 		palette = new RageSurfacePalette( *palette );
 }
 
@@ -106,7 +106,7 @@ bool RageSurfaceFormat::operator== ( const RageSurfaceFormat &rhs ) const
 
 bool RageSurfaceFormat::Equivalent( const RageSurfaceFormat &rhs ) const
 {
-#define COMP(a) if( a != rhs.a ) return false;
+#define COMP(a) if( (a) != rhs.a ) return false;
 	COMP( BytesPerPixel );
 	COMP( Rmask );
 	COMP( Gmask );

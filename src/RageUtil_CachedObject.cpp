@@ -1,6 +1,6 @@
-#include "global.h"
-#include "RageUtil_CachedObject.h"
+﻿#include "global.h"
 #include "RageThreads.h"
+#include "RageUtil_CachedObject.h"
 
 #if 0
 /* Example use: */

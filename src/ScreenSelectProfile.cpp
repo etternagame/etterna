@@ -1,9 +1,9 @@
 #include "global.h"
-#include "ScreenSelectProfile.h"
-#include "ScreenManager.h"
-#include "ProfileManager.h"
 #include "GameState.h"
 #include "InputEventPlus.h"
+#include "ProfileManager.h"
+#include "ScreenManager.h"
+#include "ScreenSelectProfile.h"
 
 REGISTER_SCREEN_CLASS( ScreenSelectProfile );
 
@@ -43,7 +43,7 @@ bool ScreenSelectProfile::MenuLeft( const InputEventPlus &input )
 			return false;
 	}
 	m_TrackingRepeatingInput = input.MenuI;
-	MESSAGEMAN->Broadcast( (MessageID)(Message_MenuLeftP1+pn) );
+	MESSAGEMAN->Broadcast( static_cast<MessageID>(Message_MenuLeftP1+pn) );
 	return true;
 }
 
@@ -64,7 +64,7 @@ bool ScreenSelectProfile::MenuRight( const InputEventPlus &input )
 			return false;
 	}
 	m_TrackingRepeatingInput = input.MenuI;
-	MESSAGEMAN->Broadcast( (MessageID)(Message_MenuRightP1+pn) );
+	MESSAGEMAN->Broadcast( static_cast<MessageID>(Message_MenuRightP1+pn) );
 	return true;
 }
 
@@ -85,7 +85,7 @@ bool ScreenSelectProfile::MenuUp( const InputEventPlus &input )
 			return false;
 	}
 	m_TrackingRepeatingInput = input.MenuI;
-	MESSAGEMAN->Broadcast( (MessageID)(Message_MenuUpP1+pn) );
+	MESSAGEMAN->Broadcast( static_cast<MessageID>(Message_MenuUpP1+pn) );
 	return true;
 }
 
@@ -106,7 +106,7 @@ bool ScreenSelectProfile::MenuDown( const InputEventPlus &input )
 			return false;
 	}
 	m_TrackingRepeatingInput = input.MenuI;
-	MESSAGEMAN->Broadcast( (MessageID)(Message_MenuDownP1+pn) );
+	MESSAGEMAN->Broadcast( static_cast<MessageID>(Message_MenuDownP1+pn) );
 	return true;
 }
 
@@ -175,7 +175,7 @@ bool ScreenSelectProfile::Finish(){
 	}
 
 	// this allows to continue if there is less local profiles than number of human players
-	if( iUnselectedProfiles && iUsedLocalProfiles < PROFILEMAN->GetNumLocalProfiles() )
+	if( (iUnselectedProfiles != 0) && iUsedLocalProfiles < PROFILEMAN->GetNumLocalProfiles() )
 		return false;
 
 	// all ok - load profiles and go to next screen

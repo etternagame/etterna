@@ -1,10 +1,10 @@
 #include "global.h"
-#include "ScreenStatsOverlay.h"
 #include "ActorUtil.h"
 #include "PrefsManager.h"
 #include "RageDisplay.h"
 #include "RageLog.h"
 #include "ScreenDimensions.h"
+#include "ScreenStatsOverlay.h"
 
 REGISTER_SCREEN_CLASS( ScreenStatsOverlay );
 
@@ -15,6 +15,17 @@ void ScreenStatsOverlay::Init()
  	m_textStats.LoadFromFont( THEME->GetPathF(m_sName,"stats") );
 	m_textStats.SetName( "Stats" );
 	LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND( m_textStats ); 
+	
+	RectF rectStats = RectF(
+		SCREEN_WIDTH - 80, 
+		0, 
+		SCREEN_WIDTH, 
+		80
+		);
+	m_quadStatBackground.StretchTo( rectStats );
+	m_quadStatBackground.SetDiffuse( RageColor(0,0,0,0.4f) );
+	this->AddChild(&m_quadStatBackground);
+	
 	this->AddChild( &m_textStats );
 
 	/* "Was that a skip?"  This displays a message when an update takes
@@ -110,7 +121,7 @@ void ScreenStatsOverlay::UpdateSkips()
 	 * during this time. Do clear the timer, though, so we don't report
 	 * a big "skip" after this period passes. 
 	 * Also disregard differences bellow 1ms as runtime will be inconsistent */
-	if( !DISPLAY->GetFPS() || UpdateTime <= 0.001f )
+	if( (DISPLAY->GetFPS() == 0) || UpdateTime <= 0.001f )
 		return;
 
 	/* We want to display skips.  We expect to get updates of about 1.0/FPS ms. */
@@ -136,7 +147,7 @@ void ScreenStatsOverlay::UpdateSkips()
 	}
 
 	
-	if( skip )
+	if( skip != 0 )
 	{
 		float skipTime = 1000 * (UpdateTime - ExpectedUpdate);
 		if (skipTime >= PREFSMAN->m_bAllowedLag.Get() * 1000 )

@@ -31,10 +31,6 @@
  */
 
 #include <stdint.h>
-#include "libavutil/attributes.h"
-#include "version.h"
-
-#if FF_API_STRUCT_VAAPI_CONTEXT
 
 /**
  * @defgroup lavc_codec_hwaccel_vaapi VA API Decoding
@@ -50,10 +46,8 @@
  * during initialization or through each AVCodecContext.get_buffer()
  * function call. In any case, they must be valid prior to calling
  * decoding functions.
- *
- * Deprecated: use AVCodecContext.hw_frames_ctx instead.
  */
-struct attribute_deprecated vaapi_context {
+struct vaapi_context {
     /**
      * Window system dependent data
      *
@@ -78,14 +72,12 @@ struct attribute_deprecated vaapi_context {
      */
     uint32_t context_id;
 
-#if FF_API_VAAPI_CONTEXT
     /**
      * VAPictureParameterBuffer ID
      *
      * - encoding: unused
      * - decoding: Set by libavcodec
      */
-    attribute_deprecated
     uint32_t pic_param_buf_id;
 
     /**
@@ -94,7 +86,6 @@ struct attribute_deprecated vaapi_context {
      * - encoding: unused
      * - decoding: Set by libavcodec
      */
-    attribute_deprecated
     uint32_t iq_matrix_buf_id;
 
     /**
@@ -103,7 +94,6 @@ struct attribute_deprecated vaapi_context {
      * - encoding: unused
      * - decoding: Set by libavcodec
      */
-    attribute_deprecated
     uint32_t bitplane_buf_id;
 
     /**
@@ -112,7 +102,6 @@ struct attribute_deprecated vaapi_context {
      * - encoding: unused
      * - decoding: Set by libavcodec
      */
-    attribute_deprecated
     uint32_t *slice_buf_ids;
 
     /**
@@ -121,7 +110,6 @@ struct attribute_deprecated vaapi_context {
      * - encoding: unused
      * - decoding: Set by libavcodec
      */
-    attribute_deprecated
     unsigned int n_slice_buf_ids;
 
     /**
@@ -130,7 +118,6 @@ struct attribute_deprecated vaapi_context {
      * - encoding: unused
      * - decoding: Set by libavcodec
      */
-    attribute_deprecated
     unsigned int slice_buf_ids_alloc;
 
     /**
@@ -139,7 +126,6 @@ struct attribute_deprecated vaapi_context {
      * - encoding: unused
      * - decoding: Set by libavcodec
      */
-    attribute_deprecated
     void *slice_params;
 
     /**
@@ -148,7 +134,6 @@ struct attribute_deprecated vaapi_context {
      * - encoding: unused
      * - decoding: Set by libavcodec
      */
-    attribute_deprecated
     unsigned int slice_param_size;
 
     /**
@@ -157,7 +142,6 @@ struct attribute_deprecated vaapi_context {
      * - encoding: unused
      * - decoding: Set by libavcodec
      */
-    attribute_deprecated
     unsigned int slice_params_alloc;
 
     /**
@@ -166,7 +150,6 @@ struct attribute_deprecated vaapi_context {
      * - encoding: unused
      * - decoding: Set by libavcodec
      */
-    attribute_deprecated
     unsigned int slice_count;
 
     /**
@@ -174,7 +157,6 @@ struct attribute_deprecated vaapi_context {
      * - encoding: unused
      * - decoding: Set by libavcodec
      */
-    attribute_deprecated
     const uint8_t *slice_data;
 
     /**
@@ -183,13 +165,9 @@ struct attribute_deprecated vaapi_context {
      * - encoding: unused
      * - decoding: Set by libavcodec
      */
-    attribute_deprecated
     uint32_t slice_data_size;
-#endif
 };
 
 /* @} */
-
-#endif /* FF_API_STRUCT_VAAPI_CONTEXT */
 
 #endif /* AVCODEC_VAAPI_H */

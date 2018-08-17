@@ -134,8 +134,9 @@ function getVividDifficultyColor(diff)
 	return color(colorConfig:get_data().difficultyVivid[diff]) or color("#ffffff")
 end
 
+-- expecting ms input (153, 13.321, etc) so convert to seconds to compare to judgment windows -mina
 function offsetToJudgeColor(offset,scale)
-	local offset = math.abs(offset)
+	local offset = math.abs(offset/1000)
 	if not scale then
 		scale = PREFSMAN:GetPreference("TimingWindowScale")
 	end
@@ -147,10 +148,49 @@ function offsetToJudgeColor(offset,scale)
 		return color(colorConfig:get_data().judgment["TapNoteScore_W3"])
 	elseif offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW4") then
 		return color(colorConfig:get_data().judgment["TapNoteScore_W4"])
-	elseif offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW5") then
+	elseif offset <= math.max(scale*PREFSMAN:GetPreference("TimingWindowSecondsW5"), 0.180) then
 		return color(colorConfig:get_data().judgment["TapNoteScore_W5"])
 	else
 		return color(colorConfig:get_data().judgment["TapNoteScore_Miss"])
+	end
+end
+
+-- 30% hardcoded, should var but lazy atm -mina
+function offsetToJudgeColorAlpha(offset,scale)
+	local offset = math.abs(offset/1000)
+	if not scale then
+		scale = PREFSMAN:GetPreference("TimingWindowScale")
+	end
+	if offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW1") then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W1"].."48")
+	elseif offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW2") then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W2"].."48")
+	elseif offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW3") then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W3"].."48")
+	elseif offset <= scale*PREFSMAN:GetPreference("TimingWindowSecondsW4") then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W4"].."48")
+	elseif offset <= math.max(scale*PREFSMAN:GetPreference("TimingWindowSecondsW5"), 0.180) then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W5"].."48")
+	else
+		return color(colorConfig:get_data().judgment["TapNoteScore_Miss"].."48")
+	end
+end
+
+-- 30% hardcoded, should var but lazy atm -mina
+function customOffsetToJudgeColor(offset, windows)
+	local offset = math.abs(offset)
+	if offset <= windows.marv then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W1"].."48")
+	elseif offset <= windows.perf then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W2"].."48")
+	elseif offset <= windows.great then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W3"].."48")
+	elseif offset <= windows.good then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W4"].."48")
+	elseif offset <= math.max(windows.boo, 0.180) then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W5"].."48")
+	else
+		return color(colorConfig:get_data().judgment["TapNoteScore_Miss"].."48")
 	end
 end
 
@@ -162,18 +202,46 @@ function byDifficulty(diff)
 	return color(colorConfig:get_data().difficulty[diff])
 end
 
+-- i guess if i'm going to use this naming convention it might as well be complete and standardized which means redundancy -mina
+function byGrade(grade)
+	return color(colorConfig:get_data().grade[grade]) or color(colorConfig:get_data().grade['Grade_None'])
+end
+
 -- Colorized stuff
-function ByMSD(x)
+function byMSD(x)
 	if x then
 		return HSV(math.max(95 - (x/40)*150, -50), 0.9, 0.9)
 	end
 	return HSV(0, 0.9, 0.9)
 end
 
-function ByMusicLength(x)
+function byMusicLength(x)
 	if x then
 		x = math.min(x,600)
 		return HSV(math.max(95 - (x/900)*150, -50), 0.9, 0.9)
 	end
 	return HSV(0, 0.9, 0.9)
+end
+
+function byFileSize(x)
+	if x then
+		x = math.min(x,600)
+		return HSV(math.max(95 - (x/1025)*150, -50), 0.9, 0.9)
+	end
+	return HSV(0, 0.9, 0.9)
+end
+
+-- yes i know i shouldnt hardcode this -mina
+function bySkillRange(x)
+	if x <= 10 then
+		return color("#66ccff")
+	elseif x <= 15 then
+		return color("#099948")
+	elseif x <= 21 then
+		return color("#ddaa00")
+	elseif x <= 25 then
+		return color("#ff6666")
+	else
+		return color("#c97bff")
+	end
 end

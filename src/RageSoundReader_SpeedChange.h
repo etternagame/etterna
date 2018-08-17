@@ -1,4 +1,4 @@
-/* RageSoundReader_SpeedChange - change the speed of an audio stream without changing its pitch. */
+﻿/* RageSoundReader_SpeedChange - change the speed of an audio stream without changing its pitch. */
 
 #ifndef RAGE_SOUND_READER_SPEED_CHANGE_H
 #define RAGE_SOUND_READER_SPEED_CHANGE_H

@@ -1,15 +1,13 @@
 #ifndef NOTE_FIELD_H
 #define NOTE_FIELD_H
 
-#include "TimingData.h"
-#include "SongPosition.h"
-#include "Sprite.h"
 #include "ActorFrame.h"
 #include "BitmapText.h"
-#include "Quad.h"
-#include "NoteDisplay.h"
-#include "ReceptorArrowRow.h"
 #include "GhostArrowRow.h"
+#include "NoteDisplay.h"
+#include "Quad.h"
+#include "ReceptorArrowRow.h"
+#include "Sprite.h"
 
 struct Attack;
 class NoteData;
@@ -65,23 +63,23 @@ public:
 	vector<NoteColumnRenderer> m_ColumnRenderers;
 
 protected:
-	void CacheNoteSkin( const RString &sNoteSkin );
+	void CacheNoteSkin( const RString &sNoteSkin, PlayerNumber pn );
 	void UncacheNoteSkin( const RString &sNoteSkin );
 
 	void DrawBoard( int iDrawDistanceAfterTargetsPixels, int iDrawDistanceBeforeTargetsPixels );
 
 	enum BeatBarType { measure, beat, half_beat, quarter_beat };
-	void DrawBeatBar( const float fBeat, BeatBarType type, int iMeasureIndex );
+	void DrawBeatBar( float fBeat, BeatBarType type, int iMeasureIndex );
 	void DrawMarkerBar( int fBeat );
 	void DrawAreaHighlight( int iStartBeat, int iEndBeat );
 	void set_text_measure_number_for_draw(
-		const float beat, const float side_sign, float x_offset,
-		const float horiz_align, const RageColor& color, const RageColor& glow);
+		float beat, float side_sign, float x_offset,
+		float horiz_align, const RageColor& color, const RageColor& glow);
 	void draw_timing_segment_text(const RString& text,
-		const float beat, const float side_sign, float x_offset,
-		const float horiz_align, const RageColor& color, const RageColor& glow);
-	void DrawAttackText(const float beat, const Attack &attack, const RageColor& glow);
-	void DrawBGChangeText(const float beat, const RString new_bg_name, const RageColor& glow);
+		float beat, float side_sign, float x_offset,
+		float horiz_align, const RageColor& color, const RageColor& glow);
+	void DrawAttackText(float beat, const Attack &attack, const RageColor& glow);
+	void DrawBGChangeText(float beat, RString new_bg_name, const RageColor& glow);
 	float GetWidth() const;
 	
 	const NoteData *m_pNoteData;

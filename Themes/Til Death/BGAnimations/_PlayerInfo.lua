@@ -10,29 +10,35 @@ local playCount = 0
 local playTime = 0
 local noteCount = 0
 local numfaves = 0
-local profileXP = 0
 local AvatarX = 0
 local AvatarY = SCREEN_HEIGHT-50
 local playerRating = 0
 
+local setnewdisplayname = function(answer)
+	profile:RenameProfile(answer)
+	profileName = answer
+	MESSAGEMAN:Broadcast("ProfileRenamed", {doot = answer})
+end
+
 t[#t+1] = Def.Actor{
-	BeginCommand=cmd(queuecommand,"Set"),
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end,
 	SetCommand=function(self)
 		profile = GetPlayerOrMachineProfile(PLAYER_1)
 		profileName = profile:GetDisplayName()
 		playCount = profile:GetTotalNumSongsPlayed()
 		playTime = profile:GetTotalSessionSeconds()
 		noteCount = profile:GetTotalTapsAndHolds()
-		profileXP = math.floor(profile:GetTotalDancePoints() / 10 + profile:GetTotalNumSongsPlayed() * 50)
 		playerRating = profile:GetPlayerRating()
 	end,
-	PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-	PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set")
 }
 
 t[#t+1] = Def.ActorFrame{
 	Name="Avatar"..PLAYER_1,
-	BeginCommand=cmd(queuecommand,"Set"),
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end,
 	SetCommand=function(self)
 		if profile == nil then
 			self:visible(false)
@@ -40,132 +46,205 @@ t[#t+1] = Def.ActorFrame{
 			self:visible(true)
 		end
 	end,
-	PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-	PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
-
+	
 	Def.Sprite {
 		Name="Image",
-		InitCommand=cmd(visible,true;halign,0;valign,0;xy,AvatarX,AvatarY),
-		BeginCommand=cmd(queuecommand,"ModifyAvatar"),
-		PlayerJoinedMessageCommand=cmd(queuecommand,"ModifyAvatar"),
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"ModifyAvatar"),
+		InitCommand=function(self)
+			self:visible(true):halign(0):valign(0):xy(AvatarX,AvatarY)
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("ModifyAvatar")
+		end,
 		ModifyAvatarCommand=function(self)
 			self:finishtweening()
 			self:Load(THEME:GetPathG("","../"..getAvatarPath(PLAYER_1)))
 			self:zoomto(50,50)
 		end,
 	},
-	--Revamped. SMO stuff for now. -Misterkister
 	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,AvatarX+53,AvatarY+7;halign,0;zoom,0.6;diffuse,getMainColor('positive')),
-		BeginCommand=cmd(queuecommand,"Set"),
+		InitCommand=function(self)
+			self:xy(AvatarX+53,AvatarY+7):maxwidth(400):halign(0):zoom(0.6):diffuse(getMainColor('positive'))
+		end,
 		SetCommand=function(self)
-			local tiers = {[0] = "1: Novice", [7] = "2: Basic", [13] = "3: Intermediate", [17] = "4: Advanced", [21] = "5: Expert", [25] = "6: Master", [29] = "7: Veteran", [35] = "8: Legendary", [40] = "9: Vibro Legend"}
-			local index = math.floor(playerRating)
-				while tiers[index] == nil do
-				index = index - 1
-				end
-			if IsNetSMOnline() then
-			self:settextf("%s: %5.2f (Tier %s)",profileName,playerRating,tiers[index])
-			else
 			self:settextf("%s: %5.2f",profileName,playerRating)
+			if profileName == "Default Profile" then
+				easyInputStringWithFunction("Choose a profile display name\nClicking your name will allow you to change it:", 64, false, setnewdisplayname)
 			end
 		end,
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+		MouseLeftClickMessageCommand=function(self)
+			if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
+				easyInputStringWithFunction("Choose new profile display name:", 64, false, setnewdisplayname)
+			end
+		end,
+		ProfileRenamedMessageCommand=function(self, params)
+			self:settextf("%s: %5.2f",params.doot,playerRating)
+		end,
 	},
 	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,AvatarX+53,AvatarY+20;halign,0;zoom,0.35;diffuse,getMainColor('positive')),
-		BeginCommand=cmd(queuecommand,"Set"),
+		InitCommand=function(self)
+			self:xy(SCREEN_CENTER_X,AvatarY+20):halign(0.5):zoom(0.5):diffuse(getMainColor('positive'))
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
+		SetCommand=function(self)
+			if DLMAN:IsLoggedIn() then
+				self:queuecommand("Login")
+			else
+				self:queuecommand("LogOut")
+			end
+		end,
+		LogOutMessageCommand=function(self)
+			if SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then	
+				self:settext("Click to login")
+			else
+				self:settextf("Not logged in")
+			end
+		end,
+		LoginMessageCommand=function(self)	--this seems a little clunky -mina
+			if SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then	
+				self:settextf("Logged in as %s (%5.2f: #%i) \n%s",DLMAN:GetUsername(),DLMAN:GetSkillsetRating("Overall"),DLMAN:GetSkillsetRank(ms.SkillSets[1]),"Click to Logout")
+			else
+				self:settextf("Logged in as %s (%5.2f: #%i)",DLMAN:GetUsername(),DLMAN:GetSkillsetRating("Overall"),DLMAN:GetSkillsetRank(ms.SkillSets[1]))
+			end
+		end,
+		OnlineUpdateMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
+	},
+	Def.Quad{
+		InitCommand=function(self)
+			self:xy(SCREEN_CENTER_X,AvatarY+20):halign(0.5):zoomto(100,30):diffusealpha(0)
+		end,
+		LoginFailedMessageCommand=function(self)
+			ms.ok("Login failed!")
+		end,
+		LoginMessageCommand=function(self)
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = DLMAN:GetUsername()
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = DLMAN:GetToken()
+			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+			playerConfig:save(pn_to_profile_slot(PLAYER_1))
+			ms.ok("Succesfully logged in")
+		end,
+		MouseLeftClickMessageCommand=function(self)
+			if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then 
+				if not DLMAN:IsLoggedIn() then
+					username = function(answer) 
+							user=answer
+						end
+					password = function(answer) 
+							pass=answer
+							DLMAN:Login(user, pass) 
+						end
+					easyInputStringWithFunction("Password:", 50, true, password)
+					easyInputStringWithFunction("Username:",50, false, username)
+				else
+					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = ""
+					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = ""
+					playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+					playerConfig:save(pn_to_profile_slot(PLAYER_1))
+					DLMAN:Logout()
+				end
+			end
+		end
+	},
+	LoadFont("Common Normal") .. {
+		InitCommand=function(self)
+			self:xy(AvatarX+53,AvatarY+20):halign(0):zoom(0.35):diffuse(getMainColor('positive'))
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			self:settext(playCount.." Plays")
 		end,
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
 	},
 	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,AvatarX+53,AvatarY+30;halign,0;zoom,0.35;diffuse,getMainColor('positive')),
-		BeginCommand=cmd(queuecommand,"Set"),
+		InitCommand=function(self)
+			self:xy(AvatarX+53,AvatarY+30):halign(0):zoom(0.35):diffuse(getMainColor('positive'))
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			self:settext(noteCount.." Arrows Smashed")
 		end,
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
 	},
 	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,AvatarX+53,AvatarY+40;halign,0;zoom,0.35;diffuse,getMainColor('positive')),
-		BeginCommand=cmd(queuecommand,"Set"),
+		InitCommand=function(self)
+			self:xy(AvatarX+53,AvatarY+40):halign(0):zoom(0.35):diffuse(getMainColor('positive'))
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			local time = SecondsToHHMMSS(playTime)
 			self:settextf(time.." PlayTime")
 		end,
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
 	},
 	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,SCREEN_CENTER_X-125,AvatarY+40;halign,0.5;zoom,0.35;diffuse,getMainColor('positive')),
-		BeginCommand=cmd(queuecommand,"Set"),
+		InitCommand=function(self)
+			self:xy(SCREEN_CENTER_X-125,AvatarY+40):halign(0.5):zoom(0.35):diffuse(getMainColor('positive'))
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			self:settext("Judge: "..GetTimingDifficulty())
 		end,
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
 	},
-	--Level system revamped. -Misterkister
 	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,SCREEN_CENTER_X,AvatarY+25;halign,0.5;zoom,0.35;diffuse,getMainColor('positive')),
-		BeginCommand=cmd(queuecommand,"Set"),
-		SetCommand=function(self)
-		local level = 1
-			if profileXP > 0 then
-				level = math.floor(math.log(profileXP) / math.log(2))
-			end
-			if(IsNetSMOnline()) then
-				self:settext("Overall Level: " .. level .. "\nEXP Earned: " .. profileXP .. "/" .. 2^(level+1))
-			else
-				self:settext("")
-			end
+		InitCommand=function(self)
+			self:xy(SCREEN_WIDTH-5,AvatarY+10):halign(1):zoom(0.35):diffuse(getMainColor('positive'))
 		end,
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
-	},
-	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,SCREEN_WIDTH-5,AvatarY+10;halign,1;zoom,0.35;diffuse,getMainColor('positive')),
-		BeginCommand=cmd(queuecommand,"Set"),
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			self:settext(GAMESTATE:GetEtternaVersion())
 		end,
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
 	},
 	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,SCREEN_WIDTH-5,AvatarY+20;halign,1;zoom,0.35;diffuse,getMainColor('positive')),
-		BeginCommand=cmd(queuecommand,"Set"),
+		InitCommand=function(self)
+			self:xy(SCREEN_WIDTH-5,AvatarY+20):halign(1):zoom(0.35):diffuse(getMainColor('positive'))
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			self:settextf("Songs Loaded: %i", SONGMAN:GetNumSongs())
 		end,
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
+		DFRFinishedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,		
 	},
 	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,SCREEN_WIDTH-5,AvatarY+30;halign,1;zoom,0.35;diffuse,getMainColor('positive')),
-		BeginCommand=cmd(queuecommand,"Set"),
+		InitCommand=function(self)
+			self:xy(SCREEN_WIDTH-5,AvatarY+30):halign(1):zoom(0.35):diffuse(getMainColor('positive'))
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			self:settextf("Songs Favorited: %i",  profile:GetNumFaves())
 		end,
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set"),
-		FavoritesUpdatedMessageCommand=cmd(queuecommand,"Set"),
+		FavoritesUpdatedMessageCommand=function(self)
+			self:queuecommand("Set")
+		end,
 	},
 }
 
 local function Update(self)
-	t.InitCommand=cmd(SetUpdateFunction,Update);
+	t.InitCommand=function(self)
+		self:SetUpdateFunction(Update)
+	end;
 	if getAvatarUpdateStatus(PLAYER_1) then
     	self:GetChild("Avatar"..PLAYER_1):GetChild("Image"):queuecommand("ModifyAvatar")
     	setAvatarUpdateStatus(PLAYER_1,false)
     end;
 end
-t.InitCommand=cmd(SetUpdateFunction,Update)
+t.InitCommand=function(self)
+	self:SetUpdateFunction(Update)
+end	
 
 return t

@@ -3,8 +3,8 @@
 #ifndef ScreenSystemLayer_H
 #define ScreenSystemLayer_H
 
-#include "Screen.h"
 #include "AutoActor.h"
+#include "Screen.h"
 
 class ScreenSystemLayer : public Screen
 {

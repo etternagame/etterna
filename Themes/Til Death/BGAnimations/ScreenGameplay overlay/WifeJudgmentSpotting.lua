@@ -34,6 +34,8 @@ local diffuse = Actor.diffuse
 local finishtweening = Actor.finishtweening
 local linear = Actor.linear
 local x = Actor.x
+local y = Actor.y
+local Zoomtoheight = Actor.zoomtoheight
 local queuecommand = Actor.queuecommand
 local playcommand = Actor.queuecommand
 local settext = BitmapText.settext
@@ -124,13 +126,14 @@ local enabledTargetTracker = playerConfig:get_data(pn_to_profile_slot(PLAYER_1))
 local enabledDisplayPercent = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).DisplayPercent
 local enabledJudgeCounter = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).JudgeCounter
 
--- restart button
+-- restart button (MOVED OUT OF THEME IN FAVOR OF REMAPPING)
+--[[
 local function froot(loop)
 	if loop.DeviceInput.button == "DeviceButton_`" then
 		SCREENMAN:GetTopScreen():SetPrevScreenName("ScreenStageInformation"):begin_backing_out()
 	end
 end
-
+]]
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 												**Main listener that moves and resizes things**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -206,24 +209,28 @@ local function firstHalfInput(event)
 			if event.DeviceInput.button == "DeviceButton_up" then
 				errorBarY = errorBarY - 5
 				eb.Center:y(errorBarY)
+				eb.WeightedBar:y(errorBarY)
 				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ErrorBarY = errorBarY
 				changed = true
 			end
 			if event.DeviceInput.button == "DeviceButton_down" then
 				errorBarY = errorBarY + 5
 				eb.Center:y(errorBarY)
+				eb.WeightedBar:y(errorBarY)
 				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ErrorBarY = errorBarY
 				changed = true
 			end
 			if event.DeviceInput.button == "DeviceButton_left" then
 				errorBarX = errorBarX - 5
 				eb.Center:x(errorBarX)
+				eb.WeightedBar:x(errorBarX)
 				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ErrorBarX = errorBarX
 				changed = true
 			end
 			if event.DeviceInput.button == "DeviceButton_right" then
 				errorBarX = errorBarX + 5
 				eb.Center:x(errorBarX)
+				eb.WeightedBar:x(errorBarX)
 				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ErrorBarX = errorBarX
 				changed = true
 			end
@@ -238,12 +245,14 @@ local function firstHalfInput(event)
 			if event.DeviceInput.button == "DeviceButton_up" then
 				errorBarHeight = errorBarHeight + 1
 				eb.Center:zoomtoheight(errorBarHeight)
+				eb.WeightedBar:zoomtoheight(errorBarHeight)
 				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.ErrorBarHeight = errorBarHeight
 				changed = true
 			end
 			if event.DeviceInput.button == "DeviceButton_down" then
 				errorBarHeight = errorBarHeight - 1
 				eb.Center:zoomtoheight(errorBarHeight)
+				eb.WeightedBar:zoomtoheight(errorBarHeight)
 				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.ErrorBarHeight = errorBarHeight
 				changed = true
 			end
@@ -657,9 +666,18 @@ end
 local t = Def.ActorFrame{										
 	Name = "WifePerch",
 	OnCommand=function()
-		if not IsNetSMOnline() then
+		-- Discord thingies
+		local largeImageTooltip = GetPlayerOrMachineProfile(PLAYER_1):GetDisplayName() .. ": " .. string.format("%5.2f", GetPlayerOrMachineProfile(PLAYER_1):GetPlayerRating())
+		local detail = GAMESTATE:GetCurrentSong():GetDisplayMainTitle() .. " " .. string.gsub(getCurRateDisplayString(), "Music", "") .. " [" .. GAMESTATE:GetCurrentSong():GetGroupName() .. "]"
+		-- truncated to 128 characters(discord hard limit)
+		detail = #detail < 128 and detail or string.sub(detail, 1, 124) .. "..."
+		local state = "MSD: " .. string.format("%05.2f", GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(),1))
+		local endTime = os.time() + GetPlayableTime()
+		GAMESTATE:UpdateDiscordPresence(largeImageTooltip, detail, state, endTime)
+
+		--[[if SCREENMAN:GetTopScreen():GetName() == "ScreenGameplay" then
 			SCREENMAN:GetTopScreen():AddInputCallback(froot)
-		end
+		end]]
 		if(playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay) then
 			SCREENMAN:GetTopScreen():AddInputCallback(firstHalfInput)
 			SCREENMAN:GetTopScreen():AddInputCallback(secondHalfInput)
@@ -690,9 +708,10 @@ local t = Def.ActorFrame{
 	Old scwh lanecover back for now. Equivalent to "screencutting" on ffr; essentially hides notes for a fixed distance before they appear
 on screen so you can adjust the time arrows display on screen without modifying their spacing from each other. 
 ]]	
-	
-t[#t+1] = LoadActor("lanecover")
 
+if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover then
+	t[#t+1] = LoadActor("lanecover")
+end
 	
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  					    	**Player Target Differential: Ghost target rewrite, average score gone for now**
@@ -719,7 +738,9 @@ local d = Def.ActorFrame{
 if targetTrackerMode == 0 then
 	d[#d+1] = LoadFont("Common Normal")..{
 		Name = "PercentDifferential",
-		InitCommand=cmd(xy,targetTrackerX,targetTrackerY;zoom,targetTrackerZoom;halign,0;valign,1),
+		InitCommand=function(self)
+			self:xy(targetTrackerX,targetTrackerY):zoom(targetTrackerZoom):halign(0):valign(1)
+		end,
 		JudgmentMessageCommand=function(self,msg)
 			local tDiff = msg.WifeDifferential
 			if tDiff >= 0 then 											
@@ -733,7 +754,9 @@ if targetTrackerMode == 0 then
 	else
 	d[#d+1] = LoadFont("Common Normal")..{
 		Name = "PBDifferential",
-		InitCommand=cmd(xy,targetTrackerX,targetTrackerY;zoom,targetTrackerZoom;halign,0;valign,1),
+		InitCommand=function(self)
+			self:xy(targetTrackerX,targetTrackerY):zoom(targetTrackerZoom):halign(0):valign(1)
+		end,
 		JudgmentMessageCommand=function(self,msg)
 			local tDiff = msg.WifePBDifferential
 			if tDiff then
@@ -773,12 +796,16 @@ local cp = Def.ActorFrame{
 		self:zoom(displayPercentZoom):addx(displayPercentX):addy(displayPercentY)
 	end,
 	Def.Quad{
-		InitCommand=cmd(xy,60 + mpOffset,(SCREEN_HEIGHT*0.62)-90;;zoomto, 60, 13;diffuse,color("0,0,0,0.4");horizalign,left;vertalign,top)
+		InitCommand=function(self)
+			self:xy(60 + mpOffset,(SCREEN_HEIGHT*0.62)-90):zoomto( 60, 13):diffuse(color("0,0,0,0.4")):horizalign(left):vertalign(top)
+		end	
 	},
 	-- Displays your current percentage score
 	LoadFont("Common Large")..{											
 		Name = "DisplayPercent",
-		InitCommand=cmd(xy,115 + mpOffset,220;zoom,0.3;halign,1;valign,1),
+		InitCommand=function(self)
+			self:xy(115 + mpOffset,220):zoom(0.3):halign(1):valign(1)
+		end,
 		OnCommand=function(self)
 			self:settextf("%05.2f%%", 0)
 		end,
@@ -831,7 +858,9 @@ local j = Def.ActorFrame{
 
  local function makeJudgeText(judge,index)		-- Makes text
  	return LoadFont("Common normal")..{
- 		InitCommand=cmd(xy,frameX+5,frameY+7+(index*spacing);zoom,judgeFontSize;halign,0),
+ 		InitCommand=function(self)
+ 			self:xy(frameX+5,frameY+7+(index*spacing)):zoom(judgeFontSize):halign(0)
+ 		end,
  		OnCommand=function(self)
  			settext(self,getShortJudgeStrings(judge))
  			diffuse(self,jcT[judge])
@@ -842,12 +871,16 @@ local j = Def.ActorFrame{
  local function makeJudgeCount(judge,index)		-- Makes county things for taps....
  	return LoadFont("Common Normal")..{
  		Name = judge,
-		InitCommand=cmd(xy,frameWidth+frameX-5,frameY+7+(index*spacing);zoom,countFontSize;horizalign,right;settext,0) 	}
+		InitCommand=function(self)
+			self:xy(frameWidth+frameX-5,frameY+7+(index*spacing)):zoom(countFontSize):horizalign(right):settext(0)
+		end}
  end
 
 
 -- Background
-j[#j+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY+13;zoomto,frameWidth,frameHeight+18;diffuse,color("0,0,0,0.4");horizalign,left;vertalign,top)}
+j[#j+1] = Def.Quad{InitCommand=function(self)
+	self:xy(frameX,frameY+13):zoomto(frameWidth,frameHeight+18):diffuse(color("0,0,0,0.4")):horizalign(left):vertalign(top)
+end}
 
 -- Build judgeboard
 for i=1,#jdgT do
@@ -877,69 +910,110 @@ local barDuration = 0.75 								-- Time duration in seconds before the ticks fa
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
 local currentbar = 1 									-- so we know which error bar we need to update
 local ingots = {}										-- references to the error bars
+local alpha = 0.07;										-- ewma alpha
+local avg;
+local lastAvg;
 
 -- Makes the error bars. They position themselves relative to the center of the screen based on your dv and diffuse to your judgement value before disappating or refreshing
 -- Should eventually be handled by the game itself to optimize performance
 function smeltErrorBar(index)
 	return Def.Quad{
 		Name = index,
-		InitCommand=cmd(xy,errorBarX,errorBarY;zoomto,barWidth,errorBarHeight;diffusealpha,0),
+		InitCommand=function(self)
+			self:xy(errorBarX,errorBarY):zoomto(barWidth,errorBarHeight):diffusealpha(0)
+		end,
 		UpdateErrorBarCommand=function(self)						-- probably a more efficient way to achieve this effect, should test stuff later
 			finishtweening(self)									-- note: it really looks like shit without the fade out 
 			diffusealpha(self,1)
 			diffuse(self,jcT[jdgCur])
 			x(self,errorBarX+dvCur*wscale)
-			self:y(errorBarY)  -- i dont know why man it doenst work the other way ( y(self,errorBarY) )
-			self:zoomtoheight(errorBarHeight)
+			y(self,errorBarY)
+			Zoomtoheight(self, errorBarHeight)
 			linear(self,barDuration)
 			diffusealpha(self,0)
 		end
 	}
 end
 
-local e = Def.ActorFrame{										
+local e = Def.ActorFrame{
 	InitCommand = function(self)
 		eb = self:GetChildren()
-		for i=1,barcount do											-- basically the equivalent of using GetChildren() if it returned unnamed children numerically indexed
-			ingots[#ingots+1] = self:GetChild(i)
+		if enabledErrorBar == 1 then
+			for i=1,barcount do											-- basically the equivalent of using GetChildren() if it returned unnamed children numerically indexed
+				ingots[#ingots+1] = self:GetChild(i)
+			end
+		else
+			avg = 0;
+			lastAvg = 0;
 		end
 	end,
-	SpottedOffsetMessageCommand=function(self)				
-		currentbar = ((currentbar)%barcount) + 1
-		playcommand(ingots[currentbar],"UpdateErrorBar")			-- Update the next bar in the queue
+	SpottedOffsetMessageCommand=function(self)
+		if enabledErrorBar == 1 then
+			currentbar = ((currentbar)%barcount) + 1
+			playcommand(ingots[currentbar],"UpdateErrorBar")			-- Update the next bar in the queue
+		end
 	end,
 	DootCommand=function(self)
 		self:RemoveChild("DestroyMe")
 		self:RemoveChild("DestroyMe2")
 	end,
-
+	Def.Quad{
+		Name = "WeightedBar",
+		InitCommand=function(self)
+			if enabledErrorBar == 2 then
+				self:xy(errorBarX,errorBarY):zoomto(barWidth,errorBarHeight):diffusealpha(1):diffuse(getMainColor('enabled'))
+			else
+				self:visible(false)
+			end
+		end,
+		SpottedOffsetMessageCommand=function(self)
+			if enabledErrorBar == 2 then
+				avg = alpha * dvCur + (1 - alpha) * lastAvg
+				lastAvg = avg
+				self:x(errorBarX+avg*wscale)
+			end
+		end
+	},
 	Def.Quad {
 		Name = "Center",
-		InitCommand=cmd(diffuse,getMainColor('highlight');xy,errorBarX,errorBarY;zoomto,2,errorBarHeight)
+		InitCommand=function(self)
+			self:diffuse(getMainColor('highlight')):xy(errorBarX,errorBarY):zoomto(2,errorBarHeight)
+		end	
 	},
 	-- Indicates which side is which (early/late) These should be destroyed after the song starts.
 	LoadFont("Common Normal") .. {
 		Name = "DestroyMe",
-		InitCommand=cmd(xy,errorBarX+errorBarFrameWidth/4,errorBarY;zoom,0.35),
-		BeginCommand=cmd(settext,"Late";diffusealpha,0;smooth,0.5;diffusealpha,0.5;sleep,1.5;smooth,0.5;diffusealpha,0),
+		InitCommand=function(self)
+			self:xy(errorBarX+errorBarFrameWidth/4,errorBarY):zoom(0.35)
+		end,
+		BeginCommand=function(self)
+			self:settext("Late"):diffusealpha(0):smooth(0.5):diffusealpha(0.5):sleep(1.5):smooth(0.5):diffusealpha(0)
+		end,
 	},
 	LoadFont("Common Normal") .. {
 		Name = "DestroyMe2",
-		InitCommand=cmd(xy,errorBarX-errorBarFrameWidth/4,errorBarY;zoom,0.35),
-		BeginCommand=cmd(settext,"Early";diffusealpha,0;smooth,0.5;diffusealpha,0.5;sleep,1.5;smooth,0.5;diffusealpha,0;queuecommand,"Doot"),
+		InitCommand=function(self)
+			self:xy(errorBarX-errorBarFrameWidth/4,errorBarY):zoom(0.35)
+		end,
+		BeginCommand=function(self)
+			self:settext("Early"):diffusealpha(0):smooth(0.5):diffusealpha(0.5):sleep(1.5):smooth(0.5):diffusealpha(0):queuecommand("Doot")
+		end,
 		DootCommand=function(self)
 			self:GetParent():queuecommand("Doot")
 		end
 	}
 }
 
+
 -- Initialize bars
-for i=1,barcount do
-	e[#e+1] = smeltErrorBar(i)
+if enabledErrorBar == 1 then
+	for i=1,barcount do
+		e[#e+1] = smeltErrorBar(i)
+	end
 end
 
 -- Add the completed errorbar frame to the primary actor frame t if enabled
-if enabledErrorBar then
+if enabledErrorBar ~= 0 then
 	t[#t+1] = e
 end
 
@@ -976,30 +1050,44 @@ local p = Def.ActorFrame{
 		self:zoomto(fullProgressBarWidth,fullProgressBarHeight)
 		fb = self
 	end,
-	Def.Quad{InitCommand=cmd(zoomto,width,height;diffuse,color("#666666");diffusealpha,alpha)},			-- background
+	Def.Quad{
+		InitCommand=function(self)
+			self:zoomto(width,height):diffuse(color("#666666")):diffusealpha(alpha)
+		end,
+	},
 	Def.SongMeterDisplay{
 		InitCommand=function(self)
 			self:SetUpdateRate(0.5)
 		end,
 		StreamWidth=width,
-		Stream=Def.Quad{InitCommand=cmd(zoomy,height;diffuse,getMainColor("highlight"))}
+		Stream=Def.Quad{InitCommand=function(self)
+			self:zoomy(height):diffuse(getMainColor("highlight"))
+		end}
 	},
 	LoadFont("Common Normal")..{																		-- title
-		InitCommand=cmd(zoom,0.35;maxwidth,width*2),
-		BeginCommand=cmd(settext,GAMESTATE:GetCurrentSong():GetDisplayMainTitle()),
-		DoneLoadingNextSongMessageCommand=cmd(settext,GAMESTATE:GetCurrentSong():GetDisplayMainTitle())
+		InitCommand=function(self)
+			self:zoom(0.35):maxwidth(width*2)
+		end,
+		BeginCommand=function(self)
+			self:settext(GAMESTATE:GetCurrentSong():GetDisplayMainTitle())
+		end,
+		DoneLoadingNextSongMessageCommand=function(self)
+			self:settext(GAMESTATE:GetCurrentSong():GetDisplayMainTitle())
+		end	
 	},
 	LoadFont("Common Normal")..{																		-- total time
-		InitCommand=cmd(x,width/2;zoom,0.35;maxwidth,width*2;halign,1),
+		InitCommand=function(self)
+			self:x(width/2):zoom(0.35):maxwidth(width*2):halign(1)
+		end,
 		BeginCommand=function(self)
 			local ttime = GetPlayableTime()
 			settext(self,SecondsToMMSS(ttime))
-			diffuse(self, ByMusicLength(ttime))
+			diffuse(self, byMusicLength(ttime))
 		end,
 		DoneLoadingNextSongMessageCommand=function(self)
 			local ttime = GetPlayableTime()
 			settext(self,SecondsToMMSS(ttime))
-			diffuse(self, ByMusicLength(ttime))
+			diffuse(self, byMusicLength(ttime))
 		end
 	}
 }
@@ -1027,14 +1115,26 @@ mb = Def.ActorFrame{
 		self:xy(miniProgressBarX,miniProgressBarY)
 		mb = self
 	end,
-	Def.Quad{InitCommand=cmd(zoomto,width,height;diffuse,color("#666666");diffusealpha,alpha)}, 	-- background
-	Def.Quad{InitCommand=cmd(x,1+width/2;zoomto,1,height;diffuse,color("#555555"))},				-- ending indicator
+	Def.Quad{
+		InitCommand=function(self)
+			self:zoomto(width,height):diffuse(color("#666666")):diffusealpha(alpha)
+		end,
+	},
+	Def.Quad{
+		InitCommand=function(self)
+			self:x(1+width/2):zoomto(1,height):diffuse(color("#555555"))
+		end,
+	},
 	Def.SongMeterDisplay{
 		InitCommand=function(self)
 			self:SetUpdateRate(0.5)
 		end,
 		StreamWidth=width,
-		Stream=Def.Quad{InitCommand=cmd(zoomy,height;diffuse,getMainColor("highlight"))}
+		Stream=Def.Quad{
+			InitCommand=function(self)
+				self:zoomy(height):diffuse(getMainColor("highlight"))
+			end,
+		}
 	}
 }
 
@@ -1048,8 +1148,12 @@ end
 ]]
 
 t[#t+1] = LoadFont("Common Normal")..{
-	InitCommand=cmd(xy,SCREEN_CENTER_X,SCREEN_BOTTOM-10;zoom,0.35;settext,getCurRateDisplayString()),
-	DoneLoadingNextSongMessageCommand=cmd(settext,getCurRateDisplayString())
+	InitCommand=function(self)
+		self:xy(SCREEN_CENTER_X,SCREEN_BOTTOM-10):zoom(0.35):settext(getCurRateDisplayString())
+	end,
+	DoneLoadingNextSongMessageCommand=function(self)
+		self:settext(getCurRateDisplayString())
+	end	
 }
 
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1076,14 +1180,18 @@ t[#t+1] = Def.ActorFrame{
 			self:SetUpdateFunction(UpdateBPM)
 			self:SetUpdateRate(0.5)
 		else
-			settext(BPM,Round(GetBPS(a) * r,2))
+			BPM:settextf("%5.2f",GetBPS(a) * r) -- i wasn't thinking when i did this, we don't need to avoid formatting for performance because we only call this once -mina
 		end
 	end,
 	LoadFont("Common Normal")..{
 		Name="BPM",
-		InitCommand=cmd(x,SCREEN_CENTER_X;y,SCREEN_BOTTOM-20;halign,0.5;zoom,0.40)
+		InitCommand=function(self)
+			self:x(SCREEN_CENTER_X):y(SCREEN_BOTTOM-20):halign(0.5):zoom(0.40)
+		end	
 	},
-	DoneLoadingNextSongMessageCommand=cmd(queuecommand,"Init")
+	DoneLoadingNextSongMessageCommand=function(self)
+		self:queuecommand("Init")
+	end	
 }
 
 
@@ -1463,10 +1571,11 @@ t[#t+1] = Def.ActorFrame{
 		Name= "Instructions", Font= "Common Normal",
 		InitCommand= function(self)
 			self:horizalign(left):vertalign(top)
-				:xy(SCREEN_WIDTH - 240, 110):zoom(.5):visible(true)
+				:xy(SCREEN_WIDTH - 240, 100):zoom(.5):visible(true)
 		end,
 		OnCommand=function(self)
 			local text= {
+				"Enable AutoplayCPU with shift+f8\n",
 				"Hold the following and press the arrow",
 				"keys to alter the associated element\n",
 				"1: Judgement Text Position",
@@ -1490,6 +1599,9 @@ t[#t+1] = Def.ActorFrame{
 				"o: NPS Graph Size",
 				"p: Judge Counter Position",
 			}
+			if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover ~= 0 then
+				table.insert(text, "/: Lane Cover Height")
+			end
 			self:settext(table.concat(text, "\n"))
 		end
 	},

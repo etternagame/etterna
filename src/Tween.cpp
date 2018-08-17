@@ -1,9 +1,9 @@
 #include "global.h"
-#include "Tween.h"
-#include "RageUtil.h"
-#include "RageMath.h"
-#include "LuaManager.h"
 #include "EnumHelper.h"
+#include "LuaManager.h"
+#include "RageMath.h"
+#include "RageUtil.h"
+#include "Tween.h"
 
 static const char *TweenTypeNames[] = {
 	"Linear",
@@ -106,7 +106,7 @@ ITween *ITween::CreateFromStack( Lua *L, int iStackPos )
 		for( int i = 0; i < iArgs; ++i )
 		{
 			lua_rawgeti( L, iStackPos+1, i+1 );
-			fC[i] = (float) lua_tonumber( L, -1 );
+			fC[i] = static_cast<float>( lua_tonumber( L, -1 ));
 		}
 
 		lua_pop( L, iArgs );

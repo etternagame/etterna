@@ -1,4 +1,4 @@
-StepMania 5 Font .ini values
+Etterna Font .ini values
 
 [common]
 CapitalsOnly			- If set to 1, lowercase letters are drawn with uppercase letters instead.

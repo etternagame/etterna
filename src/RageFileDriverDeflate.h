@@ -1,4 +1,4 @@
-/* RageFileObjInflate - decompress streams compressed with "deflate" compression. */
+﻿/* RageFileObjInflate - decompress streams compressed with "deflate" compression. */
 
 #ifndef RAGE_FILE_DRIVER_DEFLATE_H
 #define RAGE_FILE_DRIVER_DEFLATE_H

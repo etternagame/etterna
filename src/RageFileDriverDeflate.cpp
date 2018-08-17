@@ -1,8 +1,7 @@
-#include "global.h"
+﻿#include "global.h"
+#include "RageFile.h"
 #include "RageFileDriverDeflate.h"
 #include "RageFileDriverSlice.h"
-#include "RageFile.h"
-#include "RageLog.h"
 #include "RageUtil.h"
 #include <memory>
 
@@ -11,8 +10,6 @@
 #if defined(_MSC_VER)
 #if defined(BINARY_ZDL)
 #pragma comment(lib, "zdll.lib")
-// #else
-// #pragma comment(lib, "zlib.lib")
 #endif
 #endif
 #elif defined(MACOSX)
@@ -136,7 +133,7 @@ int RageFileObjInflate::ReadInternal( void *buf, size_t bytes )
 		const int got = (char *)m_pInflate->next_out - (char *)buf;
 		m_iFilePos += got;
 		ret += got;
-		buf = (char *)buf + got;
+		buf = reinterpret_cast<char *>(buf) + got;
 		bytes -= got;
 	}
 

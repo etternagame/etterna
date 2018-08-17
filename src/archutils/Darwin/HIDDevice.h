@@ -66,7 +66,7 @@ namespace __gnu_cxx
 class HIDDevice
 {
 private:
-	IOHIDDeviceInterface **m_Interface;
+	IOHIDDeviceInterface **	m_Interface;
 	IOHIDQueueInterface **m_Queue;
 	bool m_bRunning;
 	RString m_sDescription;
@@ -95,7 +95,7 @@ protected:
 	{
 		IOReturn ret = CALL( m_Queue, addElement, cookie, 0 );
 		if( ret != KERN_SUCCESS )
-			LOG->Warn( "Failed to add HID element with cookie %p to queue: %u", cookie, ret );
+			LOG->Warn( "Failed to add HID element with cookie %p to queue: %u", static_cast<UInt32>(cookie), ret );
 	}
 
 	// Perform a synchronous set report on the HID interface.

@@ -1,18 +1,19 @@
 #include "global.h"
-#include "ScreenTextEntry.h"
-#include "RageUtil.h"
-#include "Preference.h"
-#include "ScreenManager.h"
-#include "ThemeManager.h"
-#include "FontCharAliases.h"
-#include "ScreenDimensions.h"
-#include "ScreenPrompt.h"
 #include "ActorUtil.h"
+#include "FontCharAliases.h"
 #include "InputEventPlus.h"
-#include "RageInput.h"
 #include "LocalizedString.h"
-#include "RageLog.h"
 #include "LuaBinding.h"
+#include "Preference.h"
+#include "RageInput.h"
+#include "RageLog.h"
+#include "RageUtil.h"
+#include "ScreenDimensions.h"
+#include "ScreenManager.h"
+#include "ScreenPrompt.h"
+#include "ScreenTextEntry.h"
+#include "ThemeManager.h"
+#include "InputFilter.h"
 #include "arch/ArchHooks/ArchHooks.h" // HOOKS->GetClipboard()
 
 static const char* g_szKeys[NUM_KeyboardRow][KEYS_PER_ROW] =
@@ -38,7 +39,7 @@ namespace
 	bool(*g_pValidate)(const RString &sAnswer,RString &sErrorOut);
 	void(*g_pOnOK)(const RString &sAnswer);
 	void(*g_pOnCancel)();
-	bool g_bPassword;
+	bool g_bPassword=false;
 	bool (*g_pValidateAppend)(const RString &sAnswerBeforeChar, const RString &sAppend);
 	RString (*g_pFormatAnswerForDisplay)(const RString &sAnswer);
 
@@ -49,6 +50,170 @@ namespace
 	LuaReference g_ValidateAppendFunc;
 	LuaReference g_FormatAnswerForDisplayFunc;
 };
+
+// Lua bridges
+static bool ValidateFromLua(const RString &sAnswer, RString &sErrorOut, LuaReference func)
+{
+
+	if (func.IsNil() || !func.IsSet())
+	{
+		return true;
+	}
+	Lua *L = LUA->Get();
+
+	func.PushSelf(L);
+
+	// Argument 1 (answer):
+	lua_pushstring(L, sAnswer);
+
+	// Argument 2 (error out):
+	lua_pushstring(L, sErrorOut);
+
+	bool valid = false;
+
+	RString error = "Lua error in ScreenTextEntry Validate: ";
+	if (LuaHelpers::RunScriptOnStack(L, error, 2, 2, true))
+	{
+		if (!lua_isstring(L, -1) || !lua_isboolean(L, -2))
+		{
+			LuaHelpers::ReportScriptError("Lua error: ScreenTextEntry Validate did not return 'bool, string'.");
+		}
+		else
+		{
+			RString ErrorFromLua;
+			LuaHelpers::Pop(L, ErrorFromLua);
+			if (!ErrorFromLua.empty())
+			{
+				sErrorOut = ErrorFromLua;
+			}
+			LuaHelpers::Pop(L, valid);
+		}
+	}
+	lua_settop(L, 0);
+	LUA->Release(L);
+	return valid;
+}
+static bool ValidateFromLua(const RString &sAnswer, RString &sErrorOut)
+{
+	return ValidateFromLua(sAnswer, sErrorOut, g_ValidateFunc);
+}
+
+static void OnOKFromLua(const RString &sAnswer, LuaReference func)
+{
+	if (func.IsNil() || !func.IsSet())
+	{
+		return;
+	}
+	Lua *L = LUA->Get();
+
+	func.PushSelf(L);
+	// Argument 1 (answer):
+	lua_pushstring(L, sAnswer);
+	RString error = "Lua error in ScreenTextEntry OnOK: ";
+	LuaHelpers::RunScriptOnStack(L, error, 1, 0, true);
+
+	LUA->Release(L);
+}
+
+static void OnOKFromLua(const RString &sAnswer)
+{
+	OnOKFromLua(sAnswer, g_OnOKFunc);
+}
+
+static void OnCancelFromLua(LuaReference func)
+{
+	if (func.IsNil() || !func.IsSet())
+	{
+		return;
+	}
+	Lua *L = LUA->Get();
+
+	func.PushSelf(L);
+	RString error = "Lua error in ScreenTextEntry OnCancel: ";
+	LuaHelpers::RunScriptOnStack(L, error, 0, 0, true);
+
+	LUA->Release(L);
+}
+
+static void OnCancelFromLua()
+{
+	OnCancelFromLua(g_OnCancelFunc);
+}
+
+static bool ValidateAppendFromLua(const RString &sAnswerBeforeChar, const RString &sAppend, LuaReference func)
+{
+	if (func.IsNil() || !func.IsSet())
+	{
+		return true;
+	}
+	Lua *L = LUA->Get();
+
+	func.PushSelf(L);
+
+	// Argument 1 (AnswerBeforeChar):
+	lua_pushstring(L, sAnswerBeforeChar);
+
+	// Argument 2 (Append):
+	lua_pushstring(L, sAppend);
+
+	bool append = false;
+
+	RString error = "Lua error in ScreenTextEntry ValidateAppend: ";
+	if (LuaHelpers::RunScriptOnStack(L, error, 2, 1, true))
+	{
+		if (!lua_isboolean(L, -1))
+		{
+			LuaHelpers::ReportScriptError("\"ValidateAppend\" did not return a boolean.");
+		}
+		else
+		{
+			LuaHelpers::Pop(L, append);
+		}
+	}
+	lua_settop(L, 0);
+	LUA->Release(L);
+	return append;
+}
+
+static bool ValidateAppendFromLua(const RString &sAnswerBeforeChar, const RString &sAppend)
+{
+	return ValidateAppendFromLua(sAnswerBeforeChar, sAppend, g_ValidateAppendFunc);
+}
+
+static RString FormatAnswerForDisplayFromLua(const RString &sAnswer, LuaReference func)
+{
+	if (func.IsNil() || !func.IsSet())
+	{
+		return sAnswer;
+	}
+	Lua *L = LUA->Get();
+
+	func.PushSelf(L);
+	// Argument 1 (Answer):
+	lua_pushstring(L, sAnswer);
+
+	RString answer;
+	RString error = "Lua error in ScreenTextEntry FormatAnswerForDisplay: ";
+	if (LuaHelpers::RunScriptOnStack(L, error, 1, 1, true))
+	{
+		if (!lua_isstring(L, -1))
+		{
+			LuaHelpers::ReportScriptError("\"FormatAnswerForDisplay\" did not return a string.");
+		}
+		else
+		{
+			LuaHelpers::Pop(L, answer);
+		}
+	}
+	lua_settop(L, 0);
+	LUA->Release(L);
+	return answer;
+}
+
+static RString FormatAnswerForDisplayFromLua(const RString &sAnswer)
+{
+	return FormatAnswerForDisplayFromLua(sAnswer, g_FormatAnswerForDisplayFunc);
+}
 
 void ScreenTextEntry::SetTextEntrySettings( 
 	RString sQuestion, 
@@ -68,8 +233,43 @@ void ScreenTextEntry::SetTextEntrySettings(
 	g_pValidate = Validate;
 	g_pOnOK = OnOK;
 	g_pOnCancel = OnCancel;
+	g_bPassword = bPassword;
 	g_pValidateAppend = ValidateAppend;
 	g_pFormatAnswerForDisplay = FormatAnswerForDisplay;
+}
+
+void ScreenTextEntry::SetTextEntrySettings(
+	RString question,
+	RString initialAnswer,
+	int maxInputLength,
+	LuaReference validateFunc,
+	LuaReference onOKFunc,
+	LuaReference onCancelFunc,
+	LuaReference validateAppendFunc,
+	LuaReference formatAnswerForDisplayFunc,
+	bool(*Validate)(const RString &sAnswer, RString &sErrorOut),
+	void(*OnOK)(const RString &sAnswer),
+	void(*OnCancel)(),
+	bool password,
+	bool(*ValidateAppend)(const RString &sAnswerBeforeChar, const RString &sAppend),
+	RString(*FormatAnswerForDisplay)(const RString &sAnswer)
+)
+{
+	sQuestion = question;
+	sInitialAnswer = initialAnswer;
+	iMaxInputLength = maxInputLength;
+	pValidate = Validate;
+	pOnOK = OnOK;
+	pOnCancel = OnCancel;
+	pValidateAppend = ValidateAppend;
+	bPassword = password;
+	pFormatAnswerForDisplay = FormatAnswerForDisplay;
+
+	ValidateFunc = validateFunc;
+	OnOKFunc = onOKFunc;
+	OnCancelFunc = onCancelFunc;
+	ValidateAppendFunc = validateAppendFunc;
+	FormatAnswerForDisplayFunc = formatAnswerForDisplayFunc;
 }
 
 void ScreenTextEntry::TextEntry( 
@@ -151,11 +351,17 @@ void ScreenTextEntry::Init()
 
 void ScreenTextEntry::BeginScreen()
 {
-	m_sAnswer = RStringToWstring( g_sInitialAnswer );
+	if (sInitialAnswer != "")
+		m_sAnswer = RStringToWstring(sInitialAnswer);
+	else
+		m_sAnswer = RStringToWstring( g_sInitialAnswer );
 
 	ScreenWithMenuElements::BeginScreen();
 
-	m_textQuestion.SetText( g_sQuestion );
+	if(sQuestion!="")
+		m_textQuestion.SetText( sQuestion );
+	else
+		m_textQuestion.SetText(g_sQuestion);
 	SET_XY( m_textQuestion );
 	SET_XY( m_textAnswer );
 
@@ -167,14 +373,18 @@ static LocalizedString ANSWER_BLANK	( "ScreenTextEntry", "AnswerBlank" );
 void ScreenTextEntry::UpdateAnswerText()
 {
 	RString s;
-	if( g_bPassword )
+	if( g_bPassword || bPassword)
 		s = RString( m_sAnswer.size(), '*' );
 	else
 		s = WStringToRString(m_sAnswer);
 
-	bool bAnswerFull = (int) s.length() >= g_iMaxInputLength;
+	bool bAnswerFull = (int) s.length() >= max(g_iMaxInputLength, iMaxInputLength);
 
-	if( g_pFormatAnswerForDisplay )
+	if (!FormatAnswerForDisplayFunc.IsNil() && FormatAnswerForDisplayFunc.IsSet())
+		FormatAnswerForDisplayFromLua(s, FormatAnswerForDisplayFunc);
+	else if (pFormatAnswerForDisplay != nullptr)
+		s = pFormatAnswerForDisplay(s);
+	else if( g_pFormatAnswerForDisplay )
 		s = g_pFormatAnswerForDisplay( s );
 
 	// Handle caret drawing
@@ -204,41 +414,8 @@ void ScreenTextEntry::Update( float fDelta )
 
 bool ScreenTextEntry::Input( const InputEventPlus &input )
 {
-	static bool bLCtrl = false, bRCtrl = false;
 	if( IsTransitioning() )
 		return false;
-
-	// bLCtrl and bRCtl are whether their respective Ctrl keys are held
-	// We update them here.
-	if( input.DeviceI == DeviceInput(DEVICE_KEYBOARD, KEY_LCTRL) )
-	{
-		switch( input.type )
-		{
-			case IET_FIRST_PRESS:
-				bLCtrl = true;
-				break;
-			case IET_RELEASE:
-				bLCtrl = false;
-				break;
-			default:
-				break;
-		}
-	}
-	
-	if( input.DeviceI == DeviceInput(DEVICE_KEYBOARD, KEY_RCTRL) )
-	{
-		switch( input.type )
-		{
-			case IET_FIRST_PRESS:
-				bRCtrl = true;
-					break;
-			case IET_RELEASE:
-				bRCtrl = false;
-				break;
-			default:
-				break;
-		}
-	}
 	
 	bool bHandled = false;
 	if( input.DeviceI == DeviceInput(DEVICE_KEYBOARD, KEY_BACK) )
@@ -257,7 +434,9 @@ bool ScreenTextEntry::Input( const InputEventPlus &input )
 	{
 		wchar_t c = INPUTMAN->DeviceInputToChar(input.DeviceI,true);
 		// Detect Ctrl+V
-		if( ( c == L'v' || c == L'V' ) && ( bLCtrl || bRCtrl ) )
+		auto ctrlPressed = INPUTFILTER->IsControlPressed();
+		auto vPressed = input.DeviceI.button == KEY_CV || input.DeviceI.button == KEY_Cv;
+		if(vPressed &&  ctrlPressed)
 		{
 			TryAppendToAnswer( HOOKS->GetClipboard() );
 			
@@ -267,7 +446,8 @@ bool ScreenTextEntry::Input( const InputEventPlus &input )
 		else if( c >= L' ' ) 
 		{
 			// todo: handle caps lock -aj
-			TryAppendToAnswer( WStringToRString(wstring()+c) );
+			auto str = WStringToRString(wstring() + c);
+			TryAppendToAnswer( str );
 
 			TextEnteredDirectly();
 			bHandled = true;
@@ -281,14 +461,24 @@ void ScreenTextEntry::TryAppendToAnswer( const RString &s )
 {
 	{
 		wstring sNewAnswer = m_sAnswer+RStringToWstring(s);
-		if( (int)sNewAnswer.length() > g_iMaxInputLength )
+		if( (int)sNewAnswer.length() > max(g_iMaxInputLength, iMaxInputLength) )
 		{
 			SCREENMAN->PlayInvalidSound();
 			return;
 		}
 	}
 
-	if( g_pValidateAppend  &&  !g_pValidateAppend( WStringToRString(m_sAnswer), s ) )
+	if (!ValidateAppendFunc.IsNil() && ValidateAppendFunc.IsSet()) {
+		ValidateAppendFromLua(WStringToRString(m_sAnswer), s, ValidateAppendFunc);
+	}
+	else if (pValidateAppend!=nullptr) {
+		if (!pValidateAppend(WStringToRString(m_sAnswer), s))
+		{
+			SCREENMAN->PlayInvalidSound();
+			return;
+		}
+	}
+	else if( g_pValidateAppend  &&  !g_pValidateAppend( WStringToRString(m_sAnswer), s ) )
 	{
 		SCREENMAN->PlayInvalidSound();
 		return;
@@ -327,7 +517,12 @@ void ScreenTextEntry::End( bool bCancelled )
 {
 	if( bCancelled )
 	{
-		if( g_pOnCancel ) 
+		if (!OnCancelFunc.IsNil() && OnCancelFunc.IsSet()) {
+			OnCancelFromLua(OnCancelFunc);
+		}
+		else if (pOnCancel != nullptr)
+			pOnCancel();
+		if( g_pOnCancel != nullptr ) 
 			g_pOnCancel();
 
 		Cancel( SM_GoToNextScreen );
@@ -337,7 +532,20 @@ void ScreenTextEntry::End( bool bCancelled )
 	{
 		RString sAnswer = WStringToRString(m_sAnswer);
 		RString sError;
-		if( g_pValidate != NULL )
+
+		if (!ValidateFunc.IsNil() && ValidateFunc.IsSet()) {
+			ValidateFromLua( sAnswer, sError , ValidateFunc);
+		}
+		else if (pValidate != nullptr)
+		{
+			bool bValidAnswer = pValidate(sAnswer, sError);
+			if (!bValidAnswer)
+			{
+				ScreenPrompt::Prompt(SM_None, sError);
+				return;	// don't end this screen.
+			}
+		}
+		else if( g_pValidate != nullptr )
 		{
 			bool bValidAnswer = g_pValidate( sAnswer, sError );
 			if( !bValidAnswer )
@@ -347,10 +555,18 @@ void ScreenTextEntry::End( bool bCancelled )
 			}
 		}
 
-		if( g_pOnOK )
+
+		RString ret = WStringToRString(m_sAnswer);
+		FontCharAliases::ReplaceMarkers(ret);
+		if (!OnOKFunc.IsNil() && OnOKFunc.IsSet()) {
+			OnOKFromLua(ret, OnOKFunc);
+		}
+		else if (pOnOK != nullptr)
 		{
-			RString ret = WStringToRString(m_sAnswer);
-			FontCharAliases::ReplaceMarkers(ret);
+			pOnOK(ret);
+		}
+		else if( g_pOnOK != nullptr )
+		{
 			g_pOnOK( ret );
 		}
 
@@ -416,14 +632,14 @@ void ScreenTextEntry::TextEntrySettings::FromStack( lua_State *L )
 
 	// Get Password
 	lua_getfield( L, iTab, "Password" );
-	bPassword = !!lua_toboolean( L, -1 );
+	bPassword = !(lua_toboolean( L, -1 ) == 0);
 	lua_settop( L, iTab );
 
 #define SET_FUNCTION_MEMBER(memname) \
 	lua_getfield(L, iTab, #memname); \
 	if(lua_isfunction(L, -1)) \
 	{ \
-		memname.SetFromStack(L); \
+		(memname).SetFromStack(L); \
 	} \
 	else if(!lua_isnil(L, -1)) \
 	{ \
@@ -439,144 +655,6 @@ void ScreenTextEntry::TextEntrySettings::FromStack( lua_State *L )
 #undef SET_FUNCTION_MEMBER
 }
 
-// Lua bridges
-static bool ValidateFromLua( const RString &sAnswer, RString &sErrorOut )
-{
-	if(g_ValidateFunc.IsNil() || !g_ValidateFunc.IsSet())
-	{
-		return true;
-	}
-	Lua *L = LUA->Get();
-
-	g_ValidateFunc.PushSelf( L );
-
-	// Argument 1 (answer):
-	lua_pushstring( L, sAnswer );
-
-	// Argument 2 (error out):
-	lua_pushstring( L, sErrorOut );
-
-	bool valid= false;
-
-	RString error= "Lua error in ScreenTextEntry Validate: ";
-	if(LuaHelpers::RunScriptOnStack(L, error, 2, 2, true))
-	{
-		if(!lua_isstring(L, -1) || !lua_isboolean(L, -2))
-		{
-			LuaHelpers::ReportScriptError("Lua error: ScreenTextEntry Validate did not return 'bool, string'.");
-		}
-		else
-		{
-			RString ErrorFromLua;
-			LuaHelpers::Pop( L, ErrorFromLua );
-			if( !ErrorFromLua.empty() )
-			{
-				sErrorOut = ErrorFromLua;
-			}
-			LuaHelpers::Pop( L, valid );
-		}
-	}
-	lua_settop(L, 0);
-	LUA->Release(L);
-	return valid;
-}
-
-static void OnOKFromLua( const RString &sAnswer )
-{
-	if(g_OnOKFunc.IsNil() || !g_OnOKFunc.IsSet())
-	{
-		return;
-	}
-	Lua *L = LUA->Get();
-
-	g_OnOKFunc.PushSelf( L );
-	// Argument 1 (answer):
-	lua_pushstring( L, sAnswer );
-	RString error= "Lua error in ScreenTextEntry OnOK: ";
-	LuaHelpers::RunScriptOnStack(L, error, 1, 0, true);
-
-	LUA->Release(L);
-}
-
-static void OnCancelFromLua()
-{
-	if(g_OnCancelFunc.IsNil() || !g_OnCancelFunc.IsSet())
-	{
-		return;
-	}
-	Lua *L = LUA->Get();
-
-	g_OnCancelFunc.PushSelf( L );
-	RString error= "Lua error in ScreenTextEntry OnCancel: ";
-	LuaHelpers::RunScriptOnStack(L, error, 0, 0, true);
-
-	LUA->Release(L);
-}
-
-static bool ValidateAppendFromLua( const RString &sAnswerBeforeChar, const RString &sAppend )
-{
-	if(g_ValidateAppendFunc.IsNil() || !g_ValidateAppendFunc.IsSet())
-	{
-		return true;
-	}
-	Lua *L = LUA->Get();
-
-	g_ValidateAppendFunc.PushSelf( L );
-
-	// Argument 1 (AnswerBeforeChar):
-	lua_pushstring( L, sAnswerBeforeChar );
-
-	// Argument 2 (Append):
-	lua_pushstring( L, sAppend );
-
-	bool append= false;
-
-	RString error= "Lua error in ScreenTextEntry ValidateAppend: ";
-	if(LuaHelpers::RunScriptOnStack(L, error, 2, 1, true))
-	{
-		if( !lua_isboolean(L, -1) )
-		{
-			LuaHelpers::ReportScriptError("\"ValidateAppend\" did not return a boolean.");
-		}
-		else
-		{
-			LuaHelpers::Pop( L, append );
-		}
-	}
-	lua_settop(L, 0);
-	LUA->Release(L);
-	return append;
-}
-
-static RString FormatAnswerForDisplayFromLua( const RString &sAnswer )
-{
-	if(g_FormatAnswerForDisplayFunc.IsNil() || !g_FormatAnswerForDisplayFunc.IsSet())
-	{
-		return sAnswer;
-	}
-	Lua *L = LUA->Get();
-
-	g_FormatAnswerForDisplayFunc.PushSelf( L );
-	// Argument 1 (Answer):
-	lua_pushstring( L, sAnswer );
-
-	RString answer;
-	RString error= "Lua error in ScreenTextEntry FormatAnswerForDisplay: ";
-	if(LuaHelpers::RunScriptOnStack(L, error, 1, 1, true))
-	{
-		if( !lua_isstring(L, -1) )
-		{
-			LuaHelpers::ReportScriptError("\"FormatAnswerForDisplay\" did not return a string.");
-		}
-		else
-		{
-			LuaHelpers::Pop(L, answer);
-		}
-	}
-	lua_settop(L, 0);
-	LUA->Release(L);
-	return answer;
-}
 
 void ScreenTextEntry::LoadFromTextEntrySettings( const TextEntrySettings &settings )
 {
@@ -585,12 +663,20 @@ void ScreenTextEntry::LoadFromTextEntrySettings( const TextEntrySettings &settin
 	g_OnCancelFunc = settings.OnCancel;
 	g_ValidateAppendFunc = settings.ValidateAppend;
 	g_FormatAnswerForDisplayFunc = settings.FormatAnswerForDisplay;
+	g_sInitialAnswer = settings.sInitialAnswer;
+	g_bPassword = settings.bPassword;
+	g_iMaxInputLength = settings.iMaxInputLength;
 
 	// set functions
 	SetTextEntrySettings(
 		settings.sQuestion,
 		settings.sInitialAnswer,
 		settings.iMaxInputLength,
+		settings.Validate,
+		settings.OnOK,
+		settings.OnCancel,
+		settings.ValidateAppend,
+		settings.FormatAnswerForDisplay,
 		ValidateFromLua,				// Validate
 		OnOKFromLua,					// OnOK
 		OnCancelFromLua,				// OnCancel
@@ -677,7 +763,7 @@ void ScreenTextEntryVisual::BeginScreen()
 	ScreenTextEntry::BeginScreen();
 
 	m_iFocusX = 0;
-	m_iFocusY = (KeyboardRow)0;
+	m_iFocusY = static_cast<KeyboardRow>(0);
 
 	FOREACH_KeyboardRow( r )
 	{

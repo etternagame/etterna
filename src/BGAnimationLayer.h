@@ -1,9 +1,8 @@
-#ifndef BGANIMATIONLAYER_H
+﻿#ifndef BGANIMATIONLAYER_H
 #define BGANIMATIONLAYER_H
 
-#include "GameConstantsAndTypes.h"
 #include "ActorFrame.h"
-#include <map>
+#include "GameConstantsAndTypes.h"
 
 class XNode;
 

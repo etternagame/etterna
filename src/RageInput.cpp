@@ -1,11 +1,11 @@
-#include "global.h"
+﻿#include "global.h"
+#include "Foreach.h"
+#include "LocalizedString.h"
+#include "LuaManager.h"
+#include "Preference.h"
 #include "RageInput.h"
 #include "RageLog.h"
 #include "arch/InputHandler/InputHandler.h"
-#include "Foreach.h"
-#include "Preference.h"
-#include "LuaManager.h"
-#include "LocalizedString.h"
 
 RageInput* INPUTMAN = NULL; // global and accessible from anywhere in our program
 
@@ -19,7 +19,7 @@ namespace
 	};
 	vector<LoadedInputHandler> m_InputHandlers;
 	map<InputDevice, InputHandler *> g_mapDeviceToHandler;
-}
+} // namespace
 
 RageInput::RageInput()
 {
@@ -145,7 +145,7 @@ wchar_t RageInput::DeviceInputToChar( DeviceInput di, bool bUseCurrentKeyModifie
 	InputHandler *pDriver = GetHandlerForDevice( di.device );
 	if( pDriver != NULL )
 		return pDriver->DeviceButtonToChar(di.button, bUseCurrentKeyModifiers);
-	else
+	
 		return '\0';
 }
 
@@ -154,7 +154,7 @@ InputDeviceState RageInput::GetInputDeviceState( InputDevice id )
 	InputHandler *pDriver = GetHandlerForDevice( id );
 	if( pDriver != NULL )
 		return pDriver->GetInputDeviceState(id);
-	else
+	
 		return InputDeviceState_NoInputHandler;
 }
 

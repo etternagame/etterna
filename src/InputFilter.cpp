@@ -1,16 +1,14 @@
-#include "global.h"
-#include "LocalizedString.h"
-#include "InputFilter.h"
-#include "RageLog.h"
-#include "RageInput.h"
-#include "RageUtil.h"
-#include "RageThreads.h"
-#include "Preference.h"
+﻿#include "global.h"
 #include "Foreach.h"
 #include "GameInput.h"
+#include "InputFilter.h"
 #include "InputMapper.h"
-// for mouse stuff: -aj
-#include "PrefsManager.h"
+#include "LocalizedString.h"
+#include "Preference.h"
+#include "RageInput.h"
+#include "RageLog.h"
+#include "RageThreads.h"
+#include "RageUtil.h"
 #include "ScreenDimensions.h"
 #include "arch/ArchHooks/ArchHooks.h"
 #include <set>
@@ -94,7 +92,7 @@ namespace
 
 	DeviceInputList g_CurrentState;
 	set<DeviceInput> g_DisableRepeat;
-}
+} // namespace
 
 /* Some input devices require debouncing. Do this on both press and release.
  * After reporting a change in state, don't report another for the debounce
@@ -252,7 +250,7 @@ void InputFilter::CheckButtonChange( ButtonState &bs, DeviceInput di, const std:
 	 * If the input was coin, possibly apply distinct coin debounce in the else below. */
 	std::chrono::duration<float> timeDelta = now - bs.m_LastReportTime;
 	float delta = timeDelta.count();
-	if (! INPUTMAPPER->DeviceToGame(di, gi) || gi.button != GAME_BUTTON_COIN )
+	if (! INPUTMAPPER->DeviceToGame(di, gi) && di.button != MOUSE_WHEELDOWN && di.button != MOUSE_WHEELUP)
 	{
 		/* If the last IET_FIRST_PRESS or IET_RELEASE event was sent too recently,
 		 * wait a while before sending it. */
@@ -466,12 +464,28 @@ void InputFilter::GetPressedButtons( vector<DeviceInput> &array ) const
 void InputFilter::UpdateCursorLocation(float _fX, float _fY)
 {
 	m_MouseCoords.fX = _fX;
+    
 	m_MouseCoords.fY = _fY;
 }
 
 void InputFilter::UpdateMouseWheel(float _fZ)
 {
 	m_MouseCoords.fZ = _fZ;
+}
+
+bool InputFilter::IsKBKeyPressed(DeviceButton k) const
+{
+	return INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, k));
+}
+
+bool InputFilter::IsControlPressed() const
+{
+	return IsKBKeyPressed(KEY_LCTRL) || IsKBKeyPressed(KEY_RCTRL);
+}
+
+bool InputFilter::IsShiftPressed() const
+{
+	return IsKBKeyPressed(KEY_LSHIFT) || IsKBKeyPressed(KEY_RSHIFT);
 }
 
 // lua start
@@ -498,12 +512,28 @@ public:
 		lua_pushnumber( L, fZ );
 		return 1;
 	}
-
+	static int IsBeingPressed(T* p, lua_State *L) {
+		if (lua_isnil(L, 1)) {
+			return luaL_error(L, "IsBeingPressed(button, inputDevice=keyboard) expects at least one parameter");
+		}
+		DeviceButton button = StringToDeviceButton(SArg(1));
+		InputDevice device = DEVICE_KEYBOARD;
+		if( !(lua_isnil(L, 2)) && lua_gettop(L) > 1) {
+			device = StringToInputDevice(SArg(2));
+		}
+		lua_pushboolean(L, INPUTFILTER->IsBeingPressed(DeviceInput(device, button)));
+		return 1;
+	}
+	DEFINE_METHOD(IsShiftPressed, IsShiftPressed());
+	DEFINE_METHOD(IsControlPressed, IsControlPressed());
 	LunaInputFilter()
 	{
-		ADD_METHOD( GetMouseX );
-		ADD_METHOD( GetMouseY );
-		ADD_METHOD( GetMouseWheel );
+		ADD_METHOD(GetMouseX);
+		ADD_METHOD(GetMouseY);
+		ADD_METHOD(GetMouseWheel);
+		ADD_METHOD(IsBeingPressed);
+		ADD_METHOD(IsShiftPressed);
+		ADD_METHOD(IsControlPressed);
 	}
 };
 

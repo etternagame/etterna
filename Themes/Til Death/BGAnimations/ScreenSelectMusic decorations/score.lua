@@ -1,11 +1,32 @@
-local update = false
-
+-- refactored a bit but still needs work -mina
+local collapsed = false
 local rtTable
 local rates
 local rateIndex = 1
 local scoreIndex = 1
 local score
 local pn = GAMESTATE:GetEnabledPlayers()[1]
+local nestedTab = 1
+local nestedTabs = {"Local", "Online"}
+
+local frameX = 10
+local frameY = 45
+local frameWidth = SCREEN_WIDTH * 0.56
+local frameHeight = 350
+local fontScale = 0.4
+local offsetX = 10
+local offsetY = 30
+local netScoresPerPage = 8
+local netScoresCurrentPage = 1
+local nestedTabButtonWidth = 153
+local nestedTabButtonHeight = 20
+local netPageButtonWidth = 50
+local netPageButtonHeight = 50
+local headeroffY = 26/1.5
+
+local selectedrateonly
+
+local judges = {'TapNoteScore_W1','TapNoteScore_W2','TapNoteScore_W3','TapNoteScore_W4','TapNoteScore_W5','TapNoteScore_Miss','HoldNoteScore_Held','HoldNoteScore_LetGo'}
 
 local defaultRateText = ""
 if themeConfig:get_data().global.RateSort then
@@ -14,322 +35,392 @@ else
 	defaultRateText = "All"
 end
 
-local t = Def.ActorFrame{
-	BeginCommand=cmd(queuecommand,"Set";visible,false),
-	OffCommand=cmd(bouncebegin,0.2;xy,-500,0;diffusealpha,0), -- visible(false) doesn't seem to work with sleep
-	OnCommand=cmd(bouncebegin,0.2;xy,0,0;diffusealpha,1),
+local function isOver(element)
+	if element:GetParent():GetParent():GetVisible() == false then
+		return false end
+	if element:GetParent():GetVisible() == false then
+		return false end
+	if element:GetVisible() == false then
+		return false end
+	local x = getTrueX(element)
+	local y = getTrueY(element)
+	local hAlign = element:GetHAlign()
+	local vAlign = element:GetVAlign()
+	local w = element:GetZoomedWidth()
+	local h = element:GetZoomedHeight()
+
+	local mouseX = INPUTFILTER:GetMouseX()
+	local mouseY = INPUTFILTER:GetMouseY()
+
+	local withinX = (mouseX >= (x-(hAlign*w))) and (mouseX <= ((x+w)-(hAlign*w)))
+	local withinY = (mouseY >= (y-(vAlign*h))) and (mouseY <= ((y+h)-(vAlign*h)))
+
+	return (withinX and withinY)
+end
+
+-- should maybe make some of these generic
+local function highlight(self)
+	self:queuecommand("Highlight")
+end
+
+-- note: will use the local isover functionality
+local function highlightIfOver(self)
+	if isOver(self) then
+		self:diffusealpha(0.6)
+	else
+		self:diffusealpha(1)
+	end
+end
+
+local ret = Def.ActorFrame{
+	BeginCommand=function(self)
+		self:queuecommand("Set"):visible(false)
+		self:GetChild("LocalScores"):visible(false)
+		self:GetChild("ScoreDisplay"):xy(frameX,frameY):visible(false)
+		
+		if FILTERMAN:oopsimlazylol() then	-- set saved position and auto collapse
+			nestedTab = 2
+			self:GetChild("LocalScores"):visible(false)
+			self:GetChild("ScoreDisplay"):xy(FILTERMAN:grabposx("Doot"),FILTERMAN:grabposy("Doot")):visible(true)
+			self:playcommand("Collapse")
+		end
+	end,
+	OffCommand=function(self)
+		self:bouncebegin(0.2):xy(-500,0):diffusealpha(0) -- visible(false)
+	end,
+	OnCommand=function(self)
+		self:bouncebegin(0.2):xy(0,0):diffusealpha(1)
+		if nestedTab == 1 then
+			self:GetChild("LocalScores"):visible(true)
+		end
+	end,
 	SetCommand=function(self)
-		self:finishtweening()
-		if getTabIndex() == 2 then
+		self:finishtweening(1)
+		if getTabIndex() == 2 then						-- switching to this tab
+			if collapsed then							-- expand if collaped
+				self:queuecommand("Expand")
+			else
+				self:queuecommand("On")
+				self:visible(true)
+			end
+		elseif collapsed and getTabIndex() == 0 then	-- display on general tab if collapsed
 			self:queuecommand("On")
-			self:visible(true)
-			update = true
-			self:playcommand("InitScore")
-		else 
+			self:visible(true)							-- not sure about whether this works or is needed
+		elseif collapsed and getTabIndex() ~= 0 then	-- but not others
 			self:queuecommand("Off")
-			update = false
+		elseif not collapsed then						-- if not collapsed, never display outside of this tab
+			self:queuecommand("Off")
 		end
 	end,
-	TabChangedMessageCommand=cmd(queuecommand,"Set"),
-	CodeMessageCommand=function(self,params)
-		if update then
-			if params.Name == "NextRate" then
-				rateIndex = ((rateIndex)%(#rates))+1
-				scoreIndex = 1
-			elseif params.Name == "PrevRate" then
-				rateIndex = ((rateIndex-2)%(#rates))+1
-				scoreIndex = 1
-			elseif params.Name == "NextScore" then
-				if rtTable[rates[rateIndex]] ~= nil then
-					scoreIndex = ((scoreIndex)%(#rtTable[rates[rateIndex]]))+1
-				end
-			elseif params.Name == "PrevScore" then
-				if rtTable[rates[rateIndex]] ~= nil then
-					scoreIndex = ((scoreIndex-2)%(#rtTable[rates[rateIndex]]))+1
-				end
-			end
-			if rtTable[rates[rateIndex]] ~= nil then
-				score = rtTable[rates[rateIndex]][scoreIndex]
-				setScoreForPlot(score)
-				MESSAGEMAN:Broadcast("ScoreUpdate")
-			end
-		end
+	TabChangedMessageCommand=function(self)
+		self:queuecommand("Set")
 	end,
-	PlayerJoinedMessageCommand=cmd(queuecommand,"Set"),
-	CurrentSongChangedMessageCommand=cmd(queuecommand,"Set"),
-	CurrentStepsP1ChangedMessageCommand=cmd(queuecommand,"Set"),
-	CurrentStepsP2ChangedMessageCommand=cmd(queuecommand,"Set"),
-	InitScoreCommand=function(self)
+	UpdateChartMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	CollapseCommand=function(self)
+		collapsed = true
+		resetTabIndex()
+		MESSAGEMAN:Broadcast("TabChanged")
+	end,
+	ExpandCommand=function(self)
+		collapsed = false
+		if getTabIndex() ~= 2 then
+			setTabIndex(2)
+		end
+		self:GetChild("ScoreDisplay"):xy(frameX,frameY)
+		MESSAGEMAN:Broadcast("TabChanged")
+	end
+}
+
+
+local cheese
+-- eats only inputs that would scroll to a new score
+local function input(event)
+	if cheese:GetVisible() and isOver(cheese:GetChild("FrameDisplay")) then
+		if event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" then
+			moving = true
+			if nestedTab == 1 and rtTable and rtTable[rates[rateIndex]] ~= nil then
+				cheese:queuecommand("PrevScore")
+				return true
+			end
+		elseif event.DeviceInput.button == "DeviceButton_mousewheel down" and event.type == "InputEventType_FirstPress" then
+			if nestedTab == 1 and rtTable ~= nil and rtTable[rates[rateIndex]] ~= nil then
+				cheese:queuecommand("NextScore")
+				return true
+			end
+		elseif moving == true then
+			moving = false
+		end
+	end
+	return false
+end
+
+local t = Def.ActorFrame {
+	Name="LocalScores",
+	InitCommand=function(self)
+		rtTable = nil
+		self:xy(frameX+offsetX,frameY+offsetY + headeroffY)
+		self:SetUpdateFunction(highlight)
+		cheese = self
+	end,
+	BeginCommand=function(self)
+		SCREENMAN:GetTopScreen():AddInputCallback(input)
+	end,
+	SetCommand=function(self)
+		if nestedTab == 1 and self:GetVisible() then
 			if GAMESTATE:GetCurrentSong() ~= nil then
 				rtTable = getRateTable()
 				if rtTable ~= nil then
 					rates,rateIndex = getUsedRates(rtTable)
 					scoreIndex = 1
-					
-					-- shouldn't need this check but there seems to be some sort of bug during profile save/load with phantom scores being loaded
-					if rtTable[rates[rateIndex]] then
-						score = rtTable[rates[rateIndex]][scoreIndex]
-						setScoreForPlot(score)
-					end
+					self:queuecommand("Display")
 				else
-					rtTable = {}
-					rates,rateIndex = {defaultRateText},1
-					scoreIndex = 1
-					score = nil
-					setScoreForPlot(score)
+					self:queuecommand("Init")
 				end
 			else
-				rtTable = {}
-				rates,rateIndex = {defaultRateText},1
-				scoreIndex = 1
-				score = nil
-				setScoreForPlot(score)
+				self:queuecommand("Init")
 			end
-			MESSAGEMAN:Broadcast("ScoreUpdate")
-	end
-}
+		end
+	end,
+	NestedTabChangedMessageCommand=function(self)
+		self:visible(nestedTab == 1)
+		self:queuecommand("Set")
+	end,
+	CodeMessageCommand=function(self,params)
+		if nestedTab == 1 and rtTable ~= nil and rtTable[rates[rateIndex]] ~= nil then
+			if params.Name == "NextRate" then
+				self:queuecommand("NextRate")
+			elseif params.Name == "PrevRate" then
+				self:queuecommand("PrevRate")
+			elseif params.Name == "NextScore" then
+				self:queuecommand("NextScore")
+			elseif params.Name == "PrevScore" then
+				self:queuecommand("PrevScore")
+			end
+		end
+	end,
+	NextRateCommand=function(self)
+		rateIndex = ((rateIndex)%(#rates))+1
+		scoreIndex = 1
+		self:queuecommand("Display")
+	end,
+	PrevRateCommand=function(self)
+		rateIndex = ((rateIndex-2)%(#rates))+1
+		scoreIndex = 1
+		self:queuecommand("Display")
+	end,
+	NextScoreCommand=function(self)
+		scoreIndex = ((scoreIndex)%(#rtTable[rates[rateIndex]]))+1
+		self:queuecommand("Display")
+	end,
+	PrevScoreCommand=function(self)
+		scoreIndex = ((scoreIndex-2)%(#rtTable[rates[rateIndex]]))+1
+		self:queuecommand("Display")
+	end,
+	DisplayCommand=function(self)
+		score = rtTable[rates[rateIndex]][scoreIndex]
+		setScoreForPlot(score)
+	end,
 
-local frameX = 10
-local frameY = 45
-local frameWidth = capWideScale(320,400)
-local frameHeight = 350
-local fontScale = 0.4
-local offsetX = 10
-local offsetY = 20
-
-local judges = {'TapNoteScore_W1','TapNoteScore_W2','TapNoteScore_W3','TapNoteScore_W4','TapNoteScore_W5','TapNoteScore_Miss','HoldNoteScore_Held','HoldNoteScore_LetGo'}
-
-t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,frameHeight;halign,0;valign,0;diffuse,color("#333333CC"))}
-t[#t+1] = Def.Quad{InitCommand=cmd(xy,frameX,frameY;zoomto,frameWidth,offsetY;halign,0;valign,0;diffuse,getMainColor('frames');diffusealpha,0.5)}
-
-t[#t+1] = LoadFont("Common Normal")..{
-	InitCommand=cmd(xy,frameX+5,frameY+offsetY-9;zoom,0.6;halign,0;diffuse,getMainColor('positive')),
-	BeginCommand=cmd(settext,"Score Info")
+	Def.Quad{
+		Name="FrameDisplay",
+		InitCommand=function(self)
+			self:xy(-frameX,-headeroffY - offsetY):zoomto(frameWidth,frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
+		end,
+		CollapseCommand=function(self)
+			self:visible(false)
+		end,
+		ExpandCommand=function(self)
+			self:visible(true)
+		end,
+	}
 }
 
 t[#t+1] = LoadFont("Common Large")..{
 	Name="Grades",
-	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+20;zoom,0.6;halign,0;maxwidth,50/0.6),
-	SetCommand=function(self)
-		if score and update then
-			self:settext(THEME:GetString("Grade",ToEnumShortString(score:GetGrade())))
-			self:diffuse(getGradeColor(score:GetGrade()))
-		else
-			self:settext("")
-		end
+	InitCommand=function(self)
+		self:y(20):zoom(0.6):halign(0):maxwidth(50/0.6):settext("")
 	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+	DisplayCommand=function(self)
+		self:settext(THEME:GetString("Grade",ToEnumShortString(score:GetWifeGrade())))
+		self:diffuse(getGradeColor(score:GetWifeGrade()))
+	end,
 }
 
 -- Wife display
 t[#t+1] = LoadFont("Common Normal")..{
-	Name="Score",
-	InitCommand=cmd(xy,frameX+offsetX+55,frameY+offsetY+28;zoom,0.5;halign,0),
-	SetCommand=function(self)
-		if score and update then
-			if score:GetWifeScore() == 0 then 
-				self:settextf("NA (%s)", "Wife")
-			else
-				self:settextf("%05.2f%% (%s)", notShit.floor(score:GetWifeScore()*10000)/100, "Wife")
-			end
+	Name="Wife",
+	InitCommand=function(self)
+		self:xy(55,15):zoom(0.6):halign(0):settext("")
+	end,
+	DisplayCommand=function(self)
+		if score:GetWifeScore() == 0 then 
+			self:settextf("NA")
 		else
-			self:settextf("00.00%% (%s)", "Wife")
+			self:settextf("%05.2f%%", notShit.floor(score:GetWifeScore()*10000)/100):diffuse(byGrade(score:GetWifeGrade()))
 		end
 	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
 }
 
--- Rescoring stuff
--- t[#t+1] = LoadFont("Common Normal")..{
-	-- Name="Score",
-	-- InitCommand=cmd(xy,frameX+offsetX+155,frameY+offsetY+14;zoom,0.5;halign,0),
-	-- SetCommand=function(self)
-		-- if score and update then
-			-- if score:GetWifeScore() == 0 then 
-				-- self:settextf("NA (%s)", "Wife")
-			-- else
-				-- self:settextf("%05.2f%% (%s)", notShit.floor(score:RescoreToWifeJudge(4)*10000)/100, "Wife J4")
-			-- end
-		-- else
-			-- self:settextf("00.00%% (%s)", "Wife")
-		-- end
-	-- end,
-	-- ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
--- }
-
--- t[#t+1] = LoadFont("Common Normal")..{
-	-- Name="Score",
-	-- InitCommand=cmd(xy,frameX+offsetX+155,frameY+offsetY+58;zoom,0.5;halign,0),
-	-- SetCommand=function(self)
-		-- if score and update then
-			-- if score:GetWifeScore() == 0 then 
-				-- self:settext("")
-			-- else
-				-- self:settextf("%5.2f", score:GetSkillsetSSR(5))
-			-- end
-		-- else
-			-- self:settext("")
-		-- end
-	-- end,
-	-- ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
--- }
+t[#t+1] = LoadFont("Common Normal")..{
+	Name="Score",
+	InitCommand=function(self)
+		self:xy(55,33):zoom(0.6):halign(0):settext("")
+	end,
+	DisplayCommand=function(self)
+		if score:GetWifeScore() == 0 then 
+			self:settext("")
+		else
+			local overall = score:GetSkillsetSSR("Overall")
+			self:settextf("%.2f", overall):diffuse(byMSD(overall))
+		end
+	end
+}
 
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="ClearType",
-	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+41;zoom,0.5;halign,0);
-	SetCommand=function(self)
-		if score and update then
-			self:settext(getClearTypeFromScore(pn,score,0))
-			self:diffuse(getClearTypeFromScore(pn,score,2))
-		end
+	InitCommand=function(self)
+		self:y(41):zoom(0.5):halign(0):halign(0):settext("No Play"):diffuse(color(colorConfig:get_data().clearType["NoPlay"]))
 	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+	DisplayCommand=function(self)
+		self:settext(getClearTypeFromScore(pn,score,0))
+		self:diffuse(getClearTypeFromScore(pn,score,2))
+	end,
 }
 
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="Combo",
-	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+58;zoom,0.4;halign,0);
-	SetCommand=function(self)
-		if score and update then
-			local maxCombo = getScoreMaxCombo(score)
-			self:settextf("Max Combo: %d",maxCombo)
-		else
-			self:settext("Max Combo: 0")
-		end
+	InitCommand=function(self)
+		self:y(58):zoom(0.4):halign(0):settext("Max Combo:")
 	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+	DisplayCommand=function(self)
+		self:settextf("Max Combo: %d",score:GetMaxCombo())
+	end,
 }
 
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="MissCount",
-	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+73;zoom,0.4;halign,0);
-	SetCommand=function(self)
-		if score and update then
-			local missCount = getScoreMissCount(score)
-			if missCount ~= nil then
-				self:settext("Miss Count: "..missCount)
-			else
-				self:settext("Miss Count: -")
-			end
+	InitCommand=function(self)
+		self:y(73):zoom(0.4):halign(0):settext("Miss Count:")
+	end,
+	DisplayCommand=function(self)
+		local missCount = getScoreMissCount(score)
+		if missCount ~= nil then
+			self:settext("Miss Count: "..missCount)
 		else
 			self:settext("Miss Count: -")
-		end;
-	end;
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+		end
+	end
 }
 
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="Date",
-	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+88;zoom,0.4;halign,0);
-	SetCommand=function(self)
-		if score and update then
-			self:settext("Date Achieved: "..getScoreDate(score))
-		else
-			self:settext("Date Achieved: ")
-		end
+	InitCommand=function(self)
+		self:y(88):zoom(0.4):halign(0):settext("Date Achieved:")
 	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+	DisplayCommand=function(self)
+		self:settext("Date Achieved: "..getScoreDate(score))
+	end,
 }
 
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="Mods",
-	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+103;zoom,0.4;halign,0);
-	SetCommand=function(self)
-		if score and update then
-			self:settext("Mods: " ..score:GetModifiers())
-		else
-			self:settext("Mods:")
-		end
+	InitCommand=function(self)
+		self:y(103):zoom(0.4):halign(0):settext("Mods:")
 	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+	DisplayCommand=function(self)
+		self:settext("Mods: " ..score:GetModifiers())
+	end
 }
 
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="StepsAndMeter",
-	InitCommand=cmd(xy,frameX+frameWidth-offsetX,frameY+offsetY+10;zoom,0.5;halign,1),
-	SetCommand=function(self)
-		local steps = GAMESTATE:GetCurrentSteps(pn)
-		if score and update then
+	InitCommand=function(self)
+		self:xy(frameWidth - offsetX - frameX,10):zoom(0.5):halign(1):queuecommand("Display")
+	end,
+	DisplayCommand=function(self)
+		if GAMESTATE:GetCurrentSong() then
+			local steps = GAMESTATE:GetCurrentSteps(pn)
 			local diff = getDifficulty(steps:GetDifficulty())
 			local stype = ToEnumShortString(steps:GetStepsType()):gsub("%_"," ")
 			local meter = steps:GetMeter()
-			if update then
-				self:settext(stype.." "..diff.." "..meter)
-				self:diffuse(getDifficultyColor(GetCustomDifficulty(steps:GetStepsType(),steps:GetDifficulty())))
-			end
+			self:settext(stype.." "..diff.." "..meter)
+			self:diffuse(getDifficultyColor(GetCustomDifficulty(steps:GetStepsType(),steps:GetDifficulty())))
 		end
 	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
 }
 
 t[#t+1] = LoadFont("Common Normal")..{
-	InitCommand=cmd(xy,frameX+frameWidth-offsetX,frameY+frameHeight-10;zoom,0.4;halign,1),
-	SetCommand=function(self)
-		if rates ~= nil and rtTable[rates[rateIndex]] ~= nil and update then
-			self:settextf("Rate %s - Showing %d/%d",rates[rateIndex],scoreIndex,#rtTable[rates[rateIndex]])
-		else
-			self:settext("No Scores Saved")
-		end
+	InitCommand=function(self)
+		self:xy(frameWidth-offsetX- frameX,frameHeight-headeroffY - 10 - offsetY):zoom(0.4):halign(1):settext("No Scores Saved")
 	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+	DisplayCommand=function(self)
+		self:settextf("Rate %s - Showing %d/%d",rates[rateIndex],scoreIndex,#rtTable[rates[rateIndex]])
+	end,
 }
 
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="ChordCohesion",
-	InitCommand=cmd(xy,frameX+frameWidth/40,frameY+frameHeight-10;zoom,0.4;halign,0),
-	SetCommand=function(self)
-		if score and update then
-			if score:GetChordCohesion() == true then
-				self:settext("Chord Cohesion: Yes")
-			else
-				self:settext("Chord Cohesion: No")
-			end
+	InitCommand=function(self)
+		self:y(frameHeight-headeroffY-10 - offsetY):zoom(0.4):halign(0):settext("Chord Cohesion:")
+	end,
+	DisplayCommand=function(self)
+		if score:GetChordCohesion() then
+			self:settext("Chord Cohesion: Yes")
 		else
-			self:settext("Chord Cohesion:")
+			self:settext("Chord Cohesion: No")
 		end
 	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
 }
 
 t[#t+1] = Def.Quad{
 	Name="ScrollBar",
-	InitCommand=cmd(xy,frameX+frameWidth,frameY+frameHeight;zoomto,4,0;halign,1;valign,1;diffuse,getMainColor('highlight');diffusealpha,0.5),
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set"),
-	SetCommand=function(self,params)
+	InitCommand=function(self)
+		self:x(frameWidth-frameX):zoomto(4,0):halign(1):valign(1):diffuse(getMainColor('highlight')):diffusealpha(0.75)
+	end,
+	ScoreUpdateMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	DisplayCommand=function(self)
 		self:finishtweening()
 		self:smooth(0.2)
-		if rates ~= nil and rtTable[rates[rateIndex]] ~= nil and update then
-			self:zoomy(((frameHeight-offsetY)/#rtTable[rates[rateIndex]]))
-			self:y(frameY+offsetY+(((frameHeight-offsetY)/#rtTable[rates[rateIndex]])*scoreIndex))
-		else
-			self:zoomy(frameHeight-offsetY)
-			self:y(frameY+frameHeight)
-		end
+		self:zoomy(((frameHeight)/#rtTable[rates[rateIndex]]))
+		self:y((((frameHeight)/#rtTable[rates[rateIndex]])*scoreIndex) - headeroffY - offsetY)
 	end
 }
 
 local function makeText(index)
 	return LoadFont("Common Normal")..{
-		InitCommand=cmd(xy,frameX+frameWidth-offsetX,frameY+offsetY+15+(index*15);zoom,fontScale;halign,1),
-		SetCommand=function(self)
+		InitCommand=function(self)
+			self:xy(frameWidth-offsetX- frameX,offsetY+15+(index*15)):zoom(fontScale+0.05):halign(1):settext("")
+		end,
+		DisplayCommand=function(self)
 			local count = 0
-			if update then
-				if rtTable[rates[index]] ~= nil and update then
-					count = #rtTable[rates[index]]
-				end
-				if index <= #rates then
-					self:settextf("%s (%d)",rates[index],count)
-					if index == rateIndex then
-						self:diffuse(color("#FFFFFF"))
-					else
-						self:diffuse(getMainColor('positive'))
-					end
+			if rtTable[rates[index]] ~= nil then
+				count = #rtTable[rates[index]]
+			end
+			if index <= #rates then
+				self:settextf("%s (%d)",rates[index],count)
+				if index == rateIndex then
+					self:diffuse(color("#FFFFFF"))
 				else
-					self:settext("")
+					self:diffuse(getMainColor('positive'))
 				end
+			else
+				self:settext("")
 			end
 		end,
-		ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+		HighlightCommand=function(self)
+			highlightIfOver(self)
+		end,
+		MouseLeftClickMessageCommand=function(self)
+			if nestedTab == 1 and isOver(self) then
+				rateIndex = index
+				scoreIndex = 1
+				self:GetParent():queuecommand("Display")
+			end
+		end
 	}
 end
 
@@ -338,11 +429,15 @@ for i=1,10 do
 end
 
 local function makeJudge(index,judge)
-	local t = Def.ActorFrame{InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+125+((index-1)*18))}
+	local t = Def.ActorFrame{InitCommand=function(self)
+		self:y(125+((index-1)*18))
+	end}
 
 	--labels
 	t[#t+1] = LoadFont("Common Normal")..{
-		InitCommand=cmd(zoom,0.5;halign,0),
+		InitCommand=function(self)
+			self:zoom(0.5):halign(0)
+		end,
 		BeginCommand=function(self)
 			self:settext(getJudgeStrings(judge))
 			self:diffuse(byJudgment(judge))
@@ -350,40 +445,33 @@ local function makeJudge(index,judge)
 	};
 
 	t[#t+1] = LoadFont("Common Normal")..{
-		InitCommand=cmd(x,120;zoom,0.5;halign,1),
-		SetCommand=function(self)
-			if score and update then
-				if judge ~= 'HoldNoteScore_Held' and judge ~= 'HoldNoteScore_LetGo' then
-					self:settext(getScoreTapNoteScore(score,judge))
-				else
-					self:settext(getScoreHoldNoteScore(score,judge))
-				end
+		InitCommand=function(self)
+			self:x(120):zoom(0.5):halign(1):settext("0")
+		end,
+		DisplayCommand=function(self)
+			if judge ~= 'HoldNoteScore_Held' and judge ~= 'HoldNoteScore_LetGo' then
+				self:settext(getScoreTapNoteScore(score,judge))
 			else
-				self:settext("0")
+				self:settext(getScoreHoldNoteScore(score,judge))
 			end
 		end,
-		ScoreUpdateMessageCommand=cmd(queuecommand,"Set"),
 	};
 
 	t[#t+1] = LoadFont("Common Normal")..{
-		InitCommand=cmd(x,122;zoom,0.3;halign,0),
-		SetCommand=function(self)
-			if score ~= nil and update then
-				if judge ~= 'HoldNoteScore_Held' and judge ~= 'HoldNoteScore_LetGo' then
-					local taps = math.max(1,getMaxNotes(pn))
-					local count = getScoreTapNoteScore(score,judge)
-					self:settextf("(%03.2f%%)",(count/taps)*100)
-				else
-					local holds = math.max(1,getMaxHolds(pn))
-					local count = getScoreHoldNoteScore(score,judge)
-
-					self:settextf("(%03.2f%%)",(count/holds)*100)
-				end
+		InitCommand=function(self)
+			self:x(122):zoom(0.3):halign(0):settext("")
+		end,
+		DisplayCommand=function(self)
+			if judge ~= 'HoldNoteScore_Held' and judge ~= 'HoldNoteScore_LetGo' then
+				local taps = math.max(1,getMaxNotes(pn))
+				local count = getScoreTapNoteScore(score,judge)
+				self:settextf("(%03.2f%%)",(count/taps)*100)
 			else
-				self:settext("(0.00%)")
+				local holds = math.max(1,getMaxHolds(pn))
+				local count = getScoreHoldNoteScore(score,judge)
+				self:settextf("(%03.2f%%)",(count/holds)*100)
 			end
 		end,
-		ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
 	};
 
 	return t
@@ -395,32 +483,87 @@ end
 
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="Score",
-	InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+288;zoom,0.5;halign,0),
-	SetCommand=function(self)
-		if score ~= nil and update then
-			if score:HasReplayData() then 
-				self:settext("Show Replay Data")
-			else
-				self:settext("No Replay Data")
-			end
+	InitCommand=function(self)
+		self:y(frameHeight-headeroffY - 30 - offsetY):zoom(0.5):halign(0):settext("")
+	end,
+	DisplayCommand=function(self)
+		if score:HasReplayData() then 
+			self:settext("Show Replay Data")
 		else
-			self:settext("")
+			self:settext("No Replay Data")
 		end
 	end,
-	ScoreUpdateMessageCommand=cmd(queuecommand,"Set")
+	HighlightCommand=function(self)
+		highlightIfOver(self)
+	end,
+	MouseLeftClickMessageCommand=function(self)
+		if nestedTab == 1 then
+			if getTabIndex() == 2 and getScoreForPlot() and getScoreForPlot():HasReplayData() and isOver(self) then
+				SCREENMAN:AddNewScreenToTop("ScreenScoreTabOffsetPlot")
+			end
+		end
+	end
 }
 
--- causes too many lockups to be worth it atm
--- t[#t+1] = Def.Quad{
-	-- InitCommand=cmd(xy,frameX+offsetX,frameY+offsetY+288;zoomto,120,30;halign,0;diffusealpha,0),
-	-- MouseLeftClickMessageCommand=function(self)
-		-- if update then
-			-- if getTabIndex() == 2 and getScoreForPlot() and getScoreForPlot():HasReplayData() then
-				-- SCREENMAN:AddNewScreenToTop("ScreenScoreTabOffsetPlot")
-			-- end
-		-- end
-	-- end
--- }
-		
+-- matches the built-in online score header
+t[#t+1] = Def.Quad{
+	InitCommand=function(self)
+		self:xy(-frameX/2, -offsetY):zoomto(frameWidth - 10,24):halign(0):diffuse(color("#111111"))
+	end,
+}
 
-return t
+
+ret[#ret+1] = t
+
+function nestedTabButton(i) 
+  return  
+  Def.ActorFrame{
+    InitCommand=function(self) 
+      self:xy(frameX + offsetX + (i-1)*(nestedTabButtonWidth), frameY + headeroffY)
+	  self:SetUpdateFunction(highlight)
+    end, 
+	CollapseCommand=function(self)
+		self:visible(false)
+	end,
+	ExpandCommand=function(self)
+		self:visible(true)
+	end,
+    LoadFont("Common normal") .. { 
+      InitCommand=function(self) 
+        self:diffuse(getMainColor('positive')):maxwidth(nestedTabButtonWidth):maxheight(40):zoom(0.75):settext(nestedTabs[i]):halign(0)
+      end, 
+	  HighlightCommand=function(self)
+		if isOver(self) and nestedTab ~= i then
+			self:diffusealpha(0.75)
+		elseif nestedTab == i then
+			self:diffusealpha(1)
+		else
+			self:diffusealpha(0.6)
+		end
+	  end,
+      MouseLeftClickMessageCommand=function(self) 
+        if isOver(self) then 
+          nestedTab = i 
+          MESSAGEMAN:Broadcast("NestedTabChanged") 
+		  if nestedTab == 1 then
+			self:GetParent():GetParent():GetChild("ScoreDisplay"):visible(false)
+		  else
+			self:GetParent():GetParent():GetChild("ScoreDisplay"):visible(true)
+		  end
+        end 
+      end, 
+      NestedTabChangedMessageCommand=function(self) 
+        self:queuecommand("Set") 
+      end
+    }
+  }
+end
+
+-- online score display
+ret[#ret+1] = LoadActor("../superscoreboard")
+for i=1,#nestedTabs do  
+  ret[#ret+1] = nestedTabButton(i) 
+end 
+
+
+return ret

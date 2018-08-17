@@ -8,6 +8,11 @@
 #include <ctype.h>
 #include <limits.h>
 
+// Defined by us in cmake
+#ifdef WIN10
+#include <windows.h>
+#endif
+
 /* use configuration data */
 #include "tomcrypt_custom.h"
 

@@ -1,4 +1,4 @@
-/* NotesWriterJson - Writes a Song to a .json file. */
+﻿/* NotesWriterJson - Writes a Song to a .json file. */
 
 #ifndef NotesWriterJson_H
 #define NotesWriterJson_H

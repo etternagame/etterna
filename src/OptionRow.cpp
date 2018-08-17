@@ -1,14 +1,13 @@
-#include "global.h"
-#include "OptionRow.h"
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "Foreach.h"
-#include "OptionRowHandler.h"
+﻿#include "global.h"
+#include "ActorUtil.h"
 #include "CommonMetrics.h"
+#include "Foreach.h"
 #include "GameState.h"
+#include "OptionRow.h"
+#include "OptionRowHandler.h"
+#include "RageUtil.h"
 #include "Song.h"
 #include "Style.h"
-#include "ActorUtil.h"
 
 const RString NEXT_ROW_NAME = "NextRow";
 const RString EXIT_NAME = "Exit";
@@ -536,11 +535,11 @@ void OptionRow::UpdateEnabledDisabled()
 {
 	bool bThisRowHasFocusByAny = false;
 	FOREACH_HumanPlayer( p )
-		bThisRowHasFocusByAny |= m_bRowHasFocus[p];
+		bThisRowHasFocusByAny |= static_cast<int>(m_bRowHasFocus[p]);
 
 	bool bThisRowHasFocusByAll = true;
 	FOREACH_HumanPlayer( p )
-		bThisRowHasFocusByAll &= m_bRowHasFocus[p];
+		bThisRowHasFocusByAll &= static_cast<int>(m_bRowHasFocus[p]);
 
 	bool bRowEnabled = !m_pHand->m_Def.m_vEnabledForPlayers.empty();
 
@@ -785,7 +784,7 @@ bool OptionRow::SetSelected( PlayerNumber pn, int iChoice, bool b )
 
 bool OptionRow::NotifyHandlerOfSelection(PlayerNumber pn, int choice)
 {
-	bool changed= m_pHand->NotifyOfSelection(pn, choice - m_bFirstItemGoesDown);
+	bool changed= m_pHand->NotifyOfSelection(pn, choice - static_cast<int>(m_bFirstItemGoesDown));
 	if(changed)
 	{
 		ChoicesChanged(m_RowType, false);
@@ -880,10 +879,10 @@ void OptionRow::HandleMessage( const Message &msg )
  * Remove it, and readd it below. */
 #define ERASE_ONE_BOOL_AT_FRONT_IF_NEEDED( vbSelected ) \
 	if( GetFirstItemGoesDown() ) \
-		vbSelected.erase( vbSelected.begin() );
+		(vbSelected).erase( (vbSelected).begin() );
 #define INSERT_ONE_BOOL_AT_FRONT_IF_NEEDED( vbSelected ) \
 	if( GetFirstItemGoesDown() ) \
-		vbSelected.insert( vbSelected.begin(), false );
+		(vbSelected).insert( (vbSelected).begin(), false );
 
 void OptionRow::ImportOptions( const vector<PlayerNumber> &vpns )
 {

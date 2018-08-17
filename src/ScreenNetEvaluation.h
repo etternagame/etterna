@@ -1,9 +1,8 @@
-#include "ScreenEvaluation.h"
-#include "NetworkSyncManager.h"
-#include "Quad.h"
 #include "BitmapText.h"
-#include "ScreenMessage.h"
 #include "DifficultyIcon.h"
+#include "Quad.h"
+#include "ScreenEvaluation.h"
+#include "ScreenMessage.h"
 #include "StepsDisplay.h"
 
 class ScreenNetEvaluation: public ScreenEvaluation
@@ -17,12 +16,13 @@ public:
 	// Lua
 	void PushSelf( lua_State *L ) override;
 
+	int	 m_iCurrentPlayer;
 protected:
 	bool MenuLeft( const InputEventPlus &input ) override;
 	bool MenuUp( const InputEventPlus &input ) override;
 	bool MenuRight( const InputEventPlus &input ) override;
 	bool MenuDown( const InputEventPlus &input ) override;
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 	void TweenOffScreen( ) override;
 
 	void UpdateStats( );
@@ -35,7 +35,6 @@ private:
 	//StepsDisplay m_StepsDisplays[NUM_PLAYERS];
 
 	vector<BitmapText>	m_textUsers;
-	int	 m_iCurrentPlayer;
 	int	 m_iActivePlayers;
 
 	PlayerNumber m_pActivePlayer;

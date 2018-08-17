@@ -1,28 +1,28 @@
-#include "global.h"
+﻿#include "global.h"
+#include "ActorUtil.h"
 #include "Background.h"
-#include "RageUtil.h"
+#include "BackgroundUtil.h"
+#include "BeginnerHelper.h"
+#include "DancingCharacters.h"
 #include "GameConstantsAndTypes.h"
-#include "RageTimer.h"
-#include "RageLog.h"
+#include "GameState.h"
+#include "NoteTypes.h"
+#include "PlayerState.h"
+#include "PrefsManager.h"
+#include "Quad.h"
 #include "RageDisplay.h"
 #include "RageTextureManager.h"
-#include "GameState.h"
-#include "PrefsManager.h"
-#include "NoteTypes.h"
-#include "Steps.h"
-#include "DancingCharacters.h"
-#include "BeginnerHelper.h"
-#include "StatsManager.h"
+#include "RageTimer.h"
+#include "RageUtil.h"
 #include "ScreenDimensions.h"
+#include "Song.h"
+#include "StatsManager.h"
+#include "Steps.h"
 #include "ThemeMetric.h"
-#include "PlayerState.h"
-#include "ActorUtil.h"
-#include <cfloat>
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
-#include "BackgroundUtil.h"
-#include "Song.h"
-#include "AutoActor.h"
+#include <cfloat>
+#include "GameState.h"
 
 static ThemeMetric<float> LEFT_EDGE				("Background","LeftEdge");
 static ThemeMetric<float> TOP_EDGE				("Background","TopEdge");
@@ -214,8 +214,8 @@ void BackgroundImpl::Init()
 			bShowingBeginnerHelper = true;
 	}
 
-	if( bOneOrMoreChars && !bShowingBeginnerHelper && SHOW_DANCING_CHARACTERS )
-		m_pDancingCharacters = new DancingCharacters;
+	//if( bOneOrMoreChars && !bShowingBeginnerHelper && SHOW_DANCING_CHARACTERS )
+		//m_pDancingCharacters = new DancingCharacters;
 
 	RageColor c = GetBrightnessColor(0);
 
@@ -447,7 +447,7 @@ void BackgroundImpl::LoadFromRandom( float fFirstBeat, float fEndBeat, const Bac
 		int time_signature_start= max(ts->GetRow(),iStartRow);
 		for(int j= time_signature_start;
 			j<min(iEndRow,iSegmentEndRow);
-			j+= RAND_BG_CHANGE_MEASURES * ts->GetNoteRowsPerMeasure())
+			j+= static_cast<int>(RAND_BG_CHANGE_MEASURES * ts->GetNoteRowsPerMeasure()))
 		{
 			// Don't fade. It causes frame rate dip, especially on slower machines.
 			BackgroundDef bd = m_Layer[0].CreateRandomBGA(m_pSong,
@@ -693,7 +693,7 @@ void BackgroundImpl::LoadFromSong( const Song* pSong )
 
 	TEXTUREMAN->EnableOddDimensionWarning();
 
-	if( m_pDancingCharacters )
+	if( m_pDancingCharacters != nullptr )
 		m_pDancingCharacters->LoadNextSong();
 
 	TEXTUREMAN->SetDefaultTexturePolicy( OldPolicy );
@@ -770,7 +770,7 @@ void BackgroundImpl::Layer::UpdateCurBGChange( const Song *pSong, float fLastMus
 		}
 		else
 		{
-			if( m_pFadingBGA )
+			if( m_pFadingBGA != nullptr )
 			{
 				m_pFadingBGA->PlayCommand( "LoseFocus" );
 				
@@ -804,7 +804,7 @@ void BackgroundImpl::Layer::UpdateCurBGChange( const Song *pSong, float fLastMus
 		fDeltaTime = fCurrentTime - fStartSecond;
 	}
 
-	if( m_pFadingBGA )
+	if( m_pFadingBGA != nullptr )
 	{
 		if( m_pFadingBGA->GetTweenTimeLeft() == 0 )
 			m_pFadingBGA = nullptr;
@@ -813,9 +813,9 @@ void BackgroundImpl::Layer::UpdateCurBGChange( const Song *pSong, float fLastMus
 	/* This is unaffected by the music rate. */
 	float fDeltaTimeNoMusicRate = max( fDeltaTime / fRate, 0 );
 
-	if( m_pCurrentBGA )
+	if( m_pCurrentBGA != nullptr )
 		m_pCurrentBGA->Update( fDeltaTimeNoMusicRate );
-	if( m_pFadingBGA )
+	if( m_pFadingBGA != nullptr )
 		m_pFadingBGA->Update( fDeltaTimeNoMusicRate );
 }
 
@@ -830,7 +830,7 @@ void BackgroundImpl::Update( float fDeltaTime )
 		m_bDangerAllWasVisible = bVisible;
 	}
 
-	if( m_pDancingCharacters )
+	if( m_pDancingCharacters != nullptr )
 		m_pDancingCharacters->Update( fDeltaTime );
 
 	FOREACH_BackgroundLayer( i )
@@ -849,25 +849,25 @@ void BackgroundImpl::DrawPrimitives()
 	if( IsDangerAllVisible() )
 	{
 		// Since this only shows when DANGER is visible, it will flash red on it's own accord :)
-		if( m_pDancingCharacters )
+		if( m_pDancingCharacters != nullptr )
 			m_pDancingCharacters->m_bDrawDangerLight = true;
 	}
 
 	{
-		if( m_pDancingCharacters )
+		if( m_pDancingCharacters != nullptr )
 			m_pDancingCharacters->m_bDrawDangerLight = false;
 
 		FOREACH_BackgroundLayer( i )
 		{
 			Layer &layer = m_Layer[i];
-			if( layer.m_pCurrentBGA )
+			if( layer.m_pCurrentBGA != nullptr )
 				layer.m_pCurrentBGA->Draw();
-			if( layer.m_pFadingBGA )
+			if( layer.m_pFadingBGA != nullptr )
 				layer.m_pFadingBGA->Draw();
 		}
 	}
 
-	if( m_pDancingCharacters )
+	if( m_pDancingCharacters != nullptr )
 	{
 		m_pDancingCharacters->Draw();
 		DISPLAY->ClearZBuffer();

@@ -3,18 +3,18 @@
 #ifndef SCREEN_SELECT_MUSIC_H
 #define SCREEN_SELECT_MUSIC_H
 
+#include "BitmapText.h"
+#include "FadingBanner.h"
+#include "GameConstantsAndTypes.h"
+#include "GameInput.h"
+#include "MusicWheel.h"
+#include "OptionsList.h"
+#include "RageTexturePreloader.h"
+#include "RageUtil_BackgroundLoader.h"
 #include "ScreenWithMenuElements.h"
 #include "Sprite.h"
-#include "BitmapText.h"
-#include "GameConstantsAndTypes.h"
-#include "MusicWheel.h"
-#include "FadingBanner.h"
-#include "RageUtil_BackgroundLoader.h"
 #include "ThemeMetric.h"
-#include "RageTexturePreloader.h"
 #include "TimingData.h"
-#include "GameInput.h"
-#include "OptionsList.h"
 
 enum SelectionState
 {
@@ -35,7 +35,7 @@ public:
 	void Update( float fDeltaTime ) override;
 	bool Input( const InputEventPlus &input ) override;
 	void HandleMessage( const Message &msg ) override;
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 	bool AllowLateJoin() const override { return true; }
 
 	bool MenuStart( const InputEventPlus &input ) override;
@@ -52,6 +52,8 @@ public:
 	void OnConfirmSongDeletion();
 
 	bool can_open_options_list(PlayerNumber pn);
+
+	void DifferentialReload();
 
 	int GetSelectionState();
 
@@ -113,9 +115,8 @@ protected:
 		{
 		case SelectionState_SelectingSong:
 			return TWO_PART_SELECTION ? SelectionState_SelectingSteps : SelectionState_Finalized;
-		case SelectionState_SelectingSteps:
+		default:
 			return SelectionState_Finalized;
-		DEFAULT_FAIL( m_SelectionState );
 		}
 	}
 

@@ -1,19 +1,19 @@
 #include "global.h"
-#include "StatsManager.h"
-#include "RageFileManager.h"
-#include "GameState.h"
+#include "CryptManager.h"
 #include "Foreach.h"
-#include "ProfileManager.h"
-#include "Profile.h"
+#include "GameState.h"
+#include "LuaManager.h"
 #include "PrefsManager.h"
+#include "Profile.h"
+#include "Profile.h"
+#include "ProfileManager.h"
+#include "RageFileManager.h"
+#include "ScoreManager.h"
+#include "StatsManager.h"
 #include "Steps.h"
 #include "StyleUtil.h"
-#include "LuaManager.h"
-#include "Profile.h"
 #include "XmlFile.h"
-#include "CryptManager.h"
 #include "XmlFileUtil.h"
-#include "ScoreManager.h"
 
 StatsManager*	STATSMAN = NULL;	// global object accessible from anywhere in the program
 
@@ -106,7 +106,7 @@ void StatsManager::CalcAccumPlayedStageStats()
 // fffff this is back here because some scores/files dont calc properly if called during load -mina
 void AddPlayerStatsToProfile( Profile *pProfile, const StageStats &ss, PlayerNumber pn )
 {
-	SCOREMAN->CalcPlayerRating(pProfile->m_fPlayerRating, pProfile->m_fPlayerSkillsets);
+	SCOREMAN->CalcPlayerRating(pProfile->m_fPlayerRating, pProfile->m_fPlayerSkillsets, pProfile->m_sProfileID);
 }
 
 void StatsManager::CommitStatsToProfiles( const StageStats *pSS )
@@ -134,13 +134,13 @@ void StatsManager::CommitStatsToProfiles( const StageStats *pSS )
 		FOREACH_HumanPlayer( pn )
 		{
 			Profile* pPlayerProfile = PROFILEMAN->GetProfile( pn );
-			if( pPlayerProfile )
+			if( pPlayerProfile != nullptr )
 			{
 				pPlayerProfile->m_iTotalGameplaySeconds += iGameplaySeconds;
 				pPlayerProfile->m_iNumTotalSongsPlayed += pSS->m_vpPlayedSongs.size();
 			}
 
-			if( pPlayerProfile )
+			if( pPlayerProfile != nullptr )
 			{
 				LOG->Trace("Adding stats to player profile...");
 				AddPlayerStatsToProfile( pPlayerProfile, *pSS, pn );

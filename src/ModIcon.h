@@ -1,10 +1,9 @@
-#ifndef ModIcon_H
+﻿#ifndef ModIcon_H
 #define ModIcon_H
 
 #include "ActorFrame.h"
 #include "AutoActor.h"
 #include "BitmapText.h"
-#include "PlayerNumber.h"
 #include "ThemeMetric.h"
 /** @brief Shows PlayerOptions and SongOptions in icon form. */
 class ModIcon : public ActorFrame

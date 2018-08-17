@@ -1,10 +1,6 @@
-#include "global.h"
+﻿#include "global.h"
 #include "RageDisplay_OGL_Helpers.h"
 #include "RageUtil.h"
-
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "arch/LowLevelWindow/LowLevelWindow.h"
 
 #include <map>
 #include <set>
@@ -43,18 +39,6 @@ RString RageDisplay_Legacy_Helpers::GLToString( GLenum e )
 
 	return ssprintf( "%i", int(e) );
 }
-/*
-static void GetGLExtensions( set<string> &ext )
-{
-	const char *szBuf = (const char *) glGetString( GL_EXTENSIONS );
-
-	vector<RString> asList;
-	split( szBuf, " ", asList );
-
-	for( unsigned i = 0; i < asList.size(); ++i )
-		ext.insert( asList[i] );
-}
-*/
 
 /*
  * Copyright (c) 2001-2011 Chris Danford, Glenn Maynard, Colby Klein

@@ -3,9 +3,15 @@ local gc = Var("GameCommand")
 return Def.ActorFrame {
 	LoadFont("Common Normal") .. {
 		Text=THEME:GetString("ScreenTitleMenu",gc:GetText()),
-		OnCommand=cmd(halign,0),
-		GainFocusCommand=cmd(zoom,0.6;diffusealpha,1;diffuse,getMainColor('positive')),
-		LoseFocusCommand=cmd(diffuse,getMainColor('positive');diffusealpha,0.7;zoom,0.5),
+		OnCommand=function(self)
+			self:xy(280,-78):halign(0):valign(0)
+		end,
+		GainFocusCommand=function(self)
+			self:zoom(0.57):diffuse(color("#59307f"))
+		end,
+		LoseFocusCommand=function(self)
+			self:zoom(0.55):diffuse(color("#b87cf0"))
+		end,
  	}
 }
 

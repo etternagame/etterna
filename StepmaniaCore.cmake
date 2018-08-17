@@ -14,7 +14,7 @@ set(SM_DOC_DIR "${CMAKE_CURRENT_LIST_DIR}/Docs")
 set(SM_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}")
 
 # TODO: Reconsile the OS dependent naming scheme.
-set(SM_EXE_NAME "StepMania")
+set(SM_EXE_NAME "Etterna")
 
 # Some OS specific helpers.
 if (CMAKE_SYSTEM_NAME MATCHES "Linux")
@@ -34,6 +34,13 @@ if (CMAKE_SYSTEM_NAME MATCHES "BSD")
 else()
   set(BSD FALSE)
 endif()
+
+macro(set_WIN10_FLAG)
+    if (WIN32 AND (CMAKE_SYSTEM_VERSION GREATER 10.0 OR CMAKE_SYSTEM_VERSION  EQUAL 10.0))
+        add_definitions(-DWIN10)
+    endif()
+endmacro()
+set_WIN10_FLAG()
 
 # Allow for finding our libraries in a standard location.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}" "${SM_CMAKE_DIR}/Modules/")
@@ -155,6 +162,7 @@ check_type_size(pid_t SIZEOF_PID_T)
 check_type_size(size_t SIZEOF_SIZE_T)
 check_type_size(ssize_t SIZEOF_SSIZE_T)
 
+
 include(TestBigEndian)
 test_big_endian(BIGENDIAN)
 if (${BIGENDIAN})
@@ -184,24 +192,27 @@ endif()
 # Dependencies go here.
 include(ExternalProject)
 
+if(NOT WITH_GPL_LIBS)
+  message("Disabling GPL exclusive libraries: no MP3 support.")
+  set(WITH_MP3 OFF)
+endif()
+
 if(WITH_WAV)
   # TODO: Identify which headers to check for ensuring this will always work.
   set(HAS_WAV TRUE)
 endif()
 
 if(WITH_MP3)
-  if(MSVC)
+  if(WIN32 OR MACOSX)
     set(HAS_MP3 TRUE)
   else()
-    if(NOT WITH_FFMPEG)
-      message("FFmpeg is required for mp3 support. WITH_MP3 is set to off.")
-	  set(WITH_MP3 FALSE)
+    find_package(Mad)
+    if(NOT LIBMAD_FOUND)
+      message(FATAL_ERROR "Libmad library not found. If you wish to skip mp3 support, set WITH_MP3 to OFF when configuring.")
     else()
       set(HAS_MP3 TRUE)
     endif()
   endif()
-else()
-  set(HAS_MP3 FALSE)
 endif()
 
 if(WITH_OGG)
@@ -245,7 +256,17 @@ if(WIN32)
   find_package(DirectX REQUIRED)
   
   link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc.lib)
+  include_directories(${SM_EXTERN_DIR}/discord-rpc-2.0.1/include)
+  link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/discord-rpc.lib)
+  link_libraries(${SM_EXTERN_DIR}/LuaJIT/lua51.lib)
+  include_directories(${SM_EXTERN_DIR}/LuaJIT/include)
   
+  include_directories(${SM_EXTERN_DIR}/uWebSocket/include)
+  include_directories(${SM_EXTERN_DIR}/uWebSocket/includelibs)
+  link_libraries(${SM_EXTERN_DIR}/uWebSocket/uWS.lib)
+  link_libraries(${SM_EXTERN_DIR}/uWebSocket/libeay32.lib)
+  link_libraries(${SM_EXTERN_DIR}/uWebSocket/ssleay32.lib)
+  link_libraries(${SM_EXTERN_DIR}/uWebSocket/libuv.lib)
   if (MINGW AND WITH_FFMPEG)
     include("${SM_CMAKE_DIR}/SetupFfmpeg.cmake")
     set(HAS_FFMPEG TRUE)
@@ -256,11 +277,6 @@ if(WIN32)
     )
     get_filename_component(LIB_SWSCALE ${LIB_SWSCALE} NAME)
 
-	find_library(LIB_SWRESAMPLE NAMES "swresample"
-      PATHS "${SM_EXTERN_DIR}/ffmpeg/lib" NO_DEFAULT_PATH
-    )
-    get_filename_component(LIB_SWRESAMPLE ${LIB_SWRESAMPLE} NAME)
-	
     find_library(LIB_AVCODEC NAMES "avcodec"
       PATHS "${SM_EXTERN_DIR}/ffmpeg/lib" NO_DEFAULT_PATH
     )
@@ -276,22 +292,42 @@ if(WIN32)
     )
     get_filename_component(LIB_AVUTIL ${LIB_AVUTIL} NAME)
   endif()
+  
+  find_library(LIB_CURL NAMES "libcurl"
+	PATHS "${SM_EXTERN_DIR}/libcurl" NO_DEFAULT_PATH
+	)
+  get_filename_component(LIB_CURL ${LIB_CURL} NAME)
+  
+  find_library(LIB_WLDAP32 NAMES "wldap32"
+	PATHS "${SM_EXTERN_DIR}/libcurl" NO_DEFAULT_PATH
+	)
+  get_filename_component(LIB_WLDAP32 ${LIB_WLDAP32} NAME)
+  
 elseif(MACOSX)
 
   if (WITH_FFMPEG)
     include("${SM_CMAKE_DIR}/SetupFfmpeg.cmake")
     set(HAS_FFMPEG TRUE)
   endif()
+  
+  set(CURL_LIBRARY "-lcurl") 
+  find_package(CURL REQUIRED) 
+  if(NOT CURL_FOUND)
+	MESSAGE(FATAL_ERROR "Could not find the CURL library")
+  endif()
 
+  
   link_libraries(${SM_EXTERN_DIR}/MinaCalc/libMinaCalc.a)
+  link_libraries(${SM_EXTERN_DIR}/LuaJIT/lua51Mac.a)
+  include_directories(${SM_EXTERN_DIR}/LuaJIT/include)
+  link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/libdiscord-rpcMac.a)
+  include_directories(${SM_EXTERN_DIR}/discord-rpc-2.0.1/include)
 
   set(SYSTEM_PCRE_FOUND FALSE)
   set(WITH_CRASH_HANDLER TRUE)
-  # Apple Archs needs to be 32-bit for now.
-  # When SDL2 is introduced, this may change.
-  set(CMAKE_OSX_ARCHITECTURES "i386")
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.6")
-  set(CMAKE_OSX_DEPLOYMENT_TARGET_FULL "10.6.8")
+
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
+  set(CMAKE_OSX_DEPLOYMENT_TARGET_FULL "10.9.0")
 
   find_library(MAC_FRAME_ACCELERATE Accelerate ${CMAKE_SYSTEM_FRAMEWORK_PATH})
   find_library(MAC_FRAME_APPKIT AppKit ${CMAKE_SYSTEM_FRAMEWORK_PATH})
@@ -336,6 +372,10 @@ elseif(LINUX)
   endif()
 
   link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc.a)
+  link_libraries(${SM_EXTERN_DIR}/LuaJIT/lua51.a)
+  include_directories(${SM_EXTERN_DIR}/LuaJIT/include)
+  link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/libdiscord-rpc.a)
+  include_directories(${SM_EXTERN_DIR}/discord-rpc-2.0.1/include)
   
   find_package(X11)
   if(${X11_FOUND})
@@ -401,9 +441,8 @@ elseif(LINUX)
   endif()
 
   if (WITH_FFMPEG AND NOT YASM_FOUND AND NOT NASM_FOUND)
-    message("Neither NASM nor YASM were found. Please install at least one of them if you wish for ffmpeg and mp3 support.")
+    message("Neither NASM nor YASM were found. Please install at least one of them if you wish for ffmpeg support.")
     set(WITH_FFMPEG OFF)
-	set(WITH_MP3 OFF)
   endif()
 
   find_package("Va")
@@ -424,17 +463,22 @@ elseif(LINUX)
     endif()
   else()
     set(HAS_FFMPEG FALSE)
-	set(HAS_MP3 FALSE)
   endif()
 
+  set(CURL_LIBRARY "-lcurl") 
+  find_package(CURL REQUIRED) 
+  if(NOT CURL_FOUND)
+	MESSAGE(FATAL_ERROR "Could not find the CURL library")
+  endif()
+  
   find_package(OpenGL REQUIRED)
   if (NOT ${OPENGL_FOUND})
-    message(FATAL_ERROR "OpenGL required to compile StepMania.")
+    message(FATAL_ERROR "OpenGL required to compile Etterna.")
   endif()
 
   find_package(GLEW REQUIRED)
   if (NOT ${GLEW_FOUND})
-    message(FATAL_ERROR "GLEW required to compile StepMania.")
+    message(FATAL_ERROR "GLEW required to compile Etterna.")
   endif()
 
 endif()

@@ -10,11 +10,19 @@ t[#t+1] = LoadActor("profile")
 t[#t+1] = LoadActor("filter")
 t[#t+1] = LoadActor("goaltracker")
 t[#t+1] = LoadActor("playlists")
+t[#t+1] = LoadActor("downloads")
+t[#t+1] = LoadActor("tags")
 
 t[#t+1] = Def.ActorFrame {
-	InitCommand=cmd(xy,capWideScale(get43size(384),384)+26,70,halign,0;valign,0;zoom,math.min(1,SCREEN_WIDTH/854)),
-	OffCommand=cmd(bouncebegin,0.2;xy,capWideScale(get43size(384),384)+26-500,70), -- visible(false) doesn't seem to work with sleep
-	OnCommand=cmd(bouncebegin,0.2;xy,capWideScale(get43size(384),384)+26,70),
+	InitCommand=function(self)
+		self:xy(capWideScale(get43size(384),384)+26,70,halign,0):valign(0):zoom(math.min(1,SCREEN_WIDTH/854))
+	end,
+	OffCommand=function(self)
+		self:bouncebegin(0.2):xy(capWideScale(get43size(384),384)+26-500,70) -- visible(false)
+	end,
+	OnCommand=function(self)
+		self:bouncebegin(0.2):xy(capWideScale(get43size(384),384)+26,70)
+	end,
 	TabChangedMessageCommand=function(self)
 		self:finishtweening()
 		if getTabIndex() == 0 then
@@ -36,22 +44,16 @@ t[#t+1] = Def.ActorFrame {
 	Def.StepsDisplayList {
 		Name="StepsDisplayListRow",
 		CursorP1 = Def.ActorFrame {
-			InitCommand=cmd(x,55;player,PLAYER_1),
-			PlayerJoinedMessageCommand=function(self, params)
-				if params.Player == PLAYER_1 then
-					self:visible(true);
-					(cmd(zoom,0;bounceend,1;zoom,1))(self)
-				end
-			end,
-			PlayerUnjoinedMessageCommand=function(self, params)
-				if params.Player == PLAYER_1 then
-					self:visible(true);
-					(cmd(bouncebegin,1;zoom,0))(self)
-				end
+			InitCommand=function(self)
+				self:x(55):player(PLAYER_1)
 			end,
 			Def.Quad{
-				InitCommand=cmd(zoomto,6,22;halign,1;valign,0.5),
-				BeginCommand=cmd(queuecommand,"Set"),
+				InitCommand=function(self)
+					self:zoomto(6,22):halign(1):valign(0.5)
+				end,
+				BeginCommand=function(self)
+					self:queuecommand("Set")
+				end,
 				SetCommand=function(self)
 					if GAMESTATE:GetNumPlayersEnabled()>=2 then
 						self:zoomy(11)
@@ -61,12 +63,14 @@ t[#t+1] = Def.ActorFrame {
 						self:valign(0.5)
 					end
 				end,
-				PlayerJoinedMessageCommand=cmd(playcommand,"Set"),
-				PlayerUnjoinedMessageCommand=cmd(playcommand,"Set")
 			},
 			LoadFont("Common Normal") .. {
-				InitCommand=cmd(x,-1;halign,1;valign,0.5;zoom,0.3;diffuse,color("#000000")),
-				BeginCommand=cmd(queuecommand,"Set"),
+				InitCommand=function(self)
+					self:x(-1):halign(1):valign(0.5):zoom(0.3):diffuse(color("#000000"))
+				end,
+				BeginCommand=function(self)
+					self:queuecommand("Set")
+				end,
 				SetCommand=function(self)
 					self:settext('1')
 					if GAMESTATE:GetNumPlayersEnabled()>=2 then
@@ -75,27 +79,19 @@ t[#t+1] = Def.ActorFrame {
 						self:y(0)
 					end
 				end,
-				PlayerJoinedMessageCommand=cmd(playcommand,"Set"),
-				PlayerUnjoinedMessageCommand=cmd(playcommand,"Set")
 			}
 		},
 		CursorP2 = Def.ActorFrame {
-			InitCommand=cmd(x,55;player,PLAYER_2),
-			PlayerJoinedMessageCommand=function(self, params)
-				if params.Player == PLAYER_2 then
-					self:visible(true);
-					(cmd(zoom,0;bounceend,1;zoom,1))(self)
-				end
-			end,
-			PlayerUnjoinedMessageCommand=function(self, params)
-				if params.Player == PLAYER_2 then
-					self:visible(true);
-					(cmd(bouncebegin,1;zoom,0))(self)
-				end
+			InitCommand=function(self)
+				self:x(55):player(PLAYER_2)
 			end,
 			Def.Quad{
-				InitCommand=cmd(zoomto,6,22;halign,1;valign,0.5),
-				BeginCommand=cmd(queuecommand,"Set"),
+				InitCommand=function(self)
+					self:zoomto(6,22):halign(1):valign(0.5)
+				end,
+				BeginCommand=function(self)
+					self:queuecommand("Set")
+				end,
 				SetCommand=function(self)
 					if GAMESTATE:GetNumPlayersEnabled()>=2 then
 						self:zoomy(11)
@@ -105,12 +101,14 @@ t[#t+1] = Def.ActorFrame {
 						self:valign(0.5)
 					end
 				end,
-				PlayerJoinedMessageCommand=cmd(playcommand,"Set"),
-				PlayerUnjoinedMessageCommand=cmd(playcommand,"Set")
 			},
 			LoadFont("Common Normal") .. {
-				InitCommand=cmd(x,-1;halign,1;valign,0.5;zoom,0.3;diffuse,color("#000000")),
-				BeginCommand=cmd(queuecommand,"Set"),
+				InitCommand=function(self)
+					self:x(-1):halign(1):valign(0.5):zoom(0.3):diffuse(color("#000000"))
+				end,
+				BeginCommand=function(self)
+					self:queuecommand("Set")
+				end,
 				SetCommand=function(self)
 					self:settext('2')
 					if GAMESTATE:GetNumPlayersEnabled()>=2 then
@@ -119,17 +117,20 @@ t[#t+1] = Def.ActorFrame {
 						self:y(0)
 					end
 				end,
-				PlayerJoinedMessageCommand=cmd(playcommand,"Set"),
-				PlayerUnjoinedMessageCommand=cmd(playcommand,"Set")
 			}
 		},
 		CursorP1Frame = Def.Actor{
-			ChangeCommand=cmd(stoptweening;decelerate,0.05)
+			ChangeCommand=function(self)
+				self:stoptweening():decelerate(0.05)
+			end	
 		},
 		CursorP2Frame = Def.Actor{
-			ChangeCommand=cmd(stoptweening;decelerate,0.05)
+			ChangeCommand=function(self)
+				self:stoptweening():decelerate(0.05)
+			end	
 		}
 	}
 }
 
+t[#t+1] = LoadActor("../_mousewheelscroll")
 return t

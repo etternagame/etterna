@@ -72,7 +72,9 @@ DONT EDIT THE FUNCTION, DON'T COPY AND PASTE THE WHOLE NOTESKIN.LUA
 JUST MAKE A NEW ONE AND GRAB WHATEVER IS USEFUL FOR YOUR NOTESKIN.
 phew~
 
-See cmd-routine-p* noteskin.lua for a simple and clear example on
+See function(self)
+	self:routine-p* noteskin.lua for a simple and clear example on()
+endn
 how to do this properly, notice how the rest of the noteskins just
 have graphics and at least a metrics.ini with few things
 --]]--------------------------------------------------------------------------
@@ -119,7 +121,9 @@ local function func()
 	end
 	
 	if sElement == "Tap Lift" then
-		t.InitCommand=cmd(pulse;effectclock,"beat";effectmagnitude,1,0.75,0);
+		t.InitCommand=function(self)
+			self:pulse():effectclock("beat"):effectmagnitude(1,0.75,0)
+		end;
 	end
 	
 	return t

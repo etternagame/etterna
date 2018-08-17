@@ -1,9 +1,8 @@
-/* JsonLoader - Reads a Song from a .json file. */
+﻿/* JsonLoader - Reads a Song from a .json file. */
 
 #ifndef NotesLoaderJson_H
 #define NotesLoaderJson_H
 
-#include "NotesLoader.h"
 class Song;
 
 namespace NotesLoaderJson

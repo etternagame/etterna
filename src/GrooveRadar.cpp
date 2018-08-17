@@ -1,15 +1,12 @@
-#include "global.h"
+﻿#include "global.h"
+#include "ActorUtil.h"
 #include "GrooveRadar.h"
-#include "RageUtil.h"
-#include "PrefsManager.h"
-#include "GameConstantsAndTypes.h"
-#include "ThemeManager.h"
-#include "Steps.h"
 #include "RageDisplay.h"
 #include "RageMath.h"
+#include "RageUtil.h"
+#include "Steps.h"
+#include "ThemeManager.h"
 #include "ThemeMetric.h"
-#include "CommonMetrics.h"
-#include "ActorUtil.h"
 // I feel weird about this coupling, but it has to be done. -aj
 #include "GameState.h"
 
@@ -107,7 +104,7 @@ void GrooveRadar::GrooveRadarValueMap::SetFromSteps( const RadarValues &rv )
 	{
 		const float fValueCurrent = m_fValuesOld[c] * (1-m_PercentTowardNew) + m_fValuesNew[c] * m_PercentTowardNew;
 		m_fValuesOld[c] = fValueCurrent;
-		m_fValuesNew[c] = clamp(rv[c], 0.0, 1.0);
+		m_fValuesNew[c] = static_cast<float>(clamp(rv[c], 0, 1));
 	}
 
 	if( !m_bValuesVisible ) // the values WERE invisible

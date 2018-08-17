@@ -74,14 +74,20 @@ local function input(event)
 end
 
 local t = Def.ActorFrame {
-	InitCommand=cmd(vertalign,bottom),
+	InitCommand=function(self)
+		self:vertalign(bottom)
+	end,
 	LoadFont( "Combo", "numbers" ) .. {
 		Name="Number",
-		InitCommand=cmd(xy,x-4,y;zoom,zoom - 0.1;halign,1;valign,1;skewx,-0.125;visible,false),
+		InitCommand=function(self)
+			self:xy(x-4,y):zoom(zoom - 0.1):halign(1):valign(1):skewx(-0.125):visible(false)
+		end,
 	},
 	LoadFont("Common Normal") .. {
 		Name="Label",
-		InitCommand=cmd(xy,x,y;zoom,zoom;diffusebottomedge,color("0.75,0.75,0.75,1");halign,0;valign,1;visible,false),
+		InitCommand=function(self)
+			self:xy(x,y):zoom(zoom):diffusebottomedge(color("0.75,0.75,0.75,1")):halign(0):valign(1):visible(false)
+		end,
 	},
 	InitCommand = function(self)
 		c = self:GetChildren()

@@ -1,8 +1,7 @@
-/* RageInputDevice - User input types. */
+﻿/* RageInputDevice - User input types. */
 #ifndef RAGE_INPUT_DEVICE_H
 #define RAGE_INPUT_DEVICE_H
 
-#include "RageTimer.h"
 #include "EnumHelper.h"
 #include <chrono>
 

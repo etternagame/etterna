@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Implements properties: 
  *   "Speed" - cause the sound to play faster or slower
  *   "Pitch" - raise or lower the pitch of the sound
@@ -9,15 +9,14 @@
  */
 
 #include "global.h"
-#include "RageSoundReader_PitchChange.h"
-#include "RageSoundReader_SpeedChange.h"
-#include "RageSoundReader_Resample_Good.h"
-#include "RageLog.h"
 #include "Preference.h"
+#include "RageSoundReader_PitchChange.h"
+#include "RageSoundReader_Resample_Good.h"
+#include "RageSoundReader_SpeedChange.h"
 
 Preference<bool>  EnablePitchRates("EnablePitchRates", true);
 RageSoundReader_PitchChange::RageSoundReader_PitchChange( RageSoundReader *pSource ):
-	RageSoundReader_Filter( NULL )
+	RageSoundReader_Filter( nullptr )
 {
 	m_pSpeedChange = new RageSoundReader_SpeedChange( pSource );
 	m_pResample = new RageSoundReader_Resample_Good( m_pSpeedChange, m_pSpeedChange->GetSampleRate() );

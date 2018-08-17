@@ -1,9 +1,9 @@
-#include "global.h"
+﻿#include "global.h"
 #include "RageSoundReader_ThreadedBuffer.h"
-#include "RageUtil.h"
 #include "RageTimer.h"
-#include "Foreach.h"
-#include "RageLog.h"
+#if defined(HAVE_UNISTD_H)
+#include <unistd.h> /* correct place with correct definitions */
+#endif
 
 /* Implement threaded read-ahead buffering.
  *

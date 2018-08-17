@@ -5,27 +5,18 @@ local borderWidth = 4
 
 
 local t = Def.ActorFrame{
-	Name="PlayerAvatar";
-};
+	Name="PlayerAvatar"
+}
 
 local profileP1
-local profileP2
 
 local profileNameP1 = "No Profile"
 local playCountP1 = 0
 local playTimeP1 = 0
 local noteCountP1 = 0
 
-local profileNameP2 = "No Profile"
-local playCountP2 = 0
-local playTimeP2 = 0
-local noteCountP2 = 0
-
-
-local AvatarXP1 = 10
+local AvatarXP1 = 5
 local AvatarYP1 = 50
-local AvatarXP2 = SCREEN_WIDTH-40
-local AvatarYP2 = 50
 
 local bpms = {}
 if GAMESTATE:GetCurrentSong() then
@@ -35,17 +26,21 @@ if GAMESTATE:GetCurrentSong() then
 end
 
 -- P1 Avatar
+t[#t+1] = Def.Quad{
+	InitCommand=function(self)
+		self:xy(AvatarXP1-15,AvatarYP1-5):halign(0):valign(0):zoomto(250,40):diffuse(color("#000000")):diffusealpha(.8)
+	end;
+};
+
 t[#t+1] = Def.Actor{
-	BeginCommand=cmd(queuecommand,"Set");
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end,
 	SetCommand=function(self)
 		if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
 			profileP1 = GetPlayerOrMachineProfile(PLAYER_1)
 			if profileP1 ~= nil then
-				if profileP1 == PROFILEMAN:GetMachineProfile() then
-					profileNameP1 = "Machine Profile"
-				else
-					profileNameP1 = profileP1:GetDisplayName()
-				end
+				profileNameP1 = profileP1:GetDisplayName()
 				playCountP1 = profileP1:GetTotalNumSongsPlayed()
 				playTimeP1 = profileP1:GetTotalSessionSeconds()
 				noteCountP1 = profileP1:GetTotalTapsAndHolds()
@@ -54,60 +49,62 @@ t[#t+1] = Def.Actor{
 				playCountP1 = 0
 				playTimeP1 = 0
 				noteCountP1 = 0
-			end; 
+			end
 		else
 			profileNameP1 = "No Profile"
 			playCountP1 = 0
 			playTimeP1 = 0
 			noteCountP1 = 0
-		end;
-	end;
-	PlayerJoinedMessageCommand=cmd(queuecommand,"Set");
-	PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set");
+		end
+	end
 }
 
 t[#t+1] = Def.ActorFrame{
-	Name="Avatar"..PLAYER_1;
-	BeginCommand=cmd(queuecommand,"Set");
+	Name="Avatar"..PLAYER_1,
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end,
 	SetCommand=function(self)
 		if profileP1 == nil then
 			self:visible(false)
 		else
 			self:visible(true)
-		end;
-	end;
-	PlayerJoinedMessageCommand=cmd(queuecommand,"Set");
-	PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set");
+		end
+	end,
 
 	Def.Sprite {
-		Name="Image";
-		InitCommand=cmd(visible,true;halign,0;valign,0;xy,AvatarXP1,AvatarYP1);
-		BeginCommand=cmd(queuecommand,"ModifyAvatar");
-		PlayerJoinedMessageCommand=cmd(queuecommand,"ModifyAvatar");
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"ModifyAvatar");
+		Name="Image",
+		InitCommand=function(self)
+			self:visible(true):halign(0):valign(0):xy(AvatarXP1,AvatarYP1)
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("ModifyAvatar")
+		end,
 		ModifyAvatarCommand=function(self)
-			self:finishtweening();
-			self:LoadBackground(THEME:GetPathG("","../"..getAvatarPath(PLAYER_1)));
+			self:finishtweening()
+			self:LoadBackground(THEME:GetPathG("","../"..getAvatarPath(PLAYER_1)))
 			self:zoomto(30,30)
-		end;
-	};
+		end
+	},
 	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,AvatarXP1+33,AvatarYP1+6;halign,0;zoom,0.45;);
-		BeginCommand=cmd(queuecommand,"Set");
+		InitCommand=function(self)
+			self:xy(AvatarXP1+33,AvatarYP1+9):halign(0):zoom(0.45)
+		end,
+		BeginCommand=function(self)
+			self:queuecommand("Set")
+		end,
 		SetCommand=function(self)
 			self:settext(profileNameP1.."'s Scroll Speed:")
-		end;
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set");
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set");
-	};
+		end
+	},
 	LoadFont("Common Normal") .. {
-		InitCommand=cmd(xy,AvatarXP1+33,AvatarYP1+19;halign,0;zoom,0.40;);
+		InitCommand=function(self)
+			self:xy(AvatarXP1+33,AvatarYP1+20):halign(0):zoom(0.40)
+		end,
 		BeginCommand=function(self)
 			local speed, mode= GetSpeedModeAndValueFromPoptions(PLAYER_1)
 			self:playcommand("SpeedChoiceChanged", {pn= PLAYER_1, mode= mode, speed= speed})
-		end;
-		PlayerJoinedMessageCommand=cmd(queuecommand,"Set");
-		PlayerUnjoinedMessageCommand=cmd(queuecommand,"Set");
+		end,
 		SpeedChoiceChangedMessageCommand=function(self,param)
 			if param.pn == PLAYER_1 then
 				local text = ""
@@ -133,21 +130,101 @@ t[#t+1] = Def.ActorFrame{
 				end
 				self:settext(text)
 			end
-		end;
+		end
 	}
 }
 
 --Frames
 t[#t+1] = Def.Quad{
-	InitCommand=cmd(xy,0,0;halign,0;valign,0;zoomto,SCREEN_WIDTH,topFrameHeight;diffuse,color("#000000"););
-};
+	InitCommand=function(self)
+		self:xy(0,0):halign(0):valign(0):zoomto(SCREEN_WIDTH,topFrameHeight):diffuse(color("#000000"))
+	end
+}
 t[#t+1] = Def.Quad{
-	InitCommand=cmd(xy,0,topFrameHeight;halign,0;valign,1;zoomto,SCREEN_WIDTH,borderWidth;diffuse,getMainColor('highlight');diffusealpha,0.5);
-};
-
---t[#t+1] = LoadActor("_frame");
-t[#t+1] = LoadFont("Common Large")..{
-	InitCommand=cmd(xy,5,32;halign,0;valign,1;zoom,0.55;diffuse,getMainColor('positive');settext,"Player Options:";);
+	InitCommand=function(self)
+		self:xy(0,topFrameHeight):halign(0):valign(1):zoomto(SCREEN_WIDTH,borderWidth):diffuse(getMainColor('highlight')):diffusealpha(0.5)
+	end
 }
 
+t[#t+1] = LoadFont("Common Large")..{
+	InitCommand=function(self)
+		self:xy(5,32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor('positive')):settext("Player Options:")
+	end
+}
+
+local NSPreviewSize = 0.5
+local NSPreviewX = 20
+local NSPreviewY = 125
+local NSPreviewXSpan = 35
+local NSPreviewReceptorY = -30
+local OptionRowHeight = 35
+local NoteskinRow = 0
+
+function NSkinPreviewWrapper(dir, ele)
+	return Def.ActorFrame{
+		InitCommand=function(self) 
+			self:zoom(NSPreviewSize)
+		end,
+		LoadNSkinPreview("Get", dir, ele,PLAYER_1)
+	}
+end
+t[#t+1] = Def.ActorFrame{
+	OnCommand=function(self) 
+		self:xy(NSPreviewX, NSPreviewY)
+		for i = 0,SCREENMAN:GetTopScreen():GetNumRows()-1 do
+			if SCREENMAN:GetTopScreen():GetOptionRow(i) and SCREENMAN:GetTopScreen():GetOptionRow(i):GetName() == "NoteSkins" then
+				NoteskinRow = i
+			end
+		end
+		self:SetUpdateFunction(
+			function(self) 
+				local row = SCREENMAN:GetTopScreen():GetCurrentRowIndex(PLAYER_1)
+				local pos =0
+				if row > 4 then
+					pos = NSPreviewY + NoteskinRow*OptionRowHeight-(SCREENMAN:GetTopScreen():GetCurrentRowIndex(PLAYER_1)-4)*OptionRowHeight
+				else
+					pos = NSPreviewY + NoteskinRow*OptionRowHeight
+				end
+				self:y(pos)
+				self:visible(NoteskinRow - row > -5 and NoteskinRow - row < 7)
+			 end
+			)
+	end,
+	Def.ActorFrame{
+		NSkinPreviewWrapper("Left", "Tap Note")
+	},
+	Def.ActorFrame{
+		InitCommand=function(self) self:y(NSPreviewReceptorY) end,
+		NSkinPreviewWrapper("Left", "Receptor")
+	}
+}
+if GetScreenAspectRatio( ) > 1.7 then
+	t[#t][#(t[#t])+1] = 
+	Def.ActorFrame{
+		Def.ActorFrame{
+			InitCommand=function(self) self:x(NSPreviewXSpan*1) end,
+			NSkinPreviewWrapper("Down", "Tap Note")
+		},
+		Def.ActorFrame{
+			InitCommand=function(self) self:x(NSPreviewXSpan*1):y(NSPreviewReceptorY) end,
+			NSkinPreviewWrapper("Down", "Receptor")
+		},
+		Def.ActorFrame{
+			InitCommand=function(self) self:x(NSPreviewXSpan*2) end,
+			NSkinPreviewWrapper("Up", "Tap Note")
+		},
+		Def.ActorFrame{
+			InitCommand=function(self) self:x(NSPreviewXSpan*2):y(NSPreviewReceptorY) end,
+			NSkinPreviewWrapper("Up", "Receptor")
+		},
+		Def.ActorFrame{
+			InitCommand=function(self) self:x(NSPreviewXSpan*3) end,
+			NSkinPreviewWrapper("Right", "Tap Note")
+		},
+		Def.ActorFrame{
+			InitCommand=function(self) self:x(NSPreviewXSpan*3):y(NSPreviewReceptorY) end,
+			NSkinPreviewWrapper("Right", "Receptor")
+		}
+	}
+end
 return t

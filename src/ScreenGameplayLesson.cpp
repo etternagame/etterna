@@ -1,10 +1,10 @@
 #include "global.h"
-#include "ScreenGameplayLesson.h"
-#include "RageLog.h"
-#include "GameState.h"
 #include "GamePreferences.h"
-#include "StatsManager.h"
+#include "GameState.h"
+#include "RageLog.h"
+#include "ScreenGameplayLesson.h"
 #include "Song.h"
+#include "StatsManager.h"
 
 REGISTER_SCREEN_CLASS( ScreenGameplayLesson );
 ScreenGameplayLesson::ScreenGameplayLesson()
@@ -111,8 +111,8 @@ void ScreenGameplayLesson::HandleScreenMessage( const ScreenMessage SM )
 			{
 				ResetAndRestartCurrentSong();
 
-				m_Try = (Try)(m_Try+1);
-				MESSAGEMAN->Broadcast( (MessageID)(Message_LessonTry1+m_Try) );
+				m_Try = static_cast<Try>(m_Try+1);
+				MESSAGEMAN->Broadcast( static_cast<MessageID>(Message_LessonTry1+m_Try) );
 			}
 			else
 			{
@@ -156,14 +156,14 @@ void ScreenGameplayLesson::ChangeLessonPage( int iDir )
 		// don't change
 		return;
 	}
-	else if( m_iCurrentPageIndex + iDir >= (int)m_vPages.size() )
+	if( m_iCurrentPageIndex + iDir >= (int)m_vPages.size() )
 	{
 		m_vPages[m_iCurrentPageIndex]->PlayCommand( "Hide" );
 		m_iCurrentPageIndex = -1;
 
 		ResetAndRestartCurrentSong();
 
-		MESSAGEMAN->Broadcast( (MessageID)(Message_LessonTry1+m_Try) );
+		MESSAGEMAN->Broadcast( static_cast<MessageID>(Message_LessonTry1+m_Try) );
 
 		// Change back to the current autoplay setting (in most cases, human controlled).
 		FOREACH_EnabledPlayerInfo( m_vPlayerInfo, pi )

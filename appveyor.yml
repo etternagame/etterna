@@ -1,16 +1,26 @@
 version: 5.0.12.{build}.{branch}
 pull_requests:
   do_not_increment_build_number: true
-image: Visual Studio 2015
+image:
+  - Visual Studio 2015
+  - Visual Studio 2017
 configuration: Release
-shallow_clone: true
 clone_folder: C:\etterna
 
+cache:
+  - C:\ProgramData\chocolatey\bin -> appveyor.yml
+  - C:\ProgramData\chocolatey\lib -> appveyor.yml
+
+artifacts:
+- path: Etterna *.exe
+  
 install:
-- cmd: choco install nsis
+- cmd: choco install nsis.portable
 
 before_build:
+- cmd: git submodule update --init --recursive
 - cmd: >-
+    
     mkdir build && cd build
 
     "C:\Program Files (x86)\cmake\bin\cmake" .. -G "Visual Studio 14 2015"
@@ -18,11 +28,16 @@ before_build:
     del "C:\Program Files (x86)\MSBuild\14.0\Microsoft.Common.targets\ImportAfter\Xamarin.Common.targets"
 
 build:
-  project: C:\etterna\build\StepMania.sln
+  project: C:\etterna\build\Etterna.sln
   verbosity: normal
 
 after_build:
-- cmd: msbuild "C:\etterna\build\PACKAGE.vcxproj" /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+- cmd: >-
+    
+    "C:\Program Files (x86)\NSIS\makensis.exe" "C:\etterna\stepmania.nsi"
+
+- cmd: >-
+    rename "C:\etterna\Etterna *.exe" "Etterna *-%appveyor_build_version%.exe"
 
 notifications:
 - provider: Email

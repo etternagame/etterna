@@ -2,8 +2,8 @@
 #define TIMING_DATA_H
 
 #include "NoteTypes.h"
-#include "TimingSegments.h"
 #include "PrefsManager.h"
+#include "TimingSegments.h"
 #include <cfloat> // max float
 struct lua_State;
 
@@ -482,6 +482,8 @@ public:
 	float WhereUAtBroNoOffset(float beat) const;
 	float WhereUAtBroNoOffset(float beat);
 	float WhereUAtBro(int row);
+
+	vector<float> ConvertReplayNoteRowsToTimestamps(vector<int> nrv, float rate);
 
 	bool ValidSequentialAssumption = true;
 	void InvalidateSequentialAssmption() { ValidSequentialAssumption = false; }
