@@ -55,4 +55,4 @@ Etterna began as a fork of https://github.com/stepmania/stepmania
 
 ## [Collaborating](https://github.com/etternagame/etterna/blob/master/Contributing.md)
 
-## [Bug Reporting](https://github.com/etternagame/etterna/blob/master/BugReporting.md)
+## [Bug Reporting](https://github.com/etternagame/etterna/blob/master/Docs/Bugreporting.md)
