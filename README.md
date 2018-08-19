@@ -40,14 +40,11 @@ https://etternagame.github.io/wiki/Building-Etterna.html
 
 ## Licensing Terms
 
-In short- you can do anything you like with the game (including sell products made with it), provided you *do not*:
-
-1. Claim to have created the engine yourself or remove the credits
+In short — you can do anything you like with the game (including sell products made with it), provided you *do not* claim to have created the engine yourself or remove the credits.
 
 For specific information/legalese:
 
 * All of the our source code is under the [MIT license](http://opensource.org/licenses/MIT).
-* Any songs that are included within this repository are under the [Creative Commons license](https://creativecommons.org/).
 * The [MAD library](http://www.underbit.com/products/mad/) and [FFmpeg codecs](https://www.ffmpeg.org/) when built with our code use the [GPL license](http://www.gnu.org).
 
 Etterna began as a fork of https://github.com/stepmania/stepmania
