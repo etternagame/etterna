@@ -397,11 +397,6 @@ static void AdjustForChangedSystemCapabilities()
 	 * low-memory systems. */
 	PREFSMAN->m_bDelayedTextureDelete.Set( HighMemory );
 
-	/* Preloaded banners takes about 9k per song. Although it's smaller than the
-	 * actual song data, it still adds up with a lot of songs.
-	 * Disable it for 64-meg systems. */
-	PREFSMAN->m_ImageCache.Set( LowMemory ? IMGCACHE_OFF:IMGCACHE_LOW_RES_PRELOAD );
-
 	PREFSMAN->SavePrefsToDisk();
 #endif
 }
