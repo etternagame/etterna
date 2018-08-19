@@ -585,16 +585,6 @@ bool ScreenSelectMusic::Input(const InputEventPlus &input)
 	if (!input.GameI.IsValid())
 		return false; // don't care
 
-	/**** This handles letting player 2 into the game after that old screen that we haven't seen in 25 years
-	* you know, the one that lets you pick how many people you are playing with.
-	* Anyways, let's disable this block because all it does is crash the game now.
-	if (m_SelectionState != SelectionState_Finalized &&
-		input.MenuI == GAME_BUTTON_START && input.type == IET_FIRST_PRESS && GAMESTATE->JoinInput(input.pn))
-	{
-		return true; // don't handle this press again below
-	}
-	*/
-
 	if (!GAMESTATE->IsHumanPlayer(input.pn))
 		return false;
 
