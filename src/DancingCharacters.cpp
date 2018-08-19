@@ -42,8 +42,8 @@ const float CAMERA_STILL_HEIGHT_VARIANCE = 5.f;
 const float CAMERA_STILL_LOOK_AT_HEIGHT = -10.f;
 
 const float MODEL_X_ONE_PLAYER = 0;
-const float MODEL_X_TWO_PLAYERS[NUM_PLAYERS] = { +8, -8 };
-const float MODEL_ROTATIONY_TWO_PLAYERS[NUM_PLAYERS] = { -90, 90 };
+const float MODEL_X_TWO_PLAYERS[NUM_PLAYERS] = { 0 };
+const float MODEL_ROTATIONY_TWO_PLAYERS[NUM_PLAYERS] = { 0 };
 
 DancingCharacters::DancingCharacters() 
 {

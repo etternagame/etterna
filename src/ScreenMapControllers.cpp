@@ -90,7 +90,7 @@ void ScreenMapControllers::Init()
 		{
 			BitmapText &text = m_textLabel[c];
 			text.LoadFromFont( THEME->GetPathF(m_sName,"title") );
-			auto pn = (PlayerNumber)c;
+			auto pn = PLAYER_1;
 			text.SetName( "Label"+PlayerNumberToString(pn) );
 			RString sText = ssprintf(PLAYER_SLOTS.GetValue(), PlayerNumberToLocalizedString(pn).c_str());
 			text.SetText( sText );

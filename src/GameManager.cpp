@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "Foreach.h"
 #include "Game.h"
 #include "GameConstantsAndTypes.h"
@@ -148,13 +148,13 @@ static const Style g_Style_Dance_Single =
 			{ TRACK_2,	-DANCE_COL_SPACING*0.5f, NULL },
 			{ TRACK_3,	+DANCE_COL_SPACING*0.5f, NULL },
 			{ TRACK_4,	+DANCE_COL_SPACING*1.5f, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-DANCE_COL_SPACING*1.5f, NULL },
 			{ TRACK_2,	-DANCE_COL_SPACING*0.5f, NULL },
 			{ TRACK_3,	+DANCE_COL_SPACING*0.5f, NULL },
 			{ TRACK_4,	+DANCE_COL_SPACING*1.5f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 0, 3, 2, 1, Style::END_MAPPING },
@@ -167,6 +167,7 @@ static const Style g_Style_Dance_Single =
 	false, // m_bLockDifficulties
 };
 
+/*
 static const Style g_Style_Dance_Versus =
 {	// STYLE_DANCE_VERSUS
 	true,				// m_bUsedForGameplay
@@ -200,7 +201,7 @@ static const Style g_Style_Dance_Versus =
 	},
 	true, // m_bCanUseBeginnerHelper
 	false, // m_bLockDifficulties
-};
+};*/
 
 static const Style g_Style_Dance_Double =
 {	// STYLE_DANCE_DOUBLE
@@ -222,7 +223,7 @@ static const Style g_Style_Dance_Double =
 			{ TRACK_6,	+DANCE_COL_SPACING*1.5f, NULL },
 			{ TRACK_7,	+DANCE_COL_SPACING*2.5f, NULL },
 			{ TRACK_8,	+DANCE_COL_SPACING*3.5f, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-DANCE_COL_SPACING*3.5f, NULL },
 			{ TRACK_2,	-DANCE_COL_SPACING*2.5f, NULL },
@@ -232,7 +233,7 @@ static const Style g_Style_Dance_Double =
 			{ TRACK_6,	+DANCE_COL_SPACING*1.5f, NULL },
 			{ TRACK_7,	+DANCE_COL_SPACING*2.5f, NULL },
 			{ TRACK_8,	+DANCE_COL_SPACING*3.5f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 0, 3, 2, 1, Style::END_MAPPING },
@@ -261,13 +262,13 @@ static const Style g_Style_Dance_Couple =
 			{ TRACK_2,	-DANCE_COL_SPACING*0.5f, NULL },
 			{ TRACK_3,	+DANCE_COL_SPACING*0.5f, NULL },
 			{ TRACK_4,	+DANCE_COL_SPACING*1.5f, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_5,	-DANCE_COL_SPACING*1.5f, NULL },
 			{ TRACK_6,	-DANCE_COL_SPACING*0.5f, NULL },
 			{ TRACK_7,	+DANCE_COL_SPACING*0.5f, NULL },
 			{ TRACK_8,	+DANCE_COL_SPACING*1.5f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 0, 3, 2, 1, Style::END_MAPPING },
@@ -298,7 +299,7 @@ static const Style g_Style_Dance_Solo =
 			{ TRACK_4,	+DANCE_COL_SPACING*0.5f, NULL },
 			{ TRACK_5,	+DANCE_COL_SPACING*1.5f, NULL },
 			{ TRACK_6,	+DANCE_COL_SPACING*2.5f, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-DANCE_COL_SPACING*2.5f, NULL },
 			{ TRACK_2,	-DANCE_COL_SPACING*1.5f, NULL },
@@ -306,7 +307,7 @@ static const Style g_Style_Dance_Solo =
 			{ TRACK_4,	+DANCE_COL_SPACING*0.5f, NULL },
 			{ TRACK_5,	+DANCE_COL_SPACING*1.5f, NULL },
 			{ TRACK_6,	+DANCE_COL_SPACING*2.5f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 0, 5, 3, 2, 1, 4, Style::END_MAPPING },
@@ -339,7 +340,7 @@ static const Style g_Style_Dance_Couple_Edit =
 			{ TRACK_6,	+DANCE_COL_SPACING*2.f, NULL },
 			{ TRACK_7,	+DANCE_COL_SPACING*3.f, NULL },
 			{ TRACK_8,	+DANCE_COL_SPACING*4.f, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-DANCE_COL_SPACING*4.f, NULL },
 			{ TRACK_2,	-DANCE_COL_SPACING*3.f, NULL },
@@ -349,7 +350,7 @@ static const Style g_Style_Dance_Couple_Edit =
 			{ TRACK_6,	+DANCE_COL_SPACING*2.f, NULL },
 			{ TRACK_7,	+DANCE_COL_SPACING*3.f, NULL },
 			{ TRACK_8,	+DANCE_COL_SPACING*4.f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 0, 3, 2, 1, Style::END_MAPPING },
@@ -377,12 +378,12 @@ static const Style g_Style_Dance_ThreePanel =
 			{ TRACK_1,	-DANCE_COL_SPACING*1.0f, NULL },
 			{ TRACK_2,	+DANCE_COL_SPACING*0.0f, NULL },
 			{ TRACK_3,	+DANCE_COL_SPACING*1.0f, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-DANCE_COL_SPACING*1.0f, NULL },
 			{ TRACK_2,	+DANCE_COL_SPACING*0.0f, NULL },
 			{ TRACK_3,	+DANCE_COL_SPACING*1.0f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		// 4 3 5
@@ -453,7 +454,7 @@ static const Style g_Style_Dance_Routine =
 			{ TRACK_6,	+DANCE_COL_SPACING*1.5f, NULL },
 			{ TRACK_7,	+DANCE_COL_SPACING*2.5f, NULL },
 			{ TRACK_8,	+DANCE_COL_SPACING*3.5f, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-DANCE_COL_SPACING*3.5f, NULL },
 			{ TRACK_2,	-DANCE_COL_SPACING*2.5f, NULL },
@@ -463,7 +464,7 @@ static const Style g_Style_Dance_Routine =
 			{ TRACK_6,	+DANCE_COL_SPACING*1.5f, NULL },
 			{ TRACK_7,	+DANCE_COL_SPACING*2.5f, NULL },
 			{ TRACK_8,	+DANCE_COL_SPACING*3.5f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 0, 3, 2, 1, Style::END_MAPPING },
@@ -479,7 +480,6 @@ static const Style g_Style_Dance_Routine =
 static const Style *g_apGame_Dance_Styles[] =
 {
 	&g_Style_Dance_Single,
-	&g_Style_Dance_Versus,
 	&g_Style_Dance_Double,
 	&g_Style_Dance_Couple,
 	&g_Style_Dance_Solo,
@@ -533,11 +533,11 @@ static const AutoMappings g_AutoKeyMappings_Pump = AutoMappings (
 	AutoMappingEntry( 0, KEY_Cs,		PUMP_BUTTON_CENTER,		false ),
 	AutoMappingEntry( 0, KEY_Cz,		PUMP_BUTTON_DOWNLEFT,		false ),
 	AutoMappingEntry( 0, KEY_Cc,		PUMP_BUTTON_DOWNRIGHT,		false ),
-	AutoMappingEntry( 0, KEY_KP_C7,		PUMP_BUTTON_UPLEFT,		true ),
+	/*AutoMappingEntry( 0, KEY_KP_C7,		PUMP_BUTTON_UPLEFT,		true ),
 	AutoMappingEntry( 0, KEY_KP_C9,		PUMP_BUTTON_UPRIGHT,		true ),
 	AutoMappingEntry( 0, KEY_KP_C5,		PUMP_BUTTON_CENTER,		true ),
 	AutoMappingEntry( 0, KEY_KP_C1,		PUMP_BUTTON_DOWNLEFT,		true ),
-	AutoMappingEntry( 0, KEY_KP_C3,		PUMP_BUTTON_DOWNRIGHT,		true ),
+	AutoMappingEntry( 0, KEY_KP_C3,		PUMP_BUTTON_DOWNRIGHT,		true ),*/
 
 	// unmap confusing default MenuButtons
 	AutoMappingEntry( 0, KEY_KP_C8,		GameButton_Invalid,		false ),
@@ -568,14 +568,14 @@ static const Style g_Style_Pump_Single =
 			{ TRACK_3,	+PUMP_COL_SPACING*0.0f, NULL },
 			{ TRACK_4,	+PUMP_COL_SPACING*1.0f, NULL },
 			{ TRACK_5,	+PUMP_COL_SPACING*2.0f, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-PUMP_COL_SPACING*2.0f, NULL },
 			{ TRACK_2,	-PUMP_COL_SPACING*1.0f, NULL },
 			{ TRACK_3,	+PUMP_COL_SPACING*0.0f, NULL },
 			{ TRACK_4,	+PUMP_COL_SPACING*1.0f, NULL },
 			{ TRACK_5,	+PUMP_COL_SPACING*2.0f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 1, 3, 2, 0, 4, Style::END_MAPPING },
@@ -588,6 +588,7 @@ static const Style g_Style_Pump_Single =
 	false, // m_bLockDifficulties
 };
 
+/*
 static const Style g_Style_Pump_Versus =
 {	// STYLE_PUMP_VERSUS
 	true,				// m_bUsedForGameplay
@@ -623,7 +624,7 @@ static const Style g_Style_Pump_Versus =
 	},
 	false, // m_bCanUseBeginnerHelper
 	false, // m_bLockDifficulties
-};
+};*/
 
 static const Style g_Style_Pump_HalfDouble =
 {	// STYLE_PUMP_HALFDOUBLE
@@ -643,7 +644,7 @@ static const Style g_Style_Pump_HalfDouble =
 			{ TRACK_4,	+PUMP_COL_SPACING*0.5f+4, NULL },
 			{ TRACK_5,	+PUMP_COL_SPACING*1.5f+4, NULL },
 			{ TRACK_6,	+PUMP_COL_SPACING*2.5f+4, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-PUMP_COL_SPACING*2.5f-4, NULL },
 			{ TRACK_2,	-PUMP_COL_SPACING*1.5f-4, NULL },
@@ -651,7 +652,7 @@ static const Style g_Style_Pump_HalfDouble =
 			{ TRACK_4,	+PUMP_COL_SPACING*0.5f+4, NULL },
 			{ TRACK_5,	+PUMP_COL_SPACING*1.5f+4, NULL },
 			{ TRACK_6,	+PUMP_COL_SPACING*2.5f+4, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ Style::NO_MAPPING, 1, 0, Style::NO_MAPPING, 2, Style::END_MAPPING },
@@ -686,7 +687,7 @@ static const Style g_Style_Pump_Double =
 			{ TRACK_8,	+PUMP_COL_SPACING*2.5f+4, NULL },
 			{ TRACK_9,	+PUMP_COL_SPACING*3.5f+4, NULL },
 			{ TRACK_10,	+PUMP_COL_SPACING*4.5f+4, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-PUMP_COL_SPACING*4.5f-4, NULL },
 			{ TRACK_2,	-PUMP_COL_SPACING*3.5f-4, NULL },
@@ -698,7 +699,7 @@ static const Style g_Style_Pump_Double =
 			{ TRACK_8,	+PUMP_COL_SPACING*2.5f+4, NULL },
 			{ TRACK_9,	+PUMP_COL_SPACING*3.5f+4, NULL },
 			{ TRACK_10,	+PUMP_COL_SPACING*4.5f+4, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 1, 3, 2, 0, 4, Style::END_MAPPING },
@@ -728,14 +729,14 @@ static const Style g_Style_Pump_Couple =
 			{ TRACK_3,	+PUMP_COL_SPACING*0.0f, NULL },
 			{ TRACK_4,	+PUMP_COL_SPACING*1.0f, NULL },
 			{ TRACK_5,	+PUMP_COL_SPACING*2.0f, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-PUMP_COL_SPACING*2.0f, NULL },
 			{ TRACK_2,	-PUMP_COL_SPACING*1.0f, NULL },
 			{ TRACK_3,	+PUMP_COL_SPACING*0.0f, NULL },
 			{ TRACK_4,	+PUMP_COL_SPACING*1.0f, NULL },
 			{ TRACK_5,	+PUMP_COL_SPACING*2.0f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 1, 3, 2, 0, 4, Style::END_MAPPING },
@@ -770,7 +771,7 @@ static const Style g_Style_Pump_Couple_Edit =
 			{ TRACK_8,	+PUMP_COL_SPACING*3.0f+4, NULL },
 			{ TRACK_9,	+PUMP_COL_SPACING*4.0f+4, NULL },
 			{ TRACK_10,	+PUMP_COL_SPACING*5.0f+4, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-PUMP_COL_SPACING*5.0f-4, NULL },
 			{ TRACK_2,	-PUMP_COL_SPACING*4.0f-4, NULL },
@@ -782,7 +783,7 @@ static const Style g_Style_Pump_Couple_Edit =
 			{ TRACK_8,	+PUMP_COL_SPACING*3.0f+4, NULL },
 			{ TRACK_9,	+PUMP_COL_SPACING*4.0f+4, NULL },
 			{ TRACK_10,	+PUMP_COL_SPACING*5.0f+4, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 1, 3, 2, 0, 4, Style::END_MAPPING },
@@ -817,7 +818,7 @@ static const Style g_Style_Pump_Routine =
 			{ TRACK_8,	+PUMP_COL_SPACING*2.5f+4, NULL },
 			{ TRACK_9,	+PUMP_COL_SPACING*3.5f+4, NULL },
 			{ TRACK_10,	+PUMP_COL_SPACING*4.5f+4, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-PUMP_COL_SPACING*4.5f-4, NULL },
 			{ TRACK_2,	-PUMP_COL_SPACING*3.5f-4, NULL },
@@ -829,7 +830,7 @@ static const Style g_Style_Pump_Routine =
 			{ TRACK_8,	+PUMP_COL_SPACING*2.5f+4, NULL },
 			{ TRACK_9,	+PUMP_COL_SPACING*3.5f+4, NULL },
 			{ TRACK_10,	+PUMP_COL_SPACING*4.5f+4, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 1, 3, 2, 0, 4, Style::END_MAPPING },
@@ -845,7 +846,6 @@ static const Style g_Style_Pump_Routine =
 static const Style *g_apGame_Pump_Styles[] =
 {
 	&g_Style_Pump_Single,
-	&g_Style_Pump_Versus,
 	&g_Style_Pump_HalfDouble,
 	&g_Style_Pump_Double,
 	&g_Style_Pump_Couple,
@@ -921,7 +921,7 @@ static const Style g_Style_KB7_Single =
             		{ TRACK_5,    +KB7_COL_SPACING*1.0f, NULL },
             		{ TRACK_6,    +KB7_COL_SPACING*2.0f, NULL },
             		{ TRACK_7,    +KB7_COL_SPACING*3.0f, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,    -KB7_COL_SPACING*3.0f, NULL },
             		{ TRACK_2,    -KB7_COL_SPACING*2.0f, NULL },
@@ -930,7 +930,7 @@ static const Style g_Style_KB7_Single =
             		{ TRACK_5,    +KB7_COL_SPACING*1.0f, NULL },
             		{ TRACK_6,    +KB7_COL_SPACING*2.0f, NULL },
             		{ TRACK_7,    +KB7_COL_SPACING*3.0f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 0, 1, 2, 3, 4, 5, 6, Style::END_MAPPING },
@@ -986,6 +986,7 @@ static const Style g_Style_KB7_Small =
 	false, // m_bLockDifficulties
 }; */
 
+/*
 static const Style g_Style_KB7_Versus =
 {	// STYLE_KB7_VERSUS
 	true,				// m_bUsedForGameplay
@@ -1026,12 +1027,11 @@ static const Style g_Style_KB7_Versus =
 	false, // m_bCanUseBeginnerHelper
 	false, // m_bLockDifficulties
 };
-
+*/
 static const Style *g_apGame_KB7_Styles[] =
 {
 	&g_Style_KB7_Single,
 	// &g_Style_KB7_Small,
-	&g_Style_KB7_Versus,
 	NULL
 };
 
@@ -1094,14 +1094,14 @@ static const Style g_Style_Ez2_Single =
 			{ TRACK_3,	+EZ2_COL_SPACING*0.0f, NULL },
 			{ TRACK_4,	+EZ2_COL_SPACING*1.0f, NULL },
 			{ TRACK_5,	+EZ2_COL_SPACING*2.0f, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-EZ2_COL_SPACING*2.0f, NULL },
 			{ TRACK_2,	-EZ2_COL_SPACING*1.0f, NULL },
 			{ TRACK_3,	+EZ2_COL_SPACING*0.0f, NULL },
 			{ TRACK_4,	+EZ2_COL_SPACING*1.0f, NULL },
 			{ TRACK_5,	+EZ2_COL_SPACING*2.0f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 0, 4, 2, 1, 3, Style::END_MAPPING },
@@ -1133,7 +1133,7 @@ static const Style g_Style_Ez2_Real =
 			{ TRACK_5,	+EZ2_REAL_COL_SPACING*0.9f, NULL }, 
 			{ TRACK_6,	+EZ2_REAL_COL_SPACING*1.6f, NULL },
 			{ TRACK_7,	+EZ2_REAL_COL_SPACING*2.3f, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-EZ2_REAL_COL_SPACING*2.3f, NULL },
 			{ TRACK_2,	-EZ2_REAL_COL_SPACING*1.6f, NULL },
@@ -1142,7 +1142,7 @@ static const Style g_Style_Ez2_Real =
 			{ TRACK_5,	+EZ2_REAL_COL_SPACING*0.9f, NULL }, 
 			{ TRACK_6,	+EZ2_REAL_COL_SPACING*1.6f, NULL },
 			{ TRACK_7,	+EZ2_REAL_COL_SPACING*2.3f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 0, 6, 3, 2, 4, 1, 5, Style::END_MAPPING },
@@ -1154,7 +1154,7 @@ static const Style g_Style_Ez2_Real =
 	false, // m_bCanUseBeginnerHelper
 	false, // m_bLockDifficulties
 };
-
+/*
 static const Style g_Style_Ez2_Single_Versus =
 {	// STYLE_EZ2_SINGLE_VERSUS
 	true,				// m_bUsedForGameplay
@@ -1190,8 +1190,8 @@ static const Style g_Style_Ez2_Single_Versus =
 	},
 	false, // m_bCanUseBeginnerHelper
 	false, // m_bLockDifficulties
-};
-
+};*/
+/*
 static const Style g_Style_Ez2_Real_Versus =
 {	// STYLE_EZ2_REAL_VERSUS
 	true,				// m_bUsedForGameplay
@@ -1231,7 +1231,7 @@ static const Style g_Style_Ez2_Real_Versus =
 	},
 	false, // m_bCanUseBeginnerHelper
 	false, // m_bLockDifficulties
-};
+};*/
 
 static const Style g_Style_Ez2_Double =
 {	// STYLE_EZ2_DOUBLE
@@ -1255,7 +1255,7 @@ static const Style g_Style_Ez2_Double =
 			{ TRACK_8,	+EZ2_COL_SPACING*2.5f, NULL },
 			{ TRACK_9,	+EZ2_COL_SPACING*3.5f, NULL },
 			{ TRACK_10,	+EZ2_COL_SPACING*4.5f, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-EZ2_COL_SPACING*4.5f, NULL },
 			{ TRACK_2,	-EZ2_COL_SPACING*3.5f, NULL },
@@ -1267,7 +1267,7 @@ static const Style g_Style_Ez2_Double =
 			{ TRACK_8,	+EZ2_COL_SPACING*2.5f, NULL },
 			{ TRACK_9,	+EZ2_COL_SPACING*3.5f, NULL },
 			{ TRACK_10,	+EZ2_COL_SPACING*4.5f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 0, 4, 2, 1, 3, Style::END_MAPPING },
@@ -1284,8 +1284,6 @@ static const Style *g_apGame_Ez2_Styles[] =
 {
 	&g_Style_Ez2_Single,
 	&g_Style_Ez2_Real,
-	&g_Style_Ez2_Single_Versus,
-	&g_Style_Ez2_Real_Versus,
 	&g_Style_Ez2_Double,
 	NULL
 };
@@ -1360,14 +1358,14 @@ static const Style g_Style_Para_Single =
 			{ TRACK_3,	+PARA_COL_SPACING*0.0f, NULL },
 			{ TRACK_4,	+PARA_COL_SPACING*1.0f, NULL },
 			{ TRACK_5,	+PARA_COL_SPACING*2.0f, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-PARA_COL_SPACING*2.0f, NULL },
 			{ TRACK_2,	-PARA_COL_SPACING*1.0f, NULL },
 			{ TRACK_3,	+PARA_COL_SPACING*0.0f, NULL },
 			{ TRACK_4,	+PARA_COL_SPACING*1.0f, NULL },
 			{ TRACK_5,	+PARA_COL_SPACING*2.0f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 0, 1, 2, 3, 4, Style::END_MAPPING },
@@ -1379,7 +1377,7 @@ static const Style g_Style_Para_Single =
 	false, // m_bCanUseBeginnerHelper
 	false, // m_bLockDifficulties
 };
-
+/*
 static const Style g_Style_Para_Versus =
 {	// STYLE_PARA_VERSUS
 	true,				// m_bUsedForGameplay
@@ -1416,11 +1414,10 @@ static const Style g_Style_Para_Versus =
 	false, // m_bCanUseBeginnerHelper
 	false, // m_bLockDifficulties
 };
-
+*/
 static const Style *g_apGame_Para_Styles[] =
 {
 	&g_Style_Para_Single,
-	&g_Style_Para_Versus,
 	NULL
 };
 
@@ -1490,7 +1487,7 @@ static const Style g_Style_DS3DDX_Single =
 			{ TRACK_6,	+DS3DDX_COL_SPACING*1.0f, NULL },
 			{ TRACK_7,	+DS3DDX_COL_SPACING*2.0f, NULL },
 			{ TRACK_8,	+DS3DDX_COL_SPACING*3.0f , NULL},
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-DS3DDX_COL_SPACING*3.0f, NULL },
 			{ TRACK_2,	-DS3DDX_COL_SPACING*2.0f, NULL },
@@ -1500,7 +1497,7 @@ static const Style g_Style_DS3DDX_Single =
 			{ TRACK_6,	+DS3DDX_COL_SPACING*1.0f, NULL },
 			{ TRACK_7,	+DS3DDX_COL_SPACING*2.0f, NULL },
 			{ TRACK_8,	+DS3DDX_COL_SPACING*3.0f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 0, 1, 2, 3, 4, 5, 6, 7, Style::END_MAPPING },
@@ -1592,7 +1589,7 @@ static const Style g_Style_Beat_Single5 =
 			{ TRACK_4,	+BEAT_COL_SPACING*0.5f, NULL },
 			{ TRACK_5,	+BEAT_COL_SPACING*1.5f, NULL },
 			{ TRACK_6,	+BEAT_COL_SPACING*3.0f, "scratch" },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-BEAT_COL_SPACING*2.5f, NULL },
 			{ TRACK_2,	-BEAT_COL_SPACING*1.5f, NULL },
@@ -1600,7 +1597,7 @@ static const Style g_Style_Beat_Single5 =
 			{ TRACK_4,	+BEAT_COL_SPACING*0.5f, NULL },
 			{ TRACK_5,	+BEAT_COL_SPACING*1.5f, NULL },
 			{ TRACK_6,	+BEAT_COL_SPACING*3.0f, "scratch" },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 0, 1, 2, 3, 4, Style::NO_MAPPING, Style::NO_MAPPING, 5, 5, Style::END_MAPPING },
@@ -1612,7 +1609,7 @@ static const Style g_Style_Beat_Single5 =
 	false, // m_bCanUseBeginnerHelper
 	false, // m_bLockDifficulties
 };
-
+/*
 static const Style g_Style_Beat_Versus5 =
 {	// STYLE_BEAT_VERSUS
 	true,				// m_bUsedForGameplay
@@ -1651,7 +1648,7 @@ static const Style g_Style_Beat_Versus5 =
 	false, // m_bCanUseBeginnerHelper
 	true, // m_bLockDifficulties
 };
-
+*/
 static const Style g_Style_Beat_Double5 =
 {	// STYLE_BEAT_DOUBLE
 	true,				// m_bUsedForGameplay
@@ -1676,7 +1673,7 @@ static const Style g_Style_Beat_Double5 =
 			{ TRACK_10,	+BEAT_COL_SPACING*3.5f, NULL },
 			{ TRACK_11,	+BEAT_COL_SPACING*4.5f, NULL },
 			{ TRACK_12,	+BEAT_COL_SPACING*6.0f, "scratch" },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-BEAT_COL_SPACING*6.0f, NULL },
 			{ TRACK_2,	-BEAT_COL_SPACING*5.0f, NULL },
@@ -1690,7 +1687,7 @@ static const Style g_Style_Beat_Double5 =
 			{ TRACK_10,	+BEAT_COL_SPACING*3.5f, NULL },
 			{ TRACK_11,	+BEAT_COL_SPACING*4.5f, NULL },
 			{ TRACK_12,	+BEAT_COL_SPACING*6.0f, "scratch" },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 0, 1, 2, 3, 4, Style::NO_MAPPING, Style::NO_MAPPING, 5, 5, Style::END_MAPPING },
@@ -1723,7 +1720,7 @@ static const Style g_Style_Beat_Single7 =
 			{ TRACK_5,	+BEAT_COL_SPACING*2.0f, NULL },
 			{ TRACK_6,	+BEAT_COL_SPACING*3.0f, NULL },
 			{ TRACK_7,	+BEAT_COL_SPACING*4.0f, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_8,	+BEAT_COL_SPACING*4.0f, "scratch" },
 			{ TRACK_1,	-BEAT_COL_SPACING*3.5f, NULL },
@@ -1733,7 +1730,7 @@ static const Style g_Style_Beat_Single7 =
 			{ TRACK_5,	+BEAT_COL_SPACING*0.5f, NULL },
 			{ TRACK_6,	+BEAT_COL_SPACING*1.5f, NULL },
 			{ TRACK_7,	+BEAT_COL_SPACING*2.5f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 1, 2, 3, 4, 5, 6, 7, 0, 0, Style::END_MAPPING },
@@ -1745,7 +1742,7 @@ static const Style g_Style_Beat_Single7 =
 	false, // m_bCanUseBeginnerHelper
 	false, // m_bLockDifficulties
 };
-
+/*
 static const Style g_Style_Beat_Versus7 =
 {	// STYLE_BEAT_VERSUS7
 	true,				// m_bUsedForGameplay
@@ -1788,7 +1785,7 @@ static const Style g_Style_Beat_Versus7 =
 	false, // m_bCanUseBeginnerHelper
 	true, // m_bLockDifficulties
 };
-
+*/
 
 static const Style g_Style_Beat_Double7 =
 {	// STYLE_BEAT_DOUBLE7
@@ -1818,7 +1815,7 @@ static const Style g_Style_Beat_Double7 =
 			{ TRACK_14,	+BEAT_COL_SPACING*5.5f, NULL },
 			{ TRACK_15,	+BEAT_COL_SPACING*6.5f, NULL },
 			{ TRACK_16,	+BEAT_COL_SPACING*8.0f, "scratch" },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_8,	-BEAT_COL_SPACING*8.0f, "scratch" },
 			{ TRACK_1,	-BEAT_COL_SPACING*6.5f, NULL },
@@ -1836,7 +1833,7 @@ static const Style g_Style_Beat_Double7 =
 			{ TRACK_14,	+BEAT_COL_SPACING*5.5f, NULL },
 			{ TRACK_15,	+BEAT_COL_SPACING*6.5f, NULL },
 			{ TRACK_16,	+BEAT_COL_SPACING*8.0f, "scratch" },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 1, 2, 3, 4, 5, 6, 7, 0, 0, Style::END_MAPPING },
@@ -1852,10 +1849,8 @@ static const Style g_Style_Beat_Double7 =
 static const Style *g_apGame_Beat_Styles[] =
 {
 	&g_Style_Beat_Single5,
-	&g_Style_Beat_Versus5,
 	&g_Style_Beat_Double5,
 	&g_Style_Beat_Single7,
-	&g_Style_Beat_Versus7,
 	&g_Style_Beat_Double7,
 	NULL
 };
@@ -1933,13 +1928,13 @@ static const Style g_Style_Maniax_Single =
 			{ TRACK_2,	-MANIAX_COL_SPACING*0.5f, NULL },
 			{ TRACK_3,	+MANIAX_COL_SPACING*0.5f, NULL },
 			{ TRACK_4,	+MANIAX_COL_SPACING*1.5f, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-MANIAX_COL_SPACING*1.5f, NULL },
 			{ TRACK_2,	-MANIAX_COL_SPACING*0.5f, NULL },
 			{ TRACK_3,	+MANIAX_COL_SPACING*0.5f, NULL },
 			{ TRACK_4,	+MANIAX_COL_SPACING*1.5f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 1, 2, 0, 3, Style::END_MAPPING },
@@ -1951,7 +1946,7 @@ static const Style g_Style_Maniax_Single =
 	false, // m_bCanUseBeginnerHelper
 	false, // m_bLockDifficulties
 };
-
+/*
 static const Style g_Style_Maniax_Versus =
 {	// STYLE_MANIAX_VERSUS
 	true,				// m_bUsedForGameplay
@@ -1985,7 +1980,7 @@ static const Style g_Style_Maniax_Versus =
 	},
 	false, // m_bCanUseBeginnerHelper
 	false, // m_bLockDifficulties
-};
+};*/
 
 static const Style g_Style_Maniax_Double =
 {	// STYLE_MANIAX_DOUBLE
@@ -2007,7 +2002,7 @@ static const Style g_Style_Maniax_Double =
 			{ TRACK_6,	+MANIAX_COL_SPACING*1.5f, NULL },
 			{ TRACK_7,	+MANIAX_COL_SPACING*2.5f, NULL },
 			{ TRACK_8,	+MANIAX_COL_SPACING*3.5f, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-MANIAX_COL_SPACING*3.5f, NULL },
 			{ TRACK_2,	-MANIAX_COL_SPACING*2.5f, NULL },
@@ -2017,7 +2012,7 @@ static const Style g_Style_Maniax_Double =
 			{ TRACK_6,	+MANIAX_COL_SPACING*1.5f, NULL },
 			{ TRACK_7,	+MANIAX_COL_SPACING*2.5f, NULL },
 			{ TRACK_8,	+MANIAX_COL_SPACING*3.5f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 1, 2, 0, 3, Style::END_MAPPING },
@@ -2033,7 +2028,6 @@ static const Style g_Style_Maniax_Double =
 static const Style *g_apGame_Maniax_Styles[] =
 {
 	&g_Style_Maniax_Single,
-	&g_Style_Maniax_Versus,
 	&g_Style_Maniax_Double,
 	NULL
 };
@@ -2045,11 +2039,11 @@ static const AutoMappings g_AutoKeyMappings_Maniax = AutoMappings (
 	AutoMappingEntry( 0, KEY_Ca,		MANIAX_BUTTON_HANDUPLEFT,	false ),
 	AutoMappingEntry( 0, KEY_Cs,		MANIAX_BUTTON_HANDUPRIGHT,	false ),
 	AutoMappingEntry( 0, KEY_Cz,		MANIAX_BUTTON_HANDLRLEFT,	false ),
-	AutoMappingEntry( 0, KEY_Cx,		MANIAX_BUTTON_HANDLRRIGHT,	false ),
-	AutoMappingEntry( 0, KEY_KP_C4,		MANIAX_BUTTON_HANDUPLEFT,	true ),
+	AutoMappingEntry( 0, KEY_Cx,		MANIAX_BUTTON_HANDLRRIGHT,	false )
+	/*AutoMappingEntry( 0, KEY_KP_C4,		MANIAX_BUTTON_HANDUPLEFT,	true ),
 	AutoMappingEntry( 0, KEY_KP_C5,		MANIAX_BUTTON_HANDUPRIGHT,	true ),
 	AutoMappingEntry( 0, KEY_KP_C1,		MANIAX_BUTTON_HANDLRLEFT,	true ),
-	AutoMappingEntry( 0, KEY_KP_C2,		MANIAX_BUTTON_HANDLRRIGHT,	true )
+	AutoMappingEntry( 0, KEY_KP_C2,		MANIAX_BUTTON_HANDLRRIGHT,	true )*/
 );
 
 static const Game g_Game_Maniax = 
@@ -2104,13 +2098,13 @@ static const Style g_Style_Techno_Single4 =
 			{ TRACK_2,	-TECHNO_COL_SPACING*0.5f, NULL },
 			{ TRACK_3,	+TECHNO_COL_SPACING*0.5f, NULL },
 			{ TRACK_4,	+TECHNO_COL_SPACING*1.5f, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-TECHNO_COL_SPACING*1.5f, NULL },
 			{ TRACK_2,	-TECHNO_COL_SPACING*0.5f, NULL },
 			{ TRACK_3,	+TECHNO_COL_SPACING*0.5f, NULL },
 			{ TRACK_4,	+TECHNO_COL_SPACING*1.5f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 0, 3, 2, 1, Style::END_MAPPING },
@@ -2140,14 +2134,14 @@ static const Style g_Style_Techno_Single5 =
 			{ TRACK_3,	+TECHNO_COL_SPACING*0.0f, NULL },
 			{ TRACK_4,	+TECHNO_COL_SPACING*1.0f, NULL },
 			{ TRACK_5,	+TECHNO_COL_SPACING*2.0f, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-TECHNO_COL_SPACING*2.0f, NULL },
 			{ TRACK_2,	-TECHNO_COL_SPACING*1.0f, NULL },
 			{ TRACK_3,	+TECHNO_COL_SPACING*0.0f, NULL },
 			{ TRACK_4,	+TECHNO_COL_SPACING*1.0f, NULL },
 			{ TRACK_5,	+TECHNO_COL_SPACING*2.0f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ Style::NO_MAPPING, Style::NO_MAPPING, Style::NO_MAPPING, Style::NO_MAPPING,
@@ -2182,7 +2176,7 @@ static const Style g_Style_Techno_Single8 =
 			{ TRACK_6,	+TECHNO_COL_SPACING*1.5f, NULL },
 			{ TRACK_7,	+TECHNO_COL_SPACING*2.5f, NULL },
 			{ TRACK_8,	+TECHNO_COL_SPACING*3.5f, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-TECHNO_COL_SPACING*3.5f, NULL },
 			{ TRACK_2,	-TECHNO_COL_SPACING*2.5f, NULL },
@@ -2192,7 +2186,7 @@ static const Style g_Style_Techno_Single8 =
 			{ TRACK_6,	+TECHNO_COL_SPACING*1.5f, NULL },
 			{ TRACK_7,	+TECHNO_COL_SPACING*2.5f, NULL },
 			{ TRACK_8,	+TECHNO_COL_SPACING*3.5f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 1, 6, 4, 3, 2, 5, Style::NO_MAPPING, 0, 7, Style::END_MAPPING },
@@ -2204,7 +2198,7 @@ static const Style g_Style_Techno_Single8 =
 	false, // m_bCanUseBeginnerHelper
 	false, // m_bLockDifficulties
 };
-
+/*
 static const Style g_Style_Techno_Versus4 =
 {	// STYLE_TECHNO_VERSUS4
 	true,				// m_bUsedForGameplay
@@ -2238,8 +2232,8 @@ static const Style g_Style_Techno_Versus4 =
 	},
 	false, // m_bCanUseBeginnerHelper
 	false, // m_bLockDifficulties
-};
-
+};*/
+/*
 static const Style g_Style_Techno_Versus5 =
 {	// STYLE_TECHNO_VERSUS5
 	true,				// m_bUsedForGameplay
@@ -2277,8 +2271,8 @@ static const Style g_Style_Techno_Versus5 =
 	},
 	false, // m_bCanUseBeginnerHelper
 	false, // m_bLockDifficulties
-};
-
+};*/
+/*
 static const Style g_Style_Techno_Versus8 =
 {	// STYLE_TECHNO_VERSUS8
 	true,				// m_bUsedForGameplay
@@ -2322,7 +2316,7 @@ static const Style g_Style_Techno_Versus8 =
 	},
 	false, // m_bCanUseBeginnerHelper
 	false, // m_bLockDifficulties
-};
+};*/
 
 static const Style g_Style_Techno_Double4 =
 {	// STYLE_TECHNO_DOUBLE4
@@ -2344,7 +2338,7 @@ static const Style g_Style_Techno_Double4 =
 			{ TRACK_6,	+TECHNO_COL_SPACING*1.5f, NULL },
 			{ TRACK_7,	+TECHNO_COL_SPACING*2.5f, NULL },
 			{ TRACK_8,	+TECHNO_COL_SPACING*3.5f, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-TECHNO_COL_SPACING*3.5f, NULL },
 			{ TRACK_2,	-TECHNO_COL_SPACING*2.5f, NULL },
@@ -2354,7 +2348,7 @@ static const Style g_Style_Techno_Double4 =
 			{ TRACK_6,	+TECHNO_COL_SPACING*1.5f, NULL },
 			{ TRACK_7,	+TECHNO_COL_SPACING*2.5f, NULL },
 			{ TRACK_8,	+TECHNO_COL_SPACING*3.5f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 0, 3, 2, 1, Style::END_MAPPING },
@@ -2389,7 +2383,7 @@ static const Style g_Style_Techno_Double5 =
 			{ TRACK_8,	+TECHNO_COL_SPACING*2.5f, NULL },
 			{ TRACK_9,	+TECHNO_COL_SPACING*3.5f, NULL },
 			{ TRACK_10,	+TECHNO_COL_SPACING*4.5f, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-TECHNO_COL_SPACING*4.5f, NULL },
 			{ TRACK_2,	-TECHNO_COL_SPACING*3.5f, NULL },
@@ -2401,7 +2395,7 @@ static const Style g_Style_Techno_Double5 =
 			{ TRACK_8,	+TECHNO_COL_SPACING*2.5f, NULL },
 			{ TRACK_9,	+TECHNO_COL_SPACING*3.5f, NULL },
 			{ TRACK_10,	+TECHNO_COL_SPACING*4.5f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{
@@ -2454,7 +2448,7 @@ static const Style g_Style_Techno_Double8 =
 			{ TRACK_14,	+TECHNO_COL_SPACING*5.5f, NULL },
 			{ TRACK_15,	+TECHNO_COL_SPACING*6.5f, NULL },
 			{ TRACK_16,	+TECHNO_COL_SPACING*7.5f, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-TECHNO_COL_SPACING*7.5f, NULL },
 			{ TRACK_2,	-TECHNO_COL_SPACING*6.5f, NULL },
@@ -2472,7 +2466,7 @@ static const Style g_Style_Techno_Double8 =
 			{ TRACK_14,	+TECHNO_COL_SPACING*5.5f, NULL },
 			{ TRACK_15,	+TECHNO_COL_SPACING*6.5f, NULL },
 			{ TRACK_16,	+TECHNO_COL_SPACING*7.5f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 1, 6, 4, 3, 2, 5, Style::NO_MAPPING, 0, 7, Style::END_MAPPING },
@@ -2490,9 +2484,6 @@ static const Style *g_apGame_Techno_Styles[] =
 	&g_Style_Techno_Single4,
 	&g_Style_Techno_Single5,
 	&g_Style_Techno_Single8,
-	&g_Style_Techno_Versus4,
-	&g_Style_Techno_Versus5,
-	&g_Style_Techno_Versus8,
 	&g_Style_Techno_Double4,
 	&g_Style_Techno_Double5,
 	&g_Style_Techno_Double8,
@@ -2511,8 +2502,8 @@ static const AutoMappings g_AutoKeyMappings_Techno = AutoMappings (
 	AutoMappingEntry( 0, KEY_Ce,		TECHNO_BUTTON_UPRIGHT,	false ),
 	AutoMappingEntry( 0, KEY_Cs,		TECHNO_BUTTON_CENTER,	false ),
 	AutoMappingEntry( 0, KEY_Cz,		TECHNO_BUTTON_DOWNLEFT,	false ),
-	AutoMappingEntry( 0, KEY_Cc,		TECHNO_BUTTON_DOWNRIGHT,false ),
-	AutoMappingEntry( 0, KEY_KP_C4,		TECHNO_BUTTON_LEFT,	true ),
+	AutoMappingEntry( 0, KEY_Cc,		TECHNO_BUTTON_DOWNRIGHT,false )
+	/*AutoMappingEntry( 0, KEY_KP_C4,		TECHNO_BUTTON_LEFT,	true ),
 	AutoMappingEntry( 0, KEY_KP_C6,		TECHNO_BUTTON_RIGHT,	true ),
 	AutoMappingEntry( 0, KEY_KP_C8,		TECHNO_BUTTON_UP,	true ),
 	AutoMappingEntry( 0, KEY_KP_C2,		TECHNO_BUTTON_DOWN,	true ),
@@ -2520,7 +2511,7 @@ static const AutoMappings g_AutoKeyMappings_Techno = AutoMappings (
 	AutoMappingEntry( 0, KEY_KP_C9,		TECHNO_BUTTON_UPRIGHT,	true ),
 	AutoMappingEntry( 0, KEY_KP_C5,		TECHNO_BUTTON_CENTER,	true ),
 	AutoMappingEntry( 0, KEY_KP_C1,		TECHNO_BUTTON_DOWNLEFT,	true ),
-	AutoMappingEntry( 0, KEY_KP_C3,		TECHNO_BUTTON_DOWNRIGHT,true )
+	AutoMappingEntry( 0, KEY_KP_C3,		TECHNO_BUTTON_DOWNRIGHT,true )*/
 );
 
 static const Game g_Game_Techno = 
@@ -2586,14 +2577,14 @@ static const Style g_Style_Popn_Five =
 			{ TRACK_3,	+POPN5_COL_SPACING*0.0f, NULL },
 			{ TRACK_4,	+POPN5_COL_SPACING*1.0f, NULL },
 			{ TRACK_5,	+POPN5_COL_SPACING*2.0f, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-POPN5_COL_SPACING*2.0f, NULL },
 			{ TRACK_2,	-POPN5_COL_SPACING*1.0f, NULL },
 			{ TRACK_3,	+POPN5_COL_SPACING*0.0f, NULL },
 			{ TRACK_4,	+POPN5_COL_SPACING*1.0f, NULL },
 			{ TRACK_5,	+POPN5_COL_SPACING*2.0f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ Style::NO_MAPPING, Style::NO_MAPPING, 0, 1, 2, 3, 4, Style::END_MAPPING },
@@ -2627,7 +2618,7 @@ static const Style g_Style_Popn_Nine =
 			{ TRACK_7,	+POPN9_COL_SPACING*2.0f, NULL },
 			{ TRACK_8,	+POPN9_COL_SPACING*3.0f, NULL },
 			{ TRACK_9,	+POPN9_COL_SPACING*4.0f, NULL },
-		},
+		},/*
 		{	// PLAYER_2
 			{ TRACK_1,	-POPN9_COL_SPACING*4.0f, NULL },
 			{ TRACK_2,	-POPN9_COL_SPACING*3.0f, NULL },
@@ -2638,7 +2629,7 @@ static const Style g_Style_Popn_Nine =
 			{ TRACK_7,	+POPN9_COL_SPACING*2.0f, NULL },
 			{ TRACK_8,	+POPN9_COL_SPACING*3.0f, NULL },
 			{ TRACK_9,	+POPN9_COL_SPACING*4.0f, NULL },
-		},
+		},*/
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
 		{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, Style::END_MAPPING },

@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "Foreach.h"
 #include "IniFile.h"
 #include "InputFilter.h"
@@ -58,13 +58,13 @@ static const AutoMappings g_DefaultKeyMappings = AutoMappings(
 	AutoMappingEntry( 0, KEY_ENTER,	GAME_BUTTON_START,	false ),
 	AutoMappingEntry( 0, KEY_SLASH,	GAME_BUTTON_SELECT,	false ),
 	AutoMappingEntry( 0, KEY_ESC,	GAME_BUTTON_BACK,	false ),
-	AutoMappingEntry( 0, KEY_KP_C4,	GAME_BUTTON_MENULEFT,	true ),
+	/*AutoMappingEntry( 0, KEY_KP_C4,	GAME_BUTTON_MENULEFT,	true ),
 	AutoMappingEntry( 0, KEY_KP_C6,	GAME_BUTTON_MENURIGHT,	true ),
 	AutoMappingEntry( 0, KEY_KP_C8,	GAME_BUTTON_MENUUP,	true ),
 	AutoMappingEntry( 0, KEY_KP_C2,	GAME_BUTTON_MENUDOWN,	true ),
 	AutoMappingEntry( 0, KEY_KP_ENTER,	GAME_BUTTON_START,	true ),
 	AutoMappingEntry( 0, KEY_KP_C0,	GAME_BUTTON_SELECT,	true ),
-	AutoMappingEntry( 0, KEY_HYPHEN,	GAME_BUTTON_BACK,	true ), // laptop keyboards.
+	AutoMappingEntry( 0, KEY_HYPHEN,	GAME_BUTTON_BACK,	true ), */// laptop keyboards.
 	AutoMappingEntry( 0, KEY_F1,	GAME_BUTTON_COIN,	false ),
 	AutoMappingEntry( 0, KEY_SCRLLOCK,	GAME_BUTTON_OPERATOR,	false ),
 	AutoMappingEntry( 0, KEY_ACCENT, GAME_BUTTON_RESTART, false)
@@ -303,9 +303,9 @@ static const AutoMappings g_AutoMappings[] =
 		AutoMappingEntry( 0, JOY_BUTTON_9,      GAME_BUTTON_SELECT,     false ),
 		AutoMappingEntry( 0, JOY_BUTTON_10,     GAME_BUTTON_START,      false ),
 		AutoMappingEntry( 0, JOY_BUTTON_5,      GAME_BUTTON_BACK,       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_6,      GAME_BUTTON_COIN,       false ),
+		AutoMappingEntry( 0, JOY_BUTTON_6,      GAME_BUTTON_COIN,       false )
 			   // Player 2.
-		AutoMappingEntry( 0, JOY_BUTTON_32,     DANCE_BUTTON_LEFT,      true ),
+		/*AutoMappingEntry( 0, JOY_BUTTON_32,     DANCE_BUTTON_LEFT,      true ),
 		AutoMappingEntry( 0, JOY_BUTTON_30,     DANCE_BUTTON_RIGHT,     true ),
 		AutoMappingEntry( 0, JOY_BUTTON_29,     DANCE_BUTTON_UP,	       true ),
 		AutoMappingEntry( 0, JOY_BUTTON_31,     DANCE_BUTTON_DOWN,      true ),
@@ -318,7 +318,7 @@ static const AutoMappings g_AutoMappings[] =
 		AutoMappingEntry( 0, JOY_BUTTON_25,     GAME_BUTTON_SELECT,     true ),
 		AutoMappingEntry( 0, JOY_BUTTON_26,     GAME_BUTTON_START,      true ),
 		AutoMappingEntry( 0, JOY_BUTTON_21,     GAME_BUTTON_BACK,       true ),
-		AutoMappingEntry( 0, JOY_BUTTON_22,     GAME_BUTTON_COIN,       true )
+		AutoMappingEntry( 0, JOY_BUTTON_22,     GAME_BUTTON_COIN,       true )*/
 	   ),
 	   AutoMappings(
 		"dance",
@@ -466,12 +466,12 @@ static const AutoMappings g_AutoMappings[] =
 		AutoMappingEntry( 0, JOY_BUTTON_3,      PUMP_BUTTON_CENTER,     false ),
 		AutoMappingEntry( 0, JOY_BUTTON_4,      PUMP_BUTTON_DOWNLEFT,   false ),
 		AutoMappingEntry( 0, JOY_BUTTON_5,      PUMP_BUTTON_DOWNRIGHT,  false ),
-		AutoMappingEntry( 0, JOY_BUTTON_6,      GAME_BUTTON_BACK,       false ),
-		AutoMappingEntry( 0, JOY_BUTTON_7,      PUMP_BUTTON_UPLEFT,     true ),
+		AutoMappingEntry( 0, JOY_BUTTON_6,      GAME_BUTTON_BACK,       false )
+		/*AutoMappingEntry( 0, JOY_BUTTON_7,      PUMP_BUTTON_UPLEFT,     true ),
 		AutoMappingEntry( 0, JOY_BUTTON_8,      PUMP_BUTTON_UPRIGHT,    true ),
 		AutoMappingEntry( 0, JOY_BUTTON_9,      PUMP_BUTTON_CENTER,     true ),
 		AutoMappingEntry( 0, JOY_BUTTON_10,     PUMP_BUTTON_DOWNLEFT,   true ),
-		AutoMappingEntry( 0, JOY_BUTTON_11,     PUMP_BUTTON_DOWNRIGHT,  true )
+		AutoMappingEntry( 0, JOY_BUTTON_11,     PUMP_BUTTON_DOWNRIGHT,  true )*/
 	   ),
 	   AutoMappings(
 		"pump",

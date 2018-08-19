@@ -285,8 +285,10 @@ void AutoKeysounds::FinishLoading()
 		apSounds.push_back( m_pPlayerSounds[1] );
 	}
 
+	/*
 	if( GAMESTATE->GetNumPlayersEnabled() == 1 && GAMESTATE->GetMasterPlayerNumber() == PLAYER_2 )
 		swap( m_pPlayerSounds[PLAYER_1], m_pPlayerSounds[PLAYER_2] );
+	*/
 
 	if( apSounds.size() > 1 )
 	{

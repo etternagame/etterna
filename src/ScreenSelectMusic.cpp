@@ -181,8 +181,9 @@ void ScreenSelectMusic::Init()
 			ActorUtil::LoadAllCommands(m_OptionsList[p], m_sName);
 			this->AddChild(&m_OptionsList[p]);
 		}
-		m_OptionsList[PLAYER_1].Link(&m_OptionsList[PLAYER_2]);
+		/*m_OptionsList[PLAYER_1].Link(&m_OptionsList[PLAYER_2]);
 		m_OptionsList[PLAYER_2].Link(&m_OptionsList[PLAYER_1]);
+		*/
 	}
 
 	// this is loaded SetSong and TweenToSong
@@ -588,11 +589,11 @@ bool ScreenSelectMusic::Input(const InputEventPlus &input)
 					  // Handle late joining
 					  // If the other player is allowed to join on the extra stage, then the
 					  // summary screen will crash on invalid stage stats. -Kyz
-	if (m_SelectionState != SelectionState_Finalized &&
+	/*if (m_SelectionState != SelectionState_Finalized &&
 		input.MenuI == GAME_BUTTON_START && input.type == IET_FIRST_PRESS && GAMESTATE->JoinInput(input.pn))
 	{
 		return true; // don't handle this press again below
-	}
+	}*/
 
 	if (!GAMESTATE->IsHumanPlayer(input.pn))
 		return false;

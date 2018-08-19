@@ -1435,22 +1435,22 @@ void SMOProtocol::StartRequest(NetworkSyncManager* n, short position)
 	tSteps = GAMESTATE->m_pCurSteps[PLAYER_1];
 	if (tSteps != NULL && GAMESTATE->IsPlayerEnabled(PLAYER_1))
 		ctr = uint8_t(ctr + tSteps->GetMeter() * 16);
-
+	/*
 	tSteps = GAMESTATE->m_pCurSteps[PLAYER_2];
 	if (tSteps != NULL && GAMESTATE->IsPlayerEnabled(PLAYER_2))
 		ctr = uint8_t(ctr + tSteps->GetMeter());
-
+	*/
 	m_packet.Write1(ctr);
 	ctr = 0;
 
 	tSteps = GAMESTATE->m_pCurSteps[PLAYER_1];
 	if (tSteps != NULL && GAMESTATE->IsPlayerEnabled(PLAYER_1))
 		ctr = uint8_t(ctr + (int)tSteps->GetDifficulty() * 16);
-
+	/*
 	tSteps = GAMESTATE->m_pCurSteps[PLAYER_2];
 	if (tSteps != NULL && GAMESTATE->IsPlayerEnabled(PLAYER_2))
 		ctr = uint8_t(ctr + (int)tSteps->GetDifficulty());
-
+	*/
 	m_packet.Write1(ctr);
 	//Notify server if this is for sync or not.
 	ctr = char(position * 16);
@@ -1492,7 +1492,7 @@ void SMOProtocol::StartRequest(NetworkSyncManager* n, short position)
 		else {
 			m_packet.WriteNT("");
 		}
-
+		/*
 		tSteps = GAMESTATE->m_pCurSteps[PLAYER_2];
 		if (tSteps != NULL && GAMESTATE->IsPlayerEnabled(PLAYER_2)) {
 			m_packet.WriteNT(tSteps->GetChartKey());
@@ -1500,7 +1500,7 @@ void SMOProtocol::StartRequest(NetworkSyncManager* n, short position)
 		else {
 			m_packet.WriteNT("");
 		}
-
+		*/
 		int rate = (int)(GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 100);
 		m_packet.Write1(rate);
 		m_packet.WriteNT(GAMESTATE->m_pCurSong->GetFileHash());

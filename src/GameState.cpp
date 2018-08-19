@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "AdjustSync.h"
 #include "Character.h"
 #include "CommonMetrics.h"
@@ -1053,8 +1053,9 @@ const Style* GameState::GetCurrentStyle(PlayerNumber pn) const
 	{
 		if(pn >= NUM_PLAYERS)
 		{
-			return m_SeparatedStyles[PLAYER_1] == NULL ? m_SeparatedStyles[PLAYER_2]
-				: m_SeparatedStyles[PLAYER_1];
+			/*return m_SeparatedStyles[PLAYER_1] == NULL ? m_SeparatedStyles[PLAYER_2]
+				: m_SeparatedStyles[PLAYER_1];*/
+			return m_SeparatedStyles[PLAYER_1];
 		}
 		return m_SeparatedStyles[pn];
 	}

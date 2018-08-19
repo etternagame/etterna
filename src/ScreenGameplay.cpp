@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "AdjustSync.h"
 #include "ArrowEffects.h"
@@ -464,14 +464,14 @@ void ScreenGameplay::Init()
 			margins[PLAYER_1][0]= static_cast<float>(SafeFArg(L, -3, marge, 40));
 			float center= static_cast<float>(SafeFArg(L, -2, marge, 80));
 			margins[PLAYER_1][1]= center / 2.0f;
-			margins[PLAYER_2][0]= center / 2.0f;
-			margins[PLAYER_2][1]= static_cast<float>(SafeFArg(L, -1, marge, 40));
+			//margins[PLAYER_2][0]= center / 2.0f;
+			//margins[PLAYER_2][1]= static_cast<float>(SafeFArg(L, -1, marge, 40));
 		}
 		lua_settop(L, 0);
 		LUA->Release(L);
 	}
 
-	float left_edge[NUM_PLAYERS]= {0.0f, SCREEN_WIDTH / 2.0f};
+	float left_edge[NUM_PLAYERS]= {0.0f};
 	FOREACH_EnabledPlayerInfo( m_vPlayerInfo, pi )
 	{
 		RString sName = ssprintf("Player%s", pi->GetName().c_str());
@@ -489,7 +489,7 @@ void ScreenGameplay::Init()
 			edge= 0.0f; \
 			screen_space= SCREEN_WIDTH; \
 			left_marge= margins[PLAYER_1][0]; \
-			right_marge= margins[PLAYER_2][1]; \
+			right_marge= margins[PLAYER_1][1]; \
 			field_space= screen_space - left_marge - right_marge; \
 		}
 		// If pi->m_pn is set, then the player will be visible.  If not, then it's not 

@@ -128,12 +128,12 @@ void StepsDisplayList::UpdatePositions()
 	int first_start, first_end, second_start, second_end;
 
 	// Choices for each player. If only one player is active, it's the same for both.
-	int P1Choice = GAMESTATE->IsHumanPlayer(PLAYER_1)? iCurrentRow[PLAYER_1]: GAMESTATE->IsHumanPlayer(PLAYER_2)? iCurrentRow[PLAYER_2]: 0;
-	int P2Choice = GAMESTATE->IsHumanPlayer(PLAYER_2)? iCurrentRow[PLAYER_2]: GAMESTATE->IsHumanPlayer(PLAYER_1)? iCurrentRow[PLAYER_1]: 0;
+	int P1Choice = iCurrentRow[PLAYER_1];
+	//int P2Choice = GAMESTATE->IsHumanPlayer(PLAYER_2)? iCurrentRow[PLAYER_2]: GAMESTATE->IsHumanPlayer(PLAYER_1)? iCurrentRow[PLAYER_1]: 0;
 
 	vector<Row> &Rows = m_Rows;
 
-	const bool BothPlayersActivated = GAMESTATE->IsHumanPlayer(PLAYER_1) && GAMESTATE->IsHumanPlayer(PLAYER_2);
+	const bool BothPlayersActivated = GAMESTATE->IsHumanPlayer(PLAYER_1);
 	if( !BothPlayersActivated )
 	{
 		// Simply center the cursor.
@@ -144,12 +144,12 @@ void StepsDisplayList::UpdatePositions()
 	else
 	{
 		// First half:
-		const int earliest = min( P1Choice, P2Choice );
+		const int earliest = P1Choice;
 		first_start = max( earliest - halfsize/2, 0 );
 		first_end = first_start + halfsize;
 
 		// Second half:
-		const int latest = max( P1Choice, P2Choice );
+		const int latest = P1Choice;
 
 		second_start = max( latest - halfsize/2, 0 );
 
