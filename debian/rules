@@ -1,0 +1,53 @@
+#!/usr/bin/make -f
+
+copyfile = cp $(1) debian/etterna/usr/bin/$(1)
+copysharedfile = cp $(1) debian/etterna/shared/bin/$(1)
+
+define createcopy = 
+mkdir -p debian/etterna/usr/bin/$(1)
+cp -R $(1) debian/etterna/usr/bin/$(1)
+endef
+
+define createsharedcopy = 
+mkdir -p debian/etterna/shared/bin/$(1)
+cp -R $(1) debian/etterna/shared/bin/$(1)
+endef
+
+clean:
+	mkdir -p ./Build
+	rm -r ./Build
+
+build:
+	$(checkdir)
+	ls
+	git submodule update --init .
+	mkdir -p ./Build
+	ls
+	cd Build && cmake -DCMAKE_INSTALL_PREFIX=/usr ./.. && $(MAKE) CC="$(CC)" CFLAGS="$(CFLAGS)"
+	touch build
+
+binary:
+	mkdir -p debian/etterna
+	mkdir -p debian/etterna/usr/bin
+	cp etterna debian/etterna/usr/bin/
+	#$(call copyfile,portable.ini)
+	$(call copyfile,GtkModule.so)
+	$(call createcopy,Utils)
+	$(call createcopy,Manual)
+	$(call createcopy,Data)
+	$(call createcopy,Docs)
+	$(call createsharedcopy,Songs)
+	$(call createsharedcopy,Cache)
+	$(call createsharedcopy,Logs)
+	$(call createsharedcopy,NoteSkins)
+	$(call createsharedcopy,Themes)
+	$(call createsharedcopy,Characters)
+	$(call createsharedcopy,BGAnimations)
+	$(call createsharedcopy,BackgroundTransitions)
+	$(call createsharedcopy,BackgroundEffects)
+	$(call createsharedcopy,Announcers)
+	$(call createsharedcopy,Save)
+	strip --strip-all debian/etterna/usr/bin/etterna
+	dh_makeshlibs
+	dh_gencontrol
+	dh_builddeb

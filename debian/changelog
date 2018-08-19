@@ -1,0 +1,5 @@
+etterna (0.6.0-1) stretch; urgency=medium
+
+  * Initial packaging work with dpkg-buildpackage.
+
+ -- The Etterna Team <etterna@gmail.com>  Thu, 09 Aug 2018 19:07:24 +0000
