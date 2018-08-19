@@ -42,8 +42,7 @@ https://etternagame.github.io/wiki/Building-Etterna.html
 
 In short- you can do anything you like with the game (including sell products made with it), provided you *do not*:
 
-1. Sell the game *with the included songs*
-2. Claim to have created the engine yourself or remove the credits
+1. Claim to have created the engine yourself or remove the credits
 
 For specific information/legalese:
 
