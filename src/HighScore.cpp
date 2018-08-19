@@ -468,8 +468,6 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 	pNode->GetChildValue("JudgeScale",			fJudgeScale);
 	pNode->GetChildValue("NoChordCohesion",		bNoChordCohesion);
 	pNode->GetChildValue("EtternaValid",		bEtternaValid);
-	pNode->GetChildValue("Offsets", s);			vOffsetVector = OffsetsToVector(s);
-	pNode->GetChildValue("NoteRows", s);		vNoteRowVector = NoteRowsToVector(s);
 	pNode->GetChildValue("SurviveSeconds",		fSurviveSeconds);
 	pNode->GetChildValue("MaxCombo",			iMaxCombo);
 	pNode->GetChildValue("StageAward", s);		stageAward = StringToStageAward(s);
@@ -520,18 +518,6 @@ void HighScoreImpl::LoadFromNode(const XNode *pNode)
 		radarValues.LoadFromNode( pRadarValues );
 	pNode->GetChildValue( "LifeRemainingSeconds",	fLifeRemainingSeconds );
 	pNode->GetChildValue( "Disqualified",		bDisqualified);
-
-	// special test case stuff - mina
-	//if (vOffsetVector.size() > 1 && fWifeScore == 0.f)
-	//	fWifeScore = RescoreToWifeTS(fJudgeScale);
-	if (vNoteRowVector.size() + vOffsetVector.size() > 2 && (vNoteRowVector.size() == vOffsetVector.size()) && fWifeScore > 0.f) {
-		bool writesuccess = WriteReplayData();
-
-		// ensure data is written out somewhere else before destroying it
-		if (writesuccess)
-			UnloadReplayData();
-	}
-	// Validate input.
 
 	// 3.9 conversion stuff (wtf is this code??) -mina
 	if (pTapNoteScores != nullptr)
