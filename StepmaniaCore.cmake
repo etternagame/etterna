@@ -1,5 +1,5 @@
 		# Include the macros and functions.
-
+cmake_minimum_required (VERSION 3.6)
 include(${CMAKE_CURRENT_LIST_DIR}/CMake/CMakeMacros.cmake)
 
 # Set up helper variables for future configuring.
@@ -252,6 +252,7 @@ else()
 endif()
 
 if(WIN32)
+  set_property( DIRECTORY PROPERTY VS_STARTUP_PROJECT "Etterna" )
   set(SYSTEM_PCRE_FOUND FALSE)
   find_package(DirectX REQUIRED)
   
