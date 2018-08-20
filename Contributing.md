@@ -4,6 +4,8 @@ Anyone is welcome to contribute! These are the areas where help is needed the mo
 
  * [C++](#C++)
  * [lua](#lua)
+ * [Documentation](#Documentation)
+ * [Packaging](#Packaging)
  * [Graphic Design](#Graphic-Design)
  * [Chart Making](#Chart-Making)
  
@@ -29,10 +31,18 @@ You can think of themes as the front end of the game. The way each screen is dra
 
 Currently, there's a lack of alternative themes (To the default one, Til Death) for Etterna. Spawncamping Wallhack (https://github.com/ca25nada/spawncamping-wallhack) is the only complete theme that supports Etterna as far as i know.
 
+### Documentation
+
+The project is sorely lacking in documentation. The current aim is to document the lua stuff in https://etternagame.github.io/Lua-For-Etterna/API/Lua.xml (This is forked from http://dguzek.github.io/Lua-For-SM5/API/Lua.xml, a community made reference for sm5 lua). We intend to get the c++ documentation done in https://etternagame.github.io/wiki/ (At first we wanted to make this page have 3 "sections": general, lua and c++, but gave up). Then there is a general wiki with information that can be useful to end users (https://wiki.etternaonline.com/).
+
+### Packaging
+
+A few people have complained about the lack of packagess for linux in general. If you'd like to, you can try working on a package for your favorite distro. I've already made a more-or-less functional debian package here: https://github.com/nico-abram/etterna/tree/debian/
+
 ### Graphic Design
 
-TODO
+A lot of thing in the game have been done in a hurry to simply provide a basic UI so things can be used. We usually mostly care about features working. Mockups for new designs, improved gfx (Images) and other ideas are incredibly welcome. This goes for both the default theme and the website, etternaonline. If you're interested, you could ask around in the etternaonline discord. Also, concepts for completely new themes would be interesting to see (In case someone who knows how to implement one decides to work on it).
 
 ### Chart Making
 
-TODO
+New charts/packs keep the game fresh. They make old time players come back for a day. Even if it doesnt seem like much, every chart makes the game as a whole more valuable.
