@@ -109,3 +109,5 @@ nsis_strings_temp\.inc
 BatchRecalc/*
 
 Xcode/Info\.Etterna\.plist
+
+extern/LuaJit*/lj_*def.h
