@@ -2,12 +2,12 @@
 
 Anyone is welcome to contribute! These are the areas where help is needed the most.
 
- * [C++](#C++)
+ * [C++](#c)
  * [lua](#lua)
- * [Documentation](#Documentation)
- * [Packaging](#Packaging)
- * [Graphic Design](#Graphic-Design)
- * [Chart Making](#Chart-Making)
+ * [Documentation](#documentation)
+ * [Packaging](#packaging)
+ * [Graphic Design](#graphic-Design)
+ * [Chart Making](#chart-making)
  
  
 ### C++
