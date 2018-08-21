@@ -48,6 +48,9 @@ PBProject/Hardware.plist
 *.dmg
 .DS_Store
 
+# Visual Studio 2015/2017 cache/options directory
+.vs/
+
 # Visual Studio
 *.sln
 *.vcxproj
