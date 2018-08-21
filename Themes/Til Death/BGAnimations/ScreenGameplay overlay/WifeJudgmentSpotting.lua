@@ -550,13 +550,13 @@ local function secondHalfInput(event)
 		-- changes the noteField/receptor x/y
 		if rPressed and event.type ~= "InputEventType_Release" then
 			if event.DeviceInput.button == "DeviceButton_up" then
-				noteFieldY = noteFieldY - 3
+				noteFieldY = noteFieldY + (GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse() and -3 or 3)
 				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NotefieldY = noteFieldY
 				noteField:addy(-3)
 				changed = true
 			end
 			if event.DeviceInput.button == "DeviceButton_down" then
-				noteFieldY = noteFieldY + 3
+				noteFieldY = noteFieldY + (GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse() and 3 or -3)
 				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NotefieldY = noteFieldY
 				noteField:addy(3)
 				changed = true
@@ -684,8 +684,8 @@ local t = Def.ActorFrame{
 		end
 		screen = SCREENMAN:GetTopScreen()
 		noteField = screen:GetChild("PlayerP1"):GetChild("NoteField")
+		noteField:addy(noteFieldY * (GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse() and 1 or -1))
 		noteField:addx(noteFieldX)
-		noteField:addy(noteFieldY)
 		noteColumns = noteField:get_column_actors()
 		for i, actor in ipairs(noteColumns) do
 			actor:zoomtowidth(noteFieldWidth)
