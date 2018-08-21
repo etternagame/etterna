@@ -384,7 +384,7 @@ void MusicWheel::GetSongList( vector<Song*> &arraySongs, SortOrder so )
 			// dance-double steps will show up when dance-single was selected, with
 			// no playable steps.  Then the game will crash when trying to play it.
 			// -Kyz
-			if(CommonMetrics::AUTO_SET_STYLE && !NSMAN->isSMOnline)
+			if(CommonMetrics::AUTO_SET_STYLE)
 			{
 				// with AUTO_SET_STYLE on and Autogen off, some songs may get
 				// hidden. Search through every playable StepsType until you
