@@ -1870,7 +1870,12 @@ public:
 	{
 		HighScore* hs = Luna<HighScore>::check(L, 1);
 		LOG->Trace("Attempting to play a replay!");
-		PlayerAI::setScoreData(hs);
+		PlayerAI::SetScoreData(hs);
+
+		vector<int>& test = hs->GetCopyOfNoteRowVector();
+		std::string s = std::to_string(test.size());
+		char const* g = s.c_str();
+		LOG->Trace(g);
 
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = hs->GetMusicRate();
 		MESSAGEMAN->Broadcast("RateChanged");
