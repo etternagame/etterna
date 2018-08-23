@@ -1863,6 +1863,20 @@ public:
 		p->SelectCurrent(PLAYER_1);
 		return 1;
 	}
+	
+	static int PlayReplay(T* p, lua_State *L)
+	{
+		HighScore* hs = Luna<HighScore>::check(L, 1);
+		LOG->Trace("Attempting to play a replay!");
+		PlayerAI::setScoreData(hs);
+
+		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = hs->GetMusicRate();
+		MESSAGEMAN->Broadcast("RateChanged");
+		GamePreferences::m_AutoPlay.Set(PC_REPLAY);
+		p->SelectCurrent(PLAYER_1);
+		return 1;
+	}
+	
 	LunaScreenSelectMusic()
 	{
 		ADD_METHOD(GetGoToOptions);
@@ -1872,6 +1886,7 @@ public:
 		ADD_METHOD(SelectCurrent);
 		ADD_METHOD(GetSelectionState);
 		ADD_METHOD(StartPlaylistAsCourse);
+		ADD_METHOD(PlayReplay);
 	}
 };
 
