@@ -17,7 +17,9 @@ public:
 
 	static void InitFromDisk();
 	static TapNoteScore GetTapNoteScore( const PlayerState* pPlayerState );
-	static void setScoreData(HighScore* pHighScore);
+	static void SetScoreData(HighScore* pHighScore);
+	static float GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col);
+	static TapNoteScore GetTapNoteScoreForReplay(const PlayerState* pPlayerState, float fNoteOffset);
 
 };
 

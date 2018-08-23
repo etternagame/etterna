@@ -1,6 +1,7 @@
 ﻿#include "global.h"
 #include "GameState.h"
 #include "IniFile.h"
+#include "Player.h"
 #include "PlayerAI.h"
 #include "PlayerState.h"
 #include "RageUtil.h"
@@ -111,7 +112,7 @@ TapNoteScore PlayerAI::GetTapNoteScore( const PlayerState* pPlayerState )
 	if (pPlayerState->m_PlayerController == PC_AUTOPLAY)
 		return TNS_W1;
 	if (pPlayerState->m_PlayerController == PC_REPLAY)
-		return TNS_W1;
+		return TNS_W5;
 
 	const int iCpuSkill = pPlayerState->m_iCpuSkill;
 
@@ -120,9 +121,81 @@ TapNoteScore PlayerAI::GetTapNoteScore( const PlayerState* pPlayerState )
 	return distribution.GetTapNoteScore();
 }
 
-void PlayerAI::setScoreData(HighScore* pHighScore)
+TapNoteScore PlayerAI::GetTapNoteScoreForReplay(const PlayerState* pPlayerState, float fNoteOffset)
 {
+	LOG->Trace("Given number %f ", fNoteOffset);
+	const float fSecondsFromExact = fabsf(fNoteOffset);
+	LOG->Trace("TapNoteScore For Replay Seconds From Exact: %f", fSecondsFromExact);
+	if (fSecondsFromExact <= Player::GetWindowSeconds(TW_W1))
+		return TNS_W1;
+	else if (fSecondsFromExact <= Player::GetWindowSeconds(TW_W2))
+		return TNS_W2;
+	else if (fSecondsFromExact <= Player::GetWindowSeconds(TW_W3))
+		return TNS_W3;
+	else if (fSecondsFromExact <= Player::GetWindowSeconds(TW_W4))
+		return TNS_W4;
+	else if (fSecondsFromExact <= max(Player::GetWindowSeconds(TW_W5), 0.18f))
+		return TNS_W5;
+	else
+		return TNS_W5; // ???
+}
+
+void PlayerAI::SetScoreData(HighScore* pHighScore)
+{
+	pHighScore->LoadReplayData();
 	PlayerAI::pScoreData = pHighScore;
+}
+
+float PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
+{
+	/* Given the pTN coming from gameplay, we search for the matching note in the replay data.
+	If it is not found, it is a miss. (1.f)
+	*/
+	if (pScoreData == nullptr) // possible cheat prevention
+		return 1.f;
+
+	// Replay Data format: [noterow] [offset] [track] [optional: tap note type]
+
+	vector<int>& noteRowVector = pScoreData->GetCopyOfNoteRowVector();
+	vector<float>& offsetVector = pScoreData->GetCopyOfOffsetVector();
+	//vector<TapNoteType>& tntVector = pScoreData->GetCopyOfTapNoteTypeVector();
+	vector<int>& trackVector = pScoreData->GetCopyOfTrackVector();
+	std::string s = std::to_string(noteRow);
+	char const* nr1 = s.c_str();
+	std::string lmao = std::to_string(noteRowVector.size());
+	char const* nrsize = lmao.c_str();
+	LOG->Trace("vector size %s", nrsize);
+
+	LOG->Trace("Comparing %s", nr1);
+
+	for (int i = 0; i < noteRowVector.size(); i++)
+	{
+		std::string g = std::to_string(i);
+		char const* yeet1 = g.c_str();
+		LOG->Trace(yeet1);
+		if (noteRowVector[i] == noteRow)
+		{
+			std::string outp = std::to_string(offsetVector[i]);
+			float outputF = offsetVector[i];
+			char const* output = outp.c_str();
+
+			noteRowVector.erase(noteRowVector.begin() + i);
+			offsetVector.erase(offsetVector.begin() + i);
+			trackVector.erase(trackVector.begin() + i);
+			//tntVector.erase(tntVector.begin() + i);
+
+			pScoreData->SetNoteRowVector(noteRowVector);
+			pScoreData->SetOffsetVector(offsetVector);
+			pScoreData->SetTrackVector(trackVector);
+			//pScoreData->SetTapNoteTypeVector(tntVector);
+			LOG->Trace("returned number %s", output);
+			pTN->result.fTapNoteOffset = outputF;
+			return outputF;
+		}
+	}
+	LOG->Trace("returned 1");
+	pTN->result.fTapNoteOffset = 1.f;
+	return 1.f;
 }
 
 /*

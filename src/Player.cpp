@@ -2141,9 +2141,11 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 
 		case PC_REPLAY:
 
-			score = PlayerAI::GetTapNoteScore( m_pPlayerState );
+			fNoteOffset = PlayerAI::GetTapNoteOffsetForReplay(pTN, iRowOfOverlappingNoteOrRow, col);
 
-			fNoteOffset = 0;
+			score = PlayerAI::GetTapNoteScoreForReplay( m_pPlayerState, fNoteOffset );
+			
+
 			break;
 		default:
 			FAIL_M(ssprintf("Invalid player controller type: %i", m_pPlayerState->m_PlayerController));
@@ -2530,7 +2532,7 @@ void Player::CrossedRows( int iLastRowCrossed, const std::chrono::steady_clock::
 				this->m_Timing->IsJudgableAtRow(iRow) )
 			{
 				Step( iTrack, iRow, now, false, false );
-				if( m_pPlayerState->m_PlayerController == PC_AUTOPLAY )
+				if( m_pPlayerState->m_PlayerController == PC_AUTOPLAY || m_pPlayerState->m_PlayerController == PC_REPLAY )
 				{
 					if( m_pPlayerStageStats )
 						m_pPlayerStageStats->m_bDisqualified = true;
