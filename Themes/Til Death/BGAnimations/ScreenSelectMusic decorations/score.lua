@@ -504,6 +504,29 @@ t[#t+1] = LoadFont("Common Normal")..{
 		end
 	end
 }
+t[#t+1] = LoadFont("Common Normal")..{
+	Name="ReplayViewer",
+	InitCommand=function(self)
+		self:y(frameHeight-headeroffY - 30 - offsetY):zoom(0.5):halign(-2):settext("")
+	end,
+	DisplayCommand=function(self)
+		if score:HasReplayData() then 
+			self:settext("View Replay")
+		else
+			self:settext("No Replay Data")
+		end
+	end,
+	HighlightCommand=function(self)
+		highlightIfOver(self)
+	end,
+	MouseLeftClickMessageCommand=function(self)
+		if nestedTab == 1 then
+			if getTabIndex() == 2 and getScoreForPlot() and getScoreForPlot():HasReplayData() and isOver(self) then
+				SCREENMAN:GetTopScreen():PlayReplay(score)
+			end
+		end
+	end
+}
 
 -- matches the built-in online score header
 t[#t+1] = Def.Quad{

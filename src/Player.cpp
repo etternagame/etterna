@@ -2139,14 +2139,12 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 
 			break;
 
-		/*
 		case PC_REPLAY:
-			// based on where we are, see what grade to get.
+
 			score = PlayerAI::GetTapNoteScore( m_pPlayerState );
-			// row is the current row, col is current column (track)
-			fNoteOffset = TapNoteOffset attribute
+
+			fNoteOffset = 0;
 			break;
-		*/
 		default:
 			FAIL_M(ssprintf("Invalid player controller type: %i", m_pPlayerState->m_PlayerController));
 		}

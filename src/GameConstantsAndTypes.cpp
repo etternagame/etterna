@@ -98,7 +98,7 @@ static const char *PlayerControllerNames[] = {
 	"Human",
 	"Autoplay",
 	"Cpu",
-	//"Replay",
+	"Replay",
 };
 XToString( PlayerController );
 StringToX( PlayerController );

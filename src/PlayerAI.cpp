@@ -51,6 +51,8 @@ struct TapScoreDistribution
 
 static TapScoreDistribution g_Distributions[NUM_SKILL_LEVELS];
 
+HighScore* PlayerAI::pScoreData = nullptr;
+
 void PlayerAI::InitFromDisk()
 {
 	IniFile ini;
@@ -108,12 +110,19 @@ TapNoteScore PlayerAI::GetTapNoteScore( const PlayerState* pPlayerState )
 {
 	if (pPlayerState->m_PlayerController == PC_AUTOPLAY)
 		return TNS_W1;
+	if (pPlayerState->m_PlayerController == PC_REPLAY)
+		return TNS_W1;
 
 	const int iCpuSkill = pPlayerState->m_iCpuSkill;
 
 	TapScoreDistribution& distribution = g_Distributions[iCpuSkill];
 
 	return distribution.GetTapNoteScore();
+}
+
+void PlayerAI::setScoreData(HighScore* pHighScore)
+{
+	PlayerAI::pScoreData = pHighScore;
 }
 
 /*
