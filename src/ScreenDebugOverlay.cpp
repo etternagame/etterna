@@ -575,6 +575,7 @@ static LocalizedString UPTIME			( "ScreenDebugOverlay", "Uptime" );
 static LocalizedString FORCE_CRASH		( "ScreenDebugOverlay", "Force Crash" );
 static LocalizedString SLOW			( "ScreenDebugOverlay", "Slow" );
 static LocalizedString CPU				( "ScreenDebugOverlay", "CPU" );
+static LocalizedString REPLAY 			( "ScreenDebugOverlay", "REPLAY" );
 static LocalizedString SONG			( "ScreenDebugOverlay", "Song" );
 static LocalizedString MACHINE			( "ScreenDebugOverlay", "Machine" );
 static LocalizedString SYNC_TEMPO		( "ScreenDebugOverlay", "Tempo" );
@@ -590,6 +591,7 @@ class DebugLineAutoplay : public IDebugLine
 		case PC_HUMAN:		return OFF.GetValue();	break;
 		case PC_AUTOPLAY:	return ON.GetValue();	break;
 		case PC_CPU:		return CPU.GetValue();	break;
+		case PC_REPLAY:		return REPLAY.GetValue(); break;
 		default:
 			FAIL_M(ssprintf("Invalid PlayerController: %i", pc));
 		}
