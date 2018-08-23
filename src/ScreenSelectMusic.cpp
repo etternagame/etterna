@@ -36,6 +36,8 @@
 #include "ScreenTextEntry.h"
 #include "ProfileManager.h"
 #include "DownloadManager.h"
+#include "GamePreferences.h"
+#include "PlayerAI.h"
 
 static const char *SelectionStateNames[] = {
 	"SelectingSong",
