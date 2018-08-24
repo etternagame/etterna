@@ -123,9 +123,9 @@ TapNoteScore PlayerAI::GetTapNoteScore( const PlayerState* pPlayerState )
 
 TapNoteScore PlayerAI::GetTapNoteScoreForReplay(const PlayerState* pPlayerState, float fNoteOffset)
 {
-	LOG->Trace("Given number %f ", fNoteOffset);
+	//LOG->Trace("Given number %f ", fNoteOffset);
 	const float fSecondsFromExact = fabsf(fNoteOffset);
-	LOG->Trace("TapNoteScore For Replay Seconds From Exact: %f", fSecondsFromExact);
+	//LOG->Trace("TapNoteScore For Replay Seconds From Exact: %f", fSecondsFromExact);
 	if (fSecondsFromExact <= Player::GetWindowSeconds(TW_W1))
 		return TNS_W1;
 	else if (fSecondsFromExact <= Player::GetWindowSeconds(TW_W2))
@@ -159,24 +159,24 @@ float PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 	vector<float>& offsetVector = pScoreData->GetCopyOfOffsetVector();
 	vector<TapNoteType>& tntVector = pScoreData->GetCopyOfTapNoteTypeVector();
 	vector<int>& trackVector = pScoreData->GetCopyOfTrackVector();
-	std::string s = std::to_string(noteRow);
+	/*std::string s = std::to_string(noteRow);
 	char const* nr1 = s.c_str();
 	std::string lmao = std::to_string(noteRowVector.size());
 	char const* nrsize = lmao.c_str();
 	LOG->Trace("vector size %s", nrsize);
 
-	LOG->Trace("Comparing %s", nr1);
+	LOG->Trace("Comparing %s", nr1);*/
 
 	for (int i = 0; i < noteRowVector.size(); i++)
 	{
-		std::string g = std::to_string(i);
+		/*std::string g = std::to_string(i);
 		char const* yeet1 = g.c_str();
-		LOG->Trace(yeet1);
+		LOG->Trace(yeet1);*/
 		if (noteRowVector[i] == noteRow)
 		{
-			std::string outp = std::to_string(offsetVector[i]);
+			//std::string outp = std::to_string(offsetVector[i]);
 			float outputF = offsetVector[i];
-			char const* output = outp.c_str();
+			//char const* output = outp.c_str();
 
 			if (tntVector[i] == TapNoteType_Mine)
 			{
@@ -196,7 +196,7 @@ float PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 			pScoreData->SetOffsetVector(offsetVector);
 			pScoreData->SetTrackVector(trackVector);
 			pScoreData->SetTapNoteTypeVector(tntVector);
-			LOG->Trace("returned number %s", output);
+			//LOG->Trace("returned number %s", output);
 			return -outputF;
 		}
 	}
