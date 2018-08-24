@@ -84,6 +84,8 @@ void ScreenSelectMusic::Init()
 		GAMESTATE->JoinPlayer(PLAYER_1);
 		GAMESTATE->SetMasterPlayerNumber(PLAYER_1);
 	}
+	if (GamePreferences::m_AutoPlay == PC_REPLAY)
+		GamePreferences::m_AutoPlay.Set(PC_HUMAN);
 
 	IDLE_COMMENT_SECONDS.Load(m_sName, "IdleCommentSeconds");
 	SAMPLE_MUSIC_DELAY_INIT.Load(m_sName, "SampleMusicDelayInit");
