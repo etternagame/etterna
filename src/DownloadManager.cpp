@@ -194,16 +194,18 @@ inline void checkProtocol(string& url)
 inline CURL* initBasicCURLHandle() {
 	CURL *curlHandle = curl_easy_init();
 	curl_easy_setopt(curlHandle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+	curl_easy_setopt(curlHandle, CURLOPT_ACCEPT_ENCODING, "");
 	curl_easy_setopt(curlHandle, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(curlHandle, CURLOPT_SSL_VERIFYHOST, 0L);
 	curl_easy_setopt(curlHandle, CURLOPT_FOLLOWLOCATION, 1L);
 	return curlHandle;
 }
 //Utility inline functions to deal with CURL
-inline CURL* initCURLHandle() {
+inline CURL* initCURLHandle(bool withBearer) {
 	CURL *curlHandle = initBasicCURLHandle();
 	struct curl_slist *list = NULL;
-	list = curl_slist_append(list, ("Authorization: Bearer " + DLMAN->authToken).c_str());
+	if(withBearer)
+		list = curl_slist_append(list, ("Authorization: Bearer " + DLMAN->authToken).c_str());
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPHEADER, list);
 	curl_easy_setopt(curlHandle, CURLOPT_TIMEOUT, 120);//Seconds
 	return curlHandle;
@@ -308,9 +310,9 @@ DownloadManager::~DownloadManager()
 	curl_global_cleanup();
 }
 
-Download* DownloadManager::DownloadAndInstallPack(const string &url)
+Download* DownloadManager::DownloadAndInstallPack(const string &url, string filename)
 {	
-	Download* dl = new Download(url);
+	Download* dl = new Download(url, filename);
 
 	if (mPackHandle == nullptr)
 		mPackHandle = curl_multi_init();
@@ -383,7 +385,7 @@ Download* DownloadManager::DownloadAndInstallPack(DownloadablePack* pack)
 		DLMAN->DownloadQueue.emplace_back(pack);
 		return nullptr;
 	}
-	Download* dl = DownloadAndInstallPack(pack->url);
+	Download* dl = DownloadAndInstallPack(pack->url, pack->name+".zip");
 	dl->p_Pack = pack;
 	return dl;
 }
@@ -545,7 +547,7 @@ void DownloadManager::UpdatePacks(float fDeltaSeconds)
 				i->second->p_RFWrapper.file.Flush();
 				if (i->second->p_RFWrapper.file.IsOpen())
 					i->second->p_RFWrapper.file.Close();
-				if (msg->msg == CURLMSG_DONE && i->second->progress.total == i->second->progress.downloaded) {
+				if (msg->msg == CURLMSG_DONE && i->second->progress.total <= i->second->progress.downloaded) {
 					timeSinceLastDownload = 0;
 					i->second->Done(i->second);
 					if (!gameplay) {
@@ -725,7 +727,7 @@ void DownloadManager::UploadScore(HighScore* hs)
 {
 	if (!LoggedIn())
 		return;
-	CURL *curlHandle = initCURLHandle();
+	CURL *curlHandle = initCURLHandle(true);
 	string url = serverURL.Get() + "/score";
 	curl_httppost *form = nullptr;
 	curl_httppost *lastPtr = nullptr;
@@ -769,7 +771,7 @@ void DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 {
 	if (!LoggedIn())
 		return;
-	CURL *curlHandle = initCURLHandle();
+	CURL *curlHandle = initCURLHandle(true);
 	string url = serverURL.Get() + "/score";
 	curl_httppost *form = nullptr;
 	curl_httppost *lastPtr = nullptr;
@@ -903,12 +905,12 @@ OnlineTopScore DownloadManager::GetTopSkillsetScore(unsigned int rank, Skillset 
 	return OnlineTopScore();
 }
 
-HTTPRequest* DownloadManager::SendRequest(string requestName, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> done, bool requireLogin, bool post, bool async)
+HTTPRequest* DownloadManager::SendRequest(string requestName, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> done, bool requireLogin, bool post, bool async, bool withBearer)
 {
-	return SendRequestToURL(serverURL.Get() + "/" + requestName, params, done, requireLogin, post, async);
+	return SendRequestToURL(serverURL.Get() + "/" + requestName, params, done, requireLogin, post, async, withBearer);
 }
 
-HTTPRequest* DownloadManager::SendRequestToURL(string url, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> afterDone, bool requireLogin, bool post, bool async)
+HTTPRequest* DownloadManager::SendRequestToURL(string url, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> afterDone, bool requireLogin, bool post, bool async, bool withBearer)
 {
 	if (requireLogin && !LoggedIn())
 		return nullptr;
@@ -941,7 +943,7 @@ HTTPRequest* DownloadManager::SendRequestToURL(string url, vector<pair<string, s
 			afterDone(req, msg);
 		}
 	};
-	CURL *curlHandle = initCURLHandle();
+	CURL *curlHandle = initCURLHandle(withBearer);
 	SetCURLURL(curlHandle, url);
 	HTTPRequest* req;
 	if (post) {
@@ -1242,7 +1244,7 @@ void DownloadManager::RefreshTop25(Skillset ss)
 	if (!LoggedIn())
 		return;
 	string req = "user/"+DLMAN->sessionUser+"/top/";
-	CURL *curlHandle = initCURLHandle();
+	CURL *curlHandle = initCURLHandle(true);
 	if(ss!= Skill_Overall)
 		req += SkillsetToString(ss)+"/25";
 	auto done = [ss](HTTPRequest& req, CURLMsg *) {
@@ -1341,7 +1343,7 @@ void DownloadManager::StartSession(string user, string pass, function<void(bool 
 	}
 	DLMAN->loggingIn = true;
 	EndSessionIfExists();
-	CURL *curlHandle = initCURLHandle();
+	CURL *curlHandle = initCURLHandle(false);
 	SetCURLPostToURL(curlHandle, url);
 	curl_easy_setopt(curlHandle, CURLOPT_COOKIEFILE, ""); /* start cookie engine */
 
@@ -1483,16 +1485,16 @@ void DownloadManager::RefreshPackList(string url)
 		} catch (exception e) { }
 		DLMAN->RefreshCoreBundles();
 	};
-	SendRequestToURL(url, {}, done, false, false, true);
+	SendRequestToURL(url, {}, done, false, false, true, false);
 	return;
 }
 
-Download::Download(string url, function<void(Download*)> done)
+Download::Download(string url, string filename, function<void(Download*)> done)
 {
 	Done = done;
 	m_Url = url;
 	handle = initBasicCURLHandle();
-	m_TempFileName = MakeTempFileName(url);
+	m_TempFileName = filename != "" ? filename : MakeTempFileName(url);
 	auto opened = p_RFWrapper.file.Open(m_TempFileName, 2);
 	ASSERT(opened);
 	DLMAN->EncodeSpaces(m_Url);
