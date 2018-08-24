@@ -609,7 +609,8 @@ class DebugLineAutoplay : public IDebugLine
 			pc = (pc==PC_CPU) ? PC_HUMAN : PC_CPU;
 		else
 			pc = (pc==PC_AUTOPLAY) ? PC_HUMAN : PC_AUTOPLAY;
-		GamePreferences::m_AutoPlay.Set( pc );
+		if ( GamePreferences::m_AutoPlay != PC_REPLAY )
+			GamePreferences::m_AutoPlay.Set( pc );
 		FOREACH_HumanPlayer(p)
 			GAMESTATE->m_pPlayerState[p]->m_PlayerController = GamePreferences::m_AutoPlay;
 		FOREACH_MultiPlayer(p)
