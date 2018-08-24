@@ -575,6 +575,7 @@ static LocalizedString UPTIME			( "ScreenDebugOverlay", "Uptime" );
 static LocalizedString FORCE_CRASH		( "ScreenDebugOverlay", "Force Crash" );
 static LocalizedString SLOW			( "ScreenDebugOverlay", "Slow" );
 static LocalizedString CPU				( "ScreenDebugOverlay", "CPU" );
+static LocalizedString REPLAY 			( "ScreenDebugOverlay", "REPLAY" );
 static LocalizedString SONG			( "ScreenDebugOverlay", "Song" );
 static LocalizedString MACHINE			( "ScreenDebugOverlay", "Machine" );
 static LocalizedString SYNC_TEMPO		( "ScreenDebugOverlay", "Tempo" );
@@ -590,6 +591,7 @@ class DebugLineAutoplay : public IDebugLine
 		case PC_HUMAN:		return OFF.GetValue();	break;
 		case PC_AUTOPLAY:	return ON.GetValue();	break;
 		case PC_CPU:		return CPU.GetValue();	break;
+		case PC_REPLAY:		return REPLAY.GetValue(); break;
 		default:
 			FAIL_M(ssprintf("Invalid PlayerController: %i", pc));
 		}
@@ -607,7 +609,8 @@ class DebugLineAutoplay : public IDebugLine
 			pc = (pc==PC_CPU) ? PC_HUMAN : PC_CPU;
 		else
 			pc = (pc==PC_AUTOPLAY) ? PC_HUMAN : PC_AUTOPLAY;
-		GamePreferences::m_AutoPlay.Set( pc );
+		if ( GamePreferences::m_AutoPlay != PC_REPLAY )
+			GamePreferences::m_AutoPlay.Set( pc );
 		FOREACH_HumanPlayer(p)
 			GAMESTATE->m_pPlayerState[p]->m_PlayerController = GamePreferences::m_AutoPlay;
 		FOREACH_MultiPlayer(p)

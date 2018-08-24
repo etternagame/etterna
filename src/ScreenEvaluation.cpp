@@ -25,6 +25,7 @@
 #include "StepMania.h"
 #include "Steps.h"
 #include "ThemeManager.h"
+#include "GamePreferences.h"
 
 // metrics that are common to all ScreenEvaluation classes
 #define BANNER_WIDTH			THEME->GetMetricF(m_sName,"BannerWidth")
@@ -217,7 +218,7 @@ void ScreenEvaluation::Init()
 	}
 
 	// update persistent statistics
-	if( SUMMARY )
+	if( SUMMARY && GamePreferences::m_AutoPlay != PC_REPLAY)
 		m_pStageStats->FinalizeScores( true );
 
 	// Run this here, so STATSMAN->m_CurStageStats is available to overlays.
@@ -672,6 +673,10 @@ void ScreenEvaluation::Init()
 			this->PostScreenMessage( SM_PlayCheer, CHEER_DELAY_SECONDS );
 		default:
 			break;
+	}
+	if (GamePreferences::m_AutoPlay == PC_REPLAY)
+	{
+		STATSMAN->m_vPlayedStageStats.pop_back();
 	}
 }
 

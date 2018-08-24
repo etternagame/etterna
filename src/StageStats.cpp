@@ -18,6 +18,7 @@
 #include "DownloadManager.h"
 #include "MinaCalc.h"
 #include "Song.h"
+#include "GamePreferences.h"
 
 #ifdef _WIN32 
 #include <intrin.h>
@@ -619,7 +620,8 @@ void StageStats::FinalizeScores(bool bSummary)
 	}
 	if(NSMAN->isSMOnline)
 		NSMAN->ReportHighScore(&hs, m_player[PLAYER_1]);
-	if (m_player[PLAYER_1].m_fWifeScore > 0.f) {
+	if (m_player[PLAYER_1].m_fWifeScore > 0.f && GamePreferences::m_AutoPlay != PC_REPLAY) {
+
 		bool writesuccess = hs.WriteReplayData();
 		if (writesuccess)
 			hs.UnloadReplayData();

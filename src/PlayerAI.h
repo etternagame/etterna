@@ -4,6 +4,7 @@
 #define PlayerAI_H
 
 #include "GameConstantsAndTypes.h"
+#include "HighScore.h"
 
 class PlayerState;
 
@@ -12,9 +13,13 @@ const int NUM_SKILL_LEVELS = 6;	// 0-5
 class PlayerAI
 {
 public:
+	static HighScore* pScoreData;
 
 	static void InitFromDisk();
 	static TapNoteScore GetTapNoteScore( const PlayerState* pPlayerState );
+	static void SetScoreData(HighScore* pHighScore);
+	static float GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col);
+	static TapNoteScore GetTapNoteScoreForReplay(const PlayerState* pPlayerState, float fNoteOffset);
 
 };
 

@@ -36,6 +36,8 @@
 #include "ScreenTextEntry.h"
 #include "ProfileManager.h"
 #include "DownloadManager.h"
+#include "GamePreferences.h"
+#include "PlayerAI.h"
 
 static const char *SelectionStateNames[] = {
 	"SelectingSong",
@@ -82,6 +84,8 @@ void ScreenSelectMusic::Init()
 		GAMESTATE->JoinPlayer(PLAYER_1);
 		GAMESTATE->SetMasterPlayerNumber(PLAYER_1);
 	}
+	if (GamePreferences::m_AutoPlay == PC_REPLAY)
+		GamePreferences::m_AutoPlay.Set(PC_HUMAN);
 
 	IDLE_COMMENT_SECONDS.Load(m_sName, "IdleCommentSeconds");
 	SAMPLE_MUSIC_DELAY_INIT.Load(m_sName, "SampleMusicDelayInit");
@@ -1863,6 +1867,25 @@ public:
 		p->SelectCurrent(PLAYER_1);
 		return 1;
 	}
+	
+	static int PlayReplay(T* p, lua_State *L)
+	{
+		HighScore* hs = Luna<HighScore>::check(L, 1);
+		LOG->Trace("Attempting to play a replay!");
+		PlayerAI::SetScoreData(hs);
+
+		//vector<int>& test = hs->GetCopyOfNoteRowVector();
+		//std::string s = std::to_string(test.size());
+		//char const* g = s.c_str();
+		//LOG->Trace(g);
+
+		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = hs->GetMusicRate();
+		MESSAGEMAN->Broadcast("RateChanged");
+		GamePreferences::m_AutoPlay.Set(PC_REPLAY);
+		p->SelectCurrent(PLAYER_1);
+		return 1;
+	}
+	
 	LunaScreenSelectMusic()
 	{
 		ADD_METHOD(GetGoToOptions);
@@ -1872,6 +1895,7 @@ public:
 		ADD_METHOD(SelectCurrent);
 		ADD_METHOD(GetSelectionState);
 		ADD_METHOD(StartPlaylistAsCourse);
+		ADD_METHOD(PlayReplay);
 	}
 };
 

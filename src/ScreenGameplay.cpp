@@ -1582,6 +1582,8 @@ void ScreenGameplay::Update( float fDeltaTime )
 				ResetGiveUpTimers(false);
 				if(GIVING_UP_GOES_TO_PREV_SCREEN && !m_skipped_song)
 				{
+					if (GamePreferences::m_AutoPlay == PC_REPLAY)
+						GamePreferences::m_AutoPlay.Set(PC_HUMAN);
 					BeginBackingOutFromGameplay();
 				}
 				else
@@ -1873,6 +1875,8 @@ bool ScreenGameplay::Input( const InputEventPlus &input )
 				(input.DeviceI.device!=DEVICE_KEYBOARD && INPUTFILTER->GetSecsHeld(input.DeviceI) >= 1.0f)) )
 			{
 				LOG->Trace("Player %i went back", input.pn+1);
+				if (GamePreferences::m_AutoPlay == PC_REPLAY)
+					GamePreferences::m_AutoPlay.Set(PC_HUMAN);
 				BeginBackingOutFromGameplay();
 			}
 			else if( PREFSMAN->m_bDelayedBack && input.type==IET_FIRST_PRESS )
@@ -1906,8 +1910,9 @@ bool ScreenGameplay::Input( const InputEventPlus &input )
 	}
 
 	// RestartGameplay may only be pressed when in Singleplayer.
+	// RestartGameplay may not be pressed within Replays.
 	// Clever theming or something can probably break this, but we should at least try.
-	if (SCREENMAN->GetTopScreen()->GetPrevScreen() == "ScreenSelectMusic")
+	if (SCREENMAN->GetTopScreen()->GetPrevScreen() == "ScreenSelectMusic" && GamePreferences::m_AutoPlay != PC_REPLAY)
 	{
 		/* Restart gameplay button moved from theme to allow for rebinding for people who
 		*  dont want to edit lua files :)
@@ -2307,8 +2312,16 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 		SongFinished();
 		this->StageFinished( false );
 		auto syncing = !GAMESTATE->IsPlaylistCourse() && AdjustSync::IsSyncDataChanged();
+		bool replaying = false;
+		FOREACH_EnabledPlayerNumberInfo(m_vPlayerInfo, pi)
+		{
+			if (pi->GetPlayerState()->m_PlayerController == PC_REPLAY) // don't duplicate replay saves
+			{
+				replaying = true;
+			}
+		}
 		// only save replays if the player chose to
-		if( GAMESTATE->m_SongOptions.GetCurrent().m_bSaveReplay  && !syncing)
+		if( GAMESTATE->m_SongOptions.GetCurrent().m_bSaveReplay  && !syncing && !replaying)
 			SaveReplay();
 
 		if(syncing)
