@@ -63,6 +63,7 @@ void ScreenSyncOverlay::SetShowAutoplay( bool b )
 
 static LocalizedString AUTO_PLAY		( "ScreenSyncOverlay", "AutoPlay" );
 static LocalizedString AUTO_PLAY_CPU		( "ScreenSyncOverlay", "AutoPlayCPU" );
+static LocalizedString AUTO_PLAY_REPLAY		( "ScreenSyncOverlay", "Replay");
 static LocalizedString AUTO_SYNC_SONG		( "ScreenSyncOverlay", "AutoSync Song" );
 static LocalizedString AUTO_SYNC_MACHINE	( "ScreenSyncOverlay", "AutoSync Machine" );
 static LocalizedString AUTO_SYNC_TEMPO		( "ScreenSyncOverlay", "AutoSync Tempo" );
@@ -84,6 +85,7 @@ void ScreenSyncOverlay::UpdateText()
 		case PC_HUMAN:						break;
 		case PC_AUTOPLAY:	vs.push_back(AUTO_PLAY);	break;
 		case PC_CPU:		vs.push_back(AUTO_PLAY_CPU);	break;
+		case PC_REPLAY:		vs.push_back(AUTO_PLAY_REPLAY); break;
 		default:
 			FAIL_M(ssprintf("Invalid PlayerController: %i", pc));
 		}
