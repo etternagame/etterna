@@ -112,7 +112,7 @@ TapNoteScore PlayerAI::GetTapNoteScore( const PlayerState* pPlayerState )
 	if (pPlayerState->m_PlayerController == PC_AUTOPLAY)
 		return TNS_W1;
 	if (pPlayerState->m_PlayerController == PC_REPLAY)
-		return TNS_W5;
+		return TNS_Miss;
 
 	const int iCpuSkill = pPlayerState->m_iCpuSkill;
 
@@ -136,8 +136,7 @@ TapNoteScore PlayerAI::GetTapNoteScoreForReplay(const PlayerState* pPlayerState,
 		return TNS_W4;
 	else if (fSecondsFromExact <= max(Player::GetWindowSeconds(TW_W5), 0.18f))
 		return TNS_W5;
-	else
-		return TNS_W5; // ???
+	return TNS_None;
 }
 
 void PlayerAI::SetScoreData(HighScore* pHighScore)
@@ -158,7 +157,7 @@ float PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 
 	vector<int>& noteRowVector = pScoreData->GetCopyOfNoteRowVector();
 	vector<float>& offsetVector = pScoreData->GetCopyOfOffsetVector();
-	//vector<TapNoteType>& tntVector = pScoreData->GetCopyOfTapNoteTypeVector();
+	vector<TapNoteType>& tntVector = pScoreData->GetCopyOfTapNoteTypeVector();
 	vector<int>& trackVector = pScoreData->GetCopyOfTrackVector();
 	std::string s = std::to_string(noteRow);
 	char const* nr1 = s.c_str();
@@ -179,23 +178,29 @@ float PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 			float outputF = offsetVector[i];
 			char const* output = outp.c_str();
 
+			if (tntVector[i] == TapNoteType_Mine)
+			{
+				outputF = 2.f;
+			}
+			else
+			{
+				pTN->result.fTapNoteOffset = outputF;
+			}
+
 			noteRowVector.erase(noteRowVector.begin() + i);
 			offsetVector.erase(offsetVector.begin() + i);
 			trackVector.erase(trackVector.begin() + i);
-			//tntVector.erase(tntVector.begin() + i);
+			tntVector.erase(tntVector.begin() + i);
 
 			pScoreData->SetNoteRowVector(noteRowVector);
 			pScoreData->SetOffsetVector(offsetVector);
 			pScoreData->SetTrackVector(trackVector);
-			//pScoreData->SetTapNoteTypeVector(tntVector);
+			pScoreData->SetTapNoteTypeVector(tntVector);
 			LOG->Trace("returned number %s", output);
-			pTN->result.fTapNoteOffset = outputF;
-			return outputF;
+			return -outputF;
 		}
 	}
-	LOG->Trace("returned 1");
-	pTN->result.fTapNoteOffset = 1.f;
-	return 1.f;
+	return 0.f;
 }
 
 /*

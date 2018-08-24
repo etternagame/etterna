@@ -865,7 +865,7 @@ void Player::Update( float fDeltaTime )
 				continue;
 
 			Step( iTrack, iHeadRow, now, false, false );
-			if( m_pPlayerState->m_PlayerController == PC_AUTOPLAY )
+			if( m_pPlayerState->m_PlayerController == PC_AUTOPLAY)
 			{
 				STATSMAN->m_CurStageStats.m_bUsedAutoplay = true;
 				if (m_pPlayerStageStats != nullptr) {
@@ -1112,7 +1112,7 @@ void Player::UpdateHoldNotes( int iSongRow, float fDeltaTime, vector<TrackRowTap
 			if( m_pPlayerState->m_PlayerController != PC_HUMAN )
 			{
 			// TODO: Make the CPU miss sometimes.
-				if( m_pPlayerState->m_PlayerController == PC_AUTOPLAY )
+				if( m_pPlayerState->m_PlayerController == PC_AUTOPLAY)
 				{
 					STATSMAN->m_CurStageStats.m_bUsedAutoplay = true;
 					if (m_pPlayerStageStats != nullptr) {
@@ -2143,7 +2143,20 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 
 			fNoteOffset = PlayerAI::GetTapNoteOffsetForReplay(pTN, iRowOfOverlappingNoteOrRow, col);
 
-			score = PlayerAI::GetTapNoteScoreForReplay( m_pPlayerState, fNoteOffset );
+			if (fNoteOffset == -2.f)
+			{
+				CHECKPOINT_M("mine hit");
+				score = TNS_HitMine;
+			}
+			else if (pTN->type == TapNoteType_Mine)
+			{
+				return;
+			}
+			else
+			{
+				if ( pTN->IsNote() )
+					score = PlayerAI::GetTapNoteScoreForReplay(m_pPlayerState, fNoteOffset);
+			}
 			
 
 			break;
@@ -2532,7 +2545,7 @@ void Player::CrossedRows( int iLastRowCrossed, const std::chrono::steady_clock::
 				this->m_Timing->IsJudgableAtRow(iRow) )
 			{
 				Step( iTrack, iRow, now, false, false );
-				if( m_pPlayerState->m_PlayerController == PC_AUTOPLAY || m_pPlayerState->m_PlayerController == PC_REPLAY )
+				if( m_pPlayerState->m_PlayerController == PC_AUTOPLAY)
 				{
 					if( m_pPlayerStageStats )
 						m_pPlayerStageStats->m_bDisqualified = true;
@@ -2563,7 +2576,7 @@ void Player::CrossedRows( int iLastRowCrossed, const std::chrono::steady_clock::
 	/* Update hold checkpoints
 	 *
 	 * TODO: Move this to a separate function. */
-	if( m_bTickHolds && m_pPlayerState->m_PlayerController != PC_AUTOPLAY )
+	if( m_bTickHolds && m_pPlayerState->m_PlayerController != PC_AUTOPLAY && m_pPlayerState->m_PlayerController != PC_REPLAY)
 	{
 		// Few rows typically cross per update. Easier to check all crossed rows
 		// than to calculate from timing segments.
@@ -2888,7 +2901,7 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 			m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
 			
 #else
-			if (m_pPlayerState->m_PlayerController == PC_HUMAN) {
+			if (m_pPlayerState->m_PlayerController == PC_HUMAN || m_pPlayerState->m_PlayerController == PC_REPLAY) {
 				ChangeWifeRecord();
 				m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
 				m_pPlayerStageStats->CurWifeScore = curwifescore;
@@ -2956,7 +2969,7 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 			m_pPlayerStageStats->m_vNoteRowVector.emplace_back(iRow);
 			ChangeWifeRecord();
 #else
-			if (m_pPlayerState->m_PlayerController == PC_HUMAN) {
+			if (m_pPlayerState->m_PlayerController == PC_HUMAN || m_pPlayerState->m_PlayerController == PC_REPLAY) {
 				m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
 				m_pPlayerStageStats->CurWifeScore = curwifescore;
 				m_pPlayerStageStats->MaxWifeScore = maxwifescore;
