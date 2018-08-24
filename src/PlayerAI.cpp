@@ -155,10 +155,10 @@ float PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 
 	// Replay Data format: [noterow] [offset] [track] [optional: tap note type]
 
-	vector<int>& noteRowVector = pScoreData->GetCopyOfNoteRowVector();
-	vector<float>& offsetVector = pScoreData->GetCopyOfOffsetVector();
-	vector<TapNoteType>& tntVector = pScoreData->GetCopyOfTapNoteTypeVector();
-	vector<int>& trackVector = pScoreData->GetCopyOfTrackVector();
+	vector<int> noteRowVector = pScoreData->GetCopyOfNoteRowVector();
+	vector<float> offsetVector = pScoreData->GetCopyOfOffsetVector();
+	vector<TapNoteType> tntVector = pScoreData->GetCopyOfTapNoteTypeVector();
+	vector<int> trackVector = pScoreData->GetCopyOfTrackVector();
 	/*std::string s = std::to_string(noteRow);
 	char const* nr1 = s.c_str();
 	std::string lmao = std::to_string(noteRowVector.size());
