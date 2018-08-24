@@ -259,8 +259,6 @@ if(WIN32)
   link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc.lib)
   include_directories(${SM_EXTERN_DIR}/discord-rpc-2.0.1/include)
   link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/discord-rpc.lib)
-  link_libraries(${SM_EXTERN_DIR}/LuaJIT/lua51.lib)
-  include_directories(${SM_EXTERN_DIR}/LuaJIT/include)
   
   include_directories(${SM_EXTERN_DIR}/uWebSocket/include)
   include_directories(${SM_EXTERN_DIR}/uWebSocket/includelibs)
@@ -319,8 +317,6 @@ elseif(MACOSX)
 
   
   link_libraries(${SM_EXTERN_DIR}/MinaCalc/libMinaCalc.a)
-  link_libraries(${SM_EXTERN_DIR}/LuaJIT/lua51Mac.a)
-  include_directories(${SM_EXTERN_DIR}/LuaJIT/include)
   link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/libdiscord-rpcMac.a)
   include_directories(${SM_EXTERN_DIR}/discord-rpc-2.0.1/include)
 
@@ -373,8 +369,6 @@ elseif(LINUX)
   endif()
 
   link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc.a)
-  link_libraries(${SM_EXTERN_DIR}/LuaJIT/lua51.a)
-  include_directories(${SM_EXTERN_DIR}/LuaJIT/include)
   link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/libdiscord-rpc.a)
   include_directories(${SM_EXTERN_DIR}/discord-rpc-2.0.1/include)
   
