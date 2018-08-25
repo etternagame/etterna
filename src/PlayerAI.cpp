@@ -178,7 +178,7 @@ float PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 			float outputF = offsetVector[i];
 			//char const* output = outp.c_str();
 
-			if (tntVector[i] == TapNoteType_Mine)
+			if (tntVector.size() > i && tntVector[i] == TapNoteType_Mine)
 			{
 				outputF = 2.f;
 			}
@@ -189,13 +189,14 @@ float PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 
 			noteRowVector.erase(noteRowVector.begin() + i);
 			offsetVector.erase(offsetVector.begin() + i);
-			trackVector.erase(trackVector.begin() + i);
-			tntVector.erase(tntVector.begin() + i);
-
+			if (tntVector.size() > 0) {
+				trackVector.erase(trackVector.begin() + i);
+				tntVector.erase(tntVector.begin() + i);
+				pScoreData->SetTrackVector(trackVector);
+				pScoreData->SetTapNoteTypeVector(tntVector);
+			}
 			pScoreData->SetNoteRowVector(noteRowVector);
 			pScoreData->SetOffsetVector(offsetVector);
-			pScoreData->SetTrackVector(trackVector);
-			pScoreData->SetTapNoteTypeVector(tntVector);
 			//LOG->Trace("returned number %s", output);
 			return -outputF;
 		}

@@ -9,6 +9,7 @@
 #include "ProfileManager.h"
 #include "StageStats.h"
 #include "Style.h"
+#include "PlayerAI.h"
 #include "NetworkSyncManager.h"
 #include "AdjustSync.h"
 #include <fstream>
@@ -605,8 +606,16 @@ void StageStats::FinalizeScores(bool bSummary)
 	const Steps* pSteps = GAMESTATE->m_pCurSteps[PLAYER_1];
 
 	ASSERT(pSteps != NULL);
-	// new score structure -mina
 	Profile* zzz = PROFILEMAN->GetProfile(PLAYER_1);
+	if (GamePreferences::m_AutoPlay != PC_HUMAN) {
+		if (PlayerAI::pScoreData) {
+			mostrecentscorekey = PlayerAI::pScoreData->GetScoreKey();
+			SCOREMAN->PutScoreAtTheTop(mostrecentscorekey);
+		}
+		zzz->m_lastSong.FromSong(GAMESTATE->m_pCurSong);
+		return;
+	}
+	// new score structure -mina
 	int istop2 = SCOREMAN->AddScore(hs);
 	if (DLMAN->ShouldUploadScores() && !AdjustSync::IsSyncDataChanged()) {
 		CHECKPOINT_M("Uploading score with replaydata.");
@@ -620,7 +629,7 @@ void StageStats::FinalizeScores(bool bSummary)
 	}
 	if(NSMAN->isSMOnline)
 		NSMAN->ReportHighScore(&hs, m_player[PLAYER_1]);
-	if (m_player[PLAYER_1].m_fWifeScore > 0.f && GamePreferences::m_AutoPlay != PC_REPLAY) {
+	if (m_player[PLAYER_1].m_fWifeScore > 0.f) {
 
 		bool writesuccess = hs.WriteReplayData();
 		if (writesuccess)

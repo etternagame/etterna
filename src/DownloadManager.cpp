@@ -8,6 +8,7 @@
 #include "DownloadManager.h"
 #include "GameState.h"
 #include "ScoreManager.h"
+#include "GamePreferences.h"
 #include "ScreenNetSelectMusic.h"
 #include "RageFileManager.h"
 #include "ProfileManager.h"
@@ -687,7 +688,7 @@ void DownloadManager::RefreshFavourites()
 
 bool DownloadManager::ShouldUploadScores()
 {
-	return LoggedIn() && automaticSync;
+	return LoggedIn() && automaticSync && GamePreferences::m_AutoPlay == PC_HUMAN;
 }
 inline void SetCURLPOSTScore(CURL*& curlHandle, curl_httppost*& form, curl_httppost*& lastPtr, HighScore*& hs)
 {

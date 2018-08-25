@@ -1,3 +1,4 @@
+math.mod = math.fmod --alias used in some places
 -- xxx: everything below the big line of ...========... needs to be redone
 Color = {
 -- Color Library
