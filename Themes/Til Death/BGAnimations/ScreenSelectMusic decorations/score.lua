@@ -527,6 +527,29 @@ t[#t+1] = LoadFont("Common Normal")..{
 		end
 	end
 }
+t[#t+1] = LoadFont("Common Normal")..{
+	Name="EvalViewer",
+	InitCommand=function(self)
+		self:y(frameHeight-headeroffY - 30 - offsetY):zoom(0.5):halign(-3):settext("")
+	end,
+	DisplayCommand=function(self)
+		if score:HasReplayData() then 
+			self:settext("View Eval Screen")
+		else
+			self:settext("")
+		end
+	end,
+	HighlightCommand=function(self)
+		highlightIfOver(self)
+	end,
+	MouseLeftClickMessageCommand=function(self)
+		if nestedTab == 1 then
+			if getTabIndex() == 2 and getScoreForPlot() and getScoreForPlot():HasReplayData() and isOver(self) then
+				SCREENMAN:GetTopScreen():ShowEvalScreenForScore(score)
+			end
+		end
+	end
+}
 
 -- matches the built-in online score header
 t[#t+1] = Def.Quad{
