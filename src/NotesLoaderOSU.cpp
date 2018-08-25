@@ -16,6 +16,87 @@
 #include <map>
 
 
+void OsuLoader::ParseFileString(string fileContents, Song &out)
+{
+	vector<string> tags;
+	vector<vector<string>> contents;
+
+	SeparateTagsAndContents(fileContents, tags, contents);
+}
+
+void OsuLoader::SeparateTagsAndContents(string fileContents, vector<string> &tagsOut, vector<vector<string>> &contentsOut)
+{
+	char lastByte = '\0';
+	bool isComment = false;
+	bool isTag = false;
+	bool isContent = false;
+	string tag = "";
+	string content = "";
+
+	int tagIndex = 0;
+
+	for (int i = 0; i < (int)fileContents.length(); ++i)
+	{
+		char currentByte = fileContents[i];
+
+		if (isComment)
+		{
+			if (currentByte == '\n')
+			{
+				isComment = false;
+			}
+		}
+		else if (currentByte == '/')
+		{
+			if (lastByte == '/')
+			{
+				isComment = true;
+			}
+		}
+		else if (currentByte == '[')
+		{
+			tag = "";
+			isTag = true;
+		}
+		else if (isTag)
+		{
+			if (currentByte == ']')
+			{
+				++tagIndex;
+				tagsOut[tagIndex] = tag;
+				isTag = false;
+				content = "";
+				contentsOut[tagIndex] = vector<string>();
+				isContent = true;
+			}
+			else
+			{
+				tag = tag + currentByte;
+			}
+		}
+		else if (isContent)
+		{
+			if (currentByte == '[' || i == (int)fileContents.length())
+			{
+				contentsOut[tagIndex].emplace_back(content);
+				content = "";
+				isContent = false;
+				tag = "";
+				isTag = true;
+			}
+			else if (currentByte == '\n')
+			{
+				contentsOut[tagIndex].emplace_back(content);
+				content = "";
+			}
+			else
+			{
+				content = content + currentByte;
+			}
+		}
+		lastByte = currentByte;
+	}
+}
 
 void OsuLoader::GetApplicableFiles(const RString &sPath, vector<RString> &out)
 {
@@ -24,8 +105,6 @@ void OsuLoader::GetApplicableFiles(const RString &sPath, vector<RString> &out)
 
 bool OsuLoader::LoadNoteDataFromSimfile(const RString &path, Steps &out)
 {
-	throw std::exception();
-
 	RageFile f;
 	if (!f.Open(path))
 	{
@@ -55,7 +134,7 @@ bool OsuLoader::LoadFromDir(const RString &sPath_, Song &out)
 
 	if (aFileNames.size() > 1)
 	{
-		LOG->UserLog("Song", sPath_, "has more than one OSZ file. There should be only one!");
+		LOG->UserLog("Song", sPath_, "has more than one OSU file. There should be only one!");
 		return false;
 	}
 
@@ -63,7 +142,7 @@ bool OsuLoader::LoadFromDir(const RString &sPath_, Song &out)
 	ASSERT(aFileNames.size() == 1);
 	const RString sPath = sPath_ + aFileNames[0];
 
-	LOG->Trace("Song::LoadFromDWIFile(%s)", sPath.c_str());
+	LOG->Trace("Song::LoadFromDWIFile(%s)", sPath.c_str()); //osu
 
 	RageFile f;
 	if (!f.Open(sPath))
@@ -71,6 +150,12 @@ bool OsuLoader::LoadFromDir(const RString &sPath_, Song &out)
 		LOG->UserLog("Song file", sPath, "couldn't be opened: %s", f.GetError().c_str());
 		return false;
 	}
+
+	RString fileStr;
+	f.Read(fileStr, -1);
+
+
+	ParseFileString(fileStr.c_str(), out);
 
 	out.m_sSongFileName = sPath;
 
@@ -121,18 +206,8 @@ bool OsuLoader::LoadFromDir(const RString &sPath_, Song &out)
 	out.AddSteps(chart);
 
 
-	//NotesLoader::GetMainAndSubTitlesFromFullTitle("asdf", out.m_sMainTitle, out.m_sSubTitle);
-
 	ConvertString(out.m_sMainTitle, "utf-8,english");
 	ConvertString(out.m_sSubTitle, "utf-8,english");
-
-	
-
-
-
-
-
-	
 
 	return true;
 }
