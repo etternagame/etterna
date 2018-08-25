@@ -48,7 +48,7 @@ bool OsuLoader::LoadNoteDataFromSimfile(const RString &path, Steps &out)
 	return false;
 }
 
-bool OsuLoader::LoadFromDir(const RString &sPath_, Song &out, set<RString> &BlacklistedImages)
+bool OsuLoader::LoadFromDir(const RString &sPath_, Song &out)
 {
 	vector<RString> aFileNames;
 	GetApplicableFiles(sPath_, aFileNames);
@@ -93,25 +93,32 @@ bool OsuLoader::LoadFromDir(const RString &sPath_, Song &out, set<RString> &Blac
 	out.m_SongTiming.AddSegment(StopSegment(0, 0));
 	out.m_SongTiming.AddSegment(BPMSegment(10, 200));
 
-	auto chart = *out.CreateSteps();
+	auto chart = out.CreateSteps();
 
-	chart.m_StepsType = StepsType_dance_single;
+	chart->SetFilename(sPath);
 
-	chart.SetMeter(StringToInt("69"));
+	chart->m_StepsType = StepsType_dance_single;
 
-	chart.SetDifficulty(Difficulty_Beginner);
+	chart->SetMeter(StringToInt("69"));
+
+	chart->SetDifficulty(Difficulty_Beginner);
 
 
 	NoteData nd;
+	nd.Init();
+	nd.SetNumTracks(4);
 	nd.SetTapNote(0, 0, TAP_ORIGINAL_TAP);
 	nd.SetTapNote(0, 20, TAP_ORIGINAL_TAP);
-	chart.SetNoteData(nd);
+	chart->SetNoteData(nd);
 
-	chart.TidyUpData();
+	chart->TidyUpData();
 
-	chart.SetSavedToDisk(true);
+	chart->SetSavedToDisk(true);
 
-	out.AddSteps(&chart);
+	out.m_SongTiming.AddSegment(BPMSegment(0, 160.0));
+	chart->m_Timing.AddSegment(BPMSegment(0, 160.0));
+
+	out.AddSteps(chart);
 
 
 	//NotesLoader::GetMainAndSubTitlesFromFullTitle("asdf", out.m_sMainTitle, out.m_sSubTitle);

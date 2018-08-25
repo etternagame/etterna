@@ -7,6 +7,7 @@
 #include "NotesLoaderSMA.h"
 #include "NotesLoaderSSC.h"
 #include "RageUtil.h"
+#include "NotesLoaderOSU.h"
 
 void NotesLoader::GetMainAndSubTitlesFromFullTitle( const RString &sFullTitle, RString &sMainTitleOut, RString &sSubTitleOut )
 {
@@ -60,6 +61,9 @@ bool NotesLoader::LoadFromDir( const RString &sPath, Song &out, set<RString> &Bl
 	KSFLoader::GetApplicableFiles( sPath, list );
 	if( !list.empty() )
 		return KSFLoader::LoadFromDir( sPath, out );
+	OsuLoader::GetApplicableFiles(sPath, list);
+	if (!list.empty())
+		return OsuLoader::LoadFromDir(sPath, out);
 	return false;
 }
 
