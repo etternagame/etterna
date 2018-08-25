@@ -22,6 +22,14 @@ void OsuLoader::ParseFileString(string fileContents, Song &out)
 	vector<vector<string>> contents;
 
 	SeparateTagsAndContents(fileContents, tags, contents);
+
+	map<string, vector<string>> file;
+	for (int i = 0; i < tags.size(); ++i)
+	{
+		file.emplace(tags[i], contents[i]);
+	}
+
+	SetMetadata(file, out);
 }
 
 void OsuLoader::SeparateTagsAndContents(string fileContents, vector<string> &tagsOut, vector<vector<string>> &contentsOut)
@@ -63,10 +71,10 @@ void OsuLoader::SeparateTagsAndContents(string fileContents, vector<string> &tag
 			if (currentByte == ']')
 			{
 				++tagIndex;
-				tagsOut[tagIndex] = tag;
+				tagsOut.emplace_back(tag);
 				isTag = false;
 				content = "";
-				contentsOut[tagIndex] = vector<string>();
+				contentsOut.emplace_back(vector<string>());
 				isContent = true;
 			}
 			else
@@ -76,9 +84,9 @@ void OsuLoader::SeparateTagsAndContents(string fileContents, vector<string> &tag
 		}
 		else if (isContent)
 		{
-			if (currentByte == '[' || i == (int)fileContents.length())
+			if (currentByte == '[' || i == (int)fileContents.length()-1)
 			{
-				contentsOut[tagIndex].emplace_back(content);
+				contentsOut.back().emplace_back(content);
 				content = "";
 				isContent = false;
 				tag = "";
@@ -86,7 +94,7 @@ void OsuLoader::SeparateTagsAndContents(string fileContents, vector<string> &tag
 			}
 			else if (currentByte == '\n')
 			{
-				contentsOut[tagIndex].emplace_back(content);
+				contentsOut.back().emplace_back(content);
 				content = "";
 			}
 			else
@@ -96,6 +104,89 @@ void OsuLoader::SeparateTagsAndContents(string fileContents, vector<string> &tag
 		}
 		lastByte = currentByte;
 	}
+}
+
+void OsuLoader::SetMetadata(map<string, vector<string>> file, Song &out)
+{
+	// get title
+	auto a = file["General"];
+
+	/*for (int i = 0; i < tags.size(); ++i)
+	{
+		if (tags[i] == "General")
+		{
+			generalIndex = i;
+		}
+		else if (tags[i] == "Editor")
+		{
+			editorIndex = i;
+		}
+		else if (tags[i] == "Metadata")
+		{
+			metadataIndex = i;
+		}
+		else if (tags[i] == "Difficulty")
+		{
+			difficultyIndex = i;
+		}
+		else if (tags[i] == "Events")
+		{
+			eventsIndex = i;
+		}
+		else if (tags[i] == "TimingPoints")
+		{
+			timingpointsIndex = i;
+		}
+		else if (tags[i] == "HitObjects")
+		{
+			hitobjectsIndex = i;
+		}
+	}*/
+	out.m_sMainTitle = "maintitestasdf'";
+	out.m_sSubTitle = "subtitest";
+	out.m_sArtist = "artest";
+	out.m_sGenre = "genretest";
+	out.m_sCDTitleFile = "cdtitest";
+	out.m_SongTiming.AddSegment(BPMSegment(0, 100));
+	out.m_DisplayBPMType = DISPLAY_BPM_SPECIFIED;
+	out.m_fSpecifiedBPMMin = 1;
+	out.m_fSpecifiedBPMMax = 100;
+	out.m_SongTiming.m_fBeat0OffsetInSeconds = -StringToInt("000") / 1000.0f;
+	out.m_fMusicSampleStartSeconds = 1.0;
+	out.m_fMusicSampleLengthSeconds = 100;
+	out.m_SongTiming.AddSegment(StopSegment(0, 0));
+	out.m_SongTiming.AddSegment(BPMSegment(10, 200));
+
+	auto chart = out.CreateSteps();
+
+	//chart->SetFilename(sPath);
+
+	chart->m_StepsType = StepsType_dance_single;
+
+	chart->SetMeter(StringToInt("69"));
+
+	chart->SetDifficulty(Difficulty_Beginner);
+
+
+	NoteData nd;
+	nd.Init();
+	nd.SetNumTracks(4);
+	nd.SetTapNote(0, 0, TAP_ORIGINAL_TAP);
+	nd.SetTapNote(0, 20, TAP_ORIGINAL_TAP);
+	chart->SetNoteData(nd);
+
+	chart->TidyUpData();
+
+	chart->SetSavedToDisk(true);
+
+	out.m_SongTiming.AddSegment(BPMSegment(0, 160.0));
+	chart->m_Timing.AddSegment(BPMSegment(0, 160.0));
+
+	out.AddSteps(chart);
+
+
+	ConvertString(out.m_sMainTitle, "utf-8,english");
+	ConvertString(out.m_sSubTitle, "utf-8,english");
 }
 
 void OsuLoader::GetApplicableFiles(const RString &sPath, vector<RString> &out)
@@ -162,52 +253,6 @@ bool OsuLoader::LoadFromDir(const RString &sPath_, Song &out)
 
 
 	out.m_sMusicFile = "asdf";
-
-	out.m_sMainTitle = "maintitestasdf'";
-	out.m_sSubTitle = "subtitest";
-	out.m_sArtist = "artest";
-	out.m_sGenre = "genretest";
-	out.m_sCDTitleFile = "cdtitest";
-	out.m_SongTiming.AddSegment(BPMSegment(0, 100));
-	out.m_DisplayBPMType = DISPLAY_BPM_SPECIFIED;
-	out.m_fSpecifiedBPMMin = 1;
-	out.m_fSpecifiedBPMMax = 100;
-	out.m_SongTiming.m_fBeat0OffsetInSeconds = -StringToInt("000") / 1000.0f;
-	out.m_fMusicSampleStartSeconds = 1.0;
-	out.m_fMusicSampleLengthSeconds = 100;
-	out.m_SongTiming.AddSegment(StopSegment(0, 0));
-	out.m_SongTiming.AddSegment(BPMSegment(10, 200));
-
-	auto chart = out.CreateSteps();
-
-	chart->SetFilename(sPath);
-
-	chart->m_StepsType = StepsType_dance_single;
-
-	chart->SetMeter(StringToInt("69"));
-
-	chart->SetDifficulty(Difficulty_Beginner);
-
-
-	NoteData nd;
-	nd.Init();
-	nd.SetNumTracks(4);
-	nd.SetTapNote(0, 0, TAP_ORIGINAL_TAP);
-	nd.SetTapNote(0, 20, TAP_ORIGINAL_TAP);
-	chart->SetNoteData(nd);
-
-	chart->TidyUpData();
-
-	chart->SetSavedToDisk(true);
-
-	out.m_SongTiming.AddSegment(BPMSegment(0, 160.0));
-	chart->m_Timing.AddSegment(BPMSegment(0, 160.0));
-
-	out.AddSteps(chart);
-
-
-	ConvertString(out.m_sMainTitle, "utf-8,english");
-	ConvertString(out.m_sSubTitle, "utf-8,english");
 
 	return true;
 }
