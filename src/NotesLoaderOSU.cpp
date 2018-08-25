@@ -108,52 +108,21 @@ void OsuLoader::SeparateTagsAndContents(string fileContents, vector<string> &tag
 
 void OsuLoader::SetMetadata(map<string, vector<string>> file, Song &out)
 {
-	// get title
-	auto a = file["General"];
+	// set metadata values
+	out.m_sMainTitle = GetValue("Metadata", "Title", file);
+	out.m_sSubTitle = GetValue("Metadata", "Version", file);
+	out.m_sArtist = GetValue("Metadata", "Artist", file);
+	out.m_sGenre = GetValue("Metadata", "", file);
 
-	/*for (int i = 0; i < tags.size(); ++i)
-	{
-		if (tags[i] == "General")
-		{
-			generalIndex = i;
-		}
-		else if (tags[i] == "Editor")
-		{
-			editorIndex = i;
-		}
-		else if (tags[i] == "Metadata")
-		{
-			metadataIndex = i;
-		}
-		else if (tags[i] == "Difficulty")
-		{
-			difficultyIndex = i;
-		}
-		else if (tags[i] == "Events")
-		{
-			eventsIndex = i;
-		}
-		else if (tags[i] == "TimingPoints")
-		{
-			timingpointsIndex = i;
-		}
-		else if (tags[i] == "HitObjects")
-		{
-			hitobjectsIndex = i;
-		}
-	}*/
-	out.m_sMainTitle = "maintitestasdf'";
-	out.m_sSubTitle = "subtitest";
-	out.m_sArtist = "artest";
-	out.m_sGenre = "genretest";
+	// set other stuff (to-do)
 	out.m_sCDTitleFile = "cdtitest";
 	out.m_SongTiming.AddSegment(BPMSegment(0, 100));
 	out.m_DisplayBPMType = DISPLAY_BPM_SPECIFIED;
 	out.m_fSpecifiedBPMMin = 1;
 	out.m_fSpecifiedBPMMax = 100;
 	out.m_SongTiming.m_fBeat0OffsetInSeconds = -StringToInt("000") / 1000.0f;
-	out.m_fMusicSampleStartSeconds = 1.0;
-	out.m_fMusicSampleLengthSeconds = 100;
+	out.m_fMusicSampleStartSeconds = stoi(GetValue("General", "AudioLeadIn", file)) / 1000;
+	out.m_fMusicSampleLengthSeconds = stoi(GetValue("General", "PreviewTime", file)) / 1000;
 	out.m_SongTiming.AddSegment(StopSegment(0, 0));
 	out.m_SongTiming.AddSegment(BPMSegment(10, 200));
 
@@ -161,7 +130,27 @@ void OsuLoader::SetMetadata(map<string, vector<string>> file, Song &out)
 
 	//chart->SetFilename(sPath);
 
-	chart->m_StepsType = StepsType_dance_single;
+	switch (stoi(GetValue("Difficulty", "CircleSize", file)))
+	{
+	case(4):
+	{
+		chart->m_StepsType = StepsType_dance_single;
+		break;
+	}
+	case(6):
+	{
+		chart->m_StepsType = StepsType_dance_solo;
+		break;
+	}
+	case(8):
+	{
+		chart->m_StepsType = StepsType_dance_double;
+		break;
+	}
+	default:
+		chart->m_StepsType = StepsType_Invalid;
+		break;
+	} // needs more stepstypes
 
 	chart->SetMeter(StringToInt("69"));
 
@@ -172,14 +161,16 @@ void OsuLoader::SetMetadata(map<string, vector<string>> file, Song &out)
 	nd.Init();
 	nd.SetNumTracks(4);
 	nd.SetTapNote(0, 0, TAP_ORIGINAL_TAP);
-	nd.SetTapNote(0, 20, TAP_ORIGINAL_TAP);
+	nd.SetTapNote(1, 20, TAP_ORIGINAL_TAP);
+	nd.SetTapNote(2, 0, TAP_ORIGINAL_TAP);
+	nd.SetTapNote(3, 600, TAP_ORIGINAL_TAP);
+
 	chart->SetNoteData(nd);
 
 	chart->TidyUpData();
 
 	chart->SetSavedToDisk(true);
 
-	out.m_SongTiming.AddSegment(BPMSegment(0, 160.0));
 	chart->m_Timing.AddSegment(BPMSegment(0, 160.0));
 
 	out.AddSteps(chart);
@@ -187,6 +178,24 @@ void OsuLoader::SetMetadata(map<string, vector<string>> file, Song &out)
 
 	ConvertString(out.m_sMainTitle, "utf-8,english");
 	ConvertString(out.m_sSubTitle, "utf-8,english");
+}
+
+string OsuLoader::GetValue(string tag, string valueName, map<string, vector<string>> file)
+{
+	int lengthOfName = valueName.length();
+	for (auto x : file[tag]) // probably slow
+	{
+		if (x.find(valueName) == 0)
+		{
+			string val = x.substr(lengthOfName + 1);
+			if (val.substr(0, 1) == " ")
+			{
+				val = val.substr(1);
+			}
+			return val;
+		}
+	}
+	return "";
 }
 
 void OsuLoader::GetApplicableFiles(const RString &sPath, vector<RString> &out)
