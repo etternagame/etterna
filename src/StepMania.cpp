@@ -33,6 +33,7 @@
 #include "Screen.h"
 #include "ScreenDimensions.h"
 
+
 #if !defined(SUPPORT_OPENGL) && !defined(SUPPORT_D3D)
 #define SUPPORT_OPENGL
 #endif
@@ -69,7 +70,12 @@
 
 #if defined(WIN32)
 #include <windows.h>
+int (WINAPIV * __vsnprintf)(char *, size_t, const char*, va_list) = _vsnprintf;
 #endif
+
+
+
+
 
 void ShutdownGame();
 bool HandleGlobalInputs( const InputEventPlus &input );

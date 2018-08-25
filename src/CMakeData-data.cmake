@@ -50,6 +50,7 @@ list(APPEND SM_DATA_NOTELOAD_SRC
   "NotesLoaderSMA.cpp"
   "NotesLoaderSSC.cpp"
   "NotesLoaderETT.cpp"
+  "NotesLoaderOSU.cpp"
 )
 
 list(APPEND SM_DATA_NOTELOAD_HPP
@@ -62,6 +63,7 @@ list(APPEND SM_DATA_NOTELOAD_HPP
   "NotesLoaderSMA.h"
   "NotesLoaderSSC.h"
   "NotesLoaderETT.h"
+  "NotesLoaderOSU.h"
 )
 
 source_group("Data Structures\\\\Notes Loaders" FILES ${SM_DATA_NOTELOAD_SRC} ${SM_DATA_NOTELOAD_HPP})

@@ -9,9 +9,9 @@
 #include <limits.h>
 
 // Defined by us in cmake
-#ifdef WIN10
+//#ifdef WIN10
 #include <windows.h>
-#endif
+//#endif
 
 /* use configuration data */
 #include "tomcrypt_custom.h"
