@@ -8,11 +8,11 @@ class Steps;
 
 namespace OsuLoader
 {
-	void ParseFileString(string fileContents, Song &out);
+	map<string, map<string, string>> ParseFileString(string fileContents);
 
 	void SeparateTagsAndContents(string fileContents, vector<string> &tagsOut, vector<vector<string>> &contentsOut);
 
-	void SetMetadata(map<string, vector<string>> file, Song &out);
+	void SetMetadata(map<string, map<string, string>>, Song &out);
 
 	string GetValue(string tag, string valueName, map<string, vector<string>> file);
 
