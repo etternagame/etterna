@@ -1073,8 +1073,6 @@ void Player::UpdateHoldNotes( int iSongRow, float fDeltaTime, vector<TrackRowTap
 				tn.HoldResult.bActive = false;
 				tn.HoldResult.fLife = 0.f;
 				tn.HoldResult.hns = HNS_LetGo;
-				fLife = 0.f;
-				hns = HNS_LetGo;
 
 				// score the dead hold
 				if (COMBO_BREAK_ON_IMMEDIATE_HOLD_LET_GO)
