@@ -14,8 +14,6 @@ namespace OsuLoader
 
 	void SetMetadata(map<string, map<string, string>>, Song &out);
 
-	string GetValue(string tag, string valueName, map<string, vector<string>> file);
-
 	void GetApplicableFiles(const RString &sPath, vector<RString> &out);
 
 	bool LoadFromDir(const RString &sPath, Song &out);

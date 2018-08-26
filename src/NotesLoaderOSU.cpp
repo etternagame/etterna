@@ -17,16 +17,20 @@
 #include <algorithm>
 
 
-vector<string> split(string str, string token) {
+vector<string> split(string str, string token)
+{
 	vector<string>result;
-	while (str.size()) {
+	while (str.size())
+	{
 		int index = str.find(token);
-		if (index != string::npos) {
+		if (index != string::npos)
+		{
 			result.push_back(str.substr(0, index));
 			str = str.substr(index + token.size());
 			if (str.size() == 0)result.push_back(str);
 		}
-		else {
+		else
+		{
 			result.push_back(str);
 			str = "";
 		}
@@ -44,10 +48,11 @@ map<string, map<string, string>> OsuLoader::ParseFileString(string fileContents)
 	map<string, map<string, string>> parsedData;
 	for (int i = 0; i < sections.size(); ++i)
 	{
-		for (auto& content : contents[i]) {
+		for (auto& content : contents[i])
+		{
 			auto& str = content;
 			int pos = str.find_first_of(':');
-			std::string value = str.substr(pos + 1),
+			string value = str.substr(pos + 1),
 				tag = str.substr(0, pos);
 			parsedData[sections[i]][tag] = value;
 		}
@@ -156,7 +161,8 @@ void OsuLoader::SetMetadata(map<string, map<string, string>> parsedData, Song &o
 	ConvertString(out.m_sSubTitle, "utf-8,english");
 }
 
-void LoadChartData(Song* song,Steps* chart, map<string, map<string, string>> parsedData) {
+void LoadChartData(Song* song,Steps* chart, map<string, map<string, string>> parsedData)
+{
 	switch (stoi(parsedData["Difficulty"]["CircleSize"]))
 	{
 	case(4):
@@ -188,25 +194,31 @@ void LoadChartData(Song* song,Steps* chart, map<string, map<string, string>> par
 
 	chart->SetSavedToDisk(true);
 
-	chart->m_Timing.AddSegment(BPMSegment(0, 160.0));
+	chart->m_Timing.AddSegment(BPMSegment(0, 240.0));
 }
 void OsuLoader::GetApplicableFiles(const RString &sPath, vector<RString> &out)
 {
 	GetDirListing(sPath + RString("*.osu"), out);
 }
-struct OsuNote{
-	float ms;
+struct OsuNote
+{
+	int ms;
 	int lane;
+	OsuNote(int ms_, int lane_)
+	{
+		ms = ms_;
+		lane = lane_;
+	}
 };
 
-void LoadNoteDataFromParsedData(Steps* out, map<string, map<string, string>> parsedData) {
-
+void LoadNoteDataFromParsedData(Steps* out, map<string, map<string, string>> parsedData)
+{
 	NoteData newNoteData;
 	newNoteData.SetNumTracks(stoi(parsedData["Difficulty"]["CircleSize"]));
-	for (int i = 1; i<100; i++)
+	/*for (int i = 1; i<100; i++)
 		newNoteData.SetTapNote(1,
 			i * 10,
-			TAP_ORIGINAL_TAP);
+			TAP_ORIGINAL_TAP);*/ // dummy notedata
 	auto it = parsedData["HitObjects"].begin();
 	vector<OsuNote> holds;
 	vector<OsuNote> taps;
@@ -214,11 +226,22 @@ void LoadNoteDataFromParsedData(Steps* out, map<string, map<string, string>> par
 		auto line = it->first;
 		auto values = split(line, ",");
 		int type = stoi(values[3]);
+		taps.emplace_back( OsuNote(stoi(values[2]), stoi(values[0])) );
 		if (type & 1 == 0)
-			taps.emplace_back();
-		else
-			taps.emplace_back((struct OsuNote) { .ms=1.0, .lane=1});
+			holds.emplace_back( OsuNote(1, 1) );
+		//else
+			//taps.emplace_back( OsuNote(1, 1) );
 	}
+
+	for (int i = 0; i < taps.size(); ++i)
+	{
+		newNoteData.SetTapNote(
+			taps[i].lane / (512 / stoi(parsedData["Difficulty"]["CircleSize"])),
+			taps[i].ms / 5.2,
+			TAP_ORIGINAL_TAP
+		);
+	}
+
 	out->SetNoteData(newNoteData);
 }
 
