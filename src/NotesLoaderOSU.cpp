@@ -194,6 +194,10 @@ void OsuLoader::GetApplicableFiles(const RString &sPath, vector<RString> &out)
 {
 	GetDirListing(sPath + RString("*.osu"), out);
 }
+struct OsuNote{
+	float ms;
+	int lane;
+};
 
 void LoadNoteDataFromParsedData(Steps* out, map<string, map<string, string>> parsedData) {
 
@@ -203,6 +207,18 @@ void LoadNoteDataFromParsedData(Steps* out, map<string, map<string, string>> par
 		newNoteData.SetTapNote(1,
 			i * 10,
 			TAP_ORIGINAL_TAP);
+	auto it = parsedData["HitObjects"].begin();
+	vector<OsuNote> holds;
+	vector<OsuNote> taps;
+	while (++it != parsedData["HitObjects"].end()) {
+		auto line = it->first;
+		auto values = split(line, ",");
+		int type = stoi(values[3]);
+		if (type & 1 == 0)
+			taps.emplace_back();
+		else
+			taps.emplace_back((struct OsuNote) { .ms=1.0, .lane=1});
+	}
 	out->SetNoteData(newNoteData);
 }
 
