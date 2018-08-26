@@ -53,6 +53,8 @@ struct TapScoreDistribution
 static TapScoreDistribution g_Distributions[NUM_SKILL_LEVELS];
 
 HighScore* PlayerAI::pScoreData = nullptr;
+map<int, vector<TapReplayResult>> PlayerAI::m_ReplayTapMap;
+map<int, vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMap;
 
 void PlayerAI::InitFromDisk()
 {
@@ -124,8 +126,11 @@ TapNoteScore PlayerAI::GetTapNoteScore( const PlayerState* pPlayerState )
 TapNoteScore PlayerAI::GetTapNoteScoreForReplay(const PlayerState* pPlayerState, float fNoteOffset)
 {
 	//LOG->Trace("Given number %f ", fNoteOffset);
+	if (fNoteOffset <= -1.0f)
+		return TNS_Miss;
 	const float fSecondsFromExact = fabsf(fNoteOffset);
 	//LOG->Trace("TapNoteScore For Replay Seconds From Exact: %f", fSecondsFromExact);
+
 	if (fSecondsFromExact <= Player::GetWindowSeconds(TW_W1))
 		return TNS_W1;
 	else if (fSecondsFromExact <= Player::GetWindowSeconds(TW_W2))
@@ -142,7 +147,60 @@ TapNoteScore PlayerAI::GetTapNoteScoreForReplay(const PlayerState* pPlayerState,
 void PlayerAI::SetScoreData(HighScore* pHighScore)
 {
 	pHighScore->LoadReplayData();
-	PlayerAI::pScoreData = pHighScore;
+	pScoreData = pHighScore;
+	auto replayNoteRowVector = pHighScore->GetCopyOfNoteRowVector();
+	auto replayOffsetVector = pHighScore->GetCopyOfOffsetVector();
+	auto replayTapNoteTypeVector = pHighScore->GetCopyOfTapNoteTypeVector();
+	auto replayTrackVector = pHighScore->GetCopyOfTrackVector();
+	auto replayHoldVector = pHighScore->GetCopyOfHoldReplayDataVector();
+
+	for (int i = 0; i < replayTrackVector.size(); i++)
+	{
+		TapReplayResult trr;
+		trr.row = replayNoteRowVector[i];
+		trr.track = replayTrackVector[i];
+		trr.offset = replayOffsetVector[i];
+		trr.type = replayTapNoteTypeVector[i];
+		if (m_ReplayTapMap.count(replayNoteRowVector[i]) != 0)
+		{
+			m_ReplayTapMap[replayNoteRowVector[i]].push_back(trr);
+		}
+		else
+		{
+			vector<TapReplayResult> trrVector = { trr };
+			m_ReplayTapMap[replayNoteRowVector[i]] = trrVector;
+		}
+	}
+	for (int i = 0; i < replayHoldVector.size(); i++)
+	{
+		if (m_ReplayHoldMap.count(replayHoldVector[i].row) != 0)
+		{
+			m_ReplayHoldMap[replayHoldVector[i].row].push_back(replayHoldVector[i]);
+		}
+		else
+		{
+			vector<HoldReplayResult> hrrVector = { replayHoldVector[i] };
+			m_ReplayHoldMap[replayHoldVector[i].row] = hrrVector;
+		}
+	}
+}
+
+bool PlayerAI::DetermineIfHoldDropped(int noteRow, int col)
+{
+	//LOG->Trace("Checking for hold.");
+	if (m_ReplayHoldMap.count(noteRow) != 0)
+	{
+		LOG->Trace("Hold row exists in the data");
+		for (auto hrr : m_ReplayHoldMap[noteRow])
+		{
+			if (hrr.track == col)
+			{
+				LOG->Trace("KILL IT NOW");
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 float PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
@@ -151,57 +209,56 @@ float PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 	If it is not found, it is a miss. (1.f)
 	*/
 	if (pScoreData == nullptr) // possible cheat prevention
-		return 1.f;
+		return -1.f;
 
-	// Replay Data format: [noterow] [offset] [track] [optional: tap note type]
+	// Current v0.60 Replay Data format: [noterow] [offset] [track] [optional: tap note type]
+	//					Supplemental HoldNote section also
 
-	vector<int> noteRowVector = pScoreData->GetCopyOfNoteRowVector();
-	vector<float> offsetVector = pScoreData->GetCopyOfOffsetVector();
-	vector<TapNoteType> tntVector = pScoreData->GetCopyOfTapNoteTypeVector();
-	vector<int> trackVector = pScoreData->GetCopyOfTrackVector();
-	/*std::string s = std::to_string(noteRow);
-	char const* nr1 = s.c_str();
-	std::string lmao = std::to_string(noteRowVector.size());
-	char const* nrsize = lmao.c_str();
-	LOG->Trace("vector size %s", nrsize);
-
-	LOG->Trace("Comparing %s", nr1);*/
-
-	for (int i = 0; i < noteRowVector.size(); i++)
+	if (m_ReplayTapMap.count(noteRow) != 0) // is the current row recorded
 	{
-		/*std::string g = std::to_string(i);
-		char const* yeet1 = g.c_str();
-		LOG->Trace(yeet1);*/
-		if (noteRowVector[i] == noteRow)
+		for (auto trr : m_ReplayTapMap[noteRow]) // go over all elements in the row
 		{
-			//std::string outp = std::to_string(offsetVector[i]);
-			float outputF = offsetVector[i];
-			//char const* output = outp.c_str();
-
-			if (tntVector.size() > i && tntVector[i] == TapNoteType_Mine)
+			if (trr.track == col) // if the column expected is the actual note, use it
 			{
-				outputF = 2.f;
+				if (trr.type == TapNoteType_Mine)
+					return -2.f;
+				return -trr.offset;
+			}
+		}
+	}
+
+
+	/* Old linear search code
+	// Linear search the current note row vector
+	for (int i = 0; i < m_vReplayNoteRowVector.size(); i++)
+	{
+		// Until we find the matching arrow for the column we care about
+		if (m_vReplayNoteRowVector[i] == noteRow)
+		{
+			float outputF = m_vReplayOffsetVector[i];
+
+			if (m_vReplayTapNoteTypeVector.size() > i && m_vReplayTapNoteTypeVector[i] == TapNoteType_Mine)
+			{
+				outputF = 2.f;	// Bad offset, but this is what we check later to see if we should hit a mine
 			}
 			else
 			{
-				pTN->result.fTapNoteOffset = outputF;
+				pTN->result.fTapNoteOffset = outputF;	// Useful, real offset used.
 			}
 
-			noteRowVector.erase(noteRowVector.begin() + i);
-			offsetVector.erase(offsetVector.begin() + i);
-			if (tntVector.size() > 0) {
-				trackVector.erase(trackVector.begin() + i);
-				tntVector.erase(tntVector.begin() + i);
-				pScoreData->SetTrackVector(trackVector);
-				pScoreData->SetTapNoteTypeVector(tntVector);
+			// Reduce the vector sizes to reduce the length of a linear search if we can't find the correct tap for some reason
+			m_vReplayNoteRowVector.erase(m_vReplayNoteRowVector.begin() + i);
+			m_vReplayOffsetVector.erase(m_vReplayOffsetVector.begin() + i);
+			if (m_vReplayTapNoteTypeVector.size() > 0) {
+				m_vReplayTrackVector.erase(m_vReplayTrackVector.begin() + i);
+				m_vReplayTapNoteTypeVector.erase(m_vReplayTapNoteTypeVector.begin() + i);
 			}
-			pScoreData->SetNoteRowVector(noteRowVector);
-			pScoreData->SetOffsetVector(offsetVector);
 			//LOG->Trace("returned number %s", output);
 			return -outputF;
 		}
 	}
-	return 0.f;
+	*/
+	return -1.f;	// data missing or invalid, give them a miss
 }
 
 /*
