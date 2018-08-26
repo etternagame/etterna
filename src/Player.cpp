@@ -2181,7 +2181,6 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 			
 			if (bHeld) //a hack to make Rolls not do weird things like count as 0ms marvs.
 			{
-				LOG->Trace("tyetestasfsdSD");
 				score = TNS_None;
 				fNoteOffset = -1.f;
 			}
