@@ -200,6 +200,13 @@ void OsuLoader::GetApplicableFiles(const RString &sPath, vector<RString> &out)
 {
 	GetDirListing(sPath + RString("*.osu"), out);
 }
+
+struct OsuHold
+{
+	int msStart;
+	int msEnd;
+	int lane;
+};
 struct OsuNote
 {
 	int ms;
@@ -220,17 +227,17 @@ void LoadNoteDataFromParsedData(Steps* out, map<string, map<string, string>> par
 			i * 10,
 			TAP_ORIGINAL_TAP);*/ // dummy notedata
 	auto it = parsedData["HitObjects"].begin();
-	vector<OsuNote> holds;
 	vector<OsuNote> taps;
+	vector<OsuNote> holds;
 	while (++it != parsedData["HitObjects"].end()) {
 		auto line = it->first;
 		auto values = split(line, ",");
+		OsuNote n = OsuNote(stoi(values[2]), stoi(values[0]));
 		int type = stoi(values[3]);
-		taps.emplace_back( OsuNote(stoi(values[2]), stoi(values[0])) );
 		if (type & 1 == 0)
-			holds.emplace_back( OsuNote(1, 1) );
-		//else
-			//taps.emplace_back( OsuNote(1, 1) );
+			holds.emplace_back(n);
+		else
+			taps.emplace_back(n);
 	}
 
 	for (int i = 0; i < taps.size(); ++i)
@@ -297,6 +304,8 @@ bool OsuLoader::LoadFromDir(const RString &sPath_, Song &out)
 		LoadNoteDataFromParsedData(chart, parsedData);
 		out.AddSteps(chart);
 	}
+
+	out.Save(false);
 
 	return true;
 }
