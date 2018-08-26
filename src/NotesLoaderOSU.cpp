@@ -184,17 +184,6 @@ void LoadChartData(Song* song,Steps* chart, map<string, map<string, string>> par
 
 	chart->SetDifficulty((Difficulty)(min(song->GetAllSteps().size(), (size_t)Difficulty_Edit)));
 
-
-	NoteData nd;
-	nd.Init();
-	nd.SetNumTracks(4);
-	nd.SetTapNote(0, 0, TAP_ORIGINAL_TAP);
-	nd.SetTapNote(1, 20, TAP_ORIGINAL_TAP);
-	nd.SetTapNote(2, 0, TAP_ORIGINAL_TAP);
-	nd.SetTapNote(3, 600, TAP_ORIGINAL_TAP);
-
-	chart->SetNoteData(nd);
-
 	chart->TidyUpData();
 
 	chart->SetSavedToDisk(true);
@@ -206,6 +195,17 @@ void OsuLoader::GetApplicableFiles(const RString &sPath, vector<RString> &out)
 	GetDirListing(sPath + RString("*.osu"), out);
 }
 
+void LoadNoteDataFromParsedData(Steps* out, map<string, map<string, string>> parsedData) {
+
+	NoteData newNoteData;
+	newNoteData.SetNumTracks(stoi(parsedData["Difficulty"]["CircleSize"]));
+	for (int i = 1; i<100; i++)
+		newNoteData.SetTapNote(1,
+			i * 10,
+			TAP_ORIGINAL_TAP);
+	out->SetNoteData(newNoteData);
+}
+
 bool OsuLoader::LoadNoteDataFromSimfile(const RString &path, Steps &out)
 {
 	RageFile f;
@@ -215,17 +215,13 @@ bool OsuLoader::LoadNoteDataFromSimfile(const RString &path, Steps &out)
 		return false;
 	}
 
-	RString FileRStr;
-	FileRStr.reserve(f.GetFileSize());
+	RString fileRStr;
+	fileRStr.reserve(f.GetFileSize());
+	f.Read(fileRStr, -1);
 
-	int iBytesRead = f.Read(FileRStr);
-	string FileStr = FileRStr.c_str();
-
-
-
-
-
-
+	string fileStr = fileRStr.c_str();
+	auto parsedData = ParseFileString(fileStr.c_str());
+	LoadNoteDataFromParsedData(&out, parsedData);
 
 	return false;
 }
@@ -259,6 +255,7 @@ bool OsuLoader::LoadFromDir(const RString &sPath_, Song &out)
 		auto chart = out.CreateSteps();
 		chart->SetFilename(sPath_ + filename);
 		LoadChartData(&out, chart, parsedData);
+		LoadNoteDataFromParsedData(chart, parsedData);
 		out.AddSteps(chart);
 	}
 
