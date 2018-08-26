@@ -14,6 +14,7 @@
 #include "Steps.h"
 
 #include <map>
+#include <algorithm>
 
 
 vector<string> split(string str, string token) {
@@ -155,7 +156,7 @@ void OsuLoader::SetMetadata(map<string, map<string, string>> parsedData, Song &o
 	ConvertString(out.m_sSubTitle, "utf-8,english");
 }
 
-void LoadChartData(Steps* chart, map<string, map<string, string>> parsedData) {
+void LoadChartData(Song* song,Steps* chart, map<string, map<string, string>> parsedData) {
 	switch (stoi(parsedData["Difficulty"]["CircleSize"]))
 	{
 	case(4):
@@ -178,9 +179,10 @@ void LoadChartData(Steps* chart, map<string, map<string, string>> parsedData) {
 		break;
 	} // needs more stepstypes
 
-	chart->SetMeter(StringToInt("69"));
+	
+	chart->SetMeter(song->GetAllSteps().size());
 
-	chart->SetDifficulty(Difficulty_Beginner);
+	chart->SetDifficulty((Difficulty)(min(song->GetAllSteps().size(), (size_t)Difficulty_Edit)));
 
 
 	NoteData nd;
@@ -256,7 +258,7 @@ bool OsuLoader::LoadFromDir(const RString &sPath_, Song &out)
 	for (auto&filename : aFileNames) {
 		auto chart = out.CreateSteps();
 		chart->SetFilename(sPath_ + filename);
-		LoadChartData(chart, parsedData);
+		LoadChartData(&out, chart, parsedData);
 		out.AddSteps(chart);
 	}
 
