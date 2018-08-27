@@ -674,10 +674,7 @@ void ScreenEvaluation::Init()
 		default:
 			break;
 	}
-	if (GamePreferences::m_AutoPlay == PC_REPLAY)
-	{
-		STATSMAN->m_vPlayedStageStats.pop_back();
-	}
+
 }
 
 bool ScreenEvaluation::Input( const InputEventPlus &input )
