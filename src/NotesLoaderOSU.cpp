@@ -281,6 +281,11 @@ void OsuLoader::LoadNoteDataFromParsedData(Steps* out, map<string, map<string, s
 			MsToNoteRow( holds[i].msEnd, out->m_pSong ),
 			TAP_ORIGINAL_HOLD_HEAD
 		);
+		newNoteData.SetTapNote(
+			holds[i].lane / (512 / stoi(parsedData["Difficulty"]["CircleSize"])),
+			MsToNoteRow(holds[i].msEnd, out->m_pSong)+1,
+			TAP_ORIGINAL_LIFT
+		);
 	}
 
 	out->SetNoteData(newNoteData);
