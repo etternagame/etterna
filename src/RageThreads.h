@@ -1,6 +1,91 @@
 ﻿#ifndef RAGE_THREADS_H
 #define RAGE_THREADS_H
 
+#include "global.h"
+#include <mutex>
+#include <atomic>
+#include <thread>
+
+class ThreadData {
+public:
+	void waitForUpdate() {
+		std::unique_lock<std::mutex> lk(_updatedMutex);
+		_updatedCV.wait(lk, [this] {return this->getUpdated(); });
+	}
+	void setUpdated(bool b) {
+		{
+			std::lock_guard<std::mutex> lk(_updatedMutex);
+			_updated = b;
+		}
+		_updatedCV.notify_all();
+	}
+	bool getUpdated() {
+		return _updated;
+	}
+	std::atomic<int> _threadsFinished{ 0 };
+	std::atomic<int> _progress{ 0 };
+	std::mutex _updatedMutex;
+	std::condition_variable _updatedCV;
+	void* data{ nullptr };
+private:
+	std::atomic<bool> _updated{ false };
+};
+
+template <class T> using vectorIt = typename vector<T>::iterator;
+template <class T> using vectorRange = std::pair<vectorIt<T>, vectorIt<T>>;
+
+
+template <typename T> 
+std::vector<vectorRange<T>> splitWorkLoad(vector<T> &v, size_t elementsPerThread) {
+	std::vector<vectorRange<T>> ranges;
+	if (elementsPerThread <= 0 || elementsPerThread >= v.size()) {
+		ranges.push_back(std::make_pair(v.begin(), v.end()));
+		return ranges;
+	}
+
+	size_t range_count = (v.size() + 1) / elementsPerThread + 1;
+	size_t ePT = v.size() / range_count;
+	if (ePT == 0) {
+		ranges.push_back(std::make_pair(v.begin(), v.end()));
+		return ranges;
+	}
+	size_t i;
+
+	vectorIt<T> b = v.begin();
+
+	for (i = 0; i<v.size() - ePT; i += ePT)
+		ranges.push_back(std::make_pair(b + i, b + i + ePT));
+
+	ranges.push_back(std::make_pair(b + i, v.end()));
+	return ranges;
+}
+
+template <typename T>
+void parallelExecution(vector<T> vec, function<void(int)> update, function<void(vectorRange<T>, ThreadData*)> exec, void* stuff) {
+	const int THREADS = std::thread::hardware_concurrency();
+	std::vector<vectorRange<T>> workloads = splitWorkLoad(vec, static_cast<size_t>(vec.size() / THREADS));
+	ThreadData data;
+	data.data = stuff;
+	auto threadCallback = [&data, &exec](vectorRange<T> workload) {
+		exec(workload, &data);
+		data._threadsFinished++;
+		data.setUpdated(true);
+	};
+	vector<thread> threadpool;
+	for (auto& workload : workloads)
+		threadpool.emplace_back(thread(threadCallback, workload));
+	while (data._threadsFinished < workloads.size()) {
+		data.waitForUpdate();
+		update(data._progress);
+		data.setUpdated(false);
+	}
+	for (auto& thread : threadpool)
+		thread.join();
+}
+template <typename T> void parallelExecution(vector<T> vec, function<void(int)> update, function<void(vectorRange<T>, ThreadData)> exec) {
+	parallelExecution(vec, update, exec, nullptr);
+}
+
 struct ThreadSlot;
 class RageTimer;
 

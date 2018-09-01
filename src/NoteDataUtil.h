@@ -48,7 +48,7 @@ namespace NoteDataUtil
 	void LoadTransformedLightsFromTwo( const NoteData &marquee, const NoteData &bass, NoteData &out );
 	void InsertHoldTails( NoteData &inout );
 
-	void CalculateRadarValues( const NoteData &in, float fSongSeconds, RadarValues& out );
+	void CalculateRadarValues( const NoteData &in, float fSongSeconds, RadarValues& out, TimingData* td=nullptr);
 
 	/**
 	 * @brief Remove all of the Hold notes.
