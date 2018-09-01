@@ -650,7 +650,7 @@ void SongCacheIndex::LoadHyperCache(LoadingWindow * ld, map<RString, Song*>& hyp
 }
 
 template<template<class, class...> class R1, template<class, class...> class R2, class T, class... A1, class... A2>
-auto join(R1<R2<T, A2...>, A1...> const& outer)
+R1<T, A2...> join(R1<R2<T, A2...>, A1...> const& outer)
 {
 	R1<T, A2...> joined;
 	joined.reserve(std::accumulate(outer.begin(), outer.end(), std::size_t{}, [](auto size, auto const& inner) {
