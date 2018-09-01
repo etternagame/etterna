@@ -653,10 +653,10 @@ template<template<class, class...> class R1, template<class, class...> class R2,
 R1<T, A2...> join(R1<R2<T, A2...>, A1...> const& outer)
 {
 	R1<T, A2...> joined;
-	joined.reserve(std::accumulate(outer.begin(), outer.end(), std::size_t{}, [](auto size, auto const& inner) {
+	joined.reserve(std::accumulate(outer.begin(), outer.end(), std::size_t{}, [](size_t size, R2<T, A2...> const& inner) {
 		return size + inner.size();
 	}));
-	for (auto const& inner : outer)
+	for (R2<T, A2...> const& inner : outer)
 		joined.insert(joined.end(), inner.begin(), inner.end());
 	return joined;
 }
@@ -675,7 +675,7 @@ void SongCacheIndex::LoadCache(LoadingWindow * ld, vector<pair<pair<RString, uns
 	const int threads = std::thread::hardware_concurrency();
 	const int limit = count / threads;
 	ThreadData data;
-	atomic<bool> abort = false;
+	atomic<bool> abort(false);
 	auto threadCallback = [&data, fivePercent, &abort](int limit, int offset, vector<pair<pair<RString, unsigned int>, Song*>*>* cachePart) {
 		int counter=0, lastUpdate=0;
 		try {
