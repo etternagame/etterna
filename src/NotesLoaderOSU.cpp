@@ -157,9 +157,6 @@ void OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song 
 	vector<pair<float, float>> bpms;
 	++it;
 	auto values = split(it->first, ",");
-	bpms.emplace_back(pair<float, float>(stof(values[0]), 60000 / stof(values[1])));
-	//out.m_SongTiming.AddSegment(BPMSegment(0, 999));
-	out.m_SongTiming.AddSegment(BPMSegment(0, 60000 / stof(values[1])));
 
 	float bpm = 0;
 	while (++it != parsedData["TimingPoints"].end())
@@ -167,7 +164,7 @@ void OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song 
 		auto line = it->first;
 		auto values = split(line, ",");
 
-		float offset = stof(values[0]);
+		float offset = max(0, stof(values[0]));
 		if (stof(values[1]) > 0)
 		{
 			bpm = 60000 / stof(values[1]);
@@ -183,10 +180,21 @@ void OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song 
 	{
 		return a.first < b.first;
 	});
+	if (bpms.size() > 0)
+	{
+		out.m_SongTiming.AddSegment(BPMSegment(0, bpms[0].second)); // set bpm at beat 0 (osu files don't make this required)
+	}
+	else
+	{
+		out.m_SongTiming.AddSegment(BPMSegment(0, 60)); // set bpm to 60 if there are no specified bpms in the file (there should be)
+	}
 	for (int i = 0; i < bpms.size(); ++i)
 	{
 		int row = MsToNoteRow(bpms[i].first, &out);
-		out.m_SongTiming.AddSegment(BPMSegment(row, bpms[i].second));
+		if (row != 0)
+		{
+			out.m_SongTiming.AddSegment(BPMSegment(row, bpms[i].second));
+		}
 	}
 
 	out.m_DisplayBPMType = DISPLAY_BPM_ACTUAL;
@@ -208,6 +216,11 @@ void OsuLoader::LoadChartData(Song* song, Steps* chart, map<string, map<string, 
 	case(6):
 	{
 		chart->m_StepsType = StepsType_dance_solo;
+		break;
+	}
+	case(7):
+	{
+		chart->m_StepsType = StepsType_kb7_single;
 		break;
 	}
 	case(8):
@@ -281,11 +294,11 @@ void OsuLoader::LoadNoteDataFromParsedData(Steps* out, map<string, map<string, s
 			MsToNoteRow( holds[i].msEnd, out->m_pSong ),
 			TAP_ORIGINAL_HOLD_HEAD
 		);
-		newNoteData.SetTapNote(
+		/*newNoteData.SetTapNote(
 			holds[i].lane / (512 / stoi(parsedData["Difficulty"]["CircleSize"])),
 			MsToNoteRow(holds[i].msEnd, out->m_pSong)+1,
 			TAP_ORIGINAL_LIFT
-		);
+		);*/
 	}
 
 	out->SetNoteData(newNoteData);
