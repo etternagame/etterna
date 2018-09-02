@@ -151,15 +151,12 @@ void OsuLoader::SetMetadata(map<string, map<string, string>> parsedData, Song &o
 
 void OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song &out)
 {
-	auto it = parsedData["TimingPoints"].begin();
 
 
 	vector<pair<float, float>> bpms;
-	++it;
-	auto values = split(it->first, ",");
 
 	float bpm = 0;
-	while (++it != parsedData["TimingPoints"].end())
+	for(auto it = std::next(parsedData["TimingPoints"].begin()); it != parsedData["TimingPoints"].end();it++)
 	{
 		auto line = it->first;
 		auto values = split(line, ",");
@@ -175,7 +172,6 @@ void OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song 
 		}
 		bpms.emplace_back(pair<float, float>(offset, bpm));
 	}
-
 	sort(bpms.begin(), bpms.end(), [](pair<float, float> a, pair<float, float> b)
 	{
 		return a.first < b.first;
