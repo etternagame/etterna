@@ -209,13 +209,23 @@ void OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song 
 	out.m_fMusicSampleLengthSeconds = stof(general["PreviewTime"]) / 1000.0f;
 }
 
-void OsuLoader::LoadChartData(Song* song, Steps* chart, map<string, map<string, string>> parsedData)
+bool OsuLoader::LoadChartData(Song* song, Steps* chart, map<string, map<string, string>> parsedData)
 {
+	if (stoi(parsedData["General"]["Mode"]) != 3) // if the mode isn't mania
+	{
+		return false;
+	}
+
 	switch (stoi(parsedData["Difficulty"]["CircleSize"]))
 	{
 	case(4):
 	{
 		chart->m_StepsType = StepsType_dance_single;
+		break;
+	}
+	case(5):
+	{
+		chart->m_StepsType = StepsType_pump_single;
 		break;
 	}
 	case(6):
@@ -235,7 +245,7 @@ void OsuLoader::LoadChartData(Song* song, Steps* chart, map<string, map<string, 
 	}
 	default:
 		chart->m_StepsType = StepsType_Invalid;
-		break;
+		return false;
 	} // needs more stepstypes?
 	
 	chart->SetMeter(song->GetAllSteps().size());
@@ -245,6 +255,8 @@ void OsuLoader::LoadChartData(Song* song, Steps* chart, map<string, map<string, 
 	chart->TidyUpData();
 
 	chart->SetSavedToDisk(true);
+
+	return true;
 }
 
 void OsuLoader::GetApplicableFiles(const RString &sPath, vector<RString> &out)
@@ -397,7 +409,10 @@ bool OsuLoader::LoadFromDir(const RString &sPath_, Song &out)
 		}
 		auto chart = out.CreateSteps();
 		chart->SetFilename(p);
-		LoadChartData(&out, chart, parsedData);
+		if (!LoadChartData(&out, chart, parsedData))
+		{
+			continue;
+		}
 
 		LoadNoteDataFromParsedData(chart, parsedData);
 		out.AddSteps(chart);

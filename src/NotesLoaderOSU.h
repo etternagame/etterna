@@ -47,7 +47,7 @@ namespace OsuLoader
 
 	bool LoadNoteDataFromSimfile(const RString &path, Steps &out);
 
-	void LoadChartData(Song* song, Steps* chart, map<string, map<string, string>> parsedData);
+	bool LoadChartData(Song* song, Steps* chart, map<string, map<string, string>> parsedData);
 
 	int MsToNoteRow(int ms, Song* song);
 }
