@@ -1,21 +1,10 @@
 #include "global.h"
-#include "Difficulty.h"
-#include "GameInput.h"
-#include "MsdFile.h"
 #include "NoteData.h"
-#include "NotesLoader.h"
 #include "NotesLoaderOSU.h"
-#include "PrefsManager.h"
 #include "RageFile.h"
-#include "RageLog.h"
-#include "RageUtil.h"
 #include "RageUtil_CharConversions.h"
 #include "Song.h"
 #include "Steps.h"
-#include "TimingData.h"
-
-#include <map>
-#include <algorithm>
 
 
 vector<string> split(string str, string token)
@@ -47,7 +36,7 @@ map<string, map<string, string>> OsuLoader::ParseFileString(string fileContents)
 	SeparateTagsAndContents(fileContents, sections, contents);
 
 	map<string, map<string, string>> parsedData;
-	for (int i = 0; i < sections.size(); ++i)
+	for (int i = 0; i < (int)sections.size(); ++i)
 	{
 		for (auto& content : contents[i])
 		{
@@ -204,7 +193,7 @@ void OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song 
 	{
 		out.m_SongTiming.AddSegment(BPMSegment(0, 120)); // set bpm to 120 if there are no specified bpms in the file (there should be)
 	}
-	for (int i = 0; i < bpms.size(); ++i)
+	for (int i = 0; i < (int)bpms.size(); ++i)
 	{
 		int row = MsToNoteRow(bpms[i].first, &out);
 		if (row != 0)
@@ -292,7 +281,7 @@ void OsuLoader::LoadNoteDataFromParsedData(Steps* out, map<string, map<string, s
 		int type = stoi(values[3]);
 		if (type == 128)
 			holds.emplace_back(OsuHold(stoi(values[2]), stoi(values[5]), stoi(values[0])));
-		else if(type & 1 == 1)
+		else if((type & 1) == 1)
 			taps.emplace_back(OsuNote(stoi(values[2]), stoi(values[0])));
 	}
 
@@ -323,7 +312,7 @@ void OsuLoader::LoadNoteDataFromParsedData(Steps* out, map<string, map<string, s
 		lastTap = holds[holds.size()].msEnd;
 	}
 
-	for (int i = 0; i < taps.size(); ++i)
+	for (int i = 0; i < (int)taps.size(); ++i)
 	{
 		newNoteData.SetTapNote(
 			taps[i].lane / (512 / stoi(parsedData["Difficulty"]["CircleSize"])),
@@ -331,7 +320,7 @@ void OsuLoader::LoadNoteDataFromParsedData(Steps* out, map<string, map<string, s
 			TAP_ORIGINAL_TAP
 		);
 	}
-	for (int i = 0; i < holds.size(); ++i)
+	for (int i = 0; i < (int)holds.size(); ++i)
 	{
 		int start = MsToNoteRow(holds[i].msStart - firstTap, out->m_pSong);
 		int end = MsToNoteRow(holds[i].msEnd - firstTap, out->m_pSong);

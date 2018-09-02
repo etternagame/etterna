@@ -1,11 +1,8 @@
 #ifndef NOTES_LOADER_OSU_H
 #define NOTES_LOADER_OSU_H
 
-#include <set>
-
 class Song;
 class Steps;
-
 
 struct OsuHold
 {
