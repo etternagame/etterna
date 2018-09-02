@@ -12,6 +12,7 @@
 #include "RageUtil_CharConversions.h"
 #include "Song.h"
 #include "Steps.h"
+#include "TimingData.h"
 
 #include <map>
 #include <algorithm>
@@ -146,43 +147,62 @@ void OsuLoader::SetMetadata(map<string, map<string, string>> parsedData, Song &o
 	ConvertString(out.m_sMainTitle, "utf-8,english");
 	ConvertString(out.m_sSubTitle, "utf-8,english");
 
-	out.m_sCDTitleFile = "";
+	out.m_sMusicFile = parsedData["General"]["AudioFilename"];
+	//out.m_sBackgroundFile = "";
+	//out.m_sCDTitleFile = "";
 }
 
 void OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song &out)
 {
+	vector<pair<int, float>> tp;
 
-
-	vector<pair<float, float>> bpms;
-
-	float bpm = 0;
-	for(auto it = std::next(parsedData["TimingPoints"].begin()); it != parsedData["TimingPoints"].end();it++)
+	for(auto it = std::next(parsedData["TimingPoints"].begin()); it != parsedData["TimingPoints"].end(); ++it)
 	{
 		auto line = it->first;
 		auto values = split(line, ",");
 
-		float offset = max(0, stof(values[0]));
-		if (stof(values[1]) > 0)
-		{
-			bpm = 60000 / stof(values[1]);
-		}
-		else
-		{
-			bpm *= abs(stof(values[1]))/100;
-		}
-		bpms.emplace_back(pair<float, float>(offset, bpm));
+		tp.emplace_back(pair<int, float>(stoi(values[0]), stof(values[1])));
 	}
-	sort(bpms.begin(), bpms.end(), [](pair<float, float> a, pair<float, float> b)
+	sort(tp.begin(), tp.end(), [](pair<int, float> a, pair<int, float> b)
 	{
 		return a.first < b.first;
 	});
+
+
+	vector<pair<int, float>> bpms;
+	float lastpositivebpm = 0;
+	int offset = 0;
+	int lastoffset = -9999;
+	for (auto x : tp)
+	{
+		float bpm;
+		offset = max(0, x.first);
+		if (x.second > 0)
+		{
+			bpm = 60000 / x.second;
+			lastpositivebpm = bpm;
+		}
+		else // inherited timing points; these might be able to be ignored
+		{
+			bpm = lastpositivebpm * abs(x.second / 100);
+		}
+		if (offset == lastoffset)
+		{
+			bpms[bpms.size() - 1] = pair<int, float>(offset, bpm); //this because of dumb stuff like in 4k Luminal dan (not robust, but works for most files)
+		}
+		else
+		{
+			bpms.emplace_back(pair<int, float>(offset, bpm));
+		}
+		lastoffset = offset;
+	}
 	if (bpms.size() > 0)
 	{
 		out.m_SongTiming.AddSegment(BPMSegment(0, bpms[0].second)); // set bpm at beat 0 (osu files don't make this required)
 	}
 	else
 	{
-		out.m_SongTiming.AddSegment(BPMSegment(0, 60)); // set bpm to 60 if there are no specified bpms in the file (there should be)
+		out.m_SongTiming.AddSegment(BPMSegment(0, 120)); // set bpm to 120 if there are no specified bpms in the file (there should be)
 	}
 	for (int i = 0; i < bpms.size(); ++i)
 	{
@@ -227,8 +247,7 @@ void OsuLoader::LoadChartData(Song* song, Steps* chart, map<string, map<string, 
 	default:
 		chart->m_StepsType = StepsType_Invalid;
 		break;
-	} // needs more stepstypes
-
+	} // needs more stepstypes?
 	
 	chart->SetMeter(song->GetAllSteps().size());
 
@@ -246,14 +265,24 @@ void OsuLoader::GetApplicableFiles(const RString &sPath, vector<RString> &out)
 
 int OsuLoader::MsToNoteRow(int ms, Song* song)
 {
-	return (int)abs(song->m_SongTiming.GetBeatFromElapsedTime(ms / 1000.0f)*48);
-	//return (int)abs(song->m_SongTiming.GetBeatFromElapsedTime((ms + song->m_SongTiming.m_fBeat0OffsetInSeconds) / 1000.0f)*48);
+	float tempOffset = song->m_SongTiming.m_fBeat0OffsetInSeconds;
+	song->m_SongTiming.m_fBeat0OffsetInSeconds = 0;
+
+	int row = (int)round(abs(song->m_SongTiming.GetBeatFromElapsedTimeNoOffset(ms / 1000.0f) * 48));
+
+	song->m_SongTiming.m_fBeat0OffsetInSeconds = tempOffset;
+
+	return row;
+	//wow
+	//this is fucking hideous
+	//but it works
 }
 
 void OsuLoader::LoadNoteDataFromParsedData(Steps* out, map<string, map<string, string>> parsedData)
 {
 	NoteData newNoteData;
 	newNoteData.SetNumTracks(stoi(parsedData["Difficulty"]["CircleSize"]));
+
 	auto it = parsedData["HitObjects"].begin();
 	vector<OsuNote> taps;
 	vector<OsuHold> holds;
@@ -271,31 +300,60 @@ void OsuLoader::LoadNoteDataFromParsedData(Steps* out, map<string, map<string, s
 	{
 		return a.ms < b.ms;
 	});
+	sort(holds.begin(), holds.end(), [](OsuHold a, OsuHold b)
+	{
+		return a.msStart < b.msStart;
+	});
 
-	//out->m_pSong->m_SongTiming.m_fBeat0OffsetInSeconds = 3;//taps[0].ms / 1000.0f;
+	int firstTap = 0;
+	int lastTap = 0;
+	if (taps.size() > 0 && holds.size() > 0)
+	{
+		firstTap = min(taps[0].ms, holds[0].msStart);
+		lastTap = max(taps[taps.size()].ms, holds[holds.size()].msEnd);
+	}
+	else if (taps.size() > 0)
+	{
+		firstTap = taps[0].ms;
+		lastTap = taps[taps.size()].ms;
+	}
+	else
+	{
+		firstTap = holds[0].msStart;
+		lastTap = holds[holds.size()].msEnd;
+	}
 
 	for (int i = 0; i < taps.size(); ++i)
 	{
 		newNoteData.SetTapNote(
 			taps[i].lane / (512 / stoi(parsedData["Difficulty"]["CircleSize"])),
-			MsToNoteRow( taps[i].ms, out->m_pSong ), // maybe subtract taps[0].ms here?
+			MsToNoteRow( taps[i].ms - firstTap, out->m_pSong ),
 			TAP_ORIGINAL_TAP
 		);
 	}
 	for (int i = 0; i < holds.size(); ++i)
 	{
+		int start = MsToNoteRow(holds[i].msStart - firstTap, out->m_pSong);
+		int end = MsToNoteRow(holds[i].msEnd - firstTap, out->m_pSong);
+		if (end - start > 0)
+		{
+			end = end - 1;
+		}
 		newNoteData.AddHoldNote(
 			holds[i].lane / (512 / stoi(parsedData["Difficulty"]["CircleSize"])),
-			MsToNoteRow( holds[i].msStart, out->m_pSong ),
-			MsToNoteRow( holds[i].msEnd, out->m_pSong ),
+			start,
+			end,
 			TAP_ORIGINAL_HOLD_HEAD
 		);
-		/*newNoteData.SetTapNote(
+		newNoteData.SetTapNote(
 			holds[i].lane / (512 / stoi(parsedData["Difficulty"]["CircleSize"])),
-			MsToNoteRow(holds[i].msEnd, out->m_pSong)+1,
+			end+1,
 			TAP_ORIGINAL_LIFT
-		);*/
+		);
 	}
+
+	out->m_pSong->m_fMusicLengthSeconds = 80; // what's going on with this
+	out->m_pSong->m_SongTiming.m_fBeat0OffsetInSeconds = -firstTap / 1000.0f;
 
 	out->SetNoteData(newNoteData);
 }
