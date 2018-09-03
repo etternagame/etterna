@@ -262,7 +262,11 @@ local o = Def.ActorFrame{
 	},
 	LoadFont("Common normal") .. {	--top score/all score toggle
 		InitCommand=function(self)
-			self:xy(c5x - 115, headeroff):zoom(tzoom):halign(1)
+			if collapsed then
+				self:xy(c5x - 175, headeroff):zoom(tzoom):halign(1)
+			else
+				self:xy(c5x - 115, headeroff):zoom(tzoom):halign(1)
+			end
 		end,
 		HighlightCommand=function(self)
 			highlightIfOver(self)
