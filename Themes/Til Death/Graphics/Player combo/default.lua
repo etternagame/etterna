@@ -1,10 +1,12 @@
+local keymode = getCurrentKeyMode()
+local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
 local threePressed = false
 local fourPressed = false
 local changed = false
 local c
-local x = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ComboX
-local y = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ComboY
-local zoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.ComboZoom
+local x = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ComboX
+local y = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ComboY
+local zoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].ComboZoom
 local ShowComboAt = THEME:GetMetric("Combo", "ShowComboAt");
 
 local function input(event)
@@ -19,28 +21,28 @@ local function input(event)
 			y = y - 5
 			c.Label:y(y)
 			c.Number:y(y)
-			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ComboY = y
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ComboY = y
 			changed = true
 		end
 		if event.DeviceInput.button == "DeviceButton_down" then
 			y = y + 5
 			c.Label:y(y)
 			c.Number:y(y)
-			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ComboY = y
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ComboY = y
 			changed = true
 		end
 		if event.DeviceInput.button == "DeviceButton_left" then
 			x = x - 5
 			c.Label:x(x)
 			c.Number:x(x-4)
-			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ComboX = x
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ComboX = x
 			changed = true
 		end
 		if event.DeviceInput.button == "DeviceButton_right" then
 			x = x + 5
 			c.Label:x(x)
 			c.Number:x(x-4)
-			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ComboX = x
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ComboX = x
 			changed = true
 		end
 		if changed then
@@ -54,14 +56,14 @@ local function input(event)
 			zoom = zoom + 0.01
 			c.Label:zoom(zoom)
 			c.Number:zoom(zoom - 0.1)
-			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.ComboZoom = zoom
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].ComboZoom = zoom
 			changed = true
 		end
 		if event.DeviceInput.button == "DeviceButton_down" then
 			zoom = zoom - 0.01
 			c.Label:zoom(zoom)
 			c.Number:zoom(zoom - 0.1)
-			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.ComboZoom = zoom
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].ComboZoom = zoom
 			changed = true
 		end
 		if changed then
@@ -93,7 +95,7 @@ local t = Def.ActorFrame {
 		c = self:GetChildren()
 	end,
 	OnCommand=function(self) 
-		if(playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay) then
+		if(allowedCustomization) then
 			SCREENMAN:GetTopScreen():AddInputCallback(input)
 		end
 	end,
