@@ -213,6 +213,7 @@ public:
 	void MakeAThing(string chartkey);
 	vector<HighScore> athing;
 	bool currentrateonly = false;
+	bool topscoresonly = true;
 	void RequestChartLeaderBoard(string chartkey);
 	void RefreshUserData();
 	void RefreshUserRank();

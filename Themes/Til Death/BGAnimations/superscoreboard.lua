@@ -84,6 +84,7 @@ local function byAchieved(scoregoal)
 end
 
 local filts = {"All Rates", "Current Rate"}
+local topornah = {"Top Scores", "All Scores"}
 
 local scoretable
 local o = Def.ActorFrame{
@@ -254,6 +255,28 @@ local o = Def.ActorFrame{
 		MouseLeftClickMessageCommand=function(self)
 			if isOver(self) then
 				DLMAN:ToggleRateFilter()
+				ind = 0
+				self:GetParent():queuecommand("ChartLeaderboardUpdate")
+			end
+		end,
+	},
+	LoadFont("Common normal") .. {	--top score/all score toggle
+		InitCommand=function(self)
+			self:xy(c5x - 115, headeroff):zoom(tzoom):halign(1)
+		end,
+		HighlightCommand=function(self)
+			highlightIfOver(self)
+		end,
+		UpdateCommand=function(self)
+			if DLMAN:GetTopScoresOnlyFilter() then 
+				self:settext(topornah[1])
+			else
+				self:settext(topornah[2])
+			end
+		end,
+		MouseLeftClickMessageCommand=function(self)
+			if isOver(self) then
+				DLMAN:ToggleTopScoresOnlyFilter()
 				ind = 0
 				self:GetParent():queuecommand("ChartLeaderboardUpdate")
 			end
