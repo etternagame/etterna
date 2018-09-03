@@ -1,7 +1,8 @@
 -- A moving average NPS calculator
 
 -- movable stuff
-
+local keymode = getCurrentKeyMode()
+local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
 --still kept this here because idk man
 local enabled = {
 	NPSDisplay = {
@@ -16,13 +17,13 @@ local enabled = {
 
 local npsGraphActor
 local npsDisplayActor
-local npsGraphX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NPSGraphX
-local npsGraphY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NPSGraphY
-local npsGraphWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.NPSGraphWidth
-local npsGraphHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.NPSGraphHeight
-local npsDisplayX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NPSDisplayX
-local npsDisplayY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NPSDisplayY
-local npsDisplayZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.NPSDisplayZoom
+local npsGraphX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NPSGraphX
+local npsGraphY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NPSGraphY
+local npsGraphWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NPSGraphWidth
+local npsGraphHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NPSGraphHeight
+local npsDisplayX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NPSDisplayX
+local npsDisplayY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NPSDisplayY
+local npsDisplayZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NPSDisplayZoom
 
 local yPressed = false
 local uPressed = false
@@ -41,25 +42,25 @@ local function displayInput(event)
 			if event.DeviceInput.button == "DeviceButton_up" then
 				npsDisplayY = npsDisplayY - 5
 				npsDisplayActor:y(npsDisplayY)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NPSDisplayY = npsDisplayY
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NPSDisplayY = npsDisplayY
 				changed = true
 			end
 			if event.DeviceInput.button == "DeviceButton_down" then
 				npsDisplayY = npsDisplayY + 5
 				npsDisplayActor:y(npsDisplayY)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NPSDisplayY = npsDisplayY
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NPSDisplayY = npsDisplayY
 				changed = true
 			end
 			if event.DeviceInput.button == "DeviceButton_left" then
 				npsDisplayX = npsDisplayX - 5
 				npsDisplayActor:x(npsDisplayX)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NPSDisplayX = npsDisplayX
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NPSDisplayX = npsDisplayX
 				changed = true
 			end
 			if event.DeviceInput.button == "DeviceButton_right" then
 				npsDisplayX = npsDisplayX + 5
 				npsDisplayActor:x(npsDisplayX)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NPSDisplayX = npsDisplayX
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NPSDisplayX = npsDisplayX
 				changed = true
 			end
 			if changed then
@@ -72,13 +73,13 @@ local function displayInput(event)
 			if event.DeviceInput.button == "DeviceButton_up" then
 				npsDisplayZoom = npsDisplayZoom + 0.01
 				npsDisplayActor:zoom(npsDisplayZoom)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.NPSDisplayZoom = npsDisplayZoom
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NPSDisplayZoom = npsDisplayZoom
 				changed = true
 			end
 			if event.DeviceInput.button == "DeviceButton_down" then
 				npsDisplayZoom = npsDisplayZoom - 0.01
 				npsDisplayActor:zoom(npsDisplayZoom)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.NPSDisplayZoom = npsDisplayZoom
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NPSDisplayZoom = npsDisplayZoom
 				changed = true
 			end
 			if changed then
@@ -103,25 +104,25 @@ local function graphInput(event)
 			if event.DeviceInput.button == "DeviceButton_up" then
 				npsGraphY = npsGraphY - 5
 				npsGraphActor:y(npsGraphY)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NPSGraphY = npsGraphY
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NPSGraphY = npsGraphY
 				changed = true
 			end
 			if event.DeviceInput.button == "DeviceButton_down" then
 				npsGraphY = npsGraphY + 5
 				npsGraphActor:y(npsGraphY)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NPSGraphY = npsGraphY
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NPSGraphY = npsGraphY
 				changed = true
 			end
 			if event.DeviceInput.button == "DeviceButton_left" then
 				npsGraphX = npsGraphX - 5
 				npsGraphActor:x(npsGraphX)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NPSGraphX = npsGraphX
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NPSGraphX = npsGraphX
 				changed = true
 			end
 			if event.DeviceInput.button == "DeviceButton_right" then
 				npsGraphX = npsGraphX + 5
 				npsGraphActor:x(npsGraphX)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NPSGraphX = npsGraphX
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NPSGraphX = npsGraphX
 				changed = true
 			end
 			if changed then
@@ -134,25 +135,25 @@ local function graphInput(event)
 			if event.DeviceInput.button == "DeviceButton_up" then
 				npsGraphHeight = npsGraphHeight + 0.01
 				npsGraphActor:zoomtoheight(npsGraphHeight)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.NPSGraphHeight = npsGraphHeight
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NPSGraphHeight = npsGraphHeight
 				changed = true
 			end
 			if event.DeviceInput.button == "DeviceButton_down" then
 				npsGraphHeight = npsGraphHeight - 0.01
 				npsGraphActor:zoomtoheight(npsGraphHeight)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.NPSGraphHeight = npsGraphHeight
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NPSGraphHeight = npsGraphHeight
 				changed = true
 			end
 			if event.DeviceInput.button == "DeviceButton_left" then
 				npsGraphWidth = npsGraphWidth - 0.01
 				npsGraphActor:zoomtowidth(npsGraphWidth)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.NPSGraphWidth = npsGraphWidth
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NPSGraphWidth = npsGraphWidth
 				changed = true
 			end
 			if event.DeviceInput.button == "DeviceButton_right" then
 				npsGraphWidth = npsGraphWidth + 0.01
 				npsGraphActor:zoomtowidth(npsGraphWidth)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.NPSGraphWidth = npsGraphWidth
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NPSGraphWidth = npsGraphWidth
 				changed = true
 			end
 			if changed then
@@ -354,7 +355,7 @@ local function npsDisplay(pn)
 		npsDisplayActor = self:GetChild("Text")
 	end,
 	OnCommand=function(self)
-		if(playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay) then
+		if(allowedCustomization) then
 			SCREENMAN:GetTopScreen():AddInputCallback(displayInput)
 		end
 	end,
@@ -422,7 +423,7 @@ local function npsGraph(pn)
 			npsGraphActor = self
 		end,
 		OnCommand=function(self)
-			if(playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay) then
+			if(allowedCustomization) then
 				SCREENMAN:GetTopScreen():AddInputCallback(graphInput)
 			end
 		end
