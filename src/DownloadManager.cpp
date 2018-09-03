@@ -1655,7 +1655,7 @@ public:
 		lua_setfield(L, -2, "chartkey");
 		LuaHelpers::Push(L, onlineScore.difficulty);
 		lua_setfield(L, -2, "difficulty");
-		lua_pushstring(L, GradeToString(PlayerStageStats::GetGrade(onlineScore.wifeScore)));
+		LuaHelpers::Push(L,PlayerStageStats::GetGrade(onlineScore.wifeScore));
 		lua_setfield(L, -2, "grade");
 		return 1;
 	}
