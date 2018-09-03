@@ -20,6 +20,7 @@
 #include "NotesLoaderBMS.h"
 #include "NotesLoaderDWI.h"
 #include "NotesLoaderKSF.h"
+#include "NotesLoaderOSU.h"
 #include "NotesLoaderSM.h"
 #include "NotesLoaderSMA.h"
 #include "NotesLoaderSSC.h"
@@ -148,6 +149,10 @@ bool Steps::GetNoteDataFromSimfile()
 	else if (extension == "bms" || extension == "bml" || extension == "bme" || extension == "pms")
 	{
 		return BMSLoader::LoadNoteDataFromSimfile(stepFile, *this);
+	}
+	else if (extension == "osu")
+	{
+		return OsuLoader::LoadNoteDataFromSimfile(stepFile, *this);
 	}
 	else if (extension == "edit")
 	{

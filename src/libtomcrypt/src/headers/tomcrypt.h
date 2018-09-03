@@ -9,7 +9,7 @@
 #include <limits.h>
 
 // Defined by us in cmake
-#ifdef WIN10
+#ifdef _WIN32
 #include <windows.h>
 #endif
 
