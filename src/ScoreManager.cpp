@@ -12,6 +12,7 @@
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
+#include "RageThreads.h"
 
 ScoreManager* SCOREMAN = NULL;
 
@@ -271,6 +272,7 @@ bool ScoresAtRate::HandleNoCCPB(HighScore& hs) {
 	}
 	return false;
 }
+
 static const float ld_update = 0.02f;
 void ScoreManager::RecalculateSSRs(LoadingWindow *ld, const string& profileID) {
 	RageTimer ld_timer;
@@ -282,74 +284,118 @@ void ScoreManager::RecalculateSSRs(LoadingWindow *ld, const string& profileID) {
 		ld->SetTotalWork(scores.size());
 		ld->SetText("\nUpdating Ratings");
 	}
-
-	int onePercent = std::max(static_cast<int>(scores.size() / 100), 1);
+	int onePercent = std::max(static_cast<int>(scores.size() / 100*5), 1);
 	int scoreindex = 0;
-	for(size_t i = 0; i < scores.size(); ++i) {
-		if (ld && scoreindex%onePercent==0 && ld_timer.Ago() > ld_update) {
-			ld_timer.Touch();
-			ld->SetProgress(i);
+	mutex stepsMutex;
+	vector<string> currentSteps;
+	class StepsLock {
+	public:
+		mutex& stepsMutex;
+		vector<string>& currentSteps;
+		string& ck;
+		StepsLock(vector<string>& vec, mutex& mut, string& k) : currentSteps(vec), stepsMutex(mut), ck(k) {
+			bool active = true;
+			{
+				lock_guard<mutex> lk(stepsMutex);
+				active = find(currentSteps.begin(), currentSteps.end(), ck) != currentSteps.end();
+				if (!active)
+					currentSteps.emplace_back(ck);
+			}
+			while (active)
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+				{
+					lock_guard<mutex> lk(stepsMutex);
+					active = find(currentSteps.begin(), currentSteps.end(), ck) != currentSteps.end();
+					if (!active)
+						currentSteps.emplace_back(ck);
+				}
+			}
 		}
-		++scoreindex;
-
-		HighScore* hs = scores[i];
-		if (hs->GetSSRCalcVersion() == GetCalcVersion())
-			continue;
-
-		Steps* steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
-
-		if (!steps)
-			continue;
-
-		if (!steps->IsRecalcValid()) {
-			hs->ResetSkillsets();
-			continue;
+		~StepsLock() {
+			lock_guard<mutex> lk(stepsMutex);
+			currentSteps.erase(find(currentSteps.begin(), currentSteps.end(), ck));
 		}
+	};
+	function<void(std::pair<vectorIt<HighScore*>, vectorIt<HighScore*>>, ThreadData*)> callback = [&stepsMutex,&currentSteps](std::pair<vectorIt<HighScore*>, vectorIt<HighScore*>> workload, ThreadData* data)
+	{
+		auto pair = static_cast<std::pair<int, LoadingWindow*>*>(data->data);
+		auto onePercent = pair->first;
+		auto ld = pair->second;
+		int scoreIndex = 0;
+		int lastUpdate = 0;
+		for (auto it = workload.first; it != workload.second; it++) {
+			auto hs = *it;
+			if (ld && scoreIndex%onePercent == 0) {
+				data->_progress += scoreIndex - lastUpdate;
+				lastUpdate = scoreIndex;
+				data->setUpdated(true);
+			}
+			++scoreIndex;
+			if (hs->GetSSRCalcVersion() == GetCalcVersion())
+				continue;
+			string ck = hs->GetChartKey();
+			StepsLock lk(currentSteps, stepsMutex, ck);
+			Steps* steps = SONGMAN->GetStepsByChartkey(ck);
 
-		float ssrpercent = hs->GetSSRNormPercent();
-		float musicrate = hs->GetMusicRate();
+			if (!steps)
+				continue;
 
-		if (ssrpercent <= 0.f || hs->GetGrade() == Grade_Failed) {
-			hs->ResetSkillsets();
-			continue;
+			if (!steps->IsRecalcValid()) {
+				hs->ResetSkillsets();
+				continue;
+			}
+
+			float ssrpercent = hs->GetSSRNormPercent();
+			float musicrate = hs->GetMusicRate();
+
+			if (ssrpercent <= 0.f || hs->GetGrade() == Grade_Failed) {
+				hs->ResetSkillsets();
+				continue;
+			}
+
+			TimingData* td = steps->GetTimingData();
+			NoteData nd;
+			steps->GetNoteData(nd);
+
+			nd.LogNonEmptyRows();
+			auto& nerv = nd.GetNonEmptyRowVector();
+			auto& etaner = td->BuildAndGetEtaner(nerv);
+			auto& serializednd = nd.SerializeNoteData(etaner);
+
+			auto dakine = MinaSDCalc(serializednd, steps->GetNoteData().GetNumTracks(), musicrate, ssrpercent, 1.f, td->HasWarps());
+			FOREACH_ENUM(Skillset, ss)
+				hs->SetSkillsetSSR(ss, dakine[ss]);
+			hs->SetSSRCalcVersion(GetCalcVersion());
+
+			td->UnsetEtaner();
+			nd.UnsetNerv();
+			nd.UnsetSerializedNoteData();
+			steps->Compress();
+
+			/* Some scores were being incorrectly marked as ccon despite chord cohesion being disabled. Re-determine chord cohesion
+			status from notecount, this should be robust as every score up to this point should be a fully completed pass. This will
+			also allow us to mark files with 0 chords as being nocc (since it doesn't apply to them). -mina */
+			int totalstepsnotes = steps->GetRadarValues()[RadarCategory_Notes];
+			int totalscorenotes = 0;
+			totalscorenotes += hs->GetTapNoteScore(TNS_W1);
+			totalscorenotes += hs->GetTapNoteScore(TNS_W2);
+			totalscorenotes += hs->GetTapNoteScore(TNS_W3);
+			totalscorenotes += hs->GetTapNoteScore(TNS_W4);
+			totalscorenotes += hs->GetTapNoteScore(TNS_W5);
+			totalscorenotes += hs->GetTapNoteScore(TNS_Miss);
+
+			if (totalstepsnotes - totalscorenotes == 0)
+				hs->SetChordCohesion(1); // the set function isn't inverted but the get function is, this sets bnochordcohesion to 1
+			else
+				hs->SetChordCohesion(0);
 		}
-
-		TimingData* td = steps->GetTimingData();
-		NoteData nd;
-		steps->GetNoteData(nd);
-
-		nd.LogNonEmptyRows();
-		auto& nerv = nd.GetNonEmptyRowVector();
-		auto& etaner = td->BuildAndGetEtaner(nerv);
-		auto& serializednd = nd.SerializeNoteData(etaner);
-
-		auto dakine = MinaSDCalc(serializednd, steps->GetNoteData().GetNumTracks(), musicrate, ssrpercent, 1.f, td->HasWarps());
-		FOREACH_ENUM(Skillset, ss)
-			hs->SetSkillsetSSR(ss, dakine[ss]);
-		hs->SetSSRCalcVersion(GetCalcVersion());
-
-		td->UnsetEtaner();
-		nd.UnsetNerv();
-		nd.UnsetSerializedNoteData();
-		steps->Compress();
-
-		/* Some scores were being incorrectly marked as ccon despite chord cohesion being disabled. Re-determine chord cohesion 
-		status from notecount, this should be robust as every score up to this point should be a fully completed pass. This will 
-		also allow us to mark files with 0 chords as being nocc (since it doesn't apply to them). -mina */ 
-		int totalstepsnotes = steps->GetRadarValues()[RadarCategory_Notes];
-		int totalscorenotes = 0;
-		totalscorenotes += hs->GetTapNoteScore(TNS_W1);
-		totalscorenotes += hs->GetTapNoteScore(TNS_W2);
-		totalscorenotes += hs->GetTapNoteScore(TNS_W3);
-		totalscorenotes += hs->GetTapNoteScore(TNS_W4);
-		totalscorenotes += hs->GetTapNoteScore(TNS_W5);
-		totalscorenotes += hs->GetTapNoteScore(TNS_Miss);
-
-		if (totalstepsnotes - totalscorenotes == 0)
-			hs->SetChordCohesion(1); // the set function isn't inverted but the get function is, this sets bnochordcohesion to 1
-		else
-			hs->SetChordCohesion(0);
-	}
+	};
+	auto onUpdate = [ld](int progress) {
+		if (ld) 
+			ld->SetProgress(progress);
+	};
+	parallelExecution<HighScore*>(scores, onUpdate, callback, (void*)new pair<int, LoadingWindow*>(onePercent, ld));
 	return;
 }
 

@@ -289,9 +289,9 @@ void Steps::CalculateRadarValues( float fMusicLengthSeconds ) {
 	// the note data is decompressed already, so, we don't need to copy(?)
 	// the decompressed note data, again, a decompress call can be placed here
 	// instead of getnotedata if it turns out we need it -mina
-
-	GAMESTATE->SetProcessedTimingData(this->GetTimingData());
-	NoteDataUtil::CalculateRadarValues( *m_pNoteData, fMusicLengthSeconds, m_CachedRadarValues );
+	auto td = this->GetTimingData();
+	GAMESTATE->SetProcessedTimingData(td);
+	NoteDataUtil::CalculateRadarValues( *m_pNoteData, fMusicLengthSeconds, m_CachedRadarValues,td );
 
 	GAMESTATE->SetProcessedTimingData(NULL);
 }

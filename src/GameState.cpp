@@ -299,7 +299,6 @@ void GameState::Reset()
 	ResetStageStatistics();
 	AdjustSync::ResetOriginalSyncData();
 
-	SONGMAN->UpdatePopular();
 	SONGMAN->UpdateShuffled();
 
 	STATSMAN->Reset();
