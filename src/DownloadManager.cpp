@@ -1077,7 +1077,7 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 	auto done = [chartkey](HTTPRequest& req, CURLMsg *) {
 		vector<OnlineScore> & vec = DLMAN->chartLeaderboards[chartkey];
 		vec.clear();
-		unordered_set<string> userswithscores;
+		//unordered_set<string> userswithscores;
 		Message msg("ChartLeaderboardUpdate");
 		try {
 			auto j = json::parse(req.result);
@@ -1145,7 +1145,7 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 				//if (userswithscores.count(tmp.username) == 1)
 				//	continue;
 
-				userswithscores.emplace(tmp.username);
+				//userswithscores.emplace(tmp.username);
 				vec.emplace_back(tmp);
 			}
 		}
