@@ -151,23 +151,33 @@ set_target_properties("${SM_EXE_NAME}" PROPERTIES
   OUTPUT_NAME_RELWITHDEBINFO "${SM_NAME_RELWITHDEBINFO}"
 )
 
-list(APPEND SM_WINDOWS_PROGRAM_DLLS
-  "${SM_PROGRAM_DIR}/avcodec-55.dll"
-  "${SM_PROGRAM_DIR}/avformat-55.dll"
-  "${SM_PROGRAM_DIR}/avutil-52.dll"
-  "${SM_PROGRAM_DIR}/parallel_lights_io.dll"
-  "${SM_PROGRAM_DIR}/swscale-2.dll"
-  "${SM_PROGRAM_DIR}/uWS.dll"
-  "${SM_PROGRAM_DIR}/libuv.dll"
-  "${SM_PROGRAM_DIR}/SSLEAY32.dll"
-  "${SM_PROGRAM_DIR}/LIBEAY32.dll"
-  "${SM_PROGRAM_DIR}/zlib1.dll"
-  "${SM_PROGRAM_DIR}/uWS_x86.dll"
-  "${SM_PROGRAM_DIR}/libuv_x86.dll"
-  "${SM_PROGRAM_DIR}/SSLEAY32_x86.dll"
-  "${SM_PROGRAM_DIR}/LIBEAY32_x86.dll"
-  "${SM_PROGRAM_DIR}/zlib1_x86.dll"
-)
+if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)")
+	list(APPEND SM_WINDOWS_PROGRAM_DLLS
+	  "${SM_PROGRAM_DIR}/avcodec-55.dll"
+	  "${SM_PROGRAM_DIR}/avformat-55.dll"
+	  "${SM_PROGRAM_DIR}/avutil-52.dll"
+	  "${SM_PROGRAM_DIR}/parallel_lights_io.dll"
+	  "${SM_PROGRAM_DIR}/swscale-2.dll"
+	  "${SM_PROGRAM_DIR}/uWS.dll"
+	  "${SM_PROGRAM_DIR}/libuv.dll"
+	  "${SM_PROGRAM_DIR}/SSLEAY32.dll"
+	  "${SM_PROGRAM_DIR}/LIBEAY32.dll"
+	  "${SM_PROGRAM_DIR}/zlib1.dll"
+	)
+else()
+	list(APPEND SM_WINDOWS_PROGRAM_DLLS
+	  "${SM_PROGRAM_DIR}/avcodec-55.dll"
+	  "${SM_PROGRAM_DIR}/avformat-55.dll"
+	  "${SM_PROGRAM_DIR}/avutil-52.dll"
+	  "${SM_PROGRAM_DIR}/parallel_lights_io.dll"
+	  "${SM_PROGRAM_DIR}/swscale-2.dll"
+	  "${SM_PROGRAM_DIR}/uWS_x86.dll"
+	  "${SM_PROGRAM_DIR}/libuv_x86.dll"
+	  "${SM_PROGRAM_DIR}/SSLEAY32_x86.dll"
+	  "${SM_PROGRAM_DIR}/LIBEAY32_x86.dll"
+	  "${SM_PROGRAM_DIR}/zlib1_x86.dll"
+	)
+endif()
 
 if(WIN32)
   sm_add_compile_definition("${SM_EXE_NAME}" WINDOWS)
@@ -391,7 +401,8 @@ if (WIN32)
   
   sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${DIRECTX_LIBRARY_DIR}\"")
   sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_EXTERN_DIR}/ffmpeg/lib\"")
-  sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_EXTERN_DIR}/libcurl\"")
+  sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_EXTERN_DIR}/uWebSocket/lib/32bit\"")
+  sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_EXTERN_DIR}/libcurl/64bit\"")
   sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_SRC_DIR}/archutils/Win32/ddk\"")
   sm_add_link_flag("${SM_EXE_NAME}" "/ERRORREPORT:SEND")
   sm_add_link_flag("${SM_EXE_NAME}" "/MAPINFO:EXPORTS")

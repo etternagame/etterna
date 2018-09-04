@@ -258,13 +258,12 @@ if(WIN32)
   if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)")
     link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc.lib)
     find_library(LIB_CURL NAMES "libcurl"
-	  PATHS "${SM_EXTERN_DIR}/libcurl" NO_DEFAULT_PATH
+	  PATHS "${SM_EXTERN_DIR}/libcurl/64bit" NO_DEFAULT_PATH
 	  )
     get_filename_component(LIB_CURL ${LIB_CURL} NAME)
-    link_libraries(${SM_EXTERN_DIR}/uWebSocket/lib/32bit/uWS.lib)
-    link_libraries(${SM_EXTERN_DIR}/uWebSocket/lib/32bit/libeay32.lib)
-    link_libraries(${SM_EXTERN_DIR}/uWebSocket/lib/32bit/ssleay32.lib)
-    link_libraries(${SM_EXTERN_DIR}/uWebSocket/lib/32bit/libuv.lib)
+    find_library(LIB_UWS NAMES "uWS"
+	  PATHS "${SM_EXTERN_DIR}/uWebSocket/lib/32bit" NO_DEFAULT_PATH
+	  )
     link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/discord-rpc.lib)
   else()
     link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc_x86.lib)
