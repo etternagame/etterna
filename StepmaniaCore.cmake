@@ -247,19 +247,13 @@ endif()
 if(WIN32)
   set(SYSTEM_PCRE_FOUND FALSE)
   find_package(DirectX REQUIRED)
-  
-  if("${CMAKE_SIZEOF_VOID_P}" STREQUAL "4")
+  if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)")
     link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc.lib)
     link_libraries(${SM_EXTERN_DIR}/LuaJIT/win32/lua51.lib)
     find_library(LIB_CURL NAMES "libcurl"
 	  PATHS "${SM_EXTERN_DIR}/libcurl" NO_DEFAULT_PATH
 	  )
     get_filename_component(LIB_CURL ${LIB_CURL} NAME)
-      
-    find_library(LIB_WLDAP32 NAMES "wldap32"
-	  PATHS "${SM_EXTERN_DIR}/libcurl" NO_DEFAULT_PATH
-	  )
-    get_filename_component(LIB_WLDAP32 ${LIB_WLDAP32} NAME)
     link_libraries(${SM_EXTERN_DIR}/uWebSocket/lib/32bit/uWS.lib)
     link_libraries(${SM_EXTERN_DIR}/uWebSocket/lib/32bit/libeay32.lib)
     link_libraries(${SM_EXTERN_DIR}/uWebSocket/lib/32bit/ssleay32.lib)
