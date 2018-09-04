@@ -1910,6 +1910,7 @@ public:
 		{
 			pss.m_iHoldNoteScores[i] = score->GetHoldNoteScore((HoldNoteScore)i);
 		}
+		ss.m_vpPlayedSongs.emplace_back(GAMESTATE->m_pCurSong);
 		STATSMAN->m_CurStageStats = ss;
 		STATSMAN->m_vPlayedStageStats.emplace_back(ss);
 		SCREENMAN->SetNewScreen("ScreenEvaluationNormal");
