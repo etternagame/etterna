@@ -2,6 +2,7 @@
 #include "ScreenInstallOverlay.h"
 #include "RageFileManager.h"
 #include "ScreenManager.h"
+#include "CryptManager.h"
 #include "Preference.h"
 #include "RageLog.h"
 #include "json/value.h"
@@ -74,6 +75,56 @@ void DoInstalls(CommandLineActions::CommandLineArgs args)
 		if (s == "notedataCache") {
 			FOREACH_CONST(Song*, SONGMAN->GetAllSongs(), iSong) {
 				Song *pSong = (*iSong);
+				
+				vector<Steps*> vpStepsToSave;
+				FOREACH_CONST(Steps*, pSong->m_vpSteps, s)
+				{
+					Steps *pSteps = *s;
+
+					// Only save steps that weren't loaded from a profile.
+					if (pSteps->WasLoadedFromProfile())
+						continue;
+					vpStepsToSave.push_back(pSteps);
+				}
+				FOREACH_CONST(Steps*, pSong->m_UnknownStyleSteps, s)
+				{
+					vpStepsToSave.push_back(*s);
+				}
+				string songkey;
+				for (auto& st : vpStepsToSave)
+					songkey += st->GetChartKey();
+				songkey = BinaryToHex(CRYPTMAN->GetSHA1ForString(songkey));
+				if (pSong->HasBanner()) {
+					RageFile f;
+					f.Open(pSong->GetBannerPath());
+					string p = f.GetPath();
+					f.Close();
+					std::ofstream  dst(args.argv[i + 1] + songkey + "_banner." + GetExtension(pSong->m_sBannerFile).c_str(), std::ios::binary);
+					std::ifstream  src(p, std::ios::binary);
+					dst << src.rdbuf();
+					dst.close();
+				}
+				if (pSong->HasCDTitle()) {
+					RageFile f;
+					f.Open(pSong->GetCDTitlePath());
+					string p = f.GetPath();
+					f.Close();
+					std::ofstream  dst(args.argv[i + 1] + songkey + "_cd." + GetExtension(pSong->m_sCDTitleFile).c_str(), std::ios::binary);
+					std::ifstream  src(p, std::ios::binary);
+					dst << src.rdbuf();
+					dst.close();
+				}
+				
+				if (pSong->HasBackground()) {
+					RageFile f;
+					f.Open(pSong->GetBackgroundPath());
+					string p = f.GetPath();
+					f.Close();
+					std::ofstream  dst(args.argv[i + 1] +songkey + "_bg." + GetExtension(pSong->m_sBackgroundFile).c_str(), std::ios::binary);
+					std::ifstream  src(p, std::ios::binary);
+					dst << src.rdbuf();
+					dst.close();
+				}
 				FOREACH_CONST(Steps*, pSong->GetAllSteps(), iSteps) {
 					Steps* steps = (*iSteps);
 					TimingData* td = steps->GetTimingData();
