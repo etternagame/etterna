@@ -1,11 +1,9 @@
 local t = Def.ActorFrame {
-	Def.Sprite {
-		Texture="lift";
-		Frame0000=7;
-		Delay0000=1;
-		InitCommand=function(self)
+	LoadActor("lift") .. {
+		--[[InitCommand=function(self)
 			self:animate(false):pulse():effectclock("beat"):effectmagnitude(0.9,1,1)
-		end;
-	};
-};
-return t;
+		end]]
+		-- who even wants a pulsing lift anyways
+	}
+}
+return t
