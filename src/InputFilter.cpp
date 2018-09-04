@@ -464,12 +464,28 @@ void InputFilter::GetPressedButtons( vector<DeviceInput> &array ) const
 void InputFilter::UpdateCursorLocation(float _fX, float _fY)
 {
 	m_MouseCoords.fX = _fX;
+    
 	m_MouseCoords.fY = _fY;
 }
 
 void InputFilter::UpdateMouseWheel(float _fZ)
 {
 	m_MouseCoords.fZ = _fZ;
+}
+
+bool InputFilter::IsKBKeyPressed(DeviceButton k) const
+{
+	return INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, k));
+}
+
+bool InputFilter::IsControlPressed() const
+{
+	return IsKBKeyPressed(KEY_LCTRL) || IsKBKeyPressed(KEY_RCTRL);
+}
+
+bool InputFilter::IsShiftPressed() const
+{
+	return IsKBKeyPressed(KEY_LSHIFT) || IsKBKeyPressed(KEY_RSHIFT);
 }
 
 // lua start
@@ -501,16 +517,23 @@ public:
 			return luaL_error(L, "IsBeingPressed(button, inputDevice=keyboard) expects at least one parameter");
 		}
 		DeviceButton button = StringToDeviceButton(SArg(1));
-		InputDevice device = (lua_isnil(L, 2) ? StringToInputDevice(SArg(2)) : DEVICE_KEYBOARD);
+		InputDevice device = DEVICE_KEYBOARD;
+		if( !(lua_isnil(L, 2)) && lua_gettop(L) > 1) {
+			device = StringToInputDevice(SArg(2));
+		}
 		lua_pushboolean(L, INPUTFILTER->IsBeingPressed(DeviceInput(device, button)));
 		return 1;
 	}
+	DEFINE_METHOD(IsShiftPressed, IsShiftPressed());
+	DEFINE_METHOD(IsControlPressed, IsControlPressed());
 	LunaInputFilter()
 	{
 		ADD_METHOD(GetMouseX);
 		ADD_METHOD(GetMouseY);
 		ADD_METHOD(GetMouseWheel);
 		ADD_METHOD(IsBeingPressed);
+		ADD_METHOD(IsShiftPressed);
+		ADD_METHOD(IsControlPressed);
 	}
 };
 

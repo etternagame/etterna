@@ -48,6 +48,9 @@ PBProject/Hardware.plist
 *.dmg
 .DS_Store
 
+# Visual Studio 2015/2017 cache/options directory
+.vs/
+
 # Visual Studio
 *.sln
 *.vcxproj
@@ -85,7 +88,7 @@ core
 # StepMania Specific
 Cache/
 Save/**
-!Save/LocalProfiles/00000000
+Songs/
 Logs/
 src/*.so
 crashinfo.txt
@@ -107,3 +110,7 @@ tests/*.err
 
 nsis_strings_temp\.inc
 BatchRecalc/*
+
+Xcode/Info\.Etterna\.plist
+
+extern/LuaJit*/lj_*def.h

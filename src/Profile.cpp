@@ -40,6 +40,8 @@
 #include <algorithm>
 #include "ScreenManager.h"
 #include "XMLProfile.h"
+#include "DownloadManager.h"
+#include "RageString.h"
 
 /** @brief The filename for where one can edit their personal profile information. */
 const RString EDITABLE_INI         = "Editable.ini";
@@ -472,6 +474,39 @@ void Profile::IncrementStepsPlayCount( const Song* pSong, const Steps* pSteps )
 	GetStepsHighScoreList(pSong,pSteps).IncrementPlayCount( now );
 }
 
+Grade Profile::GetBestGrade(const Song* pSong, StepsType st) const
+{
+	Grade gradeBest = Grade_Invalid;
+	if (pSong != nullptr) {
+		bool hasCurrentStyleSteps = false;
+		FOREACH_ENUM_N(Difficulty, 6, i) {
+			Steps* pSteps = SongUtil::GetStepsByDifficulty(pSong, st, i);
+			if (pSteps != NULL) {
+				hasCurrentStyleSteps = true;
+				Grade dcg = SCOREMAN->GetBestGradeFor(pSteps->GetChartKey());
+				if (gradeBest >= dcg) {
+					gradeBest = dcg;
+				}
+			}
+		}
+		//If no grade was found for the current style/stepstype
+		if (!hasCurrentStyleSteps) {
+			//Get the best grade among all steps
+			auto& allSteps = pSong->GetAllSteps();
+			for (auto& stepsPtr : allSteps) {
+				if (stepsPtr->m_StepsType == st) //Skip already checked steps of type st
+					continue;
+				Grade dcg = SCOREMAN->GetBestGradeFor(stepsPtr->GetChartKey());
+				if (gradeBest >= dcg) {
+					gradeBest = dcg;
+				}
+			}
+		}
+	}
+
+	return gradeBest;
+}
+
 void Profile::GetGrades( const Song* pSong, StepsType st, int iCounts[NUM_Grade] ) const
 {
 	SongID songID;
@@ -804,8 +839,6 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 	InitAll();
 
 	LoadTypeFromDir(sDir);
-	// Not critical if this fails
-	LoadEditableDataFromDir( sDir );
 	DBProf.SetLoadingProfile(this);
 	XMLProf.SetLoadingProfile(this);
 	ProfileLoadResult ret = XMLProf.LoadEttFromDir(sDir);
@@ -818,6 +851,8 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 		IsEtternaProfile = true;
 		ImportScoresToEtterna();
 	}
+	// Not critical if this fails
+	LoadEditableDataFromDir(sDir);
 
 	// move old profile specific replays to the new aggregate folder
 	RString oldreplaydir = sDir + "ReplayData/";
@@ -835,9 +870,10 @@ ProfileLoadResult Profile::LoadAllFromDir( const RString &sDir, bool bRequireSig
 				ld->SetText("Migrating replay data to new folder...");
 			}
 			int replayindex = 0;
+			int onePercent = std::max(static_cast<int>(replays.size() / 100), 1);
 			
 			for (auto r : replays) {
-				if (ld && ld_timer.Ago() > ld_update) {
+				if (ld && replayindex%onePercent==0 && ld_timer.Ago() > ld_update) {
 					ld_timer.Touch();
 					ld->SetProgress(replayindex);
 					++replayindex;
@@ -909,7 +945,6 @@ void Profile::CalculateStatsFromScores(LoadingWindow* ld) {
 
 	SCOREMAN->RecalculateSSRs(ld, m_sProfileID);
 	SCOREMAN->CalcPlayerRating(m_fPlayerRating, m_fPlayerSkillsets, m_sProfileID);
-	//SCOREMAN->RatingOverTime();
 }
 
 void Profile::CalculateStatsFromScores() {
@@ -1192,12 +1227,35 @@ void Profile::ImportScoresToEtterna() {
 
 
 
-// more future goalman stuff
-void Profile::CreateGoal(const string& ck) {
+// more future goalman stuff (perhaps this should be standardized to "add" in order to match scoreman nomenclature) -mina
+void Profile::AddGoal(const string& ck) {
 	ScoreGoal goal;
 	goal.timeassigned = DateTime::GetNowDateTime();
 	goal.rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+	goal.chartkey = ck;
+	// duplication avoidance should be simpler than this? -mina
+	if (goalmap.count(ck))
+	for (auto& n : goalmap[ck].goals)
+		if (n.rate == goal.rate && n.percent == goal.percent)
+			return;
+	
+	
+	goal.CheckVacuity();
 	goalmap[ck].Add(goal);
+	DLMAN->AddGoal(ck, goal.percent, goal.rate, goal.timeassigned);
+	FillGoalTable();
+	MESSAGEMAN->Broadcast("GoalTableRefresh");
+}
+
+void Profile::FillGoalTable() {
+	goaltable.clear();
+	for (auto& sgv : goalmap)
+		for (auto& sg : sgv.second.goals)
+			if(SONGMAN->GetStepsByChartkey(sg.chartkey))
+				goaltable.emplace_back(&sg);
+
+	auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->timeassigned > b->timeassigned; };
+	sort(goaltable.begin(), goaltable.end(), comp);
 }
 
 XNode* ScoreGoal::CreateNode() const {
@@ -1251,6 +1309,11 @@ void ScoreGoal::CheckVacuity() {
 		vacuous = false;
 }
 
+void ScoreGoal::UploadIfNotVacuous() {
+	if (!vacuous || timeachieved.GetString() != "")
+		DLMAN->UpdateGoal(chartkey, percent, rate, achieved, timeassigned, timeachieved);
+}
+
 // aaa too lazy to write comparators rn -mina
 ScoreGoal& Profile::GetLowestGoalForRate(const string& ck, float rate) {
 	auto& sgv = goalmap[ck].Get();
@@ -1281,15 +1344,18 @@ void Profile::SetAnyAchievedGoals(const string& ck, float& rate, const HighScore
 			tmp.achieved = true;
 			tmp.timeachieved = pscore.GetDateTime();
 			tmp.scorekey = pscore.GetScoreKey();
+			DLMAN->UpdateGoal(tmp.chartkey, tmp.percent, tmp.rate, tmp.achieved, tmp.timeassigned, tmp.timeachieved);
 		}
 	}
 }
 
-void Profile::DeleteGoal(const string& ck, DateTime assigned) {
+void Profile::RemoveGoal(const string& ck, DateTime assigned) {
 	auto& sgv = goalmap.at(ck).Get();
 	for (size_t i = 0; i < sgv.size(); ++i) {
-		if (sgv[i].timeassigned == assigned)
+		if (sgv[i].timeassigned == assigned) {
+			DLMAN->RemoveGoal(ck, sgv[i].percent, sgv[i].rate);
 			sgv.erase(sgv.begin() + i);
+		}
 	}
 }
 
@@ -1528,23 +1594,128 @@ public:
 	}
 
 	DEFINE_METHOD(GetGUID, m_sGuid);
-	static int GetAllGoals(T* p, lua_State *L) {
-		lua_newtable(L);
-		int idx = 0;
-		FOREACHUM(string, GoalsForChart, p->goalmap, i) {
-			const string &ck = i->first;
-			auto &sgv = i->second.Get();
-			FOREACH(ScoreGoal, sgv, sg) {
-				ScoreGoal &tsg = *sg;
-				tsg.chartkey = ck;
-				tsg.PushSelf(L);
-				lua_rawseti(L, -2, idx + 1);
-				idx++;
-			}
-		}
+	
+	static int GetGoalTable(T* p, lua_State *L) {
+		LuaHelpers::CreateTableFromArray(p->goaltable, L);
 		return 1;
 	}
+	static int SetFromAll(T* p, lua_State *L) {
+		p->FillGoalTable();
+		p->filtermode = 1;
+		p->asc = true;
+		return 0;
+	}
+	
+	static int SortByDate(T* p, lua_State* L) {
+		if (p->sortmode == 1)
+			if (p->asc) {
+				auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->timeassigned < b->timeassigned; };	// custom operators?
+				sort(p->goaltable.begin(), p->goaltable.end(), comp);
+				p->asc = false;
+				return 0;
+			}
+		auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->timeassigned > b->timeassigned; };
+		sort(p->goaltable.begin(), p->goaltable.end(), comp);
+		p->sortmode = 1;
+		p->asc = true;
+		return 0;
+	}
 
+	static int SortByRate(T* p, lua_State* L) {
+		if (p->sortmode == 2)
+			if (p->asc) {
+				auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->rate < b->rate; };	// custom operators?
+				sort(p->goaltable.begin(), p->goaltable.end(), comp);
+				p->asc = false;
+				return 0;
+			}
+		auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->rate > b->rate; };
+		sort(p->goaltable.begin(), p->goaltable.end(), comp);
+		p->sortmode = 2;
+		p->asc = true;
+		return 0;
+	}
+
+	static int SortByName(T* p, lua_State* L) {
+		if (p->sortmode == 3)
+			if (p->asc) {
+				auto comp = [](ScoreGoal* a, ScoreGoal* b) { return Rage::make_lower(SONGMAN->GetSongByChartkey(a->chartkey)->GetDisplayMainTitle()) >
+					Rage::make_lower(SONGMAN->GetSongByChartkey(b->chartkey)->GetDisplayMainTitle()); };	// custom operators?
+				sort(p->goaltable.begin(), p->goaltable.end(), comp);
+				p->asc = false;
+				return 0;
+			}
+		auto comp = [](ScoreGoal* a, ScoreGoal* b) { return Rage::make_lower(SONGMAN->GetSongByChartkey(a->chartkey)->GetDisplayMainTitle()) < 
+			Rage::make_lower(SONGMAN->GetSongByChartkey(b->chartkey)->GetDisplayMainTitle()); };
+		sort(p->goaltable.begin(), p->goaltable.end(), comp);
+		p->sortmode = 3;
+		p->asc = true;
+		return 0;
+	}
+
+	static int SortByPriority(T* p, lua_State* L) {
+		if (p->sortmode == 4)
+			if (p->asc) {
+				auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->priority > b->priority; };	// custom operators?
+				sort(p->goaltable.begin(), p->goaltable.end(), comp);
+				p->asc = false;
+				return 0;
+			}
+		auto comp = [](ScoreGoal* a, ScoreGoal* b) { return a->priority < b->priority; };
+		sort(p->goaltable.begin(), p->goaltable.end(), comp);
+		p->sortmode = 4;
+		p->asc = true;
+		return 0;
+	}
+
+	static int SortByDiff(T* p, lua_State* L) {
+		if (p->sortmode == 5)
+			if (p->asc) {
+				auto comp = [](ScoreGoal* a, ScoreGoal* b) { return SONGMAN->GetStepsByChartkey(a->chartkey)->GetMSD(a->rate, 0) <
+					SONGMAN->GetStepsByChartkey(b->chartkey)->GetMSD(b->rate, 0); };
+				sort(p->goaltable.begin(), p->goaltable.end(), comp);
+				p->asc = false;
+				return 0;
+			}
+		auto comp = [](ScoreGoal* a, ScoreGoal* b) { return SONGMAN->GetStepsByChartkey(a->chartkey)->GetMSD(a->rate, 0) >
+			SONGMAN->GetStepsByChartkey(b->chartkey)->GetMSD(b->rate, 0); };
+		sort(p->goaltable.begin(), p->goaltable.end(), comp);
+		p->sortmode = 5;
+		p->asc = true;
+		return 0;
+	}
+
+	static int ToggleFilter(T* p, lua_State* L) {
+		p->FillGoalTable();
+		
+		if (p->filtermode == 3) {
+			p->filtermode = 1;
+			return 0;
+		}
+
+		vector<ScoreGoal*> doot;
+		if (p->filtermode == 1) {
+			for (auto& sg : p->goaltable)
+				if(sg->achieved)
+					doot.emplace_back(sg);
+			p->goaltable = doot;
+			p->filtermode = 2;
+			return 0;
+		}
+		if (p->filtermode == 2) {
+			for (auto& sg : p->goaltable)
+				if (!sg->achieved)
+					doot.emplace_back(sg);
+			p->goaltable = doot;
+			p->filtermode = 3;
+			return 0;
+		}
+		return 0;
+	}
+	static int GetFilterMode(T* p, lua_State *L) {
+		lua_pushnumber(L, p->filtermode);
+		return 1;
+	}
 	static int GetIgnoreStepCountCalories(T* p, lua_State *L) {
 		lua_pushboolean(L, 0);
 		return 1;
@@ -1591,6 +1762,12 @@ public:
 		return 1;
 	}
 
+	static int RenameProfile(T* p, lua_State *L) {
+		p->m_sDisplayName = SArg(1);
+		p->SaveEditableDataToDir(p->m_sProfileID);
+		return 1;
+	}
+
 	LunaProfile()
 	{
 		ADD_METHOD( AddScreenshot );
@@ -1633,11 +1810,20 @@ public:
 		ADD_METHOD( GetPlayerRating );
 		ADD_METHOD( GetPlayerSkillsetRating );
 		ADD_METHOD( GetNumFaves );
-		ADD_METHOD( GetAllGoals );
+		ADD_METHOD(GetGoalTable);
 		ADD_METHOD(GetIgnoreStepCountCalories);
 		ADD_METHOD(CalculateCaloriesFromHeartRate);
 		ADD_METHOD(IsCurrentChartPermamirror);
 		ADD_METHOD(GetEasiestGoalForChartAndRate);
+		ADD_METHOD(RenameProfile);
+		ADD_METHOD(SetFromAll);
+		ADD_METHOD(SortByDate);
+		ADD_METHOD(SortByRate);
+		ADD_METHOD(SortByPriority);
+		ADD_METHOD(SortByName);
+		ADD_METHOD(SortByDiff);
+		ADD_METHOD(ToggleFilter);
+		ADD_METHOD(GetFilterMode);
 	}
 };
 
@@ -1668,8 +1854,8 @@ public:
 			CLAMP(newrate, 0.7f, 3.0f);
 			p->rate = newrate;
 			p->CheckVacuity();
+			p->UploadIfNotVacuous();
 		}
-		
 		return 1; 
 	}
 
@@ -1677,8 +1863,15 @@ public:
 		if (!p->achieved) {
 			float newpercent = FArg(1);
 			CLAMP(newpercent, .8f, 1.f);
+			
+			if (p->percent < 0.995f && newpercent > 0.995f)
+				newpercent = 0.9975f;
+			if (p->percent < 0.9990f && newpercent > 0.9997f)
+				newpercent = 0.9997f;
+
 			p->percent = newpercent;
 			p->CheckVacuity();
+			p->UploadIfNotVacuous();
 		}
 		return 1;
 	}
@@ -1688,6 +1881,7 @@ public:
 			int newpriority = IArg(1);
 			CLAMP(newpriority, 0, 100);
 			p->priority = newpriority;
+			p->UploadIfNotVacuous();
 		}
 		return 1;
 	}
@@ -1695,7 +1889,7 @@ public:
 	static int SetComment(T* p, lua_State *L) { p->comment = SArg(1); return 1; }
 
 	static int Delete(T* p, lua_State *L) {
-		PROFILEMAN->GetProfile(PLAYER_1)->DeleteGoal(p->chartkey, p->timeassigned);
+		PROFILEMAN->GetProfile(PLAYER_1)->RemoveGoal(p->chartkey, p->timeassigned);
 		return 1;
 	}
 

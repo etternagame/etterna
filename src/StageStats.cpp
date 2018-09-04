@@ -9,13 +9,17 @@
 #include "ProfileManager.h"
 #include "StageStats.h"
 #include "Style.h"
+#include "PlayerAI.h"
 #include "NetworkSyncManager.h"
+#include "AdjustSync.h"
 #include <fstream>
 #include <sstream>
 #include "CryptManager.h"
 #include "ScoreManager.h"
 #include "DownloadManager.h"
 #include "MinaCalc.h"
+#include "Song.h"
+#include "GamePreferences.h"
 
 #ifdef _WIN32 
 #include <intrin.h>
@@ -458,6 +462,10 @@ bool DetermineScoreEligibility(const PlayerStageStats &pss, const PlayerState &p
 	if (mods.find("NoMines") != mods.npos && pss.filegotmines)
 		return false;
 
+	// this would be difficult to accomplish but for parity's sake we should
+	if (mods.find("NoHolds") != mods.npos && pss.filegotholds)
+		return false;
+
 	if (mods.find("Left") != mods.npos)
 		return false;
 
@@ -514,6 +522,10 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 
 	// Etterna validity check, used for ssr/eo eligibility -mina
 	hs.SetEtternaValid(DetermineScoreEligibility(pss, ps));
+	
+	// force fail grade if player 'gave up', autoplay was used, or lua scripts were loaded (this is sorta redundant with the above but ehh) -mina
+	if(pss.gaveuplikeadumbass || pss.luascriptwasloaded || pss.everusedautoplay)
+	hs.SetGrade(Grade_Failed);
 
 	// should maybe just make the setscorekey function do this internally rather than recalling the datetime object -mina
 	RString ScoreKey = "S" + BinaryToHex(CryptManager::GetSHA1ForString(hs.GetDateTime().GetString()));
@@ -527,6 +539,10 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 	if (pss.m_fWifeScore > 0.f) {
 		hs.SetOffsetVector(pss.GetOffsetVector());
 		hs.SetNoteRowVector(pss.GetNoteRowVector());
+		hs.SetTrackVector(pss.GetTrackVector());
+		hs.SetTapNoteTypeVector(pss.GetTapNoteTypeVector());
+		hs.SetHoldReplayDataVector(pss.GetHoldReplayDataVector());
+		hs.SetReplayType(2);	// flag this before rescore so it knows we're LEGGIT
 
 		if (pss.GetGrade() == Grade_Failed)
 			hs.SetSSRNormPercent(0.f);
@@ -546,7 +562,7 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 		}
 	}
 
-	pss.GenerateValidationKeys(hs);
+	hs.GenerateValidationKeys();
 
 	if (!pss.InputData.empty())
 		hs.WriteInputData(pss.InputData);
@@ -590,10 +606,19 @@ void StageStats::FinalizeScores(bool bSummary)
 	const Steps* pSteps = GAMESTATE->m_pCurSteps[PLAYER_1];
 
 	ASSERT(pSteps != NULL);
-	// new score structure -mina
 	Profile* zzz = PROFILEMAN->GetProfile(PLAYER_1);
+	if (GamePreferences::m_AutoPlay != PC_HUMAN) {
+		if (PlayerAI::pScoreData) {
+			mostrecentscorekey = PlayerAI::pScoreData->GetScoreKey();
+			SCOREMAN->PutScoreAtTheTop(mostrecentscorekey);
+		}
+		zzz->m_lastSong.FromSong(GAMESTATE->m_pCurSong);
+		return;
+	}
+	// new score structure -mina
 	int istop2 = SCOREMAN->AddScore(hs);
-	if (DLMAN->ShouldUploadScores()) {
+	if (DLMAN->ShouldUploadScores() && !AdjustSync::IsSyncDataChanged()) {
+		CHECKPOINT_M("Uploading score with replaydata.");
 		hs.SetTopScore(istop2);	// ayy i did it --lurker
 		auto steps = SONGMAN->GetStepsByChartkey(hs.GetChartKey());
 		auto td = steps->GetTimingData();
@@ -605,6 +630,7 @@ void StageStats::FinalizeScores(bool bSummary)
 	if(NSMAN->isSMOnline)
 		NSMAN->ReportHighScore(&hs, m_player[PLAYER_1]);
 	if (m_player[PLAYER_1].m_fWifeScore > 0.f) {
+
 		bool writesuccess = hs.WriteReplayData();
 		if (writesuccess)
 			hs.UnloadReplayData();

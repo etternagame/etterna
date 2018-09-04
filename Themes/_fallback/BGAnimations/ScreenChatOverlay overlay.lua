@@ -11,7 +11,7 @@ local mousex, mousey = -1, -1
 local scale = 0.4
 local minimised = false
 local typing = false
-local typingText = ''
+local typingText = ""
 local transparency = 0.5
 local curmsgh = 0
 local closeTabSize = 10
@@ -78,8 +78,8 @@ chat.ScreenChangedMessageCommand = function(self)
 		self:visible(online)
 		show = true
 		s:AddInputCallback(input)
-		MESSAGEMAN:Broadcast("ScreenaaaChanged")
 	end
+	MESSAGEMAN:Broadcast("UpdateChatOverlay")
 end
 chat.MultiplayerDisconnectionMessageCommand = function(self)
 	online = false
@@ -346,19 +346,21 @@ function input(event)
 	end
 	
 	
-	if typing and event.type ~= "InputEventType_Release" then
-		if event.DeviceInput.button == "DeviceButton_enter" then
-			if typingText:len() > 0 then
-				NSMAN:SendChatMsg(typingText, currentTabType, currentTabName)
-				typingText = ''
+	if typing  then
+		if event.type == "InputEventType_Release" then
+			if event.DeviceInput.button == "DeviceButton_enter" then
+				if typingText:len() > 0 then
+					NSMAN:SendChatMsg(typingText, currentTabType, currentTabName)
+					typingText = ""
+				end
+				update = true
 			end
-			update = true
 		elseif event.button == "Back" then
-			typingText = ''
+			typingText = ""
 			typing = false
 			update = true
 		elseif event.DeviceInput.button == "DeviceButton_space" then
-			typingText = typingText .. ' '
+			typingText = typingText .. " " 
 			update = true
 		elseif (INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl")) and event.DeviceInput.button == "DeviceButton_v" then
 			typingText = typingText .. HOOKS:GetClipboard()
@@ -367,7 +369,7 @@ function input(event)
 			typingText = typingText:sub(1, -2)
 			update = true
 		elseif event.char then
-			typingText = typingText .. event.char
+			typingText =  (tostring(typingText)..tostring(event.char)):gsub("[^%g%s]", "")
 			update = true
 		end
 	end

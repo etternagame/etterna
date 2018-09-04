@@ -6,12 +6,7 @@
 #include "Grade.h"
 #include "MessageManager.h"
 #include "ModsGroup.h"
-#include "PlayerOptions.h"
-#include "Preference.h"
-#include "RageTimer.h"
-#include "SongOptions.h"
 #include "SongPosition.h"
-#include "Preference.h"
 #include "discord-rpc.h"
 
 #include <deque>
@@ -28,6 +23,7 @@ class Steps;
 class StageStats;
 class Style;
 class TimingData;
+class SongOptions;
 
 SortOrder GetDefaultSort();
 
@@ -183,6 +179,8 @@ public:
 	bool		m_bDemonstrationOrJukebox;
 	bool		m_bJukeboxUsesModifiers;
 	int			m_iNumStagesOfThisSong;
+	//Used by GameplayScreen to know if it needs to call NSMAN
+	bool		m_bInNetGameplay = false;
 	/**
 	 * @brief Increase this every stage while not resetting on a continue.
 	 *
@@ -213,7 +211,7 @@ public:
 	bool		m_bLoadingNextSong;
 	int		GetLoadingCourseSongIndex() const;
 
-	RString GetEtternaVersion() { return "0.58.0"; }
+	RString GetEtternaVersion() { return "0.60.0"; }
 	bool isplaylistcourse = false;
 	bool IsPlaylistCourse() { return isplaylistcourse; }
 	bool CountNotesSeparately();

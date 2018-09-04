@@ -12,7 +12,7 @@
 #include "InputEventPlus.h"
 #include "PlayerState.h"
 #include "PrefsManager.h"
-#include "Profile.h"
+#include "ScoreManager.h"
 #include "ProfileManager.h"
 #include "RageDisplay.h"
 #include "RageLog.h"
@@ -26,6 +26,7 @@
 #include "StepMania.h"
 #include "Steps.h"
 #include "ThemeManager.h"
+#include "GamePreferences.h"
 
 // metrics that are common to all ScreenEvaluation classes
 #define BANNER_WIDTH			THEME->GetMetricF(m_sName,"BannerWidth")
@@ -211,14 +212,14 @@ void ScreenEvaluation::Init()
 
 	// Figure out which statistics and songs we're going to display
 	SUMMARY.Load( m_sName, "Summary" );
-	if( SUMMARY )
+	if( SUMMARY && GamePreferences::m_AutoPlay != PC_REPLAY)
 	{
 		STATSMAN->GetFinalEvalStageStats( m_FinalEvalStageStats );
 		m_pStageStats = &m_FinalEvalStageStats;
 	}
 
 	// update persistent statistics
-	if( SUMMARY )
+	if( SUMMARY && GamePreferences::m_AutoPlay != PC_REPLAY)
 		m_pStageStats->FinalizeScores( true );
 
 	// Run this here, so STATSMAN->m_CurStageStats is available to overlays.
@@ -305,8 +306,7 @@ void ScreenEvaluation::Init()
 			}
 		}
 
-		// Dairy Queen'd (disqualified)
-		FOREACH_EnabledPlayer( p )
+		auto p = PLAYER_1;
 		{
 			m_sprDisqualified[p].Load( THEME->GetPathG(m_sName,"Disqualified") );
 			m_sprDisqualified[p]->SetName( ssprintf("DisqualifiedP%d",p+1) );
@@ -674,6 +674,7 @@ void ScreenEvaluation::Init()
 		default:
 			break;
 	}
+
 }
 
 bool ScreenEvaluation::Input( const InputEventPlus &input )

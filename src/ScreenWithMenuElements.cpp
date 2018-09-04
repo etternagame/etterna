@@ -310,7 +310,8 @@ void ScreenWithMenuElements::StopTimer()
 		m_MenuTimer->Stop();
 }
 
-REGISTER_SCREEN_CLASS( ScreenWithMenuElementsSimple );
+REGISTER_SCREEN_CLASS(ScreenWithMenuElementsBasic);
+REGISTER_SCREEN_CLASS(ScreenWithMenuElementsSimple);
 
 bool ScreenWithMenuElementsSimple::MenuStart( const InputEventPlus &input )
 {

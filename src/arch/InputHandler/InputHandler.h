@@ -33,6 +33,7 @@ public:
 
 	// Override to return a pretty string that's specific to the controller type.
 	virtual RString GetDeviceSpecificInputString( const DeviceInput &di );
+    static wchar_t ApplyKeyModifiers(wchar_t c);
 	virtual RString GetLocalizedInputString( const DeviceInput &di );
 	virtual wchar_t DeviceButtonToChar( DeviceButton button, bool bUseCurrentKeyModifiers );
 

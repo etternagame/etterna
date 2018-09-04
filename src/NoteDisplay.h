@@ -48,20 +48,20 @@ struct NoteColorActor
 {
 	NoteColorActor();
 	~NoteColorActor();
-	void Load( const RString &sButton, const RString &sElement, PlayerNumber, GameController );
-	Actor *Get();
+	void Load( const RString &sButton, const RString &sElement, PlayerNumber, GameController, RString ); 
+	Actor *Get(RString); 
 private:
-	NoteResource *m_p;
+	map<RString, NoteResource*> g_p; 
 };
 
 struct NoteColorSprite
 {
 	NoteColorSprite();
 	~NoteColorSprite();
-	void Load( const RString &sButton, const RString &sElement, PlayerNumber, GameController );
-	Sprite *Get();
+	void Load( const RString &sButton, const RString &sElement, PlayerNumber, GameController, RString ); 
+	Sprite *Get(RString); 
 private:
-	NoteResource *m_p;
+	map<RString, NoteResource*> g_p;
 };
 /** @brief What types of holds are there? */
 enum HoldType 
@@ -227,6 +227,7 @@ private:
 		float overlapped_time;
 		float y_top;
 		float y_bottom;
+		float y_length; 
 		float y_start_pos;
 		float y_end_pos;
 		float top_beat;
@@ -251,11 +252,11 @@ private:
 		const NoteColumnRenderArgs& column_args,
 		draw_hold_part_args& part_args,
 		const float head_minus_top, const float tail_plus_bottom,
-		const float y_head, const float y_tail, const float top_beat,
+		const float y_head, const float y_tail, const float y_length, const float top_beat, 
 		const float bottom_beat, bool glow);
 	void DrawHoldBody(const TapNote& tn, const NoteFieldRenderArgs& field_args,
 		const NoteColumnRenderArgs& column_args, float beat, bool being_held,
-		float y_head, float y_tail, float percent_fade_to_fail,
+		float y_head, float y_tail, float y_end, float percent_fade_to_fail, 
 		float color_scale, float top_beat, float bottom_beat);
 
 	const PlayerState	*m_pPlayerState;	// to look up PlayerOptions

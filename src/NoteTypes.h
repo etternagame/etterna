@@ -203,6 +203,19 @@ struct TapNote
 	bool operator!=( const TapNote &other ) const { return !operator==( other ); }
 };
 
+struct HoldReplayResult {
+	int row;
+	int track; //column
+	TapNoteSubType subType;
+};
+
+struct TapReplayResult {
+	int row;
+	int track; // column
+	float offset;	// 0
+	TapNoteType type; //typically mines, holds, rolls, etc
+};
+
 extern TapNote TAP_EMPTY;			// '0'
 extern TapNote TAP_ORIGINAL_TAP;		// '1'
 extern TapNote TAP_ORIGINAL_HOLD_HEAD;		// '2'

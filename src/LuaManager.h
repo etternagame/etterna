@@ -8,13 +8,7 @@ class RageMutex;
 class XNode;
 class LuaReference;
 
-extern "C"
-{
-#include "lua.h"
-#include "luajit.h"
-#include "lualib.h"
-#include "lauxlib.h"
-}
+#include "lua.hpp"
 
 // For Dialog::Result
 #include "RageUtil.h"

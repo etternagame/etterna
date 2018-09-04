@@ -7,12 +7,13 @@
 #include "GameConstantsAndTypes.h"
 #include "GameManager.h"
 #include "GameSoundManager.h"
+#include "ScoreManager.h"
 #include "GameState.h"
 #include "InputMapper.h"
 #include "MenuTimer.h"
+#include "StageStats.h"
 #include "PlayerState.h"
 #include "PrefsManager.h"
-#include "Profile.h"
 #include "ProfileManager.h"
 #include "RageLog.h"
 #include "RageTextureManager.h"
@@ -37,6 +38,8 @@
 #include "ScreenTextEntry.h"
 #include "ProfileManager.h"
 #include "DownloadManager.h"
+#include "GamePreferences.h"
+#include "PlayerAI.h"
 
 static const char *SelectionStateNames[] = {
 	"SelectingSong",
@@ -83,6 +86,8 @@ void ScreenSelectMusic::Init()
 		GAMESTATE->JoinPlayer(PLAYER_1);
 		GAMESTATE->SetMasterPlayerNumber(PLAYER_1);
 	}
+	if (GamePreferences::m_AutoPlay == PC_REPLAY)
+		GamePreferences::m_AutoPlay.Set(PC_HUMAN);
 
 	IDLE_COMMENT_SECONDS.Load(m_sName, "IdleCommentSeconds");
 	SAMPLE_MUSIC_DELAY_INIT.Load(m_sName, "SampleMusicDelayInit");
@@ -244,17 +249,18 @@ void ScreenSelectMusic::BeginScreen()
 
 	if (GAMESTATE->GetCurrentStyle(PLAYER_INVALID) == NULL)
 	{
-		LuaHelpers::ReportScriptError("The Style has not been set.  A theme must set the Style before loading ScreenSelectMusic.");
+		LOG->Trace("The Style has not been set.  A theme must set the Style before loading ScreenSelectMusic.");
 		// Instead of crashing, set the first compatible style.
 		vector<StepsType> vst;
 		GAMEMAN->GetStepsTypesForGame(GAMESTATE->m_pCurGame, vst);
 		const Style *pStyle = GAMEMAN->GetFirstCompatibleStyle(GAMESTATE->m_pCurGame, GAMESTATE->GetNumSidesJoined(), vst[0]);
 		if (pStyle == NULL)
 		{
-			FAIL_M(ssprintf("No compatible styles for %s with %d player%s.",
+			LOG->Warn(ssprintf("No compatible styles for %s with %d player%s.",
 				GAMESTATE->m_pCurGame->m_szName,
 				GAMESTATE->GetNumSidesJoined(),
-				GAMESTATE->GetNumSidesJoined() == 1 ? "" : "s"));
+				GAMESTATE->GetNumSidesJoined() == 1 ? "" : "s") + "Returning to title menu.");
+			SCREENMAN->SetNewScreen("ScreenTitleMenu");
 		}
 		GAMESTATE->SetCurrentStyle(pStyle, PLAYER_INVALID);
 	}
@@ -396,6 +402,7 @@ void ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 		FallbackMusic.bAlignBeat = ALIGN_MUSIC_BEATS;
 
 		SOUND->PlayMusic(PlayParams, FallbackMusic);
+		DLMAN->RequestChartLeaderBoard(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
 	}
 }
 
@@ -416,8 +423,7 @@ void ScreenSelectMusic::Update(float fDeltaTime)
 
 void ScreenSelectMusic::DifferentialReload()
 {
-	int newsongs = SONGMAN->DifferentialReload();
-	SCREENMAN->SystemMessage(ssprintf("Differential reload of %i songs", newsongs));
+	SONGMAN->DifferentialReload();
 	m_MusicWheel.ReloadSongList(false, "");
 }
 
@@ -470,7 +476,14 @@ bool ScreenSelectMusic::Input(const InputEventPlus &input)
 			Song* to_reload = m_MusicWheel.GetSelectedSong();
 			if (to_reload != nullptr)
 			{
+				auto stepses = to_reload->GetAllSteps();
+				vector<string> oldChartkeys;
+				for (auto steps : stepses)
+					oldChartkeys.emplace_back(steps->GetChartKey());
+
 				to_reload->ReloadFromSongDir();
+				SONGMAN->ReconcileChartKeysForReloadedSong(to_reload, oldChartkeys);
+
 				AfterMusicChange();
 				return true;
 			}
@@ -485,13 +498,16 @@ bool ScreenSelectMusic::Input(const InputEventPlus &input)
 				if (!fav_me_biatch->IsFavorited()) {
 					fav_me_biatch->SetFavorited(true);
 					pProfile->AddToFavorites(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+					DLMAN->AddFavorite(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
 					pProfile->allplaylists.erase("Favorites");
 					SONGMAN->MakePlaylistFromFavorites(pProfile->FavoritedCharts, pProfile->allplaylists);
 				}
 				else {
 					fav_me_biatch->SetFavorited(false);
 					pProfile->RemoveFromFavorites(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+					DLMAN->RemoveFavorite(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
 				}
+				DLMAN->RefreshFavourites();
 				Message msg("FavoritesUpdated");
 				MESSAGEMAN->Broadcast(msg);
 				m_MusicWheel.ChangeMusic(0);
@@ -522,13 +538,12 @@ bool ScreenSelectMusic::Input(const InputEventPlus &input)
 		else if (bHoldingCtrl && c == 'G' && m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS)
 		{
 			Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
-			pProfile->CreateGoal(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+			pProfile->AddGoal(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
 			Song* asonglol = m_MusicWheel.GetSelectedSong();
+			if (!asonglol)
+				return true;
 			asonglol->SetHasGoal(true);
-			Message msg("FavoritesUpdated");
-			MESSAGEMAN->Broadcast(msg);
-			Message msg2("UpdateGoals");
-			MESSAGEMAN->Broadcast(msg2);
+			MESSAGEMAN->Broadcast("FavoritesUpdated");
 			m_MusicWheel.ChangeMusic(0);
 			return true;
 		}
@@ -575,15 +590,6 @@ bool ScreenSelectMusic::Input(const InputEventPlus &input)
 
 	if (!input.GameI.IsValid())
 		return false; // don't care
-
-					  // Handle late joining
-					  // If the other player is allowed to join on the extra stage, then the
-					  // summary screen will crash on invalid stage stats. -Kyz
-	if (m_SelectionState != SelectionState_Finalized &&
-		input.MenuI == GAME_BUTTON_START && input.type == IET_FIRST_PRESS && GAMESTATE->JoinInput(input.pn))
-	{
-		return true; // don't handle this press again below
-	}
 
 	if (!GAMESTATE->IsHumanPlayer(input.pn))
 		return false;
@@ -1145,7 +1151,7 @@ void ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 		m_bAllowOptionsMenu = false;
 		if (OPTIONS_MENU_AVAILABLE && !m_bGoToOptions)
 			this->PlayCommand("HidePressStartForOptions");
-
+		GAMESTATE->m_bInNetGameplay = false;
 		this->PostScreenMessage(SM_GoToNextScreen, this->GetTweenTimeLeft());
 	}
 	else if (SM == SM_GoToNextScreen)
@@ -1223,7 +1229,10 @@ bool ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 
 	switch (m_SelectionState)
 	{
-		DEFAULT_FAIL(m_SelectionState);
+	case SelectionState_Finalized: {
+		LOG->Warn("song selection made while selectionstate_finalized");
+		return false;
+	}
 	case SelectionState_SelectingSong:
 		// If false, we don't have a selection just yet.
 		if (!m_MusicWheel.Select())
@@ -1461,7 +1470,6 @@ void ScreenSelectMusic::AfterStepsOrTrailChange(const vector<PlayerNumber> &vpns
 			}
 
 			m_textHighScore[pn].SetText(ssprintf("%*i", NUM_SCORE_DIGITS, iScore));
-			DLMAN->RequestChartLeaderBoard(pSteps->GetChartKey());
 		}
 		else
 		{
@@ -1861,6 +1869,53 @@ public:
 		p->SelectCurrent(PLAYER_1);
 		return 1;
 	}
+	
+	static int PlayReplay(T* p, lua_State *L)
+	{
+		HighScore* hs = Luna<HighScore>::check(L, 1);
+		PlayerAI::SetScoreData(hs);
+
+		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = hs->GetMusicRate();
+		MESSAGEMAN->Broadcast("RateChanged");
+		GamePreferences::m_AutoPlay.Set(PC_REPLAY);
+		p->SelectCurrent(PLAYER_1);
+		return 1;
+	}
+
+	static int ShowEvalScreenForScore(T* p, lua_State *L)
+	{
+		HighScore* hs = Luna<HighScore>::check(L, 1);
+		SCOREMAN->PutScoreAtTheTop(hs->GetScoreKey());
+		GamePreferences::m_AutoPlay.Set(PC_REPLAY);
+		StageStats ss;
+		ss.Init();
+		auto score = SCOREMAN->GetMostRecentScore();
+		score->LoadReplayData();
+		auto& pss = ss.m_player[0];
+		pss.m_HighScore = *score;
+		pss.CurWifeScore = score->GetWifeScore();
+		pss.m_vNoteRowVector = score->GetNoteRowVector();
+		pss.m_vOffsetVector = score->GetOffsetVector();
+		pss.m_vTapNoteTypeVector = score->GetTapNoteTypeVector();
+		pss.m_vTrackVector = score->GetTrackVector();
+		score->UnloadReplayData();
+		pss.m_iSongsPassed = 1;
+		pss.m_iSongsPlayed = 1;
+		pss.everusedautoplay = true;
+		for (int i = TNS_Miss; i<NUM_TapNoteScore; i++)
+		{
+			pss.m_iTapNoteScores[i] = score->GetTapNoteScore((TapNoteScore)i);
+		}
+		for (int i = 0; i<NUM_HoldNoteScore; i++)
+		{
+			pss.m_iHoldNoteScores[i] = score->GetHoldNoteScore((HoldNoteScore)i);
+		}
+		STATSMAN->m_CurStageStats = ss;
+		STATSMAN->m_vPlayedStageStats.emplace_back(ss);
+		SCREENMAN->SetNewScreen("ScreenEvaluationNormal");
+		return 1;
+	}
+	
 	LunaScreenSelectMusic()
 	{
 		ADD_METHOD(GetGoToOptions);
@@ -1870,6 +1925,8 @@ public:
 		ADD_METHOD(SelectCurrent);
 		ADD_METHOD(GetSelectionState);
 		ADD_METHOD(StartPlaylistAsCourse);
+		ADD_METHOD(PlayReplay);
+		ADD_METHOD(ShowEvalScreenForScore);
 	}
 };
 

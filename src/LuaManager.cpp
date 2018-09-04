@@ -21,13 +21,7 @@
 
 #include "RageString.h"
 
-extern "C"
-{
-#include "lua.h"
-#include "luajit.h"
-#include "lualib.h"
-#include "lauxlib.h"
-}
+#include "lua.hpp"
 
 using std::vector;
 

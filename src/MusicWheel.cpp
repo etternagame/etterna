@@ -181,8 +181,26 @@ MusicWheel::~MusicWheel()
 	}
 }
 
+// this is a trainwreck and i made it worse -mina
 void MusicWheel::ReloadSongList(bool searching, RString findme)
 {
+	// if we fallthrough to pack name matching don't keep reloading if we found a match -mina
+	if (findme.size() > lastvalidsearch.size() && groupnamesearchmatch != "")
+		return;
+
+	// when cancelling a search stay in the pack of your match... this should be more intuitive and relevant behavior -mina
+	if (findme == "" && lastvalidsearch != "") {
+		m_WheelItemDatasStatus[GAMESTATE->m_SortOrder] = INVALID;
+		readyWheelItemsData(GAMESTATE->m_SortOrder, false, findme);
+		SetOpenSection(m_sExpandedSectionName);
+		RebuildWheelItems();
+		SelectSection(m_sExpandedSectionName);
+		SetOpenSection(m_sExpandedSectionName);
+		ChangeMusic(1);
+		SCREENMAN->PostMessageToTopScreen(SM_SongChanged, 0.35f);
+		return;
+	}
+
 	int songIdxToPreserve = m_iSelection;
 	// Remove the song from any sorting caches:
 	FOREACH_ENUM(SortOrder, so)
@@ -204,6 +222,7 @@ void MusicWheel::ReloadSongList(bool searching, RString findme)
 			SelectSection(groupnamesearchmatch);
 			SetOpenSection(groupnamesearchmatch);
 			ChangeMusic(1);
+			SCREENMAN->PostMessageToTopScreen(SM_SongChanged, 0.35f);
 			return;
 		}
 		Song *pSong = GAMESTATE->m_pCurSong;
@@ -365,7 +384,7 @@ void MusicWheel::GetSongList( vector<Song*> &arraySongs, SortOrder so )
 			// dance-double steps will show up when dance-single was selected, with
 			// no playable steps.  Then the game will crash when trying to play it.
 			// -Kyz
-			if(CommonMetrics::AUTO_SET_STYLE && !NSMAN->isSMOnline)
+			if(CommonMetrics::AUTO_SET_STYLE)
 			{
 				// with AUTO_SET_STYLE on and Autogen off, some songs may get
 				// hidden. Search through every playable StepsType until you
@@ -413,11 +432,11 @@ void MusicWheel::FilterBySearch(vector<Song*>& inv, RString findme) {
 	if (artist != findme.npos || author != findme.npos || title != findme.npos) {
 		super_search = true;
 		if (artist != findme.npos)
-			findartist = findme.substr(artist + 7, findme.find(artist, ';') - artist);
+			findartist = findme.substr(artist + 7, findme.find(static_cast<char>(artist), ';') - artist);
 		if (author != findme.npos)
-			findauthor = findme.substr(author + 7, findme.find(author, ';') - author);
+			findauthor = findme.substr(author + 7, findme.find(static_cast<char>(author), ';') - author);
 		if (title != findme.npos)
-			findtitle = findme.substr(title + 6, findme.find(title, ';') - title);
+			findtitle = findme.substr(title + 6, findme.find(static_cast<char>(title), ';') - title);
 	}
 
 	vector<Song*> tmp;
@@ -729,6 +748,9 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 			case SORT_Technical:
 				SongUtil::SortSongPointerArrayByGroupAndMSD(arraySongs, Skill_Technical);
 				break;
+			case SORT_LENGTH:
+				SongUtil::SortSongPointerArrayByLength(arraySongs);
+				break;
 			default:
 				FAIL_M("Unhandled sort order! Aborting...");
 		}
@@ -828,18 +850,18 @@ void MusicWheel::BuildWheelItemDatas( vector<MusicWheelItemData *> &arrayWheelIt
 			for (auto& n : shitterstrats) {
 				auto& gname = n.second;
 				auto& gsongs = groups[n.second];
-
+				
 				RageColor colorSection = SONGMAN->GetSongGroupColor(gname);
 				iSectionColorIndex = (iSectionColorIndex + 1) % NUM_SECTION_COLORS;
 				arrayWheelItemDatas.emplace_back(new MusicWheelItemData(WheelItemDataType_Section, NULL, gname, colorSection, gsongs.size()));
-
+				
 				// need to interact with the filter/search system so check if the song is in the arraysongs set defined above -mina
-				for (auto& s : gsongs)
-					if (hurp.count(s))
-						arrayWheelItemDatas.emplace_back(new MusicWheelItemData(WheelItemDataType_Song, s, gname, SONGMAN->GetSongColor(s), 0));
+					for (auto& s : gsongs)
+						if (hurp.count(s))
+							arrayWheelItemDatas.emplace_back(new MusicWheelItemData(WheelItemDataType_Song, s, gname, SONGMAN->GetSongColor(s), 0));
+				}
 			}
 		}
-	}
 
 	// init music status icons
 	for( unsigned i=0; i<arrayWheelItemDatas.size(); i++ )
@@ -1263,8 +1285,8 @@ void MusicWheel::SetOpenSection( const RString &group )
 			// currently open.
 			if ( HIDE_ACTIVE_SECTION_TITLE || d.m_sText != group )
 				continue;
-		}
-
+			}
+				
 		// Only show tutorial songs in arcade
 		if( GAMESTATE->m_PlayMode!=PLAY_MODE_REGULAR && 
 			d.m_pSong &&

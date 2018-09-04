@@ -1,6 +1,7 @@
 ﻿#include "global.h"
 #include "GameState.h"
 #include "IniFile.h"
+#include "Player.h"
 #include "PlayerAI.h"
 #include "PlayerState.h"
 #include "RageUtil.h"
@@ -50,6 +51,10 @@ struct TapScoreDistribution
 };
 
 static TapScoreDistribution g_Distributions[NUM_SKILL_LEVELS];
+
+HighScore* PlayerAI::pScoreData = nullptr;
+map<int, vector<TapReplayResult>> PlayerAI::m_ReplayTapMap;
+map<int, vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMap;
 
 void PlayerAI::InitFromDisk()
 {
@@ -108,12 +113,132 @@ TapNoteScore PlayerAI::GetTapNoteScore( const PlayerState* pPlayerState )
 {
 	if (pPlayerState->m_PlayerController == PC_AUTOPLAY)
 		return TNS_W1;
+	if (pPlayerState->m_PlayerController == PC_REPLAY)
+		return TNS_Miss;
 
 	const int iCpuSkill = pPlayerState->m_iCpuSkill;
 
 	TapScoreDistribution& distribution = g_Distributions[iCpuSkill];
 
 	return distribution.GetTapNoteScore();
+}
+
+TapNoteScore PlayerAI::GetTapNoteScoreForReplay(const PlayerState* pPlayerState, float fNoteOffset)
+{
+	// This code is basically a copy paste from somewhere in Player for grabbing scores.
+
+	//LOG->Trace("Given number %f ", fNoteOffset);
+	if (fNoteOffset <= -1.0f)
+		return TNS_Miss;
+	const float fSecondsFromExact = fabsf(fNoteOffset);
+	//LOG->Trace("TapNoteScore For Replay Seconds From Exact: %f", fSecondsFromExact);
+
+	if (fSecondsFromExact <= Player::GetWindowSeconds(TW_W1))
+		return TNS_W1;
+	else if (fSecondsFromExact <= Player::GetWindowSeconds(TW_W2))
+		return TNS_W2;
+	else if (fSecondsFromExact <= Player::GetWindowSeconds(TW_W3))
+		return TNS_W3;
+	else if (fSecondsFromExact <= Player::GetWindowSeconds(TW_W4))
+		return TNS_W4;
+	else if (fSecondsFromExact <= max(Player::GetWindowSeconds(TW_W5), 0.18f))
+		return TNS_W5;
+	return TNS_None;
+}
+
+void PlayerAI::SetScoreData(HighScore* pHighScore)
+{
+	pHighScore->LoadReplayData();
+	pScoreData = pHighScore;
+	auto replayNoteRowVector = pHighScore->GetCopyOfNoteRowVector();
+	auto replayOffsetVector = pHighScore->GetCopyOfOffsetVector();
+	auto replayTapNoteTypeVector = pHighScore->GetCopyOfTapNoteTypeVector();
+	auto replayTrackVector = pHighScore->GetCopyOfTrackVector();
+	auto replayHoldVector = pHighScore->GetCopyOfHoldReplayDataVector();
+
+	// Generate TapReplayResults to put into a vector referenced by the song row in a map
+	for (int i = 0; i < replayTrackVector.size(); i++)
+	{
+		TapReplayResult trr;
+		trr.row = replayNoteRowVector[i];
+		trr.track = replayTrackVector[i];
+		trr.offset = replayOffsetVector[i];
+		trr.type = replayTapNoteTypeVector[i];
+
+		// Create or append to the vector
+		if (m_ReplayTapMap.count(replayNoteRowVector[i]) != 0)
+		{
+			m_ReplayTapMap[replayNoteRowVector[i]].push_back(trr);
+		}
+		else
+		{
+			vector<TapReplayResult> trrVector = { trr };
+			m_ReplayTapMap[replayNoteRowVector[i]] = trrVector;
+		}
+	}
+
+	// Generate vectors made of pregenerated HoldReplayResults referenced by the song row in a map
+	for (int i = 0; i < replayHoldVector.size(); i++)
+	{
+		// Create or append to the vector
+		if (m_ReplayHoldMap.count(replayHoldVector[i].row) != 0)
+		{
+			m_ReplayHoldMap[replayHoldVector[i].row].push_back(replayHoldVector[i]);
+		}
+		else
+		{
+			vector<HoldReplayResult> hrrVector = { replayHoldVector[i] };
+			m_ReplayHoldMap[replayHoldVector[i].row] = hrrVector;
+		}
+	}
+}
+
+bool PlayerAI::DetermineIfHoldDropped(int noteRow, int col)
+{
+	//LOG->Trace("Checking for hold.");
+	// Is the given row/column in our dropped hold map?
+	if (m_ReplayHoldMap.count(noteRow) != 0)
+	{
+		//LOG->Trace("Hold row exists in the data");
+		// It is, so let's go over each column, assuming we may have dropped more than one hold at once.
+		for (auto hrr : m_ReplayHoldMap[noteRow])
+		{
+			// We found the column we are looking for
+			if (hrr.track == col)
+			{
+				//LOG->Trace("KILL IT NOW");
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+float PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
+{
+	/* Given the pTN coming from gameplay, we search for the matching note in the replay data.
+	If it is not found, it is a miss. (1.f)
+	*/
+	if (pScoreData == nullptr) // possible cheat prevention
+		return -1.f;
+
+	// Current v0.60 Replay Data format: [noterow] [offset] [track] [optional: tap note type]
+	// Current v0.60 Replay Data format (H section): H [noterow] [track] [optional: tap note subtype]
+
+	if (m_ReplayTapMap.count(noteRow) != 0) // is the current row recorded?
+	{
+		for (auto trr : m_ReplayTapMap[noteRow]) // go over all elements in the row
+		{
+			if (trr.track == col) // if the column expected is the actual note, use it
+			{
+				if (trr.type == TapNoteType_Mine) // hack for mines
+					return -2.f;
+				return -trr.offset;
+			}
+		}
+	}
+
+	return -1.f;	// data missing or invalid, give them a miss
 }
 
 /*

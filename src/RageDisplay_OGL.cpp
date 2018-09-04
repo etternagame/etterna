@@ -2202,31 +2202,29 @@ unsigned RageDisplay_Legacy::CreateTexture(
 
 	DebugFlushGLErrors();
 
-	if (bGenerateMipMaps)
+	if (pImg->pixels)
 	{
-		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-		glTexImage2D(GL_TEXTURE_2D, 0, glTexFormat, pImg->w, pImg->h, 0, glImageFormat, glImageType, pImg->pixels);
-		GLenum err;
-		while ((err = glGetError()) != GL_NO_ERROR)
+		if (bGenerateMipMaps)
 		{
-			ASSERT_M(err == 0, (char *)gluErrorString(err));
+			glTexImage2D(
+				GL_TEXTURE_2D, 0, glTexFormat,
+				power_of_two(pImg->w), power_of_two(pImg->h), 0,
+				glImageFormat, glImageType, pImg->pixels);
+
+			glGenerateMipmap(GL_TEXTURE_2D);
+
+			DebugAssertNoGLError();
+		}
+		else
+		{
+			glTexImage2D(
+				GL_TEXTURE_2D, 0, glTexFormat,
+				power_of_two(pImg->w), power_of_two(pImg->h), 0,
+				glImageFormat, glImageType, pImg->pixels);
+
+			DebugAssertNoGLError();
 		}
 	}
-	else
-	{
-		glTexImage2D(
-			GL_TEXTURE_2D, 0, glTexFormat, 
-			power_of_two(pImg->w), power_of_two(pImg->h), 0,
-			glImageFormat, glImageType, NULL );
-		if (pImg->pixels)
-			glTexSubImage2D( GL_TEXTURE_2D, 0,
-				0, 0,
-				pImg->w, pImg->h,
-				glImageFormat, glImageType, pImg->pixels );
-		
-		DebugAssertNoGLError();
-	}
-
 
 	/* Sanity check: */
 	if (pixfmt == RagePixelFormat_PAL)
@@ -2238,7 +2236,6 @@ unsigned RageDisplay_Legacy::CreateTexture(
 	}
 
 	glPixelStorei( GL_UNPACK_ROW_LENGTH, 0 );
-	glFlush();
 
 	if (bFreeImg)
 		delete pImg;

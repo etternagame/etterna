@@ -1,6 +1,6 @@
 [How to Use EzSockets by freem]
 
-Hey there. ezsockets is the socket library used in StepMania. If you are going to
+Hey there. ezsockets is the socket library used in Etterna. If you are going to
 develop any extended network functionality, it would be good to know about
 ezsockets. This is by no means an exhaustive guide, as it just covers what's
 contained in the header, as well as what that code does.

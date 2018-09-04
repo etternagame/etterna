@@ -56,6 +56,7 @@ void ScreenReloadSongs::Init()
 	m_Loading.SetName( "LoadingText" );
 	m_Loading.LoadFromFont( THEME->GetPathF(m_sName, "LoadingText") );
 	m_Loading.SetXY( SCREEN_CENTER_X, SCREEN_CENTER_Y );
+	m_Loading.SetMaxWidth(SCREEN_WIDTH*0.9f);
 	this->AddChild( &m_Loading );
 
 	m_pLoadingWindow = new ScreenReloadSongsLoadingWindow( m_Loading );
@@ -76,10 +77,7 @@ void ScreenReloadSongs::Update( float fDeltaTime )
 		return;
 
 	ASSERT( !IsFirstUpdate() );
-
-	SONGMAN->Reload( false, m_pLoadingWindow );
-
-	SCREENMAN->PostMessageToTopScreen( SM_GoToNextScreen, 0 );
+	SCREENMAN->PostMessageToTopScreen(SM_GoToNextScreen, 0);
 }
 
 /*

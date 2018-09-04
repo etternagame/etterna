@@ -14,6 +14,7 @@
 #include "MemoryCardManager.h"
 #include "RageThreads.h"
 #include "RageTimer.h"
+#include "ActorUtil.h"
 
 #include "arch/ArchHooks/ArchHooks.h"
 #include "arch/Dialog/Dialog.h"
@@ -61,7 +62,6 @@
 #include "MessageManager.h"
 #include "ModelManager.h"
 #include "NetworkSyncManager.h"
-#include "Profile.h"
 #include "RageFileManager.h"
 #include "SpecialFiles.h"
 #include "StatsManager.h"
@@ -109,15 +109,15 @@ void StepMania::GetPreferredVideoModeParams( VideoModeParams &paramsOut )
 	);
 }
 
-static LocalizedString COLOR			("StepMania","color");
-static LocalizedString TEXTURE			("StepMania","texture");
-static LocalizedString WINDOWED		("StepMania","Windowed");
-static LocalizedString FULLSCREEN		("StepMania","Fullscreen");
-static LocalizedString ANNOUNCER_		("StepMania","Announcer");
-static LocalizedString VSYNC			("StepMania","Vsync");
-static LocalizedString NO_VSYNC		("StepMania","NoVsync");
-static LocalizedString SMOOTH_LINES	("StepMania","SmoothLines");
-static LocalizedString NO_SMOOTH_LINES	("StepMania","NoSmoothLines");
+static LocalizedString COLOR			("Etterna","color");
+static LocalizedString TEXTURE			("Etterna","texture");
+static LocalizedString WINDOWED		("Etterna","Windowed");
+static LocalizedString FULLSCREEN		("Etterna","Fullscreen");
+static LocalizedString ANNOUNCER_		("Etterna","Announcer");
+static LocalizedString VSYNC			("Etterna","Vsync");
+static LocalizedString NO_VSYNC		("Etterna","NoVsync");
+static LocalizedString SMOOTH_LINES	("Etterna","SmoothLines");
+static LocalizedString NO_SMOOTH_LINES	("Etterna","NoSmoothLines");
 
 static RString GetActualGraphicOptionsString()
 {
@@ -396,11 +396,6 @@ static void AdjustForChangedSystemCapabilities()
 	 * preloaded banners. Texture caching can use a lot of memory; disable it for
 	 * low-memory systems. */
 	PREFSMAN->m_bDelayedTextureDelete.Set( HighMemory );
-
-	/* Preloaded banners takes about 9k per song. Although it's smaller than the
-	 * actual song data, it still adds up with a lot of songs.
-	 * Disable it for 64-meg systems. */
-	PREFSMAN->m_ImageCache.Set( LowMemory ? IMGCACHE_OFF:IMGCACHE_LOW_RES_PRELOAD );
 
 	PREFSMAN->SavePrefsToDisk();
 #endif
@@ -706,12 +701,12 @@ bool CheckVideoDefaultSettings()
 	return bSetDefaultVideoParams;
 }
 
-static LocalizedString ERROR_INITIALIZING_CARD		( "StepMania", "There was an error while initializing your video card." );
-static LocalizedString ERROR_DONT_FILE_BUG		( "StepMania", "Please do not file this error as a bug!  Use the web page below to troubleshoot this problem." );
-static LocalizedString ERROR_VIDEO_DRIVER		( "StepMania", "Video Driver: %s" );
-static LocalizedString ERROR_NO_VIDEO_RENDERERS		( "StepMania", "No video renderers attempted." );
-static LocalizedString ERROR_INITIALIZING		( "StepMania", "Initializing %s..." );
-static LocalizedString ERROR_UNKNOWN_VIDEO_RENDERER	( "StepMania", "Unknown video renderer value: %s" );
+static LocalizedString ERROR_INITIALIZING_CARD		( "Etterna", "There was an error while initializing your video card." );
+static LocalizedString ERROR_DONT_FILE_BUG		( "Etterna", "Please do not file this error as a bug!  Use the web page below to troubleshoot this problem." );
+static LocalizedString ERROR_VIDEO_DRIVER		( "Etterna", "Video Driver: %s" );
+static LocalizedString ERROR_NO_VIDEO_RENDERERS		( "Etterna", "No video renderers attempted." );
+static LocalizedString ERROR_INITIALIZING		( "Etterna", "Initializing %s..." );
+static LocalizedString ERROR_UNKNOWN_VIDEO_RENDERER	( "Etterna", "Unknown video renderer value: %s" );
 
 RageDisplay *CreateDisplay()
 {
@@ -1162,7 +1157,7 @@ int sm_main(int argc, char* argv[])
 
 	SONGMAN->UpdatePopular();
 	SONGMAN->UpdatePreferredSort();
-	NSMAN 		= new NetworkSyncManager( NULL );
+	NSMAN 		= new NetworkSyncManager( pLoadingWindow );
 	STATSMAN	= new StatsManager;
 
 	FILTERMAN = new FilterManager;
@@ -1273,7 +1268,7 @@ void StepMania::ClearCredits()
 
 /* Returns true if the key has been handled and should be discarded, false if
  * the key should be sent on to screens. */
-static LocalizedString SERVICE_SWITCH_PRESSED ( "StepMania", "Service switch pressed" );
+static LocalizedString SERVICE_SWITCH_PRESSED ( "Etterna", "Service switch pressed" );
 static LocalizedString RELOADED_METRICS( "ThemeManager", "Reloaded metrics" );
 static LocalizedString RELOADED_METRICS_AND_TEXTURES( "ThemeManager", "Reloaded metrics and textures" );
 static LocalizedString RELOADED_SCRIPTS( "ThemeManager", "Reloaded scripts" );
@@ -1292,10 +1287,15 @@ bool HandleGlobalInputs( const InputEventPlus &input )
 			 * (to prevent quitting without storing changes). */
 			if( SCREENMAN->AllowOperatorMenuButton() )
 			{
-				SCREENMAN->SystemMessage( SERVICE_SWITCH_PRESSED );
-				SCREENMAN->PopAllScreens();
-				GAMESTATE->Reset();
-				SCREENMAN->SetNewScreen( CommonMetrics::OPERATOR_MENU_SCREEN );
+				bool bIsCtrlHeld = INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_LCTRL), &input.InputList) ||
+					INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RCTRL), &input.InputList);
+				if (bIsCtrlHeld) // Operator is rebound to OPERATOR + Ctrl
+				{
+					SCREENMAN->SystemMessage(SERVICE_SWITCH_PRESSED);
+					SCREENMAN->PopAllScreens();
+					GAMESTATE->Reset();
+					SCREENMAN->SetNewScreen(CommonMetrics::OPERATOR_MENU_SCREEN);
+				}
 			}
 			return true;
 			return false; // Attract needs to know because it goes to TitleMenu on > 1 credit

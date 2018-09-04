@@ -34,6 +34,8 @@ local diffuse = Actor.diffuse
 local finishtweening = Actor.finishtweening
 local linear = Actor.linear
 local x = Actor.x
+local y = Actor.y
+local Zoomtoheight = Actor.zoomtoheight
 local queuecommand = Actor.queuecommand
 local playcommand = Actor.queuecommand
 local settext = BitmapText.settext
@@ -124,13 +126,14 @@ local enabledTargetTracker = playerConfig:get_data(pn_to_profile_slot(PLAYER_1))
 local enabledDisplayPercent = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).DisplayPercent
 local enabledJudgeCounter = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).JudgeCounter
 
--- restart button
+-- restart button (MOVED OUT OF THEME IN FAVOR OF REMAPPING)
+--[[
 local function froot(loop)
 	if loop.DeviceInput.button == "DeviceButton_`" then
 		SCREENMAN:GetTopScreen():SetPrevScreenName("ScreenStageInformation"):begin_backing_out()
 	end
 end
-
+]]
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 												**Main listener that moves and resizes things**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -206,24 +209,28 @@ local function firstHalfInput(event)
 			if event.DeviceInput.button == "DeviceButton_up" then
 				errorBarY = errorBarY - 5
 				eb.Center:y(errorBarY)
+				eb.WeightedBar:y(errorBarY)
 				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ErrorBarY = errorBarY
 				changed = true
 			end
 			if event.DeviceInput.button == "DeviceButton_down" then
 				errorBarY = errorBarY + 5
 				eb.Center:y(errorBarY)
+				eb.WeightedBar:y(errorBarY)
 				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ErrorBarY = errorBarY
 				changed = true
 			end
 			if event.DeviceInput.button == "DeviceButton_left" then
 				errorBarX = errorBarX - 5
 				eb.Center:x(errorBarX)
+				eb.WeightedBar:x(errorBarX)
 				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ErrorBarX = errorBarX
 				changed = true
 			end
 			if event.DeviceInput.button == "DeviceButton_right" then
 				errorBarX = errorBarX + 5
 				eb.Center:x(errorBarX)
+				eb.WeightedBar:x(errorBarX)
 				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.ErrorBarX = errorBarX
 				changed = true
 			end
@@ -238,12 +245,14 @@ local function firstHalfInput(event)
 			if event.DeviceInput.button == "DeviceButton_up" then
 				errorBarHeight = errorBarHeight + 1
 				eb.Center:zoomtoheight(errorBarHeight)
+				eb.WeightedBar:zoomtoheight(errorBarHeight)
 				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.ErrorBarHeight = errorBarHeight
 				changed = true
 			end
 			if event.DeviceInput.button == "DeviceButton_down" then
 				errorBarHeight = errorBarHeight - 1
 				eb.Center:zoomtoheight(errorBarHeight)
+				eb.WeightedBar:zoomtoheight(errorBarHeight)
 				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.ErrorBarHeight = errorBarHeight
 				changed = true
 			end
@@ -541,13 +550,13 @@ local function secondHalfInput(event)
 		-- changes the noteField/receptor x/y
 		if rPressed and event.type ~= "InputEventType_Release" then
 			if event.DeviceInput.button == "DeviceButton_up" then
-				noteFieldY = noteFieldY - 3
+				noteFieldY = noteFieldY + (GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse() and -3 or 3)
 				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NotefieldY = noteFieldY
 				noteField:addy(-3)
 				changed = true
 			end
 			if event.DeviceInput.button == "DeviceButton_down" then
-				noteFieldY = noteFieldY + 3
+				noteFieldY = noteFieldY + (GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse() and 3 or -3)
 				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NotefieldY = noteFieldY
 				noteField:addy(3)
 				changed = true
@@ -666,17 +675,17 @@ local t = Def.ActorFrame{
 		local endTime = os.time() + GetPlayableTime()
 		GAMESTATE:UpdateDiscordPresence(largeImageTooltip, detail, state, endTime)
 
-		if SCREENMAN:GetTopScreen():GetName() == "ScreenGameplay" then
+		--[[if SCREENMAN:GetTopScreen():GetName() == "ScreenGameplay" then
 			SCREENMAN:GetTopScreen():AddInputCallback(froot)
-		end
+		end]]
 		if(playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay) then
 			SCREENMAN:GetTopScreen():AddInputCallback(firstHalfInput)
 			SCREENMAN:GetTopScreen():AddInputCallback(secondHalfInput)
 		end
 		screen = SCREENMAN:GetTopScreen()
 		noteField = screen:GetChild("PlayerP1"):GetChild("NoteField")
+		noteField:addy(noteFieldY * (GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse() and 1 or -1))
 		noteField:addx(noteFieldX)
-		noteField:addy(noteFieldY)
 		noteColumns = noteField:get_column_actors()
 		for i, actor in ipairs(noteColumns) do
 			actor:zoomtowidth(noteFieldWidth)
@@ -699,9 +708,10 @@ local t = Def.ActorFrame{
 	Old scwh lanecover back for now. Equivalent to "screencutting" on ffr; essentially hides notes for a fixed distance before they appear
 on screen so you can adjust the time arrows display on screen without modifying their spacing from each other. 
 ]]	
-	
-t[#t+1] = LoadActor("lanecover")
 
+if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover then
+	t[#t+1] = LoadActor("lanecover")
+end
 	
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  					    	**Player Target Differential: Ghost target rewrite, average score gone for now**
@@ -900,6 +910,9 @@ local barDuration = 0.75 								-- Time duration in seconds before the ticks fa
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
 local currentbar = 1 									-- so we know which error bar we need to update
 local ingots = {}										-- references to the error bars
+local alpha = 0.07;										-- ewma alpha
+local avg;
+local lastAvg;
 
 -- Makes the error bars. They position themselves relative to the center of the screen based on your dv and diffuse to your judgement value before disappating or refreshing
 -- Should eventually be handled by the game itself to optimize performance
@@ -914,30 +927,53 @@ function smeltErrorBar(index)
 			diffusealpha(self,1)
 			diffuse(self,jcT[jdgCur])
 			x(self,errorBarX+dvCur*wscale)
-			self:y(errorBarY)  -- i dont know why man it doenst work the other way ( y(self,errorBarY) )
-			self:zoomtoheight(errorBarHeight)
+			y(self,errorBarY)
+			Zoomtoheight(self, errorBarHeight)
 			linear(self,barDuration)
 			diffusealpha(self,0)
 		end
 	}
 end
 
-local e = Def.ActorFrame{										
+local e = Def.ActorFrame{
 	InitCommand = function(self)
 		eb = self:GetChildren()
-		for i=1,barcount do											-- basically the equivalent of using GetChildren() if it returned unnamed children numerically indexed
-			ingots[#ingots+1] = self:GetChild(i)
+		if enabledErrorBar == 1 then
+			for i=1,barcount do											-- basically the equivalent of using GetChildren() if it returned unnamed children numerically indexed
+				ingots[#ingots+1] = self:GetChild(i)
+			end
+		else
+			avg = 0;
+			lastAvg = 0;
 		end
 	end,
-	SpottedOffsetMessageCommand=function(self)				
-		currentbar = ((currentbar)%barcount) + 1
-		playcommand(ingots[currentbar],"UpdateErrorBar")			-- Update the next bar in the queue
+	SpottedOffsetMessageCommand=function(self)
+		if enabledErrorBar == 1 then
+			currentbar = ((currentbar)%barcount) + 1
+			playcommand(ingots[currentbar],"UpdateErrorBar")			-- Update the next bar in the queue
+		end
 	end,
 	DootCommand=function(self)
 		self:RemoveChild("DestroyMe")
 		self:RemoveChild("DestroyMe2")
 	end,
-
+	Def.Quad{
+		Name = "WeightedBar",
+		InitCommand=function(self)
+			if enabledErrorBar == 2 then
+				self:xy(errorBarX,errorBarY):zoomto(barWidth,errorBarHeight):diffusealpha(1):diffuse(getMainColor('enabled'))
+			else
+				self:visible(false)
+			end
+		end,
+		SpottedOffsetMessageCommand=function(self)
+			if enabledErrorBar == 2 then
+				avg = alpha * dvCur + (1 - alpha) * lastAvg
+				lastAvg = avg
+				self:x(errorBarX+avg*wscale)
+			end
+		end
+	},
 	Def.Quad {
 		Name = "Center",
 		InitCommand=function(self)
@@ -968,13 +1004,16 @@ local e = Def.ActorFrame{
 	}
 }
 
+
 -- Initialize bars
-for i=1,barcount do
-	e[#e+1] = smeltErrorBar(i)
+if enabledErrorBar == 1 then
+	for i=1,barcount do
+		e[#e+1] = smeltErrorBar(i)
+	end
 end
 
 -- Add the completed errorbar frame to the primary actor frame t if enabled
-if enabledErrorBar then
+if enabledErrorBar ~= 0 then
 	t[#t+1] = e
 end
 
@@ -1043,12 +1082,12 @@ local p = Def.ActorFrame{
 		BeginCommand=function(self)
 			local ttime = GetPlayableTime()
 			settext(self,SecondsToMMSS(ttime))
-			diffuse(self, ByMusicLength(ttime))
+			diffuse(self, byMusicLength(ttime))
 		end,
 		DoneLoadingNextSongMessageCommand=function(self)
 			local ttime = GetPlayableTime()
 			settext(self,SecondsToMMSS(ttime))
-			diffuse(self, ByMusicLength(ttime))
+			diffuse(self, byMusicLength(ttime))
 		end
 	}
 }
@@ -1141,7 +1180,7 @@ t[#t+1] = Def.ActorFrame{
 			self:SetUpdateFunction(UpdateBPM)
 			self:SetUpdateRate(0.5)
 		else
-			settext(BPM,Round(GetBPS(a) * r,2))
+			BPM:settextf("%5.2f",GetBPS(a) * r) -- i wasn't thinking when i did this, we don't need to avoid formatting for performance because we only call this once -mina
 		end
 	end,
 	LoadFont("Common Normal")..{
@@ -1532,7 +1571,7 @@ t[#t+1] = Def.ActorFrame{
 		Name= "Instructions", Font= "Common Normal",
 		InitCommand= function(self)
 			self:horizalign(left):vertalign(top)
-				:xy(SCREEN_WIDTH - 240, 110):zoom(.5):visible(true)
+				:xy(SCREEN_WIDTH - 240, 100):zoom(.5):visible(true)
 		end,
 		OnCommand=function(self)
 			local text= {
@@ -1560,6 +1599,9 @@ t[#t+1] = Def.ActorFrame{
 				"o: NPS Graph Size",
 				"p: Judge Counter Position",
 			}
+			if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover ~= 0 then
+				table.insert(text, "/: Lane Cover Height")
+			end
 			self:settext(table.concat(text, "\n"))
 		end
 	},

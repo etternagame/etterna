@@ -35,12 +35,7 @@ public:
 	void DeleteSongFromDB(Song* songPtr); 
 	void DeleteSongFromDBByDir(string dir);
 	void DeleteSongFromDBByDirHash(unsigned int hash);
-	void ReadFromDisk();
 	static RString GetCacheFilePath( const RString &sGroup, const RString &sPath );
-
-	void ReadCacheIndex();
-	void SaveCacheIndex();
-	void AddCacheIndex( const RString &path, unsigned hash );
 	unsigned GetCacheHash( const RString &path ) const;
 	bool delay_save_cache;
 	

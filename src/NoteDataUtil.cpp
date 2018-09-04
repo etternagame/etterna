@@ -11,6 +11,7 @@
 #include "Style.h"
 #include "TimingData.h"
 #include <utility>
+#include <numeric>
 
 // TODO: Remove these constants that aren't time signature-aware
 static const int BEATS_PER_MEASURE = 4;
@@ -495,7 +496,7 @@ void NoteDataUtil::LoadFromETTNoteDataString( NoteData& out, const RString &sSMN
 	out.RevalidateATIs(vector<int>(), false);
 }
 
-void NoteDataUtil::LoadFromSMNoteDataString( NoteData &out, const RString &sSMNoteData_, bool bComposite )
+void NoteDataUtil::LoadFromSMNoteDataString( NoteData &out, const RString &sSMNoteData_)
 {
 	// Load note data
 	RString sSMNoteData;
@@ -519,31 +520,7 @@ void NoteDataUtil::LoadFromSMNoteDataString( NoteData &out, const RString &sSMNo
 	int iNumTracks = out.GetNumTracks();
 	out.Init();
 	out.SetNumTracks( iNumTracks );
-
-	if( !bComposite )
-	{
-		LoadFromSMNoteDataStringWithPlayer( out, sSMNoteData, 0, sSMNoteData.size(),
-						    PLAYER_INVALID, iNumTracks );
-		return;
-	}
-
-	int start = 0, size = -1;
-
-	vector<NoteData> vParts;
-	FOREACH_PlayerNumber( pn )
-	{
-		// Split in place.
-		split( sSMNoteData, "&", start, size, false );
-		if( unsigned(start) == sSMNoteData.size() )
-			break;
-		vParts.push_back( NoteData() );
-		NoteData &nd = vParts.back();
-
-		nd.SetNumTracks( iNumTracks );
-		LoadFromSMNoteDataStringWithPlayer( nd, sSMNoteData, start, size, pn, iNumTracks );
-	}
-	CombineCompositeNoteData( out, vParts );
-	out.RevalidateATIs(vector<int>(), false);
+	LoadFromSMNoteDataStringWithPlayer( out, sSMNoteData, 0, sSMNoteData.size(), PLAYER_INVALID, iNumTracks );
 }
 
 void NoteDataUtil::InsertHoldTails( NoteData &inout )
@@ -576,8 +553,6 @@ void NoteDataUtil::GetSMNoteDataString( const NoteData &in, RString &sRet )
 	// Get note data
 	vector<NoteData> parts;
 	float fLastBeat = -1.0f;
-
-	SplitCompositeNoteData( in, parts );
 
 	FOREACH( NoteData, parts, nd )
 	{
@@ -656,7 +631,6 @@ void NoteDataUtil::GetETTNoteDataString(const NoteData &in, RString &sRet) {
 	// Get note data
 	vector<NoteData> parts;
 	float fLastBeat = -1.f;
-	SplitCompositeNoteData(in, parts);
 
 	FOREACH(NoteData, parts, nd) {
 		fLastBeat = max(fLastBeat, nd->GetLastBeat());
@@ -808,72 +782,6 @@ void NoteDataUtil::GetETTNoteDataString(const NoteData &in, RString &sRet) {
 	}
 	sRet.shrink_to_fit();
 }
-
-void NoteDataUtil::SplitCompositeNoteData( const NoteData &in, vector<NoteData> &out )
-{
-	if( !in.IsComposite() )
-	{
-		out.push_back( in );
-		return;
-	}
-
-	FOREACH_PlayerNumber( pn )
-	{
-		out.push_back( NoteData() );
-		out.back().SetNumTracks( in.GetNumTracks() );
-	}
-
-	for( int t = 0; t < in.GetNumTracks(); ++t )
-	{
-		for( NoteData::const_iterator iter = in.begin(t); iter != in.end(t); ++iter )
-		{
-			int row = iter->first;
-			TapNote tn = iter->second;
-			/*
-			 XXX: This code is (hopefully) a temporary hack to make sure that
-			 routine charts don't have any notes without players assigned to them.
-			 I suspect this is due to a related bug that these problems were
-			 occuring to begin with, but at this time, I am unsure how to deal with it.
-			 Hopefully this hack can be removed soon. -- Jason "Wolfman2000" Felds
-			 */
-			const Style *curStyle = GAMESTATE->GetCurrentStyle(PLAYER_INVALID);
-			if( (curStyle == NULL || curStyle->m_StyleType == StyleType_TwoPlayersSharedSides )
-				&& static_cast<int>( tn.pn ) > NUM_PlayerNumber )
-			{
-				tn.pn = PLAYER_1;
-			}
-			unsigned index = static_cast<int>( tn.pn );
-
-			ASSERT_M( index < NUM_PlayerNumber, ssprintf("We have a note not assigned to a player. The note in question is on beat %f, column %i.", NoteRowToBeat(row), t + 1) );
-			tn.pn = PLAYER_INVALID;
-			out[index].SetTapNote( t, row, tn );
-		}
-	}
-}
-
-void NoteDataUtil::CombineCompositeNoteData( NoteData &out, const vector<NoteData> &in )
-{
-	FOREACH_CONST( NoteData, in, nd )
-	{
-		const int iMaxTracks = min( out.GetNumTracks(), nd->GetNumTracks() );
-
-		for( int track = 0; track < iMaxTracks; ++track )
-		{
-			for( NoteData::const_iterator i = nd->begin(track); i != nd->end(track); ++i )
-			{
-				int row = i->first;
-				if( out.IsHoldNoteAtRow(track, i->first) )
-					continue;
-				if( i->second.type == TapNoteType_HoldHead )
-					out.AddHoldNote( track, row, row + i->second.iDuration, i->second );
-				else
-					out.SetTapNote( track, row, i->second );
-			}
-		}
-	}
-	out.RevalidateATIs(vector<int>(), false);
-}
-
 
 void NoteDataUtil::LoadTransformedSlidingWindow( const NoteData &in, NoteData &out, int iNewNumTracks )
 {
@@ -1281,18 +1189,7 @@ void NoteDataUtil::RemoveSimultaneousNotes( NoteData &in, int iMaxSimultaneous, 
 	// given time.  Never touch data outside of the range given; if many hold notes are overlapping
 	// iStartIndex, and we'd have to change those holds to obey iMaxSimultaneous, just do the best
 	// we can without doing so.
-	if( in.IsComposite() )
-	{
-		// Do this per part.
-		vector<NoteData> vParts;
-		
-		SplitCompositeNoteData( in, vParts );
-		FOREACH( NoteData, vParts, nd )
-			RemoveSimultaneousNotes( *nd, iMaxSimultaneous, iStartIndex, iEndIndex );
-		in.Init();
-		in.SetNumTracks( vParts.front().GetNumTracks() );
-		CombineCompositeNoteData( in, vParts );
-	}
+
 	FOREACH_NONEMPTY_ROW_ALL_TRACKS_RANGE( in, r, iStartIndex, iEndIndex )
 	{
 		set<int> viTracksHeld;
@@ -1836,12 +1733,17 @@ static void SuperShuffleTaps( NoteData &inout, int iStartIndex, int iEndIndex )
 	 *
 	 * This is only called by NoteDataUtil::Turn.
 	 */
-	FOREACH_NONEMPTY_ROW_ALL_TRACKS_RANGE( inout, r, iStartIndex, iEndIndex )
-	{
-		for( int t1=0; t1<inout.GetNumTracks(); t1++ )
+
+	FOREACH_NONEMPTY_ROW_ALL_TRACKS_RANGE(inout, r, iStartIndex, iEndIndex) {
+		vector<int> doot(inout.GetNumTracks());
+		iota(std::begin(doot), std::end(doot), 0);
+
+		random_shuffle(doot.begin(), doot.end());
+		for (int tdoot = 0; tdoot<inout.GetNumTracks(); tdoot++)
 		{
-			const TapNote &tn1 = inout.GetTapNote( t1, r );
-			switch( tn1.type )
+			int t1 = doot[tdoot];
+			const TapNote &tn1 = inout.GetTapNote(t1, r);
+			switch (tn1.type)
 			{
 			case TapNoteType_Empty:
 			case TapNoteType_HoldHead:

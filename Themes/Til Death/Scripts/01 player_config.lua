@@ -8,7 +8,7 @@ local defaultConfig = {
 	TargetGoal = 93,
 	TargetTrackerMode = 0,
 	JudgeCounter = true,
-	ErrorBar = true,
+	ErrorBar = 1,
 	PlayerInfo = true,
 	FullProgressBar = true,
 	MiniProgressBar = true,
@@ -23,7 +23,7 @@ local defaultConfig = {
 	BackgroundType = 1,
 	ProgressBarPos = 1, --moved from theme options into here, 1 = top; 0 = bottom
 	UserName = "",
-	Password = "",
+	PasswordToken = "",
 	CustomizeGameplay = false,
 	CustomEvaluationWindowTimings = false,
 	GameplayXYCoordinates = {

@@ -104,6 +104,14 @@ void ScreenNetSelectMusic::Init()
 	ALIGN_MUSIC_BEATS.Load(m_sName, "AlignMusicBeat");
 }
 
+
+void ScreenNetSelectMusic::DifferentialReload()
+{
+	SONGMAN->DifferentialReload();
+	m_MusicWheel.ReloadSongList(false, "");
+}
+
+
 bool ScreenNetSelectMusic::Input(const InputEventPlus &input)
 {
 	if(!m_bAllowInput || IsTransitioning())
@@ -211,21 +219,16 @@ bool ScreenNetSelectMusic::Input(const InputEventPlus &input)
 		else if (c == 'G')
 		{
 			Profile *pProfile = PROFILEMAN->GetProfile(PLAYER_1);
-			pProfile->CreateGoal(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+			pProfile->AddGoal(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
 			Song* asonglol = m_MusicWheel.GetSelectedSong();
 			asonglol->SetHasGoal(true);
-			Message msg("FavoritesUpdated");
-			MESSAGEMAN->Broadcast(msg);
-			Message msg2("UpdateGoals");
-			MESSAGEMAN->Broadcast(msg2);
+			MESSAGEMAN->Broadcast("FavoritesUpdated");
 			m_MusicWheel.ChangeMusic(0);
 			return true;
 		}
 		else if (c == 'Q')
 		{
-			int newsongs = SONGMAN->DifferentialReload();
-			m_MusicWheel.ReloadSongList(false, "");
-			SCREENMAN->SystemMessage(ssprintf("Differential reload of %i songs", newsongs));
+			DifferentialReload();
 			return true;
 		}
 		else if (c == 'S')
@@ -258,6 +261,7 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 	}
 	else if( SM == SM_GoToNextScreen )
 	{
+		GAMESTATE->m_bInNetGameplay = true;
 		SOUND->StopMusic();
 		SCREENMAN->SetNewScreen( THEME->GetMetric (m_sName, "NextScreen") );
 	}
@@ -443,7 +447,7 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 			if (NSMAN->steps != nullptr)
 				m_DC[PLAYER_1] = NSMAN->steps->GetDifficulty();
 			if (NSMAN->rate > 0) {
-				GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = NSMAN->rate/1000.0;
+				GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = NSMAN->rate/1000.f;
 				MESSAGEMAN->Broadcast("RateChanged");
 			}
 			m_MusicWheel.Select();
@@ -466,7 +470,7 @@ void ScreenNetSelectMusic::HandleScreenMessage( const ScreenMessage SM )
 			if(NSMAN->steps != nullptr)
 				m_DC[PLAYER_1] = NSMAN->steps->GetDifficulty();
 			if (NSMAN->rate > 0) {
-				GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = NSMAN->rate / 1000.0;
+				GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = NSMAN->rate / 1000.f;
 				MESSAGEMAN->Broadcast("RateChanged");
 			}
 			m_MusicWheel.Select();
@@ -735,7 +739,10 @@ void ScreenNetSelectMusic::UpdateDifficulties( PlayerNumber pn )
 void ScreenNetSelectMusic::BeginScreen()
 {
 	ScreenNetSelectBase::BeginScreen();
-	SONGMAN->SetFlagsForProfile(PROFILEMAN->GetProfile(PLAYER_1));
+	Profile* prof = PROFILEMAN->GetProfile(PLAYER_1);
+	SONGMAN->MakeSongGroupsFromPlaylists();
+	SONGMAN->SetFavoritedStatus(prof->FavoritedCharts);
+	SONGMAN->SetHasGoal(prof->goalmap);
 }
 void ScreenNetSelectMusic::MusicChanged()
 {

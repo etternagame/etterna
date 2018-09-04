@@ -1,6 +1,4 @@
 --[[
-[en] The Branch table replaces the various functions used for branching in the
-StepMania 4 default theme.
 Lines with a single string (e.g. TitleMenu = "ScreenTitleMenu") are referenced
 in the metrics as Branch.keyname.
 If the line is a function, you'll have to use Branch.keyname() instead.
@@ -71,12 +69,8 @@ Branch = {
 	end,
 	StartGame = function()
 		multiplayer = false
-		-- Check to see if there are 0 songs installed. Also make sure to check
-		-- that the additional song count is also 0, because there is
-		-- a possibility someone will use their existing StepMania simfile
-		-- collection with sm-ssc via AdditionalFolders/AdditionalSongFolders.
-		if SONGMAN:GetNumSongs() == 0 and SONGMAN:GetNumAdditionalSongs() == 0 then
-			return "ScreenHowToInstallSongs"
+		if SONGMAN:GetNumSongs() == 0 and SONGMAN:GetNumAdditionalSongs() == 0 and #DLMAN:GetDownloads() == 0 then
+			return "ScreenCoreBundleSelect"
 		end
 		if PROFILEMAN:GetNumLocalProfiles() >= 2 then
 			return "ScreenSelectProfile"
@@ -87,7 +81,7 @@ Branch = {
 	OptionsEdit = function()
 		-- Similar to above, don't let anyone in here with 0 songs.
 		if SONGMAN:GetNumSongs() == 0 and SONGMAN:GetNumAdditionalSongs() == 0 then
-			return "ScreenHowToInstallSongs"
+			return "ScreenCoreBundleSelect"
 		end
 		return "ScreenOptionsEdit"
 	end,

@@ -150,6 +150,7 @@ private:
 	// to remove when removing a callback.
 	using callback_key_t = const void *;
 	map<callback_key_t, LuaReference> m_InputCallbacks;
+	vector<callback_key_t> orderedcallbacks;
 	vector<callback_key_t> m_DelayedCallbackRemovals;
 	bool m_CallingInputCallbacks;
 	void InternalRemoveCallback(callback_key_t key);

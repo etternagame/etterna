@@ -14,7 +14,9 @@ public:
 	~LoadingWindow_Win32();
 
 	void Paint();
+	void InternalPaint();
 	void SetText( const RString &sText );
+	void SetTextInternal();
 	void SetIcon( const RageSurface *pIcon );
 	void SetSplash( const RageSurface *pSplash );
 	void SetProgress( const int progress );
@@ -24,8 +26,14 @@ public:
 private:
 	AppInstance handle;
 	HWND hwnd;
-	RString text[3];
 	HICON m_hIcon;
+	HFONT f;
+	LOGFONT lf;
+	string progress;
+	RString lastText;
+
+	HGDIOBJ bitMapBG;
+	HDC hdcBG;
 
 	static INT_PTR CALLBACK WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam );
 };

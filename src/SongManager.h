@@ -13,7 +13,6 @@ struct GoalsForChart;
 #include "GameConstantsAndTypes.h"
 #include "PlayerNumber.h"
 #include "PlayerOptions.h"
-#include "Profile.h"
 #include "RageTexturePreloader.h"
 #include "RageTypes.h"
 #include "RageUtil.h"
@@ -25,51 +24,6 @@ using std::string;
 
 RString SONG_GROUP_COLOR_NAME( size_t i );
 bool CompareNotesPointersForExtra(const Steps *n1, const Steps *n2);
-
-
-
-struct Chart {
-	string key;
-	RString lastsong;
-	RString lastpack;
-	Difficulty lastdiff = Difficulty_Invalid;
-	float rate = 1.f;
-	Song* songptr;
-	Steps* stepsptr;
-
-	bool IsLoaded() { return loaded; }
-
-	bool loaded = false;
-	void FromKey(const string& ck);
-	XNode * CreateNode(bool includerate) const;
-	void LoadFromNode(const XNode * node);
-	void PushSelf(lua_State *L);
-};
-
-struct Playlist {
-	RString name;
-	vector<Chart> chartlist;
-	void Add(Chart ch) { chartlist.emplace_back(ch); }
-	void AddChart(const string& ck);
-	void SwapPosition();
-
-	void Create();
-	vector<vector<string>> courseruns;
-
-	XNode* CreateNode() const;
-	void LoadFromNode(const XNode* node);
-	int GetNumCharts() { return chartlist.size(); }
-	vector<string> GetKeys();
-	string GetName() { return name; }
-	float GetAverageRating();
-	void DeleteChart(int i);
-
-	void PushSelf(lua_State *L);
-};
-
-
-
-
 
 /** @brief The holder for the Songs and its Steps. */
 class SongManager
@@ -93,7 +47,6 @@ public:
 	void FreeAllLoadedFromProfile( ProfileSlot slot = ProfileSlot_Invalid );
 
 	void InitAll( LoadingWindow *ld );	// songs, groups - everything.
-	void Reload( bool bAllowFastLoad, LoadingWindow *ld=nullptr );	// songs, groups - everything.
 	int DifferentialReload();
 	int DifferentialReloadDir(string dir);
 	void PreloadSongImages();
@@ -114,8 +67,6 @@ public:
 	// temporary solution to reorganizing the entire songid/stepsid system - mina
 	Steps* GetStepsByChartkey(RString ck);
 	Song * GetSongByChartkey(RString ck);
-	Steps* GetStepsByChartkey(const StepsID& sid);
-	Song * GetSongByChartkey(const StepsID& sid);
 	bool IsChartLoaded(RString ck) { return SongsByKey.count(ck) == 1; }
 
 	void ResetGroupColors();
@@ -186,8 +137,8 @@ public:
 	string activeplaylist = "";
 	string playlistcourse = "";
 	string ReconcileBustedKeys(const string& ck);
+	void ReconcileChartKeysForReloadedSong(const Song* reloadedSong, vector<string> oldChartkeys);
 	map<string, string> keyconversionmap;
-	void SetFlagsForProfile(Profile* prof);
 	void MakeSongGroupsFromPlaylists(map<string, Playlist>& playlists = GetPlaylists());
 	void DeletePlaylist(const string& ck, map<string, Playlist>& playlists = GetPlaylists());
 	void MakePlaylistFromFavorites(set<string>& favs, map<string, Playlist>& playlists = GetPlaylists());

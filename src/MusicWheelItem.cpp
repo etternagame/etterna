@@ -2,18 +2,11 @@
 #include "ActorUtil.h"
 #include "GameConstantsAndTypes.h"
 #include "GameState.h"
-#include "HighScore.h"
 #include "MusicWheelItem.h"
-#include "Profile.h"
-#include "ProfileManager.h"
 #include "RageUtil.h"
 #include "ScoreManager.h"
-#include "ScreenSelectMusic.h"
 #include "Song.h"
-#include "SongManager.h"
-#include "Steps.h"
 #include "Style.h"
-#include "ThemeManager.h"
 #include "ThemeMetric.h"
 
 static const char *MusicWheelItemTypeNames[] = {
@@ -325,7 +318,7 @@ void MusicWheelItem::RefreshGrades()
 		HighScoreList *BestpHSL = NULL;
 		Grade gradeBest = Grade_Invalid;
 		Difficulty dcBest = Difficulty_Invalid;
-		if (PROFILEMAN->IsPersistentProfile(ps) && dc != Difficulty_Invalid) {
+		if (PROFILEMAN->IsPersistentProfile(ps)) {
 			if (pWID->m_pSong != nullptr) {
 				bool hasCurrentStyleSteps = false;
 				FOREACH_ENUM_N(Difficulty, 6, i) {

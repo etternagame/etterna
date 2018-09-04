@@ -10,6 +10,7 @@
 #include "LocalizedString.h"
 #include "MsdFile.h"
 #include "NoteSkinManager.h"
+#include <algorithm>
 #include "NotesLoaderDWI.h"
 #include "NotesLoaderSM.h"
 #include "NotesLoaderSSC.h"
@@ -33,6 +34,7 @@
 #include "ThemeManager.h"
 #include "TitleSubstitution.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
+#include "ScreenManager.h"
 
 SongManager*	SONGMAN = NULL;	// global and accessible from anywhere in our program
 
@@ -48,6 +50,7 @@ static const ThemeMetric<bool>		USE_PREFERRED_SORT_COLOR	( "SongManager", "UsePr
 static const ThemeMetric<int>		EXTRA_STAGE2_DIFFICULTY_MAX	( "SongManager", "ExtraStage2DifficultyMax" );
 
 static Preference<RString> g_sDisabledSongs( "DisabledSongs", "" );
+static Preference<bool> PlaylistsAreSongGroups("PlaylistsAreSongGroups", false);
 
 RString SONG_GROUP_COLOR_NAME( size_t i )   { return ssprintf( "SongGroupColor%i", (int) i+1 ); }
 
@@ -96,37 +99,9 @@ static LocalizedString RELOADING ( "SongManager", "Reloading..." );
 static LocalizedString UNLOADING_SONGS ( "SongManager", "Unloading songs..." );
 static LocalizedString SANITY_CHECKING_GROUPS("SongManager", "Sanity checking groups...");
 
-void SongManager::Reload( bool bAllowFastLoad, LoadingWindow *ld )
-{
-	FILEMAN->FlushDirCache( SpecialFiles::SONGS_DIR );
-	FILEMAN->FlushDirCache( ADDITIONAL_SONGS_DIR );
-	FILEMAN->FlushDirCache( EDIT_SUBDIR );
-
-	if( ld )
-		ld->SetText( RELOADING );
-
-	// save scores before unloading songs, or the scores will be lost
-
-	if( ld )
-		ld->SetText( UNLOADING_SONGS );
-
-	FreeSongs();
-	cache.clear();
-
-	const bool OldVal = PREFSMAN->m_bFastLoad;
-	if( !bAllowFastLoad )
-		PREFSMAN->m_bFastLoad.Set( false );
-
-	InitAll( ld );
-
-	if( !bAllowFastLoad )
-		PREFSMAN->m_bFastLoad.Set( OldVal );
-
-	UpdatePreferredSort();
-}
-
 // See InitSongsFromDisk for any comment clarification -mina
 int SongManager::DifferentialReload() {
+	MESSAGEMAN->Broadcast("DFRStarted");
 	FILEMAN->FlushDirCache(SpecialFiles::SONGS_DIR);
 	FILEMAN->FlushDirCache(ADDITIONAL_SONGS_DIR);
 	FILEMAN->FlushDirCache(EDIT_SUBDIR);
@@ -134,6 +109,10 @@ int SongManager::DifferentialReload() {
 	newsongs += DifferentialReloadDir(SpecialFiles::SONGS_DIR);
 	newsongs += DifferentialReloadDir(ADDITIONAL_SONGS_DIR);
 	LoadEnabledSongsFromPref();
+
+	Message msg("DFRFinished");
+	msg.SetParam("newsongs", newsongs);
+	MESSAGEMAN->Broadcast(msg);
 	return newsongs;
 }
 
@@ -200,6 +179,11 @@ int SongManager::DifferentialReloadDir(string dir) {
 			AddKeyedPointers(pNewSong);
 
 			index_entry.emplace_back(pNewSong);
+			
+			Message msg("DFRUpdate");
+			msg.SetParam("txt","Loading:\n" + sGroupDirName + "\n" + pNewSong->GetMainTitle());
+			MESSAGEMAN->Broadcast(msg);
+			SCREENMAN->Draw();	// not sure if this needs to be handled better (more safely?) or if its fine-mina
 
 			loaded++;
 			songIndex++;
@@ -228,10 +212,11 @@ void SongManager::InitSongsFromDisk( LoadingWindow *ld )
 		ld->SetTotalWork( cache.size() );
 		ld->SetText("Loading songs from cache");
 	}
+	int onePercent = std::max(static_cast<int>(cache.size() / 100), 1);
 	int cacheIndex = 0;
 	for (auto& pair : cache) {
 		cacheIndex++;
-		if(ld)
+		if(ld && cacheIndex%onePercent ==0)
 			ld->SetProgress(cacheIndex);
 		auto& pNewSong = pair.second;
 		const RString& dir = pNewSong->GetSongDir();
@@ -350,10 +335,12 @@ void Playlist::LoadFromNode(const XNode* node) {
 	node->GetAttrValue("Name", name);
 	if (!node->ChildrenEmpty()) {
 		const XNode* cl = node->GetChild("Chartlist");
-		FOREACH_CONST_Child(cl, chart) {
-			Chart ch;
-			ch.LoadFromNode(chart);
-			chartlist.emplace_back(ch);
+		if (cl) {
+			FOREACH_CONST_Child(cl, chart) {
+				Chart ch;
+				ch.LoadFromNode(chart);
+				chartlist.emplace_back(ch);
+			}
 		}
 
 		const XNode* cr = node->GetChild("CourseRuns");
@@ -368,13 +355,10 @@ void Playlist::LoadFromNode(const XNode* node) {
 	}
 }
 
-void SongManager::SetFlagsForProfile(Profile* prof) {
-	SONGMAN->MakeSongGroupsFromPlaylists();
-	SONGMAN->SetFavoritedStatus(prof->FavoritedCharts);
-	SONGMAN->SetHasGoal(prof->goalmap);
-}
-
 void SongManager::MakeSongGroupsFromPlaylists(map<string, Playlist>& playlists) {
+	if (!PlaylistsAreSongGroups)
+		return;
+
 	for(auto& plName : playlistGroups)
 		groupderps.erase(plName);
 	playlistGroups.clear();
@@ -439,6 +423,15 @@ void SongManager::MakePlaylistFromFavorites(set<string>& favs, map<string, Playl
 	playlists.emplace("Favorites", pl);
 }
 
+void SongManager::ReconcileChartKeysForReloadedSong(const Song* reloadedSong, vector<string> oldChartkeys)
+{
+	for (auto ck : oldChartkeys)
+		SONGMAN->StepsByKey.erase(ck);
+	auto stepses = reloadedSong->GetAllSteps();
+	for (auto steps : stepses)
+		SONGMAN->StepsByKey[steps->GetChartKey()] = steps;
+}
+
 string SongManager::ReconcileBustedKeys(const string& ck) {
 	if (StepsByKey.count(ck))
 		return ck;
@@ -475,14 +468,6 @@ Song* SongManager::GetSongByChartkey(RString ck) {
 	if (SongsByKey.count(ck))
 		return SongsByKey[ck];
 	return NULL;
-}
-
-Steps* SongManager::GetStepsByChartkey(const StepsID& sid) {
-	return GetStepsByChartkey(sid.GetKey());
-}
-
-Song* SongManager::GetSongByChartkey(const StepsID& sid) {
-	return GetSongByChartkey(sid.GetKey());
 }
 
 static LocalizedString FOLDER_CONTAINS_MUSIC_FILES( "SongManager", "The folder \"%s\" appears to be a song folder.  All song folders must reside in a group folder.  For example, \"Songs/Originals/My Song\"." );
@@ -591,6 +576,7 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 		ld->SetText("Sanity checking groups");
 	}
 	int groupsChecked = 0;
+	int onePercent = std::max(static_cast<int>(arrayGroupDirs.size() / 100), 1);
 	FOREACH_CONST(RString, arrayGroupDirs, s) {
 		RString sGroupDirName = *s;
 		SanityCheckGroupDir(sDir + sGroupDirName);
@@ -601,30 +587,29 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 		SortRStringArray(arraySongDirs);
 		arrayGroupSongDirs.emplace_back(arraySongDirs);
 		songCount += arraySongDirs.size();
-		if(ld != nullptr)
+		if(ld != nullptr && groupsChecked%onePercent ==0)
 			ld->SetProgress(++groupsChecked);
 	}
 
 	if( ld != nullptr )
 	{
 		ld->SetIndeterminate(false);
-		ld->SetTotalWork(songCount);
+		ld->SetTotalWork(arrayGroupDirs.size());
 	}
 	int groupIndex = 0;
-	int songIndex = 0;
+	onePercent = std::max(static_cast<int>(arrayGroupDirs.size() / 100), 1);
 	FOREACH_CONST(RString, arrayGroupDirs, s) {
 		RString sGroupDirName = *s;
 		vector<RString> &arraySongDirs = arrayGroupSongDirs[groupIndex++];
+		if (ld && groupIndex % onePercent==0) {
+			ld->SetProgress(groupIndex);
+			ld->SetText("Loading Songs From Disk\n" + sGroupDirName);
+		}
 		int loaded = 0;
 		SongPointerVector& index_entry = m_mapSongGroupIndex[sGroupDirName];
 		RString group_base_name = Basename(sGroupDirName);
 		for (size_t j = 0; j < arraySongDirs.size(); ++j) {
-			songIndex++;
 			RString sSongDirName = arraySongDirs[j];
-			if (ld) {
-				ld->SetProgress(songIndex);
-				ld->SetText("Loading Songs From Disk\n" + sSongDirName);
-			}
 			RString hur = sSongDirName + "/";
 			hur.MakeLower();
 			if (m_SongsByDir.count(hur))

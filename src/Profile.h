@@ -12,7 +12,6 @@
 #include "LuaReference.h"
 #include "XMLProfile.h"
 #include "DBProfile.h"
-#include "SongManager.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include <map>
 #include <set>
@@ -100,6 +99,8 @@ public:
 
 	// If the scoregoal has already been completed prior to being assigned, flag it as a vacuous goal
 	void CheckVacuity();
+
+	void UploadIfNotVacuous();
 
 	// Vacuous goals will remain in memory for the session but not be written during save -mina
 	bool vacuous = false;
@@ -268,9 +269,14 @@ public:
 
 
 	// more future goalman stuff -mina
-	void CreateGoal(const string& ck);
-	void DeleteGoal(const string& ck, DateTime assigned);
+	void AddGoal(const string& ck);
+	void RemoveGoal(const string& ck, DateTime assigned);
 	unordered_map<string, GoalsForChart> goalmap;
+	void FillGoalTable();
+	vector<ScoreGoal*> goaltable;
+	int sortmode = 1;	// 1=date 2=rate 3=name 4=priority 5=diff, init to name because that's the default- mina
+	int filtermode = 1; // 1=all, 2=completed, 3=uncompleted
+	bool asc = false;
 
 	bool HasGoal(const string& ck) { return goalmap.count(ck) == 1; }
 	ScoreGoal& GetLowestGoalForRate(const string& ck, float rate);
@@ -298,6 +304,7 @@ public:
 	HighScoreList& GetStepsHighScoreList( const Song* pSong, const Steps* pSteps );
 	int GetStepsNumTimesPlayed( const Song* pSong, const Steps* pSteps ) const;
 	void IncrementStepsPlayCount( const Song* pSong, const Steps* pSteps );
+	Grade GetBestGrade(const Song * pSong, StepsType st) const;
 	void GetGrades( const Song* pSong, StepsType st, int iCounts[NUM_Grade] ) const;
 	int GetSongNumTimesPlayed( const Song* pSong ) const;
 	int GetSongNumTimesPlayed( const SongID& songID ) const;

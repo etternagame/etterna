@@ -8,7 +8,6 @@
 #include "InputEventPlus.h"
 #include "LocalizedString.h"
 #include "LyricDisplay.h"
-#include "NetworkSyncManager.h"
 #include "PlayerStageStats.h"
 #include "PlayerState.h"
 #include "RageSound.h"
@@ -151,8 +150,6 @@ public:
 	LifeMeter *GetLifeMeter( PlayerNumber pn );
 	PlayerInfo *GetPlayerInfo( PlayerNumber pn );
 	PlayerInfo *GetDummyPlayerInfo( int iDummyIndex );
-	void Pause(bool bPause) { PauseGame(bPause); }
-	bool IsPaused() const { return m_bPaused; }
 
 	void FailFadeRemovePlayer(PlayerInfo* pi);
 	void FailFadeRemovePlayer(PlayerNumber pn);
@@ -192,7 +189,6 @@ protected:
 	virtual void LoadNextSong();
 	void StartPlayingSong( float fMinTimeToNotes, float fMinTimeToMusic );
 	void GetMusicEndTiming( float &fSecondsToStartFadingOutMusic, float &fSecondsToStartTransitioningOut );
-	void PauseGame( bool bPause, GameController gc = GameController_Invalid );
 	void PlayAnnouncer( const RString &type, float fSeconds, float *fDeltaSeconds );
 	void PlayAnnouncer( const RString &type, float fSeconds ) { PlayAnnouncer(type, fSeconds, &m_fTimeSinceLastDancingComment); }
 	void SendCrossedMessages();
@@ -218,13 +214,7 @@ protected:
 	}
 	/** @brief The specific point within ScreenGameplay. */ m_DancingState;
 	private:
-	bool			m_bPaused;
-	// set_paused_internal exists because GameState's pause variable needs to
-	// be kept in sync with ScreenGameplay's.
-	void set_paused_internal(bool p);
 	protected:
-
-	GameController		m_PauseController;
 	/**
 	 * @brief The songs left to play.
 	 *

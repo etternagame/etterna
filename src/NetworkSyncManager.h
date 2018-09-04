@@ -2,16 +2,7 @@
 #define NetworkSyncManager_H
 
 #include "Difficulty.h"
-#include "ScreenNetRoom.h"
-#include "RoomWheel.h"
-#include "ScreenNetSelectMusic.h"
-#include "ScreenSMOnlineLogin.h"
-#include "PlayerState.h"
-#include "PlayerStageStats.h"
-#include "Song.h"
 #include "HighScore.h"
-#include "global.h"
-#include "PlayerNumber.h"
 #include <queue>
 #include "uWS.h"
 #include "JsonUtil.h"
@@ -20,11 +11,16 @@ using json = nlohmann::json;
 
 class LoadingWindow;
 
+class RoomData;
+class ScreenNetSelectMusic;
+class ScreenSMOnlineLogin;
+class Song;
 const int NETPROTOCOLVERSION=4;
 const int ETTPCVERSION = 1;
 const int NETMAXBUFFERSIZE=1020; //1024 - 4 bytes for EzSockets
 const int NETNUMTAPSCORES=8;
 
+class PlayerStageStats;
 // [SMLClientCommands name]
 enum NSCommand
 {
@@ -83,14 +79,7 @@ public:
 	RString playerOptions;
 };
 
-enum NSScoreBoardColumn
-{
-	NSSB_NAMES=0,
-	NSSB_COMBO,
-	NSSB_GRADE,
-	NUM_NSScoreBoardColumn,
-	NSScoreBoardColumn_Invalid
-};
+
 
 enum ETTServerMessageTypes {
 	ettps_hello=0,
@@ -244,14 +233,19 @@ public:
 };
 
 class ETTProtocol : public NetProtocol { // Websockets using uwebsockets sending json
-	uWS::Hub uWSh;
+	uWS::Hub* uWSh = new uWS::Hub(); 
 	vector<json> newMessages;
 	unsigned int msgId{0};
 	bool error{ false };
+	string errorMsg;
 	uWS::WebSocket<uWS::CLIENT>* ws{nullptr};
 	void FindJsonChart(NetworkSyncManager* n, json& ch);
 	int state = 0; // 0 = ready, 1 = playing, 2 = evalScreen, 3 = options, 4 = notReady(unkown reason)
 public:
+	bool waitingForTimeout{ false };
+	clock_t timeoutStart;
+	double timeout;
+	function<void(void)> onTimeout;
 	string roomName;
 	string roomDesc;
 	bool inRoom{ false };
@@ -272,6 +266,7 @@ public:
 	void OffEval() override;
 	void ReportHighScore(HighScore* hs, PlayerStageStats& pss) override;
 	void Send(const char* msg);
+	void Send(json msg);
 	/*
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset, int numNotes) override;
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score, int combo, float offset) override;

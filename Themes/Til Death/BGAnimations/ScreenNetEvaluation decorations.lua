@@ -142,7 +142,7 @@ function scoreBoard(pn,position)
 		SetCommand=function(self)
 			local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1)
 			self:settextf("%5.2f", meter)
-			self:diffuse(ByMSD(meter))
+			self:diffuse(byMSD(meter))
 		end,
 	};
 	t[#t+1] = LoadFont("Common Large")..{
@@ -156,7 +156,7 @@ function scoreBoard(pn,position)
 		SetCommand=function(self)
 			local meter = score:GetSkillsetSSR("Overall")
 			self:settextf("%5.2f", meter)
-			self:diffuse(ByMSD(meter))
+			self:diffuse(byMSD(meter))
 		end,
 	};
 	t[#t+1] = LoadFont("Common Large") .. {

@@ -47,6 +47,7 @@ local rankingY = capWideScale(40,40)
 local rankingTitleSpacing = (rankingWidth/(#ms.SkillSets))
 local buttondiffuse = 0
 local whee
+local profile
 
 if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
 	profile = GetPlayerOrMachineProfile(PLAYER_1)
@@ -355,7 +356,7 @@ local function littlebits(i)
 			SetCommand=function(self)
 				local rating = profile:GetPlayerSkillsetRating(ms.SkillSets[i])
 				self:settextf("%5.2f",rating)
-				self:diffuse(ByMSD(rating))
+				self:diffuse(byMSD(rating))
 			end
 		}
 	}

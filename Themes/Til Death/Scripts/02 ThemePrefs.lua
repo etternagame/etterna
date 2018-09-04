@@ -1,4 +1,3 @@
--- StepMania 5 Default Theme Preferences Handler
 local function OptionNameString(str)
 	return THEME:GetString('OptionNames',str)
 end
@@ -348,18 +347,20 @@ function ErrorBar()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = false,
 		ExportOnChange = true,
-		Choices = { THEME:GetString('OptionNames','Off'),'On'},
+		Choices = { THEME:GetString('OptionNames','Off'),'On', 'EWMA'},
 		LoadSelections = function(self, list, pn)
 			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).ErrorBar
-			if pref then
-				list[2] = true
-			else
-				list[1] = true
-			end
+			list[pref+1] = true
 		end,
 		SaveSelections = function(self, list, pn)
 			local value
-			value = list[2]
+			if list[1] == true then
+				value = 0
+			elseif list[2] == true then
+				value = 1
+			else
+				value = 2
+			end
 			playerConfig:get_data(pn_to_profile_slot(pn)).ErrorBar = value
 			playerConfig:set_dirty(pn_to_profile_slot(pn))
 			playerConfig:save(pn_to_profile_slot(pn))

@@ -1,11 +1,4 @@
-local sButton = Var "Button";
-
 return Def.ActorFrame {
-	NOTESKIN:LoadActor(Var "Button", "Underlay Receptor") .. {
-		OnCommand=function() fReceptor[sButton]:queuecommand("On") end;
-		PressCommand=function() fReceptor[sButton]:queuecommand("Press") end;
-		LiftCommand=function() fReceptor[sButton]:queuecommand("Lift") end;
-	};
 	LoadActor( "_Tap Receptor", NOTESKIN:LoadActor(Var "Button", "Ready Receptor") ) .. {
 		Frames = {
 			{ Frame = 2; Delay = 1; };

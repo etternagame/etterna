@@ -16,10 +16,7 @@
 #include "RageFileManager.h"
 #include "curl/curl.h"
 #include "Difficulty.h"
-
-
-
-
+#include <deque>
 
 class DownloadablePack;
 
@@ -39,7 +36,8 @@ public:
 
 class Download {
 public:
-	Download(string url);
+	function<void(Download*)> Done;
+	Download(string url, string filename="", function<void(Download*)> done = [](Download*) {return; });
 	~Download();
 	void Install();
 	void Update(float fDeltaSeconds);
@@ -77,16 +75,27 @@ public:
 	void PushSelf(lua_State *L);
 };
 
+class Packlist {
+public:
+	int sortmode = 1;	// 1=name 2=diff 3=size, init to name because that's the default- mina
+	bool asc = true;		// default sort
+
+	vector<DownloadablePack*> packs;
+	// Lua
+	void PushSelf(lua_State *L);
+};
+
 class HTTPRequest {
 public:
-	HTTPRequest(CURL * h, function<void(HTTPRequest&)> done = [](HTTPRequest& req) {return; },
-		curl_httppost* postform = nullptr, function<void(HTTPRequest&)> fail = [](HTTPRequest& req) {return; }):
+	HTTPRequest(CURL * h, function<void(HTTPRequest&, CURLMsg *)> done = [](HTTPRequest& req, CURLMsg *) {return; },
+		curl_httppost* postform = nullptr, 
+		function<void(HTTPRequest&, CURLMsg *)> fail = [](HTTPRequest& req, CURLMsg *) {return; }):
 		handle(h), form(postform), Done(done), Failed(fail) {};
 	CURL * handle{ nullptr };
 	curl_httppost* form{ nullptr };
 	string result;
-	function<void(HTTPRequest&)> Done;
-	function<void(HTTPRequest&)> Failed;
+	function<void(HTTPRequest&, CURLMsg *)> Done;
+	function<void(HTTPRequest&, CURLMsg *)> Failed;
 };
 class OnlineTopScore {
 public:
@@ -120,6 +129,9 @@ public:
 	string username;
 	float playerRating{ 0.0f };
 	string modifiers;
+	string scoreid;
+	string avatar;
+	int userid;
 	DateTime datetime;
 	vector<pair<float, float>> replayData;
 };
@@ -130,6 +142,7 @@ public:
 	~DownloadManager();
 	map<string, Download*> downloads; // Active downloads
 	vector<HTTPRequest*> HTTPRequests; // Active HTTP requests (async, curlMulti)
+
 	map<string, Download*> finishedDownloads;
 	map<string, Download*> pendingInstallDownloads;
 	CURLM* mPackHandle{ nullptr }; // Curl multi handle for packs downloads
@@ -141,10 +154,8 @@ public:
 	bool gameplay{ false }; // Currently in gameplay
 	bool initialized{ false };
 	string error{ "" };
-	int lastid{ 0 };
 	vector<DownloadablePack> downloadablePacks;
-	string session{ "" }; // Session cookie content
-	string sessionCookie{ "" }; // Entire session cookie string
+	string authToken{ "" }; // Session cookie content
 	string sessionUser{ "" }; // Currently logged in username
 	string sessionPass{ "" }; // Currently logged in password
 	string lastVersion{ "" }; // Last version according to server (Or current if non was obtained)
@@ -154,14 +165,25 @@ public:
 	map<Skillset, double> sessionRatings;
 	map<Skillset, vector<OnlineTopScore>> topScores;
 	bool LoggedIn();
+
+	void AddFavorite(string chartkey);
+	void RemoveFavorite(string chartkey);
+	void RefreshFavourites();
+	vector<string> favorites;
+
+	void AddGoal(string chartkey, float wife, float rate, DateTime timeAssigned);
+	void UpdateGoal(string chartkey, float wife, float rate, bool achieved, DateTime timeAssigned, DateTime timeAchieved);
+	void RemoveGoal(string chartkey, float wife, float rate);
+
 	void EndSessionIfExists(); //Calls EndSession if logged in
 	void EndSession(); //Sends session destroy request
-	void StartSession(string user, string pass); //Sends login request if not already logging in
+	void StartSession(string user, string pass, function<void(bool loggedIn)> done); //Sends login request if not already logging in
+	void OnLogin();
 	bool UploadScores(); //Uploads all scores not yet uploaded to current server (Async, 1 request per score)
 	void RefreshPackList(string url); 
 
 	void init();
-	Download* DownloadAndInstallPack(const string &url);
+	Download* DownloadAndInstallPack(const string &url, string filename="");
 	Download*  DownloadAndInstallPack(DownloadablePack* pack);
 	void Update(float fDeltaSeconds);
 	void UpdatePacks(float fDeltaSeconds);
@@ -184,20 +206,32 @@ public:
 	inline void SetCURLPostToURL(CURL *curlHandle, string url);
 	inline void SetCURLURL(CURL *curlHandle, string url);
 
-	void SendRequest(string requestName, vector<pair<string, string>> params, function<void(HTTPRequest&)> done, bool requireLogin = true, bool post = false, bool async = true);
-	void SendRequestToURL(string url, vector<pair<string, string>> params, function<void(HTTPRequest&)> done, bool requireLogin, bool post, bool async);
+	HTTPRequest* SendRequest(string requestName, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> done, bool requireLogin = true, bool post = false, bool async = true,bool withBearer=true);
+	HTTPRequest* SendRequestToURL(string url, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> done, bool requireLogin, bool post, bool async,bool withBearer);
 	void RefreshLastVersion(); 
 	void RefreshRegisterPage();
+	void MakeAThing(string chartkey);
+	vector<HighScore> athing;
+	bool currentrateonly = false;
 	void RequestChartLeaderBoard(string chartkey);
 	void RefreshUserData();
 	void RefreshUserRank();
 	void RefreshTop25(Skillset ss);
+	void DownloadCoreBundle(string whichoneyo);
+	map<string, vector<DownloadablePack*>> bundles;
+	void RefreshCoreBundles();
+	vector<DownloadablePack*> GetCoreBundle(string whichoneyo);
 	OnlineTopScore GetTopSkillsetScore(unsigned int rank, Skillset ss, bool &result);
 	float GetSkillsetRating(Skillset ss);
 	int GetSkillsetRank(Skillset ss);
 
 	// most recent single score upload result -mina
 	RString mostrecentresult = "";
+	std::deque<DownloadablePack*> DownloadQueue;
+	const int maxPacksToDownloadAtOnce = 1;
+	const float DownloadCooldownTime = 5.f;
+	float timeSinceLastDownload = 0.f;
+	Packlist pl;
 
 	// Lua
 	void PushSelf(lua_State *L);

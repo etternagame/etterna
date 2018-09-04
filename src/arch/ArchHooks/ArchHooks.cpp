@@ -6,6 +6,31 @@
 #include "arch/arch_default.h"
 #include "PrefsManager.h"
 
+#ifdef __APPLE__
+    #include "../../archutils/Darwin/MouseDevice.h"
+
+    int ArchHooks::GetWindowWidth()
+    {
+        return MACWindowWidth();
+    }
+
+
+    int ArchHooks::GetWindowHeight() 
+    {
+        return MACWindowHeight();
+    }
+#else
+    int ArchHooks::GetWindowWidth()
+    {
+        return (static_cast<int>(PREFSMAN->m_iDisplayHeight * PREFSMAN->m_fDisplayAspectRatio));
+    }
+
+    int ArchHooks::GetWindowHeight() 
+    {
+        return PREFSMAN->m_iDisplayHeight;
+    }
+#endif
+
 bool ArchHooks::g_bQuitting = false;
 bool ArchHooks::g_bToggleWindowed = false;
 // Keep from pulling RageThreads.h into ArchHooks.h
@@ -60,17 +85,6 @@ bool ArchHooks::GoToURL( const RString &sUrl )
 ArchHooks *ArchHooks::Create()
 {
 	return new ARCH_HOOKS;
-}
-
-int ArchHooks::GetWindowWidth()
-{
-	return static_cast<int>(PREFSMAN->m_iDisplayHeight * PREFSMAN->m_fDisplayAspectRatio);
-}
-
-
-int ArchHooks::GetWindowHeight() 
-{
-	return PREFSMAN->m_iDisplayHeight;
 }
 
 RString ArchHooks::GetClipboard()

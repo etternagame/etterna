@@ -764,10 +764,10 @@ void ScreenOptions::AfterChangeValueOrRow( PlayerNumber pn )
 		case INPUTMODE_INDIVIDUAL:
 			pText = &m_textExplanation[pn];
 			break;
-		case INPUTMODE_SHARE_CURSOR:
+		default:
+		//case INPUTMODE_SHARE_CURSOR:
 			pText = &m_textExplanationTogether;
 			break;
-		default: break;
 	}
 	if( pText->GetText() != text )
 	{

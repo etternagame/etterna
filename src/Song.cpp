@@ -1,8 +1,6 @@
 #include "global.h"
 #include "FontCharAliases.h"
 #include "GameManager.h"
-#include "NoteData.h"
-#include "PrefsManager.h"
 #include "RageLog.h"
 #include "RageSoundReader_FileReader.h"
 #include "RageSurface_Load.h"
@@ -17,7 +15,6 @@
 #include "RageFileManager.h"
 #include "RageSurface.h"
 #include "RageTextureManager.h"
-#include "NoteDataUtil.h"
 #include "SongUtil.h"
 #include "SongManager.h"
 #include "StepsUtil.h"
@@ -25,7 +22,6 @@
 #include "BackgroundUtil.h"
 #include "Foreach.h"
 #include "LyricsLoader.h"
-#include "NoteDataUtil.h"
 #include "NotesLoader.h"
 #include "NotesLoaderSM.h"
 #include "NotesLoaderSSC.h"
@@ -393,6 +389,7 @@ bool Song::ReloadFromSongDir( const RString &sDir )
 	// Remove the cache file to force the song to reload from its dir instead
 	// of loading from the cache. -Kyz
 	FILEMAN->Remove(GetCacheFilePath());
+	SONGINDEX->DeleteSongFromDBByDir(GetSongDir());
 
 	vector<Steps*> vOldSteps = m_vpSteps;
 
@@ -1078,49 +1075,54 @@ bool Song::HasStepsTypeAndDifficulty( StepsType st, Difficulty dc ) const
 
 void Song::Save(bool autosave)
 {
+	SONGINDEX->DeleteSongFromDBByDir(GetSongDir());
 	LOG->Trace( "Song::SaveToSongFile()" );
 
 	ReCalculateRadarValuesAndLastSecond();
 	TranslateTitles();
 
+	vector<RString> backedDotOldFileNames;
+	vector<RString> backedOrigFileNames;
+	if (!autosave)
+	{
+		vector<RString> arrayOldFileNames;
+		GetDirListing(m_sSongDir + "*.bms", arrayOldFileNames);
+		GetDirListing(m_sSongDir + "*.pms", arrayOldFileNames);
+		GetDirListing(m_sSongDir + "*.ksf", arrayOldFileNames);
+		GetDirListing(m_sSongDir + "*.sm", arrayOldFileNames);
+		GetDirListing(m_sSongDir + "*.dwi", arrayOldFileNames);
+		for (unsigned i = 0; i < arrayOldFileNames.size(); i++)
+		{
+			const RString sOldPath = m_sSongDir + arrayOldFileNames[i];
+			const RString sNewPath = sOldPath + ".old";
+
+			if (!FileCopy(sOldPath, sNewPath))
+			{
+				LOG->UserLog("Song file", sOldPath, "couldn't be backed up.");
+			}
+			else {
+				backedDotOldFileNames.emplace_back(sNewPath);
+				backedOrigFileNames.emplace_back(sOldPath);
+			}
+		}
+	}
 	// Save the new files. These calls make backups on their own.
-	if( !SaveToSSCFile(GetSongFilePath(), false, autosave) )
+	if (!SaveToSSCFile(GetSongFilePath(), false, autosave)) {
+		for (auto fileName : backedDotOldFileNames)
+			FILEMAN->Remove(fileName);
 		return;
+	}
+	for (auto fileName : backedOrigFileNames)
+		FILEMAN->Remove(fileName);
 	// Skip saving the cache, sm, and .old files if we are autosaving.  The
 	// cache file should not contain the autosave filename. -Kyz
 	if(autosave)
 	{
 		return;
 	}
-	SaveToCacheFile();
-	// If one of the charts uses split timing, then it cannot be accurately
-	// saved in the .sm format.  So saving the .sm is disabled.
-	if(!AnyChartUsesSplitTiming())
-	{
-		SaveToSMFile();
-	}
+	SaveToCacheFile(); 
+	FILEMAN->FlushDirCache(GetSongDir());
 	//SaveToDWIFile();
-
-	/* We've safely written our files and created backups. Rename non-SM and
-	 * non-DWI files to avoid confusion. */
-	vector<RString> arrayOldFileNames;
-	GetDirListing( m_sSongDir + "*.bms", arrayOldFileNames );
-	GetDirListing( m_sSongDir + "*.pms", arrayOldFileNames );
-	GetDirListing( m_sSongDir + "*.ksf", arrayOldFileNames );
-
-	for( unsigned i=0; i<arrayOldFileNames.size(); i++ )
-	{
-		const RString sOldPath = m_sSongDir + arrayOldFileNames[i];
-		const RString sNewPath = sOldPath + ".old";
-
-		if( !FileCopy( sOldPath, sNewPath ) )
-		{
-			LOG->UserLog( "Song file", sOldPath, "couldn't be backed up." );
-			// Don't remove.
-		}
-		else
-			FILEMAN->Remove( sOldPath );
-	}
 }
 
 bool Song::SaveToSMFile()
@@ -1160,59 +1162,61 @@ vector<Steps*> Song::GetStepsToSave(bool bSavingCache, string path)
 	}
 	return vpStepsToSave;
 }
-bool Song::SaveToSSCFile( const RString &sPath, bool bSavingCache, bool autosave )
+bool Song::SaveToSSCFile(const RString &sPath, bool bSavingCache, bool autosave)
 {
-	RString path = sPath;
+	auto path = sPath;
 	if (!bSavingCache)
 		path = SetExtension(sPath, "ssc");
-	if(autosave)
+	if (autosave)
 	{
 		path = SetExtension(sPath, "ats");
 	}
 
-	LOG->Trace( "Song::SaveToSSCFile('%s')", path.c_str() );
+	LOG->Trace("Song::SaveToSSCFile('%s')", path.c_str());
 
 	// If the file exists, make a backup.
-	if(!bSavingCache && !autosave && IsAFile(path))
-		FileCopy( path, path + ".old" );
+	if (!bSavingCache && !autosave && IsAFile(path)) {
+		FileCopy(path, path + ".old");
+		m_sSongFileName = path;
+	}
 
-	vector<Steps*> vpStepsToSave= GetStepsToSave(bSavingCache, path);
+	vector<Steps*> vpStepsToSave = GetStepsToSave(bSavingCache, path);
 
 
-	if(bSavingCache || autosave)
+	if (bSavingCache || autosave)
 	{
 		return SONGINDEX->CacheSong(*this, path);
 	}
 
-	if( !NotesWriterSSC::Write(path, *this, vpStepsToSave, bSavingCache) )
+	if (!NotesWriterSSC::Write(path, *this, vpStepsToSave, bSavingCache))
 		return false;
 
 	RemoveAutosave();
 
-	if( g_BackUpAllSongSaves.Get() )
+	if (g_BackUpAllSongSaves.Get())
 	{
-		RString sExt = GetExtension( path );
-		RString sBackupFile = SetExtension( path, "" );
+		RString sExt = GetExtension(path);
+		RString sBackupFile = SetExtension(path, "");
 
 		time_t cur_time;
-		time( &cur_time );
+		time(&cur_time);
 		struct tm now;
-		localtime_r( &cur_time, &now );
+		localtime_r(&cur_time, &now);
 
-		sBackupFile += ssprintf( "-%04i-%02i-%02i--%02i-%02i-%02i",
-			1900+now.tm_year, now.tm_mon+1, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec );
-		sBackupFile = SetExtension( sBackupFile, sExt );
-		sBackupFile += ssprintf( ".old" );
+		sBackupFile += ssprintf("-%04i-%02i-%02i--%02i-%02i-%02i",
+			1900 + now.tm_year, now.tm_mon + 1, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec);
+		sBackupFile = SetExtension(sBackupFile, sExt);
+		sBackupFile += ssprintf(".old");
 
-		if( FileCopy(path, sBackupFile) )
-			LOG->Trace( "Backed up %s to %s", path.c_str(), sBackupFile.c_str() );
+		if (FileCopy(path, sBackupFile))
+			LOG->Trace("Backed up %s to %s", path.c_str(), sBackupFile.c_str());
 		else
-			LOG->Trace( "Failed to back up %s to %s", path.c_str(), sBackupFile.c_str() );
+			LOG->Trace("Failed to back up %s to %s", path.c_str(), sBackupFile.c_str());
 	}
 
 	// Mark these steps saved to disk.
-	FOREACH( Steps*, vpStepsToSave, s )
-		(*s)->SetSavedToDisk( true );
+	FOREACH(Steps*, vpStepsToSave, s)
+		(*s)->SetSavedToDisk(true);
 
 	return true;
 }

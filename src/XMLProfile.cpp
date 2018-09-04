@@ -476,6 +476,11 @@ void GoalsForChart::LoadFromNode(const XNode *pNode) {
 		doot.LoadFromNode(sg);
 		Add(doot);
 	}
+	RString chartkey;
+	pNode->GetAttrValue("Key", chartkey);
+	for (auto& goal : goals)
+		goal.chartkey = chartkey;
+
 }
 
 void XMLProfile::LoadScoreGoalsFromNode(const XNode *pNode) {
@@ -486,6 +491,10 @@ void XMLProfile::LoadScoreGoalsFromNode(const XNode *pNode) {
 		chgoals->GetAttrValue("Key", ck);
 		ck = SONGMAN->ReconcileBustedKeys(ck);
 		loadingProfile->goalmap[ck].LoadFromNode(chgoals);
+		
+		// this should load using the chart system but ensure keys are set properly here for now -mina
+		for (auto& sg : loadingProfile->goalmap[ck].goals)
+			sg.chartkey = ck;
 	}
 }
 

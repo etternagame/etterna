@@ -19,7 +19,8 @@ const int MAX_METER = 35;
 
 /** @brief The maximum number of credits for coin mode. */
 const int MAX_NUM_CREDITS = 20;
-
+class Song;
+class Steps;
 
 enum Skillset {
 	Skill_Overall,
@@ -35,6 +36,17 @@ enum Skillset {
 };
 
 const RString& SkillsetToString(Skillset ss);
+
+
+
+enum NSScoreBoardColumn
+{
+	NSSB_NAMES = 0,
+	NSSB_COMBO,
+	NSSB_GRADE,
+	NUM_NSScoreBoardColumn,
+	NSScoreBoardColumn_Invalid
+};
 
 enum ValidationKey {
 	ValidationKey_Brittle,
@@ -180,6 +192,7 @@ enum SortOrder
 	SORT_JackSpeed,
 	SORT_Chordjack,
 	SORT_Technical,
+	SORT_LENGTH,
 	NUM_SortOrder,
 	SortOrder_Invalid
 };
@@ -372,7 +385,7 @@ enum PlayerController
 	PC_HUMAN,
 	PC_AUTOPLAY,
 	PC_CPU,
-	//PC_REPLAY,
+	PC_REPLAY,
 	NUM_PlayerController,
 	PlayerController_Invalid
 };
@@ -599,7 +612,6 @@ enum FailType
 const RString& FailTypeToString( FailType cat );
 const RString& FailTypeToLocalizedString( FailType cat );
 LuaDeclareType( FailType );
-
 
 #endif
 

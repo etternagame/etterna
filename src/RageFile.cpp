@@ -346,6 +346,7 @@ public:
 	static int destroy( T* p, lua_State *L )
 	{
 		SAFE_DELETE(p);
+		lua_pushboolean( L, true);
 		return 1;
 	}
 
@@ -358,6 +359,7 @@ public:
 	static int Close( T* p, lua_State *L )
 	{
 		p->Close();
+		lua_pushboolean( L, true);
 		return 1;
 	}
 
@@ -371,7 +373,7 @@ public:
 	static int Flush(T* p, lua_State* L)
 	{
 		p->Flush();
-		COMMON_RETURN_SELF;
+		return 0;
 	}
 
 	static int Read( T* p, lua_State *L )
@@ -433,7 +435,7 @@ public:
 	static int ClearError( T* p, lua_State *L )
 	{
 		p->ClearError();
-		return 1;
+		return 0;
 	}
 	
 	static int AtEOF( T* p, lua_State *L )

@@ -7,6 +7,7 @@
 #include "SongUtil.h"
 #include "Style.h"
 #include "ThemeManager.h"
+#include "NetworkSyncManager.h"
 
 static const int NUM_SCORE_DIGITS = 9;
 
@@ -238,14 +239,14 @@ class LunaScreenNetEvaluation: public Luna<ScreenNetEvaluation>
 public:
 	static int GetNumActivePlayers( T* p, lua_State *L ) { lua_pushnumber( L, p->GetNumActivePlayers() ); return 1; }
 	static int GetHighScore(T* p, lua_State *L) { 
-		if (NSMAN->m_EvalPlayerData.size() - 1 >= p->m_iCurrentPlayer)
+		if (static_cast<int>(NSMAN->m_EvalPlayerData.size()) - 1 >= p->m_iCurrentPlayer)
 			NSMAN->m_EvalPlayerData[p->m_iCurrentPlayer].hs.PushSelf(L);
 		else
 			lua_pushnil(L);
 		return 1;
 	}
 	static int GetOptions(T* p, lua_State *L) {
-		if (NSMAN->m_EvalPlayerData.size() - 1 >= p->m_iCurrentPlayer)
+		if (static_cast<int>(NSMAN->m_EvalPlayerData.size()) - 1 >= p->m_iCurrentPlayer)
 			lua_pushstring(L, NSMAN->m_EvalPlayerData[p->m_iCurrentPlayer].playerOptions);
 		else
 			lua_pushnil(L);

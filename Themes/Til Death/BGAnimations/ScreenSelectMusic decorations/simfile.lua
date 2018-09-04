@@ -12,21 +12,18 @@ local t = Def.ActorFrame{
 	SetCommand=function(self)
 		self:finishtweening()
 		if getTabIndex() == 3 then
-			self:queuecommand("On");
+			self:queuecommand("On")
 			self:visible(true)
 			update = true
 		else 
-			self:queuecommand("Off");
+			self:queuecommand("Off")
 			update = false
 		end;
 	end;
 	TabChangedMessageCommand=function(self)
 		self:queuecommand("Set")
-	end;
-	PlayerJoinedMessageCommand=function(self)
-		self:queuecommand("Set")
-	end;
-};
+	end,
+}
 
 local frameX = 10
 local frameY = 45
@@ -41,20 +38,20 @@ local pn = GAMESTATE:GetEnabledPlayers()[1]
 t[#t+1] = Def.Quad{
 	InitCommand=function(self)
 		self:xy(frameX,frameY):zoomto(frameWidth,frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
-	end;
-};
+	end
+}
 
 t[#t+1] = Def.Quad{
 	InitCommand=function(self)
 		self:xy(frameX+5,frameY+offsetY+5):zoomto(150,150*3/4):halign(0):valign(0):diffuse(color("#000000CC"))
-	end;
-};
+	end
+}
 
 t[#t+1] = Def.Sprite {
 	InitCommand=function(self)
 		self:xy(frameX,frameY+offsetY-75):diffusealpha(0.8)
-	end;
-	Name="BG";
+	end,
+	Name="BG",
 	SetCommand=function(self)
 		if update then
 			self:finishtweening()
@@ -80,14 +77,14 @@ t[#t+1] = Def.Sprite {
 			self:smooth(0.5)
 			self:diffusealpha(0.8)
 		end
-	end;
+	end,
 	BeginCommand=function(self)
 		self:queuecommand("Set")
 	end;
 	CurrentSongChangedMessageCommand=function(self)
 		self:finishtweening():smooth(0.5):diffusealpha(0):sleep(0.35):queuecommand("Set")
-	end;
-};
+	end,
+}
 
 t[#t+1] = Def.Sprite {
 		InitCommand=function(self)

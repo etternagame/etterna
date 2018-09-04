@@ -4,7 +4,6 @@
 #include "InputMapper.h"
 #include "PrefsManager.h"
 #include "RageLog.h"
-#include "RageSound.h"
 #include "Screen.h"
 #include "ScreenManager.h"
 #include "RageInput.h"
@@ -349,11 +348,9 @@ bool Screen::PassInputToLua(const InputEventPlus& input)
 	lua_setfield(L, -2, "button");
 	Enum::Push(L, input.type);
 	lua_setfield(L, -2, "type");
-	wchar_t c = INPUTMAN->DeviceInputToChar(input.DeviceI, true);
-	if (c >= L' ')
-		lua_pushstring(L, WStringToRString(wstring() + c).c_str());
-	else
-		lua_pushstring(L, "");
+	char s[5];
+	wctomb(s, INPUTMAN->DeviceInputToChar(input.DeviceI, true));
+	LuaHelpers::Push(L, string(1, s[0]));
 	lua_setfield(L, -2, "char");
 	LuaHelpers::Push(L, GameButtonToString(INPUTMAPPER->GetInputScheme(), input.MenuI));
 	lua_setfield(L, -2, "GameButton");
@@ -361,14 +358,14 @@ bool Screen::PassInputToLua(const InputEventPlus& input)
 	lua_setfield(L, -2, "PlayerNumber");
 	Enum::Push(L, input.mp);
 	lua_setfield(L, -2, "MultiPlayer");
-	for(auto callback= m_InputCallbacks.begin();
-			callback != m_InputCallbacks.end() && !handled; ++callback)
-	{
-		callback->second.PushSelf(L);
+	for(auto k : orderedcallbacks) {
+		if(handled)
+			break;
+		m_InputCallbacks[k].PushSelf(L);
 		lua_pushvalue(L, -2);
 		RString error= "Error running input callback: ";
 		LuaHelpers::RunScriptOnStack(L, error, 1, 1, true);
-		handled= lua_toboolean(L, -1) != 0;
+		handled= lua_toboolean(L, -1);
 		lua_pop(L, 1);
 	}
 	lua_pop(L, 1);
@@ -389,6 +386,7 @@ void Screen::AddInputCallbackFromStack(lua_State* L)
 {
 	callback_key_t key= lua_topointer(L, 1);
 	m_InputCallbacks[key]= LuaReference(L);
+	orderedcallbacks.push_back(key);
 }
 
 void Screen::RemoveInputCallback(lua_State* L)
@@ -472,6 +470,8 @@ public:
 
 LUA_REGISTER_DERIVED_CLASS( Screen, ActorFrame )
 // lua end
+
+REGISTER_SCREEN_CLASS(Screen);
 
 /*
  * (c) 2001-2004 Chris Danford, Glenn Maynard

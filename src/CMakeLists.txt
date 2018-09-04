@@ -336,6 +336,7 @@ list(APPEND SMDATA_LINK_LIB
   "jsoncpp"
   "png"
   "glew"
+  "luajit"
   "jpeg"
   "sqlite3"
   "SQLiteCpp"
@@ -415,7 +416,6 @@ elseif(APPLE)
     ${MAC_FRAME_CARBON}
     ${MAC_FRAME_COCOA}
     ${MAC_FRAME_IOKIT}
-    ${MAC_FRAME_QUICKTIME}
     ${MAC_FRAME_OPENGL}
     ${MAC_FRAME_COREFOUNDATION}
     ${MAC_FRAME_AUDIOTOOLBOX}
@@ -423,8 +423,8 @@ elseif(APPLE)
     ${MAC_FRAME_COREAUDIO}
     ${MAC_FRAME_CORESERVICES}
     "ogg"
-    "theora"
     "vorbis"
+    "vorbisfile"
   )
   list(APPEND SMDATA_LINK_LIB
     "${BZIP2_LIBRARY_RELEASE}"
@@ -541,6 +541,8 @@ list(APPEND SM_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
   "${SM_SRC_DIR}/generated"
 )
+
+list(APPEND SM_INCLUDE_DIRS "${SM_EXTERN_DIR}/LuaJIT-2.1.0-beta3/src")
 
 if(NOT APPLE)
   list(APPEND SM_INCLUDE_DIRS
@@ -685,10 +687,10 @@ if(NOT APPLE)
   install(DIRECTORY "${SM_ROOT_DIR}/Docs" DESTINATION "${SM_INSTALL_DESTINATION}")
   install(DIRECTORY "${SM_ROOT_DIR}/NoteSkins" DESTINATION "${SM_INSTALL_DESTINATION}")
   if (NOT SM_INSTALL_DESTINATION)
-    install(DIRECTORY "${SM_ROOT_DIR}/Songs/Etterna" DESTINATION "Songs")
+    install(DIRECTORY "${SM_ROOT_DIR}/Songs" DESTINATION "Songs")
     install(FILES "${SM_ROOT_DIR}/Songs/instructions.txt" DESTINATION "Songs")
   else()
-    install(DIRECTORY "${SM_ROOT_DIR}/Songs/Etterna" DESTINATION "${SM_INSTALL_DESTINATION}/Songs")
+    install(DIRECTORY "${SM_ROOT_DIR}/Songs/" DESTINATION "${SM_INSTALL_DESTINATION}/Songs")
     install(FILES "${SM_ROOT_DIR}/Songs/instructions.txt" DESTINATION "${SM_INSTALL_DESTINATION}/Songs")
   endif()
 endif()

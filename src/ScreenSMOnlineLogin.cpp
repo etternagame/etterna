@@ -6,7 +6,6 @@
 #include "NetworkSyncManager.h"
 #include "OptionRowHandler.h"
 #include "PrefsManager.h"
-#include "Profile.h"
 #include "ProfileManager.h"
 #include "GameState.h"
 #include "RageLog.h"
@@ -92,7 +91,7 @@ void ScreenSMOnlineLogin::ExportOptions( int iRow, const vector<PlayerNumber> &v
 
 			FOREACH_EnabledPlayer(pn) {
 				auto selection = m_pRows[0]->GetOneSelection(pn);
-				if (selection < m_pRows[0]->GetHandler()->m_Def.m_vsChoices.size() - 1) {
+				if (selection < static_cast<int>(m_pRows[0]->GetHandler()->m_Def.m_vsChoices.size()) - 1) {
 					ProfileManager::m_sDefaultLocalProfileID[pn].Set(vsProfiles[selection]);
 					typeUsername = false;
 				}

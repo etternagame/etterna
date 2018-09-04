@@ -79,7 +79,7 @@ AutoScreenMessage( SM_BattleTrickLevel2 );
 AutoScreenMessage( SM_BattleTrickLevel3 );
 
 static Preference<bool> g_bCenter1Player( "Center1Player", true );
-static Preference<bool> g_bShowLyrics( "ShowLyrics", true );
+static Preference<bool> g_bShowLyrics("ShowLyrics", false );
 static Preference<float> g_fNetStartOffset( "NetworkStartOffset", -3.0 );
 static Preference<bool> g_bEasterEggs( "EasterEggs", true );
 
@@ -272,7 +272,7 @@ ScreenGameplay::ScreenGameplay()
 {
 	m_pSongBackground = NULL;
 	m_pSongForeground = NULL;
-	m_bForceNoNetwork = false;
+	m_bForceNoNetwork = !GAMESTATE->m_bInNetGameplay;
 	m_delaying_ready_announce= false;
 	GAMESTATE->m_AdjustTokensBySongCostForFinalStageCheck= false;
 #if !defined(WITHOUT_NETWORKING)
@@ -329,7 +329,6 @@ void ScreenGameplay::Init()
 	}
 
 	m_pSoundMusic = NULL;
-	set_paused_internal(false);
 
 	if( GAMESTATE->m_pCurSong == NULL)
 		return;	// ScreenDemonstration will move us to the next screen.  We just need to survive for one update without crashing.
@@ -1168,8 +1167,6 @@ void ScreenGameplay::StartPlayingSong( float fMinTimeToNotes, float fMinTimeToMu
 		}
 	}
 	m_pSoundMusic->Play(false, &p);
-	if( m_bPaused )
-		m_pSoundMusic->Pause( true );
 
 	/* Make sure GAMESTATE->m_fMusicSeconds is set up. */
 	GAMESTATE->m_Position.m_fMusicSeconds = -5000;
@@ -1182,41 +1179,6 @@ void ScreenGameplay::StartPlayingSong( float fMinTimeToNotes, float fMinTimeToMu
 		{
 			GAMESTATE->m_pCurSteps[pn]->GetTimingData()->PrepareLookup();
 		}
-	}
-}
-
-void ScreenGameplay::set_paused_internal(bool p)
-{
-	m_bPaused= p;
-	GAMESTATE->SetPaused(p);
-}
-
-void ScreenGameplay::PauseGame( bool bPause, GameController gc )
-{
-	if( m_bPaused == bPause )
-	{
-		LOG->Trace( "ScreenGameplay::PauseGame(%i) received, but already in that state; ignored", bPause );
-		return;
-	}
-
-	// Don't pause if we're already tweening out.
-	if( bPause && m_DancingState == STATE_OUTRO )
-		return;
-
-	ResetGiveUpTimers(false);
-
-	set_paused_internal(bPause);
-	m_PauseController = gc;
-
-	m_pSoundMusic->Pause( bPause );
-	if( bPause )
-		this->PlayCommand( "Pause" );
-	else
-		this->PlayCommand( "Unpause" );
-
-	FOREACH_EnabledPlayerInfo( m_vPlayerInfo, pi )
-	{
-		pi->m_pPlayer->SetPaused( m_bPaused );
 	}
 }
 
@@ -1371,10 +1333,6 @@ void ScreenGameplay::Update( float fDeltaTime )
 	 * !PREFSMAN->m_bDelayedScreenLoad.  (The new screen was loaded when we called Screen::Update,
 	 * and the ctor might set a new GAMESTATE->m_pCurSong, so the above check can fail.) */
 	if( SCREENMAN->GetTopScreen() != this )
-		return;
-
-	/* Update actors when paused, but never move on to another state. */
-	if( m_bPaused )
 		return;
 
 	//LOG->Trace( "m_fOffsetInBeats = %f, m_fBeatsPerSecond = %f, m_Music.GetPositionSeconds = %f", m_fOffsetInBeats, m_fBeatsPerSecond, m_Music.GetPositionSeconds() );
@@ -1619,10 +1577,13 @@ void ScreenGameplay::Update( float fDeltaTime )
 				{
 					pi->GetPlayerStageStats()->m_bFailed |= bAllHumanHaveBigMissCombo;
 					pi->GetPlayerStageStats()->m_bDisqualified |= bGiveUpTimerFired;    // Don't disqualify if failing for miss combo.  The player should still be eligable for a high score on courses.
+					pi->GetPlayerStageStats()->gaveuplikeadumbass |= m_gave_up;
 				}
 				ResetGiveUpTimers(false);
 				if(GIVING_UP_GOES_TO_PREV_SCREEN && !m_skipped_song)
 				{
+					if (GamePreferences::m_AutoPlay == PC_REPLAY)
+						GamePreferences::m_AutoPlay.Set(PC_HUMAN);
 					BeginBackingOutFromGameplay();
 				}
 				else
@@ -1867,24 +1828,6 @@ bool ScreenGameplay::Input( const InputEventPlus &input )
 	if( m_Codes.InputMessage(input, msg) )
 		this->HandleMessage( msg );
 
-	if( m_bPaused )
-	{
-		/* If we're paused, only accept GAME_BUTTON_START to unpause. */
-		if( GAMESTATE->IsHumanPlayer(input.pn) && input.MenuI == GAME_BUTTON_START && input.type == IET_FIRST_PRESS )
-		{
-			if( m_PauseController == GameController_Invalid || m_PauseController == input.GameI.controller )
-			{
-				// IMO, it's better to have this configurable. -DaisuMaster
-				if( UNPAUSE_WITH_START )
-				{
-					this->PauseGame( false );
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
 	if(m_DancingState != STATE_OUTRO  &&
 		GAMESTATE->IsHumanPlayer(input.pn)  &&
 		!m_Cancel.IsTransitioning() )
@@ -1932,6 +1875,8 @@ bool ScreenGameplay::Input( const InputEventPlus &input )
 				(input.DeviceI.device!=DEVICE_KEYBOARD && INPUTFILTER->GetSecsHeld(input.DeviceI) >= 1.0f)) )
 			{
 				LOG->Trace("Player %i went back", input.pn+1);
+				if (GamePreferences::m_AutoPlay == PC_REPLAY)
+					GamePreferences::m_AutoPlay.Set(PC_HUMAN);
 				BeginBackingOutFromGameplay();
 			}
 			else if( PREFSMAN->m_bDelayedBack && input.type==IET_FIRST_PRESS )
@@ -1964,6 +1909,27 @@ bool ScreenGameplay::Input( const InputEventPlus &input )
 		return false;
 	}
 
+	// RestartGameplay may only be pressed when in Singleplayer.
+	// RestartGameplay may not be pressed within Replays.
+	// Clever theming or something can probably break this, but we should at least try.
+	if (SCREENMAN->GetTopScreen()->GetPrevScreen() == "ScreenSelectMusic" && GamePreferences::m_AutoPlay != PC_REPLAY)
+	{
+		/* Restart gameplay button moved from theme to allow for rebinding for people who
+		*  dont want to edit lua files :)
+		*/
+		bool bHoldingRestart = false;
+		if (GAMESTATE->GetCurrentStyle(input.pn)->GameInputToColumn(input.GameI) == Column_Invalid)
+		{
+			bHoldingRestart |= input.MenuI == GAME_BUTTON_RESTART;
+		}
+		if (bHoldingRestart)
+		{
+			SCREENMAN->GetTopScreen()->SetPrevScreenName("ScreenStageInformation");
+			BeginBackingOutFromGameplay();
+		}
+	}
+	
+	
 	if( GAMESTATE->m_bMultiplayer )
 	{
 		if( input.mp != MultiPlayer_Invalid  &&  GAMESTATE->IsMultiPlayerEnabled(input.mp)  &&  iCol != -1 )
@@ -2078,8 +2044,8 @@ void ScreenGameplay::StageFinished( bool bBackedOut )
 	FOREACH_HumanPlayer( pn )
 		STATSMAN->m_CurStageStats.m_player[pn].CalcAwards( pn, STATSMAN->m_CurStageStats.m_bGaveUp, STATSMAN->m_CurStageStats.m_bUsedAutoplay );
 	STATSMAN->m_CurStageStats.FinalizeScores( false );
-	GAMESTATE->CommitStageStats();
-
+	if ( GamePreferences::m_AutoPlay == PC_HUMAN )
+		GAMESTATE->CommitStageStats();
 	// save current stage stats
 	STATSMAN->m_vPlayedStageStats.push_back( STATSMAN->m_CurStageStats );
 
@@ -2241,7 +2207,7 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 
 		bool bAllReallyFailed = STATSMAN->m_CurStageStats.AllFailed();
 
-		if( bAllReallyFailed )
+		if( bAllReallyFailed)
 		{
 			this->PostScreenMessage( SM_BeginFailed, 0 );
 			return;
@@ -2345,12 +2311,21 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 	{
 		SongFinished();
 		this->StageFinished( false );
+		auto syncing = !GAMESTATE->IsPlaylistCourse() && AdjustSync::IsSyncDataChanged();
+		bool replaying = false;
+		FOREACH_EnabledPlayerNumberInfo(m_vPlayerInfo, pi)
+		{
+			if (pi->GetPlayerState()->m_PlayerController == PC_REPLAY) // don't duplicate replay saves
+			{
+				replaying = true;
+			}
+		}
 		// only save replays if the player chose to
-		if( GAMESTATE->m_SongOptions.GetCurrent().m_bSaveReplay )
+		if( GAMESTATE->m_SongOptions.GetCurrent().m_bSaveReplay  && !syncing && !replaying)
 			SaveReplay();
 
-		if(!GAMESTATE->IsPlaylistCourse() && AdjustSync::IsSyncDataChanged())
-			ScreenSaveSync::PromptSaveSync( SM_GoToNextScreen );
+		if(syncing)
+			ScreenSaveSync::PromptSaveSync(SM_GoToPrevScreen);
 		else
 			HandleScreenMessage( SM_GoToNextScreen );
 
@@ -2378,15 +2353,6 @@ void ScreenGameplay::HandleScreenMessage( const ScreenMessage SM )
 		m_Failed.StartTransitioning( SM_DoNextScreen );
 
 		SOUND->PlayOnceFromAnnouncer( "gameplay failed" );
-	}
-	else if( SM == SM_Pause )
-	{
-		// Ignore SM_Pause when in demonstration.
-		if( GAMESTATE->m_bDemonstrationOrJukebox )
-			return;
-
-		if( !m_bPaused )
-			PauseGame( true );
 	}
 
 	ScreenWithMenuElements::HandleScreenMessage( SM );
@@ -2578,8 +2544,6 @@ public:
 		pi->PushSelf( L );
 		return 1;
 	}
-	static int PauseGame( T* p, lua_State *L )		{ p->Pause( BArg(1)); return 0; }
-	static int IsPaused( T* p, lua_State *L )		{ lua_pushboolean( L, p->IsPaused() ); return 1; }
 	static bool TurningPointsValid(lua_State* L, int index)
 	{
 		size_t size= lua_objlen(L, index);
@@ -2627,8 +2591,6 @@ public:
 		ADD_METHOD( GetPlayerInfo );
 		ADD_METHOD( GetDummyPlayerInfo );
 		// sm-ssc additions:
-		ADD_METHOD( PauseGame );
-		ADD_METHOD( IsPaused );
 		ADD_METHOD(begin_backing_out);
 		ADD_METHOD( GetTrueBPS );
 	}

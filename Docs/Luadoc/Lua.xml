@@ -11,14 +11,10 @@
 		<Function name='ArgsIfPlayerJoinedOrNil'/>
 		<Function name='BGFitChoiceExample'/>
 		<Function name='BGFitInputActor'/>
-		<Function name='BackgroundType'/>
 		<Function name='Basename'/>
 		<Function name='BoostColor'/>
 		<Function name='Brightness'/>
-		<Function name='ByMSD'/>
-		<Function name='ByMusicLength'/>
 		<Function name='Center1Player'/>
-		<Function name='ChangeMusicRate'/>
 		<Function name='CloseConnection'/>
 		<Function name='ColorDarkTone'/>
 		<Function name='ColorLightTone'/>
@@ -34,23 +30,16 @@
 		<Function name='CustomDifficultyToDarkColor'/>
 		<Function name='CustomDifficultyToLightColor'/>
 		<Function name='CustomDifficultyToLocalizedString'/>
-		<Function name='CustomizeGameplay'/>
 		<Function name='DayOfMonth'/>
 		<Function name='DayOfYear'/>
 		<Function name='DeepCopy'/>
-		<Function name='DefaultScoreType'/>
-		<Function name='DisplayPercent'/>
-		<Function name='ErrorBar'/>
-		<Function name='EvalBGType'/>
 		<Function name='EvalUsesCheckpointsWithJudgments'/>
-		<Function name='FadeIn'/>
 		<Function name='FailCombo'/>
 		<Function name='FindSelection'/>
 		<Function name='FindValue'/>
 		<Function name='FormatNumSongsPlayed'/>
 		<Function name='FormatNumberAndSuffix'/>
 		<Function name='FormatPercentScore'/>
-		<Function name='FullProgressBar'/>
 		<Function name='GameCompatibleModes'/>
 		<Function name='GameOverOrContinue'/>
 		<Function name='GameplayMargins'/>
@@ -66,7 +55,6 @@
 		<Function name='GetGamePrefN'/>
 		<Function name='GetGradeFromPercent'/>
 		<Function name='GetLifeDifficulty'/>
-		<Function name='GetPlayableTime'/>
 		<Function name='GetPlayerOrMachineProfile'/>
 		<Function name='GetProTiming'/>
 		<Function name='GetRandomSongBackground'/>
@@ -91,12 +79,10 @@
 		<Function name='HSVToColor'/>
 		<Function name='HSVToHex'/>
 		<Function name='HasAlpha'/>
-		<Function name='HelpMenu'/>
 		<Function name='HitCombo'/>
 		<Function name='HoldTiming'/>
 		<Function name='Hour'/>
 		<Function name='Hue'/>
-		<Function name='IndexOf'/>
 		<Function name='InitGamePrefs'/>
 		<Function name='InitUserPrefs'/>
 		<Function name='IsArcade'/>
@@ -109,26 +95,21 @@
 		<Function name='IsRoutine'/>
 		<Function name='IsSMOnlineLoggedIn'/>
 		<Function name='IsUsingWideScreen'/>
-		<Function name='JudgeCounter'/>
 		<Function name='JudgmentLineToColor'/>
 		<Function name='JudgmentLineToLocalizedString'/>
 		<Function name='JudgmentLineToStrokeColor'/>
-		<Function name='JudgmentText'/>
 		<Function name='JudgmentTransformCommand'/>
 		<Function name='JudgmentTransformSharedCommand'/>
-		<Function name='LaneCover'/>
 		<Function name='LoadActor'/>
 		<Function name='LoadActorFunc'/>
 		<Function name='LoadActorWithParams'/>
+		<Function name='LoadColorFont'/>
 		<Function name='LoadFallbackB'/>
 		<Function name='LoadFont'/>
+		<Function name='LoadNSkinPreview'/>
 		<Function name='LoadProfileCustom'/>
 		<Function name='LoadSongBackground'/>
 		<Function name='LocalizeOptionItem'/>
-		<Function name='MD5FileHex'/>
-		<Function name='MD5StringHex'/>
-		<Function name='MeasureLines'/>
-		<Function name='MiniProgressBar'/>
 		<Function name='Minute'/>
 		<Function name='MissCombo'/>
 		<Function name='MonthOfYear'/>
@@ -136,21 +117,17 @@
 		<Function name='MonthToString'/>
 		<Function name='MultiPlayerToLocalizedString'/>
 		<Function name='MultiPlayerToString'/>
-		<Function name='NPSDisplay'/>
-		<Function name='NPSWindow'/>
+		<Function name='NSkinPreviewChange'/>
 		<Function name='OldStyleStringToDifficulty'/>
 		<Function name='OptionRowProTiming'/>
-		<Function name='OptionRowScreenFilter'/>
 		<Function name='OptionsNavigationMode'/>
 		<Function name='OptionsRandomJukebox'/>
 		<Function name='OptionsRowTest'/>
 		<Function name='OptionsWeight'/>
-		<Function name='Particles'/>
 		<Function name='PeakComboAwardToLocalizedString'/>
 		<Function name='PlayModeToLocalizedString'/>
 		<Function name='PlayerColor'/>
 		<Function name='PlayerDarkColor'/>
-		<Function name='PlayerInfo'/>
 		<Function name='PlayerNumberToLocalizedString'/>
 		<Function name='PlayerNumberToString'/>
 		<Function name='PlayerScoreColor'/>
@@ -160,24 +137,18 @@
 		<Function name='ProductFamily'/>
 		<Function name='ProductID'/>
 		<Function name='ProductVersion'/>
-		<Function name='ProgressBar'/>
 		<Function name='RadarCategoryToLocalizedString'/>
-		<Function name='RateSort'/>
 		<Function name='ReadGamePrefFromFile'/>
 		<Function name='ReadPrefFromFile'/>
-		<Function name='ReceptorSize'/>
 		<Function name='ReportStyle'/>
 		<Function name='ResolveRelativePath'/>
 		<Function name='RoutineSkinP1'/>
 		<Function name='RoutineSkinP2'/>
-		<Function name='SHA1FileHex'/>
-		<Function name='SHA1StringHex'/>
 		<Function name='SMOnlineScreen'/>
 		<Function name='Saturation'/>
 		<Function name='SaveProfileCustom'/>
 		<Function name='SaveScreenshot'/>
 		<Function name='ScoreKeeperClass'/>
-		<Function name='ScreenColor'/>
 		<Function name='ScreenMetric'/>
 		<Function name='ScreenSelectStyleChoices'/>
 		<Function name='ScreenSelectStylePositions'/>
@@ -194,11 +165,11 @@
 		<Function name='Serialize'/>
 		<Function name='SetGamePref'/>
 		<Function name='SetThemePref'/>
+		<Function name='SetTimingDifficulty'/>
 		<Function name='SetUserPref'/>
 		<Function name='ShowHoldJudgments'/>
 		<Function name='ShowStandardDecoration'/>
-		<Function name='SongBGEnabled'/>
-		<Function name='SongBGMouseEnabled'/>
+		<Function name='SimChild'/>
 		<Function name='SortOrderToLocalizedString'/>
 		<Function name='SpeedModIncLarge'/>
 		<Function name='SpeedModIncSize'/>
@@ -216,12 +187,8 @@
 		<Function name='StringToBlend'/>
 		<Function name='TableStringLookup'/>
 		<Function name='TapNoteScoreToLocalizedString'/>
-		<Function name='TargetGoal'/>
-		<Function name='TargetTracker'/>
-		<Function name='TargetTrackerMode'/>
 		<Function name='TextBannerAfterSet'/>
 		<Function name='ThemePrefRow'/>
-		<Function name='TipType'/>
 		<Function name='ToEnumShortString'/>
 		<Function name='Trace'/>
 		<Function name='TwoPartSelection'/>
@@ -236,15 +203,10 @@
 		<Function name='WriteGamePrefToFile'/>
 		<Function name='WritePrefToFile'/>
 		<Function name='Year'/>
-		<Function name='add_blank_tables_to_params'/>
-		<Function name='add_defaults_to_params'/>
 		<Function name='alias_one'/>
 		<Function name='alias_set'/>
 		<Function name='approach'/>
 		<Function name='assert'/>
-		<Function name='byDifficulty'/>
-		<Function name='capWideScale'/>
-		<Function name='check_stop_course_early'/>
 		<Function name='clamp'/>
 		<Function name='class'/>
 		<Function name='collectgarbage'/>
@@ -253,55 +215,20 @@
 		<Function name='convert_text_to_indented_lines'/>
 		<Function name='convert_xml_bgs'/>
 		<Function name='create_bezier'/>
-		<Function name='create_setting'/>
 		<Function name='create_spline'/>
-		<Function name='disqualifyScore'/>
 		<Function name='dofile'/>
-		<Function name='edit_pick_menu_actor'/>
-		<Function name='edit_pick_menu_steps_display_item'/>
-		<Function name='edit_pick_menu_update_steps_display_info'/>
 		<Function name='error'/>
 		<Function name='fapproach'/>
-		<Function name='filterFileList'/>
 		<Function name='find_missing_strings_in_theme_translations'/>
-		<Function name='force_table_elements_to_match_type'/>
-		<Function name='force_to_range'/>
 		<Function name='foreach_by_sorted_keys'/>
 		<Function name='foreach_ordered'/>
-		<Function name='formLink'/>
 		<Function name='gcinfo'/>
-		<Function name='get43size'/>
-		<Function name='getAutoplay'/>
-		<Function name='getBPMChangeCount'/>
-		<Function name='getCommonBPM'/>
-		<Function name='getCurKey'/>
-		<Function name='getCurRateDisplayString'/>
-		<Function name='getCurRateString'/>
-		<Function name='getCurRateValue'/>
-		<Function name='getDifficulty'/>
-		<Function name='getDifficultyColor'/>
-		<Function name='getGradeStrings'/>
-		<Function name='getJudgeStrings'/>
-		<Function name='getNoteFieldPos'/>
-		<Function name='getNoteFieldScale'/>
-		<Function name='getNoteFieldWidth'/>
-		<Function name='getRateDisplayString'/>
-		<Function name='getShortDifficulty'/>
-		<Function name='getShortJudgeStrings'/>
-		<Function name='getTableSize'/>
-		<Function name='getTrueX'/>
-		<Function name='getTrueY'/>
 		<Function name='get_music_file_length'/>
-		<Function name='get_nested_options_menu_line_height'/>
 		<Function name='get_sound_driver_list'/>
 		<Function name='getenv'/>
 		<Function name='getfenv'/>
 		<Function name='getmetatable'/>
 		<Function name='ipairs'/>
-		<Function name='isOver'/>
-		<Function name='isOverScaled'/>
-		<Function name='isScoreValid'/>
-		<Function name='isWindowed'/>
 		<Function name='ivalues'/>
 		<Function name='join'/>
 		<Function name='lerp'/>
@@ -309,45 +236,31 @@
 		<Function name='load'/>
 		<Function name='loadfile'/>
 		<Function name='loadstring'/>
-		<Function name='lua_table_to_string'/>
 		<Function name='make_camel_aliases'/>
 		<Function name='mbstrlen'/>
-		<Function name='menu_stack_generic_input'/>
 		<Function name='module'/>
 		<Function name='multiapproach'/>
-		<Function name='nesty_option_item_default_set_command'/>
 		<Function name='new_numpad_entry'/>
 		<Function name='newproxy'/>
 		<Function name='next'/>
-		<Function name='noop_nil'/>
 		<Function name='pairs'/>
 		<Function name='pause_controller_actor'/>
 		<Function name='pcall'/>
-		<Function name='pn_to_profile_slot'/>
 		<Function name='pname'/>
 		<Function name='print'/>
 		<Function name='rawequal'/>
 		<Function name='rawget'/>
 		<Function name='rawset'/>
-		<Function name='rec_calc_actor_pos'/>
 		<Function name='rec_print_children'/>
 		<Function name='rec_print_table'/>
 		<Function name='require'/>
 		<Function name='round'/>
 		<Function name='scale'/>
-		<Function name='scale_to_fit'/>
-		<Function name='scoringToText'/>
 		<Function name='select'/>
-		<Function name='set_nested_options_menu_line_height'/>
-		<Function name='set_nesty_option_metatables'/>
 		<Function name='setenv'/>
 		<Function name='setfenv'/>
 		<Function name='setmetatable'/>
-		<Function name='showKeys'/>
 		<Function name='split'/>
-		<Function name='string_needs_escape'/>
-		<Function name='tableContains'/>
-		<Function name='tableKeys'/>
 		<Function name='tableshuffle'/>
 		<Function name='tableslice'/>
 		<Function name='tobool'/>
@@ -359,12 +272,7 @@
 		<Function name='width_clip_limit_text'/>
 		<Function name='width_clip_text'/>
 		<Function name='width_limit_text'/>
-		<Function name='wifeMean'/>
-		<Function name='wifeRange'/>
-		<Function name='wifeSd'/>
 		<Function name='wrap'/>
-		<Function name='wrapped_index'/>
-		<Function name='write_str_to_file'/>
 		<Function name='xpcall'/>
 	</GlobalFunctions>
 	<Classes>
@@ -704,6 +612,7 @@
 		<Class name='ArchHooks'>
 			<Function name='AppHasFocus'/>
 			<Function name='GetArchName'/>
+			<Function name='GetClipboard'/>
 		</Class>
 		<Class base='BitmapText' name='BPMDisplay'>
 			<Function name='GetText'/>
@@ -777,6 +686,9 @@
 			<Function name='GetSongTitle'/>
 			<Function name='IsLoaded'/>
 		</Class>
+		<Class base='BitmapText' name='ColorBitmapText'>
+			<Function name='SetMaxLines'/>
+		</Class>
 		<Class base='ActorFrame' name='ComboGraph'>
 			<Function name='Load'/>
 			<Function name='Set'/>
@@ -846,6 +758,45 @@
 			<Function name='SetPlayer'/>
 			<Function name='Unset'/>
 		</Class>
+		<Class name='Download'>
+			<Function name='GetKBDownloaded'/>
+			<Function name='GetKBPerSecond'/>
+			<Function name='GetTotalKB'/>
+			<Function name='Stop'/>
+		</Class>
+		<Class name='DownloadManager'>
+			<Function name='DownloadCoreBundle'/>
+			<Function name='GetCoreBundle'/>
+			<Function name='GetCurrentRateFilter'/>
+			<Function name='GetDownloadingPacks'/>
+			<Function name='GetDownloads'/>
+			<Function name='GetLastVersion'/>
+			<Function name='GetPacklist'/>
+			<Function name='GetRegisterPage'/>
+			<Function name='GetSkillsetRank'/>
+			<Function name='GetSkillsetRating'/>
+			<Function name='GetToken'/>
+			<Function name='GetTopChartScore'/>
+			<Function name='GetTopChartScoreCount'/>
+			<Function name='GetTopSkillsetScore'/>
+			<Function name='GetUsername'/>
+			<Function name='IsLoggedIn'/>
+			<Function name='Login'/>
+			<Function name='LoginWithToken'/>
+			<Function name='Logout'/>
+			<Function name='RequestChartLeaderBoard'/>
+			<Function name='ToggleRateFilter'/>
+		</Class>
+		<Class name='DownloadablePack'>
+			<Function name='DownloadAndInstall'/>
+			<Function name='GetAvgDifficulty'/>
+			<Function name='GetDownload'/>
+			<Function name='GetID'/>
+			<Function name='GetName'/>
+			<Function name='GetSize'/>
+			<Function name='IsDownloading'/>
+			<Function name='IsQueued'/>
+		</Class>
 		<Class base='ActorFrame' name='FadingBanner'>
 			<Function name='GetLatestIndex'/>
 			<Function name='LoadCardFromCharacter'/>
@@ -866,12 +817,17 @@
 			<Function name='GetMaxFilterRate'/>
 			<Function name='GetMinFilterRate'/>
 			<Function name='GetSSFilter'/>
+			<Function name='HelpImTrappedInAChineseFortuneCodingFactory'/>
 			<Function name='ResetSSFilters'/>
 			<Function name='SetMaxFilterRate'/>
 			<Function name='SetMinFilterRate'/>
 			<Function name='SetSSFilter'/>
 			<Function name='ToggleFilterMode'/>
 			<Function name='ToggleHighestSkillsetsOnly'/>
+			<Function name='grabposx'/>
+			<Function name='grabposy'/>
+			<Function name='oopsimlazylol'/>
+			<Function name='savepos'/>
 		</Class>
 		<Class name='Game'>
 			<Function name='CountNotesSeparately'/>
@@ -1017,6 +973,8 @@
 			<Function name='ShowW1'/>
 			<Function name='StoreRankingName'/>
 			<Function name='UnjoinPlayer'/>
+			<Function name='UpdateDiscordMenu'/>
+			<Function name='UpdateDiscordPresence'/>
 		</Class>
 		<Class base='ActorFrame' name='GradeDisplay'>
 			<Function name='Load'/>
@@ -1040,13 +998,16 @@
 		</Class>
 		<Class name='HighScore'>
 			<Function name='ConvertDpToWife'/>
+			<Function name='GetAvatar'/>
 			<Function name='GetChartKey'/>
 			<Function name='GetChordCohesion'/>
 			<Function name='GetDate'/>
+			<Function name='GetDisplayName'/>
 			<Function name='GetEtternaValid'/>
 			<Function name='GetGrade'/>
 			<Function name='GetHoldNoteScore'/>
 			<Function name='GetJudgeScale'/>
+			<Function name='GetJudgmentString'/>
 			<Function name='GetMaxCombo'/>
 			<Function name='GetModifiers'/>
 			<Function name='GetMusicRate'/>
@@ -1056,18 +1017,22 @@
 			<Function name='GetPeakComboAward'/>
 			<Function name='GetPercentDP'/>
 			<Function name='GetRadarValues'/>
+			<Function name='GetReplayType'/>
 			<Function name='GetScore'/>
+			<Function name='GetScoreid'/>
 			<Function name='GetSkillsetSSR'/>
 			<Function name='GetStageAward'/>
 			<Function name='GetSurvivalSeconds'/>
 			<Function name='GetTapNoteScore'/>
+			<Function name='GetTapNoteTypeVector'/>
+			<Function name='GetTrackVector'/>
+			<Function name='GetUserid'/>
 			<Function name='GetWifeGrade'/>
+			<Function name='GetWifePoints'/>
 			<Function name='GetWifeScore'/>
 			<Function name='HasReplayData'/>
 			<Function name='IsFillInMarker'/>
 			<Function name='RescoreJudges'/>
-			<Function name='RescoreToDPJudge'/>
-			<Function name='RescoreToWifeJudge'/>
 			<Function name='ToggleEtternaValidation'/>
 		</Class>
 		<Class name='HighScoreList'>
@@ -1092,6 +1057,9 @@
 			<Function name='GetMouseWheel'/>
 			<Function name='GetMouseX'/>
 			<Function name='GetMouseY'/>
+			<Function name='IsBeingPressed'/>
+			<Function name='IsControlPressed'/>
+			<Function name='IsShiftPressed'/>
 		</Class>
 		<Class base='ActorFrame' name='LifeMeter'>
 			<Function name='GetLife'/>
@@ -1140,10 +1108,12 @@
 		</Class>
 		<Class base='WheelBase' name='MusicWheel'>
 			<Function name='ChangeSort'/>
+			<Function name='FilterByStepKeys'/>
 			<Function name='GetSelectedSection'/>
 			<Function name='IsRouletting'/>
 			<Function name='Move'/>
 			<Function name='MoveAndCheckType'/>
+			<Function name='ReloadSongList'/>
 			<Function name='SelectSong'/>
 			<Function name='SongSearch'/>
 		</Class>
@@ -1166,6 +1136,14 @@
 			<Function name='set_receptor_t'/>
 			<Function name='set_spline_mode'/>
 			<Function name='set_subtract_song_beat'/>
+		</Class>
+		<Class name='NetworkSyncManager'>
+			<Function name='GetChatMsg'/>
+			<Function name='GetCurrentRoomName'/>
+			<Function name='IsETTP'/>
+			<Function name='Login'/>
+			<Function name='Logout'/>
+			<Function name='SendChatMsg'/>
 		</Class>
 		<Class base='Actor' name='NoteColumnRenderer'>
 			<Function name='GetPosHandler'/>
@@ -1224,6 +1202,17 @@
 			<Function name='HasFocus'/>
 			<Function name='OneChoiceForAllPlayers'/>
 		</Class>
+		<Class name='Packlist'>
+			<Function name='FilterAndSearch'/>
+			<Function name='GetAvgDiff'/>
+			<Function name='GetPackTable'/>
+			<Function name='GetTotalSize'/>
+			<Function name='SetFromAll'/>
+			<Function name='SetFromCoreBundle'/>
+			<Function name='SortByDiff'/>
+			<Function name='SortByName'/>
+			<Function name='SortBySize'/>
+		</Class>
 		<Class base='ActorFrame' name='PaneDisplay'>
 			<Function name='SetFromGameState'/>
 		</Class>
@@ -1236,6 +1225,10 @@
 			<Function name='SetActorWithComboPosition'/>
 			<Function name='SetActorWithJudgmentPosition'/>
 			<Function name='SetLife'/>
+		</Class>
+		<Class name='PlayerInfo'>
+			<Function name='GetLifeMeter'/>
+			<Function name='GetStepsQueueWrapped'/>
 		</Class>
 		<Class name='PlayerOptions'>
 			<Function name='Alternate'/>
@@ -1346,6 +1339,7 @@
 			<Function name='GetBestFullComboTapNoteScore'/>
 			<Function name='GetComboList'/>
 			<Function name='GetCurMaxScore'/>
+			<Function name='GetCurWifeScore'/>
 			<Function name='GetCurrentCombo'/>
 			<Function name='GetCurrentLife'/>
 			<Function name='GetCurrentMissCombo'/>
@@ -1360,6 +1354,7 @@
 			<Function name='GetLifeRecord'/>
 			<Function name='GetLifeRemainingSeconds'/>
 			<Function name='GetMachineHighScoreIndex'/>
+			<Function name='GetMaxWifeScore'/>
 			<Function name='GetNoteRowVector'/>
 			<Function name='GetNumControllerSteps'/>
 			<Function name='GetOffsetVector'/>
@@ -1378,7 +1373,9 @@
 			<Function name='GetStageAward'/>
 			<Function name='GetSurvivalSeconds'/>
 			<Function name='GetTapNoteScores'/>
+			<Function name='GetTapNoteTypeVector'/>
 			<Function name='GetTotalTaps'/>
+			<Function name='GetTrackVector'/>
 			<Function name='GetWifeGrade'/>
 			<Function name='GetWifeRecord'/>
 			<Function name='GetWifeScore'/>
@@ -1386,6 +1383,7 @@
 			<Function name='MaxCombo'/>
 			<Function name='SetCurMaxScore'/>
 			<Function name='SetScore'/>
+			<Function name='UnloadReplayData'/>
 			<Function name='WifeScoreOffset'/>
 		</Class>
 		<Class name='PlayerState'>
@@ -1406,9 +1404,9 @@
 		<Class name='Playlist'>
 			<Function name='AddChart'/>
 			<Function name='DeleteChart'/>
+			<Function name='GetAllSteps'/>
 			<Function name='GetAverageRating'/>
-			<Function name='GetChartlist'/>
-			<Function name='GetChartlistActual'/>
+			<Function name='GetChartkeys'/>
 			<Function name='GetName'/>
 			<Function name='GetNumCharts'/>
 			<Function name='GetSonglist'/>
@@ -1424,13 +1422,14 @@
 		<Class name='Profile'>
 			<Function name='AddScreenshot'/>
 			<Function name='CalculateCaloriesFromHeartRate'/>
-			<Function name='GetAllGoals'/>
 			<Function name='GetAllUsedHighScoreNames'/>
 			<Function name='GetCategoryHighScoreList'/>
 			<Function name='GetCharacter'/>
 			<Function name='GetDisplayName'/>
 			<Function name='GetEasiestGoalForChartAndRate'/>
+			<Function name='GetFilterMode'/>
 			<Function name='GetGUID'/>
+			<Function name='GetGoalTable'/>
 			<Function name='GetHighScoreList'/>
 			<Function name='GetHighScoreListIfExists'/>
 			<Function name='GetIgnoreStepCountCalories'/>
@@ -1464,9 +1463,17 @@
 			<Function name='GetUserTable'/>
 			<Function name='HasPassedAnyStepsInSong'/>
 			<Function name='IsCurrentChartPermamirror'/>
+			<Function name='RenameProfile'/>
 			<Function name='SetCharacter'/>
 			<Function name='SetDisplayName'/>
+			<Function name='SetFromAll'/>
 			<Function name='SetLastUsedHighScoreName'/>
+			<Function name='SortByDate'/>
+			<Function name='SortByDiff'/>
+			<Function name='SortByName'/>
+			<Function name='SortByPriority'/>
+			<Function name='SortByRate'/>
+			<Function name='ToggleFilter'/>
 		</Class>
 		<Class name='ProfileManager'>
 			<Function name='ConvertProfile'/>
@@ -1576,6 +1583,9 @@
 		</Class>
 		<Class base='WheelBase' name='RoomWheel'>
 			<Function name='Move'/>
+			<Function name='MoveAndCheckType'/>
+			<Function name='Search'/>
+			<Function name='StopSearch'/>
 		</Class>
 		<Class base='BitmapText' name='ScoreDisplayAliveTime'/>
 		<Class name='ScoreGoal'>
@@ -1630,8 +1640,6 @@
 			<Function name='GetLifeMeter'/>
 			<Function name='GetPlayerInfo'/>
 			<Function name='GetTrueBPS'/>
-			<Function name='IsPaused'/>
-			<Function name='PauseGame'/>
 			<Function name='begin_backing_out'/>
 		</Class>
 		<Class base='ScreenAttract' name='ScreenHowToPlay'>
@@ -1654,11 +1662,15 @@
 			<Function name='set_input_redirected'/>
 		</Class>
 		<Class base='ScreenEvaluation' name='ScreenNetEvaluation'>
+			<Function name='GetHighScore'/>
 			<Function name='GetNumActivePlayers'/>
+			<Function name='GetOptions'/>
 		</Class>
 		<Class base='ScreenNetSelectBase' name='ScreenNetRoom'>
 			<Function name='GetMusicWheel'/>
+			<Function name='GetRoomWheel'/>
 			<Function name='GetSelectionState'/>
+			<Function name='InfoSetVisible'/>
 			<Function name='SelectCurrent'/>
 		</Class>
 		<Class base='ScreenWithMenuElements' name='ScreenNetSelectBase'>
@@ -1672,6 +1684,7 @@
 			<Function name='GetUser'/>
 			<Function name='GetUserQty'/>
 			<Function name='GetUserState'/>
+			<Function name='PasteClipboard'/>
 			<Function name='ScrollChatDown'/>
 			<Function name='ScrollChatUp'/>
 			<Function name='ShowNextMsg'/>
@@ -1802,6 +1815,7 @@
 		</Class>
 		<Class name='SongManager'>
 			<Function name='DeletePlaylist'/>
+			<Function name='DifferentialReload'/>
 			<Function name='DoesSongGroupExist'/>
 			<Function name='FindSong'/>
 			<Function name='GetActivePlaylist'/>
@@ -1864,6 +1878,7 @@
 			<Function name='Load'/>
 			<Function name='LoadBackground'/>
 			<Function name='LoadBanner'/>
+			<Function name='LoadFromCached'/>
 			<Function name='LoadFromCurrentSongBackground'/>
 			<Function name='LoadFromSongBackground'/>
 			<Function name='LoadFromSongBanner'/>
@@ -2099,6 +2114,65 @@
 			<Function name='IsStepsPlayable'/>
 			<Function name='IsStepsTypePlayable'/>
 		</Namespace>
+		<Namespace name='bit'>
+			<Function name='arshift'/>
+			<Function name='band'/>
+			<Function name='bnot'/>
+			<Function name='bor'/>
+			<Function name='bswap'/>
+			<Function name='bxor'/>
+			<Function name='lshift'/>
+			<Function name='rol'/>
+			<Function name='ror'/>
+			<Function name='rshift'/>
+			<Function name='tobit'/>
+			<Function name='tohex'/>
+		</Namespace>
+		<Namespace name='io'>
+			<Function name='close'/>
+			<Function name='flush'/>
+			<Function name='input'/>
+			<Function name='lines'/>
+			<Function name='open'/>
+			<Function name='output'/>
+			<Function name='popen'/>
+			<Function name='read'/>
+			<Function name='stderr'/>
+			<Function name='stdin'/>
+			<Function name='stdout'/>
+			<Function name='tmpfile'/>
+			<Function name='type'/>
+			<Function name='write'/>
+		</Namespace>
+		<Namespace name='jit'>
+			<Function name='arch'/>
+			<Function name='attach'/>
+			<Function name='flush'/>
+			<Function name='off'/>
+			<Function name='on'/>
+			<Function name='opt'/>
+			<Function name='os'/>
+			<Function name='status'/>
+			<Function name='util'/>
+			<Function name='version'/>
+			<Function name='version_num'/>
+		</Namespace>
+		<Namespace name='jit.opt'>
+			<Function name='start'/>
+		</Namespace>
+		<Namespace name='jit.util'>
+			<Function name='funcbc'/>
+			<Function name='funcinfo'/>
+			<Function name='funck'/>
+			<Function name='funcuvname'/>
+			<Function name='ircalladdr'/>
+			<Function name='traceexitstub'/>
+			<Function name='traceinfo'/>
+			<Function name='traceir'/>
+			<Function name='tracek'/>
+			<Function name='tracemc'/>
+			<Function name='tracesnap'/>
+		</Namespace>
 		<Namespace name='lua'>
 			<Function name='CheckType'/>
 			<Function name='Flush'/>
@@ -2111,6 +2185,19 @@
 			<Function name='load_config_lua'/>
 			<Function name='save_lua_table'/>
 		</Namespace>
+		<Namespace name='os'>
+			<Function name='clock'/>
+			<Function name='date'/>
+			<Function name='difftime'/>
+			<Function name='execute'/>
+			<Function name='exit'/>
+			<Function name='getenv'/>
+			<Function name='remove'/>
+			<Function name='rename'/>
+			<Function name='setlocale'/>
+			<Function name='time'/>
+			<Function name='tmpname'/>
+		</Namespace>
 	</Namespaces>
 	<Singletons>
 		<Singleton class='AnnouncerManager' name='ANNOUNCER'/>
@@ -2118,6 +2205,7 @@
 		<Singleton class='GameManager' name='GAMEMAN'/>
 		<Singleton class='GameState' name='GAMESTATE'/>
 		<Singleton class='ArchHooks' name='HOOKS'/>
+		<Singleton class='MessageManager' name='MESSAGEMAN'/>
 		<Singleton class='NoteSkinManager' name='NOTESKIN'/>
 		<Singleton class='PrefsManager' name='PREFSMAN'/>
 		<Singleton class='ThemeManager' name='THEME'/>
@@ -2148,12 +2236,6 @@
 			<EnumValue name='&apos;BackgroundFitMode_FitInside&apos;' value='2'/>
 			<EnumValue name='&apos;BackgroundFitMode_FitInsideAvoidLetter&apos;' value='3'/>
 			<EnumValue name='&apos;BackgroundFitMode_FitInsideAvoidPillar&apos;' value='4'/>
-		</Enum>
-		<Enum name='BannerCacheMode'>
-			<EnumValue name='&apos;BannerCacheMode_Off&apos;' value='0'/>
-			<EnumValue name='&apos;BannerCacheMode_LowResPreload&apos;' value='1'/>
-			<EnumValue name='&apos;BannerCacheMode_LowResLoadOnDemand&apos;' value='2'/>
-			<EnumValue name='&apos;BannerCacheMode_Full&apos;' value='3'/>
 		</Enum>
 		<Enum name='BlendMode'>
 			<EnumValue name='&apos;BlendMode_Normal&apos;' value='0'/>
@@ -2987,6 +3069,12 @@
 			<EnumValue name='&apos;HorizAlign_Center&apos;' value='1'/>
 			<EnumValue name='&apos;HorizAlign_Right&apos;' value='2'/>
 		</Enum>
+		<Enum name='ImageCacheMode'>
+			<EnumValue name='&apos;ImageCacheMode_Off&apos;' value='0'/>
+			<EnumValue name='&apos;ImageCacheMode_LowResPreload&apos;' value='1'/>
+			<EnumValue name='&apos;ImageCacheMode_LowResLoadOnDemand&apos;' value='2'/>
+			<EnumValue name='&apos;ImageCacheMode_Full&apos;' value='3'/>
+		</Enum>
 		<Enum name='InputDevice'>
 			<EnumValue name='&apos;InputDevice_Key&apos;' value='0'/>
 			<EnumValue name='&apos;InputDevice_Joy1&apos;' value='1'/>
@@ -3247,7 +3335,7 @@
 			<EnumValue name='&apos;Skillset_Handstream&apos;' value='3'/>
 			<EnumValue name='&apos;Skillset_Stamina&apos;' value='4'/>
 			<EnumValue name='&apos;Skillset_JackSpeed&apos;' value='5'/>
-			<EnumValue name='&apos;Skillset_JackStamina&apos;' value='6'/>
+			<EnumValue name='&apos;Skillset_Chordjack&apos;' value='6'/>
 			<EnumValue name='&apos;Skillset_Technical&apos;' value='7'/>
 		</Enum>
 		<Enum name='SortOrder'>
@@ -3262,6 +3350,15 @@
 			<EnumValue name='&apos;SortOrder_ModeMenu&apos;' value='8'/>
 			<EnumValue name='&apos;SortOrder_Recent&apos;' value='9'/>
 			<EnumValue name='&apos;SortOrder_Favorites&apos;' value='10'/>
+			<EnumValue name='&apos;SortOrder_Overall&apos;' value='11'/>
+			<EnumValue name='&apos;SortOrder_Stream&apos;' value='12'/>
+			<EnumValue name='&apos;SortOrder_Jumpstream&apos;' value='13'/>
+			<EnumValue name='&apos;SortOrder_Handstream&apos;' value='14'/>
+			<EnumValue name='&apos;SortOrder_Stamina&apos;' value='15'/>
+			<EnumValue name='&apos;SortOrder_JackSpeed&apos;' value='16'/>
+			<EnumValue name='&apos;SortOrder_Chordjack&apos;' value='17'/>
+			<EnumValue name='&apos;SortOrder_Technical&apos;' value='18'/>
+			<EnumValue name='&apos;SortOrder_Length&apos;' value='19'/>
 		</Enum>
 		<Enum name='SoundEffectType'>
 			<EnumValue name='&apos;SoundEffectType_Off&apos;' value='0'/>
@@ -3428,30 +3525,29 @@
 		</Enum>
 	</Enums>
 	<Constants>
-		<Constant name='ASPECT_SCALE_FACTOR' value='1280'/>
+		<Constant name='ASPECT_SCALE_FACTOR' value='854'/>
 		<Constant name='NUM_PLAYERS' value='2'/>
-		<Constant name='SAFE_HEIGHT' value='54'/>
-		<Constant name='SAFE_WIDTH' value='96'/>
-		<Constant name='SCREEN_BOTTOM' value='720'/>
-		<Constant name='SCREEN_CENTER_X' value='640'/>
-		<Constant name='SCREEN_CENTER_Y' value='360'/>
-		<Constant name='SCREEN_HEIGHT' value='720'/>
+		<Constant name='SAFE_HEIGHT' value='36'/>
+		<Constant name='SAFE_WIDTH' value='64'/>
+		<Constant name='SCREEN_BOTTOM' value='480'/>
+		<Constant name='SCREEN_CENTER_X' value='427'/>
+		<Constant name='SCREEN_CENTER_Y' value='240'/>
+		<Constant name='SCREEN_HEIGHT' value='480'/>
 		<Constant name='SCREEN_LEFT' value='0'/>
-		<Constant name='SCREEN_RIGHT' value='1280'/>
+		<Constant name='SCREEN_RIGHT' value='854'/>
 		<Constant name='SCREEN_TOP' value='0'/>
-		<Constant name='SCREEN_WIDTH' value='1280'/>
+		<Constant name='SCREEN_WIDTH' value='854'/>
 		<Constant name='num' value='550'/>
 		<Constant name='PLAYER_1' value='&apos;PlayerNumber_P1&apos;'/>
 		<Constant name='PLAYER_2' value='&apos;PlayerNumber_P2&apos;'/>
 		<Constant name='_VERSION' value='&apos;Lua 5.1&apos;'/>
 		<Constant name='bottom' value='&apos;VertAlign_Bottom&apos;'/>
 		<Constant name='center' value='&apos;HorizAlign_Center&apos;'/>
-		<Constant name='global_cur_game' value='&apos;dance&apos;'/>
 		<Constant name='left' value='&apos;HorizAlign_Left&apos;'/>
 		<Constant name='middle' value='&apos;VertAlign_Middle&apos;'/>
 		<Constant name='right' value='&apos;HorizAlign_Right&apos;'/>
 		<Constant name='top' value='&apos;VertAlign_Top&apos;'/>
 	</Constants>
-	<Version>Etterna5.0-git-91122247b</Version>
-	<Date>2017-07-21</Date>
+	<Version>Etterna0.60-git-0e213f9bf1</Version>
+	<Date>2018-08-20</Date>
 </Lua>

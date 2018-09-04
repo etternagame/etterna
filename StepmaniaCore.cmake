@@ -1,5 +1,5 @@
 		# Include the macros and functions.
-
+cmake_minimum_required (VERSION 3.6)
 include(${CMAKE_CURRENT_LIST_DIR}/CMake/CMakeMacros.cmake)
 
 # Set up helper variables for future configuring.
@@ -34,6 +34,13 @@ if (CMAKE_SYSTEM_NAME MATCHES "BSD")
 else()
   set(BSD FALSE)
 endif()
+
+macro(set_WIN10_FLAG)
+    if (WIN32 AND (CMAKE_SYSTEM_VERSION GREATER 10.0 OR CMAKE_SYSTEM_VERSION  EQUAL 10.0))
+        add_definitions(-DWIN10)
+    endif()
+endmacro()
+set_WIN10_FLAG()
 
 # Allow for finding our libraries in a standard location.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}" "${SM_CMAKE_DIR}/Modules/")
@@ -245,11 +252,11 @@ else()
 endif()
 
 if(WIN32)
+  set_property( DIRECTORY PROPERTY VS_STARTUP_PROJECT "Etterna" )
   set(SYSTEM_PCRE_FOUND FALSE)
   find_package(DirectX REQUIRED)
   if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)")
     link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc.lib)
-    link_libraries(${SM_EXTERN_DIR}/LuaJIT/win32/lua51.lib)
     find_library(LIB_CURL NAMES "libcurl"
 	  PATHS "${SM_EXTERN_DIR}/libcurl" NO_DEFAULT_PATH
 	  )
@@ -261,7 +268,6 @@ if(WIN32)
     link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/discord-rpc.lib)
   else()
     link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc_x86.lib)
-	link_libraries(${SM_EXTERN_DIR}/LuaJIT/win_x86/lua51.lib)
     find_library(LIB_CURL NAMES "libcurl_x86"
 	  PATHS "${SM_EXTERN_DIR}/libcurl" NO_DEFAULT_PATH
 	  )
@@ -275,7 +281,6 @@ if(WIN32)
   include_directories(${SM_EXTERN_DIR}/uWebSocket/include)
   include_directories(${SM_EXTERN_DIR}/uWebSocket/includelibs)
   include_directories(${SM_EXTERN_DIR}/discord-rpc-2.0.1/include)
-  include_directories(${SM_EXTERN_DIR}/LuaJIT/include)
   
   #include_directories(${SM_EXTERN_DIR}/uWebSocket/include)
   #include_directories(${SM_EXTERN_DIR}/uWebSocket/includelibs)
@@ -325,18 +330,14 @@ elseif(MACOSX)
 
   
   link_libraries(${SM_EXTERN_DIR}/MinaCalc/libMinaCalc.a)
-  link_libraries(${SM_EXTERN_DIR}/LuaJIT/lua51Mac.a)
-  include_directories(${SM_EXTERN_DIR}/LuaJIT/include)
   link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/libdiscord-rpcMac.a)
   include_directories(${SM_EXTERN_DIR}/discord-rpc-2.0.1/include)
 
   set(SYSTEM_PCRE_FOUND FALSE)
   set(WITH_CRASH_HANDLER TRUE)
-  # Apple Archs needs to be 32-bit for now.
-  # When SDL2 is introduced, this may change.
-  set(CMAKE_OSX_ARCHITECTURES "i386")
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.6")
-  set(CMAKE_OSX_DEPLOYMENT_TARGET_FULL "10.6.8")
+
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
+  set(CMAKE_OSX_DEPLOYMENT_TARGET_FULL "10.9.0")
 
   find_library(MAC_FRAME_ACCELERATE Accelerate ${CMAKE_SYSTEM_FRAMEWORK_PATH})
   find_library(MAC_FRAME_APPKIT AppKit ${CMAKE_SYSTEM_FRAMEWORK_PATH})
@@ -381,8 +382,6 @@ elseif(LINUX)
   endif()
 
   link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc.a)
-  link_libraries(${SM_EXTERN_DIR}/LuaJIT/lua51.a)
-  include_directories(${SM_EXTERN_DIR}/LuaJIT/include)
   link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/libdiscord-rpc.a)
   include_directories(${SM_EXTERN_DIR}/discord-rpc-2.0.1/include)
   

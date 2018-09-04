@@ -98,7 +98,7 @@ static const char *PlayerControllerNames[] = {
 	"Human",
 	"Autoplay",
 	"Cpu",
-	//"Replay",
+	"Replay",
 };
 XToString( PlayerController );
 StringToX( PlayerController );
@@ -142,7 +142,8 @@ static const char *SortOrderNames[] = {
 	"Stamina",
 	"JackSpeed",
 	"Chordjack",
-	"Technical"
+	"Technical",
+	"Length"
 };
 XToString( SortOrder );
 StringToX( SortOrder );

@@ -25,7 +25,8 @@ local sortTable = {
 	SortOrder_Stamina				= 'Stamina',
 	SortOrder_JackSpeed				= 'JackSpeed',
 	SortOrder_Chordjack				= 'Chordjack',
-	SortOrder_Technical				= 'Technical'
+	SortOrder_Technical				= 'Technical',
+	SortOrder_Length				= 'Length',
 }
 
 t[#t+1] = Def.Quad{

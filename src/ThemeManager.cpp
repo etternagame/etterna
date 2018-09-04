@@ -7,12 +7,10 @@
 #include "RageTimer.h"
 #include "RageTimer.h"
 #include "RageUtil.h"
-#include "ThemeManager.h"
 #include "arch/ArchHooks/ArchHooks.h"
 #include "arch/Dialog/Dialog.h"
 #if !defined(SMPACKAGE)
 #include "ActorUtil.h"
-#include "Profile.h"
 #include "ProfileManager.h"
 #include "ScreenManager.h"
 #endif
@@ -21,14 +19,12 @@
 #include "GameLoop.h" // For ChangeTheme
 #include "LocalizedString.h"
 #include "LuaManager.h"
-#include "PrefsManager.h"
 #include "ScreenDimensions.h"
 #include "SpecialFiles.h"
 #include "SubscriptionManager.h"
-#include "ThemeMetric.h"
 #include "XmlFileUtil.h"
 #include <deque>
-
+#include "PrefsManager.h"
 ThemeManager*	THEME = NULL;	// global object accessible from anywhere in the program
 
 static const RString THEME_INFO_INI = "ThemeInfo.ini";
@@ -881,7 +877,8 @@ try_element_again:
 RString ThemeManager::GetPath( ElementCategory category, const RString &sMetricsGroup, const RString &sElement, bool bOptional )
 {
 	PathInfo pi;
-	GetPathInfo( pi, category, sMetricsGroup, sElement, bOptional );
+	if(!GetPathInfo( pi, category, sMetricsGroup, sElement, bOptional ))
+		return "";
 	if(!bOptional && pi.sResolvedPath.empty())
 	{
 		LuaHelpers::ReportScriptErrorFmt("Theme element not found and not "

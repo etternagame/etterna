@@ -432,8 +432,8 @@ function ArbitrarySpeedMods()
 			local big_inc= inc_large
 			local small_inc= increment
 			if show_x_incs then
-				big_inc= tostring(big_inc / 100)
-				small_inc= tostring(small_inc / 100)
+				big_inc= string.format("%.2fx",tostring(big_inc/100))
+				small_inc= string.format("%.2fx",tostring(small_inc/100))
 			else
 				big_inc= tostring(big_inc)
 				small_inc= tostring(small_inc)
@@ -446,7 +446,7 @@ function ArbitrarySpeedMods()
 				local val= self.CurValues[pn]
 				if val then
 					if val.mode == "x" then
-						table.insert(self.Choices, 1, (val.speed/100) .. "x")
+						table.insert(self.Choices, 1, string.format("%.2fx",tostring(val.speed/100)))
 					else
 						table.insert(self.Choices, 1, val.mode .. val.speed)
 					end

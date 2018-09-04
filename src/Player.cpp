@@ -36,7 +36,10 @@
 #include "Steps.h"
 #include "Style.h"
 #include "ThemeManager.h"
+#include "NoteSkinManager.h" 
 #include "ThemeMetric.h"
+#include "HoldJudgment.h"
+#include "GamePreferences.h"
 
 RString ATTACK_DISPLAY_X_NAME( size_t p, size_t both_sides );
 void TimingWindowSecondsInit( size_t /*TimingWindow*/ i, RString &sNameOut, float &defaultValueOut );
@@ -369,7 +372,7 @@ void Player::Init(
 	{
 		float fLife = m_pLifeMeter->GetLife();
 		m_pPlayerStageStats->SetLifeRecordAt( fLife, STATSMAN->m_CurStageStats.m_fStepsSeconds );
-		m_pPlayerStageStats->SetWifeRecordAt( 1.f, STATSMAN->m_CurStageStats.m_fStepsSeconds);
+		//m_pPlayerStageStats->SetWifeRecordAt( 1.f, STATSMAN->m_CurStageStats.m_fStepsSeconds);
 	}
 
 	// TODO: Remove use of PlayerNumber.
@@ -619,6 +622,9 @@ void Player::Load()
 	if(GAMESTATE->m_pCurSteps[pn]->GetRadarValues()[RadarCategory_Mines] > 0)
 		m_pPlayerStageStats->filegotmines = true;
 
+	if (GAMESTATE->m_pCurSteps[pn]->GetRadarValues()[RadarCategory_Holds] > 0 || GAMESTATE->m_pCurSteps[pn]->GetRadarValues()[RadarCategory_Rolls] > 0)
+		m_pPlayerStageStats->filegotholds = true;
+
 	// check for lua script load (technically this is redundant a little with negbpm but whatever) -mina
 	if (!m_Timing->ValidSequentialAssumption)
 		m_pPlayerStageStats->luascriptwasloaded = true;
@@ -859,8 +865,8 @@ void Player::Update( float fDeltaTime )
 			if( tn.HoldResult.fLife >= 0.5f )
 				continue;
 
-			Step( iTrack, iHeadRow, now, false, false );
-			if( m_pPlayerState->m_PlayerController == PC_AUTOPLAY )
+			Step( iTrack, iHeadRow, now, true, false );	// bHeld really doesnt make a difference for autoplay and replay
+			if( m_pPlayerState->m_PlayerController == PC_AUTOPLAY)
 			{
 				STATSMAN->m_CurStageStats.m_bUsedAutoplay = true;
 				if (m_pPlayerStageStats != nullptr) {
@@ -1044,6 +1050,41 @@ void Player::UpdateHoldNotes( int iSongRow, float fDeltaTime, vector<TrackRowTap
 		return;	// we don't need to update the logic for this group
 	}
 
+	if (GamePreferences::m_AutoPlay == PC_REPLAY)
+	{
+		FOREACH(TrackRowTapNote, vTN, trtn)
+		{
+			TapNote &tn = *trtn->pTN;
+
+			// check from now until the head of the hold to see if it should die
+			// possibly really bad, but we dont REALLY care that much about fps in replays, right?
+			bool holdDropped = false;
+			for (int yeet = vTN[0].iRow; yeet <= iSongRow && !holdDropped; yeet++)
+			{
+				if (PlayerAI::DetermineIfHoldDropped(yeet, trtn->iTrack))
+				{
+					holdDropped = true;
+				}
+			}
+
+			if (holdDropped) // it should be dead
+			{
+				tn.HoldResult.bHeld = false;
+				tn.HoldResult.bActive = false;
+				tn.HoldResult.fLife = 0.f;
+				tn.HoldResult.hns = HNS_LetGo;
+
+				// score the dead hold
+				if (COMBO_BREAK_ON_IMMEDIATE_HOLD_LET_GO)
+					IncrementMissCombo();
+				SetHoldJudgment(tn, iFirstTrackWithMaxEndRow, iSongRow);
+				HandleHoldScore(tn);
+				return;
+			}
+		}
+	}
+
+
 	//LOG->Trace("hold note doesn't already have result, let's check.");
 
 	//LOG->Trace( ssprintf("[C++] hold note score: %s",HoldNoteScoreToString(hns).c_str()) );
@@ -1107,7 +1148,7 @@ void Player::UpdateHoldNotes( int iSongRow, float fDeltaTime, vector<TrackRowTap
 			if( m_pPlayerState->m_PlayerController != PC_HUMAN )
 			{
 			// TODO: Make the CPU miss sometimes.
-				if( m_pPlayerState->m_PlayerController == PC_AUTOPLAY )
+				if( m_pPlayerState->m_PlayerController == PC_AUTOPLAY)
 				{
 					STATSMAN->m_CurStageStats.m_bUsedAutoplay = true;
 					if (m_pPlayerStageStats != nullptr) {
@@ -1358,7 +1399,7 @@ void Player::UpdateHoldNotes( int iSongRow, float fDeltaTime, vector<TrackRowTap
 	{
 		//LOG->Trace("tap note scoring time.");
 		TapNote &tn = *vTN[0].pTN;
-		SetHoldJudgment( tn, iFirstTrackWithMaxEndRow );
+		SetHoldJudgment(tn, iFirstTrackWithMaxEndRow, iSongRow);
 		HandleHoldScore( tn );
 		//LOG->Trace("hold result = %s",StringConversion::ToString(tn.HoldResult.hns).c_str());
 	}
@@ -1746,7 +1787,7 @@ void Player::ScoreAllActiveHoldsLetGo()
 					tn.HoldResult.hns = HNS_LetGo;
 					tn.HoldResult.fLife = 0;
 
-					SetHoldJudgment( tn, iTrack );
+					SetHoldJudgment( tn, iTrack, iSongRow);
 					HandleHoldScore( tn );
 				}
 			}
@@ -1783,6 +1824,25 @@ void Player::PlayKeysound( const TapNote &tn, TapNoteScore score )
 		static float fVol = pVolume->Get();
 		m_vKeysounds[tn.iKeysoundIndex].SetProperty ("Volume", fVol);
 	}
+}
+
+void Player::AddNoteToReplayData(int col, const TapNote* pTN, int RowOfOverlappingNoteOrRow)
+{
+	m_pPlayerStageStats->m_vOffsetVector.emplace_back(pTN->result.fTapNoteOffset);
+	m_pPlayerStageStats->m_vTrackVector.emplace_back(col);
+	m_pPlayerStageStats->m_vNoteRowVector.emplace_back(RowOfOverlappingNoteOrRow);
+	m_pPlayerStageStats->m_vTapNoteTypeVector.emplace_back(pTN->type);
+}
+
+void Player::AddHoldToReplayData(int col, const TapNote* pTN, int RowOfOverlappingNoteOrRow)
+{
+	if(pTN->HoldResult.hns == HNS_Held)
+		return;
+	HoldReplayResult hrr;
+	hrr.row = RowOfOverlappingNoteOrRow;
+	hrr.track = col;
+	hrr.subType = pTN->subType;
+	m_pPlayerStageStats->m_vHoldReplayData.emplace_back(hrr);
 }
 
 void Player::Step( int col, int row, const std::chrono::steady_clock::time_point &tm, bool bHeld, bool bRelease, float padStickSeconds )
@@ -1961,6 +2021,8 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 				fStepSeconds, fMusicSeconds, fNoteOffset );
 			*/
 		}
+		
+		NOTESKIN->SetLastSeenColor(NoteTypeToString(GetNoteType(iRowOfOverlappingNoteOrRow))); 
 
 		const float fSecondsFromExact = fabsf( fNoteOffset );
 
@@ -2113,14 +2175,33 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 
 			break;
 
-		/*
 		case PC_REPLAY:
-			// based on where we are, see what grade to get.
-			score = PlayerAI::GetTapNoteScore( m_pPlayerState );
-			// row is the current row, col is current column (track)
-			fNoteOffset = TapNoteOffset attribute
+			
+			if (bHeld) //a hack to make Rolls not do weird things like count as 0ms marvs.
+			{
+				score = TNS_None;
+				fNoteOffset = -1.f;
+			}
+			else
+			{
+				fNoteOffset = PlayerAI::GetTapNoteOffsetForReplay(pTN, iRowOfOverlappingNoteOrRow, col);
+				if (fNoteOffset == -2.f) // we hit a mine
+				{
+					score = TNS_HitMine;
+				}
+				else if (pTN->type == TapNoteType_Mine) // we are looking at a mine but missed it
+				{
+					return;
+				}
+				else // every other case
+				{
+					if (pTN->IsNote())
+						score = PlayerAI::GetTapNoteScoreForReplay(m_pPlayerState, fNoteOffset);
+				}
+			}
+			
+			
 			break;
-		*/
 		default:
 			FAIL_M(ssprintf("Invalid player controller type: %i", m_pPlayerState->m_PlayerController));
 		}
@@ -2141,6 +2222,8 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 		}
 
 		m_LastTapNoteScore = score;
+		if (pTN->result.tns != TNS_None)
+			AddNoteToReplayData(GAMESTATE->CountNotesSeparately() ? col : -1, pTN, iRowOfOverlappingNoteOrRow);
 		if( GAMESTATE->CountNotesSeparately() )
 		{
 			if( pTN->type != TapNoteType_Mine )
@@ -2156,14 +2239,21 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 
 				if ( pTN->result.tns != TNS_None )
 				{
-					SetJudgment(iRowOfOverlappingNoteOrRow, col, *pTN);
-					HandleTapRowScore(iRowOfOverlappingNoteOrRow);
+					if (pTN->type == TapNoteType_HoldHead && m_pPlayerState->m_PlayerController == PC_REPLAY && bHeld)
+					{
+						// odd hack to make roll taps (Step() with bHeld true) not count as marvs
+					}
+					else
+					{
+						SetJudgment(iRowOfOverlappingNoteOrRow, col, *pTN);
+						HandleTapRowScore(iRowOfOverlappingNoteOrRow);
+					}
 				}
 			}
 		}
-		else if( NoteDataWithScoring::IsRowCompletelyJudged(m_NoteData, iRowOfOverlappingNoteOrRow) )
+		else if (NoteDataWithScoring::IsRowCompletelyJudged(m_NoteData, iRowOfOverlappingNoteOrRow))
 		{
-			FlashGhostRow( iRowOfOverlappingNoteOrRow );
+			FlashGhostRow(iRowOfOverlappingNoteOrRow);
 		}
 	}
 
@@ -2202,11 +2292,22 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 		}
 	}
 	// XXX:
+	
 	if( !bRelease )
 	{
 		if( m_pNoteField != nullptr )
-		{
-			m_pNoteField->Step( col, score );
+		{	// skip tapping in replay mode on misses to emulate... missing.
+			if (m_pPlayerState->m_PlayerController == PC_REPLAY)
+			{
+				if (score != TNS_Miss)
+				{
+					m_pNoteField->Step(col, score);
+				}
+			}
+			else
+			{
+				m_pNoteField->Step(col, score);
+			}
 		}
 		Message msg( "Step" );
 		msg.SetParam( "PlayerNumber", m_pPlayerState->m_PlayerNumber );
@@ -2504,7 +2605,7 @@ void Player::CrossedRows( int iLastRowCrossed, const std::chrono::steady_clock::
 				this->m_Timing->IsJudgableAtRow(iRow) )
 			{
 				Step( iTrack, iRow, now, false, false );
-				if( m_pPlayerState->m_PlayerController == PC_AUTOPLAY )
+				if( m_pPlayerState->m_PlayerController == PC_AUTOPLAY)
 				{
 					if( m_pPlayerStageStats )
 						m_pPlayerStageStats->m_bDisqualified = true;
@@ -2535,7 +2636,7 @@ void Player::CrossedRows( int iLastRowCrossed, const std::chrono::steady_clock::
 	/* Update hold checkpoints
 	 *
 	 * TODO: Move this to a separate function. */
-	if( m_bTickHolds && m_pPlayerState->m_PlayerController != PC_AUTOPLAY )
+	if( m_bTickHolds && m_pPlayerState->m_PlayerController != PC_AUTOPLAY && m_pPlayerState->m_PlayerController != PC_REPLAY)
 	{
 		// Few rows typically cross per update. Easier to check all crossed rows
 		// than to calculate from timing segments.
@@ -2860,7 +2961,7 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 			m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
 			
 #else
-			if (m_pPlayerState->m_PlayerController == PC_HUMAN) {
+			if (m_pPlayerState->m_PlayerController == PC_HUMAN || m_pPlayerState->m_PlayerController == PC_REPLAY) {
 				ChangeWifeRecord();
 				m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
 				m_pPlayerStageStats->CurWifeScore = curwifescore;
@@ -2886,6 +2987,8 @@ void Player::SetMineJudgment( TapNoteScore tns , int iTrack )
 
 void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore tns, float fTapNoteOffset )
 {
+	if(tns == TNS_Miss)
+		AddNoteToReplayData(GAMESTATE->CountNotesSeparately() ? iTrack : -1, &tn, iRow);
 	if( m_bSendJudgmentAndComboMessages )
 	{
 		Message msg("Judgment");
@@ -2926,12 +3029,10 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 			m_pPlayerStageStats->m_vNoteRowVector.emplace_back(iRow);
 			ChangeWifeRecord();
 #else
-			if (m_pPlayerState->m_PlayerController == PC_HUMAN) {
+			if (m_pPlayerState->m_PlayerController == PC_HUMAN || m_pPlayerState->m_PlayerController == PC_REPLAY) {
 				m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
 				m_pPlayerStageStats->CurWifeScore = curwifescore;
 				m_pPlayerStageStats->MaxWifeScore = maxwifescore;
-				m_pPlayerStageStats->m_vOffsetVector.emplace_back(tn.result.fTapNoteOffset);
-				m_pPlayerStageStats->m_vNoteRowVector.emplace_back(iRow);
 			}
 			else {
 				curwifescore -= 666.f;	// hail satan
@@ -2993,11 +3094,13 @@ void Player::SetJudgment( int iRow, int iTrack, const TapNote &tn, TapNoteScore 
 	}
 }
 
-void Player::SetHoldJudgment( TapNote &tn, int iTrack )
+void Player::SetHoldJudgment( TapNote &tn, int iTrack, int iRow)
 {
 	ASSERT( iTrack < static_cast<int>(m_vpHoldJudgment.size()) );
 	if( m_vpHoldJudgment[iTrack] )
 		m_vpHoldJudgment[iTrack]->SetHoldJudgment( tn.HoldResult.hns );
+
+	AddHoldToReplayData(iTrack, &tn, iRow);
 
 	if (m_bSendJudgmentAndComboMessages)
 	{

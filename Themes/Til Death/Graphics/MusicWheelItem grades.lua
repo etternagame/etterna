@@ -14,12 +14,12 @@ return Def.ActorFrame{
 	},
 	Def.Sprite {
 		InitCommand=function(self)
-			self:xy(-14,-2):zoomto(4,19)
+			self:xy(1,-15):zoomto(4,19)
 		end,
 		SetGradeCommand=function(self,params)
 			if params.Favorited then
-				self:Load(THEME:GetPathG("","urthemannowdog"))
-				self:zoomto(24,24)
+				self:Load(THEME:GetPathG("","favorite"))
+				self:zoomto(16,16)
 				self:visible(true)
 			else
 				self:visible(false)
@@ -28,11 +28,11 @@ return Def.ActorFrame{
 	},
 	Def.Sprite {
 		InitCommand=function(self)
-			self:xy(-40,-2):zoomto(4,19)
+			self:xy(-9,-15):zoomto(4,19)
 		end,
 		SetGradeCommand=function(self,params)
 			if params.PermaMirror then
-				self:Load(THEME:GetPathG("","punchthekeysforgodssake"))
+				self:Load(THEME:GetPathG("","mirror"))
 				self:zoomto(24,24)
 				self:visible(true)
 			else

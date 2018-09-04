@@ -183,7 +183,6 @@ public:
 
 	int GetNumTracks() const { return m_TapNotes.size(); }
 	void SetNumTracks( int iNewNumTracks );
-	bool IsComposite() const;
 	bool operator==( const NoteData &nd ) const			{ return m_TapNotes == nd.m_TapNotes; }
 	bool operator!=( const NoteData &nd ) const			{ return m_TapNotes != nd.m_TapNotes; }
 

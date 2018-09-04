@@ -94,7 +94,7 @@ void DoInstalls(CommandLineActions::CommandLineArgs args)
 		}
 		else
 		{
-			SONGMAN->DifferentialReload();
+			SCREENMAN->SetNewScreen("ScreenReloadSongs");
 		}
 	}
 	return;
@@ -111,9 +111,6 @@ void ScreenInstallOverlay::Init()
 	m_textStatus.LoadFromFont(THEME->GetPathF("ScreenInstallOverlay", "status"));
 	m_textStatus.SetName("Status");
 	LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND(m_textStatus);
-
-
-	ActorUtil::LoadAllCommandsAndSetXY(m_textStatus, "ScreenInstallOverlay");
 	this->AddChild(&m_textStatus);
 }
 
@@ -140,13 +137,31 @@ void ScreenInstallOverlay::Update(float fDeltaTime)
 		DoInstalls(args);
 	}
 #if !defined(WITHOUT_NETWORKING)
-	vector<RString> vsMessages;
-	for(auto &dl : DLMAN->downloads)
-	{
-		vsMessages.push_back(dl.second->Status());
-	}
-	m_textStatus.SetText(join("\n", vsMessages));
-
+	if (!DLMAN->downloads.empty()) {
+		Message msg("DLProgressAndQueueUpdate");
+		
+		vector<RString> dls;
+		for (auto &dl : DLMAN->downloads) {
+			dls.push_back(dl.second->Status());
+		}
+		msg.SetParam("dlsize", DLMAN->downloads.size());
+		msg.SetParam("dlprogress", join("\n", dls));
+		
+		if (!DLMAN->DownloadQueue.empty()) {
+			vector<RString> cue;
+			for (auto &q : DLMAN->DownloadQueue) {
+				cue.push_back(q->name);
+			}
+			msg.SetParam("queuesize", DLMAN->DownloadQueue.size());
+			msg.SetParam("queuedpacks", join("\n", cue));
+		}
+		else {
+			msg.SetParam("queuesize", 0);
+			msg.SetParam("queuedpacks", RString(""));
+		}
+		MESSAGEMAN->Broadcast(msg);
+	} else
+		MESSAGEMAN->Broadcast("AllDownloadsCompleted");		// silly to handle this through updates but im not sure where is better atm -mina
 #endif
 }
 

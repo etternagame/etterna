@@ -15,6 +15,7 @@
 #include "Sprite.h"
 #include "ThemeMetric.h"
 #include "TimingData.h"
+#include "HighScore.h"
 
 enum SelectionState
 {
@@ -54,6 +55,8 @@ public:
 	bool can_open_options_list(PlayerNumber pn);
 
 	void DifferentialReload();
+
+	void PlayReplay(HighScore * score);
 
 	int GetSelectionState();
 
@@ -115,9 +118,8 @@ protected:
 		{
 		case SelectionState_SelectingSong:
 			return TWO_PART_SELECTION ? SelectionState_SelectingSteps : SelectionState_Finalized;
-		case SelectionState_SelectingSteps:
+		default:
 			return SelectionState_Finalized;
-		DEFAULT_FAIL( m_SelectionState );
 		}
 	}
 

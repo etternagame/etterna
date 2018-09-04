@@ -127,6 +127,29 @@ public:
 		lua_pushboolean(L, p->HighestSkillsetsOnly);
 		return 1;
 	}
+
+	static int HelpImTrappedInAChineseFortuneCodingFactory(T* p, lua_State* L) {
+		p->galaxycollapsed = BArg(1);
+		return 1;
+	}
+	static int oopsimlazylol(T* p, lua_State* L) {
+		lua_pushboolean(L, p->galaxycollapsed);
+		return 1;
+	}
+	static int grabposx(T* p, lua_State* L) {
+		lua_pushnumber(L, p->watte[SArg(1)].first);
+		return 1;
+	}
+	static int grabposy(T* p, lua_State* L) {
+		lua_pushnumber(L, p->watte[SArg(1)].second);
+		return 1;
+	}
+	static int savepos(T* p, lua_State* L) {
+		p->watte[SArg(1)].first = IArg(2);
+		p->watte[SArg(1)].second = IArg(3);
+		return 1;
+	}
+
 	LunaFilterManager() {
 		ADD_METHOD(SetSSFilter);
 		ADD_METHOD(GetSSFilter);
@@ -140,6 +163,11 @@ public:
 		ADD_METHOD(GetFilterMode);
 		ADD_METHOD(ToggleHighestSkillsetsOnly);
 		ADD_METHOD(GetHighestSkillsetsOnly);
+		ADD_METHOD(HelpImTrappedInAChineseFortuneCodingFactory);
+		ADD_METHOD(oopsimlazylol);
+		ADD_METHOD(grabposx);
+		ADD_METHOD(grabposy);
+		ADD_METHOD(savepos);
 	}
 };
 

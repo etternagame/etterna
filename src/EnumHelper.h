@@ -4,10 +4,7 @@
 #include "LuaReference.h"
 #include <memory>
 
-extern "C"
-{
-#include "lua.h"
-}
+#include "lua.hpp"
 
 /** @brief A general foreach loop for enumerators, going up to a max value. */
 #define FOREACH_ENUM_N( e, max, var )	for( e var=(e)0; (var)<(max); enum_add<e>( (var), +1 ) )
