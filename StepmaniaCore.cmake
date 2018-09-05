@@ -262,7 +262,16 @@ if(WIN32)
 	  )
     get_filename_component(LIB_CURL ${LIB_CURL} NAME)
     find_library(LIB_UWS NAMES "uWS"
-	  PATHS "${SM_EXTERN_DIR}/uWebSocket/lib/32bit" NO_DEFAULT_PATH
+	  PATHS "${SM_EXTERN_DIR}/uWebSocket/lib/64bit" NO_DEFAULT_PATH
+	  )
+    find_library(LIB_UV NAMES "libuv"
+	  PATHS "${SM_EXTERN_DIR}/uWebSocket/lib/64bit" NO_DEFAULT_PATH
+	  )
+    find_library(LIB_SSL NAMES "ssleay32"
+	  PATHS "${SM_EXTERN_DIR}/uWebSocket/lib/64bit" NO_DEFAULT_PATH
+	  )
+    find_library(LIB_EAY NAMES "libeay32"
+	  PATHS "${SM_EXTERN_DIR}/uWebSocket/lib/64bit" NO_DEFAULT_PATH
 	  )
     link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/discord-rpc.lib)
   else()
@@ -284,33 +293,53 @@ if(WIN32)
   #include_directories(${SM_EXTERN_DIR}/uWebSocket/include)
   #include_directories(${SM_EXTERN_DIR}/uWebSocket/includelibs)
   #link_libraries(${SM_EXTERN_DIR}/uWebSocket/uWS.lib)
-  #link_libraries(${SM_EXTERN_DIR}/uWebSocket/libeay32.lib)
-  #link_libraries(${SM_EXTERN_DIR}/uWebSocket/ssleay32.lib)
   #link_libraries(${SM_EXTERN_DIR}/uWebSocket/libuv.lib)
   if (MINGW AND WITH_FFMPEG)
     include("${SM_CMAKE_DIR}/SetupFfmpeg.cmake")
     set(HAS_FFMPEG TRUE)
   else()
     # FFMPEG...it can be evil.
-    find_library(LIB_SWSCALE NAMES "swscale"
-      PATHS "${SM_EXTERN_DIR}/ffmpeg/lib" NO_DEFAULT_PATH
-    )
-    get_filename_component(LIB_SWSCALE ${LIB_SWSCALE} NAME)
+    if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)")
+		find_library(LIB_SWSCALE NAMES "swscale"
+		  PATHS "${SM_EXTERN_DIR}/ffmpeg/64bit" NO_DEFAULT_PATH
+		)
+		get_filename_component(LIB_SWSCALE ${LIB_SWSCALE} NAME)
 
-    find_library(LIB_AVCODEC NAMES "avcodec"
-      PATHS "${SM_EXTERN_DIR}/ffmpeg/lib" NO_DEFAULT_PATH
-    )
-    get_filename_component(LIB_AVCODEC ${LIB_AVCODEC} NAME)
+		find_library(LIB_AVCODEC NAMES "avcodec"
+		  PATHS "${SM_EXTERN_DIR}/ffmpeg/64bit" NO_DEFAULT_PATH
+		)
+		get_filename_component(LIB_AVCODEC ${LIB_AVCODEC} NAME)
 
-    find_library(LIB_AVFORMAT NAMES "avformat"
-      PATHS "${SM_EXTERN_DIR}/ffmpeg/lib" NO_DEFAULT_PATH
-    )
-    get_filename_component(LIB_AVFORMAT ${LIB_AVFORMAT} NAME)
+		find_library(LIB_AVFORMAT NAMES "avformat"
+		  PATHS "${SM_EXTERN_DIR}/ffmpeg/64bit" NO_DEFAULT_PATH
+		)
+		get_filename_component(LIB_AVFORMAT ${LIB_AVFORMAT} NAME)
 
-    find_library(LIB_AVUTIL NAMES "avutil"
-      PATHS "${SM_EXTERN_DIR}/ffmpeg/lib" NO_DEFAULT_PATH
-    )
-    get_filename_component(LIB_AVUTIL ${LIB_AVUTIL} NAME)
+		find_library(LIB_AVUTIL NAMES "avutil"
+		  PATHS "${SM_EXTERN_DIR}/ffmpeg/64bit" NO_DEFAULT_PATH
+		)
+		get_filename_component(LIB_AVUTIL ${LIB_AVUTIL} NAME)
+	else()
+		find_library(LIB_SWSCALE NAMES "swscale"
+		  PATHS "${SM_EXTERN_DIR}/ffmpeg/lib" NO_DEFAULT_PATH
+		)
+		get_filename_component(LIB_SWSCALE ${LIB_SWSCALE} NAME)
+
+		find_library(LIB_AVCODEC NAMES "avcodec"
+		  PATHS "${SM_EXTERN_DIR}/ffmpeg/lib" NO_DEFAULT_PATH
+		)
+		get_filename_component(LIB_AVCODEC ${LIB_AVCODEC} NAME)
+
+		find_library(LIB_AVFORMAT NAMES "avformat"
+		  PATHS "${SM_EXTERN_DIR}/ffmpeg/lib" NO_DEFAULT_PATH
+		)
+		get_filename_component(LIB_AVFORMAT ${LIB_AVFORMAT} NAME)
+
+		find_library(LIB_AVUTIL NAMES "avutil"
+		  PATHS "${SM_EXTERN_DIR}/ffmpeg/lib" NO_DEFAULT_PATH
+		)
+		get_filename_component(LIB_AVUTIL ${LIB_AVUTIL} NAME)
+	endif()
   endif()
   
   
