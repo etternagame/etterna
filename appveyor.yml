@@ -66,6 +66,13 @@ notifications:
   on_build_failure: true
   on_build_status_changed: true
 
+deploy:
+  provider: Environment
+  name: etterna
+  on:
+    branch: master
+    image: Visual Studio 2017
+    configuration: Release
 
 for:
 
