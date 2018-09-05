@@ -1,10 +1,21 @@
-version: 5.0.12.{build}.{branch}
+version: 0.60.0.{build}.{branch}
 pull_requests:
   do_not_increment_build_number: true
+
 image:
+  - Visual Studio 2013
   - Visual Studio 2015
   - Visual Studio 2017
-configuration: Release
+configuration:
+  - Release
+  - RelWithDebInfo
+platform:
+  - x64
+environment:
+  matrix:
+  - arch: Win64
+  - arch: Win32
+
 clone_folder: C:\etterna
 
 cache:
@@ -17,19 +28,30 @@ artifacts:
 install:
 - cmd: choco install nsis.portable
 
+init:
+- set arch=
+- if "%arch%"=="Win64" ( set arch= Win64)
+- echo %arch%
+- echo %APPVEYOR_BUILD_WORKER_IMAGE%
+- if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2017" ( set generator="Visual Studio 15 2017%arch%" )
+- if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2015" ( set generator="Visual Studio 14 2015%arch%" )
+- if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2013" ( set generator="Visual Studio 12 2013%arch%" )
+- echo %generator%
+
 before_build:
 - cmd: git submodule update --init --recursive
 - cmd: >-
     
     mkdir build && cd build
 
-    "C:\Program Files (x86)\cmake\bin\cmake" .. -G "Visual Studio 14 2015"
+    "C:\Program Files (x86)\cmake\bin\cmake" .. -G %generator%
 
     del "C:\Program Files (x86)\MSBuild\14.0\Microsoft.Common.targets\ImportAfter\Xamarin.Common.targets"
 
 build:
   project: C:\etterna\build\Etterna.sln
   verbosity: normal
+  parallel: true
 
 after_build:
 - cmd: >-
