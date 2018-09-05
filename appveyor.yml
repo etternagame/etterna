@@ -3,12 +3,9 @@ pull_requests:
   do_not_increment_build_number: true
 
 image:
-  - Visual Studio 2013
-  - Visual Studio 2015
   - Visual Studio 2017
 configuration:
   - Release
-  - RelWithDebInfo
 platform:
   - x64
 environment:
@@ -68,3 +65,20 @@ notifications:
   on_build_success: false
   on_build_failure: true
   on_build_status_changed: true
+
+
+for:
+
+# override settings for `master` branch
+-
+  branches:
+    only:
+      - master
+
+  image:
+    - Visual Studio 2013
+    - Visual Studio 2015
+    - Visual Studio 2017
+  configuration:
+    - Release
+    - RelWithDebInfo
