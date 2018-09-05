@@ -48,7 +48,7 @@ void NORETURN sm_crash( const char *reason )
 #if defined(_MSC_VER)
 	__nop();
 #elif defined(__GNUC__) // MinGW or similar
-	asm("nop");
+	//asm("nop");
 #endif
 #else
 	_exit( 1 );
