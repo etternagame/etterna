@@ -748,14 +748,15 @@ bool HighScore::LoadReplayDataFull() {
 
 		if (tokens[0] == "H") {
 			HoldReplayResult hrr;
-			hrr.row = std::stoi(tokens[0]);
-			hrr.track = std::stoi(tokens[1]);
-			tmp = tokens.size() > 2 ? ::stoi(tokens[2]) : TapNoteSubType_Hold;
+			hrr.row = std::stoi(tokens[1]);
+			hrr.track = std::stoi(tokens[2]);
+			tmp = tokens.size() > 3 ? ::stoi(tokens[3]) : TapNoteSubType_Hold;
 			if (tmp < 0 || tmp >= NUM_TapNoteSubType || !(typeid(tmp) == typeid(int))) {
 				LOG->Warn("Failed to load replay data at %s (\"Tapnotesubtype value is not of type TapNoteSubType\")", path.c_str());
 			}
 			hrr.subType = static_cast<TapNoteSubType>(tmp);
 			vHoldReplayDataVector.emplace_back(hrr);
+			tokens.clear();
 			continue;
 		}
 		noteRow = std::stoi(tokens[0]);
