@@ -571,8 +571,12 @@ void DownloadManager::UpdatePacks(float fDeltaSeconds)
 			}
 		}
 	}
-	if(finishedADownload)
+	if (finishedADownload)
+	{
 		UpdateDLSpeed();
+		if (downloads.empty())
+			MESSAGEMAN->Broadcast("AllDownloadsCompleted");
+	}
 	if (installedPacks) {
 		auto screen = SCREENMAN->GetScreen(0);
 		if (screen && screen->GetName() == "ScreenSelectMusic")
