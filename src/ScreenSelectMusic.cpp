@@ -1902,6 +1902,7 @@ public:
 		pss.m_iSongsPassed = 1;
 		pss.m_iSongsPlayed = 1;
 		pss.everusedautoplay = true;
+		hs->SetRadarValues(pss.m_radarActual);
 		for (int i = TNS_Miss; i<NUM_TapNoteScore; i++)
 		{
 			pss.m_iTapNoteScores[i] = score->GetTapNoteScore((TapNoteScore)i);
