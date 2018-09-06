@@ -1872,11 +1872,18 @@ public:
 	
 	static int PlayReplay(T* p, lua_State *L)
 	{
+		// get the highscore from lua and make the AI load it
 		HighScore* hs = Luna<HighScore>::check(L, 1);
 		PlayerAI::SetScoreData(hs);
 
-		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = hs->GetMusicRate();
+		// set the heck out of the current rate to make sure everything runs correctly
+		float scoreRate = hs->GetMusicRate();
+		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = scoreRate;
+		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = scoreRate;
+		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = scoreRate;
 		MESSAGEMAN->Broadcast("RateChanged");
+
+		// lock the game into replay mode and GO
 		GamePreferences::m_AutoPlay.Set(PC_REPLAY);
 		p->SelectCurrent(PLAYER_1);
 		return 1;
@@ -1884,9 +1891,14 @@ public:
 
 	static int ShowEvalScreenForScore(T* p, lua_State *L)
 	{
+		// get the highscore from lua and fake it to the most recent score
 		HighScore* hs = Luna<HighScore>::check(L, 1);
 		SCOREMAN->PutScoreAtTheTop(hs->GetScoreKey());
+
+		// set to replay mode to disable score saving
 		GamePreferences::m_AutoPlay.Set(PC_REPLAY);
+
+		// construct the current stage stats and stuff to the best of our ability
 		StageStats ss;
 		ss.Init();
 		auto score = SCOREMAN->GetMostRecentScore();
@@ -1914,6 +1926,17 @@ public:
 		ss.m_vpPlayedSongs.emplace_back(GAMESTATE->m_pCurSong);
 		STATSMAN->m_CurStageStats = ss;
 		STATSMAN->m_vPlayedStageStats.emplace_back(ss);
+
+		// set the rate so the MSD and rate display doesnt look weird
+		// this might confuse the player after leaving eval screen because of the new rate
+		// but whatever, for now
+		float scoreRate = hs->GetMusicRate();
+		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = scoreRate;
+		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = scoreRate;
+		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = scoreRate;
+		MESSAGEMAN->Broadcast("RateChanged");
+
+		// go
 		SCREENMAN->SetNewScreen("ScreenEvaluationNormal");
 		return 1;
 	}
