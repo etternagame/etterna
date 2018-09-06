@@ -754,6 +754,16 @@ void ScreenEvaluation::HandleMenuStart()
 	stepsid.FromSteps(GAMESTATE->m_pCurSteps[PLAYER_1]);
 	SongID songid;
 	songid.FromSong(GAMESTATE->m_pCurSong);
+	if (GAMEMAN->m_bSetSongRateInEvalScreen)
+	{
+		float oldRate = GAMEMAN->m_fPreviousRate;
+		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = oldRate;
+		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = oldRate;
+		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = oldRate;
+		GAMEMAN->m_bSetSongRateInEvalScreen = false;
+		MESSAGEMAN->Broadcast("RateChanged");
+
+	}
 	StartTransitioningScreen( SM_GoToNextScreen );
 }
 

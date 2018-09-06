@@ -49,6 +49,9 @@ public:
 	const Style* GameAndStringToStyle( const Game* pGame, const RString &sStyle );
 	RString StyleToLocalizedString( const Style* s );
 
+	bool m_bSetSongRateInEvalScreen;
+	float m_fPreviousRate;
+
 
 	// Lua
 	void PushSelf( lua_State *L );

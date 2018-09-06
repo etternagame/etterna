@@ -1878,14 +1878,20 @@ public:
 
 		// set the heck out of the current rate to make sure everything runs correctly
 		float scoreRate = hs->GetMusicRate();
+		float oldRate = GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate;
 		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = scoreRate;
 		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = scoreRate;
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = scoreRate;
 		MESSAGEMAN->Broadcast("RateChanged");
 
 		// lock the game into replay mode and GO
+		LOG->Trace("Viewing replay for score key %s", hs->GetScoreKey());
 		GamePreferences::m_AutoPlay.Set(PC_REPLAY);
 		p->SelectCurrent(PLAYER_1);
+
+		// set rate back to what it was before
+		GAMEMAN->m_bSetSongRateInEvalScreen = true;
+		GAMEMAN->m_fPreviousRate = oldRate;
 		return 1;
 	}
 
@@ -1931,13 +1937,20 @@ public:
 		// this might confuse the player after leaving eval screen because of the new rate
 		// but whatever, for now
 		float scoreRate = hs->GetMusicRate();
+		float oldRate = GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate;
 		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = scoreRate;
 		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = scoreRate;
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = scoreRate;
 		MESSAGEMAN->Broadcast("RateChanged");
 
 		// go
+		LOG->Trace("Viewing evaluation screen for score key %s", score->GetScoreKey());
 		SCREENMAN->SetNewScreen("ScreenEvaluationNormal");
+
+		// set rate back to what it was before
+		GAMEMAN->m_bSetSongRateInEvalScreen = true;
+		GAMEMAN->m_fPreviousRate = oldRate;
+
 		return 1;
 	}
 	

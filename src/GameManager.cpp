@@ -2746,6 +2746,8 @@ static const Game *g_Games[] =
 
 GameManager::GameManager()
 {
+	m_bSetSongRateInEvalScreen = false;
+	m_fPreviousRate = 1.f;
 	// Register with Lua.
 	{
 		Lua *L = LUA->Get();
