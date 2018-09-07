@@ -40,6 +40,7 @@
 #include "DownloadManager.h"
 #include "GamePreferences.h"
 #include "PlayerAI.h"
+#include "PlayerOptions.h"
 
 static const char *SelectionStateNames[] = {
 	"SelectingSong",
@@ -1925,6 +1926,7 @@ public:
 		auto& pss = ss.m_player[0];
 		pss.m_HighScore = *score;
 		pss.CurWifeScore = score->GetWifeScore();
+		pss.m_fWifeScore = score->GetWifeScore();
 		pss.m_vNoteRowVector = score->GetNoteRowVector();
 		pss.m_vOffsetVector = score->GetOffsetVector();
 		pss.m_vTapNoteTypeVector = score->GetTapNoteTypeVector();
@@ -1933,7 +1935,6 @@ public:
 		pss.m_iSongsPassed = 1;
 		pss.m_iSongsPlayed = 1;
 		pss.everusedautoplay = true;
-		hs->SetRadarValues(pss.m_radarActual);
 		for (int i = TNS_Miss; i<NUM_TapNoteScore; i++)
 		{
 			pss.m_iTapNoteScores[i] = score->GetTapNoteScore((TapNoteScore)i);
@@ -1947,8 +1948,6 @@ public:
 		STATSMAN->m_vPlayedStageStats.emplace_back(ss);
 
 		// set the rate so the MSD and rate display doesnt look weird
-		// this might confuse the player after leaving eval screen because of the new rate
-		// but whatever, for now
 		float scoreRate = hs->GetMusicRate();
 		float oldRate = GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate;
 		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = scoreRate;
@@ -1961,7 +1960,7 @@ public:
 		SCREENMAN->SetNewScreen("ScreenEvaluationNormal");
 
 		// set rate back to what it was before
-		GAMEMAN->m_bSetSongRateInEvalScreen = true;
+		GAMEMAN->m_bResetModifiers = true;
 		GAMEMAN->m_fPreviousRate = oldRate;
 
 		return 1;
