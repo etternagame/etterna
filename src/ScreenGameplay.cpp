@@ -9,6 +9,7 @@
 #include "Foreground.h"
 #include "Game.h"
 #include "GameConstantsAndTypes.h"
+#include "GameManager.h"
 #include "GamePreferences.h"
 #include "GameSoundManager.h"
 #include "GameState.h"
@@ -1583,7 +1584,26 @@ void ScreenGameplay::Update( float fDeltaTime )
 				if(GIVING_UP_GOES_TO_PREV_SCREEN && !m_skipped_song)
 				{
 					if (GamePreferences::m_AutoPlay == PC_REPLAY)
+					{
+						if (GAMEMAN->m_bResetModifiers)
+						{
+							float oldRate = GAMEMAN->m_fPreviousRate;
+							const RString mods = GAMEMAN->m_sModsToReset;
+							GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetSong().FromString("clearall");
+							GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().FromString("clearall");
+							GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred().FromString("clearall");
+							GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetSong().FromString(mods);
+							GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().FromString(mods);
+							GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred().FromString(mods);
+							GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = oldRate;
+							GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = oldRate;
+							GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = oldRate;
+							GAMEMAN->m_bResetModifiers = false;
+							GAMEMAN->m_sModsToReset = "";
+							MESSAGEMAN->Broadcast("RateChanged");
+						}
 						GamePreferences::m_AutoPlay.Set(PC_HUMAN);
+					}
 					BeginBackingOutFromGameplay();
 				}
 				else
@@ -1876,7 +1896,26 @@ bool ScreenGameplay::Input( const InputEventPlus &input )
 			{
 				LOG->Trace("Player %i went back", input.pn+1);
 				if (GamePreferences::m_AutoPlay == PC_REPLAY)
+				{
+					if (GAMEMAN->m_bResetModifiers)
+					{
+						float oldRate = GAMEMAN->m_fPreviousRate;
+						const RString mods = GAMEMAN->m_sModsToReset;
+						GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetSong().FromString("clearall");
+						GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().FromString("clearall");
+						GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred().FromString("clearall");
+						GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetSong().FromString(mods);
+						GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().FromString(mods);
+						GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred().FromString(mods);
+						GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = oldRate;
+						GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = oldRate;
+						GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = oldRate;
+						GAMEMAN->m_bResetModifiers = false;
+						GAMEMAN->m_sModsToReset = "";
+						MESSAGEMAN->Broadcast("RateChanged");
+					}
 					GamePreferences::m_AutoPlay.Set(PC_HUMAN);
+				}
 				BeginBackingOutFromGameplay();
 			}
 			else if( PREFSMAN->m_bDelayedBack && input.type==IET_FIRST_PRESS )

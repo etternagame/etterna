@@ -40,6 +40,7 @@
 #include "DownloadManager.h"
 #include "GamePreferences.h"
 #include "PlayerAI.h"
+#include "PlayerOptions.h"
 
 static const char *SelectionStateNames[] = {
 	"SelectingSong",
@@ -1872,21 +1873,52 @@ public:
 	
 	static int PlayReplay(T* p, lua_State *L)
 	{
+		// get the highscore from lua and make the AI load it
 		HighScore* hs = Luna<HighScore>::check(L, 1);
 		PlayerAI::SetScoreData(hs);
 
-		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = hs->GetMusicRate();
+		// prepare old mods to return to
+		const RString oldMods = GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().GetString();
+
+		// set the heck out of the current rate to make sure everything runs correctly
+		float scoreRate = hs->GetMusicRate();
+		float oldRate = GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate;
+		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = scoreRate;
+		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = scoreRate;
+		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = scoreRate;
 		MESSAGEMAN->Broadcast("RateChanged");
+
+		// set mods based on the score, hopefully
+		// it is known that xmod->cmod and back does not work most of the time.
+		CHECKPOINT_M("Setting mods for Replay Viewing.");
+		RString mods = hs->GetModifiers();
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetSong().FromString(mods);
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().FromString(mods);
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred().FromString(mods);
+		CHECKPOINT_M("Replay mods set.");
+
+		// lock the game into replay mode and GO
+		LOG->Trace("Viewing replay for score key %s", hs->GetScoreKey());
 		GamePreferences::m_AutoPlay.Set(PC_REPLAY);
 		p->SelectCurrent(PLAYER_1);
+
+		// set mods back to what they were before
+		GAMEMAN->m_bResetModifiers = true;
+		GAMEMAN->m_fPreviousRate = oldRate;
+		GAMEMAN->m_sModsToReset = oldMods;
 		return 1;
 	}
 
 	static int ShowEvalScreenForScore(T* p, lua_State *L)
 	{
+		// get the highscore from lua and fake it to the most recent score
 		HighScore* hs = Luna<HighScore>::check(L, 1);
 		SCOREMAN->PutScoreAtTheTop(hs->GetScoreKey());
+
+		// set to replay mode to disable score saving
 		GamePreferences::m_AutoPlay.Set(PC_REPLAY);
+
+		// construct the current stage stats and stuff to the best of our ability
 		StageStats ss;
 		ss.Init();
 		auto score = SCOREMAN->GetMostRecentScore();
@@ -1894,6 +1926,7 @@ public:
 		auto& pss = ss.m_player[0];
 		pss.m_HighScore = *score;
 		pss.CurWifeScore = score->GetWifeScore();
+		pss.m_fWifeScore = score->GetWifeScore();
 		pss.m_vNoteRowVector = score->GetNoteRowVector();
 		pss.m_vOffsetVector = score->GetOffsetVector();
 		pss.m_vTapNoteTypeVector = score->GetTapNoteTypeVector();
@@ -1910,9 +1943,26 @@ public:
 		{
 			pss.m_iHoldNoteScores[i] = score->GetHoldNoteScore((HoldNoteScore)i);
 		}
+		ss.m_vpPlayedSongs.emplace_back(GAMESTATE->m_pCurSong);
 		STATSMAN->m_CurStageStats = ss;
 		STATSMAN->m_vPlayedStageStats.emplace_back(ss);
+
+		// set the rate so the MSD and rate display doesnt look weird
+		float scoreRate = hs->GetMusicRate();
+		float oldRate = GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate;
+		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = scoreRate;
+		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = scoreRate;
+		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = scoreRate;
+		MESSAGEMAN->Broadcast("RateChanged");
+
+		// go
+		LOG->Trace("Viewing evaluation screen for score key %s", score->GetScoreKey());
 		SCREENMAN->SetNewScreen("ScreenEvaluationNormal");
+
+		// set rate back to what it was before
+		GAMEMAN->m_bResetModifiers = true;
+		GAMEMAN->m_fPreviousRate = oldRate;
+
 		return 1;
 	}
 	

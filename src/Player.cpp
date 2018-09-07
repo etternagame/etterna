@@ -2195,7 +2195,7 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 				}
 				else // every other case
 				{
-					if (pTN->IsNote())
+					if (pTN->IsNote() || pTN->type == TapNoteType_Lift)
 						score = PlayerAI::GetTapNoteScoreForReplay(m_pPlayerState, fNoteOffset);
 				}
 			}

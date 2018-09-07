@@ -507,7 +507,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="ReplayViewer",
 	InitCommand=function(self)
-		self:y(frameHeight-headeroffY - 30 - offsetY):zoom(0.5):halign(-2):settext("")
+		self:xy((frameWidth-offsetX- frameX)/2 + 25,frameHeight-headeroffY - 30 - offsetY):zoom(0.5):halign(1):settext("")
 	end,
 	DisplayCommand=function(self)
 		if score:HasReplayData() then 
@@ -530,7 +530,7 @@ t[#t+1] = LoadFont("Common Normal")..{
 t[#t+1] = LoadFont("Common Normal")..{
 	Name="EvalViewer",
 	InitCommand=function(self)
-		self:y(frameHeight-headeroffY - 30 - offsetY):zoom(0.5):halign(-3):settext("")
+		self:xy(frameWidth-offsetX- frameX,frameHeight-headeroffY - 30 - offsetY):zoom(0.5):halign(1):settext("")
 	end,
 	DisplayCommand=function(self)
 		if score:HasReplayData() then 
@@ -565,7 +565,7 @@ function nestedTabButton(i)
   return  
   Def.ActorFrame{
     InitCommand=function(self) 
-      self:xy(frameX + offsetX + (i-1)*(nestedTabButtonWidth), frameY + headeroffY)
+      self:xy(frameX + offsetX + (i-1)*(nestedTabButtonWidth-80), frameY + headeroffY)
 	  self:SetUpdateFunction(highlight)
     end, 
 	CollapseCommand=function(self)
@@ -576,7 +576,7 @@ function nestedTabButton(i)
 	end,
     LoadFont("Common normal") .. { 
       InitCommand=function(self) 
-        self:diffuse(getMainColor('positive')):maxwidth(nestedTabButtonWidth):maxheight(40):zoom(0.75):settext(nestedTabs[i]):halign(0)
+        self:diffuse(getMainColor('positive')):maxwidth(nestedTabButtonWidth-80):maxheight(40):zoom(0.75):settext(nestedTabs[i]):halign(0)
       end, 
 	  HighlightCommand=function(self)
 		if isOver(self) and nestedTab ~= i then
