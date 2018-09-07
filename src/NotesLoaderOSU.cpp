@@ -65,7 +65,7 @@ void OsuLoader::SeparateTagsAndContents(string fileContents, vector<string> &tag
 	{
 		char currentByte = fileContents[i];
 
-		if (isComment)
+		if (isComment || currentByte == '\r') // ignore carriage return
 		{
 			if (currentByte == '\n')
 			{
@@ -78,11 +78,6 @@ void OsuLoader::SeparateTagsAndContents(string fileContents, vector<string> &tag
 			{
 				isComment = true;
 			}
-		}
-		else if (currentByte == '[')
-		{
-			tag = "";
-			isTag = true;
 		}
 		else if (isTag)
 		{
@@ -102,7 +97,7 @@ void OsuLoader::SeparateTagsAndContents(string fileContents, vector<string> &tag
 		}
 		else if (isContent)
 		{
-			if (currentByte == '[' || i == (int)fileContents.length()-1)
+			if ((currentByte == '[' && lastByte == '\n') || i == (int)fileContents.length()-1)
 			{
 				contentsOut.back().emplace_back(content);
 				content = "";
@@ -119,6 +114,11 @@ void OsuLoader::SeparateTagsAndContents(string fileContents, vector<string> &tag
 			{
 				content = content + currentByte;
 			}
+		}
+		else if (currentByte == '[')
+		{
+			tag = "";
+			isTag = true;
 		}
 		lastByte = currentByte;
 	}
@@ -206,7 +206,7 @@ void OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song 
 
 	auto general = parsedData["General"];
 	out.m_fMusicSampleStartSeconds = stof(general["AudioLeadIn"]) / 1000.0f;
-	out.m_fMusicSampleLengthSeconds = stof(general["PreviewTime"]) / 1000.0f;
+	out.m_fMusicSampleLengthSeconds = stof(general["PreviewTime"]) / 1000.0f; // these probably aren't right
 }
 
 bool OsuLoader::LoadChartData(Song* song, Steps* chart, map<string, map<string, string>> parsedData)
