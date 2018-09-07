@@ -768,6 +768,7 @@ void ScreenEvaluation::HandleMenuStart()
 		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = oldRate;
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = oldRate;
 		GAMEMAN->m_bResetModifiers = false;
+		GAMEMAN->m_sModsToReset = "";
 		MESSAGEMAN->Broadcast("RateChanged");
 	}
 	StartTransitioningScreen( SM_GoToNextScreen );
