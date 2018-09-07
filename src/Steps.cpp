@@ -20,6 +20,7 @@
 #include "NotesLoaderBMS.h"
 #include "NotesLoaderDWI.h"
 #include "NotesLoaderKSF.h"
+#include "NotesLoaderOSU.h"
 #include "NotesLoaderSM.h"
 #include "NotesLoaderSMA.h"
 #include "NotesLoaderSSC.h"
@@ -148,6 +149,10 @@ bool Steps::GetNoteDataFromSimfile()
 	else if (extension == "bms" || extension == "bml" || extension == "bme" || extension == "pms")
 	{
 		return BMSLoader::LoadNoteDataFromSimfile(stepFile, *this);
+	}
+	else if (extension == "osu")
+	{
+		return OsuLoader::LoadNoteDataFromSimfile(stepFile, *this);
 	}
 	else if (extension == "edit")
 	{
@@ -289,9 +294,9 @@ void Steps::CalculateRadarValues( float fMusicLengthSeconds ) {
 	// the note data is decompressed already, so, we don't need to copy(?)
 	// the decompressed note data, again, a decompress call can be placed here
 	// instead of getnotedata if it turns out we need it -mina
-
-	GAMESTATE->SetProcessedTimingData(this->GetTimingData());
-	NoteDataUtil::CalculateRadarValues( *m_pNoteData, fMusicLengthSeconds, m_CachedRadarValues );
+	auto td = this->GetTimingData();
+	GAMESTATE->SetProcessedTimingData(td);
+	NoteDataUtil::CalculateRadarValues( *m_pNoteData, fMusicLengthSeconds, m_CachedRadarValues,td );
 
 	GAMESTATE->SetProcessedTimingData(NULL);
 }

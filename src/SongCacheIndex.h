@@ -23,14 +23,14 @@ class SongCacheIndex
 	void DeleteDB();
 	void CreateDBTables();
 	bool DBEmpty{true};
-	SQLite::Database *db{nullptr};
 	SQLite::Transaction *curTransaction{nullptr};
 public:
+	SQLite::Database *db{ nullptr };
 	SongCacheIndex();
 	~SongCacheIndex();
 	inline pair<RString, int> SongFromStatement(Song* song, SQLite::Statement &query);
 	void LoadHyperCache(LoadingWindow * ld, map<RString, Song*>& hyperCache);
-	void LoadCache(LoadingWindow* ld, map<pair<RString, unsigned int>, Song*>&cache);
+	void LoadCache(LoadingWindow* ld, vector<pair<pair<RString, unsigned int>, Song*>*>&cache);
 	void DeleteSongFromDBByCondition(string& condition);
 	void DeleteSongFromDB(Song* songPtr); 
 	void DeleteSongFromDBByDir(string dir);

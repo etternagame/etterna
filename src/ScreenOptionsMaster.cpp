@@ -146,9 +146,6 @@ void ScreenOptionsMaster::HandleScreenMessage( const ScreenMessage SM )
 		{
 			SOUNDMAN->SetMixVolume();
 		}
-		
-		if( (m_iChangeMask & OPT_APPLY_SONG) != 0 )
-			SONGMAN->SetPreferences();
 
 		CHECKPOINT_M("Transferring to the next screen now.");
 		this->HandleScreenMessage( SM_GoToNextScreen );

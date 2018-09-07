@@ -1077,7 +1077,7 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 	auto done = [chartkey](HTTPRequest& req, CURLMsg *) {
 		vector<OnlineScore> & vec = DLMAN->chartLeaderboards[chartkey];
 		vec.clear();
-		unordered_set<string> userswithscores;
+		//unordered_set<string> userswithscores;
 		Message msg("ChartLeaderboardUpdate");
 		try {
 			auto j = json::parse(req.result);
@@ -1141,10 +1141,11 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 				// it seems prudent to maintain the eo functionality in this way and screen out multiple scores from the same user 
 				// even more prudent would be to put this last where it belongs, we don't want to screen out scores for players who wouldn't
 				// have had them registered in the first place -mina
-				if (userswithscores.count(tmp.username) == 1)
-					continue;
+				// Moved this filtering to the Lua call. -poco
+				//if (userswithscores.count(tmp.username) == 1)
+				//	continue;
 
-				userswithscores.emplace(tmp.username);
+				//userswithscores.emplace(tmp.username);
 				vec.emplace_back(tmp);
 			}
 		}
@@ -1658,7 +1659,7 @@ public:
 		lua_setfield(L, -2, "chartkey");
 		LuaHelpers::Push(L, onlineScore.difficulty);
 		lua_setfield(L, -2, "difficulty");
-		lua_pushstring(L, GradeToString(PlayerStageStats::GetGrade(onlineScore.wifeScore)));
+		LuaHelpers::Push(L,PlayerStageStats::GetGrade(onlineScore.wifeScore));
 		lua_setfield(L, -2, "grade");
 		return 1;
 	}
@@ -1787,11 +1788,15 @@ public:
 		//p->RequestChartLeaderBoard(SArg(1));
 		p->MakeAThing(SArg(1));
 		vector<HighScore*> wot;
+		unordered_set<string> userswithscores;
 		float currentrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 		for (auto& zoop : p->athing) {
 			if (lround(zoop.GetMusicRate() * 10000.f) != lround(currentrate * 10000.f) && p->currentrateonly)
 				continue;
+			if (userswithscores.count(zoop.GetName()) == 1 && p->topscoresonly)
+				continue;
 			wot.push_back(&zoop);
+			userswithscores.emplace(zoop.GetName());
 		}
 		LuaHelpers::CreateTableFromArray(wot, L);
 		return 1;
@@ -1803,6 +1808,14 @@ public:
 	}
 	static int GetCurrentRateFilter(T* p, lua_State* L) {
 		lua_pushboolean(L, p->currentrateonly);
+		return 1;
+	}
+	static int ToggleTopScoresOnlyFilter(T* p, lua_State* L) {
+		p->topscoresonly = !p->topscoresonly;
+		return 0;
+	}
+	static int GetTopScoresOnlyFilter(T* p, lua_State* L) {
+		lua_pushboolean(L, p->topscoresonly);
 		return 1;
 	}
 
@@ -1828,6 +1841,8 @@ public:
 		ADD_METHOD(RequestChartLeaderBoard);
 		ADD_METHOD(ToggleRateFilter);
 		ADD_METHOD(GetCurrentRateFilter);
+		ADD_METHOD(ToggleTopScoresOnlyFilter);
+		ADD_METHOD(GetTopScoresOnlyFilter);
 		ADD_METHOD(Logout);
 	}
 };

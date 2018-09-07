@@ -7,9 +7,11 @@ local cover
 local laneColor = color("#333333")
 
 local cols = GAMESTATE:GetCurrentStyle():ColumnsPerPlayer()
+local keymode = getCurrentKeyMode()
+local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
 
 local isCentered = ((cols >= 6) or PREFSMAN:GetPreference("Center1Player")) and GAMESTATE:GetNumPlayersEnabled() == 1-- load from prefs later
-local width = 64*cols*playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.NotefieldWidth
+local width = 64*cols*playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NotefieldWidth
 local padding = 8
 local styleType = ToEnumShortString(GAMESTATE:GetCurrentStyle():GetStyleType())
 
@@ -23,7 +25,7 @@ end;
 local heightP1 = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCoverHeight
 
 
-local P1X = SCREEN_CENTER_X + playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NotefieldX
+local P1X = SCREEN_CENTER_X + playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NotefieldX
 
 if not isCentered then
 	P1X = THEME:GetMetric("ScreenGameplay",string.format("PlayerP1%sX",styleType))
@@ -115,11 +117,11 @@ local function input(event)
 		end
 		if tPressed and event.type ~= "InputEventType_Release" then
 			if event.DeviceInput.button == "DeviceButton_left" then
-				width = 64*cols*playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.NotefieldWidth - 0.01
+				width = 64*cols*playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NotefieldWidth - 0.01
 				cover:playcommand("Update")
 			end
 			if event.DeviceInput.button == "DeviceButton_right" then
-				width = 64*cols*playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes.NotefieldWidth + 0.01
+				width = 64*cols*playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NotefieldWidth + 0.01
 				cover:playcommand("Update")
 			end
 		end
@@ -152,7 +154,7 @@ local t = Def.ActorFrame{
 		end;
 	end;
 	OnCommand=function()
-		if(playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay) then
+		if(allowedCustomization) then
 			SCREENMAN:GetTopScreen():AddInputCallback(input)
 		end
 	end
@@ -175,7 +177,7 @@ if enabledP1 then
 			end;
 		end;
 		UpdateCommand=function(self)
-			P1X = SCREEN_CENTER_X + playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NotefieldX
+			P1X = SCREEN_CENTER_X + playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NotefieldX
 			if isReverseP1 then
 				self:xy(P1X,SCREEN_TOP):zoomto((width+padding)*getNoteFieldScale(PLAYER_1),heightP1):valign(0):diffuse(laneColor)
 				self:y(SCREEN_TOP)
@@ -239,7 +241,7 @@ local function Update(self)
 	end;
 	self:SetUpdateRate(5)
 	if enabledP1 then
-		P1X = SCREEN_CENTER_X + playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates.NotefieldX
+		P1X = SCREEN_CENTER_X + playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NotefieldX
 		
 		if moveDownP1 then
 			if isReverseP1 then

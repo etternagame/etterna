@@ -315,7 +315,7 @@ bool Song::LoadFromSongDir( RString sDir, bool load_autosave )
 		// Let's load it from a file, then write a cache entry.
 		if (!NotesLoader::LoadFromDir(sDir, *this, BlacklistedImages, load_autosave))
 		{
-			LOG->UserLog("Song", sDir, "has no SSC, SM, SMA, DWI, BMS, or KSF files.");
+			LOG->UserLog("Song", sDir, "has no SSC, SM, SMA, DWI, BMS, KSF, or OSU files.");
 
 			vector<RString> vs;
 			FILEMAN->GetDirListingWithMultipleExtensions(sDir, ActorUtil::GetTypeExtensionList(FT_Sound), vs, false, false);

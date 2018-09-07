@@ -157,13 +157,21 @@ void PlayerAI::SetScoreData(HighScore* pHighScore)
 	auto replayHoldVector = pHighScore->GetCopyOfHoldReplayDataVector();
 
 	// Generate TapReplayResults to put into a vector referenced by the song row in a map
-	for (int i = 0; i < replayTrackVector.size(); i++)
+	for (int i = 0; i < replayNoteRowVector.size(); i++)
 	{
 		TapReplayResult trr;
 		trr.row = replayNoteRowVector[i];
-		trr.track = replayTrackVector[i];
 		trr.offset = replayOffsetVector[i];
-		trr.type = replayTapNoteTypeVector[i];
+		if (pScoreData->GetReplayType() == 2) // 2 means that this is a Full Replay
+		{
+			trr.track = replayTrackVector[i];
+			trr.type = replayTapNoteTypeVector[i];
+		}
+		else // Anything else (and we got this far without crashing) means it's not a Full Replay
+		{
+			trr.track = NULL;
+			trr.type = TapNoteType_Empty;
+		}
 
 		// Create or append to the vector
 		if (m_ReplayTapMap.count(replayNoteRowVector[i]) != 0)
@@ -224,16 +232,43 @@ float PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 
 	// Current v0.60 Replay Data format: [noterow] [offset] [track] [optional: tap note type]
 	// Current v0.60 Replay Data format (H section): H [noterow] [track] [optional: tap note subtype]
-
+	//LOG->Trace("Note row %d", noteRow);
 	if (m_ReplayTapMap.count(noteRow) != 0) // is the current row recorded?
 	{
-		for (auto trr : m_ReplayTapMap[noteRow]) // go over all elements in the row
+		// This replay has no column data or is considered Basic. (Pre-v0.60 Replays do this.)
+		if (pScoreData->GetReplayType() == 1)
 		{
-			if (trr.track == col) // if the column expected is the actual note, use it
+			// mines are not preset in the old replay data, we just skip them
+			// this gets caught by Player after it finds that the offset wasnt -2.f
+			// (We check for an impossible offset of -2.f in Player to blow up a mine)
+			if (pTN->type == TapNoteType_Mine)
+				return -1.f;
+
+			float offset = m_ReplayTapMap[noteRow].back().offset;
+
+			// this is done to be able to judge simultaneous taps differently due to CC Off
+			// this results in possibly incorrect precise per tap judges, but the correct
+			// judgement ends up being made overall.
+			m_ReplayTapMap[noteRow].pop_back();
+			if (m_ReplayTapMap[noteRow].empty())
 			{
-				if (trr.type == TapNoteType_Mine) // hack for mines
-					return -2.f;
-				return -trr.offset;
+				m_ReplayTapMap.erase(noteRow);
+			}
+
+			return -offset;
+		}
+		else
+		{
+
+			// This is only reached if we have column data.
+			for (auto trr : m_ReplayTapMap[noteRow]) // go over all elements in the row
+			{
+				if (trr.track == col) // if the column expected is the actual note, use it
+				{
+					if (trr.type == TapNoteType_Mine) // hack for mines
+						return -2.f;
+					return -trr.offset;
+				}
 			}
 		}
 	}

@@ -291,7 +291,7 @@ function CustomizeGameplay()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = false,
 		ExportOnChange = true,
-		Choices = { THEME:GetString('OptionNames','Off'),'On'},
+		Choices = { THEME:GetString('OptionNames','Off'), 'On'},
 		LoadSelections = function(self, list, pn)
 			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).CustomizeGameplay
 			if pref then
@@ -301,9 +301,7 @@ function CustomizeGameplay()
 			end
 		end,
 		SaveSelections = function(self, list, pn)
-			local value
-			value = list[2]
-			playerConfig:get_data(pn_to_profile_slot(pn)).CustomizeGameplay = value
+			playerConfig:get_data(pn_to_profile_slot(pn)).CustomizeGameplay = list[2]
 			playerConfig:set_dirty(pn_to_profile_slot(pn))
 			playerConfig:save(pn_to_profile_slot(pn))
 		end,
@@ -826,6 +824,7 @@ function MeasureLines()
 end
 
 function ProgressBar()
+	local keymode = getCurrentKeyMode()
 	local t = {
 		Name = "ProgressBar",
 		LayoutType = "ShowAllInRow",
@@ -834,23 +833,23 @@ function ProgressBar()
 		ExportOnChange = true,
 		Choices = {"Bottom", "Top"},
 		LoadSelections = function(self, list, pn)
-			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).ProgressBarPos
+			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).GameplayXYCoordinates[keymode].ProgressBarPos
 			if pref then
 				list[pref+1] = true
 			end
 		end,
 		SaveSelections = function(self, list, pn)
-			local value = playerConfig:get_data(pn_to_profile_slot(pn)).ProgressBarPos
+			local value = playerConfig:get_data(pn_to_profile_slot(pn)).GameplayXYCoordinates[keymode].ProgressBarPos
 			if list[1] == true then
 				if value ~= 0 then
 					value = 0
-					playerConfig:get_data(pn_to_profile_slot(pn)).GameplayXYCoordinates.FullProgressBarY = SCREEN_BOTTOM - 30
+					playerConfig:get_data(pn_to_profile_slot(pn)).GameplayXYCoordinates[keymode].FullProgressBarY = SCREEN_BOTTOM - 30
 				end
 			elseif value ~= 1 then
 				value = 1
-				playerConfig:get_data(pn_to_profile_slot(pn)).GameplayXYCoordinates.FullProgressBarY = 20
+				playerConfig:get_data(pn_to_profile_slot(pn)).GameplayXYCoordinates[keymode].FullProgressBarY = 20
 			end
-			playerConfig:get_data(pn_to_profile_slot(pn)).ProgressBarPos = value
+			playerConfig:get_data(pn_to_profile_slot(pn)).GameplayXYCoordinates[keymode].ProgressBarPos = value
 			playerConfig:set_dirty(pn_to_profile_slot(pn))
 			playerConfig:save(pn_to_profile_slot(pn))
 		end
