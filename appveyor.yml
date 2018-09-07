@@ -8,11 +8,17 @@ configuration:
   - Release
 platform:
   - x64
+  - x86
 environment:
   matrix:
   - archi: Win64
   - archi:
-
+matrix:
+  exclude:
+    - platform: x64
+      archi:
+    - platform: x86
+      archi: Win64
 clone_folder: C:\etterna
 
 cache:
