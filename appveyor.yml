@@ -8,7 +8,7 @@ configuration:
   - Release
 platform:
   - x64
-  - x86
+  - Win32
 environment:
   matrix:
   - archi: Win64
@@ -17,7 +17,7 @@ matrix:
   exclude:
     - platform: x64
       archi:
-    - platform: x86
+    - platform: Win32
       archi: Win64
 clone_folder: C:\etterna
 
