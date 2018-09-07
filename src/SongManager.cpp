@@ -665,12 +665,15 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 	function<void(std::pair<vectorIt<pair<RString*, vector<RString>*>>, vectorIt<pair<RString*, vector<RString>*>>>, ThreadData*)> callback =
 		[&sDir](std::pair<vectorIt<pair<RString*, vector<RString>*>>, vectorIt<pair<RString*, vector<RString>*>>> workload, ThreadData* data)
 	{
+		
+		CHECKPOINT_M("Looking for images...");
 		auto pair = static_cast<std::pair<int, LoadingWindow*>*>(data->data);
 		auto onePercent = pair->first;
 		auto ld = pair->second;
 		int counter = 0;
 		int lastUpdate = 0;
 		for (auto it = workload.first; it != workload.second; it++) {
+			CHECKPOINT_M(("Thread"+stoi((int)&workload)+" Starting pack "+sGroupDirName).c_str());
 			auto pair = *it;
 			auto& sGroupDirName = *(it->first);
 			counter++;
@@ -686,15 +689,19 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 			for (size_t j = 0; j < arraySongDirs.size(); ++j) {
 				RString sSongDirName = arraySongDirs[j];
 				RString hur = sSongDirName + "/";
+				CHECKPOINT_M(("Thread"+stoi((int)&workload)+" Starting song "+ sSongDirName).c_str());
 				hur.MakeLower();
 				if (SONGMAN->m_SongsByDir.count(hur))
 					continue;
 				Song* pNewSong = new Song;
+				CHECKPOINT_M(("Thread"+stoi((int)&workload)+" trying to load "+ sSongDirName).c_str());
 				if (!pNewSong->LoadFromSongDir(sSongDirName)) {
+					CHECKPOINT_M(("Thread"+stoi((int)&workload)+" deleting "+ sSongDirName).c_str());
 					delete pNewSong;
 					continue;
 				}
 				{
+					CHECKPOINT_M(("Thread"+stoi((int)&workload)+" adding song "+ sSongDirName).c_str());
 					std::lock_guard<std::mutex> lk(diskLoadSongMutex);
 					SONGMAN->AddSongToList(pNewSong);
 					SONGMAN->AddKeyedPointers(pNewSong);
