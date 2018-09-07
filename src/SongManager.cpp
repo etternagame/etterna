@@ -673,9 +673,9 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 		int counter = 0;
 		int lastUpdate = 0;
 		for (auto it = workload.first; it != workload.second; it++) {
-			CHECKPOINT_M(("Thread"+stoi((int)&workload)+" Starting pack "+sGroupDirName).c_str());
 			auto pair = *it;
 			auto& sGroupDirName = *(it->first);
+			CHECKPOINT_M(("Thread"+stoi((int)&workload)+" Starting pack "+sGroupDirName).c_str());
 			counter++;
 			vector<RString> &arraySongDirs = *(it->second);
 			if (counter % onePercent == 0) {
