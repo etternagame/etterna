@@ -754,15 +754,21 @@ void ScreenEvaluation::HandleMenuStart()
 	stepsid.FromSteps(GAMESTATE->m_pCurSteps[PLAYER_1]);
 	SongID songid;
 	songid.FromSong(GAMESTATE->m_pCurSong);
-	if (GAMEMAN->m_bSetSongRateInEvalScreen)
+	if (GAMEMAN->m_bResetModifiers)
 	{
 		float oldRate = GAMEMAN->m_fPreviousRate;
+		const RString mods = GAMEMAN->m_sModsToReset;
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetSong().FromString("clearall");
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().FromString("clearall");
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred().FromString("clearall");
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetSong().FromString(mods);
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().FromString(mods);
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred().FromString(mods);
 		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = oldRate;
 		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = oldRate;
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = oldRate;
-		GAMEMAN->m_bSetSongRateInEvalScreen = false;
+		GAMEMAN->m_bResetModifiers = false;
 		MESSAGEMAN->Broadcast("RateChanged");
-
 	}
 	StartTransitioningScreen( SM_GoToNextScreen );
 }

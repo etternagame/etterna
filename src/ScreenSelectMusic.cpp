@@ -1876,6 +1876,9 @@ public:
 		HighScore* hs = Luna<HighScore>::check(L, 1);
 		PlayerAI::SetScoreData(hs);
 
+		// prepare old mods to return to
+		const RString oldMods = GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().GetString();
+
 		// set the heck out of the current rate to make sure everything runs correctly
 		float scoreRate = hs->GetMusicRate();
 		float oldRate = GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate;
@@ -1884,14 +1887,24 @@ public:
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = scoreRate;
 		MESSAGEMAN->Broadcast("RateChanged");
 
+		// set mods based on the score, hopefully
+		// it is known that xmod->cmod and back does not work most of the time.
+		CHECKPOINT_M("Setting mods for Replay Viewing.");
+		RString mods = hs->GetModifiers();
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetSong().FromString(mods);
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().FromString(mods);
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred().FromString(mods);
+		CHECKPOINT_M("Replay mods set.");
+
 		// lock the game into replay mode and GO
 		LOG->Trace("Viewing replay for score key %s", hs->GetScoreKey());
 		GamePreferences::m_AutoPlay.Set(PC_REPLAY);
 		p->SelectCurrent(PLAYER_1);
 
-		// set rate back to what it was before
-		GAMEMAN->m_bSetSongRateInEvalScreen = true;
+		// set mods back to what they were before
+		GAMEMAN->m_bResetModifiers = true;
 		GAMEMAN->m_fPreviousRate = oldRate;
+		GAMEMAN->m_sModsToReset = oldMods;
 		return 1;
 	}
 
