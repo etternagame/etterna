@@ -4,6 +4,7 @@
 #include "RageLog.h"
 #include "RageUtil.h"
 #include "RageFileManager.h"
+#include "RageThreads.h"
 #include "GameManager.h"
 #include "Song.h"
 #include "SongCacheIndex.h"
@@ -18,6 +19,11 @@
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <SQLiteCpp/VariadicBind.h>
 #include "sqlite3.h"
+#include <mutex>
+#include <atomic>
+#include <thread>
+#include <algorithm>
+#include <numeric>
 
 
 /*
@@ -642,43 +648,90 @@ void SongCacheIndex::LoadHyperCache(LoadingWindow * ld, map<RString, Song*>& hyp
 	}
 	return;
 }
-void SongCacheIndex::LoadCache(LoadingWindow * ld, map<pair<RString, unsigned int>, Song*>& cache)
+
+template<template<class, class...> class R1, template<class, class...> class R2, class T, class... A1, class... A2>
+R1<T, A2...> join(R1<R2<T, A2...>, A1...> const& outer)
+{
+	R1<T, A2...> joined;
+	joined.reserve(std::accumulate(outer.begin(), outer.end(), std::size_t{}, [](size_t size, R2<T, A2...> const& inner) {
+		return size + inner.size();
+	}));
+	for (R2<T, A2...> const& inner : outer)
+		joined.insert(joined.end(), inner.begin(), inner.end());
+	return joined;
+}
+
+void SongCacheIndex::LoadCache(LoadingWindow * ld, vector<pair<pair<RString, unsigned int>, Song*>*>& cache)
 {
 	int count = db->execAndGet("SELECT COUNT(*) FROM songs");
 	if (ld && count > 0) {
 		ld->SetIndeterminate(false);
+		ld->SetText("Loading Cache\n");
 		ld->SetProgress(0);
 		ld->SetTotalWork(count);
 	}
-	RString lastDir;
-	int progress = 0;
-	int onePercent = std::max(count / 100, 1);
-	try {
-		SQLite::Statement query(*db, "SELECT * FROM songs");
-
-		while (query.executeStep()) {
-			Song* s = new Song;
-			auto songID = SongFromStatement(s, query);
-			cache[songID] = s;
-			lastDir = songID.first;
-			lastDir = lastDir.substr(0, lastDir.find_last_of("/"));
-			lastDir = lastDir.substr(0, lastDir.find_last_of("/"));
-			// this is a song directory. Load a new song.
-			progress++;
-			if (ld && progress % onePercent == 0)
-			{
-				ld->SetProgress(progress);
-				ld->SetText(("Loading Cache\n" + lastDir).c_str());
+	cache.reserve(count);
+	int fivePercent = std::max(count / 100 * 5, 1);
+	const int threads = std::thread::hardware_concurrency();
+	const int limit = count / threads;
+	ThreadData data;
+	atomic<bool> abort(false);
+	auto threadCallback = [&data, fivePercent, &abort](int limit, int offset, vector<pair<pair<RString, unsigned int>, Song*>*>* cachePart) {
+		int counter=0, lastUpdate=0;
+		try {
+			SQLite::Statement query(*SONGINDEX->db, "SELECT * FROM songs LIMIT "+to_string(limit)+" OFFSET "+to_string(offset));
+			while (query.executeStep()) {
+				if (abort) {
+					return;
+				}
+				Song* s = new Song;
+				auto songID = SONGINDEX->SongFromStatement(s, query);
+				cachePart->emplace_back(new pair<pair<RString, unsigned int>, Song*>(songID, s));
+				// this is a song directory. Load a new song.
+				counter++;
+				if (counter % fivePercent == 0)
+				{
+					data._progress += counter - lastUpdate;
+					lastUpdate = counter;
+					data.setUpdated(true);
+				}
 			}
-		}
 
+		}
+		catch (std::exception& e)
+		{
+			LOG->Trace("Error reading cache. Error: %s", e.what());
+			if (abort) return;
+			abort = true;
+			data.setUpdated(true);
+			SONGINDEX->ResetDB();
+			return;
+		}
+		data._threadsFinished++;
+		data.setUpdated(true);
+	};
+	vector<thread> threadpool;
+	vector<vector<pair<pair<RString, unsigned int>, Song*>*>> cacheParts;
+	for (int i = 0; i < threads; i++)
+		cacheParts.emplace_back(vector<pair<pair<RString, unsigned int>, Song*>*>());
+	for (int i=0;i<threads;i++)
+		threadpool.emplace_back(thread(threadCallback, limit, i*limit, &(cacheParts[i])));
+	while (data._threadsFinished < threads) {
+		data.waitForUpdate();
+		if (abort) {
+			for (auto& thread : threadpool)
+				thread.join();
+			return;
+		}
+		if (ld)
+		{
+			ld->SetProgress(data._progress);
+		}
+		data.setUpdated(false);
 	}
-	catch (std::exception& e)
-	{
-		LOG->Trace("Error reading cache. last dir: %s . Error: %s", lastDir.c_str(), e.what());
-		ResetDB();
-		return;
-	}
+	for (auto& thread : threadpool)
+		thread.join();
+	cache = join(cacheParts);
 	return;
 }
 void SongCacheIndex::DeleteSongFromDBByCondition(string& condition)

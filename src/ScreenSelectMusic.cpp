@@ -7,9 +7,11 @@
 #include "GameConstantsAndTypes.h"
 #include "GameManager.h"
 #include "GameSoundManager.h"
+#include "ScoreManager.h"
 #include "GameState.h"
 #include "InputMapper.h"
 #include "MenuTimer.h"
+#include "StageStats.h"
 #include "PlayerState.h"
 #include "PrefsManager.h"
 #include "ProfileManager.h"
@@ -1871,18 +1873,46 @@ public:
 	static int PlayReplay(T* p, lua_State *L)
 	{
 		HighScore* hs = Luna<HighScore>::check(L, 1);
-		LOG->Trace("Attempting to play a replay!");
 		PlayerAI::SetScoreData(hs);
-
-		//vector<int>& test = hs->GetCopyOfNoteRowVector();
-		//std::string s = std::to_string(test.size());
-		//char const* g = s.c_str();
-		//LOG->Trace(g);
 
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = hs->GetMusicRate();
 		MESSAGEMAN->Broadcast("RateChanged");
 		GamePreferences::m_AutoPlay.Set(PC_REPLAY);
 		p->SelectCurrent(PLAYER_1);
+		return 1;
+	}
+
+	static int ShowEvalScreenForScore(T* p, lua_State *L)
+	{
+		HighScore* hs = Luna<HighScore>::check(L, 1);
+		SCOREMAN->PutScoreAtTheTop(hs->GetScoreKey());
+		GamePreferences::m_AutoPlay.Set(PC_REPLAY);
+		StageStats ss;
+		ss.Init();
+		auto score = SCOREMAN->GetMostRecentScore();
+		score->LoadReplayData();
+		auto& pss = ss.m_player[0];
+		pss.m_HighScore = *score;
+		pss.CurWifeScore = score->GetWifeScore();
+		pss.m_vNoteRowVector = score->GetNoteRowVector();
+		pss.m_vOffsetVector = score->GetOffsetVector();
+		pss.m_vTapNoteTypeVector = score->GetTapNoteTypeVector();
+		pss.m_vTrackVector = score->GetTrackVector();
+		score->UnloadReplayData();
+		pss.m_iSongsPassed = 1;
+		pss.m_iSongsPlayed = 1;
+		pss.everusedautoplay = true;
+		for (int i = TNS_Miss; i<NUM_TapNoteScore; i++)
+		{
+			pss.m_iTapNoteScores[i] = score->GetTapNoteScore((TapNoteScore)i);
+		}
+		for (int i = 0; i<NUM_HoldNoteScore; i++)
+		{
+			pss.m_iHoldNoteScores[i] = score->GetHoldNoteScore((HoldNoteScore)i);
+		}
+		STATSMAN->m_CurStageStats = ss;
+		STATSMAN->m_vPlayedStageStats.emplace_back(ss);
+		SCREENMAN->SetNewScreen("ScreenEvaluationNormal");
 		return 1;
 	}
 	
@@ -1896,6 +1926,7 @@ public:
 		ADD_METHOD(GetSelectionState);
 		ADD_METHOD(StartPlaylistAsCourse);
 		ADD_METHOD(PlayReplay);
+		ADD_METHOD(ShowEvalScreenForScore);
 	}
 };
 

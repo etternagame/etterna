@@ -13,13 +13,25 @@ const int NUM_SKILL_LEVELS = 6;	// 0-5
 class PlayerAI
 {
 public:
+	// Pointer to real high score data for a replay
+
 	static HighScore* pScoreData;
+
+	// Pulled from pScoreData on initialization
+
+	// A map with indices for each row of the chart, pointing to nothing or a Normal Result
+	static map<int, vector<TapReplayResult>> m_ReplayTapMap;
+	// A map with indices for each row of the chart, pointing to nothing or hold drop results.
+	static map<int, vector<HoldReplayResult>> m_ReplayHoldMap;
 
 	static void InitFromDisk();
 	static TapNoteScore GetTapNoteScore( const PlayerState* pPlayerState );
 	static void SetScoreData(HighScore* pHighScore);
+
 	static float GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col);
 	static TapNoteScore GetTapNoteScoreForReplay(const PlayerState* pPlayerState, float fNoteOffset);
+	static bool DetermineIfHoldDropped(int noteRow, int col);
+
 
 };
 

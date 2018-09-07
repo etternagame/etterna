@@ -13,6 +13,7 @@ struct GoalsForChart;
 #include "GameConstantsAndTypes.h"
 #include "PlayerNumber.h"
 #include "PlayerOptions.h"
+#include "ImageCache.h"
 #include "RageTexturePreloader.h"
 #include "RageTypes.h"
 #include "RageUtil.h"
@@ -39,7 +40,6 @@ public:
 
 	void Invalidate( const Song *pStaleSong );
 	static map<string, Playlist>& GetPlaylists();
-	void SetPreferences();
 	void SaveEnabledSongsToPref();
 	void LoadEnabledSongsFromPref();
 
@@ -126,7 +126,6 @@ public:
 	void GetExtraStageInfo( bool bExtra2, const Style *s, Song*& pSongOut, Steps*& pStepsOut );
 	Song* GetSongFromDir( RString sDir ) const;
 
-	void UpdatePopular();
 	void UpdateShuffled();	// re-shuffle songs
 	void UpdatePreferredSort(const RString &sPreferredSongs = "PreferredSongs.txt", const RString &sPreferredCourses = "PreferredCourses.txt"); 
 	void SortSongs();		// sort m_pSongs by CompareSongPointersByTitle
@@ -145,6 +144,8 @@ public:
 
 	map<string, vector<Song*>> groupderps;
 	vector<string> playlistGroups; // To delete from groupderps when rebuilding playlist groups
+
+	void FinalizeSong(Song* pNewSong, const RString& dir);
 protected:
 	void LoadStepManiaSongDir( RString sDir, LoadingWindow *ld );
 	void LoadDWISongDir( const RString &sDir );
@@ -156,7 +157,7 @@ protected:
 	vector<Song*>		m_pSongs;
 	map<RString, Song*> m_SongsByDir;
 
-	map<pair<RString, unsigned int>, Song*> cache;
+	vector<pair<pair<RString, unsigned int>, Song*>*> cache;
 
 	// Indexed by chartkeys
 	void AddKeyedPointers(Song* new_song);

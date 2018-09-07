@@ -53,6 +53,8 @@ struct TapScoreDistribution
 static TapScoreDistribution g_Distributions[NUM_SKILL_LEVELS];
 
 HighScore* PlayerAI::pScoreData = nullptr;
+map<int, vector<TapReplayResult>> PlayerAI::m_ReplayTapMap;
+map<int, vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMap;
 
 void PlayerAI::InitFromDisk()
 {
@@ -123,9 +125,14 @@ TapNoteScore PlayerAI::GetTapNoteScore( const PlayerState* pPlayerState )
 
 TapNoteScore PlayerAI::GetTapNoteScoreForReplay(const PlayerState* pPlayerState, float fNoteOffset)
 {
+	// This code is basically a copy paste from somewhere in Player for grabbing scores.
+
 	//LOG->Trace("Given number %f ", fNoteOffset);
+	if (fNoteOffset <= -1.0f)
+		return TNS_Miss;
 	const float fSecondsFromExact = fabsf(fNoteOffset);
 	//LOG->Trace("TapNoteScore For Replay Seconds From Exact: %f", fSecondsFromExact);
+
 	if (fSecondsFromExact <= Player::GetWindowSeconds(TW_W1))
 		return TNS_W1;
 	else if (fSecondsFromExact <= Player::GetWindowSeconds(TW_W2))
@@ -142,7 +149,77 @@ TapNoteScore PlayerAI::GetTapNoteScoreForReplay(const PlayerState* pPlayerState,
 void PlayerAI::SetScoreData(HighScore* pHighScore)
 {
 	pHighScore->LoadReplayData();
-	PlayerAI::pScoreData = pHighScore;
+	pScoreData = pHighScore;
+	auto replayNoteRowVector = pHighScore->GetCopyOfNoteRowVector();
+	auto replayOffsetVector = pHighScore->GetCopyOfOffsetVector();
+	auto replayTapNoteTypeVector = pHighScore->GetCopyOfTapNoteTypeVector();
+	auto replayTrackVector = pHighScore->GetCopyOfTrackVector();
+	auto replayHoldVector = pHighScore->GetCopyOfHoldReplayDataVector();
+
+	// Generate TapReplayResults to put into a vector referenced by the song row in a map
+	for (int i = 0; i < replayNoteRowVector.size(); i++)
+	{
+		TapReplayResult trr;
+		trr.row = replayNoteRowVector[i];
+		trr.offset = replayOffsetVector[i];
+		if (pScoreData->GetReplayType() == 2) // 2 means that this is a Full Replay
+		{
+			trr.track = replayTrackVector[i];
+			trr.type = replayTapNoteTypeVector[i];
+		}
+		else // Anything else (and we got this far without crashing) means it's not a Full Replay
+		{
+			trr.track = NULL;
+			trr.type = TapNoteType_Empty;
+		}
+
+		// Create or append to the vector
+		if (m_ReplayTapMap.count(replayNoteRowVector[i]) != 0)
+		{
+			m_ReplayTapMap[replayNoteRowVector[i]].push_back(trr);
+		}
+		else
+		{
+			vector<TapReplayResult> trrVector = { trr };
+			m_ReplayTapMap[replayNoteRowVector[i]] = trrVector;
+		}
+	}
+
+	// Generate vectors made of pregenerated HoldReplayResults referenced by the song row in a map
+	for (int i = 0; i < replayHoldVector.size(); i++)
+	{
+		// Create or append to the vector
+		if (m_ReplayHoldMap.count(replayHoldVector[i].row) != 0)
+		{
+			m_ReplayHoldMap[replayHoldVector[i].row].push_back(replayHoldVector[i]);
+		}
+		else
+		{
+			vector<HoldReplayResult> hrrVector = { replayHoldVector[i] };
+			m_ReplayHoldMap[replayHoldVector[i].row] = hrrVector;
+		}
+	}
+}
+
+bool PlayerAI::DetermineIfHoldDropped(int noteRow, int col)
+{
+	//LOG->Trace("Checking for hold.");
+	// Is the given row/column in our dropped hold map?
+	if (m_ReplayHoldMap.count(noteRow) != 0)
+	{
+		//LOG->Trace("Hold row exists in the data");
+		// It is, so let's go over each column, assuming we may have dropped more than one hold at once.
+		for (auto hrr : m_ReplayHoldMap[noteRow])
+		{
+			// We found the column we are looking for
+			if (hrr.track == col)
+			{
+				//LOG->Trace("KILL IT NOW");
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 float PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
@@ -151,56 +228,52 @@ float PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 	If it is not found, it is a miss. (1.f)
 	*/
 	if (pScoreData == nullptr) // possible cheat prevention
-		return 1.f;
+		return -1.f;
 
-	// Replay Data format: [noterow] [offset] [track] [optional: tap note type]
-
-	vector<int> noteRowVector = pScoreData->GetCopyOfNoteRowVector();
-	vector<float> offsetVector = pScoreData->GetCopyOfOffsetVector();
-	vector<TapNoteType> tntVector = pScoreData->GetCopyOfTapNoteTypeVector();
-	vector<int> trackVector = pScoreData->GetCopyOfTrackVector();
-	/*std::string s = std::to_string(noteRow);
-	char const* nr1 = s.c_str();
-	std::string lmao = std::to_string(noteRowVector.size());
-	char const* nrsize = lmao.c_str();
-	LOG->Trace("vector size %s", nrsize);
-
-	LOG->Trace("Comparing %s", nr1);*/
-
-	for (int i = 0; i < noteRowVector.size(); i++)
+	// Current v0.60 Replay Data format: [noterow] [offset] [track] [optional: tap note type]
+	// Current v0.60 Replay Data format (H section): H [noterow] [track] [optional: tap note subtype]
+	//LOG->Trace("Note row %d", noteRow);
+	if (m_ReplayTapMap.count(noteRow) != 0) // is the current row recorded?
 	{
-		/*std::string g = std::to_string(i);
-		char const* yeet1 = g.c_str();
-		LOG->Trace(yeet1);*/
-		if (noteRowVector[i] == noteRow)
+		// This replay has no column data or is considered Basic. (Pre-v0.60 Replays do this.)
+		if (pScoreData->GetReplayType() == 1)
 		{
-			//std::string outp = std::to_string(offsetVector[i]);
-			float outputF = offsetVector[i];
-			//char const* output = outp.c_str();
+			// mines are not preset in the old replay data, we just skip them
+			// this gets caught by Player after it finds that the offset wasnt -2.f
+			// (We check for an impossible offset of -2.f in Player to blow up a mine)
+			if (pTN->type == TapNoteType_Mine)
+				return -1.f;
 
-			if (tntVector[i] == TapNoteType_Mine)
+			float offset = m_ReplayTapMap[noteRow].back().offset;
+
+			// this is done to be able to judge simultaneous taps differently due to CC Off
+			// this results in possibly incorrect precise per tap judges, but the correct
+			// judgement ends up being made overall.
+			m_ReplayTapMap[noteRow].pop_back();
+			if (m_ReplayTapMap[noteRow].empty())
 			{
-				outputF = 2.f;
+				m_ReplayTapMap.erase(noteRow);
 			}
-			else
+
+			return -offset;
+		}
+		else
+		{
+
+			// This is only reached if we have column data.
+			for (auto trr : m_ReplayTapMap[noteRow]) // go over all elements in the row
 			{
-				pTN->result.fTapNoteOffset = outputF;
+				if (trr.track == col) // if the column expected is the actual note, use it
+				{
+					if (trr.type == TapNoteType_Mine) // hack for mines
+						return -2.f;
+					return -trr.offset;
+				}
 			}
-
-			noteRowVector.erase(noteRowVector.begin() + i);
-			offsetVector.erase(offsetVector.begin() + i);
-			trackVector.erase(trackVector.begin() + i);
-			tntVector.erase(tntVector.begin() + i);
-
-			pScoreData->SetNoteRowVector(noteRowVector);
-			pScoreData->SetOffsetVector(offsetVector);
-			pScoreData->SetTrackVector(trackVector);
-			pScoreData->SetTapNoteTypeVector(tntVector);
-			//LOG->Trace("returned number %s", output);
-			return -outputF;
 		}
 	}
-	return 0.f;
+
+	return -1.f;	// data missing or invalid, give them a miss
 }
 
 /*

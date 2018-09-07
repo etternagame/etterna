@@ -12,6 +12,7 @@
 #include "InputEventPlus.h"
 #include "PlayerState.h"
 #include "PrefsManager.h"
+#include "ScoreManager.h"
 #include "ProfileManager.h"
 #include "RageDisplay.h"
 #include "RageLog.h"
@@ -211,7 +212,7 @@ void ScreenEvaluation::Init()
 
 	// Figure out which statistics and songs we're going to display
 	SUMMARY.Load( m_sName, "Summary" );
-	if( SUMMARY )
+	if( SUMMARY && GamePreferences::m_AutoPlay != PC_REPLAY)
 	{
 		STATSMAN->GetFinalEvalStageStats( m_FinalEvalStageStats );
 		m_pStageStats = &m_FinalEvalStageStats;
@@ -305,8 +306,7 @@ void ScreenEvaluation::Init()
 			}
 		}
 
-		// Dairy Queen'd (disqualified)
-		FOREACH_EnabledPlayer( p )
+		auto p = PLAYER_1;
 		{
 			m_sprDisqualified[p].Load( THEME->GetPathG(m_sName,"Disqualified") );
 			m_sprDisqualified[p]->SetName( ssprintf("DisqualifiedP%d",p+1) );
@@ -674,10 +674,7 @@ void ScreenEvaluation::Init()
 		default:
 			break;
 	}
-	if (GamePreferences::m_AutoPlay == PC_REPLAY)
-	{
-		STATSMAN->m_vPlayedStageStats.pop_back();
-	}
+
 }
 
 bool ScreenEvaluation::Input( const InputEventPlus &input )
