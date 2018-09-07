@@ -379,6 +379,7 @@ if (WIN32)
     "dbghelp.lib"
     "setupapi.lib"
     "hid.lib"
+    "legacy_stdio_definitions.lib"
   )
   
   get_filename_component(DIRECTX_LIBRARY_DIR "${DIRECTX_LIBRARIES}" DIRECTORY)
