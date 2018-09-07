@@ -519,7 +519,7 @@ function nestedTabButton(i)
   return  
   Def.ActorFrame{
     InitCommand=function(self) 
-      self:xy(frameX + offsetX + (i-1)*(nestedTabButtonWidth), frameY + headeroffY)
+      self:xy(frameX + offsetX + (i-1)*(nestedTabButtonWidth-80), frameY + headeroffY)
 	  self:SetUpdateFunction(highlight)
     end, 
 	CollapseCommand=function(self)
@@ -530,7 +530,7 @@ function nestedTabButton(i)
 	end,
     LoadFont("Common normal") .. { 
       InitCommand=function(self) 
-        self:diffuse(getMainColor('positive')):maxwidth(nestedTabButtonWidth):maxheight(40):zoom(0.75):settext(nestedTabs[i]):halign(0)
+        self:diffuse(getMainColor('positive')):maxwidth(nestedTabButtonWidth-80):maxheight(40):zoom(0.75):settext(nestedTabs[i]):halign(0)
       end, 
 	  HighlightCommand=function(self)
 		if isOver(self) and nestedTab ~= i then
