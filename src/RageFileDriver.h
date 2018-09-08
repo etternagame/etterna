@@ -1,4 +1,4 @@
-/* RageFileDriver - File driver base classes. */
+﻿/* RageFileDriver - File driver base classes. */
 
 #ifndef RAGE_FILE_DRIVER_H
 #define RAGE_FILE_DRIVER_H
@@ -7,6 +7,7 @@
 
 class RageFileBasic;
 class FilenameDB;
+
 class RageFileDriver
 {
 public:

@@ -1,11 +1,11 @@
 #ifndef SCREEN_TEXT_ENTRY_H
 #define SCREEN_TEXT_ENTRY_H
 
-#include "ScreenWithMenuElements.h"
 #include "BitmapText.h"
-#include "RageSound.h"
-#include "ThemeMetric.h"
 #include "InputEventPlus.h"
+#include "RageSound.h"
+#include "ScreenWithMenuElements.h"
+#include "ThemeMetric.h"
 
 /** @brief The list of possible keyboard rows. */
 enum KeyboardRow
@@ -157,7 +157,7 @@ private:
 	void UpdateAnswerText();
 
 	wstring		m_sAnswer;
-	bool		m_bShowAnswerCaret;
+	bool		m_bShowAnswerCaret = false;
 	// todo: allow Left/Right to change caret location -aj
 	//int			m_iCaretLocation;
 

@@ -1,13 +1,13 @@
-#include "global.h"
-#include "NoteDataWithScoring.h"
-#include "NoteData.h"
-#include "PlayerStageStats.h"
+﻿#include "global.h"
 #include "Game.h"
 #include "GameConstantsAndTypes.h"
 #include "GameState.h"
+#include "NoteData.h"
+#include "NoteDataWithScoring.h"
+#include "PlayerStageStats.h"
 #include "ThemeMetric.h"
-#include "RageLog.h"
 #include "TimingData.h"
+#include "GamePreferences.h"
 
 namespace
 {
@@ -22,36 +22,62 @@ int LastTapNoteScoreTrack( const NoteData &in, unsigned iRow, PlayerNumber pn )
 {
 	float scoretime = -9999;
 	int best_track = -1;
-	for( int t=0; t<in.GetNumTracks(); t++ )
+	if (GamePreferences::m_AutoPlay == PC_REPLAY)
 	{
-		/* Skip empty tracks and mines */
-		const TapNote &tn = in.GetTapNote( t, iRow );
-		if (tn.type == TapNoteType_Empty ||
-			tn.type == TapNoteType_Mine ||
-			tn.type == TapNoteType_Fake ||
-			tn.type == TapNoteType_AutoKeysound) 
-			continue;
-		if( tn.pn != PLAYER_INVALID && tn.pn != pn && pn != PLAYER_INVALID )
-			continue;
-
-		TapNoteScore tns = tn.result.tns;
-		
-		if ( tns == TNS_Miss || (!GAMESTATE->CountNotesSeparately() && tns == TNS_None) )
+		// In replay mode, judging misses as the "last" tap of every single row breaks judge counting.
+		// Since we judge left to right in Replay, we just check to see which track was last judged.
+		for (int t = in.GetNumTracks() - 1; t >= 0; t--)
 		{
+			const TapNote &tn = in.GetTapNote(t, iRow);
+			if (tn.type == TapNoteType_Empty ||
+				tn.type == TapNoteType_Mine ||
+				tn.type == TapNoteType_Fake ||
+				tn.type == TapNoteType_AutoKeysound)
+				continue;
+			if (tn.pn != PLAYER_INVALID && tn.pn != pn && pn != PLAYER_INVALID)
+				continue;
+
+			TapNoteScore tns = tn.result.tns;
+			if (tns == TNS_None)
+				continue;
+			best_track = t;
 			return t;
 		}
-		if ( tns == TNS_None )
-			continue;
+		return best_track;
+	}
+	else
+	{
+		for( int t=0; t<in.GetNumTracks(); t++ )
+		{
+			/* Skip empty tracks and mines */
+			const TapNote &tn = in.GetTapNote( t, iRow );
+			if (tn.type == TapNoteType_Empty ||
+				tn.type == TapNoteType_Mine ||
+				tn.type == TapNoteType_Fake ||
+				tn.type == TapNoteType_AutoKeysound) 
+				continue;
+			if( tn.pn != PLAYER_INVALID && tn.pn != pn && pn != PLAYER_INVALID )
+				continue;
+
+			TapNoteScore tns = tn.result.tns;
+		
+			if ( tns == TNS_Miss || (!GAMESTATE->CountNotesSeparately() && tns == TNS_None) )
+			{
+				return t;
+			}
+			if ( tns == TNS_None )
+				continue;
 			
 
-		float tm = tn.result.fTapNoteOffset;
-		if(tm < scoretime) continue;
+			float tm = tn.result.fTapNoteOffset;
+			if(tm < scoretime) continue;
 
-		scoretime = tm;
-		best_track = t;
+			scoretime = tm;
+			best_track = t;
+		}
+
+		return best_track;
 	}
-
-	return best_track;
 }
 
 /* Return the minimum tap score of a row: the lowest grade of the tap in the row.
@@ -95,7 +121,7 @@ int MinTapNoteScoreTrack( const NoteData &in, unsigned iRow, PlayerNumber pn )
 }
 #endif
 
-}
+} // namespace
 
 const TapNote &NoteDataWithScoring::LastTapNoteWithResult( const NoteData &in, unsigned iRow, PlayerNumber plnum )
 {
@@ -206,12 +232,12 @@ static void DoRowEndRadarActualCalc(garv_state& state, RadarValues& out)
 	{
 		if(state.num_notes_on_curr_row >= 1)
 		{
-			state.taps_hit+= (state.last_tns_on_row >= state.taps_tns);
+			state.taps_hit+= static_cast<int>(state.last_tns_on_row >= state.taps_tns);
 		}
 		if(state.num_notes_on_curr_row >= 2)
 		{
-			state.jumps_hit_for_air+= (state.last_tns_on_row >= state.air_tns);
-			state.jumps_hit+= (state.last_tns_on_row >= state.jumps_tns);
+			state.jumps_hit_for_air+= static_cast<int>(state.last_tns_on_row >= state.air_tns);
+			state.jumps_hit+= static_cast<int>(state.last_tns_on_row >= state.jumps_tns);
 		}
 		if(state.num_notes_on_curr_row + (state.hold_ends.size() -
 				state.num_holds_on_curr_row) >= 3)
@@ -351,11 +377,6 @@ void NoteDataWithScoring::GetActualRadarValues(const NoteData &in,
 
 	// ScreenGameplay passes in the RadarValues that were calculated by
 	// NoteDataUtil::CalculateRadarValues, so those are reused here. -Kyz
-	int note_count= out[RadarCategory_Notes];
-	int jump_count= out[RadarCategory_Jumps];
-	int hold_count= out[RadarCategory_Holds];
-	int tap_count= out[RadarCategory_TapsAndHolds];
-	float hittable_steps_length= max(0, timing->WhereUAtBro(last_hittable_row) - timing->WhereUAtBro(first_hittable_row));
 	// The for loop and the assert are used to ensure that all fields of 
 	// RadarValue get set in here.
 	FOREACH_ENUM(RadarCategory, rc)

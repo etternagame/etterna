@@ -1,13 +1,12 @@
-/*
+﻿/*
  * Ref: http://www.info-zip.org/pub/infozip/doc/appnote-981119-iz.zip
  */
 
 #include "global.h"
-#include "RageFileDriverZip.h"
-#include "RageFileDriverSlice.h"
-#include "RageFileDriverDeflate.h"
 #include "RageFile.h"
-#include "RageLog.h"
+#include "RageFileDriverDeflate.h"
+#include "RageFileDriverSlice.h"
+#include "RageFileDriverZip.h"
 #include "RageUtil.h"
 #include "RageUtil_FileDB.h"
 #include <cerrno>
@@ -212,14 +211,14 @@ int RageFileDriverZip::ProcessCdirFileHdr( FileInfo &info )
 
 	/* Check usability last, so we always read past the whole entry and don't leave the
 	 * file pointer in the middle of a record. */
-	if( iGeneralPurpose & 1 )
+	if( (iGeneralPurpose & 1) != 0 )
 	{
 		WARN( ssprintf("Skipped encrypted \"%s\" in \"%s\"", info.m_sName.c_str(), m_sPath.c_str()) );
 		return 0;
 	}
 
 	/* Skip directories. */
-	if( iExternalFileAttributes & (1<<4) )
+	if( (iExternalFileAttributes & (1<<4)) != 0u )
 		return 0;
 
 	info.m_iFilePermissions = 0;
@@ -288,18 +287,18 @@ RageFileDriverZip::~RageFileDriverZip()
 
 const RageFileDriverZip::FileInfo *RageFileDriverZip::GetFileInfo( const RString &sPath ) const
 {
-	return (const FileInfo *) FDB->GetFilePriv( sPath );
+	return reinterpret_cast<const FileInfo *>( FDB->GetFilePriv( sPath ));
 }
 
 RageFileBasic *RageFileDriverZip::Open( const RString &sPath, int iMode, int &iErr )
 {
-	if( iMode & RageFile::WRITE )
+	if( (iMode & RageFile::WRITE) != 0 )
 	{
 		iErr = ERROR_WRITING_NOT_SUPPORTED;
 		return NULL;
 	}
 
-	auto *info = (FileInfo *) FDB->GetFilePriv( sPath );
+	auto *info = reinterpret_cast<FileInfo *>( FDB->GetFilePriv( sPath ));
 	if( info == NULL )
 	{
 		iErr = ENOENT;

@@ -1,4 +1,4 @@
-/* RageBitmapTexture - Loads a static texture. */
+﻿/* RageBitmapTexture - Loads a static texture. */
 
 #ifndef RAGEBITMAPTEXTURE_H
 #define RAGEBITMAPTEXTURE_H

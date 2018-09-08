@@ -11,16 +11,17 @@
 
 #include "global.h"
 
+#include "RageLog.h"
 #include "RageThreads.h"
 #include "RageTimer.h"
-#include "RageLog.h"
 #include "RageUtil.h"
+#include <mutex>
+#include <atomic>
+#include <thread>
 
-#include <cerrno>
 #include <set>
 
 #include "arch/Threads/Threads.h"
-#include "arch/Dialog/Dialog.h"
 
 #if defined(CRASH_HANDLER)
 #if defined(_WINDOWS)
@@ -389,7 +390,7 @@ void Checkpoints::SetCheckpoint( const char *file, int line, const char *message
 	
 	/* Ignore everything up to and including the first "src/". */
 	const char *temp = strstr( file, "src/" );
-	if( temp )
+	if( temp != nullptr )
 		file = temp + 4;
 	slot->m_Checkpoints[slot->m_iCurCheckpoint].Set( file, line, message );
 

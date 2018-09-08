@@ -1,10 +1,10 @@
 #include "global.h"
-#include "StreamDisplay.h"
-#include "GameState.h"
-#include <cfloat>
-#include "RageDisplay.h"
-#include "ThemeManager.h"
 #include "EnumHelper.h"
+#include "GameState.h"
+#include "RageDisplay.h"
+#include "StreamDisplay.h"
+#include "ThemeManager.h"
+#include <cfloat>
 
 static const char *StreamTypeNames[] = {
 	"Normal",
@@ -84,7 +84,6 @@ void StreamDisplay::Update( float fDeltaSecs )
 	m_fTrailingPercent += m_fVelocity * fDeltaSecs;
 
 	// set crop of pills
-	const float fPillWidthPercent = 1.0f / m_vpSprPill[0].size();
 	FOREACH_ENUM( StreamType, st )
 	{
 		for( int i=0; i<(int)m_vpSprPill[st].size(); i++ )

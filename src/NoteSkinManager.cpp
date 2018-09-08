@@ -1,21 +1,21 @@
-#include "global.h"
-#include "NoteSkinManager.h"
-#include "RageFileManager.h"
-#include "RageLog.h"
+﻿#include "global.h"
+#include "ActorUtil.h"
+#include "Foreach.h"
+#include "Game.h"
 #include "GameInput.h"
 #include "GameState.h"
-#include "Game.h"
-#include "Style.h"
-#include "RageUtil.h"
+#include "IniFile.h"
+#include "NoteSkinManager.h"
 #include "RageDisplay.h"
-#include "arch/Dialog/Dialog.h"
-#include "PrefsManager.h"
-#include "Foreach.h"
-#include "ActorUtil.h"
-#include "XmlFileUtil.h"
-#include "Sprite.h"
-#include <map>
+#include "RageFileManager.h"
+#include "RageLog.h"
+#include "RageUtil.h"
 #include "SpecialFiles.h"
+#include "ThemeManager.h" 
+#include "Sprite.h"
+#include "XmlFileUtil.h"
+#include "arch/Dialog/Dialog.h"
+#include <map>
 
 /** @brief Have the NoteSkinManager available throughout the program. */
 NoteSkinManager*	NOTESKIN = NULL; // global and accessible from anywhere in our program
@@ -43,7 +43,7 @@ struct NoteSkinData
 namespace
 {
 	static map<RString,NoteSkinData> g_mapNameToData;
-};
+} // namespace;
 
 NoteSkinManager::NoteSkinManager()
 {
@@ -77,8 +77,12 @@ void NoteSkinManager::RefreshNoteSkinData( const Game* pGame )
 	g_PathCache.clear();
 
 	RString sBaseSkinFolder = SpecialFiles::NOTESKINS_DIR + pGame->m_szName + "/";
+	RString sGlobalSkinFolder = SpecialFiles::NOTESKINS_DIR + "global" + "/";
+	RString sThemeSkinFolder = THEME->GetCurThemeDir() + "/NoteSkins/" + pGame->m_szName + "/"; 
 	vector<RString> asNoteSkinNames;
 	GetDirListing( sBaseSkinFolder + "*", asNoteSkinNames, true );
+	GetDirListing( sGlobalSkinFolder + "*", asNoteSkinNames, true );
+	GetDirListing( sThemeSkinFolder + "*", asNoteSkinNames, true ); 
 
 	StripCvsAndSvn( asNoteSkinNames );
 	StripMacResourceForks( asNoteSkinNames );
@@ -127,6 +131,12 @@ bool NoteSkinManager::LoadNoteSkinDataRecursive( const RString &sNoteSkinName_, 
 
 		RString sDir = SpecialFiles::NOTESKINS_DIR + m_pCurGame->m_szName + "/" + sNoteSkinName + "/";
 		if( !FILEMAN->IsADirectory(sDir) )
+			 sDir = SpecialFiles::NOTESKINS_DIR + "global" + "/" + sNoteSkinName + "/"; 
+     
+		if( !FILEMAN->IsADirectory(sDir) ) 
+			sDir = THEME->GetCurThemeDir() + "/NoteSkins/" + m_pCurGame->m_szName + "/" + sNoteSkinName + "/"; 
+     
+		if( !FILEMAN->IsADirectory(sDir) ) 
 		{
 			sDir = GLOBAL_BASE_DIR + sNoteSkinName + "/";
 			if( !FILEMAN->IsADirectory(sDir) )
@@ -453,7 +463,7 @@ RString NoteSkinManager::GetPath( const RString &sButtonName, const RString &sEl
 	return sPath;
 }
 
-bool NoteSkinManager::PushActorTemplate( Lua *L, const RString &sButton, const RString &sElement, bool bSpriteOnly )
+bool NoteSkinManager::PushActorTemplate( Lua *L, const RString &sButton, const RString &sElement, bool bSpriteOnly, RString Color) 
 {
 	map<RString,NoteSkinData>::const_iterator iter = g_mapNameToData.find( m_sCurrentNoteSkin );
 	if(iter == g_mapNameToData.end())
@@ -468,6 +478,7 @@ bool NoteSkinManager::PushActorTemplate( Lua *L, const RString &sButton, const R
 	LuaThreadVariable varButton( "Button", sButton );
 	LuaThreadVariable varElement( "Element", sElement );
 	LuaThreadVariable varSpriteOnly( "SpriteOnly", LuaReference::Create(bSpriteOnly) );
+	 LuaThreadVariable varColor("Color", Color); 
 
 	if(data.m_Loader.IsNil())
 	{
@@ -481,11 +492,11 @@ bool NoteSkinManager::PushActorTemplate( Lua *L, const RString &sButton, const R
 	return ActorUtil::LoadTableFromStackShowErrors(L);
 }
 
-Actor *NoteSkinManager::LoadActor( const RString &sButton, const RString &sElement, Actor *pParent, bool bSpriteOnly )
+Actor *NoteSkinManager::LoadActor( const RString &sButton, const RString &sElement, Actor *pParent, bool bSpriteOnly, RString Color) 
 {
 	Lua *L = LUA->Get();
 
-	if( !PushActorTemplate(L, sButton, sElement, bSpriteOnly) )
+	if( !PushActorTemplate(L, sButton, sElement, bSpriteOnly, Color) ) 
 	{
 		LUA->Release( L );
 		// ActorUtil will warn about the error
@@ -555,7 +566,7 @@ public:
 	{
 		RString sButton = SArg(1);
 		RString sElement = SArg(2);
-		if( !p->PushActorTemplate(L, sButton, sElement, false) )
+		if( !p->PushActorTemplate(L, sButton, sElement, false, "4th") ) 
 			lua_pushnil( L );
 
 		return 1;
@@ -564,7 +575,7 @@ public:
 	static int x ## ForNoteSkin( T* p, lua_State *L ) \
 	{ \
 		const RString sOldNoteSkin = p->GetCurrentNoteSkin(); \
-		RString nsname= SArg(n+1); \
+		RString nsname= SArg((n)+1); \
 		if(!p->DoesNoteSkinExist(nsname)) \
 		{ \
 			luaL_error(L, "Noteskin \"%s\" does not exist.", nsname.c_str()); \

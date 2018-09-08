@@ -1,7 +1,8 @@
-#ifndef NOTES_WRITER_DWI_H
+﻿#ifndef NOTES_WRITER_DWI_H
 #define NOTES_WRITER_DWI_H
 
 class Song;
+
 /** @brief Writes a Song to a .DWI file. */
 namespace NotesWriterDWI
 {

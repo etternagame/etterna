@@ -1,4 +1,4 @@
-/* PlayerNumber - A simple type representing a player. */
+﻿/* PlayerNumber - A simple type representing a player. */
 
 #ifndef PlayerNumber_H
 #define PlayerNumber_H

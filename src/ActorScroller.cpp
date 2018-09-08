@@ -1,12 +1,10 @@
-#include "global.h"
+﻿#include "global.h"
 #include "ActorScroller.h"
+#include "ActorUtil.h"
 #include "Foreach.h"
+#include "LuaBinding.h"
 #include "RageUtil.h"
 #include "XmlFile.h"
-#include "arch/Dialog/Dialog.h"
-#include "RageLog.h"
-#include "ActorUtil.h"
-#include "LuaBinding.h"
 
 /* Tricky: We need ActorFrames created in Lua to auto delete their children.
  * We don't want classes that derive from ActorFrame to auto delete their 

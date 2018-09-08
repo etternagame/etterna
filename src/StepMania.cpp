@@ -3,79 +3,79 @@
 #include "StepMania.h"
 
 // Rage global classes
-#include "RageLog.h"
-#include "RageTextureManager.h"
-#include "RageSoundManager.h"
 #include "GameSoundManager.h"
-#include "RageInput.h"
-#include "RageTimer.h"
-#include "RageMath.h"
-#include "RageDisplay.h"
-#include "RageThreads.h"
 #include "LocalizedString.h"
+#include "RageDisplay.h"
+#include "RageInput.h"
+#include "RageLog.h"
+#include "RageMath.h"
+#include "RageSoundManager.h"
+#include "RageTextureManager.h"
+#include "MemoryCardManager.h"
+#include "RageThreads.h"
+#include "RageTimer.h"
+#include "ActorUtil.h"
 
 #include "arch/ArchHooks/ArchHooks.h"
-#include "arch/LoadingWindow/LoadingWindow.h"
 #include "arch/Dialog/Dialog.h"
+#include "arch/LoadingWindow/LoadingWindow.h"
 #include <ctime>
 
 #include "ProductInfo.h"
 
-#include "Screen.h"
-#include "InputEventPlus.h"
-#include "ScreenDimensions.h"
 #include "CodeDetector.h"
+#include "CommandLineActions.h"
 #include "CommonMetrics.h"
 #include "Game.h"
+#include "InputEventPlus.h"
 #include "RageSurface.h"
 #include "RageSurface_Load.h"
-#include "CommandLineActions.h"
+#include "Screen.h"
+#include "ScreenDimensions.h"
+
 
 #if !defined(SUPPORT_OPENGL) && !defined(SUPPORT_D3D)
 #define SUPPORT_OPENGL
 #endif
 
 // StepMania global classes
-#include "ThemeManager.h"
-#include "NoteSkinManager.h"
-#include "PrefsManager.h"
-#include "Song.h"
-#include "SongManager.h"
-#include "CharacterManager.h"
-#include "GameState.h"
 #include "AnnouncerManager.h"
-#include "ProfileManager.h"
-#include "MemoryCardManager.h"
-#include "ScreenManager.h"
-#include "LuaManager.h"
-#include "GameManager.h"
+#include "CharacterManager.h"
+#include "FilterManager.h"
 #include "FontManager.h"
+#include "GameManager.h"
+#include "NoteSkinManager.h"
+#include "GameState.h"
 #include "InputFilter.h"
 #include "InputMapper.h"
 #include "InputQueue.h"
 #include "SongCacheIndex.h"
-#include "BannerCache.h"
+#include "ImageCache.h"
 #include "FilterManager.h"
 #if !defined(WITHOUT_NETWORKING)
 #include "DownloadManager.h"
 #endif
 #include "ScoreManager.h"
-//#include "BackgroundCache.h"
 #include "RageFileManager.h"
 #include "ModelManager.h"
 #include "CryptManager.h"
-#include "NetworkSyncManager.h"
-#include "MessageManager.h"
-#include "StatsManager.h"
 #include "GameLoop.h"
+#include "MessageManager.h"
+#include "ModelManager.h"
+#include "NetworkSyncManager.h"
+#include "RageFileManager.h"
 #include "SpecialFiles.h"
-#include "Profile.h"
-#include "ActorUtil.h"
+#include "StatsManager.h"
 #include "ver.h"
 
 #if defined(WIN32)
 #include <windows.h>
+int (WINAPIV * __vsnprintf)(char *, size_t, const char*, va_list) = _vsnprintf;
 #endif
+
+
+
+
 
 void ShutdownGame();
 bool HandleGlobalInputs( const InputEventPlus &input );
@@ -115,15 +115,15 @@ void StepMania::GetPreferredVideoModeParams( VideoModeParams &paramsOut )
 	);
 }
 
-static LocalizedString COLOR			("StepMania","color");
-static LocalizedString TEXTURE			("StepMania","texture");
-static LocalizedString WINDOWED		("StepMania","Windowed");
-static LocalizedString FULLSCREEN		("StepMania","Fullscreen");
-static LocalizedString ANNOUNCER_		("StepMania","Announcer");
-static LocalizedString VSYNC			("StepMania","Vsync");
-static LocalizedString NO_VSYNC		("StepMania","NoVsync");
-static LocalizedString SMOOTH_LINES	("StepMania","SmoothLines");
-static LocalizedString NO_SMOOTH_LINES	("StepMania","NoSmoothLines");
+static LocalizedString COLOR			("Etterna","color");
+static LocalizedString TEXTURE			("Etterna","texture");
+static LocalizedString WINDOWED		("Etterna","Windowed");
+static LocalizedString FULLSCREEN		("Etterna","Fullscreen");
+static LocalizedString ANNOUNCER_		("Etterna","Announcer");
+static LocalizedString VSYNC			("Etterna","Vsync");
+static LocalizedString NO_VSYNC		("Etterna","NoVsync");
+static LocalizedString SMOOTH_LINES	("Etterna","SmoothLines");
+static LocalizedString NO_SMOOTH_LINES	("Etterna","NoSmoothLines");
 
 static RString GetActualGraphicOptionsString()
 {
@@ -278,7 +278,7 @@ void ShutdownGame()
 	/* First, tell SOUNDMAN that we're shutting down. This signals sound drivers to
 	 * stop sounds, which we want to do before any threads that may have started sounds
 	 * are closed; this prevents annoying DirectSound glitches and delays. */
-	if( SOUNDMAN )
+	if( SOUNDMAN != nullptr )
 		SOUNDMAN->Shutdown();
 
 	SAFE_DELETE( SCREENMAN );
@@ -297,8 +297,7 @@ void ShutdownGame()
 	SAFE_DELETE( CRYPTMAN );
 	SAFE_DELETE( MEMCARDMAN );
 	SAFE_DELETE( SONGMAN );
-	SAFE_DELETE( BANNERCACHE );
-	//SAFE_DELETE( BACKGROUNDCACHE );
+	SAFE_DELETE( IMAGECACHE );
 	SAFE_DELETE( SONGINDEX );
 	SAFE_DELETE( SOUND ); // uses GAMESTATE, PREFSMAN
 	SAFE_DELETE( PREFSMAN );
@@ -313,6 +312,7 @@ void ShutdownGame()
 	SAFE_DELETE( DISPLAY );
 	Dialog::Shutdown();
 	SAFE_DELETE( LOG );
+	DLMAN.reset();
 	SAFE_DELETE( FILEMAN );
 	SAFE_DELETE( LUA );
 	SAFE_DELETE( HOOKS );
@@ -402,13 +402,6 @@ static void AdjustForChangedSystemCapabilities()
 	 * preloaded banners. Texture caching can use a lot of memory; disable it for
 	 * low-memory systems. */
 	PREFSMAN->m_bDelayedTextureDelete.Set( HighMemory );
-
-	/* Preloaded banners takes about 9k per song. Although it's smaller than the
-	 * actual song data, it still adds up with a lot of songs.
-	 * Disable it for 64-meg systems. */
-	PREFSMAN->m_BannerCache.Set( LowMemory ? BNCACHE_OFF:BNCACHE_LOW_RES_PRELOAD );
-	// might wanna do this for backgrounds, too... -aj
-	//PREFSMAN->m_BackgroundCache.Set( LowMemory ? BGCACHE_OFF:BGCACHE_LOW_RES_PRELOAD );
 
 	PREFSMAN->SavePrefsToDisk();
 #endif
@@ -714,12 +707,12 @@ bool CheckVideoDefaultSettings()
 	return bSetDefaultVideoParams;
 }
 
-static LocalizedString ERROR_INITIALIZING_CARD		( "StepMania", "There was an error while initializing your video card." );
-static LocalizedString ERROR_DONT_FILE_BUG		( "StepMania", "Please do not file this error as a bug!  Use the web page below to troubleshoot this problem." );
-static LocalizedString ERROR_VIDEO_DRIVER		( "StepMania", "Video Driver: %s" );
-static LocalizedString ERROR_NO_VIDEO_RENDERERS		( "StepMania", "No video renderers attempted." );
-static LocalizedString ERROR_INITIALIZING		( "StepMania", "Initializing %s..." );
-static LocalizedString ERROR_UNKNOWN_VIDEO_RENDERER	( "StepMania", "Unknown video renderer value: %s" );
+static LocalizedString ERROR_INITIALIZING_CARD		( "Etterna", "There was an error while initializing your video card." );
+static LocalizedString ERROR_DONT_FILE_BUG		( "Etterna", "Please do not file this error as a bug!  Use the web page below to troubleshoot this problem." );
+static LocalizedString ERROR_VIDEO_DRIVER		( "Etterna", "Video Driver: %s" );
+static LocalizedString ERROR_NO_VIDEO_RENDERERS		( "Etterna", "No video renderers attempted." );
+static LocalizedString ERROR_INITIALIZING		( "Etterna", "Initializing %s..." );
+static LocalizedString ERROR_UNKNOWN_VIDEO_RENDERER	( "Etterna", "Unknown video renderer value: %s" );
 
 RageDisplay *CreateDisplay()
 {
@@ -895,7 +888,7 @@ void StepMania::InitializeCurrentGame( const Game* g )
 	THEME->SwitchThemeAndLanguage( sTheme, sLanguage, PREFSMAN->m_bPseudoLocalize );
 
 	// Set the input scheme for the new game, and load keymaps.
-	if( INPUTMAPPER )
+	if( INPUTMAPPER != nullptr )
 	{
 		INPUTMAPPER->SetInputScheme( &g->m_InputScheme );
 		INPUTMAPPER->ReadMappingsFromDisk();
@@ -1141,6 +1134,7 @@ int sm_main(int argc, char* argv[])
 	if( PREFSMAN->m_iSoundWriteAhead )
 		LOG->Info( "Sound writeahead has been overridden to %i", PREFSMAN->m_iSoundWriteAhead.Get() );
 
+	SONGINDEX = new SongCacheIndex;
 	SOUNDMAN	= new RageSoundManager;
 	SOUNDMAN->Init();
 	SOUNDMAN->SetMixVolume();
@@ -1151,13 +1145,13 @@ int sm_main(int argc, char* argv[])
 	StepMania::InitializeCurrentGame( GAMESTATE->GetCurrentGame() );
 
 	INPUTQUEUE	= new InputQueue;
-	SONGINDEX	= new SongCacheIndex;
-	BANNERCACHE	= new BannerCache;
-	//BACKGROUNDCACHE	= new BackgroundCache;
+	IMAGECACHE	= new ImageCache;
 
 	// depends on SONGINDEX:
 	SONGMAN		= new SongManager;
+	SONGINDEX->StartTransaction();
 	SONGMAN->InitAll( pLoadingWindow );	// this takes a long time
+	SONGINDEX->FinishTransaction();
 	CRYPTMAN	= new CryptManager;		// need to do this before ProfileMan
 	if( PREFSMAN->m_bSignProfileData )
 		CRYPTMAN->GenerateGlobalKeys();
@@ -1167,9 +1161,8 @@ int sm_main(int argc, char* argv[])
 	PROFILEMAN	= new ProfileManager;
 	PROFILEMAN->Init(pLoadingWindow);				// must load after SONGMAN
 
-	SONGMAN->UpdatePopular();
 	SONGMAN->UpdatePreferredSort();
-	NSMAN 		= new NetworkSyncManager( NULL );
+	NSMAN 		= new NetworkSyncManager( pLoadingWindow );
 	STATSMAN	= new StatsManager;
 
 	FILTERMAN = new FilterManager;
@@ -1280,7 +1273,7 @@ void StepMania::ClearCredits()
 
 /* Returns true if the key has been handled and should be discarded, false if
  * the key should be sent on to screens. */
-static LocalizedString SERVICE_SWITCH_PRESSED ( "StepMania", "Service switch pressed" );
+static LocalizedString SERVICE_SWITCH_PRESSED ( "Etterna", "Service switch pressed" );
 static LocalizedString RELOADED_METRICS( "ThemeManager", "Reloaded metrics" );
 static LocalizedString RELOADED_METRICS_AND_TEXTURES( "ThemeManager", "Reloaded metrics and textures" );
 static LocalizedString RELOADED_SCRIPTS( "ThemeManager", "Reloaded scripts" );
@@ -1299,10 +1292,15 @@ bool HandleGlobalInputs( const InputEventPlus &input )
 			 * (to prevent quitting without storing changes). */
 			if( SCREENMAN->AllowOperatorMenuButton() )
 			{
-				SCREENMAN->SystemMessage( SERVICE_SWITCH_PRESSED );
-				SCREENMAN->PopAllScreens();
-				GAMESTATE->Reset();
-				SCREENMAN->SetNewScreen( CommonMetrics::OPERATOR_MENU_SCREEN );
+				bool bIsCtrlHeld = INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_LCTRL), &input.InputList) ||
+					INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RCTRL), &input.InputList);
+				if (bIsCtrlHeld) // Operator is rebound to OPERATOR + Ctrl
+				{
+					SCREENMAN->SystemMessage(SERVICE_SWITCH_PRESSED);
+					SCREENMAN->PopAllScreens();
+					GAMESTATE->Reset();
+					SCREENMAN->SetNewScreen(CommonMetrics::OPERATOR_MENU_SCREEN);
+				}
 			}
 			return true;
 			return false; // Attract needs to know because it goes to TitleMenu on > 1 credit
@@ -1549,8 +1547,8 @@ int LuaFunc_SaveScreenshot(lua_State *L)
 	// If pn is provided, save to that player's profile.
 	// Otherwise, save to the machine.
 	PlayerNumber pn= Enum::Check<PlayerNumber>(L, 1, true);
-	bool compress= lua_toboolean(L, 2);
-	bool sign= lua_toboolean(L, 3);
+	bool compress= lua_toboolean(L, 2) != 0;
+	bool sign= lua_toboolean(L, 3) != 0;
 	RString prefix= luaL_optstring(L, 4, "");
 	RString suffix= luaL_optstring(L, 5, "");
 	RString dir;

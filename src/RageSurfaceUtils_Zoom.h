@@ -1,7 +1,8 @@
-#ifndef RAGE_SURFACE_UTILS_ZOOM_H
+﻿#ifndef RAGE_SURFACE_UTILS_ZOOM_H
 #define RAGE_SURFACE_UTILS_ZOOM_H
 
 struct RageSurface;
+
 /** @brief Utility functions for the RageSurfaces. */
 namespace RageSurfaceUtils
 {
@@ -9,7 +10,6 @@ namespace RageSurfaceUtils
 };
 
 #endif
-
 
 /*  
  * (c) A. Schiffler, Glenn Maynard

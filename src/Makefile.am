@@ -1,4 +1,4 @@
-AUTOMAKE_OPTIONS = subdir-objects
+﻿AUTOMAKE_OPTIONS = subdir-objects
 
 # Windows resource files
 # Using $^ here makes it add .dirstamp garbage as well. So just the first file please.
@@ -131,7 +131,7 @@ DataStructures = \
 Attack.cpp Attack.h AutoKeysounds.cpp AutoKeysounds.h \
 AdjustSync.cpp AdjustSync.h \
 BackgroundUtil.cpp BackgroundUtil.h \
-BannerCache.cpp BannerCache.h \
+ImageCache.cpp ImageCache.h \
 Character.cpp Character.h \
 CodeDetector.cpp CodeDetector.h \
 CodeSet.cpp CodeSet.h \

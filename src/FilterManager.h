@@ -1,7 +1,8 @@
 #ifndef FilterManager_H
 #define FilterManager_H
-#include "PlayerNumber.h"
 #include "GameConstantsAndTypes.h"
+#include "PlayerNumber.h"
+#include <unordered_map>
 
 class PlayerState;
 class FilterManager {
@@ -20,6 +21,12 @@ public:
 	void ResetSSFilters(); // reset button for filters
 	bool HighestSkillsetsOnly = false;
 	bool AnyActiveFilter();
+
+	// not actually filter stuff! but this doesn't get enough love so i'm going to put it here until i make something for it -mina
+	int miniboarddockx = 0;
+	int miniboarddocky = 0;
+	bool galaxycollapsed = false;
+	unordered_map<string, pair<int, int>> watte;
 
 	//Lua
 	void PushSelf(lua_State *L);

@@ -1,4 +1,4 @@
-/** @brief IniFile - Reading and writing .INI files. */
+﻿/** @brief IniFile - Reading and writing .INI files. */
 
 #ifndef INIFILE_H
 #define INIFILE_H

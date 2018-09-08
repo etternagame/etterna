@@ -18,9 +18,6 @@ local t = Def.ActorFrame{
 	end,
 	OnCommand=function(self)
 		self:bouncebegin(0.2):xy(0,0):diffusealpha(1)
-		SCREENMAN:GetTopScreen():GetMusicWheel():Move(1)
-		SCREENMAN:GetTopScreen():GetMusicWheel():Move(-1)
-		SCREENMAN:GetTopScreen():GetMusicWheel():Move(0)
 	end,
 	SetCommand=function(self)
 		self:finishtweening()
@@ -132,9 +129,17 @@ end
 
 t[#t+1] = Def.Actor{
 	SetCommand=function(self)		
-		if song then 
+		if song then
+			ptags = tags:get_data().playerTags
 			steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+			chartKey = steps:GetChartKey()
 			score = GetDisplayScore()
+			ctags = {}
+			for k, v in pairs(ptags) do
+				if ptags[k][chartKey] then
+					ctags[#ctags+1] = k
+				end
+			end
 			MESSAGEMAN:Broadcast("RefreshChartInfo")
 		end
 	end,
@@ -325,9 +330,14 @@ t[#t+1] = LoadFont("Common Large") .. {
 	end,
 	SetCommand=function(self)
 		if song then
-			local meter = steps:GetMSD(getCurRateValue(), 1)
-			self:settextf("%05.2f",meter)
-			self:diffuse(ByMSD(meter))
+			if steps:GetStepsType() == "StepsType_Dance_Single" then
+				local meter = steps:GetMSD(getCurRateValue(), 1)
+				self:settextf("%05.2f",meter)
+				self:diffuse(byMSD(meter))
+			else
+				self:settextf("%5.2f",steps:GetMeter())
+				self:diffuse(byDifficulty(steps:GetDifficulty()))
+			end
 		else
 			self:settext("")
 		end
@@ -339,6 +349,35 @@ t[#t+1] = LoadFont("Common Large") .. {
 		self:queuecommand("Set")
 	end,
 }
+
+-- -- test adjustment index
+-- t[#t+1] = LoadFont("Common normal")..{ 
+	-- InitCommand=function(self)
+		-- self:xy(frameX+92,frameY-70):halign(0):zoom(0.4)
+	-- end,
+	-- ChartLeaderboardUpdateMessageCommand = function(self,params)
+		-- local val = params.mmm
+		-- if val then
+			-- if val > 0 then
+				-- self:settextf("%+5.1f", val)
+			-- else
+				-- self:settextf("%5.1f", val)
+			-- end
+		-- else
+			-- self:settext("")
+		-- end
+	-- end,
+	-- LogOutMessageCommand=function(self)
+		-- self:settext("")
+	-- end,
+	-- RefreshChartInfoMessageCommand=function(self)
+		-- if song then
+			-- self:visible(true)
+		-- else
+			-- self:visible(false)
+		-- end
+	-- end,
+-- }
 
 -- Song duration
 t[#t+1] = LoadFont("Common Large") .. {
@@ -352,7 +391,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 		if song then
 			local playabletime = GetPlayableTime()
 			self:settext(SecondsToMMSS(playabletime))
-			self:diffuse(ByMusicLength(playabletime))
+			self:diffuse(byMusicLength(playabletime))
 		else
 			self:settext("")
 		end
@@ -460,7 +499,7 @@ t[#t+1] = LoadFont("Common Large") .. {
 		self:queuecommand("Set")
 	end,
 	SetCommand=function(self)
-		if steps:GetTimingData():HasWarps() then
+		if song and steps:GetTimingData():HasWarps() then
 			self:settext("NegBpms!")
 		else
 			self:settext("")
@@ -539,18 +578,22 @@ t[#t+1] = Def.Quad{
 		self:xy(frameX+135,frameY+45):zoomto(50,40):diffusealpha(0)
 	end,
 	MouseLeftClickMessageCommand=function(self)
+		if song and steps then
 		local sg = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
 		if sg and isOver(self) and update then
 			sg:SetPercent(sg:GetPercent()+0.01)
 			MESSAGEMAN:Broadcast("RefreshChartInfo")
 		end
+		end
 	end,
 	MouseRightClickMessageCommand=function(self)
+		if song and steps then
 		local sg = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
 		if sg and isOver(self) and update then
 			sg:SetPercent(sg:GetPercent()-0.01)
 			MESSAGEMAN:Broadcast("RefreshChartInfo")
 		end
+	end
 	end
 }
 
@@ -676,6 +719,73 @@ t[#t+1] = LoadFont("Common Large") .. {
 	SetCommand=function(self)
 		if song then
 			self:settext(steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), 3))
+		else
+			self:settext("")
+		end
+	end,
+	CurrentRateChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	RefreshChartInfoMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+}
+
+-- tags?
+t[#t+1] = LoadFont("Common Large") .. {
+	InitCommand=function(self)
+		self:xy(frameX+300,frameY-60):halign(0):zoom(0.4):maxwidth(450)
+	end,
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	SetCommand=function(self)
+		if song and ctags[1] then
+			self:settext(ctags[1])
+		else
+			self:settext("")
+		end
+	end,
+	CurrentRateChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	RefreshChartInfoMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+}
+
+t[#t+1] = LoadFont("Common Large") .. {
+	InitCommand=function(self)
+		self:xy(frameX+300,frameY-30):halign(0):zoom(0.4):maxwidth(450)
+	end,
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	SetCommand=function(self)
+		if song and ctags[2] then
+			self:settext(ctags[2])
+		else
+			self:settext("")
+		end
+	end,
+	CurrentRateChangedMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	RefreshChartInfoMessageCommand=function(self)
+		self:queuecommand("Set")
+	end,
+}
+
+t[#t+1] = LoadFont("Common Large") .. {
+	InitCommand=function(self)
+		self:xy(frameX+300,frameY):halign(0):zoom(0.4):maxwidth(450)
+	end,
+	BeginCommand=function(self)
+		self:queuecommand("Set")
+	end,
+	SetCommand=function(self)
+		if song and ctags[3] then
+			self:settext(ctags[3])
 		else
 			self:settext("")
 		end

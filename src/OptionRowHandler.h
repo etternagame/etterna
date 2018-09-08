@@ -1,13 +1,15 @@
-#ifndef OptionRowHandler_H
+﻿#ifndef OptionRowHandler_H
 #define OptionRowHandler_H
 
 #include "GameCommand.h"
 #include "LuaReference.h"
 #include "RageUtil.h"
 #include <set>
+
 struct MenuRowDef;
 class OptionRow;
 struct ConfOption;
+
 /** @brief How many options can be selected on this row? */
 enum SelectType
 {

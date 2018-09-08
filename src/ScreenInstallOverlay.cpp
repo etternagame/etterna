@@ -7,7 +7,13 @@
 #include "RageLog.h"
 #include "json/value.h"
 #include "JsonUtil.h"
+#include "Preference.h"
+#include "RageFileManager.h"
+#include "RageLog.h"
+#include "ScreenInstallOverlay.h"
+#include "ScreenManager.h"
 #include "SpecialFiles.h"
+#include "json/value.h"
 class Song;
 #include "SongManager.h"
 #include "GameState.h"
@@ -16,7 +22,12 @@ class Song;
 #include "CommonMetrics.h"
 #include "SongManager.h"
 #include "CommandLineActions.h"
+#include "CommonMetrics.h"
+#include "GameManager.h"
+#include "GameState.h"
 #include "ScreenDimensions.h"
+#include "SongManager.h"
+#include "SongManager.h"
 #include "StepMania.h"
 #include "ActorUtil.h"
 #include "Song.h"
@@ -176,7 +187,7 @@ void DoInstalls(CommandLineActions::CommandLineArgs args)
 		}
 		else
 		{
-			SONGMAN->DifferentialReload();
+			SCREENMAN->SetNewScreen("ScreenReloadSongs");
 		}
 	}
 	return;
@@ -193,9 +204,6 @@ void ScreenInstallOverlay::Init()
 	m_textStatus.LoadFromFont(THEME->GetPathF("ScreenInstallOverlay", "status"));
 	m_textStatus.SetName("Status");
 	LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND(m_textStatus);
-
-
-	ActorUtil::LoadAllCommandsAndSetXY(m_textStatus, "ScreenInstallOverlay");
 	this->AddChild(&m_textStatus);
 }
 
@@ -222,14 +230,30 @@ void ScreenInstallOverlay::Update(float fDeltaTime)
 		DoInstalls(args);
 	}
 #if !defined(WITHOUT_NETWORKING)
-	DLMAN->UpdateAndIsFinished(fDeltaTime);
-	vector<RString> vsMessages;
-	for(auto &dl : DLMAN->downloads)
-	{
-		vsMessages.push_back(dl.second->Status());
+	if (!DLMAN->downloads.empty()) {
+		Message msg("DLProgressAndQueueUpdate");
+		
+		vector<RString> dls;
+		for (auto &dl : DLMAN->downloads) {
+			dls.push_back(dl.second->Status());
+		}
+		msg.SetParam("dlsize", DLMAN->downloads.size());
+		msg.SetParam("dlprogress", join("\n", dls));
+		
+		if (!DLMAN->DownloadQueue.empty()) {
+			vector<RString> cue;
+			for (auto &q : DLMAN->DownloadQueue) {
+				cue.push_back(q->name);
+			}
+			msg.SetParam("queuesize", DLMAN->DownloadQueue.size());
+			msg.SetParam("queuedpacks", join("\n", cue));
+		}
+		else {
+			msg.SetParam("queuesize", 0);
+			msg.SetParam("queuedpacks", RString(""));
+		}
+		MESSAGEMAN->Broadcast(msg);
 	}
-	m_textStatus.SetText(join("\n", vsMessages));
-
 #endif
 }
 

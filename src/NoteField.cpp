@@ -1,24 +1,23 @@
 #include "global.h"
-#include "NoteField.h"
-#include "RageUtil.h"
-#include "GameConstantsAndTypes.h"
 #include "ArrowEffects.h"
-#include "GameManager.h"
+#include "BackgroundUtil.h"
+#include "CommonMetrics.h"
+#include "GameConstantsAndTypes.h"
 #include "GameState.h"
-#include "RageTimer.h"
+#include "NoteData.h"
+#include "NoteField.h"
+#include "NoteSkinManager.h"
+#include "PlayerState.h"
+#include "RageDisplay.h"
 #include "RageLog.h"
 #include "RageMath.h"
-#include "ThemeManager.h"
-#include "NoteSkinManager.h"
-#include "Song.h"
+#include "RageTimer.h"
+#include "RageUtil.h"
 #include "ScreenDimensions.h"
-#include "PlayerState.h"
+#include "Song.h"
 #include "Style.h"
-#include "CommonMetrics.h"
+#include "ThemeManager.h"
 #include <cfloat>
-#include "BackgroundUtil.h"
-#include "NoteData.h"
-#include "RageDisplay.h"
 
 void FindDisplayedBeats(const PlayerState* pPlayerState, float &firstBeat, float &lastBeat, int iDrawDistanceAfterTargetsPixels, int iDrawDistanceBeforeTargetsPixels);
 
@@ -90,12 +89,12 @@ void NoteField::Unload()
 	memset( m_pDisplays, 0, sizeof(m_pDisplays) );
 }
 
-void NoteField::CacheNoteSkin( const RString &sNoteSkin_ )
+void NoteField::CacheNoteSkin( const RString &sNoteSkin_, PlayerNumber pn ) 
 {
 	if( m_NoteDisplays.find(sNoteSkin_) != m_NoteDisplays.end() )
 		return;
 
-	LockNoteSkin l( sNoteSkin_ );
+	LockNoteSkin l(sNoteSkin_, pn);
 
 	LOG->Trace("NoteField::CacheNoteSkin: cache %s", sNoteSkin_.c_str() );
 	auto *nd = new NoteDisplayCols( GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber)->m_iColsPerPlayer );
@@ -136,8 +135,10 @@ void NoteField::CacheAllUsedNoteSkins()
 		s->MakeLower();
 	}
 
-	for( unsigned i=0; i < asSkinsLower.size(); ++i )
-		CacheNoteSkin( asSkinsLower[i] );
+	for (unsigned i = 0; i < asSkinsLower.size(); ++i) 
+	{ 
+		CacheNoteSkin(asSkinsLower[i], m_pPlayerState->m_PlayerNumber); 
+	} 
 
 	/* If we're changing note skins in the editor, we can have old note skins lying
 	 * around.  Remove them so they don't accumulate. */
@@ -459,10 +460,10 @@ void NoteField::DrawBoard( int iDrawDistanceAfterTargetsPixels, int iDrawDistanc
 		float fTexCoordOffset = m_fBoardOffsetPixels / fBoardGraphicHeightPixels;
 
 		// top half
-		const float fHeight = iDrawDistanceBeforeTargetsPixels - iDrawDistanceAfterTargetsPixels;
+		const int fHeight = iDrawDistanceBeforeTargetsPixels - iDrawDistanceAfterTargetsPixels;
 		const float fY = fYPosAt0 - ((iDrawDistanceBeforeTargetsPixels + iDrawDistanceAfterTargetsPixels) / 2.0f);
 
-		pSprite->ZoomToHeight( fHeight );
+		pSprite->ZoomToHeight(static_cast<float>(fHeight) );
 		pSprite->SetY( fY );
 
 		// handle tex coord offset and fade
@@ -673,7 +674,7 @@ void NoteField::CalcPixelsBeforeAndAfterTargets()
 {
 	const PlayerOptions& curr_options= m_pPlayerState->m_PlayerOptions.GetCurrent();
 	// Adjust draw range depending on some effects
-	m_FieldRenderArgs.draw_pixels_after_targets= m_iDrawDistanceAfterTargetsPixels;
+	m_FieldRenderArgs.draw_pixels_after_targets = static_cast<float>(m_iDrawDistanceAfterTargetsPixels);
 	// HACK: If boomerang and centered are on, then we want to draw much 
 	// earlier so that the notes don't pop on screen.
 	float centered_times_boomerang=
@@ -682,16 +683,14 @@ void NoteField::CalcPixelsBeforeAndAfterTargets()
 	m_FieldRenderArgs.draw_pixels_after_targets +=
 		static_cast<int>(SCALE(centered_times_boomerang, 0.f, 1.f, 0.f, -SCREEN_HEIGHT/2));
 	m_FieldRenderArgs.draw_pixels_before_targets =
-		m_iDrawDistanceBeforeTargetsPixels;
+		static_cast<float>(m_iDrawDistanceBeforeTargetsPixels);
 
 	float draw_scale= 1;
 	draw_scale*= 1 + 0.5f * fabsf(curr_options.m_fPerspectiveTilt);
 	draw_scale*= 1 + fabsf(curr_options.m_fEffects[PlayerOptions::EFFECT_MINI]);
 
-	m_FieldRenderArgs.draw_pixels_after_targets=
-		static_cast<int>(m_FieldRenderArgs.draw_pixels_after_targets * draw_scale);
-	m_FieldRenderArgs.draw_pixels_before_targets=
-		static_cast<int>(m_FieldRenderArgs.draw_pixels_before_targets * draw_scale);
+	m_FieldRenderArgs.draw_pixels_after_targets *= draw_scale;
+	m_FieldRenderArgs.draw_pixels_before_targets *= draw_scale;
 }
 
 void NoteField::DrawPrimitives()
@@ -707,8 +706,8 @@ void NoteField::DrawPrimitives()
 	if(m_drawing_board_primitive)
 	{
 		CalcPixelsBeforeAndAfterTargets();
-		DrawBoard(m_FieldRenderArgs.draw_pixels_after_targets,
-			m_FieldRenderArgs.draw_pixels_before_targets);
+		DrawBoard(static_cast<int>(m_FieldRenderArgs.draw_pixels_after_targets),
+				  static_cast<int>(m_FieldRenderArgs.draw_pixels_before_targets));
 		return;
 	}
 
@@ -723,7 +722,7 @@ void NoteField::DrawPrimitives()
 	NoteDisplayCols *cur = m_pCurDisplay;
 
 	FindDisplayedBeats(m_pPlayerState, m_FieldRenderArgs.first_beat, m_FieldRenderArgs.last_beat,
-		m_FieldRenderArgs.draw_pixels_after_targets, m_FieldRenderArgs.draw_pixels_before_targets);
+		static_cast<int>(m_FieldRenderArgs.draw_pixels_after_targets), static_cast<int>(m_FieldRenderArgs.draw_pixels_before_targets));
 
 	m_FieldRenderArgs.first_row  = BeatToNoteRow(m_FieldRenderArgs.first_beat);
 	m_FieldRenderArgs.last_row   = BeatToNoteRow(m_FieldRenderArgs.last_beat);
@@ -791,14 +790,13 @@ void NoteField::DrawPrimitives()
 	{
 		ASSERT(GAMESTATE->m_pCurSong != NULL);
 
-		const TimingData &timing = *pTiming;
 		const RageColor text_glow= RageColor(1,1,1,RageFastCos(RageTimer::GetTimeSinceStartFast()*2)/2+0.5f);
 
 		float horiz_align= align_right;
-		float side_sign= 1;
+		float side_sign= 1.f;
 #define draw_all_segments(str_exp, name, caps_name)	\
 		horiz_align= caps_name##_IS_LEFT_SIDE ? align_right : align_left; \
-		side_sign= caps_name##_IS_LEFT_SIDE ? -1 : 1; \
+		side_sign= caps_name##_IS_LEFT_SIDE ? -1.f : 1.f; \
 		for(unsigned int i= 0; i < segs[SEGMENT_##caps_name]->size(); ++i) \
 		{ \
 			const name##Segment* seg= To##name((*segs[SEGMENT_##caps_name])[i]); \
@@ -952,6 +950,7 @@ void NoteField::DrawPrimitives()
 	}
 
 	cur->m_GhostArrowRow.Draw();
+	cur->m_ReceptorArrowRow.DrawOverlay();
 }
 
 void NoteField::DrawBoardPrimitive()
@@ -975,10 +974,10 @@ void NoteField::FadeToFail()
 // return values, since the code would be identical in all of them. -Kyz
 
 #define OPEN_CALLBACK_BLOCK(member_name) \
-	if(!from_lua && !member_name.IsNil()) \
+	if(!from_lua && !(member_name).IsNil()) \
 	{ \
 		Lua* L= LUA->Get(); \
-		member_name.PushSelf(L);
+		(member_name).PushSelf(L);
 
 #define OPEN_RUN_BLOCK(arg_count) \
 	RString error= "Error running callback: "; \
@@ -990,10 +989,10 @@ void NoteField::FadeToFail()
 
 static void get_returned_column(Lua* L, PlayerNumber pn, int index, int& col)
 {
-	if(lua_isnumber(L, index))
+	if(lua_isnumber(L, index) != 0)
 	{
 		// 1-indexed columns in lua
-		int tmpcol= lua_tonumber(L, index) - 1;
+		int tmpcol= static_cast<int>(lua_tonumber(L, index)) - 1;
 		if(tmpcol < 0 || tmpcol >= GAMESTATE->GetCurrentStyle(pn)->m_iColsPerPlayer)
 		{
 			LuaHelpers::ReportScriptErrorFmt(
@@ -1022,7 +1021,7 @@ static void get_returned_bright(Lua* L, int index, bool& bright)
 {
 	if(lua_isboolean(L, index))
 	{
-		bright= lua_toboolean(L, index);
+		bright= (lua_toboolean(L, index) != 0);
 	}
 }
 
@@ -1051,7 +1050,7 @@ void NoteField::DidTapNote(int col, TapNoteScore score, bool bright, bool from_l
 	OPEN_CALLBACK_BLOCK(m_DidTapNoteCallback);
 	PUSH_COLUMN;
 	Enum::Push(L, score);
-	lua_pushboolean(L, bright);
+	lua_pushboolean(L, static_cast<int>(bright));
 	OPEN_RUN_BLOCK(3);
 	get_returned_column(L, m_pPlayerState->m_PlayerNumber, 1, col);
 	get_returned_score(L, 2, score);
@@ -1064,7 +1063,7 @@ void NoteField::DidHoldNote(int col, HoldNoteScore score, bool bright, bool from
 	OPEN_CALLBACK_BLOCK(m_DidHoldNoteCallback);
 	PUSH_COLUMN;
 	Enum::Push(L, score);
-	lua_pushboolean(L, bright);
+	lua_pushboolean(L, static_cast<int>(bright));
 	OPEN_RUN_BLOCK(3);
 	get_returned_column(L, m_pPlayerState->m_PlayerNumber, 1, col);
 	get_returned_score(L, 2, score);

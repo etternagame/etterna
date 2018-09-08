@@ -1,16 +1,16 @@
 #ifndef WHEELBASE_H
 #define WHEELBASE_H
 
-#include "AutoActor.h"
 #include "ActorFrame.h"
-#include "RageSound.h"
+#include "AutoActor.h"
 #include "GameConstantsAndTypes.h"
+#include "LuaExpressionTransform.h"
+#include "RageSound.h"
+#include "RageTimer.h"
 #include "ScreenMessage.h"
 #include "ScrollBar.h"
-#include "RageTimer.h"
-#include "WheelItemBase.h"
 #include "ThemeMetric.h"
-#include "LuaExpressionTransform.h"
+#include "WheelItemBase.h"
 
 #define NUM_WHEEL_ITEMS		(static_cast<int>(ceil(NUM_WHEEL_ITEMS_TO_DRAW+2)))
 

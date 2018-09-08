@@ -1,5 +1,5 @@
 		# Include the macros and functions.
-
+cmake_minimum_required (VERSION 3.6)
 include(${CMAKE_CURRENT_LIST_DIR}/CMake/CMakeMacros.cmake)
 
 # Set up helper variables for future configuring.
@@ -34,6 +34,13 @@ if (CMAKE_SYSTEM_NAME MATCHES "BSD")
 else()
   set(BSD FALSE)
 endif()
+
+macro(set_WIN10_FLAG)
+    if (WIN32 AND (CMAKE_SYSTEM_VERSION GREATER 10.0 OR CMAKE_SYSTEM_VERSION  EQUAL 10.0))
+        add_definitions(-DWIN10)
+    endif()
+endmacro()
+set_WIN10_FLAG()
 
 # Allow for finding our libraries in a standard location.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}" "${SM_CMAKE_DIR}/Modules/")
@@ -185,24 +192,27 @@ endif()
 # Dependencies go here.
 include(ExternalProject)
 
+if(NOT WITH_GPL_LIBS)
+  message("Disabling GPL exclusive libraries: no MP3 support.")
+  set(WITH_MP3 OFF)
+endif()
+
 if(WITH_WAV)
   # TODO: Identify which headers to check for ensuring this will always work.
   set(HAS_WAV TRUE)
 endif()
 
 if(WITH_MP3)
-  if(MSVC)
+  if(WIN32 OR MACOSX)
     set(HAS_MP3 TRUE)
   else()
-    if(NOT WITH_FFMPEG)
-      message("FFmpeg is required for mp3 support. WITH_MP3 is set to off.")
-	  set(WITH_MP3 FALSE)
+    find_package(Mad)
+    if(NOT LIBMAD_FOUND)
+      message(FATAL_ERROR "Libmad library not found. If you wish to skip mp3 support, set WITH_MP3 to OFF when configuring.")
     else()
       set(HAS_MP3 TRUE)
     endif()
   endif()
-else()
-  set(HAS_MP3 FALSE)
 endif()
 
 if(WITH_OGG)
@@ -242,6 +252,7 @@ else()
 endif()
 
 if(WIN32)
+  set_property( DIRECTORY PROPERTY VS_STARTUP_PROJECT "Etterna" )
   set(SYSTEM_PCRE_FOUND FALSE)
   find_package(DirectX REQUIRED)
   
@@ -249,6 +260,12 @@ if(WIN32)
   include_directories(${SM_EXTERN_DIR}/discord-rpc-2.0.1/include)
   link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/discord-rpc.lib)
   
+  include_directories(${SM_EXTERN_DIR}/uWebSocket/include)
+  include_directories(${SM_EXTERN_DIR}/uWebSocket/includelibs)
+  link_libraries(${SM_EXTERN_DIR}/uWebSocket/uWS.lib)
+  link_libraries(${SM_EXTERN_DIR}/uWebSocket/libeay32.lib)
+  link_libraries(${SM_EXTERN_DIR}/uWebSocket/ssleay32.lib)
+  link_libraries(${SM_EXTERN_DIR}/uWebSocket/libuv.lib)
   if (MINGW AND WITH_FFMPEG)
     include("${SM_CMAKE_DIR}/SetupFfmpeg.cmake")
     set(HAS_FFMPEG TRUE)
@@ -259,11 +276,6 @@ if(WIN32)
     )
     get_filename_component(LIB_SWSCALE ${LIB_SWSCALE} NAME)
 
-	find_library(LIB_SWRESAMPLE NAMES "swresample"
-      PATHS "${SM_EXTERN_DIR}/ffmpeg/lib" NO_DEFAULT_PATH
-    )
-    get_filename_component(LIB_SWRESAMPLE ${LIB_SWRESAMPLE} NAME)
-	
     find_library(LIB_AVCODEC NAMES "avcodec"
       PATHS "${SM_EXTERN_DIR}/ffmpeg/lib" NO_DEFAULT_PATH
     )
@@ -305,14 +317,14 @@ elseif(MACOSX)
 
   
   link_libraries(${SM_EXTERN_DIR}/MinaCalc/libMinaCalc.a)
+  link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/libdiscord-rpcMac.a)
+  include_directories(${SM_EXTERN_DIR}/discord-rpc-2.0.1/include)
 
   set(SYSTEM_PCRE_FOUND FALSE)
   set(WITH_CRASH_HANDLER TRUE)
-  # Apple Archs needs to be 32-bit for now.
-  # When SDL2 is introduced, this may change.
-  set(CMAKE_OSX_ARCHITECTURES "i386")
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.6")
-  set(CMAKE_OSX_DEPLOYMENT_TARGET_FULL "10.6.8")
+
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
+  set(CMAKE_OSX_DEPLOYMENT_TARGET_FULL "10.9.0")
 
   find_library(MAC_FRAME_ACCELERATE Accelerate ${CMAKE_SYSTEM_FRAMEWORK_PATH})
   find_library(MAC_FRAME_APPKIT AppKit ${CMAKE_SYSTEM_FRAMEWORK_PATH})
@@ -357,6 +369,8 @@ elseif(LINUX)
   endif()
 
   link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc.a)
+  link_libraries(${SM_EXTERN_DIR}/discord-rpc-2.0.1/lib/libdiscord-rpc.a)
+  include_directories(${SM_EXTERN_DIR}/discord-rpc-2.0.1/include)
   
   find_package(X11)
   if(${X11_FOUND})
@@ -422,9 +436,8 @@ elseif(LINUX)
   endif()
 
   if (WITH_FFMPEG AND NOT YASM_FOUND AND NOT NASM_FOUND)
-    message("Neither NASM nor YASM were found. Please install at least one of them if you wish for ffmpeg and mp3 support.")
+    message("Neither NASM nor YASM were found. Please install at least one of them if you wish for ffmpeg support.")
     set(WITH_FFMPEG OFF)
-	set(WITH_MP3 OFF)
   endif()
 
   find_package("Va")
@@ -445,7 +458,6 @@ elseif(LINUX)
     endif()
   else()
     set(HAS_FFMPEG FALSE)
-	set(HAS_MP3 FALSE)
   endif()
 
   set(CURL_LIBRARY "-lcurl") 

@@ -1,14 +1,13 @@
-#include "global.h"
+﻿#include "global.h"
 #include "Font.h"
 #include "IniFile.h"
 
+#include "FontCharAliases.h"
+#include "FontCharmaps.h"
+#include "RageLog.h"
 #include "RageTextureManager.h"
 #include "RageUtil.h"
-#include "RageLog.h"
-#include "FontManager.h"
 #include "ThemeManager.h"
-#include "FontCharmaps.h"
-#include "FontCharAliases.h"
 #include "arch/Dialog/Dialog.h"
 
 FontPage::FontPage(): 
@@ -91,7 +90,7 @@ void FontPage::Load( const FontPageSettings &cfg )
 			aiFrameWidths.push_back( default_width );
 	}
 
-	if( cfg.m_iAddToAllWidths )
+	if( cfg.m_iAddToAllWidths != 0 )
 	{
 		for( int i=0; i<m_FontPageTextures.m_pTextureMain->GetNumFrames(); i++ )
 			aiFrameWidths[i] += cfg.m_iAddToAllWidths;
@@ -353,7 +352,7 @@ const glyph &Font::GetGlyph( wchar_t c ) const
 		c = 1;
 
 	// Fast path:
-	if( c < static_cast<int>(ARRAYLEN(m_iCharToGlyphCache)) && m_iCharToGlyphCache[c] )
+	if( c < static_cast<int>(ARRAYLEN(m_iCharToGlyphCache)) && (m_iCharToGlyphCache[c] != nullptr) )
 		return *m_iCharToGlyphCache[c];
 
 	// Try the regular character.
@@ -478,7 +477,7 @@ void Font::LoadFontPageSettings( FontPageSettings &cfg, IniFile &ini, const RStr
 
 	// Iterate over all keys.
 	const XNode* pNode = ini.GetChild( sPageName );
-	if( pNode )
+	if( pNode != nullptr )
 	{
 		FOREACH_CONST_Attr( pNode, pAttr )
 		{
@@ -680,7 +679,7 @@ RString FontPageSettings::MapRange( const RString &sMapping, int iMapOffset, int
 		if( iCount > 16384 )
 			return ssprintf( "Can't map %i glyphs to one font page", iCount );
 
-		while( iCount )
+		while( iCount != 0 )
 		{
 			CharToGlyphNo[iMapOffset] = iGlyphNo;
 			iMapOffset++;
@@ -695,7 +694,7 @@ RString FontPageSettings::MapRange( const RString &sMapping, int iMapOffset, int
 	if( pMapping == NULL )
 		return "Unknown mapping";
 
-	while( *pMapping != 0 && iMapOffset )
+	while( *pMapping != 0 && (iMapOffset != 0) )
 	{
 		pMapping++;
 		--iMapOffset;

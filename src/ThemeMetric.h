@@ -3,11 +3,11 @@
 #ifndef THEME_METRIC_H
 #define THEME_METRIC_H
 
-#include "ThemeManager.h"
-#include <map>
 #include "Foreach.h"
 #include "LuaManager.h"
 #include "RageUtil.h"
+#include "ThemeManager.h"
+#include <map>
 
 /** @brief The general interface for reading ThemeMetrics. */
 class IThemeMetric

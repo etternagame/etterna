@@ -1,5 +1,8 @@
 #include "global.h"
 #include "InputHandler_X11.h"
+
+#include <array>
+
 #include "RageUtil.h"
 #include "RageLog.h"
 #include "RageDisplay.h"
@@ -8,17 +11,16 @@
 
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
-#include <thread>
-#include <chrono>
 
 using namespace X11Helper;
+using std::vector;
 
 REGISTER_INPUT_HANDLER_CLASS( X11 );
 
 static DeviceButton XSymToDeviceButton( int key )
 {
 #define KEY_INV DeviceButton_Invalid
-	static const DeviceButton ASCIIKeySyms[] =
+	static std::array<DeviceButton, 128> const ASCIIKeySyms =
 	{
 		KEY_INV       , KEY_INV     , KEY_INV      , KEY_INV     , KEY_INV      , /* 0 - 4 */
 		KEY_INV       , KEY_INV     , KEY_INV      , KEY_INV     , KEY_INV      , /* 5 - 9 */
@@ -49,13 +51,15 @@ static DeviceButton XSymToDeviceButton( int key )
 	};
 
 	/* 32...127: */
-	if( key < int(ARRAYLEN(ASCIIKeySyms)))
+	if( key < ASCIIKeySyms.size())
+	{
 		return ASCIIKeySyms[key];
+	}
 
 	/* XK_KP_0 ... XK_KP_9 to KEY_KP_C0 ... KEY_KP_C9 */
 	if( key >= XK_KP_0 && key <= XK_KP_9 )
 		return enum_add2(KEY_KP_C0, key - XK_KP_0);
-	
+
 	switch( key )
 	{
 	/* These are needed because of the way X registers the keypad. */
@@ -135,9 +139,22 @@ static DeviceButton XSymToDeviceButton( int key )
 	return DeviceButton_Invalid;
 }
 
+static DeviceButton XMouseButtonToDeviceButton(int button)
+{
+	switch(button)
+	{
+		case Button1: return MOUSE_LEFT;
+		case Button2: return MOUSE_MIDDLE;
+		case Button3: return MOUSE_RIGHT;
+		case Button4: return MOUSE_WHEELUP;
+		case Button5: return MOUSE_WHEELDOWN;
+	}
+	return DeviceButton_Invalid;
+}
+
 InputHandler_X11::InputHandler_X11()
 {
-	if( Dpy == NULL  || Win == None )
+	if( Dpy == nullptr  || Win == None )
 		return;
 	XWindowAttributes winAttrib;
 
@@ -149,17 +166,12 @@ InputHandler_X11::InputHandler_X11()
 		| ButtonPressMask | ButtonReleaseMask | PointerMotionMask
 		| FocusChangeMask
 	);
-
-    StartThread();
 }
 
 InputHandler_X11::~InputHandler_X11()
 {
-	if( Dpy == NULL || Win == None )
+	if( Dpy == nullptr || Win == None )
 		return;
-
-	if( m_InputThread.IsCreated() ) StopThread();
-
 	// TODO: Determine if we even need to set this back (or is the window
 	// destroyed just after this?)
 	XWindowAttributes winAttrib;
@@ -171,106 +183,143 @@ InputHandler_X11::~InputHandler_X11()
 	);
 }
 
-void InputHandler_X11::StartThread()
+void InputHandler_X11::Update()
 {
-	m_bShutdown = false;
-	m_InputThread.SetName( "X11 input thread" );
-	m_InputThread.Create( InputThread_Start, this );
-}
-
-void InputHandler_X11::StopThread()
-{
-	m_bShutdown = true;
-	LOG->Trace( "Shutting down X11 input thread ..." );
-	m_InputThread.Wait();
-	LOG->Trace( "X11 input thread shut down." );
-}
-
-int InputHandler_X11::InputThread_Start( void *p )
-{
-	((InputHandler_X11 *) p)->InputThread();
-	return 0;
-}
-
-void InputHandler_X11::InputThread()
-{
-	while( !m_bShutdown )
+	if( Dpy == nullptr || Win == None )
 	{
-		if( Dpy == NULL || Win == None ) break;
+		InputHandler::UpdateTimer();
+		return;
+	}
 
-		XEvent event, lastEvent;
-		DeviceButton lastDB = DeviceButton_Invalid;
-		lastEvent.type = 0;
+	XEvent event, last_release;
+	last_release.type= 0;
 
-		// We use XCheckWindowEvent instead of XNextEvent because
-		// other things (most notably ArchHooks_Unix) may be looking for
-		// events that we'd pick up and discard.
-		// todo: add other masks? (like the ones for drag'n drop) -aj
-		while( XCheckWindowEvent(Dpy, Win,
-				KeyPressMask | KeyReleaseMask
-				| ButtonPressMask | ButtonReleaseMask | PointerMotionMask
-				| FocusChangeMask,
-				&event) )
+	DeviceButton curr_db= DeviceButton_Invalid;
+	DeviceButton release_db= DeviceButton_Invalid;
+	InputDevice release_dv= InputDevice_Invalid;
+
+	// We use XCheckWindowEvent instead of XNextEvent because
+	// other things (most notably ArchHooks_Unix) may be looking for
+	// events that we'd pick up and discard.
+	// todo: add other masks? (like the ones for drag'n drop) -aj
+	while( XCheckWindowEvent(Dpy, Win,
+			KeyPressMask | KeyReleaseMask
+			| ButtonPressMask | ButtonReleaseMask | PointerMotionMask
+			| FocusChangeMask,
+			&event) )
+	{
+		// X's key repeat behavior:
+		//   Press when the key is pressed.
+		//   Release + Press pair for every repeat.
+		//   Release when the key is released.
+		// Stepmania's key repeat behavior:
+		//   Press when the key is pressed.
+		//   Repeat for every repeat.
+		//   Release when the key is released.
+		// So any release event from X needs extra handling to check for the
+		// paired press.
+		// Release + Press pairs are ignored, because Stepmania already has its
+		// own repeat logic elsewhere.
+		// -Kyz
+		bool real_release= false;
+		switch(last_release.type)
 		{
-			const bool bKeyPress = event.type == KeyPress;
-			//const bool bMousePress = event.type == ButtonPress;
-
-			if( event.type == MotionNotify )
-			{
-				INPUTFILTER->UpdateCursorLocation(event.xbutton.x,event.xbutton.y);
-			}
-
-			if( lastEvent.type != 0 )
-			{
-				if( bKeyPress && event.xkey.time == lastEvent.xkey.time &&
-					event.xkey.keycode == lastEvent.xkey.keycode )
+			case KeyRelease:
+				if(event.type == KeyPress &&
+					event.xkey.keycode == last_release.xkey.keycode &&
+					event.xkey.time == last_release.xkey.time)
 				{
 					// This is a repeat event so ignore it.
-					lastEvent.type = 0;
+					last_release.type= 0;
 					continue;
 				}
-				// This is a new event so the last release was not a repeat.
-				ButtonPressed( DeviceInput(DEVICE_KEYBOARD, lastDB, 0) );
-				lastEvent.type = 0;
-			}
-
-			if( event.type == FocusOut )
-			{
+				real_release= true;
+				break;
+			case ButtonRelease:
+				if(event.type == ButtonPress &&
+					event.xbutton.button == last_release.xbutton.button &&
+					event.xbutton.time == last_release.xbutton.time)
+				{
+					// This is a repeat event so ignore it.
+					last_release.type= 0;
+					continue;
+				}
+				real_release= true;
+				break;
+			default:
+				break;
+		}
+		if(real_release)
+		{
+			ButtonPressed(DeviceInput(release_dv, release_db, 0));
+		}
+		switch(event.type)
+		{
+			case MotionNotify:
+				INPUTFILTER->UpdateCursorLocation(event.xmotion.x, event.xmotion.y);
+				break;
+			case KeyPress:
+				curr_db= XSymToDeviceButton(XLookupKeysym(&event.xkey, 0));
+				if(curr_db != DeviceButton_Invalid)
+				{
+					ButtonPressed(DeviceInput(DEVICE_KEYBOARD, curr_db, 1));
+				}
+				break;
+			case KeyRelease:
+				release_db= XSymToDeviceButton(XLookupKeysym(&event.xkey, 0));
+				if(release_db != DeviceButton_Invalid)
+				{
+					last_release= event;
+					release_dv= DEVICE_KEYBOARD;
+				}
+				else
+				{
+					last_release.type= 0;
+				}
+				break;
+			case ButtonPress:
+				curr_db= XMouseButtonToDeviceButton(event.xbutton.button);
+				if(curr_db != DeviceButton_Invalid)
+				{
+					switch(curr_db)
+					{
+						case MOUSE_WHEELUP:
+							INPUTFILTER->UpdateMouseWheel(INPUTFILTER->GetMouseWheel()+1);
+							break;
+						case MOUSE_WHEELDOWN:
+							INPUTFILTER->UpdateMouseWheel(INPUTFILTER->GetMouseWheel()-1);
+							break;
+						default:
+							break;
+					}
+					ButtonPressed(DeviceInput(DEVICE_MOUSE, curr_db, 1));
+				}
+				break;
+			case ButtonRelease:
+				release_db= XMouseButtonToDeviceButton(event.xbutton.button);
+				if(release_db != DeviceButton_Invalid)
+				{
+					last_release= event;
+					release_dv= DEVICE_MOUSE;
+				}
+				else
+				{
+					last_release.type= 0;
+				}
+				break;
+			case FocusOut:
 				// Release all buttons
 				INPUTFILTER->Reset();
-			}
-
-			// Get the first defined keysym for this event's key
-			lastDB = XSymToDeviceButton( XLookupKeysym(&event.xkey, 0) );
-
-			if( lastDB == DeviceButton_Invalid )
-				continue;
-
-			if( bKeyPress )
-				ButtonPressed( DeviceInput(DEVICE_KEYBOARD, lastDB, 1) );
-			/*
-			else if( bMousePress )
-				ButtonPressed( DeviceInput(DEVICE_MOUSE, lastDB, 1) );
-			*/
-			else
-				lastEvent = event;
+				break;
+			default:
+				break;
 		}
-
-		// Handle any last releases.
-		if( lastEvent.type != 0 )
-		{
-			if( lastEvent.type == (KeyPress|KeyRelease) )
-				ButtonPressed( DeviceInput(DEVICE_KEYBOARD, lastDB, 0) );
-			/*
-			if( lastEvent.type == (ButtonPress|ButtonRelease) )
-				ButtonPressed( DeviceInput(DEVICE_MOUSE, lastDB, 0) );
-			*/
-		}
-
-		InputHandler::UpdateTimer();
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
+	if(last_release.type != 0)
+	{
+		ButtonPressed(DeviceInput(release_dv, release_db, 0));
+	}
+	InputHandler::UpdateTimer();
 }
 
 
@@ -307,3 +356,4 @@ void InputHandler_X11::GetDevicesAndDescriptions( vector<InputDeviceInfo>& vDevi
  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
+

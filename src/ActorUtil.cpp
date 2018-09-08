@@ -1,18 +1,18 @@
 #include "global.h"
 #include "ActorUtil.h"
-#include "ThemeManager.h"
+#include "EnumHelper.h"
+#include "Foreach.h"
+#include "GameState.h"
+#include "IniFile.h"
+#include "LuaManager.h"
 #include "PrefsManager.h"
 #include "RageFileManager.h"
 #include "RageLog.h"
 #include "RageUtil.h"
-#include "EnumHelper.h"
+#include "Song.h"
+#include "ThemeManager.h"
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
-#include "IniFile.h"
-#include "LuaManager.h"
-#include "Foreach.h"
-#include "Song.h"
-#include "GameState.h"
 
 #include "arch/Dialog/Dialog.h"
 
@@ -156,7 +156,7 @@ namespace
 		// Fallback: use XML tag name for actor class
 		return pActor->m_sName;
 	}
-}
+} // namespace
 
 Actor *ActorUtil::LoadFromNode( const XNode* _pNode, Actor *pParentActor )
 {
@@ -199,7 +199,7 @@ Actor *ActorUtil::LoadFromNode( const XNode* _pNode, Actor *pParentActor )
 				Actor *pNewActor = MakeActor(sPath, pParentActor);
 				if (pNewActor == nullptr)
 					return nullptr;
-				if (pParentActor)
+				if (pParentActor != nullptr)
 					pNewActor->SetParent(pParentActor);
 				pNewActor->LoadFromNode(&node);
 				return pNewActor;
@@ -216,7 +216,7 @@ Actor *ActorUtil::LoadFromNode( const XNode* _pNode, Actor *pParentActor )
 	const CreateActorFn &pfn = iter->second;
 	Actor *pRet = pfn();
 
-	if( pParentActor )
+	if( pParentActor != nullptr )
 		pRet->SetParent( pParentActor );
 
 	pRet->LoadFromNode( &node );
@@ -249,7 +249,7 @@ namespace
 		LUA->Release( L );
 		return pRet;
 	}
-}
+} // namespace
 
 /* Run the function at the top of the stack, which returns an actor description
  * table.  If the table was returned, return true and leave it on the stack.
@@ -611,7 +611,7 @@ namespace
 	{
 		RString sPath( SArg(1) );
 		int iLevel = IArg(2);
-		bool optional= lua_toboolean(L, 3);
+		bool optional= lua_toboolean(L, 3) != 0;
 		luaL_where( L, iLevel );
 		RString sWhere = lua_tostring( L, -1 );
 		if( sWhere.size() > 2 && sWhere.substr(sWhere.size()-2, 2) == ": " )
@@ -670,7 +670,7 @@ namespace
 		LIST_METHOD( LoadAllCommandsAndSetXY ),
 		{ nullptr, nullptr }
 	};
-}
+} // namespace
 
 LUA_REGISTER_NAMESPACE( ActorUtil )
 

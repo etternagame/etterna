@@ -1,22 +1,21 @@
-#include "global.h"
-#include "NotesLoaderBMS.h"
-#include "NoteData.h"
+﻿#include "global.h"
+#include "ActorUtil.h"
+#include "BackgroundUtil.h"
 #include "GameConstantsAndTypes.h"
-#include "RageLog.h"
 #include "GameManager.h"
-#include "SongManager.h"
-#include "RageFile.h"
-#include "SongUtil.h"
-#include "StepsUtil.h"
-#include "Song.h"
-#include "Steps.h"
-#include "RageUtil_CharConversions.h"
+#include "NoteData.h"
 #include "NoteTypes.h"
 #include "NotesLoader.h"
-#include "PrefsManager.h"
-#include "BackgroundUtil.h"
-#include "ActorUtil.h"
+#include "NotesLoaderBMS.h"
+#include "RageFile.h"
 #include "RageFileManager.h"
+#include "RageLog.h"
+#include "RageUtil_CharConversions.h"
+#include "Song.h"
+#include "SongManager.h"
+#include "SongUtil.h"
+#include "Steps.h"
+#include "StepsUtil.h"
 
 /* BMS encoding:	tap-hold
  * 4&8panel:	Player1		Player2
@@ -443,7 +442,7 @@ struct bmsCommandTree
 					currentNode = createElseNode(currentNode->parent);
 					return;
 				}
-				else
+				
 					LOG->UserLog("Song file", path, "Line %d: #else without matching #if chain.\n", line);
 			} else
 				LOG->UserLog("Song file", path, "Line %d: #else used at root level.\n", line);
@@ -598,7 +597,7 @@ class BMSSong {
 	map<RString, RString> mapBackground;
 
 public:
-	BMSSong( Song *song );
+	explicit BMSSong( Song *song );
 	int AllocateKeysound( RString filename, RString path );
 	bool GetBackground( RString filename, RString path, RString &bgfile );
 	Song *GetSong();
@@ -1060,10 +1059,10 @@ int BMSChartReader::GetKeysound( const BMSObject &obj )
 		mapValueToKeysoundIndex[obj.value] = index;
 		return index;
 	}
-	else
-	{
+	
+	
 		return it->second;
-	}
+	
 }
 
 struct BMSAutoKeysound {
@@ -1269,7 +1268,7 @@ bool BMSChartReader::ReadNoteData()
 
 	int trackMeasure = -1;
 	float measureStartBeat = 0.0f;
-	double measureSize = 0.0f;
+	float measureSize = 0.0f;
 	float adjustedMeasureSize = 0.0f;
 	float measureAdjust = 1.0f;
 	int firstNoteMeasure = 0;
@@ -1296,15 +1295,15 @@ bool BMSChartReader::ReadNoteData()
 			measureStartBeat += adjustedMeasureSize;
 			measureSize = 4.0f;
 			BMSMeasures::iterator it = in->measures.find(trackMeasure);
-			if( it != in->measures.end() ) measureSize = it->second.size * 4.0;
+			if( it != in->measures.end() ) measureSize = it->second.size * 4.0f;
 			adjustedMeasureSize = measureSize;
 			if( trackMeasure < firstNoteMeasure ) adjustedMeasureSize = measureSize = 4.0f;
 
 			// measure size adjustment
 			{
 				bmFrac numFrac = toFraction(measureSize);
-				long long num = numFrac.num;
-				long long den = 4 * numFrac.den;
+				int num = static_cast<int>(numFrac.num);
+				int den = static_cast<int>(4 * numFrac.den);
 
 				while ( num % 2 == 0 && den % 2 == 0 && den > 4  ) { // Both are multiples of 2
 					num /= 2;
@@ -1327,7 +1326,7 @@ bool BMSChartReader::ReadNoteData()
 			int bpm;
 			if( sscanf(obj.value, "%x", &bpm) == 1 )
 			{
-				if( bpm > 0 ) td.SetBPMAtRow( row, measureAdjust * (currentBPM = bpm) );
+				if( bpm > 0 ) td.SetBPMAtRow( row, measureAdjust * (currentBPM = static_cast<float>(bpm)) );
 			}
 		}
 		else if( channel == 4 ) // bga change

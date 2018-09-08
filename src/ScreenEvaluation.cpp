@@ -1,31 +1,32 @@
 #include "global.h"
-#include "ScreenEvaluation.h"
-#include "SongManager.h"
-#include "ScreenManager.h"
-#include "GameManager.h"
-#include "RageUtil.h"
-#include "GameConstantsAndTypes.h"
-#include "Steps.h"
-#include "PrefsManager.h"
-#include "RageLog.h"
-#include "AnnouncerManager.h"
-#include "GameState.h"
-#include "ThemeManager.h"
-#include "GameSoundManager.h"
 #include "ActorUtil.h"
-#include "ProfileManager.h"
-#include "Profile.h"
-#include "Song.h"
-#include "StatsManager.h"
-#include "Grade.h"
+#include "AnnouncerManager.h"
 #include "CodeDetector.h"
-#include "RageDisplay.h"
-#include "StepMania.h"
-#include "CryptManager.h"
-#include "PlayerState.h"
 #include "CommonMetrics.h"
-#include "ScoreKeeperNormal.h"
+#include "CryptManager.h"
+#include "GameConstantsAndTypes.h"
+#include "GameManager.h"
+#include "GameSoundManager.h"
+#include "GameState.h"
+#include "Grade.h"
 #include "InputEventPlus.h"
+#include "PlayerState.h"
+#include "PrefsManager.h"
+#include "ScoreManager.h"
+#include "ProfileManager.h"
+#include "RageDisplay.h"
+#include "RageLog.h"
+#include "RageUtil.h"
+#include "ScoreKeeperNormal.h"
+#include "ScreenEvaluation.h"
+#include "ScreenManager.h"
+#include "Song.h"
+#include "SongManager.h"
+#include "StatsManager.h"
+#include "StepMania.h"
+#include "Steps.h"
+#include "ThemeManager.h"
+#include "GamePreferences.h"
 
 // metrics that are common to all ScreenEvaluation classes
 #define BANNER_WIDTH			THEME->GetMetricF(m_sName,"BannerWidth")
@@ -211,15 +212,21 @@ void ScreenEvaluation::Init()
 
 	// Figure out which statistics and songs we're going to display
 	SUMMARY.Load( m_sName, "Summary" );
-	if( SUMMARY )
+	if( SUMMARY && GamePreferences::m_AutoPlay != PC_REPLAY)
 	{
 		STATSMAN->GetFinalEvalStageStats( m_FinalEvalStageStats );
 		m_pStageStats = &m_FinalEvalStageStats;
 	}
 
 	// update persistent statistics
-	if( SUMMARY )
-		m_pStageStats->FinalizeScores( true );
+	if (SUMMARY && GamePreferences::m_AutoPlay == PC_REPLAY)
+	{
+		m_pStageStats->m_player[PLAYER_1].m_HighScore.SetRadarValues(m_pStageStats->m_player[PLAYER_1].m_radarActual);
+	}
+	else if (SUMMARY && GamePreferences::m_AutoPlay != PC_REPLAY)
+	{
+		m_pStageStats->FinalizeScores(true);
+	}
 
 	// Run this here, so STATSMAN->m_CurStageStats is available to overlays.
 	ScreenWithMenuElements::Init();
@@ -288,7 +295,7 @@ void ScreenEvaluation::Init()
 				vector<RString> v;
 				PlayerOptions po = GAMESTATE->m_pPlayerState[p]->m_PlayerOptions.GetPreferred();
 				if( PLAYER_OPTIONS_HIDE_FAIL_TYPE )
-					po.m_FailType = (FailType)0;	// blank out the fail type so that it won't show in the mods list
+					po.m_FailType = static_cast<FailType>(0);	// blank out the fail type so that it won't show in the mods list
 				po.GetLocalizedMods( v );
 				RString sPO = join( PLAYER_OPTIONS_SEPARATOR, v );
 				m_textPlayerOptions[p].SetText( sPO );
@@ -305,8 +312,7 @@ void ScreenEvaluation::Init()
 			}
 		}
 
-		// Dairy Queen'd (disqualified)
-		FOREACH_EnabledPlayer( p )
+		auto p = PLAYER_1;
 		{
 			m_sprDisqualified[p].Load( THEME->GetPathG(m_sName,"Disqualified") );
 			m_sprDisqualified[p]->SetName( ssprintf("DisqualifiedP%d",p+1) );
@@ -674,6 +680,7 @@ void ScreenEvaluation::Init()
 		default:
 			break;
 	}
+
 }
 
 bool ScreenEvaluation::Input( const InputEventPlus &input )
@@ -743,12 +750,27 @@ bool ScreenEvaluation::MenuStart( const InputEventPlus &input )
 
 void ScreenEvaluation::HandleMenuStart()
 {
-	Profile *prof = PROFILEMAN->GetProfile( static_cast<PlayerNumber>(0) );
-	HighScore * hs = &(m_pStageStats->m_player[0].m_HighScore);
 	StepsID stepsid;
 	stepsid.FromSteps(GAMESTATE->m_pCurSteps[PLAYER_1]);
 	SongID songid;
 	songid.FromSong(GAMESTATE->m_pCurSong);
+	if (GAMEMAN->m_bResetModifiers)
+	{
+		float oldRate = GAMEMAN->m_fPreviousRate;
+		const RString mods = GAMEMAN->m_sModsToReset;
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetSong().FromString("clearall");
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().FromString("clearall");
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred().FromString("clearall");
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetSong().FromString(mods);
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().FromString(mods);
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred().FromString(mods);
+		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = oldRate;
+		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = oldRate;
+		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = oldRate;
+		GAMEMAN->m_bResetModifiers = false;
+		GAMEMAN->m_sModsToReset = "";
+		MESSAGEMAN->Broadcast("RateChanged");
+	}
 	StartTransitioningScreen( SM_GoToNextScreen );
 }
 

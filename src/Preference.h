@@ -1,4 +1,4 @@
-/* Preference - Holds user-chosen preferences that are saved between sessions. */
+﻿/* Preference - Holds user-chosen preferences that are saved between sessions. */
 
 #ifndef PREFERENCE_H
 #define PREFERENCE_H

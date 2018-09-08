@@ -1,9 +1,8 @@
-#include "global.h"
-#include "ModIcon.h"
-#include "ThemeManager.h"
-#include "PlayerOptions.h"
-#include "RageUtil.h"
+﻿#include "global.h"
 #include "ActorUtil.h"
+#include "ModIcon.h"
+#include "RageUtil.h"
+#include "ThemeManager.h"
 
 ModIcon::ModIcon()
 = default;
@@ -44,7 +43,6 @@ void ModIcon::Load( const RString &sMetricsGroup )
 
 	// stop words
 	STOP_WORDS.Load( sMetricsGroup, "StopWords" );
-	m_vStopWords.empty();
 	split(STOP_WORDS, ",", m_vStopWords);
 
 	Set("");

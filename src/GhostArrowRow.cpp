@@ -1,14 +1,11 @@
-#include "global.h"
-#include "GhostArrowRow.h"
-#include "RageUtil.h"
+﻿#include "global.h"
 #include "GameConstantsAndTypes.h"
-#include "ArrowEffects.h"
-#include "NoteSkinManager.h"
 #include "GameState.h"
-#include "Game.h"
+#include "GhostArrowRow.h"
+#include "NoteSkinManager.h"
 #include "PlayerState.h"
+#include "RageUtil.h"
 #include "Style.h"
-#include "ActorUtil.h"
 
 void GhostArrowRow::Load( const PlayerState* pPlayerState, float fYReverseOffset )
 {
@@ -106,6 +103,7 @@ void GhostArrowRow::DidTapNote( int iCol, TapNoteScore tns, bool bBright )
 	msg.SetParam( "TapNoteScore", tns );
 	// This may be useful for popn styled judgment :) -DaisuMaster
 	msg.SetParam( "Column", iCol );
+	 msg.SetParam( "Color", NOTESKIN->GetLastSeenColor() ); 
 	if( bBright )
 		msg.SetParam( "Bright", true );
 	m_Ghost[iCol]->HandleMessage( msg );
@@ -125,6 +123,7 @@ void GhostArrowRow::DidHoldNote( int iCol, HoldNoteScore hns, bool bBright )
 	Message msg("ColumnJudgment");
 	msg.SetParam( "HoldNoteScore", hns );
 	msg.SetParam( "Column", iCol );
+	msg.SetParam( "Color", NOTESKIN->GetLastSeenColor() ); 
 	if( bBright )
 		msg.SetParam( "Bright", true );
 	m_Ghost[iCol]->HandleMessage( msg );

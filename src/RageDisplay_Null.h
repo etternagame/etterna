@@ -1,4 +1,4 @@
-/* RageDisplay_Null - No-op diagnostic renderer. */
+﻿/* RageDisplay_Null - No-op diagnostic renderer. */
 
 #ifndef RAGE_DISPLAY_NULL_H
 #define RAGE_DISPLAY_NULL_H

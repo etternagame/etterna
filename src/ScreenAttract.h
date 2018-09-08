@@ -18,7 +18,7 @@ public:
 	static void SetAttractVolume( bool bInAttract );
 
 	bool Input( const InputEventPlus &input ) override;
-	void HandleScreenMessage( const ScreenMessage SM ) override;
+	void HandleScreenMessage( ScreenMessage SM ) override;
 	void Cancel( ScreenMessage smSendWhenDone ) override;
 
 	ScreenType GetScreenType() const override { return attract; }

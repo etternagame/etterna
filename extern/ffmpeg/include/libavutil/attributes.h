@@ -27,11 +27,9 @@
 #define AVUTIL_ATTRIBUTES_H
 
 #ifdef __GNUC__
-#    define AV_GCC_VERSION_AT_LEAST(x,y) (__GNUC__ > (x) || __GNUC__ == (x) && __GNUC_MINOR__ >= (y))
-#    define AV_GCC_VERSION_AT_MOST(x,y)  (__GNUC__ < (x) || __GNUC__ == (x) && __GNUC_MINOR__ <= (y))
+#    define AV_GCC_VERSION_AT_LEAST(x,y) (__GNUC__ > x || __GNUC__ == x && __GNUC_MINOR__ >= y)
 #else
 #    define AV_GCC_VERSION_AT_LEAST(x,y) 0
-#    define AV_GCC_VERSION_AT_MOST(x,y)  0
 #endif
 
 #ifndef av_always_inline
@@ -50,12 +48,6 @@
 #else
 #    define av_extern_inline inline
 #endif
-#endif
-
-#if AV_GCC_VERSION_AT_LEAST(3,4)
-#    define av_warn_unused_result __attribute__((warn_unused_result))
-#else
-#    define av_warn_unused_result
 #endif
 
 #if AV_GCC_VERSION_AT_LEAST(3,1)
@@ -84,7 +76,7 @@
 #    define av_cold
 #endif
 
-#if AV_GCC_VERSION_AT_LEAST(4,1) && !defined(__llvm__)
+#if AV_GCC_VERSION_AT_LEAST(4,1)
 #    define av_flatten __attribute__((flatten))
 #else
 #    define av_flatten
@@ -121,7 +113,8 @@
 #endif
 #endif
 
-#if defined(__GNUC__) || defined(__clang__)
+
+#if defined(__GNUC__)
 #    define av_unused __attribute__((unused))
 #else
 #    define av_unused
@@ -132,7 +125,7 @@
  * away.  This is useful for variables accessed only from inline
  * assembler without the compiler being aware.
  */
-#if AV_GCC_VERSION_AT_LEAST(3,1) || defined(__clang__)
+#if AV_GCC_VERSION_AT_LEAST(3,1)
 #    define av_used __attribute__((used))
 #else
 #    define av_used

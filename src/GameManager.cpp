@@ -1,18 +1,15 @@
-#include "global.h"
-#include "StepMania.h"
-#include "arch/Dialog/Dialog.h"
-#include "GameManager.h"
+﻿#include "global.h"
+#include "Foreach.h"
+#include "Game.h"
 #include "GameConstantsAndTypes.h"
 #include "GameInput.h"	// for GameButton constants
 #include "GameLoop.h"  // for ChangeGame
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "GameManager.h"
 #include "NoteSkinManager.h"
 #include "RageInputDevice.h"
-#include "ThemeManager.h"
-#include "Game.h"
+#include "RageUtil.h"
 #include "Style.h"
-#include "Foreach.h"
+#include "ThemeManager.h"
 
 GameManager*	GAMEMAN = NULL;	// global and accessible from anywhere in our program
 
@@ -109,6 +106,7 @@ static const AutoMappings g_AutoKeyMappings_Dance = AutoMappings (
 	AutoMappingEntry( 0, KEY_Cx,		DANCE_BUTTON_DOWN,		false ),
 	AutoMappingEntry( 0, KEY_EQUAL,			GAME_BUTTON_EFFECT_UP, false),
 	AutoMappingEntry( 0, KEY_HYPHEN,		GAME_BUTTON_EFFECT_DOWN, false),
+	AutoMappingEntry( 0, KEY_ACCENT,		GAME_BUTTON_RESTART, false),
 	AutoMappingEntry( 0, KEY_KP_SLASH,		GAME_BUTTON_MENULEFT,		true ),
 	AutoMappingEntry( 0, KEY_KP_ASTERISK,	GAME_BUTTON_MENURIGHT,		true ),
 	AutoMappingEntry( 0, KEY_KP_HYPHEN,		GAME_BUTTON_MENUUP,		true ),
@@ -861,7 +859,7 @@ static const Game g_Game_Pump =
 	"pump",						// m_szName
 	g_apGame_Pump_Styles,				// m_apStyles
 	false,						// m_bCountNotesSeparately
-	true, // m_bTickHolds
+	false, // m_bTickHolds
 	false, // m_PlayersHaveSeparateStyles
 	{						// m_InputScheme
 		"pump",					// m_szName
@@ -916,22 +914,22 @@ static const Style g_Style_KB7_Single =
 	7,				// m_iColsPerPlayer
 	{	// m_ColumnInfo[NUM_PLAYERS][MAX_COLS_PER_PLAYER];
 		{	// PLAYER_1
-			{ TRACK_1,	-KB7_COL_SPACING*3.25f, NULL },
-			{ TRACK_2,	-KB7_COL_SPACING*2.25f, NULL },
-			{ TRACK_3,	-KB7_COL_SPACING*1.25f, NULL },
-			{ TRACK_4,	+KB7_COL_SPACING*0.0f, NULL },
-			{ TRACK_5,	+KB7_COL_SPACING*1.25f, NULL },
-			{ TRACK_6,	+KB7_COL_SPACING*2.25f, NULL },
-			{ TRACK_7,	+KB7_COL_SPACING*3.25f, NULL },
+			{ TRACK_1,    -KB7_COL_SPACING*3.0f, NULL },
+            		{ TRACK_2,    -KB7_COL_SPACING*2.0f, NULL },
+            		{ TRACK_3,    -KB7_COL_SPACING*1.0f, NULL },
+            		{ TRACK_4,    +KB7_COL_SPACING*0.0f, NULL },
+            		{ TRACK_5,    +KB7_COL_SPACING*1.0f, NULL },
+            		{ TRACK_6,    +KB7_COL_SPACING*2.0f, NULL },
+            		{ TRACK_7,    +KB7_COL_SPACING*3.0f, NULL },
 		},
 		{	// PLAYER_2
-			{ TRACK_1,	-KB7_COL_SPACING*3.25f, NULL },
-			{ TRACK_2,	-KB7_COL_SPACING*2.25f, NULL },
-			{ TRACK_3,	-KB7_COL_SPACING*1.25f, NULL },
-			{ TRACK_4,	+KB7_COL_SPACING*0.0f, NULL },
-			{ TRACK_5,	+KB7_COL_SPACING*1.25f, NULL },
-			{ TRACK_6,	+KB7_COL_SPACING*2.25f, NULL },
-			{ TRACK_7,	+KB7_COL_SPACING*3.25f, NULL },
+			{ TRACK_1,    -KB7_COL_SPACING*3.0f, NULL },
+            		{ TRACK_2,    -KB7_COL_SPACING*2.0f, NULL },
+            		{ TRACK_3,    -KB7_COL_SPACING*1.0f, NULL },
+            		{ TRACK_4,    +KB7_COL_SPACING*0.0f, NULL },
+            		{ TRACK_5,    +KB7_COL_SPACING*1.0f, NULL },
+            		{ TRACK_6,    +KB7_COL_SPACING*2.0f, NULL },
+            		{ TRACK_7,    +KB7_COL_SPACING*3.0f, NULL },
 		},
 	},
 	{	// m_iInputColumn[NUM_GameController][NUM_GameButton]
@@ -2748,6 +2746,9 @@ static const Game *g_Games[] =
 
 GameManager::GameManager()
 {
+	m_bResetModifiers = false;
+	m_fPreviousRate = 1.f;
+	m_sModsToReset;
 	// Register with Lua.
 	{
 		Lua *L = LUA->Get();
@@ -2767,7 +2768,7 @@ GameManager::~GameManager()
 
 void GameManager::GetStylesForGame( const Game *pGame, vector<const Style*>& aStylesAddTo, bool editor )
 {
-	for( int s=0; pGame->m_apStyles[s]; ++s ) 
+	for( int s=0; pGame->m_apStyles[s] != nullptr; ++s ) 
 	{
 		const Style *style = pGame->m_apStyles[s];
 		if( !editor && !style->m_bUsedForGameplay )	
@@ -2783,7 +2784,7 @@ const Game *GameManager::GetGameForStyle( const Style *pStyle )
 {
 	for(auto pGame : g_Games)
 	{
-			for( int s=0; pGame->m_apStyles[s]; ++s ) 
+			for( int s=0; pGame->m_apStyles[s] != nullptr; ++s ) 
 		{
 			if( pGame->m_apStyles[s] == pStyle )
 				return pGame;
@@ -2796,7 +2797,7 @@ const Style* GameManager::GetEditorStyleForStepsType( StepsType st )
 {
 	for(auto pGame : g_Games)
 	{
-			for( int s=0; pGame->m_apStyles[s]; ++s ) 
+			for( int s=0; pGame->m_apStyles[s] != nullptr; ++s ) 
 		{
 			const Style *style = pGame->m_apStyles[s];
 			if( style->m_StepsType == st && style->m_bUsedForEdit )
@@ -2811,7 +2812,7 @@ const Style* GameManager::GetEditorStyleForStepsType( StepsType st )
 
 void GameManager::GetStepsTypesForGame( const Game *pGame, vector<StepsType>& aStepsTypeAddTo )
 {
-	for( int i=0; pGame->m_apStyles[i]; ++i )
+	for( int i=0; pGame->m_apStyles[i] != nullptr; ++i )
 	{
 		StepsType st = pGame->m_apStyles[i]->m_StepsType;
 		ASSERT(st < NUM_StepsType);
@@ -2831,7 +2832,7 @@ void GameManager::GetDemonstrationStylesForGame( const Game *pGame, vector<const
 {
 	vpStylesOut.clear();
 
-	for( int s=0; pGame->m_apStyles[s]; ++s ) 
+	for( int s=0; pGame->m_apStyles[s] != nullptr; ++s ) 
 	{
 		const Style *style = pGame->m_apStyles[s];
 		if( style->m_bUsedForDemonstration )
@@ -2843,7 +2844,7 @@ void GameManager::GetDemonstrationStylesForGame( const Game *pGame, vector<const
 
 const Style* GameManager::GetHowToPlayStyleForGame( const Game *pGame )
 {
-	for( int s=0; pGame->m_apStyles[s]; ++s ) 
+	for( int s=0; pGame->m_apStyles[s] != nullptr; ++s ) 
 	{
 		const Style *style = pGame->m_apStyles[s];
 		if( style->m_bUsedForHowToPlay )
@@ -2874,7 +2875,7 @@ void GameManager::GetCompatibleStyles( const Game *pGame, int iNumPlayers, vecto
 		if( iNumPlayers != iNumPlayersRequired )
 			continue;
 
-		for( int s=0; pGame->m_apStyles[s]; ++s ) 
+		for( int s=0; pGame->m_apStyles[s] != nullptr; ++s ) 
 		{
 			const Style *style = pGame->m_apStyles[s];
 			if( style->m_StyleType != styleType )
@@ -3024,7 +3025,7 @@ public:
 	static int IsGameEnabled( T* p, lua_State *L )
 	{
 		const Game *pGame = p->StringToGame(SArg(1));
-		if(pGame)
+		if(pGame != nullptr)
 			lua_pushboolean(L, p->IsGameEnabled( pGame ) );
 		else
 			lua_pushnil(L);
@@ -3035,13 +3036,13 @@ public:
 	{
 		RString game_name= SArg(1);
 		const Game *pGame = p->StringToGame(game_name);
-		if(!pGame)
+		if(pGame == nullptr)
 		{
 			luaL_error(L, "GetStylesForGame: Invalid Game: '%s'", game_name.c_str());
 		}
 		vector<Style*> aStyles;
 		lua_createtable(L, 0, 0);
-		for( int s=0; pGame->m_apStyles[s]; ++s ) 
+		for( int s=0; pGame->m_apStyles[s] != nullptr; ++s ) 
 		{
 			auto *pStyle = const_cast<Style *>( pGame->m_apStyles[s] );
 			pStyle->PushSelf(L);
@@ -3066,7 +3067,7 @@ public:
 	{
 		RString game_name= SArg(1);
 		const Game *pGame = p->StringToGame(game_name);
-		if(!pGame)
+		if(pGame == nullptr)
 		{
 			luaL_error(L, "SetGame: Invalid Game: '%s'", game_name.c_str());
 		}

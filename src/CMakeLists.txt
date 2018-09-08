@@ -152,12 +152,16 @@ set_target_properties("${SM_EXE_NAME}" PROPERTIES
 )
 
 list(APPEND SM_WINDOWS_PROGRAM_DLLS
-  "${SM_PROGRAM_DIR}/avcodec-57.dll"
-  "${SM_PROGRAM_DIR}/avformat-57.dll"
-  "${SM_PROGRAM_DIR}/avutil-55.dll"
+  "${SM_PROGRAM_DIR}/avcodec-55.dll"
+  "${SM_PROGRAM_DIR}/avformat-55.dll"
+  "${SM_PROGRAM_DIR}/avutil-52.dll"
   "${SM_PROGRAM_DIR}/parallel_lights_io.dll"
-  "${SM_PROGRAM_DIR}/swresample-2.dll"
-  "${SM_PROGRAM_DIR}/swscale-4.dll"
+  "${SM_PROGRAM_DIR}/swscale-2.dll"
+  "${SM_PROGRAM_DIR}/uWS.dll"
+  "${SM_PROGRAM_DIR}/libuv.dll"
+  "${SM_PROGRAM_DIR}/SSLEAY32.dll"
+  "${SM_PROGRAM_DIR}/LIBEAY32.dll"
+  "${SM_PROGRAM_DIR}/zlib1.dll"
 )
 
 if(WIN32)
@@ -321,16 +325,28 @@ endif()
 set_property(TARGET "${SM_EXE_NAME}" PROPERTY FOLDER "Internal Libraries")
 
 list(APPEND SMDATA_LINK_LIB
-  "lua-5.1"
   "tomcrypt"
   "tommath"
   "zlib"
   "jsoncpp"
   "png"
   "glew"
+  "luajit"
   "jpeg"
+  "sqlite3"
+  "SQLiteCpp"
+  "nlohmann_json"
 )
 include(../extern/CMakeProject-mmmagic.cmake)
+
+if (HAS_MP3)
+  list(FIND SMDATA_LINK_LIB "jsoncpp" JSON_INDEX)
+  if (WIN32 OR MACOSX)
+    list(INSERT SMDATA_LINK_LIB ${JSON_INDEX} "mad")
+  else()
+    list(INSERT SMDATA_LINK_LIB ${JSON_INDEX} ${LIBMAD_LIBRARY})
+  endif()
+endif()
 
 if (NOT SYSTEM_PCRE_FOUND)
   list(APPEND SMDATA_LINK_LIB "pcre")
@@ -340,13 +356,16 @@ if (WIN32)
   
   list(APPEND SMDATA_LINK_LIB
     # The misc libraries are here.
-	"${LIB_SWRESAMPLE}"
     "${LIB_SWSCALE}"
     "${LIB_AVCODEC}"
     "${LIB_AVFORMAT}"
     "${LIB_AVUTIL}"
     "${LIB_CURL}"
     "${LIB_WLDAP32}"
+	"${LIB_UWS}"
+	"${LIB_EAY}"
+	"${LIB_SSL}"
+	"${LIB_UV}"
   )
   
   if (WITH_OGG)
@@ -392,7 +411,6 @@ elseif(APPLE)
     ${MAC_FRAME_CARBON}
     ${MAC_FRAME_COCOA}
     ${MAC_FRAME_IOKIT}
-    ${MAC_FRAME_QUICKTIME}
     ${MAC_FRAME_OPENGL}
     ${MAC_FRAME_COREFOUNDATION}
     ${MAC_FRAME_AUDIOTOOLBOX}
@@ -400,21 +418,21 @@ elseif(APPLE)
     ${MAC_FRAME_COREAUDIO}
     ${MAC_FRAME_CORESERVICES}
     "ogg"
-    "theora"
     "vorbis"
+    "vorbisfile"
   )
   list(APPEND SMDATA_LINK_LIB
     "${BZIP2_LIBRARY_RELEASE}"
     "${ICONV_LIBRARIES}"
     "pcre"
     "${CURL_LIBRARIES}"
+    "uWS"
   )
 
   if(HAS_FFMPEG)
     list(APPEND SMDATA_LINK_LIB
       "${SM_FFMPEG_ROOT}/libavformat/libavformat.a"
       "${SM_FFMPEG_ROOT}/libavcodec/libavcodec.a"
-	  "${SM_FFMPEG_ROOT}/libswresample/libswresample.a"
       "${SM_FFMPEG_ROOT}/libswscale/libswscale.a"
       "${SM_FFMPEG_ROOT}/libavutil/libavutil.a"
     )
@@ -428,7 +446,6 @@ else() # Unix / Linux
       list(APPEND SMDATA_LINK_LIB
         "${FFMPEG_avformat_LIBRARY}"
         "${FFMPEG_avcodec_LIBRARY}"
-		"${FFMPEG_swresample_LIBRARY}"
         "${FFMPEG_swscale_LIBRARY}"
         "${FFMPEG_avutil_LIBRARY}"
       )
@@ -437,7 +454,6 @@ else() # Unix / Linux
         "${SM_FFMPEG_ROOT}/libavformat/libavformat.a"
         "${SM_FFMPEG_ROOT}/libavcodec/libavcodec.a"
         "${SM_FFMPEG_ROOT}/libswscale/libswscale.a"
-		"${SM_FFMPEG_ROOT}/libswresample/libswresample.a"
         "${SM_FFMPEG_ROOT}/libavutil/libavutil.a"
       )
     endif()
@@ -462,6 +478,7 @@ else() # Unix / Linux
   list(APPEND SMDATA_LINK_LIB
     "${OPENGL_LIBRARY}"
     "${CURL_LIBRARIES}"
+    "uWS"
   )
 
   if(GTK2_FOUND)
@@ -519,9 +536,13 @@ list(APPEND SM_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
   "${SM_SRC_DIR}/generated"
 )
+
+list(APPEND SM_INCLUDE_DIRS "${SM_EXTERN_DIR}/LuaJIT-2.1.0-beta3/src")
+
 if(NOT APPLE)
   list(APPEND SM_INCLUDE_DIRS
     "${SM_EXTERN_DIR}/glew-1.5.8/include"
+    "${SM_EXTERN_DIR}/json/include"
     "${SM_EXTERN_DIR}/jsoncpp/include"
     "${SM_EXTERN_DIR}/zlib"
   )
@@ -624,13 +645,17 @@ if(NOT APPLE)
     if (WITH_FULL_RELEASE OR WITH_TEXTURE_GENERATOR)
       install(FILES "${SM_PROGRAM_DIR}/Texture Font Generator.exe" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
     endif()
-    install(FILES "${SM_PROGRAM_DIR}/avcodec-57.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
-    install(FILES "${SM_PROGRAM_DIR}/avformat-57.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
-    install(FILES "${SM_PROGRAM_DIR}/avutil-55.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    install(FILES "${SM_PROGRAM_DIR}/avcodec-55.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    install(FILES "${SM_PROGRAM_DIR}/avformat-55.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    install(FILES "${SM_PROGRAM_DIR}/avutil-52.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
     install(FILES "${SM_PROGRAM_DIR}/parallel_lights_io.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
-	install(FILES "${SM_PROGRAM_DIR}/swresample-2.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
-    install(FILES "${SM_PROGRAM_DIR}/swscale-4.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
     install(FILES "${SM_PROGRAM_DIR}/Etterna.vdi" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    install(FILES "${SM_PROGRAM_DIR}/swscale-2.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    install(FILES "${SM_PROGRAM_DIR}/uWS.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    install(FILES "${SM_PROGRAM_DIR}/LIBEAY32.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    install(FILES "${SM_PROGRAM_DIR}/libuv.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    install(FILES "${SM_PROGRAM_DIR}/SSLEAY32.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    install(FILES "${SM_PROGRAM_DIR}/zlib1.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
 
     # foreach(SM_WINDOW_DLL "${SM_WINDOWS_PROGRAM_DLLS}")
     #   install(FILES "${SM_WINDOW_DLL}" DESTINATION "${SM_INSTALL_DESTINATION}")
@@ -652,10 +677,10 @@ if(NOT APPLE)
   install(DIRECTORY "${SM_ROOT_DIR}/Docs" DESTINATION "${SM_INSTALL_DESTINATION}")
   install(DIRECTORY "${SM_ROOT_DIR}/NoteSkins" DESTINATION "${SM_INSTALL_DESTINATION}")
   if (NOT SM_INSTALL_DESTINATION)
-    install(DIRECTORY "${SM_ROOT_DIR}/Songs/Etterna" DESTINATION "Songs")
+    install(DIRECTORY "${SM_ROOT_DIR}/Songs" DESTINATION "Songs")
     install(FILES "${SM_ROOT_DIR}/Songs/instructions.txt" DESTINATION "Songs")
   else()
-    install(DIRECTORY "${SM_ROOT_DIR}/Songs/Etterna" DESTINATION "${SM_INSTALL_DESTINATION}/Songs")
+    install(DIRECTORY "${SM_ROOT_DIR}/Songs/" DESTINATION "${SM_INSTALL_DESTINATION}/Songs")
     install(FILES "${SM_ROOT_DIR}/Songs/instructions.txt" DESTINATION "${SM_INSTALL_DESTINATION}/Songs")
   endif()
 endif()

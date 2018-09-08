@@ -1,14 +1,13 @@
 #include "global.h"
-#include "Screen.h"
-#include "PrefsManager.h"
-#include "RageSound.h"
-#include "RageLog.h"
-#include "ThemeManager.h"
-#include "ScreenManager.h"
 #include "ActorUtil.h"
 #include "InputEventPlus.h"
 #include "InputMapper.h"
+#include "PrefsManager.h"
+#include "RageLog.h"
+#include "Screen.h"
+#include "ScreenManager.h"
 #include "RageInput.h"
+#include "ThemeManager.h"
 
 #define NEXT_SCREEN		THEME->GetMetric (m_sName,"NextScreen")
 #define PREV_SCREEN		THEME->GetMetric (m_sName,"PrevScreen")
@@ -189,19 +188,20 @@ bool Screen::Input( const InputEventPlus &input )
 	default:
 		return false; // don't care
 	}
-
-	// Always broadcast mouse input so themers can grab it. -aj
-	if( input.DeviceI == DeviceInput( DEVICE_MOUSE, MOUSE_LEFT ) )
-		MESSAGEMAN->Broadcast( (MessageID)(Message_LeftClick) );
-	if( input.DeviceI == DeviceInput( DEVICE_MOUSE, MOUSE_RIGHT ) )
-		MESSAGEMAN->Broadcast( (MessageID)(Message_RightClick) );
-	if( input.DeviceI == DeviceInput( DEVICE_MOUSE, MOUSE_MIDDLE ) )
-		MESSAGEMAN->Broadcast( (MessageID)(Message_MiddleClick) );
-	// Can't do MouseWheelUp and MouseWheelDown at the same time. -aj
-	if( input.DeviceI == DeviceInput( DEVICE_MOUSE, MOUSE_WHEELUP ) )
-		MESSAGEMAN->Broadcast( (MessageID)(Message_MouseWheelUp) );
-	else if( input.DeviceI == DeviceInput( DEVICE_MOUSE, MOUSE_WHEELDOWN ) )
-		MESSAGEMAN->Broadcast( (MessageID)(Message_MouseWheelDown) );
+	if (input.type == IET_FIRST_PRESS) {
+		// Always broadcast mouse input so themers can grab it. -aj
+		if (input.DeviceI == DeviceInput(DEVICE_MOUSE, MOUSE_LEFT))
+			MESSAGEMAN->Broadcast(Message_LeftClick);
+		if (input.DeviceI == DeviceInput(DEVICE_MOUSE, MOUSE_RIGHT))
+			MESSAGEMAN->Broadcast(Message_RightClick);
+		if (input.DeviceI == DeviceInput(DEVICE_MOUSE, MOUSE_MIDDLE))
+			MESSAGEMAN->Broadcast(Message_MiddleClick);
+		// Can't do MouseWheelUp and MouseWheelDown at the same time. -aj
+		if (input.DeviceI == DeviceInput(DEVICE_MOUSE, MOUSE_WHEELUP))
+			MESSAGEMAN->Broadcast(Message_MouseWheelUp);
+		else if (input.DeviceI == DeviceInput(DEVICE_MOUSE, MOUSE_WHEELDOWN))
+			MESSAGEMAN->Broadcast(Message_MouseWheelDown);
+	}
 
 	// default input handler used by most menus
 	switch( input.MenuI )
@@ -350,7 +350,7 @@ bool Screen::PassInputToLua(const InputEventPlus& input)
 	lua_setfield(L, -2, "type");
 	char s[5];
 	wctomb(s, INPUTMAN->DeviceInputToChar(input.DeviceI, true));
-	LuaHelpers::Push(L, string(s));
+	LuaHelpers::Push(L, string(1, s[0]));
 	lua_setfield(L, -2, "char");
 	LuaHelpers::Push(L, GameButtonToString(INPUTMAPPER->GetInputScheme(), input.MenuI));
 	lua_setfield(L, -2, "GameButton");
@@ -358,10 +358,10 @@ bool Screen::PassInputToLua(const InputEventPlus& input)
 	lua_setfield(L, -2, "PlayerNumber");
 	Enum::Push(L, input.mp);
 	lua_setfield(L, -2, "MultiPlayer");
-	for(map<callback_key_t, LuaReference>::iterator callback= m_InputCallbacks.begin();
-			callback != m_InputCallbacks.end() && !handled; ++callback)
-	{
-		callback->second.PushSelf(L);
+	for(auto k : orderedcallbacks) {
+		if(handled)
+			break;
+		m_InputCallbacks[k].PushSelf(L);
 		lua_pushvalue(L, -2);
 		RString error= "Error running input callback: ";
 		LuaHelpers::RunScriptOnStack(L, error, 1, 1, true);
@@ -386,6 +386,7 @@ void Screen::AddInputCallbackFromStack(lua_State* L)
 {
 	callback_key_t key= lua_topointer(L, 1);
 	m_InputCallbacks[key]= LuaReference(L);
+	orderedcallbacks.push_back(key);
 }
 
 void Screen::RemoveInputCallback(lua_State* L)
@@ -429,7 +430,7 @@ public:
 	{
 		RString sMessage = SArg(1);
 		ScreenMessage SM = ScreenMessageHelpers::ToScreenMessage( sMessage );
-		p->PostScreenMessage( SM, IArg(2) );
+		p->PostScreenMessage( SM, static_cast<float>(IArg(2)) );
 		COMMON_RETURN_SELF;
 	}
 
@@ -469,6 +470,8 @@ public:
 
 LUA_REGISTER_DERIVED_CLASS( Screen, ActorFrame )
 // lua end
+
+REGISTER_SCREEN_CLASS(Screen);
 
 /*
  * (c) 2001-2004 Chris Danford, Glenn Maynard

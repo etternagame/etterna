@@ -139,7 +139,7 @@ local function littlebits(i)
 			SetCommand=function(self)
 				if song and steps then
 					self:settextf("%05.2f",meter[i+1])
-					self:diffuse(ByMSD(meter[i+1]))
+					self:diffuse(byMSD(meter[i+1]))
 				else
 					self:settext("")
 				end
@@ -168,7 +168,10 @@ t[#t+1] = LoadFont("Common Large") .. {
 		ChangeMusicRate(rate,params)
 		self:settext(getCurRateDisplayString())
 	end,
-	CurrentRateChangedCommand=function(self)
+	RateChangedMessageCommand=function(self,params)
+		self:settext(getCurRateDisplayString())
+	end,
+	CurrentRateChangedMessageCommand=function(self)
 		self:queuecommand("set")
 	end	
 }

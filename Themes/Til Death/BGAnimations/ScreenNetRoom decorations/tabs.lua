@@ -3,7 +3,7 @@ local active = true
 local CtrlPressed = false
 local function input(event)
 	if event.type ~= "InputEventType_Release" and active then
-		for i=1,3 do
+		for i=1,(NSMAN:IsETTP() and 2 or 3) do
 			if event.DeviceInput.button == "DeviceButton_"..i and CtrlPressed == true then
 				setTabIndex(i-1)
 				MESSAGEMAN:Broadcast("TabChanged")
@@ -59,9 +59,14 @@ t[#t+1] = LoadFont("Common Normal") .. {
 --]]
 --======================================================================================
 
-local tabNames = {"Chatbox","Search","Profile"} -- this probably should be in tabmanager.
+local tabNames 
+if NSMAN:IsETTP() then
+	tabNames = {"Search","Profile"}
+else
+	tabNames = {"Chatbox","Search","Profile"}
+end
 
-local frameWidth = (SCREEN_WIDTH*(9/24))/(#tabNames-1)
+local frameWidth = (SCREEN_WIDTH*(7/24))/(#tabNames-1)
 local frameX = frameWidth/2
 local frameY = SCREEN_HEIGHT-70
 

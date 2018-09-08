@@ -1,21 +1,21 @@
 #include "global.h"
-#include "ScreenSyncOverlay.h"
-#include "ScreenDimensions.h"
-#include "ScreenManager.h"
-#include "GameState.h"
-#include "Song.h"
-#include "PrefsManager.h"
+#include "ActorUtil.h"
+#include "AdjustSync.h"
 #include "GamePreferences.h"
+#include "GameState.h"
 #include "InputEventPlus.h"
 #include "LocalizedString.h"
-#include "AdjustSync.h"
-#include "ActorUtil.h"
+#include "PrefsManager.h"
+#include "ScreenDimensions.h"
+#include "ScreenManager.h"
+#include "ScreenSyncOverlay.h"
+#include "Song.h"
 
 static bool previousGameplayState;
 
 static bool IsGameplay()
 {
-	return SCREENMAN && SCREENMAN->GetTopScreen() && SCREENMAN->GetTopScreen()->GetScreenType() == gameplay;
+	return (SCREENMAN != nullptr) && (SCREENMAN->GetTopScreen() != nullptr) && SCREENMAN->GetTopScreen()->GetScreenType() == gameplay;
 }
 
 REGISTER_SCREEN_CLASS( ScreenSyncOverlay );
@@ -63,6 +63,7 @@ void ScreenSyncOverlay::SetShowAutoplay( bool b )
 
 static LocalizedString AUTO_PLAY		( "ScreenSyncOverlay", "AutoPlay" );
 static LocalizedString AUTO_PLAY_CPU		( "ScreenSyncOverlay", "AutoPlayCPU" );
+static LocalizedString AUTO_PLAY_REPLAY		( "ScreenSyncOverlay", "Replay");
 static LocalizedString AUTO_SYNC_SONG		( "ScreenSyncOverlay", "AutoSync Song" );
 static LocalizedString AUTO_SYNC_MACHINE	( "ScreenSyncOverlay", "AutoSync Machine" );
 static LocalizedString AUTO_SYNC_TEMPO		( "ScreenSyncOverlay", "AutoSync Tempo" );
@@ -84,6 +85,7 @@ void ScreenSyncOverlay::UpdateText()
 		case PC_HUMAN:						break;
 		case PC_AUTOPLAY:	vs.push_back(AUTO_PLAY);	break;
 		case PC_CPU:		vs.push_back(AUTO_PLAY_CPU);	break;
+		case PC_REPLAY:		vs.push_back(AUTO_PLAY_REPLAY); break;
 		default:
 			FAIL_M(ssprintf("Invalid PlayerController: %i", pc));
 		}

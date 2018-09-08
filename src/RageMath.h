@@ -1,4 +1,4 @@
-/* RageMath - vector/matrix math utilities. */
+﻿/* RageMath - vector/matrix math utilities. */
 
 #ifndef RAGE_MATH_H
 #define RAGE_MATH_H
@@ -25,7 +25,6 @@ void RageVec3TransformCoord( struct RageVector3* pOut, const struct RageVector3*
 void RageVec3TransformNormal( struct RageVector3* pOut, const struct RageVector3* pV, const struct RageMatrix* pM );
 void RageVec4TransformCoord( struct RageVector4* pOut, const struct RageVector4* pV, const struct RageMatrix* pM );
 void RageMatrixIdentity( struct RageMatrix* pOut );
-// pOut = pB * pA
 void RageMatrixMultiply( struct RageMatrix* pOut, const struct RageMatrix* pA, const struct RageMatrix* pB );
 void RageMatrixTranslation( struct RageMatrix* pOut, float x, float y, float z );
 void RageMatrixScaling( struct RageMatrix* pOut, float x, float y, float z );

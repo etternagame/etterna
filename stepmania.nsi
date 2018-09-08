@@ -23,8 +23,8 @@
 	!system "utils\upx Program\*.exe" ignore
 
 	Name "${PRODUCT_DISPLAY}"
+	
 	OutFile "${PRODUCT_DISPLAY}.exe"
-
 	Caption "${PRODUCT_DISPLAY} | install"
 	UninstallCaption "${PRODUCT_DISPLAY} | uninstall"
 
@@ -43,7 +43,7 @@
 
 	; don't forget to change this before releasing a new version.
 	; wish this could be automated, but it requires "X.Y.Z.a" format. -aj
-	VIProductVersion "0.58.0.0"
+	VIProductVersion "0.60.0.0"
 	VIAddVersionKey "ProductName" "${PRODUCT_ID}"
 	VIAddVersionKey "FileVersion" "${PRODUCT_VER}"
 	VIAddVersionKey "FileDescription" "${PRODUCT_ID} Installer"
@@ -279,6 +279,10 @@ Section "Main Section" SecMain
 	;CreateDirectory "$INSTDIR\CDTitles"
 	;SetOutPath "$INSTDIR\CDTitles"
 	;File "CDTitles\Instructions.txt"
+	
+	; install lualibs
+	SetOutPath "$INSTDIR"
+	File /r /x CVS /x .svn "lualibs"
 
 	RMDir /r "$INSTDIR\Characters\default"
 	CreateDirectory "$INSTDIR\Characters\default"
@@ -406,8 +410,6 @@ Section "Main Section" SecMain
 	CreateDirectory "$INSTDIR\Songs"
 	SetOutPath "$INSTDIR\Songs"
 	;File "Songs\Instructions.txt"
-	File /r /x CVS /x .svn "Songs\Etterna*"
-
 	; remove and install themes
 	RMDir /r "$INSTDIR\Themes\_fallback"
 	RMDir /r "$INSTDIR\Themes\_portKit-sm4"
@@ -419,10 +421,25 @@ Section "Main Section" SecMain
 	; no more portkit sm4
 	;File /r /x CVS /x .svn "Themes\_portKit-sm4"
 	File /r /x CVS /x .svn "Themes\Til Death"
-
 	CreateDirectory "$INSTDIR\Data"
+	
+	CreateDirectory "$INSTDIR\Data\AutoMappings"
+	SetOutPath "$INSTDIR\Data\AutoMappings"
+	File /r /x CVS /x svn "Data\AutoMappings\*"
+	
+	CreateDirectory "$INSTDIR\Data\Shaders"
+	SetOutPath "$INSTDIR\Data\Shaders"
+	File /r /x CVS /x svn "Data\Shaders\*"	
+	
 	SetOutPath "$INSTDIR\Data"
-	File /r /x CVS /x .svn "Data\*"
+	File /r /x CVS /x .svn "Data\*.txt"
+	File /r /x CVS /x .svn "Data\*.ini"
+	File /r /x CVS /x .svn "Data\*.xml"
+	File /r /x CVS /x .svn "Data\*.png"
+	
+	SetOverwrite off
+		File /r /x CVS /x .svn "Data\*.ttf"
+	SetOverwrite on
 !endif
 
 !ifdef INSTALL_INTERNAL_PCKS
@@ -482,12 +499,19 @@ Section "Main Section" SecMain
 	continue:
 	
 	; FFmpeg and related
-	File "Program\avcodec-57.dll"
+	File "Program\avcodec-55.dll"
 	;File "Program\avdevice-52.dll"
-	File "Program\avformat-57.dll"
-	File "Program\avutil-55.dll"
-	File "Program\swresample-2.dll"
-	File "Program\swscale-4.dll"
+	File "Program\avformat-55.dll"
+	File "Program\avutil-52.dll"
+	File "Program\swscale-2.dll"
+	;uwebsocket
+	File "Program\uWS.dll"
+	File "Program\SSLEAY32.dll"
+	File "Program\LIBEAY32.dll"
+	File "Program\libuv.dll"
+	File "Program\zlib1.dll"
+	;libcurl
+	File "Program\libcurl.dll"
 	; parallel lights
 	File "Program\parallel_lights_io.dll"
 	; others
@@ -908,26 +932,23 @@ Section "Uninstall"
 	Delete "$INSTDIR\Program\msvcr90.dll"
 	Delete "$INSTDIR\Program\msvcp90.dll"
 	; FFmpeg and related
-	Delete "$INSTDIR\Program\avcodec-57.dll"
 	Delete "$INSTDIR\Program\avcodec-55.dll"
 	Delete "$INSTDIR\Program\avcodec-53.dll"
 	Delete "$INSTDIR\Program\avcodec-52.dll"
 	Delete "$INSTDIR\Program\avdevice-52.dll"
-	Delete "$INSTDIR\Program\avformat-57.dll"
 	Delete "$INSTDIR\Program\avformat-55.dll"
 	Delete "$INSTDIR\Program\avformat-53.dll"
 	Delete "$INSTDIR\Program\avformat-52.dll"
-	Delete "$INSTDIR\Program\avutil-55.dll"
 	Delete "$INSTDIR\Program\avutil-52.dll"
 	Delete "$INSTDIR\Program\avutil-51.dll"
 	Delete "$INSTDIR\Program\avutil-50.dll"
-	Delete "$INSTDIR\Program\swresample-2.dll"
-	Delete "$INSTDIR\Program\swscale-4.dll"
 	Delete "$INSTDIR\Program\swscale-2.dll"
 	Delete "$INSTDIR\Program\swscale-0.dll"
+	Delete "$INSTDIR\Program\uWS.dll"
 	; others
 	Delete "$INSTDIR\Program\dbghelp.dll"
 	Delete "$INSTDIR\Program\jpeg.dll"
+	Delete "$INSTDIR\Program\libcurl.dll"
 	Delete "$INSTDIR\Program\parallel_lights_io.dll"
 	Delete "$INSTDIR\Program\zlib1.dll"
 	RMDir "$INSTDIR\Program"

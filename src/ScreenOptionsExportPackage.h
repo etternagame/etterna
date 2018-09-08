@@ -1,8 +1,8 @@
 #ifndef ScreenOptionsExportPackage_H
 #define ScreenOptionsExportPackage_H
 
-#include "ScreenOptions.h"
 #include "ScreenMiniMenu.h"
+#include "ScreenOptions.h"
 
 // Can this be done any better? -aj
 namespace ExportPackages

@@ -1,5 +1,7 @@
-#ifndef NOTES_WRITER_SSC_H
+﻿#ifndef NOTES_WRITER_SSC_H
 #define NOTES_WRITER_SSC_H
+
+#include "Steps.h"
 
 class Song;
 class Steps;
@@ -34,6 +36,8 @@ namespace NotesWriterSSC
 	 * @param sErrorOut any error messages that may have occurred.
 	 * @return its success or failure. */
 	bool WriteEditFileToMachine( const Song *pSong, Steps *pSteps, RString &sErrorOut );
+	RString MSDToString(MinaSD x);
+	RString MSDsAtRateToString(SDiffs x);
 }
 
 #endif

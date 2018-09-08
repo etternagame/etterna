@@ -1,9 +1,10 @@
-/* RageFile - High-level file access. */
+﻿/* RageFile - High-level file access. */
 
 #ifndef RAGE_FILE_H
 #define RAGE_FILE_H
 
 #include "RageFileBasic.h"
+
 struct lua_State;
 
 /**

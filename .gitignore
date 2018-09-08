@@ -21,6 +21,7 @@ Contents/
 Xcode/Info.StepMania.plist
 Xcode/plistHelper.hpp
 src/generated
+extern/mad-0.15.1b/config.h
 extern/libjpeg/jconfig.h
 extern/newogg/include/ogg/config_types.h
 
@@ -46,6 +47,9 @@ PBProject/Hardware.plist
 *.app
 *.dmg
 .DS_Store
+
+# Visual Studio 2015/2017 cache/options directory
+.vs/
 
 # Visual Studio
 *.sln
@@ -84,7 +88,7 @@ core
 # StepMania Specific
 Cache/
 Save/**
-!Save/LocalProfiles/00000000
+Songs/
 Logs/
 src/*.so
 crashinfo.txt
@@ -106,3 +110,7 @@ tests/*.err
 
 nsis_strings_temp\.inc
 BatchRecalc/*
+
+Xcode/Info\.Etterna\.plist
+
+extern/LuaJit*/lj_*def.h

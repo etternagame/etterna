@@ -1,11 +1,10 @@
-#ifndef LIFEMETERBAR_H
+﻿#ifndef LIFEMETERBAR_H
 #define LIFEMETERBAR_H
 
-#include "LifeMeter.h"
-#include "Sprite.h"
 #include "AutoActor.h"
-#include "Quad.h"
+#include "LifeMeter.h"
 #include "ThemeMetric.h"
+
 class StreamDisplay;
 
 /** @brief The player's life represented as a bar. */
@@ -68,7 +67,6 @@ private:
 	float		m_fPassingAlpha;
 	float		m_fHotAlpha;
 
-	bool		m_bMercifulBeginnerInEffect;
 	float		m_fBaseLifeDifficulty;
 	float		m_fLifeDifficulty;		// essentially same as pref
 

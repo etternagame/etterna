@@ -1,4 +1,4 @@
-/** @brief GameManager - Manages Games and Styles. */
+﻿/** @brief GameManager - Manages Games and Styles. */
 
 #ifndef GAMEMANAGER_H
 #define GAMEMANAGER_H
@@ -8,7 +8,6 @@ struct Game;
 struct lua_State;
 
 #include "GameConstantsAndTypes.h"
-#include "GameInput.h"
 
 /** @brief The collective information about a Steps' Type. */
 struct StepsTypeInfo
@@ -49,6 +48,10 @@ public:
 	const Game* StringToGame( const RString &sGame );
 	const Style* GameAndStringToStyle( const Game* pGame, const RString &sStyle );
 	RString StyleToLocalizedString( const Style* s );
+
+	bool m_bResetModifiers;
+	float m_fPreviousRate;
+	RString m_sModsToReset;
 
 
 	// Lua

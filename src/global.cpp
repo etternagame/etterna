@@ -1,4 +1,4 @@
-#include "global.h"
+﻿#include "global.h"
 
 #if defined(HAVE_UNISTD_H)
 #include <unistd.h>

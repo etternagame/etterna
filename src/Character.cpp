@@ -1,9 +1,9 @@
-#include "global.h"
+﻿#include "global.h"
+#include "ActorUtil.h"
 #include "Character.h"
 #include "IniFile.h"
-#include "RageUtil.h"
 #include "RageTextureID.h"
-#include "ActorUtil.h"
+#include "RageUtil.h"
 
 RString GetRandomFileInDir( const RString &sDir );
 

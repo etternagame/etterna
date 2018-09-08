@@ -1,15 +1,15 @@
-#include "global.h"
-#include "InputMapper.h"
+﻿#include "global.h"
+#include "Foreach.h"
 #include "IniFile.h"
-#include "MessageManager.h"
-#include "RageLog.h"
 #include "InputFilter.h"
-#include "RageUtil.h"
+#include "InputMapper.h"
+#include "LocalizedString.h"
+#include "MessageManager.h"
 #include "PrefsManager.h"
 #include "RageInput.h"
+#include "RageLog.h"
+#include "RageUtil.h"
 #include "SpecialFiles.h"
-#include "LocalizedString.h"
-#include "Foreach.h"
 #include "arch/Dialog/Dialog.h"
 
 #define AUTOMAPPINGS_DIR "/Data/AutoMappings/"
@@ -24,7 +24,7 @@ namespace
 	map<DeviceInput, GameInput> g_tempDItoGI;
 
 	PlayerNumber g_JoinControllers;
-};
+} // namespace;
 
 InputMapper*	INPUTMAPPER = NULL;	// global and accessible from anywhere in our program
 
@@ -66,7 +66,8 @@ static const AutoMappings g_DefaultKeyMappings = AutoMappings(
 	AutoMappingEntry( 0, KEY_KP_C0,	GAME_BUTTON_SELECT,	true ),
 	AutoMappingEntry( 0, KEY_HYPHEN,	GAME_BUTTON_BACK,	true ), // laptop keyboards.
 	AutoMappingEntry( 0, KEY_F1,	GAME_BUTTON_COIN,	false ),
-	AutoMappingEntry( 0, KEY_SCRLLOCK,	GAME_BUTTON_OPERATOR,	false )
+	AutoMappingEntry( 0, KEY_SCRLLOCK,	GAME_BUTTON_OPERATOR,	false ),
+	AutoMappingEntry( 0, KEY_ACCENT, GAME_BUTTON_RESTART, false)
 );
 
 void InputMapper::AddDefaultMappingsForCurrentGameIfUnmapped()
@@ -867,10 +868,10 @@ PlayerNumber InputMapper::ControllerToPlayerNumber( GameController controller ) 
 {
 	if( controller == GameController_Invalid )
 		return PLAYER_INVALID;
-	else if( g_JoinControllers != PLAYER_INVALID )
+	if( g_JoinControllers != PLAYER_INVALID )
 		return g_JoinControllers;
-	else
-		return (PlayerNumber) controller;
+	
+		return static_cast<PlayerNumber>( controller);
 }
 
 GameButton InputMapper::GameButtonToMenuButton( GameButton gb ) const
@@ -1083,7 +1084,7 @@ MultiPlayer InputMapper::InputDeviceToMultiPlayer( InputDevice id )
 
 GameButton InputScheme::ButtonNameToIndex( const RString &sButtonName ) const
 {
-	for( auto gb=(GameButton) 0; gb<m_iButtonsPerController; gb=(GameButton)(gb+1) ) 
+	for( auto gb=static_cast<GameButton>( 0); gb<m_iButtonsPerController; gb=static_cast<GameButton>(gb+1) ) 
 		if( strcasecmp(GetGameButtonName(gb), sButtonName) == 0 )
 			return gb;
 
@@ -1151,6 +1152,7 @@ static const InputScheme::GameButtonInfo g_CommonGameButtonInfo[] =
 	{ "Operator",	GAME_BUTTON_OPERATOR },
 	{ "EffectUp",	GAME_BUTTON_EFFECT_UP },
 	{ "EffectDown",	GAME_BUTTON_EFFECT_DOWN },
+	{ "RestartGameplay", GAME_BUTTON_RESTART },
 };
 
 const InputScheme::GameButtonInfo *InputScheme::GetGameButtonInfo( GameButton gb ) const
@@ -1158,7 +1160,7 @@ const InputScheme::GameButtonInfo *InputScheme::GetGameButtonInfo( GameButton gb
 	COMPILE_ASSERT( GAME_BUTTON_NEXT == ARRAYLEN(g_CommonGameButtonInfo) );
 	if( gb < GAME_BUTTON_NEXT )
 		return &g_CommonGameButtonInfo[gb];
-	else
+	
 		return &m_GameButtonInfo[gb-GAME_BUTTON_NEXT];
 }
 
@@ -1213,7 +1215,7 @@ void InputMappings::ReadMappings( const InputScheme *pInputScheme, const RString
 
 	const XNode *Key = ini.GetChild( pInputScheme->m_szName );
 
-	if( Key  )
+	if( Key != nullptr  )
 	{
 		FOREACH_CONST_Attr( Key, i )
 		{

@@ -1,19 +1,15 @@
-#include "global.h"
-#include "LifeMeterBar.h"
-#include "PrefsManager.h"
-#include "RageLog.h"
-#include "RageTimer.h"
+﻿#include "global.h"
+#include "ActorUtil.h"
 #include "GameState.h"
-#include "RageMath.h"
-#include "ThemeManager.h"
+#include "LifeMeterBar.h"
+#include "PlayerState.h"
+#include "PrefsManager.h"
 #include "Song.h"
 #include "StatsManager.h"
-#include "ThemeMetric.h"
-#include "PlayerState.h"
-#include "Quad.h"
-#include "ActorUtil.h"
-#include "StreamDisplay.h"
 #include "Steps.h"
+#include "StreamDisplay.h"
+#include "ThemeManager.h"
+#include "ThemeMetric.h"
 
 static RString LIFE_PERCENT_CHANGE_NAME( size_t i )   { return "LifePercentChange" + ScoreEventToString( (ScoreEvent)i ); }
 
@@ -86,7 +82,6 @@ void LifeMeterBar::Load( const PlayerState *pPlayerState, PlayerStageStats *pPla
 {
 	LifeMeter::Load( pPlayerState, pPlayerStageStats );
 
-	PlayerNumber pn = pPlayerState->m_PlayerNumber;
 
 	DrainType dtype = pPlayerState->m_PlayerOptions.GetStage().m_DrainType;
 	switch( dtype )

@@ -1,12 +1,10 @@
-#include "global.h"
+﻿#include "global.h"
 #include "CommonMetrics.h"
-#include "RageUtil.h"
 #include "Foreach.h"
 #include "GameManager.h"
-#include "RageLog.h"
 #include "GameState.h"
-#include "ProductInfo.h"
 #include "LuaManager.h"
+#include "RageUtil.h"
 
 ThemeMetric<RString>		CommonMetrics::OPERATOR_MENU_SCREEN		("Common","OperatorMenuScreen");
 ThemeMetric<RString>		CommonMetrics::FIRST_ATTRACT_SCREEN		("Common","FirstAttractScreen");
@@ -18,6 +16,7 @@ ThemeMetricDifficultiesToShow	CommonMetrics::DIFFICULTIES_TO_SHOW		("Common","Di
 ThemeMetricStepsTypesToShow	CommonMetrics::STEPS_TYPES_TO_SHOW		("Common","StepsTypesToHide");
 ThemeMetric<bool>			CommonMetrics::AUTO_SET_STYLE			("Common","AutoSetStyle");
 ThemeMetric<int>			CommonMetrics::PERCENT_SCORE_DECIMAL_PLACES	("Common","PercentScoreDecimalPlaces");
+ThemeMetric<RString>		CommonMetrics::IMAGES_TO_CACHE	("Common","ImageCache");
 
 ThemeMetricDifficultiesToShow::ThemeMetricDifficultiesToShow( const RString& sGroup, const RString& sName ) : 
 	ThemeMetric<RString>(sGroup,sName)

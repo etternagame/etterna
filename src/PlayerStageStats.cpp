@@ -1,20 +1,19 @@
-#include "global.h"
-#include "PlayerStageStats.h"
-#include "RageLog.h"
-#include "ThemeManager.h"
-#include "Foreach.h"
-#include "LuaManager.h"
-#include <cfloat>
-#include "GameState.h"
-#include "Steps.h"
-#include "NoteData.h"
-#include "ScoreKeeperNormal.h"
-#include "PrefsManager.h"
+﻿#include "global.h"
 #include "CommonMetrics.h"
-#include "MinaCalc.h"
 #include "CryptManager.h"
+#include "Foreach.h"
+#include "GameState.h"
+#include "LuaManager.h"
+#include "MinaCalc.h"
+#include "NoteData.h"
+#include "PlayerStageStats.h"
+#include "PrefsManager.h"
+#include "RageLog.h"
+#include "ScoreKeeperNormal.h"
+#include "Steps.h"
+#include "ThemeManager.h"
 
-#define GRADE_PERCENT_TIER(i)	THEME->GetMetricF("PlayerStageStats",ssprintf("GradePercent%s",GradeToString((Grade)i).c_str()))
+#define GRADE_PERCENT_TIER(i)	THEME->GetMetricF("PlayerStageStats",ssprintf("GradePercent%s",GradeToString((Grade)(i)).c_str()))
 // deprecated, but no solution to replace them exists yet:
 #define GRADE_TIER02_IS_ALL_W2S	THEME->GetMetricB("PlayerStageStats","GradeTier02IsAllW2s")
 #define GRADE_TIER01_IS_ALL_W2S THEME->GetMetricB("PlayerStageStats","GradeTier01IsAllW2s")
@@ -29,12 +28,11 @@ Grade GetGradeFromPercent( float fPercent );
 
 void PlayerStageStats::InternalInit()
 {
-	m_pStyle= NULL;
-	m_for_multiplayer= false;
-	m_player_number= PLAYER_1;
-	m_multiplayer_number= MultiPlayer_P1;
-
-  m_bPlayerCanAchieveFullCombo = true;
+	m_pStyle = nullptr;
+	m_for_multiplayer = false;
+	m_player_number = PLAYER_1;
+	m_multiplayer_number = MultiPlayer_P1;
+	m_bPlayerCanAchieveFullCombo = true;
 	m_bJoined = false;
 	m_vpPossibleSteps.clear();
 	m_iStepsPlayed = 0;
@@ -49,6 +47,9 @@ void PlayerStageStats::InternalInit()
 	m_fTimingScale = 0.f;
 	m_vOffsetVector.clear();
 	m_vNoteRowVector.clear();
+	m_vTrackVector.clear();
+	m_vTapNoteTypeVector.clear();
+	m_vHoldReplayData.clear();
 	InputData.clear();
 	m_iPossibleGradePoints = 0;
 	m_iCurCombo = 0;
@@ -68,6 +69,8 @@ void PlayerStageStats::InternalInit()
 	luascriptwasloaded = false;
 	filehadnegbpms = false;
 	filegotmines = false;
+	gaveuplikeadumbass = false;
+	filegotholds = false;
 
 	ZERO( m_iTapNoteScores );
 	ZERO( m_iHoldNoteScores );
@@ -106,7 +109,7 @@ void PlayerStageStats::AddStats( const PlayerStageStats& other )
 		m_vpPossibleSteps.push_back( *s );
 	m_iStepsPlayed += other.m_iStepsPlayed;
 	m_fAliveSeconds += other.m_fAliveSeconds;
-	m_bFailed |= other.m_bFailed;
+	m_bFailed |= static_cast<int>(other.m_bFailed);
 	m_iPossibleDancePoints += other.m_iPossibleDancePoints;
 	m_iActualDancePoints += other.m_iActualDancePoints;
 	m_iCurPossibleDancePoints += other.m_iCurPossibleDancePoints;
@@ -128,7 +131,7 @@ void PlayerStageStats::AddStats( const PlayerStageStats& other )
 	m_iSongsPlayed += other.m_iSongsPlayed;
 	m_iNumControllerSteps += other.m_iNumControllerSteps;
 	m_fLifeRemainingSeconds = other.m_fLifeRemainingSeconds;	// don't accumulate
-	m_bDisqualified |= other.m_bDisqualified;
+	m_bDisqualified |= static_cast<int>(other.m_bDisqualified);
 
 	// FirstSecond is always 0, and last second is the time of the last step,
 	// so add 1 second between the stages so that the last element of this
@@ -174,40 +177,35 @@ void PlayerStageStats::AddStats( const PlayerStageStats& other )
 	}
 }
 
-Grade GetGradeFromPercent( float fPercent )
-{
-	Grade grade = Grade_Failed;
 
-	FOREACH_ENUM( Grade,g)
-	{
-		if( fPercent >= GRADE_PERCENT_TIER(g) )
-		{
-			grade = g;
-			break;
-		}
-	}
-	return grade;
+// get appropriated (for when we have scores but no highscore object to get wifegrades) -mina
+Grade GetGradeFromPercent( float fPercent ) {
+	if (fPercent >= 0.9997f)
+		return Grade_Tier01;
+	if (fPercent >= 0.9975f)
+		return Grade_Tier02;
+	if (fPercent >= 0.93f)
+		return Grade_Tier03;
+	if (fPercent >= 0.8f)
+		return Grade_Tier04;
+	if (fPercent >= 0.7f)
+		return Grade_Tier05;
+	if (fPercent >= 0.6f)
+		return Grade_Tier06;
+	return Grade_Tier07;
 }
 
 Grade PlayerStageStats::GetWifeGrade() {
 	if (GetGrade() == Grade_Failed)
 		return Grade_Failed;
 
-	if (m_fWifeScore >= 0.9998)
-		return Grade_Tier01;
-	if (m_fWifeScore >= 0.9975)
-		return Grade_Tier02;
-	if (m_fWifeScore >= 0.93)
-		return Grade_Tier03;
-	if (m_fWifeScore >= 0.8)
-		return Grade_Tier04;
-	if (m_fWifeScore >= 0.7)
-		return Grade_Tier05;
-	if (m_fWifeScore >= 0.6)
-		return Grade_Tier06;
-	return Grade_Tier07;
+	return GetGradeFromPercent(m_fWifeScore);
 }
 
+Grade PlayerStageStats::GetGrade(float p)
+{
+	return GetGradeFromPercent(p);
+}
 Grade PlayerStageStats::GetGrade() const
 {
 	if( m_bFailed )
@@ -283,7 +281,7 @@ float PlayerStageStats::MakePercentScore( int iActual, int iPossible )
 	// This can happen in battle, with transform attacks.
 	//ASSERT_M( iActual <= iPossible, ssprintf("%i/%i", iActual, iPossible) );
 
-	float fPercent =  iActual / (float)iPossible;
+	float fPercent =  iActual / static_cast<float>(iPossible);
 
 	// don't allow negative
 	fPercent = max( 0, fPercent );
@@ -330,31 +328,6 @@ vector<float> PlayerStageStats::CalcSSR(float ssrpercent ) const {
 	return MinaSDCalc(serializednd, steps->GetNoteData().GetNumTracks(), musicrate, ssrpercent, 1.f, steps->GetTimingData()->HasWarps());
 }
 
-void PlayerStageStats::GenerateValidationKeys(HighScore& hs) const {
-	string key = "";
-
-	// just designed to catch shameless stats xml tampering by people who aren't experienced enough to look this up -mina
-	FOREACH_ENUM(TapNoteScore, tns)
-		key.append(to_string(hs.GetTapNoteScore(tns)));
-	FOREACH_ENUM(HoldNoteScore, hns)
-		key.append(to_string(hs.GetHoldNoteScore(hns)));
-
-	key.append(hs.GetScoreKey());
-	key.append(hs.GetChartKey());
-	key.append(hs.GetModifiers());
-	key.append(to_string(static_cast<int>(hs.GetWifeScore() * 1000.f)));
-	key.append(to_string(static_cast<int>(hs.GetSSRNormPercent() * 1000.f)));
-	key.append(to_string(static_cast<int>(hs.GetMusicRate() * 1000.f)));
-	key.append(to_string(static_cast<int>(hs.GetJudgeScale() * 1000.f)));
-	key.append(to_string(static_cast<int>(hs.GetWifePoints() * 1000.f)));
-	key.append(to_string(static_cast<int>(!hs.GetChordCohesion())));
-	key.append(to_string(static_cast<int>(hs.GetEtternaValid())));
-
-	hs.SetValidationKey(ValidationKey_Brittle, BinaryToHex(CryptManager::GetSHA1ForString(key)));
-
-	// just testing stuff
-	//hs.SetValidationKey(ValidationKey_Weak, GenerateWeakValidationKey(m_iTapNoteScores, m_iHoldNoteScores));
-}
 float PlayerStageStats::GetTimingScale() const {
 	return m_fTimingScale;
 }
@@ -363,6 +336,15 @@ vector<float> PlayerStageStats::GetOffsetVector() const {
 }
 vector<int> PlayerStageStats::GetNoteRowVector() const {
 	return m_vNoteRowVector;
+}
+vector<int> PlayerStageStats::GetTrackVector() const {
+	return m_vTrackVector;
+}
+vector<TapNoteType> PlayerStageStats::GetTapNoteTypeVector() const {
+	return m_vTapNoteTypeVector;
+}
+vector<HoldReplayResult> PlayerStageStats::GetHoldReplayDataVector() const {
+	return m_vHoldReplayData;
 }
 
 float PlayerStageStats::GetCurMaxPercentDancePoints() const
@@ -644,7 +626,7 @@ void PlayerStageStats::UpdateComboList( float fSecond, bool bRollover )
 	}
 
 	int cnt = m_iCurCombo;
-	if( !cnt )
+	if( cnt == 0 )
 		return; // no combo
 
 	if( m_ComboList.size() == 0 || m_ComboList.back().m_cnt >= cnt )
@@ -699,7 +681,7 @@ int PlayerStageStats::GetComboAtStartOfStage() const
 {
 	if( m_ComboList.empty() )
 		return 0;
-	else
+	
 		return m_ComboList[0].m_rollover;
 }
 
@@ -782,7 +764,7 @@ float PlayerStageStats::GetPercentageOfTaps( TapNoteScore tns ) const
 	{
 		iTotalTaps += m_iTapNoteScores[i];
 	}
-	return m_iTapNoteScores[tns] / (float)iTotalTaps;
+	return m_iTapNoteScores[tns] / static_cast<float>(iTotalTaps);
 }
 
 void PlayerStageStats::CalcAwards( PlayerNumber p, bool bGaveUp, bool bUsedAutoplay )
@@ -865,6 +847,20 @@ bool PlayerStageStats::IsDisqualified() const
 	if( !PREFSMAN->m_bDisqualification )
 		return false;
 	return m_bDisqualified;
+}
+
+void PlayerStageStats::UnloadReplayData() {
+	m_vNoteRowVector.clear();
+	m_vOffsetVector.clear();
+	m_vTrackVector.clear();
+	m_vTapNoteTypeVector.clear();
+	m_vHoldReplayData.clear();
+
+	m_vNoteRowVector.shrink_to_fit();
+	m_vOffsetVector.shrink_to_fit();
+	m_vTrackVector.shrink_to_fit();
+	m_vTapNoteTypeVector.shrink_to_fit();
+	m_vHoldReplayData.shrink_to_fit();
 }
 
 LuaFunction( GetGradeFromPercent,	GetGradeFromPercent( FArg(1) ) )
@@ -957,9 +953,25 @@ public:
 		return 1;
 	}
 
+	static int GetTrackVector(T* p, lua_State *L) {
+		LuaHelpers::CreateTableFromArray(p->m_vTrackVector, L);
+		return 1;
+	}
+
+	static int GetTapNoteTypeVector(T* p, lua_State *L) {
+		LuaHelpers::CreateTableFromArray(p->m_vTapNoteTypeVector, L);
+		return 1;
+	}
+
 	static int WifeScoreOffset(T* p, lua_State *L) {
 		lua_pushnumber(L, wife2(FArg(1), p->GetTimingScale()));
 		return 1;
+	}
+
+	// not entirely sure this should be exposed to lua... -mina
+	static int UnloadReplayData(T* p, lua_State *L) {
+		p->UnloadReplayData();
+		return 0;
 	}
 
 	static int GetComboList( T* p, lua_State *L )
@@ -1047,7 +1059,7 @@ public:
 		if( IArg(1) >= 0 )
 		{ 
 			p->m_iScore = IArg(1); 
-			return 1; 
+			return 0; 
 		} 
 		COMMON_RETURN_SELF;
 	}
@@ -1056,7 +1068,7 @@ public:
 		if( IArg(1) >= 0 )
 		{
 			p->m_iCurMaxScore = IArg(1);
-			return 1;
+			return 0;
 		}
 		COMMON_RETURN_SELF;
 	}
@@ -1077,6 +1089,8 @@ public:
 		ADD_METHOD( GetCurrentScoreMultiplier );
 		ADD_METHOD( GetScore );
 		ADD_METHOD( GetOffsetVector );
+		ADD_METHOD(GetTrackVector);
+		ADD_METHOD(GetTapNoteTypeVector);
 		ADD_METHOD( WifeScoreOffset );
 		ADD_METHOD( GetNoteRowVector );
 		ADD_METHOD( GetWifeScore );
@@ -1121,6 +1135,7 @@ public:
 		ADD_METHOD( FailPlayer );
 		ADD_METHOD( GetSongsPassed );
 		ADD_METHOD( GetSongsPlayed );
+		ADD_METHOD( UnloadReplayData );
 	}
 };
 

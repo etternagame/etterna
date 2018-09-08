@@ -1,6 +1,5 @@
-#include "global.h"
+﻿#include "global.h"
 #include "Game.h"
-#include "RageLog.h"
 
 TapNoteScore Game::MapTapNoteScore( TapNoteScore tns ) const
 {
@@ -28,6 +27,7 @@ static const Game::PerButtonInfo g_CommonButtonInfo[] =
 	{ GameButtonType_Menu }, // GAME_BUTTON_OPERATOR
 	{ GameButtonType_Menu }, // GAME_BUTTON_EFFECT_UP
 	{ GameButtonType_Menu }, // GAME_BUTTON_EFFECT_DOWN
+	{ GameButtonType_Menu }, // GAME_BUTTON_RESTART
 };
 
 const Game::PerButtonInfo *Game::GetPerButtonInfo( GameButton gb ) const
@@ -35,7 +35,7 @@ const Game::PerButtonInfo *Game::GetPerButtonInfo( GameButton gb ) const
 	COMPILE_ASSERT( GAME_BUTTON_NEXT == ARRAYLEN(g_CommonButtonInfo) );
 	if( gb < GAME_BUTTON_NEXT )
 		return &g_CommonButtonInfo[gb];
-	else
+	
 		return &m_PerButtonInfo[gb-GAME_BUTTON_NEXT];
 }
 

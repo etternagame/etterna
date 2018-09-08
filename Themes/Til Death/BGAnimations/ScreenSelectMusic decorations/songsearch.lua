@@ -30,7 +30,7 @@ local function searchInput(event)
 		else
 			--if not nil and (not a number or (ctrl pressed and not online))
 			local CtrlPressed = INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl")
-			if event.char and (tonumber(event.char) == nil or CtrlPressed == (not IsNetSMOnline())) then
+			if event.char and event.char:match("[%%%+%-%!%@%#%$%^%&%*%(%)%=%_%.%,%:%;%'%\"%>%<%?%/%~%|%w]") and (not tonumber(event.char) or CtrlPressed == (SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic")) then
 				searchstring = searchstring..event.char
 			end
 		end

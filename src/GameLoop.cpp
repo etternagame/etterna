@@ -1,24 +1,24 @@
-#include "global.h"
+﻿#include "global.h"
 #include "GameLoop.h"
-#include "RageLog.h"
-#include "RageTextureManager.h"
-#include "RageSoundManager.h"
 #include "PrefsManager.h"
 #include "RageDisplay.h"
+#include "RageSoundManager.h"
+#include "RageTextureManager.h"
 
 #include "arch/ArchHooks/ArchHooks.h"
 
 #include "GameSoundManager.h"
 #include "ThemeManager.h"
 #include "SongManager.h"
+#include "DownloadManager.h"
 #include "GameState.h"
-#include "ScreenManager.h"
 #include "InputFilter.h"
 #include "InputMapper.h"
-#include "RageFileManager.h"
 #include "NetworkSyncManager.h"
-#include "RageTimer.h"
 #include "RageInput.h"
+#include "ScreenManager.h"
+#include "SongManager.h"
+#include "ThemeManager.h"
 #include <chrono>
 
 static auto g_AccurateGameplayTimer = std::chrono::steady_clock::now();
@@ -126,9 +126,9 @@ void GameLoop::ChangeGame(const RString& new_game, const RString& new_theme)
 	g_NewTheme= new_theme;
 }
 
-#include "StepMania.h" // XXX
-#include "GameManager.h"
 #include "Game.h"
+#include "GameManager.h"
+#include "StepMania.h" // XXX
 namespace
 {
 	void DoChangeTheme()
@@ -231,7 +231,7 @@ namespace
 		SCREENMAN->SetNewScreen(new_screen);
 
 		// Set the input scheme for the new game, and load keymaps.
-		if( INPUTMAPPER )
+		if( INPUTMAPPER != nullptr )
 		{
 			INPUTMAPPER->SetInputScheme(&g->m_InputScheme);
 			INPUTMAPPER->ReadMappingsFromDisk();
@@ -247,7 +247,7 @@ namespace
 		g_NewGame= RString();
 		g_NewTheme= RString();
 	}
-}
+} // namespace
 
 void GameLoop::RunGameLoop()
 {
@@ -276,7 +276,7 @@ void GameLoop::RunGameLoop()
 		if( g_fConstantUpdateDeltaSeconds > 0 )
 			fDeltaTime = g_fConstantUpdateDeltaSeconds;
 		
-		CheckGameLoopTimerSkips( fDeltaTime );
+		CheckGameLoopTimerSkips(fDeltaTime);
 
 		fDeltaTime *= g_fUpdateRate;
 
@@ -288,15 +288,16 @@ void GameLoop::RunGameLoop()
 		/* Update song beat information -before- calling update on all the classes that
 		 * depend on it. If you don't do this first, the classes are all acting on old 
 		 * information and will lag. (but no longer fatally, due to timestamping -glenn) */
-		SOUND->Update( fDeltaTime );
-		TEXTUREMAN->Update( fDeltaTime );
-		GAMESTATE->Update( fDeltaTime );
-		SCREENMAN->Update( fDeltaTime );
-		NSMAN->Update( fDeltaTime );
+		SOUND->Update(fDeltaTime);
+		TEXTUREMAN->Update(fDeltaTime);
+		GAMESTATE->Update(fDeltaTime);
+		SCREENMAN->Update(fDeltaTime);
+		NSMAN->Update(fDeltaTime);
+		DLMAN->Update(fDeltaTime);
 
 		/* Important: Process input AFTER updating game logic, or input will be
 		 * acting on song beat from last frame */
-		HandleInputEvents( fDeltaTime );
+		HandleInputEvents(fDeltaTime);
 
 		static float deviceCheckWait = 0.f;
 		deviceCheckWait += fDeltaTime;
@@ -441,7 +442,7 @@ void ConcurrentRenderer::RenderThread()
 
 int ConcurrentRenderer::StartRenderThread( void *p )
 {
-	((ConcurrentRenderer *) p)->RenderThread();
+	(reinterpret_cast<ConcurrentRenderer *>( p))->RenderThread();
 	return 0;
 }
 

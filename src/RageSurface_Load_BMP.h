@@ -1,9 +1,10 @@
-/* RageSurface_Load_BMP - simple BMP file loader */
+﻿/* RageSurface_Load_BMP - simple BMP file loader */
 
 #ifndef RAGE_SURFACE_LOAD_BMP_H
 #define RAGE_SURFACE_LOAD_BMP_H
 
 #include "RageSurface_Load.h"
+
 RageSurfaceUtils::OpenResult RageSurface_Load_BMP( const RString &sPath, RageSurface *&ret, bool bHeaderOnly, RString &error );
 
 #endif

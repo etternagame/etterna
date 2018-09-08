@@ -1,14 +1,14 @@
-#include "global.h"
-#include "NotesLoaderJson.h"
-#include "json/value.h"
-#include "TimingData.h"
-#include "RageUtil.h"
-#include "JsonUtil.h"
+﻿#include "global.h"
 #include "BackgroundUtil.h"
+#include "GameManager.h"
+#include "JsonUtil.h"
 #include "NoteData.h"
+#include "NotesLoaderJson.h"
+#include "RageUtil.h"
 #include "Song.h"
 #include "Steps.h"
-#include "GameManager.h"
+#include "TimingData.h"
+#include "json/value.h"
 
 void NotesLoaderJson::GetApplicableFiles( const RString &sPath, vector<RString> &out )
 {
@@ -21,13 +21,13 @@ static void Deserialize( TimingSegment *seg, const Json::Value &root )
 	{
 		case SEGMENT_BPM:
 		{
-			float fBPM = root["BPM"].asDouble();
+			float fBPM = static_cast<float>(root["BPM"].asDouble());
 			static_cast<BPMSegment *>(seg)->SetBPM(fBPM);
 			break;
 		}
 		case SEGMENT_STOP:
 		{
-			float fStop = root["Seconds"].asDouble();
+			float fStop = static_cast<float>(root["Seconds"].asDouble());
 			static_cast<StopSegment *>(seg)->SetPause(fStop);
 			break;
 		}
@@ -123,7 +123,7 @@ static void Deserialize( RadarValues &o, const Json::Value &root )
 {
 	FOREACH_ENUM( RadarCategory, rc )
 	{
-		o[rc] = (float)root[ RadarCategoryToString(rc) ].asDouble();
+		o[rc] = static_cast<int>(root[ RadarCategoryToString(rc) ].asDouble());
 	}
 }
 

@@ -1,10 +1,10 @@
-#include "global.h"
+﻿#include "global.h"
+#include "ActorUtil.h"
+#include "GameConstantsAndTypes.h"
 #include "HoldJudgment.h"
 #include "RageUtil.h"
-#include "GameConstantsAndTypes.h"
 #include "ThemeManager.h"
 #include "ThemeMetric.h"
-#include "ActorUtil.h"
 #include "XmlFile.h"
 
 REGISTER_ACTOR_CLASS( HoldJudgment );

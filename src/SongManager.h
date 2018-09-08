@@ -7,68 +7,24 @@ class Style;
 class Steps;
 class PlayerOptions;
 struct lua_State;
+struct GoalsForChart;
 
-#include "RageTypes.h"
-#include "GameConstantsAndTypes.h"
-#include "SongOptions.h"
-#include "PlayerOptions.h"
-#include "PlayerNumber.h"
 #include "Difficulty.h"
-#include "ThemeMetric.h"
+#include "GameConstantsAndTypes.h"
+#include "PlayerNumber.h"
+#include "PlayerOptions.h"
+#include "ImageCache.h"
 #include "RageTexturePreloader.h"
+#include "RageTypes.h"
 #include "RageUtil.h"
-#include "Profile.h"
+#include "SongOptions.h"
+#include "ThemeMetric.h"
 
 #include <unordered_map>
 using std::string;
 
 RString SONG_GROUP_COLOR_NAME( size_t i );
 bool CompareNotesPointersForExtra(const Steps *n1, const Steps *n2);
-
-
-
-struct Chart {
-	string key;
-	RString lastsong;
-	RString lastpack;
-	Difficulty lastdiff = Difficulty_Invalid;
-	float rate = 1.f;
-	Song* songptr;
-	Steps* stepsptr;
-
-	bool IsLoaded() { return loaded; }
-
-	bool loaded = false;
-	void FromKey(const string& ck);
-	XNode * CreateNode(bool includerate) const;
-	void LoadFromNode(const XNode * node);
-	void PushSelf(lua_State *L);
-};
-
-struct Playlist {
-	RString name;
-	vector<Chart> chartlist;
-	void Add(Chart ch) { chartlist.emplace_back(ch); }
-	void AddChart(const string& ck);
-	void SwapPosition();
-
-	void Create();
-	vector<vector<string>> courseruns;
-
-	XNode* CreateNode() const;
-	void LoadFromNode(const XNode* node);
-	int GetNumCharts() { return chartlist.size(); }
-	vector<string> GetKeys();
-	string GetName() { return name; }
-	float GetAverageRating();
-	void DeleteChart(int i);
-
-	void PushSelf(lua_State *L);
-};
-
-
-
-
 
 /** @brief The holder for the Songs and its Steps. */
 class SongManager
@@ -83,8 +39,7 @@ public:
 	void Cleanup();
 
 	void Invalidate( const Song *pStaleSong );
-
-	void SetPreferences();
+	static map<string, Playlist>& GetPlaylists();
 	void SaveEnabledSongsToPref();
 	void LoadEnabledSongsFromPref();
 
@@ -92,7 +47,6 @@ public:
 	void FreeAllLoadedFromProfile( ProfileSlot slot = ProfileSlot_Invalid );
 
 	void InitAll( LoadingWindow *ld );	// songs, groups - everything.
-	void Reload( bool bAllowFastLoad, LoadingWindow *ld=nullptr );	// songs, groups - everything.
 	int DifferentialReload();
 	int DifferentialReloadDir(string dir);
 	void PreloadSongImages();
@@ -107,14 +61,12 @@ public:
 	void GetSongGroupNames( vector<RString> &AddTo ) const;
 	const vector<RString>& GetSongGroupNames() const;
 	bool DoesSongGroupExist( const RString &sSongGroup ) const;
-	RageColor GetSongGroupColor( const RString &sSongGroupName ) const;
+	RageColor GetSongGroupColor( const RString &sSongGroupName, map<string, Playlist>& playlists = GetPlaylists()) const;
 	RageColor GetSongColor( const Song* pSong ) const;
 
 	// temporary solution to reorganizing the entire songid/stepsid system - mina
 	Steps* GetStepsByChartkey(RString ck);
 	Song * GetSongByChartkey(RString ck);
-	Steps* GetStepsByChartkey(const StepsID& sid);
-	Song * GetSongByChartkey(const StepsID& sid);
 	bool IsChartLoaded(RString ck) { return SongsByKey.count(ck) == 1; }
 
 	void ResetGroupColors();
@@ -174,7 +126,6 @@ public:
 	void GetExtraStageInfo( bool bExtra2, const Style *s, Song*& pSongOut, Steps*& pStepsOut );
 	Song* GetSongFromDir( RString sDir ) const;
 
-	void UpdatePopular();
 	void UpdateShuffled();	// re-shuffle songs
 	void UpdatePreferredSort(const RString &sPreferredSongs = "PreferredSongs.txt", const RString &sPreferredCourses = "PreferredCourses.txt"); 
 	void SortSongs();		// sort m_pSongs by CompareSongPointersByTitle
@@ -182,26 +133,31 @@ public:
 	// Lua
 	void PushSelf( lua_State *L );
 
-	map<string, Playlist> allplaylists;
 	string activeplaylist = "";
 	string playlistcourse = "";
 	string ReconcileBustedKeys(const string& ck);
+	void ReconcileChartKeysForReloadedSong(const Song* reloadedSong, vector<string> oldChartkeys);
 	map<string, string> keyconversionmap;
-	void MakeSongGroupsFromPlaylists();
-	void DeletePlaylist(const string& ck);
-	void MakePlaylistFromFavorites(set<string>& favs);
+	void MakeSongGroupsFromPlaylists(map<string, Playlist>& playlists = GetPlaylists());
+	void DeletePlaylist(const string& ck, map<string, Playlist>& playlists = GetPlaylists());
+	void MakePlaylistFromFavorites(set<string>& favs, map<string, Playlist>& playlists = GetPlaylists());
 
 	map<string, vector<Song*>> groupderps;
+	vector<string> playlistGroups; // To delete from groupderps when rebuilding playlist groups
+
+	void FinalizeSong(Song* pNewSong, const RString& dir);
 protected:
 	void LoadStepManiaSongDir( RString sDir, LoadingWindow *ld );
 	void LoadDWISongDir( const RString &sDir );
 	void SanityCheckGroupDir( const RString &sDir ) const;
-	void AddGroup( const RString &sDir, const RString &sGroupDirName );
+	bool AddGroup( const RString &sDir, const RString &sGroupDirName );
 
 	void AddSongToList(Song* new_song);
 	/** @brief All of the songs that can be played. */
 	vector<Song*>		m_pSongs;
 	map<RString, Song*> m_SongsByDir;
+
+	vector<pair<pair<RString, unsigned int>, Song*>*> cache;
 
 	// Indexed by chartkeys
 	void AddKeyedPointers(Song* new_song);

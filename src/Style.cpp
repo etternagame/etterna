@@ -13,12 +13,12 @@
  * because two players place from the same set of 4 tracks.
  */
 
-#include "Style.h"
 #include "GameState.h"
-#include "RageLog.h"
-#include "RageUtil.h"
 #include "InputMapper.h"
 #include "NoteData.h"
+#include "RageLog.h"
+#include "RageUtil.h"
+#include "Style.h"
 #include <cfloat>
 
 bool Style::GetUsesCenteredArrows() const
@@ -151,7 +151,7 @@ public:
 		// m_bNeedsZoomOutWith2Players was removed in favor of having
 		// ScreenGameplay use the style's width and margin values to calculate
 		// the zoom.  So this always returns false. -Kyz
-		lua_pushboolean(L, false);
+		lua_pushboolean(L, 0);
 		return 1;
 	}
 	static int GetWidth(T* p, lua_State* L)

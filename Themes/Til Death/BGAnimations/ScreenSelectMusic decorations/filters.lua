@@ -21,6 +21,7 @@ end
 
 local function FilterInput(event)
 	if event.type ~= "InputEventType_Release" and ActiveSS > 0 and active then
+		local shouldUpdate = false
 		if event.button == "Start" or event.button == "Back" then
 			ActiveSS = 0
 			MESSAGEMAN:Broadcast("NumericInputEnded")
@@ -28,11 +29,14 @@ local function FilterInput(event)
 			return true
 		elseif event.DeviceInput.button == "DeviceButton_backspace" then
 			SSQuery[activebound][ActiveSS] = SSQuery[activebound][ActiveSS]:sub(1, -2)
+			shouldUpdate = true
 		elseif event.DeviceInput.button == "DeviceButton_delete"  then
 			SSQuery[activebound][ActiveSS] = ""
+			shouldUpdate = true
 		else
 			for i=1,#numbershers do
 				if event.DeviceInput.button == "DeviceButton_"..numbershers[i] then
+					shouldUpdate = true
 					if SSQuery[activebound][ActiveSS] == "0" then 
 						SSQuery[activebound][ActiveSS] = ""
 					end
@@ -44,11 +48,14 @@ local function FilterInput(event)
 			end
 		end
 		if SSQuery[activebound][ActiveSS] == "" then 
+			shouldUpdate = true
 			SSQuery[activebound][ActiveSS] = "0"
 		end
-		FILTERMAN:SetSSFilter(tonumber(SSQuery[activebound][ActiveSS]), ActiveSS, activebound)
-		whee:SongSearch("")		-- stupid workaround?
-		MESSAGEMAN:Broadcast("UpdateFilter")
+		if shouldUpdate then
+			FILTERMAN:SetSSFilter(tonumber(SSQuery[activebound][ActiveSS]), ActiveSS, activebound)
+			whee:SongSearch("")        -- stupid workaround?
+			MESSAGEMAN:Broadcast("UpdateFilter")
+		end
 	end
 end
 
@@ -395,6 +402,8 @@ f[#f+1] = Def.Quad{
             activebound = 0
 			ActiveSS = 0
 			MESSAGEMAN:Broadcast("UpdateFilter")
+			MESSAGEMAN:Broadcast("NumericInputEnded")
+			SCREENMAN:set_input_redirected(PLAYER_1, false)
 			whee:SongSearch("")
         end
     end

@@ -1,4 +1,4 @@
-/* MeterDisplay - Display position in a song. */
+﻿/* MeterDisplay - Display position in a song. */
 
 #ifndef METER_DISPLAY_H
 #define METER_DISPLAY_H

@@ -1,10 +1,11 @@
-/* RageSoundReader_Filter - simplify the creation of filter RageSoundReaders. */
+﻿/* RageSoundReader_Filter - simplify the creation of filter RageSoundReaders. */
 
 #ifndef RAGE_SOUND_READER_FILTER_H
 #define RAGE_SOUND_READER_FILTER_H
 
 #include "RageSoundReader.h"
 #include "RageUtil_AutoPtr.h"
+
 class RageSoundReader_Filter: public RageSoundReader
 {
 public:

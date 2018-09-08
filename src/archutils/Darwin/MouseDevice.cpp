@@ -1,6 +1,7 @@
 #include "global.h"
 #include "MouseDevice.h"
 
+
 using __gnu_cxx::hash_map;
 
 Mouse::Mouse() : id( InputDevice_Invalid ),
@@ -60,9 +61,9 @@ void MouseDevice::AddElement( int usagePage, int usage, IOHIDElementCookie cooki
 						break;
 					case kHIDUsage_GD_Z:
 					case kHIDUsage_GD_Wheel: // also handle wheel
-						m.z_axis = cookie;
-						m.z_min = iMin;
-						m.z_max = iMax;
+                        m.z_axis.emplace_back(cookie);
+						m.z_min.emplace_back(iMin);
+						m.z_max.emplace_back(iMax);
 						break;
 					default:
 						//LOG->Warn( "Unknown usagePage usage pair: (kHIDPage_GenericDesktop, %d).", usage );
@@ -91,43 +92,44 @@ void MouseDevice::AddElement( int usagePage, int usage, IOHIDElementCookie cooki
 void MouseDevice::Open()
 {
 	const Mouse& m = m_Mouse;
-#define ADD(x) if( m.x ) AddElementToQueue( m.x )
-	ADD( x_axis );	ADD( y_axis );	ADD( z_axis );
-#undef ADD
+    
+    if(m.x_axis) {
+        AddElementToQueue(m.x_axis);
+    }
+    
+    if(m.y_axis) {
+        AddElementToQueue(m.y_axis);
+    }
+    
+    for(auto& cookie: m.z_axis) {
+        AddElementToQueue(cookie);
+    }
+    
 	for( hash_map<IOHIDElementCookie,DeviceButton>::const_iterator i = m_Mapping.begin(); i != m_Mapping.end(); ++i )
 		AddElementToQueue( i->first );
 }
 
 void MouseDevice::GetButtonPresses( vector<DeviceInput>& vPresses, IOHIDElementCookie cookie, int value, const std::chrono::time_point<std::chrono::steady_clock> &now) const
 {
+    
 	// todo: add mouse axis stuff -aj
-	const Mouse& m = m_Mouse;
+
+    const Mouse& m = m_Mouse;
 	HRESULT result;
 	IOHIDEventStruct hidEvent;
 	// result = (*m_Interface)->getElementValue(hidDeviceInterface,cookie,&hidEvent);
-
-	if( m.x_axis == cookie )
-	{
-		//INPUTFILTER->UpdateCursorLocation(value,m.y_axis);
-		LOG->Trace("Mouse X: Value = %i",value);
-	}
-	else if( m.y_axis == cookie )
-	{
-		//INPUTFILTER->UpdateCursorLocation(m.x_axis,value);
-		LOG->Trace("Mouse Y: Value = %i",value);
-	}
-	else if( m.z_axis == cookie )
-	{
-		float level = SCALE( value, m.z_min, m.z_max, -1.0f, 1.0f );
-		INPUTFILTER->ButtonPressed( DeviceInput(DEVICE_MOUSE, MOUSE_WHEELUP, max(-level,0), now));
-		INPUTFILTER->ButtonPressed( DeviceInput(DEVICE_MOUSE, MOUSE_WHEELDOWN, max(+level,0), now));
-	}
-	else
-	{
-		hash_map<IOHIDElementCookie, DeviceButton>::const_iterator iter = m_Mapping.find( cookie );
+    
+    float x=MACMouseX(),y=MACMouseY();
+    
+    float level = MACMouseScroll();
+    INPUTFILTER->ButtonPressed( DeviceInput(DEVICE_MOUSE, MOUSE_WHEELUP, max(-level,0), now));
+    INPUTFILTER->ButtonPressed( DeviceInput(DEVICE_MOUSE, MOUSE_WHEELDOWN, max(+level,0), now));
+    
+    hash_map<IOHIDElementCookie, DeviceButton>::const_iterator iter = m_Mapping.find( cookie );
 		if( iter != m_Mapping.end() )
 			vPresses.push_back( DeviceInput(DEVICE_MOUSE, iter->second, value, now));
-	}
+    
+    INPUTFILTER->UpdateCursorLocation(x,y);
 }
 
 void MouseDevice::GetDevicesAndDescriptions( vector<InputDeviceInfo>& vDevices ) const

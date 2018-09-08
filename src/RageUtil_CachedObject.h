@@ -1,10 +1,11 @@
-#ifndef RAGE_UTIL_CACHED_OBJECT_H
+﻿#ifndef RAGE_UTIL_CACHED_OBJECT_H
 #define RAGE_UTIL_CACHED_OBJECT_H
 
 #include <set>
 
 template<typename T>
 class CachedObjectPointer;
+
 /** @brief Utilities for working with the 
  <a class="el" href="class_cachedobject.html">CachedObjects</a>. */
 namespace CachedObjectHelpers
@@ -18,20 +19,20 @@ template<typename T>
 class CachedObject
 {
 public:
-	CachedObject(): m_pObject(NULL)
+	CachedObject() : m_pObject(nullptr)
 	{
 		/* A new object is being constructed, so invalidate negative caching. */
 		ClearCacheNegative();
 	}
 
-	CachedObject( const CachedObject &cpy ): m_pObject(NULL)
+	CachedObject( const CachedObject &cpy ): m_pObject(nullptr)
 	{
 		ClearCacheNegative();
 	}
 
 	~CachedObject()
 	{
-		if( m_pObject != NULL )
+		if( m_pObject != nullptr )
 			ClearCacheSpecific( m_pObject );
 	}
 
@@ -43,7 +44,7 @@ public:
 		CachedObjectHelpers::Lock();
 		for( typename set<ObjectPointer *>::iterator p = m_spObjectPointers.begin(); p != m_spObjectPointers.end(); ++p )
 		{
-			(*p)->m_pCache = NULL;
+			(*p)->m_pCache = nullptr;
 			(*p)->m_bCacheIsSet = false;
 		}
 		CachedObjectHelpers::Unlock();
@@ -57,7 +58,7 @@ public:
 		{
 			if( (*p)->m_pCache == pObject )
 			{
-				(*p)->m_pCache = NULL;
+				(*p)->m_pCache = nullptr;
 				(*p)->m_bCacheIsSet = false;
 			}
 		}
@@ -70,7 +71,7 @@ public:
 		CachedObjectHelpers::Lock();
 		for( typename set<ObjectPointer *>::iterator p = m_spObjectPointers.begin(); p != m_spObjectPointers.end(); ++p )
 		{
-			if( (*p)->m_pCache == NULL )
+			if ((*p)->m_pCache == nullptr )
 				(*p)->m_bCacheIsSet = false;
 		}
 		CachedObjectHelpers::Unlock();
@@ -145,7 +146,7 @@ public:
 		CachedObjectHelpers::Lock();
 		m_pCache = p;
 		m_bCacheIsSet = true;
-		if( p != NULL )
+		if( p != nullptr )
 			p->m_CachedObject.m_pObject = p;
 		CachedObjectHelpers::Unlock();
 	}
@@ -153,7 +154,7 @@ public:
 	void Unset()
 	{
 		CachedObjectHelpers::Lock();
-		m_pCache = NULL;
+		m_pCache = nullptr;
 		m_bCacheIsSet = false;
 		CachedObjectHelpers::Unlock();
 	}

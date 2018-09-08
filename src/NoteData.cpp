@@ -1,17 +1,16 @@
-/*
+﻿/*
  * NoteData is organized by:
  *  track - corresponds to different columns of notes on the screen
  *  row/index - corresponds to subdivisions of beats
  */
 
 #include "global.h"
+#include "Foreach.h"
+#include "GameState.h" // blame radar calculations.
 #include "NoteData.h"
 #include "RageUtil.h"
-#include "RageLog.h"
-#include "XmlFile.h"
-#include "GameState.h" // blame radar calculations.
-#include "Foreach.h"
 #include "RageUtil_AutoPtr.h"
+#include "XmlFile.h"
 
 REGISTER_CLASS_TRAITS( NoteData, new NoteData(*pCopy) )
 
@@ -29,17 +28,6 @@ void NoteData::SetNumTracks( int iNewNumTracks )
 
 	m_TapNotes.resize( iNewNumTracks );
 	CalcNumTracksLCD();
-}
-
-bool NoteData::IsComposite() const
-{
-	return false;
-	for( int track = 0; track < GetNumTracks(); ++track )
-	{
-		FOREACHM_CONST( int, TapNote, m_TapNotes[track], tn )
-			if( tn->second.pn != PLAYER_INVALID )
-				return true;
-	}
 }
 
 // Clear (rowBegin,rowEnd).
@@ -199,7 +187,7 @@ const vector<NoteInfo>& NoteData::SerializeNoteData(const vector<float>& etaner)
 	for (size_t i = 0; i < NonEmptyRowVector.size(); i++)
 	{
 		int rowNotes = 0;
-		for (size_t q = 0; q < tracks; q++)
+		for (int q = 0; q < tracks; q++)
 		{
 			if(GetTapNote(q, NonEmptyRowVector[i]).IsNote())
 			{
@@ -230,7 +218,7 @@ vector<NoteInfo2>& NoteData::SerializeNoteData2(const vector<float>& etaner) {
 	for (size_t i = 0; i < NonEmptyRowVector.size(); i++)
 	{
 		int rowNotes = 0;
-		for (size_t q = 0; q < tracks; q++)
+		for (int q = 0; q < tracks; q++)
 		{
 			if (GetTapNote(q, NonEmptyRowVector[i]).IsNote())
 			{
@@ -791,10 +779,6 @@ int NoteData::GetNumFakes( int iStartIndex, int iEndIndex ) const
 
 bool NoteData::IsPlayer1(const int track, const TapNote &tn) const
 {
-	if (this->IsComposite())
-	{
-		return tn.pn == PLAYER_1;
-	}
 	return track < (this->GetNumTracks() / 2);
 }
 

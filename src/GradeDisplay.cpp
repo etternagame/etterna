@@ -1,9 +1,7 @@
-#include "global.h"
+﻿#include "global.h"
+#include "ActorUtil.h"
 #include "GradeDisplay.h"
 #include "RageUtil.h"
-#include "arch/Dialog/Dialog.h"
-#include "RageLog.h"
-#include "ActorUtil.h"
 #include "ThemeManager.h"
 
 REGISTER_ACTOR_CLASS( GradeDisplay );

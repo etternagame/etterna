@@ -3,8 +3,8 @@
 #ifndef SONG_UTIL_H
 #define SONG_UTIL_H
 
-#include "GameConstantsAndTypes.h"
 #include "Difficulty.h"
+#include "GameConstantsAndTypes.h"
 #include "RageUtil_CachedObject.h"
 #include <set>
 
@@ -215,6 +215,7 @@ public:
 
 	XNode* CreateNode() const;
 	void LoadFromNode( const XNode* pNode );
+	void LoadFromString(const char * dir);
 	void FromString( RString _sDir ) { sDir = _sDir; }
 	RString ToString() const;
 	bool IsValid() const;

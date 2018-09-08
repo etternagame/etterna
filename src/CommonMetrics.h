@@ -1,11 +1,10 @@
-#ifndef COMMON_METRICS_H
+﻿#ifndef COMMON_METRICS_H
 #define COMMON_METRICS_H
 
-#include "ThemeMetric.h"
-#include "PlayerNumber.h"
 #include "Difficulty.h"
 #include "GameConstantsAndTypes.h"
 #include "LocalizedString.h"
+#include "ThemeMetric.h"
 
 // Types
 class ThemeMetricDifficultiesToShow : public ThemeMetric<RString>
@@ -60,6 +59,8 @@ namespace CommonMetrics
 	extern ThemeMetric<bool>			AUTO_SET_STYLE;
 	/** @brief How many decimal places are used? */
 	extern ThemeMetric<int>			PERCENT_SCORE_DECIMAL_PLACES;
+	
+	extern ThemeMetric<RString>		IMAGES_TO_CACHE;
 
 	RString LocalizeOptionItem( const RString &s, bool bOptional );
 };

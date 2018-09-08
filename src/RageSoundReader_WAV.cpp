@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Straightforward WAV reading.  This only supports 8-bit and 16-bit PCM,
  * 4-bit ADPCM with one or two channels.  No other decompressors are planned:
  * this format is only useful for fast uncompressed audio, and ADPCM is only
@@ -10,10 +10,10 @@
  */
 
 #include "global.h"
+#include "RageFileBasic.h"
+#include "RageLog.h"
 #include "RageSoundReader_WAV.h"
 #include "RageUtil.h"
-#include "RageLog.h"
-#include "RageFileBasic.h"
 
 namespace
 {
@@ -23,7 +23,7 @@ namespace
 	{
 		/* Convert in reverse, so we can do it in-place. */
 		const uint8_t *pIn = (uint8_t *) pBuf;
-		auto *pOut = (float *) pBuf;
+		auto *pOut = reinterpret_cast<float *>( pBuf);
 		for( int i = iSamples-1; i >= 0; --i )
 		{
 			int iSample = pIn[i];
@@ -38,7 +38,7 @@ namespace
 	{
 		/* Convert in reverse, so we can do it in-place. */
 		const int16_t *pIn = (int16_t *) pBuf;
-		auto *pOut = (float *) pBuf;
+		auto *pOut = reinterpret_cast<float *>( pBuf);
 		for( int i = iSamples-1; i >= 0; --i )
 		{
                         int16_t iSample = Swap16LE( pIn[i] );
@@ -49,8 +49,8 @@ namespace
 	void ConvertLittleEndian24BitToFloat( void *pBuf, int iSamples )
 	{
 		/* Convert in reverse, so we can do it in-place. */
-		const unsigned char *pIn = (unsigned char *) pBuf;
-		auto *pOut = (float *) pBuf;
+		const unsigned char *pIn = reinterpret_cast<unsigned char *>( pBuf);
+		auto *pOut = reinterpret_cast<float *>( pBuf);
 		pIn += iSamples * 3;
 		for( int i = iSamples-1; i >= 0; --i )
 		{
@@ -73,7 +73,7 @@ namespace
 	{
 		/* Convert in reverse, so we can do it in-place. */
 		const int32_t *pIn = (int32_t *) pBuf;
-		auto *pOut = (float *) pBuf;
+		auto *pOut = reinterpret_cast<float *>( pBuf);
 		for( int i = iSamples-1; i >= 0; --i )
 		{
                         int32_t iSample = Swap32LE( pIn[i] );
@@ -359,16 +359,16 @@ public:
 		
 		int iSample = 0;
 		
-		while( iGotFrames < (int) iFrames )
+		while( iGotFrames < iFrames )
 		{
 			if( m_iBufferUsed == m_iBufferAvail )
 			{
 				if( !DecodeADPCMBlock() )
-					return RageSoundReader::ERROR;
+					return RageSoundReader::RSRERROR;
 			}
 			if( m_iBufferAvail == 0 )
 			{
-				if( !iGotFrames )
+				if( iGotFrames == 0 )
 					return RageSoundReader::END_OF_FILE;
 				else
 					return iGotFrames;
@@ -564,7 +564,7 @@ RageSoundReader_FileReader::OpenResult RageSoundReader_WAV::Open( RageFileBasic 
 		m_pImpl = new WavReaderADPCM( *m_pFile, m_WavData );
 		break;
 	case 85: // MP3
-		/* Return unknown, so other decoders will be tried. */
+		/* Return unknown, so other decoders will be tried.  MAD can read MP3s embedded in WAVs. */
 		return OPEN_UNKNOWN_FILE_FORMAT;
 	default:
 		FATAL_ERROR( ssprintf( "Unsupported data format %i", m_WavData.m_iFormatTag) );

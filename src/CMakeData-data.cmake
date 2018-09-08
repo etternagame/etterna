@@ -50,6 +50,7 @@ list(APPEND SM_DATA_NOTELOAD_SRC
   "NotesLoaderSMA.cpp"
   "NotesLoaderSSC.cpp"
   "NotesLoaderETT.cpp"
+  "NotesLoaderOSU.cpp"
 )
 
 list(APPEND SM_DATA_NOTELOAD_HPP
@@ -62,6 +63,7 @@ list(APPEND SM_DATA_NOTELOAD_HPP
   "NotesLoaderSMA.h"
   "NotesLoaderSSC.h"
   "NotesLoaderETT.h"
+  "NotesLoaderOSU.h"
 )
 
 source_group("Data Structures\\\\Notes Loaders" FILES ${SM_DATA_NOTELOAD_SRC} ${SM_DATA_NOTELOAD_HPP})
@@ -136,7 +138,7 @@ list(APPEND SM_DATA_REST_SRC
   "AdjustSync.cpp"
   "AutoKeysounds.cpp"
   "BackgroundUtil.cpp"
-  "BannerCache.cpp"
+  "ImageCache.cpp"
   "Character.cpp"
   "CodeDetector.cpp"
   "CodeSet.cpp"
@@ -170,6 +172,8 @@ list(APPEND SM_DATA_REST_SRC
   "PlayerState.cpp"
   "Preference.cpp"
   "Profile.cpp"
+  "XMLProfile.cpp"
+  "DBProfile.cpp"
   "RadarValues.cpp"
   "RandomSample.cpp"
   "SampleHistory.cpp"
@@ -185,7 +189,7 @@ list(APPEND SM_DATA_REST_HPP
   "AdjustSync.h"
   "AutoKeysounds.h"
   "BackgroundUtil.h"
-  "BannerCache.h"
+  "ImageCache.h"
   "Character.h"
   "CodeDetector.h"
   "CodeSet.h"
@@ -223,6 +227,8 @@ list(APPEND SM_DATA_REST_HPP
   "PlayerState.h"
   "Preference.h"
   "Profile.h"
+  "XMLProfile.h"
+  "DBProfile.h"
   "RadarValues.h"
   "RandomSample.h"
   "SampleHistory.h"

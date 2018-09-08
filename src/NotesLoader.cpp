@@ -1,12 +1,13 @@
-#include "global.h"
+﻿#include "global.h"
 #include "NotesLoader.h"
+#include "NotesLoaderBMS.h"
+#include "NotesLoaderDWI.h"
+#include "NotesLoaderKSF.h"
 #include "NotesLoaderSM.h"
 #include "NotesLoaderSMA.h"
 #include "NotesLoaderSSC.h"
-#include "NotesLoaderDWI.h"
-#include "NotesLoaderBMS.h"
-#include "NotesLoaderKSF.h"
 #include "RageUtil.h"
+#include "NotesLoaderOSU.h"
 
 void NotesLoader::GetMainAndSubTitlesFromFullTitle( const RString &sFullTitle, RString &sMainTitleOut, RString &sSubTitleOut )
 {
@@ -60,6 +61,9 @@ bool NotesLoader::LoadFromDir( const RString &sPath, Song &out, set<RString> &Bl
 	KSFLoader::GetApplicableFiles( sPath, list );
 	if( !list.empty() )
 		return KSFLoader::LoadFromDir( sPath, out );
+	OsuLoader::GetApplicableFiles(sPath, list);
+	if (!list.empty())
+		return OsuLoader::LoadFromDir(sPath, out);
 	return false;
 }
 

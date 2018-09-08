@@ -1,14 +1,17 @@
 #include "global.h"
-#include "ReceptorArrowRow.h"
-#include "RageUtil.h"
-#include "GameConstantsAndTypes.h"
 #include "ArrowEffects.h"
+#include "GameConstantsAndTypes.h"
 #include "GameState.h"
 #include "PlayerState.h"
+#include "RageUtil.h"
+#include "ReceptorArrowRow.h"
 #include "Style.h"
+
+map<int, map<int, bool>> NoteUpcoming;
 
 ReceptorArrowRow::ReceptorArrowRow()
 {
+	NoteUpcoming.clear();
 	m_pPlayerState = NULL;
 	m_fYReverseOffsetPixels = 0;
 	m_fFadeToFailPercent = 0;
@@ -25,9 +28,13 @@ void ReceptorArrowRow::Load( const PlayerState* pPlayerState, float fYReverseOff
 	for( int c=0; c<pStyle->m_iColsPerPlayer; c++ ) 
 	{
 		m_ReceptorArrow.push_back( new ReceptorArrow );
+		m_OverlayReceptorArrow.push_back(new ReceptorArrow);
 		m_ReceptorArrow[c]->SetName( "ReceptorArrow" );
-		m_ReceptorArrow[c]->Load( m_pPlayerState, c );
+		m_OverlayReceptorArrow[c]->SetName("OverlayReceptor");
+		m_ReceptorArrow[c]->Load( m_pPlayerState, c, "Receptor" );
+		m_OverlayReceptorArrow[c]->Load( m_pPlayerState, c, "Ovceptor" );
 		this->AddChild( m_ReceptorArrow[c] );
+		this->AddChild( m_OverlayReceptorArrow[c] );
 	}
 }
 
@@ -69,11 +76,13 @@ void ReceptorArrowRow::Update( float fDeltaTime )
 		}
 		CLAMP( fBaseAlpha, 0.0f, 1.0f );
 		m_ReceptorArrow[c]->SetBaseAlpha( fBaseAlpha );
+		m_OverlayReceptorArrow[c]->SetBaseAlpha(fBaseAlpha);
 
 		if(m_renderers != NULL)
 		{
 			// set arrow XYZ
 			(*m_renderers)[c].UpdateReceptorGhostStuff(m_ReceptorArrow[c]);
+			(*m_renderers)[c].UpdateReceptorGhostStuff(m_OverlayReceptorArrow[c]);
 		}
 		else
 		{
@@ -81,6 +90,7 @@ void ReceptorArrowRow::Update( float fDeltaTime )
 			// column renderers.  Just do the lazy thing and offset x. -Kyz
 			const Style* style= GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber);
 			m_ReceptorArrow[c]->SetX(style->m_ColumnInfo[m_pPlayerState->m_PlayerNumber][c].fXOffset);
+			m_OverlayReceptorArrow[c]->SetX(style->m_ColumnInfo[m_pPlayerState->m_PlayerNumber][c].fXOffset);
 		}
 	}
 }
@@ -92,6 +102,16 @@ void ReceptorArrowRow::DrawPrimitives()
 	{
 		const int c = pStyle->m_iColumnDrawOrder[i];
 		m_ReceptorArrow[c]->Draw();
+	}
+}
+
+void ReceptorArrowRow::DrawOverlay()
+{
+	const Style* pStyle = GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber);
+	for (unsigned i = 0; i<m_ReceptorArrow.size(); i++)
+	{
+		const int c = pStyle->m_iColumnDrawOrder[i];
+		m_OverlayReceptorArrow[c]->Draw();
 	}
 }
 
@@ -107,10 +127,13 @@ void ReceptorArrowRow::SetPressed( int iCol )
 	m_ReceptorArrow[iCol]->SetPressed();
 }
 
-void ReceptorArrowRow::SetNoteUpcoming( int iCol, bool b )
+void ReceptorArrowRow::SetNoteUpcoming( int iCol, bool b, int iRow )
 {
-	ASSERT( iCol >= 0  &&  iCol < (int) m_ReceptorArrow.size() );
-	m_ReceptorArrow[iCol]->SetNoteUpcoming(b);
+	if (NoteUpcoming[iCol][iRow] == NULL) {
+		ASSERT(iCol >= 0 && iCol < (int)m_ReceptorArrow.size());
+		m_ReceptorArrow[iCol]->SetNoteUpcoming(iCol, iRow, b);
+		NoteUpcoming[iCol][iRow] = true;
+	}
 }
 
 

@@ -1,4 +1,4 @@
-#ifndef HELP_DISPLAY_H
+﻿#ifndef HELP_DISPLAY_H
 #define HELP_DISPLAY_H
 
 #include "BitmapText.h"

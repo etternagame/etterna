@@ -1,18 +1,17 @@
-#include "global.h"
+﻿#include "global.h"
+#include "DisplayResolutions.h"
+#include "EnumHelper.h"
 #include "Foreach.h"
+#include "LocalizedString.h"
 #include "RageDisplay.h"
 #include "RageDisplay_D3D.h"
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "RageTimer.h"
 #include "RageException.h"
+#include "RageLog.h"
 #include "RageMath.h"
-#include "RageTypes.h"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
-#include "EnumHelper.h"
-#include "DisplayResolutions.h"
-#include "LocalizedString.h"
+#include "RageTypes.h"
+#include "RageUtil.h"
 #include <chrono>
 
 #include <D3dx9tex.h>
@@ -29,7 +28,6 @@
 	#pragma comment(lib, "DxErr.lib")
 #endif
 
-#include <cmath>
 #include <list>
 
 RString GetErrorString( HRESULT hr )
@@ -804,12 +802,12 @@ void RageDisplay_D3D::SendCurrentMatrices()
 class RageCompiledGeometrySWD3D : public RageCompiledGeometry
 {
 public:
-	void Allocate( const vector<msMesh> &vMeshes )
+	void Allocate( const vector<msMesh> &vMeshes ) override
 	{
 		m_vVertex.resize( max(1u, GetTotalVertices()) );
 		m_vTriangles.resize( max(1u, GetTotalTriangles()) );
 	}
-	void Change( const vector<msMesh> &vMeshes )
+	void Change( const vector<msMesh> &vMeshes ) override
 	{
 		for( unsigned i=0; i<vMeshes.size(); i++ )
 		{
@@ -1677,7 +1675,7 @@ void RageDisplay_D3D::SetRenderTarget(unsigned uTexHandle, bool bPreserveTexture
 		viewData.Height = GetActualVideoModeParams()->height;
 		g_pd3dDevice->SetViewport(&viewData);
 
-		if (g_pCurrentRenderTarget)
+		if (g_pCurrentRenderTarget != nullptr)
 			g_pCurrentRenderTarget->FinishRenderingTo();
 		g_pCurrentRenderTarget = NULL;
 		g_pd3dDevice->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, false);

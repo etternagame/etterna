@@ -1,26 +1,27 @@
 ﻿#include "global.h"
+#include "Command.h"
 #include "LuaManager.h"
 #include "LuaReference.h"
-#include "RageUtil.h"
-#include "RageLog.h"
-#include "RageFile.h"
-#include "RageThreads.h"
-#include "arch/Dialog/Dialog.h"
-#include "XmlFile.h"
-#include "Command.h"
-#include "RageLog.h"
-#include "RageTypes.h"
 #include "MessageManager.h"
+#include "RageFile.h"
+#include "RageLog.h"
+#include "RageThreads.h"
+#include "RageTypes.h"
+#include "RageUtil.h"
+#include "XmlFile.h"
+#include "arch/Dialog/Dialog.h"
 #include "ver.h"
 
-#include <sstream> // conversion for lua functions.
-#include <csetjmp>
-#include <cassert>
-#include <map>
-#include <unordered_set>
 #include <array>
+#include <cassert>
+#include <csetjmp>
+#include <map>
+#include <sstream> // conversion for lua functions.
+#include <unordered_set>
 
 #include "RageString.h"
+
+#include "lua.hpp"
 
 using std::vector;
 
@@ -48,7 +49,7 @@ namespace LuaHelpers
 	bool FromStack(Lua * L, RString & object, int offset);
 	template<> void Push<bool>(lua_State* L, bool const& object)
 	{
-		lua_pushboolean(L, object);
+		lua_pushboolean(L, static_cast<int>(object));
 	}
 	template<> void Push<float>(lua_State* L, float const& object)
 	{
@@ -140,7 +141,7 @@ namespace LuaHelpers
 	}
 
 	bool InReportScriptError= false;
-}
+} // namespace LuaHelpers
 
 void LuaManager::SetGlobal( const std::string &sName, int val )
 {
@@ -241,7 +242,7 @@ static void write_lua_value_to_file(lua_State* L, int value_index,
 			}
 			break;
 		case LUA_TBOOLEAN:
-			if(lua_toboolean(L, value_index))
+			if(lua_toboolean(L, value_index) != 0)
 			{
 				file->Write("true");
 			}
@@ -629,18 +630,7 @@ LuaManager::LuaManager()
 	lua_atpanic( L, LuaPanic );
 	m_pLuaMain = L;
 
-	lua_pushcfunction( L, luaopen_base ); lua_call( L, 0, 0 );
-	lua_pushcfunction( L, luaopen_math ); lua_call( L, 0, 0 );
-	lua_pushcfunction( L, luaopen_string ); lua_call( L, 0, 0 );
-	lua_pushcfunction( L, luaopen_table ); lua_call( L, 0, 0 );
-	lua_pushcfunction( L, luaopen_debug ); lua_call( L, 0, 0 );
-	lua_pushcfunction( L, luaopen_package ); lua_call( L, 0, 0 ); // this one seems safe -shake
-	lua_pushcfunction( L, luaopen_os ); lua_call( L, 0, 0 );
-	// these two can be dangerous. don't use them
-	// (unless you know what you are doing). -aj
-#if 0
-	lua_pushcfunction( L, luaopen_io ); lua_call( L, 0, 0 );
-#endif
+	luaL_openlibs(L);
 
 	// Store the thread pool in a table on the stack, in the main thread.
 #define THREAD_POOL 1
@@ -924,7 +914,7 @@ namespace
 		std::string m_sBaseName;
 		vector<std::string> m_vMethods;
 	};
-}
+} // namespace
 
 XNode *LuaHelpers::GetLuaInformation()
 {
@@ -1526,11 +1516,11 @@ namespace
 			lua_pushstring( L, "error" ); // XXX
 			return 2;
 		}
-		else
-		{
+		
+		
 			LuaHelpers::Push( L, sFileContents );
 			return 1;
-		}
+		
 	}
 
 	/* RunWithThreadVariables(func, { a = "x", b = "y" }, arg1, arg2, arg3 ... }
@@ -1576,11 +1566,11 @@ namespace
 	{
 		std::string error= "Script error occurred.";
 		std::string error_type= "LUA_ERROR";
-		if(lua_isstring(L, 1))
+		if(lua_isstring(L, 1) != 0)
 		{
 			error= SArg(1);
 		}
-		if(lua_isstring(L, 2))
+		if(lua_isstring(L, 2) != 0)
 		{
 			error_type= SArg(2);
 		}
@@ -1618,7 +1608,7 @@ namespace
 		LIST_METHOD(load_config_lua),
 		{ nullptr, nullptr }
 	};
-}
+} // namespace
 
 LUA_REGISTER_NAMESPACE( lua )
 
