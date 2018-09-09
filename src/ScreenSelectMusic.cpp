@@ -1956,7 +1956,7 @@ public:
 		MESSAGEMAN->Broadcast("RateChanged");
 
 		// go
-		LOG->Trace("Viewing evaluation screen for score key %s", score->GetScoreKey().c_str()));
+		LOG->Trace("Viewing evaluation screen for score key %s", score->GetScoreKey().c_str());
 		SCREENMAN->SetNewScreen("ScreenEvaluationNormal");
 
 		// set rate back to what it was before
