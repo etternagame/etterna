@@ -1898,7 +1898,7 @@ public:
 		CHECKPOINT_M("Replay mods set.");
 
 		// lock the game into replay mode and GO
-		LOG->Trace("Viewing replay for score key %s", hs->GetScoreKey());
+		LOG->Trace("Viewing replay for score key %s", hs->GetScoreKey().c_str());
 		GamePreferences::m_AutoPlay.Set(PC_REPLAY);
 		p->SelectCurrent(PLAYER_1);
 
@@ -1956,7 +1956,7 @@ public:
 		MESSAGEMAN->Broadcast("RateChanged");
 
 		// go
-		LOG->Trace("Viewing evaluation screen for score key %s", score->GetScoreKey());
+		LOG->Trace("Viewing evaluation screen for score key %s", score->GetScoreKey().c_str()));
 		SCREENMAN->SetNewScreen("ScreenEvaluationNormal");
 
 		// set rate back to what it was before
