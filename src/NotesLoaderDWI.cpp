@@ -16,7 +16,6 @@
 
 Difficulty DwiCompatibleStringToDifficulty( const RString& sDC );
 
-static std::map<int,int> g_mapDanceNoteToNoteDataColumn;
 
 /** @brief The different types of core DWI arrows and pads. */
 enum DanceNotes
@@ -98,19 +97,20 @@ static void DWIcharToNote( char c, GameController i, int &note1Out, int &note2Ou
  * @param col1Out The first result based on the character.
  * @param col2Out The second result based on the character.
  * @param sPath the path to the file.
+ * @param mapDanceNoteToColumn a map to pass to keep track of column info.
  */
-static void DWIcharToNoteCol( char c, GameController i, int &col1Out, int &col2Out, const RString &sPath )
+static void DWIcharToNoteCol( char c, GameController i, int &col1Out, int &col2Out, const RString &sPath, map<int, int> &mapDanceNoteToColumn)
 {
 	int note1, note2;
 	DWIcharToNote( c, i, note1, note2, sPath );
 
 	if( note1 != DANCE_NOTE_NONE )
-		col1Out = g_mapDanceNoteToNoteDataColumn[note1];
+		col1Out = mapDanceNoteToColumn[note1];
 	else
 		col1Out = -1;
 
 	if( note2 != DANCE_NOTE_NONE )
-		col2Out = g_mapDanceNoteToNoteDataColumn[note2];
+		col2Out = mapDanceNoteToColumn[note2];
 	else
 		col2Out = -1;
 }
@@ -187,7 +187,8 @@ static StepsType GetTypeFromMode(const RString &mode)
 static NoteData ParseNoteData(RString &step1, RString &step2,
 			      Steps &out, const RString &path)
 {
-	g_mapDanceNoteToNoteDataColumn.clear();
+	std::map<int, int> g_mapDanceNoteToNoteDataColumn;
+
 	switch( out.m_StepsType )
 	{
 		case StepsType_dance_single:
@@ -314,7 +315,8 @@ static NoteData ParseNoteData(RString &step1, RString &step2,
 								 (GameController)pad,
 								 iCol1,
 								 iCol2,
-								 path );
+								 path,
+								 g_mapDanceNoteToNoteDataColumn);
 						
 						if( iCol1 != -1 )
 							newNoteData.SetTapNote(iCol1,
@@ -341,7 +343,8 @@ static NoteData ParseNoteData(RString &step1, RString &step2,
 									 (GameController)pad,
 									 iCol1,
 									 iCol2,
-									 path );
+									 path,
+									 g_mapDanceNoteToNoteDataColumn);
 							
 							if( iCol1 != -1 )
 								newNoteData.SetTapNote(iCol1,
