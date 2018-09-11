@@ -72,6 +72,7 @@ LinuxInputManager::LinuxInputManager()
 		if( !bEventPresent && !bJoystickPresent )
 			LOG->Info("LinuxInputManager: %s seems to have no eventNN or jsNN.", dName.c_str() );
 	}
+	closedir(sysClassInput);
 }
 
 void LinuxInputManager::InitDriver(InputHandler_Linux_Event* driver)
