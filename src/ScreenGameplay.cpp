@@ -2535,6 +2535,158 @@ void ScreenGameplay::SaveReplay()
 	}
 }
 
+void ScreenGameplay::SetRate(float newRate)
+{
+	if (newRate < 0.3f || newRate > 5.f)
+		return;
+
+	m_pSoundMusic->Stop();
+	RageTimer tm;
+	const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
+	TimingData* g = &GAMESTATE->m_pCurSong->m_SongTiming;
+
+	float fSecondsToStartFadingOutMusic, fSecondsToStartTransitioningOut;
+	GetMusicEndTiming(fSecondsToStartFadingOutMusic, fSecondsToStartTransitioningOut);
+
+	RageSoundParams p;
+	p.m_StartSecond = fSeconds;
+	p.m_fSpeed = newRate;
+	GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = newRate;
+	GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = newRate;
+	GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = newRate;
+
+
+	if (fSecondsToStartFadingOutMusic < GAMESTATE->m_pCurSong->m_fMusicLengthSeconds)
+	{
+		p.m_fFadeOutSeconds = MUSIC_FADE_OUT_SECONDS;
+		p.m_LengthSeconds = fSecondsToStartFadingOutMusic + MUSIC_FADE_OUT_SECONDS - p.m_StartSecond;
+	}
+
+	p.StopMode = RageSoundParams::M_CONTINUE;
+
+	m_pSoundMusic->Play(false, &p);
+
+	GAMESTATE->m_Position.m_fMusicSeconds = fSeconds;
+	UpdateSongPosition(0);
+}
+
+void ScreenGameplay::SetSongPosition(float newPositionSeconds)
+{
+	if (newPositionSeconds <= 0)
+		newPositionSeconds = 0.f;
+
+	m_pSoundMusic->Stop();
+	RageTimer tm;
+	const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
+	float rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+	TimingData* g = &GAMESTATE->m_pCurSong->m_SongTiming;
+
+	float fSecondsToStartFadingOutMusic, fSecondsToStartTransitioningOut;
+	GetMusicEndTiming(fSecondsToStartFadingOutMusic, fSecondsToStartTransitioningOut);
+
+	RageSoundParams p;
+	p.m_StartSecond = newPositionSeconds;
+	p.m_fSpeed = rate;
+	GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = rate;
+	GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = rate;
+	GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = rate;
+
+
+	if (fSecondsToStartFadingOutMusic < GAMESTATE->m_pCurSong->m_fMusicLengthSeconds)
+	{
+		p.m_fFadeOutSeconds = MUSIC_FADE_OUT_SECONDS;
+		p.m_LengthSeconds = fSecondsToStartFadingOutMusic + MUSIC_FADE_OUT_SECONDS - p.m_StartSecond;
+	}
+
+	p.StopMode = RageSoundParams::M_CONTINUE;
+	if (newPositionSeconds < fSeconds)
+	{
+		ReloadCurrentSong();
+		STATSMAN->m_CurStageStats.m_player[PLAYER_1].InternalInit();
+		PlayerAI::SetScoreData(PlayerAI::pScoreData);
+		FOREACH_ENUM(TapNoteScore, tns)
+		{
+			Message msg = Message("Judgment");
+			msg.SetParam("Judgment", tns);
+			msg.SetParam("WifePercent", 0);
+			msg.SetParam("Player", 0);
+			msg.SetParam("TapNoteScore", tns);
+			msg.SetParam("FirstTrack", 0);
+			msg.SetParam("CurWifeScore", 0);
+			msg.SetParam("MaxWifeScore", 0);
+			msg.SetParam("WifeDifferential", 0);
+			msg.SetParam("TotalPercent", 0);
+			msg.SetParam("Type", RString("Tap"));
+			msg.SetParam("Val", 0);
+			MESSAGEMAN->Broadcast(msg);
+		}
+
+	}
+
+	m_pSoundMusic->Play(false, &p);
+
+	GAMESTATE->m_Position.m_fMusicSeconds = newPositionSeconds;
+	UpdateSongPosition(0);
+	//RecalcJudgedNotesForReplay();
+}
+
+const float ScreenGameplay::GetSongPosition()
+{
+	RageTimer tm;
+	return m_pSoundMusic->GetPositionSeconds(NULL, &tm);
+}
+
+void ScreenGameplay::RecalcJudgedNotesForReplay()
+{
+	int currentRow;
+
+	// Calculate rows/beats/seconds for +/- 6 seconds from our current position.
+	// This is done just to make sure we don't miss anything important.
+	// Currently, this is designed to only check so far because we don't expect to move more than 5 seconds.
+	float fPositionSeconds = GAMESTATE->m_Position.m_fMusicSeconds;
+	float fSongBeat = GAMESTATE->m_pCurSong->m_SongTiming.GetBeatFromElapsedTime(fPositionSeconds);
+	float earlyBeat = GAMESTATE->m_pCurSong->m_SongTiming.GetBeatFromElapsedTime(fPositionSeconds - 6);
+	float lateBeat = GAMESTATE->m_pCurSong->m_SongTiming.GetBeatFromElapsedTime(fPositionSeconds + 6);
+	int iRowNow = BeatToNoteRow(fSongBeat);
+	iRowNow = max(0, iRowNow);
+	int startRow = BeatToNoteRow(earlyBeat);
+	startRow = max(0, startRow);
+	int lastRow = BeatToNoteRow(lateBeat);
+	lastRow = max(0, lastRow);
+
+	GAMESTATE->ResetMusicStatistics();
+
+	// dont ask
+	int index = GAMESTATE->GetCourseSongIndex();
+	m_vPlayerInfo[PLAYER_1].GetPlayerState()->m_fLastDrawnBeat = -100;
+	Steps *pSteps = m_vPlayerInfo[PLAYER_1].m_vpStepsQueue[index];
+	NoteData originalNoteData;
+	pSteps->GetNoteData(originalNoteData);
+	NoteData ndTransformed;
+	const Style* pStyle = GAMESTATE->GetCurrentStyle(m_vPlayerInfo[PLAYER_1].m_pn);
+	pStyle->GetTransformedNoteDataForStyle(m_vPlayerInfo[PLAYER_1].GetStepsAndTrailIndex(), originalNoteData, ndTransformed);
+	m_vPlayerInfo[PLAYER_1].GetPlayerState()->Update(0);
+	m_vPlayerInfo[PLAYER_1].m_NoteData = ndTransformed;
+	NoteDataUtil::RemoveAllTapsOfType(m_vPlayerInfo[PLAYER_1].m_NoteData, TapNoteType_AutoKeysound);
+	NoteData nd = ndTransformed;
+	NoteDataUtil::RemoveAllTapsExceptForType(nd, TapNoteType_AutoKeysound);
+	m_AutoKeysounds.Load(m_vPlayerInfo[PLAYER_1].GetStepsAndTrailIndex(), nd);
+	m_vPlayerInfo[PLAYER_1].GetPlayerState()->Update(0);
+	m_vPlayerInfo[PLAYER_1].GetPlayerState()->m_PlayerOptions.SetCurrentToLevel(ModsLevel_Stage);
+
+	if (m_vPlayerInfo[PLAYER_1].m_pPrimaryScoreKeeper)
+		m_vPlayerInfo[PLAYER_1].m_pPrimaryScoreKeeper->OnNextSong(GAMESTATE->GetCourseSongIndex(), pSteps, &m_vPlayerInfo[PLAYER_1].m_pPlayer->GetNoteData());
+	if (m_vPlayerInfo[PLAYER_1].m_pSecondaryScoreKeeper)
+		m_vPlayerInfo[PLAYER_1].m_pSecondaryScoreKeeper->OnNextSong(GAMESTATE->GetCourseSongIndex(), pSteps, &m_vPlayerInfo[PLAYER_1].m_pPlayer->GetNoteData());
+
+	GAMESTATE->m_pCurSteps[PLAYER_1]->GetTimingData()->PrepareLookup();
+
+
+
+	//m_vPlayerInfo[PLAYER_1].m_pPlayer->RejudgeNoteDataRange(startRow, lastRow);
+
+}
+
 /*
 bool ScreenGameplay::LoadReplay()
 {

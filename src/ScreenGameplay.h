@@ -154,6 +154,18 @@ public:
 	void FailFadeRemovePlayer(PlayerInfo* pi);
 	void FailFadeRemovePlayer(PlayerNumber pn);
 	void BeginBackingOutFromGameplay();
+	
+	// Set the playback rate in the middle of gameplay
+	void SetRate(float newRate);
+	// Move the current position of the song in the middle of gameplay
+	void SetSongPosition(float newPositionSeconds);
+	// Get current position of the song during gameplay
+	const float GetSongPosition();
+	// Recalculate the scores for notes we haven't passed yet
+	// This is intended to apply only to replays.
+	// It should only be used if we scroll backwards in time for some reason.
+	void RecalcJudgedNotesForReplay();
+	
 protected:
 	virtual void UpdateStageStats( MultiPlayer /* mp */ ) {};	// overridden for multiplayer
 
@@ -194,6 +206,7 @@ protected:
 	void SendCrossedMessages();
 
 	void PlayTicks();
+	// Used to update some pointers
 	void UpdateSongPosition( float fDeltaTime );
 	void UpdateLyrics( float fDeltaTime );
 	void SongFinished();

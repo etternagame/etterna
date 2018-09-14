@@ -150,6 +150,8 @@ void PlayerAI::SetScoreData(HighScore* pHighScore)
 {
 	pHighScore->LoadReplayData();
 	pScoreData = pHighScore;
+	m_ReplayTapMap.clear();
+	m_ReplayHoldMap.clear();
 	auto replayNoteRowVector = pHighScore->GetCopyOfNoteRowVector();
 	auto replayOffsetVector = pHighScore->GetCopyOfOffsetVector();
 	auto replayTapNoteTypeVector = pHighScore->GetCopyOfTapNoteTypeVector();

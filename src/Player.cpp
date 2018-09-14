@@ -3251,6 +3251,33 @@ void Player::IncrementComboOrMissCombo(bool bComboOrMissCombo)
 		SendComboMessages( iOldCombo, iOldMissCombo );
 }
 
+void Player::RejudgeNoteDataRange(int startRow, int lastRow)
+{
+	NoteData nd = m_NoteData;
+
+	FOREACH_NONEMPTY_ROW_ALL_TRACKS_RANGE(nd, row, startRow, lastRow)
+	{
+		for (int track = 0; track < nd.GetNumTracks(); track++)
+		{
+			TapNote *pTN = NULL;
+			NoteData::iterator iter = nd.FindTapNote(track, row);
+			DEBUG_ASSERT(iter != m_NoteData.end(col));
+			pTN = &iter->second;
+			
+
+			if (pTN->type == TapNoteType_Empty)
+				continue;
+			if (pTN->result.tns != TNS_None)
+			{
+				LOG->Trace("reset note");
+				pTN->Init();
+			}
+		}
+	}
+
+	m_pNoteField->DrawPrimitives();
+}
+
 // lua start
 #include "LuaBinding.h"
 

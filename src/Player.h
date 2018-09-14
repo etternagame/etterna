@@ -118,6 +118,7 @@ public:
 	void SetActorWithComboPosition( Actor *pActor ) { m_pActorWithComboPosition = pActor; }
 
 	void SetSendJudgmentAndComboMessages( bool b ) { m_bSendJudgmentAndComboMessages = b; }
+	void RejudgeNoteDataRange(int startRow, int lastRow);
 
 	// Lua
 	void PushSelf( lua_State *L ) override;

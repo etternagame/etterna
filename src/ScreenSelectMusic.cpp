@@ -89,6 +89,8 @@ void ScreenSelectMusic::Init()
 	}
 	if (GamePreferences::m_AutoPlay == PC_REPLAY)
 		GamePreferences::m_AutoPlay.Set(PC_HUMAN);
+	if (GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerController == PC_REPLAY)
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerController = PC_HUMAN;
 
 	IDLE_COMMENT_SECONDS.Load(m_sName, "IdleCommentSeconds");
 	SAMPLE_MUSIC_DELAY_INIT.Load(m_sName, "SampleMusicDelayInit");
@@ -1900,6 +1902,7 @@ public:
 		// lock the game into replay mode and GO
 		LOG->Trace("Viewing replay for score key %s", hs->GetScoreKey().c_str());
 		GamePreferences::m_AutoPlay.Set(PC_REPLAY);
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerController = PC_REPLAY;
 		p->SelectCurrent(PLAYER_1);
 
 		// set mods back to what they were before
