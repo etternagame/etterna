@@ -246,11 +246,7 @@ void SongUtil::AdjustDuplicateSteps( Song *pSong )
 			 * bug in an earlier version. */
 			DeleteDuplicateSteps( pSong, vSteps );
 
-			RString checkpointMessage = pSong->GetDisplayFullTitle() + " had duplicate steps removed.";
-			CHECKPOINT_M(checkpointMessage);
 			StepsUtil::SortNotesArrayByDifficulty( vSteps );
-			checkpointMessage = pSong->GetDisplayFullTitle() + " had charts sorted.";
-			CHECKPOINT_M(checkpointMessage);
 			for( unsigned k=1; k<vSteps.size(); k++ )
 			{
 				vSteps[k]->SetDifficulty( Difficulty_Edit );

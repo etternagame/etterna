@@ -709,7 +709,7 @@ bool HighScore::LoadReplayDataBasic() {
 }
 
 bool HighScore::LoadReplayDataFull() {
-	if (m_Impl->vNoteRowVector.size() > 4 && m_Impl->vOffsetVector.size() > 4) {
+	if (m_Impl->vNoteRowVector.size() > 4 && m_Impl->vOffsetVector.size() > 4 && m_Impl->vTrackVector.size() > 4) {
 		m_Impl->ReplayType = 2;
 		return true;
 	}

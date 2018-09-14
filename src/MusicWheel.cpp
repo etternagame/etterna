@@ -84,8 +84,6 @@ void MusicWheel::Load( const string &sType )
 	m_soundExpand.Load(	THEME->GetPathS(sType,"expand"), true );
 	m_soundCollapse.Load(	THEME->GetPathS(sType,"collapse"), true );
 
-	// Update for SORT_MOST_PLAYED.
-	SONGMAN->UpdatePopular();
 
 	/* Sort SONGMAN's songs by CompareSongPointersByTitle, so we can do other sorts (with
 	 * stable_sort) from its output, and title will be the secondary sort, without having

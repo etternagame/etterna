@@ -39,6 +39,7 @@
 #include "NoteSkinManager.h" 
 #include "ThemeMetric.h"
 #include "HoldJudgment.h"
+#include "GamePreferences.h"
 
 RString ATTACK_DISPLAY_X_NAME( size_t p, size_t both_sides );
 void TimingWindowSecondsInit( size_t /*TimingWindow*/ i, RString &sNameOut, float &defaultValueOut );
@@ -864,7 +865,7 @@ void Player::Update( float fDeltaTime )
 			if( tn.HoldResult.fLife >= 0.5f )
 				continue;
 
-			Step( iTrack, iHeadRow, now, false, false );
+			Step( iTrack, iHeadRow, now, true, false );	// bHeld really doesnt make a difference for autoplay and replay
 			if( m_pPlayerState->m_PlayerController == PC_AUTOPLAY)
 			{
 				STATSMAN->m_CurStageStats.m_bUsedAutoplay = true;
@@ -1048,6 +1049,41 @@ void Player::UpdateHoldNotes( int iSongRow, float fDeltaTime, vector<TrackRowTap
 		//LOG->Trace("hold note has a result, skipping.");
 		return;	// we don't need to update the logic for this group
 	}
+
+	if (GamePreferences::m_AutoPlay == PC_REPLAY)
+	{
+		FOREACH(TrackRowTapNote, vTN, trtn)
+		{
+			TapNote &tn = *trtn->pTN;
+
+			// check from now until the head of the hold to see if it should die
+			// possibly really bad, but we dont REALLY care that much about fps in replays, right?
+			bool holdDropped = false;
+			for (int yeet = vTN[0].iRow; yeet <= iSongRow && !holdDropped; yeet++)
+			{
+				if (PlayerAI::DetermineIfHoldDropped(yeet, trtn->iTrack))
+				{
+					holdDropped = true;
+				}
+			}
+
+			if (holdDropped) // it should be dead
+			{
+				tn.HoldResult.bHeld = false;
+				tn.HoldResult.bActive = false;
+				tn.HoldResult.fLife = 0.f;
+				tn.HoldResult.hns = HNS_LetGo;
+
+				// score the dead hold
+				if (COMBO_BREAK_ON_IMMEDIATE_HOLD_LET_GO)
+					IncrementMissCombo();
+				SetHoldJudgment(tn, iFirstTrackWithMaxEndRow, iSongRow);
+				HandleHoldScore(tn);
+				return;
+			}
+		}
+	}
+
 
 	//LOG->Trace("hold note doesn't already have result, let's check.");
 
@@ -2140,25 +2176,31 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 			break;
 
 		case PC_REPLAY:
-
-			fNoteOffset = PlayerAI::GetTapNoteOffsetForReplay(pTN, iRowOfOverlappingNoteOrRow, col);
-
-			if (fNoteOffset == -2.f)
+			
+			if (bHeld) //a hack to make Rolls not do weird things like count as 0ms marvs.
 			{
-				CHECKPOINT_M("mine hit");
-				score = TNS_HitMine;
-			}
-			else if (pTN->type == TapNoteType_Mine)
-			{
-				return;
+				score = TNS_None;
+				fNoteOffset = -1.f;
 			}
 			else
 			{
-				if ( pTN->IsNote() )
-					score = PlayerAI::GetTapNoteScoreForReplay(m_pPlayerState, fNoteOffset);
+				fNoteOffset = PlayerAI::GetTapNoteOffsetForReplay(pTN, iRowOfOverlappingNoteOrRow, col);
+				if (fNoteOffset == -2.f) // we hit a mine
+				{
+					score = TNS_HitMine;
+				}
+				else if (pTN->type == TapNoteType_Mine) // we are looking at a mine but missed it
+				{
+					return;
+				}
+				else // every other case
+				{
+					if (pTN->IsNote())
+						score = PlayerAI::GetTapNoteScoreForReplay(m_pPlayerState, fNoteOffset);
+				}
 			}
 			
-
+			
 			break;
 		default:
 			FAIL_M(ssprintf("Invalid player controller type: %i", m_pPlayerState->m_PlayerController));
@@ -2197,8 +2239,15 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 
 				if ( pTN->result.tns != TNS_None )
 				{
-					SetJudgment(iRowOfOverlappingNoteOrRow, col, *pTN);
-					HandleTapRowScore(iRowOfOverlappingNoteOrRow);
+					if (pTN->type == TapNoteType_HoldHead && m_pPlayerState->m_PlayerController == PC_REPLAY && bHeld)
+					{
+						// odd hack to make roll taps (Step() with bHeld true) not count as marvs
+					}
+					else
+					{
+						SetJudgment(iRowOfOverlappingNoteOrRow, col, *pTN);
+						HandleTapRowScore(iRowOfOverlappingNoteOrRow);
+					}
 				}
 			}
 		}
@@ -2243,11 +2292,22 @@ void Player::Step( int col, int row, const std::chrono::steady_clock::time_point
 		}
 	}
 	// XXX:
+	
 	if( !bRelease )
 	{
 		if( m_pNoteField != nullptr )
-		{
-			m_pNoteField->Step( col, score );
+		{	// skip tapping in replay mode on misses to emulate... missing.
+			if (m_pPlayerState->m_PlayerController == PC_REPLAY)
+			{
+				if (score != TNS_Miss)
+				{
+					m_pNoteField->Step(col, score);
+				}
+			}
+			else
+			{
+				m_pNoteField->Step(col, score);
+			}
 		}
 		Message msg( "Step" );
 		msg.SetParam( "PlayerNumber", m_pPlayerState->m_PlayerNumber );

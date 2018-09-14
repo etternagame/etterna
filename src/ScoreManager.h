@@ -6,6 +6,7 @@
 #include "PrefsManager.h"
 #include "SongManager.h"
 #include "ProfileManager.h"
+#include <algorithm>
 
 #include <map>
 #include <string>
@@ -133,6 +134,10 @@ public:
 
 	void PushSelf(lua_State *L);
 	HighScore* GetMostRecentScore() { return AllScores.back(); }
+	void PutScoreAtTheTop(string scorekey) {
+		auto score = ScoresByKey[scorekey];
+		std::swap(score, AllScores.back());
+	}
 	const vector<HighScore*>& GetAllScores() { return AllScores; }
 	const vector<HighScore*>& GetAllProfileScores(const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID) { return AllProfileScores[profileID]; }
 	void RegisterScore(HighScore* hs) {	AllScores.emplace_back(hs); }

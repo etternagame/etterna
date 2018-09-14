@@ -162,7 +162,7 @@ o[#o+1] = Def.ActorMultiVertex{
 			local x = fitX(wuab[i])
 			local y = fitY(dvt[i])
 			local fit = (enabledCustomWindows and judge ~= 0) and customWindow.judgeWindows.boo + 3 or math.max(183, 183*tso)
-			local cullur = (enabledCustomWindows and judge ~= 0) and customOffsetToJudgecullur(dvt[i], customWindow.judgeWindows) or offsetToJudgeColor(dvt[i], tst[judge])
+			local cullur = (enabledCustomWindows and judge ~= 0) and customOffsetToJudgeColor(dvt[i], customWindow.judgeWindows) or offsetToJudgeColor(dvt[i], tst[judge])
 			if math.abs(y) > plotHeight/2 then
 				y = fitY(fit)
 			end
