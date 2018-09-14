@@ -1,3 +1,5 @@
+--- OptionRow handlers for options defined in
+-- metrics.ini under [ScreenPlayerOptions]
 local function OptionNameString(str)
 	return THEME:GetString('OptionNames',str)
 end

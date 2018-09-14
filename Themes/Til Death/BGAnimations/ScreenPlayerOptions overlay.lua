@@ -82,7 +82,7 @@ t[#t+1] = Def.ActorFrame{
 		end,
 		ModifyAvatarCommand=function(self)
 			self:finishtweening()
-			self:LoadBackground(THEME:GetPathG("","../"..getAvatarPath(PLAYER_1)))
+			self:Load(getAvatarPath(PLAYER_1))
 			self:zoomto(30,30)
 		end
 	},

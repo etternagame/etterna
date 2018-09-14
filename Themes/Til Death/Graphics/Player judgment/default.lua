@@ -93,7 +93,8 @@ local function input(event)
 end
 
 local t = Def.ActorFrame {
-	LoadActor(THEME:GetPathG("Judgment","Normal")) .. {
+	Def.Sprite {
+		Texture = "../../../../"..getAssetPath("judgement"),
 		Name="Judgment",
 		InitCommand=function(self)
 			self:pause():visible(false):xy(x,y):zoom(zoom)

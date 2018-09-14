@@ -1,4 +1,17 @@
-function LoadNSkinPreview(Noteskin, Button, Element, Player)
+--- Noteskin previewing utility
+-- @usage LoadNSkinPreview("Get", "Down", "Tap Note");
+-- @module 09_SimNSkinPreview
+
+--- Load a NoteSkin preview actor
+-- @tparam string Noteskin Noteskin name. If "Get" then it does the currently selected noteskin, and updates itself when it changes. Defaults to "Get"
+-- @tparam string Button Ex: "Up". Defaults to "Down"
+-- @tparam string Element Defaults to "Tap Note"
+-- @treturn ActorFrame containing the noteskin preview
+function LoadNSkinPreview(Noteskin, Button, Element)
+	local Player = Player or PLAYER_1
+	Noteskin = Noteskin or "Get"
+	Button = Button or "Tap Note"
+	Element = Element or "Down"
 	if Noteskin == "Get" then
 		local t = Def.ActorFrame{
 			OnCommand=function(self)
@@ -41,7 +54,7 @@ function LoadNSkinPreview(Noteskin, Button, Element, Player)
 	end
 end
 
-function NSkinPreviewChange(Container,Player)
+local function NSkinPreviewChange(Container,Player)
 	return function(event)
 		for i, n in pairs(NOTESKIN:GetNoteSkinNames()) do
 			Container:GetChild("N"..i):visible(false)
@@ -55,7 +68,8 @@ function NSkinPreviewChange(Container,Player)
 	end
 end
 
-function SimChild(Container, Type)
+
+local function SimChild(Container, Type)
 	local notable,Count
 	local rType = {}
 	local Child = {Container}

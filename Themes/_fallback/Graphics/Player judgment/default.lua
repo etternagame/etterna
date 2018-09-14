@@ -29,9 +29,11 @@ local TNSFrames = {
 };
 local t = Def.ActorFrame {};
 t[#t+1] = Def.ActorFrame {
-	LoadActor(THEME:GetPathG("Judgment","Normal")) .. {
+	Def.Sprite {
+		Texture = "../../../../"..getAssetPath("judgement"),
 		Name="Judgment";
 		InitCommand=function(self)
+			SCREENMAN:SystemMessage(getAssetPath("judgement"))
 			self:pause():visible(false)
 		end;
 		OnCommand=THEME:GetMetric("Judgment","JudgmentOnCommand");

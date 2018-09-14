@@ -1,3 +1,4 @@
+
 function BGFitChoiceExample(params)
 	-- verify all the parameters, emitting an error for omitted ones.
 	local default_params= {
