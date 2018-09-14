@@ -99,13 +99,15 @@ function LoadActorFunc( path, level )
 	if path == "" then
 		error( "Passing in a blank filename is a great way to eat up RAM. Good thing we warn you about this." )
 	end
-
-	local ResolvedPath = ResolveRelativePath( path, level+1 )
-	if not ResolvedPath then
-		error( path .. ": not found", level+1 )
+	
+	if level and level > 0 then
+		local ResolvedPath = ResolveRelativePath( path, level+1 )
+		if not ResolvedPath then
+			error( path .. ": not found", level+1 )
+		end
+		path = ResolvedPath
 	end
-	path = ResolvedPath
-
+	
 	local Type = ActorUtil.GetFileType( path )
 	Trace( "Loading " .. path .. ", type " .. tostring(Type) )
 

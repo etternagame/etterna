@@ -10,7 +10,7 @@ end
 
 --Parameters.
 local imgTypes = {".jpg",".png",".gif",".jpeg"}
-local rawList = FILEMAN:GetDirListing("Themes/"..THEME:GetCurThemeName().."/Graphics/Player avatar/")
+local rawList = FILEMAN:GetDirListing(assetFolders.avatar)
 local avatars = filterFileList(rawList,imgTypes)
 
 local maxItems = 7--math.min(7,#avatars)
@@ -187,7 +187,7 @@ local function avatarSwitch(pn)
 			end,
 			ModifyAvatarCommand=function(self)
 				self:finishtweening()
-				self:LoadBackground(THEME:GetPathG("","Player avatar/"..v))
+				self:LoadBackground(assetFolders.avatar..v)
 				self:zoomto(itemWidth,itemHeight)
 			end,
 			AvMouseLeftClickMessageCommand=function(self) -- theoretically this should move the scroller unless to the target, unless the target is already selected in which case this should executre, but, that's work -mina

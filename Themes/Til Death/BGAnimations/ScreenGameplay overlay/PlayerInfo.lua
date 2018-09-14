@@ -10,7 +10,7 @@ local t = Def.ActorFrame{
 		end,
 		BeginCommand=function(self)
 			self:finishtweening()
-			self:Load(THEME:GetPathG("","../"..getAvatarPath(PLAYER_1)))
+			self:Load(getAvatarPath(PLAYER_1))
 			self:zoomto(50,50)
 		end,
 	},

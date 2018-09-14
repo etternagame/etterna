@@ -1,4 +1,9 @@
--- Serialize the table "t".
+--- Table serialization
+-- @module 02_Serialize
+
+--- Serialize a table into a string
+-- @tbl t
+-- @treturn string The serialized table string
 function Serialize(t)
 	local ret = ""
 	local queue = { }
@@ -60,8 +65,11 @@ function Serialize(t)
 	ret = ret .. "return " .. top_name
 	return ret
 end
-
--- Recursively deep-copy a table.
+--- Recursively deep-copy a table.
+-- @tbl From
+-- @tbl To Optional (reference to table to insert to)
+-- @tbl already_copied Optional. Defaults to an empty table (For recursive internal use)
+-- @treturn table 
 function DeepCopy(From, To, already_copied)
 	if not To then To = {} end
 

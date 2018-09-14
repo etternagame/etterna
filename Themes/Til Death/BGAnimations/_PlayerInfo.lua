@@ -57,7 +57,7 @@ t[#t+1] = Def.ActorFrame{
 		end,
 		ModifyAvatarCommand=function(self)
 			self:finishtweening()
-			self:Load(THEME:GetPathG("","../"..getAvatarPath(PLAYER_1)))
+			self:Load(getAvatarPath(PLAYER_1))
 			self:zoomto(50,50)
 		end,
 	},
@@ -238,7 +238,7 @@ local function Update(self)
 	t.InitCommand=function(self)
 		self:SetUpdateFunction(Update)
 	end;
-	if getAvatarUpdateStatus(PLAYER_1) then
+	if getAvatarUpdateStatus() then
     	self:GetChild("Avatar"..PLAYER_1):GetChild("Image"):queuecommand("ModifyAvatar")
     	setAvatarUpdateStatus(PLAYER_1,false)
     end;
