@@ -36,15 +36,19 @@ map<string, map<string, string>> OsuLoader::ParseFileString(string fileContents)
 	SeparateTagsAndContents(fileContents, sections, contents);
 
 	map<string, map<string, string>> parsedData;
-	for (int i = 0; i < (int)sections.size(); ++i)
+
+	if (sections.size() == 7)
 	{
-		for (auto& content : contents[i])
+		for (int i = 0; i < (int)sections.size(); ++i)
 		{
-			auto& str = content;
-			int pos = str.find_first_of(':');
-			string value = str.substr(pos + 1),
-				tag = str.substr(0, pos);
-			parsedData[sections[i]][tag] = value;
+			for (auto& content : contents[i])
+			{
+				auto& str = content;
+				int pos = str.find_first_of(':');
+				string value = str.substr(pos + 1),
+					tag = str.substr(0, pos);
+				parsedData[sections[i]][tag] = value;
+			}
 		}
 	}
 	return parsedData;
@@ -353,7 +357,7 @@ void OsuLoader::LoadNoteDataFromParsedData(Steps* out, map<string, map<string, s
 		);
 	}
 
-	out->m_pSong->m_fMusicLengthSeconds = 80; // what's going on with this
+	//out->m_pSong->m_fMusicLengthSeconds = 80; // what's going on with this
 	out->m_pSong->m_SongTiming.m_fBeat0OffsetInSeconds = -firstTap / 1000.0f;
 
 	out->SetNoteData(newNoteData);
@@ -402,6 +406,10 @@ bool OsuLoader::LoadFromDir(const RString &sPath_, Song &out)
 		RString fileContents;
 		f.Read(fileContents, -1);
 		parsedData = ParseFileString(fileContents.c_str());
+		if (parsedData.size() == 0)
+		{
+			continue;
+		}
 		if (filename == aFileNames[0])
 		{
 			SetMetadata(parsedData, out);
