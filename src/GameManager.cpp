@@ -2746,6 +2746,9 @@ static const Game *g_Games[] =
 
 GameManager::GameManager()
 {
+	m_bResetModifiers = false;
+	m_fPreviousRate = 1.f;
+	m_sModsToReset;
 	// Register with Lua.
 	{
 		Lua *L = LUA->Get();

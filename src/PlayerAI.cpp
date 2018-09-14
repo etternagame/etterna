@@ -267,6 +267,11 @@ float PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 				{
 					if (trr.type == TapNoteType_Mine) // hack for mines
 						return -2.f;
+					if (pTN->type == TapNoteType_Lift)
+					{
+						if (trr.type != TapNoteType_Lift)
+							continue;
+					}
 					return -trr.offset;
 				}
 			}

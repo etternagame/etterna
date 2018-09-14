@@ -160,8 +160,7 @@ void ScreenInstallOverlay::Update(float fDeltaTime)
 			msg.SetParam("queuedpacks", RString(""));
 		}
 		MESSAGEMAN->Broadcast(msg);
-	} else
-		MESSAGEMAN->Broadcast("AllDownloadsCompleted");		// silly to handle this through updates but im not sure where is better atm -mina
+	}
 #endif
 }
 

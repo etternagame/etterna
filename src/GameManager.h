@@ -49,6 +49,10 @@ public:
 	const Style* GameAndStringToStyle( const Game* pGame, const RString &sStyle );
 	RString StyleToLocalizedString( const Style* s );
 
+	bool m_bResetModifiers;
+	float m_fPreviousRate;
+	RString m_sModsToReset;
+
 
 	// Lua
 	void PushSelf( lua_State *L );

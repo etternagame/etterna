@@ -373,7 +373,7 @@ function scoreBoard(pn,position)
 				self:queuecommand("Set")
 			end,
 			SetCommand=function(self) 
-				self:settextf("%03d/%03d",score:GetRadarValues():GetValue("RadarCategory_"..fart[i]),pss:GetRadarPossible():GetValue("RadarCategory_"..fart[i]))
+				self:settextf("%03d/%03d",pss:GetRadarActual():GetValue("RadarCategory_"..fart[i]),pss:GetRadarPossible():GetValue("RadarCategory_"..fart[i]))
 			end,
 			ScoreChangedMessageCommand = function(self) self:queuecommand("Set"); end,
 		};
