@@ -54,7 +54,7 @@ function LoadNSkinPreview(Noteskin, Button, Element)
 	end
 end
 
-local function NSkinPreviewChange(Container,Player)
+function NSkinPreviewChange(Container,Player)
 	return function(event)
 		for i, n in pairs(NOTESKIN:GetNoteSkinNames()) do
 			Container:GetChild("N"..i):visible(false)
