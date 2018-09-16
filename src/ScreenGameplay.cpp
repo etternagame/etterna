@@ -2879,7 +2879,7 @@ public:
 	}
 	static int JumpToReplayBookmark(T* p, lua_State* L)
 	{
-		if (GamePreferences::m_AutoPlay == PC_REPLAY)
+		if (GamePreferences::m_AutoPlay == PC_REPLAY && GAMESTATE->GetPaused())
 		{
 			p->SetSongPosition(p->m_fReplayBookmarkSeconds);
 			return 1;

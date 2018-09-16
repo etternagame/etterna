@@ -71,8 +71,9 @@ scroller = Def.ActorFrame {
 	end,
 	ReplayRateCommand = function(self)
 		newrate = getNewRate()
-		realnewrate = notShit.round(SCREENMAN:GetTopScreen():SetReplayRate( newrate ), 3)
-		if realnewrate ~= nil then
+		givenrate = SCREENMAN:GetTopScreen():SetReplayRate( newrate )
+		if givenrate ~= nil then
+			realnewrate = notShit.round(givenrate, 3)
 			SCREENMAN:SystemMessage(string.format("Set rate to %f", realnewrate))
 		end
 	end,
