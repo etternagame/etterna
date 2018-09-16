@@ -1892,12 +1892,14 @@ public:
 
 		// set mods based on the score, hopefully
 		// it is known that xmod->cmod and back does not work most of the time.
+		/*
 		CHECKPOINT_M("Setting mods for Replay Viewing.");
 		RString mods = hs->GetModifiers();
 		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetSong().FromString(mods);
 		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().FromString(mods);
 		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred().FromString(mods);
 		CHECKPOINT_M("Replay mods set.");
+		*/
 
 		// lock the game into replay mode and GO
 		LOG->Trace("Viewing replay for score key %s", hs->GetScoreKey().c_str());
