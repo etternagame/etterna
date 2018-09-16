@@ -5,6 +5,17 @@ local function input(event)
 			MESSAGEMAN:Broadcast("AvMouseLeftClick")
 		end
 	end
+	if event.type ~= "InputEventType_Release" then
+		if event.GameButton == "MenuLeft" then
+			MESSAGEMAN:Broadcast("AvLeft")
+		elseif event.GameButton == "MenuRight" then
+			MESSAGEMAN:Broadcast("AvRight")
+		elseif event.GameButton == "Back" then
+			MESSAGEMAN:Broadcast("AvCancel")
+		elseif event.GameButton == "Start" then
+			MESSAGEMAN:Broadcast("AvExit")
+		end
+	end
 	return false
 end
 
@@ -94,51 +105,54 @@ local function avatarSwitch(pn)
 			self:smooth(0.2)
 			self:x(0)
 		end,
-		CodeMessageCommand=function(self,params)
-			if params.Name == "AvatarCancel" or params.Name == "AvatarExit" then
-				self:smooth(0.2)
-				self:x(-width)
-			end
+		AvExitMessageCommand=function(self)
+			self:smooth(0.2)
+			self:x(-width)
+		end,
+		AvCancelMessageCommand=function(self)
+			self:smooth(0.2)
+			self:x(-width)
 		end
 	}
 
 	t[#t+1] = Def.ActorFrame{
-	CodeMessageCommand=function(self,params)
+	AvLeftMessageCommand=function(self)
 		--grab table/cursor and shift them by 1 to left/right everytime someone presses code for avatarleft/right
-		local table = SCREENMAN:GetTopScreen():GetChildren().Overlay:GetChildren().AvatarSwitch:GetChildren()["AvatarSwitch"..pn]:GetChildren().AvatarTable
-		local cursor = SCREENMAN:GetTopScreen():GetChildren().Overlay:GetChildren().AvatarSwitch:GetChildren()["AvatarSwitch"..pn]:GetChildren().AvatarCursor
-		if params.PlayerNumber == pn then
-			if params.Name == "AvatarLeft" then
-				if data[pn]["avatarIndex"] > 1 and data[pn]["cursorIndex"] > 1 then
-					shift(cursor,-1)
-					data[pn]["avatarIndex"] = data[pn]["avatarIndex"] - 1
-					data[pn]["cursorIndex"] = data[pn]["cursorIndex"] - 1 
-				elseif data[pn]["avatarIndex"] > 1 and data[pn]["cursorIndex"] == 1 then
-					shift(table,1)
-					data[pn]["avatarIndex"] = data[pn]["avatarIndex"] - 1
-				end
-			end
-			if params.Name == "AvatarRight" then
-				if data[pn]["avatarIndex"] < #avatars and data[pn]["cursorIndex"] < maxItems then
-					shift(cursor,1)
-					data[pn]["avatarIndex"] = data[pn]["avatarIndex"] + 1
-					data[pn]["cursorIndex"] = data[pn]["cursorIndex"] + 1 
-				elseif data[pn]["avatarIndex"] < #avatars and data[pn]["cursorIndex"] == maxItems then
-					shift(table,-1)
-					data[pn]["avatarIndex"] = data[pn]["avatarIndex"] + 1
-				end
-			end
+		local avatarAttributes = SCREENMAN:GetTopScreen():GetChildren().Overlay:GetChildren().AvatarSwitch:GetChildren()["AvatarSwitch"..pn]:GetChildren()
+		local table = avatarAttributes.AvatarTable
+		local cursor = avatarAttributes.AvatarCursor
+		if data[pn]["avatarIndex"] > 1 and data[pn]["cursorIndex"] > 1 then
+			shift(cursor,-1)
+			data[pn]["avatarIndex"] = data[pn]["avatarIndex"] - 1
+			data[pn]["cursorIndex"] = data[pn]["cursorIndex"] - 1 
+		elseif data[pn]["avatarIndex"] > 1 and data[pn]["cursorIndex"] == 1 then
+			shift(table,1)
+			data[pn]["avatarIndex"] = data[pn]["avatarIndex"] - 1
 		end
-		--rq out of the screen if just canceling.
-		if params.Name == "AvatarCancel" then
-			SCREENMAN:GetTopScreen():Cancel()
+	end,
+	AvRightMessageCommand=function(self)
+		--grab table/cursor and shift them by 1 to left/right everytime someone presses code for avatarleft/right
+		local avatarAttributes = SCREENMAN:GetTopScreen():GetChildren().Overlay:GetChildren().AvatarSwitch:GetChildren()["AvatarSwitch"..pn]:GetChildren()
+		local table = avatarAttributes.AvatarTable
+		local cursor = avatarAttributes.AvatarCursor
+		if data[pn]["avatarIndex"] < #avatars and data[pn]["cursorIndex"] < maxItems then
+			shift(cursor,1)
+			data[pn]["avatarIndex"] = data[pn]["avatarIndex"] + 1
+			data[pn]["cursorIndex"] = data[pn]["cursorIndex"] + 1 
+		elseif data[pn]["avatarIndex"] < #avatars and data[pn]["cursorIndex"] == maxItems then
+			shift(table,-1)
+			data[pn]["avatarIndex"] = data[pn]["avatarIndex"] + 1
 		end
+	end,
 		
-		if params.Name == "AvatarExit" then
-			saveAvatar(params.PlayerNumber)
-			setAvatarUpdateStatus(pn,true)
-			SCREENMAN:GetTopScreen():Cancel()
-		end
+	--rq out of the screen if just canceling.
+	AvCancelMessageCommand=function(self)
+		SCREENMAN:GetTopScreen():Cancel()
+	end,
+	AvExitMessageCommand=function(self)
+		saveAvatar(pn)
+		setAvatarUpdateStatus(pn,true)
+		SCREENMAN:GetTopScreen():Cancel()
 	end
 	}
 
@@ -213,7 +227,7 @@ local function avatarSwitch(pn)
 			local profileName = GetPlayerOrMachineProfile(PLAYER_1):GetDisplayName()
 			self:settextf("%s's avatar: %s",profileName,avatars[data[pn]["avatarIndex"]])
 		end,
-		CodeMessageCommand=function(self)
+		AvExitMessageCommand=function(self)
 			self:queuecommand("Set")
 		end
 	}
