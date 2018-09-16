@@ -2542,38 +2542,47 @@ float ScreenGameplay::SetRate(float newRate)
 {
 	float rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 
+	// Rates outside of this range may crash
 	if (newRate < 0.3f || newRate > 5.f)
 		return rate;
+
 	bool paused = GAMESTATE->GetPaused();
+
+	// Stop the music and generate a new "music"
 	m_pSoundMusic->Stop();
+
 	RageTimer tm;
 	const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
-	TimingData* g = &GAMESTATE->m_pCurSong->m_SongTiming;
 
 	float fSecondsToStartFadingOutMusic, fSecondsToStartTransitioningOut;
 	GetMusicEndTiming(fSecondsToStartFadingOutMusic, fSecondsToStartTransitioningOut);
 
 	RageSoundParams p;
 	p.m_StartSecond = fSeconds;
+	// Turns out the music rate doesn't affect anything by itself, so we have to set every rate
 	p.m_fSpeed = newRate;
 	GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = newRate;
 	GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = newRate;
 	GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = newRate;
+	// Prevent music from making noise when doing things in pause mode
+	// Volume gets reset when leaving pause mode or doing almost anything else
 	if (paused)
 		p.m_Volume = 0.f;
-
+	// Set up the music so we don't wait for an Etternaty when messing around near the end of the song.
 	if (fSecondsToStartFadingOutMusic < GAMESTATE->m_pCurSong->m_fMusicLengthSeconds)
 	{
 		p.m_fFadeOutSeconds = MUSIC_FADE_OUT_SECONDS;
 		p.m_LengthSeconds = fSecondsToStartFadingOutMusic + MUSIC_FADE_OUT_SECONDS - p.m_StartSecond;
 	}
-
 	p.StopMode = RageSoundParams::M_CONTINUE;
 
+	// Go
 	m_pSoundMusic->Play(false, &p);
+	// But only for like 1 frame if we are paused
 	if (paused)
 		m_pSoundMusic->Pause(true);
 
+	// misc info update
 	GAMESTATE->m_Position.m_fMusicSeconds = fSeconds;
 	UpdateSongPosition(0);
 	return newRate;
@@ -2581,19 +2590,23 @@ float ScreenGameplay::SetRate(float newRate)
 
 void ScreenGameplay::SetSongPosition(float newPositionSeconds)
 {
+	// If you go too far negative, bad things may happen
+	// But remember some files have notes at 0.0 seconds
 	if (newPositionSeconds <= 0)
 		newPositionSeconds = 0.f;
 	bool paused = GAMESTATE->GetPaused();
 
+	// Stop the music and generate a new "music"
 	m_pSoundMusic->Stop();
+
 	RageTimer tm;
 	const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
 	float rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-	TimingData* g = &GAMESTATE->m_pCurSong->m_SongTiming;
 
 	float fSecondsToStartFadingOutMusic, fSecondsToStartTransitioningOut;
 	GetMusicEndTiming(fSecondsToStartFadingOutMusic, fSecondsToStartTransitioningOut);
 
+	// Set up current rate and new position to play
 	RageSoundParams p;
 	p.m_StartSecond = newPositionSeconds;
 	p.m_fSpeed = rate;
@@ -2601,102 +2614,52 @@ void ScreenGameplay::SetSongPosition(float newPositionSeconds)
 	GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = rate;
 	GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = rate;
 
-
+	// Prevent endless music or something
 	if (fSecondsToStartFadingOutMusic < GAMESTATE->m_pCurSong->m_fMusicLengthSeconds)
 	{
 		p.m_fFadeOutSeconds = MUSIC_FADE_OUT_SECONDS;
 		p.m_LengthSeconds = fSecondsToStartFadingOutMusic + MUSIC_FADE_OUT_SECONDS - p.m_StartSecond;
 	}
-
 	p.StopMode = RageSoundParams::M_CONTINUE;
+
+	// If we scroll backwards, we need to render those notes again
 	if (newPositionSeconds < fSeconds)
 	{
 		m_vPlayerInfo[PLAYER_1].m_pPlayer->RenderAllNotesIgnoreScores();
 	}
+
+	// If we are paused, set the volume to 0 so we don't make weird noises
 	if (paused)
 	{
 		p.m_Volume = 0.f;
 	}
 	else
 	{
-		// Restart the music to make sure nothing weird is going on
+		// Restart the file to make sure nothing weird is going on
 		ReloadCurrentSong();
 		STATSMAN->m_CurStageStats.m_player[PLAYER_1].InternalInit();
 	}
 
+	// Go
 	m_pSoundMusic->Play(false, &p);
-
+	// But only for like 1 frame if we are paused
 	if (paused)
 		m_pSoundMusic->Pause(true);
 
+	// misc info update
 	GAMESTATE->m_Position.m_fMusicSeconds = newPositionSeconds;
 	UpdateSongPosition(0);
 }
 
 const float ScreenGameplay::GetSongPosition()
 {
+	// Really, this is the music position...
 	RageTimer tm;
 	return m_pSoundMusic->GetPositionSeconds(NULL, &tm);
 }
 
-void ScreenGameplay::RecalcJudgedNotesForReplay()
-{
-	int currentRow;
-
-	// Calculate rows/beats/seconds for +/- 6 seconds from our current position.
-	// This is done just to make sure we don't miss anything important.
-	// Currently, this is designed to only check so far because we don't expect to move more than 5 seconds.
-	float fPositionSeconds = GAMESTATE->m_Position.m_fMusicSeconds;
-	float fSongBeat = GAMESTATE->m_pCurSong->m_SongTiming.GetBeatFromElapsedTime(fPositionSeconds);
-	float earlyBeat = GAMESTATE->m_pCurSong->m_SongTiming.GetBeatFromElapsedTime(fPositionSeconds - 6);
-	float lateBeat = GAMESTATE->m_pCurSong->m_SongTiming.GetBeatFromElapsedTime(fPositionSeconds + 6);
-	int iRowNow = BeatToNoteRow(fSongBeat);
-	iRowNow = max(0, iRowNow);
-	int startRow = BeatToNoteRow(earlyBeat);
-	startRow = max(0, startRow);
-	int lastRow = BeatToNoteRow(lateBeat);
-	lastRow = max(0, lastRow);
-
-	//m_vPlayerInfo[PLAYER_1].m_pPlayer->RejudgeNoteDataRange(0, lastRow);
-	return;
-
-	GAMESTATE->ResetMusicStatistics();
-
-	// dont ask
-	int index = GAMESTATE->GetCourseSongIndex();
-	m_vPlayerInfo[PLAYER_1].GetPlayerState()->m_fLastDrawnBeat = -100;
-	Steps *pSteps = m_vPlayerInfo[PLAYER_1].m_vpStepsQueue[index];
-	NoteData originalNoteData;
-	pSteps->GetNoteData(originalNoteData);
-	NoteData ndTransformed;
-	const Style* pStyle = GAMESTATE->GetCurrentStyle(m_vPlayerInfo[PLAYER_1].m_pn);
-	pStyle->GetTransformedNoteDataForStyle(m_vPlayerInfo[PLAYER_1].GetStepsAndTrailIndex(), originalNoteData, ndTransformed);
-	m_vPlayerInfo[PLAYER_1].GetPlayerState()->Update(0);
-	m_vPlayerInfo[PLAYER_1].m_NoteData = ndTransformed;
-	NoteDataUtil::RemoveAllTapsOfType(m_vPlayerInfo[PLAYER_1].m_NoteData, TapNoteType_AutoKeysound);
-	NoteData nd = ndTransformed;
-	NoteDataUtil::RemoveAllTapsExceptForType(nd, TapNoteType_AutoKeysound);
-	m_AutoKeysounds.Load(m_vPlayerInfo[PLAYER_1].GetStepsAndTrailIndex(), nd);
-	m_vPlayerInfo[PLAYER_1].GetPlayerState()->Update(0);
-	m_vPlayerInfo[PLAYER_1].GetPlayerState()->m_PlayerOptions.SetCurrentToLevel(ModsLevel_Stage);
-
-	if (m_vPlayerInfo[PLAYER_1].m_pPrimaryScoreKeeper)
-		m_vPlayerInfo[PLAYER_1].m_pPrimaryScoreKeeper->OnNextSong(GAMESTATE->GetCourseSongIndex(), pSteps, &m_vPlayerInfo[PLAYER_1].m_pPlayer->GetNoteData());
-	if (m_vPlayerInfo[PLAYER_1].m_pSecondaryScoreKeeper)
-		m_vPlayerInfo[PLAYER_1].m_pSecondaryScoreKeeper->OnNextSong(GAMESTATE->GetCourseSongIndex(), pSteps, &m_vPlayerInfo[PLAYER_1].m_pPlayer->GetNoteData());
-
-	GAMESTATE->m_pCurSteps[PLAYER_1]->GetTimingData()->PrepareLookup();
-
-
-
-	//m_vPlayerInfo[PLAYER_1].m_pPlayer->RejudgeNoteDataRange(startRow, lastRow);
-
-}
-
 void ScreenGameplay::ToggleReplayPause()
 {
-	//m_vPlayerInfo[PLAYER_1].m_pPlayer->SetPaused( !m_bPaused );
-
 
 	// True if we were paused before now
 	bool oldPause = GAMESTATE->GetPaused();
@@ -2710,11 +2673,13 @@ void ScreenGameplay::ToggleReplayPause()
 
 		const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
 		float rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+
 		// Restart the stage, technically (This will cause a lot of lag if there are a lot of notes.)
 		ReloadCurrentSong();
 		STATSMAN->m_CurStageStats.m_player[PLAYER_1].InternalInit();
 		PlayerAI::SetScoreData(PlayerAI::pScoreData);
 
+		// Reset the wife/judge counter related visible stuff
 		FOREACH_ENUM(TapNoteScore, tns)
 		{
 			Message msg = Message("Judgment");
@@ -2732,8 +2697,7 @@ void ScreenGameplay::ToggleReplayPause()
 			MESSAGEMAN->Broadcast(msg);
 		}
 
-		TimingData* g = &GAMESTATE->m_pCurSong->m_SongTiming;
-
+		// Set up the stage music to current params, simply
 		float fSecondsToStartFadingOutMusic, fSecondsToStartTransitioningOut;
 		GetMusicEndTiming(fSecondsToStartFadingOutMusic, fSecondsToStartTransitioningOut);
 
@@ -2745,8 +2709,9 @@ void ScreenGameplay::ToggleReplayPause()
 			p.m_fFadeOutSeconds = MUSIC_FADE_OUT_SECONDS;
 			p.m_LengthSeconds = fSecondsToStartFadingOutMusic + MUSIC_FADE_OUT_SECONDS - p.m_StartSecond;
 		}
-
 		p.StopMode = RageSoundParams::M_CONTINUE;
+
+		// Unpause
 		m_pSoundMusic->Play(false, &p);
 		GAMESTATE->m_Position.m_fMusicSeconds = fSeconds;
 		UpdateSongPosition(0);
@@ -2754,6 +2719,9 @@ void ScreenGameplay::ToggleReplayPause()
 	}
 	else
 	{
+		// Almost all of gameplay is based on the music moving.
+		// If the music is paused, nothing works.
+		// This is all we have to do.
 		m_pSoundMusic->Pause(newPause);
 		SCREENMAN->SystemMessage("Paused Replay");
 	}

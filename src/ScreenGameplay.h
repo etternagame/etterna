@@ -161,10 +161,6 @@ public:
 	void SetSongPosition(float newPositionSeconds);
 	// Get current position of the song during gameplay
 	const float GetSongPosition();
-	// Recalculate the scores for notes we haven't passed yet
-	// This is intended to apply only to replays.
-	// It should only be used if we scroll backwards in time for some reason.
-	void RecalcJudgedNotesForReplay();
 	// Toggle pause. Don't use this outside of replays.
 	// Please.
 	// I'm serious.
