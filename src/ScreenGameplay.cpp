@@ -2538,10 +2538,12 @@ void ScreenGameplay::SaveReplay()
 	}
 }
 
-void ScreenGameplay::SetRate(float newRate)
+float ScreenGameplay::SetRate(float newRate)
 {
+	float rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+
 	if (newRate < 0.3f || newRate > 5.f)
-		return;
+		return rate;
 	bool paused = GAMESTATE->GetPaused();
 	m_pSoundMusic->Stop();
 	RageTimer tm;
@@ -2574,6 +2576,7 @@ void ScreenGameplay::SetRate(float newRate)
 
 	GAMESTATE->m_Position.m_fMusicSeconds = fSeconds;
 	UpdateSongPosition(0);
+	return newRate;
 }
 
 void ScreenGameplay::SetSongPosition(float newPositionSeconds)
@@ -2747,10 +2750,12 @@ void ScreenGameplay::ToggleReplayPause()
 		m_pSoundMusic->Play(false, &p);
 		GAMESTATE->m_Position.m_fMusicSeconds = fSeconds;
 		UpdateSongPosition(0);
+		SCREENMAN->SystemMessage("Unpaused Replay");
 	}
 	else
 	{
 		m_pSoundMusic->Pause(newPause);
+		SCREENMAN->SystemMessage("Paused Replay");
 	}
 	GAMESTATE->SetPaused(newPause);
 
@@ -2871,14 +2876,16 @@ public:
 		if (!GAMESTATE->GetPaused())
 		{
 			SCREENMAN->SystemMessage("You must be paused to change the rate of a Replay.");
+			lua_pushnumber(L, -1.f);
 			return 0;
 		}
 		if (GamePreferences::m_AutoPlay != PC_REPLAY)
 		{
 			SCREENMAN->SystemMessage("You cannot change the rate outside of a Replay.");
+			lua_pushnumber(L, -1.f);
 			return 0;
 		}
-		p->SetRate(newrate);
+		lua_pushnumber(L, p->SetRate(newrate));
 		return 1;
 	}
 	static int ToggleReplayPause(T* p, lua_State* L)

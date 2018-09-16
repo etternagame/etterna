@@ -35,14 +35,14 @@ end
 local function getNewSongPos()
 	currentpos = SCREENMAN:GetTopScreen():GetSongPosition()
 	newpos = currentpos + (modifierPressed and 0.1 or 5) * (forward and 1 or -1)
-	SCREENMAN:SystemMessage(string.format("%f to %f", currentpos, newpos))
+	--SCREENMAN:SystemMessage(string.format("%f to %f", currentpos, newpos))
 	return newpos
 end
 
 local function getNewRate()
 	currentrate = GAMESTATE:GetSongOptionsObject('ModsLevel_Preferred'):MusicRate()
 	newrate = currentrate + (modifierPressed and 0.05 or 0.1) * (forward and 1 or -1)
-	SCREENMAN:SystemMessage(string.format("%f to %f", currentrate, newrate))
+	--SCREENMAN:SystemMessage(string.format("%f to %f", currentrate, newrate))
 	return newrate
 end
 
@@ -60,7 +60,10 @@ scroller = Def.ActorFrame {
 	end,
 	ReplayRateCommand = function(self)
 		newrate = getNewRate()
-		SCREENMAN:GetTopScreen():SetReplayRate( newrate )
+		realnewrate = notShit.round(SCREENMAN:GetTopScreen():SetReplayRate( newrate ), 3)
+		if realnewrate ~= nil then
+			SCREENMAN:SystemMessage(string.format("Set rate to %f", realnewrate))
+		end
 	end,
 	ReplayPauseToggleCommand = function(self)
 		SCREENMAN:GetTopScreen():ToggleReplayPause()

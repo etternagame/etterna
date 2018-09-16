@@ -156,7 +156,7 @@ public:
 	void BeginBackingOutFromGameplay();
 	
 	// Set the playback rate in the middle of gameplay
-	void SetRate(float newRate);
+	float SetRate(float newRate);
 	// Move the current position of the song in the middle of gameplay
 	void SetSongPosition(float newPositionSeconds);
 	// Get current position of the song during gameplay
