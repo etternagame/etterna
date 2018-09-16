@@ -36,7 +36,11 @@ local finishtweening = Actor.finishtweening
 local linear = Actor.linear
 local x = Actor.x
 local y = Actor.y
+local addx = Actor.addx
+local addy = Actor.addy
 local Zoomtoheight = Actor.zoomtoheight
+local Zoomtowidth = Actor.zoomtowidth
+local Zoomm = Actor.zoom
 local queuecommand = Actor.queuecommand
 local playcommand = Actor.queuecommand
 local settext = BitmapText.settext
@@ -53,71 +57,55 @@ if not isCentered then
 end
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
 
--- Those are the X and Y for things that are going to be able to be moved with the listener
-local eb     -- Errorbar children
-local dt     -- Differential tracker children
-local mb     -- Minibar actor frame
-local fb     -- Fullbar actor frame
-local dp 	 -- Display percent actor frame
-
 local screen 			-- the screen after it is loaded
 local messageBox		-- the message box from when you try to move something
-local judgeCounter      -- pa counter actor frame
 
 local WIDESCREENWHY = -5
 local WIDESCREENWHX = -5
 
+local values = {
+	ErrorBarX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ErrorBarX,
+	ErrorBarY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ErrorBarY,
+	ErrorBarWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].ErrorBarWidth,
+	ErrorBarHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].ErrorBarHeight,
+	TargetTrackerX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].TargetTrackerX,
+	TargetTrackerY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].TargetTrackerY,
+	TargetTrackerZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].TargetTrackerZoom,
+	FullProgressBarX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].FullProgressBarX,
+	FullProgressBarY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].FullProgressBarY,
+	FullProgressBarWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].FullProgressBarWidth,
+	FullProgressBarHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].FullProgressBarHeight,
+	MiniProgressBarX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].MiniProgressBarX,
+	MiniProgressBarY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].MiniProgressBarY,
+	DisplayPercentX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].DisplayPercentX,
+	DisplayPercentY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].DisplayPercentY,
+	DisplayPercentZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].DisplayPercentZoom,
+	NotefieldX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NotefieldX,
+	NotefieldY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NotefieldY,
+	NotefieldWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NotefieldWidth,
+	NotefieldHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NotefieldHeight,
+	JudgeCounterX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].JudgeCounterX,
+	JudgeCounterY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].JudgeCounterY,
+}
+
 --error bar things
-local errorBarX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ErrorBarX 								
-local errorBarY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ErrorBarY
-local errorBarWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].ErrorBarWidth         -- felt like this is necessary in order to do stuff
-local errorBarHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].ErrorBarHeight 								
-local errorBarFrameWidth = capWideScale(get43size(errorBarWidth),errorBarWidth)
+local errorBarFrameWidth = capWideScale(get43size(values.ErrorBarWidth),values.ErrorBarWidth)
 local wscale = errorBarFrameWidth/180
-
---percent display things
-local displayPercentX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].DisplayPercentX
-local displayPercentY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].DisplayPercentY
-local displayPercentZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].DisplayPercentZoom
-
---pa counter things
-local judgeCounterX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].JudgeCounterX
-local judgeCounterY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].JudgeCounterY
 
 --differential tracker things
 local targetTrackerMode = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetTrackerMode
-local targetTrackerX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].TargetTrackerX
-local targetTrackerY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].TargetTrackerY
-local targetTrackerZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].TargetTrackerZoom
-
-if IsUsingWideScreen( ) then
-	targetTrackerY = targetTrackerY + WIDESCREENWHY
-	targetTrackerX = targetTrackerX - WIDESCREENWHX
-end
-
---mini progress bar things
-local miniProgressBarX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].MiniProgressBarX
-local miniProgressBarY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].MiniProgressBarY
 
 -- CUZ WIDESCREEN DEFAULTS SCREAAAAAAAAAAAAAAAAAAAAAAAAAM -mina
 if IsUsingWideScreen( ) then
-	miniProgressBarY = miniProgressBarY + WIDESCREENWHY
-	miniProgressBarX = miniProgressBarX - WIDESCREENWHX
+	values.MiniProgressBarY = values.MiniProgressBarY + WIDESCREENWHY
+	values.MiniProgressBarX = values.MiniProgressBarX - WIDESCREENWHX
+	values.TargetTrackerY = values.TargetTrackerY + WIDESCREENWHY
+	values.TargetTrackerX = values.TargetTrackerX - WIDESCREENWHX
 end
 
---full progress bar things
-local fullProgressBarX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].FullProgressBarX
-local fullProgressBarY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].FullProgressBarY
-local fullProgressBarWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].FullProgressBarWidth
-local fullProgressBarHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].FullProgressBarHeight
-
---receptor/notefield things
-local noteField
+--receptor/Notefield things
+local Notefield
 local noteColumns
-local noteFieldX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NotefieldX
-local noteFieldY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NotefieldY
-local noteFieldWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NotefieldWidth
-local noteFieldHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NotefieldHeight
 
 --guess checking if things are enabled before changing them is good for not having a log full of errors
 local enabledErrorBar = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).ErrorBar
@@ -140,516 +128,383 @@ end
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ]]
-local onePressed = false
-local twoPressed = false
-local threePressed = false
-local fourPressed = false
-local fivePressed = false
-local sixPressed = false
-local sevenPressed = false
-local eightPressed = false
-local ninePressed = false
-local zeroPressed = false
-local qPressed = false
-local wPressed = false
-local ePressed = false
-local rPressed = false
-local tPressed = false
-local yPressed = false
-local uPressed = false
-local iPressed = false
-local oPressed = false
-local pPressed = false
-local changed = false
+local function arbitraryErrorBarValue(value)
+	errorBarFrameWidth = capWideScale(get43size(value),value)
+	wscale = errorBarFrameWidth/180
+end 
 
-local function firstHalfInput(event)
-	if getAutoplay() ~= 0 then
-		-- this is starting to not look pretty, might rework on this piece of code to make it look smaller / lol i had to split in two functions because it told me there were more than 60 values
-		if event.DeviceInput.button == "DeviceButton_1" then
-			onePressed = not (event.type == "InputEventType_Release")
-		end
-		if event.DeviceInput.button == "DeviceButton_2" then
-			twoPressed = not (event.type == "InputEventType_Release")
-		end
-		if event.DeviceInput.button == "DeviceButton_3" then
-			threePressed = not (event.type == "InputEventType_Release")
-		end
-		if event.DeviceInput.button == "DeviceButton_4" then
-			fourPressed = not (event.type == "InputEventType_Release")
-		end
-		if event.DeviceInput.button == "DeviceButton_5" then
-			fivePressed = not (event.type == "InputEventType_Release")
-		end
-		if event.DeviceInput.button == "DeviceButton_6" then
-			sixPressed = not (event.type == "InputEventType_Release")
-		end
-		if event.DeviceInput.button == "DeviceButton_7" then
-			sevenPressed = not (event.type == "InputEventType_Release")
-		end
-		if event.DeviceInput.button == "DeviceButton_8" then
-			eightPressed = not (event.type == "InputEventType_Release")
-		end
-		if event.DeviceInput.button == "DeviceButton_9" then
-			ninePressed = not (event.type == "InputEventType_Release")
-		end
-		if event.DeviceInput.button == "DeviceButton_0" then
-			zeroPressed = not (event.type == "InputEventType_Release")
-		end
-		messageBox:GetChild("judgmentPosText"):visible(onePressed):playcommand("Update")
-		messageBox:GetChild("judgmentSizeText"):visible(twoPressed):playcommand("Update")
-		messageBox:GetChild("comboPosText"):visible(threePressed):playcommand("Update")
-		messageBox:GetChild("comboSizeText"):visible(fourPressed):playcommand("Update")
-		messageBox:GetChild("errorBarPosText"):visible(fivePressed):playcommand("Update")
-		messageBox:GetChild("errorBarSizeText"):visible(sixPressed):playcommand("Update")
-		messageBox:GetChild("targetTrackerPosText"):visible(sevenPressed):playcommand("Update")
-		messageBox:GetChild("targetTrackerSizeText"):visible(eightPressed):playcommand("Update")
-		messageBox:GetChild("fullProgressBarPosText"):visible(ninePressed):playcommand("Update")
-		messageBox:GetChild("fullProgressBarSizeText"):visible(zeroPressed):playcommand("Update")
-		-- changes errorbar x/y
-		if fivePressed and enabledErrorBar and event.type ~= "InputEventType_Release" then
-			if event.DeviceInput.button == "DeviceButton_up" then
-				errorBarY = errorBarY - 5
-				eb.Center:y(errorBarY)
-				eb.WeightedBar:y(errorBarY)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ErrorBarY = errorBarY
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_down" then
-				errorBarY = errorBarY + 5
-				eb.Center:y(errorBarY)
-				eb.WeightedBar:y(errorBarY)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ErrorBarY = errorBarY
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_left" then
-				errorBarX = errorBarX - 5
-				eb.Center:x(errorBarX)
-				eb.WeightedBar:x(errorBarX)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ErrorBarX = errorBarX
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_right" then
-				errorBarX = errorBarX + 5
-				eb.Center:x(errorBarX)
-				eb.WeightedBar:x(errorBarX)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ErrorBarX = errorBarX
-				changed = true
-			end
-			if changed then
-				playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-				playerConfig:save(pn_to_profile_slot(PLAYER_1))
-				changed = false
-			end
-		end
-		-- changes errorbar size
-		if sixPressed and enabledErrorBar and event.type ~= "InputEventType_Release" then
-			if event.DeviceInput.button == "DeviceButton_up" then
-				errorBarHeight = errorBarHeight + 1
-				eb.Center:zoomtoheight(errorBarHeight)
-				eb.WeightedBar:zoomtoheight(errorBarHeight)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].ErrorBarHeight = errorBarHeight
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_down" then
-				errorBarHeight = errorBarHeight - 1
-				eb.Center:zoomtoheight(errorBarHeight)
-				eb.WeightedBar:zoomtoheight(errorBarHeight)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].ErrorBarHeight = errorBarHeight
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_left" then
-				errorBarWidth = errorBarWidth - 10
-				errorBarFrameWidth = capWideScale(get43size(errorBarWidth),errorBarWidth)
-				wscale = errorBarFrameWidth/180
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].ErrorBarWidth = errorBarWidth
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_right" then
-				errorBarWidth = errorBarWidth + 10
-				errorBarFrameWidth = capWideScale(get43size(errorBarWidth),errorBarWidth)
-				wscale = errorBarFrameWidth/180
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].ErrorBarWidth = errorBarWidth
-				changed = true
-			end
-			if changed then
-				playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-				playerConfig:save(pn_to_profile_slot(PLAYER_1))
-				changed = false
-			end
-		end
-		-- changes differential tracker x/y
-		if sevenPressed and enabledTargetTracker and event.type ~= "InputEventType_Release" then
-			if event.DeviceInput.button == "DeviceButton_up" then
-				targetTrackerY = targetTrackerY - 5
-				if targetTrackerMode == 0 then
-					dt.PercentDifferential:y(targetTrackerY)
-				else
-					dt.PBDifferential:y(targetTrackerY)
-				end
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].TargetTrackerY = targetTrackerY
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_down" then
-				targetTrackerY = targetTrackerY + 5
-				if targetTrackerMode == 0 then
-					dt.PercentDifferential:y(targetTrackerY)
-				else
-					dt.PBDifferential:y(targetTrackerY)
-				end
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].TargetTrackerY = targetTrackerY
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_left" then
-				targetTrackerX = targetTrackerX - 5
-				if targetTrackerMode == 0 then
-					dt.PercentDifferential:x(targetTrackerX)
-				else
-					dt.PBDifferential:x(targetTrackerX)
-				end
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].TargetTrackerX = targetTrackerX
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_right" then
-				targetTrackerX = targetTrackerX + 5
-				if targetTrackerMode == 0 then
-					dt.PercentDifferential:x(targetTrackerX)
-				else
-					dt.PBDifferential:x(targetTrackerX)
-				end
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].TargetTrackerX = targetTrackerX
-				changed = true
-			end
-			if changed then
-				playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-				playerConfig:save(pn_to_profile_slot(PLAYER_1))
-				changed = false
-			end
-		end
-		-- changes differential tracker size
-		if eightPressed and enabledTargetTracker and event.type ~= "InputEventType_Release" then
-			if event.DeviceInput.button == "DeviceButton_up" then
-				targetTrackerZoom = targetTrackerZoom + 0.01
-				if targetTrackerMode == 0 then
-					dt.PercentDifferential:zoom(targetTrackerZoom)
-				else
-					dt.PBDifferential:zoom(targetTrackerZoom)
-				end
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].TargetTrackerZoom = targetTrackerZoom
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_down" then
-				targetTrackerZoom = targetTrackerZoom - 0.01
-				if targetTrackerMode == 0 then
-					dt.PercentDifferential:zoom(targetTrackerZoom)
-				else
-					dt.PBDifferential:zoom(targetTrackerZoom)
-				end
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].TargetTrackerZoom = targetTrackerZoom
-				changed = true
-			end
-			if changed then
-				playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-				playerConfig:save(pn_to_profile_slot(PLAYER_1))
-				changed = false
-			end
-		end
-		-- changes full progress bar x/y
-		if ninePressed and enabledFullBar and event.type ~= "InputEventType_Release" then
-			if event.DeviceInput.button == "DeviceButton_up" then
-				fullProgressBarY = fullProgressBarY - 3
-				fb:y(fullProgressBarY)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].FullProgressBarY = fullProgressBarY
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_down" then
-				fullProgressBarY = fullProgressBarY + 3
-				fb:y(fullProgressBarY)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].FullProgressBarY = fullProgressBarY
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_left" then
-				fullProgressBarX = fullProgressBarX - 5
-				fb:x(fullProgressBarX)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].FullProgressBarX = fullProgressBarX
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_right" then
-				fullProgressBarX = fullProgressBarX + 5
-				fb:x(fullProgressBarX)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].FullProgressBarX = fullProgressBarX
-				changed = true
-			end
-			if changed then
-				playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-				playerConfig:save(pn_to_profile_slot(PLAYER_1))
-				changed = false
-			end
-		end
-		-- changes full progress bar width/height
-		if zeroPressed and enabledFullBar and event.type ~= "InputEventType_Release" then
-			if event.DeviceInput.button == "DeviceButton_up" then
-				fullProgressBarHeight = fullProgressBarHeight + 0.1
-				fb:zoomtoheight(fullProgressBarHeight)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].FullProgressBarHeight = fullProgressBarHeight
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_down" then
-				fullProgressBarHeight = fullProgressBarHeight - 0.1
-				fb:zoomtoheight(fullProgressBarHeight)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].FullProgressBarHeight = fullProgressBarHeight
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_left" then
-				fullProgressBarWidth = fullProgressBarWidth - 0.01
-				fb:zoomtowidth(fullProgressBarWidth)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].FullProgressBarWidth = fullProgressBarWidth
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_right" then
-				fullProgressBarWidth = fullProgressBarWidth + 0.01
-				fb:zoomtowidth(fullProgressBarWidth)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].FullProgressBarWidth = fullProgressBarWidth
-				changed = true
-			end
-			if changed then
-				playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-				playerConfig:save(pn_to_profile_slot(PLAYER_1))
-				changed = false
-			end
-		end
-		
-	end
-	return false
-end
+local propsFunctions = {
+	X = x,
+	Y = y,
+	Zoom = Zoomm,
+	Height = Zoomtoheight,
+	Width = Zoomtowidth,
+	AddX = addx,
+	AddY = addy
+}
 
-local function secondHalfInput(event)
+local movable = { 
+	current = "",
+	pressed = false,
+	DeviceButton_1 = {
+		name = "Judge",
+		textHeader = "Judgment Label Position:",
+		properties = { "X", "Y" },
+		elementTree = "GameplayXYCoordinates",
+		external = true,
+		condition = true
+	},
+	DeviceButton_2 = {
+		name = "Judge",
+		textHeader = "Judgment Label Size:",
+		properties = { "Zoom" },
+		elementTree = "GameplaySizes",
+		external = true,
+		condition = true
+	},
+	DeviceButton_3 = {
+		name = "Combo",
+		textHeader = "Combo Position:",
+		properties = { "X", "Y" },
+		elementTree = "GameplayXYCoordinates",
+		external = true,
+		condition = true
+	},
+	DeviceButton_4 = {
+		name = "Combo",
+		textHeader = "Combo Size:",
+		properties = { "Zoom" },
+		elementTree = "GameplaySizes",
+		external = true,
+		condition = true
+	},
+	DeviceButton_5 = {
+		name = "ErrorBar",
+		textHeader = "Error Bar Position:",
+		element = { }, -- initialized later
+		properties = { "X", "Y" },
+		children = { "Center", "WeightedBar" },
+		elementTree = "GameplayXYCoordinates",
+		condition = enabledErrorBar ~= 0,
+		DeviceButton_up = {
+			property = "Y",
+			inc = -5
+		},
+		DeviceButton_down = {
+			property = "Y",
+			inc = 5
+		},
+		DeviceButton_left = {
+			property = "X",
+			inc = -5
+		},
+		DeviceButton_right = {
+			property = "X",
+			inc = 5
+		},
+	},
+	DeviceButton_6 = {
+		name = "ErrorBar",
+		textHeader = "Error Bar Size:",
+		element = { },
+		properties = { "Width", "Height" },
+		children = { "Center", "WeightedBar" },
+		elementTree = "GameplaySizes",
+		condition = enabledErrorBar ~= 0,
+		DeviceButton_up = {
+			property = "Height",
+			inc = 1
+		},
+		DeviceButton_down = {
+			property = "Height",
+			inc = -1
+		},
+		DeviceButton_left = {
+			arbitraryFunction = arbitraryErrorBarValue,
+			property = "Width",
+			inc = -10
+		},
+		DeviceButton_right = {
+			arbitraryFunction = arbitraryErrorBarValue,
+			property = "Width",
+			inc = 10
+		},
+	},
+	DeviceButton_7 = {
+		name = "TargetTracker",
+		textHeader = "Goal Tracker Position:",
+		element = { },
+		properties = { "X", "Y" },
+		-- no children so the changes are applied to the element itself
+		elementTree = "GameplayXYCoordinates",
+		condition = enabledTargetTracker,
+		DeviceButton_up = {
+			property = "Y",
+			inc = -5
+		},
+		DeviceButton_down = {
+			property = "Y",
+			inc = 5
+		},
+		DeviceButton_left = {
+			property = "X",
+			inc = -5
+		},
+		DeviceButton_right = {
+			property = "X",
+			inc = 5
+		},
+	},
+	DeviceButton_8 = {
+		name = "TargetTracker",
+		textHeader = "Goal Tracker Size:",
+		element = { },
+		properties = { "Zoom" },
+		elementTree = "GameplaySizes",
+		condition = enabledTargetTracker,
+		DeviceButton_up = {
+			property = "Zoom",
+			inc = 0.01
+		},
+		DeviceButton_down = {
+			property = "Zoom",
+			inc = -0.01
+		},
+	},
+	DeviceButton_9 = {
+		name = "FullProgressBar",
+		textHeader = "Full Progress Bar Position:",
+		element = { },
+		properties = { "X", "Y" },
+		elementTree = "GameplayXYCoordinates",
+		condition = enabledFullBar,
+		DeviceButton_up = {
+			property = "Y",
+			inc = -3
+		},
+		DeviceButton_down = {
+			property = "Y",
+			inc = 3
+		},
+		DeviceButton_left = {
+			property = "X",
+			inc = -5
+		},
+		DeviceButton_right = {
+			property = "X",
+			inc = 5
+		},
+	},
+	DeviceButton_0 = {
+		name = "FullProgressBar",
+		textHeader = "Full Progress Bar Size:",
+		element = { },
+		properties = { "Width", "Height" },
+		elementTree = "GameplaySizes",
+		condition = enabledFullBar,
+		DeviceButton_up = {
+			property = "Height",
+			inc = 0.1
+		},
+		DeviceButton_down = {
+			property = "Height",
+			inc = -0.1
+		},
+		DeviceButton_left = {
+			property = "Width",
+			inc = -0.01
+		},
+		DeviceButton_right = {
+			property = "Width",
+			inc = 0.01
+		},
+	},
+	DeviceButton_q = {
+		name = "MiniProgressBar",
+		textHeader = "Mini Progress Bar Position:",
+		element = { },
+		properties = { "X", "Y" },
+		elementTree = "GameplayXYCoordinates",
+		condition = enabledMiniBar,
+		DeviceButton_up = {
+			property = "Y",
+			inc = -5
+		},
+		DeviceButton_down = {
+			property = "Y",
+			inc = 5
+		},
+		DeviceButton_left = {
+			property = "X",
+			inc = -5
+		},
+		DeviceButton_right = {
+			property = "X",
+			inc = 5
+		},
+	},
+	DeviceButton_w = {
+		name = "DisplayPercent",
+		textHeader = "Current Percent Position:",
+		element = { },
+		properties = { "X", "Y" },
+		elementTree = "GameplayXYCoordinates",
+		condition = enabledDisplayPercent,
+		DeviceButton_up = {
+			property = "Y",
+			inc = -5
+		},
+		DeviceButton_down = {
+			property = "Y",
+			inc = 5
+		},
+		DeviceButton_left = {
+			property = "X",
+			inc = -5
+		},
+		DeviceButton_right = {
+			property = "X",
+			inc = 5
+		},
+	},
+	DeviceButton_e = {
+		name = "DisplayPercent",
+		textHeader = "Current Percent Size:",
+		element = { },
+		properties = { "Zoom" },
+		elementTree = "GameplaySizes",
+		condition = enabledDisplayPercent,
+		DeviceButton_up = {
+			property = "Zoom",
+			inc = 0.01
+		},
+		DeviceButton_down = {
+			property = "Zoom",
+			inc = -0.01
+		},
+	},
+	DeviceButton_r = {
+		name = "Notefield",
+		textHeader = "Notefield Position:",
+		element = { },
+		properties = { "X", "Y" },
+		elementTree = "GameplayXYCoordinates",
+		condition = true,
+		DeviceButton_up = {
+			property = "AddY",
+			inc = -3
+		},
+		DeviceButton_down = {
+			property = "AddY",
+			inc = 3
+		},
+		DeviceButton_left = {
+			property = "AddX",
+			inc = -3
+		},
+		DeviceButton_right = {
+			property = "AddX",
+			inc = 3
+		},
+	},
+	DeviceButton_t = {
+		name = "Notefield",
+		textHeader = "Notefield Size:",
+		element = { },
+		elementList = true, -- god bless the notefield
+		properties = { "Width", "Height" },
+		elementTree = "GameplaySizes",
+		condition = true,
+		DeviceButton_up = {
+			property = "Height",
+			inc = 0.01
+		},
+		DeviceButton_down = {
+			property = "Height",
+			inc = -0.01
+		},
+		DeviceButton_left = {
+			property = "Width",
+			inc = -0.01
+		},
+		DeviceButton_right = {
+			property = "Width",
+			inc = 0.01
+		},
+	},
+	DeviceButton_p = {
+		name = "JudgeCounter",
+		textHeader = "Judge Counter Position:",
+		element = { },
+		properties = { "X", "Y" },
+		elementTree = "GameplayXYCoordinates",
+		condition = enabledJudgeCounter,
+		DeviceButton_up = {
+			property = "AddY",
+			inc = -3
+		},
+		DeviceButton_down = {
+			property = "AddY",
+			inc = 3
+		},
+		DeviceButton_left = {
+			property = "AddX",
+			inc = -3
+		},
+		DeviceButton_right = {	
+			property = "AddX",
+			inc = 3
+		},
+	},
+}
+
+local function input(event)
 	if getAutoplay() ~= 0 then
-		if event.DeviceInput.button == "DeviceButton_q" then
-			qPressed = not (event.type == "InputEventType_Release")
-		end
-		if event.DeviceInput.button == "DeviceButton_w" then
-			wPressed = not (event.type == "InputEventType_Release")
-		end
-		if event.DeviceInput.button == "DeviceButton_e" then
-			ePressed = not (event.type == "InputEventType_Release")
-		end
-		if event.DeviceInput.button == "DeviceButton_r" then
-			rPressed = not (event.type == "InputEventType_Release")
-		end
-		if event.DeviceInput.button == "DeviceButton_t" then
-			tPressed = not (event.type == "InputEventType_Release")
-		end
-		if event.DeviceInput.button == "DeviceButton_y" then
-			yPressed = not (event.type == "InputEventType_Release")
-		end
-		if event.DeviceInput.button == "DeviceButton_u" then
-			uPressed = not (event.type == "InputEventType_Release")
-		end
-		if event.DeviceInput.button == "DeviceButton_i" then
-			iPressed = not (event.type == "InputEventType_Release")
-		end
-		if event.DeviceInput.button == "DeviceButton_o" then
-			oPressed = not (event.type == "InputEventType_Release")
-		end
-		if event.DeviceInput.button == "DeviceButton_p" then
-			pPressed = not (event.type == "InputEventType_Release")
-		end
-		messageBox:GetChild("miniProgressBarPosText"):visible(qPressed):playcommand("Update")
-		messageBox:GetChild("displayPercentPosText"):visible(wPressed):playcommand("Update")
-		messageBox:GetChild("displayPercentSizeText"):visible(ePressed):playcommand("Update")
-		messageBox:GetChild("noteFieldPosText"):visible(rPressed):playcommand("Update")
-		messageBox:GetChild("noteFieldSizeText"):visible(tPressed):playcommand("Update")
-		messageBox:GetChild("npsDisplayPosText"):visible(yPressed):playcommand("Update")
-		messageBox:GetChild("npsDisplaySizeText"):visible(uPressed):playcommand("Update")
-		messageBox:GetChild("npsGraphPosText"):visible(iPressed):playcommand("Update")
-		messageBox:GetChild("npsGraphSizeText"):visible(oPressed):playcommand("Update")
-		messageBox:GetChild("judgeCounterPosText"):visible(pPressed):playcommand("Update")
-		-- changes mini progress bar x/y
-		if qPressed and enabledMiniBar and event.type ~= "InputEventType_Release" then
-			if event.DeviceInput.button == "DeviceButton_up" then
-				miniProgressBarY = miniProgressBarY - 5
-				mb:y(miniProgressBarY)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].MiniProgressBarY = miniProgressBarY
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_down" then
-				miniProgressBarY = miniProgressBarY + 5
-				mb:y(miniProgressBarY)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].MiniProgressBarY = miniProgressBarY
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_left" then
-				miniProgressBarX = miniProgressBarX - 5
-				mb:x(miniProgressBarX)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].MiniProgressBarX = miniProgressBarX
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_right" then
-				miniProgressBarX = miniProgressBarX + 5
-				mb:x(miniProgressBarX)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].MiniProgressBarX = miniProgressBarX
-				changed = true
-			end
-			if changed then
-				playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-				playerConfig:save(pn_to_profile_slot(PLAYER_1))
-				changed = false
-			end
-		end
-		-- changes display percent x/y
-		if wPressed and enabledDisplayPercent and event.type ~= "InputEventType_Release" then
-			if event.DeviceInput.button == "DeviceButton_up" then
-				displayPercentY = displayPercentY - 5
-				dp:addy(-5)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].DisplayPercentY = displayPercentY
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_down" then
-				displayPercentY = displayPercentY + 5
-				dp:addy(5)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].DisplayPercentY = displayPercentY
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_left" then
-				displayPercentX = displayPercentX - 5
-				dp:addx(-5)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].DisplayPercentX = displayPercentX
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_right" then
-				displayPercentX = displayPercentX + 5
-				dp:addx(5)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].DisplayPercentX = displayPercentX
-				changed = true
-			end
-			if changed then
-				playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-				playerConfig:save(pn_to_profile_slot(PLAYER_1))
-				changed = false
-			end
-		end
-		-- changes display percent size
-		if ePressed and enabledDisplayPercent and event.type ~= "InputEventType_Release" then
-			if event.DeviceInput.button == "DeviceButton_up" then
-				displayPercentZoom = displayPercentZoom + 0.01
-				dp:zoom(displayPercentZoom)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].DisplayPercentZoom = displayPercentZoom
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_down" then
-				displayPercentZoom = displayPercentZoom - 0.01
-				dp:zoom(displayPercentZoom)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].DisplayPercentZoom = displayPercentZoom
-				changed = true
-			end
-			if changed then
-				playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-				playerConfig:save(pn_to_profile_slot(PLAYER_1))
-				changed = false
-			end
-		end
-		-- changes the noteField/receptor x/y
-		if rPressed and event.type ~= "InputEventType_Release" then
-			if event.DeviceInput.button == "DeviceButton_up" then
-				noteFieldY = noteFieldY + (GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse() and -3 or 3)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NotefieldY = noteFieldY
-				noteField:addy(-3)
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_down" then
-				noteFieldY = noteFieldY + (GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse() and 3 or -3)
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NotefieldY = noteFieldY
-				noteField:addy(3)
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_left" then
-				noteFieldX = noteFieldX - 3
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NotefieldX = noteFieldX
-				noteField:addx(-3)
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_right" then
-				noteFieldX = noteFieldX + 3
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NotefieldX = noteFieldX
-				noteField:addx(3)
-				changed = true
-			end
-			if changed then
-				playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-				playerConfig:save(pn_to_profile_slot(PLAYER_1))
-				changed = false
-			end
-		end
-		-- changes the noteField/receptor width/height
-		if tPressed and event.type ~= "InputEventType_Release" then
-			if event.DeviceInput.button == "DeviceButton_up" then
-				noteFieldHeight = noteFieldHeight + 0.01
-				for i, actor in ipairs(noteColumns) do
-					actor:zoomtoheight(noteFieldHeight)
+		local button = event.DeviceInput.button
+		local notReleased = not (event.type == "InputEventType_Release")
+		if movable[button] and movable[button].condition then
+			movable.pressed = notReleased
+			movable.current = button
+			local text = {
+				movable[button].textHeader
+			}
+			for _, prop in ipairs(movable[button].properties) do
+				local fullProp = movable[button].name .. prop
+				if movable[button].external then
+					text[#text+1] = prop .. ": " .. playerConfig:get_data(pn_to_profile_slot(PLAYER_1))[movable[button].elementTree][keymode][fullProp]
+				else
+					text[#text+1] = prop .. ": " .. values[fullProp]
 				end
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NotefieldHeight = noteFieldHeight
-				changed = true
 			end
-			if event.DeviceInput.button == "DeviceButton_down" then
-				noteFieldHeight = noteFieldHeight - 0.01
-				for i, actor in ipairs(noteColumns) do
-					actor:zoomtoheight(noteFieldHeight)
-				end
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NotefieldHeight = noteFieldHeight
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_left" then
-				noteFieldWidth = noteFieldWidth - 0.01
-				for i, actor in ipairs(noteColumns) do
-					actor:zoomtowidth(noteFieldWidth)
-				end
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NotefieldWidth = noteFieldWidth
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_right" then
-				noteFieldWidth = noteFieldWidth + 0.01
-				for i, actor in ipairs(noteColumns) do
-					actor:zoomtowidth(noteFieldWidth)
-				end
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NotefieldWidth = noteFieldWidth
-				changed = true
-			end
-			if changed then
-				playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-				playerConfig:save(pn_to_profile_slot(PLAYER_1))
-				changed = false
-			end
+			messageBox:GetChild("message"):settext(table.concat(text, "\n"))
+			messageBox:GetChild("message"):visible(notReleased)
 		end
-		-- changes pa counter x/y
-		if pPressed and enabledJudgeCounter and event.type ~= "InputEventType_Release" then
-			if event.DeviceInput.button == "DeviceButton_up" then
-				judgeCounterY = judgeCounterY - 3
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].JudgeCounterY = judgeCounterY
-				judgeCounter:addy(-3)
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_down" then
-				judgeCounterY = judgeCounterY + 3
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].JudgeCounterY = judgeCounterY
-				judgeCounter:addy(3)
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_left" then
-				judgeCounterX = judgeCounterX - 3
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].JudgeCounterX = judgeCounterX
-				judgeCounter:addx(-3)
-				changed = true
-			end
-			if event.DeviceInput.button == "DeviceButton_right" then
-				judgeCounterX = judgeCounterX + 3
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].JudgeCounterX = judgeCounterX
-				judgeCounter:addx(3)
-				changed = true
-			end
-			if changed then
+
+		local current = movable[movable.current]
+		if current.external == nil then
+			if movable.pressed and current[button] and current.condition and notReleased then
+				local curKey = current[button]
+				local prop = current.name .. string.gsub(curKey.property, "Add", "")
+				local newVal = values[prop] + curKey.inc
+				values[prop] = newVal
+				if curKey.arbitraryFunction then
+					curKey.arbitraryFunction(newVal)
+				elseif current.elementList then
+					for _, elem in ipairs(current.element) do
+						propsFunctions[curKey.property](elem, newVal)
+					end
+				elseif current.children then
+					for _, attribute in ipairs(current.children) do
+						propsFunctions[curKey.property](current.element[attribute], newVal)	
+					end
+				elseif curKey.property == "AddX" or curKey.property == "AddY" then
+					propsFunctions[curKey.property](current.element, curKey.inc)
+				else
+					propsFunctions[curKey.property](current.element, newVal)
+				end
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1))[current.elementTree][keymode][prop] = newVal
 				playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
 				playerConfig:save(pn_to_profile_slot(PLAYER_1))
-				changed = false
 			end
 		end
 	end
@@ -679,18 +534,20 @@ local t = Def.ActorFrame{
 		--[[if SCREENMAN:GetTopScreen():GetName() == "ScreenGameplay" then
 			SCREENMAN:GetTopScreen():AddInputCallback(froot)
 		end]]
-		if(allowedCustomization) then
-			SCREENMAN:GetTopScreen():AddInputCallback(firstHalfInput)
-			SCREENMAN:GetTopScreen():AddInputCallback(secondHalfInput)
+		if (allowedCustomization) then
+			SCREENMAN:GetTopScreen():AddInputCallback(input)
 		end
 		screen = SCREENMAN:GetTopScreen()
-		noteField = screen:GetChild("PlayerP1"):GetChild("NoteField")
-		noteField:addy(noteFieldY * (GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse() and 1 or -1))
-		noteField:addx(noteFieldX)
-		noteColumns = noteField:get_column_actors()
+		Notefield = screen:GetChild("PlayerP1"):GetChild("NoteField")
+		Notefield:addy(values.NotefieldY)
+		Notefield:addx(values.NotefieldX)
+		movable.DeviceButton_r.element = Notefield
+		movable.DeviceButton_t.element = Notefield
+		noteColumns = Notefield:get_column_actors()
+		movable.DeviceButton_t.element = noteColumns
 		for i, actor in ipairs(noteColumns) do
-			actor:zoomtowidth(noteFieldWidth)
-			actor:zoomtoheight(noteFieldHeight)
+			actor:zoomtowidth(values.NotefieldWidth)
+			actor:zoomtoheight(values.NotefieldHeight)
 		end
 	end,
 	JudgmentMessageCommand=function(self, msg)
@@ -731,16 +588,15 @@ GAMESTATE:GetPlayerState(PLAYER_1):SetTargetGoal(target/100)
 
 -- moved it for better manipulation
 local d = Def.ActorFrame{
-	InitCommand = function(self)
-		dt = self:GetChildren()
-	end,
 }
 
 if targetTrackerMode == 0 then
 	d[#d+1] = LoadFont("Common Normal")..{
 		Name = "PercentDifferential",
 		InitCommand=function(self)
-			self:xy(targetTrackerX,targetTrackerY):zoom(targetTrackerZoom):halign(0):valign(1)
+			movable.DeviceButton_7.element = self
+			movable.DeviceButton_8.element = self
+			self:xy(values.TargetTrackerX,values.TargetTrackerY):zoom(values.TargetTrackerZoom):halign(0):valign(1)
 		end,
 		JudgmentMessageCommand=function(self,msg)
 			local tDiff = msg.WifeDifferential
@@ -756,7 +612,9 @@ if targetTrackerMode == 0 then
 	d[#d+1] = LoadFont("Common Normal")..{
 		Name = "PBDifferential",
 		InitCommand=function(self)
-			self:xy(targetTrackerX,targetTrackerY):zoom(targetTrackerZoom):halign(0):valign(1)
+			movable.DeviceButton_7.element = self
+			movable.DeviceButton_8.element = self
+			self:xy(values.TargetTrackerX,values.TargetTrackerY):zoom(values.TargetTrackerZoom):halign(0):valign(1)
 		end,
 		JudgmentMessageCommand=function(self,msg)
 			local tDiff = msg.WifePBDifferential
@@ -793,8 +651,9 @@ end
 
 local cp = Def.ActorFrame{
 	InitCommand = function(self)
-		dp = self
-		self:zoom(displayPercentZoom):addx(displayPercentX):addy(displayPercentY)
+		movable.DeviceButton_w.element = self
+		movable.DeviceButton_e.element = self
+		self:zoom(values.DisplayPercentZoom):addx(values.DisplayPercentX):addy(values.DisplayPercentY)
 	end,
 	Def.Quad{
 		InitCommand=function(self)
@@ -842,8 +701,8 @@ local jdgCounts = {}								 -- Child references for the judge counter
 
 local j = Def.ActorFrame{
 	InitCommand=function(self)
-		judgeCounter = self
-		self:addx(judgeCounterX):addy(judgeCounterY)
+		movable.DeviceButton_p.element = self
+		self:addx(values.JudgeCounterX):addy(values.JudgeCounterY)
 	end,
 	OnCommand=function(self)
 		for i=1,#jdgT do
@@ -855,7 +714,7 @@ local j = Def.ActorFrame{
 			settext(jdgCounts[msg.Judgment],msg.Val)
 		end
 	end																		
-}																					
+}
 
  local function makeJudgeText(judge,index)		-- Makes text
  	return LoadFont("Common normal")..{
@@ -921,15 +780,15 @@ function smeltErrorBar(index)
 	return Def.Quad{
 		Name = index,
 		InitCommand=function(self)
-			self:xy(errorBarX,errorBarY):zoomto(barWidth,errorBarHeight):diffusealpha(0)
+			self:xy(values.ErrorBarX,values.ErrorBarY):zoomto(barWidth,values.ErrorBarHeight):diffusealpha(0)
 		end,
 		UpdateErrorBarCommand=function(self)						-- probably a more efficient way to achieve this effect, should test stuff later
 			finishtweening(self)									-- note: it really looks like shit without the fade out 
 			diffusealpha(self,1)
 			diffuse(self,jcT[jdgCur])
-			x(self,errorBarX+dvCur*wscale)
-			y(self,errorBarY)
-			Zoomtoheight(self, errorBarHeight)
+			x(self,values.ErrorBarX+dvCur*wscale)
+			y(self,values.ErrorBarY)
+			Zoomtoheight(self, values.ErrorBarHeight)
 			linear(self,barDuration)
 			diffusealpha(self,0)
 		end
@@ -938,7 +797,8 @@ end
 
 local e = Def.ActorFrame{
 	InitCommand = function(self)
-		eb = self:GetChildren()
+		movable.DeviceButton_5.element = self:GetChildren()
+		movable.DeviceButton_6.element = self:GetChildren()
 		if enabledErrorBar == 1 then
 			for i=1,barcount do											-- basically the equivalent of using GetChildren() if it returned unnamed children numerically indexed
 				ingots[#ingots+1] = self:GetChild(i)
@@ -962,7 +822,7 @@ local e = Def.ActorFrame{
 		Name = "WeightedBar",
 		InitCommand=function(self)
 			if enabledErrorBar == 2 then
-				self:xy(errorBarX,errorBarY):zoomto(barWidth,errorBarHeight):diffusealpha(1):diffuse(getMainColor('enabled'))
+				self:xy(values.ErrorBarX,values.ErrorBarY):zoomto(barWidth,values.ErrorBarHeight):diffusealpha(1):diffuse(getMainColor('enabled'))
 			else
 				self:visible(false)
 			end
@@ -971,21 +831,21 @@ local e = Def.ActorFrame{
 			if enabledErrorBar == 2 then
 				avg = alpha * dvCur + (1 - alpha) * lastAvg
 				lastAvg = avg
-				self:x(errorBarX+avg*wscale)
+				self:x(values.ErrorBarX+avg*wscale)
 			end
 		end
 	},
 	Def.Quad {
 		Name = "Center",
 		InitCommand=function(self)
-			self:diffuse(getMainColor('highlight')):xy(errorBarX,errorBarY):zoomto(2,errorBarHeight)
+			self:diffuse(getMainColor('highlight')):xy(values.ErrorBarX,values.ErrorBarY):zoomto(2,values.ErrorBarHeight)
 		end	
 	},
 	-- Indicates which side is which (early/late) These should be destroyed after the song starts.
 	LoadFont("Common Normal") .. {
 		Name = "DestroyMe",
 		InitCommand=function(self)
-			self:xy(errorBarX+errorBarFrameWidth/4,errorBarY):zoom(0.35)
+			self:xy(values.ErrorBarX+errorBarFrameWidth/4,values.ErrorBarY):zoom(0.35)
 		end,
 		BeginCommand=function(self)
 			self:settext("Late"):diffusealpha(0):smooth(0.5):diffusealpha(0.5):sleep(1.5):smooth(0.5):diffusealpha(0)
@@ -994,7 +854,7 @@ local e = Def.ActorFrame{
 	LoadFont("Common Normal") .. {
 		Name = "DestroyMe2",
 		InitCommand=function(self)
-			self:xy(errorBarX-errorBarFrameWidth/4,errorBarY):zoom(0.35)
+			self:xy(values.ErrorBarX-errorBarFrameWidth/4,values.ErrorBarY):zoom(0.35)
 		end,
 		BeginCommand=function(self)
 			self:settext("Early"):diffusealpha(0):smooth(0.5):diffusealpha(0.5):sleep(1.5):smooth(0.5):diffusealpha(0):queuecommand("Doot")
@@ -1047,9 +907,10 @@ local alpha = 0.7
 
 local p = Def.ActorFrame{
 	InitCommand = function(self)
-		self:xy(fullProgressBarX,fullProgressBarY)
-		self:zoomto(fullProgressBarWidth,fullProgressBarHeight)
-		fb = self
+		self:xy(values.FullProgressBarX,values.FullProgressBarY)
+		self:zoomto(values.FullProgressBarWidth,values.FullProgressBarHeight)
+		movable.DeviceButton_9.element = self
+		movable.DeviceButton_0.element = self
 	end,
 	Def.Quad{
 		InitCommand=function(self)
@@ -1111,10 +972,10 @@ local width = 34
 local height = 4
 local alpha = 0.3
 
-mb = Def.ActorFrame{
+local mb = Def.ActorFrame{
 	InitCommand = function(self)
-		self:xy(miniProgressBarX,miniProgressBarY)
-		mb = self
+		self:xy(values.MiniProgressBarX,values.MiniProgressBarY)
+		movable.DeviceButton_q.element = self
 	end,
 	Def.Quad{
 		InitCommand=function(self)
@@ -1253,360 +1114,57 @@ t[#t+1] = LoadActor("npscalc")
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	offset window esque boxes so its more intuitive to use the moving feature
 ]]
-if(allowedCustomization) then
-t[#t+1] = Def.ActorFrame{
-	InitCommand=function(self)
-		messageBox = self
-	end,
-	Def.BitmapText{
-		Name= "errorBarPosText", Font= "Common Normal", 
-		InitCommand= function(self)
-			self:horizalign(left):vertalign(top)
-				:shadowlength(2):xy(10, 20):zoom(.5):visible(false)
+if (allowedCustomization) then
+	t[#t+1] = Def.ActorFrame{
+		InitCommand=function(self)
+			messageBox = self
 		end,
-		UpdateCommand=function(self)
-			local text= {
-				"Error Bar Position:",
-				"X: " .. errorBarX,
-				"Y: " .. errorBarY,
-			}
-			self:settext(table.concat(text, "\n"))
-		end,
-	},
-	Def.BitmapText{
-		Name= "errorBarSizeText", Font= "Common Normal", 
-		InitCommand= function(self)
-			self:horizalign(left):vertalign(top)
-				:shadowlength(2):xy(10, 20):zoom(.5):visible(false)
-		end,
-		UpdateCommand=function(self)
-			local text= {
-				"Error Bar Size:",
-				"Width: " .. errorBarWidth,
-				"Height: " .. errorBarHeight,
-			}
-			self:settext(table.concat(text, "\n"))
-		end,
-	},
-	Def.BitmapText{
-		Name= "targetTrackerPosText", Font= "Common Normal", 
-		InitCommand= function(self)
-			self:horizalign(left):vertalign(top)
-				:shadowlength(2):xy(10, 20):zoom(.5):visible(false)
-		end,
-		UpdateCommand=function(self)
-			local text= {
-				"Goal Tracker Position:",
-				"X: " .. targetTrackerX,
-				"Y: " .. targetTrackerY,
-			}
-			self:settext(table.concat(text, "\n"))
-		end,
-	},
-	Def.BitmapText{
-		Name= "targetTrackerSizeText", Font= "Common Normal", 
-		InitCommand= function(self)
-			self:horizalign(left):vertalign(top)
-				:shadowlength(2):xy(10, 20):zoom(.5):visible(false)
-		end,
-		UpdateCommand=function(self)
-			local text= {
-				"Goal Tracker Size:",
-				"Zoom: " .. targetTrackerZoom,
-			}
-			self:settext(table.concat(text, "\n"))
-		end,
-	},
-	Def.BitmapText{
-		Name= "fullProgressBarPosText", Font= "Common Normal", 
-		InitCommand= function(self)
-			self:horizalign(left):vertalign(top)
-				:shadowlength(2):xy(10, 20):zoom(.5):visible(false)
-		end,
-		UpdateCommand=function(self)
-			local text= {
-				"Full Progress Bar Position:",
-				"X: " .. fullProgressBarX,
-				"Y: " .. fullProgressBarY,
-			}
-			self:settext(table.concat(text, "\n"))
-		end,
-	},
-	Def.BitmapText{
-		Name= "fullProgressBarSizeText", Font= "Common Normal", 
-		InitCommand= function(self)
-			self:horizalign(left):vertalign(top)
-				:shadowlength(2):xy(10, 20):zoom(.5):visible(false)
-		end,
-		UpdateCommand=function(self)
-			local text= {
-				"Full Progress Bar Size:",
-				"Width: " .. fullProgressBarWidth,
-				"Height: " .. fullProgressBarHeight,
-			}
-			self:settext(table.concat(text, "\n"))
-		end,
-	},
-	Def.BitmapText{
-		Name= "miniProgressBarPosText", Font= "Common Normal", 
-		InitCommand= function(self)
-			self:horizalign(left):vertalign(top)
-				:shadowlength(2):xy(10, 20):zoom(.5):visible(false)
-		end,
-		UpdateCommand=function(self)
-			local text= {
-				"Mini Progress Bar Position:",
-				"X: " .. miniProgressBarX,
-				"Y: " .. miniProgressBarY,
-			}
-			self:settext(table.concat(text, "\n"))
-		end,
-	},
-	Def.BitmapText{
-		Name= "displayPercentPosText", Font= "Common Normal", 
-		InitCommand= function(self)
-			self:horizalign(left):vertalign(top)
-				:shadowlength(2):xy(10, 20):zoom(.5):visible(false)
-		end,
-		UpdateCommand=function(self)
-			local text= {
-				"Current Percent Position:",
-				"X: " .. displayPercentX,
-				"Y: " .. displayPercentY,
-			}
-			self:settext(table.concat(text, "\n"))
-		end,
-	},
-	Def.BitmapText{
-		Name= "displayPercentSizeText", Font= "Common Normal", 
-		InitCommand= function(self)
-			self:horizalign(left):vertalign(top)
-				:shadowlength(2):xy(10, 20):zoom(.5):visible(false)
-		end,
-		UpdateCommand=function(self)
-			local text= {
-				"Current Percent Size:",
-				"Zoom: " .. displayPercentZoom,
-			}
-			self:settext(table.concat(text, "\n"))
-		end,
-	},
-	Def.BitmapText{
-		Name= "noteFieldPosText", Font= "Common Normal", 
-		InitCommand= function(self)
-			self:horizalign(left):vertalign(top)
-				:shadowlength(2):xy(10, 20):zoom(.5):visible(false)
-		end,
-		UpdateCommand=function(self)
-			local text= {
-				"Notefield Position:",
-				"X: " .. noteFieldX,
-				"Y: " .. noteFieldY,
-			}
-			self:settext(table.concat(text, "\n"))
-		end,
-	},
-	Def.BitmapText{
-		Name= "noteFieldSizeText", Font= "Common Normal", 
-		InitCommand= function(self)
-			self:horizalign(left):vertalign(top)
-				:shadowlength(2):xy(10, 20):zoom(.5):visible(false)
-		end,
-		UpdateCommand=function(self)
-			local text= {
-				"Notefield Size:",
-				"Width: " .. noteFieldWidth,
-				"Height: " .. noteFieldHeight,
-			}
-			self:settext(table.concat(text, "\n"))
-		end,
-	},
-	Def.BitmapText{
-		Name= "judgeCounterPosText", Font= "Common Normal", 
-		InitCommand= function(self)
-			self:horizalign(left):vertalign(top)
-				:shadowlength(2):xy(10, 20):zoom(.5):visible(false)
-		end,
-		UpdateCommand=function(self)
-			local text= {
-				"Judge Counter Position:",
-				"X: " .. judgeCounterX,
-				"Y: " .. judgeCounterY,
-			}
-			self:settext(table.concat(text, "\n"))
-		end,
-	},
-	-- had to throw this here because it was getting x/y fucked up
-	Def.BitmapText{
-		Name= "judgmentPosText", Font= "Common Normal", 
-		InitCommand= function(self)
-			self:horizalign(left):vertalign(top)
-				:shadowlength(2):xy(10, 20):zoom(.5):visible(false)
-		end,
-		UpdateCommand=function(self)
-			local x = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].JudgeX
-			local y = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].JudgeY
-			local text= {
-				"Judgment Label Position:",
-				"X: " .. x,
-				"Y: " .. y,
-			}
-			self:settext(table.concat(text, "\n"))
-		end,
-	},
-	Def.BitmapText{
-		Name= "judgmentSizeText", Font= "Common Normal", 
-		InitCommand= function(self)
-			self:horizalign(left):vertalign(top)
-				:shadowlength(2):xy(10, 20):zoom(.5):visible(false)
-		end,
-		UpdateCommand=function(self)
-			local zoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].JudgeZoom
-			local text= {
-				"Judgment Label Size:",
-				"Zoom: " .. zoom,
-			}
-			self:settext(table.concat(text, "\n"))
-		end,
-	},
-	Def.BitmapText{
-		Name= "comboPosText", Font= "Common Normal", 
-		InitCommand= function(self)
-			self:horizalign(left):vertalign(top)
-				:shadowlength(2):xy(10, 20):zoom(.5):visible(false)
-		end,
-		UpdateCommand=function(self)
-			local x = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ComboX
-			local y = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ComboY
-
-			local text= {
-				"Combo Position:",
-				"X: " .. x,
-				"Y: " .. y,
-			}
-			self:settext(table.concat(text, "\n"))
-		end,
-	},
-	Def.BitmapText{
-		Name= "comboSizeText", Font= "Common Normal", 
-		InitCommand= function(self)
-			self:horizalign(left):vertalign(top)
-				:shadowlength(2):xy(10, 20):zoom(.5):visible(false)
-		end,
-		UpdateCommand=function(self)
-			local zoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].ComboZoom
-			local text= {
-				"Combo Size:",
-				"Zoom: " .. zoom,
-			}
-			self:settext(table.concat(text, "\n"))
-		end,
-	},
-	Def.BitmapText{
-		Name= "npsDisplayPosText", Font= "Common Normal", 
-		InitCommand= function(self)
-			self:horizalign(left):vertalign(top)
-				:shadowlength(2):xy(10, 20):zoom(.5):visible(false)
-		end,
-		UpdateCommand=function(self)
-			local x = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NPSDisplayX
-			local y = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NPSDisplayY
-			local text= {
-				"NPS Display Position:",
-				"X: " .. x,
-				"Y: " .. y,
-			}
-			self:settext(table.concat(text, "\n"))
-		end,
-	},
-	Def.BitmapText{
-		Name= "npsDisplaySizeText", Font= "Common Normal", 
-		InitCommand= function(self)
-			self:horizalign(left):vertalign(top)
-				:shadowlength(2):xy(10, 20):zoom(.5):visible(false)
-		end,
-		UpdateCommand=function(self)
-			local zoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NPSDisplayZoom
-			local text= {
-				"NPS Display Size:",
-				"Zoom: " .. zoom,
-			}
-			self:settext(table.concat(text, "\n"))
-		end,
-	},
-	Def.BitmapText{
-		Name= "npsGraphPosText", Font= "Common Normal", 
-		InitCommand= function(self)
-			self:horizalign(left):vertalign(top)
-				:shadowlength(2):xy(10, 20):zoom(.5):visible(false)
-		end,
-		UpdateCommand=function(self)
-			local x = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NPSGraphX
-			local y = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NPSGraphY
-			local text= {
-				"NPS Graph Position:",
-				"X: " .. x,
-				"Y: " .. y,
-			}
-			self:settext(table.concat(text, "\n"))
-		end,
-	},
-	Def.BitmapText{
-		Name= "npsGraphSizeText", Font= "Common Normal", 
-		InitCommand= function(self)
-			self:horizalign(left):vertalign(top)
-				:shadowlength(2):xy(10, 20):zoom(.5):visible(false)
-		end,
-		UpdateCommand=function(self)
-			local width = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NPSGraphWidth
-			local height = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NPSGraphHeight
-			local text= {
-				"NPS Display Size:",
-				"Width: " .. width,
-				"Height: " .. height,
-			}
-			self:settext(table.concat(text, "\n"))
-		end,
-	},
-	Def.BitmapText{
-		Name= "Instructions", Font= "Common Normal",
-		InitCommand= function(self)
-			self:horizalign(left):vertalign(top)
-				:xy(SCREEN_WIDTH - 240, 100):zoom(.5):visible(true)
-		end,
-		OnCommand=function(self)
-			local text= {
-				"Enable AutoplayCPU with shift+f8\n",
-				"Hold the following and press the arrow",
-				"keys to alter the associated element\n",
-				"1: Judgement Text Position",
-				"2: Judgement Text Size",
-				"3: Combo Text Position",
-				"4: Combo Text Size",
-				"5: Error Bar Text Position",
-				"6: Error Bar Text Size",
-				"7: Target Tracker Text Position",
-				"8: Target Tracker Text Size",
-				"9: Full Progress Bar Position",
-				"0: Full Progress Bar Size",
-				"q: Mini Progress Bar Position",
-				"w: Display Percent Text Position",
-				"e: Display Percent Text Size",
-				"r: Notefield Position",
-				"t: Notefield Size",
-				"y: NPS Display Text Position",
-				"u: NPS Display Text Size",
-				"i: NPS Graph Position",
-				"o: NPS Graph Size",
-				"p: Judge Counter Position",
-			}
-			if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover ~= 0 then
-				table.insert(text, "/: Lane Cover Height")
+		Def.BitmapText{
+			Name= "message", Font= "Common Normal", 
+			InitCommand= function(self)
+				self:horizalign(left):vertalign(top)
+					:shadowlength(2):xy(10, 20):zoom(.5):visible(false)
+			end,
+		},
+		Def.BitmapText{
+			Name= "Instructions", Font= "Common Normal",
+			InitCommand= function(self)
+				self:horizalign(left):vertalign(top)
+					:xy(SCREEN_WIDTH - 240, 100):zoom(.5):visible(true)
+			end,
+			OnCommand=function(self)
+				local text= {
+					"Enable AutoplayCPU with shift+f8\n",
+					"Hold the following and press the arrow",
+					"keys to alter the associated element\n",
+					"1: Judgement Text Position",
+					"2: Judgement Text Size",
+					"3: Combo Text Position",
+					"4: Combo Text Size",
+					"5: Error Bar Text Position",
+					"6: Error Bar Text Size",
+					"7: Target Tracker Text Position",
+					"8: Target Tracker Text Size",
+					"9: Full Progress Bar Position",
+					"0: Full Progress Bar Size",
+					"q: Mini Progress Bar Position",
+					"w: Display Percent Text Position",
+					"e: Display Percent Text Size",
+					"r: Notefield Position",
+					"t: Notefield Size",
+					"y: NPS Display Text Position",
+					"u: NPS Display Text Size",
+					"i: NPS Graph Position",
+					"o: NPS Graph Size",
+					"p: Judge Counter Position",
+				}
+				if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover ~= 0 then
+					table.insert(text, "/: Lane Cover Height")
+				end
+				self:settext(table.concat(text, "\n"))
 			end
-			self:settext(table.concat(text, "\n"))
-		end
-	},
-}
+		},
+	}
 end
 
 return t
