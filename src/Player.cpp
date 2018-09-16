@@ -3251,30 +3251,31 @@ void Player::IncrementComboOrMissCombo(bool bComboOrMissCombo)
 		SendComboMessages( iOldCombo, iOldMissCombo );
 }
 
-void Player::RejudgeNoteDataRange(int startRow, int lastRow)
+void Player::RenderAllNotesIgnoreScores()
 {
-	NoteData nd = m_NoteData;
+	int firstRow = 0;
+	int lastRow = m_NoteData.GetLastRow() + 1;
 
-	FOREACH_NONEMPTY_ROW_ALL_TRACKS_RANGE(nd, row, startRow, lastRow)
+	FOREACH_NONEMPTY_ROW_ALL_TRACKS(m_NoteData, row)
 	{
-		for (int track = 0; track < nd.GetNumTracks(); track++)
+		for (int track = 0; track < m_NoteData.GetNumTracks(); track++)
 		{
 			TapNote *pTN = NULL;
-			NoteData::iterator iter = nd.FindTapNote(track, row);
+			NoteData::iterator iter = m_NoteData.FindTapNote(track, row);
 			DEBUG_ASSERT(iter != m_NoteData.end(col));
 			pTN = &iter->second;
 			
-
-			if (pTN->type == TapNoteType_Empty)
-				continue;
-			if (pTN->result.tns != TNS_None)
+			if (iter != m_NoteData.end(track))
 			{
-				LOG->Trace("reset note");
-				pTN->Init();
+				if (iter->second.type == TapNoteType_Empty)
+					continue;
+				if (iter->second.type == TapNoteType_HoldHead)
+					iter->second.HoldResult.hns = HNS_None;
+				iter->second.result.bHidden = false;
+				iter->second.result.tns = TNS_None;
 			}
 		}
 	}
-
 	m_pNoteField->DrawPrimitives();
 }
 

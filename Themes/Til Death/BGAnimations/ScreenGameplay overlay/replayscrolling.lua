@@ -1,8 +1,6 @@
 local modifierPressed = false
 local forward = true
 
-local queuecommand = Actor.queuecommand
-
 local scroller -- just an alias for the actor that runs the commands
 
 local function input(event)
@@ -28,6 +26,8 @@ local function input(event)
 			else
 				scroller:queuecommand("ReplayScroll")
 			end
+		elseif event.GameButton == "Coin" then
+			scroller:queuecommand("ReplayPauseToggle")
 		end
 	end
 end
@@ -40,7 +40,7 @@ local function getNewSongPos()
 end
 
 local function getNewRate()
-	currentrate = getCurRateValue()
+	currentrate = GAMESTATE:GetSongOptionsObject('ModsLevel_Preferred'):MusicRate()
 	newrate = currentrate + (modifierPressed and 0.05 or 0.1) * (forward and 1 or -1)
 	SCREENMAN:SystemMessage(string.format("%f to %f", currentrate, newrate))
 	return newrate
@@ -61,6 +61,9 @@ scroller = Def.ActorFrame {
 	ReplayRateCommand = function(self)
 		newrate = getNewRate()
 		SCREENMAN:GetTopScreen():SetReplayRate( newrate )
+	end,
+	ReplayPauseToggleCommand = function(self)
+		SCREENMAN:GetTopScreen():ToggleReplayPause()
 	end
 	
 

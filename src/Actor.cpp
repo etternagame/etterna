@@ -2,6 +2,7 @@
 #include "Actor.h"
 #include "ActorFrame.h"
 #include "ActorUtil.h"
+#include "GamePreferences.h"
 #include "LuaBinding.h"
 #include "LuaReference.h"
 #include "MessageManager.h"
@@ -925,7 +926,7 @@ void Actor::BeginTweening( float time, ITween *pTween )
 
 	// If the number of tweens to ever gets this large, there's probably an infinitely 
 	// recursing ActorCommand.
-	if( m_Tweens.size() > 50 )
+	if( m_Tweens.size() > 50 && !GamePreferences::m_AutoPlay == PC_REPLAY)
 	{
 		LuaHelpers::ReportScriptErrorFmt("Tween overflow: \"%s\"; infinitely recursing ActorCommand?", GetLineage().c_str());
 		this->FinishTweening();

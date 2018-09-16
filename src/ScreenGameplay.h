@@ -165,6 +165,10 @@ public:
 	// This is intended to apply only to replays.
 	// It should only be used if we scroll backwards in time for some reason.
 	void RecalcJudgedNotesForReplay();
+	// Toggle pause. Don't use this outside of replays.
+	// Please.
+	// I'm serious.
+	void ToggleReplayPause();
 	
 protected:
 	virtual void UpdateStageStats( MultiPlayer /* mp */ ) {};	// overridden for multiplayer
