@@ -336,6 +336,8 @@ void ScreenGameplay::Init()
 
 	/* Called once per stage (single song or single course). */
 	GAMESTATE->BeginStage();
+	
+	GAMESTATE->SetPaused(false);
 
 	int player = 1;
 	FOREACH_EnabledPlayerInfo( m_vPlayerInfo, pi )
@@ -1135,7 +1137,8 @@ void ScreenGameplay::LoadNextSong()
 		pi->m_SoundEffectControl.SetSoundReader( pPlayerSound );
 	}
 
-	MESSAGEMAN->Broadcast("DoneLoadingNextSong");
+	if (!GAMESTATE->GetPaused())
+		MESSAGEMAN->Broadcast("DoneLoadingNextSong");
 }
 
 void ScreenGameplay::StartPlayingSong( float fMinTimeToNotes, float fMinTimeToMusic )
@@ -2539,7 +2542,7 @@ void ScreenGameplay::SetRate(float newRate)
 {
 	if (newRate < 0.3f || newRate > 5.f)
 		return;
-
+	bool paused = GAMESTATE->GetPaused();
 	m_pSoundMusic->Stop();
 	RageTimer tm;
 	const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
@@ -2554,7 +2557,8 @@ void ScreenGameplay::SetRate(float newRate)
 	GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = newRate;
 	GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = newRate;
 	GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = newRate;
-
+	if (paused)
+		p.m_Volume = 0.f;
 
 	if (fSecondsToStartFadingOutMusic < GAMESTATE->m_pCurSong->m_fMusicLengthSeconds)
 	{
@@ -2565,6 +2569,8 @@ void ScreenGameplay::SetRate(float newRate)
 	p.StopMode = RageSoundParams::M_CONTINUE;
 
 	m_pSoundMusic->Play(false, &p);
+	if (paused)
+		m_pSoundMusic->Pause(true);
 
 	GAMESTATE->m_Position.m_fMusicSeconds = fSeconds;
 	UpdateSongPosition(0);
@@ -2574,6 +2580,7 @@ void ScreenGameplay::SetSongPosition(float newPositionSeconds)
 {
 	if (newPositionSeconds <= 0)
 		newPositionSeconds = 0.f;
+	bool paused = GAMESTATE->GetPaused();
 
 	m_pSoundMusic->Stop();
 	RageTimer tm;
@@ -2601,33 +2608,26 @@ void ScreenGameplay::SetSongPosition(float newPositionSeconds)
 	p.StopMode = RageSoundParams::M_CONTINUE;
 	if (newPositionSeconds < fSeconds)
 	{
+		m_vPlayerInfo[PLAYER_1].m_pPlayer->RenderAllNotesIgnoreScores();
+	}
+	if (paused)
+	{
+		p.m_Volume = 0.f;
+	}
+	else
+	{
+		// Restart the music to make sure nothing weird is going on
 		ReloadCurrentSong();
 		STATSMAN->m_CurStageStats.m_player[PLAYER_1].InternalInit();
-		PlayerAI::SetScoreData(PlayerAI::pScoreData);
-		FOREACH_ENUM(TapNoteScore, tns)
-		{
-			Message msg = Message("Judgment");
-			msg.SetParam("Judgment", tns);
-			msg.SetParam("WifePercent", 0);
-			msg.SetParam("Player", 0);
-			msg.SetParam("TapNoteScore", tns);
-			msg.SetParam("FirstTrack", 0);
-			msg.SetParam("CurWifeScore", 0);
-			msg.SetParam("MaxWifeScore", 0);
-			msg.SetParam("WifeDifferential", 0);
-			msg.SetParam("TotalPercent", 0);
-			msg.SetParam("Type", RString("Tap"));
-			msg.SetParam("Val", 0);
-			MESSAGEMAN->Broadcast(msg);
-		}
-
 	}
 
 	m_pSoundMusic->Play(false, &p);
 
+	if (paused)
+		m_pSoundMusic->Pause(true);
+
 	GAMESTATE->m_Position.m_fMusicSeconds = newPositionSeconds;
 	UpdateSongPosition(0);
-	//RecalcJudgedNotesForReplay();
 }
 
 const float ScreenGameplay::GetSongPosition()
@@ -2653,6 +2653,9 @@ void ScreenGameplay::RecalcJudgedNotesForReplay()
 	startRow = max(0, startRow);
 	int lastRow = BeatToNoteRow(lateBeat);
 	lastRow = max(0, lastRow);
+
+	//m_vPlayerInfo[PLAYER_1].m_pPlayer->RejudgeNoteDataRange(0, lastRow);
+	return;
 
 	GAMESTATE->ResetMusicStatistics();
 
@@ -2684,6 +2687,72 @@ void ScreenGameplay::RecalcJudgedNotesForReplay()
 
 
 	//m_vPlayerInfo[PLAYER_1].m_pPlayer->RejudgeNoteDataRange(startRow, lastRow);
+
+}
+
+void ScreenGameplay::ToggleReplayPause()
+{
+	//m_vPlayerInfo[PLAYER_1].m_pPlayer->SetPaused( !m_bPaused );
+
+
+	// True if we were paused before now
+	bool oldPause = GAMESTATE->GetPaused();
+	// True if we are becoming paused
+	bool newPause = !GAMESTATE->GetPaused();
+
+	// We are leaving pause mode
+	if (oldPause)
+	{
+		RageTimer tm;
+
+		const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
+		float rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+		// Restart the stage, technically (This will cause a lot of lag if there are a lot of notes.)
+		ReloadCurrentSong();
+		STATSMAN->m_CurStageStats.m_player[PLAYER_1].InternalInit();
+		PlayerAI::SetScoreData(PlayerAI::pScoreData);
+
+		FOREACH_ENUM(TapNoteScore, tns)
+		{
+			Message msg = Message("Judgment");
+			msg.SetParam("Judgment", tns);
+			msg.SetParam("WifePercent", 0);
+			msg.SetParam("Player", 0);
+			msg.SetParam("TapNoteScore", tns);
+			msg.SetParam("FirstTrack", 0);
+			msg.SetParam("CurWifeScore", 0);
+			msg.SetParam("MaxWifeScore", 0);
+			msg.SetParam("WifeDifferential", 0);
+			msg.SetParam("TotalPercent", 0);
+			msg.SetParam("Type", RString("Tap"));
+			msg.SetParam("Val", 0);
+			MESSAGEMAN->Broadcast(msg);
+		}
+
+		TimingData* g = &GAMESTATE->m_pCurSong->m_SongTiming;
+
+		float fSecondsToStartFadingOutMusic, fSecondsToStartTransitioningOut;
+		GetMusicEndTiming(fSecondsToStartFadingOutMusic, fSecondsToStartTransitioningOut);
+
+		RageSoundParams p;
+		p.m_StartSecond = fSeconds;
+		p.m_fSpeed = rate;
+		if (fSecondsToStartFadingOutMusic < GAMESTATE->m_pCurSong->m_fMusicLengthSeconds)
+		{
+			p.m_fFadeOutSeconds = MUSIC_FADE_OUT_SECONDS;
+			p.m_LengthSeconds = fSecondsToStartFadingOutMusic + MUSIC_FADE_OUT_SECONDS - p.m_StartSecond;
+		}
+
+		p.StopMode = RageSoundParams::M_CONTINUE;
+		m_pSoundMusic->Play(false, &p);
+		GAMESTATE->m_Position.m_fMusicSeconds = fSeconds;
+		UpdateSongPosition(0);
+	}
+	else
+	{
+		m_pSoundMusic->Pause(newPause);
+	}
+	GAMESTATE->SetPaused(newPause);
 
 }
 
@@ -2783,6 +2852,11 @@ public:
 	static int SetReplayPosition(T* p, lua_State* L)
 	{
 		float newpos = FArg(1);
+		if (!GAMESTATE->GetPaused())
+		{
+			SCREENMAN->SystemMessage("You must be paused to move the song position of a Replay.");
+			return 0;
+		}
 		if (GamePreferences::m_AutoPlay != PC_REPLAY)
 		{
 			SCREENMAN->SystemMessage("You cannot move the song position outside of a Replay.");
@@ -2794,12 +2868,27 @@ public:
 	static int SetReplayRate(T* p, lua_State* L)
 	{
 		float newrate = FArg(1);
+		if (!GAMESTATE->GetPaused())
+		{
+			SCREENMAN->SystemMessage("You must be paused to change the rate of a Replay.");
+			return 0;
+		}
 		if (GamePreferences::m_AutoPlay != PC_REPLAY)
 		{
 			SCREENMAN->SystemMessage("You cannot change the rate outside of a Replay.");
 			return 0;
 		}
 		p->SetRate(newrate);
+		return 1;
+	}
+	static int ToggleReplayPause(T* p, lua_State* L)
+	{
+		if (GamePreferences::m_AutoPlay != PC_REPLAY)
+		{
+			SCREENMAN->SystemMessage("You cannot pause the game outside of a Replay.");
+			return 0;
+		}
+		p->ToggleReplayPause();
 		return 1;
 	}
 	
@@ -2812,9 +2901,11 @@ public:
 		// sm-ssc additions:
 		ADD_METHOD(begin_backing_out);
 		ADD_METHOD( GetTrueBPS );
+
 		ADD_METHOD(GetSongPosition);
 		ADD_METHOD(SetReplayPosition);
 		ADD_METHOD(SetReplayRate);
+		ADD_METHOD(ToggleReplayPause);
 	}
 };
 
