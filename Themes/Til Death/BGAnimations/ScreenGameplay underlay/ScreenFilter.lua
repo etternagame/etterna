@@ -20,7 +20,7 @@ local notefieldX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayX
 local filter
 
 local function input(event)
-	if getAutoplay() ~= 0 then
+	if getAutoplay() ~= 0 then -- not touching this currently, its fully bound with the notefield ones and doesnt have a message
 		if event.DeviceInput.button == "DeviceButton_r" then
 			rPressed = not (event.type == "InputEventType_Release")
 		end
