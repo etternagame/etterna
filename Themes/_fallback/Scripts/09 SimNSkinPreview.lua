@@ -2,13 +2,52 @@
 -- @usage LoadNSkinPreview("Get", "Down", "Tap Note");
 -- @module 09_SimNSkinPreview
 
+local function NSkinPreviewChange(Container,Player)
+	return function(event)
+		for i, n in pairs(NOTESKIN:GetNoteSkinNames()) do
+			Container:GetChild("N"..i):visible(false)
+		end
+		for i = 1,SCREENMAN:GetTopScreen():GetNumRows()-1 do
+			if SCREENMAN:GetTopScreen():GetOptionRow(i):GetName() == "NoteSkins" then
+				local nSkin = Container:GetChild("N"..SCREENMAN:GetTopScreen():GetOptionRow(i):GetChoiceInRowWithFocus(Player)+1)
+				nSkin:visible(true)
+			end
+		end
+	end
+end
+
+local function SimChild(Container, Type)
+	local notable,Count
+	local rType = {}
+	local Child = {Container}
+	repeat
+		notable = true
+		Count = Child
+		Child = {}
+		for no in pairs(Count) do
+			if lua.CheckType("ActorFrame",Count[no]) then
+
+				for _, cld in pairs(Count[no]:GetChildren()) do
+					if lua.CheckType("ActorFrame",cld) then
+						notable = false
+						Child[#Child+1] = cld
+					elseif lua.CheckType(Type,cld) then
+						rType[#rType+1] = cld
+					end
+				end
+			end
+		end
+	until notable == true
+	return rType
+end
+
 --- Load a NoteSkin preview actor
 -- @tparam string Noteskin Noteskin name. If "Get" then it does the currently selected noteskin, and updates itself when it changes. Defaults to "Get"
 -- @tparam string Button Ex: "Up". Defaults to "Down"
 -- @tparam string Element Defaults to "Tap Note"
 -- @treturn ActorFrame containing the noteskin preview
 function LoadNSkinPreview(Noteskin, Button, Element)
-	local Player = Player or PLAYER_1
+	local Player = PLAYER_1
 	Noteskin = Noteskin or "Get"
 	Button = Button or "Tap Note"
 	Element = Element or "Down"
@@ -52,44 +91,4 @@ function LoadNSkinPreview(Noteskin, Button, Element)
 	else
 		return NOTESKIN:LoadActorForNoteSkin(Button, Element, NOTESKIN:DoesNoteSkinExist(Noteskin) and Noteskin or "default");	
 	end
-end
-
-local function NSkinPreviewChange(Container,Player)
-	return function(event)
-		for i, n in pairs(NOTESKIN:GetNoteSkinNames()) do
-			Container:GetChild("N"..i):visible(false)
-		end
-		for i = 1,SCREENMAN:GetTopScreen():GetNumRows()-1 do
-			if SCREENMAN:GetTopScreen():GetOptionRow(i):GetName() == "NoteSkins" then
-				local nSkin = Container:GetChild("N"..SCREENMAN:GetTopScreen():GetOptionRow(i):GetChoiceInRowWithFocus(Player)+1)
-				nSkin:visible(true)
-			end
-		end
-	end
-end
-
-
-local function SimChild(Container, Type)
-	local notable,Count
-	local rType = {}
-	local Child = {Container}
-	repeat
-		notable = true
-		Count = Child
-		Child = {}
-		for no in pairs(Count) do
-			if lua.CheckType("ActorFrame",Count[no]) then
-
-				for _, cld in pairs(Count[no]:GetChildren()) do
-					if lua.CheckType("ActorFrame",cld) then
-						notable = false
-						Child[#Child+1] = cld
-					elseif lua.CheckType(Type,cld) then
-						rType[#rType+1] = cld
-					end
-				end
-			end
-		end
-	until notable == true
-	return rType
 end
