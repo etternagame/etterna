@@ -165,6 +165,7 @@ public:
 	// Please.
 	// I'm serious.
 	void ToggleReplayPause();
+	float m_fReplayBookmarkSeconds;
 	
 protected:
 	virtual void UpdateStageStats( MultiPlayer /* mp */ ) {};	// overridden for multiplayer

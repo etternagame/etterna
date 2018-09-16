@@ -338,6 +338,7 @@ void ScreenGameplay::Init()
 	GAMESTATE->BeginStage();
 	
 	GAMESTATE->SetPaused(false);
+	m_fReplayBookmarkSeconds = 0.f;
 
 	int player = 1;
 	FOREACH_EnabledPlayerInfo( m_vPlayerInfo, pi )
@@ -2866,6 +2867,25 @@ public:
 		p->ToggleReplayPause();
 		return 1;
 	}
+	static int SetReplayBookmark(T* p, lua_State* L)
+	{
+		float position = FArg(1);
+		if (GamePreferences::m_AutoPlay == PC_REPLAY)
+		{
+			p->m_fReplayBookmarkSeconds = position;
+			return 1;
+		}
+		return 0;
+	}
+	static int JumpToReplayBookmark(T* p, lua_State* L)
+	{
+		if (GamePreferences::m_AutoPlay == PC_REPLAY)
+		{
+			p->SetSongPosition(p->m_fReplayBookmarkSeconds);
+			return 1;
+		}
+		return 0;
+	}
 	
 	LunaScreenGameplay()
 	{
@@ -2881,6 +2901,8 @@ public:
 		ADD_METHOD(SetReplayPosition);
 		ADD_METHOD(SetReplayRate);
 		ADD_METHOD(ToggleReplayPause);
+		ADD_METHOD(SetReplayBookmark);
+		ADD_METHOD(JumpToReplayBookmark);
 	}
 };
 

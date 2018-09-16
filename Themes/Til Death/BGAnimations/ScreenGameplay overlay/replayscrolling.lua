@@ -11,8 +11,15 @@ local function input(event)
 	if event.DeviceInput.button == "DeviceButton_right shift" or event.DeviceInput.button == "DeviceButton_left shift" then
 		ratePressed = not (event.type == "InputEventType_Release")
 	end
+	if event.DeviceInput.button == "DeviceButton_right alt" or event.DeviceInput.button == "DeviceButton_left alt" then
+		bookmarkPressed = not (event.type == "InputEventType_Release")
+	end
 	if event.type ~= "InputEventType_Release" then
 		if event.GameButton == "EffectUp" then
+			if bookmarkPressed then
+				scroller:queuecommand("ReplayBookmarkSet")
+				return 0
+			end
 			forward = true
 			if ratePressed then
 				scroller:queuecommand("ReplayRate")
@@ -20,6 +27,10 @@ local function input(event)
 				scroller:queuecommand("ReplayScroll")
 			end
 		elseif event.GameButton == "EffectDown" then
+			if bookmarkPressed then
+				scroller:queuecommand("ReplayBookmarkGoto")
+				return 0
+			end
 			forward = false
 			if ratePressed then
 				scroller:queuecommand("ReplayRate")
@@ -67,6 +78,13 @@ scroller = Def.ActorFrame {
 	end,
 	ReplayPauseToggleCommand = function(self)
 		SCREENMAN:GetTopScreen():ToggleReplayPause()
+	end,
+	ReplayBookmarkSetCommand = function(self)
+		position = SCREENMAN:GetTopScreen():GetSongPosition()
+		SCREENMAN:GetTopScreen():SetReplayBookmark(position)
+	end,
+	ReplayBookmarkGotoCommand = function(self)
+		SCREENMAN:GetTopScreen():JumpToReplayBookmark()
 	end
 	
 
