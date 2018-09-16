@@ -2774,6 +2774,34 @@ public:
 		lua_pushnumber(L, true_bps);
 		return 1;
 	}
+	static int GetSongPosition(T* p, lua_State* L)
+	{
+		float pos = p->GetSongPosition();
+		lua_pushnumber(L, pos);
+		return 1;
+	}
+	static int SetReplayPosition(T* p, lua_State* L)
+	{
+		float newpos = FArg(1);
+		if (GamePreferences::m_AutoPlay != PC_REPLAY)
+		{
+			SCREENMAN->SystemMessage("You cannot move the song position outside of a Replay.");
+			return 0;
+		}
+		p->SetSongPosition(newpos);
+		return 1;
+	}
+	static int SetReplayRate(T* p, lua_State* L)
+	{
+		float newrate = FArg(1);
+		if (GamePreferences::m_AutoPlay != PC_REPLAY)
+		{
+			SCREENMAN->SystemMessage("You cannot change the rate outside of a Replay.");
+			return 0;
+		}
+		p->SetRate(newrate);
+		return 1;
+	}
 	
 	LunaScreenGameplay()
 	{
@@ -2784,6 +2812,9 @@ public:
 		// sm-ssc additions:
 		ADD_METHOD(begin_backing_out);
 		ADD_METHOD( GetTrueBPS );
+		ADD_METHOD(GetSongPosition);
+		ADD_METHOD(SetReplayPosition);
+		ADD_METHOD(SetReplayRate);
 	}
 };
 
