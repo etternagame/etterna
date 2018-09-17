@@ -7,7 +7,6 @@ fi
 filelist=`git ls-files --full-name | awk '/src/' | awk '!/extern/' | grep '^src' | grep -E '*\.(cpp|h)'`
 
 for f in $filelist; do
-  echo "${f}"
 	clang-format -i -style=file "${f}"
 done
 
