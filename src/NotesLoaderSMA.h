@@ -1,6 +1,7 @@
 ﻿#ifndef NOTES_LOADER_SMA_H
 #define NOTES_LOADER_SMA_H
 
+#include "global.h"
 #include "BackgroundUtil.h"
 #include "NotesLoaderSM.h"
 

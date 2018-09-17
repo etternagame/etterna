@@ -3,6 +3,7 @@
 #ifndef PlayerNumber_H
 #define PlayerNumber_H
 
+#include "global.h"
 #include "EnumHelper.h"
 
 // Player number stuff

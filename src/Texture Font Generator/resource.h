@@ -34,6 +34,8 @@
 #define ID_OPTIONS_EXPORTSTROKETEMPLATES 32782
 #define ID_OPTIONS_NUMBERSONLY 32783
 
+#include "global.h"
+
 // Next default values for new objects
 //
 #ifdef APSTUDIO_INVOKED

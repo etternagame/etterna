@@ -3,6 +3,8 @@
 #ifndef RAGE_SURFACE_SAVE_JPEG_H
 #define RAGE_SURFACE_SAVE_JPEG_H
 
+#include "global.h"
+
 struct RageSurface;
 class RageFile;
 

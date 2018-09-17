@@ -1,6 +1,7 @@
 #ifndef GAMEDEF_H
 #define GAMEDEF_H
 
+#include "global.h"
 #include "GameConstantsAndTypes.h"
 #include "InputMapper.h"
 

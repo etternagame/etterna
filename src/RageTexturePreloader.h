@@ -1,6 +1,8 @@
 ﻿#ifndef RAGE_TEXTURE_PRELOADER_H
 #define RAGE_TEXTURE_PRELOADER_H
 
+#include "global.h"
+
 class RageTexture;
 struct RageTextureID;
 /** @brief Load the textures in advance for using them later. */

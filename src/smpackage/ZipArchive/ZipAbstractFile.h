@@ -23,6 +23,7 @@
 #endif // _MSC_VER > 1000
 #include "ZipExport.h"
 #include "ZipString.h"
+#include "global.h"
 
 class ZIP_API CZipAbstractFile
 {

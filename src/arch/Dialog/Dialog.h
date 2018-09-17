@@ -1,6 +1,8 @@
 #ifndef DIALOG_BOX_H
 #define DIALOG_BOX_H
 
+#include "global.h"
+
 namespace Dialog {
 /* ID can be used to identify a class of messages, for "don't display this
  * dialog"-type prompts. */

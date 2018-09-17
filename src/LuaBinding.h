@@ -3,6 +3,7 @@
 #ifndef LuaBinding_H
 #define LuaBinding_H
 
+#include "global.h"
 #include "LuaManager.h"
 class LuaReference;
 
@@ -145,6 +146,7 @@ class LuaClass : public LuaTable
 /* Only a base class has to indicate that it's instanced (has a per-object
  * Lua table).  Derived classes simply call the base class's Push function,
  * specifying a different class name, so they don't need to know about it. */
+// clang-format off
 #define LUA_REGISTER_INSTANCED_BASE_CLASS(T)                                   \
 	template<>                                                                 \
 	void Luna<T>::PushObject(                                                  \
@@ -319,7 +321,7 @@ class LuaClass : public LuaTable
 #method_name,                                                                  \
 		  method_name                                                          \
 	}
-
+// clang-format on
 // Explicitly separates the stack into args and return values.
 // This way, the stack can safely be used to store the previous values.
 void

@@ -1,6 +1,7 @@
 #ifndef SOUND_EFFECT_CONTROL_H
 #define SOUND_EFFECT_CONTROL_H
 
+#include "global.h"
 #include "ThemeMetric.h"
 
 class RageSoundReader;

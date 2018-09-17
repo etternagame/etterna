@@ -1,6 +1,10 @@
 #ifndef NOTES_LOADER_OSU_H
 #define NOTES_LOADER_OSU_H
 
+#include "global.h"
+#include <map>
+#include <string>
+
 class Song;
 class Steps;
 

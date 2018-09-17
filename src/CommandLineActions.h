@@ -1,6 +1,8 @@
 #ifndef CommandLineActions_H
 #define CommandLineActions_H
 
+#include "global.h"
+
 class LoadingWindow;
 
 /** @brief The collection of command line actions. */

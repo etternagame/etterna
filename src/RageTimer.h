@@ -3,6 +3,8 @@
 #ifndef RAGE_TIMER_H
 #define RAGE_TIMER_H
 
+#include "global.h"
+
 class RageTimer
 {
   public:

@@ -1,6 +1,7 @@
 ﻿#ifndef OptionRowHandler_H
 #define OptionRowHandler_H
 
+#include "global.h"
 #include "GameCommand.h"
 #include "LuaReference.h"
 #include "RageUtil.h"

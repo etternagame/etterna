@@ -1,6 +1,8 @@
 #ifndef ARCH_DEFAULT_H
 #define ARCH_DEFAULT_H
 
+#include "global.h"
+
 /* Define the default driver sets. */
 #if defined(WINDOWS)
 #include "ArchHooks/ArchHooks_Win32.h"

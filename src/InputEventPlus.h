@@ -1,6 +1,7 @@
 ﻿#ifndef INPUT_EVENT_PLUS_H
 #define INPUT_EVENT_PLUS_H
 
+#include "global.h"
 #include "GameInput.h"
 #include "InputFilter.h"
 #include "PlayerNumber.h"

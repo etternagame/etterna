@@ -3,6 +3,7 @@
 #ifndef SONG_OPTIONS_H
 #define SONG_OPTIONS_H
 
+#include "global.h"
 #include "EnumHelper.h"
 
 enum AutosyncType

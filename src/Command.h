@@ -3,6 +3,8 @@
 #ifndef Commands_H
 #define Commands_H
 
+#include "global.h"
+
 class Command
 {
   public:

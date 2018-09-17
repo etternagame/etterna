@@ -2,6 +2,7 @@
 #include <WinSock2.h>
 #pragma comment(lib, "ws2_32.lib")
 
+#include "global.h"
 #include <chrono>
 #include <iostream>
 #include <string>

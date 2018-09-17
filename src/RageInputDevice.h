@@ -2,6 +2,7 @@
 #ifndef RAGE_INPUT_DEVICE_H
 #define RAGE_INPUT_DEVICE_H
 
+#include "global.h"
 #include "EnumHelper.h"
 #include <chrono>
 

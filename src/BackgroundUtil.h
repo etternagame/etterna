@@ -1,6 +1,8 @@
 #ifndef BackgroundUtil_H
 #define BackgroundUtil_H
 
+#include "global.h"
+
 class Song;
 class XNode;
 

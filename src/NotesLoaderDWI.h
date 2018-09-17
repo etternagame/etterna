@@ -3,6 +3,7 @@
 #ifndef NOTES_LOADER_DWI_H
 #define NOTES_LOADER_DWI_H
 
+#include "global.h"
 #include <set>
 
 class Song;

@@ -3,6 +3,8 @@
 #define JsonUtil_H
 
 class RageFileBasic;
+
+#include "global.h"
 #include "json/value.h"
 
 namespace JsonUtil {

@@ -10,6 +10,8 @@
 
 #define NOMINMAX
 #include <algorithm>
+#include "global.h"
+
 using namespace std;
 
 // Modify the following defines if you have to target a platform prior to the

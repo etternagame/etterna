@@ -1,6 +1,8 @@
 #ifndef TITLE_SUBSTITUTION_H
 #define TITLE_SUBSTITUTION_H
 
+#include "global.h"
+
 /** @brief The different fields to potentially translate. */
 struct TitleFields
 {

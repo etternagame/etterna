@@ -3,6 +3,8 @@
 #ifndef NotesLoaderJson_H
 #define NotesLoaderJson_H
 
+#include "global.h"
+
 class Song;
 
 namespace NotesLoaderJson {

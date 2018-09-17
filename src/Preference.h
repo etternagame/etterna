@@ -4,6 +4,7 @@
 #ifndef PREFERENCE_H
 #define PREFERENCE_H
 
+#include "global.h"
 #include "EnumHelper.h"
 #include "LuaManager.h"
 #include "RageUtil.h"

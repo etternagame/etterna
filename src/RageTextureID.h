@@ -4,6 +4,8 @@
 #ifndef RAGE_TEXTURE_ID_H
 #define RAGE_TEXTURE_ID_H
 
+#include "global.h"
+
 /* A unique texture is identified by a RageTextureID.  (Loading the
  * same file with two different dither settings is considered two
  * different textures, for example.)  See RageTexture.cpp for explanations

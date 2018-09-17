@@ -1,6 +1,7 @@
 ﻿#ifndef ENUM_HELPER_H
 #define ENUM_HELPER_H
 
+#include "global.h"
 #include "LuaReference.h"
 #include <memory>
 

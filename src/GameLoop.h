@@ -1,6 +1,9 @@
 #ifndef GAME_LOOP_H
 #define GAME_LOOP_H
 /** @brief Main rendering and update loop. */
+
+#include "global.h"
+
 namespace GameLoop {
 void
 RunGameLoop();

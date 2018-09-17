@@ -1,6 +1,7 @@
 ﻿#ifndef PLAYER_H
 #define PLAYER_H
 
+#include "global.h"
 #include "ActorFrame.h"
 #include "AutoActor.h"
 #include "NoteData.h"

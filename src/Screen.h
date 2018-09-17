@@ -1,6 +1,7 @@
 #ifndef SCREEN_H
 #define SCREEN_H
 
+#include "global.h"
 #include "ActorFrame.h"
 #include "CodeSet.h"
 #include "EnumHelper.h"

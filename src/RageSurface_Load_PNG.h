@@ -3,6 +3,7 @@
 #ifndef RAGE_SURFACE_LOAD_PNG_H
 #define RAGE_SURFACE_LOAD_PNG_H
 
+#include "global.h"
 #include "RageSurface_Load.h"
 
 RageSurfaceUtils::OpenResult

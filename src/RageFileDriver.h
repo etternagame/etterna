@@ -3,6 +3,7 @@
 #ifndef RAGE_FILE_DRIVER_H
 #define RAGE_FILE_DRIVER_H
 
+#include "global.h"
 #include "RageFileManager.h"
 
 class RageFileBasic;

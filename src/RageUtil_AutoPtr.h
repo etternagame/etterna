@@ -24,6 +24,8 @@
  * all potential deep-copying explicit.
  */
 
+#include "global.h"
+
 template<class T>
 class AutoPtrCopyOnWrite
 {

@@ -9,18 +9,19 @@ matrix:
                           WITH_FFMPEG_JOBS=1
                   os: osx
                 - env:
-                          CXX_COMPILER=clang++-3.6 CC_COMPILER=clang-3.6 BUILD_TYPE=Release WITH_FFMPEG=OFF
+                          CXX_COMPILER=clang++-5.0 CC_COMPILER=clang-5.0 BUILD_TYPE=Release WITH_FFMPEG=OFF
                           WITH_FFMPEG_JOBS=1
                   compiler: clang
                   addons: &1
                           apt:
                                   sources:
                                           - ubuntu-toolchain-r-test
-                                          - llvm-toolchain-precise-3.6
+                                          - llvm-toolchain-precise
                                   packages:
                                           - nasm
                                           - libudev-dev
-                                          - clang-3.6
+                                          - clang-5.0
+                                          - clang-format-5.0
                                           - libmad0-dev
                                           - libgtk2.0-dev
                                           - binutils-dev
@@ -35,7 +36,7 @@ matrix:
                                           - libglew-dev
                                           - libuv-dev
                 - env:
-                          CXX_COMPILER=clang++-3.6 CC_COMPILER=clang-3.6 BUILD_TYPE=Release WITH_FFMPEG=ON
+                          CXX_COMPILER=clang++-5.0 CC_COMPILER=clang-5.0 BUILD_TYPE=Release WITH_FFMPEG=ON
                           WITH_FFMPEG_JOBS=1
                   compiler: clang
                   addons: *1
@@ -45,6 +46,7 @@ matrix:
                           apt:
                                   sources:
                                           - ubuntu-toolchain-r-test
+                                          - llvm-toolchain-precise
                                   packages:
                                           - nasm
                                           - libudev-dev
@@ -63,6 +65,7 @@ matrix:
                                           - libxrandr-dev
                                           - libglew-dev
                                           - libuv-dev
+                                          - clang-format-5.0
                           coverity_scan:
                                   project:
                                           name: etternagame/etterna
@@ -90,6 +93,8 @@ before_script:
           brew install openssl --universal;
           brew uninstall zlib;
           brew install zlib --universal;
+          brew install grep --with-default-names;
+          brew install clang-format --universal;
           cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G "Xcode" ..; fi
 
 script:

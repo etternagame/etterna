@@ -3,6 +3,8 @@
 #ifndef GAMEMANAGER_H
 #define GAMEMANAGER_H
 
+#include "global.h"
+
 class Style;
 struct Game;
 struct lua_State;

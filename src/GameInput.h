@@ -1,6 +1,7 @@
 #ifndef GAME_INPUT_H
 #define GAME_INPUT_H
 
+#include "global.h"
 #include "EnumHelper.h"
 
 class InputScheme;

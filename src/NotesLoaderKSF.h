@@ -1,6 +1,8 @@
 ﻿#ifndef NOTES_LOADER_KSF_H
 #define NOTES_LOADER_KSF_H
 
+#include "global.h"
+
 class Song;
 class Steps;
 /** @brief Reads a Song from a set of .KSF files. */

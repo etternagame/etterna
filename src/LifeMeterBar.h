@@ -1,6 +1,7 @@
 ﻿#ifndef LIFEMETERBAR_H
 #define LIFEMETERBAR_H
 
+#include "global.h"
 #include "AutoActor.h"
 #include "LifeMeter.h"
 #include "ThemeMetric.h"

@@ -1,6 +1,8 @@
 ﻿#ifndef LYRICS_LOADER_H
 #define LYRICS_LOADER_H
 
+#include "global.h"
+
 class Song;
 /** @brief Loads lyrics from an LRC file. */
 class LyricsLoader

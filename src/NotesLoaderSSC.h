@@ -2,6 +2,7 @@
 #ifndef NotesLoaderSSC_H
 #define NotesLoaderSSC_H
 
+#include "global.h"
 #include "GameConstantsAndTypes.h"
 #include "NotesLoaderSM.h"
 

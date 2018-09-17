@@ -3,6 +3,7 @@
 #ifndef MODEL_H
 #define MODEL_H
 
+#include "global.h"
 #include "Actor.h"
 #include "ModelTypes.h"
 #include <map>

@@ -3,6 +3,7 @@
 #ifndef RAGETYPES_H
 #define RAGETYPES_H
 
+#include "global.h"
 #include "EnumHelper.h"
 
 enum BlendMode

@@ -1,6 +1,7 @@
 ﻿#ifndef NOTES_LOADER_H
 #define NOTES_LOADER_H
 
+#include "global.h"
 #include <set>
 
 class Song;

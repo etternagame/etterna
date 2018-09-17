@@ -1,6 +1,8 @@
 #ifndef Foreach_H
 #define Foreach_H
 
+#include "global.h"
+
 /** @brief General foreach loop iterating over a vector. */
 #define FOREACH(elemType, vect, var)                                           \
 	for (vector<elemType>::iterator var = (vect).begin();                      \

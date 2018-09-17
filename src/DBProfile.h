@@ -7,6 +7,7 @@
 #include "global.h"
 #include "sqlite3.h"
 #include <SQLiteCpp/SQLiteCpp.h>
+#include "Difficulty.h"
 #include <SQLiteCpp/VariadicBind.h>
 
 class Profile;

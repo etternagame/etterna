@@ -1,6 +1,7 @@
 ﻿#ifndef RAGE_STRING_HPP_
 #define RAGE_STRING_HPP_
 
+#include "global.h"
 #include <string>
 #include <vector>
 

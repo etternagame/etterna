@@ -1,6 +1,7 @@
 ﻿#ifndef HOLD_JUDGMENT_H
 #define HOLD_JUDGMENT_H
 
+#include "global.h"
 #include "ActorFrame.h"
 #include "AutoActor.h"
 #include "GameConstantsAndTypes.h"

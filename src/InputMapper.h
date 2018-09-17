@@ -1,6 +1,7 @@
 ﻿#ifndef INPUT_MAPPER_H
 #define INPUT_MAPPER_H
 
+#include "global.h"
 #include "GameInput.h"
 #include "PlayerNumber.h"
 #include "RageInputDevice.h"

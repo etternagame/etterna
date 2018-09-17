@@ -1,6 +1,7 @@
 ﻿#ifndef GRADE_H
 #define GRADE_H
 
+#include "global.h"
 #include "EnumHelper.h"
 #include "ThemeMetric.h"
 

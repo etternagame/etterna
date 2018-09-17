@@ -6,7 +6,7 @@
 #include "RageUtil_FileDB.h"
 #include "TimingData.h"
 #include "global.h"
-
+// clang-format off
 void
 run()
 {
@@ -159,3 +159,4 @@ main(int argc, char* argv[])
 
 	exit(0);
 }
+// clang-format on

@@ -1,5 +1,6 @@
 #pragma once
 #include "afxwin.h"
+#include "global.h"
 
 // CreateLanguageDlg dialog
 

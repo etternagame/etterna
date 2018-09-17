@@ -3,6 +3,8 @@
 #ifndef SCREEN_DIMENSIONS_H
 #define SCREEN_DIMENSIONS_H
 
+#include "global.h"
+
 namespace ScreenDimensions {
 float
 GetThemeAspectRatio();

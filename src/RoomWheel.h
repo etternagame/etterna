@@ -3,6 +3,7 @@
 #ifndef ROOM_WHEEL_H
 #define ROOM_WHEEL_H
 
+#include "global.h"
 #include "ThemeMetric.h"
 #include "WheelBase.h"
 #include "WheelItemBase.h"

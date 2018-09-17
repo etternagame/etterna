@@ -1,6 +1,7 @@
 #ifndef MOVIE_TEXTURE_H
 #define MOVIE_TEXTURE_H
 
+#include "global.h"
 #include "RageTexture.h"
 #include "arch/RageDriver.h"
 #include <map>

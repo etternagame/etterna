@@ -1,6 +1,8 @@
 #ifndef DSOUND_HELPERS
 #define DSOUND_HELPERS 1
 
+#include "global.h"
+
 #if defined(_WINDOWS)
 #include <windows.h>
 #include <wtypes.h>

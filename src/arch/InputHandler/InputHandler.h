@@ -18,6 +18,8 @@
  * if it becomes needed.) */
 #include "RageInputDevice.h" // for InputDevice
 #include "arch/RageDriver.h"
+#include "global.h"
+
 /** @brief A class designed to handle special input devices. */
 class InputHandler : public RageDriver
 {

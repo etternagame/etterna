@@ -1,6 +1,7 @@
 #ifndef STEPS_H
 #define STEPS_H
 
+#include "global.h"
 #include "Difficulty.h"
 #include "GameConstantsAndTypes.h"
 #include "Grade.h"

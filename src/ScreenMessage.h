@@ -1,5 +1,8 @@
 #ifndef ScreenMessage_H
 #define ScreenMessage_H
+
+#include "global.h"
+
 /** @brief Definition of common ScreenMessages and helpers. */
 using ScreenMessage = RString;
 

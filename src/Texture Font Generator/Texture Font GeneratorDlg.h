@@ -1,7 +1,7 @@
 #pragma once
 #include <afxcmn.h>
 #include <afxwin.h>
-
+#include "global.h"
 #include "TextureFont.h"
 
 class CTextureFontGeneratorDlg : public CDialog

@@ -1,6 +1,7 @@
 ﻿#ifndef GRAPH_DISPLAY_H
 #define GRAPH_DISPLAY_H
 
+#include "global.h"
 #include "ActorFrame.h"
 #include "AutoActor.h"
 

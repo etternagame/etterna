@@ -1,6 +1,7 @@
 #ifndef SCREEN_MANAGER_H
 #define SCREEN_MANAGER_H
 
+#include "global.h"
 #include "PlayerNumber.h"
 #include "RageSound.h"
 #include "ScreenMessage.h"

@@ -1,6 +1,7 @@
 #ifndef STEPS_UTIL_H
 #define STEPS_UTIL_H
 
+#include "global.h"
 #include "Difficulty.h"
 #include "GameConstantsAndTypes.h"
 #include "RageUtil_CachedObject.h"

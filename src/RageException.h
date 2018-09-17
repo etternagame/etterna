@@ -5,6 +5,8 @@
 #include "config.hpp"
 #endif
 
+#include "global.h"
+
 /**
  * @brief Namespace for throwing fatal errors.
  *

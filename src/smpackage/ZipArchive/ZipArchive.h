@@ -83,6 +83,7 @@
 #include "../../../extern/zlib/zlib.h"
 #endif
 
+#include "global.h"
 #include "ZipAutoBuffer.h"
 #include "ZipCentralDir.h"
 #include "ZipException.h"

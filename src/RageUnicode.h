@@ -1,6 +1,7 @@
 ﻿#ifndef RAGE_UNICODE_HPP_
 #define RAGE_UNICODE_HPP_
 
+#include "global.h"
 #include <string>
 
 namespace Rage {

@@ -1,6 +1,8 @@
 #ifndef LOADING_WINDOW_MODULE_GTK
 #define LOADING_WINDOW_MODULE_GTK
 
+#include "global.h"
+
 struct RageSurface;
 
 typedef const char* (*INIT)(int* argc, char*** argv);

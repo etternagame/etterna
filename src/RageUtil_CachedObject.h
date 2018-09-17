@@ -1,6 +1,7 @@
 ﻿#ifndef RAGE_UTIL_CACHED_OBJECT_H
 #define RAGE_UTIL_CACHED_OBJECT_H
 
+#include "global.h"
 #include <set>
 
 template<typename T>

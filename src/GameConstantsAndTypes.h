@@ -4,6 +4,7 @@
 #ifndef GAME_CONSTANTS_AND_TYPES_H
 #define GAME_CONSTANTS_AND_TYPES_H
 
+#include "global.h"
 #include "EnumHelper.h"
 #include <cfloat> // need the max for default.
 

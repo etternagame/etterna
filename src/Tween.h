@@ -1,6 +1,7 @@
 #ifndef TWEEN_H
 #define TWEEN_H
 
+#include "global.h"
 #include "EnumHelper.h"
 
 struct lua_State;

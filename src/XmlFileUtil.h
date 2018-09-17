@@ -1,6 +1,8 @@
 #ifndef XML_FILE_UTIL_H
 #define XML_FILE_UTIL_H
 
+#include "global.h"
+
 class RageFileBasic;
 class XNode;
 struct lua_State;

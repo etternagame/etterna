@@ -1,11 +1,11 @@
 #ifndef Profile_XML
 #define Profile_XML
 
+#include "global.h"
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
-#include "global.h"
 
 class XNode;
 

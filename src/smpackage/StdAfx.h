@@ -20,6 +20,7 @@
 #define RESTORE_DEBUG
 #endif
 
+#include "global.h"
 #include <afxdtctl.h> // MFC support for Internet Explorer 4 Common Controls
 #include <afxext.h>   // MFC extensions
 #include <afxwin.h>   // MFC core and standard components

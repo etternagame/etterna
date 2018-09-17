@@ -1,8 +1,8 @@
 #ifndef THREADS_PTHREADS_H
 #define THREADS_PTHREADS_H
 
+#include "global.h"
 #include "Threads.h"
-
 #include <pthread.h>
 #include <semaphore.h>
 

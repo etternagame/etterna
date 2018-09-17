@@ -4,6 +4,7 @@
 #ifndef INPUT_FILTER_H
 #define INPUT_FILTER_H
 
+#include "global.h"
 #include "RageInputDevice.h"
 
 enum InputEventType

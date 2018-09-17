@@ -2,7 +2,7 @@
 #define IMAGE_CACHE_H
 
 #include "IniFile.h"
-
+#include "global.h"
 #include "RageTexture.h"
 
 class LoadingWindow;

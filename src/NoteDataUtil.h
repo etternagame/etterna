@@ -1,6 +1,7 @@
 ﻿#ifndef NOTEDATAUTIL_H
 #define NOTEDATAUTIL_H
 
+#include "global.h"
 #include "GameConstantsAndTypes.h"
 #include "NoteTypes.h"
 

@@ -1,6 +1,7 @@
 #ifndef ACTORFRAME_H
 #define ACTORFRAME_H
 
+#include "global.h"
 #include "Actor.h"
 
 /** @brief A container for other Actors. */

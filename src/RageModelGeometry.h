@@ -3,6 +3,7 @@
 #ifndef RAGE_MODEL_GEOMETRY_H
 #define RAGE_MODEL_GEOMETRY_H
 
+#include "global.h"
 #include "ModelTypes.h"
 #include "RageTypes.h"
 #include <vector>

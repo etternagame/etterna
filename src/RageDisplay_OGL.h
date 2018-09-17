@@ -3,6 +3,7 @@
 #ifndef RAGE_DISPLAY_OGL_H
 #define RAGE_DISPLAY_OGL_H
 
+#include "global.h"
 #include "DisplayResolutions.h"
 #include "RageDisplay.h"
 

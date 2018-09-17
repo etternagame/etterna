@@ -1,6 +1,7 @@
 ﻿#ifndef ActorUtil_H
 #define ActorUtil_H
 
+#include "global.h"
 #include "Actor.h"
 
 class XNode;

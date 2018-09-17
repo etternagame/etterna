@@ -1,6 +1,7 @@
 ﻿#ifndef COMMON_METRICS_H
 #define COMMON_METRICS_H
 
+#include "global.h"
 #include "Difficulty.h"
 #include "GameConstantsAndTypes.h"
 #include "LocalizedString.h"

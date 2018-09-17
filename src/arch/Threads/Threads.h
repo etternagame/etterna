@@ -1,6 +1,8 @@
 #ifndef THREADS_H
 #define THREADS_H
 
+#include "global.h"
+
 /* This is the low-level implementation; you probably want RageThreads. */
 class RageMutex;
 class RageTimer;

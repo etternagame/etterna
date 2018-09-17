@@ -1,6 +1,8 @@
 ﻿#ifndef RAGE_FILE_MANAGER_H
 #define RAGE_FILE_MANAGER_H
 
+#include "global.h"
+
 /** @brief Constants for working with the RageFileManager. */
 namespace RageFileManagerUtil {
 extern RString sInitialWorkingDirectory;

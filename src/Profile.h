@@ -1,6 +1,7 @@
 ﻿#ifndef Profile_H
 #define Profile_H
 
+#include "global.h"
 #include "DateTime.h"
 #include "GameConstantsAndTypes.h"
 #include "Grade.h"

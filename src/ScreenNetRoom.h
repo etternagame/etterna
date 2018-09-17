@@ -3,6 +3,7 @@
 #ifndef SCREEN_NET_ROOM_H
 #define SCREEN_NET_ROOM_H
 
+#include "global.h"
 #include "RoomInfoDisplay.h"
 #include "RoomWheel.h"
 #include "ScreenNetSelectBase.h"

@@ -1,6 +1,7 @@
 #ifndef THEMEMANAGER_H
 #define THEMEMANAGER_H
 
+#include "global.h"
 #include "LuaReference.h"
 #include "RageTypes.h"
 #include <set>

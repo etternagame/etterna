@@ -3,6 +3,7 @@
 #ifndef GameCommand_H
 #define GameCommand_H
 
+#include "global.h"
 #include "Command.h"
 #include "Difficulty.h"
 #include "GameConstantsAndTypes.h"

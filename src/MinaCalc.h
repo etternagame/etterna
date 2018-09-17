@@ -1,4 +1,6 @@
 ﻿#pragma once
+
+#include "global.h"
 #include "NoteDataStructures.h"
 #include <vector>
 

@@ -1,6 +1,7 @@
 ﻿#ifndef MemoryCardManager_H
 #define MemoryCardManager_H
 
+#include "global.h"
 #include "LuaManager.h"
 
 class MemoryCardManager

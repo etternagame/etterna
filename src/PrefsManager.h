@@ -1,6 +1,7 @@
 ﻿#ifndef PREFSMANAGER_H
 #define PREFSMANAGER_H
 
+#include "global.h"
 #include "GameConstantsAndTypes.h"
 #include "Preference.h"
 

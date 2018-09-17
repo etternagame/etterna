@@ -3,6 +3,8 @@
 #ifndef RAGEUTIL_CHAR_CONVERSIONS_H
 #define RAGEUTIL_CHAR_CONVERSIONS_H
 
+#include "global.h"
+
 /* Convert a string to UTF-8 from the first possible encoding in the given
  * comma- separated list of encodings.  The only valid strings are "japanese"
  * and "korean". Return true if the conversion was successful (or a no-op).

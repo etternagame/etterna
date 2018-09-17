@@ -1,6 +1,7 @@
 ﻿#ifndef PlayerStageStats_H
 #define PlayerStageStats_H
 
+#include "global.h"
 #include "Grade.h"
 #include "HighScore.h"
 #include "NoteDataStructures.h"

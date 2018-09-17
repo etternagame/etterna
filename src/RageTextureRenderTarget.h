@@ -4,6 +4,7 @@
 #ifndef RAGE_TEXTURE_RENDER_TARGET_H
 #define RAGE_TEXTURE_RENDER_TARGET_H
 
+#include "global.h"
 #include "RageDisplay.h" // for RenderTargetParam
 #include "RageTexture.h"
 #include "RageTextureID.h"

@@ -1,6 +1,7 @@
 #ifndef LOW_LEVEL_WINDOW_WIN32_H
 #define LOW_LEVEL_WINDOW_WIN32_H
 
+#include "global.h"
 #include "LowLevelWindow.h"
 
 class LowLevelWindow_Win32 : public LowLevelWindow
