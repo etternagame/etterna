@@ -102,7 +102,7 @@ script:
         - if [ "$TRAVIS_OS_NAME" == "osx" ]; then xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target Etterna -destination 'platform=OS X,arch=x86_64' -xcconfig ../Xcode/conf.cnf -configuration RelWithDebInfo;
           mv ../*.app ../Etterna.app;
           xcodebuild ARCHS="x86_64" -project Etterna.xcodeproj -target dmg -configuration RelWithDebInfo; fi
-        - cd .. && bash format-check.sh
+        - if [ "$TRAVIS_OS_NAME" != "osx" ]; then cd .. && bash format-check.sh; fi
 
 before_install:
         - if [ "$TRAVIS_OS_NAME" == "osx" ]; then rvm install 2.2.6;
