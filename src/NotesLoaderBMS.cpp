@@ -228,8 +228,7 @@ struct bmsCommandTree
 			CT_ELSE
 		} conditionType; // #IF or #ELSE?
 
-		union
-		{
+		union {
 			int conditionValue;		   // value which we got for this #random
 			int conditionTriggerValue; // value which triggers this branch. does
 									   // not apply to #ELSE

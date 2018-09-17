@@ -66,8 +66,7 @@ typedef struct _HIDP_BUTTON_CAPS
 	BOOLEAN IsAbsolute;
 
 	ULONG Reserved[10];
-	union
-	{
+	union {
 		struct
 		{
 			USAGE UsageMin, UsageMax;
@@ -116,8 +115,7 @@ typedef struct _HIDP_VALUE_CAPS
 	LONG LogicalMin, LogicalMax;
 	LONG PhysicalMin, PhysicalMax;
 
-	union
-	{
+	union {
 		struct
 		{
 			USAGE UsageMin, UsageMax;
@@ -255,8 +253,7 @@ typedef struct _HIDP_DATA
 {
 	USHORT DataIndex;
 	USHORT Reserved;
-	union
-	{
+	union {
 		ULONG RawValue; // for values
 		BOOLEAN On;		// for buttons MUST BE TRUE for buttons.
 	};
@@ -1598,8 +1595,7 @@ typedef enum _HIDP_KEYBOARD_DIRECTION {
 //
 typedef struct _HIDP_KEYBOARD_MODIFIER_STATE
 {
-	union
-	{
+	union {
 		struct
 		{
 			ULONG LeftControl : 1;

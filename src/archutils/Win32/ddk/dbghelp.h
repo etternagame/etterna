@@ -1659,8 +1659,7 @@ typedef struct _MINIDUMP_HEADER
 	ULONG32 NumberOfStreams;
 	RVA StreamDirectoryRva;
 	ULONG32 CheckSum;
-	union
-	{
+	union {
 		ULONG32 Reserved;
 		ULONG32 TimeDateStamp;
 	};
@@ -1741,8 +1740,7 @@ typedef struct _MINIDUMP_SYSTEM_INFO
 	USHORT ProcessorLevel;
 	USHORT ProcessorRevision;
 
-	union
-	{
+	union {
 		USHORT Reserved0;
 		struct
 		{
@@ -1768,8 +1766,7 @@ typedef struct _MINIDUMP_SYSTEM_INFO
 
 	RVA CSDVersionRva;
 
-	union
-	{
+	union {
 		ULONG32 Reserved1;
 		struct
 		{
@@ -1789,8 +1786,7 @@ typedef struct _MINIDUMP_SYSTEM_INFO
 	//     IsProcessorFeatureSupported().
 	//
 
-	union _CPU_INFORMATION
-	{
+	union _CPU_INFORMATION {
 
 		//
 		// X86 platforms use CPUID function to obtain processor information.
@@ -2196,8 +2192,7 @@ typedef struct _MINIDUMP_CALLBACK_INPUT
 	ULONG ProcessId;
 	HANDLE ProcessHandle;
 	ULONG CallbackType;
-	union
-	{
+	union {
 		MINIDUMP_THREAD_CALLBACK Thread;
 		MINIDUMP_THREAD_EX_CALLBACK ThreadEx;
 		MINIDUMP_MODULE_CALLBACK Module;
@@ -2208,8 +2203,7 @@ typedef struct _MINIDUMP_CALLBACK_INPUT
 
 typedef struct _MINIDUMP_CALLBACK_OUTPUT
 {
-	union
-	{
+	union {
 		ULONG ModuleWriteFlags;
 		ULONG ThreadWriteFlags;
 	};

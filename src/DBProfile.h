@@ -9,6 +9,8 @@
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <SQLiteCpp/VariadicBind.h>
 
+class Profile;
+
 enum DBProfileMode
 {
 	WriteOnlyWebExport,

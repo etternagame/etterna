@@ -3,6 +3,7 @@
 #ifndef XML_FILE_H
 #define XML_FILE_H
 
+#include "global.h"
 #include <map>
 struct DateTime;
 class RageFileBasic;

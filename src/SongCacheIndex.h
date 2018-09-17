@@ -11,7 +11,8 @@
 #include <SQLiteCpp/VariadicBind.h>
 
 class SongDBCacheItem
-{};
+{
+};
 class SongCacheIndex
 {
 	IniFile CacheIndex;

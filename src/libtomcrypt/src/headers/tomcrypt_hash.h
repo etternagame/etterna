@@ -117,8 +117,7 @@ struct chc_state
 };
 #endif
 
-typedef union Hash_state
-{
+typedef union Hash_state {
 	char dummy[1];
 #ifdef CHC_HASH
 	struct chc_state chc;

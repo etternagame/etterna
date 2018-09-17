@@ -37,7 +37,8 @@ class DialogDriver
 	virtual ~DialogDriver() {}
 };
 class DialogDriver_Null : public DialogDriver
-{};
+{
+};
 #define USE_DIALOG_DRIVER_NULL
 
 typedef DialogDriver* (*CreateDialogDriverFn)();

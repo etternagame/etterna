@@ -1,10 +1,10 @@
 ﻿#ifndef Profile_H
 #define Profile_H
 
-#include "DBProfile.h"
 #include "DateTime.h"
 #include "GameConstantsAndTypes.h"
 #include "Grade.h"
+#include "DBProfile.h"
 #include "HighScore.h"
 #include "LuaReference.h"
 #include "SongUtil.h"  // for SongID
@@ -20,6 +20,7 @@
 class XNode;
 struct lua_State;
 class Character;
+
 struct Playlist;
 
 // Current file versions

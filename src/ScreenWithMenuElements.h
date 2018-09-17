@@ -76,7 +76,8 @@ class ScreenWithMenuElementsSimple : public ScreenWithMenuElements
 };
 
 class ScreenWithMenuElementsBasic : public ScreenWithMenuElements
-{};
+{
+};
 
 #endif
 

@@ -156,8 +156,7 @@ struct anubis_key
 };
 #endif
 
-typedef union Symmetric_key
-{
+typedef union Symmetric_key {
 #ifdef DES
 	struct des_key des;
 	struct des3_key des3;
