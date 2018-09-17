@@ -3251,6 +3251,38 @@ void Player::IncrementComboOrMissCombo(bool bComboOrMissCombo)
 		SendComboMessages( iOldCombo, iOldMissCombo );
 }
 
+void Player::RenderAllNotesIgnoreScores()
+{
+	int firstRow = 0;
+	int lastRow = m_NoteData.GetLastRow() + 1;
+
+	// Go over every single non empty row and their tracks
+	FOREACH_NONEMPTY_ROW_ALL_TRACKS(m_NoteData, row)
+	{
+		for (int track = 0; track < m_NoteData.GetNumTracks(); track++)
+		{
+			// Find the tapnote we are on
+			TapNote *pTN = NULL;
+			NoteData::iterator iter = m_NoteData.FindTapNote(track, row);
+			DEBUG_ASSERT(iter != m_NoteData.end(col));
+			pTN = &iter->second;
+
+			// Reset the score so it can be visible
+			if (iter != m_NoteData.end(track))
+			{
+				if (iter->second.type == TapNoteType_Empty)
+					continue;
+				if (iter->second.type == TapNoteType_HoldHead)
+					iter->second.HoldResult.hns = HNS_None;
+				iter->second.result.bHidden = false;
+				iter->second.result.tns = TNS_None;
+			}
+		}
+	}
+	// Draw the results
+	m_pNoteField->DrawPrimitives();
+}
+
 // lua start
 #include "LuaBinding.h"
 

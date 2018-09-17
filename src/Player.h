@@ -118,6 +118,7 @@ public:
 	void SetActorWithComboPosition( Actor *pActor ) { m_pActorWithComboPosition = pActor; }
 
 	void SetSendJudgmentAndComboMessages( bool b ) { m_bSendJudgmentAndComboMessages = b; }
+	void RenderAllNotesIgnoreScores();
 
 	// Lua
 	void PushSelf( lua_State *L ) override;
