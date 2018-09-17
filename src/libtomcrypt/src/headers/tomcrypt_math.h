@@ -1,3 +1,6 @@
+#pragma once
+#include "tomcrypt_macros.h"
+#include "tomcrypt_pk.h"
 /** math functions **/
 
 #define LTC_MP_LT -1

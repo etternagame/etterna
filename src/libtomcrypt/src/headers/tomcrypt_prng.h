@@ -1,3 +1,5 @@
+#pragma once
+#include "tomcrypt_macros.h"
 /* ---- PRNG Stuff ---- */
 #ifdef YARROW
 struct yarrow_prng

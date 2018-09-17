@@ -2,6 +2,7 @@
 #define RAGE_SOUNDS_H
 
 #include "PlayerNumber.h"
+#include "global.h"
 
 class TimingData;
 class RageSound;

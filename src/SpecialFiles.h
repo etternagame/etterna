@@ -1,6 +1,6 @@
 #ifndef SpecialFiles_H
 #define SpecialFiles_H
-
+#include "global.h"
 /** @brief The listing of the special files and directories in use. */
 namespace SpecialFiles {
 /**

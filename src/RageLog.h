@@ -3,6 +3,8 @@
 #ifndef RAGE_LOG_H
 #define RAGE_LOG_H
 
+#include "global.h"
+
 class RageLog
 {
   public:

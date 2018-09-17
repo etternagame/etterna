@@ -1,3 +1,5 @@
+#pragma once
+#include "tomcrypt_macros.h"
 /* ---- SYMMETRIC KEY STUFF -----
  *
  * We put each of the ciphers scheduled keys in their own structs then we put

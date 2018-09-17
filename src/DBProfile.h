@@ -3,6 +3,7 @@
 
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
+#include "Profile.h"
 #include "global.h"
 #include "sqlite3.h"
 #include <SQLiteCpp/SQLiteCpp.h>

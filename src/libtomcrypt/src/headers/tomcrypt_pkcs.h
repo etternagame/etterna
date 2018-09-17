@@ -1,3 +1,5 @@
+#pragma once
+#include "tomcrypt_macros.h"
 /* PKCS Header Info */
 
 /* ===> PKCS #1 -- RSA Cryptography <=== */

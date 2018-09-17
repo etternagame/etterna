@@ -1,3 +1,5 @@
+#pragma once
+#include "tomcrypt_macros.h"
 #ifdef LTC_HMAC
 typedef struct Hmac_state
 {

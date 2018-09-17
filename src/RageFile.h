@@ -4,7 +4,7 @@
 #define RAGE_FILE_H
 
 #include "RageFileBasic.h"
-
+#include "global.h"
 struct lua_State;
 
 /**

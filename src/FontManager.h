@@ -3,6 +3,8 @@
 #ifndef FONTMANAGER_H
 #define FONTMANAGER_H
 
+#include "global.h"
+
 class Font;
 struct Game;
 

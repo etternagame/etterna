@@ -1,6 +1,7 @@
 #ifndef CHARACTER_MANAGER_H
 #define CHARACTER_MANAGER_H
 
+#include "global.h"
 class Character;
 struct lua_State;
 

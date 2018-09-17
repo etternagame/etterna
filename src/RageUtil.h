@@ -3,10 +3,12 @@
 #ifndef RAGE_UTIL_H
 #define RAGE_UTIL_H
 
+#include "global.h"
 #include <map>
 #include <random>
 #include <sstream>
 #include <vector>
+
 class RageFileDriver;
 
 /** @brief Safely delete pointers. */

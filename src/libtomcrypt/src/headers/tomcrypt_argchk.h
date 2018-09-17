@@ -1,3 +1,6 @@
+#pragma once
+#include "tomcrypt_macros.h"
+#include "tomcrypt_misc.h"
 /* Defines the LTC_ARGCHK macro used within the library */
 /* ARGTYPE is defined in mycrypt_cfg.h */
 #if ARGTYPE == 0

@@ -1,3 +1,6 @@
+#pragma once
+#include "tomcrypt_macros.h"
+#include "tomcrypt_prng.h"
 /* ---- NUMBER THEORY ---- */
 
 enum

@@ -1,6 +1,8 @@
 #ifndef CryptManager_H
 #define CryptManager_H
 
+#include "global.h"
+
 class RageFileBasic;
 struct lua_State;
 

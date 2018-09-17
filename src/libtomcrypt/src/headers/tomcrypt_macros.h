@@ -1,3 +1,6 @@
+#pragma once
+#include "tomcrypt_cfg.h"
+
 /* fix for MSVC ...evil! */
 #ifdef _MSC_VER
 #define CONST64(n) n##ui64
@@ -108,18 +111,18 @@ typedef unsigned long ulong32;
 	 defined(__i386__) || defined(__x86_64__))))
 
 #define STORE32H(x, y)                                                         \
-	\
-asm __volatile__("bswapl %0     \n\t"                                          \
-				 "movl   %0,(%1)\n\t"                                          \
-				 "bswapl %0     \n\t" ::"r"(x),                                \
-				 "r"(y));
+                                                                               \
+	asm __volatile__("bswapl %0     \n\t"                                      \
+					 "movl   %0,(%1)\n\t"                                      \
+					 "bswapl %0     \n\t" ::"r"(x),                            \
+					 "r"(y));
 
 #define LOAD32H(x, y)                                                          \
-	\
-asm __volatile__("movl (%1),%0\n\t"                                            \
-				 "bswapl %0\n\t"                                               \
-				 : "=r"(x)                                                     \
-				 : "r"(y));
+                                                                               \
+	asm __volatile__("movl (%1),%0\n\t"                                        \
+					 "bswapl %0\n\t"                                           \
+					 : "=r"(x)                                                 \
+					 : "r"(y));
 
 #else
 
@@ -145,18 +148,18 @@ asm __volatile__("movl (%1),%0\n\t"                                            \
 #if !defined(LTC_NO_BSWAP) && (defined(__GNUC__) && defined(__x86_64__))
 
 #define STORE64H(x, y)                                                         \
-	\
-asm __volatile__("bswapq %0     \n\t"                                          \
-				 "movq   %0,(%1)\n\t"                                          \
-				 "bswapq %0     \n\t" ::"r"(x),                                \
-				 "r"(y));
+                                                                               \
+	asm __volatile__("bswapq %0     \n\t"                                      \
+					 "movq   %0,(%1)\n\t"                                      \
+					 "bswapq %0     \n\t" ::"r"(x),                            \
+					 "r"(y));
 
 #define LOAD64H(x, y)                                                          \
-	\
-asm __volatile__("movq (%1),%0\n\t"                                            \
-				 "bswapq %0\n\t"                                               \
-				 : "=r"(x)                                                     \
-				 : "r"(y));
+                                                                               \
+	asm __volatile__("movq (%1),%0\n\t"                                        \
+					 "bswapq %0\n\t"                                           \
+					 : "=r"(x)                                                 \
+					 : "r"(y));
 
 #else
 
