@@ -10,16 +10,16 @@ class BackgroundImpl;
 /** @brief the Background that is behind the notes while playing. */
 class Background : public ActorFrame
 {
-public:
+  public:
 	Background();
 	~Background() override;
 	void Init();
 
-	virtual void LoadFromSong( const Song *pSong );
+	virtual void LoadFromSong(const Song* pSong);
 	virtual void Unload();
 
 	void FadeToActualBrightness();
-	void SetBrightness( float fBrightness ); // overrides pref and Cover
+	void SetBrightness(float fBrightness); // overrides pref and Cover
 
 	// One more piece of the puzzle that puts the notefield board above the bg
 	// and under everything else.  m_disable_draw exists so that
@@ -33,10 +33,11 @@ public:
 	 * @return the dancing characters. */
 	DancingCharacters* GetDancingCharacters();
 
-	void GetLoadedBackgroundChanges( vector<BackgroundChange> **pBackgroundChangesOut );
+	void GetLoadedBackgroundChanges(
+	  vector<BackgroundChange>** pBackgroundChangesOut);
 
-protected:
-	BackgroundImpl *m_pImpl;
+  protected:
+	BackgroundImpl* m_pImpl;
 };
 
 #endif
@@ -46,7 +47,7 @@ protected:
  * @author Chris Danford, Ben Nordstrom (c) 2001-2004
  * @section LICENSE
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -56,7 +57,7 @@ protected:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

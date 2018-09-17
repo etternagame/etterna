@@ -1,1 +1,1 @@
-return LoadActor(THEME:GetPathG("","_grade"),"Failed");
+return LoadActor(THEME:GetPathG("", "_grade"), "Failed")

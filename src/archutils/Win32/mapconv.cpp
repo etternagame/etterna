@@ -1,26 +1,27 @@
 //	mapconv - symbolic debugging info generator for VirtualDub
 
-#include <vector>
 #include <algorithm>
+#include <vector>
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
-#define MAX_FNAMBUF		(0x0FFFFFFF)
-#define MAX_SEGMENTS	(64)
-#define MAX_GROUPS		(64)
+#define MAX_FNAMBUF (0x0FFFFFFF)
+#define MAX_SEGMENTS (64)
+#define MAX_GROUPS (64)
 
-struct RVAEnt {
+struct RVAEnt
+{
 	long rva;
-	char *line;
+	char* line;
 };
 
 std::vector<RVAEnt> rvabuf;
 
 char fnambuf[MAX_FNAMBUF];
-char *fnamptr = fnambuf;
+char* fnamptr = fnambuf;
 
 long segbuf[MAX_SEGMENTS][2];
 int segcnt = 0;
@@ -31,7 +32,9 @@ char line[8192];
 long codeseg_flags = 0;
 FILE *f, *fo;
 
-char *strtack(char *s, const char *t, const char *s_max) {
+char*
+strtack(char* s, const char* t, const char* s_max)
+{
 	while (s < s_max && (*s = *t))
 		++s, ++t;
 
@@ -41,19 +44,23 @@ char *strtack(char *s, const char *t, const char *s_max) {
 	return s + 1;
 }
 
-bool readline() {
+bool
+readline()
+{
 	if (!fgets(line, sizeof line, f))
 		return false;
 
 	int l = strlen(line);
 
-	if (l>0 && line[l - 1] == '\n')
+	if (l > 0 && line[l - 1] == '\n')
 		line[l - 1] = 0;
 
 	return true;
 }
 
-bool findline(const char *searchstr) {
+bool
+findline(const char* searchstr)
+{
 	while (readline()) {
 		if (strstr(line, searchstr))
 			return true;
@@ -65,12 +72,12 @@ bool findline(const char *searchstr) {
 ///////////////////////////////////////////////////////////////////////////
 
 /* dbghelp UnDecorateSymbolName() doesn't handle anonymous namespaces,
-* which look like "?A0x30dd143a".  Remove "@?A0x????????"; we don't
-* want to see "<anonymous namespace>::" in crash dump output, anyway. */
-void RemoveAnonymousNamespaces(char *p)
+ * which look like "?A0x30dd143a".  Remove "@?A0x????????"; we don't
+ * want to see "<anonymous namespace>::" in crash dump output, anyway. */
+void
+RemoveAnonymousNamespaces(char* p)
 {
-	while (p = strstr(p, "@?A"))
-	{
+	while (p = strstr(p, "@?A")) {
 		int skip = 0, i;
 		if (strlen(p) < 13)
 			break;
@@ -80,18 +87,18 @@ void RemoveAnonymousNamespaces(char *p)
 				skip = 1;
 		if (p[3] != '0' || p[4] != 'x')
 			skip = 1;
-		if (skip)
-		{
+		if (skip) {
 			++p;
 			continue;
 		}
 
 		memmove(p, p + 13, strlen(p + 13) + 1);
 	}
-
 }
 
-void parsename(long rva, char *func_name) {
+void
+parsename(long rva, char* func_name)
+{
 	RemoveAnonymousNamespaces(func_name);
 
 	fnamptr = strtack(fnamptr, func_name, fnambuf + MAX_FNAMBUF);
@@ -99,16 +106,20 @@ void parsename(long rva, char *func_name) {
 		throw "Too many func names; increase MAX_FNAMBUF.";
 }
 
-struct RVASorter {
-	bool operator()(const RVAEnt& e1, const RVAEnt& e2) {
+struct RVASorter
+{
+	bool operator()(const RVAEnt& e1, const RVAEnt& e2)
+	{
 		return e1.rva < e2.rva;
 	}
 };
 
-int main(int argc, char **argv) {
+int
+main(int argc, char** argv)
+{
 	long load_addr;
 
-	if (argc<3) {
+	if (argc < 3) {
 		printf("mapconv <listing-file> <output-name>\n");
 		return 0;
 	}
@@ -145,7 +156,8 @@ int main(int argc, char **argv) {
 				break;
 
 			if (strstr(line + 49, "CODE")) {
-				//				printf("%04x:%08lx %08lx type code\n", grp, start, len);
+				//				printf("%04x:%08lx %08lx type code\n", grp,
+				// start,  len);
 
 				codeseg_flags |= 1 << grp;
 
@@ -170,10 +182,12 @@ int main(int argc, char **argv) {
 			char symname[4096];
 			int i;
 
-			if (4 != sscanf(line, "%lx:%lx %4095s %lx", &grp, &start, symname, &rva))
+			if (4 !=
+				sscanf(line, "%lx:%lx %4095s %lx", &grp, &start, symname, &rva))
 				break;
 
-			if (!(codeseg_flags & (1 << grp)) && strcmp(symname, "___ImageBase"))
+			if (!(codeseg_flags & (1 << grp)) &&
+				strcmp(symname, "___ImageBase"))
 				continue;
 
 			RVAEnt entry = { rva, strdup(line) };
@@ -194,7 +208,9 @@ int main(int argc, char **argv) {
 				long grp, start, rva;
 				char symname[4096];
 
-				if (4 != sscanf(line, "%lx:%lx %4095s %lx", &grp, &start, symname, &rva))
+				if (4 !=
+					sscanf(
+					  line, "%lx:%lx %4095s %lx", &grp, &start, symname, &rva))
 					break;
 
 				if (!(codeseg_flags & (1 << grp)))
@@ -214,11 +230,16 @@ int main(int argc, char **argv) {
 
 		//		printf("Processing RVA entries...\n");
 
-		for (int i = 0; i<rvabuf.size(); i++) {
+		for (int i = 0; i < rvabuf.size(); i++) {
 			long grp, start, rva;
 			char symname[4096];
 
-			sscanf(rvabuf[i].line, "%lx:%lx %4095s %lx", &grp, &start, symname, &rva);
+			sscanf(rvabuf[i].line,
+				   "%lx:%lx %4095s %lx",
+				   &grp,
+				   &start,
+				   symname,
+				   &rva);
 
 			grpstart[grp] = rva - start;
 
@@ -227,17 +248,19 @@ int main(int argc, char **argv) {
 
 		//		printf("Processing segment entries...\n");
 
-		for (int i = 0; i<segcnt; i++) {
+		for (int i = 0; i < segcnt; i++) {
 			segbuf[i][0] += grpstart[seggrp[i]];
-			//			printf("\t#%-2d  %08lx-%08lx\n", i+1, segbuf[i][0], segbuf[i][0]+segbuf[i][1]-1);
+			//			printf("\t#%-2d  %08lx-%08lx\n", i+1, segbuf[i][0],
+			// segbuf[i][0]+segbuf[i][1]-1);
 		}
 		/*
-		printf("Raw statistics:\n");
-		printf("\tRVA bytes:        %ld\n", rvabuf.size()*4);
-		printf("\tFunc name bytes:  %ld\n", fnamptr - fnambuf);
-		printf("\nPacking RVA data..."); fflush(stdout);
-		*/
-		std::vector<RVAEnt>::iterator itRVA = rvabuf.begin(), itRVAEnd = rvabuf.end();
+			printf("Raw statistics:\n");
+			printf("\tRVA bytes:        %ld\n", rvabuf.size()*4);
+			printf("\tFunc name bytes:  %ld\n", fnamptr - fnambuf);
+			printf("\nPacking RVA data..."); fflush(stdout);
+			*/
+		std::vector<RVAEnt>::iterator itRVA = rvabuf.begin(),
+									  itRVAEnd = rvabuf.end();
 		std::vector<char> rvaout;
 		long firstrva = (*itRVA++).rva;
 		long lastrva = firstrva;
@@ -247,10 +270,14 @@ int main(int argc, char **argv) {
 
 			lastrva += rvadiff;
 
-			if (rvadiff & 0xF0000000) rvaout.push_back((char)(0x80 | ((rvadiff >> 28) & 0x7F)));
-			if (rvadiff & 0xFFE00000) rvaout.push_back((char)(0x80 | ((rvadiff >> 21) & 0x7F)));
-			if (rvadiff & 0xFFFFC000) rvaout.push_back((char)(0x80 | ((rvadiff >> 14) & 0x7F)));
-			if (rvadiff & 0xFFFFFF80) rvaout.push_back((char)(0x80 | ((rvadiff >> 7) & 0x7F)));
+			if (rvadiff & 0xF0000000)
+				rvaout.push_back((char)(0x80 | ((rvadiff >> 28) & 0x7F)));
+			if (rvadiff & 0xFFE00000)
+				rvaout.push_back((char)(0x80 | ((rvadiff >> 21) & 0x7F)));
+			if (rvadiff & 0xFFFFC000)
+				rvaout.push_back((char)(0x80 | ((rvadiff >> 14) & 0x7F)));
+			if (rvadiff & 0xFFFFFF80)
+				rvaout.push_back((char)(0x80 | ((rvadiff >> 7) & 0x7F)));
 			rvaout.push_back((char)(rvadiff & 0x7F));
 		}
 
@@ -285,9 +312,7 @@ int main(int argc, char **argv) {
 
 		if (fclose(fo))
 			throw "output file close failed";
-
-	}
-	catch (const char *s) {
+	} catch (const char* s) {
 		fprintf(stderr, "%s: %s\n", argv[1], s);
 	}
 
@@ -297,26 +322,26 @@ int main(int argc, char **argv) {
 }
 
 /*
-* (c) 2002 Avery Lee
-* All rights reserved.
-*
-* Permission is hereby granted, free of charge, to any person obtaining a
-* copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, and/or sell copies of the Software, and to permit persons to
-* whom the Software is furnished to do so, provided that the above
-* copyright notice(s) and this permission notice appear in all copies of
-* the Software and that both the above copyright notice(s) and this
-* permission notice appear in supporting documentation.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-* OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
-* THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
-* INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
-* OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
-* OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-* OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-* PERFORMANCE OF THIS SOFTWARE.
-*/
+ * (c) 2002 Avery Lee
+ * All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, and/or sell copies of the Software, and to permit persons to
+ * whom the Software is furnished to do so, provided that the above
+ * copyright notice(s) and this permission notice appear in all copies of
+ * the Software and that both the above copyright notice(s) and this
+ * permission notice appear in supporting documentation.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
+ * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
+ * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
+ * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+ * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */

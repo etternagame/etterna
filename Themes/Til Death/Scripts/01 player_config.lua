@@ -49,7 +49,7 @@ local defaultConfig = {
 			NPSGraphY = SCREEN_BOTTOM - 160,
 			NotefieldX = 0,
 			NotefieldY = 0,
-			ProgressBarPos = 1,
+			ProgressBarPos = 1
 		},
 		["5K"] = {
 			JudgeX = 0,
@@ -74,7 +74,7 @@ local defaultConfig = {
 			NPSGraphY = SCREEN_BOTTOM - 160,
 			NotefieldX = 0,
 			NotefieldY = 0,
-			ProgressBarPos = 1,
+			ProgressBarPos = 1
 		},
 		["6K"] = {
 			JudgeX = 0,
@@ -99,7 +99,7 @@ local defaultConfig = {
 			NPSGraphY = SCREEN_BOTTOM - 160,
 			NotefieldX = 0,
 			NotefieldY = 0,
-			ProgressBarPos = 1,
+			ProgressBarPos = 1
 		},
 		["7K"] = {
 			JudgeX = 0,
@@ -124,7 +124,7 @@ local defaultConfig = {
 			NPSGraphY = SCREEN_BOTTOM - 160,
 			NotefieldX = 0,
 			NotefieldY = 0,
-			ProgressBarPos = 1,
+			ProgressBarPos = 1
 		},
 		["8K"] = {
 			JudgeX = 0,
@@ -149,8 +149,8 @@ local defaultConfig = {
 			NPSGraphY = SCREEN_BOTTOM - 160,
 			NotefieldX = 0,
 			NotefieldY = 0,
-			ProgressBarPos = 1,
-		},
+			ProgressBarPos = 1
+		}
 	},
 	GameplaySizes = {
 		["4K"] = {
@@ -227,8 +227,8 @@ local defaultConfig = {
 			NPSGraphHeight = 1.0,
 			NotefieldWidth = 1.0,
 			NotefieldHeight = 1.0
-		},
-	},
+		}
+	}
 }
 
 playerConfig = create_setting("playerConfig", "playerConfig.lua", defaultConfig, -1)
@@ -238,12 +238,12 @@ function LoadProfileCustom(profile, dir)
 	local players = GAMESTATE:GetEnabledPlayers()
 	local playerProfile
 	local pn
-	for k,v in pairs(players) do
+	for k, v in pairs(players) do
 		playerProfile = PROFILEMAN:GetProfile(v)
 		if playerProfile:GetGUID() == profile:GetGUID() then
 			pn = v
-		end;
-	end; 
+		end
+	end
 
 	if pn then
 		playerConfig:load(pn_to_profile_slot(pn))
@@ -254,12 +254,12 @@ function SaveProfileCustom(profile, dir)
 	local players = GAMESTATE:GetEnabledPlayers()
 	local playerProfile
 	local pn
-	for k,v in pairs(players) do
+	for k, v in pairs(players) do
 		playerProfile = PROFILEMAN:GetProfile(v)
 		if playerProfile:GetGUID() == profile:GetGUID() then
 			pn = v
-		end;
-	end; 
+		end
+	end
 
 	if pn then
 		playerConfig:set_dirty(pn_to_profile_slot(pn))

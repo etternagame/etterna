@@ -3,7 +3,7 @@
 #include <alsa/asoundlib.h>
 
 /* typedef int (*foo_f)(char c) */
-#define FUNC(ret, name, proto) typedef ret (*name##_f) proto
+#define FUNC(ret, name, proto) typedef ret(*name##_f) proto
 #include "ALSA9Functions.h"
 #undef FUNC
 
@@ -12,21 +12,48 @@
 #include "ALSA9Functions.h"
 #undef FUNC
 
-#define dsnd_pcm_hw_params_alloca(ptr) { assert(ptr); *ptr = (snd_pcm_hw_params_t *) alloca(dsnd_pcm_hw_params_sizeof()); memset(*ptr, 0, dsnd_pcm_hw_params_sizeof()); }
-#define dsnd_pcm_sw_params_alloca(ptr) { assert(ptr); *ptr = (snd_pcm_sw_params_t *) alloca(dsnd_pcm_sw_params_sizeof()); memset(*ptr, 0, dsnd_pcm_sw_params_sizeof()); }
-#define dsnd_pcm_info_alloca(ptr) { assert(ptr); *ptr = (snd_pcm_info_t *) alloca(dsnd_pcm_info_sizeof()); memset(*ptr, 0, dsnd_pcm_info_sizeof()); }
-#define dsnd_ctl_card_info_alloca(ptr) { assert(ptr); *ptr = (snd_ctl_card_info_t *) alloca(dsnd_ctl_card_info_sizeof()); memset(*ptr, 0, dsnd_ctl_card_info_sizeof()); }
-#define dsnd_pcm_status_alloca(ptr) do { assert(ptr); *ptr = (snd_pcm_status_t *) alloca(dsnd_pcm_status_sizeof()); memset(*ptr, 0, dsnd_pcm_status_sizeof()); } while (0)
+#define dsnd_pcm_hw_params_alloca(ptr)                                         \
+	{                                                                          \
+		assert(ptr);                                                           \
+		*ptr = (snd_pcm_hw_params_t*)alloca(dsnd_pcm_hw_params_sizeof());      \
+		memset(*ptr, 0, dsnd_pcm_hw_params_sizeof());                          \
+	}
+#define dsnd_pcm_sw_params_alloca(ptr)                                         \
+	{                                                                          \
+		assert(ptr);                                                           \
+		*ptr = (snd_pcm_sw_params_t*)alloca(dsnd_pcm_sw_params_sizeof());      \
+		memset(*ptr, 0, dsnd_pcm_sw_params_sizeof());                          \
+	}
+#define dsnd_pcm_info_alloca(ptr)                                              \
+	{                                                                          \
+		assert(ptr);                                                           \
+		*ptr = (snd_pcm_info_t*)alloca(dsnd_pcm_info_sizeof());                \
+		memset(*ptr, 0, dsnd_pcm_info_sizeof());                               \
+	}
+#define dsnd_ctl_card_info_alloca(ptr)                                         \
+	{                                                                          \
+		assert(ptr);                                                           \
+		*ptr = (snd_ctl_card_info_t*)alloca(dsnd_ctl_card_info_sizeof());      \
+		memset(*ptr, 0, dsnd_ctl_card_info_sizeof());                          \
+	}
+#define dsnd_pcm_status_alloca(ptr)                                            \
+	do {                                                                       \
+		assert(ptr);                                                           \
+		*ptr = (snd_pcm_status_t*)alloca(dsnd_pcm_status_sizeof());            \
+		memset(*ptr, 0, dsnd_pcm_status_sizeof());                             \
+	} while (0)
 
-RString LoadALSA();
-void UnloadALSA();
+RString
+LoadALSA();
+void
+UnloadALSA();
 
 #endif
 
 /*
  * (c) 2003-2004 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -36,7 +63,7 @@ void UnloadALSA();
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

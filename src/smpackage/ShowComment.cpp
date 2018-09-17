@@ -1,11 +1,11 @@
 // ShowComment.cpp : implementation file
 
 #define CO_EXIST_WITH_MFC
-#include "global.h"
-#include "stdafx.h"
-#include "smpackage.h"
 #include "ShowComment.h"
 #include "archutils/Win32/DialogUtil.h"
+#include "global.h"
+#include "smpackage.h"
+#include "stdafx.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -16,18 +16,17 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // ShowComment dialog
 
-
 ShowComment::ShowComment(CWnd* pParent /*=NULL*/)
-	: CDialog(ShowComment::IDD, pParent)
-	, m_bDontShow(FALSE)
+  : CDialog(ShowComment::IDD, pParent)
+  , m_bDontShow(FALSE)
 {
 	//{{AFX_DATA_INIT(ShowComment)
-		// NOTE: the ClassWizard will add member initialization here
+	// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
 
-
-void ShowComment::DoDataExchange(CDataExchange* pDX)
+void
+ShowComment::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(ShowComment)
@@ -37,30 +36,31 @@ void ShowComment::DoDataExchange(CDataExchange* pDX)
 }
 
 BEGIN_MESSAGE_MAP(ShowComment, CDialog)
-	//{{AFX_MSG_MAP(ShowComment)
-	//}}AFX_MSG_MAP
+//{{AFX_MSG_MAP(ShowComment)
+//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 // ShowComment message handlers
 
-BOOL ShowComment::OnInitDialog() 
+BOOL
+ShowComment::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
 	// TODO: Add extra initialization here
-	DialogUtil::LocalizeDialogAndContents( *this );
+	DialogUtil::LocalizeDialogAndContents(*this);
 
-	m_edit.SetWindowText( m_sComment );
+	m_edit.SetWindowText(m_sComment);
 
-	return TRUE;  // return TRUE unless you set the focus to a control
-	              // EXCEPTION: OCX Property Pages should return FALSE
+	return TRUE; // return TRUE unless you set the focus to a control
+				 // EXCEPTION: OCX Property Pages should return FALSE
 }
 
 /*
  * (c) 2002-2005 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -70,7 +70,7 @@ BOOL ShowComment::OnInitDialog()
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

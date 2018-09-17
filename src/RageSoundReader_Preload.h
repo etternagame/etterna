@@ -6,17 +6,17 @@
 #include "RageSoundReader.h"
 #include "RageUtil_AutoPtr.h"
 
-class RageSoundReader_Preload: public RageSoundReader
+class RageSoundReader_Preload : public RageSoundReader
 {
-public:
+  public:
 	RageSoundReader_Preload();
 	/* Return true if the sound has been preloaded, in which case source will
 	 * be deleted.  Otherwise, return false. */
-	bool Open( RageSoundReader *pSource );
+	bool Open(RageSoundReader* pSource);
 	int GetLength() const override;
 	int GetLength_Fast() const override;
-	int SetPosition( int iFrame ) override;
-	int Read( float *pBuffer, int iLength ) override;
+	int SetPosition(int iFrame) override;
+	int Read(float* pBuffer, int iLength) override;
 	int GetSampleRate() const override { return m_iSampleRate; }
 	unsigned GetNumChannels() const override { return m_iChannels; }
 	int GetNextSourceFrame() const override;
@@ -27,24 +27,24 @@ public:
 	 * this is the last copy.) */
 	int GetReferenceCount() const;
 
-	RageSoundReader_Preload *Copy() const override;
+	RageSoundReader_Preload* Copy() const override;
 	~RageSoundReader_Preload() override = default;
 
 	/* Attempt to preload a sound.  pSound must be rewound. */
-	static bool PreloadSound( RageSoundReader *&pSound );
+	static bool PreloadSound(RageSoundReader*& pSound);
 
-private:
+  private:
 	AutoPtrCopyOnWrite<RString> m_Buffer;
-	bool m_bBufferIs16Bit{false};
+	bool m_bBufferIs16Bit{ false };
 
 	/* Bytes: */
-	int m_iPosition{0};
+	int m_iPosition{ 0 };
 
 	int GetTotalFrames() const;
 
-	int m_iSampleRate{0};
-	unsigned m_iChannels{0};
-	float m_fRate{0.0f};
+	int m_iSampleRate{ 0 };
+	unsigned m_iChannels{ 0 };
+	float m_fRate{ 0.0f };
 };
 
 #endif

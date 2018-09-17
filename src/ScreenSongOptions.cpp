@@ -1,36 +1,36 @@
-#include "global.h"
+#include "ScreenSongOptions.h"
 #include "GameState.h"
 #include "PlayerState.h"
 #include "PrefsManager.h"
 #include "RageLog.h"
-#include "ScreenSongOptions.h"
 #include "ThemeManager.h"
+#include "global.h"
 
-REGISTER_SCREEN_CLASS( ScreenSongOptions );
+REGISTER_SCREEN_CLASS(ScreenSongOptions);
 
-void ScreenSongOptions::Init()
+void
+ScreenSongOptions::Init()
 {
 	ScreenOptionsMaster::Init();
 
-	/* Hack: If we're coming in from "press start for more options", we need a different
-	 * fade in. */
-	if( PREFSMAN->m_ShowSongOptions == Maybe_ASK )
-	{
-		m_In.Load( THEME->GetPathB("ScreenSongOptions","option in") );
+	/* Hack: If we're coming in from "press start for more options", we need a
+	 * different fade in. */
+	if (PREFSMAN->m_ShowSongOptions == Maybe_ASK) {
+		m_In.Load(THEME->GetPathB("ScreenSongOptions", "option in"));
 		m_In.StartTransitioning();
 	}
 }
 
-void ScreenSongOptions::ExportOptions( int iRow, const vector<PlayerNumber> &vpns )
+void
+ScreenSongOptions::ExportOptions(int iRow, const vector<PlayerNumber>& vpns)
 {
 	PlayerNumber pn = GAMESTATE->GetMasterPlayerNumber();
-	PlayerState *pPS = GAMESTATE->m_pPlayerState[pn];
+	PlayerState* pPS = GAMESTATE->m_pPlayerState[pn];
 	const FailType ft = pPS->m_PlayerOptions.GetPreferred().m_FailType;
 
-	ScreenOptionsMaster::ExportOptions( iRow, vpns );
+	ScreenOptionsMaster::ExportOptions(iRow, vpns);
 
-	if( ft != pPS->m_PlayerOptions.GetPreferred().m_FailType )
-	{
+	if (ft != pPS->m_PlayerOptions.GetPreferred().m_FailType) {
 		GAMESTATE->m_bFailTypeWasExplicitlySet = true;
 	}
 }
@@ -38,7 +38,7 @@ void ScreenSongOptions::ExportOptions( int iRow, const vector<PlayerNumber> &vpn
 /*
  * (c) 2001-2004 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -48,7 +48,7 @@ void ScreenSongOptions::ExportOptions( int iRow, const vector<PlayerNumber> &vpn
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

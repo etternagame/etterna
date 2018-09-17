@@ -1,19 +1,17 @@
-local ret = ... or {};
+local ret = ... or {}
 
-ret.RedirTable =
-{
+ret.RedirTable = {
 	Up = "Down",
 	Down = "Down",
 	Left = "Down",
 	Right = "Down",
 	UpLeft = "Down",
-	UpRight = "Down",
-};
+	UpRight = "Down"
+}
 
-
-local OldRedir = ret.Redir;
+local OldRedir = ret.Redir
 ret.Redir = function(sButton, sElement)
-	sButton, sElement = OldRedir(sButton, sElement);
+	sButton, sElement = OldRedir(sButton, sElement)
 
 	-- Instead of separate hold heads, use the tap note graphics.
 	--[[if sElement == "Hold Head Inactive" or
@@ -24,12 +22,10 @@ ret.Redir = function(sButton, sElement)
 		sElement = "Tap Note";
 	end
 ]]
-	sButton = ret.RedirTable[sButton];
+	sButton = ret.RedirTable[sButton]
 
-	return sButton, sElement;
+	return sButton, sElement
 end
-
-
 
 -- To have separate graphics for each hold part:
 --[[
@@ -42,23 +38,19 @@ ret.Redir = function(sButton, sElement)
 	return OldRedir(sButton, sElement);
 end
 ]]
-
-local OldFunc = ret.Load;
+local OldFunc = ret.Load
 function ret.Load()
-	local t = OldFunc();
+	local t = OldFunc()
 
 	-- The main "Explosion" part just loads other actors; don't rotate
 	-- it.  The "Hold Explosion" part should not be rotated.
-	if Var "Element" == "Explosion" or
-	   Var "Element" == "Roll Explosion" or
-	   Var "Element" == "Hold Explosion" then
-		t.BaseRotationZ = nil;
+	if Var "Element" == "Explosion" or Var "Element" == "Roll Explosion" or Var "Element" == "Hold Explosion" then
+		t.BaseRotationZ = nil
 	end
-	return t;
+	return t
 end
 
-ret.PartsToRotate =
-{
+ret.PartsToRotate = {
 	["Go Receptor"] = true,
 	["Ready Receptor"] = true,
 	["Tap Explosion Bright"] = true,
@@ -69,17 +61,16 @@ ret.PartsToRotate =
 	["Hold Head Active"] = true,
 	["Hold Head Inactive"] = true,
 	["Roll Head Active"] = true,
-	["Roll Head Inactive"] = true,
-};
-ret.Rotate =
-{
+	["Roll Head Inactive"] = true
+}
+ret.Rotate = {
 	Up = 180,
 	Down = 0,
 	Left = 90,
 	Right = -90,
 	UpLeft = 135,
-	UpRight = 225,
-};
+	UpRight = 225
+}
 
 --
 -- If a derived skin wants to have separate UpLeft graphics,
@@ -90,8 +81,7 @@ ret.Rotate =
 -- ret.Rotate.UpLeft = 0;
 -- ret.Rotate.UpRight = 90;
 --
-ret.Blank =
-{
+ret.Blank = {
 	["Hold Topcap Active"] = true,
 	["Hold Topcap Inactive"] = true,
 	["Roll Topcap Active"] = true,
@@ -99,7 +89,7 @@ ret.Blank =
 	["Hold Tail Active"] = true,
 	["Hold Tail Inactive"] = true,
 	["Roll Tail Active"] = true,
-	["Roll Tail Inactive"] = true,
-};
+	["Roll Tail Inactive"] = true
+}
 
-return ret;
+return ret

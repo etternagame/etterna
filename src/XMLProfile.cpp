@@ -1,23 +1,22 @@
 
-#include "global.h"
-#include "XmlFile.h"
-#include "XmlFileUtil.h"
-#include "Profile.h"
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "ProfileManager.h"
-#include "NoteData.h"
 #include "XMLProfile.h"
-#include "RageFile.h"
-#include "RageFileDriverDeflate.h"
-#include "GameState.h"
 #include "GameManager.h"
+#include "GameState.h"
 #include "LuaManager.h"
 #include "NoteData.h"
+#include "Profile.h"
+#include "ProfileManager.h"
+#include "RageFile.h"
+#include "RageFileDriverDeflate.h"
 #include "RageFileManager.h"
+#include "RageLog.h"
+#include "RageUtil.h"
+#include "XmlFile.h"
+#include "XmlFileUtil.h"
+#include "global.h"
 
-#include "ScoreManager.h"
 #include "CryptManager.h"
+#include "ScoreManager.h"
 #include "Song.h"
 #include "SongManager.h"
 #include "Steps.h"
@@ -30,55 +29,81 @@ const RString ETT_XML_GZ = "Etterna.xml.gz";
 const RString DONT_SHARE_SIG = "DontShare.sig";
 static Preference<bool> g_bProfileDataCompress("ProfileDataCompress", false);
 
-
 // Loading and saving
-#define WARN_PARSER	ShowWarningOrTrace( __FILE__, __LINE__, "Error parsing file.", true )
-#define WARN_AND_RETURN { WARN_PARSER; return; }
-#define WARN_AND_CONTINUE { WARN_PARSER; continue; }
-#define WARN_AND_BREAK { WARN_PARSER; break; }
-#define WARN_M(m)	ShowWarningOrTrace( __FILE__, __LINE__, RString("Error parsing file: ")+(m), true )
-#define WARN_AND_RETURN_M(m) { WARN_M(m); return; }
-#define WARN_AND_CONTINUE_M(m) { WARN_M(m); continue; }
-#define WARN_AND_BREAK_M(m) { WARN_M(m); break; }
+#define WARN_PARSER                                                            \
+	ShowWarningOrTrace(__FILE__, __LINE__, "Error parsing file.", true)
+#define WARN_AND_RETURN                                                        \
+	{                                                                          \
+		WARN_PARSER;                                                           \
+		return;                                                                \
+	}
+#define WARN_AND_CONTINUE                                                      \
+	{                                                                          \
+		WARN_PARSER;                                                           \
+		continue;                                                              \
+	}
+#define WARN_AND_BREAK                                                         \
+	{                                                                          \
+		WARN_PARSER;                                                           \
+		break;                                                                 \
+	}
+#define WARN_M(m)                                                              \
+	ShowWarningOrTrace(                                                        \
+	  __FILE__, __LINE__, RString("Error parsing file: ") + (m), true)
+#define WARN_AND_RETURN_M(m)                                                   \
+	{                                                                          \
+		WARN_M(m);                                                             \
+		return;                                                                \
+	}
+#define WARN_AND_CONTINUE_M(m)                                                 \
+	{                                                                          \
+		WARN_M(m);                                                             \
+		continue;                                                              \
+	}
+#define WARN_AND_BREAK_M(m)                                                    \
+	{                                                                          \
+		WARN_M(m);                                                             \
+		break;                                                                 \
+	}
 
-
-#define LOAD_NODE(X)	{ \
-	const XNode* X = xml->GetChild(#X); \
-	if( X==NULL ) LOG->Warn("Failed to read section " #X); \
-	else Load##X##FromNode(X); }
-ProfileLoadResult XMLProfile::LoadStatsFromDir(RString dir, bool require_signature)
+#define LOAD_NODE(X)                                                           \
+	{                                                                          \
+		const XNode* X = xml->GetChild(#X);                                    \
+		if (X == NULL)                                                         \
+			LOG->Warn("Failed to read section " #X);                           \
+		else                                                                   \
+			Load##X##FromNode(X);                                              \
+	}
+ProfileLoadResult
+XMLProfile::LoadStatsFromDir(RString dir, bool require_signature)
 {
 	dir += PROFILEMAN->GetStatsPrefix();
 	this->profiledir = dir;
 	// Check for the existance of stats.xml
 	RString fn = dir + STATS_XML;
 	bool compressed = false;
-	if (!IsAFile(fn))
-	{
+	if (!IsAFile(fn)) {
 		// Check for the existance of stats.xml.gz
 		fn = dir + STATS_XML_GZ;
 		compressed = true;
-		if (!IsAFile(fn))
-		{
+		if (!IsAFile(fn)) {
 			return ProfileLoadResult_FailedNoProfile;
 		}
 	};
 
 	int iError;
 	unique_ptr<RageFileBasic> pFile(FILEMAN->Open(fn, RageFile::READ, iError));
-	if (pFile.get() == NULL)
-	{
+	if (pFile.get() == NULL) {
 		LOG->Trace("Error opening %s: %s", fn.c_str(), strerror(iError));
 		return ProfileLoadResult_FailedTampered;
 	}
 
-	if (compressed)
-	{
+	if (compressed) {
 		RString sError;
 		uint32_t iCRC32;
-		RageFileObjInflate *pInflate = GunzipFile(pFile.release(), sError, &iCRC32);
-		if (pInflate == NULL)
-		{
+		RageFileObjInflate* pInflate =
+		  GunzipFile(pFile.release(), sError, &iCRC32);
+		if (pInflate == NULL) {
 			LOG->Trace("Error opening %s: %s", fn.c_str(), sError.c_str());
 			return ProfileLoadResult_FailedTampered;
 		}
@@ -86,25 +111,29 @@ ProfileLoadResult XMLProfile::LoadStatsFromDir(RString dir, bool require_signatu
 		pFile.reset(pInflate);
 	}
 
-	if (require_signature)
-	{
+	if (require_signature) {
 		RString sStatsXmlSigFile = fn + SIGNATURE_APPEND;
 		RString sDontShareFile = dir + DONT_SHARE_SIG;
 
-		LOG->Trace("Verifying don't share signature \"%s\" against \"%s\"", sDontShareFile.c_str(), sStatsXmlSigFile.c_str());
+		LOG->Trace("Verifying don't share signature \"%s\" against \"%s\"",
+				   sDontShareFile.c_str(),
+				   sStatsXmlSigFile.c_str());
 		// verify the stats.xml signature with the "don't share" file
-		if (!CryptManager::VerifyFileWithFile(sStatsXmlSigFile, sDontShareFile))
-		{
-			LuaHelpers::ReportScriptErrorFmt("The don't share check for '%s' failed.  Data will be ignored.", sStatsXmlSigFile.c_str());
+		if (!CryptManager::VerifyFileWithFile(sStatsXmlSigFile,
+											  sDontShareFile)) {
+			LuaHelpers::ReportScriptErrorFmt(
+			  "The don't share check for '%s' failed.  Data will be ignored.",
+			  sStatsXmlSigFile.c_str());
 			return ProfileLoadResult_FailedTampered;
 		}
 		LOG->Trace("Done.");
 
 		// verify stats.xml
 		LOG->Trace("Verifying stats.xml signature");
-		if (!CryptManager::VerifyFileWithFile(fn, sStatsXmlSigFile))
-		{
-			LuaHelpers::ReportScriptErrorFmt("The signature check for '%s' failed.  Data will be ignored.", fn.c_str());
+		if (!CryptManager::VerifyFileWithFile(fn, sStatsXmlSigFile)) {
+			LuaHelpers::ReportScriptErrorFmt(
+			  "The signature check for '%s' failed.  Data will be ignored.",
+			  fn.c_str());
 			return ProfileLoadResult_FailedTampered;
 		}
 		LOG->Trace("Done.");
@@ -119,8 +148,9 @@ ProfileLoadResult XMLProfile::LoadStatsFromDir(RString dir, bool require_signatu
 	return LoadStatsXmlFromNode(&xml);
 }
 
-
-ProfileLoadResult XMLProfile::LoadEttFromDir(RString dir) {
+ProfileLoadResult
+XMLProfile::LoadEttFromDir(RString dir)
+{
 	dir += PROFILEMAN->GetStatsPrefix();
 	profiledir = dir;
 	loadingProfile->IsEtternaProfile = true;
@@ -143,7 +173,8 @@ ProfileLoadResult XMLProfile::LoadEttFromDir(RString dir) {
 	if (compressed) {
 		RString sError;
 		uint32_t iCRC32;
-		RageFileObjInflate *pInflate = GunzipFile(pFile.release(), sError, &iCRC32);
+		RageFileObjInflate* pInflate =
+		  GunzipFile(pFile.release(), sError, &iCRC32);
 		if (pInflate == NULL) {
 			LOG->Trace("Error opening %s: %s", fn.c_str(), sError.c_str());
 			return ProfileLoadResult_FailedTampered;
@@ -160,7 +191,10 @@ ProfileLoadResult XMLProfile::LoadEttFromDir(RString dir) {
 	return LoadEttXmlFromNode(&xml);
 }
 
-bool XMLProfile::SaveStatsXmlToDir(RString sDir, bool bSignData, const Profile* profile)
+bool
+XMLProfile::SaveStatsXmlToDir(RString sDir,
+							  bool bSignData,
+							  const Profile* profile)
 {
 	LOG->Trace("SaveStatsXmlToDir: %s", sDir.c_str());
 	unique_ptr<XNode> xml(SaveStatsXmlCreateNode(profile));
@@ -172,14 +206,14 @@ bool XMLProfile::SaveStatsXmlToDir(RString sDir, bool bSignData, const Profile* 
 	{
 		RString sError;
 		RageFile f;
-		if (!f.Open(fn, RageFile::WRITE))
-		{
-			LuaHelpers::ReportScriptErrorFmt("Couldn't open %s for writing: %s", fn.c_str(), f.GetError().c_str());
+		if (!f.Open(fn, RageFile::WRITE)) {
+			LuaHelpers::ReportScriptErrorFmt("Couldn't open %s for writing: %s",
+											 fn.c_str(),
+											 f.GetError().c_str());
 			return false;
 		}
 
-		if (g_bProfileDataCompress)
-		{
+		if (g_bProfileDataCompress) {
 			RageFileObjGzip gzip(&f);
 			gzip.Start();
 			if (!XmlFileUtil::SaveToFile(xml.get(), gzip, "", false))
@@ -188,23 +222,22 @@ bool XMLProfile::SaveStatsXmlToDir(RString sDir, bool bSignData, const Profile* 
 			if (gzip.Finish() == -1)
 				return false;
 
-			/* After successfully saving STATS_XML_GZ, remove any stray STATS_XML. */
+			/* After successfully saving STATS_XML_GZ, remove any stray
+			 * STATS_XML. */
 			if (FILEMAN->IsAFile(sDir + STATS_XML))
 				FILEMAN->Remove(sDir + STATS_XML);
-		}
-		else
-		{
+		} else {
 			if (!XmlFileUtil::SaveToFile(xml.get(), f, "", false))
 				return false;
 
-			/* After successfully saving STATS_XML, remove any stray STATS_XML_GZ. */
+			/* After successfully saving STATS_XML, remove any stray
+			 * STATS_XML_GZ. */
 			if (FILEMAN->IsAFile(sDir + STATS_XML_GZ))
 				FILEMAN->Remove(sDir + STATS_XML_GZ);
 		}
 	}
 
-	if (bSignData)
-	{
+	if (bSignData) {
 		RString sStatsXmlSigFile = fn + SIGNATURE_APPEND;
 		CryptManager::SignFileToFile(fn, sStatsXmlSigFile);
 
@@ -216,7 +249,9 @@ bool XMLProfile::SaveStatsXmlToDir(RString sDir, bool bSignData, const Profile* 
 	return true;
 }
 
-bool XMLProfile::SaveEttXmlToDir(RString sDir, const Profile* profile) const {
+bool
+XMLProfile::SaveEttXmlToDir(RString sDir, const Profile* profile) const
+{
 	LOG->Trace("Saving Etterna Profile to: %s", sDir.c_str());
 	unique_ptr<XNode> xml(SaveEttXmlCreateNode(profile));
 	sDir += PROFILEMAN->GetStatsPrefix();
@@ -225,14 +260,14 @@ bool XMLProfile::SaveEttXmlToDir(RString sDir, const Profile* profile) const {
 	{
 		RString sError;
 		RageFile f;
-		if (!f.Open(fn, RageFile::WRITE))
-		{
-			LuaHelpers::ReportScriptErrorFmt("Couldn't open %s for writing: %s", fn.c_str(), f.GetError().c_str());
+		if (!f.Open(fn, RageFile::WRITE)) {
+			LuaHelpers::ReportScriptErrorFmt("Couldn't open %s for writing: %s",
+											 fn.c_str(),
+											 f.GetError().c_str());
 			return false;
 		}
 
-		if (g_bProfileDataCompress)
-		{
+		if (g_bProfileDataCompress) {
 			RageFileObjGzip gzip(&f);
 			gzip.Start();
 			if (!XmlFileUtil::SaveToFile(xml.get(), gzip, "", false))
@@ -241,16 +276,16 @@ bool XMLProfile::SaveEttXmlToDir(RString sDir, const Profile* profile) const {
 			if (gzip.Finish() == -1)
 				return false;
 
-			/* After successfully saving STATS_XML_GZ, remove any stray STATS_XML. */
+			/* After successfully saving STATS_XML_GZ, remove any stray
+			 * STATS_XML. */
 			if (FILEMAN->IsAFile(sDir + STATS_XML))
 				FILEMAN->Remove(sDir + STATS_XML);
-		}
-		else
-		{
+		} else {
 			if (!XmlFileUtil::SaveToFile(xml.get(), f, "", false))
 				return false;
 
-			/* After successfully saving STATS_XML, remove any stray STATS_XML_GZ. */
+			/* After successfully saving STATS_XML, remove any stray
+			 * STATS_XML_GZ. */
 			if (FILEMAN->IsAFile(sDir + STATS_XML_GZ))
 				FILEMAN->Remove(sDir + STATS_XML_GZ);
 		}
@@ -259,33 +294,48 @@ bool XMLProfile::SaveEttXmlToDir(RString sDir, const Profile* profile) const {
 	return true;
 }
 
-XNode* XMLProfile::SaveGeneralDataCreateNode(const Profile* profile) const
+XNode*
+XMLProfile::SaveGeneralDataCreateNode(const Profile* profile) const
 {
 	XNode* pGeneralDataNode = new XNode("GeneralData");
 
 	// TRICKY: These are write-only elements that are normally never read again.
-	// This data is required by other apps (like internet ranking), but is 
+	// This data is required by other apps (like internet ranking), but is
 	// redundant to the game app.
-	pGeneralDataNode->AppendChild("DisplayName", profile->GetDisplayNameOrHighScoreName());
+	pGeneralDataNode->AppendChild("DisplayName",
+								  profile->GetDisplayNameOrHighScoreName());
 	pGeneralDataNode->AppendChild("CharacterID", profile->m_sCharacterID);
-	pGeneralDataNode->AppendChild("LastUsedHighScoreName", profile->m_sLastUsedHighScoreName);
+	pGeneralDataNode->AppendChild("LastUsedHighScoreName",
+								  profile->m_sLastUsedHighScoreName);
 	pGeneralDataNode->AppendChild("Guid", profile->m_sGuid);
-	pGeneralDataNode->AppendChild("SortOrder", SortOrderToString(profile->m_SortOrder));
-	pGeneralDataNode->AppendChild("LastDifficulty", DifficultyToString(Difficulty_Invalid));
+	pGeneralDataNode->AppendChild("SortOrder",
+								  SortOrderToString(profile->m_SortOrder));
+	pGeneralDataNode->AppendChild("LastDifficulty",
+								  DifficultyToString(Difficulty_Invalid));
 	if (profile->m_LastStepsType != StepsType_Invalid)
-		pGeneralDataNode->AppendChild("LastStepsType", GAMEMAN->GetStepsTypeInfo(profile->m_LastStepsType).szName);
+		pGeneralDataNode->AppendChild(
+		  "LastStepsType",
+		  GAMEMAN->GetStepsTypeInfo(profile->m_LastStepsType).szName);
 	pGeneralDataNode->AppendChild(profile->m_lastSong.CreateNode());
 	pGeneralDataNode->AppendChild("CurrentCombo", profile->m_iCurrentCombo);
 	pGeneralDataNode->AppendChild("TotalSessions", profile->m_iTotalSessions);
-	pGeneralDataNode->AppendChild("TotalSessionSeconds", profile->m_iTotalSessionSeconds);
-	pGeneralDataNode->AppendChild("TotalGameplaySeconds", profile->m_iTotalGameplaySeconds);
-	pGeneralDataNode->AppendChild("LastPlayedMachineGuid", profile->m_sLastPlayedMachineGuid);
-	pGeneralDataNode->AppendChild("LastPlayedDate", profile->m_LastPlayedDate.GetString());
-	pGeneralDataNode->AppendChild("TotalDancePoints", profile->m_iTotalDancePoints);
-	pGeneralDataNode->AppendChild("NumExtraStagesPassed", profile->m_iNumExtraStagesPassed);
-	pGeneralDataNode->AppendChild("NumExtraStagesFailed", profile->m_iNumExtraStagesFailed);
+	pGeneralDataNode->AppendChild("TotalSessionSeconds",
+								  profile->m_iTotalSessionSeconds);
+	pGeneralDataNode->AppendChild("TotalGameplaySeconds",
+								  profile->m_iTotalGameplaySeconds);
+	pGeneralDataNode->AppendChild("LastPlayedMachineGuid",
+								  profile->m_sLastPlayedMachineGuid);
+	pGeneralDataNode->AppendChild("LastPlayedDate",
+								  profile->m_LastPlayedDate.GetString());
+	pGeneralDataNode->AppendChild("TotalDancePoints",
+								  profile->m_iTotalDancePoints);
+	pGeneralDataNode->AppendChild("NumExtraStagesPassed",
+								  profile->m_iNumExtraStagesPassed);
+	pGeneralDataNode->AppendChild("NumExtraStagesFailed",
+								  profile->m_iNumExtraStagesFailed);
 	pGeneralDataNode->AppendChild("NumToasties", profile->m_iNumToasties);
-	pGeneralDataNode->AppendChild("TotalTapsAndHolds", profile->m_iTotalTapsAndHolds);
+	pGeneralDataNode->AppendChild("TotalTapsAndHolds",
+								  profile->m_iTotalTapsAndHolds);
 	pGeneralDataNode->AppendChild("TotalJumps", profile->m_iTotalJumps);
 	pGeneralDataNode->AppendChild("TotalHolds", profile->m_iTotalHolds);
 	pGeneralDataNode->AppendChild("TotalRolls", profile->m_iTotalRolls);
@@ -294,47 +344,53 @@ XNode* XMLProfile::SaveGeneralDataCreateNode(const Profile* profile) const
 	pGeneralDataNode->AppendChild("TotalLifts", profile->m_iTotalLifts);
 	pGeneralDataNode->AppendChild("PlayerRating", profile->m_fPlayerRating);
 
-	// Keep declared variables in a very local scope so they aren't 
+	// Keep declared variables in a very local scope so they aren't
 	// accidentally used where they're not intended.  There's a lot of
 	// copying and pasting in this code.
 
 	{
-		XNode* pDefaultModifiers = pGeneralDataNode->AppendChild("DefaultModifiers");
+		XNode* pDefaultModifiers =
+		  pGeneralDataNode->AppendChild("DefaultModifiers");
 		FOREACHM_CONST(RString, RString, profile->m_sDefaultModifiers, it)
-			pDefaultModifiers->AppendChild(it->first, it->second);
+		pDefaultModifiers->AppendChild(it->first, it->second);
 	}
 
 	{
 		XNode* pFavorites = pGeneralDataNode->AppendChild("Favorites");
 		FOREACHS_CONST(string, profile->FavoritedCharts, it)
-			pFavorites->AppendChild(*it);
+		pFavorites->AppendChild(*it);
 	}
 
 	{
-		XNode* pPlayerSkillsets = pGeneralDataNode->AppendChild("PlayerSkillsets");
+		XNode* pPlayerSkillsets =
+		  pGeneralDataNode->AppendChild("PlayerSkillsets");
 		FOREACH_ENUM(Skillset, ss)
-			pPlayerSkillsets->AppendChild(SkillsetToString(ss), profile->m_fPlayerSkillsets[ss]);
+		pPlayerSkillsets->AppendChild(SkillsetToString(ss),
+									  profile->m_fPlayerSkillsets[ss]);
 	}
 
 	{
-		XNode* pNumSongsPlayedByPlayMode = pGeneralDataNode->AppendChild("NumSongsPlayedByPlayMode");
+		XNode* pNumSongsPlayedByPlayMode =
+		  pGeneralDataNode->AppendChild("NumSongsPlayedByPlayMode");
 		FOREACH_ENUM(PlayMode, pm)
 		{
 			// Don't save unplayed PlayModes.
 			if (!profile->m_iNumSongsPlayedByPlayMode[pm])
 				continue;
-			pNumSongsPlayedByPlayMode->AppendChild(PlayModeToString(pm), profile->m_iNumSongsPlayedByPlayMode[pm]);
+			pNumSongsPlayedByPlayMode->AppendChild(
+			  PlayModeToString(pm), profile->m_iNumSongsPlayedByPlayMode[pm]);
 		}
 	}
 
 	{
-		XNode* pNumSongsPlayedByStyle = pGeneralDataNode->AppendChild("NumSongsPlayedByStyle");
+		XNode* pNumSongsPlayedByStyle =
+		  pGeneralDataNode->AppendChild("NumSongsPlayedByStyle");
 		FOREACHM_CONST(StyleID, int, profile->m_iNumSongsPlayedByStyle, iter)
 		{
-			const StyleID &s = iter->first;
+			const StyleID& s = iter->first;
 			int iNumPlays = iter->second;
 
-			XNode *pStyleNode = s.CreateNode();
+			XNode* pStyleNode = s.CreateNode();
 			pStyleNode->AppendAttr(XNode::TEXT_ATTRIBUTE, iNumPlays);
 
 			pNumSongsPlayedByStyle->AppendChild(pStyleNode);
@@ -342,52 +398,60 @@ XNode* XMLProfile::SaveGeneralDataCreateNode(const Profile* profile) const
 	}
 
 	{
-		XNode* pNumSongsPlayedByDifficulty = pGeneralDataNode->AppendChild("NumSongsPlayedByDifficulty");
+		XNode* pNumSongsPlayedByDifficulty =
+		  pGeneralDataNode->AppendChild("NumSongsPlayedByDifficulty");
 		FOREACH_ENUM(Difficulty, dc)
 		{
 			if (!profile->m_iNumSongsPlayedByDifficulty[dc])
 				continue;
-			pNumSongsPlayedByDifficulty->AppendChild(DifficultyToString(dc), profile->m_iNumSongsPlayedByDifficulty[dc]);
+			pNumSongsPlayedByDifficulty->AppendChild(
+			  DifficultyToString(dc),
+			  profile->m_iNumSongsPlayedByDifficulty[dc]);
 		}
 	}
 
 	{
-		XNode* pNumSongsPlayedByMeter = pGeneralDataNode->AppendChild("NumSongsPlayedByMeter");
-		for (int i = 0; i<MAX_METER + 1; i++)
-		{
+		XNode* pNumSongsPlayedByMeter =
+		  pGeneralDataNode->AppendChild("NumSongsPlayedByMeter");
+		for (int i = 0; i < MAX_METER + 1; i++) {
 			if (!profile->m_iNumSongsPlayedByMeter[i])
 				continue;
-			pNumSongsPlayedByMeter->AppendChild(ssprintf("Meter%d", i), profile->m_iNumSongsPlayedByMeter[i]);
+			pNumSongsPlayedByMeter->AppendChild(
+			  ssprintf("Meter%d", i), profile->m_iNumSongsPlayedByMeter[i]);
 		}
 	}
 
-	pGeneralDataNode->AppendChild("NumTotalSongsPlayed", profile->m_iNumTotalSongsPlayed);
+	pGeneralDataNode->AppendChild("NumTotalSongsPlayed",
+								  profile->m_iNumTotalSongsPlayed);
 
 	{
-		XNode* pNumStagesPassedByPlayMode = pGeneralDataNode->AppendChild("NumStagesPassedByPlayMode");
+		XNode* pNumStagesPassedByPlayMode =
+		  pGeneralDataNode->AppendChild("NumStagesPassedByPlayMode");
 		FOREACH_ENUM(PlayMode, pm)
 		{
 			// Don't save unplayed PlayModes.
 			if (!profile->m_iNumStagesPassedByPlayMode[pm])
 				continue;
-			pNumStagesPassedByPlayMode->AppendChild(PlayModeToString(pm), profile->m_iNumStagesPassedByPlayMode[pm]);
+			pNumStagesPassedByPlayMode->AppendChild(
+			  PlayModeToString(pm), profile->m_iNumStagesPassedByPlayMode[pm]);
 		}
 	}
 
 	{
-		XNode* pNumStagesPassedByGrade = pGeneralDataNode->AppendChild("NumStagesPassedByGrade");
+		XNode* pNumStagesPassedByGrade =
+		  pGeneralDataNode->AppendChild("NumStagesPassedByGrade");
 		FOREACH_ENUM(Grade, g)
 		{
 			if (!profile->m_iNumStagesPassedByGrade[g])
 				continue;
-			pNumStagesPassedByGrade->AppendChild(GradeToString(g), profile->m_iNumStagesPassedByGrade[g]);
+			pNumStagesPassedByGrade->AppendChild(
+			  GradeToString(g), profile->m_iNumStagesPassedByGrade[g]);
 		}
 	}
 
 	// Load Lua UserTable from profile
-	if (profile->m_UserTable.IsSet())
-	{
-		Lua *L = LUA->Get();
+	if (profile->m_UserTable.IsSet()) {
+		Lua* L = LUA->Get();
 		profile->m_UserTable.PushSelf(L);
 		XNode* pUserTable = XmlFileUtil::XNodeFromTable(L);
 		LUA->Release(L);
@@ -400,78 +464,97 @@ XNode* XMLProfile::SaveGeneralDataCreateNode(const Profile* profile) const
 	return pGeneralDataNode;
 }
 
-XNode* XMLProfile::SaveFavoritesCreateNode(const Profile* profile) const {
+XNode*
+XMLProfile::SaveFavoritesCreateNode(const Profile* profile) const
+{
 	CHECKPOINT_M("Saving the favorites node.");
 
 	XNode* favs = new XNode("Favorites");
 	FOREACHS_CONST(string, profile->FavoritedCharts, it)
-		favs->AppendChild(*it);
+	favs->AppendChild(*it);
 	return favs;
 }
 
-XNode* XMLProfile::SavePermaMirrorCreateNode(const Profile* profile) const {
+XNode*
+XMLProfile::SavePermaMirrorCreateNode(const Profile* profile) const
+{
 	CHECKPOINT_M("Saving the permamirror node.");
 
 	XNode* pmir = new XNode("PermaMirror");
 	FOREACHS_CONST(string, profile->PermaMirrorCharts, it)
-		pmir->AppendChild(*it);
+	pmir->AppendChild(*it);
 	return pmir;
 }
 
-XNode* GoalsForChart::CreateNode() const {
+XNode*
+GoalsForChart::CreateNode() const
+{
 	XNode* cg = new XNode("GoalsForChart");
 
 	if (!goals.empty()) {
 		cg->AppendAttr("Key", goals[0].chartkey);
 		FOREACH_CONST(ScoreGoal, goals, sg)
-			cg->AppendChild(sg->CreateNode());
+		cg->AppendChild(sg->CreateNode());
 	}
 	return cg;
 }
 
-XNode* XMLProfile::SaveScoreGoalsCreateNode(const Profile* profile) const {
+XNode*
+XMLProfile::SaveScoreGoalsCreateNode(const Profile* profile) const
+{
 	CHECKPOINT_M("Saving the scoregoals node.");
 
 	XNode* goals = new XNode("ScoreGoals");
-	FOREACHUM_CONST(string, GoalsForChart, profile->goalmap, i) {
+	FOREACHUM_CONST(string, GoalsForChart, profile->goalmap, i)
+	{
 		const GoalsForChart& cg = i->second;
 		goals->AppendChild(cg.CreateNode());
 	}
 	return goals;
 }
 
-XNode* XMLProfile::SavePlaylistsCreateNode(const Profile* profile) const {
+XNode*
+XMLProfile::SavePlaylistsCreateNode(const Profile* profile) const
+{
 	CHECKPOINT_M("Saving the playlists node.");
 
 	XNode* playlists = new XNode("Playlists");
 	auto& pls = profile->allplaylists;
 	FOREACHM_CONST(string, Playlist, pls, i)
-		if (i->first != "" && i->first != "Favorites")
-			playlists->AppendChild(i->second.CreateNode());
+	if (i->first != "" && i->first != "Favorites")
+		playlists->AppendChild(i->second.CreateNode());
 	return playlists;
 }
 
-void XMLProfile::LoadFavoritesFromNode(const XNode *pNode) {
+void
+XMLProfile::LoadFavoritesFromNode(const XNode* pNode)
+{
 	CHECKPOINT_M("Loading the favorites node.");
 
-	FOREACH_CONST_Child(pNode, ck)
-		loadingProfile->FavoritedCharts.emplace(SONGMAN->ReconcileBustedKeys(ck->GetName()));
+	FOREACH_CONST_Child(pNode, ck) loadingProfile->FavoritedCharts.emplace(
+	  SONGMAN->ReconcileBustedKeys(ck->GetName()));
 
 	SONGMAN->SetFavoritedStatus(loadingProfile->FavoritedCharts);
-	SONGMAN->MakePlaylistFromFavorites(loadingProfile->FavoritedCharts, loadingProfile->allplaylists);
+	SONGMAN->MakePlaylistFromFavorites(loadingProfile->FavoritedCharts,
+									   loadingProfile->allplaylists);
 }
 
-void XMLProfile::LoadPermaMirrorFromNode(const XNode *pNode) {
+void
+XMLProfile::LoadPermaMirrorFromNode(const XNode* pNode)
+{
 	CHECKPOINT_M("Loading the permamirror node.");
 
-	FOREACH_CONST_Child(pNode, ck)
-		loadingProfile->PermaMirrorCharts.emplace(SONGMAN->ReconcileBustedKeys(ck->GetName()));
+	FOREACH_CONST_Child(pNode, ck) loadingProfile->PermaMirrorCharts.emplace(
+	  SONGMAN->ReconcileBustedKeys(ck->GetName()));
 
 	SONGMAN->SetPermaMirroredStatus(loadingProfile->PermaMirrorCharts);
 }
 
-void GoalsForChart::LoadFromNode(const XNode *pNode) {
-	FOREACH_CONST_Child(pNode, sg) {
+void
+GoalsForChart::LoadFromNode(const XNode* pNode)
+{
+	FOREACH_CONST_Child(pNode, sg)
+	{
 		ScoreGoal doot;
 		doot.LoadFromNode(sg);
 		Add(doot);
@@ -480,29 +563,35 @@ void GoalsForChart::LoadFromNode(const XNode *pNode) {
 	pNode->GetAttrValue("Key", chartkey);
 	for (auto& goal : goals)
 		goal.chartkey = chartkey;
-
 }
 
-void XMLProfile::LoadScoreGoalsFromNode(const XNode *pNode) {
+void
+XMLProfile::LoadScoreGoalsFromNode(const XNode* pNode)
+{
 	CHECKPOINT_M("Loading the scoregoals node.");
 
 	RString ck;
-	FOREACH_CONST_Child(pNode, chgoals) {
+	FOREACH_CONST_Child(pNode, chgoals)
+	{
 		chgoals->GetAttrValue("Key", ck);
 		ck = SONGMAN->ReconcileBustedKeys(ck);
 		loadingProfile->goalmap[ck].LoadFromNode(chgoals);
-		
-		// this should load using the chart system but ensure keys are set properly here for now -mina
+
+		// this should load using the chart system but ensure keys are set
+		// properly here for now -mina
 		for (auto& sg : loadingProfile->goalmap[ck].goals)
 			sg.chartkey = ck;
 	}
 }
 
-void XMLProfile::LoadPlaylistsFromNode(const XNode *pNode) {
+void
+XMLProfile::LoadPlaylistsFromNode(const XNode* pNode)
+{
 	CHECKPOINT_M("Loading the playlists node.");
 
 	auto& pls = loadingProfile->allplaylists;
-	FOREACH_CONST_Child(pNode, pl) {
+	FOREACH_CONST_Child(pNode, pl)
+	{
 		Playlist tmp;
 		tmp.LoadFromNode(pl);
 		pls.emplace(tmp.name, tmp);
@@ -510,32 +599,44 @@ void XMLProfile::LoadPlaylistsFromNode(const XNode *pNode) {
 	}
 }
 
-
-XNode* XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const {
+XNode*
+XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const
+{
 	CHECKPOINT_M("Saving the general node.");
 
 	XNode* pGeneralDataNode = new XNode("GeneralData");
 
 	// TRICKY: These are write-only elements that are normally never read again.
-	// This data is required by other apps (like internet ranking), but is 
+	// This data is required by other apps (like internet ranking), but is
 	// redundant to the game app.
-	pGeneralDataNode->AppendChild("DisplayName", profile->GetDisplayNameOrHighScoreName());
+	pGeneralDataNode->AppendChild("DisplayName",
+								  profile->GetDisplayNameOrHighScoreName());
 	pGeneralDataNode->AppendChild("CharacterID", profile->m_sCharacterID);
 	pGeneralDataNode->AppendChild("Guid", profile->m_sGuid);
-	pGeneralDataNode->AppendChild("SortOrder", SortOrderToString(profile->m_SortOrder));
-	if(profile->m_LastDifficulty < Difficulty_Invalid)
-		pGeneralDataNode->AppendChild("LastDifficulty", DifficultyToString(profile->m_LastDifficulty));
+	pGeneralDataNode->AppendChild("SortOrder",
+								  SortOrderToString(profile->m_SortOrder));
+	if (profile->m_LastDifficulty < Difficulty_Invalid)
+		pGeneralDataNode->AppendChild(
+		  "LastDifficulty", DifficultyToString(profile->m_LastDifficulty));
 	if (profile->m_LastStepsType != StepsType_Invalid)
-		pGeneralDataNode->AppendChild("LastStepsType", GAMEMAN->GetStepsTypeInfo(profile->m_LastStepsType).szName);
+		pGeneralDataNode->AppendChild(
+		  "LastStepsType",
+		  GAMEMAN->GetStepsTypeInfo(profile->m_LastStepsType).szName);
 	pGeneralDataNode->AppendChild(profile->m_lastSong.CreateNode());
 	pGeneralDataNode->AppendChild("TotalSessions", profile->m_iTotalSessions);
-	pGeneralDataNode->AppendChild("TotalSessionSeconds", profile->m_iTotalSessionSeconds);
-	pGeneralDataNode->AppendChild("TotalGameplaySeconds", profile->m_iTotalGameplaySeconds);
-	pGeneralDataNode->AppendChild("LastPlayedMachineGuid", profile->m_sLastPlayedMachineGuid);
-	pGeneralDataNode->AppendChild("LastPlayedDate", profile->m_LastPlayedDate.GetString());
-	pGeneralDataNode->AppendChild("TotalDancePoints", profile->m_iTotalDancePoints);
+	pGeneralDataNode->AppendChild("TotalSessionSeconds",
+								  profile->m_iTotalSessionSeconds);
+	pGeneralDataNode->AppendChild("TotalGameplaySeconds",
+								  profile->m_iTotalGameplaySeconds);
+	pGeneralDataNode->AppendChild("LastPlayedMachineGuid",
+								  profile->m_sLastPlayedMachineGuid);
+	pGeneralDataNode->AppendChild("LastPlayedDate",
+								  profile->m_LastPlayedDate.GetString());
+	pGeneralDataNode->AppendChild("TotalDancePoints",
+								  profile->m_iTotalDancePoints);
 	pGeneralDataNode->AppendChild("NumToasties", profile->m_iNumToasties);
-	pGeneralDataNode->AppendChild("TotalTapsAndHolds", profile->m_iTotalTapsAndHolds);
+	pGeneralDataNode->AppendChild("TotalTapsAndHolds",
+								  profile->m_iTotalTapsAndHolds);
 	pGeneralDataNode->AppendChild("TotalJumps", profile->m_iTotalJumps);
 	pGeneralDataNode->AppendChild("TotalHolds", profile->m_iTotalHolds);
 	pGeneralDataNode->AppendChild("TotalRolls", profile->m_iTotalRolls);
@@ -544,40 +645,44 @@ XNode* XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const {
 	pGeneralDataNode->AppendChild("TotalLifts", profile->m_iTotalLifts);
 	pGeneralDataNode->AppendChild("PlayerRating", profile->m_fPlayerRating);
 
-
-	// Keep declared variables in a very local scope so they aren't 
+	// Keep declared variables in a very local scope so they aren't
 	// accidentally used where they're not intended.  There's a lot of
 	// copying and pasting in this code.
 
 	{
-		XNode* pDefaultModifiers = pGeneralDataNode->AppendChild("DefaultModifiers");
+		XNode* pDefaultModifiers =
+		  pGeneralDataNode->AppendChild("DefaultModifiers");
 		FOREACHM_CONST(RString, RString, profile->m_sDefaultModifiers, it)
-			pDefaultModifiers->AppendChild(it->first, it->second);
+		pDefaultModifiers->AppendChild(it->first, it->second);
 	}
 
 	{
-		XNode* pPlayerSkillsets = pGeneralDataNode->AppendChild("PlayerSkillsets");
+		XNode* pPlayerSkillsets =
+		  pGeneralDataNode->AppendChild("PlayerSkillsets");
 		FOREACH_ENUM(Skillset, ss)
-			pPlayerSkillsets->AppendChild(SkillsetToString(ss), profile->m_fPlayerSkillsets[ss]);
+		pPlayerSkillsets->AppendChild(SkillsetToString(ss),
+									  profile->m_fPlayerSkillsets[ss]);
 	}
 
-	pGeneralDataNode->AppendChild("NumTotalSongsPlayed", profile->m_iNumTotalSongsPlayed);
+	pGeneralDataNode->AppendChild("NumTotalSongsPlayed",
+								  profile->m_iNumTotalSongsPlayed);
 
 	{
-		XNode* pNumStagesPassedByPlayMode = pGeneralDataNode->AppendChild("NumStagesPassedByPlayMode");
+		XNode* pNumStagesPassedByPlayMode =
+		  pGeneralDataNode->AppendChild("NumStagesPassedByPlayMode");
 		FOREACH_ENUM(PlayMode, pm)
 		{
 			// Don't save unplayed PlayModes.
 			if (!profile->m_iNumStagesPassedByPlayMode[pm])
 				continue;
-			pNumStagesPassedByPlayMode->AppendChild(PlayModeToString(pm), profile->m_iNumStagesPassedByPlayMode[pm]);
+			pNumStagesPassedByPlayMode->AppendChild(
+			  PlayModeToString(pm), profile->m_iNumStagesPassedByPlayMode[pm]);
 		}
 	}
 
 	// Load Lua UserTable from profile
-	if (profile->m_UserTable.IsSet())
-	{
-		Lua *L = LUA->Get();
+	if (profile->m_UserTable.IsSet()) {
+		Lua* L = LUA->Get();
 		profile->m_UserTable.PushSelf(L);
 		XNode* pUserTable = XmlFileUtil::XNodeFromTable(L);
 		LUA->Release(L);
@@ -590,7 +695,9 @@ XNode* XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const {
 	return pGeneralDataNode;
 }
 
-void XMLProfile::LoadStatsXmlForConversion() {
+void
+XMLProfile::LoadStatsXmlForConversion()
+{
 	string dir = profiledir;
 	RString fn = dir + STATS_XML;
 	bool compressed = false;
@@ -610,7 +717,8 @@ void XMLProfile::LoadStatsXmlForConversion() {
 	if (compressed) {
 		RString sError;
 		uint32_t iCRC32;
-		RageFileObjInflate *pInflate = GunzipFile(pFile.release(), sError, &iCRC32);
+		RageFileObjInflate* pInflate =
+		  GunzipFile(pFile.release(), sError, &iCRC32);
 		if (pInflate == NULL)
 			return;
 
@@ -622,29 +730,28 @@ void XMLProfile::LoadStatsXmlForConversion() {
 		return;
 
 	XNode* scores = xml.GetChild("SongScores");
-	if (scores != nullptr) 
+	if (scores != nullptr)
 		LoadSongScoresFromNode(scores);
 }
 
-
-void XMLProfile::MoveBackupToDir(const RString &sFromDir, const RString &sToDir)
+void
+XMLProfile::MoveBackupToDir(const RString& sFromDir, const RString& sToDir)
 {
 	if (FILEMAN->IsAFile(sFromDir + STATS_XML) &&
-		FILEMAN->IsAFile(sFromDir + STATS_XML + SIGNATURE_APPEND))
-	{
+		FILEMAN->IsAFile(sFromDir + STATS_XML + SIGNATURE_APPEND)) {
 		FILEMAN->Move(sFromDir + STATS_XML, sToDir + STATS_XML);
-		FILEMAN->Move(sFromDir + STATS_XML + SIGNATURE_APPEND, sToDir + STATS_XML + SIGNATURE_APPEND);
-	}
-	else if (FILEMAN->IsAFile(sFromDir + STATS_XML_GZ) &&
-		FILEMAN->IsAFile(sFromDir + STATS_XML_GZ + SIGNATURE_APPEND))
-	{
+		FILEMAN->Move(sFromDir + STATS_XML + SIGNATURE_APPEND,
+					  sToDir + STATS_XML + SIGNATURE_APPEND);
+	} else if (FILEMAN->IsAFile(sFromDir + STATS_XML_GZ) &&
+			   FILEMAN->IsAFile(sFromDir + STATS_XML_GZ + SIGNATURE_APPEND)) {
 		FILEMAN->Move(sFromDir + STATS_XML_GZ, sToDir + STATS_XML);
-		FILEMAN->Move(sFromDir + STATS_XML_GZ + SIGNATURE_APPEND, sToDir + STATS_XML + SIGNATURE_APPEND);
+		FILEMAN->Move(sFromDir + STATS_XML_GZ + SIGNATURE_APPEND,
+					  sToDir + STATS_XML + SIGNATURE_APPEND);
 	}
 }
 
-
-void XMLProfile::LoadGeneralDataFromNode(const XNode* pNode)
+void
+XMLProfile::LoadGeneralDataFromNode(const XNode* pNode)
 {
 	ASSERT(pNode->GetName() == "GeneralData");
 
@@ -653,24 +760,38 @@ void XMLProfile::LoadGeneralDataFromNode(const XNode* pNode)
 
 	pNode->GetChildValue("DisplayName", loadingProfile->m_sDisplayName);
 	pNode->GetChildValue("CharacterID", loadingProfile->m_sCharacterID);
-	pNode->GetChildValue("LastUsedHighScoreName", loadingProfile->m_sLastUsedHighScoreName);
+	pNode->GetChildValue("LastUsedHighScoreName",
+						 loadingProfile->m_sLastUsedHighScoreName);
 	pNode->GetChildValue("Guid", s);
 	loadingProfile->m_sGuid = s;
-	pNode->GetChildValue("SortOrder", s);	loadingProfile->m_SortOrder = StringToSortOrder(s);
-	pNode->GetChildValue("LastDifficulty", s);	loadingProfile->m_LastDifficulty = StringToDifficulty(s);
-	pNode->GetChildValue("LastStepsType", s);	loadingProfile->m_LastStepsType = GAMEMAN->StringToStepsType(s);
-	pTemp = pNode->GetChild("Song");				if (pTemp) loadingProfile->m_lastSong.LoadFromNode(pTemp);
+	pNode->GetChildValue("SortOrder", s);
+	loadingProfile->m_SortOrder = StringToSortOrder(s);
+	pNode->GetChildValue("LastDifficulty", s);
+	loadingProfile->m_LastDifficulty = StringToDifficulty(s);
+	pNode->GetChildValue("LastStepsType", s);
+	loadingProfile->m_LastStepsType = GAMEMAN->StringToStepsType(s);
+	pTemp = pNode->GetChild("Song");
+	if (pTemp)
+		loadingProfile->m_lastSong.LoadFromNode(pTemp);
 	pNode->GetChildValue("CurrentCombo", loadingProfile->m_iCurrentCombo);
 	pNode->GetChildValue("TotalSessions", loadingProfile->m_iTotalSessions);
-	pNode->GetChildValue("TotalSessionSeconds", loadingProfile->m_iTotalSessionSeconds);
-	pNode->GetChildValue("TotalGameplaySeconds", loadingProfile->m_iTotalGameplaySeconds);
-	pNode->GetChildValue("LastPlayedMachineGuid", loadingProfile->m_sLastPlayedMachineGuid);
-	pNode->GetChildValue("LastPlayedDate", s); loadingProfile->m_LastPlayedDate.FromString(s);
-	pNode->GetChildValue("TotalDancePoints", loadingProfile->m_iTotalDancePoints);
-	pNode->GetChildValue("NumExtraStagesPassed", loadingProfile->m_iNumExtraStagesPassed);
-	pNode->GetChildValue("NumExtraStagesFailed", loadingProfile->m_iNumExtraStagesFailed);
+	pNode->GetChildValue("TotalSessionSeconds",
+						 loadingProfile->m_iTotalSessionSeconds);
+	pNode->GetChildValue("TotalGameplaySeconds",
+						 loadingProfile->m_iTotalGameplaySeconds);
+	pNode->GetChildValue("LastPlayedMachineGuid",
+						 loadingProfile->m_sLastPlayedMachineGuid);
+	pNode->GetChildValue("LastPlayedDate", s);
+	loadingProfile->m_LastPlayedDate.FromString(s);
+	pNode->GetChildValue("TotalDancePoints",
+						 loadingProfile->m_iTotalDancePoints);
+	pNode->GetChildValue("NumExtraStagesPassed",
+						 loadingProfile->m_iNumExtraStagesPassed);
+	pNode->GetChildValue("NumExtraStagesFailed",
+						 loadingProfile->m_iNumExtraStagesFailed);
 	pNode->GetChildValue("NumToasties", loadingProfile->m_iNumToasties);
-	pNode->GetChildValue("TotalTapsAndHolds", loadingProfile->m_iTotalTapsAndHolds);
+	pNode->GetChildValue("TotalTapsAndHolds",
+						 loadingProfile->m_iTotalTapsAndHolds);
 	pNode->GetChildValue("TotalJumps", loadingProfile->m_iTotalJumps);
 	pNode->GetChildValue("TotalHolds", loadingProfile->m_iTotalHolds);
 	pNode->GetChildValue("TotalRolls", loadingProfile->m_iTotalRolls);
@@ -681,11 +802,11 @@ void XMLProfile::LoadGeneralDataFromNode(const XNode* pNode)
 
 	{
 		const XNode* pDefaultModifiers = pNode->GetChild("DefaultModifiers");
-		if (pDefaultModifiers)
-		{
+		if (pDefaultModifiers) {
 			FOREACH_CONST_Child(pDefaultModifiers, game_type)
 			{
-				game_type->GetTextValue(loadingProfile->m_sDefaultModifiers[game_type->GetName()]);
+				game_type->GetTextValue(
+				  loadingProfile->m_sDefaultModifiers[game_type->GetName()]);
 			}
 		}
 	}
@@ -693,12 +814,14 @@ void XMLProfile::LoadGeneralDataFromNode(const XNode* pNode)
 	{
 		const XNode* pFavorites = pNode->GetChild("Favorites");
 		if (pFavorites) {
-			FOREACH_CONST_Child(pFavorites, ck) {
-				RString tmp = ck->GetName();				// handle duplicated entries caused by an oversight - mina
+			FOREACH_CONST_Child(pFavorites, ck)
+			{
+				RString tmp = ck->GetName(); // handle duplicated entries caused
+											 // by an oversight - mina
 				bool duplicated = false;
 				FOREACHS(string, loadingProfile->FavoritedCharts, chartkey)
-					if (*chartkey == tmp)
-						duplicated = true;
+				if (*chartkey == tmp)
+					duplicated = true;
 				if (!duplicated)
 					loadingProfile->FavoritedCharts.emplace(tmp);
 			}
@@ -710,21 +833,25 @@ void XMLProfile::LoadGeneralDataFromNode(const XNode* pNode)
 		const XNode* pPlayerSkillsets = pNode->GetChild("PlayerSkillsets");
 		if (pPlayerSkillsets) {
 			FOREACH_ENUM(Skillset, ss)
-				pPlayerSkillsets->GetChildValue(SkillsetToString(ss), loadingProfile->m_fPlayerSkillsets[ss]);
+			pPlayerSkillsets->GetChildValue(
+			  SkillsetToString(ss), loadingProfile->m_fPlayerSkillsets[ss]);
 		}
 	}
 
 	{
-		const XNode* pNumSongsPlayedByPlayMode = pNode->GetChild("NumSongsPlayedByPlayMode");
+		const XNode* pNumSongsPlayedByPlayMode =
+		  pNode->GetChild("NumSongsPlayedByPlayMode");
 		if (pNumSongsPlayedByPlayMode)
 			FOREACH_ENUM(PlayMode, pm)
-			pNumSongsPlayedByPlayMode->GetChildValue(PlayModeToString(pm), loadingProfile->m_iNumSongsPlayedByPlayMode[pm]);
+		pNumSongsPlayedByPlayMode->GetChildValue(
+		  PlayModeToString(pm),
+		  loadingProfile->m_iNumSongsPlayedByPlayMode[pm]);
 	}
 
 	{
-		const XNode* pNumSongsPlayedByStyle = pNode->GetChild("NumSongsPlayedByStyle");
-		if (pNumSongsPlayedByStyle)
-		{
+		const XNode* pNumSongsPlayedByStyle =
+		  pNode->GetChild("NumSongsPlayedByStyle");
+		if (pNumSongsPlayedByStyle) {
 			FOREACH_CONST_Child(pNumSongsPlayedByStyle, style)
 			{
 				if (style->GetName() != "Style")
@@ -736,45 +863,57 @@ void XMLProfile::LoadGeneralDataFromNode(const XNode* pNode)
 				if (!sID.IsValid())
 					WARN_AND_CONTINUE;
 
-				style->GetTextValue(loadingProfile->m_iNumSongsPlayedByStyle[sID]);
+				style->GetTextValue(
+				  loadingProfile->m_iNumSongsPlayedByStyle[sID]);
 			}
 		}
 	}
 
 	{
-		const XNode* pNumSongsPlayedByDifficulty = pNode->GetChild("NumSongsPlayedByDifficulty");
+		const XNode* pNumSongsPlayedByDifficulty =
+		  pNode->GetChild("NumSongsPlayedByDifficulty");
 		if (pNumSongsPlayedByDifficulty)
 			FOREACH_ENUM(Difficulty, dc)
-			pNumSongsPlayedByDifficulty->GetChildValue(DifficultyToString(dc), loadingProfile->m_iNumSongsPlayedByDifficulty[dc]);
+		pNumSongsPlayedByDifficulty->GetChildValue(
+		  DifficultyToString(dc),
+		  loadingProfile->m_iNumSongsPlayedByDifficulty[dc]);
 	}
 
 	{
-		const XNode* pNumSongsPlayedByMeter = pNode->GetChild("NumSongsPlayedByMeter");
+		const XNode* pNumSongsPlayedByMeter =
+		  pNode->GetChild("NumSongsPlayedByMeter");
 		if (pNumSongsPlayedByMeter)
-			for (int i = 0; i<MAX_METER + 1; i++)
-				pNumSongsPlayedByMeter->GetChildValue(ssprintf("Meter%d", i), loadingProfile->m_iNumSongsPlayedByMeter[i]);
+			for (int i = 0; i < MAX_METER + 1; i++)
+				pNumSongsPlayedByMeter->GetChildValue(
+				  ssprintf("Meter%d", i),
+				  loadingProfile->m_iNumSongsPlayedByMeter[i]);
 	}
 
-	pNode->GetChildValue("NumTotalSongsPlayed", loadingProfile->m_iNumTotalSongsPlayed);
+	pNode->GetChildValue("NumTotalSongsPlayed",
+						 loadingProfile->m_iNumTotalSongsPlayed);
 
 	{
-		const XNode* pNumStagesPassedByGrade = pNode->GetChild("NumStagesPassedByGrade");
+		const XNode* pNumStagesPassedByGrade =
+		  pNode->GetChild("NumStagesPassedByGrade");
 		if (pNumStagesPassedByGrade)
 			FOREACH_ENUM(Grade, g)
-			pNumStagesPassedByGrade->GetChildValue(GradeToString(g), loadingProfile->m_iNumStagesPassedByGrade[g]);
+		pNumStagesPassedByGrade->GetChildValue(
+		  GradeToString(g), loadingProfile->m_iNumStagesPassedByGrade[g]);
 	}
 
 	{
-		const XNode* pNumStagesPassedByPlayMode = pNode->GetChild("NumStagesPassedByPlayMode");
+		const XNode* pNumStagesPassedByPlayMode =
+		  pNode->GetChild("NumStagesPassedByPlayMode");
 		if (pNumStagesPassedByPlayMode)
 			FOREACH_ENUM(PlayMode, pm)
-			pNumStagesPassedByPlayMode->GetChildValue(PlayModeToString(pm), loadingProfile->m_iNumStagesPassedByPlayMode[pm]);
-
+		pNumStagesPassedByPlayMode->GetChildValue(
+		  PlayModeToString(pm),
+		  loadingProfile->m_iNumStagesPassedByPlayMode[pm]);
 	}
 
-	const XNode *pUserTable = pNode->GetChild("UserTable");
+	const XNode* pUserTable = pNode->GetChild("UserTable");
 
-	Lua *L = LUA->Get();
+	Lua* L = LUA->Get();
 
 	// If we have custom data, load it. Otherwise, make a blank table.
 	if (pUserTable)
@@ -784,11 +923,11 @@ void XMLProfile::LoadGeneralDataFromNode(const XNode* pNode)
 
 	loadingProfile->m_UserTable.SetFromStack(L);
 	LUA->Release(L);
-
 }
 
-
-void XMLProfile::LoadEttGeneralDataFromNode(const XNode* pNode) {
+void
+XMLProfile::LoadEttGeneralDataFromNode(const XNode* pNode)
+{
 	CHECKPOINT_M("Loading the general node.");
 	ASSERT(pNode->GetName() == "GeneralData");
 
@@ -797,20 +936,31 @@ void XMLProfile::LoadEttGeneralDataFromNode(const XNode* pNode) {
 
 	pNode->GetChildValue("DisplayName", loadingProfile->m_sDisplayName);
 	pNode->GetChildValue("CharacterID", loadingProfile->m_sCharacterID);
-	pNode->GetChildValue("LastUsedHighScoreName", loadingProfile->m_sLastUsedHighScoreName);
+	pNode->GetChildValue("LastUsedHighScoreName",
+						 loadingProfile->m_sLastUsedHighScoreName);
 	pNode->GetChildValue("Guid", (*loadingProfile->GetGuid()));
-	pNode->GetChildValue("SortOrder", s);	loadingProfile->m_SortOrder = StringToSortOrder(s);
-	pNode->GetChildValue("LastDifficulty", s);	loadingProfile->m_LastDifficulty = StringToDifficulty(s);
-	pNode->GetChildValue("LastStepsType", s);	loadingProfile->m_LastStepsType = GAMEMAN->StringToStepsType(s);
-	pTemp = pNode->GetChild("Song");				if (pTemp) loadingProfile->m_lastSong.LoadFromNode(pTemp);
+	pNode->GetChildValue("SortOrder", s);
+	loadingProfile->m_SortOrder = StringToSortOrder(s);
+	pNode->GetChildValue("LastDifficulty", s);
+	loadingProfile->m_LastDifficulty = StringToDifficulty(s);
+	pNode->GetChildValue("LastStepsType", s);
+	loadingProfile->m_LastStepsType = GAMEMAN->StringToStepsType(s);
+	pTemp = pNode->GetChild("Song");
+	if (pTemp)
+		loadingProfile->m_lastSong.LoadFromNode(pTemp);
 	pNode->GetChildValue("CurrentCombo", loadingProfile->m_iCurrentCombo);
 	pNode->GetChildValue("TotalSessions", loadingProfile->m_iTotalSessions);
-	pNode->GetChildValue("TotalSessionSeconds", loadingProfile->m_iTotalSessionSeconds);
-	pNode->GetChildValue("TotalGameplaySeconds", loadingProfile->m_iTotalGameplaySeconds);
-	pNode->GetChildValue("LastPlayedDate", s); loadingProfile->m_LastPlayedDate.FromString(s);
-	pNode->GetChildValue("TotalDancePoints", loadingProfile->m_iTotalDancePoints);
+	pNode->GetChildValue("TotalSessionSeconds",
+						 loadingProfile->m_iTotalSessionSeconds);
+	pNode->GetChildValue("TotalGameplaySeconds",
+						 loadingProfile->m_iTotalGameplaySeconds);
+	pNode->GetChildValue("LastPlayedDate", s);
+	loadingProfile->m_LastPlayedDate.FromString(s);
+	pNode->GetChildValue("TotalDancePoints",
+						 loadingProfile->m_iTotalDancePoints);
 	pNode->GetChildValue("NumToasties", loadingProfile->m_iNumToasties);
-	pNode->GetChildValue("TotalTapsAndHolds", loadingProfile->m_iTotalTapsAndHolds);
+	pNode->GetChildValue("TotalTapsAndHolds",
+						 loadingProfile->m_iTotalTapsAndHolds);
 	pNode->GetChildValue("TotalJumps", loadingProfile->m_iTotalJumps);
 	pNode->GetChildValue("TotalHolds", loadingProfile->m_iTotalHolds);
 	pNode->GetChildValue("TotalRolls", loadingProfile->m_iTotalRolls);
@@ -821,11 +971,11 @@ void XMLProfile::LoadEttGeneralDataFromNode(const XNode* pNode) {
 
 	{
 		const XNode* pDefaultModifiers = pNode->GetChild("DefaultModifiers");
-		if (pDefaultModifiers)
-		{
+		if (pDefaultModifiers) {
 			FOREACH_CONST_Child(pDefaultModifiers, game_type)
 			{
-				game_type->GetTextValue(loadingProfile->m_sDefaultModifiers[game_type->GetName()]);
+				game_type->GetTextValue(
+				  loadingProfile->m_sDefaultModifiers[game_type->GetName()]);
 			}
 		}
 	}
@@ -834,13 +984,14 @@ void XMLProfile::LoadEttGeneralDataFromNode(const XNode* pNode) {
 		const XNode* pPlayerSkillsets = pNode->GetChild("PlayerSkillsets");
 		if (pPlayerSkillsets) {
 			FOREACH_ENUM(Skillset, ss)
-				pPlayerSkillsets->GetChildValue(SkillsetToString(ss), loadingProfile->m_fPlayerSkillsets[ss]);
+			pPlayerSkillsets->GetChildValue(
+			  SkillsetToString(ss), loadingProfile->m_fPlayerSkillsets[ss]);
 		}
 	}
 
-	const XNode *pUserTable = pNode->GetChild("UserTable");
+	const XNode* pUserTable = pNode->GetChild("UserTable");
 
-	Lua *L = LUA->Get();
+	Lua* L = LUA->Get();
 
 	// If we have custom data, load it. Otherwise, make a blank table.
 	if (pUserTable)
@@ -850,10 +1001,10 @@ void XMLProfile::LoadEttGeneralDataFromNode(const XNode* pNode) {
 
 	loadingProfile->m_UserTable.SetFromStack(L);
 	LUA->Release(L);
-
 }
 
-XNode* XMLProfile::SaveSongScoresCreateNode(const Profile* profile) const
+XNode*
+XMLProfile::SaveSongScoresCreateNode(const Profile* profile) const
 {
 	CHECKPOINT_M("Getting the node to save song scores.");
 
@@ -861,10 +1012,11 @@ XNode* XMLProfile::SaveSongScoresCreateNode(const Profile* profile) const
 
 	XNode* pNode = new XNode("SongScores");
 
-	FOREACHM_CONST(SongID, Profile::HighScoresForASong, profile->m_SongHighScores, i)
+	FOREACHM_CONST(
+	  SongID, Profile::HighScoresForASong, profile->m_SongHighScores, i)
 	{
-		const SongID &songID = i->first;
-		const Profile::HighScoresForASong &hsSong = i->second;
+		const SongID& songID = i->first;
+		const Profile::HighScoresForASong& hsSong = i->second;
 
 		// skip songs that have never been played
 		if (profile->GetSongNumTimesPlayed(songID) == 0)
@@ -874,14 +1026,15 @@ XNode* XMLProfile::SaveSongScoresCreateNode(const Profile* profile) const
 
 		int jCheck2 = hsSong.m_StepsHighScores.size();
 		int jCheck1 = 0;
-		FOREACHM_CONST(StepsID, Profile::HighScoresForASteps, hsSong.m_StepsHighScores, j)
+		FOREACHM_CONST(
+		  StepsID, Profile::HighScoresForASteps, hsSong.m_StepsHighScores, j)
 		{
 			jCheck1++;
 			ASSERT(jCheck1 <= jCheck2);
-			const StepsID &stepsID = j->first;
-			const Profile::HighScoresForASteps &hsSteps = j->second;
+			const StepsID& stepsID = j->first;
+			const Profile::HighScoresForASteps& hsSteps = j->second;
 
-			const HighScoreList &hsl = hsSteps.hsl;
+			const HighScoreList& hsl = hsSteps.hsl;
 
 			// skip steps that have never been played
 			if (hsl.GetNumTimesPlayed() == 0)
@@ -896,8 +1049,9 @@ XNode* XMLProfile::SaveSongScoresCreateNode(const Profile* profile) const
 	return pNode;
 }
 
-
-XNode* XMLProfile::SaveEttScoresCreateNode(const Profile* profile) const {
+XNode*
+XMLProfile::SaveEttScoresCreateNode(const Profile* profile) const
+{
 	CHECKPOINT_M("Saving the player scores node.");
 
 	ASSERT(profile != NULL);
@@ -906,13 +1060,15 @@ XNode* XMLProfile::SaveEttScoresCreateNode(const Profile* profile) const {
 	return pNode;
 }
 
-void XMLProfile::LoadEttScoresFromNode(const XNode* pSongScores) {
+void
+XMLProfile::LoadEttScoresFromNode(const XNode* pSongScores)
+{
 	CHECKPOINT_M("Loading the player scores node.");
 	SCOREMAN->LoadFromNode(pSongScores, loadingProfile->m_sProfileID);
 }
 
-
-void XMLProfile::LoadScreenshotDataFromNode(const XNode* pScreenshotData)
+void
+XMLProfile::LoadScreenshotDataFromNode(const XNode* pScreenshotData)
 {
 	CHECKPOINT_M("Loading the node containing screenshot data.");
 
@@ -929,7 +1085,8 @@ void XMLProfile::LoadScreenshotDataFromNode(const XNode* pScreenshotData)
 	}
 }
 
-XNode* XMLProfile::SaveScreenshotDataCreateNode(const Profile* profile) const
+XNode*
+XMLProfile::SaveScreenshotDataCreateNode(const Profile* profile) const
 {
 	CHECKPOINT_M("Getting the node containing screenshot data.");
 
@@ -945,7 +1102,8 @@ XNode* XMLProfile::SaveScreenshotDataCreateNode(const Profile* profile) const
 	return pNode;
 }
 
-void XMLProfile::LoadCategoryScoresFromNode(const XNode* pCategoryScores)
+void
+XMLProfile::LoadCategoryScoresFromNode(const XNode* pCategoryScores)
 {
 	CHECKPOINT_M("Loading the node that contains category scores.");
 
@@ -974,18 +1132,20 @@ void XMLProfile::LoadCategoryScoresFromNode(const XNode* pCategoryScores)
 			if (rc == RankingCategory_Invalid)
 				WARN_AND_CONTINUE_M(str);
 
-			const XNode *pHighScoreListNode = pRadarCategory->GetChild("HighScoreList");
+			const XNode* pHighScoreListNode =
+			  pRadarCategory->GetChild("HighScoreList");
 			if (pHighScoreListNode == NULL)
 				WARN_AND_CONTINUE;
 
-			HighScoreList &hsl = loadingProfile->GetCategoryHighScoreList(st, rc);
+			HighScoreList& hsl =
+			  loadingProfile->GetCategoryHighScoreList(st, rc);
 			hsl.LoadFromNode(pHighScoreListNode);
 		}
 	}
 }
 
-
-XNode* XMLProfile::SaveCategoryScoresCreateNode(const Profile* profile) const
+XNode*
+XMLProfile::SaveCategoryScoresCreateNode(const Profile* profile) const
 {
 	CHECKPOINT_M("Getting the node that saves category scores.");
 
@@ -1000,18 +1160,23 @@ XNode* XMLProfile::SaveCategoryScoresCreateNode(const Profile* profile) const
 			continue;
 
 		XNode* pStepsTypeNode = pNode->AppendChild("StepsType");
-		pStepsTypeNode->AppendAttr("Type", GAMEMAN->GetStepsTypeInfo(st).szName);
+		pStepsTypeNode->AppendAttr("Type",
+								   GAMEMAN->GetStepsTypeInfo(st).szName);
 
 		FOREACH_ENUM(RankingCategory, rc)
 		{
 			// skip steps types/categories that have never been played
-			if (profile->GetCategoryHighScoreList(st, rc).GetNumTimesPlayed() == 0)
+			if (profile->GetCategoryHighScoreList(st, rc).GetNumTimesPlayed() ==
+				0)
 				continue;
 
-			XNode* pRankingCategoryNode = pStepsTypeNode->AppendChild("RankingCategory");
-			pRankingCategoryNode->AppendAttr("Type", RankingCategoryToString(rc));
+			XNode* pRankingCategoryNode =
+			  pStepsTypeNode->AppendChild("RankingCategory");
+			pRankingCategoryNode->AppendAttr("Type",
+											 RankingCategoryToString(rc));
 
-			const HighScoreList &hsl = profile->GetCategoryHighScoreList((StepsType)st, (RankingCategory)rc);
+			const HighScoreList& hsl = profile->GetCategoryHighScoreList(
+			  (StepsType)st, (RankingCategory)rc);
 
 			pRankingCategoryNode->AppendChild(hsl.CreateNode());
 		}
@@ -1020,15 +1185,15 @@ XNode* XMLProfile::SaveCategoryScoresCreateNode(const Profile* profile) const
 	return pNode;
 }
 
-
-ProfileLoadResult XMLProfile::LoadEttXmlFromNode(const XNode *xml) {
+ProfileLoadResult
+XMLProfile::LoadEttXmlFromNode(const XNode* xml)
+{
 	/* The placeholder stats.xml file has an <html> tag. Don't load it,
-	* but don't warn about it. */
+	 * but don't warn about it. */
 	if (xml->GetName() == "html")
 		return ProfileLoadResult_FailedNoProfile;
 
-	if (xml->GetName() != "Stats")
-	{
+	if (xml->GetName() != "Stats") {
 		WARN_M(xml->GetName());
 		return ProfileLoadResult_FailedTampered;
 	}
@@ -1060,15 +1225,15 @@ ProfileLoadResult XMLProfile::LoadEttXmlFromNode(const XNode *xml) {
 	return ProfileLoadResult_Success;
 }
 
-ProfileLoadResult XMLProfile::LoadStatsXmlFromNode(const XNode *xml, bool bIgnoreEditable)
+ProfileLoadResult
+XMLProfile::LoadStatsXmlFromNode(const XNode* xml, bool bIgnoreEditable)
 {
 	/* The placeholder stats.xml file has an <html> tag. Don't load it,
-	* but don't warn about it. */
+	 * but don't warn about it. */
 	if (xml->GetName() == "html")
 		return ProfileLoadResult_FailedNoProfile;
 
-	if (xml->GetName() != "Stats")
-	{
+	if (xml->GetName() != "Stats") {
 		WARN_M(xml->GetName());
 		return ProfileLoadResult_FailedTampered;
 	}
@@ -1083,8 +1248,7 @@ ProfileLoadResult XMLProfile::LoadStatsXmlFromNode(const XNode *xml, bool bIgnor
 	LOAD_NODE(CategoryScores);
 	LOAD_NODE(ScreenshotData);
 
-	if (bIgnoreEditable)
-	{
+	if (bIgnoreEditable) {
 		loadingProfile->m_sDisplayName = sName;
 		loadingProfile->m_sCharacterID = sCharacterID;
 		loadingProfile->m_sLastUsedHighScoreName = sLastUsedHighScoreName;
@@ -1093,8 +1257,8 @@ ProfileLoadResult XMLProfile::LoadStatsXmlFromNode(const XNode *xml, bool bIgnor
 	return ProfileLoadResult_Success;
 }
 
-
-void XMLProfile::LoadSongScoresFromNode(const XNode* pSongScores)
+void
+XMLProfile::LoadSongScoresFromNode(const XNode* pSongScores)
 {
 	CHECKPOINT_M("Loading the node that contains song scores.");
 
@@ -1109,7 +1273,7 @@ void XMLProfile::LoadSongScoresFromNode(const XNode* pSongScores)
 		songID.LoadFromNode(pSong);
 		// Allow invalid songs so that scores aren't deleted for people that use
 		// AdditionalSongsFolders and change it frequently. -Kyz
-		//if( !songID.IsValid() )
+		// if( !songID.IsValid() )
 		//	continue;
 
 		FOREACH_CONST_Child(pSong, pSteps)
@@ -1122,20 +1286,22 @@ void XMLProfile::LoadSongScoresFromNode(const XNode* pSongScores)
 			if (!stepsID.IsValid())
 				WARN_AND_CONTINUE;
 
-			const XNode *pHighScoreListNode = pSteps->GetChild("HighScoreList");
+			const XNode* pHighScoreListNode = pSteps->GetChild("HighScoreList");
 			if (pHighScoreListNode == NULL)
 				WARN_AND_CONTINUE;
 
-			HighScoreList &hsl = loadingProfile->m_SongHighScores[songID].m_StepsHighScores[stepsID].hsl;
+			HighScoreList& hsl = loadingProfile->m_SongHighScores[songID]
+								   .m_StepsHighScores[stepsID]
+								   .hsl;
 			hsl.LoadFromNode(pHighScoreListNode);
 		}
 	}
 }
 
-
-XNode *XMLProfile::SaveStatsXmlCreateNode(const Profile* profile) const
+XNode*
+XMLProfile::SaveStatsXmlCreateNode(const Profile* profile) const
 {
-	XNode *xml = new XNode("Stats");
+	XNode* xml = new XNode("Stats");
 
 	xml->AppendChild(SaveGeneralDataCreateNode(profile));
 	xml->AppendChild(SaveSongScoresCreateNode(profile));
@@ -1145,9 +1311,10 @@ XNode *XMLProfile::SaveStatsXmlCreateNode(const Profile* profile) const
 	return xml;
 }
 
-XNode *XMLProfile::SaveEttXmlCreateNode(const Profile* profile) const
+XNode*
+XMLProfile::SaveEttXmlCreateNode(const Profile* profile) const
 {
-	XNode *xml = new XNode("Stats");
+	XNode* xml = new XNode("Stats");
 	xml->AppendChild(SaveEttGeneralDataCreateNode(profile));
 
 	if (!profile->FavoritedCharts.empty())

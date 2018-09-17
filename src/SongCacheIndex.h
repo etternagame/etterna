@@ -2,44 +2,47 @@
 #define SONG_CACHE_INDEX_H
 
 #include "IniFile.h"
-#include "TimingData.h"
 #include "Song.h"
 #include "Steps.h"
+#include "TimingData.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <SQLiteCpp/VariadicBind.h>
 
-class SongDBCacheItem {
-
-};
+class SongDBCacheItem
+{};
 class SongCacheIndex
 {
 	IniFile CacheIndex;
-	static RString MangleName( const RString &Name );
+	static RString MangleName(const RString& Name);
 
 	bool OpenDB();
 	void ResetDB();
 	void DeleteDB();
 	void CreateDBTables();
-	bool DBEmpty{true};
-	SQLite::Transaction *curTransaction{nullptr};
-public:
-	SQLite::Database *db{ nullptr };
+	bool DBEmpty{ true };
+	SQLite::Transaction* curTransaction{ nullptr };
+
+  public:
+	SQLite::Database* db{ nullptr };
 	SongCacheIndex();
 	~SongCacheIndex();
-	inline pair<RString, int> SongFromStatement(Song* song, SQLite::Statement &query);
-	void LoadHyperCache(LoadingWindow * ld, map<RString, Song*>& hyperCache);
-	void LoadCache(LoadingWindow* ld, vector<pair<pair<RString, unsigned int>, Song*>*>&cache);
+	inline pair<RString, int> SongFromStatement(Song* song,
+												SQLite::Statement& query);
+	void LoadHyperCache(LoadingWindow* ld, map<RString, Song*>& hyperCache);
+	void LoadCache(LoadingWindow* ld,
+				   vector<pair<pair<RString, unsigned int>, Song*>*>& cache);
 	void DeleteSongFromDBByCondition(string& condition);
-	void DeleteSongFromDB(Song* songPtr); 
+	void DeleteSongFromDB(Song* songPtr);
 	void DeleteSongFromDBByDir(string dir);
 	void DeleteSongFromDBByDirHash(unsigned int hash);
-	static RString GetCacheFilePath( const RString &sGroup, const RString &sPath );
-	unsigned GetCacheHash( const RString &path ) const;
+	static RString GetCacheFilePath(const RString& sGroup,
+									const RString& sPath);
+	unsigned GetCacheHash(const RString& path) const;
 	bool delay_save_cache;
-	
-	int64_t InsertStepsTimingData(const TimingData &timing);
+
+	int64_t InsertStepsTimingData(const TimingData& timing);
 	int64_t InsertSteps(const Steps* pSteps, int64_t songID);
 	bool LoadSongFromCache(Song* song, string dir);
 	bool CacheSong(Song& song, string dir);
@@ -47,14 +50,15 @@ public:
 	void FinishTransaction();
 };
 
-extern SongCacheIndex *SONGINDEX;	// global and accessible from anywhere in our program
+extern SongCacheIndex*
+  SONGINDEX; // global and accessible from anywhere in our program
 
 #endif
 
 /*
  * (c) 2002-2003 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -64,7 +68,7 @@ extern SongCacheIndex *SONGINDEX;	// global and accessible from anywhere in our 
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

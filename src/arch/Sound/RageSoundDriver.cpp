@@ -1,74 +1,68 @@
-#include "global.h"
 #include "RageSoundDriver.h"
-#include "RageSoundManager.h"
-#include "RageLog.h"
-#include "RageUtil.h"
 #include "Foreach.h"
+#include "RageLog.h"
+#include "RageSoundManager.h"
+#include "RageUtil.h"
 #include "arch/arch_default.h"
+#include "global.h"
 
 DriverList RageSoundDriver::m_pDriverList;
 
-RageSoundDriver *RageSoundDriver::Create( const RString& drivers )
+RageSoundDriver*
+RageSoundDriver::Create(const RString& drivers)
 {
 	vector<RString> drivers_to_try;
-	if(drivers.empty())
-	{
+	if (drivers.empty()) {
 		split(DEFAULT_SOUND_DRIVER_LIST, ",", drivers_to_try);
-	}
-	else
-	{
+	} else {
 		split(drivers, ",", drivers_to_try);
-		size_t to_try= 0;
-		bool had_to_erase= false;
-		while(to_try < drivers_to_try.size())
-		{
-			if(m_pDriverList.m_pRegistrees->find(istring(drivers_to_try[to_try]))
-				== m_pDriverList.m_pRegistrees->end())
-			{
-				LOG->Warn("Removed unusable sound driver %s", drivers_to_try[to_try].c_str());
+		size_t to_try = 0;
+		bool had_to_erase = false;
+		while (to_try < drivers_to_try.size()) {
+			if (m_pDriverList.m_pRegistrees->find(
+				  istring(drivers_to_try[to_try])) ==
+				m_pDriverList.m_pRegistrees->end()) {
+				LOG->Warn("Removed unusable sound driver %s",
+						  drivers_to_try[to_try].c_str());
 				drivers_to_try.erase(drivers_to_try.begin() + to_try);
-				had_to_erase= true;
-			}
-			else
-			{
+				had_to_erase = true;
+			} else {
 				++to_try;
 			}
 		}
-		if(had_to_erase)
-		{
+		if (had_to_erase) {
 			SOUNDMAN->fix_bogus_sound_driver_pref(join(",", drivers_to_try));
 		}
-		if(drivers_to_try.empty())
-		{
+		if (drivers_to_try.empty()) {
 			split(DEFAULT_SOUND_DRIVER_LIST, ",", drivers_to_try);
 		}
 	}
 
-	FOREACH_CONST( RString, drivers_to_try, Driver )
+	FOREACH_CONST(RString, drivers_to_try, Driver)
 	{
-		RageDriver *pDriver = m_pDriverList.Create( *Driver );
-		if( pDriver == NULL )
-		{
-			LOG->Trace( "Unknown sound driver: %s", Driver->c_str() );
+		RageDriver* pDriver = m_pDriverList.Create(*Driver);
+		if (pDriver == NULL) {
+			LOG->Trace("Unknown sound driver: %s", Driver->c_str());
 			continue;
 		}
 
-		RageSoundDriver *pRet = dynamic_cast<RageSoundDriver *>( pDriver );
-		ASSERT( pRet != NULL );
+		RageSoundDriver* pRet = dynamic_cast<RageSoundDriver*>(pDriver);
+		ASSERT(pRet != NULL);
 
 		const RString sError = pRet->Init();
-		if( sError.empty() )
-		{
-			LOG->Info( "Sound driver: %s", Driver->c_str() );
+		if (sError.empty()) {
+			LOG->Info("Sound driver: %s", Driver->c_str());
 			return pRet;
 		}
-		LOG->Info( "Couldn't load driver %s: %s", Driver->c_str(), sError.c_str() );
-		SAFE_DELETE( pRet );
+		LOG->Info(
+		  "Couldn't load driver %s: %s", Driver->c_str(), sError.c_str());
+		SAFE_DELETE(pRet);
 	}
 	return NULL;
 }
 
-RString RageSoundDriver::GetDefaultSoundDriverList()
+RString
+RageSoundDriver::GetDefaultSoundDriverList()
 {
 	return DEFAULT_SOUND_DRIVER_LIST;
 }
@@ -76,7 +70,7 @@ RString RageSoundDriver::GetDefaultSoundDriverList()
 /*
  * (c) 2002-2006 Glenn Maynard, Steve Checkoway
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -86,7 +80,7 @@ RString RageSoundDriver::GetDefaultSoundDriverList()
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

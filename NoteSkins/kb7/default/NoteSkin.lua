@@ -1,33 +1,31 @@
-local ret = ... or {};
+local ret = ... or {}
 
-ret.RedirTable =
-{
+ret.RedirTable = {
 	Key1 = "Key",
 	Key2 = "Key",
 	Key3 = "Key",
 	-- should work? doesn't though.
-	Key4 = GAMESTATE:IsSideJoined('PlayerNumber_P2') and "Space" or "Key",
+	Key4 = GAMESTATE:IsSideJoined("PlayerNumber_P2") and "Space" or "Key",
 	Key5 = "Key",
 	Key6 = "Key",
-	Key7 = "Key",
-};
+	Key7 = "Key"
+}
 
-local OldRedir = ret.Redir;
+local OldRedir = ret.Redir
 ret.Redir = function(sButton, sElement)
-	sButton, sElement = OldRedir(sButton, sElement);
+	sButton, sElement = OldRedir(sButton, sElement)
 
 	-- Instead of separate hold heads, use the tap note graphics.
-	if sElement == "Hold Head Inactive" or
-	   sElement == "Hold Head Active" or
-	   sElement == "Roll Head Inactive" or
-	   sElement == "Roll Head Active"
-	then
-		sElement = "Tap Note";
+	if
+		sElement == "Hold Head Inactive" or sElement == "Hold Head Active" or sElement == "Roll Head Inactive" or
+			sElement == "Roll Head Active"
+	 then
+		sElement = "Tap Note"
 	end
 
-	sButton = ret.RedirTable[sButton];
+	sButton = ret.RedirTable[sButton]
 
-	return sButton, sElement;
+	return sButton, sElement
 end
 
 -- To have separate graphics for each hold part:
@@ -41,23 +39,19 @@ ret.Redir = function(sButton, sElement)
 	return OldRedir(sButton, sElement);
 end
 ]]
-
-local OldFunc = ret.Load;
+local OldFunc = ret.Load
 function ret.Load()
-	local t = OldFunc();
+	local t = OldFunc()
 
 	-- The main "Explosion" part just loads other actors; don't rotate
 	-- it.  The "Hold Explosion" part should not be rotated.
-	if Var "Element" == "Explosion" or
-	   Var "Element" == "Roll Explosion" or
-	   Var "Element" == "Hold Explosion" then
-		t.BaseRotationZ = nil;
+	if Var "Element" == "Explosion" or Var "Element" == "Roll Explosion" or Var "Element" == "Hold Explosion" then
+		t.BaseRotationZ = nil
 	end
-	return t;
+	return t
 end
 
-ret.PartsToRotate =
-{
+ret.PartsToRotate = {
 	["Go Receptor"] = true,
 	["Ready Receptor"] = true,
 	["Tap Explosion Bright"] = true,
@@ -66,18 +60,17 @@ ret.PartsToRotate =
 	["Hold Head Active"] = true,
 	["Hold Head Inactive"] = true,
 	["Roll Head Active"] = true,
-	["Roll Head Inactive"] = true,
-};
-ret.Rotate =
-{
+	["Roll Head Inactive"] = true
+}
+ret.Rotate = {
 	Key1 = 0,
 	Key2 = 0,
 	Key3 = 0,
 	Key4 = 0,
 	Key5 = 0,
 	Key6 = 0,
-	Key7 = 0,
-};
+	Key7 = 0
+}
 
 --
 -- If a derived skin wants to have separate UpLeft graphics,
@@ -88,8 +81,7 @@ ret.Rotate =
 -- ret.Rotate.UpLeft = 0;
 -- ret.Rotate.UpRight = 90;
 --
-ret.Blank =
-{
+ret.Blank = {
 	["Hold Topcap Active"] = true,
 	["Hold Topcap Inactive"] = true,
 	["Roll Topcap Active"] = true,
@@ -97,7 +89,7 @@ ret.Blank =
 	["Hold Tail Active"] = true,
 	["Hold Tail Inactive"] = true,
 	["Roll Tail Active"] = true,
-	["Roll Tail Inactive"] = true,
-};
+	["Roll Tail Inactive"] = true
+}
 
-return ret;
+return ret

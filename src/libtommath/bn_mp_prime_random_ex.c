@@ -33,90 +33,120 @@
 /* This is possibly the mother of all prime generation functions, muahahahahaha! */
 int mp_prime_random_ex(mp_int *a, int t, int size, int flags, ltm_prime_callback cb, void *dat)
 {
-   unsigned char *tmp, maskAND, maskOR_msb, maskOR_lsb;
-   int res, err, bsize, maskOR_msb_offset;
+	unsigned char *tmp, maskAND, maskOR_msb, maskOR_lsb;
+	int res, err, bsize, maskOR_msb_offset;
 
-   /* sanity check the input */
-   if (size <= 1 || t <= 0) {
-      return MP_VAL;
-   }
+	/* sanity check the input */
+	if (size <= 1 || t <= 0)
+	{
+		return MP_VAL;
+	}
 
-   /* LTM_PRIME_SAFE implies LTM_PRIME_BBS */
-   if (flags & LTM_PRIME_SAFE) {
-      flags |= LTM_PRIME_BBS;
-   }
+	/* LTM_PRIME_SAFE implies LTM_PRIME_BBS */
+	if (flags & LTM_PRIME_SAFE)
+	{
+		flags |= LTM_PRIME_BBS;
+	}
 
-   /* calc the byte size */
-   bsize = (size>>3) + ((size&7)?1:0);
+	/* calc the byte size */
+	bsize = (size >> 3) + ((size & 7) ? 1 : 0);
 
-   /* we need a buffer of bsize bytes */
-   tmp = OPT_CAST(unsigned char) XMALLOC(bsize);
-   if (tmp == NULL) {
-      return MP_MEM;
-   }
+	/* we need a buffer of bsize bytes */
+	tmp = OPT_CAST(unsigned char) XMALLOC(bsize);
+	if (tmp == NULL)
+	{
+		return MP_MEM;
+	}
 
-   /* calc the maskAND value for the MSbyte*/
-   maskAND = ((size&7) == 0) ? 0xFF : (0xFF >> (8 - (size & 7)));
+	/* calc the maskAND value for the MSbyte*/
+	maskAND = ((size & 7) == 0) ? 0xFF : (0xFF >> (8 - (size & 7)));
 
-   /* calc the maskOR_msb */
-   maskOR_msb        = 0;
-   maskOR_msb_offset = ((size & 7) == 1) ? 1 : 0;
-   if (flags & LTM_PRIME_2MSB_ON) {
-      maskOR_msb       |= 0x80 >> ((9 - size) & 7);
-   }  
+	/* calc the maskOR_msb */
+	maskOR_msb = 0;
+	maskOR_msb_offset = ((size & 7) == 1) ? 1 : 0;
+	if (flags & LTM_PRIME_2MSB_ON)
+	{
+		maskOR_msb |= 0x80 >> ((9 - size) & 7);
+	}
 
-   /* get the maskOR_lsb */
-   maskOR_lsb         = 1;
-   if (flags & LTM_PRIME_BBS) {
-      maskOR_lsb     |= 3;
-   }
+	/* get the maskOR_lsb */
+	maskOR_lsb = 1;
+	if (flags & LTM_PRIME_BBS)
+	{
+		maskOR_lsb |= 3;
+	}
 
-   do {
-      /* read the bytes */
-      if (cb(tmp, bsize, dat) != bsize) {
-         err = MP_VAL;
-         goto error;
-      }
- 
-      /* work over the MSbyte */
-      tmp[0]    &= maskAND;
-      tmp[0]    |= 1 << ((size - 1) & 7);
+	do
+	{
+		/* read the bytes */
+		if (cb(tmp, bsize, dat) != bsize)
+		{
+			err = MP_VAL;
+			goto error;
+		}
 
-      /* mix in the maskORs */
-      tmp[maskOR_msb_offset]   |= maskOR_msb;
-      tmp[bsize-1]             |= maskOR_lsb;
+		/* work over the MSbyte */
+		tmp[0] &= maskAND;
+		tmp[0] |= 1 << ((size - 1) & 7);
 
-      /* read it in */
-      if ((err = mp_read_unsigned_bin(a, tmp, bsize)) != MP_OKAY)     { goto error; }
+		/* mix in the maskORs */
+		tmp[maskOR_msb_offset] |= maskOR_msb;
+		tmp[bsize - 1] |= maskOR_lsb;
 
-      /* is it prime? */
-      if ((err = mp_prime_is_prime(a, t, &res)) != MP_OKAY)           { goto error; }
-      if (res == MP_NO) {  
-         continue;
-      }
+		/* read it in */
+		if ((err = mp_read_unsigned_bin(a, tmp, bsize)) != MP_OKAY)
+		{
+			goto error;
+		}
 
-      if (flags & LTM_PRIME_SAFE) {
-         /* see if (a-1)/2 is prime */
-         if ((err = mp_sub_d(a, 1, a)) != MP_OKAY)                    { goto error; }
-         if ((err = mp_div_2(a, a)) != MP_OKAY)                       { goto error; }
- 
-         /* is it prime? */
-         if ((err = mp_prime_is_prime(a, t, &res)) != MP_OKAY)        { goto error; }
-      }
-   } while (res == MP_NO);
+		/* is it prime? */
+		if ((err = mp_prime_is_prime(a, t, &res)) != MP_OKAY)
+		{
+			goto error;
+		}
+		if (res == MP_NO)
+		{
+			continue;
+		}
 
-   if (flags & LTM_PRIME_SAFE) {
-      /* restore a to the original value */
-      if ((err = mp_mul_2(a, a)) != MP_OKAY)                          { goto error; }
-      if ((err = mp_add_d(a, 1, a)) != MP_OKAY)                       { goto error; }
-   }
+		if (flags & LTM_PRIME_SAFE)
+		{
+			/* see if (a-1)/2 is prime */
+			if ((err = mp_sub_d(a, 1, a)) != MP_OKAY)
+			{
+				goto error;
+			}
+			if ((err = mp_div_2(a, a)) != MP_OKAY)
+			{
+				goto error;
+			}
 
-   err = MP_OKAY;
+			/* is it prime? */
+			if ((err = mp_prime_is_prime(a, t, &res)) != MP_OKAY)
+			{
+				goto error;
+			}
+		}
+	} while (res == MP_NO);
+
+	if (flags & LTM_PRIME_SAFE)
+	{
+		/* restore a to the original value */
+		if ((err = mp_mul_2(a, a)) != MP_OKAY)
+		{
+			goto error;
+		}
+		if ((err = mp_add_d(a, 1, a)) != MP_OKAY)
+		{
+			goto error;
+		}
+	}
+
+	err = MP_OKAY;
 error:
-   XFREE(tmp);
-   return err;
+	XFREE(tmp);
+	return err;
 }
-
 
 #endif
 

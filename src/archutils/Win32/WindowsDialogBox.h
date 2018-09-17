@@ -7,18 +7,24 @@
 
 class WindowsDialogBox
 {
-public:
+  public:
 	WindowsDialogBox();
-	virtual ~WindowsDialogBox() { }
-	void Run( int iDialog );
+	virtual ~WindowsDialogBox() {}
+	void Run(int iDialog);
 
 	HWND GetHwnd() { return m_hWnd; }
 
-protected:
-	virtual BOOL HandleMessage( UINT msg, WPARAM wParam, LPARAM lParam ) { return false; }
+  protected:
+	virtual BOOL HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
+	{
+		return false;
+	}
 
-private:
-	static BOOL APIENTRY DlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam);
+  private:
+	static BOOL APIENTRY DlgProc(HWND hDlg,
+								 UINT msg,
+								 WPARAM wParam,
+								 LPARAM lParam);
 	HWND m_hWnd;
 };
 
@@ -27,7 +33,7 @@ private:
 /*
  * (c) 2006 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -37,7 +43,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

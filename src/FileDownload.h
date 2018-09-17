@@ -8,12 +8,14 @@
 
 class FileTransfer
 {
-public:
+  public:
 	FileTransfer();
 	~FileTransfer();
 
-	void StartDownload(const RString &sURL, const RString &sDestFile);
-	void StartUpload(const RString &sURL, const RString &sSrcFile, const RString &sDestFile);
+	void StartDownload(const RString& sURL, const RString& sDestFile);
+	void StartUpload(const RString& sURL,
+					 const RString& sSrcFile,
+					 const RString& sDestFile);
 
 	void Cancel();
 	RString Update(float fDeltaTime);
@@ -22,9 +24,17 @@ public:
 	int GetResponseCode() const { return m_iResponseCode; }
 	RString GetResponse() const { return m_sBUFFER; }
 	RString GetStatus() const { return m_sStatus; }
-private:
-	enum TransferType { download, upload };
-	void StartTransfer(TransferType type, const RString &sURL, const RString &sSrcFile, const RString &sDestFile);
+
+  private:
+	enum TransferType
+	{
+		download,
+		upload
+	};
+	void StartTransfer(TransferType type,
+					   const RString& sURL,
+					   const RString& sSrcFile,
+					   const RString& sDestFile);
 	int m_iPackagesPos;
 	int m_iLinksPos;
 
@@ -34,31 +44,35 @@ private:
 	void HTTPUpdate();
 
 	// True if proper string, false if improper
-	bool ParseHTTPAddress(const RString & URL, RString & Proto, RString & Server, int & Port, RString & Addy);
+	bool ParseHTTPAddress(const RString& URL,
+						  RString& Proto,
+						  RString& Server,
+						  int& Port,
+						  RString& Addy);
 
-	void	UpdateProgress();
+	void UpdateProgress();
 
-	bool	m_bIsDownloading;
-	float	m_fLastUpdate;
-	long	m_bytesLastUpdate;
+	bool m_bIsDownloading;
+	float m_fLastUpdate;
+	long m_bytesLastUpdate;
 
-	RString	m_sStatus;
+	RString m_sStatus;
 
 	EzSockets m_wSocket;
 
-	bool	m_bGotHeader;
+	bool m_bGotHeader;
 
-	RageFile	m_fOutputFile;
-	RString	m_sEndName;
-	bool	m_bSavingFile;
+	RageFile m_fOutputFile;
+	RString m_sEndName;
+	bool m_bSavingFile;
 
 	RString m_sBaseAddress;
 	// HTTP Header information responce
-	long	m_iTotalBytes;
-	long	m_iDownloaded;
+	long m_iTotalBytes;
+	long m_iDownloaded;
 
-	long	m_iResponseCode;
-	RString	m_sResponseName;
+	long m_iResponseCode;
+	RString m_sResponseName;
 
 	// Raw HTTP Buffer
 	RString m_sBUFFER;
@@ -68,11 +82,11 @@ private:
 
 #endif
 
-#endif 
+#endif
 /*
  * (c) 2004 Charles Lohr, Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -82,7 +96,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

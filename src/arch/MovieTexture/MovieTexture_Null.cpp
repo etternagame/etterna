@@ -1,29 +1,31 @@
-#include "global.h"
+#include "MovieTexture_Null.h"
 #include "RageDisplay.h"
+#include "RageLog.h"
+#include "RageSurface.h"
 #include "RageTextureManager.h"
 #include "RageUtil.h"
-#include "RageLog.h"
-#include "MovieTexture_Null.h"
-#include "RageSurface.h"
+#include "global.h"
 
-class MovieTexture_Null : public RageMovieTexture {
-public:
+class MovieTexture_Null : public RageMovieTexture
+{
+  public:
 	MovieTexture_Null(RageTextureID ID);
 	virtual ~MovieTexture_Null();
 	void Invalidate() { texHandle = 0; }
 	unsigned GetTexHandle() const { return texHandle; }
-	void Update(float /* delta */) { }
-	void Reload() { }
-	void SetPosition(float /* seconds */) { }
-	void SetPlaybackRate(float) { }
-	void SetLooping(bool looping=true) { loop = looping; }
+	void Update(float /* delta */) {}
+	void Reload() {}
+	void SetPosition(float /* seconds */) {}
+	void SetPlaybackRate(float) {}
+	void SetLooping(bool looping = true) { loop = looping; }
 
-private:
+  private:
 	bool loop;
 	unsigned texHandle;
 };
 
-MovieTexture_Null::MovieTexture_Null(RageTextureID ID) : RageMovieTexture(ID)
+MovieTexture_Null::MovieTexture_Null(RageTextureID ID)
+  : RageMovieTexture(ID)
 {
 	LOG->Trace("MovieTexture_Null::MovieTexture_Null(ID)");
 	texHandle = 0;
@@ -44,36 +46,43 @@ MovieTexture_Null::MovieTexture_Null(RageTextureID ID) : RageMovieTexture(ID)
 	CreateFrameRects();
 
 	RagePixelFormat pixfmt = RagePixelFormat_RGBA4;
-	if( !DISPLAY->SupportsTextureFormat(pixfmt) )
+	if (!DISPLAY->SupportsTextureFormat(pixfmt))
 		pixfmt = RagePixelFormat_RGBA8;
-	ASSERT( DISPLAY->SupportsTextureFormat(pixfmt) );
+	ASSERT(DISPLAY->SupportsTextureFormat(pixfmt));
 
-	const RageDisplay::RagePixelFormatDesc *pfd = DISPLAY->GetPixelFormatDesc( pixfmt );
-	RageSurface *img = CreateSurface( size, size, pfd->bpp,
-		pfd->masks[0], pfd->masks[1], pfd->masks[2], pfd->masks[3] );
-	memset( img->pixels, 0, img->pitch*img->h );
+	const RageDisplay::RagePixelFormatDesc* pfd =
+	  DISPLAY->GetPixelFormatDesc(pixfmt);
+	RageSurface* img = CreateSurface(size,
+									 size,
+									 pfd->bpp,
+									 pfd->masks[0],
+									 pfd->masks[1],
+									 pfd->masks[2],
+									 pfd->masks[3]);
+	memset(img->pixels, 0, img->pitch * img->h);
 
-	texHandle = DISPLAY->CreateTexture( pixfmt, img, false );
+	texHandle = DISPLAY->CreateTexture(pixfmt, img, false);
 
 	delete img;
 }
 
 MovieTexture_Null::~MovieTexture_Null()
 {
-	DISPLAY->DeleteTexture( texHandle );
+	DISPLAY->DeleteTexture(texHandle);
 }
 
-REGISTER_MOVIE_TEXTURE_CLASS( Null );
+REGISTER_MOVIE_TEXTURE_CLASS(Null);
 
-RageMovieTexture *RageMovieTextureDriver_Null::Create( const RageTextureID &ID, RString &sError )
+RageMovieTexture*
+RageMovieTextureDriver_Null::Create(const RageTextureID& ID, RString& sError)
 {
-	return new MovieTexture_Null( ID );
+	return new MovieTexture_Null(ID);
 }
 
 /*
  * (c) 2003 Steve Checkoway
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -83,7 +92,7 @@ RageMovieTexture *RageMovieTextureDriver_Null::Create( const RageTextureID &ID, 
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

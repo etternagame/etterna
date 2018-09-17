@@ -5,7 +5,7 @@
 /** @brief The dimensions of the program. */
 class DisplayResolution
 {
-public:
+  public:
 	/** @brief The width of the program. */
 	unsigned int iWidth;
 	/** @brief The height of the program. */
@@ -16,14 +16,17 @@ public:
 	/**
 	 * @brief Determine if one DisplayResolution is less than the other.
 	 * @param other the other DisplayResolution to check.
-	 * @return true if this DisplayResolution is less than the other, or false otherwise. */
-	bool operator<( const DisplayResolution &other ) const
+	 * @return true if this DisplayResolution is less than the other, or false
+	 * otherwise. */
+	bool operator<(const DisplayResolution& other) const
 	{
 /** @brief A quick way to compare the two DisplayResolutions. */
-#define COMPARE(x) if( (x) != other.x ) return (x) < other.x;
-		COMPARE( iWidth );
-		COMPARE( iHeight );
-		COMPARE( bStretched );
+#define COMPARE(x)                                                             \
+	if ((x) != other.x)                                                        \
+		return (x) < other.x;
+		COMPARE(iWidth);
+		COMPARE(iHeight);
+		COMPARE(bStretched);
 #undef COMPARE
 		return false;
 	}
@@ -38,7 +41,7 @@ typedef set<DisplayResolution> DisplayResolutions;
  * @author Chris Danford (c) 2001-2005
  * @section LICENSE
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -48,7 +51,7 @@ typedef set<DisplayResolution> DisplayResolutions;
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

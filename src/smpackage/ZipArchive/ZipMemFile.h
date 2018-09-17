@@ -10,15 +10,15 @@
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
-// 
+//
 // For the licensing details see the file License.txt
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
-* \file ZipMemFile.h
-* Interface for the CZipMemFile class.
-*
-*/
+ * \file ZipMemFile.h
+ * Interface for the CZipMemFile class.
+ *
+ */
 #if !defined(AFX_ZIPMEMFILE_H__EA73AB25_6B51_4C5E_8D78_BAC95812598F__INCLUDED_)
 #define AFX_ZIPMEMFILE_H__EA73AB25_6B51_4C5E_8D78_BAC95812598F__INCLUDED_
 
@@ -26,8 +26,8 @@
 #pragma once
 #endif // _MSC_VER > 1000
 #include "ZipAbstractFile.h"
-#include "ZipString.h"
 #include "ZipExport.h"
+#include "ZipString.h"
 
 /**
 	A memory buffer which behaves like a physical file.
@@ -35,15 +35,14 @@
 */
 class ZIP_API CZipMemFile : public CZipAbstractFile
 {
-protected:
+  protected:
 	size_t m_nGrowBy, m_nPos;
 	size_t m_nBufSize, m_nDataSize;
 	BYTE* m_lpBuf;
 	bool m_bAutoDelete;
 	void Free()
 	{
-		if (m_lpBuf)
-		{
+		if (m_lpBuf) {
 			free(m_lpBuf);
 			m_lpBuf = NULL;
 		}
@@ -53,19 +52,19 @@ protected:
 		m_nGrowBy = m_nPos = 0;
 		m_nBufSize = m_nDataSize = 0;
 		m_lpBuf = NULL;
-
 	}
 	void Grow(size_t nBytes);
-public:
-	bool IsClosed() const { return m_lpBuf == NULL;}
-	void Flush(){}
+
+  public:
+	bool IsClosed() const { return m_lpBuf == NULL; }
+	void Flush() {}
 
 	ZIP_ULONGLONG Seek(ZIP_LONGLONG lOff, int nFrom);
-	ZIP_ULONGLONG GetLength() const {return m_nDataSize;}
+	ZIP_ULONGLONG GetLength() const { return m_nDataSize; }
 	void Write(const void* lpBuf, UINT nCount);
 	UINT Read(void* lpBuf, UINT nCount);
 	void SetLength(ZIP_ULONGLONG nNewLen);
-	CZipString GetFilePath() const  {return _T("");} 	
+	CZipString GetFilePath() const { return _T(""); }
 	CZipMemFile(long nGrowBy = 1024)
 	{
 		Init();
@@ -78,7 +77,7 @@ public:
 		Init();
 		Attach(lpBuf, nBufSize, nGrowBy);
 	}
-	ZIP_ULONGLONG GetPosition() const {	return m_nPos;}
+	ZIP_ULONGLONG GetPosition() const { return m_nPos; }
 	void Attach(BYTE* lpBuf, UINT nBufSize, long nGrowBy = 0)
 	{
 		Close();
@@ -100,8 +99,7 @@ public:
 			Free();
 		Init();
 	}
-	virtual ~CZipMemFile(){Close();}
-
+	virtual ~CZipMemFile() { Close(); }
 };
 
 #endif // !defined(AFX_ZIPMEMFILE_H__EA73AB25_6B51_4C5E_8D78_BAC95812598F__INCLUDED_)

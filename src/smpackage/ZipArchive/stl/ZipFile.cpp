@@ -10,14 +10,14 @@
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
-// 
+//
 // For the licensing details see the file License.txt
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "stdafx.h"
 #include "ZipFile.h"
 #include "ZipException.h"
 #include "ZipPlatform.h"
+#include "stdafx.h"
 
 #include <fcntl.h>
 
@@ -30,18 +30,16 @@ CZipFile::CZipFile()
 	m_hFile = -1;
 }
 
-
-
-
-void CZipFile::ThrowError() const
+void
+CZipFile::ThrowError() const
 {
 	CZipException::Throw(errno, m_szFileName);
 }
 
-
-ZIP_ULONGLONG CZipFile::GetLength() const
+ZIP_ULONGLONG
+CZipFile::GetLength() const
 {
-// cannot use Seek here, Seek is not const
+	// cannot use Seek here, Seek is not const
 	long lLen, lCur;
 	lCur = lseek(m_hFile, 0, current);
 	if (lCur == -1)
@@ -52,11 +50,10 @@ ZIP_ULONGLONG CZipFile::GetLength() const
 	if (lLen == -1)
 		ThrowError();
 	return lLen;
-
 }
 
-
-bool CZipFile::Open(LPCTSTR lpszFileName, UINT openFlags, bool bThrow)
+bool
+CZipFile::Open(LPCTSTR lpszFileName, UINT openFlags, bool bThrow)
 {
 	if (!IsClosed())
 		Close();
@@ -70,13 +67,11 @@ bool CZipFile::Open(LPCTSTR lpszFileName, UINT openFlags, bool bThrow)
 		iNewFlags |= O_CREAT;
 	if ((openFlags & CZipFile::modeReadWrite) == CZipFile::modeReadWrite)
 		iNewFlags |= O_RDWR;
-	else if (openFlags & CZipFile::modeRead)
-	{
+	else if (openFlags & CZipFile::modeRead) {
 		// O_RDONLY is defined as 0
 		bReadOnly = true;
 		iNewFlags |= O_RDONLY;
-	}
-	else if (openFlags & CZipFile::modeWrite)
+	} else if (openFlags & CZipFile::modeWrite)
 		iNewFlags |= O_WRONLY;
 
 	if (!(openFlags & CZipFile::modeNoTruncate) && !bReadOnly)
@@ -92,16 +87,16 @@ bool CZipFile::Open(LPCTSTR lpszFileName, UINT openFlags, bool bThrow)
 	return true;
 }
 
-
-void CZipFile::SetLength(ZIP_ULONGLONG nNewLen)
+void
+CZipFile::SetLength(ZIP_ULONGLONG nNewLen)
 {
 	ZipPlatform::TruncateFile(m_hFile, (DWORD)nNewLen);
 }
 
-
-void  CZipFile::Flush()
+void
+CZipFile::Flush()
 {
-	if (!ZipPlatform::FlushFile(m_hFile)) 
+	if (!ZipPlatform::FlushFile(m_hFile))
 		ThrowError();
 }
 

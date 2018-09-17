@@ -6,33 +6,34 @@
 #include "ActorFrame.h"
 #include "AutoActor.h"
 
-
 class MeterDisplay : public ActorFrame
 {
-public:
+  public:
 	MeterDisplay();
-	void Load( const RString &sStreamPath, float fStreamWidth, const RString &sTipPath );
-	void LoadFromNode( const XNode* pNode ) override;
-	MeterDisplay *Copy() const override;
+	void Load(const RString& sStreamPath,
+			  float fStreamWidth,
+			  const RString& sTipPath);
+	void LoadFromNode(const XNode* pNode) override;
+	MeterDisplay* Copy() const override;
 
-	void SetPercent( float fPercent );
-	void SetStreamWidth( float fStreamWidth );
+	void SetPercent(float fPercent);
+	void SetStreamWidth(float fStreamWidth);
 
 	// Lua
-	void PushSelf( lua_State *L ) override;
+	void PushSelf(lua_State* L) override;
 
-private:
-	float	m_fStreamWidth;
-	float	m_fPercent;
-	AutoActor  m_sprStream;
-	AutoActor  m_sprTip;
+  private:
+	float m_fStreamWidth;
+	float m_fPercent;
+	AutoActor m_sprStream;
+	AutoActor m_sprTip;
 };
 
-class SongMeterDisplay: public MeterDisplay 
+class SongMeterDisplay : public MeterDisplay
 {
-public:
-	void Update( float fDeltaTime ) override;
-	SongMeterDisplay *Copy() const override;
+  public:
+	void Update(float fDeltaTime) override;
+	SongMeterDisplay* Copy() const override;
 };
 
 #endif
@@ -40,7 +41,7 @@ public:
 /*
  * (c) 2003-2004 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -50,7 +51,7 @@ public:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

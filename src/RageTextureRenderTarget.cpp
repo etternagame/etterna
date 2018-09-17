@@ -1,10 +1,11 @@
 ﻿#include "global.h"
-#include "RageDisplay.h"
 #include "RageTextureRenderTarget.h"
+#include "RageDisplay.h"
 
-RageTextureRenderTarget::RageTextureRenderTarget( const RageTextureID &name, const RenderTargetParam &param ):
-	RageTexture( name ),
-	m_Param( param )
+RageTextureRenderTarget::RageTextureRenderTarget(const RageTextureID& name,
+												 const RenderTargetParam& param)
+  : RageTexture(name)
+  , m_Param(param)
 {
 	Create();
 }
@@ -14,7 +15,8 @@ RageTextureRenderTarget::~RageTextureRenderTarget()
 	Destroy();
 }
 
-void RageTextureRenderTarget::Reload()
+void
+RageTextureRenderTarget::Reload()
 {
 	Destroy();
 	Create();
@@ -24,12 +26,14 @@ void RageTextureRenderTarget::Reload()
  * any of that, except as a unique identifier for this texture, so it can be
  * loaded elsewhere. Render targets can't be loaded blindly like a regular
  * texture, anyway, since something has to render into it. */
-void RageTextureRenderTarget::Create()
+void
+RageTextureRenderTarget::Create()
 {
 	/* All render targets support non-power-of-two targets,
 	 * but some require that the resulting texture dimensions be powers of two.
 	 * CreateRenderTarget returns the actual resolution. */
-	m_iTexHandle = DISPLAY->CreateRenderTarget( m_Param, m_iTextureWidth, m_iTextureHeight );
+	m_iTexHandle =
+	  DISPLAY->CreateRenderTarget(m_Param, m_iTextureWidth, m_iTextureHeight);
 
 	m_iSourceWidth = m_Param.iWidth;
 	m_iSourceHeight = m_Param.iHeight;
@@ -40,62 +44,74 @@ void RageTextureRenderTarget::Create()
 	CreateFrameRects();
 }
 
-void RageTextureRenderTarget::Destroy()
+void
+RageTextureRenderTarget::Destroy()
 {
-	DISPLAY->DeleteTexture( m_iTexHandle );
+	DISPLAY->DeleteTexture(m_iTexHandle);
 }
 
-void RageTextureRenderTarget::BeginRenderingTo( bool bPreserveTexture )
+void
+RageTextureRenderTarget::BeginRenderingTo(bool bPreserveTexture)
 {
-	m_iPreviousRenderTarget = DISPLAY->GetRenderTarget( );
-	DISPLAY->SetRenderTarget( m_iTexHandle, bPreserveTexture );
+	m_iPreviousRenderTarget = DISPLAY->GetRenderTarget();
+	DISPLAY->SetRenderTarget(m_iTexHandle, bPreserveTexture);
 
 	/* We're rendering to a texture, not the framebuffer.
 	 * Stash away the centering matrix, and set it to identity. */
 	DISPLAY->CenteringPushMatrix();
-	DISPLAY->ChangeCentering( 0, 0, 0, 0 );
+	DISPLAY->ChangeCentering(0, 0, 0, 0);
 
 	// Reset the perspective to fit the new target.
 	DISPLAY->CameraPushMatrix();
-	DISPLAY->LoadMenuPerspective( 0, static_cast<float>( m_iImageWidth), static_cast<float>( m_iImageHeight), static_cast<float>( m_iImageWidth)/2, static_cast<float>( m_iImageHeight)/2 ); // 0 FOV = ortho
+	DISPLAY->LoadMenuPerspective(0,
+								 static_cast<float>(m_iImageWidth),
+								 static_cast<float>(m_iImageHeight),
+								 static_cast<float>(m_iImageWidth) / 2,
+								 static_cast<float>(m_iImageHeight) /
+								   2); // 0 FOV = ortho
 
 	DISPLAY->PushMatrix();
 	DISPLAY->LoadIdentity();
 }
 
-void RageTextureRenderTarget::FinishRenderingTo()
+void
+RageTextureRenderTarget::FinishRenderingTo()
 {
 	// Restore the matrixes.
 	DISPLAY->CenteringPopMatrix();
 	DISPLAY->CameraPopMatrix();
 	DISPLAY->PopMatrix();
 
-	DISPLAY->SetRenderTarget( m_iPreviousRenderTarget );
+	DISPLAY->SetRenderTarget(m_iPreviousRenderTarget);
 }
 
 // lua start
 #include "LuaBinding.h"
 
-/** @brief Allow Lua to have access to the RageTextureRenderTarget. */ 
-class LunaRageTextureRenderTarget: public Luna<RageTextureRenderTarget>
+/** @brief Allow Lua to have access to the RageTextureRenderTarget. */
+class LunaRageTextureRenderTarget : public Luna<RageTextureRenderTarget>
 {
-public:
-	static int BeginRenderingTo( T* p, lua_State *L )
+  public:
+	static int BeginRenderingTo(T* p, lua_State* L)
 	{
-		bool bPreserveTexture = !!luaL_opt( L, lua_toboolean, 1, false );
-		p->BeginRenderingTo( bPreserveTexture );
+		bool bPreserveTexture = !!luaL_opt(L, lua_toboolean, 1, false);
+		p->BeginRenderingTo(bPreserveTexture);
 		COMMON_RETURN_SELF;
 	}
-	static int FinishRenderingTo( T* p, lua_State *L )	{ p->FinishRenderingTo(); COMMON_RETURN_SELF; }
+	static int FinishRenderingTo(T* p, lua_State* L)
+	{
+		p->FinishRenderingTo();
+		COMMON_RETURN_SELF;
+	}
 
 	LunaRageTextureRenderTarget()
 	{
-		ADD_METHOD( BeginRenderingTo );
-		ADD_METHOD( FinishRenderingTo );
+		ADD_METHOD(BeginRenderingTo);
+		ADD_METHOD(FinishRenderingTo);
 	}
 };
 
-LUA_REGISTER_DERIVED_CLASS( RageTextureRenderTarget, RageTexture )
+LUA_REGISTER_DERIVED_CLASS(RageTextureRenderTarget, RageTexture)
 // lua end
 
 /*

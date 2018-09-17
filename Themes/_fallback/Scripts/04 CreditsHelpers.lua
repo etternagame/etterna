@@ -19,54 +19,54 @@ local function Fooled()
 	return phrases[math.random(#phrases)]
 end
 
-local line_height= 30 -- so that actor logos can use it.
+local line_height = 30 -- so that actor logos can use it.
 
-local stepmania_credits= {
+local stepmania_credits = {
 	{
-		name= "the spinal shark collective (project lead)",
+		name = "the spinal shark collective (project lead)",
 		"AJ Kelly as freem",
 		"Jonathan Payne (Midiman)",
-		"Colby Klein (shakesoda)",
+		"Colby Klein (shakesoda)"
 	},
 	{
-		name= "sm-ssc Team",
+		name = "sm-ssc Team",
 		"Jason Felds (wolfman2000)", -- Timing Segments, Split Timing, optimization
 		"Thai Pangsakulyanont (theDtTvB)", -- BMS, Split Timing, optimization
 		"Alberto Ramos (Daisuke Master)",
-		"Jack Walstrom (FSX)",
+		"Jack Walstrom (FSX)"
 	},
 	{
-		name= "StepMania Team",
+		name = "StepMania Team",
 		"Chris Danford",
 		"Glenn Maynard",
-		"Steve Checkoway",
+		"Steve Checkoway"
 		-- and various other contributors
 	},
 	{
-		name= "OpenITG Team",
+		name = "OpenITG Team",
 		"infamouspat",
-		"Mark Cannon (vyhd)",
+		"Mark Cannon (vyhd)"
 	},
 	{
-		name= "Translators",
-		{type= "subsection", name= "Pre-5.0.5"},
+		name = "Translators",
+		{type = "subsection", name = "Pre-5.0.5"},
 		"John Reactor (Polish)",
 		"DHalens (Spanish)",
 		"@Niler_jp (Japanese)",
 		"Deamon007 (Dutch)",
-		{type= "subsection", name= "5.0.5 update"},
+		{type = "subsection", name = "5.0.5 update"},
 		"Kevin O. (Thumbsy) (Dutch)",
 		"Grégory Doche (French)",
 		"Jarosław Pietras (Polish)",
 		"Alejandro G. de la Muñoza (Spanish)",
 		"Raymund Zacharias (German)",
-		{type= "subsection", name= "5.0.10 update"},
+		{type = "subsection", name = "5.0.10 update"},
 		"Milène Gauthier-Sabourin (Arvaneth) (French)",
-		{type= "subsection", name= "5.0.11 update"},
-		"Joel Robert Justiawan (JOELwindows7) (Indonesian)",
+		{type = "subsection", name = "5.0.11 update"},
+		"Joel Robert Justiawan (JOELwindows7) (Indonesian)"
 	},
 	{
-		name= "Other Contributors",
+		name = "Other Contributors",
 		"Aldo Fregoso (Aldo_MX)", -- delays and much more. StepMania AMX creator
 		"Alfred Sorenson", -- new lua bindings
 		"A.C/@waiei", -- custom scoring fixes + Hybrid scoring
@@ -84,7 +84,7 @@ local stepmania_credits= {
 		"juanelote", -- SongManager:GetSongGroupByIndex, JumpToNext/PrevGroup logic mods
 		"Kaox", -- pump/default noteskin
 		-- Add Graphics/CreditsLogo name.png and change your entry to a table like this to look super pro.
-		{logo= "kyzentun", name= "Kyzentun"}, -- new lua bindings, theme documentation
+		{logo = "kyzentun", name = "Kyzentun"}, -- new lua bindings, theme documentation
 		"Mad Matt", -- new lua bindings
 		"Matt McCutchen", -- minor fix for some dance pads on linux
 		"NitroX72", -- pump/frame noteskin
@@ -96,10 +96,10 @@ local stepmania_credits= {
 		"Samuel Kim (1a2a3a2a1a)", -- various beat mode fixes
 		"tuxdude", -- minor changes to service menu layout
 		"v1toko", -- x-mode from StepNXA
-		"Wallacoloo", -- delete songs, other fixes
+		"Wallacoloo" -- delete songs, other fixes
 	},
 	{
-		name= "Special Thanks",
+		name = "Special Thanks",
 		"A Pseudonymous Coder", -- support
 		"Bill Shillito (DM Ashura)", -- Music (not yet though)
 		"cpubasic13", -- testing (a lot)
@@ -110,103 +110,103 @@ local stepmania_credits= {
 		"Matt1360", -- Automake magic + oitg bro
 		"Renard",
 		"Ryan McKanna (Plaguefox)",
-		"Sta Kousin", --help with Japanese bug reports
+		"Sta Kousin" --help with Japanese bug reports
 	},
 	{
-		name= "Shoutouts",
+		name = "Shoutouts",
 		"The Lua team", -- lua project lead or some shit. super nerdy but oh hell.
-		{logo= "mojang", name= "Mojang AB"}, -- minecraft forever -freem
+		{logo = "mojang", name = "Mojang AB"}, -- minecraft forever -freem
 		"Wolfire Games", -- piles of inspiration
 		"NAKET Coder",
 		"Ciera Boyd", -- you bet your ass I'm putting my girlfriend in the credits -shakesoda
 		"#KBO",
 		"Celestia Radio", -- LOVE AND TOLERANCE
 		"Perkedel Corporation", -- Joel's company.
-		"You showed us... your ultimate dance",
-	},
+		"You showed us... your ultimate dance"
+	}
 }
 
-local kyzentuns_fancy_value= 16
+local kyzentuns_fancy_value = 16
 
-local special_logos= {
-	kyzentun= Def.ActorMultiVertex{
-		Name= "logo",
-		Texture= THEME:GetPathG("CreditsLogo", "kyzentun"),
-		OnCommand= function(self)
-			self:SetDrawState{Mode= "DrawMode_Quads"}
-			kyzentuns_fancy_value= math.random(2, 32)
-			self:playcommand("fancy", {state= 0})
+local special_logos = {
+	kyzentun = Def.ActorMultiVertex {
+		Name = "logo",
+		Texture = THEME:GetPathG("CreditsLogo", "kyzentun"),
+		OnCommand = function(self)
+			self:SetDrawState {Mode = "DrawMode_Quads"}
+			kyzentuns_fancy_value = math.random(2, 32)
+			self:playcommand("fancy", {state = 0})
 			self:queuecommand("normal_state")
 		end,
-		fancyCommand= function(self, params)
-			local verts= {}
-			local rlh= line_height - 2
-			local sx= rlh * -1
-			local sy= rlh * -.5
-			local sp= rlh / kyzentuns_fancy_value
-			local spt= 1 / kyzentuns_fancy_value
-			local c= color("#ffffff")
-			for x= 1, kyzentuns_fancy_value do
-				local lx= sx + (sp * (x-1))
-				local rx= sx + (sp * x)
-				local ltx= spt * (x-1)
-				local rtx= spt * x
-				for y= 1, kyzentuns_fancy_value do
-					local ty= sy + (sp * (y-1))
-					local by= sy + (sp * y)
-					local tty= spt * (y-1)
-					local bty= spt * y
+		fancyCommand = function(self, params)
+			local verts = {}
+			local rlh = line_height - 2
+			local sx = rlh * -1
+			local sy = rlh * -.5
+			local sp = rlh / kyzentuns_fancy_value
+			local spt = 1 / kyzentuns_fancy_value
+			local c = color("#ffffff")
+			for x = 1, kyzentuns_fancy_value do
+				local lx = sx + (sp * (x - 1))
+				local rx = sx + (sp * x)
+				local ltx = spt * (x - 1)
+				local rtx = spt * x
+				for y = 1, kyzentuns_fancy_value do
+					local ty = sy + (sp * (y - 1))
+					local by = sy + (sp * y)
+					local tty = spt * (y - 1)
+					local bty = spt * y
 					if params.state == 1 then
-						ltx= 0
-						rtx= 1
-						tty= 0
-						bty= 1
+						ltx = 0
+						rtx = 1
+						tty = 0
+						bty = 1
 					end
-					verts[#verts+1]= {{lx, ty, 0}, {ltx, tty}, c}
-					verts[#verts+1]= {{rx, ty, 0}, {rtx, tty}, c}
-					verts[#verts+1]= {{rx, by, 0}, {rtx, bty}, c}
-					verts[#verts+1]= {{lx, by, 0}, {ltx, bty}, c}
+					verts[#verts + 1] = {{lx, ty, 0}, {ltx, tty}, c}
+					verts[#verts + 1] = {{rx, ty, 0}, {rtx, tty}, c}
+					verts[#verts + 1] = {{rx, by, 0}, {rtx, bty}, c}
+					verts[#verts + 1] = {{lx, by, 0}, {ltx, bty}, c}
 				end
 			end
 			self:SetVertices(verts)
 		end,
-		normal_stateCommand= function(self)
+		normal_stateCommand = function(self)
 			self:linear(1)
-			self:playcommand("fancy", {state= 0})
+			self:playcommand("fancy", {state = 0})
 			self:queuecommand("split_state")
 		end,
-		split_stateCommand= function(self)
+		split_stateCommand = function(self)
 			self:linear(1)
-			self:playcommand("fancy", {state= 1})
+			self:playcommand("fancy", {state = 1})
 			self:queuecommand("normal_state")
-		end,
-	},
-	mojang= Def.Actor{
-		Name= "logo",
-		OnCommand= function(self)
-			self:GetParent():GetChild("name"):distort(.25) -- minecraft is broken, -kyz
 		end
 	},
+	mojang = Def.Actor {
+		Name = "logo",
+		OnCommand = function(self)
+			self:GetParent():GetChild("name"):distort(.25) -- minecraft is broken, -kyz
+		end
+	}
 }
 
 -- Go through the credits and swap in the special logos.
 for section in ivalues(stepmania_credits) do
 	for entry in ivalues(section) do
 		if type(entry) == "table" and special_logos[entry.logo] then
-			entry.logo= special_logos[entry.logo]
+			entry.logo = special_logos[entry.logo]
 		end
 	end
 end
 
 local function position_logo(self)
-	local name= self:GetParent():GetChild("name")
-	local name_width= name:GetZoomedWidth()
-	local logo_width= self:GetZoomedWidth()
+	local name = self:GetParent():GetChild("name")
+	local name_width = name:GetZoomedWidth()
+	local logo_width = self:GetZoomedWidth()
 	self:x(0 - (name_width / 2) - 4 - (logo_width / 2))
 end
 
-StepManiaCredits= {
-	AddSection= function(section, pos, insert_before)
+StepManiaCredits = {
+	AddSection = function(section, pos, insert_before)
 		if not section.name then
 			lua.ReportScriptError("A section being added to the credits must have a name field.")
 			return
@@ -218,7 +218,7 @@ StepManiaCredits= {
 		if type(pos) == "string" then
 			for i, section in ipairs(stepmania_credits) do
 				if section.name == pos then
-					pos= i -- insert_after is default behavior
+					pos = i -- insert_after is default behavior
 				end
 			end
 		end
@@ -226,9 +226,9 @@ StepManiaCredits= {
 			lua.ReportScriptError("Credits section '" .. tostring(pos) .. " not found, cannot use position to add new section.")
 			return
 		end
-		pos= pos or #stepmania_credits
+		pos = pos or #stepmania_credits
 		if insert_before then
-			pos= pos - 1
+			pos = pos - 1
 		end
 		-- table.insert does funny things if you pass an index <= 0
 		if pos < 1 then
@@ -237,37 +237,41 @@ StepManiaCredits= {
 		end
 		table.insert(stepmania_credits, pos, section)
 	end,
-	AddLineToScroller= function(scroller, text, command)
+	AddLineToScroller = function(scroller, text, command)
 		if type(scroller) ~= "table" then
 			lua.ReportScriptError("scroller passed to AddLineToScroller must be an actor table.")
 			return
 		end
 		local actor_to_insert
 		if type(text) == "string" or not text then
-			actor_to_insert= Def.ActorFrame{
-				Def.BitmapText{
-					Font= "Common Normal",
-					Text = text or "";
-					OnCommand = command or lineOn;
+			actor_to_insert =
+				Def.ActorFrame {
+				Def.BitmapText {
+					Font = "Common Normal",
+					Text = text or "",
+					OnCommand = command or lineOn
 				}
 			}
 		elseif type(text) == "table" then
-			actor_to_insert= Def.ActorFrame{
-				Def.BitmapText{
-					Name= "name", Font= "Common Normal",
+			actor_to_insert =
+				Def.ActorFrame {
+				Def.BitmapText {
+					Name = "name",
+					Font = "Common Normal",
 					Text = text.name or "",
-					InitCommand = command or lineOn,
-				},
+					InitCommand = command or lineOn
+				}
 			}
 			if text.logo then
 				if type(text.logo) == "string" then
-					actor_to_insert[#actor_to_insert+1]= Def.Sprite{
-						Name= "logo",
-						InitCommand= function(self)
+					actor_to_insert[#actor_to_insert + 1] =
+						Def.Sprite {
+						Name = "logo",
+						InitCommand = function(self)
 							-- Use LoadBanner to disable the odd dimension warning.
 							self:LoadBanner(THEME:GetPathG("CreditsLogo", text.logo))
 							-- Scale to slightly less than the line height for padding.
-							local yscale= (line_height-2) / self:GetHeight()
+							local yscale = (line_height - 2) / self:GetHeight()
 							self:zoom(yscale)
 							-- Position logo to the left of the name.
 							position_logo(self)
@@ -275,32 +279,32 @@ StepManiaCredits= {
 					}
 				else -- assume logo is an actor
 					-- Insert positioning InitCommand.
-					text.logo.InitCommand= position_logo
-					actor_to_insert[#actor_to_insert+1]= text.logo
+					text.logo.InitCommand = position_logo
+					actor_to_insert[#actor_to_insert + 1] = text.logo
 				end
 			end
 		end
 		table.insert(scroller, actor_to_insert)
 	end,
-	Get= function()
+	Get = function()
 		-- Copy the base credits and add the copyright message at the end.
-		local ret= DeepCopy(stepmania_credits)
-		ret[#ret+1]= StepManiaCredits.RandomCopyrightMessage()
+		local ret = DeepCopy(stepmania_credits)
+		ret[#ret + 1] = StepManiaCredits.RandomCopyrightMessage()
 		return ret
 	end,
-	RandomCopyrightMessage= function()
+	RandomCopyrightMessage = function()
 		return {
-			name= "Copyright",
+			name = "Copyright",
 			"StepMania is released under the terms of the MIT license.",
 			"If you paid for the program you've been " .. Fooled() .. ".",
 			"All content is the sole property of their respectful owners."
 		}
 	end,
-	SetLineHeight= function(height)
+	SetLineHeight = function(height)
 		if type(height) ~= "number" then
 			lua.ReportScriptError("height passed to StepManiaCredits.SetLineHeight must be a number.")
 			return
 		end
-		line_height= height
+		line_height = height
 	end
 }

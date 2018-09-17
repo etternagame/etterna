@@ -93,10 +93,12 @@
 /* Defined to 1 if the underlying system provides the posix_fadvise function. */
 #cmakedefine HAVE_POSIX_FADVISE 1
 
-/* Defined to 1 if the underlying system provides the pthread_mutex_timedlock function. */
+/* Defined to 1 if the underlying system provides the pthread_mutex_timedlock
+ * function. */
 #cmakedefine HAVE_PTHREAD_MUTEX_TIMEDLOCK 1
 
-/* Defined to 1 if the underlying system provides the pthread_cond_timedwait function. */
+/* Defined to 1 if the underlying system provides the pthread_cond_timedwait
+ * function. */
 #cmakedefine HAVE_PTHREAD_COND_TIMEDWAIT 1
 
 /* Provide a fallback if intptr_t is not defined. */
@@ -138,7 +140,8 @@ typedef long ssize_t;
 /* Defined to 1 if compiling with OGG support. */
 #cmakedefine HAS_OGG 1
 
-/* Defined to 1 if building on a windows system, and thus uses the windows loading window. */
+/* Defined to 1 if building on a windows system, and thus uses the windows
+ * loading window. */
 #cmakedefine NEED_WINDOWS_LOADING_WINDOW 1
 
 /* Defined to 1 if logging timing segment additions and removals. */
@@ -155,18 +158,18 @@ typedef long ssize_t;
 #define PBS_MARQUEE 0x08
 #endif
 #if !defined(HAVE_PBM_SETMARQUEE)
-#define PBM_SETMARQUEE (WM_USER+10)
+#define PBM_SETMARQUEE (WM_USER + 10)
 #endif
 #endif
 
 #if defined(__GNUC__)
 /** @brief Define a macro to tell the compiler that a function has printf()
  * semantics, to aid warning output. */
-#define PRINTF(a,b) __attribute__((format(__printf__,a,b)))
+#define PRINTF(a, b) __attribute__((format(__printf__, a, b)))
 #define CONST_FUNCTION __attribute__((const))
 #else
 /** @brief A dummy define to keep things going smoothly. */
-#define PRINTF(a,b)
+#define PRINTF(a, b)
 /** @brief A dummy define to keep things going smoothly. */
 #define CONST_FUNCTION
 #endif
@@ -179,7 +182,8 @@ typedef long ssize_t;
 #error "No size limited sprintf function available. Aborting."
 #endif
 
-/* Ensure we have a function that acts like a case insensitive string comparison. */
+/* Ensure we have a function that acts like a case insensitive string
+ * comparison. */
 #if defined(HAVE_STRCASECMP)
 #elif defined(HAVE__STRICMP)
 #define strcasecmp _stricmp
@@ -197,8 +201,8 @@ typedef long ssize_t;
 #if !defined(HAVE_MKDIR)
 #error "No create directory function available. Aborting."
 #else
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #if defined(__MINGW32__) || defined(__MINGW64__)
 #define mkdir(path, mode) mkdir(path)
 #endif
@@ -207,60 +211,108 @@ typedef long ssize_t;
 
 /* Ensure we have a function for raising a number by a power to a float. */
 #if !defined(HAVE_POWF)
-inline float powf( float x, float y ) CONST_FUNCTION;
-float powf( float x, float y ) { return float( pow(double(x), double(y)) ); }
+inline float
+powf(float x, float y) CONST_FUNCTION;
+float
+powf(float x, float y)
+{
+	return float(pow(double(x), double(y)));
+}
 #endif
 
-/* Ensure we have a function for getting the square root of a number to a float. */
+/* Ensure we have a function for getting the square root of a number to a float.
+ */
 #if !defined(HAVE_SQRTF)
-inline float sqrtf( float x ) CONST_FUNCTION;
-float sqrtf( float x ) { return float( sqrt(double(x)) ); }
+inline float
+sqrtf(float x) CONST_FUNCTION;
+float
+sqrtf(float x)
+{
+	return float(sqrt(double(x)));
+}
 #endif
 
 /* Ensure we have a function for getting the sin of a number to a float. */
 #if !defined(HAVE_SINF)
-inline float sinf( float x ) CONST_FUNCTION;
-float sinf( float x ) { return float( sin(double(x)) ); }
+inline float
+sinf(float x) CONST_FUNCTION;
+float
+sinf(float x)
+{
+	return float(sin(double(x)));
+}
 #endif
 
 /* Ensure we have a function for getting the tan of a number to a float. */
 #if !defined(HAVE_TANF)
-inline float tanf( float x ) CONST_FUNCTION;
-float tanf( float x ) { return float( tan(double(x)) ); }
+inline float
+tanf(float x) CONST_FUNCTION;
+float
+tanf(float x)
+{
+	return float(tan(double(x)));
+}
 #endif
 
 /* Ensure we have a function for getting the cos of a number to a float. */
 #if !defined(HAVE_COSF)
-inline float cosf( float x ) CONST_FUNCTION;
-float cosf( float x ){ return float( cos(double(x)) ); }
+inline float
+cosf(float x) CONST_FUNCTION;
+float
+cosf(float x)
+{
+	return float(cos(double(x)));
+}
 #endif
 
 /* Ensure we have a function for getting the arc cos of a number to a float. */
 #if !defined(HAVE_ACOSF)
-inline float acosf( float x ) CONST_FUNCTION;
-float acosf( float x ) { return float( acos(double(x)) ); }
+inline float
+acosf(float x) CONST_FUNCTION;
+float
+acosf(float x)
+{
+	return float(acos(double(x)));
+}
 #endif
 
 /* Ensure we have a function for truncating a number to a float. */
 #if !defined(HAVE_TRUNCF)
-inline float truncf( float f ) CONST_FUNCTION;
-float truncf( float f ) { return float( int(f) ); }
+inline float
+truncf(float f) CONST_FUNCTION;
+float
+truncf(float f)
+{
+	return float(int(f));
+}
 #endif
 
 /* Ensure we have a function for rounding a number to a float. */
 #if !defined(HAVE_ROUNDF)
-inline float roundf( float f ) CONST_FUNCTION;
-float roundf( float f ) { if( f < 0.0f ) return truncf( f-0.5f ); return truncf( f+0.5f ); }
+inline float
+roundf(float f) CONST_FUNCTION;
+float
+roundf(float f)
+{
+	if (f < 0.0f)
+		return truncf(f - 0.5f);
+	return truncf(f + 0.5f);
+}
 #endif
 
 /* Ensure we have a function for converting a string to a float. */
 #if !defined(HAVE_STRTOF)
-inline float strtof( const char *s, char **se ) { return (float) strtod( s, se ); }
+inline float
+strtof(const char* s, char** se)
+{
+	return (float)strtod(s, se);
+}
 #endif
 
 #if !defined(HAVE_LRINTF)
 #if defined(_MSC_VER)
-inline long lrintf( float f )
+inline long
+lrintf(float f)
 {
 	int retval;
 
@@ -275,7 +327,8 @@ inline long lrintf( float f )
 #endif
 
 #if !defined(HAVE_M_PI)
-/* This is only called if the math header files don't include it: stating it here is fine. */
+/* This is only called if the math header files don't include it: stating it
+ * here is fine. */
 #define M_PI 3.1415926535897932384626433832795
 #endif
 

@@ -1,264 +1,270 @@
-#include "global.h"
+#include "ScreenSelectProfile.h"
 #include "GameState.h"
 #include "InputEventPlus.h"
 #include "ProfileManager.h"
 #include "ScreenManager.h"
-#include "ScreenSelectProfile.h"
+#include "global.h"
 
-REGISTER_SCREEN_CLASS( ScreenSelectProfile );
+REGISTER_SCREEN_CLASS(ScreenSelectProfile);
 
-void ScreenSelectProfile::Init()
+void
+ScreenSelectProfile::Init()
 {
-	FOREACH_PlayerNumber( p )
+	FOREACH_PlayerNumber(p)
 	{
 		// no selection initially
-		m_iSelectedProfiles[p]=-1;
+		m_iSelectedProfiles[p] = -1;
 	}
 	m_TrackingRepeatingInput = GameButton_Invalid;
 	ScreenWithMenuElements::Init();
 }
 
-bool ScreenSelectProfile::Input( const InputEventPlus &input )
+bool
+ScreenSelectProfile::Input(const InputEventPlus& input)
 {
-	if( IsTransitioning() )
+	if (IsTransitioning())
 		return false;
 
-	return ScreenWithMenuElements::Input( input );
+	return ScreenWithMenuElements::Input(input);
 }
 
-bool ScreenSelectProfile::MenuLeft( const InputEventPlus &input )
+bool
+ScreenSelectProfile::MenuLeft(const InputEventPlus& input)
 {
 	PlayerNumber pn = input.pn;
-	if( m_fLockInputSecs > 0 )
+	if (m_fLockInputSecs > 0)
 		return false;
-	if( input.type == IET_RELEASE )
+	if (input.type == IET_RELEASE)
 		return false;
-	if( input.type != IET_FIRST_PRESS )
-	{
+	if (input.type != IET_FIRST_PRESS) {
 		/*
-		if( !ALLOW_REPEATING_INPUT )
-			return false;
-		*/
-		if( m_TrackingRepeatingInput != input.MenuI )
+			if( !ALLOW_REPEATING_INPUT )
+				return false;
+			*/
+		if (m_TrackingRepeatingInput != input.MenuI)
 			return false;
 	}
 	m_TrackingRepeatingInput = input.MenuI;
-	MESSAGEMAN->Broadcast( static_cast<MessageID>(Message_MenuLeftP1+pn) );
+	MESSAGEMAN->Broadcast(static_cast<MessageID>(Message_MenuLeftP1 + pn));
 	return true;
 }
 
-bool ScreenSelectProfile::MenuRight( const InputEventPlus &input )
+bool
+ScreenSelectProfile::MenuRight(const InputEventPlus& input)
 {
 	PlayerNumber pn = input.pn;
-	if( m_fLockInputSecs > 0 )
+	if (m_fLockInputSecs > 0)
 		return false;
-	if( input.type == IET_RELEASE )
+	if (input.type == IET_RELEASE)
 		return false;
-	if( input.type != IET_FIRST_PRESS )
-	{
+	if (input.type != IET_FIRST_PRESS) {
 		/*
-		if( !ALLOW_REPEATING_INPUT )
-			return false;
-		*/
-		if( m_TrackingRepeatingInput != input.MenuI )
+			if( !ALLOW_REPEATING_INPUT )
+				return false;
+			*/
+		if (m_TrackingRepeatingInput != input.MenuI)
 			return false;
 	}
 	m_TrackingRepeatingInput = input.MenuI;
-	MESSAGEMAN->Broadcast( static_cast<MessageID>(Message_MenuRightP1+pn) );
+	MESSAGEMAN->Broadcast(static_cast<MessageID>(Message_MenuRightP1 + pn));
 	return true;
 }
 
-bool ScreenSelectProfile::MenuUp( const InputEventPlus &input )
+bool
+ScreenSelectProfile::MenuUp(const InputEventPlus& input)
 {
 	PlayerNumber pn = input.pn;
-	if( m_fLockInputSecs > 0 )
+	if (m_fLockInputSecs > 0)
 		return false;
-	if( input.type == IET_RELEASE )
+	if (input.type == IET_RELEASE)
 		return false;
-	if( input.type != IET_FIRST_PRESS )
-	{
+	if (input.type != IET_FIRST_PRESS) {
 		/*
-		if( !ALLOW_REPEATING_INPUT )
-			return false;
-		*/
-		if( m_TrackingRepeatingInput != input.MenuI )
+			if( !ALLOW_REPEATING_INPUT )
+				return false;
+			*/
+		if (m_TrackingRepeatingInput != input.MenuI)
 			return false;
 	}
 	m_TrackingRepeatingInput = input.MenuI;
-	MESSAGEMAN->Broadcast( static_cast<MessageID>(Message_MenuUpP1+pn) );
+	MESSAGEMAN->Broadcast(static_cast<MessageID>(Message_MenuUpP1 + pn));
 	return true;
 }
 
-bool ScreenSelectProfile::MenuDown( const InputEventPlus &input )
+bool
+ScreenSelectProfile::MenuDown(const InputEventPlus& input)
 {
 	PlayerNumber pn = input.pn;
-	if( m_fLockInputSecs > 0 )
+	if (m_fLockInputSecs > 0)
 		return false;
-	if( input.type == IET_RELEASE )
+	if (input.type == IET_RELEASE)
 		return false;
-	if( input.type != IET_FIRST_PRESS )
-	{
+	if (input.type != IET_FIRST_PRESS) {
 		/*
-		if( !ALLOW_REPEATING_INPUT )
-			return false;
-		*/
-		if( m_TrackingRepeatingInput != input.MenuI )
+			if( !ALLOW_REPEATING_INPUT )
+				return false;
+			*/
+		if (m_TrackingRepeatingInput != input.MenuI)
 			return false;
 	}
 	m_TrackingRepeatingInput = input.MenuI;
-	MESSAGEMAN->Broadcast( static_cast<MessageID>(Message_MenuDownP1+pn) );
+	MESSAGEMAN->Broadcast(static_cast<MessageID>(Message_MenuDownP1 + pn));
 	return true;
 }
 
-bool ScreenSelectProfile::SetProfileIndex( PlayerNumber pn, int iProfileIndex )
+bool
+ScreenSelectProfile::SetProfileIndex(PlayerNumber pn, int iProfileIndex)
 {
-	if( !GAMESTATE->IsHumanPlayer( pn ) )
-	{
-		if( iProfileIndex == -1 )
-		{
-			GAMESTATE->JoinPlayer( pn );
+	if (!GAMESTATE->IsHumanPlayer(pn)) {
+		if (iProfileIndex == -1) {
+			GAMESTATE->JoinPlayer(pn);
 			SCREENMAN->PlayStartSound();
 			return true;
 		}
 		return false;
 	}
 
-	if( iProfileIndex > PROFILEMAN->GetNumLocalProfiles() )
+	if (iProfileIndex > PROFILEMAN->GetNumLocalProfiles())
 		return false;
 
 	// wrong selection
-	if( iProfileIndex < -2 )
+	if (iProfileIndex < -2)
 		return false;
 
 	// unload player
-	if( iProfileIndex == -2 )
-	{
+	if (iProfileIndex == -2) {
 		// GAMESTATE->UnjoinPlayer takes care of unloading the profile.
-		GAMESTATE->UnjoinPlayer( pn );
-		m_iSelectedProfiles[pn]=-1;
+		GAMESTATE->UnjoinPlayer(pn);
+		m_iSelectedProfiles[pn] = -1;
 		return true;
 	}
 
-	m_iSelectedProfiles[pn]=iProfileIndex;
+	m_iSelectedProfiles[pn] = iProfileIndex;
 
 	return true;
 }
 
-bool ScreenSelectProfile::Finish(){
-	if( GAMESTATE->GetNumPlayersEnabled() == 0 )
+bool
+ScreenSelectProfile::Finish()
+{
+	if (GAMESTATE->GetNumPlayersEnabled() == 0)
 		return false;
 
 	// if profile indexes are the same for both players
-	if( GAMESTATE->GetNumPlayersEnabled() == 2 && m_iSelectedProfiles[0] == m_iSelectedProfiles[1] && m_iSelectedProfiles[0] > 0 )
+	if (GAMESTATE->GetNumPlayersEnabled() == 2 &&
+		m_iSelectedProfiles[0] == m_iSelectedProfiles[1] &&
+		m_iSelectedProfiles[0] > 0)
 		return false;
 
 	int iUsedLocalProfiles = 0;
 	int iUnselectedProfiles = 0;
 
-	FOREACH_PlayerNumber( p )
+	FOREACH_PlayerNumber(p)
 	{
 		// not all players has made their choices
-		if( GAMESTATE->IsHumanPlayer( p ) && ( m_iSelectedProfiles[p] == -1 ) )
+		if (GAMESTATE->IsHumanPlayer(p) && (m_iSelectedProfiles[p] == -1))
 			iUnselectedProfiles++;
 
 		// card not ready
-		if( m_iSelectedProfiles[p] == 0)
+		if (m_iSelectedProfiles[p] == 0)
 			return false;
 
 		// profile index too big
-		if( m_iSelectedProfiles[p] > PROFILEMAN->GetNumLocalProfiles() )
+		if (m_iSelectedProfiles[p] > PROFILEMAN->GetNumLocalProfiles())
 			return false;
 
 		// inc used profile count
-		if( m_iSelectedProfiles[p] > 0 )
+		if (m_iSelectedProfiles[p] > 0)
 			iUsedLocalProfiles++;
 	}
 
-	// this allows to continue if there is less local profiles than number of human players
-	if( (iUnselectedProfiles != 0) && iUsedLocalProfiles < PROFILEMAN->GetNumLocalProfiles() )
+	// this allows to continue if there is less local profiles than number of
+	// human players
+	if ((iUnselectedProfiles != 0) &&
+		iUsedLocalProfiles < PROFILEMAN->GetNumLocalProfiles())
 		return false;
 
 	// all ok - load profiles and go to next screen
-	FOREACH_PlayerNumber( p )
+	FOREACH_PlayerNumber(p)
 	{
-		PROFILEMAN->UnloadProfile( p );
+		PROFILEMAN->UnloadProfile(p);
 
-		if( m_iSelectedProfiles[p] > 0 )
-		{
-			PROFILEMAN->m_sDefaultLocalProfileID[p].Set( PROFILEMAN->GetLocalProfileIDFromIndex( m_iSelectedProfiles[p] - 1 ) );
-			PROFILEMAN->LoadLocalProfileFromMachine( p );
+		if (m_iSelectedProfiles[p] > 0) {
+			PROFILEMAN->m_sDefaultLocalProfileID[p].Set(
+			  PROFILEMAN->GetLocalProfileIDFromIndex(m_iSelectedProfiles[p] -
+													 1));
+			PROFILEMAN->LoadLocalProfileFromMachine(p);
 			GAMESTATE->LoadCurrentSettingsFromProfile(p);
 		}
 	}
-	StartTransitioningScreen( SM_GoToNextScreen );
+	StartTransitioningScreen(SM_GoToNextScreen);
 	return true;
 }
 
-void ScreenSelectProfile::HandleScreenMessage( const ScreenMessage SM )
+void
+ScreenSelectProfile::HandleScreenMessage(const ScreenMessage SM)
 {
-	if( SM == SM_MenuTimer )
-	{
+	if (SM == SM_MenuTimer) {
 		bool bFinished = Finish();
-		if( !bFinished )
-		{
+		if (!bFinished) {
 			// TODO: we need to decide how to handle unfinished business.
 		}
 	}
 
-	ScreenWithMenuElements::HandleScreenMessage( SM );
+	ScreenWithMenuElements::HandleScreenMessage(SM);
 }
 
 // lua start
 #include "LuaBinding.h"
 
-/** @brief Allow Lua to have access to the ScreenSelectProfile. */ 
-class LunaScreenSelectProfile: public Luna<ScreenSelectProfile>
+/** @brief Allow Lua to have access to the ScreenSelectProfile. */
+class LunaScreenSelectProfile : public Luna<ScreenSelectProfile>
 {
-public:
-	static int SetProfileIndex( T* p, lua_State *L )
+  public:
+	static int SetProfileIndex(T* p, lua_State* L)
 	{
 		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
 		int iProfileIndex = IArg(2);
-		bool bRet = p->SetProfileIndex( pn, iProfileIndex );
-		LuaHelpers::Push( L, bRet );
+		bool bRet = p->SetProfileIndex(pn, iProfileIndex);
+		LuaHelpers::Push(L, bRet);
 		return 1;
 	}
 
-	static int GetProfileIndex( T* p, lua_State *L )
+	static int GetProfileIndex(T* p, lua_State* L)
 	{
 		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1);
-		LuaHelpers::Push( L, p->GetProfileIndex( pn ) );
+		LuaHelpers::Push(L, p->GetProfileIndex(pn));
 		return 1;
 	}
 
-	static int Finish( T* p, lua_State *L )
+	static int Finish(T* p, lua_State* L)
 	{
 		bool bRet = p->Finish();
-		LuaHelpers::Push( L, bRet );
+		LuaHelpers::Push(L, bRet);
 		return 1;
 	}
 
-	static int Cancel( T* p, lua_State *L )
+	static int Cancel(T* p, lua_State* L)
 	{
-		p->Cancel( SM_GoToPrevScreen );
+		p->Cancel(SM_GoToPrevScreen);
 		return 1;
 	}
 
 	LunaScreenSelectProfile()
 	{
-		ADD_METHOD( SetProfileIndex );
-		ADD_METHOD( GetProfileIndex );
-		ADD_METHOD( Finish );
-		ADD_METHOD( Cancel );
+		ADD_METHOD(SetProfileIndex);
+		ADD_METHOD(GetProfileIndex);
+		ADD_METHOD(Finish);
+		ADD_METHOD(Cancel);
 	}
 };
 
-LUA_REGISTER_DERIVED_CLASS( ScreenSelectProfile, ScreenWithMenuElements )
+LUA_REGISTER_DERIVED_CLASS(ScreenSelectProfile, ScreenWithMenuElements)
 
 /*
  * Copyright (c) 2007 vdl
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -268,7 +274,7 @@ LUA_REGISTER_DERIVED_CLASS( ScreenSelectProfile, ScreenWithMenuElements )
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

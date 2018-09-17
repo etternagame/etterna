@@ -2,12 +2,13 @@
 #define ARCH_SETUP_DARWIN_H
 
 // Replace the main function.
-extern "C" int sm_main( int argc, char *argv[] );
+extern "C" int
+sm_main(int argc, char* argv[]);
 
 #define HAVE_CXA_DEMANGLE
 #define HAVE_PTHREAD_COND_TIMEDWAIT
-/* This must be defined to 1 because autoconf's AC_CHECK_DECLS macro decides to define
- * this in all cases. If only they could be consistent... */
+/* This must be defined to 1 because autoconf's AC_CHECK_DECLS macro decides to
+ * define this in all cases. If only they could be consistent... */
 #define HAVE_DECL_SIGUSR1 1
 
 #define __STDC_FORMAT_MACROS
@@ -22,10 +23,10 @@ extern "C" int sm_main( int argc, char *argv[] );
 #define BACKTRACE_LOOKUP_METHOD_DLADDR
 
 #ifndef MACOSX
-# define MACOSX
+#define MACOSX
 #endif
 #ifndef __MACOSX__
-# define __MACOSX__
+#define __MACOSX__
 #endif
 
 #include <libkern/OSByteOrder.h>

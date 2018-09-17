@@ -1,7 +1,7 @@
 local modifierPressed = false
 local forward = true
 
-local scroller -- just an alias for the actor that runs the commands
+local scroller  -- just an alias for the actor that runs the commands
 
 local function input(event)
 	--SCREENMAN:SystemMessage(event.DeviceInput.button)
@@ -51,27 +51,26 @@ local function getNewSongPos()
 end
 
 local function getNewRate()
-	currentrate = GAMESTATE:GetSongOptionsObject('ModsLevel_Preferred'):MusicRate()
+	currentrate = GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate()
 	newrate = currentrate + (modifierPressed and 0.05 or 0.1) * (forward and 1 or -1)
 	--SCREENMAN:SystemMessage(string.format("%f to %f", currentrate, newrate))
 	return newrate
 end
 
-
-
-scroller = Def.ActorFrame {
+scroller =
+	Def.ActorFrame {
 	Name = "ScrollManager",
 	OnCommand = function(self)
-		SCREENMAN:GetTopScreen():AddInputCallback( input )
+		SCREENMAN:GetTopScreen():AddInputCallback(input)
 		scroller = self
 	end,
 	ReplayScrollCommand = function(self)
 		newpos = getNewSongPos()
-		SCREENMAN:GetTopScreen():SetReplayPosition( newpos )
+		SCREENMAN:GetTopScreen():SetReplayPosition(newpos)
 	end,
 	ReplayRateCommand = function(self)
 		newrate = getNewRate()
-		givenrate = SCREENMAN:GetTopScreen():SetReplayRate( newrate )
+		givenrate = SCREENMAN:GetTopScreen():SetReplayRate(newrate)
 		if givenrate ~= nil then
 			realnewrate = notShit.round(givenrate, 3)
 			SCREENMAN:SystemMessage(string.format("Set rate to %f", realnewrate))
@@ -87,7 +86,5 @@ scroller = Def.ActorFrame {
 	ReplayBookmarkGotoCommand = function(self)
 		SCREENMAN:GetTopScreen():JumpToReplayBookmark()
 	end
-	
-
 }
 return scroller

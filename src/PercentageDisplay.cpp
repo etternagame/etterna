@@ -1,16 +1,15 @@
 ﻿#include "global.h"
 
+#include "PercentageDisplay.h"
 #include "ActorUtil.h"
 #include "GameState.h"
-#include "PercentageDisplay.h"
 #include "PlayerState.h"
 #include "RageLog.h"
 #include "StageStats.h"
 #include "ThemeManager.h"
 #include "XmlFile.h"
 
-
-REGISTER_ACTOR_CLASS( PercentageDisplay );
+REGISTER_ACTOR_CLASS(PercentageDisplay);
 
 PercentageDisplay::PercentageDisplay()
 {
@@ -22,60 +21,61 @@ PercentageDisplay::PercentageDisplay()
 	m_iDancePointsDigits = 0;
 	m_bUseRemainder = false;
 	m_bAutoRefresh = false;
-	m_FormatPercentScore.SetFromExpression( "FormatPercentScore" );
+	m_FormatPercentScore.SetFromExpression("FormatPercentScore");
 }
 
-void PercentageDisplay::LoadFromNode( const XNode* pNode )
+void
+PercentageDisplay::LoadFromNode(const XNode* pNode)
 {
-	pNode->GetAttrValue( "DancePointsDigits", m_iDancePointsDigits );
-	pNode->GetAttrValue( "AutoRefresh", m_bAutoRefresh );
+	pNode->GetAttrValue("DancePointsDigits", m_iDancePointsDigits);
+	pNode->GetAttrValue("AutoRefresh", m_bAutoRefresh);
 	{
-		Lua *L = LUA->Get();
-		if(pNode->PushAttrValue(L, "FormatPercentScore"))
-		{
-			m_FormatPercentScore.SetFromStack( L );
-			if(m_FormatPercentScore.GetLuaType() != LUA_TFUNCTION)
-			{
-				// Not reported as an error because _fallback and default provided bad
-				// examples in their [LifeMeterBattery Percent]:Format metric and nobody
-				// realized it was supposed to be set to a function. -Kyz
-				LOG->Trace("Format attribute for PercentageDisplay named '%s' is not a function. Defaulting to 'FormatPercentScore'.", GetName().c_str());
+		Lua* L = LUA->Get();
+		if (pNode->PushAttrValue(L, "FormatPercentScore")) {
+			m_FormatPercentScore.SetFromStack(L);
+			if (m_FormatPercentScore.GetLuaType() != LUA_TFUNCTION) {
+				// Not reported as an error because _fallback and default
+				// provided bad examples in their [LifeMeterBattery
+				// Percent]:Format metric and nobody realized it was supposed to
+				// be set to a function. -Kyz
+				LOG->Trace("Format attribute for PercentageDisplay named '%s' "
+						   "is not a function. Defaulting to "
+						   "'FormatPercentScore'.",
+						   GetName().c_str());
 				m_FormatPercentScore.SetFromExpression("FormatPercentScore");
 			}
-		}
-		else
-		{
+		} else {
 			lua_pop(L, 1);
 		}
 		LUA->Release(L);
 	}
 
-	const XNode *pChild = pNode->GetChild( "Percent" );
-	if( pChild == NULL )
-	{
-		LuaHelpers::ReportScriptError(ActorUtil::GetWhere(pNode) + ": PercentageDisplay: missing the node \"Percent\"");
+	const XNode* pChild = pNode->GetChild("Percent");
+	if (pChild == NULL) {
+		LuaHelpers::ReportScriptError(
+		  ActorUtil::GetWhere(pNode) +
+		  ": PercentageDisplay: missing the node \"Percent\"");
 		// Make a BitmapText just so we don't crash.
 		m_textPercent.LoadFromFont(THEME->GetPathF("", "Common Normal"));
+	} else {
+		m_textPercent.LoadFromNode(pChild);
 	}
-	else
-	{
-		m_textPercent.LoadFromNode( pChild );
-	}
-	this->AddChild( &m_textPercent );
+	this->AddChild(&m_textPercent);
 
-	pChild = pNode->GetChild( "PercentRemainder" );
-	if( pChild != NULL )
-	{
+	pChild = pNode->GetChild("PercentRemainder");
+	if (pChild != NULL) {
 		m_bUseRemainder = true;
-		m_textPercentRemainder.LoadFromNode( pChild );
-		this->AddChild( &m_textPercentRemainder );
+		m_textPercentRemainder.LoadFromNode(pChild);
+		this->AddChild(&m_textPercentRemainder);
 	}
 
 	// only run the Init command after we load Fonts.
-	ActorFrame::LoadFromNode( pNode );
+	ActorFrame::LoadFromNode(pNode);
 }
 
-void PercentageDisplay::Load( const PlayerState *pPlayerState, const PlayerStageStats *pPlayerStageStats )
+void
+PercentageDisplay::Load(const PlayerState* pPlayerState,
+						const PlayerStageStats* pPlayerStageStats)
 {
 	m_pPlayerState = pPlayerState;
 	m_pPlayerStageStats = pPlayerStageStats;
@@ -83,61 +83,73 @@ void PercentageDisplay::Load( const PlayerState *pPlayerState, const PlayerStage
 	Refresh();
 }
 
-void PercentageDisplay::Load( const PlayerState *pPlayerState, const PlayerStageStats *pPlayerStageStats, const RString &sMetricsGroup, bool bAutoRefresh )
+void
+PercentageDisplay::Load(const PlayerState* pPlayerState,
+						const PlayerStageStats* pPlayerStageStats,
+						const RString& sMetricsGroup,
+						bool bAutoRefresh)
 {
 	m_pPlayerState = pPlayerState;
 	m_pPlayerStageStats = pPlayerStageStats;
 	m_bAutoRefresh = bAutoRefresh;
 
-	m_iDancePointsDigits = THEME->GetMetricI( sMetricsGroup, "DancePointsDigits" );
-	m_bUseRemainder = THEME->GetMetricB( sMetricsGroup, "PercentUseRemainder" );
-	m_FormatPercentScore = THEME->GetMetricR( sMetricsGroup, "Format" );
+	m_iDancePointsDigits =
+	  THEME->GetMetricI(sMetricsGroup, "DancePointsDigits");
+	m_bUseRemainder = THEME->GetMetricB(sMetricsGroup, "PercentUseRemainder");
+	m_FormatPercentScore = THEME->GetMetricR(sMetricsGroup, "Format");
 
-	m_sPercentFormat = THEME->GetMetric( sMetricsGroup, "PercentFormat" );
-	m_sRemainderFormat = THEME->GetMetric( sMetricsGroup, "RemainderFormat" );
+	m_sPercentFormat = THEME->GetMetric(sMetricsGroup, "PercentFormat");
+	m_sRemainderFormat = THEME->GetMetric(sMetricsGroup, "RemainderFormat");
 
-	if(m_FormatPercentScore.GetLuaType() != LUA_TFUNCTION)
-	{
+	if (m_FormatPercentScore.GetLuaType() != LUA_TFUNCTION) {
 		// Not reported as an error because _fallback and default provided bad
 		// examples in their [LifeMeterBattery Percent]:Format metric and nobody
 		// realized it was supposed to be set to a function. -Kyz
-		LOG->Trace("Format metric is not a function in [%s]. Defaulting to 'FormatPercentScore'.", sMetricsGroup.c_str());
-		m_FormatPercentScore.SetFromExpression( "FormatPercentScore" );
+		LOG->Trace("Format metric is not a function in [%s]. Defaulting to "
+				   "'FormatPercentScore'.",
+				   sMetricsGroup.c_str());
+		m_FormatPercentScore.SetFromExpression("FormatPercentScore");
 	}
 
-	m_textPercent.SetName( "Percent" + PlayerNumberToString(m_pPlayerState->m_PlayerNumber) );
+	m_textPercent.SetName("Percent" +
+						  PlayerNumberToString(m_pPlayerState->m_PlayerNumber));
 
-	m_textPercent.LoadFromFont( THEME->GetPathF(sMetricsGroup,"text") );
-	ActorUtil::SetXY( m_textPercent, sMetricsGroup );
-	ActorUtil::LoadAllCommands( m_textPercent, sMetricsGroup );
-	this->AddChild( &m_textPercent );
+	m_textPercent.LoadFromFont(THEME->GetPathF(sMetricsGroup, "text"));
+	ActorUtil::SetXY(m_textPercent, sMetricsGroup);
+	ActorUtil::LoadAllCommands(m_textPercent, sMetricsGroup);
+	this->AddChild(&m_textPercent);
 
-	if( m_bUseRemainder )
-	{
-		m_textPercentRemainder.SetName( "PercentRemainder" + PlayerNumberToString(m_pPlayerState->m_PlayerNumber) );
-		m_textPercentRemainder.LoadFromFont( THEME->GetPathF(sMetricsGroup,"remainder") );
-		ActorUtil::SetXY( m_textPercentRemainder, sMetricsGroup );
-		ActorUtil::LoadAllCommands( m_textPercentRemainder, sMetricsGroup );
-		ASSERT( m_textPercentRemainder.HasCommand("Off") );
-		m_textPercentRemainder.SetText( "456" );
-		this->AddChild( &m_textPercentRemainder );
+	if (m_bUseRemainder) {
+		m_textPercentRemainder.SetName(
+		  "PercentRemainder" +
+		  PlayerNumberToString(m_pPlayerState->m_PlayerNumber));
+		m_textPercentRemainder.LoadFromFont(
+		  THEME->GetPathF(sMetricsGroup, "remainder"));
+		ActorUtil::SetXY(m_textPercentRemainder, sMetricsGroup);
+		ActorUtil::LoadAllCommands(m_textPercentRemainder, sMetricsGroup);
+		ASSERT(m_textPercentRemainder.HasCommand("Off"));
+		m_textPercentRemainder.SetText("456");
+		this->AddChild(&m_textPercentRemainder);
 	}
 
 	Refresh();
 }
 
-void PercentageDisplay::Update( float fDeltaTime )
+void
+PercentageDisplay::Update(float fDeltaTime)
 {
-	ActorFrame::Update( fDeltaTime );
+	ActorFrame::Update(fDeltaTime);
 
-	if( m_bAutoRefresh )
+	if (m_bAutoRefresh)
 		Refresh();
 }
 
-void PercentageDisplay::Refresh()
+void
+PercentageDisplay::Refresh()
 {
 	const int iActualDancePoints = m_pPlayerStageStats->m_iActualDancePoints;
-	const int iCurPossibleDancePoints = m_pPlayerStageStats->m_iCurPossibleDancePoints;
+	const int iCurPossibleDancePoints =
+	  m_pPlayerStageStats->m_iCurPossibleDancePoints;
 
 	if (iActualDancePoints == m_Last && iCurPossibleDancePoints == m_LastMax)
 		return;
@@ -152,22 +164,23 @@ void PercentageDisplay::Refresh()
 	// clamp percentage - feedback is that negative numbers look weird here.
 	CLAMP(fPercentDancePoints, 0.f, 1.f);
 
-	if (m_bUseRemainder)
-	{
+	if (m_bUseRemainder) {
 		auto iPercentWhole = static_cast<int>(fPercentDancePoints * 100);
-		auto iPercentRemainder = static_cast<int>((fPercentDancePoints * 100 - static_cast<int>(fPercentDancePoints * 100)) * 10);
+		auto iPercentRemainder =
+		  static_cast<int>((fPercentDancePoints * 100 -
+							static_cast<int>(fPercentDancePoints * 100)) *
+						   10);
 		sNumToDisplay = ssprintf(m_sPercentFormat, iPercentWhole);
-		m_textPercentRemainder.SetText(ssprintf(m_sRemainderFormat, iPercentRemainder));
-	}
-	else
-	{
-		if (m_FormatPercentScore.GetLuaType() == LUA_TFUNCTION)
-		{
-			Lua *L = LUA->Get();
+		m_textPercentRemainder.SetText(
+		  ssprintf(m_sRemainderFormat, iPercentRemainder));
+	} else {
+		if (m_FormatPercentScore.GetLuaType() == LUA_TFUNCTION) {
+			Lua* L = LUA->Get();
 			m_FormatPercentScore.PushSelf(L);
 			LuaHelpers::Push(L, fPercentDancePoints);
 			RString Error = "Error running FormatPercentScore: ";
-			LuaHelpers::RunScriptOnStack(L, Error, 1, 1, true); // 1 arg, 1 result
+			LuaHelpers::RunScriptOnStack(
+			  L, Error, 1, 1, true); // 1 arg, 1 result
 			LuaHelpers::Pop(L, sNumToDisplay);
 			LUA->Release(L);
 		}
@@ -181,32 +194,29 @@ void PercentageDisplay::Refresh()
 
 #include "LuaBinding.h"
 
-/** @brief Allow Lua to have access to the PercentageDisplay. */ 
-class LunaPercentageDisplay: public Luna<PercentageDisplay>
+/** @brief Allow Lua to have access to the PercentageDisplay. */
+class LunaPercentageDisplay : public Luna<PercentageDisplay>
 {
-public:
-	static int LoadFromStats( T* p, lua_State *L )
+  public:
+	static int LoadFromStats(T* p, lua_State* L)
 	{
-		const PlayerState *pStageStats = Luna<PlayerState>::check( L, 1 );
-		const PlayerStageStats *pPlayerStageStats = Luna<PlayerStageStats>::check( L, 2 );
-		p->Load( pStageStats, pPlayerStageStats );
+		const PlayerState* pStageStats = Luna<PlayerState>::check(L, 1);
+		const PlayerStageStats* pPlayerStageStats =
+		  Luna<PlayerStageStats>::check(L, 2);
+		p->Load(pStageStats, pPlayerStageStats);
 		COMMON_RETURN_SELF;
 	}
 
-	LunaPercentageDisplay()
-	{
-		ADD_METHOD( LoadFromStats );
-	}
+	LunaPercentageDisplay() { ADD_METHOD(LoadFromStats); }
 };
 
-LUA_REGISTER_DERIVED_CLASS( PercentageDisplay, ActorFrame )
+LUA_REGISTER_DERIVED_CLASS(PercentageDisplay, ActorFrame)
 // lua end
-
 
 /*
  * (c) 2001-2003 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -216,7 +226,7 @@ LUA_REGISTER_DERIVED_CLASS( PercentageDisplay, ActorFrame )
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

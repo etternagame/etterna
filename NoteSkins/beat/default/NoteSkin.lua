@@ -1,7 +1,6 @@
-local ret = ... or {};
+local ret = ... or {}
 
-ret.RedirTable =
-{
+ret.RedirTable = {
 	Key1 = "White",
 	Key2 = "Blue",
 	Key3 = "White",
@@ -9,42 +8,39 @@ ret.RedirTable =
 	Key5 = "White",
 	Key6 = "Blue",
 	Key7 = "White",
-	scratch = "Red",
-};
+	scratch = "Red"
+}
 
-local OldRedir = ret.Redir;
+local OldRedir = ret.Redir
 ret.Redir = function(sButton, sElement)
-	sButton, sElement = OldRedir(sButton, sElement);
+	sButton, sElement = OldRedir(sButton, sElement)
 
 	-- Instead of separate hold heads, use the tap note graphics.
-	if sElement == "Hold Head Inactive" or
-	   sElement == "Hold Head Active" or
-	   sElement == "Roll Head Inactive" or
-	   sElement == "Roll Head Active"
-	then
-		sElement = "Tap Note";
+	if
+		sElement == "Hold Head Inactive" or sElement == "Hold Head Active" or sElement == "Roll Head Inactive" or
+			sElement == "Roll Head Active"
+	 then
+		sElement = "Tap Note"
 	end
 
-	sButton = ret.RedirTable[sButton];
+	sButton = ret.RedirTable[sButton]
 
-	return sButton, sElement;
+	return sButton, sElement
 end
 
-local OldFunc = ret.Load;
+local OldFunc = ret.Load
 function ret.Load()
-	local t = OldFunc();
+	local t = OldFunc()
 
 	-- The main "Explosion" part just loads other actors; don't rotate
 	-- it.  The "Hold Explosion" part should not be rotated.
-	if Var "Element" == "Explosion" or
-	   Var "Element" == "Hold Explosion" then
-		t.BaseRotationZ = nil;
+	if Var "Element" == "Explosion" or Var "Element" == "Hold Explosion" then
+		t.BaseRotationZ = nil
 	end
-	return t;
+	return t
 end
 
-ret.PartsToRotate =
-{
+ret.PartsToRotate = {
 	["Go Receptor"] = false,
 	["Ready Receptor"] = false,
 	["Tap Explosion Bright"] = false,
@@ -53,8 +49,8 @@ ret.PartsToRotate =
 	["Hold Head Active"] = false,
 	["Hold Head Inactive"] = false,
 	["Roll Head Active"] = false,
-	["Roll Head Inactive"] = false,
-};
+	["Roll Head Inactive"] = false
+}
 
 --
 -- If a derived skin wants to have separate UpLeft graphics,
@@ -65,8 +61,7 @@ ret.PartsToRotate =
 -- ret.Rotate.UpLeft = 0;
 -- ret.Rotate.UpRight = 90;
 --
-ret.Blank =
-{
+ret.Blank = {
 	["Hold Topcap Active"] = true,
 	["Hold Topcap Inactive"] = true,
 	["Roll Topcap Active"] = true,
@@ -74,7 +69,7 @@ ret.Blank =
 	["Hold Tail Active"] = true,
 	["Hold Tail Inactive"] = true,
 	["Roll Tail Active"] = true,
-	["Roll Tail Inactive"] = true,
-};
+	["Roll Tail Inactive"] = true
+}
 
-return ret;
+return ret

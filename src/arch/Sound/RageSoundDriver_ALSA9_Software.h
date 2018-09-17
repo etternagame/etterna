@@ -2,14 +2,14 @@
 #define RAGE_SOUND_ALSA9_SOFTWARE_H
 
 #include "RageSound.h"
-#include "RageThreads.h"
 #include "RageSoundDriver.h"
+#include "RageThreads.h"
 
 #include "ALSA9Helpers.h"
 
-class RageSoundDriver_ALSA9_Software: public RageSoundDriver
+class RageSoundDriver_ALSA9_Software : public RageSoundDriver
 {
-public:
+  public:
 	RageSoundDriver_ALSA9_Software();
 	~RageSoundDriver_ALSA9_Software();
 	RString Init();
@@ -21,14 +21,14 @@ public:
 
 	void SetupDecodingThread();
 
-private:
-	static int MixerThread_start( void *p );
+  private:
+	static int MixerThread_start(void* p);
 	void MixerThread();
 	bool GetData();
 
 	bool m_bShutdown;
 	int m_iSampleRate;
-	Alsa9Buf *m_pPCM;
+	Alsa9Buf* m_pPCM;
 	RageThread m_MixingThread;
 };
 
@@ -37,7 +37,7 @@ private:
 /*
  * (c) 2002-2004 Glenn Maynard, Aaron VonderHaar
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -47,7 +47,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

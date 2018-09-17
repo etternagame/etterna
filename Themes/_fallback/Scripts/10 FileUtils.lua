@@ -1,13 +1,13 @@
 -- fileutils: quick and dirty, not user prefs oriented file io
 File = {
-	Write = function(path,buf)
+	Write = function(path, buf)
 		local f = RageFileUtil.CreateRageFile()
 		if f:Open(path, 2) then
-			f:Write( tostring(buf) )
+			f:Write(tostring(buf))
 			f:destroy()
 			return true
 		else
-			Trace( "[FileUtils] Error writing to ".. path ..": ".. f:GetError() )
+			Trace("[FileUtils] Error writing to " .. path .. ": " .. f:GetError())
 			f:ClearError()
 			f:destroy()
 			return false
@@ -17,11 +17,11 @@ File = {
 		local f = RageFileUtil.CreateRageFile()
 		local ret = ""
 		if f:Open(path, 1) then
-			ret = tostring( f:Read() )
+			ret = tostring(f:Read())
 			f:destroy()
 			return ret
 		else
-			Trace( "[FileUtils] Error reading from ".. path ..": ".. f:GetError() )
+			Trace("[FileUtils] Error reading from " .. path .. ": " .. f:GetError())
 			f:ClearError()
 			f:destroy()
 			return nil

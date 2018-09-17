@@ -1,11 +1,11 @@
 // EnterName.cpp : implementation file
 
 #define CO_EXIST_WITH_MFC
-#include "global.h"
-#include "stdafx.h"
-#include "smpackage.h"
 #include "EnterName.h"
 #include "archutils/Win32/DialogUtil.h"
+#include "global.h"
+#include "smpackage.h"
+#include "stdafx.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -16,16 +16,16 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // EnterName dialog
 
-
 EnterName::EnterName(CWnd* pParent /*=NULL*/)
-	: CDialog(EnterName::IDD, pParent)
+  : CDialog(EnterName::IDD, pParent)
 {
 	//{{AFX_DATA_INIT(EnterName)
-		// NOTE: the ClassWizard will add member initialization here
+	// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
 
-void EnterName::DoDataExchange(CDataExchange* pDX)
+void
+EnterName::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(EnterName)
@@ -33,29 +33,31 @@ void EnterName::DoDataExchange(CDataExchange* pDX)
 	//}}AFX_DATA_MAP
 }
 
-BOOL EnterName::OnInitDialog() 
+BOOL
+EnterName::OnInitDialog()
 {
 	CDialog::OnInitDialog();
-	
-	// TODO: Add extra initialization here
-	DialogUtil::LocalizeDialogAndContents( *this );
 
-	return TRUE;  // return TRUE unless you set the focus to a control
-	              // EXCEPTION: OCX Property Pages should return FALSE
+	// TODO: Add extra initialization here
+	DialogUtil::LocalizeDialogAndContents(*this);
+
+	return TRUE; // return TRUE unless you set the focus to a control
+				 // EXCEPTION: OCX Property Pages should return FALSE
 }
 
 BEGIN_MESSAGE_MAP(EnterName, CDialog)
-	//{{AFX_MSG_MAP(EnterName)
-	//}}AFX_MSG_MAP
+//{{AFX_MSG_MAP(EnterName)
+//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 // EnterName message handlers
 
-void EnterName::OnOK() 
+void
+EnterName::OnOK()
 {
 	// TODO: Add extra validation here
-	m_edit.GetWindowText( m_sEnteredName );
+	m_edit.GetWindowText(m_sEnteredName);
 
 	CDialog::OnOK();
 }
@@ -63,7 +65,7 @@ void EnterName::OnOK()
 /*
  * (c) 2002-2005 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -73,7 +75,7 @@ void EnterName::OnOK()
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

@@ -10,14 +10,14 @@
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
-// 
+//
 // For the licensing details see the file License.txt
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef ZIPSTRING_DOT_H
 #define ZIPSTRING_DOT_H
-#include "stdafx.h"
 #include "ZipExport.h"
+#include "stdafx.h"
 
 typedef CString CZipString;
 
@@ -25,14 +25,13 @@ typedef CString CZipString;
 	A poiter type to point to CZipString to Collate or CollateNoCase
 	or Compare or CompareNoCase
 */
-typedef int (CZipString::*ZIPSTRINGCOMPARE)( LPCTSTR ) const;
-
-
+typedef int (CZipString::*ZIPSTRINGCOMPARE)(LPCTSTR) const;
 
 /**
-	return a pointer to the function in CZipString structure, 
+	return a pointer to the function in CZipString structure,
 	used to compare elements depending on the arguments
 */
-	ZIP_API ZIPSTRINGCOMPARE GetCZipStrCompFunc(bool bCaseSensitive, bool bCollate = true);
+ZIP_API ZIPSTRINGCOMPARE
+GetCZipStrCompFunc(bool bCaseSensitive, bool bCollate = true);
 
-#endif  /* ZIPSTRING_DOT_H */
+#endif /* ZIPSTRING_DOT_H */

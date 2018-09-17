@@ -1,53 +1,55 @@
-#include "global.h"
+#include "ScoreDisplayOni.h"
 #include "ActorUtil.h"
 #include "CommonMetrics.h"
 #include "GameState.h"
 #include "PlayerState.h"
 #include "RageLog.h"
 #include "RageUtil.h"
-#include "ScoreDisplayOni.h"
 #include "StatsManager.h"
 #include "ThemeManager.h"
+#include "global.h"
 
 ScoreDisplayOni::ScoreDisplayOni()
 {
-	LOG->Trace( "ScoreDisplayOni::ScoreDisplayOni()" );
+	LOG->Trace("ScoreDisplayOni::ScoreDisplayOni()");
 
-	m_sprFrame.Load( THEME->GetPathG("ScoreDisplayOni","frame") );
-	this->AddChild( &m_sprFrame );
+	m_sprFrame.Load(THEME->GetPathG("ScoreDisplayOni", "frame"));
+	this->AddChild(&m_sprFrame);
 
 	// init the text
-	m_text.LoadFromFont( THEME->GetPathF("ScoreDisplayOni","numbers") );
-	m_text.SetName( "ScoreDisplayOni Numbers" );
-	m_text.SetShadowLength( 0 );
-	LOAD_ALL_COMMANDS( m_text );
-	this->AddChild( &m_text );
+	m_text.LoadFromFont(THEME->GetPathF("ScoreDisplayOni", "numbers"));
+	m_text.SetName("ScoreDisplayOni Numbers");
+	m_text.SetShadowLength(0);
+	LOAD_ALL_COMMANDS(m_text);
+	this->AddChild(&m_text);
 }
 
-void ScoreDisplayOni::Init( const PlayerState* pPlayerState, const PlayerStageStats* pPlayerStageStats ) 
+void
+ScoreDisplayOni::Init(const PlayerState* pPlayerState,
+					  const PlayerStageStats* pPlayerStageStats)
 {
-	ScoreDisplay::Init( pPlayerState, pPlayerStageStats );
+	ScoreDisplay::Init(pPlayerState, pPlayerStageStats);
 }
 
-
-void ScoreDisplayOni::Update( float fDelta )
+void
+ScoreDisplayOni::Update(float fDelta)
 {
-	ScoreDisplay::Update( fDelta );
+	ScoreDisplay::Update(fDelta);
 
 	// TODO: Remove use of PlayerNumber.
 	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 
 	float fSecsIntoPlay = 0;
-	if( GAMESTATE->IsPlayerEnabled(pn) )
+	if (GAMESTATE->IsPlayerEnabled(pn))
 		fSecsIntoPlay = STATSMAN->m_CurStageStats.m_player[pn].m_fAliveSeconds;
 
-	m_text.SetText( SecondsToMMSSMsMs(fSecsIntoPlay) );
+	m_text.SetText(SecondsToMMSSMsMs(fSecsIntoPlay));
 }
 
 /*
  * (c) 2001-2004 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -57,7 +59,7 @@ void ScoreDisplayOni::Update( float fDelta )
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

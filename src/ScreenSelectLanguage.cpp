@@ -1,69 +1,77 @@
-#include "global.h"
+#include "ScreenSelectLanguage.h"
 #include "InputEventPlus.h"
 #include "PrefsManager.h"
-#include "ScreenSelectLanguage.h"
 #include "arch/ArchHooks/ArchHooks.h"
+#include "global.h"
 
-REGISTER_SCREEN_CLASS( ScreenSelectLanguage );
+REGISTER_SCREEN_CLASS(ScreenSelectLanguage);
 
-void ScreenSelectLanguage::Init()
+void
+ScreenSelectLanguage::Init()
 {
 	// fill m_aGameCommands before calling Init()
 	vector<RString> vs;
-	THEME->GetLanguages( vs );
-	SortRStringArray( vs, true );
+	THEME->GetLanguages(vs);
+	SortRStringArray(vs, true);
 
-	FOREACH_CONST( RString, vs, s )
+	FOREACH_CONST(RString, vs, s)
 	{
-		const LanguageInfo *pLI = GetLanguageInfo( *s );
+		const LanguageInfo* pLI = GetLanguageInfo(*s);
 
 		GameCommand gc;
 		gc.m_iIndex = s - vs.begin();
 		gc.m_sName = *s;
 		gc.m_bInvalid = false;
-		if( pLI )
-			gc.m_sText = THEME->GetString("NativeLanguageNames", pLI->szEnglishName);
+		if (pLI)
+			gc.m_sText =
+			  THEME->GetString("NativeLanguageNames", pLI->szEnglishName);
 		else
 			gc.m_sText = *s;
 
-		m_aGameCommands.push_back( gc );
+		m_aGameCommands.push_back(gc);
 	}
 
 	ScreenSelectMaster::Init();
 }
 
-RString ScreenSelectLanguage::GetDefaultChoice()
+RString
+ScreenSelectLanguage::GetDefaultChoice()
 {
 	return HOOKS->GetPreferredLanguage();
 }
 
-void ScreenSelectLanguage::BeginScreen()
+void
+ScreenSelectLanguage::BeginScreen()
 {
 	ScreenSelectMaster::BeginScreen();
 }
 
-bool ScreenSelectLanguage::MenuStart( const InputEventPlus &input )
+bool
+ScreenSelectLanguage::MenuStart(const InputEventPlus& input)
 {
-	int iIndex = this->GetSelectionIndex( input.pn );
+	int iIndex = this->GetSelectionIndex(input.pn);
 	RString sLangCode = m_aGameCommands[iIndex].m_sName;
-	PREFSMAN->m_sLanguage.Set( sLangCode );
+	PREFSMAN->m_sLanguage.Set(sLangCode);
 	PREFSMAN->SavePrefsToDisk();
-	THEME->SwitchThemeAndLanguage( THEME->GetCurThemeName(), PREFSMAN->m_sLanguage, PREFSMAN->m_bPseudoLocalize );
+	THEME->SwitchThemeAndLanguage(THEME->GetCurThemeName(),
+								  PREFSMAN->m_sLanguage,
+								  PREFSMAN->m_bPseudoLocalize);
 
 	m_soundStart.Play(true);
-	this->PostScreenMessage( SM_BeginFadingOut, 0 );
+	this->PostScreenMessage(SM_BeginFadingOut, 0);
 	return true;
 }
 
-bool ScreenSelectLanguage::MenuBack( const InputEventPlus &input )
+bool
+ScreenSelectLanguage::MenuBack(const InputEventPlus& input)
 {
-	return false;	// ignore the press
+	return false; // ignore the press
 }
 
 /*
  * (c) 2006 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -73,7 +81,7 @@ bool ScreenSelectLanguage::MenuBack( const InputEventPlus &input )
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

@@ -31,44 +31,43 @@ ThemeInfo is documented at http://kki.ajworld.net/wiki/ThemeInfo.lua
 
 After that's set up, read the docs.
 ]]
-local PrefPath = "Save/UserPrefs/".. THEME:GetThemeDisplayName() .."/"
+local PrefPath = "Save/UserPrefs/" .. THEME:GetThemeDisplayName() .. "/"
 
 --[[ begin internal stuff; no need to edit below this line. ]]
-
 -- Local internal function to write envs. ___Not for themer use.___
-local function WriteEnv(envName,envValue)
-	return setenv(envName,envValue)
+local function WriteEnv(envName, envValue)
+	return setenv(envName, envValue)
 end
 
 function ReadPrefFromFile(name)
 	local f = RageFileUtil.CreateRageFile()
-	local fullFilename = PrefPath..name..".cfg"
+	local fullFilename = PrefPath .. name .. ".cfg"
 	local option
 
-	if f:Open(fullFilename,1) then
-		option = tostring( f:Read() )
-		WriteEnv(name,option)
+	if f:Open(fullFilename, 1) then
+		option = tostring(f:Read())
+		WriteEnv(name, option)
 		f:destroy()
 		return option
 	else
 		local fError = f:GetError()
-		Trace( "[FileUtils] Error reading ".. fullFilename ..": ".. fError )
+		Trace("[FileUtils] Error reading " .. fullFilename .. ": " .. fError)
 		f:ClearError()
 		f:destroy()
 		return nil
 	end
 end
 
-function WritePrefToFile(name,value)
+function WritePrefToFile(name, value)
 	local f = RageFileUtil.CreateRageFile()
-	local fullFilename = PrefPath..name..".cfg"
+	local fullFilename = PrefPath .. name .. ".cfg"
 
 	if f:Open(fullFilename, 2) then
-		f:Write( tostring(value) )
-		WriteEnv(name,value)
+		f:Write(tostring(value))
+		WriteEnv(name, value)
 	else
 		local fError = f:GetError()
-		Trace( "[FileUtils] Error writing to ".. fullFilename ..": ".. fError )
+		Trace("[FileUtils] Error writing to " .. fullFilename .. ": " .. fError)
 		f:ClearError()
 		f:destroy()
 		return false
@@ -79,13 +78,12 @@ function WritePrefToFile(name,value)
 end
 
 --[[ end internal functions; still don't edit below this line ]]
-
 function GetUserPref(name)
 	return ReadPrefFromFile(name)
 end
 
-function SetUserPref(name,value)
-	return WritePrefToFile(name,value)
+function SetUserPref(name, value)
+	return WritePrefToFile(name, value)
 end
 
 --[[ type specific, for when you want to be lazy ]]
@@ -104,14 +102,13 @@ function GetUserPrefB(name)
 		elseif pref == "false" or cmp == "f" then
 			return false
 		else
-			Trace("Error in GetUserPrefB(".. name ..") converting from string" )
+			Trace("Error in GetUserPrefB(" .. name .. ") converting from string")
 			return false
 		end
 	elseif type(pref) == "number" then
-		-- both 0 and -1 are false; if you want to change this, 
+		-- both 0 and -1 are false; if you want to change this,
 		-- feel free to remove "or pref == -1".
 		if pref == 0 or pref == -1 then
-
 		else
 			return true
 		end
@@ -122,16 +119,16 @@ end
 function GetUserPrefC(name)
 	-- XXX: make sure it's grabbing a string that can be turned into a color
 	-- and also possibly handle HSV values too.
-	return color( ReadPrefFromFile(name) )
+	return color(ReadPrefFromFile(name))
 end
 
 -- GetUserPrefN: numbers (integers, floats)
 function GetUserPrefN(name)
-	return tonumber( ReadPrefFromFile(name) )
+	return tonumber(ReadPrefFromFile(name))
 end
 
 --[[
-Copyright © 2008-2009 AJ Kelly/KKI Labs
+Copyright ï¿½ 2008-2009 AJ Kelly/KKI Labs
 All rights reserved.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"

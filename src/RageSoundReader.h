@@ -1,27 +1,28 @@
 /* RageSoundReader - Data source for a RageSound. */
 
-
 #ifndef RAGE_SOUND_READER_H
 #define RAGE_SOUND_READER_H
 
-
 class RageSoundReader
 {
-public:
-	virtual int GetLength() const = 0; /* ms */
+  public:
+	virtual int GetLength() const = 0;						   /* ms */
 	virtual int GetLength_Fast() const { return GetLength(); } /* ms */
-	virtual int SetPosition( int iFrame ) = 0;
-	virtual int Read( float *pBuf, int iFrames ) = 0;
+	virtual int SetPosition(int iFrame) = 0;
+	virtual int Read(float* pBuf, int iFrames) = 0;
 	virtual ~RageSoundReader() = default;
-	virtual RageSoundReader *Copy() const = 0;
+	virtual RageSoundReader* Copy() const = 0;
 	virtual int GetSampleRate() const = 0;
 	virtual unsigned GetNumChannels() const = 0;
-	virtual bool SetProperty( const RString & /* sProperty */, float /* fValue */ ) { return false; }
-	virtual RageSoundReader *GetSource() { return NULL; }
+	virtual bool SetProperty(const RString& /* sProperty */, float /* fValue */)
+	{
+		return false;
+	}
+	virtual RageSoundReader* GetSource() { return NULL; }
 
-	
-	enum {
-		
+	enum
+	{
+
 		RSRERROR = -1,
 		END_OF_FILE = -2,
 
@@ -34,15 +35,19 @@ public:
 		STREAM_LOOPED = -4,
 	};
 
-	/* GetNextSourceFrame() provides the source frame associated with the next frame
-	 * that will be read via Read().  GetStreamToSourceRatio() returns the ratio
-	 * for extrapolating the source frames of the remainder of the block.  These
-	 * values are valid so long as no parameters are changed before the next Read(). */
+	/* GetNextSourceFrame() provides the source frame associated with the next
+	 * frame that will be read via Read().  GetStreamToSourceRatio() returns the
+	 * ratio for extrapolating the source frames of the remainder of the block.
+	 * These values are valid so long as no parameters are changed before the
+	 * next Read(). */
 	virtual int GetNextSourceFrame() const = 0;
 	virtual float GetStreamToSourceRatio() const = 0;
 
 	virtual RString GetError() const = 0;
-	int RetriedRead( float *pBuffer, int iFrames, int *iSourceFrame = NULL, float *fRate = NULL );
+	int RetriedRead(float* pBuffer,
+					int iFrames,
+					int* iSourceFrame = NULL,
+					float* fRate = NULL);
 };
 
 #endif

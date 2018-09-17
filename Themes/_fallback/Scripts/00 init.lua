@@ -34,7 +34,7 @@ end
 PLAYER_1 = "PlayerNumber_P1"
 PLAYER_2 = "PlayerNumber_P2"
 NUM_PLAYERS = #PlayerNumber
-OtherPlayer = { [PLAYER_1] = PLAYER_2, [PLAYER_2] = PLAYER_1 }
+OtherPlayer = {[PLAYER_1] = PLAYER_2, [PLAYER_2] = PLAYER_1}
 
 --- Find the last occurence of text in the `string`
 -- @string text
@@ -42,7 +42,7 @@ OtherPlayer = { [PLAYER_1] = PLAYER_2, [PLAYER_2] = PLAYER_1 }
 function string:find_last(text)
 	local LastPos = 0
 	while true do
-		local p = string.find(self, text, LastPos+1, true)
+		local p = string.find(self, text, LastPos + 1, true)
 		if not p then
 			return LastPos
 		end
@@ -50,15 +50,14 @@ function string:find_last(text)
 	end
 end
 
-
 --- Round to nearest integer.
 -- @number n
 -- @return number
 function math.round(n)
 	if n > 0 then
-		return math.floor(n+0.5)
+		return math.floor(n + 0.5)
 	else
-		return math.ceil(n-0.5)
+		return math.ceil(n - 0.5)
 	end
 end
 
@@ -70,10 +69,10 @@ function split(delimiter, text)
 	local list = {}
 	local pos = 1
 	while 1 do
-		local first,last = string.find(text, delimiter, pos)
+		local first, last = string.find(text, delimiter, pos)
 		if first then
-			table.insert(list, string.sub(text, pos, first-1))
-			pos = last+1
+			table.insert(list, string.sub(text, pos, first - 1))
+			pos = last + 1
 		else
 			table.insert(list, string.sub(text, pos))
 			break

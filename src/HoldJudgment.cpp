@@ -1,128 +1,132 @@
 ﻿#include "global.h"
+#include "HoldJudgment.h"
 #include "ActorUtil.h"
 #include "GameConstantsAndTypes.h"
-#include "HoldJudgment.h"
 #include "RageUtil.h"
 #include "ThemeManager.h"
 #include "ThemeMetric.h"
 #include "XmlFile.h"
 
-REGISTER_ACTOR_CLASS( HoldJudgment );
+REGISTER_ACTOR_CLASS(HoldJudgment);
 
 HoldJudgment::HoldJudgment()
 {
 	m_mpToTrack = MultiPlayer_Invalid;
 }
 
-void HoldJudgment::Load( const RString &sPath )
+void
+HoldJudgment::Load(const RString& sPath)
 {
-	m_sprJudgment.Load( sPath );
+	m_sprJudgment.Load(sPath);
 	m_sprJudgment->StopAnimating();
-	m_sprJudgment->SetName( "HoldJudgment" );
-	ActorUtil::LoadAllCommands( *m_sprJudgment, "HoldJudgment" );
+	m_sprJudgment->SetName("HoldJudgment");
+	ActorUtil::LoadAllCommands(*m_sprJudgment, "HoldJudgment");
 	ResetAnimation();
-	this->AddChild( m_sprJudgment );
+	this->AddChild(m_sprJudgment);
 }
 
-void HoldJudgment::LoadFromNode( const XNode* pNode )
+void
+HoldJudgment::LoadFromNode(const XNode* pNode)
 {
 	RString sFile;
-	if(!ActorUtil::GetAttrPath(pNode, "File", sFile))
-	{
-		LuaHelpers::ReportScriptErrorFmt("%s: HoldJudgment: missing the attribute \"File\"", ActorUtil::GetWhere(pNode).c_str());
+	if (!ActorUtil::GetAttrPath(pNode, "File", sFile)) {
+		LuaHelpers::ReportScriptErrorFmt(
+		  "%s: HoldJudgment: missing the attribute \"File\"",
+		  ActorUtil::GetWhere(pNode).c_str());
 	}
 
-	CollapsePath( sFile );
+	CollapsePath(sFile);
 
-	Load( sFile );
+	Load(sFile);
 
-	ActorFrame::LoadFromNode( pNode );
+	ActorFrame::LoadFromNode(pNode);
 }
 
-void HoldJudgment::ResetAnimation()
+void
+HoldJudgment::ResetAnimation()
 {
-	ASSERT( m_sprJudgment.IsLoaded() );
-	m_sprJudgment->SetDiffuse( RageColor(1,1,1,0) );
-	m_sprJudgment->SetXY( 0, 0 );
+	ASSERT(m_sprJudgment.IsLoaded());
+	m_sprJudgment->SetDiffuse(RageColor(1, 1, 1, 0));
+	m_sprJudgment->SetXY(0, 0);
 	m_sprJudgment->StopTweening();
 	m_sprJudgment->StopEffect();
 }
 
-void HoldJudgment::SetHoldJudgment( HoldNoteScore hns )
+void
+HoldJudgment::SetHoldJudgment(HoldNoteScore hns)
 {
-	//LOG->Trace( "Judgment::SetJudgment()" );
+	// LOG->Trace( "Judgment::SetJudgment()" );
 
 	// Matt: To save API. Command can handle if desired.
-	if( hns != HNS_Missed )
-	{
+	if (hns != HNS_Missed) {
 		ResetAnimation();
 	}
 
-	switch( hns )
-	{
-	case HNS_Held:
-		m_sprJudgment->SetState( 0 );
-		m_sprJudgment->PlayCommand( "Held" );
-		break;
-	case HNS_LetGo:
-		m_sprJudgment->SetState( 1 );
-		m_sprJudgment->PlayCommand( "LetGo" );
-		break;
-	case HNS_Missed:
-		//m_sprJudgment->SetState( 2 ); // Matt: Not until after 5.0
-		m_sprJudgment->PlayCommand( "MissedHold" );
-		break;
-	case HNS_None:
-	default:
-		FAIL_M(ssprintf("Cannot set hold judgment to %i", hns));
+	switch (hns) {
+		case HNS_Held:
+			m_sprJudgment->SetState(0);
+			m_sprJudgment->PlayCommand("Held");
+			break;
+		case HNS_LetGo:
+			m_sprJudgment->SetState(1);
+			m_sprJudgment->PlayCommand("LetGo");
+			break;
+		case HNS_Missed:
+			// m_sprJudgment->SetState( 2 ); // Matt: Not until after 5.0
+			m_sprJudgment->PlayCommand("MissedHold");
+			break;
+		case HNS_None:
+		default:
+			FAIL_M(ssprintf("Cannot set hold judgment to %i", hns));
 	}
 }
 
-void HoldJudgment::LoadFromMultiPlayer( MultiPlayer mp )
+void
+HoldJudgment::LoadFromMultiPlayer(MultiPlayer mp)
 {
-	ASSERT( m_mpToTrack == MultiPlayer_Invalid );	// assert only load once
+	ASSERT(m_mpToTrack == MultiPlayer_Invalid); // assert only load once
 	m_mpToTrack = mp;
-	this->SubscribeToMessage( "Judgment" );
+	this->SubscribeToMessage("Judgment");
 }
 
-void HoldJudgment::HandleMessage( const Message &msg )
+void
+HoldJudgment::HandleMessage(const Message& msg)
 {
-	if( m_mpToTrack != MultiPlayer_Invalid && msg.GetName() == "Judgment" )
-	{
+	if (m_mpToTrack != MultiPlayer_Invalid && msg.GetName() == "Judgment") {
 		MultiPlayer mp;
-		if( msg.GetParam("MultiPlayer", mp) && mp == m_mpToTrack )
-		{
+		if (msg.GetParam("MultiPlayer", mp) && mp == m_mpToTrack) {
 			HoldNoteScore hns;
-			if( msg.GetParam("HoldNoteScore", hns) )
-				SetHoldJudgment( hns );
+			if (msg.GetParam("HoldNoteScore", hns))
+				SetHoldJudgment(hns);
 		}
 	}
 
-	ActorFrame::HandleMessage( msg );
+	ActorFrame::HandleMessage(msg);
 }
 
 // lua start
 #include "LuaBinding.h"
 
-/** @brief Allow Lua to have access to the HoldJudgment. */ 
-class LunaHoldJudgment: public Luna<HoldJudgment>
+/** @brief Allow Lua to have access to the HoldJudgment. */
+class LunaHoldJudgment : public Luna<HoldJudgment>
 {
-public:
-	static int LoadFromMultiPlayer( T* p, lua_State *L ) { p->LoadFromMultiPlayer( Enum::Check<MultiPlayer>(L, 1) ); COMMON_RETURN_SELF; }
-
-	LunaHoldJudgment()
+  public:
+	static int LoadFromMultiPlayer(T* p, lua_State* L)
 	{
-		ADD_METHOD( LoadFromMultiPlayer );
+		p->LoadFromMultiPlayer(Enum::Check<MultiPlayer>(L, 1));
+		COMMON_RETURN_SELF;
 	}
+
+	LunaHoldJudgment() { ADD_METHOD(LoadFromMultiPlayer); }
 };
 
-LUA_REGISTER_DERIVED_CLASS( HoldJudgment, ActorFrame )
+LUA_REGISTER_DERIVED_CLASS(HoldJudgment, ActorFrame)
 // lua end
 
 /*
  * (c) 2001-2004 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -132,7 +136,7 @@ LUA_REGISTER_DERIVED_CLASS( HoldJudgment, ActorFrame )
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

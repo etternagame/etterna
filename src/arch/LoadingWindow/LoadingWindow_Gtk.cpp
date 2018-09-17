@@ -1,13 +1,13 @@
-#include "global.h"
-#include "RageLog.h"
-#include "RageFileManager.h"
-#include "RageUtil.h"
 #include "LoadingWindow_Gtk.h"
 #include "LoadingWindow_GtkModule.h"
+#include "RageFileManager.h"
+#include "RageLog.h"
+#include "RageUtil.h"
+#include "global.h"
 
 #include <dlfcn.h>
 
-static void *Handle = NULL;
+static void* Handle = NULL;
 static INIT Module_Init;
 static SHUTDOWN Module_Shutdown;
 static SETTEXT Module_SetText;
@@ -16,105 +16,113 @@ static SETSPLASH Module_SetSplash;
 static SETPROGRESS Module_SetProgress;
 static SETINDETERMINATE Module_SetIndeterminate;
 
-LoadingWindow_Gtk::LoadingWindow_Gtk()
+LoadingWindow_Gtk::LoadingWindow_Gtk() {}
+
+static RString
+ModuleError(const RString s)
 {
+	return ssprintf("Couldn't load symbol Module_%s", s.c_str());
 }
 
-static RString ModuleError( const RString s )
+RString
+LoadingWindow_Gtk::Init()
 {
-	return ssprintf( "Couldn't load symbol Module_%s", s.c_str() );
-}
+	ASSERT(Handle == NULL);
 
-RString LoadingWindow_Gtk::Init()
-{
-	ASSERT( Handle == NULL );
+	Handle = dlopen(
+	  RageFileManagerUtil::sDirOfExecutable + "/" + "GtkModule.so", RTLD_NOW);
+	if (Handle == NULL)
+		return ssprintf("dlopen(): %s", dlerror());
 
-	Handle = dlopen( RageFileManagerUtil::sDirOfExecutable + "/" + "GtkModule.so", RTLD_NOW );
-	if( Handle == NULL )
-		return ssprintf( "dlopen(): %s", dlerror() );
-
-	Module_Init = (INIT) dlsym(Handle, "Init");
-	if( !Module_Init )
+	Module_Init = (INIT)dlsym(Handle, "Init");
+	if (!Module_Init)
 		return ModuleError("Init");
 
-	Module_Shutdown = (SHUTDOWN) dlsym(Handle, "Shutdown");
-	if( !Module_Shutdown )
+	Module_Shutdown = (SHUTDOWN)dlsym(Handle, "Shutdown");
+	if (!Module_Shutdown)
 		return ModuleError("Shutdown");
 
-	Module_SetText = (SETTEXT) dlsym(Handle, "SetText");
-	if( !Module_SetText )
+	Module_SetText = (SETTEXT)dlsym(Handle, "SetText");
+	if (!Module_SetText)
 		return ModuleError("SetText");
 
-	Module_SetIcon = (SETICON) dlsym(Handle, "SetIcon");
-	if( !Module_SetIcon )
+	Module_SetIcon = (SETICON)dlsym(Handle, "SetIcon");
+	if (!Module_SetIcon)
 		return ModuleError("SetIcon");
 
-	Module_SetSplash = (SETSPLASH) dlsym(Handle, "SetSplash");
-	if( !Module_SetSplash )
+	Module_SetSplash = (SETSPLASH)dlsym(Handle, "SetSplash");
+	if (!Module_SetSplash)
 		return ModuleError("SetSplash");
 
-	Module_SetProgress = (SETPROGRESS) dlsym(Handle, "SetProgress");
-	if( !Module_SetProgress )
+	Module_SetProgress = (SETPROGRESS)dlsym(Handle, "SetProgress");
+	if (!Module_SetProgress)
 		return ModuleError("SetProgress");
 
-	Module_SetIndeterminate = (SETINDETERMINATE) dlsym(Handle, "SetIndeterminate");
-	if( !Module_SetIndeterminate )
+	Module_SetIndeterminate =
+	  (SETINDETERMINATE)dlsym(Handle, "SetIndeterminate");
+	if (!Module_SetIndeterminate)
 		return ModuleError("SetIndeterminate");
 
-	const char *ret = Module_Init( &g_argc, &g_argv );
-	if( ret != NULL )
+	const char* ret = Module_Init(&g_argc, &g_argv);
+	if (ret != NULL)
 		return ret;
 	return "";
 }
 
 LoadingWindow_Gtk::~LoadingWindow_Gtk()
 {
-	if( Module_Shutdown != NULL )
+	if (Module_Shutdown != NULL)
 		Module_Shutdown();
 	Module_Shutdown = NULL;
 
-	if( Handle )
-		dlclose( Handle );
+	if (Handle)
+		dlclose(Handle);
 	Handle = NULL;
 }
 
-void LoadingWindow_Gtk::SetText( const RString &s )
+void
+LoadingWindow_Gtk::SetText(const RString& s)
 {
-	Module_SetText( s );
+	Module_SetText(s);
 }
 
-void LoadingWindow_Gtk::SetIcon( const RageSurface *pIcon )
+void
+LoadingWindow_Gtk::SetIcon(const RageSurface* pIcon)
 {
-	Module_SetIcon( pIcon );
+	Module_SetIcon(pIcon);
 }
 
-void LoadingWindow_Gtk::SetSplash( const RageSurface *pSplash )
+void
+LoadingWindow_Gtk::SetSplash(const RageSurface* pSplash)
 {
-	Module_SetSplash( pSplash );
+	Module_SetSplash(pSplash);
 }
 
-void LoadingWindow_Gtk::SetProgress( const int progress )
+void
+LoadingWindow_Gtk::SetProgress(const int progress)
 {
-	LoadingWindow::SetProgress( progress );
-	Module_SetProgress( m_progress, m_totalWork );
+	LoadingWindow::SetProgress(progress);
+	Module_SetProgress(m_progress, m_totalWork);
 }
 
-void LoadingWindow_Gtk::SetTotalWork( const int totalWork )
+void
+LoadingWindow_Gtk::SetTotalWork(const int totalWork)
 {
-	LoadingWindow::SetTotalWork( totalWork );
-	Module_SetProgress( m_progress, m_totalWork );
+	LoadingWindow::SetTotalWork(totalWork);
+	Module_SetProgress(m_progress, m_totalWork);
 }
 
-void LoadingWindow_Gtk::SetIndeterminate( bool indeterminate )
+void
+LoadingWindow_Gtk::SetIndeterminate(bool indeterminate)
 {
-	LoadingWindow::SetIndeterminate( indeterminate );
-	Module_SetIndeterminate( m_indeterminate );
+	LoadingWindow::SetIndeterminate(indeterminate);
+	Module_SetIndeterminate(m_indeterminate);
 }
 
 /*
  * (c) 2003-2004 Glenn Maynard, Sean Burke
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -124,7 +132,7 @@ void LoadingWindow_Gtk::SetIndeterminate( bool indeterminate )
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

@@ -22,27 +22,28 @@
 
 local line_on = function(self)
 	self:zoom(0.875):strokecolor(color("#444444")):shadowcolor(color("#444444")):shadowlength(1)
-end	
+end
 local section_on = function(self)
 	self:diffuse(color("#88DDFF")):strokecolor(color("#446688")):shadowcolor(color("#446688")):shadowlength(1)
-end	
+end
 local subsection_on = function(self)
 	self:diffuse(color("#88DDFF")):strokecolor(color("#446688")):shadowcolor(color("#446688")):shadowlength(1)
-end	
-local item_padding_start = 4;
-local line_height= 30
+end
+local item_padding_start = 4
+local line_height = 30
 -- Tell the credits table the line height so it can use it for logo sizing.
 StepManiaCredits.SetLineHeight(line_height)
 
-local creditScroller = Def.ActorScroller {
-	SecondsPerItem = 0.5;
-	NumItemsToDraw = 40;
-	TransformFunction = function( self, offset, itemIndex, numItems)
-		self:y(line_height*offset)
-	end;
+local creditScroller =
+	Def.ActorScroller {
+	SecondsPerItem = 0.5,
+	NumItemsToDraw = 40,
+	TransformFunction = function(self, offset, itemIndex, numItems)
+		self:y(line_height * offset)
+	end,
 	OnCommand = function(self)
-		self:scrollwithpadding(item_padding_start,15)
-	end;
+		self:scrollwithpadding(item_padding_start, 15)
+	end
 }
 
 -- Add sections with padding.
@@ -59,14 +60,18 @@ for section in ivalues(StepManiaCredits.Get()) do
 	StepManiaCredits.AddLineToScroller(creditScroller)
 end
 
-creditScroller.BeginCommand=function(self)
-	SCREENMAN:GetTopScreen():PostScreenMessage( 'SM_MenuTimer', (creditScroller.SecondsPerItem * (#creditScroller + item_padding_start) + 10) );
-end;
+creditScroller.BeginCommand = function(self)
+	SCREENMAN:GetTopScreen():PostScreenMessage(
+		"SM_MenuTimer",
+		(creditScroller.SecondsPerItem * (#creditScroller + item_padding_start) + 10)
+	)
+end
 
-return Def.ActorFrame{
-	creditScroller..{
-		InitCommand=function(self)
-			self:CenterX():y(SCREEN_BOTTOM-64)
-		end,
-	}
-};
+return Def.ActorFrame {
+	creditScroller ..
+		{
+			InitCommand = function(self)
+				self:CenterX():y(SCREEN_BOTTOM - 64)
+			end
+		}
+}

@@ -1,81 +1,87 @@
-#include "global.h"
+#include "AutoActor.h"
 #include "Actor.h"
 #include "ActorUtil.h"
-#include "AutoActor.h"
 #include "ThemeManager.h"
+#include "global.h"
 
-void AutoActor::Unload()
+void
+AutoActor::Unload()
 {
-	if(m_pActor != nullptr)
-	{
+	if (m_pActor != nullptr) {
 		delete m_pActor;
 	}
-	m_pActor=nullptr;
+	m_pActor = nullptr;
 }
 
-AutoActor::AutoActor( const AutoActor &cpy )
-{ 
-	if( cpy.m_pActor == nullptr )
+AutoActor::AutoActor(const AutoActor& cpy)
+{
+	if (cpy.m_pActor == nullptr)
 		m_pActor = nullptr;
 	else
 		m_pActor = cpy.m_pActor->Copy();
 }
 
-AutoActor &AutoActor::operator=( const AutoActor &cpy )
+AutoActor&
+AutoActor::operator=(const AutoActor& cpy)
 {
 	Unload();
 
-	if( cpy.m_pActor == nullptr )
+	if (cpy.m_pActor == nullptr)
 		m_pActor = nullptr;
 	else
 		m_pActor = cpy.m_pActor->Copy();
 	return *this;
 }
 
-void AutoActor::Load( Actor *pActor )
+void
+AutoActor::Load(Actor* pActor)
 {
 	Unload();
 	m_pActor = pActor;
 }
 
-void AutoActor::Load( const RString &sPath )
+void
+AutoActor::Load(const RString& sPath)
 {
 	Unload();
-	m_pActor = ActorUtil::MakeActor( sPath );
+	m_pActor = ActorUtil::MakeActor(sPath);
 
 	// If a Condition is false, MakeActor will return NULL.
-	if( m_pActor == nullptr )
+	if (m_pActor == nullptr)
 		m_pActor = new Actor;
 }
 
-void AutoActor::LoadB( const RString &sMetricsGroup, const RString &sElement )
+void
+AutoActor::LoadB(const RString& sMetricsGroup, const RString& sElement)
 {
 	ThemeManager::PathInfo pi;
-	bool b = THEME->GetPathInfo( pi, EC_BGANIMATIONS, sMetricsGroup, sElement );
-	ASSERT( b );
-	LuaThreadVariable var1( "MatchingMetricsGroup", pi.sMatchingMetricsGroup );
-	LuaThreadVariable var2( "MatchingElement", pi.sMatchingElement );
-	Load( pi.sResolvedPath );
+	bool b = THEME->GetPathInfo(pi, EC_BGANIMATIONS, sMetricsGroup, sElement);
+	ASSERT(b);
+	LuaThreadVariable var1("MatchingMetricsGroup", pi.sMatchingMetricsGroup);
+	LuaThreadVariable var2("MatchingElement", pi.sMatchingElement);
+	Load(pi.sResolvedPath);
 }
 
-void AutoActor::LoadActorFromNode( const XNode* pNode, Actor *pParent )
+void
+AutoActor::LoadActorFromNode(const XNode* pNode, Actor* pParent)
 {
 	Unload();
 
-	m_pActor = ActorUtil::LoadFromNode( pNode, pParent );
+	m_pActor = ActorUtil::LoadFromNode(pNode, pParent);
 }
 
-void AutoActor::LoadAndSetName( const RString &sScreenName, const RString &sActorName )
+void
+AutoActor::LoadAndSetName(const RString& sScreenName, const RString& sActorName)
 {
-	Load( THEME->GetPathG(sScreenName,sActorName) );
-	m_pActor->SetName( sActorName );
-	ActorUtil::LoadAllCommands( *m_pActor, sScreenName );
+	Load(THEME->GetPathG(sScreenName, sActorName));
+	m_pActor->SetName(sActorName);
+	ActorUtil::LoadAllCommands(*m_pActor, sScreenName);
 }
 
 /*
  * (c) 2003-2004 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -85,7 +91,7 @@ void AutoActor::LoadAndSetName( const RString &sScreenName, const RString &sActo
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

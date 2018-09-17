@@ -9,25 +9,25 @@ class StageStats;
 class PlayerStageStats;
 class BitmapText;
 
-class ComboGraph: public ActorFrame
+class ComboGraph : public ActorFrame
 {
-public:
+  public:
 	ComboGraph();
-	void Load( const RString &sMetricsGroup );
-	void Set( const StageStats &s, const PlayerStageStats &pss );
-	ComboGraph *Copy() const override;
+	void Load(const RString& sMetricsGroup);
+	void Set(const StageStats& s, const PlayerStageStats& pss);
+	ComboGraph* Copy() const override;
 	bool AutoLoadChildren() const override { return true; }
 
 	// Commands
-	void PushSelf( lua_State *L ) override;
+	void PushSelf(lua_State* L) override;
 
-private:
+  private:
 	ThemeMetric<float> BODY_WIDTH;
 	ThemeMetric<float> BODY_HEIGHT;
-	Actor *m_pBacking;
-	Actor *m_pNormalCombo;
-	Actor *m_pMaxCombo;
-	BitmapText *m_pComboNumber;
+	Actor* m_pBacking;
+	Actor* m_pNormalCombo;
+	Actor* m_pMaxCombo;
+	BitmapText* m_pComboNumber;
 };
 
 #endif
@@ -35,7 +35,7 @@ private:
 /*
  * (c) 2003 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -45,7 +45,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

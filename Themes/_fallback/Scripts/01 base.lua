@@ -11,16 +11,19 @@ function loadfile(file)
 		return nil, ("what " .. file)
 	end
 
-	local chunk, err = load(
+	local chunk, err =
+		load(
 		function()
 			local ret = data
 			data = nil
 			return ret
 		end,
 		"@" .. file
-	);
+	)
 
-	if not chunk then return nil, err end
+	if not chunk then
+		return nil, err
+	end
 
 	-- Set the environment, like loadfile does.
 	setfenv(chunk, getfenv(2))
@@ -32,13 +35,13 @@ end
 -- @treturn string|error
 function dofile(file)
 	if not file then
-		error( "dofile(nil) unsupported", 2 )
+		error("dofile(nil) unsupported", 2)
 	end
 	local chunk, err = loadfile(file)
 	if not chunk then
 		error(err, 2)
 	end
-        return chunk()
+	return chunk()
 end
 
 --- Like ipairs(), but returns only values.
@@ -49,7 +52,7 @@ function ivalues(t)
 	local n = 0
 	return function()
 		n = n + 1
-		return t[n];
+		return t[n]
 	end
 end
 --- lua.GetThreadVariable alias

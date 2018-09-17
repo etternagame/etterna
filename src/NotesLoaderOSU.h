@@ -27,29 +27,43 @@ struct OsuNote
 	}
 };
 
-namespace OsuLoader
-{
+namespace OsuLoader {
 
-	// these are not organised AT ALL
+// these are not organised AT ALL
 
-	map<string, map<string, string>> ParseFileString(string fileContents);
+map<string, map<string, string>>
+ParseFileString(string fileContents);
 
-	void SeparateTagsAndContents(string fileContents, vector<string> &tagsOut, vector<vector<string>> &contentsOut);
+void
+SeparateTagsAndContents(string fileContents,
+						vector<string>& tagsOut,
+						vector<vector<string>>& contentsOut);
 
-	void SetMetadata(map<string, map<string, string>>, Song &out);
-	void SetTimingData(map<string, map<string, string>>, Song &out);
+void
+SetMetadata(map<string, map<string, string>>, Song& out);
+void
+SetTimingData(map<string, map<string, string>>, Song& out);
 
-	void GetApplicableFiles(const RString &sPath, vector<RString> &out);
+void
+GetApplicableFiles(const RString& sPath, vector<RString>& out);
 
-	bool LoadFromDir(const RString &sPath, Song &out);
+bool
+LoadFromDir(const RString& sPath, Song& out);
 
-	void LoadNoteDataFromParsedData(Steps* out, map<string, map<string, string>> parsedData);
+void
+LoadNoteDataFromParsedData(Steps* out,
+						   map<string, map<string, string>> parsedData);
 
-	bool LoadNoteDataFromSimfile(const RString &path, Steps &out);
+bool
+LoadNoteDataFromSimfile(const RString& path, Steps& out);
 
-	bool LoadChartData(Song* song, Steps* chart, map<string, map<string, string>> parsedData);
+bool
+LoadChartData(Song* song,
+			  Steps* chart,
+			  map<string, map<string, string>> parsedData);
 
-	int MsToNoteRow(int ms, Song* song);
-}
+int
+MsToNoteRow(int ms, Song* song);
+} // namespace OsuLoader
 
 #endif

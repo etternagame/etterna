@@ -4,7 +4,8 @@
 #include "EnumHelper.h"
 #include <ctime>
 
-int StringToDayInYear( const RString &sDayInYear );
+int
+StringToDayInYear(const RString& sDayInYear);
 
 /** @brief The number of days we check for previously. */
 const int NUM_LAST_DAYS = 7;
@@ -23,36 +24,52 @@ const int HOURS_IN_DAY = 24;
 const int DAYS_IN_WEEK = 7;
 /** @brief Which month are we focusing on?
  *
- * Is there any reason why the actual months aren't defined 
+ * Is there any reason why the actual months aren't defined
  * in here? -Wolfman2000 */
-enum Month 
-{ 
+enum Month
+{
 	NUM_Month = 12, /**< The number of months in the year. */
-	Month_Invalid /**< There should be no month at this point. */
+	Month_Invalid   /**< There should be no month at this point. */
 };
 
-RString DayInYearToString( int iDayInYearIndex );
-RString LastDayToString( int iLastDayIndex );
-RString LastDayToLocalizedString( int iLastDayIndex );
-RString DayOfWeekToString( int iDayOfWeekIndex );
-RString DayOfWeekToLocalizedString( int iDayOfWeekIndex );
-RString HourInDayToString( int iHourIndex );
-RString HourInDayToLocalizedString( int iHourIndex );
-const RString &MonthToString( Month month );
-const RString &MonthToLocalizedString( Month month );
-RString LastWeekToString( int iLastWeekIndex );
-RString LastWeekToLocalizedString( int iLastWeekIndex );
-LuaDeclareType( Month );
+RString
+DayInYearToString(int iDayInYearIndex);
+RString
+LastDayToString(int iLastDayIndex);
+RString
+LastDayToLocalizedString(int iLastDayIndex);
+RString
+DayOfWeekToString(int iDayOfWeekIndex);
+RString
+DayOfWeekToLocalizedString(int iDayOfWeekIndex);
+RString
+HourInDayToString(int iHourIndex);
+RString
+HourInDayToLocalizedString(int iHourIndex);
+const RString&
+MonthToString(Month month);
+const RString&
+MonthToLocalizedString(Month month);
+RString
+LastWeekToString(int iLastWeekIndex);
+RString
+LastWeekToLocalizedString(int iLastWeekIndex);
+LuaDeclareType(Month);
 
-tm AddDays( tm start, int iDaysToMove );
-tm GetYesterday( tm start );
-int GetDayOfWeek( tm time );
-tm GetNextSunday( tm start );
+tm
+AddDays(tm start, int iDaysToMove);
+tm
+GetYesterday(tm start);
+int
+GetDayOfWeek(tm time);
+tm
+GetNextSunday(tm start);
 
-tm GetDayInYearAndYear( int iDayInYearIndex, int iYear );
+tm
+GetDayInYearAndYear(int iDayInYearIndex, int iYear);
 
 /** @brief A standard way of determining the date and the time. */
-struct DateTime 
+struct DateTime
 {
 	/**
 	 * @brief The number of seconds after the minute.
@@ -94,35 +111,41 @@ struct DateTime
 	 * @brief Determine if this DateTime is less than some other time.
 	 * @param other the other DateTime to check.
 	 * @return true if this is less than the other time, or false otherwise. */
-	bool operator<( const DateTime& other ) const;
+	bool operator<(const DateTime& other) const;
 	/**
 	 * @brief Determine if this DateTime is greater than some other time.
 	 * @param other the other DateTime to check.
-	 * @return true if this is greater than the other time, or false otherwise. */
-	bool operator>( const DateTime& other ) const;
+	 * @return true if this is greater than the other time, or false otherwise.
+	 */
+	bool operator>(const DateTime& other) const;
 	/**
 	 * @brief Determine if this DateTime is equal to some other time.
 	 * @param other the other DateTime to check.
 	 * @return true if this is equal to the other time, or false otherwise. */
-	bool operator==( const DateTime& other ) const;
+	bool operator==(const DateTime& other) const;
 	/**
 	 * @brief Determine if this DateTime is not equal to some other time.
 	 * @param other the other DateTime to check.
-	 * @return true if this is not equal to the other time, or false otherwise. */
-	bool operator!=( const DateTime& other ) const { return !operator==(other); }
+	 * @return true if this is not equal to the other time, or false otherwise.
+	 */
+	bool operator!=(const DateTime& other) const { return !operator==(other); }
 	/**
-	 * @brief Determine if this DateTime is less than or equal to some other time.
+	 * @brief Determine if this DateTime is less than or equal to some other
+	 * time.
 	 * @param other the other DateTime to check.
-	 * @return true if this is less than or equal to the other time, or false otherwise. */
-	bool operator<=( const DateTime& other ) const { return !operator>(other); }
-	
-	/**
-	 * @brief Determine if this DateTime is greater than or equal to some other time.
-	 * @param other the other DateTime to check.
-	 * @return true if this is greater than or equal to the other time, or false otherwise. */
-	bool operator>=( const DateTime& other ) const { return !operator<(other); }
+	 * @return true if this is less than or equal to the other time, or false
+	 * otherwise. */
+	bool operator<=(const DateTime& other) const { return !operator>(other); }
 
-	/** 
+	/**
+	 * @brief Determine if this DateTime is greater than or equal to some other
+	 * time.
+	 * @param other the other DateTime to check.
+	 * @return true if this is greater than or equal to the other time, or false
+	 * otherwise. */
+	bool operator>=(const DateTime& other) const { return !operator<(other); }
+
+	/**
 	 * @brief Retrieve the current date and time.
 	 * @return the current date and time. */
 	static DateTime GetNowDateTime();
@@ -145,7 +168,7 @@ struct DateTime
 	 *
 	 * @param sDateTime the string to attempt to convert.
 	 * @return true if the conversion worked, or false otherwise. */
-	bool FromString( const RString &sDateTime );
+	bool FromString(const RString& sDateTime);
 };
 
 #endif
@@ -155,7 +178,7 @@ struct DateTime
  * @author Chris Danford (c) 2001-2004
  * @section LICENSE
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -165,7 +188,7 @@ struct DateTime
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

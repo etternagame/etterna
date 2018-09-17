@@ -102,6 +102,7 @@ before_install:
 after_success:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then cd ${TRAVIS_BUILD_DIR};
     ruby uploadDmg.rb; fi
+  - format-check.sh
     
 env:
   global:

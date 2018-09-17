@@ -1,7 +1,7 @@
-#include "global.h"
+#include "ScreenMessage.h"
 #include "Foreach.h"
 #include "RageLog.h"
-#include "ScreenMessage.h"
+#include "global.h"
 #include <map>
 
 const ScreenMessage SM_Invalid = "";
@@ -18,24 +18,26 @@ AutoScreenMessage(SM_Success);
 AutoScreenMessage(SM_Failure);
 AutoScreenMessage(SM_GoToDisconnectScreen);
 
-static map<RString, ScreenMessage> *m_pScreenMessages;
+static map<RString, ScreenMessage>* m_pScreenMessages;
 
-ScreenMessage ScreenMessageHelpers::ToScreenMessage( const RString &sName )
+ScreenMessage
+ScreenMessageHelpers::ToScreenMessage(const RString& sName)
 {
-	if( m_pScreenMessages == NULL )
+	if (m_pScreenMessages == NULL)
 		m_pScreenMessages = new map<RString, ScreenMessage>;
 
-	if( m_pScreenMessages->find( sName ) == m_pScreenMessages->end() )
+	if (m_pScreenMessages->find(sName) == m_pScreenMessages->end())
 		(*m_pScreenMessages)[sName] = (ScreenMessage)sName;
 
 	return (*m_pScreenMessages)[sName];
 }
 
-RString	ScreenMessageHelpers::ScreenMessageToString( ScreenMessage SM )
+RString
+ScreenMessageHelpers::ScreenMessageToString(ScreenMessage SM)
 {
-	FOREACHM( RString, ScreenMessage, *m_pScreenMessages, it )
-		if( SM == it->second )
-			return (*it).first;
+	FOREACHM(RString, ScreenMessage, *m_pScreenMessages, it)
+	if (SM == it->second)
+		return (*it).first;
 
 	return RString();
 }
@@ -43,7 +45,7 @@ RString	ScreenMessageHelpers::ScreenMessageToString( ScreenMessage SM )
 /*
  * (c) 2001-2005 Chris Danford, Glenn Maynard, Charles Lohr
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -53,7 +55,7 @@ RString	ScreenMessageHelpers::ScreenMessageToString( ScreenMessage SM )
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

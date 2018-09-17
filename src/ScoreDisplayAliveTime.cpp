@@ -1,16 +1,15 @@
-#include "global.h"
+#include "ScoreDisplayAliveTime.h"
 #include "ActorUtil.h"
 #include "GameState.h"
 #include "LuaManager.h"
 #include "RageLog.h"
 #include "RageUtil.h"
-#include "ScoreDisplayAliveTime.h"
 #include "StageStats.h"
 #include "StatsManager.h"
 #include "XmlFile.h"
+#include "global.h"
 
-REGISTER_ACTOR_CLASS( ScoreDisplayAliveTime );
-
+REGISTER_ACTOR_CLASS(ScoreDisplayAliveTime);
 
 ScoreDisplayAliveTime::ScoreDisplayAliveTime()
 {
@@ -18,71 +17,78 @@ ScoreDisplayAliveTime::ScoreDisplayAliveTime()
 	m_MultiPlayer = MultiPlayer_Invalid;
 }
 
-ScoreDisplayAliveTime::~ScoreDisplayAliveTime()
-= default;
+ScoreDisplayAliveTime::~ScoreDisplayAliveTime() = default;
 
-void ScoreDisplayAliveTime::LoadFromNode( const XNode* pNode )
+void
+ScoreDisplayAliveTime::LoadFromNode(const XNode* pNode)
 {
-	BitmapText::LoadFromNode( pNode );
+	BitmapText::LoadFromNode(pNode);
 
 	{
-		Lua *L = LUA->Get();
-		bool b = pNode->PushAttrValue( L, "PlayerNumber" );
-		LuaHelpers::Pop( L, m_PlayerNumber );
-		bool b2 = pNode->PushAttrValue( L, "MultiPlayer" );
-		LuaHelpers::Pop( L, m_MultiPlayer );
-		ASSERT( b || b2 );
-		LUA->Release( L );
+		Lua* L = LUA->Get();
+		bool b = pNode->PushAttrValue(L, "PlayerNumber");
+		LuaHelpers::Pop(L, m_PlayerNumber);
+		bool b2 = pNode->PushAttrValue(L, "MultiPlayer");
+		LuaHelpers::Pop(L, m_MultiPlayer);
+		ASSERT(b || b2);
+		LUA->Release(L);
 	}
 }
 
-void ScoreDisplayAliveTime::Update( float fDelta )
+void
+ScoreDisplayAliveTime::Update(float fDelta)
 {
 	UpdateNumber();
-	BitmapText::Update( fDelta );
+	BitmapText::Update(fDelta);
 }
 
-void ScoreDisplayAliveTime::HandleMessage( const Message &msg )
+void
+ScoreDisplayAliveTime::HandleMessage(const Message& msg)
 {
 	// TODO: Add handling of GoalComplete message
-	BitmapText::HandleMessage( msg );
+	BitmapText::HandleMessage(msg);
 }
 
-void ScoreDisplayAliveTime::UpdateNumber()
+void
+ScoreDisplayAliveTime::UpdateNumber()
 {
 	float fSecsIntoPlay = 0;
-	ASSERT( m_PlayerNumber != PLAYER_INVALID  ||  m_MultiPlayer != MultiPlayer_Invalid );
-	if( m_PlayerNumber != PLAYER_INVALID  &&  GAMESTATE->IsPlayerEnabled(m_PlayerNumber) )
-		fSecsIntoPlay = 
-			STATSMAN->GetAccumPlayedStageStats().m_player[m_PlayerNumber].m_fAliveSeconds +
-			STATSMAN->m_CurStageStats.m_player[m_PlayerNumber].m_fAliveSeconds;
-	if( m_MultiPlayer != MultiPlayer_Invalid  &&  GAMESTATE->IsMultiPlayerEnabled(m_MultiPlayer) )
-		fSecsIntoPlay = 
-			STATSMAN->GetAccumPlayedStageStats().m_fGameplaySeconds +
-			STATSMAN->m_CurStageStats.m_fGameplaySeconds;
+	ASSERT(m_PlayerNumber != PLAYER_INVALID ||
+		   m_MultiPlayer != MultiPlayer_Invalid);
+	if (m_PlayerNumber != PLAYER_INVALID &&
+		GAMESTATE->IsPlayerEnabled(m_PlayerNumber))
+		fSecsIntoPlay =
+		  STATSMAN->GetAccumPlayedStageStats()
+			.m_player[m_PlayerNumber]
+			.m_fAliveSeconds +
+		  STATSMAN->m_CurStageStats.m_player[m_PlayerNumber].m_fAliveSeconds;
+	if (m_MultiPlayer != MultiPlayer_Invalid &&
+		GAMESTATE->IsMultiPlayerEnabled(m_MultiPlayer))
+		fSecsIntoPlay =
+		  STATSMAN->GetAccumPlayedStageStats().m_fGameplaySeconds +
+		  STATSMAN->m_CurStageStats.m_fGameplaySeconds;
 
-	SetText( SecondsToMMSSMsMs(fSecsIntoPlay) );
+	SetText(SecondsToMMSSMsMs(fSecsIntoPlay));
 }
 
 // lua start
 #include "LuaBinding.h"
 
-/** @brief Allow Lua to have access to the ScoreDisplayAliveTime. */ 
-class LunaScoreDisplayAliveTime: public Luna<ScoreDisplayAliveTime>
+/** @brief Allow Lua to have access to the ScoreDisplayAliveTime. */
+class LunaScoreDisplayAliveTime : public Luna<ScoreDisplayAliveTime>
 {
-public:
-	LunaScoreDisplayAliveTime()
-	= default;
+  public:
+	LunaScoreDisplayAliveTime() = default;
 };
 
-LUA_REGISTER_DERIVED_CLASS( ScoreDisplayAliveTime, BitmapText )
+LUA_REGISTER_DERIVED_CLASS(ScoreDisplayAliveTime, BitmapText)
 
 // lua end
 
 /*
  * (c) 2001-2004 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -92,7 +98,7 @@ LUA_REGISTER_DERIVED_CLASS( ScoreDisplayAliveTime, BitmapText )
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

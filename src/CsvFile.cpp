@@ -1,131 +1,129 @@
-#include "global.h"
 #include "CsvFile.h"
 #include "Foreach.h"
 #include "RageFile.h"
 #include "RageLog.h"
 #include "RageUtil.h"
+#include "global.h"
 
-CsvFile::CsvFile()
-= default;
+CsvFile::CsvFile() = default;
 
-bool CsvFile::ReadFile( const RString &sPath )
+bool
+CsvFile::ReadFile(const RString& sPath)
 {
 	m_sPath = sPath;
-	CHECKPOINT_M( ssprintf("Reading '%s'",m_sPath.c_str()) );
+	CHECKPOINT_M(ssprintf("Reading '%s'", m_sPath.c_str()));
 
 	RageFile f;
-	if( !f.Open( m_sPath ) )
-	{
-		LOG->Trace( "Reading '%s' failed: %s", m_sPath.c_str(), f.GetError().c_str() );
+	if (!f.Open(m_sPath)) {
+		LOG->Trace(
+		  "Reading '%s' failed: %s", m_sPath.c_str(), f.GetError().c_str());
 		m_sError = f.GetError();
 		return false;
 	}
 
-	return ReadFile( f );
+	return ReadFile(f);
 }
 
-bool CsvFile::ReadFile( RageFileBasic &f )
+bool
+CsvFile::ReadFile(RageFileBasic& f)
 {
 	m_vvs.clear();
 
 	// hi,"hi2,","""hi3"""
 
-	for(;;)
-	{
+	for (;;) {
 		RString line;
-		switch( f.GetLine(line) )
-		{
-		case -1:
-			m_sError = f.GetError();
-			return false;
-		case 0:
-			return true; /* eof */
+		switch (f.GetLine(line)) {
+			case -1:
+				m_sError = f.GetError();
+				return false;
+			case 0:
+				return true; /* eof */
 		}
 
-		utf8_remove_bom( line );
+		utf8_remove_bom(line);
 
 		vector<RString> vs;
 
-		while( !line.empty() )
-		{
-			if( line[0] == '\"' )	// quoted value
+		while (!line.empty()) {
+			if (line[0] == '\"') // quoted value
 			{
-				line.erase( line.begin() );	// eat open quote
+				line.erase(line.begin()); // eat open quote
 				RString::size_type iEnd = 0;
-				do
-				{
+				do {
 					iEnd = line.find('\"', iEnd);
-					if( iEnd == line.npos )
-					{
-						iEnd = line.size()-1;	// didn't find an end.  Take the whole line.
+					if (iEnd == line.npos) {
+						iEnd = line.size() -
+							   1; // didn't find an end.  Take the whole line.
 						break;
 					}
 
-					if( line.size() > iEnd+1 && line[iEnd+1] == '\"' )	// next char is also double quote
-						iEnd = iEnd+2;
+					if (line.size() > iEnd + 1 &&
+						line[iEnd + 1] ==
+						  '\"') // next char is also double quote
+						iEnd = iEnd + 2;
 					else
 						break;
-				}
-				while(true);
+				} while (true);
 
 				RString sValue = line;
-				sValue = sValue.Left( iEnd );
-				vs.push_back( sValue );
+				sValue = sValue.Left(iEnd);
+				vs.push_back(sValue);
 
-				line.erase( line.begin(), line.begin()+iEnd );
+				line.erase(line.begin(), line.begin() + iEnd);
 
-				if( !line.empty() && line[0] == '\"' )
-					line.erase( line.begin() );
-			}
-			else
-			{
+				if (!line.empty() && line[0] == '\"')
+					line.erase(line.begin());
+			} else {
 				RString::size_type iEnd = line.find(',');
-				if( iEnd == line.npos )
-					iEnd = line.size();	// didn't find an end.  Take the whole line
+				if (iEnd == line.npos)
+					iEnd =
+					  line.size(); // didn't find an end.  Take the whole line
 
 				RString sValue = line;
-				sValue = sValue.Left( iEnd );
-				vs.push_back( sValue );
+				sValue = sValue.Left(iEnd);
+				vs.push_back(sValue);
 
-				line.erase( line.begin(), line.begin()+iEnd );
+				line.erase(line.begin(), line.begin() + iEnd);
 			}
 
-			if( !line.empty() && line[0] == ',' )
-				line.erase( line.begin() );
+			if (!line.empty() && line[0] == ',')
+				line.erase(line.begin());
 		}
 
-		m_vvs.push_back( vs );
+		m_vvs.push_back(vs);
 	}
 }
 
-bool CsvFile::WriteFile( const RString &sPath ) const
+bool
+CsvFile::WriteFile(const RString& sPath) const
 {
 	RageFile f;
-	if( !f.Open( sPath, RageFile::WRITE ) )
-	{
-		LOG->Trace( "Writing '%s' failed: %s", sPath.c_str(), f.GetError().c_str() );
+	if (!f.Open(sPath, RageFile::WRITE)) {
+		LOG->Trace(
+		  "Writing '%s' failed: %s", sPath.c_str(), f.GetError().c_str());
 		m_sError = f.GetError();
 		return false;
 	}
 
-	return CsvFile::WriteFile( f );
+	return CsvFile::WriteFile(f);
 }
 
-bool CsvFile::WriteFile( RageFileBasic &f ) const
+bool
+CsvFile::WriteFile(RageFileBasic& f) const
 {
-	FOREACH_CONST( StringVector, m_vvs, line ) 
+	FOREACH_CONST(StringVector, m_vvs, line)
 	{
 		RString sLine;
-		FOREACH_CONST( RString, *line, value ) 
+		FOREACH_CONST(RString, *line, value)
 		{
 			RString sVal = *value;
-			sVal.Replace( "\"", "\"\"" );	// escape quotes to double-quotes
+			sVal.Replace("\"", "\"\""); // escape quotes to double-quotes
 			sLine += "\"" + sVal + "\"";
-			if( value != line->end()-1 )
+			if (value != line->end() - 1)
 				sLine += ",";
 		}
-		if( f.PutLine(sLine) == -1 )
-		{
+		if (f.PutLine(sLine) == -1) {
 			m_sError = f.GetError();
 			return false;
 		}
@@ -133,11 +131,10 @@ bool CsvFile::WriteFile( RageFileBasic &f ) const
 	return true;
 }
 
-
 /*
  * (c) 2001-2004 Adam Clauss, Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -147,7 +144,7 @@ bool CsvFile::WriteFile( RageFileBasic &f ) const
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

@@ -7,15 +7,16 @@ class TimingData;
 class RageSound;
 struct lua_State;
 
-int MusicThread_start( void *p );
+int
+MusicThread_start(void* p);
 
 /** @brief High-level sound utilities. */
 class GameSoundManager
 {
-public:
+  public:
 	GameSoundManager();
 	~GameSoundManager();
-	void Update( float fDeltaTime );
+	void Update(float fDeltaTime);
 
 	struct PlayMusicParams
 	{
@@ -32,7 +33,7 @@ public:
 		}
 
 		RString sFile;
-		const TimingData *pTiming;
+		const TimingData* pTiming;
 		bool bForceLoop;
 		float fStartSecond;
 		float fLengthSeconds;
@@ -41,36 +42,36 @@ public:
 		bool bAlignBeat;
 		bool bApplyMusicRate;
 	};
-	void PlayMusic( PlayMusicParams params, PlayMusicParams FallbackMusicParams = PlayMusicParams() );
-	void PlayMusic( 
-		const RString &sFile, 
-		const TimingData *pTiming = NULL, 
-		bool force_loop = false, 
-		float start_sec = 0, 
-		float length_sec = -1, 
-		float fFadeInLengthSeconds = 0,
-		float fade_len = 0, 
-		bool align_beat = true,
-		bool bApplyMusicRate = false );
+	void PlayMusic(PlayMusicParams params,
+				   PlayMusicParams FallbackMusicParams = PlayMusicParams());
+	void PlayMusic(const RString& sFile,
+				   const TimingData* pTiming = NULL,
+				   bool force_loop = false,
+				   float start_sec = 0,
+				   float length_sec = -1,
+				   float fFadeInLengthSeconds = 0,
+				   float fade_len = 0,
+				   bool align_beat = true,
+				   bool bApplyMusicRate = false);
 	void StopMusic() { PlayMusic(""); }
-	void DimMusic( float fVolume, float fDurationSeconds );
+	void DimMusic(float fVolume, float fDurationSeconds);
 	RString GetMusicPath() const;
 	void Flush();
 
-	void PlayOnce( const RString &sPath );
-	void PlayOnceFromDir( const RString &sDir );
-	void PlayOnceFromAnnouncer( const RString &sFolderName );
+	void PlayOnce(const RString& sPath);
+	void PlayOnceFromDir(const RString& sDir);
+	void PlayOnceFromAnnouncer(const RString& sFolderName);
 
-	void HandleSongTimer( bool on=true );
-	float GetFrameTimingAdjustment( float fDeltaTime );
+	void HandleSongTimer(bool on = true);
+	float GetFrameTimingAdjustment(float fDeltaTime);
 
-	static float GetPlayerBalance( PlayerNumber pn );
+	static float GetPlayerBalance(PlayerNumber pn);
 
 	// Lua
-	void PushSelf( lua_State *L );
+	void PushSelf(lua_State* L);
 };
 
-extern GameSoundManager *SOUND;
+extern GameSoundManager* SOUND;
 #endif
 
 /*
@@ -97,4 +98,3 @@ extern GameSoundManager *SOUND;
  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-

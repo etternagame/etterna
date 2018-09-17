@@ -1,18 +1,17 @@
-#include "global.h"
+#include "SnapDisplay.h"
 #include "EnumHelper.h"
 #include "GameState.h"
 #include "ScreenDimensions.h"
-#include "SnapDisplay.h"
 #include "Style.h"
 #include "ThemeManager.h"
+#include "global.h"
 
 SnapDisplay::SnapDisplay()
 {
-	for( int i=0; i<2; i++ )
-	{
-		m_sprIndicators[i].Load( THEME->GetPathG("SnapDisplay","icon 9x1") );
+	for (int i = 0; i < 2; i++) {
+		m_sprIndicators[i].Load(THEME->GetPathG("SnapDisplay", "icon 9x1"));
 		m_sprIndicators[i].StopAnimating();
-		this->AddChild( &m_sprIndicators[i] );
+		this->AddChild(&m_sprIndicators[i]);
 	}
 
 	m_NoteType = NOTE_TYPE_4TH;
@@ -20,44 +19,51 @@ SnapDisplay::SnapDisplay()
 	m_iNumCols = 0;
 }
 
-void SnapDisplay::Load()
+void
+SnapDisplay::Load()
 {
-	m_iNumCols = GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())->m_iColsPerPlayer;
+	m_iNumCols = GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())
+				   ->m_iColsPerPlayer;
 
-	m_sprIndicators[0].SetX( -ARROW_SIZE * (static_cast<float>(m_iNumCols) /2 + 0.5f) );
-	m_sprIndicators[1].SetX(  ARROW_SIZE * (static_cast<float>(m_iNumCols)/2 + 0.5f) );
+	m_sprIndicators[0].SetX(-ARROW_SIZE *
+							(static_cast<float>(m_iNumCols) / 2 + 0.5f));
+	m_sprIndicators[1].SetX(ARROW_SIZE *
+							(static_cast<float>(m_iNumCols) / 2 + 0.5f));
 }
 
-bool SnapDisplay::PrevSnapMode()
+bool
+SnapDisplay::PrevSnapMode()
 {
-	if( m_NoteType == 0 )
+	if (m_NoteType == 0)
 		return false;
-	enum_add( m_NoteType, -1 );
+	enum_add(m_NoteType, -1);
 
 	SnapModeChanged();
 	return true;
 }
 
-bool SnapDisplay::NextSnapMode()
+bool
+SnapDisplay::NextSnapMode()
 {
-	if( m_NoteType == NOTE_TYPE_192ND )	// the smallest snap we should allow
+	if (m_NoteType == NOTE_TYPE_192ND) // the smallest snap we should allow
 		return false;
-	enum_add( m_NoteType, 1 );
+	enum_add(m_NoteType, 1);
 
 	SnapModeChanged();
 	return true;
 }
 
-void SnapDisplay::SnapModeChanged()
+void
+SnapDisplay::SnapModeChanged()
 {
-	for( int i=0; i<2; i++ )
-		m_sprIndicators[i].SetState( m_NoteType );
+	for (int i = 0; i < 2; i++)
+		m_sprIndicators[i].SetState(m_NoteType);
 }
 
 /*
  * (c) 2001-2002 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -67,7 +73,7 @@ void SnapDisplay::SnapModeChanged()
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

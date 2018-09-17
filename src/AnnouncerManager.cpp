@@ -1,68 +1,72 @@
-#include "global.h"
 #include "AnnouncerManager.h"
 #include "RageFile.h"
 #include "RageLog.h"
 #include "RageUtil.h"
+#include "global.h"
 #include <cstring>
 
-AnnouncerManager*	ANNOUNCER = nullptr; // global and accessible from anywhere in our program
-
+AnnouncerManager* ANNOUNCER =
+  nullptr; // global and accessible from anywhere in our program
 
 const RString EMPTY_ANNOUNCER_NAME = "Empty";
-const RString ANNOUNCERS_DIR  = "Announcers/";
+const RString ANNOUNCERS_DIR = "Announcers/";
 
 AnnouncerManager::AnnouncerManager()
 {
 	// Register with Lua.
 	{
-		Lua *L = LUA->Get();
-		lua_pushstring( L, "ANNOUNCER" );
-		this->PushSelf( L );
-		lua_settable( L, LUA_GLOBALSINDEX );
-		LUA->Release( L );
+		Lua* L = LUA->Get();
+		lua_pushstring(L, "ANNOUNCER");
+		this->PushSelf(L);
+		lua_settable(L, LUA_GLOBALSINDEX);
+		LUA->Release(L);
 	}
 }
 
 AnnouncerManager::~AnnouncerManager()
 {
 	// Unregister with Lua.
-	LUA->UnsetGlobal( "ANNOUNCER" );
+	LUA->UnsetGlobal("ANNOUNCER");
 }
 
-void AnnouncerManager::GetAnnouncerNames( vector<RString>& AddTo )
+void
+AnnouncerManager::GetAnnouncerNames(vector<RString>& AddTo)
 {
-	GetDirListing( ANNOUNCERS_DIR+"*", AddTo, true );
+	GetDirListing(ANNOUNCERS_DIR + "*", AddTo, true);
 
-	StripCvsAndSvn( AddTo );
-	StripMacResourceForks( AddTo );
+	StripCvsAndSvn(AddTo);
+	StripMacResourceForks(AddTo);
 
 	// strip out the empty announcer folder
-	for( int i=AddTo.size()-1; i>=0; i-- )
-		if( !strcasecmp( AddTo[i], EMPTY_ANNOUNCER_NAME ) )
-			AddTo.erase(AddTo.begin()+i, AddTo.begin()+i+1 );
+	for (int i = AddTo.size() - 1; i >= 0; i--)
+		if (!strcasecmp(AddTo[i], EMPTY_ANNOUNCER_NAME))
+			AddTo.erase(AddTo.begin() + i, AddTo.begin() + i + 1);
 }
 
-bool AnnouncerManager::DoesAnnouncerExist( const RString &sAnnouncerName )
+bool
+AnnouncerManager::DoesAnnouncerExist(const RString& sAnnouncerName)
 {
-	if( sAnnouncerName == "" )
+	if (sAnnouncerName == "")
 		return true;
 
 	vector<RString> asAnnouncerNames;
-	GetAnnouncerNames( asAnnouncerNames );
-	for( unsigned i=0; i<asAnnouncerNames.size(); i++ )
-		if( 0==strcasecmp(sAnnouncerName, asAnnouncerNames[i]) )
+	GetAnnouncerNames(asAnnouncerNames);
+	for (unsigned i = 0; i < asAnnouncerNames.size(); i++)
+		if (0 == strcasecmp(sAnnouncerName, asAnnouncerNames[i]))
 			return true;
 	return false;
 }
 
-RString AnnouncerManager::GetAnnouncerDirFromName( const RString &sAnnouncerName )
+RString
+AnnouncerManager::GetAnnouncerDirFromName(const RString& sAnnouncerName)
 {
 	return ANNOUNCERS_DIR + sAnnouncerName + "/";
 }
 
-void AnnouncerManager::SwitchAnnouncer( const RString &sNewAnnouncerName )
+void
+AnnouncerManager::SwitchAnnouncer(const RString& sNewAnnouncerName)
 {
-	if( !DoesAnnouncerExist(sNewAnnouncerName) )
+	if (!DoesAnnouncerExist(sNewAnnouncerName))
 		m_sCurAnnouncerName = "";
 	else
 		m_sCurAnnouncerName = sNewAnnouncerName;
@@ -71,15 +75,19 @@ void AnnouncerManager::SwitchAnnouncer( const RString &sNewAnnouncerName )
 /* Aliases for announcer paths.  This is for compatibility, so we don't force
  * announcer changes along with everything else.  We could use it to support
  * DWI announcers transparently, too. */
-static const char *aliases[][2] = {
+static const char* aliases[][2] = {
 	/* ScreenSelectDifficulty compatibility: */
-	{ "ScreenSelectDifficulty comment beginner", "select difficulty comment beginner" },
+	{ "ScreenSelectDifficulty comment beginner",
+	  "select difficulty comment beginner" },
 	{ "ScreenSelectDifficulty comment easy", "select difficulty comment easy" },
-	{ "ScreenSelectDifficulty comment medium", "select difficulty comment medium" },
+	{ "ScreenSelectDifficulty comment medium",
+	  "select difficulty comment medium" },
 	{ "ScreenSelectDifficulty comment hard", "select difficulty comment hard" },
 	{ "ScreenSelectDifficulty comment oni", "select difficulty comment oni" },
-	{ "ScreenSelectDifficulty comment nonstop", "select difficulty comment nonstop" },
-	{ "ScreenSelectDifficulty comment endless", "select difficulty comment endless" },
+	{ "ScreenSelectDifficulty comment nonstop",
+	  "select difficulty comment nonstop" },
+	{ "ScreenSelectDifficulty comment endless",
+	  "select difficulty comment endless" },
 	{ "ScreenSelectDifficulty intro", "select difficulty intro" },
 
 	/* ScreenSelectStyle compatibility: */
@@ -106,73 +114,77 @@ static const char *aliases[][2] = {
 
 /* Find an announcer directory with sounds in it.  First search sFolderName,
  * then all aliases above.  Ignore directories that are empty, since we might
- * have "select difficulty intro" with sounds and an empty "ScreenSelectDifficulty
- * intro". */
-RString AnnouncerManager::GetPathTo( const RString &sAnnouncerName, const RString &sFolderName )
+ * have "select difficulty intro" with sounds and an empty
+ * "ScreenSelectDifficulty intro". */
+RString
+AnnouncerManager::GetPathTo(const RString& sAnnouncerName,
+							const RString& sFolderName)
 {
-	if(sAnnouncerName == "")
+	if (sAnnouncerName == "")
 		return RString(); /* announcer disabled */
 
 	const RString AnnouncerPath = GetAnnouncerDirFromName(sAnnouncerName);
 
-	if( !DirectoryIsEmpty(AnnouncerPath+sFolderName+"/") )
-		return AnnouncerPath+sFolderName+"/";
+	if (!DirectoryIsEmpty(AnnouncerPath + sFolderName + "/"))
+		return AnnouncerPath + sFolderName + "/";
 
 	/* Search for the announcer folder in the list of aliases. */
 	int i;
-	for(i = 0; aliases[i][0] != NULL; ++i)
-	{
-		if(!sFolderName.EqualsNoCase(aliases[i][0]))
+	for (i = 0; aliases[i][0] != NULL; ++i) {
+		if (!sFolderName.EqualsNoCase(aliases[i][0]))
 			continue; /* no match */
 
-		if( !DirectoryIsEmpty(AnnouncerPath+aliases[i][1]+"/") )
-			return AnnouncerPath+aliases[i][1]+"/";
+		if (!DirectoryIsEmpty(AnnouncerPath + aliases[i][1] + "/"))
+			return AnnouncerPath + aliases[i][1] + "/";
 	}
 
-	/* No announcer directory matched.  In debug, create the directory by
-	 * its preferred name. */
+		/* No announcer directory matched.  In debug, create the directory by
+		 * its preferred name. */
 #ifdef DEBUG
-	LOG->Trace( "The announcer in '%s' is missing the folder '%s'.",
-		AnnouncerPath.c_str(), sFolderName.c_str() );
-//	MessageBeep( MB_OK );
+	LOG->Trace("The announcer in '%s' is missing the folder '%s'.",
+			   AnnouncerPath.c_str(),
+			   sFolderName.c_str());
+	//	MessageBeep( MB_OK );
 	RageFile temp;
-	temp.Open( AnnouncerPath+sFolderName + "/announcer files go here.txt", RageFile::WRITE );
+	temp.Open(AnnouncerPath + sFolderName + "/announcer files go here.txt",
+			  RageFile::WRITE);
 #endif
 
 	return RString();
 }
 
-RString AnnouncerManager::GetPathTo( const RString &sFolderName )
+RString
+AnnouncerManager::GetPathTo(const RString& sFolderName)
 {
 	return GetPathTo(m_sCurAnnouncerName, sFolderName);
 }
 
-bool AnnouncerManager::HasSoundsFor( const RString &sFolderName )
+bool
+AnnouncerManager::HasSoundsFor(const RString& sFolderName)
 {
-	return !DirectoryIsEmpty( GetPathTo(sFolderName) );
+	return !DirectoryIsEmpty(GetPathTo(sFolderName));
 }
 
-void AnnouncerManager::NextAnnouncer()
+void
+AnnouncerManager::NextAnnouncer()
 {
 	vector<RString> as;
-	GetAnnouncerNames( as );
-	if( as.size()==0 )
+	GetAnnouncerNames(as);
+	if (as.size() == 0)
 		return;
 
-	if( m_sCurAnnouncerName == "" )
-		SwitchAnnouncer( as[0] );
-	else
-	{
+	if (m_sCurAnnouncerName == "")
+		SwitchAnnouncer(as[0]);
+	else {
 		unsigned i;
-		for( i=0; i<as.size(); i++ )
-			if( as[i].EqualsNoCase(m_sCurAnnouncerName) )
+		for (i = 0; i < as.size(); i++)
+			if (as[i].EqualsNoCase(m_sCurAnnouncerName))
 				break;
-		if( i==as.size()-1 )
-			SwitchAnnouncer( "" );
-		else
-		{
-			int iNewIndex = (i+1)%as.size();
-			SwitchAnnouncer( as[iNewIndex] );
+		if (i == as.size() - 1)
+			SwitchAnnouncer("");
+		else {
+			int iNewIndex = (i + 1) % as.size();
+			SwitchAnnouncer(as[iNewIndex]);
 		}
 	}
 }
@@ -180,49 +192,50 @@ void AnnouncerManager::NextAnnouncer()
 #include "LuaBinding.h"
 
 /** @brief Allow Lua to have access to the AnnouncerManager. */
-class LunaAnnouncerManager: public Luna<AnnouncerManager>
+class LunaAnnouncerManager : public Luna<AnnouncerManager>
 {
-public:
-	static int DoesAnnouncerExist( T* p, lua_State *L ) { lua_pushboolean(L, p->DoesAnnouncerExist( SArg(1) )); return 1; }
-	static int GetAnnouncerNames( T* p, lua_State *L )
+  public:
+	static int DoesAnnouncerExist(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->DoesAnnouncerExist(SArg(1)));
+		return 1;
+	}
+	static int GetAnnouncerNames(T* p, lua_State* L)
 	{
 		vector<RString> vAnnouncers;
-		p->GetAnnouncerNames( vAnnouncers );
+		p->GetAnnouncerNames(vAnnouncers);
 		LuaHelpers::CreateTableFromArray(vAnnouncers, L);
 		return 1;
 	}
-	static int GetCurrentAnnouncer( T* p, lua_State *L )
+	static int GetCurrentAnnouncer(T* p, lua_State* L)
 	{
 		RString s = p->GetCurAnnouncerName();
-		if( s.empty() )
-		{
+		if (s.empty()) {
 			lua_pushnil(L);
-		}
-		else
-		{
-			lua_pushstring(L, s );
+		} else {
+			lua_pushstring(L, s);
 		}
 		return 1;
 	}
-	static int SetCurrentAnnouncer( T* p, lua_State *L )
+	static int SetCurrentAnnouncer(T* p, lua_State* L)
 	{
 		RString s = SArg(1);
 		// only bother switching if the announcer exists. -aj
-		if(p->DoesAnnouncerExist(s))
+		if (p->DoesAnnouncerExist(s))
 			p->SwitchAnnouncer(s);
 		COMMON_RETURN_SELF;
 	}
 
 	LunaAnnouncerManager()
 	{
-		ADD_METHOD( DoesAnnouncerExist );
-		ADD_METHOD( GetAnnouncerNames );
-		ADD_METHOD( GetCurrentAnnouncer );
-		ADD_METHOD( SetCurrentAnnouncer );
+		ADD_METHOD(DoesAnnouncerExist);
+		ADD_METHOD(GetAnnouncerNames);
+		ADD_METHOD(GetCurrentAnnouncer);
+		ADD_METHOD(SetCurrentAnnouncer);
 	}
 };
 
-LUA_REGISTER_CLASS( AnnouncerManager )
+LUA_REGISTER_CLASS(AnnouncerManager)
 // lua end
 
 /*

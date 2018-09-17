@@ -1,15 +1,15 @@
-#include "global.h"
 #include "ScreenGameplayNormal.h"
 #include "Difficulty.h"
+#include "global.h"
 
+REGISTER_SCREEN_CLASS(ScreenGameplayNormal);
 
-REGISTER_SCREEN_CLASS( ScreenGameplayNormal );
-
-void ScreenGameplayNormal::FillPlayerInfo( vector<PlayerInfo> &vPlayerInfoOut )
+void
+ScreenGameplayNormal::FillPlayerInfo(vector<PlayerInfo>& vPlayerInfoOut)
 {
-	vPlayerInfoOut.resize( NUM_PLAYERS );
-	FOREACH_PlayerNumber( p )
-		vPlayerInfoOut[p].Load( p, MultiPlayer_Invalid, true, Difficulty_Invalid );
+	vPlayerInfoOut.resize(NUM_PLAYERS);
+	FOREACH_PlayerNumber(p) vPlayerInfoOut[p].Load(
+	  p, MultiPlayer_Invalid, true, Difficulty_Invalid);
 };
 
 // lua end
@@ -17,7 +17,7 @@ void ScreenGameplayNormal::FillPlayerInfo( vector<PlayerInfo> &vPlayerInfoOut )
 /*
  * (c) 2005 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -27,7 +27,7 @@ void ScreenGameplayNormal::FillPlayerInfo( vector<PlayerInfo> &vPlayerInfoOut )
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

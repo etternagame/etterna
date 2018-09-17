@@ -11,30 +11,30 @@
 
 class EnterName : public CDialog
 {
-// Construction
-public:
-	EnterName(CWnd* pParent = NULL);   // standard constructor
+	// Construction
+  public:
+	EnterName(CWnd* pParent = NULL); // standard constructor
 
 	CString m_sEnteredName;
 
-// Dialog Data
+	// Dialog Data
 	//{{AFX_DATA(EnterName)
-	enum { IDD = IDD_DIALOG_NAME };
-	CEdit	m_edit;
+	enum
+	{
+		IDD = IDD_DIALOG_NAME
+	};
+	CEdit m_edit;
 	//}}AFX_DATA
 
-
-// Overrides
+	// Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(EnterName)
-	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-	//}}AFX_VIRTUAL
+  protected:
+	virtual void DoDataExchange(CDataExchange* pDX); // DDX/DDV support
+													 //}}AFX_VIRTUAL
 
-
-// Implementation
-protected:
-
+	// Implementation
+  protected:
 	// Generated message map functions
 	//{{AFX_MSG(EnterName)
 	virtual void OnOK();
@@ -44,14 +44,15 @@ protected:
 };
 
 //{{AFX_INSERT_LOCATION}}
-// Microsoft Visual C++ will insert additional declarations immediately before the previous line.
+// Microsoft Visual C++ will insert additional declarations immediately before
+// the previous line.
 
 #endif // !defined(AFX_ENTERNAME_H__0AB99274_EB79_4A25_B95C_627E0A99C6BA__INCLUDED_)
 
 /*
  * (c) 2002-2005 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -61,7 +62,7 @@ protected:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

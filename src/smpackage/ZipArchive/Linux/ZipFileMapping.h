@@ -10,10 +10,9 @@
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
-// 
+//
 // For the licensing details see the file License.txt
 ////////////////////////////////////////////////////////////////////////////////
-
 
 #if !defined(AFX_AUTOHANDLE_H__D68326EA_D7FA_4792_AB1F_68D09533E399__INCLUDED_)
 #define AFX_AUTOHANDLE_H__D68326EA_D7FA_4792_AB1F_68D09533E399__INCLUDED_
@@ -24,47 +23,39 @@
 
 #include <sys/mman.h>
 
-namespace ziparchv
-{
-	
+namespace ziparchv {
 
-	struct CZipFileMapping
+struct CZipFileMapping
+{
+	CZipFileMapping()
 	{
-		CZipFileMapping()
-		{
-			m_iSize = 0;
+		m_iSize = 0;
+		m_pFileMap = NULL;
+	}
+	bool CreateMapping(CZipFile* pFile)
+	{
+		if (!pFile)
+			return false;
+		m_iSize = pFile->GetLength();
+		m_pFileMap = mmap(
+		  0, m_iSize, PROT_READ | PROT_WRITE, MAP_SHARED, pFile->m_hFile, 0);
+		return (m_pFileMap != NULL);
+	}
+	void RemoveMapping()
+	{
+
+		if (m_pFileMap) {
+			munmap(m_pFileMap, m_iSize);
 			m_pFileMap = NULL;
 		}
-		bool CreateMapping(CZipFile* pFile)
-		{
-			if (!pFile)
-				return false;
-			m_iSize = pFile->GetLength();
-			m_pFileMap = mmap(0, m_iSize, PROT_READ|PROT_WRITE, MAP_SHARED, pFile->m_hFile, 0);
-			return (m_pFileMap != NULL);
-		}
-		void RemoveMapping()
-		{
-                
-			if (m_pFileMap)
-			{
-				munmap(m_pFileMap, m_iSize);
-				m_pFileMap = NULL;
-			}
-		}
-		~CZipFileMapping()
-		{
-			RemoveMapping();
-		}
-		char* GetMappedMemory()
-		{
-			return reinterpret_cast<char*> (m_pFileMap);
-		}
-	protected:
-		void* m_pFileMap;
-		size_t m_iSize;
+	}
+	~CZipFileMapping() { RemoveMapping(); }
+	char* GetMappedMemory() { return reinterpret_cast<char*>(m_pFileMap); }
 
-	};
+  protected:
+	void* m_pFileMap;
+	size_t m_iSize;
+};
 }
 
 #endif // !defined(AFX_AUTOHANDLE_H__D68326EA_D7FA_4792_AB1F_68D09533E399__INCLUDED_)

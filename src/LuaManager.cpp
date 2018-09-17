@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "Command.h"
 #include "LuaManager.h"
+#include "Command.h"
 #include "LuaReference.h"
 #include "MessageManager.h"
 #include "RageFile.h"
@@ -25,159 +25,196 @@
 
 using std::vector;
 
-LuaManager *LUA = nullptr;
+LuaManager* LUA = nullptr;
 struct Impl
 {
-	Impl(): g_pLock("Lua") {}
-	vector<lua_State *> g_FreeStateList;
-	std::map<lua_State *, bool> g_ActiveStates;
+	Impl()
+	  : g_pLock("Lua")
+	{
+	}
+	vector<lua_State*> g_FreeStateList;
+	std::map<lua_State*, bool> g_ActiveStates;
 
 	RageMutex g_pLock;
 };
-static Impl *pImpl = nullptr;
+static Impl* pImpl = nullptr;
 
 #if defined(_MSC_VER)
-	/* "interaction between '_setjmp' and C++ object destruction is non-portable"
-	 * We don't care; we'll throw a fatal exception immediately anyway. */
-	#pragma warning (disable : 4611)
+/* "interaction between '_setjmp' and C++ object destruction is non-portable"
+ * We don't care; we'll throw a fatal exception immediately anyway. */
+#pragma warning(disable : 4611)
 #endif
 
 /** @brief Utilities for working with Lua. */
-namespace LuaHelpers
+namespace LuaHelpers {
+template<>
+bool
+FromStack(Lua* L, RString& object, int offset);
+template<>
+void
+Push<bool>(lua_State* L, bool const& object)
 {
-	template<>
-	bool FromStack(Lua * L, RString & object, int offset);
-	template<> void Push<bool>(lua_State* L, bool const& object)
-	{
-		lua_pushboolean(L, static_cast<int>(object));
-	}
-	template<> void Push<float>(lua_State* L, float const& object)
-	{
-		lua_pushnumber(L, object);
-	}
-	template<> void Push<double>(lua_State* L, double const& object)
-	{
-		lua_pushnumber(L, object);
-	}
-	template<> void Push<int>(lua_State* L, int const& object)
-	{
-		lua_pushinteger(L, object);
-	}
-	template<> void Push<unsigned int>(lua_State* L, unsigned int const& object)
-	{
-		lua_pushnumber(L, static_cast<double>(object));
-	}
-	template<> void Push<unsigned long>(lua_State* L, unsigned long const& object)
-	{
-		lua_pushnumber(L, static_cast<double>(object));
-	}
-	template<> void Push<std::string>(lua_State* L, std::string const& object)
-	{
-		lua_pushlstring(L, object.data(), object.size());
-	}
-	template<> void Push<RString>(lua_State* L, RString const& object)
-	{
-		lua_pushlstring(L, object.data(), object.size());
-	}
+	lua_pushboolean(L, static_cast<int>(object));
+}
+template<>
+void
+Push<float>(lua_State* L, float const& object)
+{
+	lua_pushnumber(L, object);
+}
+template<>
+void
+Push<double>(lua_State* L, double const& object)
+{
+	lua_pushnumber(L, object);
+}
+template<>
+void
+Push<int>(lua_State* L, int const& object)
+{
+	lua_pushinteger(L, object);
+}
+template<>
+void
+Push<unsigned int>(lua_State* L, unsigned int const& object)
+{
+	lua_pushnumber(L, static_cast<double>(object));
+}
+template<>
+void
+Push<unsigned long>(lua_State* L, unsigned long const& object)
+{
+	lua_pushnumber(L, static_cast<double>(object));
+}
+template<>
+void
+Push<std::string>(lua_State* L, std::string const& object)
+{
+	lua_pushlstring(L, object.data(), object.size());
+}
+template<>
+void
+Push<RString>(lua_State* L, RString const& object)
+{
+	lua_pushlstring(L, object.data(), object.size());
+}
 
-	template<> bool FromStack<bool>(Lua* L, bool& object, int offset)
-	{
-		object = lua_toboolean(L, offset) != 0;
+template<>
+bool
+FromStack<bool>(Lua* L, bool& object, int offset)
+{
+	object = lua_toboolean(L, offset) != 0;
+	return true;
+}
+template<>
+bool
+FromStack<float>(Lua* L, float& object, int offset)
+{
+	object = static_cast<float>(lua_tonumber(L, offset));
+	return true;
+}
+template<>
+bool
+FromStack<double>(Lua* L, double& object, int offset)
+{
+	object = static_cast<double>(lua_tonumber(L, offset));
+	return true;
+}
+template<>
+bool
+FromStack<int>(Lua* L, int& object, int offset)
+{
+	object = lua_tointeger(L, offset);
+	return true;
+}
+template<>
+bool
+FromStack<unsigned int>(Lua* L, unsigned int& object, int offset)
+{
+	object = lua_tointeger(L, offset);
+	return true;
+}
+template<>
+bool
+FromStack<unsigned long>(Lua* L, unsigned long& object, int offset)
+{
+	object = lua_tointeger(L, offset);
+	return true;
+}
+template<>
+bool
+FromStack<std::string>(Lua* L, std::string& object, int offset)
+{
+	size_t len;
+	char const* cstr = lua_tolstring(L, offset, &len);
+	if (cstr != nullptr) {
+		object.assign(cstr);
 		return true;
 	}
-	template<> bool FromStack<float>(Lua* L, float& object, int offset)
-	{
-		object = static_cast<float>(lua_tonumber(L, offset));
+	object.clear();
+	return false;
+}
+template<>
+bool
+FromStack<RString>(Lua* L, RString& object, int offset)
+{
+	size_t len;
+	char const* cstr = lua_tolstring(L, offset, &len);
+	if (cstr != nullptr) {
+		object.assign(cstr);
 		return true;
 	}
-	template<> bool FromStack<double>(Lua* L, double& object, int offset)
-	{
-		object = static_cast<double>(lua_tonumber(L, offset));
-		return true;
-	}
-	template<> bool FromStack<int>(Lua* L, int& object, int offset)
-	{
-		object = lua_tointeger(L, offset);
-		return true;
-	}
-	template<> bool FromStack<unsigned int>(Lua* L, unsigned int& object, int offset)
-	{
-		object = lua_tointeger(L, offset);
-		return true;
-	}
-	template<> bool FromStack<unsigned long>(Lua* L, unsigned long& object, int offset)
-	{
-		object = lua_tointeger(L, offset);
-		return true;
-	}
-	template<> bool FromStack<std::string>(Lua* L, std::string &object, int offset)
-	{
-		size_t len;
-		char const *cstr = lua_tolstring(L, offset, &len);
-		if (cstr != nullptr)
-		{
-			object.assign(cstr);
-			return true;
-		}
-		object.clear();
-		return false;
-	}
-	template<> bool FromStack<RString>(Lua* L, RString &object, int offset)
-	{
-		size_t len;
-		char const *cstr = lua_tolstring(L, offset, &len);
-		if (cstr != nullptr)
-		{
-			object.assign(cstr);
-			return true;
-		}
-		object.clear();
-		return false;
-	}
-	bool FromStack(Lua* L, char const *object, int offset)
-	{
-		std::string clean{object};
-		return LuaHelpers::FromStack(L, clean, offset);
-	}
+	object.clear();
+	return false;
+}
+bool
+FromStack(Lua* L, char const* object, int offset)
+{
+	std::string clean{ object };
+	return LuaHelpers::FromStack(L, clean, offset);
+}
 
-	bool InReportScriptError= false;
+bool InReportScriptError = false;
 } // namespace LuaHelpers
 
-void LuaManager::SetGlobal( const std::string &sName, int val )
+void
+LuaManager::SetGlobal(const std::string& sName, int val)
 {
-	Lua *L = Get();
-	LuaHelpers::Push( L, val );
-	lua_setglobal( L, sName.c_str() );
-	Release( L );
+	Lua* L = Get();
+	LuaHelpers::Push(L, val);
+	lua_setglobal(L, sName.c_str());
+	Release(L);
 }
 
-void LuaManager::SetGlobal( const std::string &sName, const std::string &val )
+void
+LuaManager::SetGlobal(const std::string& sName, const std::string& val)
 {
-	Lua *L = Get();
-	LuaHelpers::Push( L, val );
-	lua_setglobal( L, sName.c_str() );
-	Release( L );
+	Lua* L = Get();
+	LuaHelpers::Push(L, val);
+	lua_setglobal(L, sName.c_str());
+	Release(L);
 }
 
-void LuaManager::UnsetGlobal( const std::string &sName )
+void
+LuaManager::UnsetGlobal(const std::string& sName)
 {
-	Lua *L = Get();
-	lua_pushnil( L );
-	lua_setglobal( L, sName.c_str() );
-	Release( L );
+	Lua* L = Get();
+	lua_pushnil(L);
+	lua_setglobal(L, sName.c_str());
+	Release(L);
 }
 
-bool LuaHelpers::string_can_be_lua_identifier(lua_State* L, std::string const& str)
+bool
+LuaHelpers::string_can_be_lua_identifier(lua_State* L, std::string const& str)
 {
-	int original_top= lua_gettop(L);
+	int original_top = lua_gettop(L);
 	lua_getfield(L, LUA_GLOBALSINDEX, "string");
 	lua_getfield(L, -1, "match");
-	int ret_start_index= lua_gettop(L);
+	int ret_start_index = lua_gettop(L);
 	lua_pushstring(L, str.c_str());
 	lua_pushstring(L, "^[a-zA-Z_][a-zA-Z_0-9]*$");
 	lua_call(L, 2, LUA_MULTRET);
-	if(lua_isnil(L, ret_start_index))
-	{
+	if (lua_isnil(L, ret_start_index)) {
 		lua_settop(L, original_top);
 		return false;
 	}
@@ -185,10 +222,11 @@ bool LuaHelpers::string_can_be_lua_identifier(lua_State* L, std::string const& s
 	return true;
 }
 
-void LuaHelpers::push_lua_escaped_string(lua_State* L, std::string const& str)
+void
+LuaHelpers::push_lua_escaped_string(lua_State* L, std::string const& str)
 {
 	lua_getfield(L, LUA_GLOBALSINDEX, "string");
-	int str_tab_ind= lua_gettop(L);
+	int str_tab_ind = lua_gettop(L);
 	lua_getfield(L, -1, "format");
 	lua_pushstring(L, "%q");
 	lua_pushstring(L, str.c_str());
@@ -196,58 +234,61 @@ void LuaHelpers::push_lua_escaped_string(lua_State* L, std::string const& str)
 	lua_remove(L, str_tab_ind);
 }
 
-static void write_lua_value_to_file(lua_State* L, int value_index,
-	RageFile* file, std::string const& indent, std::unordered_set<void const*>& visited_tables, bool write_equals);
-static void write_lua_table_to_file(lua_State* L, int table_index,
-	RageFile* file, std::string const& indent, std::unordered_set<void const*>& visited_tables);
+static void
+write_lua_value_to_file(lua_State* L,
+						int value_index,
+						RageFile* file,
+						std::string const& indent,
+						std::unordered_set<void const*>& visited_tables,
+						bool write_equals);
+static void
+write_lua_table_to_file(lua_State* L,
+						int table_index,
+						RageFile* file,
+						std::string const& indent,
+						std::unordered_set<void const*>& visited_tables);
 
-static void write_lua_value_to_file(lua_State* L, int value_index,
-	RageFile* file, std::string const& indent, std::unordered_set<void const*>& visited_tables, bool write_equals)
+static void
+write_lua_value_to_file(lua_State* L,
+						int value_index,
+						RageFile* file,
+						std::string const& indent,
+						std::unordered_set<void const*>& visited_tables,
+						bool write_equals)
 {
-	if(write_equals)
-	{
+	if (write_equals) {
 		file->Write("= ");
 	}
-	switch(lua_type(L, value_index))
-	{
+	switch (lua_type(L, value_index)) {
 		case LUA_TTABLE:
-			write_lua_table_to_file(L, value_index, file, indent, visited_tables);
+			write_lua_table_to_file(
+			  L, value_index, file, indent, visited_tables);
 			break;
-		case LUA_TSTRING:
-			{
-				lua_getfield(L, LUA_GLOBALSINDEX, "string");
-				lua_getfield(L, -1, "format");
-				lua_pushstring(L, "%q");
-				lua_pushvalue(L, value_index);
-				lua_call(L, 2, 1);
-				file->Write(lua_tostring(L, -1));
-				lua_pop(L, 2);
+		case LUA_TSTRING: {
+			lua_getfield(L, LUA_GLOBALSINDEX, "string");
+			lua_getfield(L, -1, "format");
+			lua_pushstring(L, "%q");
+			lua_pushvalue(L, value_index);
+			lua_call(L, 2, 1);
+			file->Write(lua_tostring(L, -1));
+			lua_pop(L, 2);
+		} break;
+		case LUA_TNUMBER: {
+			double as_double = lua_tonumber(L, value_index);
+			int as_int = lua_tointeger(L, value_index);
+			double int_turned_double = static_cast<int>(as_int);
+			std::string val_str;
+			if (fabs(as_double - int_turned_double) < .001) {
+				val_str = ssprintf("%i", as_int);
+			} else {
+				val_str = ssprintf("%.6f", as_double);
 			}
-			break;
-		case LUA_TNUMBER:
-			{
-				double as_double= lua_tonumber(L, value_index);
-				int as_int= lua_tointeger(L, value_index);
-				double int_turned_double= static_cast<int>(as_int);
-				std::string val_str;
-				if(fabs(as_double - int_turned_double) < .001)
-				{
-					val_str= ssprintf("%i", as_int);
-				}
-				else
-				{
-					val_str= ssprintf("%.6f", as_double);
-				}
-				file->Write(val_str);
-			}
-			break;
+			file->Write(val_str);
+		} break;
 		case LUA_TBOOLEAN:
-			if(lua_toboolean(L, value_index) != 0)
-			{
+			if (lua_toboolean(L, value_index) != 0) {
 				file->Write("true");
-			}
-			else
-			{
+			} else {
 				file->Write("false");
 			}
 			break;
@@ -257,34 +298,35 @@ static void write_lua_value_to_file(lua_State* L, int value_index,
 	file->Write(",");
 }
 
-static void write_lua_table_to_file(lua_State* L, int table_index,
-	RageFile* file, std::string const& indent, std::unordered_set<void const*>& visited_tables)
+static void
+write_lua_table_to_file(lua_State* L,
+						int table_index,
+						RageFile* file,
+						std::string const& indent,
+						std::unordered_set<void const*>& visited_tables)
 {
 	visited_tables.insert(lua_topointer(L, table_index));
 	// Fields shall be saved strictly ordered by key type and value.
-  // String fields, double fields, int fields, bool fields.
+	// String fields, double fields, int fields, bool fields.
 	// Other key types shall be considered nonsense and ignored. -Kyz
 	std::vector<std::string> string_fields;
 	std::vector<double> double_fields;
 	std::vector<int> int_fields;
 	std::vector<bool> bool_fields;
 	lua_pushnil(L);
-	while(lua_next(L, table_index) != 0)
-	{
+	while (lua_next(L, table_index) != 0) {
 		// Filter out anything that is not a table, string, number, or boolean
-		// with a switch.  Accepted types use fallthrough, default uses continue.
-		switch(lua_type(L, -1))
-		{
-			case LUA_TTABLE:
-				{
-					void const* sub_table= lua_topointer(L, -1);
-					auto entry= visited_tables.find(sub_table);
-					if(entry != visited_tables.end())
-					{
-						lua_pop(L, 1);
-						continue;
-					}
+		// with a switch.  Accepted types use fallthrough, default uses
+		// continue.
+		switch (lua_type(L, -1)) {
+			case LUA_TTABLE: {
+				void const* sub_table = lua_topointer(L, -1);
+				auto entry = visited_tables.find(sub_table);
+				if (entry != visited_tables.end()) {
+					lua_pop(L, 1);
+					continue;
 				}
+			}
 			case LUA_TSTRING:
 			case LUA_TNUMBER:
 			case LUA_TBOOLEAN:
@@ -293,30 +335,24 @@ static void write_lua_table_to_file(lua_State* L, int table_index,
 				lua_pop(L, 1);
 				continue;
 		}
-		int key_type= lua_type(L, -2);
-		switch(key_type)
-		{
+		int key_type = lua_type(L, -2);
+		switch (key_type) {
 			case LUA_TSTRING:
 				string_fields.push_back(std::string(lua_tostring(L, -2)));
 				break;
 			case LUA_TBOOLEAN:
 				bool_fields.push_back(lua_toboolean(L, -2) != 0);
 				break;
-			case LUA_TNUMBER:
-				{
-					double as_double= lua_tonumber(L, -2);
-					int as_int= lua_tointeger(L, -2);
-					double int_turned_double= static_cast<int>(as_int);
-					if(fabs(as_double - int_turned_double) < .001)
-					{
-						int_fields.push_back(as_int);
-					}
-					else
-					{
-						double_fields.push_back(as_double);
-					}
+			case LUA_TNUMBER: {
+				double as_double = lua_tonumber(L, -2);
+				int as_int = lua_tointeger(L, -2);
+				double int_turned_double = static_cast<int>(as_int);
+				if (fabs(as_double - int_turned_double) < .001) {
+					int_fields.push_back(as_int);
+				} else {
+					double_fields.push_back(as_double);
 				}
-				break;
+			} break;
 			default:
 				break;
 		}
@@ -327,71 +363,62 @@ static void write_lua_table_to_file(lua_State* L, int table_index,
 	std::sort(int_fields.begin(), int_fields.end());
 	std::sort(bool_fields.begin(), bool_fields.end());
 	file->Write("{\n");
-	std::string subindent= indent + "  ";
-	for(auto&& field : string_fields)
-	{
+	std::string subindent = indent + "  ";
+	for (auto&& field : string_fields) {
 		file->Write(subindent);
-		if(LuaHelpers::string_can_be_lua_identifier(L, field))
-		{
+		if (LuaHelpers::string_can_be_lua_identifier(L, field)) {
 			file->Write(field);
-		}
-		else
-		{
+		} else {
 			file->Write("[");
 			LuaHelpers::push_lua_escaped_string(L, field);
 			file->Write(lua_tostring(L, -1));
 			file->Write("]");
 			lua_pop(L, 1);
 		}
-		lua_getfield(L,  table_index, field.c_str());
-		write_lua_value_to_file(L, lua_gettop(L), file, subindent, visited_tables, true);
+		lua_getfield(L, table_index, field.c_str());
+		write_lua_value_to_file(
+		  L, lua_gettop(L), file, subindent, visited_tables, true);
 		lua_pop(L, 1);
 		file->Write("\n");
 	}
-	for(auto&& field : double_fields)
-	{
+	for (auto&& field : double_fields) {
 		file->Write(subindent);
 		file->Write(ssprintf("[%.6f]", field));
 		lua_pushnumber(L, field);
 		lua_gettable(L, table_index);
-		write_lua_value_to_file(L, lua_gettop(L), file, subindent, visited_tables, true);
+		write_lua_value_to_file(
+		  L, lua_gettop(L), file, subindent, visited_tables, true);
 		lua_pop(L, 1);
 		file->Write("\n");
 	}
-	int next_array_style_index= 1;
-	for(auto&& field : int_fields)
-	{
+	int next_array_style_index = 1;
+	for (auto&& field : int_fields) {
 		file->Write(subindent);
-		bool needs_equals= true;
-		if(field == next_array_style_index)
-		{
-			needs_equals= false;
+		bool needs_equals = true;
+		if (field == next_array_style_index) {
+			needs_equals = false;
 			++next_array_style_index;
-		}
-		else
-		{
+		} else {
 			file->Write(ssprintf("[%i]", field));
 		}
 		lua_pushnumber(L, field);
 		lua_gettable(L, table_index);
-		write_lua_value_to_file(L, lua_gettop(L), file, subindent, visited_tables, needs_equals);
+		write_lua_value_to_file(
+		  L, lua_gettop(L), file, subindent, visited_tables, needs_equals);
 		lua_pop(L, 1);
 		file->Write("\n");
 	}
-	for(auto&& field : bool_fields)
-	{
+	for (auto&& field : bool_fields) {
 		file->Write(subindent);
-		if(field)
-		{
+		if (field) {
 			file->Write("[true]");
-		}
-		else
-		{
+		} else {
 			file->Write("[false]");
 		}
 		lua_pushboolean(L, field);
 		lua_gettable(L, table_index);
-		write_lua_value_to_file(L, lua_gettop(L), file, subindent, visited_tables, true);
+		write_lua_value_to_file(
+		  L, lua_gettop(L), file, subindent, visited_tables, true);
 		lua_pop(L, 1);
 		file->Write("\n");
 	}
@@ -399,13 +426,17 @@ static void write_lua_table_to_file(lua_State* L, int table_index,
 	file->Write("}");
 }
 
-void LuaHelpers::save_lua_table_to_file(lua_State* L, int table_index,
-	std::string const& filename)
+void
+LuaHelpers::save_lua_table_to_file(lua_State* L,
+								   int table_index,
+								   std::string const& filename)
 {
-	RageFile* file= new RageFile;
-	if(!file->Open(filename, RageFile::WRITE))
-	{
-		LuaHelpers::ReportScriptErrorFmt("Could not open %s to save lua data: %s", filename.c_str(), file->GetError().c_str());
+	RageFile* file = new RageFile;
+	if (!file->Open(filename, RageFile::WRITE)) {
+		LuaHelpers::ReportScriptErrorFmt(
+		  "Could not open %s to save lua data: %s",
+		  filename.c_str(),
+		  file->GetError().c_str());
 		return;
 	}
 	std::unordered_set<void const*> visited_tables;
@@ -417,61 +448,69 @@ void LuaHelpers::save_lua_table_to_file(lua_State* L, int table_index,
 	delete file;
 }
 
-void LuaHelpers::CreateTableFromArrayB( Lua *L, const vector<bool> &aIn )
+void
+LuaHelpers::CreateTableFromArrayB(Lua* L, const vector<bool>& aIn)
 {
-	lua_newtable( L );
-	for( unsigned i = 0; i < aIn.size(); ++i )
-	{
-		lua_pushboolean( L, aIn[i] );
-		lua_rawseti( L, -2, i+1 );
+	lua_newtable(L);
+	for (unsigned i = 0; i < aIn.size(); ++i) {
+		lua_pushboolean(L, aIn[i]);
+		lua_rawseti(L, -2, i + 1);
 	}
 }
 
-void LuaHelpers::ReadArrayFromTableB( Lua *L, vector<bool> &aOut )
+void
+LuaHelpers::ReadArrayFromTableB(Lua* L, vector<bool>& aOut)
 {
-	luaL_checktype( L, -1, LUA_TTABLE );
+	luaL_checktype(L, -1, LUA_TTABLE);
 
-	for( unsigned i = 0; i < aOut.size(); ++i )
-	{
-		lua_rawgeti( L, -1, i+1 );
-		bool bOn = !!lua_toboolean( L, -1 );
+	for (unsigned i = 0; i < aOut.size(); ++i) {
+		lua_rawgeti(L, -1, i + 1);
+		bool bOn = !!lua_toboolean(L, -1);
 		aOut[i] = bOn;
-		lua_pop( L, 1 );
+		lua_pop(L, 1);
 	}
 }
 
-void LuaHelpers::rec_print_table(lua_State* L, std::string const& name, std::string const& indent)
+void
+LuaHelpers::rec_print_table(lua_State* L,
+							std::string const& name,
+							std::string const& indent)
 {
-	switch(lua_type(L, -1))
-	{
+	switch (lua_type(L, -1)) {
 		case LUA_TNIL:
 			LOG->Trace("%s%s: nil", indent.c_str(), name.c_str());
 			break;
 		case LUA_TNUMBER:
-			LOG->Trace("%s%s number: %f", indent.c_str(), name.c_str(), lua_tonumber(L, -1));
+			LOG->Trace("%s%s number: %f",
+					   indent.c_str(),
+					   name.c_str(),
+					   lua_tonumber(L, -1));
 			break;
 		case LUA_TBOOLEAN:
-			LOG->Trace("%s%s bool: %d", indent.c_str(), name.c_str(), lua_toboolean(L, -1));
+			LOG->Trace("%s%s bool: %d",
+					   indent.c_str(),
+					   name.c_str(),
+					   lua_toboolean(L, -1));
 			break;
 		case LUA_TSTRING:
-			LOG->Trace("%s%s string: %s", indent.c_str(), name.c_str(), lua_tostring(L, -1));
+			LOG->Trace("%s%s string: %s",
+					   indent.c_str(),
+					   name.c_str(),
+					   lua_tostring(L, -1));
 			break;
-		case LUA_TTABLE:
-			{
-				size_t tablen= lua_objlen(L, -1);
-				LOG->Trace("%s%s table: %zu", indent.c_str(), name.c_str(), tablen);
-				std::string subindent= indent + "  ";
-				lua_pushnil(L);
-				while(lua_next(L, -2) != 0)
-				{
-					lua_pushvalue(L, -2);
-					std::string sub_name= lua_tostring(L, -1);
-					lua_pop(L, 1);
-					rec_print_table(L, sub_name, subindent);
-					lua_pop(L, 1);
-				}
+		case LUA_TTABLE: {
+			size_t tablen = lua_objlen(L, -1);
+			LOG->Trace("%s%s table: %zu", indent.c_str(), name.c_str(), tablen);
+			std::string subindent = indent + "  ";
+			lua_pushnil(L);
+			while (lua_next(L, -2) != 0) {
+				lua_pushvalue(L, -2);
+				std::string sub_name = lua_tostring(L, -1);
+				lua_pop(L, 1);
+				rec_print_table(L, sub_name, subindent);
+				lua_pop(L, 1);
 			}
-			break;
+		} break;
 		case LUA_TFUNCTION:
 			LOG->Trace("%s%s function:", indent.c_str(), name.c_str());
 			break;
@@ -489,184 +528,174 @@ void LuaHelpers::rec_print_table(lua_State* L, std::string const& name, std::str
 	}
 }
 
-namespace
+namespace {
+// Creates a table from an XNode and leaves it on the stack.
+void
+CreateTableFromXNodeRecursive(Lua* L, const XNode* pNode)
 {
-	// Creates a table from an XNode and leaves it on the stack.
-	void CreateTableFromXNodeRecursive( Lua *L, const XNode *pNode )
+	// create our base table
+	lua_newtable(L);
+
+	for (auto const& pAttr : pNode->m_attrs) {
+		lua_pushstring(L, pAttr.first.c_str()); // push key
+		pNode->PushAttrValue(L, pAttr.first);   // push value
+
+		// add key-value pair to our table
+		lua_settable(L, -3);
+	}
+
+	FOREACH_CONST_Child(pNode, c)
 	{
-		// create our base table
-		lua_newtable( L );
+		lua_pushstring(L, c->m_sName.c_str()); // push key
 
-		for (auto const &pAttr: pNode->m_attrs)
-		{
-			lua_pushstring( L, pAttr.first.c_str() );			// push key
-			pNode->PushAttrValue( L, pAttr.first );	// push value
+		// push value (more correctly, build this child's table and leave it
+		// there)
+		CreateTableFromXNodeRecursive(L, c);
 
-			//add key-value pair to our table
-			lua_settable( L, -3 );
-		}
-
-		FOREACH_CONST_Child(pNode, c)
-		{
-			lua_pushstring( L, c->m_sName.c_str() ); // push key
-
-			// push value (more correctly, build this child's table and leave it there)
-			CreateTableFromXNodeRecursive( L, c );
-
-			// add key-value pair to the table
-			lua_settable( L, -3 );
-		}
+		// add key-value pair to the table
+		lua_settable(L, -3);
 	}
 }
+} // namespace
 
-void LuaHelpers::CreateTableFromXNode( Lua *L, const XNode *pNode )
+void
+LuaHelpers::CreateTableFromXNode(Lua* L, const XNode* pNode)
 {
 	// This creates our table and leaves it on the stack.
-	CreateTableFromXNodeRecursive( L, pNode );
+	CreateTableFromXNodeRecursive(L, pNode);
 }
 
-static int GetLuaStack( lua_State *L )
+static int
+GetLuaStack(lua_State* L)
 {
 	std::string sErr;
-	LuaHelpers::Pop( L, sErr );
+	LuaHelpers::Pop(L, sErr);
 
 	lua_Debug ar;
 
-	for( int iLevel = 0; lua_getstack(L, iLevel, &ar); ++iLevel )
-	{
-		if( !lua_getinfo(L, "nSluf", &ar) )
-		{
+	for (int iLevel = 0; lua_getstack(L, iLevel, &ar); ++iLevel) {
+		if (!lua_getinfo(L, "nSluf", &ar)) {
 			break;
 		}
 		// The function is now on the top of the stack.
-		const char *file = ar.source[0] == '@' ? ar.source + 1 : ar.short_src;
-		const char *name;
+		const char* file = ar.source[0] == '@' ? ar.source + 1 : ar.short_src;
+		const char* name;
 		vector<std::string> vArgs;
 
-		auto logAndPop = [&](char const *luaName) {
-			auto *luaStr = lua_tostring(L, -1);
-			vArgs.push_back( ssprintf("%s = %s", luaName, luaStr != nullptr ? luaStr : "nil") );
-			lua_pop( L, 1 ); // pop value
+		auto logAndPop = [&](char const* luaName) {
+			auto* luaStr = lua_tostring(L, -1);
+			vArgs.push_back(
+			  ssprintf("%s = %s", luaName, luaStr != nullptr ? luaStr : "nil"));
+			lua_pop(L, 1); // pop value
 		};
 
-		if( !strcmp(ar.what, "C") )
-		{
-			for( int i = 1; i <= ar.nups && (name = lua_getupvalue(L, -1, i)) != nullptr; ++i )
-			{
+		if (!strcmp(ar.what, "C")) {
+			for (int i = 1;
+				 i <= ar.nups && (name = lua_getupvalue(L, -1, i)) != nullptr;
+				 ++i) {
 				logAndPop(name);
 			}
-		}
-		else
-		{
-			for( int i = 1; (name = lua_getlocal(L, &ar, i)) != nullptr; ++i )
-			{
+		} else {
+			for (int i = 1; (name = lua_getlocal(L, &ar, i)) != nullptr; ++i) {
 				logAndPop(name);
 			}
 		}
 
 		// If the first call is this function, omit it from the trace.
-		if( iLevel == 0 && lua_iscfunction(L, -1) && lua_tocfunction(L, 1) == GetLuaStack )
-		{
-			lua_pop( L, 1 ); // pop function
+		if (iLevel == 0 && lua_iscfunction(L, -1) &&
+			lua_tocfunction(L, 1) == GetLuaStack) {
+			lua_pop(L, 1); // pop function
 			continue;
 		}
-		lua_pop( L, 1 ); // pop function
+		lua_pop(L, 1); // pop function
 
-		sErr += ssprintf( "\n%s:", file );
-		if( ar.currentline != -1 )
-		{
-			sErr += ssprintf( "%i:", ar.currentline );
+		sErr += ssprintf("\n%s:", file);
+		if (ar.currentline != -1) {
+			sErr += ssprintf("%i:", ar.currentline);
 		}
-		if( ar.name && ar.name[0] )
-		{
-			sErr += ssprintf( " %s", ar.name );
+		if (ar.name && ar.name[0]) {
+			sErr += ssprintf(" %s", ar.name);
+		} else if (!strcmp(ar.what, "main") || !strcmp(ar.what, "tail") ||
+				   !strcmp(ar.what, "C")) {
+			sErr += ssprintf(" %s", ar.what);
+		} else {
+			sErr += ssprintf(" unknown");
 		}
-		else if( !strcmp(ar.what, "main") || !strcmp(ar.what, "tail") || !strcmp(ar.what, "C") )
-		{
-			sErr += ssprintf( " %s", ar.what );
-		}
-		else
-		{
-			sErr += ssprintf( " unknown" );
-		}
-		sErr += ssprintf( "(%s)", luajoin(",", vArgs).c_str() );
+		sErr += ssprintf("(%s)", luajoin(",", vArgs).c_str());
 	}
 
-	LuaHelpers::Push( L, sErr );
+	LuaHelpers::Push(L, sErr);
 	return 1;
 }
 
-
-static int LuaPanic( lua_State *L )
+static int
+LuaPanic(lua_State* L)
 {
-	GetLuaStack( L );
+	GetLuaStack(L);
 
 	std::string sErr;
-	LuaHelpers::Pop( L, sErr );
+	LuaHelpers::Pop(L, sErr);
 
-	RageException::Throw( "[Lua panic] %s", sErr.c_str() );
+	RageException::Throw("[Lua panic] %s", sErr.c_str());
 }
 
 // Actor registration
-static vector<RegisterWithLuaFn>	*g_vRegisterActorTypes = nullptr;
+static vector<RegisterWithLuaFn>* g_vRegisterActorTypes = nullptr;
 
-void LuaManager::Register( RegisterWithLuaFn pfn )
+void
+LuaManager::Register(RegisterWithLuaFn pfn)
 {
-	if( g_vRegisterActorTypes == nullptr )
+	if (g_vRegisterActorTypes == nullptr)
 		g_vRegisterActorTypes = new vector<RegisterWithLuaFn>;
 
-	g_vRegisterActorTypes->push_back( pfn );
+	g_vRegisterActorTypes->push_back(pfn);
 }
-
 
 LuaManager::LuaManager()
 {
 	pImpl = new Impl;
 	LUA = this; // so that LUA is available when we call the Register functions
 
-	lua_State *L = lua_open();
-	ASSERT( L != nullptr );
+	lua_State* L = lua_open();
+	ASSERT(L != nullptr);
 
-	lua_atpanic( L, LuaPanic );
+	lua_atpanic(L, LuaPanic);
 	m_pLuaMain = L;
 
 	luaL_openlibs(L);
 
 	// Store the thread pool in a table on the stack, in the main thread.
 #define THREAD_POOL 1
-	lua_newtable( L );
+	lua_newtable(L);
 
 	RegisterTypes();
 }
 
 LuaManager::~LuaManager()
 {
-	lua_close( m_pLuaMain );
-	SAFE_DELETE( pImpl );
+	lua_close(m_pLuaMain);
+	SAFE_DELETE(pImpl);
 }
 
-Lua *LuaManager::Get()
+Lua*
+LuaManager::Get()
 {
 	bool bLocked = false;
-	if( !pImpl->g_pLock.IsLockedByThisThread() )
-	{
+	if (!pImpl->g_pLock.IsLockedByThisThread()) {
 		pImpl->g_pLock.Lock();
 		bLocked = true;
 	}
 
-	ASSERT( lua_gettop(m_pLuaMain) == 1 );
+	ASSERT(lua_gettop(m_pLuaMain) == 1);
 
-	lua_State *pRet;
-	if( pImpl->g_FreeStateList.empty() )
-	{
-		pRet = lua_newthread( m_pLuaMain );
+	lua_State* pRet;
+	if (pImpl->g_FreeStateList.empty()) {
+		pRet = lua_newthread(m_pLuaMain);
 
 		// Store the new thread in THREAD_POOL, so it isn't collected.
-		int iLast = lua_objlen( m_pLuaMain, THREAD_POOL );
-		lua_rawseti( m_pLuaMain, THREAD_POOL, iLast+1 );
-	}
-	else
-	{
+		int iLast = lua_objlen(m_pLuaMain, THREAD_POOL);
+		lua_rawseti(m_pLuaMain, THREAD_POOL, iLast + 1);
+	} else {
 		pRet = pImpl->g_FreeStateList.back();
 		pImpl->g_FreeStateList.pop_back();
 	}
@@ -675,38 +704,40 @@ Lua *LuaManager::Get()
 	return pRet;
 }
 
-void LuaManager::Release( Lua *&p )
+void
+LuaManager::Release(Lua*& p)
 {
-	pImpl->g_FreeStateList.push_back( p );
+	pImpl->g_FreeStateList.push_back(p);
 
-	ASSERT( lua_gettop(p) == 0 );
-	ASSERT( pImpl->g_ActiveStates.find(p) != pImpl->g_ActiveStates.end() );
+	ASSERT(lua_gettop(p) == 0);
+	ASSERT(pImpl->g_ActiveStates.find(p) != pImpl->g_ActiveStates.end());
 	bool bDoUnlock = pImpl->g_ActiveStates[p];
-	pImpl->g_ActiveStates.erase( p );
+	pImpl->g_ActiveStates.erase(p);
 
-	if( bDoUnlock )
+	if (bDoUnlock)
 		pImpl->g_pLock.Unlock();
 	p = nullptr;
 }
 
 /*
- * Low-level access to Lua is always serialized through pImpl->g_pLock; we never run the Lua
- * core simultaneously from multiple threads.  However, when a thread has an acquired
- * lua_State, it can release Lua for use by other threads.  This allows Lua bindings
- * to process long-running actions, without blocking all other threads from using Lua
- * until it finishes.
+ * Low-level access to Lua is always serialized through pImpl->g_pLock; we never
+ * run the Lua core simultaneously from multiple threads.  However, when a
+ * thread has an acquired lua_State, it can release Lua for use by other
+ * threads.  This allows Lua bindings to process long-running actions, without
+ * blocking all other threads from using Lua until it finishes.
  *
  * Lua *L = LUA->Get();			// acquires L and locks Lua
  * lua_newtable(L);				// does something with Lua
- * LUA->YieldLua();				// unlocks Lua for lengthy operation; L is still owned, but can't be used
- * std::string s = ReadFile("/filename.txt");	// time-consuming operation; other threads may use Lua in the meantime
+ * LUA->YieldLua();				// unlocks Lua for lengthy operation; L is still
+ * owned, but can't be used std::string s = ReadFile("/filename.txt");	//
+ * time-consuming operation; other threads may use Lua in the meantime
  * LUA->UnyieldLua();			// relock Lua
  * lua_pushstring( L, s );		// finish working with it
  * LUA->Release( L );			// release L and unlock Lua
  *
- * YieldLua() must not be called when already yielded, or when a lua_State has not been
- * acquired (you have nothing to yield), and always unyield before releasing the
- * state.  Recursive handling is OK:
+ * YieldLua() must not be called when already yielded, or when a lua_State has
+ * not been acquired (you have nothing to yield), and always unyield before
+ * releasing the state.  Recursive handling is OK:
  *
  * L1 = LUA->Get();
  * LUA->YieldLua();				// yields
@@ -715,672 +746,665 @@ void LuaManager::Release( Lua *&p )
  * LUA->UnyieldLua();
  * LUA->Release(L1);
  */
-void LuaManager::YieldLua()
+void
+LuaManager::YieldLua()
 {
-	ASSERT( pImpl->g_pLock.IsLockedByThisThread() );
+	ASSERT(pImpl->g_pLock.IsLockedByThisThread());
 
 	pImpl->g_pLock.Unlock();
 }
 
-void LuaManager::UnyieldLua()
+void
+LuaManager::UnyieldLua()
 {
 	pImpl->g_pLock.Lock();
 }
 
-void LuaManager::RegisterTypes()
+void
+LuaManager::RegisterTypes()
 {
-	Lua *L = Get();
+	Lua* L = Get();
 
-	if( g_vRegisterActorTypes )
-	{
-		for (auto *actorType: *g_vRegisterActorTypes)
-		{
+	if (g_vRegisterActorTypes) {
+		for (auto* actorType : *g_vRegisterActorTypes) {
 			actorType(L);
 		}
 	}
 
-	Release( L );
+	Release(L);
 }
 
-LuaThreadVariable::LuaThreadVariable( const std::string &sName, const std::string &sValue )
+LuaThreadVariable::LuaThreadVariable(const std::string& sName,
+									 const std::string& sValue)
 {
 	m_Name = new LuaReference;
 	m_pOldValue = new LuaReference;
 
-	Lua *L = LUA->Get();
-	LuaHelpers::Push( L, sName );
-	m_Name->SetFromStack( L );
-	LuaHelpers::Push( L, sValue );
-	SetFromStack( L );
-	LUA->Release( L );
+	Lua* L = LUA->Get();
+	LuaHelpers::Push(L, sName);
+	m_Name->SetFromStack(L);
+	LuaHelpers::Push(L, sValue);
+	SetFromStack(L);
+	LUA->Release(L);
 }
 
-LuaThreadVariable::LuaThreadVariable( const std::string &sName, const LuaReference &Value )
+LuaThreadVariable::LuaThreadVariable(const std::string& sName,
+									 const LuaReference& Value)
 {
 	m_Name = new LuaReference;
 	m_pOldValue = new LuaReference;
 
-	Lua *L = LUA->Get();
-	LuaHelpers::Push( L, sName );
-	m_Name->SetFromStack( L );
+	Lua* L = LUA->Get();
+	LuaHelpers::Push(L, sName);
+	m_Name->SetFromStack(L);
 
-	Value.PushSelf( L );
-	SetFromStack( L );
-	LUA->Release( L );
+	Value.PushSelf(L);
+	SetFromStack(L);
+	LUA->Release(L);
 }
 
 // name and value are on the stack
-LuaThreadVariable::LuaThreadVariable( lua_State *L )
+LuaThreadVariable::LuaThreadVariable(lua_State* L)
 {
 	m_Name = new LuaReference;
 	m_pOldValue = new LuaReference;
 
-	lua_pushvalue( L, -2 );
-	m_Name->SetFromStack( L );
+	lua_pushvalue(L, -2);
+	m_Name->SetFromStack(L);
 
-	SetFromStack( L );
+	SetFromStack(L);
 
-	lua_pop( L, 1 );
+	lua_pop(L, 1);
 }
 
-std::string LuaThreadVariable::GetCurrentThreadIDString()
+std::string
+LuaThreadVariable::GetCurrentThreadIDString()
 {
 	uint64_t iID = RageThread::GetCurrentThreadID();
-	return ssprintf( "%08x%08x", uint32_t(iID >> 32), uint32_t(iID) );
+	return ssprintf("%08x%08x", uint32_t(iID >> 32), uint32_t(iID));
 }
 
-bool LuaThreadVariable::PushThreadTable( lua_State *L, bool bCreate )
+bool
+LuaThreadVariable::PushThreadTable(lua_State* L, bool bCreate)
 {
-	lua_getfield( L, LUA_REGISTRYINDEX, "LuaThreadVariableTable" );
-	if( lua_isnil(L, -1) )
-	{
-		lua_pop( L, 1 );
-		if( !bCreate )
+	lua_getfield(L, LUA_REGISTRYINDEX, "LuaThreadVariableTable");
+	if (lua_isnil(L, -1)) {
+		lua_pop(L, 1);
+		if (!bCreate)
 			return false;
-		lua_newtable( L );
+		lua_newtable(L);
 
-		lua_pushvalue( L, -1 );
-		lua_setfield( L, LUA_REGISTRYINDEX, "LuaThreadVariableTable" );
+		lua_pushvalue(L, -1);
+		lua_setfield(L, LUA_REGISTRYINDEX, "LuaThreadVariableTable");
 	}
 
 	std::string sThreadIDString = GetCurrentThreadIDString();
-	LuaHelpers::Push( L, sThreadIDString );
-	lua_gettable( L, -2 );
-	if( lua_isnil(L, -1) )
-	{
-		lua_pop( L, 1 );
-		if( !bCreate )
-		{
-			lua_pop( L, 1 );
+	LuaHelpers::Push(L, sThreadIDString);
+	lua_gettable(L, -2);
+	if (lua_isnil(L, -1)) {
+		lua_pop(L, 1);
+		if (!bCreate) {
+			lua_pop(L, 1);
 			return false;
 		}
-		lua_newtable( L );
+		lua_newtable(L);
 
-		lua_pushinteger( L, 0 );
-		lua_rawseti( L, -2, 0 );
+		lua_pushinteger(L, 0);
+		lua_rawseti(L, -2, 0);
 
-		LuaHelpers::Push( L, sThreadIDString );
-		lua_pushvalue( L, -2 );
-		lua_settable( L, -4 );
+		LuaHelpers::Push(L, sThreadIDString);
+		lua_pushvalue(L, -2);
+		lua_settable(L, -4);
 	}
 
-	lua_remove( L, -2 );
+	lua_remove(L, -2);
 	return true;
 }
 
-void LuaThreadVariable::GetThreadVariable( lua_State *L )
+void
+LuaThreadVariable::GetThreadVariable(lua_State* L)
 {
-	if( !PushThreadTable(L, false) )
-	{
-		lua_pop( L, 1 );
-		lua_pushnil( L );
+	if (!PushThreadTable(L, false)) {
+		lua_pop(L, 1);
+		lua_pushnil(L);
 		return;
 	}
 
-	lua_pushvalue( L, -2 );
-	lua_gettable( L, -2 );
-	lua_remove( L, -2 );
-	lua_remove( L, -2 );
+	lua_pushvalue(L, -2);
+	lua_gettable(L, -2);
+	lua_remove(L, -2);
+	lua_remove(L, -2);
 }
 
-int LuaThreadVariable::AdjustCount( lua_State *L, int iAdd )
+int
+LuaThreadVariable::AdjustCount(lua_State* L, int iAdd)
 {
-	ASSERT( lua_istable(L, -1) );
+	ASSERT(lua_istable(L, -1));
 
-	lua_rawgeti( L, -1, 0 );
-	ASSERT( lua_isnumber(L, -1) != 0 );
+	lua_rawgeti(L, -1, 0);
+	ASSERT(lua_isnumber(L, -1) != 0);
 
-	int iCount = lua_tointeger( L, -1 );
-	lua_pop( L, 1 );
+	int iCount = lua_tointeger(L, -1);
+	lua_pop(L, 1);
 
 	iCount += iAdd;
-	lua_pushinteger( L, iCount );
-	lua_rawseti( L, -2, 0 );
+	lua_pushinteger(L, iCount);
+	lua_rawseti(L, -2, 0);
 
 	return iCount;
 }
 
-void LuaThreadVariable::SetFromStack( lua_State *L )
+void
+LuaThreadVariable::SetFromStack(lua_State* L)
 {
-	ASSERT( !m_pOldValue->IsSet() ); // don't call twice
+	ASSERT(!m_pOldValue->IsSet()); // don't call twice
 
-	PushThreadTable( L, true );
+	PushThreadTable(L, true);
 
-	m_Name->PushSelf( L );
-	lua_gettable( L, -2 );
-	m_pOldValue->SetFromStack( L );
+	m_Name->PushSelf(L);
+	lua_gettable(L, -2);
+	m_pOldValue->SetFromStack(L);
 
-	m_Name->PushSelf( L );
-	lua_pushvalue( L, -3 );
-	lua_settable( L, -3 );
+	m_Name->PushSelf(L);
+	lua_pushvalue(L, -3);
+	lua_settable(L, -3);
 
-	AdjustCount( L, +1 );
+	AdjustCount(L, +1);
 
-	lua_pop( L, 2 );
+	lua_pop(L, 2);
 }
 
 LuaThreadVariable::~LuaThreadVariable()
 {
-	Lua *L = LUA->Get();
+	Lua* L = LUA->Get();
 
-	PushThreadTable( L, true );
-	m_Name->PushSelf( L );
-	m_pOldValue->PushSelf( L );
-	lua_settable( L, -3 );
+	PushThreadTable(L, true);
+	m_Name->PushSelf(L);
+	m_pOldValue->PushSelf(L);
+	lua_settable(L, -3);
 
-	if( AdjustCount( L, -1 ) == 0 )
-	{
+	if (AdjustCount(L, -1) == 0) {
 		// if empty, delete the table
-		lua_getfield( L, LUA_REGISTRYINDEX, "LuaThreadVariableTable" );
-		ASSERT( lua_istable(L, -1) );
+		lua_getfield(L, LUA_REGISTRYINDEX, "LuaThreadVariableTable");
+		ASSERT(lua_istable(L, -1));
 
-		LuaHelpers::Push( L, GetCurrentThreadIDString() );
-		lua_pushnil( L );
-		lua_settable( L, -3 );
-		lua_pop( L, 1 );
+		LuaHelpers::Push(L, GetCurrentThreadIDString());
+		lua_pushnil(L);
+		lua_settable(L, -3);
+		lua_pop(L, 1);
 	}
-	lua_pop( L, 1 );
+	lua_pop(L, 1);
 
-	LUA->Release( L );
+	LUA->Release(L);
 
 	delete m_pOldValue;
 	delete m_Name;
 }
 
-namespace
+namespace {
+struct LClass
 {
-	struct LClass
-	{
-		std::string m_sBaseName;
-		vector<std::string> m_vMethods;
-	};
+	std::string m_sBaseName;
+	vector<std::string> m_vMethods;
+};
 } // namespace
 
-XNode *LuaHelpers::GetLuaInformation()
+XNode*
+LuaHelpers::GetLuaInformation()
 {
-	XNode *pLuaNode = new XNode( "Lua" );
+	XNode* pLuaNode = new XNode("Lua");
 
-	XNode *pGlobalsNode = pLuaNode->AppendChild( "GlobalFunctions" );
-	XNode *pClassesNode = pLuaNode->AppendChild( "Classes" );
-	XNode *pNamespacesNode = pLuaNode->AppendChild( "Namespaces" );
-	XNode *pSingletonsNode = pLuaNode->AppendChild( "Singletons" );
-	XNode *pEnumsNode = pLuaNode->AppendChild( "Enums" );
-	XNode *pConstantsNode = pLuaNode->AppendChild( "Constants" );
+	XNode* pGlobalsNode = pLuaNode->AppendChild("GlobalFunctions");
+	XNode* pClassesNode = pLuaNode->AppendChild("Classes");
+	XNode* pNamespacesNode = pLuaNode->AppendChild("Namespaces");
+	XNode* pSingletonsNode = pLuaNode->AppendChild("Singletons");
+	XNode* pEnumsNode = pLuaNode->AppendChild("Enums");
+	XNode* pConstantsNode = pLuaNode->AppendChild("Constants");
 
 	vector<std::string> vFunctions;
 	std::map<std::string, LClass> mClasses;
-	std::map<std::string, vector<std::string> > mNamespaces;
+	std::map<std::string, vector<std::string>> mNamespaces;
 	std::map<std::string, std::string> mSingletons;
 	std::map<std::string, float> mConstants;
 	std::map<std::string, std::string> mStringConstants;
-	std::map<std::string, vector<std::string> > mEnums;
+	std::map<std::string, vector<std::string>> mEnums;
 
-	Lua *L = LUA->Get();
-	FOREACH_LUATABLE( L, LUA_GLOBALSINDEX )
+	Lua* L = LUA->Get();
+	FOREACH_LUATABLE(L, LUA_GLOBALSINDEX)
 	{
 		std::string sKey;
-		LuaHelpers::Pop( L, sKey );
+		LuaHelpers::Pop(L, sKey);
 
-		switch( lua_type(L, -1) )
-		{
-		case LUA_TTABLE:
-		{
-			if( luaL_getmetafield(L, -1, "class") )
-			{
-				const char *name = lua_tostring( L, -1 );
+		switch (lua_type(L, -1)) {
+			case LUA_TTABLE: {
+				if (luaL_getmetafield(L, -1, "class")) {
+					const char* name = lua_tostring(L, -1);
 
-				if( !name )
+					if (!name)
+						break;
+					LClass& c = mClasses[name];
+					lua_pop(L, 1); // pop name
+
+					// Get base class.
+					luaL_getmetatable(L, name);
+					ASSERT(!lua_isnil(L, -1));
+					lua_getfield(L, -1, "base");
+					name = lua_tostring(L, -1);
+
+					if (name)
+						c.m_sBaseName = name;
+					lua_pop(L, 2); // pop name and metatable
+
+					// Get methods.
+					FOREACH_LUATABLE(L, -1)
+					{
+						std::string sMethod;
+						if (LuaHelpers::FromStack(L, sMethod, -1))
+							c.m_vMethods.push_back(sMethod);
+					}
+					sort(c.m_vMethods.begin(), c.m_vMethods.end());
 					break;
-				LClass &c = mClasses[name];
-				lua_pop( L, 1 ); // pop name
-
-				// Get base class.
-				luaL_getmetatable( L, name );
-				ASSERT( !lua_isnil(L, -1) );
-				lua_getfield( L, -1, "base" );
-				name = lua_tostring( L, -1 );
-
-				if( name )
-					c.m_sBaseName = name;
-				lua_pop( L, 2 ); // pop name and metatable
-
-				// Get methods.
-				FOREACH_LUATABLE( L, -1 )
-				{
-					std::string sMethod;
-					if( LuaHelpers::FromStack(L, sMethod, -1) )
-						c.m_vMethods.push_back( sMethod );
 				}
-				sort( c.m_vMethods.begin(), c.m_vMethods.end() );
-				break;
 			}
-		}
-		// fall through
-		case LUA_TUSERDATA: // table or userdata: class instance
-		{
-			if( !luaL_callmeta(L, -1, "__type") )
-				break;
-			std::string sType;
-			if( !LuaHelpers::Pop(L, sType) )
-				break;
-			if( sType == "Enum" )
-				LuaHelpers::ReadArrayFromTable( mEnums[sKey], L );
-			else
-				mSingletons[sKey] = sType;
-			break;
-		}
-		case LUA_TNUMBER:
-			LuaHelpers::FromStack( L, mConstants[sKey], -1 );
-			break;
-		case LUA_TSTRING:
-			LuaHelpers::FromStack( L, mStringConstants[sKey], -1 );
-			break;
-		case LUA_TFUNCTION:
-			vFunctions.push_back( sKey );
-			/*
+			// fall through
+			case LUA_TUSERDATA: // table or userdata: class instance
 			{
-				lua_Debug ar;
-				lua_getfield( L, LUA_GLOBALSINDEX, sKey );
-				lua_getinfo( L, ">S", &ar ); // Pops the function
-				printf( "%s: %s\n", sKey.c_str(), ar.short_src );
+				if (!luaL_callmeta(L, -1, "__type"))
+					break;
+				std::string sType;
+				if (!LuaHelpers::Pop(L, sType))
+					break;
+				if (sType == "Enum")
+					LuaHelpers::ReadArrayFromTable(mEnums[sKey], L);
+				else
+					mSingletons[sKey] = sType;
+				break;
 			}
-			*/
-			break;
+			case LUA_TNUMBER:
+				LuaHelpers::FromStack(L, mConstants[sKey], -1);
+				break;
+			case LUA_TSTRING:
+				LuaHelpers::FromStack(L, mStringConstants[sKey], -1);
+				break;
+			case LUA_TFUNCTION:
+				vFunctions.push_back(sKey);
+				/*
+					{
+						lua_Debug ar;
+						lua_getfield( L, LUA_GLOBALSINDEX, sKey );
+						lua_getinfo( L, ">S", &ar ); // Pops the function
+						printf( "%s: %s\n", sKey.c_str(), ar.short_src );
+					}
+					*/
+				break;
 		}
 	}
 
 	// Find namespaces
-	lua_pushcfunction( L, luaopen_package ); lua_call( L, 0, 0 );
-	lua_getglobal( L, "package" );
-	ASSERT( lua_istable(L, -1) );
-	lua_getfield( L, -1, "loaded" );
-	ASSERT( lua_istable(L, -1) );
+	lua_pushcfunction(L, luaopen_package);
+	lua_call(L, 0, 0);
+	lua_getglobal(L, "package");
+	ASSERT(lua_istable(L, -1));
+	lua_getfield(L, -1, "loaded");
+	ASSERT(lua_istable(L, -1));
 
-	//const std::string BuiltInPackages[] = { "_G", "coroutine", "debug", "math", "package", "string", "table" };
-	std::array<std::string, 7> const BuiltInPackages =
-	{
-		{
-			"_G",
-			"coroutine",
-			"debug",
-			"math",
-			"package",
-			"string",
-			"table"
-		}
+	// const std::string BuiltInPackages[] = { "_G", "coroutine", "debug",
+	// "math", "package", "string", "table" };
+	std::array<std::string, 7> const BuiltInPackages = {
+		{ "_G", "coroutine", "debug", "math", "package", "string", "table" }
 	};
 	auto endIter = BuiltInPackages.end();
-	FOREACH_LUATABLE( L, -1 )
+	FOREACH_LUATABLE(L, -1)
 	{
 		std::string sNamespace;
-		LuaHelpers::Pop( L, sNamespace );
-		if( find(BuiltInPackages.begin(), endIter, sNamespace) != endIter )
+		LuaHelpers::Pop(L, sNamespace);
+		if (find(BuiltInPackages.begin(), endIter, sNamespace) != endIter)
 			continue;
-		vector<std::string> &vNamespaceFunctions = mNamespaces[sNamespace];
-		FOREACH_LUATABLE( L, -1 )
+		vector<std::string>& vNamespaceFunctions = mNamespaces[sNamespace];
+		FOREACH_LUATABLE(L, -1)
 		{
 			std::string sFunction;
-			LuaHelpers::Pop( L, sFunction );
-			vNamespaceFunctions.push_back( sFunction );
+			LuaHelpers::Pop(L, sFunction);
+			vNamespaceFunctions.push_back(sFunction);
 		}
-		sort( vNamespaceFunctions.begin(), vNamespaceFunctions.end() );
+		sort(vNamespaceFunctions.begin(), vNamespaceFunctions.end());
 	}
-	lua_pop( L, 2 );
+	lua_pop(L, 2);
 
-	LUA->Release( L );
+	LUA->Release(L);
 
 	/* Globals */
-	sort( vFunctions.begin(), vFunctions.end() );
-	for (auto const &func: vFunctions)
-	{
-		XNode *pFunctionNode = pGlobalsNode->AppendChild( "Function" );
-		pFunctionNode->AppendAttr( "name", func );
+	sort(vFunctions.begin(), vFunctions.end());
+	for (auto const& func : vFunctions) {
+		XNode* pFunctionNode = pGlobalsNode->AppendChild("Function");
+		pFunctionNode->AppendAttr("name", func);
 	}
 
 	/* Classes */
-	for (auto const &c: mClasses)
-	{
-		XNode *pClassNode = pClassesNode->AppendChild( "Class" );
+	for (auto const& c : mClasses) {
+		XNode* pClassNode = pClassesNode->AppendChild("Class");
 
-		pClassNode->AppendAttr( "name", c.first );
-		if( !c.second.m_sBaseName.empty() )
-			pClassNode->AppendAttr( "base", c.second.m_sBaseName );
-		for (auto const &m: c.second.m_vMethods)
-		{
-			XNode *pMethodNode = pClassNode->AppendChild( "Function" );
-			pMethodNode->AppendAttr( "name", m );
+		pClassNode->AppendAttr("name", c.first);
+		if (!c.second.m_sBaseName.empty())
+			pClassNode->AppendAttr("base", c.second.m_sBaseName);
+		for (auto const& m : c.second.m_vMethods) {
+			XNode* pMethodNode = pClassNode->AppendChild("Function");
+			pMethodNode->AppendAttr("name", m);
 		}
 	}
 
 	/* Singletons */
-	for (auto const &s: mSingletons)
-	{
-		if( mClasses.find(s.first) != mClasses.end() )
+	for (auto const& s : mSingletons) {
+		if (mClasses.find(s.first) != mClasses.end())
 			continue;
-		XNode *pSingletonNode = pSingletonsNode->AppendChild( "Singleton" );
-		pSingletonNode->AppendAttr( "name", s.first );
-		pSingletonNode->AppendAttr( "class", s.second );
+		XNode* pSingletonNode = pSingletonsNode->AppendChild("Singleton");
+		pSingletonNode->AppendAttr("name", s.first);
+		pSingletonNode->AppendAttr("class", s.second);
 	}
 
 	/* Namespaces */
-	for (auto &iter: mNamespaces)
-	{
-		XNode *pNamespaceNode = pNamespacesNode->AppendChild( "Namespace" );
-		const vector<std::string> &vNamespace = iter.second;
-		pNamespaceNode->AppendAttr( "name", iter.first );
+	for (auto& iter : mNamespaces) {
+		XNode* pNamespaceNode = pNamespacesNode->AppendChild("Namespace");
+		const vector<std::string>& vNamespace = iter.second;
+		pNamespaceNode->AppendAttr("name", iter.first);
 
-		for (auto const &func: vNamespace)
-		{
-			XNode *pFunctionNode = pNamespaceNode->AppendChild( "Function" );
-			pFunctionNode->AppendAttr( "name", func );
+		for (auto const& func : vNamespace) {
+			XNode* pFunctionNode = pNamespaceNode->AppendChild("Function");
+			pFunctionNode->AppendAttr("name", func);
 		}
 	}
 
 	/* Enums */
-	for (auto &iter: mEnums)
-	{
-		XNode *pEnumNode = pEnumsNode->AppendChild( "Enum" );
+	for (auto& iter : mEnums) {
+		XNode* pEnumNode = pEnumsNode->AppendChild("Enum");
 
-		const vector<std::string> &vEnum = iter.second;
-		pEnumNode->AppendAttr( "name", iter.first );
+		const vector<std::string>& vEnum = iter.second;
+		pEnumNode->AppendAttr("name", iter.first);
 
-		for( unsigned i = 0; i < vEnum.size(); ++i )
-		{
-			XNode *pEnumValueNode = pEnumNode->AppendChild( "EnumValue" );
-			pEnumValueNode->AppendAttr( "name", ssprintf("'%s'", vEnum[i].c_str()) );
-			pEnumValueNode->AppendAttr( "value", i );
+		for (unsigned i = 0; i < vEnum.size(); ++i) {
+			XNode* pEnumValueNode = pEnumNode->AppendChild("EnumValue");
+			pEnumValueNode->AppendAttr("name",
+									   ssprintf("'%s'", vEnum[i].c_str()));
+			pEnumValueNode->AppendAttr("value", i);
 		}
 	}
 
 	/* Constants, String Constants */
-	for (auto const &c: mConstants)
-	{
-		XNode *pConstantNode = pConstantsNode->AppendChild( "Constant" );
+	for (auto const& c : mConstants) {
+		XNode* pConstantNode = pConstantsNode->AppendChild("Constant");
 
-		pConstantNode->AppendAttr( "name", c.first );
-    if( c.second == std::trunc(c.second) )
-		{
-			pConstantNode->AppendAttr( "value", static_cast<int>(c.second) );
-		}
-		else
-		{
-			pConstantNode->AppendAttr( "value", c.second );
+		pConstantNode->AppendAttr("name", c.first);
+		if (c.second == std::trunc(c.second)) {
+			pConstantNode->AppendAttr("value", static_cast<int>(c.second));
+		} else {
+			pConstantNode->AppendAttr("value", c.second);
 		}
 	}
 
-	for (auto const &s: mStringConstants)
-	{
-		XNode *pConstantNode = pConstantsNode->AppendChild( "Constant" );
-		pConstantNode->AppendAttr( "name", s.first );
-		pConstantNode->AppendAttr( "value", ssprintf("'%s'", s.second.c_str()) );
+	for (auto const& s : mStringConstants) {
+		XNode* pConstantNode = pConstantsNode->AppendChild("Constant");
+		pConstantNode->AppendAttr("name", s.first);
+		pConstantNode->AppendAttr("value", ssprintf("'%s'", s.second.c_str()));
 	}
 
 	return pLuaNode;
 }
 
-bool LuaHelpers::run_script_file_in_state(lua_State* L,
-	std::string const& filename, int return_values, bool blank_env)
+bool
+LuaHelpers::run_script_file_in_state(lua_State* L,
+									 std::string const& filename,
+									 int return_values,
+									 bool blank_env)
 {
 	std::string script;
-	if(!GetFileContents(filename, script))
-	{
-		for(int i= 0; i < return_values; ++i)
-		{
+	if (!GetFileContents(filename, script)) {
+		for (int i = 0; i < return_values; ++i) {
 			lua_pushnil(L);
 		}
 		return false;
 	}
 	std::string err;
-	if(!LuaHelpers::RunScript(L, script, "@" + filename, err, 0, return_values, false, blank_env))
-	{
-		err= ssprintf("Lua runtime error: %s", err.c_str());
+	if (!LuaHelpers::RunScript(
+		  L, script, "@" + filename, err, 0, return_values, false, blank_env)) {
+		err = ssprintf("Lua runtime error: %s", err.c_str());
 		LuaHelpers::ReportScriptError(err);
 		return false;
 	}
 	return true;
 }
 
-bool LuaHelpers::RunScriptFile(const std::string &sFile, bool blank_env)
+bool
+LuaHelpers::RunScriptFile(const std::string& sFile, bool blank_env)
 {
 	std::string sScript;
-	if( !GetFileContents(sFile, sScript) )
+	if (!GetFileContents(sFile, sScript))
 		return false;
 
-	Lua *L = LUA->Get();
+	Lua* L = LUA->Get();
 
 	std::string sError;
-	if(!LuaHelpers::RunScript(L, sScript, "@" + sFile, sError, 0, 0, false, blank_env))
-	{
-		LUA->Release( L );
-		sError = ssprintf( "Lua runtime error: %s", sError.c_str() );
+	if (!LuaHelpers::RunScript(
+		  L, sScript, "@" + sFile, sError, 0, 0, false, blank_env)) {
+		LUA->Release(L);
+		sError = ssprintf("Lua runtime error: %s", sError.c_str());
 		LuaHelpers::ReportScriptError(sError);
 		return false;
 	}
-	LUA->Release( L );
+	LUA->Release(L);
 
 	return true;
 }
 
-
-bool LuaHelpers::LoadScript( Lua *L, const std::string &sScript, const std::string &sName, std::string &sError )
+bool
+LuaHelpers::LoadScript(Lua* L,
+					   const std::string& sScript,
+					   const std::string& sName,
+					   std::string& sError)
 {
 	// load string
-	int ret = luaL_loadbuffer( L, sScript.data(), sScript.size(), sName.c_str() );
-	if( ret )
-	{
-		LuaHelpers::Pop( L, sError );
+	int ret = luaL_loadbuffer(L, sScript.data(), sScript.size(), sName.c_str());
+	if (ret) {
+		LuaHelpers::Pop(L, sError);
 		return false;
 	}
 
 	return true;
 }
 
-void LuaHelpers::ScriptErrorMessage(std::string const& Error)
+void
+LuaHelpers::ScriptErrorMessage(std::string const& Error)
 {
-	if (MESSAGEMAN != nullptr)
-	{
+	if (MESSAGEMAN != nullptr) {
 		Message msg("ScriptError");
 		msg.SetParam("message", Error);
 		MESSAGEMAN->Broadcast(msg);
 	}
 }
 
-Dialog::Result LuaHelpers::ReportScriptError(std::string const& Error, std::string ErrorType, bool UseAbort)
+Dialog::Result
+LuaHelpers::ReportScriptError(std::string const& Error,
+							  std::string ErrorType,
+							  bool UseAbort)
 {
-	// Protect from a recursion loop resulting from a mistake in the error reporting lua.
-	if(!InReportScriptError)
-	{
-		InReportScriptError= true;
+	// Protect from a recursion loop resulting from a mistake in the error
+	// reporting lua.
+	if (!InReportScriptError) {
+		InReportScriptError = true;
 		ScriptErrorMessage(Error);
-		InReportScriptError= false;
+		InReportScriptError = false;
 	}
-	LOG->Warn( "%s", Error.c_str());
-	if(UseAbort)
-	{
-		std::string with_correct= Error + "  Correct this and click Retry, or Cancel to break.";
+	LOG->Warn("%s", Error.c_str());
+	if (UseAbort) {
+		std::string with_correct =
+		  Error + "  Correct this and click Retry, or Cancel to break.";
 		return Dialog::AbortRetryIgnore(with_correct, ErrorType);
 	}
-	//Dialog::OK(Error, ErrorType);
+	// Dialog::OK(Error, ErrorType);
 	return Dialog::ok;
 }
 
-void infinite_loop_preventer(lua_State* L, lua_Debug*)
+void
+infinite_loop_preventer(lua_State* L, lua_Debug*)
 {
 	luaL_error(L, "Infinite loop detected, too many instructions.");
 }
 
-bool LuaHelpers::RunScriptOnStack(Lua *L, std::string &Error, int Args,
-	int ReturnValues, bool ReportError, bool blank_env)
+bool
+LuaHelpers::RunScriptOnStack(Lua* L,
+							 std::string& Error,
+							 int Args,
+							 int ReturnValues,
+							 bool ReportError,
+							 bool blank_env)
 {
-	if(blank_env)
-	{
+	if (blank_env) {
 		lua_newtable(L);
 		lua_setfenv(L, lua_gettop(L) - Args - 1);
 	}
-	lua_pushcfunction( L, GetLuaStack );
+	lua_pushcfunction(L, GetLuaStack);
 
 	// move the error function above the function and params
 	int ErrFunc = lua_gettop(L) - Args - 1;
-	lua_insert( L, ErrFunc );
+	lua_insert(L, ErrFunc);
 	lua_sethook(L, infinite_loop_preventer, LUA_MASKCOUNT, 1000000000);
 
 	// evaluate
-	int ret = lua_pcall( L, Args, ReturnValues, ErrFunc );
-	if( ret )
-	{
-		if(ReportError)
-		{
+	int ret = lua_pcall(L, Args, ReturnValues, ErrFunc);
+	if (ret) {
+		if (ReportError) {
 			std::string lerror;
-			LuaHelpers::Pop( L, lerror );
-			Error+= lerror;
+			LuaHelpers::Pop(L, lerror);
+			Error += lerror;
 			ReportScriptError(Error);
+		} else {
+			LuaHelpers::Pop(L, Error);
 		}
-		else
-		{
-			LuaHelpers::Pop( L, Error );
-		}
-		lua_remove( L, ErrFunc );
-		for( int i = 0; i < ReturnValues; ++i )
-		{
-			lua_pushnil( L );
+		lua_remove(L, ErrFunc);
+		for (int i = 0; i < ReturnValues; ++i) {
+			lua_pushnil(L);
 		}
 		return false;
 	}
 
-	lua_remove( L, ErrFunc );
+	lua_remove(L, ErrFunc);
 	return true;
 }
 
-bool LuaHelpers::RunScript(Lua *L, const std::string &Script,
-	const std::string &Name, std::string &Error, int Args, int ReturnValues,
-	bool ReportError, bool blank_env)
+bool
+LuaHelpers::RunScript(Lua* L,
+					  const std::string& Script,
+					  const std::string& Name,
+					  std::string& Error,
+					  int Args,
+					  int ReturnValues,
+					  bool ReportError,
+					  bool blank_env)
 {
 	std::string lerror;
-	if( !LoadScript(L, Script, Name, lerror) )
-	{
-		Error+= lerror;
-		if(ReportError)
-		{
+	if (!LoadScript(L, Script, Name, lerror)) {
+		Error += lerror;
+		if (ReportError) {
 			ReportScriptError(Error);
 		}
-		lua_pop( L, Args );
-		for( int i = 0; i < ReturnValues; ++i )
-		{
-			lua_pushnil( L );
+		lua_pop(L, Args);
+		for (int i = 0; i < ReturnValues; ++i) {
+			lua_pushnil(L);
 		}
 		return false;
 	}
 
 	// move the function above the params
-	lua_insert( L, lua_gettop(L) - Args );
+	lua_insert(L, lua_gettop(L) - Args);
 
-	return LuaHelpers::RunScriptOnStack(L, Error, Args, ReturnValues,
-		ReportError, blank_env);
+	return LuaHelpers::RunScriptOnStack(
+	  L, Error, Args, ReturnValues, ReportError, blank_env);
 }
 
-bool LuaHelpers::RunExpression( Lua *L, const std::string &sExpression, const std::string &sName, bool blank_env)
+bool
+LuaHelpers::RunExpression(Lua* L,
+						  const std::string& sExpression,
+						  const std::string& sName,
+						  bool blank_env)
 {
-	std::string sError= ssprintf("Lua runtime error parsing \"%s\": ", sName.size()? sName.c_str():sExpression.c_str());
-	if(!LuaHelpers::RunScript(L, "return " + sExpression, sName.empty()? std::string("in"):sName, sError, 0, 1, true, blank_env))
-	{
+	std::string sError =
+	  ssprintf("Lua runtime error parsing \"%s\": ",
+			   sName.size() ? sName.c_str() : sExpression.c_str());
+	if (!LuaHelpers::RunScript(L,
+							   "return " + sExpression,
+							   sName.empty() ? std::string("in") : sName,
+							   sError,
+							   0,
+							   1,
+							   true,
+							   blank_env)) {
 		return false;
 	}
 	return true;
 }
 
-void LuaHelpers::ParseCommandList( Lua *L, const std::string &sCommands, const std::string &sName, bool bLegacy )
+void
+LuaHelpers::ParseCommandList(Lua* L,
+							 const std::string& sCommands,
+							 const std::string& sName,
+							 bool bLegacy)
 {
 	std::string sLuaFunction;
-	if( sCommands.size() > 0 && sCommands[0] == '\033' )
-	{
+	if (sCommands.size() > 0 && sCommands[0] == '\033') {
 		// This is a compiled Lua chunk. Just pass it on directly.
 		sLuaFunction = sCommands;
-	}
-	else if( sCommands.size() > 0 && sCommands[0] == '%' )
-	{
+	} else if (sCommands.size() > 0 && sCommands[0] == '%') {
 		sLuaFunction = "return ";
-		sLuaFunction.append( sCommands.begin()+1, sCommands.end() );
-	}
-	else
-	{
+		sLuaFunction.append(sCommands.begin() + 1, sCommands.end());
+	} else {
 		Commands cmds;
-		ParseCommands( sCommands, cmds, bLegacy );
+		ParseCommands(sCommands, cmds, bLegacy);
 
 		// Convert cmds to a Lua function
 		std::ostringstream s;
 
 		s << "return function(self)\n";
 
-		if( bLegacy )
+		if (bLegacy)
 			s << "\tparent = self:GetParent();\n";
 
-		for (auto const &cmd: cmds.v)
-		{
+		for (auto const& cmd : cmds.v) {
 			std::string sCmdName = cmd.GetName();
-			if( bLegacy )
-			{
+			if (bLegacy) {
 				sCmdName = Rage::make_lower(sCmdName);
 			}
 			s << "\tself:" << sCmdName << "(";
 
-			bool bFirstParamIsString = bLegacy && (
-					sCmdName == "horizalign" ||
-					sCmdName == "vertalign" ||
-					sCmdName == "effectclock" ||
-					sCmdName == "blend" ||
-					sCmdName == "ztestmode" ||
-					sCmdName == "cullmode" ||
-					sCmdName == "playcommand" ||
-					sCmdName == "queuecommand" ||
-					sCmdName == "queuemessage" ||
-					sCmdName == "settext");
+			bool bFirstParamIsString =
+			  bLegacy &&
+			  (sCmdName == "horizalign" || sCmdName == "vertalign" ||
+			   sCmdName == "effectclock" || sCmdName == "blend" ||
+			   sCmdName == "ztestmode" || sCmdName == "cullmode" ||
+			   sCmdName == "playcommand" || sCmdName == "queuecommand" ||
+			   sCmdName == "queuemessage" || sCmdName == "settext");
 
-			for( unsigned i=1; i<cmd.m_vsArgs.size(); i++ )
-			{
+			for (unsigned i = 1; i < cmd.m_vsArgs.size(); i++) {
 				std::string sArg = cmd.m_vsArgs[i];
 
 				// "+200" -> "200"
-				if( sArg[0] == '+' )
-					sArg.erase( sArg.begin() );
+				if (sArg[0] == '+')
+					sArg.erase(sArg.begin());
 
-				if( i==1 && bFirstParamIsString ) // string literal, legacy only
+				if (i == 1 &&
+					bFirstParamIsString) // string literal, legacy only
 				{
-					Rage::replace(sArg, "'", "\\'" );	// escape quote
+					Rage::replace(sArg, "'", "\\'"); // escape quote
 					s << "'" << sArg << "'";
-				}
-				else if( sArg[0] == '#' )	// HTML color
+				} else if (sArg[0] == '#') // HTML color
 				{
-					RageColor col;	// in case FromString fails
-					col.FromString( sArg );
+					RageColor col; // in case FromString fails
+					col.FromString(sArg);
 					// col is still valid if FromString fails
 					s << col.r << "," << col.g << "," << col.b << "," << col.a;
-				}
-				else
-				{
+				} else {
 					s << sArg;
 				}
 
-				if( i != cmd.m_vsArgs.size()-1 )
+				if (i != cmd.m_vsArgs.size() - 1)
 					s << ",";
 			}
 			s << ")\n";
@@ -1392,225 +1416,230 @@ void LuaHelpers::ParseCommandList( Lua *L, const std::string &sCommands, const s
 	}
 
 	std::string sError;
-	if( !LuaHelpers::RunScript(L, sLuaFunction, sName, sError, 0, 1) )
-		LOG->Warn( "Compiling \"%s\": %s", sLuaFunction.c_str(), sError.c_str() );
+	if (!LuaHelpers::RunScript(L, sLuaFunction, sName, sError, 0, 1))
+		LOG->Warn("Compiling \"%s\": %s", sLuaFunction.c_str(), sError.c_str());
 
 	// The function is now on the stack.
 }
 
 /* Like luaL_typerror, but without the special case for argument 1 being "self"
  * in method calls, so we give a correct error message after we remove self. */
-int LuaHelpers::TypeError( Lua *L, int iArgNo, std::string const &szName )
+int
+LuaHelpers::TypeError(Lua* L, int iArgNo, std::string const& szName)
 {
 	std::string sType;
 	if (!luaL_callmeta(L, iArgNo, "__type"))
 		lua_pushstring(L, luaL_typename(L, iArgNo));
-	LuaHelpers::Pop( L, sType );
+	LuaHelpers::Pop(L, sType);
 
 	lua_Debug debug;
-	if( !lua_getstack( L, 0, &debug ) )
-	{
-		return luaL_error( L, "invalid type (%s expected, got %s)",
-			szName.c_str(), sType.c_str() );
-	}
-	else
-	{
-		lua_getinfo( L, "n", &debug );
-		return luaL_error( L, "bad argument #%d to \"%s\" (%s expected, got %s)",
-			iArgNo, debug.name? debug.name:"(unknown)", szName.c_str(), sType.c_str() );
-	}
-}
-
-void LuaHelpers::DeepCopy( lua_State *L )
-{
-	luaL_checktype( L, -2, LUA_TTABLE );
-	luaL_checktype( L, -1, LUA_TTABLE );
-
-	// Call DeepCopy(t, u), where t is our referenced object and u is the new table.
-	lua_getglobal( L, "DeepCopy" );
-
-	ASSERT_M( !lua_isnil(L, -1), "DeepCopy() missing" );
-	ASSERT_M( lua_isfunction(L, -1), "DeepCopy() not a function" );
-	lua_insert( L, lua_gettop(L)-2 );
-
-	lua_call( L, 2, 0 );
-}
-
-namespace
-{
-	int lua_pushvalues( lua_State *L )
-	{
-		int iArgs = lua_tointeger( L, lua_upvalueindex(1) );
-		for( int i = 0; i < iArgs; ++i )
-		{
-			lua_pushvalue( L, lua_upvalueindex(i+2) );
-		}
-		return iArgs;
+	if (!lua_getstack(L, 0, &debug)) {
+		return luaL_error(L,
+						  "invalid type (%s expected, got %s)",
+						  szName.c_str(),
+						  sType.c_str());
+	} else {
+		lua_getinfo(L, "n", &debug);
+		return luaL_error(L,
+						  "bad argument #%d to \"%s\" (%s expected, got %s)",
+						  iArgNo,
+						  debug.name ? debug.name : "(unknown)",
+						  szName.c_str(),
+						  sType.c_str());
 	}
 }
 
-void LuaHelpers::PushValueFunc( lua_State *L, int iArgs )
+void
+LuaHelpers::DeepCopy(lua_State* L)
 {
-	int iTop = lua_gettop( L ) - iArgs + 1;
-	lua_pushinteger( L, iArgs );
-	lua_insert( L, iTop );
-	lua_pushcclosure( L, lua_pushvalues, iArgs+1 );
+	luaL_checktype(L, -2, LUA_TTABLE);
+	luaL_checktype(L, -1, LUA_TTABLE);
+
+	// Call DeepCopy(t, u), where t is our referenced object and u is the new
+	// table.
+	lua_getglobal(L, "DeepCopy");
+
+	ASSERT_M(!lua_isnil(L, -1), "DeepCopy() missing");
+	ASSERT_M(lua_isfunction(L, -1), "DeepCopy() not a function");
+	lua_insert(L, lua_gettop(L) - 2);
+
+	lua_call(L, 2, 0);
+}
+
+namespace {
+int
+lua_pushvalues(lua_State* L)
+{
+	int iArgs = lua_tointeger(L, lua_upvalueindex(1));
+	for (int i = 0; i < iArgs; ++i) {
+		lua_pushvalue(L, lua_upvalueindex(i + 2));
+	}
+	return iArgs;
+}
+} // namespace
+
+void
+LuaHelpers::PushValueFunc(lua_State* L, int iArgs)
+{
+	int iTop = lua_gettop(L) - iArgs + 1;
+	lua_pushinteger(L, iArgs);
+	lua_insert(L, iTop);
+	lua_pushcclosure(L, lua_pushvalues, iArgs + 1);
 }
 
 #include "ProductInfo.h"
-LuaFunction( ProductFamily, (std::string) PRODUCT_FAMILY );
-LuaFunction( ProductVersion, (std::string) product_version );
-LuaFunction( ProductID, (std::string) PRODUCT_ID );
+LuaFunction(ProductFamily, (std::string)PRODUCT_FAMILY);
+LuaFunction(ProductVersion, (std::string)product_version);
+LuaFunction(ProductID, (std::string)PRODUCT_ID);
 
-extern char const * const version_date;
-extern char const * const version_time;
-LuaFunction( VersionDate, (std::string) version_date );
-LuaFunction( VersionTime, (std::string) version_time );
+extern char const* const version_date;
+extern char const* const version_time;
+LuaFunction(VersionDate, (std::string)version_date);
+LuaFunction(VersionTime, (std::string)version_time);
 
-LuaFunction( scale, SCALE(FArg(1), FArg(2), FArg(3), FArg(4), FArg(5)) );
+LuaFunction(scale, SCALE(FArg(1), FArg(2), FArg(3), FArg(4), FArg(5)));
 
-LuaFunction( clamp, clamp(FArg(1), FArg(2), FArg(3)) );
+LuaFunction(clamp, clamp(FArg(1), FArg(2), FArg(3)));
 
 #include "LuaBinding.h"
-namespace
+namespace {
+static int
+Trace(lua_State* L)
 {
-	static int Trace( lua_State *L )
-	{
-		std::string sString = SArg(1);
-		LOG->Trace( "%s", sString.c_str() );
-		return 0;
-	}
-	static int Warn( lua_State *L )
-	{
-		std::string sString = SArg(1);
-		LOG->Warn( "%s", sString.c_str() );
-		return 0;
-	}
-	static int Flush(lua_State*)
-	{
-		LOG->Flush();
-		return 0;
-	}
-	static int CheckType( lua_State *L )
-	{
-		std::string sType = SArg(1);
-		bool bRet = LuaBinding::CheckLuaObjectType( L, 2, sType );
-		LuaHelpers::Push( L, bRet );
-		return 1;
-	}
-	static int ReadFile( lua_State *L )
-	{
-		std::string sPath = SArg(1);
+	std::string sString = SArg(1);
+	LOG->Trace("%s", sString.c_str());
+	return 0;
+}
+static int
+Warn(lua_State* L)
+{
+	std::string sString = SArg(1);
+	LOG->Warn("%s", sString.c_str());
+	return 0;
+}
+static int
+Flush(lua_State*)
+{
+	LOG->Flush();
+	return 0;
+}
+static int
+CheckType(lua_State* L)
+{
+	std::string sType = SArg(1);
+	bool bRet = LuaBinding::CheckLuaObjectType(L, 2, sType);
+	LuaHelpers::Push(L, bRet);
+	return 1;
+}
+static int
+ReadFile(lua_State* L)
+{
+	std::string sPath = SArg(1);
 
-		/* Release Lua while we call GetFileContents, so we don't access
-		 * it while we read from the disk. */
-		LUA->YieldLua();
+	/* Release Lua while we call GetFileContents, so we don't access
+	 * it while we read from the disk. */
+	LUA->YieldLua();
 
-		std::string sFileContents;
-		bool bRet = GetFileContents( sPath, sFileContents );
+	std::string sFileContents;
+	bool bRet = GetFileContents(sPath, sFileContents);
 
-		LUA->UnyieldLua();
-		if( !bRet )
-		{
-			lua_pushnil( L );
-			lua_pushstring( L, "error" ); // XXX
-			return 2;
-		}
-		
-		
-			LuaHelpers::Push( L, sFileContents );
-			return 1;
-		
+	LUA->UnyieldLua();
+	if (!bRet) {
+		lua_pushnil(L);
+		lua_pushstring(L, "error"); // XXX
+		return 2;
 	}
 
-	/* RunWithThreadVariables(func, { a = "x", b = "y" }, arg1, arg2, arg3 ... }
-	 * calls func(arg1, arg2, arg3) with two LuaThreadVariable set, and returns
-	 * the return values of func(). */
-	static int RunWithThreadVariables( lua_State *L )
+	LuaHelpers::Push(L, sFileContents);
+	return 1;
+}
+
+/* RunWithThreadVariables(func, { a = "x", b = "y" }, arg1, arg2, arg3 ... }
+ * calls func(arg1, arg2, arg3) with two LuaThreadVariable set, and returns
+ * the return values of func(). */
+static int
+RunWithThreadVariables(lua_State* L)
+{
+	luaL_checktype(L, 1, LUA_TFUNCTION);
+	luaL_checktype(L, 2, LUA_TTABLE);
+
+	vector<LuaThreadVariable*> apVars;
+	FOREACH_LUATABLE(L, 2)
 	{
-		luaL_checktype( L, 1, LUA_TFUNCTION );
-		luaL_checktype( L, 2, LUA_TTABLE );
-
-		vector<LuaThreadVariable *> apVars;
-		FOREACH_LUATABLE( L, 2 )
-		{
-			lua_pushvalue( L, -2 );
-			auto *pVar = new LuaThreadVariable( L );
-			apVars.push_back( pVar );
-		}
-
-		lua_remove( L, 2 );
-
-		/* XXX: We want to clean up apVars on errors, but if we lua_pcall,
-		 * we won't propagate the error upwards. */
-		int iArgs = lua_gettop(L) - 1;
-		lua_call( L, iArgs, LUA_MULTRET );
-		int iVals = lua_gettop(L);
-
-		for (auto *v: apVars)
-		{
-			delete v;
-		}
-		return iVals;
+		lua_pushvalue(L, -2);
+		auto* pVar = new LuaThreadVariable(L);
+		apVars.push_back(pVar);
 	}
 
-	static int GetThreadVariable( lua_State *L )
-	{
-		luaL_checkstring( L, 1 );
-		lua_pushvalue( L, 1 );
-		LuaThreadVariable::GetThreadVariable( L );
-		return 1;
-	}
+	lua_remove(L, 2);
 
-	static int ReportScriptError(lua_State* L)
-	{
-		std::string error= "Script error occurred.";
-		std::string error_type= "LUA_ERROR";
-		if(lua_isstring(L, 1) != 0)
-		{
-			error= SArg(1);
-		}
-		if(lua_isstring(L, 2) != 0)
-		{
-			error_type= SArg(2);
-		}
-		LuaHelpers::ReportScriptError(error, error_type);
-		return 0;
-	}
-	static int save_lua_table(lua_State* L)
-	{
-		std::string filename= SArg(1);
-		if(lua_type(L, 2) != LUA_TTABLE)
-		{
-			luaL_error(L, "Second arg to save_lua_table must be a table.");
-		}
-		LuaHelpers::save_lua_table_to_file(L, 2, filename);
-		return 0;
-	}
-	static int load_config_lua(lua_State* L)
-	{
-		std::string filename= SArg(1);
-		LuaHelpers::run_script_file_in_state(L, filename, 1, true);
-		return 1;
-	}
+	/* XXX: We want to clean up apVars on errors, but if we lua_pcall,
+	 * we won't propagate the error upwards. */
+	int iArgs = lua_gettop(L) - 1;
+	lua_call(L, iArgs, LUA_MULTRET);
+	int iVals = lua_gettop(L);
 
-	const luaL_Reg luaTable[] =
-	{
-		LIST_METHOD( Trace ),
-		LIST_METHOD( Warn ),
-		LIST_METHOD( Flush ),
-		LIST_METHOD( CheckType ),
-		LIST_METHOD( ReadFile ),
-		LIST_METHOD( RunWithThreadVariables ),
-		LIST_METHOD( GetThreadVariable ),
-		LIST_METHOD( ReportScriptError ),
-		LIST_METHOD(save_lua_table),
-		LIST_METHOD(load_config_lua),
-		{ nullptr, nullptr }
-	};
+	for (auto* v : apVars) {
+		delete v;
+	}
+	return iVals;
+}
+
+static int
+GetThreadVariable(lua_State* L)
+{
+	luaL_checkstring(L, 1);
+	lua_pushvalue(L, 1);
+	LuaThreadVariable::GetThreadVariable(L);
+	return 1;
+}
+
+static int
+ReportScriptError(lua_State* L)
+{
+	std::string error = "Script error occurred.";
+	std::string error_type = "LUA_ERROR";
+	if (lua_isstring(L, 1) != 0) {
+		error = SArg(1);
+	}
+	if (lua_isstring(L, 2) != 0) {
+		error_type = SArg(2);
+	}
+	LuaHelpers::ReportScriptError(error, error_type);
+	return 0;
+}
+static int
+save_lua_table(lua_State* L)
+{
+	std::string filename = SArg(1);
+	if (lua_type(L, 2) != LUA_TTABLE) {
+		luaL_error(L, "Second arg to save_lua_table must be a table.");
+	}
+	LuaHelpers::save_lua_table_to_file(L, 2, filename);
+	return 0;
+}
+static int
+load_config_lua(lua_State* L)
+{
+	std::string filename = SArg(1);
+	LuaHelpers::run_script_file_in_state(L, filename, 1, true);
+	return 1;
+}
+
+const luaL_Reg luaTable[] = { LIST_METHOD(Trace),
+							  LIST_METHOD(Warn),
+							  LIST_METHOD(Flush),
+							  LIST_METHOD(CheckType),
+							  LIST_METHOD(ReadFile),
+							  LIST_METHOD(RunWithThreadVariables),
+							  LIST_METHOD(GetThreadVariable),
+							  LIST_METHOD(ReportScriptError),
+							  LIST_METHOD(save_lua_table),
+							  LIST_METHOD(load_config_lua),
+							  { nullptr, nullptr } };
 } // namespace
 
-LUA_REGISTER_NAMESPACE( lua )
+LUA_REGISTER_NAMESPACE(lua)
 
 /*
  * (c) 2004-2006 Glenn Maynard, Steve Checkoway

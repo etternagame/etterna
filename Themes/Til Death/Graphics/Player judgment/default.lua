@@ -8,27 +8,27 @@ local values = {
 	JudgeZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].JudgeZoom
 }
 -- CUZ WIDESCREEN DEFAULTS SCREAAAAAAAAAAAAAAAAAAAAAAAAAM -mina
-if IsUsingWideScreen( ) then
+if IsUsingWideScreen() then
 	values.JudgeY = values.JudgeY - 5
 	values.JudgeX = values.JudgeX + 5
 end
 
 local JudgeCmds = {
-	TapNoteScore_W1 = THEME:GetMetric( "Judgment", "JudgmentW1Command" ),
-	TapNoteScore_W2 = THEME:GetMetric( "Judgment", "JudgmentW2Command" ),
-	TapNoteScore_W3 = THEME:GetMetric( "Judgment", "JudgmentW3Command" ),
-	TapNoteScore_W4 = THEME:GetMetric( "Judgment", "JudgmentW4Command" ),
-	TapNoteScore_W5 = THEME:GetMetric( "Judgment", "JudgmentW5Command" ),
-	TapNoteScore_Miss = THEME:GetMetric( "Judgment", "JudgmentMissCommand" ),
+	TapNoteScore_W1 = THEME:GetMetric("Judgment", "JudgmentW1Command"),
+	TapNoteScore_W2 = THEME:GetMetric("Judgment", "JudgmentW2Command"),
+	TapNoteScore_W3 = THEME:GetMetric("Judgment", "JudgmentW3Command"),
+	TapNoteScore_W4 = THEME:GetMetric("Judgment", "JudgmentW4Command"),
+	TapNoteScore_W5 = THEME:GetMetric("Judgment", "JudgmentW5Command"),
+	TapNoteScore_Miss = THEME:GetMetric("Judgment", "JudgmentMissCommand")
 }
 
 local TNSFrames = {
-	TapNoteScore_W1 = 0;
-	TapNoteScore_W2 = 1;
-	TapNoteScore_W3 = 2;
-	TapNoteScore_W4 = 3;
-	TapNoteScore_W5 = 4;
-	TapNoteScore_Miss = 5;
+	TapNoteScore_W1 = 0,
+	TapNoteScore_W2 = 1,
+	TapNoteScore_W3 = 2,
+	TapNoteScore_W4 = 3,
+	TapNoteScore_W5 = 4,
+	TapNoteScore_Miss = 5
 }
 
 local propsFunctions = {
@@ -37,14 +37,14 @@ local propsFunctions = {
 	Zoom = Actor.zoom
 }
 
-local movable = { 
+local movable = {
 	current = "",
 	pressed = false,
 	DeviceButton_1 = {
 		name = "Judge",
-		element = { },
-		children = { "Judgment" },
-		properties = { "X", "Y" },
+		element = {},
+		children = {"Judgment"},
+		properties = {"X", "Y"},
 		elementTree = "GameplayXYCoordinates",
 		condition = true,
 		DeviceButton_up = {
@@ -62,13 +62,13 @@ local movable = {
 		DeviceButton_right = {
 			property = "X",
 			inc = 5
-		},
+		}
 	},
 	DeviceButton_2 = {
 		name = "Judge",
-		element = { },
-		children = { "Judgment" },
-		properties = { "Zoom" },
+		element = {},
+		children = {"Judgment"},
+		properties = {"Zoom"},
 		elementTree = "GameplaySizes",
 		condition = true,
 		DeviceButton_up = {
@@ -78,8 +78,8 @@ local movable = {
 		DeviceButton_down = {
 			property = "Zoom",
 			inc = -0.01
-		},
-	},
+		}
+	}
 }
 
 local function input(event)
@@ -98,7 +98,7 @@ local function input(event)
 			local newVal = values[prop] + curKey.inc
 			values[prop] = newVal
 			for _, attribute in ipairs(current.children) do
-				propsFunctions[curKey.property](current.element[attribute], newVal)	
+				propsFunctions[curKey.property](current.element[attribute], newVal)
 			end
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1))[current.elementTree][keymode][prop] = newVal
 			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
@@ -108,35 +108,38 @@ local function input(event)
 	return false
 end
 
-local t = Def.ActorFrame {
+local t =
+	Def.ActorFrame {
 	Def.Sprite {
-		Texture = "../../../../"..getAssetPath("judgement"),
-		Name="Judgment",
-		InitCommand=function(self)
-			self:pause():visible(false):xy(values.JudgeX,values.JudgeY):zoom(values.JudgeZoom)
+		Texture = "../../../../" .. getAssetPath("judgement"),
+		Name = "Judgment",
+		InitCommand = function(self)
+			self:pause():visible(false):xy(values.JudgeX, values.JudgeY):zoom(values.JudgeZoom)
 		end,
-		ResetCommand=function(self)
+		ResetCommand = function(self)
 			self:finishtweening():stopeffect():visible(false)
-		end,
+		end
 	},
-	
 	InitCommand = function(self)
 		c = self:GetChildren()
 		movable.DeviceButton_1.element = c
 		movable.DeviceButton_2.element = c
 	end,
-	OnCommand=function(self) 
-		if(allowedCustomization) then
+	OnCommand = function(self)
+		if (allowedCustomization) then
 			SCREENMAN:GetTopScreen():AddInputCallback(input)
 		end
 	end,
-
-	JudgmentMessageCommand=function(self, param)
-		if param.HoldNoteScore then return end
+	JudgmentMessageCommand = function(self, param)
+		if param.HoldNoteScore then
+			return
+		end
 		local iNumStates = c.Judgment:GetNumStates()
 		local iFrame = TNSFrames[param.TapNoteScore]
-		if not iFrame then return end
-		
+		if not iFrame then
+			return
+		end
+
 		self:playcommand("Reset")
 		c.Judgment:visible(true)
 		c.Judgment:setstate(iFrame)
@@ -149,5 +152,3 @@ if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).JudgmentText then
 end
 
 return {}
-
-

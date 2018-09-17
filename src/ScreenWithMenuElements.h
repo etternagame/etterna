@@ -10,78 +10,80 @@ class MenuTimer;
 
 class ScreenWithMenuElements : public Screen
 {
-public:
+  public:
 	ScreenWithMenuElements();
 	void Init() override;
 	void BeginScreen() override;
 	~ScreenWithMenuElements() override;
 
-	void HandleScreenMessage( ScreenMessage SM ) override;
-	void Update( float fDeltaTime ) override;
-	void StartTransitioningScreen( ScreenMessage smSendWhenDone );
-	virtual void Cancel( ScreenMessage smSendWhenDone );
+	void HandleScreenMessage(ScreenMessage SM) override;
+	void Update(float fDeltaTime) override;
+	void StartTransitioningScreen(ScreenMessage smSendWhenDone);
+	virtual void Cancel(ScreenMessage smSendWhenDone);
 	bool IsTransitioning();
 	bool AllowCallbackInput() override { return !IsTransitioning(); }
 
 	void StopTimer();
 	void ResetTimer();
 
-	// Sub-classes can hook these and do special actions that won't be triggered automatically by an "On"/"Off" command
+	// Sub-classes can hook these and do special actions that won't be triggered
+	// automatically by an "On"/"Off" command
 	virtual void TweenOnScreen();
 	virtual void TweenOffScreen();
 
 	// Lua
-	void PushSelf( lua_State *L ) override;
+	void PushSelf(lua_State* L) override;
 
 	bool AllowLateJoin() const override { return m_bShouldAllowLateJoin; }
 	bool m_bShouldAllowLateJoin; // So that it can be exposed to Lua.
 
-protected:
+  protected:
 	RString HandleLuaMusicFile(RString const& path);
 	virtual void StartPlayingMusic();
-	void SetHelpText( const RString &s );
+	void SetHelpText(const RString& s);
 
-	AutoActor			m_sprUnderlay;
-	MenuTimer			*m_MenuTimer;
-	AutoActor			m_sprOverlay;
-	vector<Actor*>		m_vDecorations;
+	AutoActor m_sprUnderlay;
+	MenuTimer* m_MenuTimer;
+	AutoActor m_sprOverlay;
+	vector<Actor*> m_vDecorations;
 
-	Transition			m_In;
-	Transition			m_Out;
-	Transition			m_Cancel;
+	Transition m_In;
+	Transition m_Out;
+	Transition m_Cancel;
 
-	ThemeMetric<bool>		PLAY_MUSIC;
-	ThemeMetric<bool>		MUSIC_ALIGN_BEAT;
-	ThemeMetric<float>		DELAY_MUSIC_SECONDS;
-	ThemeMetric<bool>		CANCEL_TRANSITIONS_OUT;
-	ThemeMetric<float>		TIMER_SECONDS;
-	ThemeMetric<RString>	TIMER_METRICS_GROUP;
-	ThemeMetric<bool>		RESET_GAMESTATE;
+	ThemeMetric<bool> PLAY_MUSIC;
+	ThemeMetric<bool> MUSIC_ALIGN_BEAT;
+	ThemeMetric<float> DELAY_MUSIC_SECONDS;
+	ThemeMetric<bool> CANCEL_TRANSITIONS_OUT;
+	ThemeMetric<float> TIMER_SECONDS;
+	ThemeMetric<RString> TIMER_METRICS_GROUP;
+	ThemeMetric<bool> RESET_GAMESTATE;
 
-private:
+  private:
 	RString m_sPathToMusic;
 };
 
-class ScreenWithMenuElementsSimple: public ScreenWithMenuElements
+class ScreenWithMenuElementsSimple : public ScreenWithMenuElements
 {
-public:
-	bool MenuStart( const InputEventPlus &input ) override;
-	bool MenuBack( const InputEventPlus &input ) override;
+  public:
+	bool MenuStart(const InputEventPlus& input) override;
+	bool MenuBack(const InputEventPlus& input) override;
 
 	// Lua
-	void PushSelf( lua_State *L ) override;
+	void PushSelf(lua_State* L) override;
 
-protected:
+  protected:
 };
 
-class ScreenWithMenuElementsBasic : public ScreenWithMenuElements {};
+class ScreenWithMenuElementsBasic : public ScreenWithMenuElements
+{};
 
 #endif
 
 /*
  * (c) 2004 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -91,7 +93,7 @@ class ScreenWithMenuElementsBasic : public ScreenWithMenuElements {};
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

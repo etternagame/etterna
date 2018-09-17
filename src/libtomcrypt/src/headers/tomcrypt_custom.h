@@ -9,7 +9,7 @@
 #define LTC_DER
 #define LTC_NO_CIPHERS
 #define RIJNDAEL
- 
+
 #define LTC_NO_MODES
 #define LTC_ECB_MODE
 #define LTC_CBC_MODE
@@ -18,7 +18,8 @@
 //#define LTC_NO_ASM
 #define LTC_SOURCE
 
-#if defined(__GNUC__) && (__GNUC__ < 3 || (__GNUC__ == 3 && __GNUC_MINOR__ < 4)) /* gcc < 3.4 */
+#if defined(__GNUC__) &&                                                       \
+  (__GNUC__ < 3 || (__GNUC__ == 3 && __GNUC_MINOR__ < 4)) /* gcc < 3.4 */
 #define LTC_NO_ROLC
 #endif
 
@@ -46,111 +47,111 @@
 
 /* macros for various libc functions you can change for embedded targets */
 #ifndef XMALLOC
-   #ifdef malloc 
-   #define LTC_NO_PROTOTYPES
-   #endif
-#define XMALLOC  malloc
+#ifdef malloc
+#define LTC_NO_PROTOTYPES
+#endif
+#define XMALLOC malloc
 #endif
 #ifndef XREALLOC
-   #ifdef realloc 
-   #define LTC_NO_PROTOTYPES
-   #endif
+#ifdef realloc
+#define LTC_NO_PROTOTYPES
+#endif
 #define XREALLOC realloc
 #endif
 #ifndef XCALLOC
-   #ifdef calloc 
-   #define LTC_NO_PROTOTYPES
-   #endif
-#define XCALLOC  calloc
+#ifdef calloc
+#define LTC_NO_PROTOTYPES
+#endif
+#define XCALLOC calloc
 #endif
 #ifndef XFREE
-   #ifdef free
-   #define LTC_NO_PROTOTYPES
-   #endif
-#define XFREE    free
+#ifdef free
+#define LTC_NO_PROTOTYPES
+#endif
+#define XFREE free
 #endif
 
 #ifndef XMEMSET
-   #ifdef memset
-   #define LTC_NO_PROTOTYPES
-   #endif
-#define XMEMSET  memset
+#ifdef memset
+#define LTC_NO_PROTOTYPES
+#endif
+#define XMEMSET memset
 #endif
 #ifndef XMEMCPY
-   #ifdef memcpy
-   #define LTC_NO_PROTOTYPES
-   #endif
-#define XMEMCPY  memcpy
+#ifdef memcpy
+#define LTC_NO_PROTOTYPES
+#endif
+#define XMEMCPY memcpy
 #endif
 #ifndef XMEMCMP
-   #ifdef memcmp 
-   #define LTC_NO_PROTOTYPES
-   #endif
-#define XMEMCMP  memcmp
+#ifdef memcmp
+#define LTC_NO_PROTOTYPES
+#endif
+#define XMEMCMP memcmp
 #endif
 #ifndef XSTRCMP
-   #ifdef strcmp
-   #define LTC_NO_PROTOTYPES
-   #endif
+#ifdef strcmp
+#define LTC_NO_PROTOTYPES
+#endif
 #define XSTRCMP strcmp
 #endif
 
 #ifndef XCLOCK
-#define XCLOCK   clock
+#define XCLOCK clock
 #endif
 #ifndef XCLOCKS_PER_SEC
 #define XCLOCKS_PER_SEC CLOCKS_PER_SEC
 #endif
 
 #ifndef XQSORT
-   #ifdef qsort
-   #define LTC_NO_PROTOTYPES
-   #endif
+#ifdef qsort
+#define LTC_NO_PROTOTYPES
+#endif
 #define XQSORT qsort
 #endif
 
 /* Easy button? */
 #ifdef LTC_EASY
-   #define LTC_NO_CIPHERS
-   #define RIJNDAEL
-   #define BLOWFISH
-   #define DES
-   #define CAST5
-   
-   #define LTC_NO_MODES
-   #define LTC_ECB_MODE
-   #define LTC_CBC_MODE
-   #define LTC_CTR_MODE
-   
-   #define LTC_NO_HASHES
-   #define SHA1
-   #define SHA512
-   #define SHA384
-   #define SHA256
-   #define SHA224
-   
-   #define LTC_NO_MACS
-   #define HMAC
-   #define OMAC
-   #define CCM_MODE
+#define LTC_NO_CIPHERS
+#define RIJNDAEL
+#define BLOWFISH
+#define DES
+#define CAST5
 
-   #define LTC_NO_PRNGS
-   #define SPRNG
-   #define YARROW
-   #define DEVRANDOM
-   #define TRY_URANDOM_FIRST
-      
-   #define LTC_NO_PK
-   #define MRSA
-   #define MECC
-#endif   
+#define LTC_NO_MODES
+#define LTC_ECB_MODE
+#define LTC_CBC_MODE
+#define LTC_CTR_MODE
+
+#define LTC_NO_HASHES
+#define SHA1
+#define SHA512
+#define SHA384
+#define SHA256
+#define SHA224
+
+#define LTC_NO_MACS
+#define HMAC
+#define OMAC
+#define CCM_MODE
+
+#define LTC_NO_PRNGS
+#define SPRNG
+#define YARROW
+#define DEVRANDOM
+#define TRY_URANDOM_FIRST
+
+#define LTC_NO_PK
+#define MRSA
+#define MECC
+#endif
 
 /* Use small code where possible */
 /* #define LTC_SMALL_CODE */
 
 /* Enable self-test test vector checking */
 #ifndef LTC_NO_TEST
-   #define LTC_TEST
+#define LTC_TEST
 #endif
 
 /* clean the stack of functions which put private information on stack */
@@ -178,14 +179,15 @@
 #define SAFERP
 #define RIJNDAEL
 #define XTEA
-/* _TABLES tells it to use tables during setup, _SMALL means to use the smaller scheduled key format
- * (saves 4KB of ram), _ALL_TABLES enables all tables during setup */
+/* _TABLES tells it to use tables during setup, _SMALL means to use the smaller
+ * scheduled key format (saves 4KB of ram), _ALL_TABLES enables all tables
+ * during setup */
 #define TWOFISH
 #ifndef LTC_NO_TABLES
-   #define TWOFISH_TABLES
-   /* #define TWOFISH_ALL_TABLES */
+#define TWOFISH_TABLES
+/* #define TWOFISH_ALL_TABLES */
 #else
-   #define TWOFISH_SMALL
+#define TWOFISH_SMALL
 #endif
 /* #define TWOFISH_SMALL */
 /* DES includes EDE triple-DES */
@@ -202,7 +204,6 @@
 
 #endif /* LTC_NO_CIPHERS */
 
-
 /* ---> Block Cipher Modes of Operation <--- */
 #ifndef LTC_NO_MODES
 
@@ -218,16 +219,16 @@
 /* LRW mode */
 #define LTC_LRW_MODE
 #ifndef LTC_NO_TABLES
-   /* like GCM mode this will enable 16 8x128 tables [64KB] that make
-    * seeking very fast.  
-    */
-   #define LRW_TABLES
+/* like GCM mode this will enable 16 8x128 tables [64KB] that make
+ * seeking very fast.
+ */
+#define LRW_TABLES
 #endif
 
 #endif /* LTC_NO_MODES */
 
 /* ---> One-Way Hash Functions <--- */
-#ifndef LTC_NO_HASHES 
+#ifndef LTC_NO_HASHES
 
 #define CHC_HASH
 #define WHIRLPOOL
@@ -258,14 +259,14 @@
 #define PELICAN
 
 #if defined(PELICAN) && !defined(RIJNDAEL)
-   #error Pelican-MAC requires RIJNDAEL
+#error Pelican-MAC requires RIJNDAEL
 #endif
 
 /* ---> Encrypt + Authenticate Modes <--- */
 
 #define EAX_MODE
 #if defined(EAX_MODE) && !(defined(LTC_CTR_MODE) && defined(LTC_OMAC))
-   #error EAX_MODE requires CTR and OMAC mode
+#error EAX_MODE requires CTR and OMAC mode
 #endif
 
 #define OCB_MODE
@@ -274,7 +275,7 @@
 
 /* Use 64KiB tables */
 #ifndef LTC_NO_TABLES
-   #define GCM_TABLES 
+#define GCM_TABLES
 #endif
 
 /* USE SSE2? requires GCC works on x86_32 and x86_64*/
@@ -298,7 +299,7 @@
 #define YARROW_AES 0
 
 #if defined(YARROW) && !defined(LTC_CTR_MODE)
-   #error YARROW requires LTC_CTR_MODE chaining mode to be defined!
+#error YARROW requires LTC_CTR_MODE chaining mode to be defined!
 #endif
 
 /* a PRNG that simply reads from an available system source */
@@ -310,7 +311,7 @@
 /* Fortuna PRNG */
 #define FORTUNA
 /* reseed every N calls to the read function */
-#define FORTUNA_WD    10
+#define FORTUNA_WD 10
 /* number of pools (4..32) can save a bit of ram by lowering the count */
 #define FORTUNA_POOLS 32
 
@@ -342,7 +343,7 @@
 #define MRSA
 
 /* Include Katja (a Rabin variant like RSA) */
-/* #define MKAT */ 
+/* #define MKAT */
 
 /* Digital Signature Algorithm */
 #define MDSA
@@ -354,8 +355,8 @@
 #define LTC_ECC_SHAMIR
 
 #if defined(TFM_DESC) && defined(MECC)
-   #define MECC_ACCEL
-#endif   
+#define MECC_ACCEL
+#endif
 
 /* do we want fixed point ECC */
 /* #define MECC_FP */
@@ -381,32 +382,33 @@
 #ifdef MECC
 /* Supported ECC Key Sizes */
 #ifndef LTC_NO_CURVES
-   #define ECC112
-   #define ECC128
-   #define ECC160
-   #define ECC192
-   #define ECC224
-   #define ECC256
-   #define ECC384
-   #define ECC521
+#define ECC112
+#define ECC128
+#define ECC160
+#define ECC192
+#define ECC224
+#define ECC256
+#define ECC384
+#define ECC521
 #endif
 #endif
 
 #if defined(MECC) || defined(MRSA) || defined(MDSA) || defined(MKATJA)
-   /* Include the MPI functionality?  (required by the PK algorithms) */
-   #define MPI
+/* Include the MPI functionality?  (required by the PK algorithms) */
+#define MPI
 #endif
 
 #ifdef MRSA
-   #define PKCS_1
-#endif   
-
-#if defined(LTC_DER) && !defined(MPI) 
-   #error ASN.1 DER requires MPI functionality
+#define PKCS_1
 #endif
 
-#if (defined(MDSA) || defined(MRSA) || defined(MECC) || defined(MKATJA)) && !defined(LTC_DER)
-   #error PK requires ASN.1 DER functionality, make sure LTC_DER is enabled
+#if defined(LTC_DER) && !defined(MPI)
+#error ASN.1 DER requires MPI functionality
+#endif
+
+#if (defined(MDSA) || defined(MRSA) || defined(MECC) || defined(MKATJA)) &&    \
+  !defined(LTC_DER)
+#error PK requires ASN.1 DER functionality, make sure LTC_DER is enabled
 #endif
 
 /* THREAD management */
@@ -414,12 +416,12 @@
 
 #include <pthread.h>
 
-#define LTC_MUTEX_GLOBAL(x)   pthread_mutex_t x = PTHREAD_MUTEX_INITIALIZER;
-#define LTC_MUTEX_PROTO(x)    extern pthread_mutex_t x;
-#define LTC_MUTEX_TYPE(x)     pthread_mutex_t x;
-#define LTC_MUTEX_INIT(x)     pthread_mutex_init(x, NULL);
-#define LTC_MUTEX_LOCK(x)     pthread_mutex_lock(x);
-#define LTC_MUTEX_UNLOCK(x)   pthread_mutex_unlock(x);
+#define LTC_MUTEX_GLOBAL(x) pthread_mutex_t x = PTHREAD_MUTEX_INITIALIZER;
+#define LTC_MUTEX_PROTO(x) extern pthread_mutex_t x;
+#define LTC_MUTEX_TYPE(x) pthread_mutex_t x;
+#define LTC_MUTEX_INIT(x) pthread_mutex_init(x, NULL);
+#define LTC_MUTEX_LOCK(x) pthread_mutex_lock(x);
+#define LTC_MUTEX_UNLOCK(x) pthread_mutex_unlock(x);
 
 #else
 
@@ -435,12 +437,11 @@
 
 /* Debuggers */
 
-/* define this if you use Valgrind, note: it CHANGES the way SOBER-128 and RC4 work (see the code) */
+/* define this if you use Valgrind, note: it CHANGES the way SOBER-128 and RC4
+ * work (see the code) */
 /* #define LTC_VALGRIND */
 
 #endif
-
-
 
 /* $Source$ */
 /* $Revision: 24841 $ */
