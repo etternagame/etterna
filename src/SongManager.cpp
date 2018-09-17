@@ -689,7 +689,7 @@ void SongManager::LoadStepManiaSongDir( RString sDir, LoadingWindow *ld )
 			for (size_t j = 0; j < arraySongDirs.size(); ++j) {
 				RString sSongDirName = arraySongDirs[j];
 				RString hur = sSongDirName + "/";
-				CHECKPOINT_M(("Thread"+to_string((int)(size_t)&workload)+" Starting song "+ sSongDirName).c_str());
+				//CHECKPOINT_M(("Thread"+to_string((int)(size_t)&workload)+" Starting song "+ sSongDirName).c_str());
 				hur.MakeLower();
 				if (SONGMAN->m_SongsByDir.count(hur))
 					continue;

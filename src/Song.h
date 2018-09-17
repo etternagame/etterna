@@ -462,17 +462,17 @@ public:
 	// Lua
 	void PushSelf( lua_State *L );
 
+	vector<Steps*> m_vpSteps;
+	vector<Steps*> m_UnknownStyleSteps;
 private:
 	bool isfavorited = false;
 	bool permamirror = false;
 	bool hasgoal = false;
 	bool m_loaded_from_autosave;
 	/** @brief the Steps that belong to this Song. */
-	vector<Steps*> m_vpSteps;
 	/** @brief the Steps of a particular StepsType that belong to this Song. */
 	vector<Steps*> m_vpStepsByType[NUM_StepsType];
 	/** @brief the Steps that are of unrecognized Styles. */
-	vector<Steps*> m_UnknownStyleSteps;
 };
 
 #endif
