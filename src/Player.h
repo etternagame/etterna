@@ -7,6 +7,7 @@
 #include "RageSound.h"
 #include "ScreenMessage.h"
 #include <chrono>
+#include "ThemeMetric.h"
 
 class ScoreDisplay;
 class LifeMeter;
