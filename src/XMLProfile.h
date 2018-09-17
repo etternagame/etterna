@@ -2,6 +2,7 @@
 #define Profile_XML
 
 #include "global.h"
+#include "Profile.h"
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
 #include "XmlFile.h"
