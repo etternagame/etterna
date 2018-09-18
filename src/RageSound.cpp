@@ -19,13 +19,13 @@
  * Seeking past the end of the file will throw a warning and rewind.
  */
 
-#include "RageSound.h"
+#include "global.h"
 #include "PrefsManager.h"
 #include "RageLog.h"
+#include "RageSound.h"
 #include "RageSoundManager.h"
 #include "RageSoundUtil.h"
 #include "RageUtil.h"
-#include "global.h"
 
 #include "RageSoundReader_Extend.h"
 #include "RageSoundReader_FileReader.h"

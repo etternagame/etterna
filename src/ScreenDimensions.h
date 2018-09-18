@@ -3,8 +3,6 @@
 #ifndef SCREEN_DIMENSIONS_H
 #define SCREEN_DIMENSIONS_H
 
-#include "global.h"
-
 namespace ScreenDimensions {
 float
 GetThemeAspectRatio();
@@ -14,7 +12,7 @@ float
 GetScreenHeight();
 void
 ReloadScreenDimensions();
-}; // namespace ScreenDimensions
+};
 
 #define SCREEN_WIDTH ScreenDimensions::GetScreenWidth()
 #define SCREEN_HEIGHT ScreenDimensions::GetScreenHeight()

@@ -1,7 +1,6 @@
 ﻿#ifndef INPUT_QUEUE_H
 #define INPUT_QUEUE_H
 
-#include "global.h"
 #include "GameInput.h"
 #include "InputFilter.h"
 #include <chrono>

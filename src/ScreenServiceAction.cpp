@@ -1,4 +1,4 @@
-#include "ScreenServiceAction.h"
+#include "global.h"
 #include "GameState.h"
 #include "LocalizedString.h"
 #include "NotesLoaderSSC.h"
@@ -7,11 +7,11 @@
 #include "RageFileManager.h"
 #include "RageLog.h"
 #include "ScreenManager.h"
+#include "ScreenServiceAction.h"
 #include "Song.h"
 #include "SongManager.h"
 #include "StepMania.h"
 #include "ThemeManager.h"
-#include "global.h"
 
 static LocalizedString EDITS_CLEARED("ScreenServiceAction",
 									 "%d edits cleared, %d errors.");

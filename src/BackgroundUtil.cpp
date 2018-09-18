@@ -1,13 +1,13 @@
-#include "BackgroundUtil.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "Background.h"
+#include "BackgroundUtil.h"
 #include "Foreach.h"
 #include "IniFile.h"
 #include "RageFileManager.h"
 #include "RageLog.h"
 #include "RageUtil.h"
 #include "Song.h"
-#include "global.h"
 #include <set>
 
 bool
@@ -393,8 +393,7 @@ GetGlobalRandomMoviePaths(const Song* pSong,
 		}
 	}
 }
-
-} // namespace
+}
 
 void
 BackgroundUtil::GetGlobalRandomMovies(const Song* pSong,

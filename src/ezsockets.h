@@ -13,7 +13,6 @@
 #error do not include ezsockets.h when WITHOUT_NETWORKING
 #endif
 
-#include "global.h"
 #include <string>
 
 #if defined(_WINDOWS)

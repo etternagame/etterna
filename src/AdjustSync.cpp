@@ -33,6 +33,7 @@
  * steps made.
  */
 
+#include "global.h"
 #include "AdjustSync.h"
 #include "Foreach.h"
 #include "GameState.h"
@@ -42,7 +43,6 @@
 #include "Song.h"
 #include "SongManager.h"
 #include "Steps.h"
-#include "global.h"
 
 vector<TimingData> AdjustSync::s_vpTimingDataOriginal;
 float AdjustSync::s_fGlobalOffsetSecondsOriginal = 0.0f;

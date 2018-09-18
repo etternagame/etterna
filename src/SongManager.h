@@ -11,9 +11,9 @@ struct GoalsForChart;
 
 #include "Difficulty.h"
 #include "GameConstantsAndTypes.h"
-#include "ImageCache.h"
 #include "PlayerNumber.h"
 #include "PlayerOptions.h"
+#include "ImageCache.h"
 #include "RageTexturePreloader.h"
 #include "RageTypes.h"
 #include "RageUtil.h"

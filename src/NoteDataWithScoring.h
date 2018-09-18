@@ -35,7 +35,7 @@ GetActualRadarValues(const NoteData& in,
 					 const PlayerStageStats& pss,
 					 float song_seconds,
 					 RadarValues& out);
-}; // namespace NoteDataWithScoring
+};
 
 #endif
 

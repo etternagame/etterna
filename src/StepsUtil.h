@@ -1,7 +1,6 @@
 #ifndef STEPS_UTIL_H
 #define STEPS_UTIL_H
 
-#include "global.h"
 #include "Difficulty.h"
 #include "GameConstantsAndTypes.h"
 #include "RageUtil_CachedObject.h"
@@ -194,7 +193,7 @@ bool
 CompareStepsPointersByDescription(const Steps* pStep1, const Steps* pStep2);
 void
 SortStepsByDescription(vector<Steps*>& vpStepsInOut);
-}; // namespace StepsUtil
+};
 
 class StepsID
 {

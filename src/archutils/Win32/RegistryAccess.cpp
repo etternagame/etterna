@@ -1,8 +1,8 @@
+#include "global.h"
 #include "RegistryAccess.h"
 #include "RageLog.h"
 #include "RageUtil.h"
 #include "archutils/Win32/ErrorStrings.h"
-#include "global.h"
 
 #include <windows.h>
 

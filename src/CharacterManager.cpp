@@ -1,9 +1,9 @@
-#include "CharacterManager.h"
+#include "global.h"
 #include "Character.h"
+#include "CharacterManager.h"
 #include "Foreach.h"
 #include "GameState.h"
 #include "LuaManager.h"
-#include "global.h"
 
 #define CHARACTERS_DIR "/Characters/"
 

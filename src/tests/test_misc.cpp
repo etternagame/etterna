@@ -1,5 +1,5 @@
-#include "test_misc.h"
 #include "global.h"
+#include "test_misc.h"
 
 #include "RageFileManager.h"
 #include "RageLog.h"

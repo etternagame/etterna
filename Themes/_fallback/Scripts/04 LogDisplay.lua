@@ -131,13 +131,8 @@ local log_display_mt = {
 			local args = {
 				Name = self.name,
 				InitCommand = function(subself)
-					self.container =
-						subself( -- This semicolon ends this statement.
-						-- Without it, the next would be ambiguous syntax.
-						-- Let the InitCommand passed in params do something.
-						params.InitCommand or function()
-							end
-					)(subself)
+					self.container = subself
+					if params.InitCommand then params.InitCommand(subself) end
 					self:hide()
 				end,
 				OffCommand = function(subself)

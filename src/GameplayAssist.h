@@ -1,7 +1,6 @@
 ﻿#ifndef GameplayAssist_H
 #define GameplayAssist_H
 
-#include "global.h"
 #include "RageSound.h"
 
 class PlayerState;

@@ -1,7 +1,7 @@
 ﻿#include "global.h"
-#include "RageLog.h"
 #include "Foreach.h"
 #include "RageFile.h"
+#include "RageLog.h"
 #include "RageThreads.h"
 #include "RageTimer.h"
 #include "RageUtil.h"

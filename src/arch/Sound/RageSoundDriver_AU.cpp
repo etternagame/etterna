@@ -1,11 +1,11 @@
-#include "RageSoundDriver_AU.h"
-#include "PrefsManager.h"
-#include "RageLog.h"
-#include "archutils/Darwin/DarwinThreadHelpers.h"
 #include "global.h"
+#include "RageSoundDriver_AU.h"
+#include "RageLog.h"
+#include "PrefsManager.h"
+#include "archutils/Darwin/DarwinThreadHelpers.h"
+#include <CoreServices/CoreServices.h>
 #include <AudioToolbox/AudioServices.h>
 #include <CoreAudio/CoreAudio.h>
-#include <CoreServices/CoreServices.h>
 
 REGISTER_SOUND_DRIVER_CLASS2(AudioUnit, AU);
 

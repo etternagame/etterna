@@ -1,8 +1,8 @@
 ﻿#include "global.h"
-#include "NoteDataUtil.h"
 #include "Foreach.h"
 #include "GameState.h"
 #include "NoteData.h"
+#include "NoteDataUtil.h"
 #include "PlayerOptions.h"
 #include "RadarValues.h"
 #include "RageLog.h"
@@ -10,8 +10,8 @@
 #include "Song.h"
 #include "Style.h"
 #include "TimingData.h"
-#include <numeric>
 #include <utility>
+#include <numeric>
 
 // TODO: Remove these constants that aren't time signature-aware
 static const int BEATS_PER_MEASURE = 4;
@@ -149,14 +149,14 @@ LoadFromSMNoteDataStringWithPlayer(NoteData& out,
 						tn = ch == '2' ? TAP_ORIGINAL_HOLD_HEAD
 									   : TAP_ORIGINAL_ROLL_HEAD;
 						/*
-								// upcoming code for minefields -aj
-								switch(ch)
-								{
-								case '2': tn = TAP_ORIGINAL_HOLD_HEAD; break;
-								case '4': tn = TAP_ORIGINAL_ROLL_HEAD; break;
-								case 'N': tn = TAP_ORIGINAL_MINE_HEAD; break;
-								}
-								*/
+						// upcoming code for minefields -aj
+						switch(ch)
+						{
+						case '2': tn = TAP_ORIGINAL_HOLD_HEAD; break;
+						case '4': tn = TAP_ORIGINAL_ROLL_HEAD; break;
+						case 'N': tn = TAP_ORIGINAL_MINE_HEAD; break;
+						}
+						*/
 
 						/* Set the hold note to have infinite length. We'll
 						 * clamp it when we hit the tail. */
@@ -1118,8 +1118,8 @@ NoteDataUtil::CalculateRadarValues(const NoteData& in,
 			switch (curr_note->type) {
 				case TapNoteType_Tap:
 				case TapNoteType_HoldHead:
-				// Lifts have to be counted with taps for them to be added to
-				// max dp correctly. -Kyz
+					// Lifts have to be counted with taps for them to be added
+					// to max dp correctly. -Kyz
 				case TapNoteType_Lift:
 					// HoldTails and Attacks are counted by IsTap.  But it
 					// doesn't make sense to count HoldTails as hittable notes.

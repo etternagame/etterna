@@ -3,8 +3,6 @@
 #ifndef NotesLoaderJson_H
 #define NotesLoaderJson_H
 
-#include "global.h"
-
 class Song;
 
 namespace NotesLoaderJson {
@@ -14,7 +12,7 @@ bool
 LoadFromDir(const RString& sPath, Song& out);
 bool
 LoadFromJsonFile(const RString& sPath, Song& out);
-}; // namespace NotesLoaderJson
+};
 
 #endif
 

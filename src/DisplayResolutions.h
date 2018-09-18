@@ -1,7 +1,6 @@
 #ifndef DisplayResolutions_H
 #define DisplayResolutions_H
 
-#include "global.h"
 #include <set>
 /** @brief The dimensions of the program. */
 class DisplayResolution

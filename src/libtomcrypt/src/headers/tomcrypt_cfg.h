@@ -1,4 +1,3 @@
-#pragma once
 /* This is the build config file.
  *
  * With this you can setup what to inlcude/exclude automatically during any

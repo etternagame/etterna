@@ -2,7 +2,7 @@
 #define MODEL_MANAGER_H
 
 #include "RageModelGeometry.h"
-#include "global.h"
+
 #include <map>
 
 struct ModelManagerPrefs

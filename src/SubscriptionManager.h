@@ -3,7 +3,6 @@
 #ifndef SubscriptionManager_H
 #define SubscriptionManager_H
 
-#include "global.h"
 #include <set>
 
 // Since this class has only POD types and no constructor, there's no

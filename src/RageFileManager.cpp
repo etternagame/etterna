@@ -1,9 +1,9 @@
 ﻿#include "global.h"
-#include "RageFileManager.h"
 #include "Foreach.h"
 #include "LuaManager.h"
 #include "RageFile.h"
 #include "RageFileDriver.h"
+#include "RageFileManager.h"
 #include "RageLog.h"
 #include "RageThreads.h"
 #include "RageUtil.h"
@@ -272,6 +272,7 @@ GetDirOfExecutable(RString argv0)
 				sPath = GetCwd();	 // What?
 			else if (sPath[0] != '/') // For example, if . is in $PATH.
 				sPath = GetCwd() + "/" + sPath;
+
 		} else {
 			sPath = ExtractDirectory(ReadlinkRecursive(GetCwd() + "/" + argv0));
 		}
@@ -993,7 +994,7 @@ RageFileManager::OpenForReading(const RString& sPath, int mode, int& err)
 		}
 
 		/* ENOENT (File not found) is low-priority: if some other error
-			 was reported, return that instead. */
+		 was reported, return that instead. */
 		if (error != ENOENT)
 			err = error;
 	}

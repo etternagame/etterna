@@ -1,8 +1,6 @@
 ﻿#ifndef NOTES_LOADER_BMS_H
 #define NOTES_LOADER_BMS_H
 
-#include "global.h"
-
 class Song;
 class Steps;
 /** @brief Reads a Song from a set of .BMS files. */
@@ -13,7 +11,7 @@ bool
 LoadFromDir(const RString& sDir, Song& out);
 bool
 LoadNoteDataFromSimfile(const RString& cachePath, Steps& out);
-} // namespace BMSLoader
+}
 
 #endif
 

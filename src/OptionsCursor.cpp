@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "OptionsCursor.h"
 #include "ActorUtil.h"
+#include "OptionsCursor.h"
 #include "RageUtil.h"
 #include "ThemeManager.h"
 

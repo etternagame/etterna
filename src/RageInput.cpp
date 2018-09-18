@@ -1,9 +1,9 @@
 ﻿#include "global.h"
-#include "RageInput.h"
 #include "Foreach.h"
 #include "LocalizedString.h"
 #include "LuaManager.h"
 #include "Preference.h"
+#include "RageInput.h"
 #include "RageLog.h"
 #include "arch/InputHandler/InputHandler.h"
 

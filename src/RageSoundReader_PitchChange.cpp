@@ -8,11 +8,11 @@
  * changer; this class just controls parameters on the other two real filters.
  */
 
-#include "RageSoundReader_PitchChange.h"
+#include "global.h"
 #include "Preference.h"
+#include "RageSoundReader_PitchChange.h"
 #include "RageSoundReader_Resample_Good.h"
 #include "RageSoundReader_SpeedChange.h"
-#include "global.h"
 
 Preference<bool> EnablePitchRates("EnablePitchRates", true);
 RageSoundReader_PitchChange::RageSoundReader_PitchChange(
@@ -92,7 +92,7 @@ RageSoundReader_PitchChange::SetProperty(const RString& sProperty, float fValue)
 	}
 	if (sProperty == "Speed") {
 		/* HACK: Put rate functions back together,
-			   this needs to be refactored. */
+		   this needs to be refactored. */
 		SetSpeedRatio(fValue);
 		if (EnablePitchRates.Get())
 			SetPitchRatio(fValue);

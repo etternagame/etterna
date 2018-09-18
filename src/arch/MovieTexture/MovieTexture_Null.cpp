@@ -1,10 +1,10 @@
-#include "MovieTexture_Null.h"
+#include "global.h"
 #include "RageDisplay.h"
-#include "RageLog.h"
-#include "RageSurface.h"
 #include "RageTextureManager.h"
 #include "RageUtil.h"
-#include "global.h"
+#include "RageLog.h"
+#include "MovieTexture_Null.h"
+#include "RageSurface.h"
 
 class MovieTexture_Null : public RageMovieTexture
 {

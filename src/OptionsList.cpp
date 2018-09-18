@@ -1,8 +1,8 @@
 ﻿#include "global.h"
-#include "OptionsList.h"
 #include "GameState.h"
 #include "InputEventPlus.h"
 #include "InputMapper.h"
+#include "OptionsList.h"
 #include "PlayerState.h"
 #include "SongUtil.h"
 

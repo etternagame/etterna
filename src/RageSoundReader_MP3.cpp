@@ -1,12 +1,12 @@
 /* MAD is available from: http://www.underbit.com/products/mad/ */
 
+#include "global.h"
 #include "RageSoundReader_MP3.h"
 #include "RageLog.h"
 #include "RageUtil.h"
-#include "global.h"
 
-#include <cerrno>
 #include <cstdio>
+#include <cerrno>
 #include <map>
 
 #include "mad.h"

@@ -4,8 +4,8 @@
 #include "GameConstantsAndTypes.h"
 #include "Grade.h"
 #include "PrefsManager.h"
-#include "ProfileManager.h"
 #include "SongManager.h"
+#include "ProfileManager.h"
 #include <algorithm>
 
 #include <map>

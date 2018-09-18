@@ -1,7 +1,7 @@
-#include "RageException.h"
-#include "RageUtil.h"
-#include "archutils/Unix/EmergencyShutdown.h"
 #include "global.h"
+#include "RageUtil.h"
+#include "RageException.h"
+#include "archutils/Unix/EmergencyShutdown.h"
 #if defined(HAVE_UNISTD_H)
 #include <unistd.h>
 #endif

@@ -1,7 +1,6 @@
 #ifndef LOADING_WINDOW_MACOSX_H
 #define LOADING_WINDOW_MACOSX_H
 
-#include "global.h"
 #include "LoadingWindow.h"
 /** @brief Loading window for Mac OS X. */
 class LoadingWindow_MacOSX : public LoadingWindow

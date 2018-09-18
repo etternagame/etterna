@@ -1,8 +1,6 @@
 ﻿#ifndef PLAYER_OPTIONS_H
 #define PLAYER_OPTIONS_H
 
-#include "global.h"
-
 class Song;
 class Steps;
 struct lua_State;

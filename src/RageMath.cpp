@@ -4,9 +4,9 @@
  * docs for details.
  */
 
+#include "global.h"
 #include "RageMath.h"
 #include "RageTypes.h"
-#include "global.h"
 #include <cfloat>
 
 #if defined(_WINDOWS)

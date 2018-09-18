@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "LuaManager.h"
 #include "Command.h"
+#include "LuaManager.h"
 #include "LuaReference.h"
 #include "MessageManager.h"
 #include "RageFile.h"
@@ -556,7 +556,7 @@ CreateTableFromXNodeRecursive(Lua* L, const XNode* pNode)
 		lua_settable(L, -3);
 	}
 }
-} // namespace
+}
 
 void
 LuaHelpers::CreateTableFromXNode(Lua* L, const XNode* pNode)
@@ -1029,13 +1029,13 @@ LuaHelpers::GetLuaInformation()
 			case LUA_TFUNCTION:
 				vFunctions.push_back(sKey);
 				/*
-					{
-						lua_Debug ar;
-						lua_getfield( L, LUA_GLOBALSINDEX, sKey );
-						lua_getinfo( L, ">S", &ar ); // Pops the function
-						printf( "%s: %s\n", sKey.c_str(), ar.short_src );
-					}
-					*/
+				{
+					lua_Debug ar;
+					lua_getfield( L, LUA_GLOBALSINDEX, sKey );
+					lua_getinfo( L, ">S", &ar ); // Pops the function
+					printf( "%s: %s\n", sKey.c_str(), ar.short_src );
+				}
+				*/
 				break;
 		}
 	}
@@ -1476,7 +1476,7 @@ lua_pushvalues(lua_State* L)
 	}
 	return iArgs;
 }
-} // namespace
+}
 
 void
 LuaHelpers::PushValueFunc(lua_State* L, int iArgs)

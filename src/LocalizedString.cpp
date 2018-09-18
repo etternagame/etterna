@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "LocalizedString.h"
 #include "Foreach.h"
+#include "LocalizedString.h"
 #include "RageUtil.h"
 #include "SubscriptionManager.h"
 

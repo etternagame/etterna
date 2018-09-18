@@ -1,7 +1,6 @@
 ﻿#ifndef HELP_DISPLAY_H
 #define HELP_DISPLAY_H
 
-#include "global.h"
 #include "BitmapText.h"
 
 struct lua_State;

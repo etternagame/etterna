@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "RageFileDriverDeflate.h"
 #include "RageFile.h"
+#include "RageFileDriverDeflate.h"
 #include "RageFileDriverSlice.h"
 #include "RageUtil.h"
 #include <memory>

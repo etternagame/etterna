@@ -3,8 +3,6 @@
 #define JsonUtil_H
 
 class RageFileBasic;
-
-#include "global.h"
 #include "json/value.h"
 
 namespace JsonUtil {
@@ -351,7 +349,7 @@ DeserializeVectorValues(vector<T>& v, const Json::Value& root)
 	for (unsigned i = 0; i < v.size(); i++)
 		v[i] = root[i].asString();
 }
-} // namespace JsonUtil
+}
 
 #endif
 

@@ -1,6 +1,3 @@
-#pragma once
-#include "tomcrypt_macros.h"
-#include "tomcrypt_misc.h"
 /* ---- BASE64 Routines ---- */
 #ifdef BASE64
 int

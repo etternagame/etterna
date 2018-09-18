@@ -1,9 +1,9 @@
 ﻿/* This is a partial XPM reader; we only use it for reading compiled-in icons
  * and loading splashes. */
-#include "RageSurface_Load_XPM.h"
-#include "RageSurface.h"
-#include "RageUtil.h"
 #include "global.h"
+#include "RageSurface.h"
+#include "RageSurface_Load_XPM.h"
+#include "RageUtil.h"
 #include <map>
 
 #define CheckLine()                                                            \

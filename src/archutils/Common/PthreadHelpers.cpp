@@ -2,10 +2,10 @@
  */
 #include "PthreadHelpers.h"
 
-#include "RageThreads.h"
-#include "RageUtil.h"
-#include "archutils/Unix/Backtrace.h" // HACK: This should be platform-agnosticized
 #include "global.h"
+#include "RageUtil.h"
+#include "RageThreads.h"
+#include "archutils/Unix/Backtrace.h" // HACK: This should be platform-agnosticized
 #if defined(UNIX)
 #include "archutils/Unix/RunningUnderValgrind.h"
 #endif
@@ -19,11 +19,11 @@
 #include <fcntl.h>
 #endif
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <sys/ptrace.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
-#include <sys/types.h>
-#include <sys/wait.h>
 #define _LINUX_PTRACE_H // hack to prevent broken linux/ptrace.h from
 						// conflicting with sys/ptrace.h
 #include <sys/user.h>

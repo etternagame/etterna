@@ -1,9 +1,9 @@
+#include "global.h"
 #include "Threads_Pthreads.h"
 #include "RageTimer.h"
 #include "RageUtil.h"
-#include "global.h"
-#include <errno.h>
 #include <sys/time.h>
+#include <errno.h>
 
 #if defined(UNIX)
 #include "archutils/Unix/RunningUnderValgrind.h"
@@ -219,8 +219,8 @@ MakeMutex(RageMutex* pParent)
 /* Check if condattr_setclock is supported, and supports the clock that
  * RageTimer selected. */
 #if defined(UNIX)
-#include "arch/ArchHooks/ArchHooks_Unix.h"
 #include <dlfcn.h>
+#include "arch/ArchHooks/ArchHooks_Unix.h"
 #endif // On MinGW clockid_t is defined in pthread.h
 namespace {
 typedef int (*CONDATTR_SET_CLOCK)(pthread_condattr_t* attr, clockid_t clock_id);

@@ -1,5 +1,3 @@
-#pragma once
-#include "tomcrypt_macros.h"
 #ifdef LTC_HMAC
 typedef struct Hmac_state
 {
@@ -96,12 +94,10 @@ omac_test(void);
 
 typedef struct
 {
-	unsigned char Ls[32][MAXBLOCKSIZE], /* L shifted by i bits to the left */
-	  Li[MAXBLOCKSIZE],	// value of Li [current value, we calc from previous
-						   // recall]d
-	  Lr[MAXBLOCKSIZE],	/* L * x^-1 */
-	  block[MAXBLOCKSIZE], /* currently accumulated block */
-	  checksum[MAXBLOCKSIZE]; /* current checksum */
+	unsigned char Ls[32][MAXBLOCKSIZE],   /* L shifted by i bits to the left */
+	  Li[MAXBLOCKSIZE], Lr[MAXBLOCKSIZE], /* L * x^-1 */
+	  block[MAXBLOCKSIZE],				  /* currently accumulated block */
+	  checksum[MAXBLOCKSIZE];			  /* current checksum */
 
 	symmetric_key key;		   /* scheduled key for cipher */
 	unsigned long block_index; /* index # for current block */

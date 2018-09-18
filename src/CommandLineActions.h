@@ -1,8 +1,6 @@
 #ifndef CommandLineActions_H
 #define CommandLineActions_H
 
-#include "global.h"
-
 class LoadingWindow;
 
 /** @brief The collection of command line actions. */
@@ -25,7 +23,7 @@ class CommandLineArgs
  * These args could have come from this process or passed to this process
  * from another process. */
 extern vector<CommandLineArgs> ToProcess;
-} // namespace CommandLineActions
+}
 
 #endif
 

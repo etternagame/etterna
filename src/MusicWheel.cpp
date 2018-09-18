@@ -1,5 +1,4 @@
 ﻿#include "global.h"
-#include "MusicWheel.h"
 #include "ActorUtil.h"
 #include "CommonMetrics.h"
 #include "FilterManager.h"
@@ -9,6 +8,7 @@
 #include "GameState.h"
 #include "LocalizedString.h"
 #include "MessageManager.h"
+#include "MusicWheel.h"
 #include "NetworkSyncManager.h"
 #include "PlayerState.h"
 #include "PrefsManager.h"
@@ -392,7 +392,7 @@ MusicWheel::GetSongList(vector<Song*>& arraySongs, SortOrder so)
 				  SONGMAN->GetSongs(GAMESTATE->m_sPreferredSongGroup);
 				break;
 			}
-		// otherwise fall through
+			// otherwise fall through
 		default:
 			apAllSongs = SONGMAN->GetAllSongs();
 			break;

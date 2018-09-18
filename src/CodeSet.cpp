@@ -1,8 +1,8 @@
+#include "global.h"
 #include "CodeSet.h"
 #include "InputEventPlus.h"
 #include "MessageManager.h"
 #include "ThemeManager.h"
-#include "global.h"
 
 #define CODE_NAMES THEME->GetMetric(sType, "CodeNames")
 #define CODE(s) THEME->GetMetric(sType, ssprintf("Code%s", (s).c_str()))

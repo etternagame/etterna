@@ -3,7 +3,6 @@
 #ifndef MENU_TIMER_H
 #define MENU_TIMER_H
 
-#include "global.h"
 #include "ActorFrame.h"
 #include "AutoActor.h"
 #include "BitmapText.h"

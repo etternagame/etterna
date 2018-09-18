@@ -39,7 +39,7 @@ InitStringMap()
 	X(GL_OUT_OF_MEMORY);
 #undef X
 }
-}; // namespace
+};
 
 void
 RageDisplay_Legacy_Helpers::Init()

@@ -1,7 +1,5 @@
 #ifndef FilterManager_H
 #define FilterManager_H
-
-#include "global.h"
 #include "GameConstantsAndTypes.h"
 #include "PlayerNumber.h"
 #include <unordered_map>

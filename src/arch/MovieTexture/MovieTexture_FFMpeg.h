@@ -9,8 +9,8 @@ struct RageSurface;
 namespace avcodec {
 extern "C" {
 #include <libavformat/avformat.h>
-#include <libavutil/pixdesc.h>
 #include <libswscale/swscale.h>
+#include <libavutil/pixdesc.h>
 }
 };
 

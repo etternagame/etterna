@@ -1,8 +1,6 @@
 #ifndef BackgroundUtil_H
 #define BackgroundUtil_H
 
-#include "global.h"
-
 class Song;
 class XNode;
 
@@ -135,7 +133,7 @@ GetGlobalRandomMovies(const Song* pSong,
 
 void
 BakeAllBackgroundChanges(Song* pSong);
-}; // namespace BackgroundUtil
+};
 
 #endif
 

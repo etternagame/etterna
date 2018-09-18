@@ -1,8 +1,8 @@
-#include "ScoreKeeper.h"
+#include "global.h"
 #include "NoteData.h"
 #include "NoteDataWithScoring.h"
 #include "PlayerState.h"
-#include "global.h"
+#include "ScoreKeeper.h"
 
 ScoreKeeper::ScoreKeeper(PlayerState* pPlayerState,
 						 PlayerStageStats* pPlayerStageStats)

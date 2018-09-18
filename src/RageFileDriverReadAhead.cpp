@@ -41,10 +41,10 @@
  * which for most streaming files shouldn't be a problem.
  */
 
+#include "global.h"
 #include "RageFileDriverReadAhead.h"
 #include "RageFileManager_ReadAhead.h"
 #include "RageUtil.h"
-#include "global.h"
 
 /* If GetFD() isn't supported on the underlying file, this filter won't do
  * anything. */

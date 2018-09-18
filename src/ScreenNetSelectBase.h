@@ -3,7 +3,6 @@
 #ifndef SCREEN_NET_SELECT_BASE_H
 #define SCREEN_NET_SELECT_BASE_H
 
-#include "global.h"
 #include "BitmapText.h"
 #include "Quad.h"
 #include "ScreenWithMenuElements.h"

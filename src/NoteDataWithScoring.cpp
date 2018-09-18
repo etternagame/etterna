@@ -1,13 +1,13 @@
 ﻿#include "global.h"
-#include "NoteDataWithScoring.h"
 #include "Game.h"
 #include "GameConstantsAndTypes.h"
-#include "GamePreferences.h"
 #include "GameState.h"
 #include "NoteData.h"
+#include "NoteDataWithScoring.h"
 #include "PlayerStageStats.h"
 #include "ThemeMetric.h"
 #include "TimingData.h"
+#include "GamePreferences.h"
 
 namespace {
 
@@ -333,8 +333,9 @@ NoteDataWithScoring::GetActualRadarValues(const NoteData& in,
 					break;
 				case TapNoteType_Tap:
 				case TapNoteType_HoldHead:
-				// HoldTails and Attacks are counted by IsTap.  But it doesn't
-				// make sense to count HoldTails as hittable notes. -Kyz
+					// HoldTails and Attacks are counted by IsTap.  But it
+					// doesn't make sense to count HoldTails as hittable notes.
+					// -Kyz
 				case TapNoteType_Lift:
 					UpdateHittable(
 					  state.curr_row, first_hittable_row, last_hittable_row);

@@ -1,5 +1,5 @@
-#include "RageDriver.h"
 #include "global.h"
+#include "RageDriver.h"
 
 void
 DriverList::Add(const istring& sName, CreateRageDriverFn pfn)

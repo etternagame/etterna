@@ -1,16 +1,16 @@
 // CreateLanguageDlg.cpp : implementation file
 
 #define CO_EXIST_WITH_MFC
+#include "global.h"
+#include "stdafx.h"
+#include "smpackage.h"
 #include "CreateLanguageDlg.h"
-#include ".\createlanguagedlg.h"
 #include "Foreach.h"
 #include "RageUtil.h"
 #include "SMPackageUtil.h"
+#include ".\createlanguagedlg.h"
 #include "archutils/Win32/DialogUtil.h"
 #include "archutils/Win32/ErrorStrings.h"
-#include "global.h"
-#include "smpackage.h"
-#include "stdafx.h"
 
 // CreateLanguageDlg dialog
 

@@ -1,10 +1,10 @@
-#include "ScreenStatsOverlay.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "PrefsManager.h"
 #include "RageDisplay.h"
 #include "RageLog.h"
 #include "ScreenDimensions.h"
-#include "global.h"
+#include "ScreenStatsOverlay.h"
 
 REGISTER_SCREEN_CLASS(ScreenStatsOverlay);
 

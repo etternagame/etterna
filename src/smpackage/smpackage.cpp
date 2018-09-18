@@ -1,19 +1,19 @@
 #define CO_EXIST_WITH_MFC
-#include "smpackage.h"
-#include "IniFile.h"
-#include "LocalizedString.h"
-#include "LuaManager.h"
-#include "MainMenuDlg.h"
-#include "RageFileManager.h"
-#include "RageUtil.h"
-#include "SpecialFiles.h"
-#include "ThemeManager.h"
-#include "arch/Dialog/Dialog.h"
 #include "global.h"
+#include "stdafx.h"
+#include "smpackage.h"
 #include "smpackageExportDlg.h"
 #include "smpackageInstallDlg.h"
+#include "RageUtil.h"
 #include "smpackageUtil.h"
-#include "stdafx.h"
+#include "MainMenuDlg.h"
+#include "RageFileManager.h"
+#include "LuaManager.h"
+#include "ThemeManager.h"
+#include "SpecialFiles.h"
+#include "IniFile.h"
+#include "LocalizedString.h"
+#include "arch/Dialog/Dialog.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -36,11 +36,11 @@ CSmpackageApp theApp;
 extern const char* const version_date = "";
 extern const char* const version_time = "";
 
-#include "ProductInfo.h"
-#include "RageFileManager.h"
 #include "RageLog.h"
-#include "archutils/Win32/CommandLine.h"
+#include "RageFileManager.h"
 #include "archutils/Win32/SpecialDirs.h"
+#include "ProductInfo.h"
+#include "archutils/Win32/CommandLine.h"
 extern RString
 GetLastErrorString();
 

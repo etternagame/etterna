@@ -1,7 +1,6 @@
 ﻿#ifndef HIGH_SCORE_H
 #define HIGH_SCORE_H
 
-#include "global.h"
 #include "DateTime.h"
 #include "GameConstantsAndTypes.h"
 #include "Grade.h"

@@ -1,13 +1,14 @@
-#include "Foreground.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "BackgroundUtil.h"
 #include "Foreach.h"
+#include "Foreground.h"
 #include "GameState.h"
 #include "PrefsManager.h"
 #include "RageTextureManager.h"
 #include "RageUtil.h"
 #include "Song.h"
-#include "global.h"
+#include "GameState.h"
 
 Foreground::~Foreground()
 {

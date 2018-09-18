@@ -1,13 +1,13 @@
-#include "ScreenSetTime.h"
+#include "global.h"
 #include "DateTime.h"
 #include "EnumHelper.h"
 #include "InputEventPlus.h"
 #include "InputMapper.h"
 #include "RageLog.h"
 #include "ScreenManager.h"
+#include "ScreenSetTime.h"
 #include "ThemeManager.h"
 #include "arch/ArchHooks/ArchHooks.h"
-#include "global.h"
 
 static const char* SetTimeSelectionNames[] = {
 	"Year", "Month", "Day", "Hour", "Minute", "Second",

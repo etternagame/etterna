@@ -3,7 +3,6 @@
 #ifndef NOTE_TYPES_H
 #define NOTE_TYPES_H
 
-#include "global.h"
 #include "GameConstantsAndTypes.h"
 #include "PlayerNumber.h"
 #include "RageLog.h"

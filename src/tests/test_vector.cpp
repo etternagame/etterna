@@ -1,10 +1,10 @@
 #define _XOPEN_SOURCE 600
-#include <algorithm>
-#include <archutils/Darwin/VectorHelper.h>
-#include <cassert>
-#include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <cassert>
+#include <cmath>
+#include <algorithm>
+#include <archutils/Darwin/VectorHelper.h>
 
 #if 0
 #error This depends on OS X and Apple's gcc.

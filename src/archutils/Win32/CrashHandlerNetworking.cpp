@@ -1,10 +1,11 @@
+#include "global.h"
 #include "CrashHandlerNetworking.h"
-#include "Foreach.h"
+#include "RageThreads.h"
 #include "RageLog.h"
 #include "RageThreads.h"
 #include "RageTimer.h"
 #include "RageUtil.h"
-#include "global.h"
+#include "Foreach.h"
 
 #if defined(WINDOWS)
 #include <windows.h>

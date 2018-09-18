@@ -8,14 +8,14 @@
 
 #include "global.h"
 
-#include "Preference.h"
 #include "ezsockets.h"
+#include "Preference.h"
 #include <iostream>
 #if defined(_MSC_VER) // We need the WinSock32 Library on Windows
 #pragma comment(lib, "wsock32.lib")
 #elif !defined(__MINGW32__)
-#include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/socket.h>
 #if defined(HAVE_UNISTD_H)
 #include <unistd.h>
 #endif
@@ -564,8 +564,8 @@ EzSockets::pUpdateRead()
 		inBuffer.append(tempData, bytes);
 	else if (bytes <= 0)
 		/* To get her I think CanRead was called at least once.
-			So if length equals 0 and can read says there is data than
-			the socket was closed.*/
+		So if length equals 0 and can read says there is data than
+		the socket was closed.*/
 		state = skERROR;
 	return bytes;
 }

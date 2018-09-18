@@ -3,8 +3,6 @@
 #ifndef NotesWriterJson_H
 #define NotesWriterJson_H
 
-#include "global.h"
-
 class Song;
 class Steps;
 
@@ -13,7 +11,7 @@ bool
 WriteSong(const RString& sFile, const Song& out, bool bWriteSteps);
 bool
 WriteSteps(const RString& sFile, const Steps& out);
-}; // namespace NotesWriterJson
+};
 
 #endif
 

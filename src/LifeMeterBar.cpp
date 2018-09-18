@@ -1,7 +1,7 @@
 ﻿#include "global.h"
-#include "LifeMeterBar.h"
 #include "ActorUtil.h"
 #include "GameState.h"
+#include "LifeMeterBar.h"
 #include "PlayerState.h"
 #include "PrefsManager.h"
 #include "Song.h"
@@ -97,7 +97,7 @@ LifeMeterBar::Load(const PlayerState* pPlayerState,
 		case DrainType_Normal:
 			m_fLifePercentage = INITIAL_VALUE;
 			break;
-		/* These types only go down, so they always start at full. */
+			/* These types only go down, so they always start at full. */
 		case DrainType_NoRecover:
 		case DrainType_SuddenDeath:
 			m_fLifePercentage = 1.0f;

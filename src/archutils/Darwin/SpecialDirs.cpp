@@ -1,9 +1,9 @@
+#include "global.h"
 #include "SpecialDirs.h"
 #include "ProductInfo.h"
-#include "RageUtil.h"
-#include "global.h"
 #include <CoreServices/CoreServices.h>
 #include <IOKit/IOKitLib.h>
+#include "RageUtil.h"
 
 static void
 PathForFolderType(char dir[PATH_MAX], OSType folderType)

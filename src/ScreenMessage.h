@@ -1,8 +1,5 @@
 #ifndef ScreenMessage_H
 #define ScreenMessage_H
-
-#include "global.h"
-
 /** @brief Definition of common ScreenMessages and helpers. */
 using ScreenMessage = RString;
 
@@ -25,7 +22,7 @@ ScreenMessage
 ToScreenMessage(const RString& Name);
 RString
 ScreenMessageToString(ScreenMessage SM);
-}; // namespace ScreenMessageHelpers
+};
 
 /** @brief Automatically generate a unique ScreenMessage value */
 #define AutoScreenMessage(x)                                                   \

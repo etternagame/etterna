@@ -1,7 +1,6 @@
 #ifndef TIMING_DATA_H
 #define TIMING_DATA_H
 
-#include "global.h"
 #include "NoteTypes.h"
 #include "PrefsManager.h"
 #include "TimingSegments.h"

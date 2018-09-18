@@ -1,5 +1,4 @@
 ﻿#include "global.h"
-#include "NotesLoaderBMS.h"
 #include "ActorUtil.h"
 #include "BackgroundUtil.h"
 #include "GameConstantsAndTypes.h"
@@ -7,6 +6,7 @@
 #include "NoteData.h"
 #include "NoteTypes.h"
 #include "NotesLoader.h"
+#include "NotesLoaderBMS.h"
 #include "RageFile.h"
 #include "RageFileManager.h"
 #include "RageLog.h"
@@ -520,6 +520,7 @@ struct bmsCommandTree
 					(21 <= channel && channel <= 29)) {
 					referencedTracks[channel] = true;
 				}
+
 			} else {
 				currentNode->Commands[name] = value;
 			}
@@ -1329,12 +1330,12 @@ BMSChartReader::ReadNoteData()
 		} else if (channel == 4) // bga change
 		{
 			/*
-				if( !bgaFound )
-				{
-					info.bgaRow = row;
-					bgaFound = true;
-				}
-				 */
+			if( !bgaFound )
+			{
+				info.bgaRow = row;
+				bgaFound = true;
+			}
+			 */
 			RString search = ssprintf("#bga%s", obj.value.c_str());
 			BMSHeaders::iterator it = in->headers.find(search);
 			if (it != in->headers.end()) {

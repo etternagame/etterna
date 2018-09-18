@@ -1,7 +1,6 @@
 ﻿#ifndef RollingNumbers_H
 #define RollingNumbers_H
 
-#include "global.h"
 #include "BitmapText.h"
 #include "ThemeMetric.h"
 

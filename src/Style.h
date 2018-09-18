@@ -4,7 +4,6 @@
 #ifndef STYLE_H
 #define STYLE_H
 
-#include "global.h"
 #include "GameConstantsAndTypes.h"
 #include "GameInput.h"
 #include "NoteTypes.h"

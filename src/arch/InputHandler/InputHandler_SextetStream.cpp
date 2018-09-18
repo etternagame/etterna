@@ -1,9 +1,9 @@
+#include "global.h"
 #include "InputHandler_SextetStream.h"
 #include "PrefsManager.h"
 #include "RageLog.h"
 #include "RageThreads.h"
 #include "RageUtil.h"
-#include "global.h"
 
 #include <cerrno>
 #include <cstdio>

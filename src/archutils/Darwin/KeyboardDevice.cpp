@@ -1,5 +1,5 @@
-#include "KeyboardDevice.h"
 #include "global.h"
+#include "KeyboardDevice.h"
 
 using namespace __gnu_cxx;
 

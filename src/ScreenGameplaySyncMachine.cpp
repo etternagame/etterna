@@ -1,16 +1,16 @@
-#include "ScreenGameplaySyncMachine.h"
+#include "global.h"
 #include "AdjustSync.h"
 #include "GameManager.h"
 #include "GamePreferences.h"
 #include "GameState.h"
 #include "InputEventPlus.h"
-#include "NetworkSyncManager.h"
 #include "NotesLoaderSM.h"
 #include "NotesLoaderSSC.h"
 #include "PrefsManager.h"
 #include "ScreenDimensions.h"
+#include "ScreenGameplaySyncMachine.h"
 #include "SongUtil.h"
-#include "global.h"
+#include "NetworkSyncManager.h"
 
 REGISTER_SCREEN_CLASS(ScreenGameplaySyncMachine);
 

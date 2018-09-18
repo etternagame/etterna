@@ -3,7 +3,6 @@
 #ifndef INIFILE_H
 #define INIFILE_H
 
-#include "global.h"
 #include "XmlFile.h"
 using namespace std;
 

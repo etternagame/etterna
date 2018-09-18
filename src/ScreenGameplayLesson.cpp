@@ -1,10 +1,10 @@
-#include "ScreenGameplayLesson.h"
+#include "global.h"
 #include "GamePreferences.h"
 #include "GameState.h"
 #include "RageLog.h"
+#include "ScreenGameplayLesson.h"
 #include "Song.h"
 #include "StatsManager.h"
-#include "global.h"
 
 REGISTER_SCREEN_CLASS(ScreenGameplayLesson);
 ScreenGameplayLesson::ScreenGameplayLesson()

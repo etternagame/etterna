@@ -1,11 +1,11 @@
-#include "GetFileInformation.h"
 #include "global.h"
+#include "GetFileInformation.h"
 
 #include "RageUtil.h"
 #include "archutils/Win32/ErrorStrings.h"
 #include <sys/stat.h>
-#include <tlhelp32.h>
 #include <windows.h>
+#include <tlhelp32.h>
 
 #if defined(_MSC_VER)
 #pragma comment(lib, "version.lib")

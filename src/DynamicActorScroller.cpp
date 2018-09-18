@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "DynamicActorScroller.h"
 #include "ActorUtil.h"
+#include "DynamicActorScroller.h"
 #include "LuaBinding.h"
 #include "LuaManager.h"
 #include "RageUtil.h"

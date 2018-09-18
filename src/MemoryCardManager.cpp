@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "MemoryCardManager.h"
 #include "LuaManager.h"
+#include "MemoryCardManager.h"
 
 MemoryCardManager* MEMCARDMAN =
   NULL; // global and accessible from anywhere in our program

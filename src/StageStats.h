@@ -1,7 +1,6 @@
 #ifndef StageStats_H
 #define StageStats_H
 
-#include "global.h"
 #include "PlayerNumber.h"
 #include "PlayerStageStats.h"
 class Song;

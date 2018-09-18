@@ -3,8 +3,6 @@
 #ifndef LOADING_WINDOW_GTK
 #define LOADING_WINDOW_GTK
 
-#include "global.h"
-
 #include "LoadingWindow.h"
 
 class LoadingWindow_Gtk : public LoadingWindow

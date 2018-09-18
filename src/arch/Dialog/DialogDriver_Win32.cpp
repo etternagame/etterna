@@ -1,20 +1,20 @@
+#include "global.h"
 #include "DialogDriver_Win32.h"
 #include "RageUtil.h"
-#include "global.h"
 #if !defined(SMPACKAGE)
 #include "LocalizedString.h"
 #endif
-#include "ProductInfo.h"
 #include "ThemeManager.h"
+#include "ProductInfo.h"
 
-#include "archutils/Win32/SpecialDirs.h"
 #include "archutils/win32/AppInstance.h"
 #include "archutils/win32/ErrorStrings.h"
 #include "archutils/win32/GotoURL.h"
 #include "archutils/win32/RestartProgram.h"
+#include "archutils/Win32/SpecialDirs.h"
 #if !defined(SMPACKAGE)
-#include "archutils/win32/GraphicsWindow.h"
 #include "archutils/win32/WindowsResources.h"
+#include "archutils/win32/GraphicsWindow.h"
 #endif
 #include "archutils/win32/DialogUtil.h"
 

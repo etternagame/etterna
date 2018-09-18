@@ -5,11 +5,11 @@
  * a few extra sanity checks are made to check file modes.
  */
 
+#include "global.h"
 #include "RageFile.h"
 #include "RageFileBasic.h"
 #include "RageFileDriver.h"
 #include "RageUtil.h"
-#include "global.h"
 
 RageFile::RageFile()
 {
@@ -508,7 +508,7 @@ CreateRageFile(lua_State* L)
 const luaL_Reg RageFileUtilTable[] = { LIST_METHOD(CreateRageFile),
 									   { NULL, NULL } };
 LUA_REGISTER_NAMESPACE(RageFileUtil);
-} // namespace RageFileUtil
+}
 
 /*
  * Copyright (c) 2003-2004 Glenn Maynard, Chris Danford

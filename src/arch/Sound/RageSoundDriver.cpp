@@ -1,10 +1,10 @@
-#include "RageSoundDriver.h"
-#include "Foreach.h"
-#include "RageLog.h"
-#include "RageSoundManager.h"
-#include "RageUtil.h"
-#include "arch/arch_default.h"
 #include "global.h"
+#include "RageSoundDriver.h"
+#include "RageSoundManager.h"
+#include "RageLog.h"
+#include "RageUtil.h"
+#include "Foreach.h"
+#include "arch/arch_default.h"
 
 DriverList RageSoundDriver::m_pDriverList;
 

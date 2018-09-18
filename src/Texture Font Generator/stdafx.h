@@ -10,8 +10,6 @@
 
 #define NOMINMAX
 #include <algorithm>
-#include "global.h"
-
 using namespace std;
 
 // Modify the following defines if you have to target a platform prior to the
@@ -51,9 +49,9 @@ using namespace std;
 #pragma warning(disable : 4996) // deprecated functions vs "ISO C++ conformant
 								// names". (stricmp vs _stricmp)
 
-#include <afxdisp.h> // MFC Automation classes
-#include <afxext.h>  // MFC extensions
 #include <afxwin.h>  // MFC core and standard components
+#include <afxext.h>  // MFC extensions
+#include <afxdisp.h> // MFC Automation classes
 
 #include <afxdtctl.h> // MFC support for Internet Explorer 4 Common Controls
 #ifndef _AFX_NO_AFXCMN_SUPPORT

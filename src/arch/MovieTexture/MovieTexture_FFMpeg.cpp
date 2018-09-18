@@ -1,11 +1,11 @@
-#include "MovieTexture_FFMpeg.h"
 #include "global.h"
+#include "MovieTexture_FFMpeg.h"
 
 #include "RageDisplay.h"
-#include "RageFile.h"
 #include "RageLog.h"
-#include "RageSurface.h"
 #include "RageUtil.h"
+#include "RageFile.h"
+#include "RageSurface.h"
 
 #include <cerrno>
 

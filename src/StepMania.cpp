@@ -3,18 +3,18 @@
 #include "StepMania.h"
 
 // Rage global classes
-#include "ActorUtil.h"
 #include "GameSoundManager.h"
 #include "LocalizedString.h"
-#include "MemoryCardManager.h"
 #include "RageDisplay.h"
 #include "RageInput.h"
 #include "RageLog.h"
 #include "RageMath.h"
 #include "RageSoundManager.h"
 #include "RageTextureManager.h"
+#include "MemoryCardManager.h"
 #include "RageThreads.h"
 #include "RageTimer.h"
+#include "ActorUtil.h"
 
 #include "arch/ArchHooks/ArchHooks.h"
 #include "arch/Dialog/Dialog.h"
@@ -43,23 +43,26 @@
 #include "FilterManager.h"
 #include "FontManager.h"
 #include "GameManager.h"
+#include "NoteSkinManager.h"
 #include "GameState.h"
-#include "ImageCache.h"
 #include "InputFilter.h"
 #include "InputMapper.h"
 #include "InputQueue.h"
-#include "NoteSkinManager.h"
 #include "SongCacheIndex.h"
+#include "ImageCache.h"
+#include "FilterManager.h"
 #if !defined(WITHOUT_NETWORKING)
 #include "DownloadManager.h"
 #endif
+#include "ScoreManager.h"
+#include "RageFileManager.h"
+#include "ModelManager.h"
 #include "CryptManager.h"
 #include "GameLoop.h"
 #include "MessageManager.h"
 #include "ModelManager.h"
 #include "NetworkSyncManager.h"
 #include "RageFileManager.h"
-#include "ScoreManager.h"
 #include "SpecialFiles.h"
 #include "StatsManager.h"
 #include "ver.h"
@@ -1540,21 +1543,23 @@ HandleInputEvents(float fDeltaTime)
 
 		// hack for testing (MultiPlayer) with only one joystick
 		/*
-			if( input.DeviceI.IsJoystick() )
-			{
-				if( INPUTFILTER->IsBeingPressed(
-		   DeviceInput(DEVICE_KEYBOARD,KEY_LSHIFT) ) ) input.DeviceI.device =
-		   (InputDevice)(input.DeviceI.device + 1); if(
-		   INPUTFILTER->IsBeingPressed( DeviceInput(DEVICE_KEYBOARD,KEY_LCTRL) )
-		   ) input.DeviceI.device = (InputDevice)(input.DeviceI.device + 2); if(
-		   INPUTFILTER->IsBeingPressed( DeviceInput(DEVICE_KEYBOARD,KEY_LALT) )
-		   ) input.DeviceI.device = (InputDevice)(input.DeviceI.device + 4); if(
-		   INPUTFILTER->IsBeingPressed( DeviceInput(DEVICE_KEYBOARD,KEY_RALT) )
-		   ) input.DeviceI.device = (InputDevice)(input.DeviceI.device + 8); if(
-		   INPUTFILTER->IsBeingPressed( DeviceInput(DEVICE_KEYBOARD,KEY_RCTRL) )
-		   ) input.DeviceI.device = (InputDevice)(input.DeviceI.device + 16);
-			}
-			*/
+		if( input.DeviceI.IsJoystick() )
+		{
+			if( INPUTFILTER->IsBeingPressed(
+		DeviceInput(DEVICE_KEYBOARD,KEY_LSHIFT) ) ) input.DeviceI.device =
+		(InputDevice)(input.DeviceI.device + 1); if(
+		INPUTFILTER->IsBeingPressed( DeviceInput(DEVICE_KEYBOARD,KEY_LCTRL) ) )
+				input.DeviceI.device = (InputDevice)(input.DeviceI.device + 2);
+			if( INPUTFILTER->IsBeingPressed(
+		DeviceInput(DEVICE_KEYBOARD,KEY_LALT) ) ) input.DeviceI.device =
+		(InputDevice)(input.DeviceI.device + 4); if(
+		INPUTFILTER->IsBeingPressed( DeviceInput(DEVICE_KEYBOARD,KEY_RALT) ) )
+				input.DeviceI.device = (InputDevice)(input.DeviceI.device + 8);
+			if( INPUTFILTER->IsBeingPressed(
+		DeviceInput(DEVICE_KEYBOARD,KEY_RCTRL) ) ) input.DeviceI.device =
+		(InputDevice)(input.DeviceI.device + 16);
+		}
+		*/
 
 		INPUTMAPPER->DeviceToGame(input.DeviceI, input.GameI);
 

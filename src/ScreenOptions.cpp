@@ -1,4 +1,4 @@
-#include "ScreenOptions.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "GameCommand.h"
 #include "GameConstantsAndTypes.h"
@@ -12,8 +12,8 @@
 #include "RageUtil.h"
 #include "ScreenDimensions.h"
 #include "ScreenManager.h"
+#include "ScreenOptions.h"
 #include "ThemeManager.h"
-#include "global.h"
 
 /*
  * These navigation types are provided:

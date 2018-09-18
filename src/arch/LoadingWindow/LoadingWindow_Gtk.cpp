@@ -1,9 +1,9 @@
+#include "global.h"
+#include "RageLog.h"
+#include "RageFileManager.h"
+#include "RageUtil.h"
 #include "LoadingWindow_Gtk.h"
 #include "LoadingWindow_GtkModule.h"
-#include "RageFileManager.h"
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "global.h"
 
 #include <dlfcn.h>
 

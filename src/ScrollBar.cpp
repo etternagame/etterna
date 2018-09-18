@@ -1,7 +1,7 @@
-#include "ScrollBar.h"
-#include "RageUtil.h"
-#include "ThemeManager.h"
 #include "global.h"
+#include "RageUtil.h"
+#include "ScrollBar.h"
+#include "ThemeManager.h"
 
 ScrollBar::ScrollBar()
 {

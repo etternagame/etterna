@@ -1,7 +1,6 @@
 ﻿#ifndef GROOVE_RADAR_H
 #define GROOVE_RADAR_H
 
-#include "global.h"
 #include "ActorFrame.h"
 #include "AutoActor.h"
 #include "GameConstantsAndTypes.h"

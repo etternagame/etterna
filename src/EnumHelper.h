@@ -1,13 +1,10 @@
 ﻿#ifndef ENUM_HELPER_H
 #define ENUM_HELPER_H
 
-#include "global.h"
 #include "LuaReference.h"
 #include <memory>
 
-extern "C" {
-#include "lua.h"
-}
+#include "lua.hpp"
 
 /** @brief A general foreach loop for enumerators, going up to a max value. */
 #define FOREACH_ENUM_N(e, max, var)                                            \
@@ -84,25 +81,35 @@ EnumToString(int iVal,
 			 unique_ptr<RString>* pNameCache); // XToString helper
 
 #define XToString(X)                                                           \
-	const RString& X##ToString(X x);                                           \
-	COMPILE_ASSERT(NUM_##X == ARRAYLEN(X##Names));                             \
-	const RString& X##ToString(X x)                                            \
-	{                                                                          \
+	\
+const RString& X##ToString(X x);                                               \
+	\
+COMPILE_ASSERT(NUM_##X == ARRAYLEN(X##Names));                                 \
+	\
+const RString& X##ToString(X x)                                                \
+	\
+{                                                                         \
 		static unique_ptr<RString> as_##X##Name[NUM_##X + 2];                  \
 		return EnumToString(x, NUM_##X, X##Names, as_##X##Name);               \
-	}                                                                          \
-	namespace StringConversion {                                               \
-	template<>                                                                 \
-	RString ToString<X>(const X& value)                                        \
+	\
+}                                                                         \
+	\
+namespace StringConversion                                                     \
 	{                                                                          \
-		return X##ToString(value);                                             \
-	}                                                                          \
+		template<>                                                             \
+		RString ToString<X>(const X& value)                                    \
+		{                                                                      \
+			return X##ToString(value);                                         \
+		}                                                                      \
 	}
 
 #define XToLocalizedString(X)                                                  \
-	const RString& X##ToLocalizedString(X x);                                  \
-	const RString& X##ToLocalizedString(X x)                                   \
-	{                                                                          \
+	\
+const RString& X##ToLocalizedString(X x);                                      \
+	\
+const RString& X##ToLocalizedString(X x)                                       \
+	\
+{                                                                         \
 		static unique_ptr<LocalizedString> g_##X##Name[NUM_##X];               \
 		if (g_##X##Name[0].get() == NULL) {                                    \
 			for (unsigned i = 0; i < NUM_##X; ++i) {                           \
@@ -112,33 +119,45 @@ EnumToString(int iVal,
 			}                                                                  \
 		}                                                                      \
 		return g_##X##Name[x]->GetValue();                                     \
-	}
+	\
+}
 
 #define StringToX(X)                                                           \
-	X StringTo##X(const RString&);                                             \
-	X StringTo##X(const RString& s)                                            \
-	{                                                                          \
+	\
+X StringTo##X(const RString&);                                                 \
+	\
+X StringTo##X(const RString& s)                                                \
+	\
+{                                                                         \
 		for (unsigned i = 0; i < ARRAYLEN(X##Names); ++i)                      \
 			if (!s.CompareNoCase(X##Names[i]))                                 \
 				return (X)i;                                                   \
 		return X##_Invalid;                                                    \
-	}                                                                          \
-	namespace StringConversion {                                               \
-	template<>                                                                 \
-	bool FromString<X>(const RString& sValue, X& out)                          \
-	{                                                                          \
-		out = StringTo##X(sValue);                                             \
-		return out != X##_Invalid;                                             \
-	}                                                                          \
-	}
+	\
+}                                                                         \
+	\
+namespace StringConversion                                                     \
+	\
+{                                                                         \
+		template<>                                                             \
+		bool FromString<X>(const RString& sValue, X& out)                      \
+		{                                                                      \
+			out = StringTo##X(sValue);                                         \
+			return out != X##_Invalid;                                         \
+		}                                                                      \
+	\
+}
 
 // currently unused
 #define LuaDeclareType(X)
 
 #define LuaXType(X)                                                            \
-	template struct EnumTraits<X>;                                             \
-	static void Lua##X(lua_State* L)                                           \
-	{                                                                          \
+	\
+template struct EnumTraits<X>;                                                 \
+	\
+static void Lua##X(lua_State* L)                                               \
+	\
+{                                                                         \
 		lua_newtable(L);                                                       \
 		FOREACH_ENUM(X, i)                                                     \
 		{                                                                      \
@@ -169,27 +188,38 @@ EnumToString(int iVal,
 		EnumTraits<X>::StringToEnum.PushSelf(L);                               \
 		Enum::SetMetatable(                                                    \
 		  L, EnumTraits<X>::EnumToString, EnumTraits<X>::StringToEnum, #X);    \
-	}                                                                          \
-	REGISTER_WITH_LUA_FUNCTION(Lua##X);                                        \
-	template<>                                                                 \
-	X EnumTraits<X>::Invalid = X##_Invalid;                                    \
-	template<>                                                                 \
-	const char* EnumTraits<X>::szName = #X;                                    \
-	namespace LuaHelpers {                                                     \
-	template<>                                                                 \
-	bool FromStack<X>(lua_State * L, X& Object, int iOffset)                   \
-	{                                                                          \
-		Object = Enum::Check<X>(L, iOffset, true);                             \
-		return Object != EnumTraits<X>::Invalid;                               \
-	}                                                                          \
-	}                                                                          \
-	namespace LuaHelpers {                                                     \
-	template<>                                                                 \
-	void Push<X>(lua_State * L, const X& Object)                               \
-	{                                                                          \
-		Enum::Push<X>(L, Object);                                              \
-	}                                                                          \
-	}
+	\
+}                                                                         \
+	\
+REGISTER_WITH_LUA_FUNCTION(Lua##X);                                            \
+	\
+template<>                                                                     \
+	  X EnumTraits<X>::Invalid = X##_Invalid;                                  \
+	\
+template<> const char* EnumTraits<X>::szName = #X;                             \
+	\
+namespace LuaHelpers                                                           \
+	\
+{                                                                         \
+		template<>                                                             \
+		bool FromStack<X>(lua_State * L, X & Object, int iOffset)              \
+		{                                                                      \
+			Object = Enum::Check<X>(L, iOffset, true);                         \
+			return Object != EnumTraits<X>::Invalid;                           \
+		}                                                                      \
+	\
+}                                                                         \
+	\
+namespace LuaHelpers                                                           \
+	\
+{                                                                         \
+		template<>                                                             \
+		void Push<X>(lua_State * L, const X& Object)                           \
+		{                                                                      \
+			Enum::Push<X>(L, Object);                                          \
+		}                                                                      \
+	\
+}
 
 #endif
 

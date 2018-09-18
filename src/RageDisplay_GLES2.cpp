@@ -1,13 +1,14 @@
 ﻿#include "global.h"
 
-#include "RageDisplay_GLES2.h"
 #include "RageDisplay.h"
+#include "RageDisplay_GLES2.h"
 #include "RageLog.h"
 #include "RageMath.h"
 #include "RageSurface.h"
 #include "RageTextureManager.h"
 #include "RageTimer.h"
 #include "RageTypes.h"
+#include "RageUtil.h"
 #include "RageUtil.h"
 
 #include "DisplayResolutions.h"
@@ -964,7 +965,7 @@ RageDisplay_GLES2::SupportsSurfaceFormat(RagePixelFormat pixfmt)
 	switch (g_GLPixFmtInfo[pixfmt].type) {
 		case GL_UNSIGNED_SHORT_1_5_5_5_REV:
 			return false;
-		// return GLEW_EXT_bgra && g_bReversePackedPixelsWorks;
+			// return GLEW_EXT_bgra && g_bReversePackedPixelsWorks;
 		default:
 			return true;
 	}

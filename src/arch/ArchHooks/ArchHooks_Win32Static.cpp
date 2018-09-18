@@ -1,14 +1,14 @@
+#include "global.h"
 #include "ArchHooks.h"
+#include "RageUtil.h"
+#include "archutils/Win32/SpecialDirs.h"
 #include "ProductInfo.h"
 #include "RageFileManager.h"
-#include "RageUtil.h"
 #include "SpecialFiles.h"
-#include "archutils/Win32/SpecialDirs.h"
-#include "global.h"
 
 // for timeGetTime
-#include <mmsystem.h>
 #include <windows.h>
+#include <mmsystem.h>
 #if defined(_MSC_VER)
 #pragma comment(lib, "winmm.lib")
 #endif

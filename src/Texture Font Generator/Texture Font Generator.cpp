@@ -1,9 +1,9 @@
 // Texture Font Generator.cpp : Defines the class behaviors for the application.
 //
 
+#include "stdafx.h"
 #include "Texture Font Generator.h"
 #include "Texture Font GeneratorDlg.h"
-#include "stdafx.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

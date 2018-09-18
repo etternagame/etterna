@@ -1,6 +1,5 @@
 #ifndef ALSA9_DYNAMIC_H
 
-#include "global.h"
 #include <alsa/asoundlib.h>
 
 /* typedef int (*foo_f)(char c) */

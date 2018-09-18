@@ -1,9 +1,9 @@
 ﻿#include "global.h"
-#include "NotesWriterSSC.h"
 #include "BackgroundUtil.h"
 #include "Foreach.h"
 #include "LocalizedString.h"
 #include "NoteTypes.h"
+#include "NotesWriterSSC.h"
 #include "RageFile.h"
 #include "RageLog.h"
 #include "Song.h"
@@ -279,7 +279,7 @@ WriteGlobalTags(RageFile& f, const Song& out)
 		case Song::SHOW_ALWAYS:
 			f.Write("YES");
 			break;
-		// case Song::SHOW_NONSTOP:	f.Write( "NONSTOP" );	break;
+			// case Song::SHOW_NONSTOP:	f.Write( "NONSTOP" );	break;
 		case Song::SHOW_NEVER:
 			f.Write("NO");
 			break;
@@ -454,8 +454,8 @@ GetSSCNoteData(const Song& song, const Steps& in, bool bSavingCache)
 		RString sNoteData = "";
 
 		/* hack to ensure notedata exists when changing offset from gameplay not
-		   sure what i/we could have done to mess up the original flow but all
-		   the save/load functions should be rewritten anyway -mina */
+		sure what i/we could have done to mess up the original flow but all the
+		save/load functions should be rewritten anyway -mina */
 		in.Decompress();
 
 		in.GetSMNoteData(sNoteData);

@@ -1,11 +1,10 @@
-#include <WS2tcpip.h>
 #include <WinSock2.h>
+#include <WS2tcpip.h>
 #pragma comment(lib, "ws2_32.lib")
 
-#include "global.h"
-#include <chrono>
-#include <iostream>
 #include <string>
+#include <iostream>
+#include <chrono>
 #include <thread>
 
 char const* owner = "wolfman2000";

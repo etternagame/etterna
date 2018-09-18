@@ -1,14 +1,14 @@
+#include "global.h"
 #include "LowLevelWindow_Win32.h"
-#include "LocalizedString.h"
-#include "RageDisplay.h"
-#include "RageDisplay_OGL.h"
-#include "RageDisplay_OGL_Helpers.h"
-#include "RageLog.h"
-#include "RageUtil.h"
 #include "archutils/Win32/DirectXHelpers.h"
 #include "archutils/Win32/ErrorStrings.h"
 #include "archutils/Win32/GraphicsWindow.h"
-#include "global.h"
+#include "RageUtil.h"
+#include "RageLog.h"
+#include "RageDisplay.h"
+#include "LocalizedString.h"
+#include "RageDisplay_OGL_Helpers.h"
+#include "RageDisplay_OGL.h"
 
 #include <GL/glew.h>
 

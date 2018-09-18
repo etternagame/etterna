@@ -59,7 +59,7 @@
  * it.
  */
 
-#include "ScreenManager.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "FontManager.h"
 #include "Foreach.h"
@@ -72,9 +72,9 @@
 #include "RageUtil.h"
 #include "Screen.h"
 #include "ScreenDimensions.h"
+#include "ScreenManager.h"
 #include "SongManager.h"
 #include "ThemeManager.h"
-#include "global.h"
 
 ScreenManager* SCREENMAN =
   NULL; // global and accessible from anywhere in our program
@@ -226,7 +226,7 @@ DeletePreparedScreens()
 	SAFE_DELETE(*a);
 	AfterDeleteScreen();
 }
-} // namespace ScreenManagerUtil
+} // namespace ScreenManagerUtil;
 using namespace ScreenManagerUtil;
 
 RegisterScreenClass::RegisterScreenClass(const RString& sClassName,
@@ -912,11 +912,13 @@ ScreenManager::ZeroNextUpdate()
 
 /** @brief Offer a quick way to play any critical sound. */
 #define PLAY_CRITICAL(snd)                                                     \
-	{                                                                          \
+	\
+{                                                                         \
 		RageSoundParams p;                                                     \
 		p.m_bIsCriticalSound = true;                                           \
 		(snd).Play(false, &p);                                                 \
-	}
+	\
+}
 
 /* Always play these sounds, even if we're in a silent attract loop. */
 void

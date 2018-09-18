@@ -1,10 +1,10 @@
+#include "global.h"
 #include "InputHandler_DirectInputHelper.h"
-#include "RageLog.h"
 #include "RageUtil.h"
+#include "RageLog.h"
 #include "archutils/Win32/DirectXHelpers.h"
 #include "archutils/Win32/ErrorStrings.h"
 #include "archutils/Win32/GraphicsWindow.h"
-#include "global.h"
 
 #if defined(_MSC_VER)
 #pragma comment(lib, "dinput8.lib")

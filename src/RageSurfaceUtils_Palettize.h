@@ -3,8 +3,6 @@
 #ifndef RAGE_SURFACE_UTILS_PALETTIZE
 #define RAGE_SURFACE_UTILS_PALETTIZE
 
-#include "global.h"
-
 struct RageSurface;
 
 /** @brief Utility functions for the RageSurfaces. */

@@ -1,9 +1,9 @@
-#include "InputHandler_Win32_Para.h"
 #include "global.h"
+#include "InputHandler_Win32_Para.h"
 
-#include "RageInputDevice.h"
 #include "RageLog.h"
 #include "RageUtil.h"
+#include "RageInputDevice.h"
 #include "archutils/Win32/USB.h"
 
 // TODO: Abstract this windows-specific stuff into USBDevice.

@@ -30,9 +30,8 @@ class ScoreKeeper
 	// Common toggles that this class handles directly:
 
 	/* If true, doubles count as 2+ in stat counts; if false, doubles count as
-	 * only one. */
-	/* (not yet) */
-	//	bool Stats_DoublesCount;
+	 * only one. */ /* (not yet) */
+					//	bool Stats_DoublesCount;
 
   public:
 	ScoreKeeper(PlayerState* pPlayerState, PlayerStageStats* pPlayerStageStats);

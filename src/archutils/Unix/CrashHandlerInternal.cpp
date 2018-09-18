@@ -1,5 +1,5 @@
-#include "CrashHandlerInternal.h"
 #include "global.h"
+#include "CrashHandlerInternal.h"
 
 #include <csignal>
 

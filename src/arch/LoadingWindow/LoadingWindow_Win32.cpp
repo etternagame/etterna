@@ -1,24 +1,24 @@
-#include "RageUtil.h"
 #include "global.h"
+#include "RageUtil.h"
 
-#include "CommCtrl.h"
-#include "Dwmapi.h"
 #include "LoadingWindow_Win32.h"
-#include "LocalizedString.h"
-#include "ProductInfo.h"
 #include "RageFileManager.h"
-#include "RageLog.h"
-#include "RageSurface.h"
-#include "RageSurfaceUtils.h"
-#include "RageSurface_Load.h"
-#include "arch/ArchHooks/ArchHooks.h"
-#include "archutils/win32/ErrorStrings.h"
-#include "archutils/win32/WindowIcon.h"
 #include "archutils/win32/WindowsResources.h"
+#include "archutils/win32/WindowIcon.h"
+#include "archutils/win32/ErrorStrings.h"
+#include "arch/ArchHooks/ArchHooks.h"
+#include <windows.h>
 #include <Commdlg.h>
 #include <tchar.h>
+#include "Dwmapi.h"
+#include "CommCtrl.h"
+#include "RageSurface_Load.h"
+#include "RageSurface.h"
+#include "RageSurfaceUtils.h"
+#include "RageLog.h"
 #include <wchar.h>
-#include <windows.h>
+#include "ProductInfo.h"
+#include "LocalizedString.h"
 
 #include "RageSurfaceUtils_Zoom.h"
 #pragma comment(lib, "Dwmapi.lib")

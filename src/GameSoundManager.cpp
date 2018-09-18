@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "GameSoundManager.h"
 #include "AnnouncerManager.h"
+#include "GameSoundManager.h"
 #include "GameState.h"
 #include "LuaManager.h"
 #include "NoteData.h"
@@ -14,6 +14,7 @@
 #include "RageUtil.h"
 #include "Song.h"
 #include "TimingData.h"
+#include "GameState.h"
 class SongOptions;
 
 #include "arch/Sound/RageSoundDriver.h"

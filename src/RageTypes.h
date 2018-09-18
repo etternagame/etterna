@@ -3,7 +3,6 @@
 #ifndef RAGETYPES_H
 #define RAGETYPES_H
 
-#include "global.h"
 #include "EnumHelper.h"
 
 enum BlendMode
@@ -548,7 +547,7 @@ class Rect
 
 	T left, top, right, bottom;
 };
-} // namespace StepMania
+}
 using RectI = StepMania::Rect<int>;
 using RectF = StepMania::Rect<float>;
 

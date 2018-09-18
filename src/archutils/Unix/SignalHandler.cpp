@@ -1,8 +1,8 @@
 #include "global.h"
 
-#include "GetSysInfo.h"
 #include "RageLog.h"
 #include "SignalHandler.h"
+#include "GetSysInfo.h"
 
 #if defined(HAVE_LIBPTHREAD)
 #include "archutils/Common/PthreadHelpers.h"
@@ -11,8 +11,8 @@
 #if defined(HAVE_UNISTD_H)
 #include <unistd.h>
 #endif
-#include <cerrno>
 #include <sys/mman.h>
+#include <cerrno>
 
 #if defined(MACOSX)
 extern "C" int

@@ -49,11 +49,11 @@ extern "C" {
 // Windows 95.
 //
 #define LINE_LEN                                                               \
-	256 // Win95-compatible maximum for displayable \
-				   // strings coming from a device INF.
+	256 // Win95-compatible maximum for displayable
+		// strings coming from a device INF.
 #define MAX_INF_STRING_LENGTH                                                  \
-	4096 // Actual maximum size of an INF string \
-				   // (including string substitutions).
+	4096 // Actual maximum size of an INF string
+		 // (including string substitutions).
 #define MAX_TITLE_LEN 60
 #define MAX_INSTRUCTION_LEN 256
 #define MAX_LABEL_LEN 30
@@ -315,8 +315,8 @@ typedef UINT(CALLBACK* PSP_FILE_CALLBACK_W)(IN PVOID Context,
 #define COPYFLG_NODECOMP                                                       \
 	0x00000800 // don't attempt to decompress file; copy as-is
 #define COPYFLG_REPLACE_BOOT_FILE                                              \
-	0x00001000 // file must be present upon reboot (i.e., it's \
-						// needed by the loader); this flag implies a reboot
+	0x00001000 // file must be present upon reboot (i.e., it's
+			   // needed by the loader); this flag implies a reboot
 #define COPYFLG_NOPRUNE 0x00002000 // never prune this file
 
 //
@@ -729,8 +729,8 @@ typedef PSP_DEVINSTALL_PARAMS_A PSP_DEVINSTALL_PARAMS;
 #define DI_SHOWCLASS 0x00000004L  // show class list
 #define DI_SHOWALL 0x00000007L	// both class & compat list shown
 #define DI_NOVCP                                                               \
-	0x00000008L						 // don't create a new copy queue--use \
-				     // caller-supplied FileQueue
+	0x00000008L						 // don't create a new copy queue--use
+									 // caller-supplied FileQueue
 #define DI_DIDCOMPAT 0x00000010L	 // Searched for compatible devices
 #define DI_DIDCLASS 0x00000020L		 // Searched for class devices
 #define DI_AUTOASSIGNRES 0x00000040L // No UI for resources if possible
@@ -744,7 +744,7 @@ typedef PSP_DEVINSTALL_PARAMS_A PSP_DEVINSTALL_PARAMS;
 
 // Flags set by DiBuildDriverInfoList
 #define DI_MULTMFGS                                                            \
-	0x00000400L // Set if multiple manufacturers in \
+	0x00000400L // Set if multiple manufacturers in
 				// class driver list
 
 // Flag indicates that device is disabled
@@ -790,8 +790,8 @@ typedef PSP_DEVINSTALL_PARAMS_A PSP_DEVINSTALL_PARAMS;
 
 // flags for device installation
 #define DI_QUIETINSTALL                                                        \
-	0x00800000L					  // don't confuse the user with \
-					   // questions or excess info
+	0x00800000L					  // don't confuse the user with
+								  // questions or excess info
 #define DI_NOFILECOPY 0x01000000L // No file Copy necessary
 #define DI_FORCECOPY 0x02000000L  // Force files to be copied from install path
 #define DI_DRIVERPAGE_ADDED 0x04000000L // Prop provider added Driver page.
@@ -821,13 +821,13 @@ typedef PSP_DEVINSTALL_PARAMS_A PSP_DEVINSTALL_PARAMS;
 #define DI_FLAGSEX_DEVICECHANGE 0x00000100L
 #define DI_FLAGSEX_ALWAYSWRITEIDS 0x00000200L
 #define DI_FLAGSEX_PROPCHANGE_PENDING                                          \
-	0x00000400L // One or more device property sheets have had changes made \
-						  // to them, and need to have a DIF_PROPERTYCHANGE occur.
+	0x00000400L // One or more device property sheets have had changes made
+				// to them, and need to have a DIF_PROPERTYCHANGE occur.
 #define DI_FLAGSEX_ALLOWEXCLUDEDDRVS 0x00000800L
 #define DI_FLAGSEX_NOUIONQUERYREMOVE 0x00001000L
 #define DI_FLAGSEX_USECLASSFORCOMPAT                                           \
-	0x00002000L // Use the device's class when building compat drv list. \
-						   // (Ignored if DI_COMPAT_FROM_CLASS flag is specified.)
+	0x00002000L // Use the device's class when building compat drv list.
+				// (Ignored if DI_COMPAT_FROM_CLASS flag is specified.)
 #define DI_FLAGSEX_OLDINF_IN_CLASSLIST                                         \
 	0x00004000L // Search legacy INFs when building class driver list.
 #define DI_FLAGSEX_NO_DRVREG_MODIFY                                            \
@@ -837,20 +837,20 @@ typedef PSP_DEVINSTALL_PARAMS_A PSP_DEVINSTALL_PARAMS;
 	0x00010000L // Installation is occurring during initial system setup.
 #define DI_FLAGSEX_INET_DRIVER 0x00020000L // Driver came from Windows Update
 #define DI_FLAGSEX_APPENDDRIVERLIST                                            \
-	0x00040000L // Cause SetupDiBuildDriverInfoList to append \
-						   // a new driver list to an existing list.
+	0x00040000L // Cause SetupDiBuildDriverInfoList to append
+				// a new driver list to an existing list.
 #define DI_FLAGSEX_PREINSTALLBACKUP                                            \
 	0x00080000L // backup all files required by old inf before install
 #define DI_FLAGSEX_BACKUPONREPLACE                                             \
 	0x00100000L // backup files required by old inf as they are replaced
 #define DI_FLAGSEX_DRIVERLIST_FROM_URL                                         \
-	0x00200000L // build driver list from INF(s) retrieved from URL specified \
-						   // in SP_DEVINSTALL_PARAMS.DriverPath (empty string means     \
-						   // Windows Update website)
+	0x00200000L // build driver list from INF(s) retrieved from URL specified
+				// in SP_DEVINSTALL_PARAMS.DriverPath (empty string means
+				// Windows Update website)
 #define DI_FLAGSEX_RESERVED1 0x00400000L
 #define DI_FLAGSEX_EXCLUDE_OLD_INET_DRIVERS                                    \
-	0x00800000L // Don't include old Internet drivers when building \
-							// a driver list.
+	0x00800000L // Don't include old Internet drivers when building
+				// a driver list.
 #define DI_FLAGSEX_POWERPAGE_ADDED                                             \
 	0x01000000L // class installer added their own power page
 
@@ -909,8 +909,8 @@ typedef struct _SP_MOVEDEV_PARAMS
 #define DICS_FLAG_CONFIGSPECIFIC                                               \
 	0x00000002 // make change in specified profile only
 #define DICS_FLAG_CONFIGGENERAL                                                \
-	0x00000004 // 1 or more hardware profile-specific \
-					    // changes to follow.
+	0x00000004 // 1 or more hardware profile-specific
+			   // changes to follow.
 //
 // Structure corresponding to a DIF_PROPERTYCHANGE install function.
 //
@@ -1364,11 +1364,11 @@ typedef struct _SP_DRVINSTALL_PARAMS
 #define DNF_DUPDESC 0x00000001   // Multiple providers have same desc
 #define DNF_OLDDRIVER 0x00000002 // Driver node specifies old/current driver
 #define DNF_EXCLUDEFROMLIST                                                    \
-	0x00000004 // If set, this driver node will not be \
-					 // displayed in any driver select dialogs.
+	0x00000004 // If set, this driver node will not be
+			   // displayed in any driver select dialogs.
 #define DNF_NODRIVER                                                           \
-	0x00000008					 // if we want to install no driver \
-					 // (e.g no mouse drv)
+	0x00000008					 // if we want to install no driver
+								 // (e.g no mouse drv)
 #define DNF_LEGACYINF 0x00000010 // this driver node comes from an old-style INF
 #define DNF_CLASS_DRIVER 0x00000020 // Driver node represents a class driver
 #define DNF_COMPATIBLE_DRIVER                                                  \
@@ -1378,9 +1378,9 @@ typedef struct _SP_DRVINSTALL_PARAMS
 #define DNF_INDEXED_DRIVER                                                     \
 	0x00000200 // Driver is contained in the Windows Driver Index
 #define DNF_OLD_INET_DRIVER                                                    \
-	0x00000400 // Driver came from the Internet, but we don't currently \
-				       // have access to it's source files.  Never attempt to   \
-				       // install a driver with this flag!
+	0x00000400 // Driver came from the Internet, but we don't currently
+			   // have access to it's source files.  Never attempt to
+			   // install a driver with this flag!
 #define DNF_BAD_DRIVER 0x00000800 // Driver node should not be used at all
 #define DNF_DUPPROVIDER                                                        \
 	0x00001000 // Multiple drivers have the same provider and desc
@@ -1389,8 +1389,8 @@ typedef struct _SP_DRVINSTALL_PARAMS
 // Rank values (the lower the Rank number, the better the Rank)
 //
 #define DRIVER_HARDWAREID_RANK                                                 \
-	0x00000FFF // Any rank less than or equal to \
-					  // this value is a HardwareID match
+	0x00000FFF // Any rank less than or equal to
+			   // this value is a HardwareID match
 
 //
 // Setup callback routine for comparing detection signatures
@@ -2489,8 +2489,8 @@ SetupInstallFileExW(IN HINF InfHandle,
 #define SP_COPY_OEMINF_CATALOG_ONLY                                            \
 	0x0040000 // (SetupCopyOEMInf only) don't copy INF--just catalog
 #define SP_COPY_REPLACE_BOOT_FILE                                              \
-	0x0080000 // file must be present upon reboot (i.e., it's \
-					      // needed by the loader); this flag implies a reboot
+	0x0080000 // file must be present upon reboot (i.e., it's
+			  // needed by the loader); this flag implies a reboot
 #define SP_COPY_NOPRUNE 0x0100000 // never prune this file
 
 WINSETUPAPI
@@ -3164,8 +3164,8 @@ SetupDefaultQueueCallbackW(IN PVOID Context,
 #define FLG_ADDREG_NOCLOBBER (0x00000002)
 #define FLG_ADDREG_DELVAL (0x00000004)
 #define FLG_ADDREG_APPEND                                                      \
-	(0x00000008)						// Currently supported only \
-					      // for REG_MULTI_SZ values.
+	(0x00000008)						// Currently supported only
+										// for REG_MULTI_SZ values.
 #define FLG_ADDREG_KEYONLY (0x00000010) // Just create the key, ignore value
 #define FLG_ADDREG_OVERWRITEONLY                                               \
 	(0x00000020) // Set only if value already exists

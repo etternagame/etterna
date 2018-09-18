@@ -1,11 +1,11 @@
+#include "global.h"
 #include "DebugInfoHunt.h"
 #include "RageLog.h"
 #include "RageUtil.h"
-#include "RegistryAccess.h"
 #include "VideoDriverInfo.h"
-#include "global.h"
-#include <mmsystem.h>
+#include "RegistryAccess.h"
 #include <windows.h>
+#include <mmsystem.h>
 
 static void
 LogVideoDriverInfo(VideoDriverInfo info)
@@ -235,36 +235,36 @@ GetWindowsVersionDebugInfo()
 			Ver += "WinServer2003";
 			// todo: check for R2
 			/*
-				if(GetSystemMetrics(SM_SERVERR2) != 0)
-					Ver += "R2";
-				*/
+			if(GetSystemMetrics(SM_SERVERR2) != 0)
+				Ver += "R2";
+			*/
 		} else if (ovi.dwMajorVersion == 6 && ovi.dwMinorVersion == 0) {
 			Ver += "Vista";
 			// todo: make this check work
 			/*
-				if(ovi.wProductType == VER_NT_WORKSTATION)
-					Ver += "Vista";
-				else
-					Ver += "WinServer2008";
-				*/
+			if(ovi.wProductType == VER_NT_WORKSTATION)
+				Ver += "Vista";
+			else
+				Ver += "WinServer2008";
+			*/
 		} else if (ovi.dwMajorVersion == 6 && ovi.dwMinorVersion == 1) {
 			Ver += "Win7";
 			// todo: make this check work
 			/*
-				if(ovi.wProductType == VER_NT_WORKSTATION)
-					Ver += "Win7";
-				else
-					Ver += "WinServer2008 R2";
-				*/
+			if(ovi.wProductType == VER_NT_WORKSTATION)
+				Ver += "Win7";
+			else
+				Ver += "WinServer2008 R2";
+			*/
 		} else if (ovi.dwMajorVersion == 6 && ovi.dwMinorVersion == 2) {
 			Ver += "Win8";
 			// todo: make this check work
 			/*
-				if(ovi.wProductType == VER_NT_WORKSTATION)
-					Ver += "Win7";
-				else
-					Ver += "WinServer2008 R2";
-				*/
+			if(ovi.wProductType == VER_NT_WORKSTATION)
+				Ver += "Win7";
+			else
+				Ver += "WinServer2008 R2";
+			*/
 		} else
 			Ver += "unknown NT-based";
 	} else

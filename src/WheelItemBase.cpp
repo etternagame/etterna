@@ -1,6 +1,6 @@
-#include "WheelItemBase.h"
-#include "LuaManager.h"
 #include "global.h"
+#include "LuaManager.h"
+#include "WheelItemBase.h"
 
 static const char* WheelItemDataTypeNames[] = {
 	"Generic", "Section", "Song", "Roulette", "Random",

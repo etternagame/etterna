@@ -1,5 +1,4 @@
 ﻿#include "global.h"
-#include "RageUtil.h"
 #include "Foreach.h"
 #include "LocalizedString.h"
 #include "LuaBinding.h"
@@ -7,6 +6,7 @@
 #include "RageFile.h"
 #include "RageLog.h"
 #include "RageSoundReader_FileReader.h"
+#include "RageUtil.h"
 
 #include <cfloat>
 #include <ctime>

@@ -1,9 +1,9 @@
+#include "global.h"
 #include "LoadingWindow_GtkModule.h"
+#include "RageUtil.h"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
 #include "RageSurface_Load.h"
-#include "RageUtil.h"
-#include "global.h"
 
 #include <gtk/gtk.h>
 

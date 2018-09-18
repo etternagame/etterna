@@ -1,8 +1,8 @@
+#include "global.h"
 #include "RageSoundDriver_Null.h"
-#include "PrefsManager.h"
 #include "RageLog.h"
 #include "RageUtil.h"
-#include "global.h"
+#include "PrefsManager.h"
 
 REGISTER_SOUND_DRIVER_CLASS(Null);
 

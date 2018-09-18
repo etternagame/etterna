@@ -1,7 +1,6 @@
 #ifndef GHOSTARROWROW_H
 #define GHOSTARROWROW_H
 
-#include "global.h"
 #include "ActorFrame.h"
 #include "GameConstantsAndTypes.h"
 #include "NoteDisplay.h"

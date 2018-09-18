@@ -1,16 +1,18 @@
-#include "SongManager.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "AnnouncerManager.h"
 #include "BackgroundUtil.h"
+#include "ImageCache.h"
 #include "CommonMetrics.h"
 #include "Foreach.h"
 #include "GameManager.h"
 #include "GameState.h"
-#include "ImageCache.h"
 #include "LocalizedString.h"
 #include "MsdFile.h"
 #include "NoteSkinManager.h"
+#include <algorithm>
 #include "NotesLoaderDWI.h"
+#include <mutex>
 #include "NotesLoaderSM.h"
 #include "NotesLoaderSSC.h"
 #include "PrefsManager.h"
@@ -19,10 +21,10 @@
 #include "RageFile.h"
 #include "RageFileManager.h"
 #include "RageLog.h"
-#include "ScreenManager.h"
 #include "ScreenTextEntry.h"
 #include "Song.h"
 #include "SongCacheIndex.h"
+#include "SongManager.h"
 #include "SongUtil.h"
 #include "SpecialFiles.h"
 #include "Sprite.h"
@@ -33,9 +35,7 @@
 #include "ThemeManager.h"
 #include "TitleSubstitution.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
-#include "global.h"
-#include <algorithm>
-#include <mutex>
+#include "ScreenManager.h"
 
 SongManager* SONGMAN =
   NULL; // global and accessible from anywhere in our program
@@ -691,21 +691,21 @@ SongManager::AddGroup(const RString& sDir, const RString& sGroupDirName)
 	// GetDirListing( sDir+sGroupDirName+"/*-bg.gif", arrayGroupBanners );
 	// GetDirListing( sDir+sGroupDirName+"/*-bg.bmp", arrayGroupBanners );
 	/*
-	RString sBackgroundPath;
-	if( !arrayGroupBackgrounds.empty() )
-		sBackgroundPath = sDir+sGroupDirName+"/"+arrayGroupBackgrounds[0];
-	else
-	{
-		// Look for a group background in the parent folder
-		GetDirListing( sDir+sGroupDirName+"-bg.png", arrayGroupBackgrounds );
-		GetDirListing( sDir+sGroupDirName+"-bg.jpg", arrayGroupBackgrounds );
-		GetDirListing( sDir+sGroupDirName+"-bg.jpeg", arrayGroupBackgrounds );
-		GetDirListing( sDir+sGroupDirName+"-bg.gif", arrayGroupBackgrounds );
-		GetDirListing( sDir+sGroupDirName+"-bg.bmp", arrayGroupBackgrounds );
+		RString sBackgroundPath;
 		if( !arrayGroupBackgrounds.empty() )
-			sBackgroundPath = sDir+arrayGroupBackgrounds[0];
-	}
-*/
+			sBackgroundPath = sDir+sGroupDirName+"/"+arrayGroupBackgrounds[0];
+		else
+		{
+			// Look for a group background in the parent folder
+			GetDirListing( sDir+sGroupDirName+"-bg.png", arrayGroupBackgrounds
+	   ); GetDirListing( sDir+sGroupDirName+"-bg.jpg", arrayGroupBackgrounds );
+			GetDirListing( sDir+sGroupDirName+"-bg.jpeg", arrayGroupBackgrounds
+	   ); GetDirListing( sDir+sGroupDirName+"-bg.gif", arrayGroupBackgrounds );
+			GetDirListing( sDir+sGroupDirName+"-bg.bmp", arrayGroupBackgrounds
+	   ); if( !arrayGroupBackgrounds.empty() ) sBackgroundPath =
+	   sDir+arrayGroupBackgrounds[0];
+		}
+	*/
 	/*
 	LOG->Trace( "Group banner for '%s' is '%s'.", sGroupDirName.c_str(),
 				sBannerPath != ""? sBannerPath.c_str():"(none)" );
@@ -768,6 +768,7 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 		[&sDir](std::pair<vectorIt<pair<RString*, vector<RString>*>>,
 						  vectorIt<pair<RString*, vector<RString>*>>> workload,
 				ThreadData* data) {
+
 			CHECKPOINT_M("Looking for images...");
 			auto pair =
 			  static_cast<std::pair<int, LoadingWindow*>*>(data->data);

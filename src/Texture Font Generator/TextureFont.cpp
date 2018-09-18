@@ -1,10 +1,10 @@
+#include "stdafx.h"
 #include "TextureFont.h"
 #include "Utils.h"
-#include "stdafx.h"
 
-#include <cassert>
 #include <fstream>
 #include <math.h>
+#include <cassert>
 
 TextureFont::TextureFont()
 {
@@ -99,14 +99,14 @@ TextureFont::FormatFontPages()
 	}
 
 	/*	OUTLINETEXTMETRIC *tm = NULL;
-	int i = GetOutlineTextMetrics( hDC, 0, NULL );
-	if( i )
-	{
-		tm = (OUTLINETEXTMETRIC *) new char[i];
-		GetOutlineTextMetrics( hDC, i, tm );
-	}
-	delete [] tm;
-*/
+		int i = GetOutlineTextMetrics( hDC, 0, NULL );
+		if( i )
+		{
+			tm = (OUTLINETEXTMETRIC *) new char[i];
+			GetOutlineTextMetrics( hDC, i, tm );
+		}
+		delete [] tm;
+	*/
 
 	SelectObject(hDC, hOldFont);
 	DeleteObject(hFont);
@@ -125,19 +125,19 @@ TextureFont::FormatCharacter(wchar_t c, HDC hDC)
 		return;
 
 	/*		int ii = GetFontUnicodeRanges( hDC, NULL );
-		GLYPHSET *gs = (GLYPHSET *) alloca(ii);
-		GetFontUnicodeRanges( hDC, gs );
+			GLYPHSET *gs = (GLYPHSET *) alloca(ii);
+			GetFontUnicodeRanges( hDC, gs );
 
-		GLYPHMETRICS gm;
-		MAT2 mat;
-		memset( &mat, 0, sizeof(mat) );
-		mat.eM11.value = 1;
-		mat.eM22.value = 1;
+			GLYPHMETRICS gm;
+			MAT2 mat;
+			memset( &mat, 0, sizeof(mat) );
+			mat.eM11.value = 1;
+			mat.eM22.value = 1;
 
-		ii = GetGlyphOutline( hDC, c, GGO_BEZIER, &gm, 0, NULL, &mat );
-		DWORD *data = (DWORD *) alloca(ii);
-		ii = GetGlyphOutline( hDC, c, GGO_BEZIER, &gm, ii, data, &mat );
-*/
+			ii = GetGlyphOutline( hDC, c, GGO_BEZIER, &gm, 0, NULL, &mat );
+			DWORD *data = (DWORD *) alloca(ii);
+			ii = GetGlyphOutline( hDC, c, GGO_BEZIER, &gm, ii, data, &mat );
+	*/
 
 	// lol what
 	if (c == L'j')
@@ -198,17 +198,17 @@ TextureFont::FormatCharacter(wchar_t c, HDC hDC)
 	realbounds.bottom = 10;
 
 	/*	if(c == L'j')
-	{
-		Surface surf;
-		BitmapToSurface( hBitmap, &surf );
-		GrayScaleToAlpha( &surf );
+		{
+			Surface surf;
+			BitmapToSurface( hBitmap, &surf );
+			GrayScaleToAlpha( &surf );
 
-		FILE *f = fopen( "c:/foo5.png", "w+b" );
-		char szErrorbuf[1024];
-		SavePNG( f, szErrorbuf, &surf );
-		fclose( f );
-	}
-*/
+			FILE *f = fopen( "c:/foo5.png", "w+b" );
+			char szErrorbuf[1024];
+			SavePNG( f, szErrorbuf, &surf );
+			fclose( f );
+		}
+	*/
 	{
 		Surface surf;
 		BitmapToSurface(hBitmap, &surf);
@@ -218,20 +218,20 @@ TextureFont::FormatCharacter(wchar_t c, HDC hDC)
 	realbounds.right = abc.abcB;
 
 	/*	{
-//		Graphics blit( pBitmap );
-//		blit.DrawLine(&pen, abc.abcA, 5, abc.abcA+abc.abcB, 5);
-		const SolidBrush solidBrush1(Color(128, 255, 0, 255));
-		Pen pen( &solidBrush1, 1 );
-		graphics.DrawRectangle( &pen, 0, 0, (-abc.abcA) - 1, 10 );
+	//		Graphics blit( pBitmap );
+	//		blit.DrawLine(&pen, abc.abcA, 5, abc.abcA+abc.abcB, 5);
+			const SolidBrush solidBrush1(Color(128, 255, 0, 255));
+			Pen pen( &solidBrush1, 1 );
+			graphics.DrawRectangle( &pen, 0, 0, (-abc.abcA) - 1, 10 );
 
-		pen.SetColor(Color(128, 0, 255, 255));
-		graphics.DrawRectangle( &pen, 0, 0, abc.abcB - 1, 10 );
+			pen.SetColor(Color(128, 0, 255, 255));
+			graphics.DrawRectangle( &pen, 0, 0, abc.abcB - 1, 10 );
 
-		pen.SetColor(Color(128, 255, 255, 0));
-		graphics.DrawRectangle( &pen, abc.abcA + abc.abcB, 10, abc.abcC - 1, 20
-);
-	}
-*/
+			pen.SetColor(Color(128, 255, 255, 0));
+			graphics.DrawRectangle( &pen, abc.abcA + abc.abcB, 10, abc.abcC - 1,
+	20 );
+		}
+	*/
 
 	/*
 	 * The bitmap is probably too big.  Resize it: remove empty space on

@@ -1,12 +1,12 @@
 // EnterComment.cpp : implementation file
 
 #define CO_EXIST_WITH_MFC
-#include "EnterComment.h"
-#include ".\entercomment.h"
-#include "archutils/Win32/DialogUtil.h"
 #include "global.h"
-#include "smpackage.h"
 #include "stdafx.h"
+#include "smpackage.h"
+#include "EnterComment.h"
+#include "archutils/Win32/DialogUtil.h"
+#include ".\entercomment.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

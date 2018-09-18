@@ -1,7 +1,7 @@
+#include "global.h"
 #include "DialogDriver.h"
 #include "Foreach.h"
 #include "RageLog.h"
-#include "global.h"
 
 map<istring, CreateDialogDriverFn>* RegisterDialogDriver::g_pRegistrees;
 RegisterDialogDriver::RegisterDialogDriver(const istring& sName,

@@ -1,7 +1,7 @@
 ﻿#include "global.h"
-#include "InputFilter.h"
 #include "Foreach.h"
 #include "GameInput.h"
+#include "InputFilter.h"
 #include "InputMapper.h"
 #include "LocalizedString.h"
 #include "Preference.h"

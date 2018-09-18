@@ -1,7 +1,6 @@
 ﻿#ifndef RAGE_UTIL_FILEDB
 #define RAGE_UTIL_FILEDB
 
-#include "global.h"
 #include "RageFileManager.h"
 #include "RageThreads.h"
 #include "RageTimer.h"

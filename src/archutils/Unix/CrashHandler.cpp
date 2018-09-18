@@ -1,8 +1,8 @@
 #include "global.h"
 
-#include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
+#include <cstdarg>
 #if defined(HAVE_UNISTD_H)
 #include <unistd.h>
 #endif
@@ -13,9 +13,9 @@
 #endif
 #include <csignal>
 
-#include "Backtrace.h"
 #include "RageLog.h" /* for RageLog::GetAdditionalLog, etc, only */
 #include "RageThreads.h"
+#include "Backtrace.h"
 
 #include <sys/types.h>
 #include <sys/wait.h>

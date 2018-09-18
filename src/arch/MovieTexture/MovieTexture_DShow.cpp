@@ -12,15 +12,15 @@
 #endif
 #endif
 
-#include "MovieTexture_DShow.h"
 #include "MovieTexture_DShowHelper.h"
+#include "MovieTexture_DShow.h"
 
 /* for TEXTUREMAN->GetTextureColorDepth() */
-#include "RageException.h"
-#include "RageLog.h"
-#include "RageSurface.h"
 #include "RageTextureManager.h"
 #include "RageUtil.h"
+#include "RageLog.h"
+#include "RageException.h"
+#include "RageSurface.h"
 #include "arch/Dialog/Dialog.h"
 #include "archutils/Win32/DirectXHelpers.h"
 

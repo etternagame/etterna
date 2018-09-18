@@ -1,9 +1,9 @@
+#include "global.h"
 #include "InputHandler_Linux_Event.h"
-#include "GamePreferences.h" //needed for Axis Fix
-#include "LinuxInputManager.h"
 #include "RageLog.h"
 #include "RageUtil.h"
-#include "global.h"
+#include "LinuxInputManager.h"
+#include "GamePreferences.h" //needed for Axis Fix
 
 #if defined(HAVE_UNISTD_H)
 #include <unistd.h>
@@ -14,9 +14,9 @@
 #endif
 
 #include <errno.h>
-#include <linux/input.h>
-#include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <linux/input.h>
 
 REGISTER_INPUT_HANDLER_CLASS2(LinuxEvent, Linux_Event);
 
@@ -24,15 +24,15 @@ static RString
 BustypeToString(int iBus)
 {
 	switch (iBus) {
-		//	case BUS_ADB:
-		//	case BUS_AMIGA: return "amiga input";
+			//	case BUS_ADB:
+			//	case BUS_AMIGA: return "amiga input";
 		case BUS_BLUETOOTH:
 			return "Bluetooth";
 		case BUS_GAMEPORT:
 			return "gameport";
-		//	case BUS_HIL:
-		//	case BUS_HOST:
-		//	case BUS_I2C:
+			//	case BUS_HIL:
+			//	case BUS_HOST:
+			//	case BUS_I2C:
 		case BUS_I8042:
 			return "keyboard";
 		case BUS_ISA:

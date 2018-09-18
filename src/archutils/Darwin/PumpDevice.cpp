@@ -1,5 +1,5 @@
-#include "PumpDevice.h"
 #include "global.h"
+#include "PumpDevice.h"
 
 void
 PumpDevice::Open()

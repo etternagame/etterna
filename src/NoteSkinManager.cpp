@@ -1,18 +1,18 @@
 ﻿#include "global.h"
-#include "NoteSkinManager.h"
 #include "ActorUtil.h"
 #include "Foreach.h"
 #include "Game.h"
 #include "GameInput.h"
 #include "GameState.h"
 #include "IniFile.h"
+#include "NoteSkinManager.h"
 #include "RageDisplay.h"
 #include "RageFileManager.h"
 #include "RageLog.h"
 #include "RageUtil.h"
 #include "SpecialFiles.h"
-#include "Sprite.h"
 #include "ThemeManager.h"
+#include "Sprite.h"
 #include "XmlFileUtil.h"
 #include "arch/Dialog/Dialog.h"
 #include <map>
@@ -44,7 +44,7 @@ struct NoteSkinData
 
 namespace {
 static map<RString, NoteSkinData> g_mapNameToData;
-} // namespace
+} // namespace;
 
 NoteSkinManager::NoteSkinManager()
 {

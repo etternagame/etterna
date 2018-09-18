@@ -18,6 +18,7 @@
  * offset value, but it's annoying.
  */
 
+#include "global.h"
 #include "AutoKeysounds.h"
 #include "Foreach.h"
 #include "GameState.h"
@@ -32,7 +33,6 @@
 #include "RageSoundReader_PostBuffering.h"
 #include "RageSoundReader_ThreadedBuffer.h"
 #include "Song.h"
-#include "global.h"
 
 void
 AutoKeysounds::Load(PlayerNumber pn, const NoteData& ndAutoKeysoundsOnly)
@@ -331,41 +331,41 @@ AutoKeysounds::Update(float fDelta)
 {
 	// Play keysounds for crossed rows.
 	/*
-	bool bCrossedABeat = false;
-	{
-		float fPositionSeconds = GAMESTATE->m_fMusicSeconds;
-		float fSongBeat = GAMESTATE->m_pCurSong->GetBeatFromElapsedTime(
-	fPositionSeconds );
-
-		int iRowNow = BeatToNoteRow( fSongBeat );
-		iRowNow = max( 0, iRowNow );
-		static int iRowLastCrossed = 0;
-
-		float fBeatLast = roundf(NoteRowToBeat(iRowLastCrossed));
-		float fBeatNow = roundf(NoteRowToBeat(iRowNow));
-
-		bCrossedABeat = fBeatLast != fBeatNow;
-
-		FOREACH_EnabledPlayer( pn )
+		bool bCrossedABeat = false;
 		{
-			const NoteData &nd = m_ndAutoKeysoundsOnly[pn];
+			float fPositionSeconds = GAMESTATE->m_fMusicSeconds;
+			float fSongBeat = GAMESTATE->m_pCurSong->GetBeatFromElapsedTime(
+	   fPositionSeconds );
 
-			for( int t=0; t<nd.GetNumTracks(); t++ )
+			int iRowNow = BeatToNoteRow( fSongBeat );
+			iRowNow = max( 0, iRowNow );
+			static int iRowLastCrossed = 0;
+
+			float fBeatLast = roundf(NoteRowToBeat(iRowLastCrossed));
+			float fBeatNow = roundf(NoteRowToBeat(iRowNow));
+
+			bCrossedABeat = fBeatLast != fBeatNow;
+
+			FOREACH_EnabledPlayer( pn )
 			{
-				FOREACH_NONEMPTY_ROW_IN_TRACK_RANGE( nd, t, r,
-	iRowLastCrossed+1, iRowNow )
+				const NoteData &nd = m_ndAutoKeysoundsOnly[pn];
+
+				for( int t=0; t<nd.GetNumTracks(); t++ )
 				{
-					const TapNote &tn = nd.GetTapNote( t, r );
-					ASSERT( tn.type == TapNoteType_AutoKeysound );
-					if( tn.bKeysound )
-						m_vKeysounds[tn.iKeysoundIndex].Play();
+					FOREACH_NONEMPTY_ROW_IN_TRACK_RANGE( nd, t, r,
+	   iRowLastCrossed+1, iRowNow )
+					{
+						const TapNote &tn = nd.GetTapNote( t, r );
+						ASSERT( tn.type == TapNoteType_AutoKeysound );
+						if( tn.bKeysound )
+							m_vKeysounds[tn.iKeysoundIndex].Play();
+					}
 				}
 			}
-		}
 
-		iRowLastCrossed = iRowNow;
-	}
-*/
+			iRowLastCrossed = iRowNow;
+		}
+	*/
 }
 
 /*

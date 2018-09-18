@@ -8,8 +8,8 @@
 
 static void* Handle = NULL;
 
-#include "ALSA9Dynamic.h"
 #include "RageUtil.h"
+#include "ALSA9Dynamic.h"
 
 /* foo_f dfoo = NULL */
 #define FUNC(ret, name, proto) name##_f d##name = NULL

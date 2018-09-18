@@ -1,5 +1,5 @@
-#include "WindowsDialogBox.h"
 #include "global.h"
+#include "WindowsDialogBox.h"
 
 WindowsDialogBox::WindowsDialogBox()
 {

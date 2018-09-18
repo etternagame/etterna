@@ -3,11 +3,11 @@
 #include "NotesLoaderBMS.h"
 #include "NotesLoaderDWI.h"
 #include "NotesLoaderKSF.h"
-#include "NotesLoaderOSU.h"
 #include "NotesLoaderSM.h"
 #include "NotesLoaderSMA.h"
 #include "NotesLoaderSSC.h"
 #include "RageUtil.h"
+#include "NotesLoaderOSU.h"
 
 void
 NotesLoader::GetMainAndSubTitlesFromFullTitle(const RString& sFullTitle,

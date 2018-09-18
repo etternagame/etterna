@@ -1,5 +1,5 @@
-#include "TitleSubstitution.h"
 #include "global.h"
+#include "TitleSubstitution.h"
 
 #include "FontCharAliases.h"
 #include "Foreach.h"

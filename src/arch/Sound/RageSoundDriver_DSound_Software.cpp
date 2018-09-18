@@ -1,11 +1,11 @@
+#include "global.h"
 #include "RageSoundDriver_DSound_Software.h"
 #include "DSoundHelpers.h"
-#include "global.h"
 
-#include "PrefsManager.h"
 #include "RageLog.h"
-#include "RageSoundManager.h"
 #include "RageUtil.h"
+#include "RageSoundManager.h"
+#include "PrefsManager.h"
 #include "archutils/Win32/ErrorStrings.h"
 
 REGISTER_SOUND_DRIVER_CLASS2(DirectSound - sw, DSound_Software);

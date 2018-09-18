@@ -1,41 +1,46 @@
-#include "ScreenSelectMusic.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "CodeDetector.h"
 #include "CommonMetrics.h"
-#include "DownloadManager.h"
 #include "Foreach.h"
 #include "Game.h"
 #include "GameConstantsAndTypes.h"
 #include "GameManager.h"
-#include "GamePreferences.h"
 #include "GameSoundManager.h"
+#include "ScoreManager.h"
 #include "GameState.h"
-#include "ImageCache.h"
-#include "InputEventPlus.h"
 #include "InputMapper.h"
 #include "MenuTimer.h"
-#include "OptionsList.h"
-#include "PlayerAI.h"
-#include "PlayerOptions.h"
+#include "StageStats.h"
 #include "PlayerState.h"
 #include "PrefsManager.h"
 #include "ProfileManager.h"
-#include "RageFileManager.h"
-#include "RageInput.h"
 #include "RageLog.h"
 #include "RageTextureManager.h"
-#include "ScoreManager.h"
 #include "ScreenManager.h"
-#include "ScreenPrompt.h"
-#include "ScreenTextEntry.h"
-#include "Song.h"
+#include "ScreenSelectMusic.h"
 #include "SongManager.h"
-#include "StageStats.h"
 #include "StatsManager.h"
 #include "Steps.h"
 #include "StepsUtil.h"
 #include "Style.h"
-#include "global.h"
+#include "PlayerState.h"
+#include "CommonMetrics.h"
+#include "ImageCache.h"
+#include "ScreenPrompt.h"
+#include "Song.h"
+#include "InputEventPlus.h"
+#include "OptionsList.h"
+#include "ProfileManager.h"
+#include "RageFileManager.h"
+#include "RageInput.h"
+#include "ScreenPrompt.h"
+#include "ScreenTextEntry.h"
+#include "ProfileManager.h"
+#include "DownloadManager.h"
+#include "GamePreferences.h"
+#include "PlayerAI.h"
+#include "PlayerOptions.h"
 
 static const char* SelectionStateNames[] = { "SelectingSong",
 											 "SelectingSteps",
@@ -1230,6 +1235,7 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 				else
 					SOUND->PlayOnceFromAnnouncer(
 					  "select music comment general");
+
 			} else {
 				// We haven't made a selection yet.
 				return false;
@@ -1581,14 +1587,14 @@ ScreenSelectMusic::AfterMusicChange()
 			}
 			// override this if the sample music mode wants to.
 			/*
-				if(SAMPLE_MUSIC_PREVIEW_MODE == SampleMusicPreviewMode_LastSong)
-				{
-				m_sSampleMusicToPlay = pSong->GetMusicPath();
-				m_pSampleMusicTimingData = &pSong->m_SongTiming;
-				m_fSampleStartSeconds = pSong->m_fMusicSampleStartSeconds;
-				m_fSampleLengthSeconds = pSong->m_fMusicSampleLengthSeconds;
-				}
-				*/
+			if(SAMPLE_MUSIC_PREVIEW_MODE == SampleMusicPreviewMode_LastSong)
+			{
+			m_sSampleMusicToPlay = pSong->GetMusicPath();
+			m_pSampleMusicTimingData = &pSong->m_SongTiming;
+			m_fSampleStartSeconds = pSong->m_fMusicSampleStartSeconds;
+			m_fSampleLengthSeconds = pSong->m_fMusicSampleLengthSeconds;
+			}
+			*/
 			break;
 		case WheelItemDataType_Song:
 		case WheelItemDataType_Portal:
@@ -1840,13 +1846,13 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		// set mods based on the score, hopefully
 		// it is known that xmod->cmod and back does not work most of the time.
 		/*
-			CHECKPOINT_M("Setting mods for Replay Viewing.");
-			RString mods = hs->GetModifiers();
-			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetSong().FromString(mods);
-			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().FromString(mods);
-			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred().FromString(mods);
-			CHECKPOINT_M("Replay mods set.");
-			*/
+		CHECKPOINT_M("Setting mods for Replay Viewing.");
+		RString mods = hs->GetModifiers();
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetSong().FromString(mods);
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().FromString(mods);
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred().FromString(mods);
+		CHECKPOINT_M("Replay mods set.");
+		*/
 
 		// lock the game into replay mode and GO
 		LOG->Trace("Viewing replay for score key %s",

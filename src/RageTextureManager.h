@@ -3,7 +3,6 @@
 #ifndef RAGE_TEXTURE_MANAGER_H
 #define RAGE_TEXTURE_MANAGER_H
 
-#include "global.h"
 #include "RageSurface.h"
 #include "RageTexture.h"
 

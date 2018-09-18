@@ -1,5 +1,4 @@
 ﻿#include "global.h"
-#include "OptionRowHandler.h"
 #include "Character.h"
 #include "CharacterManager.h"
 #include "CommonMetrics.h"
@@ -9,6 +8,7 @@
 #include "GameState.h"
 #include "LuaManager.h"
 #include "NoteSkinManager.h"
+#include "OptionRowHandler.h"
 #include "RageLog.h"
 #include "RageUtil.h"
 #include "ScreenManager.h"

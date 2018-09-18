@@ -1,5 +1,5 @@
-#include "FontCharmaps.h"
 #include "global.h"
+#include "FontCharmaps.h"
 
 #include <map>
 

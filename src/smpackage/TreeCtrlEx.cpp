@@ -8,9 +8,9 @@
 //
 //////////////////////////////////////////////////////////////
 #define CO_EXIST_WITH_MFC
-#include "TreeCtrlEx.h"
 #include "global.h"
 #include "stdafx.h"
+#include "TreeCtrlEx.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE

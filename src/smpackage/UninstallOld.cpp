@@ -2,12 +2,12 @@
 //
 
 #define CO_EXIST_WITH_MFC
+#include "global.h"
+#include "stdafx.h"
+#include "smpackage.h"
 #include "UninstallOld.h"
 #include "SMPackageUtil.h"
 #include "archutils/Win32/DialogUtil.h"
-#include "global.h"
-#include "smpackage.h"
-#include "stdafx.h"
 
 // UninstallOld dialog
 

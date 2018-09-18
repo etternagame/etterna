@@ -3,11 +3,6 @@
 #ifndef RAGE_DISPLAY_NULL_H
 #define RAGE_DISPLAY_NULL_H
 
-#include "global.h"
-#include "ModelTypes.h"
-#include "RageTypes.h"
-#include "RageDisplay.h"
-
 class RageDisplay_Null : public RageDisplay
 {
   public:

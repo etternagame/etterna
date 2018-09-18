@@ -51,7 +51,7 @@ RegisterTypes(lua_State* L)
 		mapToRegister.erase(pBinding->GetClassName());
 	}
 }
-} // namespace
+} // namespace;
 REGISTER_WITH_LUA_FUNCTION(RegisterTypes);
 
 LuaBinding::LuaBinding()

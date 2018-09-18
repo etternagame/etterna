@@ -5,11 +5,11 @@
  * Each conversion ratio uses some memory, but the resulting table is
  * shared, so the memory overhead per stream is negligible.
  */
-#include "RageSoundReader_Resample_Good.h"
+#include "global.h"
 #include "RageMath.h"
+#include "RageSoundReader_Resample_Good.h"
 #include "RageThreads.h"
 #include "RageUtil.h"
-#include "global.h"
 
 #include <numeric>
 

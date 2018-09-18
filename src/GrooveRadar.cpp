@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "GrooveRadar.h"
 #include "ActorUtil.h"
+#include "GrooveRadar.h"
 #include "RageDisplay.h"
 #include "RageMath.h"
 #include "RageUtil.h"

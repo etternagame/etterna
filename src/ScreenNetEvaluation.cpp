@@ -2,12 +2,12 @@
 
 #if !defined(WITHOUT_NETWORKING)
 #include "GameState.h"
-#include "NetworkSyncManager.h"
 #include "RageLog.h"
 #include "ScreenNetEvaluation.h"
 #include "SongUtil.h"
 #include "Style.h"
 #include "ThemeManager.h"
+#include "NetworkSyncManager.h"
 
 static const int NUM_SCORE_DIGITS = 9;
 

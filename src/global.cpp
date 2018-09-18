@@ -7,8 +7,8 @@
 #if defined(_WINDOWS)
 #if defined(CRASH_HANDLER)
 #define _WIN32_WINDOWS 0x0410 // include Win98 stuff
-#include "archutils/Win32/Crash.h"
 #include "windows.h"
+#include "archutils/Win32/Crash.h"
 #endif
 #elif defined(MACOSX)
 #include "archutils/Darwin/Crash.h"

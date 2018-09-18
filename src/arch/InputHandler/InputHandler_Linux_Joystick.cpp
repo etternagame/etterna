@@ -1,9 +1,9 @@
+#include "global.h"
 #include "InputHandler_Linux_Joystick.h"
-#include "LinuxInputManager.h"
-#include "RageInputDevice.h" // NUM_JOYSTICKS
 #include "RageLog.h"
 #include "RageUtil.h"
-#include "global.h"
+#include "LinuxInputManager.h"
+#include "RageInputDevice.h" // NUM_JOYSTICKS
 
 #if defined(HAVE_UNISTD_H)
 #include <unistd.h>
@@ -13,9 +13,9 @@
 #endif
 
 #include <errno.h>
-#include <linux/joystick.h>
-#include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <linux/joystick.h>
 
 #include <set>
 

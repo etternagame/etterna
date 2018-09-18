@@ -1,7 +1,6 @@
 ﻿#ifndef RAGE_STRING_HPP_
 #define RAGE_STRING_HPP_
 
-#include "global.h"
 #include <string>
 #include <vector>
 
@@ -314,7 +313,7 @@ struct std_string_ci_equal
 			   Rage::ci_ascii_string{ rhs.c_str() };
 	}
 };
-} // namespace Rage
+}
 
 inline bool
 operator==(Rage::ci_ascii_string const& lhs, std::string const& rhs)

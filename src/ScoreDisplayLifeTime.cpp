@@ -1,4 +1,4 @@
-#include "ScoreDisplayLifeTime.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "CommonMetrics.h"
 #include "PlayerStageStats.h"
@@ -6,8 +6,8 @@
 #include "PrefsManager.h"
 #include "RageLog.h"
 #include "RageUtil.h"
+#include "ScoreDisplayLifeTime.h"
 #include "ThemeManager.h"
-#include "global.h"
 
 ScoreDisplayLifeTime::ScoreDisplayLifeTime()
 {

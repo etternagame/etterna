@@ -1,7 +1,6 @@
 ﻿#ifndef RARAR_VALUES_H
 #define RARAR_VALUES_H
 
-#include "global.h"
 #include "GameConstantsAndTypes.h"
 #include "ThemeMetric.h"
 

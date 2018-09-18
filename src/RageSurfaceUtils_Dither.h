@@ -9,7 +9,7 @@ void
 OrderedDither(const RageSurface* src, RageSurface* dst);
 void
 ErrorDiffusionDither(const RageSurface* src, RageSurface* dst);
-}; // namespace RageSurfaceUtils
+};
 
 #endif
 

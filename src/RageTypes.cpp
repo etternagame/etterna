@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "RageTypes.h"
 #include "LuaManager.h"
+#include "RageTypes.h"
 
 void
 RageColor::PushTable(lua_State* L) const
@@ -115,7 +115,7 @@ Push<RageColor>(lua_State* L, const RageColor& Object)
 {
 	Object.PushTable(L);
 }
-} // namespace LuaHelpers
+}
 
 static const char* CullModeNames[] = { "Back", "Front", "None" };
 XToString(CullMode);

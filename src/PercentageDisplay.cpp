@@ -1,8 +1,8 @@
 ﻿#include "global.h"
 
-#include "PercentageDisplay.h"
 #include "ActorUtil.h"
 #include "GameState.h"
+#include "PercentageDisplay.h"
 #include "PlayerState.h"
 #include "RageLog.h"
 #include "StageStats.h"

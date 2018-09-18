@@ -1,28 +1,28 @@
 // SmpackageExportDlg.cpp : implementation file
 
 #define CO_EXIST_WITH_MFC
+#include "global.h"
+#include "stdafx.h"
+#include "smpackage.h"
 #include "SmpackageExportDlg.h"
-#include "EditInsallations.h"
-#include "EnterComment.h"
-#include "EnterName.h"
-#include "IniFile.h"
-#include "LocalizedString.h"
-#include "RageFileDriverDirect.h"
-#include "RageFileDriverMemory.h"
 #include "RageUtil.h"
 #include "ZipArchive\ZipArchive.h"
-#include "arch/Dialog/Dialog.h"
-#include "archutils/Win32/DialogUtil.h"
-#include "archutils/Win32/SpecialDirs.h"
-#include "global.h"
-#include "smpackage.h"
+#include "EnterName.h"
+#include "EnterComment.h"
 #include "smpackageUtil.h"
-#include "stdafx.h"
+#include "EditInsallations.h"
+#include "IniFile.h"
+#include "RageFileDriverMemory.h"
+#include "archutils/Win32/SpecialDirs.h"
+#include "archutils/Win32/DialogUtil.h"
+#include "LocalizedString.h"
+#include "RageFileDriverDirect.h"
+#include "arch/Dialog/Dialog.h"
 
-#include ".\smpackageexportdlg.h"
+#include <vector>
 #include <algorithm>
 #include <set>
-#include <vector>
+#include ".\smpackageexportdlg.h"
 using namespace std;
 
 #ifdef _DEBUG

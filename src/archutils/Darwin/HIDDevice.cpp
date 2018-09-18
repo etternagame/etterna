@@ -1,6 +1,6 @@
+#include "global.h"
 #include "HIDDevice.h"
 #include "RageUtil.h"
-#include "global.h"
 
 HIDDevice::HIDDevice()
   : m_Interface(NULL)

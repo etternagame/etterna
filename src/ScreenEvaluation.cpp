@@ -1,4 +1,4 @@
-#include "ScreenEvaluation.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "AnnouncerManager.h"
 #include "CodeDetector.h"
@@ -6,19 +6,19 @@
 #include "CryptManager.h"
 #include "GameConstantsAndTypes.h"
 #include "GameManager.h"
-#include "GamePreferences.h"
 #include "GameSoundManager.h"
 #include "GameState.h"
 #include "Grade.h"
 #include "InputEventPlus.h"
 #include "PlayerState.h"
 #include "PrefsManager.h"
+#include "ScoreManager.h"
 #include "ProfileManager.h"
 #include "RageDisplay.h"
 #include "RageLog.h"
 #include "RageUtil.h"
 #include "ScoreKeeperNormal.h"
-#include "ScoreManager.h"
+#include "ScreenEvaluation.h"
 #include "ScreenManager.h"
 #include "Song.h"
 #include "SongManager.h"
@@ -26,7 +26,7 @@
 #include "StepMania.h"
 #include "Steps.h"
 #include "ThemeManager.h"
-#include "global.h"
+#include "GamePreferences.h"
 
 // metrics that are common to all ScreenEvaluation classes
 #define BANNER_WIDTH THEME->GetMetricF(m_sName, "BannerWidth")
@@ -832,13 +832,13 @@ ScreenEvaluation::HandleMenuStart()
 		float oldRate = GAMEMAN->m_fPreviousRate;
 		const RString mods = GAMEMAN->m_sModsToReset;
 		/* // Reset mods
-			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetSong().FromString("clearall");
-			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().FromString("clearall");
-			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred().FromString("clearall");
-			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetSong().FromString(mods);
-			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().FromString(mods);
-			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred().FromString(mods);
-			*/
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetSong().FromString("clearall");
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().FromString("clearall");
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred().FromString("clearall");
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetSong().FromString(mods);
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().FromString(mods);
+		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred().FromString(mods);
+		*/
 		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = oldRate;
 		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = oldRate;
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = oldRate;

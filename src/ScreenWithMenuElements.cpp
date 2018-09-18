@@ -1,4 +1,4 @@
-#include "ScreenWithMenuElements.h"
+#include "global.h"
 #include "GameSoundManager.h"
 #include "GameState.h"
 #include "InputEventPlus.h"
@@ -6,8 +6,8 @@
 #include "PrefsManager.h"
 #include "RageLog.h"
 #include "ScreenManager.h"
+#include "ScreenWithMenuElements.h"
 #include "ThemeManager.h"
-#include "global.h"
 
 #define TIMER_STEALTH THEME->GetMetricB(m_sName, "TimerStealth")
 #define SHOW_STAGE_DISPLAY THEME->GetMetricB(m_sName, "ShowStageDisplay")

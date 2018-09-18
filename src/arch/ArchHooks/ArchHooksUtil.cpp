@@ -1,5 +1,5 @@
-#include "ArchHooks.h"
 #include "global.h"
+#include "ArchHooks.h"
 
 /*
  * This is a helper for GetMicrosecondsSinceStart on systems with a system

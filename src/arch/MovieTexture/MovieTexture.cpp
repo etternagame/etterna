@@ -1,13 +1,13 @@
+#include "global.h"
 #include "MovieTexture.h"
-#include "Foreach.h"
-#include "LocalizedString.h"
+#include "RageUtil.h"
+#include "RageLog.h"
 #include "MovieTexture_Null.h"
 #include "PrefsManager.h"
 #include "RageFile.h"
-#include "RageLog.h"
-#include "RageUtil.h"
+#include "LocalizedString.h"
+#include "Foreach.h"
 #include "arch/arch_default.h"
-#include "global.h"
 
 void
 ForceToAscii(RString& str)

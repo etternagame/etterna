@@ -9,8 +9,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // MainMenuDlg dialog
 
-#include "global.h"
-
 class MainMenuDlg : public CDialog
 {
 	// Construction

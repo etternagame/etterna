@@ -1,15 +1,12 @@
 #ifndef Profile_DB
 #define Profile_DB
 
+#include "global.h"
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
-#include "global.h"
 #include "sqlite3.h"
 #include <SQLiteCpp/SQLiteCpp.h>
-#include "Difficulty.h"
 #include <SQLiteCpp/VariadicBind.h>
-
-class Profile;
 
 enum DBProfileMode
 {

@@ -1,8 +1,8 @@
 ﻿#include "global.h"
-#include "RageSurface_Save_BMP.h"
 #include "RageFile.h"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
+#include "RageSurface_Save_BMP.h"
 #include "RageUtil.h"
 
 static void

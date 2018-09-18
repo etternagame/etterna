@@ -1,15 +1,15 @@
+#include "global.h"
 #include "RageLog.h"
 #include "RageSoundReader_MP3.h"
-#include "RageSoundReader_Preload.h"
-#include "RageSoundReader_Resample_Good.h"
 #include "RageTimer.h"
 #include "RageUtil.h"
-#include "global.h"
+#include "RageSoundReader_Preload.h"
+#include "RageSoundReader_Resample_Good.h"
 
 #include "test_misc.h"
-#include <fcntl.h>
-#include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <unistd.h>
 
 void
@@ -552,20 +552,21 @@ main(int argc, char* argv[])
 		 * amounts of lossage, so the values are all similar but, unlike the
 		 * header tests below, not identical. */
 		/*		{ "test PCM 44100 stereo.wav",	0,
-	{0xfb6b,0x0076,0xf82b,0x0028}, {0xf598,0xf630,0xf2bd,0xf11d} }, { "test
-	ADPCM 44100 stereo.wav",0, {0xfb6b,0x0076,0xf82b,0x0028},
-	{0xf6d7,0xf54f,0xf300,0xf19e} },
-	//		{ "test ADPCM 22050 mono.wav",  1,
-	{0xfc2a,0xf4a8,0xf2bb,0xec98}, {0xf329,0xf1c2,0xf44f,0xff82} }, { "test
-	PCM8bit 44100 stereo.wav",	0, {0xfb7b,0x0080,0xf878,0x0080},
-	{0xf575,0xf676,0xf272,0xf171} },
-			// XXX: add MP3-in-WAV test
-			{ "test OGG 44100 stereo.ogg",	0,
-	{0xfb90,0x00b6,0xf84c,0x00ec}, {0xf794,0xf6c4,0xf34e,0xf2cd} }, { "test
-	MP3 first frame corrupt.mp3", 2343, {0x0001,0x0000,0x0001,0x0000},
-	{0xe12f,0xfe36,0xf337,0x0778} }, { "test BASS first frame corrupt.wav",
-	2343, {0x0001,0x0000,0x0001,0x0000}, {0xe12f,0xfe36,0xf337,0x0778} },
-	*/
+		{0xfb6b,0x0076,0xf82b,0x0028}, {0xf598,0xf630,0xf2bd,0xf11d} }, {
+		"test ADPCM 44100 stereo.wav",0, {0xfb6b,0x0076,0xf82b,0x0028},
+		{0xf6d7,0xf54f,0xf300,0xf19e} },
+		//		{ "test ADPCM 22050 mono.wav",  1,
+		{0xfc2a,0xf4a8,0xf2bb,0xec98}, {0xf329,0xf1c2,0xf44f,0xff82} }, {
+		"test PCM8bit 44100 stereo.wav",	0,
+		{0xfb7b,0x0080,0xf878,0x0080}, {0xf575,0xf676,0xf272,0xf171} },
+				// XXX: add MP3-in-WAV test
+				{ "test OGG 44100 stereo.ogg",	0,
+		{0xfb90,0x00b6,0xf84c,0x00ec}, {0xf794,0xf6c4,0xf34e,0xf2cd} }, {
+		"test MP3 first frame corrupt.mp3", 2343,
+		{0x0001,0x0000,0x0001,0x0000}, {0xe12f,0xfe36,0xf337,0x0778} }, {
+		"test BASS first frame corrupt.wav", 2343,
+		{0x0001,0x0000,0x0001,0x0000}, {0xe12f,0xfe36,0xf337,0x0778} },
+		*/
 		/* "BASS" is the results of decoding each MP3 with BASS's "writewav"
 		 * program, in order to test compatibility with DWI. */
 

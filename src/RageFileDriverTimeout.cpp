@@ -42,13 +42,13 @@
  * multiple threads simultaneously.
  */
 
-#include "RageFileDriverTimeout.h"
+#include "global.h"
 #include "RageFile.h"
+#include "RageFileDriverTimeout.h"
 #include "RageLog.h"
 #include "RageUtil.h"
 #include "RageUtil_FileDB.h"
 #include "RageUtil_WorkerThread.h"
-#include "global.h"
 #include <cerrno>
 
 enum ThreadRequest

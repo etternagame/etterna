@@ -1,9 +1,9 @@
+#include "global.h"
 #include "X11Helper.h"
+#include "RageLog.h"
+#include "ProductInfo.h"
 #include "Preference.h"
 #include "PrefsManager.h" // XXX: only used for m_bShowMouseCursor -aj
-#include "ProductInfo.h"
-#include "RageLog.h"
-#include "global.h"
 
 #include <X11/extensions/dpms.h>
 

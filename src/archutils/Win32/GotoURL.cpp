@@ -1,7 +1,7 @@
-#include "GotoURL.h"
 #include "global.h"
-#include <shellapi.h>
+#include "GotoURL.h"
 #include <windows.h>
+#include <shellapi.h>
 
 /* This is called from the crash handler; don't use RegistryAccess, since it's
  * not crash-conditions safe. */

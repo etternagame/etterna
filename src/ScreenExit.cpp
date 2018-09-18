@@ -1,11 +1,11 @@
-#include "ScreenExit.h"
+#include "global.h"
 #include "GameSoundManager.h"
 #include "RageLog.h"
 #include "RageSound.h"
 #include "RageSoundManager.h"
 #include "RageUtil.h"
+#include "ScreenExit.h"
 #include "arch/ArchHooks/ArchHooks.h"
-#include "global.h"
 
 /* This screen used to wait for sounds to stop. However, implementing
  * GetPlayingSounds() is annoying, because sounds might be deleted at any time;

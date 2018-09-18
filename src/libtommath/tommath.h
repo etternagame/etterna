@@ -15,11 +15,11 @@
 #ifndef BN_H_
 #define BN_H_
 
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include <limits.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include "tommath_class.h"
 

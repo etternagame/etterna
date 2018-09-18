@@ -1,13 +1,12 @@
 ﻿#ifndef PlayerStageStats_H
 #define PlayerStageStats_H
 
-#include "global.h"
 #include "Grade.h"
 #include "HighScore.h"
 #include "NoteDataStructures.h"
-#include "NoteTypes.h"
 #include "PlayerNumber.h"
 #include "RadarValues.h"
+#include "NoteTypes.h"
 #include <map>
 
 class Steps;

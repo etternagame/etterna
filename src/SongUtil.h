@@ -3,7 +3,6 @@
 #ifndef SONG_UTIL_H
 #define SONG_UTIL_H
 
-#include "global.h"
 #include "Difficulty.h"
 #include "GameConstantsAndTypes.h"
 #include "RageUtil_CachedObject.h"
@@ -259,7 +258,7 @@ bool
 GetStepsTypeAndDifficultyFromSortOrder(SortOrder so,
 									   StepsType& st,
 									   Difficulty& dc);
-} // namespace SongUtil
+}
 
 class SongID
 {

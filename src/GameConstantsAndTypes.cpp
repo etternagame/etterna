@@ -1,7 +1,7 @@
 ﻿#include "global.h"
-#include "GameConstantsAndTypes.h"
 #include "EnumHelper.h"
 #include "Foreach.h"
+#include "GameConstantsAndTypes.h"
 #include "GameManager.h"
 #include "GameState.h"
 #include "LocalizedString.h"
@@ -63,7 +63,7 @@ ToString<StepsType>(const StepsType& value)
 {
 	return StepsTypeToString(value);
 }
-} // namespace StringConversion
+}
 
 LuaXType(StepsType);
 
@@ -183,7 +183,7 @@ FromString<TapNoteScore>(const RString& value, TapNoteScore& out)
 	out = StringToTapNoteScore(value);
 	return out != TapNoteScore_Invalid;
 }
-} // namespace StringConversion
+}
 XToLocalizedString(TapNoteScore);
 LuaFunction(TapNoteScoreToLocalizedString,
 			TapNoteScoreToLocalizedString(Enum::Check<TapNoteScore>(L, 1)));

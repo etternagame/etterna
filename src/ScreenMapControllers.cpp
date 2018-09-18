@@ -1,4 +1,4 @@
-#include "ScreenMapControllers.h"
+#include "global.h"
 #include "InputEventPlus.h"
 #include "InputMapper.h"
 #include "LocalizedString.h"
@@ -6,9 +6,9 @@
 #include "RageLog.h"
 #include "ScreenDimensions.h"
 #include "ScreenManager.h"
+#include "ScreenMapControllers.h"
 #include "ScreenPrompt.h"
 #include "ThemeManager.h"
-#include "global.h"
 
 AutoScreenMessage(SM_DoSaveAndExit);
 #define BUTTONS_TO_MAP THEME->GetMetric(m_sName, "ButtonsToMap")

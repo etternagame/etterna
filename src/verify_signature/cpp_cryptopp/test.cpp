@@ -5,9 +5,9 @@
 //    signature - the signature of data_file in binary format
 // test.cpp - written and placed in the public domain by Wei Dai
 
+#include "sha.h"
 #include "files.h"
 #include "rsa.h"
-#include "sha.h"
 
 #include <iostream>
 #include <time.h>

@@ -3,8 +3,6 @@
 #ifndef RAGE_UTIL_CIRCULAR_BUFFER
 #define RAGE_UTIL_CIRCULAR_BUFFER
 
-#include "global.h"
-
 /* Lock-free circular buffer.  This should be threadsafe if one thread is
  * reading and another is writing. */
 template<class T>

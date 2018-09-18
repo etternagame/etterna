@@ -1,10 +1,11 @@
-#include "NoteField.h"
+#include "global.h"
 #include "ArrowEffects.h"
 #include "BackgroundUtil.h"
 #include "CommonMetrics.h"
 #include "GameConstantsAndTypes.h"
 #include "GameState.h"
 #include "NoteData.h"
+#include "NoteField.h"
 #include "NoteSkinManager.h"
 #include "PlayerState.h"
 #include "RageDisplay.h"
@@ -16,7 +17,6 @@
 #include "Song.h"
 #include "Style.h"
 #include "ThemeManager.h"
-#include "global.h"
 #include <cfloat>
 
 void

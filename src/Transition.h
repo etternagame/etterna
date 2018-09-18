@@ -3,7 +3,6 @@
 #ifndef TRANSITION_H
 #define TRANSITION_H
 
-#include "global.h"
 #include "ActorFrame.h"
 #include "AutoActor.h"
 #include "ScreenMessage.h"

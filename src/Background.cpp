@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "Background.h"
 #include "ActorUtil.h"
+#include "Background.h"
 #include "BackgroundUtil.h"
 #include "BeginnerHelper.h"
 #include "DancingCharacters.h"
@@ -22,6 +22,7 @@
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
 #include <cfloat>
+#include "GameState.h"
 
 static ThemeMetric<float> LEFT_EDGE("Background", "LeftEdge");
 static ThemeMetric<float> TOP_EDGE("Background", "TopEdge");

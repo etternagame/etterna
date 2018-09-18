@@ -1,7 +1,6 @@
 ﻿#ifndef ActorUtil_H
 #define ActorUtil_H
 
-#include "global.h"
 #include "Actor.h"
 
 class XNode;
@@ -223,7 +222,7 @@ SortByZPosition(vector<Actor*>& vActors);
 
 FileType
 GetFileType(const RString& sPath);
-}; // namespace ActorUtil
+};
 
 #define SET_XY(actor) ActorUtil::SetXY(actor, m_sName)
 #define ON_COMMAND(actor) ActorUtil::OnCommand(actor)

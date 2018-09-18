@@ -4,8 +4,6 @@
 #ifndef PRODUCT_INFO_H
 #define PRODUCT_INFO_H
 
-#include "global.h"
-
 /**
  * @brief A friendly string to refer to the product in crash dialogs, etc.
  */

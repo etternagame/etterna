@@ -2,19 +2,19 @@
 #define HIDDEVICE_H
 
 #include <CoreFoundation/CoreFoundation.h>
-#include <IOKit/IOCFPlugIn.h>
-#include <IOKit/IOKitLib.h>
 #include <IOKit/hid/IOHIDLib.h>
+#include <IOKit/IOKitLib.h>
+#include <IOKit/IOCFPlugIn.h>
 #include <IOKit/hid/IOHIDUsageTables.h>
 #include <IOKit/usb/USB.h>
-#include <ext/hash_map>
 #include <mach/mach.h>
 #include <mach/mach_error.h>
-#include <utility>
 #include <vector>
+#include <utility>
+#include <ext/hash_map>
 
-#include "RageInputDevice.h"
 #include "RageLog.h"
+#include "RageInputDevice.h"
 
 /* A few helper functions. */
 

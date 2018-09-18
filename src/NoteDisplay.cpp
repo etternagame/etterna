@@ -1,4 +1,4 @@
-#include "NoteDisplay.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "ArrowEffects.h"
 #include "Foreach.h"
@@ -6,6 +6,7 @@
 #include "GhostArrowRow.h"
 #include "LuaBinding.h"
 #include "NoteData.h"
+#include "NoteDisplay.h"
 #include "NoteSkinManager.h"
 #include "NoteTypes.h"
 #include "PlayerState.h"
@@ -15,7 +16,6 @@
 #include "ReceptorArrowRow.h"
 #include "Sprite.h"
 #include "Style.h"
-#include "global.h"
 
 static const double PI_180 = PI / 180.0;
 static const double PI_180R = 180.0 / PI;

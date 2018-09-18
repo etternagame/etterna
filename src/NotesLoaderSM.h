@@ -1,7 +1,6 @@
 ﻿#ifndef NotesLoaderSM_H
 #define NotesLoaderSM_H
 
-#include "global.h"
 #include "BackgroundUtil.h"
 #include "GameConstantsAndTypes.h"
 

@@ -1,8 +1,8 @@
 ﻿#include "global.h"
-#include "InputQueue.h"
 #include "Foreach.h"
 #include "InputEventPlus.h"
 #include "InputMapper.h"
+#include "InputQueue.h"
 #include "RageLog.h"
 
 InputQueue* INPUTQUEUE =

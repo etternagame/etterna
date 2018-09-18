@@ -1,9 +1,8 @@
 #ifndef TEXTURE_FONT_H
 #define TEXTURE_FONT_H
 
-#include "global.h"
-#include <map>
 #include <vector>
+#include <map>
 using namespace std;
 
 struct FontPageDescription

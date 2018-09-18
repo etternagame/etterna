@@ -1,4 +1,4 @@
-#include "ScreenTitleMenu.h"
+#include "global.h"
 #include "AnnouncerManager.h"
 #include "CodeDetector.h"
 #include "Game.h"
@@ -12,8 +12,8 @@
 #include "RageLog.h"
 #include "RageUtil.h"
 #include "ScreenManager.h"
+#include "ScreenTitleMenu.h"
 #include "ThemeManager.h"
-#include "global.h"
 
 #define COIN_MODE_CHANGE_SCREEN                                                \
 	THEME->GetMetric(m_sName, "CoinModeChangeScreen")

@@ -2,10 +2,10 @@
 #define RAGE_THREADS_H
 
 #include "global.h"
-#include <atomic>
-#include <condition_variable>
 #include <mutex>
+#include <atomic>
 #include <thread>
+#include <condition_variable>
 
 class ThreadData
 {
@@ -183,7 +183,7 @@ void
 SetCheckpoint(const char* file, int line, const char* message);
 void
 GetLogs(char* pBuf, int iSize, const char* delim);
-}; // namespace Checkpoints
+};
 
 #define CHECKPOINT_M(m) (Checkpoints::SetCheckpoint(__FILE__, __LINE__, m))
 

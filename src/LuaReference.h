@@ -1,7 +1,6 @@
 ﻿#ifndef LUA_REFERENCE_H
 #define LUA_REFERENCE_H
 
-#include "global.h"
 #include "LuaManager.h"
 #include "RageUtil_AutoPtr.h"
 

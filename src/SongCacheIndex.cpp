@@ -1,28 +1,29 @@
 #include "global.h"
 
-#include "CommonMetrics.h"
-#include "GameManager.h"
-#include "NotesLoaderSSC.h"
-#include "NotesWriterSSC.h"
 #include "RageFileManager.h"
 #include "RageLog.h"
-#include "RageThreads.h"
 #include "RageUtil.h"
+#include "RageFileManager.h"
+#include "RageThreads.h"
+#include "GameManager.h"
 #include "Song.h"
 #include "SongCacheIndex.h"
-#include "SpecialFiles.h"
-#include "Steps.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
+#include "SpecialFiles.h"
+#include "CommonMetrics.h"
+#include "Steps.h"
+#include "NotesLoaderSSC.h"
 #include <algorithm>
+#include "NotesWriterSSC.h"
 
-#include "sqlite3.h"
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <SQLiteCpp/VariadicBind.h>
-#include <algorithm>
-#include <atomic>
+#include "sqlite3.h"
 #include <mutex>
-#include <numeric>
+#include <atomic>
 #include <thread>
+#include <algorithm>
+#include <numeric>
 
 /*
  * A quick explanation of song cache hashes: Each song has two hashes; a hash of
@@ -448,15 +449,15 @@ SongCacheIndex::CacheSong(Song& song, string dir)
 			insertSong.bind(index++);
 		}
 		/* Theres only 2 background layers
-			// @brief The different background layers available.
-			enum BackgroundLayer
-			{
-				BACKGROUND_LAYER_1,
-				BACKGROUND_LAYER_2,
-				//BACKGROUND_LAYER_3, // StepCollection get
-				NUM_BackgroundLayer,
-				BACKGROUND_LAYER_Invalid
-			}; */
+		// @brief The different background layers available.
+		enum BackgroundLayer
+		{
+			BACKGROUND_LAYER_1,
+			BACKGROUND_LAYER_2,
+			//BACKGROUND_LAYER_3, // StepCollection get
+			NUM_BackgroundLayer,
+			BACKGROUND_LAYER_Invalid
+		}; */
 		FOREACH_BackgroundLayer(b)
 		{
 			string bgchanges = "";
@@ -692,6 +693,7 @@ SongCacheIndex::LoadHyperCache(LoadingWindow* ld,
 				ld->SetText(("Loading Cache\n" + lastDir).c_str());
 			}
 		}
+
 	} catch (std::exception& e) {
 		LOG->Trace("Error reading cache. last dir: %s . Error: %s",
 				   lastDir.c_str(),
@@ -767,6 +769,7 @@ SongCacheIndex::LoadCache(
 					  data.setUpdated(true);
 				  }
 			  }
+
 		  } catch (std::exception& e) {
 			  LOG->Trace("Error reading cache. Error: %s", e.what());
 			  if (abort)

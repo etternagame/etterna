@@ -1,5 +1,5 @@
-#include "SongPosition.h"
 #include "global.h"
+#include "SongPosition.h"
 
 static Preference<float> g_fVisualDelaySeconds("VisualDelaySeconds", 0.0f);
 

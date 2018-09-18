@@ -1,4 +1,4 @@
-#include "ScreenSelect.h"
+#include "global.h"
 #include "AnnouncerManager.h"
 #include "GameCommand.h"
 #include "GameSoundManager.h"
@@ -6,8 +6,8 @@
 #include "InputEventPlus.h"
 #include "RageLog.h"
 #include "ScreenManager.h"
+#include "ScreenSelect.h"
 #include "ThemeManager.h"
-#include "global.h"
 
 #define CHOICE_NAMES THEME->GetMetric(m_sName, "ChoiceNames")
 #define CHOICE(s) THEME->GetMetric(m_sName, ssprintf("Choice%s", (s).c_str()))

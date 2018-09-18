@@ -1,17 +1,17 @@
+#include "global.h"
 #include "GraphicsWindow.h"
-#include "CommandLineActions.h"
-#include "DisplayResolutions.h"
 #include "ProductInfo.h"
-#include "RageDisplay.h"
 #include "RageLog.h"
 #include "RageUtil.h"
+#include "RageDisplay.h"
+#include "DisplayResolutions.h"
 #include "arch/ArchHooks/ArchHooks.h"
 #include "archutils/Win32/AppInstance.h"
 #include "archutils/Win32/Crash.h"
 #include "archutils/Win32/ErrorStrings.h"
-#include "archutils/Win32/GetFileInformation.h"
 #include "archutils/Win32/WindowIcon.h"
-#include "global.h"
+#include "archutils/Win32/GetFileInformation.h"
+#include "CommandLineActions.h"
 
 #include <set>
 

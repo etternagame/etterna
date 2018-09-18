@@ -1,8 +1,8 @@
 ﻿#include "global.h"
-#include "RageSoundReader_FileReader.h"
 #include "ActorUtil.h"
 #include "RageFile.h"
 #include "RageLog.h"
+#include "RageSoundReader_FileReader.h"
 #include "RageUtil.h"
 
 #include <set>

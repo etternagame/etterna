@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "RageSoundReader.h"
 #include "RageLog.h"
+#include "RageSoundReader.h"
 #include "RageUtil_AutoPtr.h"
 
 REGISTER_CLASS_TRAITS(RageSoundReader, pCopy->Copy());

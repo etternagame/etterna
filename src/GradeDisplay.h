@@ -1,7 +1,6 @@
 ﻿#ifndef GRADE_DISPLAY_H
 #define GRADE_DISPLAY_H
 
-#include "global.h"
 #include "ActorFrame.h"
 #include "AutoActor.h"
 #include "Grade.h"

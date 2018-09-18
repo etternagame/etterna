@@ -1,4 +1,4 @@
-#include "ScreenHowToPlay.h"
+#include "global.h"
 #include "Character.h"
 #include "CharacterManager.h"
 #include "GameManager.h"
@@ -11,13 +11,13 @@
 #include "PlayerState.h"
 #include "PrefsManager.h"
 #include "RageDisplay.h"
+#include "ScreenHowToPlay.h"
 #include "SongUtil.h"
 #include "StatsManager.h"
 #include "Steps.h"
 #include "Style.h"
 #include "ThemeManager.h"
 #include "ThemeMetric.h"
-#include "global.h"
 
 static const ThemeMetric<int> NUM_W2S("ScreenHowToPlay", "NumW2s");
 static const ThemeMetric<int> NUM_MISSES("ScreenHowToPlay", "NumMisses");

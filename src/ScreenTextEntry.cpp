@@ -1,8 +1,7 @@
-#include "ScreenTextEntry.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "FontCharAliases.h"
 #include "InputEventPlus.h"
-#include "InputFilter.h"
 #include "LocalizedString.h"
 #include "LuaBinding.h"
 #include "Preference.h"
@@ -12,9 +11,10 @@
 #include "ScreenDimensions.h"
 #include "ScreenManager.h"
 #include "ScreenPrompt.h"
+#include "ScreenTextEntry.h"
 #include "ThemeManager.h"
+#include "InputFilter.h"
 #include "arch/ArchHooks/ArchHooks.h" // HOOKS->GetClipboard()
-#include "global.h"
 
 static const char* g_szKeys[NUM_KeyboardRow][KEYS_PER_ROW] = {
 	{ "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M" },
@@ -60,7 +60,7 @@ LuaReference g_OnOKFunc;
 LuaReference g_OnCancelFunc;
 LuaReference g_ValidateAppendFunc;
 LuaReference g_FormatAnswerForDisplayFunc;
-}; // namespace
+};
 
 // Lua bridges
 static bool

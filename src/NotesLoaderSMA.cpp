@@ -1,8 +1,8 @@
 ﻿#include "global.h"
-#include "NotesLoaderSMA.h"
 #include "BackgroundUtil.h"
 #include "NoteTypes.h"
 #include "NotesLoaderSM.h" // may need this.
+#include "NotesLoaderSMA.h"
 #include "Song.h"
 #include "SongManager.h"
 #include "Steps.h"

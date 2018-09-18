@@ -1,18 +1,18 @@
 ﻿#include "global.h"
-#include "InputHandler_DirectInput.h"
-#include "Foreach.h"
-#include "GamePreferences.h" //needed for Axis Fix
-#include "InputFilter.h"
-#include "InputHandler_DirectInputHelper.h"
-#include "PrefsManager.h"
-#include "RageLog.h"
-#include "RageTimer.h"
-#include "RageUtil.h"
 #include "archutils/Win32/AppInstance.h"
 #include "archutils/Win32/DirectXHelpers.h"
 #include "archutils/Win32/ErrorStrings.h"
 #include "archutils/Win32/GraphicsWindow.h"
 #include "archutils/Win32/RegistryAccess.h"
+#include "Foreach.h"
+#include "GamePreferences.h" //needed for Axis Fix
+#include "InputFilter.h"
+#include "InputHandler_DirectInput.h"
+#include "InputHandler_DirectInputHelper.h"
+#include "PrefsManager.h"
+#include "RageLog.h"
+#include "RageTimer.h"
+#include "RageUtil.h"
 
 REGISTER_INPUT_HANDLER_CLASS2(DirectInput, DInput);
 
@@ -724,6 +724,7 @@ InputHandler_DInput::UpdateBuffered(
 							  DeviceInput(dev, up, (l == 0) || (l == -1), tm));
 							ButtonPressed(
 							  DeviceInput(dev, down, (l == 0) || (l == 1), tm));
+
 						} else {
 							ButtonPressed(DeviceInput(dev, up, max(-l, 0), tm));
 							ButtonPressed(

@@ -1,18 +1,18 @@
 // ChangeGameSettings.cpp : implementation file
 
 #define CO_EXIST_WITH_MFC
+#include "global.h"
+#include "stdafx.h"
+#include "smpackage.h"
 #include "ChangeGameSettings.h"
-#include ".\changegamesettings.h"
 #include "IniFile.h"
-#include "LocalizedString.h"
-#include "RageUtil.h"
 #include "SMPackageUtil.h"
 #include "SpecialFiles.h"
-#include "arch/Dialog/Dialog.h"
+#include ".\changegamesettings.h"
 #include "archutils/Win32/DialogUtil.h"
-#include "global.h"
-#include "smpackage.h"
-#include "stdafx.h"
+#include "LocalizedString.h"
+#include "RageUtil.h"
+#include "arch/Dialog/Dialog.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

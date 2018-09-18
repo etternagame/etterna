@@ -1,7 +1,7 @@
 ﻿#include "global.h"
-#include "RageSurface_Load_GIF.h"
 #include "RageFile.h"
 #include "RageSurface.h"
+#include "RageSurface_Load_GIF.h"
 #include "RageUtil.h"
 
 #define MAXCOLORMAPSIZE 256

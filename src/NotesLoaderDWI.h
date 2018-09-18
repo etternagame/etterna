@@ -3,7 +3,6 @@
 #ifndef NOTES_LOADER_DWI_H
 #define NOTES_LOADER_DWI_H
 
-#include "global.h"
 #include <set>
 
 class Song;
@@ -30,7 +29,7 @@ LoadFromDir(const RString& sPath, Song& out, set<RString>& BlacklistedImages);
 
 bool
 LoadNoteDataFromSimfile(const RString& path, Steps& out);
-} // namespace DWILoader
+}
 
 #endif
 

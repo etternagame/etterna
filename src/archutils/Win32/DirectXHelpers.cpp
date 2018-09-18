@@ -1,6 +1,6 @@
+#include "global.h"
 #include "DirectXHelpers.h"
 #include "RageUtil.h"
-#include "global.h"
 
 #include <windows.h>
 #if defined(USE_DXERR9)

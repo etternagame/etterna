@@ -1,8 +1,6 @@
 #ifndef XML_FILE_UTIL_H
 #define XML_FILE_UTIL_H
 
-#include "global.h"
-
 class RageFileBasic;
 class XNode;
 struct lua_State;
@@ -45,7 +43,7 @@ XNodeFromTable(lua_State* L);
 
 void
 MergeIniUnder(XNode* pFrom, XNode* pTo);
-} // namespace XmlFileUtil
+}
 
 #endif
 

@@ -1,7 +1,6 @@
 ﻿#ifndef GRADE_H
 #define GRADE_H
 
-#include "global.h"
 #include "EnumHelper.h"
 #include "ThemeMetric.h"
 
@@ -93,7 +92,8 @@ Grade
 GetNextPossibleGrade(Grade g);
 /** @brief Loop through each possible Grade. */
 #define FOREACH_PossibleGrade(g)                                               \
-	for (Grade g = (Grade)(0); g != Grade_Invalid; g = GetNextPossibleGrade(g))
+	\
+for(Grade g = (Grade)(0); g != Grade_Invalid; g = GetNextPossibleGrade(g))
 
 #endif
 

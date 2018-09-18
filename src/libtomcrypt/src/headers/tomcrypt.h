@@ -1,12 +1,12 @@
 #ifndef TOMCRYPT_H_
 #define TOMCRYPT_H_
 #include <assert.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <time.h>
 #include <ctype.h>
 #include <limits.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
 
 // Defined by us in cmake
 #ifdef _WIN32
@@ -70,17 +70,17 @@ enum
 	CRYPT_PK_INVALID_PADDING  /* Invalid padding on input */
 };
 
-#include "tomcrypt_argchk.h"
 #include "tomcrypt_cfg.h"
+#include "tomcrypt_macros.h"
 #include "tomcrypt_cipher.h"
 #include "tomcrypt_hash.h"
 #include "tomcrypt_mac.h"
-#include "tomcrypt_macros.h"
+#include "tomcrypt_prng.h"
+#include "tomcrypt_pk.h"
 #include "tomcrypt_math.h"
 #include "tomcrypt_misc.h"
-#include "tomcrypt_pk.h"
+#include "tomcrypt_argchk.h"
 #include "tomcrypt_pkcs.h"
-#include "tomcrypt_prng.h"
 
 #ifdef __cplusplus
 }

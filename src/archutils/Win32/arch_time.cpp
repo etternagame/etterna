@@ -1,6 +1,6 @@
-#include "RageThreads.h"
-#include "arch_setup.h"
 #include "global.h"
+#include "arch_setup.h"
+#include "RageThreads.h"
 #include <time.h>
 #ifdef _WINDOWS
 #include <windows.h>

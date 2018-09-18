@@ -1,7 +1,6 @@
 #ifndef LOADING_WINDOW_NULL_H
 #define LOADING_WINDOW_NULL_H
 
-#include "global.h"
 #include "LoadingWindow.h"
 
 class LoadingWindow_Null : public LoadingWindow

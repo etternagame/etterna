@@ -1,8 +1,8 @@
+#include "global.h"
 #include "DialogUtil.h"
 #include "RageUtil.h"
 #include "ThemeManager.h"
 #include "archutils/Win32/ErrorStrings.h"
-#include "global.h"
 
 // Create*Font copied from MFC's CFont
 

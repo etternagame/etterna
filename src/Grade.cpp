@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "Grade.h"
 #include "EnumHelper.h"
+#include "Grade.h"
 #include "LuaManager.h"
 #include "RageLog.h"
 #include "RageUtil.h"

@@ -1,8 +1,8 @@
+#include "global.h"
 #include "AnnouncerManager.h"
 #include "RageFile.h"
 #include "RageLog.h"
 #include "RageUtil.h"
-#include "global.h"
 #include <cstring>
 
 AnnouncerManager* ANNOUNCER =

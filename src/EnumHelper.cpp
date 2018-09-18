@@ -150,7 +150,7 @@ Reverse(lua_State* L)
 
 	return 1;
 }
-} // namespace
+}
 
 static const luaL_Reg EnumLib[] = { { "GetName", GetName },
 									{ "Reverse", Reverse },

@@ -1,5 +1,5 @@
-#include "SpecialDirs.h"
 #include "global.h"
+#include "SpecialDirs.h"
 #include <shlobj.h>
 
 static RString

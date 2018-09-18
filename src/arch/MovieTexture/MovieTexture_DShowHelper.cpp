@@ -1,8 +1,8 @@
-#include "MovieTexture_DShowHelper.h"
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "archutils/Win32/DirectXHelpers.h"
 #include "global.h"
+#include "MovieTexture_DShowHelper.h"
+#include "RageUtil.h"
+#include "RageLog.h"
+#include "archutils/Win32/DirectXHelpers.h"
 
 //-----------------------------------------------------------------------------
 // Define GUID for Texture Renderer

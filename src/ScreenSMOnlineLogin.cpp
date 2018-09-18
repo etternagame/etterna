@@ -7,6 +7,7 @@
 #include "OptionRowHandler.h"
 #include "PrefsManager.h"
 #include "ProfileManager.h"
+#include "GameState.h"
 #include "RageLog.h"
 #include "ScreenManager.h"
 #include "ScreenPrompt.h"

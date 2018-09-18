@@ -1,4 +1,4 @@
-#include "TimingData.h"
+#include "global.h"
 #include "Foreach.h"
 #include "GameState.h"
 #include "NoteTypes.h"
@@ -6,7 +6,7 @@
 #include "RageLog.h"
 #include "RageUtil.h"
 #include "ThemeManager.h"
-#include "global.h"
+#include "TimingData.h"
 #include <cfloat>
 
 static void

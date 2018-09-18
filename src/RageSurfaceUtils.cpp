@@ -1,8 +1,8 @@
 ﻿#include "global.h"
-#include "RageSurfaceUtils.h"
 #include "RageFile.h"
 #include "RageLog.h"
 #include "RageSurface.h"
+#include "RageSurfaceUtils.h"
 #include "RageUtil.h"
 #include <thread>
 
@@ -1078,20 +1078,18 @@ RageSurfaceUtils::ApplyHotPinkColorKey(RageSurface*& img)
 		/* XXX: need to scan the surface and make sure the new alpha bit is
 		 * always 1 */
 		/*
-			const int used_bits = img->fmt.Rmask | img->fmt.Gmask |
-		   img->fmt.Bmask;
+		const int used_bits = img->fmt.Rmask | img->fmt.Gmask | img->fmt.Bmask;
 
-			for( int i = 0; img->fmt.Amask == 0 && i < img->fmt.BitsPerPixel;
-		   ++i )
+		for( int i = 0; img->fmt.Amask == 0 && i < img->fmt.BitsPerPixel; ++i )
+		{
+			if( (used_bits & (1<<i)) )
 			{
-				if( (used_bits & (1<<i)) )
-				{
-					img->fmt.Amask = 1<<i;
-					img->fmt.Aloss = 7;
-					img->fmt.Ashift = (uint8_t) i;
-				}
+				img->fmt.Amask = 1<<i;
+				img->fmt.Aloss = 7;
+				img->fmt.Ashift = (uint8_t) i;
 			}
-			*/
+		}
+		*/
 		// If we didn't have any free bits, convert to make room.
 		if (img->fmt.Amask == 0)
 			ConvertSurface(img,

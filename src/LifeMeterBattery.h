@@ -1,7 +1,6 @@
 ﻿#ifndef LIFEMETERBATTERY_H
 #define LIFEMETERBATTERY_H
 
-#include "global.h"
 #include "AutoActor.h"
 #include "BitmapText.h"
 #include "LifeMeter.h"

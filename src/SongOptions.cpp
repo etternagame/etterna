@@ -1,8 +1,8 @@
-#include "SongOptions.h"
+#include "global.h"
 #include "CommonMetrics.h"
 #include "GameState.h"
 #include "RageUtil.h"
-#include "global.h"
+#include "SongOptions.h"
 
 static const char* AutosyncTypeNames[] = {
 	"Off",

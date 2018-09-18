@@ -1,7 +1,7 @@
 ﻿#include "global.h"
-#include "ComboGraph.h"
 #include "ActorUtil.h"
 #include "BitmapText.h"
+#include "ComboGraph.h"
 #include "RageLog.h"
 #include "StageStats.h"
 

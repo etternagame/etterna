@@ -4,15 +4,15 @@ Copyright (c) 1996-1998      Microsoft Corporation
 
 Module Name:
 
-		HIDPI.H
+	   HIDPI.H
 
 Abstract:
 
-   Public Interface to the HID parsing library.
+  Public Interface to the HID parsing library.
 
 Environment:
 
-	Kernel & user mode
+   Kernel & user mode
 
 --*/
 

@@ -1,9 +1,9 @@
+#include "global.h"
 #include "CsvFile.h"
 #include "Foreach.h"
 #include "RageFile.h"
 #include "RageLog.h"
 #include "RageUtil.h"
-#include "global.h"
 
 CsvFile::CsvFile() = default;
 

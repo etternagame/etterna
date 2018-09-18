@@ -3,7 +3,6 @@
 #ifndef THEME_METRIC_H
 #define THEME_METRIC_H
 
-#include "global.h"
 #include "Foreach.h"
 #include "LuaManager.h"
 #include "RageUtil.h"

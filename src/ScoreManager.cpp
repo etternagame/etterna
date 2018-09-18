@@ -1,4 +1,4 @@
-#include "ScoreManager.h"
+#include "global.h"
 #include "Foreach.h"
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
@@ -6,13 +6,13 @@
 #include "NoteData.h"
 #include "NoteDataStructures.h"
 #include "RageLog.h"
-#include "RageThreads.h"
 #include "RageTimer.h"
+#include "ScoreManager.h"
 #include "Song.h"
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
-#include "global.h"
+#include "RageThreads.h"
 
 ScoreManager* SCOREMAN = NULL;
 
@@ -445,11 +445,11 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				steps->Compress();
 
 				/* Some scores were being incorrectly marked as ccon despite
-				   chord cohesion being disabled. Re-determine chord cohesion
-					status from notecount, this should be robust as every score
-				   up to this point should be a fully completed pass. This will
-					also allow us to mark files with 0 chords as being nocc
-				   (since it doesn't apply to them). -mina */
+				chord cohesion being disabled. Re-determine chord cohesion
+				status from notecount, this should be robust as every score up
+				to this point should be a fully completed pass. This will also
+				allow us to mark files with 0 chords as being nocc (since it
+				doesn't apply to them). -mina */
 				int totalstepsnotes =
 				  steps->GetRadarValues()[RadarCategory_Notes];
 				int totalscorenotes = 0;

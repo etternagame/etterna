@@ -1,13 +1,14 @@
+#include "global.h"
 #include "FontCharAliases.h"
 #include "IniFile.h"
 #include "RageFile.h"
 #include "RageFileManager.h"
 #include "RageLog.h"
 #include "RageTimer.h"
+#include "RageTimer.h"
 #include "RageUtil.h"
 #include "arch/ArchHooks/ArchHooks.h"
 #include "arch/Dialog/Dialog.h"
-#include "global.h"
 #if !defined(SMPACKAGE)
 #include "ActorUtil.h"
 #include "ProfileManager.h"
@@ -18,12 +19,12 @@
 #include "GameLoop.h" // For ChangeTheme
 #include "LocalizedString.h"
 #include "LuaManager.h"
-#include "PrefsManager.h"
 #include "ScreenDimensions.h"
 #include "SpecialFiles.h"
 #include "SubscriptionManager.h"
 #include "XmlFileUtil.h"
 #include <deque>
+#include "PrefsManager.h"
 ThemeManager* THEME =
   NULL; // global object accessible from anywhere in the program
 

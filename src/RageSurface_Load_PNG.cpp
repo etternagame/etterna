@@ -1,17 +1,17 @@
-﻿#include "RageSurface_Load_PNG.h"
+﻿#include "global.h"
 #include "RageFile.h"
 #include "RageLog.h"
 #include "RageSurface.h"
+#include "RageSurface_Load_PNG.h"
 #include "RageUtil.h"
-#include "global.h"
 
 #if defined(_MSC_VER)
 #include "../extern/libpng/include/png.h"
 #if defined(_BINARY_PNG)
 #pragma comment(lib, "libpng.lib")
 #endif
-#pragma warning(disable : 4611) // interaction between '_setjmp' and C++d
-								// object // destruction is non-portable
+#pragma warning(disable : 4611)
+// interaction between '_setjmp' and C++ object destruction is non-portable
 #else
 #include <png.h>
 #endif // _MSC_VER
@@ -266,8 +266,7 @@ RageSurface_Load_PNG(RageFile* f,
 
 	return img;
 }
-
-}; // namespace
+};
 
 RageSurfaceUtils::OpenResult
 RageSurface_Load_PNG(const RString& sPath,

@@ -1,9 +1,9 @@
-#include "ScreenSelectProfile.h"
+#include "global.h"
 #include "GameState.h"
 #include "InputEventPlus.h"
 #include "ProfileManager.h"
 #include "ScreenManager.h"
-#include "global.h"
+#include "ScreenSelectProfile.h"
 
 REGISTER_SCREEN_CLASS(ScreenSelectProfile);
 
@@ -38,9 +38,9 @@ ScreenSelectProfile::MenuLeft(const InputEventPlus& input)
 		return false;
 	if (input.type != IET_FIRST_PRESS) {
 		/*
-			if( !ALLOW_REPEATING_INPUT )
-				return false;
-			*/
+		if( !ALLOW_REPEATING_INPUT )
+			return false;
+		*/
 		if (m_TrackingRepeatingInput != input.MenuI)
 			return false;
 	}
@@ -59,9 +59,9 @@ ScreenSelectProfile::MenuRight(const InputEventPlus& input)
 		return false;
 	if (input.type != IET_FIRST_PRESS) {
 		/*
-			if( !ALLOW_REPEATING_INPUT )
-				return false;
-			*/
+		if( !ALLOW_REPEATING_INPUT )
+			return false;
+		*/
 		if (m_TrackingRepeatingInput != input.MenuI)
 			return false;
 	}
@@ -80,9 +80,9 @@ ScreenSelectProfile::MenuUp(const InputEventPlus& input)
 		return false;
 	if (input.type != IET_FIRST_PRESS) {
 		/*
-			if( !ALLOW_REPEATING_INPUT )
-				return false;
-			*/
+		if( !ALLOW_REPEATING_INPUT )
+			return false;
+		*/
 		if (m_TrackingRepeatingInput != input.MenuI)
 			return false;
 	}
@@ -101,9 +101,9 @@ ScreenSelectProfile::MenuDown(const InputEventPlus& input)
 		return false;
 	if (input.type != IET_FIRST_PRESS) {
 		/*
-			if( !ALLOW_REPEATING_INPUT )
-				return false;
-			*/
+		if( !ALLOW_REPEATING_INPUT )
+			return false;
+		*/
 		if (m_TrackingRepeatingInput != input.MenuI)
 			return false;
 	}

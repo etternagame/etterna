@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "DifficultyIcon.h"
 #include "ActorUtil.h"
+#include "DifficultyIcon.h"
 #include "GameState.h"
 #include "LuaManager.h"
 #include "RageDisplay.h"

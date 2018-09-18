@@ -1,10 +1,10 @@
-#include "ScreenSaveSync.h"
+#include "global.h"
 #include "AdjustSync.h"
 #include "GameState.h"
 #include "LocalizedString.h"
 #include "PrefsManager.h"
+#include "ScreenSaveSync.h"
 #include "Song.h"
-#include "global.h"
 
 static LocalizedString CHANGED_TIMING_OF("ScreenSaveSync",
 										 "You have changed the timing of");

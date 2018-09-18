@@ -1,7 +1,7 @@
+#include "global.h"
 #include "Crash.h"
 #include "ProductInfo.h"
 #include "arch/ArchHooks/ArchHooks.h"
-#include "global.h"
 #include <CoreServices/CoreServices.h>
 #include <sys/types.h>
 #if defined(HAVE_UNISTD_H)
@@ -66,7 +66,7 @@ CrashHandler::InformUserOfCrash(const RString& sPath)
 	switch (response) {
 		case kCFUserNotificationDefaultResponse:
 			HOOKS->GoToURL(REPORT_BUG_URL);
-		// Fall through.
+			// Fall through.
 		case kCFUserNotificationOtherResponse:
 			// Open the file with the default application (probably TextEdit).
 			HOOKS->GoToURL("file://" + sPath);

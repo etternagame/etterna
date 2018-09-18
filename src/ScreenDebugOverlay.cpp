@@ -1,4 +1,4 @@
-#include "ScreenDebugOverlay.h"
+#include "global.h"
 #include "CodeDetector.h"
 #include "GameCommand.h"
 #include "GameLoop.h"
@@ -17,6 +17,7 @@
 #include "RageLog.h"
 #include "RageSoundManager.h"
 #include "RageTextureManager.h"
+#include "ScreenDebugOverlay.h"
 #include "ScreenDimensions.h"
 #include "ScreenGameplay.h"
 #include "ScreenManager.h"
@@ -26,7 +27,6 @@
 #include "StepMania.h"
 #include "ThemeMetric.h"
 #include "XmlToLua.h"
-#include "global.h"
 
 static bool g_bIsDisplayed = false;
 static bool g_bIsSlow = false;

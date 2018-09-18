@@ -1,10 +1,10 @@
 ﻿#include "global.h"
-#include "RageDisplay_D3D.h"
 #include "DisplayResolutions.h"
 #include "EnumHelper.h"
 #include "Foreach.h"
 #include "LocalizedString.h"
 #include "RageDisplay.h"
+#include "RageDisplay_D3D.h"
 #include "RageException.h"
 #include "RageLog.h"
 #include "RageMath.h"
@@ -1903,10 +1903,10 @@ RageDisplay_D3D::SetRenderTarget(unsigned uTexHandle, bool bPreserveTexture)
 		int iBit = D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER;
 
 		/* Since we need the depth buffer to use render targets we can't give
-		   this option if (pTarget->GetParam().bWithDepthBuffer)
-			{
-				iBit |= D3DCLEAR_ZBUFFER;
-			}*/
+		this option if (pTarget->GetParam().bWithDepthBuffer)
+		{
+			iBit |= D3DCLEAR_ZBUFFER;
+		}*/
 
 		if (FAILED(g_pd3dDevice->Clear(
 			  0, NULL, iBit, D3DCOLOR_ARGB(0, 0, 0, 0), 1.0f, 0x00000000)))

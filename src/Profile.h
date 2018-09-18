@@ -1,7 +1,6 @@
 ﻿#ifndef Profile_H
 #define Profile_H
 
-#include "global.h"
 #include "DateTime.h"
 #include "GameConstantsAndTypes.h"
 #include "Grade.h"
@@ -10,6 +9,7 @@
 #include "SongUtil.h"  // for SongID
 #include "StepsUtil.h" // for StepsID
 #include "StyleUtil.h" // for StyleID
+#include "LuaReference.h"
 #include "XMLProfile.h"
 #include "DBProfile.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
@@ -21,7 +21,6 @@
 class XNode;
 struct lua_State;
 class Character;
-
 struct Playlist;
 
 // Current file versions
@@ -59,8 +58,7 @@ extern const RString LASTGOOD_SUBDIR;
 const unsigned int PROFILE_MAX_DISPLAY_NAME_LENGTH = 64;
 
 class Style;
-class DBProfile;
-class XMLProfile;
+
 class Song;
 class Steps;
 struct Game;

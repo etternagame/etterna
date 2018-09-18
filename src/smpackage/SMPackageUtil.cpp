@@ -1,14 +1,14 @@
 #define CO_EXIST_WITH_MFC
-#include "SMPackageUtil.h"
-#include "LocalizedString.h"
-#include "ProductInfo.h"
-#include "RageFileManager.h"
-#include "RageUtil.h"
-#include "arch/Dialog/Dialog.h"
-#include "archutils/Win32/RegistryAccess.h"
 #include "global.h"
-#include "resource.h"
 #include "stdafx.h"
+#include "SMPackageUtil.h"
+#include "archutils/Win32/RegistryAccess.h"
+#include "ProductInfo.h"
+#include "RageUtil.h"
+#include "RageFileManager.h"
+#include "resource.h"
+#include "LocalizedString.h"
+#include "arch/Dialog/Dialog.h"
 
 static const RString SMPACKAGE_KEY =
   "HKEY_LOCAL_MACHINE\\Software\\" PRODUCT_ID "\\smpackage";

@@ -1,8 +1,6 @@
 #ifndef SCREEN_OPTIONS_MASTER_PREFS_H
 #define SCREEN_OPTIONS_MASTER_PREFS_H
 
-#include "global.h"
-
 static const int MAX_OPTIONS = 16;
 #define OPT_SAVE_PREFERENCES (1 << 0)
 #define OPT_APPLY_GRAPHICS (1 << 1)

@@ -1,25 +1,26 @@
 
-#include "DBProfile.h"
-#include "GameManager.h"
-#include "GameState.h"
-#include "LuaManager.h"
-#include "NoteData.h"
+#include "global.h"
 #include "Profile.h"
-#include "ProfileManager.h"
-#include "RageFile.h"
-#include "RageFileDriverDeflate.h"
-#include "RageFileManager.h"
 #include "RageLog.h"
 #include "RageUtil.h"
-#include "global.h"
-
-#include "CryptManager.h"
+#include "ProfileManager.h"
+#include "NoteData.h"
+#include "DBProfile.h"
+#include "RageFile.h"
+#include "RageFileDriverDeflate.h"
+#include "GameState.h"
+#include "GameManager.h"
+#include "LuaManager.h"
+#include "NoteData.h"
 #include "RageFileManager.h"
+
 #include "ScoreManager.h"
+#include "CryptManager.h"
 #include "Song.h"
 #include "SongManager.h"
 #include "Steps.h"
 #include "sqlite3.h"
+#include "RageFileManager.h"
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <SQLiteCpp/VariadicBind.h>
 
@@ -248,6 +249,7 @@ DBProfile::LoadPlayLists(SQLite::Database* db)
 		lastPlayListName = static_cast<const char*>(query.getColumn(2));
 
 		tmpCourseRun.emplace_back(curScoreKey);
+
 	} else
 		return;
 
@@ -808,6 +810,7 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 		  "chartid INTEGER, "
 		  "rate INTEGER, bestgrade TEXT, pbkey TEXT, "
 		  "CONSTRAINT fk_chartid FOREIGN KEY (chartid) REFERENCES charts(id))");
+
 	} else {
 		db->exec("DROP TABLE IF EXISTS scoresatrates");
 		db->exec(

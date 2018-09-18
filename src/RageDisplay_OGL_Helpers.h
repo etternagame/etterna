@@ -21,7 +21,7 @@ void
 Init();
 RString
 GLToString(GLenum e);
-}; // namespace RageDisplay_Legacy_Helpers
+};
 
 class RenderTarget
 {

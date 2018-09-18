@@ -1,23 +1,25 @@
-#include "StageStats.h"
-#include "AdjustSync.h"
+#include "global.h"
 #include "CryptManager.h"
-#include "DownloadManager.h"
 #include "Foreach.h"
-#include "GamePreferences.h"
 #include "GameState.h"
 #include "MinaCalc.h"
-#include "NetworkSyncManager.h"
-#include "PlayerAI.h"
 #include "PlayerState.h"
 #include "PrefsManager.h"
 #include "Profile.h"
 #include "ProfileManager.h"
-#include "ScoreManager.h"
-#include "Song.h"
+#include "StageStats.h"
 #include "Style.h"
-#include "global.h"
+#include "PlayerAI.h"
+#include "NetworkSyncManager.h"
+#include "AdjustSync.h"
 #include <fstream>
 #include <sstream>
+#include "CryptManager.h"
+#include "ScoreManager.h"
+#include "DownloadManager.h"
+#include "MinaCalc.h"
+#include "Song.h"
+#include "GamePreferences.h"
 
 #ifdef _WIN32
 #include <intrin.h>
@@ -85,26 +87,26 @@ getMachineName()
 }
 
 #else
-#include <errno.h>
 #include <limits.h>
+#include <unistd.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/in_systm.h>
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h>
 
-#include <sys/ioctl.h>
 #include <sys/types.h>
+#include <sys/ioctl.h>
 
 #ifdef __APPLE__
-#include <ifaddrs.h>
-#include <net/if_dl.h>
-#include <net/if_types.h>
-#include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/socket.h>
+#include <net/if_dl.h>
+#include <ifaddrs.h>
+#include <net/if_types.h>
 #else //! DARWIN
 #include <linux/if.h>
 #include <linux/sockios.h>

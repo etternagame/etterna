@@ -1,4 +1,4 @@
-#include "WheelBase.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "Foreach.h"
 #include "GameConstantsAndTypes.h"
@@ -14,7 +14,7 @@
 #include "Style.h"
 #include "ThemeManager.h"
 #include "ThemeMetric.h"
-#include "global.h"
+#include "WheelBase.h"
 
 const int MAX_WHEEL_SOUND_SPEED = 15;
 AutoScreenMessage(

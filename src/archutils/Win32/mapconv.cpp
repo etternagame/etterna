@@ -1,12 +1,12 @@
 //	mapconv - symbolic debugging info generator for VirtualDub
 
-#include <algorithm>
 #include <vector>
+#include <algorithm>
 
-#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #define MAX_FNAMBUF (0x0FFFFFFF)
 #define MAX_SEGMENTS (64)
@@ -254,11 +254,11 @@ main(int argc, char** argv)
 			// segbuf[i][0]+segbuf[i][1]-1);
 		}
 		/*
-			printf("Raw statistics:\n");
-			printf("\tRVA bytes:        %ld\n", rvabuf.size()*4);
-			printf("\tFunc name bytes:  %ld\n", fnamptr - fnambuf);
-			printf("\nPacking RVA data..."); fflush(stdout);
-			*/
+		printf("Raw statistics:\n");
+		printf("\tRVA bytes:        %ld\n", rvabuf.size()*4);
+		printf("\tFunc name bytes:  %ld\n", fnamptr - fnambuf);
+		printf("\nPacking RVA data..."); fflush(stdout);
+		*/
 		std::vector<RVAEnt>::iterator itRVA = rvabuf.begin(),
 									  itRVAEnd = rvabuf.end();
 		std::vector<char> rvaout;
@@ -312,6 +312,7 @@ main(int argc, char** argv)
 
 		if (fclose(fo))
 			throw "output file close failed";
+
 	} catch (const char* s) {
 		fprintf(stderr, "%s: %s\n", argv[1], s);
 	}

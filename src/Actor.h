@@ -1,7 +1,6 @@
 #ifndef ACTOR_H
 #define ACTOR_H
 
-#include "global.h"
 #include "EnumHelper.h"
 #include "LuaReference.h"
 #include "PlayerNumber.h"

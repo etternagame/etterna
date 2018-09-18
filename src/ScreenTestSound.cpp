@@ -1,11 +1,11 @@
-#include "ScreenTestSound.h"
+#include "global.h"
 #include "InputEventPlus.h"
 #include "RageDisplay.h"
 #include "RageSoundManager.h"
 #include "RageUtil.h"
 #include "ScreenManager.h"
+#include "ScreenTestSound.h"
 #include "ThemeManager.h"
-#include "global.h"
 
 REGISTER_SCREEN_CLASS(ScreenTestSound);
 
@@ -179,18 +179,18 @@ ScreenTestSound::Input(const InputEventPlus& input)
 					break;
 				}
 					/*			case KEY_LEFT:
-							obj.SetX(obj.GetX() - 10);
-							break;
-						case KEY_RIGHT:
-							obj.SetX(obj.GetX() + 10);
-							break;
-						case KEY_UP:
-							obj.SetY(obj.GetY() - 10);
-							break;
-						case KEY_DOWN:
-							obj.SetY(obj.GetY() + 10);
-							break;
-			*/
+									obj.SetX(obj.GetX() - 10);
+									break;
+								case KEY_RIGHT:
+									obj.SetX(obj.GetX() + 10);
+									break;
+								case KEY_UP:
+									obj.SetY(obj.GetY() - 10);
+									break;
+								case KEY_DOWN:
+									obj.SetY(obj.GetY() + 10);
+									break;
+					*/
 				default:
 					return false;
 			}

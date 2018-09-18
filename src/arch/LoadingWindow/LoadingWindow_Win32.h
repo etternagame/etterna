@@ -3,10 +3,9 @@
 #ifndef LOADING_WINDOW_WIN32_H
 #define LOADING_WINDOW_WIN32_H
 
-#include "global.h"
 #include "LoadingWindow.h"
-#include "archutils/Win32/AppInstance.h"
 #include <windows.h>
+#include "archutils/Win32/AppInstance.h"
 
 class LoadingWindow_Win32 : public LoadingWindow
 {

@@ -1,9 +1,9 @@
+#include "global.h"
 #include "DateTime.h"
 #include "EnumHelper.h"
 #include "LocalizedString.h"
 #include "LuaManager.h"
 #include "RageUtil.h"
-#include "global.h"
 
 DateTime::DateTime()
 {
@@ -257,9 +257,9 @@ AddDays(tm start, int iDaysToMove)
 	 * out-of-range value 0.  This seems legal, but OS X chokes on it.
 	 */
 	/*	start.tm_mday += iDaysToMove;
-	time_t seconds = mktime( &start );
-	ASSERT( seconds != (time_t)-1 );
-	*/
+		time_t seconds = mktime( &start );
+		ASSERT( seconds != (time_t)-1 );
+		*/
 
 	/* This handles DST differently: it returns the time that was exactly
 	 * n*60*60*24 seconds ago, where the above code always returns the same time

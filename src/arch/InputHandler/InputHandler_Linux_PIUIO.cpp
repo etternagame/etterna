@@ -1,7 +1,7 @@
+#include "global.h"
 #include "InputHandler_Linux_PIUIO.h"
 #include "RageLog.h"
 #include "RageUtil.h"
-#include "global.h"
 
 #include <string.h>
 #if defined(HAVE_UNISTD_H)
@@ -12,8 +12,8 @@
 #endif
 
 #include <errno.h>
-#include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 
 #include <set>
 

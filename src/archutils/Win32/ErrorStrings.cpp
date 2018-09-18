@@ -1,6 +1,6 @@
+#include "global.h"
 #include "ErrorStrings.h"
 #include "RageUtil.h"
-#include "global.h"
 
 #include <windows.h>
 

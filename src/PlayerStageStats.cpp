@@ -1,5 +1,4 @@
 ﻿#include "global.h"
-#include "PlayerStageStats.h"
 #include "CommonMetrics.h"
 #include "CryptManager.h"
 #include "Foreach.h"
@@ -7,6 +6,7 @@
 #include "LuaManager.h"
 #include "MinaCalc.h"
 #include "NoteData.h"
+#include "PlayerStageStats.h"
 #include "PrefsManager.h"
 #include "RageLog.h"
 #include "ScoreKeeperNormal.h"

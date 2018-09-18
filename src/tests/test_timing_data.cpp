@@ -1,12 +1,12 @@
-#include "PrefsManager.h"
-#include "RageFile.h"
-#include "RageFileManager.h"
+#include "global.h"
 #include "RageLog.h"
+#include "RageFile.h"
 #include "RageUtil.h"
 #include "RageUtil_FileDB.h"
+#include "PrefsManager.h"
+#include "RageFileManager.h"
 #include "TimingData.h"
-#include "global.h"
-// clang-format off
+
 void
 run()
 {
@@ -159,4 +159,3 @@ main(int argc, char* argv[])
 
 	exit(0);
 }
-// clang-format on

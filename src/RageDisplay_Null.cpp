@@ -1,8 +1,8 @@
 ﻿#include "global.h"
 
-#include "RageDisplay_Null.h"
 #include "DisplayResolutions.h"
 #include "RageDisplay.h"
+#include "RageDisplay_Null.h"
 #include "RageLog.h"
 #include "RageSurface.h"
 #include "RageTypes.h"

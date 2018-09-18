@@ -4,7 +4,6 @@
 #include "ScreenEvaluation.h"
 #include "ScreenMessage.h"
 #include "StepsDisplay.h"
-#include "global.h"
 
 class ScreenNetEvaluation : public ScreenEvaluation
 {

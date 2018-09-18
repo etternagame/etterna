@@ -1,8 +1,6 @@
 #ifndef STEP_MANIA_H
 #define STEP_MANIA_H
 
-#include "global.h"
-
 struct Game;
 class RageTimer;
 class VideoModeParams;
@@ -44,7 +42,7 @@ void
 GetPreferredVideoModeParams(VideoModeParams& paramsOut);
 bool
 GetHighResolutionTextures();
-} // namespace StepMania
+}
 
 #endif
 

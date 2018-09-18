@@ -4,8 +4,6 @@
 #ifndef RANDOM_SAMPLE_H
 #define RANDOM_SAMPLE_H
 
-#include "global.h"
-
 class RageSound;
 
 class RandomSample

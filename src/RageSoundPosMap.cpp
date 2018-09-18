@@ -1,7 +1,7 @@
 ﻿#include "global.h"
-#include "RageSoundPosMap.h"
 #include "Foreach.h"
 #include "RageLog.h"
+#include "RageSoundPosMap.h"
 #include "RageTimer.h"
 #include "RageUtil.h"
 

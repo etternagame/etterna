@@ -1,10 +1,11 @@
-#include "SoundEffectControl.h"
+#include "global.h"
 #include "GameState.h"
 #include "InputMapper.h"
 #include "NoteData.h"
 #include "PlayerState.h"
 #include "RageSoundReader.h"
-#include "global.h"
+#include "RageSoundReader.h"
+#include "SoundEffectControl.h"
 
 SoundEffectControl::SoundEffectControl()
 {

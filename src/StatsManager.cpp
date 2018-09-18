@@ -1,18 +1,19 @@
-#include "StatsManager.h"
+#include "global.h"
 #include "CryptManager.h"
 #include "Foreach.h"
 #include "GameState.h"
 #include "LuaManager.h"
 #include "PrefsManager.h"
 #include "Profile.h"
+#include "Profile.h"
 #include "ProfileManager.h"
 #include "RageFileManager.h"
 #include "ScoreManager.h"
+#include "StatsManager.h"
 #include "Steps.h"
 #include "StyleUtil.h"
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
-#include "global.h"
 
 StatsManager* STATSMAN =
   NULL; // global object accessible from anywhere in the program

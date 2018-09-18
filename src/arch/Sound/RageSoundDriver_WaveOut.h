@@ -3,8 +3,8 @@
 
 #include "RageSoundDriver.h"
 #include "RageThreads.h"
-#include <mmsystem.h>
 #include <windows.h>
+#include <mmsystem.h>
 
 class RageSoundDriver_WaveOut : public RageSoundDriver
 {

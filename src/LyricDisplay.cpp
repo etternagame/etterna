@@ -1,7 +1,7 @@
 ﻿#include "global.h"
-#include "LyricDisplay.h"
 #include "ActorUtil.h"
 #include "GameState.h"
+#include "LyricDisplay.h"
 #include "Song.h"
 #include "ThemeMetric.h"
 

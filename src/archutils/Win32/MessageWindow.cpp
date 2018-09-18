@@ -1,8 +1,8 @@
-#include "MessageWindow.h"
-#include "AppInstance.h"
-#include "RageUtil.h"
-#include "archutils/Win32/ErrorStrings.h"
 #include "global.h"
+#include "MessageWindow.h"
+#include "RageUtil.h"
+#include "AppInstance.h"
+#include "archutils/Win32/ErrorStrings.h"
 
 MessageWindow::MessageWindow(const RString& sClassName)
 {

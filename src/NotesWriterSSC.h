@@ -1,7 +1,6 @@
 ﻿#ifndef NOTES_WRITER_SSC_H
 #define NOTES_WRITER_SSC_H
 
-#include "global.h"
 #include "Steps.h"
 
 class Song;
@@ -47,7 +46,7 @@ RString
 MSDToString(MinaSD x);
 RString
 MSDsAtRateToString(SDiffs x);
-} // namespace NotesWriterSSC
+}
 
 #endif
 

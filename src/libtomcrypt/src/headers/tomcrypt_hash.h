@@ -1,5 +1,3 @@
-#pragma once
-#include "tomcrypt_macros.h"
 /* ---- HASH FUNCTIONS ---- */
 #ifdef SHA512
 struct sha512_state
@@ -439,11 +437,10 @@ hash_file(int hash,
 
 /* a simple macro for making hash "process" functions */
 #define HASH_PROCESS(func_name, compress_name, state_var, block_size)          \
-                                                                               \
-	int func_name(                                                             \
-	  hash_state* md, const unsigned char* in, unsigned long inlen)            \
-                                                                               \
-	{                                                                          \
+	\
+int func_name(hash_state* md, const unsigned char* in, unsigned long inlen)    \
+	\
+{                                                                         \
 		unsigned long n;                                                       \
 		int err;                                                               \
 		LTC_ARGCHK(md != NULL);                                                \
@@ -478,7 +475,8 @@ hash_file(int hash,
 			}                                                                  \
 		}                                                                      \
 		return CRYPT_OK;                                                       \
-	}
+	\
+}
 
 /* $Source$ */
 /* $Revision: 24839 $ */

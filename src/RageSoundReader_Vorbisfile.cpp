@@ -1,7 +1,7 @@
 ﻿#include "global.h"
 
-#include "RageSoundReader_Vorbisfile.h"
 #include "RageLog.h"
+#include "RageSoundReader_Vorbisfile.h"
 #include "RageUtil.h"
 
 #if defined(INTEGER_VORBIS)
@@ -49,8 +49,8 @@ ov_ssprintf(int err, const char* fmt, ...)
 
 	RString errstr;
 	switch (err) {
-		// OV_FALSE, OV_EOF, and OV_HOLE were added to this switch because
-		// OV_EOF cases were being reported as unknown. -Kyz
+			// OV_FALSE, OV_EOF, and OV_HOLE were added to this switch because
+			// OV_EOF cases were being reported as unknown. -Kyz
 		case OV_FALSE:
 			errstr = "OV_FALSE";
 			break;

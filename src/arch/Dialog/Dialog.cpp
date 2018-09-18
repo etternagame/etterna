@@ -1,12 +1,12 @@
+#include "global.h"
 #include "Dialog.h"
 #include "DialogDriver.h"
-#include "global.h"
 #if !defined(SMPACKAGE)
 #include "PrefsManager.h"
 #endif
+#include "RageUtil.h"
 #include "RageLog.h"
 #include "RageThreads.h"
-#include "RageUtil.h"
 
 #if !defined(SMPACKAGE)
 static Preference<RString> g_sIgnoredDialogs("IgnoredDialogs", "");

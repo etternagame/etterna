@@ -1,11 +1,11 @@
-#include "RageSoundDriver.h"
 #include "global.h"
+#include "RageSoundDriver.h"
 
 #include "RageLog.h"
 #include "RageSound.h"
+#include "RageUtil.h"
 #include "RageSoundMixBuffer.h"
 #include "RageSoundReader.h"
-#include "RageUtil.h"
 
 static const int channels = 2;
 

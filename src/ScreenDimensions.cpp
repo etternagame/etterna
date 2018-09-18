@@ -1,9 +1,9 @@
-#include "ScreenDimensions.h"
+#include "global.h"
 #include "LuaManager.h"
 #include "Preference.h"
 #include "PrefsManager.h"
+#include "ScreenDimensions.h"
 #include "ThemeMetric.h"
-#include "global.h"
 
 static ThemeMetric<float> THEME_SCREEN_WIDTH("Common", "ScreenWidth");
 static ThemeMetric<float> THEME_SCREEN_HEIGHT("Common", "ScreenHeight");

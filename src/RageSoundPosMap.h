@@ -3,8 +3,6 @@
 #ifndef RAGE_SOUND_POS_MAP_H
 #define RAGE_SOUND_POS_MAP_H
 
-#include "global.h"
-
 struct pos_map_impl;
 class pos_map_queue
 {

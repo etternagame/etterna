@@ -1,6 +1,5 @@
-
-#include "SpecialFiles.h"
 #include "global.h"
+#include "SpecialFiles.h"
 
 const RString SpecialFiles::USER_PACKAGES_DIR = "UserPackages/";
 const RString SpecialFiles::PACKAGES_DIR = "Packages/";

@@ -1,5 +1,3 @@
-#pragma once
-#include "tomcrypt_macros.h"
 /* ---- SYMMETRIC KEY STUFF -----
  *
  * We put each of the ciphers scheduled keys in their own structs then we put
@@ -360,85 +358,85 @@ extern struct ltc_cipher_descriptor
 	  /** default number of rounds */
 	  default_rounds;
 	/** Setup the cipher
-	  @param key         The input symmetric key
-	  @param keylen      The length of the input key (octets)
-	  @param num_rounds  The requested number of rounds (0==default)
-	  @param skey        [out] The destination of the scheduled key
-	  @return CRYPT_OK if successful
-   */
+	   @param key         The input symmetric key
+	   @param keylen      The length of the input key (octets)
+	   @param num_rounds  The requested number of rounds (0==default)
+	   @param skey        [out] The destination of the scheduled key
+	   @return CRYPT_OK if successful
+	*/
 	int (*setup)(const unsigned char* key,
 				 int keylen,
 				 int num_rounds,
 				 symmetric_key* skey);
 	/** Encrypt a block
-	  @param pt      The plaintext
-	  @param ct      [out] The ciphertext
-	  @param skey    The scheduled key
-	  @return CRYPT_OK if successful
-   */
+	   @param pt      The plaintext
+	   @param ct      [out] The ciphertext
+	   @param skey    The scheduled key
+	   @return CRYPT_OK if successful
+	*/
 	int (*ecb_encrypt)(const unsigned char* pt,
 					   unsigned char* ct,
 					   symmetric_key* skey);
 	/** Decrypt a block
-	  @param ct      The ciphertext
-	  @param pt      [out] The plaintext
-	  @param skey    The scheduled key
-	  @return CRYPT_OK if successful
-   */
+	   @param ct      The ciphertext
+	   @param pt      [out] The plaintext
+	   @param skey    The scheduled key
+	   @return CRYPT_OK if successful
+	*/
 	int (*ecb_decrypt)(const unsigned char* ct,
 					   unsigned char* pt,
 					   symmetric_key* skey);
 	/** Test the block cipher
-	   @return CRYPT_OK if successful, CRYPT_NOP if self-testing has been
+		@return CRYPT_OK if successful, CRYPT_NOP if self-testing has been
 	   disabled
-   */
+	*/
 	int (*test)(void);
 
 	/** Terminate the context
-	  @param skey    The scheduled key
-   */
+	   @param skey    The scheduled key
+	*/
 	void (*done)(symmetric_key* skey);
 
 	/** Determine a key size
-	   @param keysize    [in/out] The size of the key desired and the suggested
+		@param keysize    [in/out] The size of the key desired and the suggested
 	   size
-	   @return CRYPT_OK if successful
-   */
+		@return CRYPT_OK if successful
+	*/
 	int (*keysize)(int* keysize);
 
 	/** Accelerators **/
 	/** Accelerated ECB encryption
-	   @param pt      Plaintext
-	   @param ct      Ciphertext
-	   @param blocks  The number of complete blocks to process
-	   @param skey    The scheduled key context
-	   @return CRYPT_OK if successful
-   */
+		@param pt      Plaintext
+		@param ct      Ciphertext
+		@param blocks  The number of complete blocks to process
+		@param skey    The scheduled key context
+		@return CRYPT_OK if successful
+	*/
 	int (*accel_ecb_encrypt)(const unsigned char* pt,
 							 unsigned char* ct,
 							 unsigned long blocks,
 							 symmetric_key* skey);
 
 	/** Accelerated ECB decryption
-	   @param pt      Plaintext
-	   @param ct      Ciphertext
-	   @param blocks  The number of complete blocks to process
-	   @param skey    The scheduled key context
-	   @return CRYPT_OK if successful
-   */
+		@param pt      Plaintext
+		@param ct      Ciphertext
+		@param blocks  The number of complete blocks to process
+		@param skey    The scheduled key context
+		@return CRYPT_OK if successful
+	*/
 	int (*accel_ecb_decrypt)(const unsigned char* ct,
 							 unsigned char* pt,
 							 unsigned long blocks,
 							 symmetric_key* skey);
 
 	/** Accelerated CBC encryption
-	   @param pt      Plaintext
-	   @param ct      Ciphertext
-	   @param blocks  The number of complete blocks to process
-	   @param IV      The initial value (input/output)
-	   @param skey    The scheduled key context
-	   @return CRYPT_OK if successful
-   */
+		@param pt      Plaintext
+		@param ct      Ciphertext
+		@param blocks  The number of complete blocks to process
+		@param IV      The initial value (input/output)
+		@param skey    The scheduled key context
+		@return CRYPT_OK if successful
+	*/
 	int (*accel_cbc_encrypt)(const unsigned char* pt,
 							 unsigned char* ct,
 							 unsigned long blocks,
@@ -446,13 +444,13 @@ extern struct ltc_cipher_descriptor
 							 symmetric_key* skey);
 
 	/** Accelerated CBC decryption
-	   @param pt      Plaintext
-	   @param ct      Ciphertext
-	   @param blocks  The number of complete blocks to process
-	   @param IV      The initial value (input/output)
-	   @param skey    The scheduled key context
-	   @return CRYPT_OK if successful
-   */
+		@param pt      Plaintext
+		@param ct      Ciphertext
+		@param blocks  The number of complete blocks to process
+		@param IV      The initial value (input/output)
+		@param skey    The scheduled key context
+		@return CRYPT_OK if successful
+	*/
 	int (*accel_cbc_decrypt)(const unsigned char* ct,
 							 unsigned char* pt,
 							 unsigned long blocks,
@@ -460,14 +458,14 @@ extern struct ltc_cipher_descriptor
 							 symmetric_key* skey);
 
 	/** Accelerated CTR encryption
-	   @param pt      Plaintext
-	   @param ct      Ciphertext
-	   @param blocks  The number of complete blocks to process
-	   @param IV      The initial value (input/output)
-	   @param mode    little or big endian counter (mode=0 or mode=1)
-	   @param skey    The scheduled key context
-	   @return CRYPT_OK if successful
-   */
+		@param pt      Plaintext
+		@param ct      Ciphertext
+		@param blocks  The number of complete blocks to process
+		@param IV      The initial value (input/output)
+		@param mode    little or big endian counter (mode=0 or mode=1)
+		@param skey    The scheduled key context
+		@return CRYPT_OK if successful
+	*/
 	int (*accel_ctr_encrypt)(const unsigned char* pt,
 							 unsigned char* ct,
 							 unsigned long blocks,
@@ -476,14 +474,14 @@ extern struct ltc_cipher_descriptor
 							 symmetric_key* skey);
 
 	/** Accelerated LRW
-	   @param pt      Plaintext
-	   @param ct      Ciphertext
-	   @param blocks  The number of complete blocks to process
-	   @param IV      The initial value (input/output)
-	   @param tweak   The LRW tweak
-	   @param skey    The scheduled key context
-	   @return CRYPT_OK if successful
-   */
+		@param pt      Plaintext
+		@param ct      Ciphertext
+		@param blocks  The number of complete blocks to process
+		@param IV      The initial value (input/output)
+		@param tweak   The LRW tweak
+		@param skey    The scheduled key context
+		@return CRYPT_OK if successful
+	*/
 	int (*accel_lrw_encrypt)(const unsigned char* pt,
 							 unsigned char* ct,
 							 unsigned long blocks,
@@ -492,14 +490,14 @@ extern struct ltc_cipher_descriptor
 							 symmetric_key* skey);
 
 	/** Accelerated LRW
-	   @param ct      Ciphertext
-	   @param pt      Plaintext
-	   @param blocks  The number of complete blocks to process
-	   @param IV      The initial value (input/output)
-	   @param tweak   The LRW tweak
-	   @param skey    The scheduled key context
-	   @return CRYPT_OK if successful
-   */
+		@param ct      Ciphertext
+		@param pt      Plaintext
+		@param blocks  The number of complete blocks to process
+		@param IV      The initial value (input/output)
+		@param tweak   The LRW tweak
+		@param skey    The scheduled key context
+		@return CRYPT_OK if successful
+	*/
 	int (*accel_lrw_decrypt)(const unsigned char* ct,
 							 unsigned char* pt,
 							 unsigned long blocks,
@@ -508,22 +506,22 @@ extern struct ltc_cipher_descriptor
 							 symmetric_key* skey);
 
 	/** Accelerated CCM packet (one-shot)
-	   @param key        The secret key to use
-	   @param keylen     The length of the secret key (octets)
-	   @param uskey      A previously scheduled key [optional can be NULL]
-	   @param nonce      The session nonce [use once]
-	   @param noncelen   The length of the nonce
-	   @param header     The header for the session
-	   @param headerlen  The length of the header (octets)
-	   @param pt         [out] The plaintext
-	   @param ptlen      The length of the plaintext (octets)
-	   @param ct         [out] The ciphertext
-	   @param tag        [out] The destination tag
-	   @param taglen     [in/out] The max size and resulting size of the
+		@param key        The secret key to use
+		@param keylen     The length of the secret key (octets)
+		@param uskey      A previously scheduled key [optional can be NULL]
+		@param nonce      The session nonce [use once]
+		@param noncelen   The length of the nonce
+		@param header     The header for the session
+		@param headerlen  The length of the header (octets)
+		@param pt         [out] The plaintext
+		@param ptlen      The length of the plaintext (octets)
+		@param ct         [out] The ciphertext
+		@param tag        [out] The destination tag
+		@param taglen     [in/out] The max size and resulting size of the
 	   authentication tag
-	   @param direction  Encrypt or Decrypt direction (0 or 1)
-	   @return CRYPT_OK if successful
-   */
+		@param direction  Encrypt or Decrypt direction (0 or 1)
+		@return CRYPT_OK if successful
+	*/
 	int (*accel_ccm_memory)(const unsigned char* key,
 							unsigned long keylen,
 							symmetric_key* uskey,
@@ -539,21 +537,21 @@ extern struct ltc_cipher_descriptor
 							int direction);
 
 	/** Accelerated GCM packet (one shot)
-	   @param key        The secret key
-	   @param keylen     The length of the secret key
-	   @param IV         The initial vector
-	   @param IVlen      The length of the initial vector
-	   @param adata      The additional authentication data (header)
-	   @param adatalen   The length of the adata
-	   @param pt         The plaintext
-	   @param ptlen      The length of the plaintext (ciphertext length is the
+		@param key        The secret key
+		@param keylen     The length of the secret key
+		@param IV         The initial vector
+		@param IVlen      The length of the initial vector
+		@param adata      The additional authentication data (header)
+		@param adatalen   The length of the adata
+		@param pt         The plaintext
+		@param ptlen      The length of the plaintext (ciphertext length is the
 	   same)
-	   @param ct         The ciphertext
-	   @param tag        [out] The MAC tag
-	   @param taglen     [in/out] The MAC tag length
-	   @param direction  Encrypt or Decrypt mode (GCM_ENCRYPT or GCM_DECRYPT)
-	   @return CRYPT_OK on success
-   */
+		@param ct         The ciphertext
+		@param tag        [out] The MAC tag
+		@param taglen     [in/out] The MAC tag length
+		@param direction  Encrypt or Decrypt mode (GCM_ENCRYPT or GCM_DECRYPT)
+		@return CRYPT_OK on success
+	*/
 	int (*accel_gcm_memory)(const unsigned char* key,
 							unsigned long keylen,
 							const unsigned char* IV,
@@ -568,14 +566,14 @@ extern struct ltc_cipher_descriptor
 							int direction);
 
 	/** Accelerated one shot OMAC
-	   @param key            The secret key
-	   @param keylen         The key length (octets)
-	   @param in             The message
-	   @param inlen          Length of message (octets)
-	   @param out            [out] Destination for tag
-	   @param outlen         [in/out] Initial and final size of out
-	   @return CRYPT_OK on success
-   */
+		@param key            The secret key
+		@param keylen         The key length (octets)
+		@param in             The message
+		@param inlen          Length of message (octets)
+		@param out            [out] Destination for tag
+		@param outlen         [in/out] Initial and final size of out
+		@return CRYPT_OK on success
+	*/
 	int (*omac_memory)(const unsigned char* key,
 					   unsigned long keylen,
 					   const unsigned char* in,
@@ -584,14 +582,14 @@ extern struct ltc_cipher_descriptor
 					   unsigned long* outlen);
 
 	/** Accelerated one shot XCBC
-	   @param key            The secret key
-	   @param keylen         The key length (octets)
-	   @param in             The message
-	   @param inlen          Length of message (octets)
-	   @param out            [out] Destination for tag
-	   @param outlen         [in/out] Initial and final size of out
-	   @return CRYPT_OK on success
-   */
+		@param key            The secret key
+		@param keylen         The key length (octets)
+		@param in             The message
+		@param inlen          Length of message (octets)
+		@param out            [out] Destination for tag
+		@param outlen         [in/out] Initial and final size of out
+		@return CRYPT_OK on success
+	*/
 	int (*xcbc_memory)(const unsigned char* key,
 					   unsigned long keylen,
 					   const unsigned char* in,
@@ -600,15 +598,15 @@ extern struct ltc_cipher_descriptor
 					   unsigned long* outlen);
 
 	/** Accelerated one shot F9
-	   @param key            The secret key
-	   @param keylen         The key length (octets)
-	   @param in             The message
-	   @param inlen          Length of message (octets)
-	   @param out            [out] Destination for tag
-	   @param outlen         [in/out] Initial and final size of out
-	   @return CRYPT_OK on success
-	   @remark Requires manual padding
-   */
+		@param key            The secret key
+		@param keylen         The key length (octets)
+		@param in             The message
+		@param inlen          Length of message (octets)
+		@param out            [out] Destination for tag
+		@param outlen         [in/out] Initial and final size of out
+		@return CRYPT_OK on success
+		@remark Requires manual padding
+	*/
 	int (*f9_memory)(const unsigned char* key,
 					 unsigned long keylen,
 					 const unsigned char* in,

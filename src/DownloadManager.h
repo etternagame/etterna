@@ -5,14 +5,14 @@
 
 #if !defined(WITHOUT_NETWORKING)
 
-#include "CommandLineActions.h"
-#include "Difficulty.h"
-#include "HighScore.h"
-#include "RageFile.h"
-#include "RageFileManager.h"
-#include "ScreenManager.h"
-#include "curl/curl.h"
 #include "global.h"
+#include "CommandLineActions.h"
+#include "RageFile.h"
+#include "HighScore.h"
+#include "ScreenManager.h"
+#include "RageFileManager.h"
+#include "curl/curl.h"
+#include "Difficulty.h"
 #include <deque>
 
 class DownloadablePack;

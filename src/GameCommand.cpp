@@ -1,7 +1,7 @@
 ﻿#include "global.h"
-#include "GameCommand.h"
 #include "AnnouncerManager.h"
 #include "Foreach.h"
+#include "GameCommand.h"
 #include "GameManager.h"
 #include "GameSoundManager.h"
 #include "GameState.h"
@@ -13,10 +13,10 @@
 #include "ScreenManager.h"
 #include "ScreenPrompt.h"
 #include "Song.h"
-#include "SongManager.h"
-#include "SongUtil.h"
 #include "Style.h"
 #include "arch/ArchHooks/ArchHooks.h"
+#include "SongManager.h"
+#include "SongUtil.h"
 
 static LocalizedString COULD_NOT_LAUNCH_BROWSER(
   "GameCommand",

@@ -1,7 +1,6 @@
 #ifndef SPRITE_H
 #define SPRITE_H
 
-#include "global.h"
 #include "Actor.h"
 #include "RageTextureID.h"
 

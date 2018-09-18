@@ -3,7 +3,6 @@
 #ifndef CODE_DETECTOR_H
 #define CODE_DETECTOR_H
 
-#include "global.h"
 #include "GameInput.h"
 
 enum Code

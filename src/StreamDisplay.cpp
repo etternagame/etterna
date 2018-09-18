@@ -1,9 +1,9 @@
-#include "StreamDisplay.h"
+#include "global.h"
 #include "EnumHelper.h"
 #include "GameState.h"
 #include "RageDisplay.h"
+#include "StreamDisplay.h"
 #include "ThemeManager.h"
-#include "global.h"
 #include <cfloat>
 
 static const char* StreamTypeNames[] = {

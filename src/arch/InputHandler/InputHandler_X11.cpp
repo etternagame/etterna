@@ -1,12 +1,12 @@
-#include "InputHandler_X11.h"
 #include "global.h"
+#include "InputHandler_X11.h"
 
 #include <array>
 
-#include "InputFilter.h"
-#include "RageDisplay.h"
-#include "RageLog.h"
 #include "RageUtil.h"
+#include "RageLog.h"
+#include "RageDisplay.h"
+#include "InputFilter.h"
 #include "archutils/Unix/X11Helper.h"
 
 #include <X11/Xlib.h>

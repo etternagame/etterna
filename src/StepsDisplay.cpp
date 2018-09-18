@@ -1,4 +1,4 @@
-#include "StepsDisplay.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "GameConstantsAndTypes.h"
 #include "GameManager.h"
@@ -9,10 +9,10 @@
 #include "RageUtil.h"
 #include "SongManager.h"
 #include "Steps.h"
+#include "StepsDisplay.h"
 #include "Style.h"
 #include "ThemeManager.h"
 #include "XmlFile.h"
-#include "global.h"
 
 REGISTER_ACTOR_CLASS(StepsDisplay);
 
@@ -232,10 +232,10 @@ StepsDisplay::SetInternal(const SetParams& params)
 	if (m_bShowStepsType) {
 		if (params.st != StepsType_Invalid) {
 			/*
-				RString sStepsType =
-			   GAMEMAN->GetStepsTypeInfo(params.st).szName; m_sprStepsType.Load(
-			   THEME->GetPathG(m_sMetricsGroup,"StepsType "+sStepsType) );
-				*/
+			RString sStepsType = GAMEMAN->GetStepsTypeInfo(params.st).szName;
+			m_sprStepsType.Load( THEME->GetPathG(m_sMetricsGroup,"StepsType
+			"+sStepsType) );
+			*/
 			m_sprStepsType->HandleMessage(msg);
 		}
 	}

@@ -3,7 +3,6 @@
 #ifndef RAGE_SURFACE_LOAD_JPEG_H
 #define RAGE_SURFACE_LOAD_JPEG_H
 
-#include "global.h"
 #include "RageSurface_Load.h"
 
 RageSurfaceUtils::OpenResult

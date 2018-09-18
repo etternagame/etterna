@@ -1,8 +1,8 @@
-#include "RageFile.h"
+#include "global.h"
 #include "RageLog.h"
+#include "RageFile.h"
 #include "RageUtil.h"
 #include "RageUtil_FileDB.h"
-#include "global.h"
 #include "test_misc.h"
 
 bool CreateTestFiles = false;
@@ -314,8 +314,8 @@ TestSeek(bool relative)
 	}
 }
 
-#include "RageFileDriverDeflate.h"
 #include "RageFileDriverMemory.h"
+#include "RageFileDriverDeflate.h"
 void
 CheckDeflate(RageFileObjMem& data,
 			 int iSize,

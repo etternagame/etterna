@@ -1,11 +1,11 @@
-#include "WheelNotifyIcon.h"
+#include "global.h"
 #include "GameConstantsAndTypes.h"
 #include "MusicWheel.h"
 #include "RageTimer.h"
 #include "RageUtil.h"
 #include "ThemeManager.h"
 #include "WheelNotifyIcon.h"
-#include "global.h"
+#include "WheelNotifyIcon.h"
 
 /* todo: replace this entire thing with a set of AutoActors and a Scroller.
  * In reality, everything except the Beginner/Training icon can be replicated
@@ -92,8 +92,8 @@ WheelNotifyIcon::Update(float fDeltaTime)
 {
 	if (m_vIconsToShow.size() > 0) {
 		/* We should probably end up parsing the vector and then dynamically
-			 * insert flag icons based on "priority". Easy to do, hopefully
-				- Midiman */
+		 * insert flag icons based on "priority". Easy to do, hopefully
+			- Midiman */
 		const float fSecondFraction =
 		  fmodf(RageTimer::GetTimeSinceStartFast(), 1);
 		const int index = (int)(fSecondFraction * m_vIconsToShow.size());

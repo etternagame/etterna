@@ -1,3 +1,4 @@
+#include "global.h"
 #include "ActorUtil.h"
 #include "EnumHelper.h"
 #include "Foreach.h"
@@ -12,7 +13,6 @@
 #include "ThemeManager.h"
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
-#include "global.h"
 
 #include "arch/Dialog/Dialog.h"
 

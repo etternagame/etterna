@@ -1,13 +1,13 @@
-#include "ScoreDisplayAliveTime.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "GameState.h"
 #include "LuaManager.h"
 #include "RageLog.h"
 #include "RageUtil.h"
+#include "ScoreDisplayAliveTime.h"
 #include "StageStats.h"
 #include "StatsManager.h"
 #include "XmlFile.h"
-#include "global.h"
 
 REGISTER_ACTOR_CLASS(ScoreDisplayAliveTime);
 

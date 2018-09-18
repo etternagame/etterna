@@ -4,11 +4,11 @@ http://en.wikipedia.org/wiki/INI_file
  - semicolons start a comment line
  - backslash followed by a newline doesn't break the line
 */
+#include "global.h"
 #include "IniFile.h"
 #include "RageFile.h"
 #include "RageLog.h"
 #include "RageUtil.h"
-#include "global.h"
 
 IniFile::IniFile()
   : XNode("IniFile")

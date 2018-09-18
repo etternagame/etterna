@@ -1,10 +1,10 @@
-#include "NotesLoaderOSU.h"
+#include "global.h"
 #include "NoteData.h"
+#include "NotesLoaderOSU.h"
 #include "RageFile.h"
 #include "RageUtil_CharConversions.h"
 #include "Song.h"
 #include "Steps.h"
-#include "global.h"
 
 vector<string>
 split(string str, string token)

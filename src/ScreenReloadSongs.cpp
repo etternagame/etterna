@@ -1,11 +1,11 @@
-#include "ScreenReloadSongs.h"
+#include "global.h"
 #include "RageLog.h"
 #include "RageTimer.h"
 #include "ScreenDimensions.h"
 #include "ScreenManager.h"
+#include "ScreenReloadSongs.h"
 #include "SongManager.h"
 #include "ThemeManager.h"
-#include "global.h"
 
 #include "arch/LoadingWindow/LoadingWindow.h"
 

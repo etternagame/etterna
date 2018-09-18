@@ -22,7 +22,7 @@ DiscardCache(RageFileBasic* pFile, int iRelativePosition, int iBytes);
 
 void
 CacheHintStreaming(RageFileBasic* pFile);
-}; // namespace RageFileManagerReadAhead
+};
 
 #endif
 

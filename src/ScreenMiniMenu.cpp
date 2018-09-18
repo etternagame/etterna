@@ -1,4 +1,4 @@
-#include "ScreenMiniMenu.h"
+#include "global.h"
 #include "FontCharAliases.h"
 #include "Foreach.h"
 #include "GameConstantsAndTypes.h"
@@ -7,8 +7,8 @@
 #include "PrefsManager.h"
 #include "ScreenDimensions.h"
 #include "ScreenManager.h"
+#include "ScreenMiniMenu.h"
 #include "ThemeManager.h"
-#include "global.h"
 
 void
 PrepareToLoadScreen(const RString& sScreenName);
@@ -37,7 +37,7 @@ namespace {
 const MenuDef* g_pMenuDef = NULL;
 ScreenMessage g_SendOnOK;
 ScreenMessage g_SendOnCancel;
-} // namespace
+} // namespace;
 
 void
 ScreenMiniMenu::MiniMenu(const MenuDef* pDef,

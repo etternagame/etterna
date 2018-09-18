@@ -1,9 +1,9 @@
+#include "global.h"
 #include "Threads_Win32.h"
+#include "RageUtil.h"
 #include "RageThreads.h"
 #include "RageTimer.h"
-#include "RageUtil.h"
 #include "archutils/Win32/ErrorStrings.h"
-#include "global.h"
 
 const int MAX_THREADS = 128;
 

@@ -1,20 +1,21 @@
-#include "NetworkSyncManager.h"
-#include "HighScore.h"
-#include "JsonUtil.h"
-#include "LocalizedString.h"
-#include "LuaManager.h"
-#include "RoomInfoDisplay.h"
-#include "ScreenNetRoom.h"
-#include "ScreenNetSelectMusic.h"
-#include "ScreenSMOnlineLogin.h"
-#include "Song.h"
-#include "SongManager.h"
-#include "Style.h"
 #include "global.h"
+#include "NetworkSyncManager.h"
+#include "Song.h"
+#include "HighScore.h"
 #include "uWS.h"
+#include "LuaManager.h"
+#include "LocalizedString.h"
+#include "JsonUtil.h"
+#include "Style.h"
 #include <cerrno>
 #include <chrono>
 #include <nlohmann/json.hpp>
+#include "ScreenNetSelectMusic.h"
+#include "ScreenSMOnlineLogin.h"
+#include "ScreenNetRoom.h"
+#include "RoomInfoDisplay.h"
+#include "Song.h"
+#include "SongManager.h"
 using json = nlohmann::json;
 
 NetworkSyncManager* NSMAN;
@@ -191,7 +192,6 @@ NetworkSyncManager::GetCurrentSMBuild(LoadingWindow* ld)
 #include "CryptManager.h"
 #include "GameManager.h"
 #include "GameState.h"
-#include "HighScore.h"
 #include "MessageManager.h"
 #include "PlayerState.h"
 #include "ProductInfo.h"
@@ -203,6 +203,9 @@ NetworkSyncManager::GetCurrentSMBuild(LoadingWindow* ld)
 #include "StatsManager.h"
 #include "Steps.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
+#include "PlayerState.h"
+#include "CryptManager.h"
+#include "HighScore.h"
 #include "ezsockets.h"
 
 AutoScreenMessage(SM_AddToChat);
@@ -1922,10 +1925,10 @@ SMOProtocol::ProcessInput(NetworkSyncManager* n)
 				n->m_Scoreboard[ColumnNumber] = ColumnData;
 				n->m_scoreboardchange[ColumnNumber] = true;
 				/*
-					Message msg("ScoreboardUpdate");
-					msg.SetParam( "NumPlayers", NumberPlayers );
-					MESSAGEMAN->Broadcast( msg );
-					*/
+				Message msg("ScoreboardUpdate");
+				msg.SetParam( "NumPlayers", NumberPlayers );
+				MESSAGEMAN->Broadcast( msg );
+				*/
 			} break;
 			case NSCSU: // System message from server
 			{

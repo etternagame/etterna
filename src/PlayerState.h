@@ -3,7 +3,6 @@
 #ifndef PlayerState_H
 #define PlayerState_H
 
-#include "global.h"
 #include "ModsGroup.h"
 #include "PlayerNumber.h"
 #include "PlayerOptions.h"

@@ -3,7 +3,6 @@
 #ifndef RAGE_DISPLAY_OGL_H
 #define RAGE_DISPLAY_OGL_H
 
-#include "global.h"
 #include "DisplayResolutions.h"
 #include "RageDisplay.h"
 
@@ -14,11 +13,13 @@
 	do {                                                                       \
 	} while (glGetError() != GL_NO_ERROR)
 #define AssertNoGLError()                                                      \
-	{                                                                          \
+	\
+{                                                                         \
 		GLenum error = glGetError();                                           \
 		ASSERT_M(error == GL_NO_ERROR,                                         \
 				 RageDisplay_Legacy_Helpers::GLToString(error));               \
-	}
+	\
+}
 
 #if defined(DEBUG) || !defined(GL_GET_ERROR_IS_SLOW)
 #define DebugFlushGLErrors() FlushGLErrors()

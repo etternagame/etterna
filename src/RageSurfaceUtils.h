@@ -2,7 +2,6 @@
 
 #ifndef RAGE_SURFACE_UTILS_H
 #define RAGE_SURFACE_UTILS_H
-#include "global.h"
 
 struct RageSurfaceColor;
 struct RageSurfacePalette;
@@ -106,7 +105,7 @@ void
 ApplyHotPinkColorKey(RageSurface*& img);
 void
 FlipVertically(RageSurface* img);
-}; // namespace RageSurfaceUtils
+};
 
 #endif
 

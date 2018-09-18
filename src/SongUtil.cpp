@@ -1,3 +1,4 @@
+#include "global.h"
 #include "CommonMetrics.h"
 #include "EnumHelper.h"
 #include "Foreach.h"
@@ -12,11 +13,10 @@
 #include "Song.h"
 #include "SongManager.h"
 #include "Steps.h"
-#include "StepsUtil.h"
 #include "Style.h"
 #include "ThemeMetric.h"
 #include "XmlFile.h"
-#include "global.h"
+#include "StepsUtil.h"
 
 ThemeMetric<int> SORT_BPM_DIVISION("MusicWheel", "SortBPMDivision");
 ThemeMetric<bool> SHOW_SECTIONS_IN_BPM_SORT("MusicWheel",
@@ -1300,7 +1300,7 @@ const luaL_Reg SongUtilTable[] = { LIST_METHOD(GetPlayableSteps),
 								   LIST_METHOD(IsStepsTypePlayable),
 								   LIST_METHOD(IsStepsPlayable),
 								   { NULL, NULL } };
-} // namespace
+}
 
 LUA_REGISTER_NAMESPACE(SongUtil)
 

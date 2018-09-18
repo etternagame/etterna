@@ -1,23 +1,23 @@
+#include "global.h"
 #include "LowLevelWindow_X11.h"
-#include "DisplayResolutions.h"
-#include "LocalizedString.h"
+#include "RageLog.h"
+#include "RageException.h"
+#include "archutils/Unix/X11Helper.h"
 #include "PrefsManager.h" // XXX
 #include "RageDisplay.h"  // VideoModeParams
-#include "RageException.h"
-#include "RageLog.h"
-#include "archutils/Unix/X11Helper.h"
-#include "global.h"
+#include "DisplayResolutions.h"
+#include "LocalizedString.h"
 
 #include "RageDisplay_OGL_Helpers.h"
 using namespace RageDisplay_Legacy_Helpers;
 using namespace X11Helper;
 
-#include <math.h> // ceil()
 #include <stack>
+#include <math.h> // ceil()
 #define GLX_GLXEXT_PROTOTYPES
 #include <GL/glx.h> // All sorts of stuff...
-#include <X11/Xatom.h>
 #include <X11/Xlib.h>
+#include <X11/Xatom.h>
 #include <X11/extensions/Xrandr.h>
 
 #if defined(HAVE_LIBXTST)

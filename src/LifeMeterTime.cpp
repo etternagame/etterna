@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "LifeMeterTime.h"
 #include "GameState.h"
+#include "LifeMeterTime.h"
 #include "MessageManager.h"
 #include "PlayerState.h"
 #include "Preference.h"

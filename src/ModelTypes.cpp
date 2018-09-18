@@ -1,7 +1,7 @@
 ﻿#include "global.h"
-#include "ModelTypes.h"
 #include "Foreach.h"
 #include "IniFile.h"
+#include "ModelTypes.h"
 #include "RageDisplay.h"
 #include "RageFile.h"
 #include "RageMath.h"

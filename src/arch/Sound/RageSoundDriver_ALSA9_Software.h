@@ -2,8 +2,8 @@
 #define RAGE_SOUND_ALSA9_SOFTWARE_H
 
 #include "RageSound.h"
-#include "RageSoundDriver.h"
 #include "RageThreads.h"
+#include "RageSoundDriver.h"
 
 #include "ALSA9Helpers.h"
 

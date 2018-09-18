@@ -19,17 +19,17 @@
  * DEFAULT overrides.
  */
 
-#include "RageTextureManager.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "Foreach.h"
 #include "RageBitmapTexture.h"
 #include "RageDisplay.h"
 #include "RageLog.h"
+#include "RageTextureManager.h"
 #include "RageUtil.h"
 #include "Screen.h"
 #include "ScreenManager.h"
 #include "arch/MovieTexture/MovieTexture.h"
-#include "global.h"
 
 #include <map>
 
@@ -40,7 +40,7 @@ namespace {
 map<RageTextureID, RageTexture*> m_mapPathToTexture;
 map<RageTextureID, RageTexture*> m_textures_to_update;
 map<RageTexture*, RageTextureID> m_texture_ids_by_pointer;
-} // namespace
+} // namespace;
 
 RageTextureManager::RageTextureManager() {}
 

@@ -1,4 +1,4 @@
-#include "XmlFileUtil.h"
+#include "global.h"
 #include "Foreach.h"
 #include "LuaManager.h"
 #include "RageFile.h"
@@ -6,8 +6,8 @@
 #include "RageLog.h"
 #include "RageUtil.h"
 #include "XmlFile.h"
+#include "XmlFileUtil.h"
 #include "arch/Dialog/Dialog.h"
-#include "global.h"
 
 bool
 XmlFileUtil::LoadFromFileShowErrors(XNode& xml, RageFileBasic& f)

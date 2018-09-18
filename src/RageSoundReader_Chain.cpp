@@ -1,8 +1,8 @@
 ﻿#include "global.h"
-#include "RageSoundReader_Chain.h"
 #include "Foreach.h"
 #include "RageLog.h"
 #include "RageSoundMixBuffer.h"
+#include "RageSoundReader_Chain.h"
 #include "RageSoundReader_FileReader.h"
 #include "RageSoundReader_Pan.h"
 #include "RageSoundReader_Preload.h"
@@ -270,22 +270,22 @@ RageSoundReader_Chain::GetNextSourceFrame() const
 {
 	return m_iCurrentFrame;
 	/*	if( m_apActiveSounds.empty() )
-		return m_iCurrentFrame;
+			return m_iCurrentFrame;
 
-	int iPosition = m_apActiveSounds[0]->pSound->GetNextSourceFrame();
-	iPosition += m_apActiveSounds[0]->GetOffsetFrame( GetSampleRate() );
+		int iPosition = m_apActiveSounds[0]->pSound->GetNextSourceFrame();
+		iPosition += m_apActiveSounds[0]->GetOffsetFrame( GetSampleRate() );
 
-	for( unsigned i = 1; i < m_apActiveSounds.size(); ++i )
-	{
-		int iThisPosition = m_apActiveSounds[i]->pSound->GetNextSourceFrame();
-		iThisPosition += m_apActiveSounds[i]->GetOffsetFrame( GetSampleRate() );
-		if( iThisPosition != iPosition )
-			LOG->Warn( "RageSoundReader_Chain: sound positions moving at
-	different rates" );
-	}
+		for( unsigned i = 1; i < m_apActiveSounds.size(); ++i )
+		{
+			int iThisPosition =
+	   m_apActiveSounds[i]->pSound->GetNextSourceFrame(); iThisPosition +=
+	   m_apActiveSounds[i]->GetOffsetFrame( GetSampleRate() ); if( iThisPosition
+	   != iPosition ) LOG->Warn( "RageSoundReader_Chain: sound positions moving
+	   at different rates" );
+		}
 
-	return iPosition;
-*/
+		return iPosition;
+	*/
 }
 
 float

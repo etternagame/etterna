@@ -7,7 +7,6 @@
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
 
-class Profile;
 class XNode;
 
 class XMLProfile

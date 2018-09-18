@@ -1,9 +1,9 @@
-#include "Tween.h"
+#include "global.h"
 #include "EnumHelper.h"
 #include "LuaManager.h"
 #include "RageMath.h"
 #include "RageUtil.h"
-#include "global.h"
+#include "Tween.h"
 
 static const char* TweenTypeNames[] = { "Linear",
 										"Accelerate",

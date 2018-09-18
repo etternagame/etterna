@@ -1,7 +1,7 @@
 ﻿#include "global.h"
-#include "RageUtil_WorkerThread.h"
 #include "RageLog.h"
 #include "RageUtil.h"
+#include "RageUtil_WorkerThread.h"
 
 RageWorkerThread::RageWorkerThread(const RString& sName)
   : m_WorkerEvent("\"" + sName + "\" worker event")

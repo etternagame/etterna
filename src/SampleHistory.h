@@ -1,8 +1,5 @@
 #ifndef SAMPLE_HISTORY_H
 #define SAMPLE_HISTORY_H
-
-#include "global.h"
-
 /** @brief Store a trailing history of values, and retrieve values with
  * interpolation. */
 class SampleHistory

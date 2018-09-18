@@ -1,7 +1,7 @@
 ﻿#include "global.h"
-#include "GhostArrowRow.h"
 #include "GameConstantsAndTypes.h"
 #include "GameState.h"
+#include "GhostArrowRow.h"
 #include "NoteSkinManager.h"
 #include "PlayerState.h"
 #include "RageUtil.h"
@@ -66,18 +66,18 @@ GhostArrowRow::Update(float fDeltaTime)
 			else if (m_bLastHoldShowing[i] == TapNoteSubType_Roll)
 				m_Ghost[i]->PlayCommand("RollOff");
 			/*
-				else if( m_bLastHoldShowing[i] == TapNoteSubType_Mine )
-					m_Ghost[i]->PlayCommand( "MinefieldOff" );
-				*/
+			else if( m_bLastHoldShowing[i] == TapNoteSubType_Mine )
+				m_Ghost[i]->PlayCommand( "MinefieldOff" );
+			*/
 
 			if (m_bHoldShowing[i] == TapNoteSubType_Hold)
 				m_Ghost[i]->PlayCommand("HoldingOn");
 			else if (m_bHoldShowing[i] == TapNoteSubType_Roll)
 				m_Ghost[i]->PlayCommand("RollOn");
 			/*
-				else if( m_bHoldShowing[i] == TapNoteSubType_Mine )
-					m_Ghost[i]->PlayCommand( "MinefieldOn" );
-				*/
+			else if( m_bHoldShowing[i] == TapNoteSubType_Mine )
+				m_Ghost[i]->PlayCommand( "MinefieldOn" );
+			*/
 			m_bLastHoldShowing[i] = m_bHoldShowing[i];
 		}
 		m_bHoldShowing[i] = TapNoteSubType_Invalid;

@@ -1,8 +1,8 @@
+#include "global.h"
 #include "LoadingWindow.h"
 #include "PrefsManager.h"
 #include "RageLog.h"
 #include "arch/arch_default.h"
-#include "global.h"
 
 LoadingWindow*
 LoadingWindow::Create()

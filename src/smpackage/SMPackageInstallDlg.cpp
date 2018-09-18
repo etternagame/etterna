@@ -1,24 +1,24 @@
 // SMPackageInstallDlg.cpp : implementation file
 
 #define CO_EXIST_WITH_MFC
-#include "SMPackageInstallDlg.h"
-#include "EditInsallations.h"
-#include "IniFile.h"
-#include "LocalizedString.h"
-#include "RageFileDriverDirect.h"
-#include "RageFileDriverZip.h"
-#include "RageFileManager.h"
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "ShowComment.h"
-#include "UninstallOld.h"
-#include "arch/Dialog/Dialog.h"
-#include "archutils/Win32/DialogUtil.h"
 #include "global.h"
-#include "smpackage.h"
-#include "smpackageUtil.h"
 #include "stdafx.h"
+#include "smpackage.h"
+#include "SMPackageInstallDlg.h"
+#include "RageUtil.h"
+#include "smpackageUtil.h"
+#include "EditInsallations.h"
+#include "ShowComment.h"
+#include "IniFile.h"
+#include "UninstallOld.h"
 #include <algorithm>
+#include "RageFileManager.h"
+#include "RageFileDriverZip.h"
+#include "archutils/Win32/DialogUtil.h"
+#include "LocalizedString.h"
+#include "RageLog.h"
+#include "arch/Dialog/Dialog.h"
+#include "RageFileDriverDirect.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -159,8 +159,8 @@ CSMPackageInstallDlg::OnPaint()
 		CDialog::OnPaint();
 	}
 }
-#include ".\smpackageinstalldlg.h"
 #include <direct.h>
+#include ".\smpackageinstalldlg.h"
 
 static bool
 CheckPackages(RageFileDriverZip& fileDriver)

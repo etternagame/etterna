@@ -1,15 +1,15 @@
+#include "global.h"
 #include "Backtrace.h"
 #include "RageUtil.h"
-#include "global.h"
 
 #if defined(HAVE_UNISTD_H)
 #include <unistd.h>
 #endif
-#include <cerrno>
 #include <cstdlib>
-#include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
+#include <cerrno>
 #if defined(HAVE_FCNTL_H)
 #include <fcntl.h>
 #endif

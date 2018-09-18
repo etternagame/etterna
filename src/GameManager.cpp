@@ -1,10 +1,10 @@
 ﻿#include "global.h"
-#include "GameManager.h"
 #include "Foreach.h"
 #include "Game.h"
 #include "GameConstantsAndTypes.h"
 #include "GameInput.h" // for GameButton constants
 #include "GameLoop.h"  // for ChangeGame
+#include "GameManager.h"
 #include "NoteSkinManager.h"
 #include "RageInputDevice.h"
 #include "RageUtil.h"
@@ -2728,8 +2728,9 @@ static const Style g_Style_Techno_Versus8 = {
 	  { 1, 6, 4, 3, 2, 5, Style::NO_MAPPING, 0, 7, Style::END_MAPPING },
 	  { 1, 6, 4, 3, 2, 5, Style::NO_MAPPING, 0, 7, Style::END_MAPPING },
 	  //			{ 1, 6, 4, Style::NO_MAPPING, 2, 5, Style::NO_MAPPING, 0, 7,
-	  // Style::END_MAPPING }, 			{ 1, 6, 4, Style::NO_MAPPING, 2, 5,
-	  // Style::NO_MAPPING, 0, 7, Style::END_MAPPING },
+	  // Style::END_MAPPING },
+	  //			{ 1, 6, 4, Style::NO_MAPPING, 2, 5, Style::NO_MAPPING, 0, 7,
+	  // Style::END_MAPPING },
 	},
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,

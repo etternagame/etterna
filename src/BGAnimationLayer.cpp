@@ -1,7 +1,7 @@
 ﻿#include "global.h"
-#include "BGAnimationLayer.h"
 #include "ActorUtil.h"
 #include "AutoActor.h"
+#include "BGAnimationLayer.h"
 #include "GameState.h"
 #include "RageDisplay.h"
 #include "RageMath.h"

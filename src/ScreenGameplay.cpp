@@ -1,12 +1,10 @@
 ﻿#include "global.h"
-#include "ScreenGameplay.h"
 #include "ActorUtil.h"
 #include "AdjustSync.h"
 #include "ArrowEffects.h"
 #include "Background.h"
 #include "CommonMetrics.h"
 #include "DancingCharacters.h"
-#include "DownloadManager.h"
 #include "Foreach.h"
 #include "Foreground.h"
 #include "Game.h"
@@ -36,6 +34,7 @@
 #include "ScoreDisplayPercentage.h"
 #include "ScoreKeeperNormal.h"
 #include "ScreenDimensions.h"
+#include "ScreenGameplay.h"
 #include "ScreenManager.h"
 #include "ScreenSaveSync.h"
 #include "Song.h"
@@ -49,6 +48,8 @@
 #include "ThemeMetric.h"
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
+#include "Profile.h" // for replay data stuff
+#include "DownloadManager.h"
 
 // Defines
 #define SHOW_LIFE_METER_FOR_DISABLED_PLAYERS                                   \
@@ -540,12 +541,12 @@ ScreenGameplay::Init()
 		float player_x = edge + left_marge + (field_space / 2.0f);
 		float field_zoom = field_space / style_width;
 		/*
-			LuaHelpers::ReportScriptErrorFmt("Positioning player %d at %.0f:  "
-				"screen_space %.0f, left_edge %.0f, field_space %.0f, left_marge
-		   %.0f," " right_marge %.0f, style_width %.0f, field_zoom %.2f.",
-				pi->m_pn+1, player_x, screen_space, left_edge[pi->m_pn],
-		   field_space, left_marge, right_marge, style_width, field_zoom);
-			*/
+		LuaHelpers::ReportScriptErrorFmt("Positioning player %d at %.0f:  "
+			"screen_space %.0f, left_edge %.0f, field_space %.0f, left_marge
+		%.0f," " right_marge %.0f, style_width %.0f, field_zoom %.2f.",
+			pi->m_pn+1, player_x, screen_space, left_edge[pi->m_pn],
+		field_space, left_marge, right_marge, style_width, field_zoom);
+		*/
 		pi->GetPlayerState()->m_NotefieldZoom = min(1.0f, field_zoom);
 
 		pi->m_pPlayer->SetX(player_x);
@@ -665,46 +666,45 @@ ScreenGameplay::Init()
 	{
 		// Theme already contains all of this... so we don't need it? -mina
 		/*
-			ASSERT( pi->m_ptextStepsDescription == NULL );
-			pi->m_ptextStepsDescription = new BitmapText;
-			pi->m_ptextStepsDescription->LoadFromFont(
-		   THEME->GetPathF(m_sName,"StepsDescription") );
-			pi->m_ptextStepsDescription->SetName(
-		   ssprintf("StepsDescription%s",pi->GetName().c_str()) );
-			LOAD_ALL_COMMANDS_AND_SET_XY( pi->m_ptextStepsDescription );
-			this->AddChild( pi->m_ptextStepsDescription );
+		ASSERT( pi->m_ptextStepsDescription == NULL );
+		pi->m_ptextStepsDescription = new BitmapText;
+		pi->m_ptextStepsDescription->LoadFromFont(
+		THEME->GetPathF(m_sName,"StepsDescription") );
+		pi->m_ptextStepsDescription->SetName(
+		ssprintf("StepsDescription%s",pi->GetName().c_str()) );
+		LOAD_ALL_COMMANDS_AND_SET_XY( pi->m_ptextStepsDescription );
+		this->AddChild( pi->m_ptextStepsDescription );
 
-			// Player/Song options
-			ASSERT( pi->m_ptextPlayerOptions == NULL );
-			pi->m_ptextPlayerOptions = new BitmapText;
-			pi->m_ptextPlayerOptions->LoadFromFont(
-		   THEME->GetPathF(m_sName,"player options") );
-			pi->m_ptextPlayerOptions->SetName(
-		   ssprintf("PlayerOptions%s",pi->GetName().c_str()) );
-			LOAD_ALL_COMMANDS_AND_SET_XY( pi->m_ptextPlayerOptions );
-			this->AddChild( pi->m_ptextPlayerOptions );
+		// Player/Song options
+		ASSERT( pi->m_ptextPlayerOptions == NULL );
+		pi->m_ptextPlayerOptions = new BitmapText;
+		pi->m_ptextPlayerOptions->LoadFromFont( THEME->GetPathF(m_sName,"player
+		options") ); pi->m_ptextPlayerOptions->SetName(
+		ssprintf("PlayerOptions%s",pi->GetName().c_str()) );
+		LOAD_ALL_COMMANDS_AND_SET_XY( pi->m_ptextPlayerOptions );
+		this->AddChild( pi->m_ptextPlayerOptions );
 
-			// Difficulty icon and meter
-			ASSERT( pi->m_pStepsDisplay == NULL );
-			pi->m_pStepsDisplay = new StepsDisplay;
-			pi->m_pStepsDisplay->Load("StepsDisplayGameplay",
-		   pi->GetPlayerState() ); pi->m_pStepsDisplay->SetName(
-		   ssprintf("StepsDisplay%s",pi->GetName().c_str()) ); PlayerNumber pn =
-		   pi->GetStepsAndTrailIndex(); if( pn != PlayerNumber_Invalid )
-				pi->m_pStepsDisplay->PlayCommand( "Set" + pi->GetName() );
-			LOAD_ALL_COMMANDS_AND_SET_XY( pi->m_pStepsDisplay );
-			this->AddChild( pi->m_pStepsDisplay );
-			*/
+		// Difficulty icon and meter
+		ASSERT( pi->m_pStepsDisplay == NULL );
+		pi->m_pStepsDisplay = new StepsDisplay;
+		pi->m_pStepsDisplay->Load("StepsDisplayGameplay", pi->GetPlayerState()
+		); pi->m_pStepsDisplay->SetName(
+		ssprintf("StepsDisplay%s",pi->GetName().c_str()) ); PlayerNumber pn =
+		pi->GetStepsAndTrailIndex(); if( pn != PlayerNumber_Invalid )
+			pi->m_pStepsDisplay->PlayCommand( "Set" + pi->GetName() );
+		LOAD_ALL_COMMANDS_AND_SET_XY( pi->m_pStepsDisplay );
+		this->AddChild( pi->m_pStepsDisplay );
+		*/
 		/*
-			switch( GAMESTATE->m_PlayMode )
-			{
-			case PLAY_MODE_BATTLE:
-				pi->m_pInventory = new Inventory;
-				pi->m_pInventory->Load( p );
-				this->AddChild( pi->m_pInventory );
-				break;
-			}
-	*/
+				switch( GAMESTATE->m_PlayMode )
+				{
+				case PLAY_MODE_BATTLE:
+					pi->m_pInventory = new Inventory;
+					pi->m_pInventory->Load( p );
+					this->AddChild( pi->m_pInventory );
+					break;
+				}
+		*/
 	}
 
 	m_textSongOptions.LoadFromFont(THEME->GetPathF(m_sName, "song options"));

@@ -1,5 +1,6 @@
-#include "DancingCharacters.h"
+#include "global.h"
 #include "Character.h"
+#include "DancingCharacters.h"
 #include "GameConstantsAndTypes.h"
 #include "GameState.h"
 #include "Model.h"
@@ -9,7 +10,6 @@
 #include "RageUtil.h"
 #include "Song.h"
 #include "StatsManager.h"
-#include "global.h"
 
 int
 Neg1OrPos1();

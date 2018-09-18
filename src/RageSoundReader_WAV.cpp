@@ -9,11 +9,11 @@
  * http://www.sonicspot.com/guide/wavefiles.html
  */
 
-#include "RageSoundReader_WAV.h"
+#include "global.h"
 #include "RageFileBasic.h"
 #include "RageLog.h"
+#include "RageSoundReader_WAV.h"
 #include "RageUtil.h"
-#include "global.h"
 
 namespace {
 /* pBuf contains iSamples 8-bit samples; convert to 16-bit.  pBuf must
@@ -77,7 +77,7 @@ ConvertLittleEndian32BitToFloat(void* pBuf, int iSamples)
 		pOut[i] = iSample / 2147483648.0f;
 	}
 }
-}; // namespace
+};
 
 struct WavReader
 {
@@ -470,12 +470,14 @@ ReadString(RageFileBasic& f, int iSize, RString& sError)
 }
 
 #define FATAL_ERROR(s)                                                         \
-	{                                                                          \
+	\
+{                                                                         \
 		if (sError.size() == 0)                                                \
 			sError = (s);                                                      \
 		SetError(sError);                                                      \
 		return OPEN_FATAL_ERROR;                                               \
-	}
+	\
+}
 
 RageSoundReader_FileReader::OpenResult
 RageSoundReader_WAV::Open(RageFileBasic* pFile)

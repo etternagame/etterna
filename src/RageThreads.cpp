@@ -15,8 +15,8 @@
 #include "RageThreads.h"
 #include "RageTimer.h"
 #include "RageUtil.h"
-#include <atomic>
 #include <mutex>
+#include <atomic>
 #include <thread>
 
 #include <set>
@@ -578,55 +578,55 @@ RageMutex::RageMutex(const RString& name)
 {
 
 	/*	if( g_FreeMutexIDs == NULL )
-	{
-		g_FreeMutexIDs = new set<int>;
-		for( int i = 0; i < MAX_MUTEXES; ++i )
-			g_FreeMutexIDs->insert( i );
-	}
-
-	if( g_FreeMutexIDs->empty() )
-	{
-		ASSERT_M( g_MutexList, "!g_FreeMutexIDs but !g_MutexList?" ); // doesn't
-	make sense to be out of mutexes yet never created any RString s; for(
-	unsigned i = 0; i < g_MutexList->size(); ++i )
 		{
-			if( i )
-				s += ", ";
-			s += ssprintf( "\"%s\"", (*g_MutexList)[i]->GetName().c_str() );
+			g_FreeMutexIDs = new set<int>;
+			for( int i = 0; i < MAX_MUTEXES; ++i )
+				g_FreeMutexIDs->insert( i );
 		}
-		LOG->Trace( "%s", s.c_str() );
-		FAIL_M( ssprintf("MAX_MUTEXES exceeded creating \"%s\"", name.c_str() )
-	);
-	}
 
-	m_UniqueID = *g_FreeMutexIDs->begin();
+		if( g_FreeMutexIDs->empty() )
+		{
+			ASSERT_M( g_MutexList, "!g_FreeMutexIDs but !g_MutexList?" ); //
+	   doesn't make sense to be out of mutexes yet never created any RString s;
+			for( unsigned i = 0; i < g_MutexList->size(); ++i )
+			{
+				if( i )
+					s += ", ";
+				s += ssprintf( "\"%s\"", (*g_MutexList)[i]->GetName().c_str() );
+			}
+			LOG->Trace( "%s", s.c_str() );
+			FAIL_M( ssprintf("MAX_MUTEXES exceeded creating \"%s\"",
+	   name.c_str() ) );
+		}
 
-	g_FreeMutexIDs->erase( g_FreeMutexIDs->begin() );
+		m_UniqueID = *g_FreeMutexIDs->begin();
 
-	if( g_MutexList == NULL )
-		g_MutexList = new vector<RageMutex*>;
+		g_FreeMutexIDs->erase( g_FreeMutexIDs->begin() );
 
-	g_MutexList->push_back( this );
-*/
+		if( g_MutexList == NULL )
+			g_MutexList = new vector<RageMutex*>;
+
+		g_MutexList->push_back( this );
+	*/
 }
 
 RageMutex::~RageMutex()
 {
 	delete m_pMutex;
 	/*
-	vector<RageMutex*>::iterator it = find( g_MutexList->begin(),
-	g_MutexList->end(), this ); ASSERT( it != g_MutexList->end() );
-	g_MutexList->erase( it );
-	if( g_MutexList->empty() )
-	{
-		delete g_MutexList;
-		g_MutexList = NULL;
-	}
+		vector<RageMutex*>::iterator it = find( g_MutexList->begin(),
+	   g_MutexList->end(), this ); ASSERT( it != g_MutexList->end() );
+		g_MutexList->erase( it );
+		if( g_MutexList->empty() )
+		{
+			delete g_MutexList;
+			g_MutexList = NULL;
+		}
 
-	delete m_pMutex;
+		delete m_pMutex;
 
-	g_FreeMutexIDs->insert( m_UniqueID );
-*/
+		g_FreeMutexIDs->insert( m_UniqueID );
+	*/
 }
 
 void

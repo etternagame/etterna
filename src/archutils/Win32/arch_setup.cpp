@@ -1,5 +1,5 @@
-#include "arch_setup.h"
 #include "global.h"
+#include "arch_setup.h"
 #ifdef _WINDOWS
 #include <windows.h>
 #endif

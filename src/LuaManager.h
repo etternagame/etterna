@@ -1,8 +1,6 @@
 ﻿#ifndef LUA_MANAGER_H
 #define LUA_MANAGER_H
 
-#include "global.h"
-
 struct lua_State;
 using Lua = struct lua_State;
 using RegisterWithLuaFn = void (*)(struct lua_State*);
@@ -63,9 +61,9 @@ LoadScript(Lua* L,
 
 /* Report the error three ways:  Broadcast message, Warn, and Dialog. */
 /* If UseAbort is true, reports the error through Dialog::AbortRetryIgnore
-		 and returns the result. */
+	 and returns the result. */
 /* If UseAbort is false, reports the error through Dialog::OK and returns
-		 Dialog::ok. */
+	 Dialog::ok. */
 Dialog::Result
 ReportScriptError(std::string const& Error,
 				  std::string ErrorType = "LUA_ERROR",
@@ -232,7 +230,7 @@ AbsIndex(Lua* L, int i)
 		return i;
 	return lua_gettop(L) + i + 1;
 }
-} // namespace LuaHelpers
+}
 
 class LuaThreadVariable
 {
@@ -268,10 +266,11 @@ class LuaThreadVariable
  * before. If you break out of the loop early, you need to handle that
  * explicitly. */
 #define FOREACH_LUATABLE(L, index)                                             \
-	for (const int SM_UNIQUE_NAME(tab) = LuaHelpers::AbsIndex(L, index),       \
-				   SM_UNIQUE_NAME(top) = (lua_pushnil(L), lua_gettop(L));      \
-		 lua_next(L, SM_UNIQUE_NAME(tab)) && (lua_pushvalue(L, -2), true);     \
-		 lua_settop(L, SM_UNIQUE_NAME(top)))
+	\
+for(const int SM_UNIQUE_NAME(tab) = LuaHelpers::AbsIndex(L, index),            \
+	  SM_UNIQUE_NAME(top) = (lua_pushnil(L), lua_gettop(L));                   \
+	  lua_next(L, SM_UNIQUE_NAME(tab)) && (lua_pushvalue(L, -2), true);        \
+	  lua_settop(L, SM_UNIQUE_NAME(top)))
 
 /** @brief Iterate over the array elements of a table. */
 #define FOREACH_LUATABLEI(L, index, i)                                         \
@@ -400,26 +399,35 @@ value_is_in_table(lua_State* L, int value_index, int table_index)
 }
 
 #define LuaFunction(func, expr)                                                \
-	int LuaFunc_##func(lua_State* L);                                          \
-	int LuaFunc_##func(lua_State* L)                                           \
+	\
+int LuaFunc_##func(lua_State* L);                                              \
+	\
+int LuaFunc_##func(lua_State* L)                                               \
 	{                                                                          \
 		LuaHelpers::Push(L, expr);                                             \
 		return 1;                                                              \
-	}                                                                          \
-	void LuaFunc_Register_##func(lua_State* L);                                \
-	void LuaFunc_Register_##func(lua_State* L)                                 \
+	\
+}                                                                         \
+	\
+void LuaFunc_Register_##func(lua_State* L);                                    \
+	\
+void LuaFunc_Register_##func(lua_State* L)                                     \
 	{                                                                          \
 		lua_register(L, #func, LuaFunc_##func);                                \
 	}                                                                          \
-	REGISTER_WITH_LUA_FUNCTION(LuaFunc_Register_##func);
+	\
+REGISTER_WITH_LUA_FUNCTION(LuaFunc_Register_##func);
 
 #define LUAFUNC_REGISTER_COMMON(func_name)                                     \
-	void LuaFunc_Register_##func_name(lua_State* L);                           \
-	void LuaFunc_Register_##func_name(lua_State* L)                            \
+	\
+void LuaFunc_Register_##func_name(lua_State* L);                               \
+	\
+void LuaFunc_Register_##func_name(lua_State* L)                                \
 	{                                                                          \
 		lua_register(L, #func_name, LuaFunc_##func_name);                      \
 	}                                                                          \
-	REGISTER_WITH_LUA_FUNCTION(LuaFunc_Register_##func_name);
+	\
+REGISTER_WITH_LUA_FUNCTION(LuaFunc_Register_##func_name);
 
 #endif
 

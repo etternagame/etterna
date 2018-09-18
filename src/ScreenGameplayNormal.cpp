@@ -1,6 +1,6 @@
+#include "global.h"
 #include "ScreenGameplayNormal.h"
 #include "Difficulty.h"
-#include "global.h"
 
 REGISTER_SCREEN_CLASS(ScreenGameplayNormal);
 

@@ -1,7 +1,7 @@
 ﻿#include "global.h"
-#include "NoteTypes.h"
 #include "LocalizedString.h"
 #include "LuaManager.h"
+#include "NoteTypes.h"
 #include "RageUtil.h"
 #include "XmlFile.h"
 

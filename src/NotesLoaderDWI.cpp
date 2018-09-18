@@ -1,10 +1,10 @@
 ﻿#include "global.h"
-#include "NotesLoaderDWI.h"
 #include "Difficulty.h"
 #include "GameInput.h"
 #include "MsdFile.h"
 #include "NoteData.h"
 #include "NotesLoader.h"
+#include "NotesLoaderDWI.h"
 #include "PrefsManager.h"
 #include "RageLog.h"
 #include "RageUtil.h"
@@ -349,7 +349,7 @@ ParseNoteData(RString& step1, RString& step2, Steps& out, const RString& path)
 		for (size_t i = 0; i < sStepData.size();) {
 			char c = sStepData[i++];
 			switch (c) {
-				// begins a series
+					// begins a series
 				case '(':
 					fCurrentIncrementer = 1.0 / 16 * BEATS_PER_MEASURE;
 					break;
@@ -363,7 +363,7 @@ ParseNoteData(RString& step1, RString& step2, Steps& out, const RString& path)
 					fCurrentIncrementer = 1.0 / 192 * BEATS_PER_MEASURE;
 					break;
 
-				// ends a series
+					// ends a series
 				case ')':
 				case ']':
 				case '}':
@@ -731,6 +731,7 @@ DWILoader::LoadFromDir(const RString& sPath_,
 				sampleLength *= 1000;
 			}
 			out.m_fMusicSampleLengthSeconds = sampleLength;
+
 		}
 
 		else if (sValueName.EqualsNoCase("FREEZE")) {

@@ -1,4 +1,4 @@
-#include "ScreenSystemLayer.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "GameState.h"
 #include "LocalizedString.h"
@@ -8,9 +8,9 @@
 #include "RageLog.h"
 #include "ScreenDimensions.h"
 #include "ScreenManager.h"
+#include "ScreenSystemLayer.h"
 #include "ThemeManager.h"
 #include "ThemeMetric.h"
-#include "global.h"
 
 namespace {
 LocalizedString CREDITS_PRESS_START("ScreenSystemLayer", "CreditsPressStart");
@@ -64,8 +64,7 @@ GetCreditsMessage(PlayerNumber pn)
 	}
 	return RString();
 }
-
-}; // namespace
+};
 
 // lua start
 #include "LuaBinding.h"

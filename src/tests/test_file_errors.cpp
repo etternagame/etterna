@@ -1,10 +1,10 @@
+#include "global.h"
 #include "PrefsManager.h"
+#include "RageLog.h"
 #include "RageFile.h"
 #include "RageFileDriver.h"
-#include "RageLog.h"
 #include "RageUtil.h"
 #include "RageUtil_FileDB.h"
-#include "global.h"
 #include "test_misc.h"
 
 #include <errno.h>

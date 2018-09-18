@@ -1,10 +1,10 @@
 ﻿/* from http://www.libpng.org/pub/png/apps/pngquant.html */
 
-#include "RageSurfaceUtils_Palettize.h"
+#include "global.h"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
+#include "RageSurfaceUtils_Palettize.h"
 #include "RageUtil.h"
-#include "global.h"
 
 typedef uint8_t pixval;
 typedef uint8_t apixel[4];

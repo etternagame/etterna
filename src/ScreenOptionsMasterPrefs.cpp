@@ -1,4 +1,4 @@
-#include "ScreenOptionsMasterPrefs.h"
+#include "global.h"
 #include "AnnouncerManager.h"
 #include "DisplayResolutions.h"
 #include "Foreach.h"
@@ -13,11 +13,11 @@
 #include "RageDisplay.h"
 #include "RageLog.h"
 #include "RageUtil.h"
+#include "ScreenOptionsMasterPrefs.h"
 #include "SongOptions.h"
 #include "SpecialFiles.h"
 #include "StepMania.h"
 #include "ThemeManager.h"
-#include "global.h"
 
 using namespace StringConversion;
 

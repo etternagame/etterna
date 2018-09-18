@@ -1,8 +1,8 @@
-#include "FontManager.h"
+#include "global.h"
 #include "Font.h"
+#include "FontManager.h"
 #include "RageLog.h"
 #include "RageUtil.h"
-#include "global.h"
 #include <map>
 
 FontManager* FONT = NULL; // global and accessible from anywhere in our program

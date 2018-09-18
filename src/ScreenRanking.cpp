@@ -1,10 +1,10 @@
-#include "ScreenRanking.h"
+#include "global.h"
 #include "GameManager.h"
 #include "GameState.h"
 #include "ProfileManager.h"
 #include "ScreenManager.h"
+#include "ScreenRanking.h"
 #include "SongManager.h"
-#include "global.h"
 
 static const char* RankingTypeNames[] = {
 	"Category",

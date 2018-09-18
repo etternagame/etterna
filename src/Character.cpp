@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "Character.h"
 #include "ActorUtil.h"
+#include "Character.h"
 #include "IniFile.h"
 #include "RageTextureID.h"
 #include "RageUtil.h"

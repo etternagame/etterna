@@ -293,8 +293,8 @@ MakeSureDirectoryPathExists(PCSTR DirPath);
 	(0x0400) // Disable expansion of MS model for UDT returns
 #define UNDNAME_32_BIT_DECODE (0x0800) // Undecorate 32-bit decorated names
 #define UNDNAME_NAME_ONLY                                                      \
-	(0x1000) // Crack only the name for primary declaration; \
-						//  return just [scope::]name.  Does expand template params
+	(0x1000) // Crack only the name for primary declaration;
+			 //  return just [scope::]name.  Does expand template params
 #define UNDNAME_NO_ARGUMENTS (0x2000) // Don't undecorate arguments to function
 #define UNDNAME_NO_SPECIAL_SYMS                                                \
 	(0x4000) // Don't undecorate special names (v-table, vcall, vector xxx,

@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "ControllerStateDisplay.h"
 #include "ActorUtil.h"
+#include "ControllerStateDisplay.h"
 #include "EnumHelper.h"
 #include "InputMapper.h"
 #include "LuaBinding.h"

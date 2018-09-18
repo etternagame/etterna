@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "GradeDisplay.h"
 #include "ActorUtil.h"
+#include "GradeDisplay.h"
 #include "RageUtil.h"
 #include "ThemeManager.h"
 

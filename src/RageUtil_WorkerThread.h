@@ -4,7 +4,6 @@
 #ifndef RAGE_UTIL_WORKER_THREAD_H
 #define RAGE_UTIL_WORKER_THREAD_H
 
-#include "global.h"
 #include "RageThreads.h"
 #include "RageTimer.h"
 

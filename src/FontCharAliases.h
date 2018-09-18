@@ -2,14 +2,12 @@
 #define FONT_CHAR_ALIASES
 
 /** @brief Provides support for nonstandard characters in text. */
-#include "global.h"
-
 namespace FontCharAliases {
 void
 ReplaceMarkers(RString& sText);
 bool
 GetChar(RString& codepoint, wchar_t& ch);
-}; // namespace FontCharAliases
+};
 
 #endif
 

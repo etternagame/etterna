@@ -1,7 +1,6 @@
 ﻿#ifndef RAGE_UTIL_CACHED_OBJECT_H
 #define RAGE_UTIL_CACHED_OBJECT_H
 
-#include "global.h"
 #include <set>
 
 template<typename T>
@@ -14,7 +13,7 @@ void
 Lock();
 void
 Unlock();
-} // namespace CachedObjectHelpers
+}
 
 /** @brief Cached object pointers with automatic invalidation. */
 template<typename T>

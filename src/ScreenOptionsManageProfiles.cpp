@@ -1,4 +1,4 @@
-#include "ScreenOptionsManageProfiles.h"
+#include "global.h"
 #include "CommonMetrics.h"
 #include "GameState.h"
 #include "LocalizedString.h"
@@ -8,9 +8,9 @@
 #include "ScreenDimensions.h"
 #include "ScreenManager.h"
 #include "ScreenMiniMenu.h"
+#include "ScreenOptionsManageProfiles.h"
 #include "ScreenPrompt.h"
 #include "ScreenTextEntry.h"
-#include "global.h"
 
 static LocalizedString NEW_PROFILE_DEFAULT_NAME("ScreenOptionsManageProfiles",
 												"NewProfileDefaultName");

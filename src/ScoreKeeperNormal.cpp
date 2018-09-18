@@ -1,6 +1,7 @@
-#include "ScoreKeeperNormal.h"
+#include "global.h"
 #include "Game.h"
 #include "GamePreferences.h"
+#include "GameState.h"
 #include "GameState.h"
 #include "NetworkSyncManager.h"
 #include "NoteData.h"
@@ -10,6 +11,7 @@
 #include "PrefsManager.h"
 #include "ProfileManager.h"
 #include "RageLog.h"
+#include "ScoreKeeperNormal.h"
 #include "ScreenManager.h"
 #include "Song.h"
 #include "SongManager.h"
@@ -17,7 +19,6 @@
 #include "Steps.h"
 #include "Style.h"
 #include "TimingData.h"
-#include "global.h"
 
 static RString
 PercentScoreWeightName(size_t i)

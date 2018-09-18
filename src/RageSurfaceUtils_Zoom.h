@@ -1,8 +1,6 @@
 ﻿#ifndef RAGE_SURFACE_UTILS_ZOOM_H
 #define RAGE_SURFACE_UTILS_ZOOM_H
 
-#include "global.h"
-
 struct RageSurface;
 
 /** @brief Utility functions for the RageSurfaces. */

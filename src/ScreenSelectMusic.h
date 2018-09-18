@@ -7,7 +7,6 @@
 #include "FadingBanner.h"
 #include "GameConstantsAndTypes.h"
 #include "GameInput.h"
-#include "HighScore.h"
 #include "MusicWheel.h"
 #include "OptionsList.h"
 #include "RageTexturePreloader.h"
@@ -16,6 +15,7 @@
 #include "Sprite.h"
 #include "ThemeMetric.h"
 #include "TimingData.h"
+#include "HighScore.h"
 
 enum SelectionState
 {

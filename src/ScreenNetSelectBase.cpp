@@ -5,14 +5,14 @@
 #include "ActorUtil.h"
 #include "Font.h"
 #include "GameSoundManager.h"
+#include "RageInput.h"
 #include "GameState.h"
 #include "InputEventPlus.h"
 #include "MenuTimer.h"
 #include "NetworkSyncManager.h"
 #include "PlayerState.h"
-#include "RageInput.h"
-#include "ScreenNetSelectBase.h"
 #include "arch/ArchHooks/ArchHooks.h"
+#include "ScreenNetSelectBase.h"
 
 #define CHAT_TEXT_OUTPUT_WIDTH THEME->GetMetricF(m_sName, "ChatTextOutputWidth")
 #define CHAT_TEXT_INPUT_WIDTH THEME->GetMetricF(m_sName, "ChatTextInputWidth")

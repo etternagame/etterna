@@ -1,4 +1,4 @@
-#include "ScreenPlayerOptions.h"
+#include "global.h"
 #include "AnnouncerManager.h"
 #include "CodeDetector.h"
 #include "Foreach.h"
@@ -10,9 +10,9 @@
 #include "RageLog.h"
 #include "ScreenDimensions.h"
 #include "ScreenManager.h"
+#include "ScreenPlayerOptions.h"
 #include "ScreenSongOptions.h"
 #include "ThemeManager.h"
-#include "global.h"
 
 REGISTER_SCREEN_CLASS(ScreenPlayerOptions);
 

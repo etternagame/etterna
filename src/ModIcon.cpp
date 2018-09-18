@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "ModIcon.h"
 #include "ActorUtil.h"
+#include "ModIcon.h"
 #include "RageUtil.h"
 #include "ThemeManager.h"
 

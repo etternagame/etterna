@@ -1,3 +1,4 @@
+#include "global.h"
 #include "MovieTexture_Generic.h"
 #include "PrefsManager.h"
 #include "RageDisplay.h"
@@ -7,7 +8,6 @@
 #include "RageTextureRenderTarget.h"
 #include "RageUtil.h"
 #include "Sprite.h"
-#include "global.h"
 
 #if defined(WIN32)
 #include "archutils/Win32/ErrorStrings.h"
@@ -139,7 +139,7 @@ class RageMovieTexture_Generic_Intermediate : public RageTexture
 		   ); m_iImageWidth = min( m_iSourceWidth, iMaxSize ); m_iImageHeight =
 		   min( m_iSourceHeight, iMaxSize ); m_iTextureWidth = power_of_two(
 		   m_iImageWidth ); m_iTextureHeight = power_of_two( m_iImageHeight );
-	*/
+		*/
 
 		m_iImageWidth = iImageWidth;
 		m_iImageHeight = iImageHeight;

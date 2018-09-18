@@ -1,9 +1,9 @@
 ﻿#include "global.h"
-#include "PlayerOptions.h"
 #include "CommonMetrics.h"
 #include "Foreach.h"
 #include "GameState.h"
 #include "NoteSkinManager.h"
+#include "PlayerOptions.h"
 #include "RageUtil.h"
 #include "Song.h"
 #include "Steps.h"
@@ -471,9 +471,9 @@ PlayerOptions::FromOneModString(const RString& sOneMod, RString& sErrorOut)
 	else if (sscanf(sBit, "m%f", &level) == 1) {
 		// OpenITG doesn't have this block:
 		/*
-			if( !isfinite(level) || level <= 0.0f )
-				level = CMOD_DEFAULT;
-			*/
+		if( !isfinite(level) || level <= 0.0f )
+			level = CMOD_DEFAULT;
+		*/
 		SET_FLOAT(fMaxScrollBPM)
 		m_fTimeSpacing = 0;
 	}
@@ -483,7 +483,7 @@ PlayerOptions::FromOneModString(const RString& sOneMod, RString& sErrorOut)
 		m_sNoteSkin = NOTESKIN->GetDefaultNoteSkinName();
 	} else if (sBit == "resetspeed") {
 		/* level is set to the values from Init() because all speed related
-			   fields are being reset to initial values, and they each have
+		   fields are being reset to initial values, and they each have
 		   different initial values.  -kyz */
 		level = 0;
 		SET_FLOAT(fMaxScrollBPM);

@@ -1,7 +1,6 @@
 ﻿#ifndef MODS_GROUP_H
 #define MODS_GROUP_H
 
-#include "global.h"
 #include "EnumHelper.h"
 #include "RageTimer.h"
 #include "SongOptions.h"

@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "RageFileDriverDirect.h"
 #include "RageFile.h"
+#include "RageFileDriverDirect.h"
 #include "RageFileDriverDirectHelpers.h"
 #include "RageUtil.h"
 #include "RageUtil_FileDB.h"
@@ -18,8 +18,8 @@
 
 #else
 #include "archutils/Win32/ErrorStrings.h"
-#include <io.h>
 #include <windows.h>
+#include <io.h>
 #endif // !defined(WIN32)
 
 /* Direct filesystem access: */

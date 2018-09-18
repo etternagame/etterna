@@ -1,12 +1,12 @@
-﻿#include "CryptManager.h"
+﻿#include "global.h"
 #include "CryptHelpers.h"
+#include "CryptManager.h"
 #include "LuaBinding.h"
 #include "LuaManager.h"
 #include "RageFile.h"
 #include "RageFileManager.h"
 #include "RageLog.h"
 #include "RageUtil.h"
-#include "global.h"
 
 #include "libtomcrypt/src/headers/tomcrypt.h"
 
@@ -91,7 +91,7 @@ static const int KEY_LENGTH = 1024;
  openssl rsa -in testing -out testing2 -pubout -outform DER
  openssl pkcs8 -inform DER -outform DER -nocrypt -in private.rsa -out
  private.der
- */
+*/
 
 static PRNGWrapper* g_pPRNG = NULL;
 

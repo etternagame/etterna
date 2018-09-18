@@ -2,8 +2,8 @@
 #define RAGE_SOUND_PULSEAUDIO_H
 
 #include "RageSound.h"
-#include "RageSoundDriver.h"
 #include "RageThreads.h"
+#include "RageSoundDriver.h"
 #include <pulse/pulseaudio.h>
 
 class RageSoundDriver_PulseAudio : public RageSoundDriver

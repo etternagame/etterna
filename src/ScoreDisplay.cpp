@@ -1,5 +1,5 @@
-#include "ScoreDisplay.h"
 #include "global.h"
+#include "ScoreDisplay.h"
 
 void
 ScoreDisplay::Init(const PlayerState* pPlayerState,

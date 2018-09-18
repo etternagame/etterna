@@ -1,11 +1,11 @@
+#include "global.h"
 #include "archutils/Win32/WindowIcon.h"
 #include "RageLog.h"
+#include "RageUtil.h"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
 #include "RageSurface_Load.h"
-#include "RageUtil.h"
 #include "archutils/Win32/ErrorStrings.h"
-#include "global.h"
 
 #include <wingdi.h>
 

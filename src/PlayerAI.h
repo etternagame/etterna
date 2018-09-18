@@ -3,7 +3,6 @@
 #ifndef PlayerAI_H
 #define PlayerAI_H
 
-#include "global.h"
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
 

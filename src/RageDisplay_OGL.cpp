@@ -603,13 +603,15 @@ CheckPalettedTextures()
 
 		FlushGLErrors();
 #define GL_CHECK_ERROR(f)                                                      \
-	{                                                                          \
+	\
+{                                                                         \
 		GLenum glError = glGetError();                                         \
 		if (glError != GL_NO_ERROR) {                                          \
 			sError = ssprintf(f " failed (%s)", GLToString(glError).c_str());  \
 			break;                                                             \
 		}                                                                      \
-	}
+	\
+}
 
 		glTexImage2D(GL_PROXY_TEXTURE_2D,
 					 0,
@@ -1076,14 +1078,14 @@ class RageCompiledGeometrySWOGL : public RageCompiledGeometry
 			glGetFloatv(GL_TEXTURE_MATRIX, (float*)mat);
 
 			/*
-				for( int i=0; i<4; i++ )
-				{
-					RString s;
-					for( int j=0; j<4; j++ )
-						s += ssprintf( "%f ", mat.m[i][j] );
-					LOG->Trace( s );
-				}
-				*/
+			for( int i=0; i<4; i++ )
+			{
+				RString s;
+				for( int j=0; j<4; j++ )
+					s += ssprintf( "%f ", mat.m[i][j] );
+				LOG->Trace( s );
+			}
+			*/
 
 			mat.m[3][0] = 0;
 			mat.m[3][1] = 0;
@@ -1395,14 +1397,14 @@ RageCompiledGeometryHWOGL::Draw(int iMeshIndex) const
 			glGetFloatv(GL_TEXTURE_MATRIX, (float*)mat);
 
 			/*
-				for( int i=0; i<4; i++ )
-				{
-					RString s;
-					for( int j=0; j<4; j++ )
-						s += ssprintf( "%f ", mat.m[i][j] );
-					LOG->Trace( s );
-				}
-				*/
+			for( int i=0; i<4; i++ )
+			{
+				RString s;
+				for( int j=0; j<4; j++ )
+					s += ssprintf( "%f ", mat.m[i][j] );
+				LOG->Trace( s );
+			}
+			*/
 
 			mat.m[3][0] = 0;
 			mat.m[3][1] = 0;

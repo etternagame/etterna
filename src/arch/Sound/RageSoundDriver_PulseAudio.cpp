@@ -1,14 +1,14 @@
+#include "global.h"
 #include "RageSoundDriver_PulseAudio.h"
-#include "PrefsManager.h"
 #include "RageLog.h"
 #include "RageSound.h"
 #include "RageSoundManager.h"
-#include "RageTimer.h"
 #include "RageUtil.h"
-#include "global.h"
+#include "RageTimer.h"
+#include "PrefsManager.h"
 #include <pulse/error.h>
-#include <sys/resource.h>
 #include <sys/time.h>
+#include <sys/resource.h>
 
 /* Register the RageSoundDriver_Pulseaudio class as sound driver "Pulse" */
 REGISTER_SOUND_DRIVER_CLASS2(Pulse, PulseAudio);

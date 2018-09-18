@@ -1,8 +1,6 @@
 ﻿#ifndef RAGE_SURFACE_LOAD_H
 #define RAGE_SURFACE_LOAD_H
 
-#include "global.h"
-
 struct RageSurface;
 
 /** @brief Utility functions for the RageSurfaces. */
@@ -18,7 +16,7 @@ enum OpenResult
  * with the width and height set (but may return a complete surface). */
 RageSurface*
 LoadFile(const RString& sPath, RString& error, bool bHeaderOnly = false);
-} // namespace RageSurfaceUtils
+}
 
 #endif
 

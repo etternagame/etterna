@@ -1,5 +1,5 @@
-#include "CommandLine.h"
 #include "global.h"
+#include "CommandLine.h"
 #include <windows.h>
 
 /* Ugh. Windows doesn't give us the argv[] parser; all it gives is

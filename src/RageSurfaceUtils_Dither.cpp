@@ -1,7 +1,7 @@
 ﻿#include "global.h"
-#include "RageSurfaceUtils_Dither.h"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
+#include "RageSurfaceUtils_Dither.h"
 #include "RageUtil.h"
 
 #define DitherMatDim 4

@@ -1,8 +1,8 @@
+#include "global.h"
 #include "USB.h"
 #include "RageLog.h"
 #include "RageUtil.h"
 #include "archutils/Win32/ErrorStrings.h"
-#include "global.h"
 
 #if defined(_MSC_VER)
 #pragma comment(lib, "setupapi.lib")

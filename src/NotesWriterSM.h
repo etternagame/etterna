@@ -1,8 +1,6 @@
 ﻿#ifndef NOTES_WRITER_SM_H
 #define NOTES_WRITER_SM_H
 
-#include "global.h"
-
 class Song;
 class Steps;
 
@@ -38,7 +36,7 @@ GetEditFileName(const Song* pSong, const Steps* pSteps);
  * @return its success or failure. */
 bool
 WriteEditFileToMachine(const Song* pSong, Steps* pSteps, RString& sErrorOut);
-} // namespace NotesWriterSM
+}
 
 #endif
 

@@ -1,8 +1,6 @@
 ﻿#ifndef RAGE_SOUND_UTIL_H
 #define RAGE_SOUND_UTIL_H
 
-#include "global.h"
-
 /** @brief Simple utilities that operate on sound buffers. */
 namespace RageSoundUtil {
 void
@@ -21,7 +19,7 @@ void
 ConvertNativeInt16ToFloat(const int16_t* pFrom, float* pTo, int iSamples);
 void
 ConvertFloatToNativeInt16(const float* pFrom, int16_t* pTo, int iSamples);
-}; // namespace RageSoundUtil
+};
 
 #endif
 

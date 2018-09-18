@@ -4,7 +4,6 @@
 #ifndef RAGE_SOUND_MANAGER_H
 #define RAGE_SOUND_MANAGER_H
 
-#include "global.h"
 #include <map>
 
 class RageSound;

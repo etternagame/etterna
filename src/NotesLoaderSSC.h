@@ -2,7 +2,6 @@
 #ifndef NotesLoaderSSC_H
 #define NotesLoaderSSC_H
 
-#include "global.h"
 #include "GameConstantsAndTypes.h"
 #include "NotesLoaderSM.h"
 
@@ -82,7 +81,7 @@ struct SongTagInfo
 };
 vector<float>
 msdsplit(const RString& s);
-} // namespace SSC
+}
 /** @brief The version where fakes started to be used as a radar category. */
 const float VERSION_RADAR_FAKE = 0.53f;
 /** @brief The version where WarpSegments started to be utilized. */

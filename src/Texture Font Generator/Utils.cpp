@@ -1,5 +1,5 @@
-#include "Utils.h"
 #include "stdafx.h"
+#include "Utils.h"
 
 Surface::Surface(const Surface& cpy)
 {
@@ -99,9 +99,7 @@ GetBounds(const Surface* pSurf, RECT* out)
 #pragma include_alias("zlib/zlib.h", "../zlib/zlib.h")
 #include "png.h"
 #if defined(_MSC_VER)
-#pragma warning(disable : 4611) /* interaction between '_setjmp' and C++ \ \ \ \
-								   \ object \ \ \ destruction is non-portable                                                   \
-								 */
+#pragma warning(disable : 4611)
 #endif
 
 static void
@@ -149,7 +147,7 @@ SavePNG(FILE* f, char szErrorbuf[1024], const Surface* pSurf)
 	/*	RageSurfaceUtils::ConvertSurface( pImgIn, pImg, pImgIn->w, pImgIn->h,
 	   32, Swap32BE( 0xFF000000 ), Swap32BE( 0x00FF0000 ), Swap32BE( 0x0000FF00
 	   ), Swap32BE( 0x000000FF ) );
-*/
+	*/
 	error_info error;
 	error.szErr = szErrorbuf;
 

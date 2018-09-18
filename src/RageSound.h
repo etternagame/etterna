@@ -3,7 +3,6 @@
 #ifndef RAGE_SOUND_H
 #define RAGE_SOUND_H
 
-#include "global.h"
 #include "RageSoundPosMap.h"
 #include "RageThreads.h"
 #include "RageTimer.h"

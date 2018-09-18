@@ -1,16 +1,16 @@
-#include "RageSoundDriver_WaveOut.h"
 #include "global.h"
+#include "RageSoundDriver_WaveOut.h"
 
 #if defined(_MSC_VER)
 #pragma comment(lib, "winmm.lib")
 #endif
 
-#include "PrefsManager.h"
+#include "RageTimer.h"
 #include "RageLog.h"
 #include "RageSound.h"
-#include "RageSoundManager.h"
-#include "RageTimer.h"
 #include "RageUtil.h"
+#include "RageSoundManager.h"
+#include "PrefsManager.h"
 #include "archutils/Win32/ErrorStrings.h"
 
 REGISTER_SOUND_DRIVER_CLASS(WaveOut);

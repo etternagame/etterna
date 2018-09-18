@@ -1,7 +1,6 @@
 ﻿#ifndef LifeMeterTime_H
 #define LifeMeterTime_H
 
-#include "global.h"
 #include "AutoActor.h"
 #include "LifeMeter.h"
 #include "Quad.h"

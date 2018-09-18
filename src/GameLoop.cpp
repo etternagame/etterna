@@ -7,8 +7,10 @@
 
 #include "arch/ArchHooks/ArchHooks.h"
 
-#include "DownloadManager.h"
 #include "GameSoundManager.h"
+#include "ThemeManager.h"
+#include "SongManager.h"
+#include "DownloadManager.h"
 #include "GameState.h"
 #include "InputFilter.h"
 #include "InputMapper.h"

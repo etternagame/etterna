@@ -1,7 +1,6 @@
 #ifndef SCREENOPTIONS_H
 #define SCREENOPTIONS_H
 
-#include "global.h"
 #include "DualScrollBar.h"
 #include "InputEventPlus.h"
 #include "LuaExpressionTransform.h"

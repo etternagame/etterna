@@ -559,7 +559,7 @@ swap<NoteData>(NoteData& nd1, NoteData& nd2) noexcept
 {
 	nd1.swap(nd2);
 }
-} // namespace std
+}
 
 #endif
 

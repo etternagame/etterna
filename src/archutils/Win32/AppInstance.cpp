@@ -1,5 +1,5 @@
-#include "AppInstance.h"
 #include "global.h"
+#include "AppInstance.h"
 
 AppInstance::AppInstance()
 {

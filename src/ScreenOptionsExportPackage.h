@@ -8,7 +8,7 @@
 namespace ExportPackages {
 RString m_sPackageType;
 RString m_sFolder; // used for more subpages
-} // namespace ExportPackages
+}
 
 /** @brief A menu for exporting packages. */
 class ScreenOptionsExportPackage : public ScreenOptions

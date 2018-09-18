@@ -1,7 +1,6 @@
 #ifndef TIMING_SEGMENTS_H
 #define TIMING_SEGMENTS_H
 
-#include "global.h"
 #include "NoteTypes.h" // Converting rows to beats and vice~versa.
 
 enum TimingSegmentType

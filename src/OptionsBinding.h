@@ -9,7 +9,8 @@
 #define OptionsBinding_H
 // Functions are designed to combine Get and Set into one, to be less clumsy to
 // use. -Kyz If a valid arg is passed, the value is set. The previous value is
-// returned. OPTIONAL_RETURN_SELF exists to provide optional chaining support.
+// returned.
+// OPTIONAL_RETURN_SELF exists to provide optional chaining support.
 // Example:  local a= player_options:Twirl(5, 1, true):Roll(5,
 // true):Dizzy(true):Twirl()
 #define OPTIONAL_RETURN_SELF(option_index)                                     \

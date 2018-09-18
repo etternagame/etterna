@@ -1,5 +1,4 @@
 ﻿#include "global.h"
-#include "Player.h"
 #include "ActorUtil.h"
 #include "AdjustSync.h"
 #include "ArrowEffects.h"
@@ -7,10 +6,8 @@
 #include "Game.h"
 #include "GameCommand.h"
 #include "GameConstantsAndTypes.h"
-#include "GamePreferences.h"
 #include "GameSoundManager.h"
 #include "GameState.h"
-#include "HoldJudgment.h"
 #include "InputMapper.h"
 #include "LifeMeter.h"
 #include "MessageManager.h"
@@ -18,7 +15,7 @@
 #include "NoteDataUtil.h"
 #include "NoteDataWithScoring.h"
 #include "NoteField.h"
-#include "NoteSkinManager.h"
+#include "Player.h"
 #include "PlayerAI.h"
 #include "PlayerState.h"
 #include "PrefsManager.h"
@@ -39,7 +36,10 @@
 #include "Steps.h"
 #include "Style.h"
 #include "ThemeManager.h"
+#include "NoteSkinManager.h"
 #include "ThemeMetric.h"
+#include "HoldJudgment.h"
+#include "GamePreferences.h"
 
 RString
 ATTACK_DISPLAY_X_NAME(size_t p, size_t both_sides);
@@ -1020,9 +1020,9 @@ Player::Update(float fDeltaTime)
 					continue; // don't process this below
 			}
 			/*
-				case TapNoteSubType_Mine:
-					break;
-				*/
+			case TapNoteSubType_Mine:
+				break;
+			*/
 
 			if (iRow != iRowOfLastHoldNote ||
 				!JUDGE_HOLD_NOTES_ON_SAME_ROW_TOGETHER) {
@@ -1210,12 +1210,12 @@ Player::UpdateHoldNotes(int iSongRow,
 		  (tns != TNS_None); // has this hold really even started yet?
 
 		/*
-			if(bSteppedOnHead)
-				LOG->Trace("[Player::UpdateHoldNotes] player stepped on head");
-			else
-				LOG->Trace("[Player::UpdateHoldNotes] player didn't step on the
-		   head");
-			*/
+		if(bSteppedOnHead)
+			LOG->Trace("[Player::UpdateHoldNotes] player stepped on head");
+		else
+			LOG->Trace("[Player::UpdateHoldNotes] player didn't step on the
+		head");
+		*/
 	}
 
 	bool bInitiatedNote;
@@ -1225,8 +1225,8 @@ Player::UpdateHoldNotes(int iSongRow,
 		// major roadblock to adoption, so until a proper fix is found,
 		// DON'T REMOVE THIS HACK! -aj
 		/*if( iMaxEndRow-iStartRow <= 4 )
-				bInitiatedNote = true;
-			else*/
+			bInitiatedNote = true;
+		else*/
 		bInitiatedNote = bSteppedOnHead;
 	} else {
 		bInitiatedNote = true;
@@ -1237,7 +1237,7 @@ Player::UpdateHoldNotes(int iSongRow,
 	FOREACH(TrackRowTapNote, vTN, trtn)
 	{
 		/*if this hold is already done, pretend it's always being pressed.
-			fixes/masks the phantom hold issue. -FSX*/
+		fixes/masks the phantom hold issue. -FSX*/
 		// That interacts badly with !IMMEDIATE_HOLD_LET_GO,
 		// causing ALL holds to be judged HNS_Held whether they were or not.
 		if (!IMMEDIATE_HOLD_LET_GO ||
@@ -1304,17 +1304,17 @@ Player::UpdateHoldNotes(int iSongRow,
 					fLife = MAX_HOLD_LIFE; // was 1 -aj
 				} else {
 					/*
-							LOG->Trace("Checklist:");
-							if(bInitiatedNote)
-								LOG->Trace("[X] Initiated Note");
-							else
-								LOG->Trace("[ ] Initiated Note");
+					LOG->Trace("Checklist:");
+					if(bInitiatedNote)
+						LOG->Trace("[X] Initiated Note");
+					else
+						LOG->Trace("[ ] Initiated Note");
 
-							if(bIsHoldingButton)
-								LOG->Trace("[X] Holding Button");
-							else
-								LOG->Trace("[ ] Holding Button");
-							*/
+					if(bIsHoldingButton)
+						LOG->Trace("[X] Holding Button");
+					else
+						LOG->Trace("[ ] Holding Button");
+					*/
 
 					TimingWindow window =
 					  m_bTickHolds ? TW_Checkpoint : TW_Hold;
@@ -1340,9 +1340,9 @@ Player::UpdateHoldNotes(int iSongRow,
 				fLife = max(fLife, 0); // clamp
 				break;
 			/*
-				case TapNoteSubType_Mine:
-					break;
-				*/
+			case TapNoteSubType_Mine:
+				break;
+			*/
 			default:
 				FAIL_M(ssprintf("Invalid tap note subtype: %i", subType));
 		}
@@ -1414,20 +1414,20 @@ Player::UpdateHoldNotes(int iSongRow,
 				bLetGoOfHoldNote = !bSteppedOnHead;
 
 			/*
-				if(bLetGoOfHoldNote)
-					LOG->Trace("let go of hold note, life is 0");
-				else
-					LOG->Trace("did not let go of hold note :D");
-				*/
+			if(bLetGoOfHoldNote)
+				LOG->Trace("let go of hold note, life is 0");
+			else
+				LOG->Trace("did not let go of hold note :D");
+			*/
 		} else {
 			// LOG->Trace("(hold checkpoints disabled.)");
 			bLetGoOfHoldNote = fLife == 0;
 			/*
-				if(bLetGoOfHoldNote)
-					LOG->Trace("let go of hold note, life is 0");
-				else
-					LOG->Trace("did not let go of hold note :D");
-				*/
+			if(bLetGoOfHoldNote)
+				LOG->Trace("let go of hold note, life is 0");
+			else
+				LOG->Trace("did not let go of hold note :D");
+			*/
 		}
 
 		if (bInitiatedNote) {
@@ -2128,10 +2128,10 @@ Player::Step(int col,
 		  ROWS_PER_BEAT;
 	} else {
 		/* Buncha bullshit that speeds up searching for the rows that we're
-		   concerned about judging taps within by avoiding the invocation of the
-		   incredibly slow getbeatfromelapsedtime. Needs to be cleaned up a lot,
-			whole system does. Only in use if sequential assumption remains
-		   valid. - Mina */
+		concerned about judging taps within by avoiding the invocation of the
+		incredibly slow getbeatfromelapsedtime. Needs to be cleaned up a lot,
+		whole system does. Only in use if sequential assumption remains valid. -
+		Mina */
 
 		if (nerv[nervpos] < iSongRow && nervpos < nerv.size())
 			nervpos += 1;
@@ -2198,11 +2198,11 @@ Player::Step(int col,
 						  GAMESTATE->m_SongOptions.GetCurrent()
 							.m_fMusicRate; // account for music rate
 										   /*
-LOG->Trace("step was %.3f ago, music is off by %f: %f vs %f, step was %f off",
-fTimeSinceStep,
-							   GAMESTATE->m_LastBeatUpdate.Ago()/GAMESTATE->m_SongOptions.m_fMusicRate,
-fStepSeconds, fMusicSeconds, fNoteOffset );
-*/
+										   LOG->Trace("step was %.3f ago, music is off by %f: %f vs %f, step
+										   was %f off",							    fTimeSinceStep,
+										   GAMESTATE->m_LastBeatUpdate.Ago()/GAMESTATE->m_SongOptions.m_fMusicRate,
+											   fStepSeconds, fMusicSeconds, fNoteOffset );
+										   */
 		}
 
 		NOTESKIN->SetLastSeenColor(
@@ -2236,7 +2236,7 @@ fStepSeconds, fMusicSeconds, fNoteOffset );
 							score = TNS_W1;
 							break;
 						}
-					// Fall through to default.
+						// Fall through to default.
 					default:
 						if ((pTN->type == TapNoteType_Lift) == bRelease) {
 							if (fSecondsFromExact <= GetWindowSeconds(TW_W1))

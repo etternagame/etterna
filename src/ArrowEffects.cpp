@@ -128,7 +128,7 @@ struct PerPlayerData
 	float m_fExpandSeconds;
 };
 PerPlayerData g_EffectData[NUM_PLAYERS];
-} // namespace
+} // namespace;
 
 void
 ArrowEffects::Update()
@@ -290,8 +290,7 @@ ArrowEffects::Update()
 					data.m_fBeatFactor =
 					  SCALE(fBeat, 0.0f, fAccelTime, 0.0f, 1.0f);
 					data.m_fBeatFactor *= data.m_fBeatFactor;
-				} else /* fBeat < fTotalTime */
-				{
+				} else /* fBeat < fTotalTime */ {
 					data.m_fBeatFactor =
 					  SCALE(fBeat, fAccelTime, fTotalTime, 1.0f, 0.0f);
 					data.m_fBeatFactor =

@@ -1,8 +1,8 @@
 ﻿#include "global.h"
-#include "PlayerAI.h"
 #include "GameState.h"
 #include "IniFile.h"
 #include "Player.h"
+#include "PlayerAI.h"
 #include "PlayerState.h"
 #include "RageUtil.h"
 

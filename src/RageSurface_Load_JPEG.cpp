@@ -1,8 +1,8 @@
-﻿#include "RageSurface_Load_JPEG.h"
+﻿#include "global.h"
 #include "RageFile.h"
 #include "RageSurface.h"
+#include "RageSurface_Load_JPEG.h"
 #include "RageUtil.h"
-#include "global.h"
 
 #include <csetjmp>
 
@@ -17,8 +17,8 @@ extern "C" {
 #undef FAR
 
 #if defined(_MSC_VER)
-#pragma warning(disable : 4611) // interaction between '_setjmp' and C++dd
-								// objectd
+#pragma warning(disable : 4611)
+// interaction between '_setjmp' and C++ object destruction is non-portable
 #endif
 
 #endif

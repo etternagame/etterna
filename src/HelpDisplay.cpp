@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "HelpDisplay.h"
 #include "ActorUtil.h"
+#include "HelpDisplay.h"
 #include "RageUtil.h"
 #include "ThemeManager.h"
 

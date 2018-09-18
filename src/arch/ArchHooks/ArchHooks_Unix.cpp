@@ -1,16 +1,16 @@
+#include "global.h"
 #include "ArchHooks_Unix.h"
-#include "LocalizedString.h"
 #include "ProductInfo.h"
 #include "RageLog.h"
-#include "RageThreads.h"
 #include "RageUtil.h"
+#include "RageThreads.h"
+#include "LocalizedString.h"
 #include "SpecialFiles.h"
-#include "archutils/Common/PthreadHelpers.h"
-#include "archutils/Unix/AssertionHandler.h"
-#include "archutils/Unix/EmergencyShutdown.h"
-#include "archutils/Unix/GetSysInfo.h"
 #include "archutils/Unix/SignalHandler.h"
-#include "global.h"
+#include "archutils/Unix/GetSysInfo.h"
+#include "archutils/Common/PthreadHelpers.h"
+#include "archutils/Unix/EmergencyShutdown.h"
+#include "archutils/Unix/AssertionHandler.h"
 #if defined(HAVE_UNISTD_H)
 #include <unistd.h>
 #endif
@@ -33,8 +33,8 @@ extern "C" {
 
 #if defined(HAVE_X11)
 #include "archutils/Unix/X11Helper.h"
-#include <X11/Xatom.h>
 #include <X11/Xlib.h>
+#include <X11/Xatom.h>
 #endif
 
 static bool

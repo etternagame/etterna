@@ -1,3 +1,4 @@
+#include "global.h"
 #include "ActorUtil.h"
 #include "Foreach.h"
 #include "IniFile.h"
@@ -9,7 +10,6 @@
 #include "RageTypes.h"
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
-#include "global.h"
 
 #include <map>
 #include <set>

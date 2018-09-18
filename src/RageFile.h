@@ -4,7 +4,7 @@
 #define RAGE_FILE_H
 
 #include "RageFileBasic.h"
-#include "global.h"
+
 struct lua_State;
 
 /**
@@ -119,7 +119,7 @@ int32_t
 read_32_le(RageFileBasic& f, RString& sError);
 uint32_t
 read_u32_le(RageFileBasic& f, RString& sError);
-}; // namespace FileReading
+};
 
 #endif
 

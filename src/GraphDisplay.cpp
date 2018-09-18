@@ -1,7 +1,7 @@
 ﻿#include "global.h"
-#include "GraphDisplay.h"
 #include "ActorUtil.h"
 #include "Foreach.h"
+#include "GraphDisplay.h"
 #include "RageDisplay.h"
 #include "RageMath.h"
 #include "RageTextureManager.h"

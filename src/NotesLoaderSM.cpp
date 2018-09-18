@@ -1,9 +1,9 @@
 ﻿#include "global.h"
-#include "NotesLoaderSM.h"
 #include "BackgroundUtil.h"
 #include "GameManager.h"
 #include "MsdFile.h"
 #include "NoteTypes.h"
+#include "NotesLoaderSM.h"
 #include "PrefsManager.h"
 #include "RageFileManager.h"
 #include "RageLog.h"
@@ -973,16 +973,16 @@ SMLoader::LoadFromBGChangesString(BackgroundChange& change,
 			change.m_def.m_sColor2.Replace('^', ',');
 			change.m_def.m_sColor2 =
 			  RageColor::NormalizeColorString(change.m_def.m_sColor2);
-		// fall through
+			// fall through
 		case 10:
 			change.m_def.m_sColor1 = aBGChangeValues[9];
 			change.m_def.m_sColor1.Replace('^', ',');
 			change.m_def.m_sColor1 =
 			  RageColor::NormalizeColorString(change.m_def.m_sColor1);
-		// fall through
+			// fall through
 		case 9:
 			change.m_sTransition = aBGChangeValues[8];
-		// fall through
+			// fall through
 		case 8: {
 			RString tmp = aBGChangeValues[7];
 			tmp.MakeLower();
@@ -996,7 +996,7 @@ SMLoader::LoadFromBGChangesString(BackgroundChange& change,
 		}
 		case 7:
 			change.m_def.m_sEffect = aBGChangeValues[6];
-		// fall through
+			// fall through
 		case 6:
 			// param 7 overrides this.
 			// Backward compatibility:
@@ -1005,7 +1005,7 @@ SMLoader::LoadFromBGChangesString(BackgroundChange& change,
 				if (!bLoop)
 					change.m_def.m_sEffect = SBE_StretchNoLoop;
 			}
-		// fall through
+			// fall through
 		case 5:
 			// param 7 overrides this.
 			// Backward compatibility:
@@ -1014,17 +1014,17 @@ SMLoader::LoadFromBGChangesString(BackgroundChange& change,
 				if (bRewindMovie)
 					change.m_def.m_sEffect = SBE_StretchRewind;
 			}
-		// fall through
+			// fall through
 		case 4:
 			// param 9 overrides this.
 			// Backward compatibility:
 			if (change.m_sTransition.empty())
 				change.m_sTransition =
 				  (StringToInt(aBGChangeValues[3]) != 0) ? "CrossFade" : "";
-		// fall through
+			// fall through
 		case 3:
 			change.m_fRate = StringToFloat(aBGChangeValues[2]);
-		// fall through
+			// fall through
 		case 2: {
 			RString tmp = aBGChangeValues[1];
 			tmp.MakeLower();
@@ -1249,7 +1249,7 @@ SMLoader::LoadEditFromMsd(const MsdFile& msd,
 		if (sValueName == "SONG") {
 			if (pSong) {
 				/* LOG->UserLog( "Edit file", sEditFilePath, "has more than one
-				   #SONG tag." ); return false; */
+				#SONG tag." ); return false; */
 				// May have been given the song from outside the file. Not worth
 				// checking for.
 				continue;

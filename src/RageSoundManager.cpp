@@ -8,16 +8,16 @@
  *  - sound detaching ("play and delete when done playing")
  */
 
-#include "RageSoundManager.h"
+#include "global.h"
 #include "Foreach.h"
 #include "LocalizedString.h"
 #include "Preference.h"
 #include "RageLog.h"
 #include "RageSound.h"
+#include "RageSoundManager.h"
 #include "RageSoundReader_Preload.h"
 #include "RageTimer.h"
 #include "RageUtil.h"
-#include "global.h"
 
 #include "arch/Sound/RageSoundDriver.h"
 

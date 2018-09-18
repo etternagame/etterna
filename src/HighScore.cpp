@@ -1,19 +1,20 @@
 ﻿#include "global.h"
-#include "HighScore.h"
 #include "CryptManager.h"
 #include "Foreach.h"
 #include "GameConstantsAndTypes.h"
-#include "NoteTypes.h"
+#include "HighScore.h"
+#include "picosha2.h"
 #include "PlayerNumber.h"
 #include "ProfileManager.h"
 #include "RadarValues.h"
-#include "RageFileManager.h"
 #include "RageLog.h"
 #include "XmlFile.h"
-#include "picosha2.h"
+#include "NoteTypes.h"
 #include <algorithm>
 #include <fstream>
 #include <sstream>
+#include "CryptManager.h"
+#include "RageFileManager.h"
 
 ThemeMetric<string> EMPTY_NAME("HighScore", "EmptyName");
 

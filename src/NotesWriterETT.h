@@ -17,7 +17,7 @@ namespace NotesWriterETT {
  * @return its success or failure. */
 bool
 Write(RString& sPath, const Song& out, const vector<Steps*>& vpStepsToSave);
-} // namespace NotesWriterETT
+}
 
 #endif
 

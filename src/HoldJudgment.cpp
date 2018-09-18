@@ -1,7 +1,7 @@
 ﻿#include "global.h"
-#include "HoldJudgment.h"
 #include "ActorUtil.h"
 #include "GameConstantsAndTypes.h"
+#include "HoldJudgment.h"
 #include "RageUtil.h"
 #include "ThemeManager.h"
 #include "ThemeMetric.h"

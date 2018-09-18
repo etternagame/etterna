@@ -1,6 +1,6 @@
+#include "global.h"
 #include "FilterManager.h"
 #include "PlayerState.h"
-#include "global.h"
 
 FilterManager* FILTERMAN = NULL;
 

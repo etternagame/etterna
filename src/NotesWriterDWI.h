@@ -1,8 +1,6 @@
 ﻿#ifndef NOTES_WRITER_DWI_H
 #define NOTES_WRITER_DWI_H
 
-#include "global.h"
-
 class Song;
 
 /** @brief Writes a Song to a .DWI file. */
@@ -14,7 +12,7 @@ namespace NotesWriterDWI {
  * @return its success or failure. */
 bool
 Write(const RString& sPath, const Song& out);
-} // namespace NotesWriterDWI
+}
 
 #endif
 

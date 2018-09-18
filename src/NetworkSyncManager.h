@@ -3,10 +3,10 @@
 
 #include "Difficulty.h"
 #include "HighScore.h"
-#include "JsonUtil.h"
-#include "uWS.h"
-#include <nlohmann/json.hpp>
 #include <queue>
+#include "uWS.h"
+#include "JsonUtil.h"
+#include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
 class LoadingWindow;

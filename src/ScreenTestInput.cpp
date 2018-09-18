@@ -1,4 +1,4 @@
-#include "ScreenTestInput.h"
+#include "global.h"
 #include "InputEventPlus.h"
 #include "InputMapper.h"
 #include "LocalizedString.h"
@@ -7,8 +7,8 @@
 #include "RageLog.h"
 #include "ScreenDimensions.h"
 #include "ScreenManager.h"
+#include "ScreenTestInput.h"
 #include "ThemeManager.h"
-#include "global.h"
 
 class DeviceList : public BitmapText
 {

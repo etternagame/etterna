@@ -1,10 +1,10 @@
+#include "global.h"
 #include "RageSoundDriver_WDMKS.h"
 #include "Foreach.h"
-#include "PrefsManager.h"
 #include "RageLog.h"
 #include "RageUtil.h"
+#include "PrefsManager.h"
 #include "archutils/Win32/ErrorStrings.h"
-#include "global.h"
 
 #define _INC_MMREG
 #define _NTRTL_ /* Turn off default definition of DEFINE_GUIDEX */
@@ -13,12 +13,12 @@
 	(USHORT)(x), 0x0000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71
 #endif
 
-#include <ks.h>
-#include <ksmedia.h>
-#include <mmsystem.h>
-#include <setupapi.h>
 #include <windows.h>
 #include <winioctl.h>
+#include <ks.h>
+#include <mmsystem.h>
+#include <ksmedia.h>
+#include <setupapi.h>
 
 typedef KSDDKAPI DWORD WINAPI KSCREATEPIN(HANDLE,
 										  PKSPIN_CONNECT,

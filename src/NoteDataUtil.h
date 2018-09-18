@@ -1,7 +1,6 @@
 ﻿#ifndef NOTEDATAUTIL_H
 #define NOTEDATAUTIL_H
 
-#include "global.h"
 #include "GameConstantsAndTypes.h"
 #include "NoteTypes.h"
 
@@ -147,10 +146,10 @@ enum TrackMapping
 {
 	left, /**< The NoteData is arranged as if the player was facing to the left.
 		   */
-	right,  // The NoteData is arranged as if the player was facing to the right
-	mirror, /**< The NoteData is arranged as if facing a straight mirror. */
+	right,	 /**< Arranged as if the player was facing the right. */
+	mirror,	/**< The NoteData is arranged as if facing a straight mirror. */
 	backwards, /**< The NoteData is arranged as if the player was facing
-				  backwards. This is NOT always the same as mirror. */
+				backwards. This is NOT always the same as mirror. */
 	shuffle,
 	soft_shuffle,
 	super_shuffle,
@@ -320,7 +319,7 @@ GetPrevEditorPosition(const NoteData& in, int& rowInOut);
  * @param td The TimingData from the relevant Steps. */
 unsigned int
 GetTotalHoldTicks(NoteData* nd, const TimingData* td);
-}; // namespace NoteDataUtil
+};
 
 #endif
 

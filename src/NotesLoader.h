@@ -1,7 +1,6 @@
 ﻿#ifndef NOTES_LOADER_H
 #define NOTES_LOADER_H
 
-#include "global.h"
 #include <set>
 
 class Song;
@@ -28,7 +27,7 @@ LoadFromDir(const RString& sPath,
 			Song& out,
 			set<RString>& BlacklistedImages,
 			bool load_autosave = false);
-} // namespace NotesLoader
+}
 
 #endif
 

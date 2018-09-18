@@ -1,11 +1,11 @@
-#include "InputHandler.h"
-#include "Foreach.h"
-#include "InputFilter.h"
-#include "LocalizedString.h"
-#include "RageLog.h"
-#include "RageUtil.h"
-#include "arch/arch_default.h"
 #include "global.h"
+#include "InputFilter.h"
+#include "RageUtil.h"
+#include "InputHandler.h"
+#include "RageLog.h"
+#include "LocalizedString.h"
+#include "arch/arch_default.h"
+#include "Foreach.h"
 
 void
 InputHandler::UpdateTimer()

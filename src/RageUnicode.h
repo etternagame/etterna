@@ -1,7 +1,6 @@
 ﻿#ifndef RAGE_UNICODE_HPP_
 #define RAGE_UNICODE_HPP_
 
-#include "global.h"
 #include <string>
 
 namespace Rage {
@@ -77,6 +76,6 @@ extern unsigned char lowerCase[256];
 
 /** @brief A mapping to allow for quick uppercase conversion. */
 extern unsigned char upperCase[256];
-} // namespace Rage
+}
 
 #endif

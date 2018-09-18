@@ -1,10 +1,6 @@
 #ifndef NOTES_LOADER_OSU_H
 #define NOTES_LOADER_OSU_H
 
-#include "global.h"
-#include <map>
-#include <string>
-
 class Song;
 class Steps;
 
@@ -68,6 +64,6 @@ LoadChartData(Song* song,
 
 int
 MsToNoteRow(int ms, Song* song);
-} // namespace OsuLoader
+}
 
 #endif

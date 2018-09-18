@@ -1,4 +1,4 @@
-#include "ScreenOptionsExportPackage.h"
+#include "global.h"
 #include "CommonMetrics.h"
 #include "GameState.h"
 #include "LocalizedString.h"
@@ -7,11 +7,12 @@
 #include "RageLog.h"
 #include "ScreenManager.h"
 #include "ScreenMiniMenu.h"
+#include "ScreenOptionsExportPackage.h"
+#include "ScreenPrompt.h"
 #include "ScreenPrompt.h"
 #include "SongManager.h"
 #include "SpecialFiles.h"
 #include "archutils/SpecialDirs.h"
-#include "global.h"
 
 // main page (type list)
 REGISTER_SCREEN_CLASS(ScreenOptionsExportPackage);

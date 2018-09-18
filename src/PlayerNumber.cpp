@@ -1,7 +1,7 @@
 ﻿#include "global.h"
-#include "PlayerNumber.h"
 #include "LocalizedString.h"
 #include "LuaManager.h"
+#include "PlayerNumber.h"
 
 static const char* PlayerNumberNames[] = {
 	"P1",

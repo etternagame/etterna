@@ -1,7 +1,6 @@
 ﻿#ifndef OptionRowHandler_H
 #define OptionRowHandler_H
 
-#include "global.h"
 #include "GameCommand.h"
 #include "LuaReference.h"
 #include "RageUtil.h"
@@ -253,7 +252,7 @@ void
 SelectExactlyOne(int iSelection, vector<bool>& vbSelectedOut);
 int
 GetOneSelection(const vector<bool>& vbSelected);
-} // namespace OptionRowHandlerUtil
+}
 
 inline void
 VerifySelected(SelectType st, vector<bool>& selected, const RString& sName)

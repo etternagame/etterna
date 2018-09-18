@@ -1,5 +1,5 @@
-#include "ScreenInstructions.h"
 #include "global.h"
+#include "ScreenInstructions.h"
 
 REGISTER_SCREEN_CLASS(ScreenInstructions);
 

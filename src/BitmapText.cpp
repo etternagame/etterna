@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "BitmapText.h"
 #include "ActorUtil.h"
+#include "BitmapText.h"
 #include "Font.h"
 #include "FontManager.h"
 #include "Foreach.h"

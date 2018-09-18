@@ -32,10 +32,10 @@ THE SOFTWARE.
 
 #include <algorithm>
 #include <cassert>
-#include <fstream>
 #include <iterator>
 #include <sstream>
 #include <vector>
+#include <fstream>
 namespace picosha2 {
 typedef unsigned long word_t;
 typedef unsigned char byte_t;
@@ -385,7 +385,7 @@ hash256_impl(InputIter first,
 	hasher.finish();
 	hasher.get_hash_bytes(first2, last2);
 }
-} // namespace impl
+}
 
 template<typename InIter, typename OutIter>
 void

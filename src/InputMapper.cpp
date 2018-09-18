@@ -1,8 +1,8 @@
 ﻿#include "global.h"
-#include "InputMapper.h"
 #include "Foreach.h"
 #include "IniFile.h"
 #include "InputFilter.h"
+#include "InputMapper.h"
 #include "LocalizedString.h"
 #include "MessageManager.h"
 #include "PrefsManager.h"
@@ -24,7 +24,7 @@ namespace {
 map<DeviceInput, GameInput> g_tempDItoGI;
 
 PlayerNumber g_JoinControllers;
-} // namespace
+} // namespace;
 
 InputMapper* INPUTMAPPER =
   NULL; // global and accessible from anywhere in our program
@@ -188,27 +188,27 @@ static const AutoMappings g_AutoMappings[] = {
 				 AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_START, false)),
 	/*	AutoMappings(
 
-		"dance",
-		"MP-8866 Dual USB Joypad",
-		"Super Dual Box (from Lik-Sang, 2004)",
-		//NEEDS_DANCE_PAD_MAPPING_CODE,
-		AutoMappingEntry( 0, JOY_LEFT,	       DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 0, JOY_RIGHT,	       DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 0, JOY_UP,	       DANCE_BUTTON_UP,	       false ),
-		AutoMappingEntry( 0, JOY_DOWN,	       DANCE_BUTTON_DOWN,      false ),
-		AutoMappingEntry( 1, JOY_BUTTON_4,      DANCE_BUTTON_LEFT,      false ),
-		AutoMappingEntry( 1, JOY_BUTTON_2,      DANCE_BUTTON_RIGHT,     false ),
-		AutoMappingEntry( 1, JOY_BUTTON_1,      DANCE_BUTTON_UP,	       false
-	   ), AutoMappingEntry( 1, JOY_BUTTON_3,      DANCE_BUTTON_DOWN,      false
-	   ), AutoMappingEntry( 0, JOY_BUTTON_5,      DANCE_BUTTON_UPLEFT,    false
-	   ), AutoMappingEntry( 0, JOY_BUTTON_6,      DANCE_BUTTON_UPRIGHT,   false
-	   ), AutoMappingEntry( 1, JOY_BUTTON_7,      DANCE_BUTTON_UPLEFT,    false
-	   ), AutoMappingEntry( 1, JOY_BUTTON_8,      DANCE_BUTTON_UPRIGHT,   false
-	   ), AutoMappingEntry( 0, JOY_BUTTON_10,     GAME_BUTTON_BACK,       false
-	   ), AutoMappingEntry( 0, JOY_BUTTON_9,      GAME_BUTTON_START,      false
-	   ),
-	   ),
-*/
+			"dance",
+			"MP-8866 Dual USB Joypad",
+			"Super Dual Box (from Lik-Sang, 2004)",
+			//NEEDS_DANCE_PAD_MAPPING_CODE,
+			AutoMappingEntry( 0, JOY_LEFT,	       DANCE_BUTTON_LEFT, false ),
+			AutoMappingEntry( 0, JOY_RIGHT,	       DANCE_BUTTON_RIGHT, false ),
+			AutoMappingEntry( 0, JOY_UP,	       DANCE_BUTTON_UP, false ),
+			AutoMappingEntry( 0, JOY_DOWN,	       DANCE_BUTTON_DOWN, false ),
+			AutoMappingEntry( 1, JOY_BUTTON_4,      DANCE_BUTTON_LEFT, false ),
+			AutoMappingEntry( 1, JOY_BUTTON_2,      DANCE_BUTTON_RIGHT, false ),
+			AutoMappingEntry( 1, JOY_BUTTON_1,      DANCE_BUTTON_UP, false ),
+			AutoMappingEntry( 1, JOY_BUTTON_3,      DANCE_BUTTON_DOWN, false ),
+			AutoMappingEntry( 0, JOY_BUTTON_5,      DANCE_BUTTON_UPLEFT,
+	   false ), AutoMappingEntry( 0, JOY_BUTTON_6,      DANCE_BUTTON_UPRIGHT,
+	   false ), AutoMappingEntry( 1, JOY_BUTTON_7,      DANCE_BUTTON_UPLEFT,
+	   false ), AutoMappingEntry( 1, JOY_BUTTON_8,      DANCE_BUTTON_UPRIGHT,
+	   false ), AutoMappingEntry( 0, JOY_BUTTON_10,     GAME_BUTTON_BACK,
+	   false ), AutoMappingEntry( 0, JOY_BUTTON_9,      GAME_BUTTON_START,
+	   false ),
+		   ),
+	*/
 	AutoMappings(
 	  "dance",
 	  "MP-8866 Dual USB Joypad",

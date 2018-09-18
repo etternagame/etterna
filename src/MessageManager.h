@@ -1,7 +1,6 @@
 ﻿#ifndef MessageManager_H
 #define MessageManager_H
 
-#include "global.h"
 #include "LuaManager.h"
 struct lua_State;
 class LuaTable;
@@ -252,7 +251,7 @@ Push(lua_State* L, const BroadcastOnChange<T>& Object)
 {
 	LuaHelpers::Push<T>(L, Object.Get());
 }
-} // namespace LuaHelpers
+}
 
 template<class T, int N>
 class BroadcastOnChange1D

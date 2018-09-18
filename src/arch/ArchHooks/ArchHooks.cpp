@@ -1,10 +1,10 @@
+#include "global.h"
 #include "ArchHooks.h"
 #include "LuaReference.h"
-#include "PrefsManager.h"
 #include "RageLog.h"
 #include "RageThreads.h"
 #include "arch/arch_default.h"
-#include "global.h"
+#include "PrefsManager.h"
 
 #ifdef __APPLE__
 #include "../../archutils/Darwin/MouseDevice.h"

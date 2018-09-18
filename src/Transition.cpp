@@ -1,6 +1,6 @@
-#include "Transition.h"
-#include "ScreenManager.h"
 #include "global.h"
+#include "ScreenManager.h"
+#include "Transition.h"
 
 Transition::Transition()
 {

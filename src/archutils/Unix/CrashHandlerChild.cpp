@@ -1,21 +1,21 @@
 #define __USE_GNU
 #include "global.h"
 
-#include <cerrno>
 #include <cstdio>
 #include <cstring>
-#include <sys/select.h>
+#include <cerrno>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/select.h>
 
 #include "Backtrace.h"
 #include "BacktraceNames.h"
 
+#include "RageUtil.h"
 #include "CrashHandler.h"
 #include "CrashHandlerInternal.h"
-#include "ProductInfo.h"
 #include "RageLog.h" /* for RageLog::GetAdditionalLog, etc. only */
-#include "RageUtil.h"
+#include "ProductInfo.h"
 #include "arch/ArchHooks/ArchHooks.h"
 
 #if defined(MACOSX)

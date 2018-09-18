@@ -1,7 +1,7 @@
 ﻿#include "global.h"
 
-#include "BeginnerHelper.h"
 #include "ActorUtil.h"
+#include "BeginnerHelper.h"
 #include "Character.h"
 #include "GameState.h"
 #include "Model.h"

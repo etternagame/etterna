@@ -1,4 +1,4 @@
-#include "ScreenAttract.h"
+#include "global.h"
 #include "GameSoundManager.h"
 #include "GameState.h"
 #include "InputEventPlus.h"
@@ -7,10 +7,10 @@
 #include "RageLog.h"
 #include "RageSoundManager.h"
 #include "RageUtil.h"
+#include "ScreenAttract.h"
 #include "ScreenManager.h"
 #include "StepMania.h"
 #include "ThemeManager.h"
-#include "global.h"
 
 #define START_SCREEN(sScreenName) THEME->GetMetric(sScreenName, "StartScreen")
 
@@ -85,7 +85,7 @@ ScreenAttract::AttractInput(const InputEventPlus& input,
 		case GAME_BUTTON_BACK:
 			if (!BACK_GOES_TO_START_SCREEN)
 				break;
-		// fall through
+			// fall through
 		case GAME_BUTTON_START:
 		case GAME_BUTTON_COIN:
 			// If we're not in a game and there aren't enough credits to start,

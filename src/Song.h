@@ -1,7 +1,6 @@
 #ifndef SONG_H
 #define SONG_H
 
-#include "global.h"
 #include "Difficulty.h"
 #include "EnumHelper.h"
 #include "RageTypes.h"
@@ -378,11 +377,11 @@ class Song
 	vector<LyricSegment> m_LyricSegments;
 
 	/* [splittiming]
-	void AddBPMSegment( const BPMSegment &seg ) { m_Timing.AddBPMSegment( seg );
-	} void AddStopSegment( const StopSegment &seg ) { m_Timing.AddStopSegment(
-	seg ); } void AddWarpSegment( const WarpSegment &seg ) {
-	m_Timing.AddWarpSegment( seg ); }
-*/
+		void AddBPMSegment( const BPMSegment &seg ) { m_Timing.AddBPMSegment(
+	   seg ); } void AddStopSegment( const StopSegment &seg ) {
+	   m_Timing.AddStopSegment( seg ); } void AddWarpSegment( const WarpSegment
+	   &seg ) { m_Timing.AddWarpSegment( seg ); }
+	*/
 	void AddBackgroundChange(BackgroundLayer blLayer, BackgroundChange seg);
 	void AddForegroundChange(BackgroundChange seg);
 	void AddLyricSegment(LyricSegment seg);
@@ -392,11 +391,11 @@ class Song
 												float fBeat) const;
 
 	/* [splittiming]
-	float GetBPMAtBeat( float fBeat ) const { return m_Timing.GetBPMAtBeat(
-	fBeat ); } void SetBPMAtBeat( float fBeat, float fBPM ) {
-	m_Timing.SetBPMAtBeat( fBeat, fBPM ); } BPMSegment& GetBPMSegmentAtBeat(
-	float fBeat ) { return m_Timing.GetBPMSegmentAtBeat( fBeat ); }
-*/
+		float GetBPMAtBeat( float fBeat ) const { return m_Timing.GetBPMAtBeat(
+	   fBeat ); } void SetBPMAtBeat( float fBeat, float fBPM ) {
+	   m_Timing.SetBPMAtBeat( fBeat, fBPM ); } BPMSegment& GetBPMSegmentAtBeat(
+	   float fBeat ) { return m_Timing.GetBPMSegmentAtBeat( fBeat ); }
+	*/
 
 	Steps* CreateSteps();
 	void InitSteps(Steps* pSteps);

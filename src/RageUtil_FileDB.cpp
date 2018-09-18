@@ -1,8 +1,8 @@
 ﻿#include "global.h"
 
-#include "RageUtil_FileDB.h"
 #include "RageLog.h"
 #include "RageUtil.h"
+#include "RageUtil_FileDB.h"
 
 /* Search for "beginning*containing*ending". */
 void

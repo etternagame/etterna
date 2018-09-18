@@ -1,8 +1,6 @@
 #ifndef SpecialFiles_H
 #define SpecialFiles_H
 
-#include "global.h"
-
 /** @brief The listing of the special files and directories in use. */
 namespace SpecialFiles {
 /**
@@ -38,7 +36,7 @@ extern const RString TYPE_TXT_FILE;
 extern const RString SONGS_DIR;
 /** @brief The default noteskins directory. */
 extern const RString NOTESKINS_DIR;
-} // namespace SpecialFiles
+}
 
 #endif
 

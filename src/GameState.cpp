@@ -1,32 +1,32 @@
 ﻿#include "global.h"
-#include "GameState.h"
 #include "AdjustSync.h"
 #include "Character.h"
 #include "CommonMetrics.h"
 #include "CryptManager.h"
+#include "discord-rpc.h"
 #include "Foreach.h"
 #include "Game.h"
 #include "GameCommand.h"
 #include "GameConstantsAndTypes.h"
 #include "GameManager.h"
 #include "GamePreferences.h"
+#include "GameState.h"
 #include "LuaReference.h"
 #include "MessageManager.h"
 #include "NoteData.h"
 #include "NoteSkinManager.h"
 #include "PlayerState.h"
-#include "Profile.h"
 #include "ProfileManager.h"
 #include "ScreenManager.h"
 #include "Song.h"
-#include "SongManager.h"
 #include "SongUtil.h"
 #include "StatsManager.h"
 #include "Steps.h"
-#include "StepsUtil.h"
 #include "Style.h"
 #include "ThemeManager.h"
-#include "discord-rpc.h"
+#include "SongManager.h"
+#include "StepsUtil.h"
+#include "Profile.h"
 
 GameState* GAMESTATE =
   NULL; // global and accessible from anywhere in our program
@@ -441,7 +441,7 @@ JoinInputInternal(PlayerNumber pn)
 	GAMESTATE->JoinPlayer(pn);
 	return true;
 }
-}; // namespace
+};
 
 // Handle an input that can join a player. Return true if the player joined.
 bool
@@ -1039,6 +1039,7 @@ GameState::GetCourseSongIndex() const
 		  1;
 
 		FAIL_M("At least one MultiPlayer must be joined.");
+
 	} else {
 		return STATSMAN->m_CurStageStats.m_player[this->GetMasterPlayerNumber()]
 				 .m_iSongsPlayed -

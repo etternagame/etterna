@@ -1,7 +1,6 @@
 ﻿#ifndef COMMON_METRICS_H
 #define COMMON_METRICS_H
 
-#include "global.h"
 #include "Difficulty.h"
 #include "GameConstantsAndTypes.h"
 #include "LocalizedString.h"
@@ -71,7 +70,7 @@ extern ThemeMetric<RString> IMAGES_TO_CACHE;
 
 RString
 LocalizeOptionItem(const RString& s, bool bOptional);
-}; // namespace CommonMetrics
+};
 
 #endif
 

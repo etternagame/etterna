@@ -1,12 +1,12 @@
-#include "StepsUtil.h"
+#include "global.h"
 #include "GameManager.h"
 #include "ProfileManager.h"
 #include "Song.h"
 #include "SongManager.h"
 #include "SongUtil.h"
 #include "Steps.h"
+#include "StepsUtil.h"
 #include "XmlFile.h"
-#include "global.h"
 
 bool
 StepsCriteria::Matches(const Song* pSong, const Steps* pSteps) const

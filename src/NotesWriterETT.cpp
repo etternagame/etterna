@@ -1,10 +1,10 @@
 ﻿#include "global.h"
-#include "NotesWriterETT.h"
 #include "BackgroundUtil.h"
 #include "Foreach.h"
 #include "GameManager.h"
 #include "LocalizedString.h"
 #include "NoteTypes.h"
+#include "NotesWriterETT.h"
 #include "Profile.h"
 #include "ProfileManager.h"
 #include "RageFile.h"
@@ -276,7 +276,7 @@ WriteGlobalTags(RageFile& f, const Song& out)
 		case Song::SHOW_ALWAYS:
 			f.Write("YES");
 			break;
-		// case Song::SHOW_NONSTOP:	f.Write( "NONSTOP" );	break;
+			// case Song::SHOW_NONSTOP:	f.Write( "NONSTOP" );	break;
 		case Song::SHOW_NEVER:
 			f.Write("NO");
 			break;

@@ -1,10 +1,10 @@
 ﻿#include "global.h"
-#include "RoomWheel.h"
 #include "ActorUtil.h"
 #include "LocalizedString.h"
 #include "NetworkSyncManager.h"
 #include "RageLog.h"
 #include "RageUtil.h"
+#include "RoomWheel.h"
 #include "ScreenManager.h"
 #include "ScreenTextEntry.h"
 

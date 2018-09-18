@@ -1,10 +1,10 @@
 ﻿#include "global.h"
-#include "RageUtil_BackgroundLoader.h"
 #include "RageFile.h"
 #include "RageFileManager.h"
 #include "RageLog.h"
 #include "RageThreads.h"
 #include "RageUtil.h"
+#include "RageUtil_BackgroundLoader.h"
 
 /* If we're on an OS with a good caching system, writing to our own cache will
  * only waste memory.  In that case, just read the file, to force it into system

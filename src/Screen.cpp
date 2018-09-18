@@ -1,13 +1,13 @@
-#include "Screen.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "InputEventPlus.h"
 #include "InputMapper.h"
 #include "PrefsManager.h"
-#include "RageInput.h"
 #include "RageLog.h"
+#include "Screen.h"
 #include "ScreenManager.h"
+#include "RageInput.h"
 #include "ThemeManager.h"
-#include "global.h"
 
 #define NEXT_SCREEN THEME->GetMetric(m_sName, "NextScreen")
 #define PREV_SCREEN THEME->GetMetric(m_sName, "PrevScreen")

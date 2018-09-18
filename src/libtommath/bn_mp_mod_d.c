@@ -15,9 +15,10 @@
  * Tom St Denis, tomstdenis@gmail.com, http://math.libtomcrypt.com
  */
 
-int mp_mod_d(mp_int *a, mp_digit b, mp_digit *c)
+int
+mp_mod_d (mp_int * a, mp_digit b, mp_digit * c)
 {
-	return mp_div_d(a, b, NULL, c);
+  return mp_div_d(a, b, NULL, c);
 }
 #endif
 

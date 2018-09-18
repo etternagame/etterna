@@ -1,13 +1,13 @@
+#include "global.h"
 #include "RageLog.h"
-#include "RageThreads.h"
 #include "RageUtil.h"
+#include "RageThreads.h"
 #include "archutils/Unix/Backtrace.h"
 #include "archutils/Unix/BacktraceNames.h"
-#include "global.h"
 #include "test_misc.h"
 
-#include "archutils/Common/PthreadHelpers.h"
 #include <unistd.h>
+#include "archutils/Common/PthreadHelpers.h"
 
 /* These are volatile, so writes to them aren't optimized. */
 volatile uint64_t g_ThreadId = (uint64_t)-1;

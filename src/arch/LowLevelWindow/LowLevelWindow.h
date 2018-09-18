@@ -1,7 +1,6 @@
 #ifndef LOW_LEVEL_WINDOW_H
 #define LOW_LEVEL_WINDOW_H
 
-#include "global.h"
 #include <set>
 
 class DisplayResolution;

@@ -1,4 +1,4 @@
-#include "ScreenSyncOverlay.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "AdjustSync.h"
 #include "GamePreferences.h"
@@ -8,8 +8,8 @@
 #include "PrefsManager.h"
 #include "ScreenDimensions.h"
 #include "ScreenManager.h"
+#include "ScreenSyncOverlay.h"
 #include "Song.h"
-#include "global.h"
 
 static bool previousGameplayState;
 

@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "DifficultyList.h"
 #include "CommonMetrics.h"
+#include "DifficultyList.h"
 #include "Foreach.h"
 #include "GameState.h"
 #include "Song.h"

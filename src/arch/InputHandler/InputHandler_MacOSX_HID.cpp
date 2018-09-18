@@ -1,17 +1,17 @@
+#include "global.h"
+#include "RageLog.h"
 #include "InputHandler_MacOSX_HID.h"
 #include "Foreach.h"
-#include "InputFilter.h"
 #include "PrefsManager.h"
-#include "RageLog.h"
+#include "InputFilter.h"
 #include "archutils/Darwin/DarwinThreadHelpers.h"
-#include "archutils/Darwin/JoystickDevice.h"
 #include "archutils/Darwin/KeyboardDevice.h"
 #include "archutils/Darwin/MouseDevice.h"
+#include "archutils/Darwin/JoystickDevice.h"
 #include "archutils/Darwin/PumpDevice.h"
-#include "global.h"
 
-#include <Carbon/Carbon.h>
 #include <IOKit/IOMessage.h>
+#include <Carbon/Carbon.h>
 
 REGISTER_INPUT_HANDLER_CLASS2(HID, MacOSX_HID);
 

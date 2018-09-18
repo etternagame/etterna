@@ -1,6 +1,6 @@
+#include "global.h"
 #include "LowLevelWindow.h"
 #include "arch/arch_default.h"
-#include "global.h"
 
 LowLevelWindow*
 LowLevelWindow::Create()

@@ -7,20 +7,24 @@
 #include "LuaManager.h"
 #include "ProductInfo.h"
 #include "RageFile.h"
-#include "RageFileManager.h"
 #include "RageUtil.h"
 #include "ScreenInstallOverlay.h"
-#include "SpecialFiles.h"
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
+#include "LuaManager.h"
+#include "ProductInfo.h"
+#include "DateTime.h"
+#include "Foreach.h"
 #include "arch/Dialog/Dialog.h"
+#include "RageFileManager.h"
+#include "SpecialFiles.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "ver.h"
 
 // only used for Version()
 #if defined(_WINDOWS)
-#include <conio.h>
 #include <windows.h>
+#include <conio.h>
 #endif
 
 /** @brief The directory where languages should be installed. */

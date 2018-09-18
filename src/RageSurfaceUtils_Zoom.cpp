@@ -1,7 +1,7 @@
 ﻿#include "global.h"
-#include "RageSurfaceUtils_Zoom.h"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
+#include "RageSurfaceUtils_Zoom.h"
 #include "RageUtil.h"
 #include <vector>
 

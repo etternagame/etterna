@@ -1,6 +1,6 @@
 ﻿#include "global.h"
-#include "BPMDisplay.h"
 #include "ActorUtil.h"
+#include "BPMDisplay.h"
 #include "CommonMetrics.h"
 #include "GameConstantsAndTypes.h"
 #include "GameState.h"

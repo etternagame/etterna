@@ -1,8 +1,8 @@
 ﻿#include "global.h"
-#include "NotesLoaderKSF.h"
 #include "MsdFile.h"
 #include "NoteData.h"
 #include "NoteTypes.h"
+#include "NotesLoaderKSF.h"
 #include "RageLog.h"
 #include "RageUtil.h"
 #include "RageUtil_CharConversions.h"
@@ -64,6 +64,7 @@ LoadFromKSFFile(const RString& sPath,
 		 * Skips INTRO, MUSICINTRO, TITLEFILE, DISCFILE, SONGFILE. */
 		if (sValueName == "TITLE" || EndsWith(sValueName, "INTRO") ||
 			EndsWith(sValueName, "FILE")) {
+
 		} else if (sValueName == "BPM") {
 			BPM1 = StringToFloat(sParams[1]);
 			stepsTiming.AddSegment(BPMSegment(0, BPM1));
@@ -303,12 +304,12 @@ LoadFromKSFFile(const RString& sPath,
 
 		else if (BeginsWith(sRowString, "|")) {
 			/*
-				if (bKIUCompliant)
-				{
-					// Log an error, ignore the line.
-					continue;
-				}
-				*/
+			if (bKIUCompliant)
+			{
+				// Log an error, ignore the line.
+				continue;
+			}
+			*/
 			// gotta do something tricky here: if the bpm is below one then a
 			// couple of calculations for scrollsegments will be made, example,
 			// bpm 0.2, tick 4000, the scrollsegment will be 0. if the tickcount
@@ -402,8 +403,8 @@ LoadFromKSFFile(const RString& sPath,
 				case '1':
 					tap = TAP_ORIGINAL_TAP;
 					break;
-				// allow setting more notetypes on ksf files, this may come in
-				// handy (it should) -DaisuMaster
+					// allow setting more notetypes on ksf files, this may come
+					// in handy (it should) -DaisuMaster
 				case 'M':
 				case 'm':
 					tap = TAP_ORIGINAL_MINE;
@@ -570,7 +571,7 @@ LoadGlobalData(const RString& sPath, Song& out, bool& bKIUCompliant)
 			split(theSteps, "\n", vNoteRows, true);
 		} else if (sValueName == "DIFFICULTY" || sValueName == "PLAYER") {
 			/* DIFFICULTY and PLAYER are handled only in LoadFromKSFFile.
-				Ignore those here. */
+			Ignore those here. */
 			continue;
 		}
 		// New cases noted in Aldo_MX's code:

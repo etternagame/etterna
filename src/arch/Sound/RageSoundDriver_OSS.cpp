@@ -1,5 +1,5 @@
-#include "RageSoundDriver_OSS.h"
 #include "global.h"
+#include "RageSoundDriver_OSS.h"
 
 #include "RageLog.h"
 #include "RageSound.h"
@@ -15,8 +15,8 @@
 #include <errno.h>
 #include <string.h>
 #include <sys/ioctl.h>
-#include <sys/select.h>
 #include <sys/soundcard.h>
+#include <sys/select.h>
 
 REGISTER_SOUND_DRIVER_CLASS(OSS);
 

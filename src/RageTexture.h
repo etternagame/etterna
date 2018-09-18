@@ -3,7 +3,6 @@
 #ifndef RAGE_TEXTURE_H
 #define RAGE_TEXTURE_H
 
-#include "global.h"
 #include "RageTextureID.h"
 #include "RageTimer.h"
 #include "RageTypes.h"

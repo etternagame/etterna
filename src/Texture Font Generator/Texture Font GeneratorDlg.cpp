@@ -1,12 +1,12 @@
-#include "Texture Font GeneratorDlg.h"
+#include "stdafx.h"
 #include "Texture Font Generator.h"
+#include "Texture Font GeneratorDlg.h"
 #include "TextureFont.h"
 #include "Utils.h"
-#include "stdafx.h"
 
+#include <vector>
 #include <fstream>
 #include <set>
-#include <vector>
 using namespace std;
 
 #include <math.h>
@@ -1593,23 +1593,23 @@ CTextureFontGeneratorDlg::OnFileSave()
 	}
 
 	/*	{
-		vector<CString> asOldFiles;
-		WIN32_FIND_DATA fd;
+			vector<CString> asOldFiles;
+			WIN32_FIND_DATA fd;
 
-		CString sPath = szFile;
-		HANDLE hFind = FindFirstFile( sPath+"*", &fd );
+			CString sPath = szFile;
+			HANDLE hFind = FindFirstFile( sPath+"*", &fd );
 
-		if( hFind != INVALID_HANDLE_VALUE )
-		{
-			do {
-				if( fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
-					continue;
-				asOldFiles.push_back( fd.cFileName );
-			} while( FindNextFile(hFind, &fd) );
-			FindClose( hFind );
+			if( hFind != INVALID_HANDLE_VALUE )
+			{
+				do {
+					if( fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
+						continue;
+					asOldFiles.push_back( fd.cFileName );
+				} while( FindNextFile(hFind, &fd) );
+				FindClose( hFind );
+			}
 		}
-	}
-*/
+	*/
 
 	CMenu* pMenu = GetMenu();
 	bool bExportStrokeTemplates =
