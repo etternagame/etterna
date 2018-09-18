@@ -1,3 +1,6 @@
+--- Actor creation utilities
+-- @module 02_ActorDef
+
 -- Convert "@/path/file" to "/path/".
 local function DebugPathToRealPath(p)
 	if not p or p:sub(1, 1) ~= "@" then
@@ -41,9 +44,12 @@ DefMetatable = {
 	end
 }
 
--- This is used as follows:
+--- This is used as follows:
 --
---   t = Def.Class { table }
+-- @usage Def["ActorType"]({}) or Def.ActorType({})
+-- ex. Def.ActorFrame {}
+-- Note: The {} here are just syntax sugar for a function call ({})
+-- @table Def
 Def = {}
 setmetatable(
 	Def,
@@ -80,6 +86,7 @@ setmetatable(
 	}
 )
 
+--- Resolve a path (Returns resolved path string)
 function ResolveRelativePath(path, level, optional)
 	if path:sub(1, 1) ~= "/" then
 		-- "Working directory":
@@ -93,7 +100,7 @@ function ResolveRelativePath(path, level, optional)
 	return path
 end
 
--- Load an actor template.
+--- Load an actor template.
 function LoadActorFunc(path, level)
 	level = level or 1
 
@@ -156,13 +163,15 @@ function LoadActorFunc(path, level)
 	error(path .. ": unknown file type (" .. tostring(Type) .. ")", level + 1)
 end
 
--- Load and create an actor template.
+--- Load and create an actor template.
 function LoadActor(path, ...)
 	local t = LoadActorFunc(path, 2)
 	assert(t)
 	return t(...)
 end
 
+--- Same as LoadActor but sets everything in params as
+-- "Thread Variables" accessed via Var("name")
 function LoadActorWithParams(path, params, ...)
 	local t = LoadActorFunc(path, 2)
 	assert(t)
@@ -175,6 +184,9 @@ function LoadActorWithParams(path, params, ...)
 	)
 end
 
+--- Function to easily create a BitmapText Actor
+-- Can be used like LoadFont("Common normal")
+-- or LoadFont("Common", "normal")
 function LoadFont(a, b)
 	local sSection = b and a or ""
 	local sFile = b or a
@@ -189,6 +201,7 @@ function LoadFont(a, b)
 	}
 end
 
+--- Same as LoadFont but for ColorBitmapText Actor
 function LoadColorFont(a, b)
 	local sSection = b and a or ""
 	local sFile = b or a
@@ -203,10 +216,12 @@ function LoadColorFont(a, b)
 	}
 end
 
+--- Returns an ActorFrame with the numeric table t as children
 function WrapInActorFrame(t)
 	return Def.ActorFrame {children = t}
 end
 
+---
 function StandardDecorationFromTable(MetricsName, t)
 	if type(t) == "table" then
 		t =
@@ -221,17 +236,20 @@ function StandardDecorationFromTable(MetricsName, t)
 	return t
 end
 
+---
 function StandardDecorationFromFile(MetricsName, FileName)
 	local t = LoadActor(THEME:GetPathG(Var "LoadingScreen", FileName))
 	return StandardDecorationFromTable(MetricsName, t)
 end
 
+---
 function StandardDecorationFromFileOptional(MetricsName, FileName)
 	if ShowStandardDecoration(MetricsName) then
 		return StandardDecorationFromFile(MetricsName, FileName)
 	end
 end
 
+---
 function ShowStandardDecoration(MetricsName)
 	return THEME:GetMetric(Var "LoadingScreen", "Show" .. MetricsName)
 end

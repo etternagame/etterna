@@ -1,7 +1,7 @@
 --- command aliases
 -- @module 01_alias
 
--- @table _screen
+--- @table _screen
 -- shorthand! this is tedious to type and makes things ugly so let's make it shorter.
 -- _screen.w, _screen.h, etc.
 _screen = {
