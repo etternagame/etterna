@@ -1,9 +1,11 @@
 #ifndef SCREEN_SELECT_H
 #define SCREEN_SELECT_H
 
+#include "RageTimer.h"
 #include "GameCommand.h"
 #include "ScreenWithMenuElements.h"
 #include "ThemeMetric.h"
+
 /** @brief Base class for Style, Difficulty, and Mode selection screens. */
 class ScreenSelect : public ScreenWithMenuElements
 {
