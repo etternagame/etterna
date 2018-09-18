@@ -1,6 +1,7 @@
 #ifndef SONG_H
 #define SONG_H
 
+#include "global.h"
 #include "Difficulty.h"
 #include "EnumHelper.h"
 #include "RageTypes.h"

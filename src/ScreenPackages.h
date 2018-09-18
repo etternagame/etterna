@@ -1,6 +1,7 @@
 #ifndef ScreenPackages_H
 #define ScreenPackages_H
 
+#include "global.h"
 #include "BitmapText.h"
 #include "RageFile.h"
 #include "RageFileManager.h"
