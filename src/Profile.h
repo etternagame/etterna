@@ -59,7 +59,8 @@ extern const RString LASTGOOD_SUBDIR;
 const unsigned int PROFILE_MAX_DISPLAY_NAME_LENGTH = 64;
 
 class Style;
-
+class DBProfile;
+class XMLProfile;
 class Song;
 class Steps;
 struct Game;
