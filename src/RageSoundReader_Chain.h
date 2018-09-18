@@ -3,6 +3,7 @@
 #ifndef RAGE_SOUND_READER_CHAIN
 #define RAGE_SOUND_READER_CHAIN
 
+#include "global.h"
 #include "RageSoundReader.h"
 
 #include <map>

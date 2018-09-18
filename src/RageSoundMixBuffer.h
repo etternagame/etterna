@@ -3,6 +3,8 @@
 #ifndef RAGE_SOUND_MIX_BUFFER_H
 #define RAGE_SOUND_MIX_BUFFER_H
 
+#include "global.h"
+
 class RageSoundMixBuffer
 {
   public:

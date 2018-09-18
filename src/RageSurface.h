@@ -2,7 +2,9 @@
 
 #ifndef RAGE_SURFACE_H
 #define RAGE_SURFACE_H
+
 #include "global.h"
+
 /* XXX remove? */
 struct RageSurfaceColor
 {

@@ -1,6 +1,8 @@
 ﻿#ifndef RAGE_SOUND_UTIL_H
 #define RAGE_SOUND_UTIL_H
 
+#include "global.h"
+
 /** @brief Simple utilities that operate on sound buffers. */
 namespace RageSoundUtil {
 void
