@@ -5,13 +5,13 @@
 #include "DateTime.h"
 #include "GameConstantsAndTypes.h"
 #include "Grade.h"
-#include "DBProfile.h"
 #include "HighScore.h"
 #include "LuaReference.h"
 #include "SongUtil.h"  // for SongID
 #include "StepsUtil.h" // for StepsID
 #include "StyleUtil.h" // for StyleID
 #include "XMLProfile.h"
+#include "DBProfile.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include <map>
 #include <set>
