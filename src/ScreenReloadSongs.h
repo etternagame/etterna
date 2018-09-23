@@ -6,17 +6,18 @@
 
 class LoadingWindow;
 
-class ScreenReloadSongs: public Screen
+class ScreenReloadSongs : public Screen
 {
-public:
+  public:
 	ScreenReloadSongs();
 	~ScreenReloadSongs() override;
 
 	void Init() override;
-	void Update( float fDeltaTime ) override;
-private:
+	void Update(float fDeltaTime) override;
+
+  private:
 	int m_iUpdates;
-	LoadingWindow *m_pLoadingWindow;
+	LoadingWindow* m_pLoadingWindow;
 	BitmapText m_Loading;
 };
 
@@ -25,7 +26,7 @@ private:
 /*
  * (c) 2003-2004 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -35,7 +36,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

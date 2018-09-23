@@ -6,17 +6,25 @@ struct RageTextureID;
 /** @brief Load the textures in advance for using them later. */
 class RageTexturePreloader
 {
-public:
-	RageTexturePreloader(): m_apTextures() { }
-	RageTexturePreloader( const RageTexturePreloader &cpy ):
-		m_apTextures(cpy.m_apTextures) { }
-	RageTexturePreloader &operator=( const RageTexturePreloader &rhs );
+  public:
+	RageTexturePreloader()
+	  : m_apTextures()
+	{
+	}
+	RageTexturePreloader(const RageTexturePreloader& cpy)
+	  : m_apTextures(cpy.m_apTextures)
+	{
+	}
+	RageTexturePreloader& operator=(const RageTexturePreloader& rhs);
 	~RageTexturePreloader();
-	void Load( const RageTextureID &ID );
+	void Load(const RageTextureID& ID);
 	void UnloadAll();
-	void Swap( RageTexturePreloader &rhs ) { swap( m_apTextures, rhs.m_apTextures ); }
+	void Swap(RageTexturePreloader& rhs)
+	{
+		swap(m_apTextures, rhs.m_apTextures);
+	}
 
-private:
+  private:
 	vector<RageTexture*> m_apTextures;
 };
 
@@ -25,7 +33,7 @@ private:
 /*
  * (c) 2005 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -35,7 +43,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

@@ -1,4 +1,5 @@
-#if !defined(AFX_SMPACKAGEINSTALLDLG_H__5E362C4C_CA11_4071_A8AB_A0231E985DAF__INCLUDED_)
+#if !defined(                                                                  \
+  AFX_SMPACKAGEINSTALLDLG_H__5E362C4C_CA11_4071_A8AB_A0231E985DAF__INCLUDED_)
 #define AFX_SMPACKAGEINSTALLDLG_H__5E362C4C_CA11_4071_A8AB_A0231E985DAF__INCLUDED_
 
 #if _MSC_VER > 1000
@@ -11,27 +12,30 @@
 
 class CSMPackageInstallDlg : public CDialog
 {
-// Construction
-public:
-	CSMPackageInstallDlg(RString sPackagePath, CWnd* pParent = NULL);   // standard constructor
+	// Construction
+  public:
+	CSMPackageInstallDlg(RString sPackagePath,
+						 CWnd* pParent = NULL); // standard constructor
 
-// Dialog Data
+	// Dialog Data
 	//{{AFX_DATA(CSMPackageInstallDlg)
-	enum { IDD = IDD_INSTALL };
-	CButton	m_buttonEdit;
-	CComboBox	m_comboDir;
+	enum
+	{
+		IDD = IDD_INSTALL
+	};
+	CButton m_buttonEdit;
+	CComboBox m_comboDir;
 	//}}AFX_DATA
 
-
-// Overrides
+	// Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CSMPackageInstallDlg)
-	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-	//}}AFX_VIRTUAL
+  protected:
+	virtual void DoDataExchange(CDataExchange* pDX); // DDX/DDV support
+													 //}}AFX_VIRTUAL
 
-// Implementation
-protected:
+	// Implementation
+  protected:
 	void RefreshInstallationList();
 
 	HICON m_hIcon;
@@ -45,19 +49,20 @@ protected:
 	afx_msg void OnButtonEdit();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
-public:
+  public:
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 };
 
 //{{AFX_INSERT_LOCATION}}
-// Microsoft Visual C++ will insert additional declarations immediately before the previous line.
+// Microsoft Visual C++ will insert additional declarations immediately before
+// the previous line.
 
 #endif // !defined(AFX_SMPACKAGEINSTALLDLG_H__5E362C4C_CA11_4071_A8AB_A0231E985DAF__INCLUDED_)
 
 /*
  * (c) 2002-2005 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -67,7 +72,7 @@ public:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

@@ -7,37 +7,42 @@
 #include <thread>
 #include <condition_variable>
 
-class ThreadData {
-public:
-	void waitForUpdate() {
+class ThreadData
+{
+  public:
+	void waitForUpdate()
+	{
 		std::unique_lock<std::mutex> lk(_updatedMutex);
-		_updatedCV.wait(lk, [this] {return this->getUpdated(); });
+		_updatedCV.wait(lk, [this] { return this->getUpdated(); });
 	}
-	void setUpdated(bool b) {
+	void setUpdated(bool b)
+	{
 		{
 			std::lock_guard<std::mutex> lk(_updatedMutex);
 			_updated = b;
 		}
 		_updatedCV.notify_all();
 	}
-	bool getUpdated() {
-		return _updated;
-	}
+	bool getUpdated() { return _updated; }
 	std::atomic<int> _threadsFinished{ 0 };
 	std::atomic<int> _progress{ 0 };
 	std::mutex _updatedMutex;
 	std::condition_variable _updatedCV;
 	void* data{ nullptr };
-private:
+
+  private:
 	std::atomic<bool> _updated{ false };
 };
 
-template <class T> using vectorIt = typename vector<T>::iterator;
-template <class T> using vectorRange = std::pair<vectorIt<T>, vectorIt<T>>;
+template<class T>
+using vectorIt = typename vector<T>::iterator;
+template<class T>
+using vectorRange = std::pair<vectorIt<T>, vectorIt<T>>;
 
-
-template <typename T> 
-std::vector<vectorRange<T>> splitWorkLoad(vector<T> &v, size_t elementsPerThread) {
+template<typename T>
+std::vector<vectorRange<T>>
+splitWorkLoad(vector<T>& v, size_t elementsPerThread)
+{
 	std::vector<vectorRange<T>> ranges;
 	if (elementsPerThread <= 0 || elementsPerThread >= v.size()) {
 		ranges.push_back(std::make_pair(v.begin(), v.end()));
@@ -54,17 +59,23 @@ std::vector<vectorRange<T>> splitWorkLoad(vector<T> &v, size_t elementsPerThread
 
 	vectorIt<T> b = v.begin();
 
-	for (i = 0; i<v.size() - ePT; i += ePT)
+	for (i = 0; i < v.size() - ePT; i += ePT)
 		ranges.push_back(std::make_pair(b + i, b + i + ePT));
 
 	ranges.push_back(std::make_pair(b + i, v.end()));
 	return ranges;
 }
 
-template <typename T>
-void parallelExecution(vector<T> vec, function<void(int)> update, function<void(vectorRange<T>, ThreadData*)> exec, void* stuff) {
+template<typename T>
+void
+parallelExecution(vector<T> vec,
+				  function<void(int)> update,
+				  function<void(vectorRange<T>, ThreadData*)> exec,
+				  void* stuff)
+{
 	const int THREADS = std::thread::hardware_concurrency();
-	std::vector<vectorRange<T>> workloads = splitWorkLoad(vec, static_cast<size_t>(vec.size() / THREADS));
+	std::vector<vectorRange<T>> workloads =
+	  splitWorkLoad(vec, static_cast<size_t>(vec.size() / THREADS));
 	ThreadData data;
 	data.data = stuff;
 	auto threadCallback = [&data, &exec](vectorRange<T> workload) {
@@ -83,7 +94,12 @@ void parallelExecution(vector<T> vec, function<void(int)> update, function<void(
 	for (auto& thread : threadpool)
 		thread.join();
 }
-template <typename T> void parallelExecution(vector<T> vec, function<void(int)> update, function<void(vectorRange<T>, ThreadData)> exec) {
+template<typename T>
+void
+parallelExecution(vector<T> vec,
+				  function<void(int)> update,
+				  function<void(vectorRange<T>, ThreadData)> exec)
+{
 	parallelExecution(vec, update, exec, nullptr);
 }
 
@@ -93,77 +109,80 @@ class RageTimer;
 /** @brief Thread, mutex, semaphore, and event classes. */
 class RageThread
 {
-public:
+  public:
 	RageThread();
-	RageThread( const RageThread &cpy );
+	RageThread(const RageThread& cpy);
 	~RageThread();
 
-	void SetName( const RString &n ) { m_sName = n; }
+	void SetName(const RString& n) { m_sName = n; }
 	RString GetName() const { return m_sName; }
-	void Create( int (*fn)(void *), void *data );
+	void Create(int (*fn)(void*), void* data);
 
-	void Halt( bool Kill=false);
+	void Halt(bool Kill = false);
 	void Resume();
 
 	/* For crash handlers: kill or suspend all threads (except for
-	 * the running one) immediately. */ 
-	static void HaltAllThreads( bool Kill=false );
+	 * the running one) immediately. */
+	static void HaltAllThreads(bool Kill = false);
 
 	/* If HaltAllThreads was called (with Kill==false), resume. */
 	static void ResumeAllThreads();
 
 	static uint64_t GetCurrentThreadID();
 
-	static const char *GetCurrentThreadName();
-	static const char *GetThreadNameByID( uint64_t iID );
-	static bool EnumThreadIDs( int n, uint64_t &iID );
+	static const char* GetCurrentThreadName();
+	static const char* GetThreadNameByID(uint64_t iID);
+	static bool EnumThreadIDs(int n, uint64_t& iID);
 	int Wait();
 	bool IsCreated() const { return m_pSlot != nullptr; }
 
 	/* A system can define HAVE_TLS, indicating that it can compile thread_local
 	 * code, but an individual environment may not actually have functional TLS.
-	 * If this returns false, thread_local variables are considered undefined. */
+	 * If this returns false, thread_local variables are considered undefined.
+	 */
 	static bool GetSupportsTLS() { return s_bSystemSupportsTLS; }
-	static void SetSupportsTLS( bool b ) { s_bSystemSupportsTLS = b; }
+	static void SetSupportsTLS(bool b) { s_bSystemSupportsTLS = b; }
 
 	static bool GetIsShowingDialog() { return s_bIsShowingDialog; }
-	static void SetIsShowingDialog( bool b ) { s_bIsShowingDialog = b; }
+	static void SetIsShowingDialog(bool b) { s_bIsShowingDialog = b; }
 	static uint64_t GetInvalidThreadID();
 
-private:
-	ThreadSlot *m_pSlot;
+  private:
+	ThreadSlot* m_pSlot;
 	RString m_sName;
 
 	static bool s_bSystemSupportsTLS;
 	static bool s_bIsShowingDialog;
-	
+
 	// Swallow up warnings. If they must be used, define them.
 	RageThread& operator=(const RageThread& rhs);
 };
 
 /**
  * @brief Register a thread created outside of RageThread.
- * 
+ *
  * This gives it a name for RageThread::GetCurrentThreadName,
  * and allocates a slot for checkpoints. */
 class RageThreadRegister
 {
-public:
-	RageThreadRegister( const RString &sName );
+  public:
+	RageThreadRegister(const RString& sName);
 	~RageThreadRegister();
 
-private:
-	ThreadSlot *m_pSlot;
+  private:
+	ThreadSlot* m_pSlot;
 	// Swallow up warnings. If they must be used, define them.
 	RageThreadRegister& operator=(const RageThreadRegister& rhs) = delete;
 	RageThreadRegister(const RageThreadRegister& rhs) = delete;
 };
 
-namespace Checkpoints
-{
-	void LogCheckpoints( bool yes=true );
-	void SetCheckpoint( const char *file, int line, const char *message );
-	void GetLogs( char *pBuf, int iSize, const char *delim );
+namespace Checkpoints {
+void
+LogCheckpoints(bool yes = true);
+void
+SetCheckpoint(const char* file, int line, const char* message);
+void
+GetLogs(char* pBuf, int iSize, const char* delim);
 };
 
 #define CHECKPOINT_M(m) (Checkpoints::SetCheckpoint(__FILE__, __LINE__, m))
@@ -176,28 +195,29 @@ namespace Checkpoints
 class MutexImpl;
 class RageMutex
 {
-public:
+  public:
 	RString GetName() const { return m_sName; }
-	void SetName( const RString &s ) { m_sName = s; }
+	void SetName(const RString& s) { m_sName = s; }
 	virtual void Lock();
 	virtual bool TryLock();
 	virtual void Unlock();
 	virtual bool IsLockedByThisThread() const;
 
-	RageMutex( const RString &name );
+	RageMutex(const RString& name);
 	virtual ~RageMutex();
 
-protected:
-	MutexImpl *m_pMutex;
+  protected:
+	MutexImpl* m_pMutex;
 	RString m_sName;
 
 	int m_UniqueID;
-	
+
 	uint64_t m_LockedBy;
 	int m_LockCnt;
 
 	void MarkLockedMutex();
-private:
+
+  private:
 	// Swallow up warnings. If they must be used, define them.
 	RageMutex& operator=(const RageMutex& rhs);
 	RageMutex(const RageMutex& rhs);
@@ -209,45 +229,62 @@ private:
  * Helps for functions with more than one return path. */
 class LockMutex
 {
-	RageMutex &mutex;
+	RageMutex& mutex;
 
-	const char *file;
+	const char* file;
 	int line;
 	float locked_at;
 	bool locked;
 
-public:
-	LockMutex(RageMutex &mut, const char *file, int line);
-	LockMutex(RageMutex &mut): mutex(mut), file(nullptr), line(-1), locked_at(-1), locked(true) { mutex.Lock(); }
+  public:
+	LockMutex(RageMutex& mut, const char* file, int line);
+	LockMutex(RageMutex& mut)
+	  : mutex(mut)
+	  , file(nullptr)
+	  , line(-1)
+	  , locked_at(-1)
+	  , locked(true)
+	{
+		mutex.Lock();
+	}
 	~LockMutex();
-	LockMutex(LockMutex &cpy): mutex(cpy.mutex), file(nullptr), line(-1), locked_at(cpy.locked_at), locked(true) { mutex.Lock(); }
+	LockMutex(LockMutex& cpy)
+	  : mutex(cpy.mutex)
+	  , file(nullptr)
+	  , line(-1)
+	  , locked_at(cpy.locked_at)
+	  , locked(true)
+	{
+		mutex.Lock();
+	}
 
 	/**
 	 * @brief Unlock the mutex (before this would normally go out of scope).
 	 *
 	 * This can only be called once. */
 	void Unlock();
-private:
+
+  private:
 	// Swallow up warnings. If they must be used, define them.
 	LockMutex& operator=(const LockMutex& rhs) = delete;
 };
 
-#define LockMut(m) LockMutex SM_UNIQUE_NAME(LocalLock) (m, __FILE__, __LINE__)
+#define LockMut(m) LockMutex SM_UNIQUE_NAME(LocalLock)(m, __FILE__, __LINE__)
 
 class EventImpl;
-class RageEvent: public RageMutex
+class RageEvent : public RageMutex
 {
-public:
-	RageEvent( const RString &name );
+  public:
+	RageEvent(const RString& name);
 	~RageEvent() override;
 
 	/*
-	 * If pTimeout is non-NULL, the event will be automatically signalled at the given
-	 * time.  Note that implementing this timeout is optional; not all archs support it. 
-	 * If false is returned, the wait timed out (and the mutex is locked, as if the
-	 * event had been signalled).
+	 * If pTimeout is non-NULL, the event will be automatically signalled at the
+	 * given time.  Note that implementing this timeout is optional; not all
+	 * archs support it. If false is returned, the wait timed out (and the mutex
+	 * is locked, as if the event had been signalled).
 	 */
-	bool Wait( RageTimer *pTimeout = nullptr );
+	bool Wait(RageTimer* pTimeout = nullptr);
 	void Signal();
 	void Broadcast();
 	bool WaitTimeoutSupported() const;
@@ -255,27 +292,27 @@ public:
 	RageEvent& operator=(const RageEvent& rhs);
 	RageEvent(const RageEvent& rhs);
 
-private:
-	EventImpl *m_pEvent;
+  private:
+	EventImpl* m_pEvent;
 };
 
 class SemaImpl;
 class RageSemaphore
 {
-public:
-	RageSemaphore( const RString &sName, int iInitialValue = 0 );
+  public:
+	RageSemaphore(const RString& sName, int iInitialValue = 0);
 	~RageSemaphore();
 
 	RString GetName() const { return m_sName; }
 	int GetValue() const;
 	void Post();
-	void Wait( bool bFailOnTimeout=true );
+	void Wait(bool bFailOnTimeout = true);
 	bool TryWait();
 
-private:
-	SemaImpl *m_pSema;
+  private:
+	SemaImpl* m_pSema;
 	RString m_sName;
-	
+
 	// Swallow up warnings. If they must be used, define them.
 	RageSemaphore& operator=(const RageSemaphore& rhs) = delete;
 	RageSemaphore(const RageSemaphore& rhs) = delete;

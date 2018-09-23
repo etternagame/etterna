@@ -5,9 +5,9 @@
 #include "RageThreads.h"
 #include "RageSoundDriver.h"
 
-class RageSoundDriver_DSound_Software: public RageSoundDriver
+class RageSoundDriver_DSound_Software : public RageSoundDriver
 {
-public:
+  public:
 	RageSoundDriver_DSound_Software();
 	virtual ~RageSoundDriver_DSound_Software();
 	RString Init();
@@ -15,18 +15,18 @@ public:
 	int64_t GetPosition() const;
 	float GetPlayLatency() const;
 	int GetSampleRate() const;
-	
-protected:
+
+  protected:
 	void SetupDecodingThread();
 
-private:
+  private:
 	DSound ds;
-	DSoundBuf *m_pPCM;
+	DSoundBuf* m_pPCM;
 	int m_iSampleRate;
 
 	bool m_bShutdownMixerThread;
 
-	static int MixerThread_start(void *p);
+	static int MixerThread_start(void* p);
 	void MixerThread();
 	RageThread m_MixingThread;
 };
@@ -36,7 +36,7 @@ private:
 /*
  * (c) 2002-2004 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -46,7 +46,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

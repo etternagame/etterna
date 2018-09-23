@@ -1,5 +1,5 @@
 local defaultConfig = {
-	playerTags = {},
+	playerTags = {}
 }
 
 tags = create_setting("tags", "tags.lua", defaultConfig, 0)

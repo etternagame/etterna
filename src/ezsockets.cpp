@@ -12,7 +12,7 @@
 #include "Preference.h"
 #include <iostream>
 #if defined(_MSC_VER) // We need the WinSock32 Library on Windows
-#pragma comment(lib,"wsock32.lib")
+#pragma comment(lib, "wsock32.lib")
 #elif !defined(__MINGW32__)
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -27,7 +27,7 @@
 #define SOCKET_ERROR (-1)
 #endif
 
-//There are cases where 0 isn't a proper socket
+// There are cases where 0 isn't a proper socket
 #if !defined(SOCKET_NONE)
 #define SOCKET_NONE 0
 #endif
@@ -39,25 +39,31 @@
 #include <fcntl.h>
 
 /** Returns true on success, or false if there was an error */
-bool SetSocketBlocking(int fd, bool blocking)
+bool
+SetSocketBlocking(int fd, bool blocking)
 {
-	if (fd < 0) return false;
+	if (fd < 0)
+		return false;
 
 #ifdef _WIN32
 	unsigned long mode = blocking ? 0 : 1;
 	return (ioctlsocket(fd, FIONBIO, &mode) == 0) ? true : false;
 #else
 	int flags = fcntl(fd, F_GETFL, 0);
-	if (flags == -1) return false;
+	if (flags == -1)
+		return false;
 	flags = blocking ? (flags & ~O_NONBLOCK) : (flags | O_NONBLOCK);
 	return (fcntl(fd, F_SETFL, flags) == 0) ? true : false;
 #endif
 }
 
-static Preference<unsigned int> timeoutMiliseconds("ConnectionMilisecondsTimeout", 7000);
+static Preference<unsigned int> timeoutMiliseconds(
+  "ConnectionMilisecondsTimeout",
+  7000);
 
 // Returns a timeval set to the given number of milliseconds.
-inline timeval timevalFromMs(unsigned int ms)
+inline timeval
+timevalFromMs(unsigned int ms)
 {
 	timeval tv;
 	tv.tv_sec = ms / 1000;
@@ -65,11 +71,10 @@ inline timeval timevalFromMs(unsigned int ms)
 	return tv;
 }
 
-
 EzSockets::EzSockets()
 {
 	MAXCON = 5;
-	memset(&addr, 0, sizeof(addr)); //Clear the sockaddr_in structure
+	memset(&addr, 0, sizeof(addr)); // Clear the sockaddr_in structure
 
 #if defined(_WINDOWS) // Windows REQUIRES WinSock Startup
 	WSAStartup(MAKEWORD(1, 1), &wsda);
@@ -81,7 +86,9 @@ EzSockets::EzSockets()
 	times = new timeval;
 	times->tv_sec = 0;
 	times->tv_usec = 0;
-	timeout = timevalFromMs(timeoutMiliseconds/4); // We try 4 different types so max timeout is 4*this
+	timeout =
+	  timevalFromMs(timeoutMiliseconds /
+					4); // We try 4 different types so max timeout is 4*this
 	state = skDISCONNECTED;
 }
 
@@ -92,47 +99,51 @@ EzSockets::~EzSockets()
 	delete times;
 }
 
-//Check to see if the socket has been created
-bool EzSockets::check()
+// Check to see if the socket has been created
+bool
+EzSockets::check()
 {
 	return sock > SOCKET_NONE;
 }
 
-bool EzSockets::create()
+bool
+EzSockets::create()
 {
 	return create(IPPROTO_TCP, SOCK_STREAM);
 }
 
-bool EzSockets::create(int Protocol)
+bool
+EzSockets::create(int Protocol)
 {
-	switch (Protocol)
-	{
-	case IPPROTO_TCP:
-		return create(IPPROTO_TCP, SOCK_STREAM);
-	case IPPROTO_UDP:
-		return create(IPPROTO_UDP, SOCK_DGRAM);
-	default:
-		return create(Protocol, SOCK_RAW);
+	switch (Protocol) {
+		case IPPROTO_TCP:
+			return create(IPPROTO_TCP, SOCK_STREAM);
+		case IPPROTO_UDP:
+			return create(IPPROTO_UDP, SOCK_DGRAM);
+		default:
+			return create(Protocol, SOCK_RAW);
 	}
 }
 
-bool EzSockets::create(int Protocol, int Type)
+bool
+EzSockets::create(int Protocol, int Type)
 {
 	state = skDISCONNECTED;
 	sock = socket(AF_INET, Type, Protocol);
 	if (sock > SOCKET_NONE) {
 #if defined(WIN32)
-		int tv = timeoutMiliseconds; 
+		int tv = timeoutMiliseconds;
 #else
 		struct timeval tv = timevalFromMs(timeoutMiliseconds);
 #endif
-		setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof(tv));
+		setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
 	}
 	lastCode = sock;
-	return sock > SOCKET_NONE;	// Socket must be Greater than 0
+	return sock > SOCKET_NONE; // Socket must be Greater than 0
 }
 
-bool EzSockets::bind(unsigned short port)
+bool
+EzSockets::bind(unsigned short port)
 {
 	if (!check())
 		return false;
@@ -144,7 +155,8 @@ bool EzSockets::bind(unsigned short port)
 	return lastCode == 0;
 }
 
-bool EzSockets::listen()
+bool
+EzSockets::listen()
 {
 	lastCode = ::listen(sock, MAXCON);
 	if (lastCode == SOCKET_ERROR)
@@ -158,7 +170,8 @@ bool EzSockets::listen()
 typedef int socklen_t;
 #endif
 
-bool EzSockets::accept(EzSockets& socket)
+bool
+EzSockets::accept(EzSockets& socket)
 {
 	if (!blocking && !CanRead())
 		return false;
@@ -175,8 +188,8 @@ bool EzSockets::accept(EzSockets& socket)
 
 	int length = sizeof(socket);
 
-	socket.sock = ::accept(sock, (struct sockaddr*) &socket.addr,
-		(socklen_t*)&length);
+	socket.sock =
+	  ::accept(sock, (struct sockaddr*)&socket.addr, (socklen_t*)&length);
 
 	lastCode = socket.sock;
 
@@ -187,7 +200,8 @@ bool EzSockets::accept(EzSockets& socket)
 	return true;
 }
 
-void EzSockets::close()
+void
+EzSockets::close()
 {
 	state = skDISCONNECTED;
 	inBuffer = "";
@@ -200,39 +214,46 @@ void EzSockets::close()
 #endif
 }
 
-long EzSockets::uAddr()
+long
+EzSockets::uAddr()
 {
 	return addr.sin_addr.s_addr;
 }
 
-bool EzSockets::CanConnect(const std::string& host, unsigned short port)
+bool
+EzSockets::CanConnect(const std::string& host, unsigned short port)
 {
 	EzSockets sock;
 	sock.create();
 	if (!sock.setAddr(host, port))
 		return false;
 	SetSocketBlocking(sock.sock, false);
-	auto conn = ::connect(sock.sock, (struct sockaddr*)&sock.addr, sizeof(addr));
+	auto conn =
+	  ::connect(sock.sock, (struct sockaddr*)&sock.addr, sizeof(addr));
 	if (!conn && errno != EINPROGRESS)
 		return false;
 	fd_set readfds;
 	FD_ZERO(&readfds);
 	FD_SET(sock.sock, &readfds);
 	SetSocketBlocking(sock.sock, true);
-	auto write = select(sock.sock + 1, &readfds, nullptr, nullptr, &(sock.timeout));
+	auto write =
+	  select(sock.sock + 1, &readfds, nullptr, nullptr, &(sock.timeout));
 	FD_ZERO(&readfds);
 	FD_SET(sock.sock, &readfds);
-	auto read = select(sock.sock + 1, nullptr, &readfds, nullptr, &(sock.timeout));
+	auto read =
+	  select(sock.sock + 1, nullptr, &readfds, nullptr, &(sock.timeout));
 	FD_ZERO(&readfds);
 	FD_SET(sock.sock, &readfds);
-	auto exc = select(sock.sock + 1, nullptr, nullptr, &readfds, &(sock.timeout));
+	auto exc =
+	  select(sock.sock + 1, nullptr, nullptr, &readfds, &(sock.timeout));
 	bool select = read > -1 && write > -1 && exc > -1;
 	auto err = sock.IsError() || !sock.CanWrite();
 	sock.close();
 	return select && !err;
 }
 
-bool EzSockets::setAddr(const std::string& host, unsigned short port)
+bool
+EzSockets::setAddr(const std::string& host, unsigned short port)
 {
 	struct hostent* phe;
 	phe = gethostbyname(host.c_str());
@@ -245,11 +266,12 @@ bool EzSockets::setAddr(const std::string& host, unsigned short port)
 	return true;
 }
 
-bool EzSockets::connect(const std::string& host, unsigned short port)
+bool
+EzSockets::connect(const std::string& host, unsigned short port)
 {
 	if (!check())
 		return false;
-	if(!setAddr(host, port))
+	if (!setAddr(host, port))
 		return false;
 
 	SetSocketBlocking(sock, false);
@@ -270,7 +292,8 @@ bool EzSockets::connect(const std::string& host, unsigned short port)
 	return true;
 }
 
-inline bool checkCanRead(int sock, timeval& timeout)
+inline bool
+checkCanRead(int sock, timeval& timeout)
 {
 	fd_set fds;
 	FD_ZERO(&fds);
@@ -279,18 +302,21 @@ inline bool checkCanRead(int sock, timeval& timeout)
 	return select(sock + 1, &fds, NULL, NULL, &timeout) > 0;
 }
 
-bool EzSockets::CanRead()
+bool
+EzSockets::CanRead()
 {
 	return checkCanRead(sock, *times);
 }
 
-bool EzSockets::CanRead(unsigned int msTimeout)
+bool
+EzSockets::CanRead(unsigned int msTimeout)
 {
 	timeval tv = timevalFromMs(msTimeout);
 	return checkCanRead(sock, tv);
 }
 
-bool EzSockets::IsError()
+bool
+EzSockets::IsError()
 {
 	if (state == skERROR)
 		return true;
@@ -305,7 +331,8 @@ bool EzSockets::IsError()
 	return true;
 }
 
-inline bool checkCanWrite(int sock, timeval& timeout)
+inline bool
+checkCanWrite(int sock, timeval& timeout)
 {
 	fd_set fds;
 	FD_ZERO(&fds);
@@ -314,31 +341,35 @@ inline bool checkCanWrite(int sock, timeval& timeout)
 	return select(sock + 1, NULL, &fds, NULL, &timeout) > 0;
 }
 
-bool EzSockets::CanWrite()
+bool
+EzSockets::CanWrite()
 {
 	return checkCanWrite(sock, *times);
 }
 
-bool EzSockets::CanWrite(unsigned int msTimeout)
+bool
+EzSockets::CanWrite(unsigned int msTimeout)
 {
 	timeval tv = timevalFromMs(msTimeout);
 	return checkCanWrite(sock, tv);
 }
 
-void EzSockets::update()
+void
+EzSockets::update()
 {
-	if (IsError()) //If socket is in error, don't bother.
+	if (IsError()) // If socket is in error, don't bother.
 		return;
 
-	while (CanRead() && !IsError()) //Check for Reading
+	while (CanRead() && !IsError()) // Check for Reading
 		if (pUpdateRead() < 1)
 			break;
 
-	if (CanWrite() && (outBuffer.length()>0))
+	if (CanWrite() && (outBuffer.length() > 0))
 		pUpdateWrite();
 }
 
-unsigned long EzSockets::LongFromAddrIn(const sockaddr_in & s)
+unsigned long
+EzSockets::LongFromAddrIn(const sockaddr_in& s)
 {
 #if defined(_WINDOWS)
 	return ntohl(s.sin_addr.S_un.S_addr);
@@ -347,67 +378,72 @@ unsigned long EzSockets::LongFromAddrIn(const sockaddr_in & s)
 #endif
 }
 
-
 /*********************\
 |   Raw Data System   |
 \*********************/
-void EzSockets::SendData(const string& outData)
+void
+EzSockets::SendData(const string& outData)
 {
 	outBuffer.append(outData);
 	if (blocking)
-		while ((outBuffer.length()>0) && !IsError())
+		while ((outBuffer.length() > 0) && !IsError())
 			pUpdateWrite();
 	else
 		update();
 }
 
-void EzSockets::SendData(const char *data, unsigned int bytes)
+void
+EzSockets::SendData(const char* data, unsigned int bytes)
 {
 	outBuffer.append(data, bytes);
 	if (blocking)
-		while ((outBuffer.length()>0) && !IsError())
+		while ((outBuffer.length() > 0) && !IsError())
 			pUpdateWrite();
 	else
 		update();
 }
 
-int EzSockets::ReadData(char *data, unsigned int bytes)
+int
+EzSockets::ReadData(char* data, unsigned int bytes)
 {
 	int bytesRead = PeekData(data, bytes);
 	inBuffer = inBuffer.substr(bytesRead);
 	return bytesRead;
 }
 
-int EzSockets::PeekData(char *data, unsigned int bytes)
+int
+EzSockets::PeekData(char* data, unsigned int bytes)
 {
 	if (blocking)
-		while ((inBuffer.length()<bytes) && !IsError())
+		while ((inBuffer.length() < bytes) && !IsError())
 			pUpdateRead();
 	else
 		while (CanRead() && !IsError())
-			if (pUpdateRead()<1)
+			if (pUpdateRead() < 1)
 				break;
 
 	int bytesRead = bytes;
-	if (inBuffer.length()<bytes)
+	if (inBuffer.length() < bytes)
 		bytesRead = inBuffer.length();
 	memcpy(data, inBuffer.c_str(), bytesRead);
 
 	return bytesRead;
 }
 
-
 /**********************************\
 |   Packet/Structure Data System   |
 \**********************************/
-void EzSockets::SendPack(const char *data, unsigned int bytes)
+void
+EzSockets::SendPack(const char* data, unsigned int bytes)
 {
 	unsigned int SendSize = htonl(bytes);
-	outBuffer.append((const char *)& SendSize, 4);	//Add size to buffer, but don't send yet.
+	outBuffer.append((const char*)&SendSize,
+					 4); // Add size to buffer, but don't send yet.
 	SendData(data, bytes);
 }
 
-int EzSockets::ReadPack(char *data, unsigned int max)
+int
+EzSockets::ReadPack(char* data, unsigned int max)
 {
 	int size = PeekPack(data, max);
 
@@ -417,21 +453,21 @@ int EzSockets::ReadPack(char *data, unsigned int max)
 	return size;
 }
 
-int EzSockets::PeekPack(char *data, unsigned int max)
+int
+EzSockets::PeekPack(char* data, unsigned int max)
 {
 	if (CanRead())
 		pUpdateRead();
 
-	if (blocking)
-	{
-		while ((inBuffer.length()<4) && !IsError())
+	if (blocking) {
+		while ((inBuffer.length() < 4) && !IsError())
 			pUpdateRead();
 
 		if (IsError())
 			return -1;
 	}
 
-	if (inBuffer.length()<4)
+	if (inBuffer.length() < 4)
 		return -1;
 
 	unsigned int size;
@@ -439,11 +475,10 @@ int EzSockets::PeekPack(char *data, unsigned int max)
 	size = ntohl(size);
 
 	if (blocking)
-		while (inBuffer.length()<(size + 4) && !IsError())
+		while (inBuffer.length() < (size + 4) && !IsError())
 			pUpdateRead();
-	else
-		if (inBuffer.length()<(size + 4) || inBuffer.length() <= 4)
-			return -1;
+	else if (inBuffer.length() < (size + 4) || inBuffer.length() <= 4)
+		return -1;
 
 	if (IsError())
 		return -1;
@@ -457,11 +492,11 @@ int EzSockets::PeekPack(char *data, unsigned int max)
 	return size;
 }
 
-
 /*****************************************\
 |   Null Terminating String Data System   |
 \*****************************************/
-void EzSockets::SendStr(const string& data, char delim)
+void
+EzSockets::SendStr(const string& data, char delim)
 {
 	char tDr[1];
 	tDr[0] = delim;
@@ -469,7 +504,8 @@ void EzSockets::SendStr(const string& data, char delim)
 	SendData(tDr, 1);
 }
 
-int EzSockets::ReadStr(string& data, char delim)
+int
+EzSockets::ReadStr(string& data, char delim)
 {
 	int t = PeekStr(data, delim);
 	if (t >= 0)
@@ -477,13 +513,12 @@ int EzSockets::ReadStr(string& data, char delim)
 	return t;
 }
 
-int EzSockets::PeekStr(string& data, char delim)
+int
+EzSockets::PeekStr(string& data, char delim)
 {
 	int t = inBuffer.find(delim, 0);
-	if (blocking)
-	{
-		while (t == -1 && !IsError())
-		{
+	if (blocking) {
+		while (t == -1 && !IsError()) {
 			pUpdateRead();
 			t = inBuffer.find(delim, 0);
 		}
@@ -495,11 +530,11 @@ int EzSockets::PeekStr(string& data, char delim)
 	return t;
 }
 
-
 /************************\
 |   Stream Data System   |
 \************************/
-istream& operator >> (istream &is, EzSockets& obj)
+istream&
+operator>>(istream& is, EzSockets& obj)
 {
 	string writeString;
 	obj.SendStr(writeString);
@@ -507,7 +542,8 @@ istream& operator >> (istream &is, EzSockets& obj)
 	return is;
 }
 
-ostream& operator<<(ostream &os, EzSockets &obj)
+ostream&
+operator<<(ostream& os, EzSockets& obj)
 {
 	string readString;
 	obj.ReadStr(readString);
@@ -515,11 +551,11 @@ ostream& operator<<(ostream &os, EzSockets &obj)
 	return os;
 }
 
-
 /**************************\
 |   Internal Data System   |
 \**************************/
-int EzSockets::pUpdateRead()
+int
+EzSockets::pUpdateRead()
 {
 	char tempData[1024];
 	int bytes = pReadData(tempData);
@@ -534,7 +570,8 @@ int EzSockets::pUpdateRead()
 	return bytes;
 }
 
-int EzSockets::pUpdateWrite()
+int
+EzSockets::pUpdateWrite()
 {
 	int bytes = pWriteData(outBuffer.c_str(), outBuffer.length());
 
@@ -545,43 +582,44 @@ int EzSockets::pUpdateWrite()
 	return bytes;
 }
 
-
-int EzSockets::pReadData(char* data)
+int
+EzSockets::pReadData(char* data)
 {
 	if (state == skCONNECTED || state == skLISTENING)
 		return recv(sock, data, 1024, 0);
 
 	fromAddr_len = sizeof(sockaddr_in);
-	return recvfrom(sock, data, 1024, 0, (sockaddr*)&fromAddr,
-		(socklen_t*)&fromAddr_len);
+	return recvfrom(
+	  sock, data, 1024, 0, (sockaddr*)&fromAddr, (socklen_t*)&fromAddr_len);
 }
 
-int EzSockets::pWriteData(const char* data, int dataSize)
+int
+EzSockets::pWriteData(const char* data, int dataSize)
 {
 	return send(sock, data, dataSize, 0);
 }
 
 /*
-* (c) 2003-2004 Josh Allen, Charles Lohr, and Adam Lowman
-* All rights reserved.
-*
-* Permission is hereby granted, free of charge, to any person obtaining a
-* copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, and/or sell copies of the Software, and to permit persons to
-* whom the Software is furnished to do so, provided that the above
-* copyright notice(s) and this permission notice appear in all copies of
-* the Software and that both the above copyright notice(s) and this
-* permission notice appear in supporting documentation.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-* OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
-* THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
-* INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
-* OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
-* OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-* OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-* PERFORMANCE OF THIS SOFTWARE.
-*/
+ * (c) 2003-2004 Josh Allen, Charles Lohr, and Adam Lowman
+ * All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, and/or sell copies of the Software, and to permit persons to
+ * whom the Software is furnished to do so, provided that the above
+ * copyright notice(s) and this permission notice appear in all copies of
+ * the Software and that both the above copyright notice(s) and this
+ * permission notice appear in supporting documentation.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
+ * THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS
+ * INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT
+ * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+ * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */

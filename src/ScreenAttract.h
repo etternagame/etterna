@@ -1,32 +1,34 @@
-/* ScreenAttract - Base class for all attraction screens. This class handles input and coin logic. */
+/* ScreenAttract - Base class for all attraction screens. This class handles
+ * input and coin logic. */
 
 #ifndef ScreenAttract_H
 #define ScreenAttract_H
 
 #include "ScreenWithMenuElements.h"
 
-AutoScreenMessage( SM_GoToStartScreen );
+AutoScreenMessage(SM_GoToStartScreen);
 
 class ScreenAttract : public ScreenWithMenuElements
 {
-public:
+  public:
 	void Init() override;
 	void BeginScreen() override;
 
-	static bool AttractInput( const InputEventPlus &input, ScreenWithMenuElements *pScreen );
-	static void GoToStartScreen( RString sScreenName );
-	static void SetAttractVolume( bool bInAttract );
+	static bool AttractInput(const InputEventPlus& input,
+							 ScreenWithMenuElements* pScreen);
+	static void GoToStartScreen(RString sScreenName);
+	static void SetAttractVolume(bool bInAttract);
 
-	bool Input( const InputEventPlus &input ) override;
-	void HandleScreenMessage( ScreenMessage SM ) override;
-	void Cancel( ScreenMessage smSendWhenDone ) override;
+	bool Input(const InputEventPlus& input) override;
+	void HandleScreenMessage(ScreenMessage SM) override;
+	void Cancel(ScreenMessage smSendWhenDone) override;
 
 	ScreenType GetScreenType() const override { return attract; }
 
 	// Lua
-	void PushSelf( lua_State *L ) override;
+	void PushSelf(lua_State* L) override;
 
-protected:
+  protected:
 	void StartPlayingMusic() override;
 	ThemeMetric<bool> RESET_GAME_STATE;
 	ThemeMetric<bool> ATTRACT_VOLUME;
@@ -37,7 +39,7 @@ protected:
 /*
  * (c) 2003-2004 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -47,7 +49,7 @@ protected:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

@@ -6,24 +6,22 @@
 #include "ActorFrame.h"
 #include "AutoActor.h"
 
-
 class ScrollBar : public ActorFrame
 {
-public:
+  public:
 	ScrollBar();
 
-	void SetBarHeight( int iHeight );
-	void SetPercentage( float fCenterPercent, float fSizePercent );
+	void SetBarHeight(int iHeight);
+	void SetPercentage(float fCenterPercent, float fSizePercent);
 
-protected:
+  protected:
+	int m_iBarHeight;
 
-	int		m_iBarHeight;
-
-	AutoActor	m_sprMiddle;
-	AutoActor	m_sprTop;
-	AutoActor	m_sprBottom;
-	AutoActor	m_sprScrollTickThumb;
-	AutoActor	m_sprScrollStretchThumb[2];
+	AutoActor m_sprMiddle;
+	AutoActor m_sprTop;
+	AutoActor m_sprBottom;
+	AutoActor m_sprScrollTickThumb;
+	AutoActor m_sprScrollStretchThumb[2];
 };
 
 #endif
@@ -31,7 +29,7 @@ protected:
 /*
  * (c) 2001-2003 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -41,7 +39,7 @@ protected:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

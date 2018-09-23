@@ -10,15 +10,15 @@
 class Song;
 class Steps;
 
-class StepsDisplayList: public ActorFrame
+class StepsDisplayList : public ActorFrame
 {
-public:
+  public:
 	StepsDisplayList();
 	~StepsDisplayList() override;
-	StepsDisplayList *Copy() const override;
-	void LoadFromNode( const XNode* pNode ) override;
+	StepsDisplayList* Copy() const override;
+	void LoadFromNode(const XNode* pNode) override;
 
-	void HandleMessage( const Message &msg ) override;
+	void HandleMessage(const Message& msg) override;
 
 	void SetFromGameState();
 	void TweenOnScreen();
@@ -27,12 +27,12 @@ public:
 	void Show();
 
 	// Lua
-	void PushSelf( lua_State *L ) override;
+	void PushSelf(lua_State* L) override;
 
-private:
+  private:
 	void UpdatePositions();
 	void PositionItems();
-	int GetCurrentRowIndex( PlayerNumber pn ) const;
+	int GetCurrentRowIndex(PlayerNumber pn) const;
 	void HideRows();
 
 	ThemeMetric<float> ITEMS_SPACING_Y;
@@ -40,17 +40,18 @@ private:
 	ThemeMetric<bool> CAPITALIZE_DIFFICULTY_NAMES;
 	ThemeMetric<apActorCommands> MOVE_COMMAND;
 
-	AutoActor		m_Cursors[NUM_PLAYERS];
-	ActorFrame		m_CursorFrames[NUM_PLAYERS];	// contains Cursor so that color can fade independent of other tweens
+	AutoActor m_Cursors[NUM_PLAYERS];
+	ActorFrame m_CursorFrames[NUM_PLAYERS]; // contains Cursor so that color can
+											// fade independent of other tweens
 
 	struct Line
 	{
 		StepsDisplay m_Meter;
 	};
-	vector<Line>	m_Lines;
+	vector<Line> m_Lines;
 
-	const Song		*m_CurSong;
-	bool			m_bShown;
+	const Song* m_CurSong;
+	bool m_bShown;
 
 	struct Row
 	{
@@ -62,14 +63,13 @@ private:
 			m_bHidden = false;
 		}
 
-		const Steps *m_Steps;
+		const Steps* m_Steps;
 		Difficulty m_dc;
 		float m_fY;
 		bool m_bHidden; // currently off screen
 	};
 
-	vector<Row>		m_Rows;
-
+	vector<Row> m_Rows;
 };
 
 #endif
@@ -77,7 +77,7 @@ private:
 /*
  * (c) 2003-2004 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -87,7 +87,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

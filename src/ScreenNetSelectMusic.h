@@ -15,32 +15,32 @@
 
 class ScreenNetSelectMusic : public ScreenNetSelectBase
 {
-public:
+  public:
 	void Init() override;
 	void BeginScreen() override;
 
 	void DifferentialReload();
 
-	bool Input( const InputEventPlus &input ) override;
-	void HandleScreenMessage( ScreenMessage SM ) override;
+	bool Input(const InputEventPlus& input) override;
+	void HandleScreenMessage(ScreenMessage SM) override;
 
 	void StartSelectedSong();
 	bool SelectCurrent();
 
 	MusicWheel* GetMusicWheel();
 	// Lua
-	void PushSelf(lua_State *L) override;
-	
-protected:
-	bool MenuStart( const InputEventPlus &input ) override;
-	bool MenuBack( const InputEventPlus &input ) override;
-	bool MenuLeft( const InputEventPlus &input ) override;
-	bool MenuRight( const InputEventPlus &input ) override;
-	bool MenuUp( const InputEventPlus &input ) override;
-	bool MenuDown( const InputEventPlus &input ) override;
-	bool LeftAndRightPressed( PlayerNumber pn );
+	void PushSelf(lua_State* L) override;
 
-	void Update( float fDeltaTime ) override;
+  protected:
+	bool MenuStart(const InputEventPlus& input) override;
+	bool MenuBack(const InputEventPlus& input) override;
+	bool MenuLeft(const InputEventPlus& input) override;
+	bool MenuRight(const InputEventPlus& input) override;
+	bool MenuUp(const InputEventPlus& input) override;
+	bool MenuDown(const InputEventPlus& input) override;
+	bool LeftAndRightPressed(PlayerNumber pn);
+
+	void Update(float fDeltaTime) override;
 
 	Song* m_pSongAwaitingDeletionConfirmation;
 	void OnConfirmSongDeletion();
@@ -54,20 +54,20 @@ protected:
 	RString m_sRouletteMusicPath;
 	RString m_sRandomMusicPath;
 
-	ThemeMetric<RString>	MUSIC_WHEEL_TYPE;
-	ThemeMetric<RString>	PLAYER_OPTIONS_SCREEN;
-	
-	ThemeMetric<float>		SAMPLE_MUSIC_FALLBACK_FADE_IN_SECONDS;
-	ThemeMetric<float>		SAMPLE_MUSIC_FADE_OUT_SECONDS;
-	ThemeMetric<bool>		ALIGN_MUSIC_BEATS;
+	ThemeMetric<RString> MUSIC_WHEEL_TYPE;
+	ThemeMetric<RString> PLAYER_OPTIONS_SCREEN;
 
-private:
+	ThemeMetric<float> SAMPLE_MUSIC_FALLBACK_FADE_IN_SECONDS;
+	ThemeMetric<float> SAMPLE_MUSIC_FADE_OUT_SECONDS;
+	ThemeMetric<bool> ALIGN_MUSIC_BEATS;
+
+  private:
 	MusicWheel m_MusicWheel;
 
 	StepsDisplay m_StepsDisplays[NUM_PLAYERS];
 	Difficulty m_DC[NUM_PLAYERS];
 
-	void UpdateDifficulties( PlayerNumber pn );
+	void UpdateDifficulties(PlayerNumber pn);
 
 	RageSound m_soundChangeOpt;
 	RageSound m_soundChangeSel;
@@ -75,7 +75,7 @@ private:
 	// todo: do this theme-side instead. -aj
 	ModIconRow m_ModIconRow[NUM_PLAYERS];
 
-	Song * m_cSong;
+	Song* m_cSong;
 
 	bool m_bInitialSelect;
 	bool m_bAllowInput;
@@ -96,7 +96,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

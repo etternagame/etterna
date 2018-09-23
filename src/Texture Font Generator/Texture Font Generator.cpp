@@ -16,43 +16,41 @@
  * allow selectively creating font pages
  * allow creating font page types
  * tag font page names; "rage numbers=0"
- * if only exporting one font page, don't include the name; "_times 16pt.png", not "_times 16pt [main].png"
- * include font properties in the default filename "_times 16pt bold [main].png"
- * allow selecting points or pixels; include this in the defualt filename: "16pt" "16px"
- * separate m_BoundingRect for each page
- *  - optimize: if we have a few big characters, put them in a separate font page, so we can
- *    pack the smaller ones tighter
- * "always expand to power of two" (enable or disable packing)?
- * "white on black" vs. "opaque on transparent"?
+ * if only exporting one font page, don't include the name; "_times 16pt.png",
+ * not "_times 16pt [main].png" include font properties in the default filename
+ * "_times 16pt bold [main].png" allow selecting points or pixels; include this
+ * in the defualt filename: "16pt" "16px" separate m_BoundingRect for each page
+ *  - optimize: if we have a few big characters, put them in a separate font
+ * page, so we can pack the smaller ones tighter "always expand to power of two"
+ * (enable or disable packing)? "white on black" vs. "opaque on transparent"?
  */
 
 BEGIN_MESSAGE_MAP(CTextureFontGeneratorApp, CWinApp)
-	ON_COMMAND(ID_HELP, CWinApp::OnHelp)
+ON_COMMAND(ID_HELP, CWinApp::OnHelp)
 END_MESSAGE_MAP()
 
-
-CTextureFontGeneratorApp::CTextureFontGeneratorApp()
-{
-}
-
+CTextureFontGeneratorApp::CTextureFontGeneratorApp() {}
 
 // The one and only CTextureFontGeneratorApp object
 
 CTextureFontGeneratorApp theApp;
 
-const GUID CDECL BASED_CODE _tlid =
-		{ 0x9BFC6AC5, 0x5A9, 0x4468, { 0xB0, 0x9, 0xA9, 0xE6, 0xC2, 0x59, 0xDF, 0xD8 } };
+const GUID CDECL BASED_CODE _tlid = {
+	0x9BFC6AC5,
+	0x5A9,
+	0x4468,
+	{ 0xB0, 0x9, 0xA9, 0xE6, 0xC2, 0x59, 0xDF, 0xD8 }
+};
 const WORD _wVerMajor = 1;
 const WORD _wVerMinor = 0;
 
-
-BOOL CTextureFontGeneratorApp::InitInstance()
+BOOL
+CTextureFontGeneratorApp::InitInstance()
 {
 	CWinApp::InitInstance();
 
 	// Initialize OLE libraries
-	if( !AfxOleInit() )
-	{
+	if (!AfxOleInit()) {
 		AfxMessageBox(IDP_OLE_INIT_FAILED);
 		return FALSE;
 	}
@@ -65,41 +63,36 @@ BOOL CTextureFontGeneratorApp::InitInstance()
 
 	// App was launched with /Embedding or /Automation switch.
 	// Run app as automation server.
-	if( cmdInfo.m_bRunEmbedded || cmdInfo.m_bRunAutomated )
-	{
+	if (cmdInfo.m_bRunEmbedded || cmdInfo.m_bRunAutomated) {
 		// Register class factories via CoRegisterClassObject().
 		COleTemplateServer::RegisterAll();
 	}
 	// App was launched with /Unregserver or /Unregister switch.  Remove
 	// entries from the registry.
-	else if (cmdInfo.m_nShellCommand == CCommandLineInfo::AppUnregister)
-	{
+	else if (cmdInfo.m_nShellCommand == CCommandLineInfo::AppUnregister) {
 		COleObjectFactory::UpdateRegistryAll(FALSE);
 		AfxOleUnregisterTypeLib(_tlid, _wVerMajor, _wVerMinor);
 		return FALSE;
 	}
 	// App was launched standalone or with other switches (e.g. /Register
 	// or /Regserver).  Update registry entries, including typelibrary.
-	else
-	{
+	else {
 		COleObjectFactory::UpdateRegistryAll();
 		AfxOleRegisterTypeLib(AfxGetInstanceHandle(), _tlid);
 		if (cmdInfo.m_nShellCommand == CCommandLineInfo::AppRegister)
 			return FALSE;
 	}
 
-	m_hAccelerators = LoadAccelerators( AfxGetInstanceHandle(), MAKEINTRESOURCE(IDR_ACCELERATOR) );
+	m_hAccelerators = LoadAccelerators(AfxGetInstanceHandle(),
+									   MAKEINTRESOURCE(IDR_ACCELERATOR));
 
 	CTextureFontGeneratorDlg dlg;
 	m_pMainWnd = &dlg;
 	INT_PTR nResponse = dlg.DoModal();
-	if (nResponse == IDOK)
-	{
+	if (nResponse == IDOK) {
 		// TODO: Place code here to handle when the dialog is
 		//  dismissed with OK
-	}
-	else if (nResponse == IDCANCEL)
-	{
+	} else if (nResponse == IDCANCEL) {
 		// TODO: Place code here to handle when the dialog is
 		//  dismissed with Cancel
 	}
@@ -109,17 +102,16 @@ BOOL CTextureFontGeneratorApp::InitInstance()
 	return FALSE;
 }
 
-BOOL CTextureFontGeneratorApp::ProcessMessageFilter( int code, LPMSG lpMsg )
+BOOL
+CTextureFontGeneratorApp::ProcessMessageFilter(int code, LPMSG lpMsg)
 {
-	if( m_hAccelerators )
-	{
-		if (::TranslateAccelerator(m_pMainWnd->m_hWnd, m_hAccelerators, lpMsg)) 
-			return(TRUE);
+	if (m_hAccelerators) {
+		if (::TranslateAccelerator(m_pMainWnd->m_hWnd, m_hAccelerators, lpMsg))
+			return (TRUE);
 	}
-	
+
 	return CWinApp::ProcessMessageFilter(code, lpMsg);
 }
-
 
 /*
  * Copyright (c) 2003-2007 Glenn Maynard

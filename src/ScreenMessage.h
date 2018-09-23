@@ -17,15 +17,16 @@ extern const ScreenMessage SM_Pause;
 extern const ScreenMessage SM_Success;
 extern const ScreenMessage SM_Failure;
 /** @brief Helpers for the ScreenMessages. */
-namespace ScreenMessageHelpers
-{
-	ScreenMessage ToScreenMessage( const RString & Name );
-	RString	ScreenMessageToString( ScreenMessage SM );
+namespace ScreenMessageHelpers {
+ScreenMessage
+ToScreenMessage(const RString& Name);
+RString
+ScreenMessageToString(ScreenMessage SM);
 };
 
 /** @brief Automatically generate a unique ScreenMessage value */
-#define AutoScreenMessage( x ) \
-	const ScreenMessage x = ScreenMessageHelpers::ToScreenMessage( #x )
+#define AutoScreenMessage(x)                                                   \
+	const ScreenMessage x = ScreenMessageHelpers::ToScreenMessage(#x)
 
 #endif
 
@@ -34,7 +35,7 @@ namespace ScreenMessageHelpers
  * @author Chris Danford, Charles Lohr (c) 2003-2005
  * @section LICENSE
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -44,7 +45,7 @@ namespace ScreenMessageHelpers
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

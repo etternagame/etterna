@@ -4,173 +4,214 @@
 
 const double TimingSegment::EPSILON = 1e-6;
 
-static const char *TimingSegmentTypeNames[] = {
-	"BPM",
-	"Stop",
-	"Delay",
-	"Time Sig",
-	"Warp",
-	"Label",
-	"Tickcount",
-	"Combo",
-	"Speed",
-	"Scroll",
-	"Fake"
-};
-XToString( TimingSegmentType );
+static const char* TimingSegmentTypeNames[] = { "BPM",		 "Stop",  "Delay",
+												"Time Sig",  "Warp",  "Label",
+												"Tickcount", "Combo", "Speed",
+												"Scroll",	"Fake" };
+XToString(TimingSegmentType);
 
-#define LTCOMPARE(x)      if(this->x < other.x) return true; if(this->x > other.x) return false;
+#define LTCOMPARE(x)                                                           \
+	if (this->x < other.x)                                                     \
+		return true;                                                           \
+	if (this->x > other.x)                                                     \
+		return false;
 
-void TimingSegment::Scale( int start, int length, int newLength )
+void
+TimingSegment::Scale(int start, int length, int newLength)
 {
-	SetRow( ScalePosition( start, length, newLength, this->GetRow() ) );
+	SetRow(ScalePosition(start, length, newLength, this->GetRow()));
 }
 
-void TimingSegment::DebugPrint() const
+void
+TimingSegment::DebugPrint() const
 {
-	LOG->Trace( "\tTimingSegment(%d [%f])", GetRow(), GetBeat() );
+	LOG->Trace("\tTimingSegment(%d [%f])", GetRow(), GetBeat());
 }
 
-void BPMSegment::DebugPrint() const
+void
+BPMSegment::DebugPrint() const
 {
-	LOG->Trace( "\t%s(%d [%f], %f)",
-		TimingSegmentTypeToString(GetType()).c_str(),
-		GetRow(), GetBeat(), GetBPM()
-	);
+	LOG->Trace("\t%s(%d [%f], %f)",
+			   TimingSegmentTypeToString(GetType()).c_str(),
+			   GetRow(),
+			   GetBeat(),
+			   GetBPM());
 }
 
-void StopSegment::DebugPrint() const
+void
+StopSegment::DebugPrint() const
 {
-	LOG->Trace( "\t%s(%d [%f], %f)",
-		TimingSegmentTypeToString(GetType()).c_str(),
-		GetRow(), GetBeat(), GetPause()
-	);
+	LOG->Trace("\t%s(%d [%f], %f)",
+			   TimingSegmentTypeToString(GetType()).c_str(),
+			   GetRow(),
+			   GetBeat(),
+			   GetPause());
 }
 
-void DelaySegment::DebugPrint() const
+void
+DelaySegment::DebugPrint() const
 {
-	LOG->Trace( "\t%s(%d [%f], %f)",
-		TimingSegmentTypeToString(GetType()).c_str(),
-		GetRow(), GetBeat(), GetPause()
-	);
+	LOG->Trace("\t%s(%d [%f], %f)",
+			   TimingSegmentTypeToString(GetType()).c_str(),
+			   GetRow(),
+			   GetBeat(),
+			   GetPause());
 }
 
-void TimeSignatureSegment::DebugPrint() const
+void
+TimeSignatureSegment::DebugPrint() const
 {
-	LOG->Trace( "\t%s(%d [%f], %d/%d)",
-		TimingSegmentTypeToString(GetType()).c_str(),
-		GetRow(), GetBeat(), GetNum(), GetDen()
-	);
+	LOG->Trace("\t%s(%d [%f], %d/%d)",
+			   TimingSegmentTypeToString(GetType()).c_str(),
+			   GetRow(),
+			   GetBeat(),
+			   GetNum(),
+			   GetDen());
 }
 
-void WarpSegment::DebugPrint() const
+void
+WarpSegment::DebugPrint() const
 {
-	LOG->Trace( "\t%s(%d [%f], %d [%f])",
-		TimingSegmentTypeToString(GetType()).c_str(),
-		GetRow(), GetBeat(), GetLengthRows(), GetLengthBeats()
-	);
+	LOG->Trace("\t%s(%d [%f], %d [%f])",
+			   TimingSegmentTypeToString(GetType()).c_str(),
+			   GetRow(),
+			   GetBeat(),
+			   GetLengthRows(),
+			   GetLengthBeats());
 }
 
-void LabelSegment::DebugPrint() const
+void
+LabelSegment::DebugPrint() const
 {
-	LOG->Trace( "\t%s(%d [%f], %s)",
-		TimingSegmentTypeToString(GetType()).c_str(),
-		GetRow(), GetBeat(), GetLabel().c_str()
-	);
+	LOG->Trace("\t%s(%d [%f], %s)",
+			   TimingSegmentTypeToString(GetType()).c_str(),
+			   GetRow(),
+			   GetBeat(),
+			   GetLabel().c_str());
 }
 
-void TickcountSegment::DebugPrint() const
+void
+TickcountSegment::DebugPrint() const
 {
-	LOG->Trace( "\t%s(%d [%f], %d)",
-		TimingSegmentTypeToString(GetType()).c_str(),
-		GetRow(), GetBeat(), GetTicks()
-	);
+	LOG->Trace("\t%s(%d [%f], %d)",
+			   TimingSegmentTypeToString(GetType()).c_str(),
+			   GetRow(),
+			   GetBeat(),
+			   GetTicks());
 }
 
-void ComboSegment::DebugPrint() const
+void
+ComboSegment::DebugPrint() const
 {
-	LOG->Trace( "\t%s(%d [%f], %d, %d)",
-		TimingSegmentTypeToString(GetType()).c_str(),
-		GetRow(), GetBeat(), GetCombo(), GetMissCombo()
-	);
+	LOG->Trace("\t%s(%d [%f], %d, %d)",
+			   TimingSegmentTypeToString(GetType()).c_str(),
+			   GetRow(),
+			   GetBeat(),
+			   GetCombo(),
+			   GetMissCombo());
 }
 
-void SpeedSegment::DebugPrint() const
+void
+SpeedSegment::DebugPrint() const
 {
-	LOG->Trace( "\t%s(%d [%f], %f, %f, %d)",
-		TimingSegmentTypeToString(GetType()).c_str(),
-		GetRow(), GetBeat(), GetRatio(), GetDelay(), GetUnit()
-	);
+	LOG->Trace("\t%s(%d [%f], %f, %f, %d)",
+			   TimingSegmentTypeToString(GetType()).c_str(),
+			   GetRow(),
+			   GetBeat(),
+			   GetRatio(),
+			   GetDelay(),
+			   GetUnit());
 }
 
-void ScrollSegment::DebugPrint() const
+void
+ScrollSegment::DebugPrint() const
 {
-	LOG->Trace( "\t%s(%d [%f], %f)",
-		TimingSegmentTypeToString(GetType()).c_str(),
-		GetRow(), GetBeat(), GetRatio()
-	);
+	LOG->Trace("\t%s(%d [%f], %f)",
+			   TimingSegmentTypeToString(GetType()).c_str(),
+			   GetRow(),
+			   GetBeat(),
+			   GetRatio());
 }
 
-void FakeSegment::DebugPrint() const
+void
+FakeSegment::DebugPrint() const
 {
-	LOG->Trace( "\t%s(%d [%f], %d [%f])",
-		TimingSegmentTypeToString(GetType()).c_str(),
-		GetRow(), GetBeat(), GetLengthRows(), GetLengthBeats()
-	);
+	LOG->Trace("\t%s(%d [%f], %d [%f])",
+			   TimingSegmentTypeToString(GetType()).c_str(),
+			   GetRow(),
+			   GetBeat(),
+			   GetLengthRows(),
+			   GetLengthBeats());
 }
 
-RString FakeSegment::ToString(int dec) const
+RString
+FakeSegment::ToString(int dec) const
 {
-	RString str = "%.0" + IntToString(dec)
-	+ "f=%.0" + IntToString(dec) + "f";
+	RString str = "%.0" + IntToString(dec) + "f=%.0" + IntToString(dec) + "f";
 	return ssprintf(str.c_str(), GetBeat(), GetLength());
 }
 
-void FakeSegment::Scale( int start, int length, int newLength )
+void
+FakeSegment::Scale(int start, int length, int newLength)
 {
-	float startBeat    = GetBeat();
-	float endBeat      = startBeat + GetLength();
-	float newStartBeat = ScalePosition( NoteRowToBeat(start), NoteRowToBeat(length), NoteRowToBeat(newLength), startBeat );
-	float newEndBeat   = ScalePosition( NoteRowToBeat(start), NoteRowToBeat(length), NoteRowToBeat(newLength), endBeat );
-	SetLength( newEndBeat - newStartBeat );
-	TimingSegment::Scale( start, length, newLength );
+	float startBeat = GetBeat();
+	float endBeat = startBeat + GetLength();
+	float newStartBeat = ScalePosition(NoteRowToBeat(start),
+									   NoteRowToBeat(length),
+									   NoteRowToBeat(newLength),
+									   startBeat);
+	float newEndBeat = ScalePosition(NoteRowToBeat(start),
+									 NoteRowToBeat(length),
+									 NoteRowToBeat(newLength),
+									 endBeat);
+	SetLength(newEndBeat - newStartBeat);
+	TimingSegment::Scale(start, length, newLength);
 }
 
-RString WarpSegment::ToString(int dec) const
+RString
+WarpSegment::ToString(int dec) const
 {
-	RString str = "%.0" + IntToString(dec)
-	+ "f=%.0" + IntToString(dec) + "f";
+	RString str = "%.0" + IntToString(dec) + "f=%.0" + IntToString(dec) + "f";
 	return ssprintf(str.c_str(), GetBeat(), GetLength());
 }
 
-void WarpSegment::Scale( int start, int length, int newLength )
+void
+WarpSegment::Scale(int start, int length, int newLength)
 {
 	// XXX: this function is duplicated, there should be a better way
-	float startBeat    = GetBeat();
-	float endBeat      = startBeat + GetLength();
-	float newStartBeat = ScalePosition( NoteRowToBeat(start), NoteRowToBeat(length), NoteRowToBeat(newLength), startBeat );
-	float newEndBeat   = ScalePosition( NoteRowToBeat(start), NoteRowToBeat(length), NoteRowToBeat(newLength), endBeat );
-	SetLength( newEndBeat - newStartBeat );
-	TimingSegment::Scale( start, length, newLength );
+	float startBeat = GetBeat();
+	float endBeat = startBeat + GetLength();
+	float newStartBeat = ScalePosition(NoteRowToBeat(start),
+									   NoteRowToBeat(length),
+									   NoteRowToBeat(newLength),
+									   startBeat);
+	float newEndBeat = ScalePosition(NoteRowToBeat(start),
+									 NoteRowToBeat(length),
+									 NoteRowToBeat(newLength),
+									 endBeat);
+	SetLength(newEndBeat - newStartBeat);
+	TimingSegment::Scale(start, length, newLength);
 }
 
-RString TickcountSegment::ToString(int dec) const
+RString
+TickcountSegment::ToString(int dec) const
 {
 	const RString str = "%.0" + IntToString(dec) + "f=%i";
 	return ssprintf(str.c_str(), GetBeat(), GetTicks());
 }
-RString ComboSegment::ToString(int dec) const
+RString
+ComboSegment::ToString(int dec) const
 {
 	RString str = "%.0" + IntToString(dec) + "f=%i";
-	if (GetCombo() == GetMissCombo())
-	{
+	if (GetCombo() == GetMissCombo()) {
 		return ssprintf(str.c_str(), GetBeat(), GetCombo());
 	}
 	str += "=%i";
 	return ssprintf(str.c_str(), GetBeat(), GetCombo(), GetMissCombo());
 }
 
-vector<float> ComboSegment::GetValues() const
+vector<float>
+ComboSegment::GetValues() const
 {
 	vector<float> ret;
 	ret.push_back(static_cast<float>(GetCombo()));
@@ -178,26 +219,30 @@ vector<float> ComboSegment::GetValues() const
 	return ret;
 }
 
-RString LabelSegment::ToString(int dec) const
+RString
+LabelSegment::ToString(int dec) const
 {
 	const RString str = "%.0" + IntToString(dec) + "f=%s";
 	return ssprintf(str.c_str(), GetBeat(), GetLabel().c_str());
 }
 
-RString BPMSegment::ToString(int dec) const
+RString
+BPMSegment::ToString(int dec) const
 {
-	const RString str = "%.0" + IntToString(dec)
-	+ "f=%.0" + IntToString(dec) + "f";
+	const RString str =
+	  "%.0" + IntToString(dec) + "f=%.0" + IntToString(dec) + "f";
 	return ssprintf(str.c_str(), GetBeat(), GetBPM());
 }
 
-RString TimeSignatureSegment::ToString(int dec) const
+RString
+TimeSignatureSegment::ToString(int dec) const
 {
 	const RString str = "%.0" + IntToString(dec) + "f=%i=%i";
 	return ssprintf(str.c_str(), GetBeat(), GetNum(), GetDen());
 }
 
-vector<float> TimeSignatureSegment::GetValues() const
+vector<float>
+TimeSignatureSegment::GetValues() const
 {
 	vector<float> ret;
 	ret.push_back(static_cast<float>(GetNum()));
@@ -205,16 +250,20 @@ vector<float> TimeSignatureSegment::GetValues() const
 	return ret;
 }
 
-RString SpeedSegment::ToString(int dec) const
+RString
+SpeedSegment::ToString(int dec) const
 {
-	const RString str = "%.0" + IntToString(dec)
-		+ "f=%.0" + IntToString(dec) + "f=%.0"
-		+ IntToString(dec) + "f=%u";
-	return ssprintf(str.c_str(), GetBeat(), GetRatio(),
-		GetDelay(), static_cast<unsigned int>(GetUnit()));
+	const RString str = "%.0" + IntToString(dec) + "f=%.0" + IntToString(dec) +
+						"f=%.0" + IntToString(dec) + "f=%u";
+	return ssprintf(str.c_str(),
+					GetBeat(),
+					GetRatio(),
+					GetDelay(),
+					static_cast<unsigned int>(GetUnit()));
 }
 
-vector<float> SpeedSegment::GetValues() const
+vector<float>
+SpeedSegment::GetValues() const
 {
 	vector<float> ret;
 	ret.push_back(GetRatio());
@@ -223,44 +272,47 @@ vector<float> SpeedSegment::GetValues() const
 	return ret;
 }
 
-void SpeedSegment::Scale( int start, int oldLength, int newLength )
+void
+SpeedSegment::Scale(int start, int oldLength, int newLength)
 {
-	if( GetUnit() == 0 )
-	{
+	if (GetUnit() == 0) {
 		// XXX: this function is duplicated, there should be a better way
-		float startBeat    = GetBeat();
-		float endBeat      = startBeat + GetDelay();
+		float startBeat = GetBeat();
+		float endBeat = startBeat + GetDelay();
 		float newStartBeat = ScalePosition(NoteRowToBeat(start),
-						   NoteRowToBeat(oldLength),
-						   NoteRowToBeat(newLength),
-						   startBeat);
-		float newEndBeat   = ScalePosition(NoteRowToBeat(start),
-						   NoteRowToBeat(oldLength),
-						   NoteRowToBeat(newLength),
-						   endBeat);
-		SetDelay( newEndBeat - newStartBeat );
+										   NoteRowToBeat(oldLength),
+										   NoteRowToBeat(newLength),
+										   startBeat);
+		float newEndBeat = ScalePosition(NoteRowToBeat(start),
+										 NoteRowToBeat(oldLength),
+										 NoteRowToBeat(newLength),
+										 endBeat);
+		SetDelay(newEndBeat - newStartBeat);
 	}
-	TimingSegment::Scale( start, oldLength, newLength );
+	TimingSegment::Scale(start, oldLength, newLength);
 }
 
-RString ScrollSegment::ToString(int dec) const
+RString
+ScrollSegment::ToString(int dec) const
 {
-	const RString str = "%.0" + IntToString(dec)
-		+ "f=%.0" + IntToString(dec) + "f";
+	const RString str =
+	  "%.0" + IntToString(dec) + "f=%.0" + IntToString(dec) + "f";
 	return ssprintf(str.c_str(), GetBeat(), GetRatio());
 }
 
-RString StopSegment::ToString(int dec) const
+RString
+StopSegment::ToString(int dec) const
 {
-	const RString str = "%.0" + IntToString(dec)
-	+ "f=%.0" + IntToString(dec) + "f";
+	const RString str =
+	  "%.0" + IntToString(dec) + "f=%.0" + IntToString(dec) + "f";
 	return ssprintf(str.c_str(), GetBeat(), GetPause());
 }
 
-RString DelaySegment::ToString(int dec) const
+RString
+DelaySegment::ToString(int dec) const
 {
-	const RString str = "%.0" + IntToString(dec)
-	+ "f=%.0" + IntToString(dec) + "f";
+	const RString str =
+	  "%.0" + IntToString(dec) + "f=%.0" + IntToString(dec) + "f";
 	return ssprintf(str.c_str(), GetBeat(), GetPause());
 }
 
@@ -269,7 +321,7 @@ RString DelaySegment::ToString(int dec) const
  * @author Jason Felds (c) 2011
  * @section LICENSE
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -279,7 +331,7 @@ RString DelaySegment::ToString(int dec) const
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

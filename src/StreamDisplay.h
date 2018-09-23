@@ -18,31 +18,36 @@ enum StreamType
 
 class StreamDisplay : public ActorFrame
 {
-public:
+  public:
 	StreamDisplay();
 
-	void Update( float fDeltaSecs ) override;
+	void Update(float fDeltaSecs) override;
 
-	void Load( const RString &sMetricsGroup );
+	void Load(const RString& sMetricsGroup);
 
-	void SetPercent( float fPercent );
-	void SetPassingAlpha( float fPassingAlpha ) { m_fPassingAlpha = fPassingAlpha; }
-	void SetHotAlpha( float fHotAlpha ) { m_fHotAlpha = fHotAlpha; }
+	void SetPercent(float fPercent);
+	void SetPassingAlpha(float fPassingAlpha)
+	{
+		m_fPassingAlpha = fPassingAlpha;
+	}
+	void SetHotAlpha(float fHotAlpha) { m_fHotAlpha = fHotAlpha; }
 
 	float GetPercent() { return m_fPercent; }
 
-private:
-	vector<Sprite*>	m_vpSprPill[NUM_StreamType];
+  private:
+	vector<Sprite*> m_vpSprPill[NUM_StreamType];
 
-	LuaExpressionTransform		m_transformPill;	// params: self,offsetFromCenter,itemIndex,numItems
+	LuaExpressionTransform
+	  m_transformPill; // params: self,offsetFromCenter,itemIndex,numItems
 	ThemeMetric<float> VELOCITY_MULTIPLIER;
 	ThemeMetric<float> VELOCITY_MIN;
 	ThemeMetric<float> VELOCITY_MAX;
 	ThemeMetric<float> SPRING_MULTIPLIER;
 	ThemeMetric<float> VISCOSITY_MULTIPLIER;
 
-	float m_fPercent;	// percent filled
-	float m_fTrailingPercent;	// this approaches m_fPercent, use this value to draw
+	float m_fPercent; // percent filled
+	float
+	  m_fTrailingPercent; // this approaches m_fPercent, use this value to draw
 	float m_fVelocity;	// velocity of m_fTrailingPercent
 
 	float m_fPassingAlpha;
@@ -56,7 +61,7 @@ private:
 /*
  * (c) 2003-2004 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -66,7 +71,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

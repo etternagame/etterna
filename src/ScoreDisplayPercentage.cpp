@@ -8,25 +8,27 @@
 ScoreDisplayPercentage::ScoreDisplayPercentage()
 {
 	// todo: allow ScoreDisplayPercentage to have its own frame? -aj
-	m_sprFrame.Load( THEME->GetPathG("ScoreDisplayNormal","frame") );
-	this->AddChild( m_sprFrame );
+	m_sprFrame.Load(THEME->GetPathG("ScoreDisplayNormal", "frame"));
+	this->AddChild(m_sprFrame);
 
-	m_Percent.SetName( "ScoreDisplayPercentage Percent" );
-	this->AddChild( &m_Percent );
+	m_Percent.SetName("ScoreDisplayPercentage Percent");
+	this->AddChild(&m_Percent);
 }
 
-void ScoreDisplayPercentage::Init( const PlayerState* pPlayerState, const PlayerStageStats* pPlayerStageStats ) 
+void
+ScoreDisplayPercentage::Init(const PlayerState* pPlayerState,
+							 const PlayerStageStats* pPlayerStageStats)
 {
-	ScoreDisplay::Init( pPlayerState, pPlayerStageStats );
+	ScoreDisplay::Init(pPlayerState, pPlayerStageStats);
 
-	m_Percent.Load( pPlayerState, pPlayerStageStats,
-		"ScoreDisplayPercentage Percent", true );
+	m_Percent.Load(
+	  pPlayerState, pPlayerStageStats, "ScoreDisplayPercentage Percent", true);
 }
 
 /*
  * (c) 2003 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -36,7 +38,7 @@ void ScoreDisplayPercentage::Init( const PlayerState* pPlayerState, const Player
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

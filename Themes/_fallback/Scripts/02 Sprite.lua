@@ -2,12 +2,12 @@ function Sprite:LoadFromSongBanner(song)
 	if song then
 		local Path = song:GetBannerPath()
 		if not Path then
-			Path = THEME:GetPathG("Common","fallback banner")
+			Path = THEME:GetPathG("Common", "fallback banner")
 		end
 
-		self:LoadBanner( Path )
+		self:LoadBanner(Path)
 	else
-		self:LoadBanner( THEME:GetPathG("Common","fallback banner") )
+		self:LoadBanner(THEME:GetPathG("Common", "fallback banner"))
 	end
 	return self
 end
@@ -15,21 +15,21 @@ end
 function Sprite:LoadFromSongBackground(song)
 	local Path = song:GetBackgroundPath()
 	if not Path then
-		Path = THEME:GetPathG("Common","fallback background")
+		Path = THEME:GetPathG("Common", "fallback background")
 	end
 
-	self:LoadBackground( Path )
+	self:LoadBackground(Path)
 	return self
 end
 
 function LoadSongBackground()
 	return Def.Sprite {
-		InitCommand=function(self)
+		InitCommand = function(self)
 			self:x(SCREEN_CENTER_X):y(SCREEN_CENTER_Y)
 		end,
-		BeginCommand=function(self)
+		BeginCommand = function(self)
 			self:LoadFromSongBackground(GAMESTATE:GetCurrentSong()):scale_or_crop_background()
-		end	
+		end
 	}
 end
 
@@ -43,44 +43,49 @@ function Sprite:LoadFromCurrentSongBackground()
 		end
 	end
 
-	if not song then return self end
+	if not song then
+		return self
+	end
 
 	self:LoadFromSongBackground(song)
 	return self
 end
 
-function Sprite:position( f )
-	self:GetTexture():position( f )
+function Sprite:position(f)
+	self:GetTexture():position(f)
 	return self
 end
 
-function Sprite:loop( f )
-	self:GetTexture():loop( f )
+function Sprite:loop(f)
+	self:GetTexture():loop(f)
 	return self
 end
 
-function Sprite:rate( f )
-	self:GetTexture():rate( f )
+function Sprite:rate(f)
+	self:GetTexture():rate(f)
 	return self
 end
 
 function Sprite.LinearFrames(NumFrames, Seconds)
 	local Frames = {}
-	for i = 0,NumFrames-1 do
-		Frames[#Frames+1] = {
+	for i = 0, NumFrames - 1 do
+		Frames[#Frames + 1] = {
 			Frame = i,
-			Delay = (1/NumFrames)*Seconds
+			Delay = (1 / NumFrames) * Seconds
 		}
 	end
 	return Frames
 end
 
 -- command aliases:
-function Sprite:cropto(w,h) self:CropTo(w,h) return self end
+function Sprite:cropto(w, h)
+	self:CropTo(w, h)
+	return self
+end
 
 -- (c) 2005 Glenn Maynard
 -- All rights reserved.
--- 
+--
 -- Permission is hereby granted, free of charge, to any person obtaining a
 -- copy of this software and associated documentation files (the
 -- "Software"), to deal in the Software without restriction, including
@@ -90,7 +95,7 @@ function Sprite:cropto(w,h) self:CropTo(w,h) return self end
 -- copyright notice(s) and this permission notice appear in all copies of
 -- the Software and that both the above copyright notice(s) and this
 -- permission notice appear in supporting documentation.
--- 
+--
 -- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
 -- OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 -- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

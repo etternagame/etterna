@@ -5,14 +5,14 @@
 /** @brief Loading window for Mac OS X. */
 class LoadingWindow_MacOSX : public LoadingWindow
 {
-public:
+  public:
 	LoadingWindow_MacOSX();
 	~LoadingWindow_MacOSX();
-	void SetText( const RString &str );
-	void SetSplash( const RageSurface *pSplash );
-	void SetProgress( const int progress );
-	void SetTotalWork( const int totalWork );
-	void SetIndeterminate( bool indeterminate );
+	void SetText(const RString& str);
+	void SetSplash(const RageSurface* pSplash);
+	void SetProgress(const int progress);
+	void SetTotalWork(const int totalWork);
+	void SetIndeterminate(bool indeterminate);
 };
 #define USE_LOADING_WINDOW_MACOSX
 

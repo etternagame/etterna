@@ -1,4 +1,5 @@
-#if !defined(AFX_EDITINSALLATIONS_H__CD328CB4_8E35_4B12_BCD1_ADF5CE7EABC7__INCLUDED_)
+#if !defined(                                                                  \
+  AFX_EDITINSALLATIONS_H__CD328CB4_8E35_4B12_BCD1_ADF5CE7EABC7__INCLUDED_)
 #define AFX_EDITINSALLATIONS_H__CD328CB4_8E35_4B12_BCD1_ADF5CE7EABC7__INCLUDED_
 
 #if _MSC_VER > 1000
@@ -11,28 +12,29 @@
 
 class EditInsallations : public CDialog
 {
-// Construction
-public:
-	EditInsallations(CWnd* pParent = NULL);   // standard constructor
+	// Construction
+  public:
+	EditInsallations(CWnd* pParent = NULL); // standard constructor
 
-// Dialog Data
+	// Dialog Data
 	//{{AFX_DATA(EditInsallations)
-	enum { IDD = IDD_EDIT_INSTALLATIONS };
-	CListBox	m_list;
-	CEdit	m_edit;
+	enum
+	{
+		IDD = IDD_EDIT_INSTALLATIONS
+	};
+	CListBox m_list;
+	CEdit m_edit;
 	//}}AFX_DATA
 
-
-// Overrides
+	// Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(EditInsallations)
-	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-	//}}AFX_VIRTUAL
+  protected:
+	virtual void DoDataExchange(CDataExchange* pDX); // DDX/DDV support
+													 //}}AFX_VIRTUAL
 
-// Implementation
-protected:
-
+	// Implementation
+  protected:
 	// Generated message map functions
 	//{{AFX_MSG(EditInsallations)
 	virtual BOOL OnInitDialog();
@@ -42,19 +44,20 @@ protected:
 	virtual void OnOK();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
-public:
+  public:
 	afx_msg void OnLbnSelchangeList();
 };
 
 //{{AFX_INSERT_LOCATION}}
-// Microsoft Visual C++ will insert additional declarations immediately before the previous line.
+// Microsoft Visual C++ will insert additional declarations immediately before
+// the previous line.
 
 #endif // !defined(AFX_EDITINSALLATIONS_H__CD328CB4_8E35_4B12_BCD1_ADF5CE7EABC7__INCLUDED_)
 
 /*
  * (c) 2002-2005 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -64,7 +67,7 @@ public:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

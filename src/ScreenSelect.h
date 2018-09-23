@@ -7,34 +7,35 @@
 /** @brief Base class for Style, Difficulty, and Mode selection screens. */
 class ScreenSelect : public ScreenWithMenuElements
 {
-public:
+  public:
 	void Init() override;
 	void BeginScreen() override;
 	~ScreenSelect() override;
 
-	void Update( float fDelta ) override;
-	bool Input( const InputEventPlus &input ) override;
-	void HandleScreenMessage( ScreenMessage SM ) override;
-	void HandleMessage( const Message &msg ) override;
+	void Update(float fDelta) override;
+	bool Input(const InputEventPlus& input) override;
+	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleMessage(const Message& msg) override;
 
-	bool MenuBack( const InputEventPlus &input ) override;
+	bool MenuBack(const InputEventPlus& input) override;
 
-protected:
-	virtual int GetSelectionIndex( PlayerNumber pn ) = 0;
-	virtual void UpdateSelectableChoices() = 0; // derived screens must handle this
+  protected:
+	virtual int GetSelectionIndex(PlayerNumber pn) = 0;
+	virtual void
+	UpdateSelectableChoices() = 0; // derived screens must handle this
 
 	/**
 	 * @brief The game commands available.
 	 *
 	 * Derived classes should look here for the choices. */
-	vector<GameCommand>	m_aGameCommands;
+	vector<GameCommand> m_aGameCommands;
 
-	vector<RString>		m_asSubscribedMessages;
+	vector<RString> m_asSubscribedMessages;
 
 	/** @brief Count up to the time between idle comment announcer sounds. */
-	RageTimer		m_timerIdleComment;
+	RageTimer m_timerIdleComment;
 	/** @brief Count up to go to the timeout screen. */
-	RageTimer		m_timerIdleTimeout;
+	RageTimer m_timerIdleTimeout;
 
 	ThemeMetric<float> IDLE_COMMENT_SECONDS;
 	ThemeMetric<float> IDLE_TIMEOUT_SECONDS;
@@ -48,7 +49,7 @@ protected:
  * @author Chris Danford (c) 2001-2004
  * @section LICENSE
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -58,7 +59,7 @@ protected:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

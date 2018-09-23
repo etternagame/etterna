@@ -3,6 +3,11 @@
 *.obj
 *.a
 
+# Doxygen documentation
+Utils/temp
+stepmania.chm
+# For people using vscode
+.vscode
 # CMake Files/Directories
 CMakeFiles/
 CMakeCache.txt

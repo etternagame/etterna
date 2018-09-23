@@ -17,67 +17,69 @@ extern "C" {
 #undef FAR
 
 #if defined(_MSC_VER)
-#pragma warning(disable: 4611) /* interaction between '_setjmp' and C++ object destruction is non-portable */
+#pragma warning(disable : 4611)
+// interaction between '_setjmp' and C++ object destruction is non-portable
 #endif
 
 #endif
 
 struct my_jpeg_error_mgr
 {
-  struct jpeg_error_mgr pub;    /* "public" fields */
+	struct jpeg_error_mgr pub; /* "public" fields */
 
-  jmp_buf setjmp_buffer;        /* for return to caller */
-  char errorbuf[JMSG_LENGTH_MAX];
+	jmp_buf setjmp_buffer; /* for return to caller */
+	char errorbuf[JMSG_LENGTH_MAX];
 };
 
-
-void my_output_message( j_common_ptr cinfo )
+void
+my_output_message(j_common_ptr cinfo)
 {
-	my_jpeg_error_mgr *myerr = (my_jpeg_error_mgr *) cinfo->err;
-	(*cinfo->err->format_message)( cinfo, myerr->errorbuf );
+	my_jpeg_error_mgr* myerr = (my_jpeg_error_mgr*)cinfo->err;
+	(*cinfo->err->format_message)(cinfo, myerr->errorbuf);
 }
 
-
-void my_error_exit( j_common_ptr cinfo )
+void
+my_error_exit(j_common_ptr cinfo)
 {
-	my_jpeg_error_mgr *myerr = (my_jpeg_error_mgr *) cinfo->err;
+	my_jpeg_error_mgr* myerr = (my_jpeg_error_mgr*)cinfo->err;
 	(*cinfo->err->output_message)(cinfo);
 
-	longjmp( myerr->setjmp_buffer, 1 );
+	longjmp(myerr->setjmp_buffer, 1);
 }
 
 struct RageFile_source_mgr
 {
-	struct jpeg_source_mgr pub;   /* public fields */
+	struct jpeg_source_mgr pub; /* public fields */
 
-	RageFile *file;		/* source stream */
-	JOCTET buffer[1024*4];
-	bool start_of_file;	/* have we gotten any data yet? */
+	RageFile* file; /* source stream */
+	JOCTET buffer[1024 * 4];
+	bool start_of_file; /* have we gotten any data yet? */
 };
 
-void RageFile_JPEG_init_source( j_decompress_ptr cinfo )
+void
+RageFile_JPEG_init_source(j_decompress_ptr cinfo)
 {
-	RageFile_source_mgr *src = (RageFile_source_mgr *) cinfo->src;
+	RageFile_source_mgr* src = (RageFile_source_mgr*)cinfo->src;
 	src->start_of_file = true;
 	src->pub.next_input_byte = nullptr;
 	src->pub.bytes_in_buffer = 0;
 }
 
-boolean RageFile_JPEG_fill_input_buffer( j_decompress_ptr cinfo )
+boolean
+RageFile_JPEG_fill_input_buffer(j_decompress_ptr cinfo)
 {
-	RageFile_source_mgr *src = (RageFile_source_mgr *) cinfo->src;
-	size_t nbytes = src->file->Read( src->buffer, sizeof(src->buffer) );
+	RageFile_source_mgr* src = (RageFile_source_mgr*)cinfo->src;
+	size_t nbytes = src->file->Read(src->buffer, sizeof(src->buffer));
 
-	if( nbytes <= 0 )
-	{
-		if( src->start_of_file )     /* Treat empty input file as fatal error */
-			ERREXIT( cinfo, JERR_INPUT_EMPTY );
+	if (nbytes <= 0) {
+		if (src->start_of_file) /* Treat empty input file as fatal error */
+			ERREXIT(cinfo, JERR_INPUT_EMPTY);
 
-		WARNMS( cinfo, JWRN_JPEG_EOF );
+		WARNMS(cinfo, JWRN_JPEG_EOF);
 
 		/* Insert a fake EOI marker */
-		src->buffer[0] = (JOCTET) 0xFF;
-		src->buffer[1] = (JOCTET) JPEG_EOI;
+		src->buffer[0] = (JOCTET)0xFF;
+		src->buffer[1] = (JOCTET)JPEG_EOI;
 		nbytes = 2;
 	}
 
@@ -88,22 +90,29 @@ boolean RageFile_JPEG_fill_input_buffer( j_decompress_ptr cinfo )
 	return TRUE;
 }
 
-void RageFile_JPEG_skip_input_data( j_decompress_ptr cinfo, long num_bytes )
+void
+RageFile_JPEG_skip_input_data(j_decompress_ptr cinfo, long num_bytes)
 {
-	RageFile_source_mgr *src = (RageFile_source_mgr *) cinfo->src;
+	RageFile_source_mgr* src = (RageFile_source_mgr*)cinfo->src;
 
-	int in_buffer = min( (long) src->pub.bytes_in_buffer, num_bytes );
+	int in_buffer = min((long)src->pub.bytes_in_buffer, num_bytes);
 	src->pub.next_input_byte += in_buffer;
 	src->pub.bytes_in_buffer -= in_buffer;
 	num_bytes -= in_buffer;
 
-	if( num_bytes != 0 )
-		src->file->Seek( src->file->Tell() + num_bytes );
+	if (num_bytes != 0)
+		src->file->Seek(src->file->Tell() + num_bytes);
 }
 
-void RageFile_JPEG_term_source( j_decompress_ptr cinfo ) {}
+void
+RageFile_JPEG_term_source(j_decompress_ptr cinfo)
+{
+}
 
-static RageSurface *RageSurface_Load_JPEG( RageFile *f, const char *fn, char errorbuf[JMSG_LENGTH_MAX] )
+static RageSurface*
+RageSurface_Load_JPEG(RageFile* f,
+					  const char* fn,
+					  char errorbuf[JMSG_LENGTH_MAX])
 {
 	struct jpeg_decompress_struct cinfo;
 
@@ -111,100 +120,103 @@ static RageSurface *RageSurface_Load_JPEG( RageFile *f, const char *fn, char err
 	cinfo.err = jpeg_std_error(&jerr.pub);
 	jerr.pub.error_exit = my_error_exit;
 	jerr.pub.output_message = my_output_message;
-	
-	RageSurface *volatile img = nullptr; /* volatile to prevent possible problems with setjmp */
 
-	if( setjmp(jerr.setjmp_buffer) )
-	{
-		my_jpeg_error_mgr *myerr = (my_jpeg_error_mgr *) cinfo.err;
-		memcpy( errorbuf, myerr->errorbuf, JMSG_LENGTH_MAX );
-		
-		jpeg_destroy_decompress( &cinfo );
+	RageSurface* volatile img =
+	  nullptr; /* volatile to prevent possible problems with setjmp */
+
+	if (setjmp(jerr.setjmp_buffer)) {
+		my_jpeg_error_mgr* myerr = (my_jpeg_error_mgr*)cinfo.err;
+		memcpy(errorbuf, myerr->errorbuf, JMSG_LENGTH_MAX);
+
+		jpeg_destroy_decompress(&cinfo);
 		delete img;
 		return nullptr;
 	}
 
 	/* Now we can initialize the JPEG decompression object. */
-	jpeg_create_decompress( &cinfo );
+	jpeg_create_decompress(&cinfo);
 
 	/* Step 2: specify data source (eg, a file) */
 	RageFile_source_mgr RageFileJpegSource;
 	RageFileJpegSource.pub.init_source = RageFile_JPEG_init_source;
 	RageFileJpegSource.pub.fill_input_buffer = RageFile_JPEG_fill_input_buffer;
 	RageFileJpegSource.pub.skip_input_data = RageFile_JPEG_skip_input_data;
-	RageFileJpegSource.pub.resync_to_restart = jpeg_resync_to_restart; /* use default method */
+	RageFileJpegSource.pub.resync_to_restart =
+	  jpeg_resync_to_restart; /* use default method */
 	RageFileJpegSource.pub.term_source = RageFile_JPEG_term_source;
 	RageFileJpegSource.file = f;
 
-	cinfo.src = (jpeg_source_mgr *) &RageFileJpegSource;
+	cinfo.src = (jpeg_source_mgr*)&RageFileJpegSource;
 
-	jpeg_read_header( &cinfo, TRUE );
+	jpeg_read_header(&cinfo, TRUE);
 
-	switch( cinfo.jpeg_color_space )
-	{
-	case JCS_GRAYSCALE:
-		cinfo.out_color_space = JCS_GRAYSCALE;
-		break;
+	switch (cinfo.jpeg_color_space) {
+		case JCS_GRAYSCALE:
+			cinfo.out_color_space = JCS_GRAYSCALE;
+			break;
 
-	case JCS_YCCK:
-	case JCS_CMYK:
-		sprintf( errorbuf, "Color format \"%s\" not supported", cinfo.jpeg_color_space == JCS_YCCK? "YCCK":"CMYK" );
-		jpeg_destroy_decompress( &cinfo );
-		return nullptr;
+		case JCS_YCCK:
+		case JCS_CMYK:
+			sprintf(errorbuf,
+					"Color format \"%s\" not supported",
+					cinfo.jpeg_color_space == JCS_YCCK ? "YCCK" : "CMYK");
+			jpeg_destroy_decompress(&cinfo);
+			return nullptr;
 
-	default:
-		cinfo.out_color_space = JCS_RGB;
-		break;
+		default:
+			cinfo.out_color_space = JCS_RGB;
+			break;
 	}
 
-	jpeg_start_decompress( &cinfo );
+	jpeg_start_decompress(&cinfo);
 
-	if( cinfo.out_color_space == JCS_GRAYSCALE )
-	{
-		img = CreateSurface( cinfo.output_width, cinfo.output_height, 8, 0, 0, 0, 0 );
+	if (cinfo.out_color_space == JCS_GRAYSCALE) {
+		img =
+		  CreateSurface(cinfo.output_width, cinfo.output_height, 8, 0, 0, 0, 0);
 
-		for( int i = 0; i < 256; ++i )
-		{
+		for (int i = 0; i < 256; ++i) {
 			RageSurfaceColor color;
-			color.r = color.g = color.b = (int8_t) i;
+			color.r = color.g = color.b = (int8_t)i;
 			color.a = 0xFF;
 			img->fmt.palette->colors[i] = color;
 		}
 	} else {
-		img = CreateSurface( cinfo.output_width, cinfo.output_height, 24,
-				Swap24BE( 0xFF0000 ),
-				Swap24BE( 0x00FF00 ),
-				Swap24BE( 0x0000FF ),
-				Swap24BE( 0x000000 ) );
+		img = CreateSurface(cinfo.output_width,
+							cinfo.output_height,
+							24,
+							Swap24BE(0xFF0000),
+							Swap24BE(0x00FF00),
+							Swap24BE(0x0000FF),
+							Swap24BE(0x000000));
 	}
 
-	while( cinfo.output_scanline < cinfo.output_height )
-	{
-		JSAMPROW p = (JSAMPROW) img->pixels;
+	while (cinfo.output_scanline < cinfo.output_height) {
+		JSAMPROW p = (JSAMPROW)img->pixels;
 		p += cinfo.output_scanline * img->pitch;
 		jpeg_read_scanlines(&cinfo, &p, 1);
 	}
 
-	jpeg_finish_decompress( &cinfo );
-	jpeg_destroy_decompress( &cinfo );
+	jpeg_finish_decompress(&cinfo);
+	jpeg_destroy_decompress(&cinfo);
 
 	return img;
 }
 
-
-RageSurfaceUtils::OpenResult RageSurface_Load_JPEG( const RString &sPath, RageSurface *&ret, bool bHeaderOnly, RString &error )
+RageSurfaceUtils::OpenResult
+RageSurface_Load_JPEG(const RString& sPath,
+					  RageSurface*& ret,
+					  bool bHeaderOnly,
+					  RString& error)
 {
 	RageFile f;
-	if( !f.Open( sPath ) )
-	{
+	if (!f.Open(sPath)) {
 		error = f.GetError();
 		return RageSurfaceUtils::OPEN_FATAL_ERROR;
 	}
 
 	char errorbuf[1024];
-	ret = RageSurface_Load_JPEG( &f, sPath, errorbuf );
-	if( ret == nullptr )
-	{
+	ret = RageSurface_Load_JPEG(&f, sPath, errorbuf);
+	if (ret == nullptr) {
 		error = errorbuf;
 		return RageSurfaceUtils::OPEN_UNKNOWN_FILE_FORMAT; // XXX
 	}
@@ -215,7 +227,7 @@ RageSurfaceUtils::OpenResult RageSurface_Load_JPEG( const RString &sPath, RageSu
 /*
  * (c) 2004 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -225,7 +237,7 @@ RageSurfaceUtils::OpenResult RageSurface_Load_JPEG( const RString &sPath, RageSu
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

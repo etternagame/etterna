@@ -12,48 +12,47 @@
 // UninstallOld dialog
 
 UninstallOld::UninstallOld(CWnd* pParent /*=NULL*/)
-	: CDialog(UninstallOld::IDD, pParent)
-	, m_sPackages(_T(""))
+  : CDialog(UninstallOld::IDD, pParent)
+  , m_sPackages(_T(""))
 {
 }
 
-UninstallOld::~UninstallOld()
-{
-}
+UninstallOld::~UninstallOld() {}
 
-BOOL UninstallOld::OnInitDialog()
+BOOL
+UninstallOld::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	DialogUtil::LocalizeDialogAndContents( *this );
+	DialogUtil::LocalizeDialogAndContents(*this);
 
-	GetDlgItem(IDC_PACKAGES)->SetWindowText( m_sPackages );
+	GetDlgItem(IDC_PACKAGES)->SetWindowText(m_sPackages);
 
-	return TRUE;  // return TRUE  unless you set the focus to a control
+	return TRUE; // return TRUE  unless you set the focus to a control
 }
 
 BEGIN_MESSAGE_MAP(UninstallOld, CDialog)
-	//{{AFX_MSG_MAP(UninstallOld)
-	//}}AFX_MSG_MAP
-	ON_BN_CLICKED(IDC_BUTTON1, OnBnClickedNo)
+//{{AFX_MSG_MAP(UninstallOld)
+//}}AFX_MSG_MAP
+ON_BN_CLICKED(IDC_BUTTON1, OnBnClickedNo)
 END_MESSAGE_MAP()
-
-
-
 
 // UninstallOld message handlers
 
-void UninstallOld::OnOK()
+void
+UninstallOld::OnOK()
 {
 	EndDialog(IDOK);
 }
 
-void UninstallOld::OnCancel()
+void
+UninstallOld::OnCancel()
 {
 	EndDialog(IDCANCEL);
 }
 
-void UninstallOld::OnBnClickedNo()
+void
+UninstallOld::OnBnClickedNo()
 {
 	EndDialog(IDIGNORE);
 }
@@ -61,7 +60,7 @@ void UninstallOld::OnBnClickedNo()
 /*
  * (c) 2002-2005 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -71,7 +70,7 @@ void UninstallOld::OnBnClickedNo()
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

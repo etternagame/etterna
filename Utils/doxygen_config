@@ -3,7 +3,7 @@
 #---------------------------------------------------------------------------
 # Project related configuration options
 #---------------------------------------------------------------------------
-PROJECT_NAME           = StepMania 5
+PROJECT_NAME           = Etterna
 PROJECT_NUMBER         = 
 OUTPUT_DIRECTORY       = temp
 CREATE_SUBDIRS         = YES
@@ -72,10 +72,8 @@ INPUT                  = ..\src \
                          ..\src\archutils \
                          ..\src\arch\ArchHooks \
                          ..\src\arch\InputHandler \
-                         ..\src\arch\Lights \
                          ..\src\arch\LoadingWindow \
                          ..\src\arch\LowLevelWindow \
-                         ..\src\arch\MemoryCard \
                          ..\src\arch\MovieTexture \
                          ..\src\arch\Sound
 FILE_PATTERNS          = 
@@ -219,4 +217,4 @@ DOT_CLEANUP            = YES
 #---------------------------------------------------------------------------
 # Configuration::additions related to the search engine   
 #---------------------------------------------------------------------------
-SEARCHENGINE           = NO
+SEARCHENGINE           = YES

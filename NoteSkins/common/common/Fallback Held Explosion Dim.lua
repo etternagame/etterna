@@ -1,1 +1,1 @@
-return NOTESKIN:LoadActor( Var "Button", "Tap Explosion Bright" );
+return NOTESKIN:LoadActor(Var "Button", "Tap Explosion Bright")

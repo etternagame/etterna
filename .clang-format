@@ -1,0 +1,34 @@
+BasedOnStyle: Mozilla
+UseTab: Always
+IndentWidth: 4
+TabWidth: 4
+
+#From https://github.com/mozilla/gecko-dev/blob/master/.clang-format
+# Prevent the loss of indentation with these macros
+MacroBlockBegin: "^\
+NS_INTERFACE_MAP_BEGIN|\
+NS_INTERFACE_TABLE_HEAD|\
+NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION|\
+NS_IMPL_CYCLE_COLLECTION_.*_BEGIN|\
+NS_INTERFACE_TABLE_HEAD_CYCLE_COLLECTION_INHERITED|\
+NS_INTERFACE_TABLE_BEGIN|\
+NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN_INHERITED|\
+NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN_INHERITED$"
+MacroBlockEnd: "^\
+NS_INTERFACE_MAP_END|\
+NS_IMPL_CYCLE_COLLECTION_.*_END|\
+NS_INTERFACE_TABLE_END|\
+NS_INTERFACE_MAP_END_INHERITING|\
+NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END_INHERITED|\
+NS_IMPL_CYCLE_COLLECTION_UNLINK_END_INHERITED$"
+
+SortIncludes: false
+
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterEnum: true
+  AfterStruct: true
+  AfterFunction: true
+  AfterClass: true
+  SplitEmptyFunction: true
