@@ -193,7 +193,7 @@ inline void checkProtocol(string& url)
 }
 inline CURL* initBasicCURLHandle() {
 	CURL *curlHandle = curl_easy_init();
-	curl_easy_setopt(curlHandle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+	curl_easy_setopt(curlHandle, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36");
 	curl_easy_setopt(curlHandle, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(curlHandle, CURLOPT_SSL_VERIFYHOST, 0L);
 	curl_easy_setopt(curlHandle, CURLOPT_FOLLOWLOCATION, 1L);
