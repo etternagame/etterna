@@ -1123,6 +1123,7 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 				auto ssrs = *(score.find("skillsets"));
 				FOREACH_ENUM(Skillset, ss)
 					tmp.SSRs[ss] = static_cast<float>(ssrs.value(SkillsetToString(ss).c_str(), 0.0));
+				/*
 				try {
 					auto replay = score["replay"];
 					if (replay.size() > 1)
@@ -1133,6 +1134,7 @@ void DownloadManager::RequestChartLeaderBoard(string chartkey)
 				catch (exception e) {
 					//replaydata failed
 				}
+				*/
 
 				// eo still has some old profiles with various edge issues that unfortunately need to be handled here
 				// screen out old 11111 flags (my greatest mistake) and it's probably a safe bet to throw out below 25% scores -mina
