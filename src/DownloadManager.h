@@ -37,7 +37,7 @@ public:
 class Download {
 public:
 	function<void(Download*)> Done;
-	Download(string url, function<void(Download*)> done = [](Download*) {return; });
+	Download(string url, string filename="", function<void(Download*)> done = [](Download*) {return; });
 	~Download();
 	void Install();
 	void Update(float fDeltaSeconds);
@@ -183,7 +183,7 @@ public:
 	void RefreshPackList(string url); 
 
 	void init();
-	Download* DownloadAndInstallPack(const string &url);
+	Download* DownloadAndInstallPack(const string &url, string filename="");
 	Download*  DownloadAndInstallPack(DownloadablePack* pack);
 	void Update(float fDeltaSeconds);
 	void UpdatePacks(float fDeltaSeconds);
@@ -206,8 +206,8 @@ public:
 	inline void SetCURLPostToURL(CURL *curlHandle, string url);
 	inline void SetCURLURL(CURL *curlHandle, string url);
 
-	HTTPRequest* SendRequest(string requestName, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> done, bool requireLogin = true, bool post = false, bool async = true);
-	HTTPRequest* SendRequestToURL(string url, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> done, bool requireLogin, bool post, bool async);
+	HTTPRequest* SendRequest(string requestName, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> done, bool requireLogin = true, bool post = false, bool async = true,bool withBearer=true);
+	HTTPRequest* SendRequestToURL(string url, vector<pair<string, string>> params, function<void(HTTPRequest&, CURLMsg *)> done, bool requireLogin, bool post, bool async,bool withBearer);
 	void RefreshLastVersion(); 
 	void RefreshRegisterPage();
 	void MakeAThing(string chartkey);
