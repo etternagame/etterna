@@ -111,6 +111,7 @@ end
 --receptor/Notefield things
 local Notefield
 local noteColumns
+local usingReverse
 
 --guess checking if things are enabled before changing them is good for not having a log full of errors
 local enabledErrorBar = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).ErrorBar
@@ -396,10 +397,12 @@ local movable = {
 		elementTree = "GameplayXYCoordinates",
 		condition = true,
 		DeviceButton_up = {
+			notefieldY = true,
 			property = "AddY",
 			inc = -3
 		},
 		DeviceButton_down = {
+			notefieldY = true,
 			property = "AddY",
 			inc = 3
 		},
@@ -491,7 +494,7 @@ local function input(event)
 		if movable.pressed and current[button] and current.condition and notReleased and current.external == nil then
 			local curKey = current[button]
 			local prop = current.name .. string.gsub(curKey.property, "Add", "")
-			local newVal = values[prop] + curKey.inc
+			local newVal = values[prop] + (curKey.inc * ((curKey.notefieldY and not usingReverse) and -1 or 1))
 			values[prop] = newVal
 			if curKey.arbitraryFunction then
 				curKey.arbitraryFunction(newVal)
@@ -547,8 +550,9 @@ local t =
 			SCREENMAN:GetTopScreen():AddInputCallback(input)
 		end
 		screen = SCREENMAN:GetTopScreen()
+		usingReverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
 		Notefield = screen:GetChild("PlayerP1"):GetChild("NoteField")
-		Notefield:addy(values.NotefieldY)
+		Notefield:addy(values.NotefieldY * (usingReverse and 1 or -1))
 		Notefield:addx(values.NotefieldX)
 		movable.DeviceButton_r.element = Notefield
 		movable.DeviceButton_t.element = Notefield
