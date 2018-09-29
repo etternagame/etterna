@@ -438,7 +438,9 @@ Section "Main Section" SecMain
 	File /r /x CVS /x .svn "Data\*.png"
 	
 	SetOverwrite off
-		File /r /x CVS /x .svn "Data\*.ttf"
+		CreateDirectory "$INSTDIR\Assets"
+		SetOutPath "$INSTDIR\Assets"
+		File /r /x CVS /x svn "Assets\*"
 	SetOverwrite on
 !endif
 
