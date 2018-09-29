@@ -255,7 +255,7 @@ if(WIN32)
   set_property( DIRECTORY PROPERTY VS_STARTUP_PROJECT "Etterna" )
   set(SYSTEM_PCRE_FOUND FALSE)
   find_package(DirectX REQUIRED)
-  if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)")
+  if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64|amd64)")
     link_libraries(${SM_EXTERN_DIR}/MinaCalc/MinaCalc.lib)
     find_library(LIB_CURL NAMES "libcurl"
 	  PATHS "${SM_EXTERN_DIR}/libcurl/64bit" NO_DEFAULT_PATH
@@ -299,7 +299,7 @@ if(WIN32)
     set(HAS_FFMPEG TRUE)
   else()
     # FFMPEG...it can be evil.
-    if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)")
+    if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64|amd64)")
 		find_library(LIB_SWSCALE NAMES "swscale"
 		  PATHS "${SM_EXTERN_DIR}/ffmpeg/64bit" NO_DEFAULT_PATH
 		)

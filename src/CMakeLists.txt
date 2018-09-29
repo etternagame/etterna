@@ -151,7 +151,7 @@ set_target_properties("${SM_EXE_NAME}" PROPERTIES
   OUTPUT_NAME_RELWITHDEBINFO "${SM_NAME_RELWITHDEBINFO}"
 )
 
-if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)")
+if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64|amd64)")
 	list(APPEND SM_WINDOWS_PROGRAM_DLLS
 	  "${SM_PROGRAM_DIR}/avcodec-55.dll"
 	  "${SM_PROGRAM_DIR}/avformat-55.dll"
@@ -165,11 +165,10 @@ if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)")
 	  "${SM_PROGRAM_DIR}/zlib1.dll"
 	)
 else()
-	
 	list(APPEND SM_WINDOWS_PROGRAM_DLLS
-	  "${SM_PROGRAM_DIR}/avcodec-55.dll"
-	  "${SM_PROGRAM_DIR}/avformat-55.dll"
-	  "${SM_PROGRAM_DIR}/avutil-52.dll"
+	  "${SM_PROGRAM_DIR}/avcodec-55_x86.dll"
+	  "${SM_PROGRAM_DIR}/avformat-55_x86.dll"
+	  "${SM_PROGRAM_DIR}/avutil-52_x86.dll"
 	  "${SM_PROGRAM_DIR}/parallel_lights_io.dll"
 	  "${SM_PROGRAM_DIR}/swscale-2.dll"
 	  "${SM_PROGRAM_DIR}/uWS_x86.dll"
@@ -402,16 +401,24 @@ if (WIN32)
   get_filename_component(DIRECTX_LIBRARY_DIR "${DIRECTX_LIBRARIES}" DIRECTORY)
   
   sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${DIRECTX_LIBRARY_DIR}\"")
-  if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)")
+  if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64|amd64)")
     sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_EXTERN_DIR}/ffmpeg/64bit\"")
     sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_EXTERN_DIR}/uWebSocket/lib/64bit\"")
     sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_EXTERN_DIR}/libcurl/64bit\"") 
     sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_SRC_DIR}/archutils/Win32/ddk/64bit\"")
+    add_custom_command(TARGET "${SM_EXE_NAME}" POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+      "${SM_PROGRAM_DIR}/dlls/64bit"
+      ${SM_PROGRAM_DIR})
   else()
     sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_EXTERN_DIR}/ffmpeg/lib\"")
     sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_EXTERN_DIR}/uWebSocket/lib/x86\"")
     sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_EXTERN_DIR}/libcurl\"") 
     sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_SRC_DIR}/archutils/Win32/ddk\"")
+    add_custom_command(TARGET "${SM_EXE_NAME}" POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+      "${SM_PROGRAM_DIR}/dlls/32bit"
+      ${SM_PROGRAM_DIR})
   endif()
   sm_add_link_flag("${SM_EXE_NAME}" "/ERRORREPORT:SEND")
   sm_add_link_flag("${SM_EXE_NAME}" "/MAPINFO:EXPORTS")
