@@ -17,6 +17,9 @@ Etterna is an advanced cross-platform rhythm game focused on keyboard play.
 [build-link-app]: https://ci.appveyor.com/project/Nickito12/etterna
 [build-link-cover]: https://scan.coverity.com/projects/etternagame-etterna
 
+![Discord](https://img.shields.io/discord/339597420239519755.svg)
+![Github Releases (by Release)](https://img.shields.io/github/downloads/etternagame/etterna/v0.60.0/total.svg)
+
 ## Installation
 ### From Packages
 
