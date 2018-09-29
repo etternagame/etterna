@@ -111,6 +111,7 @@ end
 --receptor/Notefield things
 local Notefield
 local noteColumns
+local usingReverse
 
 --guess checking if things are enabled before changing them is good for not having a log full of errors
 local enabledErrorBar = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).ErrorBar
@@ -396,10 +397,12 @@ local movable = {
 		elementTree = "GameplayXYCoordinates",
 		condition = true,
 		DeviceButton_up = {
+			notefieldY = true,
 			property = "AddY",
 			inc = -3
 		},
 		DeviceButton_down = {
+			notefieldY = true,
 			property = "AddY",
 			inc = 3
 		},
@@ -488,31 +491,29 @@ local function input(event)
 		end
 
 		local current = movable[movable.current]
-		if current.external == nil then
-			if movable.pressed and current[button] and current.condition and notReleased then
-				local curKey = current[button]
-				local prop = current.name .. string.gsub(curKey.property, "Add", "")
-				local newVal = values[prop] + curKey.inc
-				values[prop] = newVal
-				if curKey.arbitraryFunction then
-					curKey.arbitraryFunction(newVal)
-				elseif current.elementList then
-					for _, elem in ipairs(current.element) do
-						propsFunctions[curKey.property](elem, newVal)
-					end
-				elseif current.children then
-					for _, attribute in ipairs(current.children) do
-						propsFunctions[curKey.property](current.element[attribute], newVal)
-					end
-				elseif curKey.property == "AddX" or curKey.property == "AddY" then
-					propsFunctions[curKey.property](current.element, curKey.inc)
-				else
-					propsFunctions[curKey.property](current.element, newVal)
+		if movable.pressed and current[button] and current.condition and notReleased and current.external == nil then
+			local curKey = current[button]
+			local prop = current.name .. string.gsub(curKey.property, "Add", "")
+			local newVal = values[prop] + (curKey.inc * ((curKey.notefieldY and not usingReverse) and -1 or 1))
+			values[prop] = newVal
+			if curKey.arbitraryFunction then
+				curKey.arbitraryFunction(newVal)
+			elseif current.elementList then
+				for _, elem in ipairs(current.element) do
+					propsFunctions[curKey.property](elem, newVal)
 				end
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1))[current.elementTree][keymode][prop] = newVal
-				playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-				playerConfig:save(pn_to_profile_slot(PLAYER_1))
+			elseif current.children then
+				for _, attribute in ipairs(current.children) do
+					propsFunctions[curKey.property](current.element[attribute], newVal)
+				end
+			elseif curKey.property == "AddX" or curKey.property == "AddY" then
+				propsFunctions[curKey.property](current.element, curKey.inc)
+			else
+				propsFunctions[curKey.property](current.element, newVal)
 			end
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1))[current.elementTree][keymode][prop] = newVal
+			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+			playerConfig:save(pn_to_profile_slot(PLAYER_1))
 		end
 	end
 	return false
@@ -549,8 +550,9 @@ local t =
 			SCREENMAN:GetTopScreen():AddInputCallback(input)
 		end
 		screen = SCREENMAN:GetTopScreen()
+		usingReverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
 		Notefield = screen:GetChild("PlayerP1"):GetChild("NoteField")
-		Notefield:addy(values.NotefieldY)
+		Notefield:addy(values.NotefieldY * (usingReverse and 1 or -1))
 		Notefield:addx(values.NotefieldX)
 		movable.DeviceButton_r.element = Notefield
 		movable.DeviceButton_t.element = Notefield

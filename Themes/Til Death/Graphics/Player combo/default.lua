@@ -12,6 +12,11 @@ local function arbitraryComboX(value)
 	c.Number:x(value - 4)
 end
 
+local function arbitraryComboZoom(value)
+	c.Label:zoom(value)
+	c.Number:zoom(value - 0.1)
+end
+
 local propsFunctions = {
 	Y = Actor.y,
 	Zoom = Actor.zoom
@@ -54,10 +59,12 @@ local movable = {
 		elementTree = "GameplaySizes",
 		condition = true,
 		DeviceButton_up = {
+			arbitraryFunction = arbitraryComboZoom,
 			property = "Zoom",
 			inc = 0.01
 		},
 		DeviceButton_down = {
+			arbitraryFunction = arbitraryComboZoom,
 			property = "Zoom",
 			inc = -0.01
 		}
