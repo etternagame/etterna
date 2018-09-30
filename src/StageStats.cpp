@@ -491,6 +491,21 @@ DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
 
 	if (mods.find("Backwards") != mods.npos)
 		return false;
+	
+	if (mods.find("Little") != mods.npos)
+		return false;
+
+	if (mods.find("NoJumps") != mods.npos)
+		return false;
+
+	if (mods.find("NoHands") != mods.npos)
+		return false;
+
+	if (mods.find("NoQuads") != mods.npos)
+		return false;
+
+	if (mods.find("NoStretch") != mods.npos)
+		return false;
 
 	return true;
 }
