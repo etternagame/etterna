@@ -272,7 +272,7 @@ class DownloadManager
 	bool currentrateonly = false;
 	bool topscoresonly = true;
 	void RequestChartLeaderBoard(string chartkey);
-	bool isGlobal = true;
+	//bool isGlobal = true;
 	void RefreshUserData();
 	string countryCode;
 	void RefreshUserRank();

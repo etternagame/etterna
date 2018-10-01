@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "CryptManager.h"
 #include "Foreach.h"
 #include "GameConstantsAndTypes.h"
@@ -61,6 +61,7 @@ struct HighScoreImpl
 						 // was created (immediately after achieved)
 	string sPlayerGuid;  // who made this high score
 	string sMachineGuid; // where this high score was made
+	string countryCode;
 	int iProductID;
 	int iTapNoteScores[NUM_TapNoteScore];
 	int iHoldNoteScores[NUM_HoldNoteScore];
@@ -1161,6 +1162,11 @@ string
 HighScore::GetMachineGuid() const
 {
 	return m_Impl->sMachineGuid;
+}
+string
+HighScore::GetCountryCode() const
+{
+	return m_Impl->countryCode;
 }
 int
 HighScore::GetProductID() const

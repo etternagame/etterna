@@ -658,8 +658,10 @@ function nestedTabButton(i)
 						MESSAGEMAN:Broadcast("NestedTabChanged")
 						if nestedTab == 3 then
 							isGlobalRanking = false
-						else
+							self:GetParent():GetParent():GetChild("ScoreDisplay"):queuecommand("ChartLeaderboardUpdate")
+						elseif nestedTab == 2 then
 							isGlobalRanking = true
+							self:GetParent():GetParent():GetChild("ScoreDisplay"):queuecommand("ChartLeaderboardUpdate")
 						end
 						if nestedTab == 1 then
 							self:GetParent():GetParent():GetChild("ScoreDisplay"):visible(false)
@@ -675,8 +677,9 @@ function nestedTabButton(i)
 	}
 end
 
--- online score display
+-- online score display 
 -- ret[#ret + 1] = LoadActor("../superscoreboard")
+SCREENMAN:SystemMessage("Loading SuperScoreBoard")
 ret[#ret + 1] = LoadActorWithParams("../superscoreboard",{getIsGlobalRanking=function() return isGlobalRanking end})
 for i = 1, #nestedTabs do
 	ret[#ret + 1] = nestedTabButton(i)
