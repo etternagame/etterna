@@ -158,6 +158,7 @@ class OnlineScore
 	int userid;
 	DateTime datetime;
 	vector<pair<float, float>> replayData;
+	string countryCode;
 };
 class DownloadManager
 {
@@ -271,7 +272,9 @@ class DownloadManager
 	bool currentrateonly = false;
 	bool topscoresonly = true;
 	void RequestChartLeaderBoard(string chartkey);
+	bool isGlobal = true;
 	void RefreshUserData();
+	string countryCode;
 	void RefreshUserRank();
 	void RefreshTop25(Skillset ss);
 	void DownloadCoreBundle(string whichoneyo);
