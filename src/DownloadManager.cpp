@@ -1766,6 +1766,7 @@ Download::Download(string url, string filename, function<void(Download*)> done)
 	curl_easy_setopt(handle, CURLOPT_XFERINFODATA, &progress);
 	curl_easy_setopt(handle, CURLOPT_XFERINFOFUNCTION, progressfunc);
 	curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 0);
+	curl_easy_setopt(handle, CURLOPT_HTTPGET, 1L);
 }
 
 Download::~Download()
