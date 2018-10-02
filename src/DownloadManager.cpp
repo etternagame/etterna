@@ -493,7 +493,7 @@ DownloadManager::Update(float fDeltaSeconds)
 void
 DownloadManager::UpdateHTTP(float fDeltaSeconds)
 {
-	if (!HTTPRunning && HTTPRequests.size() == 0)
+	if (!HTTPRunning && HTTPRequests.size() == 0 || gameplay)
 		return;
 	timeval timeout;
 	int rc, maxfd = -1;
