@@ -75,7 +75,7 @@ public:
 	DEFINE_METHOD(AnyActiveFilter, AnyActiveFilter())
 	static int SetSSFilter(T* p, lua_State *L) {
 		p->SetSSFilter(FArg(1), static_cast<Skillset>(IArg(2) - 1), IArg(3));
-		return 1;
+		return 0;
 	}
 	static int GetSSFilter(T* p, lua_State *L) {
 		float f = p->GetSSFilter(static_cast<Skillset>(IArg(1) - 1), IArg(2));
@@ -84,14 +84,14 @@ public:
 	}
 	static int ResetSSFilters(T* p, lua_State *L) {
 		p->ResetSSFilters();
-		return 1;
+		return 0;
 	}
 	static int SetMaxFilterRate(T* p, lua_State* L) {
 		float mfr = FArg(1);
 		auto loot = p->m_pPlayerState[0];
 		CLAMP(mfr, loot->wtFFF, 3.f);
 		p->MaxFilterRate = mfr;
-		return 1;
+		return 0;
 	}
 	static int GetMaxFilterRate(T* p, lua_State* L) {
 		lua_pushnumber(L, p->MaxFilterRate);
@@ -102,7 +102,7 @@ public:
 		CLAMP(mfr, 0.7f, p->MaxFilterRate);
 		auto loot = p->m_pPlayerState[0];
 		loot->wtFFF = mfr;
-		return 1;
+		return 0;
 	}
 	static int GetMinFilterRate(T* p, lua_State* L) {
 		auto loot = p->m_pPlayerState[0];
@@ -111,7 +111,7 @@ public:
 	}
 	static int ToggleFilterMode(T* p, lua_State* L) {
 		p->ExclusiveFilter = !p->ExclusiveFilter;
-		return 1;
+		return 0;
 
 	}
 	static int GetFilterMode(T* p, lua_State* L) {
@@ -120,7 +120,7 @@ public:
 	}
 	static int ToggleHighestSkillsetsOnly(T* p, lua_State* L) {
 		p->HighestSkillsetsOnly = !p->HighestSkillsetsOnly;
-		return 1;
+		return 0;
 
 	}
 	static int GetHighestSkillsetsOnly(T* p, lua_State* L) {
@@ -130,7 +130,7 @@ public:
 
 	static int HelpImTrappedInAChineseFortuneCodingFactory(T* p, lua_State* L) {
 		p->galaxycollapsed = BArg(1);
-		return 1;
+		return 0;
 	}
 	static int oopsimlazylol(T* p, lua_State* L) {
 		lua_pushboolean(L, p->galaxycollapsed);
@@ -147,7 +147,7 @@ public:
 	static int savepos(T* p, lua_State* L) {
 		p->watte[SArg(1)].first = IArg(2);
 		p->watte[SArg(1)].second = IArg(3);
-		return 1;
+		return 0;
 	}
 
 	LunaFilterManager() {
