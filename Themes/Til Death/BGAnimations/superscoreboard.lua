@@ -23,6 +23,8 @@ local moving
 local cheese
 local collapsed = false
 
+local getIsGlobalRanking = Var "getIsGlobalRanking"
+
 -- will eat any mousewheel inputs to scroll pages while mouse is over the background frame
 local function input(event)
 	if cheese:GetVisible() and isOver(cheese:GetChild("FrameDisplay")) then
@@ -105,7 +107,7 @@ local o =
 		self:queuecommand("ChartLeaderboardUpdate")
 	end,
 	ChartLeaderboardUpdateMessageCommand = function(self)
-		scoretable = DLMAN:RequestChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())
+		scoretable = DLMAN:RequestChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(),getIsGlobalRanking())
 		ind = 0
 		self:playcommand("Update")
 	end,
@@ -273,7 +275,7 @@ local o =
 				if collapsed then
 					self:xy(c5x - 175, headeroff):zoom(tzoom):halign(1)
 				else
-					self:xy(c5x - 115, headeroff):zoom(tzoom):halign(1)
+					self:xy(c5x - 100, headeroff):zoom(tzoom):halign(1)
 				end
 			end,
 			HighlightCommand = function(self)

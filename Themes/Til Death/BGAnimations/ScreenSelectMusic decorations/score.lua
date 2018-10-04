@@ -7,7 +7,7 @@ local scoreIndex = 1
 local score
 local pn = GAMESTATE:GetEnabledPlayers()[1]
 local nestedTab = 1
-local nestedTabs = {"Local", "Online"}
+local nestedTabs = {"Local", "Global", "Country"}
 
 local frameX = 10
 local frameY = 45
@@ -23,6 +23,8 @@ local nestedTabButtonHeight = 20
 local netPageButtonWidth = 50
 local netPageButtonHeight = 50
 local headeroffY = 26 / 1.5
+local isGlobalRanking = true;
+
 
 local selectedrateonly
 
@@ -36,6 +38,8 @@ local judges = {
 	"HoldNoteScore_Held",
 	"HoldNoteScore_LetGo"
 }
+
+
 
 local defaultRateText = ""
 if themeConfig:get_data().global.RateSort then
@@ -623,7 +627,7 @@ ret[#ret + 1] = t
 function nestedTabButton(i)
 	return Def.ActorFrame {
 		InitCommand = function(self)
-			self:xy(frameX + offsetX + (i - 1) * (nestedTabButtonWidth - 80), frameY + headeroffY)
+			self:xy(frameX + offsetX + (i - 1) * (nestedTabButtonWidth - capWideScale(100,80)), frameY + headeroffY)
 			self:SetUpdateFunction(highlight)
 		end,
 		CollapseCommand = function(self)
@@ -635,7 +639,7 @@ function nestedTabButton(i)
 		LoadFont("Common normal") ..
 			{
 				InitCommand = function(self)
-					self:diffuse(getMainColor("positive")):maxwidth(nestedTabButtonWidth - 80):maxheight(40):zoom(0.75):settext(
+					self:diffuse(getMainColor("positive")):maxwidth(nestedTabButtonWidth - 80):maxheight(40):zoom(0.65):settext(
 						nestedTabs[i]
 					):halign(0)
 				end,
@@ -652,6 +656,12 @@ function nestedTabButton(i)
 					if isOver(self) then
 						nestedTab = i
 						MESSAGEMAN:Broadcast("NestedTabChanged")
+						if nestedTab == 3 then
+							isGlobalRanking = false
+						elseif nestedTab == 2 then
+							isGlobalRanking = true
+						end
+						MESSAGEMAN:Broadcast("ChartLeaderboardUpdate")
 						if nestedTab == 1 then
 							self:GetParent():GetParent():GetChild("ScoreDisplay"):visible(false)
 						else
@@ -666,8 +676,10 @@ function nestedTabButton(i)
 	}
 end
 
--- online score display
-ret[#ret + 1] = LoadActor("../superscoreboard")
+-- online score display 
+-- ret[#ret + 1] = LoadActor("../superscoreboard")
+ret[#ret + 1] = LoadActorWithParams("../superscoreboard",{getIsGlobalRanking=function() return isGlobalRanking end})
+
 for i = 1, #nestedTabs do
 	ret[#ret + 1] = nestedTabButton(i)
 end

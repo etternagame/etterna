@@ -1278,6 +1278,7 @@ DownloadManager::MakeAThing(string chartkey)
 		hs.userid = ohs.userid;
 		hs.scoreid = ohs.scoreid;
 		hs.avatar = ohs.avatar;
+		hs.countryCode = ohs.countryCode;
 		athing.push_back(hs);
 	}
 }
@@ -1308,6 +1309,7 @@ DownloadManager::RequestChartLeaderBoard(string chartkey)
 				tmp.username = user.value("userName", "").c_str();
 				tmp.avatar = user.value("avatar", "").c_str();
 				tmp.userid = user.value("userId", 0);
+				tmp.countryCode = user.value("countryCode", "");
 				tmp.playerRating =
 				  static_cast<float>(user.value("playerRating", 0.0));
 				tmp.wife = static_cast<float>(score.value("wife", 0.0) / 100.0);
@@ -1355,7 +1357,7 @@ DownloadManager::RequestChartLeaderBoard(string chartkey)
 				// throw out below 25% scores -mina
 				if (tmp.wife > 1.f || tmp.wife < 0.25f || !tmp.valid)
 					continue;
-
+				
 				// it seems prudent to maintain the eo functionality in this way
 				// and screen out multiple scores from the same user even more
 				// prudent would be to put this last where it belongs, we don't
@@ -1566,6 +1568,7 @@ DownloadManager::RefreshUserData()
 			  skillsets->value(SkillsetToString(ss).c_str(), 0.0f);
 			DLMAN->sessionRatings[Skill_Overall] =
 			  attr->value("playerRating", DLMAN->sessionRatings[Skill_Overall]);
+			DLMAN->countryCode = attr->value("countryCode", "");
 		} catch (exception e) {
 			FOREACH_ENUM(Skillset, ss)
 			(DLMAN->sessionRatings)[ss] = 0.0f;
@@ -2069,6 +2072,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	{
 		// p->RequestChartLeaderBoard(SArg(1));
 		p->MakeAThing(SArg(1));
+		bool isGlobal = BArg(2);
+		
 		vector<HighScore*> wot;
 		unordered_set<string> userswithscores;
 		float currentrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
@@ -2078,6 +2083,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 				p->currentrateonly)
 				continue;
 			if (userswithscores.count(zoop.GetName()) == 1 && p->topscoresonly)
+				continue;
+			if ((!isGlobal) && (zoop.countryCode != DLMAN->countryCode))
 				continue;
 			wot.push_back(&zoop);
 			userswithscores.emplace(zoop.GetName());
