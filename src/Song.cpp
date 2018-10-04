@@ -565,7 +565,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 	FixupPath(m_sBackgroundFile, m_sSongDir);
 	FixupPath(m_sCDTitleFile, m_sSongDir);
 
-	CHECKPOINT_M("Looking for images...");
+	//CHECKPOINT_M("Looking for images...");
 
 	m_SongTiming.TidyUpData(false);
 
