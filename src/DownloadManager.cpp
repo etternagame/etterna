@@ -222,7 +222,11 @@ inline CURL*
 initBasicCURLHandle()
 {
 	CURL* curlHandle = curl_easy_init();
-	curl_easy_setopt(curlHandle, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36");
+	curl_easy_setopt(curlHandle,
+					 CURLOPT_USERAGENT,
+					 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+					 "AppleWebKit/537.36 (KHTML, like Gecko) "
+					 "Chrome/60.0.3112.113 Safari/537.36");
 	curl_easy_setopt(curlHandle, CURLOPT_ACCEPT_ENCODING, "");
 	curl_easy_setopt(curlHandle, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(curlHandle, CURLOPT_SSL_VERIFYHOST, 0L);
@@ -454,7 +458,7 @@ Download::Update(float fDeltaSeconds)
 	}
 }
 Download*
-DownloadManager::DownloadAndInstallPack(DownloadablePack* pack)
+DownloadManager::DownloadAndInstallPack(DownloadablePack* pack, bool mirror)
 {
 	vector<RString> packs;
 	SONGMAN->GetSongGroupNames(packs);
@@ -466,10 +470,11 @@ DownloadManager::DownloadAndInstallPack(DownloadablePack* pack)
 		}
 	}
 	if (downloadingPacks >= maxPacksToDownloadAtOnce) {
-		DLMAN->DownloadQueue.emplace_back(pack);
+		DLMAN->DownloadQueue.emplace_back(make_pair(pack, mirror));
 		return nullptr;
 	}
-	Download* dl = DownloadAndInstallPack(pack->url, pack->name + ".zip");
+	Download* dl = DownloadAndInstallPack(mirror ? pack->mirror : pack->url,
+										  pack->name + ".zip");
 	dl->p_Pack = pack;
 	return dl;
 }
@@ -582,7 +587,7 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		auto it = DownloadQueue.begin();
 		DownloadQueue.pop_front();
 		auto pack = *it;
-		auto dl = DLMAN->DownloadAndInstallPack(pack);
+		auto dl = DLMAN->DownloadAndInstallPack(pack.first, pack.second);
 	}
 	if (!downloadingPacks)
 		return;
@@ -1420,7 +1425,7 @@ DownloadManager::GetCoreBundle(string whichoneyo)
 }
 
 void
-DownloadManager::DownloadCoreBundle(string whichoneyo)
+DownloadManager::DownloadCoreBundle(string whichoneyo, bool mirror)
 {
 	auto bundle = GetCoreBundle(whichoneyo);
 	sort(bundle.begin(),
@@ -1429,7 +1434,7 @@ DownloadManager::DownloadCoreBundle(string whichoneyo)
 			 return x1->size < x2->size;
 		 });
 	for (auto pack : bundle)
-		DLMAN->DownloadQueue.emplace_back(pack);
+		DLMAN->DownloadQueue.emplace_back(make_pair(pack, mirror));
 }
 
 void
@@ -1726,6 +1731,11 @@ DownloadManager::RefreshPackList(string url)
 							continue;
 					} catch (exception e) {
 						continue;
+					}
+					try {
+						if (pack.find("mirror") != pack.end())
+							tmp.mirror = pack.value("mirror", "");
+					} catch (exception e) {
 					}
 					if (tmp.url.empty())
 						continue;
@@ -2281,9 +2291,12 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
   public:
 	static int DownloadAndInstall(T* p, lua_State* L)
 	{
+		bool mirror = false;
+		if (lua_gettop(L) > 0)
+			mirror = BArg(1);
 		if (p->downloading)
 			return 1;
-		Download* dl = DLMAN->DownloadAndInstallPack(p);
+		Download* dl = DLMAN->DownloadAndInstallPack(p, mirror);
 		if (dl) {
 			dl->PushSelf(L);
 			p->downloading = true;
@@ -2309,8 +2322,9 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 	}
 	static int IsQueued(T* p, lua_State* L)
 	{
-		auto it = std::find(
-		  DLMAN->DownloadQueue.begin(), DLMAN->DownloadQueue.end(), p);
+		auto it = std::find_if(DLMAN->DownloadQueue.begin(),
+							   DLMAN->DownloadQueue.end(),
+							   [p](auto pair) { return pair.first == p; });
 		lua_pushboolean(L, it != DLMAN->DownloadQueue.end());
 		return 1;
 	}

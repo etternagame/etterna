@@ -13,9 +13,10 @@ local height = (numpacks + 2) * packspaceY
 local adjx = 14
 local c1x = 10
 local c2x = c1x + (tzoom * 5 * adjx) -- guesswork adjustment for epxected text length
-local c5x = dwidth -- right aligned cols
-local c4x = c5x - adjx - (tzoom * 8 * adjx) -- right aligned cols
-local c3x = c4x - adjx - (tzoom * 6 * adjx) -- right aligned cols
+local c6x = dwidth -- right aligned cols
+local c5x = c6x - adjx - (tzoom * 6 * adjx) -- right aligned cols
+local c4x = c5x - adjx - (tzoom * 10 * adjx) -- right aligned cols
+local c3x = c4x - adjx - (tzoom * 8 * adjx) -- right aligned cols
 local headeroff = packspaceY / 1.5
 
 local function highlight(self)
@@ -230,7 +231,29 @@ local function makePackDisplay(i)
 				end,
 				MouseLeftClickMessageCommand = function(self)
 					if isOver(self) then
-						packinfo:DownloadAndInstall()
+						packinfo:DownloadAndInstall(true)
+					end
+				end
+			},
+		LoadFont("Common normal") ..
+			{
+				--dl button
+				InitCommand = function(self)
+					self:x(c6x):zoom(tzoom):halign(1)
+				end,
+				DisplayCommand = function(self)
+					if installed then
+						self:settext("Installed")
+					else
+						self:settext("Mirror")
+					end
+				end,
+				HighlightCommand = function(self)
+					highlightIfOver(self)
+				end,
+				MouseLeftClickMessageCommand = function(self)
+					if isOver(self) then
+						packinfo:DownloadAndInstall(true)
 					end
 				end
 			},

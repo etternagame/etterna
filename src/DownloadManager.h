@@ -83,6 +83,7 @@ class DownloadablePack
 	int id{ 0 };
 	float avgDifficulty{ 0 };
 	string url{ "" };
+	string mirror{ "" };
 	bool downloading{ false };
 	// Lua
 	void PushSelf(lua_State* L);
@@ -228,7 +229,8 @@ class DownloadManager
 
 	void init();
 	Download* DownloadAndInstallPack(const string& url, string filename = "");
-	Download* DownloadAndInstallPack(DownloadablePack* pack);
+	Download* DownloadAndInstallPack(DownloadablePack* pack,
+									 bool mirror = false);
 	void Update(float fDeltaSeconds);
 	void UpdatePacks(float fDeltaSeconds);
 	void UpdateHTTP(float fDeltaSeconds);
@@ -274,7 +276,7 @@ class DownloadManager
 	void RefreshUserData();
 	void RefreshUserRank();
 	void RefreshTop25(Skillset ss);
-	void DownloadCoreBundle(string whichoneyo);
+	void DownloadCoreBundle(string whichoneyo, bool mirror = false);
 	map<string, vector<DownloadablePack*>> bundles;
 	void RefreshCoreBundles();
 	vector<DownloadablePack*> GetCoreBundle(string whichoneyo);
@@ -286,7 +288,7 @@ class DownloadManager
 
 	// most recent single score upload result -mina
 	RString mostrecentresult = "";
-	std::deque<DownloadablePack*> DownloadQueue;
+	deque<pair<DownloadablePack*, bool>> DownloadQueue; // (pack,isMirror)
 	const int maxPacksToDownloadAtOnce = 1;
 	const float DownloadCooldownTime = 5.f;
 	float timeSinceLastDownload = 0.f;
