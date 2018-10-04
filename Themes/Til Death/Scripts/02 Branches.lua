@@ -282,5 +282,11 @@ Branch = {
 		end
 
 		return "ScreenProfileLoad"
+	end,
+	LeavePackDownloader = function()
+		if PROFILEMAN:GetProfile(1):GetDisplayName() == "" then	-- this is suuuuper hacky and will mess with people using "" as display names, but they're idiots anyway -mina
+			return "ScreenTitleMenu"
+		end
+		return "ScreenSelectMusic"
 	end
 }
