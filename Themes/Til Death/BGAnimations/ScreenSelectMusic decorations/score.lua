@@ -627,7 +627,7 @@ ret[#ret + 1] = t
 function nestedTabButton(i)
 	return Def.ActorFrame {
 		InitCommand = function(self)
-			self:xy(frameX + offsetX + (i - 1) * (nestedTabButtonWidth - 80), frameY + headeroffY)
+			self:xy(frameX + offsetX + (i - 1) * (nestedTabButtonWidth - capWideScale(100,80)), frameY + headeroffY)
 			self:SetUpdateFunction(highlight)
 		end,
 		CollapseCommand = function(self)
@@ -639,7 +639,7 @@ function nestedTabButton(i)
 		LoadFont("Common normal") ..
 			{
 				InitCommand = function(self)
-					self:diffuse(getMainColor("positive")):maxwidth(nestedTabButtonWidth - 80):maxheight(40):zoom(0.75):settext(
+					self:diffuse(getMainColor("positive")):maxwidth(nestedTabButtonWidth - 80):maxheight(40):zoom(0.65):settext(
 						nestedTabs[i]
 					):halign(0)
 				end,

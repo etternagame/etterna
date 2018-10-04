@@ -275,7 +275,7 @@ local o =
 				if collapsed then
 					self:xy(c5x - 175, headeroff):zoom(tzoom):halign(1)
 				else
-					self:xy(c5x - 115, headeroff):zoom(tzoom):halign(1)
+					self:xy(c5x - 100, headeroff):zoom(tzoom):halign(1)
 				end
 			end,
 			HighlightCommand = function(self)
