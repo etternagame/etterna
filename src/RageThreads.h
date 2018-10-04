@@ -5,6 +5,7 @@
 #include <mutex>
 #include <atomic>
 #include <thread>
+#include <chrono>
 #include <condition_variable>
 
 class ThreadData
@@ -13,7 +14,7 @@ class ThreadData
 	void waitForUpdate()
 	{
 		std::unique_lock<std::mutex> lk(_updatedMutex);
-		_updatedCV.wait(lk, [this] { return this->getUpdated(); });
+		_updatedCV.wait_for(lk, 100ms, [this] { return this->getUpdated(); });
 	}
 	void setUpdated(bool b)
 	{
