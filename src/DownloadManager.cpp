@@ -24,7 +24,7 @@
 #include <nlohmann/json.hpp>
 #include <unordered_set>
 #include <FilterManager.h>
-#include "PlayerStageStats.h" >
+#include "PlayerStageStats.h"
 #include "Grade.h"
 using json = nlohmann::json;
 #ifdef _WIN32
