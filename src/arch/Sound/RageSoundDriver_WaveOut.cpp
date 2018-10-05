@@ -159,7 +159,7 @@ RageSoundDriver_WaveOut::Init()
 		m_aBuffers[b].dwFlags |= WHDR_DONE;
 	}
 
-	if(PREFSMAN->m_verbose_log)
+	if(PREFSMAN->m_verbose_log > 1)
 		LOG->Info("WaveOut software mixing at %i hz", m_iSampleRate);
 
 	/* We have a very large writeahead; make sure we have a large enough decode
@@ -179,10 +179,10 @@ RageSoundDriver_WaveOut::~RageSoundDriver_WaveOut()
 	if (MixingThread.IsCreated()) {
 		m_bShutdown = true;
 		SetEvent(m_hSoundEvent);
-		if (PREFSMAN->m_verbose_log)
+		if (PREFSMAN->m_verbose_log > 1)
 			LOG->Trace("Shutting down mixer thread ...");
 		MixingThread.Wait();
-		if (PREFSMAN->m_verbose_log)
+		if (PREFSMAN->m_verbose_log > 1)
 			LOG->Trace("Mixer thread shut down.");
 	}
 

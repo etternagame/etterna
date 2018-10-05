@@ -11,7 +11,7 @@
 static void
 LogVideoDriverInfo(VideoDriverInfo info)
 {
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 1)
 	{
 		LOG->Info("Video driver: %s [%s]",
 			info.sDescription.c_str(),
@@ -29,7 +29,7 @@ GetMemoryDebugInfo()
 	MEMORYSTATUS mem;
 	GlobalMemoryStatus(&mem);
 
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Info("Memory: %imb total, %imb swap (%imb swap avail)",
 				  mem.dwTotalPhys / 1048576,
 				  mem.dwTotalPageFile / 1048576,
@@ -120,7 +120,7 @@ GetDriveDebugInfo9x()
 			RegistryAccess::GetRegValue(
 			  IDs[id], "DMACurrentlyUsed", DMACurrentlyUsed);
 
-			if (PREFSMAN->m_verbose_log)
+			if (PREFSMAN->m_verbose_log > 1)
 				LOG->Info("Drive: \"%s\" DMA: %s",
 						  DeviceDesc.c_str(),
 						  DMACurrentlyUsed ? "yes" : "NO");
@@ -175,7 +175,7 @@ GetDriveDebugInfoNT()
 					RegistryAccess::GetRegValue(
 					  LUIDs[luid], "Identifier", Identifier);
 					TrimRight(Identifier);
-					if (PREFSMAN->m_verbose_log)
+					if (PREFSMAN->m_verbose_log > 1)
 						LOG->Info("Drive: \"%s\" Driver: %s DMA: %s",
 								  Identifier.c_str(),
 								  Driver.c_str(),
@@ -294,7 +294,7 @@ GetSoundDriverDebugInfo()
 			LOG->Info(wo_ssprintf(ret, "waveOutGetDevCaps(%i) failed", i));
 			continue;
 		}
-		if(PREFSMAN->m_verbose_log)
+		if(PREFSMAN->m_verbose_log > 1)
 			LOG->Info("Sound device %i: %s, %i.%i, MID %i, PID %i %s",
 					  i,
 					  caps.szPname,

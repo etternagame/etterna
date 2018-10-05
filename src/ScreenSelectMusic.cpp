@@ -330,7 +330,7 @@ ScreenSelectMusic::BeginScreen()
 
 ScreenSelectMusic::~ScreenSelectMusic()
 {
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("ScreenSelectMusic::~ScreenSelectMusic()");
 	IMAGECACHE->Undemand("Banner");
 }
@@ -1666,7 +1666,7 @@ ScreenSelectMusic::AfterMusicChange()
 
 	g_bBannerWaiting = false;
 	if (bWantBanner) {
-		if (PREFSMAN->m_verbose_log)
+		if (PREFSMAN->m_verbose_log > 1)
 			LOG->Trace("LoadFromCachedBanner(%s)", g_sBannerPath.c_str());
 		if (m_Banner.LoadFromCachedBanner(g_sBannerPath)) {
 			/* If the high-res banner is already loaded, just delay before

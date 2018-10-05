@@ -45,10 +45,10 @@ InputHandler_Win32_Pump::~InputHandler_Win32_Pump()
 {
 	if (InputThread.IsCreated()) {
 		m_bShutdown = true;
-		if (PREFSMAN->m_verbose_log)
+		if (PREFSMAN->m_verbose_log > 1)
 			LOG->Trace("Shutting down Pump thread ...");
 		InputThread.Wait();
-		if (PREFSMAN->m_verbose_log)
+		if (PREFSMAN->m_verbose_log > 1)
 			LOG->Trace("Pump thread shut down.");
 	}
 

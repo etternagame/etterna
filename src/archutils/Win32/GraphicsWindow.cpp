@@ -66,7 +66,7 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			const bool bMinimized = (HIWORD(wParam) != 0);
 			const bool bHadFocus = g_bHasFocus;
 			g_bHasFocus = !bInactive && !bMinimized;
-			if (PREFSMAN != NULL && PREFSMAN->m_verbose_log)
+			if (PREFSMAN != NULL && PREFSMAN->m_verbose_log > 1)
 				LOG->Trace("WM_ACTIVATE (%i, %i): %s",
 						   bInactive,
 						   bMinimized,
@@ -81,7 +81,7 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					 ++it)
 					sStr += (sStr.size() ? ", " : "") + *it;
 
-				if (PREFSMAN != NULL && PREFSMAN->m_verbose_log)
+				if (PREFSMAN != NULL && PREFSMAN->m_verbose_log > 1)
 					LOG->MapLog("LOST_FOCUS", "Lost focus to: %s", sStr.c_str());
 			}
 

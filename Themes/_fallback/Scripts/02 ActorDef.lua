@@ -117,7 +117,7 @@ function LoadActorFunc(path, level)
 	end
 
 	local Type = ActorUtil.GetFileType(path)
-	if PREFSMAN:GetPreference("VerboseLogging") then
+	if PREFSMAN:GetPreference("VerboseLogging") > 1 then
 		Trace("Loading " .. path .. ", type " .. tostring(Type))
 	end
 

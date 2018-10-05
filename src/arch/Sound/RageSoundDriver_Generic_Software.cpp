@@ -490,15 +490,15 @@ RageSoundDriver::~RageSoundDriver()
 	/* Signal the decoding thread to quit. */
 	if (m_DecodeThread.IsCreated()) {
 		m_bShutdownDecodeThread = true;
-		if (PREFSMAN->m_verbose_log)
+		if (PREFSMAN->m_verbose_log > 1)
 			LOG->Trace("Shutting down decode thread ...");
 		LOG->Flush();
 		m_DecodeThread.Wait();
-		if (PREFSMAN->m_verbose_log)
+		if (PREFSMAN->m_verbose_log > 1)
 			LOG->Trace("Decode thread shut down.");
 		LOG->Flush();
 
-		if (PREFSMAN->m_verbose_log)
+		if (PREFSMAN->m_verbose_log > 1)
 			LOG->Info("Mixing %f ahead in %i Mix() calls",
 					  float(g_iTotalAhead) / max(g_iTotalAheadCount, 1),
 					  g_iTotalAheadCount);

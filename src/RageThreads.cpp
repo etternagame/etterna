@@ -272,7 +272,7 @@ RageThread::Create(int (*fn)(void*), void* data)
 
 	strcpy(m_pSlot->m_szName, m_sName.c_str());
 
-	if (LOG && PREFSMAN->m_verbose_log)
+	if (LOG && PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("Starting thread: %s", m_sName.c_str());
 	sprintf(m_pSlot->m_szThreadFormattedOutput, "Thread: %s", m_sName.c_str());
 

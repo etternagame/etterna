@@ -134,7 +134,7 @@ DumpPixelFormat(const PIXELFORMATDESCRIPTOR& pfd)
 
 	if (bInvalidFormat)
 		LOG->Warn("Invalid format: %s", str.c_str());
-	else if (PREFSMAN->m_verbose_log)
+	else if (PREFSMAN->m_verbose_log > 1)
 			LOG->Info("%s", str.c_str());
 }
 
@@ -173,7 +173,7 @@ LowLevelWindow_Win32::TryVideoMode(const VideoModeParams& p,
 
 	/* Set the display mode: switch to a fullscreen mode or revert to windowed
 	 * mode. */
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("SetScreenMode ...");
 	RString sErr = GraphicsWindow::SetScreenMode(p);
 	if (!sErr.empty())
@@ -200,7 +200,7 @@ LowLevelWindow_Win32::TryVideoMode(const VideoModeParams& p,
 		if (memcmp(&DestPixelFormat,
 				   &g_CurrentPixelFormat,
 				   sizeof(PIXELFORMATDESCRIPTOR))) {
-			if (PREFSMAN->m_verbose_log)
+			if (PREFSMAN->m_verbose_log > 1)
 				LOG->Trace("Reset: pixel format changing");
 			bNeedToSetPixelFormat = true;
 		}
@@ -306,7 +306,7 @@ LowLevelWindow_Win32::IsSoftwareRenderer(RString& sError)
 	RString sVendor = (const char*)glGetString(GL_VENDOR);
 	RString sRenderer = (const char*)glGetString(GL_RENDERER);
 
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("LowLevelWindow_Win32::IsSoftwareRenderer '%s', '%s'",
 				   sVendor.c_str(),
 				   sRenderer.c_str());

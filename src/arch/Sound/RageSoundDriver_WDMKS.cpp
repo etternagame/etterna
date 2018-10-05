@@ -1603,10 +1603,10 @@ RageSoundDriver_WDMKS::~RageSoundDriver_WDMKS()
 	if (MixingThread.IsCreated()) {
 		m_bShutdown = true;
 		SetEvent(m_hSignal); /* Signal immediately */
-		if (PREFSMAN->m_verbose_log)
+		if (PREFSMAN->m_verbose_log > 1)
 			LOG->Trace("Shutting down mixer thread ...");
 		MixingThread.Wait();
-		if (PREFSMAN->m_verbose_log)
+		if (PREFSMAN->m_verbose_log > 1)
 			LOG->Trace("Mixer thread shut down.");
 
 		delete m_pStream;

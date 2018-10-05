@@ -676,7 +676,7 @@ CheckVideoDefaultSettings()
 	// Video card changed since last run
 	RString sVideoDriver = GetVideoDriverName();
 
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("Last seen video driver: %s",
 				   PREFSMAN->m_sLastSeenVideoDriver.Get().c_str());
 
@@ -693,7 +693,7 @@ CheckVideoDefaultSettings()
 		RString sDriverRegex = defaults.sDriverRegex;
 		Regex regex(sDriverRegex);
 		if (regex.Compare(sVideoDriver)) {
-			if (PREFSMAN->m_verbose_log)
+			if (PREFSMAN->m_verbose_log > 1)
 				LOG->Trace("Card matches '%s'.",
 						   sDriverRegex.size() ? sDriverRegex.c_str()
 											   : "(unknown card)");
@@ -744,7 +744,7 @@ CheckVideoDefaultSettings()
 				  PREFSMAN->m_sVideoRenderers.Get().c_str());
 	}
 
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 0)
 		LOG->Info("Video renderers: '%s'",
 				  PREFSMAN->m_sVideoRenderers.Get().c_str());
 	return bSetDefaultVideoParams;
@@ -993,6 +993,7 @@ WriteLogHeader()
 			  now.tm_hour,
 			  now.tm_min,
 			  now.tm_sec);
+	LOG->Info("\tVerbosity: " + PREFSMAN->m_verbose_log.ToString());
 	LOG->Trace(" ");
 
 	if (g_argc > 1) {

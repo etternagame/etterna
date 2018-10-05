@@ -103,7 +103,7 @@ ScreenSelect::BeginScreen()
 
 ScreenSelect::~ScreenSelect()
 {
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("ScreenSelect::~ScreenSelect()");
 	for (unsigned i = 0; i < m_asSubscribedMessages.size(); ++i)
 		MESSAGEMAN->Unsubscribe(this, m_asSubscribedMessages[i]);

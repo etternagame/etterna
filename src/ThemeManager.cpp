@@ -388,7 +388,7 @@ ThemeManager::LoadThemeMetrics(const RString& sThemeName_,
 		g_pLoadedThemeData->iniMetrics.SetValue(sBits[0], sBits[1], sBits[2]);
 	}
 
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 1)
 	{
 		LOG->MapLog("theme", "Theme: %s", m_sCurThemeName.c_str());
 		LOG->MapLog("language", "Language: %s", m_sCurLanguage.c_str());
@@ -453,7 +453,7 @@ ThemeManager::SwitchThemeAndLanguage(const RString& sThemeName_,
 	if (sLanguage.empty())
 		sLanguage = GetDefaultLanguage();
 
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("ThemeManager::SwitchThemeAndLanguage: \"%s\", \"%s\"",
 				   sThemeName.c_str(),
 				   sLanguage.c_str());
@@ -566,7 +566,7 @@ ThemeManager::RunLuaScripts(const RString& sMask, bool bUseThemeDir)
 		// load Lua files
 		for (unsigned i = 0; i < asElementPaths.size(); ++i) {
 			const RString& sPath = asElementPaths[i];
-			if (PREFSMAN->m_verbose_log)
+			if (PREFSMAN->m_verbose_log > 1)
 				LOG->Trace("Loading \"%s\" ...", sPath.c_str());
 			LuaHelpers::RunScriptFile(sPath);
 		}

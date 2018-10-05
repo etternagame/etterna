@@ -309,7 +309,7 @@ void
 RageTextureManager::GarbageCollect(GCType type)
 {
 	// Search for old textures with refcount==0 to unload
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("Performing texture garbage collection.");
 
 	for (std::map<RageTextureID, RageTexture*>::iterator i =

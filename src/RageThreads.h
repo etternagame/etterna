@@ -1,4 +1,4 @@
-﻿#ifndef RAGE_THREADS_H
+#ifndef RAGE_THREADS_H
 #define RAGE_THREADS_H
 
 #include "global.h"
@@ -86,7 +86,7 @@ parallelExecution(vector<T> vec,
 	vector<thread> threadpool;
 	for (auto& workload : workloads)
 		threadpool.emplace_back(thread(threadCallback, workload));
-	while (data._threadsFinished < workloads.size()) {
+	while (data._threadsFinished < (int)workloads.size()) {
 		data.waitForUpdate();
 		update(data._progress);
 		data.setUpdated(false);

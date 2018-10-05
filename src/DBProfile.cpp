@@ -43,7 +43,7 @@ DBProfile::LoadDBFromDir(string dir)
 		// Open a database file
 		db = new SQLite::Database(FILEMAN->ResolvePath(dir) + PROFILE_DB,
 								  SQLite::OPEN_READWRITE);
-	} catch (std::exception& e) {
+	} catch (std::exception) {
 		return ProfileLoadResult_FailedNoProfile;
 	}
 	try {
@@ -55,7 +55,7 @@ DBProfile::LoadDBFromDir(string dir)
 		LoadScoreGoals(db);
 		LoadPlayLists(db);
 		LoadPlayerScores(db);
-	} catch (std::exception& e) {
+	} catch (std::exception) {
 		return ProfileLoadResult_FailedTampered;
 	}
 	delete db;
@@ -103,7 +103,7 @@ DBProfile::LoadGeneralData(SQLite::Database* db)
 	loadingProfile->m_iTotalHands = gDataQuery.getColumn(21);
 	loadingProfile->m_iTotalLifts = gDataQuery.getColumn(22);
 	loadingProfile->m_fPlayerRating =
-	  static_cast<double>(gDataQuery.getColumn(23));
+	  (float)static_cast<double>(gDataQuery.getColumn(23));
 
 	SQLite::Statement modifierQuery(*db, "SELECT * FROM defaultmodifiers");
 	while (modifierQuery.executeStep()) {
@@ -115,7 +115,7 @@ DBProfile::LoadGeneralData(SQLite::Database* db)
 	SQLite::Statement skillsetsQuery(*db, "SELECT * FROM playerskillsets");
 	while (skillsetsQuery.executeStep()) {
 		int skillsetNum = skillsetsQuery.getColumn(1);
-		float skillsetValue = static_cast<double>(skillsetsQuery.getColumn(2));
+		float skillsetValue = (float)static_cast<double>(skillsetsQuery.getColumn(2));
 		loadingProfile->m_fPlayerSkillsets[skillsetNum] = skillsetValue;
 	}
 
@@ -184,7 +184,7 @@ DBProfile::LoadPlayLists(SQLite::Database* db)
 		  static_cast<Difficulty>(static_cast<int>(query.getColumn(2)));
 		ch.lastsong = static_cast<const char*>(query.getColumn(3));
 		ch.lastpack = static_cast<const char*>(query.getColumn(4));
-		ch.rate = static_cast<double>(query.getColumn(5));
+		ch.rate = (float)static_cast<double>(query.getColumn(5));
 
 		// check if this chart is loaded and overwrite any last-seen values with
 		// updated ones
@@ -214,7 +214,7 @@ DBProfile::LoadPlayLists(SQLite::Database* db)
 		  static_cast<Difficulty>(static_cast<int>(query.getColumn(2)));
 		ch.lastsong = static_cast<const char*>(query.getColumn(3));
 		ch.lastpack = static_cast<const char*>(query.getColumn(4));
-		ch.rate = static_cast<double>(query.getColumn(5));
+		ch.rate = (float)static_cast<double>(query.getColumn(5));
 		ch.key = key;
 
 		// check if this chart is loaded and overwrite any last-seen values with
@@ -327,15 +327,15 @@ DBProfile::LoadPlayerScores(SQLite::Database* db)
 		HighScore& hs = scores[key].ScoresByRate[rate].scores[ScoreKey];
 		hs.SetSSRCalcVersion(query.getColumn(6));
 		hs.SetGrade(static_cast<Grade>(static_cast<int>(query.getColumn(7))));
-		hs.SetWifeScore(static_cast<double>(query.getColumn(8)));
-		hs.SetSSRNormPercent(static_cast<double>(query.getColumn(9)));
+		hs.SetWifeScore((float)static_cast<double>(query.getColumn(8)));
+		hs.SetSSRNormPercent((float)static_cast<double>(query.getColumn(9)));
 		hs.SetMusicRate(scores[key].KeyToRate(rate));
-		hs.SetJudgeScale(static_cast<double>(query.getColumn(10)));
+		hs.SetJudgeScale((float)static_cast<double>(query.getColumn(10)));
 		hs.SetChordCohesion(static_cast<int>(query.getColumn(11)) != 0);
 		hs.SetEtternaValid(static_cast<int>(query.getColumn(12)) != 0);
 		hs.SetChartKey(key);
 		hs.SetScoreKey(ScoreKey);
-		hs.SetSurviveSeconds(static_cast<double>(query.getColumn(13)));
+		hs.SetSurviveSeconds((float)static_cast<double>(query.getColumn(13)));
 		hs.SetMaxCombo(query.getColumn(14));
 		hs.SetModifiers(query.getColumn(15));
 		DateTime d;
@@ -356,7 +356,7 @@ DBProfile::LoadPlayerScores(SQLite::Database* db)
 		if (hs.GetWifeScore() > 0.f) {
 			FOREACH_ENUM(Skillset, ss)
 			hs.SetSkillsetSSR(ss,
-							  static_cast<double>(query.getColumn(index++)));
+							(float)static_cast<double>(query.getColumn(index++)));
 		}
 		hs.SetValidationKey(ValidationKey_Brittle,
 							static_cast<const char*>(query.getColumn(index++)));
@@ -424,9 +424,9 @@ DBProfile::LoadScoreGoals(SQLite::Database* db)
 		ck = static_cast<const char*>(query.getColumn(0));
 		// Load the scoregoal
 		ScoreGoal sg;
-		sg.rate = static_cast<double>(query.getColumn(1));
+		sg.rate = (float)static_cast<double>(query.getColumn(1));
 		sg.priority = query.getColumn(2);
-		sg.percent = static_cast<double>(query.getColumn(3));
+		sg.percent = (float)static_cast<double>(query.getColumn(3));
 		sg.timeassigned.FromString(
 		  static_cast<const char*>(query.getColumn(4)));
 		sg.timeachieved.FromString(
@@ -458,7 +458,7 @@ DBProfile::SaveDBToDir(string dir,
 		// Open a database file
 		db = new SQLite::Database(filename,
 								  SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-	} catch (std::exception& e) {
+	} catch (std::exception) {
 		return ProfileLoadResult_FailedNoProfile;
 	}
 	try {
@@ -505,7 +505,7 @@ DBProfile::SaveDBToDir(string dir,
 		db->exec("CREATE INDEX IF NOT EXISTS idx_songs "
 				 "ON songs(song, pack, id)");
 		transaction.commit();
-	} catch (std::exception& e) {
+	} catch (std::exception) {
 		return ProfileLoadResult_FailedTampered;
 	}
 	delete db;
@@ -735,7 +735,7 @@ DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) const
 				insertPlaylist.exec();
 				// db->exec("INSERT INTO playlists VALUES (NULL, \"" +
 				// (pl->second).name + "\")");
-				int plID = sqlite3_last_insert_rowid(db->getHandle());
+				int plID = (int)sqlite3_last_insert_rowid(db->getHandle());
 				FOREACH_CONST(Chart, (pl->second).chartlist, ch)
 				{
 					int chartID = FindOrCreateChart(
@@ -756,7 +756,7 @@ DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) const
 					insertCourseRun.bind(1, plID);
 					insertCourseRun.exec();
 					int courseRunID =
-					  sqlite3_last_insert_rowid(db->getHandle());
+					  (int)sqlite3_last_insert_rowid(db->getHandle());
 					FOREACH_CONST(string, *run, scorekey)
 					{
 						SQLite::Statement insertRun(
@@ -866,7 +866,7 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 		insertChart.bind(2, songID);
 		insertChart.bind(3, ch.lastdiff);
 		insertChart.exec();
-		int chartID = sqlite3_last_insert_rowid(db->getHandle());
+		int chartID = (int)sqlite3_last_insert_rowid(db->getHandle());
 
 		// Add scores per rate
 		FOREACHM(int, ScoresAtRate, chartPair->second.ScoresByRate, ratePair)
@@ -884,7 +884,7 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 				insertScoresAtRate.bind(4,
 										ratePair->second.PBptr->GetScoreKey());
 				insertScoresAtRate.exec();
-				scoresAtRateID = sqlite3_last_insert_rowid(db->getHandle());
+				scoresAtRateID = (int)sqlite3_last_insert_rowid(db->getHandle());
 			}
 			FOREACHUM(string, HighScore, ratePair->second.scores, i)
 			{
@@ -975,7 +975,7 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 							break;
 						if (mode == LocalWithReplayData) {
 							int scoreID =
-							  sqlite3_last_insert_rowid(db->getHandle());
+							  (int)sqlite3_last_insert_rowid(db->getHandle());
 							try {
 								// Save Replay Data
 								if (hs->LoadReplayData()) {
@@ -999,8 +999,7 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 										insertOffset.exec();
 									}
 								}
-							} catch (std::exception&
-									   e) { // No replay data for this score }
+							} catch (std::exception) { // No replay data for this score }
 								hs->UnloadReplayData();
 							}
 						}
@@ -1037,7 +1036,7 @@ DBProfile::FindOrCreateChartKey(SQLite::Database* db, string key)
 	if (exists)
 		return exists;
 	db->exec("INSERT INTO chartkeys VALUES (NULL, \"" + key + "\")");
-	return sqlite3_last_insert_rowid(db->getHandle());
+	return (int)sqlite3_last_insert_rowid(db->getHandle());
 }
 
 int
@@ -1054,7 +1053,7 @@ DBProfile::FindOrCreateSong(SQLite::Database* db, string pack, string song)
 		insertSong.bind(1, pack);
 		insertSong.bind(2, song);
 		insertSong.exec();
-		return sqlite3_last_insert_rowid(db->getHandle());
+		return (int)sqlite3_last_insert_rowid(db->getHandle());
 	}
 	return query.getColumn(0);
 }
@@ -1085,7 +1084,7 @@ DBProfile::FindOrCreateChart(SQLite::Database* db,
 		insertChart.bind(2, songID);
 		insertChart.bind(3, diff);
 		insertChart.exec();
-		return sqlite3_last_insert_rowid(db->getHandle());
+		return (int)sqlite3_last_insert_rowid(db->getHandle());
 	} else {
 		return query.getColumn(0);
 	}
@@ -1108,7 +1107,7 @@ DBProfile::FindOrCreateScoreKey(SQLite::Database* db, string key)
 	if (exists)
 		return exists;
 	db->exec("INSERT INTO scorekeys VALUES (NULL, \"" + key + "\")");
-	return sqlite3_last_insert_rowid(db->getHandle());
+	return (int)sqlite3_last_insert_rowid(db->getHandle());
 }
 
 bool
@@ -1123,7 +1122,7 @@ DBProfile::WriteReplayData(const HighScore* hs)
 		// Open a database file
 		db = new SQLite::Database(filename,
 								  SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-	} catch (std::exception& e) {
+	} catch (std::exception) {
 		return ProfileLoadResult_FailedNoProfile;
 	}
 	try {
@@ -1144,8 +1143,8 @@ DBProfile::WriteReplayData(const HighScore* hs)
 			insertOffset.exec();
 		}
 		transaction.commit();
-	} catch (std::exception& e) {
-		return ProfileLoadResult_FailedTampered;
+	} catch (std::exception) {
+		return ProfileLoadResult_FailedTampered != 0;
 	}
 	delete db;
 	return true;

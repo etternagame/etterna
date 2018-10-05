@@ -206,7 +206,7 @@ pos_map_queue::Search(int64_t iSourceFrame, bool* bApproximate) const
 	static RageTimer last;
 	if (last.PeekDeltaTime() >= 1.0f) {
 		last.GetDeltaTime();
-		if (PREFSMAN->m_verbose_log)
+		if (PREFSMAN->m_verbose_log > 1)
 			LOG->Trace("Approximate sound time: driver frame " I64F
 					   ", m_pImpl->m_Queue frame " I64F ".." I64F " (dist " I64F
 					   "), closest position is " I64F,

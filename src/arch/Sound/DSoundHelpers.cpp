@@ -34,7 +34,7 @@ DSound::EnumCallback(LPGUID lpGuid,
 		}
 	}
 
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Info("%s", sLine.c_str());
 
 	return TRUE;

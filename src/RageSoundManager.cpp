@@ -130,7 +130,7 @@ RageSoundManager::Update()
 			next = it;
 			++next;
 			if (it->second->GetReferenceCount() == 1) {
-				if (PREFSMAN->m_verbose_log)
+				if (PREFSMAN->m_verbose_log > 1)
 					LOG->Trace("Deleted old sound \"%s\"", it->first.c_str());
 				delete it->second;
 				m_mapPreloadedSounds.erase(it);

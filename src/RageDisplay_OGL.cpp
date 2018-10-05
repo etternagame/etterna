@@ -241,7 +241,7 @@ TurnOffHardwareVBO()
 
 RageDisplay_Legacy::RageDisplay_Legacy()
 {
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 1)
 	{
 		LOG->Trace("RageDisplay_Legacy::RageDisplay_Legacy()");
 		LOG->MapLog("renderer", "Current renderer: OpenGL");
@@ -300,7 +300,7 @@ CompileShader(GLenum ShaderType, RString sFile, vector<RString> asDefines)
 		}
 	}
 
-	if(PREFSMAN->m_verbose_log)
+	if(PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("Compiling shader %s", sFile.c_str());
 	GLhandleARB hShader = glCreateShaderObjectARB(ShaderType);
 	vector<const GLcharARB*> apData;
@@ -498,7 +498,7 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 
 	// Log driver details
 	g_pWind->LogDebugInformation();
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 1)
 	{
 		LOG->Info("OGL Vendor: %s", glGetString(GL_VENDOR));
 		LOG->Info("OGL Renderer: %s", glGetString(GL_RENDERER));
@@ -2313,7 +2313,7 @@ RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt,
 		ASSERT(iRealFormat == GL_RGBA8);
 	}
 
-	if(PREFSMAN->m_verbose_log)
+	if(PREFSMAN->m_verbose_log > 1)
 		LOG->Trace(
 		  "%s (format %s, %ix%i, format %s, type %s, pixfmt %i, imgpixfmt %i)",
 		  bGenerateMipMaps ? "gluBuild2DMipmaps" : "glTexImage2D",

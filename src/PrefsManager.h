@@ -263,7 +263,7 @@ class PrefsManager
 	Preference<bool> m_bPseudoLocalize;
 	Preference<bool> m_show_theme_errors;
 
-	Preference<bool> m_verbose_log;
+	Preference<int> m_verbose_log; // levels 0, 1, and 2 where higher numbers means more logging
 
 #if !defined(WITHOUT_NETWORKING)
 	Preference<bool>

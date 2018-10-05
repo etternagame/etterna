@@ -905,7 +905,7 @@ Profile::LoadAllFromDir(const RString& sDir,
 						bool bRequireSignature,
 						LoadingWindow* ld)
 {
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 0)
 		LOG->Trace("Profile::LoadAllFromDir( %s )", sDir.c_str());
 	ASSERT(sDir.Right(1) == "/");
 
@@ -996,7 +996,7 @@ Profile::LoadTypeFromDir(const RString& dir)
 void
 Profile::CalculateStatsFromScores(LoadingWindow* ld)
 {
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 0)
 		LOG->Trace("Calculating stats from scores");
 	const vector<HighScore*>& all = SCOREMAN->GetAllProfileScores(m_sProfileID);
 	float TotalGameplaySeconds = 0.f;

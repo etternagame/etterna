@@ -140,12 +140,12 @@ XMLProfile::LoadStatsFromDir(RString dir, bool require_signature)
 		LOG->Trace("Done.");
 	}
 
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("Loading %s", fn.c_str());
 	XNode xml;
 	if (!XmlFileUtil::LoadFromFileShowErrors(xml, *pFile.get()))
 		return ProfileLoadResult_FailedTampered;
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("Done.");
 
 	return LoadStatsXmlFromNode(&xml);
@@ -185,12 +185,12 @@ XMLProfile::LoadEttFromDir(RString dir)
 		pFile.reset(pInflate);
 	}
 
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("Loading %s", fn.c_str());
 	XNode xml;
 	if (!XmlFileUtil::LoadFromFileShowErrors(xml, *pFile.get()))
 		return ProfileLoadResult_FailedTampered;
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("Done.");
 
 	return LoadEttXmlFromNode(&xml);

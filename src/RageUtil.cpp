@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "Foreach.h"
 #include "LocalizedString.h"
 #include "LuaBinding.h"
@@ -1126,7 +1126,7 @@ RString
 GetCwd()
 {
 	char buf[PATH_MAX];
-	bool ret = getcwd(buf, PATH_MAX) != NULL;
+	bool ret = _getcwd(buf, PATH_MAX) != NULL;
 	ASSERT(ret);
 	return buf;
 }

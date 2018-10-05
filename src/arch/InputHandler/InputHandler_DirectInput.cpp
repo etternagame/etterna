@@ -26,7 +26,7 @@ EnumDevicesCallback(const DIDEVICEINSTANCE* pdidInstance, void* pContext)
 {
 	DIDevice device;
 
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Info("DInput: Enumerating device - Type: 0x%08X Instance Name: \"%s\" "
 				  "Product Name: \"%s\"",
 				  pdidInstance->dwDevType,
@@ -132,7 +132,7 @@ GetNumJoysticksSlow()
 
 InputHandler_DInput::InputHandler_DInput()
 {
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("InputHandler_DInput::InputHandler_DInput()");
 
 	CheckForDirectInputDebugMode();
@@ -150,7 +150,7 @@ InputHandler_DInput::InputHandler_DInput()
 		RageException::Throw(
 		  hr_ssprintf(hr, "InputHandler_DInput: DirectInputCreate"));
 
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace(
 		  "InputHandler_DInput: IDirectInput::EnumDevices(DIDEVTYPE_KEYBOARD)");
 	hr = g_dinput->EnumDevices(
@@ -159,7 +159,7 @@ InputHandler_DInput::InputHandler_DInput()
 		RageException::Throw(
 		  hr_ssprintf(hr, "InputHandler_DInput: IDirectInput::EnumDevices"));
 
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace(
 		  "InputHandler_DInput: IDirectInput::EnumDevices(DIDEVTYPE_JOYSTICK)");
 	hr = g_dinput->EnumDevices(
@@ -169,7 +169,7 @@ InputHandler_DInput::InputHandler_DInput()
 		  hr_ssprintf(hr, "InputHandler_DInput: IDirectInput::EnumDevices"));
 
 	// mouse
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace(
 		  "InputHandler_DInput: IDirectInput::EnumDevices(DIDEVTYPE_MOUSE)");
 	hr = g_dinput->EnumDevices(
@@ -187,10 +187,10 @@ InputHandler_DInput::InputHandler_DInput()
 		continue;
 	}
 
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Info("Found %u DirectInput devices:", Devices.size());
 	for (unsigned i = 0; i < Devices.size(); ++i) {
-		if (PREFSMAN->m_verbose_log)
+		if (PREFSMAN->m_verbose_log > 1)
 			LOG->Info("   %d: '%s' axes: %d, hats: %d, buttons: %d (%s)",
 					  i,
 					  Devices[i].m_sName.c_str(),
@@ -222,10 +222,10 @@ InputHandler_DInput::ShutdownThread()
 {
 	m_bShutdown = true;
 	if (m_InputThread.IsCreated()) {
-		if (PREFSMAN->m_verbose_log)
+		if (PREFSMAN->m_verbose_log > 1)
 			LOG->Trace("Shutting down DirectInput thread ...");
 		m_InputThread.Wait();
-		if (PREFSMAN->m_verbose_log)
+		if (PREFSMAN->m_verbose_log > 1)
 			LOG->Trace("DirectInput thread shut down.");
 	}
 	m_bShutdown = false;

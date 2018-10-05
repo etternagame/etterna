@@ -174,7 +174,7 @@ RageSound::Load(const RString& sSoundFilePath,
 				bool bPrecache,
 				const RageSoundLoadParams* pParams)
 {
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("RageSound: Load \"%s\" (precache: %i)",
 				   sSoundFilePath.c_str(),
 				   bPrecache);
@@ -357,7 +357,7 @@ RageSound::StartPlaying()
 	/* If m_StartTime is in the past, then we probably set a start time but took
 	 * too long loading.  We don't want that; log it, since it can be unobvious.
 	 */
-	if (!m_Param.m_StartTime.IsZero() && m_Param.m_StartTime.Ago() > 0 && PREFSMAN->m_verbose_log)
+	if (!m_Param.m_StartTime.IsZero() && m_Param.m_StartTime.Ago() > 0 && PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("Sound \"%s\" has a start time %f seconds in the past",
 				   GetLoadedFilePath().c_str(),
 				   m_Param.m_StartTime.Ago());
