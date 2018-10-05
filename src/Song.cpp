@@ -1,4 +1,4 @@
-#include "global.h"
+﻿#include "global.h"
 #include "FontCharAliases.h"
 #include "GameManager.h"
 #include "RageLog.h"
@@ -490,6 +490,18 @@ Song::ReloadFromSongDir(const RString& sDir)
 		}
 	}
 	return true;
+}
+
+// Check if the music file actually exists, if not, reload from disk, and if that fails,
+// just crash - Terra
+void
+Song::ReloadIfNoMusic() {
+		RString sMusicPath = GetMusicPath();
+		if (sMusicPath.empty() || !DoesFileExist(sMusicPath)) {
+				ASSERT_M(ReloadFromSongDir(),
+						"No music, so tried to reload from song dir but "
+						"ReloadFromSongDir failed");
+		}
 }
 
 bool
