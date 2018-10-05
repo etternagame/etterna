@@ -1,5 +1,6 @@
 #include "global.h"
 #include "DSoundHelpers.h"
+#include "PrefsManager.h"
 #include "RageUtil.h"
 #include "RageLog.h"
 #include "archutils/Win32/DirectXHelpers.h"
@@ -33,7 +34,8 @@ DSound::EnumCallback(LPGUID lpGuid,
 		}
 	}
 
-	LOG->Info("%s", sLine.c_str());
+	if (PREFSMAN->m_verbose_log)
+		LOG->Info("%s", sLine.c_str());
 
 	return TRUE;
 }

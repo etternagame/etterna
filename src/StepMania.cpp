@@ -676,8 +676,9 @@ CheckVideoDefaultSettings()
 	// Video card changed since last run
 	RString sVideoDriver = GetVideoDriverName();
 
-	LOG->Trace("Last seen video driver: %s",
-			   PREFSMAN->m_sLastSeenVideoDriver.Get().c_str());
+	if (PREFSMAN->m_verbose_log)
+		LOG->Trace("Last seen video driver: %s",
+				   PREFSMAN->m_sLastSeenVideoDriver.Get().c_str());
 
 	// allow players to opt out of the forced reset when a new video card is
 	// detected - mina
@@ -692,9 +693,10 @@ CheckVideoDefaultSettings()
 		RString sDriverRegex = defaults.sDriverRegex;
 		Regex regex(sDriverRegex);
 		if (regex.Compare(sVideoDriver)) {
-			LOG->Trace("Card matches '%s'.",
-					   sDriverRegex.size() ? sDriverRegex.c_str()
-										   : "(unknown card)");
+			if (PREFSMAN->m_verbose_log)
+				LOG->Trace("Card matches '%s'.",
+						   sDriverRegex.size() ? sDriverRegex.c_str()
+											   : "(unknown card)");
 			break;
 		}
 	}
@@ -742,8 +744,9 @@ CheckVideoDefaultSettings()
 				  PREFSMAN->m_sVideoRenderers.Get().c_str());
 	}
 
-	LOG->Info("Video renderers: '%s'",
-			  PREFSMAN->m_sVideoRenderers.Get().c_str());
+	if (PREFSMAN->m_verbose_log)
+		LOG->Info("Video renderers: '%s'",
+				  PREFSMAN->m_sVideoRenderers.Get().c_str());
 	return bSetDefaultVideoParams;
 }
 

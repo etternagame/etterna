@@ -1,4 +1,4 @@
-﻿/*
+/*
  * This manager has several distinct purposes:
  *
  * Load the sound driver, and handle most communication between it and
@@ -12,6 +12,7 @@
 #include "Foreach.h"
 #include "LocalizedString.h"
 #include "Preference.h"
+#include "PrefsManager.h"
 #include "RageLog.h"
 #include "RageSound.h"
 #include "RageSoundManager.h"
@@ -129,7 +130,8 @@ RageSoundManager::Update()
 			next = it;
 			++next;
 			if (it->second->GetReferenceCount() == 1) {
-				LOG->Trace("Deleted old sound \"%s\"", it->first.c_str());
+				if (PREFSMAN->m_verbose_log)
+					LOG->Trace("Deleted old sound \"%s\"", it->first.c_str());
 				delete it->second;
 				m_mapPreloadedSounds.erase(it);
 			}

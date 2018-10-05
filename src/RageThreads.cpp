@@ -1,4 +1,4 @@
-﻿/*
+/*
  * If you're going to use threads, remember this:
  *
  * Threads suck.
@@ -11,6 +11,7 @@
 
 #include "global.h"
 
+#include "PrefsManager.h"
 #include "RageLog.h"
 #include "RageThreads.h"
 #include "RageTimer.h"
@@ -271,7 +272,7 @@ RageThread::Create(int (*fn)(void*), void* data)
 
 	strcpy(m_pSlot->m_szName, m_sName.c_str());
 
-	if (LOG)
+	if (LOG && PREFSMAN->m_verbose_log)
 		LOG->Trace("Starting thread: %s", m_sName.c_str());
 	sprintf(m_pSlot->m_szThreadFormattedOutput, "Thread: %s", m_sName.c_str());
 

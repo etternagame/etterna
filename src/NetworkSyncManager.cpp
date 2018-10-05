@@ -496,8 +496,9 @@ NetworkSyncManager::PostStartUp(const RString& ServerIP)
 	}
 
 	chat.rawMap.clear();
-	LOG->Info(
-	  "Attempting to connect to: %s, Port: %i", sAddress.c_str(), iPort);
+	if (PREFSMAN->m_verbose_log)
+		LOG->Info(
+		  "Attempting to connect to: %s, Port: %i", sAddress.c_str(), iPort);
 	curProtocol = nullptr;
 	CloseConnection();
 	/*

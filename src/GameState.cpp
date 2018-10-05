@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "AdjustSync.h"
 #include "Character.h"
 #include "CommonMetrics.h"
@@ -49,7 +49,8 @@ class GameStateMessageHandler : public MessageSubscriber
 			if (sJoined == "")
 				sJoined = "none";
 
-			LOG->MapLog("JOINED", "Players joined: %s", sJoined.c_str());
+			if (PREFSMAN->m_verbose_log)
+				LOG->MapLog("JOINED", "Players joined: %s", sJoined.c_str());
 		}
 	}
 };

@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "Foreach.h"
 #include "IniFile.h"
 #include "LuaManager.h"
@@ -235,6 +235,8 @@ PrefsManager::PrefsManager()
 
   /* Debug: */
   m_bLogToDisk("LogToDisk", true)
+  ,
+  m_verbose_log("VerboseLogging", false)
   ,
 #if defined(DEBUG)
   m_bForceLogFlush("ForceLogFlush", true)

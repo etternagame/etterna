@@ -1,4 +1,4 @@
-﻿#ifndef PREFSMANAGER_H
+#ifndef PREFSMANAGER_H
 #define PREFSMANAGER_H
 
 #include "GameConstantsAndTypes.h"
@@ -262,6 +262,8 @@ class PrefsManager
 	Preference<bool> m_bShowLoadingWindow;
 	Preference<bool> m_bPseudoLocalize;
 	Preference<bool> m_show_theme_errors;
+
+	Preference<bool> m_verbose_log;
 
 #if !defined(WITHOUT_NETWORKING)
 	Preference<bool>

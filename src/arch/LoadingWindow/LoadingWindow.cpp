@@ -66,7 +66,8 @@ LoadingWindow::Create()
 	}
 
 	if (ret) {
-		LOG->Info("Loading window: %s", Driver.c_str());
+		if (PREFSMAN->m_verbose_log)
+			LOG->Info("Loading window: %s", Driver.c_str());
 
 		ret->SetIndeterminate(true);
 	}

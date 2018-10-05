@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "DisplayResolutions.h"
 #include "LocalizedString.h"
 #include "Preference.h"
@@ -70,7 +70,7 @@ static vector<Centering> g_CenteringStack(1, Centering(0, 0, 0, 0));
 RageDisplay* DISPLAY =
   NULL; // global and accessible from anywhere in our program
 
-Preference<bool> LOG_FPS("LogFPS", true);
+Preference<bool> LOG_FPS("LogFPS", false);
 Preference<float> g_fFrameLimitPercent("FrameLimitPercent", 0.90f);
 Preference<int> g_fFrameLimit("FrameLimit", 1000);
 Preference<int> g_fFrameLimitGameplay("FrameLimitGameplay", 1000);
@@ -158,7 +158,7 @@ RageDisplay::ProcessStatsOnFlip()
 			  g_iVertsRenderedSinceLastCheck / g_iFramesRenderedSinceLastCheck;
 			g_iFramesRenderedSinceLastCheck = g_iVertsRenderedSinceLastCheck =
 			  0;
-			if (LOG_FPS) {
+			if (LOG_FPS && !PREFSMAN->m_verbose_log) {
 				RString sStats = GetStats();
 				sStats.Replace("\n", ", ");
 				LOG->Trace("%s", sStats.c_str());

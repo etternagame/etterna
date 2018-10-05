@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "archutils/Win32/AppInstance.h"
 #include "archutils/Win32/DirectXHelpers.h"
 #include "archutils/Win32/ErrorStrings.h"
@@ -26,11 +26,12 @@ EnumDevicesCallback(const DIDEVICEINSTANCE* pdidInstance, void* pContext)
 {
 	DIDevice device;
 
-	LOG->Info("DInput: Enumerating device - Type: 0x%08X Instance Name: \"%s\" "
-			  "Product Name: \"%s\"",
-			  pdidInstance->dwDevType,
-			  pdidInstance->tszInstanceName,
-			  pdidInstance->tszProductName);
+	if (PREFSMAN->m_verbose_log)
+		LOG->Info("DInput: Enumerating device - Type: 0x%08X Instance Name: \"%s\" "
+				  "Product Name: \"%s\"",
+				  pdidInstance->dwDevType,
+				  pdidInstance->tszInstanceName,
+				  pdidInstance->tszProductName);
 
 	switch (GET_DIDEVICE_TYPE(pdidInstance->dwDevType)) {
 		case DI8DEVTYPE_JOYSTICK:
@@ -131,7 +132,8 @@ GetNumJoysticksSlow()
 
 InputHandler_DInput::InputHandler_DInput()
 {
-	LOG->Trace("InputHandler_DInput::InputHandler_DInput()");
+	if (PREFSMAN->m_verbose_log)
+		LOG->Trace("InputHandler_DInput::InputHandler_DInput()");
 
 	CheckForDirectInputDebugMode();
 
@@ -148,16 +150,18 @@ InputHandler_DInput::InputHandler_DInput()
 		RageException::Throw(
 		  hr_ssprintf(hr, "InputHandler_DInput: DirectInputCreate"));
 
-	LOG->Trace(
-	  "InputHandler_DInput: IDirectInput::EnumDevices(DIDEVTYPE_KEYBOARD)");
+	if (PREFSMAN->m_verbose_log)
+		LOG->Trace(
+		  "InputHandler_DInput: IDirectInput::EnumDevices(DIDEVTYPE_KEYBOARD)");
 	hr = g_dinput->EnumDevices(
 	  DI8DEVCLASS_KEYBOARD, EnumDevicesCallback, NULL, DIEDFL_ATTACHEDONLY);
 	if (hr != DI_OK)
 		RageException::Throw(
 		  hr_ssprintf(hr, "InputHandler_DInput: IDirectInput::EnumDevices"));
 
-	LOG->Trace(
-	  "InputHandler_DInput: IDirectInput::EnumDevices(DIDEVTYPE_JOYSTICK)");
+	if (PREFSMAN->m_verbose_log)
+		LOG->Trace(
+		  "InputHandler_DInput: IDirectInput::EnumDevices(DIDEVTYPE_JOYSTICK)");
 	hr = g_dinput->EnumDevices(
 	  DI8DEVCLASS_GAMECTRL, EnumDevicesCallback, NULL, DIEDFL_ATTACHEDONLY);
 	if (hr != DI_OK)
@@ -165,8 +169,9 @@ InputHandler_DInput::InputHandler_DInput()
 		  hr_ssprintf(hr, "InputHandler_DInput: IDirectInput::EnumDevices"));
 
 	// mouse
-	LOG->Trace(
-	  "InputHandler_DInput: IDirectInput::EnumDevices(DIDEVTYPE_MOUSE)");
+	if (PREFSMAN->m_verbose_log)
+		LOG->Trace(
+		  "InputHandler_DInput: IDirectInput::EnumDevices(DIDEVTYPE_MOUSE)");
 	hr = g_dinput->EnumDevices(
 	  DI8DEVCLASS_POINTER, EnumDevicesCallback, NULL, DIEDFL_ATTACHEDONLY);
 	if (hr != DI_OK)
@@ -182,15 +187,17 @@ InputHandler_DInput::InputHandler_DInput()
 		continue;
 	}
 
-	LOG->Info("Found %u DirectInput devices:", Devices.size());
+	if (PREFSMAN->m_verbose_log)
+		LOG->Info("Found %u DirectInput devices:", Devices.size());
 	for (unsigned i = 0; i < Devices.size(); ++i) {
-		LOG->Info("   %d: '%s' axes: %d, hats: %d, buttons: %d (%s)",
-				  i,
-				  Devices[i].m_sName.c_str(),
-				  Devices[i].axes,
-				  Devices[i].hats,
-				  Devices[i].buttons,
-				  Devices[i].buffered ? "buffered" : "unbuffered");
+		if (PREFSMAN->m_verbose_log)
+			LOG->Info("   %d: '%s' axes: %d, hats: %d, buttons: %d (%s)",
+					  i,
+					  Devices[i].m_sName.c_str(),
+					  Devices[i].axes,
+					  Devices[i].hats,
+					  Devices[i].buttons,
+					  Devices[i].buffered ? "buffered" : "unbuffered");
 	}
 
 	m_iLastSeenNumHidDevices = GetNumHidDevices();
@@ -215,9 +222,11 @@ InputHandler_DInput::ShutdownThread()
 {
 	m_bShutdown = true;
 	if (m_InputThread.IsCreated()) {
-		LOG->Trace("Shutting down DirectInput thread ...");
+		if (PREFSMAN->m_verbose_log)
+			LOG->Trace("Shutting down DirectInput thread ...");
 		m_InputThread.Wait();
-		LOG->Trace("DirectInput thread shut down.");
+		if (PREFSMAN->m_verbose_log)
+			LOG->Trace("DirectInput thread shut down.");
 	}
 	m_bShutdown = false;
 }

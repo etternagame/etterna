@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "CommonMetrics.h"
 #include "FilterManager.h"
@@ -1001,7 +1001,8 @@ MusicWheel::readyWheelItemsData(SortOrder so, bool searching, RString findme)
 		FilterWheelItemDatas(aUnFilteredDatas, m__WheelItemDatas[so], so);
 		m_WheelItemDatasStatus[so] = VALID;
 
-		LOG->Trace("MusicWheel sorting took: %f", timer.GetTimeSinceStart());
+		if (PREFSMAN->m_verbose_log)
+			LOG->Trace("MusicWheel sorting took: %f", timer.GetTimeSinceStart());
 	}
 }
 

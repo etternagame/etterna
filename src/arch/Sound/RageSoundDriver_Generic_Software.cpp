@@ -1,6 +1,7 @@
 #include "global.h"
 #include "RageSoundDriver.h"
 
+#include "PrefsManager.h"
 #include "RageLog.h"
 #include "RageSound.h"
 #include "RageUtil.h"
@@ -489,15 +490,18 @@ RageSoundDriver::~RageSoundDriver()
 	/* Signal the decoding thread to quit. */
 	if (m_DecodeThread.IsCreated()) {
 		m_bShutdownDecodeThread = true;
-		LOG->Trace("Shutting down decode thread ...");
+		if (PREFSMAN->m_verbose_log)
+			LOG->Trace("Shutting down decode thread ...");
 		LOG->Flush();
 		m_DecodeThread.Wait();
-		LOG->Trace("Decode thread shut down.");
+		if (PREFSMAN->m_verbose_log)
+			LOG->Trace("Decode thread shut down.");
 		LOG->Flush();
 
-		LOG->Info("Mixing %f ahead in %i Mix() calls",
-				  float(g_iTotalAhead) / max(g_iTotalAheadCount, 1),
-				  g_iTotalAheadCount);
+		if (PREFSMAN->m_verbose_log)
+			LOG->Info("Mixing %f ahead in %i Mix() calls",
+					  float(g_iTotalAhead) / max(g_iTotalAheadCount, 1),
+					  g_iTotalAheadCount);
 	}
 }
 

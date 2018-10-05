@@ -1,5 +1,6 @@
-﻿#include "global.h"
+#include "global.h"
 #include "Foreach.h"
+#include "PrefsManager.h"
 #include "RageLog.h"
 #include "RageSoundPosMap.h"
 #include "RageTimer.h"
@@ -205,14 +206,15 @@ pos_map_queue::Search(int64_t iSourceFrame, bool* bApproximate) const
 	static RageTimer last;
 	if (last.PeekDeltaTime() >= 1.0f) {
 		last.GetDeltaTime();
-		LOG->Trace("Approximate sound time: driver frame " I64F
-				   ", m_pImpl->m_Queue frame " I64F ".." I64F " (dist " I64F
-				   "), closest position is " I64F,
-				   iSourceFrame,
-				   pClosestBlock->m_iDestFrame,
-				   pClosestBlock->m_iDestFrame + pClosestBlock->m_iFrames,
-				   iClosestPositionDist,
-				   iClosestPosition);
+		if (PREFSMAN->m_verbose_log)
+			LOG->Trace("Approximate sound time: driver frame " I64F
+					   ", m_pImpl->m_Queue frame " I64F ".." I64F " (dist " I64F
+					   "), closest position is " I64F,
+					   iSourceFrame,
+					   pClosestBlock->m_iDestFrame,
+					   pClosestBlock->m_iDestFrame + pClosestBlock->m_iFrames,
+					   iClosestPositionDist,
+					   iClosestPosition);
 	}
 
 	if (bApproximate)

@@ -45,9 +45,11 @@ InputHandler_Win32_Pump::~InputHandler_Win32_Pump()
 {
 	if (InputThread.IsCreated()) {
 		m_bShutdown = true;
-		LOG->Trace("Shutting down Pump thread ...");
+		if (PREFSMAN->m_verbose_log)
+			LOG->Trace("Shutting down Pump thread ...");
 		InputThread.Wait();
-		LOG->Trace("Pump thread shut down.");
+		if (PREFSMAN->m_verbose_log)
+			LOG->Trace("Pump thread shut down.");
 	}
 
 	delete[] m_pDevice;

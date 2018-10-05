@@ -341,8 +341,9 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 	LoadEnabledSongsFromPref();
 	SONGINDEX->delay_save_cache = false;
 
-	LOG->Trace(
-	  "Found %i songs in %f seconds.", m_pSongs.size(), tm.GetDeltaTime());
+	if (PREFSMAN->m_verbose_log)
+		LOG->Trace(
+		  "Found %i songs in %f seconds.", m_pSongs.size(), tm.GetDeltaTime());
 	for (auto& pair : cache)
 		delete pair;
 	cache.clear();

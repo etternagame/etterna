@@ -68,7 +68,8 @@ ScreenAttract::SetAttractVolume(bool bInAttract)
 void
 ScreenAttract::Cancel(ScreenMessage smSendWhenDone)
 {
-	LOG->Trace("ScreenAttract::AttractInput: begin fading to START_SCREEN");
+	if (PREFSMAN->m_verbose_log)
+		LOG->Trace("ScreenAttract::AttractInput: begin fading to START_SCREEN");
 
 	SetAttractVolume(false); // unmute attract sounds
 	ScreenWithMenuElements::Cancel(smSendWhenDone);

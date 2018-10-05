@@ -1,5 +1,6 @@
 #include "global.h"
 #include "InputHandler_DirectInputHelper.h"
+#include "PrefsManager.h"
 #include "RageUtil.h"
 #include "RageLog.h"
 #include "archutils/Win32/DirectXHelpers.h"
@@ -34,8 +35,9 @@ bool
 DIDevice::Open()
 {
 	m_sName = ConvertACPToUTF8(JoystickInst.tszProductName);
-
-	LOG->Trace("Opening device '%s'", m_sName.c_str());
+    
+	if(PREFSMAN->m_verbose_log)
+		LOG->Trace("Opening device '%s'", m_sName.c_str());
 	buffered = true;
 
 	LPDIRECTINPUTDEVICE8 tmpdevice;

@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 
 #include "RageDisplay_OGL.h"
 #include "RageDisplay_OGL_Helpers.h"
@@ -6,6 +6,7 @@
 #include "EnumHelper.h"
 #include "Foreach.h"
 #include "LocalizedString.h"
+#include "PrefsManager.h"
 #include "RageFile.h"
 #include "RageLog.h"
 #include "RageMath.h"
@@ -240,8 +241,11 @@ TurnOffHardwareVBO()
 
 RageDisplay_Legacy::RageDisplay_Legacy()
 {
-	LOG->Trace("RageDisplay_Legacy::RageDisplay_Legacy()");
-	LOG->MapLog("renderer", "Current renderer: OpenGL");
+	if (PREFSMAN->m_verbose_log)
+	{
+		LOG->Trace("RageDisplay_Legacy::RageDisplay_Legacy()");
+		LOG->MapLog("renderer", "Current renderer: OpenGL");
+	}
 
 	FixLittleEndian();
 	RageDisplay_Legacy_Helpers::Init();
@@ -296,7 +300,8 @@ CompileShader(GLenum ShaderType, RString sFile, vector<RString> asDefines)
 		}
 	}
 
-	LOG->Trace("Compiling shader %s", sFile.c_str());
+	if(PREFSMAN->m_verbose_log)
+		LOG->Trace("Compiling shader %s", sFile.c_str());
 	GLhandleARB hShader = glCreateShaderObjectARB(ShaderType);
 	vector<const GLcharARB*> apData;
 	vector<GLint> aiLength;
@@ -482,7 +487,7 @@ static LocalizedString GLDIRECT_IS_NOT_COMPATIBLE("RageDisplay_Legacy",
 												  "be disabled.");
 RString
 RageDisplay_Legacy::Init(const VideoModeParams& p,
-						 bool bAllowUnacceleratedRenderer)
+	bool bAllowUnacceleratedRenderer)
 {
 	g_pWind = LowLevelWindow::Create();
 
@@ -493,57 +498,60 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 
 	// Log driver details
 	g_pWind->LogDebugInformation();
-	LOG->Info("OGL Vendor: %s", glGetString(GL_VENDOR));
-	LOG->Info("OGL Renderer: %s", glGetString(GL_RENDERER));
-	LOG->Info("OGL Version: %s", glGetString(GL_VERSION));
-	LOG->Info("OGL Max texture size: %i", GetMaxTextureSize());
-	LOG->Info("OGL Texture units: %i", g_iMaxTextureUnits);
-	LOG->Info("GLU Version: %s", gluGetString(GLU_VERSION));
-
-	/* Pretty-print the extension string: */
-	LOG->Info("OGL Extensions:");
+	if (PREFSMAN->m_verbose_log)
 	{
-		const char* szExtensionString = (const char*)glGetString(GL_EXTENSIONS);
-		vector<RString> asExtensions;
-		split(szExtensionString, " ", asExtensions);
-		sort(asExtensions.begin(), asExtensions.end());
-		size_t iNextToPrint = 0;
-		while (iNextToPrint < asExtensions.size()) {
-			size_t iLastToPrint = iNextToPrint;
-			RString sType;
-			for (size_t i = iNextToPrint; i < asExtensions.size(); ++i) {
-				vector<RString> asBits;
-				split(asExtensions[i], "_", asBits);
-				RString sThisType;
-				if (asBits.size() > 2)
-					sThisType = join("_", asBits.begin(), asBits.begin() + 2);
-				if (i > iNextToPrint && sThisType != sType)
-					break;
-				sType = sThisType;
-				iLastToPrint = i;
-			}
+		LOG->Info("OGL Vendor: %s", glGetString(GL_VENDOR));
+		LOG->Info("OGL Renderer: %s", glGetString(GL_RENDERER));
+		LOG->Info("OGL Version: %s", glGetString(GL_VERSION));
+		LOG->Info("OGL Max texture size: %i", GetMaxTextureSize());
+		LOG->Info("OGL Texture units: %i", g_iMaxTextureUnits);
+		LOG->Info("GLU Version: %s", gluGetString(GLU_VERSION));
 
-			if (iNextToPrint == iLastToPrint) {
-				LOG->Info("  %s", asExtensions[iNextToPrint].c_str());
-				++iNextToPrint;
-				continue;
-			}
-
-			RString sList = ssprintf("  %s: ", sType.c_str());
-			while (iNextToPrint <= iLastToPrint) {
-				vector<RString> asBits;
-				split(asExtensions[iNextToPrint], "_", asBits);
-				RString sShortExt = join("_", asBits.begin() + 2, asBits.end());
-				sList += sShortExt;
-				if (iNextToPrint < iLastToPrint)
-					sList += ", ";
-				if (iNextToPrint == iLastToPrint ||
-					sList.size() + asExtensions[iNextToPrint + 1].size() >
-					  120) {
-					LOG->Info("%s", sList.c_str());
-					sList = "    ";
+		/* Pretty-print the extension string: */
+		LOG->Info("OGL Extensions:");
+		{
+			const char* szExtensionString = (const char*)glGetString(GL_EXTENSIONS);
+			vector<RString> asExtensions;
+			split(szExtensionString, " ", asExtensions);
+			sort(asExtensions.begin(), asExtensions.end());
+			size_t iNextToPrint = 0;
+			while (iNextToPrint < asExtensions.size()) {
+				size_t iLastToPrint = iNextToPrint;
+				RString sType;
+				for (size_t i = iNextToPrint; i < asExtensions.size(); ++i) {
+					vector<RString> asBits;
+					split(asExtensions[i], "_", asBits);
+					RString sThisType;
+					if (asBits.size() > 2)
+						sThisType = join("_", asBits.begin(), asBits.begin() + 2);
+					if (i > iNextToPrint && sThisType != sType)
+						break;
+					sType = sThisType;
+					iLastToPrint = i;
 				}
-				++iNextToPrint;
+
+				if (iNextToPrint == iLastToPrint) {
+					LOG->Info("  %s", asExtensions[iNextToPrint].c_str());
+					++iNextToPrint;
+					continue;
+				}
+
+				RString sList = ssprintf("  %s: ", sType.c_str());
+				while (iNextToPrint <= iLastToPrint) {
+					vector<RString> asBits;
+					split(asExtensions[iNextToPrint], "_", asBits);
+					RString sShortExt = join("_", asBits.begin() + 2, asBits.end());
+					sList += sShortExt;
+					if (iNextToPrint < iLastToPrint)
+						sList += ", ";
+					if (iNextToPrint == iLastToPrint ||
+						sList.size() + asExtensions[iNextToPrint + 1].size() >
+						120) {
+						LOG->Info("%s", sList.c_str());
+						sList = "    ";
+					}
+					++iNextToPrint;
+				}
 			}
 		}
 	}
@@ -2305,16 +2313,17 @@ RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt,
 		ASSERT(iRealFormat == GL_RGBA8);
 	}
 
-	LOG->Trace(
-	  "%s (format %s, %ix%i, format %s, type %s, pixfmt %i, imgpixfmt %i)",
-	  bGenerateMipMaps ? "gluBuild2DMipmaps" : "glTexImage2D",
-	  GLToString(glTexFormat).c_str(),
-	  pImg->w,
-	  pImg->h,
-	  GLToString(glImageFormat).c_str(),
-	  GLToString(glImageType).c_str(),
-	  pixfmt,
-	  SurfacePixFmt);
+	if(PREFSMAN->m_verbose_log)
+		LOG->Trace(
+		  "%s (format %s, %ix%i, format %s, type %s, pixfmt %i, imgpixfmt %i)",
+		  bGenerateMipMaps ? "gluBuild2DMipmaps" : "glTexImage2D",
+		  GLToString(glTexFormat).c_str(),
+		  pImg->w,
+		  pImg->h,
+		  GLToString(glImageFormat).c_str(),
+		  GLToString(glImageType).c_str(),
+		  pixfmt,
+		  SurfacePixFmt);
 
 	DebugFlushGLErrors();
 
