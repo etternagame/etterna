@@ -15,7 +15,7 @@ class ThreadData
 	void waitForUpdate()
 	{
 		std::unique_lock<std::mutex> lk(_updatedMutex);
-		_updatedCV.wait_for(lk, 100ms, [this] { return this->getUpdated(); });
+		_updatedCV.wait_for(lk, chrono::milliseconds(100), [this] { return this->getUpdated(); });
 	}
 	void setUpdated(bool b)
 	{
