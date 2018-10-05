@@ -1203,8 +1203,14 @@ Song::SaveToSSCFile(const RString& sPath, bool bSavingCache, bool autosave)
 		m_sSongFileName = path;
 	}
 
-	vector<Steps*> vpStepsToSave = GetStepsToSave(bSavingCache, path);
+	  vector<Steps*> vpStepsToSave = GetStepsToSave(bSavingCache, sPath);
 
+	if (!bSavingCache)
+		for (auto s : vpStepsToSave) {
+			s->Decompress();
+			s->CalcEtternaMetadata();
+			s->SetFilename(path);
+		} 
 	if (bSavingCache || autosave) {
 		return SONGINDEX->CacheSong(*this, path);
 	}
