@@ -25,6 +25,9 @@ class FilterManager
 	bool HighestSkillsetsOnly = false;
 	bool AnyActiveFilter();
 
+	void savepos(string name, int x, int y);
+	pair<int, int> loadpos(string name);
+
 	// not actually filter stuff! but this doesn't get enough love so i'm going
 	// to put it here until i make something for it -mina
 	int miniboarddockx = 0;
