@@ -154,14 +154,14 @@ local o =
 		collapsed = true
 		self:diffusealpha(0.8)
 
-		if
-			FILTERMAN:grabposx("Doot") <= 10 or FILTERMAN:grabposy("Doot") <= 45 or
-				FILTERMAN:grabposx("Doot") >= SCREEN_WIDTH - 60 or
-				FILTERMAN:grabposy("Doot") >= SCREEN_HEIGHT - 45
+		if	-- a generic bounds check function that snaps an actor onto the screen or within specified coordinates should be added as an actor member, ie, not this -mina
+			FILTERMAN:grabposx("ScoreDisplay") <= 10 or FILTERMAN:grabposy("ScoreDisplay") <= 45 or
+				FILTERMAN:grabposx("ScoreDisplay") >= SCREEN_WIDTH - 60 or
+				FILTERMAN:grabposy("ScoreDisplay") >= SCREEN_HEIGHT - 45
 		 then
 			self:xy(10, 45)
 		else
-			self:xy(FILTERMAN:grabposx("Doot"), FILTERMAN:grabposy("Doot"))
+			self:LoadXY()
 		end
 
 		FILTERMAN:HelpImTrappedInAChineseFortuneCodingFactory(true)
@@ -234,8 +234,8 @@ local o =
 					self:diffusealpha(0):zoomto(400, 400)
 					local nx = INPUTFILTER:GetMouseX() - width / 2
 					local ny = INPUTFILTER:GetMouseY() - self:GetY()
-					self:GetParent():xy(nx, ny)
-					FILTERMAN:savepos("Doot", nx, ny)
+					self:GetParent():SaveXY(nx, ny)	-- this can probably be wrapped for convenience -mina
+					self:GetParent():LoadXY()
 				else
 					self:zoomto(dwidth / 2, pdh / 2)
 				end
