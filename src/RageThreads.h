@@ -75,7 +75,9 @@ parallelExecution(vector<T> vec,
 				  function<void(vectorRange<T>, ThreadData*)> exec,
 				  void* stuff)
 {
-	const int THREADS = std::thread::hardware_concurrency();
+	const int THREADS = PREFSMAN->ThreadsToUse <= 0
+						  ? std::thread::hardware_concurrency()
+						  : min((int)PREFSMAN->ThreadsToUse, (int)std::thread::hardware_concurrency());
 	std::vector<vectorRange<T>> workloads =
 	  splitWorkLoad(vec, static_cast<size_t>(vec.size() / THREADS));
 	ThreadData data;
