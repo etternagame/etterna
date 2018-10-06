@@ -102,11 +102,28 @@ local function button(txt, click)
 		y = x + 50
 	}
 end
+
+
+local bg =
+	Widg.Rectangle {
+	color = getLeaderboardColor("background"),
+	width = 100,
+	height = 200,
+	onInit = function(self)
+		local curX = getTrueX(self)
+		local alignment = 805
+		self:x(SCREEN_WIDTH-curX-alignment)
+	end
+}
+
+
+local i = 1
 scroller[#scroller + 1] =
 	Widg.Container {
-	x = SCREEN_WIDTH - 50,
-	y = 50,
+	x = SCREEN_WIDTH - 45,
+	y = SCREEN_HEIGHT/2 - 100,
 	content = {
+		bg, 
 		button(
 			"Pause",
 			function(self)

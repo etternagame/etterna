@@ -2359,6 +2359,11 @@ class LunaGameState : public Luna<GameState>
 		p->updateDiscordPresence(SArg(1), SArg(2), SArg(3), IArg(4));
 		return 1;
 	}
+	static int IsPaused(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->GetPaused());
+		return 1;
+	}
 
 	DEFINE_METHOD(GetEtternaVersion, GetEtternaVersion())
 	LunaGameState()
@@ -2460,6 +2465,7 @@ class LunaGameState : public Luna<GameState>
 		ADD_METHOD(GetCoinMode);
 		ADD_METHOD(UpdateDiscordMenu);
 		ADD_METHOD(UpdateDiscordPresence);
+		ADD_METHOD(IsPaused);
 	}
 };
 
