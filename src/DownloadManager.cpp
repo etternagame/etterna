@@ -24,7 +24,7 @@
 #include <nlohmann/json.hpp>
 #include <unordered_set>
 #include <FilterManager.h>
-#include "PlayerStageStats.h" >
+#include "PlayerStageStats.h"
 #include "Grade.h"
 using json = nlohmann::json;
 #ifdef _WIN32
@@ -458,7 +458,7 @@ Download::Update(float fDeltaSeconds)
 	}
 }
 Download*
-DownloadManager::DownloadAndInstallPack(DownloadablePack* pack)
+DownloadManager::DownloadAndInstallPack(DownloadablePack* pack, bool mirror)
 {
 	vector<RString> packs;
 	SONGMAN->GetSongGroupNames(packs);
@@ -470,10 +470,11 @@ DownloadManager::DownloadAndInstallPack(DownloadablePack* pack)
 		}
 	}
 	if (downloadingPacks >= maxPacksToDownloadAtOnce) {
-		DLMAN->DownloadQueue.emplace_back(pack);
+		DLMAN->DownloadQueue.emplace_back(make_pair(pack, mirror));
 		return nullptr;
 	}
-	Download* dl = DownloadAndInstallPack(pack->url, pack->name + ".zip");
+	Download* dl = DownloadAndInstallPack(mirror ? pack->mirror : pack->url,
+										  pack->name + ".zip");
 	dl->p_Pack = pack;
 	return dl;
 }
@@ -497,7 +498,7 @@ DownloadManager::Update(float fDeltaSeconds)
 void
 DownloadManager::UpdateHTTP(float fDeltaSeconds)
 {
-	if (!HTTPRunning && HTTPRequests.size() == 0)
+	if (!HTTPRunning && HTTPRequests.size() == 0 || gameplay)
 		return;
 	timeval timeout;
 	int rc, maxfd = -1;
@@ -586,7 +587,7 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		auto it = DownloadQueue.begin();
 		DownloadQueue.pop_front();
 		auto pack = *it;
-		auto dl = DLMAN->DownloadAndInstallPack(pack);
+		auto dl = DLMAN->DownloadAndInstallPack(pack.first, pack.second);
 	}
 	if (!downloadingPacks)
 		return;
@@ -1277,6 +1278,7 @@ DownloadManager::MakeAThing(string chartkey)
 		hs.userid = ohs.userid;
 		hs.scoreid = ohs.scoreid;
 		hs.avatar = ohs.avatar;
+		hs.countryCode = ohs.countryCode;
 		athing.push_back(hs);
 	}
 }
@@ -1307,6 +1309,7 @@ DownloadManager::RequestChartLeaderBoard(string chartkey)
 				tmp.username = user.value("userName", "").c_str();
 				tmp.avatar = user.value("avatar", "").c_str();
 				tmp.userid = user.value("userId", 0);
+				tmp.countryCode = user.value("countryCode", "");
 				tmp.playerRating =
 				  static_cast<float>(user.value("playerRating", 0.0));
 				tmp.wife = static_cast<float>(score.value("wife", 0.0) / 100.0);
@@ -1424,7 +1427,7 @@ DownloadManager::GetCoreBundle(string whichoneyo)
 }
 
 void
-DownloadManager::DownloadCoreBundle(string whichoneyo)
+DownloadManager::DownloadCoreBundle(string whichoneyo, bool mirror)
 {
 	auto bundle = GetCoreBundle(whichoneyo);
 	sort(bundle.begin(),
@@ -1433,7 +1436,7 @@ DownloadManager::DownloadCoreBundle(string whichoneyo)
 			 return x1->size < x2->size;
 		 });
 	for (auto pack : bundle)
-		DLMAN->DownloadQueue.emplace_back(pack);
+		DLMAN->DownloadQueue.emplace_back(make_pair(pack, mirror));
 }
 
 void
@@ -1565,6 +1568,7 @@ DownloadManager::RefreshUserData()
 			  skillsets->value(SkillsetToString(ss).c_str(), 0.0f);
 			DLMAN->sessionRatings[Skill_Overall] =
 			  attr->value("playerRating", DLMAN->sessionRatings[Skill_Overall]);
+			DLMAN->countryCode = attr->value("countryCode", "");
 		} catch (exception e) {
 			FOREACH_ENUM(Skillset, ss)
 			(DLMAN->sessionRatings)[ss] = 0.0f;
@@ -1731,6 +1735,11 @@ DownloadManager::RefreshPackList(string url)
 					} catch (exception e) {
 						continue;
 					}
+					try {
+						if (pack.find("mirror") != pack.end())
+							tmp.mirror = pack.value("mirror", "");
+					} catch (exception e) {
+					}
 					if (tmp.url.empty())
 						continue;
 					if (pack.find("average") != pack.end())
@@ -1770,6 +1779,7 @@ Download::Download(string url, string filename, function<void(Download*)> done)
 	curl_easy_setopt(handle, CURLOPT_XFERINFODATA, &progress);
 	curl_easy_setopt(handle, CURLOPT_XFERINFOFUNCTION, progressfunc);
 	curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 0);
+	curl_easy_setopt(handle, CURLOPT_HTTPGET, 1L);
 }
 
 Download::~Download()
@@ -2062,6 +2072,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	{
 		// p->RequestChartLeaderBoard(SArg(1));
 		p->MakeAThing(SArg(1));
+		bool isGlobal = BArg(2);
+
 		vector<HighScore*> wot;
 		unordered_set<string> userswithscores;
 		float currentrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
@@ -2071,6 +2083,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 				p->currentrateonly)
 				continue;
 			if (userswithscores.count(zoop.GetName()) == 1 && p->topscoresonly)
+				continue;
+			if ((!isGlobal) && (zoop.countryCode != DLMAN->countryCode))
 				continue;
 			wot.push_back(&zoop);
 			userswithscores.emplace(zoop.GetName());
@@ -2284,9 +2298,12 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
   public:
 	static int DownloadAndInstall(T* p, lua_State* L)
 	{
+		bool mirror = false;
+		if (lua_gettop(L) > 0)
+			mirror = BArg(1);
 		if (p->downloading)
 			return 1;
-		Download* dl = DLMAN->DownloadAndInstallPack(p);
+		Download* dl = DLMAN->DownloadAndInstallPack(p, mirror);
 		if (dl) {
 			dl->PushSelf(L);
 			p->downloading = true;
@@ -2312,8 +2329,10 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 	}
 	static int IsQueued(T* p, lua_State* L)
 	{
-		auto it = std::find(
-		  DLMAN->DownloadQueue.begin(), DLMAN->DownloadQueue.end(), p);
+		auto it = std::find_if(
+		  DLMAN->DownloadQueue.begin(),
+		  DLMAN->DownloadQueue.end(),
+		  [p](pair<DownloadablePack*, bool> pair) { return pair.first == p; });
 		lua_pushboolean(L, it != DLMAN->DownloadQueue.end());
 		return 1;
 	}

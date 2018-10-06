@@ -75,6 +75,22 @@ FilterManager::AnyActiveFilter()
 	return false;
 }
 
+// coords garb
+// store x/y persistently by name
+
+void
+FilterManager::savepos(string name, int x, int y)
+{
+	watte[name].first = x;
+	watte[name].second = y;
+}
+
+pair<int, int>
+FilterManager::loadpos(string name)
+{
+	return watte[name];
+}
+
 // lua start
 #include "LuaBinding.h"
 
@@ -166,12 +182,6 @@ class LunaFilterManager : public Luna<FilterManager>
 		lua_pushnumber(L, p->watte[SArg(1)].second);
 		return 1;
 	}
-	static int savepos(T* p, lua_State* L)
-	{
-		p->watte[SArg(1)].first = IArg(2);
-		p->watte[SArg(1)].second = IArg(3);
-		return 1;
-	}
 
 	LunaFilterManager()
 	{
@@ -191,7 +201,6 @@ class LunaFilterManager : public Luna<FilterManager>
 		ADD_METHOD(oopsimlazylol);
 		ADD_METHOD(grabposx);
 		ADD_METHOD(grabposy);
-		ADD_METHOD(savepos);
 	}
 };
 

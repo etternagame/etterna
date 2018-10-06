@@ -73,7 +73,7 @@ scroller =
 		givenrate = SCREENMAN:GetTopScreen():SetReplayRate(newrate)
 		if givenrate ~= nil then
 			realnewrate = notShit.round(givenrate, 3)
-			SCREENMAN:SystemMessage(string.format("Set rate to %f", realnewrate))
+		--SCREENMAN:SystemMessage(string.format("Set rate to %f", realnewrate))
 		end
 	end,
 	ReplayPauseToggleCommand = function(self)
@@ -86,5 +86,47 @@ scroller =
 	ReplayBookmarkGotoCommand = function(self)
 		SCREENMAN:GetTopScreen():JumpToReplayBookmark()
 	end
+}
+local span = 50
+local x = -1 * span
+local function button(txt, click)
+	x = x + span
+	return Widg.Button {
+		text = txt,
+		width = 60,
+		height = 30,
+		bgColor = getMainColor("highlight"),
+		highlight = {color = getMainColor("positive")},
+		border = {color = getMainColor("highlight"), width = 2},
+		onClick = click,
+		y = x + 50
+	}
+end
+scroller[#scroller + 1] =
+	Widg.Container {
+	x = SCREEN_WIDTH - 50,
+	y = 50,
+	content = {
+		button(
+			"Pause",
+			function(self)
+				SCREENMAN:GetTopScreen():ToggleReplayPause()
+				local paused = GAMESTATE:IsPaused()
+				self.label.actor:settext(paused and "Play" or "Pause")
+			end
+		),
+		button(
+			"Fast Forward",
+			function()
+				SCREENMAN:GetTopScreen():SetReplayPosition(SCREENMAN:GetTopScreen():GetSongPosition() + 5)
+			end
+		),
+		button(
+			"Rewind",
+			function()
+				SCREENMAN:GetTopScreen():SetReplayPosition(SCREENMAN:GetTopScreen():GetSongPosition() - 5)
+			end
+		)
+	}
 }
 return scroller

@@ -745,8 +745,7 @@ PlayerStageStats::UpdateComboList(float fSecond, bool bRollover)
 		combo.m_rollover = cnt;
 }
 
-/* This returns the largest combo contained within the song, as if
- * m_bComboContinuesBetweenSongs is turned off. */
+/* This returns the largest combo contained within the song */
 PlayerStageStats::Combo_t
 PlayerStageStats::GetMaxCombo() const
 {

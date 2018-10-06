@@ -998,6 +998,11 @@ ScreenGameplay::LoadNextSong()
 	int iPlaySongIndex = GAMESTATE->GetCourseSongIndex();
 	iPlaySongIndex %= m_apSongsQueue.size();
 	GAMESTATE->m_pCurSong.Set(m_apSongsQueue[iPlaySongIndex]);
+	// Check if the music actually exists, this is to avoid an issue in
+	// AutoKeysounds.cpp, where the reader will ignore whether the file opener
+	// function actually returned a valid object or an error. - Terra
+	GAMESTATE->m_pCurSong.Get()->ReloadIfNoMusic();
+
 	STATSMAN->m_CurStageStats.m_vpPlayedSongs.push_back(GAMESTATE->m_pCurSong);
 
 	// Force immediate fail behavior changed to theme metric by Kyz.
@@ -2847,13 +2852,13 @@ ScreenGameplay::ToggleReplayPause()
 		m_pSoundMusic->Play(false, &p);
 		GAMESTATE->m_Position.m_fMusicSeconds = fSeconds;
 		UpdateSongPosition(0);
-		SCREENMAN->SystemMessage("Unpaused Replay");
+		// SCREENMAN->SystemMessage("Unpaused Replay");
 	} else {
 		// Almost all of gameplay is based on the music moving.
 		// If the music is paused, nothing works.
 		// This is all we have to do.
 		m_pSoundMusic->Pause(newPause);
-		SCREENMAN->SystemMessage("Paused Replay");
+		// SCREENMAN->SystemMessage("Paused Replay");
 	}
 	GAMESTATE->SetPaused(newPause);
 }
@@ -2956,13 +2961,17 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 	{
 		float newpos = FArg(1);
 		if (!GAMESTATE->GetPaused()) {
+			/*
 			SCREENMAN->SystemMessage(
 			  "You must be paused to move the song position of a Replay.");
+			*/
 			return 0;
 		}
 		if (GamePreferences::m_AutoPlay != PC_REPLAY) {
+			/*
 			SCREENMAN->SystemMessage(
 			  "You cannot move the song position outside of a Replay.");
+			*/
 			return 0;
 		}
 		p->SetSongPosition(newpos);
@@ -2972,14 +2981,18 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 	{
 		float newrate = FArg(1);
 		if (!GAMESTATE->GetPaused()) {
+			/*
 			SCREENMAN->SystemMessage(
 			  "You must be paused to change the rate of a Replay.");
+			*/
 			lua_pushnumber(L, -1.f);
 			return 0;
 		}
 		if (GamePreferences::m_AutoPlay != PC_REPLAY) {
+			/*
 			SCREENMAN->SystemMessage(
 			  "You cannot change the rate outside of a Replay.");
+			*/
 			lua_pushnumber(L, -1.f);
 			return 0;
 		}
@@ -2989,8 +3002,10 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 	static int ToggleReplayPause(T* p, lua_State* L)
 	{
 		if (GamePreferences::m_AutoPlay != PC_REPLAY) {
+			/*
 			SCREENMAN->SystemMessage(
 			  "You cannot pause the game outside of a Replay.");
+			*/
 			return 0;
 		}
 		p->ToggleReplayPause();

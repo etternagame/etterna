@@ -928,7 +928,22 @@ local width = SCREEN_WIDTH / 2 - 100
 local height = 10
 local alpha = 0.7
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
-
+local isReplay = GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerController() == "PlayerController_Replay"
+local replaySlider =
+	isReplay and
+	Widg.SliderBase {
+		width = width,
+		height = height,
+		min = 0,
+		visible = false,
+		max = GAMESTATE:GetCurrentSong():MusicLengthSeconds(),
+		-- Change to onValueChangeEnd if this
+		-- lags too much
+		onValueChange = function(val)
+			SCREENMAN:GetTopScreen():SetReplayPosition(val)
+		end
+	} or
+	nil
 local p =
 	Def.ActorFrame {
 	InitCommand = function(self)
@@ -982,7 +997,8 @@ local p =
 				settext(self, SecondsToMMSS(ttime))
 				diffuse(self, byMusicLength(ttime))
 			end
-		}
+		},
+	replaySlider
 }
 
 if enabledFullBar then

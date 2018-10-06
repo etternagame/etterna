@@ -9,6 +9,7 @@ local defaultConfig = {
 	TargetTrackerMode = 0,
 	JudgeCounter = true,
 	ErrorBar = 1,
+	leaderboardEnabled = 1,
 	PlayerInfo = true,
 	FullProgressBar = true,
 	MiniProgressBar = true,

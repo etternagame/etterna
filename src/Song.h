@@ -1,4 +1,4 @@
-#ifndef SONG_H
+﻿#ifndef SONG_H
 #define SONG_H
 
 #include "Difficulty.h"
@@ -98,6 +98,7 @@ class Song
 	// This one takes the effort to reuse Steps pointers as best as it can
 	bool ReloadFromSongDir(const RString& sDir);
 	bool ReloadFromSongDir() { return ReloadFromSongDir(GetSongDir()); }
+	void ReloadIfNoMusic();
 
 	RString m_sFileHash;
 	RString GetFileHash();
