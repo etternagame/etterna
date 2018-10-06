@@ -92,10 +92,6 @@ local filts = {"All Rates", "Current Rate"}
 local topornah = {"Top Scores", "All Scores"}
 
 local scoretable
-local scoretablegetter = function()
-	return scoretable
-end
-
 local o =
 	Def.ActorFrame {
 	Name = "ScoreDisplay",
@@ -303,8 +299,181 @@ local o =
 		}
 }
 
+local function makeScoreDisplay(i)
+	local hs
+
+	local o =
+		Def.ActorFrame {
+		InitCommand = function(self)
+			self:y(packspaceY * i + headeroff)
+			if i > numscores then
+				self:visible(false)
+			end
+		end,
+		UpdateCommand = function(self)
+			hs = scoretable[(i + ind)]
+			if hs and i <= numscores then
+				self:queuecommand("Display")
+				self:visible(true)
+			else
+				self:visible(false)
+			end
+		end,
+		Def.Quad {
+			InitCommand = function(self)
+				self:x(offx):zoomto(dwidth, pdh):halign(0)
+			end,
+			DisplayCommand = function(self)
+				self:diffuse(color("#111111CC"))
+			end,
+			HighlightCommand = function(self)
+				if isOver(self) and collapsed then
+					self:diffusealpha(1)
+				else
+					self:diffusealpha(0.6)
+				end
+			end
+		},
+		LoadFont("Common normal") ..
+			{
+				--rank
+				InitCommand = function(self)
+					self:x(c0x):zoom(tzoom):halign(0):valign(0)
+					if collapsed then
+						self:x(c0x):zoom(tzoom):halign(0):valign(0.5)
+					end
+				end,
+				DisplayCommand = function(self)
+					self:settextf("%i.", i + ind)
+				end
+			},
+		LoadFont("Common normal") ..
+			{
+				--ssr
+				InitCommand = function(self)
+					self:x(c2x - c1x + offx):zoom(tzoom + 0.05):halign(0.5):valign(1)
+					if collapsed then
+						self:x(46):zoom(tzoom + 0.15):halign(0.5):valign(0.5):maxwidth(20 / tzoom)
+					end
+				end,
+				DisplayCommand = function(self)
+					local ssr = hs:GetSkillsetSSR("Overall")
+					self:settextf("%.2f", ssr):diffuse(byMSD(ssr))
+				end
+			},
+		LoadFont("Common normal") ..
+			{
+				--rate
+				InitCommand = function(self)
+					self:x(c2x - c1x + offx):zoom(tzoom - 0.05):halign(0.5):valign(0):addy(row2yoff)
+					if collapsed then
+						self:x(c4x - 14):zoom(tzoom):halign(1):valign(0.5):addy(-row2yoff):maxwidth(30 / tzoom)
+					end
+				end,
+				DisplayCommand = function(self)
+					local ratestring = string.format("%.2f", hs:GetMusicRate()):gsub("%.?0$", "") .. "x"
+					self:settext(ratestring)
+				end,
+				ExpandCommand = function(self)
+					self:addy(-row2yoff)
+				end
+			},
+		LoadFont("Common normal") ..
+			{
+				--name
+				InitCommand = function(self)
+					self:x(c2x):zoom(tzoom + 0.1):maxwidth((c3x - c2x - capWideScale(10, 40)) / tzoom):halign(0):valign(1)
+					if collapsed then
+						self:x(c2x + 10):maxwidth(60 / tzoom):zoom(tzoom + 0.2):valign(0.5)
+					end
+				end,
+				DisplayCommand = function(self)
+					self:settext(hs:GetDisplayName())
+					if hs:GetChordCohesion() then
+						self:diffuse(color("#F0EEA6"))
+					else
+						self:diffuse(getMainColor("positive"))
+					end
+				end,
+				HighlightCommand = function(self)
+					highlightIfOver(self)
+				end,
+				MouseLeftClickMessageCommand = function(self)
+					if isOver(self) then
+						local urlstringyo = "https://etternaonline.com/user/" .. hs:GetDisplayName()
+						GAMESTATE:ApplyGameCommand("urlnoexit," .. urlstringyo)
+					end
+				end
+			},
+		LoadFont("Common normal") ..
+			{
+				--judgments
+				InitCommand = function(self)
+					if not collapsed then
+						self:x(c2x):zoom(tzoom - 0.05):halign(0):valign(0):maxwidth(width / 2 / tzoom):addy(row2yoff)
+					end
+				end,
+				DisplayCommand = function(self)
+					self:settext(hs:GetJudgmentString())
+					if hs:GetChordCohesion() then
+						self:diffuse(color("#F0EEA6"))
+					else
+						self:diffuse(getMainColor("positive"))
+					end
+				end,
+				HighlightCommand = function(self)
+					highlightIfOver(self)
+				end,
+				MouseLeftClickMessageCommand = function(self)
+					if isOver(self) then
+						local urlstringyo = "https://etternaonline.com/score/view/" .. hs:GetScoreid() .. hs:GetUserid()
+						GAMESTATE:ApplyGameCommand("urlnoexit," .. urlstringyo)
+					end
+				end,
+				CollapseCommand = function(self)
+					self:visible(false)
+				end,
+				ExpandCommand = function(self)
+					self:visible(true):addy(-row2yoff)
+				end
+			},
+		LoadFont("Common normal") ..
+			{
+				--percent
+				InitCommand = function(self)
+					self:x(c5x):zoom(tzoom + 0.15):halign(1):valign(1)
+					if collapsed then
+						self:x(c5x):zoom(tzoom + 0.15):halign(1):valign(0.5):maxwidth(30 / tzoom)
+					end
+				end,
+				DisplayCommand = function(self)
+					self:settextf("%05.2f%%", hs:GetWifeScore() * 10000 / 100):diffuse(byGrade(hs:GetWifeGrade()))
+				end
+			},
+		LoadFont("Common normal") ..
+			{
+				--date
+				InitCommand = function(self)
+					if not collapsed then
+						self:x(c5x):zoom(tzoom - 0.05):halign(1):valign(0):maxwidth(width / 4 / tzoom):addy(row2yoff)
+					end
+				end,
+				DisplayCommand = function(self)
+					self:settext(hs:GetDate())
+				end,
+				CollapseCommand = function(self)
+					self:visible(false)
+				end,
+				ExpandCommand = function(self)
+					self:visible(true):addy(-row2yoff)
+				end
+			}
+	}
+	return o
+end
+
 for i = 1, numscores do
-	o[#o + 1] = Scores.makeDisplay(i, scoretablegetter)
+	o[#o + 1] = makeScoreDisplay(i)
 end
 
 return o

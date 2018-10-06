@@ -34,10 +34,13 @@ Widg.defaults.label = {
 Widg.Label = function(params)
 	fillNilTableFieldsFrom(params, Widg.defaults.label)
 	params.color = checkColor(params.color)
-	return LoadFont(params.name) ..
+	local label
+	label =
+		LoadFont(params.name) ..
 		{
 			Name = "Label",
 			InitCommand = function(self)
+				label.actor = self
 				self:xy(params.x, params.y):zoom(params.scale):halign(params.halign):valign(params.valign)
 				if type(params.width) == "number" then
 					self:maxwidth(params.width / params.scale)
@@ -48,6 +51,7 @@ Widg.Label = function(params)
 				end
 			end
 		}
+	return label
 end
 Widg.defaults.rectangle = {
 	x = 0,

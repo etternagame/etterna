@@ -8,8 +8,8 @@ if not leaderboardEnabled then
 end
 local CRITERIA = "GetWifeScore"
 local NUM_ENTRIES = 5
-local ENTRY_HEIGHT = 35
-local WIDTH = SCREEN_WIDTH * 0.3
+local ENTRY_HEIGHT = IsUsingWideScreen() and 35 or 20
+local WIDTH = SCREEN_WIDTH * (IsUsingWideScreen() and 0.3 or 0.275)
 
 if not DLMAN:GetCurrentRateFilter() then
 	DLMAN:ToggleRateFilter()
@@ -52,7 +52,7 @@ function scoreEntry(i)
 	local entryActor
 	local entry =
 		Widg.Container {
-		x = 20,
+		x = WIDTH / 40,
 		y = (i - 1) * ENTRY_HEIGHT * 1.3,
 		onInit = function(self)
 			entryActor = self
@@ -68,14 +68,12 @@ function scoreEntry(i)
 	)
 	local labelContainer =
 		Widg.Container {
-		x = 60
+		x = WIDTH / 5
 	}
 	entry:add(labelContainer)
 	local y
-	local addLabel = function(name, fn, x, y, valign, halign)
-		valign = valign or 1
-		halign = halign or 1
-		y = y or 0
+	local addLabel = function(name, fn, x, y)
+		y = (y or 0) - (IsUsingWideScreen() and 0 or ENTRY_HEIGHT / 3.2)
 		labelContainer:add(
 			Widg.Label {
 				onInit = function(self)
@@ -99,7 +97,7 @@ function scoreEntry(i)
 			self:settext(tostring(i))
 		end,
 		5,
-		ENTRY_HEIGHT / 2 - 10
+		ENTRY_HEIGHT / 4
 	)
 	addLabel(
 		"ssr",
@@ -111,14 +109,14 @@ function scoreEntry(i)
 				self:settextf("%.2f", ssr):diffuse(byMSD(ssr))
 			end
 		end,
-		40
+		WIDTH / 5
 	)
 	addLabel(
 		"name",
 		function(self, hs)
 			self:settext(hs:GetDisplayName())
 		end,
-		140
+		WIDTH / 1.3
 	)
 	--WIDTH - 84
 	addLabel(
@@ -126,14 +124,14 @@ function scoreEntry(i)
 		function(self, hs)
 			self:settextf("%05.2f%%", hs:GetWifeScore() * 100):diffuse(byGrade(hs:GetWifeGrade()))
 		end,
-		2 * WIDTH - 20
+		1.8 * WIDTH
 	)
 	addLabel(
 		"judges",
 		function(self, hs)
 			self:settext(hs:GetJudgmentString())
 		end,
-		WIDTH,
+		WIDTH / 5,
 		ENTRY_HEIGHT / 2
 	)
 	return entry
