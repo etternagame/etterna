@@ -28,6 +28,7 @@ Widg.defaults.label = {
 	width = false,
 	color = color("#FFFFFF"),
 	halign = 0.5,
+	valign = 0.5,
 	onInit = false
 }
 Widg.Label = function(params)
@@ -37,16 +38,14 @@ Widg.Label = function(params)
 		{
 			Name = "Label",
 			InitCommand = function(self)
-				self:xy(params.x, params.y):zoom(params.scale):halign(params.halign)
+				self:xy(params.x, params.y):zoom(params.scale):halign(params.halign):valign(params.valign)
 				if type(params.width) == "number" then
 					self:maxwidth(params.width / params.scale)
 				end
+				self:settext(params.text):diffuse(params.color)
 				if params.onInit then
 					params.onInit(self)
 				end
-			end,
-			BeginCommand = function(self)
-				self:settext(params.text):diffuse(params.color)
 			end
 		}
 end
@@ -647,4 +646,44 @@ Widg.ComboBox = function(params, updateActor)
 	frame:add(selection)
 	frame:add(choices)
 	return frame
+end
+
+Widg.defaults.borderedrect = {
+	x = 0,
+	y = 0,
+	color = "FFFFFF",
+	border = {
+		color = "000000",
+		width = 2
+	},
+	width = 100,
+	height = 100,
+	onInit = false,
+	alpha = 1.0,
+	visible = true
+}
+Widg.BorderedRect = function(params)
+	fillNilTableFieldsFrom(params, Widg.defaults.borderedrect)
+	params.color = checkColor(params.color)
+	params.border.color = checkColor(params.border.color)
+	return Widg.Container {
+		x = params.x,
+		y = params.y,
+		visible = params.visible,
+		onInit = params.onInit,
+		content = {
+			Widg.Borders {
+				width = params.width,
+				height = params.height,
+				alpha = params.alpha,
+				color = params.border.color
+			},
+			Widg.Rectangle {
+				width = params.width,
+				height = params.height,
+				color = params.color,
+				borderWidth = params.border.width
+			}
+		}
+	}
 end

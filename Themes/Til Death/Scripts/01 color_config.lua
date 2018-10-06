@@ -7,6 +7,11 @@ local defaultConfig = {
 		negative = "#FF9999",
 		positive = "#9654FD"
 	},
+	leaderboard = {
+		background = "#111111CC",
+		border = "#000111",
+		text = "#9654FD"
+	},
 	clearType = {
 		MFC = "#66ccff",
 		WF = "#dddddd",
@@ -99,7 +104,7 @@ local defaultConfig = {
 }
 
 colorConfig = create_setting("colorConfig", "colorConfig.lua", defaultConfig, -1)
-colorConfig:load()
+--colorConfig:load()
 
 --keys to current table. Assumes a depth of 2.
 local curColor = {"", ""}
@@ -114,6 +119,10 @@ end
 
 function getMainColor(type)
 	return color(colorConfig:get_data().main[type])
+end
+
+function getLeaderboardColor(type)
+	return color(colorConfig:get_data().leaderboard[type])
 end
 
 function getGradeColor(grade)
