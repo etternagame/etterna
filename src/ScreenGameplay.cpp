@@ -998,6 +998,11 @@ ScreenGameplay::LoadNextSong()
 	int iPlaySongIndex = GAMESTATE->GetCourseSongIndex();
 	iPlaySongIndex %= m_apSongsQueue.size();
 	GAMESTATE->m_pCurSong.Set(m_apSongsQueue[iPlaySongIndex]);
+	// Check if the music actually exists, this is to avoid an issue in AutoKeysounds.cpp,
+	// where the reader will ignore whether the file opener function actually returned
+	// a valid object or an error. - Terra
+	GAMESTATE->m_pCurSong.Get()->ReloadIfNoMusic();
+
 	STATSMAN->m_CurStageStats.m_vpPlayedSongs.push_back(GAMESTATE->m_pCurSong);
 
 	// Force immediate fail behavior changed to theme metric by Kyz.

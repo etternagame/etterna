@@ -42,7 +42,7 @@ local defaultConfig = {
 			boo = 121.0
 		},
 		judgeWeights = {
-			marv = 3.2,
+			marv = 3,
 			perf = 3,
 			great = 2,
 			good = 1,

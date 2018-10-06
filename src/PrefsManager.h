@@ -1,4 +1,4 @@
-﻿#ifndef PREFSMANAGER_H
+#ifndef PREFSMANAGER_H
 #define PREFSMANAGER_H
 
 #include "GameConstantsAndTypes.h"
@@ -248,6 +248,7 @@ class PrefsManager
 	Preference<bool> m_bAllowSongDeletion; // Allow the user to remove songs
 										   // from their collection through UI /
 										   // keyboard shortcut
+	Preference<int> ThreadsToUse;
 
 	/** @brief Enable some quirky behavior used by some older versions of
 	 * StepMania. */

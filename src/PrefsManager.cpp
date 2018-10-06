@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "Foreach.h"
 #include "IniFile.h"
 #include "LuaManager.h"
@@ -159,7 +159,7 @@ PrefsManager::PrefsManager()
   , m_bDelayedTextureDelete("DelayedTextureDelete", false)
   , m_bDelayedModelDelete("DelayedModelDelete", false)
   , m_ImageCache("CacheImages", IMGCACHE_OFF)
-  , m_bFastLoad("LoadFast", true)
+  , m_bFastLoad("FastLoad", true)
   , m_bBlindlyTrustCache("BlindlyTrustCache", true)
   , m_bShrinkSongCache("RemoveCacheEntriesForDeletedSongs", false)
   , m_NeverCacheList("NeverCacheList", "")
@@ -228,9 +228,9 @@ PrefsManager::PrefsManager()
   , m_sTestInitialScreen("TestInitialScreen", "")
   , m_MuteActions("MuteActions", false)
   , m_bAllowSongDeletion("AllowSongDeletion", false)
-  ,
+  , ThreadsToUse("ThreadsToUse", 0)
 
-  m_bQuirksMode("QuirksMode", false)
+  , m_bQuirksMode("QuirksMode", false)
   ,
 
   /* Debug: */
