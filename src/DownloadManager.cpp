@@ -2331,7 +2331,7 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 	{
 		auto it = std::find_if(DLMAN->DownloadQueue.begin(),
 							   DLMAN->DownloadQueue.end(),
-							   [p](auto pair) { return pair.first == p; });
+							   [p](pair<DownloadablePack*, bool> pair) { return pair.first == p; });
 		lua_pushboolean(L, it != DLMAN->DownloadQueue.end());
 		return 1;
 	}
