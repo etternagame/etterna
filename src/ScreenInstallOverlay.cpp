@@ -261,7 +261,7 @@ ScreenInstallOverlay::Update(float fDeltaTime)
 	for (auto& dl : DLMAN->downloads) {
 		dls.push_back(dl.second->Status());
 	}
-	msg.SetParam("dlsize", (int)DLMAN->downloads.size());
+	msg.SetParam("dlsize", static_cast<int>(DLMAN->downloads.size()));
 	msg.SetParam("dlprogress", join("\n", dls));
 
 	if (!DLMAN->DownloadQueue.empty()) {
@@ -269,7 +269,8 @@ ScreenInstallOverlay::Update(float fDeltaTime)
 		for (auto& q : DLMAN->DownloadQueue) {
 			cue.push_back(q.first->name);
 		}
-		msg.SetParam("queuesize", (int)DLMAN->DownloadQueue.size());
+		msg.SetParam("queuesize",
+					 static_cast<int>(DLMAN->DownloadQueue.size()));
 		msg.SetParam("queuedpacks", join("\n", cue));
 	} else {
 		msg.SetParam("queuesize", 0);
