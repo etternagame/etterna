@@ -73,7 +73,7 @@ scroller =
 		givenrate = SCREENMAN:GetTopScreen():SetReplayRate(newrate)
 		if givenrate ~= nil then
 			realnewrate = notShit.round(givenrate, 3)
-			SCREENMAN:SystemMessage(string.format("Set rate to %f", realnewrate))
+			--SCREENMAN:SystemMessage(string.format("Set rate to %f", realnewrate))
 		end
 	end,
 	ReplayPauseToggleCommand = function(self)
