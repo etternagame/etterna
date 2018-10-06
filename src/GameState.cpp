@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "AdjustSync.h"
 #include "Character.h"
 #include "CommonMetrics.h"
@@ -680,8 +680,7 @@ GameState::FinishStage()
 
 	m_iNumStagesOfThisSong = 0;
 
-	// Save the current combo to the profiles so it can be used for
-	// ComboContinuesBetweenSongs.
+	// Save the current combo to the profiles (why not)
 	FOREACH_HumanPlayer(p)
 	{
 		Profile* pProfile = PROFILEMAN->GetProfile(p);
@@ -927,20 +926,6 @@ GameState::ResetStageStatistics()
 {
 	StageStats OldStats = STATSMAN->m_CurStageStats;
 	STATSMAN->m_CurStageStats = StageStats();
-	if (PREFSMAN->m_bComboContinuesBetweenSongs) {
-		FOREACH_PlayerNumber(p)
-		{
-			bool FirstSong = m_iCurrentStageIndex == 0;
-			if (FirstSong) {
-				Profile* pProfile = PROFILEMAN->GetProfile(p);
-				STATSMAN->m_CurStageStats.m_player[p].m_iCurCombo =
-				  pProfile->m_iCurrentCombo;
-			} else {
-				STATSMAN->m_CurStageStats.m_player[p].m_iCurCombo =
-				  OldStats.m_player[p].m_iCurCombo;
-			}
-		}
-	}
 
 	m_fOpponentHealthPercent = 1;
 	m_fTugLifePercentP1 = 0.5f;

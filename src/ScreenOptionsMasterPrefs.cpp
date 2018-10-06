@@ -872,7 +872,6 @@ InitializeConfOptions()
 	ADD(ConfOption(
 	  "AllowW1", MovePref<AllowW1>, "Never", "Courses Only", "Always"));
 	ADD(ConfOption("AllowExtraStage", MovePref<bool>, "Off", "On"));
-	ADD(ConfOption("ComboContinuesBetweenSongs", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("Disqualification", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("AllowSongDeletion", MovePref<bool>, "Off", "On"));
 
