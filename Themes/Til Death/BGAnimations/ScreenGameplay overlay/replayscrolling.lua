@@ -73,7 +73,7 @@ scroller =
 		givenrate = SCREENMAN:GetTopScreen():SetReplayRate(newrate)
 		if givenrate ~= nil then
 			realnewrate = notShit.round(givenrate, 3)
-			--SCREENMAN:SystemMessage(string.format("Set rate to %f", realnewrate))
+		--SCREENMAN:SystemMessage(string.format("Set rate to %f", realnewrate))
 		end
 	end,
 	ReplayPauseToggleCommand = function(self)
@@ -109,8 +109,10 @@ scroller[#scroller + 1] =
 	content = {
 		button(
 			"Pause",
-			function()
+			function(self)
 				SCREENMAN:GetTopScreen():ToggleReplayPause()
+				local paused = GAMESTATE:IsPaused()
+				self.label.actor:settext(paused and "Play" or "Pause")
 			end
 		),
 		button(

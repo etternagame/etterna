@@ -221,6 +221,7 @@ Widg.Button = function(params)
 	params.border.color = checkColor(params.border.color)
 	local sprite = Def.ActorFrame {}
 	local spriteActor = nil
+	local button
 	if params.texture then
 		sprite =
 			Widg.Sprite {
@@ -246,7 +247,7 @@ Widg.Button = function(params)
 		color = params.bgColor,
 		alpha = params.texture and 0 or params.alpha,
 		onClick = params.onClick and function(s)
-				params.onClick(s)
+				params.onClick(button)
 			end or false,
 		halign = params.halign,
 		valign = params.valign,
@@ -280,35 +281,40 @@ Widg.Button = function(params)
 			borderWidth = params.border.width,
 			alpha = params.texture and 0 or params.alpha
 		}
-	local label = false
+	local labelActor = false
 	local initText = false
-	local button =
+	local label =
+		Widg.Label {
+		x = params.x + params.width * (1 - params.halign),
+		y = params.y + params.height * (1 - params.valign),
+		scale = params.font.scale,
+		halign = params.font.halign,
+		text = params.text,
+		width = params.width - params.font.padding.x,
+		onInit = function(self)
+			label.actor = self
+			labelActor = self
+			if initText then
+				self:settext(initText)
+			end
+		end
+	}
+	button =
 		Def.ActorFrame {
 		InitCommand = function(self)
+			button.actor = self
+			button.label = label
 			self:SetUpdateFunction(highlight)
 			self.params = params
 		end,
 		rect,
 		sprite,
-		Widg.Label {
-			x = params.x + params.width * (1 - params.halign),
-			y = params.y + params.height * (1 - params.valign),
-			scale = params.font.scale,
-			halign = params.font.halign,
-			text = params.text,
-			width = params.width - params.font.padding.x,
-			onInit = function(self)
-				label = self
-				if initText then
-					self:settext(initText)
-				end
-			end
-		},
+		label,
 		borders
 	}
 	button.settext = function(button, text)
-		if label then
-			label:settext(text)
+		if labelActor then
+			labelActor:settext(text)
 		else
 			initText = text
 		end
