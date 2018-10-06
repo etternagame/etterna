@@ -19,6 +19,43 @@ function checkColor(c)
 	end
 	return c
 end
+
+Widg.defaults.container = {
+	x = 0,
+	y = 0,
+	onInit = false,
+	content = false,
+	bgColor = color("#FFFF00"),
+	visible = true
+}
+
+Widg.Container = function(params)
+	fillNilTableFieldsFrom(params, Widg.defaults.container)
+	local container
+	container =
+		Def.ActorFrame {
+		InitCommand = function(self)
+			container.actor = self
+			self:xy(params.x, params.y):visible(params.visible)
+			self:SetDiffuseLightColor(params.bgColor)
+			if params.onInit then
+				params.onInit(self)
+			end
+		end
+	}
+	container.add = function(container, item)
+		container[#container + 1] = item
+	end
+	if params.content then
+		if params.content.Class then -- is an actor
+			container[#container + 1] = params.content
+		else -- assume its a table
+			container[#container + 1] = Def.ActorFrame(params.content)
+		end
+	end
+	return container
+end
+
 Widg.defaults.label = {
 	x = 0,
 	y = 0,
@@ -34,6 +71,8 @@ Widg.defaults.label = {
 Widg.Label = function(params)
 	fillNilTableFieldsFrom(params, Widg.defaults.label)
 	params.color = checkColor(params.color)
+
+	local initText = params.text
 	local label
 	label =
 		LoadFont(params.name) ..
@@ -45,14 +84,22 @@ Widg.Label = function(params)
 				if type(params.width) == "number" then
 					self:maxwidth(params.width / params.scale)
 				end
-				self:settext(params.text):diffuse(params.color)
+				self:settext(initText):diffuse(params.color)
 				if params.onInit then
 					params.onInit(self)
 				end
 			end
 		}
+	label.settext = function(label, text)
+		if label.actor then
+			label.actor:settext(text)
+		else
+			initText = text
+		end
+	end
 	return label
 end
+
 Widg.defaults.rectangle = {
 	x = 0,
 	y = 0,
@@ -97,6 +144,7 @@ Widg.Rectangle = function(params)
 	}
 	return q
 end
+
 Widg.defaults.borders = {
 	x = 0,
 	y = 0,
@@ -110,39 +158,93 @@ Widg.defaults.borders = {
 Widg.Borders = function(params)
 	fillNilTableFieldsFrom(params, Widg.defaults.borders)
 	params.color = checkColor(params.color)
-	return Def.ActorFrame {
+	local left =
+		Widg.Rectangle({width = params.borderWidth, height = params.height, color = params.color, alpha = params.alpha})
+	local right =
+		Widg.Rectangle(
+		{
+			x = params.width - params.borderWidth,
+			width = params.borderWidth,
+			height = params.height,
+			color = params.color,
+			alpha = params.alpha
+		}
+	)
+	local top =
+		Widg.Rectangle({width = params.width, height = params.borderWidth, color = params.color, alpha = params.alpha})
+	local bottom =
+		Widg.Rectangle(
+		{
+			y = params.height - params.borderWidth,
+			width = params.width,
+			height = params.borderWidth,
+			color = params.color,
+			alpha = params.alpha
+		}
+	)
+	local borders =
+		Def.ActorFrame {
 		InitCommand = function(self)
 			self:xy(params.x, params.y)
 			if params.onInit then
 				params.onInit(self)
 			end
 		end,
-		--4 border quads
-		Widg.Rectangle({width = params.borderWidth, height = params.height, color = params.color, alpha = params.alpha}), --left
-		Widg.Rectangle({width = params.width, height = params.borderWidth, color = params.color, alpha = params.alpha}), --top
-		Widg.Rectangle(
-			{
-				x = params.width - params.borderWidth,
-				width = params.borderWidth,
-				height = params.height,
-				color = params.color,
-				alpha = params.alpha
-			}
-		), --right
-		Widg.Rectangle(
-			{
-				y = params.height - params.borderWidth,
-				width = params.width,
-				height = params.borderWidth,
-				color = params.color,
-				alpha = params.alpha
-			}
-		) --bottom
+		left,
+		top,
+		right,
+		bottom
 	}
+	borders.top = top
+	borders.left = left
+	borders.bottom = bottom
+	borders.right = right
+	return borders
 end
 local function highlight(self)
 	self:queuecommand("Highlight")
 end
+
+Widg.defaults.borderedrect = {
+	x = 0,
+	y = 0,
+	color = "FFFFFF",
+	border = {
+		color = "000000",
+		width = 2
+	},
+	width = 100,
+	height = 100,
+	onInit = false,
+	alpha = 1.0,
+	visible = true
+}
+Widg.BorderedRect = function(params)
+	fillNilTableFieldsFrom(params, Widg.defaults.borderedrect)
+	params.color = checkColor(params.color)
+	params.border.color = checkColor(params.border.color)
+	return Widg.Container {
+		x = params.x,
+		y = params.y,
+		visible = params.visible,
+		onInit = params.onInit,
+		content = {
+			Widg.Borders {
+				width = params.width,
+				height = params.height,
+				alpha = params.alpha,
+				color = params.border.color
+			},
+			Widg.Rectangle {
+				width = params.width,
+				height = params.height,
+				color = params.color,
+				borderWidth = params.border.width
+			}
+		}
+	}
+end
+
 Widg.defaults.sprite = {
 	x = 0,
 	y = 0,
@@ -163,6 +265,7 @@ Widg.Sprite = function(params)
 		_Level = 1,
 		Texture = path,
 		InitCommand = function(self)
+			sprite.actor = self
 			self:xy(params.x, params.y):halign(params.halign):valign(params.valign)
 			if params.color then
 				self:diffuse(params.color)
@@ -213,18 +316,34 @@ Widg.defaults.button = {
 	valign = 1,
 	texture = false
 }
+
 Widg.Button = function(params)
 	fillNilTableFieldsFrom(params, Widg.defaults.button)
-	params.highlight.color = checkColor(params.highlight.color)
+	if params.highlight then
+		params.highlight.color = checkColor(params.highlight.color)
+	end
 	params.bgColor = checkColor(params.bgColor)
-	params.font.color = checkColor(params.font.color)
-	params.border.color = checkColor(params.border.color)
-	local sprite = Def.ActorFrame {}
+	if params.font then
+		params.font.color = checkColor(params.font.color)
+	end
+	if params.border then
+		params.border.color = checkColor(params.border.color)
+	end
+
+	local button =
+		Widg.Container {
+		onInit = function(self)
+			if params.highlight then
+				self:SetUpdateFunction(highlight)
+			end
+			self.params = params
+		end
+	}
+
 	local spriteActor = nil
-	local button
-	if params.texture then
-		sprite =
-			Widg.Sprite {
+	local sprite =
+		params.texture and
+		Widg.Sprite {
 			x = params.x,
 			color = params.bgColor,
 			y = params.y,
@@ -236,9 +355,10 @@ Widg.Button = function(params)
 			onInit = function(s)
 				spriteActor = s
 			end
-		}
-	end
-	local rect =
+		} or
+		Def.ActorFrame {}
+
+	button.bg =
 		Widg.Rectangle {
 		x = params.x,
 		y = params.y,
@@ -253,25 +373,26 @@ Widg.Button = function(params)
 		valign = params.valign,
 		visible = not params.texture
 	}
-	rect.HighlightCommand = function(self)
-		local mainActor = params.texture and spriteActor or self
-		if isOver(self) then
-			if params.highlight.color then
-				mainActor:diffuse(params.highlight.color)
+	button.bg.HighlightCommand = params.highlight and function(self)
+			local mainActor = params.texture and spriteActor or self
+			if isOver(self) then
+				if params.highlight.color then
+					mainActor:diffuse(params.highlight.color)
+				end
+				mainActor:diffusealpha(params.highlight.alpha or params.alpha or 1)
+				if params.onHighlight then
+					params.onHighlight(mainActor)
+				end
+			else
+				mainActor:diffuse(params.bgColor):diffusealpha(params.alpha)
+				if params.onUnhighlight then
+					params.onUnhighlight(mainActor)
+				end
 			end
-			mainActor:diffusealpha(params.highlight.alpha or params.alpha or 1)
-			if params.onHighlight then
-				params.onHighlight(mainActor)
-			end
-		else
-			mainActor:diffuse(params.bgColor):diffusealpha(params.alpha)
-			if params.onUnhighlight then
-				params.onUnhighlight(mainActor)
-			end
-		end
-	end
-	local borders =
-		params.texture and Def.ActorFrame {} or
+		end or nil
+
+	button.borders =
+		(params.texture or not params.border) and Def.ActorFrame {} or
 		Widg.Borders {
 			y = params.y + params.height * (0.5 - params.valign),
 			x = params.x + params.width * (0.5 - params.halign),
@@ -281,79 +402,28 @@ Widg.Button = function(params)
 			borderWidth = params.border.width,
 			alpha = params.texture and 0 or params.alpha
 		}
-	local labelActor = false
-	local initText = false
-	local label =
+
+	button.label =
 		Widg.Label {
 		x = params.x + params.width * (1 - params.halign),
 		y = params.y + params.height * (1 - params.valign),
 		scale = params.font.scale,
 		halign = params.font.halign,
 		text = params.text,
-		width = params.width - params.font.padding.x,
-		onInit = function(self)
-			label.actor = self
-			labelActor = self
-			if initText then
-				self:settext(initText)
-			end
-		end
+		width = params.width - params.font.padding.x
 	}
-	button =
-		Def.ActorFrame {
-		InitCommand = function(self)
-			button.actor = self
-			button.label = label
-			self:SetUpdateFunction(highlight)
-			self.params = params
-		end,
-		rect,
-		sprite,
-		label,
-		borders
-	}
+
 	button.settext = function(button, text)
-		if labelActor then
-			labelActor:settext(text)
-		else
-			initText = text
-		end
+		button.label:settext(text)
 	end
+
+	button:add(button.bg)
+	button:add(button.sprite)
+	button:add(button.label)
+	button:add(button.borders)
 	return button
 end
-Widg.defaults.container = {
-	x = 0,
-	y = 0,
-	onInit = false,
-	content = false,
-	bgColor = color("#FFFF00"),
-	visible = true
-}
 
-Widg.Container = function(params)
-	fillNilTableFieldsFrom(params, Widg.defaults.container)
-	local container =
-		Def.ActorFrame {
-		InitCommand = function(self)
-			self:xy(params.x, params.y):visible(params.visible)
-			self:SetDiffuseLightColor(params.bgColor)
-			if params.onInit then
-				params.onInit(self)
-			end
-		end
-	}
-	container.add = function(container, item)
-		container[#container + 1] = item
-	end
-	if params.content then
-		if params.content.class then
-			container[#container + 1] = params.content
-		else
-			container[#container + 1] = Def.ActorFrame(params.content)
-		end
-	end
-	return container
-end
 Widg.defaults.scrollable = {
 	width = 100,
 	height = 100,
@@ -459,8 +529,8 @@ Widg.defaults.sliderBase = {
 	step = 1,
 	halign = 1,
 	valign = 1,
-	vertical = false,
-	isRange = false,
+	vertical = false, -- todo
+	isRange = false, --  todo
 	bindToTable = {} -- Since tables are passed by reference, update t.value with the slider value.
 	-- If range, value = {start=number, end=number}
 }
@@ -590,35 +660,35 @@ Widg.ComboBox = function(params, updateActor)
 	params.selectionColor = checkColor(params.selectionColor)
 	params.itemColor = checkColor(params.itemColor)
 	params.itemHoverColor = checkColor(params.itemHoverColor)
+
 	fillNilTableFieldsFrom(frame, params.commands)
 	frame.droppedDown = params.droppedDown
 	frame.choices = params.choices
 	frame.selected = 1
 
-	local choicesActor
-	local choices =
+	local combobox =
 		Widg.Container {
-		onInit = function(self)
-			choicesActor = self
-		end
+		x = params.x,
+		y = params.y
 	}
 
-	local selectionGraphic = params.selection(frame.choices[frame.selected])
-	local selection =
-		Widg.Container {
-		content = {
-			selectionGraphic,
-			Widg.Rectangle {
-				visible = false,
-				width = params.width,
-				height = params.itemHeight,
-				onClick = function(self)
-					frame.droppedDown = not frame.droppedDown
-					choicesActor:visible(frame.droppedDown)
-				end
-			}
+	combobox.choices = Widg.Container {}
+
+	local selectionGraphic
+	combobox.selection.graphic = params.selection(frame.choices[frame.selected])
+	combobox.selection = Widg.Container {}
+	combobox.selection:add(combobox.selection.graphic)
+	combobox.selection:add(
+		Widg.Rectangle {
+			visible = false,
+			width = params.width,
+			height = params.itemHeight,
+			onClick = function(self)
+				frame.droppedDown = not frame.droppedDown
+				combobox.choices.actor:visible(frame.droppedDown)
+			end
 		}
-	}
+	)
 
 	for i, v in pairs(frame.choices) do
 		choices:add(
@@ -628,7 +698,7 @@ Widg.ComboBox = function(params, updateActor)
 					Widg.Rectangle {
 						onClick = function(self)
 							if frame.droppedDown then
-								selectionGraphic:settext(frame.choices[i])
+								combobox.selection.graphic:settext(frame.choices[i])
 								if onSelectionChanged then
 									onSelectionChanged(frame.choices[i], frame.choices[frame.selected])
 								end
@@ -651,52 +721,7 @@ Widg.ComboBox = function(params, updateActor)
 		y = 0,
 		content = choices
 	})]]
-	local frame =
-		Widg.Container {
-		x = params.x,
-		y = params.y
-	}
-	frame:add(selection)
-	frame:add(choices)
-	return frame
-end
-
-Widg.defaults.borderedrect = {
-	x = 0,
-	y = 0,
-	color = "FFFFFF",
-	border = {
-		color = "000000",
-		width = 2
-	},
-	width = 100,
-	height = 100,
-	onInit = false,
-	alpha = 1.0,
-	visible = true
-}
-Widg.BorderedRect = function(params)
-	fillNilTableFieldsFrom(params, Widg.defaults.borderedrect)
-	params.color = checkColor(params.color)
-	params.border.color = checkColor(params.border.color)
-	return Widg.Container {
-		x = params.x,
-		y = params.y,
-		visible = params.visible,
-		onInit = params.onInit,
-		content = {
-			Widg.Borders {
-				width = params.width,
-				height = params.height,
-				alpha = params.alpha,
-				color = params.border.color
-			},
-			Widg.Rectangle {
-				width = params.width,
-				height = params.height,
-				color = params.color,
-				borderWidth = params.border.width
-			}
-		}
-	}
+	combobox:add(selection)
+	combobox:add(choices)
+	return combobox
 end
