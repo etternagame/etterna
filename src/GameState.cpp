@@ -680,8 +680,7 @@ GameState::FinishStage()
 
 	m_iNumStagesOfThisSong = 0;
 
-	// Save the current combo to the profiles so it can be used for
-	// ComboContinuesBetweenSongs.
+	// Save the current combo to the profiles (why not)
 	FOREACH_HumanPlayer(p)
 	{
 		Profile* pProfile = PROFILEMAN->GetProfile(p);

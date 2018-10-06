@@ -188,7 +188,6 @@ class PrefsManager
 	Preference<AllowW1>
 	  m_AllowW1; // this should almost always be on, given use cases. -aj
 	Preference<bool> m_bEventMode;
-	Preference<bool> m_bComboContinuesBetweenSongs;
 	Preference<TapNoteScore> m_MinTNSToHideNotes;
 	Preference<Maybe> m_ShowSongOptions;
 	Preference<float> m_fMinPercentToSaveScores;
