@@ -936,7 +936,7 @@ local replaySlider =
 		height = height,
 		min = 0,
 		visible = false,
-		max = GetPlayableTime(),
+		max = GAMESTATE:GetCurrentSong():MusicLengthSeconds(),
 		-- Change to onValueChangeEnd if this
 		-- lags too much
 		onValueChange = function(val)

@@ -99,20 +99,17 @@ local function button(txt, click)
 		highlight = {color = getMainColor("positive")},
 		border = {color = getMainColor("highlight"), width = 2},
 		onClick = click,
-		y = x + 50,
-		x = 210
+		y = x + 50
 	}
 end
-local i = 1
 scroller[#scroller + 1] =
 	Widg.Container {
-	x = 600,
+	x = SCREEN_WIDTH - 50,
 	y = 50,
 	content = {
 		button(
 			"Pause",
 			function()
-				i = i + 1
 				SCREENMAN:GetTopScreen():ToggleReplayPause()
 			end
 		),

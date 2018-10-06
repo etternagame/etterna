@@ -14,7 +14,7 @@ local WIDTH = SCREEN_WIDTH * (IsUsingWideScreen() and 0.3 or 0.275)
 if not DLMAN:GetCurrentRateFilter() then
 	DLMAN:ToggleRateFilter()
 end
-local onlineScores = DLMAN:RequestChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())
+local onlineScores = DLMAN:RequestChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(), true)
 local sortFunction = function(h1, h2)
 	return h1[CRITERIA](h1) > h2[CRITERIA](h2)
 end
@@ -40,8 +40,15 @@ curScore = {
 curScore.curWifeScore = 0
 curScore.curGrade = "Grade_Tier02"
 local scoreboard = {}
+for i = 1, NUM_ENTRIES - 1 do
+	scoreboard[i] = onlineScores[i]
+end
+local done = false
 for i = 1, NUM_ENTRIES do
-	scoreboard[i] = i == NUM_ENTRIES and curScore or onlineScores[i]
+	if not done and not scoreboard[i] then
+		scoreboard[i] = curScore
+		done = true
+	end
 end
 
 local entryActors = {}
@@ -56,6 +63,11 @@ function scoreEntry(i)
 		y = (i - 1) * ENTRY_HEIGHT * 1.3,
 		onInit = function(self)
 			entryActor = self
+			entryActors[i]["container"] = self
+			self.update = function(self, hs)
+				self:visible(not (not hs))
+			end
+			self:update(scoreboard[i])
 		end
 	}
 	entry:add(
@@ -78,10 +90,15 @@ function scoreEntry(i)
 			Widg.Label {
 				onInit = function(self)
 					entryActors[i][name] = self
-					self.updateLabel = function(hs)
-						fn(self, hs)
+					self.update = function(self, hs)
+						if hs then
+							self:visible(true)
+							fn(self, hs)
+						else
+							self:visible(false)
+						end
 					end
-					fn(self, scoreboard[i])
+					self:update(scoreboard[i])
 				end,
 				halign = 0,
 				scale = 0.4,
@@ -144,7 +161,7 @@ t.JudgmentMessageCommand = function(self, params)
 	table.sort(scoreboard, sortFunction)
 	for i, entry in ipairs(entryActors) do
 		for name, label in pairs(entry) do
-			label.updateLabel(scoreboard[i])
+			label:update(scoreboard[i])
 		end
 	end
 end
