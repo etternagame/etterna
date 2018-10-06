@@ -87,4 +87,47 @@ scroller =
 		SCREENMAN:GetTopScreen():JumpToReplayBookmark()
 	end
 }
+local span = 50
+local x = -1 * span
+local function button(txt, click)
+	x = x + span
+	return Widg.Button {
+		text = txt,
+		width = 60,
+		height = 30,
+		bgColor = getMainColor("highlight"),
+		highlight = {color = getMainColor("positive")},
+		border = {color = getMainColor("highlight"), width = 2},
+		onClick = click,
+		y = x + 50,
+		x = 210
+	}
+end
+local i = 1
+scroller[#scroller + 1] =
+	Widg.Container {
+	x = 600,
+	y = 50,
+	content = {
+		button(
+			"Pause",
+			function()
+				i = i + 1
+				SCREENMAN:GetTopScreen():ToggleReplayPause()
+			end
+		),
+		button(
+			"Fast Forward",
+			function()
+				SCREENMAN:GetTopScreen():SetReplayPosition(SCREENMAN:GetTopScreen():GetSongPosition() + 5)
+			end
+		),
+		button(
+			"Rewind",
+			function()
+				SCREENMAN:GetTopScreen():SetReplayPosition(SCREENMAN:GetTopScreen():GetSongPosition() - 5)
+			end
+		)
+	}
+}
 return scroller
