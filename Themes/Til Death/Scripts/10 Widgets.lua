@@ -326,14 +326,17 @@ Widg.defaults.container = {
 	y = 0,
 	onInit = false,
 	content = false,
+	bgColor = color("#FFFF00"),
 	visible = true
 }
+
 Widg.Container = function(params)
 	fillNilTableFieldsFrom(params, Widg.defaults.container)
 	local container =
 		Def.ActorFrame {
 		InitCommand = function(self)
 			self:xy(params.x, params.y):visible(params.visible)
+			self:SetDiffuseLightColor(params.bgColor)
 			if params.onInit then
 				params.onInit(self)
 			end
