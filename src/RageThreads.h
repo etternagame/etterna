@@ -7,6 +7,7 @@
 #include <thread>
 #include <chrono>
 #include <condition_variable>
+#include "PrefsManager.h"
 
 class ThreadData
 {
