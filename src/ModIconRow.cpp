@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "Foreach.h"
 #include "GameState.h"
@@ -46,7 +46,7 @@ ModIconRow::Load(const RString& sMetricsGroup, PlayerNumber pn)
 							  0,
 							  NUM_OPTION_ICONS - 1,
 							  -(NUM_OPTION_ICONS - 1) / 2.0f,
-							  (float)(NUM_OPTION_ICONS - 1) / 2.0f);
+							  static_cast<float>(NUM_OPTION_ICONS - 1) / 2.0f);
 		p->SetXY(fOffset * SPACING_X, fOffset * SPACING_Y);
 		p->Load(OPTION_ICON_METRICS_GROUP);
 		ActorUtil::LoadAllCommands(p, sMetricsGroup);

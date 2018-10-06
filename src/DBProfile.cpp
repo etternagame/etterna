@@ -103,7 +103,7 @@ DBProfile::LoadGeneralData(SQLite::Database* db)
 	loadingProfile->m_iTotalHands = gDataQuery.getColumn(21);
 	loadingProfile->m_iTotalLifts = gDataQuery.getColumn(22);
 	loadingProfile->m_fPlayerRating =
-	  (float)static_cast<double>(gDataQuery.getColumn(23));
+		static_cast<float>(static_cast<double>(gDataQuery.getColumn(23)));
 
 	SQLite::Statement modifierQuery(*db, "SELECT * FROM defaultmodifiers");
 	while (modifierQuery.executeStep()) {
@@ -115,7 +115,7 @@ DBProfile::LoadGeneralData(SQLite::Database* db)
 	SQLite::Statement skillsetsQuery(*db, "SELECT * FROM playerskillsets");
 	while (skillsetsQuery.executeStep()) {
 		int skillsetNum = skillsetsQuery.getColumn(1);
-		float skillsetValue = (float)static_cast<double>(skillsetsQuery.getColumn(2));
+		float skillsetValue = static_cast<float>(static_cast<double>(skillsetsQuery.getColumn(2)));
 		loadingProfile->m_fPlayerSkillsets[skillsetNum] = skillsetValue;
 	}
 
@@ -184,7 +184,7 @@ DBProfile::LoadPlayLists(SQLite::Database* db)
 		  static_cast<Difficulty>(static_cast<int>(query.getColumn(2)));
 		ch.lastsong = static_cast<const char*>(query.getColumn(3));
 		ch.lastpack = static_cast<const char*>(query.getColumn(4));
-		ch.rate = (float)static_cast<double>(query.getColumn(5));
+		ch.rate = static_cast<float>(static_cast<double>(query.getColumn(5)));
 
 		// check if this chart is loaded and overwrite any last-seen values with
 		// updated ones
@@ -214,7 +214,7 @@ DBProfile::LoadPlayLists(SQLite::Database* db)
 		  static_cast<Difficulty>(static_cast<int>(query.getColumn(2)));
 		ch.lastsong = static_cast<const char*>(query.getColumn(3));
 		ch.lastpack = static_cast<const char*>(query.getColumn(4));
-		ch.rate = (float)static_cast<double>(query.getColumn(5));
+		ch.rate = static_cast<float>(static_cast<double>(query.getColumn(5)));
 		ch.key = key;
 
 		// check if this chart is loaded and overwrite any last-seen values with
@@ -327,15 +327,15 @@ DBProfile::LoadPlayerScores(SQLite::Database* db)
 		HighScore& hs = scores[key].ScoresByRate[rate].scores[ScoreKey];
 		hs.SetSSRCalcVersion(query.getColumn(6));
 		hs.SetGrade(static_cast<Grade>(static_cast<int>(query.getColumn(7))));
-		hs.SetWifeScore((float)static_cast<double>(query.getColumn(8)));
-		hs.SetSSRNormPercent((float)static_cast<double>(query.getColumn(9)));
+		hs.SetWifeScore(static_cast<float>(static_cast<double>(query.getColumn(8))));
+		hs.SetSSRNormPercent(static_cast<float>(static_cast<double>(query.getColumn(9))));
 		hs.SetMusicRate(scores[key].KeyToRate(rate));
-		hs.SetJudgeScale((float)static_cast<double>(query.getColumn(10)));
+		hs.SetJudgeScale(static_cast<float>(static_cast<double>(query.getColumn(10))));
 		hs.SetChordCohesion(static_cast<int>(query.getColumn(11)) != 0);
 		hs.SetEtternaValid(static_cast<int>(query.getColumn(12)) != 0);
 		hs.SetChartKey(key);
 		hs.SetScoreKey(ScoreKey);
-		hs.SetSurviveSeconds((float)static_cast<double>(query.getColumn(13)));
+		hs.SetSurviveSeconds(static_cast<float>(static_cast<double>(query.getColumn(13))));
 		hs.SetMaxCombo(query.getColumn(14));
 		hs.SetModifiers(query.getColumn(15));
 		DateTime d;
@@ -356,7 +356,7 @@ DBProfile::LoadPlayerScores(SQLite::Database* db)
 		if (hs.GetWifeScore() > 0.f) {
 			FOREACH_ENUM(Skillset, ss)
 			hs.SetSkillsetSSR(ss,
-							(float)static_cast<double>(query.getColumn(index++)));
+							static_cast<float>(static_cast<double>(query.getColumn(index++))));
 		}
 		hs.SetValidationKey(ValidationKey_Brittle,
 							static_cast<const char*>(query.getColumn(index++)));
@@ -424,9 +424,9 @@ DBProfile::LoadScoreGoals(SQLite::Database* db)
 		ck = static_cast<const char*>(query.getColumn(0));
 		// Load the scoregoal
 		ScoreGoal sg;
-		sg.rate = (float)static_cast<double>(query.getColumn(1));
+		sg.rate = static_cast<float>(static_cast<double>(query.getColumn(1)));
 		sg.priority = query.getColumn(2);
-		sg.percent = (float)static_cast<double>(query.getColumn(3));
+		sg.percent = static_cast<float>(static_cast<double>(query.getColumn(3)));
 		sg.timeassigned.FromString(
 		  static_cast<const char*>(query.getColumn(4)));
 		sg.timeachieved.FromString(

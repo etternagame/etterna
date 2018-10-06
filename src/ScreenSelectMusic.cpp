@@ -1659,7 +1659,8 @@ ScreenSelectMusic::AfterMusicChange()
 
 	g_bCDTitleWaiting = false;
 	if (!g_sCDTitlePath.empty() || g_bWantFallbackCdTitle) {
-		LOG->Trace("cache \"%s\"", g_sCDTitlePath.c_str());
+		if(PREFSMAN->m_verbose_log > 1)
+			LOG->Trace("cache \"%s\"", g_sCDTitlePath.c_str());
 		m_BackgroundLoader.CacheFile(g_sCDTitlePath); // empty OK
 		g_bCDTitleWaiting = true;
 	}

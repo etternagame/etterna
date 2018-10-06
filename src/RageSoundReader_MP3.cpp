@@ -657,7 +657,7 @@ RageSoundReader_MP3::Open(RageFileBasic* pFile)
 	if (mad->length == -1) {
 		/* If vbr and !xing, this is just an estimate. */
 		int bps = mad->bitrate / 8;
-		float secs = (float)(mad->filesize - mad->header_bytes) / bps;
+		float secs = static_cast<float>(mad->filesize - mad->header_bytes) / bps;
 		mad->length = (int)(secs * 1000.f);
 	}
 

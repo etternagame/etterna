@@ -52,7 +52,7 @@ ScreenDimensions::GetScreenHeight()
 	if (fAspect < THEME_NATIVE_ASPECT)
 		fScale = THEME_NATIVE_ASPECT / fAspect;
 	ASSERT(fScale >= 1);
-	return (float)ceilf(THEME_SCREEN_HEIGHT * fScale);
+	return static_cast<float>(ceilf(THEME_SCREEN_HEIGHT * fScale));
 }
 
 void

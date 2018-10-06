@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "GameState.h"
 #include "LuaManager.h"
@@ -75,7 +75,7 @@ RollingNumbers::DrawPrimitives()
 		if (s[i] >= '0' && s[i] <= '9')
 			break;
 	}
-	float f = i / (float)s.length();
+	float f = i / static_cast<float>(s.length());
 
 	// draw leading part
 	DrawPart(diffuse_temp,

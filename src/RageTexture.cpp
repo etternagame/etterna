@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 
 #include "RageTexture.h"
 #include "RageUtil.h"
@@ -38,14 +38,14 @@ RageTexture::CreateFrameRects()
 			 i++) // traverse along X (important that this is the inner loop)
 		{
 			RectF frect(
-			  (i + 0) / (float)m_iFramesWide * m_iImageWidth /
-				(float)m_iTextureWidth, // these will all be between 0.0 and 1.0
-			  (j + 0) / (float)m_iFramesHigh * m_iImageHeight /
-				(float)m_iTextureHeight,
-			  (i + 1) / (float)m_iFramesWide * m_iImageWidth /
-				(float)m_iTextureWidth,
-			  (j + 1) / (float)m_iFramesHigh * m_iImageHeight /
-				(float)m_iTextureHeight);
+			  (i + 0) / static_cast<float>(m_iFramesWide) * m_iImageWidth /
+				static_cast<float>(m_iTextureWidth), // these will all be between 0.0 and 1.0
+			  (j + 0) / static_cast<float>(m_iFramesHigh) * m_iImageHeight /
+				static_cast<float>(m_iTextureHeight),
+			  (i + 1) / static_cast<float>(m_iFramesWide) * m_iImageWidth /
+				static_cast<float>(m_iTextureWidth),
+			  (j + 1) / static_cast<float>(m_iFramesHigh) * m_iImageHeight /
+				  static_cast<float>(m_iTextureHeight));
 			m_TextureCoordRects.push_back(frect); // the index of this array
 												  // element will be (i +
 												  // j*m_iFramesWide)

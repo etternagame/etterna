@@ -59,7 +59,7 @@ FindClosestEntry(T value, const U* mapping, unsigned cnt)
 
 	for (unsigned i = 0; i < cnt; ++i) {
 		const U val = mapping[i];
-		float dist = value < val ? (float)(val - value) : (float)(value - val);
+		float dist = value < val ? static_cast<float>(val - value) : static_cast<float>(value - val);
 		if (have_best && best_dist < dist)
 			continue;
 

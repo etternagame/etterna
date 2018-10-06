@@ -25,7 +25,7 @@ map<InputDevice, InputHandler*> g_mapDeviceToHandler;
 
 RageInput::RageInput()
 {
-	if (PREFSMAN->m_verbose_log)
+	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("RageInput::RageInput()");
 
 	// Register with Lua.

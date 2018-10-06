@@ -225,7 +225,7 @@ ArchHooks_Win32::GetDisplayAspectRatio()
 	dm.dmSize = sizeof(dm);
 	BOOL bResult = EnumDisplaySettings(NULL, ENUM_REGISTRY_SETTINGS, &dm);
 	ASSERT(bResult != 0);
-	return dm.dmPelsWidth / (float)dm.dmPelsHeight;
+	return dm.dmPelsWidth / static_cast<float>(dm.dmPelsHeight);
 }
 
 RString

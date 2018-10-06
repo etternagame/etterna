@@ -807,7 +807,7 @@ ScreenSelectMaster::ChangeSelection(PlayerNumber pn,
 				}
 			}
 
-			scroller.SetDestinationItem((float)iNewChoice);
+			scroller.SetDestinationItem(static_cast<float>(iNewChoice));
 
 			// using double selections
 			if (DOUBLE_PRESS_TO_SELECT) {
@@ -1017,7 +1017,7 @@ ScreenSelectMaster::TweenOnScreen()
 				m_vsprScroll[*p][c]->FinishTweening();
 			}
 
-			m_Scroller[*p].SetCurrentAndDestinationItem((float)m_iChoice[*p]);
+			m_Scroller[*p].SetCurrentAndDestinationItem(static_cast<float>(m_iChoice[*p]));
 		}
 	}
 

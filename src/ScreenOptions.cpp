@@ -446,7 +446,7 @@ ScreenOptions::PositionCursor(PlayerNumber pn)
 
 	OptionsCursor& cursor = m_Cursor[pn];
 	cursor.SetBarWidth(iWidth);
-	cursor.SetXY((float)iX, (float)iY);
+	cursor.SetXY(static_cast<float>(iX), static_cast<float>(iY));
 	bool bCanGoLeft = iChoiceWithFocus > 0;
 	bool bCanGoRight =
 	  iChoiceWithFocus >= 0 &&
@@ -470,11 +470,11 @@ ScreenOptions::TweenCursor(PlayerNumber pn)
 	GetWidthXY(pn, iRow, iChoiceWithFocus, iWidth, iX, iY);
 
 	OptionsCursor& cursor = m_Cursor[pn];
-	if (cursor.GetDestX() != (float)iX || cursor.GetDestY() != (float)iY ||
+	if (cursor.GetDestX() != static_cast<float>(iX) || cursor.GetDestY() != static_cast<float>(iY) ||
 		cursor.GetBarWidth() != iWidth) {
 		cursor.StopTweening();
 		cursor.BeginTweening(CURSOR_TWEEN_SECONDS);
-		cursor.SetXY((float)iX, (float)iY);
+		cursor.SetXY(static_cast<float>(iX), static_cast<float>(iY));
 		cursor.SetBarWidth(iWidth);
 	}
 
@@ -678,7 +678,7 @@ ScreenOptions::PositionRows(bool bTween)
 	{
 		OptionRow& row = *Rows[i];
 
-		float fPos = (float)pos;
+		float fPos = static_cast<float>(pos);
 
 		if (i < first_start)
 			fPos = -0.5f;

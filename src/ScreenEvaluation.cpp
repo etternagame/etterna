@@ -435,7 +435,7 @@ ScreenEvaluation::Init()
 				  m_sprPossibleBar[p][r].GetUnzoomedWidth() * actual *
 				  fDivider);
 
-				float value = (float)100 *
+				float value = 100.f *
 							  m_sprActualBar[p][r].GetUnzoomedWidth() /
 							  m_sprPossibleBar[p][r].GetUnzoomedWidth();
 				LOG->Trace("Radar bar %d of 5 - %f percent", r, value);

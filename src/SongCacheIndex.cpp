@@ -887,7 +887,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 	SSCLoader loader;
 	int songid = query.getColumn(0);
 	int index = 1;
-	song->m_fVersion = (float)static_cast<double>(query.getColumn(index++));
+	song->m_fVersion = static_cast<float>(static_cast<double>(query.getColumn(index++)));
 	song->m_sMainTitle = static_cast<const char*>(query.getColumn(index++));
 	song->m_sSubTitle = static_cast<const char*>(query.getColumn(index++));
 	song->m_sArtist = static_cast<const char*>(query.getColumn(index++));
@@ -916,11 +916,11 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 	loader.ProcessInstrumentTracks(
 	  *song, static_cast<const char*>(query.getColumn(index++)));
 	song->m_SongTiming.m_fBeat0OffsetInSeconds =
-	  (float)static_cast<double>(query.getColumn(index++));
+		static_cast<float>(static_cast<double>(query.getColumn(index++)));
 	song->m_fMusicSampleStartSeconds =
-	  (float)static_cast<double>(query.getColumn(index++));
+		static_cast<float>(static_cast<double>(query.getColumn(index++)));
 	song->m_fMusicSampleLengthSeconds =
-	  (float)static_cast<double>(query.getColumn(index++));
+		static_cast<float>(static_cast<double>(query.getColumn(index++)));
 
 	int selection = static_cast<int>(query.getColumn(index++));
 	if (selection == 0)
@@ -930,8 +930,8 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 
 	int bpmminIndex = index++;
 	int bpmmaxIndex = index++;
-	float BPMmin = (float)static_cast<double>(query.getColumn(bpmminIndex));
-	float BPMmax = (float)static_cast<double>(query.getColumn(bpmmaxIndex));
+	float BPMmin = static_cast<float>(static_cast<double>(query.getColumn(bpmminIndex)));
+	float BPMmax = static_cast<float>(static_cast<double>(query.getColumn(bpmmaxIndex)));
 	if (query.isColumnNull(bpmminIndex) || query.isColumnNull(bpmmaxIndex)) {
 		if (query.isColumnNull(bpmminIndex) && query.isColumnNull(bpmmaxIndex))
 			song->m_DisplayBPMType = DISPLAY_BPM_ACTUAL;
@@ -973,7 +973,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 						 static_cast<const char*>(query.getColumn(index++)),
 						 title);
 
-	song->SetSpecifiedLastSecond((float)static_cast<double>(query.getColumn(index++)));
+	song->SetSpecifiedLastSecond(static_cast<float>(static_cast<double>(query.getColumn(index++))));
 
 	string animations = static_cast<const char*>(query.getColumn(index++));
 	string animationstwo = static_cast<const char*>(query.getColumn(index++));
@@ -994,12 +994,12 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 		keysounds = keysounds.substr(1);
 	}
 	split(keysounds, ",", song->m_vsKeysoundFile);
-	song->SetFirstSecond((float)static_cast<double>(query.getColumn(index++)));
-	song->SetLastSecond((float)static_cast<double>(query.getColumn(index++)));
+	song->SetFirstSecond(static_cast<float>(static_cast<double>(query.getColumn(index++))));
+	song->SetLastSecond(static_cast<float>(static_cast<double>(query.getColumn(index++))));
 	song->m_sSongFileName = static_cast<const char*>(query.getColumn(index++));
 	song->m_bHasMusic = static_cast<int>(query.getColumn(index++)) != 0;
 	song->m_bHasBanner = static_cast<int>(query.getColumn(index++)) != 0;
-	song->m_fMusicLengthSeconds = (float)static_cast<double>(query.getColumn(index++));
+	song->m_fMusicLengthSeconds = static_cast<float>(static_cast<double>(query.getColumn(index++)));
 	int dirhash = query.getColumn(index++);
 	string dir = query.getColumn(index++);
 	song->SetSongDir(dir);
@@ -1068,7 +1068,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 				  TimingData(song->m_SongTiming.m_fBeat0OffsetInSeconds);
 				// Load timing data
 				stepsTiming.m_fBeat0OffsetInSeconds =
-				  (float)static_cast<double>(qTiming.getColumn(timingIndex++));
+					static_cast<float>(static_cast<double>(qTiming.getColumn(timingIndex++)));
 				SSCLoader::ProcessBPMs(
 				  stepsTiming,
 				  static_cast<const char*>(qTiming.getColumn(timingIndex++)),
@@ -1132,8 +1132,8 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 
 		int bpmminIndex = stepsIndex++;
 		int bpmmaxIndex = stepsIndex++;
-		float BPMmin = (float)static_cast<double>(qSteps.getColumn(bpmminIndex));
-		float BPMmax = (float)static_cast<double>(qSteps.getColumn(bpmmaxIndex));
+		float BPMmin = static_cast<float>(static_cast<double>(qSteps.getColumn(bpmminIndex)));
+		float BPMmax = static_cast<float>(static_cast<double>(qSteps.getColumn(bpmmaxIndex)));
 		if (qSteps.isColumnNull(bpmminIndex) ||
 			qSteps.isColumnNull(bpmmaxIndex)) {
 			if (qSteps.isColumnNull(bpmminIndex) &&

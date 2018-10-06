@@ -797,7 +797,7 @@ TZip::set_times()
 
 	unsigned short dosdate, dostime;
 	filetime2dosdatetime(*ptm, &dosdate, &dostime);
-	times.atime = (lutime_t)time(nullptr);
+	times.atime = static_cast<lutime_t>(time(nullptr));
 	times.mtime = times.atime;
 	times.ctime = times.atime;
 	timestamp = dostime | ((static_cast<unsigned long>(dosdate)) << 16);

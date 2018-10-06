@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "AdjustSync.h"
 #include "ArrowEffects.h"
@@ -881,7 +881,8 @@ ScreenGameplay::~ScreenGameplay()
 		GAMESTATE->CancelStage();
 	}
 
-	LOG->Trace("ScreenGameplay::~ScreenGameplay()");
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace("ScreenGameplay::~ScreenGameplay()");
 
 	SAFE_DELETE(m_pSongBackground);
 	SAFE_DELETE(m_pSongForeground);
@@ -2023,7 +2024,8 @@ ScreenGameplay::Input(const InputEventPlus& input)
 				  input.type == IET_REPEAT) ||
 				 (input.DeviceI.device != DEVICE_KEYBOARD &&
 				  INPUTFILTER->GetSecsHeld(input.DeviceI) >= 1.0f))) {
-				LOG->Trace("Player %i went back", input.pn + 1);
+				if (PREFSMAN->m_verbose_log > 1)
+					LOG->Trace("Player %i went back", input.pn + 1);
 				if (GamePreferences::m_AutoPlay == PC_REPLAY) {
 					if (GAMEMAN->m_bResetModifiers) {
 						float oldRate = GAMEMAN->m_fPreviousRate;

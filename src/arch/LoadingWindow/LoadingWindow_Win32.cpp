@@ -60,7 +60,7 @@ LoadWin32Surface(const RageSurface* pSplash, HWND hWnd)
 		GetClientRect(hWnd, &r);
 
 		int iWidth = r.right;
-		float fRatio = (float)iWidth / s->w;
+		float fRatio = static_cast<float>(iWidth) / s->w;
 		int iHeight = lround(s->h * fRatio);
 
 		RageSurfaceUtils::Zoom(s, iWidth, iHeight);

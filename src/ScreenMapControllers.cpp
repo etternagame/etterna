@@ -214,7 +214,7 @@ ScreenMapControllers::Init()
 
 	m_LineScroller.SetName("LineScroller");
 	ActorUtil::LoadAllCommands(m_LineScroller, m_sName);
-	m_LineScroller.SetNumItemsToDraw((float)m_LineScroller.GetNumChildren() *
+	m_LineScroller.SetNumItemsToDraw(static_cast<float>(m_LineScroller.GetNumChildren()) *
 									 2);
 	m_LineScroller.Load2();
 	this->AddChild(&m_LineScroller);
