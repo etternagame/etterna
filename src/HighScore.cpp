@@ -1647,7 +1647,36 @@ HighScoreList::LoadFromNode(const XNode* pHighScoreList)
 void
 HighScoreList::RemoveAllButOneOfEachName()
 {
-	FOREACH(HighScore, vHighScores, i)
+	// Blame me (TerraDOOM) if this is wrong btw
+
+	// Code I managed to piece together by looking stuff up online.
+	// first, make an empty set
+	auto highScoreSet = set<HighScore>();
+	// do some C++ stuff that I don't really understand, it probably loops over
+	// the whole vector and checks what the lambda returns or something, somehow
+	// giving information to erase what to actually erase (which in this case is
+	// everything where the lambda returns true)
+	vHighScores.erase(
+	  remove_if(vHighScores.begin(),
+				vHighScores.end(),
+				// this will capture the set, then for every highscore hs, check
+				// if the set contains it. If not, add it to the set and return
+				// false. This will make sure that it reports back exactly one
+				// copy of every highscore.
+				[&highScoreSet](HighScore hs) {
+					// this is somehow the defacto way to check whether a set
+					// contains an element for the record
+					if (!(highScoreSet.find(hs) != highScoreSet.end())) {
+						highScoreSet.insert(hs);
+						return false;
+					} else {
+						return true;
+					}
+				}),
+	  // this line is some more C++ stuff that is required, but no idea why
+	  vHighScores.end());
+	// here's the old implementation if needed
+	/* FOREACH(HighScore, vHighScores, i)
 	{
 		for (vector<HighScore>::iterator j = i + 1; j != vHighScores.end();
 			 j++) {
@@ -1656,7 +1685,7 @@ HighScoreList::RemoveAllButOneOfEachName()
 				vHighScores.erase(j + 1);
 			}
 		}
-	}
+	} */
 }
 
 void
