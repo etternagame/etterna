@@ -1261,7 +1261,6 @@ DownloadManager::RefreshCountryCodes()
 			// json failed
 		}
 	};
-	string url = "api.etternaonline.com/v2/misc/countrycodes";
 	SendRequest(
 	  "/misc/countrycodes", vector<pair<string, string>>(), done, true);
 }
