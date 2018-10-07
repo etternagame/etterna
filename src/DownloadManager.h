@@ -160,6 +160,7 @@ class OnlineScore
 	DateTime datetime;
 	vector<pair<float, float>> replayData;
 	string countryCode;
+	HighScore hs;
 };
 class DownloadManager
 {
@@ -194,6 +195,7 @@ class DownloadManager
 		""
 	}; // Register page from server (Or empty if non was obtained)
 	map<string, vector<OnlineScore>> chartLeaderboards;
+	vector<string> countryCodes;
 	map<Skillset, int>
 	  sessionRanks; // Leaderboard ranks for logged in user by skillset
 	map<Skillset, double> sessionRatings;
@@ -269,10 +271,9 @@ class DownloadManager
 								  bool withBearer);
 	void RefreshLastVersion();
 	void RefreshRegisterPage();
-	void MakeAThing(string chartkey);
-	vector<HighScore> athing;
 	bool currentrateonly = false;
 	bool topscoresonly = true;
+	void RefreshCountryCodes();
 	void RequestChartLeaderBoard(string chartkey);
 	void RefreshUserData();
 	string countryCode;

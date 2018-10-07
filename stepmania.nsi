@@ -434,6 +434,7 @@ Section "Main Section" SecMain
 	Delete "$INSTDIR\Themes\Til Death\BGAnimations\ExportSelection.lua"
 	Delete "$INSTDIR\Themes\Til Death\BGAnimations\wifeScold.lua"
 	Delete "$INSTDIR\Themes\Til Death\BGAnimations\ScreenEvaluation decorations\wifeScold.lua"
+	Delete "$INSTDIR\Themes\Til Death\BGAnimations\ScreenGameplay underlay\pause.lua"
 
 	SetOutPath "$INSTDIR\Themes"
 	;File "Themes\instructions.txt"

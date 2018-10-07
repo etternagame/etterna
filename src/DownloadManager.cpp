@@ -1245,42 +1245,25 @@ overratedness(string chartkey)
 	return overratedness;
 }
 
-// fill dummy highscores so we can use the same lua displays -mina
 void
-DownloadManager::MakeAThing(string chartkey)
+DownloadManager::RefreshCountryCodes()
 {
-	athing.clear();
-	HighScore hs;
-
-	for (auto& ohs : DLMAN->chartLeaderboards[chartkey]) {
-		hs.SetDateTime(ohs.datetime);
-		hs.SetMaxCombo(ohs.maxcombo);
-		hs.SetName(ohs.username);
-		hs.SetModifiers(ohs.modifiers);
-		hs.SetChordCohesion(ohs.nocc);
-		hs.SetWifeScore(ohs.wife);
-		hs.SetMusicRate(ohs.rate);
-
-		hs.SetTapNoteScore(TNS_W1, ohs.marvelous);
-		hs.SetTapNoteScore(TNS_W2, ohs.perfect);
-		hs.SetTapNoteScore(TNS_W3, ohs.great);
-		hs.SetTapNoteScore(TNS_W4, ohs.good);
-		hs.SetTapNoteScore(TNS_W5, ohs.bad);
-		hs.SetTapNoteScore(TNS_Miss, ohs.miss);
-		hs.SetTapNoteScore(TNS_HitMine, ohs.minehits);
-
-		hs.SetHoldNoteScore(HNS_Held, ohs.held);
-		hs.SetHoldNoteScore(HNS_LetGo, ohs.letgo);
-
-		FOREACH_ENUM(Skillset, ss)
-		hs.SetSkillsetSSR(ss, ohs.SSRs[ss]);
-
-		hs.userid = ohs.userid;
-		hs.scoreid = ohs.scoreid;
-		hs.avatar = ohs.avatar;
-		hs.countryCode = ohs.countryCode;
-		athing.push_back(hs);
-	}
+	auto done = [](HTTPRequest& req, CURLMsg*) {
+		try {
+			auto j = json::parse(req.result);
+			auto codes = j.find("data");
+			DLMAN->countryCodes.clear();
+			for (auto codeJ : (*codes)) {
+				auto code = *(codeJ.find("attributes"));
+				DLMAN->countryCodes.emplace_back(codeJ.value("id", ""));
+			}
+		} catch (exception e) {
+			// json failed
+		}
+	};
+	string url = "api.etternaonline.com/v2/misc/countrycodes";
+	SendRequest(
+	  "/misc/countrycodes", vector<pair<string, string>>(), done, true);
 }
 
 void
@@ -1368,6 +1351,35 @@ DownloadManager::RequestChartLeaderBoard(string chartkey)
 				//	continue;
 
 				// userswithscores.emplace(tmp.username);
+
+				auto& hs = tmp.hs;
+				hs.SetDateTime(tmp.datetime);
+				hs.SetMaxCombo(tmp.maxcombo);
+				hs.SetName(tmp.username);
+				hs.SetModifiers(tmp.modifiers);
+				hs.SetChordCohesion(tmp.nocc);
+				hs.SetWifeScore(tmp.wife);
+				hs.SetMusicRate(tmp.rate);
+
+				hs.SetTapNoteScore(TNS_W1, tmp.marvelous);
+				hs.SetTapNoteScore(TNS_W2, tmp.perfect);
+				hs.SetTapNoteScore(TNS_W3, tmp.great);
+				hs.SetTapNoteScore(TNS_W4, tmp.good);
+				hs.SetTapNoteScore(TNS_W5, tmp.bad);
+				hs.SetTapNoteScore(TNS_Miss, tmp.miss);
+				hs.SetTapNoteScore(TNS_HitMine, tmp.minehits);
+
+				hs.SetHoldNoteScore(HNS_Held, tmp.held);
+				hs.SetHoldNoteScore(HNS_LetGo, tmp.letgo);
+
+				FOREACH_ENUM(Skillset, ss)
+				hs.SetSkillsetSSR(ss, tmp.SSRs[ss]);
+
+				hs.userid = tmp.userid;
+				hs.scoreid = tmp.scoreid;
+				hs.avatar = tmp.avatar;
+				hs.countryCode = tmp.countryCode;
+
 				vec.emplace_back(tmp);
 			}
 		} catch (exception e) {
@@ -1584,6 +1596,7 @@ DownloadManager::OnLogin()
 {
 	DLMAN->RefreshUserRank();
 	DLMAN->RefreshUserData();
+	DLMAN->RefreshCountryCodes();
 	FOREACH_ENUM(Skillset, ss)
 	DLMAN->RefreshTop25(ss);
 	if (DLMAN->ShouldUploadScores())
@@ -1830,6 +1843,17 @@ findStringIC(const std::string& strHaystack, const std::string& strNeedle)
 class LunaDownloadManager : public Luna<DownloadManager>
 {
   public:
+	static int GetCountryCodes(T* p, lua_State* L)
+	{
+		auto& codes = DLMAN->countryCodes;
+		LuaHelpers::CreateTableFromArray(codes, L);
+		return 1;
+	}
+	static int GetUserCountryCode(T* p, lua_State* L)
+	{
+		lua_pushstring(L, DLMAN->countryCode.c_str());
+		return 1;
+	}
 	static int GetPacklist(T* p, lua_State* L)
 	{
 		DLMAN->pl.PushSelf(L);
@@ -2070,26 +2094,31 @@ class LunaDownloadManager : public Luna<DownloadManager>
 
 	static int RequestChartLeaderBoard(T* p, lua_State* L)
 	{
-		// p->RequestChartLeaderBoard(SArg(1));
-		p->MakeAThing(SArg(1));
-		bool isGlobal = BArg(2);
-
-		vector<HighScore*> wot;
+		vector<HighScore*> filteredLeaderboardScores;
 		unordered_set<string> userswithscores;
+		auto& leaderboardScores = DLMAN->chartLeaderboards[SArg(1)];
+		string country = "";
+		if (!lua_isnoneornil(L, 2)) {
+			country = SArg(2);
+		}
 		float currentrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-		for (auto& zoop : p->athing) {
-			if (lround(zoop.GetMusicRate() * 10000.f) !=
+
+		for (auto& score : leaderboardScores) {
+			auto& leaderboardHighScore = score.hs;
+			if (lround(leaderboardHighScore.GetMusicRate() * 10000.f) !=
 				  lround(currentrate * 10000.f) &&
 				p->currentrateonly)
 				continue;
-			if (userswithscores.count(zoop.GetName()) == 1 && p->topscoresonly)
+			if (userswithscores.count(leaderboardHighScore.GetName()) == 1 &&
+				p->topscoresonly)
 				continue;
-			if ((!isGlobal) && (zoop.countryCode != DLMAN->countryCode))
+			if (country != "" && leaderboardHighScore.countryCode != country)
 				continue;
-			wot.push_back(&zoop);
-			userswithscores.emplace(zoop.GetName());
+			filteredLeaderboardScores.push_back(&(score.hs));
+			userswithscores.emplace(leaderboardHighScore.GetName());
 		}
-		LuaHelpers::CreateTableFromArray(wot, L);
+
+		LuaHelpers::CreateTableFromArray(filteredLeaderboardScores, L);
 		return 1;
 	}
 
@@ -2116,6 +2145,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 
 	LunaDownloadManager()
 	{
+		ADD_METHOD(GetCountryCodes);
+		ADD_METHOD(GetUserCountryCode);
 		ADD_METHOD(DownloadCoreBundle);
 		ADD_METHOD(GetCoreBundle);
 		ADD_METHOD(GetPacklist);
