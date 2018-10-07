@@ -686,7 +686,7 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 string
 Download::MakeTempFileName(string s)
 {
-	return DL_DIR + Basename(s);
+	return Basename(s);
 }
 bool
 DownloadManager::LoggedIn()
@@ -1780,7 +1780,7 @@ Download::Download(string url, string filename, function<void(Download*)> done)
 	Done = done;
 	m_Url = url;
 	handle = initBasicCURLHandle();
-	m_TempFileName = filename != "" ? filename : MakeTempFileName(url);
+	m_TempFileName = DL_DIR + (filename != "" ? filename : MakeTempFileName(url));
 	auto opened = p_RFWrapper.file.Open(m_TempFileName, 2);
 	ASSERT(opened);
 	DLMAN->EncodeSpaces(m_Url);
