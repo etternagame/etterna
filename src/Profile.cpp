@@ -2194,11 +2194,9 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 		return 1;
 	}
 
-	static int Delete(T* p, lua_State* L)
-	{
-		PROFILEMAN->GetProfile(PLAYER_1)->RemoveGoal(p->chartkey,
-													 p->timeassigned);
-		return 1;
+	static int Delete(T* p, lua_State *L) {
+		PROFILEMAN->GetProfile(PLAYER_1)->RemoveGoal(p->chartkey, p->timeassigned);
+		return 0;
 	}
 
 	static int GetPBUpTo(T* p, lua_State* L)

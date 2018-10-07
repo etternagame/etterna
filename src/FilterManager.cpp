@@ -101,7 +101,7 @@ class LunaFilterManager : public Luna<FilterManager>
 	static int SetSSFilter(T* p, lua_State* L)
 	{
 		p->SetSSFilter(FArg(1), static_cast<Skillset>(IArg(2) - 1), IArg(3));
-		return 1;
+		return 0;
 	}
 	static int GetSSFilter(T* p, lua_State* L)
 	{
@@ -112,7 +112,7 @@ class LunaFilterManager : public Luna<FilterManager>
 	static int ResetSSFilters(T* p, lua_State* L)
 	{
 		p->ResetSSFilters();
-		return 1;
+		return 0;
 	}
 	static int SetMaxFilterRate(T* p, lua_State* L)
 	{
@@ -120,7 +120,7 @@ class LunaFilterManager : public Luna<FilterManager>
 		auto loot = p->m_pPlayerState[0];
 		CLAMP(mfr, loot->wtFFF, 3.f);
 		p->MaxFilterRate = mfr;
-		return 1;
+		return 0;
 	}
 	static int GetMaxFilterRate(T* p, lua_State* L)
 	{
@@ -133,7 +133,7 @@ class LunaFilterManager : public Luna<FilterManager>
 		CLAMP(mfr, 0.7f, p->MaxFilterRate);
 		auto loot = p->m_pPlayerState[0];
 		loot->wtFFF = mfr;
-		return 1;
+		return 0;
 	}
 	static int GetMinFilterRate(T* p, lua_State* L)
 	{
@@ -144,7 +144,7 @@ class LunaFilterManager : public Luna<FilterManager>
 	static int ToggleFilterMode(T* p, lua_State* L)
 	{
 		p->ExclusiveFilter = !p->ExclusiveFilter;
-		return 1;
+		return 0;
 	}
 	static int GetFilterMode(T* p, lua_State* L)
 	{
@@ -154,7 +154,7 @@ class LunaFilterManager : public Luna<FilterManager>
 	static int ToggleHighestSkillsetsOnly(T* p, lua_State* L)
 	{
 		p->HighestSkillsetsOnly = !p->HighestSkillsetsOnly;
-		return 1;
+		return 0;
 	}
 	static int GetHighestSkillsetsOnly(T* p, lua_State* L)
 	{
@@ -165,7 +165,7 @@ class LunaFilterManager : public Luna<FilterManager>
 	static int HelpImTrappedInAChineseFortuneCodingFactory(T* p, lua_State* L)
 	{
 		p->galaxycollapsed = BArg(1);
-		return 1;
+		return 0;
 	}
 	static int oopsimlazylol(T* p, lua_State* L)
 	{
@@ -181,6 +181,11 @@ class LunaFilterManager : public Luna<FilterManager>
 	{
 		lua_pushnumber(L, p->watte[SArg(1)].second);
 		return 1;
+	}
+	static int savepos(T* p, lua_State* L) {
+		p->watte[SArg(1)].first = IArg(2);
+		p->watte[SArg(1)].second = IArg(3);
+		return 0;
 	}
 
 	LunaFilterManager()
