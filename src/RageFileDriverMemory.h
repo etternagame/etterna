@@ -9,42 +9,42 @@
 
 struct RageFileObjMemFile;
 
-class RageFileObjMem: public RageFileObj
+class RageFileObjMem : public RageFileObj
 {
-public:
-	RageFileObjMem( RageFileObjMemFile *pFile = NULL );
-	RageFileObjMem( const RageFileObjMem &cpy );
+  public:
+	RageFileObjMem(RageFileObjMemFile* pFile = NULL);
+	RageFileObjMem(const RageFileObjMem& cpy);
 	~RageFileObjMem() override;
 
-	int ReadInternal( void *buffer, size_t bytes ) override;
-	int WriteInternal( const void *buffer, size_t bytes ) override;
-	int SeekInternal( int offset ) override;
+	int ReadInternal(void* buffer, size_t bytes) override;
+	int WriteInternal(const void* buffer, size_t bytes) override;
+	int SeekInternal(int offset) override;
 	int GetFileSize() const override;
-	RageFileObjMem *Copy() const override;
+	RageFileObjMem* Copy() const override;
 
 	/* Retrieve the contents of this file. */
-	const RString &GetString() const;
-	void PutString( const RString &sBuf );
+	const RString& GetString() const;
+	void PutString(const RString& sBuf);
 
-private:
-	RageFileObjMemFile *m_pFile;
+  private:
+	RageFileObjMemFile* m_pFile;
 	int m_iFilePos;
 };
 
-class RageFileDriverMem: public RageFileDriver
+class RageFileDriverMem : public RageFileDriver
 {
-public:
+  public:
 	RageFileDriverMem();
 	~RageFileDriverMem() override;
 
-	RageFileBasic *Open( const RString &sPath, int mode, int &err ) override;
-	void FlushDirCache( const RString & /* sPath */ ) override { }
+	RageFileBasic* Open(const RString& sPath, int mode, int& err) override;
+	void FlushDirCache(const RString& /* sPath */) override {}
 
-	bool Remove( const RString &sPath ) override;
+	bool Remove(const RString& sPath) override;
 
-private:
+  private:
 	RageMutex m_Mutex;
-	vector<RageFileObjMemFile *> m_Files;
+	vector<RageFileObjMemFile*> m_Files;
 };
 
 #endif
@@ -52,7 +52,7 @@ private:
 /*
  * (c) 2004 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -62,7 +62,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

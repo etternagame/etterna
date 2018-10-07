@@ -3,6 +3,11 @@
 *.obj
 *.a
 
+# Doxygen documentation
+Utils/temp
+stepmania.chm
+# For people using vscode
+.vscode
 # CMake Files/Directories
 CMakeFiles/
 CMakeCache.txt
@@ -24,6 +29,9 @@ src/generated
 extern/mad-0.15.1b/config.h
 extern/libjpeg/jconfig.h
 extern/newogg/include/ogg/config_types.h
+Program/*.dll
+!Program/parallel_lights_io.dll
+!Program/dlls/*.dll
 
 # Text Editor Based Items
 *.log
@@ -47,6 +55,9 @@ PBProject/Hardware.plist
 *.app
 *.dmg
 .DS_Store
+
+# Visual Studio 2015/2017 cache/options directory
+.vs/
 
 # Visual Studio
 *.sln

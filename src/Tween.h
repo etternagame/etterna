@@ -8,33 +8,33 @@ using Lua = lua_State;
 
 /** @brief The different tweening types available. */
 enum TweenType
-{ 
-	TWEEN_LINEAR, /**< A linear tween. */
+{
+	TWEEN_LINEAR,	 /**< A linear tween. */
 	TWEEN_ACCELERATE, /**< An accelerating tween. */
 	TWEEN_DECELERATE, /**< A decelerating tween. */
-	TWEEN_SPRING, /**< A spring tween. */
-	TWEEN_BEZIER, /**< A bezier tween. */
-	NUM_TweenType, /**< The number of tween types. */
+	TWEEN_SPRING,	 /**< A spring tween. */
+	TWEEN_BEZIER,	 /**< A bezier tween. */
+	NUM_TweenType,	/**< The number of tween types. */
 	TweenType_Invalid
 };
 /** @brief A custom foreach loop iterating through the tween types. */
-#define FOREACH_TweenType( tt ) FOREACH_ENUM( TweenType, tt )
-LuaDeclareType( TweenType );
+#define FOREACH_TweenType(tt) FOREACH_ENUM(TweenType, tt)
+LuaDeclareType(TweenType);
 
-/** 
+/**
  * @brief The interface for simple interpolation.
  *
  * Funny enough, this is a class. */
 class ITween
 {
-public:
+  public:
 	/** @brief Create the initial interface. */
 	virtual ~ITween() = default;
-	virtual float Tween( float f ) const = 0;
-	virtual ITween *Copy() const = 0;
+	virtual float Tween(float f) const = 0;
+	virtual ITween* Copy() const = 0;
 
-	static ITween *CreateFromType( TweenType iType );
-	static ITween *CreateFromStack( Lua *L, int iStackPos );
+	static ITween* CreateFromType(TweenType iType);
+	static ITween* CreateFromStack(Lua* L, int iStackPos);
 };
 
 #endif
@@ -44,7 +44,7 @@ public:
  * @author Glenn Maynard (c) 2006
  * @section LICENSE
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -54,7 +54,7 @@ public:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

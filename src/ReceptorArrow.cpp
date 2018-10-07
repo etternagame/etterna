@@ -13,7 +13,8 @@ ReceptorArrow::ReceptorArrow()
 	m_bWasReverse = false;
 }
 
-void ReceptorArrow::Load( const PlayerState* pPlayerState, int iColNo, RString Type )
+void
+ReceptorArrow::Load(const PlayerState* pPlayerState, int iColNo, RString Type)
 {
 	m_pPlayerState = pPlayerState;
 	m_iColNo = iColNo;
@@ -21,62 +22,69 @@ void ReceptorArrow::Load( const PlayerState* pPlayerState, int iColNo, RString T
 	const PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 	vector<GameInput> GameI;
 	GAMESTATE->GetCurrentStyle(pn)->StyleInputToGameInput(iColNo, pn, GameI);
-	NOTESKIN->SetPlayerNumber( pn );
+	NOTESKIN->SetPlayerNumber(pn);
 	// FIXME?  Does this cause a problem when game inputs on different
 	// controllers are mapped to the same column?  Such a thing could be set
 	// up in a style that uses two controllers and has a mapping that fits the
 	// requirements. -Kyz
-	NOTESKIN->SetGameController( GameI[0].controller );
+	NOTESKIN->SetGameController(GameI[0].controller);
 
-	RString sButton = GAMESTATE->GetCurrentStyle(pn)->ColToButtonName( iColNo );
-	m_pReceptor.Load( NOTESKIN->LoadActor(sButton,Type) );
-	this->AddChild( m_pReceptor );
+	RString sButton = GAMESTATE->GetCurrentStyle(pn)->ColToButtonName(iColNo);
+	m_pReceptor.Load(NOTESKIN->LoadActor(sButton, Type));
+	this->AddChild(m_pReceptor);
 
-	bool bReverse = m_pPlayerState->m_PlayerOptions.GetCurrent().GetReversePercentForColumn(m_iColNo) > 0.5f;
-	m_pReceptor->PlayCommand( bReverse? "ReverseOn":"ReverseOff" );
+	bool bReverse =
+	  m_pPlayerState->m_PlayerOptions.GetCurrent().GetReversePercentForColumn(
+		m_iColNo) > 0.5f;
+	m_pReceptor->PlayCommand(bReverse ? "ReverseOn" : "ReverseOff");
 	m_bWasReverse = bReverse;
 }
 
-void ReceptorArrow::Update( float fDeltaTime )
+void
+ReceptorArrow::Update(float fDeltaTime)
 {
-	ActorFrame::Update( fDeltaTime );
+	ActorFrame::Update(fDeltaTime);
 
-	bool bReverse = m_pPlayerState->m_PlayerOptions.GetCurrent().GetReversePercentForColumn(m_iColNo) > 0.5f;
-	if( bReverse != m_bWasReverse )
-	{
-		m_pReceptor->PlayCommand( bReverse? "ReverseOn":"ReverseOff" );
+	bool bReverse =
+	  m_pPlayerState->m_PlayerOptions.GetCurrent().GetReversePercentForColumn(
+		m_iColNo) > 0.5f;
+	if (bReverse != m_bWasReverse) {
+		m_pReceptor->PlayCommand(bReverse ? "ReverseOn" : "ReverseOff");
 		m_bWasReverse = bReverse;
 	}
 }
 
-void ReceptorArrow::DrawPrimitives()
+void
+ReceptorArrow::DrawPrimitives()
 {
-	if( m_bWasPressed  &&  !m_bIsPressed )
-		m_pReceptor->PlayCommand( "Lift" );
-	else if( !m_bWasPressed  &&  m_bIsPressed )
-		m_pReceptor->PlayCommand( "Press" );
+	if (m_bWasPressed && !m_bIsPressed)
+		m_pReceptor->PlayCommand("Lift");
+	else if (!m_bWasPressed && m_bIsPressed)
+		m_pReceptor->PlayCommand("Press");
 
 	m_bWasPressed = m_bIsPressed;
-	m_bIsPressed = false;	// it may get turned back on next update
+	m_bIsPressed = false; // it may get turned back on next update
 
 	ActorFrame::DrawPrimitives();
 }
 
-void ReceptorArrow::Step( TapNoteScore score )
+void
+ReceptorArrow::Step(TapNoteScore score)
 {
 	m_bIsPressed = true;
 
-	RString sJudge = TapNoteScoreToString( score );
-	m_pReceptor->PlayCommand( Capitalize(sJudge) );
-	Message msg("ReceptorJudgment"); 
-	msg.SetParam("TapNoteScore", score); 
-	msg.SetParam("Color", NOTESKIN->GetLastSeenColor()); 
-	m_pReceptor->HandleMessage(msg); 
+	RString sJudge = TapNoteScoreToString(score);
+	m_pReceptor->PlayCommand(Capitalize(sJudge));
+	Message msg("ReceptorJudgment");
+	msg.SetParam("TapNoteScore", score);
+	msg.SetParam("Color", NOTESKIN->GetLastSeenColor());
+	m_pReceptor->HandleMessage(msg);
 }
 
-void ReceptorArrow::SetNoteUpcoming( int iCol, int iRow, bool b )
+void
+ReceptorArrow::SetNoteUpcoming(int iCol, int iRow, bool b)
 {
-	m_pReceptor->PlayCommand( b ? "ShowNoteUpcoming" : "HideNoteUpcoming" );
+	m_pReceptor->PlayCommand(b ? "ShowNoteUpcoming" : "HideNoteUpcoming");
 	Message msg("ReceptorUpcoming");
 	msg.SetParam("Column", iCol);
 	msg.SetParam("Row", iRow);
@@ -86,7 +94,7 @@ void ReceptorArrow::SetNoteUpcoming( int iCol, int iRow, bool b )
 /*
  * (c) 2001-2004 Ben Nordstrom, Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -96,7 +104,7 @@ void ReceptorArrow::SetNoteUpcoming( int iCol, int iRow, bool b )
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

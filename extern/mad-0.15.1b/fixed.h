@@ -148,14 +148,7 @@ mad_fixed_t mad_f_mul_inline(mad_fixed_t x, mad_fixed_t y)
   enum {
     fracbits = MAD_F_FRACBITS
   };
-
-  __asm {
-    mov eax, x
-    imul y
-    shrd eax, edx, fracbits
-  }
-
-  /* implicit return of eax */
+  return ((mad_fixed_t)(((mad_fixed64_t)(x) * (y)) >> MAD_F_FRACBITS));
 }
 #   pragma warning(pop)
 

@@ -1,7 +1,49 @@
 local searchstring = ""
-local englishes = {"?","-",".",",","1","2","3","4","5","6","7","8","9","0","a", "b", "c", "d", "e","f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",";"}
+local englishes = {
+	"?",
+	"-",
+	".",
+	",",
+	"1",
+	"2",
+	"3",
+	"4",
+	"5",
+	"6",
+	"7",
+	"8",
+	"9",
+	"0",
+	"a",
+	"b",
+	"c",
+	"d",
+	"e",
+	"f",
+	"g",
+	"h",
+	"i",
+	"j",
+	"k",
+	"l",
+	"m",
+	"n",
+	"o",
+	"p",
+	"q",
+	"r",
+	"s",
+	"t",
+	"u",
+	"v",
+	"w",
+	"x",
+	"y",
+	"z",
+	";"
+}
 local frameX = 10
-local frameY = 180+capWideScale(get43size(120),120)
+local frameY = 180 + capWideScale(get43size(120), 120)
 local active = false
 local whee
 local searchtitle = ""
@@ -17,7 +59,7 @@ local CtrlPressed = false
 
 local offsetX = -10
 local offsetY = 20
-local frameWidth = capWideScale(360,400)
+local frameWidth = capWideScale(360, 400)
 local frameHeight = 350
 
 local function searchInput(event)
@@ -47,20 +89,20 @@ local function searchInput(event)
 		elseif event.button == "Start" then
 			inputting = 0
 			MESSAGEMAN:Broadcast("UpdateString")
-		elseif event.DeviceInput.button == "DeviceButton_space" then					-- add space to the string
-			inputchar = " "						-- remove the last element of the string
-		elseif event.DeviceInput.button == "DeviceButton_delete"  then
+		elseif event.DeviceInput.button == "DeviceButton_space" then -- add space to the string
+			inputchar = " " -- remove the last element of the string
+		elseif event.DeviceInput.button == "DeviceButton_delete" then
 			inputchar = ""
-		elseif event.DeviceInput.button == "DeviceButton_="  then
+		elseif event.DeviceInput.button == "DeviceButton_=" then
 			inputchar = "="
-		elseif event.DeviceInput.button == "DeviceButton_backspace"then
+		elseif event.DeviceInput.button == "DeviceButton_backspace" then
 			backspace = true
-			inputchar = searchstring:sub(1, -2)		
+			inputchar = searchstring:sub(1, -2)
 		elseif event.DeviceInput.button == "DeviceButton_v" and CtrlPressed then
-			inputchar = HOOKS:GetClipboard()		
+			inputchar = HOOKS:GetClipboard()
 		else
-			for i=1,#englishes do														-- add standard characters to string
-				if event.DeviceInput.button == "DeviceButton_"..englishes[i] then
+			for i = 1, #englishes do -- add standard characters to string
+				if event.DeviceInput.button == "DeviceButton_" .. englishes[i] then
 					inputchar = englishes[i]
 				end
 			end
@@ -70,21 +112,21 @@ local function searchInput(event)
 				backspace = false
 				searchtitle = searchtitle:sub(1, -2)
 			else
-				searchtitle = searchtitle..inputchar
+				searchtitle = searchtitle .. inputchar
 				inputchar = ""
 			end
 			changed = true
 		elseif inputting == 2 then
 			if backspace then
 				backspace = false
-				searchdesc = searchdesc:sub(1, -2)	
+				searchdesc = searchdesc:sub(1, -2)
 			else
-				searchdesc = searchdesc..inputchar
+				searchdesc = searchdesc .. inputchar
 				inputchar = ""
 			end
 			changed = true
 		end
-		if changed==true then
+		if changed == true then
 			changed = false
 			MESSAGEMAN:Broadcast("UpdateString")
 			whee:Search(searchtitle, searchdesc, searchingame, searchpassword, searchopen)
@@ -99,13 +141,13 @@ local function searchInput(event)
 	end
 end
 
-
 local function ButtonActive(self)
 	return isOver(self) and update
 end
 
-local t = Def.ActorFrame{
-	BeginCommand=function(self)
+local t =
+	Def.ActorFrame {
+	BeginCommand = function(self)
 		whee = SCREENMAN:GetTopScreen():GetMusicWheel()
 		SCREENMAN:GetTopScreen():AddInputCallback(searchInput)
 		self:finishtweening()
@@ -121,7 +163,7 @@ local t = Def.ActorFrame{
 		end
 		self:queuecommand("Set")
 	end,
-	SetCommand=function(self)
+	SetCommand = function(self)
 		self:finishtweening()
 		if getTabIndex() == (NSMAN:IsETTP() and 0 or 1) then
 			ms.ok("Song search activated")
@@ -130,137 +172,142 @@ local t = Def.ActorFrame{
 			active = true
 			whee:Move(0)
 			MESSAGEMAN:Broadcast("RefreshSearchResults")
-		else 
+		else
 			self:visible(false)
 			self:queuecommand("Off")
 			active = false
 		end
 	end,
-	TabChangedMessageCommand=function(self)
+	TabChangedMessageCommand = function(self)
 		self:queuecommand("Set")
 	end,
-	
-	Def.Quad{SetCommand=function(self)
-			self:xy(frameX,45):zoomto(frameWidth,frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
-		end,
+	Def.Quad {
+		SetCommand = function(self)
+			self:xy(frameX, 45):zoomto(frameWidth, frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
+		end
 	},
-	Def.Quad{SetCommand=function(self)
-			self:xy(frameX,45):zoomto(frameWidth,offsetY):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(0.5)
-		end,
+	Def.Quad {
+		SetCommand = function(self)
+			self:xy(frameX, 45):zoomto(frameWidth, offsetY):halign(0):valign(0):diffuse(getMainColor("frames")):diffusealpha(0.5)
+		end
 	},
-	
-	LoadFont("Common Large")..{
-		InitCommand=function(self)
-			self:xy(frameX+225,frameY-200):zoom(0.4):maxwidth(700)
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:xy(frameX + 225, frameY - 200):zoom(0.4):maxwidth(700)
+			end,
+			SetCommand = function(self)
+				self:settext(searchtitle)
+			end,
+			UpdateStringMessageCommand = function(self)
+				self:queuecommand("Set")
+			end
+		},
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:xy(frameX + 20, frameY - 200):zoom(0.4):halign(0)
+			end,
+			SetCommand = function(self)
+				self:settext("Title: ")
+			end,
+			UpdateStringMessageCommand = function(self)
+				self:queuecommand("Set")
+			end
+		},
+	Def.Quad {
+		InitCommand = function(self)
+			self:xy(frameX + 225, frameY - 200):zoomto(300, 25):diffuse(getMainColor("frames")):diffusealpha(0.55)
 		end,
-		SetCommand=function(self) 
-			self:settext(searchtitle)
-		end,
-		UpdateStringMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
-	},
-	LoadFont("Common Large")..{
-		InitCommand=function(self)
-			self:xy(frameX+20,frameY-200):zoom(0.4):halign(0)
-		end,
-		SetCommand=function(self) 
-			self:settext("Title: ")
-		end,
-		UpdateStringMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
-	},
-	Def.Quad{
-		InitCommand=function(self)
-			self:xy(frameX+225,frameY-200):zoomto(300,25):diffuse(getMainColor('frames')):diffusealpha(0.55)
-		end,
-		SetCommand=function(self)
+		SetCommand = function(self)
 			if 1 == inputting then
 				self:diffusealpha(0.25)
 			else
 				self:diffusealpha(0.55)
 			end
 		end,
-		UpdateStringMessageCommand=function(self)
+		UpdateStringMessageCommand = function(self)
 			self:queuecommand("Set")
 		end,
-		MouseLeftClicksMessageCommand=function(self)
+		MouseLeftClicksMessageCommand = function(self)
 			if isOver(self) and active then
 				inputting = 1
 				MESSAGEMAN:Broadcast("UpdateString")
 			end
 		end
 	},
-	LoadFont("Common Large")..{
-		InitCommand=function(self)
-			self:xy(frameX+225,frameY-150):zoom(0.4):maxwidth(700)
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:xy(frameX + 225, frameY - 150):zoom(0.4):maxwidth(700)
+			end,
+			SetCommand = function(self)
+				self:settext(searchdesc)
+			end,
+			UpdateStringMessageCommand = function(self)
+				self:queuecommand("Set")
+			end
+		},
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:xy(frameX + 20, frameY - 150):zoom(0.4):halign(0)
+			end,
+			SetCommand = function(self)
+				self:settext("Desc: ")
+			end,
+			UpdateStringMessageCommand = function(self)
+				self:queuecommand("Set")
+			end
+		},
+	Def.Quad {
+		InitCommand = function(self)
+			self:xy(frameX + 225, frameY - 150):zoomto(300, 25):diffuse(getMainColor("frames")):diffusealpha(0.55)
 		end,
-		SetCommand=function(self) 
-			self:settext(searchdesc)
-		end,
-		UpdateStringMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
-	},
-	LoadFont("Common Large")..{
-		InitCommand=function(self)
-			self:xy(frameX+20,frameY-150):zoom(0.4):halign(0)
-		end,
-		SetCommand=function(self) 
-			self:settext("Desc: ")
-		end,
-		UpdateStringMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
-	},
-	Def.Quad{
-		InitCommand=function(self)
-			self:xy(frameX+225,frameY-150):zoomto(300,25):diffuse(getMainColor('frames')):diffusealpha(0.55)
-		end,
-		SetCommand=function(self)
+		SetCommand = function(self)
 			if 2 == inputting then
 				self:diffusealpha(0.25)
 			else
 				self:diffusealpha(0.55)
 			end
 		end,
-		UpdateStringMessageCommand=function(self)
+		UpdateStringMessageCommand = function(self)
 			self:queuecommand("Set")
 		end,
-		MouseLeftClicksMessageCommand=function(self)
+		MouseLeftClicksMessageCommand = function(self)
 			if isOver(self) and active then
 				inputting = 2
 				MESSAGEMAN:Broadcast("UpdateString")
 			end
 		end
 	},
-	LoadFont("Common Large")..{
-		InitCommand=function(self)
-			self:xy(frameX+20,frameY-50):zoom(0.4):halign(0)
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:xy(frameX + 20, frameY - 50):zoom(0.4):halign(0)
+			end,
+			SetCommand = function(self)
+				self:settext("Open")
+			end,
+			UpdateStringMessageCommand = function(self)
+				self:queuecommand("Set")
+			end
+		},
+	Def.Quad {
+		InitCommand = function(self)
+			self:xy(frameX + 50, frameY):zoomto(25, 25):diffuse(getMainColor("positive")):diffusealpha(0.35)
 		end,
-		SetCommand=function(self) 
-			self:settext("Open")
-		end,
-		UpdateStringMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
-	},
-	Def.Quad{
-		InitCommand=function(self)
-			self:xy(frameX+50,frameY):zoomto(25,25):diffuse(getMainColor('positive')):diffusealpha(0.35)
-		end,
-		SetCommand=function(self)
+		SetCommand = function(self)
 			if searchingame then
-				self:diffuse(getMainColor('positive'))
+				self:diffuse(getMainColor("positive"))
 			else
-				self:diffuse(getMainColor('negative'))
+				self:diffuse(getMainColor("negative"))
 			end
 		end,
-		UpdateStringMessageCommand=function(self)
+		UpdateStringMessageCommand = function(self)
 			self:queuecommand("Set")
 		end,
-		MouseLeftClicksMessageCommand=function(self)
+		MouseLeftClicksMessageCommand = function(self)
 			if isOver(self) and active then
 				searchingame = not searchingame
 				MESSAGEMAN:Broadcast("UpdateString")
@@ -268,32 +315,33 @@ local t = Def.ActorFrame{
 			end
 		end
 	},
-	LoadFont("Common Large")..{
-		InitCommand=function(self)
-			self:xy(frameX+frameWidth/2-50,frameY-50):zoom(0.4):halign(0)
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:xy(frameX + frameWidth / 2 - 50, frameY - 50):zoom(0.4):halign(0)
+			end,
+			SetCommand = function(self)
+				self:settext("Password")
+			end,
+			UpdateStringMessageCommand = function(self)
+				self:queuecommand("Set")
+			end
+		},
+	Def.Quad {
+		InitCommand = function(self)
+			self:xy(frameX + frameWidth / 2 - 12, frameY):zoomto(25, 25):diffuse(getMainColor("positive")):diffusealpha(0.35)
 		end,
-		SetCommand=function(self) 
-			self:settext("Password")
-		end,
-		UpdateStringMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
-	},
-	Def.Quad{
-		InitCommand=function(self)
-			self:xy(frameX+frameWidth/2-12,frameY):zoomto(25,25):diffuse(getMainColor('positive')):diffusealpha(0.35)
-		end,
-		SetCommand=function(self)
+		SetCommand = function(self)
 			if searchpassword then
-				self:diffuse(getMainColor('positive'))
+				self:diffuse(getMainColor("positive"))
 			else
-				self:diffuse(getMainColor('negative'))
+				self:diffuse(getMainColor("negative"))
 			end
 		end,
-		UpdateStringMessageCommand=function(self)
+		UpdateStringMessageCommand = function(self)
 			self:queuecommand("Set")
 		end,
-		MouseLeftClicksMessageCommand=function(self)
+		MouseLeftClicksMessageCommand = function(self)
 			if isOver(self) and active then
 				searchpassword = not searchpassword
 				MESSAGEMAN:Broadcast("UpdateString")
@@ -301,32 +349,33 @@ local t = Def.ActorFrame{
 			end
 		end
 	},
-	LoadFont("Common Large")..{
-		InitCommand=function(self)
-			self:xy(frameX+frameWidth-100,frameY-50):zoom(0.4):halign(0)
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:xy(frameX + frameWidth - 100, frameY - 50):zoom(0.4):halign(0)
+			end,
+			SetCommand = function(self)
+				self:settext("Ingame")
+			end,
+			UpdateStringMessageCommand = function(self)
+				self:queuecommand("Set")
+			end
+		},
+	Def.Quad {
+		InitCommand = function(self)
+			self:xy(frameX + frameWidth - 80, frameY):zoomto(25, 25):diffuse(getMainColor("positive")):diffusealpha(0.35)
 		end,
-		SetCommand=function(self) 
-			self:settext("Ingame")
-		end,
-		UpdateStringMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
-	},
-	Def.Quad{
-		InitCommand=function(self)
-			self:xy(frameX+frameWidth-80,frameY):zoomto(25,25):diffuse(getMainColor('positive')):diffusealpha(0.35)
-		end,
-		SetCommand=function(self)
+		SetCommand = function(self)
 			if searchopen then
-				self:diffuse(getMainColor('positive'))
+				self:diffuse(getMainColor("positive"))
 			else
-				self:diffuse(getMainColor('negative'))
+				self:diffuse(getMainColor("negative"))
 			end
 		end,
-		UpdateStringMessageCommand=function(self)
+		UpdateStringMessageCommand = function(self)
 			self:queuecommand("Set")
 		end,
-		MouseLeftClicksMessageCommand=function(self)
+		MouseLeftClicksMessageCommand = function(self)
 			if isOver(self) and active then
 				searchopen = not searchopen
 				MESSAGEMAN:Broadcast("UpdateString")
@@ -334,25 +383,24 @@ local t = Def.ActorFrame{
 			end
 		end
 	},
-	LoadFont("Common Normal")..{
-		InitCommand=function(self)
-			self:xy(frameX+20,frameY+70):zoom(0.5):halign(0)
-		end,
-		SetCommand=function(self) 
-			self:settext("Currently supports standard english alphabet only.")
-		end,
-		UpdateStringMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
-	},
-	
-	LoadFont("Common Normal")..{InitCommand=function(self)
-		self:xy(frameX+5,offsetY+36):zoom(0.6):halign(0):diffuse(getMainColor('positive')):settext("Search")
-	end
-	}
-
+	LoadFont("Common Normal") ..
+		{
+			InitCommand = function(self)
+				self:xy(frameX + 20, frameY + 70):zoom(0.5):halign(0)
+			end,
+			SetCommand = function(self)
+				self:settext("Currently supports standard english alphabet only.")
+			end,
+			UpdateStringMessageCommand = function(self)
+				self:queuecommand("Set")
+			end
+		},
+	LoadFont("Common Normal") ..
+		{
+			InitCommand = function(self)
+				self:xy(frameX + 5, offsetY + 36):zoom(0.6):halign(0):diffuse(getMainColor("positive")):settext("Search")
+			end
+		}
 }
-
-
 
 return t

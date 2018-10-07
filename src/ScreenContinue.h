@@ -1,4 +1,5 @@
-/* ScreenContinue - A screen with a countdown that allows players to join/continue the game. */
+/* ScreenContinue - A screen with a countdown that allows players to
+ * join/continue the game. */
 
 #ifndef ScreenContinue_H
 #define ScreenContinue_H
@@ -7,16 +8,16 @@
 
 class ScreenContinue : public ScreenWithMenuElementsSimple
 {
-public:
+  public:
 	void Init() override;
 
 	void BeginScreen() override;
-	bool Input( const InputEventPlus &input ) override;
-	void HandleScreenMessage( ScreenMessage SM ) override;
-	void HandleMessage( const Message &msg ) override;
+	bool Input(const InputEventPlus& input) override;
+	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleMessage(const Message& msg) override;
 	bool AllowLateJoin() const override { return true; }
 
-private:
+  private:
 	ThemeMetric<bool> FORCE_TIMER_WAIT;
 };
 
@@ -25,7 +26,7 @@ private:
 /*
  * (c) 2004 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -35,7 +36,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

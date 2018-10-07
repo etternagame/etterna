@@ -10,34 +10,34 @@ struct DisplayBpms;
 /** @brief Displays a BPM or a range of BPMs. */
 class BPMDisplay : public BitmapText
 {
-public:
+  public:
 	/** @brief Set up the BPM Display with default values. */
 	BPMDisplay();
 	/** @brief Copy the BPMDisplay to another. */
-	BPMDisplay *Copy() const override;
+	BPMDisplay* Copy() const override;
 	/** @brief Load the various metrics needed. */
 	void Load();
 	/**
 	 * @brief Update the display as required.
 	 * @param fDeltaTime the changed time.
 	 */
-	void Update( float fDeltaTime ) override; 
-	void LoadFromNode( const XNode *pNode ) override;
+	void Update(float fDeltaTime) override;
+	void LoadFromNode(const XNode* pNode) override;
 	/**
 	 * @brief Use the BPM[s] from a song.
 	 * @param pSong the song in question.
 	 */
-	void SetBpmFromSong( const Song* pSong );
+	void SetBpmFromSong(const Song* pSong);
 	/**
 	 * @brief Use the BPM[s] from a steps.
 	 * @param pSteps the steps in question.
 	 */
-	void SetBpmFromSteps( const Steps* pSteps );
+	void SetBpmFromSteps(const Steps* pSteps);
 	/**
 	 * @brief Use a specified, constant BPM.
 	 * @param fBPM the constant BPM.
 	 */
-	void SetConstantBpm( float fBPM );
+	void SetConstantBpm(float fBPM);
 	/**
 	 * @brief Have the BPMDisplay cycle between various BPMs.
 	 */
@@ -50,9 +50,9 @@ public:
 	void SetFromGameState();
 
 	// Lua
-	void PushSelf( lua_State *L ) override;
+	void PushSelf(lua_State* L) override;
 
-protected:
+  protected:
 	/**
 	 * @brief Retrieve the active BPM on display.
 	 * @return the active BPM on display.
@@ -62,19 +62,21 @@ protected:
 	 * @brief Set the range to be used for the display.
 	 * @param bpms the set of BPMs to be used.
 	 */
-	void SetBPMRange( const DisplayBpms &bpms );
+	void SetBPMRange(const DisplayBpms& bpms);
 
 	/** @brief The commands to use when there is no BPM. */
 	ThemeMetric<apActorCommands> SET_NO_BPM_COMMAND;
 	/** @brief The commands to use when there is a normal BPM. */
 	ThemeMetric<apActorCommands> SET_NORMAL_COMMAND;
-	/** @brief The commands to use when the BPM can change between 2 or more values. */
+	/** @brief The commands to use when the BPM can change between 2 or more
+	 * values. */
 	ThemeMetric<apActorCommands> SET_CHANGING_COMMAND;
 	/** @brief The commands to use when the BPM is random. */
 	ThemeMetric<apActorCommands> SET_RANDOM_COMMAND;
 	/** @brief The commands to use if it is an extra stage. */
 	ThemeMetric<apActorCommands> SET_EXTRA_COMMAND;
-	/** @brief A flag to determine if the BPMs cycle from low to high or just display both. */
+	/** @brief A flag to determine if the BPMs cycle from low to high or just
+	 * display both. */
 	ThemeMetric<bool> CYCLE;
 	/** @brief A flag to determine if QUESTIONMARKS_TEXT is shown. */
 	ThemeMetric<bool> SHOW_QMARKS;
@@ -114,7 +116,7 @@ protected:
  * @author Chris Danford (c) 2001-2002
  * @section LICENSE
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -124,7 +126,7 @@ protected:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

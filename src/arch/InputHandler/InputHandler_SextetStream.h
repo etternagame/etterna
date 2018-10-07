@@ -4,18 +4,20 @@
 #include "InputHandler.h"
 #include <cstdio>
 
-class InputHandler_SextetStream: public InputHandler
+class InputHandler_SextetStream : public InputHandler
 {
-public:
+  public:
 	InputHandler_SextetStream();
 	virtual ~InputHandler_SextetStream();
-	//virtual void Update();
-	virtual void GetDevicesAndDescriptions(vector<InputDeviceInfo>& vDevicesOut);
+	// virtual void Update();
+	virtual void GetDevicesAndDescriptions(
+	  vector<InputDeviceInfo>& vDevicesOut);
 
-public:
+  public:
 	class Impl;
-protected:
-	Impl * _impl;
+
+  protected:
+	Impl* _impl;
 };
 
 // Note: InputHandler_SextetStreamFromFile uses blocking I/O. For the
@@ -26,22 +28,21 @@ protected:
 // state accomplishes this without triggering any new events.) Either of
 // these interrupts the blocking read so that the loop can check its
 // continue flag.
-class InputHandler_SextetStreamFromFile: public InputHandler_SextetStream
+class InputHandler_SextetStreamFromFile : public InputHandler_SextetStream
 {
-public:
+  public:
 	// Note: In the current implementation, the filename (either the
 	// `filename` parameter or the `SextetStreamInputFilename` setting) is
 	// passed to fopen(), not a RageFile ctor, so specify the file to be
 	// opened on the actual filesystem instead of the mapped filesystem. (I
 	// couldn't get RageFile to work here, possibly because I haven't
-	// determined how to disable buffering on an input file.) 
+	// determined how to disable buffering on an input file.)
 	InputHandler_SextetStreamFromFile();
 	InputHandler_SextetStreamFromFile(const RString& filename);
 
 	// The file object passed here must already be open and buffering should
 	// be disabled. The file object will be closed in the destructor.
-	InputHandler_SextetStreamFromFile(std::FILE * file);
-
+	InputHandler_SextetStreamFromFile(std::FILE* file);
 };
 
 #endif

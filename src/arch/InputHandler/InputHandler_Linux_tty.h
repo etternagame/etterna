@@ -3,16 +3,16 @@
 
 #include "InputHandler.h"
 
-class InputHandler_Linux_tty: public InputHandler
+class InputHandler_Linux_tty : public InputHandler
 {
 	int fd;
 	static void OnCrash(int);
 
-public:
+  public:
 	void Update();
 	InputHandler_Linux_tty();
 	~InputHandler_Linux_tty();
-	void GetDevicesAndDescriptions( vector<InputDeviceInfo>& vDevicesOut );
+	void GetDevicesAndDescriptions(vector<InputDeviceInfo>& vDevicesOut);
 };
 
 #endif
@@ -20,7 +20,7 @@ public:
 /*
  * (c) 2003-2004 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -30,7 +30,7 @@ public:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

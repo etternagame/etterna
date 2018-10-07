@@ -25,125 +25,128 @@
 --
 
 local p, a = ...
-assert( (#p%2) == 1 );
+assert((#p % 2) == 1)
 
-local t = Def.ActorFrame {
-};
-local Widths = { }
+local t = Def.ActorFrame {}
+local Widths = {}
 
 local TextureXPos = 0
-for i = 1,#p do
-	t[i] = a .. {
-		Name = tostring(i);
-		InitCommand = function(self)
-			if i < math.ceil(#p/2) then self:horizalign("HorizAlign_Right");
-			elseif i == math.ceil(#p/2) then self:horizalign("HorizAlign_Center");
-			else self:horizalign("HorizAlign_Left");
+for i = 1, #p do
+	t[i] =
+		a ..
+		{
+			Name = tostring(i),
+			InitCommand = function(self)
+				if i < math.ceil(#p / 2) then
+					self:horizalign("HorizAlign_Right")
+				elseif i == math.ceil(#p / 2) then
+					self:horizalign("HorizAlign_Center")
+				else
+					self:horizalign("HorizAlign_Left")
+				end
+
+				Widths[i] = self:GetWidth()
+			end,
+			SetPartSizeCommand = function(self, params)
+				self:x(params.XPos[i])
+				self:zoomtowidth(params.Zooms[i])
 			end
-
-			Widths[i] = self:GetWidth();
-		end;
-
-		SetPartSizeCommand = function(self, params)
-			self:x( params.XPos[i] );
-			self:zoomtowidth( params.Zooms[i] );
-		end;
-	};
-
-	local Width = p[i];
-	t[i].Frames =
-	{
-		{ -- state 0
-			{ x=TextureXPos, y=0 },		-- top-left
-			{ x=(TextureXPos+Width), y=1 }	-- bottom-right
 		}
-	};
 
-	TextureXPos = TextureXPos + Width;
+	local Width = p[i]
+	t[i].Frames = {
+		{
+			-- state 0
+			{x = TextureXPos, y = 0}, -- top-left
+			{x = (TextureXPos + Width), y = 1} -- bottom-right
+		}
+	}
+
+	TextureXPos = TextureXPos + Width
 end
 
 t.InitCommand = function(self, params)
-	local Child = self:GetChild("1");
-	local Height = Child:GetHeight();
-	self:SetHeight(Height);
+	local Child = self:GetChild("1")
+	local Height = Child:GetHeight()
+	self:SetHeight(Height)
 end
 
 t.SetPartSizeCommand = function(self, params)
-	self:zoomx( params.FrameZoom );
+	self:zoomx(params.FrameZoom)
 end
 
 t.SetSizeCommand = function(self, params)
-	local Width = params.Width;
-	assert( Width );
+	local Width = params.Width
+	assert(Width)
 
-	self:SetWidth( Width );
+	self:SetWidth(Width)
 
 	if params.tween then
-		params.tween(self);
-		self:RunCommandsOnChildren( params.tween );
-	end;
-
-	local UnscaledPartWidth = 0;
-	local ScaledPartWidth = 0;
-	for i = 1,#p do
-		if(i%2)==0 then
-			ScaledPartWidth = ScaledPartWidth + Widths[i];
-		else
-			UnscaledPartWidth = UnscaledPartWidth + Widths[i];
-		end
+		params.tween(self)
+		self:RunCommandsOnChildren(params.tween)
 	end
 
-	local WidthToScale = Width - UnscaledPartWidth;
-	local CurrentScaledPartWidth = math.max( WidthToScale, 0 );
-
-	params.Zooms = {};
-	params.XPos = {};
-	local pos = 0;
-	for i = math.ceil(#p/2),1,-1 do
-		local ThisScaledPartWidth = Widths[i];
+	local UnscaledPartWidth = 0
+	local ScaledPartWidth = 0
+	for i = 1, #p do
 		if (i % 2) == 0 then
-			ThisScaledPartWidth = scale( CurrentScaledPartWidth, 0, ScaledPartWidth, 0, Widths[i] );
-		end
-
-		params.XPos[i] = pos;
-
-		if i == math.ceil(#p/2) then
-			pos = pos - ThisScaledPartWidth/2;
+			ScaledPartWidth = ScaledPartWidth + Widths[i]
 		else
-			pos = pos - ThisScaledPartWidth;
+			UnscaledPartWidth = UnscaledPartWidth + Widths[i]
 		end
-
-		params.Zooms[i] = ThisScaledPartWidth;
 	end
-	pos = 0;
-	for i = math.ceil(#p/2),#p do
-		local ThisScaledPartWidth = Widths[i];
+
+	local WidthToScale = Width - UnscaledPartWidth
+	local CurrentScaledPartWidth = math.max(WidthToScale, 0)
+
+	params.Zooms = {}
+	params.XPos = {}
+	local pos = 0
+	for i = math.ceil(#p / 2), 1, -1 do
+		local ThisScaledPartWidth = Widths[i]
 		if (i % 2) == 0 then
-			ThisScaledPartWidth = scale( CurrentScaledPartWidth, 0, ScaledPartWidth, 0, Widths[i] );
+			ThisScaledPartWidth = scale(CurrentScaledPartWidth, 0, ScaledPartWidth, 0, Widths[i])
 		end
 
-		params.XPos[i] = pos;
+		params.XPos[i] = pos
 
-		if i == math.ceil(#p/2) then
-			pos = pos + ThisScaledPartWidth/2;
+		if i == math.ceil(#p / 2) then
+			pos = pos - ThisScaledPartWidth / 2
 		else
-			pos = pos + ThisScaledPartWidth;
+			pos = pos - ThisScaledPartWidth
 		end
-	
-		params.Zooms[i] = ThisScaledPartWidth;
+
+		params.Zooms[i] = ThisScaledPartWidth
+	end
+	pos = 0
+	for i = math.ceil(#p / 2), #p do
+		local ThisScaledPartWidth = Widths[i]
+		if (i % 2) == 0 then
+			ThisScaledPartWidth = scale(CurrentScaledPartWidth, 0, ScaledPartWidth, 0, Widths[i])
+		end
+
+		params.XPos[i] = pos
+
+		if i == math.ceil(#p / 2) then
+			pos = pos + ThisScaledPartWidth / 2
+		else
+			pos = pos + ThisScaledPartWidth
+		end
+
+		params.Zooms[i] = ThisScaledPartWidth
 	end
 
-	params.FrameZoom = math.min(Width / UnscaledPartWidth, 1);
+	params.FrameZoom = math.min(Width / UnscaledPartWidth, 1)
 
-	self:playcommand("SetPartSize", params);
+	self:playcommand("SetPartSize", params)
 end
 
-return t;
+return t
 
 --
 -- (c) 2007 Glenn Maynard
 -- All rights reserved.
--- 
+--
 -- Permission is hereby granted, free of charge, to any person obtaining a
 -- copy of this software and associated documentation files (the
 -- "Software"), to deal in the Software without restriction, including
@@ -153,7 +156,7 @@ return t;
 -- copyright notice(s) and this permission notice appear in all copies of
 -- the Software and that both the above copyright notice(s) and this
 -- permission notice appear in supporting documentation.
--- 
+--
 -- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
 -- OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 -- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
@@ -164,4 +167,3 @@ return t;
 -- OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 -- PERFORMANCE OF THIS SOFTWARE.
 --
-

@@ -7,7 +7,7 @@
 
 class Alsa9Buf
 {
-private:
+  private:
 	int channels, samplebits;
 	unsigned samplerate;
 	int buffersize;
@@ -16,30 +16,35 @@ private:
 	snd_pcm_uframes_t preferred_writeahead, preferred_chunksize;
 	snd_pcm_uframes_t writeahead, chunksize;
 
-	snd_pcm_t *pcm;
+	snd_pcm_t* pcm;
 
-	bool Recover( int r );
+	bool Recover(int r);
 	bool SetHWParams();
 	bool SetSWParams();
 
-	static void ErrorHandler(const char *file, int line, const char *function, int err, const char *fmt, ...);
-		
-public:
+	static void ErrorHandler(const char* file,
+							 int line,
+							 const char* function,
+							 int err,
+							 const char* fmt,
+							 ...);
+
+  public:
 	static void InitializeErrorHandler();
 	static void GetSoundCardDebugInfo();
-	static RString GetHardwareID( RString name="" );
-		
+	static RString GetHardwareID(RString name = "");
+
 	Alsa9Buf();
-	RString Init( int channels,
-			int iWriteahead,
-			int iChunkSize,
-			int iSampleRate );
+	RString Init(int channels,
+				 int iWriteahead,
+				 int iChunkSize,
+				 int iSampleRate);
 	~Alsa9Buf();
-	
+
 	int GetNumFramesToFill();
-	bool WaitUntilFramesCanBeFilled( int timeout_ms );
-	void Write( const int16_t *buffer, int frames );
-	
+	bool WaitUntilFramesCanBeFilled(int timeout_ms);
+	void Write(const int16_t* buffer, int frames);
+
 	void Play();
 	void Stop();
 	void SetVolume(float vol);
@@ -53,7 +58,7 @@ public:
 /*
  * (c) 2002-2004 Glenn Maynard, Aaron VonderHaar
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -63,7 +68,7 @@ public:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

@@ -8,7 +8,9 @@ local function CurGameName()
 end
 
 -- Check the active game mode against a string. Cut down typing this in metrics.
-function IsGame(str) return CurGameName():lower() == str:lower() end
+function IsGame(str)
+	return CurGameName():lower() == str:lower()
+end
 
 -- GetExtraColorThreshold()
 -- [en] returns the difficulty threshold in meter
@@ -22,7 +24,7 @@ function GetExtraColorThreshold()
 		para = 10,
 		techno = 10,
 		lights = 10, -- lights shouldn't be playable
-		kickbox= 100, -- extra color is lame
+		kickbox = 100 -- extra color is lame
 	}
 	return Modes[CurGameName()] or 10
 end
@@ -39,40 +41,40 @@ end
 -- Then the engine does the work of figuring out where each notefield should
 -- be centered.
 function GameplayMargins(enabled_players, styletype)
-	local other= {[PLAYER_1]= PLAYER_2, [PLAYER_2]= PLAYER_1}
-	local margins= {[PLAYER_1]= {40, 40}, [PLAYER_2]= {40, 40}}
+	local other = {[PLAYER_1] = PLAYER_2, [PLAYER_2] = PLAYER_1}
+	local margins = {[PLAYER_1] = {40, 40}, [PLAYER_2] = {40, 40}}
 	-- Use a fake style width because calculating the real style width throws off
 	-- the code in the engine.
-	local fake_style_width= 272
+	local fake_style_width = 272
 	-- Handle the case of a single player that is centered first because it's
 	-- simpler.
 	if Center1Player() then
-		local pn= enabled_players[1]
-		fake_style_width= 544
-		local center= _screen.cx
-		local left= center - (fake_style_width / 2)
-		local right= _screen.w - center - (fake_style_width / 2)
+		local pn = enabled_players[1]
+		fake_style_width = 544
+		local center = _screen.cx
+		local left = center - (fake_style_width / 2)
+		local right = _screen.w - center - (fake_style_width / 2)
 		-- center margin width will be ignored.
 		return left, 80, right
 	end
-	local half_screen= _screen.w / 2
-	local left= {[PLAYER_1]= 0, [PLAYER_2]= half_screen}
+	local half_screen = _screen.w / 2
+	local left = {[PLAYER_1] = 0, [PLAYER_2] = half_screen}
 	for i, pn in ipairs(enabled_players) do
-		local edge= left[pn]
-		local center= THEME:GetMetric("ScreenGameplay",
-			"Player"..ToEnumShortString(pn)..ToEnumShortString(styletype).."X")
+		local edge = left[pn]
+		local center =
+			THEME:GetMetric("ScreenGameplay", "Player" .. ToEnumShortString(pn) .. ToEnumShortString(styletype) .. "X")
 		-- Adjust for the p2 center being on the right side.
-		center= center - edge
-		margins[pn][1]= center - (fake_style_width / 2)
-		margins[pn][2]= half_screen - center - (fake_style_width / 2)
+		center = center - edge
+		margins[pn][1] = center - (fake_style_width / 2)
+		margins[pn][2] = half_screen - center - (fake_style_width / 2)
 		if #enabled_players == 1 then
-			margins[other[pn]][1]= margins[pn][2]
-			margins[other[pn]][2]= margins[pn][1]
+			margins[other[pn]][1] = margins[pn][2]
+			margins[other[pn]][2] = margins[pn][1]
 		end
 	end
-	local left= margins[PLAYER_1][1]
-	local center= margins[PLAYER_1][2] + margins[PLAYER_2][1]
-	local right= margins[PLAYER_2][2]
+	local left = margins[PLAYER_1][1]
+	local center = margins[PLAYER_1][2] + margins[PLAYER_2][1]
+	local right = margins[PLAYER_2][2]
 	return left, center, right
 end
 
@@ -80,7 +82,7 @@ end
 -- [en] returns if you are able to select options
 -- on ScreenSelectMusic.
 function AllowOptionsMenu()
-    return true
+	return true
 end
 
 -- GameCompatibleModes:
@@ -95,28 +97,28 @@ function GameCompatibleModes()
 		maniax = "Single,Double,Versus",
 		-- todo: add versus modes for technomotion
 		techno = "Single4,Single5,Single8,Double4,Double5,Double8",
-		lights = "Single", -- lights shouldn't be playable
+		lights = "Single" -- lights shouldn't be playable
 	}
 	return Modes[CurGameName()]
 end
 
 local function upper_first_letter(s)
-	local first_letter= s:match("([a-zA-Z])")
+	local first_letter = s:match("([a-zA-Z])")
 	return s:gsub(first_letter, first_letter:upper(), 1)
 end
 
 -- No more having a metric for every style for every game mode. -Kyz
 function ScreenSelectStyleChoices()
-	local styles= GAMEMAN:GetStylesForGame(GAMESTATE:GetCurrentGame():GetName())
-	local choices= {}
+	local styles = GAMEMAN:GetStylesForGame(GAMESTATE:GetCurrentGame():GetName())
+	local choices = {}
 	for i, style in ipairs(styles) do
-		local name= style:GetName()
-		local cap_name= upper_first_letter(name)
+		local name = style:GetName()
+		local cap_name = upper_first_letter(name)
 		-- couple-edit and threepanel don't seem like they should actually be
 		-- selectable. -Kyz
 		if name ~= "couple-edit" and name ~= "threepanel" then
-			choices[#choices+1]= "name," .. cap_name .. ";style," .. name ..
-				";text," .. cap_name .. ";screen," .. Branch.AfterSelectStyle()
+			choices[#choices + 1] =
+				"name," .. cap_name .. ";style," .. name .. ";text," .. cap_name .. ";screen," .. Branch.AfterSelectStyle()
 		end
 	end
 	return choices
@@ -124,34 +126,34 @@ end
 
 -- No more having an xy for every style for every game mode. -Kyz
 function ScreenSelectStylePositions(count)
-	local poses= {}
-	local columns= 1
-	local choice_height= 96
-	local column_x= {_screen.cx, _screen.cx + 160}
+	local poses = {}
+	local columns = 1
+	local choice_height = 96
+	local column_x = {_screen.cx, _screen.cx + 160}
 	if count > 4 then
-		column_x[1]= _screen.cx - 160
-		columns= 2
+		column_x[1] = _screen.cx - 160
+		columns = 2
 	end
 	if count > 8 then
-		column_x[1]= _screen.cx - 240
-		column_x[2]= _screen.cx
-		column_x[3]= _screen.cx + 240
-		columns= 3
+		column_x[1] = _screen.cx - 240
+		column_x[2] = _screen.cx
+		column_x[3] = _screen.cx + 240
+		columns = 3
 	end
-	local num_per_column= {math.ceil(count/columns), math.floor(count/columns)}
+	local num_per_column = {math.ceil(count / columns), math.floor(count / columns)}
 	if count > 8 then
 		if count % 3 == 0 then
-			num_per_column[3]= count/columns
+			num_per_column[3] = count / columns
 		elseif count % 3 == 1 then
-			num_per_column[3]= num_per_column[2]
+			num_per_column[3] = num_per_column[2]
 		else
-			num_per_column[3]= num_per_column[1]
+			num_per_column[3] = num_per_column[1]
 		end
 	end
-	for c= 1, columns do
-		local start_y= _screen.cy - (choice_height * ((num_per_column[c] / 2)+.5))
-		for i= 1, num_per_column[c] do
-			poses[#poses+1]= {column_x[c], start_y + (choice_height * i)}
+	for c = 1, columns do
+		local start_y = _screen.cy - (choice_height * ((num_per_column[c] / 2) + .5))
+		for i = 1, num_per_column[c] do
+			poses[#poses + 1] = {column_x[c], start_y + (choice_height * i)}
 		end
 	end
 	return poses
@@ -172,16 +174,20 @@ end
 -- [en] Determines the correct ScoreKeeper class to use.
 function ScoreKeeperClass()
 	-- rave scorekeeper
-	if GAMESTATE:GetPlayMode() == 'PlayMode_Rave' then return "ScoreKeeperRave" end
+	if GAMESTATE:GetPlayMode() == "PlayMode_Rave" then
+		return "ScoreKeeperRave"
+	end
 	if GAMESTATE:GetCurrentStyle() then
 		local styleType = GAMESTATE:GetCurrentStyle():GetStyleType()
-		if styleType == 'StyleType_TwoPlayersSharedSides' then return "ScoreKeeperShared" end
+		if styleType == "StyleType_TwoPlayersSharedSides" then
+			return "ScoreKeeperShared"
+		end
 	end
 	return "ScoreKeeperNormal"
 end
 
 -- ComboContinue:
--- [en] 
+-- [en]
 function ComboContinue()
 	local Continue = {
 		dance = GAMESTATE:GetPlayMode() == "PlayMode_Oni" and "TapNoteScore_W2" or "TapNoteScore_W3",
@@ -190,7 +196,7 @@ function ComboContinue()
 		kb7 = "TapNoteScore_W3",
 		para = "TapNoteScore_W4"
 	}
-  return Continue[CurGameName()] or "TapNoteScore_W3"
+	return Continue[CurGameName()] or "TapNoteScore_W3"
 end
 
 function ComboMaintain()
@@ -201,7 +207,7 @@ function ComboMaintain()
 		kb7 = "TapNoteScore_W3",
 		para = "TapNoteScore_W4"
 	}
-  return Maintain[CurGameName()] or "TapNoteScore_W3"
+	return Maintain[CurGameName()] or "TapNoteScore_W3"
 end
 
 function ComboPerRow()
@@ -220,14 +226,14 @@ function EvalUsesCheckpointsWithJudgments()
 end
 
 local ComboThresholds = {
-	dance	= { Hit = 2, Miss = 2, Fail = -1 },
-	pump	= { Hit = 4, Miss = 4, Fail = 51 },
-	beat	= { Hit = 1, Miss = 0, Fail = -1 },
-	kb7		= { Hit = 1, Miss = 0, Fail = -1 },
-	para	= { Hit = 2, Miss = 0, Fail = -1 },
-	maniax	= { Hit = 5, Miss = 0, Fail = -1 },
+	dance = {Hit = 2, Miss = 2, Fail = -1},
+	pump = {Hit = 4, Miss = 4, Fail = 51},
+	beat = {Hit = 1, Miss = 0, Fail = -1},
+	kb7 = {Hit = 1, Miss = 0, Fail = -1},
+	para = {Hit = 2, Miss = 0, Fail = -1},
+	maniax = {Hit = 5, Miss = 0, Fail = -1},
 	-------------------------------------------
-	default	= { Hit = 2, Miss = 2, Fail = -1 }
+	default = {Hit = 2, Miss = 2, Fail = -1}
 }
 
 function HitCombo()
@@ -255,14 +261,14 @@ function FailCombo()
 end
 
 function TwoPartSelection()
-	return GAMESTATE:GetCurrentGame():GetName() == "pump" and true or false 
-end 
+	return GAMESTATE:GetCurrentGame():GetName() == "pump" and true or false
+end
 
 local RoutineSkins = {
-	dance	= { P1 = "midi-routine-p1", P2 = "midi-routine-p2" },
-	kb7		= { P1 = "default", P2 = "retrobar" },
+	dance = {P1 = "midi-routine-p1", P2 = "midi-routine-p2"},
+	kb7 = {P1 = "default", P2 = "retrobar"},
 	-------------------------------------------------------------
-	default	= { P1 = "default", P2 = "default" }
+	default = {P1 = "default", P2 = "default"}
 }
 
 function RoutineSkinP1()
@@ -293,96 +299,96 @@ local CodeDetectorCodes = {
 	PrevSteps1 = {
 		default = "",
 		dance = "Up,Up",
-		pump = "+UpLeft",
+		pump = "+UpLeft"
 	},
 	PrevSteps2 = {
 		default = "MenuUp,MenuUp",
 		dance = "MenuUp,MenuUp",
-		pump = "",
+		pump = ""
 	},
 	NextSteps1 = {
 		default = "",
 		dance = "Down,Down",
-		pump = "+UpRight",
+		pump = "+UpRight"
 	},
 	NextSteps2 = {
 		default = "MenuDown,MenuDown",
 		dance = "MenuDown,MenuDown",
-		pump = "",
+		pump = ""
 	},
 	-- group
 	NextGroup = {
 		default = "",
 		dance = "",
-		pump = "",
+		pump = ""
 	},
 	PrevGroup = {
 		default = "",
 		dance = "",
-		pump = "",
+		pump = ""
 	},
 	CloseCurrentFolder = {
-		default = "MenuUp-MenuDown",
+		default = "MenuUp-MenuDown"
 	},
 	-- sorts
 	NextSort1 = {
 		default = "@MenuLeft-@MenuRight-Start",
 		dance = "@MenuLeft-@MenuRight-Start",
-		pump = "@MenuLeft-@MenuRight-Start",
+		pump = "@MenuLeft-@MenuRight-Start"
 	},
 	NextSort2 = {
 		default = "MenuLeft-MenuRight",
 		dance = "MenuLeft-MenuRight",
-		pump = "MenuLeft-MenuRight",
+		pump = "MenuLeft-MenuRight"
 	},
 	NextSort3 = {
 		default = "",
 		dance = "@Left-@Right-Start",
-		pump = "@DownLeft-@DownRight-Start",
+		pump = "@DownLeft-@DownRight-Start"
 	},
 	NextSort4 = {
 		default = "",
 		dance = "Left-Right",
-		pump = "DownLeft-DownRight",
+		pump = "DownLeft-DownRight"
 	},
 	-- modemenu
 	ModeMenu1 = {
 		default = "",
-		dance = "Up,Down,Up,Down",
+		dance = "Up,Down,Up,Down"
 	},
 	ModeMenu2 = {
-		default = "MenuUp,MenuDown,MenuUp,MenuDown",
+		default = "MenuUp,MenuDown,MenuUp,MenuDown"
 	},
 	-- Evaluation:
 	SaveScreenshot1 = {
-		default = "MenuLeft-MenuRight",
+		default = "MenuLeft-MenuRight"
 	},
 	SaveScreenshot2 = {
-		default = "Select",
+		default = "Select"
 	},
 	-- modifiers section
 	CancelAll = {
 		default = "",
-		dance = "",
+		dance = ""
 	},
 	--- specific modifiers
 	Mirror = {
 		default = "",
 		dance = "",
-		pump = "DownRight,DownLeft,UpRight,UpLeft,DownRight,DownLeft,UpRight,UpLeft,Center",
+		pump = "DownRight,DownLeft,UpRight,UpLeft,DownRight,DownLeft,UpRight,UpLeft,Center"
 	},
 	Left = {
 		default = "",
-		dance = "",
+		dance = ""
 	},
 	Right = {
 		default = "",
-		dance = "",
+		dance = ""
 	},
 	Shuffle = {
 		default = "",
 		dance = "",
-		pump = "UpLeft,UpRight,UpLeft,UpRight,DownLeft,DownRight,DownLeft,DownRight,Center", -- random
+		pump = "UpLeft,UpRight,UpLeft,UpRight,DownLeft,DownRight,DownLeft,DownRight,Center" -- random
 	},
 	SuperShuffle = {
 		default = "",
@@ -392,61 +398,61 @@ local CodeDetectorCodes = {
 	Reverse = {
 		default = "",
 		dance = "",
-		pump = "UpLeft,DownLeft,UpRight,DownRight,UpLeft,DownLeft,UpRight,DownRight,DownRight", -- drop
+		pump = "UpLeft,DownLeft,UpRight,DownRight,UpLeft,DownLeft,UpRight,DownRight,DownRight" -- drop
 	},
 	HoldNotes = {
 		default = "",
-		dance = "",
+		dance = ""
 	},
 	Mines = {
-		default = "",
+		default = ""
 	},
 	Dark = {
-		default = "",
+		default = ""
 	},
 	Hidden = {
 		default = "",
-		pump = "UpLeft,UpRight,DownLeft,DownRight,Center", -- vanish
+		pump = "UpLeft,UpRight,DownLeft,DownRight,Center" -- vanish
 	},
 	RandomVanish = {
-		default = "",
+		default = ""
 	},
 	-- boost (accel), brake (decel), stealth (nonstep)
 	--- next/prev modifiers
 	NextTransform = {
-		default = "",
+		default = ""
 	},
 	NextScrollSpeed = {
 		default = "",
 		dance = "",
-		pump = "UpLeft,UpRight,UpLeft,UpRight,Center",
+		pump = "UpLeft,UpRight,UpLeft,UpRight,Center"
 	},
 	PreviousScrollSpeed = {
 		default = "",
 		dance = "",
-		pump = "UpRight,UpLeft,UpRight,UpLeft,Center",
+		pump = "UpRight,UpLeft,UpRight,UpLeft,Center"
 	},
 	NextAccel = {
 		default = "",
-		dance = "",
+		dance = ""
 	},
 	NextEffect = {
 		default = "",
-		dance = "",
+		dance = ""
 	},
 	NextAppearance = {
 		default = "",
-		dance = "",
+		dance = ""
 	},
 	NextTurn = {
-		default = "",
+		default = ""
 	},
 	-- cancel all in player options
 	CancelAllPlayerOptions = {
 		default = "",
-		dance = "",
-	},
-};
+		dance = ""
+	}
+}
 
 function GetCodeForGame(codeName)
 	local gameName = string.lower(CurGameName())

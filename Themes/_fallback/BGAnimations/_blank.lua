@@ -1,1 +1,1 @@
-return Def.Actor{};
+return Def.Actor {}

@@ -6,34 +6,38 @@ WindowsDialogBox::WindowsDialogBox()
 	m_hWnd = NULL;
 }
 
-void WindowsDialogBox::Run( int iDialog )
+void
+WindowsDialogBox::Run(int iDialog)
 {
 	char szFullAppPath[MAX_PATH];
-	GetModuleFileName( NULL, szFullAppPath, MAX_PATH );
-	HINSTANCE hHandle = LoadLibrary( szFullAppPath );
+	GetModuleFileName(NULL, szFullAppPath, MAX_PATH);
+	HINSTANCE hHandle = LoadLibrary(szFullAppPath);
 
-	DialogBoxParam( hHandle, MAKEINTRESOURCE(iDialog), NULL, DlgProc, (LPARAM) this );
+	DialogBoxParam(
+	  hHandle, MAKEINTRESOURCE(iDialog), NULL, DlgProc, (LPARAM)this);
 }
 
-BOOL APIENTRY WindowsDialogBox::DlgProc( HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam )
+INT_PTR APIENTRY
+WindowsDialogBox::DlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	if( msg == WM_INITDIALOG )
-		SetProp( hDlg, "WindowsDialogBox", (HANDLE) lParam );
+	if (msg == WM_INITDIALOG)
+		SetProp(hDlg, "WindowsDialogBox", (HANDLE)lParam);
 
-	WindowsDialogBox *pThis = (WindowsDialogBox *) GetProp( hDlg, "WindowsDialogBox" );
-	if( pThis == NULL )
+	WindowsDialogBox* pThis =
+	  (WindowsDialogBox*)GetProp(hDlg, "WindowsDialogBox");
+	if (pThis == NULL)
 		return FALSE;
 
-	if( pThis->m_hWnd == NULL )
+	if (pThis->m_hWnd == NULL)
 		pThis->m_hWnd = hDlg;
 
-	return pThis->HandleMessage( msg, wParam, lParam );
+	return pThis->HandleMessage(msg, wParam, lParam);
 }
 
 /*
  * (c) 2006 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -43,7 +47,7 @@ BOOL APIENTRY WindowsDialogBox::DlgProc( HWND hDlg, UINT msg, WPARAM wParam, LPA
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

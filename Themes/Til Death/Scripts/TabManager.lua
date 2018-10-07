@@ -1,26 +1,24 @@
-
-
 -- Tabs are 0 indexed
 local tabIndex = 0
 local tabSize = 9
 local availTabSize = 2
 
-local availableTabs1P = {true,true,true,true,true,true,true,true,true,true}
-local availableTabs2P = {true,false,false,false,true}
+local availableTabs1P = {true, true, true, true, true, true, true, true, true, true}
+local availableTabs2P = {true, false, false, false, true}
 
 --0 indexed tabs... yet 1 indexed lua tables mfw. Will probably go into infinite loop if everything is false.
 -- Recursively grabs the next available tab. Looping around to start if needed.
-local function getNextAvailable(players,index)
+local function getNextAvailable(players, index)
 	local table = {}
 	if players == 1 then
 		table = availableTabs1P
 	else
 		table = availableTabs2P
 	end
-	if table[index+1] == true then
+	if table[index + 1] == true then
 		return index
 	else
-		return getNextAvailable(players,(index+1)%tabSize)
+		return getNextAvailable(players, (index + 1) % tabSize)
 	end
 end
 
@@ -31,11 +29,11 @@ end
 
 function setTabIndex(index)
 	if GAMESTATE:GetNumPlayersEnabled() == 1 then
-		if availableTabs1P[index+1] then
+		if availableTabs1P[index + 1] then
 			tabIndex = index
 		end
 	else
-		if availableTabs2P[index+1] then
+		if availableTabs2P[index + 1] then
 			tabIndex = index
 		end
 	end
@@ -44,12 +42,12 @@ end
 -- Incements the tab index by 1 given the tab is available.
 function incrementTabIndex()
 	local players = GAMESTATE:GetNumPlayersEnabled()
-	tabIndex = (tabIndex+1)%tabSize
-	if players == 1 and availableTabs1P[tabIndex+1] == false then
-		tabIndex = getNextAvailable(players,tabIndex+1)%tabSize
+	tabIndex = (tabIndex + 1) % tabSize
+	if players == 1 and availableTabs1P[tabIndex + 1] == false then
+		tabIndex = getNextAvailable(players, tabIndex + 1) % tabSize
 	end
-	if players > 1 and availableTabs2P[tabIndex+1] == false then
-		tabIndex = getNextAvailable(players,tabIndex+1)%tabSize
+	if players > 1 and availableTabs2P[tabIndex + 1] == false then
+		tabIndex = getNextAvailable(players, tabIndex + 1) % tabSize
 	end
 end
 
@@ -71,10 +69,10 @@ function getMaxAvailIndex()
 		table = availableTabs1P
 	else
 		table = availableTabs2P
-	end;
-	for k,v in ipairs(table) do
+	end
+	for k, v in ipairs(table) do
 		if v == true then
-			high = math.max(high,k)
+			high = math.max(high, k)
 		end
 	end
 	return high

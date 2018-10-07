@@ -10,19 +10,37 @@ if(NOT WIN32)
   return()
 endif()
 
-if(NOT EXISTS "$ENV{DXSDK_DIR}")
-  message(FATAL_ERROR "Could not find Microsoft DirectX SDK installation!")
-endif()
-
-set(DIRECTX_INCLUDE_SEARCH_PATHS
-  # TODO: Do not be limited to x86 in the future.
-  "$ENV{DXSDK_DIR}/Include"
+if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+	set (DirectX_ARCHITECTURE x64)
+else ()
+	set (DirectX_ARCHITECTURE x86)
+endif ()
+set (ProgramFiles_x86 "ProgramFiles(x86)")
+if ("$ENV{${ProgramFiles_x86}}")
+	set (ProgramFiles "$ENV{${ProgramFiles_x86}}")
+else ()
+	set (ProgramFiles "$ENV{ProgramFiles}")
+endif ()
+find_path (DirectX_ROOT_DIR
+	Include/d3d9.h
+	PATHS
+		"$ENV{DXSDK_DIR}"
+		"${ProgramFiles}/Microsoft DirectX SDK (June 2010)"
+		"${ProgramFiles}/Microsoft DirectX SDK (February 2010)"
+		"${ProgramFiles}/Microsoft DirectX SDK (March 2009)"
+		"${ProgramFiles}/Microsoft DirectX SDK (August 2008)"
+		"${ProgramFiles}/Microsoft DirectX SDK (June 2008)"
+		"${ProgramFiles}/Microsoft DirectX SDK (March 2008)"
+		"${ProgramFiles}/Microsoft DirectX SDK (November 2007)"
+		"${ProgramFiles}/Microsoft DirectX SDK (August 2007)"
+		"${ProgramFiles}/Microsoft DirectX SDK"
+	DOC "DirectX SDK root directory"
 )
-
-set(DIRECTX_LIBRARY_SEARCH_PATHS
-  # TODO: Do not be limited to x86 in the future.
-  "$ENV{DXSDK_DIR}/Lib/x86"
-)
+if (DirectX_ROOT_DIR)
+	set (DIRECTX_INCLUDE_SEARCH_PATHS "${DirectX_ROOT_DIR}/Include")
+	set (DIRECTX_LIBRARY_SEARCH_PATHS "${DirectX_ROOT_DIR}/Lib/${DirectX_ARCHITECTURE}")
+	set (DirectX_BIN_SEARCH_PATH "${DirectX_ROOT_DIR}/Utilities/bin/x86")
+endif ()
 
 find_path(DIRECTX_INCLUDE_DIR
   NAMES "DxErr.h"

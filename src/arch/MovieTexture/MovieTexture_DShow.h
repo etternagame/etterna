@@ -31,28 +31,28 @@ typedef char TCHAR, *PTCHAR;
 
 class MovieTexture_DShow : public RageMovieTexture
 {
-public:
-	MovieTexture_DShow( RageTextureID ID );
+  public:
+	MovieTexture_DShow(RageTextureID ID);
 	virtual ~MovieTexture_DShow();
 	RString Init();
 
 	/* only called by RageTextureManager::InvalidateTextures */
 	void Invalidate() { m_uTexHandle = 0; }
-	void Update( float fDeltaTime );
+	void Update(float fDeltaTime);
 
 	virtual void Reload();
 
 	virtual void Play();
 	virtual void Pause();
-	virtual void SetPosition( float fSeconds );
-	virtual void SetPlaybackRate( float fRate );
+	virtual void SetPosition(float fSeconds);
+	virtual void SetPlaybackRate(float fRate);
 
-	void SetLooping( bool bLooping=true ) { m_bLoop = bLooping; }
+	void SetLooping(bool bLooping = true) { m_bLoop = bLooping; }
 
-	void NewData( const char *pBuffer );
+	void NewData(const char* pBuffer);
 
-private:
-	const char *buffer;
+  private:
+	const char* buffer;
 	RageSemaphore buffer_lock, buffer_finished;
 
 	RString Create();
@@ -66,15 +66,15 @@ private:
 	unsigned GetTexHandle() const { return m_uTexHandle; }
 	unsigned m_uTexHandle;
 
-	CComPtr<IGraphBuilder>  m_pGB;          // GraphBuilder
-	bool					m_bLoop;
-	bool					m_bPlaying;
+	CComPtr<IGraphBuilder> m_pGB; // GraphBuilder
+	bool m_bLoop;
+	bool m_bPlaying;
 };
 
-class RageMovieTextureDriver_DShow: public RageMovieTextureDriver
+class RageMovieTextureDriver_DShow : public RageMovieTextureDriver
 {
-public:
-	virtual RageMovieTexture *Create( RageTextureID ID, RString &sError );
+  public:
+	virtual RageMovieTexture* Create(RageTextureID ID, RString& sError);
 };
 
 #endif
@@ -82,7 +82,7 @@ public:
 /*
  * (c) 2001-2004 Chris Danford, Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -92,7 +92,7 @@ public:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

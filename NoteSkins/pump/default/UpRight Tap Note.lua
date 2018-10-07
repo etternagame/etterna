@@ -1,1 +1,1 @@
-return NOTESKIN:LoadActor("UpLeft","Tap Note")..{};
+return NOTESKIN:LoadActor("UpLeft", "Tap Note") .. {}

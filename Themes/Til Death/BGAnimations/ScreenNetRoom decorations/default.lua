@@ -1,39 +1,39 @@
-local t = Def.ActorFrame{}
-if not NSMAN:IsETTP() then 
-	t[#t+1] = LoadActor("../_chatbox")
+local t = Def.ActorFrame {}
+if not NSMAN:IsETTP() then
+	t[#t + 1] = LoadActor("../_chatbox")
 end
-t[#t+1] = LoadActor("profile")
-t[#t+1] = LoadActor("roomsearch")
-t[#t+1] = LoadActor("tabs")
+t[#t + 1] = LoadActor("profile")
+t[#t + 1] = LoadActor("roomsearch")
+t[#t + 1] = LoadActor("tabs")
 
-local g = Def.ActorFrame{
-	BeginCommand=function(self)
-		local top= SCREENMAN:GetTopScreen()
+local g =
+	Def.ActorFrame {
+	BeginCommand = function(self)
+		local top = SCREENMAN:GetTopScreen()
 		if getTabIndex() == 0 and not NSMAN:IsETTP() then
 			top:ChatboxVisible(true)
 			top:ChatboxInput(true)
 			top:InfoSetVisible(true)
-		else 
+		else
 			top:ChatboxVisible(false)
 			top:ChatboxInput(false)
 			top:InfoSetVisible(false)
 		end
 	end,
-	TabChangedMessageCommand=function(self)
-		local top= SCREENMAN:GetTopScreen()
+	TabChangedMessageCommand = function(self)
+		local top = SCREENMAN:GetTopScreen()
 		if getTabIndex() == 0 and not NSMAN:IsETTP() then
 			top:ChatboxVisible(true)
 			top:ChatboxInput(true)
 			top:InfoSetVisible(true)
-		else 
+		else
 			top:ChatboxVisible(false)
 			top:ChatboxInput(false)
 			top:InfoSetVisible(false)
 		end
-	end,
+	end
 }
 
-	
-t[#t+1] = g
+t[#t + 1] = g
 
 return t

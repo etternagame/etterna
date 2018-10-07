@@ -5,13 +5,13 @@
 
 #include "InputHandler.h"
 
-class InputHandler_X11: public InputHandler
+class InputHandler_X11 : public InputHandler
 {
-public:
+  public:
 	InputHandler_X11();
 	~InputHandler_X11();
 	void Update();
-	void GetDevicesAndDescriptions( std::vector<InputDeviceInfo>& vDevicesOut );
+	void GetDevicesAndDescriptions(std::vector<InputDeviceInfo>& vDevicesOut);
 };
 
 #endif
@@ -40,4 +40,3 @@ public:
  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-

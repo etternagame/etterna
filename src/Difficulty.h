@@ -7,7 +7,7 @@ class Song;
 class Steps;
 
 // Player number stuff
-enum Difficulty 
+enum Difficulty
 {
 	Difficulty_Beginner,
 	Difficulty_Easy,
@@ -18,20 +18,27 @@ enum Difficulty
 	NUM_Difficulty,
 	Difficulty_Invalid
 };
-const RString& DifficultyToString( Difficulty dc );
-Difficulty StringToDifficulty( const RString& sDC );
-LuaDeclareType( Difficulty );
+const RString&
+DifficultyToString(Difficulty dc);
+Difficulty
+StringToDifficulty(const RString& sDC);
+LuaDeclareType(Difficulty);
 
-Difficulty OldStyleStringToDifficulty( const RString& sDC ); // compatibility
+Difficulty
+OldStyleStringToDifficulty(const RString& sDC); // compatibility
 
+// CustomDifficulty is a themeable difficulty name based on Difficulty, string
+// matching on StepsType, and CourseType. It is used to look up localized
+// strings and look up colors.
+RString
+GetCustomDifficulty(StepsType st, Difficulty dc);
+RString
+CustomDifficultyToLocalizedString(const RString& sCustomDifficulty);
+RString
+StepsToCustomDifficulty(const Steps* pSteps);
 
-// CustomDifficulty is a themeable difficulty name based on Difficulty, string matching on StepsType, and CourseType.
-// It is used to look up localized strings and look up colors.
-RString GetCustomDifficulty( StepsType st, Difficulty dc);
-RString CustomDifficultyToLocalizedString( const RString &sCustomDifficulty );
-RString StepsToCustomDifficulty( const Steps *pSteps );
-
-struct Chart {
+struct Chart
+{
 	string key;
 	RString lastsong;
 	RString lastpack;
@@ -44,12 +51,13 @@ struct Chart {
 
 	bool loaded = false;
 	void FromKey(const string& ck);
-	XNode * CreateNode(bool includerate) const;
-	void LoadFromNode(const XNode * node);
-	void PushSelf(lua_State *L);
+	XNode* CreateNode(bool includerate) const;
+	void LoadFromNode(const XNode* node);
+	void PushSelf(lua_State* L);
 };
 
-struct Playlist {
+struct Playlist
+{
 	RString name;
 	vector<Chart> chartlist;
 	void Add(Chart ch) { chartlist.emplace_back(ch); }
@@ -67,7 +75,7 @@ struct Playlist {
 	float GetAverageRating();
 	void DeleteChart(int i);
 
-	void PushSelf(lua_State *L);
+	void PushSelf(lua_State* L);
 };
 
 #endif
@@ -75,7 +83,7 @@ struct Playlist {
 /*
  * (c) 2001-2004 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -85,7 +93,7 @@ struct Playlist {
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

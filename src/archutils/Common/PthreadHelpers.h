@@ -6,26 +6,32 @@
 #endif
 #include "global.h"
 
-RString ThreadsVersion();
+RString
+ThreadsVersion();
 
 /* Get the current thread's ThreadID. */
-uint64_t GetCurrentThreadId();
+uint64_t
+GetCurrentThreadId();
 
 /* Return true if NPTL libraries are in use, false if linuxthreads. */
-bool UsingNPTL();
+bool
+UsingNPTL();
 
-int SuspendThread( uint64_t ThreadID );
-int ResumeThread( uint64_t ThreadID );
+int
+SuspendThread(uint64_t ThreadID);
+int
+ResumeThread(uint64_t ThreadID);
 
 struct BacktraceContext;
-int GetThreadContext( uint64_t ThreadID, BacktraceContext *ctx );
-	
+int
+GetThreadContext(uint64_t ThreadID, BacktraceContext* ctx);
+
 #endif
 
 /*
  * (c) 2004 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -35,7 +41,7 @@ int GetThreadContext( uint64_t ThreadID, BacktraceContext *ctx );
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

@@ -8,24 +8,24 @@
 class RageSoundResampler_Polyphase;
 
 /** @brief This class changes the sampling rate of a sound. */
-class RageSoundReader_Resample_Good: public RageSoundReader_Filter
+class RageSoundReader_Resample_Good : public RageSoundReader_Filter
 {
-public:
+  public:
 	/* We own source. */
-	RageSoundReader_Resample_Good( RageSoundReader *pSource, int iSampleRate );
-	RageSoundReader_Resample_Good( const RageSoundReader_Resample_Good &cpy );
-	int SetPosition( int iFrame ) override;
-	int Read( float *pBuf, int iFrames ) override;
+	RageSoundReader_Resample_Good(RageSoundReader* pSource, int iSampleRate);
+	RageSoundReader_Resample_Good(const RageSoundReader_Resample_Good& cpy);
+	int SetPosition(int iFrame) override;
+	int Read(float* pBuf, int iFrames) override;
 	~RageSoundReader_Resample_Good() override;
-	RageSoundReader_Resample_Good *Copy() const override;
-	bool SetProperty( const RString &sProperty, float fValue ) override;
+	RageSoundReader_Resample_Good* Copy() const override;
+	bool SetProperty(const RString& sProperty, float fValue) override;
 	int GetNextSourceFrame() const override;
 	float GetStreamToSourceRatio() const override;
 
 	/**
 	 * @brief Change the rate of a sound without changing the sample rate.
 	 * @param fRatio the ratio for changing. */
-	void SetRate( float fRatio );
+	void SetRate(float fRatio);
 
 	/**
 	 * @brief Retrieve the exact rate.
@@ -34,12 +34,12 @@ public:
 
 	int GetSampleRate() const override { return m_iSampleRate; }
 
-private:
+  private:
 	void Reset();
 	void ReopenResampler();
-	void GetFactors( int &iDownFactor, int &iUpFactor ) const;
+	void GetFactors(int& iDownFactor, int& iUpFactor) const;
 
-	vector<RageSoundResampler_Polyphase *> m_apResamplers; /* one per channel */
+	vector<RageSoundResampler_Polyphase*> m_apResamplers; /* one per channel */
 
 	int m_iSampleRate;
 	float m_fRate;

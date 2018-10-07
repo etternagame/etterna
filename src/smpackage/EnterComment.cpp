@@ -17,19 +17,18 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // EnterComment dialog
 
-
 EnterComment::EnterComment(CWnd* pParent /*=NULL*/)
-	: CDialog(EnterComment::IDD, pParent)
-	, m_bDontAsk(FALSE)
-	, m_bShowAComment(FALSE)
+  : CDialog(EnterComment::IDD, pParent)
+  , m_bDontAsk(FALSE)
+  , m_bShowAComment(FALSE)
 {
 	//{{AFX_DATA_INIT(EnterComment)
-		// NOTE: the ClassWizard will add member initialization here
+	// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
 
-
-void EnterComment::DoDataExchange(CDataExchange* pDX)
+void
+EnterComment::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(EnterComment)
@@ -39,52 +38,55 @@ void EnterComment::DoDataExchange(CDataExchange* pDX)
 	DDX_Check(pDX, IDC_SHOW_A_COMMENT, m_bShowAComment);
 }
 
-BOOL EnterComment::OnInitDialog() 
+BOOL
+EnterComment::OnInitDialog()
 {
 	CDialog::OnInitDialog();
-	
+
 	// TODO: Add extra initialization here
-	DialogUtil::LocalizeDialogAndContents( *this );
+	DialogUtil::LocalizeDialogAndContents(*this);
 
 	OnBnClickedShowAComment();
 
-	return TRUE;  // return TRUE unless you set the focus to a control
-	              // EXCEPTION: OCX Property Pages should return FALSE
+	return TRUE; // return TRUE unless you set the focus to a control
+				 // EXCEPTION: OCX Property Pages should return FALSE
 }
 
 BEGIN_MESSAGE_MAP(EnterComment, CDialog)
-	//{{AFX_MSG_MAP(EnterComment)
-	//}}AFX_MSG_MAP
-	ON_BN_CLICKED(IDC_SHOW_A_COMMENT, OnBnClickedShowAComment)
+//{{AFX_MSG_MAP(EnterComment)
+//}}AFX_MSG_MAP
+ON_BN_CLICKED(IDC_SHOW_A_COMMENT, OnBnClickedShowAComment)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 // EnterComment message handlers
 
-void EnterComment::OnOK() 
+void
+EnterComment::OnOK()
 {
 	// TODO: Add extra validation here
 
-	UpdateData( TRUE );
+	UpdateData(TRUE);
 
-	if( m_bShowAComment )
-		m_edit.GetWindowText( m_sEnteredComment );
+	if (m_bShowAComment)
+		m_edit.GetWindowText(m_sEnteredComment);
 
 	CDialog::OnOK();
 }
 
-void EnterComment::OnBnClickedShowAComment()
+void
+EnterComment::OnBnClickedShowAComment()
 {
-	UpdateData( TRUE );
+	UpdateData(TRUE);
 
 	// TODO: Add your control notification handler code here
-	GetDlgItem( IDC_EDIT )->EnableWindow( m_bShowAComment );
+	GetDlgItem(IDC_EDIT)->EnableWindow(m_bShowAComment);
 }
 
 /*
  * (c) 2002-2005 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -94,7 +96,7 @@ void EnterComment::OnBnClickedShowAComment()
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

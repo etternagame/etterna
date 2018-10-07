@@ -7,21 +7,22 @@
 #include "RageInputDevice.h"
 #include "RageUtil.h"
 
-static const char *InputDeviceStateNames[] = {
+static const char* InputDeviceStateNames[] = {
 	"Connected",
 	"Unplugged",
 	"NeedsMultitap",
 	"NoInputHandler",
 };
-XToString( InputDeviceState );
-XToLocalizedString( InputDeviceState );
+XToString(InputDeviceState);
+XToLocalizedString(InputDeviceState);
 LuaXType(InputDevice);
 
-static map<DeviceButton,RString> g_mapNamesToString;
-static map<RString,DeviceButton> g_mapStringToNames;
-static void InitNames()
+static map<DeviceButton, RString> g_mapNamesToString;
+static map<RString, DeviceButton> g_mapStringToNames;
+static void
+InitNames()
 {
-	if( !g_mapNamesToString.empty() )
+	if (!g_mapNamesToString.empty())
 		return;
 
 	g_mapNamesToString[KEY_PERIOD] = "period";
@@ -137,133 +138,105 @@ static void InitNames()
 	g_mapNamesToString[MOUSE_WHEELUP] = "mousewheel up";
 	g_mapNamesToString[MOUSE_WHEELDOWN] = "mousewheel down";
 
-	FOREACHM( DeviceButton, RString, g_mapNamesToString, m )
-		g_mapStringToNames[m->second] = m->first;
+	FOREACHM(DeviceButton, RString, g_mapNamesToString, m)
+	g_mapStringToNames[m->second] = m->first;
 }
 
 /* Return a reversible representation of a DeviceButton. This is not affected
  * by InputDrivers, localization or the keyboard language. */
-RString DeviceButtonToString( DeviceButton key )
+RString
+DeviceButtonToString(DeviceButton key)
 {
 	InitNames();
 
 	// Check the name map first to allow making names for keys that are inside
 	// the ascii range. -Kyz
-	map<DeviceButton,RString>::const_iterator it = g_mapNamesToString.find( key );
-	if( it != g_mapNamesToString.end() )
+	map<DeviceButton, RString>::const_iterator it =
+	  g_mapNamesToString.find(key);
+	if (it != g_mapNamesToString.end())
 		return it->second;
 
 	// All printable ASCII except for uppercase alpha characters line up.
-	if( key >= 33 && key < 127 && !(key >= 'A' && key <= 'Z' ) )
-		return ssprintf( "%c", key );
+	if (key >= 33 && key < 127 && !(key >= 'A' && key <= 'Z'))
+		return ssprintf("%c", key);
 
-	if( key >= KEY_OTHER_0 && key < KEY_LAST_OTHER )
-		return ssprintf( "unk %i", key-KEY_OTHER_0 );
+	if (key >= KEY_OTHER_0 && key < KEY_LAST_OTHER)
+		return ssprintf("unk %i", key - KEY_OTHER_0);
 
-	if( key >= JOY_BUTTON_1 && key <= JOY_BUTTON_32 )
-		return ssprintf( "B%i", key-JOY_BUTTON_1+1 );
+	if (key >= JOY_BUTTON_1 && key <= JOY_BUTTON_32)
+		return ssprintf("B%i", key - JOY_BUTTON_1 + 1);
 
-	if( key >= MIDI_FIRST && key <= MIDI_LAST )
-		return ssprintf( "Midi %d", key-MIDI_FIRST );
+	if (key >= MIDI_FIRST && key <= MIDI_LAST)
+		return ssprintf("Midi %d", key - MIDI_FIRST);
 
 	return "unknown";
 }
 
-DeviceButton StringToDeviceButton( const RString& s )
+DeviceButton
+StringToDeviceButton(const RString& s)
 {
 	InitNames();
 
-	if( s.size() == 1 )
-		return (DeviceButton) s[0];
+	if (s.size() == 1)
+		return (DeviceButton)s[0];
 
 	int i;
-	if( sscanf(s, "unk %i", &i) == 1 )
-		return enum_add2( KEY_OTHER_0, i );
+	if (sscanf(s, "unk %i", &i) == 1)
+		return enum_add2(KEY_OTHER_0, i);
 
-	if( sscanf(s, "B%i", &i) == 1 )
-		return enum_add2( JOY_BUTTON_1, i-1 );
+	if (sscanf(s, "B%i", &i) == 1)
+		return enum_add2(JOY_BUTTON_1, i - 1);
 
-	if( sscanf(s, "Midi %i", &i) == 1 )
-		return enum_add2( MIDI_FIRST, i );
+	if (sscanf(s, "Midi %i", &i) == 1)
+		return enum_add2(MIDI_FIRST, i);
 
-	if( sscanf(s, "Mouse %i", &i) == 1 )
-		return enum_add2( MOUSE_LEFT, i );
+	if (sscanf(s, "Mouse %i", &i) == 1)
+		return enum_add2(MOUSE_LEFT, i);
 
-	map<RString,DeviceButton>::const_iterator it = g_mapStringToNames.find( s );
-	if( it != g_mapStringToNames.end() )
+	map<RString, DeviceButton>::const_iterator it = g_mapStringToNames.find(s);
+	if (it != g_mapStringToNames.end())
 		return it->second;
 
 	return DeviceButton_Invalid;
 }
 LuaXType(DeviceButton);
 
-static const char *InputDeviceNames[] = {
-	"Key",
-	"Joy1",
-	"Joy2",
-	"Joy3",
-	"Joy4",
-	"Joy5",
-	"Joy6",
-	"Joy7",
-	"Joy8",
-	"Joy9",
-	"Joy10",
-	"Joy11",
-	"Joy12",
-	"Joy13",
-	"Joy14",
-	"Joy15",
-	"Joy16",
-	"Joy17",
-	"Joy18",
-	"Joy19",
-	"Joy20",
-	"Joy21",
-	"Joy22",
-	"Joy23",
-	"Joy24",
-	"Joy25",
-	"Joy26",
-	"Joy27",
-	"Joy28",
-	"Joy29",
-	"Joy30",
-	"Joy31",
-	"Joy32",
-	"Pump1",
-	"Pump2",
-	"Midi",
-	"Mouse",
-	"PIUIO",
+static const char* InputDeviceNames[] = {
+	"Key",   "Joy1",  "Joy2",  "Joy3",  "Joy4",  "Joy5",  "Joy6",  "Joy7",
+	"Joy8",  "Joy9",  "Joy10", "Joy11", "Joy12", "Joy13", "Joy14", "Joy15",
+	"Joy16", "Joy17", "Joy18", "Joy19", "Joy20", "Joy21", "Joy22", "Joy23",
+	"Joy24", "Joy25", "Joy26", "Joy27", "Joy28", "Joy29", "Joy30", "Joy31",
+	"Joy32", "Pump1", "Pump2", "Midi",  "Mouse", "PIUIO",
 };
-XToString( InputDevice );
-StringToX( InputDevice );
+XToString(InputDevice);
+StringToX(InputDevice);
 
 /* Return a reversible representation of a DeviceInput. This is not affected by
  * InputDrivers, localization or the keyboard language. */
-RString DeviceInput::ToString() const
+RString
+DeviceInput::ToString() const
 {
-	if( device == InputDevice_Invalid )
+	if (device == InputDevice_Invalid)
 		return RString();
 
-	RString s = InputDeviceToString(device) + "_" + DeviceButtonToString(button);
+	RString s =
+	  InputDeviceToString(device) + "_" + DeviceButtonToString(button);
 	return s;
 }
 
-bool DeviceInput::FromString( const RString &s )
+bool
+DeviceInput::FromString(const RString& s)
 {
 	char szDevice[32] = "";
 	char szButton[32] = "";
 
-	if( 2 != sscanf( s, "%31[^_]_%31[^_]", szDevice, szButton ) )
-	{
+	if (2 != sscanf(s, "%31[^_]_%31[^_]", szDevice, szButton)) {
 		device = InputDevice_Invalid;
 		return false;
 	}
 
-	device = StringToInputDevice( szDevice );
-	button = StringToDeviceButton( szButton );
+	device = StringToInputDevice(szDevice);
+	button = StringToDeviceButton(szButton);
 	return true;
 }
 

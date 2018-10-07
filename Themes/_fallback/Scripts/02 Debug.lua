@@ -1,7 +1,9 @@
 if not debug then
 	-- stubs
 	debug = {}
-	debug.traceback = function() return "" end
+	debug.traceback = function()
+		return ""
+	end
 	return
 end
 
@@ -11,7 +13,7 @@ function debug.traceback(...)
 	local msg = ""
 	local level = 1
 	local args = {...}
-	
+
 	if type(args[1]) == "thread" then
 		thread = args[1]
 		table.remove(args)
@@ -32,7 +34,7 @@ function debug.traceback(...)
 	local stack = {}
 	repeat
 		local info = debug.getinfo(level, "Sln")
-		table.insert( stack, info )
+		table.insert(stack, info)
 		level = level + 1
 	until not info
 
@@ -41,23 +43,23 @@ function debug.traceback(...)
 	end
 
 	-- The original caller is usually C; remove it.
-	if( stack[#stack].what == "C" ) then
-		table.remove( stack )
+	if (stack[#stack].what == "C") then
+		table.remove(stack)
 	end
 	local function FormatFrame(level, frame)
 		local sFrameInfo = ""
 		sFrameInfo = sFrameInfo .. "#" .. level .. "  "
-		if( frame.what == "tail" ) then
-		--      sFrameInfo = sFrameInfo .. "(tail call)"
-		--      return sFrameInfo
-		elseif( frame.what == "main" ) then
+		if (frame.what == "tail") then
+			--      sFrameInfo = sFrameInfo .. "(tail call)"
+			--      return sFrameInfo
+		elseif (frame.what == "main") then
 			sFrameInfo = sFrameInfo .. "main in "
 		elseif frame.name then
 			sFrameInfo = sFrameInfo .. frame.name .. "() in "
 		else
 			sFrameInfo = sFrameInfo .. "... in "
 		end
-			sFrameInfo = sFrameInfo .. frame.short_src
+		sFrameInfo = sFrameInfo .. frame.short_src
 
 		if frame.currentline ~= -1 then
 			sFrameInfo = sFrameInfo .. ":" .. frame.currentline
@@ -70,7 +72,7 @@ function debug.traceback(...)
 	for level, frame in ipairs(stack) do
 		FrameInfo[level] = FormatFrame(level, frame)
 	end
-	return table.concat( FrameInfo, "\n" )
+	return table.concat(FrameInfo, "\n")
 end
 
 -- (c) 2006 Glenn Maynard

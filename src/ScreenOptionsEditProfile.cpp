@@ -16,25 +16,28 @@ enum EditProfileRow
 	ROW_CHARACTER,
 };
 
-REGISTER_SCREEN_CLASS( ScreenOptionsEditProfile );
+REGISTER_SCREEN_CLASS(ScreenOptionsEditProfile);
 
-void ScreenOptionsEditProfile::Init()
+void
+ScreenOptionsEditProfile::Init()
 {
 	ScreenOptions::Init();
 }
 
-void ScreenOptionsEditProfile::BeginScreen()
+void
+ScreenOptionsEditProfile::BeginScreen()
 {
 	m_Original = *GAMESTATE->GetEditLocalProfile();
 
 	vector<OptionRowHandler*> vHands;
 
-	Profile *pProfile = PROFILEMAN->GetLocalProfile( GAMESTATE->m_sEditLocalProfileID );
-	ASSERT( pProfile != NULL );
+	Profile* pProfile =
+	  PROFILEMAN->GetLocalProfile(GAMESTATE->m_sEditLocalProfileID);
+	ASSERT(pProfile != NULL);
 
 	{
-		vHands.push_back( OptionRowHandlerUtil::MakeNull() );
-		OptionRowDefinition &def = vHands.back()->m_Def;
+		vHands.push_back(OptionRowHandlerUtil::MakeNull());
+		OptionRowDefinition& def = vHands.back()->m_Def;
 		def.m_layoutType = LAYOUT_SHOW_ONE_IN_ROW;
 		def.m_bOneChoiceForAllPlayers = true;
 		def.m_bAllowThemeItems = false;
@@ -44,108 +47,109 @@ void ScreenOptionsEditProfile::BeginScreen()
 		def.m_sName = "Character";
 		def.m_vsChoices.clear();
 		vector<Character*> vpCharacters;
-		CHARMAN->GetCharacters( vpCharacters );
-		FOREACH_CONST( Character*, vpCharacters, c )
-			def.m_vsChoices.push_back( (*c)->GetDisplayName() );
-		if( def.m_vsChoices.empty() )
-			def.m_vsChoices.push_back( RString() );
+		CHARMAN->GetCharacters(vpCharacters);
+		FOREACH_CONST(Character*, vpCharacters, c)
+		def.m_vsChoices.push_back((*c)->GetDisplayName());
+		if (def.m_vsChoices.empty())
+			def.m_vsChoices.push_back(RString());
 	}
 
-	InitMenu( vHands );
+	InitMenu(vHands);
 
 	ScreenOptions::BeginScreen();
 }
 
-ScreenOptionsEditProfile::~ScreenOptionsEditProfile()
-= default;
+ScreenOptionsEditProfile::~ScreenOptionsEditProfile() = default;
 
-void ScreenOptionsEditProfile::ImportOptions( int iRow, const vector<PlayerNumber> &vpns )
+void
+ScreenOptionsEditProfile::ImportOptions(int iRow,
+										const vector<PlayerNumber>& vpns)
 {
-	Profile *pProfile = PROFILEMAN->GetLocalProfile( GAMESTATE->m_sEditLocalProfileID );
-	ASSERT( pProfile != NULL );
-	OptionRow &row = *m_pRows[iRow];
+	Profile* pProfile =
+	  PROFILEMAN->GetLocalProfile(GAMESTATE->m_sEditLocalProfileID);
+	ASSERT(pProfile != NULL);
+	OptionRow& row = *m_pRows[iRow];
 
-	switch( iRow )
-	{
-	case ROW_CHARACTER:
-		row.SetOneSharedSelectionIfPresent( pProfile->m_sCharacterID );
-		break;
+	switch (iRow) {
+		case ROW_CHARACTER:
+			row.SetOneSharedSelectionIfPresent(pProfile->m_sCharacterID);
+			break;
 	}
 }
 
-void ScreenOptionsEditProfile::ExportOptions( int iRow, const vector<PlayerNumber> &vpns )
+void
+ScreenOptionsEditProfile::ExportOptions(int iRow,
+										const vector<PlayerNumber>& vpns)
 {
-	Profile *pProfile = PROFILEMAN->GetLocalProfile( GAMESTATE->m_sEditLocalProfileID );
-	ASSERT( pProfile != NULL );
-	OptionRow &row = *m_pRows[iRow];
-	int iIndex = row.GetOneSharedSelection( true );
+	Profile* pProfile =
+	  PROFILEMAN->GetLocalProfile(GAMESTATE->m_sEditLocalProfileID);
+	ASSERT(pProfile != NULL);
+	OptionRow& row = *m_pRows[iRow];
+	int iIndex = row.GetOneSharedSelection(true);
 	RString sValue;
-	if( iIndex >= 0 )
-		sValue = row.GetRowDef().m_vsChoices[ iIndex ];
+	if (iIndex >= 0)
+		sValue = row.GetRowDef().m_vsChoices[iIndex];
 
-	switch( iRow )
-	{
-	case ROW_CHARACTER:
-		pProfile->m_sCharacterID = sValue;
-		break;
+	switch (iRow) {
+		case ROW_CHARACTER:
+			pProfile->m_sCharacterID = sValue;
+			break;
 	}
 }
 
-void ScreenOptionsEditProfile::GoToNextScreen()
+void
+ScreenOptionsEditProfile::GoToNextScreen()
 {
 }
 
-void ScreenOptionsEditProfile::GoToPrevScreen()
+void
+ScreenOptionsEditProfile::GoToPrevScreen()
 {
 }
 
-void ScreenOptionsEditProfile::HandleScreenMessage( const ScreenMessage SM )
+void
+ScreenOptionsEditProfile::HandleScreenMessage(const ScreenMessage SM)
 {
-	if( SM == SM_GoToNextScreen )
-	{
-		PROFILEMAN->SaveLocalProfile( GAMESTATE->m_sEditLocalProfileID );
-	}
-	else if( SM == SM_GoToPrevScreen )
-	{
+	if (SM == SM_GoToNextScreen) {
+		PROFILEMAN->SaveLocalProfile(GAMESTATE->m_sEditLocalProfileID);
+	} else if (SM == SM_GoToPrevScreen) {
 		*GAMESTATE->GetEditLocalProfile() = m_Original;
 	}
 
-	ScreenOptions::HandleScreenMessage( SM );
+	ScreenOptions::HandleScreenMessage(SM);
 }
 
-void ScreenOptionsEditProfile::AfterChangeValueInRow( int iRow, PlayerNumber pn )
+void
+ScreenOptionsEditProfile::AfterChangeValueInRow(int iRow, PlayerNumber pn)
 {
-	ScreenOptions::AfterChangeValueInRow( iRow, pn );
+	ScreenOptions::AfterChangeValueInRow(iRow, pn);
 
 	// cause the overlay to reload
-	GAMESTATE->m_sEditLocalProfileID.Set( GAMESTATE->m_sEditLocalProfileID );
+	GAMESTATE->m_sEditLocalProfileID.Set(GAMESTATE->m_sEditLocalProfileID);
 }
 
-void ScreenOptionsEditProfile::ProcessMenuStart( const InputEventPlus &input )
+void
+ScreenOptionsEditProfile::ProcessMenuStart(const InputEventPlus& input)
 {
-	if( IsTransitioning() )
+	if (IsTransitioning())
 		return;
 
 	int iRow = GetCurrentRow();
-	//OptionRow &row = *m_pRows[iRow];
+	// OptionRow &row = *m_pRows[iRow];
 
-	switch( iRow )
-	{
-	case ROW_CHARACTER:
-		{
-		}
-		break;
-	default:
-		ScreenOptions::ProcessMenuStart( input );
-		break;
+	switch (iRow) {
+		case ROW_CHARACTER: {
+		} break;
+		default:
+			ScreenOptions::ProcessMenuStart(input);
+			break;
 	}
 }
-
 
 /*
  * (c) 2003-2004 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -155,7 +159,7 @@ void ScreenOptionsEditProfile::ProcessMenuStart( const InputEventPlus &input )
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

@@ -5,45 +5,46 @@
 /** @brief The commentators who say seemlingly random things during gameplay. */
 class AnnouncerManager
 {
-public:
+  public:
 	AnnouncerManager();
 	~AnnouncerManager();
 
 	/**
 	 * @brief Retrieve the announcer names.
 	 * @param AddTo the list of announcer names. */
-	void GetAnnouncerNames( vector<RString>& AddTo );
+	void GetAnnouncerNames(vector<RString>& AddTo);
 	/**
 	 * @brief Determine if the specified announcer exists.
 	 * @param sAnnouncerName the announcer we're checking for.
 	 * @return true if it exists, false otherwise. */
-	bool DoesAnnouncerExist( const RString &sAnnouncerName );
+	bool DoesAnnouncerExist(const RString& sAnnouncerName);
 	/**
 	 * @brief Switch to a new specified announcer.
-	 * @param sNewAnnouncerName the new announcer the Player will be listening to. */
-	void SwitchAnnouncer( const RString &sNewAnnouncerName );
+	 * @param sNewAnnouncerName the new announcer the Player will be listening
+	 * to. */
+	void SwitchAnnouncer(const RString& sNewAnnouncerName);
 	/**
 	 * @brief Retrieve the current announcer's name.
 	 * @return the current announcer's name. */
 	RString GetCurAnnouncerName() const { return m_sCurAnnouncerName; };
 	void NextAnnouncer();
 
-	RString GetPathTo( const RString &sFolderName );
-	bool HasSoundsFor( const RString &sFolderName );
+	RString GetPathTo(const RString& sFolderName);
+	bool HasSoundsFor(const RString& sFolderName);
 
 	// Lua
-	void PushSelf( lua_State *L );
+	void PushSelf(lua_State* L);
 
-protected:
-	static RString GetAnnouncerDirFromName( const RString &sAnnouncerName );
-	RString GetPathTo( const RString &AnnouncerPath, const RString &sFolderName );
+  protected:
+	static RString GetAnnouncerDirFromName(const RString& sAnnouncerName);
+	RString GetPathTo(const RString& AnnouncerPath, const RString& sFolderName);
 	/** @brief the current announcer's name. */
 	RString m_sCurAnnouncerName;
 };
 
+extern AnnouncerManager*
+  ANNOUNCER; // global and accessible from anywhere in our program
 
-extern AnnouncerManager*	ANNOUNCER;	// global and accessible from anywhere in our program
-	
 #endif
 
 /**
@@ -51,7 +52,7 @@ extern AnnouncerManager*	ANNOUNCER;	// global and accessible from anywhere in ou
  * @author Chris Danford (c) 2001-2004
  * @section LICENSE
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -61,7 +62,7 @@ extern AnnouncerManager*	ANNOUNCER;	// global and accessible from anywhere in ou
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

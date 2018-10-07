@@ -1,4 +1,5 @@
-/* ScreenDebugOverlay - credits and statistics drawn on top of everything else. */
+/* ScreenDebugOverlay - credits and statistics drawn on top of everything else.
+ */
 
 #ifndef ScreenDebugOverlay_H
 #define ScreenDebugOverlay_H
@@ -7,20 +8,22 @@
 #include "Quad.h"
 #include "Screen.h"
 
-void ChangeVolume( float fDelta );
-void ChangeVisualDelay( float fDelta );
+void
+ChangeVolume(float fDelta);
+void
+ChangeVisualDelay(float fDelta);
 
 class ScreenDebugOverlay : public Screen
 {
-public:
+  public:
 	~ScreenDebugOverlay() override;
 	void Init() override;
 
-	bool Input( const InputEventPlus &input ) override;
+	bool Input(const InputEventPlus& input) override;
 
-	void Update( float fDeltaTime ) override;
+	void Update(float fDeltaTime) override;
 
-private:
+  private:
 	void UpdateText();
 
 	RString GetCurrentPageName() const { return m_asPages[m_iCurrentPage]; }
@@ -35,13 +38,12 @@ private:
 	vector<BitmapText*> m_vptextFunction;
 };
 
-
 #endif
 
 /*
  * (c) 2001-2005 Chris Danford, Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -51,7 +53,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

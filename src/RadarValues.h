@@ -12,9 +12,10 @@ struct lua_State;
 /** @brief Cached song statistics. */
 struct RadarValues
 {
-private:
+  private:
 	int m_Values[NUM_RadarCategory];
-public:
+
+  public:
 	int operator[](RadarCategory cat) const { return m_Values[cat]; }
 	int& operator[](RadarCategory cat) { return m_Values[cat]; }
 	int operator[](int cat) const { return m_Values[cat]; }
@@ -29,12 +30,9 @@ public:
 	 * @param other The other set of radar values to add.
 	 * @return the new set of radar values.
 	 */
-	RadarValues& operator+=( const RadarValues& other )
+	RadarValues& operator+=(const RadarValues& other)
 	{
-		FOREACH_ENUM( RadarCategory, rc )
-		{
-			(*this)[rc] += other[rc];
-		}
+		FOREACH_ENUM(RadarCategory, rc) { (*this)[rc] += other[rc]; }
 		return *this;
 	}
 	/**
@@ -42,12 +40,11 @@ public:
 	 * @param other The otehr set of radar values.
 	 * @return true if the two sets are equal, false otherwise.
 	 */
-	bool operator==( const RadarValues& other ) const
+	bool operator==(const RadarValues& other) const
 	{
-		FOREACH_ENUM( RadarCategory, rc )
+		FOREACH_ENUM(RadarCategory, rc)
 		{
-			if((*this)[rc] != other[rc])
-			{
+			if ((*this)[rc] != other[rc]) {
 				return false;
 			}
 		}
@@ -58,24 +55,23 @@ public:
 	 * @param other The otehr set of radar values.
 	 * @return true if the two sets are not equal, false otherwise.
 	 */
-	bool operator!=( const RadarValues& other ) const
+	bool operator!=(const RadarValues& other) const
 	{
-		return !operator==( other );
+		return !operator==(other);
 	}
 
 	XNode* CreateNode() const;
-	void LoadFromNode( const XNode* pNode );
+	void LoadFromNode(const XNode* pNode);
 
-	RString ToString( int iMaxValues = -1 ) const; // default = all
-	void FromString( const RString &sValues );
+	RString ToString(int iMaxValues = -1) const; // default = all
+	void FromString(const RString& sValues);
 
 	static ThemeMetric<bool> WRITE_SIMPLE_VALIES;
 	static ThemeMetric<bool> WRITE_COMPLEX_VALIES;
 
 	// Lua
-	void PushSelf( lua_State *L );
+	void PushSelf(lua_State* L);
 };
-
 
 #endif
 
@@ -84,7 +80,7 @@ public:
  * @author Chris Danford (c) 2001-2004
  * @section LICENSE
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -94,7 +90,7 @@ public:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

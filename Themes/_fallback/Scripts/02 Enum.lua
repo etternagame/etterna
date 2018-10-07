@@ -1,10 +1,10 @@
-function Enum:Compare( e1, e2 )
+function Enum:Compare(e1, e2)
 	local Reverse = self:Reverse()
 	local Value1 = Reverse[e1]
 	local Value2 = Reverse[e2]
 
-	assert( Value1, tostring(e1) .. " is not an enum of type " .. self:GetName() )
-	assert( Value2, tostring(e2) .. " is not an enum of type " .. self:GetName() )
+	assert(Value1, tostring(e1) .. " is not an enum of type " .. self:GetName())
+	assert(Value2, tostring(e2) .. " is not an enum of type " .. self:GetName())
 
 	-- Nil enums correspond to "invalid". These compare greater than any valid
 	-- enum value, to line up with the equivalent C++ code.
@@ -19,15 +19,15 @@ function Enum:Compare( e1, e2 )
 	return Value1 - Value2
 end
 
-function ToEnumShortString( e )
-	local pos = string.find( e, '_' )
-	assert( pos, "'" .. e .. "' is not an enum value" )
-	return string.sub( e, pos+1 )
+function ToEnumShortString(e)
+	local pos = string.find(e, "_")
+	assert(pos, "'" .. e .. "' is not an enum value")
+	return string.sub(e, pos + 1)
 end
 
 -- (c) 2006 Glenn Maynard
 -- All rights reserved.
--- 
+--
 -- Permission is hereby granted, free of charge, to any person obtaining a
 -- copy of this software and associated documentation files (the
 -- "Software"), to deal in the Software without restriction, including
@@ -37,7 +37,7 @@ end
 -- copyright notice(s) and this permission notice appear in all copies of
 -- the Software and that both the above copyright notice(s) and this
 -- permission notice appear in supporting documentation.
--- 
+--
 -- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
 -- OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 -- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

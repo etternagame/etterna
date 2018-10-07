@@ -10,18 +10,18 @@
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
-// 
+//
 // For the licensing details see the file License.txt
 ////////////////////////////////////////////////////////////////////////////////
 
-
 /**
-* \file ZipCompatibility.h
-* ZipCompatibility namespace declaration.
-*
-*/
+ * \file ZipCompatibility.h
+ * ZipCompatibility namespace declaration.
+ *
+ */
 
-#if !defined(AFX_ZIPCOMPATIBILITY_H__8E8B9904_84C7_4B22_B364_A10ED0E7DAD6__INCLUDED_)
+#if !defined(                                                                  \
+  AFX_ZIPCOMPATIBILITY_H__8E8B9904_84C7_4B22_B364_A10ED0E7DAD6__INCLUDED_)
 #define AFX_ZIPCOMPATIBILITY_H__8E8B9904_84C7_4B22_B364_A10ED0E7DAD6__INCLUDED_
 
 #if _MSC_VER > 1000
@@ -32,40 +32,38 @@ class CZipAutoBuffer;
 class CZipFileHeader;
 
 /**
-	Functions that provides the proper conversion of attributes 
+	Functions that provides the proper conversion of attributes
 	and filename strings between different system platforms.
 */
-namespace ZipCompatibility  
-{
-	/**
+namespace ZipCompatibility {
+/**
 		The codes of the compatibility of the file attribute information.
 		\see CZipArchive::GetSystemCompatibility
 		\see CZipFileHeader::GetSystemCompatibility
 		\see ZipPlatform::GetSystemID
 	*/
-	enum ZipPlatforms
-	{		   
-			   zcDosFat,		///< MS-DOS and OS/2 (FAT / VFAT / FAT32 file systems)
-               zcAmiga,			///< Amiga 
-               zcVaxVms,		///< VAX/VMS
-               zcUnix,			///< Unix / Linux
-               zcVmCms,			///< VM/CMS
-               zcAtari,			///< Atari ST
-               zcOs2Hpfs,		///<  OS/2 H.P.F.S.
-               zcMacintosh,		///< Macintosh 
-               zcZsystem,		///< Z-System
-               zcCpm,			///< CP/M 
-               zcNtfs			///< Windows NTFS
-	};
+enum ZipPlatforms
+{
+	zcDosFat,	///< MS-DOS and OS/2 (FAT / VFAT / FAT32 file systems)
+	zcAmiga,	 ///< Amiga
+	zcVaxVms,	///< VAX/VMS
+	zcUnix,		 ///< Unix / Linux
+	zcVmCms,	 ///< VM/CMS
+	zcAtari,	 ///< Atari ST
+	zcOs2Hpfs,   ///<  OS/2 H.P.F.S.
+	zcMacintosh, ///< Macintosh
+	zcZsystem,   ///< Z-System
+	zcCpm,		 ///< CP/M
+	zcNtfs		 ///< Windows NTFS
+};
 
 /**
-	Check whether the system with the given code is supported by the ZipArchive library.
-	\param	iCode
-		\link #ZipPlatforms the system code \endlink
-	\return	\c true if supported
+	Check whether the system with the given code is supported by the ZipArchive
+   library. \param	iCode \link #ZipPlatforms the system code \endlink \return
+   \c true if supported
 */
-	bool IsPlatformSupported(int iCode);
-
+bool
+IsPlatformSupported(int iCode);
 
 /**
 	Convert the system attributes between different system platforms.
@@ -73,14 +71,15 @@ namespace ZipCompatibility
 	\param	uAttr
 		attributes to convert
 	\param	iFromSystem
-		system code to convert from 
+		system code to convert from
 	\param	iToSystem
 		system code to convert to
 	\return	the converted attributes
 	\note Throws exceptions.
 	\see ZipPlatforms
 */
-	DWORD ConvertToSystem(DWORD uAttr, int iFromSystem, int iToSystem);
+DWORD
+ConvertToSystem(DWORD uAttr, int iFromSystem, int iToSystem);
 
 /**
 	Convert the filename of the file inside archive.
@@ -92,7 +91,8 @@ namespace ZipCompatibility
 		if \c true convert the path from the from it is stored in the archive
 		to the current system compatible form; otherwise vice-versa.
 	\see CZipCentralDir::ConvertFileName
-*/	void FileNameUpdate(CZipFileHeader& header, bool bFromZip);
+*/ void
+FileNameUpdate(CZipFileHeader& header, bool bFromZip);
 
 /**
 	Change the slash to backslash or vice-versa in \e buffer.
@@ -100,8 +100,8 @@ namespace ZipCompatibility
 	\param	bReplaceSlash
 		if \c true, change slash to backslash
 */
-	void SlashBackslashChg(CZipAutoBuffer& buffer, bool bReplaceSlash);
-
+void
+SlashBackslashChg(CZipAutoBuffer& buffer, bool bReplaceSlash);
 };
 
 #endif // !defined(AFX_ZIPCOMPATIBILITY_H__8E8B9904_84C7_4B22_B364_A10ED0E7DAD6__INCLUDED_)

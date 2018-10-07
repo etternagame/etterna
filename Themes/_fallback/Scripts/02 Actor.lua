@@ -26,11 +26,13 @@ function Actor:ease(t, fEase)
 		return self
 	end
 
-	self:tween( t, "TweenType_Bezier",
+	self:tween(
+		t,
+		"TweenType_Bezier",
 		{
 			0,
-			scale(fEase, -100, 100, 0/3, 2/3),
-			scale(fEase, -100, 100, 1/3, 3/3),
+			scale(fEase, -100, 100, 0 / 3, 2 / 3),
+			scale(fEase, -100, 100, 1 / 3, 3 / 3),
 			1
 		}
 	)
@@ -44,48 +46,59 @@ end
 --  XA XB XC XD YA YB YC YD
 -- In 1D Quads, XA XB are beginning time and size, YC YD are ending time and size
 -- In 2D Quads, X
-local BounceBeginBezier =
-{
-	0, 0,
-	0.42, -0.42,
-	2/3, 0.3,
-	1, 1
+local BounceBeginBezier = {
+	0,
+	0,
+	0.42,
+	-0.42,
+	2 / 3,
+	0.3,
+	1,
+	1
 }
 function Actor:bouncebegin(t)
-	self:tween( t, "TweenType_Bezier", BounceBeginBezier )
+	self:tween(t, "TweenType_Bezier", BounceBeginBezier)
 	return self
 end
 
-local BounceEndBezier =
-{
-	0,0,
-	1/3, 0.7,
-	0.58, 1.42,
-	1, 1
+local BounceEndBezier = {
+	0,
+	0,
+	1 / 3,
+	0.7,
+	0.58,
+	1.42,
+	1,
+	1
 }
 function Actor:bounceend(t)
-	self:tween( t, "TweenType_Bezier", BounceEndBezier )
+	self:tween(t, "TweenType_Bezier", BounceEndBezier)
 	return self
 end
 
-local SmoothBezier =
-{
-	0, 0, 1, 1
+local SmoothBezier = {
+	0,
+	0,
+	1,
+	1
 }
 function Actor:smooth(t)
-	self:tween( t, "TweenType_Bezier", SmoothBezier )
+	self:tween(t, "TweenType_Bezier", SmoothBezier)
 	return self
 end
 -- SSC Additions
-local DropBezier =
-{
-	0	,	0,
-	1/3	,	1,
-	2/3	,	0.5,
-	1	,	1,
+local DropBezier = {
+	0,
+	0,
+	1 / 3,
+	1,
+	2 / 3,
+	0.5,
+	1,
+	1
 }
 function Actor:drop(t)
-	self:tween( t, "TweenType_Bezier", DropBezier )
+	self:tween(t, "TweenType_Bezier", DropBezier)
 	return self
 end
 
@@ -93,14 +106,14 @@ end
 -- complex tweens." length is how long to span the animation for, while
 -- ... is either a string (e.g. "linear,0.25,accelerate,0.75") or a table
 -- with the tween information.
-function Actor:compound(length,...)
+function Actor:compound(length, ...)
 	local tweens = ...
 
 	if type(tweens) == "string" then
-		local parsed = split(";",tweens)
+		local parsed = split(";", tweens)
 		tweens = {} -- convert to table
-		for i,s in pairs(parsed) do
-			local res = split(",",s)
+		for i, s in pairs(parsed) do
+			local res = split(",", s)
 
 			tweens[i] = {
 				Type = res[1],
@@ -110,18 +123,26 @@ function Actor:compound(length,...)
 		end
 	end
 
-	for i,t in pairs(tweens) do
-		if t.Type == "linear" then self:linear(t.Percent*length)
-		elseif t.Type == "accelerate" then self:accelerate(t.Percent*length)
-		elseif t.Type == "decelerate" then self:decelerate(t.Percent*length)
-		elseif t.Type == "spring" then self:spring(t.Percent*length)
-		elseif t.Type == "bouncebegin" then self:bouncebegin(t.Percent*length)
-		elseif t.Type == "bounceend" then self:bounceend(t.Percent*length)
-		elseif t.Type == "smooth" then self:smooth(t.Percent*length)
-		elseif t.Type == "drop" then self:smooth(t.Percent*length)
-		--elseif t.Type == "ease" then self:ease(t.Percent*length)
+	for i, t in pairs(tweens) do
+		if t.Type == "linear" then
+			self:linear(t.Percent * length)
+		elseif t.Type == "accelerate" then
+			self:accelerate(t.Percent * length)
+		elseif t.Type == "decelerate" then
+			self:decelerate(t.Percent * length)
+		elseif t.Type == "spring" then
+			self:spring(t.Percent * length)
+		elseif t.Type == "bouncebegin" then
+			self:bouncebegin(t.Percent * length)
+		elseif t.Type == "bounceend" then
+			self:bounceend(t.Percent * length)
+		elseif t.Type == "smooth" then
+			self:smooth(t.Percent * length)
+		elseif t.Type == "drop" then
+			--elseif t.Type == "ease" then self:ease(t.Percent*length)
+			self:smooth(t.Percent * length)
 		elseif t.Type == "bezier" then
-			-- todo: handle using tween and 'TweenType_Bezier'
+		-- todo: handle using tween and 'TweenType_Bezier'
 		end
 	end
 	return self
@@ -136,7 +157,7 @@ function Actor:hide_if(b)
 end
 
 function Actor:player(p)
-	self:visible( GAMESTATE:IsHumanPlayer(p) )
+	self:visible(GAMESTATE:IsHumanPlayer(p))
 	return self
 end
 
@@ -152,45 +173,45 @@ end
 --   cmd(align,0.0,0.0)  -- align top-left
 --   cmd(align,0.5,0.0)  -- align top-center
 function Actor:align(h, v)
-	self:halign( h )
-	self:valign( v )
+	self:halign(h)
+	self:valign(v)
 	return self
 end
 
 function Actor:FullScreen()
-	self:stretchto( 0,0,SCREEN_WIDTH,SCREEN_HEIGHT )
+	self:stretchto(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
 	return self
 end
 
-bg_fit_functions= {
-	BackgroundFitMode_CoverDistort= function(self, width, height)
-		local xscale= width / self:GetWidth()
-		local yscale= height / self:GetHeight()
+bg_fit_functions = {
+	BackgroundFitMode_CoverDistort = function(self, width, height)
+		local xscale = width / self:GetWidth()
+		local yscale = height / self:GetHeight()
 		self:zoomx(xscale)
 		self:zoomy(yscale)
 	end,
-	BackgroundFitMode_CoverPreserve= function(self, width, height)
-		local xscale= width / self:GetWidth()
-		local yscale= height / self:GetHeight()
+	BackgroundFitMode_CoverPreserve = function(self, width, height)
+		local xscale = width / self:GetWidth()
+		local yscale = height / self:GetHeight()
 		self:zoom(math.max(xscale, yscale))
 	end,
-	BackgroundFitMode_FitInside= function(self, width, height)
-		local xscale= width / self:GetWidth()
-		local yscale= height / self:GetHeight()
+	BackgroundFitMode_FitInside = function(self, width, height)
+		local xscale = width / self:GetWidth()
+		local yscale = height / self:GetHeight()
 		self:zoom(math.min(xscale, yscale))
 	end,
-	BackgroundFitMode_FitInsideAvoidLetter= function(self, width, height)
-		local yscale= height / self:GetHeight()
+	BackgroundFitMode_FitInsideAvoidLetter = function(self, width, height)
+		local yscale = height / self:GetHeight()
 		self:zoom(yscale)
 	end,
-	BackgroundFitMode_FitInsideAvoidPillar= function(self, width, height)
-		local xscale= width / self:GetWidth()
+	BackgroundFitMode_FitInsideAvoidPillar = function(self, width, height)
+		local xscale = width / self:GetWidth()
 		self:zoom(xscale)
 	end
 }
 
 function Actor:scale_or_crop_background_no_move()
-	local fit_mode= PREFSMAN:GetPreference("BackgroundFitMode")
+	local fit_mode = PREFSMAN:GetPreference("BackgroundFitMode")
 	if bg_fit_functions[fit_mode] then
 		bg_fit_functions[fit_mode](self, SCREEN_WIDTH, SCREEN_HEIGHT)
 	else
@@ -205,9 +226,18 @@ function Actor:scale_or_crop_background()
 	return self
 end
 
-function Actor:CenterX() self:x(SCREEN_CENTER_X) return self end
-function Actor:CenterY() self:y(SCREEN_CENTER_Y) return self end
-function Actor:Center() self:xy(SCREEN_CENTER_X,SCREEN_CENTER_Y) return self end
+function Actor:CenterX()
+	self:x(SCREEN_CENTER_X)
+	return self
+end
+function Actor:CenterY()
+	self:y(SCREEN_CENTER_Y)
+	return self
+end
+function Actor:Center()
+	self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+	return self
+end
 
 function Actor:bezier(time, curve)
 	assert(type(time) == "number", "bezier tween time must be a number")
@@ -238,7 +268,7 @@ function Actor:MaskSource(noclear)
 		self:clearzbuffer(true)
 	end
 	self:zwrite(true)
-	self:blend('BlendMode_NoEffect')
+	self:blend("BlendMode_NoEffect")
 	return self
 end
 
@@ -255,12 +285,12 @@ end
 function Actor:thump(fEffectPeriod)
 	self:pulse()
 	if fEffectPeriod ~= nil then
-		self:effecttiming(0,0,0.75*fEffectPeriod,0.25*fEffectPeriod)
+		self:effecttiming(0, 0, 0.75 * fEffectPeriod, 0.25 * fEffectPeriod)
 	else
-		self:effecttiming(0,0,0.75,0.25)
+		self:effecttiming(0, 0, 0.75, 0.25)
 	end
 	-- The default effectmagnitude will make this effect look very bad.
-	self:effectmagnitude(1,1.125,1)
+	self:effectmagnitude(1, 1.125, 1)
 	return self
 end
 
@@ -270,16 +300,15 @@ end
 function Actor:heartbeat(fEffectPeriod)
 	self:pulse()
 	if fEffectPeriod ~= nil then
-		self:effecttiming(0,0.125*fEffectPeriod,0.125*fEffectPeriod,0.75*fEffectPeriod);
+		self:effecttiming(0, 0.125 * fEffectPeriod, 0.125 * fEffectPeriod, 0.75 * fEffectPeriod)
 	else
-		self:effecttiming(0,0.125,0.125,0.75);
+		self:effecttiming(0, 0.125, 0.125, 0.75)
 	end
-	self:effectmagnitude(1,1.125,1)
+	self:effectmagnitude(1, 1.125, 1)
 	return self
 end
 
 --[[ BitmapText commands ]]
-
 -- PixelFont()
 -- An alias that turns off texture filtering.
 -- Named because it works best with pixel fonts.
@@ -291,14 +320,14 @@ end
 -- Stroke(color)
 -- Sets the text's stroke color.
 function BitmapText:Stroke(c)
-	self:strokecolor( c )
+	self:strokecolor(c)
 	return self
 end
 
 -- NoStroke()
 -- Removes any stroke.
 function BitmapText:NoStroke()
-	self:strokecolor( color("0,0,0,0") )
+	self:strokecolor(color("0,0,0,0"))
 	return self
 end
 
@@ -311,15 +340,14 @@ end
 
 -- DiffuseAndStroke(diffuse,stroke)
 -- Set diffuse and stroke at the same time.
-function BitmapText:DiffuseAndStroke(diffuseC,strokeC)
+function BitmapText:DiffuseAndStroke(diffuseC, strokeC)
 	self:diffuse(diffuseC)
 	self:strokecolor(strokeC)
 	return self
-end;
+end
 --[[ end BitmapText commands ]]
-
 function Actor:LyricCommand(side)
-	self:settext( Var "LyricText" )
+	self:settext(Var "LyricText")
 	self:draworder(102)
 
 	self:stoptweening()
@@ -327,11 +355,11 @@ function Actor:LyricCommand(side)
 	self:shadowlengthy(5)
 	self:strokecolor(color("#000000"))
 
-	local Zoom = SCREEN_WIDTH / (self:GetZoomedWidth()+1)
-	if( Zoom > 1 ) then
+	local Zoom = SCREEN_WIDTH / (self:GetZoomedWidth() + 1)
+	if (Zoom > 1) then
 		Zoom = 1
 	end
-	self:zoomx( Zoom )
+	self:zoomx(Zoom)
 
 	local lyricColor = Var "LyricColor"
 	local Factor = 1
@@ -340,11 +368,14 @@ function Actor:LyricCommand(side)
 	elseif side == "Front" then
 		Factor = 0.9
 	end
-	self:diffuse( {
-		lyricColor[1] * Factor,
-		lyricColor[2] * Factor,
-		lyricColor[3] * Factor,
-		lyricColor[4] * Factor } )
+	self:diffuse(
+		{
+			lyricColor[1] * Factor,
+			lyricColor[2] * Factor,
+			lyricColor[3] * Factor,
+			lyricColor[4] * Factor
+		}
+	)
 
 	if side == "Front" then
 		self:cropright(1)
@@ -355,13 +386,13 @@ function Actor:LyricCommand(side)
 	self:diffusealpha(0)
 	self:linear(0.2)
 	self:diffusealpha(0.75)
-	self:linear( Var "LyricDuration" * 0.75)
+	self:linear(Var "LyricDuration" * 0.75)
 	if side == "Front" then
 		self:cropright(0)
 	else
 		self:cropleft(1)
 	end
-	self:sleep( Var "LyricDuration" * 0.25 )
+	self:sleep(Var "LyricDuration" * 0.25)
 	self:linear(0.2)
 	self:diffusealpha(0)
 	return self
@@ -373,15 +404,15 @@ function HelpDisplay:setfromsongorcourse()
 	local AltArtists = {}
 
 	local Song = GAMESTATE:GetCurrentSong()
-	local Trail = GAMESTATE:GetCurrentTrail( GAMESTATE:GetMasterPlayerNumber() )
+	local Trail = GAMESTATE:GetCurrentTrail(GAMESTATE:GetMasterPlayerNumber())
 	if Song then
-		table.insert( Artists, Song:GetDisplayArtist() )
-		table.insert( AltArtists, Song:GetTranslitArtist() )
+		table.insert(Artists, Song:GetDisplayArtist())
+		table.insert(AltArtists, Song:GetTranslitArtist())
 	elseif Trail then
 		Artists, AltArtists = Trail:GetArtists()
 	end
 
-	self:settips( Artists, AltArtists )
+	self:settips(Artists, AltArtists)
 	return self
 end
 
@@ -403,34 +434,37 @@ end
 you'll need to get width rather than height (I just don't feel like
 uglyfying my code just to handle rare cases). -shake ]]
 function GetReal()
-	local theme = THEME:GetMetric("Common","ScreenHeight")
+	local theme = THEME:GetMetric("Common", "ScreenHeight")
 	local res = PREFSMAN:GetPreference("DisplayHeight")
-	return theme/res
+	return theme / res
 end
 function GetRealInverse()
-	local theme = THEME:GetMetric("Common","ScreenHeight")
+	local theme = THEME:GetMetric("Common", "ScreenHeight")
 	local res = PREFSMAN:GetPreference("DisplayHeight")
-	return res/theme
+	return res / theme
 end
 
 -- command aliases:
-function Actor:SetSize(w,h) self:setsize(w,h) return self end
+function Actor:SetSize(w, h)
+	self:setsize(w, h)
+	return self
+end
 
 -- Simple draworder mappings
 DrawOrder = {
-  Background	= -100,
-  Underlay		= 0,
-  Decorations	= 100,
-  Content		= 105,
-  Screen		= 120,
-  Overlay		= 200
-};
+	Background = -100,
+	Underlay = 0,
+	Decorations = 100,
+	Content = 105,
+	Screen = 120,
+	Overlay = 200
+}
 
 -- function Actor:SetDrawOrder
 
 -- deprecated aliases:
 function Actor:hidden(bHide)
-	lua.ReportScriptError("hidden is deprecated, use visible instead. (used on ".. self:GetName() ..")")
+	lua.ReportScriptError("hidden is deprecated, use visible instead. (used on " .. self:GetName() .. ")")
 	self:visible(not bHide)
 end
 

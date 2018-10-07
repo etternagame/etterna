@@ -3,10 +3,11 @@
 #include "RageTextureManager.h"
 #include "RageUtil.h"
 
-void RageTextureID::Init()
+void
+RageTextureID::Init()
 {
 	iMaxSize = 2048;
-	bMipMaps = false;	// Most sprites (especially text) look worse with mip maps
+	bMipMaps = false; // Most sprites (especially text) look worse with mip maps
 	iAlphaBits = 4;
 	iGrayscaleBits = -1;
 	bDither = false;
@@ -17,10 +18,11 @@ void RageTextureID::Init()
 	Policy = TEXTUREMAN->GetDefaultTexturePolicy();
 }
 
-void RageTextureID::SetFilename( const RString &fn )
+void
+RageTextureID::SetFilename(const RString& fn)
 {
 	filename = fn;
-	CollapsePath( filename );
+	CollapsePath(filename);
 }
 
 /*

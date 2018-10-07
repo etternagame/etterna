@@ -17,7 +17,7 @@
 #endif
 
 #if (_MSC_VER >= 1000)
-#include <crtdbg.h>		// for the debug heap
+#include <crtdbg.h> // for the debug heap
 #endif
 
 #if defined(__MWERKS__) && defined(macintosh)
@@ -27,62 +27,63 @@
 USING_NAMESPACE(CryptoPP)
 USING_NAMESPACE(std)
 
-bool RSAVerifyFile(const char *pubFilename, const char *messageFilename, const char *signatureFilename);
+bool
+RSAVerifyFile(const char* pubFilename,
+			  const char* messageFilename,
+			  const char* signatureFilename);
 
-int (*AdhocTest)(int argc, char *argv[]) = NULL;
+int (*AdhocTest)(int argc, char* argv[]) = NULL;
 
 #ifdef __BCPLUSPLUS__
-int cmain(int argc, char *argv[])
+int
+cmain(int argc, char* argv[])
 #elif defined(_MSC_VER)
-int __cdecl main(int argc, char *argv[])
+int __cdecl main(int argc, char* argv[])
 #else
-int main(int argc, char *argv[])
+int
+main(int argc, char* argv[])
 #endif
 {
 #ifdef _CRTDBG_LEAK_CHECK_DF
 	// Turn on leak-checking
-	int tempflag = _CrtSetDbgFlag( _CRTDBG_REPORT_FLAG );
+	int tempflag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
 	tempflag |= _CRTDBG_LEAK_CHECK_DF;
-	_CrtSetDbgFlag( tempflag );
+	_CrtSetDbgFlag(tempflag);
 #endif
 
 #if defined(__MWERKS__) && defined(macintosh)
 	argc = ccommand(&argv);
 #endif
 
-	try
-	{
+	try {
 		std::string command, executableName, edcFilename;
 
-		if (argc != 4)
-		{
-			cout << "\nUsage:    RSAPubKeyData.exe publickey_fn data_fn signature_fn" << endl;
+		if (argc != 4) {
+			cout << "\nUsage:    RSAPubKeyData.exe publickey_fn data_fn "
+					"signature_fn"
+				 << endl;
 			return -1;
 		}
 
-		if( RSAVerifyFile(argv[2], argv[3], argv[4]) )
-		{
+		if (RSAVerifyFile(argv[2], argv[3], argv[4])) {
 			cout << "The signature is valid." << endl;
-		}
-		else
-		{
+		} else {
 			cout << "The signature is not valid." << endl;
 		}
 		return 0;
-	}
-	catch(CryptoPP::Exception &e)
-	{
+	} catch (CryptoPP::Exception& e) {
 		cout << "\nCryptoPP::Exception caught: " << e.what() << endl;
 		return -1;
-	}
-	catch(std::exception &e)
-	{
+	} catch (std::exception& e) {
 		cout << "\nstd::exception caught: " << e.what() << endl;
 		return -2;
 	}
 }
 
-bool RSAVerifyFile(const char *pubFilename, const char *messageFilename, const char *signatureFilename)
+bool
+RSAVerifyFile(const char* pubFilename,
+			  const char* messageFilename,
+			  const char* signatureFilename)
 {
 	FileSource pubFile(pubFilename, true);
 	RSASSA_PKCS1v15_SHA_Verifier pub(pubFile);
@@ -93,10 +94,9 @@ bool RSAVerifyFile(const char *pubFilename, const char *messageFilename, const c
 	SecByteBlock signature(pub.SignatureLength());
 	signatureFile.Get(signature, signature.size());
 
-	VerifierFilter *verifierFilter = new VerifierFilter(pub);
+	VerifierFilter* verifierFilter = new VerifierFilter(pub);
 	verifierFilter->Put(signature, pub.SignatureLength());
 	FileSource f(messageFilename, true, verifierFilter);
 
 	return verifierFilter->GetLastResult();
 }
-
