@@ -107,7 +107,11 @@ local o =
 		self:queuecommand("ChartLeaderboardUpdate")
 	end,
 	ChartLeaderboardUpdateMessageCommand = function(self)
-		scoretable = DLMAN:RequestChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(), getIsGlobalRanking())
+		scoretable =
+			DLMAN:RequestChartLeaderBoard(
+			GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(),
+			getIsGlobalRanking() and "" or DLMAN:GetUserCountryCode()
+		)
 		ind = 0
 		self:playcommand("Update")
 	end,

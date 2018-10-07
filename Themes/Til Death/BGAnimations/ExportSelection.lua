@@ -1,1 +1,0 @@
--- gone, if we want to do this we should utilize the existing discord rich presence code

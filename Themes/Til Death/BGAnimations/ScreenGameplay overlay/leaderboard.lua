@@ -14,7 +14,7 @@ local WIDTH = SCREEN_WIDTH * (IsUsingWideScreen() and 0.3 or 0.275)
 if not DLMAN:GetCurrentRateFilter() then
 	DLMAN:ToggleRateFilter()
 end
-local onlineScores = DLMAN:RequestChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(), true)
+local onlineScores = DLMAN:RequestChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())
 local sortFunction = function(h1, h2)
 	return h1[CRITERIA](h1) > h2[CRITERIA](h2)
 end
