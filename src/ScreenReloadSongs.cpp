@@ -10,20 +10,20 @@
 #include "arch/LoadingWindow/LoadingWindow.h"
 
 static const int DrawFrameRate = 20;
-class ScreenReloadSongsLoadingWindow: public LoadingWindow
+class ScreenReloadSongsLoadingWindow : public LoadingWindow
 {
 	RageTimer m_LastDraw;
-	BitmapText &m_BitmapText;
+	BitmapText& m_BitmapText;
 
-public:
-	explicit ScreenReloadSongsLoadingWindow( BitmapText &bt ):
-		m_BitmapText(bt)
+  public:
+	explicit ScreenReloadSongsLoadingWindow(BitmapText& bt)
+	  : m_BitmapText(bt)
 	{
 	}
 
-	void SetText( const RString &str ) override
+	void SetText(const RString& str) override
 	{
-		m_BitmapText.SetText( str );
+		m_BitmapText.SetText(str);
 		Paint();
 	}
 
@@ -31,7 +31,7 @@ public:
 	{
 		/* We load songs much faster than we draw frames. Cap the draw rate,
 		 * so we don't slow down the reload. */
-		if( m_LastDraw.PeekDeltaTime() < 1.0f/DrawFrameRate )
+		if (m_LastDraw.PeekDeltaTime() < 1.0f / DrawFrameRate)
 			return;
 		m_LastDraw.GetDeltaTime();
 
@@ -43,51 +43,50 @@ public:
  * this for the initial load, since we don't want to start up the display
  * until we finish loading songs; that way, people can continue to use their
  * computer while songs load. */
-REGISTER_SCREEN_CLASS( ScreenReloadSongs );
+REGISTER_SCREEN_CLASS(ScreenReloadSongs);
 
 ScreenReloadSongs::ScreenReloadSongs() = default;
 
-void ScreenReloadSongs::Init()
+void
+ScreenReloadSongs::Init()
 {
 	Screen::Init();
 
 	m_iUpdates = 0;
 
-	m_Loading.SetName( "LoadingText" );
-	m_Loading.LoadFromFont( THEME->GetPathF(m_sName, "LoadingText") );
-	m_Loading.SetXY( SCREEN_CENTER_X, SCREEN_CENTER_Y );
-	m_Loading.SetMaxWidth(SCREEN_WIDTH*0.9f);
-	this->AddChild( &m_Loading );
+	m_Loading.SetName("LoadingText");
+	m_Loading.LoadFromFont(THEME->GetPathF(m_sName, "LoadingText"));
+	m_Loading.SetXY(SCREEN_CENTER_X, SCREEN_CENTER_Y);
+	m_Loading.SetMaxWidth(SCREEN_WIDTH * 0.9f);
+	this->AddChild(&m_Loading);
 
-	m_pLoadingWindow = new ScreenReloadSongsLoadingWindow( m_Loading );
- }
+	m_pLoadingWindow = new ScreenReloadSongsLoadingWindow(m_Loading);
+}
 
 ScreenReloadSongs::~ScreenReloadSongs()
 {
 	delete m_pLoadingWindow;
 }
 
-void ScreenReloadSongs::Update( float fDeltaTime )
+void
+ScreenReloadSongs::Update(float fDeltaTime)
 {
-	Screen::Update( fDeltaTime );
+	Screen::Update(fDeltaTime);
 
-	/* Start the reload on the second update. On the first (0), SCREENMAN->Draw won't draw. */
+	/* Start the reload on the second update. On the first (0), SCREENMAN->Draw
+	 * won't draw. */
 	++m_iUpdates;
-	if( m_iUpdates != 2 )
+	if (m_iUpdates != 2)
 		return;
 
-	ASSERT( !IsFirstUpdate() );
-
-	int newsongs = SONGMAN->DifferentialReload(m_pLoadingWindow);
-	SCREENMAN->SystemMessage(ssprintf("Differential reload of %i songs", newsongs));
-	MESSAGEMAN->Broadcast("DifferentialReload");
-	SCREENMAN->PostMessageToTopScreen( SM_GoToPrevScreen, 0 );
+	ASSERT(!IsFirstUpdate());
+	SCREENMAN->PostMessageToTopScreen(SM_GoToNextScreen, 0);
 }
 
 /*
  * (c) 2003-2004 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -97,7 +96,7 @@ void ScreenReloadSongs::Update( float fDeltaTime )
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

@@ -1,1 +1,1 @@
-return LoadActor(THEME:GetPathG("","_grade"),"Tier06");
+return LoadActor(THEME:GetPathG("", "_grade"), "Tier06")

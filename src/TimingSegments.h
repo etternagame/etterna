@@ -23,21 +23,27 @@ enum TimingSegmentType
 // XXX: dumb names
 enum SegmentEffectType
 {
-	SegmentEffectType_Row,		// takes effect on a single row
-	SegmentEffectType_Range,	// takes effect for a definite amount of rows
-	SegmentEffectType_Indefinite,	// takes effect until the next segment of its type
+	SegmentEffectType_Row,		  // takes effect on a single row
+	SegmentEffectType_Range,	  // takes effect for a definite amount of rows
+	SegmentEffectType_Indefinite, // takes effect until the next segment of its
+								  // type
 	NUM_SegmentEffectType,
 	SegmentEffectType_Invalid,
 };
 
 #define FOREACH_TimingSegmentType(tst) FOREACH_ENUM(TimingSegmentType, tst)
 
-const RString& TimingSegmentTypeToString( TimingSegmentType tst );
+const RString&
+TimingSegmentTypeToString(TimingSegmentType tst);
 
 const int ROW_INVALID = -1;
 
-#define COMPARE(x) if( this->x!=other.x ) return false
-#define COMPARE_FLOAT(x) if( fabsf(this->x - other.x) > EPSILON ) return false
+#define COMPARE(x)                                                             \
+	if (this->x != other.x)                                                    \
+	return false
+#define COMPARE_FLOAT(x)                                                       \
+	if (fabsf(this->x - other.x) > EPSILON)                                    \
+	return false
 
 /**
  * @brief The base timing segment for make glorious benefit wolfman
@@ -45,19 +51,33 @@ const int ROW_INVALID = -1;
  */
 struct TimingSegment
 {
-	virtual TimingSegmentType GetType() const { return TimingSegmentType_Invalid; }
-	virtual SegmentEffectType GetEffectType() const { return SegmentEffectType_Invalid; }
+	virtual TimingSegmentType GetType() const
+	{
+		return TimingSegmentType_Invalid;
+	}
+	virtual SegmentEffectType GetEffectType() const
+	{
+		return SegmentEffectType_Invalid;
+	}
 	virtual TimingSegment* Copy() const = 0;
 
 	virtual bool IsNotable() const = 0;
 	virtual void DebugPrint() const;
 
 	// don't allow base TimingSegments to be instantiated directly
-	TimingSegment( int iRow = ROW_INVALID ) : m_iStartRow(iRow) { }
-	TimingSegment( float fBeat ) : m_iStartRow(ToNoteRow(fBeat)) { }
+	TimingSegment(int iRow = ROW_INVALID)
+	  : m_iStartRow(iRow)
+	{
+	}
+	TimingSegment(float fBeat)
+	  : m_iStartRow(ToNoteRow(fBeat))
+	{
+	}
 
-	TimingSegment(const TimingSegment &other) :
-		m_iStartRow( other.GetRow() ) { }
+	TimingSegment(const TimingSegment& other)
+	  : m_iStartRow(other.GetRow())
+	{
+	}
 
 	// for our purposes, two floats within this level of error are equal
 	static const double EPSILON;
@@ -70,42 +90,39 @@ struct TimingSegment
 	 * @param length Length in rows
 	 * @param newLength The new length in rows
 	 */
-	virtual void Scale( int start, int length, int newLength );
+	virtual void Scale(int start, int length, int newLength);
 
 	int GetRow() const { return m_iStartRow; }
-	void SetRow( int iRow ) { m_iStartRow = iRow; }
+	void SetRow(int iRow) { m_iStartRow = iRow; }
 
 	float GetBeat() const { return NoteRowToBeat(m_iStartRow); }
-	void SetBeat( float fBeat ) { SetRow( BeatToNoteRow(fBeat) ); }
+	void SetBeat(float fBeat) { SetRow(BeatToNoteRow(fBeat)); }
 
 	virtual RString ToString(int /* dec */) const
 	{
 		return FloatToString(GetBeat());
 	}
 
-	virtual vector<float> GetValues() const
-	{
-		return vector<float>(0);
-	}
+	virtual vector<float> GetValues() const { return vector<float>(0); }
 
-	bool operator<( const TimingSegment &other ) const
+	bool operator<(const TimingSegment& other) const
 	{
 		return GetRow() < other.GetRow();
 	}
 
 	// overloads should not call this base version; derived classes
 	// should only compare contents, and this compares position.
-	virtual bool operator==( const TimingSegment &other ) const
+	virtual bool operator==(const TimingSegment& other) const
 	{
 		return GetRow() == other.GetRow();
 	}
 
-	virtual bool operator!=( const TimingSegment &other ) const
+	virtual bool operator!=(const TimingSegment& other) const
 	{
 		return !this->operator==(other);
 	}
 
-private:
+  private:
 	/** @brief The row in which this segment activates. */
 	int m_iStartRow;
 };
@@ -124,52 +141,70 @@ private:
 struct FakeSegment : public TimingSegment
 {
 	TimingSegmentType GetType() const override { return SEGMENT_FAKE; }
-	SegmentEffectType GetEffectType() const override { return SegmentEffectType_Range; }
+	SegmentEffectType GetEffectType() const override
+	{
+		return SegmentEffectType_Range;
+	}
 
 	TimingSegment* Copy() const override { return new FakeSegment(*this); }
 
 	bool IsNotable() const override { return m_iLengthRows > 0; }
 	void DebugPrint() const override;
 
-	FakeSegment() : TimingSegment(), m_iLengthRows(-1) { }
+	FakeSegment()
+	  : TimingSegment()
+	  , m_iLengthRows(-1)
+	{
+	}
 
-	FakeSegment( int iStartRow, int iLengthRows ) :
-		TimingSegment(iStartRow), m_iLengthRows(iLengthRows) { }
+	FakeSegment(int iStartRow, int iLengthRows)
+	  : TimingSegment(iStartRow)
+	  , m_iLengthRows(iLengthRows)
+	{
+	}
 
-	FakeSegment( int iStartRow, float fBeats ) :
-		TimingSegment(iStartRow), m_iLengthRows(ToNoteRow(fBeats)) { }
+	FakeSegment(int iStartRow, float fBeats)
+	  : TimingSegment(iStartRow)
+	  , m_iLengthRows(ToNoteRow(fBeats))
+	{
+	}
 
-	FakeSegment( const FakeSegment &other ) :
-		TimingSegment( other.GetRow() ),
-		m_iLengthRows( other.GetLengthRows() ) { }
+	FakeSegment(const FakeSegment& other)
+	  : TimingSegment(other.GetRow())
+	  , m_iLengthRows(other.GetLengthRows())
+	{
+	}
 
 	int GetLengthRows() const { return m_iLengthRows; }
 	float GetLengthBeats() const { return ToBeat(m_iLengthRows); }
 	float GetLength() const { return GetLengthBeats(); } // compatibility
 
-	void SetLength( int iRows ) { m_iLengthRows = ToNoteRow(iRows); }
-	void SetLength( float fBeats ) { m_iLengthRows = ToNoteRow(fBeats); }
+	void SetLength(int iRows) { m_iLengthRows = ToNoteRow(iRows); }
+	void SetLength(float fBeats) { m_iLengthRows = ToNoteRow(fBeats); }
 
-	void Scale( int start, int length, int newLength ) override;
+	void Scale(int start, int length, int newLength) override;
 
-	RString ToString( int dec ) const override;
-	vector<float> GetValues() const override { return vector<float>(1, GetLength()); }
-
-	bool operator==( const FakeSegment &other ) const
+	RString ToString(int dec) const override;
+	vector<float> GetValues() const override
 	{
-		COMPARE( m_iLengthRows );
+		return vector<float>(1, GetLength());
+	}
+
+	bool operator==(const FakeSegment& other) const
+	{
+		COMPARE(m_iLengthRows);
 		return true;
 	}
 
-	bool operator==( const TimingSegment &other ) const override
+	bool operator==(const TimingSegment& other) const override
 	{
-		if( GetType() != other.GetType() )
+		if (GetType() != other.GetType())
 			return false;
 
-		return operator==( static_cast<const FakeSegment&>(other) );
+		return operator==(static_cast<const FakeSegment&>(other));
 	}
 
-private:
+  private:
 	/** @brief The number of rows the FakeSegment is alive for. */
 	int m_iLengthRows;
 };
@@ -184,50 +219,68 @@ private:
 struct WarpSegment : public TimingSegment
 {
 	TimingSegmentType GetType() const override { return SEGMENT_WARP; }
-	SegmentEffectType GetEffectType() const override { return SegmentEffectType_Range; }
+	SegmentEffectType GetEffectType() const override
+	{
+		return SegmentEffectType_Range;
+	}
 	TimingSegment* Copy() const override { return new WarpSegment(*this); }
 
 	bool IsNotable() const override { return m_iLengthRows > 0; }
 	void DebugPrint() const override;
 
-	WarpSegment() : TimingSegment(), m_iLengthRows(0) { }
+	WarpSegment()
+	  : TimingSegment()
+	  , m_iLengthRows(0)
+	{
+	}
 
-	WarpSegment( const WarpSegment &other ) :
-		TimingSegment( other.GetRow() ),
-		m_iLengthRows( other.GetLengthRows() ) { }
+	WarpSegment(const WarpSegment& other)
+	  : TimingSegment(other.GetRow())
+	  , m_iLengthRows(other.GetLengthRows())
+	{
+	}
 
-	WarpSegment( int iStartRow, int iLengthRows ) :
-		TimingSegment(iStartRow), m_iLengthRows(iLengthRows) { }
+	WarpSegment(int iStartRow, int iLengthRows)
+	  : TimingSegment(iStartRow)
+	  , m_iLengthRows(iLengthRows)
+	{
+	}
 
-	WarpSegment( int iStartRow, float fBeats ) :
-		TimingSegment(iStartRow), m_iLengthRows(ToNoteRow(fBeats)) { }
+	WarpSegment(int iStartRow, float fBeats)
+	  : TimingSegment(iStartRow)
+	  , m_iLengthRows(ToNoteRow(fBeats))
+	{
+	}
 
 	int GetLengthRows() const { return m_iLengthRows; }
 	float GetLengthBeats() const { return ToBeat(m_iLengthRows); }
 	float GetLength() const { return GetLengthBeats(); } // compatibility
 
-	void SetLength( int iRows ) { m_iLengthRows = ToNoteRow(iRows); }
-	void SetLength( float fBeats ) { m_iLengthRows = ToNoteRow(fBeats); }
+	void SetLength(int iRows) { m_iLengthRows = ToNoteRow(iRows); }
+	void SetLength(float fBeats) { m_iLengthRows = ToNoteRow(fBeats); }
 
-	void Scale( int start, int length, int newLength ) override;
-	RString ToString( int dec ) const override;
-	vector<float> GetValues() const override { return vector<float>(1, GetLength()); }
-
-	bool operator==( const WarpSegment &other ) const
+	void Scale(int start, int length, int newLength) override;
+	RString ToString(int dec) const override;
+	vector<float> GetValues() const override
 	{
-		COMPARE( m_iLengthRows );
+		return vector<float>(1, GetLength());
+	}
+
+	bool operator==(const WarpSegment& other) const
+	{
+		COMPARE(m_iLengthRows);
 		return true;
 	}
 
-	bool operator==( const TimingSegment &other ) const override
+	bool operator==(const TimingSegment& other) const override
 	{
-		if( GetType() != other.GetType() )
+		if (GetType() != other.GetType())
 			return false;
 
-		return operator==( static_cast<const WarpSegment&>(other) );
+		return operator==(static_cast<const WarpSegment&>(other));
 	}
 
-private:
+  private:
 	/** @brief The number of rows the WarpSegment will warp past. */
 	int m_iLengthRows;
 };
@@ -241,47 +294,62 @@ private:
  * represent how many ticks can be counted in one beat.
  */
 
-
 struct TickcountSegment : public TimingSegment
 {
 	/** @brief The default amount of ticks per beat. */
 	static const unsigned DEFAULT_TICK_COUNT = 4;
 
 	TimingSegmentType GetType() const override { return SEGMENT_TICKCOUNT; }
-	SegmentEffectType GetEffectType() const override { return SegmentEffectType_Indefinite; }
+	SegmentEffectType GetEffectType() const override
+	{
+		return SegmentEffectType_Indefinite;
+	}
 
-	bool IsNotable() const override { return true; } // indefinite segments are always true
+	bool IsNotable() const override
+	{
+		return true;
+	} // indefinite segments are always true
 	void DebugPrint() const override;
 
 	TimingSegment* Copy() const override { return new TickcountSegment(*this); }
 
-	TickcountSegment( int iStartRow = ROW_INVALID, int iTicks = DEFAULT_TICK_COUNT ) :
-		TimingSegment(iStartRow), m_iTicksPerBeat(iTicks) { }
+	TickcountSegment(int iStartRow = ROW_INVALID,
+					 int iTicks = DEFAULT_TICK_COUNT)
+	  : TimingSegment(iStartRow)
+	  , m_iTicksPerBeat(iTicks)
+	{
+	}
 
-	TickcountSegment( const TickcountSegment &other ) :
-		TimingSegment( other.GetRow() ),
-		m_iTicksPerBeat( other.GetTicks() ) { }
+	TickcountSegment(const TickcountSegment& other)
+	  : TimingSegment(other.GetRow())
+	  , m_iTicksPerBeat(other.GetTicks())
+	{
+	}
 
 	int GetTicks() const { return m_iTicksPerBeat; }
-	void SetTicks( int iTicks ) { m_iTicksPerBeat = iTicks; }
+	void SetTicks(int iTicks) { m_iTicksPerBeat = iTicks; }
 
-	RString ToString( int dec ) const override;
-	vector<float> GetValues() const override { return vector<float>(1, GetTicks() * 1.f); }
-
-	bool operator==( const TickcountSegment &other ) const
+	RString ToString(int dec) const override;
+	vector<float> GetValues() const override
 	{
-		COMPARE( m_iTicksPerBeat );
+		return vector<float>(1, GetTicks() * 1.f);
+	}
+
+	bool operator==(const TickcountSegment& other) const
+	{
+		COMPARE(m_iTicksPerBeat);
 		return true;
 	}
 
-	bool operator==( const TimingSegment &other ) const override
+	bool operator==(const TimingSegment& other) const override
 	{
-		if( GetType() != other.GetType() )
+		if (GetType() != other.GetType())
 			return false;
 
-		return operator==( static_cast<const TickcountSegment&>(other) );
+		return operator==(static_cast<const TickcountSegment&>(other));
 	}
-private:
+
+  private:
 	/** @brief The amount of hold checkpoints counted per beat */
 	int m_iTicksPerBeat;
 };
@@ -289,59 +357,72 @@ private:
 /**
  * @brief Identifies when a chart is to have a different combo multiplier value.
  *
- * Admitedly, this would primarily be used for mission mode style charts. However,
- * it can have its place during normal gameplay.
+ * Admitedly, this would primarily be used for mission mode style charts.
+ * However, it can have its place during normal gameplay.
  */
 struct ComboSegment : public TimingSegment
 {
 	TimingSegmentType GetType() const override { return SEGMENT_COMBO; }
-	SegmentEffectType GetEffectType() const override { return SegmentEffectType_Indefinite; }
+	SegmentEffectType GetEffectType() const override
+	{
+		return SegmentEffectType_Indefinite;
+	}
 
-	bool IsNotable() const override { return true; } // indefinite segments are always true
+	bool IsNotable() const override
+	{
+		return true;
+	} // indefinite segments are always true
 	void DebugPrint() const override;
 
 	TimingSegment* Copy() const override { return new ComboSegment(*this); }
 
-	ComboSegment( int iStartRow = ROW_INVALID, int iCombo = 1, int iMissCombo = 1 ) :
-		TimingSegment(iStartRow), m_iCombo(iCombo),
-		m_iMissCombo(iMissCombo) { }
+	ComboSegment(int iStartRow = ROW_INVALID,
+				 int iCombo = 1,
+				 int iMissCombo = 1)
+	  : TimingSegment(iStartRow)
+	  , m_iCombo(iCombo)
+	  , m_iMissCombo(iMissCombo)
+	{
+	}
 
-	ComboSegment(const ComboSegment &other) :
-		TimingSegment( other.GetRow() ),
-		m_iCombo( other.GetCombo() ),
-		m_iMissCombo( other.GetMissCombo() ) { }
+	ComboSegment(const ComboSegment& other)
+	  : TimingSegment(other.GetRow())
+	  , m_iCombo(other.GetCombo())
+	  , m_iMissCombo(other.GetMissCombo())
+	{
+	}
 
 	int GetCombo() const { return m_iCombo; }
 	int GetMissCombo() const { return m_iMissCombo; }
 
-	void SetCombo( int iCombo ) { m_iCombo = iCombo; }
-	void SetMissCombo( int iCombo ) { m_iMissCombo = iCombo; }
+	void SetCombo(int iCombo) { m_iCombo = iCombo; }
+	void SetMissCombo(int iCombo) { m_iMissCombo = iCombo; }
 
-	RString ToString( int dec ) const override;
+	RString ToString(int dec) const override;
 	vector<float> GetValues() const override;
 
-	bool operator==( const ComboSegment &other ) const
+	bool operator==(const ComboSegment& other) const
 	{
-		COMPARE( m_iCombo );
-		COMPARE( m_iMissCombo );
+		COMPARE(m_iCombo);
+		COMPARE(m_iMissCombo);
 		return true;
 	}
 
-	bool operator==( const TimingSegment &other ) const override
+	bool operator==(const TimingSegment& other) const override
 	{
-		if( GetType() != other.GetType() )
+		if (GetType() != other.GetType())
 			return false;
 
-		return operator==( static_cast<const ComboSegment&>(other) );
+		return operator==(static_cast<const ComboSegment&>(other));
 	}
-private:
+
+  private:
 	/** @brief The amount the combo increases at this point. */
 	int m_iCombo;
 
 	/** @brief The amount of miss combos given at this point. */
 	int m_iMissCombo;
 };
-
 
 /**
  * @brief Identifies when a chart is entering a different section.
@@ -352,41 +433,54 @@ private:
 struct LabelSegment : public TimingSegment
 {
 	TimingSegmentType GetType() const override { return SEGMENT_LABEL; }
-	SegmentEffectType GetEffectType() const override { return SegmentEffectType_Indefinite; }
+	SegmentEffectType GetEffectType() const override
+	{
+		return SegmentEffectType_Indefinite;
+	}
 
-	bool IsNotable() const override { return true; } // indefinite segments are always true
+	bool IsNotable() const override
+	{
+		return true;
+	} // indefinite segments are always true
 	void DebugPrint() const override;
 
 	TimingSegment* Copy() const override { return new LabelSegment(*this); }
 
-	LabelSegment( int iStartRow = ROW_INVALID, const RString& sLabel = RString() ) :
-		TimingSegment(iStartRow), m_sLabel(sLabel) { }
+	LabelSegment(int iStartRow = ROW_INVALID, const RString& sLabel = RString())
+	  : TimingSegment(iStartRow)
+	  , m_sLabel(sLabel)
+	{
+	}
 
-	LabelSegment(const LabelSegment &other) :
-		TimingSegment( other.GetRow() ),
-		m_sLabel( other.GetLabel() ) { }
+	LabelSegment(const LabelSegment& other)
+	  : TimingSegment(other.GetRow())
+	  , m_sLabel(other.GetLabel())
+	{
+	}
 
 	const RString& GetLabel() const { return m_sLabel; }
-	void SetLabel( const RString& sLabel ) { m_sLabel.assign(sLabel); }
+	void SetLabel(const RString& sLabel) { m_sLabel.assign(sLabel); }
 
-	RString ToString( int dec ) const override;
-	// Use the default definition for GetValues because the value for a LabelSegment is not a float or set of floats.
-	// TimingSegmentSetToLuaTable in TimingData.cpp has a special case for labels to handle this.
+	RString ToString(int dec) const override;
+	// Use the default definition for GetValues because the value for a
+	// LabelSegment is not a float or set of floats. TimingSegmentSetToLuaTable
+	// in TimingData.cpp has a special case for labels to handle this.
 
-	bool operator==( const LabelSegment &other ) const
+	bool operator==(const LabelSegment& other) const
 	{
-		COMPARE( m_sLabel );
+		COMPARE(m_sLabel);
 		return true;
 	}
 
-	bool operator==( const TimingSegment &other ) const override
+	bool operator==(const TimingSegment& other) const override
 	{
-		if( GetType() != other.GetType() )
+		if (GetType() != other.GetType())
 			return false;
 
-		return operator==( static_cast<const LabelSegment&>(other) );
+		return operator==(static_cast<const LabelSegment&>(other));
 	}
-private:
+
+  private:
 	/** @brief The label/section name for this point. */
 	RString m_sLabel;
 };
@@ -397,45 +491,59 @@ private:
 struct BPMSegment : public TimingSegment
 {
 	TimingSegmentType GetType() const override { return SEGMENT_BPM; }
-	SegmentEffectType GetEffectType() const override { return SegmentEffectType_Indefinite; }
+	SegmentEffectType GetEffectType() const override
+	{
+		return SegmentEffectType_Indefinite;
+	}
 
-	bool IsNotable() const override { return true; } // indefinite segments are always true
+	bool IsNotable() const override
+	{
+		return true;
+	} // indefinite segments are always true
 	void DebugPrint() const override;
 
 	TimingSegment* Copy() const override { return new BPMSegment(*this); }
 
 	// note that this takes a BPM, not a BPS (compatibility)
-	BPMSegment( int iStartRow = ROW_INVALID, float fBPM = 0.0f ) :
-		TimingSegment(iStartRow) { SetBPM(fBPM); }
+	BPMSegment(int iStartRow = ROW_INVALID, float fBPM = 0.0f)
+	  : TimingSegment(iStartRow)
+	{
+		SetBPM(fBPM);
+	}
 
-	BPMSegment( const BPMSegment &other ) :
-		TimingSegment( other.GetRow() ),
-		m_fBPS( other.GetBPS() ) { }
+	BPMSegment(const BPMSegment& other)
+	  : TimingSegment(other.GetRow())
+	  , m_fBPS(other.GetBPS())
+	{
+	}
 
 	float GetBPS() const { return m_fBPS; }
 	float GetBPM() const { return m_fBPS * 60.0f; }
 
-	void SetBPS( float fBPS ) { m_fBPS = fBPS; }
-	void SetBPM( float fBPM ) { m_fBPS = fBPM / 60.0f; }
+	void SetBPS(float fBPS) { m_fBPS = fBPS; }
+	void SetBPM(float fBPM) { m_fBPS = fBPM / 60.0f; }
 
-	RString ToString( int dec ) const override;
-	vector<float> GetValues() const override { return vector<float>(1, GetBPM()); }
-
-	bool operator==( const BPMSegment &other ) const
+	RString ToString(int dec) const override;
+	vector<float> GetValues() const override
 	{
-		COMPARE_FLOAT( m_fBPS );
+		return vector<float>(1, GetBPM());
+	}
+
+	bool operator==(const BPMSegment& other) const
+	{
+		COMPARE_FLOAT(m_fBPS);
 		return true;
 	}
 
-	bool operator==( const TimingSegment &other ) const override
+	bool operator==(const TimingSegment& other) const override
 	{
-		if( GetType() != other.GetType() )
+		if (GetType() != other.GetType())
 			return false;
 
-		return operator==( static_cast<const BPMSegment&>(other) );
+		return operator==(static_cast<const BPMSegment&>(other));
 	}
 
-private:
+  private:
 	/** @brief The number of beats per second within this BPMSegment. */
 	float m_fBPS;
 };
@@ -450,42 +558,63 @@ private:
 struct TimeSignatureSegment : public TimingSegment
 {
 	TimingSegmentType GetType() const override { return SEGMENT_TIME_SIG; }
-	SegmentEffectType GetEffectType() const override { return SegmentEffectType_Indefinite; }
+	SegmentEffectType GetEffectType() const override
+	{
+		return SegmentEffectType_Indefinite;
+	}
 
-	bool IsNotable() const override { return true; } // indefinite segments are always true
+	bool IsNotable() const override
+	{
+		return true;
+	} // indefinite segments are always true
 	void DebugPrint() const override;
 
-	TimingSegment* Copy() const override { return new TimeSignatureSegment(*this); }
+	TimingSegment* Copy() const override
+	{
+		return new TimeSignatureSegment(*this);
+	}
 
-	TimeSignatureSegment( int iStartRow = ROW_INVALID,
-	  int iNum = 4, int iDenom = 4 ) :
-		TimingSegment(iStartRow), m_iNumerator(iNum),
-		m_iDenominator(iDenom) { }
+	TimeSignatureSegment(int iStartRow = ROW_INVALID,
+						 int iNum = 4,
+						 int iDenom = 4)
+	  : TimingSegment(iStartRow)
+	  , m_iNumerator(iNum)
+	  , m_iDenominator(iDenom)
+	{
+	}
 
-	TimeSignatureSegment( const TimeSignatureSegment &other ) :
-		TimingSegment( other.GetRow() ),
-		m_iNumerator( other.GetNum() ),
-		m_iDenominator( other.GetDen() ) { }
+	TimeSignatureSegment(const TimeSignatureSegment& other)
+	  : TimingSegment(other.GetRow())
+	  , m_iNumerator(other.GetNum())
+	  , m_iDenominator(other.GetDen())
+	{
+	}
 
 	int GetNum() const { return m_iNumerator; }
-	void SetNum( int num ) { m_iNumerator = num; }
+	void SetNum(int num) { m_iNumerator = num; }
 
 	int GetDen() const { return m_iDenominator; }
-	void SetDen( int den ) { m_iDenominator = den; }
+	void SetDen(int den) { m_iDenominator = den; }
 
-	void Set( int num, int den ) { m_iNumerator = num; m_iDenominator = den; }
+	void Set(int num, int den)
+	{
+		m_iNumerator = num;
+		m_iDenominator = den;
+	}
 
-	RString ToString( int dec ) const override;
+	RString ToString(int dec) const override;
 	vector<float> GetValues() const override;
 
 	/**
-	 * @brief Retrieve the number of note rows per measure within the TimeSignatureSegment.
+	 * @brief Retrieve the number of note rows per measure within the
+	 * TimeSignatureSegment.
 	 *
-	 * With BeatToNoteRow(1) rows per beat, then we should have BeatToNoteRow(1)*m_iNumerator
-	 * beats per measure. But if we assume that every BeatToNoteRow(1) rows is a quarter note,
-	 * and we want the beats to be 1/m_iDenominator notes, then we should have
-	 * BeatToNoteRow(1)*4 is rows per whole note and thus BeatToNoteRow(1)*4/m_iDenominator is
-	 * rows per beat. Multiplying by m_iNumerator gives rows per measure.
+	 * With BeatToNoteRow(1) rows per beat, then we should have
+	 * BeatToNoteRow(1)*m_iNumerator beats per measure. But if we assume that
+	 * every BeatToNoteRow(1) rows is a quarter note, and we want the beats to
+	 * be 1/m_iDenominator notes, then we should have BeatToNoteRow(1)*4 is rows
+	 * per whole note and thus BeatToNoteRow(1)*4/m_iDenominator is rows per
+	 * beat. Multiplying by m_iNumerator gives rows per measure.
 	 * @returns the number of note rows per measure.
 	 */
 	int GetNoteRowsPerMeasure() const
@@ -493,22 +622,22 @@ struct TimeSignatureSegment : public TimingSegment
 		return BeatToNoteRow(1) * 4 * m_iNumerator / m_iDenominator;
 	}
 
-	bool operator==( const TimeSignatureSegment &other ) const
+	bool operator==(const TimeSignatureSegment& other) const
 	{
-		COMPARE( m_iNumerator );
-		COMPARE( m_iDenominator );
+		COMPARE(m_iNumerator);
+		COMPARE(m_iDenominator);
 		return true;
 	}
 
-	bool operator==( const TimingSegment &other ) const override
+	bool operator==(const TimingSegment& other) const override
 	{
-		if( GetType() != other.GetType() )
+		if (GetType() != other.GetType())
 			return false;
 
-		return operator==( static_cast<const TimeSignatureSegment&>(other) );
+		return operator==(static_cast<const TimeSignatureSegment&>(other));
 	}
 
-private:
+  private:
 	int m_iNumerator, m_iDenominator;
 };
 
@@ -525,58 +654,76 @@ private:
 struct SpeedSegment : public TimingSegment
 {
 	TimingSegmentType GetType() const override { return SEGMENT_SPEED; }
-	SegmentEffectType GetEffectType() const override { return SegmentEffectType_Indefinite; }
+	SegmentEffectType GetEffectType() const override
+	{
+		return SegmentEffectType_Indefinite;
+	}
 
-	bool IsNotable() const override { return true; } // indefinite segments are always true
+	bool IsNotable() const override
+	{
+		return true;
+	} // indefinite segments are always true
 	void DebugPrint() const override;
 
 	TimingSegment* Copy() const override { return new SpeedSegment(*this); }
 
 	/** @brief The type of unit used for segment scaling. */
-	enum BaseUnit { UNIT_BEATS, UNIT_SECONDS };
+	enum BaseUnit
+	{
+		UNIT_BEATS,
+		UNIT_SECONDS
+	};
 
-	SpeedSegment( int iStartRow = ROW_INVALID, float fRatio = 1.0f,
-	  float fDelay = 0.0f, BaseUnit unit = UNIT_BEATS ) :
-		TimingSegment(iStartRow), m_fRatio(fRatio), m_fDelay(fDelay),
-		m_Unit(unit) { }
+	SpeedSegment(int iStartRow = ROW_INVALID,
+				 float fRatio = 1.0f,
+				 float fDelay = 0.0f,
+				 BaseUnit unit = UNIT_BEATS)
+	  : TimingSegment(iStartRow)
+	  , m_fRatio(fRatio)
+	  , m_fDelay(fDelay)
+	  , m_Unit(unit)
+	{
+	}
 
-	SpeedSegment(const SpeedSegment &other) :
-		TimingSegment( other.GetRow() ),
-		m_fRatio( other.GetRatio() ),
-		m_fDelay( other.GetDelay() ),
-		m_Unit( other.GetUnit() ) { }
+	SpeedSegment(const SpeedSegment& other)
+	  : TimingSegment(other.GetRow())
+	  , m_fRatio(other.GetRatio())
+	  , m_fDelay(other.GetDelay())
+	  , m_Unit(other.GetUnit())
+	{
+	}
 
 	float GetRatio() const { return m_fRatio; }
-	void SetRatio( float fRatio ) { m_fRatio = fRatio; }
+	void SetRatio(float fRatio) { m_fRatio = fRatio; }
 
 	float GetDelay() const { return m_fDelay; }
-	void SetDelay( float fDelay ) { m_fDelay = fDelay; }
+	void SetDelay(float fDelay) { m_fDelay = fDelay; }
 
 	BaseUnit GetUnit() const { return m_Unit; }
-	void SetUnit( BaseUnit unit ) { m_Unit = unit; }
+	void SetUnit(BaseUnit unit) { m_Unit = unit; }
 
-	void Scale( int start, int length, int newLength ) override;
+	void Scale(int start, int length, int newLength) override;
 
-	RString ToString( int dec ) const override;
+	RString ToString(int dec) const override;
 	vector<float> GetValues() const override;
 
-	bool operator==( const SpeedSegment &other ) const
+	bool operator==(const SpeedSegment& other) const
 	{
-		COMPARE_FLOAT( m_fRatio );
-		COMPARE_FLOAT( m_fDelay );
-		COMPARE( m_Unit );
+		COMPARE_FLOAT(m_fRatio);
+		COMPARE_FLOAT(m_fDelay);
+		COMPARE(m_Unit);
 		return true;
 	}
 
-	bool operator==( const TimingSegment &other ) const override
+	bool operator==(const TimingSegment& other) const override
 	{
-		if( GetType() != other.GetType() )
+		if (GetType() != other.GetType())
 			return false;
 
-		return operator==( static_cast<const SpeedSegment&>(other) );
+		return operator==(static_cast<const SpeedSegment&>(other));
 	}
 
-private:
+  private:
 	/** @brief The percentage by which the Player's BPM is multiplied. */
 	float m_fRatio;
 
@@ -600,41 +747,55 @@ private:
 struct ScrollSegment : public TimingSegment
 {
 	TimingSegmentType GetType() const override { return SEGMENT_SCROLL; }
-	SegmentEffectType GetEffectType() const override { return SegmentEffectType_Indefinite; }
+	SegmentEffectType GetEffectType() const override
+	{
+		return SegmentEffectType_Indefinite;
+	}
 
-	bool IsNotable() const override { return true; } // indefinite segments are always true
+	bool IsNotable() const override
+	{
+		return true;
+	} // indefinite segments are always true
 	void DebugPrint() const override;
 
 	TimingSegment* Copy() const override { return new ScrollSegment(*this); }
 
-	ScrollSegment( int iStartRow = ROW_INVALID, float fRatio = 1.0f ) :
-		TimingSegment(iStartRow), m_fRatio(fRatio) { }
+	ScrollSegment(int iStartRow = ROW_INVALID, float fRatio = 1.0f)
+	  : TimingSegment(iStartRow)
+	  , m_fRatio(fRatio)
+	{
+	}
 
-	ScrollSegment(const ScrollSegment &other) :
-		TimingSegment( other.GetRow() ),
-		m_fRatio( other.GetRatio() ) { }
+	ScrollSegment(const ScrollSegment& other)
+	  : TimingSegment(other.GetRow())
+	  , m_fRatio(other.GetRatio())
+	{
+	}
 
 	float GetRatio() const { return m_fRatio; }
-	void SetRatio( float fRatio ) { m_fRatio = fRatio; }
+	void SetRatio(float fRatio) { m_fRatio = fRatio; }
 
-	RString ToString( int dec ) const override;
-	vector<float> GetValues() const override { return vector<float>(1, GetRatio()); }
-
-	bool operator==( const ScrollSegment &other ) const
+	RString ToString(int dec) const override;
+	vector<float> GetValues() const override
 	{
-		COMPARE_FLOAT( m_fRatio );
+		return vector<float>(1, GetRatio());
+	}
+
+	bool operator==(const ScrollSegment& other) const
+	{
+		COMPARE_FLOAT(m_fRatio);
 		return true;
 	}
 
-	bool operator==( const TimingSegment &other ) const override
+	bool operator==(const TimingSegment& other) const override
 	{
-		if( GetType() != other.GetType() )
+		if (GetType() != other.GetType())
 			return false;
 
-		return operator==( static_cast<const ScrollSegment&>(other) );
+		return operator==(static_cast<const ScrollSegment&>(other));
 	}
 
-private:
+  private:
 	/** @brief The percentage by which the chart's scroll rate is multiplied. */
 	float m_fRatio;
 };
@@ -645,40 +806,52 @@ private:
 struct StopSegment : public TimingSegment
 {
 	TimingSegmentType GetType() const override { return SEGMENT_STOP; }
-	SegmentEffectType GetEffectType() const override { return SegmentEffectType_Row; }
+	SegmentEffectType GetEffectType() const override
+	{
+		return SegmentEffectType_Row;
+	}
 
 	bool IsNotable() const override { return m_fSeconds > 0; }
 	void DebugPrint() const override;
 
 	TimingSegment* Copy() const override { return new StopSegment(*this); }
 
-	StopSegment( int iStartRow = ROW_INVALID, float fSeconds = 0.0f ) :
-		TimingSegment(iStartRow), m_fSeconds(fSeconds) { }
+	StopSegment(int iStartRow = ROW_INVALID, float fSeconds = 0.0f)
+	  : TimingSegment(iStartRow)
+	  , m_fSeconds(fSeconds)
+	{
+	}
 
-	StopSegment (const StopSegment &other) :
-		TimingSegment( other.GetRow() ),
-		m_fSeconds( other.GetPause() ) { }
+	StopSegment(const StopSegment& other)
+	  : TimingSegment(other.GetRow())
+	  , m_fSeconds(other.GetPause())
+	{
+	}
 
 	float GetPause() const { return m_fSeconds; }
-	void SetPause( float fSeconds ) { m_fSeconds = fSeconds; }
+	void SetPause(float fSeconds) { m_fSeconds = fSeconds; }
 
-	RString ToString( int dec ) const override;
-	vector<float> GetValues() const override { return vector<float>(1, GetPause()); }
-
-	bool operator==( const StopSegment &other ) const
+	RString ToString(int dec) const override;
+	vector<float> GetValues() const override
 	{
-		COMPARE_FLOAT( m_fSeconds );
+		return vector<float>(1, GetPause());
+	}
+
+	bool operator==(const StopSegment& other) const
+	{
+		COMPARE_FLOAT(m_fSeconds);
 		return true;
 	}
 
-	bool operator==( const TimingSegment &other ) const override
+	bool operator==(const TimingSegment& other) const override
 	{
-		if( GetType() != other.GetType() )
+		if (GetType() != other.GetType())
 			return false;
 
-		return operator==( static_cast<const StopSegment&>(other) );
+		return operator==(static_cast<const StopSegment&>(other));
 	}
-private:
+
+  private:
 	/** @brief The number of seconds to pause at the segment's row. */
 	float m_fSeconds;
 };
@@ -689,40 +862,52 @@ private:
 struct DelaySegment : public TimingSegment
 {
 	TimingSegmentType GetType() const override { return SEGMENT_DELAY; }
-	SegmentEffectType GetEffectType() const override { return SegmentEffectType_Row; }
+	SegmentEffectType GetEffectType() const override
+	{
+		return SegmentEffectType_Row;
+	}
 
 	bool IsNotable() const override { return m_fSeconds > 0; }
 	void DebugPrint() const override;
 
 	TimingSegment* Copy() const override { return new DelaySegment(*this); }
 
-	DelaySegment( int iStartRow = ROW_INVALID, float fSeconds = 0 ) :
-		TimingSegment(iStartRow), m_fSeconds(fSeconds) { }
+	DelaySegment(int iStartRow = ROW_INVALID, float fSeconds = 0)
+	  : TimingSegment(iStartRow)
+	  , m_fSeconds(fSeconds)
+	{
+	}
 
-	DelaySegment( const DelaySegment &other ) :
-		TimingSegment( other.GetRow() ),
-		m_fSeconds( other.GetPause() ) { }
+	DelaySegment(const DelaySegment& other)
+	  : TimingSegment(other.GetRow())
+	  , m_fSeconds(other.GetPause())
+	{
+	}
 
 	float GetPause() const { return m_fSeconds; }
-	void SetPause( float fSeconds ) { m_fSeconds = fSeconds; }
+	void SetPause(float fSeconds) { m_fSeconds = fSeconds; }
 
-	RString ToString( int dec ) const override;
-	vector<float> GetValues() const override { return vector<float>(1, GetPause()); }
-
-	bool operator==( const DelaySegment &other ) const
+	RString ToString(int dec) const override;
+	vector<float> GetValues() const override
 	{
-		COMPARE_FLOAT( m_fSeconds );
+		return vector<float>(1, GetPause());
+	}
+
+	bool operator==(const DelaySegment& other) const
+	{
+		COMPARE_FLOAT(m_fSeconds);
 		return true;
 	}
 
-	bool operator==( const TimingSegment &other ) const override
+	bool operator==(const TimingSegment& other) const override
 	{
-		if( GetType() != other.GetType() )
+		if (GetType() != other.GetType())
 			return false;
 
-		return operator==( static_cast<const DelaySegment&>(other) );
+		return operator==(static_cast<const DelaySegment&>(other));
 	}
-private:
+
+  private:
 	/** @brief The number of seconds to pause at the segment's row. */
 	float m_fSeconds;
 };
@@ -737,7 +922,7 @@ private:
  * @author Jason Felds (c) 2011
  * @section LICENSE
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -747,7 +932,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

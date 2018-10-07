@@ -1,4 +1,5 @@
-/* MessageWindow - simplifies creation of windows that exist only to receive messages. */
+/* MessageWindow - simplifies creation of windows that exist only to receive
+ * messages. */
 
 #ifndef MESSAGE_WINDOW_H
 #define MESSAGE_WINDOW_H
@@ -7,8 +8,8 @@
 
 class MessageWindow
 {
-public:
-	MessageWindow( const RString &sClassName );
+  public:
+	MessageWindow(const RString& sClassName);
 	~MessageWindow();
 
 	/* Run the message loop until WM_QUIT is received. */
@@ -16,12 +17,20 @@ public:
 
 	HWND GetHwnd() { return m_hWnd; }
 
-protected:
-	virtual bool HandleMessage( UINT /* msg */, WPARAM /* wParam */, LPARAM /* lParam */ ) { return false; }
+  protected:
+	virtual bool HandleMessage(UINT /* msg */,
+							   WPARAM /* wParam */,
+							   LPARAM /* lParam */)
+	{
+		return false;
+	}
 	void StopRunning();
 
-private:
-	static LRESULT CALLBACK WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam );
+  private:
+	static LRESULT CALLBACK WndProc(HWND hWnd,
+									UINT msg,
+									WPARAM wParam,
+									LPARAM lParam);
 	HWND m_hWnd;
 	bool m_bDone;
 };
@@ -31,7 +40,7 @@ private:
 /*
  * (c) 2006 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -41,7 +50,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

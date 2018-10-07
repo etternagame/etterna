@@ -40,9 +40,9 @@ if(WIN32)
 
   set(CPACK_PACKAGE_FILE_NAME "${SM_EXE_NAME}-${NSIS_VERSION_FINAL}-win32")
   # By setting these install keys manually,
-  # The default directory of "StepMania major.minor.patch" is lost.
+  # The default directory of "Etterna major.minor.patch" is lost.
   # This is currently done to maintain backwards compatibility.
-  # However, removing these two will allow for multiple versions of StepMania
+  # However, removing these two will allow for multiple versions of Etterna
   # to be installed relatively cleanly.
   set(CPACK_PACKAGE_INSTALL_DIRECTORY "Etterna ${SM_VERSION_MAJOR}")
   set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "Etterna ${SM_VERSION_MAJOR}")

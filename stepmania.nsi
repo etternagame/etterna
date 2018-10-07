@@ -421,10 +421,27 @@ Section "Main Section" SecMain
 	; no more portkit sm4
 	;File /r /x CVS /x .svn "Themes\_portKit-sm4"
 	File /r /x CVS /x .svn "Themes\Til Death"
-
 	CreateDirectory "$INSTDIR\Data"
+	
+	CreateDirectory "$INSTDIR\Data\AutoMappings"
+	SetOutPath "$INSTDIR\Data\AutoMappings"
+	File /r /x CVS /x svn "Data\AutoMappings\*"
+	
+	CreateDirectory "$INSTDIR\Data\Shaders"
+	SetOutPath "$INSTDIR\Data\Shaders"
+	File /r /x CVS /x svn "Data\Shaders\*"	
+	
 	SetOutPath "$INSTDIR\Data"
-	File /r /x CVS /x .svn "Data\*"
+	File /r /x CVS /x .svn "Data\*.txt"
+	File /r /x CVS /x .svn "Data\*.ini"
+	File /r /x CVS /x .svn "Data\*.xml"
+	File /r /x CVS /x .svn "Data\*.png"
+	
+	SetOverwrite off
+		CreateDirectory "$INSTDIR\Assets"
+		SetOutPath "$INSTDIR\Assets"
+		File /r /x CVS /x svn "Assets\*"
+	SetOverwrite on
 !endif
 
 !ifdef INSTALL_INTERNAL_PCKS
@@ -519,10 +536,6 @@ Section "Main Section" SecMain
 	File /r /x CVS /x .svn "Docs\Luadoc"
 	File /r /x CVS /x .svn "Docs\Themerdocs"
 
-	CreateDirectory "$INSTDIR\Manual"
-	SetOutPath "$INSTDIR\Manual"
-	File /r /x CVS /x .svn /x _* /x desktop.ini "Manual\*.*"
-
 	; Create Start Menu icons
 	SetShellVarContext current  # 	'all' doesn't work on Win9x
 	CreateDirectory "$SMPROGRAMS\${PRODUCT_ID}\"
@@ -542,7 +555,6 @@ Section "Main Section" SecMain
 
 	;CreateShortCut "$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_VIEW_STATISTICS).lnk" "$INSTDIR\Program\tools.exe" "--machine-profile-stats"
 	;CreateShortCut "$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_TOOLS).lnk" "$INSTDIR\Program\tools.exe"
-	CreateShortCut "$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_MANUAL).lnk" "$INSTDIR\Manual\index.html"
 	CreateShortCut "$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_UNINSTALL).lnk" "$INSTDIR\uninstall.exe"
 	CreateShortCut "$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_WEB_SITE).lnk" "${PRODUCT_URL}"
 	CreateShortCut "$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_TEXTURE_FONT_GENERATOR).lnk" "$INSTDIR\Program\Texture Font Generator.exe"
@@ -937,8 +949,6 @@ Section "Uninstall"
 	Delete "$INSTDIR\Program\parallel_lights_io.dll"
 	Delete "$INSTDIR\Program\zlib1.dll"
 	RMDir "$INSTDIR\Program"
-
-	RMDir /r "$INSTDIR\Manual"
 !endif
 
 	Delete "$INSTDIR\log.txt"
@@ -969,7 +979,6 @@ Section "Uninstall"
 
 	;Delete '"$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_VIEW_STATISTICS).lnk"'
 	;Delete '"$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_TOOLS).lnk"'
-	Delete '"$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_MANUAL).lnk"'
 	Delete '"$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_UNINSTALL).lnk"'
 	Delete '"$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_WEB_SITE).lnk"'
 	Delete '"$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_TEXTURE_FONT_GENERATOR).lnk"'

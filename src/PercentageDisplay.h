@@ -8,31 +8,35 @@
 class PlayerState;
 
 /** @brief An Actor that displays a percentage. */
-class PercentageDisplay: public ActorFrame
+class PercentageDisplay : public ActorFrame
 {
-public:
+  public:
 	PercentageDisplay();
-	void Load( const PlayerState *pPlayerState, const PlayerStageStats *pPlayerStageStats );
-	void Load( const PlayerState *pPlayerState, const PlayerStageStats *pPlayerStageStats, const RString &sMetricsGroup, bool bAutoRefresh );
-	void Update( float fDeltaTime ) override;
-	void LoadFromNode( const XNode* pNode ) override;
-	PercentageDisplay *Copy() const override;
+	void Load(const PlayerState* pPlayerState,
+			  const PlayerStageStats* pPlayerStageStats);
+	void Load(const PlayerState* pPlayerState,
+			  const PlayerStageStats* pPlayerStageStats,
+			  const RString& sMetricsGroup,
+			  bool bAutoRefresh);
+	void Update(float fDeltaTime) override;
+	void LoadFromNode(const XNode* pNode) override;
+	PercentageDisplay* Copy() const override;
 
 	// Lua
-	void PushSelf( lua_State *L ) override;
+	void PushSelf(lua_State* L) override;
 
-private:
+  private:
 	int m_iDancePointsDigits;
 	bool m_bUseRemainder;
 
 	void Refresh();
-	const PlayerState *m_pPlayerState;
-	const PlayerStageStats *m_pPlayerStageStats;
+	const PlayerState* m_pPlayerState;
+	const PlayerStageStats* m_pPlayerStageStats;
 	bool m_bAutoRefresh;
 	int m_Last;
 	int m_LastMax;
-	BitmapText	m_textPercent;
-	BitmapText	m_textPercentRemainder;
+	BitmapText m_textPercent;
+	BitmapText m_textPercentRemainder;
 	RString m_sPercentFormat;
 	RString m_sRemainderFormat;
 
@@ -44,7 +48,7 @@ private:
 /*
  * (c) 2001-2003 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -54,7 +58,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

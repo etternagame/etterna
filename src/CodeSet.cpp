@@ -4,36 +4,36 @@
 #include "MessageManager.h"
 #include "ThemeManager.h"
 
-#define CODE_NAMES		THEME->GetMetric (sType,"CodeNames")
-#define CODE( s )		THEME->GetMetric (sType,ssprintf("Code%s",(s).c_str()))
-void InputQueueCodeSet::Load( const RString &sType )
+#define CODE_NAMES THEME->GetMetric(sType, "CodeNames")
+#define CODE(s) THEME->GetMetric(sType, ssprintf("Code%s", (s).c_str()))
+void
+InputQueueCodeSet::Load(const RString& sType)
 {
 	//
 	// Load codes
 	//
-	split( CODE_NAMES, ",", m_asCodeNames, true );
+	split(CODE_NAMES, ",", m_asCodeNames, true);
 
-	for( unsigned c=0; c<m_asCodeNames.size(); c++ )
-	{
+	for (unsigned c = 0; c < m_asCodeNames.size(); c++) {
 		vector<RString> asBits;
-		split( m_asCodeNames[c], "=", asBits, true );
+		split(m_asCodeNames[c], "=", asBits, true);
 		RString sCodeName = asBits[0];
-		if( asBits.size() > 1 )
+		if (asBits.size() > 1)
 			m_asCodeNames[c] = asBits[1];
 
 		InputQueueCode code;
-		if( !code.Load(CODE(sCodeName)) )
+		if (!code.Load(CODE(sCodeName)))
 			continue;
 
-		m_aCodes.push_back( code );
+		m_aCodes.push_back(code);
 	}
 }
 
-RString InputQueueCodeSet::Input( const InputEventPlus &input ) const
+RString
+InputQueueCodeSet::Input(const InputEventPlus& input) const
 {
-	for( unsigned i = 0; i < m_aCodes.size(); ++i )
-	{
-		if( !m_aCodes[i].EnteredCode(input.GameI.controller) )
+	for (unsigned i = 0; i < m_aCodes.size(); ++i) {
+		if (!m_aCodes[i].EnteredCode(input.GameI.controller))
 			continue;
 
 		return m_asCodeNames[i];
@@ -41,22 +41,23 @@ RString InputQueueCodeSet::Input( const InputEventPlus &input ) const
 	return "";
 }
 
-bool InputQueueCodeSet::InputMessage( const InputEventPlus &input, Message &msg ) const
+bool
+InputQueueCodeSet::InputMessage(const InputEventPlus& input, Message& msg) const
 {
-	RString sCodeName = Input( input );
-	if( sCodeName.empty() )
+	RString sCodeName = Input(input);
+	if (sCodeName.empty())
 		return false;
 
 	msg.SetName("Code");
-	msg.SetParam( "PlayerNumber", input.pn );
-	msg.SetParam( "Name", sCodeName );
+	msg.SetParam("PlayerNumber", input.pn);
+	msg.SetParam("Name", sCodeName);
 	return true;
 }
 
 /*
  * (c) 2007 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -66,7 +67,7 @@ bool InputQueueCodeSet::InputMessage( const InputEventPlus &input, Message &msg 
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

@@ -4,56 +4,58 @@
 #include "ScreenSplash.h"
 #include "ThemeManager.h"
 
-REGISTER_SCREEN_CLASS( ScreenSplash );
+REGISTER_SCREEN_CLASS(ScreenSplash);
 
-void ScreenSplash::Init()
+void
+ScreenSplash::Init()
 {
-	ALLOW_START_TO_SKIP.Load( m_sName, "AllowStartToSkip" );
-	PREPARE_SCREEN.Load( m_sName, "PrepareScreen" );
+	ALLOW_START_TO_SKIP.Load(m_sName, "AllowStartToSkip");
+	PREPARE_SCREEN.Load(m_sName, "PrepareScreen");
 
 	ScreenWithMenuElements::Init();
 }
 
-void ScreenSplash::BeginScreen()
+void
+ScreenSplash::BeginScreen()
 {
 	ScreenWithMenuElements::BeginScreen();
 }
 
-void ScreenSplash::HandleScreenMessage( const ScreenMessage SM )
+void
+ScreenSplash::HandleScreenMessage(const ScreenMessage SM)
 {
-	if( SM == SM_DoneFadingIn )
-	{
-		if( PREPARE_SCREEN )
-			SCREENMAN->PrepareScreen( GetNextScreenName() );
-	}
-	else if( SM == SM_MenuTimer )
-	{
-		StartTransitioningScreen( SM_GoToNextScreen );
+	if (SM == SM_DoneFadingIn) {
+		if (PREPARE_SCREEN)
+			SCREENMAN->PrepareScreen(GetNextScreenName());
+	} else if (SM == SM_MenuTimer) {
+		StartTransitioningScreen(SM_GoToNextScreen);
 	}
 
-	ScreenWithMenuElements::HandleScreenMessage( SM );
+	ScreenWithMenuElements::HandleScreenMessage(SM);
 }
 
-bool ScreenSplash::MenuBack( const InputEventPlus &input )
+bool
+ScreenSplash::MenuBack(const InputEventPlus& input)
 {
-	Cancel( SM_GoToPrevScreen );
+	Cancel(SM_GoToPrevScreen);
 	return true;
 }
 
-bool ScreenSplash::MenuStart( const InputEventPlus &input )
+bool
+ScreenSplash::MenuStart(const InputEventPlus& input)
 {
-	if( IsTransitioning() )
+	if (IsTransitioning())
 		return false;
-	if( !ALLOW_START_TO_SKIP )
+	if (!ALLOW_START_TO_SKIP)
 		return false;
-	StartTransitioningScreen( SM_GoToNextScreen );
+	StartTransitioningScreen(SM_GoToNextScreen);
 	return true;
 }
 
 /*
  * (c) 2001-2004 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -63,7 +65,7 @@ bool ScreenSplash::MenuStart( const InputEventPlus &input )
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

@@ -1,21 +1,28 @@
--- Serialize the table "t".
+--- Table serialization
+-- @module 02_Serialize
+
+--- Serialize a table into a string
+-- @tbl t
+-- @treturn string The serialized table string
 function Serialize(t)
 	local ret = ""
-	local queue = { }
-	local already_queued = { }
+	local queue = {}
+	local already_queued = {}
 
 	-- Convert a value to an identifier. If we encounter a table that we've
 	-- never seen before, it's an anonymous table and we'll create a name for it;
 	-- for example, in t = { [ {10} ] = 1 }, "{10}" has no name.
 	local next_id = 1
-	local function convert_to_identifier( v, name )
+	local function convert_to_identifier(v, name)
 		-- print("convert_to_identifier: " .. (name or "nil"))
 		if type(v) == "string" then
 			return string.format("%q", v)
 		elseif type(v) == "nil" then
 			return "nil"
 		elseif type(v) == "boolean" then
-			if v then return "true" end
+			if v then
+				return "true"
+			end
 			return "false"
 		elseif type(v) == "number" then
 			return string.format("%i", v)
@@ -35,8 +42,8 @@ function Serialize(t)
 			end
 
 			for i, tab in pairs(v) do
-				local to_fill = { ["name"] = name .. "[" .. convert_to_identifier(i) .. "]", with = tab }
-				table.insert( queue, to_fill )
+				local to_fill = {["name"] = name .. "[" .. convert_to_identifier(i) .. "]", with = tab}
+				table.insert(queue, to_fill)
 			end
 
 			already_queued[v] = name
@@ -46,11 +53,11 @@ function Serialize(t)
 		end
 	end
 
-	local top_name = convert_to_identifier( t )
- 
+	local top_name = convert_to_identifier(t)
+
 	while table.getn(queue) > 0 do
-		local to_fill = table.remove( queue, 1 )
-		local str = convert_to_identifier( to_fill.with, to_fill.name )
+		local to_fill = table.remove(queue, 1)
+		local str = convert_to_identifier(to_fill.with, to_fill.name)
 		-- Assign the result.  If to_fill.with is a non-anonymous table, we just created
 		-- it ("ret[1] = { }"); don't redundantly write "ret[1] = ret[1]".
 		if to_fill.name ~= str then
@@ -60,12 +67,17 @@ function Serialize(t)
 	ret = ret .. "return " .. top_name
 	return ret
 end
-
--- Recursively deep-copy a table.
+--- Recursively deep-copy a table.
+-- @tbl From
+-- @tbl To Optional (reference to table to insert to)
+-- @tbl already_copied Optional. Defaults to an empty table (For recursive internal use)
+-- @treturn table
 function DeepCopy(From, To, already_copied)
-	if not To then To = {} end
+	if not To then
+		To = {}
+	end
 
-	already_copied = already_copied or { }
+	already_copied = already_copied or {}
 	already_copied[From] = To
 
 	for a, b in pairs(From) do
@@ -76,7 +88,7 @@ function DeepCopy(From, To, already_copied)
 			aCopy = already_copied[a]
 		else
 			aCopy = {}
-			DeepCopy( a, aCopy, already_copied )
+			DeepCopy(a, aCopy, already_copied)
 		end
 
 		if type(b) ~= "table" then
@@ -85,7 +97,7 @@ function DeepCopy(From, To, already_copied)
 			bCopy = already_copied[b]
 		else
 			bCopy = {}
-			DeepCopy( b, bCopy, already_copied )
+			DeepCopy(b, bCopy, already_copied)
 		end
 
 		To[aCopy] = bCopy
@@ -96,7 +108,7 @@ end
 
 -- (c) 2005 Glenn Maynard
 -- All rights reserved.
--- 
+--
 -- Permission is hereby granted, free of charge, to any person obtaining a
 -- copy of this software and associated documentation files (the
 -- "Software"), to deal in the Software without restriction, including
@@ -106,7 +118,7 @@ end
 -- copyright notice(s) and this permission notice appear in all copies of
 -- the Software and that both the above copyright notice(s) and this
 -- permission notice appear in supporting documentation.
--- 
+--
 -- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
 -- OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 -- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
@@ -116,4 +128,3 @@ end
 -- OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
 -- OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 -- PERFORMANCE OF THIS SOFTWARE.
-

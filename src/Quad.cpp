@@ -3,23 +3,25 @@
 #include "Quad.h"
 #include "RageTextureManager.h"
 
-REGISTER_ACTOR_CLASS( Quad );
+REGISTER_ACTOR_CLASS(Quad);
 
 Quad::Quad()
 {
-	Load( TEXTUREMAN->GetDefaultTextureID() );
+	Load(TEXTUREMAN->GetDefaultTextureID());
 }
 
-void Quad::LoadFromNode( const XNode* pNode )
+void
+Quad::LoadFromNode(const XNode* pNode)
 {
-	// HACK: Bypass Sprite's texture loading.  Sprite should really derive from Quad.
-	Actor::LoadFromNode( pNode );
+	// HACK: Bypass Sprite's texture loading.  Sprite should really derive from
+	// Quad.
+	Actor::LoadFromNode(pNode);
 }
 
 /*
  * (c) 2005 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -29,7 +31,7 @@ void Quad::LoadFromNode( const XNode* pNode )
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

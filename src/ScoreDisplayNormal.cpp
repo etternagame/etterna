@@ -11,48 +11,52 @@
 
 ScoreDisplayNormal::ScoreDisplayNormal()
 {
-	LOG->Trace( "ScoreDisplayNormal::ScoreDisplayNormal()" );
+	LOG->Trace("ScoreDisplayNormal::ScoreDisplayNormal()");
 
 	RString sType = "ScoreDisplayNormal";
 
-	m_sprFrame.Load( THEME->GetPathG(sType,"Frame") );
-	m_sprFrame->SetName( "Frame" );
-	ActorUtil::LoadAllCommandsAndSetXY( m_sprFrame, sType );
-	this->AddChild( m_sprFrame );
+	m_sprFrame.Load(THEME->GetPathG(sType, "Frame"));
+	m_sprFrame->SetName("Frame");
+	ActorUtil::LoadAllCommandsAndSetXY(m_sprFrame, sType);
+	this->AddChild(m_sprFrame);
 
 	// init the text
-	m_text.LoadFromFont( THEME->GetPathF("ScoreDisplayNormal","Text") );
-	m_text.Load( "RollingNumbers" );
-	m_text.SetName( "Text" );
+	m_text.LoadFromFont(THEME->GetPathF("ScoreDisplayNormal", "Text"));
+	m_text.Load("RollingNumbers");
+	m_text.SetName("Text");
 	m_text.UpdateText();
-	ActorUtil::LoadAllCommandsAndSetXY( m_text, sType );
-	this->AddChild( &m_text );
+	ActorUtil::LoadAllCommandsAndSetXY(m_text, sType);
+	this->AddChild(&m_text);
 }
 
-void ScoreDisplayNormal::Init( const PlayerState* pPlayerState, const PlayerStageStats* pPlayerStageStats ) 
+void
+ScoreDisplayNormal::Init(const PlayerState* pPlayerState,
+						 const PlayerStageStats* pPlayerStageStats)
 {
-	ScoreDisplay::Init( pPlayerState, pPlayerStageStats );
+	ScoreDisplay::Init(pPlayerState, pPlayerStageStats);
 
 	auto* pPlayerState_ = const_cast<PlayerState*>(pPlayerState);
 	auto* pPlayerStageStats_ = const_cast<PlayerStageStats*>(pPlayerStageStats);
 
 	Message msg("Load");
-	msg.SetParam( "PlayerState", LuaReference::CreateFromPush(*pPlayerState_) );
-	msg.SetParam( "PlayerStageStats", LuaReference::CreateFromPush(*pPlayerStageStats_) );
-	this->HandleMessage( msg );
+	msg.SetParam("PlayerState", LuaReference::CreateFromPush(*pPlayerState_));
+	msg.SetParam("PlayerStageStats",
+				 LuaReference::CreateFromPush(*pPlayerStageStats_));
+	this->HandleMessage(msg);
 }
 
-void ScoreDisplayNormal::SetScore( int iNewScore ) 
+void
+ScoreDisplayNormal::SetScore(int iNewScore)
 {
 	auto fScore = static_cast<float>(iNewScore);
 
-	m_text.SetTargetNumber( fScore );
+	m_text.SetTargetNumber(fScore);
 }
 
 /*
  * (c) 2001-2004 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -62,7 +66,7 @@ void ScoreDisplayNormal::SetScore( int iNewScore )
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

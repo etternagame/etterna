@@ -3,11 +3,11 @@
 
 #include "LoadingWindow.h"
 
-class LoadingWindow_Null: public LoadingWindow
+class LoadingWindow_Null : public LoadingWindow
 {
-public:
-	void SetText( const RString &str ) { }
-	void SetSplash( const RageSurface *pSplash ) { }
+  public:
+	void SetText(const RString& str) {}
+	void SetSplash(const RageSurface* pSplash) {}
 };
 #define USE_LOADING_WINDOW_NULL
 
@@ -16,7 +16,7 @@ public:
 /*
  * (c) 2003-2004 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -26,7 +26,7 @@ public:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
@@ -37,4 +37,3 @@ public:
  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-

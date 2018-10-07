@@ -6,17 +6,23 @@
 #include <windows.h>
 #include <mmsystem.h>
 
-#pragma comment (lib,"winmm.lib")
+#pragma comment(lib, "winmm.lib")
 
-REGISTER_INPUT_HANDLER_CLASS2( MIDI, Win32_MIDI );
+REGISTER_INPUT_HANDLER_CLASS2(MIDI, Win32_MIDI);
 
 static HMIDIIN g_device;
-static void CALLBACK midiCallback(HMIDIIN g_device, UINT status, DWORD instancePtr, DWORD data, DWORD timestamp);
+static void CALLBACK
+midiCallback(HMIDIIN g_device,
+			 UINT status,
+			 DWORD instancePtr,
+			 DWORD data,
+			 DWORD timestamp);
 
-static RString GetMidiError( MMRESULT result )
+static RString
+GetMidiError(MMRESULT result)
 {
 	char szError[256];
-	midiOutGetErrorText( result, szError, 256 );
+	midiOutGetErrorText(result, szError, 256);
 	return szError;
 }
 
@@ -26,24 +32,27 @@ InputHandler_Win32_MIDI::InputHandler_Win32_MIDI()
 
 	g_device = NULL;
 
-	if( device_id >= static_cast<int>(midiInGetNumDevs()) )
-	{
+	if (device_id >= static_cast<int>(midiInGetNumDevs())) {
 		m_bFoundDevice = false;
 		return;
 	}
 	m_bFoundDevice = true;
 
-	MMRESULT result = midiInOpen( &g_device, device_id, (DWORD) &midiCallback, (DWORD) this, CALLBACK_FUNCTION );
-	if( result != MMSYSERR_NOERROR )
-	{
-		LOG->Warn( "Error opening MIDI device: %s", GetMidiError(result).c_str() );
+	MMRESULT result = midiInOpen(&g_device,
+								 device_id,
+								 (DWORD)&midiCallback,
+								 (DWORD)this,
+								 CALLBACK_FUNCTION);
+	if (result != MMSYSERR_NOERROR) {
+		LOG->Warn("Error opening MIDI device: %s",
+				  GetMidiError(result).c_str());
 		return;
 	}
 
 	result = midiInStart(g_device);
-	if( result != MMSYSERR_NOERROR )
-	{
-		LOG->Warn( "Error starting MIDI device: %s", GetMidiError(result).c_str() );
+	if (result != MMSYSERR_NOERROR) {
+		LOG->Warn("Error starting MIDI device: %s",
+				  GetMidiError(result).c_str());
 		return;
 	}
 }
@@ -52,46 +61,52 @@ InputHandler_Win32_MIDI::~InputHandler_Win32_MIDI()
 {
 	MMRESULT result;
 
-	result = midiInReset( g_device );
-	if( result != MMSYSERR_NOERROR )
-	{
-		LOG->Warn( "Error resetting MIDI device: %s", GetMidiError(result).c_str() );
+	result = midiInReset(g_device);
+	if (result != MMSYSERR_NOERROR) {
+		LOG->Warn("Error resetting MIDI device: %s",
+				  GetMidiError(result).c_str());
 		return;
 	}
 
-	result = midiInClose( g_device );
-	if( result != MMSYSERR_NOERROR )
-	{
-		LOG->Warn( "Error closing MIDI device: %s", GetMidiError(result).c_str() );
+	result = midiInClose(g_device);
+	if (result != MMSYSERR_NOERROR) {
+		LOG->Warn("Error closing MIDI device: %s",
+				  GetMidiError(result).c_str());
 		return;
 	}
 }
 
-void InputHandler_Win32_MIDI::GetDevicesAndDescriptions( vector<InputDeviceInfo>& vDevicesOut )
+void
+InputHandler_Win32_MIDI::GetDevicesAndDescriptions(
+  vector<InputDeviceInfo>& vDevicesOut)
 {
-	if( m_bFoundDevice )
-	{
-		vDevicesOut.push_back( InputDeviceInfo(DEVICE_MIDI,"Win32_MIDI") );
+	if (m_bFoundDevice) {
+		vDevicesOut.push_back(InputDeviceInfo(DEVICE_MIDI, "Win32_MIDI"));
 	}
 }
 
-static void CALLBACK midiCallback( HMIDIIN device, UINT status, DWORD instancePtr, DWORD data, DWORD timestamp )
+static void CALLBACK
+midiCallback(HMIDIIN device,
+			 UINT status,
+			 DWORD instancePtr,
+			 DWORD data,
+			 DWORD timestamp)
 {
-	if( status == MIM_DATA )
-	{
+	if (status == MIM_DATA) {
 		int iType = data & 0xff;
 		int iChannel = (data & 0xff00) >> 8;
 		int iValue = (data & 0xff0000) >> 16;
 
-		// Channel 0 in midi is a special channel that generally will get triggered when too many channels are pressed.
-		if( iChannel == 0 )
+		// Channel 0 in midi is a special channel that generally will get
+		// triggered when too many channels are pressed.
+		if (iChannel == 0)
 			return;
 
-		if( iType == 144 )
-		{
-			DeviceInput di = DeviceInput( DEVICE_MIDI, enum_add2(MIDI_FIRST, iChannel), iValue > 0 );
+		if (iType == 144) {
+			DeviceInput di = DeviceInput(
+			  DEVICE_MIDI, enum_add2(MIDI_FIRST, iChannel), iValue > 0);
 			di.ts = std::chrono::steady_clock::now();
-			((InputHandler_Win32_MIDI *)instancePtr)->SetDev( di );
+			((InputHandler_Win32_MIDI*)instancePtr)->SetDev(di);
 		}
 	}
 }

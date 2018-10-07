@@ -15,81 +15,122 @@ struct HighScore;
 struct lua_State;
 class ProfileManager
 {
-public:
+  public:
 	ProfileManager();
 	~ProfileManager();
 
 	void Init(LoadingWindow* ld);
 
-	bool FixedProfiles() const;	// If true, profiles shouldn't be added/deleted
+	bool FixedProfiles() const; // If true, profiles shouldn't be added/deleted
 
 	// local profiles
 	void UnloadAllLocalProfiles();
 	void RefreshLocalProfilesFromDisk();
 	void RefreshLocalProfilesFromDisk(LoadingWindow* ld);
-	const Profile *GetLocalProfile( const RString &sProfileID ) const;
-	Profile *GetLocalProfile( const RString &sProfileID ) { return (Profile*) ((const ProfileManager *) this)->GetLocalProfile(sProfileID); }
-	Profile *GetLocalProfileFromIndex( int iIndex );
-	RString GetLocalProfileIDFromIndex( int iIndex );
+	const Profile* GetLocalProfile(const RString& sProfileID) const;
+	Profile* GetLocalProfile(const RString& sProfileID)
+	{
+		return (Profile*)((const ProfileManager*)this)
+		  ->GetLocalProfile(sProfileID);
+	}
+	Profile* GetLocalProfileFromIndex(int iIndex);
+	RString GetLocalProfileIDFromIndex(int iIndex);
 
-	bool CreateLocalProfile( const RString &sName, RString &sProfileIDOut );
-	void AddLocalProfileByID( Profile *pProfile, const RString &sProfileID ); // transfers ownership of pProfile
-	bool RenameLocalProfile( const RString &sProfileID, const RString &sNewName );
-	bool DeleteLocalProfile( const RString &sProfileID );
-	void GetLocalProfileIDs( vector<RString> &vsProfileIDsOut ) const;
-	void GetLocalProfileDisplayNames( vector<RString> &vsProfileDisplayNamesOut ) const;
-	int GetLocalProfileIndexFromID( const RString &sProfileID ) const;
+	bool CreateLocalProfile(const RString& sName, RString& sProfileIDOut);
+	void AddLocalProfileByID(
+	  Profile* pProfile,
+	  const RString& sProfileID); // transfers ownership of pProfile
+	bool RenameLocalProfile(const RString& sProfileID, const RString& sNewName);
+	bool DeleteLocalProfile(const RString& sProfileID);
+	void GetLocalProfileIDs(vector<RString>& vsProfileIDsOut) const;
+	void GetLocalProfileDisplayNames(
+	  vector<RString>& vsProfileDisplayNamesOut) const;
+	int GetLocalProfileIndexFromID(const RString& sProfileID) const;
 	int GetNumLocalProfiles() const;
 
 	RString GetStatsPrefix() { return m_stats_prefix; }
 	void SetStatsPrefix(RString const& prefix);
 
-	bool LoadFirstAvailableProfile( PlayerNumber pn, bool bLoadEdits = true );
-	bool LoadLocalProfileFromMachine( PlayerNumber pn );
-	bool SaveProfile( PlayerNumber pn ) const;
+	bool LoadFirstAvailableProfile(PlayerNumber pn, bool bLoadEdits = true);
+	bool LoadLocalProfileFromMachine(PlayerNumber pn);
+	bool SaveProfile(PlayerNumber pn) const;
 	bool ConvertProfile(PlayerNumber pn);
-	bool SaveLocalProfile( const RString &sProfileID );
-	void UnloadProfile( PlayerNumber pn );
+	bool SaveLocalProfile(const RString& sProfileID);
+	void UnloadProfile(PlayerNumber pn);
 
 	void MergeLocalProfiles(RString const& from_id, RString const& to_id);
 	void ChangeProfileType(int index, ProfileType new_type);
 	void MoveProfilePriority(int index, bool up);
 
 	// General data
-	void IncrementToastiesCount( PlayerNumber pn );
-	void AddStepTotals( PlayerNumber pn, int iNumTapsAndHolds, int iNumJumps, int iNumHolds, int iNumRolls, int iNumMines, int iNumHands, int iNumLifts);
+	void IncrementToastiesCount(PlayerNumber pn);
+	void AddStepTotals(PlayerNumber pn,
+					   int iNumTapsAndHolds,
+					   int iNumJumps,
+					   int iNumHolds,
+					   int iNumRolls,
+					   int iNumMines,
+					   int iNumHands,
+					   int iNumLifts);
 
-	bool IsPersistentProfile( PlayerNumber pn ) const { return !m_sProfileDir[pn].empty(); }
-	bool IsPersistentProfile( ProfileSlot slot ) const;
+	bool IsPersistentProfile(PlayerNumber pn) const
+	{
+		return !m_sProfileDir[pn].empty();
+	}
+	bool IsPersistentProfile(ProfileSlot slot) const;
 
 	// return a profile even if !IsUsingProfile
-	const Profile* GetProfile( PlayerNumber pn ) const;
-	Profile* GetProfile( PlayerNumber pn ) { return (Profile*) ((const ProfileManager *) this)->GetProfile(pn); }
-	const Profile* GetProfile( ProfileSlot slot ) const;
-	Profile* GetProfile( ProfileSlot slot ) { return (Profile*) ((const ProfileManager *) this)->GetProfile(slot); }
+	const Profile* GetProfile(PlayerNumber pn) const;
+	Profile* GetProfile(PlayerNumber pn)
+	{
+		return (Profile*)((const ProfileManager*)this)->GetProfile(pn);
+	}
+	const Profile* GetProfile(ProfileSlot slot) const;
+	Profile* GetProfile(ProfileSlot slot)
+	{
+		return (Profile*)((const ProfileManager*)this)->GetProfile(slot);
+	}
 
-	const RString& GetProfileDir( ProfileSlot slot ) const;
+	const RString& GetProfileDir(ProfileSlot slot) const;
 
-	RString GetPlayerName( PlayerNumber pn ) const;
-	bool LastLoadWasTamperedOrCorrupt( PlayerNumber pn ) const;
-	bool LastLoadWasFromLastGood( PlayerNumber pn ) const;
+	RString GetPlayerName(PlayerNumber pn) const;
+	bool LastLoadWasTamperedOrCorrupt(PlayerNumber pn) const;
+	bool LastLoadWasFromLastGood(PlayerNumber pn) const;
 
 	// Song stats
-	int GetSongNumTimesPlayed( const Song* pSong, ProfileSlot card ) const;
-	bool IsSongNew( const Song* pSong ) const { return GetSongNumTimesPlayed(pSong,ProfileSlot_Player1)==0; }
-	void AddStepsScore( const Song* pSong, const Steps* pSteps , PlayerNumber pn, const HighScore &hs, int &iPersonalIndexOut, int &iMachineIndexOut );
-	void IncrementStepsPlayCount( const Song* pSong, const Steps* pSteps, PlayerNumber pn );
+	int GetSongNumTimesPlayed(const Song* pSong, ProfileSlot card) const;
+	bool IsSongNew(const Song* pSong) const
+	{
+		return GetSongNumTimesPlayed(pSong, ProfileSlot_Player1) == 0;
+	}
+	void AddStepsScore(const Song* pSong,
+					   const Steps* pSteps,
+					   PlayerNumber pn,
+					   const HighScore& hs,
+					   int& iPersonalIndexOut,
+					   int& iMachineIndexOut);
+	void IncrementStepsPlayCount(const Song* pSong,
+								 const Steps* pSteps,
+								 PlayerNumber pn);
 
 	// Category stats
-	void AddCategoryScore( StepsType st, RankingCategory rc, PlayerNumber pn, const HighScore &hs, int &iPersonalIndexOut, int &iMachineIndexOut );
-	void IncrementCategoryPlayCount( StepsType st, RankingCategory rc, PlayerNumber pn );
+	void AddCategoryScore(StepsType st,
+						  RankingCategory rc,
+						  PlayerNumber pn,
+						  const HighScore& hs,
+						  int& iPersonalIndexOut,
+						  int& iMachineIndexOut);
+	void IncrementCategoryPlayCount(StepsType st,
+									RankingCategory rc,
+									PlayerNumber pn);
 
 	// Lua
-	void PushSelf( lua_State *L );
+	void PushSelf(lua_State* L);
 
 	static Preference1D<RString> m_sDefaultLocalProfileID;
-private:
-	ProfileLoadResult LoadProfile( PlayerNumber pn, const RString &sProfileDir);
+
+  private:
+	ProfileLoadResult LoadProfile(PlayerNumber pn, const RString& sProfileDir);
 
 	// Directory that contains the profile.  Either on local machine or
 	// on a memory card.
@@ -97,20 +138,28 @@ private:
 
 	RString m_stats_prefix;
 	Profile* dummy;
-	bool m_bLastLoadWasTamperedOrCorrupt[NUM_PLAYERS];	// true if Stats.xml was present, but failed to load (probably because of a signature failure)
-	bool m_bLastLoadWasFromLastGood[NUM_PLAYERS];		// if true, then m_bLastLoadWasTamperedOrCorrupt is also true
-	mutable bool m_bNeedToBackUpLastLoad[NUM_PLAYERS];	// if true, back up profile on next save
+	bool m_bLastLoadWasTamperedOrCorrupt[NUM_PLAYERS]; // true if Stats.xml was
+													   // present, but failed to
+													   // load (probably because
+													   // of a signature
+													   // failure)
+	bool m_bLastLoadWasFromLastGood
+	  [NUM_PLAYERS]; // if true, then m_bLastLoadWasTamperedOrCorrupt is also
+					 // true
+	mutable bool m_bNeedToBackUpLastLoad[NUM_PLAYERS]; // if true, back up
+													   // profile on next save
 	bool m_bNewProfile[NUM_PLAYERS];
 };
 
-extern ProfileManager*	PROFILEMAN;	// global and accessible from anywhere in our program
+extern ProfileManager*
+  PROFILEMAN; // global and accessible from anywhere in our program
 
 #endif
 
 /*
  * (c) 2003-2004 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -120,7 +169,7 @@ extern ProfileManager*	PROFILEMAN;	// global and accessible from anywhere in our
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

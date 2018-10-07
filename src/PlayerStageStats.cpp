@@ -13,20 +13,32 @@
 #include "Steps.h"
 #include "ThemeManager.h"
 
-#define GRADE_PERCENT_TIER(i)	THEME->GetMetricF("PlayerStageStats",ssprintf("GradePercent%s",GradeToString((Grade)(i)).c_str()))
+#define GRADE_PERCENT_TIER(i)                                                  \
+	THEME->GetMetricF(                                                         \
+	  "PlayerStageStats",                                                      \
+	  ssprintf("GradePercent%s", GradeToString((Grade)(i)).c_str()))
 // deprecated, but no solution to replace them exists yet:
-#define GRADE_TIER02_IS_ALL_W2S	THEME->GetMetricB("PlayerStageStats","GradeTier02IsAllW2s")
-#define GRADE_TIER01_IS_ALL_W2S THEME->GetMetricB("PlayerStageStats","GradeTier01IsAllW2s")
-#define GRADE_TIER02_IS_FULL_COMBO THEME->GetMetricB("PlayerStageStats","GradeTier02IsFullCombo")
+#define GRADE_TIER02_IS_ALL_W2S                                                \
+	THEME->GetMetricB("PlayerStageStats", "GradeTier02IsAllW2s")
+#define GRADE_TIER01_IS_ALL_W2S                                                \
+	THEME->GetMetricB("PlayerStageStats", "GradeTier01IsAllW2s")
+#define GRADE_TIER02_IS_FULL_COMBO                                             \
+	THEME->GetMetricB("PlayerStageStats", "GradeTier02IsFullCombo")
 
-static ThemeMetric<TapNoteScore> g_MinScoreToMaintainCombo( "Gameplay", "MinScoreToMaintainCombo" );
-static ThemeMetric<bool> g_MineHitIncrementsMissCombo( "Gameplay", "MineHitIncrementsMissCombo" );
+static ThemeMetric<TapNoteScore> g_MinScoreToMaintainCombo(
+  "Gameplay",
+  "MinScoreToMaintainCombo");
+static ThemeMetric<bool> g_MineHitIncrementsMissCombo(
+  "Gameplay",
+  "MineHitIncrementsMissCombo");
 
 const float LESSON_PASS_THRESHOLD = 0.8f;
 
-Grade GetGradeFromPercent( float fPercent );
+Grade
+GetGradeFromPercent(float fPercent);
 
-void PlayerStageStats::InternalInit()
+void
+PlayerStageStats::InternalInit()
 {
 	m_pStyle = nullptr;
 	m_for_multiplayer = false;
@@ -63,16 +75,17 @@ void PlayerStageStats::InternalInit()
 	m_iSongsPlayed = 0;
 	m_fLifeRemainingSeconds = 0;
 	m_iNumControllerSteps = 0;
-	
+
 	// this should probably be handled better-mina
 	everusedautoplay = false;
 	luascriptwasloaded = false;
 	filehadnegbpms = false;
 	filegotmines = false;
 	gaveuplikeadumbass = false;
+	filegotholds = false;
 
-	ZERO( m_iTapNoteScores );
-	ZERO( m_iHoldNoteScores );
+	ZERO(m_iTapNoteScores);
+	ZERO(m_iHoldNoteScores);
 	m_radarPossible.Zero();
 	m_radarActual.Zero();
 
@@ -88,24 +101,27 @@ void PlayerStageStats::InternalInit()
 	m_HighScore = HighScore();
 }
 
-void PlayerStageStats::Init(PlayerNumber pn)
+void
+PlayerStageStats::Init(PlayerNumber pn)
 {
-	m_for_multiplayer= false;
-	m_player_number= pn;
+	m_for_multiplayer = false;
+	m_player_number = pn;
 }
 
-void PlayerStageStats::Init(MultiPlayer pn)
+void
+PlayerStageStats::Init(MultiPlayer pn)
 {
-	m_for_multiplayer= true;
-	m_multiplayer_number= pn;
+	m_for_multiplayer = true;
+	m_multiplayer_number = pn;
 }
 
-void PlayerStageStats::AddStats( const PlayerStageStats& other )
+void
+PlayerStageStats::AddStats(const PlayerStageStats& other)
 {
-	m_pStyle= other.m_pStyle;
+	m_pStyle = other.m_pStyle;
 	m_bJoined = other.m_bJoined;
-	FOREACH_CONST( Steps*, other.m_vpPossibleSteps, s )
-		m_vpPossibleSteps.push_back( *s );
+	FOREACH_CONST(Steps*, other.m_vpPossibleSteps, s)
+	m_vpPossibleSteps.push_back(*s);
 	m_iStepsPlayed += other.m_iStepsPlayed;
 	m_fAliveSeconds += other.m_fAliveSeconds;
 	m_bFailed |= static_cast<int>(other.m_bFailed);
@@ -114,9 +130,9 @@ void PlayerStageStats::AddStats( const PlayerStageStats& other )
 	m_iCurPossibleDancePoints += other.m_iCurPossibleDancePoints;
 	m_iPossibleGradePoints += other.m_iPossibleGradePoints;
 
-	for( int t=0; t<NUM_TapNoteScore; t++ )
+	for (int t = 0; t < NUM_TapNoteScore; t++)
 		m_iTapNoteScores[t] += other.m_iTapNoteScores[t];
-	for( int h=0; h<NUM_HoldNoteScore; h++ )
+	for (int h = 0; h < NUM_HoldNoteScore; h++)
 		m_iHoldNoteScores[h] += other.m_iHoldNoteScores[h];
 	m_iCurCombo += other.m_iCurCombo;
 	m_iMaxCombo += other.m_iMaxCombo;
@@ -129,7 +145,7 @@ void PlayerStageStats::AddStats( const PlayerStageStats& other )
 	m_iSongsPassed += other.m_iSongsPassed;
 	m_iSongsPlayed += other.m_iSongsPlayed;
 	m_iNumControllerSteps += other.m_iNumControllerSteps;
-	m_fLifeRemainingSeconds = other.m_fLifeRemainingSeconds;	// don't accumulate
+	m_fLifeRemainingSeconds = other.m_fLifeRemainingSeconds; // don't accumulate
 	m_bDisqualified |= static_cast<int>(other.m_bDisqualified);
 
 	// FirstSecond is always 0, and last second is the time of the last step,
@@ -140,45 +156,46 @@ void PlayerStageStats::AddStats( const PlayerStageStats& other )
 	const float fOtherLastSecond = other.m_fLastSecond + m_fLastSecond + 1.0f;
 	m_fLastSecond = fOtherLastSecond;
 
-	map<float,float>::const_iterator it;
-	for( it = other.m_fLifeRecord.begin(); it != other.m_fLifeRecord.end(); ++it )
-	{
+	map<float, float>::const_iterator it;
+	for (it = other.m_fLifeRecord.begin(); it != other.m_fLifeRecord.end();
+		 ++it) {
 		const float pos = it->first;
 		const float life = it->second;
-		m_fLifeRecord[fOtherFirstSecond+pos] = life;
+		m_fLifeRecord[fOtherFirstSecond + pos] = life;
 	}
 
-	for( unsigned i=0; i<other.m_ComboList.size(); ++i )
-	{
-		const Combo_t &combo = other.m_ComboList[i];
+	for (unsigned i = 0; i < other.m_ComboList.size(); ++i) {
+		const Combo_t& combo = other.m_ComboList[i];
 
 		Combo_t newcombo(combo);
 		newcombo.m_fStartSecond += fOtherFirstSecond;
-		m_ComboList.push_back( newcombo );
+		m_ComboList.push_back(newcombo);
 	}
 
 	/* Merge identical combos. This normally only happens in course mode, when
 	 * a combo continues between songs. */
-	for( unsigned i=1; i<m_ComboList.size(); ++i )
-	{
-		Combo_t &prevcombo = m_ComboList[i-1];
-		Combo_t &combo = m_ComboList[i];
-		const float PrevComboEnd = prevcombo.m_fStartSecond + prevcombo.m_fSizeSeconds;
+	for (unsigned i = 1; i < m_ComboList.size(); ++i) {
+		Combo_t& prevcombo = m_ComboList[i - 1];
+		Combo_t& combo = m_ComboList[i];
+		const float PrevComboEnd =
+		  prevcombo.m_fStartSecond + prevcombo.m_fSizeSeconds;
 		const float ThisComboStart = combo.m_fStartSecond;
-		if( fabsf(PrevComboEnd - ThisComboStart) > 0.001 )
+		if (fabsf(PrevComboEnd - ThisComboStart) > 0.001)
 			continue;
 
 		// These are really the same combo.
 		prevcombo.m_fSizeSeconds += combo.m_fSizeSeconds;
 		prevcombo.m_cnt += combo.m_cnt;
-		m_ComboList.erase( m_ComboList.begin()+i );
+		m_ComboList.erase(m_ComboList.begin() + i);
 		--i;
 	}
 }
 
-
-// get appropriated (for when we have scores but no highscore object to get wifegrades) -mina
-Grade GetGradeFromPercent( float fPercent ) {
+// get appropriated (for when we have scores but no highscore object to get
+// wifegrades) -mina
+Grade
+GetGradeFromPercent(float fPercent)
+{
 	if (fPercent >= 0.9997f)
 		return Grade_Tier01;
 	if (fPercent >= 0.9975f)
@@ -194,180 +211,226 @@ Grade GetGradeFromPercent( float fPercent ) {
 	return Grade_Tier07;
 }
 
-Grade PlayerStageStats::GetWifeGrade() {
+Grade
+PlayerStageStats::GetWifeGrade()
+{
 	if (GetGrade() == Grade_Failed)
 		return Grade_Failed;
 
 	return GetGradeFromPercent(m_fWifeScore);
 }
 
-Grade PlayerStageStats::GetGrade(float p)
+Grade
+PlayerStageStats::GetGrade(float p)
 {
 	return GetGradeFromPercent(p);
 }
-Grade PlayerStageStats::GetGrade() const
+Grade
+PlayerStageStats::GetGrade() const
 {
-	if( m_bFailed )
+	if (m_bFailed)
 		return Grade_Failed;
 
-	/* XXX: This entire calculation should be in ScoreKeeper, but final evaluation
-	 * is tricky since at that point the ScoreKeepers no longer exist. */
+	/* XXX: This entire calculation should be in ScoreKeeper, but final
+	 * evaluation is tricky since at that point the ScoreKeepers no longer
+	 * exist. */
 	float fActual = 0;
 
 	bool bIsBeginner = false;
-	if( m_iStepsPlayed > 0 )
-		bIsBeginner = m_vpPossibleSteps[0]->GetDifficulty() == Difficulty_Beginner;
+	if (m_iStepsPlayed > 0)
+		bIsBeginner =
+		  m_vpPossibleSteps[0]->GetDifficulty() == Difficulty_Beginner;
 
-	FOREACH_ENUM( TapNoteScore, tns )
+	FOREACH_ENUM(TapNoteScore, tns)
 	{
-		int iTapScoreValue = ScoreKeeperNormal::TapNoteScoreToGradePoints( tns, bIsBeginner );
+		int iTapScoreValue =
+		  ScoreKeeperNormal::TapNoteScoreToGradePoints(tns, bIsBeginner);
 		fActual += m_iTapNoteScores[tns] * iTapScoreValue;
-		//LOG->Trace( "GetGrade actual: %i * %i", m_iTapNoteScores[tns], iTapScoreValue );
+		// LOG->Trace( "GetGrade actual: %i * %i", m_iTapNoteScores[tns],
+		// iTapScoreValue );
 	}
 
-	FOREACH_ENUM( HoldNoteScore, hns )
+	FOREACH_ENUM(HoldNoteScore, hns)
 	{
-		int iHoldScoreValue = ScoreKeeperNormal::HoldNoteScoreToGradePoints( hns, bIsBeginner );
+		int iHoldScoreValue =
+		  ScoreKeeperNormal::HoldNoteScoreToGradePoints(hns, bIsBeginner);
 		fActual += m_iHoldNoteScores[hns] * iHoldScoreValue;
-		//LOG->Trace( "GetGrade actual: %i * %i", m_iHoldNoteScores[hns], iHoldScoreValue );
+		// LOG->Trace( "GetGrade actual: %i * %i", m_iHoldNoteScores[hns],
+		// iHoldScoreValue );
 	}
 
-	//LOG->Trace( "GetGrade: fActual: %f, fPossible: %d", fActual, m_iPossibleGradePoints );
+	// LOG->Trace( "GetGrade: fActual: %f, fPossible: %d", fActual,
+	// m_iPossibleGradePoints );
 
-	float fPercent = (m_iPossibleGradePoints == 0) ? 0 : fActual / m_iPossibleGradePoints;
+	float fPercent =
+	  (m_iPossibleGradePoints == 0) ? 0 : fActual / m_iPossibleGradePoints;
 
-	Grade grade = GetGradeFromPercent( fPercent );
+	Grade grade = GetGradeFromPercent(fPercent);
 
-	//LOG->Trace( "GetGrade: Grade: %s, %i", GradeToString(grade).c_str(), GRADE_TIER02_IS_ALL_W2S );
+	// LOG->Trace( "GetGrade: Grade: %s, %i", GradeToString(grade).c_str(),
+	// GRADE_TIER02_IS_ALL_W2S );
 
 	// TODO: Change these conditions to use Lua instead. -aj
-	if( GRADE_TIER02_IS_ALL_W2S )
-	{
-		if( FullComboOfScore(TNS_W1) )
+	if (GRADE_TIER02_IS_ALL_W2S) {
+		if (FullComboOfScore(TNS_W1))
 			return Grade_Tier01;
 
-		if( FullComboOfScore(TNS_W2) )
+		if (FullComboOfScore(TNS_W2))
 			return Grade_Tier02;
 
-		grade = max( grade, Grade_Tier03 );
+		grade = max(grade, Grade_Tier03);
 	}
 
-	if( GRADE_TIER01_IS_ALL_W2S )
-	{
-		if( FullComboOfScore(TNS_W2) )
+	if (GRADE_TIER01_IS_ALL_W2S) {
+		if (FullComboOfScore(TNS_W2))
 			return Grade_Tier01;
-		grade = max( grade, Grade_Tier02 );
+		grade = max(grade, Grade_Tier02);
 	}
 
-	if( GRADE_TIER02_IS_FULL_COMBO )
-	{
-		if( FullComboOfScore(g_MinScoreToMaintainCombo) )
+	if (GRADE_TIER02_IS_FULL_COMBO) {
+		if (FullComboOfScore(g_MinScoreToMaintainCombo))
 			return Grade_Tier02;
-		grade = max( grade, Grade_Tier03 );
+		grade = max(grade, Grade_Tier03);
 	}
 
 	return grade;
 }
 
-float PlayerStageStats::MakePercentScore( int iActual, int iPossible )
+float
+PlayerStageStats::MakePercentScore(int iActual, int iPossible)
 {
-	if( iPossible == 0 )
+	if (iPossible == 0)
 		return 0; // div/0
 
-	if( iActual == iPossible )
-		return 1;	// correct for rounding error
+	if (iActual == iPossible)
+		return 1; // correct for rounding error
 
 	// This can happen in battle, with transform attacks.
-	//ASSERT_M( iActual <= iPossible, ssprintf("%i/%i", iActual, iPossible) );
+	// ASSERT_M( iActual <= iPossible, ssprintf("%i/%i", iActual, iPossible) );
 
-	float fPercent =  iActual / static_cast<float>(iPossible);
+	float fPercent = iActual / static_cast<float>(iPossible);
 
 	// don't allow negative
-	fPercent = max( 0, fPercent );
+	fPercent = max(0, fPercent);
 
-	int iPercentTotalDigits = 3 + CommonMetrics::PERCENT_SCORE_DECIMAL_PLACES;	// "100" + "." + "00"
+	int iPercentTotalDigits =
+	  3 + CommonMetrics::PERCENT_SCORE_DECIMAL_PLACES; // "100" + "." + "00"
 
-	// TRICKY: printf will round, but we want to truncate. Otherwise, we may display
-	// a percent score that's too high and doesn't match up with the calculated grade.
-	float fTruncInterval = powf( 0.1f, (float)iPercentTotalDigits-1 );
+	// TRICKY: printf will round, but we want to truncate. Otherwise, we may
+	// display a percent score that's too high and doesn't match up with the
+	// calculated grade.
+	float fTruncInterval = powf(0.1f, (float)iPercentTotalDigits - 1);
 
 	// TRICKY: ftruncf is rounding 1.0000000 to 0.99990004. Give a little boost
 	// to fPercentDancePoints to correct for this.
 	fPercent += 0.000001f;
 
-	fPercent = ftruncf( fPercent, fTruncInterval );
+	fPercent = ftruncf(fPercent, fTruncInterval);
 	return fPercent;
 }
 
-RString PlayerStageStats::FormatPercentScore( float fPercentDancePoints )
+RString
+PlayerStageStats::FormatPercentScore(float fPercentDancePoints)
 {
-	int iPercentTotalDigits = 3 + CommonMetrics::PERCENT_SCORE_DECIMAL_PLACES;	// "100" + "." + "00"
+	int iPercentTotalDigits =
+	  3 + CommonMetrics::PERCENT_SCORE_DECIMAL_PLACES; // "100" + "." + "00"
 
-	RString s = ssprintf( "%*.*f%%", iPercentTotalDigits, 
-			     static_cast<int>(CommonMetrics::PERCENT_SCORE_DECIMAL_PLACES),
-			     fPercentDancePoints*100 );
+	RString s =
+	  ssprintf("%*.*f%%",
+			   iPercentTotalDigits,
+			   static_cast<int>(CommonMetrics::PERCENT_SCORE_DECIMAL_PLACES),
+			   fPercentDancePoints * 100);
 	return s;
 }
 
-float PlayerStageStats::GetPercentDancePoints() const {
-	return MakePercentScore( m_iActualDancePoints, m_iPossibleDancePoints );
+float
+PlayerStageStats::GetPercentDancePoints() const
+{
+	return MakePercentScore(m_iActualDancePoints, m_iPossibleDancePoints);
 }
-float PlayerStageStats::GetWifeScore() const {
+float
+PlayerStageStats::GetWifeScore() const
+{
 	return m_fWifeScore;
 }
-float PlayerStageStats::GetCurWifeScore() const {
+float
+PlayerStageStats::GetCurWifeScore() const
+{
 	return CurWifeScore;
 }
-float PlayerStageStats::GetMaxWifeScore() const {
+float
+PlayerStageStats::GetMaxWifeScore() const
+{
 	return MaxWifeScore;
 }
-vector<float> PlayerStageStats::CalcSSR(float ssrpercent ) const {
+vector<float>
+PlayerStageStats::CalcSSR(float ssrpercent) const
+{
 	Steps* steps = GAMESTATE->m_pCurSteps[PLAYER_1];
 	float musicrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-	return MinaSDCalc(serializednd, steps->GetNoteData().GetNumTracks(), musicrate, ssrpercent, 1.f, steps->GetTimingData()->HasWarps());
+	return MinaSDCalc(serializednd,
+					  steps->GetNoteData().GetNumTracks(),
+					  musicrate,
+					  ssrpercent,
+					  1.f,
+					  steps->GetTimingData()->HasWarps());
 }
 
-float PlayerStageStats::GetTimingScale() const {
+float
+PlayerStageStats::GetTimingScale() const
+{
 	return m_fTimingScale;
 }
-vector<float> PlayerStageStats::GetOffsetVector() const {
+vector<float>
+PlayerStageStats::GetOffsetVector() const
+{
 	return m_vOffsetVector;
 }
-vector<int> PlayerStageStats::GetNoteRowVector() const {
+vector<int>
+PlayerStageStats::GetNoteRowVector() const
+{
 	return m_vNoteRowVector;
 }
-vector<int> PlayerStageStats::GetTrackVector() const {
+vector<int>
+PlayerStageStats::GetTrackVector() const
+{
 	return m_vTrackVector;
 }
-vector<TapNoteType> PlayerStageStats::GetTapNoteTypeVector() const {
+vector<TapNoteType>
+PlayerStageStats::GetTapNoteTypeVector() const
+{
 	return m_vTapNoteTypeVector;
 }
-vector<HoldReplayResult> PlayerStageStats::GetHoldReplayDataVector() const {
+vector<HoldReplayResult>
+PlayerStageStats::GetHoldReplayDataVector() const
+{
 	return m_vHoldReplayData;
 }
 
-float PlayerStageStats::GetCurMaxPercentDancePoints() const
+float
+PlayerStageStats::GetCurMaxPercentDancePoints() const
 {
-	if ( m_iPossibleDancePoints == 0 )
+	if (m_iPossibleDancePoints == 0)
 		return 0; // div/0
 
-	if ( m_iCurPossibleDancePoints == m_iPossibleDancePoints )
+	if (m_iCurPossibleDancePoints == m_iPossibleDancePoints)
 		return 1; // correct for rounding error
 
-	auto fCurMaxPercentDancePoints = static_cast<float>(m_iCurPossibleDancePoints / m_iPossibleDancePoints);
+	auto fCurMaxPercentDancePoints =
+	  static_cast<float>(m_iCurPossibleDancePoints / m_iPossibleDancePoints);
 
 	return fCurMaxPercentDancePoints;
 }
 
 // TODO: Make this use lua. Let more judgments be possible. -Wolfman2000
-int PlayerStageStats::GetLessonScoreActual() const
+int
+PlayerStageStats::GetLessonScoreActual() const
 {
 	int iScore = 0;
 
-	FOREACH_ENUM( TapNoteScore, tns )
+	FOREACH_ENUM(TapNoteScore, tns)
 	{
-		switch( tns )
-		{
+		switch (tns) {
 			case TNS_AvoidMine:
 			case TNS_W5:
 			case TNS_W4:
@@ -380,10 +443,9 @@ int PlayerStageStats::GetLessonScoreActual() const
 		}
 	}
 
-	FOREACH_ENUM( HoldNoteScore, hns )
+	FOREACH_ENUM(HoldNoteScore, hns)
 	{
-		switch( hns )
-		{
+		switch (hns) {
 			case HNS_Held:
 				iScore += m_iHoldNoteScores[hns];
 			default:
@@ -394,26 +456,28 @@ int PlayerStageStats::GetLessonScoreActual() const
 	return iScore;
 }
 
-int PlayerStageStats::GetLessonScoreNeeded() const
+int
+PlayerStageStats::GetLessonScoreNeeded() const
 {
 	float fScore = 0;
 
-	FOREACH_CONST( Steps*, m_vpPossibleSteps, steps )
+	FOREACH_CONST(Steps*, m_vpPossibleSteps, steps)
 	{
 		fScore += (*steps)->GetRadarValues()[RadarCategory_TapsAndHolds];
 	}
 
-	return lround( fScore * LESSON_PASS_THRESHOLD );
+	return lround(fScore * LESSON_PASS_THRESHOLD);
 }
 
-void PlayerStageStats::ResetScoreForLesson()
+void
+PlayerStageStats::ResetScoreForLesson()
 {
 	m_iCurPossibleDancePoints = 0;
 	m_iActualDancePoints = 0;
-	FOREACH_ENUM( TapNoteScore, tns )
-		m_iTapNoteScores[tns] = 0;
-	FOREACH_ENUM( HoldNoteScore, hns )
-		m_iHoldNoteScores[hns] = 0;
+	FOREACH_ENUM(TapNoteScore, tns)
+	m_iTapNoteScores[tns] = 0;
+	FOREACH_ENUM(HoldNoteScore, hns)
+	m_iHoldNoteScores[hns] = 0;
 	m_iCurCombo = 0;
 	m_iMaxCombo = 0;
 	m_iCurMissCombo = 0;
@@ -422,14 +486,15 @@ void PlayerStageStats::ResetScoreForLesson()
 	m_iMaxScore = 0;
 }
 
-void PlayerStageStats::SetLifeRecordAt( float fLife, float fStepsSecond )
+void
+PlayerStageStats::SetLifeRecordAt(float fLife, float fStepsSecond)
 {
-	if( fStepsSecond < 0 )
+	if (fStepsSecond < 0)
 		return;
 
-	m_fFirstSecond = min( fStepsSecond, m_fFirstSecond );
-	m_fLastSecond = max( fStepsSecond, m_fLastSecond );
-	//LOG->Trace( "fLastSecond = %f", m_fLastSecond );
+	m_fFirstSecond = min(fStepsSecond, m_fFirstSecond);
+	m_fLastSecond = max(fStepsSecond, m_fLastSecond);
+	// LOG->Trace( "fLastSecond = %f", m_fLastSecond );
 
 	// fStepsSecond will usually be greater than any value already in the map,
 	// but if a tap and a hold both set the life on the same frame, it won't.
@@ -441,103 +506,115 @@ void PlayerStageStats::SetLifeRecordAt( float fLife, float fStepsSecond )
 	// entry.  Then the second call of the frame occurs and sets the life for
 	// the current time to a lower value.
 	// -Kyz
-	map<float,float>::iterator curr= m_fLifeRecord.find(fStepsSecond);
-	if(curr != m_fLifeRecord.end())
-	{
-		if(curr->second != fLife)
-		{
+	map<float, float>::iterator curr = m_fLifeRecord.find(fStepsSecond);
+	if (curr != m_fLifeRecord.end()) {
+		if (curr->second != fLife) {
 			// 2^-8
-			m_fLifeRecord[fStepsSecond - 0.00390625f]= curr->second;
+			m_fLifeRecord[fStepsSecond - 0.00390625f] = curr->second;
 		}
 	}
 	m_fLifeRecord[fStepsSecond] = fLife;
 
-	Message msg(static_cast<MessageID>(Message_LifeMeterChangedP1+m_player_number));
+	Message msg(
+	  static_cast<MessageID>(Message_LifeMeterChangedP1 + m_player_number));
 	msg.SetParam("Life", fLife);
 	msg.SetParam("StepsSecond", fStepsSecond);
 	MESSAGEMAN->Broadcast(msg);
 
 	// Memory optimization:
 	// If we have three consecutive records A, B, and C all with the same fLife,
-	// we can eliminate record B without losing data. Only check the last three 
-	// records in the map since we're only inserting at the end, and we know all 
+	// we can eliminate record B without losing data. Only check the last three
+	// records in the map since we're only inserting at the end, and we know all
 	// earlier redundant records have already been removed.
-	map<float,float>::iterator C = m_fLifeRecord.end();
+	map<float, float>::iterator C = m_fLifeRecord.end();
 	--C;
-	if( C == m_fLifeRecord.begin() ) // no earlier records left
+	if (C == m_fLifeRecord.begin()) // no earlier records left
 		return;
 
-	map<float,float>::iterator B = C;
+	map<float, float>::iterator B = C;
 	--B;
-	if( B == m_fLifeRecord.begin() ) // no earlier records left
+	if (B == m_fLifeRecord.begin()) // no earlier records left
 		return;
 
-	map<float,float>::iterator A = B;
+	map<float, float>::iterator A = B;
 	--A;
 
-	if( A->second == B->second && B->second == C->second )
+	if (A->second == B->second && B->second == C->second)
 		m_fLifeRecord.erase(B);
 }
 
-float PlayerStageStats::GetLifeRecordAt( float fStepsSecond ) const
+float
+PlayerStageStats::GetLifeRecordAt(float fStepsSecond) const
 {
-	if( m_fLifeRecord.empty() )
+	if (m_fLifeRecord.empty())
 		return 0;
 
 	// Find the first element whose key is greater than k.
-	map<float,float>::const_iterator it = m_fLifeRecord.upper_bound( fStepsSecond );
+	map<float, float>::const_iterator it =
+	  m_fLifeRecord.upper_bound(fStepsSecond);
 
 	// Find the last element whose key is less than or equal to k.
-	if( it != m_fLifeRecord.begin() )
+	if (it != m_fLifeRecord.begin())
 		--it;
 
 	return it->second;
-
 }
 
-float PlayerStageStats::GetLifeRecordLerpAt( float fStepsSecond ) const
+float
+PlayerStageStats::GetLifeRecordLerpAt(float fStepsSecond) const
 {
-	if( m_fLifeRecord.empty() )
+	if (m_fLifeRecord.empty())
 		return 0;
 
 	// Find the first element whose key is greater than k.
-	map<float,float>::const_iterator later = m_fLifeRecord.upper_bound( fStepsSecond );
+	map<float, float>::const_iterator later =
+	  m_fLifeRecord.upper_bound(fStepsSecond);
 
 	// Find the last element whose key is less than or equal to k.
-	map<float,float>::const_iterator earlier = later;
-	if( earlier != m_fLifeRecord.begin() )
+	map<float, float>::const_iterator earlier = later;
+	if (earlier != m_fLifeRecord.begin())
 		--earlier;
 
-	if( later == m_fLifeRecord.end() )
+	if (later == m_fLifeRecord.end())
 		return earlier->second;
 
-	if( earlier->first == later->first ) // two samples from the same time.  Don't divide by zero in SCALE
+	if (earlier->first == later->first) // two samples from the same time.
+										// Don't divide by zero in SCALE
 		return earlier->second;
 
 	// earlier <= pos <= later
-	return SCALE( fStepsSecond, earlier->first, later->first, earlier->second, later->second );
+	return SCALE(fStepsSecond,
+				 earlier->first,
+				 later->first,
+				 earlier->second,
+				 later->second);
 }
 
-void PlayerStageStats::GetLifeRecord( float *fLifeOut, int iNumSamples, float fStepsEndSecond ) const
+void
+PlayerStageStats::GetLifeRecord(float* fLifeOut,
+								int iNumSamples,
+								float fStepsEndSecond) const
 {
-	for( int i = 0; i < iNumSamples; ++i )
-	{
-		float from = SCALE( i, 0, static_cast<float>(iNumSamples), 0.0f, fStepsEndSecond );
-		fLifeOut[i] = GetLifeRecordLerpAt( from );
+	for (int i = 0; i < iNumSamples; ++i) {
+		float from =
+		  SCALE(i, 0, static_cast<float>(iNumSamples), 0.0f, fStepsEndSecond);
+		fLifeOut[i] = GetLifeRecordLerpAt(from);
 	}
 }
 
-float PlayerStageStats::GetCurrentLife() const
+float
+PlayerStageStats::GetCurrentLife() const
 {
-	if( m_fLifeRecord.empty() )
+	if (m_fLifeRecord.empty())
 		return 0;
-	map<float,float>::const_iterator iter = m_fLifeRecord.end();
-	--iter; 
+	map<float, float>::const_iterator iter = m_fLifeRecord.end();
+	--iter;
 	return iter->second;
 }
 
 // copy pasta from above but for wife% -mina
-void PlayerStageStats::SetWifeRecordAt(float Wife, float fStepsSecond)
+void
+PlayerStageStats::SetWifeRecordAt(float Wife, float fStepsSecond)
 {
 	if (fStepsSecond < 0)
 		return;
@@ -545,10 +622,8 @@ void PlayerStageStats::SetWifeRecordAt(float Wife, float fStepsSecond)
 	m_fFirstSecond = min(fStepsSecond, m_fFirstSecond);
 	m_fLastSecond = max(fStepsSecond, m_fLastSecond);
 	map<float, float>::iterator curr = WifeRecord.find(fStepsSecond);
-	if (curr != WifeRecord.end())
-	{
-		if (curr->second != Wife)
-		{
+	if (curr != WifeRecord.end()) {
+		if (curr->second != Wife) {
 			// 2^-8
 			WifeRecord[fStepsSecond - 0.00390625f] = curr->second;
 		}
@@ -572,7 +647,8 @@ void PlayerStageStats::SetWifeRecordAt(float Wife, float fStepsSecond)
 		WifeRecord.erase(B);
 }
 
-float PlayerStageStats::GetWifeRecordAt(float fStepsSecond) const
+float
+PlayerStageStats::GetWifeRecordAt(float fStepsSecond) const
 {
 	if (WifeRecord.empty())
 		return 0;
@@ -582,12 +658,14 @@ float PlayerStageStats::GetWifeRecordAt(float fStepsSecond) const
 	return it->second;
 }
 
-float PlayerStageStats::GetWifeRecordLerpAt(float fStepsSecond) const
+float
+PlayerStageStats::GetWifeRecordLerpAt(float fStepsSecond) const
 {
 	if (WifeRecord.empty())
 		return 0;
 
-	map<float, float>::const_iterator later = WifeRecord.upper_bound(fStepsSecond);
+	map<float, float>::const_iterator later =
+	  WifeRecord.upper_bound(fStepsSecond);
 	map<float, float>::const_iterator earlier = later;
 	if (earlier != WifeRecord.begin())
 		--earlier;
@@ -595,45 +673,53 @@ float PlayerStageStats::GetWifeRecordLerpAt(float fStepsSecond) const
 	if (later == WifeRecord.end())
 		return earlier->second;
 
-	if (earlier->first == later->first) // two samples from the same time.  Don't divide by zero in SCALE
+	if (earlier->first == later->first) // two samples from the same time.
+										// Don't divide by zero in SCALE
 		return earlier->second;
 
-	return SCALE(fStepsSecond, earlier->first, later->first, earlier->second, later->second);
+	return SCALE(fStepsSecond,
+				 earlier->first,
+				 later->first,
+				 earlier->second,
+				 later->second);
 }
 
-void PlayerStageStats::GetWifeRecord(float* WifeOut, int iNumSamples, float fStepsEndSecond) const
+void
+PlayerStageStats::GetWifeRecord(float* WifeOut,
+								int iNumSamples,
+								float fStepsEndSecond) const
 {
-	for (int i = 0; i < iNumSamples; ++i)
-	{
-		float from = SCALE(i, 0, static_cast<float>(iNumSamples), 0.0f, fStepsEndSecond);
+	for (int i = 0; i < iNumSamples; ++i) {
+		float from =
+		  SCALE(i, 0, static_cast<float>(iNumSamples), 0.0f, fStepsEndSecond);
 		WifeOut[i] = GetLifeRecordLerpAt(from);
 	}
 }
 
 /* If bRollover is true, we're being called before gameplay begins, so we can
  * record the amount of the first combo that comes from the previous song. */
-void PlayerStageStats::UpdateComboList( float fSecond, bool bRollover )
+void
+PlayerStageStats::UpdateComboList(float fSecond, bool bRollover)
 {
-	if( fSecond < 0 )
+	if (fSecond < 0)
 		return;
 
-	if( !bRollover )
-	{
-		m_fFirstSecond = min( fSecond, m_fFirstSecond );
-		m_fLastSecond = max( fSecond, m_fLastSecond );
-		//LOG->Trace( "fLastSecond = %f", fLastSecond );
+	if (!bRollover) {
+		m_fFirstSecond = min(fSecond, m_fFirstSecond);
+		m_fLastSecond = max(fSecond, m_fLastSecond);
+		// LOG->Trace( "fLastSecond = %f", fLastSecond );
 	}
 
 	int cnt = m_iCurCombo;
-	if( cnt == 0 )
+	if (cnt == 0)
 		return; // no combo
 
-	if( m_ComboList.size() == 0 || m_ComboList.back().m_cnt >= cnt )
-	{
+	if (m_ComboList.size() == 0 || m_ComboList.back().m_cnt >= cnt) {
 		/* If the previous combo (if any) starts on -9999, then we rolled over
 		 * some combo, but missed the first step. Remove it. */
-		if( m_ComboList.size() && m_ComboList.back().m_fStartSecond == -9999 )
-			m_ComboList.erase( m_ComboList.begin()+m_ComboList.size()-1, m_ComboList.end() );
+		if (m_ComboList.size() && m_ComboList.back().m_fStartSecond == -9999)
+			m_ComboList.erase(m_ComboList.begin() + m_ComboList.size() - 1,
+							  m_ComboList.end());
 
 		// This is a new combo.
 		Combo_t NewCombo;
@@ -641,214 +727,220 @@ void PlayerStageStats::UpdateComboList( float fSecond, bool bRollover )
 		 * If we're recording rollover, the combo hasn't started yet (within
 		 * this song), so put a placeholder in and set it on the next call.
 		 * (Otherwise, start will be less than fFirstPos.) */
-		if( bRollover )
+		if (bRollover)
 			NewCombo.m_fStartSecond = -9999;
 		else
 			NewCombo.m_fStartSecond = fSecond;
-		m_ComboList.push_back( NewCombo );
+		m_ComboList.push_back(NewCombo);
 	}
 
-	Combo_t &combo = m_ComboList.back();
-	if( !bRollover && combo.m_fStartSecond == -9999 )
+	Combo_t& combo = m_ComboList.back();
+	if (!bRollover && combo.m_fStartSecond == -9999)
 		combo.m_fStartSecond = 0;
 
 	combo.m_fSizeSeconds = fSecond - combo.m_fStartSecond;
 	combo.m_cnt = cnt;
 
-	if( bRollover )
+	if (bRollover)
 		combo.m_rollover = cnt;
 }
 
-/* This returns the largest combo contained within the song, as if
- * m_bComboContinuesBetweenSongs is turned off. */
-PlayerStageStats::Combo_t PlayerStageStats::GetMaxCombo() const
+/* This returns the largest combo contained within the song */
+PlayerStageStats::Combo_t
+PlayerStageStats::GetMaxCombo() const
 {
-	if( m_ComboList.size() == 0 )
+	if (m_ComboList.size() == 0)
 		return Combo_t();
 
 	int m = 0;
-	for( unsigned i = 1; i < m_ComboList.size(); ++i )
-	{
-		if( m_ComboList[i].m_cnt > m_ComboList[m].m_cnt )
+	for (unsigned i = 1; i < m_ComboList.size(); ++i) {
+		if (m_ComboList[i].m_cnt > m_ComboList[m].m_cnt)
 			m = i;
 	}
 
 	return m_ComboList[m];
 }
 
-int PlayerStageStats::GetComboAtStartOfStage() const
+int
+PlayerStageStats::GetComboAtStartOfStage() const
 {
-	if( m_ComboList.empty() )
+	if (m_ComboList.empty())
 		return 0;
-	
-		return m_ComboList[0].m_rollover;
+
+	return m_ComboList[0].m_rollover;
 }
 
-bool PlayerStageStats::FullComboOfScore( TapNoteScore tnsAllGreaterOrEqual ) const
+bool
+PlayerStageStats::FullComboOfScore(TapNoteScore tnsAllGreaterOrEqual) const
 {
-	ASSERT( tnsAllGreaterOrEqual >= TNS_W5 );
-	ASSERT( tnsAllGreaterOrEqual <= TNS_W1 );
-   
-  //if we've set MissCombo to anything besides 0, it's not a full combo
-  if( !m_bPlayerCanAchieveFullCombo )
-    return false;
+	ASSERT(tnsAllGreaterOrEqual >= TNS_W5);
+	ASSERT(tnsAllGreaterOrEqual <= TNS_W1);
 
-	// If missed any holds, then it's not a full combo
-	if( m_iHoldNoteScores[HNS_LetGo] > 0 )
+	// if we've set MissCombo to anything besides 0, it's not a full combo
+	if (!m_bPlayerCanAchieveFullCombo)
 		return false;
 
-	//if any checkpoints were missed, it's not a full combo	either
-	if( m_iTapNoteScores[TNS_CheckpointMiss] > 0 )
+	// If missed any holds, then it's not a full combo
+	if (m_iHoldNoteScores[HNS_LetGo] > 0)
+		return false;
+
+	// if any checkpoints were missed, it's not a full combo	either
+	if (m_iTapNoteScores[TNS_CheckpointMiss] > 0)
 		return false;
 
 	// If has any of the judgments below, then not a full combo
-	for( int i=TNS_Miss; i<tnsAllGreaterOrEqual; i++ )
-	{
-		if( m_iTapNoteScores[i] > 0 )
+	for (int i = TNS_Miss; i < tnsAllGreaterOrEqual; i++) {
+		if (m_iTapNoteScores[i] > 0)
 			return false;
 	}
 
 	// hit any mines when they increment the miss combo? It's not a full combo.
-	if( g_MineHitIncrementsMissCombo && m_iTapNoteScores[TNS_HitMine] > 0 )
+	if (g_MineHitIncrementsMissCombo && m_iTapNoteScores[TNS_HitMine] > 0)
 		return false;
 
-	// If has at least one of the judgments equal to or above, then is a full combo.
-	for( int i=tnsAllGreaterOrEqual; i<NUM_TapNoteScore; i++ )
-	{
-		if( m_iTapNoteScores[i] > 0 )
+	// If has at least one of the judgments equal to or above, then is a full
+	// combo.
+	for (int i = tnsAllGreaterOrEqual; i < NUM_TapNoteScore; i++) {
+		if (m_iTapNoteScores[i] > 0)
 			return true;
 	}
 
 	return false;
 }
 
-TapNoteScore PlayerStageStats::GetBestFullComboTapNoteScore() const
+TapNoteScore
+PlayerStageStats::GetBestFullComboTapNoteScore() const
 {
 	// Optimization opportunity: ...
 	// (seriously? -aj)
-	for( TapNoteScore i=TNS_W1; i >= TNS_W5; enum_add(i,-1))
-	{
-		if( FullComboOfScore(i) )
+	for (TapNoteScore i = TNS_W1; i >= TNS_W5; enum_add(i, -1)) {
+		if (FullComboOfScore(i))
 			return i;
 	}
 	return TapNoteScore_Invalid;
 }
 
-bool PlayerStageStats::SingleDigitsOfScore( TapNoteScore tnsAllGreaterOrEqual ) const
+bool
+PlayerStageStats::SingleDigitsOfScore(TapNoteScore tnsAllGreaterOrEqual) const
 {
-	return FullComboOfScore( tnsAllGreaterOrEqual ) &&
-		m_iTapNoteScores[tnsAllGreaterOrEqual] < 10;
+	return FullComboOfScore(tnsAllGreaterOrEqual) &&
+		   m_iTapNoteScores[tnsAllGreaterOrEqual] < 10;
 }
 
-bool PlayerStageStats::OneOfScore( TapNoteScore tnsAllGreaterOrEqual ) const
+bool
+PlayerStageStats::OneOfScore(TapNoteScore tnsAllGreaterOrEqual) const
 {
-	return FullComboOfScore( tnsAllGreaterOrEqual ) &&
-		m_iTapNoteScores[tnsAllGreaterOrEqual] == 1;
+	return FullComboOfScore(tnsAllGreaterOrEqual) &&
+		   m_iTapNoteScores[tnsAllGreaterOrEqual] == 1;
 }
 
-int PlayerStageStats::GetTotalTaps() const
+int
+PlayerStageStats::GetTotalTaps() const
 {
 	int iTotalTaps = 0;
-	for( int i=TNS_Miss; i<NUM_TapNoteScore; i++ )
-	{
+	for (int i = TNS_Miss; i < NUM_TapNoteScore; i++) {
 		iTotalTaps += m_iTapNoteScores[i];
 	}
 	return iTotalTaps;
 }
 
-float PlayerStageStats::GetPercentageOfTaps( TapNoteScore tns ) const
+float
+PlayerStageStats::GetPercentageOfTaps(TapNoteScore tns) const
 {
 	int iTotalTaps = 0;
-	for( int i=TNS_Miss; i<NUM_TapNoteScore; i++ )
-	{
+	for (int i = TNS_Miss; i < NUM_TapNoteScore; i++) {
 		iTotalTaps += m_iTapNoteScores[i];
 	}
 	return m_iTapNoteScores[tns] / static_cast<float>(iTotalTaps);
 }
 
-void PlayerStageStats::CalcAwards( PlayerNumber p, bool bGaveUp, bool bUsedAutoplay )
+void
+PlayerStageStats::CalcAwards(PlayerNumber p, bool bGaveUp, bool bUsedAutoplay)
 {
-	//LOG->Trace( "hand out awards" );
+	// LOG->Trace( "hand out awards" );
 
 	m_PeakComboAward = PeakComboAward_Invalid;
 
-	if( bGaveUp || bUsedAutoplay )
+	if (bGaveUp || bUsedAutoplay)
 		return;
 
-	deque<StageAward> &vPdas = GAMESTATE->m_vLastStageAwards[p];
+	deque<StageAward>& vPdas = GAMESTATE->m_vLastStageAwards[p];
 
-	//LOG->Trace( "per difficulty awards" );
+	// LOG->Trace( "per difficulty awards" );
 
 	// per-difficulty awards
 	// don't give per-difficutly awards if using easy mods
-	if( !IsDisqualified() )
-	{
-		if( FullComboOfScore( TNS_W3 ) )
-			vPdas.push_back( StageAward_FullComboW3 );
-		if( SingleDigitsOfScore( TNS_W3 ) )
-			vPdas.push_back( StageAward_SingleDigitW3 );
-		if( FullComboOfScore( TNS_W2 ) )
-			vPdas.push_back( StageAward_FullComboW2 );
-		if( SingleDigitsOfScore( TNS_W2 ) )
-			vPdas.push_back( StageAward_SingleDigitW2 );
-		if( FullComboOfScore( TNS_W1 ) )
-			vPdas.push_back( StageAward_FullComboW1 );
+	if (!IsDisqualified()) {
+		if (FullComboOfScore(TNS_W3))
+			vPdas.push_back(StageAward_FullComboW3);
+		if (SingleDigitsOfScore(TNS_W3))
+			vPdas.push_back(StageAward_SingleDigitW3);
+		if (FullComboOfScore(TNS_W2))
+			vPdas.push_back(StageAward_FullComboW2);
+		if (SingleDigitsOfScore(TNS_W2))
+			vPdas.push_back(StageAward_SingleDigitW2);
+		if (FullComboOfScore(TNS_W1))
+			vPdas.push_back(StageAward_FullComboW1);
 
-		if( OneOfScore( TNS_W3 ) )
-			vPdas.push_back( StageAward_OneW3 );
-		if( OneOfScore( TNS_W2 ) )
-			vPdas.push_back( StageAward_OneW2 );
+		if (OneOfScore(TNS_W3))
+			vPdas.push_back(StageAward_OneW3);
+		if (OneOfScore(TNS_W2))
+			vPdas.push_back(StageAward_OneW2);
 
-		float fPercentW3s = GetPercentageOfTaps( TNS_W3 );
-		if( fPercentW3s >= 0.8f )
-			vPdas.push_back( StageAward_80PercentW3 );
-		if( fPercentW3s >= 0.9f )
-			vPdas.push_back( StageAward_90PercentW3 );
-		if( fPercentW3s >= 1.f )
-			vPdas.push_back( StageAward_100PercentW3 );
+		float fPercentW3s = GetPercentageOfTaps(TNS_W3);
+		if (fPercentW3s >= 0.8f)
+			vPdas.push_back(StageAward_80PercentW3);
+		if (fPercentW3s >= 0.9f)
+			vPdas.push_back(StageAward_90PercentW3);
+		if (fPercentW3s >= 1.f)
+			vPdas.push_back(StageAward_100PercentW3);
 	}
 
 	// Max one PDA per stage
-	if( !vPdas.empty() )
-		vPdas.erase( vPdas.begin(), vPdas.end()-1 );
+	if (!vPdas.empty())
+		vPdas.erase(vPdas.begin(), vPdas.end() - 1);
 
-	if( !vPdas.empty() )
+	if (!vPdas.empty())
 		m_StageAward = vPdas.back();
 	else
 		m_StageAward = StageAward_Invalid;
 
-	//LOG->Trace( "done with per difficulty awards" );
+	// LOG->Trace( "done with per difficulty awards" );
 
 	// DO give peak combo awards if using easy mods
 	int iComboAtStartOfStage = GetComboAtStartOfStage();
 	int iPeakCombo = GetMaxCombo().m_cnt;
 
-	FOREACH_ENUM( PeakComboAward,pca )
+	FOREACH_ENUM(PeakComboAward, pca)
 	{
-		int iLevel = 1000 * (pca+1);
-		bool bCrossedLevel = iComboAtStartOfStage < iLevel && iPeakCombo >= iLevel;
-		//LOG->Trace( "pca = %d, iLevel = %d, bCrossedLevel = %d", pca, iLevel, bCrossedLevel );
-		if( bCrossedLevel )
-			GAMESTATE->m_vLastPeakComboAwards[p].push_back( pca );
+		int iLevel = 1000 * (pca + 1);
+		bool bCrossedLevel =
+		  iComboAtStartOfStage < iLevel && iPeakCombo >= iLevel;
+		// LOG->Trace( "pca = %d, iLevel = %d, bCrossedLevel = %d", pca, iLevel,
+		// bCrossedLevel );
+		if (bCrossedLevel)
+			GAMESTATE->m_vLastPeakComboAwards[p].push_back(pca);
 	}
 
-	if( !GAMESTATE->m_vLastPeakComboAwards[p].empty() )
+	if (!GAMESTATE->m_vLastPeakComboAwards[p].empty())
 		m_PeakComboAward = GAMESTATE->m_vLastPeakComboAwards[p].back();
 	else
 		m_PeakComboAward = PeakComboAward_Invalid;
 
-	//LOG->Trace( "done with per combo awards" );
-
+	// LOG->Trace( "done with per combo awards" );
 }
 
-bool PlayerStageStats::IsDisqualified() const
+bool
+PlayerStageStats::IsDisqualified() const
 {
-	if( !PREFSMAN->m_bDisqualification )
+	if (!PREFSMAN->m_bDisqualification)
 		return false;
 	return m_bDisqualified;
 }
 
-void PlayerStageStats::UnloadReplayData() {
+void
+PlayerStageStats::UnloadReplayData()
+{
 	m_vNoteRowVector.clear();
 	m_vOffsetVector.clear();
 	m_vTrackVector.clear();
@@ -862,84 +954,89 @@ void PlayerStageStats::UnloadReplayData() {
 	m_vHoldReplayData.shrink_to_fit();
 }
 
-LuaFunction( GetGradeFromPercent,	GetGradeFromPercent( FArg(1) ) )
-LuaFunction( FormatPercentScore,	PlayerStageStats::FormatPercentScore( FArg(1) ) )
-
+LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
+  LuaFunction(FormatPercentScore, PlayerStageStats::FormatPercentScore(FArg(1)))
 
 // lua start
 #include "LuaBinding.h"
 
-/** @brief Allow Lua to have access to the PlayerStageStats. */ 
-class LunaPlayerStageStats: public Luna<PlayerStageStats>
+  /** @brief Allow Lua to have access to the PlayerStageStats. */
+  class LunaPlayerStageStats : public Luna<PlayerStageStats>
 {
-public:
-	DEFINE_METHOD( GetNumControllerSteps,		m_iNumControllerSteps )
-	DEFINE_METHOD( GetLifeRemainingSeconds,		m_fLifeRemainingSeconds )
-	DEFINE_METHOD( GetSurvivalSeconds,			GetSurvivalSeconds() )
-	DEFINE_METHOD( GetCurrentCombo,				m_iCurCombo )
-	DEFINE_METHOD( GetCurrentMissCombo,			m_iCurMissCombo )
-	DEFINE_METHOD( GetCurrentScoreMultiplier,	m_iCurScoreMultiplier )
-	DEFINE_METHOD( GetScore,					m_iScore )
-	DEFINE_METHOD( GetWifeScore,				m_fWifeScore )
-	DEFINE_METHOD( GetCurWifeScore,				CurWifeScore)
-	DEFINE_METHOD( GetMaxWifeScore,				MaxWifeScore)
-	DEFINE_METHOD( GetCurMaxScore,				m_iCurMaxScore )
-	DEFINE_METHOD( GetTapNoteScores,			m_iTapNoteScores[Enum::Check<TapNoteScore>(L, 1)] )
-	DEFINE_METHOD( GetHoldNoteScores,			m_iHoldNoteScores[Enum::Check<HoldNoteScore>(L, 1)] )
-	DEFINE_METHOD( FullCombo,					FullCombo() )
-	DEFINE_METHOD( FullComboOfScore,			FullComboOfScore( Enum::Check<TapNoteScore>(L, 1) ) )
-	DEFINE_METHOD( MaxCombo,					GetMaxCombo().m_cnt )
-	DEFINE_METHOD( GetCurrentLife,				GetCurrentLife() )
-	DEFINE_METHOD( GetGrade,					GetGrade() )
-	DEFINE_METHOD( GetWifeGrade,				GetWifeGrade())
-	DEFINE_METHOD( GetActualDancePoints,		m_iActualDancePoints )
-	DEFINE_METHOD( GetPossibleDancePoints,		m_iPossibleDancePoints )
-	DEFINE_METHOD( GetCurrentPossibleDancePoints,		m_iCurPossibleDancePoints )
-	DEFINE_METHOD( GetPercentDancePoints,		GetPercentDancePoints() )
-	DEFINE_METHOD( GetLessonScoreActual,		GetLessonScoreActual() )
-	DEFINE_METHOD( GetLessonScoreNeeded,		GetLessonScoreNeeded() )
-	DEFINE_METHOD( GetPersonalHighScoreIndex,	m_iPersonalHighScoreIndex )
-	DEFINE_METHOD( GetMachineHighScoreIndex,	m_iMachineHighScoreIndex )
-	DEFINE_METHOD( GetStageAward,				m_StageAward )
-	DEFINE_METHOD( GetPeakComboAward,			m_PeakComboAward )
-	DEFINE_METHOD( IsDisqualified,				IsDisqualified() )
-	DEFINE_METHOD( GetAliveSeconds,				m_fAliveSeconds )
-	DEFINE_METHOD( GetTotalTaps,				GetTotalTaps() )
-	DEFINE_METHOD( GetPercentageOfTaps,			GetPercentageOfTaps( Enum::Check<TapNoteScore>(L, 1) ) )
-	DEFINE_METHOD( GetBestFullComboTapNoteScore, GetBestFullComboTapNoteScore() )
-	DEFINE_METHOD( GetFailed, 					m_bFailed )
-	DEFINE_METHOD( GetSongsPassed, 					m_iSongsPassed )
-	DEFINE_METHOD( GetSongsPlayed, 					m_iSongsPlayed )
+  public:
+	DEFINE_METHOD(GetNumControllerSteps, m_iNumControllerSteps)
+	DEFINE_METHOD(GetLifeRemainingSeconds, m_fLifeRemainingSeconds)
+	DEFINE_METHOD(GetSurvivalSeconds, GetSurvivalSeconds())
+	DEFINE_METHOD(GetCurrentCombo, m_iCurCombo)
+	DEFINE_METHOD(GetCurrentMissCombo, m_iCurMissCombo)
+	DEFINE_METHOD(GetCurrentScoreMultiplier, m_iCurScoreMultiplier)
+	DEFINE_METHOD(GetScore, m_iScore)
+	DEFINE_METHOD(GetWifeScore, m_fWifeScore)
+	DEFINE_METHOD(GetCurWifeScore, CurWifeScore)
+	DEFINE_METHOD(GetMaxWifeScore, MaxWifeScore)
+	DEFINE_METHOD(GetCurMaxScore, m_iCurMaxScore)
+	DEFINE_METHOD(GetTapNoteScores,
+				  m_iTapNoteScores[Enum::Check<TapNoteScore>(L, 1)])
+	DEFINE_METHOD(GetHoldNoteScores,
+				  m_iHoldNoteScores[Enum::Check<HoldNoteScore>(L, 1)])
+	DEFINE_METHOD(FullCombo, FullCombo())
+	DEFINE_METHOD(FullComboOfScore,
+				  FullComboOfScore(Enum::Check<TapNoteScore>(L, 1)))
+	DEFINE_METHOD(MaxCombo, GetMaxCombo().m_cnt)
+	DEFINE_METHOD(GetCurrentLife, GetCurrentLife())
+	DEFINE_METHOD(GetGrade, GetGrade())
+	DEFINE_METHOD(GetWifeGrade, GetWifeGrade())
+	DEFINE_METHOD(GetActualDancePoints, m_iActualDancePoints)
+	DEFINE_METHOD(GetPossibleDancePoints, m_iPossibleDancePoints)
+	DEFINE_METHOD(GetCurrentPossibleDancePoints, m_iCurPossibleDancePoints)
+	DEFINE_METHOD(GetPercentDancePoints, GetPercentDancePoints())
+	DEFINE_METHOD(GetLessonScoreActual, GetLessonScoreActual())
+	DEFINE_METHOD(GetLessonScoreNeeded, GetLessonScoreNeeded())
+	DEFINE_METHOD(GetPersonalHighScoreIndex, m_iPersonalHighScoreIndex)
+	DEFINE_METHOD(GetMachineHighScoreIndex, m_iMachineHighScoreIndex)
+	DEFINE_METHOD(GetStageAward, m_StageAward)
+	DEFINE_METHOD(GetPeakComboAward, m_PeakComboAward)
+	DEFINE_METHOD(IsDisqualified, IsDisqualified())
+	DEFINE_METHOD(GetAliveSeconds, m_fAliveSeconds)
+	DEFINE_METHOD(GetTotalTaps, GetTotalTaps())
+	DEFINE_METHOD(GetPercentageOfTaps,
+				  GetPercentageOfTaps(Enum::Check<TapNoteScore>(L, 1)))
+	DEFINE_METHOD(GetBestFullComboTapNoteScore, GetBestFullComboTapNoteScore())
+	DEFINE_METHOD(GetFailed, m_bFailed)
+	DEFINE_METHOD(GetSongsPassed, m_iSongsPassed)
+	DEFINE_METHOD(GetSongsPlayed, m_iSongsPlayed)
 
-	static int GetHighScore( T* p, lua_State *L )
+	static int GetHighScore(T* p, lua_State* L)
 	{
 		p->m_HighScore.PushSelf(L);
 		return 1;
 	}
 
-	static int GetPlayedSteps( T* p, lua_State *L )
+	static int GetPlayedSteps(T* p, lua_State* L)
 	{
 		lua_newtable(L);
-		for( int i = 0; i < min(static_cast<int>( p->m_iStepsPlayed ), static_cast<int>( p->m_vpPossibleSteps.size() )); ++i )
-		{
+		for (int i = 0; i < min(static_cast<int>(p->m_iStepsPlayed),
+								static_cast<int>(p->m_vpPossibleSteps.size()));
+			 ++i) {
 			p->m_vpPossibleSteps[i]->PushSelf(L);
-			lua_rawseti( L, -2, i+1 );
+			lua_rawseti(L, -2, i + 1);
 		}
 		return 1;
 	}
-	static int GetPossibleSteps( T* p, lua_State *L )
+	static int GetPossibleSteps(T* p, lua_State* L)
 	{
 		lua_newtable(L);
-		for( int i = 0; i < static_cast<int>( p->m_vpPossibleSteps.size() ); ++i )
-		{
+		for (int i = 0; i < static_cast<int>(p->m_vpPossibleSteps.size());
+			 ++i) {
 			p->m_vpPossibleSteps[i]->PushSelf(L);
-			lua_rawseti( L, -2, i+1 );
+			lua_rawseti(L, -2, i + 1);
 		}
 		return 1;
 	}
 
 	// Convert to MS so lua doesn't have to
-	static int GetOffsetVector(T* p, lua_State *L) {
+	static int GetOffsetVector(T* p, lua_State* L)
+	{
 		vector<float> doot = p->m_vOffsetVector;
 		for (size_t i = 0; i < doot.size(); ++i)
 			doot[i] = doot[i] * 1000;
@@ -947,37 +1044,41 @@ public:
 		return 1;
 	}
 
-	static int GetNoteRowVector(T* p, lua_State *L) {
+	static int GetNoteRowVector(T* p, lua_State* L)
+	{
 		LuaHelpers::CreateTableFromArray(p->m_vNoteRowVector, L);
 		return 1;
 	}
 
-	static int GetTrackVector(T* p, lua_State *L) {
+	static int GetTrackVector(T* p, lua_State* L)
+	{
 		LuaHelpers::CreateTableFromArray(p->m_vTrackVector, L);
 		return 1;
 	}
 
-	static int GetTapNoteTypeVector(T* p, lua_State *L) {
+	static int GetTapNoteTypeVector(T* p, lua_State* L)
+	{
 		LuaHelpers::CreateTableFromArray(p->m_vTapNoteTypeVector, L);
 		return 1;
 	}
 
-	static int WifeScoreOffset(T* p, lua_State *L) {
+	static int WifeScoreOffset(T* p, lua_State* L)
+	{
 		lua_pushnumber(L, wife2(FArg(1), p->GetTimingScale()));
 		return 1;
 	}
 
 	// not entirely sure this should be exposed to lua... -mina
-	static int UnloadReplayData(T* p, lua_State *L) {
+	static int UnloadReplayData(T* p, lua_State* L)
+	{
 		p->UnloadReplayData();
-		return 1;
+		return 0;
 	}
 
-	static int GetComboList( T* p, lua_State *L )
+	static int GetComboList(T* p, lua_State* L)
 	{
 		lua_createtable(L, p->m_ComboList.size(), 0);
-		for( size_t i= 0; i < p->m_ComboList.size(); ++i)
-		{
+		for (size_t i = 0; i < p->m_ComboList.size(); ++i) {
 			lua_createtable(L, 0, 6);
 			lua_pushstring(L, "StartSecond");
 			lua_pushnumber(L, p->m_ComboList[i].m_fStartSecond);
@@ -997,53 +1098,27 @@ public:
 			lua_pushstring(L, "IsZero");
 			lua_pushnumber(L, p->m_ComboList[i].IsZero());
 			lua_rawset(L, -3);
-			lua_rawseti(L, -2, i+1);
+			lua_rawseti(L, -2, i + 1);
 		}
 		return 1;
 	}
-	static int GetLifeRecord( T* p, lua_State *L )
-	{
-		float last_second= FArg(1);
-		int samples= 100;
-		if (lua_gettop(L) >= 2 && !lua_isnil(L,2))
-		{
-			samples= IArg(2);
-			if(samples <= 0)
-			{
-				LOG->Trace("PlayerStageStats:GetLifeRecord requires an integer greater than 0.  Defaulting to 100.");
-				samples= 100;
-			}
-		}
-		lua_createtable(L, samples, 0);
-		for(int i= 0; i < samples; ++i)
-		{
-			// The scale from range is [0, samples-1] because that is i's range.
-			float from= SCALE(i, 0, static_cast<float>(samples) -1.0f, 0.0f, last_second);
-			float curr= p->GetLifeRecordLerpAt(from);
-			lua_pushnumber(L, curr);
-			lua_rawseti(L, -2, i+1);
-		}
-		return 1;
-	}
-
-	static int GetWifeRecord(T* p, lua_State *L)
+	static int GetLifeRecord(T* p, lua_State* L)
 	{
 		float last_second = FArg(1);
 		int samples = 100;
-		if (lua_gettop(L) >= 2 && !lua_isnil(L, 2))
-		{
+		if (lua_gettop(L) >= 2 && !lua_isnil(L, 2)) {
 			samples = IArg(2);
-			if (samples <= 0)
-			{
-				LOG->Trace("PlayerStageStats:GetLifeRecord requires an integer greater than 0.  Defaulting to 100.");
+			if (samples <= 0) {
+				LOG->Trace("PlayerStageStats:GetLifeRecord requires an integer "
+						   "greater than 0.  Defaulting to 100.");
 				samples = 100;
 			}
 		}
 		lua_createtable(L, samples, 0);
-		for (int i = 0; i < samples; ++i)
-		{
+		for (int i = 0; i < samples; ++i) {
 			// The scale from range is [0, samples-1] because that is i's range.
-			float from = SCALE(i, 0, static_cast<float>(samples) - 1.0f, 0.0f, last_second);
+			float from = SCALE(
+			  i, 0, static_cast<float>(samples) - 1.0f, 0.0f, last_second);
 			float curr = p->GetLifeRecordLerpAt(from);
 			lua_pushnumber(L, curr);
 			lua_rawseti(L, -2, i + 1);
@@ -1051,28 +1126,58 @@ public:
 		return 1;
 	}
 
-	static int GetRadarPossible( T* p, lua_State *L ) { p->m_radarPossible.PushSelf(L); return 1; }
-	static int GetRadarActual( T* p, lua_State *L ) { p->m_radarActual.PushSelf(L); return 1; }
-	static int SetScore( T* p, lua_State *L )                
-	{ 
-		if( IArg(1) >= 0 )
-		{ 
-			p->m_iScore = IArg(1); 
-			return 1; 
-		} 
-		COMMON_RETURN_SELF;
-	}
-	static int SetCurMaxScore( T* p, lua_State *L )
+	static int GetWifeRecord(T* p, lua_State* L)
 	{
-		if( IArg(1) >= 0 )
-		{
-			p->m_iCurMaxScore = IArg(1);
-			return 1;
+		float last_second = FArg(1);
+		int samples = 100;
+		if (lua_gettop(L) >= 2 && !lua_isnil(L, 2)) {
+			samples = IArg(2);
+			if (samples <= 0) {
+				LOG->Trace("PlayerStageStats:GetLifeRecord requires an integer "
+						   "greater than 0.  Defaulting to 100.");
+				samples = 100;
+			}
+		}
+		lua_createtable(L, samples, 0);
+		for (int i = 0; i < samples; ++i) {
+			// The scale from range is [0, samples-1] because that is i's range.
+			float from = SCALE(
+			  i, 0, static_cast<float>(samples) - 1.0f, 0.0f, last_second);
+			float curr = p->GetLifeRecordLerpAt(from);
+			lua_pushnumber(L, curr);
+			lua_rawseti(L, -2, i + 1);
+		}
+		return 1;
+	}
+
+	static int GetRadarPossible(T* p, lua_State* L)
+	{
+		p->m_radarPossible.PushSelf(L);
+		return 1;
+	}
+	static int GetRadarActual(T* p, lua_State* L)
+	{
+		p->m_radarActual.PushSelf(L);
+		return 1;
+	}
+	static int SetScore(T* p, lua_State* L)
+	{
+		if (IArg(1) >= 0) {
+			p->m_iScore = IArg(1);
+			return 0;
 		}
 		COMMON_RETURN_SELF;
 	}
-  
-	static int FailPlayer( T* p, lua_State *L )
+	static int SetCurMaxScore(T* p, lua_State* L)
+	{
+		if (IArg(1) >= 0) {
+			p->m_iCurMaxScore = IArg(1);
+			return 0;
+		}
+		COMMON_RETURN_SELF;
+	}
+
+	static int FailPlayer(T* p, lua_State* L)
 	{
 		p->m_bFailed = true;
 		COMMON_RETURN_SELF;
@@ -1080,71 +1185,71 @@ public:
 
 	LunaPlayerStageStats()
 	{
-		ADD_METHOD( GetNumControllerSteps );
-		ADD_METHOD( GetLifeRemainingSeconds );
-		ADD_METHOD( GetSurvivalSeconds );
-		ADD_METHOD( GetCurrentCombo );
-		ADD_METHOD( GetCurrentMissCombo );
-		ADD_METHOD( GetCurrentScoreMultiplier );
-		ADD_METHOD( GetScore );
-		ADD_METHOD( GetOffsetVector );
+		ADD_METHOD(GetNumControllerSteps);
+		ADD_METHOD(GetLifeRemainingSeconds);
+		ADD_METHOD(GetSurvivalSeconds);
+		ADD_METHOD(GetCurrentCombo);
+		ADD_METHOD(GetCurrentMissCombo);
+		ADD_METHOD(GetCurrentScoreMultiplier);
+		ADD_METHOD(GetScore);
+		ADD_METHOD(GetOffsetVector);
 		ADD_METHOD(GetTrackVector);
 		ADD_METHOD(GetTapNoteTypeVector);
-		ADD_METHOD( WifeScoreOffset );
-		ADD_METHOD( GetNoteRowVector );
-		ADD_METHOD( GetWifeScore );
-		ADD_METHOD( GetCurWifeScore );
-		ADD_METHOD( GetMaxWifeScore );
-		ADD_METHOD( GetCurMaxScore );
-		ADD_METHOD( GetTapNoteScores );
-		ADD_METHOD( GetHoldNoteScores );
-		ADD_METHOD( FullCombo );
-		ADD_METHOD( FullComboOfScore );
-		ADD_METHOD( MaxCombo );
-		ADD_METHOD( GetCurrentLife );
-		ADD_METHOD( GetGrade );
-		ADD_METHOD( GetWifeGrade );
-		ADD_METHOD( GetHighScore );
-		ADD_METHOD( GetActualDancePoints );
-		ADD_METHOD( GetPossibleDancePoints );
-		ADD_METHOD( GetCurrentPossibleDancePoints );
-		ADD_METHOD( GetPercentDancePoints );
-		ADD_METHOD( GetLessonScoreActual );
-		ADD_METHOD( GetLessonScoreNeeded );
-		ADD_METHOD( GetPersonalHighScoreIndex );
-		ADD_METHOD( GetMachineHighScoreIndex );
-		ADD_METHOD( GetStageAward );
-		ADD_METHOD( GetPeakComboAward );
-		ADD_METHOD( IsDisqualified );
-		ADD_METHOD( GetPlayedSteps );
-		ADD_METHOD( GetPossibleSteps );
-		ADD_METHOD( GetComboList );
-		ADD_METHOD( GetLifeRecord );
-		ADD_METHOD( GetWifeRecord );
-		ADD_METHOD( GetAliveSeconds );
-		ADD_METHOD( GetPercentageOfTaps );
-		ADD_METHOD( GetTotalTaps );
-		ADD_METHOD( GetRadarActual );
-		ADD_METHOD( GetRadarPossible );
-		ADD_METHOD( GetBestFullComboTapNoteScore );
-		ADD_METHOD( GetFailed );
-		ADD_METHOD( SetScore );
-		ADD_METHOD( GetCurMaxScore );
-		ADD_METHOD( SetCurMaxScore );
-		ADD_METHOD( FailPlayer );
-		ADD_METHOD( GetSongsPassed );
-		ADD_METHOD( GetSongsPlayed );
-		ADD_METHOD( UnloadReplayData );
+		ADD_METHOD(WifeScoreOffset);
+		ADD_METHOD(GetNoteRowVector);
+		ADD_METHOD(GetWifeScore);
+		ADD_METHOD(GetCurWifeScore);
+		ADD_METHOD(GetMaxWifeScore);
+		ADD_METHOD(GetCurMaxScore);
+		ADD_METHOD(GetTapNoteScores);
+		ADD_METHOD(GetHoldNoteScores);
+		ADD_METHOD(FullCombo);
+		ADD_METHOD(FullComboOfScore);
+		ADD_METHOD(MaxCombo);
+		ADD_METHOD(GetCurrentLife);
+		ADD_METHOD(GetGrade);
+		ADD_METHOD(GetWifeGrade);
+		ADD_METHOD(GetHighScore);
+		ADD_METHOD(GetActualDancePoints);
+		ADD_METHOD(GetPossibleDancePoints);
+		ADD_METHOD(GetCurrentPossibleDancePoints);
+		ADD_METHOD(GetPercentDancePoints);
+		ADD_METHOD(GetLessonScoreActual);
+		ADD_METHOD(GetLessonScoreNeeded);
+		ADD_METHOD(GetPersonalHighScoreIndex);
+		ADD_METHOD(GetMachineHighScoreIndex);
+		ADD_METHOD(GetStageAward);
+		ADD_METHOD(GetPeakComboAward);
+		ADD_METHOD(IsDisqualified);
+		ADD_METHOD(GetPlayedSteps);
+		ADD_METHOD(GetPossibleSteps);
+		ADD_METHOD(GetComboList);
+		ADD_METHOD(GetLifeRecord);
+		ADD_METHOD(GetWifeRecord);
+		ADD_METHOD(GetAliveSeconds);
+		ADD_METHOD(GetPercentageOfTaps);
+		ADD_METHOD(GetTotalTaps);
+		ADD_METHOD(GetRadarActual);
+		ADD_METHOD(GetRadarPossible);
+		ADD_METHOD(GetBestFullComboTapNoteScore);
+		ADD_METHOD(GetFailed);
+		ADD_METHOD(SetScore);
+		ADD_METHOD(GetCurMaxScore);
+		ADD_METHOD(SetCurMaxScore);
+		ADD_METHOD(FailPlayer);
+		ADD_METHOD(GetSongsPassed);
+		ADD_METHOD(GetSongsPlayed);
+		ADD_METHOD(UnloadReplayData);
 	}
 };
 
-LUA_REGISTER_CLASS( PlayerStageStats )
+LUA_REGISTER_CLASS(PlayerStageStats)
 // lua end
 
 /*
  * (c) 2001-2004 Chris Danford, Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -1154,7 +1259,7 @@ LUA_REGISTER_CLASS( PlayerStageStats )
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

@@ -8,16 +8,17 @@
 
 class RoomInfoDisplay : public ActorFrame
 {
-public:
+  public:
 	RoomInfoDisplay();
 	~RoomInfoDisplay() override;
-	virtual void Load( const RString &sType );
-	void Update( float fDeltaTime ) override;
-	void SetRoom( const RoomWheelItemData* roomData );
-	void SetRoomInfo( const RoomInfo& info);
+	virtual void Load(const RString& sType);
+	void Update(float fDeltaTime) override;
+	void SetRoom(const RoomWheelItemData* roomData);
+	void SetRoomInfo(const RoomInfo& info);
 	void DeployInfoBox();
 	void RetractInfoBox();
-private:
+
+  private:
 	void RequestRoomInfo(const RString& name);
 	enum RoomInfoDisplayState
 	{
@@ -41,14 +42,14 @@ private:
 
 	RageTimer m_deployDelay;
 
-	ThemeMetric<float>	X;
-	ThemeMetric<float>	Y;
-	ThemeMetric<float>	DEPLOY_DELAY;
-	ThemeMetric<float>	RETRACT_DELAY;
-	ThemeMetric<float>	PLAYERLISTX;
-	ThemeMetric<float>	PLAYERLISTY;
-	ThemeMetric<float>	PLAYERLISTOFFSETX;
-	ThemeMetric<float>	PLAYERLISTOFFSETY;
+	ThemeMetric<float> X;
+	ThemeMetric<float> Y;
+	ThemeMetric<float> DEPLOY_DELAY;
+	ThemeMetric<float> RETRACT_DELAY;
+	ThemeMetric<float> PLAYERLISTX;
+	ThemeMetric<float> PLAYERLISTY;
+	ThemeMetric<float> PLAYERLISTOFFSETX;
+	ThemeMetric<float> PLAYERLISTOFFSETY;
 };
 
 #endif
@@ -56,7 +57,7 @@ private:
 /*
  * (c) 2006 Josh Allen
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -66,7 +67,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

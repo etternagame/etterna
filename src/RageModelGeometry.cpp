@@ -5,266 +5,289 @@
 #include "RageModelGeometry.h"
 #include "RageUtil.h"
 
-#define MS_MAX_NAME	32
+#define MS_MAX_NAME 32
 
-RageModelGeometry::RageModelGeometry ()
+RageModelGeometry::RageModelGeometry()
 {
 	m_iRefCount = 1;
 	m_pCompiledGeometry = DISPLAY->CreateCompiledGeometry();
 }
 
-RageModelGeometry::~RageModelGeometry ()
+RageModelGeometry::~RageModelGeometry()
 {
-	DISPLAY->DeleteCompiledGeometry( m_pCompiledGeometry );
+	DISPLAY->DeleteCompiledGeometry(m_pCompiledGeometry);
 }
 
-void RageModelGeometry::OptimizeBones()
+void
+RageModelGeometry::OptimizeBones()
 {
-	for (unsigned i = 0; i < m_Meshes.size(); i++)
-	{
+	for (unsigned i = 0; i < m_Meshes.size(); i++) {
 		msMesh& mesh = m_Meshes[i];
 
-		if( mesh.Vertices.empty() )
-			continue;	// nothing to optimize
+		if (mesh.Vertices.empty())
+			continue; // nothing to optimize
 
 		// check to see if all vertices have the same bone index
 		bool bAllVertsUseSameBone = true;
-		
-		char iBoneIndex	= mesh.Vertices[0].bone;
 
-		for (unsigned j = 1; j < mesh.Vertices.size(); j++)
-		{
-			if( mesh.Vertices[j].bone != iBoneIndex )
-			{
+		char iBoneIndex = mesh.Vertices[0].bone;
+
+		for (unsigned j = 1; j < mesh.Vertices.size(); j++) {
+			if (mesh.Vertices[j].bone != iBoneIndex) {
 				bAllVertsUseSameBone = false;
 				break;
 			}
 		}
 
-		if( bAllVertsUseSameBone )
-		{
+		if (bAllVertsUseSameBone) {
 			mesh.m_iBoneIndex = iBoneIndex;
 
 			// clear all vertex/bone associations;
-			for (unsigned j = 0; j < mesh.Vertices.size(); j++)
-			{
+			for (unsigned j = 0; j < mesh.Vertices.size(); j++) {
 				mesh.Vertices[j].bone = -1;
 			}
 		}
 	}
 }
 
-void RageModelGeometry::MergeMeshes( int iFromIndex, int iToIndex )
+void
+RageModelGeometry::MergeMeshes(int iFromIndex, int iToIndex)
 {
-	msMesh& meshFrom = m_Meshes[ iFromIndex ];
-	msMesh& meshTo = m_Meshes[ iToIndex ];
+	msMesh& meshFrom = m_Meshes[iFromIndex];
+	msMesh& meshTo = m_Meshes[iToIndex];
 
 	int iShiftTriangleVertexIndicesBy = meshTo.Vertices.size();
 	int iStartShiftingAtTriangleIndex = meshTo.Triangles.size();
 
-	meshTo.Vertices.insert( meshTo.Vertices.end(), meshFrom.Vertices.begin(), meshFrom.Vertices.end() );
-	meshTo.Triangles.insert( meshTo.Triangles.end(), meshFrom.Triangles.begin(), meshFrom.Triangles.end() );
+	meshTo.Vertices.insert(meshTo.Vertices.end(),
+						   meshFrom.Vertices.begin(),
+						   meshFrom.Vertices.end());
+	meshTo.Triangles.insert(meshTo.Triangles.end(),
+							meshFrom.Triangles.begin(),
+							meshFrom.Triangles.end());
 
-	for( unsigned i=iStartShiftingAtTriangleIndex; i<meshTo.Triangles.size(); i++ )
-	{
-		for( int j=0; j<3; j++ )
-		{
-			uint16_t &iIndex = meshTo.Triangles[i].nVertexIndices[j];
+	for (unsigned i = iStartShiftingAtTriangleIndex;
+		 i < meshTo.Triangles.size();
+		 i++) {
+		for (int j = 0; j < 3; j++) {
+			uint16_t& iIndex = meshTo.Triangles[i].nVertexIndices[j];
 			iIndex = uint16_t(iIndex + iShiftTriangleVertexIndicesBy);
 		}
 	}
 }
 
-bool RageModelGeometry::HasAnyPerVertexBones() const
+bool
+RageModelGeometry::HasAnyPerVertexBones() const
 {
-	for( unsigned i = 0; i < m_Meshes.size(); ++i )
-	{
+	for (unsigned i = 0; i < m_Meshes.size(); ++i) {
 		const msMesh& mesh = m_Meshes[i];
-		for( unsigned j = 0; j < mesh.Vertices.size(); ++j )
-			if( mesh.Vertices[j].bone != -1 )
+		for (unsigned j = 0; j < mesh.Vertices.size(); ++j)
+			if (mesh.Vertices[j].bone != -1)
 				return true;
 	}
 
 	return false;
 }
 
-#define THROW RageException::Throw( "Parse error in \"%s\" at line %d: \"%s\".", sPath.c_str(), iLineNum, sLine.c_str() )
+#define THROW                                                                  \
+	RageException::Throw("Parse error in \"%s\" at line %d: \"%s\".",          \
+						 sPath.c_str(),                                        \
+						 iLineNum,                                             \
+						 sLine.c_str())
 
-void RageModelGeometry::LoadMilkshapeAscii( const RString& _sPath, bool bNeedsNormals )
+void
+RageModelGeometry::LoadMilkshapeAscii(const RString& _sPath, bool bNeedsNormals)
 {
 	RString sPath = _sPath;
 	FixSlashesInPlace(sPath);
-	const RString sDir = Dirname( sPath );
+	const RString sDir = Dirname(sPath);
 
 	RageFile f;
-	if( !f.Open( sPath ) )
-		RageException::Throw( "RageModelGeometry::LoadMilkshapeAscii Could not open \"%s\": %s", sPath.c_str(), f.GetError().c_str() );
+	if (!f.Open(sPath))
+		RageException::Throw(
+		  "RageModelGeometry::LoadMilkshapeAscii Could not open \"%s\": %s",
+		  sPath.c_str(),
+		  f.GetError().c_str());
 
 	RString sLine;
 	int iLineNum = 0;
 	char szName[MS_MAX_NAME];
 	int nFlags, nIndex;
 
-	RageVec3ClearBounds( m_vMins, m_vMaxs );
+	RageVec3ClearBounds(m_vMins, m_vMaxs);
 
-	while( f.GetLine( sLine ) > 0 )
-	{
+	while (f.GetLine(sLine) > 0) {
 		iLineNum++;
 
-		if( !strncmp(sLine, "//", 2) )
+		if (!strncmp(sLine, "//", 2))
 			continue;
 
 		int nFrame;
-		if( sscanf(sLine, "Frames: %d", &nFrame) == 1 )
-		{
+		if (sscanf(sLine, "Frames: %d", &nFrame) == 1) {
 			// ignore
 			// m_pRageModelGeometry->nTotalFrames = nFrame;
 		}
-		if( sscanf(sLine, "Frame: %d", &nFrame) == 1 )
-		{
+		if (sscanf(sLine, "Frame: %d", &nFrame) == 1) {
 			// ignore
 			// m_pRageModelGeometry->nFrame = nFrame;
 		}
 
 		int nNumMeshes = 0;
-		if( sscanf(sLine, "Meshes: %d", &nNumMeshes) == 1 )
-		{
-			ASSERT( m_Meshes.empty() );
-			m_Meshes.resize( nNumMeshes );
+		if (sscanf(sLine, "Meshes: %d", &nNumMeshes) == 1) {
+			ASSERT(m_Meshes.empty());
+			m_Meshes.resize(nNumMeshes);
 
-			for( int i = 0; i < nNumMeshes; i++ )
-			{
-				msMesh &mesh = m_Meshes[i];
-				vector<RageModelVertex> &Vertices = mesh.Vertices;
-				vector<msTriangle> &Triangles = mesh.Triangles;
+			for (int i = 0; i < nNumMeshes; i++) {
+				msMesh& mesh = m_Meshes[i];
+				vector<RageModelVertex>& Vertices = mesh.Vertices;
+				vector<msTriangle>& Triangles = mesh.Triangles;
 
-				if( f.GetLine( sLine ) <= 0 )
+				if (f.GetLine(sLine) <= 0)
 					THROW;
 
 				// mesh: name, flags, material index
-				if( sscanf (sLine, "\"%31[^\"]\" %d %d",szName, &nFlags, &nIndex) != 3 )
+				if (sscanf(
+					  sLine, "\"%31[^\"]\" %d %d", szName, &nFlags, &nIndex) !=
+					3)
 					THROW;
 
 				mesh.sName = szName;
 				// mesh.nFlags = nFlags;
-				mesh.nMaterialIndex = (uint8_t) nIndex;
+				mesh.nMaterialIndex = (uint8_t)nIndex;
 
 				mesh.m_iBoneIndex = -1;
 
 				//
 				// vertices
 				//
-				if( f.GetLine( sLine ) <= 0 )
+				if (f.GetLine(sLine) <= 0)
 					THROW;
 
 				int nNumVertices = 0;
-				if( sscanf (sLine, "%d", &nNumVertices) != 1 )
+				if (sscanf(sLine, "%d", &nNumVertices) != 1)
 					THROW;
 
-				Vertices.resize( nNumVertices );
+				Vertices.resize(nNumVertices);
 
-				for( int j = 0; j < nNumVertices; j++ )
-				{
-					RageModelVertex &v = Vertices[j];
+				for (int j = 0; j < nNumVertices; j++) {
+					RageModelVertex& v = Vertices[j];
 
-					if( f.GetLine( sLine ) <= 0 )
+					if (f.GetLine(sLine) <= 0)
 						THROW;
 
-					if( sscanf(sLine, "%d %f %f %f %f %f %d",
-								&nFlags,
-								&v.p[0], &v.p[1], &v.p[2],
-								&v.t[0], &v.t[1],
-								&nIndex
-						   ) != 7 )
-					{
+					if (sscanf(sLine,
+							   "%d %f %f %f %f %f %d",
+							   &nFlags,
+							   &v.p[0],
+							   &v.p[1],
+							   &v.p[2],
+							   &v.t[0],
+							   &v.t[1],
+							   &nIndex) != 7) {
 						THROW;
 					}
 
 					// vertex.nFlags = nFlags;
-					if( nFlags & 1 )
+					if (nFlags & 1)
 						v.TextureMatrixScale.x = 0;
-					if( nFlags & 2 )
+					if (nFlags & 2)
 						v.TextureMatrixScale.y = 0;
-					if( nFlags & 4 )
-					{
+					if (nFlags & 4) {
 						v.t[0] = v.p[0] / v.t[0];
 						v.t[1] = v.p[1] / v.t[1];
 					}
-					v.bone = (uint8_t) nIndex;
-					RageVec3AddToBounds( v.p, m_vMins, m_vMaxs );
+					v.bone = (uint8_t)nIndex;
+					RageVec3AddToBounds(v.p, m_vMins, m_vMaxs);
 				}
-
 
 				//
 				// normals
 				//
-				if( f.GetLine( sLine ) <= 0 )
+				if (f.GetLine(sLine) <= 0)
 					THROW;
 
 				int nNumNormals = 0;
-				if( sscanf(sLine, "%d", &nNumNormals) != 1 )
+				if (sscanf(sLine, "%d", &nNumNormals) != 1)
 					THROW;
 
 				vector<RageVector3> Normals;
-				Normals.resize( nNumNormals );
-				for( int j = 0; j < nNumNormals; j++ )
-				{
-					if( f.GetLine( sLine ) <= 0 )
+				Normals.resize(nNumNormals);
+				for (int j = 0; j < nNumNormals; j++) {
+					if (f.GetLine(sLine) <= 0)
 						THROW;
 
 					RageVector3 Normal;
-					if( sscanf(sLine, "%f %f %f", &Normal[0], &Normal[1], &Normal[2]) != 3 )
+					if (sscanf(sLine,
+							   "%f %f %f",
+							   &Normal[0],
+							   &Normal[1],
+							   &Normal[2]) != 3)
 						THROW;
 
-					RageVec3Normalize( (RageVector3*)&Normal, (RageVector3*)&Normal );
+					RageVec3Normalize((RageVector3*)&Normal,
+									  (RageVector3*)&Normal);
 					Normals[j] = Normal;
 				}
 
 				//
 				// triangles
 				//
-				if( f.GetLine( sLine ) <= 0 )
+				if (f.GetLine(sLine) <= 0)
 					THROW;
 
 				int nNumTriangles = 0;
-				if( sscanf (sLine, "%d", &nNumTriangles) != 1 )
+				if (sscanf(sLine, "%d", &nNumTriangles) != 1)
 					THROW;
 
-				Triangles.resize( nNumTriangles );
+				Triangles.resize(nNumTriangles);
 
-				for( int j = 0; j < nNumTriangles; j++ )
-				{
-					if( f.GetLine( sLine ) <= 0 )
+				for (int j = 0; j < nNumTriangles; j++) {
+					if (f.GetLine(sLine) <= 0)
 						THROW;
 
 					uint16_t nIndices[3];
 					uint16_t nNormalIndices[3];
-					if( sscanf (sLine, "%d %hd %hd %hd %hd %hd %hd %d",
-								&nFlags,
-								&nIndices[0], &nIndices[1], &nIndices[2],
-								&nNormalIndices[0], &nNormalIndices[1], &nNormalIndices[2],
-								&nIndex
-						   ) != 8 )
-					{
+					if (sscanf(sLine,
+							   "%d %hd %hd %hd %hd %hd %hd %d",
+							   &nFlags,
+							   &nIndices[0],
+							   &nIndices[1],
+							   &nIndices[2],
+							   &nNormalIndices[0],
+							   &nNormalIndices[1],
+							   &nNormalIndices[2],
+							   &nIndex) != 8) {
 						THROW;
 					}
 
 					// deflate the normals into vertices
-					for( int k=0; k<3; k++ )
-					{
-						ASSERT_M( nIndices[k] < Vertices.size(), ssprintf("mesh \"%s\" tri #%i accesses vertex %i, but we only have %i",
-							szName, j, nIndices[k], int(Vertices.size())) );
-						ASSERT_M( nNormalIndices[k] < Normals.size(), ssprintf("mesh \"%s\" tri #%i accesses normal %i, but we only have %i",
-							szName, j, nNormalIndices[k], int(Normals.size())) );
-						RageModelVertex& vertex = Vertices[ nIndices[k] ];
-						RageVector3& normal = Normals[ nNormalIndices[k] ];
+					for (int k = 0; k < 3; k++) {
+						ASSERT_M(nIndices[k] < Vertices.size(),
+								 ssprintf("mesh \"%s\" tri #%i accesses vertex "
+										  "%i, but we only have %i",
+										  szName,
+										  j,
+										  nIndices[k],
+										  int(Vertices.size())));
+						ASSERT_M(nNormalIndices[k] < Normals.size(),
+								 ssprintf("mesh \"%s\" tri #%i accesses normal "
+										  "%i, but we only have %i",
+										  szName,
+										  j,
+										  nNormalIndices[k],
+										  int(Normals.size())));
+						RageModelVertex& vertex = Vertices[nIndices[k]];
+						RageVector3& normal = Normals[nNormalIndices[k]];
 						vertex.n = normal;
-						//mesh.Vertices[nIndices[k]].n = Normals[ nNormalIndices[k] ];
+						// mesh.Vertices[nIndices[k]].n = Normals[
+						// nNormalIndices[k] ];
 					}
 
 					msTriangle& Triangle = Triangles[j];
 					// Triangle.nFlags = nFlags;
-					memcpy( &Triangle.nVertexIndices, nIndices, sizeof(Triangle.nVertexIndices) );
+					memcpy(&Triangle.nVertexIndices,
+						   nIndices,
+						   sizeof(Triangle.nVertexIndices));
 					// Triangle.nSmoothingGroup = nIndex;
 				}
 			}
@@ -273,16 +296,14 @@ void RageModelGeometry::LoadMilkshapeAscii( const RString& _sPath, bool bNeedsNo
 
 	OptimizeBones();
 
-	if( DISPLAY->SupportsPerVertexMatrixScale() )
-	{
-		if( m_Meshes.size() == 2  &&  m_Meshes[0].sName == m_Meshes[1].sName )
-		{
-			MergeMeshes( 1, 0 );
+	if (DISPLAY->SupportsPerVertexMatrixScale()) {
+		if (m_Meshes.size() == 2 && m_Meshes[0].sName == m_Meshes[1].sName) {
+			MergeMeshes(1, 0);
 		}
 	}
 
 	// send the finalized vertices to the graphics card
-	m_pCompiledGeometry->Set( m_Meshes, bNeedsNormals );
+	m_pCompiledGeometry->Set(m_Meshes, bNeedsNormals);
 }
 
 /*

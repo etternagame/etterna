@@ -5,25 +5,25 @@
 
 #include "EnumHelper.h"
 
-
 // Player number stuff
 enum PlayerNumber
 {
 	PLAYER_1 = 0,
 	PLAYER_2,
-	NUM_PlayerNumber,	// leave this at the end
+	NUM_PlayerNumber, // leave this at the end
 	PlayerNumber_Invalid
 };
 const PlayerNumber NUM_PLAYERS = NUM_PlayerNumber;
 const PlayerNumber PLAYER_INVALID = PlayerNumber_Invalid;
-const RString& PlayerNumberToString( PlayerNumber pn );
-const RString& PlayerNumberToLocalizedString( PlayerNumber pn );
-LuaDeclareType( PlayerNumber );
+const RString&
+PlayerNumberToString(PlayerNumber pn);
+const RString&
+PlayerNumberToLocalizedString(PlayerNumber pn);
+LuaDeclareType(PlayerNumber);
 /** @brief A foreach loop to handle the different players. */
-#define FOREACH_PlayerNumber( pn ) FOREACH_ENUM( PlayerNumber, pn )
+#define FOREACH_PlayerNumber(pn) FOREACH_ENUM(PlayerNumber, pn)
 
-const PlayerNumber	OPPOSITE_PLAYER[NUM_PLAYERS] = { PLAYER_2, PLAYER_1 };
-
+const PlayerNumber OPPOSITE_PLAYER[NUM_PLAYERS] = { PLAYER_2, PLAYER_1 };
 
 enum MultiPlayer
 {
@@ -59,21 +59,23 @@ enum MultiPlayer
 	MultiPlayer_P30,
 	MultiPlayer_P31,
 	MultiPlayer_P32,
-	NUM_MultiPlayer,	// leave this at the end
+	NUM_MultiPlayer, // leave this at the end
 	MultiPlayer_Invalid
 };
-const RString& MultiPlayerToString( MultiPlayer mp );
-const RString& MultiPlayerToLocalizedString( MultiPlayer mp );
-LuaDeclareType( MultiPlayer );
+const RString&
+MultiPlayerToString(MultiPlayer mp);
+const RString&
+MultiPlayerToLocalizedString(MultiPlayer mp);
+LuaDeclareType(MultiPlayer);
 /** @brief A foreach loop to handle the different Players in MultiPlayer. */
-#define FOREACH_MultiPlayer( pn ) FOREACH_ENUM( MultiPlayer, pn )
+#define FOREACH_MultiPlayer(pn) FOREACH_ENUM(MultiPlayer, pn)
 
 #endif
 
 /*
  * (c) 2001-2004 Chris Danford, Chris Gomez
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -83,7 +85,7 @@ LuaDeclareType( MultiPlayer );
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

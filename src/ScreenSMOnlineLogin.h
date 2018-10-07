@@ -5,18 +5,18 @@
 
 class ScreenSMOnlineLogin : public ScreenOptions
 {
-public:
+  public:
 	void Init() override;
 	void HandleScreenMessage(ScreenMessage SM) override;
-	bool MenuStart( const InputEventPlus &input ) override;
+	bool MenuStart(const InputEventPlus& input) override;
 	void SendLogin(RString sPassword);
-	void SendLogin( RString sPassword, RString user);
+	void SendLogin(RString sPassword, RString user);
 
-private:
-	void ImportOptions( int iRow, const vector<PlayerNumber> &vpns ) override;
-	void ExportOptions( int iRow, const vector<PlayerNumber> &vpns ) override;
+  private:
+	void ImportOptions(int iRow, const vector<PlayerNumber>& vpns) override;
+	void ExportOptions(int iRow, const vector<PlayerNumber>& vpns) override;
 	RString GetSelectedProfileID();
-	int	m_iPlayer;
+	int m_iPlayer;
 	bool typeUsername{ false };
 	string username;
 };
@@ -36,7 +36,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

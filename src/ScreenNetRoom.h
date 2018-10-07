@@ -6,16 +6,15 @@
 #include "RoomInfoDisplay.h"
 #include "RoomWheel.h"
 #include "ScreenNetSelectBase.h"
-#include "NetworkSyncManager.h"
 #include "ScreenWithMenuElements.h"
 #include <vector>
 
 class ScreenNetRoom : public ScreenNetSelectBase
 {
-public:
+  public:
 	void Init() override;
-	bool Input( const InputEventPlus &input ) override;
-	void HandleScreenMessage( ScreenMessage SM ) override;
+	bool Input(const InputEventPlus& input) override;
+	void HandleScreenMessage(ScreenMessage SM) override;
 	RoomWheel* GetRoomWheel();
 	void SelectCurrent();
 	void InfoSetVisible(bool visibility);
@@ -27,21 +26,22 @@ public:
 	RoomInfoDisplay m_roomInfo;
 
 	// Lua
-	void PushSelf(lua_State *L) override;
+	void PushSelf(lua_State* L) override;
 
-protected:
-	bool MenuStart( const InputEventPlus &input ) override;
-	bool MenuBack( const InputEventPlus &input ) override;
+  protected:
+	bool MenuStart(const InputEventPlus& input) override;
+	bool MenuBack(const InputEventPlus& input) override;
 
-	void TweenOffScreen( ) override;
+	void TweenOffScreen() override;
 
-private:
-	bool MenuLeft( const InputEventPlus &input ) override;
-	bool MenuRight( const InputEventPlus &input ) override;
-	void CreateNewRoom( const RString& rName,  const RString& rDesc, const RString& rPass );
+  private:
+	bool MenuLeft(const InputEventPlus& input) override;
+	bool MenuRight(const InputEventPlus& input) override;
+	void CreateNewRoom(const RString& rName,
+					   const RString& rDesc,
+					   const RString& rPass);
 
 	RageSound m_soundChangeSel;
-
 
 	string m_sLastPickedRoom;
 
@@ -64,7 +64,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

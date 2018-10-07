@@ -1,4 +1,5 @@
-﻿/* RandomSample - Holds multiple sounds samples and can play a random sound easily. */
+﻿/* RandomSample - Holds multiple sounds samples and can play a random sound
+ * easily. */
 
 #ifndef RANDOM_SAMPLE_H
 #define RANDOM_SAMPLE_H
@@ -7,32 +8,31 @@ class RageSound;
 
 class RandomSample
 {
-public:
+  public:
 	RandomSample();
 	virtual ~RandomSample();
 
-	bool Load( const RString &sFilePath, int iMaxToLoad = 1000 /*load all*/ );
+	bool Load(const RString& sFilePath, int iMaxToLoad = 1000 /*load all*/);
 	void UnloadAll();
 	void PlayRandom();
 	void PlayCopyOfRandom();
 	void Stop();
 
-private:
-	bool LoadSoundDir( RString sDir, int iMaxToLoad  );
-	bool LoadSound( const RString &sSoundFilePath );
+  private:
+	bool LoadSoundDir(RString sDir, int iMaxToLoad);
+	bool LoadSound(const RString& sSoundFilePath);
 	int GetNextToPlay();
 
 	vector<RageSound*> m_pSamples;
 	int m_iIndexLastPlayed;
 };
 
-
 #endif
 
 /*
  * (c) 2001-2003 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -42,7 +42,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

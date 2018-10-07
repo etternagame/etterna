@@ -7,121 +7,118 @@
 #include "ScreenContinue.h"
 #include "ScreenManager.h"
 
+REGISTER_SCREEN_CLASS(ScreenContinue);
 
-REGISTER_SCREEN_CLASS( ScreenContinue );
-
-void ScreenContinue::Init()
+void
+ScreenContinue::Init()
 {
 	ScreenWithMenuElementsSimple::Init();
 
-	this->SubscribeToMessage( Message_PlayerJoined );
+	this->SubscribeToMessage(Message_PlayerJoined);
 
-	FORCE_TIMER_WAIT.Load( m_sName, "ForceTimerWait" );
+	FORCE_TIMER_WAIT.Load(m_sName, "ForceTimerWait");
 }
 
-void ScreenContinue::BeginScreen()
+void
+ScreenContinue::BeginScreen()
 {
-	GAMESTATE->SetCurrentStyle( NULL, PLAYER_INVALID );
+	GAMESTATE->SetCurrentStyle(NULL, PLAYER_INVALID);
 
 	// Unjoin human players with 0 stages left and reset non-human players.
-	// We need to reset non-human players because data in non-human (CPU) 
+	// We need to reset non-human players because data in non-human (CPU)
 	// players will be filled, and there may be stale pointers to things like
 	// edit Steps.
-	FOREACH_ENUM( PlayerNumber, p )
+	FOREACH_ENUM(PlayerNumber, p)
 	{
-		if( GAMESTATE->IsHumanPlayer(p) )
-		{
+		if (GAMESTATE->IsHumanPlayer(p)) {
 			bool bPlayerDone = GAMESTATE->m_iPlayerStageTokens[p] <= 0;
-			if( bPlayerDone )
-			{
-				GAMESTATE->UnjoinPlayer( p );
+			if (bPlayerDone) {
+				GAMESTATE->UnjoinPlayer(p);
 			}
-		}
-		else
-		{
-			GAMESTATE->ResetPlayer( p );
+		} else {
+			GAMESTATE->ResetPlayer(p);
 		}
 	}
 
 	ScreenWithMenuElementsSimple::BeginScreen();
 }
 
-bool ScreenContinue::Input( const InputEventPlus &input )
+bool
+ScreenContinue::Input(const InputEventPlus& input)
 {
-	if( input.MenuI == GAME_BUTTON_COIN &&  input.type == IET_FIRST_PRESS )
+	if (input.MenuI == GAME_BUTTON_COIN && input.type == IET_FIRST_PRESS)
 		ResetTimer();
 
-	if( input.MenuI == GAME_BUTTON_START  &&  input.type == IET_FIRST_PRESS  &&  GAMESTATE->JoinInput(input.pn) )
-		return true;	// handled
+	if (input.MenuI == GAME_BUTTON_START && input.type == IET_FIRST_PRESS &&
+		GAMESTATE->JoinInput(input.pn))
+		return true; // handled
 
-	if( IsTransitioning() )
+	if (IsTransitioning())
 		return true;
 
-	if( input.type == IET_FIRST_PRESS  &&  GAMESTATE->IsHumanPlayer(input.pn)  &&  FORCE_TIMER_WAIT )
-	{
-		switch( input.MenuI )
-		{
+	if (input.type == IET_FIRST_PRESS && GAMESTATE->IsHumanPlayer(input.pn) &&
+		FORCE_TIMER_WAIT) {
+		switch (input.MenuI) {
 			case GAME_BUTTON_START:
 			case GAME_BUTTON_UP:
 			case GAME_BUTTON_DOWN:
 			case GAME_BUTTON_LEFT:
-			case GAME_BUTTON_RIGHT:
-			{
+			case GAME_BUTTON_RIGHT: {
 				float fSeconds = floorf(m_MenuTimer->GetSeconds()) - 0.0001f;
-				fSeconds = max( fSeconds, 0.0001f ); // don't set to 0
-				m_MenuTimer->SetSeconds( fSeconds );
+				fSeconds = max(fSeconds, 0.0001f); // don't set to 0
+				m_MenuTimer->SetSeconds(fSeconds);
 				Message msg("HurryTimer");
-				msg.SetParam( "PlayerNumber", input.pn );
-				this->HandleMessage( msg );
-				return true;	// handled
+				msg.SetParam("PlayerNumber", input.pn);
+				this->HandleMessage(msg);
+				return true; // handled
 			}
-			default: break;
+			default:
+				break;
 		}
 	}
 
-	return ScreenWithMenuElementsSimple::Input( input );
+	return ScreenWithMenuElementsSimple::Input(input);
 }
 
-void ScreenContinue::HandleScreenMessage( const ScreenMessage SM )
+void
+ScreenContinue::HandleScreenMessage(const ScreenMessage SM)
 {
-	if( SM == SM_MenuTimer )
-	{
-		if( !IsTransitioning() )
-			StartTransitioningScreen( SM_GoToNextScreen );
+	if (SM == SM_MenuTimer) {
+		if (!IsTransitioning())
+			StartTransitioningScreen(SM_GoToNextScreen);
 		return;
 	}
 
-	ScreenWithMenuElementsSimple::HandleScreenMessage( SM );
+	ScreenWithMenuElementsSimple::HandleScreenMessage(SM);
 }
 
-void ScreenContinue::HandleMessage( const Message &msg )
+void
+ScreenContinue::HandleMessage(const Message& msg)
 {
-	if( msg == Message_PlayerJoined )
-	{
+	if (msg == Message_PlayerJoined) {
 		ResetTimer();
 
 		bool bAllPlayersAreEnabled = true;
-		FOREACH_ENUM( PlayerNumber, p )
+		FOREACH_ENUM(PlayerNumber, p)
 		{
-			if( !GAMESTATE->IsPlayerEnabled(p) )
+			if (!GAMESTATE->IsPlayerEnabled(p))
 				bAllPlayersAreEnabled = false;
 		}
 
-		if( bAllPlayersAreEnabled )
-		{
+		if (bAllPlayersAreEnabled) {
 			m_MenuTimer->Stop();
-			if( !IsTransitioning() )
-				StartTransitioningScreen( SM_GoToNextScreen );
+			if (!IsTransitioning())
+				StartTransitioningScreen(SM_GoToNextScreen);
 		}
 	}
 
-	ScreenWithMenuElementsSimple::HandleMessage( msg );
+	ScreenWithMenuElementsSimple::HandleMessage(msg);
 }
 
 /*
  * (c) 2004 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -131,7 +128,7 @@ void ScreenContinue::HandleMessage( const Message &msg )
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

@@ -4,34 +4,32 @@
 #include "ActorFrame.h"
 #include "GameConstantsAndTypes.h"
 #include "NoteDisplay.h"
-#include "NoteTypes.h"
 
 class PlayerState;
 /** @brief Row of GhostArrow Actors. */
 class GhostArrowRow : public ActorFrame
 {
-public:
+  public:
 	~GhostArrowRow() override;
-	void Update( float fDeltaTime ) override;
+	void Update(float fDeltaTime) override;
 	void DrawPrimitives() override;
 
-	void Load( const PlayerState* pPlayerState, float fYReverseOffset );
+	void Load(const PlayerState* pPlayerState, float fYReverseOffset);
 	void SetColumnRenderers(vector<NoteColumnRenderer>& renderers);
 
-	void DidTapNote( int iCol, TapNoteScore tns, bool bBright );
-	void DidHoldNote( int iCol, HoldNoteScore hns, bool bBright );
-	void SetHoldShowing( int iCol, const TapNote &tn );
+	void DidTapNote(int iCol, TapNoteScore tns, bool bBright);
+	void DidHoldNote(int iCol, HoldNoteScore hns, bool bBright);
+	void SetHoldShowing(int iCol, const TapNote& tn);
 
-protected:
+  protected:
 	float m_fYReverseOffsetPixels;
 	const PlayerState* m_pPlayerState;
 
 	vector<NoteColumnRenderer> const* m_renderers;
-	vector<Actor *> 	m_Ghost;
+	vector<Actor*> m_Ghost;
 	vector<TapNoteSubType> m_bHoldShowing;
 	vector<TapNoteSubType> m_bLastHoldShowing;
 };
-
 
 #endif
 
@@ -40,7 +38,7 @@ protected:
  * @author Chris Danford (c) 2001-2004
  * @section LICENSE
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -50,7 +48,7 @@ protected:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

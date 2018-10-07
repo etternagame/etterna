@@ -1,6 +1,7 @@
 include(CMakeProject-glew.cmake)
 include(CMakeProject-json.cmake)
 include(CMakeProject-uwebsocket.cmake)
+include(CMakeProject-LuajIT.cmake)
 if (APPLE OR MSVC)
   include(CMakeProject-mad.cmake)
   include(CMakeProject-zlib.cmake)

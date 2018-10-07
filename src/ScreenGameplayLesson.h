@@ -7,18 +7,18 @@ class CourseEntry;
 /** @brief Shows some explanation pages, then allows 3 tries to pass a song. */
 class ScreenGameplayLesson : public ScreenGameplayNormal
 {
-public:
+  public:
 	ScreenGameplayLesson();
 	void Init() override;
 
-	bool Input( const InputEventPlus &input ) override;
-	void HandleScreenMessage( ScreenMessage SM ) override;
+	bool Input(const InputEventPlus& input) override;
+	void HandleScreenMessage(ScreenMessage SM) override;
 
-	bool MenuStart( const InputEventPlus &input ) override;
-	bool MenuBack( const InputEventPlus &input ) override;
+	bool MenuStart(const InputEventPlus& input) override;
+	bool MenuBack(const InputEventPlus& input) override;
 
-protected:
-	void ChangeLessonPage( int iDir );
+  protected:
+	void ChangeLessonPage(int iDir);
 	void ResetAndRestartCurrentSong();
 
 	vector<AutoActor> m_vPages;
@@ -39,7 +39,7 @@ protected:
 /*
  * (c) 2003-2004 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -49,7 +49,7 @@ protected:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

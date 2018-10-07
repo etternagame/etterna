@@ -8,22 +8,25 @@
 
 class LowLevelWindow_X11 : public LowLevelWindow
 {
-public:
+  public:
 	LowLevelWindow_X11();
 	~LowLevelWindow_X11();
 
-	void *GetProcAddress(const RString &s);
-	RString TryVideoMode(const VideoModeParams &p, bool &bNewDeviceOut);
+	void* GetProcAddress(const RString& s);
+	RString TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut);
 	void LogDebugInformation() const;
-	bool IsSoftwareRenderer( RString &sError );
+	bool IsSoftwareRenderer(RString& sError);
 	void SwapBuffers();
 
-	const VideoModeParams* GetActualVideoModeParams() const { return &CurrentParams; }
+	const VideoModeParams* GetActualVideoModeParams() const
+	{
+		return &CurrentParams;
+	}
 
-	void GetDisplayResolutions( DisplayResolutions &out ) const;
+	void GetDisplayResolutions(DisplayResolutions& out) const;
 
 	bool SupportsRenderToTexture() const;
-	RenderTarget *CreateRenderTarget();
+	RenderTarget* CreateRenderTarget();
 
 	bool SupportsThreadedRendering();
 	void BeginConcurrentRenderingMainThread();
@@ -31,7 +34,7 @@ public:
 	void BeginConcurrentRendering();
 	void EndConcurrentRendering();
 
-private:
+  private:
 	bool m_bWasWindowed;
 	VideoModeParams CurrentParams;
 };

@@ -9,6 +9,15 @@
 #include "arch/ArchHooks/ArchHooks.h"
 #import "MouseDevice.h"
 
+CGFloat scrolled;
+
+float MACMouseScroll()
+{
+    CGFloat scrolledTmp = scrolled;
+    scrolled = 0;
+    return scrolledTmp;
+}
+
 float MACMouseX()
 {
     NSRect frame = [[[NSApplication sharedApplication] mainWindow] frame];
@@ -24,6 +33,7 @@ float MACMouseY()
     return frame.size.height - (mouseLoc.y - frame.origin.y) - 15; //Appears to compensate for titlebar
     // This padding should be replaced in the future to use Cocoa calls to content
 }
+
 float MACWindowHeight()
 {
     NSRect frame = [[[NSApplication sharedApplication] mainWindow] frame];
@@ -49,6 +59,7 @@ float MACWindowWidth()
 @end
 
 @implementation SMApplication
+
 - (void)fullscreen:(id)sender
 {
     // don't use ArchHooks::SetToggleWindowed(), it makes the screen black
@@ -57,6 +68,12 @@ float MACWindowWidth()
 
 - (void)sendEvent:(NSEvent *)event
 {
+    
+    if( [event type] == NSScrollWheel) {
+        scrolled += [event deltaY];
+        
+    }
+    
     if( [event type] == NSKeyDown )
         [[self mainMenu] performKeyEquivalent:event];
     else

@@ -4,72 +4,76 @@
 #include "AppInstance.h"
 #include "archutils/Win32/ErrorStrings.h"
 
-MessageWindow::MessageWindow( const RString &sClassName )
+MessageWindow::MessageWindow(const RString& sClassName)
 {
 	AppInstance inst;
-	WNDCLASS WindowClass =
-	{
+	WNDCLASS WindowClass = {
 		CS_OWNDC | CS_BYTEALIGNCLIENT,
 		WndProc,
-		0,				/* cbClsExtra */
-		0,				/* cbWndExtra */
-		inst,				/* hInstance */
-		NULL,				/* set icon later */
-		LoadCursor( NULL, IDC_ARROW ),	/* default cursor */
-		NULL,				/* hbrBackground */
-		NULL,				/* lpszMenuName */
-		sClassName			/* lpszClassName */
-	}; 
+		0,							 /* cbClsExtra */
+		0,							 /* cbWndExtra */
+		inst,						 /* hInstance */
+		NULL,						 /* set icon later */
+		LoadCursor(NULL, IDC_ARROW), /* default cursor */
+		NULL,						 /* hbrBackground */
+		NULL,						 /* lpszMenuName */
+		sClassName					 /* lpszClassName */
+	};
 
-	if( !RegisterClassA(&WindowClass) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS )
-		RageException::Throw( "%s", werr_ssprintf( GetLastError(), "RegisterClass" ).c_str() );
+	if (!RegisterClassA(&WindowClass) &&
+		GetLastError() != ERROR_CLASS_ALREADY_EXISTS)
+		RageException::Throw(
+		  "%s", werr_ssprintf(GetLastError(), "RegisterClass").c_str());
 
 	// XXX: on 2k/XP, use HWND_MESSAGE as parent
-	m_hWnd = CreateWindow( sClassName, sClassName, WS_DISABLED, 0, 0, 0, 0, NULL, NULL, inst, NULL );
-	ASSERT( m_hWnd != NULL );
+	m_hWnd = CreateWindow(
+	  sClassName, sClassName, WS_DISABLED, 0, 0, 0, 0, NULL, NULL, inst, NULL);
+	ASSERT(m_hWnd != NULL);
 
-	SetProp( m_hWnd, "MessageWindow", this );
+	SetProp(m_hWnd, "MessageWindow", this);
 }
 
 MessageWindow::~MessageWindow()
 {
-	RemoveProp( m_hWnd, "MessageWindow" );
-	DestroyWindow( m_hWnd );
+	RemoveProp(m_hWnd, "MessageWindow");
+	DestroyWindow(m_hWnd);
 }
 
-void MessageWindow::Run()
+void
+MessageWindow::Run()
 {
 	/* Process messages until StopRunning is called. */
 	m_bDone = false;
-	while( !m_bDone )
-	{
+	while (!m_bDone) {
 		MSG msg;
-		int iRet = GetMessage( &msg, m_hWnd, 0, 0 );
-		ASSERT( iRet != -1 );
-		if( iRet == 0 )
+		int iRet = GetMessage(&msg, m_hWnd, 0, 0);
+		ASSERT(iRet != -1);
+		if (iRet == 0)
 			break;
-		DispatchMessage( &msg );
+		DispatchMessage(&msg);
 	}
 }
 
-void MessageWindow::StopRunning()
+void
+MessageWindow::StopRunning()
 {
 	m_bDone = true;
 }
 
-LRESULT CALLBACK MessageWindow::WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
+LRESULT CALLBACK
+MessageWindow::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	MessageWindow *pThis = (MessageWindow *) GetProp( hWnd, "MessageWindow" );
-	if( pThis != NULL && pThis->HandleMessage(msg, wParam, lParam) )
+	MessageWindow* pThis = (MessageWindow*)GetProp(hWnd, "MessageWindow");
+	if (pThis != NULL && pThis->HandleMessage(msg, wParam, lParam))
 		return 0;
 
-	return DefWindowProc( hWnd, msg, wParam, lParam );
+	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
 /*
  * (c) 2006 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -79,7 +83,7 @@ LRESULT CALLBACK MessageWindow::WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPA
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

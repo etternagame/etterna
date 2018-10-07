@@ -1,22 +1,25 @@
 [How to Install Songs]
 Songs are laid out based on the group that they are in.
 
-Songs\							: root folder
-	StepMania 5\				: group folder
-		MechaTribe Assault\		: song/simfile folder
+Songs\						: root folder
+	Etterna\				: group folder
+		Sandstorm\			: song/simfile folder
 			*.png, *.mp3/*.ogg, *.sm/*.ssc/etc files
 
 [How NOT to install songs]
-This won't work because StepMania expects groups:
+This won't work because Etterna expects groups:
 
 Songs\
 	Some Song\
 		*.png, *.mp3/*.ogg, *.sm/*.ssc/etc files
 
-And this won't work because StepMania doesn't handle sub-groups:
+And this won't work because Etterna doesn't handle sub-groups:
 
 Songs\
 	Song Group\
 		SubGroup1\
 			Some Song\
 				*.png, *.mp3/*.ogg, *.sm/*.ssc/etc files
+             
+[Where to install songs]
+http://www.etternaonline.com/pack has most of the song packs that people play, although as of version 0.60.0 we now have in-game song downloading.

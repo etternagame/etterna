@@ -10,22 +10,22 @@
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
-// 
+//
 // For the licensing details see the file License.txt
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "stdafx.h"
 #include "ZipMemFile.h"
 #include "ZipException.h"
+#include "stdafx.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-void CZipMemFile::Grow(size_t nGrowTo)
+void
+CZipMemFile::Grow(size_t nGrowTo)
 {
-	if (m_nBufSize < (UINT)nGrowTo)
-	{
+	if (m_nBufSize < (UINT)nGrowTo) {
 		if (m_nGrowBy == 0)
 			CZipException::Throw(CZipException::memError);
 		size_t nNewSize = m_nBufSize;
@@ -33,7 +33,7 @@ void CZipMemFile::Grow(size_t nGrowTo)
 			nNewSize += m_nGrowBy;
 		BYTE* lpNew;
 		if (m_lpBuf)
-			lpNew = (BYTE*)realloc((void*) m_lpBuf, nNewSize);
+			lpNew = (BYTE*)realloc((void*)m_lpBuf, nNewSize);
 		else
 			lpNew = (BYTE*)malloc(nNewSize);
 
@@ -42,9 +42,10 @@ void CZipMemFile::Grow(size_t nGrowTo)
 		m_nBufSize = nNewSize;
 		m_lpBuf = lpNew;
 	}
-} 
+}
 
-void CZipMemFile::SetLength(ZIP_ULONGLONG nNewLen)
+void
+CZipMemFile::SetLength(ZIP_ULONGLONG nNewLen)
 {
 	if (m_nBufSize < (UINT)nNewLen)
 		Grow((size_t)nNewLen);
@@ -53,18 +54,20 @@ void CZipMemFile::SetLength(ZIP_ULONGLONG nNewLen)
 	m_nDataSize = (size_t)nNewLen;
 }
 
-UINT CZipMemFile::Read(void *lpBuf, UINT nCount)
+UINT
+CZipMemFile::Read(void* lpBuf, UINT nCount)
 {
 	if (m_nPos > m_nDataSize)
 		return 0;
-	UINT nToRead = (m_nPos + nCount > m_nDataSize) ? m_nDataSize - m_nPos : nCount;
+	UINT nToRead =
+	  (m_nPos + nCount > m_nDataSize) ? m_nDataSize - m_nPos : nCount;
 	memcpy(lpBuf, m_lpBuf + m_nPos, nToRead);
 	m_nPos += nToRead;
 	return nToRead;
-
 }
 
-void CZipMemFile::Write(const void *lpBuf, UINT nCount)
+void
+CZipMemFile::Write(const void* lpBuf, UINT nCount)
 {
 	if (!nCount)
 		return;
@@ -77,7 +80,8 @@ void CZipMemFile::Write(const void *lpBuf, UINT nCount)
 		m_nDataSize = m_nPos;
 }
 
-ZIP_ULONGLONG CZipMemFile::Seek(ZIP_LONGLONG lOff, int nFrom)
+ZIP_ULONGLONG
+CZipMemFile::Seek(ZIP_LONGLONG lOff, int nFrom)
 {
 	ZIP_ULONGLONG lNew = m_nPos;
 
@@ -90,7 +94,7 @@ ZIP_ULONGLONG CZipMemFile::Seek(ZIP_LONGLONG lOff, int nFrom)
 	else
 		return lNew;
 
-	if (lNew< 0)
+	if (lNew < 0)
 		CZipException::Throw(CZipException::memError);
 
 	m_nPos = (size_t)lNew;

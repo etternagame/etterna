@@ -17,13 +17,16 @@ Etterna is an advanced cross-platform rhythm game focused on keyboard play.
 [build-link-app]: https://ci.appveyor.com/project/Nickito12/etterna
 [build-link-cover]: https://scan.coverity.com/projects/etternagame-etterna
 
+![Discord](https://img.shields.io/discord/339597420239519755.svg)
+![Github Releases (by Release)](https://img.shields.io/github/downloads/etternagame/etterna/v0.60.0/total.svg)
+
 ## Installation
 ### From Packages
 
 For those that do not wish to compile the game on their own and use a binary right away, be aware of the following issues:
 
 * Windows users are expected to have installed the [Microsoft Visual C++ x86 Redistributable for Visual Studio 2015](http://www.microsoft.com/en-us/download/details.aspx?id=48145) prior to running the game. For those on a 64-bit operating system, grab the x64 redistributable as well. [DirectX End-User Runtimes (June 2010)](http://www.microsoft.com/en-us/download/details.aspx?id=8109) is also required. Windows 7 is the minimum supported version.
-* macOS users need to have macOS 10.6.8 or higher to run StepMania.
+* macOS users need to have macOS 10.6.8 or higher to run Etterna.
 * Linux users should receive all they need from the package manager of their choice.
 
 ### From Source
@@ -34,19 +37,21 @@ https://etternagame.github.io/wiki/Building-Etterna.html
 
 * Website: https://etternaonline.com/
 * Discord: https://discord.gg/ZqpUjsJ
-* Lua for SM5: https://dguzek.github.io/Lua-For-SM5/
-* Lua API Documentation can be found in the Docs folder.
+* Lua for Etterna: https://etternagame.github.io/Lua-For-Etterna/
+* Lua API Reference: https://etternagame.github.io/Lua-For-Etterna/API/Lua.xml
 * ETTP docs: https://github.com/Nickito12/NodeMultiEtt/blob/master/README.md
 
 ## Licensing Terms
 
-In short- you can do anything you like with the game (including sell products made with it), provided you *do not*:
-
-1. Sell the game *with the included songs*
-2. Claim to have created the engine yourself or remove the credits
+In short — you can do anything you like with the game (including sell products made with it), provided you *do not* claim to have created the engine yourself or remove the credits.
 
 For specific information/legalese:
 
 * All of the our source code is under the [MIT license](http://opensource.org/licenses/MIT).
-* Any songs that are included within this repository are under the [Creative Commons license](https://creativecommons.org/).
 * The [MAD library](http://www.underbit.com/products/mad/) and [FFmpeg codecs](https://www.ffmpeg.org/) when built with our code use the [GPL license](http://www.gnu.org).
+
+Etterna began as a fork of https://github.com/stepmania/stepmania
+
+## [Collaborating](https://github.com/etternagame/etterna/blob/master/Contributing.md)
+
+## [Bug Reporting](https://github.com/etternagame/etterna/blob/master/Docs/Bugreporting.md)

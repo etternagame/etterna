@@ -1,4 +1,4 @@
-﻿#ifndef RECEPTOR_ARROW_H
+#ifndef RECEPTOR_ARROW_H
 #define RECEPTOR_ARROW_H
 
 #include "ActorFrame.h"
@@ -9,35 +9,35 @@ class PlayerState;
 /** @brief A gray arrow that "receives" the note arrows. */
 class ReceptorArrow : public ActorFrame
 {
-public:
+  public:
 	ReceptorArrow();
-	void Load( const PlayerState* pPlayerState, int iColNo );
+	void Load(const PlayerState* pPlayerState, int iColNo, RString Type);
 
 	void DrawPrimitives() override;
-	void Update( float fDeltaTime ) override;
-	void Step( TapNoteScore score );
+	void Update(float fDeltaTime) override;
+	void Step(TapNoteScore score);
 	void SetPressed() { m_bIsPressed = true; };
-	void SetNoteUpcoming( bool b );
-private:
+	void SetNoteUpcoming(int iCol, int iRow, bool b);
 
+  private:
 	const PlayerState* m_pPlayerState;
 	int m_iColNo;
 
 	AutoActor m_pReceptor;
 
 	bool m_bIsPressed;
-	bool m_bWasPressed;	// set in Update
+	bool m_bWasPressed; // set in Update
 	bool m_bWasReverse;
 };
 
-#endif 
+#endif
 
 /**
  * @file
  * @author Ben Nordstrom, Chris Danford (c) 2001-2004
  * @section LICENSE
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -47,7 +47,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

@@ -5,10 +5,11 @@
 #include "NoteTypes.h"
 #include "Sprite.h"
 
-/** @brief Graphics on ends of receptors on Edit screen that show the current snap type. */
+/** @brief Graphics on ends of receptors on Edit screen that show the current
+ * snap type. */
 class SnapDisplay : public ActorFrame
 {
-public:
+  public:
 	SnapDisplay();
 
 	void Load();
@@ -18,20 +19,19 @@ public:
 
 	NoteType GetNoteType() const { return m_NoteType; }
 
-protected:
+  protected:
 	int m_iNumCols;
 
 	void SnapModeChanged();
 
 	/** @brief the NoteType to snap to. */
-	NoteType	m_NoteType;
+	NoteType m_NoteType;
 	/**
 	 * @brief Indicators showing what NoteType is currently snapped to.
-	 * 
+	 *
 	 * TODO: Convert to an AutoActor. -aj */
-	Sprite		m_sprIndicators[2];	// left and right side
+	Sprite m_sprIndicators[2]; // left and right side
 };
-
 
 #endif
 
@@ -40,7 +40,7 @@ protected:
  * @author Chris Danford (c) 2001-2002
  * @section LICENSE
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -50,7 +50,7 @@ protected:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

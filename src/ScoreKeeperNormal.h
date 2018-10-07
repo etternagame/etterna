@@ -11,96 +11,125 @@ class Song;
 struct RadarValues;
 class TimingData;
 
-AutoScreenMessage( SM_PlayToasty );
+AutoScreenMessage(SM_PlayToasty);
 
 /** @brief The default ScoreKeeper implementation. */
-class ScoreKeeperNormal: public ScoreKeeper
+class ScoreKeeperNormal : public ScoreKeeper
 {
-	void AddScoreInternal( TapNoteScore score );
+	void AddScoreInternal(TapNoteScore score);
 	int CalcNextToastyAt(int level);
 
-	int	m_iScoreRemainder;
-	int	m_iMaxPossiblePoints;
-	int	m_iTapNotesHit;	// number of notes judged so far, needed by scoring
+	int m_iScoreRemainder;
+	int m_iMaxPossiblePoints;
+	int m_iTapNotesHit; // number of notes judged so far, needed by scoring
 
-	int	m_iNumTapsAndHolds;
-	int	m_iMaxScoreSoFar; // for nonstop scoring
-	int	m_iPointBonus; // the difference to award at the end
+	int m_iNumTapsAndHolds;
+	int m_iMaxScoreSoFar; // for nonstop scoring
+	int m_iPointBonus;	// the difference to award at the end
 	int m_cur_toasty_combo;
 	int m_cur_toasty_level;
 	int m_next_toasty_at;
-	bool	m_bIsLastSongInCourse;
-	bool	m_bIsBeginner;
+	bool m_bIsLastSongInCourse;
+	bool m_bIsBeginner;
 
-	int	m_iNumNotesHitThisRow;	// Used by Custom Scoring only
+	int m_iNumNotesHitThisRow; // Used by Custom Scoring only
 
-	ThemeMetric<bool>		m_ComboIsPerRow;
-	ThemeMetric<bool>		m_MissComboIsPerRow;
-	ThemeMetric<TapNoteScore>	m_MinScoreToContinueCombo;
-	ThemeMetric<TapNoteScore>	m_MinScoreToMaintainCombo;
-	ThemeMetric<TapNoteScore>	m_MaxScoreToIncrementMissCombo;
-	ThemeMetric<bool>		m_MineHitIncrementsMissCombo;
-	ThemeMetric<bool>		m_AvoidMineIncrementsCombo;
-	ThemeMetric<bool>		m_UseInternalScoring;
+	ThemeMetric<bool> m_ComboIsPerRow;
+	ThemeMetric<bool> m_MissComboIsPerRow;
+	ThemeMetric<TapNoteScore> m_MinScoreToContinueCombo;
+	ThemeMetric<TapNoteScore> m_MinScoreToMaintainCombo;
+	ThemeMetric<TapNoteScore> m_MaxScoreToIncrementMissCombo;
+	ThemeMetric<bool> m_MineHitIncrementsMissCombo;
+	ThemeMetric<bool> m_AvoidMineIncrementsCombo;
+	ThemeMetric<bool> m_UseInternalScoring;
 
 	ThemeMetric<TapNoteScore> m_toasty_min_tns;
 	ThemeMetric<LuaReference> m_toasty_trigger;
 
-	vector<Steps*>	m_apSteps;
+	vector<Steps*> m_apSteps;
 
-	virtual void AddTapScore( TapNoteScore tns );
-	virtual void AddHoldScore( HoldNoteScore hns );
-	virtual void AddTapRowScore( TapNoteScore tns, const NoteData &nd, int iRow );
+	virtual void AddTapScore(TapNoteScore tns);
+	virtual void AddHoldScore(HoldNoteScore hns);
+	virtual void AddTapRowScore(TapNoteScore tns, const NoteData& nd, int iRow);
 
 	/* Configuration: */
-	/* Score after each tap will be rounded to the nearest m_lroundTo; 1 to do nothing. */
-	int		m_lroundTo;
-	int		m_ComboBonusFactor[NUM_TapNoteScore];
+	/* Score after each tap will be rounded to the nearest m_lroundTo; 1 to do
+	 * nothing. */
+	int m_lroundTo;
+	int m_ComboBonusFactor[NUM_TapNoteScore];
 
-public:
-	ScoreKeeperNormal( PlayerState *pPlayerState, PlayerStageStats *pPlayerStageStats );
+  public:
+	ScoreKeeperNormal(PlayerState* pPlayerState,
+					  PlayerStageStats* pPlayerStageStats);
 
-	void Load(
-		const vector<Song*>& apSongs,
-		const vector<Steps*>& apSteps) override;
+	void Load(const vector<Song*>& apSongs,
+			  const vector<Steps*>& apSteps) override;
 
 	// before a song plays (called multiple times if course)
-	void OnNextSong( int iSongInCourseIndex, const Steps* pSteps, const NoteData* pNoteData ) override;
+	void OnNextSong(int iSongInCourseIndex,
+					const Steps* pSteps,
+					const NoteData* pNoteData) override;
 
-	void HandleTapScore( const TapNote &tn ) override;
-	void HandleTapRowScore( const NoteData &nd, int iRow ) override;
-	void HandleHoldScore( const TapNote &tn ) override;
-	void HandleHoldActiveSeconds( float /* fMusicSecondsHeld */ ) override {};
-	void HandleHoldCheckpointScore( const NoteData &nd, int iRow, int iNumHoldsHeldThisRow, int iNumHoldsMissedThisRow ) override;
+	void HandleTapScore(const TapNote& tn) override;
+	void HandleTapRowScore(const NoteData& nd, int iRow) override;
+	void HandleHoldScore(const TapNote& tn) override;
+	void HandleHoldActiveSeconds(float /* fMusicSecondsHeld */) override{};
+	void HandleHoldCheckpointScore(const NoteData& nd,
+								   int iRow,
+								   int iNumHoldsHeldThisRow,
+								   int iNumHoldsMissedThisRow) override;
 	void HandleTapScoreNone() override;
 
-	// This must be calculated using only cached radar values so that we can 
+	// This must be calculated using only cached radar values so that we can
 	// do it quickly.
-	static int GetPossibleDancePoints( NoteData* nd, const TimingData* td, float fSongSeconds );
-	static int GetPossibleDancePoints( NoteData* ndPre, NoteData* ndPost, const TimingData* td, float fSongSeconds );
-	static int GetPossibleGradePoints( NoteData* nd, const TimingData* td, float fSongSeconds );
-	static int GetPossibleGradePoints( NoteData* ndPre, NoteData* ndPost, const TimingData* td, float fSongSeconds );
+	static int GetPossibleDancePoints(NoteData* nd,
+									  const TimingData* td,
+									  float fSongSeconds);
+	static int GetPossibleDancePoints(NoteData* ndPre,
+									  NoteData* ndPost,
+									  const TimingData* td,
+									  float fSongSeconds);
+	static int GetPossibleGradePoints(NoteData* nd,
+									  const TimingData* td,
+									  float fSongSeconds);
+	static int GetPossibleGradePoints(NoteData* ndPre,
+									  NoteData* ndPost,
+									  const TimingData* td,
+									  float fSongSeconds);
 
-	int TapNoteScoreToDancePoints( TapNoteScore tns ) const;
-	int HoldNoteScoreToDancePoints( HoldNoteScore hns ) const;
-	int TapNoteScoreToGradePoints( TapNoteScore tns ) const;
-	int HoldNoteScoreToGradePoints( HoldNoteScore hns ) const;
-	static int TapNoteScoreToDancePoints( TapNoteScore tns, bool bBeginner );
-	static int HoldNoteScoreToDancePoints( HoldNoteScore hns, bool bBeginner );
-	static int TapNoteScoreToGradePoints( TapNoteScore tns, bool bBeginner );
-	static int HoldNoteScoreToGradePoints( HoldNoteScore hns, bool bBeginner );
+	int TapNoteScoreToDancePoints(TapNoteScore tns) const;
+	int HoldNoteScoreToDancePoints(HoldNoteScore hns) const;
+	int TapNoteScoreToGradePoints(TapNoteScore tns) const;
+	int HoldNoteScoreToGradePoints(HoldNoteScore hns) const;
+	static int TapNoteScoreToDancePoints(TapNoteScore tns, bool bBeginner);
+	static int HoldNoteScoreToDancePoints(HoldNoteScore hns, bool bBeginner);
+	static int TapNoteScoreToGradePoints(TapNoteScore tns, bool bBeginner);
+	static int HoldNoteScoreToGradePoints(HoldNoteScore hns, bool bBeginner);
 
-private:
+  private:
 	/**
 	 * @brief Take care of some internal work with our scoring systems.
 	 * @param tns the Tap Note score earned.
 	 * @param maximum the best tap note score possible.
-	 * @param row the row the score was earned. Mainly for ComboSegment stuff. */
-	void HandleTapNoteScoreInternal(const NoteData &nd, TapNoteScore tns, TapNoteScore maximum, int row, bool separately);
-	void HandleComboInternal( int iNumHitContinueCombo, int iNumHitMaintainCombo, int iNumBreakCombo, int iRow = -1);
-	void HandleRowComboInternal(TapNoteScore tns, int iNumTapsInRow, int iRow = -1);
-	void GetRowCounts(const NoteData &nd, int iRow, int &iNumHitContinueCombo, int &iNumHitMaintainCombo, int &iNumBreakCombo);
-
+	 * @param row the row the score was earned. Mainly for ComboSegment stuff.
+	 */
+	void HandleTapNoteScoreInternal(const NoteData& nd,
+									TapNoteScore tns,
+									TapNoteScore maximum,
+									int row,
+									bool separately);
+	void HandleComboInternal(int iNumHitContinueCombo,
+							 int iNumHitMaintainCombo,
+							 int iNumBreakCombo,
+							 int iRow = -1);
+	void HandleRowComboInternal(TapNoteScore tns,
+								int iNumTapsInRow,
+								int iRow = -1);
+	void GetRowCounts(const NoteData& nd,
+					  int iRow,
+					  int& iNumHitContinueCombo,
+					  int& iNumHitMaintainCombo,
+					  int& iNumBreakCombo);
 };
 
 #endif
@@ -108,7 +137,7 @@ private:
 /*
  * (c) 2001-2004 Chris Danford, Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -118,7 +147,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

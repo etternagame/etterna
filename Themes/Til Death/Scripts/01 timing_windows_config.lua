@@ -1,6 +1,6 @@
 local defaultConfig = {
 	-- put here the added custom windows in the desired order(if you dont they wont rotate in the eval screen)
-	customWindows = { "dpJ4", "osuManiaOD10"},
+	customWindows = {"dpJ4", "osuManiaOD10"},
 	dpJ4 = {
 		name = "DP Judge 4",
 		-- if you dont set judgeNames, defaults will be used, see next example for names
@@ -21,7 +21,7 @@ local defaultConfig = {
 			holdHit = 6,
 			holdMiss = -6,
 			mineHit = -8
-		},
+		}
 	},
 	-- this is a mere example, dont take it too seriously
 	osuManiaOD10 = {
@@ -42,7 +42,7 @@ local defaultConfig = {
 			boo = 121.0
 		},
 		judgeWeights = {
-			marv = 3.2,
+			marv = 3,
 			perf = 3,
 			great = 2,
 			good = 1,
@@ -51,8 +51,8 @@ local defaultConfig = {
 			holdHit = 0.5,
 			holdMiss = -3,
 			mineHit = 0
-		},
-	},
+		}
+	}
 }
 
 timingWindowConfig = create_setting("timingWindowConfig", "timingWindowConfig.lua", defaultConfig, -1)
