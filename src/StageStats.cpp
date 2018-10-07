@@ -491,7 +491,7 @@ DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
 
 	if (mods.find("Backwards") != mods.npos)
 		return false;
-	
+
 	if (mods.find("Little") != mods.npos)
 		return false;
 

@@ -91,8 +91,6 @@ FilterManager::loadpos(string name)
 	return watte[name];
 }
 
-
-
 // lua start
 #include "LuaBinding.h"
 
@@ -202,7 +200,7 @@ class LunaFilterManager : public Luna<FilterManager>
 		ADD_METHOD(HelpImTrappedInAChineseFortuneCodingFactory);
 		ADD_METHOD(oopsimlazylol);
 		ADD_METHOD(grabposx);
-		ADD_METHOD(grabposy); 
+		ADD_METHOD(grabposy);
 	}
 };
 

@@ -17,7 +17,7 @@ WindowsDialogBox::Run(int iDialog)
 	  hHandle, MAKEINTRESOURCE(iDialog), NULL, DlgProc, (LPARAM)this);
 }
 
-BOOL APIENTRY
+INT_PTR APIENTRY
 WindowsDialogBox::DlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	if (msg == WM_INITDIALOG)

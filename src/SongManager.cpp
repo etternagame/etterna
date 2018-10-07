@@ -768,8 +768,6 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 		[&sDir](std::pair<vectorIt<pair<RString*, vector<RString>*>>,
 						  vectorIt<pair<RString*, vector<RString>*>>> workload,
 				ThreadData* data) {
-
-			//CHECKPOINT_M("Looking for images...");
 			auto pair =
 			  static_cast<std::pair<int, LoadingWindow*>*>(data->data);
 			auto onePercent = pair->first;

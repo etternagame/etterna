@@ -8,6 +8,7 @@
 #include "json/value.h"
 #include "JsonUtil.h"
 #include "Preference.h"
+#include "LuaManager.h"
 #include "RageFileManager.h"
 #include "RageLog.h"
 #include "ScreenInstallOverlay.h"
@@ -260,7 +261,7 @@ ScreenInstallOverlay::Update(float fDeltaTime)
 	for (auto& dl : DLMAN->downloads) {
 		dls.push_back(dl.second->Status());
 	}
-	msg.SetParam("dlsize", DLMAN->downloads.size());
+	msg.SetParam("dlsize", static_cast<int>(DLMAN->downloads.size()));
 	msg.SetParam("dlprogress", join("\n", dls));
 
 	if (!DLMAN->DownloadQueue.empty()) {
@@ -268,7 +269,8 @@ ScreenInstallOverlay::Update(float fDeltaTime)
 		for (auto& q : DLMAN->DownloadQueue) {
 			cue.push_back(q.first->name);
 		}
-		msg.SetParam("queuesize", DLMAN->DownloadQueue.size());
+		msg.SetParam("queuesize",
+					 static_cast<int>(DLMAN->DownloadQueue.size()));
 		msg.SetParam("queuedpacks", join("\n", cue));
 	} else {
 		msg.SetParam("queuesize", 0);

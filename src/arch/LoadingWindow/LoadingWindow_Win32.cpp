@@ -109,7 +109,7 @@ LoadWin32Surface(RString sFile, HWND hWnd)
 	return ret;
 }
 
-BOOL CALLBACK
+INT_PTR CALLBACK
 LoadingWindow_Win32::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg) {
@@ -147,8 +147,12 @@ LoadingWindow_Win32::SetIcon(const RageSurface* pIcon)
 
 	m_hIcon = IconFromSurface(pIcon);
 	if (m_hIcon != NULL)
-		// XXX: GCL_HICON isn't available on x86-64 Windows
+	// XXX: GCL_HICON isn't available on x86-64 Windows
+#if _WIN64
+		SetClassLongPtr(hwnd, GCLP_HICON, (LONG)m_hIcon);
+#else
 		SetClassLong(hwnd, GCL_HICON, (LONG)m_hIcon);
+#endif
 }
 
 void

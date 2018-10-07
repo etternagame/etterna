@@ -50,7 +50,7 @@ sm_crash(const char* reason)
 	/* Do something after the above, so the call/return isn't optimized to a
 	 * jmp; that way, this function will appear in backtrace stack traces. */
 #if defined(_MSC_VER)
-	_asm nop;
+	//__nop();
 #elif defined(__GNUC__) // MinGW or similar
 	asm("nop");
 #endif

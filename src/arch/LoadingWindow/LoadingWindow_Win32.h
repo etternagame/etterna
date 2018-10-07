@@ -35,10 +35,10 @@ class LoadingWindow_Win32 : public LoadingWindow
 	HGDIOBJ bitMapBG;
 	HDC hdcBG;
 
-	static BOOL CALLBACK WndProc(HWND hWnd,
-								 UINT msg,
-								 WPARAM wParam,
-								 LPARAM lParam);
+	static INT_PTR CALLBACK WndProc(HWND hWnd,
+									UINT msg,
+									WPARAM wParam,
+									LPARAM lParam);
 };
 #define USE_LOADING_WINDOW_WIN32
 

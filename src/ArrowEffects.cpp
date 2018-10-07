@@ -913,11 +913,9 @@ ArrowEffects::GetGlow(int iCol,
 
 	if (!NO_GLOW) {
 		return SCALE(fDistFromHalf, 0, 0.5f, 1.3f, 0);
-	}
-	else {
+	} else {
 		return 0;
 	}
-
 }
 
 float

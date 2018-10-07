@@ -2590,7 +2590,8 @@ class LunaActor : public Luna<Actor>
 	}
 
 	static int SaveXY(T* p, lua_State* L)
-	{	// in the future arguments should be optional and default to getx, gety if no explicit coords are provided - mina
+	{ // in the future arguments should be optional and default to getx, gety if
+	  // no explicit coords are provided - mina
 		FILTERMAN->savepos(p->GetName(), IArg(1), IArg(2));
 		COMMON_RETURN_SELF;
 	}

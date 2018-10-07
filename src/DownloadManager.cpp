@@ -1357,7 +1357,7 @@ DownloadManager::RequestChartLeaderBoard(string chartkey)
 				// throw out below 25% scores -mina
 				if (tmp.wife > 1.f || tmp.wife < 0.25f || !tmp.valid)
 					continue;
-				
+
 				// it seems prudent to maintain the eo functionality in this way
 				// and screen out multiple scores from the same user even more
 				// prudent would be to put this last where it belongs, we don't
@@ -2073,7 +2073,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		// p->RequestChartLeaderBoard(SArg(1));
 		p->MakeAThing(SArg(1));
 		bool isGlobal = BArg(2);
-		
+
 		vector<HighScore*> wot;
 		unordered_set<string> userswithscores;
 		float currentrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
@@ -2329,9 +2329,10 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 	}
 	static int IsQueued(T* p, lua_State* L)
 	{
-		auto it = std::find_if(DLMAN->DownloadQueue.begin(),
-							   DLMAN->DownloadQueue.end(),
-							   [p](pair<DownloadablePack*, bool> pair) { return pair.first == p; });
+		auto it = std::find_if(
+		  DLMAN->DownloadQueue.begin(),
+		  DLMAN->DownloadQueue.end(),
+		  [p](pair<DownloadablePack*, bool> pair) { return pair.first == p; });
 		lua_pushboolean(L, it != DLMAN->DownloadQueue.end());
 		return 1;
 	}

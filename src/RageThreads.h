@@ -15,7 +15,8 @@ class ThreadData
 	void waitForUpdate()
 	{
 		std::unique_lock<std::mutex> lk(_updatedMutex);
-		_updatedCV.wait_for(lk, chrono::milliseconds(100), [this] { return this->getUpdated(); });
+		_updatedCV.wait_for(
+		  lk, chrono::milliseconds(100), [this] { return this->getUpdated(); });
 	}
 	void setUpdated(bool b)
 	{
@@ -77,7 +78,8 @@ parallelExecution(vector<T> vec,
 {
 	const int THREADS = PREFSMAN->ThreadsToUse <= 0
 						  ? std::thread::hardware_concurrency()
-						  : min((int)PREFSMAN->ThreadsToUse, (int)std::thread::hardware_concurrency());
+						  : min((int)PREFSMAN->ThreadsToUse,
+								(int)std::thread::hardware_concurrency());
 	std::vector<vectorRange<T>> workloads =
 	  splitWorkLoad(vec, static_cast<size_t>(vec.size() / THREADS));
 	ThreadData data;
