@@ -2960,22 +2960,15 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 	static int SetReplayPosition(T* p, lua_State* L)
 	{
 		float newpos = FArg(1);
-		if (!GAMESTATE->GetPaused()) {
-			/*
+		if (GAMESTATE->GetPaused() && GamePreferences::m_AutoPlay == PC_REPLAY) {
+			p->SetSongPosition(newpos);
+		}
+		/*
+		else
 			SCREENMAN->SystemMessage(
 			  "You must be paused to move the song position of a Replay.");
-			*/
-			return 0;
-		}
-		if (GamePreferences::m_AutoPlay != PC_REPLAY) {
-			/*
-			SCREENMAN->SystemMessage(
-			  "You cannot move the song position outside of a Replay.");
-			*/
-			return 0;
-		}
-		p->SetSongPosition(newpos);
-		return 1;
+		*/
+		return 0;
 	}
 	static int SetReplayRate(T* p, lua_State* L)
 	{
@@ -2986,7 +2979,7 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 			  "You must be paused to change the rate of a Replay.");
 			*/
 			lua_pushnumber(L, -1.f);
-			return 0;
+			return 1;
 		}
 		if (GamePreferences::m_AutoPlay != PC_REPLAY) {
 			/*
@@ -2994,7 +2987,7 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 			  "You cannot change the rate outside of a Replay.");
 			*/
 			lua_pushnumber(L, -1.f);
-			return 0;
+			return 1;
 		}
 		lua_pushnumber(L, p->SetRate(newrate));
 		return 1;
@@ -3009,14 +3002,14 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 			return 0;
 		}
 		p->ToggleReplayPause();
-		return 1;
+		return 0;
 	}
 	static int SetReplayBookmark(T* p, lua_State* L)
 	{
 		float position = FArg(1);
 		if (GamePreferences::m_AutoPlay == PC_REPLAY) {
 			p->m_fReplayBookmarkSeconds = position;
-			return 1;
+			return 0;
 		}
 		return 0;
 	}
@@ -3025,7 +3018,7 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 		if (GamePreferences::m_AutoPlay == PC_REPLAY &&
 			GAMESTATE->GetPaused()) {
 			p->SetSongPosition(p->m_fReplayBookmarkSeconds);
-			return 1;
+			return 0;
 		}
 		return 0;
 	}
