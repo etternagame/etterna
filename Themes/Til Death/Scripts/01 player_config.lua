@@ -232,78 +232,34 @@ local defaultConfig = {
 	}
 }
 
-local oldCustomGameplay = {
-	GameplayXYCoordinates = {
-		JudgeX = 0,
-		JudgeY = 40,
-		ComboX = 30,
-		ComboY = -20,
-		ErrorBarX = SCREEN_CENTER_X,
-		ErrorBarY = SCREEN_CENTER_Y + 53,
-		TargetTrackerX = SCREEN_CENTER_X + 26,
-		TargetTrackerY = SCREEN_CENTER_Y + 30,
-		MiniProgressBarX = SCREEN_CENTER_X + 44,
-		MiniProgressBarY = SCREEN_CENTER_Y + 34,
-		FullProgressBarX = SCREEN_CENTER_X,
-		FullProgressBarY = 20,
-		JudgeCounterX = 0,
-		JudgeCounterY = 0,
-		DisplayPercentX = 0,
-		DisplayPercentY = 0,
-		NPSDisplayX = 5,
-		NPSDisplayY = SCREEN_BOTTOM - 170,
-		NPSGraphX = 0,
-		NPSGraphY = SCREEN_BOTTOM - 160,
-		NotefieldX = 0,
-		NotefieldY = 0,
-		ProgressBarPos = 1
-	},
-	GameplaySizes = {
-		JudgeZoom = 1.0,
-		ComboZoom = 0.6,
-		ErrorBarWidth = 240,
-		ErrorBarHeight = 10,
-		TargetTrackerZoom = 0.4,
-		FullProgressBarWidth = 1.0,
-		FullProgressBarHeight = 1.0,
-		DisplayPercentZoom = 1,
-		NPSDisplayZoom = 0.4,
-		NPSGraphWidth = 1.0,
-		NPSGraphHeight = 1.0,
-		NotefieldWidth = 1.0,
-		NotefieldHeight = 1.0
-	}
-}
-local tmp = force_table_elements_to_match_type
-force_table_elements_to_match_type = function()
-end
-local x = create_setting("playerConfig", "playerConfig.lua", oldCustomGameplay, -1)
-x = x:load()
-force_table_elements_to_match_type = tmp
-local coords
-local sizes
-if x.GameplaySizes then
-	sizes = x.GameplaySizes
-end
-if x.GameplayXYCoordinates then
-	coords = x.GameplayXYCoordinates
-end
 playerConfig = create_setting("playerConfig", "playerConfig.lua", defaultConfig, -1)
-local conf = playerConfig:load()
-if sizes then
-	conf.GameplaySizes["4K"] = sizes
-	conf.GameplaySizes["5K"] = sizes
-	conf.GameplaySizes["6K"] = sizes
-	conf.GameplaySizes["7K"] = sizes
-	conf.GameplaySizes["8K"] = sizes
+local tmp2 = playerConfig.load
+playerConfig.load = function(self, slot)
+	local tmp = force_table_elements_to_match_type
+	force_table_elements_to_match_type = function()
+	end
+	local x = create_setting("playerConfig", "playerConfig.lua", {}, -1)
+	x = x:load()
+	local coords = x.GameplayXYCoordinates
+	local sizes = x.GameplaySizes
+	if sizes then
+		defaultConfig.GameplaySizes["4K"] = sizes
+		defaultConfig.GameplaySizes["5K"] = sizes
+		defaultConfig.GameplaySizes["6K"] = sizes
+		defaultConfig.GameplaySizes["7K"] = sizes
+		defaultConfig.GameplaySizes["8K"] = sizes
+	end
+	if coords then
+		defaultConfig.GameplayXYCoordinates["4K"] = coords
+		defaultConfig.GameplayXYCoordinates["5K"] = coords
+		defaultConfig.GameplayXYCoordinates["6K"] = coords
+		defaultConfig.GameplayXYCoordinates["7K"] = coords
+		defaultConfig.GameplayXYCoordinates["8K"] = coords
+	end
+	force_table_elements_to_match_type = tmp
+	return tmp2(self, slot)
 end
-if coords then
-	conf.GameplayXYCoordinates["4K"] = coords
-	conf.GameplayXYCoordinates["5K"] = coords
-	conf.GameplayXYCoordinates["6K"] = coords
-	conf.GameplayXYCoordinates["7K"] = coords
-	conf.GameplayXYCoordinates["8K"] = coords
-end
+playerConfig:load()
 
 function LoadProfileCustom(profile, dir)
 	local players = GAMESTATE:GetEnabledPlayers()
@@ -317,7 +273,7 @@ function LoadProfileCustom(profile, dir)
 	end
 
 	if pn then
-		playerConfig:load(pn_to_profile_slot(pn))
+		local conf = playerConfig:load(pn_to_profile_slot(pn))
 	end
 end
 
