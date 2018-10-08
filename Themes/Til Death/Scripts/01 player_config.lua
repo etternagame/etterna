@@ -242,14 +242,14 @@ playerConfig.load = function(self, slot)
 	x = x:load(slot)
 	local coords = x.GameplayXYCoordinates
 	local sizes = x.GameplaySizes
-	if sizes then
+	if sizes and not sizes["4K"] then
 		defaultConfig.GameplaySizes["4K"] = sizes
 		defaultConfig.GameplaySizes["5K"] = sizes
 		defaultConfig.GameplaySizes["6K"] = sizes
 		defaultConfig.GameplaySizes["7K"] = sizes
 		defaultConfig.GameplaySizes["8K"] = sizes
 	end
-	if coords then
+	if coords and not coords["4K"] then
 		defaultConfig.GameplayXYCoordinates["4K"] = coords
 		defaultConfig.GameplayXYCoordinates["5K"] = coords
 		defaultConfig.GameplayXYCoordinates["6K"] = coords
