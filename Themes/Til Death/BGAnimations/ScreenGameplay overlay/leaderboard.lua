@@ -158,6 +158,7 @@ for i = 1, NUM_ENTRIES do
 end
 
 t.JudgmentMessageCommand = function(self, params)
+	curScore.curWifeScore = params.CurWifeScore
 	table.sort(scoreboard, sortFunction)
 	for i, entry in ipairs(entryActors) do
 		for name, label in pairs(entry) do
