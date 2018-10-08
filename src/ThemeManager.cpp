@@ -1538,6 +1538,11 @@ class LunaThemeManager : public Luna<ThemeManager>
 		lua_pushstring(L, p->GetThemeDisplayName(p->GetCurThemeName()));
 		return 1;
 	}
+	static int GetRealThemeDisplayName(T* p, lua_State* L)
+	{
+		lua_pushstring(L, p->GetThemeDisplayName(p->GetRealCurThemeName()));
+		return 1;
+	}
 	static int GetThemeAuthor(T* p, lua_State* L)
 	{
 		lua_pushstring(L, p->GetThemeAuthor(p->GetCurThemeName()));
@@ -1609,6 +1614,7 @@ class LunaThemeManager : public Luna<ThemeManager>
 		ADD_METHOD(GetCurrentThemeDirectory);
 		ADD_METHOD(GetCurLanguage);
 		ADD_METHOD(GetThemeDisplayName);
+		ADD_METHOD(GetRealThemeDisplayName);
 		ADD_METHOD(GetThemeAuthor);
 		ADD_METHOD(DoesThemeExist);
 		ADD_METHOD(IsThemeSelectable);
