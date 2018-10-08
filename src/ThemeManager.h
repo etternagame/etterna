@@ -195,6 +195,7 @@ class ThemeManager
 	RString GetDefaultLanguage();
 
 	RString m_sCurThemeName;
+	RString m_sRealCurThemeName = "";
 	RString m_sCurLanguage;
 	bool m_bPseudoLocalize;
 };
