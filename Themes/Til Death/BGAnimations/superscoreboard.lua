@@ -107,7 +107,7 @@ local o =
 		self:queuecommand("ChartLeaderboardUpdate")
 	end,
 	ChartLeaderboardUpdateMessageCommand = function(self)
-		scoretable = DLMAN:RequestChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(),isGlobalRanking)
+		scoretable = DLMAN:RequestChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(),nil)
 		ind = 0
 		self:playcommand("Update")
 	end,
@@ -488,8 +488,9 @@ o[#o + 1] = Widg.ComboBox
 			end,
 			CurrentSongChangedMessageCommand = function(self) 
 				--choices = {"Global", "CA", "US", "BR"} -- this should be set based on what countries are available on a songs' leaderboards 
-				--ms.ok(showKeys(self:GetChild("Global").params))
-				local doot = self:GetChild("container"):GetChildren()
+				ms.ok(showKeys(self:GetChildren()))
+				--local doot = self:GetChildren()
+
 				--doot["CA"].params.onClick2 = function(self) ms.ok(self:GetName()) end
 				for k,v in pairs(doot) do 
 					if k == "Global" then

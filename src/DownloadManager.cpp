@@ -1254,6 +1254,8 @@ DownloadManager::RefreshCountryCodes()
 			auto j = json::parse(req.result);
 			auto codes = j.find("data");
 			DLMAN->countryCodes.clear();
+			DLMAN->countryCodes.push_back(string("Global"));		// append the list to global/player country code so we dont have to merge tables in lua -mina
+			DLMAN->countryCodes.push_back(DLMAN->countryCode);
 			for (auto codeJ : (*codes)) {
 				auto code = *(codeJ.find("attributes"));
 				DLMAN->countryCodes.emplace_back(codeJ.value("id", ""));
