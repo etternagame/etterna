@@ -2,7 +2,7 @@ local t =
 	Widg.Container {
 	y = SCREEN_HEIGHT / 10
 }
-local leaderboardEnabled = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled
+local leaderboardEnabled = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
 if not leaderboardEnabled then
 	return t
 end
