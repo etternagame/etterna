@@ -232,8 +232,77 @@ local defaultConfig = {
 	}
 }
 
+local oldCustomGameplay = {
+	GameplayXYCoordinates = {
+		JudgeX = 0,
+		JudgeY = 40,
+		ComboX = 30,
+		ComboY = -20,
+		ErrorBarX = SCREEN_CENTER_X,
+		ErrorBarY = SCREEN_CENTER_Y + 53,
+		TargetTrackerX = SCREEN_CENTER_X + 26,
+		TargetTrackerY = SCREEN_CENTER_Y + 30,
+		MiniProgressBarX = SCREEN_CENTER_X + 44,
+		MiniProgressBarY = SCREEN_CENTER_Y + 34,
+		FullProgressBarX = SCREEN_CENTER_X,
+		FullProgressBarY = 20,
+		JudgeCounterX = 0,
+		JudgeCounterY = 0,
+		DisplayPercentX = 0,
+		DisplayPercentY = 0,
+		NPSDisplayX = 5,
+		NPSDisplayY = SCREEN_BOTTOM - 170,
+		NPSGraphX = 0,
+		NPSGraphY = SCREEN_BOTTOM - 160,
+		NotefieldX = 0,
+		NotefieldY = 0,
+		ProgressBarPos = 1
+	},
+	GameplaySizes = {
+		JudgeZoom = 1.0,
+		ComboZoom = 0.6,
+		ErrorBarWidth = 240,
+		ErrorBarHeight = 10,
+		TargetTrackerZoom = 0.4,
+		FullProgressBarWidth = 1.0,
+		FullProgressBarHeight = 1.0,
+		DisplayPercentZoom = 1,
+		NPSDisplayZoom = 0.4,
+		NPSGraphWidth = 1.0,
+		NPSGraphHeight = 1.0,
+		NotefieldWidth = 1.0,
+		NotefieldHeight = 1.0
+	}
+}
+local tmp = force_table_elements_to_match_type
+force_table_elements_to_match_type = function() end
+local x= create_setting("playerConfig", "playerConfig.lua", oldCustomGameplay, -1)
+x = x:load()
+force_table_elements_to_match_type = tmp
+local coords
+local sizes
+if x.GameplaySizes then
+    sizes = x.GameplaySizes
+end
+if x.GameplayXYCoordinates then
+    coords = x.GameplayXYCoordinates 
+end
 playerConfig = create_setting("playerConfig", "playerConfig.lua", defaultConfig, -1)
 playerConfig:load()
+if sizes then
+    playerConfig.GameplaySizes["4K"] = sizes
+    playerConfig.GameplaySizes["5K"] = sizes
+    playerConfig.GameplaySizes["6K"] = sizes
+    playerConfig.GameplaySizes["7K"] = sizes
+    playerConfig.GameplaySizes["8K"] = sizes
+end
+if coords then
+    playerConfig.GameplayXYCoordinates ["4K"] = coords 
+    playerConfig.GameplayXYCoordinates ["5K"] = coords 
+    playerConfig.GameplayXYCoordinates ["6K"] = coords 
+    playerConfig.GameplayXYCoordinates ["7K"] = coords 
+    playerConfig.GameplayXYCoordinates ["8K"] = coords 
+end
 
 function LoadProfileCustom(profile, dir)
 	local players = GAMESTATE:GetEnabledPlayers()
