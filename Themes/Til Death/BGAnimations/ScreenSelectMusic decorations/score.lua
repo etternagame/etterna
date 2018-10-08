@@ -7,7 +7,7 @@ local scoreIndex = 1
 local score
 local pn = GAMESTATE:GetEnabledPlayers()[1]
 local nestedTab = 1
-local nestedTabs = {"Local", "Global", "Country"}
+local nestedTabs = {"Local", "Online"}
 
 local frameX = 10
 local frameY = 45
@@ -23,8 +23,6 @@ local nestedTabButtonHeight = 20
 local netPageButtonWidth = 50
 local netPageButtonHeight = 50
 local headeroffY = 26 / 1.5
-local isGlobalRanking = true;
-
 
 local selectedrateonly
 
@@ -38,8 +36,6 @@ local judges = {
 	"HoldNoteScore_Held",
 	"HoldNoteScore_LetGo"
 }
-
-
 
 local defaultRateText = ""
 if themeConfig:get_data().global.RateSort then
@@ -656,11 +652,6 @@ function nestedTabButton(i)
 					if isOver(self) then
 						nestedTab = i
 						MESSAGEMAN:Broadcast("NestedTabChanged")
-						if nestedTab == 3 then
-							isGlobalRanking = false
-						elseif nestedTab == 2 then
-							isGlobalRanking = true
-						end
 						MESSAGEMAN:Broadcast("ChartLeaderboardUpdate")
 						if nestedTab == 1 then
 							self:GetParent():GetParent():GetChild("ScoreDisplay"):visible(false)
@@ -677,8 +668,7 @@ function nestedTabButton(i)
 end
 
 -- online score display 
--- ret[#ret + 1] = LoadActor("../superscoreboard")
-ret[#ret + 1] = LoadActorWithParams("../superscoreboard",{getIsGlobalRanking=function() return isGlobalRanking end})
+ret[#ret + 1] = LoadActor("../superscoreboard")
 
 for i = 1, #nestedTabs do
 	ret[#ret + 1] = nestedTabButton(i)
