@@ -158,7 +158,10 @@ for i = 1, NUM_ENTRIES do
 end
 
 t.JudgmentMessageCommand = function(self, params)
-	curScore.curWifeScore = params.CurWifeScore
+	-- params.curWifeScore retrieves the Judgment Message curWifeScore which is a raw number for calculations; very large
+	-- the online highscore curWifeScore is the wife percent...
+	-- params.WifePercent is our current calculated wife percent.
+	curScore.curWifeScore = notShit.floor(params.WifePercent * 100) / 10000
 	table.sort(scoreboard, sortFunction)
 	for i, entry in ipairs(entryActors) do
 		for name, label in pairs(entry) do
