@@ -150,7 +150,7 @@ ProfileManager::FixedProfiles() const
 ProfileLoadResult
 ProfileManager::LoadProfile(PlayerNumber pn, const RString& sProfileDir)
 {
-	LOG->Trace("LoadingProfile P%d, %s, %d", pn + 1, sProfileDir.c_str());
+	LOG->Trace("LoadingProfile P%d, %s", pn + 1, sProfileDir.c_str());
 
 	ASSERT(!sProfileDir.empty());
 	ASSERT(sProfileDir.Right(1) == "/");
