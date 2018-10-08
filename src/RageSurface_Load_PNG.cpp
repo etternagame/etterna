@@ -262,7 +262,7 @@ RageSurface_Load_PNG(RageFile* f,
 	png_read_end(png, info_ptr);
 	png_destroy_read_struct(&png, &info_ptr, nullptr);
 
-	delete row_pointers;
+	delete[] row_pointers;
 
 	return img;
 }

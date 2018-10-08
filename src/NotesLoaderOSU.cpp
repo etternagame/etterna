@@ -387,6 +387,7 @@ OsuLoader::LoadFromDir(const RString& sPath_, Song& out)
 		auto chart = out.CreateSteps();
 		chart->SetFilename(p);
 		if (!LoadChartData(&out, chart, parsedData)) {
+			SAFE_DELETE(chart);
 			continue;
 		}
 

@@ -342,7 +342,7 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 	SONGINDEX->delay_save_cache = false;
 
 	LOG->Trace(
-	  "Found %i songs in %f seconds.", m_pSongs.size(), tm.GetDeltaTime());
+	  "Found %d songs in %.6f seconds.", m_pSongs.size(), tm.GetDeltaTime());
 	for (auto& pair : cache)
 		delete pair;
 	cache.clear();
