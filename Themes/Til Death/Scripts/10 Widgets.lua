@@ -653,27 +653,25 @@ Widg.defaults.comboBox = {
 	choices = {"default"}
 }
 Widg.ComboBox = function(params, updateActor)
+
 	fillNilTableFieldsFrom(params, Widg.defaults.comboBox)
 	params.selectionColor = checkColor(params.selectionColor)
 	params.itemColor = checkColor(params.itemColor)
 	params.itemHoverColor = checkColor(params.itemHoverColor)
-
-	fillNilTableFieldsFrom(frame, params.commands)
-	frame.droppedDown = params.droppedDown
-	frame.choices = params.choices
-	frame.selected = 1
-
+	
 	local combobox =
 		Widg.Container {
 		x = params.x,
 		y = params.y
 	}
+	fillNilTableFieldsFrom(combobox, params.commands)
 
-	combobox.choices = Widg.Container {}
-
-	local selectionGraphic
-	combobox.selection.graphic = params.selection(frame.choices[frame.selected])
+	combobox.choices = params.choices
+	combobox.droppedDown = params.droppedDown
+	combobox.selected = 1
+	combobox.items = Widg.Container {}
 	combobox.selection = Widg.Container {}
+    	combobox.selection.graphic = params.selection(combobox.choices[combobox.selected], params)
 	combobox.selection:add(combobox.selection.graphic)
 	combobox.selection:add(
 		Widg.Rectangle {
@@ -681,35 +679,35 @@ Widg.ComboBox = function(params, updateActor)
 			width = params.width,
 			height = params.itemHeight,
 			onClick = function(self)
-				frame.droppedDown = not frame.droppedDown
-				combobox.choices.actor:visible(frame.droppedDown)
+				combobox.droppedDown = not combobox.droppedDown
+				combobox.items.actor:visible(combobox.droppedDown)
 			end
 		}
 	)
 
-	for i, v in pairs(frame.choices) do
-		choices:add(
+	for i, v in pairs(combobox.choices) do
+		combobox.items:add(
 			Widg.Container {
 				y = i * params.selectionParams.height,
 				content = {
 					Widg.Rectangle {
 						onClick = function(self)
-							if frame.droppedDown then
-								combobox.selection.graphic:settext(frame.choices[i])
+							if combobox.droppedDown then
+								combobox.selection.graphic:settext(combobox.choices[i])
 								if onSelectionChanged then
-									onSelectionChanged(frame.choices[i], frame.choices[frame.selected])
+									onSelectionChanged(combobox.choices[i], combobox.choices[combobox.selected])
 								end
-								frame.selected = i
+								combobox.selected = i
 							end
 						end
 					},
-					params.item(frame.choices[i], params)
+					params.item(combobox.choices[i], params)
 				}
 			}
 		)
 	end
 
-	--[[frame:add(Widg.Scrollable{
+	--[[combobox:add(Widg.Scrollable{
 		--width = params.selectionParams.width,
 		width = 64,
 		height = 64,

@@ -23,7 +23,7 @@ local moving
 local cheese
 local collapsed = false
 
-local getIsGlobalRanking = Var "getIsGlobalRanking"
+local isGlobalRanking = true
 
 -- will eat any mousewheel inputs to scroll pages while mouse is over the background frame
 local function input(event)
@@ -107,11 +107,7 @@ local o =
 		self:queuecommand("ChartLeaderboardUpdate")
 	end,
 	ChartLeaderboardUpdateMessageCommand = function(self)
-		scoretable =
-			DLMAN:RequestChartLeaderBoard(
-			GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(),
-			getIsGlobalRanking() and "" or DLMAN:GetUserCountryCode()
-		)
+		scoretable = DLMAN:RequestChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(),nil)
 		ind = 0
 		self:playcommand("Update")
 	end,
@@ -280,7 +276,7 @@ local o =
 				if collapsed then
 					self:xy(c5x - 175, headeroff):zoom(tzoom):halign(1)
 				else
-					self:xy(c5x - 100, headeroff):zoom(tzoom):halign(1)
+					self:xy(c5x - 115, headeroff):zoom(tzoom):halign(1)
 				end
 			end,
 			HighlightCommand = function(self)
@@ -479,5 +475,84 @@ end
 for i = 1, numscores do
 	o[#o + 1] = makeScoreDisplay(i)
 end
+
+o[#o + 1] = Widg.ComboBox 
+		{  
+		choices = {"Global", "US","CA", "BR"},
+		  commands = { 
+			CollapseCommand = function(self)
+				self:xy(c5x -20, headeroff-20):halign(0)
+			end,
+			ExpandCommand = function(self)
+				self:xy(c5x - 89, headeroff)
+			end,
+			CurrentSongChangedMessageCommand = function(self) 
+				--choices = {"Global", "CA", "US", "BR"} -- this should be set based on what countries are available on a songs' leaderboards 
+				ms.ok(showKeys(self:GetChildren()))
+				--local doot = self:GetChildren()
+
+				--doot["CA"].params.onClick2 = function(self) ms.ok(self:GetName()) end
+				for k,v in pairs(doot) do 
+					if k == "Global" then
+						doot[k].params.onClick2 = function()
+							isGlobalRanking = true
+							ind = 0
+							self:GetParent():queuecommand("ChartLeaderboardUpdate")
+						end	
+					else 
+						doot[k].params.onClick2 = function() 
+							isGlobalRanking = false
+							DLMAN:SetCountryCode(k)
+							ind = 0
+							self:GetParent():queuecommand("ChartLeaderboardUpdate")
+						end
+					end					
+				end
+			end 
+		  }, 
+		  selectionColor = color("#aaaaaabb"), 
+		  defaultColor = color("#000000ff"), 
+		  headerParams = { 
+			height = tzoom*32, 
+			font = { 
+			  scale = tzoom, 
+			  color = Color.White, 
+			  padding = { 
+				x = 10, 
+				y = 10 
+			  } 
+			}, 
+			onHighlight = function(self) 
+			  highlightIfOver(self:GetParent():GetChild("Label")) 
+			end, 
+			alpha = 0, 
+			border = { 
+			  color = color("#00000000"), 
+			} 
+		  }, 
+		  selectionParams = { 
+			height = tzoom*32, 
+			width = 64, 
+			font = { 
+			  scale = tzoom, 
+			  name = "Common Large", 
+			  color = Color.White, 
+			  padding = { 
+				x = 10, 
+				y = 10 
+			  } 
+			}, 
+			border = { 
+			  color = color("#ffffffFF"), 
+			  width = 1 
+			}, 
+			highlight = { 
+			  color = color("#330044FF"), 
+			  alpha = false 
+			}
+		  }, 
+		  x = c5x - 89, -- needs to be thought out for design purposes 
+		  y = headeroff 
+		} 
 
 return o
