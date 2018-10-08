@@ -1175,6 +1175,7 @@ DownloadManager::SendRequestToURL(
 		curl_easy_cleanup(req->handle);
 		done(*req, nullptr);
 		delete req;
+		return nullptr;
 	}
 	return req;
 }
