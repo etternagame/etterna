@@ -20,6 +20,7 @@
 #include "MinaCalc.h"
 #include "Song.h"
 #include "GamePreferences.h"
+#include <cpuid.h>
 
 #ifdef _WIN32
 #include <intrin.h>
@@ -228,21 +229,25 @@ getCpuHash()
 
 #else  // !DARWIN
 
-static void
-getCpuid(uint32_t* p, uint32_t ax)
-{
-	__asm __volatile("movl %%ebx, %%esi\n\t"
-					 "cpuid\n\t"
-					 "xchgl %%ebx, %%esi"
-					 : "=a"(p[0]), "=S"(p[1]), "=c"(p[2]), "=d"(p[3])
-					 : "0"(ax));
-}
-
 uint16_t
 getCpuHash()
 {
 	uint32_t cpuinfo[4] = { 0, 0, 0, 0 };
-	getCpuid(cpuinfo, 0);
+	
+	#ifdef __APPLE__
+		__cpuid(cpuinfo, 0);
+	#else
+            unsigned int eax = 0;
+            unsigned int ebx;
+            unsigned int ecx;
+            unsigned int edx;
+            __get_cpuid(0, &eax, &ebx, &ecx, &edx);
+	
+	   cpuinfo[0] = eax;
+	   cpuinfo[1] = ebx;
+           cpuinfo[2] = ecx;
+           cpuinfo[3] = edx;
+	#endif
 	uint16_t hash = 0;
 	uint32_t* ptr = (&cpuinfo[0]);
 	for (uint32_t i = 0; i < 4; i++)
