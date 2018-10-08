@@ -20,7 +20,10 @@
 #include "MinaCalc.h"
 #include "Song.h"
 #include "GamePreferences.h"
+
+#ifndef  _WIN32
 #include <cpuid.h>
+#endif
 
 #ifdef _WIN32
 #include <intrin.h>
