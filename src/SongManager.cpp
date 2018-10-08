@@ -1,4 +1,4 @@
-#include "global.h"
+﻿#include "global.h"
 #include "ActorUtil.h"
 #include "AnnouncerManager.h"
 #include "BackgroundUtil.h"
@@ -154,7 +154,7 @@ SongManager::DifferentialReloadDir(string dir)
 	FOREACH_CONST(RString, arrayGroupDirs, s)
 	{
 		RString sGroupDirName = *s;
-		SanityCheckGroupDir(dir + sGroupDirName);
+		//SanityCheckGroupDir(dir + sGroupDirName);
 
 		vector<RString> arraySongDirs;
 		GetDirListing(dir + sGroupDirName + "/*", arraySongDirs, true, true);
@@ -624,25 +624,24 @@ static LocalizedString FOLDER_CONTAINS_MUSIC_FILES(
   "SongManager",
   "The folder \"%s\" appears to be a song folder.  All song folders must "
   "reside in a group folder.  For example, \"Songs/Originals/My Song\".");
-void
-SongManager::SanityCheckGroupDir(const RString& sDir) const
+bool
+SongManager::IsSongDir(const RString& sDir)
 {
-	// Check to see if they put a song directly inside the group folder.
-	vector<RString> arrayFiles;
-	GetDirListing(sDir + "/*", arrayFiles);
-	const vector<RString>& audio_exts =
-	  ActorUtil::GetTypeExtensionList(FT_Sound);
-	FOREACH(RString, arrayFiles, fname)
-	{
-		const RString ext = GetExtension(*fname);
-		FOREACH_CONST(RString, audio_exts, aud)
+		// Check to see if they put a song directly inside the group folder.
+		vector<RString> arrayFiles;
+		GetDirListing(sDir + "/*", arrayFiles);
+		const vector<RString>& audio_exts =
+				ActorUtil::GetTypeExtensionList(FT_Sound);
+		for (auto fname : arrayFiles)
 		{
-			if (ext == *aud) {
-				RageException::Throw(FOLDER_CONTAINS_MUSIC_FILES.GetValue(),
-									 sDir.c_str());
-			}
+				const RString ext = GetExtension(fname);
+				for (auto aud : audio_exts) {
+						if (ext == aud) {
+								return true;
+						}
+				}
 		}
-	}
+		return false;
 }
 
 bool
@@ -717,127 +716,144 @@ SongManager::AddGroup(const RString& sDir, const RString& sGroupDirName)
 	return true;
 }
 
+struct SongDir {
+	RString path;
+	SongDir(RString path) : path(path) {}
+};
+struct Group {
+		RString name;
+		vector<SongDir> songs;
+		Group(RString name) : name(name) {}
+};
+
 std::mutex diskLoadSongMutex;
 std::mutex diskLoadGroupMutex;
 static LocalizedString LOADING_SONGS("SongManager", "Loading songs...");
 void
 SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 {
-	vector<RString> arrayGroupDirs;
-	GetDirListing(sDir + "*", arrayGroupDirs, true);
-	StripCvsAndSvn(arrayGroupDirs);
-	StripMacResourceForks(arrayGroupDirs);
-	SortRStringArray(arrayGroupDirs);
-	vector<vector<RString>> arrayGroupSongDirs;
-	int songCount = 0;
-	if (ld != nullptr) {
-		ld->SetIndeterminate(false);
-		ld->SetTotalWork(arrayGroupDirs.size());
-		ld->SetText("Sanity checking groups");
-	}
-	int groupsChecked = 0;
-	int onePercent = std::max(static_cast<int>(arrayGroupDirs.size() / 100), 1);
-	FOREACH_CONST(RString, arrayGroupDirs, s)
-	{
-		RString sGroupDirName = *s;
-		SanityCheckGroupDir(sDir + sGroupDirName);
-		vector<RString> arraySongDirs;
-		GetDirListing(sDir + sGroupDirName + "/*", arraySongDirs, true, true);
-		StripCvsAndSvn(arraySongDirs);
-		StripMacResourceForks(arraySongDirs);
-		SortRStringArray(arraySongDirs);
-		arrayGroupSongDirs.emplace_back(arraySongDirs);
-		songCount += arraySongDirs.size();
-		if (ld != nullptr && groupsChecked % onePercent == 0)
-			ld->SetProgress(++groupsChecked);
-	}
+		vector<RString> songFolders;
+		GetDirListing(sDir + "*", songFolders, true);
+		StripCvsAndSvn(songFolders);
+		StripMacResourceForks(songFolders);
+		SortRStringArray(songFolders);
+		int songCount = 0;
+		if (ld != nullptr) {
+				ld->SetIndeterminate(false);
+				ld->SetTotalWork(songFolders.size());
+				ld->SetText("Checking song folders");
+		}
+		vector<Group> groups;
+		auto unknownGroup = Group(RString("Unknown Group"));
+		int foldersChecked = 0;
+		int onePercent = std::max(static_cast<int>(songFolders.size() / 100), 1);
+		for (const auto folder : songFolders)
+		{
+				if (IsSongDir(sDir + folder)) {
+						auto s = SongDir(sDir + folder);
+						unknownGroup.songs.push_back(s);
+				}
+				else {
+						vector<RString> songPaths;
+						auto group = Group(folder);
+						GetDirListing(sDir + folder + "/*", songPaths, true, true);
+						StripCvsAndSvn(songPaths);
+						StripMacResourceForks(songPaths);
+						SortRStringArray(songPaths);
+						for (auto song : songPaths) {
+								group.songs.push_back(SongDir(song));
+						}
+						songCount += group.songs.size();
+						groups.push_back(group);
+						if (ld != nullptr && foldersChecked % onePercent == 0)
+								ld->SetProgress(++foldersChecked);
+				}
+		}
+		if (!unknownGroup.songs.empty()) groups.push_back(unknownGroup);
 
-	if (ld != nullptr) {
-		ld->SetIndeterminate(false);
-		ld->SetTotalWork(arrayGroupDirs.size());
-		ld->SetText("Loading Songs From Disk\n");
-		ld->SetProgress(0);
-	}
-	int groupIndex = 0;
-	onePercent = std::max(static_cast<int>(arrayGroupDirs.size() / 100), 1);
+		if (ld != nullptr) {
+				ld->SetIndeterminate(false);
+				ld->SetTotalWork(groups.size());
+				ld->SetText("Loading Songs From Disk\n");
+				ld->SetProgress(0);
+		}
+		int groupIndex = 0;
+		onePercent = std::max(static_cast<int>(groups.size() / 100), 1);
 
-	function<void(std::pair<vectorIt<pair<RString*, vector<RString>*>>,
-							vectorIt<pair<RString*, vector<RString>*>>>,
-				  ThreadData*)>
-	  callback =
-		[&sDir](std::pair<vectorIt<pair<RString*, vector<RString>*>>,
-						  vectorIt<pair<RString*, vector<RString>*>>> workload,
-				ThreadData* data) {
-			auto pair =
-			  static_cast<std::pair<int, LoadingWindow*>*>(data->data);
-			auto onePercent = pair->first;
-			auto ld = pair->second;
-			int counter = 0;
-			int lastUpdate = 0;
-			for (auto it = workload.first; it != workload.second; it++) {
-				auto pair = *it;
-				auto& sGroupDirName = *(it->first);
-				counter++;
-				vector<RString>& arraySongDirs = *(it->second);
-				if (counter % onePercent == 0) {
-					data->_progress += counter - lastUpdate;
-					lastUpdate = counter;
-					data->setUpdated(true);
+		auto callback =
+				[&sDir](std::pair<vectorIt<Group>,
+						vectorIt<Group>> workload,
+						ThreadData* data) {
+				auto pair =
+						static_cast<std::pair<int, LoadingWindow*>*>(data->data);
+				auto onePercent = pair->first;
+				auto ld = pair->second;
+				int counter = 0;
+				int lastUpdate = 0;
+				for (auto it = workload.first; it != workload.second; it++) {
+						auto pair = *it;
+						auto& sGroupName = it->name;
+						counter++;
+						vector<SongDir>& arraySongDirs = it->songs;
+						if (counter % onePercent == 0) {
+								data->_progress += counter - lastUpdate;
+								lastUpdate = counter;
+								data->setUpdated(true);
+						}
+						int loaded = 0;
+						SongPointerVector& index_entry =
+								SONGMAN->m_mapSongGroupIndex[sGroupName];
+						RString group_base_name = sGroupName;
+						for (auto sSongDirName : arraySongDirs) {
+								RString hur = sSongDirName.path + "/";
+								hur.MakeLower();
+								if (SONGMAN->m_SongsByDir.count(hur))
+										continue;
+								Song* pNewSong = new Song;
+								if (!pNewSong->LoadFromSongDir(sSongDirName.path)) {
+										delete pNewSong;
+										continue;
+								}
+								{
+										std::lock_guard<std::mutex> lk(diskLoadSongMutex);
+										SONGMAN->AddSongToList(pNewSong);
+										SONGMAN->AddKeyedPointers(pNewSong);
+								}
+								index_entry.emplace_back(pNewSong);
+								loaded++;
+						}
+						if (!loaded)
+								continue;
+						LOG->Trace("Loaded %i songs from \"%s\"",
+								loaded,
+								(sDir + sGroupName).c_str());
+						{
+								std::lock_guard<std::mutex> lk(diskLoadGroupMutex);
+								SONGMAN->AddGroup(sDir, sGroupName);
+								IMAGECACHE->CacheImage(
+										"Banner", SONGMAN->GetSongGroupBannerPath(sDir + sGroupName));
+						}
 				}
-				int loaded = 0;
-				SongPointerVector& index_entry =
-				  SONGMAN->m_mapSongGroupIndex[sGroupDirName];
-				RString group_base_name = Basename(sGroupDirName);
-				for (size_t j = 0; j < arraySongDirs.size(); ++j) {
-					RString sSongDirName = arraySongDirs[j];
-					RString hur = sSongDirName + "/";
-					hur.MakeLower();
-					if (SONGMAN->m_SongsByDir.count(hur))
-						continue;
-					Song* pNewSong = new Song;
-					if (!pNewSong->LoadFromSongDir(sSongDirName)) {
-						delete pNewSong;
-						continue;
-					}
-					{
-						std::lock_guard<std::mutex> lk(diskLoadSongMutex);
-						SONGMAN->AddSongToList(pNewSong);
-						SONGMAN->AddKeyedPointers(pNewSong);
-					}
-					index_entry.emplace_back(pNewSong);
-					loaded++;
-				}
-				if (!loaded)
-					continue;
-				LOG->Trace("Loaded %i songs from \"%s\"",
-						   loaded,
-						   (sDir + sGroupDirName).c_str());
-				{
-					std::lock_guard<std::mutex> lk(diskLoadGroupMutex);
-					SONGMAN->AddGroup(sDir, sGroupDirName);
-					IMAGECACHE->CacheImage(
-					  "Banner", SONGMAN->GetSongGroupBannerPath(sGroupDirName));
-				}
-			}
 		};
-	auto onUpdate = [ld](int progress) {
-		if (ld)
-			ld->SetProgress(progress);
-	};
-	vector<pair<RString*, vector<RString>*>> workload;
-	for (int i = 0; i < arrayGroupDirs.size(); i++) {
-		workload.emplace_back(
-		  make_pair(&arrayGroupDirs[i], &arrayGroupSongDirs[i]));
-	}
-	parallelExecution<pair<RString*, vector<RString>*>>(
-	  workload,
-	  onUpdate,
-	  callback,
-	  (void*)new pair<int, LoadingWindow*>(onePercent, ld));
+		auto onUpdate = [ld](int progress) {
+				if (ld != nullptr)
+						ld->SetProgress(progress);
+		};
+		vector<Group> workload;
+		for (auto group : groups) {
+				workload.emplace_back(group);
+		}
 
-	if (ld != nullptr) {
-		ld->SetIndeterminate(true);
-	}
+		if (!workload.empty())
+				parallelExecution<Group>(
+						workload,
+						onUpdate,
+						callback,
+						(void*)new pair<int, LoadingWindow*>(onePercent, ld));
+
+		if (ld != nullptr) {
+				ld->SetIndeterminate(true);
+		}
 }
 
 void
@@ -1008,9 +1024,9 @@ SongManager::GetSongGroupColor(const RString& sSongGroup,
 		}
 	}
 
-	ASSERT_M(0,
+	/*ASSERT_M(0,
 			 ssprintf("requested color for song group '%s' that doesn't exist",
-					  sSongGroup.c_str()));
+					  sSongGroup.c_str()));*/
 	return RageColor(1, 1, 1, 1);
 }
 
