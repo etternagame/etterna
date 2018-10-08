@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "ActorFrameTexture.h"
 #include "ActorUtil.h"
 #include "RageTextureManager.h"
@@ -65,8 +65,8 @@ ActorFrameTexture::Create()
 	param.bWithDepthBuffer = m_bDepthBuffer;
 	param.bWithAlpha = m_bAlphaBuffer;
 	param.bFloat = m_bFloat;
-	param.iWidth = static_cast<int>(m_size.x);
-	param.iHeight = static_cast<int>(m_size.y);
+	param.iWidth = static_cast<int>(m_size.x + 0.5f);
+	param.iHeight = static_cast<int>(m_size.y + 0.5f);
 	m_pRenderTarget = new RageTextureRenderTarget(id, param);
 	m_pRenderTarget->m_bWasUsed = true;
 
