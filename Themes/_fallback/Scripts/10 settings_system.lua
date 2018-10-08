@@ -1,4 +1,4 @@
-local settings_prefix= "/" .. THEME:GetThemeDisplayName() .. "_settings/"
+local settings_prefix= "/" .. THEME:GetRealThemeDisplayName() .. "_settings/"
 global_cur_game= GAMESTATE:GetCurrentGame():GetName():lower()
 
 function force_table_elements_to_match_type(candidate, must_match, depth_remaining)
