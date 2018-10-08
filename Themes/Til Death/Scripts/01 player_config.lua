@@ -239,7 +239,7 @@ playerConfig.load = function(self, slot)
 	force_table_elements_to_match_type = function()
 	end
 	local x = create_setting("playerConfig", "playerConfig.lua", {}, -1)
-	x = x:load()
+	x = x:load(slot)
 	local coords = x.GameplayXYCoordinates
 	local sizes = x.GameplaySizes
 	if sizes then
