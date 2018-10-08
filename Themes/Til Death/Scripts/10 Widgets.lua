@@ -309,8 +309,8 @@ Widg.defaults.button = {
 			y = 10
 		}
 	},
-	halign = 1,
-	valign = 1,
+	halign = 0.5,
+	valign = 0.5,
 	texture = false
 }
 
@@ -624,7 +624,11 @@ local function basicSelection(choice, params)
 		y = 0,
 		text = choice,
 		width = params.width,
-		height = params.itemHeight
+		color = params.selectionColor,
+		border = false,
+		height = params.itemHeight,
+		highlight = {color = params.hoverColor},
+		alpha = 0.8
 	}
 end
 local function basicItem(choice, params)
@@ -633,7 +637,9 @@ local function basicItem(choice, params)
 		width = params.width,
 		height = params.itemHeight,
 		color = params.itemColor,
-		highlight = {color = params.itemHoverColor}
+		border = false,
+		alpha = 0.8,
+		highlight = {color = params.hoverColor}
 	}
 end
 Widg.defaults.comboBox = {
@@ -642,36 +648,49 @@ Widg.defaults.comboBox = {
 	itemHeight = 20,
 	maxDisplayItems = 5,
 	width = 50,
-	onSelectionChanged = false,
+	onSelectionChanged = false, -- (newchoice, oldchoice)
 	onInit = false,
 	item = basicItem,
 	selection = basicSelection, -- must understand :settext
 	commands = {},
 	selectionColor = Color.Black,
-	itemHoverColor = Color.Blue,
+	hoverColor = Color.Blue,
 	itemColor = Color.Black,
-	choices = {"default"}
+	choices = {"default"},
+	choice = false,
+	numitems = false
 }
 Widg.ComboBox = function(params, updateActor)
-
 	fillNilTableFieldsFrom(params, Widg.defaults.comboBox)
 	params.selectionColor = checkColor(params.selectionColor)
 	params.itemColor = checkColor(params.itemColor)
-	params.itemHoverColor = checkColor(params.itemHoverColor)
-	
+	params.hoverColor = checkColor(params.hoverColor)
+
 	local combobox =
 		Widg.Container {
-		x = params.x,
-		y = params.y
+		x = params.x - params.width / 2,
+		y = params.y - params.itemHeight / 2,
+		onInit = params.onInit,
+		visible = params.visible
 	}
 	fillNilTableFieldsFrom(combobox, params.commands)
 
+	if not params.numitems then
+		params.numitems = #(params.choices)
+	end
 	combobox.choices = params.choices
-	combobox.droppedDown = params.droppedDown
+	combobox.droppedDown = false
 	combobox.selected = 1
-	combobox.items = Widg.Container {}
+	if params.choice then
+		for i, v in ipairs(params.choices) do
+			if v == params.choice then
+				combobox.selected = i
+			end
+		end
+	end
+	combobox.items = Widg.Container {visible = false}
 	combobox.selection = Widg.Container {}
-    	combobox.selection.graphic = params.selection(combobox.choices[combobox.selected], params)
+	combobox.selection.graphic = params.selection(combobox.choices[combobox.selected], params)
 	combobox.selection:add(combobox.selection.graphic)
 	combobox.selection:add(
 		Widg.Rectangle {
@@ -680,28 +699,36 @@ Widg.ComboBox = function(params, updateActor)
 			height = params.itemHeight,
 			onClick = function(self)
 				combobox.droppedDown = not combobox.droppedDown
-				combobox.items.actor:visible(combobox.droppedDown)
+				local items = combobox.items.actor
+				items:visible(combobox.droppedDown)
 			end
 		}
 	)
 
-	for i, v in pairs(combobox.choices) do
-		combobox.items:add(
+	for i = 1, params.numitems do
+		(combobox.items):add(
 			Widg.Container {
-				y = i * params.selectionParams.height,
+				y = i * params.itemHeight,
 				content = {
+					params.item(combobox.choices[i], params),
 					Widg.Rectangle {
+						width = params.width,
+						height = params.itemHeight,
+						visible = false,
 						onClick = function(self)
 							if combobox.droppedDown then
-								combobox.selection.graphic:settext(combobox.choices[i])
-								if onSelectionChanged then
-									onSelectionChanged(combobox.choices[i], combobox.choices[combobox.selected])
+								local g = combobox.selection.graphic
+								g:settext(combobox.choices[i])
+								if params.onSelectionChanged then
+									params.onSelectionChanged(combobox.choices[i], combobox.choices[combobox.selected])
 								end
 								combobox.selected = i
+								combobox.droppedDown = false
+								local items = combobox.items.actor
+								items:visible(combobox.droppedDown)
 							end
 						end
-					},
-					params.item(combobox.choices[i], params)
+					}
 				}
 			}
 		)
@@ -716,7 +743,7 @@ Widg.ComboBox = function(params, updateActor)
 		y = 0,
 		content = choices
 	})]]
-	combobox:add(selection)
-	combobox:add(choices)
+	combobox:add(combobox.selection)
+	combobox:add(combobox.items)
 	return combobox
 end

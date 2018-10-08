@@ -275,33 +275,34 @@ local oldCustomGameplay = {
 	}
 }
 local tmp = force_table_elements_to_match_type
-force_table_elements_to_match_type = function() end
-local x= create_setting("playerConfig", "playerConfig.lua", oldCustomGameplay, -1)
+force_table_elements_to_match_type = function()
+end
+local x = create_setting("playerConfig", "playerConfig.lua", oldCustomGameplay, -1)
 x = x:load()
 force_table_elements_to_match_type = tmp
 local coords
 local sizes
 if x.GameplaySizes then
-    sizes = x.GameplaySizes
+	sizes = x.GameplaySizes
 end
 if x.GameplayXYCoordinates then
-    coords = x.GameplayXYCoordinates 
+	coords = x.GameplayXYCoordinates
 end
 playerConfig = create_setting("playerConfig", "playerConfig.lua", defaultConfig, -1)
-playerConfig:load()
+local conf = playerConfig:load()
 if sizes then
-    playerConfig.GameplaySizes["4K"] = sizes
-    playerConfig.GameplaySizes["5K"] = sizes
-    playerConfig.GameplaySizes["6K"] = sizes
-    playerConfig.GameplaySizes["7K"] = sizes
-    playerConfig.GameplaySizes["8K"] = sizes
+	conf.GameplaySizes["4K"] = sizes
+	conf.GameplaySizes["5K"] = sizes
+	conf.GameplaySizes["6K"] = sizes
+	conf.GameplaySizes["7K"] = sizes
+	conf.GameplaySizes["8K"] = sizes
 end
 if coords then
-    playerConfig.GameplayXYCoordinates ["4K"] = coords 
-    playerConfig.GameplayXYCoordinates ["5K"] = coords 
-    playerConfig.GameplayXYCoordinates ["6K"] = coords 
-    playerConfig.GameplayXYCoordinates ["7K"] = coords 
-    playerConfig.GameplayXYCoordinates ["8K"] = coords 
+	conf.GameplayXYCoordinates["4K"] = coords
+	conf.GameplayXYCoordinates["5K"] = coords
+	conf.GameplayXYCoordinates["6K"] = coords
+	conf.GameplayXYCoordinates["7K"] = coords
+	conf.GameplayXYCoordinates["8K"] = coords
 end
 
 function LoadProfileCustom(profile, dir)

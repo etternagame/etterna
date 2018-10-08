@@ -2,6 +2,7 @@ local tzoom = 0.5
 local pdh = 48 * tzoom
 local ygap = 2
 local packspaceY = pdh + ygap
+local currentCountry = "Global"
 
 local numscores = 12
 local ind = 0
@@ -107,7 +108,7 @@ local o =
 		self:queuecommand("ChartLeaderboardUpdate")
 	end,
 	ChartLeaderboardUpdateMessageCommand = function(self)
-		scoretable = DLMAN:RequestChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(),nil)
+		scoretable = DLMAN:RequestChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(), currentCountry)
 		ind = 0
 		self:playcommand("Update")
 	end,
@@ -476,83 +477,40 @@ for i = 1, numscores do
 	o[#o + 1] = makeScoreDisplay(i)
 end
 
-o[#o + 1] = Widg.ComboBox 
-		{  
-		choices = {"Global", "US","CA", "BR"},
-		  commands = { 
-			CollapseCommand = function(self)
-				self:xy(c5x -20, headeroff-20):halign(0)
-			end,
-			ExpandCommand = function(self)
-				self:xy(c5x - 89, headeroff)
-			end,
-			CurrentSongChangedMessageCommand = function(self) 
-				--choices = {"Global", "CA", "US", "BR"} -- this should be set based on what countries are available on a songs' leaderboards 
-				ms.ok(showKeys(self:GetChildren()))
-				--local doot = self:GetChildren()
-
-				--doot["CA"].params.onClick2 = function(self) ms.ok(self:GetName()) end
-				for k,v in pairs(doot) do 
-					if k == "Global" then
-						doot[k].params.onClick2 = function()
-							isGlobalRanking = true
-							ind = 0
-							self:GetParent():queuecommand("ChartLeaderboardUpdate")
-						end	
-					else 
-						doot[k].params.onClick2 = function() 
-							isGlobalRanking = false
-							DLMAN:SetCountryCode(k)
-							ind = 0
-							self:GetParent():queuecommand("ChartLeaderboardUpdate")
-						end
-					end					
-				end
-			end 
-		  }, 
-		  selectionColor = color("#aaaaaabb"), 
-		  defaultColor = color("#000000ff"), 
-		  headerParams = { 
-			height = tzoom*32, 
-			font = { 
-			  scale = tzoom, 
-			  color = Color.White, 
-			  padding = { 
-				x = 10, 
-				y = 10 
-			  } 
-			}, 
-			onHighlight = function(self) 
-			  highlightIfOver(self:GetParent():GetChild("Label")) 
-			end, 
-			alpha = 0, 
-			border = { 
-			  color = color("#00000000"), 
-			} 
-		  }, 
-		  selectionParams = { 
-			height = tzoom*32, 
-			width = 64, 
-			font = { 
-			  scale = tzoom, 
-			  name = "Common Large", 
-			  color = Color.White, 
-			  padding = { 
-				x = 10, 
-				y = 10 
-			  } 
-			}, 
-			border = { 
-			  color = color("#ffffffFF"), 
-			  width = 1 
-			}, 
-			highlight = { 
-			  color = color("#330044FF"), 
-			  alpha = false 
-			}
-		  }, 
-		  x = c5x - 89, -- needs to be thought out for design purposes 
-		  y = headeroff 
-		} 
-
+--[[
+--Commented for now
+-- Todo: make the combobox scrollable
+-- To handle a large amount of choices
+local countryDropdown
+countryDropdown =
+	Widg.ComboBox {
+	onSelectionChanged = function(newChoice)
+		currentCountry = newChoice
+		cheese:queuecommand("ChartLeaderboardUpdate")
+	end,
+	choice = "Global",
+	choices = DLMAN:GetCountryCodes(),
+	commands = {
+		CollapseCommand = function(self)
+			self:xy(c5x - 20, headeroff - 20):halign(0)
+		end,
+		ExpandCommand = function(self)
+			self:xy(c5x - 89, headeroff)
+		end,
+		ChartLeaderboardUpdateMessageCommand = function(self)
+			self:visible(DLMAN:IsLoggedIn())
+		end
+	},
+	selectionColor = color("#111111"),
+	itemColor = color("#111111"),
+	hoverColor = getMainColor("highlight"),
+	height = tzoom * 29,
+	width = 50,
+	x = c5x - 89, -- needs to be thought out for design purposes
+	y = headeroff,
+	visible = DLMAN:IsLoggedIn(),
+	numitems = 4
+}
+o[#o + 1] = countryDropdown
+]]
 return o

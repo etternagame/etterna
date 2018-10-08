@@ -1254,12 +1254,17 @@ DownloadManager::RefreshCountryCodes()
 			auto j = json::parse(req.result);
 			auto codes = j.find("data");
 			DLMAN->countryCodes.clear();
-			DLMAN->countryCodes.push_back(string("Global"));		// append the list to global/player country code so we dont have to merge tables in lua -mina
 			DLMAN->countryCodes.push_back(DLMAN->countryCode);
 			for (auto codeJ : (*codes)) {
 				auto code = *(codeJ.find("attributes"));
 				DLMAN->countryCodes.emplace_back(codeJ.value("id", ""));
 			}
+			DLMAN->countryCodes.push_back(string("Global")); // append the list
+															 // to global/player
+															 // country code so
+															 // we dont have to
+															 // merge tables in
+															 // lua -mina
 		} catch (exception e) {
 			// json failed
 		}
@@ -1783,7 +1788,8 @@ Download::Download(string url, string filename, function<void(Download*)> done)
 	Done = done;
 	m_Url = url;
 	handle = initBasicCURLHandle();
-	m_TempFileName = DL_DIR + (filename != "" ? filename : MakeTempFileName(url));
+	m_TempFileName =
+	  DL_DIR + (filename != "" ? filename : MakeTempFileName(url));
 	auto opened = p_RFWrapper.file.Open(m_TempFileName, 2);
 	ASSERT(opened);
 	DLMAN->EncodeSpaces(m_Url);
@@ -2114,7 +2120,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 			if (userswithscores.count(leaderboardHighScore.GetName()) == 1 &&
 				p->topscoresonly)
 				continue;
-			if (country != "" && country != "Global" && leaderboardHighScore.countryCode != country)
+			if (country != "" && country != "Global" &&
+				leaderboardHighScore.countryCode != country)
 				continue;
 			filteredLeaderboardScores.push_back(&(score.hs));
 			userswithscores.emplace(leaderboardHighScore.GetName());
