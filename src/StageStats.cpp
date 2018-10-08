@@ -236,21 +236,7 @@ uint16_t
 getCpuHash()
 {
 	uint32_t cpuinfo[4] = { 0, 0, 0, 0 };
-	
-	#ifdef __APPLE__
-		__cpuid(cpuinfo, 0);
-	#else
-            unsigned int eax = 0;
-            unsigned int ebx;
-            unsigned int ecx;
-            unsigned int edx;
-            __get_cpuid(0, &eax, &ebx, &ecx, &edx);
-	
-	   cpuinfo[0] = eax;
-	   cpuinfo[1] = ebx;
-           cpuinfo[2] = ecx;
-           cpuinfo[3] = edx;
-	#endif
+	__get_cpuid(0, &cpuinfo[0], &cpuinfo[1], &cpuinfo[2], &cpuinfo[3]);	
 	uint16_t hash = 0;
 	uint32_t* ptr = (&cpuinfo[0]);
 	for (uint32_t i = 0; i < 4; i++)
