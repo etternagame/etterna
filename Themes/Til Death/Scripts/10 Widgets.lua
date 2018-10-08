@@ -664,15 +664,14 @@ Widg.ComboBox = function(params, updateActor)
 		x = params.x,
 		y = params.y
 	}
-
 	fillNilTableFieldsFrom(combobox, params.commands)
 
+	combobox.choices = params.choices
 	combobox.droppedDown = params.droppedDown
 	combobox.selected = 1
-	combobox.choices = Widg.Container {}
-
+	combobox.items = Widg.Container {}
 	combobox.selection = Widg.Container {}
-    combobox.selection.graphic = params.selection(combobox.choices[combobox.selected], params)
+    	combobox.selection.graphic = params.selection(combobox.choices[combobox.selected], params)
 	combobox.selection:add(combobox.selection.graphic)
 	combobox.selection:add(
 		Widg.Rectangle {
@@ -681,20 +680,20 @@ Widg.ComboBox = function(params, updateActor)
 			height = params.itemHeight,
 			onClick = function(self)
 				combobox.droppedDown = not combobox.droppedDown
-				combobox.choices.actor:visible(combobox.droppedDown)
+				combobox.items.actor:visible(combobox.droppedDown)
 			end
 		}
 	)
 
-	for i, v in pairs(params.choices) do
-		combobox:add(
+	for i, v in pairs(combobox.choices) do
+		combobox.items:add(
 			Widg.Container {
 				y = i * params.selectionParams.height,
 				content = {
 					Widg.Rectangle {
 						onClick = function(self)
 							if combobox.droppedDown then
-								combobox.selection.graphic:settext(params.choices[i])
+								combobox.selection.graphic:settext(combobox.choices[i])
 								if onSelectionChanged then
 									onSelectionChanged(combobox.choices[i], combobox.choices[combobox.selected])
 								end
