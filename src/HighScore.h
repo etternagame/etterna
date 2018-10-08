@@ -180,7 +180,7 @@ struct HighScore
 	vector<int> GetRescoreJudgeVector(int x);
 	// laazy
 	string scoreid;
-	int userid;
+	int userid = -1;
 	string avatar;
 	string countryCode;
 
