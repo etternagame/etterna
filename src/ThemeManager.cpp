@@ -516,7 +516,7 @@ ThemeManager::RunLuaScripts(const RString& sMask, bool bUseThemeDir)
 
 	/* TODO: verify whether this final check is necessary. */
 	const RString sCurThemeName = m_sCurThemeName;
-	m_sRealCurThemeName = m_sCurThemeName
+	m_sRealCurThemeName = m_sCurThemeName;
 	deque<Theme>::const_iterator iter = g_vThemes.end();
 	do {
 		--iter;
@@ -1552,7 +1552,7 @@ class LunaThemeManager : public Luna<ThemeManager>
 	DEFINE_METHOD(IsThemeSelectable, IsThemeSelectable(SArg(1)));
 	DEFINE_METHOD(DoesLanguageExist, DoesLanguageExist(SArg(1)));
 	DEFINE_METHOD(GetCurThemeName, GetCurThemeName());
-	DEFINE_METHOD(GetRealurThemeName, GetRealCurThemeName());
+	DEFINE_METHOD(GetRealCurThemeName, GetRealCurThemeName());
 
 	static void PushMetricNamesInGroup(IniFile const& ini, lua_State* L)
 	{
