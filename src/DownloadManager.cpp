@@ -2114,7 +2114,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 			if (userswithscores.count(leaderboardHighScore.GetName()) == 1 &&
 				p->topscoresonly)
 				continue;
-			if (country != "" && leaderboardHighScore.countryCode != country)
+			if (country != "" && country != "Global" && leaderboardHighScore.countryCode != country)
 				continue;
 			filteredLeaderboardScores.push_back(&(score.hs));
 			userswithscores.emplace(leaderboardHighScore.GetName());
