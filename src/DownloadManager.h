@@ -247,6 +247,7 @@ class DownloadManager
 	bool EncodeSpaces(string& str);
 
 	void UploadScoreWithReplayData(HighScore* hs);
+	void UploadScoreWithReplayDataFromDisk(string sk);
 	void UploadScore(HighScore* hs);
 
 	bool ShouldUploadScores();

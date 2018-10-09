@@ -610,6 +610,33 @@ t[#t + 1] =
 		end
 	}
 
+t[#t + 1] =
+	LoadFont("Common Normal") ..
+	{
+		Name = "TheDootButton",
+		InitCommand = function(self)
+			self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 70 - offsetY):zoom(0.5):halign(1):settext("")
+		end,
+		DisplayCommand = function(self)
+			if score:HasReplayData() then
+				self:settext("Upload Replay Data")
+			else
+				self:settext("")
+			end
+		end,
+		HighlightCommand = function(self)
+			highlightIfOver(self)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if nestedTab == 1 then
+				if getTabIndex() == 2 and isOver(self) then
+					DLMAN:SendReplayDataForOldScore(score:GetScoreKey())
+					ms.ok("Uploading Replay Data...")	--should have better feedback -mina
+				end
+			end
+		end
+	}
+
 -- matches the built-in online score header
 t[#t + 1] =
 	Def.Quad {
