@@ -297,7 +297,59 @@ local o =
 					self:GetParent():queuecommand("ChartLeaderboardUpdate")
 				end
 			end
-		}
+		},
+	Widg.ComboBox
+	{
+		choices = {"Global", "Country", "hi"},
+		commands = {
+			CurrentSongChangedMessageCommand = function(self)
+				choices = {"Global", "Country", "hi"} -- this should be set based on what countries are available on a songs' leaderboards
+			end
+		},
+		selectionColor = color("#aaaaaabb"),
+		defaultColor = color("#000000ff"),
+		headerParams = {
+			height = tzoom*32,
+			font = {
+				scale = tzoom,
+				color = Color.White,
+				padding = {
+					x = 10,
+					y = 10
+				}
+			},
+			onHighlight = function(self)
+				highlightIfOver(self:GetParent():GetChild("Label"))
+			end,
+			alpha = 0,
+			border = {
+				color = color("#00000000"),
+			}
+		},
+		selectionParams = {
+			height = tzoom*32,
+			width = 64,
+			font = {
+				scale = tzoom,
+				name = "Common Large",
+				color = Color.White,
+				padding = {
+					x = 10,
+					y = 10
+				}
+			},
+			border = {
+				color = color("#ffffffFF"),
+				width = 1
+			},
+			highlight = {
+				color = color("#330044FF"),
+				alpha = false
+			}
+		},
+		x = c5x - 89, -- needs to be thought out for design purposes
+		y = headeroff
+	}
 }
 
 local function makeScoreDisplay(i)
