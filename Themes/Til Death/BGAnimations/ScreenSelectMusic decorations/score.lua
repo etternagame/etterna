@@ -156,7 +156,10 @@ local ret =
 		MESSAGEMAN:Broadcast("TabChanged")
 	end,
 	PlayingSampleMusicMessageCommand = function(self)
-		updateLeaderBoardForCurrentChart()
+		local leaderboardEnabled = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
+		if not leaderboardEnabled then -- this is taken care of by default.lua instead.
+			updateLeaderBoardForCurrentChart()
+		end
 	end,
 	NestedTabChangedMessageCommand = function(self)
 		updateLeaderBoardForCurrentChart()

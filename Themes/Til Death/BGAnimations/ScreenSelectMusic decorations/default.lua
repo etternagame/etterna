@@ -42,6 +42,13 @@ t[#t + 1] =
 			self:playcommand("TweenOff")
 		end
 	end,
+	PlayingSampleMusicMessageCommand = function(self)
+		local leaderboardEnabled = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
+		if leaderboardEnabled then
+			local chartkey = GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey()
+			DLMAN:RequestChartLeaderBoardFromOnline(chartkey)
+		end
+	end,
 	Def.StepsDisplayList {
 		Name = "StepsDisplayListRow",
 		CursorP1 = Def.ActorFrame {
