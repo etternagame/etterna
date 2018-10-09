@@ -84,6 +84,15 @@ local function highlightIfOver(self)
 	end
 end
 
+-- Only works if ... it should work
+-- You know, if we can see the place where the scores should be.
+local function updateLeaderBoardForCurrentChart()
+	if ((getTabIndex() == 2 and nestedTab == 2) or collapsed) then
+		local chartkey = GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey()
+		DLMAN:RequestChartLeaderBoardFromOnline(chartkey)
+	end
+end
+
 local ret =
 	Def.ActorFrame {
 	BeginCommand = function(self)
@@ -127,6 +136,7 @@ local ret =
 	end,
 	TabChangedMessageCommand = function(self)
 		self:queuecommand("Set")
+		updateLeaderBoardForCurrentChart()
 	end,
 	UpdateChartMessageCommand = function(self)
 		self:queuecommand("Set")
@@ -146,14 +156,15 @@ local ret =
 	end,
 	PlayingSampleMusicMessageCommand = function(self)
 		local top = SCREENMAN:GetTopScreen()
-		if top:GetMusicWheel():IsSettled() == true and ((getTabIndex() == 2 and nestedTab == 2) or collapsed) then
-			DLMAN:RequestChartLeaderBoardFromOnline(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())
+		if top:GetMusicWheel():IsSettled() then
+			updateLeaderBoardForCurrentChart()
 		end
 	end,
 	NestedTabChangedMessageCommand = function(self)
-		if getTabIndex() == 2 and nestedTab == 2 then
-			DLMAN:RequestChartLeaderBoardFromOnline(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())
-		end
+		updateLeaderBoardForCurrentChart()
+	end,
+	CurrentStepsP1ChangedMessageCommand = function(self)
+		updateLeaderBoardForCurrentChart()
 	end
 }
 
