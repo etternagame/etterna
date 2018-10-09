@@ -324,6 +324,10 @@ ScreenSelectMusic::BeginScreen()
 		GAMESTATE->isplaylistcourse = false;
 		SONGMAN->playlistcourse = "";
 	}
+	if (GAMESTATE->m_pCurSteps[PLAYER_1] != nullptr)
+		DLMAN->RequestChartLeaderBoard(
+		  GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+
 
 	ScreenWithMenuElements::BeginScreen();
 }
