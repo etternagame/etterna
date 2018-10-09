@@ -87,7 +87,8 @@ end
 -- Only works if ... it should work
 -- You know, if we can see the place where the scores should be.
 local function updateLeaderBoardForCurrentChart()
-	if ((getTabIndex() == 2 and nestedTab == 2) or collapsed) then
+	local top = SCREENMAN:GetTopScreen()
+	if top:GetMusicWheel():IsSettled() and ((getTabIndex() == 2 and nestedTab == 2) or collapsed) then
 		local chartkey = GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey()
 		DLMAN:RequestChartLeaderBoardFromOnline(chartkey)
 	end
@@ -155,10 +156,7 @@ local ret =
 		MESSAGEMAN:Broadcast("TabChanged")
 	end,
 	PlayingSampleMusicMessageCommand = function(self)
-		local top = SCREENMAN:GetTopScreen()
-		if top:GetMusicWheel():IsSettled() then
-			updateLeaderBoardForCurrentChart()
-		end
+		updateLeaderBoardForCurrentChart()
 	end,
 	NestedTabChangedMessageCommand = function(self)
 		updateLeaderBoardForCurrentChart()
