@@ -275,7 +275,7 @@ local o =
 		{
 			--current rate toggle
 			InitCommand = function(self)
-				self:xy(c5x - 10, headeroff):zoom(tzoom):halign(1)
+				self:xy(c5x, headeroff):zoom(tzoom):halign(1)
 			end,
 			HighlightCommand = function(self)
 				highlightIfOver(self)
