@@ -248,6 +248,31 @@ local o =
 	},
 	LoadFont("Common normal") ..
 		{
+			-- informational text about online scores
+			Name = "RequestStatus",
+			InitCommand = function(self)
+				if collapsed then
+					self:xy(dwidth - 75, headeroff + 15):zoom(tzoom):halign(1)
+				else
+					self:xy(dwidth / 3, headeroff + 25):zoom(tzoom):halign(1)
+				end
+			end,
+			UpdateCommand = function(self)
+				local numberofscores = #scoretable
+				local online = DLMAN:IsLoggedIn()
+				if not online and #scoretable == 0 then
+					self:settext("Login to view scores")
+				else
+					if #scoretable == 0 then
+						self:settext("Retrieving scores...")
+					else
+						self:settext("")
+					end
+				end
+			end
+		},
+	LoadFont("Common normal") ..
+		{
 			--current rate toggle
 			InitCommand = function(self)
 				self:xy(c5x - 10, headeroff):zoom(tzoom):halign(1)
