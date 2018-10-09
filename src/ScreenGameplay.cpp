@@ -1702,6 +1702,7 @@ ScreenGameplay::Update(float fDeltaTime)
 						if (GAMEMAN->m_bResetModifiers) {
 							float oldRate = GAMEMAN->m_fPreviousRate;
 							const RString mods = GAMEMAN->m_sModsToReset;
+							/*
 							GAMESTATE->m_pPlayerState[PLAYER_1]
 							  ->m_PlayerOptions.GetSong()
 							  .FromString("clearall");
@@ -1720,6 +1721,22 @@ ScreenGameplay::Update(float fDeltaTime)
 							GAMESTATE->m_pPlayerState[PLAYER_1]
 							  ->m_PlayerOptions.GetPreferred()
 							  .FromString(mods);
+							*/
+							const vector<RString> oldturns =
+							  GAMEMAN->m_vTurnsToReset;
+							if (GAMEMAN->m_bResetTurns) {
+								GAMESTATE->m_pPlayerState[PLAYER_1]
+								  ->m_PlayerOptions.GetSong()
+								  .ResetModsToStringVector(oldturns);
+								GAMESTATE->m_pPlayerState[PLAYER_1]
+								  ->m_PlayerOptions.GetCurrent()
+								  .ResetModsToStringVector(oldturns);
+								GAMESTATE->m_pPlayerState[PLAYER_1]
+								  ->m_PlayerOptions.GetPreferred()
+								  .ResetModsToStringVector(oldturns);
+								GAMEMAN->m_bResetTurns = false;
+								GAMEMAN->m_vTurnsToReset.clear();
+							}
 							GAMESTATE->m_SongOptions.GetSong().m_fMusicRate =
 							  oldRate;
 							GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate =
@@ -2033,6 +2050,7 @@ ScreenGameplay::Input(const InputEventPlus& input)
 					if (GAMEMAN->m_bResetModifiers) {
 						float oldRate = GAMEMAN->m_fPreviousRate;
 						const RString mods = GAMEMAN->m_sModsToReset;
+						/*
 						GAMESTATE->m_pPlayerState[PLAYER_1]
 						  ->m_PlayerOptions.GetSong()
 						  .FromString("clearall");
@@ -2051,6 +2069,22 @@ ScreenGameplay::Input(const InputEventPlus& input)
 						GAMESTATE->m_pPlayerState[PLAYER_1]
 						  ->m_PlayerOptions.GetPreferred()
 						  .FromString(mods);
+						*/
+						const vector<RString> oldturns =
+						  GAMEMAN->m_vTurnsToReset;
+						if (GAMEMAN->m_bResetTurns) {
+							GAMESTATE->m_pPlayerState[PLAYER_1]
+							  ->m_PlayerOptions.GetSong()
+							  .ResetModsToStringVector(oldturns);
+							GAMESTATE->m_pPlayerState[PLAYER_1]
+							  ->m_PlayerOptions.GetCurrent()
+							  .ResetModsToStringVector(oldturns);
+							GAMESTATE->m_pPlayerState[PLAYER_1]
+							  ->m_PlayerOptions.GetPreferred()
+							  .ResetModsToStringVector(oldturns);
+							GAMEMAN->m_bResetTurns = false;
+							GAMEMAN->m_vTurnsToReset.clear();
+						}
 						GAMESTATE->m_SongOptions.GetSong().m_fMusicRate =
 						  oldRate;
 						GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate =

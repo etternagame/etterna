@@ -377,6 +377,38 @@ PlayerOptions::GetMods(vector<RString>& AddTo, bool bForceNoteSkin) const
 	}
 }
 
+void
+PlayerOptions::GetTurnMods(vector<RString>& AddTo)
+{
+	for (int i = 0; i < NUM_TURNS; i++) {
+		if (m_bTurns[i])
+			AddTo.emplace_back(Turn(i));
+	}
+}
+
+// At the moment this only supports turns.
+// Do not use this for anything else.
+// It will not work.
+void
+PlayerOptions::ResetModsToStringVector(vector<RString> mods)
+{
+	RString error;
+	ResetToggleableMods();
+	for (RString mod : mods)
+	{
+		FromOneModString(mod, error);
+	}
+}
+
+// At the moment this only supports turns.
+// Do not use this for anything else.
+// It will not work.
+void
+PlayerOptions::ResetToggleableMods()
+{
+	ZERO(m_bTurns);
+}
+
 /* Options are added to the current settings; call Init() beforehand if
  * you don't want this. */
 void
