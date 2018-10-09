@@ -1041,7 +1041,7 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(string sk)
 	if (offsets.size() > 0) {
 		replayString = "[";
 		auto steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
-		vector<float>& timestamps =
+		vector<float> timestamps =
 		  steps->GetTimingData()->ConvertReplayNoteRowsToTimestamps(
 			hs->GetNoteRowVector(), hs->GetMusicRate());
 		for (size_t i = 0; i < offsets.size(); i++) {
