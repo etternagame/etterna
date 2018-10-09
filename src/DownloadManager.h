@@ -275,6 +275,7 @@ class DownloadManager
 	bool currentrateonly = false;
 	bool topscoresonly = true;
 	void RefreshCountryCodes();
+	void RequestChartLeaderBoard(string chartkey, LuaReference ref);
 	void RequestChartLeaderBoard(string chartkey);
 	void RefreshUserData();
 	string countryCode;

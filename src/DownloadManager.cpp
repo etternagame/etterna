@@ -1370,6 +1370,24 @@ DownloadManager::RefreshCountryCodes()
 }
 
 void
+DownloadManager::RequestChartLeaderBoard(string chartkey, LuaReference ref)
+{
+	RequestChartLeaderBoard(chartkey);
+	if (unlikely(!ref.IsNil())) {
+		Lua* L = LUA->Get();
+		ref.PushSelf(L);
+		if (lua_isnil(L, -1)) {
+			LUA->Release(L);
+			LuaHelpers::ReportScriptErrorFmt("Error compiling RequestChartLeaderBoard Finish Function");
+			return;
+		}
+		RString Error = "Error running RequestChartLeaderBoard Finish Function: ";
+		LuaHelpers::RunScriptOnStack(L, Error, 2, 0, true); // 1 args, 0 results
+		LUA->Release(L);
+	}
+}
+
+void
 DownloadManager::RequestChartLeaderBoard(string chartkey)
 {
 	auto done = [chartkey](HTTPRequest& req, CURLMsg*) {
@@ -2203,8 +2221,17 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	// this will not update a leaderboard to a new state.
 	static int RequestChartLeaderBoardFromOnline(T* p, lua_State* L)
 	{
-		if (DLMAN->chartLeaderboards[SArg(1)].size() == 0)
-			DLMAN->RequestChartLeaderBoard(SArg(1));
+		if (!lua_isfunction(L, 2)) {
+			LuaReference ref;
+			lua_pushvalue(L, 2);
+			ref.SetFromStack(L);
+			if (DLMAN->chartLeaderboards[SArg(1)].size() == 0) {
+				DLMAN->RequestChartLeaderBoard(SArg(1), ref);
+			}
+		} else {
+			if (DLMAN->chartLeaderboards[SArg(1)].size() == 0)
+				DLMAN->RequestChartLeaderBoard(SArg(1));
+		}
 		return 1;
 	}
 
