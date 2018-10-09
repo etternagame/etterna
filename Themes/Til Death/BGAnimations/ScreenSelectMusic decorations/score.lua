@@ -143,6 +143,17 @@ local ret =
 		end
 		self:GetChild("ScoreDisplay"):xy(frameX, frameY)
 		MESSAGEMAN:Broadcast("TabChanged")
+	end,
+	PlayingSampleMusicMessageCommand = function(self)
+		local top = SCREENMAN:GetTopScreen()
+		if top:GetMusicWheel():IsSettled() == true and ((getTabIndex() == 2 and nestedTab == 2) or collapsed) then
+			DLMAN:RequestChartLeaderBoardFromOnline(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())
+		end
+	end,
+	NestedTabChangedMessageCommand = function(self)
+		if getTabIndex() == 2 and nestedTab == 2 then
+			DLMAN:RequestChartLeaderBoardFromOnline(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())
+		end
 	end
 }
 

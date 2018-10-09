@@ -2196,6 +2196,20 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		return 1;
 	}
 
+	// This requests the leaderboard from online. This may cause lag.
+	// Use this sparingly.
+	// This will NOT request a leaderboard if it already exists for the
+	// chartkey. This needs to be updated in the future to do so. That means
+	// this will not update a leaderboard to a new state.
+	static int RequestChartLeaderBoardFromOnline(T* p, lua_State* L)
+	{
+		if (DLMAN->chartLeaderboards[SArg(1)].size() == 0)
+			DLMAN->RequestChartLeaderBoard(SArg(1));
+		return 1;
+	}
+
+	// This does not actually request the leaderboard from online.
+	// It gets the already retrieved data from DLMAN
 	static int RequestChartLeaderBoard(T* p, lua_State* L)
 	{
 		vector<HighScore*> filteredLeaderboardScores;
@@ -2274,6 +2288,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(GetTopChartScoreCount);
 		ADD_METHOD(GetLastVersion);
 		ADD_METHOD(GetRegisterPage);
+		ADD_METHOD(RequestChartLeaderBoardFromOnline);
 		ADD_METHOD(RequestChartLeaderBoard);
 		ADD_METHOD(ToggleRateFilter);
 		ADD_METHOD(GetCurrentRateFilter);

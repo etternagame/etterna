@@ -425,8 +425,8 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 		FallbackMusic.bAlignBeat = ALIGN_MUSIC_BEATS;
 
 		SOUND->PlayMusic(PlayParams, FallbackMusic);
-		DLMAN->RequestChartLeaderBoard(
-		  GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+		MESSAGEMAN->Broadcast("PlayingSampleMusic");
+		//DLMAN->RequestChartLeaderBoard(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
 	}
 }
 
