@@ -2216,6 +2216,11 @@ Player::Step(int col,
 		DEBUG_ASSERT(iter != m_NoteData.end(col));
 		pTN = &iter->second;
 
+		// We don't really have to care if we are releasing on a non-lift, right?
+		// This fixes a weird noteskin bug with tap explosions.
+		if (PREFSMAN->m_bFullTapExplosions && bRelease && pTN->type != TapNoteType_Lift)
+			return;
+
 		switch (m_pPlayerState->m_PlayerController) {
 			case PC_HUMAN:
 				switch (pTN->type) {

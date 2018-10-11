@@ -84,6 +84,16 @@ local function highlightIfOver(self)
 	end
 end
 
+-- Only works if ... it should work
+-- You know, if we can see the place where the scores should be.
+local function updateLeaderBoardForCurrentChart()
+	local top = SCREENMAN:GetTopScreen()
+	if top:GetMusicWheel():IsSettled() and ((getTabIndex() == 2 and nestedTab == 2) or collapsed) then
+		local chartkey = GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey()
+		DLMAN:RequestChartLeaderBoardFromOnline(chartkey)
+	end
+end
+
 local ret =
 	Def.ActorFrame {
 	BeginCommand = function(self)
@@ -127,6 +137,7 @@ local ret =
 	end,
 	TabChangedMessageCommand = function(self)
 		self:queuecommand("Set")
+		updateLeaderBoardForCurrentChart()
 	end,
 	UpdateChartMessageCommand = function(self)
 		self:queuecommand("Set")
@@ -143,6 +154,18 @@ local ret =
 		end
 		self:GetChild("ScoreDisplay"):xy(frameX, frameY)
 		MESSAGEMAN:Broadcast("TabChanged")
+	end,
+	PlayingSampleMusicMessageCommand = function(self)
+		local leaderboardEnabled = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
+		if not leaderboardEnabled then -- this is taken care of by default.lua instead.
+			updateLeaderBoardForCurrentChart()
+		end
+	end,
+	NestedTabChangedMessageCommand = function(self)
+		updateLeaderBoardForCurrentChart()
+	end,
+	CurrentStepsP1ChangedMessageCommand = function(self)
+		updateLeaderBoardForCurrentChart()
 	end
 }
 
@@ -605,6 +628,33 @@ t[#t + 1] =
 			if nestedTab == 1 then
 				if getTabIndex() == 2 and getScoreForPlot() and getScoreForPlot():HasReplayData() and isOver(self) then
 					SCREENMAN:GetTopScreen():ShowEvalScreenForScore(score)
+				end
+			end
+		end
+	}
+
+t[#t + 1] =
+	LoadFont("Common Normal") ..
+	{
+		Name = "TheDootButton",
+		InitCommand = function(self)
+			self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 70 - offsetY):zoom(0.5):halign(1):settext("")
+		end,
+		DisplayCommand = function(self)
+			if score:HasReplayData() then
+				self:settext("Upload Replay Data")
+			else
+				self:settext("")
+			end
+		end,
+		HighlightCommand = function(self)
+			highlightIfOver(self)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if nestedTab == 1 then
+				if getTabIndex() == 2 and isOver(self) then
+					DLMAN:SendReplayDataForOldScore(score:GetScoreKey())
+					ms.ok("Uploading Replay Data...")	--should have better feedback -mina
 				end
 			end
 		end

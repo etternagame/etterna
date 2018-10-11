@@ -59,8 +59,10 @@ class GameManager
 	RString StyleToLocalizedString(const Style* s);
 
 	bool m_bResetModifiers;
+	bool m_bResetTurns;
 	float m_fPreviousRate;
 	RString m_sModsToReset;
+	vector<RString> m_vTurnsToReset;
 
 	// Lua
 	void PushSelf(lua_State* L);

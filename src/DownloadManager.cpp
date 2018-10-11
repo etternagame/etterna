@@ -26,6 +26,7 @@
 #include <FilterManager.h>
 #include "PlayerStageStats.h"
 #include "Grade.h"
+#include "SongManager.h"	// i didn't want to do this but i also didn't want to figure how not to have to so... -mina
 using json = nlohmann::json;
 #ifdef _WIN32
 #include <intrin.h>
@@ -1016,6 +1017,101 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	HTTPRequests.push_back(req);
 	return;
 }
+void	// not tested exhaustively -mina
+DownloadManager::UploadScoreWithReplayDataFromDisk(string sk)
+{
+	if (!LoggedIn())
+		 return;
+
+	auto doot = SCOREMAN->GetScoresByKey();
+	auto hs = doot[sk];
+	if (!hs->LoadReplayData())
+		return;
+
+	CURL* curlHandle = initCURLHandle(true);
+	string url = serverURL.Get() + "/score";
+	curl_httppost* form = nullptr;
+	curl_httppost* lastPtr = nullptr;
+	SetCURLPOSTScore(curlHandle, form, lastPtr, hs);
+	string replayString;
+	vector<float> offsets = hs->GetOffsetVector();
+	vector<int> columns = hs->GetTrackVector();
+	vector<TapNoteType> types = hs->GetTapNoteTypeVector();
+
+	if (offsets.size() > 0) {
+		replayString = "[";
+		auto steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
+		vector<float> timestamps =
+		  steps->GetTimingData()->ConvertReplayNoteRowsToTimestamps(
+			hs->GetNoteRowVector(), hs->GetMusicRate());
+		for (size_t i = 0; i < offsets.size(); i++) {
+			replayString += "[";
+			replayString += to_string(timestamps[i]) + ",";
+			replayString += to_string(1000.f * offsets[i]) + ",";
+			if (hs->GetReplayType() == 2) {
+				replayString += to_string(columns[i]) + ",";
+				replayString += to_string(types[i]);
+			}
+			replayString += "],";
+		}
+		replayString =
+		  replayString.substr(0, replayString.size() - 1); // remove ","
+		replayString += "]";
+		hs->UnloadReplayData();
+	} else
+		replayString = "";
+	SetCURLFormPostField(
+	  curlHandle, form, lastPtr, "replay_data", replayString);
+	SetCURLPostToURL(curlHandle, url);
+	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
+	auto done = [this, hs](HTTPRequest& req, CURLMsg*) {
+		long response_code;
+		curl_easy_getinfo(req.handle, CURLINFO_RESPONSE_CODE, &response_code);
+		json j;
+		try {
+			j = json::parse(req.result);
+			bool delay = false;
+			try {
+				auto errors = j["errors"];
+				for (auto error : errors) {
+					int status = error["status"];
+					if (status == 22) {
+						delay = true;
+						DLMAN->StartSession(
+						  DLMAN->sessionUser,
+						  DLMAN->sessionPass,
+						  [hs](bool logged) {
+							  if (logged) {
+								  DLMAN->UploadScoreWithReplayDataFromDisk(hs->GetScoreKey());
+							  }
+						  });
+					} else if (status == 404 || status == 405 ||
+							   status == 406) {
+						hs->AddUploadedServer(serverURL.Get());
+					}
+				}
+			} catch (exception e) {
+			}
+			if (!delay && j["data"]["type"] == "ssrResults") {
+				auto diffs = j["data"]["attributes"]["diff"];
+				FOREACH_ENUM(Skillset, ss)
+				if (ss != Skill_Overall)
+					(DLMAN->sessionRatings)[ss] +=
+					  diffs.value(SkillsetToString(ss), 0.0);
+				(DLMAN->sessionRatings)[Skill_Overall] +=
+				  diffs.value("Rating", 0.0);
+				hs->AddUploadedServer(serverURL.Get());
+				HTTPRunning = response_code;
+			}
+		} catch (exception e) {
+		}
+	};
+	HTTPRequest* req = new HTTPRequest(curlHandle, done);
+	SetCURLResultsString(curlHandle, &(req->result));
+	curl_multi_add_handle(mHTTPHandle, req->handle);
+	HTTPRequests.push_back(req);
+	return;
+}
 void
 DownloadManager::EndSessionIfExists()
 {
@@ -1271,6 +1367,24 @@ DownloadManager::RefreshCountryCodes()
 	};
 	SendRequest(
 	  "/misc/countrycodes", vector<pair<string, string>>(), done, true);
+}
+
+void
+DownloadManager::RequestChartLeaderBoard(string chartkey, LuaReference ref)
+{
+	RequestChartLeaderBoard(chartkey);
+	if (unlikely(!ref.IsNil())) {
+		Lua* L = LUA->Get();
+		ref.PushSelf(L);
+		if (lua_isnil(L, -1)) {
+			LUA->Release(L);
+			LuaHelpers::ReportScriptErrorFmt("Error compiling RequestChartLeaderBoard Finish Function");
+			return;
+		}
+		RString Error = "Error running RequestChartLeaderBoard Finish Function: ";
+		LuaHelpers::RunScriptOnStack(L, Error, 2, 0, true); // 1 args, 0 results
+		LUA->Release(L);
+	}
 }
 
 void
@@ -2100,6 +2214,29 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		return 1;
 	}
 
+	// This requests the leaderboard from online. This may cause lag.
+	// Use this sparingly.
+	// This will NOT request a leaderboard if it already exists for the
+	// chartkey. This needs to be updated in the future to do so. That means
+	// this will not update a leaderboard to a new state.
+	static int RequestChartLeaderBoardFromOnline(T* p, lua_State* L)
+	{
+		if (!lua_isfunction(L, 2)) {
+			LuaReference ref;
+			lua_pushvalue(L, 2);
+			ref.SetFromStack(L);
+			if (DLMAN->chartLeaderboards[SArg(1)].size() == 0) {
+				DLMAN->RequestChartLeaderBoard(SArg(1), ref);
+			}
+		} else {
+			if (DLMAN->chartLeaderboards[SArg(1)].size() == 0)
+				DLMAN->RequestChartLeaderBoard(SArg(1));
+		}
+		return 1;
+	}
+
+	// This does not actually request the leaderboard from online.
+	// It gets the already retrieved data from DLMAN
 	static int RequestChartLeaderBoard(T* p, lua_State* L)
 	{
 		vector<HighScore*> filteredLeaderboardScores;
@@ -2151,6 +2288,11 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		lua_pushboolean(L, p->topscoresonly);
 		return 1;
 	}
+	static int SendReplayDataForOldScore(T* p, lua_State* L)
+	{
+		DLMAN->UploadScoreWithReplayDataFromDisk(SArg(1));
+		return 1;
+	}
 
 	LunaDownloadManager()
 	{
@@ -2173,11 +2315,13 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(GetTopChartScoreCount);
 		ADD_METHOD(GetLastVersion);
 		ADD_METHOD(GetRegisterPage);
+		ADD_METHOD(RequestChartLeaderBoardFromOnline);
 		ADD_METHOD(RequestChartLeaderBoard);
 		ADD_METHOD(ToggleRateFilter);
 		ADD_METHOD(GetCurrentRateFilter);
 		ADD_METHOD(ToggleTopScoresOnlyFilter);
 		ADD_METHOD(GetTopScoresOnlyFilter);
+		ADD_METHOD(SendReplayDataForOldScore);
 		ADD_METHOD(Logout);
 	}
 };

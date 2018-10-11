@@ -181,6 +181,7 @@ class PrefsManager
 	Preference<bool> m_bShowInstructions; // how to play a mode
 	Preference<bool> m_bShowCaution;
 	Preference<bool> m_bShowNativeLanguage;
+	Preference<bool> m_bFullTapExplosions;
 	Preference<int> m_iArcadeOptionsNavigation;
 	Preference<bool> m_ThreeKeyNavigation;
 	Preference<MusicWheelUsesSections> m_MusicWheelUsesSections;

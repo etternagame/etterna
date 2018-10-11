@@ -926,6 +926,7 @@ Profile::LoadAllFromDir(const RString& sDir,
 	// Not critical if this fails
 	LoadEditableDataFromDir(sDir);
 
+	/*	we dont really need to be doing this automatically anymore, maybe reinstituting as a "migrate replay" button would be worth doing -mina
 	// move old profile specific replays to the new aggregate folder
 	RString oldreplaydir = sDir + "ReplayData/";
 
@@ -955,7 +956,7 @@ Profile::LoadAllFromDir(const RString& sDir,
 				FILEMAN->Move(oldreplaydir + r, "Save/Replays/" + r);
 			}
 		}
-	}
+	}*/
 
 	CalculateStatsFromScores(
 	  ld); // note to self: figure out how to tell if this is necessary

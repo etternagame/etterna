@@ -2121,6 +2121,7 @@ class LunaHighScore : public Luna<HighScore>
 	DEFINE_METHOD(GetEtternaValid, GetEtternaValid())
 	DEFINE_METHOD(HasReplayData, HasReplayData())
 	DEFINE_METHOD(GetChartKey, GetChartKey())
+	DEFINE_METHOD(GetScoreKey, GetScoreKey())
 	DEFINE_METHOD(GetReplayType, GetReplayType())
 	DEFINE_METHOD(GetDisplayName, GetDisplayName())
 	LunaHighScore()
@@ -2163,6 +2164,7 @@ class LunaHighScore : public Luna<HighScore>
 		ADD_METHOD(GetDisplayName);
 		ADD_METHOD(GetUserid);
 		ADD_METHOD(GetScoreid);
+		ADD_METHOD(GetScoreKey);
 		ADD_METHOD(GetAvatar);
 	}
 };
