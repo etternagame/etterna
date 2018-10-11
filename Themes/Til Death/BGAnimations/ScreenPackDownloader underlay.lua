@@ -235,6 +235,68 @@ local o =
 			InitCommand = function(self)
 				self:xy(SCREEN_WIDTH / 6 + 10, 56):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH / 2):settext("Bundle Select")
 			end
+		},
+	--[[
+	Def.Quad {
+		InitCommand = function(self)
+			self:xy(SCREEN_WIDTH / 12 + 5, 40 + packh):zoomto(SCREEN_WIDTH / 6 - 10, packh - 2):valign(0):diffuse(
+				color("#ffffff")
+			):diffusealpha(0.4)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) then
+				local dls = DLMAN:GetDownloads()
+				for i, dl in ipairs(dls) do
+					dl:Stop()
+				end
+			end
+		end,
+		HighlightCommand = function(self)
+			if isOver(self) then
+				self:diffusealpha(0.8)
+			else
+				self:diffusealpha(0.4)
+			end
+		end
+	},
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:xy(SCREEN_WIDTH / 12 + 10, 56 + packh):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH / 3):settext(
+					"Cancel all dls"
+				)
+			end
+		},
+	--]]
+	Def.Quad {
+		InitCommand = function(self)
+			self:xy(SCREEN_WIDTH / 4 + 15, 40 + packh):zoomto(SCREEN_WIDTH / 6 - 10, packh - 2):valign(0):diffuse(
+				color("#ffffff")
+			):diffusealpha(0.4)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) then
+				local dl = DLMAN:GetDownloads()[1]
+				if dl then
+					dl:Stop()
+				end
+			end
+		end,
+		HighlightCommand = function(self)
+			if isOver(self) then
+				self:diffusealpha(0.8)
+			else
+				self:diffusealpha(0.4)
+			end
+		end
+	},
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:xy(SCREEN_WIDTH / 4 + 15, 56 + packh):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH / 3):settext(
+					"Cancel current dl"
+				)
+			end
 		}
 }
 
