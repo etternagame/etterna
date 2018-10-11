@@ -21,10 +21,10 @@ class WindowsDialogBox
 	}
 
   private:
-	static BOOL APIENTRY DlgProc(HWND hDlg,
-								 UINT msg,
-								 WPARAM wParam,
-								 LPARAM lParam);
+	static INT_PTR APIENTRY DlgProc(HWND hDlg,
+									UINT msg,
+									WPARAM wParam,
+									LPARAM lParam);
 	HWND m_hWnd;
 };
 

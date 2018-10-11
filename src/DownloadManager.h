@@ -83,6 +83,7 @@ class DownloadablePack
 	int id{ 0 };
 	float avgDifficulty{ 0 };
 	string url{ "" };
+	string mirror{ "" };
 	bool downloading{ false };
 	// Lua
 	void PushSelf(lua_State* L);
@@ -158,6 +159,8 @@ class OnlineScore
 	int userid;
 	DateTime datetime;
 	vector<pair<float, float>> replayData;
+	string countryCode;
+	HighScore hs;
 };
 class DownloadManager
 {
@@ -192,6 +195,7 @@ class DownloadManager
 		""
 	}; // Register page from server (Or empty if non was obtained)
 	map<string, vector<OnlineScore>> chartLeaderboards;
+	vector<string> countryCodes;
 	map<Skillset, int>
 	  sessionRanks; // Leaderboard ranks for logged in user by skillset
 	map<Skillset, double> sessionRatings;
@@ -228,7 +232,8 @@ class DownloadManager
 
 	void init();
 	Download* DownloadAndInstallPack(const string& url, string filename = "");
-	Download* DownloadAndInstallPack(DownloadablePack* pack);
+	Download* DownloadAndInstallPack(DownloadablePack* pack,
+									 bool mirror = false);
 	void Update(float fDeltaSeconds);
 	void UpdatePacks(float fDeltaSeconds);
 	void UpdateHTTP(float fDeltaSeconds);
@@ -242,6 +247,7 @@ class DownloadManager
 	bool EncodeSpaces(string& str);
 
 	void UploadScoreWithReplayData(HighScore* hs);
+	void UploadScoreWithReplayDataFromDisk(string sk);
 	void UploadScore(HighScore* hs);
 
 	bool ShouldUploadScores();
@@ -266,15 +272,16 @@ class DownloadManager
 								  bool withBearer);
 	void RefreshLastVersion();
 	void RefreshRegisterPage();
-	void MakeAThing(string chartkey);
-	vector<HighScore> athing;
 	bool currentrateonly = false;
 	bool topscoresonly = true;
+	void RefreshCountryCodes();
+	void RequestChartLeaderBoard(string chartkey, LuaReference ref);
 	void RequestChartLeaderBoard(string chartkey);
 	void RefreshUserData();
+	string countryCode;
 	void RefreshUserRank();
 	void RefreshTop25(Skillset ss);
-	void DownloadCoreBundle(string whichoneyo);
+	void DownloadCoreBundle(string whichoneyo, bool mirror = false);
 	map<string, vector<DownloadablePack*>> bundles;
 	void RefreshCoreBundles();
 	vector<DownloadablePack*> GetCoreBundle(string whichoneyo);
@@ -286,7 +293,7 @@ class DownloadManager
 
 	// most recent single score upload result -mina
 	RString mostrecentresult = "";
-	std::deque<DownloadablePack*> DownloadQueue;
+	deque<pair<DownloadablePack*, bool>> DownloadQueue; // (pack,isMirror)
 	const int maxPacksToDownloadAtOnce = 1;
 	const float DownloadCooldownTime = 5.f;
 	float timeSinceLastDownload = 0.f;

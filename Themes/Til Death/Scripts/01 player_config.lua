@@ -9,6 +9,7 @@ local defaultConfig = {
 	TargetTrackerMode = 0,
 	JudgeCounter = true,
 	ErrorBar = 1,
+	leaderboardEnabled = false,
 	PlayerInfo = true,
 	FullProgressBar = true,
 	MiniProgressBar = true,
@@ -232,6 +233,32 @@ local defaultConfig = {
 }
 
 playerConfig = create_setting("playerConfig", "playerConfig.lua", defaultConfig, -1)
+local tmp2 = playerConfig.load
+playerConfig.load = function(self, slot)
+	local tmp = force_table_elements_to_match_type
+	force_table_elements_to_match_type = function()
+	end
+	local x = create_setting("playerConfig", "playerConfig.lua", {}, -1)
+	x = x:load(slot)
+	local coords = x.GameplayXYCoordinates
+	local sizes = x.GameplaySizes
+	if sizes and not sizes["4K"] then
+		defaultConfig.GameplaySizes["4K"] = sizes
+		defaultConfig.GameplaySizes["5K"] = sizes
+		defaultConfig.GameplaySizes["6K"] = sizes
+		defaultConfig.GameplaySizes["7K"] = sizes
+		defaultConfig.GameplaySizes["8K"] = sizes
+	end
+	if coords and not coords["4K"] then
+		defaultConfig.GameplayXYCoordinates["4K"] = coords
+		defaultConfig.GameplayXYCoordinates["5K"] = coords
+		defaultConfig.GameplayXYCoordinates["6K"] = coords
+		defaultConfig.GameplayXYCoordinates["7K"] = coords
+		defaultConfig.GameplayXYCoordinates["8K"] = coords
+	end
+	force_table_elements_to_match_type = tmp
+	return tmp2(self, slot)
+end
 playerConfig:load()
 
 function LoadProfileCustom(profile, dir)
@@ -246,7 +273,7 @@ function LoadProfileCustom(profile, dir)
 	end
 
 	if pn then
-		playerConfig:load(pn_to_profile_slot(pn))
+		local conf = playerConfig:load(pn_to_profile_slot(pn))
 	end
 end
 

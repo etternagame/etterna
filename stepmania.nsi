@@ -43,7 +43,7 @@
 
 	; don't forget to change this before releasing a new version.
 	; wish this could be automated, but it requires "X.Y.Z.a" format. -aj
-	VIProductVersion "0.60.0.0"
+	VIProductVersion "0.61.0.0"
 	VIAddVersionKey "ProductName" "${PRODUCT_ID}"
 	VIAddVersionKey "FileVersion" "${PRODUCT_VER}"
 	VIAddVersionKey "FileDescription" "${PRODUCT_ID} Installer"
@@ -415,6 +415,27 @@ Section "Main Section" SecMain
 	RMDir /r "$INSTDIR\Themes\_portKit-sm4"
 	RMDir /r "$INSTDIR\Themes\default"
 	CreateDirectory "$INSTDIR\Themes"
+
+	Delete "$INSTDIR\Themes\Til Death\Scripts\00 settings_system.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\00 Utility.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\01 avatar_config.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\Avatar.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\FileUtils.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\Scores.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\Texts.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\WifeSundries.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\DataDumper.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\WifePointTables.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\Scoretracking.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\Wife.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\WifeKeys.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\WifeScores.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\WifeSearch.lua"
+	Delete "$INSTDIR\Themes\Til Death\BGAnimations\ExportSelection.lua"
+	Delete "$INSTDIR\Themes\Til Death\BGAnimations\wifeScold.lua"
+	Delete "$INSTDIR\Themes\Til Death\BGAnimations\ScreenEvaluation decorations\wifeScold.lua"
+	Delete "$INSTDIR\Themes\Til Death\BGAnimations\ScreenGameplay underlay\pause.lua"
+
 	SetOutPath "$INSTDIR\Themes"
 	;File "Themes\instructions.txt"
 	File /r /x CVS /x .svn "Themes\_fallback"

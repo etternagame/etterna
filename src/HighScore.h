@@ -1,4 +1,4 @@
-﻿#ifndef HIGH_SCORE_H
+#ifndef HIGH_SCORE_H
 #define HIGH_SCORE_H
 
 #include "DateTime.h"
@@ -80,6 +80,7 @@ struct HighScore
 	DateTime GetDateTime() const;
 	string GetPlayerGuid() const;
 	string GetMachineGuid() const;
+	string GetCountryCode() const;
 	int GetProductID() const;
 	int GetTapNoteScore(TapNoteScore tns) const;
 	int GetHoldNoteScore(HoldNoteScore tns) const;
@@ -179,8 +180,9 @@ struct HighScore
 	vector<int> GetRescoreJudgeVector(int x);
 	// laazy
 	string scoreid;
-	int userid;
+	int userid = -1;
 	string avatar;
+	string countryCode;
 
 	int norms = 0;
 	int musics = 0;

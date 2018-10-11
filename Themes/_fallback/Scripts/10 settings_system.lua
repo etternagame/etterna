@@ -1,4 +1,4 @@
-local settings_prefix = "/" .. THEME:GetThemeDisplayName() .. "_settings/"
+local settings_prefix = "/" .. THEME:GetRealThemeDisplayName() .. "_settings/"
 global_cur_game = GAMESTATE:GetCurrentGame():GetName():lower()
 
 function force_table_elements_to_match_type(candidate, must_match, depth_remaining)
@@ -85,7 +85,7 @@ local setting_mt = {
 		end,
 		get_data = function(self, slot)
 			slot = slot or "ProfileSlot_Invalid"
-			return self.data_set[slot] or self.default
+			return self.data_set[slot] or self:load(slot)
 		end,
 		set_data = function(self, slot, data)
 			slot = slot or "ProfileSlot_Invalid"

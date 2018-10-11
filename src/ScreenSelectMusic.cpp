@@ -324,6 +324,10 @@ ScreenSelectMusic::BeginScreen()
 		GAMESTATE->isplaylistcourse = false;
 		SONGMAN->playlistcourse = "";
 	}
+	if (GAMESTATE->m_pCurSteps[PLAYER_1] != nullptr)
+		DLMAN->RequestChartLeaderBoard(
+		  GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+
 
 	ScreenWithMenuElements::BeginScreen();
 }
@@ -426,8 +430,8 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 		FallbackMusic.bAlignBeat = ALIGN_MUSIC_BEATS;
 
 		SOUND->PlayMusic(PlayParams, FallbackMusic);
-		DLMAN->RequestChartLeaderBoard(
-		  GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
+		MESSAGEMAN->Broadcast("PlayingSampleMusic");
+		//DLMAN->RequestChartLeaderBoard(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
 	}
 }
 
@@ -1856,6 +1860,40 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred().FromString(mods);
 		CHECKPOINT_M("Replay mods set.");
 		*/
+		
+		// Set mirror mode on if mirror was on in the replay
+		// Also get ready to reset the turn mods to what they were before
+		RString mods = hs->GetModifiers();
+		vector<RString> oldTurns;
+		GAMESTATE->m_pPlayerState[PLAYER_1]
+		  ->m_PlayerOptions.GetSong()
+		  .GetTurnMods(oldTurns);
+		if (mods.find("Mirror") != mods.npos) {
+			GAMESTATE->m_pPlayerState[PLAYER_1]
+			  ->m_PlayerOptions.GetSong()
+			  .m_bTurns[PlayerOptions::TURN_MIRROR] = true;
+			GAMESTATE->m_pPlayerState[PLAYER_1]
+			  ->m_PlayerOptions.GetCurrent()
+			  .m_bTurns[PlayerOptions::TURN_MIRROR] = true;
+			GAMESTATE->m_pPlayerState[PLAYER_1]
+			  ->m_PlayerOptions.GetPreferred()
+			  .m_bTurns[PlayerOptions::TURN_MIRROR] = true;
+		}
+		else
+		{
+			GAMESTATE->m_pPlayerState[PLAYER_1]
+			  ->m_PlayerOptions.GetSong()
+			  .m_bTurns[PlayerOptions::TURN_MIRROR] = false;
+			GAMESTATE->m_pPlayerState[PLAYER_1]
+			  ->m_PlayerOptions.GetCurrent()
+			  .m_bTurns[PlayerOptions::TURN_MIRROR] = false;
+			GAMESTATE->m_pPlayerState[PLAYER_1]
+			  ->m_PlayerOptions.GetPreferred()
+			  .m_bTurns[PlayerOptions::TURN_MIRROR] = false;
+		}
+		GAMEMAN->m_bResetTurns = true;
+		GAMEMAN->m_vTurnsToReset = oldTurns;
+
 
 		// lock the game into replay mode and GO
 		LOG->Trace("Viewing replay for score key %s",

@@ -14,6 +14,7 @@
 #include "ThemeManager.h"
 #include "XmlFile.h"
 #include <typeinfo>
+#include "FilterManager.h"
 
 static Preference<bool> g_bShowMasks("ShowMasks", false);
 static const float default_effect_period = 1.0f;
@@ -2588,6 +2589,21 @@ class LunaActor : public Luna<Actor>
 		COMMON_RETURN_SELF;
 	}
 
+	static int SaveXY(T* p, lua_State* L)
+	{ // in the future arguments should be optional and default to getx, gety if
+	  // no explicit coords are provided - mina
+		FILTERMAN->savepos(p->GetName(), IArg(1), IArg(2));
+		COMMON_RETURN_SELF;
+	}
+
+	static int LoadXY(T* p, lua_State* L)
+	{
+		auto doot = FILTERMAN->loadpos(p->GetName());
+		p->SetX(doot.first);
+		p->SetY(doot.second);
+		COMMON_RETURN_SELF;
+	}
+
 	LunaActor()
 	{
 		ADD_METHOD(name);
@@ -2761,6 +2777,9 @@ class LunaActor : public Luna<Actor>
 		ADD_METHOD(GetWrapperState);
 
 		ADD_METHOD(Draw);
+
+		ADD_METHOD(SaveXY);
+		ADD_METHOD(LoadXY);
 	}
 };
 

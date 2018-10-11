@@ -741,6 +741,7 @@ InitializeConfOptions()
 
 	ADD(ConfOption("Announcer", Announcer, AnnouncerChoices));
 	ADD(ConfOption("DefaultNoteSkin", DefaultNoteSkin, DefaultNoteSkinChoices));
+	ADD(ConfOption("FullTapExplosions", MovePref<bool>, "Short", "Full"));
 	ADD(ConfOption("ShowInstructions", MovePref<bool>, "Skip", "Show"));
 	ADD(ConfOption("ShowCaution", MovePref<bool>, "Skip", "Show"));
 	ADD(ConfOption("MusicWheelUsesSections",
@@ -872,7 +873,6 @@ InitializeConfOptions()
 	ADD(ConfOption(
 	  "AllowW1", MovePref<AllowW1>, "Never", "Courses Only", "Always"));
 	ADD(ConfOption("AllowExtraStage", MovePref<bool>, "Off", "On"));
-	ADD(ConfOption("ComboContinuesBetweenSongs", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("Disqualification", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("AllowSongDeletion", MovePref<bool>, "Off", "On"));
 

@@ -843,6 +843,14 @@ ScreenEvaluation::HandleMenuStart()
 		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = oldRate;
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = oldRate;
 		GAMEMAN->m_bResetModifiers = false;
+		const vector<RString> oldturns = GAMEMAN->m_vTurnsToReset;
+		if (GAMEMAN->m_bResetTurns) {
+			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetSong().ResetModsToStringVector(oldturns);
+			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().ResetModsToStringVector(oldturns);
+			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetPreferred().ResetModsToStringVector(oldturns);
+			GAMEMAN->m_bResetTurns = false;
+			GAMEMAN->m_vTurnsToReset.clear();
+		}
 		GAMEMAN->m_sModsToReset = "";
 		MESSAGEMAN->Broadcast("RateChanged");
 	}

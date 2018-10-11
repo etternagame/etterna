@@ -21,6 +21,10 @@
 #include "Song.h"
 #include "GamePreferences.h"
 
+#ifndef  _WIN32
+#include <cpuid.h>
+#endif
+
 #ifdef _WIN32
 #include <intrin.h>
 #include <iphlpapi.h>
@@ -228,21 +232,11 @@ getCpuHash()
 
 #else  // !DARWIN
 
-static void
-getCpuid(uint32_t* p, uint32_t ax)
-{
-	__asm __volatile("movl %%ebx, %%esi\n\t"
-					 "cpuid\n\t"
-					 "xchgl %%ebx, %%esi"
-					 : "=a"(p[0]), "=S"(p[1]), "=c"(p[2]), "=d"(p[3])
-					 : "0"(ax));
-}
-
 uint16_t
 getCpuHash()
 {
 	uint32_t cpuinfo[4] = { 0, 0, 0, 0 };
-	getCpuid(cpuinfo, 0);
+	__get_cpuid(0, &cpuinfo[0], &cpuinfo[1], &cpuinfo[2], &cpuinfo[3]);	
 	uint16_t hash = 0;
 	uint32_t* ptr = (&cpuinfo[0]);
 	for (uint32_t i = 0; i < 4; i++)
@@ -491,7 +485,7 @@ DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
 
 	if (mods.find("Backwards") != mods.npos)
 		return false;
-	
+
 	if (mods.find("Little") != mods.npos)
 		return false;
 

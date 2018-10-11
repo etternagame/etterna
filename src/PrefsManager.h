@@ -181,6 +181,7 @@ class PrefsManager
 	Preference<bool> m_bShowInstructions; // how to play a mode
 	Preference<bool> m_bShowCaution;
 	Preference<bool> m_bShowNativeLanguage;
+	Preference<bool> m_bFullTapExplosions;
 	Preference<int> m_iArcadeOptionsNavigation;
 	Preference<bool> m_ThreeKeyNavigation;
 	Preference<MusicWheelUsesSections> m_MusicWheelUsesSections;
@@ -188,7 +189,6 @@ class PrefsManager
 	Preference<AllowW1>
 	  m_AllowW1; // this should almost always be on, given use cases. -aj
 	Preference<bool> m_bEventMode;
-	Preference<bool> m_bComboContinuesBetweenSongs;
 	Preference<TapNoteScore> m_MinTNSToHideNotes;
 	Preference<Maybe> m_ShowSongOptions;
 	Preference<float> m_fMinPercentToSaveScores;
@@ -248,6 +248,7 @@ class PrefsManager
 	Preference<bool> m_bAllowSongDeletion; // Allow the user to remove songs
 										   // from their collection through UI /
 										   // keyboard shortcut
+	Preference<int> ThreadsToUse;
 
 	/** @brief Enable some quirky behavior used by some older versions of
 	 * StepMania. */

@@ -1,30 +1,23 @@
-local judges = {"marv", "perf", "great", "good", "boo", "miss"}
-local defaultJudges = {
-	"TapNoteScore_W1",
-	"TapNoteScore_W2",
-	"TapNoteScore_W3",
-	"TapNoteScore_W4",
-	"TapNoteScore_W5",
-	"TapNoteScore_Miss"
-}
+local judges = { "marv", "perf", "great", "good", "boo", "miss" }
+local defaultJudges = {'TapNoteScore_W1','TapNoteScore_W2','TapNoteScore_W3','TapNoteScore_W4','TapNoteScore_W5','TapNoteScore_Miss'}
 
 local shortDiffName = {
-	Difficulty_Beginner = "BG",
-	Difficulty_Easy = "EZ",
-	Difficulty_Medium = "NM",
-	Difficulty_Hard = "HD",
-	Difficulty_Challenge = "IN",
-	Difficulty_Edit = "ED",
-	Difficulty_Couple = "CP",
-	Difficulty_Routine = "RT",
-	Beginner = "BG",
-	Easy = "EZ",
-	Normal = "NM",
-	Hard = "HD",
-	Insane = "IN",
-	Edit = "ED",
-	Couple = "CP",
-	Routine = "RT"
+	Difficulty_Beginner	= 'BG',
+	Difficulty_Easy		= 'EZ',
+	Difficulty_Medium	= 'NM',
+	Difficulty_Hard		= 'HD',
+	Difficulty_Challenge= 'IN',
+	Difficulty_Edit 	= 'ED',
+	Difficulty_Couple	= 'CP',
+	Difficulty_Routine	= 'RT',
+	Beginner			= 'BG',
+	Easy				= 'EZ',
+	Normal				= 'NM',
+	Hard				= 'HD',
+	Insane 				= 'IN',
+	Edit 				= 'ED',
+	Couple				= 'CP',
+	Routine				= 'RT'
 }
 
 local scoreTypeText = {
@@ -32,53 +25,51 @@ local scoreTypeText = {
 	"PS",
 	"MIGS",
 	"Wife",
-	"Waifu"
+	"Waifu",
 }
 
 local DiffName = {
-	Difficulty_Beginner = "Beginner",
-	Difficulty_Easy = "Easy",
-	Difficulty_Medium = "Normal",
-	Difficulty_Hard = "Hard",
-	Difficulty_Challenge = "Insane",
-	Difficulty_Edit = "Edit",
-	Difficulty_Couple = "Couple",
-	Difficulty_Routine = "Routine"
+	Difficulty_Beginner	= 'Beginner',
+	Difficulty_Easy		= 'Easy',
+	Difficulty_Medium	= 'Normal',
+	Difficulty_Hard		= 'Hard',
+	Difficulty_Challenge= 'Insane',
+	Difficulty_Edit 	= 'Edit',
+	Difficulty_Couple	= 'Couple',
+	Difficulty_Routine	= 'Routine',
 }
 
 local gradeString = {
-	Grade_Tier01 = "AAAA",
-	Grade_Tier02 = "AAA",
-	Grade_Tier03 = "AA",
-	Grade_Tier04 = "A",
-	Grade_Tier05 = "B",
-	Grade_Tier06 = "C",
-	Grade_Tier07 = "D",
-	Grade_Failed = "F"
+	Grade_Tier01 = 'AAAA',
+	Grade_Tier02 = 'AAA',
+	Grade_Tier03 = 'AA',
+	Grade_Tier04 = 'A',
+	Grade_Tier05 = 'B',
+	Grade_Tier06 = 'C',
+	Grade_Tier07 = 'D',
+	Grade_Failed = 'F'
 }
 
-local shortJudgeString = {
-	-- Text strings for each Judgment types
-	TapNoteScore_W1 = "MA",
-	TapNoteScore_W2 = "PR",
-	TapNoteScore_W3 = "GR",
-	TapNoteScore_W4 = "GD",
-	TapNoteScore_W5 = "BD",
-	TapNoteScore_Miss = "MS",
-	HoldNoteScore_Held = "OK",
-	HoldNoteScore_LetGo = "NG"
+local shortJudgeString = { -- Text strings for each Judgment types
+	TapNoteScore_W1 = 'MA',
+	TapNoteScore_W2	= 'PR',
+	TapNoteScore_W3	 = 'GR',
+	TapNoteScore_W4	= 'GD',
+	TapNoteScore_W5	= 'BD',
+	TapNoteScore_Miss = 'MS',			
+	HoldNoteScore_Held = 'OK',	
+	HoldNoteScore_LetGo = 'NG',	
 }
 
-local judgeString = {
-	-- Text strings for each Judgment types
-	TapNoteScore_W1 = "Marvelous",
-	TapNoteScore_W2 = "Perfect",
-	TapNoteScore_W3 = "Great",
-	TapNoteScore_W4 = "Good",
-	TapNoteScore_W5 = "Bad",
-	TapNoteScore_Miss = "Miss",
-	HoldNoteScore_Held = "OK",
-	HoldNoteScore_LetGo = "NG"
+local judgeString = { -- Text strings for each Judgment types
+	TapNoteScore_W1 = 'Marvelous',
+	TapNoteScore_W2	= 'Perfect',
+	TapNoteScore_W3	 = 'Great',
+	TapNoteScore_W4	= 'Good',
+	TapNoteScore_W5	= 'Bad',
+	TapNoteScore_Miss = 'Miss',			
+	HoldNoteScore_Held = 'OK',	
+	HoldNoteScore_LetGo = 'NG',	
 }
 
 function getShortDifficulty(diff)
@@ -87,41 +78,41 @@ function getShortDifficulty(diff)
 	else
 		return "ED"
 	end
-end
+end;
 
 function getDifficulty(diff)
 	if diff ~= nil and diff ~= "" then
 		return DiffName[diff]
 	elseif diff == "" then
 		return "Edit"
-	else
+	else 
 		return diff
 	end
-end
+end;
 
 function getGradeStrings(diff)
 	if diff ~= nil then
 		return gradeString[diff] or diff
 	end
-end
+end;
 
 function getJudgeStrings(judge)
 	if judge ~= nil then
 		return judgeString[judge] or judge
 	end
-end
+end;
 
 function getShortJudgeStrings(judge)
 	if judge ~= nil then
 		return shortJudgeString[judge] or judge
 	end
-end
+end;
 
 function getCustomJudgeString(customNames, judge)
 	if judge ~= nil then
 		return customNames and customNames[judges[judge]] or getJudgeStrings(defaultJudges[judge])
 	end
-end
+end;
 
 function scoringToText(st)
 	if st == 0 then
@@ -129,4 +120,4 @@ function scoringToText(st)
 	else
 		return scoreTypeText[st]
 	end
-end
+end;

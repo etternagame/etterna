@@ -681,8 +681,7 @@ GameState::FinishStage()
 
 	m_iNumStagesOfThisSong = 0;
 
-	// Save the current combo to the profiles so it can be used for
-	// ComboContinuesBetweenSongs.
+	// Save the current combo to the profiles (why not)
 	FOREACH_HumanPlayer(p)
 	{
 		Profile* pProfile = PROFILEMAN->GetProfile(p);
@@ -928,20 +927,6 @@ GameState::ResetStageStatistics()
 {
 	StageStats OldStats = STATSMAN->m_CurStageStats;
 	STATSMAN->m_CurStageStats = StageStats();
-	if (PREFSMAN->m_bComboContinuesBetweenSongs) {
-		FOREACH_PlayerNumber(p)
-		{
-			bool FirstSong = m_iCurrentStageIndex == 0;
-			if (FirstSong) {
-				Profile* pProfile = PROFILEMAN->GetProfile(p);
-				STATSMAN->m_CurStageStats.m_player[p].m_iCurCombo =
-				  pProfile->m_iCurrentCombo;
-			} else {
-				STATSMAN->m_CurStageStats.m_player[p].m_iCurCombo =
-				  OldStats.m_player[p].m_iCurCombo;
-			}
-		}
-	}
 
 	m_fOpponentHealthPercent = 1;
 	m_fTugLifePercentP1 = 0.5f;
@@ -2375,6 +2360,11 @@ class LunaGameState : public Luna<GameState>
 		p->updateDiscordPresence(SArg(1), SArg(2), SArg(3), IArg(4));
 		return 1;
 	}
+	static int IsPaused(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->GetPaused());
+		return 1;
+	}
 
 	DEFINE_METHOD(GetEtternaVersion, GetEtternaVersion())
 	LunaGameState()
@@ -2476,6 +2466,7 @@ class LunaGameState : public Luna<GameState>
 		ADD_METHOD(GetCoinMode);
 		ADD_METHOD(UpdateDiscordMenu);
 		ADD_METHOD(UpdateDiscordPresence);
+		ADD_METHOD(IsPaused);
 	}
 };
 

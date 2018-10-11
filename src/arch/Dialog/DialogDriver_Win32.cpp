@@ -29,7 +29,7 @@ static RString g_sMessage;
 static bool g_bAllowHush;
 
 #if !defined(SMPACKAGE)
-static BOOL CALLBACK
+static INT_PTR CALLBACK
 OKWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg) {
@@ -141,7 +141,7 @@ DialogDriver_Win32::OKCancel(const RString& sMessage, const RString& sID)
 #if !defined(SMPACKAGE)
 static RString g_sErrorString;
 
-static BOOL CALLBACK
+static INT_PTR CALLBACK
 ErrorWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg) {

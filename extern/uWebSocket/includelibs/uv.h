@@ -59,7 +59,11 @@ extern "C" {
 #if defined(_WIN32)
 # include "uv-win.h"
 #else
+#ifdef __APPLE__
+#include "../../../extern/libuv/uv/unix.h"
+#else
 # include "uv-unix.h"
+#endif
 #endif
 
 /* Expand this list if necessary. */

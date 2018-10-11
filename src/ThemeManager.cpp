@@ -521,7 +521,7 @@ ThemeManager::RunLuaScripts(const RString& sMask, bool bUseThemeDir)
 
 	/* TODO: verify whether this final check is necessary. */
 	const RString sCurThemeName = m_sCurThemeName;
-
+	m_sRealCurThemeName = m_sCurThemeName;
 	deque<Theme>::const_iterator iter = g_vThemes.end();
 	do {
 		--iter;
@@ -1544,6 +1544,11 @@ class LunaThemeManager : public Luna<ThemeManager>
 		lua_pushstring(L, p->GetThemeDisplayName(p->GetCurThemeName()));
 		return 1;
 	}
+	static int GetRealThemeDisplayName(T* p, lua_State* L)
+	{
+		lua_pushstring(L, p->GetThemeDisplayName(p->GetRealCurThemeName()));
+		return 1;
+	}
 	static int GetThemeAuthor(T* p, lua_State* L)
 	{
 		lua_pushstring(L, p->GetThemeAuthor(p->GetCurThemeName()));
@@ -1553,6 +1558,7 @@ class LunaThemeManager : public Luna<ThemeManager>
 	DEFINE_METHOD(IsThemeSelectable, IsThemeSelectable(SArg(1)));
 	DEFINE_METHOD(DoesLanguageExist, DoesLanguageExist(SArg(1)));
 	DEFINE_METHOD(GetCurThemeName, GetCurThemeName());
+	DEFINE_METHOD(GetRealCurThemeName, GetRealCurThemeName());
 
 	static void PushMetricNamesInGroup(IniFile const& ini, lua_State* L)
 	{
@@ -1614,11 +1620,13 @@ class LunaThemeManager : public Luna<ThemeManager>
 		ADD_METHOD(GetCurrentThemeDirectory);
 		ADD_METHOD(GetCurLanguage);
 		ADD_METHOD(GetThemeDisplayName);
+		ADD_METHOD(GetRealThemeDisplayName);
 		ADD_METHOD(GetThemeAuthor);
 		ADD_METHOD(DoesThemeExist);
 		ADD_METHOD(IsThemeSelectable);
 		ADD_METHOD(DoesLanguageExist);
 		ADD_METHOD(GetCurThemeName);
+		ADD_METHOD(GetRealCurThemeName);
 		ADD_METHOD(HasMetric);
 		ADD_METHOD(HasString);
 		ADD_METHOD(GetMetricNamesInGroup);

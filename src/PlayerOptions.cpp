@@ -377,6 +377,48 @@ PlayerOptions::GetMods(vector<RString>& AddTo, bool bForceNoteSkin) const
 	}
 }
 
+void
+PlayerOptions::GetTurnMods(vector<RString>& AddTo)
+{
+	if (m_bTurns[TURN_MIRROR])
+		AddTo.push_back("Mirror");
+	if (m_bTurns[TURN_BACKWARDS])
+		AddTo.push_back("Backwards");
+	if (m_bTurns[TURN_LEFT])
+		AddTo.push_back("Left");
+	if (m_bTurns[TURN_RIGHT])
+		AddTo.push_back("Right");
+	if (m_bTurns[TURN_SHUFFLE])
+		AddTo.push_back("Shuffle");
+	if (m_bTurns[TURN_SOFT_SHUFFLE])
+		AddTo.push_back("SoftShuffle");
+	if (m_bTurns[TURN_SUPER_SHUFFLE])
+		AddTo.push_back("SuperShuffle");
+}
+
+// At the moment this only supports turns.
+// Do not use this for anything else.
+// It will not work.
+void
+PlayerOptions::ResetModsToStringVector(vector<RString> mods)
+{
+	RString error;
+	ResetToggleableMods();
+	for (RString mod : mods)
+	{
+		FromOneModString(mod, error);
+	}
+}
+
+// At the moment this only supports turns.
+// Do not use this for anything else.
+// It will not work.
+void
+PlayerOptions::ResetToggleableMods()
+{
+	ZERO(m_bTurns);
+}
+
 /* Options are added to the current settings; call Init() beforehand if
  * you don't want this. */
 void

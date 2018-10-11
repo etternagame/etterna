@@ -50,6 +50,7 @@ class ThemeManager
 								bool bForceThemeReload = false);
 	void UpdateLuaGlobals();
 	RString GetCurThemeName() const { return m_sCurThemeName; };
+	RString GetRealCurThemeName() const { return m_sRealCurThemeName; };
 	bool IsThemeLoaded() const { return !m_sCurThemeName.empty(); };
 	RString GetCurLanguage() const { return m_sCurLanguage; };
 	RString GetCurThemeDir() const
@@ -195,6 +196,7 @@ class ThemeManager
 	RString GetDefaultLanguage();
 
 	RString m_sCurThemeName;
+	RString m_sRealCurThemeName = "";
 	RString m_sCurLanguage;
 	bool m_bPseudoLocalize;
 };

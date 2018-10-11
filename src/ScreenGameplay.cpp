@@ -999,6 +999,11 @@ ScreenGameplay::LoadNextSong()
 	int iPlaySongIndex = GAMESTATE->GetCourseSongIndex();
 	iPlaySongIndex %= m_apSongsQueue.size();
 	GAMESTATE->m_pCurSong.Set(m_apSongsQueue[iPlaySongIndex]);
+	// Check if the music actually exists, this is to avoid an issue in
+	// AutoKeysounds.cpp, where the reader will ignore whether the file opener
+	// function actually returned a valid object or an error. - Terra
+	GAMESTATE->m_pCurSong.Get()->ReloadIfNoMusic();
+
 	STATSMAN->m_CurStageStats.m_vpPlayedSongs.push_back(GAMESTATE->m_pCurSong);
 
 	// Force immediate fail behavior changed to theme metric by Kyz.
@@ -1698,6 +1703,7 @@ ScreenGameplay::Update(float fDeltaTime)
 						if (GAMEMAN->m_bResetModifiers) {
 							float oldRate = GAMEMAN->m_fPreviousRate;
 							const RString mods = GAMEMAN->m_sModsToReset;
+							/*
 							GAMESTATE->m_pPlayerState[PLAYER_1]
 							  ->m_PlayerOptions.GetSong()
 							  .FromString("clearall");
@@ -1716,6 +1722,22 @@ ScreenGameplay::Update(float fDeltaTime)
 							GAMESTATE->m_pPlayerState[PLAYER_1]
 							  ->m_PlayerOptions.GetPreferred()
 							  .FromString(mods);
+							*/
+							const vector<RString> oldturns =
+							  GAMEMAN->m_vTurnsToReset;
+							if (GAMEMAN->m_bResetTurns) {
+								GAMESTATE->m_pPlayerState[PLAYER_1]
+								  ->m_PlayerOptions.GetSong()
+								  .ResetModsToStringVector(oldturns);
+								GAMESTATE->m_pPlayerState[PLAYER_1]
+								  ->m_PlayerOptions.GetCurrent()
+								  .ResetModsToStringVector(oldturns);
+								GAMESTATE->m_pPlayerState[PLAYER_1]
+								  ->m_PlayerOptions.GetPreferred()
+								  .ResetModsToStringVector(oldturns);
+								GAMEMAN->m_bResetTurns = false;
+								GAMEMAN->m_vTurnsToReset.clear();
+							}
 							GAMESTATE->m_SongOptions.GetSong().m_fMusicRate =
 							  oldRate;
 							GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate =
@@ -2030,6 +2052,7 @@ ScreenGameplay::Input(const InputEventPlus& input)
 					if (GAMEMAN->m_bResetModifiers) {
 						float oldRate = GAMEMAN->m_fPreviousRate;
 						const RString mods = GAMEMAN->m_sModsToReset;
+						/*
 						GAMESTATE->m_pPlayerState[PLAYER_1]
 						  ->m_PlayerOptions.GetSong()
 						  .FromString("clearall");
@@ -2048,6 +2071,22 @@ ScreenGameplay::Input(const InputEventPlus& input)
 						GAMESTATE->m_pPlayerState[PLAYER_1]
 						  ->m_PlayerOptions.GetPreferred()
 						  .FromString(mods);
+						*/
+						const vector<RString> oldturns =
+						  GAMEMAN->m_vTurnsToReset;
+						if (GAMEMAN->m_bResetTurns) {
+							GAMESTATE->m_pPlayerState[PLAYER_1]
+							  ->m_PlayerOptions.GetSong()
+							  .ResetModsToStringVector(oldturns);
+							GAMESTATE->m_pPlayerState[PLAYER_1]
+							  ->m_PlayerOptions.GetCurrent()
+							  .ResetModsToStringVector(oldturns);
+							GAMESTATE->m_pPlayerState[PLAYER_1]
+							  ->m_PlayerOptions.GetPreferred()
+							  .ResetModsToStringVector(oldturns);
+							GAMEMAN->m_bResetTurns = false;
+							GAMEMAN->m_vTurnsToReset.clear();
+						}
 						GAMESTATE->m_SongOptions.GetSong().m_fMusicRate =
 						  oldRate;
 						GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate =
@@ -2849,13 +2888,13 @@ ScreenGameplay::ToggleReplayPause()
 		m_pSoundMusic->Play(false, &p);
 		GAMESTATE->m_Position.m_fMusicSeconds = fSeconds;
 		UpdateSongPosition(0);
-		SCREENMAN->SystemMessage("Unpaused Replay");
+		// SCREENMAN->SystemMessage("Unpaused Replay");
 	} else {
 		// Almost all of gameplay is based on the music moving.
 		// If the music is paused, nothing works.
 		// This is all we have to do.
 		m_pSoundMusic->Pause(newPause);
-		SCREENMAN->SystemMessage("Paused Replay");
+		// SCREENMAN->SystemMessage("Paused Replay");
 	}
 	GAMESTATE->SetPaused(newPause);
 }
@@ -2957,33 +2996,34 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 	static int SetReplayPosition(T* p, lua_State* L)
 	{
 		float newpos = FArg(1);
-		if (!GAMESTATE->GetPaused()) {
+		if (GAMESTATE->GetPaused() && GamePreferences::m_AutoPlay == PC_REPLAY) {
+			p->SetSongPosition(newpos);
+		}
+		/*
+		else
 			SCREENMAN->SystemMessage(
 			  "You must be paused to move the song position of a Replay.");
-			return 0;
-		}
-		if (GamePreferences::m_AutoPlay != PC_REPLAY) {
-			SCREENMAN->SystemMessage(
-			  "You cannot move the song position outside of a Replay.");
-			return 0;
-		}
-		p->SetSongPosition(newpos);
-		return 1;
+		*/
+		return 0;
 	}
 	static int SetReplayRate(T* p, lua_State* L)
 	{
 		float newrate = FArg(1);
 		if (!GAMESTATE->GetPaused()) {
+			/*
 			SCREENMAN->SystemMessage(
 			  "You must be paused to change the rate of a Replay.");
+			*/
 			lua_pushnumber(L, -1.f);
-			return 0;
+			return 1;
 		}
 		if (GamePreferences::m_AutoPlay != PC_REPLAY) {
+			/*
 			SCREENMAN->SystemMessage(
 			  "You cannot change the rate outside of a Replay.");
+			*/
 			lua_pushnumber(L, -1.f);
-			return 0;
+			return 1;
 		}
 		lua_pushnumber(L, p->SetRate(newrate));
 		return 1;
@@ -2991,19 +3031,21 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 	static int ToggleReplayPause(T* p, lua_State* L)
 	{
 		if (GamePreferences::m_AutoPlay != PC_REPLAY) {
+			/*
 			SCREENMAN->SystemMessage(
 			  "You cannot pause the game outside of a Replay.");
+			*/
 			return 0;
 		}
 		p->ToggleReplayPause();
-		return 1;
+		return 0;
 	}
 	static int SetReplayBookmark(T* p, lua_State* L)
 	{
 		float position = FArg(1);
 		if (GamePreferences::m_AutoPlay == PC_REPLAY) {
 			p->m_fReplayBookmarkSeconds = position;
-			return 1;
+			return 0;
 		}
 		return 0;
 	}
@@ -3012,7 +3054,7 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 		if (GamePreferences::m_AutoPlay == PC_REPLAY &&
 			GAMESTATE->GetPaused()) {
 			p->SetSongPosition(p->m_fReplayBookmarkSeconds);
-			return 1;
+			return 0;
 		}
 		return 0;
 	}

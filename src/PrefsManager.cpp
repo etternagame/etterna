@@ -179,6 +179,7 @@ PrefsManager::PrefsManager()
   , m_AllowHoldForOptions("AllowHoldForOptions", true)
   , m_bShowInstructions("ShowInstructions", false)
   , m_bShowCaution("ShowCaution", false)
+  , m_bFullTapExplosions("FullTapExplosions", true)
   , m_bShowNativeLanguage("ShowNativeLanguage", true)
   , m_iArcadeOptionsNavigation("ArcadeOptionsNavigation", 0)
   , m_ThreeKeyNavigation("ThreeKeyNavigation", false)
@@ -187,7 +188,6 @@ PrefsManager::PrefsManager()
   , m_iMusicWheelSwitchSpeed("MusicWheelSwitchSpeed", 15)
   , m_AllowW1("AllowW1", ALLOW_W1_EVERYWHERE)
   , m_bEventMode("EventMode", true)
-  , m_bComboContinuesBetweenSongs("ComboContinuesBetweenSongs", false)
   , m_MinTNSToHideNotes("MinTNSToHideNotes", TNS_W3)
   , m_ShowSongOptions("ShowSongOptions", Maybe_NO)
   , m_fMinPercentToSaveScores("MinPercentToSaveScores", -1.0f)
@@ -228,9 +228,9 @@ PrefsManager::PrefsManager()
   , m_sTestInitialScreen("TestInitialScreen", "")
   , m_MuteActions("MuteActions", false)
   , m_bAllowSongDeletion("AllowSongDeletion", false)
-  ,
+  , ThreadsToUse("ThreadsToUse", 0)
 
-  m_bQuirksMode("QuirksMode", false)
+  , m_bQuirksMode("QuirksMode", false)
   ,
 
   /* Debug: */

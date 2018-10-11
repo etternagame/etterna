@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "CryptManager.h"
 #include "Foreach.h"
 #include "GameConstantsAndTypes.h"
@@ -61,6 +61,7 @@ struct HighScoreImpl
 						 // was created (immediately after achieved)
 	string sPlayerGuid;  // who made this high score
 	string sMachineGuid; // where this high score was made
+	string countryCode;
 	int iProductID;
 	int iTapNoteScores[NUM_TapNoteScore];
 	int iHoldNoteScores[NUM_HoldNoteScore];
@@ -1162,6 +1163,11 @@ HighScore::GetMachineGuid() const
 {
 	return m_Impl->sMachineGuid;
 }
+string
+HighScore::GetCountryCode() const
+{
+	return m_Impl->countryCode;
+}
 int
 HighScore::GetProductID() const
 {
@@ -2115,6 +2121,7 @@ class LunaHighScore : public Luna<HighScore>
 	DEFINE_METHOD(GetEtternaValid, GetEtternaValid())
 	DEFINE_METHOD(HasReplayData, HasReplayData())
 	DEFINE_METHOD(GetChartKey, GetChartKey())
+	DEFINE_METHOD(GetScoreKey, GetScoreKey())
 	DEFINE_METHOD(GetReplayType, GetReplayType())
 	DEFINE_METHOD(GetDisplayName, GetDisplayName())
 	LunaHighScore()
@@ -2157,6 +2164,7 @@ class LunaHighScore : public Luna<HighScore>
 		ADD_METHOD(GetDisplayName);
 		ADD_METHOD(GetUserid);
 		ADD_METHOD(GetScoreid);
+		ADD_METHOD(GetScoreKey);
 		ADD_METHOD(GetAvatar);
 	}
 };

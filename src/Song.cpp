@@ -1,4 +1,4 @@
-#include "global.h"
+﻿#include "global.h"
 #include "FontCharAliases.h"
 #include "GameManager.h"
 #include "RageLog.h"
@@ -492,6 +492,19 @@ Song::ReloadFromSongDir(const RString& sDir)
 	return true;
 }
 
+// Check if the music file actually exists, if not, reload from disk, and if
+// that fails, just crash - Terra
+void
+Song::ReloadIfNoMusic()
+{
+	RString sMusicPath = GetMusicPath();
+	if (sMusicPath.empty() || !DoesFileExist(sMusicPath)) {
+		ASSERT_M(ReloadFromSongDir(),
+				 "No music, so tried to reload from song dir but "
+				 "ReloadFromSongDir failed");
+	}
+}
+
 bool
 Song::HasAutosaveFile()
 {
@@ -565,7 +578,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 	FixupPath(m_sBackgroundFile, m_sSongDir);
 	FixupPath(m_sCDTitleFile, m_sSongDir);
 
-	CHECKPOINT_M("Looking for images...");
+	// CHECKPOINT_M("Looking for images...");
 
 	m_SongTiming.TidyUpData(false);
 
@@ -1203,8 +1216,14 @@ Song::SaveToSSCFile(const RString& sPath, bool bSavingCache, bool autosave)
 		m_sSongFileName = path;
 	}
 
-	vector<Steps*> vpStepsToSave = GetStepsToSave(bSavingCache, path);
+	vector<Steps*> vpStepsToSave = GetStepsToSave(bSavingCache, sPath);
 
+	if (!bSavingCache)
+		for (auto s : vpStepsToSave) {
+			s->Decompress();
+			s->CalcEtternaMetadata();
+			s->SetFilename(path);
+		}
 	if (bSavingCache || autosave) {
 		return SONGINDEX->CacheSong(*this, path);
 	}

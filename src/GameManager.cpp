@@ -3223,8 +3223,10 @@ static const Game* g_Games[] = {
 GameManager::GameManager()
 {
 	m_bResetModifiers = false;
+	m_bResetTurns = false;
 	m_fPreviousRate = 1.f;
 	m_sModsToReset;
+	m_vTurnsToReset;
 	// Register with Lua.
 	{
 		Lua* L = LUA->Get();

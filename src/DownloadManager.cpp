@@ -26,6 +26,7 @@
 #include <FilterManager.h>
 #include "PlayerStageStats.h"
 #include "Grade.h"
+#include "SongManager.h"	// i didn't want to do this but i also didn't want to figure how not to have to so... -mina
 using json = nlohmann::json;
 #ifdef _WIN32
 #include <intrin.h>
@@ -222,7 +223,11 @@ inline CURL*
 initBasicCURLHandle()
 {
 	CURL* curlHandle = curl_easy_init();
-	curl_easy_setopt(curlHandle, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36");
+	curl_easy_setopt(curlHandle,
+					 CURLOPT_USERAGENT,
+					 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+					 "AppleWebKit/537.36 (KHTML, like Gecko) "
+					 "Chrome/60.0.3112.113 Safari/537.36");
 	curl_easy_setopt(curlHandle, CURLOPT_ACCEPT_ENCODING, "");
 	curl_easy_setopt(curlHandle, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(curlHandle, CURLOPT_SSL_VERIFYHOST, 0L);
@@ -454,7 +459,7 @@ Download::Update(float fDeltaSeconds)
 	}
 }
 Download*
-DownloadManager::DownloadAndInstallPack(DownloadablePack* pack)
+DownloadManager::DownloadAndInstallPack(DownloadablePack* pack, bool mirror)
 {
 	vector<RString> packs;
 	SONGMAN->GetSongGroupNames(packs);
@@ -466,10 +471,11 @@ DownloadManager::DownloadAndInstallPack(DownloadablePack* pack)
 		}
 	}
 	if (downloadingPacks >= maxPacksToDownloadAtOnce) {
-		DLMAN->DownloadQueue.emplace_back(pack);
+		DLMAN->DownloadQueue.emplace_back(make_pair(pack, mirror));
 		return nullptr;
 	}
-	Download* dl = DownloadAndInstallPack(pack->url, pack->name + ".zip");
+	Download* dl = DownloadAndInstallPack(mirror ? pack->mirror : pack->url,
+										  pack->name + ".zip");
 	dl->p_Pack = pack;
 	return dl;
 }
@@ -582,7 +588,7 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		auto it = DownloadQueue.begin();
 		DownloadQueue.pop_front();
 		auto pack = *it;
-		auto dl = DLMAN->DownloadAndInstallPack(pack);
+		auto dl = DLMAN->DownloadAndInstallPack(pack.first, pack.second);
 	}
 	if (!downloadingPacks)
 		return;
@@ -681,7 +687,7 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 string
 Download::MakeTempFileName(string s)
 {
-	return DL_DIR + Basename(s);
+	return Basename(s);
 }
 bool
 DownloadManager::LoggedIn()
@@ -1011,6 +1017,101 @@ DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 	HTTPRequests.push_back(req);
 	return;
 }
+void	// not tested exhaustively -mina
+DownloadManager::UploadScoreWithReplayDataFromDisk(string sk)
+{
+	if (!LoggedIn())
+		 return;
+
+	auto doot = SCOREMAN->GetScoresByKey();
+	auto hs = doot[sk];
+	if (!hs->LoadReplayData())
+		return;
+
+	CURL* curlHandle = initCURLHandle(true);
+	string url = serverURL.Get() + "/score";
+	curl_httppost* form = nullptr;
+	curl_httppost* lastPtr = nullptr;
+	SetCURLPOSTScore(curlHandle, form, lastPtr, hs);
+	string replayString;
+	vector<float> offsets = hs->GetOffsetVector();
+	vector<int> columns = hs->GetTrackVector();
+	vector<TapNoteType> types = hs->GetTapNoteTypeVector();
+
+	if (offsets.size() > 0) {
+		replayString = "[";
+		auto steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
+		vector<float> timestamps =
+		  steps->GetTimingData()->ConvertReplayNoteRowsToTimestamps(
+			hs->GetNoteRowVector(), hs->GetMusicRate());
+		for (size_t i = 0; i < offsets.size(); i++) {
+			replayString += "[";
+			replayString += to_string(timestamps[i]) + ",";
+			replayString += to_string(1000.f * offsets[i]) + ",";
+			if (hs->GetReplayType() == 2) {
+				replayString += to_string(columns[i]) + ",";
+				replayString += to_string(types[i]);
+			}
+			replayString += "],";
+		}
+		replayString =
+		  replayString.substr(0, replayString.size() - 1); // remove ","
+		replayString += "]";
+		hs->UnloadReplayData();
+	} else
+		replayString = "";
+	SetCURLFormPostField(
+	  curlHandle, form, lastPtr, "replay_data", replayString);
+	SetCURLPostToURL(curlHandle, url);
+	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
+	auto done = [this, hs](HTTPRequest& req, CURLMsg*) {
+		long response_code;
+		curl_easy_getinfo(req.handle, CURLINFO_RESPONSE_CODE, &response_code);
+		json j;
+		try {
+			j = json::parse(req.result);
+			bool delay = false;
+			try {
+				auto errors = j["errors"];
+				for (auto error : errors) {
+					int status = error["status"];
+					if (status == 22) {
+						delay = true;
+						DLMAN->StartSession(
+						  DLMAN->sessionUser,
+						  DLMAN->sessionPass,
+						  [hs](bool logged) {
+							  if (logged) {
+								  DLMAN->UploadScoreWithReplayDataFromDisk(hs->GetScoreKey());
+							  }
+						  });
+					} else if (status == 404 || status == 405 ||
+							   status == 406) {
+						hs->AddUploadedServer(serverURL.Get());
+					}
+				}
+			} catch (exception e) {
+			}
+			if (!delay && j["data"]["type"] == "ssrResults") {
+				auto diffs = j["data"]["attributes"]["diff"];
+				FOREACH_ENUM(Skillset, ss)
+				if (ss != Skill_Overall)
+					(DLMAN->sessionRatings)[ss] +=
+					  diffs.value(SkillsetToString(ss), 0.0);
+				(DLMAN->sessionRatings)[Skill_Overall] +=
+				  diffs.value("Rating", 0.0);
+				hs->AddUploadedServer(serverURL.Get());
+				HTTPRunning = response_code;
+			}
+		} catch (exception e) {
+		}
+	};
+	HTTPRequest* req = new HTTPRequest(curlHandle, done);
+	SetCURLResultsString(curlHandle, &(req->result));
+	curl_multi_add_handle(mHTTPHandle, req->handle);
+	HTTPRequests.push_back(req);
+	return;
+}
 void
 DownloadManager::EndSessionIfExists()
 {
@@ -1170,6 +1271,7 @@ DownloadManager::SendRequestToURL(
 		curl_easy_cleanup(req->handle);
 		done(*req, nullptr);
 		delete req;
+		return nullptr;
 	}
 	return req;
 }
@@ -1240,40 +1342,48 @@ overratedness(string chartkey)
 	return overratedness;
 }
 
-// fill dummy highscores so we can use the same lua displays -mina
 void
-DownloadManager::MakeAThing(string chartkey)
+DownloadManager::RefreshCountryCodes()
 {
-	athing.clear();
-	HighScore hs;
+	auto done = [](HTTPRequest& req, CURLMsg*) {
+		try {
+			auto j = json::parse(req.result);
+			auto codes = j.find("data");
+			DLMAN->countryCodes.clear();
+			DLMAN->countryCodes.push_back(DLMAN->countryCode);
+			for (auto codeJ : (*codes)) {
+				auto code = *(codeJ.find("attributes"));
+				DLMAN->countryCodes.emplace_back(codeJ.value("id", ""));
+			}
+			DLMAN->countryCodes.push_back(string("Global")); // append the list
+															 // to global/player
+															 // country code so
+															 // we dont have to
+															 // merge tables in
+															 // lua -mina
+		} catch (exception e) {
+			// json failed
+		}
+	};
+	SendRequest(
+	  "/misc/countrycodes", vector<pair<string, string>>(), done, true);
+}
 
-	for (auto& ohs : DLMAN->chartLeaderboards[chartkey]) {
-		hs.SetDateTime(ohs.datetime);
-		hs.SetMaxCombo(ohs.maxcombo);
-		hs.SetName(ohs.username);
-		hs.SetModifiers(ohs.modifiers);
-		hs.SetChordCohesion(ohs.nocc);
-		hs.SetWifeScore(ohs.wife);
-		hs.SetMusicRate(ohs.rate);
-
-		hs.SetTapNoteScore(TNS_W1, ohs.marvelous);
-		hs.SetTapNoteScore(TNS_W2, ohs.perfect);
-		hs.SetTapNoteScore(TNS_W3, ohs.great);
-		hs.SetTapNoteScore(TNS_W4, ohs.good);
-		hs.SetTapNoteScore(TNS_W5, ohs.bad);
-		hs.SetTapNoteScore(TNS_Miss, ohs.miss);
-		hs.SetTapNoteScore(TNS_HitMine, ohs.minehits);
-
-		hs.SetHoldNoteScore(HNS_Held, ohs.held);
-		hs.SetHoldNoteScore(HNS_LetGo, ohs.letgo);
-
-		FOREACH_ENUM(Skillset, ss)
-		hs.SetSkillsetSSR(ss, ohs.SSRs[ss]);
-
-		hs.userid = ohs.userid;
-		hs.scoreid = ohs.scoreid;
-		hs.avatar = ohs.avatar;
-		athing.push_back(hs);
+void
+DownloadManager::RequestChartLeaderBoard(string chartkey, LuaReference ref)
+{
+	RequestChartLeaderBoard(chartkey);
+	if (unlikely(!ref.IsNil())) {
+		Lua* L = LUA->Get();
+		ref.PushSelf(L);
+		if (lua_isnil(L, -1)) {
+			LUA->Release(L);
+			LuaHelpers::ReportScriptErrorFmt("Error compiling RequestChartLeaderBoard Finish Function");
+			return;
+		}
+		RString Error = "Error running RequestChartLeaderBoard Finish Function: ";
+		LuaHelpers::RunScriptOnStack(L, Error, 2, 0, true); // 1 args, 0 results
+		LUA->Release(L);
 	}
 }
 
@@ -1303,6 +1413,7 @@ DownloadManager::RequestChartLeaderBoard(string chartkey)
 				tmp.username = user.value("userName", "").c_str();
 				tmp.avatar = user.value("avatar", "").c_str();
 				tmp.userid = user.value("userId", 0);
+				tmp.countryCode = user.value("countryCode", "");
 				tmp.playerRating =
 				  static_cast<float>(user.value("playerRating", 0.0));
 				tmp.wife = static_cast<float>(score.value("wife", 0.0) / 100.0);
@@ -1361,6 +1472,35 @@ DownloadManager::RequestChartLeaderBoard(string chartkey)
 				//	continue;
 
 				// userswithscores.emplace(tmp.username);
+
+				auto& hs = tmp.hs;
+				hs.SetDateTime(tmp.datetime);
+				hs.SetMaxCombo(tmp.maxcombo);
+				hs.SetName(tmp.username);
+				hs.SetModifiers(tmp.modifiers);
+				hs.SetChordCohesion(tmp.nocc);
+				hs.SetWifeScore(tmp.wife);
+				hs.SetMusicRate(tmp.rate);
+
+				hs.SetTapNoteScore(TNS_W1, tmp.marvelous);
+				hs.SetTapNoteScore(TNS_W2, tmp.perfect);
+				hs.SetTapNoteScore(TNS_W3, tmp.great);
+				hs.SetTapNoteScore(TNS_W4, tmp.good);
+				hs.SetTapNoteScore(TNS_W5, tmp.bad);
+				hs.SetTapNoteScore(TNS_Miss, tmp.miss);
+				hs.SetTapNoteScore(TNS_HitMine, tmp.minehits);
+
+				hs.SetHoldNoteScore(HNS_Held, tmp.held);
+				hs.SetHoldNoteScore(HNS_LetGo, tmp.letgo);
+
+				FOREACH_ENUM(Skillset, ss)
+				hs.SetSkillsetSSR(ss, tmp.SSRs[ss]);
+
+				hs.userid = tmp.userid;
+				hs.scoreid = tmp.scoreid;
+				hs.avatar = tmp.avatar;
+				hs.countryCode = tmp.countryCode;
+
 				vec.emplace_back(tmp);
 			}
 		} catch (exception e) {
@@ -1420,7 +1560,7 @@ DownloadManager::GetCoreBundle(string whichoneyo)
 }
 
 void
-DownloadManager::DownloadCoreBundle(string whichoneyo)
+DownloadManager::DownloadCoreBundle(string whichoneyo, bool mirror)
 {
 	auto bundle = GetCoreBundle(whichoneyo);
 	sort(bundle.begin(),
@@ -1429,7 +1569,7 @@ DownloadManager::DownloadCoreBundle(string whichoneyo)
 			 return x1->size < x2->size;
 		 });
 	for (auto pack : bundle)
-		DLMAN->DownloadQueue.emplace_back(pack);
+		DLMAN->DownloadQueue.emplace_back(make_pair(pack, mirror));
 }
 
 void
@@ -1561,6 +1701,7 @@ DownloadManager::RefreshUserData()
 			  skillsets->value(SkillsetToString(ss).c_str(), 0.0f);
 			DLMAN->sessionRatings[Skill_Overall] =
 			  attr->value("playerRating", DLMAN->sessionRatings[Skill_Overall]);
+			DLMAN->countryCode = attr->value("countryCode", "");
 		} catch (exception e) {
 			FOREACH_ENUM(Skillset, ss)
 			(DLMAN->sessionRatings)[ss] = 0.0f;
@@ -1576,6 +1717,7 @@ DownloadManager::OnLogin()
 {
 	DLMAN->RefreshUserRank();
 	DLMAN->RefreshUserData();
+	DLMAN->RefreshCountryCodes();
 	FOREACH_ENUM(Skillset, ss)
 	DLMAN->RefreshTop25(ss);
 	if (DLMAN->ShouldUploadScores())
@@ -1727,6 +1869,11 @@ DownloadManager::RefreshPackList(string url)
 					} catch (exception e) {
 						continue;
 					}
+					try {
+						if (pack.find("mirror") != pack.end())
+							tmp.mirror = pack.value("mirror", "");
+					} catch (exception e) {
+					}
 					if (tmp.url.empty())
 						continue;
 					if (pack.find("average") != pack.end())
@@ -1755,7 +1902,8 @@ Download::Download(string url, string filename, function<void(Download*)> done)
 	Done = done;
 	m_Url = url;
 	handle = initBasicCURLHandle();
-	m_TempFileName = filename != "" ? filename : MakeTempFileName(url);
+	m_TempFileName =
+	  DL_DIR + (filename != "" ? filename : MakeTempFileName(url));
 	auto opened = p_RFWrapper.file.Open(m_TempFileName, 2);
 	ASSERT(opened);
 	DLMAN->EncodeSpaces(m_Url);
@@ -1817,6 +1965,17 @@ findStringIC(const std::string& strHaystack, const std::string& strNeedle)
 class LunaDownloadManager : public Luna<DownloadManager>
 {
   public:
+	static int GetCountryCodes(T* p, lua_State* L)
+	{
+		auto& codes = DLMAN->countryCodes;
+		LuaHelpers::CreateTableFromArray(codes, L);
+		return 1;
+	}
+	static int GetUserCountryCode(T* p, lua_State* L)
+	{
+		lua_pushstring(L, DLMAN->countryCode.c_str());
+		return 1;
+	}
 	static int GetPacklist(T* p, lua_State* L)
 	{
 		DLMAN->pl.PushSelf(L);
@@ -2055,24 +2214,57 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		return 1;
 	}
 
+	// This requests the leaderboard from online. This may cause lag.
+	// Use this sparingly.
+	// This will NOT request a leaderboard if it already exists for the
+	// chartkey. This needs to be updated in the future to do so. That means
+	// this will not update a leaderboard to a new state.
+	static int RequestChartLeaderBoardFromOnline(T* p, lua_State* L)
+	{
+		if (!lua_isfunction(L, 2)) {
+			LuaReference ref;
+			lua_pushvalue(L, 2);
+			ref.SetFromStack(L);
+			if (DLMAN->chartLeaderboards[SArg(1)].size() == 0) {
+				DLMAN->RequestChartLeaderBoard(SArg(1), ref);
+			}
+		} else {
+			if (DLMAN->chartLeaderboards[SArg(1)].size() == 0)
+				DLMAN->RequestChartLeaderBoard(SArg(1));
+		}
+		return 1;
+	}
+
+	// This does not actually request the leaderboard from online.
+	// It gets the already retrieved data from DLMAN
 	static int RequestChartLeaderBoard(T* p, lua_State* L)
 	{
-		// p->RequestChartLeaderBoard(SArg(1));
-		p->MakeAThing(SArg(1));
-		vector<HighScore*> wot;
+		vector<HighScore*> filteredLeaderboardScores;
 		unordered_set<string> userswithscores;
+		auto& leaderboardScores = DLMAN->chartLeaderboards[SArg(1)];
+		string country = "";
+		if (!lua_isnoneornil(L, 2)) {
+			country = SArg(2);
+		}
 		float currentrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-		for (auto& zoop : p->athing) {
-			if (lround(zoop.GetMusicRate() * 10000.f) !=
+
+		for (auto& score : leaderboardScores) {
+			auto& leaderboardHighScore = score.hs;
+			if (lround(leaderboardHighScore.GetMusicRate() * 10000.f) !=
 				  lround(currentrate * 10000.f) &&
 				p->currentrateonly)
 				continue;
-			if (userswithscores.count(zoop.GetName()) == 1 && p->topscoresonly)
+			if (userswithscores.count(leaderboardHighScore.GetName()) == 1 &&
+				p->topscoresonly)
 				continue;
-			wot.push_back(&zoop);
-			userswithscores.emplace(zoop.GetName());
+			if (country != "" && country != "Global" &&
+				leaderboardHighScore.countryCode != country)
+				continue;
+			filteredLeaderboardScores.push_back(&(score.hs));
+			userswithscores.emplace(leaderboardHighScore.GetName());
 		}
-		LuaHelpers::CreateTableFromArray(wot, L);
+
+		LuaHelpers::CreateTableFromArray(filteredLeaderboardScores, L);
 		return 1;
 	}
 
@@ -2096,9 +2288,16 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		lua_pushboolean(L, p->topscoresonly);
 		return 1;
 	}
+	static int SendReplayDataForOldScore(T* p, lua_State* L)
+	{
+		DLMAN->UploadScoreWithReplayDataFromDisk(SArg(1));
+		return 1;
+	}
 
 	LunaDownloadManager()
 	{
+		ADD_METHOD(GetCountryCodes);
+		ADD_METHOD(GetUserCountryCode);
 		ADD_METHOD(DownloadCoreBundle);
 		ADD_METHOD(GetCoreBundle);
 		ADD_METHOD(GetPacklist);
@@ -2116,11 +2315,13 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(GetTopChartScoreCount);
 		ADD_METHOD(GetLastVersion);
 		ADD_METHOD(GetRegisterPage);
+		ADD_METHOD(RequestChartLeaderBoardFromOnline);
 		ADD_METHOD(RequestChartLeaderBoard);
 		ADD_METHOD(ToggleRateFilter);
 		ADD_METHOD(GetCurrentRateFilter);
 		ADD_METHOD(ToggleTopScoresOnlyFilter);
 		ADD_METHOD(GetTopScoresOnlyFilter);
+		ADD_METHOD(SendReplayDataForOldScore);
 		ADD_METHOD(Logout);
 	}
 };
@@ -2281,9 +2482,12 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
   public:
 	static int DownloadAndInstall(T* p, lua_State* L)
 	{
+		bool mirror = false;
+		if (lua_gettop(L) > 0)
+			mirror = BArg(1);
 		if (p->downloading)
 			return 1;
-		Download* dl = DLMAN->DownloadAndInstallPack(p);
+		Download* dl = DLMAN->DownloadAndInstallPack(p, mirror);
 		if (dl) {
 			dl->PushSelf(L);
 			p->downloading = true;
@@ -2309,8 +2513,10 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 	}
 	static int IsQueued(T* p, lua_State* L)
 	{
-		auto it = std::find(
-		  DLMAN->DownloadQueue.begin(), DLMAN->DownloadQueue.end(), p);
+		auto it = std::find_if(
+		  DLMAN->DownloadQueue.begin(),
+		  DLMAN->DownloadQueue.end(),
+		  [p](pair<DownloadablePack*, bool> pair) { return pair.first == p; });
 		lua_pushboolean(L, it != DLMAN->DownloadQueue.end());
 		return 1;
 	}

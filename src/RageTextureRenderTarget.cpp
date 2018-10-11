@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "RageDisplay.h"
 #include "RageTextureRenderTarget.h"
 
@@ -96,6 +96,8 @@ class LunaRageTextureRenderTarget : public Luna<RageTextureRenderTarget>
 	{
 		bool bPreserveTexture = !!luaL_opt(L, lua_toboolean, 1, false);
 		p->BeginRenderingTo(bPreserveTexture);
+		// Texture unit 0, No Filtering (Nearest Neighbor)
+		DISPLAY->SetTextureFiltering(TextureUnit_1, false);
 		COMMON_RETURN_SELF;
 	}
 	static int FinishRenderingTo(T* p, lua_State* L)

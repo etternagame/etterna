@@ -12,34 +12,6 @@ return Def.ActorFrame {
 			end
 		end
 	},
-	Def.Sprite {
-		InitCommand = function(self)
-			self:xy(1, -15):zoomto(4, 19)
-		end,
-		SetGradeCommand = function(self, params)
-			if params.Favorited then
-				self:Load(THEME:GetPathG("", "favorite"))
-				self:zoomto(16, 16)
-				self:visible(true)
-			else
-				self:visible(false)
-			end
-		end
-	},
-	Def.Sprite {
-		InitCommand = function(self)
-			self:xy(-9, -15):zoomto(4, 19)
-		end,
-		SetGradeCommand = function(self, params)
-			if params.PermaMirror then
-				self:Load(THEME:GetPathG("", "mirror"))
-				self:zoomto(24, 24)
-				self:visible(true)
-			else
-				self:visible(false)
-			end
-		end
-	},
 	Def.Quad {
 		InitCommand = function(self)
 			self:xy(2, -2):zoomto(4, 19)
@@ -63,6 +35,34 @@ return Def.ActorFrame {
 				self:valign(0.5)
 				self:settext(THEME:GetString("Grade", ToEnumShortString(sGrade)) or "")
 				self:diffuse(getGradeColor(sGrade))
+			end
+		},
+		Def.Sprite {
+			InitCommand = function(self)
+				self:xy(-9, -15):zoomto(4, 19)
+			end,
+			SetGradeCommand = function(self, params)
+				if params.PermaMirror then
+					self:Load(THEME:GetPathG("", "mirror"))
+					self:zoomto(20, 20)
+					self:visible(true)
+				else
+					self:visible(false)
+				end
+			end
+		},
+		Def.Sprite {
+			InitCommand = function(self)
+				self:xy(1, -15):zoomto(4, 19)
+			end,
+			SetGradeCommand = function(self, params)
+				if params.Favorited then
+					self:Load(THEME:GetPathG("", "favorite"))
+					self:zoomto(16, 16)
+					self:visible(true)
+				else
+					self:visible(false)
+				end
 			end
 		}
 }

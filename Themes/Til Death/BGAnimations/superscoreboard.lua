@@ -2,6 +2,7 @@ local tzoom = 0.5
 local pdh = 48 * tzoom
 local ygap = 2
 local packspaceY = pdh + ygap
+local currentCountry = "Global"
 
 local numscores = 12
 local ind = 0
@@ -22,6 +23,8 @@ local row2yoff = 1
 local moving
 local cheese
 local collapsed = false
+
+local isGlobalRanking = true
 
 -- will eat any mousewheel inputs to scroll pages while mouse is over the background frame
 local function input(event)
@@ -105,7 +108,7 @@ local o =
 		self:queuecommand("ChartLeaderboardUpdate")
 	end,
 	ChartLeaderboardUpdateMessageCommand = function(self)
-		scoretable = DLMAN:RequestChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())
+		scoretable = DLMAN:RequestChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(), currentCountry)
 		ind = 0
 		self:playcommand("Update")
 	end,
@@ -153,13 +156,14 @@ local o =
 		self:diffusealpha(0.8)
 
 		if
-			FILTERMAN:grabposx("Doot") <= 10 or FILTERMAN:grabposy("Doot") <= 45 or
-				FILTERMAN:grabposx("Doot") >= SCREEN_WIDTH - 60 or
-				FILTERMAN:grabposy("Doot") >= SCREEN_HEIGHT - 45
+			-- a generic bounds check function that snaps an actor onto the screen or within specified coordinates should be added as an actor member, ie, not this -mina
+			FILTERMAN:grabposx("ScoreDisplay") <= 10 or FILTERMAN:grabposy("ScoreDisplay") <= 45 or
+				FILTERMAN:grabposx("ScoreDisplay") >= SCREEN_WIDTH - 60 or
+				FILTERMAN:grabposy("ScoreDisplay") >= SCREEN_HEIGHT - 45
 		 then
 			self:xy(10, 45)
 		else
-			self:xy(FILTERMAN:grabposx("Doot"), FILTERMAN:grabposy("Doot"))
+			self:LoadXY()
 		end
 
 		FILTERMAN:HelpImTrappedInAChineseFortuneCodingFactory(true)
@@ -232,8 +236,8 @@ local o =
 					self:diffusealpha(0):zoomto(400, 400)
 					local nx = INPUTFILTER:GetMouseX() - width / 2
 					local ny = INPUTFILTER:GetMouseY() - self:GetY()
-					self:GetParent():xy(nx, ny)
-					FILTERMAN:savepos("Doot", nx, ny)
+					self:GetParent():SaveXY(nx, ny) -- this can probably be wrapped for convenience -mina
+					self:GetParent():LoadXY()
 				else
 					self:zoomto(dwidth / 2, pdh / 2)
 				end
@@ -244,9 +248,34 @@ local o =
 	},
 	LoadFont("Common normal") ..
 		{
+			-- informational text about online scores
+			Name = "RequestStatus",
+			InitCommand = function(self)
+				if collapsed then
+					self:xy(dwidth - 75, headeroff + 15):zoom(tzoom):halign(1)
+				else
+					self:xy(dwidth / 3, headeroff + 25):zoom(tzoom):halign(1)
+				end
+			end,
+			UpdateCommand = function(self)
+				local numberofscores = #scoretable
+				local online = DLMAN:IsLoggedIn()
+				if not online and #scoretable == 0 then
+					self:settext("Login to view scores")
+				else
+					if #scoretable == 0 then
+						self:settext("Retrieving scores...")
+					else
+						self:settext("")
+					end
+				end
+			end
+		},
+	LoadFont("Common normal") ..
+		{
 			--current rate toggle
 			InitCommand = function(self)
-				self:xy(c5x - 10, headeroff):zoom(tzoom):halign(1)
+				self:xy(c5x, headeroff):zoom(tzoom):halign(1)
 			end,
 			HighlightCommand = function(self)
 				highlightIfOver(self)
@@ -473,4 +502,40 @@ for i = 1, numscores do
 	o[#o + 1] = makeScoreDisplay(i)
 end
 
+--[[
+--Commented for now
+-- Todo: make the combobox scrollable
+-- To handle a large amount of choices
+local countryDropdown
+countryDropdown =
+	Widg.ComboBox {
+	onSelectionChanged = function(newChoice)
+		currentCountry = newChoice
+		cheese:queuecommand("ChartLeaderboardUpdate")
+	end,
+	choice = "Global",
+	choices = DLMAN:GetCountryCodes(),
+	commands = {
+		CollapseCommand = function(self)
+			self:xy(c5x - 20, headeroff - 20):halign(0)
+		end,
+		ExpandCommand = function(self)
+			self:xy(c5x - 89, headeroff)
+		end,
+		ChartLeaderboardUpdateMessageCommand = function(self)
+			self:visible(DLMAN:IsLoggedIn())
+		end
+	},
+	selectionColor = color("#111111"),
+	itemColor = color("#111111"),
+	hoverColor = getMainColor("highlight"),
+	height = tzoom * 29,
+	width = 50,
+	x = c5x - 89, -- needs to be thought out for design purposes
+	y = headeroff,
+	visible = DLMAN:IsLoggedIn(),
+	numitems = 4
+}
+o[#o + 1] = countryDropdown
+]]
 return o
