@@ -46,9 +46,10 @@ curScore = {
 		for i, v in ipairs(jdgs) do
 			str = str .. curScore.jdgVals[v] .. " | "
 		end
-		return str:sub(1, -5)
+		return str .. "x" .. curScore.combo
 	end
 }
+curScore.combo = 0
 curScore.curWifeScore = 0
 curScore.curGrade = "Grade_Tier02"
 curScore.jdgVals = {
@@ -177,6 +178,12 @@ for i = 1, NUM_ENTRIES do
 	t[#t + 1] = scoreEntry(i)
 end
 
+t.ComboChangedMessageCommand = function(self, params)
+	curScore.combo = params.OldCombo
+	-- Not sure if this is the right value to use
+	-- An alternative is
+	-- params.PlayerStageStats and params.PlayerStageStats:GetCurrentCombo() or params.OldCombo
+end
 t.JudgmentMessageCommand = function(self, params)
 	if curScore.jdgVals[params.Judgment] then
 		curScore.jdgVals[params.Judgment] = params.Val
