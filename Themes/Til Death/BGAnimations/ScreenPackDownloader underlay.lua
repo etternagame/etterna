@@ -71,6 +71,9 @@ local function DlInput(event)
 		elseif event.DeviceInput.button == "DeviceButton_delete" then
 			curInput = ""
 			changed = true
+		elseif event.DeviceInput.button == "DeviceButton_space" then
+			curInput = curInput .. " "
+			changed = true
 		else
 			if inputting == 2 or inputting == 3 or inputting == 4 or inputting == 5 then
 				if tonumber(event.char) ~= nil then
