@@ -179,10 +179,7 @@ for i = 1, NUM_ENTRIES do
 end
 
 t.ComboChangedMessageCommand = function(self, params)
-	curScore.combo = params.OldCombo
-	-- Not sure if this is the right value to use
-	-- An alternative is
-	-- params.PlayerStageStats and params.PlayerStageStats:GetCurrentCombo() or params.OldCombo
+	curScore.combo = params.PlayerStageStats and params.PlayerStageStats:GetCurrentCombo() or params.OldCombo
 end
 t.JudgmentMessageCommand = function(self, params)
 	if curScore.jdgVals[params.Judgment] then
