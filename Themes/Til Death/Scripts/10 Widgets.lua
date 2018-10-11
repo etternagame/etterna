@@ -129,9 +129,9 @@ Widg.Rectangle = function(params)
 			self:visible(params.visible)
 			q.actor = self
 		end,
-		OnCommand = function(self)
-			self:diffuse(params.color)
-		end,
+		OnCommand = params.color and function(self)
+				self:diffuse(params.color):diffusealpha(params.alpha)
+			end or nil,
 		LeftClickMessageCommand = params.onClick and function(self)
 				if params.onClick and os.clock() - lastClick > params.clickPolling and isOver(self) then
 					lastClick = os.clock()
@@ -257,7 +257,8 @@ Widg.defaults.sprite = {
 Widg.Sprite = function(params)
 	fillNilTableFieldsFrom(params, Widg.defaults.sprite)
 	params.color = checkColor(params.color)
-	local sprite =
+	local sprite
+	sprite =
 		Def.Sprite {
 		_Level = 1,
 		Texture = path,
@@ -311,7 +312,8 @@ Widg.defaults.button = {
 	},
 	halign = 0.5,
 	valign = 0.5,
-	texture = false
+	texture = false,
+	enabled = true
 }
 
 Widg.Button = function(params)
@@ -327,18 +329,22 @@ Widg.Button = function(params)
 		params.border.color = checkColor(params.border.color)
 	end
 
-	local button =
+	local button
+	button =
 		Widg.Container {
 		onInit = function(self)
 			if params.highlight then
 				self:SetUpdateFunction(highlight)
 			end
 			self.params = params
+			if not button.enabled then
+				button:Disable()
+			end
 		end
 	}
+	button.enabled = params.enabled
 
-	local spriteActor = nil
-	local sprite =
+	button.sprite =
 		params.texture and
 		Widg.Sprite {
 			x = params.x,
@@ -348,10 +354,20 @@ Widg.Button = function(params)
 			width = params.width,
 			height = params.height,
 			halign = params.halign - 0.5,
-			valign = params.valign - 0.5,
-			onInit = function(s)
-				spriteActor = s
-			end
+			valign = params.valign - 0.5
+		} or
+		Def.ActorFrame {}
+	button.highlightSprite =
+		params.highlight and params.highlight.texture and
+		Widg.Sprite {
+			x = params.x,
+			color = params.highlight.color,
+			y = params.y,
+			texture = "buttons/" .. params.highlight.texture,
+			width = params.width,
+			height = params.height,
+			halign = params.halign - 0.5,
+			valign = params.valign - 0.5
 		} or
 		Def.ActorFrame {}
 
@@ -362,17 +378,24 @@ Widg.Button = function(params)
 		width = params.width,
 		height = params.height,
 		color = params.bgColor,
+		visible = not (not params.texture),
 		alpha = params.texture and 0 or params.alpha,
 		onClick = params.onClick and function(s)
-				params.onClick(button)
+				if button.enabled then
+					params.onClick(button)
+				end
 			end or false,
 		halign = params.halign,
 		valign = params.valign,
 		visible = not params.texture
 	}
 	button.bg.HighlightCommand = params.highlight and function(self)
-			local mainActor = params.texture and spriteActor or self
-			if isOver(self) then
+			local mainActor = params.texture and button.sprite.actor or self
+			local isOver = isOver(self)
+			if params.highlight.texture then
+				(button.highlightSprite.actor):visible(isOver)
+			end
+			if isOver then
 				if params.highlight.color then
 					mainActor:diffuse(params.highlight.color)
 				end
@@ -381,7 +404,10 @@ Widg.Button = function(params)
 					params.onHighlight(mainActor)
 				end
 			else
-				mainActor:diffuse(params.bgColor):diffusealpha(params.alpha)
+				if params.bgColor then
+					mainActor:diffuse(params.bgColor)
+				end
+				mainActor:diffusealpha(params.alpha)
 				if params.onUnhighlight then
 					params.onUnhighlight(mainActor)
 				end
@@ -413,11 +439,20 @@ Widg.Button = function(params)
 	button.settext = function(button, text)
 		button.label:settext(text)
 	end
+	button.Enable = function(button)
+		button.enabled = true
+		(button.actor):visible(button.enabled)
+	end
+	button.Disable = function(button)
+		button.enabled = false
+		(button.actor):visible(button.enabled)
+	end
 
 	button:add(button.bg)
-	button:add(button.sprite)
-	button:add(button.label)
 	button:add(button.borders)
+	button:add(button.sprite)
+	button:add(button.highlightSprite)
+	button:add(button.label)
 	return button
 end
 
@@ -426,8 +461,8 @@ Widg.defaults.scrollable = {
 	height = 100,
 	content = false,
 	textureName = false,
-	x = 100,
-	y = 100,
+	x = 0,
+	y = 0,
 	halign = 0,
 	valign = 0,
 	onInit = false
@@ -442,7 +477,7 @@ Widg.Scrollable = function(params)
 		Def.Sprite {
 		Texture = textureName,
 		InitCommand = function(self)
-			self:halign(params.halign):valign(params.valign)
+			self:halign(0):valign(0):SetTextureFiltering(true)
 		end
 	}
 	local AFT =
@@ -458,8 +493,8 @@ Widg.Scrollable = function(params)
 			self:EnableAlphaBuffer(true)
 			self:EnableDepthBuffer(true)
 			self:EnableFloat(true)
+			self:SetTextureFiltering(true)
 			self:Create()
-			self:Draw()
 		end,
 		Def.ActorFrame {
 			Name = "Draw",
@@ -469,10 +504,11 @@ Widg.Scrollable = function(params)
 	local scrollable =
 		Def.ActorFrame {
 		InitCommand = function(self)
-			self:xy(params.x, params.y)
+			self:xy(params.x + params.halign * params.width, params.y + params.valign * params.height)
 			self.AFT = AFT
 			self.sprite = sprite
 			self.content = content
+			self:SetTextureFiltering(true)
 			if params.onInit then
 				params.onInit(self, content, AFT, sprite)
 			end
@@ -638,7 +674,7 @@ local function basicItem(choice, params)
 		height = params.itemHeight,
 		color = params.itemColor,
 		border = false,
-		alpha = 0.8,
+		alpha = 1,
 		highlight = {color = params.hoverColor}
 	}
 end
@@ -658,7 +694,8 @@ Widg.defaults.comboBox = {
 	itemColor = Color.Black,
 	choices = {"default"},
 	choice = false,
-	numitems = false
+	numitems = false,
+	scrollable = false
 }
 Widg.ComboBox = function(params, updateActor)
 	fillNilTableFieldsFrom(params, Widg.defaults.comboBox)
@@ -734,16 +771,17 @@ Widg.ComboBox = function(params, updateActor)
 		)
 	end
 
-	--[[combobox:add(Widg.Scrollable{
-		--width = params.selectionParams.width,
-		width = 64,
-		height = 64,
-		halign = 0,
-		x = -30,
-		y = 0,
-		content = choices
-	})]]
+	if params.scrollable then
+		combobox:add(
+			Widg.Scrollable {
+				width = params.width,
+				height = params.itemHeight * (params.numitems + 1),
+				content = combobox.items
+			}
+		)
+	else
+		combobox:add(combobox.items)
+	end
 	combobox:add(combobox.selection)
-	combobox:add(combobox.items)
 	return combobox
 end
