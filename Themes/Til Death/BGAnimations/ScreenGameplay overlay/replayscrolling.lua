@@ -95,6 +95,7 @@ local function button(txt, click)
 		text = txt,
 		width = 60,
 		height = 30,
+		halign = 1,
 		bgColor = getMainColor("highlight"),
 		highlight = {color = getMainColor("positive")},
 		border = {color = getMainColor("highlight"), width = 2},
