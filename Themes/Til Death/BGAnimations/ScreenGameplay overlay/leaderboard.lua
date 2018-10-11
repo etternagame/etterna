@@ -10,6 +10,14 @@ local CRITERIA = "GetWifeScore"
 local NUM_ENTRIES = 5
 local ENTRY_HEIGHT = IsUsingWideScreen() and 35 or 20
 local WIDTH = SCREEN_WIDTH * (IsUsingWideScreen() and 0.3 or 0.275)
+local jdgs = {
+	-- Table of judgments for the judgecounter
+	"TapNoteScore_W1",
+	"TapNoteScore_W2",
+	"TapNoteScore_W3",
+	"TapNoteScore_W4",
+	"TapNoteScore_W5"
+}
 
 if not DLMAN:GetCurrentRateFilter() then
 	DLMAN:ToggleRateFilter()
@@ -34,11 +42,23 @@ curScore = {
 		return -1
 	end,
 	GetJudgmentString = function()
-		return ""
+		local str = ""
+		for i, v in ipairs(jdgs) do
+			str = str .. curScore.jdgVals[v] .. " | "
+		end
+		return str:sub(1, -5)
 	end
 }
 curScore.curWifeScore = 0
 curScore.curGrade = "Grade_Tier02"
+curScore.jdgVals = {
+	["TapNoteScore_W1"] = 0,
+	["TapNoteScore_W2"] = 0,
+	["TapNoteScore_W3"] = 0,
+	["TapNoteScore_W4"] = 0,
+	["TapNoteScore_W5"] = 0,
+	["TapNoteScore_Miss"] = 0
+}
 local scoreboard = {}
 for i = 1, NUM_ENTRIES - 1 do
 	scoreboard[i] = onlineScores[i]
@@ -158,14 +178,20 @@ for i = 1, NUM_ENTRIES do
 end
 
 t.JudgmentMessageCommand = function(self, params)
+	if curScore.jdgVals[params.Judgment] then
+		curScore.jdgVals[params.Judgment] = params.Val
+	end
 	-- params.curWifeScore retrieves the Judgment Message curWifeScore which is a raw number for calculations; very large
 	-- the online highscore curWifeScore is the wife percent...
 	-- params.WifePercent is our current calculated wife percent.
+	local old = curScore.curWifeScore
 	curScore.curWifeScore = notShit.floor(params.WifePercent * 100) / 10000
-	table.sort(scoreboard, sortFunction)
-	for i, entry in ipairs(entryActors) do
-		for name, label in pairs(entry) do
-			label:update(scoreboard[i])
+	if old ~= curScore.curWifeScore then
+		table.sort(scoreboard, sortFunction)
+		for i, entry in ipairs(entryActors) do
+			for name, label in pairs(entry) do
+				label:update(scoreboard[i])
+			end
 		end
 	end
 end
