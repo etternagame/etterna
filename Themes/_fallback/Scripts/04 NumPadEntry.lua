@@ -30,31 +30,31 @@
 --     end
 
 -- Params explanation:
--- 
+--
 -- "params" is a table containing the parameters used to customize
 -- NumPadEntry.
--- 
+--
 -- Almost all parameters are optional except for the Name.
--- 
+--
 -- Some parameters are interdependent, so if you include one, you should
 -- include the ones it is interdependent with to make sure they make sense
 -- together.
--- 
+--
 -- The parameters can be passed to either new_numpad_entry() or to
 -- create_actors().
--- 
+--
 -- Parameters passed to create_actors() are combined with the parameters
 -- passed to new_numpad_entry().
--- 
+--
 -- If the same parameter is passed to both, the one passed to create_actors()
 -- overrides the one passed to new_numpad_entry().
--- 
+--
 -- NumPadEntry is like an ActorFrame, you can put actors in params and they
 -- will be inside it, drawn before (under) everything else.
--- 
+--
 -- You can also include custom commands for the NumPadEntry actor and they
 -- will be part of the actor returned by create_actors().
--- 
+--
 -- Some parameters are custom actors that fill a role.  They must support
 -- certain commands that will be used to carry out their role.
 -- Parameter listing:
@@ -223,212 +223,249 @@
 --   },
 -- }
 
-local function noop() end
+local function noop()
+end
 
 local function add_default_commands_to_actor(default_set, actor)
 	for i, command_name in ipairs(default_set) do
-		if not actor[command_name] then actor[command_name]= noop end
+		if not actor[command_name] then
+			actor[command_name] = noop
+		end
 	end
 end
 
 local function pos_to_cr(pos, columns)
-	return {((pos-1) % columns)+1, math.ceil(pos / columns)}
+	return {((pos - 1) % columns) + 1, math.ceil(pos / columns)}
 end
 
 local function cr_to_pos(cr, columns)
 	return ((cr[2] - 1) * columns) + (cr[1])
 end
 
-local numpad_entry_mt= {
-	__index= {
-		init= function(self, params)
-			self.init_params= params
+local numpad_entry_mt = {
+	__index = {
+		init = function(self, params)
+			self.init_params = params
 			return self
 		end,
-		create_actors= function(self, params)
-			params= params or {}
+		create_actors = function(self, params)
+			params = params or {}
 			if self.init_params then
 				for name, param in pairs(self.init_params) do
-					if not params[name] then params[name]= param end
+					if not params[name] then
+						params[name] = param
+					end
 				end
 			end
 			if not params.Name then
 				error("NumPadEntry(" .. self.name .. "):  Every actor should have a Name.")
 			end
-			self.name= params.Name
-			self.button_poses= params.button_positions or
-				{{-24, -24}, {0, -24}, {24, -24},
-				{-24, 0},   {0, 0},   {24, 0},
-				{-24, 24}, {0, 24},   {24, 24},
-				{-24, 48}, {0, 48},   {24, 48}}
-			self.rows= params.rows or 4
-			self.columns= params.columns or 3
+			self.name = params.Name
+			self.button_poses =
+				params.button_positions or
+				{
+					{-24, -24},
+					{0, -24},
+					{24, -24},
+					{-24, 0},
+					{0, 0},
+					{24, 0},
+					{-24, 24},
+					{0, 24},
+					{24, 24},
+					{-24, 48},
+					{0, 48},
+					{24, 48}
+				}
+			self.rows = params.rows or 4
+			self.columns = params.columns or 3
 			if #self.button_poses ~= self.rows * self.columns then
 				error("NumpadEntry(" .. self.name .. "):  Number of buttons does not match rows * columns.")
 			end
-			local default_start= cr_to_pos(
-				{math.ceil(self.columns/2), math.ceil(self.rows/2)}, self.columns)
-			self.cursor_start= params.cursor_start or default_start
-			self.cursor_pos= self.cursor_start
-			self.done_text= params.done_text or "&start;"
-			self.back_text= params.back_text or "&leftarrow;"
-			self.button_values= params.button_values or
-				{7, 8, 9, 4, 5, 6, 1, 2, 3, 0, self.done_text, self.back_text}
+			local default_start = cr_to_pos({math.ceil(self.columns / 2), math.ceil(self.rows / 2)}, self.columns)
+			self.cursor_start = params.cursor_start or default_start
+			self.cursor_pos = self.cursor_start
+			self.done_text = params.done_text or "&start;"
+			self.back_text = params.back_text or "&leftarrow;"
+			self.button_values = params.button_values or {7, 8, 9, 4, 5, 6, 1, 2, 3, 0, self.done_text, self.back_text}
 			if #self.button_values ~= #self.button_poses then
 				error("NumpadEntry(" .. self.name .. "):  Number of button values does not match number of button positions.")
 			end
-			self.value= 0
-			self.digit_scale= params.digit_scale or 10
-			self.max_value= params.max_value
-			self.auto_done_value= params.auto_done_value
+			self.value = 0
+			self.digit_scale = params.digit_scale or 10
+			self.max_value = params.max_value
+			self.auto_done_value = params.auto_done_value
 			if MonthOfYear() == 3 and DayOfMonth() == 1 and PREFSMAN:GetPreference("EasterEggs") then
-				for i= 1, #self.button_values do
-					local a= math.random(1, #self.button_values)
-					local b= math.random(1, #self.button_values)
-					self.button_values[a], self.button_values[b]= self.button_values[b], self.button_values[a]
+				for i = 1, #self.button_values do
+					local a = math.random(1, #self.button_values)
+					local b = math.random(1, #self.button_values)
+					self.button_values[a], self.button_values[b] = self.button_values[b], self.button_values[a]
 				end
 			end
-			self.done_pos= (self.rows * self.columns) - 1
+			self.done_pos = (self.rows * self.columns) - 1
 			for i, val in ipairs(self.button_values) do
 				if val == self.done_text then
-					self.done_pos= i
+					self.done_pos = i
 					break
 				end
 			end
-			local args= {
-				Name= self.name, InitCommand= function(subself)
+			local args = {
+				Name = self.name,
+				InitCommand = function(subself)
 					(params.InitCommand or noop)(subself)
 					self:update_cursor()
-					self.container= subself
+					self.container = subself
 				end
 			}
 			for i, actor in ipairs(params) do
-				args[#args+1]= actor
+				args[#args + 1] = actor
 			end
 			for name, command in pairs(params) do
 				if type(name) == "string" and name:find("Command") and not args[name] then
-					args[name]= command
+					args[name] = command
 				end
 			end
 			if not args.InvalidValueCommand then
-				args.InvalidValueCommand= function(subself)
+				args.InvalidValueCommand = function(subself)
 					SOUND:PlayOnce(THEME:GetPathS("Common", "Invalid"))
 				end
 			end
 			add_default_commands_to_actor({"EntryDoneCommand"}, args)
-			local default_cursor= Def.Quad{
-				Name= "cursor", InitCommand= function(self)
-					self:setsize( 16, 24): diffuse( params.cursor_color or Color.Black)
+			local default_cursor =
+				Def.Quad {
+				Name = "cursor",
+				InitCommand = function(self)
+					self:setsize(16, 24):diffuse(params.cursor_color or Color.Black)
 				end,
-				MoveCommand= function(subself, param)
+				MoveCommand = function(subself, param)
 					subself:stoptweening()
 					subself:linear(.1)
 					subself:xy(param[1], param[2])
-					if param[3] then subself:z(param[3]) end
+					if param[3] then
+						subself:z(param[3])
+					end
 				end,
-				FitCommand= function(subself, param)
+				FitCommand = function(subself, param)
 					subself:SetWidth(param:GetWidth())
 				end
 			}
-			local cursor_template= params.cursor or default_cursor
-			local cursor_init= cursor_template.InitCommand or noop
-			cursor_template.InitCommand= function(subself)
-				self.cursor= subself
+			local cursor_template = params.cursor or default_cursor
+			local cursor_init = cursor_template.InitCommand or noop
+			cursor_template.InitCommand = function(subself)
+				self.cursor = subself
 				cursor_init(subself)
 			end
 			add_default_commands_to_actor({"FitCommand", "MoveCommand"}, cursor_template)
 			if params.cursor_draw == "first" then
-				args[#args+1]= cursor_template
+				args[#args + 1] = cursor_template
 			end
-			self.button_actors= {}
-			local default_bat_commands= {
-				"GainFocusCommand", "LoseFocusCommand", "PressCommand"}
-			local default_bat= Def.BitmapText{
-				Font= params.button_font or params.Font or "Common Normal",
-				InitCommand= function(self)
-					self:diffuse( params.button_color or Color.White)
+			self.button_actors = {}
+			local default_bat_commands = {
+				"GainFocusCommand",
+				"LoseFocusCommand",
+				"PressCommand"
+			}
+			local default_bat =
+				Def.BitmapText {
+				Font = params.button_font or params.Font or "Common Normal",
+				InitCommand = function(self)
+					self:diffuse(params.button_color or Color.White)
 				end,
-				SetCommand= function(subself, param)
+				SetCommand = function(subself, param)
 					subself:settext(param[1])
 				end
 			}
-			local ba_template= params.button or default_bat
+			local ba_template = params.button or default_bat
 			add_default_commands_to_actor(default_bat_commands, ba_template)
-			local bainit= ba_template.InitCommand or noop
+			local bainit = ba_template.InitCommand or noop
 			for i, pos in ipairs(self.button_poses) do
-				local actor= DeepCopy(ba_template)
-				actor.InitCommand= function(subself)
-					self.button_actors[i]= subself
+				local actor = DeepCopy(ba_template)
+				actor.InitCommand = function(subself)
+					self.button_actors[i] = subself
 					subself:xy(pos[1], pos[2])
-					if pos[3] then subself:z(pos[3]) end
+					if pos[3] then
+						subself:z(pos[3])
+					end
 					bainit(subself)
 					subself:playcommand("Set", {self.button_values[i]})
 				end
-				actor.Name= "num"..i
-				args[#args+1]= actor
+				actor.Name = "num" .. i
+				args[#args + 1] = actor
 			end
-			local vat_pos= params.value_pos or {0, -48}
-			local default_vat= Def.BitmapText{
-				Name= "value",
-				Font= params.value_font or params.Font or "Common Normal",
-				InitCommand= function(subself)
+			local vat_pos = params.value_pos or {0, -48}
+			local default_vat =
+				Def.BitmapText {
+				Name = "value",
+				Font = params.value_font or params.Font or "Common Normal",
+				InitCommand = function(subself)
 					subself:xy(vat_pos[1], vat_pos[2])
-					if vat_pos[3] then subself:z(vat_pos[3]) end
+					if vat_pos[3] then
+						subself:z(vat_pos[3])
+					end
 					subself:diffuse(params.value_color or Color.White)
 				end,
-				SetCommand= function(subself, param) subself:settext(param[1]) end}
-			local va_template= params.value or default_vat
+				SetCommand = function(subself, param)
+					subself:settext(param[1])
+				end
+			}
+			local va_template = params.value or default_vat
 			add_default_commands_to_actor({"SetCommand"}, va_template)
-			local vainit= va_template.InitCommand or noop
-			va_template.InitCommand= function(subself)
-				self.value_actor= subself
+			local vainit = va_template.InitCommand or noop
+			va_template.InitCommand = function(subself)
+				self.value_actor = subself
 				vainit(subself)
 				subself:playcommand("Set", {self.value})
 			end
-			args[#args+1]= va_template
-			local prompt_pos= params.prompt_pos or {0, -72}
-			local default_prompt= Def.BitmapText{
-				Name= "prompt",
-				Font= params.prompt_font or params.Font or "Common Normal",
-				InitCommand= function(self)
-					self:xy( prompt_pos[1], prompt_pos[2]):diffuse(params.prompt_color or Color.White)
+			args[#args + 1] = va_template
+			local prompt_pos = params.prompt_pos or {0, -72}
+			local default_prompt =
+				Def.BitmapText {
+				Name = "prompt",
+				Font = params.prompt_font or params.Font or "Common Normal",
+				InitCommand = function(self)
+					self:xy(prompt_pos[1], prompt_pos[2]):diffuse(params.prompt_color or Color.White)
 				end,
-				Text= params.prompt_text or "",
-				SetCommand= function(subself, param) subself:settext(param[1]) end}
-			local prompt_template= params.prompt or default_prompt
-			local prompt_init= prompt_template.InitCommand or noop
+				Text = params.prompt_text or "",
+				SetCommand = function(subself, param)
+					subself:settext(param[1])
+				end
+			}
+			local prompt_template = params.prompt or default_prompt
+			local prompt_init = prompt_template.InitCommand or noop
 			add_default_commands_to_actor({"SetCommand"}, prompt_template)
-			prompt_template.InitCommand= function(subself)
-				self.prompt_actor= subself
+			prompt_template.InitCommand = function(subself)
+				self.prompt_actor = subself
 				prompt_init(subself)
 			end
-			args[#args+1]= prompt_template
+			args[#args + 1] = prompt_template
 			if params.cursor_draw == "last" then
-				args[#args+1]= cursor_template
+				args[#args + 1] = cursor_template
 			end
 			return Def.ActorFrame(args)
 		end,
-		update_cursor= function(self, new_pos)
+		update_cursor = function(self, new_pos)
 			if new_pos then
 				self.button_actors[self.cursor_pos]:playcommand("LoseFocus")
-				self.cursor_pos= new_pos
+				self.cursor_pos = new_pos
 			end
 			self.button_actors[self.cursor_pos]:playcommand("GainFocus")
-			if not self.cursor then return end
+			if not self.cursor then
+				return
+			end
 			self.cursor:playcommand("Move", self.button_poses[self.cursor_pos])
 			self.cursor:playcommand("Fit", self.button_actors[self.cursor_pos])
 		end,
-		handle_input= function(self, button)
+		handle_input = function(self, button)
 			if button == "Start" then
 				self.button_actors[self.cursor_pos]:playcommand("Press")
-				local num= self.button_values[self.cursor_pos]
-				local as_num= tonumber(num)
+				local num = self.button_values[self.cursor_pos]
+				local as_num = tonumber(num)
 				if as_num then
-					local new_value= (self.value * self.digit_scale) + as_num
+					local new_value = (self.value * self.digit_scale) + as_num
 					if self.max_value and new_value > self.max_value then
 						self.container:playcommand("InvalidValue", {new_value})
 					else
-						self.value= new_value
+						self.value = new_value
 						if self.auto_done_value and new_value > self.auto_done_value then
 							self:update_cursor(self.done_pos)
 						end
@@ -437,44 +474,53 @@ local numpad_entry_mt= {
 				else
 					if num == self.done_text then
 						self.container:playcommand("EntryDone", {self.value})
-						self.done= true
+						self.done = true
 						return true
 					elseif num == self.back_text then
-						self.value= math.floor(self.value / self.digit_scale)
+						self.value = math.floor(self.value / self.digit_scale)
 						self.value_actor:playcommand("Set", {self.value})
 					end
 				end
 			else
-				local cr_pos= pos_to_cr(self.cursor_pos, self.columns)
-				local button_motions= {
-					Left= {-1, 0}, Right= {1, 0}, Up= {0, -1}, Down= {0, 1}}
-				button_motions.MenuLeft= button_motions.Left
-				button_motions.MenuRight= button_motions.Right
-				button_motions.MenuUp= button_motions.Up
-				button_motions.MenuDown= button_motions.Down
-				local motion= button_motions[button] -- Come on, do the loca-motion!
+				local cr_pos = pos_to_cr(self.cursor_pos, self.columns)
+				local button_motions = {
+					Left = {-1, 0},
+					Right = {1, 0},
+					Up = {0, -1},
+					Down = {0, 1}
+				}
+				button_motions.MenuLeft = button_motions.Left
+				button_motions.MenuRight = button_motions.Right
+				button_motions.MenuUp = button_motions.Up
+				button_motions.MenuDown = button_motions.Down
+				local motion = button_motions[button] -- Come on, do the loca-motion!
 				if motion then
-					cr_pos[1]= cr_pos[1] + motion[1]
-					cr_pos[2]= cr_pos[2] + motion[2]
+					cr_pos[1] = cr_pos[1] + motion[1]
+					cr_pos[2] = cr_pos[2] + motion[2]
 					if cr_pos[1] < 1 then
-						cr_pos[1]= self.columns
+						cr_pos[1] = self.columns
 						if button == "MenuLeft" then
-							cr_pos[2]= cr_pos[2] - 1
+							cr_pos[2] = cr_pos[2] - 1
 						end
 					end
 					if cr_pos[1] > self.columns then
-						cr_pos[1]= 1
+						cr_pos[1] = 1
 						if button == "MenuRight" then
-							cr_pos[2]= cr_pos[2] + 1
+							cr_pos[2] = cr_pos[2] + 1
 						end
 					end
-					if cr_pos[2] < 1 then cr_pos[2]= self.rows end
-					if cr_pos[2] > self.rows then cr_pos[2]= 1 end
+					if cr_pos[2] < 1 then
+						cr_pos[2] = self.rows
+					end
+					if cr_pos[2] > self.rows then
+						cr_pos[2] = 1
+					end
 					self:update_cursor(cr_to_pos(cr_pos, self.columns))
 				end
 			end
 		end
-}}
+	}
+}
 
 function new_numpad_entry(params)
 	return setmetatable({}, numpad_entry_mt):init(params)

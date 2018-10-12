@@ -5,7 +5,7 @@
 |   Modified by Charles Lohr for use with Windows-Based OSes.       |
 |   UDP/NON-TCP Support by Adam Lowman.                             |
 \*******************************************************************/
- 
+
 #ifndef EZSOCKETS_H
 #define EZSOCKETS_H
 
@@ -25,88 +25,89 @@ using namespace std;
 
 class EzSockets
 {
-public:
-
+  public:
 	EzSockets();
 	~EzSockets();
 
-	//Crate the socket
+	// Crate the socket
 	bool create();
 	bool create(int Protocol);
 	bool create(int Protocol, int Type);
 
-	//Bind Socket to local port
+	// Bind Socket to local port
 	bool bind(unsigned short port);
 
-	//Listen with socket
+	// Listen with socket
 	bool listen();
 
-	//Accept incoming socket
-	bool accept(EzSockets &socket);
+	// Accept incoming socket
+	bool accept(EzSockets& socket);
 
 	static bool CanConnect(const std::string& host, unsigned short port);
 
 	bool setAddr(const std::string& host, unsigned short port);
-	//Connect
+	// Connect
 	bool connect(const string& host, unsigned short port);
 
-	//Kill socket
+	// Kill socket
 	void close();
 
-	//see if socket has been created
+	// see if socket has been created
 	bool check();
 
 	long uAddr();
 
 	bool CanRead();
 	bool CanRead(unsigned int msTimeout);
-	bool DataAvailable() { return ( ( inBuffer.length()>0 ) || CanRead() ); }
-	bool DataAvailable(unsigned int msTimeout) { return ( ( inBuffer.length()>0 ) || CanRead(msTimeout) ); }
+	bool DataAvailable() { return ((inBuffer.length() > 0) || CanRead()); }
+	bool DataAvailable(unsigned int msTimeout)
+	{
+		return ((inBuffer.length() > 0) || CanRead(msTimeout));
+	}
 	bool IsError();
 	bool CanWrite();
 	bool CanWrite(unsigned int msTimeout);
 
 	void update();
 
-	//Raw data system 
+	// Raw data system
 	void SendData(const string& outData);
-	void SendData(const char *data, unsigned int bytes);
-	int ReadData(char *data, unsigned int bytes);
-	int PeekData(char *data, unsigned int bytes);
+	void SendData(const char* data, unsigned int bytes);
+	int ReadData(char* data, unsigned int bytes);
+	int PeekData(char* data, unsigned int bytes);
 
-	//Packet system (for structures and classes)
-	void SendPack(const char *data, unsigned int bytes); 
-	int ReadPack(char *data, unsigned int max);
-	int PeekPack(char *data, unsigned int max);
+	// Packet system (for structures and classes)
+	void SendPack(const char* data, unsigned int bytes);
+	int ReadPack(char* data, unsigned int max);
+	int PeekPack(char* data, unsigned int max);
 
-	//String (Flash) system / Null-terminated strings
+	// String (Flash) system / Null-terminated strings
 	void SendStr(const string& data, char delim = '\0');
 	int ReadStr(string& data, char delim = '\0');
 	int PeekStr(string& data, char delim = '\0');
 
-
-	//Operators
-	char operator[] (int i); //Access buffer
+	// Operators
+	char operator[](int i); // Access buffer
 	friend istream& operator>>(istream& is, EzSockets& obj);
 	friend ostream& operator<<(ostream& os, const EzSockets& obj);
 
 	bool blocking;
 	enum SockState
-	{ 
-		skDISCONNECTED = 0, 
-		skUNDEF1, //Not implemented
-		skLISTENING, 
-		skUNDEF3, //Not implemented
-		skUNDEF4, //Not implemented
-		skUNDEF5, //Not implemented
-		skUNDEF6, //Not implemented
-		skCONNECTED, 
-		skERROR 
+	{
+		skDISCONNECTED = 0,
+		skUNDEF1, // Not implemented
+		skLISTENING,
+		skUNDEF3, // Not implemented
+		skUNDEF4, // Not implemented
+		skUNDEF5, // Not implemented
+		skUNDEF6, // Not implemented
+		skCONNECTED,
+		skERROR
 	};
 
-    struct sockaddr_in fromAddr;
+	struct sockaddr_in fromAddr;
 	unsigned long fromAddr_len;
-	static unsigned long LongFromAddrIn( const sockaddr_in & s );
+	static unsigned long LongFromAddrIn(const sockaddr_in& s);
 
 	// The following possibly should be private.
 	string inBuffer;
@@ -115,17 +116,16 @@ public:
 	int pUpdateWrite();
 	int pUpdateRead();
 
-	int pReadData(char * data);
-	int pWriteData(const char * data, int dataSize);
+	int pReadData(char* data);
+	int pWriteData(const char* data, int dataSize);
 
 	SockState state;
 
-	int lastCode;	// Used for debugging purposes
+	int lastCode; // Used for debugging purposes
 
 	RString address;
 
-private:
-
+  private:
 	// Only necessary for Windows
 #if defined(_WINDOWS)
 	WSADATA wsda;
@@ -135,25 +135,25 @@ private:
 	int sock;
 	struct sockaddr_in addr;
 
-
 	// Used for Select() command
-	fd_set  *scks;
-	timeval *times;
+	fd_set* scks;
+	timeval* times;
 	timeval timeout; // Used for setsockopt and connect() select
 
 	// Buffers
 };
 
-istream& operator>>(istream& is, EzSockets& obj);
-ostream& operator<<(ostream& os, EzSockets& obj);
-
+istream&
+operator>>(istream& is, EzSockets& obj);
+ostream&
+operator<<(ostream& os, EzSockets& obj);
 
 #endif
 
 /*
  * (c) 2003-2004 Josh Allen, Charles Lohr, and Adam Lowman
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -163,7 +163,7 @@ ostream& operator<<(ostream& os, EzSockets& obj);
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

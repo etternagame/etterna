@@ -6,28 +6,28 @@
 class Song;
 
 /** @brief Foreground in front of notes while playing. */
-class Foreground: public ActorFrame
+class Foreground : public ActorFrame
 {
-public:
+  public:
 	~Foreground() override;
 	void Unload();
-	void LoadFromSong( const Song *pSong );
+	void LoadFromSong(const Song* pSong);
 
-	void Update( float fDeltaTime ) override;
-	void HandleMessage( const Message &msg ) override;
+	void Update(float fDeltaTime) override;
+	void HandleMessage(const Message& msg) override;
 
-protected:
+  protected:
 	struct LoadedBGA
 	{
-		Actor			*m_bga;
-		float			m_fStartBeat;
-		float			m_fStopBeat;
-		bool			m_bFinished;
+		Actor* m_bga;
+		float m_fStartBeat;
+		float m_fStopBeat;
+		bool m_bFinished;
 	};
 
-	vector<LoadedBGA>	m_BGAnimations;
+	vector<LoadedBGA> m_BGAnimations;
 	float m_fLastMusicSeconds;
-	const Song *m_pSong;
+	const Song* m_pSong;
 };
 
 #endif
@@ -35,7 +35,7 @@ protected:
 /*
  * (c) 2004 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -45,7 +45,7 @@ protected:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

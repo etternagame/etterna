@@ -4,7 +4,8 @@
 
 FilterManager* FILTERMAN = NULL;
 
-FilterManager::FilterManager() {
+FilterManager::FilterManager()
+{
 	// filter stuff - mina
 	ZERO(SSFilterLowerBounds);
 	ZERO(SSFilterUpperBounds);
@@ -17,7 +18,7 @@ FilterManager::FilterManager() {
 
 	// Register with Lua.
 	{
-		Lua *L = LUA->Get();
+		Lua* L = LUA->Get();
 		lua_pushstring(L, "FILTERMAN");
 		this->PushSelf(L);
 		lua_settable(L, LUA_GLOBALSINDEX);
@@ -25,22 +26,26 @@ FilterManager::FilterManager() {
 	}
 }
 
-FilterManager::~FilterManager() {
-	FOREACH_PlayerNumber(p)
-		SAFE_DELETE(m_pPlayerState[p]);
+FilterManager::~FilterManager()
+{
+	FOREACH_PlayerNumber(p) SAFE_DELETE(m_pPlayerState[p]);
 
 	// Unregister with Lua.
 	LUA->UnsetGlobal("FILTERMAN");
 }
 
-float FilterManager::GetSSFilter(Skillset ss, int bound) {
+float
+FilterManager::GetSSFilter(Skillset ss, int bound)
+{
 	if (bound == 0)
 		return SSFilterLowerBounds[ss];
-	
-		return SSFilterUpperBounds[ss];
+
+	return SSFilterUpperBounds[ss];
 }
 
-void FilterManager::SetSSFilter(float v, Skillset ss, int bound) {
+void
+FilterManager::SetSSFilter(float v, Skillset ss, int bound)
+{
 	if (bound == 0)
 		SSFilterLowerBounds[ss] = v;
 	else
@@ -48,7 +53,9 @@ void FilterManager::SetSSFilter(float v, Skillset ss, int bound) {
 }
 
 // reset button for filters
-void FilterManager::ResetSSFilters() {
+void
+FilterManager::ResetSSFilters()
+{
 	for (int ss = 0; ss < NUM_Skillset + 1; ss++) {
 		SSFilterLowerBounds[ss] = 0;
 		SSFilterUpperBounds[ss] = 0;
@@ -56,8 +63,10 @@ void FilterManager::ResetSSFilters() {
 }
 
 // tmp filter stuff - mina
-bool FilterManager::AnyActiveFilter() {
-	for(int ss=0; ss < NUM_Skillset + 1; ss++) {
+bool
+FilterManager::AnyActiveFilter()
+{
+	for (int ss = 0; ss < NUM_Skillset + 1; ss++) {
 		if (SSFilterLowerBounds[ss] > 0)
 			return true;
 		if (SSFilterUpperBounds[ss] > 0)
@@ -66,91 +75,121 @@ bool FilterManager::AnyActiveFilter() {
 	return false;
 }
 
+// coords garb
+// store x/y persistently by name
+
+void
+FilterManager::savepos(string name, int x, int y)
+{
+	watte[name].first = x;
+	watte[name].second = y;
+}
+
+pair<int, int>
+FilterManager::loadpos(string name)
+{
+	return watte[name];
+}
+
 // lua start
 #include "LuaBinding.h"
 
 class LunaFilterManager : public Luna<FilterManager>
 {
-public:
+  public:
 	DEFINE_METHOD(AnyActiveFilter, AnyActiveFilter())
-	static int SetSSFilter(T* p, lua_State *L) {
+	static int SetSSFilter(T* p, lua_State* L)
+	{
 		p->SetSSFilter(FArg(1), static_cast<Skillset>(IArg(2) - 1), IArg(3));
-		return 1;
+		return 0;
 	}
-	static int GetSSFilter(T* p, lua_State *L) {
+	static int GetSSFilter(T* p, lua_State* L)
+	{
 		float f = p->GetSSFilter(static_cast<Skillset>(IArg(1) - 1), IArg(2));
 		lua_pushnumber(L, f);
 		return 1;
 	}
-	static int ResetSSFilters(T* p, lua_State *L) {
+	static int ResetSSFilters(T* p, lua_State* L)
+	{
 		p->ResetSSFilters();
-		return 1;
+		return 0;
 	}
-	static int SetMaxFilterRate(T* p, lua_State* L) {
+	static int SetMaxFilterRate(T* p, lua_State* L)
+	{
 		float mfr = FArg(1);
 		auto loot = p->m_pPlayerState[0];
 		CLAMP(mfr, loot->wtFFF, 3.f);
 		p->MaxFilterRate = mfr;
-		return 1;
+		return 0;
 	}
-	static int GetMaxFilterRate(T* p, lua_State* L) {
+	static int GetMaxFilterRate(T* p, lua_State* L)
+	{
 		lua_pushnumber(L, p->MaxFilterRate);
 		return 1;
 	}
-	static int SetMinFilterRate(T* p, lua_State* L) {
+	static int SetMinFilterRate(T* p, lua_State* L)
+	{
 		float mfr = FArg(1);
 		CLAMP(mfr, 0.7f, p->MaxFilterRate);
 		auto loot = p->m_pPlayerState[0];
 		loot->wtFFF = mfr;
-		return 1;
+		return 0;
 	}
-	static int GetMinFilterRate(T* p, lua_State* L) {
+	static int GetMinFilterRate(T* p, lua_State* L)
+	{
 		auto loot = p->m_pPlayerState[0];
 		lua_pushnumber(L, loot->wtFFF);
 		return 1;
 	}
-	static int ToggleFilterMode(T* p, lua_State* L) {
+	static int ToggleFilterMode(T* p, lua_State* L)
+	{
 		p->ExclusiveFilter = !p->ExclusiveFilter;
-		return 1;
-
+		return 0;
 	}
-	static int GetFilterMode(T* p, lua_State* L) {
+	static int GetFilterMode(T* p, lua_State* L)
+	{
 		lua_pushboolean(L, p->ExclusiveFilter);
 		return 1;
 	}
-	static int ToggleHighestSkillsetsOnly(T* p, lua_State* L) {
+	static int ToggleHighestSkillsetsOnly(T* p, lua_State* L)
+	{
 		p->HighestSkillsetsOnly = !p->HighestSkillsetsOnly;
-		return 1;
-
+		return 0;
 	}
-	static int GetHighestSkillsetsOnly(T* p, lua_State* L) {
+	static int GetHighestSkillsetsOnly(T* p, lua_State* L)
+	{
 		lua_pushboolean(L, p->HighestSkillsetsOnly);
 		return 1;
 	}
 
-	static int HelpImTrappedInAChineseFortuneCodingFactory(T* p, lua_State* L) {
+	static int HelpImTrappedInAChineseFortuneCodingFactory(T* p, lua_State* L)
+	{
 		p->galaxycollapsed = BArg(1);
-		return 1;
+		return 0;
 	}
-	static int oopsimlazylol(T* p, lua_State* L) {
+	static int oopsimlazylol(T* p, lua_State* L)
+	{
 		lua_pushboolean(L, p->galaxycollapsed);
 		return 1;
 	}
-	static int grabposx(T* p, lua_State* L) {
+	static int grabposx(T* p, lua_State* L)
+	{
 		lua_pushnumber(L, p->watte[SArg(1)].first);
 		return 1;
 	}
-	static int grabposy(T* p, lua_State* L) {
+	static int grabposy(T* p, lua_State* L)
+	{
 		lua_pushnumber(L, p->watte[SArg(1)].second);
 		return 1;
 	}
 	static int savepos(T* p, lua_State* L) {
 		p->watte[SArg(1)].first = IArg(2);
 		p->watte[SArg(1)].second = IArg(3);
-		return 1;
+		return 0;
 	}
 
-	LunaFilterManager() {
+	LunaFilterManager()
+	{
 		ADD_METHOD(SetSSFilter);
 		ADD_METHOD(GetSSFilter);
 		ADD_METHOD(ResetSSFilters);
@@ -167,7 +206,6 @@ public:
 		ADD_METHOD(oopsimlazylol);
 		ADD_METHOD(grabposx);
 		ADD_METHOD(grabposy);
-		ADD_METHOD(savepos);
 	}
 };
 

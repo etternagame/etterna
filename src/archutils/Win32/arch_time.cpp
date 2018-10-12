@@ -3,36 +3,39 @@
 #include "RageThreads.h"
 #include <time.h>
 #ifdef _WINDOWS
-#  include <windows.h>
+#include <windows.h>
 #endif
 
-struct tm *my_localtime_r( const time_t *timep, struct tm *result )
+struct tm*
+my_localtime_r(const time_t* timep, struct tm* result)
 {
 	static RageMutex mut("my_localtime_r");
 	LockMut(mut);
 
-	*result = *localtime( timep );
+	*result = *localtime(timep);
 	return result;
 }
 
-struct tm *my_gmtime_r( const time_t *timep, struct tm *result )
+struct tm*
+my_gmtime_r(const time_t* timep, struct tm* result)
 {
 	static RageMutex mut("my_gmtime_r");
 	LockMut(mut);
 
-	*result = *gmtime( timep );
+	*result = *gmtime(timep);
 	return result;
 }
 
-void my_usleep( unsigned long usec )
+void
+my_usleep(unsigned long usec)
 {
-	::Sleep( usec/1000 );
+	::Sleep(usec / 1000);
 }
 
 /*
  * (c) 2004 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -42,7 +45,7 @@ void my_usleep( unsigned long usec )
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

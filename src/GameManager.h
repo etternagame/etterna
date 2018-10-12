@@ -12,10 +12,11 @@ struct lua_State;
 /** @brief The collective information about a Steps' Type. */
 struct StepsTypeInfo
 {
-	const char *szName;
+	const char* szName;
 	/** @brief The number of tracks, or columns, of this type. */
 	int iNumTracks;
-	/** @brief A flag to determine if we allow this type to be autogen'ed to other types. */
+	/** @brief A flag to determine if we allow this type to be autogen'ed to
+	 * other types. */
 	bool bAllowAutogen;
 	/** @brief The most basic StyleType that this StpesTypeInfo is used with. */
 	StepsTypeCategory m_StepsTypeCategory;
@@ -24,37 +25,51 @@ struct StepsTypeInfo
 
 class GameManager
 {
-public:
+  public:
 	GameManager();
 	~GameManager();
 
-	void GetStylesForGame( const Game* pGame, vector<const Style*>& aStylesAddTo, bool editor=false );
-	const Game *GetGameForStyle( const Style *pStyle );
-	void GetStepsTypesForGame( const Game* pGame, vector<StepsType>& aStepsTypeAddTo );
-	const Style *GetEditorStyleForStepsType( StepsType st );
-	void GetDemonstrationStylesForGame( const Game *pGame, vector<const Style*> &vpStylesOut );
-	const Style *GetHowToPlayStyleForGame( const Game* pGame );
-	void GetCompatibleStyles( const Game *pGame, int iNumPlayers, vector<const Style*> &vpStylesOut );
-	const Style *GetFirstCompatibleStyle( const Game *pGame, int iNumPlayers, StepsType st );
+	void GetStylesForGame(const Game* pGame,
+						  vector<const Style*>& aStylesAddTo,
+						  bool editor = false);
+	const Game* GetGameForStyle(const Style* pStyle);
+	void GetStepsTypesForGame(const Game* pGame,
+							  vector<StepsType>& aStepsTypeAddTo);
+	const Style* GetEditorStyleForStepsType(StepsType st);
+	void GetDemonstrationStylesForGame(const Game* pGame,
+									   vector<const Style*>& vpStylesOut);
+	const Style* GetHowToPlayStyleForGame(const Game* pGame);
+	void GetCompatibleStyles(const Game* pGame,
+							 int iNumPlayers,
+							 vector<const Style*>& vpStylesOut);
+	const Style* GetFirstCompatibleStyle(const Game* pGame,
+										 int iNumPlayers,
+										 StepsType st);
 
-	void GetEnabledGames( vector<const Game*>& aGamesOut );
+	void GetEnabledGames(vector<const Game*>& aGamesOut);
 	const Game* GetDefaultGame();
-	bool IsGameEnabled( const Game* pGame );
-	int GetIndexFromGame( const Game* pGame );
-	const Game* GetGameFromIndex( int index );
+	bool IsGameEnabled(const Game* pGame);
+	int GetIndexFromGame(const Game* pGame);
+	const Game* GetGameFromIndex(int index);
 
-	const StepsTypeInfo &GetStepsTypeInfo( StepsType st );
-	StepsType StringToStepsType( RString sStepsType );
-	const Game* StringToGame( const RString &sGame );
-	const Style* GameAndStringToStyle( const Game* pGame, const RString &sStyle );
-	RString StyleToLocalizedString( const Style* s );
+	const StepsTypeInfo& GetStepsTypeInfo(StepsType st);
+	StepsType StringToStepsType(RString sStepsType);
+	const Game* StringToGame(const RString& sGame);
+	const Style* GameAndStringToStyle(const Game* pGame, const RString& sStyle);
+	RString StyleToLocalizedString(const Style* s);
 
+	bool m_bResetModifiers;
+	bool m_bResetTurns;
+	float m_fPreviousRate;
+	RString m_sModsToReset;
+	vector<RString> m_vTurnsToReset;
 
 	// Lua
-	void PushSelf( lua_State *L );
+	void PushSelf(lua_State* L);
 };
 
-extern GameManager*	GAMEMAN;	// global and accessible from anywhere in our program
+extern GameManager*
+  GAMEMAN; // global and accessible from anywhere in our program
 
 #endif
 
@@ -63,7 +78,7 @@ extern GameManager*	GAMEMAN;	// global and accessible from anywhere in our progr
  * @author Chris Danford, Glenn Maynard (c) 2001-2004
  * @section LICENSE
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -73,7 +88,7 @@ extern GameManager*	GAMEMAN;	// global and accessible from anywhere in our progr
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

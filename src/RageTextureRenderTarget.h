@@ -1,4 +1,5 @@
-﻿/* RageTextureRenderTarget - RageTexture interface for creating render targets. */
+﻿/* RageTextureRenderTarget - RageTexture interface for creating render targets.
+ */
 
 #ifndef RAGE_TEXTURE_RENDER_TARGET_H
 #define RAGE_TEXTURE_RENDER_TARGET_H
@@ -7,21 +8,22 @@
 #include "RageTexture.h"
 #include "RageTextureID.h"
 
-class RageTextureRenderTarget: public RageTexture
+class RageTextureRenderTarget : public RageTexture
 {
-public:
-	RageTextureRenderTarget( const RageTextureID &name, const RenderTargetParam &param );
+  public:
+	RageTextureRenderTarget(const RageTextureID& name,
+							const RenderTargetParam& param);
 	~RageTextureRenderTarget() override;
 	void Invalidate() override { m_iTexHandle = 0; /* don't Destroy() */ }
 	void Reload() override;
 	unsigned GetTexHandle() const override { return m_iTexHandle; }
 
-	void BeginRenderingTo( bool bPreserveTexture = true );
+	void BeginRenderingTo(bool bPreserveTexture = true);
 	void FinishRenderingTo();
 
-	void PushSelf( lua_State *L ) override;
+	void PushSelf(lua_State* L) override;
 
-private:
+  private:
 	const RenderTargetParam m_Param;
 
 	void Create();

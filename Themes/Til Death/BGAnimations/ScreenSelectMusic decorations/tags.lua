@@ -4,7 +4,7 @@ local steps
 local curInput = ""
 local frameX = 10
 local frameY = 45
-local frameWidth = capWideScale(360,400)
+local frameWidth = capWideScale(360, 400)
 local frameHeight = 350
 local fontScale = 0.4
 local tagsperpage = 14
@@ -50,9 +50,13 @@ local function newTagInput(event)
 		elseif event.DeviceInput.button == "DeviceButton_delete" then
 			changed = true
 			curInput = ""
-		elseif event.char and curInput:len() < 20 and event.char:match("[% %%%+%-%!%@%#%$%^%&%*%(%)%=%_%.%,%:%;%'%\"%>%<%?%/%~%|%w]") and event.char ~= "" then
+		elseif
+			event.char and curInput:len() < 20 and
+				event.char:match('[% %%%+%-%!%@%#%$%^%&%*%(%)%=%_%.%,%:%;%\'%"%>%<%?%/%~%|%w]') and
+				event.char ~= ""
+		 then
 			changed = true
-			curInput = curInput..event.char
+			curInput = curInput .. event.char
 		end
 		if changed then
 			MESSAGEMAN:Broadcast("RefreshTags")
@@ -60,18 +64,19 @@ local function newTagInput(event)
 	end
 end
 
-local t = Def.ActorFrame{
-	BeginCommand=function(self)
+local t =
+	Def.ActorFrame {
+	BeginCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(newTagInput)
 		self:queuecommand("Set"):visible(false)
 	end,
-	OffCommand=function(self)
-		self:bouncebegin(0.2):xy(-500,0):diffusealpha(0)
+	OffCommand = function(self)
+		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
 	end,
-	OnCommand=function(self)
-		self:bouncebegin(0.2):xy(0,0):diffusealpha(1)
+	OnCommand = function(self)
+		self:bouncebegin(0.2):xy(0, 0):diffusealpha(1)
 	end,
-	MouseRightClickMessageCommand=function(self)
+	MouseRightClickMessageCommand = function(self)
 		if onTab then
 			hasFocus = false
 			curInput = ""
@@ -80,7 +85,7 @@ local t = Def.ActorFrame{
 			MESSAGEMAN:Broadcast("RefreshTags")
 		end
 	end,
-	SetCommand=function(self)
+	SetCommand = function(self)
 		self:finishtweening()
 		if getTabIndex() == 9 then
 			self:queuecommand("On")
@@ -89,42 +94,57 @@ local t = Def.ActorFrame{
 			steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
 			onTab = true
 			MESSAGEMAN:Broadcast("RefreshTags")
-		else 
+		else
 			self:queuecommand("Off")
 			onTab = false
 		end
 	end,
-	TabChangedMessageCommand=function(self)
+	TabChangedMessageCommand = function(self)
 		self:queuecommand("Set")
 	end,
-	CurrentStepsP1ChangedMessageCommand=function(self)
+	CurrentStepsP1ChangedMessageCommand = function(self)
 		self:queuecommand("Set")
 	end,
-	CurrentSongChangedMessageCommand=function(self)
+	CurrentSongChangedMessageCommand = function(self)
 		self:queuecommand("Set")
-	end,
+	end
 }
 
-t[#t+1] = Def.Quad{InitCommand=function(self)
-	self:xy(frameX,frameY):zoomto(frameWidth,frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
-end}
-t[#t+1] = Def.Quad{InitCommand=function(self)
-	self:xy(frameX,frameY):zoomto(frameWidth,offsetY):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(0.5)
-end}
-t[#t+1] = LoadFont("Common Normal")..{InitCommand=function(self)
-	self:xy(frameX+5,frameY+offsetY-9):zoom(0.6):halign(0):diffuse(getMainColor('positive')):settext("Player Tags")
-end}
+t[#t + 1] =
+	Def.Quad {
+	InitCommand = function(self)
+		self:xy(frameX, frameY):zoomto(frameWidth, frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
+	end
+}
+t[#t + 1] =
+	Def.Quad {
+	InitCommand = function(self)
+		self:xy(frameX, frameY):zoomto(frameWidth, offsetY):halign(0):valign(0):diffuse(getMainColor("frames")):diffusealpha(
+			0.5
+		)
+	end
+}
+t[#t + 1] =
+	LoadFont("Common Normal") ..
+	{
+		InitCommand = function(self)
+			self:xy(frameX + 5, frameY + offsetY - 9):zoom(0.6):halign(0):diffuse(getMainColor("positive")):settext(
+				"Player Tags"
+			)
+		end
+	}
 
 local function filterDisplay(playertags)
 	local index = {}
-	for i=1,#playertags do
-		index[#index+1] = i
+	for i = 1, #playertags do
+		index[#index + 1] = i
 	end
 	return index
 end
 
-local r = Def.ActorFrame{
-	BeginCommand=function(self)
+local r =
+	Def.ActorFrame {
+	BeginCommand = function(self)
 		whee = SCREENMAN:GetTopScreen():GetMusicWheel()
 		if filterTags == nil then
 			filterTags = {}
@@ -137,7 +157,7 @@ local r = Def.ActorFrame{
 			whee:SelectSong(ssong)
 		end
 	end,
-	RefreshTagsMessageCommand=function(self)
+	RefreshTagsMessageCommand = function(self)
 		if filterMode == nil then
 			filterMode = true
 		end
@@ -147,8 +167,8 @@ local r = Def.ActorFrame{
 			charts = {}
 			if next(filterTags) then
 				toFilterTags = {}
-				for k,v in pairs(filterTags) do
-					toFilterTags[#toFilterTags+1] = k
+				for k, v in pairs(filterTags) do
+					toFilterTags[#toFilterTags + 1] = k
 				end
 				if filterMode then --and
 					inCharts = {}
@@ -165,13 +185,13 @@ local r = Def.ActorFrame{
 					end
 					-- gotta repack those
 					for k, v in pairs(inCharts) do
-						charts[#charts+1] = k
+						charts[#charts + 1] = k
 					end
 				else -- or
 					for k, v in pairs(toFilterTags) do
 						for ki, vi in pairs(ptags[v]) do
 							if charts[ki] == nil then
-								charts[#charts+1] = ki
+								charts[#charts + 1] = ki
 							end
 						end
 					end
@@ -182,58 +202,59 @@ local r = Def.ActorFrame{
 		end
 
 		playertags = {}
-		for k,v in pairs(ptags) do
-			playertags[#playertags+1] = k
+		for k, v in pairs(ptags) do
+			playertags[#playertags + 1] = k
 		end
 		table.sort(playertags)
 		displayindex = filterDisplay(playertags)
-		numtagpages = notShit.ceil(#displayindex/tagsperpage)
+		numtagpages = notShit.ceil(#displayindex / tagsperpage)
 		MESSAGEMAN:Broadcast("UpdateTags")
 	end
 }
 
 local function makeTag(i)
-	local t = Def.ActorFrame{
-		InitCommand=function(self)
-			local colPos = i/8 >= 1 and 20 + (frameWidth/2) or offsetX + 10
+	local t =
+		Def.ActorFrame {
+		InitCommand = function(self)
+			local colPos = i / 8 >= 1 and 20 + (frameWidth / 2) or offsetX + 10
 			local row = i > 7 and i - 8 or i - 1
-			self:xy(colPos, offsetY + 95 + row*tagYSpacing)
+			self:xy(colPos, offsetY + 95 + row * tagYSpacing)
 			self:visible(true)
 		end,
-		UpdateTagsMessageCommand=function(self)
+		UpdateTagsMessageCommand = function(self)
 			if playertags[i + ((currenttagpage - 1) * tagsperpage)] then
 				self:visible(true)
 			else
 				self:visible(false)
 			end
 		end,
-		Def.ActorFrame{
-			InitCommand=function(self)
+		Def.ActorFrame {
+			InitCommand = function(self)
 				self:x(5)
 			end,
-			Def.Quad{
-				InitCommand=function(self)
-					self:xy(-6,20):zoomto(frameWidth/2-20,tagYSpacing-2):halign(0):valign(1)
+			Def.Quad {
+				InitCommand = function(self)
+					self:xy(-6, 20):zoomto(frameWidth / 2 - 20, tagYSpacing - 2):halign(0):valign(1)
 				end,
-				UpdateTagsMessageCommand=function(self)
+				UpdateTagsMessageCommand = function(self)
 					curTag = playertags[i + ((currenttagpage - 1) * tagsperpage)]
 					if tagFunction == 1 then
 						if song and curTag and ptags[curTag][steps:GetChartKey()] then
-							self:diffuse(getMainColor('positive'))
+							self:diffuse(getMainColor("positive"))
 						else
-							self:diffuse(getMainColor('frames')):diffusealpha(0.35)
+							self:diffuse(getMainColor("frames")):diffusealpha(0.35)
 						end
 					elseif tagFunction == 2 then
 						if filterTags[curTag] then
-							self:diffuse(getMainColor('positive'))
+							self:diffuse(getMainColor("positive"))
 						else
-							self:diffuse(getMainColor('frames')):diffusealpha(0.35)
+							self:diffuse(getMainColor("frames")):diffusealpha(0.35)
 						end
 					else
-						self:diffuse(getMainColor('frames')):diffusealpha(0.35)
+						self:diffuse(getMainColor("frames")):diffusealpha(0.35)
 					end
 				end,
-				MouseLeftClickMessageCommand=function(self)
+				MouseLeftClickMessageCommand = function(self)
 					if isOver(self) then
 						curTag = playertags[i + ((currenttagpage - 1) * tagsperpage)]
 						if tagFunction == 1 then
@@ -263,20 +284,21 @@ local function makeTag(i)
 						end
 						MESSAGEMAN:Broadcast("RefreshTags")
 					end
-				end,
-			},
-			LoadFont("Common Large") .. {
-				Name="Text",
-				InitCommand=function(self)
-					self:y(5):halign(0):maxwidth(frameWidth + 25)
-				end,
-				UpdateTagsMessageCommand=function(self)
-					self:zoom(fontScale)
-					if playertags[i + ((currenttagpage - 1) * tagsperpage)] then
-						self:settext(playertags[i + ((currenttagpage - 1) * tagsperpage)])
-					end
 				end
 			},
+			LoadFont("Common Large") ..
+				{
+					Name = "Text",
+					InitCommand = function(self)
+						self:y(5):halign(0):maxwidth(frameWidth + 25)
+					end,
+					UpdateTagsMessageCommand = function(self)
+						self:zoom(fontScale)
+						if playertags[i + ((currenttagpage - 1) * tagsperpage)] then
+							self:settext(playertags[i + ((currenttagpage - 1) * tagsperpage)])
+						end
+					end
+				}
 		}
 	}
 	return t
@@ -284,69 +306,73 @@ end
 
 local fawa = {"Chart Tags", "Filter By", "Remove"}
 local function funcButton(i)
-	local t = Def.ActorFrame{
-		InitCommand=function(self)
-			local colPos = (i-1)*(frameWidth/3-5) + 80
-			self:xy(colPos, frameY+capWideScale(80,80)-55)
+	local t =
+		Def.ActorFrame {
+		InitCommand = function(self)
+			local colPos = (i - 1) * (frameWidth / 3 - 5) + 80
+			self:xy(colPos, frameY + capWideScale(80, 80) - 55)
 			self:visible(true)
 		end,
-		Def.Quad{
-			InitCommand=function(self)
-				self:zoomto((frameWidth/3-10),30):halign(0.5):valign(0):diffuse(getMainColor('frames')):diffusealpha(0.35)
+		Def.Quad {
+			InitCommand = function(self)
+				self:zoomto((frameWidth / 3 - 10), 30):halign(0.5):valign(0):diffuse(getMainColor("frames")):diffusealpha(0.35)
 			end,
-			SetCommand=function(self)
+			SetCommand = function(self)
 				if tagFunction == i then
 					self:diffusealpha(1)
 				else
 					self:diffusealpha(0.35)
 				end
 			end,
-			MouseLeftClickMessageCommand=function(self)
+			MouseLeftClickMessageCommand = function(self)
 				if isOver(self) then
 					tagFunction = i
 					MESSAGEMAN:Broadcast("RefreshTags")
 				end
 			end,
-			UpdateTagsMessageCommand=function(self)
+			UpdateTagsMessageCommand = function(self)
 				self:queuecommand("Set")
-			end,
+			end
 		},
-		LoadFont("Common Large") .. {
-			InitCommand=function(self)
-				self:y(12):halign(0.5):diffuse(getMainColor('positive')):maxwidth((frameWidth/3-30)):maxheight(22)
-			end,
-			BeginCommand=function(self)
-				self:settext(fawa[i])
-			end,
-		}
+		LoadFont("Common Large") ..
+			{
+				InitCommand = function(self)
+					self:y(12):halign(0.5):diffuse(getMainColor("positive")):maxwidth((frameWidth / 3 - 30)):maxheight(22)
+				end,
+				BeginCommand = function(self)
+					self:settext(fawa[i])
+				end
+			}
 	}
 	return t
 end
 
 -- new tag input
-r[#r+1] = Def.ActorFrame{
-	InitCommand=function(self)
-		self:xy(frameX+10,frameY+capWideScale(80,80)+225)
+r[#r + 1] =
+	Def.ActorFrame {
+	InitCommand = function(self)
+		self:xy(frameX + 10, frameY + capWideScale(80, 80) + 225)
 	end,
-	SetCommand=function(self)
+	SetCommand = function(self)
 		self:visible(tagFunction == 1)
 	end,
-	UpdateTagsMessageCommand=function(self)
+	UpdateTagsMessageCommand = function(self)
 		self:queuecommand("Set")
 	end,
-	LoadFont("Common Large")..{
-		InitCommand=function(self)
-			self:halign(0):zoom(fontScale)
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:halign(0):zoom(fontScale)
+			end,
+			SetCommand = function(self)
+				self:settext("Add new tag:")
+			end
+		},
+	Def.Quad {
+		InitCommand = function(self)
+			self:addx(377):addy(3):zoomto(250, 21):halign(1):diffuse(color("#666666"))
 		end,
-		SetCommand=function(self)
-			self:settext("Add new tag:")
-		end	
-	},
-	Def.Quad{
-		InitCommand=function(self)
-			self:addx(377):addy(3):zoomto(250,21):halign(1):diffuse(color("#666666"))
-		end,
-		MouseLeftClickMessageCommand=function(self)
+		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) and onTab then
 				hasFocus = true
 				curInput = ""
@@ -356,129 +382,141 @@ r[#r+1] = Def.ActorFrame{
 				MESSAGEMAN:Broadcast("NumericInputActive")
 			end
 		end,
-		SetCommand=function(self)
+		SetCommand = function(self)
 			if hasFocus then
 				self:diffuse(color("#999999"))
 			else
 				self:diffuse(color("#000000"))
 			end
 		end,
-		UpdateTagsMessageCommand=function(self)
+		UpdateTagsMessageCommand = function(self)
 			self:queuecommand("Set")
-		end,
+		end
 	},
-	LoadFont("Common Large")..{
-		InitCommand=function(self)
-			self:addx(133):addy(1):halign(0):maxwidth(600):zoom(fontScale - 0.05)
-		end,
-		SetCommand=function(self)
-			self:settext(curInput)
-			if curInput ~= "" or hasFocus then
-				self:diffuse(color("#FFFFFF"))
-			else
-				self:diffuse(color("#666666"))
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:addx(133):addy(1):halign(0):maxwidth(600):zoom(fontScale - 0.05)
+			end,
+			SetCommand = function(self)
+				self:settext(curInput)
+				if curInput ~= "" or hasFocus then
+					self:diffuse(color("#FFFFFF"))
+				else
+					self:diffuse(color("#666666"))
+				end
+			end,
+			UpdateTagsMessageCommand = function(self)
+				self:queuecommand("Set")
 			end
-		end,
-		UpdateTagsMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
-	}
+		}
 }
 
 -- filter type
-r[#r+1] = Def.ActorFrame{
-	InitCommand=function(self)
-		self:xy(frameX+10,frameY+capWideScale(80,80)+225)
+r[#r + 1] =
+	Def.ActorFrame {
+	InitCommand = function(self)
+		self:xy(frameX + 10, frameY + capWideScale(80, 80) + 225)
 	end,
-	SetCommand=function(self)
+	SetCommand = function(self)
 		self:visible(tagFunction == 2)
 	end,
-	UpdateTagsMessageCommand=function(self)
+	UpdateTagsMessageCommand = function(self)
 		self:queuecommand("Set")
 	end,
-	LoadFont("Common Large")..{
-		InitCommand=function(self)
-			self:zoom(fontScale):halign(0)
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:zoom(fontScale):halign(0)
+			end,
+			SetCommand = function(self)
+				self:settext("Mode: " .. (filterMode and "AND" or "OR"))
+			end,
+			UpdateTagsMessageCommand = function(self)
+				self:queuecommand("Set")
+			end
+		},
+	Def.Quad {
+		InitCommand = function(self)
+			self:zoomto(120, 18):halign(0):diffusealpha(0)
 		end,
-		SetCommand=function(self)
-			self:settext("Mode: "..(filterMode and "AND" or "OR"))
-		end,
-		UpdateTagsMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
-	},
-	Def.Quad{
-		InitCommand=function(self)
-			self:zoomto(120,18):halign(0):diffusealpha(0)
-		end,
-		MouseLeftClickMessageCommand=function(self)
+		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) and onTab then
 				filterMode = not filterMode
 				filterChanged = true
 				MESSAGEMAN:Broadcast("RefreshTags")
 			end
-		end,
-	},
+		end
+	}
 }
 
 -- main quad with paginator i guess?
-r[#r+1] = Def.ActorFrame{
-	InitCommand=function(self)
-		self:xy(frameX+10,frameY+capWideScale(80,80)+250)
+r[#r + 1] =
+	Def.ActorFrame {
+	InitCommand = function(self)
+		self:xy(frameX + 10, frameY + capWideScale(80, 80) + 250)
 	end,
-	Def.Quad{
-		InitCommand=function(self)
-			self:xy(300,-8):zoomto(40,20):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(buttondiffuse)
+	Def.Quad {
+		InitCommand = function(self)
+			self:xy(300, -8):zoomto(40, 20):halign(0):valign(0):diffuse(getMainColor("frames")):diffusealpha(buttondiffuse)
 		end,
-		MouseLeftClickMessageCommand=function(self)
+		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) and currenttagpage < numtagpages then
 				currenttagpage = currenttagpage + 1
 				MESSAGEMAN:Broadcast("RefreshTags")
 			end
 		end
 	},
-	LoadFont("Common Large") .. {
-		InitCommand=function(self)
-			self:x(300):halign(0):zoom(0.3):diffuse(getMainColor('positive')):settext("Next")
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:x(300):halign(0):zoom(0.3):diffuse(getMainColor("positive")):settext("Next")
+			end
+		},
+	Def.Quad {
+		InitCommand = function(self)
+			self:y(-8):zoomto(65, 20):halign(0):valign(0):diffuse(getMainColor("frames")):diffusealpha(buttondiffuse)
 		end,
-	},	
-	Def.Quad{
-		InitCommand=function(self)
-			self:y(-8):zoomto(65,20):halign(0):valign(0):diffuse(getMainColor('frames')):diffusealpha(buttondiffuse)
-		end,
-		MouseLeftClickMessageCommand=function(self)
+		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) and currenttagpage > 1 then
 				currenttagpage = currenttagpage - 1
 				MESSAGEMAN:Broadcast("RefreshTags")
 			end
 		end
 	},
-	LoadFont("Common Large") .. {
-		InitCommand=function(self)
-			self:halign(0):zoom(0.3):diffuse(getMainColor('positive')):settext("Previous")
-		end,
-	},
-	LoadFont("Common Large") .. {
-		InitCommand=function(self)
-			self:x(175):halign(0.5):zoom(0.3):diffuse(getMainColor('positive'))
-		end,
-		SetCommand=function(self)
-			self:settextf("Showing %i-%i of %i", math.min(((currenttagpage-1)*tagsperpage)+1, #displayindex), math.min(currenttagpage*tagsperpage, #displayindex), #displayindex)
-		end,
-		UpdateTagsMessageCommand=function(self)
-			self:queuecommand("Set")
-		end,
-	}
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:halign(0):zoom(0.3):diffuse(getMainColor("positive")):settext("Previous")
+			end
+		},
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:x(175):halign(0.5):zoom(0.3):diffuse(getMainColor("positive"))
+			end,
+			SetCommand = function(self)
+				self:settextf(
+					"Showing %i-%i of %i",
+					math.min(((currenttagpage - 1) * tagsperpage) + 1, #displayindex),
+					math.min(currenttagpage * tagsperpage, #displayindex),
+					#displayindex
+				)
+			end,
+			UpdateTagsMessageCommand = function(self)
+				self:queuecommand("Set")
+			end
+		}
 }
 
-for i=1,tagsperpage do
-	r[#r+1] = makeTag(i)
+for i = 1, tagsperpage do
+	r[#r + 1] = makeTag(i)
 end
 
-for i=1,3 do
-	r[#r+1] = funcButton(i)
+for i = 1, 3 do
+	r[#r + 1] = funcButton(i)
 end
 
-t[#t+1] = r
+t[#t + 1] = r
 
 return t

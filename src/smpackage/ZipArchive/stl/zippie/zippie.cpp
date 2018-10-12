@@ -3,61 +3,60 @@
  * $Author: gmaynard $
  *
  * $History: zippie.cpp $
- * 
+ *
  * *****************  Version 4  *****************
  * User: Tadeusz Dracz Date: 02-04-01   Time: 2:05
  * Updated in $/zippie
- * 
+ *
  * *****************  Version 3  *****************
  * User: Tadeusz Dracz Date: 02-01-19   Time: 18:01
  * Updated in $/zippie
- * 
+ *
  * *****************  Version 2  *****************
  * User: Tadeusz Dracz Date: 01-11-08   Time: 19:54
  * Updated in $/zippie
  * added support for wildcards when extracting or deleting
- * 
+ *
  */
 /////////////////////////////////////////////////////////////////////////////////
 // zippie.cpp : Defines the entry point for the console application.
 // An STL program that uses the ZipArchive library
-//  
+//
 // Copyright (C) 2000 - 2003 Tadeusz Dracz.
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
-// 
+//
 // For the licensing details see the file License.txt
 ////////////////////////////////////////////////////////////////////////////////
 
-
 #ifdef __GNUC__
-	#include "ZipArchive.h"
-	#include "ZipPlatform.h"
-	#include <sys/types.h>
-	#include <sys/stat.h>
-	#include <dirent.h>
-	#include <fnmatch.h>
-	#include <unistd.h>
+#include "ZipArchive.h"
+#include "ZipPlatform.h"
+#include <dirent.h>
+#include <fnmatch.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 #else
-	#include "../../ZipArchive.h"
-	#include "../../ZipPlatform.h"
+#include "../../ZipArchive.h"
+#include "../../ZipPlatform.h"
 #endif
 #include "CmdLine.h"
-#include <stdlib.h>
 #include <list>
-#include <time.h>
 #include <stdio.h>
-
+#include <stdlib.h>
+#include <time.h>
 
 ZIPSTRINGCOMPARE pZipComp;
 
-
 struct CZipAddFileInfo
 {
-	CZipAddFileInfo(const CZipString& szFilePath, const CZipString& szFileNameInZip)
-		:m_szFilePath(szFilePath),	m_szFileNameInZip(szFileNameInZip)
+	CZipAddFileInfo(const CZipString& szFilePath,
+					const CZipString& szFileNameInZip)
+	  : m_szFilePath(szFilePath)
+	  , m_szFileNameInZip(szFileNameInZip)
 	{
 		int is = szFileNameInZip.GetLength();
 		m_iSeparators = 0;
@@ -66,62 +65,66 @@ struct CZipAddFileInfo
 				m_iSeparators++;
 	}
 	CZipString m_szFilePath, m_szFileNameInZip;
-	
-	bool CheckOrder(const CZipString& sz1, const CZipString& sz2, 
-		int iSep1, int iSep2, bool bCheckTheBeginning = false) const
+
+	bool CheckOrder(const CZipString& sz1,
+					const CZipString& sz2,
+					int iSep1,
+					int iSep2,
+					bool bCheckTheBeginning = false) const
 	{
-		if (iSep1)
-		{
-			if (iSep2)
-			{
+		if (iSep1) {
+			if (iSep2) {
 				if (iSep1 == iSep2)
 					return (sz1.*pZipComp)(sz2) < 0;
 
-				if (bCheckTheBeginning)
-				{
+				if (bCheckTheBeginning) {
 
-					int is = sz1.GetLength() > sz2.GetLength() ? sz2.GetLength() : sz1.GetLength();
+					int is = sz1.GetLength() > sz2.GetLength()
+							   ? sz2.GetLength()
+							   : sz1.GetLength();
 					int iSeparators = 0;
 					// find the common path beginning
 					int iLastSepPos = -1;
-					for (int i = 0; i < is; i++)
-					{
+					for (int i = 0; i < is; i++) {
 						CZipString sz = sz2.Mid(i, 1);
-						if ((sz1.Mid(i, 1).*pZipComp)(sz) != 0) // must be Mid 'cos of case sens. here
+						if ((sz1.Mid(i, 1).*pZipComp)(sz) !=
+							0) // must be Mid 'cos of case sens. here
 							break;
-						else if (CZipPathComponent::IsSeparator(sz[0]))
-						{
+						else if (CZipPathComponent::IsSeparator(sz[0])) {
 							iLastSepPos = i;
 							iSeparators++;
 						}
 					}
-					
-					// if necessary remove the common path beginning and check again
+
+					// if necessary remove the common path beginning and check
+					// again
 					if (iLastSepPos != -1)
-						return CheckOrder(sz1.Mid(iLastSepPos), sz2.Mid(iLastSepPos), iSep1 - iSeparators, iSep2 - iSeparators);
-							
+						return CheckOrder(sz1.Mid(iLastSepPos),
+										  sz2.Mid(iLastSepPos),
+										  iSep1 - iSeparators,
+										  iSep2 - iSeparators);
 				}
-				return (sz1.*pZipComp)(sz2) < 0;		
-			} 
-			else
-				return false;
-		}
-		else
-			if (iSep2)
-				return true;
-			else
 				return (sz1.*pZipComp)(sz2) < 0;
+			} else
+				return false;
+		} else if (iSep2)
+			return true;
+		else
+			return (sz1.*pZipComp)(sz2) < 0;
 	}
 	bool operator>(const CZipAddFileInfo& wz) const
 	{
-		bool b = CheckOrder(m_szFileNameInZip, wz.m_szFileNameInZip,
-			m_iSeparators, wz.m_iSeparators, true);
+		bool b = CheckOrder(m_szFileNameInZip,
+							wz.m_szFileNameInZip,
+							m_iSeparators,
+							wz.m_iSeparators,
+							true);
 		return b;
 	}
-protected:
+
+  protected:
 	int m_iSeparators; // for a sorting puroposes
 };
-
 
 typedef list<CZipString> FILELIST;
 typedef list<CZipString>::iterator FILELISTIT;
@@ -130,17 +133,20 @@ typedef list<struct CZipAddFileInfo>::iterator FILELISTADDIT;
 
 struct AddDirectoryInfo
 {
-	AddDirectoryInfo(FILELIST& l):m_l(l){}
+	AddDirectoryInfo(FILELIST& l)
+	  : m_l(l)
+	{
+	}
 	FILELIST& m_l;
 	CZipString m_lpszFile;
 	bool m_bRecursive;
 	bool m_bAddEmpty;
 };
 
-
-void DisplayUsage()
+void
+DisplayUsage()
 {
-		printf("\
+	printf("\
 \n\
 Zippie v2.2\n\
 Copyright (C) 2000 - 2003 Tadeusz Dracz\n\
@@ -225,7 +231,7 @@ Notes:\n\
 	if <size> is 0 create archive in pkSpan mode,\n\
 	if <size> is greater than 0 create archive in tdSpan mode\n\
 \n");
-		printf("\
+	printf("\
 ************  Extract commands  ************\n\
 \n\
 -xp <path>\n\
@@ -253,7 +259,7 @@ Notes:\n\
 \n\
 -d  <files>\n\
 	delete <files> separate them with spaces; wildcards are allowed\n");
-		printf("\
+	printf("\
 -dr <numbers>\n\
 	delete files with the given <numbers>\n\
 	separate number with spaces; to specify a range of numbers \n\
@@ -285,7 +291,7 @@ Notes:\n\
 	list the files inside <archive> (only filenames)\n\
 	when redirected to a file, it can be used then with command -xf\n\
 \n");
-		printf("\
+	printf("\
 ************  Special switches  ************\n\
 \n\
 -cs \n\
@@ -328,10 +334,11 @@ zippie -f example -xa\n\
 ");
 }
 
-char ReadKey()
+char
+ReadKey()
 {
-	fflush (stdin);
-	char c = (char) tolower(getchar());
+	fflush(stdin);
+	char c = (char)tolower(getchar());
 	return c;
 }
 
@@ -339,17 +346,20 @@ struct SpanCallback : public CZipSpanCallback
 {
 	bool Callback(int iProgress)
 	{
-		printf ("Insert disk number %d and hit ENTER to contuniue \n or press 'n' key followed by ENTER to abort (code = %d)\n", m_uDiskNeeded, iProgress);	
+		printf("Insert disk number %d and hit ENTER to contuniue \n or press "
+			   "'n' key followed by ENTER to abort (code = %d)\n",
+			   m_uDiskNeeded,
+			   iProgress);
 		return ReadKey() != 'n';
 	}
 };
 
-void FillFromFile(FILELIST& l, LPCTSTR lpszFile, bool bCheck)
+void
+FillFromFile(FILELIST& l, LPCTSTR lpszFile, bool bCheck)
 {
 	FILE* f = fopen(lpszFile, "rt");
-	if (!f)
-	{
-		printf ("File %s could not be opened\n", lpszFile);
+	if (!f) {
+		printf("File %s could not be opened\n", lpszFile);
 		return;
 	}
 	fseek(f, 0, SEEK_END);
@@ -360,11 +370,9 @@ void FillFromFile(FILELIST& l, LPCTSTR lpszFile, bool bCheck)
 	fclose(f);
 	char* sEnd = buf + iSize;
 	char* sBeg = buf;
-	for (char* pos = buf; ; pos++)
-	{
+	for (char* pos = buf;; pos++) {
 		bool bEnd = pos == sEnd; // there may be no newline at the end
-		if (strncmp(pos, "\n", 1) == 0 || bEnd)
-		{
+		if (strncmp(pos, "\n", 1) == 0 || bEnd) {
 			*pos = '\0';
 			CZipString s = sBeg;
 			s.TrimLeft(" ");
@@ -373,20 +381,19 @@ void FillFromFile(FILELIST& l, LPCTSTR lpszFile, bool bCheck)
 				l.push_back(s);
 			if (bEnd)
 				break;
-			sBeg = pos + 1;			
+			sBeg = pos + 1;
 		}
 	}
 }
 
-
-
-
-bool IsDots(LPCTSTR lpsz)
+bool
+IsDots(LPCTSTR lpsz)
 {
 	return strcmp(lpsz, ".") == 0 || strcmp(lpsz, "..") == 0;
 }
 
-void AddDirectory(CZipString szPath, struct AddDirectoryInfo& info, bool bDoNotAdd)
+void
+AddDirectory(CZipString szPath, struct AddDirectoryInfo& info, bool bDoNotAdd)
 {
 	if (!szPath.IsEmpty())
 		CZipPathComponent::AppendSeparator(szPath);
@@ -400,26 +407,22 @@ void AddDirectory(CZipString szPath, struct AddDirectoryInfo& info, bool bDoNotA
 	if (!dp)
 		return;
 	struct dirent* entry;
-	while (entry = readdir(dp))
-	{
+	while (entry = readdir(dp)) {
 		struct stat sStats;
 		CZipString szFullFileName = szPath + entry->d_name;
 		if (stat(szFullFileName, &sStats) == -1)
 			continue;
-		if (S_ISDIR(sStats.st_mode))
-		{
-			if (info.m_bRecursive)
-			{
+		if (S_ISDIR(sStats.st_mode)) {
+			if (info.m_bRecursive) {
 				if (IsDots(entry->d_name))
 					continue;
-				
+
 				AddDirectory(szFullFileName, info, false);
 			}
-		}
-		else if (fnmatch(info.m_lpszFile, entry->d_name, FNM_NOESCAPE |FNM_PATHNAME) == 0)
-		{
-			if (!bPathAdded)
-			{
+		} else if (fnmatch(info.m_lpszFile,
+						   entry->d_name,
+						   FNM_NOESCAPE | FNM_PATHNAME) == 0) {
+			if (!bPathAdded) {
 				if (!szPath.IsEmpty())
 					info.m_l.push_back(szPath);
 				bPathAdded = true;
@@ -430,195 +433,181 @@ void AddDirectory(CZipString szPath, struct AddDirectoryInfo& info, bool bDoNotA
 	closedir(dp);
 
 #else
-    CZipString szFullFileName = szPath + info.m_lpszFile;
+	CZipString szFullFileName = szPath + info.m_lpszFile;
 	struct _finddata_t c_file;
 	long hFile;
-	if( (hFile = _findfirst( szFullFileName, &c_file )) != -1L )
-	{
-		do
-		{
-			if (!(c_file.attrib & FILE_ATTRIBUTE_DIRECTORY))
-			{
+	if ((hFile = _findfirst(szFullFileName, &c_file)) != -1L) {
+		do {
+			if (!(c_file.attrib & FILE_ATTRIBUTE_DIRECTORY)) {
 				// add it when the first file comes
-				if (!bPathAdded)
-				{
+				if (!bPathAdded) {
 					if (!szPath.IsEmpty())
 						info.m_l.push_back(szPath);
 					bPathAdded = true;
 				}
 				info.m_l.push_back(szPath + c_file.name);
 			}
-		}
-		while (_findnext(hFile, &c_file) == 0L);
+		} while (_findnext(hFile, &c_file) == 0L);
 	}
 	_findclose(hFile);
 
-	if (info.m_bRecursive)
-	{
+	if (info.m_bRecursive) {
 		szFullFileName = szPath + "*";
-		if( (hFile = _findfirst( szFullFileName, &c_file )) != -1L )
-		{
-			do
-			{
-				if (c_file.attrib & FILE_ATTRIBUTE_DIRECTORY)
-				{
+		if ((hFile = _findfirst(szFullFileName, &c_file)) != -1L) {
+			do {
+				if (c_file.attrib & FILE_ATTRIBUTE_DIRECTORY) {
 					if (IsDots(c_file.name))
 						continue;
 					szFullFileName = szPath + c_file.name;
 					AddDirectory(szFullFileName, info, false);
 				}
-			}
-			while (_findnext(hFile, &c_file) == 0L);
+			} while (_findnext(hFile, &c_file) == 0L);
 		}
-		_findclose(hFile);		
+		_findclose(hFile);
 	}
 #endif
 }
- 
-void ExpandFile(FILELIST& l, LPCTSTR lpszPath, 
-			 	bool bRecursive, bool bAddEmpty, bool bFullPath)
+
+void
+ExpandFile(FILELIST& l,
+		   LPCTSTR lpszPath,
+		   bool bRecursive,
+		   bool bAddEmpty,
+		   bool bFullPath)
 {
-// check if we need to expand it
-//         size_t pos = strcspn(lpszFile, "*?");
-//         if (pos == strlen(lpszFile))
-//         {
-//                 l.push_back(lpszFile);
-//                 return;
-//         }
+	// check if we need to expand it
+	//         size_t pos = strcspn(lpszFile, "*?");
+	//         if (pos == strlen(lpszFile))
+	//         {
+	//                 l.push_back(lpszFile);
+	//                 return;
+	//         }
 
 	CZipPathComponent zpc(lpszPath);
 	CZipString szDir = zpc.GetFilePath();
-// 	if (szDir.IsEmpty())
-// 		if (!ZipPlatform::GetCurrentDirectory(szDir))
-// 			return;
+	// 	if (szDir.IsEmpty())
+	// 		if (!ZipPlatform::GetCurrentDirectory(szDir))
+	// 			return;
 	struct AddDirectoryInfo adi(l);
 	adi.m_bAddEmpty = bAddEmpty;
 	adi.m_bRecursive = bRecursive;
 	adi.m_lpszFile = zpc.GetFileName();
-	AddDirectory(szDir, adi, !bFullPath); // when not full path is specified for a single file with a path, do not add a directory then
-
-		
+	AddDirectory(szDir, adi, !bFullPath); // when not full path is specified for
+										  // a single file with a path, do not
+										  // add a directory then
 }
 
-
-void FindInZip(CZipArchive& zip, FILELIST& l, CZipWordArray& n)
+void
+FindInZip(CZipArchive& zip, FILELIST& l, CZipWordArray& n)
 {
 
 	for (FILELISTIT it = l.begin(); it != l.end(); ++it)
 		zip.FindMatches(*it, n);
 }
 
-void ProcessData(CZipArchive& zip, CCmdLine& cmd, CZipWordArray& vRevised, bool bExtract)
+void
+ProcessData(CZipArchive& zip,
+			CCmdLine& cmd,
+			CZipWordArray& vRevised,
+			bool bExtract)
 {
-		
-		if (cmd.HasSwitch(bExtract ? "-xa" : "-da"))
-		{
-			int iMax = zip.GetCount();
-			for (int i = 0; i < iMax; i++)
-				vRevised.Add(i);
-		}
-		else
-		{
-			CZipWordArray numbers;
-			CZipString temp = bExtract ? "-x" : "-d";
-			int iCount = cmd.GetArgumentCount(temp);
-			if (iCount > 0)
-			{
-				FILELIST lFiles;
-				for (int i = 0; i < iCount; i++)
-					lFiles.push_back(cmd.GetArgument(temp, i));
-				FindInZip(zip, lFiles, numbers);
-			}
-			temp = bExtract ? "-xf" : "-df";
-			if (cmd.GetArgumentCount(temp) > 0)
-			{
-				FILELIST lFiles;
-				FillFromFile(lFiles, cmd.GetArgument(temp, 0), false);
-				FindInZip(zip, lFiles, numbers);
-			}
 
-			temp = bExtract ? "-xr" : "-dr";
-			iCount = cmd.GetArgumentCount(temp);
-			CZipWordArray notNumbers;
-			if (iCount > 0)
-			{
-				for (int i = 0; i < iCount; i++)
-				{
-					CZipString sz = cmd.GetArgument(temp, i);
-					bool bNot = !sz.IsEmpty() && sz[0] == '!';
-					CZipWordArray& vN = bNot ? notNumbers : numbers;
-					if (bNot)
-						sz.TrimLeft('!');
-					size_t pos = strcspn(sz, "-");
-					if (pos == sz.GetLength() )
-						vN.Add(atoi(sz) - 1);
-					else
-					{
-						int b = atoi (sz.Left(pos));
-						int e = atoi (sz.Mid(pos + 1));
-						for (int i = b; i <= e ; i++)
-							vN.Add(i - 1);
-					}
+	if (cmd.HasSwitch(bExtract ? "-xa" : "-da")) {
+		int iMax = zip.GetCount();
+		for (int i = 0; i < iMax; i++)
+			vRevised.Add(i);
+	} else {
+		CZipWordArray numbers;
+		CZipString temp = bExtract ? "-x" : "-d";
+		int iCount = cmd.GetArgumentCount(temp);
+		if (iCount > 0) {
+			FILELIST lFiles;
+			for (int i = 0; i < iCount; i++)
+				lFiles.push_back(cmd.GetArgument(temp, i));
+			FindInZip(zip, lFiles, numbers);
+		}
+		temp = bExtract ? "-xf" : "-df";
+		if (cmd.GetArgumentCount(temp) > 0) {
+			FILELIST lFiles;
+			FillFromFile(lFiles, cmd.GetArgument(temp, 0), false);
+			FindInZip(zip, lFiles, numbers);
+		}
+
+		temp = bExtract ? "-xr" : "-dr";
+		iCount = cmd.GetArgumentCount(temp);
+		CZipWordArray notNumbers;
+		if (iCount > 0) {
+			for (int i = 0; i < iCount; i++) {
+				CZipString sz = cmd.GetArgument(temp, i);
+				bool bNot = !sz.IsEmpty() && sz[0] == '!';
+				CZipWordArray& vN = bNot ? notNumbers : numbers;
+				if (bNot)
+					sz.TrimLeft('!');
+				size_t pos = strcspn(sz, "-");
+				if (pos == sz.GetLength())
+					vN.Add(atoi(sz) - 1);
+				else {
+					int b = atoi(sz.Left(pos));
+					int e = atoi(sz.Mid(pos + 1));
+					for (int i = b; i <= e; i++)
+						vN.Add(i - 1);
 				}
-				
-			}
-			int iSize = notNumbers.GetSize();
-			if (iSize)
-			{
-				for (int j = 0; j < iSize; ++j)
-					for (int i = numbers.GetSize() ; i >= 0 ;i--)
-						if (numbers[i] == notNumbers[j])
-							numbers.RemoveAt(i);
-			}
-			
-			int iMax = zip.GetCount() - 1;
-			for (int i = 0; i < numbers.GetSize(); ++i)
-			{
-				int x = numbers[i];
-				if (x < 0 || x > iMax)
-					continue;
-				bool bNew = true;
-				for (int j = 0; j < vRevised.GetSize(); ++j)
-					if (vRevised[j] == numbers[i])
-					{
-						bNew = false;
-						break;
-					}
-				if (bNew)
-					vRevised.Add(x);
 			}
 		}
-		
+		int iSize = notNumbers.GetSize();
+		if (iSize) {
+			for (int j = 0; j < iSize; ++j)
+				for (int i = numbers.GetSize(); i >= 0; i--)
+					if (numbers[i] == notNumbers[j])
+						numbers.RemoveAt(i);
+		}
 
+		int iMax = zip.GetCount() - 1;
+		for (int i = 0; i < numbers.GetSize(); ++i) {
+			int x = numbers[i];
+			if (x < 0 || x > iMax)
+				continue;
+			bool bNew = true;
+			for (int j = 0; j < vRevised.GetSize(); ++j)
+				if (vRevised[j] == numbers[i]) {
+					bNew = false;
+					break;
+				}
+			if (bNew)
+				vRevised.Add(x);
+		}
+	}
 }
 
-
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
 #ifndef __GNUC__
 	// set the locale the same as the system locale
 	// to handle local characters (non-English) properly by CZipString
 	std::locale::global(std::locale(""));
 #endif
-	int iRet = 0;	
-	
+	int iRet = 0;
+
 	CCmdLine cmd;
 	CZipArchive zip;
 	CZipString szArchive;
-	try
-	{
-		
+	try {
+
 		if (cmd.SplitLine(argc, argv) < 1)
 			throw 0;
 		if (cmd.GetArgumentCount("-f") <= 0)
 			throw 0;
 		int iVolumeSize = 0;
 		int iMode = CZipArchive::zipOpen;
-		bool bIsAdding = cmd.GetArgumentCount("-a") > 0 || cmd.GetArgumentCount("-af") > 0;
-		bool bIsExtracting = cmd.GetArgumentCount("-x") > 0 || cmd.GetArgumentCount("-xr") > 0
-			|| cmd.GetArgumentCount("-xf") > 0 || cmd.HasSwitch("-xa");
-		bool bIsDeleting = cmd.GetArgumentCount("-d") > 0 || cmd.GetArgumentCount("-dr") > 0 
-			|| cmd.GetArgumentCount("-df") > 0 || cmd.HasSwitch("-da");
+		bool bIsAdding =
+		  cmd.GetArgumentCount("-a") > 0 || cmd.GetArgumentCount("-af") > 0;
+		bool bIsExtracting =
+		  cmd.GetArgumentCount("-x") > 0 || cmd.GetArgumentCount("-xr") > 0 ||
+		  cmd.GetArgumentCount("-xf") > 0 || cmd.HasSwitch("-xa");
+		bool bIsDeleting =
+		  cmd.GetArgumentCount("-d") > 0 || cmd.GetArgumentCount("-dr") > 0 ||
+		  cmd.GetArgumentCount("-df") > 0 || cmd.HasSwitch("-da");
 
 		szArchive = cmd.GetArgument("-f", 0);
 		CZipPathComponent zpc(szArchive);
@@ -626,28 +615,21 @@ int main(int argc, char* argv[])
 			szArchive += ".zip";
 		bool bUpdateMode = cmd.HasSwitch("-u");
 		bool bSetComment = cmd.GetArgumentCount("-g") > 0;
-		bool bIsListing = cmd.HasSwitch("-l") || cmd.HasSwitch("-ll") || 
-			cmd.HasSwitch("-lr");
+		bool bIsListing =
+		  cmd.HasSwitch("-l") || cmd.HasSwitch("-ll") || cmd.HasSwitch("-lr");
 		bool bOnlyErrors = cmd.HasSwitch("-dse");
-		if (bIsAdding)
-		{
-			if (cmd.GetArgumentCount("-v") > 0)
-			{
+		if (bIsAdding) {
+			if (cmd.GetArgumentCount("-v") > 0) {
 				iMode = CZipArchive::zipCreateSpan;
 				iVolumeSize = atoi(cmd.GetArgument("-v", 0));
-			}
-			else
-			{
+			} else {
 				if (!bUpdateMode || !ZipPlatform::FileExists(szArchive))
 					iMode = CZipArchive::zipCreate;
 			}
-		}
-		else if (bIsExtracting || cmd.HasSwitch("-t") || bIsListing)
-		{
+		} else if (bIsExtracting || cmd.HasSwitch("-t") || bIsListing) {
 			if (cmd.HasSwitch("-st"))
 				iVolumeSize = 1;
-		}
-		else if (!bSetComment && !bIsDeleting)
+		} else if (!bSetComment && !bIsDeleting)
 			throw 0;
 
 		SpanCallback span;
@@ -655,34 +637,26 @@ int main(int argc, char* argv[])
 
 		bool bAddEmpty = cmd.HasSwitch("-re");
 		bool bRecursive = cmd.HasSwitch("-r") || bAddEmpty;
-		
-		
-		
 
 		bool bCaseSensitiveInZip = cmd.HasSwitch("-cs");
 		pZipComp = GetCZipStrCompFunc(bCaseSensitiveInZip);
-	
+
 		zip.SetCaseSensitivity(bCaseSensitiveInZip);
-		try
-		{
+		try {
 			zip.Open(szArchive, iMode, iVolumeSize);
 			if (cmd.GetArgumentCount("-p") > 0)
 				zip.SetPassword(cmd.GetArgument("-p", 0));
-		}
-		catch(...)
-		{
+		} catch (...) {
 			bool bContinue = false;
-			if (iMode == CZipArchive::zipOpen && !bIsDeleting && !bSetComment)
-			{
-				try
-				{
-					// try to open in read only mode (required if there is no write access to the storage)
-					zip.Open(szArchive, CZipArchive::zipOpenReadOnly, iVolumeSize);
+			if (iMode == CZipArchive::zipOpen && !bIsDeleting && !bSetComment) {
+				try {
+					// try to open in read only mode (required if there is no
+					// write access to the storage)
+					zip.Open(
+					  szArchive, CZipArchive::zipOpenReadOnly, iVolumeSize);
 					bContinue = true;
-				}
-				catch(...)
-				{
-					throw;					
+				} catch (...) {
+					throw;
 				}
 			}
 			if (!bContinue)
@@ -695,43 +669,40 @@ int main(int argc, char* argv[])
 		bool bFullPath = !cmd.HasSwitch("-nfp") && zip.GetRootPath().IsEmpty();
 
 		bool bIsSpan = zip.GetSpanMode() != 0;
-		if (bSetComment && !bIsSpan)
-		{
+		if (bSetComment && !bIsSpan) {
 			CZipString sz = cmd.GetArgument("-g", 0);
 			sz.TrimLeft("\"");
 			sz.TrimRight("\"");
 			zip.SetGlobalComment(sz);
 		}
 
-		if (bIsAdding)
-		{
-			if (bUpdateMode && bIsSpan)
-			{
-				printf ("Cannot update an existing disk spanning archive\n");
+		if (bIsAdding) {
+			if (bUpdateMode && bIsSpan) {
+				printf("Cannot update an existing disk spanning archive\n");
 				zip.Close();
 				return 1;
 			}
 			int iLevel = atoi(cmd.GetSafeArgument("-c", 0, "5"));
 			int iSmartLevel;
-			if (cmd.HasSwitch("-as"))
-			{
+			if (cmd.HasSwitch("-as")) {
 				iSmartLevel = CZipArchive::zipsmSmartest;
 				zip.SetTempPath(cmd.GetSafeArgument("-as", 0, ""));
-			}
-			else
+			} else
 				iSmartLevel = CZipArchive::zipsmSafeSmart;
 
 			FILELIST lFiles;
 			int iCount = cmd.GetArgumentCount("-a");
-			if (iCount > 0)
-			{
-				
+			if (iCount > 0) {
+
 				for (int i = 0; i < iCount; i++)
-					
-					ExpandFile(lFiles, cmd.GetArgument("-a", i), bRecursive,
-					bAddEmpty, bFullPath);
+
+					ExpandFile(lFiles,
+							   cmd.GetArgument("-a", i),
+							   bRecursive,
+							   bAddEmpty,
+							   bFullPath);
 			}
-			
+
 			iCount = cmd.GetArgumentCount("-af");
 			if (iCount > 0)
 				FillFromFile(lFiles, cmd.GetArgument("-af", 0), true);
@@ -739,30 +710,29 @@ int main(int argc, char* argv[])
 			FILELIST excl;
 
 			iCount = cmd.GetArgumentCount("-ax");
-			if (iCount > 0)
-			{
+			if (iCount > 0) {
 				for (int i = 0; i < iCount; i++)
-					
-					ExpandFile(excl, cmd.GetArgument("-ax", i), bRecursive,
-					bAddEmpty, bFullPath);
+
+					ExpandFile(excl,
+							   cmd.GetArgument("-ax", i),
+							   bRecursive,
+							   bAddEmpty,
+							   bFullPath);
 			}
-			
+
 			iCount = cmd.GetArgumentCount("-afx");
 			if (iCount > 0)
 				FillFromFile(excl, cmd.GetArgument("-afx", 0), true);
 
 			FILELISTADD rev;
-			for (FILELISTIT it = lFiles.begin(); it != lFiles.end(); ++it)				
-			{
+			for (FILELISTIT it = lFiles.begin(); it != lFiles.end(); ++it) {
 				// that is how the filename will look in the archive
 				CZipString sz = zip.PredictFileNameInZip(*it, bFullPath);
-				if (!sz.IsEmpty())
-				{
+				if (!sz.IsEmpty()) {
 					bool bAdd = true;
-					for (FILELISTIT itt = excl.begin(); itt != excl.end(); ++itt)
-					{
-						if (!((*itt).*pZipComp)(*it))
-						{
+					for (FILELISTIT itt = excl.begin(); itt != excl.end();
+						 ++itt) {
+						if (!((*itt).*pZipComp)(*it)) {
 							bAdd = false;
 							break;
 						}
@@ -773,18 +743,16 @@ int main(int argc, char* argv[])
 			}
 			lFiles.clear();
 			excl.clear();
-	
+
 			// remove duplicates
 			FILELISTADDIT it1;
-			for (it1 = rev.begin(); it1 != rev.end();)
-			{
+			for (it1 = rev.begin(); it1 != rev.end();) {
 				bool bErase = false;
 				FILELISTADDIT it2 = it1;
-				for (++it2; it2 != rev.end(); ++it2)
-				{					
-					int x = ((*it1).m_szFileNameInZip.*pZipComp)((*it2).m_szFileNameInZip);
-					if (x == 0)
-					{
+				for (++it2; it2 != rev.end(); ++it2) {
+					int x = ((*it1).m_szFileNameInZip.*
+							 pZipComp)((*it2).m_szFileNameInZip);
+					if (x == 0) {
 						bErase = true;
 						break;
 					}
@@ -794,147 +762,118 @@ int main(int argc, char* argv[])
 				else
 					++it1;
 			}
-					
-			
+
 			// sort
 			rev.sort(std::greater<CZipAddFileInfo>());
-			printf ("\n");
-			for (it1 = rev.begin(); it1 != rev.end(); ++it1)
-			{	
-				if (zip.AddNewFile((*it1).m_szFilePath, iLevel, bFullPath, iSmartLevel))
-				{
+			printf("\n");
+			for (it1 = rev.begin(); it1 != rev.end(); ++it1) {
+				if (zip.AddNewFile(
+					  (*it1).m_szFilePath, iLevel, bFullPath, iSmartLevel)) {
 					if (!bOnlyErrors)
-						printf ("%s added\n", (LPCTSTR)(*it1).m_szFileNameInZip);
-				}
-				else
-					printf ("%s not added\n", (LPCTSTR)(*it1).m_szFilePath);
+						printf("%s added\n", (LPCTSTR)(*it1).m_szFileNameInZip);
+				} else
+					printf("%s not added\n", (LPCTSTR)(*it1).m_szFilePath);
 			}
-
-		}
-		else if (bIsExtracting)
-		{
+		} else if (bIsExtracting) {
 			CZipString szPath = cmd.GetSafeArgument("-xp", 0, ".");
-			
+
 			CZipWordArray vRevised;
 			ProcessData(zip, cmd, vRevised, true);
-			printf ("\n");
-			for (int k = 0; k < vRevised.GetSize(); ++k)
-			{
+			printf("\n");
+			for (int k = 0; k < vRevised.GetSize(); ++k) {
 				int iFile = vRevised[k];
-				try
-				{
+				try {
 					zip.ExtractFile(iFile, szPath, bFullPath);
 					CZipFileHeader fh;
-					if (zip.GetFileInfo(fh, iFile))
-					{
-						if (!bOnlyErrors )
-							printf ("%s extracted\n", (LPCTSTR)fh.GetFileName());
+					if (zip.GetFileInfo(fh, iFile)) {
+						if (!bOnlyErrors)
+							printf("%s extracted\n", (LPCTSTR)fh.GetFileName());
 					}
-
-				}
-				catch (...)
-				{
+				} catch (...) {
 					CZipFileHeader fh;
 					if (zip.GetFileInfo(fh, iFile))
-						printf("Error extracting file %s\n", (LPCTSTR)fh.GetFileName());
+						printf("Error extracting file %s\n",
+							   (LPCTSTR)fh.GetFileName());
 					else
-						printf("There are troubles with getting info from file number %d\n", iFile);
-
+						printf("There are troubles with getting info from file "
+							   "number %d\n",
+							   iFile);
 				}
 			}
 			printf("\n");
-		}
-		else if (bIsDeleting)
-		{
-			if (bIsSpan)
-			{
-				printf ("Cannot delete from an existing disk spanning archive\n");
+		} else if (bIsDeleting) {
+			if (bIsSpan) {
+				printf(
+				  "Cannot delete from an existing disk spanning archive\n");
 				zip.Close();
 				return 1;
 			}
 			CZipWordArray vRevised;
-			ProcessData(zip, cmd, vRevised, false);			
-			try
-			{
+			ProcessData(zip, cmd, vRevised, false);
+			try {
 				zip.DeleteFiles(vRevised);
-			}
-			catch (...)
-			{
+			} catch (...) {
 				printf("Error occured while deleting files\n");
 			}
-		}
-		else if (cmd.HasSwitch("-t"))
-		{
+		} else if (cmd.HasSwitch("-t")) {
 			FILELIST lFiles;
 			int iCount = zip.GetCount();
-			for (int i = 0; i < iCount; i++)
-			{
+			for (int i = 0; i < iCount; i++) {
 				bool bOK = false;
-				try	
-				{
+				try {
 					bOK = zip.TestFile(i);
 					printf("Tested: %d of %d                \r", i, iCount);
+				} catch (...) {
 				}
-				catch (...)
-				{
-					
-				}
-				if (!bOK)
-				{	
+				if (!bOK) {
 					CZipFileHeader fh;
 					if (zip.GetFileInfo(fh, i))
 						lFiles.push_back(fh.GetFileName());
-					else
-					{
+					else {
 						char buf[50];
-						sprintf(buf, "There are troubles with getting info from file number %d", i);
+						sprintf(buf,
+								"There are troubles with getting info from "
+								"file number %d",
+								i);
 						lFiles.push_back(buf);
 					}
 				}
 			}
 			printf("\n");
-			if (lFiles.size())
-			{
-				printf ("There were errors found in the following files:\n");
+			if (lFiles.size()) {
+				printf("There were errors found in the following files:\n");
 				for (FILELISTIT it = lFiles.begin(); it != lFiles.end(); ++it)
 					printf("%s\n", (LPCTSTR)(*it));
-			}
-			else
-				printf ("There were no errors found in the archive\n");
-		}
-		else if (bIsListing)
-		{
+			} else
+				printf("There were no errors found in the archive\n");
+		} else if (bIsListing) {
 			bool bNumbers = cmd.HasSwitch("-lr");
 			bool bDescription = !cmd.HasSwitch("-ll");
 			int iCount = zip.GetCount();
 			if (bDescription)
 				printf("\n  File name\tSize\t\tRatio\tTime Stamp\n\n");
-			for (int i = 0; i < iCount; i++)
-			{
+			for (int i = 0; i < iCount; i++) {
 				CZipFileHeader fh;
-				if (zip.GetFileInfo(fh, i))
-				{
+				if (zip.GetFileInfo(fh, i)) {
 					if (bNumbers)
-						printf("%d.  " ,i + 1);
+						printf("%d.  ", i + 1);
 
 					printf("%s\n", (LPCTSTR)fh.GetFileName());
-					if (bDescription)
-					{
+					if (bDescription) {
 						printf("\t\t");
 						if (fh.IsDirectory())
 							printf("<DIR>\t\t");
-						else
-						{
+						else {
 							printf("%u Bytes\t", fh.m_uUncomprSize);
 							printf("%.2f%%", fh.GetCompressionRatio());
 						}
 						time_t t = fh.GetTime();
-						printf ("\t%s", ctime(&t));
+						printf("\t%s", ctime(&t));
 					}
-				}
-				else
-					printf("There are troubles with getting info from file number %d\n", i);
-
+				} else
+					printf("There are troubles with getting info from file "
+						   "number %d\n",
+						   i);
 			}
 			printf("\n");
 			CZipString sz = zip.GetGlobalComment();
@@ -943,36 +882,30 @@ int main(int argc, char* argv[])
 		}
 
 		zip.Close();
-	}
-	catch (int)
-	{
+	} catch (int) {
 		DisplayUsage();
 		iRet = 1;
-	}
-	catch (CZipException e)
-	{
-		printf ("Error while processing archive %s\n%s\n", (LPCTSTR) szArchive, (LPCTSTR)e.GetErrorDescription());
+	} catch (CZipException e) {
+		printf("Error while processing archive %s\n%s\n",
+			   (LPCTSTR)szArchive,
+			   (LPCTSTR)e.GetErrorDescription());
 		if (e.m_szFileName.IsEmpty())
 			printf("\n");
 		else
 			printf("Filename in error object: %s\n\n", (LPCTSTR)e.m_szFileName);
 		zip.Close(true);
 		iRet = 1;
-	}
-	catch (...)
-	{
-		printf ("Unknown error while processing archive %s\n\n", (LPCTSTR) szArchive);
+	} catch (...) {
+		printf("Unknown error while processing archive %s\n\n",
+			   (LPCTSTR)szArchive);
 		zip.Close(true);
 		iRet = 1;
-
 	}
 
-	if (cmd.HasSwitch("-w"))
-	{
+	if (cmd.HasSwitch("-w")) {
 		printf("\nPress <ENTER> to exit.\n");
 		ReadKey();
-		printf ("\n");
+		printf("\n");
 	}
 	return iRet;
 }
-

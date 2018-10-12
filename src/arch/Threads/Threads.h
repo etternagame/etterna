@@ -7,9 +7,9 @@ class RageTimer;
 
 class ThreadImpl
 {
-public:
+  public:
 	virtual ~ThreadImpl() = default;
-	virtual void Halt( bool Kill ) = 0;
+	virtual void Halt(bool Kill) = 0;
 	virtual void Resume() = 0;
 
 	/* Get the identifier for this thread. The actual meaning of this is
@@ -23,10 +23,13 @@ public:
 
 class MutexImpl
 {
-public:
-	RageMutex *m_Parent;
+  public:
+	RageMutex* m_Parent;
 
-	explicit MutexImpl( RageMutex *pParent ): m_Parent(pParent) {}
+	explicit MutexImpl(RageMutex* pParent)
+	  : m_Parent(pParent)
+	{
+	}
 	virtual ~MutexImpl() = default;
 
 	/* Lock the mutex. If mutex timeouts are implemented, and the mutex
@@ -43,16 +46,16 @@ public:
 	 * implementations may fail with an assertion if the mutex is not locked. */
 	virtual void Unlock() = 0;
 
-private:
+  private:
 	MutexImpl(const MutexImpl& rhs) = delete;
 	MutexImpl& operator=(const MutexImpl& rhs) = delete;
 };
 
 class EventImpl
 {
-public:
+  public:
 	virtual ~EventImpl() = default;
-	virtual bool Wait( RageTimer *pTimeout ) = 0;
+	virtual bool Wait(RageTimer* pTimeout) = 0;
 	virtual void Signal() = 0;
 	virtual void Broadcast() = 0;
 	virtual bool WaitTimeoutSupported() const = 0;
@@ -60,7 +63,7 @@ public:
 
 class SemaImpl
 {
-public:
+  public:
 	virtual ~SemaImpl() = default;
 	virtual int GetValue() const = 0;
 	virtual void Post() = 0;
@@ -69,23 +72,30 @@ public:
 };
 
 // These functions must be implemented by the thread implementation.
-ThreadImpl *MakeThread( int (*fn)(void *), void *data, uint64_t *piThreadID );
-ThreadImpl *MakeThisThread();
-MutexImpl *MakeMutex( RageMutex *pParent );
-EventImpl *MakeEvent( MutexImpl *pMutex );
-SemaImpl *MakeSemaphore( int iInitialValue );
-uint64_t GetThisThreadId();
+ThreadImpl*
+MakeThread(int (*fn)(void*), void* data, uint64_t* piThreadID);
+ThreadImpl*
+MakeThisThread();
+MutexImpl*
+MakeMutex(RageMutex* pParent);
+EventImpl*
+MakeEvent(MutexImpl* pMutex);
+SemaImpl*
+MakeSemaphore(int iInitialValue);
+uint64_t
+GetThisThreadId();
 
 /* Since ThreadId is implementation-defined, we can't define a universal
  * invalid value. Return the invalid value for this implementation. */
-uint64_t GetInvalidThreadId();
+uint64_t
+GetInvalidThreadId();
 
 #endif
 
 /*
  * (c) 2001-2004 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -95,7 +105,7 @@ uint64_t GetInvalidThreadId();
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

@@ -13,6 +13,7 @@ struct GoalsForChart;
 #include "GameConstantsAndTypes.h"
 #include "PlayerNumber.h"
 #include "PlayerOptions.h"
+#include "ImageCache.h"
 #include "RageTexturePreloader.h"
 #include "RageTypes.h"
 #include "RageUtil.h"
@@ -22,31 +23,32 @@ struct GoalsForChart;
 #include <unordered_map>
 using std::string;
 
-RString SONG_GROUP_COLOR_NAME( size_t i );
-bool CompareNotesPointersForExtra(const Steps *n1, const Steps *n2);
+RString
+SONG_GROUP_COLOR_NAME(size_t i);
+bool
+CompareNotesPointersForExtra(const Steps* n1, const Steps* n2);
 
 /** @brief The holder for the Songs and its Steps. */
 class SongManager
 {
-public:
+  public:
 	SongManager();
 	~SongManager();
 
-	void InitSongsFromDisk( LoadingWindow *ld );
+	void InitSongsFromDisk(LoadingWindow* ld);
 	void FreeSongs();
-	void UnlistSong(Song *song);
+	void UnlistSong(Song* song);
 	void Cleanup();
 
-	void Invalidate( const Song *pStaleSong );
+	void Invalidate(const Song* pStaleSong);
 	static map<string, Playlist>& GetPlaylists();
-	void SetPreferences();
 	void SaveEnabledSongsToPref();
 	void LoadEnabledSongsFromPref();
 
 	int GetNumStepsLoadedFromProfile();
-	void FreeAllLoadedFromProfile( ProfileSlot slot = ProfileSlot_Invalid );
+	void FreeAllLoadedFromProfile(ProfileSlot slot = ProfileSlot_Invalid);
 
-	void InitAll( LoadingWindow *ld );	// songs, groups - everything.
+	void InitAll(LoadingWindow* ld); // songs, groups - everything.
 	int DifferentialReload();
 	int DifferentialReloadDir(string dir);
 	void PreloadSongImages();
@@ -56,58 +58,61 @@ public:
 	void SetPermaMirroredStatus(set<string>& pmir);
 	void SetHasGoal(unordered_map<string, GoalsForChart>& goalmap);
 
-	RString GetSongGroupBannerPath( const RString &sSongGroup ) const;
-	//RString GetSongGroupBackgroundPath( RString sSongGroup ) const;
-	void GetSongGroupNames( vector<RString> &AddTo ) const;
+	RString GetSongGroupBannerPath(const RString& sSongGroup) const;
+	// RString GetSongGroupBackgroundPath( RString sSongGroup ) const;
+	void GetSongGroupNames(vector<RString>& AddTo) const;
 	const vector<RString>& GetSongGroupNames() const;
-	bool DoesSongGroupExist( const RString &sSongGroup ) const;
-	RageColor GetSongGroupColor( const RString &sSongGroupName, map<string, Playlist>& playlists = GetPlaylists()) const;
-	RageColor GetSongColor( const Song* pSong ) const;
+	bool DoesSongGroupExist(const RString& sSongGroup) const;
+	RageColor GetSongGroupColor(
+	  const RString& sSongGroupName,
+	  map<string, Playlist>& playlists = GetPlaylists()) const;
+	RageColor GetSongColor(const Song* pSong) const;
 
-	// temporary solution to reorganizing the entire songid/stepsid system - mina
+	// temporary solution to reorganizing the entire songid/stepsid system -
+	// mina
 	Steps* GetStepsByChartkey(RString ck);
-	Song * GetSongByChartkey(RString ck);
+	Song* GetSongByChartkey(RString ck);
 	bool IsChartLoaded(RString ck) { return SongsByKey.count(ck) == 1; }
 
 	void ResetGroupColors();
 
-	static RString ShortenGroupName( const RString &sLongGroupName );
+	static RString ShortenGroupName(const RString& sLongGroupName);
 
 	// Lookup
 	/**
 	 * @brief Retrieve all of the songs that belong to a particular group.
 	 * @param sGroupName the name of the group.
 	 * @return the songs that belong in the group. */
-	const vector<Song*> &GetSongs( const RString &sGroupName ) const;
+	const vector<Song*>& GetSongs(const RString& sGroupName) const;
 	/**
 	 * @brief Retrieve all of the songs in the game.
 	 * @return all of the songs. */
-	const vector<Song*> &GetAllSongs() const { return GetSongs(GROUP_ALL); }
+	const vector<Song*>& GetAllSongs() const { return GetSongs(GROUP_ALL); }
 	/**
 	 * @brief Retrieve all of the popular songs.
 	 *
 	 * Popularity is determined specifically by the number of times
 	 * a song is chosen.
 	 * @return all of the popular songs. */
-	const vector<Song*> &GetPopularSongs() const { return m_pPopularSongs; }
+	const vector<Song*>& GetPopularSongs() const { return m_pPopularSongs; }
 
 	/**
 	 * @brief Retrieve all of the songs in a group that have at least one
 	 * valid step for the current gametype.
 	 * @param sGroupName the name of the group.
 	 * @return the songs within the group that have at least one valid Step. */
-	const vector<Song *> &GetSongsOfCurrentGame( const RString &sGroupName ) const;
+	const vector<Song*>& GetSongsOfCurrentGame(const RString& sGroupName) const;
 	/**
 	 * @brief Retrieve all of the songs in the game that have at least one
 	 * valid step for the current gametype.
 	 * @return the songs within the game that have at least one valid Step. */
-	const vector<Song *> &GetAllSongsOfCurrentGame() const;
+	const vector<Song*>& GetAllSongsOfCurrentGame() const;
 
 	void GetFavoriteSongs(vector<Song*>& songs) const;
-	void GetPreferredSortSongs( vector<Song*> &AddTo ) const;
-	RString SongToPreferredSortSectionName( const Song *pSong ) const;
-	Song *FindSong( RString sPath ) const;
-	Song *FindSong( RString sGroup, RString sSong ) const;
+	void GetPreferredSortSongs(vector<Song*>& AddTo) const;
+	RString SongToPreferredSortSectionName(const Song* pSong) const;
+	Song* FindSong(RString sPath) const;
+	Song* FindSong(RString sGroup, RString sSong) const;
 	/**
 	 * @brief Retrieve the number of songs in the game.
 	 * @return the number of songs. */
@@ -116,47 +121,64 @@ public:
 	int GetNumSongGroups() const;
 	Song* GetRandomSong();
 	// sm-ssc addition:
-	RString GetSongGroupByIndex(unsigned index) { return m_sSongGroupNames[index]; }
+	RString GetSongGroupByIndex(unsigned index)
+	{
+		return m_sSongGroupNames[index];
+	}
 	int GetSongRank(Song* pSong);
 
-	void GetStepsLoadedFromProfile( vector<Steps*> &AddTo, ProfileSlot slot ) const;
-	void DeleteSteps( Steps *pSteps );	// transfers ownership of pSteps
-	bool WasLoadedFromAdditionalSongs( const Song *pSong ) const;
+	void GetStepsLoadedFromProfile(vector<Steps*>& AddTo,
+								   ProfileSlot slot) const;
+	void DeleteSteps(Steps* pSteps); // transfers ownership of pSteps
+	bool WasLoadedFromAdditionalSongs(const Song* pSong) const;
 
-	void GetExtraStageInfo( bool bExtra2, const Style *s, Song*& pSongOut, Steps*& pStepsOut );
-	Song* GetSongFromDir( RString sDir ) const;
+	void GetExtraStageInfo(bool bExtra2,
+						   const Style* s,
+						   Song*& pSongOut,
+						   Steps*& pStepsOut);
+	Song* GetSongFromDir(RString sDir) const;
 
-	void UpdatePopular();
-	void UpdateShuffled();	// re-shuffle songs
-	void UpdatePreferredSort(const RString &sPreferredSongs = "PreferredSongs.txt", const RString &sPreferredCourses = "PreferredCourses.txt"); 
-	void SortSongs();		// sort m_pSongs by CompareSongPointersByTitle
+	void UpdateShuffled(); // re-shuffle songs
+	void UpdatePreferredSort(
+	  const RString& sPreferredSongs = "PreferredSongs.txt",
+	  const RString& sPreferredCourses = "PreferredCourses.txt");
+	void SortSongs(); // sort m_pSongs by CompareSongPointersByTitle
 
 	// Lua
-	void PushSelf( lua_State *L );
+	void PushSelf(lua_State* L);
 
 	string activeplaylist = "";
 	string playlistcourse = "";
 	string ReconcileBustedKeys(const string& ck);
-	void ReconcileChartKeysForReloadedSong(const Song* reloadedSong, vector<string> oldChartkeys);
+	void ReconcileChartKeysForReloadedSong(const Song* reloadedSong,
+										   vector<string> oldChartkeys);
 	map<string, string> keyconversionmap;
-	void MakeSongGroupsFromPlaylists(map<string, Playlist>& playlists = GetPlaylists());
-	void DeletePlaylist(const string& ck, map<string, Playlist>& playlists = GetPlaylists());
-	void MakePlaylistFromFavorites(set<string>& favs, map<string, Playlist>& playlists = GetPlaylists());
+	void MakeSongGroupsFromPlaylists(
+	  map<string, Playlist>& playlists = GetPlaylists());
+	void DeletePlaylist(const string& ck,
+						map<string, Playlist>& playlists = GetPlaylists());
+	void MakePlaylistFromFavorites(
+	  set<string>& favs,
+	  map<string, Playlist>& playlists = GetPlaylists());
 
 	map<string, vector<Song*>> groupderps;
-	vector<string> playlistGroups; // To delete from groupderps when rebuilding playlist groups
-protected:
-	void LoadStepManiaSongDir( RString sDir, LoadingWindow *ld );
-	void LoadDWISongDir( const RString &sDir );
-	void SanityCheckGroupDir( const RString &sDir ) const;
-	bool AddGroup( const RString &sDir, const RString &sGroupDirName );
+	vector<string> playlistGroups; // To delete from groupderps when rebuilding
+								   // playlist groups
+
+	void FinalizeSong(Song* pNewSong, const RString& dir);
+
+  protected:
+	void LoadStepManiaSongDir(RString sDir, LoadingWindow* ld);
+	void LoadDWISongDir(const RString& sDir);
+	void SanityCheckGroupDir(const RString& sDir) const;
+	bool AddGroup(const RString& sDir, const RString& sGroupDirName);
 
 	void AddSongToList(Song* new_song);
 	/** @brief All of the songs that can be played. */
-	vector<Song*>		m_pSongs;
+	vector<Song*> m_pSongs;
 	map<RString, Song*> m_SongsByDir;
 
-	map<pair<RString, unsigned int>, Song*> cache;
+	vector<pair<pair<RString, unsigned int>, Song*>*> cache;
 
 	// Indexed by chartkeys
 	void AddKeyedPointers(Song* new_song);
@@ -164,33 +186,45 @@ protected:
 	unordered_map<string, Steps*> StepsByKey;
 
 	set<RString> m_GroupsToNeverCache;
-	/** @brief Hold pointers to all the songs that have been deleted from disk but must at least be kept temporarily alive for smooth audio transitions. */
-	vector<Song*>       m_pDeletedSongs;
+	/** @brief Hold pointers to all the songs that have been deleted from disk
+	 * but must at least be kept temporarily alive for smooth audio transitions.
+	 */
+	vector<Song*> m_pDeletedSongs;
 	/** @brief The most popular songs ranked by number of plays. */
-	vector<Song*>		m_pPopularSongs;
-	//vector<Song*>		m_pRecentSongs;	// songs recently played on the machine
-	vector<Song*>		m_pShuffledSongs;	// used by GetRandomSong
+	vector<Song*> m_pPopularSongs;
+	// vector<Song*>		m_pRecentSongs;	// songs recently played on the
+	// machine
+	vector<Song*> m_pShuffledSongs; // used by GetRandomSong
 	struct PreferredSortSection
 	{
 		RString sName;
 		vector<Song*> vpSongs;
 	};
 	vector<PreferredSortSection> m_vPreferredSongSort;
-	vector<RString>		m_sSongGroupNames;
-	vector<RString>		m_sSongGroupBannerPaths; // each song group may have a banner associated with it
-	//vector<RString>		m_sSongGroupBackgroundPaths; // each song group may have a background associated with it (very rarely)
+	vector<RString> m_sSongGroupNames;
+	vector<RString> m_sSongGroupBannerPaths; // each song group may have a
+											 // banner associated with it
+	// vector<RString>		m_sSongGroupBackgroundPaths; // each song group may
+	// have a background associated with it (very rarely)
 
-	struct Comp { bool operator()(const RString& s, const RString &t) const { return CompareRStringsAsc(s,t); } };
+	struct Comp
+	{
+		bool operator()(const RString& s, const RString& t) const
+		{
+			return CompareRStringsAsc(s, t);
+		}
+	};
 	typedef vector<Song*> SongPointerVector;
-	map<RString,SongPointerVector,Comp> m_mapSongGroupIndex;
+	map<RString, SongPointerVector, Comp> m_mapSongGroupIndex;
 
 	RageTexturePreloader m_TexturePreload;
 
-	ThemeMetric<int>		NUM_SONG_GROUP_COLORS;
-	ThemeMetric1D<RageColor>	SONG_GROUP_COLOR;
+	ThemeMetric<int> NUM_SONG_GROUP_COLORS;
+	ThemeMetric1D<RageColor> SONG_GROUP_COLOR;
 };
 
-extern SongManager*	SONGMAN;	// global and accessible from anywhere in our program
+extern SongManager*
+  SONGMAN; // global and accessible from anywhere in our program
 
 #endif
 
@@ -199,7 +233,7 @@ extern SongManager*	SONGMAN;	// global and accessible from anywhere in our progr
  * @author Chris Danford, Glenn Maynard (c) 2001-2004
  * @section LICENSE
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -209,7 +243,7 @@ extern SongManager*	SONGMAN;	// global and accessible from anywhere in our progr
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

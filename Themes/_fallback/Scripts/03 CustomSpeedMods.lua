@@ -49,7 +49,6 @@ v1.2
 v1.1
 * Cleaned up code some, I think.
 ]]
-
 local ProfileSpeedMods = {}
 
 -- Returns a new, empty mod table: a table with three members x, C, and m,
@@ -207,7 +206,6 @@ function SpeedMods()
 		OneChoiceForAllPlayers = false,
 		ExportOnChange = false,
 		Choices = GetSpeedMods(),
-
 		LoadSelections = function(self, list, pn)
 			local pref = GAMESTATE:GetPlayerState(pn):GetPlayerOptionsString("ModsLevel_Preferred")
 			local selected = 0
@@ -246,13 +244,13 @@ function SpeedMods()
 	return t
 end
 
-local default_speed_increment= 1
-local default_speed_inc_large= 50
+local default_speed_increment = 1
+local default_speed_inc_large = 50
 
 local function get_speed_increment()
-	local increment= default_speed_increment
+	local increment = default_speed_increment
 	if ReadGamePrefFromFile("SpeedIncrement") then
-		increment= tonumber(GetGamePref("SpeedIncrement")) or default_speed_increment
+		increment = tonumber(GetGamePref("SpeedIncrement")) or default_speed_increment
 	else
 		WriteGamePrefToFile("SpeedIncrement", increment)
 	end
@@ -260,9 +258,9 @@ local function get_speed_increment()
 end
 
 local function get_speed_inc_large()
-	local inc_large= default_speed_inc_large
+	local inc_large = default_speed_inc_large
 	if ReadGamePrefFromFile("SpeedIncLarge") then
-		inc_large= tonumber(GetGamePref("SpeedIncLarge")) or default_speed_inc_large
+		inc_large = tonumber(GetGamePref("SpeedIncLarge")) or default_speed_inc_large
 	else
 		WriteGamePrefToFile("SpeedIncLarge", inc_large)
 	end
@@ -272,33 +270,35 @@ end
 function SpeedModIncSize()
 	-- An option row for controlling the size of the increment used by
 	-- ArbitrarySpeedMods.
-	local increment= get_speed_increment()
-	local ret= {
-		Name= "Speed Increment",
-		LayoutType= "ShowAllInRow",
-		SelectType= "SelectMultiple",
-		OneChoiceForAllPlayers= true,
-		LoadSelections= function(self, list, pn)
+	local increment = get_speed_increment()
+	local ret = {
+		Name = "Speed Increment",
+		LayoutType = "ShowAllInRow",
+		SelectType = "SelectMultiple",
+		OneChoiceForAllPlayers = true,
+		LoadSelections = function(self, list, pn)
 			-- The first value is the status element, only it should be true.
-			list[1]= true
+			list[1] = true
 		end,
-		SaveSelections= function(self, list, pn)
+		SaveSelections = function(self, list, pn)
 			WriteGamePrefToFile("SpeedIncrement", increment)
 		end,
-		NotifyOfSelection= function(self, pn, choice)
+		NotifyOfSelection = function(self, pn, choice)
 			-- return true even though we didn't actually change anything so that
 			-- the underlines will stay correct.
-			if choice == 1 then return true end
-			local incs= {10, 1, -1, -10}
-			local new_val= increment + incs[choice-1]
+			if choice == 1 then
+				return true
+			end
+			local incs = {10, 1, -1, -10}
+			local new_val = increment + incs[choice - 1]
 			if new_val > 0 then
-				increment= new_val
+				increment = new_val
 			end
 			self:GenChoices()
 			return true
 		end,
-		GenChoices= function(self)
-			self.Choices= {tostring(increment), "+10", "+1", "-1", "-10"}
+		GenChoices = function(self)
+			self.Choices = {tostring(increment), "+10", "+1", "-1", "-10"}
 		end
 	}
 	ret:GenChoices()
@@ -308,33 +308,35 @@ end
 function SpeedModIncLarge()
 	-- An option row for controlling the size of the increment used by
 	-- ArbitrarySpeedMods.
-	local inc_large= get_speed_inc_large()
-	local ret= {
-		Name= "Speed Increment Large",
-		LayoutType= "ShowAllInRow",
-		SelectType= "SelectMultiple",
-		OneChoiceForAllPlayers= true,
-		LoadSelections= function(self, list, pn)
+	local inc_large = get_speed_inc_large()
+	local ret = {
+		Name = "Speed Increment Large",
+		LayoutType = "ShowAllInRow",
+		SelectType = "SelectMultiple",
+		OneChoiceForAllPlayers = true,
+		LoadSelections = function(self, list, pn)
 			-- The first value is the status element, only it should be true.
-			list[1]= true
+			list[1] = true
 		end,
-		SaveSelections= function(self, list, pn)
+		SaveSelections = function(self, list, pn)
 			WriteGamePrefToFile("SpeedIncLarge", inc_large)
 		end,
-		NotifyOfSelection= function(self, pn, choice)
+		NotifyOfSelection = function(self, pn, choice)
 			-- return true even though we didn't actually change anything so that
 			-- the underlines will stay correct.
-			if choice == 1 then return true end
-			local incs= {10, 1, -1, -10}
-			local new_val= inc_large + incs[choice-1]
+			if choice == 1 then
+				return true
+			end
+			local incs = {10, 1, -1, -10}
+			local new_val = inc_large + incs[choice - 1]
 			if new_val > 0 then
-				inc_large= new_val
+				inc_large = new_val
 			end
 			self:GenChoices()
 			return true
 		end,
-		GenChoices= function(self)
-			self.Choices= {tostring(inc_large), "+10", "+1", "-1", "-10"}
+		GenChoices = function(self)
+			self.Choices = {tostring(inc_large), "+10", "+1", "-1", "-10"}
 		end
 	}
 	ret:GenChoices()
@@ -342,48 +344,48 @@ function SpeedModIncLarge()
 end
 
 function GetSpeedModeAndValueFromPoptions(pn)
-	local poptions= GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Preferred")
-	local speed= nil
-	local mode= nil
+	local poptions = GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Preferred")
+	local speed = nil
+	local mode = nil
 	if poptions:MaxScrollBPM() > 0 then
-		mode= "m"
-		speed= math.round(poptions:MaxScrollBPM())
+		mode = "m"
+		speed = math.round(poptions:MaxScrollBPM())
 	elseif poptions:TimeSpacing() > 0 then
-		mode= "C"
-		speed= math.round(poptions:ScrollBPM())
+		mode = "C"
+		speed = math.round(poptions:ScrollBPM())
 	else
-		mode= "x"
-		speed= math.round(poptions:ScrollSpeed() * 100)
+		mode = "x"
+		speed = math.round(poptions:ScrollSpeed() * 100)
 	end
 	return speed, mode
 end
 
 function ArbitrarySpeedMods()
 	-- If players are allowed to join while this option row is active, problems will probably occur.
-	local increment= get_speed_increment()
-	local inc_large= get_speed_inc_large()
-	local ret= {
-		Name= "Speed",
-		LayoutType= "ShowAllInRow",
-		SelectType= "SelectMultiple",
-		OneChoiceForAllPlayers= false,
-		LoadSelections= function(self, list, pn)
+	local increment = get_speed_increment()
+	local inc_large = get_speed_inc_large()
+	local ret = {
+		Name = "Speed",
+		LayoutType = "ShowAllInRow",
+		SelectType = "SelectMultiple",
+		OneChoiceForAllPlayers = false,
+		LoadSelections = function(self, list, pn)
 			-- The first values display the current status of the speed mod.
 			if pn == PLAYER_1 or self.NumPlayers == 1 then
-				list[1]= true
+				list[1] = true
 			else
-				list[2]= true
+				list[2] = true
 			end
 		end,
-		SaveSelections= function(self, list, pn)
-			local val= self.CurValues[pn]
-			local poptions= GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Preferred")
+		SaveSelections = function(self, list, pn)
+			local val = self.CurValues[pn]
+			local poptions = GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Preferred")
 			-- modify stage, song and current too so this will work in edit mode.
-			local stoptions= GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Stage")
-			local soptions= GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Song")
-			local coptions= GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Current")
+			local stoptions = GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Stage")
+			local soptions = GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Song")
+			local coptions = GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Current")
 			if val.mode == "x" then
-				local speed= val.speed / 100
+				local speed = val.speed / 100
 				poptions:XMod(speed)
 				stoptions:XMod(speed)
 				soptions:XMod(speed)
@@ -400,67 +402,75 @@ function ArbitrarySpeedMods()
 				coptions:MMod(val.speed)
 			end
 		end,
-		NotifyOfSelection= function(self, pn, choice)
+		NotifyOfSelection = function(self, pn, choice)
 			-- Adjust for the status elements
-			local real_choice= choice - self.NumPlayers
+			local real_choice = choice - self.NumPlayers
 			-- return true even though we didn't actually change anything so that
 			-- the underlines will stay correct.
-			if real_choice < 1 then return true end
-			local val= self.CurValues[pn]
+			if real_choice < 1 then
+				return true
+			end
+			local val = self.CurValues[pn]
 			if real_choice < 5 then
-				local incs= {inc_large, increment, -increment, -inc_large}
-				local new_val= val.speed + incs[real_choice]
+				local incs = {inc_large, increment, -increment, -inc_large}
+				local new_val = val.speed + incs[real_choice]
 				if new_val > 0 then
-					val.speed= math.round(new_val)
+					val.speed = math.round(new_val)
 				end
 			elseif real_choice >= 5 then
-				val.mode= ({"x", "C", "m"})[real_choice - 4]
+				val.mode = ({"x", "C", "m"})[real_choice - 4]
 			end
 			self:GenChoices()
-			MESSAGEMAN:Broadcast("SpeedChoiceChanged", {pn= pn, mode= val.mode, speed= val.speed})
+			MESSAGEMAN:Broadcast("SpeedChoiceChanged", {pn = pn, mode = val.mode, speed = val.speed})
 			return true
 		end,
-		GenChoices= function(self)
+		GenChoices = function(self)
 			-- We can't show different options to each player, so compromise by
 			-- only showing the xmod increments if one player is in that mode.
-			local show_x_incs= false
+			local show_x_incs = false
 			for pn, val in pairs(self.CurValues) do
 				if val.mode == "x" then
-					show_x_incs= true
+					show_x_incs = true
 				end
 			end
-			local big_inc= inc_large
-			local small_inc= increment
+			local big_inc = inc_large
+			local small_inc = increment
 			if show_x_incs then
-				big_inc= string.format("%.2fx",tostring(big_inc/100))
-				small_inc= string.format("%.2fx",tostring(small_inc/100))
+				big_inc = string.format("%.2fx", tostring(big_inc / 100))
+				small_inc = string.format("%.2fx", tostring(small_inc / 100))
 			else
-				big_inc= tostring(big_inc)
-				small_inc= tostring(small_inc)
+				big_inc = tostring(big_inc)
+				small_inc = tostring(small_inc)
 			end
-			self.Choices= {
-				"+" .. big_inc, "+" .. small_inc, "-" .. small_inc, "-" .. big_inc,
-				"Xmod", "Cmod", "Mmod"}
+			self.Choices = {
+				"+" .. big_inc,
+				"+" .. small_inc,
+				"-" .. small_inc,
+				"-" .. big_inc,
+				"Xmod",
+				"Cmod",
+				"Mmod"
+			}
 			-- Insert the status element for P2 first so it will be second
 			for i, pn in ipairs({PLAYER_2, PLAYER_1}) do
-				local val= self.CurValues[pn]
+				local val = self.CurValues[pn]
 				if val then
 					if val.mode == "x" then
-						table.insert(self.Choices, 1, string.format("%.2fx",tostring(val.speed/100)))
+						table.insert(self.Choices, 1, string.format("%.2fx", tostring(val.speed / 100)))
 					else
 						table.insert(self.Choices, 1, val.mode .. val.speed)
 					end
 				end
 			end
 		end,
-		CurValues= {}, -- for easy tracking of what speed the player wants
-		NumPlayers= 0 -- for ease when adjusting for the status elements.
+		CurValues = {}, -- for easy tracking of what speed the player wants
+		NumPlayers = 0 -- for ease when adjusting for the status elements.
 	}
 	for i, pn in ipairs(GAMESTATE:GetEnabledPlayers()) do
 		if GAMESTATE:IsHumanPlayer(pn) then
-			local speed, mode= GetSpeedModeAndValueFromPoptions(pn)
-			ret.CurValues[pn]= {mode= mode, speed= speed}
-			ret.NumPlayers= ret.NumPlayers + 1
+			local speed, mode = GetSpeedModeAndValueFromPoptions(pn)
+			ret.CurValues[pn] = {mode = mode, speed = speed}
+			ret.NumPlayers = ret.NumPlayers + 1
 		end
 	end
 	ret:GenChoices()

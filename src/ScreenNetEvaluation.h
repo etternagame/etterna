@@ -5,37 +5,39 @@
 #include "ScreenMessage.h"
 #include "StepsDisplay.h"
 
-class ScreenNetEvaluation: public ScreenEvaluation
+class ScreenNetEvaluation : public ScreenEvaluation
 {
-public:
+  public:
 	void Init() override;
 
 	// sm-ssc:
-	int GetNumActivePlayers(){ return m_iActivePlayers; }
+	int GetNumActivePlayers() { return m_iActivePlayers; }
 
 	// Lua
-	void PushSelf( lua_State *L ) override;
+	void PushSelf(lua_State* L) override;
 
-	int	 m_iCurrentPlayer;
-protected:
-	bool MenuLeft( const InputEventPlus &input ) override;
-	bool MenuUp( const InputEventPlus &input ) override;
-	bool MenuRight( const InputEventPlus &input ) override;
-	bool MenuDown( const InputEventPlus &input ) override;
-	void HandleScreenMessage( ScreenMessage SM ) override;
-	void TweenOffScreen( ) override;
+	int m_iCurrentPlayer;
 
-	void UpdateStats( );
-private:
+  protected:
+	bool MenuLeft(const InputEventPlus& input) override;
+	bool MenuUp(const InputEventPlus& input) override;
+	bool MenuRight(const InputEventPlus& input) override;
+	bool MenuDown(const InputEventPlus& input) override;
+	void HandleScreenMessage(ScreenMessage SM) override;
+	void TweenOffScreen() override;
+
+	void UpdateStats();
+
+  private:
 	// todo: Make this an AutoActor -aj
 	Quad m_rectUsersBG;
 
 	// todo: Make this a StepsDisplay -aj
 	DifficultyIcon m_DifficultyIcon[NUM_PLAYERS];
-	//StepsDisplay m_StepsDisplays[NUM_PLAYERS];
+	// StepsDisplay m_StepsDisplays[NUM_PLAYERS];
 
-	vector<BitmapText>	m_textUsers;
-	int	 m_iActivePlayers;
+	vector<BitmapText> m_textUsers;
+	int m_iActivePlayers;
 
 	PlayerNumber m_pActivePlayer;
 
@@ -59,7 +61,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
@@ -70,4 +72,3 @@ private:
  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-

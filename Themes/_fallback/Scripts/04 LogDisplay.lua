@@ -97,73 +97,74 @@
 
 -- Below is the implementation of the above features.
 
-local log_display_mt= {
-	__index= {
-		create_actors= function(self, params)
-			self.name= params.Name
-			self.font= params.Font or "Common Normal"
-			self.line_height= params.LineHeight or 12
-			self.line_width= params.LineWidth or SCREEN_WIDTH
-			self.text_zoom= params.TextZoom or .5
-			self.text_color= params.TextColor or color("#93a1a1")
-			local lines_on_screen= params.MaxLines or SCREEN_HEIGHT / self.line_height
-			self.max_lines= math.floor(lines_on_screen)
-			self.add_to_height= (lines_on_screen - self.max_lines) * self.line_height
-			self.max_log= params.MaxLogLen or self.max_lines
-			self.indent= params.Indent or 8
-			self.times= params.Times
-			self.param_hide= params.Hide or
-				function(subself)
+local log_display_mt = {
+	__index = {
+		create_actors = function(self, params)
+			self.name = params.Name
+			self.font = params.Font or "Common Normal"
+			self.line_height = params.LineHeight or 12
+			self.line_width = params.LineWidth or SCREEN_WIDTH
+			self.text_zoom = params.TextZoom or .5
+			self.text_color = params.TextColor or color("#93a1a1")
+			local lines_on_screen = params.MaxLines or SCREEN_HEIGHT / self.line_height
+			self.max_lines = math.floor(lines_on_screen)
+			self.add_to_height = (lines_on_screen - self.max_lines) * self.line_height
+			self.max_log = params.MaxLogLen or self.max_lines
+			self.indent = params.Indent or 8
+			self.times = params.Times
+			self.param_hide = params.Hide or function(subself)
 					subself:linear(params.Times.hide)
 					subself:y(-SCREEN_HEIGHT)
 				end
-			self.param_show= params.Show or
-				function(subself, lines)
+			self.param_show = params.Show or function(subself, lines)
 					subself:visible(true)
 					subself:linear(params.Times.hide)
-					local cover= math.min(self.line_height * (lines+.5), SCREEN_HEIGHT)
+					local cover = math.min(self.line_height * (lines + .5), SCREEN_HEIGHT)
 					subself:y(-SCREEN_HEIGHT + cover + self.add_to_height)
 				end
 
-			self.text_actors= {}
-			self.message_log= {}
-			self.messes_since_update= 0
+			self.text_actors = {}
+			self.message_log = {}
+			self.messes_since_update = 0
 
-			local name_mess= self.name .. "MessageCommand"
-			local args= {
-				Name= self.name,
-				InitCommand= function(subself)
-					self.container= subself; -- This semicolon ends this statement.
-					-- Without it, the next would be ambiguous syntax.
-					-- Let the InitCommand passed in params do something.
-					(params.InitCommand or function() end)(subself)
+			local name_mess = self.name .. "MessageCommand"
+			local args = {
+				Name = self.name,
+				InitCommand = function(subself)
+					self.container = subself
+					if params.InitCommand then params.InitCommand(subself) end
 					self:hide()
 				end,
-				OffCommand= function(subself)
+				OffCommand = function(subself)
 					subself:visible(false)
 					for i, actor in ipairs(self.text_actors) do
 						actor:visible(false)
 					end
 				end,
-				[name_mess]= function(subself, mess)
-					if not PREFSMAN:GetPreference("ShowThemeErrors")
-					and self.name == "ScriptError" then
+				[name_mess] = function(subself, mess)
+					if not PREFSMAN:GetPreference("ShowThemeErrors") and self.name == "ScriptError" then
 						subself:visible(false)
 						return
 					end
-					if not mess.message then return end
-					if self.messes_since_update > self.max_log then return end
+					if not mess.message then
+						return
+					end
+					if self.messes_since_update > self.max_log then
+						return
+					end
 					-- Long ago, someone decided that "::" should be an alias for "\n"
 					-- and hardcoded it into BitmapText.
-					local message= tostring(mess.message):gsub("::", ":")
+					local message = tostring(mess.message):gsub("::", ":")
 					if params.IgnoreIdentical and not self.hidden then
 						for i, prevmess in ipairs(self.message_log) do
-							if message == prevmess then return end
+							if message == prevmess then
+								return
+							end
 						end
 					end
 					if params.ReplaceLinesWhenHidden and self.hidden then
 						self:clear()
-						self.message_log[1]= message
+						self.message_log[1] = message
 					else
 						table.insert(self.message_log, 1, message)
 						if #self.message_log > self.max_log then
@@ -171,148 +172,156 @@ local log_display_mt= {
 						end
 					end
 					if not mess.dont_show or not self.hidden then
-						self.messes_since_update= self.messes_since_update + 1
-						self.hidden= false
+						self.messes_since_update = self.messes_since_update + 1
+						self.hidden = false
 						subself:stoptweening()
 						subself:queuecommand("Update")
 					end
 				end,
-				["Toggle" .. name_mess]= function(subself)
+				["Toggle" .. name_mess] = function(subself)
 					if self.hidden then
 						self:show()
 					else
 						self:hide()
 					end
 				end,
-				["Hide" .. name_mess]= function(subself)
+				["Hide" .. name_mess] = function(subself)
 					self:hide()
 				end,
-				["Show" .. name_mess]= function(subself, mess)
+				["Show" .. name_mess] = function(subself, mess)
 					self:show(mess.range, mess.auto_hide)
 				end,
-				["Clear" .. name_mess]= function(subself, mess)
+				["Clear" .. name_mess] = function(subself, mess)
 					self:clear(mess[1])
 				end,
-				UpdateCommand= function(subself)
+				UpdateCommand = function(subself)
 					self:show(nil, true)
-					self.messes_since_update= 0
+					self.messes_since_update = 0
 				end,
 				LoadFont(self.font) ..
 					{
-						Name="WidthTester",
-						InitCommand= function(subself)
-							self.width_tester= subself
+						Name = "WidthTester",
+						InitCommand = function(subself)
+							self.width_tester = subself
 							subself:zoom(self.text_zoom)
 							subself:visible(false)
 						end
 					}
 			}
 			if #params == 0 then
-				args[#args+1]= Def.Quad {
-					Name= "Logbg",
-					InitCommand= function(subself)
-						subself:setsize(self.line_width, self.line_height*self.max_lines)
+				args[#args + 1] =
+					Def.Quad {
+					Name = "Logbg",
+					InitCommand = function(subself)
+						subself:setsize(self.line_width, self.line_height * self.max_lines)
 						subself:horizalign(left)
 						subself:vertalign(top)
 						subself:diffuse(color("#002b36"))
 						subself:diffusealpha(.85)
-					end,
+					end
 				}
 			else
 				-- Add bg actors passed through params.
 				for i, actor in ipairs(params) do
-					args[#args+1]= actor
+					args[#args + 1] = actor
 				end
 			end
 			-- Add commands passed through params.
 			for name, command in pairs(params) do
 				if type(name) == "string" and name:find("Command") and not args[name] then
-					args[name]= command
+					args[name] = command
 				end
 			end
-			for i= 1, self.max_lines do
-				args[#args+1]= LoadFont(self.font) ..
+			for i = 1, self.max_lines do
+				args[#args + 1] =
+					LoadFont(self.font) ..
 					{
-						Name="Text" .. i,
-						InitCommand= function(subself)
+						Name = "Text" .. i,
+						InitCommand = function(subself)
 							-- Put them in the list in reverse order so the ones at the
 							-- bottom of the screen are used first.
-							self.text_actors[self.max_lines-i+1]= subself
+							self.text_actors[self.max_lines - i + 1] = subself
 							subself:horizalign(left)
 							subself:vertalign(top)
-							subself:y(self.line_height * (i-1))
+							subself:y(self.line_height * (i - 1))
 							subself:zoom(self.text_zoom)
 							subself:diffuse(self.text_color)
 							subself:visible(false)
 						end,
-						OffCommand= function(self)
+						OffCommand = function(self)
 							self:visible(false)
-						end,
+						end
 					}
 			end
 			return Def.ActorFrame(args)
 		end,
-		hide= function(self)
+		hide = function(self)
 			self.container:stoptweening()
 			self.param_hide(self.container)
 			self.container:queuecommand("Off")
-			self.hidden= true
+			self.hidden = true
 		end,
-		show= function(self, range, auto_hide)
-			if not range then range= {} end
-			local start= range[1] or 1
-			local lmax= range[2] or self.max_lines
-			local indented_lines= {}
-			local next_message= start
-			local num_lines= 0
+		show = function(self, range, auto_hide)
+			if not range then
+				range = {}
+			end
+			local start = range[1] or 1
+			local lmax = range[2] or self.max_lines
+			local indented_lines = {}
+			local next_message = start
+			local num_lines = 0
 			while num_lines < lmax and self.message_log[next_message] do
 				self.width_tester:settext(self.message_log[next_message])
-				local lines_to_add= convert_text_to_indented_lines(
-					self.width_tester, self.indent, self.line_width, self.text_zoom)
-				indented_lines[#indented_lines+1]= lines_to_add
-				num_lines= num_lines + #lines_to_add
-				next_message= next_message + 1
+				local lines_to_add = convert_text_to_indented_lines(self.width_tester, self.indent, self.line_width, self.text_zoom)
+				indented_lines[#indented_lines + 1] = lines_to_add
+				num_lines = num_lines + #lines_to_add
+				next_message = next_message + 1
 			end
-			local use_next= 1
-			local used= 0
+			local use_next = 1
+			local used = 0
 			for i, mess in ipairs(indented_lines) do
 				for l, line in ipairs(mess) do
 					-- Start at the end of the mess because the text actors are in
 					-- reverse order.
-					local ind= use_next + (#mess - l)
-					local actor= self.text_actors[ind]
+					local ind = use_next + (#mess - l)
+					local actor = self.text_actors[ind]
 					if actor and used <= lmax then
 						actor:settext(line[2])
-						local indent= 8 + self.indent * line[1]
-						local lw= self.line_width - (indent + 8)
+						local indent = 8 + self.indent * line[1]
+						local lw = self.line_width - (indent + 8)
 						width_limit_text(actor, lw, self.text_zoom)
 						actor:x(indent)
 						actor:visible(true)
-						used= used + 1
+						used = used + 1
 					end
 				end
-				use_next= use_next + #mess
+				use_next = use_next + #mess
 			end
 			self.container:stoptweening()
 			self.param_show(self.container, used)
-			self.hidden= false
+			self.hidden = false
 			if auto_hide then
 				self.container:sleep(self.times.show)
 				self.container:queuecommand("Hide" .. self.name)
 			end
 		end,
-		clear= function(self, messes)
-			if #self.message_log < 1 then return end
+		clear = function(self, messes)
+			if #self.message_log < 1 then
+				return
+			end
 			if not messes then
-				self.message_log= {}
+				self.message_log = {}
 			else
-				for i= 1, messes do
+				for i = 1, messes do
 					table.remove(self.message_log)
-					if #self.message_log < 1 then break end
+					if #self.message_log < 1 then
+						break
+					end
 				end
 			end
 		end
-}}
+	}
+}
 
 function Def.LogDisplay(params)
 	if type(params.Name) ~= "string" or params.Name == "" then
@@ -320,12 +329,18 @@ function Def.LogDisplay(params)
 		return nil
 	end
 
-	if not params.Times then params.Times= {show= 4, hide= .125} end
-	if not params.Times.show then params.Times.show= 4 end
-	if not params.Times.hide then params.Times.hide= .125 end
+	if not params.Times then
+		params.Times = {show = 4, hide = .125}
+	end
+	if not params.Times.show then
+		params.Times.show = 4
+	end
+	if not params.Times.hide then
+		params.Times.hide = .125
+	end
 
-	local new_log_display= setmetatable({}, log_display_mt)
-	_G[params.Name .. "LogDisplay"]= new_log_display
+	local new_log_display = setmetatable({}, log_display_mt)
+	_G[params.Name .. "LogDisplay"] = new_log_display
 	return new_log_display:create_actors(params)
 end
 

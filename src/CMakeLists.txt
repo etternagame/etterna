@@ -331,6 +331,7 @@ list(APPEND SMDATA_LINK_LIB
   "jsoncpp"
   "png"
   "glew"
+  "luajit"
   "jpeg"
   "sqlite3"
   "SQLiteCpp"
@@ -379,14 +380,31 @@ if (WIN32)
     "dbghelp.lib"
     "setupapi.lib"
     "hid.lib"
+    "legacy_stdio_definitions.lib"
   )
   
   get_filename_component(DIRECTX_LIBRARY_DIR "${DIRECTX_LIBRARIES}" DIRECTORY)
   
   sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${DIRECTX_LIBRARY_DIR}\"")
-  sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_EXTERN_DIR}/ffmpeg/lib\"")
-  sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_EXTERN_DIR}/libcurl\"")
-  sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_SRC_DIR}/archutils/Win32/ddk\"")
+  if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64|amd64)")
+    sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_EXTERN_DIR}/ffmpeg/64bit\"")
+    sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_EXTERN_DIR}/uWebSocket/lib/64bit\"")
+    sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_EXTERN_DIR}/libcurl/64bit\"") 
+    sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_SRC_DIR}/archutils/Win32/ddk/64bit\"")
+    add_custom_command(TARGET "${SM_EXE_NAME}" POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+      "${SM_PROGRAM_DIR}/dlls/64bit"
+      ${SM_PROGRAM_DIR})
+  else()
+    sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_EXTERN_DIR}/ffmpeg/lib\"")
+    sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_EXTERN_DIR}/uWebSocket/lib/x86\"")
+    sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_EXTERN_DIR}/libcurl\"") 
+    sm_add_link_flag("${SM_EXE_NAME}" "/LIBPATH:\"${SM_SRC_DIR}/archutils/Win32/ddk\"")
+    add_custom_command(TARGET "${SM_EXE_NAME}" POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+      "${SM_PROGRAM_DIR}/dlls/32bit"
+      ${SM_PROGRAM_DIR})
+  endif()
   sm_add_link_flag("${SM_EXE_NAME}" "/ERRORREPORT:SEND")
   sm_add_link_flag("${SM_EXE_NAME}" "/MAPINFO:EXPORTS")
   sm_add_link_flag("${SM_EXE_NAME}" "/SAFESEH:NO")
@@ -536,6 +554,8 @@ list(APPEND SM_INCLUDE_DIRS
   "${SM_SRC_DIR}/generated"
 )
 
+list(APPEND SM_INCLUDE_DIRS "${SM_EXTERN_DIR}/LuaJIT-2.1.0-beta3/src")
+
 if(NOT APPLE)
   list(APPEND SM_INCLUDE_DIRS
     "${SM_EXTERN_DIR}/glew-1.5.8/include"
@@ -642,21 +662,12 @@ if(NOT APPLE)
     if (WITH_FULL_RELEASE OR WITH_TEXTURE_GENERATOR)
       install(FILES "${SM_PROGRAM_DIR}/Texture Font Generator.exe" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
     endif()
-    install(FILES "${SM_PROGRAM_DIR}/avcodec-55.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
-    install(FILES "${SM_PROGRAM_DIR}/avformat-55.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
-    install(FILES "${SM_PROGRAM_DIR}/avutil-52.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
-    install(FILES "${SM_PROGRAM_DIR}/parallel_lights_io.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
     install(FILES "${SM_PROGRAM_DIR}/Etterna.vdi" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
-    install(FILES "${SM_PROGRAM_DIR}/swscale-2.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
-    install(FILES "${SM_PROGRAM_DIR}/uWS.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
-    install(FILES "${SM_PROGRAM_DIR}/LIBEAY32.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
-    install(FILES "${SM_PROGRAM_DIR}/libuv.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
-    install(FILES "${SM_PROGRAM_DIR}/SSLEAY32.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
-    install(FILES "${SM_PROGRAM_DIR}/zlib1.dll" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
 
-    # foreach(SM_WINDOW_DLL "${SM_WINDOWS_PROGRAM_DLLS}")
-    #   install(FILES "${SM_WINDOW_DLL}" DESTINATION "${SM_INSTALL_DESTINATION}")
-    # endforeach()
+    foreach(SM_WINDOW_DLL "${SM_WINDOWS_PROGRAM_DLLS}")
+      install(FILES "${SM_WINDOW_DLL}" DESTINATION "${SM_INSTALL_DESTINATION}")
+      install(FILES "${SM_WINDOW_DLL}" DESTINATION "${SM_FULL_INSTALLATION_PATH}")
+    endforeach()
   else()
     install(TARGETS "${SM_EXE_NAME}" DESTINATION "${SM_INSTALL_DESTINATION}")
   endif()

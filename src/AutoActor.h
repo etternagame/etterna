@@ -11,27 +11,33 @@ class XNode;
  * automatically deletes the Actor on deconstruction. */
 class AutoActor
 {
-public:
-	AutoActor(): m_pActor(NULL) {}
-	~AutoActor()			{ Unload(); }
-	AutoActor( const AutoActor &cpy );
-	AutoActor &operator =( const AutoActor &cpy );
-	operator const Actor* () const	{ return m_pActor; }
-	operator Actor* ()		{ return m_pActor; }
-	const Actor *operator->() const { return m_pActor; }
-	Actor *operator->()		{ return m_pActor; }
+  public:
+	AutoActor()
+	  : m_pActor(NULL)
+	{
+	}
+	~AutoActor() { Unload(); }
+	AutoActor(const AutoActor& cpy);
+	AutoActor& operator=(const AutoActor& cpy);
+	operator const Actor*() const { return m_pActor; }
+	operator Actor*() { return m_pActor; }
+	const Actor* operator->() const { return m_pActor; }
+	Actor* operator->() { return m_pActor; }
 	void Unload();
-	/** 
+	/**
 	 * @brief Determine if this actor is presently loaded.
 	 * @return true if it is loaded, or false otherwise. */
-	bool IsLoaded() const		{ return m_pActor != NULL; }
-	void Load( Actor *pActor );	// transfer pointer
-	void Load( const RString &sPath );
-	void LoadB( const RString &sMetricsGroup, const RString &sElement );	// load a background and set up LuaThreadVariables for recursive loading
-	void LoadActorFromNode( const XNode *pNode, Actor *pParent );
-	void LoadAndSetName( const RString &sScreenName, const RString &sActorName );
+	bool IsLoaded() const { return m_pActor != NULL; }
+	void Load(Actor* pActor); // transfer pointer
+	void Load(const RString& sPath);
+	void LoadB(const RString& sMetricsGroup,
+			   const RString& sElement); // load a background and set up
+										 // LuaThreadVariables for recursive
+										 // loading
+	void LoadActorFromNode(const XNode* pNode, Actor* pParent);
+	void LoadAndSetName(const RString& sScreenName, const RString& sActorName);
 
-protected:
+  protected:
 	/** @brief the Actor for which there is a smart pointer to. */
 	Actor* m_pActor;
 };
@@ -43,7 +49,7 @@ protected:
  * @author Chris Danford (c) 2003-2004
  * @section LICENSE
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -53,7 +59,7 @@ protected:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

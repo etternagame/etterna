@@ -7,7 +7,8 @@
 // Create*Font copied from MFC's CFont
 
 // pLogFont->nHeight is interpreted as PointSize * 10
-static HFONT CreatePointFontIndirect(const LOGFONT* lpLogFont)
+static HFONT
+CreatePointFontIndirect(const LOGFONT* lpLogFont)
 {
 	HDC hDC = ::GetDC(NULL);
 
@@ -15,7 +16,7 @@ static HFONT CreatePointFontIndirect(const LOGFONT* lpLogFont)
 	LOGFONT logFont = *lpLogFont;
 	POINT pt;
 	pt.y = ::GetDeviceCaps(hDC, LOGPIXELSY) * logFont.lfHeight;
-	pt.y /= 720;	// 72 points/inch * 10 decipoints/point
+	pt.y /= 720; // 72 points/inch * 10 decipoints/point
 	pt.x = 0;
 	::DPtoLP(hDC, &pt, 1);
 	POINT ptOrg = { 0, 0 };
@@ -28,7 +29,8 @@ static HFONT CreatePointFontIndirect(const LOGFONT* lpLogFont)
 }
 
 // nPointSize is actually scaled 10x
-static HFONT CreatePointFont(int nPointSize, LPCTSTR lpszFaceName)
+static HFONT
+CreatePointFont(int nPointSize, LPCTSTR lpszFaceName)
 {
 	ASSERT(lpszFaceName != NULL);
 
@@ -41,50 +43,52 @@ static HFONT CreatePointFont(int nPointSize, LPCTSTR lpszFaceName)
 	return ::CreatePointFontIndirect(&logFont);
 }
 
-void DialogUtil::SetHeaderFont( HWND hdlg, int nID )
+void
+DialogUtil::SetHeaderFont(HWND hdlg, int nID)
 {
-	ASSERT( hdlg != NULL );
+	ASSERT(hdlg != NULL);
 
-	HWND hControl = ::GetDlgItem( hdlg, nID );
-	ASSERT( hControl != NULL );
+	HWND hControl = ::GetDlgItem(hdlg, nID);
+	ASSERT(hControl != NULL);
 
 	// TODO: Fix font leak
 	const int FONT_POINTS = 16;
-	HFONT hfont = CreatePointFont( FONT_POINTS*10, "Arial Black" );
-	::SendMessage( hControl, WM_SETFONT, (WPARAM)hfont, TRUE );
+	HFONT hfont = CreatePointFont(FONT_POINTS * 10, "Arial Black");
+	::SendMessage(hControl, WM_SETFONT, (WPARAM)hfont, TRUE);
 }
 
-void DialogUtil::LocalizeDialogAndContents( HWND hdlg )
+void
+DialogUtil::LocalizeDialogAndContents(HWND hdlg)
 {
-	ASSERT( THEME != NULL );
+	ASSERT(THEME != NULL);
 
 	const int LARGE_STRING = 256;
 	char szTemp[LARGE_STRING] = "";
 	RString sGroup;
 
 	{
-		::GetWindowText( hdlg, szTemp, ARRAYLEN(szTemp) );
+		::GetWindowText(hdlg, szTemp, ARRAYLEN(szTemp));
 		RString s = szTemp;
-		sGroup = "Dialog-"+s;
-		s = THEME->GetString( sGroup, s );
-		::SetWindowText( hdlg, ConvertUTF8ToACP(s).c_str() );
+		sGroup = "Dialog-" + s;
+		s = THEME->GetString(sGroup, s);
+		::SetWindowText(hdlg, ConvertUTF8ToACP(s).c_str());
 	}
 
-	for( HWND hwndChild = ::GetTopWindow(hdlg); hwndChild != NULL; hwndChild = ::GetNextWindow(hwndChild,GW_HWNDNEXT) )
-	{
-		::GetWindowText( hwndChild, szTemp, ARRAYLEN(szTemp) );
+	for (HWND hwndChild = ::GetTopWindow(hdlg); hwndChild != NULL;
+		 hwndChild = ::GetNextWindow(hwndChild, GW_HWNDNEXT)) {
+		::GetWindowText(hwndChild, szTemp, ARRAYLEN(szTemp));
 		RString s = szTemp;
-		if( s.empty() )
+		if (s.empty())
 			continue;
-		s = THEME->GetString( sGroup, s );
-		::SetWindowText( hwndChild, ConvertUTF8ToACP(s).c_str() );
+		s = THEME->GetString(sGroup, s);
+		::SetWindowText(hwndChild, ConvertUTF8ToACP(s).c_str());
 	}
 }
 
 /*
  * (c) 2002-2004 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -94,7 +98,7 @@ void DialogUtil::LocalizeDialogAndContents( HWND hdlg )
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
@@ -105,4 +109,3 @@ void DialogUtil::LocalizeDialogAndContents( HWND hdlg )
  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-

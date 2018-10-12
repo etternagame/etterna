@@ -12,27 +12,31 @@
 #define DoFindFirstFile FindFirstFile
 #define DoRename rename
 #define DoRemove remove
-RString DoPathReplace( const RString &sPath );
+RString
+DoPathReplace(const RString& sPath);
 
 #if defined(WIN32)
-bool WinMoveFile( const RString &sOldPath, const RString &sNewPath );
+bool
+WinMoveFile(const RString& sOldPath, const RString& sNewPath);
 #endif
 
 #if !defined(O_BINARY)
 #define O_BINARY 0
 #endif
 
-bool CreateDirectories( const RString &sPath );
+bool
+CreateDirectories(const RString& sPath);
 
 #include "RageUtil_FileDB.h"
-class DirectFilenameDB: public FilenameDB
+class DirectFilenameDB : public FilenameDB
 {
-public:
-	DirectFilenameDB( const RString &root );
-	void SetRoot( const RString &root );
-	void CacheFile( const RString &sPath ) override;
-protected:
-	void PopulateFileSet( FileSet &fs, const RString &sPath ) override;
+  public:
+	DirectFilenameDB(const RString& root);
+	void SetRoot(const RString& root);
+	void CacheFile(const RString& sPath) override;
+
+  protected:
+	void PopulateFileSet(FileSet& fs, const RString& sPath) override;
 	RString root;
 };
 

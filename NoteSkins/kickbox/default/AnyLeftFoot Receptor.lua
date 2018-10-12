@@ -1,7 +1,9 @@
-local t = LoadActor("AnyRightFoot Receptor") .. {
-	InitCommand=function(self)
-		self:zoomx(-1)
-	end;
-}
+local t =
+	LoadActor("AnyRightFoot Receptor") ..
+	{
+		InitCommand = function(self)
+			self:zoomx(-1)
+		end
+	}
 
-return t;
+return t

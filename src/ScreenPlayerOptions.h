@@ -7,27 +7,27 @@ struct lua_State;
 
 class ScreenPlayerOptions : public ScreenOptionsMaster
 {
-public:
+  public:
 	void Init() override;
 	void BeginScreen() override;
 
-	bool Input( const InputEventPlus &input ) override;
-	void HandleScreenMessage( ScreenMessage SM ) override;
+	bool Input(const InputEventPlus& input) override;
+	void HandleScreenMessage(ScreenMessage SM) override;
 	bool GetGoToOptions() const { return m_bGoToOptions; }
 
 	// Lua
-	void PushSelf( lua_State *L ) override;
+	void PushSelf(lua_State* L) override;
 
-private:
-	vector<bool>	m_bRowCausesDisqualified[NUM_PLAYERS];
-	void UpdateDisqualified( int row, PlayerNumber pn );
+  private:
+	vector<bool> m_bRowCausesDisqualified[NUM_PLAYERS];
+	void UpdateDisqualified(int row, PlayerNumber pn);
 
-	bool        m_bAcceptedChoices;
-	bool        m_bGoToOptions;
-	bool        m_bAskOptionsMessage;
+	bool m_bAcceptedChoices;
+	bool m_bGoToOptions;
+	bool m_bAskOptionsMessage;
 
 	// show if the current selections will disqualify a high score
-	AutoActor		m_sprDisqualify[NUM_PLAYERS];
+	AutoActor m_sprDisqualify[NUM_PLAYERS];
 };
 
 #endif
@@ -35,7 +35,7 @@ private:
 /*
  * (c) 2001-2004 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -45,7 +45,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

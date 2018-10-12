@@ -1,4 +1,4 @@
-﻿#ifndef HIGH_SCORE_H
+#ifndef HIGH_SCORE_H
 #define HIGH_SCORE_H
 
 #include "DateTime.h"
@@ -24,7 +24,7 @@ struct HighScore
 	/**
 	 * @brief Retrieve the name of the player that set the high score.
 	 * @return the name of the player. */
-	string	GetName() const;
+	string GetName() const;
 	string GetChartKey() const;
 	int GetSSRCalcVersion() const;
 	/**
@@ -56,12 +56,12 @@ struct HighScore
 	const vector<int>& GetNoteRowVector() const;
 	const vector<int>& GetTrackVector() const;
 	const vector<TapNoteType>& GetTapNoteTypeVector() const;
-	const vector<HoldReplayResult>&  GetHoldReplayDataVector() const;
+	const vector<HoldReplayResult>& GetHoldReplayDataVector() const;
 	vector<float> GetCopyOfOffsetVector() const;
 	vector<int> GetCopyOfNoteRowVector() const;
 	vector<int> GetCopyOfTrackVector() const;
 	vector<TapNoteType> GetCopyOfTapNoteTypeVector() const;
-	vector<HoldReplayResult>  GetCopyOfHoldReplayDataVector() const;
+	vector<HoldReplayResult> GetCopyOfHoldReplayDataVector() const;
 	string GetScoreKey() const;
 	int GetTopScore() const;
 	int GetReplayType() const;
@@ -70,7 +70,7 @@ struct HighScore
 	 * @return the number of seconds left. */
 	float GetSurviveSeconds() const;
 	float GetSurvivalSeconds() const;
-	unsigned int   GetMaxCombo() const;
+	unsigned int GetMaxCombo() const;
 	StageAward GetStageAward() const;
 	PeakComboAward GetPeakComboAward() const;
 	/**
@@ -80,25 +80,27 @@ struct HighScore
 	DateTime GetDateTime() const;
 	string GetPlayerGuid() const;
 	string GetMachineGuid() const;
+	string GetCountryCode() const;
 	int GetProductID() const;
-	int GetTapNoteScore( TapNoteScore tns ) const;
-	int GetHoldNoteScore( HoldNoteScore tns ) const;
-	const RadarValues &GetRadarValues() const;
+	int GetTapNoteScore(TapNoteScore tns) const;
+	int GetHoldNoteScore(HoldNoteScore tns) const;
+	const RadarValues& GetRadarValues() const;
 	float GetLifeRemainingSeconds() const;
 	/**
-	 * @brief Determine if this score was from a situation that would cause disqualification.
+	 * @brief Determine if this score was from a situation that would cause
+	 * disqualification.
 	 * @return true if the score would be disqualified, false otherwise. */
 	bool GetDisqualified() const;
 
 	/**
 	 * @brief Set the name of the Player that earned the score.
 	 * @param sName the name of the Player. */
-	void SetName( const string &sName );
-	void SetChartKey( const string &ck );
+	void SetName(const string& sName);
+	void SetChartKey(const string& ck);
 	void SetSSRCalcVersion(int cv);
-	void SetGrade( Grade g );
-	void SetScore( unsigned int iScore );
-	void SetPercentDP( float f );
+	void SetGrade(Grade g);
+	void SetScore(unsigned int iScore);
+	void SetPercentDP(float f);
 	void SetWifeScore(float f);
 	void SetWifePoints(float f);
 	void SetSSRNormPercent(float f);
@@ -115,24 +117,28 @@ struct HighScore
 	void SetHoldReplayDataVector(const vector<HoldReplayResult>& v);
 	void SetScoreKey(const string& ck);
 	void SetRescoreJudgeVector(const vector<int>& v);
-	void SetAliveSeconds( float f );
-	void SetMaxCombo( unsigned int i );
-	void SetStageAward( StageAward a );
-	void SetPeakComboAward( PeakComboAward a );
-	void SetModifiers( const string &s );
-	void SetDateTime( DateTime d );
-	void SetPlayerGuid( const string &s );
-	void SetMachineGuid( const string &s );
-	void SetProductID( int i );
-	void SetTapNoteScore( TapNoteScore tns, int i );
-	void SetHoldNoteScore( HoldNoteScore tns, int i );
-	void SetRadarValues( const RadarValues &rv );
-	void SetLifeRemainingSeconds( float f );
-	void SetDisqualified( bool b );
-	void SetReplayType( int i );
+	void SetAliveSeconds(float f);
+	void SetMaxCombo(unsigned int i);
+	void SetStageAward(StageAward a);
+	void SetPeakComboAward(PeakComboAward a);
+	void SetModifiers(const string& s);
+	void SetDateTime(DateTime d);
+	void SetPlayerGuid(const string& s);
+	void SetMachineGuid(const string& s);
+	void SetProductID(int i);
+	void SetTapNoteScore(TapNoteScore tns, int i);
+	void SetHoldNoteScore(HoldNoteScore tns, int i);
+	void SetRadarValues(const RadarValues& rv);
+	void SetLifeRemainingSeconds(float f);
+	void SetDisqualified(bool b);
+	void SetReplayType(int i);
 
-	string *GetNameMutable();
-	const string *GetNameMutable() const { return const_cast<string *> (const_cast<HighScore *>(this)->GetNameMutable()); }
+	string* GetNameMutable();
+	const string* GetNameMutable() const
+	{
+		return const_cast<string*>(
+		  const_cast<HighScore*>(this)->GetNameMutable());
+	}
 
 	void Unset();
 
@@ -145,7 +151,7 @@ struct HighScore
 
 	XNode* CreateNode() const;
 	XNode* CreateEttNode() const;
-	void LoadFromNode( const XNode* pNode );
+	void LoadFromNode(const XNode* pNode);
 	void LoadFromEttNode(const XNode* pNode);
 
 	bool WriteReplayData();
@@ -163,71 +169,74 @@ struct HighScore
 
 	// Mina stuff - Mina
 	float RescoreToWifeJudge(int x);
-	float RescoreToWifeJudgeDuringLoad(int x); //uuugh -mina
+	float RescoreToWifeJudgeDuringLoad(int x); // uuugh -mina
 	float RescoreToDPJudge(int x);
 	float GetSkillsetSSR(Skillset ss) const;
 	void SetSkillsetSSR(Skillset ss, float ssr);
 	void SetValidationKey(ValidationKey vk, string k);
 	void SetTopScore(int i);
 	string GenerateValidationKeys();
-	string GetValidationKey(ValidationKey vk) const; 
+	string GetValidationKey(ValidationKey vk) const;
 	vector<int> GetRescoreJudgeVector(int x);
 	// laazy
 	string scoreid;
-	int userid;
+	int userid = -1;
 	string avatar;
-	
+	string countryCode;
+
 	int norms = 0;
 	int musics = 0;
 	int judges = 0;
 	// Lua
-	void PushSelf( lua_State *L );
-private:
+	void PushSelf(lua_State* L);
+
+  private:
 	HiddenPtr<HighScoreImpl> m_Impl;
 };
 
 /** @brief The list of high scores */
 struct HighScoreList
 {
-public:
+  public:
 	/**
 	 * @brief Set up the HighScore List with default values.
 	 *
 	 * This used to call Init(), but it's better to be explicit here. */
-	HighScoreList(): vHighScores(),  dtLastPlayed() {}
+	HighScoreList()
+	  : vHighScores()
+	  , dtLastPlayed()
+	{
+	}
 
 	void Init();
-	
-	int GetNumTimesPlayed() const
-	{
-		return iNumTimesPlayed;
-	}
+
+	int GetNumTimesPlayed() const { return iNumTimesPlayed; }
 	DateTime GetLastPlayed() const
 	{
-		ASSERT( iNumTimesPlayed > 0 );	// don't call this unless the song has been played
+		ASSERT(iNumTimesPlayed >
+			   0); // don't call this unless the song has been played
 		return dtLastPlayed;
 	}
 	const HighScore& GetTopScore() const;
 
-	void AddHighScore( HighScore hs, int &iIndexOut, bool bIsMachine );
-	void IncrementPlayCount( DateTime dtLastPlayed );
+	void AddHighScore(HighScore hs, int& iIndexOut, bool bIsMachine);
+	void IncrementPlayCount(DateTime dtLastPlayed);
 	void RemoveAllButOneOfEachName();
 
 	void MergeFromOtherHSL(HighScoreList& other, bool is_machine);
 
 	XNode* CreateNode() const;
-	void LoadFromNode( const XNode* pNode );
+	void LoadFromNode(const XNode* pNode);
 
 	vector<HighScore> vHighScores;
-	Grade HighGrade{Grade_NoData};
+	Grade HighGrade{ Grade_NoData };
 
 	// Lua
-	void PushSelf( lua_State *L );
+	void PushSelf(lua_State* L);
 
-private:
-	int iNumTimesPlayed{0};
-	DateTime dtLastPlayed;	// meaningless if iNumTimesPlayed == 0
-
+  private:
+	int iNumTimesPlayed{ 0 };
+	DateTime dtLastPlayed; // meaningless if iNumTimesPlayed == 0
 };
 
 /** @brief the picture taken of the high score. */
@@ -241,7 +250,7 @@ struct Screenshot
 	HighScore highScore;
 
 	XNode* CreateNode() const;
-	void LoadFromNode( const XNode* pNode );
+	void LoadFromNode(const XNode* pNode);
 	bool operator<(Screenshot const& rhs) const
 	{
 		return highScore.GetDateTime() < rhs.highScore.GetDateTime();
@@ -260,7 +269,7 @@ struct Screenshot
  * @author Chris Danford (c) 2004
  * @section LICENSE
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -270,7 +279,7 @@ struct Screenshot
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

@@ -9,6 +9,7 @@
 #include "ProfileManager.h"
 #include "StageStats.h"
 #include "Style.h"
+#include "PlayerAI.h"
 #include "NetworkSyncManager.h"
 #include "AdjustSync.h"
 #include <fstream>
@@ -18,27 +19,33 @@
 #include "DownloadManager.h"
 #include "MinaCalc.h"
 #include "Song.h"
+#include "GamePreferences.h"
 
-#ifdef _WIN32 
+#ifndef  _WIN32
+#include <cpuid.h>
+#endif
+
+#ifdef _WIN32
 #include <intrin.h>
 #include <iphlpapi.h>
 #include <windows.h>
 #include <winsock2.h>
 #pragma comment(lib, "IPHLPAPI.lib")
 
-// we just need this for purposes of unique machine id. 
+// we just need this for purposes of unique machine id.
 // So any one or two mac's is fine.
-uint16_t hashMacAddress(PIP_ADAPTER_INFO info)
+uint16_t
+hashMacAddress(PIP_ADAPTER_INFO info)
 {
 	uint16_t hash = 0;
-	for (uint32_t i = 0; i < info->AddressLength; i++)
-	{
+	for (uint32_t i = 0; i < info->AddressLength; i++) {
 		hash += (info->Address[i] << ((i & 1) * 8));
 	}
 	return hash;
 }
 
-void getMacHash(uint16_t& mac1, uint16_t& mac2)
+void
+getMacHash(uint16_t& mac1, uint16_t& mac2)
 {
 	IP_ADAPTER_INFO AdapterInfo[32];
 	DWORD dwBufLen = sizeof(AdapterInfo);
@@ -54,15 +61,15 @@ void getMacHash(uint16_t& mac1, uint16_t& mac2)
 
 	// sort the mac addresses. We don't want to invalidate
 	// both macs if they just change order.
-	if (mac1 > mac2)
-	{
+	if (mac1 > mac2) {
 		uint16_t tmp = mac2;
 		mac2 = mac1;
 		mac1 = tmp;
 	}
 }
 
-uint16_t getCpuHash()
+uint16_t
+getCpuHash()
 {
 	int cpuinfo[4] = { 0, 0, 0, 0 };
 	__cpuid(cpuinfo, 0);
@@ -74,7 +81,8 @@ uint16_t getCpuHash()
 	return hash;
 }
 
-string getMachineName()
+string
+getMachineName()
 {
 	static char computerName[128];
 	DWORD size = 128;
@@ -103,29 +111,31 @@ string getMachineName()
 #include <net/if_dl.h>
 #include <ifaddrs.h>
 #include <net/if_types.h>
-#else //!DARWIN
+#else //! DARWIN
 #include <linux/if.h>
 #include <linux/sockios.h>
-#endif //!DARWIN
+#endif //! DARWIN
 
 #include <sys/resource.h>
 #include <sys/utsname.h>
 
-//---------------------------------get MAC addresses ---------------------------------
-// we just need this for purposes of unique machine id. So any one or two 
+//---------------------------------get MAC addresses
+//---------------------------------
+// we just need this for purposes of unique machine id. So any one or two
 // mac's is fine.
-uint16_t hashMacAddress(uint8_t* mac)
+uint16_t
+hashMacAddress(uint8_t* mac)
 {
 	uint16_t hash = 0;
 
-	for (uint32_t i = 0; i < 6; i++)
-	{
+	for (uint32_t i = 0; i < 6; i++) {
 		hash += (mac[i] << ((i & 1) * 8));
 	}
 	return hash;
 }
 
-void getMacHash(uint16_t& mac1, uint16_t& mac2)
+void
+getMacHash(uint16_t& mac1, uint16_t& mac2)
 {
 	mac1 = 0;
 	mac2 = 0;
@@ -139,18 +149,15 @@ void getMacHash(uint16_t& mac1, uint16_t& mac2)
 	// iterate over the net interfaces
 	bool foundMac1 = false;
 	struct ifaddrs* ifap;
-	for (ifap = ifaphead; ifap; ifap = ifap->ifa_next)
-	{
+	for (ifap = ifaphead; ifap; ifap = ifap->ifa_next) {
 		struct sockaddr_dl* sdl = (struct sockaddr_dl*)ifap->ifa_addr;
-		if (sdl && (sdl->sdl_family == AF_LINK) && (sdl->sdl_type == IFT_ETHER))
-		{
-			if (!foundMac1)
-			{
+		if (sdl && (sdl->sdl_family == AF_LINK) &&
+			(sdl->sdl_type == IFT_ETHER)) {
+			if (!foundMac1) {
 				foundMac1 = true;
 				mac1 = hashMacAddress((uint8_t*)(LLADDR(sdl)));
-			}
-			else {
-				mac2 = hashMacAddress((uint8_t*)(LLADDR(sdl))); 
+			} else {
+				mac2 = hashMacAddress((uint8_t*)(LLADDR(sdl)));
 				break;
 			}
 		}
@@ -161,7 +168,8 @@ void getMacHash(uint16_t& mac1, uint16_t& mac2)
 #else // !DARWIN
 
 	int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
-	if (sock < 0) return;
+	if (sock < 0)
+		return;
 
 	// enumerate all IP addresses of the system
 	struct ifconf conf;
@@ -169,8 +177,7 @@ void getMacHash(uint16_t& mac1, uint16_t& mac2)
 	memset(ifconfbuf, 0, sizeof(ifconfbuf));
 	conf.ifc_buf = ifconfbuf;
 	conf.ifc_len = sizeof(ifconfbuf);
-	if (ioctl(sock, SIOCGIFCONF, &conf))
-	{
+	if (ioctl(sock, SIOCGIFCONF, &conf)) {
 		assert(0);
 		close(sock);
 		return;
@@ -179,21 +186,19 @@ void getMacHash(uint16_t& mac1, uint16_t& mac2)
 	// get MAC address
 	bool foundMac1 = false;
 	struct ifreq* ifr;
-	for (ifr = conf.ifc_req; (signed char*)ifr < (signed char*)conf.ifc_req + conf.ifc_len; ifr++)
-	{
+	for (ifr = conf.ifc_req;
+		 (signed char*)ifr < (signed char*)conf.ifc_req + conf.ifc_len;
+		 ifr++) {
 		if (ifr->ifr_addr.sa_data == (ifr + 1)->ifr_addr.sa_data)
-			continue;  // duplicate, skip it
+			continue; // duplicate, skip it
 
 		if (ioctl(sock, SIOCGIFFLAGS, ifr))
-			continue;  // failed to get flags, skip it
-		if (ioctl(sock, SIOCGIFHWADDR, ifr) == 0)
-		{
-			if (!foundMac1)
-			{
+			continue; // failed to get flags, skip it
+		if (ioctl(sock, SIOCGIFHWADDR, ifr) == 0) {
+			if (!foundMac1) {
 				foundMac1 = true;
 				mac1 = hashMacAddress((uint8_t*)&(ifr->ifr_addr.sa_data));
-			}
-			else {
+			} else {
 				mac2 = hashMacAddress((uint8_t*)&(ifr->ifr_addr.sa_data));
 				break;
 			}
@@ -206,18 +211,17 @@ void getMacHash(uint16_t& mac1, uint16_t& mac2)
 
 	// sort the mac addresses. We don't want to invalidate
 	// both macs if they just change order.
-	if (mac1 > mac2)
-	{
+	if (mac1 > mac2) {
 		uint16_t tmp = mac2;
 		mac2 = mac1;
 		mac1 = tmp;
 	}
 }
 
-
-#ifdef DARWIN   
+#ifdef DARWIN
 #include <mach-o/arch.h>
-uint16_t getCpuHash()
+uint16_t
+getCpuHash()
 {
 	const NXArchInfo* info = NXGetLocalArchInfo();
 	uint16_t val = 0;
@@ -226,24 +230,13 @@ uint16_t getCpuHash()
 	return val;
 }
 
-#else // !DARWIN
+#else  // !DARWIN
 
-static void getCpuid(uint32_t* p, uint32_t ax)
-{
-	__asm __volatile
-	("movl %%ebx, %%esi\n\t"
-		"cpuid\n\t"
-		"xchgl %%ebx, %%esi"
-		: "=a" (p[0]), "=S" (p[1]),
-		"=c" (p[2]), "=d" (p[3])
-		: "0" (ax)
-	);
-}
-
-uint16_t getCpuHash()
+uint16_t
+getCpuHash()
 {
 	uint32_t cpuinfo[4] = { 0, 0, 0, 0 };
-	getCpuid(cpuinfo, 0);
+	__get_cpuid(0, &cpuinfo[0], &cpuinfo[1], &cpuinfo[2], &cpuinfo[3]);	
 	uint16_t hash = 0;
 	uint32_t* ptr = (&cpuinfo[0]);
 	for (uint32_t i = 0; i < 4; i++)
@@ -253,12 +246,12 @@ uint16_t getCpuHash()
 }
 #endif // !DARWIN
 
-string getMachineName()
+string
+getMachineName()
 {
 	static struct utsname u;
 
-	if (uname(&u) < 0)
-	{
+	if (uname(&u) < 0) {
 		assert(0);
 		return "unknown";
 	}
@@ -267,11 +260,13 @@ string getMachineName()
 }
 #endif
 
-static uint16_t* computeSystemUniqueId()
+static uint16_t*
+computeSystemUniqueId()
 {
 	static uint16_t id[3];
 	static bool computed = false;
-	if (computed) return id;
+	if (computed)
+		return id;
 
 	// produce a number that uniquely identifies this system.
 	id[0] = getCpuHash();
@@ -279,18 +274,20 @@ static uint16_t* computeSystemUniqueId()
 	computed = true;
 	return id;
 }
-string getSystemUniqueId()
+string
+getSystemUniqueId()
 {
 	// get the name of the computer
 	string str = getMachineName();
 
 	uint16_t* id = computeSystemUniqueId();
 	for (uint32_t i = 0; i < 3; i++)
-		str = str+ "." + to_string(id[i]);
+		str = str + "." + to_string(id[i]);
 	return str;
 }
-/* Arcade:	for the current stage (one song).  
- * Nonstop/Oni/Endless:	 for current course (which usually contains multiple songs)
+/* Arcade:	for the current stage (one song).
+ * Nonstop/Oni/Endless:	 for current course (which usually contains multiple
+ * songs)
  */
 
 StageStats::StageStats()
@@ -305,75 +302,86 @@ StageStats::StageStats()
 	m_fGameplaySeconds = 0;
 	m_fStepsSeconds = 0;
 	m_fMusicRate = 1;
-	FOREACH_PlayerNumber(pn)
-	{
-		m_player[pn].Init(pn);
-	}
-	FOREACH_MultiPlayer(pn)
-	{
-		m_multiPlayer[pn].Init(pn);
-	}
+	FOREACH_PlayerNumber(pn) { m_player[pn].Init(pn); }
+	FOREACH_MultiPlayer(pn) { m_multiPlayer[pn].Init(pn); }
 }
 
-void StageStats::Init()
+void
+StageStats::Init()
 {
 	*this = StageStats();
 }
 
-void StageStats::AssertValid( PlayerNumber pn ) const
+void
+StageStats::AssertValid(PlayerNumber pn) const
 {
-	ASSERT( m_vpPlayedSongs.size() != 0 );
-	ASSERT( m_vpPossibleSongs.size() != 0 );
-	if( m_vpPlayedSongs[0] )
-		CHECKPOINT_M( m_vpPlayedSongs[0]->GetTranslitFullTitle() );
-	ASSERT( m_player[pn].m_iStepsPlayed > 0 );
-	ASSERT( m_player[pn].m_vpPossibleSteps.size() != 0 );
-	ASSERT( m_player[pn].m_vpPossibleSteps[0] != NULL );
-	ASSERT_M( m_playMode < NUM_PlayMode, ssprintf("playmode %i", m_playMode) );
-	ASSERT_M( m_player[pn].m_vpPossibleSteps[0]->GetDifficulty() < NUM_Difficulty, ssprintf("Invalid Difficulty %i", m_player[pn].m_vpPossibleSteps[0]->GetDifficulty()) );
-	ASSERT_M( (int) m_vpPlayedSongs.size() == m_player[pn].m_iStepsPlayed, ssprintf("%i Songs Played != %i Steps Played for player %i", (int)m_vpPlayedSongs.size(), (int)m_player[pn].m_iStepsPlayed, pn) );
-	ASSERT_M( m_vpPossibleSongs.size() == m_player[pn].m_vpPossibleSteps.size(), ssprintf("%i Possible Songs != %i Possible Steps for player %i", (int)m_vpPossibleSongs.size(), (int)m_player[pn].m_vpPossibleSteps.size(), pn) );
+	ASSERT(m_vpPlayedSongs.size() != 0);
+	ASSERT(m_vpPossibleSongs.size() != 0);
+	if (m_vpPlayedSongs[0])
+		CHECKPOINT_M(m_vpPlayedSongs[0]->GetTranslitFullTitle());
+	ASSERT(m_player[pn].m_iStepsPlayed > 0);
+	ASSERT(m_player[pn].m_vpPossibleSteps.size() != 0);
+	ASSERT(m_player[pn].m_vpPossibleSteps[0] != NULL);
+	ASSERT_M(m_playMode < NUM_PlayMode, ssprintf("playmode %i", m_playMode));
+	ASSERT_M(m_player[pn].m_vpPossibleSteps[0]->GetDifficulty() <
+			   NUM_Difficulty,
+			 ssprintf("Invalid Difficulty %i",
+					  m_player[pn].m_vpPossibleSteps[0]->GetDifficulty()));
+	ASSERT_M((int)m_vpPlayedSongs.size() == m_player[pn].m_iStepsPlayed,
+			 ssprintf("%i Songs Played != %i Steps Played for player %i",
+					  (int)m_vpPlayedSongs.size(),
+					  (int)m_player[pn].m_iStepsPlayed,
+					  pn));
+	ASSERT_M(m_vpPossibleSongs.size() == m_player[pn].m_vpPossibleSteps.size(),
+			 ssprintf("%i Possible Songs != %i Possible Steps for player %i",
+					  (int)m_vpPossibleSongs.size(),
+					  (int)m_player[pn].m_vpPossibleSteps.size(),
+					  pn));
 }
 
-void StageStats::AssertValid( MultiPlayer pn ) const
+void
+StageStats::AssertValid(MultiPlayer pn) const
 {
-	ASSERT( m_vpPlayedSongs.size() != 0 );
-	ASSERT( m_vpPossibleSongs.size() != 0 );
-	if( m_vpPlayedSongs[0] )
-		CHECKPOINT_M( m_vpPlayedSongs[0]->GetTranslitFullTitle() );
-	ASSERT( m_multiPlayer[pn].m_vpPossibleSteps.size() != 0 );
-	ASSERT( m_multiPlayer[pn].m_vpPossibleSteps[0] != NULL );
-	ASSERT_M( m_playMode < NUM_PlayMode, ssprintf("playmode %i", m_playMode) );
-	ASSERT_M( m_player[pn].m_vpPossibleSteps[0]->GetDifficulty() < NUM_Difficulty, ssprintf("difficulty %i", m_player[pn].m_vpPossibleSteps[0]->GetDifficulty()) );
-	ASSERT( (int) m_vpPlayedSongs.size() == m_player[pn].m_iStepsPlayed );
-	ASSERT( m_vpPossibleSongs.size() == m_player[pn].m_vpPossibleSteps.size() );
+	ASSERT(m_vpPlayedSongs.size() != 0);
+	ASSERT(m_vpPossibleSongs.size() != 0);
+	if (m_vpPlayedSongs[0])
+		CHECKPOINT_M(m_vpPlayedSongs[0]->GetTranslitFullTitle());
+	ASSERT(m_multiPlayer[pn].m_vpPossibleSteps.size() != 0);
+	ASSERT(m_multiPlayer[pn].m_vpPossibleSteps[0] != NULL);
+	ASSERT_M(m_playMode < NUM_PlayMode, ssprintf("playmode %i", m_playMode));
+	ASSERT_M(m_player[pn].m_vpPossibleSteps[0]->GetDifficulty() <
+			   NUM_Difficulty,
+			 ssprintf("difficulty %i",
+					  m_player[pn].m_vpPossibleSteps[0]->GetDifficulty()));
+	ASSERT((int)m_vpPlayedSongs.size() == m_player[pn].m_iStepsPlayed);
+	ASSERT(m_vpPossibleSongs.size() == m_player[pn].m_vpPossibleSteps.size());
 }
 
-
-int StageStats::GetAverageMeter( PlayerNumber pn ) const
+int
+StageStats::GetAverageMeter(PlayerNumber pn) const
 {
-	AssertValid( pn );
+	AssertValid(pn);
 
 	// TODO: This isn't correct for courses.
 	int iTotalMeter = 0;
 
-	for( unsigned i=0; i<m_vpPlayedSongs.size(); i++ )
-	{
+	for (unsigned i = 0; i < m_vpPlayedSongs.size(); i++) {
 		const Steps* pSteps = m_player[pn].m_vpPossibleSteps[i];
 		iTotalMeter += pSteps->GetMeter();
 	}
-	return iTotalMeter / m_vpPlayedSongs.size();	// round down
+	return iTotalMeter / m_vpPlayedSongs.size(); // round down
 }
 
-void StageStats::AddStats( const StageStats& other )
+void
+StageStats::AddStats(const StageStats& other)
 {
-	ASSERT( !other.m_vpPlayedSongs.empty() );
-	FOREACH_CONST( Song*, other.m_vpPlayedSongs, s )
-		m_vpPlayedSongs.push_back( *s );
-	FOREACH_CONST( Song*, other.m_vpPossibleSongs, s )
-		m_vpPossibleSongs.push_back( *s );
+	ASSERT(!other.m_vpPlayedSongs.empty());
+	FOREACH_CONST(Song*, other.m_vpPlayedSongs, s)
+	m_vpPlayedSongs.push_back(*s);
+	FOREACH_CONST(Song*, other.m_vpPossibleSongs, s)
+	m_vpPossibleSongs.push_back(*s);
 	m_Stage = Stage_Invalid; // meaningless
-	m_iStageIndex = -1; // meaningless
+	m_iStageIndex = -1;		 // meaningless
 
 	m_bGaveUp |= static_cast<int>(other.m_bGaveUp);
 	m_bUsedAutoplay |= static_cast<int>(other.m_bUsedAutoplay);
@@ -381,39 +389,41 @@ void StageStats::AddStats( const StageStats& other )
 	m_fGameplaySeconds += other.m_fGameplaySeconds;
 	m_fStepsSeconds += other.m_fStepsSeconds;
 
-	FOREACH_EnabledPlayer( p )
-		m_player[p].AddStats( other.m_player[p] );
+	FOREACH_EnabledPlayer(p) m_player[p].AddStats(other.m_player[p]);
 }
 
-bool StageStats::OnePassed() const
+bool
+StageStats::OnePassed() const
 {
-	FOREACH_EnabledPlayer( p )
-		if( !m_player[p].m_bFailed )
-			return true;
+	FOREACH_EnabledPlayer(p) if (!m_player[p].m_bFailed) return true;
 	return false;
 }
 
-bool StageStats::AllFailed() const
+bool
+StageStats::AllFailed() const
 {
-	FOREACH_EnabledPlayer( p )
-		if( !m_player[p].m_bFailed )
-			return false;
+	FOREACH_EnabledPlayer(p) if (!m_player[p].m_bFailed) return false;
 	return true;
 }
 
-float StageStats::GetTotalPossibleStepsSeconds() const
+float
+StageStats::GetTotalPossibleStepsSeconds() const
 {
 	float fSecs = 0;
-	FOREACH_CONST( Song*, m_vpPossibleSongs, s )
-		fSecs += (*s)->GetStepsSeconds();
+	FOREACH_CONST(Song*, m_vpPossibleSongs, s)
+	fSecs += (*s)->GetStepsSeconds();
 	return fSecs / m_fMusicRate;
 }
 
-// all the dumb reasons your score doesnt matter (or at least, most of them) -mina
-bool DetermineScoreEligibility(const PlayerStageStats &pss, const PlayerState &ps) {
-	
+// all the dumb reasons your score doesnt matter (or at least, most of them)
+// -mina
+bool
+DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
+{
+
 	// 4k only
-	if (GAMESTATE->m_pCurSteps[ps.m_PlayerNumber]->m_StepsType != StepsType_dance_single)
+	if (GAMESTATE->m_pCurSteps[ps.m_PlayerNumber]->m_StepsType !=
+		StepsType_dance_single)
 		return false;
 
 	// chord cohesion is invalid
@@ -426,14 +436,16 @@ bool DetermineScoreEligibility(const PlayerStageStats &pss, const PlayerState &p
 
 	// just because you had failoff, doesn't mean you didn't fail.
 	FOREACHM_CONST(float, float, pss.m_fLifeRecord, fail)
-		if (fail->second == 0.f)
-			return false;
+	if (fail->second == 0.f)
+		return false;
 
-	// cut out stuff with under 200 notes to prevent super short vibro files from being dumb
+	// cut out stuff with under 200 notes to prevent super short vibro files
+	// from being dumb
 	if (pss.GetTotalTaps() < 200 && pss.GetTotalTaps() != 4)
 		return false;
 
-	// i'm not actually sure why this is here but if you activate this you don't deserve points anyway
+	// i'm not actually sure why this is here but if you activate this you don't
+	// deserve points anyway
 	if (pss.m_fWifeScore < 0.1f)
 		return false;
 
@@ -449,7 +461,8 @@ bool DetermineScoreEligibility(const PlayerStageStats &pss, const PlayerState &p
 	if (pss.everusedautoplay)
 		return false;
 
-	// mods that modify notedata other than mirror (too lazy to figure out how to check for these in po)
+	// mods that modify notedata other than mirror (too lazy to figure out how
+	// to check for these in po)
 	string mods = ps.m_PlayerOptions.GetStage().GetString();
 
 	// should take care of all 3 shuffle mods
@@ -473,66 +486,90 @@ bool DetermineScoreEligibility(const PlayerStageStats &pss, const PlayerState &p
 	if (mods.find("Backwards") != mods.npos)
 		return false;
 
+	if (mods.find("Little") != mods.npos)
+		return false;
+
+	if (mods.find("NoJumps") != mods.npos)
+		return false;
+
+	if (mods.find("NoHands") != mods.npos)
+		return false;
+
+	if (mods.find("NoQuads") != mods.npos)
+		return false;
+
+	if (mods.find("NoStretch") != mods.npos)
+		return false;
+
 	return true;
 }
 
-static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState &ps, RString sRankingToFillInMarker, RString sPlayerGuid)
+static HighScore
+FillInHighScore(const PlayerStageStats& pss,
+				const PlayerState& ps,
+				RString sRankingToFillInMarker,
+				RString sPlayerGuid)
 {
 	HighScore hs;
 	hs.SetName(sRankingToFillInMarker);
 
 	auto chartKey = GAMESTATE->m_pCurSteps[ps.m_PlayerNumber]->GetChartKey();
 	hs.SetChartKey(chartKey);
-	hs.SetGrade( pss.GetGrade() );
+	hs.SetGrade(pss.GetGrade());
 	hs.SetMachineGuid(getSystemUniqueId());
-	hs.SetScore( pss.m_iScore );
-	hs.SetPercentDP( pss.GetPercentDancePoints() );
-	hs.SetWifeScore( pss.GetWifeScore());
-	hs.SetWifePoints( pss.GetCurWifeScore());
-	hs.SetMusicRate( GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
-	hs.SetJudgeScale( pss.GetTimingScale());
-	hs.SetChordCohesion( GAMESTATE->CountNotesSeparately() );
-	hs.SetAliveSeconds( pss.m_fAliveSeconds );
-	hs.SetMaxCombo( pss.GetMaxCombo().m_cnt );
-	hs.SetStageAward( pss.m_StageAward );
-	hs.SetPeakComboAward( pss.m_PeakComboAward );
+	hs.SetScore(pss.m_iScore);
+	hs.SetPercentDP(pss.GetPercentDancePoints());
+	hs.SetWifeScore(pss.GetWifeScore());
+	hs.SetWifePoints(pss.GetCurWifeScore());
+	hs.SetMusicRate(GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
+	hs.SetJudgeScale(pss.GetTimingScale());
+	hs.SetChordCohesion(GAMESTATE->CountNotesSeparately());
+	hs.SetAliveSeconds(pss.m_fAliveSeconds);
+	hs.SetMaxCombo(pss.GetMaxCombo().m_cnt);
+	hs.SetStageAward(pss.m_StageAward);
+	hs.SetPeakComboAward(pss.m_PeakComboAward);
 
 	vector<RString> asModifiers;
 	{
 		RString sPlayerOptions = ps.m_PlayerOptions.GetStage().GetString();
-		if( !sPlayerOptions.empty() )
-			asModifiers.push_back( sPlayerOptions );
+		if (!sPlayerOptions.empty())
+			asModifiers.push_back(sPlayerOptions);
 		RString sSongOptions = GAMESTATE->m_SongOptions.GetStage().GetString();
-		if( !sSongOptions.empty() )
-			asModifiers.push_back( sSongOptions );
+		if (!sSongOptions.empty())
+			asModifiers.push_back(sSongOptions);
 	}
-	hs.SetModifiers( join(", ", asModifiers) );
+	hs.SetModifiers(join(", ", asModifiers));
 
-	hs.SetDateTime( DateTime::GetNowDateTime() );
-	hs.SetPlayerGuid( sPlayerGuid );
-	FOREACH_ENUM( TapNoteScore, tns )
-		hs.SetTapNoteScore( tns, pss.m_iTapNoteScores[tns] );
-	FOREACH_ENUM( HoldNoteScore, hns )
-		hs.SetHoldNoteScore( hns, pss.m_iHoldNoteScores[hns] );
-	hs.SetRadarValues( pss.m_radarActual );
-	hs.SetLifeRemainingSeconds( pss.m_fLifeRemainingSeconds );
-	hs.SetDisqualified( pss.IsDisqualified() );
+	hs.SetDateTime(DateTime::GetNowDateTime());
+	hs.SetPlayerGuid(sPlayerGuid);
+	FOREACH_ENUM(TapNoteScore, tns)
+	hs.SetTapNoteScore(tns, pss.m_iTapNoteScores[tns]);
+	FOREACH_ENUM(HoldNoteScore, hns)
+	hs.SetHoldNoteScore(hns, pss.m_iHoldNoteScores[hns]);
+	hs.SetRadarValues(pss.m_radarActual);
+	hs.SetLifeRemainingSeconds(pss.m_fLifeRemainingSeconds);
+	hs.SetDisqualified(pss.IsDisqualified());
 
 	// Etterna validity check, used for ssr/eo eligibility -mina
 	hs.SetEtternaValid(DetermineScoreEligibility(pss, ps));
-	
-	// force fail grade if player 'gave up', autoplay was used, or lua scripts were loaded (this is sorta redundant with the above but ehh) -mina
-	if(pss.gaveuplikeadumbass || pss.luascriptwasloaded || pss.everusedautoplay)
-	hs.SetGrade(Grade_Failed);
 
-	// should maybe just make the setscorekey function do this internally rather than recalling the datetime object -mina
-	RString ScoreKey = "S" + BinaryToHex(CryptManager::GetSHA1ForString(hs.GetDateTime().GetString()));
+	// force fail grade if player 'gave up', autoplay was used, or lua scripts
+	// were loaded (this is sorta redundant with the above but ehh) -mina
+	if (pss.gaveuplikeadumbass || pss.luascriptwasloaded ||
+		pss.everusedautoplay)
+		hs.SetGrade(Grade_Failed);
+
+	// should maybe just make the setscorekey function do this internally rather
+	// than recalling the datetime object -mina
+	RString ScoreKey =
+	  "S" +
+	  BinaryToHex(CryptManager::GetSHA1ForString(hs.GetDateTime().GetString()));
 	hs.SetScoreKey(ScoreKey);
 
 	// DOES NOT WORK NEEDS FIX -mina
-	// the vectors stored in pss are what are accessed by evaluation so we can write 
-	// them to the replay file instead of the highscore object (if successful) -mina
-	// this is kinda messy meh -mina
+	// the vectors stored in pss are what are accessed by evaluation so we can
+	// write them to the replay file instead of the highscore object (if
+	// successful) -mina this is kinda messy meh -mina
 
 	if (pss.m_fWifeScore > 0.f) {
 		hs.SetOffsetVector(pss.GetOffsetVector());
@@ -540,7 +577,8 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 		hs.SetTrackVector(pss.GetTrackVector());
 		hs.SetTapNoteTypeVector(pss.GetTapNoteTypeVector());
 		hs.SetHoldReplayDataVector(pss.GetHoldReplayDataVector());
-		hs.SetReplayType(2);	// flag this before rescore so it knows we're LEGGIT
+		hs.SetReplayType(
+		  2); // flag this before rescore so it knows we're LEGGIT
 
 		if (pss.GetGrade() == Grade_Failed)
 			hs.SetSSRNormPercent(0.f);
@@ -550,13 +588,12 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 		if (hs.GetEtternaValid()) {
 			vector<float> dakine = pss.CalcSSR(hs.GetSSRNormPercent());
 			FOREACH_ENUM(Skillset, ss)
-				hs.SetSkillsetSSR(ss, dakine[ss]);
+			hs.SetSkillsetSSR(ss, dakine[ss]);
 
 			hs.SetSSRCalcVersion(GetCalcVersion());
-		}
-		else {
+		} else {
 			FOREACH_ENUM(Skillset, ss)
-				hs.SetSkillsetSSR(ss, 0.f);
+			hs.SetSkillsetSSR(ss, 0.f);
 		}
 	}
 
@@ -567,10 +604,10 @@ static HighScore FillInHighScore(const PlayerStageStats &pss, const PlayerState 
 	return hs;
 }
 
-void StageStats::FinalizeScores(bool bSummary)
+void
+StageStats::FinalizeScores(bool bSummary)
 {
-	if (PREFSMAN->m_sTestInitialScreen.Get() != "")
-	{
+	if (PREFSMAN->m_sTestInitialScreen.Get() != "") {
 		FOREACH_PlayerNumber(pn)
 		{
 			m_player[pn].m_iPersonalHighScoreIndex = 0;
@@ -586,45 +623,66 @@ void StageStats::FinalizeScores(bool bSummary)
 
 	// generate a HighScore for each player
 
-	// whether or not to save scores when the stage was failed depends on if this
-	// is a course or not... it's handled below in the switch.
+	// whether or not to save scores when the stage was failed depends on if
+	// this is a course or not... it's handled below in the switch.
 	FOREACH_HumanPlayer(p)
 	{
-		RString sPlayerGuid = PROFILEMAN->IsPersistentProfile(p) ? PROFILEMAN->GetProfile(p)->m_sGuid : RString("");
-		m_player[p].m_HighScore = FillInHighScore(m_player[p], *GAMESTATE->m_pPlayerState[p], RANKING_TO_FILL_IN_MARKER[p], sPlayerGuid);
+		RString sPlayerGuid = PROFILEMAN->IsPersistentProfile(p)
+								? PROFILEMAN->GetProfile(p)->m_sGuid
+								: RString("");
+		m_player[p].m_HighScore = FillInHighScore(m_player[p],
+												  *GAMESTATE->m_pPlayerState[p],
+												  RANKING_TO_FILL_IN_MARKER[p],
+												  sPlayerGuid);
 	}
 	FOREACH_EnabledMultiPlayer(mp)
 	{
-		RString sPlayerGuid = "00000000-0000-0000-0000-000000000000";	// FIXME
-		m_multiPlayer[mp].m_HighScore = FillInHighScore(m_multiPlayer[mp], *GAMESTATE->m_pMultiPlayerState[mp], "", sPlayerGuid);
+		RString sPlayerGuid = "00000000-0000-0000-0000-000000000000"; // FIXME
+		m_multiPlayer[mp].m_HighScore =
+		  FillInHighScore(m_multiPlayer[mp],
+						  *GAMESTATE->m_pMultiPlayerState[mp],
+						  "",
+						  sPlayerGuid);
 	}
 
-	HighScore &hs = m_player[PLAYER_1].m_HighScore;
+	HighScore& hs = m_player[PLAYER_1].m_HighScore;
 
 	const Steps* pSteps = GAMESTATE->m_pCurSteps[PLAYER_1];
 
 	ASSERT(pSteps != NULL);
-	// new score structure -mina
 	Profile* zzz = PROFILEMAN->GetProfile(PLAYER_1);
+	if (GamePreferences::m_AutoPlay != PC_HUMAN) {
+		if (PlayerAI::pScoreData) {
+			mostrecentscorekey = PlayerAI::pScoreData->GetScoreKey();
+			SCOREMAN->PutScoreAtTheTop(mostrecentscorekey);
+		}
+		zzz->m_lastSong.FromSong(GAMESTATE->m_pCurSong);
+		return;
+	}
+	// new score structure -mina
 	int istop2 = SCOREMAN->AddScore(hs);
 	if (DLMAN->ShouldUploadScores() && !AdjustSync::IsSyncDataChanged()) {
 		CHECKPOINT_M("Uploading score with replaydata.");
-		hs.SetTopScore(istop2);	// ayy i did it --lurker
+		hs.SetTopScore(istop2); // ayy i did it --lurker
 		auto steps = SONGMAN->GetStepsByChartkey(hs.GetChartKey());
 		auto td = steps->GetTimingData();
-		hs.timeStamps = td->ConvertReplayNoteRowsToTimestamps(m_player[PLAYER_1].GetNoteRowVector(), hs.GetMusicRate());
+		hs.timeStamps = td->ConvertReplayNoteRowsToTimestamps(
+		  m_player[PLAYER_1].GetNoteRowVector(), hs.GetMusicRate());
 		DLMAN->UploadScoreWithReplayData(&hs);
 		hs.timeStamps.clear();
 		hs.timeStamps.shrink_to_fit();
 	}
-	if(NSMAN->isSMOnline)
+	if (NSMAN->isSMOnline)
 		NSMAN->ReportHighScore(&hs, m_player[PLAYER_1]);
 	if (m_player[PLAYER_1].m_fWifeScore > 0.f) {
+
 		bool writesuccess = hs.WriteReplayData();
 		if (writesuccess)
 			hs.UnloadReplayData();
 	}
-	zzz->SetAnyAchievedGoals(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey(), GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate, hs);
+	zzz->SetAnyAchievedGoals(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey(),
+							 GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate,
+							 hs);
 	mostrecentscorekey = hs.GetScoreKey();
 	zzz->m_lastSong.FromSong(GAMESTATE->m_pCurSong);
 
@@ -632,85 +690,107 @@ void StageStats::FinalizeScores(bool bSummary)
 }
 
 // all scores are saved so all scores are highscores, remove this later -mina
-bool StageStats::PlayerHasHighScore( PlayerNumber pn ) const
+bool
+StageStats::PlayerHasHighScore(PlayerNumber pn) const
 {
 	return true;
 }
 
-unsigned int StageStats::GetMinimumMissCombo() const
+unsigned int
+StageStats::GetMinimumMissCombo() const
 {
 	unsigned int iMin = INT_MAX;
-	FOREACH_HumanPlayer( p )
-		iMin = min( iMin, m_player[p].m_iCurMissCombo );
+	FOREACH_HumanPlayer(p) iMin = min(iMin, m_player[p].m_iCurMissCombo);
 	return iMin;
 }
 
 // lua start
 #include "LuaBinding.h"
 
-/** @brief Allow Lua to have access to the StageStats. */ 
-class LunaStageStats: public Luna<StageStats>
+/** @brief Allow Lua to have access to the StageStats. */
+class LunaStageStats : public Luna<StageStats>
 {
-public:
-	static int GetPlayerStageStats( T* p, lua_State *L )		{ p->m_player[Enum::Check<PlayerNumber>(L, 1)].PushSelf(L); return 1; }
-	static int GetMultiPlayerStageStats( T* p, lua_State *L )	{ p->m_multiPlayer[Enum::Check<MultiPlayer>(L, 1)].PushSelf(L); return 1; }
-	static int GetPlayedSongs( T* p, lua_State *L )
+  public:
+	static int GetPlayerStageStats(T* p, lua_State* L)
+	{
+		p->m_player[Enum::Check<PlayerNumber>(L, 1)].PushSelf(L);
+		return 1;
+	}
+	static int GetMultiPlayerStageStats(T* p, lua_State* L)
+	{
+		p->m_multiPlayer[Enum::Check<MultiPlayer>(L, 1)].PushSelf(L);
+		return 1;
+	}
+	static int GetPlayedSongs(T* p, lua_State* L)
 	{
 		lua_newtable(L);
-		for( int i = 0; i < (int) p->m_vpPlayedSongs.size(); ++i )
-		{
+		for (int i = 0; i < (int)p->m_vpPlayedSongs.size(); ++i) {
 			p->m_vpPlayedSongs[i]->PushSelf(L);
-			lua_rawseti( L, -2, i+1 );
+			lua_rawseti(L, -2, i + 1);
 		}
 		return 1;
 	}
-	static int GetPossibleSongs( T* p, lua_State *L )
+	static int GetPossibleSongs(T* p, lua_State* L)
 	{
 		lua_newtable(L);
-		for( int i = 0; i < (int) p->m_vpPossibleSongs.size(); ++i )
-		{
+		for (int i = 0; i < (int)p->m_vpPossibleSongs.size(); ++i) {
 			p->m_vpPossibleSongs[i]->PushSelf(L);
-			lua_rawseti( L, -2, i+1 );
+			lua_rawseti(L, -2, i + 1);
 		}
 		return 1;
-
 	}
-	static int GetGameplaySeconds( T* p, lua_State *L )	{ lua_pushnumber(L, p->m_fGameplaySeconds); return 1; }
-	static int OnePassed( T* p, lua_State *L )		{ lua_pushboolean(L, p->OnePassed()); return 1; }
-	static int AllFailed( T* p, lua_State *L )		{ lua_pushboolean(L, p->AllFailed()); return 1; }
-	static int GetStage( T* p, lua_State *L )		{ LuaHelpers::Push( L, p->m_Stage ); return 1; }
-	DEFINE_METHOD( GetStageIndex,				m_iStageIndex )
-	DEFINE_METHOD(GetStepsSeconds, m_fStepsSeconds)
-	static int PlayerHasHighScore( T* p, lua_State *L )
+	static int GetGameplaySeconds(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->PlayerHasHighScore(Enum::Check<PlayerNumber>(L, 1)));
+		lua_pushnumber(L, p->m_fGameplaySeconds);
+		return 1;
+	}
+	static int OnePassed(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->OnePassed());
+		return 1;
+	}
+	static int AllFailed(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->AllFailed());
+		return 1;
+	}
+	static int GetStage(T* p, lua_State* L)
+	{
+		LuaHelpers::Push(L, p->m_Stage);
+		return 1;
+	}
+	DEFINE_METHOD(GetStageIndex, m_iStageIndex)
+	DEFINE_METHOD(GetStepsSeconds, m_fStepsSeconds)
+	static int PlayerHasHighScore(T* p, lua_State* L)
+	{
+		lua_pushboolean(L,
+						p->PlayerHasHighScore(Enum::Check<PlayerNumber>(L, 1)));
 		return 1;
 	}
 
 	LunaStageStats()
 	{
-		ADD_METHOD( GetPlayerStageStats );
-		ADD_METHOD( GetMultiPlayerStageStats );
-		ADD_METHOD( GetPlayedSongs );
-		ADD_METHOD( GetPossibleSongs );
-		ADD_METHOD( GetGameplaySeconds );
-		ADD_METHOD( OnePassed );
-		ADD_METHOD( AllFailed );
-		ADD_METHOD( GetStage );
-		ADD_METHOD( GetStageIndex );
-		ADD_METHOD( GetStepsSeconds );
-		ADD_METHOD( PlayerHasHighScore );
+		ADD_METHOD(GetPlayerStageStats);
+		ADD_METHOD(GetMultiPlayerStageStats);
+		ADD_METHOD(GetPlayedSongs);
+		ADD_METHOD(GetPossibleSongs);
+		ADD_METHOD(GetGameplaySeconds);
+		ADD_METHOD(OnePassed);
+		ADD_METHOD(AllFailed);
+		ADD_METHOD(GetStage);
+		ADD_METHOD(GetStageIndex);
+		ADD_METHOD(GetStepsSeconds);
+		ADD_METHOD(PlayerHasHighScore);
 	}
 };
 
-LUA_REGISTER_CLASS( StageStats )
+LUA_REGISTER_CLASS(StageStats)
 // lua end
-
 
 /*
  * (c) 2001-2004 Chris Danford, Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -720,7 +800,7 @@ LUA_REGISTER_CLASS( StageStats )
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

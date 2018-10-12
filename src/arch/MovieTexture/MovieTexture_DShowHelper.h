@@ -14,28 +14,29 @@
 //-----------------------------------------------------------------------------
 class CTextureRenderer : public CBaseVideoRenderer
 {
-public:
+  public:
 	CTextureRenderer();
 	~CTextureRenderer();
 
-	HRESULT CheckMediaType( const CMediaType *pmt );     // Format acceptable?
-	HRESULT SetMediaType( const CMediaType *pmt );       // Video format notification
-	HRESULT DoRenderSample( IMediaSample *pMediaSample ); // New video sample
-	void OnReceiveFirstSample( IMediaSample * pSample );
+	HRESULT CheckMediaType(const CMediaType* pmt); // Format acceptable?
+	HRESULT SetMediaType(const CMediaType* pmt);   // Video format notification
+	HRESULT DoRenderSample(IMediaSample* pMediaSample); // New video sample
+	void OnReceiveFirstSample(IMediaSample* pSample);
 
 	long GetVidWidth() const { return m_lVidWidth; }
 	long GetVidHeight() const { return m_lVidHeight; }
-	void SetRenderTarget( MovieTexture_DShow* pTexture );
+	void SetRenderTarget(MovieTexture_DShow* pTexture);
 
 	RageSemaphore m_OneFrameDecoded;
 
-protected:
+  protected:
 	// Video width, height, and pitch.
 	long m_lVidWidth, m_lVidHeight, m_lVidPitch;
 
-	char *output;
+	char* output;
 
-	MovieTexture_DShow*	m_pTexture;	// the video surface we will copy new frames to
+	MovieTexture_DShow*
+	  m_pTexture; // the video surface we will copy new frames to
 };
 
 #endif
@@ -43,7 +44,7 @@ protected:
 /*
  * (c) 2001-2004 Chris Danford, Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -53,7 +54,7 @@ protected:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

@@ -54,23 +54,22 @@ enum ControllerKB7Button
 };
 */
 
-
 class ControllerStateDisplay : public ActorFrame
 {
-public:
+  public:
 	ControllerStateDisplay();
-	void LoadMultiPlayer( const RString &sType, MultiPlayer mp );
-	void LoadGameController( const RString &sType, GameController gc );
-	void Update( float fDelta ) override;
+	void LoadMultiPlayer(const RString& sType, MultiPlayer mp);
+	void LoadGameController(const RString& sType, GameController gc);
+	void Update(float fDelta) override;
 	bool IsLoaded() const { return m_bIsLoaded; }
 
-	ControllerStateDisplay *Copy() const override;
+	ControllerStateDisplay* Copy() const override;
 
 	// Lua
-	void PushSelf( lua_State *L ) override;
+	void PushSelf(lua_State* L) override;
 
-protected:
-	void LoadInternal( const RString &sType, MultiPlayer mp, GameController gc );
+  protected:
+	void LoadInternal(const RString& sType, MultiPlayer mp, GameController gc);
 	MultiPlayer m_mp;
 
 	bool m_bIsLoaded;
@@ -97,7 +96,7 @@ protected:
 /*
  * (c) 2001-2004 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -107,7 +106,7 @@ protected:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

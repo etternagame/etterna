@@ -11,33 +11,34 @@ class Model;
 /** @brief A dancing character that follows the steps of the Song. */
 class BeginnerHelper : public ActorFrame
 {
-public:
+  public:
 	BeginnerHelper();
 	~BeginnerHelper() override;
 
-	bool Init( int iDancePadType );
+	bool Init(int iDancePadType);
 	bool IsInitialized() { return m_bInitialized; }
 	static bool CanUse(PlayerNumber pn);
-	void AddPlayer( PlayerNumber pn, const NoteData &nd );
-	void ShowStepCircle( PlayerNumber pn, int CSTEP );
+	void AddPlayer(PlayerNumber pn, const NoteData& nd);
+	void ShowStepCircle(PlayerNumber pn, int CSTEP);
 	bool m_bShowBackground;
 
-	void Update( float fDeltaTime ) override;
+	void Update(float fDeltaTime) override;
 	void DrawPrimitives() override;
 
-protected:
-	void Step( PlayerNumber pn, int CSTEP );
+  protected:
+	void Step(PlayerNumber pn, int CSTEP);
 
 	NoteData m_NoteData[NUM_PLAYERS];
 	bool m_bPlayerEnabled[NUM_PLAYERS];
-	Model *m_pDancer[NUM_PLAYERS];
-	Model *m_pDancePad;
-	Sprite	m_sFlash;
-	AutoActor	m_sBackground;
-	Sprite	m_sStepCircle[NUM_PLAYERS][4];	// More memory, but much easier to manage
+	Model* m_pDancer[NUM_PLAYERS];
+	Model* m_pDancePad;
+	Sprite m_sFlash;
+	AutoActor m_sBackground;
+	Sprite m_sStepCircle[NUM_PLAYERS]
+						[4]; // More memory, but much easier to manage
 
-	int	m_iLastRowChecked;
-	int	m_iLastRowFlashed;
+	int m_iLastRowChecked;
+	int m_iLastRowFlashed;
 	bool m_bInitialized;
 
 	ThemeMetric<bool> SHOW_DANCE_PAD;
@@ -49,7 +50,7 @@ protected:
  * @author Kevin Slaughter, Thad Ward (c) 2003
  * @section LICENSE
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -59,7 +60,7 @@ protected:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

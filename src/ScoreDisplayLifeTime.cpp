@@ -11,70 +11,76 @@
 
 ScoreDisplayLifeTime::ScoreDisplayLifeTime()
 {
-	LOG->Trace( "ScoreDisplayLifeTime::ScoreDisplayLifeTime()" );
+	LOG->Trace("ScoreDisplayLifeTime::ScoreDisplayLifeTime()");
 }
 
-void ScoreDisplayLifeTime::Init( const PlayerState* pPlayerState, const PlayerStageStats* pPlayerStageStats ) 
+void
+ScoreDisplayLifeTime::Init(const PlayerState* pPlayerState,
+						   const PlayerStageStats* pPlayerStageStats)
 {
-	ScoreDisplay::Init( pPlayerState, pPlayerStageStats );
+	ScoreDisplay::Init(pPlayerState, pPlayerStageStats);
 
 	const RString sType = "ScoreDisplayLifeTime";
 
-	m_sprFrame.Load( THEME->GetPathG(sType,"frame") );
-	m_sprFrame->SetName( "Frame" );
-	this->AddChild( m_sprFrame );
-	ActorUtil::LoadAllCommandsAndOnCommand( m_sprFrame, sType );
+	m_sprFrame.Load(THEME->GetPathG(sType, "frame"));
+	m_sprFrame->SetName("Frame");
+	this->AddChild(m_sprFrame);
+	ActorUtil::LoadAllCommandsAndOnCommand(m_sprFrame, sType);
 
-	m_textTimeRemaining.LoadFromFont( THEME->GetPathF(sType, "TimeRemaining") );
-	m_textTimeRemaining.SetName( "TimeRemaining" );
-	this->AddChild( &m_textTimeRemaining );
-	ActorUtil::LoadAllCommandsAndOnCommand( m_textTimeRemaining, sType );
-	
-	m_textDeltaSeconds.LoadFromFont( THEME->GetPathF(sType,"DeltaSeconds") );
-	m_textDeltaSeconds.SetName( "DeltaSeconds" );
-	this->AddChild( &m_textDeltaSeconds );
-	ActorUtil::LoadAllCommandsAndOnCommand( m_textDeltaSeconds, sType );
+	m_textTimeRemaining.LoadFromFont(THEME->GetPathF(sType, "TimeRemaining"));
+	m_textTimeRemaining.SetName("TimeRemaining");
+	this->AddChild(&m_textTimeRemaining);
+	ActorUtil::LoadAllCommandsAndOnCommand(m_textTimeRemaining, sType);
 
-	FOREACH_ENUM( TapNoteScore, tns )
+	m_textDeltaSeconds.LoadFromFont(THEME->GetPathF(sType, "DeltaSeconds"));
+	m_textDeltaSeconds.SetName("DeltaSeconds");
+	this->AddChild(&m_textDeltaSeconds);
+	ActorUtil::LoadAllCommandsAndOnCommand(m_textDeltaSeconds, sType);
+
+	FOREACH_ENUM(TapNoteScore, tns)
 	{
-		const RString &sCommand = TapNoteScoreToString(tns);
-		if( !m_textDeltaSeconds.HasCommand( sCommand ) )
-			ActorUtil::LoadCommand( m_textDeltaSeconds, sType, sCommand );
+		const RString& sCommand = TapNoteScoreToString(tns);
+		if (!m_textDeltaSeconds.HasCommand(sCommand))
+			ActorUtil::LoadCommand(m_textDeltaSeconds, sType, sCommand);
 	}
-	FOREACH_ENUM( HoldNoteScore, hns )
+	FOREACH_ENUM(HoldNoteScore, hns)
 	{
-		const RString &sCommand = HoldNoteScoreToString(hns);
-		if( !m_textDeltaSeconds.HasCommand( sCommand ) )
-			ActorUtil::LoadCommand( m_textDeltaSeconds, sType, sCommand );
+		const RString& sCommand = HoldNoteScoreToString(hns);
+		if (!m_textDeltaSeconds.HasCommand(sCommand))
+			ActorUtil::LoadCommand(m_textDeltaSeconds, sType, sCommand);
 	}
 }
 
-void ScoreDisplayLifeTime::Update( float fDelta )
+void
+ScoreDisplayLifeTime::Update(float fDelta)
 {
-	ScoreDisplay::Update( fDelta );
+	ScoreDisplay::Update(fDelta);
 
 	float fSecs = m_pPlayerStageStats->m_fLifeRemainingSeconds;
 
 	RString s = SecondsToMSSMsMs(fSecs);
-	m_textTimeRemaining.SetText( s );
+	m_textTimeRemaining.SetText(s);
 }
 
-void ScoreDisplayLifeTime::OnLoadSong()
+void
+ScoreDisplayLifeTime::OnLoadSong()
 {
 }
 
-void ScoreDisplayLifeTime::OnJudgment( TapNoteScore tns )
+void
+ScoreDisplayLifeTime::OnJudgment(TapNoteScore tns)
 {
 }
 
-void ScoreDisplayLifeTime::OnJudgment( HoldNoteScore hns, TapNoteScore tns )
+void
+ScoreDisplayLifeTime::OnJudgment(HoldNoteScore hns, TapNoteScore tns)
 {
 }
 
 /*
  * (c) 2001-2004 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -84,7 +90,7 @@ void ScoreDisplayLifeTime::OnJudgment( HoldNoteScore hns, TapNoteScore tns )
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

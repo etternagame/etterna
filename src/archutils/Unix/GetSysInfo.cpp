@@ -5,23 +5,24 @@
 #include <sys/utsname.h>
 #endif
 
-void GetKernel( RString &sys, int &iVersion )
+void
+GetKernel(RString& sys, int& iVersion)
 {
 	struct utsname uts;
-	uname( &uts );
+	uname(&uts);
 
 	sys = uts.sysname;
 	iVersion = 0;
 
 	int iMajor = 0, iMinor = 0, iRevision = 0;
-	if( sscanf( uts.release, "%d.%d.%d", &iMajor, &iMinor, &iRevision ) >= 2 )
+	if (sscanf(uts.release, "%d.%d.%d", &iMajor, &iMinor, &iRevision) >= 2)
 		iVersion = (iMajor * 10000) + (iMinor * 100) + (iRevision);
 }
 
 /*
  * (c) 2003-2004 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -31,7 +32,7 @@ void GetKernel( RString &sys, int &iVersion )
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

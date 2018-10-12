@@ -3,24 +3,25 @@
 
 #include "DialogDriver.h"
 
-class DialogDriver_MacOSX: public DialogDriver
+class DialogDriver_MacOSX : public DialogDriver
 {
-public:
-	void Error( const RString &sError, const RString &sID );
-	void OK( const RString &sMessage, const RString &sID );
-	Dialog::Result OKCancel( const RString &sMessage, const RString &sID );
-	Dialog::Result AbortRetryIgnore( const RString &sMessage, const RString &sID );
-	Dialog::Result AbortRetry( const RString &sMessage, const RString &sID );
-	Dialog::Result YesNo( const RString &sMessage, const RString &sID );
+  public:
+	void Error(const RString& sError, const RString& sID);
+	void OK(const RString& sMessage, const RString& sID);
+	Dialog::Result OKCancel(const RString& sMessage, const RString& sID);
+	Dialog::Result AbortRetryIgnore(const RString& sMessage,
+									const RString& sID);
+	Dialog::Result AbortRetry(const RString& sMessage, const RString& sID);
+	Dialog::Result YesNo(const RString& sMessage, const RString& sID);
 };
 #define USE_DIALOG_DRIVER_COCOA
-    
+
 #endif
 
 /*
  * (c) 2003-2004 Steve Checkoway
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -30,7 +31,7 @@ public:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

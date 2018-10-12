@@ -1,4 +1,5 @@
-local filters = {"", "0", "0", "0", "0", "0", "0"}--1=name 2=lowerdiff 3=upperdiff 4=lowersize 5=uppersize
+local filters = {"", "0", "0", "0", "0", "0", "0"}
+--1=name 2=lowerdiff 3=upperdiff 4=lowersize 5=uppersize
 
 local curInput = ""
 local inputting = 0 --1=name 2=lowerdiff 3=upperdiff 4=lowersize 5=uppersize 0=none
@@ -9,7 +10,13 @@ local function getFilter(index)
 end
 
 local function sendFilterAndSearchQuery()
-	packlist:FilterAndSearch(tostring(filters[1]), tonumber(filters[2]), tonumber(filters[3]), tonumber(filters[4]*1024*1024), tonumber(filters[5]*1024*1024))
+	packlist:FilterAndSearch(
+		tostring(filters[1]),
+		tonumber(filters[2]),
+		tonumber(filters[3]),
+		tonumber(filters[4] * 1024 * 1024),
+		tonumber(filters[5] * 1024 * 1024)
+	)
 end
 
 local pressingtab = false
@@ -29,18 +36,18 @@ local function DlInput(event)
 		else
 			MESSAGEMAN:Broadcast("WheelUpSlow")
 		end
-	elseif event.DeviceInput.button == "DeviceButton_mousewheel down" and event.type == "InputEventType_FirstPress" then	
+	elseif event.DeviceInput.button == "DeviceButton_mousewheel down" and event.type == "InputEventType_FirstPress" then
 		moving = true
 		if pressingtab == true then
 			MESSAGEMAN:Broadcast("WheelDownFast")
 		else
 			MESSAGEMAN:Broadcast("WheelDownSlow")
 		end
-	elseif event.DeviceInput.button == 'DeviceButton_left mouse button' then
+	elseif event.DeviceInput.button == "DeviceButton_left mouse button" then
 		if event.type == "InputEventType_Release" then
 			MESSAGEMAN:Broadcast("MouseLeftClick")
 		end
-	elseif event.DeviceInput.button == 'DeviceButton_right mouse button' then
+	elseif event.DeviceInput.button == "DeviceButton_right mouse button" then
 		if event.type == "InputEventType_Release" then
 			MESSAGEMAN:Broadcast("MouseRightClick")
 		end
@@ -61,25 +68,28 @@ local function DlInput(event)
 		elseif event.DeviceInput.button == "DeviceButton_backspace" then
 			curInput = curInput:sub(1, -2)
 			changed = true
-		elseif event.DeviceInput.button == "DeviceButton_delete"  then
+		elseif event.DeviceInput.button == "DeviceButton_delete" then
 			curInput = ""
+			changed = true
+		elseif event.DeviceInput.button == "DeviceButton_space" then
+			curInput = curInput .. " "
 			changed = true
 		else
 			if inputting == 2 or inputting == 3 or inputting == 4 or inputting == 5 then
 				if tonumber(event.char) ~= nil then
-					curInput = curInput..event.char
+					curInput = curInput .. event.char
 					changed = true
 				end
 			else
-				if event.char and event.char:match("[%%%+%-%!%@%#%$%^%&%*%(%)%=%_%.%,%:%;%'%\"%>%<%?%/%~%|%w]") and event.char ~= "" then
-					curInput = curInput..event.char
+				if event.char and event.char:match('[%%%+%-%!%@%#%$%^%&%*%(%)%=%_%.%,%:%;%\'%"%>%<%?%/%~%|%w]') and event.char ~= "" then
+					curInput = curInput .. event.char
 					changed = true
 				end
 			end
 		end
 		if changed then
 			if inputting == 2 or inputting == 3 or inputting == 4 or inputting == 5 then
-				if curInput == "" or not tonumber(curInput) then 
+				if curInput == "" or not tonumber(curInput) then
 					curInput = "0"
 				end
 			end
@@ -90,7 +100,10 @@ local function DlInput(event)
 			return true
 		end
 	end
-	if event.type ~= "InputEventType_Release" and inputting == 0 and curInput == "" and event.type == "InputEventType_FirstPress"then	-- quickstart the string search with enter if there is no query atm
+	if
+		event.type ~= "InputEventType_Release" and inputting == 0 and curInput == "" and
+			event.type == "InputEventType_FirstPress"
+	 then -- quickstart the string search with enter if there is no query atm
 		if event.button == "Start" then
 			curInput = ""
 			inputting = 1
@@ -133,7 +146,7 @@ local function highlightIfOver(self)
 	end
 end
 
-local width = SCREEN_WIDTH/3
+local width = SCREEN_WIDTH / 3
 local fontScale = 0.5
 local packh = 36
 local packgap = 4
@@ -141,94 +154,165 @@ local packspacing = packh + packgap
 local offx = 10
 local offy = 40
 
-local fx = SCREEN_WIDTH/4.5		-- this isnt very smart alignment
+local fx = SCREEN_WIDTH / 4.5 -- this isnt very smart alignment
 local f0y = 160
 local f1y = f0y + 40
 local f2y = f1y + 40
 local fdot = 24
 
-local o = Def.ActorFrame{
-	InitCommand=function(self)
+local o =
+	Def.ActorFrame {
+	InitCommand = function(self)
 		self:xy(0, 0):halign(0.5):valign(0)
-		self:GetChild("PacklistDisplay"):xy(SCREEN_WIDTH/2.5 - offx, offy * 2 + 14)
+		self:GetChild("PacklistDisplay"):xy(SCREEN_WIDTH / 2.5 - offx, offy * 2 + 14)
 		packlist = DLMAN:GetPacklist()
 		self:SetUpdateFunction(highlight)
 	end,
-	BeginCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback(DlInput) end,
-	
-	WheelUpSlowMessageCommand=function(self)
+	BeginCommand = function(self)
+		SCREENMAN:GetTopScreen():AddInputCallback(DlInput)
+	end,
+	WheelUpSlowMessageCommand = function(self)
 		self:queuecommand("PrevPage")
 	end,
-	WheelDownSlowMessageCommand=function(self)
+	WheelDownSlowMessageCommand = function(self)
 		self:queuecommand("NextPage")
 	end,
-	UpdateFilterDisplaysMessageCommand=function(self)
+	UpdateFilterDisplaysMessageCommand = function(self)
 		self:queuecommand("Set")
 	end,
-	FilterChangedMessageCommand=function(self)
+	FilterChangedMessageCommand = function(self)
 		self:queuecommand("PackTableRefresh")
 	end,
-	MouseRightClickMessageCommand=function(self)
+	MouseRightClickMessageCommand = function(self)
 		SCREENMAN:GetTopScreen():Cancel()
 	end,
-	
-	Def.Quad{
-		InitCommand=function(self)
-			self:xy(10,f0y-30):halign(0):valign(0):zoomto(SCREEN_WIDTH/3,f2y+20):diffuse(color("#666666")):diffusealpha(0.4)
-		end,
+	Def.Quad {
+		InitCommand = function(self)
+			self:xy(10, f0y - 30):halign(0):valign(0):zoomto(SCREEN_WIDTH / 3, f2y + 20):diffuse(color("#666666")):diffusealpha(
+				0.4
+			)
+		end
 	},
-	LoadFont("Common Large")..{
-		InitCommand=function(self)
-			self:xy(fx*0.9,f0y):zoom(fontScale):halign(0.5):valign(0):settext( "Filters:")
-		end,
-	},
-	LoadFont("Common Large")..{
-		InitCommand=function(self)
-			self:xy(fx,f1y):zoom(fontScale):halign(1):valign(0):settext( "Avg Diff:")
-		end,
-	},
-	LoadFont("Common Large")..{
-		InitCommand=function(self)
-			self:xy(fx,f2y):zoom(fontScale):halign(1):valign(0):settext( "Size (MB):")
-		end,
-	},
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:xy(fx * 0.9, f0y):zoom(fontScale):halign(0.5):valign(0):settext("Filters:")
+			end
+		},
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:xy(fx, f1y):zoom(fontScale):halign(1):valign(0):settext("Avg Diff:")
+			end
+		},
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:xy(fx, f2y):zoom(fontScale):halign(1):valign(0):settext("Size (MB):")
+			end
+		},
 	-- maybe we'll have more one day
-	
+
 	-- goes to bundles (funkied the xys to match bundle screen)
-	Def.Quad{
-		InitCommand=function(self)
-			self:xy(SCREEN_WIDTH/6 + 10,40):zoomto(SCREEN_WIDTH/3,packh-2):valign(0):diffuse(color("#ffffff")):diffusealpha(0.4)
+	Def.Quad {
+		InitCommand = function(self)
+			self:xy(SCREEN_WIDTH / 6 + 10, 40):zoomto(SCREEN_WIDTH / 3, packh - 2):valign(0):diffuse(color("#ffffff")):diffusealpha(
+				0.4
+			)
 		end,
-		MouseLeftClickMessageCommand=function(self)
+		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) then
 				SCREENMAN:SetNewScreen("ScreenBundleSelect")
 			end
 		end,
-		HighlightCommand=function(self)
+		HighlightCommand = function(self)
 			if isOver(self) then
 				self:diffusealpha(0.8)
 			else
 				self:diffusealpha(0.4)
 			end
-		end,
+		end
 	},
-	LoadFont("Common Large") .. {
-		InitCommand=function(self)
-			self:xy(SCREEN_WIDTH/6 + 10,56):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH/2):settext("Bundle Select")
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:xy(SCREEN_WIDTH / 6 + 10, 56):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH / 2):settext("Bundle Select")
+			end
+		},
+	--[[
+	Def.Quad {
+		InitCommand = function(self)
+			self:xy(SCREEN_WIDTH / 12 + 5, 40 + packh):zoomto(SCREEN_WIDTH / 6 - 10, packh - 2):valign(0):diffuse(
+				color("#ffffff")
+			):diffusealpha(0.4)
 		end,
-	}
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) then
+				local dls = DLMAN:GetDownloads()
+				for i, dl in ipairs(dls) do
+					dl:Stop()
+				end
+			end
+		end,
+		HighlightCommand = function(self)
+			if isOver(self) then
+				self:diffusealpha(0.8)
+			else
+				self:diffusealpha(0.4)
+			end
+		end
+	},
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:xy(SCREEN_WIDTH / 12 + 10, 56 + packh):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH / 3):settext(
+					"Cancel all dls"
+				)
+			end
+		},
+	--]]
+	Def.Quad {
+		InitCommand = function(self)
+			self:xy(SCREEN_WIDTH / 4 + 15, 40 + packh):zoomto(SCREEN_WIDTH / 6 - 10, packh - 2):valign(0):diffuse(
+				color("#ffffff")
+			):diffusealpha(0.4)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) then
+				local dl = DLMAN:GetDownloads()[1]
+				if dl then
+					dl:Stop()
+				end
+			end
+		end,
+		HighlightCommand = function(self)
+			if isOver(self) then
+				self:diffusealpha(0.8)
+			else
+				self:diffusealpha(0.4)
+			end
+		end
+	},
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:xy(SCREEN_WIDTH / 4 + 15, 56 + packh):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH / 3):settext(
+					"Cancel current dl"
+				)
+			end
+		}
 }
 
-local function numFilter(i,x,y)
-	return Def.ActorFrame{
-		InitCommand=function(self)
-			self:xy(fx+10,f0y):addx(x):addy(y)
+local function numFilter(i, x, y)
+	return Def.ActorFrame {
+		InitCommand = function(self)
+			self:xy(fx + 10, f0y):addx(x):addy(y)
 		end,
-		Def.Quad{
-			InitCommand=function(self)
-				self:zoomto(fdot,fdot):halign(0):valign(0)
+		Def.Quad {
+			InitCommand = function(self)
+				self:zoomto(fdot, fdot):halign(0):valign(0)
 			end,
-			MouseLeftClickMessageCommand=function(self)
+			MouseLeftClickMessageCommand = function(self)
 				if isOver(self) then
 					inputting = i
 					curInput = ""
@@ -237,47 +321,49 @@ local function numFilter(i,x,y)
 					SCREENMAN:set_input_redirected(PLAYER_1, true)
 				end
 			end,
-			SetCommand=function(self)
+			SetCommand = function(self)
 				diffuseIfActiveButton(self, inputting == i)
 			end,
-			HighlightCommand=function(self)
+			HighlightCommand = function(self)
 				highlightIfOver(self)
-			end,
+			end
 		},
-		LoadFont("Common Large")..{
-			InitCommand=function(self)
-				self:addx(fdot):halign(1):valign(0):maxwidth(fdot/fontScale):zoom(fontScale)
-			end,
-			SetCommand=function(self)
-				local fval= getFilter(i)
-				self:settext(fval)
-				diffuseIfActiveText(self, tonumber(fval) > 0 or inputting == i)
-			end,
-		}
+		LoadFont("Common Large") ..
+			{
+				InitCommand = function(self)
+					self:addx(fdot):halign(1):valign(0):maxwidth(fdot / fontScale):zoom(fontScale)
+				end,
+				SetCommand = function(self)
+					local fval = getFilter(i)
+					self:settext(fval)
+					diffuseIfActiveText(self, tonumber(fval) > 0 or inputting == i)
+				end
+			}
 	}
 end
-for i=2,3 do 
-	o[#o+1] = numFilter(i, 40 * (i-2), f1y - f0y)
+for i = 2, 3 do
+	o[#o + 1] = numFilter(i, 40 * (i - 2), f1y - f0y)
 end
-for i=4,5 do 
-	o[#o+1] = numFilter(i, 40 * (i-4), f2y - f0y)
+for i = 4, 5 do
+	o[#o + 1] = numFilter(i, 40 * (i - 4), f2y - f0y)
 end
 
-local nwidth = SCREEN_WIDTH/2
+local nwidth = SCREEN_WIDTH / 2
 local namex = nwidth
 local namey = 40
 local nhite = 22
 local nameoffx = 20
 -- name string search
-o[#o+1] = Def.ActorFrame{
-	InitCommand=function(self)
-		self:xy(namex,namey):halign(0):valign(0)
-	end,	
-	Def.Quad{
-		InitCommand=function(self)
-			self:zoomto(nwidth,nhite):halign(0):valign(0)
+o[#o + 1] =
+	Def.ActorFrame {
+	InitCommand = function(self)
+		self:xy(namex, namey):halign(0):valign(0)
+	end,
+	Def.Quad {
+		InitCommand = function(self)
+			self:zoomto(nwidth, nhite):halign(0):valign(0)
 		end,
-		MouseLeftClickMessageCommand=function(self)
+		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) then
 				inputting = 1
 				curInput = ""
@@ -286,28 +372,30 @@ o[#o+1] = Def.ActorFrame{
 				SCREENMAN:set_input_redirected(PLAYER_1, true)
 			end
 		end,
-		SetCommand=function(self)
+		SetCommand = function(self)
 			diffuseIfActiveButton(self, inputting == 1)
 		end,
-		HighlightCommand=function(self)
+		HighlightCommand = function(self)
 			highlightIfOver(self)
-		end,
+		end
 	},
-	LoadFont("Common Large")..{
-		InitCommand=function(self)
-			self:x(nameoffx):halign(0):valign(0):maxwidth(nwidth/fontScale - nameoffx * 2):zoom(fontScale)
-		end,
-		SetCommand=function(self)
-			local fval= getFilter(1)
-			self:settext(fval)
-			diffuseIfActiveText(self, fval ~= "" or inputting == 1)
-		end,
-	},
-	LoadFont("Common Large")..{
-		InitCommand=function(self)
-			self:zoom(fontScale):halign(1):valign(0):settext( "Name:")	-- this being so far down is kinda awkward
-		end,
-	},
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:x(nameoffx):halign(0):valign(0):maxwidth(nwidth / fontScale - nameoffx * 2):zoom(fontScale)
+			end,
+			SetCommand = function(self)
+				local fval = getFilter(1)
+				self:settext(fval)
+				diffuseIfActiveText(self, fval ~= "" or inputting == 1)
+			end
+		},
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:zoom(fontScale):halign(1):valign(0):settext("Name:") -- this being so far down is kinda awkward
+			end
+		}
 }
-o[#o+1] = LoadActor("packlistDisplay")
+o[#o + 1] = LoadActor("packlistDisplay")
 return o

@@ -13,7 +13,6 @@ local minanyms = {
 	"Frothy Loin",
 	"Ministry of Silly Steps",
 	"\na haiku for man\ntried to prove that we're special\nturns out that we're not",
-	
 	-- the profile names of yore
 	"mystic memer",
 	"orange hands",
@@ -38,7 +37,6 @@ local minanyms = {
 	"stepmania bakery hero",
 	"infinite swirling squid spacecraft",
 	"Jack Can't Reacher",
-
 	-- the nightly builds of yore
 	"AVAST YE STEPMATEY",
 	"ALPHA DINGOBABY",
@@ -61,7 +59,6 @@ local minanyms = {
 	"SLIGHTLY ALTERED COMPILER FLAG",
 	"PARTIALLY Q-TIP KIWI",
 	"POTATO PAINTING COURTESY",
-
 	-- Ye olde names
 	"Shoeeater9000",
 	"Thirdeye",
@@ -95,51 +92,58 @@ local minanyms = {
 	"theamishwillneverseethis.jpg",
 	"Restore missing legacy Stepmania Team credits #1588",
 	"gratuitous double negative usage",
-	"MinaTallerThanBrandon",
+	"MinaTallerThanBrandon"
 }
 
 math.random()
 
-t[#t+1] = Def.Quad{
-	InitCommand=function(self)
-		self:xy(0,0):halign(0):valign(0):zoomto(SCREEN_WIDTH,SCREEN_HEIGHT):diffuse(color("#111111")):diffusealpha(0):linear(1):diffusealpha(1):sleep(1.75):linear(2):diffusealpha(0)
-	end;
-};
+t[#t + 1] =
+	Def.Quad {
+	InitCommand = function(self)
+		self:xy(0, 0):halign(0):valign(0):zoomto(SCREEN_WIDTH, SCREEN_HEIGHT):diffuse(color("#111111")):diffusealpha(0):linear(
+			1
+		):diffusealpha(1):sleep(1.75):linear(2):diffusealpha(0)
+	end
+}
 
-t[#t+1] = Def.ActorFrame {
-  InitCommand=function(self)
-  	self:Center()
-  end,
-	LoadActor("woop") .. {
-		OnCommand=function(self)
-			self:zoomto(SCREEN_WIDTH,150):diffusealpha(0):linear(1):diffusealpha(1):sleep(1.75):linear(2):diffusealpha(0)
-		end	
-	},
+t[#t + 1] =
 	Def.ActorFrame {
-	  OnCommand=function(self)
-	  	self:playcommandonchildren("ChildrenOn")
-	  end,
-	  ChildrenOnCommand=function(self)
-	  	self:diffusealpha(0):sleep(0.5):linear(0.5):diffusealpha(1)
-	  end,
-		LoadFont("Common Normal") .. {
-			Text=getThemeName(),
-			InitCommand=function(self)
-				self:y(-24)
-			end,
-			OnCommand=function(self)
-				self:sleep(1):linear(3):diffuse(color("#111111")):diffusealpha(0)
-			end	
+	InitCommand = function(self)
+		self:Center()
+	end,
+	LoadActor("woop") ..
+		{
+			OnCommand = function(self)
+				self:zoomto(SCREEN_WIDTH, 150):diffusealpha(0):linear(1):diffusealpha(1):sleep(1.75):linear(2):diffusealpha(0)
+			end
 		},
-		LoadFont("Common Normal") .. {
-			Text="Created by " .. minanyms[math.random(#minanyms)],
-			InitCommand=function(self)
-				self:y(16):zoom(0.75):maxwidth(SCREEN_WIDTH)
-			end,
-			OnCommand=function(self)
-				self:sleep(1):linear(3):diffuse(color("#111111")):diffusealpha(0)
-			end	
-		},
+	Def.ActorFrame {
+		OnCommand = function(self)
+			self:playcommandonchildren("ChildrenOn")
+		end,
+		ChildrenOnCommand = function(self)
+			self:diffusealpha(0):sleep(0.5):linear(0.5):diffusealpha(1)
+		end,
+		LoadFont("Common Normal") ..
+			{
+				Text = getThemeName(),
+				InitCommand = function(self)
+					self:y(-24)
+				end,
+				OnCommand = function(self)
+					self:sleep(1):linear(3):diffuse(color("#111111")):diffusealpha(0)
+				end
+			},
+		LoadFont("Common Normal") ..
+			{
+				Text = "Created by " .. minanyms[math.random(#minanyms)],
+				InitCommand = function(self)
+					self:y(16):zoom(0.75):maxwidth(SCREEN_WIDTH)
+				end,
+				OnCommand = function(self)
+					self:sleep(1):linear(3):diffuse(color("#111111")):diffusealpha(0)
+				end
+			}
 	}
 }
 

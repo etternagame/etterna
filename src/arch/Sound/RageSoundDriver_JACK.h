@@ -6,9 +6,9 @@
 
 #define USE_RAGE_SOUND_JACK
 
-class RageSoundDriver_JACK: public RageSoundDriver
+class RageSoundDriver_JACK : public RageSoundDriver
 {
-public:
+  public:
 	RageSoundDriver_JACK();
 	~RageSoundDriver_JACK();
 
@@ -17,10 +17,10 @@ public:
 	int GetSampleRate() const;
 	int64_t GetPosition() const;
 
-private:
-	jack_client_t *client;
-	jack_port_t *port_l;
-	jack_port_t *port_r;
+  private:
+	jack_client_t* client;
+	jack_port_t* port_l;
+	jack_port_t* port_r;
 
 	int sample_rate;
 
@@ -29,9 +29,9 @@ private:
 
 	// JACK callbacks and trampolines
 	int ProcessCallback(jack_nframes_t nframes);
-	static int ProcessTrampoline(jack_nframes_t nframes, void *arg);
+	static int ProcessTrampoline(jack_nframes_t nframes, void* arg);
 	int SampleRateCallback(jack_nframes_t nframes);
-	static int SampleRateTrampoline(jack_nframes_t nframes, void *arg);
+	static int SampleRateTrampoline(jack_nframes_t nframes, void* arg);
 };
 
 #endif
@@ -39,7 +39,7 @@ private:
 /*
  * (c) 2013 Devin J. Pohly
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -49,7 +49,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

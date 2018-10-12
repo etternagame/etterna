@@ -3,15 +3,16 @@
 #ifndef __NDSTRUCTS__
 #define __NDSTRUCTS__
 
-struct NoteInfo {
+struct NoteInfo
+{
 	int notes;
 	float rowTime;
 };
 
-struct NoteInfo2 {
+struct NoteInfo2
+{
 	int notes;
 	int rowTime;
 };
 
-#endif 
-
+#endif

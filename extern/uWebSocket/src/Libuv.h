@@ -1,7 +1,12 @@
 #ifndef LIBUV_H
 #define LIBUV_H
 
-#include <uv.h>
+#ifdef __APPLE__
+    #include "../../libuv/uv.h"
+#else
+    #include <uv.h>
+#endif
+
 static_assert (UV_VERSION_MINOR >= 3, "µWebSockets requires libuv >=1.3.0");
 
 namespace uS {

@@ -2,15 +2,14 @@
 #include "RunningUnderValgrind.h"
 
 #if defined(CPU_X86) && defined(__GNUC__)
-bool RunningUnderValgrind()
+bool
+RunningUnderValgrind()
 {
 	/* Valgrind crashes and burns on pthread_mutex_timedlock. */
-        static int under_valgrind = -1;
-	if( under_valgrind == -1 )
-	{
+	static int under_valgrind = -1;
+	if (under_valgrind == -1) {
 		unsigned int magic[8] = { 0x00001001, 0, 0, 0, 0, 0, 0, 0 };
-		asm(
-			"mov %1, %%eax\n"
+		asm("mov %1, %%eax\n"
 			"mov $0, %%edx\n"
 			"rol $29, %%eax\n"
 			"rol $3, %%eax\n"
@@ -19,13 +18,16 @@ bool RunningUnderValgrind()
 			"rol $13, %%eax\n"
 			"rol $19, %%eax\n"
 			"mov %%edx, %0\t"
-			: "=r" (under_valgrind): "r" (magic): "eax", "edx" );
+			: "=r"(under_valgrind)
+			: "r"(magic)
+			: "eax", "edx");
 	}
-	
+
 	return under_valgrind != 0;
 }
 #else
-bool RunningUnderValgrind()
+bool
+RunningUnderValgrind()
 {
 	return false;
 }

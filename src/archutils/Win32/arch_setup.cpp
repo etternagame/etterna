@@ -1,25 +1,29 @@
 #include "global.h"
 #include "arch_setup.h"
 #ifdef _WINDOWS
-#  include <windows.h>
+#include <windows.h>
 #endif
 #include "CommandLine.h"
 
 #if defined(WINDOWS)
-int main( int argc, char* argv[] );
-int __stdcall WinMain( HINSTANCE /* hInstance */, HINSTANCE  /* hPrevInstance */, char * /* pCmdLine */, int /* nCmdShow */ )
+int
+main(int argc, char* argv[]);
+int __stdcall WinMain(HINSTANCE /* hInstance */,
+					  HINSTANCE /* hPrevInstance */,
+					  char* /* pCmdLine */,
+					  int /* nCmdShow */)
 {
-	char **argv;
-	int argc = GetWin32CmdLine( argv );
+	char** argv;
+	int argc = GetWin32CmdLine(argv);
 
-	return main( argc, argv );
+	return main(argc, argv);
 }
 #endif
 
 /*
  * (c) 2004 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -29,7 +33,7 @@ int __stdcall WinMain( HINSTANCE /* hInstance */, HINSTANCE  /* hPrevInstance */
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

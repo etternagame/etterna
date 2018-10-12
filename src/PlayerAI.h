@@ -4,18 +4,37 @@
 #define PlayerAI_H
 
 #include "GameConstantsAndTypes.h"
+#include "HighScore.h"
 
 class PlayerState;
 
-const int NUM_SKILL_LEVELS = 6;	// 0-5
+const int NUM_SKILL_LEVELS = 6; // 0-5
 
 class PlayerAI
 {
-public:
+  public:
+	// Pointer to real high score data for a replay
+
+	static HighScore* pScoreData;
+
+	// Pulled from pScoreData on initialization
+
+	// A map with indices for each row of the chart, pointing to nothing or a
+	// Normal Result
+	static map<int, vector<TapReplayResult>> m_ReplayTapMap;
+	// A map with indices for each row of the chart, pointing to nothing or hold
+	// drop results.
+	static map<int, vector<HoldReplayResult>> m_ReplayHoldMap;
 
 	static void InitFromDisk();
-	static TapNoteScore GetTapNoteScore( const PlayerState* pPlayerState );
+	static TapNoteScore GetTapNoteScore(const PlayerState* pPlayerState);
+	static void SetScoreData(HighScore* pHighScore);
 
+	static float GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col);
+	static TapNoteScore GetTapNoteScoreForReplay(
+	  const PlayerState* pPlayerState,
+	  float fNoteOffset);
+	static bool DetermineIfHoldDropped(int noteRow, int col);
 };
 
 #endif
@@ -23,7 +42,7 @@ public:
 /*
  * (c) 2003-2004 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -33,7 +52,7 @@ public:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

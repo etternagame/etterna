@@ -19,8 +19,8 @@
 
 #if defined(_MSC_VER)
 
-#if _MSC_VER == 1400 // VC8 specific warnings
-#pragma warning (disable : 4005) // macro redefinitions (ARRAYSIZE)
+#if _MSC_VER == 1400			// VC8 specific warnings
+#pragma warning(disable : 4005) // macro redefinitions (ARRAYSIZE)
 #endif
 
 /*
@@ -28,27 +28,26 @@ The following warnings are disabled in all builds.
 Enable them in the project file at your peril (or if you feel like
 learning of many pedantic style warnings and want to fix them).
 
-C2475: non dll-interface class 'stdext::exception' used as base for dll-interface class 'std::bad_cast', bug in VC <exception> when exceptions disabled
-C4100: unreferenced formal parameter
-  Many functions are like this, including virtual functions: unsure if it can be justified.
-  "case 'aaa' is not a valid value for switch of enum 'bbb'
-  Actually, this is a valid warning, but we do it all over the
-  place, eg. with ScreenMessages. Those should be fixed, but later. XXX
-C4127: conditional expression is constant.
+C2475: non dll-interface class 'stdext::exception' used as base for
+dll-interface class 'std::bad_cast', bug in VC <exception> when exceptions
+disabled C4100: unreferenced formal parameter Many functions are like this,
+including virtual functions: unsure if it can be justified. "case 'aaa' is not a
+valid value for switch of enum 'bbb' Actually, this is a valid warning, but we
+do it all over the place, eg. with ScreenMessages. Those should be fixed, but
+later. XXX C4127: conditional expression is constant.
 
-C4201: nonstandard extension used : nameless struct/union (Windows headers do this)
-C4786: turn off broken debugger warning
-C4512: assignment operator could not be generated (so?)
- "unreachable code". This warning crops up in incorrect places (end of do ... while(0)
- blocks, try/catch blocks), and I've never found it to be useful.
-C4702: assignment operator could not be generated (so?)
+C4201: nonstandard extension used : nameless struct/union (Windows headers do
+this) C4786: turn off broken debugger warning C4512: assignment operator could
+not be generated (so?) "unreachable code". This warning crops up in incorrect
+places (end of do ... while(0) blocks, try/catch blocks), and I've never found
+it to be useful. C4702: assignment operator could not be generated (so?)
 // "unreferenced formal parameter"; we *want* that in many cases
 
 C4063:
-C4786: VC6: identifier was truncated to '255' characters in the debug information
-C4505: removed unferenced local function from integer.cpp & algebra.h
-C4244: converting of data = possible data loss.  (This pragma should eventually go away)
-C4355: 'this' : used in base member initializer list
+C4786: VC6: identifier was truncated to '255' characters in the debug
+information C4505: removed unferenced local function from integer.cpp &
+algebra.h C4244: converting of data = possible data loss.  (This pragma should
+eventually go away) C4355: 'this' : used in base member initializer list
 
 */
 // Fix VC breakage.
@@ -61,7 +60,8 @@ C4355: 'this' : used in base member initializer list
 // Disable false deprecation warnings in VC2008.
 #define _CRT_NONSTDC_NO_WARNINGS
 
-// Don't include windows.h everywhere; when we do eventually include it, use these:
+// Don't include windows.h everywhere; when we do eventually include it, use
+// these:
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRALEAN
 
@@ -84,12 +84,15 @@ C4355: 'this' : used in base member initializer list
 
 typedef time_t time_t;
 struct tm;
-struct tm *my_localtime_r( const time_t *timep, struct tm *result );
+struct tm*
+my_localtime_r(const time_t* timep, struct tm* result);
 #define localtime_r my_localtime_r
-struct tm *my_gmtime_r( const time_t *timep, struct tm *result );
+struct tm*
+my_gmtime_r(const time_t* timep, struct tm* result);
 #define gmtime_r my_gmtime_r
 #if defined(_MSC_VER)
-void my_usleep( unsigned long usec );
+void
+my_usleep(unsigned long usec);
 #define usleep my_usleep
 #endif
 
@@ -107,17 +110,21 @@ typedef unsigned int uint32_t;
 typedef __int64 int64_t;
 typedef unsigned __int64 uint64_t;
 #if defined(_MSC_VER)
-#if _MSC_VER < 1700	// 1700 = VC++ 2011
+#if _MSC_VER < 1700 // 1700 = VC++ 2011
 #define INT64_C(i) i##i64
 #ifndef UINT64_C
 #define UINT64_C(i) i##ui64
 #endif
-#endif // #if _MSC_VER < 1700
+#endif										// #if _MSC_VER < 1700
 #if (_MSC_VER >= 1400) && (_MSC_VER < 1800) // 1800 = VC++ 2013
 #define llabs(i) _abs64(i)
-#endif // #if (_MSC_VER >= 1400) && (_MSC_VER < 1800)
+#endif				// #if (_MSC_VER >= 1400) && (_MSC_VER < 1800)
 #if _MSC_VER < 1400 // 1400 = VC++ 2005
-int64_t llabs( int64_t i ) { return i >= 0 ? i : -i; }
+int64_t
+llabs(int64_t i)
+{
+	return i >= 0 ? i : -i;
+}
 #endif // #if _MSC_VER < 1400
 #endif // #if defined(_MSC_VER)
 #endif // #if !defined(__MINGW32__)
@@ -134,48 +141,56 @@ int64_t llabs( int64_t i ) { return i >= 0 ? i : -i; }
 
 #if defined(__GNUC__) // It might be MinGW or Cygwin(?)
 #include "archutils/Common/gcc_byte_swaps.h"
-#elif defined(_MSC_VER) && (_MSC_VER >= 1310) // Byte swap functions were first implemented in Visual Studio .NET 2003
+#elif defined(_MSC_VER) && (_MSC_VER >= 1310) // Byte swap functions were first
+											  // implemented in Visual Studio
+											  // .NET 2003
 #define ArchSwap32(n) _byteswap_ulong(n)
 #define ArchSwap24(n) _byteswap_ulong(n) >> 8
 #define ArchSwap16(n) _byteswap_ushort(n)
 #else
 #define HAVE_BYTE_SWAPS
 
-inline uint32_t ArchSwap32( uint32_t n )
+inline uint32_t
+ArchSwap32(uint32_t n)
 {
 	__asm
-	{
+	  {
 		mov eax, n
 		xchg al, ah
 		ror eax, 16
 		xchg al, ah
 		mov n, eax
-	};
+	  }
+	;
 	return n;
 }
 
-inline uint32_t ArchSwap24( uint32_t n )
+inline uint32_t
+ArchSwap24(uint32_t n)
 {
 	__asm
-	{
+	  {
 		mov eax, n
 		xchg al, ah
 		ror eax, 16
 		xchg al, ah
 		ror eax, 8
 		mov n, eax
-	};
+	  }
+	;
 	return n;
 }
 
-inline uint16_t ArchSwap16( uint16_t n )
+inline uint16_t
+ArchSwap16(uint16_t n)
 {
 	__asm
-	{
+	  {
 		mov ax, n
 		xchg al, ah
 		mov n, ax
-	};
+	  }
+	;
 	return n;
 }
 #endif

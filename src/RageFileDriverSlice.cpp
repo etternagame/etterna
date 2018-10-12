@@ -1,7 +1,9 @@
 ﻿#include "global.h"
 #include "RageFileDriverSlice.h"
 
-RageFileDriverSlice::RageFileDriverSlice( RageFileBasic *pFile, int iOffset, int iFileSize )
+RageFileDriverSlice::RageFileDriverSlice(RageFileBasic* pFile,
+										 int iOffset,
+										 int iFileSize)
 {
 	m_pFile = pFile;
 	m_iOffset = iOffset;
@@ -10,8 +12,8 @@ RageFileDriverSlice::RageFileDriverSlice( RageFileBasic *pFile, int iOffset, int
 	m_bFileOwned = false;
 }
 
-RageFileDriverSlice::RageFileDriverSlice( const RageFileDriverSlice &cpy ):
-	RageFileObj(cpy)
+RageFileDriverSlice::RageFileDriverSlice(const RageFileDriverSlice& cpy)
+  : RageFileObj(cpy)
 {
 	m_pFile = cpy.m_pFile->Copy();
 	m_iOffset = cpy.m_iOffset;
@@ -22,27 +24,28 @@ RageFileDriverSlice::RageFileDriverSlice( const RageFileDriverSlice &cpy ):
 
 RageFileDriverSlice::~RageFileDriverSlice()
 {
-	if( m_bFileOwned )
+	if (m_bFileOwned)
 		delete m_pFile;
 }
 
-RageFileDriverSlice *RageFileDriverSlice::Copy() const
+RageFileDriverSlice*
+RageFileDriverSlice::Copy() const
 {
-	auto *pRet = new RageFileDriverSlice( *this );
+	auto* pRet = new RageFileDriverSlice(*this);
 	return pRet;
 }
 
-int RageFileDriverSlice::ReadInternal( void *buf, size_t bytes )
+int
+RageFileDriverSlice::ReadInternal(void* buf, size_t bytes)
 {
-	/* Make sure we're reading from the right place.  We might have been constructed
-	 * with a file not pointing to iOffset. */
-	m_pFile->Seek( m_iFilePos+m_iOffset );
+	/* Make sure we're reading from the right place.  We might have been
+	 * constructed with a file not pointing to iOffset. */
+	m_pFile->Seek(m_iFilePos + m_iOffset);
 
-	const int bytes_left = m_iFileSize-this->m_iFilePos;
-	const int got = m_pFile->Read( buf, min( (int) bytes, bytes_left ) );
-	if( got == -1 )
-	{
-		SetError( m_pFile->GetError() );
+	const int bytes_left = m_iFileSize - this->m_iFilePos;
+	const int got = m_pFile->Read(buf, min((int)bytes, bytes_left));
+	if (got == -1) {
+		SetError(m_pFile->GetError());
 		return -1;
 	}
 
@@ -51,20 +54,19 @@ int RageFileDriverSlice::ReadInternal( void *buf, size_t bytes )
 	return got;
 }
 
-
-int RageFileDriverSlice::SeekInternal( int offset )
+int
+RageFileDriverSlice::SeekInternal(int offset)
 {
-	ASSERT( offset >= 0 );
-	offset = min( offset, m_iFileSize );
+	ASSERT(offset >= 0);
+	offset = min(offset, m_iFileSize);
 
-	int ret = m_pFile->Seek( m_iOffset + offset );
-	if( ret == -1 )
-	{
-		SetError( m_pFile->GetError() );
+	int ret = m_pFile->Seek(m_iOffset + offset);
+	if (ret == -1) {
+		SetError(m_pFile->GetError());
 		return -1;
 	}
 	ret -= m_iOffset;
-	ASSERT( ret >= 0 );
+	ASSERT(ret >= 0);
 	m_iFilePos = ret;
 
 	return ret;
@@ -94,4 +96,3 @@ int RageFileDriverSlice::SeekInternal( int offset )
  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-

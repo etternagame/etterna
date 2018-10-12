@@ -7,28 +7,27 @@
 #include "ScreenTestSound.h"
 #include "ThemeManager.h"
 
-REGISTER_SCREEN_CLASS( ScreenTestSound );
+REGISTER_SCREEN_CLASS(ScreenTestSound);
 
-void ScreenTestSound::Init()
+void
+ScreenTestSound::Init()
 {
 	Screen::Init();
 
 	this->AddChild(&HEEEEEEEEELP);
 
 	HEEEEEEEEELP.SetXY(450, 400);
-	HEEEEEEEEELP.LoadFromFont( THEME->GetPathF("Common","normal") );
+	HEEEEEEEEELP.LoadFromFont(THEME->GetPathF("Common", "normal"));
 	HEEEEEEEEELP.SetZoom(.5f);
-	HEEEEEEEEELP.SetText(
-		"p  Play\n"
-		"s  Stop\n"
-		"l  Set looping\n"
-		"a  Set autostop\n"
-		"c  Set continue");
+	HEEEEEEEEELP.SetText("p  Play\n"
+						 "s  Stop\n"
+						 "l  Set looping\n"
+						 "a  Set autostop\n"
+						 "c  Set continue");
 
-	for( int i = 0; i < nsounds; ++i )
-	{
+	for (int i = 0; i < nsounds; ++i) {
 		this->AddChild(&s[i].txt);
-		s[i].txt.LoadFromFont( THEME->GetPathF("Common","normal") );
+		s[i].txt.LoadFromFont(THEME->GetPathF("Common", "normal"));
 		s[i].txt.SetZoom(.5f);
 	}
 
@@ -47,159 +46,154 @@ void ScreenTestSound::Init()
 	s[3].s.Load("Themes/default/Sounds/ScreenGameplay oni die.ogg");
 	s[4].s.Load("Themes/default/Sounds/Common back.ogg");
 
-//s[0].s.SetStartSeconds(45);
-//s[0].s.SetPositionSeconds();
-// s[4].s.SetLengthSeconds(1);
+	// s[0].s.SetStartSeconds(45);
+	// s[0].s.SetPositionSeconds();
+	// s[4].s.SetLengthSeconds(1);
 	RageSoundParams p;
 	p.StopMode = RageSoundParams::M_STOP;
 	// p.m_fRate = 1.20f;
-	for( int i = 0; i < nsounds; ++i )
-		s[i].s.SetParams( p );
+	for (int i = 0; i < nsounds; ++i)
+		s[i].s.SetParams(p);
 
-//s[0].s.SetStopMode(RageSound::M_LOOP);
-//s[0].s.Play(false);
+	// s[0].s.SetStopMode(RageSound::M_LOOP);
+	// s[0].s.Play(false);
 
 	selected = 0;
-	for( int i = 0; i < nsounds; ++i )
+	for (int i = 0; i < nsounds; ++i)
 		UpdateText(i);
 }
 
 ScreenTestSound::~ScreenTestSound()
 {
-	for( int i = 0; i < nsounds; ++i )
-	{
+	for (int i = 0; i < nsounds; ++i) {
 		/* Delete copied sounds. */
-		vector<RageSound *> &snds = m_sSoundCopies[i];
-		for( unsigned j = 0; j < snds.size(); ++j )
+		vector<RageSound*>& snds = m_sSoundCopies[i];
+		for (unsigned j = 0; j < snds.size(); ++j)
 			delete snds[j];
 	}
 }
 
-void ScreenTestSound::UpdateText(int n)
+void
+ScreenTestSound::UpdateText(int n)
 {
-	RString fn = Basename( s[n].s.GetLoadedFilePath() );
+	RString fn = Basename(s[n].s.GetLoadedFilePath());
 
-	vector<RageSound *> &snds = m_sSoundCopies[n];
+	vector<RageSound*>& snds = m_sSoundCopies[n];
 
 	RString pos;
-	for(unsigned p = 0; p < snds.size(); ++p)
-	{
-		if(p) pos += ", ";
+	for (unsigned p = 0; p < snds.size(); ++p) {
+		if (p)
+			pos += ", ";
 		pos += ssprintf("%.3f", snds[p]->GetPositionSeconds());
 	}
 
-	s[n].txt.SetText(ssprintf(
-		"%i: %s\n"
-		"%s\n"
-		"%s\n"
-		"(%s)\n"
-		"%s",
-		n+1, fn.c_str(),
-		s[n].s.IsPlaying()? "Playing":"Stopped",
-		s[n].s.GetParams().StopMode == RageSoundParams::M_STOP?
-			"Stop when finished":
-		s[n].s.GetParams().StopMode == RageSoundParams::M_CONTINUE?
-			"Continue until stopped":
-			"Loop",
-		pos.size()? pos.c_str(): "none playing",
-		selected == n? "^^^^^^":""
-		));
+	s[n].txt.SetText(
+	  ssprintf("%i: %s\n"
+			   "%s\n"
+			   "%s\n"
+			   "(%s)\n"
+			   "%s",
+			   n + 1,
+			   fn.c_str(),
+			   s[n].s.IsPlaying() ? "Playing" : "Stopped",
+			   s[n].s.GetParams().StopMode == RageSoundParams::M_STOP
+				 ? "Stop when finished"
+				 : s[n].s.GetParams().StopMode == RageSoundParams::M_CONTINUE
+					 ? "Continue until stopped"
+					 : "Loop",
+			   pos.size() ? pos.c_str() : "none playing",
+			   selected == n ? "^^^^^^" : ""));
 }
 
-void ScreenTestSound::Update(float f)
+void
+ScreenTestSound::Update(float f)
 {
 	Screen::Update(f);
 
-	for(int i = 0; i < nsounds; ++i)
-	{
+	for (int i = 0; i < nsounds; ++i) {
 		UpdateText(i);
 
 		/* Delete copied sounds that have finished playing. */
-		vector<RageSound *> &snds = m_sSoundCopies[i];
-		for( unsigned j = 0; j < snds.size(); ++j )
-		{
-			if( snds[j]->IsPlaying() )
+		vector<RageSound*>& snds = m_sSoundCopies[i];
+		for (unsigned j = 0; j < snds.size(); ++j) {
+			if (snds[j]->IsPlaying())
 				continue;
 			delete snds[j];
-			snds.erase( snds.begin()+j );
+			snds.erase(snds.begin() + j);
 			--j;
 		}
 	}
 }
 
-bool ScreenTestSound::Input( const InputEventPlus &input )
+bool
+ScreenTestSound::Input(const InputEventPlus& input)
 {
-	if( input.type != IET_FIRST_PRESS )
-		return false;	// ignore
+	if (input.type != IET_FIRST_PRESS)
+		return false; // ignore
 
-	switch( input.DeviceI.device )
-	{
-	case DEVICE_KEYBOARD:
-		switch( input.DeviceI.button )
-		{
-			case '1':
-			case '2':
-			case '3':
-			case '4':
-			case '5': selected = input.DeviceI.button - '0'-1; break;
-			case 'p':
-			{
-				/* We want to be able to read the position of copied sounds; if we let
-				 * RageSound copy itself, then the copy will be owned by RageSoundManager
-				 * and we won't be allowed to touch it.  Copy it ourself. */
-				RageSound *pCopy = new RageSound( s[selected].s );
-				m_sSoundCopies[selected].push_back( pCopy );
-				pCopy->Play(false);
-				break;
-			}
-			case 's':
-			{
-				for( int i = 0; i < nsounds; ++i )
-				{
-					/* Stop copied sounds. */
-					vector<RageSound *> &snds = m_sSoundCopies[i];
-					for( unsigned j = 0; j < snds.size(); ++j )
-						snds[j]->Stop();
+	switch (input.DeviceI.device) {
+		case DEVICE_KEYBOARD:
+			switch (input.DeviceI.button) {
+				case '1':
+				case '2':
+				case '3':
+				case '4':
+				case '5':
+					selected = input.DeviceI.button - '0' - 1;
+					break;
+				case 'p': {
+					/* We want to be able to read the position of copied sounds;
+					 * if we let RageSound copy itself, then the copy will be
+					 * owned by RageSoundManager and we won't be allowed to
+					 * touch it.  Copy it ourself. */
+					RageSound* pCopy = new RageSound(s[selected].s);
+					m_sSoundCopies[selected].push_back(pCopy);
+					pCopy->Play(false);
+					break;
 				}
-				break;
+				case 's': {
+					for (int i = 0; i < nsounds; ++i) {
+						/* Stop copied sounds. */
+						vector<RageSound*>& snds = m_sSoundCopies[i];
+						for (unsigned j = 0; j < snds.size(); ++j)
+							snds[j]->Stop();
+					}
+					break;
+				}
+				case 'l': {
+					RageSoundParams p = s[selected].s.GetParams();
+					p.StopMode = RageSoundParams::M_LOOP;
+					s[selected].s.SetParams(p);
+					break;
+				}
+				case 'a': {
+					RageSoundParams p = s[selected].s.GetParams();
+					p.StopMode = RageSoundParams::M_STOP;
+					s[selected].s.SetParams(p);
+					break;
+				}
+				case 'c': {
+					RageSoundParams p = s[selected].s.GetParams();
+					p.StopMode = RageSoundParams::M_CONTINUE;
+					s[selected].s.SetParams(p);
+					break;
+				}
+					/*			case KEY_LEFT:
+									obj.SetX(obj.GetX() - 10);
+									break;
+								case KEY_RIGHT:
+									obj.SetX(obj.GetX() + 10);
+									break;
+								case KEY_UP:
+									obj.SetY(obj.GetY() - 10);
+									break;
+								case KEY_DOWN:
+									obj.SetY(obj.GetY() + 10);
+									break;
+					*/
+				default:
+					return false;
 			}
-			case 'l':
-			{
-				RageSoundParams p = s[selected].s.GetParams();
-				p.StopMode = RageSoundParams::M_LOOP;
-				s[selected].s.SetParams( p );
-				break;
-			}
-			case 'a':
-			{
-				RageSoundParams p = s[selected].s.GetParams();
-				p.StopMode = RageSoundParams::M_STOP;
-				s[selected].s.SetParams( p );
-				break;
-			}
-			case 'c':
-			{
-				RageSoundParams p = s[selected].s.GetParams();
-				p.StopMode = RageSoundParams::M_CONTINUE;
-				s[selected].s.SetParams( p );
-				break;
-			}
-/*			case KEY_LEFT:
-				obj.SetX(obj.GetX() - 10);
-				break;
-			case KEY_RIGHT:
-				obj.SetX(obj.GetX() + 10);
-				break;
-			case KEY_UP:
-				obj.SetY(obj.GetY() - 10);
-				break;
-			case KEY_DOWN:
-				obj.SetY(obj.GetY() + 10);
-				break;
-*/
-			default:
-				return false;
-		}
 		default:
 			return false;
 	}
@@ -209,7 +203,7 @@ bool ScreenTestSound::Input( const InputEventPlus &input )
 /*
  * (c) 2003 Glenn Maynard
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -219,7 +213,7 @@ bool ScreenTestSound::Input( const InputEventPlus &input )
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

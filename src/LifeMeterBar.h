@@ -10,17 +10,18 @@ class StreamDisplay;
 /** @brief The player's life represented as a bar. */
 class LifeMeterBar : public LifeMeter
 {
-public:
+  public:
 	LifeMeterBar();
 	~LifeMeterBar() override;
 
-	void Load( const PlayerState *pPlayerState, PlayerStageStats *pPlayerStageStats ) override;
+	void Load(const PlayerState* pPlayerState,
+			  PlayerStageStats* pPlayerStageStats) override;
 
-	void Update( float fDeltaTime ) override;
+	void Update(float fDeltaTime) override;
 
-	void ChangeLife( TapNoteScore score ) override;
-	void ChangeLife( HoldNoteScore score, TapNoteScore tscore  ) override;
-	void ChangeLife( float fDeltaLifePercent ) override;
+	void ChangeLife(TapNoteScore score) override;
+	void ChangeLife(HoldNoteScore score, TapNoteScore tscore) override;
+	void ChangeLife(float fDeltaLifePercent) override;
 	void SetLife(float value) override;
 	void HandleTapScoreNone() override;
 	virtual void AfterLifeChanged();
@@ -33,18 +34,19 @@ public:
 	void FillForHowToPlay(int NumT2s, int NumMisses);
 	// this function is solely for HowToPlay
 
-private:
+  private:
 	ThemeMetric<float> DANGER_THRESHOLD;
 	ThemeMetric<float> INITIAL_VALUE;
 	ThemeMetric<float> HOT_VALUE;
 	ThemeMetric<float> LIFE_MULTIPLIER;
 	ThemeMetric<bool> FORCE_LIFE_DIFFICULTY_ON_EXTRA_STAGE;
-	ThemeMetric<TapNoteScore>   MIN_STAY_ALIVE;
-	ThemeMetric<float>	EXTRA_STAGE_LIFE_DIFFICULTY;
+	ThemeMetric<TapNoteScore> MIN_STAY_ALIVE;
+	ThemeMetric<float> EXTRA_STAGE_LIFE_DIFFICULTY;
 
 	ThemeMetric1D<float> m_fLifePercentChange;
 
-	// Doing this proper, let's not vector lookup for these values every update - Mina
+	// Doing this proper, let's not vector lookup for these values every update
+	// - Mina
 	float m_Change_SE_W1;
 	float m_Change_SE_W2;
 	float m_Change_SE_W3;
@@ -57,24 +59,25 @@ private:
 	float m_Change_SE_Held;
 	float m_Change_SE_LetGo;
 
-	AutoActor		m_sprUnder;
-	AutoActor		m_sprDanger;
-	StreamDisplay*	m_pStream;
-	AutoActor		m_sprOver;
+	AutoActor m_sprUnder;
+	AutoActor m_sprDanger;
+	StreamDisplay* m_pStream;
+	AutoActor m_sprOver;
 
-	float		m_fLifePercentage;
+	float m_fLifePercentage;
 
-	float		m_fPassingAlpha;
-	float		m_fHotAlpha;
+	float m_fPassingAlpha;
+	float m_fHotAlpha;
 
-	float		m_fBaseLifeDifficulty;
-	float		m_fLifeDifficulty;		// essentially same as pref
+	float m_fBaseLifeDifficulty;
+	float m_fLifeDifficulty; // essentially same as pref
 
-	int			m_iProgressiveLifebar;		// cached from prefs
+	int m_iProgressiveLifebar; // cached from prefs
 	/** @brief The current number of progressive W5/miss rankings. */
-	int			m_iMissCombo;
-	/** @brief The combo needed before the life bar starts to fill up after a Player failed. */
-	int			m_iComboToRegainLife;
+	int m_iMissCombo;
+	/** @brief The combo needed before the life bar starts to fill up after a
+	 * Player failed. */
+	int m_iComboToRegainLife;
 };
 
 #endif
@@ -82,7 +85,7 @@ private:
 /*
  * (c) 2001-2004 Chris Danford
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -92,7 +95,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

@@ -11,20 +11,19 @@
 
 class ScreenMapControllers : public ScreenWithMenuElements
 {
-public:
+  public:
 	ScreenMapControllers();
 	~ScreenMapControllers() override;
 	void Init() override;
 	void BeginScreen() override;
 
-	void Update( float fDeltaTime ) override;
-	bool Input( const InputEventPlus &input ) override;
-	void HandleMessage( const Message &msg ) override;
-	void HandleScreenMessage( ScreenMessage SM ) override;
+	void Update(float fDeltaTime) override;
+	bool Input(const InputEventPlus& input) override;
+	void HandleMessage(const Message& msg) override;
+	void HandleScreenMessage(ScreenMessage SM) override;
 
-private:
-
-	Actor *GetActorWithFocus();
+  private:
+	Actor* GetActorWithFocus();
 	void BeforeChangeFocus();
 	void AfterChangeFocus();
 	void Refresh();
@@ -40,7 +39,7 @@ private:
 	int CurActionIndex();
 	void SetCursorFromSetListCurrent();
 	void StartWaitingForPress();
-	
+
 	unsigned int m_CurController;
 	unsigned int m_CurButton;
 	unsigned int m_CurSlot;
@@ -56,7 +55,8 @@ private:
 		GameButton m_GameButton;
 
 		// owned by m_Line
-		BitmapText	*m_textMappedTo[NUM_GameController][NUM_SHOWN_GAME_TO_DEVICE_SLOTS];
+		BitmapText* m_textMappedTo[NUM_GameController]
+								  [NUM_SHOWN_GAME_TO_DEVICE_SLOTS];
 	};
 	vector<KeyToMap> m_KeysToMap;
 
@@ -64,7 +64,8 @@ private:
 
 	BitmapText m_textLabel[NUM_GameController];
 	BitmapText m_ListHeaderCenter;
-	BitmapText m_ListHeaderLabels[NUM_GameController][NUM_SHOWN_GAME_TO_DEVICE_SLOTS];
+	BitmapText m_ListHeaderLabels[NUM_GameController]
+								 [NUM_SHOWN_GAME_TO_DEVICE_SLOTS];
 
 	float m_AutoDismissWarningSecs;
 	AutoActor m_Warning;
@@ -81,15 +82,17 @@ private:
 		int m_controller;
 		int m_slot;
 		SetListEntry(int b, int c, int s)
-			:m_button(b), m_controller(c), m_slot(s) {}
+		  : m_button(b)
+		  , m_controller(c)
+		  , m_slot(s)
+		{
+		}
 		bool operator<(SetListEntry const& rhs) const
 		{
-			if(m_controller != rhs.m_controller)
-			{
+			if (m_controller != rhs.m_controller) {
 				return m_controller < rhs.m_controller;
 			}
-			if(m_button != rhs.m_button)
-			{
+			if (m_button != rhs.m_button) {
 				return m_button < rhs.m_button;
 			}
 			return m_slot < rhs.m_slot;
@@ -105,9 +108,11 @@ private:
 		RString m_name;
 		AutoActor m_actor;
 		action_fun_t m_action;
-		void Load(RString const& scr_name, RString const& name,
-			ScreenMapControllers::action_fun_t action, ActorFrame* line,
-			ActorScroller* scroller);
+		void Load(RString const& scr_name,
+				  RString const& name,
+				  ScreenMapControllers::action_fun_t action,
+				  ActorFrame* line,
+				  ActorScroller* scroller);
 	};
 	void ClearToDefault();
 	void ReloadFromDisk();
@@ -131,7 +136,7 @@ private:
  * (c) 2001-2004 Chris Danford
  * 2014 Eric Reese
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -141,7 +146,7 @@ private:
  * copyright notice(s) and this permission notice appear in all copies of
  * the Software and that both the above copyright notice(s) and this
  * permission notice appear in supporting documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF

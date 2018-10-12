@@ -10,17 +10,17 @@
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
-// 
+//
 // For the licensing details see the file License.txt
 ////////////////////////////////////////////////////////////////////////////////
 
-
-#include "stdafx.h"
 #include "ZipPlatform.h"
+#include "stdafx.h"
 
 using namespace ZipPlatform;
 
-bool ZipPlatform::DirectoryExists(LPCTSTR lpszDir)
+bool
+ZipPlatform::DirectoryExists(LPCTSTR lpszDir)
 {
 	CZipString sz;
 	if (!GetCurrentDirectory(sz))
@@ -31,14 +31,14 @@ bool ZipPlatform::DirectoryExists(LPCTSTR lpszDir)
 	return true;
 }
 
-bool ZipPlatform::ForceDirectory(LPCTSTR lpDirectory)
+bool
+ZipPlatform::ForceDirectory(LPCTSTR lpDirectory)
 {
 	ASSERT(lpDirectory);
 	CZipString szDirectory = lpDirectory;
 	szDirectory.TrimRight(CZipPathComponent::m_cSeparator);
 	CZipPathComponent zpc(szDirectory);
-	if ((zpc.GetFilePath() == szDirectory) ||
-		(FileExists(szDirectory) == -1))
+	if ((zpc.GetFilePath() == szDirectory) || (FileExists(szDirectory) == -1))
 		return true;
 	if (!ForceDirectory(zpc.GetFilePath()))
 		return false;

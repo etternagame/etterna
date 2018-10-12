@@ -43,7 +43,7 @@
 
 	; don't forget to change this before releasing a new version.
 	; wish this could be automated, but it requires "X.Y.Z.a" format. -aj
-	VIProductVersion "0.60.0.0"
+	VIProductVersion "0.61.0.0"
 	VIAddVersionKey "ProductName" "${PRODUCT_ID}"
 	VIAddVersionKey "FileVersion" "${PRODUCT_VER}"
 	VIAddVersionKey "FileDescription" "${PRODUCT_ID} Installer"
@@ -415,6 +415,27 @@ Section "Main Section" SecMain
 	RMDir /r "$INSTDIR\Themes\_portKit-sm4"
 	RMDir /r "$INSTDIR\Themes\default"
 	CreateDirectory "$INSTDIR\Themes"
+
+	Delete "$INSTDIR\Themes\Til Death\Scripts\00 settings_system.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\00 Utility.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\01 avatar_config.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\Avatar.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\FileUtils.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\Scores.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\Texts.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\WifeSundries.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\DataDumper.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\WifePointTables.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\Scoretracking.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\Wife.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\WifeKeys.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\WifeScores.lua"
+	Delete "$INSTDIR\Themes\Til Death\Scripts\WifeSearch.lua"
+	Delete "$INSTDIR\Themes\Til Death\BGAnimations\ExportSelection.lua"
+	Delete "$INSTDIR\Themes\Til Death\BGAnimations\wifeScold.lua"
+	Delete "$INSTDIR\Themes\Til Death\BGAnimations\ScreenEvaluation decorations\wifeScold.lua"
+	Delete "$INSTDIR\Themes\Til Death\BGAnimations\ScreenGameplay underlay\pause.lua"
+
 	SetOutPath "$INSTDIR\Themes"
 	;File "Themes\instructions.txt"
 	File /r /x CVS /x .svn "Themes\_fallback"
@@ -438,7 +459,9 @@ Section "Main Section" SecMain
 	File /r /x CVS /x .svn "Data\*.png"
 	
 	SetOverwrite off
-		File /r /x CVS /x .svn "Data\*.ttf"
+		CreateDirectory "$INSTDIR\Assets"
+		SetOutPath "$INSTDIR\Assets"
+		File /r /x CVS /x svn "Assets\*"
 	SetOverwrite on
 !endif
 
@@ -534,10 +557,6 @@ Section "Main Section" SecMain
 	File /r /x CVS /x .svn "Docs\Luadoc"
 	File /r /x CVS /x .svn "Docs\Themerdocs"
 
-	CreateDirectory "$INSTDIR\Manual"
-	SetOutPath "$INSTDIR\Manual"
-	File /r /x CVS /x .svn /x _* /x desktop.ini "Manual\*.*"
-
 	; Create Start Menu icons
 	SetShellVarContext current  # 	'all' doesn't work on Win9x
 	CreateDirectory "$SMPROGRAMS\${PRODUCT_ID}\"
@@ -557,7 +576,6 @@ Section "Main Section" SecMain
 
 	;CreateShortCut "$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_VIEW_STATISTICS).lnk" "$INSTDIR\Program\tools.exe" "--machine-profile-stats"
 	;CreateShortCut "$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_TOOLS).lnk" "$INSTDIR\Program\tools.exe"
-	CreateShortCut "$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_MANUAL).lnk" "$INSTDIR\Manual\index.html"
 	CreateShortCut "$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_UNINSTALL).lnk" "$INSTDIR\uninstall.exe"
 	CreateShortCut "$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_WEB_SITE).lnk" "${PRODUCT_URL}"
 	CreateShortCut "$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_TEXTURE_FONT_GENERATOR).lnk" "$INSTDIR\Program\Texture Font Generator.exe"
@@ -952,8 +970,6 @@ Section "Uninstall"
 	Delete "$INSTDIR\Program\parallel_lights_io.dll"
 	Delete "$INSTDIR\Program\zlib1.dll"
 	RMDir "$INSTDIR\Program"
-
-	RMDir /r "$INSTDIR\Manual"
 !endif
 
 	Delete "$INSTDIR\log.txt"
@@ -984,7 +1000,6 @@ Section "Uninstall"
 
 	;Delete '"$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_VIEW_STATISTICS).lnk"'
 	;Delete '"$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_TOOLS).lnk"'
-	Delete '"$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_MANUAL).lnk"'
 	Delete '"$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_UNINSTALL).lnk"'
 	Delete '"$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_WEB_SITE).lnk"'
 	Delete '"$SMPROGRAMS\${PRODUCT_ID}\$(TEXT_IO_TEXTURE_FONT_GENERATOR).lnk"'
