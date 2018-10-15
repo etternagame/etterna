@@ -64,14 +64,15 @@ t[#t + 1] =
 }
 
 --Theme text
-t[#t + 1] = LoadFont("Common Normal") .. {
-	InitCommand=function(self)
-		self:xy(95,frameY-52):zoom(0.65):valign(1):halign(0):diffuse(getMainColor('positive'))
-		-- previousX, 42, previousY, frameY(-62)
-	end
-	OnCommand=function(self)
+t[#t + 1] =
+	LoadFont("Common Normal") .. 
+	{
+		InitCommand=function(self)
+			self:xy(95,frameY-52):zoom(0.65):valign(1):halign(0):diffuse(getMainColor('positive'))
+		end
+		OnCommand=function(self)
 		self:settext(getThemeName())
-	end
+		end
 }
 
 -- lazy game update button -mina
