@@ -1,4 +1,10 @@
 local defaultConfig = {
+	title = {
+		BG_Left		= "#161515",
+		BG_Right	= "#222222",
+		Line_Left	= "#b87cf0",
+		Line_Right	= "#59307f"
+	},
 	main = {
 		highlight = "#614080",
 		frames = "#000111",
@@ -135,6 +141,10 @@ end
 
 function getVividDifficultyColor(diff)
 	return color(colorConfig:get_data().difficultyVivid[diff]) or color("#ffffff")
+end
+
+function getTitleColor(type)
+	return color(colorConfig:get_data().title[type])
 end
 
 -- expecting ms input (153, 13.321, etc) so convert to seconds to compare to judgment windows -mina
