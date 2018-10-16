@@ -13,7 +13,7 @@ class RageBitmapTexture : public RageTexture
 	/* only called by RageTextureManager::InvalidateTextures */
 	void Invalidate() override { m_uTexHandle = 0; /* don't Destroy() */ }
 	void Reload() override;
-	unsigned GetTexHandle() const override
+	intptr_t GetTexHandle() const override
 	{
 		return m_uTexHandle;
 	}; // accessed by RageDisplay
@@ -21,7 +21,7 @@ class RageBitmapTexture : public RageTexture
   private:
 	void Create(); // called by constructor and Reload
 	void Destroy();
-	unsigned m_uTexHandle; // treat as unsigned in OpenGL, ID3D8Texture* for D3D
+	intptr_t m_uTexHandle; // treat as unsigned in OpenGL, ID3D8Texture* for D3D
 };
 
 #endif

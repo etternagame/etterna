@@ -217,8 +217,8 @@ ImageCache::ReadFromDisk()
 
 struct ImageTexture : public RageTexture
 {
-	unsigned m_uTexHandle;
-	unsigned GetTexHandle() const override
+	intptr_t m_uTexHandle;
+	intptr_t GetTexHandle() const override
 	{
 		return m_uTexHandle;
 	}; // accessed by RageDisplay

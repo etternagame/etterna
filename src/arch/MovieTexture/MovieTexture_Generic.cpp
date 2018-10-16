@@ -161,7 +161,7 @@ class RageMovieTexture_Generic_Intermediate : public RageTexture
 
 	virtual void Invalidate() { m_uTexHandle = 0; }
 	virtual void Reload() {}
-	virtual unsigned GetTexHandle() const { return m_uTexHandle; }
+	virtual intptr_t GetTexHandle() const { return m_uTexHandle; }
 
 	bool IsAMovie() const { return true; }
 
@@ -185,7 +185,7 @@ class RageMovieTexture_Generic_Intermediate : public RageTexture
 		delete pSurface;
 	}
 
-	unsigned m_uTexHandle;
+	intptr_t m_uTexHandle;
 	RageSurfaceFormat m_SurfaceFormat;
 	RagePixelFormat m_PixFmt;
 };
@@ -539,7 +539,7 @@ MovieTexture_Generic::SetPosition(float fSeconds)
 	m_bWantRewind = true;
 }
 
-unsigned
+intptr_t
 MovieTexture_Generic::GetTexHandle() const
 {
 	if (m_pRenderTarget != NULL)

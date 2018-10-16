@@ -56,22 +56,22 @@ class RageDisplay_Legacy : public RageDisplay
 	bool SupportsTextureFormat(RagePixelFormat pixfmt,
 							   bool realtime = false) override;
 	bool SupportsPerVertexMatrixScale() override;
-	unsigned CreateTexture(RagePixelFormat pixfmt,
+	intptr_t CreateTexture(RagePixelFormat pixfmt,
 						   RageSurface* img,
 						   bool bGenerateMipMaps) override;
-	void UpdateTexture(unsigned iTexHandle,
+	void UpdateTexture(intptr_t iTexHandle,
 					   RageSurface* img,
 					   int xoffset,
 					   int yoffset,
 					   int width,
 					   int height) override;
-	void DeleteTexture(unsigned iTexHandle) override;
-	RageSurface* GetTexture(unsigned iTexture) override;
+	void DeleteTexture(intptr_t iTexHandle) override;
+	RageSurface* GetTexture(intptr_t iTexture) override;
 	RageTextureLock* CreateTextureLock() override;
 
 	void ClearAllTextures() override;
 	int GetNumTextureUnits() override;
-	void SetTexture(TextureUnit tu, unsigned iTexture) override;
+	void SetTexture(TextureUnit tu, intptr_t iTexture) override;
 	void SetTextureMode(TextureUnit tu, TextureMode tm) override;
 	void SetTextureWrapping(TextureUnit tu, bool b) override;
 	int GetMaxTextureSize() const override;
@@ -79,11 +79,11 @@ class RageDisplay_Legacy : public RageDisplay
 	void SetEffectMode(EffectMode effect) override;
 	bool IsEffectModeSupported(EffectMode effect) override;
 	bool SupportsRenderToTexture() const;
-	unsigned CreateRenderTarget(const RenderTargetParam& param,
+	intptr_t CreateRenderTarget(const RenderTargetParam& param,
 								int& iTextureWidthOut,
 								int& iTextureHeightOut) override;
-	unsigned GetRenderTarget() override;
-	void SetRenderTarget(unsigned iHandle, bool bPreserveTexture) override;
+	intptr_t GetRenderTarget() override;
+	void SetRenderTarget(intptr_t iHandle, bool bPreserveTexture) override;
 	bool IsZWriteEnabled() const override;
 	bool IsZTestEnabled() const override;
 	void SetZWrite(bool b) override;

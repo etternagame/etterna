@@ -95,7 +95,7 @@ class MovieTexture_Generic : public RageMovieTexture
 	virtual void DecodeSeconds(float fSeconds);
 	virtual void SetPlaybackRate(float fRate) { m_fRate = fRate; }
 	void SetLooping(bool bLooping = true) { m_bLoop = bLooping; }
-	unsigned GetTexHandle() const;
+	intptr_t GetTexHandle() const;
 
 	static EffectMode GetEffectMode(MovieDecoderPixelFormatYCbCr fmt);
 
@@ -111,7 +111,7 @@ class MovieTexture_Generic : public RageMovieTexture
 	bool m_bLoop;
 	bool m_bWantRewind;
 
-	unsigned m_uTexHandle;
+	intptr_t m_uTexHandle;
 	RageTextureRenderTarget* m_pRenderTarget;
 	RageTexture* m_pTextureIntermediate;
 	Sprite* m_pSprite;

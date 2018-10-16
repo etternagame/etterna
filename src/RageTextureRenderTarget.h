@@ -16,7 +16,7 @@ class RageTextureRenderTarget : public RageTexture
 	~RageTextureRenderTarget() override;
 	void Invalidate() override { m_iTexHandle = 0; /* don't Destroy() */ }
 	void Reload() override;
-	unsigned GetTexHandle() const override { return m_iTexHandle; }
+	intptr_t GetTexHandle() const override { return m_iTexHandle; }
 
 	void BeginRenderingTo(bool bPreserveTexture = true);
 	void FinishRenderingTo();
@@ -28,8 +28,8 @@ class RageTextureRenderTarget : public RageTexture
 
 	void Create();
 	void Destroy();
-	unsigned m_iTexHandle;
-	unsigned m_iPreviousRenderTarget;
+	intptr_t m_iTexHandle;
+	intptr_t m_iPreviousRenderTarget;
 };
 
 #endif

@@ -25,19 +25,19 @@ class RageDisplay_D3D : public RageDisplay
 							   bool realtime = false) override;
 	bool SupportsThreadedRendering() override;
 	bool SupportsPerVertexMatrixScale() override { return false; }
-	unsigned CreateTexture(RagePixelFormat pixfmt,
+	intptr_t CreateTexture(RagePixelFormat pixfmt,
 						   RageSurface* img,
 						   bool bGenerateMipMaps) override;
-	void UpdateTexture(unsigned iTexHandle,
+	void UpdateTexture(intptr_t iTexHandle,
 					   RageSurface* img,
 					   int xoffset,
 					   int yoffset,
 					   int width,
 					   int height) override;
-	void DeleteTexture(unsigned iTexHandle) override;
+	void DeleteTexture(intptr_t iTexHandle) override;
 	void ClearAllTextures() override;
 	int GetNumTextureUnits() override;
-	void SetTexture(TextureUnit tu, unsigned iTexture) override;
+	void SetTexture(TextureUnit tu, intptr_t iTexture) override;
 	void SetTextureMode(TextureUnit tu, TextureMode tm) override;
 	void SetTextureWrapping(TextureUnit tu, bool b) override;
 	int GetMaxTextureSize() const override;
@@ -63,11 +63,11 @@ class RageDisplay_D3D : public RageDisplay
 							 const RageColor& specular,
 							 const RageVector3& dir) override;
 
-	unsigned CreateRenderTarget(const RenderTargetParam& param,
+	intptr_t CreateRenderTarget(const RenderTargetParam& param,
 								int& iTextureWidthOut,
 								int& iTextureHeightOut) override;
-	unsigned GetRenderTarget() override;
-	void SetRenderTarget(unsigned uTexHandle, bool bPreserveTexture) override;
+	intptr_t GetRenderTarget() override;
+	void SetRenderTarget(intptr_t uTexHandle, bool bPreserveTexture) override;
 
 	void SetSphereEnvironmentMapping(TextureUnit tu, bool b) override;
 	void SetCelShaded(int stage) override;
@@ -113,7 +113,7 @@ class RenderTarget
 						int& iTextureWidthOut,
 						int& iTextureHeightOut) = 0;
 
-	virtual unsigned GetTexture() const = 0;
+	virtual intptr_t GetTexture() const = 0;
 
 	/* Render to this RenderTarget. */
 	virtual void StartRenderingTo() = 0;

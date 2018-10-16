@@ -12,7 +12,7 @@ class MovieTexture_Null : public RageMovieTexture
 	MovieTexture_Null(RageTextureID ID);
 	virtual ~MovieTexture_Null();
 	void Invalidate() { texHandle = 0; }
-	unsigned GetTexHandle() const { return texHandle; }
+	intptr_t GetTexHandle() const { return texHandle; }
 	void Update(float /* delta */) {}
 	void Reload() {}
 	void SetPosition(float /* seconds */) {}
@@ -21,7 +21,7 @@ class MovieTexture_Null : public RageMovieTexture
 
   private:
 	bool loop;
-	unsigned texHandle;
+	intptr_t texHandle;
 };
 
 MovieTexture_Null::MovieTexture_Null(RageTextureID ID)

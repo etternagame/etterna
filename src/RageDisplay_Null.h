@@ -28,13 +28,13 @@ class RageDisplay_Null : public RageDisplay
 		return true;
 	}
 	bool SupportsPerVertexMatrixScale() override { return false; }
-	unsigned CreateTexture(RagePixelFormat,
+	intptr_t CreateTexture(RagePixelFormat,
 						   RageSurface* /* img */,
 						   bool /* bGenerateMipMaps */) override
 	{
 		return 1;
 	}
-	void UpdateTexture(unsigned /* iTexHandle */,
+	void UpdateTexture(intptr_t /* iTexHandle */,
 					   RageSurface* /* img */,
 					   int /* xoffset */,
 					   int /* yoffset */,
@@ -43,10 +43,10 @@ class RageDisplay_Null : public RageDisplay
 					   ) override
 	{
 	}
-	void DeleteTexture(unsigned /* iTexHandle */) override {}
+	void DeleteTexture(intptr_t /* iTexHandle */) override {}
 	void ClearAllTextures() override {}
 	int GetNumTextureUnits() override { return 1; }
-	void SetTexture(TextureUnit, unsigned /* iTexture */) override {}
+	void SetTexture(TextureUnit, intptr_t /* iTexture */) override {}
 	void SetTextureMode(TextureUnit, TextureMode) override {}
 	void SetTextureWrapping(TextureUnit, bool) override {}
 	int GetMaxTextureSize() const override { return 2048; }

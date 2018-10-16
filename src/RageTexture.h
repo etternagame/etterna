@@ -17,7 +17,7 @@ class RageTexture
 	virtual void Reload() {}
 	virtual void Invalidate() {
 	} /* only called by RageTextureManager::InvalidateTextures */
-	virtual unsigned GetTexHandle() const = 0; // accessed by RageDisplay
+	virtual intptr_t GetTexHandle() const = 0; // accessed by RageDisplay
 
 	// movie texture/animated texture stuff
 	virtual void SetPosition(float /* fSeconds */) {}   // seek

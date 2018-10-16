@@ -57,7 +57,7 @@ IDirect3DSurface9* defaultDepthBuffer = 0;
 // of this application though.
 const D3DFORMAT g_DefaultAdapterFormat = D3DFMT_X8R8G8B8;
 
-static map<unsigned, RenderTarget*> g_mapRenderTargets;
+static map<intptr_t, RenderTarget*> g_mapRenderTargets;
 static RenderTarget* g_pCurrentRenderTarget = NULL;
 
 static bool g_bInvertY = false;
@@ -65,13 +65,13 @@ static bool g_bInvertY = false;
 /* Direct3D doesn't associate a palette with textures. Instead, we load a
  * palette into a slot. We need to keep track of which texture's palette is
  * stored in what slot. */
-map<unsigned, int> g_TexResourceToPaletteIndex;
+map<intptr_t, int> g_TexResourceToPaletteIndex;
 list<int> g_PaletteIndex;
 struct TexturePalette
 {
 	PALETTEENTRY p[256];
 };
-map<unsigned, TexturePalette> g_TexResourceToTexturePalette;
+map<intptr_t, TexturePalette> g_TexResourceToTexturePalette;
 
 // Load the palette, if any, for the given texture into a palette slot, and make
 // it current.
@@ -91,7 +91,7 @@ SetPalette(unsigned TexResource)
 
 		// If any other texture is currently using this slot, mark that palette
 		// unloaded.
-		for (map<unsigned, int>::iterator i =
+		for (map<intptr_t, int>::iterator i =
 			   g_TexResourceToPaletteIndex.begin();
 			 i != g_TexResourceToPaletteIndex.end();
 			 ++i) {
@@ -392,7 +392,7 @@ SetD3DParams(bool& bNewDeviceOut)
 	g_pd3dDevice->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
 
 	// wipe old render targets
-	FOREACHM(unsigned, RenderTarget*, g_mapRenderTargets, rt)
+	FOREACHM(intptr_t, RenderTarget*, g_mapRenderTargets, rt)
 	delete rt->second;
 	g_mapRenderTargets.clear();
 
@@ -1211,7 +1211,7 @@ RageDisplay_D3D::GetNumTextureUnits()
 }
 
 void
-RageDisplay_D3D::SetTexture(TextureUnit tu, unsigned iTexture)
+RageDisplay_D3D::SetTexture(TextureUnit tu, intptr_t iTexture)
 {
 	//	g_DeviceCaps.MaxSimultaneousTextures = 1;
 	if (tu >= (int)g_DeviceCaps.MaxSimultaneousTextures) // not supported
@@ -1553,7 +1553,7 @@ RageDisplay_D3D::SetCullMode(CullMode mode)
 }
 
 void
-RageDisplay_D3D::DeleteTexture(unsigned iTexHandle)
+RageDisplay_D3D::DeleteTexture(intptr_t iTexHandle)
 {
 	if (iTexHandle == 0)
 		return;
@@ -1579,7 +1579,7 @@ RageDisplay_D3D::DeleteTexture(unsigned iTexHandle)
 		  g_TexResourceToTexturePalette.find(iTexHandle));
 }
 
-unsigned
+intptr_t
 RageDisplay_D3D::CreateTexture(RagePixelFormat pixfmt,
 							   RageSurface* img,
 							   bool bGenerateMipMaps)
@@ -1602,7 +1602,7 @@ RageDisplay_D3D::CreateTexture(RagePixelFormat pixfmt,
 							 RagePixelFormatToString(pixfmt).c_str(),
 							 GetErrorString(hr).c_str());
 
-	unsigned uTexHandle = (unsigned)pTex;
+	intptr_t uTexHandle = (intptr_t)pTex;
 
 	if (pixfmt == RagePixelFormat_PAL) {
 		// Save palette
@@ -1627,7 +1627,7 @@ RageDisplay_D3D::CreateTexture(RagePixelFormat pixfmt,
 }
 
 void
-RageDisplay_D3D::UpdateTexture(unsigned uTexHandle,
+RageDisplay_D3D::UpdateTexture(intptr_t uTexHandle,
 							   RageSurface* img,
 							   int xoffset,
 							   int yoffset,
@@ -1706,7 +1706,7 @@ class D3DRenderTarget_FramebufferObject : public RenderTarget
 	void Create(const RenderTargetParam& param,
 				int& iTextureWidthOut,
 				int& iTextureHeightOut) override;
-	unsigned GetTexture() const override { return (unsigned)m_uTexHandle; }
+	intptr_t GetTexture() const override { return (intptr_t)m_uTexHandle; }
 	void StartRenderingTo() override;
 	void FinishRenderingTo() override;
 
@@ -1812,7 +1812,7 @@ D3DRenderTarget_FramebufferObject::FinishRenderingTo()
 		LOG->Warn("Failed to set targetDepth to BackBufferDepth");
 }
 
-unsigned
+intptr_t
 RageDisplay_D3D::CreateRenderTarget(const RenderTargetParam& param,
 									int& iTextureWidthOut,
 									int& iTextureHeightOut)
@@ -1821,7 +1821,7 @@ RageDisplay_D3D::CreateRenderTarget(const RenderTargetParam& param,
 
 	pTarget->Create(param, iTextureWidthOut, iTextureHeightOut);
 
-	unsigned uTexture = pTarget->GetTexture();
+	intptr_t uTexture = pTarget->GetTexture();
 
 	ASSERT(g_mapRenderTargets.find(uTexture) == g_mapRenderTargets.end());
 	g_mapRenderTargets[uTexture] = pTarget;
@@ -1829,10 +1829,10 @@ RageDisplay_D3D::CreateRenderTarget(const RenderTargetParam& param,
 	return uTexture;
 }
 
-unsigned
+intptr_t
 RageDisplay_D3D::GetRenderTarget()
 {
-	for (map<unsigned, RenderTarget*>::const_iterator it =
+	for (map<intptr_t, RenderTarget*>::const_iterator it =
 		   g_mapRenderTargets.begin();
 		 it != g_mapRenderTargets.end();
 		 ++it)
@@ -1842,7 +1842,7 @@ RageDisplay_D3D::GetRenderTarget()
 }
 
 void
-RageDisplay_D3D::SetRenderTarget(unsigned uTexHandle, bool bPreserveTexture)
+RageDisplay_D3D::SetRenderTarget(intptr_t uTexHandle, bool bPreserveTexture)
 {
 	if (uTexHandle == 0) {
 		g_pd3dDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);

@@ -155,10 +155,10 @@ class RageTexture_Default : public RageTexture
 		m_iImageWidth = m_iImageHeight = 1;
 		CreateFrameRects();
 	}
-	unsigned GetTexHandle() const override { return m_uTexHandle; }
+	intptr_t GetTexHandle() const override { return m_uTexHandle; }
 
   private:
-	unsigned m_uTexHandle{ 0 };
+	intptr_t m_uTexHandle{ 0 };
 };
 
 // Load and unload textures from disk.

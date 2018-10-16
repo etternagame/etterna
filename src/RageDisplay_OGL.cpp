@@ -61,7 +61,7 @@ static int g_iMaxTextureUnits = 0;
 /* If we support texture matrix scaling, a handle to the vertex program: */
 static GLhandleARB g_bTextureMatrixShader = 0;
 
-static map<unsigned, RenderTarget*> g_mapRenderTargets;
+static map<intptr_t, RenderTarget*> g_mapRenderTargets;
 static RenderTarget* g_pCurrentRenderTarget = NULL;
 
 static LowLevelWindow* g_pWind;
@@ -792,7 +792,7 @@ RageDisplay_Legacy::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 
 		/* Delete all render targets.  They may have associated resources other
 		 * than the texture itself. */
-		FOREACHM(unsigned, RenderTarget*, g_mapRenderTargets, rt)
+		FOREACHM(intptr_t, RenderTarget*, g_mapRenderTargets, rt)
 		delete rt->second;
 		g_mapRenderTargets.clear();
 
@@ -892,7 +892,7 @@ RageDisplay_Legacy::CreateScreenshot()
 }
 
 RageSurface*
-RageDisplay_Legacy::GetTexture(unsigned iTexture)
+RageDisplay_Legacy::GetTexture(intptr_t iTexture)
 {
 	if (iTexture == 0)
 		return NULL; // XXX
@@ -1663,7 +1663,7 @@ RageDisplay_Legacy::GetNumTextureUnits()
 }
 
 void
-RageDisplay_Legacy::SetTexture(TextureUnit tu, unsigned iTexture)
+RageDisplay_Legacy::SetTexture(TextureUnit tu, intptr_t iTexture)
 {
 	if (!SetTextureUnit(tu))
 		return;
@@ -2118,7 +2118,7 @@ RageDisplay_Legacy::EndConcurrentRendering()
 }
 
 void
-RageDisplay_Legacy::DeleteTexture(unsigned iTexture)
+RageDisplay_Legacy::DeleteTexture(intptr_t iTexture)
 {
 	if (iTexture == 0)
 		return;
@@ -2215,7 +2215,7 @@ SetPixelMapForSurface(int glImageFormat,
 	DebugAssertNoGLError();
 }
 
-unsigned
+intptr_t
 RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt,
 								  RageSurface* pImg,
 								  bool bGenerateMipMaps)
@@ -2261,7 +2261,7 @@ RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt,
 	SetTextureUnit(TextureUnit_1);
 
 	// allocate OpenGL texture resource
-	unsigned int iTexHandle;
+	intptr_t iTexHandle;
 	glGenTextures(1, reinterpret_cast<GLuint*>(&iTexHandle));
 	ASSERT(iTexHandle != 0);
 
@@ -2449,7 +2449,7 @@ RageDisplay_Legacy::CreateTextureLock()
 }
 
 void
-RageDisplay_Legacy::UpdateTexture(unsigned iTexHandle,
+RageDisplay_Legacy::UpdateTexture(intptr_t iTexHandle,
 								  RageSurface* pImg,
 								  int iXOffset,
 								  int iYOffset,
@@ -2665,7 +2665,7 @@ RageDisplay_Legacy::SupportsRenderToTexture() const
  * faster when available.
  */
 
-unsigned
+intptr_t
 RageDisplay_Legacy::CreateRenderTarget(const RenderTargetParam& param,
 									   int& iTextureWidthOut,
 									   int& iTextureHeightOut)
@@ -2678,17 +2678,17 @@ RageDisplay_Legacy::CreateRenderTarget(const RenderTargetParam& param,
 
 	pTarget->Create(param, iTextureWidthOut, iTextureHeightOut);
 
-	unsigned iTexture = pTarget->GetTexture();
+	intptr_t iTexture = pTarget->GetTexture();
 
 	ASSERT(g_mapRenderTargets.find(iTexture) == g_mapRenderTargets.end());
 	g_mapRenderTargets[iTexture] = pTarget;
 	return iTexture;
 }
 
-unsigned
+intptr_t
 RageDisplay_Legacy::GetRenderTarget()
 {
-	for (map<unsigned, RenderTarget*>::const_iterator it =
+	for (map<intptr_t, RenderTarget*>::const_iterator it =
 		   g_mapRenderTargets.begin();
 		 it != g_mapRenderTargets.end();
 		 ++it)
@@ -2698,7 +2698,7 @@ RageDisplay_Legacy::GetRenderTarget()
 }
 
 void
-RageDisplay_Legacy::SetRenderTarget(unsigned iTexture, bool bPreserveTexture)
+RageDisplay_Legacy::SetRenderTarget(intptr_t iTexture, bool bPreserveTexture)
 {
 	if (iTexture == 0) {
 		g_bInvertY = false;
