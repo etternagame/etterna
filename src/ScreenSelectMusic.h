@@ -16,6 +16,8 @@
 #include "ThemeMetric.h"
 #include "TimingData.h"
 #include "HighScore.h"
+#include "NoteData.h"
+#include "Player.h"
 
 enum SelectionState
 {
@@ -60,6 +62,12 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	void PlayReplay(HighScore* score);
 
 	int GetSelectionState();
+
+	void GeneratePreviewPlayer();
+	void DeletePreviewPlayer();
+
+	Player* m_pPreviewPlayer;
+	NoteData m_PreviewNoteData;
 
 	// Lua
 	void PushSelf(lua_State* L) override;

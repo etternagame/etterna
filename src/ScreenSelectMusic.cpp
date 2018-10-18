@@ -41,6 +41,8 @@
 #include "GamePreferences.h"
 #include "PlayerAI.h"
 #include "PlayerOptions.h"
+#include "NoteData.h"
+#include "Player.h"
 
 static const char* SelectionStateNames[] = { "SelectingSong",
 											 "SelectingSteps",
@@ -1760,6 +1762,51 @@ ScreenSelectMusic::GetSelectionState()
 	return static_cast<int>(m_SelectionState);
 }
 
+void
+ScreenSelectMusic::GeneratePreviewPlayer()
+{
+	if (m_pPreviewPlayer != nullptr)
+		DeletePreviewPlayer();
+
+	auto song = GAMESTATE->m_pCurSong;
+	Steps* steps = GAMESTATE->m_pCurSteps[PLAYER_1];
+
+	if (song && steps) {
+		steps->GetNoteData(m_PreviewNoteData);
+	}
+	else
+	{
+		return;
+	}
+
+	Player* test = new Player(m_PreviewNoteData, true);
+
+	test->SetName("Player1");
+	test->SetX(200.f);
+	ThemeMetric<apActorCommands> temp;
+	temp.Load("ScreenGameplay", "PlayerInitCommand");
+	test->RunCommands(temp);
+	this->AddChild(test);
+	test->PlayCommand("On");
+
+	test->Init("Player",
+			   GAMESTATE->m_pPlayerState[PLAYER_1],
+			   &STATSMAN->m_CurStageStats.m_player[PLAYER_1],
+			   NULL,
+			   NULL,
+			   NULL,
+			   NULL,
+			   NULL);
+	test->Load();
+
+}
+
+void
+ScreenSelectMusic::DeletePreviewPlayer()
+{
+	return;
+}
+
 // lua start
 #include "LuaBinding.h"
 
@@ -1963,6 +2010,12 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 
 		return 1;
 	}
+	
+	static int DoSomethingInteresting(T* p, lua_State* L)
+	{
+		p->GeneratePreviewPlayer();
+		return 1;
+	}
 
 	LunaScreenSelectMusic()
 	{
@@ -1975,6 +2028,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		ADD_METHOD(StartPlaylistAsCourse);
 		ADD_METHOD(PlayReplay);
 		ADD_METHOD(ShowEvalScreenForScore);
+		ADD_METHOD(DoSomethingInteresting);
 	}
 };
 

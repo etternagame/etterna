@@ -16,11 +16,45 @@ local steps
 local meter = {}
 meter[1] = 0.00
 
+local function isOver(element)
+	if element:GetParent():GetParent():GetVisible() == false then
+		return false
+	end
+	if element:GetParent():GetVisible() == false then
+		return false
+	end
+	if element:GetVisible() == false then
+		return false
+	end
+	local x = getTrueX(element)
+	local y = getTrueY(element)
+	local hAlign = element:GetHAlign()
+	local vAlign = element:GetVAlign()
+	local w = element:GetZoomedWidth()
+	local h = element:GetZoomedHeight()
+ 	local mouseX = INPUTFILTER:GetMouseX()
+	local mouseY = INPUTFILTER:GetMouseY()
+ 	local withinX = (mouseX >= (x - (hAlign * w))) and (mouseX <= ((x + w) - (hAlign * w)))
+	local withinY = (mouseY >= (y - (vAlign * h))) and (mouseY <= ((y + h) - (vAlign * h)))
+ 	return (withinX and withinY)
+end
+ local function highlightIfOver(self)
+	if isOver(self) then
+		self:diffusealpha(0.6)
+	else
+		self:diffusealpha(1)
+	end
+end
+ local function highlight(self)
+	self:queuecommand("Highlight")
+end
+
 --Actor Frame
 local t =
 	Def.ActorFrame {
 	BeginCommand = function(self)
 		self:queuecommand("Set"):visible(false)
+		self:SetUpdateFunction(highlight)
 	end,
 	OffCommand = function(self)
 		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
@@ -275,5 +309,26 @@ t[#t + 1] =
 for i = 1, #ms.SkillSets do
 	t[#t + 1] = littlebits(i)
 end
+
+--Sample Music Preview Button
+t[#t + 1] =
+	LoadFont("Common Normal") ..
+	{
+		Name = "PreviewViewer",
+		InitCommand = function(self)
+			self:xy(frameX + 5, frameY + 75)
+			self:zoom(0.5)
+			self:halign(0)
+			self:settext("Enable Preview")
+		end,
+		HighlightCommand = function(self)
+			highlightIfOver(self)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if getTabIndex() == 1 and isOver(self) then
+				SCREENMAN:GetTopScreen():DoSomethingInteresting()
+			end
+		end
+	}
 
 return t
