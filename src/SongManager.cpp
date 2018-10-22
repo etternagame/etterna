@@ -37,6 +37,16 @@
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "ScreenManager.h"
 
+struct SongDir {
+	RString path;
+	SongDir(RString path) : path(path) {}
+};
+struct Group {
+	RString name;
+	vector<SongDir> songs;
+	Group(RString name) : name(name) {}
+};
+
 SongManager* SONGMAN =
   NULL; // global and accessible from anywhere in our program
 
@@ -135,35 +145,41 @@ SongManager::DifferentialReload()
 int
 SongManager::DifferentialReloadDir(string dir)
 {
-	if (dir.substr(dir.size()) != "/")
-		dir += "/";
+	if (dir.back() != '/') dir += "/";
 
 	int newsongs = 0;
 
-	vector<RString> arrayGroupDirs;
-	GetDirListing(dir + "*", arrayGroupDirs, true);
-	StripCvsAndSvn(arrayGroupDirs);
-	StripMacResourceForks(arrayGroupDirs);
-	SortRStringArray(arrayGroupDirs);
+	vector<RString> folders;
+	GetDirListing(dir + "*", folders, true);
+	StripCvsAndSvn(folders);
+	StripMacResourceForks(folders);
+	SortRStringArray(folders);
 
-	vector<vector<RString>> arrayGroupSongDirs;
+	vector<Group> groups;
+	Group unknownGroup("Unknown Group");
 	int groupIndex, songCount, songIndex;
 
 	groupIndex = 0;
 	songCount = 0;
-	FOREACH_CONST(RString, arrayGroupDirs, s)
-	{
-		RString sGroupDirName = *s;
-		//SanityCheckGroupDir(dir + sGroupDirName);
+	for (const auto folder : folders) {
+		if (IsSongDir(dir + folder)) {
+			songCount++;
+			unknownGroup.songs.push_back(SongDir(folder));
+		}
+		else {
+			vector<RString> songdirs;
+			GetDirListing(dir + folder + "/*", songdirs, true, true);
+			StripCvsAndSvn(songdirs);
+			StripMacResourceForks(songdirs);
+			SortRStringArray(songdirs);
+			Group group(folder);
+			for (auto song : songdirs) {
+				group.songs.push_back(SongDir(song));
+			}
 
-		vector<RString> arraySongDirs;
-		GetDirListing(dir + sGroupDirName + "/*", arraySongDirs, true, true);
-		StripCvsAndSvn(arraySongDirs);
-		StripMacResourceForks(arraySongDirs);
-		SortRStringArray(arraySongDirs);
-
-		arrayGroupSongDirs.emplace_back(arraySongDirs);
-		songCount += arraySongDirs.size();
+			groups.push_back(group);
+			songCount += group.songs.size();
+		}
 	}
 
 	if (songCount == 0)
@@ -172,25 +188,21 @@ SongManager::DifferentialReloadDir(string dir)
 	groupIndex = 0;
 	songIndex = 0;
 
-	FOREACH_CONST(RString, arrayGroupDirs, s)
-	{
-		RString sGroupDirName = *s;
-		vector<RString>& arraySongDirs = arrayGroupSongDirs[groupIndex++];
+	for (auto group : groups) {
+		vector<SongDir>& songDirs = group.songs;
 		int loaded = 0;
 
-		SongPointerVector& index_entry = m_mapSongGroupIndex[sGroupDirName];
-		RString group_base_name = Basename(sGroupDirName);
-		for (size_t j = 0; j < arraySongDirs.size(); ++j) {
-			RString sSongDirName = arraySongDirs[j];
-
+		SongPointerVector& index_entry = m_mapSongGroupIndex[group.name];
+		RString group_base_name = Basename(group.name);
+		for (auto songDir : songDirs) {
 			// skip any dir we've already loaded -mina
-			RString hur = sSongDirName + "/";
+			RString hur = songDir.path + "/";
 			hur.MakeLower();
 			if (m_SongsByDir.count(hur))
 				continue;
 
 			Song* pNewSong = new Song;
-			if (!pNewSong->LoadFromSongDir(sSongDirName)) {
+			if (!pNewSong->LoadFromSongDir(songDir.path)) {
 				delete pNewSong;
 				continue;
 			}
@@ -202,7 +214,7 @@ SongManager::DifferentialReloadDir(string dir)
 
 			Message msg("DFRUpdate");
 			msg.SetParam("txt",
-						 "Loading:\n" + sGroupDirName + "\n" +
+						 "Loading:\n" + group.name + "\n" +
 						   pNewSong->GetMainTitle());
 			MESSAGEMAN->Broadcast(msg);
 			SCREENMAN->Draw(); // not sure if this needs to be handled better
@@ -217,10 +229,10 @@ SongManager::DifferentialReloadDir(string dir)
 			continue;
 		LOG->Trace("Differential load of %i songs from \"%s\"",
 				   loaded,
-				   (dir + sGroupDirName).c_str());
+				   (dir + group.name).c_str());
 
-		AddGroup(dir, sGroupDirName);
-		IMAGECACHE->CacheImage("Banner", GetSongGroupBannerPath(sGroupDirName));
+		AddGroup(dir, group.name);
+		IMAGECACHE->CacheImage("Banner", GetSongGroupBannerPath(dir + group.name));
 	}
 	return newsongs;
 }
@@ -716,16 +728,6 @@ SongManager::AddGroup(const RString& sDir, const RString& sGroupDirName)
 	return true;
 }
 
-struct SongDir {
-	RString path;
-	SongDir(RString path) : path(path) {}
-};
-struct Group {
-		RString name;
-		vector<SongDir> songs;
-		Group(RString name) : name(name) {}
-};
-
 std::mutex diskLoadSongMutex;
 std::mutex diskLoadGroupMutex;
 static LocalizedString LOADING_SONGS("SongManager", "Loading songs...");
@@ -782,7 +784,7 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 
 		auto callback =
 				[&sDir](std::pair<vectorIt<Group>,
-						vectorIt<Group>> workload,
+								  vectorIt<Group>> workload,
 						ThreadData* data) {
 				auto pair =
 						static_cast<std::pair<int, LoadingWindow*>*>(data->data);
