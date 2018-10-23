@@ -1806,7 +1806,7 @@ ScreenSelectMusic::GeneratePreviewNoteField(float noteFieldHeight,
 	*/
 	SOUND->StopMusic();
 	m_sSampleMusicToPlay = song->GetMusicPath();
-	m_fSampleStartSeconds = 0.f;
+	m_fSampleStartSeconds = max(song->GetFirstSecond() - 4.f, -1.f);
 	m_fSampleLengthSeconds = song->GetLastSecond();
 	g_bSampleMusicWaiting = true;
 	CheckBackgroundRequests(true);
@@ -1844,6 +1844,15 @@ ScreenSelectMusic::DeletePreviewNoteField()
 		this->RemoveChild(m_pPreviewNoteField);
 		SAFE_DELETE(m_pPreviewNoteField);
 		GAMESTATE->m_bIsChartPreviewActive = false;
+		auto song = GAMESTATE->m_pCurSong;
+		if (song) {
+			SOUND->StopMusic();
+			m_sSampleMusicToPlay = song->GetPreviewMusicPath();
+			m_fSampleStartSeconds = song->GetPreviewStartSeconds();
+			m_fSampleLengthSeconds = song->m_fMusicSampleLengthSeconds;
+			g_bSampleMusicWaiting = true;
+			CheckBackgroundRequests(true);
+		}
 	}
 }
 
