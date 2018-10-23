@@ -18,6 +18,7 @@
 #include "HighScore.h"
 #include "NoteData.h"
 #include "Player.h"
+#include "NoteField.h"
 
 enum SelectionState
 {
@@ -63,11 +64,16 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 
 	int GetSelectionState();
 
-	void GeneratePreviewPlayer();
-	void DeletePreviewPlayer();
+	// Generate and Display a "fake" NoteField ActorFrame on the Screen.
+	// It functions relatively normally, according to the currently playing music.
+	// It automatically deletes any other pre-existing Preview NoteField.
+	void GeneratePreviewNoteField(float noteFieldHeight = 100.f, float noteFieldYPos = 50.f, float noteFieldXPos = 0.f, float noteFieldZoom = 1.f, float noteFieldTiltDegrees = 0.f);
+	// Manually delete a Preview NoteField.
+	// Note: This is triggered by a DeletePreviewNoteField Message.
+	void DeletePreviewNoteField();
 
-	Player* m_pPreviewPlayer;
 	NoteData m_PreviewNoteData;
+	NoteField* m_pPreviewNoteField;
 
 	// Lua
 	void PushSelf(lua_State* L) override;

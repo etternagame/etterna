@@ -83,6 +83,7 @@ REGISTER_SCREEN_CLASS(ScreenSelectMusic);
 void
 ScreenSelectMusic::Init()
 {
+	SubscribeToMessage("DeletePreviewNoteField");
 	g_ScreenStartedLoadingAt.Touch();
 	if (PREFSMAN->m_sTestInitialScreen.Get() == m_sName) {
 		GAMESTATE->m_PlayMode.Set(PLAY_MODE_REGULAR);
@@ -255,6 +256,8 @@ ScreenSelectMusic::Init()
 	  THEME->GetPathS(m_sName, "difficulty harder"), false, &SoundParams);
 	m_soundOptionsChange.Load(THEME->GetPathS(m_sName, "options"));
 	m_soundLocked.Load(THEME->GetPathS(m_sName, "locked"));
+	
+	m_pPreviewNoteField = nullptr;
 
 	this->SortByDrawOrder();
 }
@@ -1089,6 +1092,10 @@ ScreenSelectMusic::HandleMessage(const Message& msg)
 
 		GAMESTATE->m_pCurSteps[pn].Set(pSteps);
 	}
+	if (GAMESTATE->m_bIsChartPreviewActive && msg.GetName() == "DeletePreviewNoteField")
+	{
+		DeletePreviewNoteField();
+	}
 
 	ScreenWithMenuElements::HandleMessage(msg);
 }
@@ -1763,48 +1770,81 @@ ScreenSelectMusic::GetSelectionState()
 }
 
 void
-ScreenSelectMusic::GeneratePreviewPlayer()
+ScreenSelectMusic::GeneratePreviewNoteField(float noteFieldHeight,
+											float noteFieldYPos,
+											float noteFieldXPos,
+											float noteFieldZoom,
+											float noteFieldTiltDegrees)
 {
-	if (m_pPreviewPlayer != nullptr)
-		DeletePreviewPlayer();
+	// Remove the old notefield, we don't want duplicates
+	DeletePreviewNoteField();
+
+	ThemeMetric<int> drawDistAfterTargetPixels;
+	ThemeMetric<int> drawDistBeforeTargetPixels;
+	drawDistAfterTargetPixels.Load("Player", "DrawDistanceAfterTargetsPixels");
+	drawDistBeforeTargetPixels.Load("Player",
+									"DrawDistanceBeforeTargetsPixels");
 
 	auto song = GAMESTATE->m_pCurSong;
 	Steps* steps = GAMESTATE->m_pCurSteps[PLAYER_1];
 
 	if (song && steps) {
 		steps->GetNoteData(m_PreviewNoteData);
-	}
-	else
-	{
+	} else {
 		return;
 	}
 
-	Player* test = new Player(m_PreviewNoteData, true);
+	GAMESTATE->m_bIsChartPreviewActive = true;
 
-	test->SetName("Player1");
-	test->SetX(200.f);
-	ThemeMetric<apActorCommands> temp;
-	temp.Load("ScreenGameplay", "PlayerInitCommand");
-	test->RunCommands(temp);
-	this->AddChild(test);
-	test->PlayCommand("On");
+	// Restart the music from the beginning for a full chart preview
 
-	test->Init("Player",
-			   GAMESTATE->m_pPlayerState[PLAYER_1],
-			   &STATSMAN->m_CurStageStats.m_player[PLAYER_1],
-			   NULL,
-			   NULL,
-			   NULL,
-			   NULL,
-			   NULL);
-	test->Load();
+	// (Enabling this would restart the music at its current position, but would
+	// never go back to earlier sections)
+	/*
+	m_fSampleStartSeconds =
+	SOUND->GetRageSoundPlaying()->GetPositionSeconds();
+	*/
+	SOUND->StopMusic();
+	m_sSampleMusicToPlay = song->GetMusicPath();
+	m_fSampleStartSeconds = 0.f;
+	m_fSampleLengthSeconds = song->GetLastSecond();
+	g_bSampleMusicWaiting = true;
+	CheckBackgroundRequests(true);
 
+	// Create and Render the NoteField afterwards
+	// It is done in this order so we don't see it before the music changes.
+	m_pPreviewNoteField = new NoteField;
+	m_pPreviewNoteField->SetName(
+	  "NoteField"); // Use this to get the ActorFrame from the Screen Children
+
+	m_pPreviewNoteField->Init(GAMESTATE->m_pPlayerState[PLAYER_1],
+							  noteFieldHeight);
+	// ActorUtil::LoadAllCommands(*m_pPreviewNoteField, "Player");
+
+	m_pPreviewNoteField->SetY(noteFieldYPos);
+	m_pPreviewNoteField->SetX(noteFieldXPos);
+	m_pPreviewNoteField->SetZoom(noteFieldZoom);
+	m_pPreviewNoteField->SetRotationX(noteFieldTiltDegrees);
+	m_pPreviewNoteField->Load(&m_PreviewNoteData,
+							  drawDistAfterTargetPixels,
+							  drawDistBeforeTargetPixels);
+	// This is essentially required.
+	// This NoteField is hereby attached to ScreenSelectMusic and there's
+	// nothing you can do to stop me
+	// (It's required because it needs to be owned by a screen so screenman can
+	// draw it immediately) (We could just attach this to its own screen but you
+	// know that I know I don't want to do that)
+	this->AddChild(m_pPreviewNoteField);
 }
 
 void
-ScreenSelectMusic::DeletePreviewPlayer()
+ScreenSelectMusic::DeletePreviewNoteField()
 {
-	return;
+	if (m_pPreviewNoteField != nullptr) {
+		this->RemoveChild(m_pPreviewNoteField);
+		SAFE_DELETE(m_pPreviewNoteField);
+		GAMESTATE->m_bIsChartPreviewActive = false;
+	}
 }
 
 // lua start
@@ -2011,9 +2051,51 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		return 1;
 	}
 	
-	static int DoSomethingInteresting(T* p, lua_State* L)
+	// This will return the Preview Notefield if it is successful.
+	static int CreatePreviewNoteField(T* p, lua_State* L)
 	{
-		p->GeneratePreviewPlayer();
+		p->GeneratePreviewNoteField();
+		if (p->m_pPreviewNoteField != nullptr) {
+			p->m_pPreviewNoteField->PushSelf(L);
+		} else {
+			lua_pushnil(L);
+		}
+		return 1;
+	}
+
+	// This will delete the Preview Notefield if it exists.
+	// NOTE: This is triggered by a DeletePreviewNoteField Message.
+	// It is not necessary to use this except for rare circumstances.
+	static int DeletePreviewNoteField(T* p, lua_State* L)
+	{
+		p->DeletePreviewNoteField();
+		return 1;
+	}
+
+	// Get the Preview Notefield ActorFrame if it exists.
+	static int GetPreviewNoteField(T* p, lua_State* L)
+	{
+		if (p->m_pPreviewNoteField != nullptr) {
+			p->m_pPreviewNoteField->PushSelf(L);
+		} else {
+			lua_pushnil(L);
+		}
+		return 1;
+	}
+
+	static int SetPreviewNoteFieldMusicPosition(T* p, lua_State* L)
+	{
+		float given = IArg(1);
+
+		return 1;
+	}
+
+	static int GetPreviewNoteFieldMusicPosition(T* p, lua_State* L)
+	{
+		lua_pushnumber(L,
+					   GAMESTATE->m_pPlayerState[PLAYER_1]
+						 ->GetDisplayedPosition()
+						 .m_fSongBeat);
 		return 1;
 	}
 
@@ -2028,7 +2110,11 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		ADD_METHOD(StartPlaylistAsCourse);
 		ADD_METHOD(PlayReplay);
 		ADD_METHOD(ShowEvalScreenForScore);
-		ADD_METHOD(DoSomethingInteresting);
+		ADD_METHOD(CreatePreviewNoteField);
+		ADD_METHOD(DeletePreviewNoteField);
+		ADD_METHOD(GetPreviewNoteField);
+		ADD_METHOD(SetPreviewNoteFieldMusicPosition);
+		ADD_METHOD(GetPreviewNoteFieldMusicPosition);
 	}
 };
 
