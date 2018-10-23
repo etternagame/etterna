@@ -365,6 +365,8 @@ class GameState
 	Profile* GetEditLocalProfile();
 
 	bool m_bDopefish;
+	
+	bool m_bIsChartPreviewActive;
 
 	// Discord Rich Presence
 	void discordInit();

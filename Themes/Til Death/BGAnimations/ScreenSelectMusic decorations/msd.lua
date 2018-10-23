@@ -16,6 +16,7 @@ local steps
 local meter = {}
 meter[1] = 0.00
 
+
 local function isOver(element)
 	if element:GetParent():GetParent():GetVisible() == false then
 		return false
@@ -38,15 +39,24 @@ local function isOver(element)
 	local withinY = (mouseY >= (y - (vAlign * h))) and (mouseY <= ((y + h) - (vAlign * h)))
  	return (withinX and withinY)
 end
- local function highlightIfOver(self)
+local function highlightIfOver(self)
 	if isOver(self) then
 		self:diffusealpha(0.6)
 	else
 		self:diffusealpha(1)
 	end
 end
- local function highlight(self)
+local function highlight(self)
 	self:queuecommand("Highlight")
+end
+
+-- Set up the values for the preview notefield here
+local function setUpPreviewNoteField()
+	local yeet = SCREENMAN:GetTopScreen():CreatePreviewNoteField()
+	SCREENMAN:AddNewScreenToTop("ScreenChartPreviewNoteField")
+	yeet:x(200)
+	yeet:y(50)
+	yeet:zoom(0.5)
 end
 
 --Actor Frame
@@ -55,6 +65,7 @@ local t =
 	BeginCommand = function(self)
 		self:queuecommand("Set"):visible(false)
 		self:SetUpdateFunction(highlight)
+		
 	end,
 	OffCommand = function(self)
 		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
@@ -310,7 +321,7 @@ for i = 1, #ms.SkillSets do
 	t[#t + 1] = littlebits(i)
 end
 
---Sample Music Preview Button
+--Chart Preview Button
 t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
@@ -326,7 +337,7 @@ t[#t + 1] =
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if getTabIndex() == 1 and isOver(self) then
-				SCREENMAN:GetTopScreen():DoSomethingInteresting()
+				setUpPreviewNoteField()
 			end
 		end
 	}
