@@ -435,6 +435,29 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 		  SAMPLE_MUSIC_FALLBACK_FADE_IN_SECONDS;
 		FallbackMusic.bAlignBeat = ALIGN_MUSIC_BEATS;
 
+		// update the chartpreview when switching songs (doesnt work when only
+		// switching steps here) ((also this is lultier)) -mina
+		if (m_pPreviewNoteField != nullptr) {
+			ThemeMetric<int> drawDistBeforeTargetPixels;
+			drawDistBeforeTargetPixels.Load("Player",
+											"DrawDistanceBeforeTargetsPixels");
+
+			auto song = GAMESTATE->m_pCurSong;
+			Steps* steps = GAMESTATE->m_pCurSteps[PLAYER_1];
+
+			m_sSampleMusicToPlay = song->GetMusicPath();
+			m_fSampleStartSeconds = max(song->GetFirstSecond() - 4.f, -1.f);
+			PlayParams.fLengthSeconds = song->GetLastSecond();
+			// g_bSampleMusicWaiting = true;
+			// CheckBackgroundRequests(true);
+			if (song && steps) {
+				steps->GetNoteData(m_PreviewNoteData);
+			} else {
+				return;
+			}
+			m_pPreviewNoteField->Load(&m_PreviewNoteData, 0, 10000);
+		}
+
 		SOUND->PlayMusic(PlayParams, FallbackMusic);
 		MESSAGEMAN->Broadcast("PlayingSampleMusic");
 		//DLMAN->RequestChartLeaderBoard(GAMESTATE->m_pCurSteps[PLAYER_1]->GetChartKey());
