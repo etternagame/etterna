@@ -2156,7 +2156,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 	static int DeletePreviewNoteField(T* p, lua_State* L)
 	{
 		p->DeletePreviewNoteField();
-		return 1;
+		return 0;
 	}
 
 	// Get the Preview Notefield ActorFrame if it exists.
@@ -2176,7 +2176,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		if (GAMESTATE->m_bIsChartPreviewActive) {
 			p->SetPreviewNoteFieldMusicPosition(given);
 		}
-		return 1;
+		return 0;
 	}
 
 	static int GetPreviewNoteFieldMusicPosition(T* p, lua_State* L)
@@ -2193,7 +2193,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		if (GAMESTATE->m_bIsChartPreviewActive) {
 			p->PausePreviewNoteFieldMusic();
 		}
-		return 1;
+		return 0;
 	}
 
 	LunaScreenSelectMusic()
