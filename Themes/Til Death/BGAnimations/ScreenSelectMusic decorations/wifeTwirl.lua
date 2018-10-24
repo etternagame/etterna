@@ -931,11 +931,8 @@ end
 
 for i=1,imcrazy do
 	toot[#toot + 1] = makeaquad(i)
-end
-for i=1,imcrazy do
 	toot[#toot + 1] = makeaquadforjumpcounts(i)
 end
+
 t[#t + 1] = toot
-
-
 return t
