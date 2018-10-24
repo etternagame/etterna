@@ -76,8 +76,13 @@ local function input(event)
 		return false
 	end
 	if event.DeviceInput.button == "DeviceButton_right mouse button" then	-- removed left click because using it to seek
-		if event.type == "InputEventType_Release" then
+		if event.type == "InputEventType_Press" then
 			SCREENMAN:GetTopScreen():PausePreviewNoteField()
+		end
+	end
+	if event.DeviceInput.button == "DeviceButton_space" then	-- temp cancel command -mina
+		if event.type == "InputEventType_Release"  and NoteField then
+			MESSAGEMAN:Broadcast("DeletePreviewNoteField")
 		end
 	end
 	if event.type ~= "InputEventType_Release" then
