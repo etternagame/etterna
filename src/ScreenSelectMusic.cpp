@@ -2184,7 +2184,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		lua_pushnumber(L,
 					   GAMESTATE->m_pPlayerState[PLAYER_1]
 						 ->GetDisplayedPosition()
-						 .m_fSongBeat);
+						 .m_fMusicSeconds);
 		return 1;
 	}
 	
