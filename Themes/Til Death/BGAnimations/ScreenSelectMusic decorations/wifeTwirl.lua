@@ -880,4 +880,44 @@ t[#t + 1] =
 		end
 	}
 
+
+
+-- hurrrrr nps quadzapalooza -mina
+local imcrazy = 500
+local wodth = 500
+local toot = Def.ActorFrame {
+	Name = "npsyo",
+	RefreshChartInfoMessageCommand = function(self)
+		if steps then
+		local moot = steps:GetNPSVector()
+		local thingers = math.min(imcrazy,#moot)
+		local wid = wodth/thingers
+		for i=1,imcrazy do
+			if i <= thingers then
+				self:GetChild(i):x(frameX + 100 + i * wid):zoomto(wid,moot[i]*2)
+				self:GetChild(i):visible(true)
+			else
+				self:GetChild(i):visible(false)
+			end
+		end
+	end
+end
+}
+
+local function makeaquad(i)
+	local o = Def.Quad {
+		Name = i,
+		InitCommand = function(self)
+			self:xy(frameX + 100 + i * 20, 240):zoomto(20, 0):diffusealpha(1):valign(1)
+		end,
+	}
+	return o
+end
+
+for i=1,imcrazy do
+	toot[#toot + 1] = makeaquad(i)
+end
+t[#t + 1] = toot
+
+
 return t
