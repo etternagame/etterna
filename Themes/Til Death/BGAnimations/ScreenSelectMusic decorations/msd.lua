@@ -133,6 +133,7 @@ local t =
 			update = true
 		else
 			self:queuecommand("Off")
+			MESSAGEMAN:Broadcast("DeletePreviewNoteField")
 			update = false
 		end
 	end,
@@ -394,79 +395,25 @@ t[#t + 1] =
 	end
 }
 
-
-
-
-local function UpdatePreviewPos(self)
-	if noteField then
-		local pos = SCREENMAN:GetTopScreen():GetPreviewNoteFieldMusicPosition() / musicratio
-		self:GetChild("Pos"):zoomto(pos, 20)
-	end
-end
-
--- preview stuff should all be under a single actor frame if possible and not a child of msd where it inherits commands and stuff 
--- though this will break highlight since that's in the parent -mina
-t[#t+1] = Def.ActorFrame {
-	Name = "SeekBar",
-	InitCommand = function(self)
-		self:xy(50, 40)	-- eyeballed, not centered properly, this should all be moved out of the msd actor frame for sane control anyway -mina
-		self:SetUpdateFunction(UpdatePreviewPos)
+-- hurrrrr nps quadzapalooza -mina
+local imcrazy = 500
+local wodth = 300
+local hidth = 40
+local toot = Def.ActorFrame {
+	Name = "npsyo",
+	InitCommand=function(self)
+		self:xy(40,-170)
 		self:visible(false)
-	end,
-	RefreshChartInfoMessageCommand = function(self)
-		musicratio = GAMESTATE:GetCurrentSong():MusicLengthSeconds() / 300
 	end,
 	NoteFieldVisibleMessageCommand = function(self)
 		self:visible(true)
+		self:queuecommand("PlayingSampleMusic")
 	end,
 	DeletePreviewNoteFieldMessageCommand = function(self)
 		self:visible(false)
 	end,
-	Def.Quad {
-		Name = "BG",
-		InitCommand = function(self)
-			self:zoomto(300, 20):diffuse(color(".2,.2,.2,.2")):diffusealpha(1):halign(0)	-- stuff like width should be var'd -mina
-		end,
-		HighlightCommand = function(self)	-- use the bg for detection but move the seek pointer -mina 
-			if isOver(self) then
-				self:GetParent():GetChild("Seek"):visible(true)
-				self:GetParent():GetChild("Seek"):x(INPUTFILTER:GetMouseX() - self:GetParent():GetX())
-			else
-				self:GetParent():GetChild("Seek"):visible(false)
-			end
-		end
-	},
-	Def.Quad {
-		Name = "Pos",
-		InitCommand = function(self)
-			self:zoomto(0, 20):diffuse(color(".6,.4,.7,.1")):diffusealpha(1):halign(0)
-		end
-	},
-	Def.Quad {
-		Name = "Seek",
-		InitCommand = function(self)
-			self:zoomto(4, 20):diffuse(color("1,1,1,1")):diffusealpha(1):halign(0.5)
-		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
-				SCREENMAN:GetTopScreen():SetPreviewNoteFieldMusicPosition(	self:GetX() * musicratio  )
-			end
-		end
-	},
-}
-
-
--- hurrrrr nps quadzapalooza -mina
-local imcrazy = 500
-local wodth = 480
-local hodth = 60
-local toot = Def.ActorFrame {
-	Name = "npsyo",
-	InitCommand=function(self)
-		self:y(10)
-	end,
-	RefreshChartInfoMessageCommand = function(self)
-		if steps then
+	PlayingSampleMusicMessageCommand = function(self)
+		if steps and noteField then
 			local moot = steps:GetNPSVector()
 			local joot = steps:GetCPSVector(2)
 			local hoot = steps:GetCPSVector(3)
@@ -479,7 +426,7 @@ local toot = Def.ActorFrame {
 					hodth = moot[i] * 2
 				end
 			end
-			hodth = 60/hodth
+			hodth = hidth/hodth * 0.8
 			for i=1,imcrazy do
 				if i <= thingers then
 					if moot[i] > 0 then
@@ -520,7 +467,7 @@ local toot = Def.ActorFrame {
 	end,
 	Def.Quad {
 		InitCommand = function(self)
-			self:xy(frameX, 240):zoomto(wodth+10, 68):diffusealpha(1):valign(1):diffuse(color("1,1,1")):halign(0)
+			self:xy(frameX, 240):zoomto(wodth, hidth + 2):diffusealpha(1):valign(1):diffuse(color("1,1,1")):halign(0)
 		end,
 	}
 }
@@ -529,7 +476,7 @@ local function makeaquad(i)
 	local o = Def.Quad {
 		Name = i,
 		InitCommand = function(self)
-			self:xy(frameX + i * 20, 240):zoomto(20, 0):diffusealpha(0.75):valign(1):diffuse(color(".75,.75,.75"))
+			self:xy(frameX + i * 20, 240):zoomto(20, 0):diffusealpha(0.75):valign(1):diffuse(color(".75,.75,.75")):halign(1)
 		end,
 	}
 	return o
@@ -539,7 +486,7 @@ local function makeaquadforjumpcounts(i)
 	local o = Def.Quad {
 		Name = i.."j",
 		InitCommand = function(self)
-			self:xy(frameX + i * 20, 240):zoomto(20, 0):diffusealpha(0.85):valign(1):diffuse(color(".5,.5,.5"))
+			self:xy(frameX + i * 20, 240):zoomto(20, 0):diffusealpha(0.85):valign(1):diffuse(color(".5,.5,.5")):halign(1)
 		end,
 	}
 	return o
@@ -549,7 +496,7 @@ local function makeaquadforhandcounts(i)
 	local o = Def.Quad {
 		Name = i.."h",
 		InitCommand = function(self)
-			self:xy(frameX + i * 20, 240):zoomto(20, 0):diffusealpha(0.95):valign(1):diffuse(color(".25,.25,.25"))
+			self:xy(frameX + i * 20, 240):zoomto(20, 0):diffusealpha(0.95):valign(1):diffuse(color(".25,.25,.25")):halign(1)
 		end,
 	}
 	return o
@@ -559,7 +506,7 @@ local function makeaquadforquadcounts(i)
 	local o = Def.Quad {
 		Name = i.."q",
 		InitCommand = function(self)
-			self:xy(frameX + i * 20, 240):zoomto(20, 0):diffusealpha(1):valign(1):diffuse(color(".1,.1,.1"))
+			self:xy(frameX + i * 20, 240):zoomto(20, 0):diffusealpha(1):valign(1):diffuse(color(".1,.1,.1")):halign(1)
 		end,
 	}
 	return o
@@ -579,5 +526,67 @@ for i=1,imcrazy do
 end
 
 t[#t + 1] = toot
+
+
+-- preview stuff should all be under a single actor frame if possible and not a child of msd where it inherits commands and stuff 
+-- though this will break highlight since that's in the parent -mina
+local function UpdatePreviewPos(self)
+	if noteField then
+		local pos = SCREENMAN:GetTopScreen():GetPreviewNoteFieldMusicPosition() / musicratio
+		self:GetChild("Pos"):zoomto(math.min(pos,wodth), hidth)
+	end
+end
+t[#t+1] = Def.ActorFrame {
+	Name = "SeekBar",
+	InitCommand = function(self)
+		self:xy(50, 50)	-- eyeballed, not centered properly, this should all be moved out of the msd actor frame for sane control anyway -mina
+		self:SetUpdateFunction(UpdatePreviewPos)
+		self:visible(false)
+	end,
+	RefreshChartInfoMessageCommand = function(self)
+		if GAMESTATE:GetCurrentSong() then
+			musicratio = GAMESTATE:GetCurrentSong():MusicLengthSeconds() / wodth
+		else
+			MESSAGEMAN:Broadcast("DeletePreviewNoteField") -- kills it if we hit a pack... could be annoying but its the easiest way to hide stuff -mina
+		end
+	end,
+	NoteFieldVisibleMessageCommand = function(self)
+		self:visible(true)
+	end,
+	DeletePreviewNoteFieldMessageCommand = function(self)
+		self:visible(false)
+	end,
+	Def.Quad {
+		Name = "BG",
+		InitCommand = function(self)
+			self:zoomto(wodth, hidth):diffuse(color(".2,.2,.2,.2")):diffusealpha(0.1):halign(0)	-- stuff like width should be var'd -mina
+		end,
+		HighlightCommand = function(self)	-- use the bg for detection but move the seek pointer -mina 
+			if isOver(self) then
+				self:GetParent():GetChild("Seek"):visible(true)
+				self:GetParent():GetChild("Seek"):x(INPUTFILTER:GetMouseX() - self:GetParent():GetX())
+			else
+				self:GetParent():GetChild("Seek"):visible(false)
+			end
+		end
+	},
+	Def.Quad {
+		Name = "Pos",
+		InitCommand = function(self)
+			self:zoomto(0, hidth):diffuse(color(".6,.4,.7")):diffusealpha(0.35):halign(0) -- this should really be behind the cd graph
+		end
+	},
+	Def.Quad {
+		Name = "Seek",
+		InitCommand = function(self)
+			self:zoomto(4, hidth):diffuse(color("1,.2,.5")):diffusealpha(1):halign(0.5)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) then
+				SCREENMAN:GetTopScreen():SetPreviewNoteFieldMusicPosition(	self:GetX() * musicratio  )
+			end
+		end
+	},
+}
 
 return t
