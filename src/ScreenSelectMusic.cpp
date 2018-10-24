@@ -1860,6 +1860,26 @@ ScreenSelectMusic::DeletePreviewNoteField()
 	}
 }
 
+void
+ScreenSelectMusic::SetPreviewNoteFieldMusicPosition(float given)
+{
+	if (m_pPreviewNoteField != nullptr && GAMESTATE->m_bIsChartPreviewActive) {
+		RageTimer tm;
+		RageSound* pMusic = SOUND->GetRageSoundPlaying();
+		pMusic->SetPositionSeconds(given);
+	}
+}
+
+void
+ScreenSelectMusic::PausePreviewNoteFieldMusic()
+{
+	if (m_pPreviewNoteField != nullptr && GAMESTATE->m_bIsChartPreviewActive) {
+		bool paused = GAMESTATE->GetPaused();
+		SOUND->GetRageSoundPlaying()->Pause(!paused);
+		GAMESTATE->SetPaused(!paused);
+	}
+}
+
 // lua start
 #include "LuaBinding.h"
 
@@ -2098,8 +2118,10 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 
 	static int SetPreviewNoteFieldMusicPosition(T* p, lua_State* L)
 	{
-		float given = IArg(1);
-
+		float given = FArg(1);
+		if (GAMESTATE->m_bIsChartPreviewActive) {
+			p->SetPreviewNoteFieldMusicPosition(given);
+		}
 		return 1;
 	}
 
@@ -2109,6 +2131,14 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 					   GAMESTATE->m_pPlayerState[PLAYER_1]
 						 ->GetDisplayedPosition()
 						 .m_fSongBeat);
+		return 1;
+	}
+	
+	static int PausePreviewNoteField(T* p, lua_State* L)
+	{
+		if (GAMESTATE->m_bIsChartPreviewActive) {
+			p->PausePreviewNoteFieldMusic();
+		}
 		return 1;
 	}
 

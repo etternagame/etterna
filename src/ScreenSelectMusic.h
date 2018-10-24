@@ -72,6 +72,9 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	// Note: This is triggered by a DeletePreviewNoteField Message.
 	void DeletePreviewNoteField();
 
+	void SetPreviewNoteFieldMusicPosition(float);
+	void PausePreviewNoteFieldMusic();
+
 	NoteData m_PreviewNoteData;
 	NoteField* m_pPreviewNoteField;
 
