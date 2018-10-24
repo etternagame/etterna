@@ -75,9 +75,9 @@ local function input(event)
 	if not noteField then
 		return false
 	end
-	if event.DeviceInput.button == "DeviceButton_right mouse button" or event.DeviceInput.button == "DeviceButton_left mouse button" then
+	if event.DeviceInput.button == "DeviceButton_right mouse button" then	-- removed left click because using it to seek
 		if event.type == "InputEventType_Release" then
-			MESSAGEMAN:Broadcast("DeletePreviewNoteField")
+			SCREENMAN:GetTopScreen():PausePreviewNoteField()
 		end
 	end
 	if event.type ~= "InputEventType_Release" then
