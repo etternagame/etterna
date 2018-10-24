@@ -847,6 +847,43 @@ class LunaSteps : public Luna<Steps>
 		return 1;
 	}
 
+	static int GetNPSVector(T* p, lua_State* L)
+	{
+
+		auto& nd = p->GetNoteData();
+		const vector<int>& nerv = nd.BuildAndGetNerv();
+		const vector<float>& etaner =
+		  p->GetTimingData()->BuildAndGetEtaner(nerv);
+
+		vector<int> doot(static_cast<int>(etaner.back()));
+		int notecounter = 0;
+		int lastinterval = 0;
+		int curinterval = 0.f;
+		int tapsinjumps = 0;
+		int tapsinhands = 0;
+		int tapsinquads = 0;
+
+		for (size_t i = 0; i < nerv.size(); ++i) {
+			curinterval = static_cast<int>(etaner[i]);
+			if (curinterval > lastinterval) {
+				doot[lastinterval] = notecounter;
+				notecounter = 0;
+				lastinterval = static_cast<int>(curinterval);
+			}
+
+			for (int t = 0; t < nd.GetNumTracks(); ++t) {
+				const TapNote& tn = nd.GetTapNote(t, nerv[i]);
+				if (tn.type == TapNoteType_Tap ||
+					tn.type == TapNoteType_HoldHead) {
+					++notecounter;
+				}
+			}
+		}
+
+		LuaHelpers::CreateTableFromArray(doot, L);
+		return 1;
+	}
+
 	LunaSteps()
 	{
 		ADD_METHOD(GetAuthorCredit);
@@ -875,6 +912,7 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(PredictMeter);
 		ADD_METHOD(GetDisplayBPMType);
 		ADD_METHOD(GetRelevantSkillsetsByMSDRank);
+		ADD_METHOD(GetNPSVector);
 	}
 };
 
