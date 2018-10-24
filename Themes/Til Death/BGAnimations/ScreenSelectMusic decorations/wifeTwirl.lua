@@ -884,21 +884,21 @@ t[#t + 1] =
 
 -- hurrrrr nps quadzapalooza -mina
 local imcrazy = 500
-local wodth = 500
+local wodth = 480
 local toot = Def.ActorFrame {
 	Name = "npsyo",
 	RefreshChartInfoMessageCommand = function(self)
 		if steps then
 		local moot = steps:GetNPSVector()
-		local joot = steps:GetJPSVector()
+		local joot = steps:GetCPSVector(2)
 		local thingers = math.min(imcrazy,#moot)
 		local wid = wodth/thingers
 		for i=1,imcrazy do
 			if i <= thingers then
-				self:GetChild(i):x(frameX + 100 + i * wid):zoomto(wid,moot[i]*2)
+				self:GetChild(i):x(frameX + i * wid):zoomto(wid,moot[i]*2)
 				self:GetChild(i):visible(true)
 
-				self:GetChild(i.."j"):x(frameX + 100 + i * wid):zoomto(wid,joot[i]*2*2)
+				self:GetChild(i.."j"):x(frameX + i * wid):zoomto(wid,joot[i]*2*2)
 				self:GetChild(i.."j"):visible(true)
 			else
 				self:GetChild(i):visible(false)
@@ -913,7 +913,7 @@ local function makeaquad(i)
 	local o = Def.Quad {
 		Name = i,
 		InitCommand = function(self)
-			self:xy(frameX + 100 + i * 20, 240):zoomto(20, 0):diffusealpha(0.75):valign(1)
+			self:xy(frameX + i * 20, 240):zoomto(20, 0):diffusealpha(0.75):valign(1)
 		end,
 	}
 	return o
@@ -923,7 +923,7 @@ local function makeaquadforjumpcounts(i)
 	local o = Def.Quad {
 		Name = i.."j",
 		InitCommand = function(self)
-			self:xy(frameX + 100 + i * 20, 240):zoomto(20, 0):diffusealpha(0.85):valign(1):diffuse(color(".5,.5,.5,.5"))
+			self:xy(frameX + i * 20, 240):zoomto(20, 0):diffusealpha(0.85):valign(1):diffuse(color(".5,.5,.5,.5"))
 		end,
 	}
 	return o
