@@ -22,7 +22,8 @@ local noteField = false
 local prevX = 200
 local prevY = 125
 local prevZoom = 0.65
-
+local previewpointbeforethething
+local musicratio = 1
 
 local function isOver(element)
 	if element:GetParent():GetParent():GetVisible() == false then
@@ -59,10 +60,13 @@ end
 
 -- Set up the values for the preview notefield here
 local function setUpPreviewNoteField()
+	musicratio = GAMESTATE:GetCurrentSong():MusicLengthSeconds() / 300	-- save the preview position so the progress bar doesnt get janky when loading -mina
+	previewpointbeforethething= SCREENMAN:GetTopScreen():GetPreviewNoteFieldMusicPosition() / musicratio
 	local yeet = SCREENMAN:GetTopScreen():CreatePreviewNoteField()
 	if yeet == nil then
 		return
 	end
+
 	--SCREENMAN:AddNewScreenToTop("ScreenChartPreviewNoteField")
 	yeet:x(prevX)
 	yeet:y(prevY)
@@ -395,11 +399,14 @@ t[#t + 1] =
 
 
 
-local musicratio = 1
 
 local function UpdatePreviewPos(self)
 	if noteField then
-		self:GetChild("Pos"):zoomto(SCREENMAN:GetTopScreen():GetPreviewNoteFieldMusicPosition() / musicratio, 20)
+		local pos = SCREENMAN:GetTopScreen():GetPreviewNoteFieldMusicPosition() / musicratio
+		if pos < previewpointbeforethething then
+			pos = previewpointbeforethething
+		end
+		self:GetChild("Pos"):zoomto(pos, 20)
 	end
 end
 
@@ -445,6 +452,7 @@ t[#t+1] = Def.ActorFrame {
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) then
+				previewpointbeforethething = 0
 				SCREENMAN:GetTopScreen():SetPreviewNoteFieldMusicPosition(	self:GetX() * musicratio  )
 			end
 		end
