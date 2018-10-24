@@ -457,7 +457,7 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 			} else {
 				return;
 			}
-			m_pPreviewNoteField->Load(&m_PreviewNoteData, 0, 10000);
+			m_pPreviewNoteField->Load(&m_PreviewNoteData, 0, drawDistBeforeTargetPixels);
 		}
 
 		SOUND->PlayMusic(PlayParams, FallbackMusic);
