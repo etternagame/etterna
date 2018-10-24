@@ -1882,7 +1882,7 @@ ScreenSelectMusic::GeneratePreviewNoteField(float noteFieldHeight,
 	m_pPreviewNoteField->SetZoom(noteFieldZoom);
 	m_pPreviewNoteField->SetRotationX(noteFieldTiltDegrees);
 	m_pPreviewNoteField->Load(&m_PreviewNoteData,
-							  drawDistAfterTargetPixels,
+							  0,
 							  drawDistBeforeTargetPixels);
 	// This is essentially required.
 	// This NoteField is hereby attached to ScreenSelectMusic and there's
