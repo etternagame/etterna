@@ -387,4 +387,75 @@ t[#t + 1] =
 		noteField = false
 	end
 }
+
+
+
+local musicratio = 1
+
+local function UpdatePreviewPos(self)
+	if noteField then
+		self:GetChild("Pos"):zoomto(SCREENMAN:GetTopScreen():GetPreviewNoteFieldMusicPosition() / musicratio, 20)
+	end
+end
+
+-- preview stuff should all be under a single actor frame if possible and not a child of msd where it inherits commands and stuff 
+-- though this will break highlight since that's in the parent -mina
+t[#t+1] = Def.ActorFrame {
+	Name = "SeekBar",
+	InitCommand = function(self)
+		self:xy(50, 40)	-- eyeballed, not centered properly, this should all be moved out of the msd actor frame for sane control anyway -mina
+		self:SetUpdateFunction(UpdatePreviewPos)
+	end,
+	NoteFieldVisibleMessageCommand = function(self)
+		musicratio = GAMESTATE:GetCurrentSong():MusicLengthSeconds() / 300
+	end,
+	Def.Quad {
+		Name = "BG",
+		InitCommand = function(self)
+			self:zoomto(300, 20):diffuse(color(".2,.2,.2,.2")):diffusealpha(1):halign(0)	-- stuff like width should be var'd -mina
+			self:visible(false)
+		end,
+		HighlightCommand = function(self)	-- use the bg for detection but move the seek pointer -mina 
+			if isOver(self) then
+				self:GetParent():GetChild("Seek"):visible(true)
+				self:GetParent():GetChild("Seek"):x(INPUTFILTER:GetMouseX() - self:GetParent():GetX())
+			else
+				self:GetParent():GetChild("Seek"):visible(false)
+			end
+		end,
+		NoteFieldVisibleMessageCommand = function(self)
+			self:visible(true)
+		end,		
+		DeletePreviewNoteFieldMessageCommand = function(self)
+			self:visible(false)
+			noteField = false
+		end
+	},
+	Def.Quad {
+		Name = "Pos",
+		InitCommand = function(self)
+			self:zoomto(0, 20):diffuse(color(".6,.4,.7,.1")):diffusealpha(1):halign(0)
+			self:visible(false)
+		end,
+		NoteFieldVisibleMessageCommand = function(self)
+			self:visible(true)
+		end,
+		DeletePreviewNoteFieldMessageCommand = function(self)
+			self:visible(false)
+			noteField = false
+		end
+	},
+	Def.Quad {
+		Name = "Seek",
+		InitCommand = function(self)
+			self:zoomto(4, 20):diffuse(color("1,1,1,1")):diffusealpha(1):halign(0.5)
+			self:visible(false)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) then
+				SCREENMAN:GetTopScreen():SetPreviewNoteFieldMusicPosition(	self:GetX() * musicratio  )
+			end
+		end
+	},
+}
 return t
