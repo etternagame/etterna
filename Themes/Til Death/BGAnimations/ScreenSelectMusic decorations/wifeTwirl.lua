@@ -890,14 +890,19 @@ local toot = Def.ActorFrame {
 	RefreshChartInfoMessageCommand = function(self)
 		if steps then
 		local moot = steps:GetNPSVector()
+		local joot = steps:GetJPSVector()
 		local thingers = math.min(imcrazy,#moot)
 		local wid = wodth/thingers
 		for i=1,imcrazy do
 			if i <= thingers then
 				self:GetChild(i):x(frameX + 100 + i * wid):zoomto(wid,moot[i]*2)
 				self:GetChild(i):visible(true)
+
+				self:GetChild(i.."j"):x(frameX + 100 + i * wid):zoomto(wid,joot[i]*2*2)
+				self:GetChild(i.."j"):visible(true)
 			else
 				self:GetChild(i):visible(false)
+				self:GetChild(i.."j"):visible(false)
 			end
 		end
 	end
@@ -908,7 +913,17 @@ local function makeaquad(i)
 	local o = Def.Quad {
 		Name = i,
 		InitCommand = function(self)
-			self:xy(frameX + 100 + i * 20, 240):zoomto(20, 0):diffusealpha(1):valign(1)
+			self:xy(frameX + 100 + i * 20, 240):zoomto(20, 0):diffusealpha(0.75):valign(1)
+		end,
+	}
+	return o
+end
+
+local function makeaquadforjumpcounts(i)
+	local o = Def.Quad {
+		Name = i.."j",
+		InitCommand = function(self)
+			self:xy(frameX + 100 + i * 20, 240):zoomto(20, 0):diffusealpha(0.85):valign(1):diffuse(color(".5,.5,.5,.5"))
 		end,
 	}
 	return o
@@ -916,6 +931,9 @@ end
 
 for i=1,imcrazy do
 	toot[#toot + 1] = makeaquad(i)
+end
+for i=1,imcrazy do
+	toot[#toot + 1] = makeaquadforjumpcounts(i)
 end
 t[#t + 1] = toot
 
