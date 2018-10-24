@@ -2212,6 +2212,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		ADD_METHOD(GetPreviewNoteField);
 		ADD_METHOD(SetPreviewNoteFieldMusicPosition);
 		ADD_METHOD(GetPreviewNoteFieldMusicPosition);
+		ADD_METHOD(PausePreviewNoteField);
 	}
 };
 
