@@ -908,17 +908,33 @@ local toot = Def.ActorFrame {
 			hodth = 60/hodth
 			for i=1,imcrazy do
 				if i <= thingers then
-					self:GetChild(i):x(frameX + i * wid):zoomto(wid,moot[i]*2*hodth)
-					self:GetChild(i):visible(true)
+					if moot[i] > 0 then
+						self:GetChild(i):x(frameX + i * wid):zoomto(wid,moot[i]*2*hodth)
+						self:GetChild(i):visible(true)
+					else
+						self:GetChild(i):visible(false)
+					end
 
-					self:GetChild(i.."j"):x(frameX + i * wid):zoomto(wid,joot[i]*2*2*hodth)
-					self:GetChild(i.."j"):visible(true)
+					if joot[i] > 0 then
+						self:GetChild(i.."j"):x(frameX + i * wid):zoomto(wid,joot[i]*2*2*hodth)
+						self:GetChild(i.."j"):visible(true)
+					else
+						self:GetChild(i.."j"):visible(false)
+					end
 
-					self:GetChild(i.."h"):x(frameX + i * wid):zoomto(wid,hoot[i]*2*3*hodth)
-					self:GetChild(i.."h"):visible(true)
+					if hoot[i] > 0 then
+						self:GetChild(i.."h"):x(frameX + i * wid):zoomto(wid,hoot[i]*2*3*hodth)
+						self:GetChild(i.."h"):visible(true)
+					else
+						self:GetChild(i.."h"):visible(false)
+					end
 
-					self:GetChild(i.."q"):x(frameX + i * wid):zoomto(wid,qoot[i]*2*4*hodth)
-					self:GetChild(i.."q"):visible(true)
+					if qoot[i] > 0 then
+						self:GetChild(i.."q"):x(frameX + i * wid):zoomto(wid,qoot[i]*2*4*hodth)
+						self:GetChild(i.."q"):visible(true)
+					else
+						self:GetChild(i.."q"):visible(false)
+					end
 				else
 					self:GetChild(i):visible(false)
 					self:GetChild(i.."j"):visible(false)
