@@ -18,6 +18,11 @@ meter[1] = 0.00
 
 local noteField = false
 
+-- all the preview stuff should be var'd and used consistently -mina
+local prevX = 200
+local prevY = 125
+local prevZoom = 0.65
+
 
 local function isOver(element)
 	if element:GetParent():GetParent():GetVisible() == false then
@@ -59,9 +64,9 @@ local function setUpPreviewNoteField()
 		return
 	end
 	--SCREENMAN:AddNewScreenToTop("ScreenChartPreviewNoteField")
-	yeet:x(200)
-	yeet:y(50)
-	yeet:zoom(0.5)
+	yeet:x(prevX)
+	yeet:y(prevY)
+	yeet:zoom(prevZoom)
 	MESSAGEMAN:Broadcast("NoteFieldVisible")
 	noteField = true
 end
@@ -370,8 +375,8 @@ t[#t + 1] =
 	Def.Quad {
 	Name = "PreviewNoteFieldBackground",
 	InitCommand = function(self)
-		self:xy(SCREEN_WIDTH - 200, SCREEN_HEIGHT / 2)
-		self:zoomto(200, SCREEN_HEIGHT):diffuse(color("0.05,0.05,0.05,0.05")):diffusealpha(0.7)
+		self:xy(prevX, SCREEN_HEIGHT/2) 
+		self:zoomto(200, SCREEN_HEIGHT):diffuse(color("0.05,0.05,0.05,0.05")):diffusealpha(1)
 		self:visible(false)
 	end,
 	NoteFieldVisibleMessageCommand = function(self)
