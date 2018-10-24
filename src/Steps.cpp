@@ -849,7 +849,6 @@ class LunaSteps : public Luna<Steps>
 
 	static int GetNPSVector(T* p, lua_State* L)
 	{
-
 		auto& nd = p->GetNoteData();
 		const vector<int>& nerv = nd.BuildAndGetNerv();
 		const vector<float>& etaner =
@@ -859,9 +858,6 @@ class LunaSteps : public Luna<Steps>
 		int notecounter = 0;
 		int lastinterval = 0;
 		int curinterval = 0.f;
-		int tapsinjumps = 0;
-		int tapsinhands = 0;
-		int tapsinquads = 0;
 
 		for (size_t i = 0; i < nerv.size(); ++i) {
 			curinterval = static_cast<int>(etaner[i]);
@@ -883,6 +879,42 @@ class LunaSteps : public Luna<Steps>
 		LuaHelpers::CreateTableFromArray(doot, L);
 		return 1;
 	}
+
+	static int GetJPSVector(T* p, lua_State* L)
+	{
+		auto& nd = p->GetNoteData();
+		const vector<int>& nerv = nd.BuildAndGetNerv();
+		const vector<float>& etaner =
+		  p->GetTimingData()->BuildAndGetEtaner(nerv);
+
+		vector<int> doot(static_cast<int>(etaner.back()));
+		int jumpcounter = 0;
+		int lastinterval = 0;
+		int curinterval = 0.f;
+
+		for (size_t i = 0; i < nerv.size(); ++i) {
+			curinterval = static_cast<int>(etaner[i]);
+			if (curinterval > lastinterval) {
+				doot[lastinterval] = jumpcounter;
+				jumpcounter = 0;
+				lastinterval = static_cast<int>(curinterval);
+			}
+			int chordsize = 0;
+			for (int t = 0; t < nd.GetNumTracks(); ++t) {
+				const TapNote& tn = nd.GetTapNote(t, nerv[i]);
+				if (tn.type == TapNoteType_Tap ||
+					tn.type == TapNoteType_HoldHead) {
+					++chordsize;
+				}
+			}
+			if (chordsize == 2)
+				++jumpcounter;
+		}
+
+		LuaHelpers::CreateTableFromArray(doot, L);
+		return 1;
+	}
+
 
 	LunaSteps()
 	{
@@ -913,6 +945,9 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetDisplayBPMType);
 		ADD_METHOD(GetRelevantSkillsetsByMSDRank);
 		ADD_METHOD(GetNPSVector);
+		ADD_METHOD(GetJPSVector);
+		//ADD_METHOD(GetHPSVector);
+		//ADD_METHOD(GetQPSVector);
 	}
 };
 
