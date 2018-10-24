@@ -880,23 +880,23 @@ class LunaSteps : public Luna<Steps>
 		return 1;
 	}
 
-	static int GetJPSVector(T* p, lua_State* L)
-	{
+	static int GetCPSVector(T* p, lua_State* L) {
+		int chordtype = IArg(1);
 		auto& nd = p->GetNoteData();
 		const vector<int>& nerv = nd.BuildAndGetNerv();
 		const vector<float>& etaner =
 		  p->GetTimingData()->BuildAndGetEtaner(nerv);
 
 		vector<int> doot(static_cast<int>(etaner.back()));
-		int jumpcounter = 0;
+		int chordcounter = 0;
 		int lastinterval = 0;
 		int curinterval = 0.f;
 
 		for (size_t i = 0; i < nerv.size(); ++i) {
 			curinterval = static_cast<int>(etaner[i]);
 			if (curinterval > lastinterval) {
-				doot[lastinterval] = jumpcounter;
-				jumpcounter = 0;
+				doot[lastinterval] = chordcounter;
+				chordcounter = 0;
 				lastinterval = static_cast<int>(curinterval);
 			}
 			int chordsize = 0;
@@ -907,8 +907,8 @@ class LunaSteps : public Luna<Steps>
 					++chordsize;
 				}
 			}
-			if (chordsize == 2)
-				++jumpcounter;
+			if (chordsize == chordtype)
+				++chordcounter;
 		}
 
 		LuaHelpers::CreateTableFromArray(doot, L);
@@ -945,9 +945,7 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetDisplayBPMType);
 		ADD_METHOD(GetRelevantSkillsetsByMSDRank);
 		ADD_METHOD(GetNPSVector);
-		ADD_METHOD(GetJPSVector);
-		//ADD_METHOD(GetHPSVector);
-		//ADD_METHOD(GetQPSVector);
+		ADD_METHOD(GetCPSVector);
 	}
 };
 
