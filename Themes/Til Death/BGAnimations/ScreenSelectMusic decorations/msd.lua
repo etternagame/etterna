@@ -16,6 +16,8 @@ local steps
 local meter = {}
 meter[1] = 0.00
 
+local noteField = false
+
 
 local function isOver(element)
 	if element:GetParent():GetParent():GetVisible() == false then
@@ -53,10 +55,32 @@ end
 -- Set up the values for the preview notefield here
 local function setUpPreviewNoteField()
 	local yeet = SCREENMAN:GetTopScreen():CreatePreviewNoteField()
-	SCREENMAN:AddNewScreenToTop("ScreenChartPreviewNoteField")
+	if yeet == nil then
+		return
+	end
+	--SCREENMAN:AddNewScreenToTop("ScreenChartPreviewNoteField")
 	yeet:x(200)
 	yeet:y(50)
 	yeet:zoom(0.5)
+	MESSAGEMAN:Broadcast("NoteFieldVisible")
+	noteField = true
+end
+
+local function input(event)
+	if not noteField then
+		return false
+	end
+	if event.DeviceInput.button == "DeviceButton_right mouse button" or event.DeviceInput.button == "DeviceButton_left mouse button" then
+		if event.type == "InputEventType_Release" then
+			MESSAGEMAN:Broadcast("DeletePreviewNoteField")
+		end
+	end
+	if event.type ~= "InputEventType_Release" then
+		if event.GameButton == "Back" or event.GameButton == "Start" then
+			MESSAGEMAN:Broadcast("DeletePreviewNoteField")
+		end
+	end
+	return false
 end
 
 --Actor Frame
@@ -65,7 +89,8 @@ local t =
 	BeginCommand = function(self)
 		self:queuecommand("Set"):visible(false)
 		self:SetUpdateFunction(highlight)
-		
+		SCREENMAN:GetTopScreen():AddInputCallback(input)
+		noteField = false
 	end,
 	OffCommand = function(self)
 		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
@@ -341,5 +366,20 @@ t[#t + 1] =
 			end
 		end
 	}
-
+t[#t + 1] =
+	Def.Quad {
+	Name = "PreviewNoteFieldBackground",
+	InitCommand = function(self)
+		self:xy(SCREEN_WIDTH - 200, SCREEN_HEIGHT / 2)
+		self:zoomto(200, SCREEN_HEIGHT):diffuse(color("0.05,0.05,0.05,0.05")):diffusealpha(0.7)
+		self:visible(false)
+	end,
+	NoteFieldVisibleMessageCommand = function(self)
+		self:visible(true)
+	end,
+	DeletePreviewNoteFieldMessageCommand = function(self)
+		self:visible(false)
+		noteField = false
+	end
+}
 return t
