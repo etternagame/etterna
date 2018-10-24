@@ -454,4 +454,130 @@ t[#t+1] = Def.ActorFrame {
 		end
 	},
 }
+
+
+-- hurrrrr nps quadzapalooza -mina
+local imcrazy = 500
+local wodth = 480
+local hodth = 60
+local toot = Def.ActorFrame {
+	Name = "npsyo",
+	InitCommand=function(self)
+		self:y(10)
+	end,
+	RefreshChartInfoMessageCommand = function(self)
+		if steps then
+			local moot = steps:GetNPSVector()
+			local joot = steps:GetCPSVector(2)
+			local hoot = steps:GetCPSVector(3)
+			local qoot = steps:GetCPSVector(4)
+			local thingers = math.min(imcrazy,#moot)
+			local wid = wodth/thingers
+			local hodth = 0
+			for i=1,#moot do 
+				if moot[i] * 2 > hodth then
+					hodth = moot[i] * 2
+				end
+			end
+			hodth = 60/hodth
+			for i=1,imcrazy do
+				if i <= thingers then
+					if moot[i] > 0 then
+						self:GetChild(i):x(frameX + i * wid):zoomto(wid,moot[i]*2*hodth)
+						self:GetChild(i):visible(true)
+					else
+						self:GetChild(i):visible(false)
+					end
+
+					if joot[i] > 0 then
+						self:GetChild(i.."j"):x(frameX + i * wid):zoomto(wid,joot[i]*2*2*hodth)
+						self:GetChild(i.."j"):visible(true)
+					else
+						self:GetChild(i.."j"):visible(false)
+					end
+
+					if hoot[i] > 0 then
+						self:GetChild(i.."h"):x(frameX + i * wid):zoomto(wid,hoot[i]*2*3*hodth)
+						self:GetChild(i.."h"):visible(true)
+					else
+						self:GetChild(i.."h"):visible(false)
+					end
+
+					if qoot[i] > 0 then
+						self:GetChild(i.."q"):x(frameX + i * wid):zoomto(wid,qoot[i]*2*4*hodth)
+						self:GetChild(i.."q"):visible(true)
+					else
+						self:GetChild(i.."q"):visible(false)
+					end
+				else
+					self:GetChild(i):visible(false)
+					self:GetChild(i.."j"):visible(false)
+					self:GetChild(i.."h"):visible(false)
+					self:GetChild(i.."q"):visible(false)
+				end
+			end
+		end
+	end,
+	Def.Quad {
+		InitCommand = function(self)
+			self:xy(frameX, 240):zoomto(wodth+10, 68):diffusealpha(1):valign(1):diffuse(color("1,1,1")):halign(0)
+		end,
+	}
+}
+
+local function makeaquad(i)
+	local o = Def.Quad {
+		Name = i,
+		InitCommand = function(self)
+			self:xy(frameX + i * 20, 240):zoomto(20, 0):diffusealpha(0.75):valign(1):diffuse(color(".75,.75,.75"))
+		end,
+	}
+	return o
+end
+
+local function makeaquadforjumpcounts(i)
+	local o = Def.Quad {
+		Name = i.."j",
+		InitCommand = function(self)
+			self:xy(frameX + i * 20, 240):zoomto(20, 0):diffusealpha(0.85):valign(1):diffuse(color(".5,.5,.5"))
+		end,
+	}
+	return o
+end
+
+local function makeaquadforhandcounts(i)
+	local o = Def.Quad {
+		Name = i.."h",
+		InitCommand = function(self)
+			self:xy(frameX + i * 20, 240):zoomto(20, 0):diffusealpha(0.95):valign(1):diffuse(color(".25,.25,.25"))
+		end,
+	}
+	return o
+end
+
+local function makeaquadforquadcounts(i)
+	local o = Def.Quad {
+		Name = i.."q",
+		InitCommand = function(self)
+			self:xy(frameX + i * 20, 240):zoomto(20, 0):diffusealpha(1):valign(1):diffuse(color(".1,.1,.1"))
+		end,
+	}
+	return o
+end
+
+for i=1,imcrazy do
+	toot[#toot + 1] = makeaquad(i)
+end
+for i=1,imcrazy do
+	toot[#toot + 1] = makeaquadforjumpcounts(i)
+end
+for i=1,imcrazy do
+	toot[#toot + 1] = makeaquadforhandcounts(i)
+end
+for i=1,imcrazy do
+	toot[#toot + 1] = makeaquadforquadcounts(i)
+end
+
+t[#t + 1] = toot
+
 return t
