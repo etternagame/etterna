@@ -84,6 +84,8 @@ void
 ScreenSelectMusic::Init()
 {
 	SubscribeToMessage("DeletePreviewNoteField");
+	SubscribeToMessage("ChangePreviewNoteField");
+	
 	g_ScreenStartedLoadingAt.Touch();
 	if (PREFSMAN->m_sTestInitialScreen.Get() == m_sName) {
 		GAMESTATE->m_PlayMode.Set(PLAY_MODE_REGULAR);
@@ -1853,6 +1855,8 @@ ScreenSelectMusic::DeletePreviewNoteField()
 			g_bSampleMusicWaiting = true;
 			CheckBackgroundRequests(true);
 		}
+		Message m("DeletePreviewNoteField");
+		MESSAGEMAN->Broadcast(m);
 	}
 }
 
