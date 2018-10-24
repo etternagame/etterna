@@ -382,6 +382,13 @@ RageSound::StartPlaying()
 }
 
 void
+RageSound::SetPositionSeconds(float fGiven)
+{
+	//ASSERT(!m_bPlaying);
+	SetPositionFrames(lround(fGiven * samplerate()));
+}
+
+void
 RageSound::StopPlaying()
 {
 	/* Don't lock while calling SOUNDMAN driver calls. */
