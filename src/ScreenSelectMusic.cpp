@@ -443,6 +443,8 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 											"DrawDistanceBeforeTargetsPixels");
 
 			auto song = GAMESTATE->m_pCurSong;
+			if (song == nullptr)
+				return;
 			Steps* steps = GAMESTATE->m_pCurSteps[PLAYER_1];
 
 			m_sSampleMusicToPlay = song->GetMusicPath();
