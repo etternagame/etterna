@@ -77,7 +77,7 @@ local function input(event)
 		return false
 	end
 	if event.DeviceInput.button == "DeviceButton_right mouse button" then	-- removed left click because using it to seek
-		if event.type == "InputEventType_Press" then
+		if event.type == "InputEventType_FirstPress" then
 			SCREENMAN:GetTopScreen():PausePreviewNoteField()
 		end
 	end
