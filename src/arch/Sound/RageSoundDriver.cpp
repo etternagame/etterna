@@ -1,4 +1,5 @@
 #include "global.h"
+#include "PrefsManager.h"
 #include "RageSoundDriver.h"
 #include "RageSoundManager.h"
 #include "RageLog.h"
@@ -51,7 +52,8 @@ RageSoundDriver::Create(const RString& drivers)
 
 		const RString sError = pRet->Init();
 		if (sError.empty()) {
-			LOG->Info("Sound driver: %s", Driver->c_str());
+			if(PREFSMAN->m_verbose_log > 1)
+				LOG->Info("Sound driver: %s", Driver->c_str());
 			return pRet;
 		}
 		LOG->Info(

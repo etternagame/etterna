@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "DisplayResolutions.h"
 #include "LocalizedString.h"
 #include "Preference.h"
@@ -158,7 +158,7 @@ RageDisplay::ProcessStatsOnFlip()
 			  g_iVertsRenderedSinceLastCheck / g_iFramesRenderedSinceLastCheck;
 			g_iFramesRenderedSinceLastCheck = g_iVertsRenderedSinceLastCheck =
 			  0;
-			if (LOG_FPS) {
+			if (LOG_FPS && !(PREFSMAN->m_verbose_log > 1)) {
 				RString sStats = GetStats();
 				sStats.Replace("\n", ", ");
 				LOG->Trace("%s", sStats.c_str());

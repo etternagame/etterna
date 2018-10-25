@@ -3,6 +3,7 @@
 #include "archutils/Win32/DirectXHelpers.h"
 #include "archutils/Win32/ErrorStrings.h"
 #include "archutils/Win32/GraphicsWindow.h"
+#include "PrefsManager.h"
 #include "RageUtil.h"
 #include "RageLog.h"
 #include "RageDisplay.h"
@@ -133,8 +134,8 @@ DumpPixelFormat(const PIXELFORMATDESCRIPTOR& pfd)
 
 	if (bInvalidFormat)
 		LOG->Warn("Invalid format: %s", str.c_str());
-	else
-		LOG->Info("%s", str.c_str());
+	else if (PREFSMAN->m_verbose_log > 1)
+			LOG->Info("%s", str.c_str());
 }
 
 /* This function does not reset the video mode if it fails, because we might be
@@ -172,7 +173,8 @@ LowLevelWindow_Win32::TryVideoMode(const VideoModeParams& p,
 
 	/* Set the display mode: switch to a fullscreen mode or revert to windowed
 	 * mode. */
-	LOG->Trace("SetScreenMode ...");
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace("SetScreenMode ...");
 	RString sErr = GraphicsWindow::SetScreenMode(p);
 	if (!sErr.empty())
 		return sErr;
@@ -198,7 +200,8 @@ LowLevelWindow_Win32::TryVideoMode(const VideoModeParams& p,
 		if (memcmp(&DestPixelFormat,
 				   &g_CurrentPixelFormat,
 				   sizeof(PIXELFORMATDESCRIPTOR))) {
-			LOG->Trace("Reset: pixel format changing");
+			if (PREFSMAN->m_verbose_log > 1)
+				LOG->Trace("Reset: pixel format changing");
 			bNeedToSetPixelFormat = true;
 		}
 	}
@@ -303,9 +306,10 @@ LowLevelWindow_Win32::IsSoftwareRenderer(RString& sError)
 	RString sVendor = (const char*)glGetString(GL_VENDOR);
 	RString sRenderer = (const char*)glGetString(GL_RENDERER);
 
-	LOG->Trace("LowLevelWindow_Win32::IsSoftwareRenderer '%s', '%s'",
-			   sVendor.c_str(),
-			   sRenderer.c_str());
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace("LowLevelWindow_Win32::IsSoftwareRenderer '%s', '%s'",
+				   sVendor.c_str(),
+				   sRenderer.c_str());
 
 	if (sVendor == "Microsoft Corporation" && sRenderer == "GDI Generic") {
 		sError = OPENGL_NOT_AVAILABLE;

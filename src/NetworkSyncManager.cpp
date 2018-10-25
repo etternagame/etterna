@@ -496,8 +496,9 @@ NetworkSyncManager::PostStartUp(const RString& ServerIP)
 	}
 
 	chat.rawMap.clear();
-	LOG->Info(
-	  "Attempting to connect to: %s, Port: %i", sAddress.c_str(), iPort);
+	if (PREFSMAN->m_verbose_log > 0)
+		LOG->Info(
+		  "Attempting to connect to: %s, Port: %i", sAddress.c_str(), iPort);
 	curProtocol = nullptr;
 	CloseConnection();
 	/*
@@ -784,12 +785,12 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					HighScore hs;
 					EndOfGame_PlayerData result;
 					hs.SetScoreKey(score.value("scorekey", ""));
-					hs.SetSSRNormPercent(score.value("ssr_norm", 0));
+					hs.SetSSRNormPercent(static_cast<float>(score.value("ssr_norm", 0)));
 					hs.SetEtternaValid(score.value("valid", 0) != 0);
 					hs.SetModifiers(score.value("mods", ""));
 					FOREACH_ENUM(Skillset, ss)
 					hs.SetSkillsetSSR(
-					  ss, score.value(SkillsetToString(ss).c_str(), 0));
+					  ss, static_cast<float>(score.value(SkillsetToString(ss).c_str(), 0)));
 					hs.SetSSRNormPercent(score.value("score", 0.0f));
 					hs.SetWifeScore(score.value("score", 0.0f));
 					result.tapScores[0] = score.value("marv", 0);
@@ -820,7 +821,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					} catch (exception e) {
 						hs.SetChordCohesion(true);
 					}
-					hs.SetMusicRate(score.value("rate", 0.1));
+					hs.SetMusicRate(score.value("rate", 0.1f));
 					try {
 						json& replay = score["replay"];
 						json& jOffsets = replay["offsets"];

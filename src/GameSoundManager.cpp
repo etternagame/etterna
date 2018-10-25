@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "AnnouncerManager.h"
 #include "GameSoundManager.h"
 #include "GameState.h"
@@ -436,13 +436,15 @@ GameSoundManager::~GameSoundManager()
 	LUA->UnsetGlobal("SOUND");
 
 	/* Signal the mixing thread to quit. */
-	LOG->Trace("Shutting down music start thread ...");
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace("Shutting down music start thread ...");
 	g_Mutex->Lock();
 	g_Shutdown = true;
 	g_Mutex->Broadcast();
 	g_Mutex->Unlock();
 	MusicThread.Wait();
-	LOG->Trace("Music start thread shut down.");
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace("Music start thread shut down.");
 
 	SAFE_DELETE(g_Playing);
 	SAFE_DELETE(g_Mutex);

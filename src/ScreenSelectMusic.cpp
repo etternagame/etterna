@@ -334,7 +334,8 @@ ScreenSelectMusic::BeginScreen()
 
 ScreenSelectMusic::~ScreenSelectMusic()
 {
-	LOG->Trace("ScreenSelectMusic::~ScreenSelectMusic()");
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace("ScreenSelectMusic::~ScreenSelectMusic()");
 	IMAGECACHE->Undemand("Banner");
 }
 
@@ -1662,14 +1663,16 @@ ScreenSelectMusic::AfterMusicChange()
 
 	g_bCDTitleWaiting = false;
 	if (!g_sCDTitlePath.empty() || g_bWantFallbackCdTitle) {
-		LOG->Trace("cache \"%s\"", g_sCDTitlePath.c_str());
+		if(PREFSMAN->m_verbose_log > 1)
+			LOG->Trace("cache \"%s\"", g_sCDTitlePath.c_str());
 		m_BackgroundLoader.CacheFile(g_sCDTitlePath); // empty OK
 		g_bCDTitleWaiting = true;
 	}
 
 	g_bBannerWaiting = false;
 	if (bWantBanner) {
-		LOG->Trace("LoadFromCachedBanner(%s)", g_sBannerPath.c_str());
+		if (PREFSMAN->m_verbose_log > 1)
+			LOG->Trace("LoadFromCachedBanner(%s)", g_sBannerPath.c_str());
 		if (m_Banner.LoadFromCachedBanner(g_sBannerPath)) {
 			/* If the high-res banner is already loaded, just delay before
 			 * loading it, so the low-res one has time to fade in. */

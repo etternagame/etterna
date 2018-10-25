@@ -1,8 +1,9 @@
-﻿#include "global.h"
+#include "global.h"
 #include "Foreach.h"
 #include "LocalizedString.h"
 #include "LuaManager.h"
 #include "Preference.h"
+#include "PrefsManager.h"
 #include "RageInput.h"
 #include "RageLog.h"
 #include "arch/InputHandler/InputHandler.h"
@@ -24,7 +25,8 @@ map<InputDevice, InputHandler*> g_mapDeviceToHandler;
 
 RageInput::RageInput()
 {
-	LOG->Trace("RageInput::RageInput()");
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace("RageInput::RageInput()");
 
 	// Register with Lua.
 	{

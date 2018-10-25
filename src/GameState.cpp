@@ -49,7 +49,8 @@ class GameStateMessageHandler : public MessageSubscriber
 			if (sJoined == "")
 				sJoined = "none";
 
-			LOG->MapLog("JOINED", "Players joined: %s", sJoined.c_str());
+			if (PREFSMAN->m_verbose_log > 0)
+				LOG->MapLog("JOINED", "Players joined: %s", sJoined.c_str());
 		}
 	}
 };

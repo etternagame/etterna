@@ -236,6 +236,8 @@ PrefsManager::PrefsManager()
   /* Debug: */
   m_bLogToDisk("LogToDisk", true)
   ,
+  m_verbose_log("VerboseLogging", 1)
+  ,
 #if defined(DEBUG)
   m_bForceLogFlush("ForceLogFlush", true)
   , m_bShowLogOutput("ShowLogOutput", true)

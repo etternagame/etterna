@@ -1,5 +1,6 @@
 #include "global.h"
 #include "DebugInfoHunt.h"
+#include "PrefsManager.h"
 #include "RageLog.h"
 #include "RageUtil.h"
 #include "VideoDriverInfo.h"
@@ -10,13 +11,16 @@
 static void
 LogVideoDriverInfo(VideoDriverInfo info)
 {
-	LOG->Info("Video driver: %s [%s]",
-			  info.sDescription.c_str(),
-			  info.sProvider.c_str());
-	LOG->Info("              %s, %s [%s]",
-			  info.sVersion.c_str(),
-			  info.sDate.c_str(),
-			  info.sDeviceID.c_str());
+	if (PREFSMAN->m_verbose_log > 1)
+	{
+		LOG->Info("Video driver: %s [%s]",
+			info.sDescription.c_str(),
+			info.sProvider.c_str());
+		LOG->Info("              %s, %s [%s]",
+			info.sVersion.c_str(),
+			info.sDate.c_str(),
+			info.sDeviceID.c_str());
+	}
 }
 
 static void
@@ -25,10 +29,11 @@ GetMemoryDebugInfo()
 	MEMORYSTATUS mem;
 	GlobalMemoryStatus(&mem);
 
-	LOG->Info("Memory: %imb total, %imb swap (%imb swap avail)",
-			  mem.dwTotalPhys / 1048576,
-			  mem.dwTotalPageFile / 1048576,
-			  mem.dwAvailPageFile / 1048576);
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Info("Memory: %imb total, %imb swap (%imb swap avail)",
+				  mem.dwTotalPhys / 1048576,
+				  mem.dwTotalPageFile / 1048576,
+				  mem.dwAvailPageFile / 1048576);
 }
 
 static void
@@ -45,8 +50,7 @@ GetDisplayDriverDebugInfo()
 		if (!GetVideoDriverInfo(i, info))
 			break;
 
-		if (sPrimaryDeviceName ==
-			"") // failed to get primary display name (NT4)
+		if (sPrimaryDeviceName == "") // failed to get primary display name (NT4)
 		{
 			LogVideoDriverInfo(info);
 			LoggedSomething = true;
@@ -116,9 +120,10 @@ GetDriveDebugInfo9x()
 			RegistryAccess::GetRegValue(
 			  IDs[id], "DMACurrentlyUsed", DMACurrentlyUsed);
 
-			LOG->Info("Drive: \"%s\" DMA: %s",
-					  DeviceDesc.c_str(),
-					  DMACurrentlyUsed ? "yes" : "NO");
+			if (PREFSMAN->m_verbose_log > 1)
+				LOG->Info("Drive: \"%s\" DMA: %s",
+						  DeviceDesc.c_str(),
+						  DMACurrentlyUsed ? "yes" : "NO");
 		}
 	}
 }
@@ -170,12 +175,13 @@ GetDriveDebugInfoNT()
 					RegistryAccess::GetRegValue(
 					  LUIDs[luid], "Identifier", Identifier);
 					TrimRight(Identifier);
-					LOG->Info("Drive: \"%s\" Driver: %s DMA: %s",
-							  Identifier.c_str(),
-							  Driver.c_str(),
-							  DMAEnabled == 1
-								? "yes"
-								: DMAEnabled == -1 ? "N/A" : "NO");
+					if (PREFSMAN->m_verbose_log > 1)
+						LOG->Info("Drive: \"%s\" Driver: %s DMA: %s",
+								  Identifier.c_str(),
+								  Driver.c_str(),
+								  DMAEnabled == 1
+									? "yes"
+									: DMAEnabled == -1 ? "N/A" : "NO");
 				}
 			}
 		}
@@ -288,15 +294,16 @@ GetSoundDriverDebugInfo()
 			LOG->Info(wo_ssprintf(ret, "waveOutGetDevCaps(%i) failed", i));
 			continue;
 		}
-		LOG->Info("Sound device %i: %s, %i.%i, MID %i, PID %i %s",
-				  i,
-				  caps.szPname,
-				  HIBYTE(caps.vDriverVersion),
-				  LOBYTE(caps.vDriverVersion),
-				  caps.wMid,
-				  caps.wPid,
-				  caps.dwSupport & WAVECAPS_SAMPLEACCURATE ? ""
-														   : "(INACCURATE)");
+		if(PREFSMAN->m_verbose_log > 1)
+			LOG->Info("Sound device %i: %s, %i.%i, MID %i, PID %i %s",
+					  i,
+					  caps.szPname,
+					  HIBYTE(caps.vDriverVersion),
+					  LOBYTE(caps.vDriverVersion),
+					  caps.wMid,
+					  caps.wPid,
+					  caps.dwSupport & WAVECAPS_SAMPLEACCURATE ? ""
+															   : "(INACCURATE)");
 	}
 }
 

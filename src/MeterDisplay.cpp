@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "GameState.h"
 #include "LuaManager.h"
@@ -31,8 +31,9 @@ MeterDisplay::Load(const RString& sStreamPath,
 void
 MeterDisplay::LoadFromNode(const XNode* pNode)
 {
-	LOG->Trace("MeterDisplay::LoadFromNode(%s)",
-			   ActorUtil::GetWhere(pNode).c_str());
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace("MeterDisplay::LoadFromNode(%s)",
+				   ActorUtil::GetWhere(pNode).c_str());
 
 	const XNode* pStream = pNode->GetChild("Stream");
 	if (pStream == NULL) {

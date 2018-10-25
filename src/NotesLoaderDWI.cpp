@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "Difficulty.h"
 #include "GameInput.h"
 #include "MsdFile.h"
@@ -396,7 +396,7 @@ ParseNoteData(RString& step1, RString& step2, Steps& out, const RString& path)
 						i++;
 					}
 
-					const int iIndex = BeatToNoteRow((float)fCurrentBeat);
+					const int iIndex = BeatToNoteRow(static_cast<float>(fCurrentBeat));
 					i--;
 					do {
 						c = sStepData[i++];

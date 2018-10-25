@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "CommonMetrics.h"
 #include "DifficultyList.h"
 #include "Foreach.h"
@@ -190,13 +190,13 @@ StepsDisplayList::UpdatePositions()
 		if (i < first_start)
 			ItemPosition = -0.5f;
 		else if (i < first_end)
-			ItemPosition = (float)pos++;
+			ItemPosition = static_cast<float>(pos++);
 		else if (i < second_start)
 			ItemPosition = halfsize - 0.5f;
 		else if (i < second_end)
-			ItemPosition = (float)pos++;
+			ItemPosition = static_cast<float>(pos++);
 		else
-			ItemPosition = (float)total - 0.5f;
+			ItemPosition = static_cast<float>(total) - 0.5f;
 
 		Row& row = Rows[i];
 

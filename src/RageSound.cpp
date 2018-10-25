@@ -1,4 +1,4 @@
-﻿/* Handle loading and decoding of sounds.
+/* Handle loading and decoding of sounds.
  *
  * For small files, pre-decode the entire file into a regular buffer.  We
  * might want to play many samples at once, and we don't want to have to decode
@@ -174,9 +174,10 @@ RageSound::Load(const RString& sSoundFilePath,
 				bool bPrecache,
 				const RageSoundLoadParams* pParams)
 {
-	LOG->Trace("RageSound: Load \"%s\" (precache: %i)",
-			   sSoundFilePath.c_str(),
-			   bPrecache);
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace("RageSound: Load \"%s\" (precache: %i)",
+				   sSoundFilePath.c_str(),
+				   bPrecache);
 
 	if (pParams == NULL) {
 		static const RageSoundLoadParams Defaults;
@@ -356,7 +357,7 @@ RageSound::StartPlaying()
 	/* If m_StartTime is in the past, then we probably set a start time but took
 	 * too long loading.  We don't want that; log it, since it can be unobvious.
 	 */
-	if (!m_Param.m_StartTime.IsZero() && m_Param.m_StartTime.Ago() > 0)
+	if (!m_Param.m_StartTime.IsZero() && m_Param.m_StartTime.Ago() > 0 && PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("Sound \"%s\" has a start time %f seconds in the past",
 				   GetLoadedFilePath().c_str(),
 				   m_Param.m_StartTime.Ago());

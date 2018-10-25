@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "ActorUtil.h"
 #include "BackgroundUtil.h"
 #include "GameConstantsAndTypes.h"
@@ -583,7 +583,7 @@ BMSChart::Load(const RString& chartPath)
 				if (value != "00") {
 					value.MakeLower();
 					BMSObject o = {
-						channel, measure, (float)i / count, flag, value
+						channel, measure, static_cast<float>(i) / count, flag, value
 					};
 					objects.push_back(o);
 				}

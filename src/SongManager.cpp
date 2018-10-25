@@ -341,8 +341,9 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 	LoadEnabledSongsFromPref();
 	SONGINDEX->delay_save_cache = false;
 
-	LOG->Trace(
-	  "Found %d songs in %.6f seconds.", m_pSongs.size(), tm.GetDeltaTime());
+	if (PREFSMAN->m_verbose_log > 1)
+		LOG->Trace(
+		  "Found %i songs in %f seconds.", m_pSongs.size(), tm.GetDeltaTime());
 	for (auto& pair : cache)
 		delete pair;
 	cache.clear();
@@ -825,7 +826,7 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 			ld->SetProgress(progress);
 	};
 	vector<pair<RString*, vector<RString>*>> workload;
-	for (int i = 0; i < arrayGroupDirs.size(); i++) {
+	for (int i = 0; i < (int)arrayGroupDirs.size(); i++) {
 		workload.emplace_back(
 		  make_pair(&arrayGroupDirs[i], &arrayGroupSongDirs[i]));
 	}

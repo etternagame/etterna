@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "GameState.h"
 #include "IniFile.h"
 #include "Player.h"
@@ -165,7 +165,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore)
 
 	// Generate TapReplayResults to put into a vector referenced by the song row
 	// in a map
-	for (int i = 0; i < replayNoteRowVector.size(); i++) {
+	for (int i = 0; i < (int)replayNoteRowVector.size(); i++) {
 		TapReplayResult trr;
 		trr.row = replayNoteRowVector[i];
 		trr.offset = replayOffsetVector[i];
@@ -192,7 +192,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore)
 
 	// Generate vectors made of pregenerated HoldReplayResults referenced by the
 	// song row in a map
-	for (int i = 0; i < replayHoldVector.size(); i++) {
+	for (int i = 0; i < (int)replayHoldVector.size(); i++) {
 		// Create or append to the vector
 		if (m_ReplayHoldMap.count(replayHoldVector[i].row) != 0) {
 			m_ReplayHoldMap[replayHoldVector[i].row].push_back(

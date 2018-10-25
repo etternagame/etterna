@@ -1,5 +1,6 @@
 #include "global.h"
 #include "GraphicsWindow.h"
+#include "PrefsManager.h"
 #include "ProductInfo.h"
 #include "RageLog.h"
 #include "RageUtil.h"
@@ -65,10 +66,11 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			const bool bMinimized = (HIWORD(wParam) != 0);
 			const bool bHadFocus = g_bHasFocus;
 			g_bHasFocus = !bInactive && !bMinimized;
-			LOG->Trace("WM_ACTIVATE (%i, %i): %s",
-					   bInactive,
-					   bMinimized,
-					   g_bHasFocus ? "has focus" : "doesn't have focus");
+			if (PREFSMAN != NULL && PREFSMAN->m_verbose_log > 1)
+				LOG->Trace("WM_ACTIVATE (%i, %i): %s",
+						   bInactive,
+						   bMinimized,
+						   g_bHasFocus ? "has focus" : "doesn't have focus");
 			if (!g_bHasFocus) {
 				RString sName = GetNewWindow();
 				static set<RString> sLostFocusTo;
@@ -79,7 +81,8 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					 ++it)
 					sStr += (sStr.size() ? ", " : "") + *it;
 
-				LOG->MapLog("LOST_FOCUS", "Lost focus to: %s", sStr.c_str());
+				if (PREFSMAN != NULL && PREFSMAN->m_verbose_log > 1)
+					LOG->MapLog("LOST_FOCUS", "Lost focus to: %s", sStr.c_str());
 			}
 
 			if (!g_bD3D && !g_CurrentParams.windowed &&
