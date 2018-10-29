@@ -57,7 +57,7 @@ t[#t + 1] =
 	{
 		InitCommand=function(self)
 			self:xy(75,frameY-82):zoom(0.65):valign(1):halign(0):diffuse(getMainColor('positive'))
-		end
+		end,
 		OnCommand=function(self)
 			self:settext("Etterna")
 		end
@@ -69,7 +69,7 @@ t[#t + 1] =
 	{
 		InitCommand=function(self)
 			self:xy(95,frameY-52):zoom(0.65):valign(1):halign(0):diffuse(getMainColor('positive'))
-		end
+		end,
 		OnCommand=function(self)
 		self:settext(getThemeName())
 		end
