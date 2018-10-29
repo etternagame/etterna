@@ -244,18 +244,11 @@ class LunaScreenSelectProfile : public Luna<ScreenSelectProfile>
 		return 1;
 	}
 
-	static int Cancel(T* p, lua_State* L)
-	{
-		p->Cancel(SM_GoToPrevScreen);
-		return 1;
-	}
-
 	LunaScreenSelectProfile()
 	{
 		ADD_METHOD(SetProfileIndex);
 		ADD_METHOD(GetProfileIndex);
 		ADD_METHOD(Finish);
-		ADD_METHOD(Cancel);
 	}
 };
 
