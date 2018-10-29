@@ -231,12 +231,7 @@ t[#t + 1] =
 			end
 		end
 		if params.Name == "Back" then
-			if GAMESTATE:GetNumPlayersEnabled() == 0 then
-				SCREENMAN:GetTopScreen():Cancel()
-			else
-				MESSAGEMAN:Broadcast("BackButton")
-				SCREENMAN:GetTopScreen():SetProfileIndex(params.PlayerNumber, -2)
-			end
+			SCREENMAN:GetTopScreen():Cancel()
 		end
 	end,
 	PlayerJoinedMessageCommand = function(self, params)
