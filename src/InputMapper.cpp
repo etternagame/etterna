@@ -74,16 +74,6 @@ static const AutoMappings g_DefaultKeyMappings = AutoMappings(
 void
 InputMapper::AddDefaultMappingsForCurrentGameIfUnmapped()
 {
-	// Clear default mappings.  Default mappings are in the third slot.
-	FOREACH_ENUM(GameController, i)
-	{
-		FOREACH_ENUM(GameButton, j)
-		{
-			if (!IsMapped(GameInput(i,j), 2))
-				ClearFromInputMap(GameInput(i, j), 2);
-		}
-	}
-
 	vector<AutoMappingEntry> aMaps;
 	aMaps.reserve(32);
 
