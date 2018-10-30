@@ -868,6 +868,14 @@ InputMapper::SetInputMap(const DeviceInput& DeviceI,
 						 const GameInput& GameI,
 						 int iSlotIndex)
 {
+	int c;
+	for (int i = 0; i < 3; i++)
+	{
+		if (i != iSlotIndex && IsMapped(GameI, i))
+			c++;
+		if (c > 1)
+			ClearFromInputMap(GameI, i);
+	}
 	m_mappings.SetInputMap(DeviceI, GameI, iSlotIndex);
 
 	UpdateTempDItoGI();
