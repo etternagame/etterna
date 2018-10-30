@@ -76,8 +76,13 @@ InputMapper::AddDefaultMappingsForCurrentGameIfUnmapped()
 {
 	// Clear default mappings.  Default mappings are in the third slot.
 	FOREACH_ENUM(GameController, i)
-	FOREACH_ENUM(GameButton, j)
-	ClearFromInputMap(GameInput(i, j), 2);
+	{
+		FOREACH_ENUM(GameButton, j)
+		{
+			if (!IsMapped(GameInput(i,j), 2))
+				ClearFromInputMap(GameInput(i, j), 2);
+		}
+	}
 
 	vector<AutoMappingEntry> aMaps;
 	aMaps.reserve(32);
@@ -99,8 +104,7 @@ InputMapper::AddDefaultMappingsForCurrentGameIfUnmapped()
 		GameInput GameI(m->m_bSecondController ? GameController_2
 											   : GameController_1,
 						m->m_gb);
-		if (!IsMapped(DeviceI)) // if this key isn't already being used by
-								// another user-made mapping
+		if (!IsMapped(DeviceI) && !IsMapped(GameI, 2)) // if this key isn't already being used by another user-made mapping
 		{
 			if (!GameI.IsValid())
 				ClearFromInputMap(DeviceI);
@@ -901,6 +905,14 @@ bool
 InputMapper::IsMapped(const DeviceInput& DeviceI) const
 {
 	return g_tempDItoGI.find(DeviceI) != g_tempDItoGI.end();
+}
+
+bool
+InputMapper::IsMapped(const GameInput& GameI, int iSlotIndex) const
+{
+	GameButton gb = GameI.button;
+	GameController gc = GameI.controller;
+	return m_mappings.m_GItoDI[gc][gb][iSlotIndex].IsValid();
 }
 
 void

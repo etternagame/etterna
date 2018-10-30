@@ -233,6 +233,7 @@ class InputMapper
 	bool CheckForChangedInputDevicesAndRemap(RString& sMessageOut);
 
 	bool IsMapped(const DeviceInput& DeviceI) const;
+	bool IsMapped(const GameInput& GameI, int iSlotIndex) const;
 
 	bool DeviceToGame(const DeviceInput& DeviceI, GameInput& GameI)
 	  const; // return true if there is a mapping from device to pad
