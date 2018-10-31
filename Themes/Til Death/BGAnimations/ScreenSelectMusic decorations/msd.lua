@@ -465,7 +465,7 @@ local p = Def.ActorFrame {
 	}
 }
 
-p[#p + 1] = LoadActor("../chorddensitygraph.lua")
+p[#p + 1] = LoadActor("../_chorddensitygraph.lua")
 
 -- more draw order shenanigans
 p[#p + 1] = Def.Quad {
