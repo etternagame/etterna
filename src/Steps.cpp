@@ -857,7 +857,7 @@ class LunaSteps : public Luna<Steps>
 		vector<int> doot(static_cast<int>(etaner.back()));
 		int notecounter = 0;
 		int lastinterval = 0;
-		int curinterval = 0.f;
+		int curinterval = 0;
 
 		for (size_t i = 0; i < nerv.size(); ++i) {
 			curinterval = static_cast<int>(etaner[i]);
@@ -890,7 +890,7 @@ class LunaSteps : public Luna<Steps>
 		vector<int> doot(static_cast<int>(etaner.back()));
 		int chordcounter = 0;
 		int lastinterval = 0;
-		int curinterval = 0.f;
+		int curinterval = 0;
 
 		for (size_t i = 0; i < nerv.size(); ++i) {
 			curinterval = static_cast<int>(etaner[i]);
