@@ -19,8 +19,10 @@ meter[1] = 0.00
 local noteField = false
 
 -- all the preview stuff should be var'd and used consistently -mina
+local usingreverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
 local prevX = 200
 local prevY = 125
+local prevrevY = 350
 local prevZoom = 0.65
 local musicratio = 1
 
@@ -67,6 +69,9 @@ local function setUpPreviewNoteField()
 	--SCREENMAN:AddNewScreenToTop("ScreenChartPreviewNoteField")
 	yeet:x(prevX)
 	yeet:y(prevY)
+	if usingreverse then
+		yeet:y(prevrevY)
+	end
 	yeet:zoom(prevZoom)
 	MESSAGEMAN:Broadcast("NoteFieldVisible")
 	noteField = true
