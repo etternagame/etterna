@@ -99,6 +99,8 @@ local function input(event)
 	return false
 end
 
+local cd -- chord density graph
+
 --Actor Frame
 local t =
 	Def.ActorFrame {
@@ -107,12 +109,14 @@ local t =
 		self:SetUpdateFunction(highlight)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
 		noteField = false
+		cd = self:GetChild("ChordDensityGraph")
 	end,
 	OffCommand = function(self)
 		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
 	end,
 	OnCommand = function(self)
 		self:bouncebegin(0.2):xy(0, 0):diffusealpha(1)
+		cd:xy(50,70)	-- should var this properly -mina
 	end,
 	SetCommand = function(self)
 		self:finishtweening()
@@ -404,134 +408,7 @@ t[#t + 1] =
 local imcrazy = 500
 local wodth = 300
 local hidth = 40
-local toot = Def.ActorFrame {
-	Name = "npsyo",
-	InitCommand=function(self)
-		self:xy(40,-170)
-		self:visible(false)
-	end,
-	NoteFieldVisibleMessageCommand = function(self)
-		self:visible(true)
-		self:queuecommand("PlayingSampleMusic")
-	end,
-	DeletePreviewNoteFieldMessageCommand = function(self)
-		self:visible(false)
-	end,
-	PlayingSampleMusicMessageCommand = function(self)
-		if steps and noteField then
-			local moot = steps:GetNPSVector()
-			local joot = steps:GetCPSVector(2)
-			local hoot = steps:GetCPSVector(3)
-			local qoot = steps:GetCPSVector(4)
-			local thingers = math.min(imcrazy,#moot)
-			local wid = wodth/thingers
-			local hodth = 0
-			for i=1,#moot do 
-				if moot[i] * 2 > hodth then
-					hodth = moot[i] * 2
-				end
-			end
-			hodth = hidth/hodth * 0.8
-			for i=1,imcrazy do
-				if i <= thingers then
-					if moot[i] > 0 then
-						self:GetChild(i):x(frameX + i * wid):zoomto(wid,moot[i]*2*hodth)
-						self:GetChild(i):visible(true)
-					else
-						self:GetChild(i):visible(false)
-					end
-
-					if joot[i] > 0 then
-						self:GetChild(i.."j"):x(frameX + i * wid):zoomto(wid,joot[i]*2*2*hodth)
-						self:GetChild(i.."j"):visible(true)
-					else
-						self:GetChild(i.."j"):visible(false)
-					end
-
-					if hoot[i] > 0 then
-						self:GetChild(i.."h"):x(frameX + i * wid):zoomto(wid,hoot[i]*2*3*hodth)
-						self:GetChild(i.."h"):visible(true)
-					else
-						self:GetChild(i.."h"):visible(false)
-					end
-
-					if qoot[i] > 0 then
-						self:GetChild(i.."q"):x(frameX + i * wid):zoomto(wid,qoot[i]*2*4*hodth)
-						self:GetChild(i.."q"):visible(true)
-					else
-						self:GetChild(i.."q"):visible(false)
-					end
-				else
-					self:GetChild(i):visible(false)
-					self:GetChild(i.."j"):visible(false)
-					self:GetChild(i.."h"):visible(false)
-					self:GetChild(i.."q"):visible(false)
-				end
-			end
-		end
-	end,
-	Def.Quad {
-		InitCommand = function(self)
-			self:xy(frameX, 240):zoomto(wodth, hidth + 2):diffusealpha(1):valign(1):diffuse(color("1,1,1")):halign(0)
-		end,
-	}
-}
-
-local function makeaquad(i)
-	local o = Def.Quad {
-		Name = i,
-		InitCommand = function(self)
-			self:xy(frameX + i * 20, 240):zoomto(20, 0):diffusealpha(0.75):valign(1):diffuse(color(".75,.75,.75")):halign(1)
-		end,
-	}
-	return o
-end
-
-local function makeaquadforjumpcounts(i)
-	local o = Def.Quad {
-		Name = i.."j",
-		InitCommand = function(self)
-			self:xy(frameX + i * 20, 240):zoomto(20, 0):diffusealpha(0.85):valign(1):diffuse(color(".5,.5,.5")):halign(1)
-		end,
-	}
-	return o
-end
-
-local function makeaquadforhandcounts(i)
-	local o = Def.Quad {
-		Name = i.."h",
-		InitCommand = function(self)
-			self:xy(frameX + i * 20, 240):zoomto(20, 0):diffusealpha(0.95):valign(1):diffuse(color(".25,.25,.25")):halign(1)
-		end,
-	}
-	return o
-end
-
-local function makeaquadforquadcounts(i)
-	local o = Def.Quad {
-		Name = i.."q",
-		InitCommand = function(self)
-			self:xy(frameX + i * 20, 240):zoomto(20, 0):diffusealpha(1):valign(1):diffuse(color(".1,.1,.1")):halign(1)
-		end,
-	}
-	return o
-end
-
-for i=1,imcrazy do
-	toot[#toot + 1] = makeaquad(i)
-end
-for i=1,imcrazy do
-	toot[#toot + 1] = makeaquadforjumpcounts(i)
-end
-for i=1,imcrazy do
-	toot[#toot + 1] = makeaquadforhandcounts(i)
-end
-for i=1,imcrazy do
-	toot[#toot + 1] = makeaquadforquadcounts(i)
-end
-
-t[#t + 1] = toot
-
+t[#t + 1] = LoadActor("../chorddensitygraph.lua")
 
 -- preview stuff should all be under a single actor frame if possible and not a child of msd where it inherits commands and stuff 
 -- though this will break highlight since that's in the parent -mina
