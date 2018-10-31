@@ -40,8 +40,16 @@ local t = Def.ActorFrame {
         self:SetUpdateFunction(UpdatePreviewPos)
         cd = self:GetChild("ChordDensityGraph"):visible(true)
 	end,
+	CurrentSongChangedMessageCommand=function(self)
+		self:GetChild("pausetext"):settext("")
+	end,
 	MouseRightClickMessageCommand=function(self)
 		SCREENMAN:GetTopScreen():PausePreviewNoteField()
+		if SCREENMAN:GetTopScreen():IsPreviewNoteFieldPaused() then 
+			self:GetChild("pausetext"):settext("Paused")
+		else 
+			self:GetChild("pausetext"):settext("")
+		end
 	end,
     SetupNoteFieldCommand=function(self)
         setUpPreviewNoteField()
@@ -74,13 +82,6 @@ local t = Def.ActorFrame {
 		InitCommand = function(self)
 			self:xy(wodth/2, SCREEN_HEIGHT/2)
 			self:settext(""):diffuse(color("0.8,0,0"))
-		end,
-		MouseRightClickMessageCommand=function(self)
-			if SCREENMAN:GetTopScreen():IsPreviewNoteFieldPaused() then 
-				self:settext("Paused")
-			else 
-				self:settext("")
-			end
 		end
 	},
 	Def.Quad {
