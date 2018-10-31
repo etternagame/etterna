@@ -20,20 +20,11 @@ local t = Def.ActorFrame {
 	InitCommand=function(self)
 		self:SetUpdateFunction(textmover)
 	end,
-	NoteFieldVisibleMessageCommand = function(self)
-		self:visible(true)
-		self:queuecommand("PlayingSampleMusic")
-	end,
-	DeletePreviewNoteFieldMessageCommand = function(self)
-		self:visible(false)
-	end,
     PlayingSampleMusicMessageCommand = function(self)
         local steps =  GAMESTATE:GetCurrentSteps(PLAYER_1)
-		if steps then
-			local moot = steps:GetNPSVector()
-			local joot = steps:GetCPSVector(2)
-			local hoot = steps:GetCPSVector(3)
-			local qoot = steps:GetCPSVector(4)
+        if steps then
+            local groot = {steps:GetNPSVector(), steps:GetCPSVector(2), steps:GetCPSVector(3), steps:GetCPSVector(4)}   -- todo: c++ should spit this out in 1 call -mina
+			local moot = groot[1]
 			local thingers = math.min(imcrazy,#moot)
 			local wid = wodth/thingers
             local hodth = 0
@@ -45,44 +36,21 @@ local t = Def.ActorFrame {
             
             self:GetChild("npsline"):y(-hidth * 0.8 * 0.65)
             self:GetChild("npstext"):settext(hodth/2 * 0.8 * 0.65 .. "nps"):y(-hidth * 0.7)
-
-			hodth = hidth/hodth * 0.8
-			for i=1,imcrazy do
-				if i <= thingers then
-					if moot[i] > 0 then
-						self:GetChild(i):x(i * wid):zoomto(wid,moot[i]*2*hodth)
-						self:GetChild(i):visible(true)
-					else
-						self:GetChild(i):visible(false)
-					end
-
-					if joot[i] > 0 then
-						self:GetChild(i.."j"):x(i * wid):zoomto(wid,joot[i]*2*2*hodth)
-						self:GetChild(i.."j"):visible(true)
-					else
-						self:GetChild(i.."j"):visible(false)
-					end
-
-					if hoot[i] > 0 then
-						self:GetChild(i.."h"):x(i * wid):zoomto(wid,hoot[i]*2*3*hodth)
-						self:GetChild(i.."h"):visible(true)
-					else
-						self:GetChild(i.."h"):visible(false)
-					end
-
-					if qoot[i] > 0 then
-						self:GetChild(i.."q"):x(i * wid):zoomto(wid,qoot[i]*2*4*hodth)
-						self:GetChild(i.."q"):visible(true)
-					else
-						self:GetChild(i.."q"):visible(false)
-					end
-				else
-					self:GetChild(i):visible(false)
-					self:GetChild(i.."j"):visible(false)
-					self:GetChild(i.."h"):visible(false)
-					self:GetChild(i.."q"):visible(false)
-				end
-			end
+            hodth = hidth/hodth * 0.8
+            for j=1,4 do 
+			    for i=1,imcrazy do
+				    if i <= thingers then
+					    if groot[j][i] > 0 then
+						    self:GetChild(i..j):x(i * wid):zoomto(wid,groot[j][i]*2*j*hodth)
+    						self:GetChild(i..j):visible(true)
+					    else
+						    self:GetChild(i..j):visible(false)
+    					end
+				    else
+					    self:GetChild(i..j):visible(false)
+	    			end
+                end
+            end
 		end
 	end,
 	Def.Quad {
@@ -92,52 +60,21 @@ local t = Def.ActorFrame {
     }
 }
 
-local function makeaquad(i)
+local function makeaquad(i,n, col)
 	local o = Def.Quad {
-		Name = i,
+		Name = i..n,
 		InitCommand = function(self)
-			self:zoomto(20, 0):diffusealpha(0.75):valign(1):diffuse(color(".75,.75,.75")):halign(1)
-		end,
-	}
-	return o
-end
-
--- generalizing this messed with the child name access or i was tired and did something wrong but i dont care enough to mess with it -mina
-local function makeaquadforjumpcounts(i)
-	local o = Def.Quad {
-		Name = i.."j",
-		InitCommand = function(self)
-			self:zoomto(20, 0):diffusealpha(0.85):valign(1):diffuse(color(".5,.5,.5")):halign(1)
-		end,
-	}
-	return o
-end
-
-local function makeaquadforhandcounts(i)
-	local o = Def.Quad {
-		Name = i.."h",
-		InitCommand = function(self)
-			self:zoomto(20, 0):diffusealpha(0.95):valign(1):diffuse(color(".25,.25,.25")):halign(1)
-		end,
-	}
-	return o
-end
-
-local function makeaquadforquadcounts(i)
-	local o = Def.Quad {
-		Name = i.."q",
-		InitCommand = function(self)
-			self:zoomto(20, 0):diffusealpha(1):valign(1):diffuse(color(".1,.1,.1")):halign(1)
+			self:zoomto(20, 0):diffusealpha(0.75):valign(1):diffuse(color(col)):halign(1)
 		end,
 	}
 	return o
 end
 
 for i=1,imcrazy do
-    t[#t + 1] = makeaquad(i)
-    t[#t + 1] = makeaquadforjumpcounts(i)
-    t[#t + 1] = makeaquadforhandcounts(i)
-    t[#t + 1] = makeaquadforquadcounts(i)
+    t[#t + 1] = makeaquad(i,1, ".75,.75,.75")   -- nps
+    t[#t + 1] = makeaquad(i,2, ".5,.5,.5")      -- jumps
+    t[#t + 1] = makeaquad(i,3, ".25,.25,.25")   -- hands
+    t[#t + 1] = makeaquad(i,4, ".1,.1,.1")      -- quads
 end
 
 -- down here for draw order
@@ -148,7 +85,6 @@ t[#t + 1] = Def.Quad {
     end,
 
 }
-
 
 t[#t + 1] = LoadFont("Common Normal") .. {
     Name = "npstext",
