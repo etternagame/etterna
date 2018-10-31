@@ -447,11 +447,8 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 				return;
 			Steps* steps = GAMESTATE->m_pCurSteps[PLAYER_1];
 
-			m_sSampleMusicToPlay = song->GetMusicPath();
-			m_fSampleStartSeconds = max(song->GetFirstSecond() - 4.f, -1.f);
-			PlayParams.fLengthSeconds = song->GetLastSecond();
-			// g_bSampleMusicWaiting = true;
-			// CheckBackgroundRequests(true);
+			PlayParams.sFile = song->GetMusicPath();
+			PlayParams.fLengthSeconds = song->GetLastSecond() - m_fSampleStartSeconds;
 			if (song && steps) {
 				steps->GetNoteData(m_PreviewNoteData);
 			} else {

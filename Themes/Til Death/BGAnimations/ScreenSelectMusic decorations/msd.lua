@@ -545,7 +545,7 @@ t[#t+1] = Def.ActorFrame {
 	end,
 	RefreshChartInfoMessageCommand = function(self)
 		if GAMESTATE:GetCurrentSong() then
-			musicratio = GAMESTATE:GetCurrentSong():MusicLengthSeconds() / wodth
+			musicratio = GAMESTATE:GetCurrentSong():GetLastSecond() / wodth
 		else
 			MESSAGEMAN:Broadcast("DeletePreviewNoteField") -- kills it if we hit a pack... could be annoying but its the easiest way to hide stuff -mina
 		end
