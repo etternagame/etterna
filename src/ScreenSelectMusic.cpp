@@ -2221,6 +2221,11 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		}
 		return 0;
 	}
+	static int IsPreviewNoteFieldPaused(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, GAMESTATE->m_bIsChartPreviewActive);
+		return 1;
+	}
 
 	LunaScreenSelectMusic()
 	{
@@ -2239,6 +2244,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		ADD_METHOD(SetPreviewNoteFieldMusicPosition);
 		ADD_METHOD(GetPreviewNoteFieldMusicPosition);
 		ADD_METHOD(PausePreviewNoteField);
+		ADD_METHOD(IsPreviewNoteFieldPaused);
 	}
 };
 
