@@ -7,6 +7,7 @@ local score
 local song
 local steps
 local alreadybroadcasted
+local noteField = false
 
 local update = false
 local t =
@@ -879,4 +880,34 @@ t[#t + 1] =
 			self:queuecommand("Set")
 		end
 	}
+
+	local yesiwantnotefield = false
+--Chart Preview Button
+t[#t + 1] = LoadFont("Common Normal") .. {
+	Name = "PreviewViewer",
+	InitCommand = function(self)
+		self:xy(10, 45)
+		self:zoom(0.75)
+		self:halign(0)
+		self:settext("Toggle Preview")
+	end,
+	MouseLeftClickMessageCommand = function(self)
+		if isOver(self) then
+			 if not noteField then
+				MESSAGEMAN:Broadcast("ChartPreviewToggled") -- for banner reaction... lazy -mina
+				noteField = true
+				self:GetParent():GetChild("ChartPreview"):playcommand("SetupNoteField")
+				self:GetParent():GetChild("ChartPreview"):xy(100,50)
+				self:xy(10,90)
+			else
+				noteField = false
+				MESSAGEMAN:Broadcast("DeletePreviewNoteField")
+				MESSAGEMAN:Broadcast("ChartPreviewToggled")
+				self:xy(10,45)
+			end
+		end
+	end
+}
+
+	t[#t + 1] = LoadActor("../_chartpreview.lua")
 return t

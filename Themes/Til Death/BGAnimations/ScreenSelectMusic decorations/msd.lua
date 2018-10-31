@@ -16,16 +16,6 @@ local steps
 local meter = {}
 meter[1] = 0.00
 
-local noteField = false
-
--- all the preview stuff should be var'd and used consistently -mina
-local usingreverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
-local prevX = 200
-local prevY = 125
-local prevrevY = 350
-local prevZoom = 0.65
-local musicratio = 1
-
 local function isOver(element)
 	if element:GetParent():GetParent():GetVisible() == false then
 		return false
@@ -59,46 +49,6 @@ local function highlight(self)
 	self:queuecommand("Highlight")
 end
 
--- Set up the values for the preview notefield here
-local function setUpPreviewNoteField()
-	local yeet = SCREENMAN:GetTopScreen():CreatePreviewNoteField()
-	if yeet == nil then
-		return
-	end
-
-	--SCREENMAN:AddNewScreenToTop("ScreenChartPreviewNoteField")
-	yeet:x(prevX)
-	yeet:y(prevY)
-	if usingreverse then
-		yeet:y(prevrevY)
-	end
-	yeet:zoom(prevZoom)
-	MESSAGEMAN:Broadcast("NoteFieldVisible")
-	noteField = true
-end
-
-local function input(event)
-	if not noteField then
-		return false
-	end
-	if event.DeviceInput.button == "DeviceButton_right mouse button" then	-- removed left click because using it to seek
-		if event.type == "InputEventType_FirstPress" then
-			SCREENMAN:GetTopScreen():PausePreviewNoteField()
-		end
-	end
-	if event.DeviceInput.button == "DeviceButton_space" then	-- temp cancel command -mina
-		if event.type == "InputEventType_Release"  and NoteField then
-			MESSAGEMAN:Broadcast("DeletePreviewNoteField")
-		end
-	end
-	if event.type ~= "InputEventType_Release" then
-		if event.GameButton == "Back" or event.GameButton == "Start" then
-			MESSAGEMAN:Broadcast("DeletePreviewNoteField")
-		end
-	end
-	return false
-end
-
 local cd -- chord density graph
 
 --Actor Frame
@@ -107,9 +57,9 @@ local t =
 	BeginCommand = function(self)
 		self:queuecommand("Set"):visible(false)
 		self:SetUpdateFunction(highlight)
-		SCREENMAN:GetTopScreen():AddInputCallback(input)
 		noteField = false
-		cd = self:GetChild("ChartPreview"):GetChild("ChordDensityGraph"):visible(false)
+		cd = self:GetChild("ChordDensityGraph")
+		cd:xy(45, 185)
 	end,
 	OffCommand = function(self)
 		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
@@ -141,7 +91,6 @@ local t =
 			update = true
 		else
 			self:queuecommand("Off")
-			MESSAGEMAN:Broadcast("DeletePreviewNoteField")
 			update = false
 		end
 	end,
@@ -366,118 +315,6 @@ for i = 1, #ms.SkillSets do
 	t[#t + 1] = littlebits(i)
 end
 
---Chart Preview Button
-t[#t + 1] =
-	LoadFont("Common Normal") ..
-	{
-		Name = "PreviewViewer",
-		InitCommand = function(self)
-			self:xy(frameX + 5, frameY + 75)
-			self:zoom(0.5)
-			self:halign(0)
-			self:settext("Enable Preview")
-		end,
-		HighlightCommand = function(self)
-			highlightIfOver(self)
-		end,
-		MouseLeftClickMessageCommand = function(self)
-			if getTabIndex() == 1 and isOver(self) then
-				setUpPreviewNoteField()
-			end
-		end
-	}
+t[#t + 1] = LoadActor("../_chorddensitygraph.lua")
 
-
-
-
--- hurrrrr nps quadzapalooza -mina
-local wodth = 300
-local hidth = 40
-local function UpdatePreviewPos(self)
-	if noteField then
-		local pos = SCREENMAN:GetTopScreen():GetPreviewNoteFieldMusicPosition() / musicratio
-		self:GetChild("Pos"):zoomto(math.min(pos,wodth), hidth)
-	end
-end
-local p = Def.ActorFrame {
-	Name = "ChartPreview",
-	InitCommand=function(self)
-		self:visible(false):xy(50,50)
-		self:SetUpdateFunction(UpdatePreviewPos)
-	end,
-	RefreshChartInfoMessageCommand = function(self)
-		if GAMESTATE:GetCurrentSong() then
-			musicratio = GAMESTATE:GetCurrentSong():GetLastSecond() / wodth
-		else
-			MESSAGEMAN:Broadcast("DeletePreviewNoteField") -- kills it if we hit a pack... could be annoying but its the easiest way to hide stuff -mina
-		end
-	end,
-	NoteFieldVisibleMessageCommand = function(self)
-		self:visible(true)
-		cd:visible(true):y(20)	-- need to control this manually -mina
-		cd:GetChild("cdbg"):diffusealpha(0)
-		self:queuecommand("PlayingSampleMusic") 
-	end,
-	DeletePreviewNoteFieldMessageCommand = function(self)
-		self:visible(false)
-		noteField = false
-	end,
-	Def.Quad {
-		Name = "BG",
-		InitCommand = function(self)
-			self:xy(wodth/2, SCREEN_HEIGHT/2) 
-			self:zoomto(wodth*2/3, SCREEN_HEIGHT):diffuse(color("0.05,0.05,0.05,0.05")):diffusealpha(1)
-		end
-	},
-	LoadFont("Common Normal") .. {
-		Name = "pausetext",
-		InitCommand = function(self)
-			self:xy(wodth/2, SCREEN_HEIGHT/2)
-			self:settext(""):diffuse(color("0.8,0,0"))
-		end,
-		MouseRightClickMessageCommand=function(self)
-			if SCREENMAN:GetTopScreen():IsPreviewNoteFieldPaused() then 
-				self:settext("Paused")
-			else 
-				self:settext("")
-			end
-		end
-	},
-	Def.Quad {
-		Name = "PosBG",
-		InitCommand = function(self)
-			self:zoomto(wodth, hidth):diffusealpha(1):halign(0):diffuse(color("1,1,1,1"))
-		end,
-		HighlightCommand = function(self)	-- use the bg for detection but move the seek pointer -mina 
-			if isOver(self) then
-				self:GetParent():GetChild("Seek"):visible(true)
-				self:GetParent():GetChild("Seek"):x(INPUTFILTER:GetMouseX() - self:GetParent():GetX())
-			else
-				self:GetParent():GetChild("Seek"):visible(false)
-			end
-		end
-	},
-	Def.Quad {
-		Name = "Pos",
-		InitCommand = function(self)
-			self:zoomto(0, hidth):diffuse(color("0,1,0,.5")):halign(0)
-		end
-	}
-}
-
-p[#p + 1] = LoadActor("../_chorddensitygraph.lua")
-
--- more draw order shenanigans
-p[#p + 1] = Def.Quad {
-	Name = "Seek",
-	InitCommand = function(self)
-		self:zoomto(2, hidth):diffuse(color("1,.2,.5,1")):halign(0.5)
-	end,
-	MouseLeftClickMessageCommand = function(self)
-		if isOver(self) then
-			SCREENMAN:GetTopScreen():SetPreviewNoteFieldMusicPosition(	self:GetX() * musicratio  )
-		end
-	end
-}
-t[#t + 1] = p
 return t
