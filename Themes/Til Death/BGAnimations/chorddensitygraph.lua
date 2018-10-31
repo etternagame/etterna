@@ -54,9 +54,10 @@ local t = Def.ActorFrame {
 		end
 	end,
 	Def.Quad {
-		InitCommand = function(self)
-			self:zoomto(wodth, hidth + 2):diffusealpha(1):valign(1):diffuse(color("1,1,1")):halign(0)
-		end,
+        Name = "cdbg",
+        InitCommand = function(self)
+            self:zoomto(wodth, hidth + 2):diffusealpha(1):valign(1):diffuse(color("1,1,1")):halign(0)
+        end
     }
 }
 

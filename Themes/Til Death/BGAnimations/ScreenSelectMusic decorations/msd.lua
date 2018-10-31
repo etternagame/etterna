@@ -116,7 +116,6 @@ local t =
 	end,
 	OnCommand = function(self)
 		self:bouncebegin(0.2):xy(0, 0):diffusealpha(1)
-		cd:xy(50,70)	-- should var this properly -mina
 	end,
 	SetCommand = function(self)
 		self:finishtweening()
@@ -394,58 +393,16 @@ t[#t + 1] =
 -- hurrrrr nps quadzapalooza -mina
 local wodth = 300
 local hidth = 40
-
-local p = Def.ActorFrame {
-	Name = "ChartPreview",
-	InitCommand=function(self)
-		self:visible(false)
-	end,
-	NoteFieldVisibleMessageCommand = function(self)
-		self:visible(true)
-		cd:visible(true)	-- need to control this manually -mina
-		self:queuecommand("PlayingSampleMusic") 
-	end,
-	DeletePreviewNoteFieldMessageCommand = function(self)
-		self:visible(false)
-		noteField = false
-	end
-}
-p[#p + 1] = Def.Quad {
-	Name = "BG",
-	InitCommand = function(self)
-		self:xy(prevX, SCREEN_HEIGHT/2) 
-		self:zoomto(wodth*2/3, SCREEN_HEIGHT):diffuse(color("0.05,0.05,0.05,0.05")):diffusealpha(1)
-	end
-}
-p[#p + 1] = LoadFont("Common Normal") .. {
-    Name = "pausetext",
-	InitCommand = function(self)
-		self:xy(prevX, SCREEN_HEIGHT/2) 
-        self:settext(""):diffuse(color("0.8,0,0"))
-	end,
-	MouseRightClickMessageCommand=function(self)
-		if SCREENMAN:GetTopScreen():IsPreviewNoteFieldPaused() then 
-			self:settext("Paused")
-		else 
-			self:settext("")
-		end
-	end
-}
-
-p[#p + 1] = LoadActor("../chorddensitygraph.lua")
-
--- preview stuff should all be under a single actor frame if possible and not a child of msd where it inherits commands and stuff 
--- though this will break highlight since that's in the parent -mina
 local function UpdatePreviewPos(self)
 	if noteField then
 		local pos = SCREENMAN:GetTopScreen():GetPreviewNoteFieldMusicPosition() / musicratio
 		self:GetChild("Pos"):zoomto(math.min(pos,wodth), hidth)
 	end
 end
-p[#p + 1] = Def.ActorFrame {
-	Name = "SeekBar",
-	InitCommand = function(self)
-		self:xy(50, 50)	-- eyeballed, not centered properly, this should all be moved out of the msd actor frame for sane control anyway -mina
+local p = Def.ActorFrame {
+	Name = "ChartPreview",
+	InitCommand=function(self)
+		self:visible(false):xy(50,50)
 		self:SetUpdateFunction(UpdatePreviewPos)
 	end,
 	RefreshChartInfoMessageCommand = function(self)
@@ -457,14 +414,39 @@ p[#p + 1] = Def.ActorFrame {
 	end,
 	NoteFieldVisibleMessageCommand = function(self)
 		self:visible(true)
+		cd:visible(true):y(20)	-- need to control this manually -mina
+		cd:GetChild("cdbg"):diffusealpha(0)
+		self:queuecommand("PlayingSampleMusic") 
 	end,
 	DeletePreviewNoteFieldMessageCommand = function(self)
 		self:visible(false)
+		noteField = false
 	end,
 	Def.Quad {
 		Name = "BG",
 		InitCommand = function(self)
-			self:zoomto(wodth, hidth):diffusealpha(0):halign(0)	-- stuff like width should be var'd -mina
+			self:xy(wodth/2, SCREEN_HEIGHT/2) 
+			self:zoomto(wodth*2/3, SCREEN_HEIGHT):diffuse(color("0.05,0.05,0.05,0.05")):diffusealpha(1)
+		end
+	},
+	LoadFont("Common Normal") .. {
+		Name = "pausetext",
+		InitCommand = function(self)
+			self:xy(wodth/2, SCREEN_HEIGHT/2)
+			self:settext(""):diffuse(color("0.8,0,0"))
+		end,
+		MouseRightClickMessageCommand=function(self)
+			if SCREENMAN:GetTopScreen():IsPreviewNoteFieldPaused() then 
+				self:settext("Paused")
+			else 
+				self:settext("")
+			end
+		end
+	},
+	Def.Quad {
+		Name = "PosBG",
+		InitCommand = function(self)
+			self:zoomto(wodth, hidth):diffusealpha(1):halign(0):diffuse(color("1,1,1,1"))
 		end,
 		HighlightCommand = function(self)	-- use the bg for detection but move the seek pointer -mina 
 			if isOver(self) then
@@ -478,20 +460,24 @@ p[#p + 1] = Def.ActorFrame {
 	Def.Quad {
 		Name = "Pos",
 		InitCommand = function(self)
-			self:zoomto(0, hidth):diffuse(color(".7,.3,.7,.35")):halign(0) -- this should really be behind the cd graph (really dunno how to do this well without integrating the 2)
+			self:zoomto(0, hidth):diffuse(color("0,1,0,.5")):halign(0)
 		end
-	},
-	Def.Quad {
-		Name = "Seek",
-		InitCommand = function(self)
-			self:zoomto(2, hidth):diffuse(color("1,.2,.5,1")):halign(0.5)
-		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
-				SCREENMAN:GetTopScreen():SetPreviewNoteFieldMusicPosition(	self:GetX() * musicratio  )
-			end
+	}
+}
+
+p[#p + 1] = LoadActor("../chorddensitygraph.lua")
+
+-- more draw order shenanigans
+p[#p + 1] = Def.Quad {
+	Name = "Seek",
+	InitCommand = function(self)
+		self:zoomto(2, hidth):diffuse(color("1,.2,.5,1")):halign(0.5)
+	end,
+	MouseLeftClickMessageCommand = function(self)
+		if isOver(self) then
+			SCREENMAN:GetTopScreen():SetPreviewNoteFieldMusicPosition(	self:GetX() * musicratio  )
 		end
-	},
+	end
 }
 t[#t + 1] = p
 return t
