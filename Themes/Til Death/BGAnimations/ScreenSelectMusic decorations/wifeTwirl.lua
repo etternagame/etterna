@@ -735,6 +735,13 @@ t[#t + 1] =
 		end,
 		RefreshChartInfoMessageCommand = function(self)
 			self:queuecommand("Set")
+		end,
+		ChartPreviewToggledMessageCommand = function(self)
+			if noteField then
+				self:visible(false)
+			else
+				self:visible(true)
+			end
 		end
 	}
 
@@ -759,6 +766,13 @@ t[#t + 1] =
 		end,
 		RefreshChartInfoMessageCommand = function(self)
 			self:queuecommand("Set")
+		end,
+		ChartPreviewToggledMessageCommand = function(self)
+			if noteField then
+				self:visible(false)
+			else
+				self:visible(true)
+			end
 		end
 	}
 
@@ -783,6 +797,13 @@ t[#t + 1] =
 		end,
 		RefreshChartInfoMessageCommand = function(self)
 			self:queuecommand("Set")
+		end,
+		ChartPreviewToggledMessageCommand = function(self)
+			if noteField then
+				self:visible(false)
+			else
+				self:visible(true)
+			end
 		end
 	}
 
@@ -894,10 +915,10 @@ t[#t + 1] = LoadFont("Common Normal") .. {
 	MouseLeftClickMessageCommand = function(self)
 		if isOver(self) then
 			 if not noteField then
-				MESSAGEMAN:Broadcast("ChartPreviewToggled") -- for banner reaction... lazy -mina
 				noteField = true
+				MESSAGEMAN:Broadcast("ChartPreviewToggled") -- for banner reaction... lazy -mina
 				self:GetParent():GetChild("ChartPreview"):playcommand("SetupNoteField")
-				self:GetParent():GetChild("ChartPreview"):xy(100,50)
+				self:GetParent():GetChild("ChartPreview"):xy(98,50)
 				self:xy(10,90)
 			else
 				noteField = false
