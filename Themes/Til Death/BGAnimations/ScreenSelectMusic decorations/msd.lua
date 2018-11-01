@@ -23,7 +23,6 @@ local t =
 	Def.ActorFrame {
 	BeginCommand = function(self)
 		self:queuecommand("Set"):visible(false)
-		noteField = false
 		cd = self:GetChild("ChordDensityGraph")
 		cd:xy(45, 185)
 	end,
