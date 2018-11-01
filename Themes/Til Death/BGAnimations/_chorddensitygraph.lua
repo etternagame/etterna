@@ -35,9 +35,9 @@ local t = Def.ActorFrame {
 				end
             end
             
-            self:GetChild("npsline"):y(-hidth * 0.8 * 0.65)
-            self:GetChild("npstext"):settext(hodth/2 * 0.8 * 0.65 .. "nps"):y(-hidth * 0.7)
-            hodth = hidth/hodth * 0.8
+            self:GetChild("npsline"):y(-hidth * 0.7)
+            self:GetChild("npstext"):settext(hodth/2 * 0.7 .. "nps"):y(-hidth * 0.9)
+            hodth = hidth/hodth
             for j=1,4 do 
 			    for i=1,imcrazy do
 				    if i <= thingers then

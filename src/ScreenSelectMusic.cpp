@@ -43,6 +43,7 @@
 #include "PlayerOptions.h"
 #include "NoteData.h"
 #include "Player.h"
+#include "ScreenDimensions.h"
 
 static const char* SelectionStateNames[] = { "SelectingSong",
 											 "SelectingSteps",
@@ -437,10 +438,6 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 		// update the chartpreview when switching songs (doesnt work when only
 		// switching steps here) ((also this is lultier)) -mina
 		if (m_pPreviewNoteField != nullptr) {
-			ThemeMetric<int> drawDistBeforeTargetPixels;
-			drawDistBeforeTargetPixels.Load("Player",
-											"DrawDistanceBeforeTargetsPixels");
-
 			auto song = GAMESTATE->m_pCurSong;
 			if (song == nullptr)
 				return;
@@ -455,7 +452,7 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 				return;
 			}
 			m_pPreviewNoteField->Load(
-			  &m_PreviewNoteData, 0, drawDistBeforeTargetPixels);
+			  &m_PreviewNoteData, 0, SCREEN_HEIGHT - 30);	// should be handled better probably
 			GAMESTATE->SetPaused(false); // hacky can see this being problematic if we forget about it -mina
 		}
 
@@ -1812,13 +1809,6 @@ ScreenSelectMusic::GeneratePreviewNoteField(float noteFieldHeight,
 {
 	// Remove the old notefield, we don't want duplicates
 	DeletePreviewNoteField();
-
-	ThemeMetric<int> drawDistAfterTargetPixels;
-	ThemeMetric<int> drawDistBeforeTargetPixels;
-	drawDistAfterTargetPixels.Load("Player", "DrawDistanceAfterTargetsPixels");
-	drawDistBeforeTargetPixels.Load("Player",
-									"DrawDistanceBeforeTargetsPixels");
-
 	auto song = GAMESTATE->m_pCurSong;
 	Steps* steps = GAMESTATE->m_pCurSteps[PLAYER_1];
 
@@ -1860,8 +1850,7 @@ ScreenSelectMusic::GeneratePreviewNoteField(float noteFieldHeight,
 	m_pPreviewNoteField->SetZoom(noteFieldZoom);
 	m_pPreviewNoteField->SetRotationX(noteFieldTiltDegrees);
 	m_pPreviewNoteField->Load(&m_PreviewNoteData,
-							  0,
-							  drawDistBeforeTargetPixels);
+							  0, SCREEN_HEIGHT - 30);
 	// This is essentially required.
 	// This NoteField is hereby attached to ScreenSelectMusic and there's
 	// nothing you can do to stop me

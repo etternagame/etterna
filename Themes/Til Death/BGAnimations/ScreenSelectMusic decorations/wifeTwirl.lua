@@ -937,7 +937,7 @@ t[#t + 1] = LoadFont("Common Normal") .. {
 				noteField = true
 				MESSAGEMAN:Broadcast("ChartPreviewToggled") -- for banner reaction... lazy -mina
 				self:GetParent():GetChild("ChartPreview"):playcommand("SetupNoteField")
-				self:GetParent():GetChild("ChartPreview"):xy(98,50)
+				self:GetParent():GetChild("ChartPreview"):xy(98,56)
 				self:xy(10,90)
 			else
 				noteField = false
