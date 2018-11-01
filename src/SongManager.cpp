@@ -1093,6 +1093,19 @@ SongManager::GetSongs(const RString& sGroupName) const
 		return iter->second;
 	return vEmpty;
 }
+void
+SongManager::ForceReloadSongGroup(const RString& sGroupName) const {
+	auto songs = GetSongs(sGroupName);
+	for (auto s : songs) {
+		auto stepses = s->GetAllSteps();
+		vector<string> oldChartkeys;
+		for (auto steps : stepses)
+			oldChartkeys.emplace_back(steps->GetChartKey());
+
+		s->ReloadFromSongDir();
+		SONGMAN->ReconcileChartKeysForReloadedSong(s, oldChartkeys);
+	}
+}
 
 void
 SongManager::GetFavoriteSongs(vector<Song*>& songs) const
