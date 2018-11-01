@@ -849,7 +849,7 @@ class LunaSteps : public Luna<Steps>
 
 	static int GetNPSVector(T* p, lua_State* L)
 	{
-		auto& nd = p->GetNoteData();
+		auto nd = p->GetNoteData();
 		const vector<int>& nerv = nd.BuildAndGetNerv();
 		const vector<float>& etaner =
 		  p->GetTimingData()->BuildAndGetEtaner(nerv);
@@ -882,7 +882,7 @@ class LunaSteps : public Luna<Steps>
 
 	static int GetCPSVector(T* p, lua_State* L) {
 		int chordtype = IArg(1);
-		auto& nd = p->GetNoteData();
+		auto nd = p->GetNoteData();
 		const vector<int>& nerv = nd.BuildAndGetNerv();
 		const vector<float>& etaner =
 		  p->GetTimingData()->BuildAndGetEtaner(nerv);
