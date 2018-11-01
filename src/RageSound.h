@@ -156,6 +156,7 @@ class RageSound : public RageSoundBase
 	const RageSoundParams& GetParams() const { return m_Param; }
 	bool SetProperty(const RString& sProperty, float fValue);
 	void SetStopModeFromString(const RString& sStopMode);
+	void SetPositionSeconds(float fGiven);
 
 	// Lua
 	virtual void PushSelf(lua_State* L);

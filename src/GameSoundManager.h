@@ -66,6 +66,7 @@ class GameSoundManager
 	float GetFrameTimingAdjustment(float fDeltaTime);
 
 	static float GetPlayerBalance(PlayerNumber pn);
+	RageSound* GetRageSoundPlaying();
 
 	// Lua
 	void PushSelf(lua_State* L);

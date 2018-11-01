@@ -7,6 +7,8 @@ local score
 local song
 local steps
 local alreadybroadcasted
+local noteField = false
+local heyiwasusingthat = false
 
 local update = false
 local t =
@@ -23,9 +25,18 @@ local t =
 	SetCommand = function(self)
 		self:finishtweening()
 		if getTabIndex() == 0 then
+			if heyiwasusingthat and GAMESTATE:GetCurrentSong() and noteField then
+				self:GetChild("ChartPreview"):playcommand("SetupNoteField")
+				self:GetChild("ChartPreview"):xy(98,56)
+				heyiwasusingthat = false
+			end
 			self:queuecommand("On")
 			update = true
 		else
+			if GAMESTATE:GetCurrentSong() and noteField then 
+				MESSAGEMAN:Broadcast("DeletePreviewNoteField")
+				heyiwasusingthat = true
+			end
 			self:queuecommand("Off")
 			update = false
 		end
@@ -79,6 +90,15 @@ t[#t + 1] =
 			local modslevel = topscreen == "ScreenEditOptions" and "ModsLevel_Stage" or "ModsLevel_Preferred"
 			local playeroptions = GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptions(modslevel)
 			playeroptions:Mirror(false)
+		end
+		if not GAMESTATE:GetCurrentSong() and noteField then 
+			MESSAGEMAN:Broadcast("DeletePreviewNoteField")
+			heyiwasusingthat = true
+		end
+		if heyiwasusingthat and GAMESTATE:GetCurrentSong() and noteField and getTabIndex() == 0 then
+			self:GetParent():GetChild("ChartPreview"):playcommand("SetupNoteField")
+			self:GetParent():GetChild("ChartPreview"):xy(98,56)
+			heyiwasusingthat = false
 		end
 		self:queuecommand("Set")
 	end
@@ -734,6 +754,13 @@ t[#t + 1] =
 		end,
 		RefreshChartInfoMessageCommand = function(self)
 			self:queuecommand("Set")
+		end,
+		ChartPreviewToggledMessageCommand = function(self)
+			if noteField then
+				self:visible(false)
+			else
+				self:visible(true)
+			end
 		end
 	}
 
@@ -758,6 +785,13 @@ t[#t + 1] =
 		end,
 		RefreshChartInfoMessageCommand = function(self)
 			self:queuecommand("Set")
+		end,
+		ChartPreviewToggledMessageCommand = function(self)
+			if noteField then
+				self:visible(false)
+			else
+				self:visible(true)
+			end
 		end
 	}
 
@@ -782,6 +816,13 @@ t[#t + 1] =
 		end,
 		RefreshChartInfoMessageCommand = function(self)
 			self:queuecommand("Set")
+		end,
+		ChartPreviewToggledMessageCommand = function(self)
+			if noteField then
+				self:visible(false)
+			else
+				self:visible(true)
+			end
 		end
 	}
 
@@ -880,4 +921,33 @@ t[#t + 1] =
 		end
 	}
 
+	local yesiwantnotefield = false
+--Chart Preview Button
+t[#t + 1] = LoadFont("Common Normal") .. {
+	Name = "PreviewViewer",
+	InitCommand = function(self)
+		self:xy(10, 45)
+		self:zoom(0.75)
+		self:halign(0)
+		self:settext("Toggle Preview")
+	end,
+	MouseLeftClickMessageCommand = function(self)
+		if isOver(self) then
+			 if not noteField then
+				noteField = true
+				MESSAGEMAN:Broadcast("ChartPreviewToggled") -- for banner reaction... lazy -mina
+				self:GetParent():GetChild("ChartPreview"):playcommand("SetupNoteField")
+				self:GetParent():GetChild("ChartPreview"):xy(98,56)
+				self:xy(10,90)
+			else
+				noteField = false
+				MESSAGEMAN:Broadcast("DeletePreviewNoteField")
+				MESSAGEMAN:Broadcast("ChartPreviewToggled")
+				self:xy(10,45)
+			end
+		end
+	end
+}
+
+	t[#t + 1] = LoadActor("../_chartpreview.lua")
 return t

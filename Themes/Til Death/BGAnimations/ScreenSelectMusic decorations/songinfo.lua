@@ -1,4 +1,5 @@
 local update = false
+local noteField = false
 local t =
 	Def.ActorFrame {
 	BeginCommand = function(self)
@@ -22,6 +23,15 @@ local t =
 	end,
 	TabChangedMessageCommand = function(self)
 		self:queuecommand("Set")
+	end,
+	ChartPreviewToggledMessageCommand = function(self)
+		if  not noteField then
+			noteField = true
+			self:visible(false)
+		else
+			noteField = false
+			self:visible(true)
+		end
 	end
 }
 

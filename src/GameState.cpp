@@ -146,6 +146,8 @@ GameState::GameState()
 	m_Environment = new LuaTable;
 
 	m_bDopefish = false;
+	
+	m_bIsChartPreviewActive = false;
 
 	sExpandedSectionName = "";
 

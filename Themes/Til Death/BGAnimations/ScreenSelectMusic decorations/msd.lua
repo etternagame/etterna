@@ -16,11 +16,15 @@ local steps
 local meter = {}
 meter[1] = 0.00
 
+local cd -- chord density graph
+
 --Actor Frame
 local t =
 	Def.ActorFrame {
 	BeginCommand = function(self)
 		self:queuecommand("Set"):visible(false)
+		cd = self:GetChild("ChordDensityGraph")
+		cd:xy(45, 185)
 	end,
 	OffCommand = function(self)
 		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
@@ -275,5 +279,7 @@ t[#t + 1] =
 for i = 1, #ms.SkillSets do
 	t[#t + 1] = littlebits(i)
 end
+
+t[#t + 1] = LoadActor("../_chorddensitygraph.lua")
 
 return t

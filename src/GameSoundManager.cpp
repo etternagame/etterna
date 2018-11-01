@@ -647,6 +647,14 @@ GameSoundManager::GetMusicPath() const
 	return g_Playing->m_Music->GetLoadedFilePath();
 }
 
+RageSound*
+GameSoundManager::GetRageSoundPlaying()
+{
+	LockMut(*g_Mutex);
+	return g_Playing->m_Music;
+
+}
+
 void
 GameSoundManager::PlayMusic(const RString& sFile,
 							const TimingData* pTiming,
