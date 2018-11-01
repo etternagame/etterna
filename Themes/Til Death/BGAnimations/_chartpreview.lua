@@ -1,7 +1,7 @@
 -- all the preview stuff should be var'd and used consistently -mina
 local noteField = false
 local usingreverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
-local prevrevY = 225
+local prevrevY = 300
 local prevZoom = 0.65
 local musicratio = 1
 
