@@ -8,6 +8,7 @@ local song
 local steps
 local alreadybroadcasted
 local noteField = false
+local heyiwasusingthat = false
 
 local update = false
 local t =
@@ -80,6 +81,15 @@ t[#t + 1] =
 			local modslevel = topscreen == "ScreenEditOptions" and "ModsLevel_Stage" or "ModsLevel_Preferred"
 			local playeroptions = GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptions(modslevel)
 			playeroptions:Mirror(false)
+		end
+		if not GAMESTATE:GetCurrentSong() and noteField then 
+			MESSAGEMAN:Broadcast("DeletePreviewNoteField")
+			heyiwasusingthat = true
+		end
+		if heyiwasusingthat and GAMESTATE:GetCurrentSong() and noteField then
+			self:GetParent():GetChild("ChartPreview"):playcommand("SetupNoteField")
+			self:GetParent():GetChild("ChartPreview"):xy(98,50)
+			heyiwasusingthat = false
 		end
 		self:queuecommand("Set")
 	end
