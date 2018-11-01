@@ -27,7 +27,7 @@ local t =
 		if getTabIndex() == 0 then
 			if heyiwasusingthat and GAMESTATE:GetCurrentSong() and noteField then
 				self:GetChild("ChartPreview"):playcommand("SetupNoteField")
-				self:GetChild("ChartPreview"):xy(98,50)
+				self:GetChild("ChartPreview"):xy(98,56)
 				heyiwasusingthat = false
 			end
 			self:queuecommand("On")
@@ -97,7 +97,7 @@ t[#t + 1] =
 		end
 		if heyiwasusingthat and GAMESTATE:GetCurrentSong() and noteField and getTabIndex() == 0 then
 			self:GetParent():GetChild("ChartPreview"):playcommand("SetupNoteField")
-			self:GetParent():GetChild("ChartPreview"):xy(98,50)
+			self:GetParent():GetChild("ChartPreview"):xy(98,56)
 			heyiwasusingthat = false
 		end
 		self:queuecommand("Set")
