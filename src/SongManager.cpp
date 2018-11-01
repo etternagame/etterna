@@ -364,6 +364,7 @@ Chart::FromKey(const string& ck)
 		songptr = song;
 		stepsptr = steps;
 		return;
+		if (steps != nullptr) {		// happens when you edit a file for playtesting -mina
 	}
 	loaded = false;
 }
