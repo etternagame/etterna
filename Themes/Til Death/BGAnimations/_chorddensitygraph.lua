@@ -3,21 +3,22 @@
 local imcrazy = 500
 local wodth = 300
 local hidth = 40
+local txtoff = 10
 
 local textonleft = true
 local function textmover(self)
     if isOver(self:GetChild("npstext")) and textonleft then
-        self:GetChild("npstext"):x(wodth-10):halign(1)
+        self:GetChild("npstext"):x(wodth-txtoff):halign(1)
         textonleft = false
 	elseif isOver(self:GetChild("npstext")) and not textonleft then
-        self:GetChild("npstext"):x(10):halign(0)
+        self:GetChild("npstext"):x(txtoff):halign(0)
         textonleft = true
 	end
 end
 
 local t = Def.ActorFrame {
     Name = "ChordDensityGraph",
-	InitCommand=function(self)
+    InitCommand=function(self)
 		self:SetUpdateFunction(textmover)
 	end,
     PlayingSampleMusicMessageCommand = function(self)
@@ -56,7 +57,7 @@ local t = Def.ActorFrame {
 	Def.Quad {
         Name = "cdbg",
         InitCommand = function(self)
-            self:zoomto(wodth, hidth + 2):diffusealpha(1):valign(1):diffuse(color("1,1,1")):halign(0)
+            self:zoomto(wodth, hidth + 2):valign(1):diffuse(color("1,1,1,1")):halign(0)
         end
     }
 }
@@ -65,7 +66,7 @@ local function makeaquad(i,n, col)
 	local o = Def.Quad {
 		Name = i..n,
 		InitCommand = function(self)
-			self:zoomto(20, 0):diffusealpha(0.75):valign(1):diffuse(color(col)):halign(1)
+			self:zoomto(20, 0):valign(1):diffuse(color(col)):halign(1)
 		end,
 	}
 	return o
