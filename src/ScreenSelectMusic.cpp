@@ -448,13 +448,16 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 			Steps* steps = GAMESTATE->m_pCurSteps[PLAYER_1];
 
 			PlayParams.sFile = song->GetMusicPath();
-			PlayParams.fLengthSeconds = song->GetLastSecond() - m_fSampleStartSeconds;
+			PlayParams.fLengthSeconds =
+			  song->GetLastSecond() - m_fSampleStartSeconds;
 			if (song && steps) {
 				steps->GetNoteData(m_PreviewNoteData);
 			} else {
 				return;
 			}
-			m_pPreviewNoteField->Load(&m_PreviewNoteData, 0, drawDistBeforeTargetPixels);
+			m_pPreviewNoteField->Load(
+			  &m_PreviewNoteData, 0, drawDistBeforeTargetPixels);
+			GAMESTATE->SetPaused(false); // hacky can see this being problematic if we forget about it -mina
 		}
 
 		SOUND->PlayMusic(PlayParams, FallbackMusic);
