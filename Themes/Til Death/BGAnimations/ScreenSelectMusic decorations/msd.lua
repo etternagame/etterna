@@ -16,39 +16,6 @@ local steps
 local meter = {}
 meter[1] = 0.00
 
-local function isOver(element)
-	if element:GetParent():GetParent():GetVisible() == false then
-		return false
-	end
-	if element:GetParent():GetVisible() == false then
-		return false
-	end
-	if element:GetVisible() == false then
-		return false
-	end
-	local x = getTrueX(element)
-	local y = getTrueY(element)
-	local hAlign = element:GetHAlign()
-	local vAlign = element:GetVAlign()
-	local w = element:GetZoomedWidth()
-	local h = element:GetZoomedHeight()
- 	local mouseX = INPUTFILTER:GetMouseX()
-	local mouseY = INPUTFILTER:GetMouseY()
- 	local withinX = (mouseX >= (x - (hAlign * w))) and (mouseX <= ((x + w) - (hAlign * w)))
-	local withinY = (mouseY >= (y - (vAlign * h))) and (mouseY <= ((y + h) - (vAlign * h)))
- 	return (withinX and withinY)
-end
-local function highlightIfOver(self)
-	if isOver(self) then
-		self:diffusealpha(0.6)
-	else
-		self:diffusealpha(1)
-	end
-end
-local function highlight(self)
-	self:queuecommand("Highlight")
-end
-
 local cd -- chord density graph
 
 --Actor Frame
@@ -56,7 +23,6 @@ local t =
 	Def.ActorFrame {
 	BeginCommand = function(self)
 		self:queuecommand("Set"):visible(false)
-		self:SetUpdateFunction(highlight)
 		noteField = false
 		cd = self:GetChild("ChordDensityGraph")
 		cd:xy(45, 185)

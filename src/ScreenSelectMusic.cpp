@@ -84,7 +84,6 @@ void
 ScreenSelectMusic::Init()
 {
 	SubscribeToMessage("DeletePreviewNoteField");
-	SubscribeToMessage("ChangePreviewNoteField");
 	
 	g_ScreenStartedLoadingAt.Touch();
 	if (PREFSMAN->m_sTestInitialScreen.Get() == m_sName) {
@@ -503,53 +502,6 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 	// This is to deal with scrolling.
 	// This is expecting that the creation and destruction of the NoteField is
 	// being handled by the Theme.
-
-	// TODO: I DONT KNOW WHAT IM DOING -poco
-	/*
-	if (m_pPreviewNoteField != nullptr && GAMESTATE->m_bIsChartPreviewActive) {
-		float distance = 2.f;
-		bool bHoldingCtrl =
-		  INPUTFILTER->IsBeingPressed(
-			DeviceInput(DEVICE_KEYBOARD, KEY_LCTRL)) ||
-		  INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RCTRL));
-		bool bHoldingShift =
-		  INPUTFILTER->IsBeingPressed(
-			DeviceInput(DEVICE_KEYBOARD, KEY_LSHIFT)) ||
-		  INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RSHIFT));
-		float reverse = 1.f;
-		if (GAMESTATE->m_pPlayerState[PLAYER_1]
-			  ->m_PlayerOptions.GetPreferred()
-			  .m_fScrolls[PlayerOptions::SCROLL_REVERSE] == 1.f)
-			reverse = reverse * -1.f;
-		if (bHoldingCtrl) {
-			distance = distance * 0.1f;
-		} else if (bHoldingShift) {
-			distance = distance * 5.f;
-		}
-		if (mouse_evt)
-			return ScreenWithMenuElements::Input(input);
-
-		float cur = SOUND->GetRageSoundPlaying()->GetPositionSeconds();
-
-
-		if (input.MenuI == GAME_BUTTON_COIN && input.type == IET_FIRST_PRESS) {
-			PausePreviewNoteFieldMusic();
-		}
-		if ((input.MenuI == GAME_BUTTON_BACK ||
-			 input.MenuI == GAME_BUTTON_START) &&
-			input.type == IET_FIRST_PRESS) {
-			DeletePreviewNoteField();
-		}
-		if (input.MenuI == GAME_BUTTON_EFFECT_DOWN &&
-			input.type != IET_RELEASE) {
-			SetPreviewNoteFieldMusicPosition(cur + distance * reverse);
-		}
-		if (input.MenuI == GAME_BUTTON_EFFECT_UP && input.type != IET_RELEASE) {
-			SetPreviewNoteFieldMusicPosition(cur - distance * reverse);
-		}
-	}
-
-	*/
 	
 	if (mouse_evt) {
 		return ScreenWithMenuElements::Input(input);
