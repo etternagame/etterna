@@ -1397,6 +1397,7 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 		DLMAN->UpdateDLSpeed(true);
 #endif
 		m_MenuTimer->Stop();
+		DeletePreviewNoteField();
 
 		FOREACH_HumanPlayer(p)
 		{
@@ -1926,7 +1927,7 @@ ScreenSelectMusic::DeletePreviewNoteField()
 		SAFE_DELETE(m_pPreviewNoteField);
 		GAMESTATE->m_bIsChartPreviewActive = false;
 		auto song = GAMESTATE->m_pCurSong;
-		if (song) {
+		if (song && m_SelectionState != SelectionState_Finalized) {
 			SOUND->StopMusic();
 			m_sSampleMusicToPlay = song->GetPreviewMusicPath();
 			m_fSampleStartSeconds = song->GetPreviewStartSeconds();
