@@ -25,9 +25,18 @@ local t =
 	SetCommand = function(self)
 		self:finishtweening()
 		if getTabIndex() == 0 then
+			if heyiwasusingthat and GAMESTATE:GetCurrentSong() and noteField then
+				self:GetChild("ChartPreview"):playcommand("SetupNoteField")
+				self:GetChild("ChartPreview"):xy(98,50)
+				heyiwasusingthat = false
+			end
 			self:queuecommand("On")
 			update = true
 		else
+			if GAMESTATE:GetCurrentSong() and noteField then 
+				MESSAGEMAN:Broadcast("DeletePreviewNoteField")
+				heyiwasusingthat = true
+			end
 			self:queuecommand("Off")
 			update = false
 		end
@@ -86,7 +95,7 @@ t[#t + 1] =
 			MESSAGEMAN:Broadcast("DeletePreviewNoteField")
 			heyiwasusingthat = true
 		end
-		if heyiwasusingthat and GAMESTATE:GetCurrentSong() and noteField then
+		if heyiwasusingthat and GAMESTATE:GetCurrentSong() and noteField and getTabIndex() == 0 then
 			self:GetParent():GetChild("ChartPreview"):playcommand("SetupNoteField")
 			self:GetParent():GetChild("ChartPreview"):xy(98,50)
 			heyiwasusingthat = false
