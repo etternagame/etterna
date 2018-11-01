@@ -384,8 +384,8 @@ RageSound::StartPlaying()
 void
 RageSound::SetPositionSeconds(float fGiven)
 {
-	//ASSERT(!m_bPlaying);
-	SetPositionFrames(lround(fGiven * samplerate()));
+	if (m_bPlaying)
+		SetPositionFrames(lround(fGiven * samplerate()));
 }
 
 void
