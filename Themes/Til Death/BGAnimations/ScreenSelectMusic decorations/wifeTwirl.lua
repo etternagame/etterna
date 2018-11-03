@@ -10,6 +10,9 @@ local alreadybroadcasted
 local noteField = false
 local heyiwasusingthat = false
 
+local prevX = capWideScale(get43size(98), 98)
+local prevY = 58
+
 local update = false
 local t =
 	Def.ActorFrame {
@@ -27,7 +30,7 @@ local t =
 		if getTabIndex() == 0 then
 			if heyiwasusingthat and GAMESTATE:GetCurrentSong() and noteField then
 				self:GetChild("ChartPreview"):playcommand("SetupNoteField")
-				self:GetChild("ChartPreview"):xy(98,56)
+				self:GetChild("ChartPreview"):xy(prevX,prevY)
 				heyiwasusingthat = false
 			end
 			self:queuecommand("On")
@@ -97,7 +100,7 @@ t[#t + 1] =
 		end
 		if heyiwasusingthat and GAMESTATE:GetCurrentSong() and noteField and getTabIndex() == 0 then
 			self:GetParent():GetChild("ChartPreview"):playcommand("SetupNoteField")
-			self:GetParent():GetChild("ChartPreview"):xy(98,56)
+			self:GetParent():GetChild("ChartPreview"):xy(prevX,prevY)
 			heyiwasusingthat = false
 		end
 		self:queuecommand("Set")
@@ -923,13 +926,41 @@ t[#t + 1] =
 
 	local yesiwantnotefield = false
 --Chart Preview Button
+local mcbootlarder
+local function ihatestickinginputcallbackseverywhere(event)
+	if event.type ~= "InputEventType_Release" and getTabIndex() == 0 then
+				if event.DeviceInput.button == "DeviceButton_space" then
+					if not noteField then
+						noteField = true
+						MESSAGEMAN:Broadcast("ChartPreviewToggled") -- for banner reaction... lazy -mina
+						mcbootlarder:playcommand("SetupNoteField")
+						mcbootlarder:xy(prevX,prevY)
+					else
+						noteField = false
+						MESSAGEMAN:Broadcast("DeletePreviewNoteField")
+						MESSAGEMAN:Broadcast("ChartPreviewToggled")
+					end
+				end
+			end
+	return false
+end
+
 t[#t + 1] = LoadFont("Common Normal") .. {
 	Name = "PreviewViewer",
-	InitCommand = function(self)
-		self:xy(10, 45)
-		self:zoom(0.75)
+	BeginCommand = function(self)
+		mcbootlarder = self:GetParent():GetChild("ChartPreview")
+		SCREENMAN:GetTopScreen():AddInputCallback(ihatestickinginputcallbackseverywhere)
+		self:xy(20, 235)
+		self:zoom(0.5)
 		self:halign(0)
 		self:settext("Toggle Preview")
+	end,
+	RefreshChartInfoMessageCommand = function(self)
+		if song then
+			self:visible(true)
+		else
+			self:visible(false)
+		end
 	end,
 	MouseLeftClickMessageCommand = function(self)
 		if isOver(self) then
@@ -937,13 +968,11 @@ t[#t + 1] = LoadFont("Common Normal") .. {
 				noteField = true
 				MESSAGEMAN:Broadcast("ChartPreviewToggled") -- for banner reaction... lazy -mina
 				self:GetParent():GetChild("ChartPreview"):playcommand("SetupNoteField")
-				self:GetParent():GetChild("ChartPreview"):xy(98,56)
-				self:xy(10,90)
+				self:GetParent():GetChild("ChartPreview"):xy(prevX,prevY)
 			else
 				noteField = false
 				MESSAGEMAN:Broadcast("DeletePreviewNoteField")
 				MESSAGEMAN:Broadcast("ChartPreviewToggled")
-				self:xy(10,45)
 			end
 		end
 	end
