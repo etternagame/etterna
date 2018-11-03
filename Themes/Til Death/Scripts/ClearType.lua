@@ -97,7 +97,6 @@ local function clearTypes(grade, playCount, perfcount, greatcount, misscount, re
 	grade = grade or 0
 	playcount = playcount or 0
 	misscount = misscount or 0
-ms.ok(misscount)
 	clearlevel = 13 -- no play
 
 	if grade == 0 then
