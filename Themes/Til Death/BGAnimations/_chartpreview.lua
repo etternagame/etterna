@@ -74,7 +74,7 @@ local t = Def.ActorFrame {
 		Name = "BG",
 		InitCommand = function(self)
 			self:xy(wodth/2, SCREEN_HEIGHT/2) 
-			self:zoomto(wodth*2/3, SCREEN_HEIGHT):diffuse(color("0.05,0.05,0.05,0.05")):diffusealpha(1)
+			self:zoomto(wodth*2/3, SCREEN_HEIGHT):diffuse(color("0.05,0.05,0.05,1"))
 		end
 	},
 	LoadFont("Common Normal") .. {
@@ -87,7 +87,7 @@ local t = Def.ActorFrame {
 	Def.Quad {
 		Name = "PosBG",
 		InitCommand = function(self)
-			self:zoomto(wodth, hidth):diffusealpha(1):halign(0):diffuse(color("1,1,1,1"))
+			self:zoomto(wodth, hidth):halign(0):diffuse(color("1,1,1,1"))
 		end,
 		HighlightCommand = function(self)	-- use the bg for detection but move the seek pointer -mina 
 			if isOver(self) then
