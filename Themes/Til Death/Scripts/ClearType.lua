@@ -92,12 +92,12 @@ end
 --				=1 -> ShortClearType,
 -- 				=2 -> ClearTypeColor,
 -- 				=else -> ClearTypeLevel
-local function clearTypes(stageaward, grade, playcount, misscount, returntype)
-	stageaward = stageaward or 0 -- initialize everything incase some are nil
+-- i killed stageawards -mina
+local function clearTypes(grade, playCount, perfcount, greatcount, misscount, returntype)
 	grade = grade or 0
 	playcount = playcount or 0
 	misscount = misscount or 0
-
+ms.ok(misscount)
 	clearlevel = 13 -- no play
 
 	if grade == 0 then
@@ -107,19 +107,19 @@ local function clearTypes(stageaward, grade, playcount, misscount, returntype)
 	else
 		if grade == "Grade_Failed" then -- failed
 			clearlevel = 11
-		elseif stageaward == "StageAward_SingleDigitW2" then -- SDP
+		elseif perfcount < 10 and perfcount > 1 then -- SDP
 			clearlevel = 3
-		elseif stageaward == "StageAward_SingleDigitW3" then -- SDG
+		elseif greatcount < 10 and greatcount > 1 then -- SDG
 			clearlevel = 6
-		elseif stageaward == "StageAward_OneW2" then -- whiteflag
+		elseif perfcount == 1 and greatcount + misscount == 0 then -- whiteflag
 			clearlevel = 2
-		elseif stageaward == "StageAward_OneW3" then -- blackflag
+		elseif greatcount == 1 and misscount == 0 then -- blackflag
 			clearlevel = 5
-		elseif stageaward == "StageAward_FullComboW1" or grade == "Grade_Tier01" then -- MFC
+		elseif perfcount + greatcount + misscount == 0 then -- MFC
 			clearlevel = 1
-		elseif stageaward == "StageAward_FullComboW2" or grade == "Grade_Tier02" then -- PFC
+		elseif greatcount + misscount == 0 then -- PFC
 			clearlevel = 4
-		elseif stageaward == "StageAward_FullComboW3" then -- FC
+		elseif misscount == 0 then -- FC
 			clearlevel = 7
 		else
 			if misscount == 1 then
@@ -140,8 +140,9 @@ function getClearType(pn, ret)
 	local hScoreList
 	local hScore
 	local playCount = 0
-	local stageAward
-	local missCount = 0
+	local greatcount = 0
+	local perfcount = 0
+	local misscount = 0
 	local grade
 	song = GAMESTATE:GetCurrentSong()
 	steps = GAMESTATE:GetCurrentSteps(pn)
@@ -152,13 +153,15 @@ function getClearType(pn, ret)
 	end
 	if hScore ~= nil then
 		playCount = profile:GetSongNumTimesPlayed(song)
-		missCount =
+		perfcount = score:GetTapNoteScore("TapNoteScore_W2")
+		greatcount = score:GetTapNoteScore("TapNoteScore_W3")
+		misscount =
 			hScore:GetTapNoteScore("TapNoteScore_Miss") + hScore:GetTapNoteScore("TapNoteScore_W5") +
 			hScore:GetTapNoteScore("TapNoteScore_W4")
 		grade = hScore:GetGrade()
 		stageAward = hScore:GetStageAward()
 	end
-	return clearTypes(stageAward, grade, playCount, missCount, ret)
+	return clearTypes(grade, playCount, perfcount, greatcount, misscount, ret)
 end
 
 -- Returns the cleartype given the score
@@ -167,8 +170,10 @@ function getClearTypeFromScore(pn, score, ret)
 	local steps
 	local profile
 	local playCount = 0
-	local stageAward
-	local missCount = 0
+	local greatcount = 0
+	local perfcount = 0
+	local misscount = 0
+	
 	if score == nil then
 		return getClearTypeItem(13, ret)
 	end
@@ -180,14 +185,16 @@ function getClearTypeFromScore(pn, score, ret)
 	end
 	if score ~= nil and song ~= nil and steps ~= nil then
 		playCount = profile:GetSongNumTimesPlayed(song)
-		stageAward = score:GetStageAward()
 		grade = score:GetGrade()
-		missCount =
+		perfcount = score:GetTapNoteScore("TapNoteScore_W2")
+		greatcount = score:GetTapNoteScore("TapNoteScore_W3")
+		misscount =
 			score:GetTapNoteScore("TapNoteScore_Miss") + score:GetTapNoteScore("TapNoteScore_W5") +
 			score:GetTapNoteScore("TapNoteScore_W4")
 	end
 
-	return clearTypes(stageAward, grade, playCount, missCount, ret) or typetable[12]
+
+	return clearTypes(grade, playCount, perfcount, greatcount, misscount, ret) or typetable[12]
 end
 
 -- Returns the highest cleartype
