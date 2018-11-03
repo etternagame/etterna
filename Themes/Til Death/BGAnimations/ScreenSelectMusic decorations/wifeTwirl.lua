@@ -11,6 +11,7 @@ local noteField = false
 local heyiwasusingthat = false
 local mcbootlarder
 local prevX = capWideScale(get43size(98), 98)
+local idkwhatimdoing = capWideScale(prevX+8, prevX/2+4)
 local prevY = 58
 
 local update = false
@@ -29,8 +30,9 @@ local t =
 		self:finishtweening()
 		if getTabIndex() == 0 then
 			if heyiwasusingthat and GAMESTATE:GetCurrentSong() and noteField then
-				self:GetChild("ChartPreview"):playcommand("SetupNoteField")
-				self:GetChild("ChartPreview"):xy(prevX,prevY)
+				mcbootlarder:playcommand("SetupNoteField")
+				mcbootlarder:xy(prevX,prevY)
+				mcbootlarder:GetChild("NoteField"):xy(prevX+idkwhatimdoing, prevY*1.5)
 				heyiwasusingthat = false
 			end
 			self:queuecommand("On")
@@ -103,6 +105,7 @@ t[#t + 1] =
 		if heyiwasusingthat and GAMESTATE:GetCurrentSong() and noteField and getTabIndex() == 0 then
 			self:GetParent():GetChild("ChartPreview"):playcommand("SetupNoteField")
 			self:GetParent():GetChild("ChartPreview"):xy(prevX,prevY)
+			self:GetParent():GetChild("ChartPreview"):GetChild("NoteField"):xy(prevX+idkwhatimdoing, prevY*1.5)
 			heyiwasusingthat = false
 		end
 		self:queuecommand("Set")
@@ -937,6 +940,7 @@ local function ihatestickinginputcallbackseverywhere(event)
 						MESSAGEMAN:Broadcast("ChartPreviewToggled") -- for banner reaction... lazy -mina
 						mcbootlarder:playcommand("SetupNoteField")
 						mcbootlarder:xy(prevX,prevY)
+						mcbootlarder:GetChild("NoteField"):xy(prevX+idkwhatimdoing, prevY*1.5)
 					else
 						noteField = false
 						SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
@@ -970,8 +974,9 @@ t[#t + 1] = LoadFont("Common Normal") .. {
 			 if not noteField then
 				noteField = true
 				MESSAGEMAN:Broadcast("ChartPreviewToggled") -- for banner reaction... lazy -mina
-				self:GetParent():GetChild("ChartPreview"):playcommand("SetupNoteField")
-				self:GetParent():GetChild("ChartPreview"):xy(prevX,prevY)
+				mcbootlarder:playcommand("SetupNoteField")
+				mcbootlarder:xy(prevX,prevY)
+				mcbootlarder:GetChild("NoteField"):xy(prevX+idkwhatimdoing, prevY*1.5)
 			else
 				noteField = false
 				SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
