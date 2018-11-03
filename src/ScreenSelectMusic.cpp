@@ -84,8 +84,8 @@ REGISTER_SCREEN_CLASS(ScreenSelectMusic);
 void
 ScreenSelectMusic::Init()
 {
-	SubscribeToMessage("DeletePreviewNoteField");
 	
+	//SubscribeToMessage("DeletePreviewNoteField");
 	g_ScreenStartedLoadingAt.Touch();
 	if (PREFSMAN->m_sTestInitialScreen.Get() == m_sName) {
 		GAMESTATE->m_PlayMode.Set(PLAY_MODE_REGULAR);
@@ -453,8 +453,11 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 				return;
 			}
 			m_pPreviewNoteField->Load(
-			  &m_PreviewNoteData, 0, SCREEN_HEIGHT - 30);	// should be handled better probably
-			GAMESTATE->SetPaused(false); // hacky can see this being problematic if we forget about it -mina
+			  &m_PreviewNoteData,
+			  0,
+			  SCREEN_HEIGHT - 30);		 // should be handled better probably
+			GAMESTATE->SetPaused(false); // hacky can see this being problematic
+										 // if we forget about it -mina
 		}
 
 		SOUND->PlayMusic(PlayParams, FallbackMusic);
@@ -1354,7 +1357,10 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn)
 		DLMAN->UpdateDLSpeed(true);
 #endif
 		m_MenuTimer->Stop();
-		DeletePreviewNoteField();
+
+		if (GAMESTATE->m_bIsChartPreviewActive) {
+			MESSAGEMAN->Broadcast("hELPidontDNOKNOW"); 
+		} // we dont know who owns the notefield preview so we broadcast to get the owner to submit itself for deletion -mina
 
 		FOREACH_HumanPlayer(p)
 		{
@@ -1859,22 +1865,20 @@ ScreenSelectMusic::GeneratePreviewNoteField(float noteFieldHeight,
 	m_pPreviewNoteField->SetX(noteFieldXPos);
 	m_pPreviewNoteField->SetZoom(noteFieldZoom);
 	m_pPreviewNoteField->SetRotationX(noteFieldTiltDegrees);
-	m_pPreviewNoteField->Load(&m_PreviewNoteData,
-							  0, SCREEN_HEIGHT - 30);
+	m_pPreviewNoteField->Load(&m_PreviewNoteData, 0, SCREEN_HEIGHT - 30);
 	// This is essentially required.
 	// This NoteField is hereby attached to ScreenSelectMusic and there's
 	// nothing you can do to stop me
 	// (It's required because it needs to be owned by a screen so screenman can
 	// draw it immediately) (We could just attach this to its own screen but you
 	// know that I know I don't want to do that)
-	this->AddChild(m_pPreviewNoteField);
+ 	//this->AddChild(m_pPreviewNoteField);
 }
 
 void
 ScreenSelectMusic::DeletePreviewNoteField()
 {
 	if (m_pPreviewNoteField != nullptr) {
-		this->RemoveChild(m_pPreviewNoteField);
 		SAFE_DELETE(m_pPreviewNoteField);
 		GAMESTATE->m_bIsChartPreviewActive = false;
 		auto song = GAMESTATE->m_pCurSong;
@@ -1887,7 +1891,7 @@ ScreenSelectMusic::DeletePreviewNoteField()
 			CheckBackgroundRequests(true);
 		}
 		Message m("DeletePreviewNoteField");
-		MESSAGEMAN->Broadcast(m);
+		//MESSAGEMAN->Broadcast(m);
 	}
 }
 
@@ -2136,6 +2140,8 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 	// It is not necessary to use this except for rare circumstances.
 	static int DeletePreviewNoteField(T* p, lua_State* L)
 	{
+		ActorFrame* king = Luna<ActorFrame>::check(L, 1);
+		king->RemoveChild(p->m_pPreviewNoteField);
 		p->DeletePreviewNoteField();
 		return 0;
 	}
@@ -2181,7 +2187,12 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		lua_pushboolean(L, GAMESTATE->GetPaused());
 		return 1;
 	}
-
+	static int dootforkfive(T* p, lua_State* L)
+	{
+		ActorFrame* king = Luna<ActorFrame>::check(L, 1);
+		king->AddChild(p->m_pPreviewNoteField);
+		COMMON_RETURN_SELF;
+	}
 	LunaScreenSelectMusic()
 	{
 		ADD_METHOD(GetGoToOptions);
@@ -2200,6 +2211,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		ADD_METHOD(GetPreviewNoteFieldMusicPosition);
 		ADD_METHOD(PausePreviewNoteField);
 		ADD_METHOD(IsPreviewNoteFieldPaused);
+		ADD_METHOD(dootforkfive);
 	}
 };
 

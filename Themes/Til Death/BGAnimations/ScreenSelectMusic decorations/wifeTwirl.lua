@@ -9,7 +9,7 @@ local steps
 local alreadybroadcasted
 local noteField = false
 local heyiwasusingthat = false
-
+local mcbootlarder
 local prevX = capWideScale(get43size(98), 98)
 local prevY = 58
 
@@ -37,6 +37,7 @@ local t =
 			update = true
 		else
 			if GAMESTATE:GetCurrentSong() and noteField then 
+				SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
 				MESSAGEMAN:Broadcast("DeletePreviewNoteField")
 				heyiwasusingthat = true
 			end
@@ -95,6 +96,7 @@ t[#t + 1] =
 			playeroptions:Mirror(false)
 		end
 		if not GAMESTATE:GetCurrentSong() and noteField then 
+			SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
 			MESSAGEMAN:Broadcast("DeletePreviewNoteField")
 			heyiwasusingthat = true
 		end
@@ -926,7 +928,7 @@ t[#t + 1] =
 
 	local yesiwantnotefield = false
 --Chart Preview Button
-local mcbootlarder
+
 local function ihatestickinginputcallbackseverywhere(event)
 	if event.type ~= "InputEventType_Release" and getTabIndex() == 0 then
 				if event.DeviceInput.button == "DeviceButton_space" then
@@ -937,6 +939,7 @@ local function ihatestickinginputcallbackseverywhere(event)
 						mcbootlarder:xy(prevX,prevY)
 					else
 						noteField = false
+						SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
 						MESSAGEMAN:Broadcast("DeletePreviewNoteField")
 						MESSAGEMAN:Broadcast("ChartPreviewToggled")
 					end
@@ -971,6 +974,7 @@ t[#t + 1] = LoadFont("Common Normal") .. {
 				self:GetParent():GetChild("ChartPreview"):xy(prevX,prevY)
 			else
 				noteField = false
+				SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
 				MESSAGEMAN:Broadcast("DeletePreviewNoteField")
 				MESSAGEMAN:Broadcast("ChartPreviewToggled")
 			end

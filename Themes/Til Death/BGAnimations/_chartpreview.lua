@@ -15,7 +15,6 @@ local function UpdatePreviewPos(self)
 	if noteField then
 		local pos = SCREENMAN:GetTopScreen():GetPreviewNoteFieldMusicPosition() / musicratio
         self:GetChild("Pos"):zoomto(math.min(pos,wodth), hidth)
-        yeet:xy(self:GetX()+wodth/2, self:GetY() + 80)
         if usingreverse then 
             yeet:y(self:GetY() + prevrevY)
 		end
@@ -23,13 +22,17 @@ local function UpdatePreviewPos(self)
 	end
 end
 
+local memehamstermax
 local function setUpPreviewNoteField() 
     yeet = SCREENMAN:GetTopScreen():CreatePreviewNoteField() 
     if yeet == nil then 
       return 
-    end 
-    yeet:xy(-500,-500)
-    yeet:zoom(prevZoom) 
+	end 
+	yeet:zoom(prevZoom):draworder(90)
+	SCREENMAN:GetTopScreen():dootforkfive(memehamstermax)
+	yeet = memehamstermax:GetChild("NoteField")
+	yeet:xy(memehamstermax:GetX()+wodth/2,memehamstermax:GetY()+80)
+	memehamstermax:SortByDrawOrder()
 	MESSAGEMAN:Broadcast("NoteFieldVisible") 
   end 
 
@@ -38,7 +41,8 @@ local t = Def.ActorFrame {
 	InitCommand=function(self)
 		self:visible(false)
         self:SetUpdateFunction(UpdatePreviewPos)
-        cd = self:GetChild("ChordDensityGraph"):visible(true)
+		cd = self:GetChild("ChordDensityGraph"):visible(true):draworder(1000)
+		memehamstermax = self
 	end,
 	CurrentSongChangedMessageCommand=function(self)
 		self:GetChild("pausetext"):settext("")
@@ -54,7 +58,10 @@ local t = Def.ActorFrame {
     SetupNoteFieldCommand=function(self)
         setUpPreviewNoteField()
         noteField = true
-    end,
+	end,
+	hELPidontDNOKNOWMessageCommand=function(self)
+		SCREENMAN:GetTopScreen():DeletePreviewNoteField(self)
+	end,
 	RefreshChartInfoMessageCommand = function(self)
 		if GAMESTATE:GetCurrentSong() then
             musicratio = GAMESTATE:GetCurrentSong():GetLastSecond() / wodth
@@ -87,7 +94,7 @@ local t = Def.ActorFrame {
 	Def.Quad {
 		Name = "PosBG",
 		InitCommand = function(self)
-			self:zoomto(wodth, hidth):halign(0):diffuse(color("1,1,1,1"))
+			self:zoomto(wodth, hidth):halign(0):diffuse(color("1,1,1,1")):draworder(900)
 		end,
 		HighlightCommand = function(self)	-- use the bg for detection but move the seek pointer -mina 
 			if isOver(self) then
@@ -101,7 +108,7 @@ local t = Def.ActorFrame {
 	Def.Quad {
 		Name = "Pos",
 		InitCommand = function(self)
-			self:zoomto(0, hidth):diffuse(color("0,1,0,.5")):halign(0)
+			self:zoomto(0, hidth):diffuse(color("0,1,0,.5")):halign(0):draworder(900)
 		end
 	}
 }
@@ -114,7 +121,7 @@ t[#t + 1] = Def.Quad {
 	InitCommand = function(self)
 		self:zoomto(2, hidth):diffuse(color("1,.2,.5,1")):halign(0.5)
 	end,
-    MouseLeftClickMessageCommand = function(self)
+	MouseLeftClickMessageCommand = function(self)
 		if isOver(self) then
 			SCREENMAN:GetTopScreen():SetPreviewNoteFieldMusicPosition(	self:GetX() * musicratio  )
 		end
