@@ -389,7 +389,12 @@ void
 RageSound::SetPositionSeconds(float fGiven)
 {
 	if (m_bPlaying)
-		SetPositionFrames(lround(fGiven * samplerate()));
+	{
+		Stop();
+		//SetPositionFrames(lround(fGiven * samplerate()));
+		StartPlaying(fGiven, true);
+
+	}
 }
 
 void
