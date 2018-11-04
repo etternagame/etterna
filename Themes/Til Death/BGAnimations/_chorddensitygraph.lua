@@ -16,43 +16,50 @@ local function textmover(self)
 	end
 end
 
+local function createGraph(self)
+	local steps =  GAMESTATE:GetCurrentSteps(PLAYER_1)
+	if steps then
+		local groot = {steps:GetNPSVector(), steps:GetCPSVector(2), steps:GetCPSVector(3), steps:GetCPSVector(4)}   -- todo: c++ should spit this out in 1 call -mina
+		local moot = groot[1]
+		local thingers = math.min(imcrazy,#moot)
+		local wid = wodth/thingers
+		local hodth = 0
+		for i=1,#moot do 
+			if moot[i] * 2 > hodth then
+				hodth = moot[i] * 2
+			end
+		end
+		
+		self:GetChild("npsline"):y(-hidth * 0.7)
+		self:GetChild("npstext"):settext(hodth/2 * 0.7 .. "nps"):y(-hidth * 0.9)
+		hodth = hidth/hodth
+		for j=1,4 do 
+			for i=1,imcrazy do
+				if i <= thingers then
+					if groot[j][i] > 0 then
+						self:GetChild(i..j):x(i * wid):zoomto(wid,groot[j][i]*2*j*hodth)
+						self:GetChild(i..j):visible(true)
+					else
+						self:GetChild(i..j):visible(false)
+					end
+				else
+					self:GetChild(i..j):visible(false)
+				end
+			end
+		end
+	end
+end
+
 local t = Def.ActorFrame {
     Name = "ChordDensityGraph",
     InitCommand=function(self)
 		self:SetUpdateFunction(textmover)
 	end,
     PlayingSampleMusicMessageCommand = function(self)
-        local steps =  GAMESTATE:GetCurrentSteps(PLAYER_1)
-        if steps then
-            local groot = {steps:GetNPSVector(), steps:GetCPSVector(2), steps:GetCPSVector(3), steps:GetCPSVector(4)}   -- todo: c++ should spit this out in 1 call -mina
-			local moot = groot[1]
-			local thingers = math.min(imcrazy,#moot)
-			local wid = wodth/thingers
-            local hodth = 0
-			for i=1,#moot do 
-				if moot[i] * 2 > hodth then
-					hodth = moot[i] * 2
-				end
-            end
-            
-            self:GetChild("npsline"):y(-hidth * 0.7)
-            self:GetChild("npstext"):settext(hodth/2 * 0.7 .. "nps"):y(-hidth * 0.9)
-            hodth = hidth/hodth
-            for j=1,4 do 
-			    for i=1,imcrazy do
-				    if i <= thingers then
-					    if groot[j][i] > 0 then
-						    self:GetChild(i..j):x(i * wid):zoomto(wid,groot[j][i]*2*j*hodth)
-    						self:GetChild(i..j):visible(true)
-					    else
-						    self:GetChild(i..j):visible(false)
-    					end
-				    else
-					    self:GetChild(i..j):visible(false)
-	    			end
-                end
-            end
-		end
+        createGraph(self)
+	end,
+	CurrentStepsP1ChangedMessageCommand = function(self)
+		createGraph(self)
 	end,
 	Def.Quad {
         Name = "cdbg",
