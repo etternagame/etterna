@@ -40,7 +40,7 @@ local t = Def.ActorFrame {
 	InitCommand=function(self)
 		self:visible(false)
         self:SetUpdateFunction(UpdatePreviewPos)
-		cd = self:GetChild("ChordDensityGraph"):visible(true):draworder(1000)
+		cd = self:GetChild("ChordDensityGraph"):visible(false):draworder(1000)
 		memehamstermax = self
 	end,
 	CurrentSongChangedMessageCommand=function(self)
@@ -72,12 +72,14 @@ local t = Def.ActorFrame {
 	end,
 	NoteFieldVisibleMessageCommand = function(self)
         self:visible(true)
-		cd:visible(true):y(20)	-- need to control this manually -mina
+		cd:visible(true):y(20)				-- need to control this manually -mina
 		cd:GetChild("cdbg"):diffusealpha(0)	-- we want to use our position background for draw order stuff -mina
+		cd:queuecommand("GraphUpdate")		-- first graph will be empty if we dont force this on initial creation
 		self:queuecommand("PlayingSampleMusic") 
 	end,
 	DeletePreviewNoteFieldMessageCommand = function(self)
 		self:visible(false)
+		cd:visible(false)
 		noteField = false
 	end,
 	Def.Quad {

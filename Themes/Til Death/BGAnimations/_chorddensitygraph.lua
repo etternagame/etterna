@@ -16,7 +16,7 @@ local function textmover(self)
 	end
 end
 
-local function createGraph(self)
+local function updateGraph(self)
 	local steps =  GAMESTATE:GetCurrentSteps(PLAYER_1)
 	if steps then
 		local groot = steps:GetCDGraphVectors()
@@ -55,11 +55,13 @@ local t = Def.ActorFrame {
     InitCommand=function(self)
 		self:SetUpdateFunction(textmover)
 	end,
-    PlayingSampleMusicMessageCommand = function(self)
-        createGraph(self)
-	end,
 	DelayedChartUpdateMessageCommand = function(self)
-		createGraph(self)
+		self:queuecommand("GraphUpdate")
+	end,
+	GraphUpdateCommand = function(self)
+		if self:GetVisible() then
+			updateGraph(self)
+		end
 	end,
 	Def.Quad {
         Name = "cdbg",

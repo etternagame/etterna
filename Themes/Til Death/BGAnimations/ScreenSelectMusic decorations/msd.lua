@@ -22,9 +22,10 @@ local cd -- chord density graph
 local t =
 	Def.ActorFrame {
 	BeginCommand = function(self)
-		self:queuecommand("Set"):visible(false)
 		cd = self:GetChild("ChordDensityGraph")
-		cd:xy(45, 185)
+		cd:playcommand("GraphUpdate")		-- force the first update before setting visible(false) (so it's not empty when switching to the tab) -mina
+		cd:xy(45, 185):visible(false)
+		self:queuecommand("Set"):visible(false)
 	end,
 	OffCommand = function(self)
 		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
@@ -53,9 +54,15 @@ local t =
 			end
 
 			MESSAGEMAN:Broadcast("UpdateMSDInfo")
+			if song and steps then
+				cd:visible(true)
+			else
+				cd:visible(false)
+			end	
 			update = true
 		else
 			self:queuecommand("Off")
+			cd:visible(false)
 			update = false
 		end
 	end,
