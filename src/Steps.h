@@ -138,6 +138,19 @@ class Steps
 	void SetLoadedFromProfile(ProfileSlot slot) { m_LoadedFromProfile = slot; }
 	void SetMeter(int meter);
 	void SetCachedRadarValues(const RadarValues& v);
+
+	// self exaplanatory -mina
+	vector<int> GetNPSVector(NoteData& nd,
+							 vector<int> nerv,
+							 vector<float> etaner);
+	// takes size of chord and counts how many -NOTES- are in
+	// chords of that exact size (this functionally means
+	// multiplying chord counter by chord size) in a row -mina
+	// (jumps won't count as hands, etc)
+	vector<int> GetCNPSVector(NoteData& nd,
+							  vector<int> nerv,
+							  vector<float> etaner,
+							  int chordsize);
 	float PredictMeter() const { return 1.f; }
 
 	unsigned GetHash() const;
