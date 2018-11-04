@@ -652,7 +652,13 @@ GameSoundManager::GetRageSoundPlaying()
 {
 	LockMut(*g_Mutex);
 	return g_Playing->m_Music;
+}
 
+TimingData
+GameSoundManager::GetPlayingMusicTiming()
+{
+	LockMut(*g_Mutex);
+	return g_Playing->m_Timing;
 }
 
 void
