@@ -98,8 +98,9 @@ t[#t + 1] =
 			playeroptions:Mirror(false)
 		end
 		if not GAMESTATE:GetCurrentSong() and noteField then 
-			SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
-			MESSAGEMAN:Broadcast("DeletePreviewNoteField")
+			--SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
+			--MESSAGEMAN:Broadcast("DeletePreviewNoteField")
+			MESSAGEMAN:Broadcast("HidePreviewNoteField")
 			heyiwasusingthat = true
 		end
 		if heyiwasusingthat and GAMESTATE:GetCurrentSong() and noteField and getTabIndex() == 0 then

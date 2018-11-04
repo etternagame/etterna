@@ -10,6 +10,7 @@ local wodth = 300
 local hidth = 40
 local yeet
 local cd
+local becameHidden = false
 
 local function UpdatePreviewPos(self)
 	if noteField and yeet and SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
@@ -74,13 +75,22 @@ local t = Def.ActorFrame {
         self:visible(true)
 		cd:visible(true):y(20)				-- need to control this manually -mina
 		cd:GetChild("cdbg"):diffusealpha(0)	-- we want to use our position background for draw order stuff -mina
-		cd:queuecommand("GraphUpdate")		-- first graph will be empty if we dont force this on initial creation
-		self:queuecommand("PlayingSampleMusic") 
+		if not becameHidden then
+			cd:queuecommand("GraphUpdate")		-- first graph will be empty if we dont force this on initial creation
+		end
+		self:queuecommand("PlayingSampleMusic")
+		becameHidden = false
 	end,
 	DeletePreviewNoteFieldMessageCommand = function(self)
 		self:visible(false)
 		cd:visible(false)
 		noteField = false
+		becameHidden = false
+	end,
+	HidePreviewNoteFieldMessageCommand = function(self)
+		self:visible(false)
+		cd:visible(false)
+		becameHidden = true
 	end,
 	Def.Quad {
 		Name = "BG",

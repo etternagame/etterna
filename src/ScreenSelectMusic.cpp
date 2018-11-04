@@ -1464,53 +1464,51 @@ ScreenSelectMusic::AfterStepsOrTrailChange(const vector<PlayerNumber>& vpns)
 		MESSAGEMAN->Broadcast("TwoPartConfirmCanceled");
 	}
 
-	//FOREACH_CONST(PlayerNumber, vpns, p)
+	// FOREACH_CONST(PlayerNumber, vpns, p)
 	//{
-		//PlayerNumber pn = *p;
-		PlayerNumber pn = PLAYER_1;
-		ASSERT(GAMESTATE->IsHumanPlayer(pn));
+	// PlayerNumber pn = *p;
+	PlayerNumber pn = PLAYER_1;
+	ASSERT(GAMESTATE->IsHumanPlayer(pn));
 
-		if (GAMESTATE->m_pCurSong) {
-			CLAMP(m_iSelection[pn], 0, m_vpSteps.size() - 1);
+	if (GAMESTATE->m_pCurSong) {
+		CLAMP(m_iSelection[pn], 0, m_vpSteps.size() - 1);
 
-			Song* pSong = GAMESTATE->m_pCurSong;
-			Steps* pSteps =
-			  m_vpSteps.empty() ? NULL : m_vpSteps[m_iSelection[pn]];
+		Song* pSong = GAMESTATE->m_pCurSong;
+		Steps* pSteps = m_vpSteps.empty() ? NULL : m_vpSteps[m_iSelection[pn]];
 
-			GAMESTATE->m_pCurSteps[pn].Set(pSteps);
-			GAMESTATE->SetCompatibleStyle(pSteps->m_StepsType, pn);
+		GAMESTATE->m_pCurSteps[pn].Set(pSteps);
+		GAMESTATE->SetCompatibleStyle(pSteps->m_StepsType, pn);
 
-			int iScore = 0;
-			if (pSteps) {
-				const Profile* pProfile = PROFILEMAN->GetProfile(pn);
-				iScore = pProfile->GetStepsHighScoreList(pSong, pSteps)
-						   .GetTopScore()
-						   .GetScore();
-			    if (m_pPreviewNoteField != nullptr)
-				{
-					int oldTracks = m_PreviewNoteData.GetNumTracks();
-					int newTracks = pSteps->GetNoteData().GetNumTracks();
-					if (oldTracks != newTracks)
-					{
-						MESSAGEMAN->Broadcast(
-						  Message("RefreshPreviewNoteField"));
-					}
-					else
-					{
-						pSteps->GetNoteData(m_PreviewNoteData);
-						m_pPreviewNoteField->Load(
-						  &m_PreviewNoteData, 0, SCREEN_HEIGHT - 30);
-					}
-			delayedchartupdatewaiting = true;
+		int iScore = 0;
+		if (pSteps) {
+			const Profile* pProfile = PROFILEMAN->GetProfile(pn);
+			iScore = pProfile->GetStepsHighScoreList(pSong, pSteps)
+					   .GetTopScore()
+					   .GetScore();
+			if (m_pPreviewNoteField != nullptr) {
+				int oldTracks = m_PreviewNoteData.GetNumTracks();
+				int newTracks = pSteps->GetNoteData().GetNumTracks();
+				if (oldTracks != newTracks) {
+					MESSAGEMAN->Broadcast(Message("RefreshPreviewNoteField"));
+				} else {
+					pSteps->GetNoteData(m_PreviewNoteData);
+					m_pPreviewNoteField->Load(
+					  &m_PreviewNoteData, 0, SCREEN_HEIGHT - 30);
+					MESSAGEMAN->Broadcast(Message("NoteFieldVisible"));
 				}
+				delayedchartupdatewaiting = true;
 			}
-
-			m_textHighScore[pn].SetText(
-			  ssprintf("%*i", NUM_SCORE_DIGITS, iScore));
 		} else {
-			// The numbers shouldn't stay if the current selection is NULL.
-			m_textHighScore[pn].SetText(NULL_SCORE_STRING);
+			if (m_pPreviewNoteField != nullptr) {
+				MESSAGEMAN->Broadcast(Message("HidePreviewNoteField"));
+			}
 		}
+
+		m_textHighScore[pn].SetText(ssprintf("%*i", NUM_SCORE_DIGITS, iScore));
+	} else {
+		// The numbers shouldn't stay if the current selection is NULL.
+		m_textHighScore[pn].SetText(NULL_SCORE_STRING);
+	}
 	//}
 }
 
