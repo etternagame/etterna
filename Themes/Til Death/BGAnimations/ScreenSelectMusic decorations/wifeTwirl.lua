@@ -936,11 +936,13 @@ local function ihatestickinginputcallbackseverywhere(event)
 	if event.type ~= "InputEventType_Release" and getTabIndex() == 0 then
 				if event.DeviceInput.button == "DeviceButton_space" then
 					if not noteField then
-						noteField = true
-						MESSAGEMAN:Broadcast("ChartPreviewToggled") -- for banner reaction... lazy -mina
-						mcbootlarder:playcommand("SetupNoteField")
-						mcbootlarder:xy(prevX,prevY)
-						mcbootlarder:GetChild("NoteField"):xy(prevX+idkwhatimdoing, prevY*1.5)
+						if song then
+							noteField = true
+							MESSAGEMAN:Broadcast("ChartPreviewToggled") -- for banner reaction... lazy -mina
+							mcbootlarder:playcommand("SetupNoteField")
+							mcbootlarder:xy(prevX,prevY)
+							mcbootlarder:GetChild("NoteField"):xy(prevX+idkwhatimdoing, prevY*1.5)
+						end
 					else
 						noteField = false
 						SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
@@ -970,7 +972,7 @@ t[#t + 1] = LoadFont("Common Normal") .. {
 		end
 	end,
 	MouseLeftClickMessageCommand = function(self)
-		if isOver(self) then
+		if isOver(self) and (song or noteField) then
 			 if not noteField then
 				noteField = true
 				MESSAGEMAN:Broadcast("ChartPreviewToggled") -- for banner reaction... lazy -mina
