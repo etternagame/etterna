@@ -12,7 +12,7 @@ local yeet
 local cd
 
 local function UpdatePreviewPos(self)
-	if noteField then
+	if noteField and yeet and SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
 		local pos = SCREENMAN:GetTopScreen():GetPreviewNoteFieldMusicPosition() / musicratio
         self:GetChild("Pos"):zoomto(math.min(pos,wodth), hidth)
         if usingreverse then 
