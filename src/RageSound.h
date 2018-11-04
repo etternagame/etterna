@@ -130,7 +130,7 @@ class RageSound : public RageSoundBase
 	bool IsLoaded() const;
 	void DeleteSelfWhenFinishedPlaying();
 
-	void StartPlaying();
+	void StartPlaying(float fGiven = 0, bool forcedTime = false);
 	void StopPlaying();
 
 	RString GetError() const { return m_sError; }

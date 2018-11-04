@@ -347,12 +347,15 @@ RageSound::CommitPlayingPosition(int64_t iHardwareFrame,
 
 /* Start playing from the current position. */
 void
-RageSound::StartPlaying()
+RageSound::StartPlaying(float fGiven, bool forcedTime)
 {
 	ASSERT(!m_bPlaying);
 
-	// Move to the start position.
-	SetPositionFrames(lround(m_Param.m_StartSecond * samplerate()));
+	// Move to the start position or the given time.
+	if (forcedTime)
+		SetPositionFrames(lround(fGiven * samplerate()));
+	else
+		SetPositionFrames(lround(m_Param.m_StartSecond * samplerate()));
 
 	/* If m_StartTime is in the past, then we probably set a start time but took
 	 * too long loading.  We don't want that; log it, since it can be unobvious.
