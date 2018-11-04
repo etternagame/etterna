@@ -85,8 +85,6 @@ REGISTER_SCREEN_CLASS(ScreenSelectMusic);
 void
 ScreenSelectMusic::Init()
 {
-	
-	//SubscribeToMessage("DeletePreviewNoteField");
 	g_ScreenStartedLoadingAt.Touch();
 	if (PREFSMAN->m_sTestInitialScreen.Get() == m_sName) {
 		GAMESTATE->m_PlayMode.Set(PLAY_MODE_REGULAR);
@@ -1145,10 +1143,6 @@ ScreenSelectMusic::HandleMessage(const Message& msg)
 		Steps* pSteps = m_vpSteps.empty() ? NULL : m_vpSteps[m_iSelection[pn]];
 
 		GAMESTATE->m_pCurSteps[pn].Set(pSteps);
-	}
-	if (GAMESTATE->m_bIsChartPreviewActive && msg.GetName() == "DeletePreviewNoteField")
-	{
-		DeletePreviewNoteField();
 	}
 
 	ScreenWithMenuElements::HandleMessage(msg);
