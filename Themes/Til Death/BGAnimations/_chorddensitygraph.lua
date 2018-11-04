@@ -58,7 +58,7 @@ local t = Def.ActorFrame {
     PlayingSampleMusicMessageCommand = function(self)
         createGraph(self)
 	end,
-	CurrentStepsP1ChangedMessageCommand = function(self)
+	DelayedChartUpdateMessageCommand = function(self)
 		createGraph(self)
 	end,
 	Def.Quad {
