@@ -1847,8 +1847,6 @@ ScreenSelectMusic::GeneratePreviewNoteField(float noteFieldHeight,
 											float noteFieldZoom,
 											float noteFieldTiltDegrees)
 {
-	// Remove the old notefield, we don't want duplicates
-	DeletePreviewNoteField();
 	auto song = GAMESTATE->m_pCurSong;
 	Steps* steps = GAMESTATE->m_pCurSteps[PLAYER_1];
 
@@ -1874,29 +1872,42 @@ ScreenSelectMusic::GeneratePreviewNoteField(float noteFieldHeight,
 	m_fSampleLengthSeconds = song->GetLastSecond();
 	g_bSampleMusicWaiting = true;
 	CheckBackgroundRequests(true);
+	
+	// If the NoteField already exists; just go ahead and reload the NoteData we are given.
+	// There's not a really great reason to regenerate the whole thing.
+	if (m_pPreviewNoteField != nullptr) {
+		m_pPreviewNoteField->SetY(noteFieldYPos);
+		m_pPreviewNoteField->SetX(noteFieldXPos);
+		m_pPreviewNoteField->SetZoom(noteFieldZoom);
+		m_pPreviewNoteField->SetRotationX(noteFieldTiltDegrees);
+		m_pPreviewNoteField->Load(&m_PreviewNoteData, 0, SCREEN_HEIGHT - 30);
+		MESSAGEMAN->Broadcast(Message("NoteFieldVisible"));
+	} else {
 
-	// Create and Render the NoteField afterwards
-	// It is done in this order so we don't see it before the music changes.
-	m_pPreviewNoteField = new NoteField;
-	m_pPreviewNoteField->SetName(
-	  "NoteField"); // Use this to get the ActorFrame from the Screen Children
+		// Create and Render the NoteField afterwards
+		// It is done in this order so we don't see it before the music changes.
+		m_pPreviewNoteField = new NoteField;
+		m_pPreviewNoteField->SetName(
+		  "NoteField"); // Use this to get the ActorFrame from the Screen
+						// Children
 
-	m_pPreviewNoteField->Init(GAMESTATE->m_pPlayerState[PLAYER_1],
-							  noteFieldHeight);
-	// ActorUtil::LoadAllCommands(*m_pPreviewNoteField, "Player");
+		m_pPreviewNoteField->Init(GAMESTATE->m_pPlayerState[PLAYER_1],
+								  noteFieldHeight);
+		// ActorUtil::LoadAllCommands(*m_pPreviewNoteField, "Player");
 
-	m_pPreviewNoteField->SetY(noteFieldYPos);
-	m_pPreviewNoteField->SetX(noteFieldXPos);
-	m_pPreviewNoteField->SetZoom(noteFieldZoom);
-	m_pPreviewNoteField->SetRotationX(noteFieldTiltDegrees);
-	m_pPreviewNoteField->Load(&m_PreviewNoteData, 0, SCREEN_HEIGHT - 30);
-	// This is essentially required.
-	// This NoteField is hereby attached to ScreenSelectMusic and there's
-	// nothing you can do to stop me
-	// (It's required because it needs to be owned by a screen so screenman can
-	// draw it immediately) (We could just attach this to its own screen but you
-	// know that I know I don't want to do that)
- 	//this->AddChild(m_pPreviewNoteField);
+		m_pPreviewNoteField->SetY(noteFieldYPos);
+		m_pPreviewNoteField->SetX(noteFieldXPos);
+		m_pPreviewNoteField->SetZoom(noteFieldZoom);
+		m_pPreviewNoteField->SetRotationX(noteFieldTiltDegrees);
+		m_pPreviewNoteField->Load(&m_PreviewNoteData, 0, SCREEN_HEIGHT - 30);
+		// This is essentially required.
+		// This NoteField is hereby attached to ScreenSelectMusic and there's
+		// nothing you can do to stop me
+		// (It's required because it needs to be owned by a screen so screenman
+		// can draw it immediately) (We could just attach this to its own screen
+		// but you know that I know I don't want to do that)
+		// this->AddChild(m_pPreviewNoteField);
+	}
 }
 
 void
