@@ -77,7 +77,7 @@ t[#t + 1] =
 
 -- lazy game update button -mina
 local gameneedsupdating = false
-local buttons = {x = 22, y = 40, width = 140, height = 36, fontScale = 0.3, color = getMainColor("frames")}
+local buttons = {x = 122, y = 40, width = 140, height = 36, fontScale = 0.3, color = getMainColor("frames")}
 t[#t + 1] =
 	Def.Quad {
 	InitCommand = function(self)
