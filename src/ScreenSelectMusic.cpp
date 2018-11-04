@@ -1470,6 +1470,7 @@ ScreenSelectMusic::AfterStepsOrTrailChange(const vector<PlayerNumber>& vpns)
 			  m_vpSteps.empty() ? NULL : m_vpSteps[m_iSelection[pn]];
 
 			GAMESTATE->m_pCurSteps[pn].Set(pSteps);
+			GAMESTATE->SetCompatibleStyle(pSteps->m_StepsType, pn);
 
 			int iScore = 0;
 			if (pSteps) {
