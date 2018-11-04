@@ -73,6 +73,7 @@ static bool g_bCDTitleWaiting = false;
 static RString g_sBannerPath;
 static bool g_bBannerWaiting = false;
 static bool g_bSampleMusicWaiting = false;
+static bool delayedchartupdatewaiting = false;
 static RageTimer g_StartedLoadingAt(RageZeroTimer);
 static RageTimer g_ScreenStartedLoadingAt(RageZeroTimer);
 RageTimer g_CanOpenOptionsList(RageZeroTimer);
@@ -407,6 +408,18 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 
 		if (bFreeCache)
 			m_BackgroundLoader.FinishedWithCachedFile(g_sBannerPath);
+	}
+
+	// we need something similar to the previewmusic delay except for charts, so
+	// heavy duty chart specific operations can be delayed when scrolling (chord
+	// density graph, possibly chart leaderboards, etc) -mina
+	if (delayedchartupdatewaiting) {
+		if (g_ScreenStartedLoadingAt.Ago() >	// not sure if i need the "moving fast" check -mina
+			SAMPLE_MUSIC_DELAY_INIT)	// todo: decoupled this mina						
+		{
+			MESSAGEMAN->Broadcast("DelayedChartUpdate");
+			delayedchartupdatewaiting = false;
+		}
 	}
 
 	// Nothing else is going.  Start the music, if we haven't yet.
@@ -1494,6 +1507,7 @@ ScreenSelectMusic::AfterStepsOrTrailChange(const vector<PlayerNumber>& vpns)
 						m_pPreviewNoteField->Load(
 						  &m_PreviewNoteData, 0, SCREEN_HEIGHT - 30);
 					}
+			delayedchartupdatewaiting = true;
 				}
 			}
 
