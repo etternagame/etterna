@@ -12,7 +12,7 @@ local heyiwasusingthat = false
 local mcbootlarder
 local prevX = capWideScale(get43size(98), 98)
 local idkwhatimdoing = capWideScale(prevX+8, prevX/2+4)
-local prevY = 58
+local prevY = 55
 
 local update = false
 local t =
