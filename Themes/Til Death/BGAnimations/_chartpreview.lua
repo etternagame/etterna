@@ -58,6 +58,10 @@ local t = Def.ActorFrame {
         setUpPreviewNoteField()
         noteField = true
 	end,
+	RefreshPreviewNoteFieldMessageCommand=function(self)
+		setUpPreviewNoteField()
+		noteField = true
+	end,
 	hELPidontDNOKNOWMessageCommand=function(self)
 		SCREENMAN:GetTopScreen():DeletePreviewNoteField(self)
 	end,

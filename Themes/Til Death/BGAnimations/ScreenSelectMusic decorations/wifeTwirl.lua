@@ -109,6 +109,13 @@ t[#t + 1] =
 			heyiwasusingthat = false
 		end
 		self:queuecommand("Set")
+	end,
+	RefreshPreviewNoteFieldMessageCommand = function(self)
+		SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
+		MESSAGEMAN:Broadcast("DeletePreviewNoteField")
+		self:GetParent():GetChild("ChartPreview"):playcommand("SetupNoteField")
+		self:GetParent():GetChild("ChartPreview"):xy(prevX,prevY)
+		self:GetParent():GetChild("ChartPreview"):GetChild("NoteField"):xy(prevX+idkwhatimdoing, prevY*1.5)
 	end
 }
 
@@ -180,6 +187,21 @@ local function GetDisplayScore()
 		score = GetBestScoreByFilter(0, false)
 	end
 	return score
+end
+
+local function toggleNoteField()
+	if not noteField then
+		noteField = true
+		MESSAGEMAN:Broadcast("ChartPreviewToggled") -- for banner reaction... lazy -mina
+		mcbootlarder:playcommand("SetupNoteField")
+		mcbootlarder:xy(prevX,prevY)
+		mcbootlarder:GetChild("NoteField"):xy(prevX+idkwhatimdoing, prevY*1.5)
+	else
+		noteField = false
+		SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
+		MESSAGEMAN:Broadcast("DeletePreviewNoteField")
+		MESSAGEMAN:Broadcast("ChartPreviewToggled")
+	end
 end
 
 t[#t + 1] =
@@ -973,20 +995,10 @@ t[#t + 1] = LoadFont("Common Normal") .. {
 	end,
 	MouseLeftClickMessageCommand = function(self)
 		if isOver(self) and (song or noteField) then
-			 if not noteField then
-				noteField = true
-				MESSAGEMAN:Broadcast("ChartPreviewToggled") -- for banner reaction... lazy -mina
-				mcbootlarder:playcommand("SetupNoteField")
-				mcbootlarder:xy(prevX,prevY)
-				mcbootlarder:GetChild("NoteField"):xy(prevX+idkwhatimdoing, prevY*1.5)
-			else
-				noteField = false
-				SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
-				MESSAGEMAN:Broadcast("DeletePreviewNoteField")
-				MESSAGEMAN:Broadcast("ChartPreviewToggled")
-			end
+			 toggleNoteField()
 		end
 	end
+	
 }
 
 	t[#t + 1] = LoadActor("../_chartpreview.lua")
