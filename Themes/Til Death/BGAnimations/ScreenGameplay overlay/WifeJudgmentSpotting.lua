@@ -121,6 +121,7 @@ local enabledTargetTracker = playerConfig:get_data(pn_to_profile_slot(PLAYER_1))
 local enabledDisplayPercent = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).DisplayPercent
 local enabledJudgeCounter = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).JudgeCounter
 local leaderboardEnabled = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
+local isReplay = GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerController() == "PlayerController_Replay"
 
 -- restart button (MOVED OUT OF THEME IN FAVOR OF REMAPPING)
 --[[
@@ -488,6 +489,30 @@ local movable = {
 		elementTree = "GameplaySizes",
 		external = true,
 		condition = leaderboardEnabled
+	},
+	DeviceButton_f = {
+		name = "ReplayButtons",
+		textHeader = "Replay Buttons Position:",
+		properties = {"X", "Y"},
+		elementTree = "GameplayXYCoordinates",
+		external = true,
+		condition = isReplay
+	},
+	DeviceButton_g = {
+		name = "ReplayButtons",
+		textHeader = "Replay Buttons Size:",
+		properties = {"Zoom"},
+		elementTree = "GameplaySizes",
+		external = true,
+		condition = isReplay
+	},
+	DeviceButton_h = {
+		name = "ReplayButtons",
+		textHeader = "Replay Buttons Spacing:",
+		properties = {"Spacing"},
+		elementTree = "GameplaySizes",
+		external = true,
+		condition = isReplay
 	},
 }
 
@@ -952,7 +977,6 @@ local width = SCREEN_WIDTH / 2 - 100
 local height = 10
 local alpha = 0.7
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
-local isReplay = GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerController() == "PlayerController_Replay"
 local replaySlider =
 	isReplay and
 	Widg.SliderBase {
@@ -1218,7 +1242,10 @@ if (allowedCustomization) then
 					"p: Judge Counter Position",
 					"a: Leaderboard Position",
 					"s: Leaderboard Size",
-					"d: Leaderboard Spacing"
+					"d: Leaderboard Spacing",
+					"f: Replay Buttons Position",
+					"g: Replay Buttons Size",
+					"h: Replay Buttons Spacing"
 				}
 				if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover ~= 0 then
 					table.insert(text, "/: Lane Cover Height")

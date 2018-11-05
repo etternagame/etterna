@@ -52,7 +52,9 @@ local defaultConfig = {
 			NotefieldY = 0,
 			ProgressBarPos = 1,
 			LeaderboardX = 0,
-			LeaderboardY = SCREEN_HEIGHT / 10
+			LeaderboardY = SCREEN_HEIGHT / 10,
+			ReplayButtonsX = SCREEN_WIDTH - 45,
+			ReplayButtonsY = SCREEN_HEIGHT / 2 - 100
 		},
 		["5K"] = {
 			JudgeX = 0,
@@ -79,7 +81,9 @@ local defaultConfig = {
 			NotefieldY = 0,
 			ProgressBarPos = 1,
 			LeaderboardX = 0,
-			LeaderboardY = SCREEN_HEIGHT / 10
+			LeaderboardY = SCREEN_HEIGHT / 10,
+			ReplayButtonsX = SCREEN_WIDTH - 45,
+			ReplayButtonsY = SCREEN_HEIGHT / 2 - 100
 		},
 		["6K"] = {
 			JudgeX = 0,
@@ -106,7 +110,9 @@ local defaultConfig = {
 			NotefieldY = 0,
 			ProgressBarPos = 1,
 			LeaderboardX = 0,
-			LeaderboardY = SCREEN_HEIGHT / 10
+			LeaderboardY = SCREEN_HEIGHT / 10,
+			ReplayButtonsX = SCREEN_WIDTH - 45,
+			ReplayButtonsY = SCREEN_HEIGHT / 2 - 100
 		},
 		["7K"] = {
 			JudgeX = 0,
@@ -133,7 +139,9 @@ local defaultConfig = {
 			NotefieldY = 0,
 			ProgressBarPos = 1,
 			LeaderboardX = 0,
-			LeaderboardY = SCREEN_HEIGHT / 10
+			LeaderboardY = SCREEN_HEIGHT / 10,
+			ReplayButtonsX = SCREEN_WIDTH - 45,
+			ReplayButtonsY = SCREEN_HEIGHT / 2 - 100
 		},
 		["8K"] = {
 			JudgeX = 0,
@@ -160,7 +168,9 @@ local defaultConfig = {
 			NotefieldY = 0,
 			ProgressBarPos = 1,
 			LeaderboardX = 0,
-			LeaderboardY = SCREEN_HEIGHT / 10
+			LeaderboardY = SCREEN_HEIGHT / 10,
+			ReplayButtonsX = SCREEN_WIDTH - 45,
+			ReplayButtonsY = SCREEN_HEIGHT / 2 - 100
 		}
 	},
 	GameplaySizes = {
@@ -180,7 +190,9 @@ local defaultConfig = {
 			NotefieldHeight = 1.0,
 			LeaderboardWidth = 1.0,
 			LeaderboardHeight = 1.0,
-			LeaderboardSpacing = 0.0
+			LeaderboardSpacing = 0.0,
+			ReplayButtonsZoom = 1.0,
+			ReplayButtonsSpacing = 0.0
 		},
 		["5K"] = {
 			JudgeZoom = 1.0,
@@ -198,7 +210,9 @@ local defaultConfig = {
 			NotefieldHeight = 1.0,
 			LeaderboardWidth = 1.0,
 			LeaderboardHeight = 1.0,
-			LeaderboardSpacing = 0.0
+			LeaderboardSpacing = 0.0,
+			ReplayButtonsZoom = 1.0,
+			ReplayButtonsSpacing = 0.0
 		},
 		["6K"] = {
 			JudgeZoom = 1.0,
@@ -216,7 +230,9 @@ local defaultConfig = {
 			NotefieldHeight = 1.0,
 			LeaderboardWidth = 1.0,
 			LeaderboardHeight = 1.0,
-			LeaderboardSpacing = 0.0
+			LeaderboardSpacing = 0.0,
+			ReplayButtonsZoom = 1.0,
+			ReplayButtonsSpacing = 0.0
 		},
 		["7K"] = {
 			JudgeZoom = 1.0,
@@ -234,7 +250,9 @@ local defaultConfig = {
 			NotefieldHeight = 1.0,
 			LeaderboardWidth = 1.0,
 			LeaderboardHeight = 1.0,
-			LeaderboardSpacing = 0.0
+			LeaderboardSpacing = 0.0,
+			ReplayButtonsZoom = 1.0,
+			ReplayButtonsSpacing = 0.0
 		},
 		["8K"] = {
 			JudgeZoom = 1.0,
@@ -252,7 +270,9 @@ local defaultConfig = {
 			NotefieldHeight = 1.0,
 			LeaderboardWidth = 1.0,
 			LeaderboardHeight = 1.0,
-			LeaderboardSpacing = 0.0
+			LeaderboardSpacing = 0.0,
+			ReplayButtonsZoom = 1.0,
+			ReplayButtonsSpacing = 0.0
 		}
 	}
 }

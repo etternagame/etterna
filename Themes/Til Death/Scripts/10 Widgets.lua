@@ -333,6 +333,7 @@ Widg.Button = function(params)
 	button =
 		Widg.Container {
 		onInit = function(self)
+			params.onInit(self)
 			if params.highlight then
 				self:SetUpdateFunction(highlight)
 			end
