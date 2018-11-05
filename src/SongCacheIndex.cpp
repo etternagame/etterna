@@ -1004,7 +1004,8 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 	string dir = query.getColumn(index++);
 	song->SetSongDir(dir);
 
-	loader.ProcessBGChanges(*song, animations, dir, animationstwo);
+	loader.ProcessBGChanges(*song, "BGCHANGES1", dir, animations);
+	loader.ProcessBGChanges(*song, "BGCHANGES2", dir, animationstwo);
 
 	Steps* pNewNotes = nullptr;
 
