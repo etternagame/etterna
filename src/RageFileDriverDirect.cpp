@@ -403,7 +403,7 @@ RageFileObjDirect::~RageFileObjDirect()
 int
 RageFileObjDirect::ReadInternal(void* pBuf, size_t iBytes)
 {
-	int iRet = _read(m_iFD, pBuf, iBytes);
+	int iRet = read(m_iFD, pBuf, iBytes);
 	if (iRet == -1) {
 		SetError(strerror(errno));
 		return -1;
@@ -418,7 +418,7 @@ RetriedWrite(int iFD, const void* pBuf, size_t iCount)
 {
 	int iTries = 3, iRet;
 	do {
-		iRet = _write(iFD, pBuf, iCount);
+		iRet = write(iFD, pBuf, iCount);
 	} while (iRet == -1 && errno == EINTR && iTries--);
 
 	return iRet;
