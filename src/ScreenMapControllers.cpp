@@ -241,7 +241,7 @@ ScreenMapControllers::BeginScreen()
 {
 	m_CurController = 0;
 	m_CurButton = 0;
-	m_CurSlot = 0;
+	m_CurSlot = 2; // changed from 0 to 2 to lock to the default column -poco
 
 	ScreenWithMenuElements::BeginScreen();
 
@@ -487,13 +487,23 @@ ScreenMapControllers::Input(const InputEventPlus& input)
 				if (!CursorCanGoLeft()) {
 					break;
 				}
+				// hack: don't allow access to non default columns -poco
+				if (m_CurController == 0)
+				{
+					break;
+				}
 				BeforeChangeFocus();
+				m_CurController--;
+				// end hack block
+
+				/* ** Removed by the above hack. **
 				if (m_CurSlot == 0) {
 					m_CurSlot = NUM_CHANGABLE_SLOTS - 1;
 					--m_CurController;
 				} else {
 					--m_CurSlot;
 				}
+				*/
 				AfterChangeFocus();
 				m_soundChange.Play(true);
 				bHandled = true;
@@ -502,12 +512,22 @@ ScreenMapControllers::Input(const InputEventPlus& input)
 				if (!CursorCanGoRight()) {
 					break;
 				}
+				// hack: don't allow access to the non default columns -poco
+				if (m_CurController == 1)
+				{
+					break;
+				}
 				BeforeChangeFocus();
+				m_CurController++;
+				// end hack block
+
+				/* ** Removed by the above hack. **
 				m_CurSlot++;
 				if (m_CurSlot > NUM_CHANGABLE_SLOTS - 1) {
 					m_CurSlot = 0;
 					m_CurController++;
 				}
+				*/
 				AfterChangeFocus();
 				m_soundChange.Play(true);
 				bHandled = true;
