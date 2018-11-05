@@ -1,8 +1,126 @@
+local keymode = getCurrentKeyMode()
+local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
+local leaderboardEnabled = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
+local values = {
+	LeaderboardX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].LeaderboardX,
+	LeaderboardY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].LeaderboardY,
+	LeaderboardSpacing = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].LeaderboardSpacing,
+	LeaderboardWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].LeaderboardWidth,
+	LeaderboardHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].LeaderboardHeight
+}
+
+local entryActors = {}
+local function arbitraryLeaderboardSpacing(value)
+	for i, entry in ipairs(entryActors) do
+		entry.container:addy((i-1) * value)
+	end
+end
+
 local t =
 	Widg.Container {
-	y = SCREEN_HEIGHT / 10
+	x = values.LeaderboardX,
+	y = values.LeaderboardY
 }
-local leaderboardEnabled = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
+
+local propsFunctions = {
+	X = Actor.x,
+	Y = Actor.y,
+	Height = Actor.zoomtoheight,
+	Width = Actor.zoomtowidth
+}
+
+local movable = {
+	current = "",
+	pressed = false,
+	DeviceButton_a = {
+		name = "Leaderboard",
+		element = {},
+		elementTree = "GameplayXYCoordinates",
+		condition = leaderboardEnabled,
+		DeviceButton_up = {
+			property = "Y",
+			inc = -3
+		},
+		DeviceButton_down = {
+			property = "Y",
+			inc = 3
+		},
+		DeviceButton_left = {
+			property = "X",
+			inc = -3
+		},
+		DeviceButton_right = {
+			property = "X",
+			inc = 3
+		}
+	},
+	DeviceButton_s = {
+		name = "Leaderboard",
+		element = {},
+		elementTree = "GameplaySizes",
+		condition = leaderboardEnabled,
+		DeviceButton_up = {
+			property = "Height",
+			inc = 0.01
+		},
+		DeviceButton_down = {
+			property = "Height",
+			inc = -0.01
+		},
+		DeviceButton_left = {
+			property = "Width",
+			inc = -0.01
+		},
+		DeviceButton_right = {
+			property = "Width",
+			inc = 0.01
+		}
+	},
+	DeviceButton_d = {
+		name = "Leaderboard",
+		elementTree = "GameplaySizes",
+		condition = leaderboardEnabled,
+		DeviceButton_up = {
+			arbitraryFunction = arbitraryLeaderboardSpacing,
+			property = "Spacing",
+			inc = -0.3
+		},
+		DeviceButton_down = {
+			arbitraryFunction = arbitraryLeaderboardSpacing,
+			property = "Spacing",
+			inc = 0.3
+		},
+	},
+}
+
+local function input(event)
+	if getAutoplay() ~= 0 then
+		local button = event.DeviceInput.button
+		local notReleased = not (event.type == "InputEventType_Release")
+		if movable[button] then
+			movable.pressed = notReleased
+			movable.current = button
+		end
+
+		local current = movable[movable.current]
+		if movable.pressed and current[button] and current.condition and notReleased then
+			local curKey = current[button]
+			local prop = current.name .. curKey.property
+			local newVal = values[prop] + curKey.inc
+			values[prop] = newVal
+			if curKey.arbitraryFunction then
+				curKey.arbitraryFunction(curKey.inc)
+			else
+				propsFunctions[curKey.property](current.element, newVal)
+			end
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1))[current.elementTree][keymode][prop] = newVal
+			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+			playerConfig:save(pn_to_profile_slot(PLAYER_1))
+		end
+	end
+	return false
+end
+
 if not leaderboardEnabled then
 	return t
 end
@@ -72,7 +190,6 @@ for i = 1, NUM_ENTRIES do
 	end
 end
 
-local entryActors = {}
 for i = 1, NUM_ENTRIES do
 	entryActors[i] = {}
 end
@@ -198,6 +315,17 @@ t.JudgmentMessageCommand = function(self, params)
 			end
 		end
 	end
+end
+
+t.OnCommand = function(self, params)
+	if (allowedCustomization) then
+		SCREENMAN:GetTopScreen():AddInputCallback(input)
+		movable.DeviceButton_a.element = self
+		movable.DeviceButton_s.element = self
+	end
+	arbitraryLeaderboardSpacing(values.LeaderboardSpacing)
+	self:zoomtowidth(values.LeaderboardWidth)
+	self:zoomtoheight(values.LeaderboardHeight)
 end
 
 return t

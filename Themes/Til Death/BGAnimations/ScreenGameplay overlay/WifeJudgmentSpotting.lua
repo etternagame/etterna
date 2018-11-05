@@ -120,6 +120,7 @@ local enabledFullBar = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).FullP
 local enabledTargetTracker = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetTracker
 local enabledDisplayPercent = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).DisplayPercent
 local enabledJudgeCounter = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).JudgeCounter
+local leaderboardEnabled = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
 
 -- restart button (MOVED OUT OF THEME IN FAVOR OF REMAPPING)
 --[[
@@ -463,7 +464,31 @@ local movable = {
 			property = "AddX",
 			inc = 3
 		}
-	}
+	},
+	DeviceButton_a = {
+		name = "Leaderboard",
+		textHeader = "Leaderboard Position:",
+		properties = {"X", "Y"},
+		elementTree = "GameplayXYCoordinates",
+		external = true,
+		condition = leaderboardEnabled
+	},
+	DeviceButton_s = {
+		name = "Leaderboard",
+		textHeader = "Leaderboard Size:",
+		properties = {"Width", "Height"},
+		elementTree = "GameplaySizes",
+		external = true,
+		condition = leaderboardEnabled
+	},
+	DeviceButton_d = {
+		name = "Leaderboard",
+		textHeader = "Leaderboard Spacing:",
+		properties = {"Spacing"},
+		elementTree = "GameplaySizes",
+		external = true,
+		condition = leaderboardEnabled
+	},
 }
 
 local function input(event)
@@ -555,7 +580,6 @@ local t =
 		Notefield:addy(values.NotefieldY * (usingReverse and 1 or -1))
 		Notefield:addx(values.NotefieldX)
 		movable.DeviceButton_r.element = Notefield
-		movable.DeviceButton_t.element = Notefield
 		noteColumns = Notefield:get_column_actors()
 		movable.DeviceButton_t.element = noteColumns
 		for i, actor in ipairs(noteColumns) do
@@ -1165,7 +1189,7 @@ if (allowedCustomization) then
 			Name = "Instructions",
 			Font = "Common Normal",
 			InitCommand = function(self)
-				self:horizalign(left):vertalign(top):xy(SCREEN_WIDTH - 240, 100):zoom(.5):visible(true)
+				self:horizalign(left):vertalign(top):xy(SCREEN_WIDTH - 240, 20):zoom(.5):visible(true)
 			end,
 			OnCommand = function(self)
 				local text = {
@@ -1191,7 +1215,10 @@ if (allowedCustomization) then
 					"u: NPS Display Text Size",
 					"i: NPS Graph Position",
 					"o: NPS Graph Size",
-					"p: Judge Counter Position"
+					"p: Judge Counter Position",
+					"a: Leaderboard Position",
+					"s: Leaderboard Size",
+					"d: Leaderboard Spacing"
 				}
 				if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover ~= 0 then
 					table.insert(text, "/: Lane Cover Height")

@@ -50,7 +50,9 @@ local defaultConfig = {
 			NPSGraphY = SCREEN_BOTTOM - 160,
 			NotefieldX = 0,
 			NotefieldY = 0,
-			ProgressBarPos = 1
+			ProgressBarPos = 1,
+			LeaderboardX = 0,
+			LeaderboardY = SCREEN_HEIGHT / 10
 		},
 		["5K"] = {
 			JudgeX = 0,
@@ -75,7 +77,9 @@ local defaultConfig = {
 			NPSGraphY = SCREEN_BOTTOM - 160,
 			NotefieldX = 0,
 			NotefieldY = 0,
-			ProgressBarPos = 1
+			ProgressBarPos = 1,
+			LeaderboardX = 0,
+			LeaderboardY = SCREEN_HEIGHT / 10
 		},
 		["6K"] = {
 			JudgeX = 0,
@@ -100,7 +104,9 @@ local defaultConfig = {
 			NPSGraphY = SCREEN_BOTTOM - 160,
 			NotefieldX = 0,
 			NotefieldY = 0,
-			ProgressBarPos = 1
+			ProgressBarPos = 1,
+			LeaderboardX = 0,
+			LeaderboardY = SCREEN_HEIGHT / 10
 		},
 		["7K"] = {
 			JudgeX = 0,
@@ -125,7 +131,9 @@ local defaultConfig = {
 			NPSGraphY = SCREEN_BOTTOM - 160,
 			NotefieldX = 0,
 			NotefieldY = 0,
-			ProgressBarPos = 1
+			ProgressBarPos = 1,
+			LeaderboardX = 0,
+			LeaderboardY = SCREEN_HEIGHT / 10
 		},
 		["8K"] = {
 			JudgeX = 0,
@@ -150,7 +158,9 @@ local defaultConfig = {
 			NPSGraphY = SCREEN_BOTTOM - 160,
 			NotefieldX = 0,
 			NotefieldY = 0,
-			ProgressBarPos = 1
+			ProgressBarPos = 1,
+			LeaderboardX = 0,
+			LeaderboardY = SCREEN_HEIGHT / 10
 		}
 	},
 	GameplaySizes = {
@@ -167,7 +177,10 @@ local defaultConfig = {
 			NPSGraphWidth = 1.0,
 			NPSGraphHeight = 1.0,
 			NotefieldWidth = 1.0,
-			NotefieldHeight = 1.0
+			NotefieldHeight = 1.0,
+			LeaderboardWidth = 1.0,
+			LeaderboardHeight = 1.0,
+			LeaderboardSpacing = 0.0
 		},
 		["5K"] = {
 			JudgeZoom = 1.0,
@@ -182,7 +195,10 @@ local defaultConfig = {
 			NPSGraphWidth = 1.0,
 			NPSGraphHeight = 1.0,
 			NotefieldWidth = 1.0,
-			NotefieldHeight = 1.0
+			NotefieldHeight = 1.0,
+			LeaderboardWidth = 1.0,
+			LeaderboardHeight = 1.0,
+			LeaderboardSpacing = 0.0
 		},
 		["6K"] = {
 			JudgeZoom = 1.0,
@@ -197,7 +213,10 @@ local defaultConfig = {
 			NPSGraphWidth = 1.0,
 			NPSGraphHeight = 1.0,
 			NotefieldWidth = 1.0,
-			NotefieldHeight = 1.0
+			NotefieldHeight = 1.0,
+			LeaderboardWidth = 1.0,
+			LeaderboardHeight = 1.0,
+			LeaderboardSpacing = 0.0
 		},
 		["7K"] = {
 			JudgeZoom = 1.0,
@@ -212,7 +231,10 @@ local defaultConfig = {
 			NPSGraphWidth = 1.0,
 			NPSGraphHeight = 1.0,
 			NotefieldWidth = 1.0,
-			NotefieldHeight = 1.0
+			NotefieldHeight = 1.0,
+			LeaderboardWidth = 1.0,
+			LeaderboardHeight = 1.0,
+			LeaderboardSpacing = 0.0
 		},
 		["8K"] = {
 			JudgeZoom = 1.0,
@@ -227,7 +249,10 @@ local defaultConfig = {
 			NPSGraphWidth = 1.0,
 			NPSGraphHeight = 1.0,
 			NotefieldWidth = 1.0,
-			NotefieldHeight = 1.0
+			NotefieldHeight = 1.0,
+			LeaderboardWidth = 1.0,
+			LeaderboardHeight = 1.0,
+			LeaderboardSpacing = 0.0
 		}
 	}
 }
