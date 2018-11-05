@@ -78,6 +78,7 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	NoteData m_PreviewNoteData;
 	NoteField* m_pPreviewNoteField;
 
+	void ChangeSteps(PlayerNumber pn, int dir); 
 	// Lua
 	void PushSelf(lua_State* L) override;
 
@@ -86,7 +87,6 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	virtual bool GenericTweenOff() const { return true; }
 	void UpdateSelectButton(PlayerNumber pn, bool bBeingPressed);
 
-	void ChangeSteps(PlayerNumber pn, int dir);
 	void AfterStepsOrTrailChange(const vector<PlayerNumber>& vpns);
 	void SwitchToPreferredDifficulty();
 	void AfterMusicChange();

@@ -20,7 +20,8 @@ t[#t + 1] =
 				local allSteps = SongUtil.GetPlayableSteps(s)
 				local steps = allSteps[index]
 				if steps and steps ~= GAMESTATE:GetCurrentSteps(PLAYER_1) then
-					GAMESTATE:SetCurrentSteps(PLAYER_1, steps)
+					local newidx = Difficulty:Compare(steps:GetDifficulty(), GAMESTATE:GetCurrentSteps(PLAYER_1):GetDifficulty())
+					SCREENMAN:GetTopScreen():ChangeSteps(newidx)
 				end
 			end
 		end

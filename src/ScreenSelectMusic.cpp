@@ -2184,6 +2184,11 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		king->AddChild(p->m_pPreviewNoteField);
 		COMMON_RETURN_SELF;
 	}
+	static int ChangeSteps(T* p, lua_State* L)
+	{
+		p->ChangeSteps(PLAYER_1, IArg(1));
+		return 0;
+	}
 	LunaScreenSelectMusic()
 	{
 		ADD_METHOD(GetGoToOptions);
@@ -2203,6 +2208,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		ADD_METHOD(PausePreviewNoteField);
 		ADD_METHOD(IsPreviewNoteFieldPaused);
 		ADD_METHOD(dootforkfive);
+		ADD_METHOD(ChangeSteps);
 	}
 };
 
