@@ -47,6 +47,96 @@ local playcommand = Actor.queuecommand
 local settext = BitmapText.settext
 local Broadcast = MessageManager.Broadcast
 
+-- these dont really work as borders since they have to be destroyed/remade in order to scale width/height
+-- however we can use these to at least make centered snap lines for the screens -mina
+local function dot(height, x)
+	return Def.Quad{
+		InitCommand=function(self)
+			self:zoomto(dotwidth,height)
+			self:addx(x)
+		end
+	}
+end
+
+local function dottedline(len, height, x, y, rot)
+		local t = Def.ActorFrame{
+			InitCommand=function(self)
+				self:xy(x,y):addrotationz(rot)
+				if x == 0 and y == 0 then
+					self:diffusealpha(0.65)
+				end
+			end
+		}
+		local numdots = len/dotwidth
+		t[#t+1] = dot(height, 0)
+		for i=1,numdots/4 do 
+			t[#t+1] = dot(height, i * dotwidth * 2 - dotwidth/2)
+		end
+		for i=1,numdots/4 do 
+			t[#t+1] = dot(height, -i * dotwidth * 2 + dotwidth/2)
+		end
+		return t
+end
+
+local function DottedBorder(width, height, bw, x, y)
+	return Def.ActorFrame {
+		Name = "Border",
+		InitCommand=function(self)
+			self:xy(x,y):visible(false):diffusealpha(0.35)
+		end,
+		dottedline(width, bw, 0, 0, 0),
+		dottedline(width, bw, 0, height/2, 0),
+		dottedline(width, bw, 0, -height/2, 0),
+		dottedline(height, bw, 0, 0, 90),
+		dottedline(height, bw, width/2, 0, 90),
+		dottedline(height, bw, -width/2, 0, 90),
+	}
+end
+
+-- border function in use -mina
+local function Border(width, height, bw, x, y)
+	return Def.ActorFrame {
+		Name = "Border",
+		InitCommand=function(self)
+			self:xy(x,y):visible(false):diffusealpha(0.35)
+		end,
+		ChangeWidthCommand=function(self, params)
+			self:GetChild("xbar"):zoomx(params.val)
+			self:GetChild("showybox"):zoomx(params.val)
+			self:GetChild("hideybox"):zoomx(params.val-2*bw)
+		end,
+		ChangeHeightCommand=function(self, params)
+			self:GetChild("ybar"):zoomy(params.val)
+			self:GetChild("showybox"):zoomy(params.val)
+			self:GetChild("hideybox"):zoomy(params.val-2*bw)
+		end,
+		Def.Quad {
+			Name = "xbar",
+			InitCommand=function(self)
+				self:zoomto(width,bw):diffusealpha(0.5)	-- did not realize this was multiplicative with parent's value -mina
+			end
+		},
+		Def.Quad {
+			Name = "ybar",
+			InitCommand=function(self)
+				self:zoomto(bw,height):diffusealpha(0.5)
+			end
+		},
+		Def.Quad {
+			Name = "hideybox",
+			InitCommand=function(self)
+				self:zoomto(width-2*bw, height-2*bw):MaskSource(true)
+			end
+		},
+		Def.Quad {
+			Name = "showybox",
+			InitCommand=function(self)
+				self:zoomto(width,height):MaskDest()
+			end
+		},
+	}
+end
+
 -- Screenwide params
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
 isCentered = PREFSMAN:GetPreference("Center1Player")
@@ -191,7 +281,7 @@ local movable = {
 		textHeader = "Error Bar Position:",
 		element = {}, -- initialized later
 		properties = {"X", "Y"},
-		children = {"Center", "WeightedBar"},
+		children = {"Center", "WeightedBar", "Border"},
 		elementTree = "GameplayXYCoordinates",
 		condition = enabledErrorBar ~= 0,
 		DeviceButton_up = {
@@ -538,6 +628,7 @@ local function input(event)
 			end
 			messageBox:GetChild("message"):settext(table.concat(text, "\n"))
 			messageBox:GetChild("message"):visible(notReleased)
+			movable[movable.current]["Border"]:visible(notReleased)
 		end
 
 		local current = movable[movable.current]
@@ -561,6 +652,14 @@ local function input(event)
 			else
 				propsFunctions[curKey.property](current.element, newVal)
 			end
+
+			if curKey.property == "Width" then
+				movable[movable.current]["Border"]:playcommand("ChangeWidth", {val = newVal} )
+			end
+			if curKey.property == "Height" then
+				movable[movable.current]["Border"]:playcommand("ChangeHeight", {val = newVal} )
+			end
+
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1))[current.elementTree][keymode][prop] = newVal
 			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
 			playerConfig:save(pn_to_profile_slot(PLAYER_1))
@@ -870,6 +969,8 @@ local e =
 	InitCommand = function(self)
 		movable.DeviceButton_5.element = self:GetChildren()
 		movable.DeviceButton_6.element = self:GetChildren()
+		movable.DeviceButton_5.Border = self:GetChild("Border")
+		movable.DeviceButton_6.Border = self:GetChild("Border")
 		if enabledErrorBar == 1 then
 			for i = 1, barcount do -- basically the equivalent of using GetChildren() if it returned unnamed children numerically indexed
 				ingots[#ingots + 1] = self:GetChild(i)
@@ -939,7 +1040,8 @@ local e =
 			DootCommand = function(self)
 				self:GetParent():queuecommand("Doot")
 			end
-		}
+		},
+		Border(values.ErrorBarWidth, values.ErrorBarHeight, 1, values.ErrorBarX, values.ErrorBarY)
 }
 
 -- Initialize bars
