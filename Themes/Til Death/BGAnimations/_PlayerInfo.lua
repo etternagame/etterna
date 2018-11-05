@@ -21,6 +21,18 @@ local setnewdisplayname = function(answer)
 	MESSAGEMAN:Broadcast("ProfileRenamed", {doot = answer})
 end
 
+local function highlight(self)
+	self:queuecommand("Highlight")
+end
+
+local function highlightIfOver(self)
+	if isOver(self) then
+		self:diffusealpha(0.6)
+	else
+		self:diffusealpha(1)
+	end
+end
+
 t[#t + 1] =
 	Def.Actor {
 	BeginCommand = function(self)
@@ -41,6 +53,7 @@ t[#t + 1] =
 	Name = "Avatar" .. PLAYER_1,
 	BeginCommand = function(self)
 		self:queuecommand("Set")
+		self:SetUpdateFunction(highlight)
 	end,
 	SetCommand = function(self)
 		if profile == nil then
@@ -233,15 +246,21 @@ t[#t + 1] =
 		{
 			InitCommand = function(self)
 				self:xy(SCREEN_WIDTH - 5, AvatarY + 20):halign(1):zoom(0.35):diffuse(getMainColor("positive"))
+				
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				self:settextf("Songs Loaded: %i", SONGMAN:GetNumSongs())
+				self:settextf("Refresh Songs")
 			end,
-			DFRFinishedMessageCommand = function(self)
-				self:queuecommand("Set")
+			HighlightCommand=function(self)
+				highlightIfOver(self)
+			end,
+			MouseLeftClickMessageCommand=function(self)
+				if isOver(self) then
+					SONGMAN:DifferentialReload()
+				end
 			end
 		},
 	LoadFont("Common Normal") ..
@@ -253,9 +272,9 @@ t[#t + 1] =
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				self:settextf("Songs Favorited: %i", profile:GetNumFaves())
+				self:settextf("Songs Loaded: %i", SONGMAN:GetNumSongs())
 			end,
-			FavoritesUpdatedMessageCommand = function(self)
+			DFRFinishedMessageCommand = function(self)
 				self:queuecommand("Set")
 			end
 		}
