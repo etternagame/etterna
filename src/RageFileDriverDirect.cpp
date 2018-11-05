@@ -69,7 +69,7 @@ MakeFileObjDirect(RString sPath, int iMode, int& iError)
 {
 	int iFD;
 	if ((iMode & RageFile::READ) != 0) {
-		iFD = _open(sPath, O_BINARY | O_RDONLY, 0666);
+		iFD = open(sPath, O_BINARY | O_RDONLY, 0666);
 
 		/* XXX: Windows returns EACCES if we try to open a file on a CDROM that
 		 * isn't ready, instead of something like ENODEV.  We want to return
@@ -83,7 +83,7 @@ MakeFileObjDirect(RString sPath, int iMode, int& iError)
 			sOut = MakeTempFilename(sPath);
 
 		/* Open a temporary file for writing. */
-		iFD = _open(sOut, O_BINARY | O_WRONLY | O_CREAT | O_TRUNC, 0666);
+		iFD = open(sOut, O_BINARY | O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	}
 
 	if (iFD == -1) {
@@ -176,7 +176,7 @@ RageFileDriverDirect::Remove(const RString& sPath_)
 
 		case RageFileManager::TYPE_DIR:
 			TRACE(ssprintf("rmdir '%s'", (m_sRoot + sPath).c_str()));
-			if (_rmdir(m_sRoot + sPath) == -1) {
+			if (rmdir(m_sRoot + sPath) == -1) {
 				WARN(ssprintf("rmdir(%s) failed: %s",
 							  (m_sRoot + sPath).c_str(),
 							  strerror(errno)));
@@ -203,7 +203,7 @@ RageFileObjDirect::Copy() const
 		RageException::Throw(
 		  "Couldn't reopen \"%s\": %s", m_sPath.c_str(), strerror(iErr));
 
-	ret->Seek(static_cast<int>(_lseek(m_iFD, 0, SEEK_CUR)));
+	ret->Seek(static_cast<int>(lseek(m_iFD, 0, SEEK_CUR)));
 
 	return ret;
 }
@@ -330,7 +330,7 @@ RageFileObjDirect::~RageFileObjDirect()
 	bool bFailed = !FinalFlush();
 
 	if (m_iFD != -1) {
-		if (_close(m_iFD) == -1) {
+		if (close(m_iFD) == -1) {
 			WARN(ssprintf(
 			  "Error closing %s: %s", this->m_sPath.c_str(), strerror(errno)));
 			SetError(strerror(errno));
@@ -457,19 +457,19 @@ RageFileObjDirect::WriteInternal(const void* pBuf, size_t iBytes)
 int
 RageFileObjDirect::SeekInternal(int iOffset)
 {
-	return static_cast<int>(_lseek(m_iFD, iOffset, SEEK_SET));
+	return static_cast<int>(lseek(m_iFD, iOffset, SEEK_SET));
 }
 
 int
 RageFileObjDirect::GetFileSize() const
 {
-	const long iOldPos = _lseek(m_iFD, 0, SEEK_CUR);
+	const long iOldPos = lseek(m_iFD, 0, SEEK_CUR);
 	ASSERT_M(iOldPos != -1,
 			 ssprintf("\"%s\": %s", m_sPath.c_str(), strerror(errno)));
-	const int iRet = static_cast<int>(_lseek(m_iFD, 0, SEEK_END));
+	const int iRet = static_cast<int>(lseek(m_iFD, 0, SEEK_END));
 	ASSERT_M(iRet != -1,
 			 ssprintf("\"%s\": %s", m_sPath.c_str(), strerror(errno)));
-	_lseek(m_iFD, iOldPos, SEEK_SET);
+	lseek(m_iFD, iOldPos, SEEK_SET);
 	return iRet;
 }
 
