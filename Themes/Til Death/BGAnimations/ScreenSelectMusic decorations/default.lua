@@ -36,10 +36,10 @@ t[#t + 1] =
 		local song = GAMESTATE:GetCurrentSong()
 		if song then
 			self:finishtweening()
-			self:playcommand("TweenOn")
+			self:playcommand("On")
 		elseif not song and self:GetZoomX() == 1 then
 			self:finishtweening()
-			self:playcommand("TweenOff")
+			self:playcommand("Off")
 		end
 	end,
 	PlayingSampleMusicMessageCommand = function(self)
