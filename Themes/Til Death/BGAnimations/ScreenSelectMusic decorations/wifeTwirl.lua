@@ -942,7 +942,10 @@ t[#t + 1] =
 			else
 				self:visible(false)
 			end
-		end
+		end,
+		CurrentRateChangedMessageCommand = function(self)
+			self:queuecommand("RefreshChartInfo")
+		end,
 	}
 
 --test actor
