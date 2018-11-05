@@ -927,6 +927,24 @@ t[#t + 1] =
 		end
 	}
 
+	t[#t + 1] =
+	LoadFont("Common Normal") ..
+	{
+		Name = "ClearType",
+		InitCommand = function(self)
+			self:xy(frameX + 185, frameY + 35):zoom(0.6):halign(0)
+		end,
+		RefreshChartInfoMessageCommand = function(self)
+			if song and score then 
+				self:visible(true)
+				self:settext(getClearTypeFromScore(PLAYER_1, score, 0))
+				self:diffuse(getClearTypeFromScore(PLAYER_1, score, 2))
+			else
+				self:visible(false)
+			end
+		end
+	}
+
 --test actor
 t[#t + 1] =
 	LoadFont("Common Large") ..
