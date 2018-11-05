@@ -982,8 +982,14 @@ t[#t + 1] = LoadFont("Common Normal") .. {
 		if isOver(self) and (song or noteField) then
 			 toggleNoteField()
 		end
+	end,
+	CurrentStyleChangedMessageCommand=function(self)	-- need to regenerate the notefield when changing styles or crashman appears -mina
+		if noteField then
+			SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
+			noteField = false
+			toggleNoteField()
+		end
 	end
-	
 }
 
 	t[#t + 1] = LoadActor("../_chartpreview.lua")

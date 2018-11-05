@@ -68,11 +68,6 @@ local t = Def.ActorFrame {
 		cd:queuecommand("GraphUpdate")		-- first graph will be empty if we dont force this on initial creation
 		self:queuecommand("PlayingSampleMusic") 
 	end,
-	DeletePreviewNoteFieldMessageCommand = function(self)
-		self:visible(false)
-		cd:visible(false)
-		noteField = false
-	end,
 	Def.Quad {
 		Name = "BG",
 		InitCommand = function(self)
