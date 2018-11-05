@@ -1368,9 +1368,8 @@ InputMappings::WriteMappings(const InputScheme* pInputScheme,
 			RString sNameString = GameI.ToString(pInputScheme);
 
 			vector<RString> asValues;
-			for (int slot = 0; slot < NUM_USER_GAME_TO_DEVICE_SLOTS;
-				 ++slot) // don't save data from the last (keyboard automap)
-						 // slot
+			// changed this to work with the number of game slots + 1 to account for the default column -poco
+			for (int slot = 0; slot < NUM_USER_GAME_TO_DEVICE_SLOTS + 1; ++slot)
 				asValues.push_back(m_GItoDI[i][j][slot].ToString());
 
 			while (asValues.size() && asValues.back() == "")
