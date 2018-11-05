@@ -12,7 +12,9 @@ local heyiwasusingthat = false
 local mcbootlarder
 local prevX = capWideScale(get43size(98), 98)
 local idkwhatimdoing = capWideScale(prevX+8, prevX/2+4)
+local usingreverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
 local prevY = 55
+local prevrevY = 208
 
 local update = false
 local t =
@@ -29,18 +31,17 @@ local t =
 	SetCommand = function(self)
 		self:finishtweening()
 		if getTabIndex() == 0 then
-			if heyiwasusingthat and GAMESTATE:GetCurrentSong() and noteField then
-				mcbootlarder:playcommand("SetupNoteField")
-				mcbootlarder:xy(prevX,prevY)
-				mcbootlarder:GetChild("NoteField"):xy(prevX+idkwhatimdoing, prevY*1.5)
+			if heyiwasusingthat and GAMESTATE:GetCurrentSong() and noteField then	-- these can prolly be wrapped better too -mina
+				mcbootlarder:visible(true)
+				MESSAGEMAN:Broadcast("ChartPreviewOn")
 				heyiwasusingthat = false
 			end
 			self:queuecommand("On")
 			update = true
 		else
-			if GAMESTATE:GetCurrentSong() and noteField then 
-				SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
-				MESSAGEMAN:Broadcast("DeletePreviewNoteField")
+			if GAMESTATE:GetCurrentSong() and noteField and mcbootlarder:GetVisible() then 
+				mcbootlarder:visible(false)
+				MESSAGEMAN:Broadcast("ChartPreviewOff")
 				heyiwasusingthat = true
 			end
 			self:queuecommand("Off")
@@ -97,25 +98,17 @@ t[#t + 1] =
 			local playeroptions = GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptions(modslevel)
 			playeroptions:Mirror(false)
 		end
-		if not GAMESTATE:GetCurrentSong() and noteField then 
-			SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
-			MESSAGEMAN:Broadcast("DeletePreviewNoteField")
+		if not GAMESTATE:GetCurrentSong() and noteField and mcbootlarder:GetVisible() then 
+			mcbootlarder:visible(false)
+			MESSAGEMAN:Broadcast("ChartPreviewOff")
 			heyiwasusingthat = true
 		end
 		if heyiwasusingthat and GAMESTATE:GetCurrentSong() and noteField and getTabIndex() == 0 then
-			self:GetParent():GetChild("ChartPreview"):playcommand("SetupNoteField")
-			self:GetParent():GetChild("ChartPreview"):xy(prevX,prevY)
-			self:GetParent():GetChild("ChartPreview"):GetChild("NoteField"):xy(prevX+idkwhatimdoing, prevY*1.5)
+			mcbootlarder:visible(true)
+			MESSAGEMAN:Broadcast("ChartPreviewOn")
 			heyiwasusingthat = false
 		end
 		self:queuecommand("Set")
-	end,
-	RefreshPreviewNoteFieldMessageCommand = function(self)
-		SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
-		MESSAGEMAN:Broadcast("DeletePreviewNoteField")
-		self:GetParent():GetChild("ChartPreview"):playcommand("SetupNoteField")
-		self:GetParent():GetChild("ChartPreview"):xy(prevX,prevY)
-		self:GetParent():GetChild("ChartPreview"):GetChild("NoteField"):xy(prevX+idkwhatimdoing, prevY*1.5)
 	end
 }
 
@@ -190,17 +183,25 @@ local function GetDisplayScore()
 end
 
 local function toggleNoteField()
-	if not noteField then
+	if song and not noteField then	-- first time setup
 		noteField = true
-		MESSAGEMAN:Broadcast("ChartPreviewToggled") -- for banner reaction... lazy -mina
+		MESSAGEMAN:Broadcast("ChartPreviewOn") -- for banner reaction... lazy -mina
 		mcbootlarder:playcommand("SetupNoteField")
 		mcbootlarder:xy(prevX,prevY)
 		mcbootlarder:GetChild("NoteField"):xy(prevX+idkwhatimdoing, prevY*1.5)
-	else
-		noteField = false
-		SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
-		MESSAGEMAN:Broadcast("DeletePreviewNoteField")
-		MESSAGEMAN:Broadcast("ChartPreviewToggled")
+		if usingreverse then
+			mcbootlarder:GetChild("NoteField"):y(prevY*1.5 + prevrevY)
+		end
+	return end
+
+	if song then 
+		if mcbootlarder:GetVisible() then
+			mcbootlarder:visible(false)
+			MESSAGEMAN:Broadcast("ChartPreviewOff")
+		else
+			mcbootlarder:visible(true)
+			MESSAGEMAN:Broadcast("ChartPreviewOn")
+		end
 	end
 end
 
@@ -785,13 +786,12 @@ t[#t + 1] =
 		RefreshChartInfoMessageCommand = function(self)
 			self:queuecommand("Set")
 		end,
-		ChartPreviewToggledMessageCommand = function(self)
-			if noteField then
-				self:visible(false)
-			else
+		ChartPreviewOnMessageCommand = function(self)
+			self:visible(false)
+		end,
+		ChartPreviewOffMessageCommand = function(self)
 				self:visible(true)
-			end
-		end
+		end,
 	}
 
 t[#t + 1] =
@@ -816,13 +816,12 @@ t[#t + 1] =
 		RefreshChartInfoMessageCommand = function(self)
 			self:queuecommand("Set")
 		end,
-		ChartPreviewToggledMessageCommand = function(self)
-			if noteField then
-				self:visible(false)
-			else
+		ChartPreviewOnMessageCommand = function(self)
+			self:visible(false)
+		end,
+		ChartPreviewOffMessageCommand = function(self)
 				self:visible(true)
-			end
-		end
+		end,
 	}
 
 t[#t + 1] =
@@ -847,13 +846,12 @@ t[#t + 1] =
 		RefreshChartInfoMessageCommand = function(self)
 			self:queuecommand("Set")
 		end,
-		ChartPreviewToggledMessageCommand = function(self)
-			if noteField then
-				self:visible(false)
-			else
+		ChartPreviewOnMessageCommand = function(self)
+			self:visible(false)
+		end,
+		ChartPreviewOffMessageCommand = function(self)
 				self:visible(true)
-			end
-		end
+		end,
 	}
 
 -- tags?
@@ -957,20 +955,7 @@ t[#t + 1] =
 local function ihatestickinginputcallbackseverywhere(event)
 	if event.type ~= "InputEventType_Release" and getTabIndex() == 0 then
 				if event.DeviceInput.button == "DeviceButton_space" then
-					if not noteField then
-						if song then
-							noteField = true
-							MESSAGEMAN:Broadcast("ChartPreviewToggled") -- for banner reaction... lazy -mina
-							mcbootlarder:playcommand("SetupNoteField")
-							mcbootlarder:xy(prevX,prevY)
-							mcbootlarder:GetChild("NoteField"):xy(prevX+idkwhatimdoing, prevY*1.5)
-						end
-					else
-						noteField = false
-						SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
-						MESSAGEMAN:Broadcast("DeletePreviewNoteField")
-						MESSAGEMAN:Broadcast("ChartPreviewToggled")
-					end
+					toggleNoteField()
 				end
 			end
 	return false

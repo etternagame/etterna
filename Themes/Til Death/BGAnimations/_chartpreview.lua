@@ -1,7 +1,5 @@
 -- all the preview stuff should be var'd and used consistently -mina
 local noteField = false
-local usingreverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
-local prevrevY = 234
 local prevZoom = 0.65
 local musicratio = 1
 
@@ -15,9 +13,6 @@ local function UpdatePreviewPos(self)
 	if noteField and yeet and SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
 		local pos = SCREENMAN:GetTopScreen():GetPreviewNoteFieldMusicPosition() / musicratio
         self:GetChild("Pos"):zoomto(math.min(pos,wodth), hidth)
-        if usingreverse then 
-            yeet:y(self:GetY() + prevrevY)
-		end
 		self:queuecommand("Highlight")
 	end
 end
@@ -57,10 +52,6 @@ local t = Def.ActorFrame {
     SetupNoteFieldCommand=function(self)
         setUpPreviewNoteField()
         noteField = true
-	end,
-	RefreshPreviewNoteFieldMessageCommand=function(self)
-		setUpPreviewNoteField()
-		noteField = true
 	end,
 	hELPidontDNOKNOWMessageCommand=function(self)
 		SCREENMAN:GetTopScreen():DeletePreviewNoteField(self)
