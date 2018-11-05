@@ -110,7 +110,7 @@ t[#t + 1] = LoadActor("_chorddensitygraph.lua")
 t[#t + 1] = Def.Quad {
 	Name = "Seek",
 	InitCommand = function(self)
-		self:zoomto(2, hidth):diffuse(color("1,.2,.5,1")):halign(0.5)
+		self:zoomto(2, hidth):diffuse(color("1,.2,.5,1")):halign(0.5):draworder(1100)
 	end,
 	MouseLeftClickMessageCommand = function(self)
 		if isOver(self) then
