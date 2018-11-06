@@ -74,6 +74,11 @@ static const AutoMappings g_DefaultKeyMappings = AutoMappings(
 void
 InputMapper::AddDefaultMappingsForCurrentGameIfUnmapped()
 {
+	// Clear default mappings.  Default mappings are in the third slot.
+	FOREACH_ENUM(GameController, i)
+	FOREACH_ENUM(GameButton, j)
+	ClearFromInputMap(GameInput(i, j), 2);
+
 	vector<AutoMappingEntry> aMaps;
 	aMaps.reserve(32);
 
@@ -94,7 +99,8 @@ InputMapper::AddDefaultMappingsForCurrentGameIfUnmapped()
 		GameInput GameI(m->m_bSecondController ? GameController_2
 											   : GameController_1,
 						m->m_gb);
-		if (!IsMapped(DeviceI) && !IsMapped(GameI, 2)) // if this key isn't already being used by another user-made mapping
+		if (!IsMapped(DeviceI)) // if this key isn't already being used by
+								// another user-made mapping
 		{
 			if (!GameI.IsValid())
 				ClearFromInputMap(DeviceI);
@@ -868,14 +874,6 @@ InputMapper::SetInputMap(const DeviceInput& DeviceI,
 						 const GameInput& GameI,
 						 int iSlotIndex)
 {
-	int c = 0;
-	for (int i = 0; i < 3; i++)
-	{
-		if (i != iSlotIndex && IsMapped(GameI, i))
-			c++;
-		if (c > 0)
-			ClearFromInputMap(GameI, i);
-	}
 	m_mappings.SetInputMap(DeviceI, GameI, iSlotIndex);
 
 	UpdateTempDItoGI();
@@ -903,14 +901,6 @@ bool
 InputMapper::IsMapped(const DeviceInput& DeviceI) const
 {
 	return g_tempDItoGI.find(DeviceI) != g_tempDItoGI.end();
-}
-
-bool
-InputMapper::IsMapped(const GameInput& GameI, int iSlotIndex) const
-{
-	GameButton gb = GameI.button;
-	GameController gc = GameI.controller;
-	return m_mappings.m_GItoDI[gc][gb][iSlotIndex].IsValid();
 }
 
 void
@@ -1368,8 +1358,9 @@ InputMappings::WriteMappings(const InputScheme* pInputScheme,
 			RString sNameString = GameI.ToString(pInputScheme);
 
 			vector<RString> asValues;
-			// changed this to work with the number of game slots + 1 to account for the default column -poco
-			for (int slot = 0; slot < NUM_USER_GAME_TO_DEVICE_SLOTS + 1; ++slot)
+			for (int slot = 0; slot < NUM_USER_GAME_TO_DEVICE_SLOTS;
+				 ++slot) // don't save data from the last (keyboard automap)
+						 // slot
 				asValues.push_back(m_GItoDI[i][j][slot].ToString());
 
 			while (asValues.size() && asValues.back() == "")

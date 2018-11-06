@@ -8,8 +8,8 @@ struct Game;
 
 const int NUM_GAME_TO_DEVICE_SLOTS =
   5; // five device inputs may map to one game input
-const int NUM_SHOWN_GAME_TO_DEVICE_SLOTS = 3; // number of columns by default
-const int NUM_USER_GAME_TO_DEVICE_SLOTS = 2; // number of nondefault columns
+const int NUM_SHOWN_GAME_TO_DEVICE_SLOTS = 3;
+const int NUM_USER_GAME_TO_DEVICE_SLOTS = 2;
 extern const RString DEVICE_INPUT_SEPARATOR;
 
 struct AutoMappingEntry
@@ -233,7 +233,6 @@ class InputMapper
 	bool CheckForChangedInputDevicesAndRemap(RString& sMessageOut);
 
 	bool IsMapped(const DeviceInput& DeviceI) const;
-	bool IsMapped(const GameInput& GameI, int iSlotIndex) const;
 
 	bool DeviceToGame(const DeviceInput& DeviceI, GameInput& GameI)
 	  const; // return true if there is a mapping from device to pad
