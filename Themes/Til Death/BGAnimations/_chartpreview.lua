@@ -72,7 +72,11 @@ local t = Def.ActorFrame {
 		Name = "BG",
 		InitCommand = function(self)
 			self:xy(wodth/2, SCREEN_HEIGHT/2) 
-			self:zoomto(wodth*2/3, SCREEN_HEIGHT):diffuse(color("0.05,0.05,0.05,1"))
+			self:diffuse(color("0.05,0.05,0.05,1"))
+		end,
+		CurrentStyleChangedMessageCommand=function(self)
+			local cols = GAMESTATE:GetCurrentStyle():ColumnsPerPlayer()
+			self:zoomto(48 * cols, SCREEN_HEIGHT)
 		end
 	},
 	LoadFont("Common Normal") .. {
