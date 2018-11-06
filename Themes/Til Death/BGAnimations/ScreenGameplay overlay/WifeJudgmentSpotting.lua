@@ -93,49 +93,6 @@ local function DottedBorder(width, height, bw, x, y)
 	}
 end
 
--- border function in use -mina
-local function Border(width, height, bw, x, y)
-	return Def.ActorFrame {
-		Name = "Border",
-		InitCommand=function(self)
-			self:xy(x,y):visible(false):diffusealpha(0.35)
-		end,
-		ChangeWidthCommand=function(self, params)
-			self:GetChild("xbar"):zoomx(params.val)
-			self:GetChild("showybox"):zoomx(params.val)
-			self:GetChild("hideybox"):zoomx(params.val-2*bw)
-		end,
-		ChangeHeightCommand=function(self, params)
-			self:GetChild("ybar"):zoomy(params.val)
-			self:GetChild("showybox"):zoomy(params.val)
-			self:GetChild("hideybox"):zoomy(params.val-2*bw)
-		end,
-		Def.Quad {
-			Name = "xbar",
-			InitCommand=function(self)
-				self:zoomto(width,bw):diffusealpha(0.5)	-- did not realize this was multiplicative with parent's value -mina
-			end
-		},
-		Def.Quad {
-			Name = "ybar",
-			InitCommand=function(self)
-				self:zoomto(bw,height):diffusealpha(0.5)
-			end
-		},
-		Def.Quad {
-			Name = "hideybox",
-			InitCommand=function(self)
-				self:zoomto(width-2*bw, height-2*bw):MaskSource(true)
-			end
-		},
-		Def.Quad {
-			Name = "showybox",
-			InitCommand=function(self)
-				self:zoomto(width,height):MaskDest()
-			end
-		},
-	}
-end
 
 -- Screenwide params
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
@@ -242,7 +199,7 @@ local propsFunctions = {
 }
 
 local movable = {
-	current = "",
+	current = "None",
 	pressed = false,
 	DeviceButton_1 = {
 		name = "Judge",
@@ -608,10 +565,20 @@ local movable = {
 
 local function input(event)
 	if getAutoplay() ~= 0 then
+		-- this will eat any other mouse input than a right click (toggle)
+		-- so we don't have to worry about anything weird happening with the ersatz inputs -mina
+		if event.DeviceInput.is_mouse then	
+			if event.DeviceInput.button == "DeviceButton_right mouse button" then
+				movable.current = "None"
+				movable.pressed = false
+			end
+			return 
+		end
+
 		local button = event.DeviceInput.button
 		local notReleased = not (event.type == "InputEventType_Release")
-		if movable[button] and movable[button].condition then
-			movable.pressed = notReleased
+		if movable[button] and movable[button].condition and notReleased then	-- changed to toggle rather than hold down -mina
+			movable.pressed = not movable.pressed
 			movable.current = button
 			local text = {
 				movable[button].textHeader
@@ -627,18 +594,34 @@ local function input(event)
 				end
 			end
 			messageBox:GetChild("message"):settext(table.concat(text, "\n"))
-			messageBox:GetChild("message"):visible(notReleased)
-			if not movable[movable.current].noBorder then
-				movable[movable.current]["Border"]:visible(notReleased)
-			end
+			messageBox:GetChild("message"):visible(movable.pressed)
 		end
-
+		
 		local current = movable[movable.current]
+
+		-- left/right move along the x axis and up/down along the y; set them directly here -mina
+		if event.hellothisismouse then
+			if event.axis == "x" then
+				button = "DeviceButton_left"
+			else
+				button = "DeviceButton_up"
+			end
+			movable.pressed = true	-- we need to do this or the mouse input facsimile will toggle on when moving x, and off when moving y
+		end
+		
 		if movable.pressed and current[button] and current.condition and notReleased and current.external == nil then
 			local curKey = current[button]
 			local keyProperty = curKey.property
 			local prop = current.name .. string.gsub(keyProperty, "Add", "")
-			local newVal = values[prop] + (curKey.inc * ((curKey.notefieldY and not usingReverse) and -1 or 1))
+			local newVal
+
+			-- directly set newval if we're using the mouse -mina
+			if event.hellothisismouse then
+				newVal = event.val
+			else
+				newVal = values[prop] + (curKey.inc * ((curKey.notefieldY and not usingReverse) and -1 or 1))
+			end
+			
 			values[prop] = newVal
 			if curKey.arbitraryFunction then
 				curKey.arbitraryFunction(newVal)
@@ -669,6 +652,92 @@ local function input(event)
 		end
 	end
 	return false
+end
+
+-- this is supreme lazy -mina
+local function elementtobutton(name)
+	for k,v in pairs(movable) do
+		if type(v) == 'table' and v.name == name and v.properties[1] == "X" then
+			return k
+		end
+	end
+end
+
+local function bordermousereact(self)
+	self:queuecommand("mousereact")
+end
+
+local function movewhendragged(self)
+	-- this is a somewhat dangerous hierarchical assumption but it should help us get organied in the short term -mina
+	local b = elementtobutton(self:GetParent():GetParent():GetName())
+	if isOver(self) or (movable.pressed and movable.current == b) then
+		if movable.pressed and movable.current == b then
+			self:GetParent():diffusealpha(1)	-- this is active
+		else
+			self:GetParent():diffusealpha(0.35)	-- this has been moused over
+		end
+
+		-- second half of the expr stops elements from being activated if you mouse over them while moving something else
+		if INPUTFILTER:IsBeingPressed("Mouse 0", "Mouse") and (movable.current == b or movable.current == "None") then
+			local nx = INPUTFILTER:GetMouseX()
+			local ny = INPUTFILTER:GetMouseY()
+			input({DeviceInput = {button = b}, hellothisismouse = true, axis = "x", val = nx})
+			input({DeviceInput = {button = b}, hellothisismouse = true, axis = "y", val = ny})
+		end
+	elseif movable.pressed then 
+		self:GetParent():diffusealpha(0.35)		-- something is active, but not this
+	else
+		self:GetParent():diffusealpha(0)		-- nothing is active and this is not moused over
+	end
+end
+
+-- border function in use -mina
+local function Border(width, height, bw, x, y)
+	if not allowedCustomization then return end	-- we don't want to be loading all this garbage if we aren't in customization
+	return Def.ActorFrame {
+		Name = "Border",
+		InitCommand=function(self)
+			self:xy(x,y):diffusealpha(0)
+			self:SetUpdateFunction(bordermousereact)
+		end,
+		ChangeWidthCommand=function(self, params)
+			self:GetChild("xbar"):zoomx(params.val)
+			self:GetChild("showybox"):zoomx(params.val)
+			self:GetChild("hideybox"):zoomx(params.val-2*bw)
+		end,
+		ChangeHeightCommand=function(self, params)
+			self:GetChild("ybar"):zoomy(params.val)
+			self:GetChild("showybox"):zoomy(params.val)
+			self:GetChild("hideybox"):zoomy(params.val-2*bw)
+		end,
+		Def.Quad {
+			Name = "xbar",
+			InitCommand=function(self)
+				self:zoomto(width,bw):diffusealpha(0.5)	-- did not realize this was multiplicative with parent's value -mina
+			end
+		},
+		Def.Quad {
+			Name = "ybar",
+			InitCommand=function(self)
+				self:zoomto(bw,height):diffusealpha(0.5)
+			end
+		},
+		Def.Quad {
+			Name = "hideybox",
+			InitCommand=function(self)
+				self:zoomto(width-2*bw, height-2*bw):MaskSource(true)
+			end
+		},
+		Def.Quad {
+			Name = "showybox",
+			InitCommand=function(self)
+				self:zoomto(width,height):MaskDest()
+			end,
+			mousereactCommand=function(self)
+				movewhendragged(self)	-- this quad owns the mouse movement function -mina
+			end
+		},
+	}
 end
 
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -969,6 +1038,7 @@ end
 
 local e =
 	Def.ActorFrame {
+	Name = "ErrorBar",
 	InitCommand = function(self)
 		movable.DeviceButton_5.element = self:GetChildren()
 		movable.DeviceButton_6.element = self:GetChildren()
@@ -1171,6 +1241,7 @@ local alpha = 0.3
 
 local mb =
 	Def.ActorFrame {
+	Name = "MiniProgressBar",
 	InitCommand = function(self)
 		self:xy(values.MiniProgressBarX, values.MiniProgressBarY)
 		movable.DeviceButton_q.element = self
