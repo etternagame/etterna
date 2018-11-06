@@ -628,36 +628,39 @@ local function input(event)
 			end
 			messageBox:GetChild("message"):settext(table.concat(text, "\n"))
 			messageBox:GetChild("message"):visible(notReleased)
-			movable[movable.current]["Border"]:visible(notReleased)
+			if not movable[movable.current].noBorder then
+				movable[movable.current]["Border"]:visible(notReleased)
+			end
 		end
 
 		local current = movable[movable.current]
 		if movable.pressed and current[button] and current.condition and notReleased and current.external == nil then
 			local curKey = current[button]
-			local prop = current.name .. string.gsub(curKey.property, "Add", "")
+			local keyProperty = curKey.property
+			local prop = current.name .. string.gsub(keyProperty, "Add", "")
 			local newVal = values[prop] + (curKey.inc * ((curKey.notefieldY and not usingReverse) and -1 or 1))
 			values[prop] = newVal
 			if curKey.arbitraryFunction then
 				curKey.arbitraryFunction(newVal)
-			elseif current.elementList then
-				for _, elem in ipairs(current.element) do
-					propsFunctions[curKey.property](elem, newVal)
-				end
 			elseif current.children then
 				for _, attribute in ipairs(current.children) do
 					propsFunctions[curKey.property](current.element[attribute], newVal)
 				end
-			elseif curKey.property == "AddX" or curKey.property == "AddY" then
-				propsFunctions[curKey.property](current.element, curKey.inc)
+			elseif current.elementList then
+				for _, elem in ipairs(current.element) do
+					propsFunctions[keyProperty](elem, newVal)
+				end
+			elseif keyProperty == "AddX" or keyProperty == "AddY" then
+				propsFunctions[keyProperty](current.element, curKey.inc)
 			else
-				propsFunctions[curKey.property](current.element, newVal)
+				propsFunctions[keyProperty](current.element, newVal)
 			end
 
-			if curKey.property == "Width" then
-				movable[movable.current]["Border"]:playcommand("ChangeWidth", {val = newVal} )
-			end
-			if curKey.property == "Height" then
-				movable[movable.current]["Border"]:playcommand("ChangeHeight", {val = newVal} )
+			if not current.noBorder then
+				local border = movable[movable.current]["Border"]
+				if keyProperty == "Height" or keyProperty == "Width" then
+					border:playcommand("Change" .. keyProperty, {val = newVal} )
+				end
 			end
 
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1))[current.elementTree][keymode][prop] = newVal
@@ -1171,6 +1174,7 @@ local mb =
 	InitCommand = function(self)
 		self:xy(values.MiniProgressBarX, values.MiniProgressBarY)
 		movable.DeviceButton_q.element = self
+		movable.DeviceButton_q.Border = self:GetChild("Border")
 	end,
 	Def.Quad {
 		InitCommand = function(self)
@@ -1192,7 +1196,8 @@ local mb =
 				self:zoomy(height):diffuse(getMainColor("highlight"))
 			end
 		}
-	}
+	},
+	Border(width + 8, height + 5, 1, 0, 0)
 }
 
 if enabledMiniBar then
