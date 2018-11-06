@@ -19,7 +19,7 @@ t[#t + 1] =
 		self:xy(capWideScale(get43size(384), 384) + 26, 70, halign, 0):valign(0):zoom(math.min(1, SCREEN_WIDTH / 854))
 	end,
 	OffCommand = function(self)
-		self:bouncebegin(0.2):xy(capWideScale(get43size(384), 384) + 26 - 500, 70) -- visible(false)
+		self:bouncebegin(0.2):xy(capWideScale(get43size(384), 384) + 26 , -70) -- visible(false)
 	end,
 	OnCommand = function(self)
 		self:bouncebegin(0.2):xy(capWideScale(get43size(384), 384) + 26, 70)
