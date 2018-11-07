@@ -577,10 +577,14 @@ local function input(event)
 		end
 
 		local button = event.DeviceInput.button
+		event.hellothisismouse = event.hellothisismouse and true or false -- so that's why bools kept getting set to nil -mina
 		local notReleased = not (event.type == "InputEventType_Release")
 		-- changed to toggle rather than hold down -mina
 		if (movable[button] and movable[button].condition and notReleased) or event.hellothisismouse then	
 			movable.pressed = not movable.pressed or event.hellothisismouse	-- this stuff is getting pretty hacky now -mina
+			if movable.current ~= event.DeviceInput.button and not event.hellothisismouse then
+				movable.pressed = true	-- allow toggling using the kb to directly move to a different key rather than forcing an untoggle first -mina
+			end
 			movable.current = button
 			local text = {
 				movable[button].textHeader
