@@ -603,6 +603,9 @@ local function input(event)
 				movable.pressed = true	-- allow toggling using the kb to directly move to a different key rather than forcing an untoggle first -mina
 			end
 			movable.current = button
+			if not movable.pressed then 
+				movable.current = "None"
+			end
 			updatetext(button)	-- this will only update the text when the toggles occur
 		end
 		
