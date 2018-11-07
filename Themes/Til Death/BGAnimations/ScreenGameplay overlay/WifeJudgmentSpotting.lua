@@ -702,7 +702,7 @@ local function movewhendragged(self)
 	elseif movable.pressed then 
 		self:GetParent():diffusealpha(0.35)		-- something is active, but not this
 	else
-		self:GetParent():diffusealpha(0)		-- nothing is active and this is not moused over
+		self:GetParent():diffusealpha(0.1)		-- nothing is active and this is not moused over
 	end
 end
 
