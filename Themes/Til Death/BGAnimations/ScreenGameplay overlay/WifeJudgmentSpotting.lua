@@ -1312,7 +1312,7 @@ local mb =
 			end
 		}
 	},
-	Border(width + 8, height + 5, 1, 0, 0)
+	Border(width, height, 1, 0, 0)
 }
 
 if enabledMiniBar then
