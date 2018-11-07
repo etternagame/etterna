@@ -684,7 +684,7 @@ local function movewhendragged(self)
 	local b = elementtobutton(self:GetParent():GetParent():GetName())
 	if isOver(self) or (movable.pressed and movable.current == b) then
 		if movable.pressed and movable.current == b then
-			self:GetParent():diffusealpha(1)	-- this is active
+			self:GetParent():diffusealpha(0.75)	-- this is active
 		else
 			self:GetParent():diffusealpha(0.35)	-- this has been moused over
 		end
