@@ -653,7 +653,7 @@ local function input(event)
 
 			if not current.noBorder then
 				local border = movable[movable.current]["Border"]
-				if keyProperty == "Height" or keyProperty == "Width" then
+				if keyProperty == "Height" or keyProperty == "Width" or keyProperty == "Zoom" then
 					border:playcommand("Change" .. keyProperty, {val = newVal} )
 				end
 			end
@@ -724,6 +724,12 @@ local function Border(width, height, bw, x, y)
 			self:GetChild("ybar"):zoomy(params.val)
 			self:GetChild("showybox"):zoomy(params.val)
 			self:GetChild("hideybox"):zoomy(params.val-2*bw)
+		end,
+		ChangeZoomCommand=function(self,params)
+			local wot = self:GetZoom()/(1/params.val)
+			self:zoom(1/params.val)
+			self:playcommand("ChangeWidth", {val = self:GetChild("showybox"):GetZoomX() * wot})
+			self:playcommand("ChangeHeight", {val = self:GetChild("showybox"):GetZoomY() * wot})
 		end,
 		Def.Quad {
 			Name = "xbar",
