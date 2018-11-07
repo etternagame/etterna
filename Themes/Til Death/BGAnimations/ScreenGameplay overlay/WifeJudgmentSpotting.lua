@@ -497,19 +497,19 @@ local movable = {
 		elementTree = "GameplayXYCoordinates",
 		condition = enabledJudgeCounter,
 		DeviceButton_up = {
-			property = "AddY",
+			property = "Y",
 			inc = -3
 		},
 		DeviceButton_down = {
-			property = "AddY",
+			property = "Y",
 			inc = 3
 		},
 		DeviceButton_left = {
-			property = "AddX",
+			property = "X",
 			inc = -3
 		},
 		DeviceButton_right = {
-			property = "AddX",
+			property = "X",
 			inc = 3
 		}
 	},
@@ -957,7 +957,7 @@ local frameX = 60 + mpOffset -- X position of the frame
 local frameY = (SCREEN_HEIGHT * 0.62) - 90 -- Y Position of the frame
 local spacing = 10 -- Spacing between the judgetypes
 local frameWidth = 60 -- Width of the Frame
-local frameHeight = ((#jdgT - 1) * spacing) - 8 -- Height of the Frame
+local frameHeight = ((#jdgT + 1) * spacing)  -- Height of the Frame
 local judgeFontSize = 0.40 -- Font sizes for different text elements
 local countFontSize = 0.35
 local gradeFontSize = 0.45
@@ -967,9 +967,10 @@ local jdgCounts = {} -- Child references for the judge counter
 
 local j =
 	Def.ActorFrame {
+	Name = "JudgeCounter",
 	InitCommand = function(self)
 		movable.DeviceButton_p.element = self
-		self:addx(values.JudgeCounterX):addy(values.JudgeCounterY)
+		self:xy(values.JudgeCounterX, values.JudgeCounterY)
 	end,
 	OnCommand = function(self)
 		for i = 1, #jdgT do
@@ -980,14 +981,19 @@ local j =
 		if jdgCounts[msg.Judgment] then
 			settext(jdgCounts[msg.Judgment], msg.Val)
 		end
-	end
+	end,
+	Def.Quad {	-- bg
+		InitCommand = function(self)
+			self:zoomto(frameWidth, frameHeight):diffuse(color("0,0,0,0.4"))
+		end
+	},
+	Border(frameWidth, frameHeight, 1, 0, 0) 
 }
 
 local function makeJudgeText(judge, index) -- Makes text
-	return LoadFont("Common normal") ..
-		{
+	return LoadFont("Common normal") .. {
 			InitCommand = function(self)
-				self:xy(frameX + 5, frameY + 7 + (index * spacing)):zoom(judgeFontSize):halign(0)
+				self:xy(-frameWidth/2 + 5, -frameHeight/2 + (index * spacing)):zoom(judgeFontSize):halign(0)
 			end,
 			OnCommand = function(self)
 				settext(self, getShortJudgeStrings(judge))
@@ -997,24 +1003,13 @@ local function makeJudgeText(judge, index) -- Makes text
 end
 
 local function makeJudgeCount(judge, index) -- Makes county things for taps....
-	return LoadFont("Common Normal") ..
-		{
+	return LoadFont("Common Normal") .. {
 			Name = judge,
 			InitCommand = function(self)
-				self:xy(frameWidth + frameX - 5, frameY + 7 + (index * spacing)):zoom(countFontSize):horizalign(right):settext(0)
+				self:xy(frameWidth/2 - 5, -frameHeight/2 + (index * spacing)):zoom(countFontSize):halign(1):settext(0)
 			end
 		}
 end
-
--- Background
-j[#j + 1] =
-	Def.Quad {
-	InitCommand = function(self)
-		self:xy(frameX, frameY + 13):zoomto(frameWidth, frameHeight + 18):diffuse(color("0,0,0,0.4")):horizalign(left):vertalign(
-			top
-		)
-	end
-}
 
 -- Build judgeboard
 for i = 1, #jdgT do
