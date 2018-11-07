@@ -1194,30 +1194,31 @@ local replaySlider =
 	nil
 local p =
 	Def.ActorFrame {
-	InitCommand = function(self)
-		self:xy(values.FullProgressBarX, values.FullProgressBarY)
-		self:zoomto(values.FullProgressBarWidth, values.FullProgressBarHeight)
-		movable.DeviceButton_9.element = self
-		movable.DeviceButton_0.element = self
-	end,
-	Def.Quad {
+		Name = "FullProgressBar",
 		InitCommand = function(self)
-			self:zoomto(width, height):diffuse(color("#666666")):diffusealpha(alpha)
-		end
-	},
-	Def.SongMeterDisplay {
-		InitCommand = function(self)
-			self:SetUpdateRate(0.5)
+			self:xy(values.FullProgressBarX, values.FullProgressBarY)
+			self:zoomto(values.FullProgressBarWidth, values.FullProgressBarHeight)
+			movable.DeviceButton_9.element = self
+			movable.DeviceButton_0.element = self
+			movable.DeviceButton_0.Border = self:GetChild("Border")
 		end,
-		StreamWidth = width,
-		Stream = Def.Quad {
+		Def.Quad {
 			InitCommand = function(self)
-				self:zoomy(height):diffuse(getMainColor("highlight"))
+				self:zoomto(width, height):diffuse(color("#666666")):diffusealpha(alpha)
 			end
-		}
-	},
-	LoadFont("Common Normal") ..
-		{
+		},
+		Def.SongMeterDisplay {
+			InitCommand = function(self)
+				self:SetUpdateRate(0.5)
+			end,
+			StreamWidth = width,
+			Stream = Def.Quad {
+				InitCommand = function(self)
+					self:zoomy(height):diffuse(getMainColor("highlight"))
+				end
+			}
+		},
+		LoadFont("Common Normal") .. {
 			-- title
 			InitCommand = function(self)
 				self:zoom(0.35):maxwidth(width * 2)
@@ -1229,8 +1230,7 @@ local p =
 				self:settext(GAMESTATE:GetCurrentSong():GetDisplayMainTitle())
 			end
 		},
-	LoadFont("Common Normal") ..
-		{
+		LoadFont("Common Normal") .. {
 			-- total time
 			InitCommand = function(self)
 				self:x(width / 2):zoom(0.35):maxwidth(width * 2):halign(1)
@@ -1246,7 +1246,8 @@ local p =
 				diffuse(self, byMusicLength(ttime))
 			end
 		},
-	replaySlider
+		Border(width, height, 1, 0, 0),
+		replaySlider
 }
 
 if enabledFullBar then
