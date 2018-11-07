@@ -563,6 +563,23 @@ local movable = {
 	},
 }
 
+local function updatetext(button)
+	local text = {movable[button].textHeader}
+	for _, prop in ipairs(movable[button].properties) do
+		local fullProp = movable[button].name .. prop
+		if movable[button].external then
+			text[#text + 1] =
+				prop ..
+				": " .. playerConfig:get_data(pn_to_profile_slot(PLAYER_1))[movable[button].elementTree][keymode][fullProp]
+		else
+			text[#text + 1] = prop .. ": " .. values[fullProp]
+		end
+	end
+	
+	messageBox:GetChild("message"):settext(table.concat(text, "\n"))
+	messageBox:GetChild("message"):visible(movable.pressed)
+end
+
 local function input(event)
 	if getAutoplay() ~= 0 then
 		-- this will eat any other mouse input than a right click (toggle)
@@ -586,21 +603,7 @@ local function input(event)
 				movable.pressed = true	-- allow toggling using the kb to directly move to a different key rather than forcing an untoggle first -mina
 			end
 			movable.current = button
-			local text = {
-				movable[button].textHeader
-			}
-			for _, prop in ipairs(movable[button].properties) do
-				local fullProp = movable[button].name .. prop
-				if movable[button].external then
-					text[#text + 1] =
-						prop ..
-						": " .. playerConfig:get_data(pn_to_profile_slot(PLAYER_1))[movable[button].elementTree][keymode][fullProp]
-				else
-					text[#text + 1] = prop .. ": " .. values[fullProp]
-				end
-			end
-			messageBox:GetChild("message"):settext(table.concat(text, "\n"))
-			messageBox:GetChild("message"):visible(movable.pressed)
+			updatetext(button)	-- this will only update the text when the toggles occur
 		end
 		
 		local current = movable[movable.current]
@@ -652,6 +655,9 @@ local function input(event)
 				end
 			end
 
+			if not event.hellothisismouse then
+				updatetext(movable.current)	-- updates text when keyboard movements are made (mouse already updated)
+			end
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1))[current.elementTree][keymode][prop] = newVal
 			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
 			playerConfig:save(pn_to_profile_slot(PLAYER_1))
