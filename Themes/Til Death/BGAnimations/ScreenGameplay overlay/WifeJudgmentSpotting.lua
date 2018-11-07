@@ -923,8 +923,8 @@ local cp =
 	end,
 	Def.Quad { 
 		InitCommand = function(self) 
-		  self:zoomto(60, 13):diffuse(color("0,0,0,0.4")):halign(1):valign(0)
-		end 
+		  self:zoomto(80, 13):diffuse(color("0,0,0,0.4"))
+		end,
 	  }, 
 	-- Displays your current percentage score
 	LoadFont("Common Large") .. {
@@ -936,10 +936,7 @@ local cp =
 			self:settextf("%05.2f%%", 0)
 			if allowedCustomization then
 				self:settextf("%05.2f%%", -10000)
-				self:GetParent():GetChild("Border"):playcommand("ChangeWidth", {val = self:GetZoomedWidth()})
-				self:GetParent():GetChild("Border"):playcommand("ChangeHeight", {val = self:GetZoomedHeight()})
-				self:GetParent():GetChild("Border"):playcommand("ChangeZoom", {val = self:GetParent():GetZoom()})
-				self:GetParent():GetChild("Border"):xy(-self:GetZoomedWidth()/2, self:GetZoomedHeight()/2*1.04 )
+				setbordersfortext(self)
 				self:settextf("%05.2f%%", 0)
 			end
 		end,
