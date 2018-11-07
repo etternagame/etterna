@@ -847,17 +847,28 @@ GAMESTATE:GetPlayerState(PLAYER_1):SetTargetGoal(target / 100)
 -- personal best tracker (although everything is efficient enough now it probably wouldn't matter)
 
 -- moved it for better manipulation
-local d = Def.ActorFrame {}
+local d = Def.ActorFrame {
+	Name = "TargetTracker",
+	InitCommand = function(self)
+		movable.DeviceButton_7.element = self
+		movable.DeviceButton_8.element = self
+		movable.DeviceButton_8.Border = self:GetChild("Border")
+		self:xy(values.TargetTrackerX, values.TargetTrackerY):zoom(values.TargetTrackerZoom)
+	end,
+	Border(100,13, 1, 0, 0)
+}
 
 if targetTrackerMode == 0 then
 	d[#d + 1] =
-		LoadFont("Common Normal") ..
-		{
+		LoadFont("Common Normal") .. {
 			Name = "PercentDifferential",
 			InitCommand = function(self)
-				movable.DeviceButton_7.element = self
-				movable.DeviceButton_8.element = self
-				self:xy(values.TargetTrackerX, values.TargetTrackerY):zoom(values.TargetTrackerZoom):halign(0):valign(1)
+				self:halign(1):valign(0)
+				if allowedCustomization then
+					self:settextf("%5.2f (%5.2f%%)", -100, 100)
+					diffuse(self, negative)
+					setbordersfortext(self)
+				end
 			end,
 			JudgmentMessageCommand = function(self, msg)
 				local tDiff = msg.WifeDifferential
@@ -871,13 +882,15 @@ if targetTrackerMode == 0 then
 		}
 else
 	d[#d + 1] =
-		LoadFont("Common Normal") ..
-		{
+		LoadFont("Common Normal") .. {
 			Name = "PBDifferential",
 			InitCommand = function(self)
-				movable.DeviceButton_7.element = self
-				movable.DeviceButton_8.element = self
-				self:xy(values.TargetTrackerX, values.TargetTrackerY):zoom(values.TargetTrackerZoom):halign(0):valign(1)
+				self:halign(1):valign(0)
+				if allowedCustomization then
+					self:settextf("%5.2f (%5.2f%%)", -100, 100)
+					diffuse(self, negative)
+					setbordersfortext(self)
+				end
 			end,
 			JudgmentMessageCommand = function(self, msg)
 				local tDiff = msg.WifePBDifferential
