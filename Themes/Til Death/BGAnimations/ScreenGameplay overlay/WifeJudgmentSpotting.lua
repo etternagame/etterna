@@ -571,14 +571,16 @@ local function input(event)
 			if event.DeviceInput.button == "DeviceButton_right mouse button" then
 				movable.current = "None"
 				movable.pressed = false
+				messageBox:GetChild("message"):visible(movable.pressed)
 			end
 			return 
 		end
 
 		local button = event.DeviceInput.button
 		local notReleased = not (event.type == "InputEventType_Release")
-		if movable[button] and movable[button].condition and notReleased then	-- changed to toggle rather than hold down -mina
-			movable.pressed = not movable.pressed
+		-- changed to toggle rather than hold down -mina
+		if (movable[button] and movable[button].condition and notReleased) or event.hellothisismouse then	
+			movable.pressed = not movable.pressed or event.hellothisismouse	-- this stuff is getting pretty hacky now -mina
 			movable.current = button
 			local text = {
 				movable[button].textHeader
