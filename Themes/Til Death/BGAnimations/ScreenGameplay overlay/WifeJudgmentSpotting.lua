@@ -669,6 +669,14 @@ local function input(event)
 	return false
 end
 
+-- more assumptions here about hierarchy, alignment
+local function setbordersfortext(self)
+	self:GetParent():GetChild("Border"):playcommand("ChangeWidth", {val = self:GetZoomedWidth()})
+	self:GetParent():GetChild("Border"):playcommand("ChangeHeight", {val = self:GetZoomedHeight()})
+	self:GetParent():GetChild("Border"):playcommand("ChangeZoom", {val = self:GetParent():GetZoom()})
+	self:xy(self:GetZoomedWidth()/2, -self:GetZoomedHeight()/2*1.04 )
+end
+
 -- this is supreme lazy -mina
 local function elementtobutton(name)
 	for k,v in pairs(movable) do
