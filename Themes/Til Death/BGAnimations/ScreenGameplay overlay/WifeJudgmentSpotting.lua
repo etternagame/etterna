@@ -593,11 +593,11 @@ local function input(event)
 			return 
 		end
 
-		local button = event.DeviceInput.button
+		local button = event.DeviceInput.button	
 		event.hellothisismouse = event.hellothisismouse and true or false -- so that's why bools kept getting set to nil -mina
 		local notReleased = not (event.type == "InputEventType_Release")
 		-- changed to toggle rather than hold down -mina
-		if (movable[button] and movable[button].condition and notReleased) or event.hellothisismouse then	
+		if (movable[button] and movable[button].condition and notReleased) or event.hellothisismouse then
 			movable.pressed = not movable.pressed or event.hellothisismouse	-- this stuff is getting pretty hacky now -mina
 			if movable.current ~= event.DeviceInput.button and not event.hellothisismouse then
 				movable.pressed = true	-- allow toggling using the kb to directly move to a different key rather than forcing an untoggle first -mina
@@ -905,32 +905,41 @@ end
 ]]
 local cp =
 	Def.ActorFrame {
+	Name = "DisplayPercent",
 	InitCommand = function(self)
 		movable.DeviceButton_w.element = self
 		movable.DeviceButton_e.element = self
-		self:zoom(values.DisplayPercentZoom):addx(values.DisplayPercentX):addy(values.DisplayPercentY)
+		movable.DeviceButton_w.Border = self:GetChild("Border")
+		movable.DeviceButton_e.Border = self:GetChild("Border")
+		self:zoom(values.DisplayPercentZoom):x(values.DisplayPercentX):y(values.DisplayPercentY)
 	end,
-	Def.Quad {
+	Def.Quad { 
+		InitCommand = function(self) 
+		  self:zoomto(60, 13):diffuse(color("0,0,0,0.4")):halign(1):valign(0)
+		end 
+	  }, 
+	-- Displays your current percentage score
+	LoadFont("Common Large") .. {
+		Name = "DisplayPercent",
 		InitCommand = function(self)
-			self:xy(60 + mpOffset, (SCREEN_HEIGHT * 0.62) - 90):zoomto(60, 13):diffuse(color("0,0,0,0.4")):horizalign(left):vertalign(
-				top
-			)
+			self:zoom(0.3):halign(1):valign(0)
+		end,
+		OnCommand = function(self)
+			self:settextf("%05.2f%%", 0)
+			if allowedCustomization then
+				self:settextf("%05.2f%%", -10000)
+				self:GetParent():GetChild("Border"):playcommand("ChangeWidth", {val = self:GetZoomedWidth()})
+				self:GetParent():GetChild("Border"):playcommand("ChangeHeight", {val = self:GetZoomedHeight()})
+				self:GetParent():GetChild("Border"):playcommand("ChangeZoom", {val = self:GetParent():GetZoom()})
+				self:GetParent():GetChild("Border"):xy(-self:GetZoomedWidth()/2, self:GetZoomedHeight()/2*1.04 )
+				self:settextf("%05.2f%%", 0)
+			end
+		end,
+		JudgmentMessageCommand = function(self, msg)
+			self:settextf("%05.2f%%", Floor(msg.WifePercent * 100) / 100)
 		end
 	},
-	-- Displays your current percentage score
-	LoadFont("Common Large") ..
-		{
-			Name = "DisplayPercent",
-			InitCommand = function(self)
-				self:xy(115 + mpOffset, 220):zoom(0.3):halign(1):valign(1)
-			end,
-			OnCommand = function(self)
-				self:settextf("%05.2f%%", 0)
-			end,
-			JudgmentMessageCommand = function(self, msg)
-				self:settextf("%05.2f%%", Floor(msg.WifePercent * 100) / 100)
-			end
-		}
+	Border(100, 13, 1, 0, 0)
 }
 
 if enabledDisplayPercent then
