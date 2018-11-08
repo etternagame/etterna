@@ -971,8 +971,6 @@ end
 --]]
 -- User Parameters
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
-local frameX = 60 + mpOffset -- X position of the frame
-local frameY = (SCREEN_HEIGHT * 0.62) - 90 -- Y Position of the frame
 local spacing = 10 -- Spacing between the judgetypes
 local frameWidth = 60 -- Width of the Frame
 local frameHeight = ((#jdgT + 1) * spacing)  -- Height of the Frame
@@ -1001,7 +999,7 @@ local j =
 		end
 	end,
 	Def.Quad {	-- bg
-		InitCommand = function(self)
+	InitCommand = function(self)
 			self:zoomto(frameWidth, frameHeight):diffuse(color("0,0,0,0.4"))
 		end
 	},
