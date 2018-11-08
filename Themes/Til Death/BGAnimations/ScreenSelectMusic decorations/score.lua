@@ -436,6 +436,19 @@ t[#t + 1] =
 			end
 		end
 	}
+	
+t[#t + 1] =
+	LoadFont("Common Normal") .. {
+		Name = "Judge",
+		InitCommand = function(self)
+			self:xy((frameWidth - offsetX - frameX) / 2, frameHeight - headeroffY - 10 - offsetY):zoom(0.4):settext("")
+		end,
+		DisplayCommand = function(self)
+			local j = table.find(ms.JudgeScalers , notShit.round(score:GetJudgeScale(), 2))
+			if not j then j = 4 end
+			self:settext("Judge "..j)
+		end
+	}
 
 t[#t + 1] =
 	Def.Quad {
@@ -585,9 +598,7 @@ t[#t + 1] =
 	{
 		Name = "ReplayViewer",
 		InitCommand = function(self)
-			self:xy((frameWidth - offsetX - frameX) / 2 + 25, frameHeight - headeroffY - 30 - offsetY):zoom(0.5):halign(1):settext(
-				""
-			)
+			self:xy((frameWidth - offsetX - frameX) / 2, frameHeight - headeroffY - 30 - offsetY):zoom(0.5):settext("")
 		end,
 		DisplayCommand = function(self)
 			if score:HasReplayData() then
