@@ -166,6 +166,11 @@ local ret =
 	end,
 	CurrentStepsP1ChangedMessageCommand = function(self)
 		updateLeaderBoardForCurrentChart()
+	end,
+	CurrentRateChangedMessageCommand = function(self)
+		if ((getTabIndex() == 2 and nestedTab == 2) or collapsed) and DLMAN:GetCurrentRateFilter() then
+			MESSAGEMAN:Broadcast("ChartLeaderboardUpdate")
+		end
 	end
 }
 
