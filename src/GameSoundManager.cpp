@@ -797,6 +797,16 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 		p->DimMusic(fVolume, fDurationSeconds);
 		COMMON_RETURN_SELF;
 	}
+	static int SetVolume(T* p, lua_State* L)
+	{
+		Preference<float>* pRet =
+		  Preference<float>::GetPreferenceByName("SoundVolume");
+		float fVol = FArg(1);
+		CLAMP(fVol, 0.0f, 1.0f);
+		pRet->Set(fVol);
+		SOUNDMAN->SetMixVolume();
+		p->DimMusic(FArg(1), 0.01f);	// lazy hack to update volume without changing songs - mina
+	}
 	static int PlayOnce(T* p, lua_State* L)
 	{
 		RString sPath = SArg(1);
@@ -875,6 +885,7 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 		ADD_METHOD(PlayMusicPart);
 		ADD_METHOD(StopMusic);
 		ADD_METHOD(IsTimingDelayed);
+		ADD_METHOD(SetVolume);
 	}
 };
 
