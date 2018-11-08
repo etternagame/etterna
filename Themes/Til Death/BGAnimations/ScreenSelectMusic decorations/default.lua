@@ -34,7 +34,7 @@ t[#t + 1] =
 	end,
 	CurrentSongChangedMessageCommand = function(self)
 		local song = GAMESTATE:GetCurrentSong()
-		if song then
+		if song and getTabIndex() == 0 then
 			self:finishtweening()
 			self:playcommand("On")
 		elseif not song and self:GetZoomX() == 1 then
