@@ -114,45 +114,12 @@ local screen  -- the screen after it is loaded
 local WIDESCREENWHY = -5
 local WIDESCREENWHX = -5
 
-local values = {
-	ErrorBarX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ErrorBarX,
-	ErrorBarY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ErrorBarY,
-	ErrorBarWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].ErrorBarWidth,
-	ErrorBarHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].ErrorBarHeight,
-	TargetTrackerX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].TargetTrackerX,
-	TargetTrackerY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].TargetTrackerY,
-	TargetTrackerZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].TargetTrackerZoom,
-	FullProgressBarX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].FullProgressBarX,
-	FullProgressBarY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].FullProgressBarY,
-	FullProgressBarWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].FullProgressBarWidth,
-	FullProgressBarHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].FullProgressBarHeight,
-	MiniProgressBarX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].MiniProgressBarX,
-	MiniProgressBarY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].MiniProgressBarY,
-	DisplayPercentX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].DisplayPercentX,
-	DisplayPercentY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].DisplayPercentY,
-	DisplayPercentZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].DisplayPercentZoom,
-	NotefieldX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NotefieldX,
-	NotefieldY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NotefieldY,
-	NotefieldWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NotefieldWidth,
-	NotefieldHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NotefieldHeight,
-	JudgeCounterX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].JudgeCounterX,
-	JudgeCounterY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].JudgeCounterY
-}
-
 --error bar things
-local errorBarFrameWidth = capWideScale(get43size(values.ErrorBarWidth), values.ErrorBarWidth)
+local errorBarFrameWidth = capWideScale(get43size(MovableValues.ErrorBarWidth), MovableValues.ErrorBarWidth)
 local wscale = errorBarFrameWidth / 180
 
 --differential tracker things
 local targetTrackerMode = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetTrackerMode
-
--- CUZ WIDESCREEN DEFAULTS SCREAAAAAAAAAAAAAAAAAAAAAAAAAM -mina
-if IsUsingWideScreen() then
-	values.MiniProgressBarY = values.MiniProgressBarY + WIDESCREENWHY
-	values.MiniProgressBarX = values.MiniProgressBarX - WIDESCREENWHX
-	values.TargetTrackerY = values.TargetTrackerY + WIDESCREENWHY
-	values.TargetTrackerX = values.TargetTrackerX - WIDESCREENWHX
-end
 
 --receptor/Notefield things
 local Notefield
@@ -213,16 +180,16 @@ local t =
 		screen = SCREENMAN:GetTopScreen()
 		usingReverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
 		Notefield = screen:GetChild("PlayerP1"):GetChild("NoteField")
-		Notefield:addy(values.NotefieldY * (usingReverse and 1 or -1))
-		Notefield:addx(values.NotefieldX)
+		Notefield:addy(MovableValues.NotefieldY * (usingReverse and 1 or -1))
+		Notefield:addx(MovableValues.NotefieldX)
 		noteColumns = Notefield:get_column_actors()
 		if (allowedCustomization) then
 			Movable.DeviceButton_r.element = Notefield
 			Movable.DeviceButton_t.element = noteColumns
 		end
 		for i, actor in ipairs(noteColumns) do
-			actor:zoomtowidth(values.NotefieldWidth)
-			actor:zoomtoheight(values.NotefieldHeight)
+			actor:zoomtowidth(MovableValues.NotefieldWidth)
+			actor:zoomtoheight(MovableValues.NotefieldHeight)
 		end
 	end,
 	JudgmentMessageCommand = function(self, msg)
@@ -268,7 +235,7 @@ local d = Def.ActorFrame {
 			Movable.DeviceButton_8.element = self
 			Movable.DeviceButton_8.Border = self:GetChild("Border")
 		end
-		self:xy(values.TargetTrackerX, values.TargetTrackerY):zoom(values.TargetTrackerZoom)
+		self:xy(MovableValues.TargetTrackerX, MovableValues.TargetTrackerY):zoom(MovableValues.TargetTrackerZoom)
 	end,
 	MovableBorder(100,13, 1, 0, 0)
 }
@@ -349,7 +316,7 @@ local cp =
 			Movable.DeviceButton_w.Border = self:GetChild("Border")
 			Movable.DeviceButton_e.Border = self:GetChild("Border")
 		end
-		self:zoom(values.DisplayPercentZoom):x(values.DisplayPercentX):y(values.DisplayPercentY)
+		self:zoom(MovableValues.DisplayPercentZoom):x(MovableValues.DisplayPercentX):y(MovableValues.DisplayPercentY)
 	end,
 	-- Displays your current percentage score
 	LoadFont("Common Large") .. {
@@ -399,7 +366,7 @@ local j =
 		if (allowedCustomization) then
 			Movable.DeviceButton_p.element = self
 		end
-		self:xy(values.JudgeCounterX, values.JudgeCounterY)
+		self:xy(MovableValues.JudgeCounterX, MovableValues.JudgeCounterY)
 	end,
 	OnCommand = function(self)
 		for i = 1, #jdgT do
@@ -455,7 +422,7 @@ end
 														    	**Player ErrorBar**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	Visual display of deviance values. 
+	Visual display of deviance MovableValues. 
 --]]
 -- User Parameters
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
@@ -475,15 +442,15 @@ function smeltErrorBar(index)
 	return Def.Quad {
 		Name = index,
 		InitCommand = function(self)
-			self:xy(values.ErrorBarX, values.ErrorBarY):zoomto(barWidth, values.ErrorBarHeight):diffusealpha(0)
+			self:xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY):zoomto(barWidth, MovableValues.ErrorBarHeight):diffusealpha(0)
 		end,
 		UpdateErrorBarCommand = function(self) -- probably a more efficient way to achieve this effect, should test stuff later
 			finishtweening(self) -- note: it really looks like shit without the fade out
 			diffusealpha(self, 1)
 			diffuse(self, jcT[jdgCur])
-			x(self, values.ErrorBarX + dvCur * wscale)
-			y(self, values.ErrorBarY)
-			Zoomtoheight(self, values.ErrorBarHeight)
+			x(self, MovableValues.ErrorBarX + dvCur * wscale)
+			y(self, MovableValues.ErrorBarY)
+			Zoomtoheight(self, MovableValues.ErrorBarHeight)
 			linear(self, barDuration)
 			diffusealpha(self, 0)
 		end
@@ -499,8 +466,8 @@ local e =
 			Movable.DeviceButton_6.element = self:GetChildren()
 			Movable.DeviceButton_5.Border = self:GetChild("Border")
 			Movable.DeviceButton_6.Border = self:GetChild("Border")
-			Movable.DeviceButton_6.DeviceButton_left.arbitraryFunction = arbitraryErrorBarValue
-			Movable.DeviceButton_6.DeviceButton_right.arbitraryFunction = arbitraryErrorBarValue
+			Movable.DeviceButton_5.DeviceButton_left.arbitraryFunction = arbitraryErrorBarValue
+			Movable.DeviceButton_5.DeviceButton_right.arbitraryFunction = arbitraryErrorBarValue
 		end
 		if enabledErrorBar == 1 then
 			for i = 1, barcount do -- basically the equivalent of using GetChildren() if it returned unnamed children numerically indexed
@@ -525,7 +492,7 @@ local e =
 		Name = "WeightedBar",
 		InitCommand = function(self)
 			if enabledErrorBar == 2 then
-				self:xy(values.ErrorBarX, values.ErrorBarY):zoomto(barWidth, values.ErrorBarHeight):diffusealpha(1):diffuse(
+				self:xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY):zoomto(barWidth, MovableValues.ErrorBarHeight):diffusealpha(1):diffuse(
 					getMainColor("enabled")
 				)
 			else
@@ -536,14 +503,14 @@ local e =
 			if enabledErrorBar == 2 then
 				avg = alpha * dvCur + (1 - alpha) * lastAvg
 				lastAvg = avg
-				self:x(values.ErrorBarX + avg * wscale)
+				self:x(MovableValues.ErrorBarX + avg * wscale)
 			end
 		end
 	},
 	Def.Quad {
 		Name = "Center",
 		InitCommand = function(self)
-			self:diffuse(getMainColor("highlight")):xy(values.ErrorBarX, values.ErrorBarY):zoomto(2, values.ErrorBarHeight)
+			self:diffuse(getMainColor("highlight")):xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY):zoomto(2, MovableValues.ErrorBarHeight)
 		end
 	},
 	-- Indicates which side is which (early/late) These should be destroyed after the song starts.
@@ -551,7 +518,7 @@ local e =
 		{
 			Name = "DestroyMe",
 			InitCommand = function(self)
-				self:xy(values.ErrorBarX + errorBarFrameWidth / 4, values.ErrorBarY):zoom(0.35)
+				self:xy(MovableValues.ErrorBarX + errorBarFrameWidth / 4, MovableValues.ErrorBarY):zoom(0.35)
 			end,
 			BeginCommand = function(self)
 				self:settext("Late"):diffusealpha(0):smooth(0.5):diffusealpha(0.5):sleep(1.5):smooth(0.5):diffusealpha(0)
@@ -561,7 +528,7 @@ local e =
 		{
 			Name = "DestroyMe2",
 			InitCommand = function(self)
-				self:xy(values.ErrorBarX - errorBarFrameWidth / 4, values.ErrorBarY):zoom(0.35)
+				self:xy(MovableValues.ErrorBarX - errorBarFrameWidth / 4, MovableValues.ErrorBarY):zoom(0.35)
 			end,
 			BeginCommand = function(self)
 				self:settext("Early"):diffusealpha(0):smooth(0.5):diffusealpha(0.5):sleep(1.5):smooth(0.5):diffusealpha(0):queuecommand(
@@ -572,7 +539,7 @@ local e =
 				self:GetParent():queuecommand("Doot")
 			end
 		},
-		MovableBorder(values.ErrorBarWidth, values.ErrorBarHeight, 1, values.ErrorBarX, values.ErrorBarY)
+		MovableBorder(MovableValues.ErrorBarWidth, MovableValues.ErrorBarHeight, 1, MovableValues.ErrorBarX, MovableValues.ErrorBarY)
 }
 
 -- Initialize bars
@@ -629,8 +596,8 @@ local p =
 	Def.ActorFrame {
 		Name = "FullProgressBar",
 		InitCommand = function(self)
-			self:xy(values.FullProgressBarX, values.FullProgressBarY)
-			self:zoomto(values.FullProgressBarWidth, values.FullProgressBarHeight)
+			self:xy(MovableValues.FullProgressBarX, MovableValues.FullProgressBarY)
+			self:zoomto(MovableValues.FullProgressBarWidth, MovableValues.FullProgressBarHeight)
 			if (allowedCustomization) then
 				Movable.DeviceButton_9.element = self
 				Movable.DeviceButton_0.element = self
@@ -703,7 +670,7 @@ local mb =
 	Def.ActorFrame {
 	Name = "MiniProgressBar",
 	InitCommand = function(self)
-		self:xy(values.MiniProgressBarX, values.MiniProgressBarY)
+		self:xy(MovableValues.MiniProgressBarX, MovableValues.MiniProgressBarY)
 		if (allowedCustomization) then
 			Movable.DeviceButton_q.element = self
 			Movable.DeviceButton_q.Border = self:GetChild("Border")

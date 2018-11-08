@@ -1,7 +1,7 @@
 local keymode = getCurrentKeyMode()
 local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
 
-local values = {
+MovableValues = {
 	ErrorBarX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ErrorBarX,
 	ErrorBarY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ErrorBarY,
 	ErrorBarWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].ErrorBarWidth,
@@ -37,10 +37,10 @@ local settext = BitmapText.settext
 local Broadcast = MessageManager.Broadcast
 
 if IsUsingWideScreen() then
-	values.MiniProgressBarY = values.MiniProgressBarY + WIDESCREENWHY
-	values.MiniProgressBarX = values.MiniProgressBarX - WIDESCREENWHX
-	values.TargetTrackerY = values.TargetTrackerY + WIDESCREENWHY
-	values.TargetTrackerX = values.TargetTrackerX - WIDESCREENWHX
+	MovableValues.MiniProgressBarY = MovableValues.MiniProgressBarY + WIDESCREENWHY
+	MovableValues.MiniProgressBarX = MovableValues.MiniProgressBarX - WIDESCREENWHX
+	MovableValues.TargetTrackerY = MovableValues.TargetTrackerY + WIDESCREENWHY
+	MovableValues.TargetTrackerX = MovableValues.TargetTrackerX - WIDESCREENWHX
 end
 
 local usingReverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
@@ -437,7 +437,7 @@ local function updatetext(button)
 				prop ..
 				": " .. playerConfig:get_data(pn_to_profile_slot(PLAYER_1))[Movable[button].elementTree][keymode][fullProp]
 		else
-			text[#text + 1] = prop .. ": " .. values[fullProp]
+			text[#text + 1] = prop .. ": " .. MovableValues[fullProp]
 		end
 	end
 	Movable.message:settext(table.concat(text, "\n"))
@@ -495,10 +495,10 @@ function MovableInput(event)
 			if event.hellothisismouse then
 				newVal = event.val
 			else
-				newVal = values[prop] + (curKey.inc * ((curKey.notefieldY and not usingReverse) and -1 or 1))
+				newVal = MovableValues[prop] + (curKey.inc * ((curKey.notefieldY and not usingReverse) and -1 or 1))
 			end
 			
-			values[prop] = newVal
+			MovableValues[prop] = newVal
 			if curKey.arbitraryFunction then
 				curKey.arbitraryFunction(newVal)
 			elseif current.children then
