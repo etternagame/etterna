@@ -110,7 +110,6 @@ end
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
 
 local screen  -- the screen after it is loaded
-local messageBox  -- the message box from when you try to move something
 
 local WIDESCREENWHY = -5
 local WIDESCREENWHX = -5
@@ -178,603 +177,10 @@ local function froot(loop)
 	end
 end
 ]]
---[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-												**Main listener that moves and resizes things**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-]]
 local function arbitraryErrorBarValue(value)
 	errorBarFrameWidth = capWideScale(get43size(value), value)
 	wscale = errorBarFrameWidth / 180
-end
-
-local propsFunctions = {
-	X = x,
-	Y = y,
-	Zoom = Zoomm,
-	Height = Zoomtoheight,
-	Width = Zoomtowidth,
-	AddX = addx,
-	AddY = addy
-}
-
-local movable = {
-	current = "None",
-	pressed = false,
-	DeviceButton_1 = {
-		name = "Judge",
-		textHeader = "Judgment Label Position:",
-		properties = {"X", "Y"},
-		elementTree = "GameplayXYCoordinates",
-		external = true,
-		condition = true
-	},
-	DeviceButton_2 = {
-		name = "Judge",
-		textHeader = "Judgment Label Size:",
-		properties = {"Zoom"},
-		elementTree = "GameplaySizes",
-		external = true,
-		condition = true
-	},
-	DeviceButton_3 = {
-		name = "Combo",
-		textHeader = "Combo Position:",
-		properties = {"X", "Y"},
-		elementTree = "GameplayXYCoordinates",
-		external = true,
-		condition = true
-	},
-	DeviceButton_4 = {
-		name = "Combo",
-		textHeader = "Combo Size:",
-		properties = {"Zoom"},
-		elementTree = "GameplaySizes",
-		external = true,
-		condition = true
-	},
-	DeviceButton_5 = {
-		name = "ErrorBar",
-		textHeader = "Error Bar Position:",
-		element = {}, -- initialized later
-		properties = {"X", "Y"},
-		children = {"Center", "WeightedBar", "Border"},
-		elementTree = "GameplayXYCoordinates",
-		condition = enabledErrorBar ~= 0,
-		DeviceButton_up = {
-			property = "Y",
-			inc = -5
-		},
-		DeviceButton_down = {
-			property = "Y",
-			inc = 5
-		},
-		DeviceButton_left = {
-			property = "X",
-			inc = -5
-		},
-		DeviceButton_right = {
-			property = "X",
-			inc = 5
-		}
-	},
-	DeviceButton_6 = {
-		name = "ErrorBar",
-		textHeader = "Error Bar Size:",
-		element = {},
-		properties = {"Width", "Height"},
-		children = {"Center", "WeightedBar"},
-		elementTree = "GameplaySizes",
-		condition = enabledErrorBar ~= 0,
-		DeviceButton_up = {
-			property = "Height",
-			inc = 1
-		},
-		DeviceButton_down = {
-			property = "Height",
-			inc = -1
-		},
-		DeviceButton_left = {
-			arbitraryFunction = arbitraryErrorBarValue,
-			property = "Width",
-			inc = -10
-		},
-		DeviceButton_right = {
-			arbitraryFunction = arbitraryErrorBarValue,
-			property = "Width",
-			inc = 10
-		}
-	},
-	DeviceButton_7 = {
-		name = "TargetTracker",
-		textHeader = "Goal Tracker Position:",
-		element = {},
-		properties = {"X", "Y"},
-		-- no children so the changes are applied to the element itself
-		elementTree = "GameplayXYCoordinates",
-		condition = enabledTargetTracker,
-		DeviceButton_up = {
-			property = "Y",
-			inc = -5
-		},
-		DeviceButton_down = {
-			property = "Y",
-			inc = 5
-		},
-		DeviceButton_left = {
-			property = "X",
-			inc = -5
-		},
-		DeviceButton_right = {
-			property = "X",
-			inc = 5
-		}
-	},
-	DeviceButton_8 = {
-		name = "TargetTracker",
-		textHeader = "Goal Tracker Size:",
-		element = {},
-		properties = {"Zoom"},
-		elementTree = "GameplaySizes",
-		condition = enabledTargetTracker,
-		DeviceButton_up = {
-			property = "Zoom",
-			inc = 0.01
-		},
-		DeviceButton_down = {
-			property = "Zoom",
-			inc = -0.01
-		}
-	},
-	DeviceButton_9 = {
-		name = "FullProgressBar",
-		textHeader = "Full Progress Bar Position:",
-		element = {},
-		properties = {"X", "Y"},
-		elementTree = "GameplayXYCoordinates",
-		condition = enabledFullBar,
-		DeviceButton_up = {
-			property = "Y",
-			inc = -3
-		},
-		DeviceButton_down = {
-			property = "Y",
-			inc = 3
-		},
-		DeviceButton_left = {
-			property = "X",
-			inc = -5
-		},
-		DeviceButton_right = {
-			property = "X",
-			inc = 5
-		}
-	},
-	DeviceButton_0 = {
-		name = "FullProgressBar",
-		textHeader = "Full Progress Bar Size:",
-		element = {},
-		properties = {"Width", "Height"},
-		elementTree = "GameplaySizes",
-		condition = enabledFullBar,
-		noBorder = true,
-		DeviceButton_up = {
-			property = "Height",
-			inc = 0.1
-		},
-		DeviceButton_down = {
-			property = "Height",
-			inc = -0.1
-		},
-		DeviceButton_left = {
-			property = "Width",
-			inc = -0.01
-		},
-		DeviceButton_right = {
-			property = "Width",
-			inc = 0.01
-		}
-	},
-	DeviceButton_q = {
-		name = "MiniProgressBar",
-		textHeader = "Mini Progress Bar Position:",
-		element = {},
-		properties = {"X", "Y"},
-		elementTree = "GameplayXYCoordinates",
-		condition = enabledMiniBar,
-		DeviceButton_up = {
-			property = "Y",
-			inc = -5
-		},
-		DeviceButton_down = {
-			property = "Y",
-			inc = 5
-		},
-		DeviceButton_left = {
-			property = "X",
-			inc = -5
-		},
-		DeviceButton_right = {
-			property = "X",
-			inc = 5
-		}
-	},
-	DeviceButton_w = {
-		name = "DisplayPercent",
-		textHeader = "Current Percent Position:",
-		element = {},
-		properties = {"X", "Y"},
-		elementTree = "GameplayXYCoordinates",
-		condition = enabledDisplayPercent,
-		DeviceButton_up = {
-			property = "Y",
-			inc = -5
-		},
-		DeviceButton_down = {
-			property = "Y",
-			inc = 5
-		},
-		DeviceButton_left = {
-			property = "X",
-			inc = -5
-		},
-		DeviceButton_right = {
-			property = "X",
-			inc = 5
-		}
-	},
-	DeviceButton_e = {
-		name = "DisplayPercent",
-		textHeader = "Current Percent Size:",
-		element = {},
-		properties = {"Zoom"},
-		elementTree = "GameplaySizes",
-		condition = enabledDisplayPercent,
-		DeviceButton_up = {
-			property = "Zoom",
-			inc = 0.01
-		},
-		DeviceButton_down = {
-			property = "Zoom",
-			inc = -0.01
-		}
-	},
-	DeviceButton_r = {
-		name = "Notefield",
-		textHeader = "Notefield Position:",
-		element = {},
-		properties = {"X", "Y"},
-		elementTree = "GameplayXYCoordinates",
-		condition = true,
-		DeviceButton_up = {
-			notefieldY = true,
-			property = "AddY",
-			inc = -3
-		},
-		DeviceButton_down = {
-			notefieldY = true,
-			property = "AddY",
-			inc = 3
-		},
-		DeviceButton_left = {
-			property = "AddX",
-			inc = -3
-		},
-		DeviceButton_right = {
-			property = "AddX",
-			inc = 3
-		}
-	},
-	DeviceButton_t = {
-		name = "Notefield",
-		textHeader = "Notefield Size:",
-		element = {},
-		elementList = true, -- god bless the notefield
-		properties = {"Width", "Height"},
-		elementTree = "GameplaySizes",
-		condition = true,
-		DeviceButton_up = {
-			property = "Height",
-			inc = 0.01
-		},
-		DeviceButton_down = {
-			property = "Height",
-			inc = -0.01
-		},
-		DeviceButton_left = {
-			property = "Width",
-			inc = -0.01
-		},
-		DeviceButton_right = {
-			property = "Width",
-			inc = 0.01
-		}
-	},
-	DeviceButton_p = {
-		name = "JudgeCounter",
-		textHeader = "Judge Counter Position:",
-		element = {},
-		properties = {"X", "Y"},
-		elementTree = "GameplayXYCoordinates",
-		condition = enabledJudgeCounter,
-		DeviceButton_up = {
-			property = "Y",
-			inc = -3
-		},
-		DeviceButton_down = {
-			property = "Y",
-			inc = 3
-		},
-		DeviceButton_left = {
-			property = "X",
-			inc = -3
-		},
-		DeviceButton_right = {
-			property = "X",
-			inc = 3
-		}
-	},
-	DeviceButton_a = {
-		name = "Leaderboard",
-		textHeader = "Leaderboard Position:",
-		properties = {"X", "Y"},
-		elementTree = "GameplayXYCoordinates",
-		external = true,
-		condition = leaderboardEnabled
-	},
-	DeviceButton_s = {
-		name = "Leaderboard",
-		textHeader = "Leaderboard Size:",
-		properties = {"Width", "Height"},
-		elementTree = "GameplaySizes",
-		external = true,
-		condition = leaderboardEnabled
-	},
-	DeviceButton_d = {
-		name = "Leaderboard",
-		textHeader = "Leaderboard Spacing:",
-		properties = {"Spacing"},
-		elementTree = "GameplaySizes",
-		external = true,
-		condition = leaderboardEnabled
-	},
-	DeviceButton_f = {
-		name = "ReplayButtons",
-		textHeader = "Replay Buttons Position:",
-		properties = {"X", "Y"},
-		elementTree = "GameplayXYCoordinates",
-		external = true,
-		condition = isReplay
-	},
-	DeviceButton_g = {
-		name = "ReplayButtons",
-		textHeader = "Replay Buttons Size:",
-		properties = {"Zoom"},
-		elementTree = "GameplaySizes",
-		external = true,
-		condition = isReplay
-	},
-	DeviceButton_h = {
-		name = "ReplayButtons",
-		textHeader = "Replay Buttons Spacing:",
-		properties = {"Spacing"},
-		elementTree = "GameplaySizes",
-		external = true,
-		condition = isReplay
-	},
-}
-
-local function updatetext(button)
-	local text = {movable[button].textHeader}
-	for _, prop in ipairs(movable[button].properties) do
-		local fullProp = movable[button].name .. prop
-		if movable[button].external then
-			text[#text + 1] =
-				prop ..
-				": " .. playerConfig:get_data(pn_to_profile_slot(PLAYER_1))[movable[button].elementTree][keymode][fullProp]
-		else
-			text[#text + 1] = prop .. ": " .. values[fullProp]
-		end
-	end
-	
-	messageBox:GetChild("message"):settext(table.concat(text, "\n"))
-	messageBox:GetChild("message"):visible(movable.pressed)
-end
-
-local function input(event)
-	if getAutoplay() ~= 0 then
-		-- this will eat any other mouse input than a right click (toggle)
-		-- so we don't have to worry about anything weird happening with the ersatz inputs -mina
-		if event.DeviceInput.is_mouse then	
-			if event.DeviceInput.button == "DeviceButton_right mouse button" then
-				movable.current = "None"
-				movable.pressed = false
-				messageBox:GetChild("message"):visible(movable.pressed)
-			end
-			return 
-		end
-
-		local button = event.DeviceInput.button	
-		event.hellothisismouse = event.hellothisismouse and true or false -- so that's why bools kept getting set to nil -mina
-		local notReleased = not (event.type == "InputEventType_Release")
-		-- changed to toggle rather than hold down -mina
-		if (movable[button] and movable[button].condition and notReleased) or event.hellothisismouse then
-			movable.pressed = not movable.pressed or event.hellothisismouse	-- this stuff is getting pretty hacky now -mina
-			if movable.current ~= event.DeviceInput.button and not event.hellothisismouse then
-				movable.pressed = true	-- allow toggling using the kb to directly move to a different key rather than forcing an untoggle first -mina
-			end
-			movable.current = button
-			if not movable.pressed then 
-				movable.current = "None"
-			end
-			updatetext(button)	-- this will only update the text when the toggles occur
-		end
-		
-		local current = movable[movable.current]
-
-		-- left/right move along the x axis and up/down along the y; set them directly here -mina
-		if event.hellothisismouse then
-			if event.axis == "x" then
-				button = "DeviceButton_left"
-			else
-				button = "DeviceButton_up"
-			end
-			movable.pressed = true	-- we need to do this or the mouse input facsimile will toggle on when moving x, and off when moving y
-		end
-		
-		if movable.pressed and current[button] and current.condition and notReleased and current.external == nil then
-			local curKey = current[button]
-			local keyProperty = curKey.property
-			local prop = current.name .. string.gsub(keyProperty, "Add", "")
-			local newVal
-
-			-- directly set newval if we're using the mouse -mina
-			if event.hellothisismouse then
-				newVal = event.val
-			else
-				newVal = values[prop] + (curKey.inc * ((curKey.notefieldY and not usingReverse) and -1 or 1))
-			end
-			
-			values[prop] = newVal
-			if curKey.arbitraryFunction then
-				curKey.arbitraryFunction(newVal)
-			elseif current.children then
-				for _, attribute in ipairs(current.children) do
-					propsFunctions[curKey.property](current.element[attribute], newVal)
-				end
-			elseif current.elementList then
-				for _, elem in ipairs(current.element) do
-					propsFunctions[keyProperty](elem, newVal)
-				end
-			elseif keyProperty == "AddX" or keyProperty == "AddY" then
-				propsFunctions[keyProperty](current.element, curKey.inc)
-			else
-				propsFunctions[keyProperty](current.element, newVal)
-			end
-
-			if not current.noBorder then
-				local border = movable[movable.current]["Border"]
-				if keyProperty == "Height" or keyProperty == "Width" or keyProperty == "Zoom" then
-					border:playcommand("Change" .. keyProperty, {val = newVal} )
-				end
-			end
-
-			if not event.hellothisismouse then
-				updatetext(movable.current)	-- updates text when keyboard movements are made (mouse already updated)
-			end
-			playerConfig:get_data(pn_to_profile_slot(PLAYER_1))[current.elementTree][keymode][prop] = newVal
-			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-			playerConfig:save(pn_to_profile_slot(PLAYER_1))
-		end
-	end
-	return false
-end
-
--- more assumptions here about hierarchy, alignment
--- halign(1):valign(0) is for hal == 1 and halign(0):valign(1) otherwise, yes i know this could be done better/automatically -mina
-local function setbordersfortext(self, hal)
-	if allowedCustomization then
-		self:GetParent():GetChild("Border"):playcommand("ChangeWidth", {val = self:GetZoomedWidth()})
-		self:GetParent():GetChild("Border"):playcommand("ChangeHeight", {val = self:GetZoomedHeight()})
-		self:GetParent():GetChild("Border"):playcommand("ChangeZoom", {val = self:GetParent():GetZoom()})
-	end
-	if hal == 1 then
-		self:xy(self:GetZoomedWidth()/2, -self:GetZoomedHeight()/2*1.04 )
-	else 
-		self:xy(-self:GetZoomedWidth()/2, self:GetZoomedHeight()/2*1.04 )
-	end
-end
-
--- this is supreme lazy -mina
-local function elementtobutton(name)
-	for k,v in pairs(movable) do
-		if type(v) == 'table' and v.name == name and v.properties[1] == "X" then
-			return k
-		end
-	end
-end
-
-local function bordermousereact(self)
-	self:queuecommand("mousereact")
-end
-
-local function movewhendragged(self)
-	-- this is a somewhat dangerous hierarchical assumption but it should help us get organied in the short term -mina
-	local b = elementtobutton(self:GetParent():GetParent():GetName())
-	if isOver(self) or (movable.pressed and movable.current == b) then
-		if movable.pressed and movable.current == b then
-			self:GetParent():diffusealpha(0.75)	-- this is active
-		else
-			self:GetParent():diffusealpha(0.35)	-- this has been moused over
-		end
-
-		-- second half of the expr stops elements from being activated if you mouse over them while moving something else
-		if INPUTFILTER:IsBeingPressed("Mouse 0", "Mouse") and (movable.current == b or movable.current == "None") then
-			local nx = Round(INPUTFILTER:GetMouseX())
-			local ny = Round(INPUTFILTER:GetMouseY())
-			input({DeviceInput = {button = b}, hellothisismouse = true, axis = "x", val = nx})
-			input({DeviceInput = {button = b}, hellothisismouse = true, axis = "y", val = ny})
-		end
-	elseif movable.pressed then 
-		self:GetParent():diffusealpha(0.35)		-- something is active, but not this
-	else
-		self:GetParent():diffusealpha(0.1)		-- nothing is active and this is not moused over
-	end
-end
-
--- border function in use -mina
-local function Border(width, height, bw, x, y)
-	if not allowedCustomization then return end	-- we don't want to be loading all this garbage if we aren't in customization
-	return Def.ActorFrame {
-		Name = "Border",
-		InitCommand=function(self)
-			self:xy(x,y):diffusealpha(0)
-			self:SetUpdateFunction(bordermousereact)
-		end,
-		ChangeWidthCommand=function(self, params)
-			self:GetChild("xbar"):zoomx(params.val)
-			self:GetChild("showybox"):zoomx(params.val)
-			self:GetChild("hideybox"):zoomx(params.val-2*bw)
-		end,
-		ChangeHeightCommand=function(self, params)
-			self:GetChild("ybar"):zoomy(params.val)
-			self:GetChild("showybox"):zoomy(params.val)
-			self:GetChild("hideybox"):zoomy(params.val-2*bw)
-		end,
-		ChangeZoomCommand=function(self,params)
-			local wot = self:GetZoom()/(1/params.val)
-			self:zoom(1/params.val)
-			self:playcommand("ChangeWidth", {val = self:GetChild("showybox"):GetZoomX() * wot})
-			self:playcommand("ChangeHeight", {val = self:GetChild("showybox"):GetZoomY() * wot})
-		end,
-		Def.Quad {
-			Name = "xbar",
-			InitCommand=function(self)
-				self:zoomto(width,bw):diffusealpha(0.5)	-- did not realize this was multiplicative with parent's value -mina
-			end
-		},
-		Def.Quad {
-			Name = "ybar",
-			InitCommand=function(self)
-				self:zoomto(bw,height):diffusealpha(0.5)
-			end
-		},
-		Def.Quad {
-			Name = "hideybox",
-			InitCommand=function(self)
-				self:zoomto(width-2*bw, height-2*bw):MaskSource(true)
-			end
-		},
-		Def.Quad {
-			Name = "showybox",
-			InitCommand=function(self)
-				self:zoomto(width,height):MaskDest()
-			end,
-			mousereactCommand=function(self)
-				movewhendragged(self)	-- this quad owns the mouse movement function -mina
-			end
-		},
-	}
 end
 
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -804,17 +210,16 @@ local t =
 		--[[if SCREENMAN:GetTopScreen():GetName() == "ScreenGameplay" then
 			SCREENMAN:GetTopScreen():AddInputCallback(froot)
 		end]]
-		if (allowedCustomization) then
-			SCREENMAN:GetTopScreen():AddInputCallback(input)
-		end
 		screen = SCREENMAN:GetTopScreen()
 		usingReverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
 		Notefield = screen:GetChild("PlayerP1"):GetChild("NoteField")
 		Notefield:addy(values.NotefieldY * (usingReverse and 1 or -1))
 		Notefield:addx(values.NotefieldX)
-		movable.DeviceButton_r.element = Notefield
 		noteColumns = Notefield:get_column_actors()
-		movable.DeviceButton_t.element = noteColumns
+		if (allowedCustomization) then
+			Movable.DeviceButton_r.element = Notefield
+			Movable.DeviceButton_t.element = noteColumns
+		end
 		for i, actor in ipairs(noteColumns) do
 			actor:zoomtowidth(values.NotefieldWidth)
 			actor:zoomtoheight(values.NotefieldHeight)
@@ -858,12 +263,14 @@ GAMESTATE:GetPlayerState(PLAYER_1):SetTargetGoal(target / 100)
 local d = Def.ActorFrame {
 	Name = "TargetTracker",
 	InitCommand = function(self)
-		movable.DeviceButton_7.element = self
-		movable.DeviceButton_8.element = self
-		movable.DeviceButton_8.Border = self:GetChild("Border")
+		if (allowedCustomization) then
+			Movable.DeviceButton_7.element = self
+			Movable.DeviceButton_8.element = self
+			Movable.DeviceButton_8.Border = self:GetChild("Border")
+		end
 		self:xy(values.TargetTrackerX, values.TargetTrackerY):zoom(values.TargetTrackerZoom)
 	end,
-	Border(100,13, 1, 0, 0)
+	MovableBorder(100,13, 1, 0, 0)
 }
 
 if targetTrackerMode == 0 then
@@ -873,7 +280,9 @@ if targetTrackerMode == 0 then
 			InitCommand = function(self)
 				self:halign(0):valign(1)
 				self:settextf("%5.2f (%5.2f%%)", -100, 100)
-				setbordersfortext(self, 0)
+				if (allowedCustomization) then
+					setBordersForText(self, 0)
+				end
 				self:settextf("")
 			end,
 			JudgmentMessageCommand = function(self, msg)
@@ -893,7 +302,9 @@ else
 			InitCommand = function(self)
 				self:halign(0):valign(1)
 				self:settextf("%5.2f (%5.2f%%)", -100, 100)
-				setbordersfortext(self, 0)
+				if (allowedCustomization) then
+					setBordersForText(self, 0)
+				end
 				self:settextf("")
 			end,
 			JudgmentMessageCommand = function(self, msg)
@@ -932,10 +343,12 @@ local cp =
 	Def.ActorFrame {
 	Name = "DisplayPercent",
 	InitCommand = function(self)
-		movable.DeviceButton_w.element = self
-		movable.DeviceButton_e.element = self
-		movable.DeviceButton_w.Border = self:GetChild("Border")
-		movable.DeviceButton_e.Border = self:GetChild("Border")
+		if (allowedCustomization) then
+			Movable.DeviceButton_w.element = self
+			Movable.DeviceButton_e.element = self
+			Movable.DeviceButton_w.Border = self:GetChild("Border")
+			Movable.DeviceButton_e.Border = self:GetChild("Border")
+		end
 		self:zoom(values.DisplayPercentZoom):x(values.DisplayPercentX):y(values.DisplayPercentY)
 	end,
 	-- Displays your current percentage score
@@ -946,14 +359,16 @@ local cp =
 		end,
 		OnCommand = function(self)
 			self:settextf("%05.2f%%", -10000)
-			setbordersfortext(self, 1)
+			if (allowedCustomization) then
+				setBordersForText(self, 1)
+			end
 			self:settextf("%05.2f%%", 0)
 		end,
 		JudgmentMessageCommand = function(self, msg)
 			self:settextf("%05.2f%%", Floor(msg.WifePercent * 100) / 100)
 		end
 	},
-	Border(100, 13, 1, 0, 0)
+	MovableBorder(100, 13, 1, 0, 0)
 }
 
 if enabledDisplayPercent then
@@ -981,7 +396,9 @@ local j =
 	Def.ActorFrame {
 	Name = "JudgeCounter",
 	InitCommand = function(self)
-		movable.DeviceButton_p.element = self
+		if (allowedCustomization) then
+			Movable.DeviceButton_p.element = self
+		end
 		self:xy(values.JudgeCounterX, values.JudgeCounterY)
 	end,
 	OnCommand = function(self)
@@ -999,7 +416,7 @@ local j =
 			self:zoomto(frameWidth, frameHeight):diffuse(color("0,0,0,0.4"))
 		end
 	},
-	Border(frameWidth, frameHeight, 1, 0, 0) 
+	MovableBorder(frameWidth, frameHeight, 1, 0, 0) 
 }
 
 local function makeJudgeText(judge, index) -- Makes text
@@ -1077,10 +494,14 @@ local e =
 	Def.ActorFrame {
 	Name = "ErrorBar",
 	InitCommand = function(self)
-		movable.DeviceButton_5.element = self:GetChildren()
-		movable.DeviceButton_6.element = self:GetChildren()
-		movable.DeviceButton_5.Border = self:GetChild("Border")
-		movable.DeviceButton_6.Border = self:GetChild("Border")
+		if (allowedCustomization) then
+			Movable.DeviceButton_5.element = self:GetChildren()
+			Movable.DeviceButton_6.element = self:GetChildren()
+			Movable.DeviceButton_5.Border = self:GetChild("Border")
+			Movable.DeviceButton_6.Border = self:GetChild("Border")
+			Movable.DeviceButton_6.DeviceButton_left.arbitraryFunction = arbitraryErrorBarValue
+			Movable.DeviceButton_6.DeviceButton_right.arbitraryFunction = arbitraryErrorBarValue
+		end
 		if enabledErrorBar == 1 then
 			for i = 1, barcount do -- basically the equivalent of using GetChildren() if it returned unnamed children numerically indexed
 				ingots[#ingots + 1] = self:GetChild(i)
@@ -1151,7 +572,7 @@ local e =
 				self:GetParent():queuecommand("Doot")
 			end
 		},
-		Border(values.ErrorBarWidth, values.ErrorBarHeight, 1, values.ErrorBarX, values.ErrorBarY)
+		MovableBorder(values.ErrorBarWidth, values.ErrorBarHeight, 1, values.ErrorBarX, values.ErrorBarY)
 }
 
 -- Initialize bars
@@ -1210,8 +631,10 @@ local p =
 		InitCommand = function(self)
 			self:xy(values.FullProgressBarX, values.FullProgressBarY)
 			self:zoomto(values.FullProgressBarWidth, values.FullProgressBarHeight)
-			movable.DeviceButton_9.element = self
-			movable.DeviceButton_0.element = self
+			if (allowedCustomization) then
+				Movable.DeviceButton_9.element = self
+				Movable.DeviceButton_0.element = self
+			end
 		end,
 		Def.Quad {
 			InitCommand = function(self)
@@ -1257,7 +680,7 @@ local p =
 				diffuse(self, byMusicLength(ttime))
 			end
 		},
-		Border(width, height, 1, 0, 0),
+		MovableBorder(width, height, 1, 0, 0),
 		replaySlider
 }
 
@@ -1281,8 +704,10 @@ local mb =
 	Name = "MiniProgressBar",
 	InitCommand = function(self)
 		self:xy(values.MiniProgressBarX, values.MiniProgressBarY)
-		movable.DeviceButton_q.element = self
-		movable.DeviceButton_q.Border = self:GetChild("Border")
+		if (allowedCustomization) then
+			Movable.DeviceButton_q.element = self
+			Movable.DeviceButton_q.Border = self:GetChild("Border")
+		end
 	end,
 	Def.Quad {
 		InitCommand = function(self)
@@ -1305,7 +730,7 @@ local mb =
 			end
 		}
 	},
-	Border(width, height, 1, 0, 0)
+	MovableBorder(width, height, 1, 0, 0)
 }
 
 if enabledMiniBar then
@@ -1406,69 +831,5 @@ t[#t + 1] = LoadActor("npscalc")
 
 	ditto
 ]]
---[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-													**Message boxes for moving things**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	offset window esque boxes so its more intuitive to use the moving feature
-]]
-if (allowedCustomization) then
-	t[#t + 1] =
-		Def.ActorFrame {
-		InitCommand = function(self)
-			messageBox = self
-		end,
-		Def.BitmapText {
-			Name = "message",
-			Font = "Common Normal",
-			InitCommand = function(self)
-				self:horizalign(left):vertalign(top):shadowlength(2):xy(10, 20):zoom(.5):visible(false)
-			end
-		},
-		Def.BitmapText {
-			Name = "Instructions",
-			Font = "Common Normal",
-			InitCommand = function(self)
-				self:horizalign(left):vertalign(top):xy(SCREEN_WIDTH - 240, 20):zoom(.5):visible(true)
-			end,
-			OnCommand = function(self)
-				local text = {
-					"Enable AutoplayCPU with shift+f8\n",
-					"Press keys to toggle active elements",
-					"Right click cancels any active element\n",
-					"1: Judgement Text Position",
-					"2: Judgement Text Size",
-					"3: Combo Text Position",
-					"4: Combo Text Size",
-					"5: Error Bar Text Position",
-					"6: Error Bar Text Size",
-					"7: Target Tracker Text Position",
-					"8: Target Tracker Text Size",
-					"9: Full Progress Bar Position",
-					"0: Full Progress Bar Size",
-					"q: Mini Progress Bar Position",
-					"w: Display Percent Text Position",
-					"e: Display Percent Text Size",
-					"r: Notefield Position",
-					"t: Notefield Size",
-					"y: NPS Display Text Position",
-					"u: NPS Display Text Size",
-					"i: NPS Graph Position",
-					"o: NPS Graph Size",
-					"p: Judge Counter Position",
-					"a: Leaderboard Position",
-					"s: Leaderboard Size",
-					"d: Leaderboard Spacing",
-					"f: Replay Buttons Position",
-					"g: Replay Buttons Size",
-					"h: Replay Buttons Spacing"
-				}
-				if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover ~= 0 then
-					table.insert(text, "/: Lane Cover Height")
-				end
-				self:settext(table.concat(text, "\n"))
-			end
-		}
-	}
-end
 
 return t
