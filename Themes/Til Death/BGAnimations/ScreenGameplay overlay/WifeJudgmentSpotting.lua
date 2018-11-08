@@ -1433,8 +1433,8 @@ if (allowedCustomization) then
 			OnCommand = function(self)
 				local text = {
 					"Enable AutoplayCPU with shift+f8\n",
-					"Hold the following and press the arrow",
-					"keys to alter the associated element\n",
+					"Press keys to toggle active elements",
+					"Right click cancels any active element\n",
 					"1: Judgement Text Position",
 					"2: Judgement Text Size",
 					"3: Combo Text Position",
