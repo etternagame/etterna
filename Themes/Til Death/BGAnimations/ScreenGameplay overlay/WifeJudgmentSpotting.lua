@@ -702,8 +702,8 @@ local function movewhendragged(self)
 
 		-- second half of the expr stops elements from being activated if you mouse over them while moving something else
 		if INPUTFILTER:IsBeingPressed("Mouse 0", "Mouse") and (movable.current == b or movable.current == "None") then
-			local nx = INPUTFILTER:GetMouseX()
-			local ny = INPUTFILTER:GetMouseY()
+			local nx = Round(INPUTFILTER:GetMouseX())
+			local ny = Round(INPUTFILTER:GetMouseY())
 			input({DeviceInput = {button = b}, hellothisismouse = true, axis = "x", val = nx})
 			input({DeviceInput = {button = b}, hellothisismouse = true, axis = "y", val = ny})
 		end
