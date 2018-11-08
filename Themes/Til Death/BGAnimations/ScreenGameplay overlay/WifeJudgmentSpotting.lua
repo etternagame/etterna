@@ -357,6 +357,7 @@ local movable = {
 		properties = {"Width", "Height"},
 		elementTree = "GameplaySizes",
 		condition = enabledFullBar,
+		noBorder = true,
 		DeviceButton_up = {
 			property = "Height",
 			inc = 0.1
@@ -1211,7 +1212,6 @@ local p =
 			self:zoomto(values.FullProgressBarWidth, values.FullProgressBarHeight)
 			movable.DeviceButton_9.element = self
 			movable.DeviceButton_0.element = self
-			movable.DeviceButton_0.Border = self:GetChild("Border")
 		end,
 		Def.Quad {
 			InitCommand = function(self)
