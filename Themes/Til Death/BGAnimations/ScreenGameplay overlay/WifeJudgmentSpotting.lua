@@ -670,11 +670,16 @@ local function input(event)
 end
 
 -- more assumptions here about hierarchy, alignment
-local function setbordersfortext(self)
+-- halign(1):valign(0) is for hal == 1 and halign(0):valign(1) otherwise, yes i know this could be done better/automatically -mina
+local function setbordersfortext(self, hal)
 	self:GetParent():GetChild("Border"):playcommand("ChangeWidth", {val = self:GetZoomedWidth()})
 	self:GetParent():GetChild("Border"):playcommand("ChangeHeight", {val = self:GetZoomedHeight()})
 	self:GetParent():GetChild("Border"):playcommand("ChangeZoom", {val = self:GetParent():GetZoom()})
-	self:xy(self:GetZoomedWidth()/2, -self:GetZoomedHeight()/2*1.04 )
+	if hal == 1 then
+		self:xy(self:GetZoomedWidth()/2, -self:GetZoomedHeight()/2*1.04 )
+	else 
+		self:xy(-self:GetZoomedWidth()/2, self:GetZoomedHeight()/2*1.04 )
+	end
 end
 
 -- this is supreme lazy -mina
@@ -863,11 +868,11 @@ if targetTrackerMode == 0 then
 		LoadFont("Common Normal") .. {
 			Name = "PercentDifferential",
 			InitCommand = function(self)
-				self:halign(1):valign(0)
+				self:halign(0):valign(1)
 				if allowedCustomization then
 					self:settextf("%5.2f (%5.2f%%)", -100, 100)
 					diffuse(self, negative)
-					setbordersfortext(self)
+					setbordersfortext(self, 0)
 				end
 			end,
 			JudgmentMessageCommand = function(self, msg)
@@ -885,11 +890,11 @@ else
 		LoadFont("Common Normal") .. {
 			Name = "PBDifferential",
 			InitCommand = function(self)
-				self:halign(1):valign(0)
+				self:halign(0):valign(1)
 				if allowedCustomization then
 					self:settextf("%5.2f (%5.2f%%)", -100, 100)
 					diffuse(self, negative)
-					setbordersfortext(self)
+					setbordersfortext(self, 0)
 				end
 			end,
 			JudgmentMessageCommand = function(self, msg)
@@ -949,7 +954,7 @@ local cp =
 			self:settextf("%05.2f%%", 0)
 			if allowedCustomization then
 				self:settextf("%05.2f%%", -10000)
-				setbordersfortext(self)
+				setbordersfortext(self, 1)
 				self:settextf("%05.2f%%", 0)
 			end
 		end,
