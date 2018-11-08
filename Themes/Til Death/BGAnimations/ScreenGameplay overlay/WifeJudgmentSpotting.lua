@@ -672,9 +672,11 @@ end
 -- more assumptions here about hierarchy, alignment
 -- halign(1):valign(0) is for hal == 1 and halign(0):valign(1) otherwise, yes i know this could be done better/automatically -mina
 local function setbordersfortext(self, hal)
-	self:GetParent():GetChild("Border"):playcommand("ChangeWidth", {val = self:GetZoomedWidth()})
-	self:GetParent():GetChild("Border"):playcommand("ChangeHeight", {val = self:GetZoomedHeight()})
-	self:GetParent():GetChild("Border"):playcommand("ChangeZoom", {val = self:GetParent():GetZoom()})
+	if allowedCustomization then
+		self:GetParent():GetChild("Border"):playcommand("ChangeWidth", {val = self:GetZoomedWidth()})
+		self:GetParent():GetChild("Border"):playcommand("ChangeHeight", {val = self:GetZoomedHeight()})
+		self:GetParent():GetChild("Border"):playcommand("ChangeZoom", {val = self:GetParent():GetZoom()})
+	end
 	if hal == 1 then
 		self:xy(self:GetZoomedWidth()/2, -self:GetZoomedHeight()/2*1.04 )
 	else 
@@ -869,11 +871,9 @@ if targetTrackerMode == 0 then
 			Name = "PercentDifferential",
 			InitCommand = function(self)
 				self:halign(0):valign(1)
-				if allowedCustomization then
-					self:settextf("%5.2f (%5.2f%%)", -100, 100)
-					diffuse(self, negative)
-					setbordersfortext(self, 0)
-				end
+				self:settextf("%5.2f (%5.2f%%)", -100, 100)
+				setbordersfortext(self, 0)
+				self:settextf("")
 			end,
 			JudgmentMessageCommand = function(self, msg)
 				local tDiff = msg.WifeDifferential
@@ -891,11 +891,9 @@ else
 			Name = "PBDifferential",
 			InitCommand = function(self)
 				self:halign(0):valign(1)
-				if allowedCustomization then
-					self:settextf("%5.2f (%5.2f%%)", -100, 100)
-					diffuse(self, negative)
-					setbordersfortext(self, 0)
-				end
+				self:settextf("%5.2f (%5.2f%%)", -100, 100)
+				setbordersfortext(self, 0)
+				self:settextf("")
 			end,
 			JudgmentMessageCommand = function(self, msg)
 				local tDiff = msg.WifePBDifferential
@@ -939,11 +937,6 @@ local cp =
 		movable.DeviceButton_e.Border = self:GetChild("Border")
 		self:zoom(values.DisplayPercentZoom):x(values.DisplayPercentX):y(values.DisplayPercentY)
 	end,
-	Def.Quad { 
-		InitCommand = function(self) 
-		  self:zoomto(80, 13):diffuse(color("0,0,0,0.4"))
-		end,
-	  }, 
 	-- Displays your current percentage score
 	LoadFont("Common Large") .. {
 		Name = "DisplayPercent",
@@ -951,12 +944,9 @@ local cp =
 			self:zoom(0.3):halign(1):valign(0)
 		end,
 		OnCommand = function(self)
+			self:settextf("%05.2f%%", -10000)
+			setbordersfortext(self, 1)
 			self:settextf("%05.2f%%", 0)
-			if allowedCustomization then
-				self:settextf("%05.2f%%", -10000)
-				setbordersfortext(self, 1)
-				self:settextf("%05.2f%%", 0)
-			end
 		end,
 		JudgmentMessageCommand = function(self, msg)
 			self:settextf("%05.2f%%", Floor(msg.WifePercent * 100) / 100)
