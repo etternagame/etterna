@@ -10,12 +10,12 @@ local nestedTab = 1
 local nestedTabs = {"Local", "Online"}
 
 local frameX = 10
-local frameY = 45
+local frameY = 40
 local frameWidth = SCREEN_WIDTH * 0.56
-local frameHeight = 350
+local frameHeight = 368
 local fontScale = 0.4
 local offsetX = 10
-local offsetY = 30
+local offsetY = 20
 local netScoresPerPage = 8
 local netScoresCurrentPage = 1
 local nestedTabButtonWidth = 153
@@ -98,7 +98,7 @@ local ret =
 	Def.ActorFrame {
 	BeginCommand = function(self)
 		self:queuecommand("Set"):visible(false)
-		self:GetChild("LocalScores"):visible(false)
+		self:GetChild("LocalScores"):xy(frameX, frameY):visible(false)
 		self:GetChild("ScoreDisplay"):xy(frameX, frameY):visible(false)
 
 		if FILTERMAN:oopsimlazylol() then -- set saved position and auto collapse
@@ -120,6 +120,9 @@ local ret =
 	SetCommand = function(self)
 		self:finishtweening(1)
 		if getTabIndex() == 2 then -- switching to this tab
+			if nestedTab == 2 then
+				self:GetParent():GetChild("StepsDisplay"):visible(false)
+			end
 			if collapsed then -- expand if collaped
 				self:queuecommand("Expand")
 			else
@@ -201,7 +204,6 @@ local t =
 	Name = "LocalScores",
 	InitCommand = function(self)
 		rtTable = nil
-		self:xy(frameX + offsetX, frameY + offsetY + headeroffY)
 		self:SetUpdateFunction(highlight)
 		cheese = self
 	end,
@@ -266,7 +268,7 @@ local t =
 	Def.Quad {
 		Name = "FrameDisplay",
 		InitCommand = function(self)
-			self:xy(-frameX, -headeroffY - offsetY):zoomto(frameWidth, frameHeight):halign(0):valign(0):diffuse(
+			self:zoomto(frameWidth, frameHeight):halign(0):valign(0):diffuse(
 				color("#333333CC")
 			)
 		end,
@@ -279,7 +281,20 @@ local t =
 	}
 }
 
+-- header bar
 t[#t + 1] =
+	Def.Quad {
+	InitCommand = function(self)
+		self:zoomto(frameWidth, offsetY):halign(0):valign(0):diffuse(getMainColor("frames")):diffusealpha(
+			0.5
+		)
+	end
+}
+
+local l = Def.ActorFrame{	-- stuff inside the frame.. so we can move it all at once
+	InitCommand=function(self)
+		self:xy(offsetX, offsetY+headeroffY)
+	end,
 	LoadFont("Common Large") ..
 	{
 		Name = "Grades",
@@ -290,10 +305,9 @@ t[#t + 1] =
 			self:settext(THEME:GetString("Grade", ToEnumShortString(score:GetWifeGrade())))
 			self:diffuse(getGradeColor(score:GetWifeGrade()))
 		end
-	}
+	},
 
 -- Wife display
-t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
 		Name = "Wife",
@@ -307,9 +321,9 @@ t[#t + 1] =
 				self:settextf("%05.2f%%", notShit.floor(score:GetWifeScore() * 10000) / 100):diffuse(byGrade(score:GetWifeGrade()))
 			end
 		end
-	}
+	},
 
-t[#t + 1] =
+
 	LoadFont("Common Normal") ..
 	{
 		Name = "Score",
@@ -324,9 +338,8 @@ t[#t + 1] =
 				self:settextf("%.2f", overall):diffuse(byMSD(overall))
 			end
 		end
-	}
+	},
 
-t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
 		Name = "ClearType",
@@ -339,9 +352,8 @@ t[#t + 1] =
 			self:settext(getClearTypeFromScore(pn, score, 0))
 			self:diffuse(getClearTypeFromScore(pn, score, 2))
 		end
-	}
+	},
 
-t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
 		Name = "Combo",
@@ -351,9 +363,9 @@ t[#t + 1] =
 		DisplayCommand = function(self)
 			self:settextf("Max Combo: %d", score:GetMaxCombo())
 		end
-	}
+	},
 
-t[#t + 1] =
+
 	LoadFont("Common Normal") ..
 	{
 		Name = "MissCount",
@@ -368,9 +380,8 @@ t[#t + 1] =
 				self:settext("Miss Count: -")
 			end
 		end
-	}
+	},
 
-t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
 		Name = "Date",
@@ -380,9 +391,7 @@ t[#t + 1] =
 		DisplayCommand = function(self)
 			self:settext("Date Achieved: " .. getScoreDate(score))
 		end
-	}
-
-t[#t + 1] =
+	},
 	LoadFont("Common Normal") ..
 	{
 		Name = "Mods",
@@ -392,28 +401,7 @@ t[#t + 1] =
 		DisplayCommand = function(self)
 			self:settext("Mods: " .. score:GetModifiers())
 		end
-	}
-
-t[#t + 1] =
-	LoadFont("Common Normal") ..
-	{
-		Name = "StepsAndMeter",
-		InitCommand = function(self)
-			self:xy(frameWidth - offsetX - frameX, 10):zoom(0.5):halign(1):queuecommand("Display")
-		end,
-		DisplayCommand = function(self)
-			if GAMESTATE:GetCurrentSong() then
-				local steps = GAMESTATE:GetCurrentSteps(pn)
-				local diff = getDifficulty(steps:GetDifficulty())
-				local stype = ToEnumShortString(steps:GetStepsType()):gsub("%_", " ")
-				local meter = steps:GetMeter()
-				self:settext(stype .. " " .. diff .. " " .. meter)
-				self:diffuse(getDifficultyColor(GetCustomDifficulty(steps:GetStepsType(), steps:GetDifficulty())))
-			end
-		end
-	}
-
-t[#t + 1] =
+	},
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
@@ -424,9 +412,7 @@ t[#t + 1] =
 		DisplayCommand = function(self)
 			self:settextf("Rate %s - Showing %d/%d", rates[rateIndex], scoreIndex, #rtTable[rates[rateIndex]])
 		end
-	}
-
-t[#t + 1] =
+	},
 	LoadFont("Common Normal") ..
 	{
 		Name = "ChordCohesion",
@@ -440,9 +426,7 @@ t[#t + 1] =
 				self:settext("Chord Cohesion: No")
 			end
 		end
-	}
-	
-t[#t + 1] =
+	},
 	LoadFont("Common Normal") .. {
 		Name = "Judge",
 		InitCommand = function(self)
@@ -454,29 +438,13 @@ t[#t + 1] =
 			self:settext("Judge "..j)
 		end
 	}
-
-t[#t + 1] =
-	Def.Quad {
-	Name = "ScrollBar",
-	InitCommand = function(self)
-		self:x(frameWidth - frameX):zoomto(4, 0):halign(1):valign(1):diffuse(getMainColor("highlight")):diffusealpha(0.75)
-	end,
-	ScoreUpdateMessageCommand = function(self)
-		self:queuecommand("Set")
-	end,
-	DisplayCommand = function(self)
-		self:finishtweening()
-		self:smooth(0.2)
-		self:zoomy(((frameHeight) / #rtTable[rates[rateIndex]]))
-		self:y((((frameHeight) / #rtTable[rates[rateIndex]]) * scoreIndex) - headeroffY - offsetY)
-	end
 }
 
 local function makeText(index)
 	return LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(frameWidth - offsetX - frameX, offsetY + 15 + (index * 15)):zoom(fontScale + 0.05):halign(1):settext("")
+				self:xy(frameWidth - frameX, offsetY + 55 + (index * 15)):zoom(fontScale + 0.05):halign(1):settext("")
 			end,
 			DisplayCommand = function(self)
 				local count = 0
@@ -570,10 +538,10 @@ local function makeJudge(index, judge)
 end
 
 for i = 1, #judges do
-	t[#t + 1] = makeJudge(i, judges[i])
+	l[#l + 1] = makeJudge(i, judges[i])
 end
 
-t[#t + 1] =
+l[#l + 1] =
 	LoadFont("Common Normal") ..
 	{
 		Name = "Score",
@@ -598,7 +566,7 @@ t[#t + 1] =
 			end
 		end
 	}
-t[#t + 1] =
+l[#l + 1] =
 	LoadFont("Common Normal") ..
 	{
 		Name = "ReplayViewer",
@@ -623,7 +591,7 @@ t[#t + 1] =
 			end
 		end
 	}
-t[#t + 1] =
+l[#l + 1] =
 	LoadFont("Common Normal") ..
 	{
 		Name = "EvalViewer",
@@ -649,7 +617,7 @@ t[#t + 1] =
 		end
 	}
 
-t[#t + 1] =
+l[#l + 1] =
 	LoadFont("Common Normal") ..
 	{
 		Name = "TheDootButton",
@@ -675,21 +643,31 @@ t[#t + 1] =
 			end
 		end
 	}
+t[#t + 1] = l
 
--- matches the built-in online score header
-t[#t + 1] =
-	Def.Quad {
+t[#t+1] = Def.Quad {
+	Name = "ScrollBar",
 	InitCommand = function(self)
-		self:xy(-frameX / 2, -offsetY):zoomto(frameWidth - 10, 24):halign(0):diffuse(color("#111111"))
+		self:x(frameWidth):zoomto(4, 0):halign(1):valign(1):diffuse(getMainColor("highlight")):diffusealpha(0.75)
+	end,
+	ScoreUpdateMessageCommand = function(self)
+		self:queuecommand("Set")
+	end,
+	DisplayCommand = function(self)
+		self:finishtweening()
+		self:smooth(0.2)
+		self:zoomy(((frameHeight) / #rtTable[rates[rateIndex]]))
+		self:y((((frameHeight) / #rtTable[rates[rateIndex]]) * scoreIndex))
 	end
 }
+
 
 ret[#ret + 1] = t
 
 function nestedTabButton(i)
 	return Def.ActorFrame {
 		InitCommand = function(self)
-			self:xy(frameX + offsetX + (i - 1) * (nestedTabButtonWidth - capWideScale(100,80)), frameY + headeroffY)
+			self:xy(frameX + offsetX + (i - 1) * (nestedTabButtonWidth - capWideScale(100,80)), frameY + offsetY - 2)
 			self:SetUpdateFunction(highlight)
 		end,
 		CollapseCommand = function(self)
@@ -703,7 +681,7 @@ function nestedTabButton(i)
 				InitCommand = function(self)
 					self:diffuse(getMainColor("positive")):maxwidth(nestedTabButtonWidth - 80):maxheight(40):zoom(0.65):settext(
 						nestedTabs[i]
-					):halign(0)
+					):halign(0):valign(1)
 				end,
 				HighlightCommand = function(self)
 					if isOver(self) and nestedTab ~= i then
@@ -721,8 +699,10 @@ function nestedTabButton(i)
 						MESSAGEMAN:Broadcast("ChartLeaderboardUpdate")
 						if nestedTab == 1 then
 							self:GetParent():GetParent():GetChild("ScoreDisplay"):visible(false)
+							self:GetParent():GetParent():GetParent():GetChild("StepsDisplay"):visible(true)
 						else
 							self:GetParent():GetParent():GetChild("ScoreDisplay"):visible(true)
+							self:GetParent():GetParent():GetParent():GetChild("StepsDisplay"):visible(false)
 						end
 					end
 				end,

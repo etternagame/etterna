@@ -4,12 +4,12 @@ local ygap = 2
 local packspaceY = pdh + ygap
 local currentCountry = "Global"
 
-local numscores = 12
+local numscores = 13
 local ind = 0
 local offx = 5
 local width = SCREEN_WIDTH * 0.56
 local dwidth = width - offx * 2
-local height = (numscores + 2) * packspaceY
+local height = (numscores + 2) * packspaceY - 10
 
 local adjx = 14
 local c0x = 10
@@ -18,7 +18,7 @@ local c2x = c1x + (tzoom * 7 * adjx) -- guesswork adjustment for epxected text l
 local c5x = dwidth -- right aligned cols
 local c4x = c5x - adjx - (tzoom * 3 * adjx) -- right aligned cols
 local c3x = c4x - adjx - (tzoom * 10 * adjx) -- right aligned cols
-local headeroff = packspaceY / 1.5
+local headeroff = packspaceY / 2
 local row2yoff = 1
 local moving
 local cheese
@@ -150,7 +150,7 @@ local o =
 		c5x = dwidth
 		c4x = c5x - adjx - (tzoom * 3 * adjx)
 		c3x = c4x - adjx - (tzoom * 10 * adjx)
-		headeroff = packspaceY / 1.5
+		headeroff = packspaceY / 2
 		row2yoff = 1
 		collapsed = true
 		self:diffusealpha(0.8)
@@ -175,12 +175,12 @@ local o =
 		ygap = 2
 		packspaceY = pdh + ygap
 
-		numscores = 12
+		numscores = 13
 		ind = 0
 		offx = 5
 		width = SCREEN_WIDTH * 0.56
 		dwidth = width - offx * 2
-		height = (numscores + 2) * packspaceY
+		height = (numscores + 2) * packspaceY -10
 
 		adjx = 14
 		c0x = 10
@@ -221,28 +221,28 @@ local o =
 	Def.Quad {
 		Name = "HeaderBar",
 		InitCommand = function(self)
-			self:xy(offx, headeroff):zoomto(dwidth, pdh):halign(0):diffuse(color("#111111"))
+			self:zoomto(width, pdh - 8 * tzoom):halign(0):diffuse(getMainColor("frames")):diffusealpha(0.5):valign(0)
 		end
 	},
 	-- grabby thing
 	Def.Quad {
 		InitCommand = function(self)
-			self:xy(dwidth / 4, headeroff):zoomto(dwidth - dwidth / 4, pdh):halign(0):diffusealpha(1):diffuse(color("#111111"))
+			self:xy(dwidth / 4, headeroff):zoomto(dwidth - dwidth / 4, pdh - 8 * tzoom):halign(0):diffuse(getMainColor("frames")):diffusealpha(0.5):valign(1)
 		end,
 		WHAZZZAAAACommand = function(self)
 			if isOver(self) and collapsed then
 				self:diffusealpha(0.6):diffuse(color("#fafafa"))
 				if INPUTFILTER:IsBeingPressed("Mouse 0", "Mouse") then
-					self:diffusealpha(0):zoomto(400, 400)
+					self:diffusealpha(0):zoomto(400, 400):valign(0.5):halign(0.5)
 					local nx = INPUTFILTER:GetMouseX() - width / 2
 					local ny = INPUTFILTER:GetMouseY() - self:GetY()
 					self:GetParent():SaveXY(nx, ny) -- this can probably be wrapped for convenience -mina
 					self:GetParent():LoadXY()
 				else
-					self:zoomto(dwidth / 2, pdh / 2)
+					self:zoomto(dwidth / 2, pdh / 2):valign(1):halign(0)
 				end
 			else
-				self:diffusealpha(0):diffuse(color("#111111"))
+				self:diffuse(getMainColor("frames")):diffusealpha(0)
 			end
 		end
 	},
@@ -275,7 +275,7 @@ local o =
 		{
 			--current rate toggle
 			InitCommand = function(self)
-				self:xy(c5x, headeroff):zoom(tzoom):halign(1)
+				self:xy(c5x, headeroff):zoom(tzoom):halign(1):valign(1)
 			end,
 			HighlightCommand = function(self)
 				highlightIfOver(self)
@@ -300,9 +300,9 @@ local o =
 			--top score/all score toggle
 			InitCommand = function(self)
 				if collapsed then
-					self:xy(c5x - 175, headeroff):zoom(tzoom):halign(1)
+					self:xy(c5x - 175, headeroff):zoom(tzoom):halign(1):valign(1)
 				else
-					self:xy(c5x - 115, headeroff):zoom(tzoom):halign(1)
+					self:xy(c5x - 115, headeroff):zoom(tzoom):halign(1):valign(1)
 				end
 			end,
 			HighlightCommand = function(self)

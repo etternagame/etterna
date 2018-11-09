@@ -25,14 +25,13 @@ class StepsDisplayList : public ActorFrame
 	void TweenOffScreen();
 	void Hide();
 	void Show();
-
+	int GetCurrentRowIndex(PlayerNumber pn) const;
 	// Lua
 	void PushSelf(lua_State* L) override;
 
   private:
 	void UpdatePositions();
 	void PositionItems();
-	int GetCurrentRowIndex(PlayerNumber pn) const;
 	void HideRows();
 
 	ThemeMetric<float> ITEMS_SPACING_Y;

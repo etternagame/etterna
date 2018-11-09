@@ -1,7 +1,7 @@
 
 -- hurrrrr nps quadzapalooza -mina
 local imcrazy = 500
-local wodth = capWideScale(get43size(300), 300)
+local wodth = capWideScale(280, 300)
 local hidth = 40
 local txtoff = 10
 
