@@ -33,7 +33,7 @@ local t =
 			self:finishtweening():stopeffect():visible(false)
 		end
 	},
-	InitCommand = function(self)
+	OnCommand = function(self)
 		c = self:GetChildren()
 		if (allowedCustomization) then
 			Movable.DeviceButton_1.element = c
@@ -41,6 +41,7 @@ local t =
 			Movable.DeviceButton_1.condition = enabledJudgment
 			Movable.DeviceButton_2.condition = enabledJudgment
 			Movable.DeviceButton_2.Border = self:GetChild("Border")
+			Movable.DeviceButton_1.propertyOffsets = {getTrueX(self) , getTrueY(self) - c.Judgment:GetHeight()}	-- centered to screen/valigned
 			self:GetChild("Border"):playcommand("ChangeWidth", {val = self:GetChild("Judgment"):GetWidth()})
 			self:GetChild("Border"):playcommand("ChangeHeight", {val = self:GetChild("Judgment"):GetHeight()})
 		end

@@ -93,6 +93,7 @@ Movable = {
 		element = {},
 		children = {"Judgment", "Border"},
 		properties = {"X", "Y"},
+		propertyOffsets = nil,	-- manual offsets for stuff hardcoded to be relative to center and maybe other things (init in wifejudgmentspotting)
 		elementTree = "GameplayXYCoordinates",
 		DeviceButton_up = {
 			property = "Y",
@@ -789,6 +790,10 @@ local function movewhendragged(self)
 		if INPUTFILTER:IsBeingPressed("Mouse 0", "Mouse") and (Movable.current == b or Movable.current == "None") then
 			local nx = Round(INPUTFILTER:GetMouseX())
 			local ny = Round(INPUTFILTER:GetMouseY())
+			if Movable[b].propertyOffsets ~= nil then
+				nx = nx - Movable[b].propertyOffsets[1]
+				ny = ny - Movable[b].propertyOffsets[2]
+			end
 			MovableInput({DeviceInput = {button = b}, hellothisismouse = true, axis = "x", val = nx})
 			MovableInput({DeviceInput = {button = b}, hellothisismouse = true, axis = "y", val = ny})
 		end
