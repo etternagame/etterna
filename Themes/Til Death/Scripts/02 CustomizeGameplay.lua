@@ -112,13 +112,14 @@ Movable = {
 			inc = 5
 		}
 	},
-	DeviceButton_2 = {
+	DeviceButton_2 = {	-- note: there's almost certainly an update function associated with this that is doing things we aren't aware of
 		name = "Judge",
 		textHeader = "Judgment Label Size:",
 		element = {},
 		children = {"Judgment"},
 		properties = {"Zoom"},
 		elementTree = "GameplaySizes",
+		noBorder = true,
 		DeviceButton_up = {
 			property = "Zoom",
 			inc = 0.01

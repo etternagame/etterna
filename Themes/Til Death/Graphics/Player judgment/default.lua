@@ -21,13 +21,19 @@ local TNSFrames = {
 	TapNoteScore_Miss = 5
 }
 
+local function judgmentZoom(value)
+    c.Judgment:zoom(value)
+    c.Border:playcommand("ChangeWidth", {val = c.Judgment:GetZoomedWidth()})
+    c.Border:playcommand("ChangeHeight", {val = c.Judgment:GetZoomedHeight()})
+end
+
 local t =
 	Def.ActorFrame {
 	Def.Sprite {
 		Texture = "../../../../" .. getAssetPath("judgement"),
 		Name = "Judgment",
 		InitCommand = function(self)
-			self:pause():visible(false):xy(MovableValues.JudgeX, MovableValues.JudgeY):zoom(MovableValues.JudgeZoom)
+			self:pause():visible(false):xy(MovableValues.JudgeX, MovableValues.JudgeY)
 		end,
 		ResetCommand = function(self)
 			self:finishtweening():stopeffect():visible(false)
@@ -40,10 +46,10 @@ local t =
 			Movable.DeviceButton_2.element = c
 			Movable.DeviceButton_1.condition = enabledJudgment
 			Movable.DeviceButton_2.condition = enabledJudgment
-			Movable.DeviceButton_2.Border = self:GetChild("Border")
+			Movable.DeviceButton_2.DeviceButton_up.arbitraryFunction = judgmentZoom
+			Movable.DeviceButton_2.DeviceButton_down.arbitraryFunction = judgmentZoom
 			Movable.DeviceButton_1.propertyOffsets = {getTrueX(self) , getTrueY(self) - c.Judgment:GetHeight()}	-- centered to screen/valigned
-			self:GetChild("Border"):playcommand("ChangeWidth", {val = self:GetChild("Judgment"):GetWidth()})
-			self:GetChild("Border"):playcommand("ChangeHeight", {val = self:GetChild("Judgment"):GetHeight()})
+			judgmentZoom(MovableValues.JudgeZoom)
 		end
 	end,
 	JudgmentMessageCommand = function(self, param)
