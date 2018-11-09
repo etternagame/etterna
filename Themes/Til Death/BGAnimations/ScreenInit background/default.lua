@@ -14,6 +14,7 @@ local minanyms = {
 	"Ministry of Silly Steps",
 	"\na haiku for man\ntried to prove that we're special\nturns out that we're not",
 	"BinkleBompFOUR[emdash]",
+	"the lack of self awareness is astounding (Mina 1:78)",
 	-- the profile names of yore
 	"mystic memer",
 	"orange hands",
