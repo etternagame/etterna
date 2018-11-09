@@ -250,9 +250,7 @@ if targetTrackerMode == 0 then
 			InitCommand = function(self)
 				self:halign(0):valign(1)
 				self:settextf("%5.2f (%5.2f%%)", -100, 100)
-				if (allowedCustomization) then
-					setBordersForText(self, 0)
-				end
+				setBordersForText(self, 0)
 				self:settextf("")
 			end,
 			JudgmentMessageCommand = function(self, msg)
@@ -272,9 +270,7 @@ else
 			InitCommand = function(self)
 				self:halign(0):valign(1)
 				self:settextf("%5.2f (%5.2f%%)", -100, 100)
-				if (allowedCustomization) then
-					setBordersForText(self, 0)
-				end
+				setBordersForText(self, 0)
 				self:settextf("")
 			end,
 			JudgmentMessageCommand = function(self, msg)
@@ -331,9 +327,7 @@ local cp =
 		end,
 		OnCommand = function(self)
 			self:settextf("%05.2f%%", -10000)
-			if (allowedCustomization) then
-				setBordersForText(self, 1)
-			end
+			setBordersForText(self, 1)
 			self:settextf("%05.2f%%", 0)
 		end,
 		JudgmentMessageCommand = function(self, msg)
