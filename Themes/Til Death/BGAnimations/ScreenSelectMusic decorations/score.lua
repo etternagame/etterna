@@ -444,7 +444,7 @@ local function makeText(index)
 	return LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(frameWidth - frameX, offsetY + 55 + (index * 15)):zoom(fontScale + 0.05):halign(1):settext("")
+				self:xy(frameWidth - frameX, offsetY + 105 + (index * 15)):zoom(fontScale + 0.05):halign(1):settext("")
 			end,
 			DisplayCommand = function(self)
 				local count = 0
