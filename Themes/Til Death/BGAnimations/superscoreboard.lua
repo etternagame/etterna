@@ -9,7 +9,7 @@ local ind = 0
 local offx = 5
 local width = SCREEN_WIDTH * 0.56
 local dwidth = width - offx * 2
-local height = (numscores + 2) * packspaceY - 10
+local height = (numscores + 2) * packspaceY - packspaceY/3 -- account dumbly for header being moved up
 
 local adjx = 14
 local c0x = 10
@@ -180,7 +180,7 @@ local o =
 		offx = 5
 		width = SCREEN_WIDTH * 0.56
 		dwidth = width - offx * 2
-		height = (numscores + 2) * packspaceY -10
+		height = (numscores + 2) * packspaceY - packspaceY/3
 
 		adjx = 14
 		c0x = 10
