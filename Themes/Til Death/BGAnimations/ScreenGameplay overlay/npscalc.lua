@@ -1,9 +1,7 @@
 -- A moving average NPS calculator
 
 -- movable stuff
-local keymode = getCurrentKeyMode()
 local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
-local messageBox  -- the message box from when you try to move something
 --still kept this here because idk man
 local enabled = {
 	NPSDisplay = {
@@ -17,149 +15,6 @@ local enabled = {
 		PlayerNumber_P2 = GAMESTATE:IsPlayerEnabled(PLAYER_2) and playerConfig:get_data(pn_to_profile_slot(PLAYER_2)).NPSGraph
 	}
 }
-
-local values = {
-	NPSGraphX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NPSGraphX,
-	NPSGraphY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NPSGraphY,
-	NPSGraphWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NPSGraphWidth,
-	NPSGraphHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NPSGraphHeight,
-	NPSDisplayX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NPSDisplayX,
-	NPSDisplayY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NPSDisplayY,
-	NPSDisplayZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NPSDisplayZoom
-}
-
-local propsFunctions = {
-	X = Actor.x,
-	Y = Actor.y,
-	Zoom = Actor.zoom,
-	Height = Actor.zoomtoheight,
-	Width = Actor.zoomtowidth
-}
-
-local movable = {
-	current = "",
-	pressed = false,
-	DeviceButton_y = {
-		name = "NPSDisplay",
-		textHeader = "NPS Display Position:",
-		element = {},
-		properties = {"X", "Y"},
-		elementTree = "GameplayXYCoordinates",
-		condition = enabled.NPSDisplay.PlayerNumber_P1,
-		DeviceButton_up = {
-			property = "Y",
-			inc = -5
-		},
-		DeviceButton_down = {
-			property = "Y",
-			inc = 5
-		},
-		DeviceButton_left = {
-			property = "X",
-			inc = -5
-		},
-		DeviceButton_right = {
-			property = "X",
-			inc = 5
-		}
-	},
-	DeviceButton_u = {
-		name = "NPSDisplay",
-		textHeader = "NPS Display Size:",
-		element = {},
-		properties = {"Zoom"},
-		elementTree = "GameplaySizes",
-		condition = enabled.NPSDisplay.PlayerNumber_P1,
-		DeviceButton_up = {
-			property = "Zoom",
-			inc = 0.01
-		},
-		DeviceButton_down = {
-			property = "Zoom",
-			inc = -0.01
-		}
-	},
-	DeviceButton_i = {
-		name = "NPSGraph",
-		textHeader = "NPS Graph Position:",
-		element = {},
-		properties = {"X", "Y"},
-		elementTree = "GameplayXYCoordinates",
-		condition = enabled.NPSGraph.PlayerNumber_P1,
-		DeviceButton_up = {
-			property = "Y",
-			inc = -5
-		},
-		DeviceButton_down = {
-			property = "Y",
-			inc = 5
-		},
-		DeviceButton_left = {
-			property = "X",
-			inc = -5
-		},
-		DeviceButton_right = {
-			property = "X",
-			inc = 5
-		}
-	},
-	DeviceButton_o = {
-		name = "NPSGraph",
-		textHeader = "NPS Graph Position:",
-		element = {},
-		properties = {"Width", "Height"},
-		elementTree = "GameplaySizes",
-		condition = enabled.NPSGraph.PlayerNumber_P1,
-		DeviceButton_up = {
-			property = "Height",
-			inc = 0.01
-		},
-		DeviceButton_down = {
-			property = "Height",
-			inc = -0.01
-		},
-		DeviceButton_left = {
-			property = "Width",
-			inc = -0.01
-		},
-		DeviceButton_right = {
-			property = "Width",
-			inc = 0.01
-		}
-	}
-}
-
-local function input(event)
-	if getAutoplay() ~= 0 then
-		local button = event.DeviceInput.button
-		local notReleased = not (event.type == "InputEventType_Release")
-		if movable[button] and movable[button].condition then
-			movable.pressed = notReleased
-			movable.current = button
-			local text = {
-				movable[button].textHeader
-			}
-			for _, prop in ipairs(movable[button].properties) do
-				text[#text + 1] = prop .. ": " .. values[movable[button].name .. prop]
-			end
-			messageBox:GetChild("message"):settext(table.concat(text, "\n"))
-			messageBox:GetChild("message"):visible(notReleased)
-		end
-
-		local current = movable[movable.current]
-		if movable.pressed and current[button] and current.condition and notReleased then
-			local curKey = current[button]
-			local prop = current.name .. curKey.property
-			local newVal = values[prop] + curKey.inc
-			values[prop] = newVal
-			propsFunctions[curKey.property](current.element, newVal)
-			playerConfig:get_data(pn_to_profile_slot(PLAYER_1))[current.elementTree][keymode][prop] = newVal
-			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-			playerConfig:save(pn_to_profile_slot(PLAYER_1))
-		end
-	end
-	return false
-end
 
 local debug = false
 local countNotesSeparately = GAMESTATE:CountNotesSeparately()
@@ -327,7 +182,7 @@ local function Update(self)
 			-- We don't display the decimal values due to lack of precision from having a relatively small time window.
 			if enabled.NPSDisplay[pn] then
 				if debug then
-					self:GetChild("npsDisplay" .. pn):GetChild("Text"):settextf(
+					self:GetChild("NPSDisplay"):GetChild("Text"):settextf(
 						"%0.1f NPS (Peak %0.1f)\n%0.1fs Window\n%d notes in table\nDynamic Window:%s",
 						curNPS,
 						peakNPS[pn],
@@ -336,7 +191,7 @@ local function Update(self)
 						tostring(dynamicWindow)
 					)
 				else
-					self:GetChild("npsDisplay" .. pn):GetChild("Text"):settextf("%0.0f NPS (Peak %0.0f)", curNPS, peakNPS[pn])
+					self:GetChild("NPSDisplay"):GetChild("Text"):settextf("%0.0f NPS (Peak %0.0f)", curNPS, peakNPS[pn])
 				end
 			end
 			-- update the window size.
@@ -352,11 +207,17 @@ end
 local function npsDisplay(pn)
 	local t =
 		Def.ActorFrame {
-		Name = "npsDisplay" .. pn,
+		Name = "NPSDisplay",
 		InitCommand = function(self)
-			movable.DeviceButton_y.element = self:GetChild("Text")
-			movable.DeviceButton_u.element = self:GetChild("Text")
+			if allowedCustomization then
+				Movable.DeviceButton_y.element = self:GetChild("Text")
+				Movable.DeviceButton_u.element = self:GetChild("Text")
+				Movable.DeviceButton_y.condition = enabled.NPSDisplay.PlayerNumber_P1
+				Movable.DeviceButton_u.condition = enabled.NPSDisplay.PlayerNumber_P1
+				Movable.DeviceButton_u.Border = self:GetChild("Border")
+			end
 		end,
+		-- MovableBorder(100, 20, 1, 0, 0),
 		-- Whenever a MessageCommand is broadcasted,
 		-- a table contanining parameters can also be passed along.
 		JudgmentMessageCommand = function(self, params)
@@ -398,7 +259,7 @@ local function npsDisplay(pn)
 			{
 				Name = "Text", -- sets the name of this actor as "Text". this is a child of the actor "t".
 				InitCommand = function(self)
-					self:x(values.NPSDisplayX):y(values.NPSDisplayY):halign(0):zoom(values.NPSDisplayZoom):halign(0):valign(0):shadowlength(
+					self:x(MovableValues.NPSDisplayX):y(MovableValues.NPSDisplayY):halign(0):zoom(MovableValues.NPSDisplayZoom):halign(0):valign(0):shadowlength(
 						1
 					):settext("0.0 NPS")
 				end,
@@ -407,7 +268,12 @@ local function npsDisplay(pn)
 						self:x(SCREEN_WIDTH - 5)
 						self:halign(1)
 					end
-				end
+				end,
+				-- OnCommand = function(self)
+				-- 	if allowedCustomization then
+				-- 		setBordersForText(self, 1)
+				-- 	end
+				-- end,
 			}
 	end
 
@@ -421,11 +287,19 @@ end
 local function npsGraph(pn)
 	local t =
 		Def.ActorFrame {
+		Name = "NPSGraph",
 		InitCommand = function(self)
-			self:xy(values.NPSGraphX, values.NPSGraphY):zoomtoheight(values.NPSGraphHeight):zoomtowidth(values.NPSGraphWidth)
-			movable.DeviceButton_i.element = self
-			movable.DeviceButton_o.element = self
-		end
+			self:xy(MovableValues.NPSGraphX, MovableValues.NPSGraphY):zoomtoheight(MovableValues.NPSGraphHeight):zoomtowidth(MovableValues.NPSGraphWidth)
+			Movable.DeviceButton_i.element = self
+			Movable.DeviceButton_o.element = self
+			if allowedCustomization then
+				Movable.DeviceButton_i.element = self
+				Movable.DeviceButton_o.element = self
+				Movable.DeviceButton_i.condition = enabled.NPSGraph.PlayerNumber_P1
+				Movable.DeviceButton_o.condition = enabled.NPSGraph.PlayerNumber_P1
+				Movable.DeviceButton_o.Border = self:GetChild("Border")
+			end
+		end,
 	}
 	local verts = {
 		{{0, 0, 0}, Color.White}
@@ -503,17 +377,14 @@ local function npsGraph(pn)
 			self:queuecommand("GraphUpdate")
 		end
 	}
+	t[#t + 1] = MovableBorder(graphWidth, graphHeight, 1, 0, 0)
 	return t
 end
 
 local t =
 	Def.ActorFrame {
 	OnCommand = function(self)
-		if (allowedCustomization) then
-			SCREENMAN:GetTopScreen():AddInputCallback(input)
-		end
-		if
-			enabled.NPSDisplay[PLAYER_1] or enabled.NPSDisplay[PLAYER_2] or enabled.NPSGraph[PLAYER_1] or
+		if enabled.NPSDisplay[PLAYER_1] or enabled.NPSDisplay[PLAYER_2] or enabled.NPSGraph[PLAYER_1] or
 				enabled.NPSGraph[PLAYER_2]
 		 then
 			self:SetUpdateFunction(Update)
@@ -531,22 +402,6 @@ for _, pn in pairs({PLAYER_1, PLAYER_2}) do
 		end
 		t[#t + 1] = npsGraph(pn)
 	end
-end
-
-if (allowedCustomization) then
-	t[#t + 1] =
-		Def.ActorFrame {
-		InitCommand = function(self)
-			messageBox = self
-		end,
-		Def.BitmapText {
-			Name = "message",
-			Font = "Common Normal",
-			InitCommand = function(self)
-				self:horizalign(left):vertalign(top):shadowlength(2):xy(10, 20):zoom(.5):visible(false)
-			end
-		}
-	}
 end
 
 return t

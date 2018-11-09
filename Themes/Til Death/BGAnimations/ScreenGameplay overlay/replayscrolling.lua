@@ -1,11 +1,4 @@
-local keymode = getCurrentKeyMode()
 local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
-local values = {
-	ReplayButtonsX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ReplayButtonsX,
-	ReplayButtonsY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ReplayButtonsY,
-	ReplayButtonsSpacing = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].ReplayButtonsSpacing,
-	ReplayButtonsZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].ReplayButtonsZoom
-}
 
 local buttons = {}
 local function spaceButtons(value)
@@ -14,98 +7,10 @@ local function spaceButtons(value)
 	end
 end
 
-local propsFunctions = {
-	X = Actor.x,
-	Y = Actor.y,
-	Zoom = Actor.zoom
-}
-
 local modifierPressed = false
 local forward = true
 
 local scroller  -- just an alias for the actor that runs the commands
-
-local movable = {
-	current = "",
-	pressed = false,
-	DeviceButton_f = {
-		name = "ReplayButtons",
-		element = {},
-		elementTree = "GameplayXYCoordinates",
-		condition = true,
-		DeviceButton_up = {
-			property = "Y",
-			inc = -3
-		},
-		DeviceButton_down = {
-			property = "Y",
-			inc = 3
-		},
-		DeviceButton_left = {
-			property = "X",
-			inc = -3
-		},
-		DeviceButton_right = {
-			property = "X",
-			inc = 3
-		}
-	},
-	DeviceButton_g = {
-		name = "ReplayButtons",
-		element = {},
-		elementTree = "GameplaySizes",
-		condition = true,
-		DeviceButton_up = {
-			property = "Zoom",
-			inc = 0.01
-		},
-		DeviceButton_down = {
-			property = "Zoom",
-			inc = -0.01
-		}
-	},
-	DeviceButton_h = {
-		name = "ReplayButtons",
-		elementTree = "GameplaySizes",
-		condition = true,
-		DeviceButton_up = {
-			arbitraryFunction = spaceButtons,
-			property = "Spacing",
-			inc = -0.5
-		},
-		DeviceButton_down = {
-			arbitraryFunction = spaceButtons,
-			property = "Spacing",
-			inc = 0.5
-		},
-	},
-}
-
-local function movableInput(event)
-	local button = event.DeviceInput.button
-	local notReleased = not (event.type == "InputEventType_Release")
-	if movable[button] then
-		movable.pressed = notReleased
-		movable.current = button
-	end
-
-	local current = movable[movable.current]
-	if movable.pressed and current[button] and current.condition and notReleased then
-		local curKey = current[button]
-		local prop = current.name .. curKey.property
-		local newVal = values[prop] + curKey.inc
-		values[prop] = newVal
-		if curKey.arbitraryFunction then
-			curKey.arbitraryFunction(curKey.inc)
-		else
-			propsFunctions[curKey.property](current.element, newVal)
-		end
-		playerConfig:get_data(pn_to_profile_slot(PLAYER_1))[current.elementTree][keymode][prop] = newVal
-		playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-		playerConfig:save(pn_to_profile_slot(PLAYER_1))
-	end
-	return false
-end
 
 local function input(event)
 	--SCREENMAN:SystemMessage(event.DeviceInput.button)
@@ -166,9 +71,6 @@ scroller =
 	Name = "ScrollManager",
 	OnCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
-		if allowedCustomization then
-			SCREENMAN:GetTopScreen():AddInputCallback(movableInput)
-		end
 		scroller = self
 	end,
 	ReplayScrollCommand = function(self)
@@ -216,13 +118,24 @@ end
 
 scroller[#scroller + 1] =
 	Widg.Container {
-	x = values.ReplayButtonsX,
-	y = values.ReplayButtonsY,
+	name = "ReplayButtons",
+	x = MovableValues.ReplayButtonsX,
+	y = MovableValues.ReplayButtonsY,
 	onInit = function(self)
-		movable.DeviceButton_f.element = self
-		movable.DeviceButton_g.element = self
-		self:zoom(values.ReplayButtonsZoom)
-		spaceButtons(values.ReplayButtonsSpacing)
+		if allowedCustomization then
+			Movable.DeviceButton_f.element = self
+			Movable.DeviceButton_g.element = self
+			Movable.DeviceButton_f.condition = true
+			Movable.DeviceButton_g.condition = true
+			Movable.DeviceButton_h.condition = true
+			Movable.DeviceButton_h.DeviceButton_up.arbitraryFunction = spaceButtons
+			Movable.DeviceButton_h.DeviceButton_down.arbitraryFunction = spaceButtons
+			-- self:GetChild("Border"):playcommand("ChangeWidth", {val = self:GetWidth()})
+			-- self:GetChild("Border"):playcommand("ChangeHeight", {val = self:GetHeight()})
+			-- Movable.DeviceButton_g.Border = self:GetChild("Border")
+		end
+		self:zoom(MovableValues.ReplayButtonsZoom)
+		spaceButtons(MovableValues.ReplayButtonsSpacing)
 	end,
 	content = {
 		button(
@@ -244,7 +157,8 @@ scroller[#scroller + 1] =
 			function()
 				SCREENMAN:GetTopScreen():SetReplayPosition(SCREENMAN:GetTopScreen():GetSongPosition() - 5)
 			end
-		)
+		),
+		-- MovableBorder(200, 200, 1, 0, 0),
 	}
 }
 return scroller

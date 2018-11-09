@@ -1,5 +1,4 @@
 --[[ Screen Filter ]]
-local keymode = getCurrentKeyMode()
 local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
 local padding = 20 -- 10px on each side
 local arrowWidth = 64 -- until noteskin metrics are implemented...
@@ -14,17 +13,17 @@ local filterAlphas = {
 --moving notefield shenanigans
 local rPressed = false
 local tPressed = false
-local noteFieldWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NotefieldWidth
-local notefieldX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NotefieldX
+local noteFieldWidth = MovableValues.NotefieldWidth
+local notefieldX = MovableValues.NotefieldX
 local filter
 
 local function input(event)
 	if getAutoplay() ~= 0 then -- not touching this currently, its fully bound with the notefield ones and doesnt have a message
-		if event.DeviceInput.button == "DeviceButton_r" then
-			rPressed = not (event.type == "InputEventType_Release")
+		if event.DeviceInput.button == "DeviceButton_r" and event.type ~= "InputEventType_Release" then
+			rPressed = rPressed and false or true
 		end
-		if event.DeviceInput.button == "DeviceButton_t" then
-			tPressed = not (event.type == "InputEventType_Release")
+		if event.DeviceInput.button == "DeviceButton_t" and event.type ~= "InputEventType_Release" then
+			tPressed = tPressed and false or true
 		end
 		if rPressed and event.type ~= "InputEventType_Release" then
 			if event.DeviceInput.button == "DeviceButton_left" then
@@ -99,6 +98,7 @@ if numPlayers == 1 then
 		end,
 		UpdateCommand = function(self)
 			local player = GAMESTATE:GetMasterPlayerNumber()
+			noteFieldWidth = MovableValues.NotefieldWidth
 			self:zoomto(filterWidth * getNoteFieldScale(player) * noteFieldWidth, SCREEN_HEIGHT)
 		end
 	}

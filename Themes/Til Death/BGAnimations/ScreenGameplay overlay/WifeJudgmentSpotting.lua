@@ -1,7 +1,6 @@
 --[[ 
 	Basically rewriting the c++ code to not be total shit so this can also not be total shit.
 ]]
-local keymode = getCurrentKeyMode()
 local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
 local jcKeys = tableKeys(colorConfig:get_data().judgment)
 local jcT = {} -- A "T" following a variable name will designate an object of type table.
@@ -186,6 +185,8 @@ local t =
 		if (allowedCustomization) then
 			Movable.DeviceButton_r.element = Notefield
 			Movable.DeviceButton_t.element = noteColumns
+			Movable.DeviceButton_r.condition = true
+			Movable.DeviceButton_t.condition = true
 		end
 		for i, actor in ipairs(noteColumns) do
 			actor:zoomtowidth(MovableValues.NotefieldWidth)
@@ -234,6 +235,8 @@ local d = Def.ActorFrame {
 			Movable.DeviceButton_7.element = self
 			Movable.DeviceButton_8.element = self
 			Movable.DeviceButton_8.Border = self:GetChild("Border")
+			Movable.DeviceButton_7.condition = enabledTargetTracker
+			Movable.DeviceButton_8.condition = enabledTargetTracker
 		end
 		self:xy(MovableValues.TargetTrackerX, MovableValues.TargetTrackerY):zoom(MovableValues.TargetTrackerZoom)
 	end,
@@ -313,6 +316,8 @@ local cp =
 		if (allowedCustomization) then
 			Movable.DeviceButton_w.element = self
 			Movable.DeviceButton_e.element = self
+			Movable.DeviceButton_w.condition = enabledDisplayPercent
+			Movable.DeviceButton_e.condition = enabledDisplayPercent
 			Movable.DeviceButton_w.Border = self:GetChild("Border")
 			Movable.DeviceButton_e.Border = self:GetChild("Border")
 		end
@@ -365,6 +370,7 @@ local j =
 	InitCommand = function(self)
 		if (allowedCustomization) then
 			Movable.DeviceButton_p.element = self
+			Movable.DeviceButton_p.condition = enabledJudgeCounter
 		end
 		self:xy(MovableValues.JudgeCounterX, MovableValues.JudgeCounterY)
 	end,
@@ -464,10 +470,12 @@ local e =
 		if (allowedCustomization) then
 			Movable.DeviceButton_5.element = self:GetChildren()
 			Movable.DeviceButton_6.element = self:GetChildren()
+			Movable.DeviceButton_5.condition = enabledErrorBar ~= 0
+			Movable.DeviceButton_6.condition = enabledErrorBar ~= 0
 			Movable.DeviceButton_5.Border = self:GetChild("Border")
 			Movable.DeviceButton_6.Border = self:GetChild("Border")
-			Movable.DeviceButton_5.DeviceButton_left.arbitraryFunction = arbitraryErrorBarValue
-			Movable.DeviceButton_5.DeviceButton_right.arbitraryFunction = arbitraryErrorBarValue
+			Movable.DeviceButton_6.DeviceButton_left.arbitraryFunction = arbitraryErrorBarValue
+			Movable.DeviceButton_6.DeviceButton_right.arbitraryFunction = arbitraryErrorBarValue
 		end
 		if enabledErrorBar == 1 then
 			for i = 1, barcount do -- basically the equivalent of using GetChildren() if it returned unnamed children numerically indexed
@@ -601,6 +609,8 @@ local p =
 			if (allowedCustomization) then
 				Movable.DeviceButton_9.element = self
 				Movable.DeviceButton_0.element = self
+				Movable.DeviceButton_9.condition = enabledFullBar
+				Movable.DeviceButton_0.condition = enabledFullBar
 			end
 		end,
 		Def.Quad {
@@ -673,6 +683,7 @@ local mb =
 		self:xy(MovableValues.MiniProgressBarX, MovableValues.MiniProgressBarY)
 		if (allowedCustomization) then
 			Movable.DeviceButton_q.element = self
+			Movable.DeviceButton_q.condition = enabledMiniBar
 			Movable.DeviceButton_q.Border = self:GetChild("Border")
 		end
 	end,

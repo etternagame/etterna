@@ -25,13 +25,15 @@ Widg.defaults.container = {
 	y = 0,
 	onInit = false,
 	content = false,
-	visible = true
+	visible = true,
+	name = "Container"
 }
 Widg.Container = function(params)
 	fillNilTableFieldsFrom(params, Widg.defaults.container)
 	local container
 	container =
 		Def.ActorFrame {
+		Name = params.name,
 		InitCommand = function(self)
 			container.actor = self
 			self:xy(params.x, params.y):visible(params.visible)
