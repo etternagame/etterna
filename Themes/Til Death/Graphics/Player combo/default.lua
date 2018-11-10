@@ -10,8 +10,10 @@ local function arbitraryComboX(value)
 local function arbitraryComboZoom(value)
 	c.Label:zoom(value)
 	c.Number:zoom(value - 0.1)
-	c.Border:playcommand("ChangeWidth", {val = c.Number:GetZoomedWidth() + c.Label:GetZoomedWidth()})
-	c.Border:playcommand("ChangeHeight", {val = c.Number:GetZoomedHeight()})
+	if allowedCustomization then
+		c.Border:playcommand("ChangeWidth", {val = c.Number:GetZoomedWidth() + c.Label:GetZoomedWidth()})
+		c.Border:playcommand("ChangeHeight", {val = c.Number:GetZoomedHeight()})
+	end
 end
 
 local ShowComboAt = THEME:GetMetric("Combo", "ShowComboAt")
@@ -54,13 +56,13 @@ local t =
 		end
 	end,
 	OnCommand = function(self)
+		arbitraryComboZoom(MovableValues.ComboZoom)
 		if (allowedCustomization) then
 			c.Label:settext("COMBO")
 			c.Number:visible(true)
 			c.Label:visible(true)
 			c.Number:settext(1000)
 			Movable.DeviceButton_3.propertyOffsets = {getTrueX(self) -6, getTrueY(self) + c.Number:GetHeight()*1.5}	-- centered to screen/valigned
-			arbitraryComboZoom(MovableValues.ComboZoom)
 			setBorderAlignment(c.Border, 0.5, 1)
 		end
 	end,
