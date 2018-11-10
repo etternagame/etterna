@@ -23,8 +23,10 @@ local TNSFrames = {
 
 local function judgmentZoom(value)
     c.Judgment:zoom(value)
-    c.Border:playcommand("ChangeWidth", {val = c.Judgment:GetZoomedWidth()})
-    c.Border:playcommand("ChangeHeight", {val = c.Judgment:GetZoomedHeight()})
+    if allowedCustomization then
+	    c.Border:playcommand("ChangeWidth", {val = c.Judgment:GetZoomedWidth()})
+	    c.Border:playcommand("ChangeHeight", {val = c.Judgment:GetZoomedHeight()})
+	end
 end
 
 local t =
@@ -41,7 +43,8 @@ local t =
 	},
 	OnCommand = function(self)
 		c = self:GetChildren()
-		if (allowedCustomization) then
+		judgmentZoom(MovableValues.JudgeZoom)
+		if allowedCustomization then
 			Movable.DeviceButton_1.element = c
 			Movable.DeviceButton_2.element = c
 			Movable.DeviceButton_1.condition = enabledJudgment
@@ -49,7 +52,6 @@ local t =
 			Movable.DeviceButton_2.DeviceButton_up.arbitraryFunction = judgmentZoom
 			Movable.DeviceButton_2.DeviceButton_down.arbitraryFunction = judgmentZoom
 			Movable.DeviceButton_1.propertyOffsets = {getTrueX(self) , getTrueY(self) - c.Judgment:GetHeight()}	-- centered to screen/valigned
-			judgmentZoom(MovableValues.JudgeZoom)
 		end
 	end,
 	JudgmentMessageCommand = function(self, param)
