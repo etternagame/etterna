@@ -553,6 +553,7 @@ Movable = {
 		properties = {"Width", "Height"},
 		element = {},
 		elementTree = "GameplaySizes",
+		noBorder = true,
 		DeviceButton_up = {
 			property = "Height",
 			inc = 0.01
