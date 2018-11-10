@@ -1,7 +1,7 @@
 local t = Def.ActorFrame {}
 
 local minanyms = {
-	-- the logorrhea of yore
+	"the logorrhea of yore",
 	"Irate Platypusaurusean",
 	"Pancreatic_MilkTrombone",
 	"Fire_Elevator",
@@ -14,8 +14,9 @@ local minanyms = {
 	"Ministry of Silly Steps",
 	"\na haiku for man\ntried to prove that we're special\nturns out that we're not",
 	"BinkleBompFOUR[emdash]",
-	"the lack of self awareness is astounding (Mina 1:78)",
-	-- the profile names of yore
+	"an astounding lack of self awareness (Mina 1:78)",
+	"the changelog that answers your question\nyou know the one you didn't read",
+	"the profile names of yore",
 	"mystic memer",
 	"orange hands",
 	"Sir Smauggy",
@@ -39,7 +40,7 @@ local minanyms = {
 	"stepmania bakery hero",
 	"infinite swirling squid spacecraft",
 	"Jack Can't Reacher",
-	-- the nightly builds of yore
+	"the nightly builds of yore",
 	"AVAST YE STEPMATEY",
 	"ALPHA DINGOBABY",
 	"TOWEL FOR A PHOENIX",
@@ -61,7 +62,7 @@ local minanyms = {
 	"SLIGHTLY ALTERED COMPILER FLAG",
 	"PARTIALLY Q-TIP KIWI",
 	"POTATO PAINTING COURTESY",
-	-- Ye olde names
+	"Ye olde names",
 	"Shoeeater9000",
 	"Thirdeye",
 	"Otiose Velleity",
