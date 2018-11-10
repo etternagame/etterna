@@ -1,8 +1,21 @@
 local settext = BitmapText.settext
 
+local function highlight(self)
+	self:queuecommand("Highlight")
+end
+
+local function highlightIfOver(self)
+	if isOver(self) then
+		self:diffusealpha(0.2)
+	else
+		self:diffusealpha(1)
+	end
+end
+
 return Def.ActorFrame {
-	OnCommand = function()
+	OnCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(MovableInput)
+		self:SetUpdateFunction(highlight)
 	end,
 	Def.BitmapText {
 		Name = "message",
@@ -17,6 +30,9 @@ return Def.ActorFrame {
 		Font = "Common Normal",
 		InitCommand = function(self)
 			self:horizalign(left):vertalign(top):xy(SCREEN_WIDTH - 240, 20):zoom(.5):visible(true)
+		end,
+		HighlightCommand = function(self)
+			highlightIfOver(self)
 		end,
 		OnCommand = function(self)
 			local text = {
