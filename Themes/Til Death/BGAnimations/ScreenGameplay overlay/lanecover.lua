@@ -101,13 +101,7 @@ end
 
 local function input(event)
 	if getAutoplay() ~= 0 and playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover ~= 0 then
-		if event.DeviceInput.button == "DeviceButton_r" and event.type ~= "InputEventType_Release" then
-			rPressed = rPressed and false or true
-		end
-		if event.DeviceInput.button == "DeviceButton_t" and event.type ~= "InputEventType_Release" then
-			tPressed = tPressed and false or true
-		end
-		if rPressed and event.type ~= "InputEventType_Release" then
+		if Movable.current == "DeviceButton_r" and event.type ~= "InputEventType_Release" then
 			if event.DeviceInput.button == "DeviceButton_left" then
 				cover:addx(-3)
 			end
@@ -115,7 +109,7 @@ local function input(event)
 				cover:addx(3)
 			end
 		end
-		if tPressed and event.type ~= "InputEventType_Release" then
+		if Movable.current == "DeviceButton_t" and event.type ~= "InputEventType_Release" then
 			if event.DeviceInput.button == "DeviceButton_left" then
 				width = 64 * cols * MovableValues.NotefieldWidth - 0.01
 				cover:playcommand("Update")

@@ -19,13 +19,7 @@ local filter
 
 local function input(event)
 	if getAutoplay() ~= 0 then -- not touching this currently, its fully bound with the notefield ones and doesnt have a message
-		if event.DeviceInput.button == "DeviceButton_r" and event.type ~= "InputEventType_Release" then
-			rPressed = rPressed and false or true
-		end
-		if event.DeviceInput.button == "DeviceButton_t" and event.type ~= "InputEventType_Release" then
-			tPressed = tPressed and false or true
-		end
-		if rPressed and event.type ~= "InputEventType_Release" then
+		if Movable.current == "DeviceButton_r" and event.type ~= "InputEventType_Release" then
 			if event.DeviceInput.button == "DeviceButton_left" then
 				filter:addx(-3)
 			end
@@ -33,7 +27,7 @@ local function input(event)
 				filter:addx(3)
 			end
 		end
-		if tPressed and event.type ~= "InputEventType_Release" then
+		if Movable.current == "DeviceButton_t" and event.type ~= "InputEventType_Release" then
 			if event.DeviceInput.button == "DeviceButton_left" then
 				noteFieldWidth = noteFieldWidth - 0.01
 				filter:playcommand("Update")
