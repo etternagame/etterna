@@ -903,6 +903,8 @@ class LunaSteps : public Luna<Steps>
 	static int GetCDGraphVectors(T* p, lua_State* L)
 	{
 		auto nd = p->GetNoteData();
+		if (nd.IsEmpty())
+			return 0;
 		const vector<int>& nerv = nd.BuildAndGetNerv();
 		const vector<float>& etaner =
 		  p->GetTimingData()->BuildAndGetEtaner(nerv); 

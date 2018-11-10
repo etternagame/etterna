@@ -20,6 +20,15 @@ local function updateGraph(self)
 	local steps =  GAMESTATE:GetCurrentSteps(PLAYER_1)
 	if steps then
 		local groot = steps:GetCDGraphVectors()
+		if groot == nil then 
+			for j=1,4 do 
+				for i=1,imcrazy do
+					self:GetChild(i..j):visible(false)
+				end
+			end
+			return 
+		end
+
 		local moot = groot[1]
 		local thingers = math.min(imcrazy,#moot)
 		local wid = wodth/thingers
