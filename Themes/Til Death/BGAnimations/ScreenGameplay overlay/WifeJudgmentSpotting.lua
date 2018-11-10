@@ -158,7 +158,7 @@ end
 local t =
 	Def.ActorFrame {
 	Name = "WifePerch",
-	OnCommand = function()
+	OnCommand = function(self)
 		-- Discord thingies
 		local largeImageTooltip =
 			GetPlayerOrMachineProfile(PLAYER_1):GetDisplayName() ..
@@ -182,6 +182,9 @@ local t =
 		Notefield:addy(MovableValues.NotefieldY * (usingReverse and 1 or -1))
 		Notefield:addx(MovableValues.NotefieldX)
 		noteColumns = Notefield:get_column_actors()
+		-- lifebar stuff
+		local lifebar = SCREENMAN:GetTopScreen():GetLifeMeter(PLAYER_1)
+
 		if (allowedCustomization) then
 			Movable.pressed = false
 			Movable.current = "None"
@@ -189,7 +192,21 @@ local t =
 			Movable.DeviceButton_t.element = noteColumns
 			Movable.DeviceButton_r.condition = true
 			Movable.DeviceButton_t.condition = true
+			lifebar:AddChild(self:GetChild("Border"))
+			-- self:RemoveChild("Border") ayy lmao
+			Movable.DeviceButton_j.element = lifebar
+			Movable.DeviceButton_j.condition = true
+			Movable.DeviceButton_k.element = lifebar
+			Movable.DeviceButton_k.condition = true
+			Movable.DeviceButton_l.element = lifebar
+			Movable.DeviceButton_l.condition = true
 		end
+
+		lifebar:zoomtowidth(MovableValues.LifeP1Width)
+		lifebar:zoomtoheight(MovableValues.LifeP1Height)
+		lifebar:xy(MovableValues.LifeP1X, MovableValues.LifeP1Y)
+		lifebar:rotationz(MovableValues.LifeP1Rotation)
+		
 		for i, actor in ipairs(noteColumns) do
 			actor:zoomtowidth(MovableValues.NotefieldWidth)
 			actor:zoomtoheight(MovableValues.NotefieldHeight)
@@ -203,6 +220,9 @@ local t =
 		end
 	end
 }
+
+-- lifebar border, this is really ghetto i dont like it
+t[#t + 1] = MovableBorder(200, 5, 1, -35, 0)
 
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 																	**LaneCover**
