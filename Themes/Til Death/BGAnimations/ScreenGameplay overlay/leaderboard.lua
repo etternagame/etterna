@@ -2,12 +2,6 @@ local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1))
 local leaderboardEnabled = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
 
 local entryActors = {}
-local function arbitraryLeaderboardSpacing(value)
-	for i, entry in ipairs(entryActors) do
-		entry.container:addy((i-1) * value)
-	end
-end
-
 local t =
 	Widg.Container {
 	x = MovableValues.LeaderboardX,
@@ -30,6 +24,13 @@ local jdgs = {
 	"TapNoteScore_W4",
 	"TapNoteScore_W5"
 }
+
+local function arbitraryLeaderboardSpacing(value)
+	for i, entry in ipairs(entryActors) do
+		entry.container:addy((i-1) * value)
+	end
+	Movable.DeviceButton_s.Border:playcommand("ChangeHeight", {val = entryActors[#entryActors].container:GetY() + ENTRY_HEIGHT})
+end
 
 if not DLMAN:GetCurrentRateFilter() then
 	DLMAN:ToggleRateFilter()
@@ -91,7 +92,7 @@ function scoreEntry(i)
 	local entryActor
 	local entry =
 		Widg.Container {
-		x = WIDTH / 40,
+		x = 0,
 		y = (i - 1) * ENTRY_HEIGHT * 1.3,
 		onInit = function(self)
 			entryActor = self
@@ -211,7 +212,7 @@ t.JudgmentMessageCommand = function(self, params)
 	end
 end
 
-t[#t + 1] = MovableBorder(200, 200, 1, 0, 0)
+t[#t + 1] = MovableBorder(WIDTH, 200, 1, 0, 0)
 
 t.OnCommand = function(self, params)
 	if allowedCustomization then
@@ -223,8 +224,10 @@ t.OnCommand = function(self, params)
 		Movable.DeviceButton_d.DeviceButton_up.arbitraryFunction = arbitraryLeaderboardSpacing
 		Movable.DeviceButton_d.DeviceButton_down.arbitraryFunction = arbitraryLeaderboardSpacing
 		Movable.DeviceButton_s.Border = self:GetChild("Border")
+		Movable.DeviceButton_d.Border = self:GetChild("Border")
 	end
 	arbitraryLeaderboardSpacing(MovableValues.LeaderboardSpacing)
+	setBorderAlignment(self:GetChild("Border"), 0, 0)
 	self:zoomtowidth(MovableValues.LeaderboardWidth)
 	self:zoomtoheight(MovableValues.LeaderboardHeight)
 end
