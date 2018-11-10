@@ -129,7 +129,7 @@ local t =
 		moveDownP1 = false
 		moveUpP1 = false
 		local doot = heightP1
-		if params.PlayerNumber == PLAYER_1 then
+		if params.PlayerNumber == PLAYER_1 and allowedCustomization then
 			if params.Name == "LaneUp" then
 				moveUpP1 = true
 			elseif params.Name == "LaneDown" then
@@ -293,8 +293,10 @@ local function Update(self)
 		end
 	end
 end
-t.InitCommand = function(self)
-	self:SetUpdateFunction(Update)
+if allowedCustomization then
+	t.InitCommand = function(self)
+		self:SetUpdateFunction(Update)
+	end
 end
 
 return t
