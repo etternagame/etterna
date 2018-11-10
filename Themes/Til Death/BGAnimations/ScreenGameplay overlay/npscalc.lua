@@ -209,15 +209,21 @@ local function npsDisplay(pn)
 		Def.ActorFrame {
 		Name = "NPSDisplay",
 		InitCommand = function(self)
+			self:xy(MovableValues.NPSDisplayX, MovableValues.NPSDisplayY):zoom(MovableValues.NPSDisplayZoom)
 			if allowedCustomization then
-				Movable.DeviceButton_y.element = self:GetChild("Text")
-				Movable.DeviceButton_u.element = self:GetChild("Text")
+				Movable.DeviceButton_y.element = self
+				Movable.DeviceButton_u.element = self
 				Movable.DeviceButton_y.condition = enabled.NPSDisplay.PlayerNumber_P1
 				Movable.DeviceButton_u.condition = enabled.NPSDisplay.PlayerNumber_P1
 				Movable.DeviceButton_u.Border = self:GetChild("Border")
 			end
 		end,
-		-- MovableBorder(100, 20, 1, 0, 0),
+		OnCommand = function(self)
+			if allowedCustomization then
+				setBorderAlignment(self:GetChild("Border"), 0, 0)
+				setBorderToText(self:GetChild("Border"), self:GetChild("Text"))
+			end
+		end,
 		-- Whenever a MessageCommand is broadcasted,
 		-- a table contanining parameters can also be passed along.
 		JudgmentMessageCommand = function(self, params)
@@ -250,7 +256,8 @@ local function npsDisplay(pn)
 					lastJudgment[pn] = params.TapNoteScore
 				end
 			end
-		end
+		end,
+		MovableBorder(100, 200, 1, 0, 0),
 	}
 	-- the text that will be updated by the update function.
 	if enabled.NPSDisplay[pn] then
@@ -259,21 +266,8 @@ local function npsDisplay(pn)
 			{
 				Name = "Text", -- sets the name of this actor as "Text". this is a child of the actor "t".
 				InitCommand = function(self)
-					self:x(MovableValues.NPSDisplayX):y(MovableValues.NPSDisplayY):halign(0):zoom(MovableValues.NPSDisplayZoom):halign(0):valign(0):shadowlength(
-						1
-					):settext("0.0 NPS")
-				end,
-				BeginCommand = function(self)
-					if pn == PLAYER_2 then
-						self:x(SCREEN_WIDTH - 5)
-						self:halign(1)
-					end
-				end,
-				-- OnCommand = function(self)
-				-- 	if allowedCustomization then
-				-- 		setBordersForText(self, 1)
-				-- 	end
-				-- end,
+					self:halign(0):valign(0):settext("0 NPS (Peak 0.0)")
+				end
 			}
 	end
 

@@ -774,6 +774,12 @@ function setBorderAlignment(self, h, v)
 	self:GetChild("hideybox"):addy(-2 * (v - 0.5))
 end
 
+function setBorderToText(b, t)
+	b:playcommand("ChangeWidth", {val = t:GetZoomedWidth()})
+	b:playcommand("ChangeHeight", {val = t:GetZoomedHeight()})
+	b:playcommand("ChangeZoom", {val = t:GetParent():GetZoom()})
+end
+
 -- this is supreme lazy -mina
 local function elementtobutton(name)
 	name = name == "Judgment" and "Judge" or name
