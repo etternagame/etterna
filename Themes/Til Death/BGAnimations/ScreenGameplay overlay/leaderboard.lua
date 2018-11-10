@@ -29,7 +29,9 @@ local function arbitraryLeaderboardSpacing(value)
 	for i, entry in ipairs(entryActors) do
 		entry.container:addy((i-1) * value)
 	end
-	Movable.DeviceButton_s.Border:playcommand("ChangeHeight", {val = entryActors[#entryActors].container:GetY() + ENTRY_HEIGHT})
+	if allowedCustomization then
+		Movable.DeviceButton_s.Border:playcommand("ChangeHeight", {val = entryActors[#entryActors].container:GetY() + ENTRY_HEIGHT})
+	end
 end
 
 if not DLMAN:GetCurrentRateFilter() then
@@ -225,9 +227,9 @@ t.OnCommand = function(self, params)
 		Movable.DeviceButton_d.DeviceButton_down.arbitraryFunction = arbitraryLeaderboardSpacing
 		Movable.DeviceButton_s.Border = self:GetChild("Border")
 		Movable.DeviceButton_d.Border = self:GetChild("Border")
+		setBorderAlignment(self:GetChild("Border"), 0, 0)
 	end
 	arbitraryLeaderboardSpacing(MovableValues.LeaderboardSpacing)
-	setBorderAlignment(self:GetChild("Border"), 0, 0)
 	self:zoomtowidth(MovableValues.LeaderboardWidth)
 	self:zoomtoheight(MovableValues.LeaderboardHeight)
 end
