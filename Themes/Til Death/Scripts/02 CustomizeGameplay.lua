@@ -482,7 +482,6 @@ Movable = {
 		name = "NPSGraph",
 		textHeader = "NPS Graph Position:",
 		element = {},
-		noBorder = true,
 		properties = {"Width", "Height"},
 		elementTree = "GameplaySizes",
 		DeviceButton_up = {
@@ -611,11 +610,12 @@ Movable = {
 			property = "X",
 			inc = 3
 		}
-	},
+	},--[[
 	DeviceButton_g = {
 		name = "ReplayButtons",
 		textHeader = "Replay Buttons Size:",
 		element = {},
+		noBorder = true,
 		properties = {"Zoom"},
 		elementTree = "GameplaySizes",
 		condition = false,
@@ -627,7 +627,7 @@ Movable = {
 			property = "Zoom",
 			inc = -0.01
 		}
-	},
+	},]]
 	DeviceButton_h = {
 		name = "ReplayButtons",
 		textHeader = "Replay Buttons Spacing:",
@@ -805,7 +805,7 @@ local function movewhendragged(self)
 		else
 			self:GetParent():diffusealpha(0.35)	-- this has been moused over
 		end
-
+		
 		-- second half of the expr stops elements from being activated if you mouse over them while moving something else
 		if INPUTFILTER:IsBeingPressed("Mouse 0", "Mouse") and (Movable.current == b or Movable.current == "None") then
 			local nx = Round(INPUTFILTER:GetMouseX())

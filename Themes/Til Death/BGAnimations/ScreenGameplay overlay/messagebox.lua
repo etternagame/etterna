@@ -47,7 +47,7 @@ return Def.ActorFrame {
 				"s: Leaderboard Size",
 				"d: Leaderboard Spacing",
 				"f: Replay Buttons Position",
-				"g: Replay Buttons Size",
+				--"g: Replay Buttons Size",
 				"h: Replay Buttons Spacing"
 			}
 			if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover ~= 0 then
