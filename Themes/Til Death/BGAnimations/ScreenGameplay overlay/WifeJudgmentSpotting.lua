@@ -183,6 +183,8 @@ local t =
 		Notefield:addx(MovableValues.NotefieldX)
 		noteColumns = Notefield:get_column_actors()
 		if (allowedCustomization) then
+			Movable.pressed = false
+			Movable.current = "None"
 			Movable.DeviceButton_r.element = Notefield
 			Movable.DeviceButton_t.element = noteColumns
 			Movable.DeviceButton_r.condition = true
