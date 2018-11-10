@@ -133,8 +133,9 @@ Movable = {
 		name = "Combo",
 		textHeader = "Combo Position:",
 		element = {},
-		children = {"Label", "Number"},
+		children = {"Label", "Number", "Border"},
 		properties = {"X", "Y"},
+		propertyOffsets = nil,
 		elementTree = "GameplayXYCoordinates",
 		DeviceButton_up = {
 			property = "Y",
@@ -153,14 +154,14 @@ Movable = {
 			inc = 5
 		}
 	},
-	DeviceButton_4 = {
-		name = "Combo",
+	DeviceButton_4 = {	-- combo and label are 2 text objects, 1 right aligned and 1 left, this makes border resizing desync from the text sometimes
+		name = "Combo",	-- i really dont want to deal with this right now -mina
 		textHeader = "Combo Size:",
 		element = {},
 		children = {"Label", "Number"},
 		properties = {"Zoom"},
 		elementTree = "GameplaySizes",
-		-- noBorder = true,
+		noBorder = true,
 		DeviceButton_up = {
 			property = "Zoom",
 			inc = 0.01
@@ -761,6 +762,16 @@ function setBordersForText(self, hal)
 	else 
 		self:xy(-self:GetZoomedWidth()/2, self:GetZoomedHeight()/2*1.04 )
 	end
+end
+
+function setBorderAlignment(self, h, v)
+	self:RunCommandsOnChildren(
+		function(self)
+			self:halign(h):valign(v)
+		end
+	)
+	self:GetChild("hideybox"):addx(-2 * (h - 0.5))
+	self:GetChild("hideybox"):addy(-2 * (v - 0.5))
 end
 
 -- this is supreme lazy -mina

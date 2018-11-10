@@ -1,14 +1,17 @@
 local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
 local c
 
-local function arbitraryComboX(value)
-	c.Label:x(value)
+local function arbitraryComboX(value) 
+	c.Label:x(value) 
 	c.Number:x(value - 4)
-end
+	c.Border:x(value)
+  end 
 
 local function arbitraryComboZoom(value)
 	c.Label:zoom(value)
 	c.Number:zoom(value - 0.1)
+	c.Border:playcommand("ChangeWidth", {val = c.Number:GetZoomedWidth() + c.Label:GetZoomedWidth()})
+	c.Border:playcommand("ChangeHeight", {val = c.Number:GetZoomedHeight()})
 end
 
 local ShowComboAt = THEME:GetMetric("Combo", "ShowComboAt")
@@ -22,7 +25,7 @@ local t =
 		{
 			Name = "Number",
 			InitCommand = function(self)
-				self:xy(MovableValues.ComboX - 4, MovableValues.ComboY):zoom(MovableValues.ComboZoom - 0.1):halign(1):valign(1):skewx(-0.125):visible(
+				self:xy(MovableValues.ComboX - 4, MovableValues.ComboY):halign(1):valign(1):skewx(-0.125):visible(
 					false
 				)
 			end
@@ -31,12 +34,11 @@ local t =
 		{
 			Name = "Label",
 			InitCommand = function(self)
-				self:xy(MovableValues.ComboX, MovableValues.ComboY):zoom(MovableValues.ComboZoom):diffusebottomedge(color("0.75,0.75,0.75,1")):halign(0):valign(
+				self:xy(MovableValues.ComboX, MovableValues.ComboY):diffusebottomedge(color("0.75,0.75,0.75,1")):halign(0):valign(
 					1
 				):visible(false)
 			end
 		},
-	-- MovableBorder(0, 0, 1, MovableValues.ComboX, MovableValues.ComboY),
 	InitCommand = function(self)
 		c = self:GetChildren()
 		if (allowedCustomization) then
@@ -44,11 +46,22 @@ local t =
 			Movable.DeviceButton_4.element = c
 			Movable.DeviceButton_3.condition = true
 			Movable.DeviceButton_4.condition = true
-			Movable.DeviceButton_4.Border = self:GetChild("Border")
-			Movable.DeviceButton_3.DeviceButton_left.arbitraryFunction = arbitraryComboX
-			Movable.DeviceButton_3.DeviceButton_right.arbitraryFunction = arbitraryComboX
+			Movable.DeviceButton_3.Border = self:GetChild("Border")
+			Movable.DeviceButton_3.DeviceButton_left.arbitraryFunction = arbitraryComboX 
+			Movable.DeviceButton_3.DeviceButton_right.arbitraryFunction = arbitraryComboX 
 			Movable.DeviceButton_4.DeviceButton_up.arbitraryFunction = arbitraryComboZoom
 			Movable.DeviceButton_4.DeviceButton_down.arbitraryFunction = arbitraryComboZoom
+		end
+	end,
+	OnCommand = function(self)
+		if (allowedCustomization) then
+			c.Label:settext("COMBO")
+			c.Number:visible(true)
+			c.Label:visible(true)
+			c.Number:settext(1000)
+			Movable.DeviceButton_3.propertyOffsets = {getTrueX(self) -6, getTrueY(self) + c.Number:GetHeight()*1.5}	-- centered to screen/valigned
+			arbitraryComboZoom(MovableValues.ComboZoom)
+			setBorderAlignment(c.Border, 0.5, 1)
 		end
 	end,
 	ComboCommand = function(self, param)
@@ -85,7 +98,8 @@ local t =
 			c.Label:diffuse(Color("Red"))
 			c.Label:diffusebottomedge(color("0.5,0,0,1"))
 		end
-	end
+	end,
+	MovableBorder(0, 0, 1, MovableValues.ComboX, MovableValues.ComboY),
 }
 
 return t
