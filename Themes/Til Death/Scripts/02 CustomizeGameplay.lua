@@ -482,6 +482,7 @@ Movable = {
 		name = "NPSGraph",
 		textHeader = "NPS Graph Position:",
 		element = {},
+		noBorder = true,
 		properties = {"Width", "Height"},
 		elementTree = "GameplaySizes",
 		DeviceButton_up = {

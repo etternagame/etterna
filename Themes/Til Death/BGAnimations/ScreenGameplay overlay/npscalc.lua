@@ -291,7 +291,7 @@ local function npsGraph(pn)
 				Movable.DeviceButton_o.element = self
 				Movable.DeviceButton_i.condition = enabled.NPSGraph.PlayerNumber_P1
 				Movable.DeviceButton_o.condition = enabled.NPSGraph.PlayerNumber_P1
-				Movable.DeviceButton_o.Border = self:GetChild("Border")
+				setBorderAlignment(self:GetChild("Border"), 0, 0)
 			end
 		end,
 	}
