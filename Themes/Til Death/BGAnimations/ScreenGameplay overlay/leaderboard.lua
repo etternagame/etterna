@@ -1,8 +1,14 @@
+local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
+local leaderboardEnabled = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
+
+local entryActors = {}
 local t =
 	Widg.Container {
-	y = SCREEN_HEIGHT / 10
+	x = MovableValues.LeaderboardX,
+	y = MovableValues.LeaderboardY,
+	name = "Leaderboard"
 }
-local leaderboardEnabled = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
+
 if not leaderboardEnabled then
 	return t
 end
@@ -18,6 +24,15 @@ local jdgs = {
 	"TapNoteScore_W4",
 	"TapNoteScore_W5"
 }
+
+local function arbitraryLeaderboardSpacing(value)
+	for i, entry in ipairs(entryActors) do
+		entry.container:addy((i-1) * value)
+	end
+	if allowedCustomization then
+		Movable.DeviceButton_s.Border:playcommand("ChangeHeight", {val = entryActors[#entryActors].container:GetY() + ENTRY_HEIGHT})
+	end
+end
 
 if not DLMAN:GetCurrentRateFilter() then
 	DLMAN:ToggleRateFilter()
@@ -72,7 +87,6 @@ for i = 1, NUM_ENTRIES do
 	end
 end
 
-local entryActors = {}
 for i = 1, NUM_ENTRIES do
 	entryActors[i] = {}
 end
@@ -80,7 +94,7 @@ function scoreEntry(i)
 	local entryActor
 	local entry =
 		Widg.Container {
-		x = WIDTH / 40,
+		x = 0,
 		y = (i - 1) * ENTRY_HEIGHT * 1.3,
 		onInit = function(self)
 			entryActor = self
@@ -198,6 +212,26 @@ t.JudgmentMessageCommand = function(self, params)
 			end
 		end
 	end
+end
+
+t[#t + 1] = MovableBorder(WIDTH, 200, 1, 0, 0)
+
+t.OnCommand = function(self, params)
+	if allowedCustomization then
+		Movable.DeviceButton_a.element = self
+		Movable.DeviceButton_s.element = self
+		Movable.DeviceButton_a.condition = true
+		Movable.DeviceButton_s.condition = true
+		Movable.DeviceButton_d.condition = NUM_ENTRIES > 1
+		Movable.DeviceButton_d.DeviceButton_up.arbitraryFunction = arbitraryLeaderboardSpacing
+		Movable.DeviceButton_d.DeviceButton_down.arbitraryFunction = arbitraryLeaderboardSpacing
+		Movable.DeviceButton_s.Border = self:GetChild("Border")
+		Movable.DeviceButton_d.Border = self:GetChild("Border")
+		setBorderAlignment(self:GetChild("Border"), 0, 0)
+	end
+	arbitraryLeaderboardSpacing(MovableValues.LeaderboardSpacing)
+	self:zoomtowidth(MovableValues.LeaderboardWidth)
+	self:zoomtoheight(MovableValues.LeaderboardHeight)
 end
 
 return t

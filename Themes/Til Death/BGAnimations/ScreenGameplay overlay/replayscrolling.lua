@@ -1,3 +1,14 @@
+local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
+
+local buttons = {}
+local bobo
+local function spaceButtons(value)
+	for i, b in ipairs(buttons) do
+		b:addy((i-1) * value)
+	end
+	bobo:playcommand("ChangeHeight", {val = buttons[#buttons]:GetChild("Label"):GetY() +  buttons[#buttons]:GetChild("Label"):GetHeight()/2})
+end
+
 local modifierPressed = false
 local forward = true
 
@@ -59,7 +70,22 @@ end
 
 scroller =
 	Def.ActorFrame {
-	Name = "ScrollManager",
+	Name = "ReplayButtons",
+	InitCommand = function(self)
+		self:xy(MovableValues.ReplayButtonsX, MovableValues.ReplayButtonsY)
+		if allowedCustomization then
+			bobo = self:GetChild("Border")
+			Movable.DeviceButton_f.element = self
+			Movable.DeviceButton_f.condition = true
+			--Movable.DeviceButton_g.element = self
+			--Movable.DeviceButton_g.condition = true
+			--Movable.DeviceButton_g.Border = bobo
+			spaceButtons(MovableValues.ReplayButtonsSpacing)
+			bobo:playcommand("ChangeWidth", {val = buttons[1]:GetChild("Label"):GetWidth()})
+			--bobo:playcommand("ChangeZoom", {val = MovableValues.ReplayButtonsZoom}) 
+			setBorderAlignment(bobo, 0.5, 0)
+		end
+	end,
 	OnCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
 		scroller = self
@@ -85,7 +111,7 @@ scroller =
 	end,
 	ReplayBookmarkGotoCommand = function(self)
 		SCREENMAN:GetTopScreen():JumpToReplayBookmark()
-	end
+	end,
 }
 local span = 50
 local x = -1 * span
@@ -100,29 +126,24 @@ local function button(txt, click)
 		highlight = {color = getMainColor("positive")},
 		border = {color = getMainColor("highlight"), width = 2},
 		onClick = click,
-		y = x + 50
+		y = x,
+		onInit = function(self)
+			buttons[#buttons+1] = self
+		end
 	}
 end
-
-local bg =
-	Widg.Rectangle {
-	color = getLeaderboardColor("background"),
-	width = 100,
-	height = 200,
-	onInit = function(self)
-		local curX = getTrueX(self)
-		local alignment = SCREEN_WIDTH - 45
-		self:x(SCREEN_WIDTH - curX - alignment)
-	end
-}
-
-local i = 1
+scroller[#scroller + 1] = MovableBorder(0, 0, 1, 0, 0)
 scroller[#scroller + 1] =
 	Widg.Container {
-	x = SCREEN_WIDTH - 45,
-	y = SCREEN_HEIGHT / 2 - 100,
+	name = "ReplayButtons",
+	onInit = function(self)
+		if allowedCustomization then
+			Movable.DeviceButton_h.condition = true
+			Movable.DeviceButton_h.DeviceButton_up.arbitraryFunction = spaceButtons
+			Movable.DeviceButton_h.DeviceButton_down.arbitraryFunction = spaceButtons
+		end
+	end,
 	content = {
-		bg,
 		button(
 			"Pause",
 			function(self)
@@ -142,7 +163,7 @@ scroller[#scroller + 1] =
 			function()
 				SCREENMAN:GetTopScreen():SetReplayPosition(SCREENMAN:GetTopScreen():GetSongPosition() - 5)
 			end
-		)
+		),
 	}
 }
 return scroller

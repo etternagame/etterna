@@ -23,6 +23,7 @@ elseif bgtype == 3 then
 end
 
 local t = Def.ActorFrame {}
+setMovableKeymode(getCurrentKeyMode())
 t[#t + 1] = LoadActor("bg")
 t[#t + 1] = LoadActor("ScreenFilter")
 return t
