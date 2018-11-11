@@ -1902,11 +1902,9 @@ ScreenSelectMusic::SetPreviewNoteFieldMusicPosition(float given)
 void
 ScreenSelectMusic::PausePreviewNoteFieldMusic()
 {
-	if (m_pPreviewNoteField != nullptr && GAMESTATE->m_bIsChartPreviewActive) {
-		bool paused = GAMESTATE->GetPaused();
-		SOUND->GetRageSoundPlaying()->Pause(!paused);
-		GAMESTATE->SetPaused(!paused);
-	}
+	bool paused = GAMESTATE->GetPaused();
+	SOUND->GetRageSoundPlaying()->Pause(!paused);
+	GAMESTATE->SetPaused(!paused);
 }
 
 // lua start
@@ -2168,9 +2166,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 
 	static int PausePreviewNoteField(T* p, lua_State* L)
 	{
-		if (GAMESTATE->m_bIsChartPreviewActive) {
-			p->PausePreviewNoteFieldMusic();
-		}
+		p->PausePreviewNoteFieldMusic();
 		return 0;
 	}
 	static int IsPreviewNoteFieldPaused(T* p, lua_State* L)
