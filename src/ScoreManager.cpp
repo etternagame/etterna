@@ -831,7 +831,7 @@ class LunaScoreManager : public Luna<ScoreManager>
 	static int ValidateAllScores(T* p, lua_State* L)
 	{
 		p->EnableAllScores();
-		return 1;
+		return 0;
 	}
 
 	static int GetTopSSRHighScore(T* p, lua_State* L)
