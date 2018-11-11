@@ -29,7 +29,7 @@ return Def.ActorFrame {
 		Name = "Instructions",
 		Font = "Common Normal",
 		InitCommand = function(self)
-			self:horizalign(left):vertalign(top):xy(SCREEN_WIDTH - 240, 20):zoom(.5):visible(true)
+			self:horizalign(left):vertalign(top):xy(SCREEN_WIDTH - 240, 20):zoom(.45):visible(true)
 		end,
 		HighlightCommand = function(self)
 			highlightIfOver(self)
@@ -64,7 +64,10 @@ return Def.ActorFrame {
 				"d: Leaderboard Spacing",
 				"f: Replay Buttons Position",
 				--"g: Replay Buttons Size",
-				"h: Replay Buttons Spacing"
+				"h: Replay Buttons Spacing",
+				"j: Lifebar Position",
+				"k: Lifebar Size",
+				"l: Lifebar Rotation"
 			}
 			if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover ~= 0 then
 				table.insert(text, "/: Lane Cover Height")
