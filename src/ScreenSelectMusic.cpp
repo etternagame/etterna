@@ -465,9 +465,7 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 
 			PlayParams.sFile = song->GetMusicPath();
 			PlayParams.fLengthSeconds =
-			  song->GetLastSecond() - m_fSampleStartSeconds;			
-			GAMESTATE->SetPaused(false); // hacky can see this being problematic
-										 // if we forget about it -mina
+			  song->GetLastSecond() - m_fSampleStartSeconds;
 		}
 
 		SOUND->PlayMusic(PlayParams, FallbackMusic);
@@ -1556,6 +1554,8 @@ ScreenSelectMusic::AfterMusicChange()
 	GAMESTATE->m_pCurSong.Set(pSong);
 	if (pSong != nullptr)
 		GAMESTATE->m_pPreferredSong = pSong;
+	GAMESTATE->SetPaused(false); // hacky can see this being problematic
+								 // if we forget about it -mina
 
 	m_vpSteps.clear();
 
