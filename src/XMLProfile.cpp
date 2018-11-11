@@ -620,7 +620,11 @@ XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const
 	pGeneralDataNode->AppendChild("Guid", profile->m_sGuid);
 	pGeneralDataNode->AppendChild("SortOrder",
 								  SortOrderToString(profile->m_SortOrder));
-	ASSERT_M(profile->m_LastDifficulty > 0, ssprintf("congrats you just confirmed the cause of a rare non-repdroducible bug"));
+
+	ASSERT_M(profile->m_LastDifficulty >= 0,
+			 ssprintf("congrats you just confirmed the cause of a rare "
+					  "non-repdroducible bug. pd: %i",
+					  GAMESTATE->m_pCurSteps[PLAYER_1]->GetDifficulty()));
 	if (profile->m_LastDifficulty < Difficulty_Invalid)
 		pGeneralDataNode->AppendChild(
 		  "LastDifficulty", DifficultyToString(profile->m_LastDifficulty));
