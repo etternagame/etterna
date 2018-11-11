@@ -8,6 +8,7 @@ local score
 local pn = GAMESTATE:GetEnabledPlayers()[1]
 local nestedTab = 1
 local nestedTabs = {"Local", "Online"}
+local hasReplayData
 
 local frameX = 10
 local frameY = 40
@@ -263,6 +264,7 @@ local t =
 	end,
 	DisplayCommand = function(self)
 		score = rtTable[rates[rateIndex]][scoreIndex]
+		hasReplayData = score:HasReplayData()
 		setScoreForPlot(score)
 	end,
 	Def.Quad {
@@ -549,7 +551,7 @@ l[#l + 1] =
 			self:y(frameHeight - headeroffY - 30 - offsetY):zoom(0.5):halign(0):settext("")
 		end,
 		DisplayCommand = function(self)
-			if score:HasReplayData() then
+			if hasReplayData then
 				self:settext("Show Replay Data")
 			else
 				self:settext("No Replay Data")
@@ -560,7 +562,7 @@ l[#l + 1] =
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if nestedTab == 1 then
-				if getTabIndex() == 2 and getScoreForPlot() and getScoreForPlot():HasReplayData() and isOver(self) then
+				if getTabIndex() == 2 and getScoreForPlot() and hasReplayData and isOver(self) then
 					SCREENMAN:AddNewScreenToTop("ScreenScoreTabOffsetPlot")
 				end
 			end
@@ -574,7 +576,7 @@ l[#l + 1] =
 			self:xy((frameWidth - offsetX - frameX) / 2, frameHeight - headeroffY - 30 - offsetY):zoom(0.5):settext("")
 		end,
 		DisplayCommand = function(self)
-			if score:HasReplayData() then
+			if hasReplayData then
 				self:settext("View Replay")
 			else
 				self:settext("No Replay Data")
@@ -585,7 +587,7 @@ l[#l + 1] =
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if nestedTab == 1 then
-				if getTabIndex() == 2 and getScoreForPlot() and getScoreForPlot():HasReplayData() and isOver(self) then
+				if getTabIndex() == 2 and getScoreForPlot() and hasReplayData and isOver(self) then
 					SCREENMAN:GetTopScreen():PlayReplay(score)
 				end
 			end
@@ -599,7 +601,7 @@ l[#l + 1] =
 			self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 30 - offsetY):zoom(0.5):halign(1):settext("")
 		end,
 		DisplayCommand = function(self)
-			if score:HasReplayData() then
+			if hasReplayData then
 				self:settext("View Eval Screen")
 			else
 				self:settext("")
@@ -610,7 +612,7 @@ l[#l + 1] =
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if nestedTab == 1 then
-				if getTabIndex() == 2 and getScoreForPlot() and getScoreForPlot():HasReplayData() and isOver(self) then
+				if getTabIndex() == 2 and getScoreForPlot() and hasReplayData and isOver(self) then
 					SCREENMAN:GetTopScreen():ShowEvalScreenForScore(score)
 				end
 			end
@@ -625,7 +627,7 @@ l[#l + 1] =
 			self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 70 - offsetY):zoom(0.5):halign(1):settext("")
 		end,
 		DisplayCommand = function(self)
-			if score:HasReplayData() then
+			if hasReplayData then
 				self:settext("Upload Replay Data")
 			else
 				self:settext("")
