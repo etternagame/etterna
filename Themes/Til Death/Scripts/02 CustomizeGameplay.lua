@@ -480,9 +480,10 @@ Movable = {
 	},
 	DeviceButton_o = {
 		name = "NPSGraph",
-		textHeader = "NPS Graph Position:",
+		textHeader = "NPS Graph Size:",
 		element = {},
 		properties = {"Width", "Height"},
+		noBorder = true,
 		elementTree = "GameplaySizes",
 		DeviceButton_up = {
 			property = "Height",
