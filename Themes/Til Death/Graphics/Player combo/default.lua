@@ -56,7 +56,6 @@ local t =
 		end
 	end,
 	OnCommand = function(self)
-		arbitraryComboZoom(MovableValues.ComboZoom)
 		if (allowedCustomization) then
 			c.Label:settext("COMBO")
 			c.Number:visible(true)
@@ -65,6 +64,7 @@ local t =
 			Movable.DeviceButton_3.propertyOffsets = {getTrueX(self) -6, getTrueY(self) + c.Number:GetHeight()*1.5}	-- centered to screen/valigned
 			setBorderAlignment(c.Border, 0.5, 1)
 		end
+		arbitraryComboZoom(MovableValues.ComboZoom)
 	end,
 	ComboCommand = function(self, param)
 		local iCombo = param.Combo
