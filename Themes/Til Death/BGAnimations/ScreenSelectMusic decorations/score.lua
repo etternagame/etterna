@@ -264,7 +264,11 @@ local t =
 	end,
 	DisplayCommand = function(self)
 		score = rtTable[rates[rateIndex]][scoreIndex]
-		hasReplayData = score:HasReplayData()
+		if getTabIndex() == 2 then
+			hasReplayData = score:HasReplayData()
+		else
+			hasReplayData = false
+		end
 		setScoreForPlot(score)
 	end,
 	Def.Quad {
