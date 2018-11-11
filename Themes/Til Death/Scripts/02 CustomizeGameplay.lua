@@ -820,22 +820,6 @@ function MovableInput(event)
 	return false
 end
 
-
--- more assumptions here about hierarchy, alignment
--- halign(1):valign(0) is for hal == 1 and halign(0):valign(1) otherwise, yes i know this could be done better/automatically -mina
-function setBordersForText(self, hal)
-	if self:GetParent():GetChild("Border") ~= nil then
-		self:GetParent():GetChild("Border"):playcommand("ChangeWidth", {val = self:GetZoomedWidth()})
-		self:GetParent():GetChild("Border"):playcommand("ChangeHeight", {val = self:GetZoomedHeight()})
-		self:GetParent():GetChild("Border"):playcommand("ChangeZoom", {val = self:GetParent():GetZoom()})
-	end
-	if hal == 1 then
-		self:xy(self:GetZoomedWidth()/2, -self:GetZoomedHeight()/2*1.04 )
-	else 
-		self:xy(-self:GetZoomedWidth()/2, self:GetZoomedHeight()/2*1.04 )
-	end
-end
-
 function setBorderAlignment(self, h, v)
 	self:RunCommandsOnChildren(
 		function(self)

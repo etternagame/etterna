@@ -271,8 +271,11 @@ if targetTrackerMode == 0 then
 			Name = "PercentDifferential",
 			InitCommand = function(self)
 				self:halign(0):valign(1)
-				self:settextf("%5.2f (%5.2f%%)", -100, 100)
-				setBordersForText(self, 0)
+				if allowedCustomization then
+					self:settextf("%5.2f (%5.2f%%)", -100, 100)
+					setBorderAlignment(self:GetParent():GetChild("Border"), 0, 1)
+					setBorderToText(self:GetParent():GetChild("Border"), self)
+				end
 				self:settextf("")
 			end,
 			JudgmentMessageCommand = function(self, msg)
@@ -291,8 +294,11 @@ else
 			Name = "PBDifferential",
 			InitCommand = function(self)
 				self:halign(0):valign(1)
-				self:settextf("%5.2f (%5.2f%%)", -100, 100)
-				setBordersForText(self, 0)
+				if allowedCustomization then
+					self:settextf("%5.2f (%5.2f%%)", -100, 100)
+					setBorderAlignment(self:GetParent():GetChild("Border"), 0, 1)
+					setBorderToText(self:GetParent():GetChild("Border"), self)
+				end
 				self:settextf("")
 			end,
 			JudgmentMessageCommand = function(self, msg)
@@ -348,8 +354,11 @@ local cp =
 			self:zoom(0.3):halign(1):valign(0)
 		end,
 		OnCommand = function(self)
-			self:settextf("%05.2f%%", -10000)
-			setBordersForText(self, 1)
+			if allowedCustomization then
+				self:settextf("%05.2f%%", -10000)
+				setBorderAlignment(self:GetParent():GetChild("Border"), 1, 0)
+				setBorderToText(self:GetParent():GetChild("Border"), self)
+			end
 			self:settextf("%05.2f%%", 0)
 		end,
 		JudgmentMessageCommand = function(self, msg)
