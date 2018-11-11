@@ -901,8 +901,8 @@ HighScore::LoadReplayDataFull()
 bool
 HighScore::HasReplayData()
 {
-	string fullpath = FULL_REPLAY_DIR + m_Impl->ScoreKey;
-	string basicpath = BASIC_REPLAY_DIR + m_Impl->ScoreKey;
+	RString fullpath = FULL_REPLAY_DIR + m_Impl->ScoreKey;
+	RString basicpath = BASIC_REPLAY_DIR + m_Impl->ScoreKey;
 	if (DoesFileExist(fullpath)) // check for full replays first then default to
 								 // basic replays -mina
 		return true;
