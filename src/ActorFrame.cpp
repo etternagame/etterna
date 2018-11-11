@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "ActorFrame.h"
 #include "ActorUtil.h"
 #include "Foreach.h"
@@ -797,6 +797,18 @@ class LunaActorFrame : public Luna<ActorFrame>
 		COMMON_RETURN_SELF;
 	}
 
+	static int AddChild(T* p, lua_State* L)
+	{
+		if (lua_isnoneornil(L, 1)) {
+			lua_pushboolean(L, 0);
+			return 1;
+		} 
+		Actor* pActor = Luna<Actor>::check(L, 1);
+		p->AddChild(pActor);
+		lua_pushboolean(L, 1);
+		return 1;
+	}
+
 	static int AddChildFromPath(T* p, lua_State* L)
 	{
 		// this one is tricky, we need to get an Actor from Lua.
@@ -850,6 +862,7 @@ class LunaActorFrame : public Luna<ActorFrame>
 		ADD_METHOD(SetDiffuseLightColor);
 		ADD_METHOD(SetSpecularLightColor);
 		ADD_METHOD(SetLightDirection);
+		ADD_METHOD(AddChild);
 		ADD_METHOD(AddChildFromPath);
 		ADD_METHOD(RemoveChild);
 		ADD_METHOD(RemoveAllChildren);

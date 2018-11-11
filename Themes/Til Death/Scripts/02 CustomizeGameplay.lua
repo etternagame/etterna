@@ -51,6 +51,11 @@ local function loadValuesTable()
 	MovableValues.LeaderboardSpacing = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].LeaderboardSpacing
 	MovableValues.LeaderboardWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].LeaderboardWidth
 	MovableValues.LeaderboardHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].LeaderboardHeight
+	MovableValues.LifeP1X = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].LifeP1X
+	MovableValues.LifeP1Y = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].LifeP1Y
+	MovableValues.LifeP1Rotation = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].LifeP1Rotation
+	MovableValues.LifeP1Width = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].LifeP1Width
+	MovableValues.LifeP1Height = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].LifeP1Height
 
 	if IsUsingWideScreen() then
 		MovableValues.MiniProgressBarY = MovableValues.MiniProgressBarY + WIDESCREENWHY
@@ -80,7 +85,8 @@ local propsFunctions = {
 	Height = Actor.zoomtoheight,
 	Width = Actor.zoomtowidth,
 	AddX = Actor.addx,
-	AddY = Actor.addy
+	AddY = Actor.addy,
+	Rotation = Actor.rotationz,
 }
 
 Movable = {
@@ -644,6 +650,69 @@ Movable = {
 			arbitraryInc = true,
 			property = "Spacing",
 			inc = 0.5
+		},
+	},
+	DeviceButton_j = {
+		name = "LifeP1",
+		textHeader = "Lifebar Position:",
+		element = {},
+		properties = {"X", "Y"},
+		-- propertyOffsets = {"178", "10"},
+		elementTree = "GameplayXYCoordinates",
+		DeviceButton_up = {
+			property = "Y",
+			inc = -3
+		},
+		DeviceButton_down = {
+			property = "Y",
+			inc = 3
+		},
+		DeviceButton_left = {
+			property = "X",
+			inc = -3
+		},
+		DeviceButton_right = {
+			property = "X",
+			inc = 3
+		}
+	},
+	DeviceButton_k = {
+		name = "LifeP1",
+		textHeader = "Lifebar Size:",
+		properties = {"Width", "Height"},
+		element = {},
+		elementTree = "GameplaySizes",
+		noBorder = true,
+		DeviceButton_up = {
+			property = "Height",
+			inc = 0.1
+		},
+		DeviceButton_down = {
+			property = "Height",
+			inc = -0.1
+		},
+		DeviceButton_left = {
+			property = "Width",
+			inc = -0.01
+		},
+		DeviceButton_right = {
+			property = "Width",
+			inc = 0.01
+		}
+	},
+	DeviceButton_l = {
+		name = "LifeP1",
+		textHeader = "Lifebar Rotation:",
+		properties = {"Rotation"},
+		element = {},
+		elementTree = "GameplayXYCoordinates",
+		DeviceButton_up = {
+			property = "Rotation",
+			inc = -1
+		},
+		DeviceButton_down = {
+			property = "Rotation",
+			inc = 1
 		},
 	},
 }
